@@ -24,21 +24,14 @@ RTRPC_SRCS=\
   rtRemoteObjectCache.cpp \
   rtRemote.cpp \
   rtRemoteConfig.cpp \
+  rtRemoteEndPoint.cpp \
   rtRemoteFactory.cpp \
-  rtRemoteFileResolver.cpp \
   rtRemoteMulticastResolver.cpp \
-  rtRemoteNsResolver.cpp \
-  rtRemoteNameService.cpp \
   rtRemoteConfigBuilder.cpp \
   rtRemoteAsyncHandle.cpp \
-  rtRemoteUtils.cpp \
   rtRemoteEnvironment.cpp \
   rtRemoteStreamSelector.cpp \
   rtGuid.cpp \
-  rtRemoteMapperMap.cpp \
-  rtRemoteMapperFile.cpp \
-  rtRemoteMapperSql.cpp \
-  rtRemoteEndpointHandleStreamServer.cpp
 
 SAMPLEAPP_SRCS=\
   rpc_main.cpp
@@ -146,15 +139,15 @@ librtRemote_s.a: $(RTRPC_OBJS)
 	$(AR) rcs -o $@ $(RTRPC_OBJS)
 
 rpcSampleApp: $(SAMPLEAPP_OBJS) librtRemote.so
-	$(CXX_PRETTY) $(SAMPLEAPP_OBJS) $(LDFLAGS) -o $@ -L./ -L../build/glut -L../build/egl -lrtCore -lrtRemote $(LIBUUID)
+	$(CXX_PRETTY) $(SAMPLEAPP_OBJS) $(LDFLAGS) -o $@ -L./ -L../build/glut -L../build/glut -lrtCore -lrtRemote $(LIBUUID)
 
 rpcSampleApp_s: $(SAMPLEAPP_OBJS) librtRemote_s.a
-	$(CXX_PRETTY) $(SAMPLEAPP_OBJS) $(LDFLAGS) -o $@ -L./ -L../build/glut -L../build/egl -lrtCore_s -lrtRemote_s $(LIBUUID)
+	$(CXX_PRETTY) $(SAMPLEAPP_OBJS) $(LDFLAGS) -o $@ -L./ -L../build/glut -L../build/glut -lrtCore_s -lrtRemote_s $(LIBUUID)
 
 rpcSampleSimple: librtRemote.so
 	$(CXX_PRETTY) rtSampleClient.cpp -DRT_PLATFORM_LINUX -I. -DRAPIDJSON_HAS_STDSTRING\
-    -o rtSampleClient -I../src -L. -L../build/egl -lrtCore -lrtRemote $(LIBUUID) -std=c++11 -pthread
+    -o rtSampleClient -I../src -L. -L../build/glut -lrtCore -lrtRemote $(LIBUUID) -std=c++11 -pthread
 	$(CXX_PRETTY) rtSampleServer.cpp -DRT_PLATFORM_LINUX -I. -DRAPIDJSON_HAS_STDSTRING\
-    -o rtSampleServer -I../src -L. -L../build/egl -lrtCore -lrtRemote $(LIBUUID) -std=c++11 -pthread
+    -o rtSampleServer -I../src -L. -L../build/glut -lrtCore -lrtRemote $(LIBUUID) -std=c++11 -pthread
 
 .PHONY: all debug clean

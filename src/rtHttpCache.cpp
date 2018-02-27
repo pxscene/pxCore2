@@ -78,12 +78,14 @@ rtHttpCacheData::rtHttpCacheData():mExpirationDate(0),mUpdated(false)
   fp = NULL;
 }
 
-rtHttpCacheData::rtHttpCacheData(const char* url):mUrl(url),mExpirationDate(0),mUpdated(false)
+rtHttpCacheData::rtHttpCacheData(const char* url) :
+     mUrl(url), mExpirationDate(0), mUpdated(false)
 {
   fp = NULL;
 }
 
-rtHttpCacheData::rtHttpCacheData(const char* url, const char* headerMetadata, const char* data, int size):mUrl(url),mExpirationDate(0),mUpdated(false)
+rtHttpCacheData::rtHttpCacheData(const char* url, const char* headerMetadata, const char* data, size_t size) :
+     mUrl(url), mExpirationDate(0), mUpdated(false)
 {
   if ((NULL != headerMetadata) && (NULL != data))
   {
@@ -201,7 +203,7 @@ bool rtHttpCacheData::isWritableToCache()
 
 void rtHttpCacheData::setAttributes(char* rawAttributes)
 {
-  mHeaderMetaData.init((uint8_t*)rawAttributes,strlen(rawAttributes));
+  mHeaderMetaData.init((uint8_t*)rawAttributes, (uint32_t) strlen(rawAttributes));
   populateHeaderMap();
   setExpirationDate();
 }
@@ -262,6 +264,7 @@ rtError rtHttpCacheData::data(rtData& data)
     return RT_ERROR;
 
   data.init(mData.data(),mData.length());
+
   if (true == revalidateOnlyHeaders)
   {
     mUpdated = true; //headers  modified , so rewriting the cache with new header data
@@ -272,6 +275,53 @@ rtError rtHttpCacheData::data(rtData& data)
 void rtHttpCacheData::setData(rtData& cacheData)
 {
   mData.init(cacheData.data(),cacheData.length());
+}
+
+rtError rtHttpCacheData::deferCacheRead(rtData& data)
+{
+  if (NULL == fp)
+    return RT_ERROR;
+
+  populateExpirationDateFromCache();
+
+  bool revalidate =  false;
+  bool revalidateOnlyHeaders = false;
+
+  rtError res;
+  res = calculateRevalidationNeed(revalidate,revalidateOnlyHeaders);
+
+  if (RT_OK != res)
+    return res;
+
+  if (true == revalidate)
+    return performRevalidation(data);
+
+  if (true == revalidateOnlyHeaders)
+  {
+    if (RT_OK != performHeaderRevalidation())
+      return RT_ERROR;
+  }
+
+  if (mHeaderMap.end() != mHeaderMap.find("ETag"))
+  {
+    rtError res =  handleEtag(data);
+    if (RT_OK != res)
+      return RT_ERROR;
+    if (mUpdated)
+    {
+      return RT_OK;
+    }
+  }
+
+  char invalidData[8] = "Invalid";
+  mData.init((uint8_t*)invalidData, sizeof(invalidData));
+  data.init(mData.data(), mData.length());
+
+  if (true == revalidateOnlyHeaders)
+  {
+    mUpdated = true; //headers  modified , so rewriting the cache with new header data
+  }
+  return RT_OK;
 }
 
 rtError rtHttpCacheData::url(rtString& url) const
@@ -298,6 +348,11 @@ bool rtHttpCacheData::isUpdated()
 void rtHttpCacheData::setFilePointer(FILE* openedDescriptor)
 {
   fp = openedDescriptor;
+}
+
+FILE* rtHttpCacheData::filePointer(void)
+{
+  return fp;
 }
 
 void rtHttpCacheData::setExpirationDate()
@@ -428,8 +483,8 @@ bool rtHttpCacheData::readFileData()
   char *contentsData = NULL;
   char* tmp = NULL;
   char buffer[100];
-  int bytesCount = 0;
-  int totalBytes = 0;
+  size_t bytesCount = 0;
+  uint32_t totalBytes = 0;
   while (!feof(fp))
   {
     bytesCount = fread(buffer,1,100,fp);

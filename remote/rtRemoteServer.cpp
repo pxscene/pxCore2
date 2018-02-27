@@ -315,10 +315,6 @@ rtRemoteServer::runListener()
 {
   time_t lastKeepAliveCheck = 0;
 
-  rtRemoteSocketBuffer buff;
-  buff.reserve(1024 * 1024);
-  buff.resize(1024 * 1024);
-
   while (true)
   {
     int maxFd = 0;
@@ -761,7 +757,7 @@ rtRemoteServer::onGet(std::shared_ptr<rtRemoteClient>& client, rtRemoteMessagePt
     rtError err = RT_OK;
     rtValue value;
 
-    uint32_t    index;
+    uint32_t    index = 0;
     char const* name = rtMessage_GetPropertyName(*doc);
 
     if (name)

@@ -5,7 +5,7 @@ checkError()
   if [ "$1" -ne 0 ]
   then
         printf "\n\n*******************************************************************";
-	printf "\n*******************BUILD FAIL DETAILS******************************";
+	printf "\n******************* BUILD FAIL DETAILS ******************************";
         printf "\n failure reason: $2"
         printf "\nuse: $3"
         printf "\nproduction/How to fix: $4"
@@ -15,8 +15,19 @@ checkError()
   fi
 }
 
-#This script executes necessary javascript files and mesaures pxleak checks and memory leaks checks
-sudo rm -rf /tmp/cache/*
+#This script executes necessary javascript files and measures pxleak checks and memory leaks checks
+
+if [ -z "${TRAVIS_BUILD_DIR}" ]
+then
+  printf "\nFATAL ERROR:  'TRAVIS_BUILD_DIR' env var is NOT defined\n\n"
+  exit 1;
+else
+  printf "\nUSING: TRAVIS_BUILD_DIR=${TRAVIS_BUILD_DIR}\n\n"
+fi
+
+rm -rf /tmp/cache/*
+rm -rf $TRAVIS_BUILD_DIR/logs/*
+
 export VALGRINDLOGS=$TRAVIS_BUILD_DIR/logs/valgrind_logs
 export PX_DUMP_MEMUSAGE=1
 export ENABLE_VALGRIND=1
@@ -26,16 +37,41 @@ export SUPPRESSIONS=$TRAVIS_BUILD_DIR/ci/leak.supp
 touch $VALGRINDLOGS
 EXECLOGS=$TRAVIS_BUILD_DIR/logs/exec_logs
 TESTRUNNERURL="https://px-apps.sys.comcast.net/pxscene-samples/examples/px-reference/test-run/testRunner.js"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+printExecLogs()
+{
+  printf "\n********************** PRINTING EXEC LOG **************************\n"
+  cat $EXECLOGS
+  printf "\n**********************     LOG ENDS      **************************\n"
+}
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+printValgrindLogs()
+{
+  printf "\n********************** PRINTING VALGRIND LOG **************************\n"
+  grep -i "definitely" -C 50 $VALGRINDLOGS
+  printf "\n**********************     LOG ENDS      **************************\n"
+}
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# Start testRunner ... 
 cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src
 ./pxscene.sh $TESTRUNNERURL?tests=file://$TRAVIS_BUILD_DIR/tests/pxScene2d/testRunner/tests.json > $EXECLOGS 2>&1 &
+
 grep "TEST RESULTS: " $EXECLOGS
 retVal=$?
+
+# Monitor testRunner ...
 count=0
-while [ "$retVal" -ne 0 ] &&  [ "$count" -ne 1500 ]; do
-	echo "execute_linux snoozing for 30"
-	sleep 30;
+max_seconds=1500
+
+while [ "$retVal" -ne 0 ] &&  [ "$count" -ne "$max_seconds" ]; do
+	printf "\n [execute_osx.sh] snoozing for 30 seconds (%d of %d) \n" $count $max_seconds
+	sleep 30; # seconds
+
 	grep "TEST RESULTS: " $EXECLOGS
 	retVal=$?
+	
 	count=$((count+30))
 	if [ "$retVal" -ne 0 ]
 		then
@@ -60,16 +96,15 @@ if [ "$retVal" -eq 1 ]
 	checkError $retVal "Execution failed" "Core dump" "Test by running locally"
 	if [ "$TRAVIS_PULL_REQUEST" != "false" ]
 		then
-		echo "********************** PRINTING EXEC LOG **************************"
-		cat $EXECLOGS
-		echo "************************** LOG ENDS *******************************"
+                  printExecLogs
 	fi
 	exit 1;
 fi
 
-#check for testrunner failures
+
+# Check for any testRunner failures
 grep "Failures: 0" $EXECLOGS
-testRunnerRetVal=$?
+testRunnerRetVal=$?   # Will return 1 if NOT found
 errCause=""
 
 if [ "$testRunnerRetVal" -ne 0 ]
@@ -77,9 +112,7 @@ if [ "$testRunnerRetVal" -ne 0 ]
 	if [ "$TRAVIS_PULL_REQUEST" != "false" ]
 		then
 		errCause="Cause: Check the above logs"
-		echo "********************** PRINTING EXEC LOG **************************"
-		cat $EXECLOGS
-		echo "************************** LOG ENDS *******************************"
+		printExecLogs
 	else
 		errCause="Cause: Check the $EXECLOGS file"
 	fi
@@ -87,12 +120,16 @@ if [ "$testRunnerRetVal" -ne 0 ]
 	exit 1;
 fi
 
-#check for pxobject leak ot texture leak
+# Check for pxobject or texture memory leaks
 grep "pxobjectcount is \[0\]" $EXECLOGS
 pxRetVal=$?
 grep "texture memory usage is \[0\]" $EXECLOGS
 texRetVal=$?
 echo "Values are $pxRetVal and $texRetVal";
+
+printf "\n\n -------------------------------- \n\n"
+
+
 if [ "$pxRetVal" -eq 0 ]
 	then
 	echo "************************** pxobject count success **************************";
@@ -104,9 +141,7 @@ if [ "$pxRetVal" -eq 0 ]
 		if [ "$TRAVIS_PULL_REQUEST" != "false" ]
 			then
 			errCause="Check the above logs"
-                        echo "**************************** PRINTING EXEC LOG *****************************"
-			cat $EXECLOGS
-                        echo "********************************* LOG ENDS *********************************"			
+			printExecLogs
 		else
 			errCause="Check the $EXECLOGS file"
 		fi
@@ -117,9 +152,7 @@ else
 	if [ "$TRAVIS_PULL_REQUEST" != "false" ]
 		then
 		errCause="Check the above logs"
-                echo "**************************** PRINTING EXEC LOG *****************************"
-		cat $EXECLOGS
-                echo "********************************* LOG ENDS *********************************"			
+		printExecLogs
 	else
 		errCause="Check the $EXECLOGS file"
 	fi
@@ -128,7 +161,7 @@ else
 fi
 
 
-#check for valgrind memory leaks
+# Check for valgrind memory leaks
 grep "definitely lost: 0 bytes in 0 blocks" $VALGRINDLOGS
 retVal=$?
 if [ "$retVal" -eq 0 ]
@@ -138,9 +171,7 @@ else
 	if [ "$TRAVIS_PULL_REQUEST" != "false" ]
 		then
 		errCause="Check the above logs"
-                echo "**************************** PRINTING EXEC LOG *****************************"
-		cat $VALGRINDLOGS
-                echo "********************************* LOG ENDS *********************************"			
+		printValgrindLogs
 	else
 		errCause="Check the file $VALGRINDLOGS and see for definitely lost count"
 	fi

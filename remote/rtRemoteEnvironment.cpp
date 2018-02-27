@@ -36,9 +36,9 @@ rtRemoteEnvironment::start()
   m_running = true;
   if (Config->server_use_dispatch_thread())
   {
-    rtLogInfo("starting worker thread");
-    for (int i = 0; i < kNumWorkers; ++i)
+    while (m_workers.size() < kNumWorkers)
     {
+      rtLogInfo("starting worker thread");
       thread_ptr p(new std::thread(&rtRemoteEnvironment::processRunQueue, this));
       m_workers.push_back(std::move(p));
     }

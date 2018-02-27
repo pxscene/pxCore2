@@ -208,18 +208,23 @@ XModule.prototype._importModule = function(requiredModuleSet, readyCallBack, fai
         }
       }
       //remove the array of modules added for tracking in sandbox
-      let bPath;
+      var bPath;
       if( hasExtension(_this.name, '.js') ) {
         bPath = _this.name.substring(0, _this.name.lastIndexOf('.js'));
       } else {
         bPath = _this.name;
       }
-      let nmodules = _this.appSandbox.importTracking[bPath].length;
-      for (let modindex=0; modindex<nmodules; modindex++)
-      {
-        _this.appSandbox.importTracking[bPath].pop();
+
+      var imports = _this.appSandbox.importTracking[bPath];
+
+      if(imports !== undefined && imports !== null && imports.length !== undefined) {
+        var nmodules = _this.appSandbox.importTracking[bPath].length;
+        for (var modindex=0; modindex<nmodules; modindex++)
+        {
+          _this.appSandbox.importTracking[bPath].pop();
+        }
+        delete _this.appSandbox.importTracking[bPath];
       }
-      delete _this.appSandbox.importTracking[bPath];
 
       log.message(7, "XMODULE ABOUT TO NOTIFY [" + _this.name + "] that all its imports are Ready");
       if( readyCallBack !== null && readyCallBack !== undefined ) {
