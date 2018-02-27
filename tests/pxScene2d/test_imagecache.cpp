@@ -988,15 +988,20 @@ class rtFileDownloaderTest : public testing::Test, public commonTestFns
 
     void setDefaultCallbackFunctionNullTest()
     {
+      const char *url = "http://fileserver/file.jpeg";
       rtFileCache::instance()->clearCache();
-      addDataToCache("http://fileserver/file.jpeg",getHeader(),getBodyData(),fixedData.length());
+      addDataToCache(url,getHeader(),getBodyData(),fixedData.length());
       void (*callbackFunction)(rtFileDownloadRequest*);
       callbackFunction = rtFileDownloader::instance()->mDefaultCallbackFunction;
-      rtFileDownloadRequest* request = new rtFileDownloadRequest("http://fileserver/file.jpeg",this);
+      rtFileDownloadRequest* request = new rtFileDownloadRequest(url,this);
       request->setCallbackFunction(NULL);
       rtFileDownloader::instance()->setDefaultCallbackFunction(NULL);
       rtFileDownloader::instance()->downloadFile(request);
-      EXPECT_TRUE (true == request->isDataCached());
+      // Once downloadFile() finished 'request' is deleted
+      // EXPECT_TRUE (true == request->isDataCached());
+      rtHttpCacheData cachedData(url);
+      rtError ret = rtFileCache::instance()->httpCacheData(url, cachedData);
+      EXPECT_TRUE(ret == RT_OK);
       rtFileDownloader::instance()->setDefaultCallbackFunction(callbackFunction);
     }
 
