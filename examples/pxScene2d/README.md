@@ -90,7 +90,7 @@
       buildWindows.bat
       ~~~~
   
-    b. For using system libraries for all external libs except node and duktape.
+    b. For using system libraries for all external libs except node and duktape (Only for Linux and Mac OS).
       ~~~~
       Build duktape
       ~~~~ 
@@ -98,7 +98,7 @@
       mkdir build
       cd build
       cmake ..
-      make -j1
+      cmake --build . --config Release
       ~~~~
       Build Node
       ~~~~
