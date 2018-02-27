@@ -155,7 +155,7 @@ pxCanvas2d::pxCanvas2d(): mFontSize(0.0), textX(0.0), textY(0.0), lastX(0.0), la
                           mVertexCount(0),   mFillColor(pxRed), mStrokeColor(pxRed), mStrokeWidth(0.0),
                           mOffscreen(/*NULL*/),
                           extentLeft(0.0), extentTop(0.0), extentRight(0.0), extentBottom(0.0),
-                          mNeedsRedraw(false), mw(0), mh(0)
+                          mNeedsRedraw(false), mw(0), mh(0), mStrokeType(StrokeType::inside)
 {
 
 }
@@ -270,7 +270,6 @@ void pxCanvas2d::curveTo(double x2, double y2, double x3, double y3, double x4, 
     addCurve22(mVertices[mVertexCount-1].x(), mVertices[mVertexCount-1].y(),  x2, y2,  x3, y3,  x4, y4);
   }
 }
-
 
 // Quadtatic
 void pxCanvas2d::curveTo(double x2, double y2, double x3, double y3)  // uses preceeding vertex as (x1,y1)
@@ -437,11 +436,14 @@ void pxCanvas2d::fill(bool time)
   }
 #endif // USE_PERF_TIMERS
 
-  extentLeft = extentTop = 1000000;
+  extentLeft  = extentTop    =  1000000;
   extentRight = extentBottom = -1000000;
 
   if (mVertexCount > 1)
   {
+    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    // No TRANSFORMATION applied
+    //
     if (mMatrix.isIdentity())
     {
       if (mRasterizer.texture())
@@ -469,6 +471,7 @@ void pxCanvas2d::fill(bool time)
 #endif
 #endif
       }
+      // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
       else
       {
 #ifdef USE_PERF_TIMERS
@@ -484,11 +487,23 @@ void pxCanvas2d::fill(bool time)
         while(vp < vlast)
         {
           mRasterizer.addEdge(vp->x(), vp->y(), (vp+1)->x(), (vp+1)->y() );
+          
+          if( (vp)->x() < extentLeft)     extentLeft = (vp)->x();
+          if( (vp)->x() > extentRight)   extentRight = (vp)->x();
+          if( (vp)->y() < extentTop)       extentTop = (vp)->y();
+          if( (vp)->y() > extentBottom) extentBottom = (vp)->y();
+          
+          if( (vp + 1)->x() < extentLeft)     extentLeft = (vp + 1)->x();
+          if( (vp + 1)->x() > extentRight)   extentRight = (vp + 1)->x();
+          if( (vp + 1)->y() < extentTop)       extentTop = (vp + 1)->y();
+          if( (vp + 1)->y() > extentBottom) extentBottom = (vp + 1)->y();
+          
           vp++;
         }
-
       }
     }
+    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    // Has TRANSFORMATION applied
     else
     {
       int i;
@@ -510,6 +525,7 @@ void pxCanvas2d::fill(bool time)
       if (mVertices[i].y() < extentTop)       extentTop = mVertices[i].y();
       if (mVertices[i].y() > extentBottom) extentBottom = mVertices[i].y();
     }
+    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   }
 
 #ifdef USE_PERF_TIMERS
@@ -598,220 +614,405 @@ void pxCanvas2d::fill(bool time)
 
 #endif
 
+#if 0
+
+// Original code... 'Center' stroke only...
+//
 void pxCanvas2d::stroke()
 {
   double halfStrokeWidth = mStrokeWidth / 2;
   pxFillMode oldFillMode = mRasterizer.fillMode();
   mRasterizer.setFillMode(fillWinding);
-
+  
   if (mVertexCount > 1)
   {
-    bool closed = mVertices[0].x() == mVertices[mVertexCount-1].x() &&
-                  mVertices[0].y() == mVertices[mVertexCount-1].y();
+    bool closed = (mVertices[0].x() == mVertices[mVertexCount-1].x() ) &&
+                  (mVertices[0].y() == mVertices[mVertexCount-1].y() );
     
-#if 1
-
-#if 0
+    pxVertex firstA1, firstA2;
+    pxVertex lastB1,   lastB2;
+    
     for (int i = 0; i < mVertexCount-1; i++)
     {
-      pxVertex a;
-      pxVertex b;
+      // Get transformed verticies...
+      //
+      pxVertex a = mMatrix.multiply(mVertices[i]);
+      pxVertex b = mMatrix.multiply(mVertices[i+1]);
+      
+      // Length of segment
+      double dx = ( b.x() - a.x() );
+      double dy = ( b.y() - a.y() );
+      
+      double len = pow(dx * dx + dy * dy, 0.5);
+      
+      if (len == 0)
+        len = 1;
+      
+      // Normalize
+      dx /= len;
+      dy /= len;
+      
+      dx *= halfStrokeWidth;
+      dy *= halfStrokeWidth;
+      
+      // Add edges for Stroke... with offsets
+      //
+      double ax, ay, bx, by;
+      
+      ax = a.x() + dy;   ay = a.y() - dx;
+      bx = b.x() + dy;   by = b.y() - dx;
+      
+      mRasterizer.addEdge(ax, ay, bx, by);  // A
+      
+      bx = b.x() - dy;   by = b.y() + dx;
+      ax = a.x() - dy;   ay = a.y() + dx;
+      
+      mRasterizer.addEdge(bx, by, ax, ay);  // B
+      
+      // Remember the START
+      if (i == 0)
+      {
+        firstA1.setXY( a.x() + dy, a.y() - dx );
+        firstA2.setXY( a.x() - dy, a.y() + dx );
+      }
+      
+      // Join this segment to the last segment
+      if (i > 0)
+      {
+        mRasterizer.addEdge(lastB1.x(), lastB1.y(),
+                            a.x() + dy , a.y() - dx);
+        
+        mRasterizer.addEdge(a.x() - dy , a.y() + dx,
+                            lastB2.x()  , lastB2.y() );
+      }
+      
+      // Until the END
+      lastB1.setXY( b.x() + dy, b.y() - dx );
+      lastB2.setXY( b.x() - dy, b.y() + dx );
+      
+      if (closed == false)
+      {
+        // buttcaps
+        if (i == 0)
+        {
+          mRasterizer.addEdge(a.x() - dy, a.y() + dx,
+                              a.x() + dy, a.y() - dx);
+        }
+        
+        if (i == mVertexCount-2)
+        {
+          mRasterizer.addEdge(b.x() + dy, b.y() - dx,
+                              b.x() - dy, b.y() + dx);
+        }
+      }
+      else
+      {
+        // close the shape
+        if (i == mVertexCount-2)
+        {
+          mRasterizer.addEdge(lastB1.x(),   lastB1.y(), firstA1.x(), firstA1.y() );
+          mRasterizer.addEdge(firstA2.x(), firstA2.y(), lastB2.x(),  lastB2.y() );
+        }
+      }
+    }//FOR
+  }
+  
+  mRasterizer.setColor(mStrokeColor);
+  mRasterizer.rasterize();
+  mRasterizer.setFillMode(oldFillMode);
+}
 
-      mMatrix.multiply(mVertices[i], mMatrix, a);
-      mMatrix.multiply(mVertices[i+1], mMatrix, b);
-
-      float dx1 = (b.x - a.x);
-      float dy1 = (b.y - a.y);
-
-      float len = pow(dx1 * dx1 + dy1 * dy1, (float)0.5);
-
-      dx1 /= len;
-      dy1 /= len;
-
-      dx1 *= halfStrokeWidth;
-      dy1 *= halfStrokeWidth;
-
-      mRasterizer.addEdge(b.x-dy1,b.y + dx1 ,a.x-dy1, a.y + dx1);
-      mRasterizer.addEdge(a.x-dy1, a.y + dx1,a.x+dy1, a.y-dx1);
-      mRasterizer.addEdge(a.x+dy1,a.y-dx1,b.x+dy1, b.y-dx1);
-      mRasterizer.addEdge(b.x+dy1,b.y - dx1 ,b.x-dy1,b.y+dx1);
-    }
 #else
+
+void pxCanvas2d::stroke()
+{
+  pxFillMode oldFillMode = mRasterizer.fillMode();
+  mRasterizer.setFillMode(fillWinding);
+  
+ // stroke_center();
+  switch(mStrokeType)
+  {
+    case StrokeType::inside: stroke_inside();   break;
+    case StrokeType::outside: stroke_outside(); break;
+    case StrokeType::center: stroke_center();   break;
+  }
+  
+  mRasterizer.setColor(mStrokeColor);
+  mRasterizer.rasterize();
+  mRasterizer.setFillMode(oldFillMode);
+}
+
+#endif
+
+void pxCanvas2d::stroke_inout(StrokeType t)
+{
+  int sign = (t == StrokeType::inside) ? 1 : -1;
+  
+  if (mVertexCount > 1)
+  {
+    // Closed Path ?   (First Pt. == Last Pt.)  ?
+    //
+    bool closed = (mVertices[0].x() == mVertices[mVertexCount-1].x() ) &&
+                  (mVertices[0].y() == mVertices[mVertexCount-1].y() );
+    
+    pxVertex firstA1, firstA2;
+    pxVertex  lastB1,  lastB2;
+    
+    for (int i = 0; i < mVertexCount-1; i++)
+    {
+      // Get transformed verticies...
+      //
+      pxVertex a = mMatrix.multiply(mVertices[i]);
+      pxVertex b = mMatrix.multiply(mVertices[i+1]);
+      
+      // Length of segment
+      double dx = ( b.x() - a.x() );
+      double dy = ( b.y() - a.y() );
+      
+      double len = pow( (dx * dx) + (dy * dy), 0.5);
+      
+      if (len == 0)
+      {
+        len = 1;
+      }
+      
+      // Normalize
+      dx /= len;
+      dy /= len;
+      
+      dx *= sign * mStrokeWidth;
+      dy *= sign * mStrokeWidth;
+
+      // Add edges for Stroke... with offsets
+      //
+      double ax, ay, bx, by;
+      
+      ax = a.x();   ay = a.y();
+      bx = b.x();   by = b.y();
+      
+      mRasterizer.addEdge( ax, ay,  bx, by);  // A
+      
+      bx = b.x() - dy;   by = b.y() + dx;
+      ax = a.x() - dy;   ay = a.y() + dx;
+      
+      mRasterizer.addEdge(bx, by, ax, ay);    // B
+
+#if 1
+      // Remember the START
+      if (i == 0)
+      {
+        firstA1.setXY( a.x()     , a.y() );
+        firstA2.setXY( a.x() - dy, a.y() + dx );
+      }
+      
+      
+      // Join this segment to the last segment
+      if (i > 0)
+      {
+        mRasterizer.addEdge( lastB1.x(), lastB1.y(),   a.x(), a.y() );
+        mRasterizer.addEdge( a.x() - dy, a.y() + dx,   lastB2.x(), lastB2.y() );
+      }
+
+      // Until the END...
+      lastB1.setXY( b.x()     , b.y() );
+      lastB2.setXY( b.x() - dy, b.y() + dx );
+      
+      if (closed == false)
+      {
+        // Buttcaps
+        if (i == 0) // START
+        {
+          mRasterizer.addEdge(a.x() - dy, a.y() + dx,
+                              a.x(), a.y() );//  a.x() + dy, a.y() - dx);
+        }
+        if (i == mVertexCount-2) // END
+        {
+          mRasterizer.addEdge(b.x(), b.y(), // + dy, b.y() - dx,
+                              b.x() - dy, b.y() + dx);
+        }
+      }
+      else
+      {
+        // ... Close the shape
+        if (i == mVertexCount-2)
+        {
+          mRasterizer.addEdge( lastB1.x(),  lastB1.y(),
+                              firstA1.x(), firstA1.y() );
+          
+          mRasterizer.addEdge(firstA2.x(), firstA2.y(),
+                              lastB2.x(),  lastB2.y() );
+        }
+      }
+      
+#else
+      // Join this segment to the last segment
+      if (i > 0)
+      {
+        mRasterizer.addEdge( lastB1.x(), lastB1.y(),   a.x(), a.y() );
+        mRasterizer.addEdge( a.x() - dy, a.y() + dx,   lastB2.x(), lastB2.y() );
+      }
+      
+      if (closed == false)
+      {
+        // Buttcaps
+        if (i == 0) // START
+        {
+          mRasterizer.addEdge(a.x(), a.y(),
+                              a.x() + dy, a.y() - dx);
+        }
+        if (i == mVertexCount-2) // END
+        {
+          mRasterizer.addEdge(b.x() , b.y(), //+ dy, b.y() - dx,
+                              a.x() - dy, a.y() + dx);//b.y() + dx);
+        }
+      }
+      else
+      {
+        // Remember the START
+        if (i == 0)
+        {
+          firstA1.setXY( a.x()     , a.y() );
+          firstA2.setXY( a.x() - dy, a.y() + dx );
+        }
+        
+        // Until the END...
+        lastB1.setXY( b.x()     , b.y() );
+        lastB2.setXY( b.x() - dy, b.y() + dx );
+        
+        // ... Close the shape
+        if (i == mVertexCount-2)
+        {
+          mRasterizer.addEdge( lastB1.x(),  lastB1.y(),
+                              firstA1.x(), firstA1.y() );
+          
+          mRasterizer.addEdge(firstA2.x(), firstA2.y(),
+                               lastB2.x(),  lastB2.y() );
+        }
+      }
+#endif
+    }//FOR
+  }
+}
+
+
+void pxCanvas2d::stroke_inside()
+{
+  stroke_inout(StrokeType::inside);
+}
+
+void pxCanvas2d::stroke_outside()
+{
+  stroke_inout(StrokeType::outside);
+}
+
+void pxCanvas2d::stroke_center()
+{
+  double halfStrokeWidth = mStrokeWidth / 2;
+  
+  if (mVertexCount > 1)
+  {
+    // Closed Path ?   (First Pt. == Last Pt.)  ?
+    //
+    bool closed = (mVertices[0].x() == mVertices[mVertexCount-1].x() ) &&
+                  (mVertices[0].y() == mVertices[mVertexCount-1].y() );
+
     pxVertex firstA1, firstA2;
     pxVertex lastB1, lastB2;
 
     for (int i = 0; i < mVertexCount-1; i++)
     {
+      // Get transformed verticies...
+      //
       pxVertex a = mMatrix.multiply(mVertices[i]);
       pxVertex b = mMatrix.multiply(mVertices[i+1]);
+
+      // Length of segment
+      double dx = ( b.x() - a.x() );
+      double dy = ( b.y() - a.y() );
       
-      double dx1 = (b.x() - a.x() );
-      double dy1 = (b.y() - a.y() );
+      double len = pow( (dx * dx) + (dy * dy), 0.5);
 
-      double len = pow(dx1 * dx1 + dy1 * dy1, 0.5);
-
-			if (len == 0)
-				len = 1;
-
-      dx1 /= len;
-      dy1 /= len;
-
-
-      dx1 *= halfStrokeWidth;
-      dy1 *= halfStrokeWidth;
+      if (len == 0)
+      {
+        len = 1;
+      }
       
-      mRasterizer.addEdge(a.x() + dy1, a.y() - dx1, b.x() + dy1, b.y() - dx1);
-      mRasterizer.addEdge(b.x() - dy1, b.y() + dx1, a.x() - dy1, a.y() + dx1);
+      // Normalize
+      dx /= len;
+      dy /= len;
+
+      dx *= halfStrokeWidth;
+      dy *= halfStrokeWidth;
       
+      //    ----------------- A  (above/outside)
+      //
+      //    .................
+      //
+      //    ----------------- B  (below/inside)
+      //
+      
+      // Add edges for Stroke... with offsets
+      //
+      double ax, ay, bx, by;
+      
+      ax = a.x() + dy;   ay = a.y() - dx;
+      bx = b.x() + dy;   by = b.y() - dx;
+      
+      mRasterizer.addEdge( ax, ay,  bx, by);  // A
+      
+      bx = b.x() - dy;   by = b.y() + dx;
+      ax = a.x() - dy;   ay = a.y() + dx;
+      
+      mRasterizer.addEdge(bx, by, ax, ay);    // B
+      
+      // Remember the START
       if (i == 0)
       {
-        firstA1.setX( a.x() + dy1 );
-        firstA1.setY( a.y() - dx1 );
-        firstA2.setX( a.x() - dy1 );
-        firstA2.setY( a.y() + dx1 );
+        firstA1.setXY( (a.x() + dy), (a.y() - dx) );
+        firstA2.setXY( (a.x() - dy), (a.y() + dx) );
       }
-
-#if 1
-      // join this segment to the last segment
+      
+      // Join this segment to the last segment
       if (i > 0)
       {
-        mRasterizer.addEdge(lastB1.x()  , lastB1.y()  , a.x() + dy1 , a.y() - dx1);
-        mRasterizer.addEdge(a.x() - dy1 , a.y() + dx1 , lastB2.x()  , lastB2.y() );
+        mRasterizer.addEdge(  lastB1.x() ,  lastB1.y(),
+                             a.x() + dy , a.y() - dx );
         
+        mRasterizer.addEdge( a.x() - dy  , a.y() + dx,
+                              lastB2.x()  , lastB2.y()  );
       }
-#endif
-
-      lastB1.setX( b.x() + dy1 );
-      lastB1.setY( b.y() - dx1 );
-      lastB2.setX( b.x() - dy1 );
-      lastB2.setY( b.y() + dx1 );
-
-#if 1
-      if (!closed)
+      
+      // Until the END...
+      lastB1.setXY( (b.x() + dy), (b.y() - dx) );
+      lastB2.setXY( (b.x() - dy), (b.y() + dx) );
+      
+      if (closed == false)
       {
-        // buttcaps
-        if (i == 0)
-          mRasterizer.addEdge(a.x() - dy1, a.y() + dx1, a.x() + dy1, a.y() - dx1);
-
-        if (i == mVertexCount-2)
-          mRasterizer.addEdge(b.x() + dy1, b.y() - dx1, b.x() - dy1, b.y() + dx1);
+        // Buttcaps
+        if (i == 0) // START
+        {
+          mRasterizer.addEdge(a.x() - dy, a.y() + dx,
+                              a.x() + dy, a.y() - dx);
+        }
+        if (i == mVertexCount-2) // END
+        {
+          mRasterizer.addEdge(b.x() + dy, b.y() - dx,
+                              b.x() - dy, b.y() + dx);
+        }
       }
       else
       {
-        // close the ahape
-#if 1
+        // ... Close the shape
         if (i == mVertexCount-2)
         {
           mRasterizer.addEdge(lastB1.x(),   lastB1.y(), firstA1.x(), firstA1.y() );
           mRasterizer.addEdge(firstA2.x(), firstA2.y(),  lastB2.x(),  lastB2.y() );
         }
-#endif
       }
-#endif
-
-    }
-#endif
-#else
-    // transform all of the vertices
-    for (int i = 0; i < mVertexCount; i++)
-    {
-      pxVertex t;
-
-      mMatrix.multiply(mVertices[i], mMatrix, t);
-      mVertices[i] = t;
-    }
-
-    int vertexCount = mVertexCount-1;
-    for (int i = 0; i < vertexCount; i++)
-    {
-      pxVertex a = mVertices[i];
-      pxVertex b = mVertices[(i+1)%vertexCount];
-      pxVertex c = mVertices[(i+2)%vertexCount];
-      pxVertex d = mVertices[(i+3)%vertexCount];
-
-      // edge 1
-      float dx1 = (b.x - a.x);
-      float dy1 = (b.y - a.y);
-
-      float len1 = pow(dx1 * dx1 + dy1 * dy1, (float)0.5);
-
-      dx1 /= len1;
-      dy1 /= len1;
-
-      dx1 *= halfStrokeWidth;
-      dy1 *= halfStrokeWidth;
-
-      // edge 2
-      float dx2 = (c.x - b.x);
-      float dy2 = (c.y - b.y);
-
-      float len2 = pow(dx2 * dx2 + dy2 * dy2, (float)0.5);
-
-      dx2 /= len2;
-      dy2 /= len2;
-
-      dx2 *= halfStrokeWidth;
-      dy2 *= halfStrokeWidth;
-
-      // edge 3
-      float dx3 = (d.x - c.x);
-      float dy3 = (d.y - c.y);
-
-      float len3 = pow(dx3 * dx3 + dy3 * dy3, (float)0.5);
-
-      dx3 /= len3;
-      dy3 /= len3;
-
-      dx3 *= halfStrokeWidth;
-      dy3 *= halfStrokeWidth;
-
-#if 0
-      mRasterizer.addEdge(b.x-dy1,b.y + dx1 ,a.x-dy1, a.y + dx1);
-      mRasterizer.addEdge(a.x+dy1,a.y-dx1,b.x+dy1, b.y-dx1);
-#else
-#if 1
-      {
-        LineSegment l1(Vector(b.x-dy1, b.y+dx1), Vector(a.x-dy1, a.y+dx1));
-        LineSegment l2(Vector(c.x-dy2, c.y+dx2), Vector(b.x-dy2, b.y+dx2));
-        LineSegment l3(Vector(d.x-dy3, d.y+dx3), Vector(c.x-dy3, c.y+dx3));
-        Vector i1, i2;
-        l1.Intersect(l2, i1);
-        l3.Intersect(l2, i2);
-
-        // mRasterizer.addEdge(c.x-dy2,c.y + dx2 ,b.x-dy2, b.y + dx2);
-        mRasterizer.addEdge(i2.x_, i2.y_ , i1.x_ , i1.y_);
-      }
-#endif
-      {
-        LineSegment l1(Vector(b.x+dy1, b.y-dx1), Vector(a.x+dy1, a.y-dx1));
-        LineSegment l2(Vector(c.x+dy2, c.y-dx2), Vector(b.x+dy2, b.y-dx2));
-        LineSegment l3(Vector(d.x+dy3, d.y-dx3), Vector(c.x+dy3, c.y-dx3));
-        Vector i1, i2;
-        l1.Intersect(l2, i1);
-        l3.Intersect(l2, i2);
-
-        // mRasterizer.addEdge(c.x-dy2,c.y + dx2 ,b.x-dy2, b.y + dx2);
-        //mRasterizer.addEdge(i2.x_, i2.y_ , i1.x_ , i1.y_);
-        mRasterizer.addEdge(i1.x_, i1.y_ , i2.x_ , i2.y_);
-      }
-#endif
-
-    }
-#endif
+    }//FOR
   }
-
-
-#if 0
-  mColor = mStrokeColor;
-
-  rasterize();
-  mFillMode = oldFillMode;
-#else
-  mRasterizer.setColor(mStrokeColor);
-  mRasterizer.rasterize();
-  mRasterizer.setFillMode(oldFillMode);
-#endif
 }
+
 
 #ifdef RTPLATFORM_WINDOWS
 rtString pxCanvas2d::font()
@@ -898,6 +1099,11 @@ void pxCanvas2d::setAlpha(double alpha)
 void pxCanvas2d::setStrokeWidth(double w)
 {
   mStrokeWidth = w;
+}
+
+void pxCanvas2d::setStrokeType(StrokeType t)
+{
+  mStrokeType = t;
 }
 
 #define  QUAD_MAX_DEPTH    7 // 3

@@ -59,7 +59,8 @@ static bcurves_t arcToBezier(a2cReal_t px, a2cReal_t py,
 
 pxPath::pxPath(pxScene2d* scene): pxObject(scene),
                                   mExtentLeft(0.0f), mExtentTop(0.0f), mExtentRight(0.0f), mExtentBottom(0.0f),
-                                  mStrokeColor(pxClear), mStrokeWidth(0), mFillColor(pxClear)
+                                  mStrokeColor(pxClear), mStrokeWidth(0),
+                                  mStrokeType(pxCanvas2d::StrokeType::inside), mFillColor(pxClear)
 {
   mx = 0;
   my = 0;
@@ -517,6 +518,12 @@ void updatePen(float px, float py)
       
       p->pushRect(p, x0, y0, w, h, rx, rx);
       
+//      p->setX(x0);
+//      p->setY(y0);
+
+      p->setW(w);
+      p->setH(h);
+      
       updatePen(x0, y0); // POSITION
       
       s += n;
@@ -531,6 +538,12 @@ void updatePen(float px, float py)
       
       p->pushRect(p, x0, y0, w, h, zero, zero);
       
+//      p->setX(x0);
+//      p->setY(y0);
+//      
+//      p->setW(w);
+//      p->setH(h);
+      
       updatePen(x0, y0); // POSITION
       
       s += n;
@@ -543,6 +556,12 @@ void updatePen(float px, float py)
       // printf("\nPath:   CIRCLE( x0:%.0f, y0:%.0f, r: %.0f) ", x0, y0, r);
       
       p->pushEllipse(p, x0, y0, r, r); // circle is a special case of an ellipse !
+      
+//      p->setX(x0);
+//      p->setY(y0);
+
+//      p->setW(r * 2);
+//      p->setH(r * 2);
       
       updatePen(x0, y0); // POSITION
       
@@ -557,6 +576,12 @@ void updatePen(float px, float py)
       
       p->pushEllipse(p, x0, y0, rx, ry);
       
+//      p->setX(x0);
+//      p->setY(y0);
+//      
+//      p->setW(rx * 2);
+//      p->setH(ry * 2);
+
       updatePen(x0, y0); // POSITION
 
       s += n;
@@ -568,11 +593,22 @@ void updatePen(float px, float py)
       std::vector<float> points;
       float pt;
       
+//      int first2 = 0;
+      
       s += strlen(poly_str); // SKIP POLYGON
       
       while(sscanf(s, "%f %n", &pt, &n) == 1)
       {
         points.push_back(pt);
+        
+//        if(first2++ == 0)
+//        {
+//          p->setX(pt);
+//        }
+//        if(first2++ == 1)
+//        {
+//          p->setY(y0);
+//        }
         s += n;
       }
       
@@ -618,7 +654,7 @@ void pxPath::pushRect(pxPath *p, float x0, float y0, float w, float h, float rx,
 
     // - - - - - - - - - - - - - - - - - - - - - - - - - -
     // Right
-    p->pushOpcode( 'L' ); // H
+    p->pushOpcode( 'L' ); // V
     p->pushFloat(x0 + w, y0 + h);
 
     // - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -628,8 +664,8 @@ void pxPath::pushRect(pxPath *p, float x0, float y0, float w, float h, float rx,
 
     // - - - - - - - - - - - - - - - - - - - - - - - - - -
     // Left
-    //  p->pushOpcode( 'L' ); // H
-    //  p->pushFloat(Hx, Hy);
+//    p->pushOpcode( 'L' ); // V
+//    p->pushFloat(x0, y0);
 
     // - - - - - - - - - - - - - - - - - - - - - - - - - -
     p->pushOpcode( 'Z' );
@@ -660,13 +696,13 @@ void pxPath::pushRect(pxPath *p, float x0, float y0, float w, float h, float rx,
     p->pushOpcode( 'Q' );
     p->pushFloat( x0 + w,   // X1
                   y0,       // Y1
-                  x0 + w-3,   // X0
+                  x0 + w,   // X0
                   y0 + ry); // Y0
 
     // - - - - - - - - - - - - - - - - - - - - - - - - - -
     // Right
     p->pushOpcode( 'L' ); // H
-    p->pushFloat(x0 + w -3, y0 + h - ry);
+    p->pushFloat(x0 + w, y0 + h - ry);
 
     // - - - - - - - - - - - - - - - - - - - - - - - - - -
     
@@ -900,6 +936,7 @@ rtDefineProperty(pxPath, d);
 rtDefineProperty(pxPath, fillColor);
 rtDefineProperty(pxPath, strokeColor);
 rtDefineProperty(pxPath, strokeWidth);
+rtDefineProperty(pxPath, strokeType);
 
 //====================================================================================================================================
 //====================================================================================================================================
