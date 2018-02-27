@@ -55,7 +55,7 @@ cd %ORIG_DIR%
 @rem based on: https://www.appveyor.com/docs/build-worker-api/#push-artifact
 set cronUpload=Fasle
 
-if "%APPVEYOR_SCHEDULED_BUILD%"=="True" if  "%APPVEYOR_REPO_NAME%" = "pxscene/pxcore" if "%APPVEYOR_REPO_BRANCH%" == "master"  set cronUpload=True
+if "%APPVEYOR_SCHEDULED_BUILD%"=="True" if  "%APPVEYOR_REPO_NAME%"=="pxscene/pxcore" if "%APPVEYOR_REPO_BRANCH%"=="master"  set cronUpload=True
 
 if %cronUpload%==True (
     (
