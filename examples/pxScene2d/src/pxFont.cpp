@@ -78,12 +78,9 @@ uint32_t npot(uint32_t i)
   return power;
 }
 
-#ifdef PXSCENE_FONT_ATLAS
-pxFontAtlas gFontAtlas;
-#endif
 
 pxFont::pxFont(rtString fontUrl, rtString proxyUrl):pxResource(),mFace(NULL),mPixelSize(0), mFontData(0), mFontDataSize(0),
-             mFontMutex()
+             mFontMutex(),mFontAtlas()
 {  
   mFontId = gFontId++; 
   mUrl = fontUrl;
@@ -100,9 +97,9 @@ pxFont::~pxFont()
     //// clear any pending downloads
     //mFontDownloadRequest->setCallbackFunctionThreadSafe(NULL);
   //}  
-   
-  pxFontManager::removeFont( mUrl);
  
+  pxFontManager::removeFont( mUrl);
+
   if( mInitialized) 
   {
     FT_Done_Face(mFace);
@@ -114,7 +111,7 @@ pxFont::~pxFont()
     mFontData = 0;
     mFontDataSize = 0;
   } 
-   
+  mFontAtlas.clearTextures();    
 }
 
 bool pxFont::loadResourceData(rtFileDownloadRequest* fileDownloadRequest)
@@ -285,7 +282,7 @@ GlyphTextureEntry pxFont::getGlyphTexture(uint32_t codePoint, float sx, float sy
       FT_GlyphSlot g = mFace->glyph;
 
 #ifdef PXSCENE_FONT_ATLAS
-      if (!gFontAtlas.addGlyph(g->bitmap.width, g->bitmap.rows, g->bitmap.buffer, result))
+      if (!mFontAtlas.addGlyph(g->bitmap.width, g->bitmap.rows, g->bitmap.buffer, result))
       {
 #endif
         rtLogWarn("Glyph not in atlas");
@@ -711,9 +708,11 @@ rtDefineProperty(pxTextSimpleMeasurements, h);
 
 #ifdef PXSCENE_FONT_ATLAS
 #define PXSCENE_FONT_ATLAS_DIM 2048
-pxFontAtlas::pxFontAtlas(): fence(0)
+pxFontAtlas::pxFontAtlas(): fence(0), mAtlasMutex()
 {
+  mAtlasMutex.lock();
   mTexture = context.createTexture(PXSCENE_FONT_ATLAS_DIM,PXSCENE_FONT_ATLAS_DIM,PXSCENE_FONT_ATLAS_DIM,PXSCENE_FONT_ATLAS_DIM, NULL);
+  mAtlasMutex.unlock();
 }
 
 bool pxFontAtlas::addGlyph(uint32_t w, uint32_t h, void* buffer, GlyphTextureEntry& e)
@@ -736,7 +735,9 @@ bool pxFontAtlas::addGlyph(uint32_t w, uint32_t h, void* buffer, GlyphTextureEnt
         e.v1 = (float)r.top/(float)mTexture->height();
         e.v2 = (float)(r.top+h)/(float)mTexture->height();
         
+        mAtlasMutex.lock();
         mTexture->updateTexture(r.rFence,r.top,w,h,buffer);
+        mAtlasMutex.unlock();
 
         r.rFence += w+1;
 
@@ -762,7 +763,9 @@ bool pxFontAtlas::addGlyph(uint32_t w, uint32_t h, void* buffer, GlyphTextureEnt
         e.v1 = (float)nr.top/(float)mTexture->height();
         e.v2 = (float)(nr.top+h)/(float)mTexture->height(); 
 
+        mAtlasMutex.lock();
         mTexture->updateTexture(nr.rFence,nr.top,w,h,buffer);
+        mAtlasMutex.unlock();
 
         nr.rFence += w+1;
 
