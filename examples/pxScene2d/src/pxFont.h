@@ -79,6 +79,10 @@ public:
 
 
   pxFontAtlas();
+  void clearTextures() {
+    mTexture->deleteTexture();
+    mTexture = 0;
+  }
 
   bool addGlyph(uint32_t w, uint32_t h, void* buffer, GlyphTextureEntry& e);
 
@@ -88,6 +92,8 @@ public:
   uint32_t fence;
   pxTextureRef mTexture;
   vector<row> mRows;
+  
+  rtMutex mAtlasMutex;
 };
 
 class pxTexturedQuads
@@ -295,7 +301,9 @@ private:
   char* mFontData; // for remote fonts loaded into memory
   size_t mFontDataSize;
   rtMutex mFontMutex;
-
+#ifdef PXSCENE_FONT_ATLAS
+pxFontAtlas mFontAtlas;
+#endif
 };
 
 // Weak Map
