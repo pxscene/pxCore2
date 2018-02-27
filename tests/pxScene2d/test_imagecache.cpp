@@ -26,10 +26,19 @@
 #endif
 
 using namespace std;
-bool failRealloc = false;
 bool defaultCallbackExecuted = false;
 extern void startFileDownloadInBackground(void* data);
 extern bool continueDownloadHandleCheck;
+
+// disabled as it causes crash
+// please note that realloc is also extensively
+// used by various glibc functions/threads
+// also on linux even if the malloc/realloc returns non-null
+// it doesn't guarantee that the returned memory will be available.
+// #define UNAVAILABLE_MEMORY_TEST_ENABLED
+
+#ifdef UNAVAILABLE_MEMORY_TEST_ENABLED // {
+bool failRealloc = false;
 typedef void* (*realloc_t)(void*, size_t);
 
 void* realloc(void *ptr, size_t size)
@@ -48,6 +57,7 @@ void* realloc(void *ptr, size_t size)
   }
   return NULL;
 }
+#endif // } UNAVAILABLE_MEMORY_TEST_ENABLED
 
 class commonTestFns
 {
@@ -701,6 +711,7 @@ class rtHttpCacheTest : public testing::Test, public commonTestFns
      EXPECT_TRUE (RT_ERROR == data.data(contents));
     }
 
+#ifdef UNAVAILABLE_MEMORY_TEST_ENABLED // {
     void memoryUnAvailableTest()
     {
       rtString cacheHeader("");
@@ -716,7 +727,8 @@ class rtHttpCacheTest : public testing::Test, public commonTestFns
       EXPECT_TRUE (false == data.readFileData());
       failRealloc = false;
     }
- 
+#endif // } UNAVAILABLE_MEMORY_TEST_ENABLED
+
     private:
       rtString defaultCacheHeader;
 };
@@ -753,7 +765,9 @@ TEST_F(rtHttpCacheTest, httpCacheCompleteTest)
   dataUpdatedAfterEtagTest();
 */
   dataUpdatedAfterEtagDownloadFailedTest();
+#ifdef UNAVAILABLE_MEMORY_TEST_ENABLED // {
   memoryUnAvailableTest();
+#endif // } UNAVAILABLE_MEMORY_TEST_ENABLED
 }
 
 class rtFileDownloaderTest : public testing::Test, public commonTestFns
