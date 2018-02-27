@@ -53,17 +53,13 @@ cd %ORIG_DIR%
 
 @rem deploy artifacts
 @rem based on: https://www.appveyor.com/docs/build-worker-api/#push-artifact
-set cronUpload=Fasle
 
-if "%APPVEYOR_SCHEDULED_BUILD%"=="True" if  "%APPVEYOR_REPO_NAME%"=="pxscene/pxcore" if "%APPVEYOR_REPO_BRANCH%"=="master"  set cronUpload=True
-
-if %cronUpload%==True (
-    (
+if "%APPVEYOR_SCHEDULED_BUILD%"=="True" (
         @rem NSIS based installer
         appveyor PushArtifact "build-win32\\_CPack_Packages\\win32\\NSIS\\pxscene-setup.exe" -DeploymentName "installer" -Type "Auto" -Verbosity "Normal"
 
         @rem Standalone (requires no installation)
         appveyor PushArtifact "build-win32\\_CPack_Packages\\win32\\NSIS\\pxscene-setup.zip" -DeploymentName "portable" -Type "Zip" -Verbosity "Normal"
     )
-)
+
 
