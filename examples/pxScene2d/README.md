@@ -90,7 +90,7 @@
       buildWindows.bat
       ~~~~
   
-    b. For using system libraries for all external libs except node and duktape (Only for Linux and Mac OS).
+    b. For using system libraries for all external libs. And in case of not installing node and duktape (Only for Linux and Mac OS).
       ~~~~
       Build duktape
       ~~~~ 
