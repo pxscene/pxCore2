@@ -22,7 +22,7 @@ px.import({ scene: 'px:scene.1.js',
   var originalURL = (!url || url==="") ? "browser.js":url;
   console.log("url:",originalURL);
 
-  var    blackBg = scene.create({t:"rect", fillColor:0x000000ff,lineColor:0xffff0080,lineWidth:0,x:0,y:0,w:1280,h:720,a:1,parent:scene.root});
+  var    blackBg = scene.create({t:"rect", fillColor:0x000000ff,lineColor:0xffff0080,lineWidth:0,x:0,y:0,w:1280,h:720,a:0,parent:scene.root});
   var childScene = scene.create({t:"scene", url:originalURL,parent:scene.root});
   childScene.focus = true;
 
@@ -252,18 +252,22 @@ if (false)
       if (typeof childScene.api                  !== undefined &&
           typeof childScene.api.wantsClearscreen === 'function')
       {
-        // use delegate preference - returns bool
-        blackBg.a =  childScene.api.wantsClearscreen() ?  1.0 : 0.0;
+        if(childScene.api.wantsClearscreen()) // use delegate preference - returns bool
+          blackBg.a = 1; 
+
+      }
+      else {
+          blackBg.a = 1; 
       }
   });
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  // Example usage of 'delegate' in childScene.
+  // Example of 'delegate' for childScene.
   //
   // Returns:   BOOL preference of 'shell' performing Clearscreen per frame.
   /*
   module.exports.wantsClearscreen1 = function()  // delegate
   {
-    return false; // DO NOT CLEAR SCREEN TO BLACK
+    return false;
   };
   */
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
