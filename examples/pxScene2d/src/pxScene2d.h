@@ -1618,11 +1618,11 @@ public:
   {
      mPointerHidden= hide;
   }
-  bool mDirty;
   #ifdef PX_DIRTY_RECTANGLES
   pxRect mDirtyRect;
   pxRect mLastFrameDirtyRect;
   #endif //PX_DIRTY_RECTANGLES
+  bool mDirty;
   testView* mTestView;
   bool mDisposed;
   std::vector<rtFunctionRef> mServiceProviders;
