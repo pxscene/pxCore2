@@ -8,20 +8,9 @@
 #include <thread>
 #include <mutex>
 
-#include <rtLog.h>
-
-#include <errno.h>
-#include <fcntl.h>
-#include <string.h>
-#include <netinet/in.h>
-#include <net/if.h>
-#include <arpa/inet.h>
-#include <unistd.h>
-#include <ifaddrs.h>
 #include <sys/file.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <unistd.h>
+
+#include <rtLog.h>
 
 #include <rapidjson/document.h>
 #include <rapidjson/memorystream.h>

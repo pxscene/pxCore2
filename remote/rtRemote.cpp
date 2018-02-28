@@ -8,6 +8,7 @@
 #include "rtRemoteStream.h"
 #include "rtRemoteEnvironment.h"
 #include "rtRemoteConfigBuilder.h"
+#include "rtRemoteUtils.h"
 
 #include <chrono>
 #include <mutex>
@@ -15,7 +16,6 @@
 
 
 #include <rtLog.h>
-#include <unistd.h>
 
 static std::mutex gMutex;
 static rtRemoteEnvironment* gEnv = nullptr;
@@ -25,6 +25,14 @@ rtRemoteInit(rtRemoteEnvironment* env)
 {
   rtError e = RT_FAIL;
   std::lock_guard<std::mutex> lock(gMutex);
+
+  // on win32 returns RT_FAIL,
+  // if sockets subsystem failed to start
+  e = rtRemoteSocketInit();
+  if (e != RT_OK)
+  {
+      return e;
+  }
 
   rtLogDebug("initialize environment: %p", env);
   if (!env->Initialized)
@@ -75,6 +83,11 @@ rtRemoteShutdown(rtRemoteEnvironment* env, bool immediate)
   {
     rtLogInfo("environment reference count is non-zero. %u", env->RefCount);
     e = RT_OK;
+  }
+
+  if (e == RT_OK)
+  {
+    e = rtRemoteSocketShutdown();
   }
 
   return e;

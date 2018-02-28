@@ -1,17 +1,17 @@
 #include "rtRemoteMapperFile.h"
 #include "rtRemoteMapper.h"
-#include "rtRemoteEndpoint.h"
+#include "rtRemoteEndPoint.h"
 #include "rtRemoteConfig.h"
 #include "rtRemoteFactory.h"
 #include "rtRemoteEnvironment.h"
+#include "rtRemoteUtils.h"
 #include "rtError.h"
 
 #include <string>
 #include <string.h>
 #include <errno.h>
-#include <unistd.h>
-#include <sys/file.h>
 #include <sys/stat.h>
+#include <stdio.h>
 #include <fcntl.h>
 #include <mutex>
 #include <thread>
@@ -27,7 +27,7 @@ rtRemoteMapperFile::~rtRemoteMapperFile()
 }
 
 rtError
-rtRemoteMapperFile::registerEndpoint(std::string const& objectId, rtRemoteEndpointPtr const& endpoint)
+rtRemoteMapperFile::registerEndpoint(std::string const& objectId, rtRemoteEndPointPtr const& endpoint)
 {
   FILE* fp;
   fp = fopen(m_file_path.c_str(), "r");
@@ -66,7 +66,7 @@ rtRemoteMapperFile::registerEndpoint(std::string const& objectId, rtRemoteEndpoi
           rtLogWarn("overwriting existing registered endpoint: %s", line);
       }
     }
-    std::string result = objectId + "::=" + endpoint->toUriString();
+    std::string result = objectId + "::=";
     fprintf(tmpFp, "%s\n", result.c_str());
     fclose(tmpFp);
     
@@ -134,7 +134,7 @@ rtRemoteMapperFile::deregisterEndpoint(std::string const& objectId)
 }
 
 rtError
-rtRemoteMapperFile::lookupEndpoint(std::string const& objectId, rtRemoteEndpointPtr& /*endpoint*/)
+rtRemoteMapperFile::lookupEndpoint(std::string const& objectId, rtRemoteEndPointPtr& /*endpoint*/)
 {
   FILE* fp;
   fp = fopen(m_file_path.c_str(), "r");

@@ -22,13 +22,33 @@ set(RTREMOTE_SOURCE_FILES rtremote.conf.gen rtRemoteConfig.h rtRemoteServer.cpp 
         rtRemoteMulticastResolver.cpp rtRemoteConfigBuilder.cpp rtRemoteAsyncHandle.cpp
         rtRemoteEnvironment.cpp rtRemoteStreamSelector.cpp rtGuid.cpp)
 
-add_definitions(-DRAPIDJSON_HAS_STDSTRING -DRT_PLATFORM_LINUX -DRT_REMOTE_LOOPBACK_ONLY)
+add_definitions(-DRAPIDJSON_HAS_STDSTRING)
+
 include_directories(AFTER ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/../src ${CMAKE_CURRENT_BINARY_DIR})
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
+if (WIN32)
+    add_definitions(-DRT_PLATFORM_WINDOWS -DWIN32_LEAN_AND_MEAN)
+    include_directories(AFTER ${CMAKE_CURRENT_SOURCE_DIR}/../examples/pxScene2d/external/pthread-2.9)
+    set(LIBRARY_LINKER_OPTIONS pthreadVC2.lib)
+elseif (APPLE)
+    add_definitions(-DRT_PLATFORM_LINUX)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
+    set(LIBRARY_LINKER_OPTIONS -lpthread -ldl -Wl,-rpath -Xlinker ../../,--enable-new-dtags)
+else (APPLE)
+    add_definitions(-DRT_PLATFORM_LINUX)
+    set(LIBRARY_LINKER_OPTIONS -pthread -ldl -luuid -Wl,-rpath=../../,--enable-new-dtags)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
+endif(WIN32)
 
-set(LIBRARY_LINKER_OPTIONS -pthread -ldl -luuid -Wl,-rpath=../../,--enable-new-dtags)
-set(RTREMOTE_LINK_DIRECTORIES ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/../src ${CMAKE_CURRENT_SOURCE_DIR}/../build/glut ${CMAKE_CURRENT_SOURCE_DIR}/../build/egl)
+set(RTREMOTE_LINK_DIRECTORIES ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/../src) 
+
+if (WIN32)
+    set(RTREMOTE_LINK_DIRECTORIES ${RTREMOTE_LINK_DIRECTORIES} ${CMAKE_CURRENT_SOURCE_DIR}/../build/win/Release ${CMAKE_CURRENT_SOURCE_DIR}/../examples/pxScene2d/external/vc.build/builds)
+elseif (APPLE)
+    set(RTREMOTE_LINK_DIRECTORIES ${RTREMOTE_LINK_DIRECTORIES} ${CMAKE_CURRENT_SOURCE_DIR}/../build/mac)
+else ()
+    set(RTREMOTE_LINK_DIRECTORIES ${RTREMOTE_LINK_DIRECTORIES} ${CMAKE_CURRENT_SOURCE_DIR}/../build/glut ${CMAKE_CURRENT_SOURCE_DIR}/../build/egl)
+endif(WIN32)
 
 if (CMAKE_CROSSCOMPILING)
     option(RTREMOTE_GENERATOR_EXPORT "Location of rtRemote export file (rtRemoteConfigGen_export.cmake) from a native build" "RTREMOTE_GENERATOR_EXPORT-file-not-found")
@@ -57,10 +77,23 @@ add_custom_command(OUTPUT rtRemoteConfigBuilder.cpp
 if (ENABLE_RTREMOTE_DEBUG)
     message("Enabling rtRemote debug")
     add_definitions(-DRT_RPC_DEBUG -DRT_DEBUG)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -O0 -fno-inline")
+
+    if (NOT WIN32)
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -O0 -fno-inline")
+    endif (NOT WIN32)
+
 else()
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O2")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2")
+
+    if (WIN32)
+        set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} /MT /Zi")
+        set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS} /MT /Zi")
+    else (WIN32)
+#set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O2")
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2")
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -O0 -fno-inline")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0 -fno-inline")
+    endif (WIN32)
+
 endif (ENABLE_RTREMOTE_DEBUG)
 
 if (ENABLE_RTREMOTE_PROFILE)
@@ -70,14 +103,20 @@ endif (ENABLE_RTREMOTE_PROFILE)
 
 if (BUILD_RTREMOTE_SHARED_LIB)
     message("Building rtRemote shared lib")
+    link_directories(${RTREMOTE_LINK_DIRECTORIES})
     add_library(rtremote_shared SHARED ${RTREMOTE_SOURCE_FILES})
+    target_link_libraries(rtremote_shared ${LIBRARY_LINKER_OPTIONS} -lrtCore)
     set_target_properties(rtremote_shared PROPERTIES OUTPUT_NAME "rtRemote")
-    target_link_libraries(rtremote_shared ${LIBRARY_LINKER_OPTIONS})
 endif (BUILD_RTREMOTE_SHARED_LIB)
 
 if (BUILD_RTREMOTE_STATIC_LIB)
     message("Building rtRemote static lib")
-    add_library(rtremote_static STATIC ${RTREMOTE_SOURCE_FILES})
+
+if (WIN32)
+    set(RT_ADDITIONAL_SOURCES utf8.c)
+endif ()
+
+    add_library(rtremote_static STATIC ${RT_ADDITIONAL_SOURCES} ${RTREMOTE_SOURCE_FILES})
     set_target_properties(rtremote_static PROPERTIES OUTPUT_NAME "rtRemote_s")
 endif (BUILD_RTREMOTE_STATIC_LIB)
 
@@ -102,14 +141,38 @@ if (BUILD_RTREMOTE_SAMPLE_APP_SIMPLE)
     message ("Building rtRemote sample app with client and server")
     set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS} -std=c++11")
     link_directories(${RTREMOTE_LINK_DIRECTORIES})
+
     #client
+    message("Building rtremote_sample_app_client")
     add_executable(rtremote_sample_app_client rtSampleClient.cpp)
     set_target_properties(rtremote_sample_app_client PROPERTIES OUTPUT_NAME "rtSampleClient")
+
+if (WIN32)
+    target_link_libraries(rtremote_sample_app_client ${LIBRARY_LINKER_OPTIONS} rtremote_static rtCore_s.lib)
+    if(MSVC)
+        set_property(TARGET rtremote_sample_app_client APPEND PROPERTY LINK_FLAGS /DEBUG)
+    endif()
+elseif (APPLE)
+    target_link_libraries(rtremote_sample_app_client ${LIBRARY_LINKER_OPTIONS} -lrtCore rtremote_shared)
+else ()
     target_link_libraries(rtremote_sample_app_client ${LIBRARY_LINKER_OPTIONS} -lrtCore rtremote_shared -luuid)
-    target_compile_definitions(rtremote_sample_app_client PRIVATE RT_PLATFORM_LINUX RAPIDJSON_HAS_STDSTRING)
+endif ()
+
+
     #server
+    message("Building rtremote_sample_app_server")
     add_executable(rtremote_sample_app_server rtSampleServer.cpp)
     set_target_properties(rtremote_sample_app_server PROPERTIES OUTPUT_NAME "rtSampleServer")
+
+if (WIN32)
+    target_link_libraries(rtremote_sample_app_server ${LIBRARY_LINKER_OPTIONS} rtremote_static rtCore_s.lib)
+    if(MSVC)
+        set_property(TARGET rtremote_sample_app_server APPEND PROPERTY LINK_FLAGS /DEBUG)
+    endif()
+elseif (APPLE)
+    target_link_libraries(rtremote_sample_app_server ${LIBRARY_LINKER_OPTIONS} -lrtCore rtremote_shared)
+else ()
     target_link_libraries(rtremote_sample_app_server ${LIBRARY_LINKER_OPTIONS} -lrtCore rtremote_shared -luuid)
-    target_compile_definitions(rtremote_sample_app_server PRIVATE RT_PLATFORM_LINUX RAPIDJSON_HAS_STDSTRING)
+endif ()
+
 endif (BUILD_RTREMOTE_SAMPLE_APP_SIMPLE)

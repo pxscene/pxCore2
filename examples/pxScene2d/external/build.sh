@@ -152,17 +152,16 @@ if [ "$(uname)" != "Darwin" ]; then
 fi
 
 #-------- DUKTAPE
-
-if [ ! -e dukluv/build/libduktape.a ]
-then
-    cd dukluv
-    quilt push -aq || test $? = 2
-    mkdir -p build
-    cd build
-    cmake ..
-    make "-j${make_parallel}"
-    cd ..
-fi
+#if [ ! -e dukluv/build/libduktape.a ]
+#then
+#    cd dukluv
+#    quilt push -aq || test $? = 2
+#    mkdir -p build
+#    cd build
+#    cmake ..
+#    make "-j${make_parallel}"
+#    cd ..
+#fi
 
 #-------- BODYMOVIN
 #

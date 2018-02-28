@@ -13,7 +13,7 @@
     "type":"int32" },
 
 { "name":"rt.rpc.server.socket_family",
-    "default_value":"unix",
+    "default_value":"tcp",
     "type":"string" },
 
 { "name":"rt.rpc.server.use_dispatch_thread",
@@ -30,6 +30,11 @@
     "type":"string",
     "platform":"linux" },
 
+{ "name":"rt.rpc.server.listen_interface",
+    "default_value":"{}",
+    "type":"string",
+    "platform":"windows" },
+
 { "name":"rt.rpc.server.socket_family",
     "default_value":"inet",
     "type":"string" },
@@ -43,6 +48,11 @@
     "default_value":"lo",
     "type":"string",
     "platform":"linux" },
+
+{ "name":"rt.rpc.resolver.multicast.interface",
+    "default_value":"{}",
+    "type":"string",
+    "platform":"windows" },
 
 { "name":"rt.rpc.environment.request_timeout",
     "default_value":"3000",

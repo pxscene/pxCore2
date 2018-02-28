@@ -2,12 +2,11 @@
 
 #include <string>
 #include <stdint.h>
-#include <netinet/in.h>
 #include <rtObject.h>
 
 #include "rtRemoteTypes.h"
 #include "rtRemoteIResolver.h"
-#include "rtRemoteEndpoint.h"
+#include "rtRemoteEndPoint.h"
 #include "rtRemoteSocketUtils.h"
 
 class rtRemoteEnvironment;

@@ -1,5 +1,5 @@
 #include "rtRemoteEndpointHandleStreamServer.h"
-#include "rtRemoteEndpoint.h"
+#include "rtRemoteEndPoint.h"
 #include "rtRemoteTypes.h"
 #include "rtRemoteUtils.h"
 #include "rtRemoteSocketUtils.h"
@@ -9,14 +9,9 @@
 #include <sstream>
 #include <string>
 #include <errno.h>
-#include <sys/socket.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <arpa/inet.h>
 #include <stdlib.h>
-#include <unistd.h>
 
-rtRemoteEndpointHandleStreamServer::rtRemoteEndpointHandleStreamServer(rtRemoteEndpointPtr endpoint)
+rtRemoteEndpointHandleStreamServer::rtRemoteEndpointHandleStreamServer(rtRemoteEndPointPtr endpoint)
 : rtRemoteIEndpointHandle(endpoint)
 {
   memset(&m_socket, 0, sizeof(sockaddr_storage));
@@ -39,9 +34,9 @@ rtRemoteEndpointHandleStreamServer::open()
   
   // open socket
   m_fd = socket(m_socket.ss_family, SOCK_STREAM, 0);
-  if (m_fd < 0)
+  if (NET_FAILED(m_fd))
   {
-    rtError e = rtErrorFromErrno(errno);
+    rtError e = rtErrorFromErrno(net_errno());
     rtLogError("failed to create socket. %s", rtStrError(e));
     return e;
   }
@@ -52,9 +47,9 @@ rtRemoteEndpointHandleStreamServer::open()
 rtError
 rtRemoteEndpointHandleStreamServer::close()
 {
-  if (m_fd != -1)
-    ::close(m_fd);
-  m_fd = -1;
+  if (m_fd != kInvalidSocket)
+    rtCloseSocket(m_fd);
+  m_fd = kInvalidSocket;
   return RT_OK;
 }
 
@@ -66,9 +61,9 @@ rtRemoteEndpointHandleStreamServer::doBind()
   rtSocketGetLength(m_socket, &len);
 
   ret = bind(m_fd, reinterpret_cast<struct sockaddr*>(&m_socket), len);
-  if (ret < 0)
+  if (NET_FAILED(ret))
   {
-    rtError e = rtErrorFromErrno(errno);
+    rtError e = rtErrorFromErrno(net_errno());
     rtLogError("failed to bind socket. %s", rtStrError(e));
     return e;
   }
@@ -84,9 +79,9 @@ rtRemoteEndpointHandleStreamServer::doListen()
 {
   int ret;
   ret = listen(m_fd, 2);
-  if (ret < 0)
+  if (NET_FAILED(ret))
   {
-    rtError e = rtErrorFromErrno(errno);
+    rtError e = rtErrorFromErrno(net_errno());
     rtLogError("failed to put socket in listen mode. %s", rtStrError(e));
     return e;
   }
@@ -94,7 +89,7 @@ rtRemoteEndpointHandleStreamServer::doListen()
 }
 
 rtError
-rtRemoteEndpointHandleStreamServer::doAccept(int& new_fd, rtRemoteEndpointPtr& remote_addr)
+rtRemoteEndpointHandleStreamServer::doAccept(int& new_fd, rtRemoteEndPointPtr& remote_addr)
 {
   sockaddr_storage remote_endpoint;
   memset(&remote_endpoint, 0, sizeof(remote_endpoint));
@@ -103,9 +98,9 @@ rtRemoteEndpointHandleStreamServer::doAccept(int& new_fd, rtRemoteEndpointPtr& r
 
   new_fd = accept(m_fd, reinterpret_cast<struct sockaddr*>(&remote_endpoint), &len);
 
-  if (new_fd == -1)
+  if (NET_FAILED(new_fd))
   {
-    rtError e = rtErrorFromErrno(errno);
+    rtError e = rtErrorFromErrno(net_errno());
     rtLogWarn("error accepting new tcp connect. %s", rtStrError(e));
     return RT_FAIL;
   }

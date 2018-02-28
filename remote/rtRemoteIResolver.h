@@ -4,8 +4,9 @@
 #include <memory>
 #include <string>
 #include <rtError.h>
-#include <sys/socket.h>
 #include <stdint.h>
+
+#include "rtRemoteSocketUtils.h"
 
 #include "rtRemoteTypes.h"
 

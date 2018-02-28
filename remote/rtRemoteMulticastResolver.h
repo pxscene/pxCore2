@@ -6,7 +6,6 @@
 #include <thread>
 
 #include <stdint.h>
-#include <netinet/in.h>
 #include <rtObject.h>
 
 #include "rtRemoteCorrelationKey.h"
@@ -38,7 +37,7 @@ private:
   using RequestMap = std::map< rtRemoteCorrelationKey, rtRemoteMessagePtr >;
 
   void runListener();
-  void doRead(int fd, rtRemoteSocketBuffer& buff);
+  void doRead(socket_t fd, rtRemoteSocketBuffer& buff);
   void doDispatch(char const* buff, int n, sockaddr_storage* peer);
 
   rtError sendSearchAndWait(const std::string& name, const int timeout, rtRemoteMessagePtr& ret);
@@ -54,21 +53,21 @@ private:
 private:
   sockaddr_storage  m_mcast_dest;
   sockaddr_storage  m_mcast_src;
-  int               m_mcast_fd;
+  socket_t          m_mcast_fd;
   uint32_t          m_mcast_src_index;
 
   sockaddr_storage  m_ucast_endpoint;
-  int               m_ucast_fd;
+  socket_t          m_ucast_fd;
   socklen_t         m_ucast_len;
 
   std::unique_ptr<std::thread> m_read_thread;
   std::condition_variable m_cond;
   std::mutex        m_mutex;
-  pid_t             m_pid;
+  int               m_pid;
   CommandHandlerMap m_command_handlers;
   rtRemoteEndPointPtr m_rpc_endpoint;
   HostedObjectsMap  m_hosted_objects;
   RequestMap	      m_pending_searches;
-  int		            m_shutdown_pipe[2];
+  bool                 m_shutdown;
   rtRemoteEnvironment* m_env;
 };
