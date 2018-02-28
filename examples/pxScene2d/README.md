@@ -90,7 +90,9 @@
       buildWindows.bat
       ~~~~
   
-    b. For using system libraries for all external libs. And in case of not installing node and duktape (Only for Linux and Mac OS).
+    b. To use system libraries for external libs during pxscene build, install libs on the system. To build just node, duktape and breakpad with the patches necessary for pxscene, do the following.
+      ~~~~
+      For Mac and Linux OS.
       ~~~~
       Build duktape
       ~~~~ 
@@ -112,10 +114,40 @@
       ~~~~
       Build breakpad
       ~~~~
-      cd examples/pxScene2d/external/breakpad
+      cd examples/pxScene2d/external/breakpad-chrome_55
       ./configure
       make
+      
       ~~~~
+      For Windows
+      ~~~~
+      Build Duktape
+      ~~~~
+      cd examples/pxScene2d/external/dukluv/
+      patch -p1 -i patches/dukluv.git.patch
+      mkdir build
+      cd build
+      cmake ..
+      cmake --build . --config Release -- /m
+      ~~~~
+      Build node
+      ~~~~
+      cd examples/pxScene2d/external/libnode-v6.9.0
+      CALL vcbuild.bat x86 nosign
+      cd ..
+      ~~~~
+      Build breakpad
+      ~~~~	
+      cd examples/pxScene2d/external/breakpad-chrome_55
+      CALL gyp\gyp.bat src\client\windows\breakpad_client.gyp --no-circular-check
+      cd src\client\windows
+      msbuild breakpad_client.sln /p:Configuration=Release /p:Platform=Win32 /m
+      cd ..\..\..\..\
+      cd libnode-v6.9.0
+      CALL vcbuild.bat x86 nosign
+      cd ..
+      ~~~~
+
 4. Build **pxScene**
     ~~~~
     On following step 3b, Specify -DPREFER_SYSTEM_LIBRARIES=ON to use system libraries rather than libraries from externals directory.
