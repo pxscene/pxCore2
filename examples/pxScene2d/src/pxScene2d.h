@@ -1317,6 +1317,8 @@ public:
   rtMethod2ArgAndNoReturn("clipboardSet", clipboardSet, rtString, rtString);
 
   rtMethod1ArgAndReturn("getService", getService, rtString, rtObjectRef);
+
+  rtMethodNoArgAndReturn("getAvailableApplications", getAvailableApplications, rtString);
     
     
   rtProperty(ctx, ctx, setCtx, rtValue);
@@ -1559,6 +1561,7 @@ public:
   rtError clipboardSet(rtString type, rtString clipString);
   rtError getService(rtString name, rtObjectRef& returnObject);
   rtError getService(const char* name, const rtObjectRef& ctx, rtObjectRef& service);
+  rtError getAvailableApplications(rtString& availableApplications);
 
 private:
   bool bubbleEvent(rtObjectRef e, rtRef<pxObject> t, 

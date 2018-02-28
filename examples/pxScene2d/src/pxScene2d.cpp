@@ -67,6 +67,9 @@
 #include "pxClipboard.h"
 #include <rapidjson/document.h>
 #include <rapidjson/filereadstream.h>
+#include <rapidjson/stringbuffer.h>
+#include <rapidjson/writer.h>
+
 using namespace rapidjson;
 
 using namespace std;
@@ -276,6 +279,86 @@ void populateAllAppsConfig()
       }
     }
   }
+}
+
+void populateAllAppDetails(rtString& appDetails)
+{
+  appDetails = "[ ";
+  int appCount = 0;
+  for (std::map<string, string>::iterator it=gWaylandRegistryAppsMap.begin(); it!=gWaylandRegistryAppsMap.end(); ++it)
+  {
+    if (appCount > 0)
+    {
+      appDetails.append(", ");
+    }
+    rtString app("{\"displayName\":\"");
+    app.append((it->first).c_str());
+    app.append("\", \"cmdName\":\"");
+    app.append((it->first).c_str());
+    app.append("\",");
+    app.append("\"uri\":\"");
+    app.append((it->second).c_str());
+    app.append("\",");
+    app.append("\"applicationType\" : \"native\"}");
+    appDetails.append(app);
+    appCount++;
+  }
+  //populate from the apps registry file
+  FILE* fp = NULL;
+  char const* s = getenv("PXSCENE_APPS_CONFIG");
+  if (s)
+  {
+    fp = fopen(s, "rb");
+  }
+  if (NULL == fp)
+  {
+    fp = fopen(DEFAULT_ALL_APPS_CONFIG_FILE, "rb");
+    if (NULL == fp)
+    {
+      rtLogInfo("pxscene app config read error : [unable to read all apps config file]\n");
+      appDetails.append("]");
+      return;
+    }
+  }
+  char readBuffer[65536];
+  memset(readBuffer, 0, sizeof(readBuffer));
+  rapidjson::FileReadStream is(fp, readBuffer, sizeof(readBuffer));
+  rapidjson::Document doc;
+  rapidjson::ParseResult result = doc.ParseStream(is);
+  if (!result)
+  {
+    rapidjson::ParseErrorCode e = doc.GetParseError();
+    rtLogInfo("pxscene app config read error : [JSON parse error while reading all apps conf file: %s (%zu)]\n",rapidjson::GetParseError_En(e), result.Offset());
+    fclose(fp);
+    appDetails.append("]");
+    return;
+  }
+  fclose(fp);
+
+  if (! doc.HasMember("applications"))
+  {
+    rtLogInfo("pxscene apps config read error : [applications element not found]\n");
+    appDetails.append("]");
+    return;
+  }
+
+  const rapidjson::Value& appList = doc["applications"];
+  for (rapidjson::SizeType i = 0; i < appList.Size(); i++)
+  {
+    if (appList[i].IsObject())
+    {
+      if (appCount > 0)
+      {
+        appDetails.append(", ");
+      }
+      rapidjson::StringBuffer sb;
+      Writer<rapidjson::StringBuffer> writer(sb);
+      appList[i].Accept(writer);
+      appDetails.append(sb.GetString());
+      appCount++;
+    }
+  }
+  appDetails.append("]");
 }
 
 static char encoding_table[] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H',
@@ -3148,6 +3231,25 @@ rtError pxScene2d::getService(const char* name, const rtObjectRef& ctx, rtObject
   }
 }
 
+rtError pxScene2d::getAvailableApplications(rtString& availableApplications)
+{
+  availableApplications = "";
+#if defined(ENABLE_DFB) || defined(DISABLE_WAYLAND)
+  rtLogWarn("wayland apps are not supported");
+#else
+  if (false == gWaylandAppsConfigLoaded)
+  {
+    populateWaylandAppsConfig();
+#ifndef PXSCENE_ENABLE_ALL_APPS_WAYLAND_CONFIG
+    gWaylandAppsMap.insert(gWaylandRegistryAppsMap.begin(), gWaylandRegistryAppsMap.end());
+#endif // !defined PXSCENE_ENABLE_ALL_APPS_WAYLAND_CONFIG
+    gWaylandAppsConfigLoaded = true;
+  }
+  populateAllAppDetails(availableApplications);
+#endif
+  return RT_OK;
+}
+
 rtDefineObject(pxScene2d, rtObject);
 rtDefineProperty(pxScene2d, root);
 rtDefineProperty(pxScene2d, info);
@@ -3169,6 +3271,7 @@ rtDefineMethod(pxScene2d, screenshot);
 rtDefineMethod(pxScene2d, clipboardGet);
 rtDefineMethod(pxScene2d, clipboardSet);
 rtDefineMethod(pxScene2d, getService);
+rtDefineMethod(pxScene2d, getAvailableApplications);
 
 rtDefineMethod(pxScene2d, loadArchive);
 rtDefineProperty(pxScene2d, ctx);

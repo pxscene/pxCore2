@@ -2,6 +2,7 @@
 
 //application manager variables
 var applicationsArray = [];
+var availableApplicationsArray = [];
 var eventListenerHash = {}
 
 var scene = undefined;
@@ -298,6 +299,10 @@ function Optimus() {
     return null;
   }
 
+  this.getAvailableApplications = function(){
+    return availableApplicationsArray;
+  }
+
   this.on = function(eventName, handler){
     eventListenerHash[eventName] = handler;
   }
@@ -340,6 +345,12 @@ function Optimus() {
   this.setScene = function(s){
     scene = s;
     root = scene.root;
+    availableApplicationsArray.splice(0,availableApplicationsArray.length);
+    var availableApps = scene.getAvailableApplications();
+    if (availableApps.length > 0)
+    {
+      availableApplicationsArray = JSON.parse(availableApps);
+    }
   }
 }
 
