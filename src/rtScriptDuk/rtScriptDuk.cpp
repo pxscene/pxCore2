@@ -1287,7 +1287,6 @@ void rtScriptDuk::init2(int argc, char** argv)
     }
 
     rtSetupJsModuleBindings(dukCtx);
-
     #ifdef ENABLE_DEBUG_MODE
     char const *enable_debug = getenv("ENABLE_DUKTAPE_DEBUGGER");
     if ((enable_debug) && (1 == atoi(enable_debug)))
