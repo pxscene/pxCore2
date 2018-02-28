@@ -1,5 +1,8 @@
 package org.pxscene.rt;
 
+/**
+ * the rt status code
+ */
 public enum RTStatusCode {
   UNKNOWN(-1),
   OK(0),
@@ -25,21 +28,36 @@ public enum RTStatusCode {
   QUEUE_EMPTY(1006),
   STREAM_CLOSED(1007);
 
+  /**
+   * the status code
+   */
+  private int code;
+
+  /**
+   * create new RTStatusCode with code
+   *
+   * @param code the status code
+   */
   RTStatusCode(int code) {
-    m_code = code;
+    this.code = code;
   }
 
+  /**
+   * convert int to RTStatusCode
+   *
+   * @param n the code value
+   * @return the RTStatusCode entity
+   */
   public static RTStatusCode fromInt(int n) {
     for (RTStatusCode code : RTStatusCode.values()) {
-      if (code.getCode() == n)
+      if (code.getCode() == n) {
         return code;
+      }
     }
     return RTStatusCode.UNKNOWN;
   }
 
   public int getCode() {
-    return m_code;
+    return this.code;
   }
-
-  private int m_code;
 }

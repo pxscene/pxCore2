@@ -1,25 +1,43 @@
 package org.pxscene.rt.remote;
 
-public class RTRemoteMessage {
-  protected RTRemoteMessageType m_type;
-  protected String m_correlationKey;
 
+import org.pxscene.rt.RTHelper;
+
+/**
+ * the base RTRemote Message class.
+ */
+public class RTRemoteMessage {
+
+
+  /**
+   * the rt remote message type
+   */
+  protected RTRemoteMessageType messageType;
+
+  /**
+   * the correlation key
+   */
+  protected String correlationKey;
+
+  /**
+   * the entity constructor with type
+   */
   protected RTRemoteMessage(RTRemoteMessageType kind) {
-    m_type = kind;
+    messageType = kind;
+  }
+
+
+  public RTRemoteMessageType getMessageType() {
+    return this.messageType;
   }
 
   public String getCorrelationKey() {
-    return m_correlationKey;
+    return this.correlationKey;
   }
 
-  public void setCorrelationKey(String key) {
-    if (key == null)
-      throw new NullPointerException("key");
-    m_correlationKey = key;
-  }
-
-  public RTRemoteMessageType getMessageType() {
-    return m_type;
+  public void setCorrelationKey(String correlationKey) {
+    RTHelper.ensureNotNull(correlationKey, "correlationKey");
+    this.correlationKey = correlationKey;
   }
 }
 

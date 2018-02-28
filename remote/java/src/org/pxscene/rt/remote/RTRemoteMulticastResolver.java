@@ -8,47 +8,116 @@ import java.net.InetSocketAddress;
 import java.net.MulticastSocket;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Map;
 import java.util.UUID;
-
+import java.util.concurrent.ConcurrentHashMap;
+import org.apache.log4j.Logger;
 import org.pxscene.rt.RTException;
-import org.pxscene.rt.remote.messages.RTMessageSearch;
 import org.pxscene.rt.remote.messages.RTMessageLocate;
+import org.pxscene.rt.remote.messages.RTMessageSearch;
 
+/**
+ * The rt remote multicast resolver.
+ */
 public class RTRemoteMulticastResolver {
-  private MulticastSocket m_socketOut;
-  private DatagramSocket m_socketIn;
-  private InetAddress m_group;
-  private int m_port;
 
+  /**
+   * the logger instance
+   */
+  private static final Logger logger = Logger.getLogger(RTRemoteMulticastResolver.class);
+
+  /**
+   * the remote object map, thread safe
+   */
+  private static final Map<String, URI> objectMap = new ConcurrentHashMap<>();
+
+  /**
+   * the rt remote serializer instance
+   */
+  private RTRemoteSerializer serializer = new RTRemoteSerializer();
+
+  /**
+   * the multicast socket out channel
+   */
+  private MulticastSocket socketOut;
+
+  /**
+   * the udp in channel
+   */
+  private DatagramSocket socketIn;
+
+  /**
+   * the multicast group
+   */
+  private InetAddress group;
+
+  /**
+   * the multicast port
+   */
+  private int port;
+
+  /**
+   * create new remote multicast resolver.
+   *
+   * @param group the multicast group
+   * @param port the port
+   * @throws IOException if connect failed
+   */
   public RTRemoteMulticastResolver(InetAddress group, int port) throws IOException {
-    m_group = group;
-    m_port = port;
-    m_socketOut = new MulticastSocket();
-    m_socketOut.joinGroup(m_group);
-    m_socketIn = new DatagramSocket(new InetSocketAddress(InetAddress.getLoopbackAddress(), 0));
+    this.group = group;
+    this.port = port;
+    socketOut = new MulticastSocket();
+    socketOut.joinGroup(this.group);
+    socketIn = new DatagramSocket(new InetSocketAddress(InetAddress.getLoopbackAddress(), 0));
+
+    new Thread(() -> { // start new thread to receive packet
+      while (true) {
+        byte[] recvBuff = new byte[4096];
+        DatagramPacket pkt = new DatagramPacket(recvBuff, recvBuff.length);
+        try {
+          socketIn.receive(pkt);
+          RTMessageLocate locate = serializer.fromBytes(recvBuff, 0, recvBuff.length);
+          objectMap.put(locate.getObjectId(), new URI(
+              locate.getEndpoint().toString() + "/" + locate.getObjectId()));
+          Thread.sleep(1);
+        } catch (Exception e) {
+          logger.error("process locate message failed",e);
+          break;
+        }
+      }
+    }).start();
   }
 
+  /**
+   * get local udp uri to recv packet
+   *
+   * @return the udp uri
+   * @throws RTException if build uri faild
+   */
   private URI getReplyEndopint() throws RTException {
     StringBuilder builder = new StringBuilder();
     builder.append("udp://");
-    builder.append(m_socketIn.getLocalAddress().getHostAddress());
+    builder.append(socketIn.getLocalAddress().getHostAddress());
     builder.append(":");
-    builder.append(m_socketIn.getLocalPort());
-
-    URI uri = null;
-
+    builder.append(socketIn.getLocalPort());
     try {
-      uri = new URI(builder.toString());
+      return new URI(builder.toString());
     } catch (URISyntaxException err) {
       throw new RTException("failed parsing uri:" + builder.toString(), err);
     }
-
-    return uri;
   }
 
+  /**
+   * search remote object , this method will be block thread
+   * 1. send udp packet
+   * 2. check remote object found or not
+   * 3. if not found and time > 1s , then send udp packet again
+   *
+   * @param name the object name
+   * @return the remote object uri
+   * @throws RTException if any other error occurred during operation
+   */
   public URI locateObject(String name) throws RTException {
-    URI uri = null;
-    String temp = null;
     String correlationKey = UUID.randomUUID().toString();
 
     RTMessageSearch search = new RTMessageSearch();
@@ -57,32 +126,37 @@ public class RTRemoteMulticastResolver {
     search.setSenderId(0);
     search.setReplyTo(getReplyEndopint());
 
-    RTRemoteSerializer m_serializer = new RTRemoteSerializer();
-    m_serializer.toBytes(search);
-
-    byte[] buff = m_serializer.toBytes(search);
+    byte[] buff = serializer.toBytes(search);
+    Long preCheckTime = System.currentTimeMillis();
+    Long diff, now, seachTimeMultiple = 1L, totalCostTime = 0L;
+    URI uri;
     try {
-      m_socketOut.send(new DatagramPacket(buff, buff.length, m_group, m_port));
-
-      buff = new byte[4096];
-      DatagramPacket pkt = new DatagramPacket(buff, buff.length);
-      m_socketIn.receive(pkt);
-
-
-      RTMessageLocate locate = (RTMessageLocate) m_serializer.fromBytes(buff, 0, buff.length);
-
-      temp = locate.getEndpoint().toString();
-      temp += "/";
-      temp += name;
-
-      uri = new URI(temp);
-
-    } catch (IOException ioe) {
-      throw new RTException("failed to send datagram packet for search", ioe);
-    } catch (URISyntaxException syntaxError) {
-      throw new RTException("failed to parse URI string:" + temp, syntaxError);
+      socketOut.send(new DatagramPacket(buff, buff.length, group, port));
+    } catch (IOException e) {
+      e.printStackTrace();
     }
-
-    return uri;
+    while (true) {
+      try {
+        now = System.currentTimeMillis();
+        diff = now - preCheckTime;
+        uri = objectMap.get(name);
+        if (uri != null) {
+          objectMap.remove(name);
+          return uri;
+        }
+        Long currentTime = RTConst.FIRST_FIND_OBJECT_TIME * seachTimeMultiple;
+        if (diff >= currentTime) {
+          totalCostTime += currentTime;
+          logger.debug("searching object " + name + ", cost = " + totalCostTime / 1000.0 + "s");
+          seachTimeMultiple *= 2;
+          socketOut.send(new DatagramPacket(buff, buff.length, group, port));
+          preCheckTime = now;
+        }
+        Thread.sleep(10);
+      } catch (Exception e) {
+        logger.error(e);
+        throw new RTException("locateObject failed", e);
+      }
+    }
   }
 }

@@ -1,48 +1,63 @@
 package org.pxscene.rt.remote.messages;
 
 
+import org.pxscene.rt.RTHelper;
 import org.pxscene.rt.RTValue;
 import org.pxscene.rt.remote.RTRemoteMessage;
 import org.pxscene.rt.remote.RTRemoteMessageType;
 
-public class RTMessageSetPropertyByNameRequest extends RTRemoteMessage {
-  private String m_propertyName;
-  private String m_objectId;
-  private RTValue m_value;
+/**
+ * the set property by name request entity.
+ */
 
+public class RTMessageSetPropertyByNameRequest extends RTRemoteMessage {
+
+  /**
+   * the remote object property name
+   */
+  private String propertyName;
+
+  /**
+   * the remote object id
+   */
+  private String objectId;
+
+  /**
+   * the set value
+   */
+  private RTValue value;
+
+  /**
+   * the entity constructor with type.
+   */
   public RTMessageSetPropertyByNameRequest() {
     super(RTRemoteMessageType.SET_PROPERTY_BYNAME_REQUEST);
   }
 
-  public void setPropertyName(String s) {
-    if (s == null)
-      throw new NullPointerException("s");
-    m_propertyName = s;
-  }
 
   public String getPropertyName() {
-    return m_propertyName;
+    return this.propertyName;
   }
 
-  public void setObjectId(String objectId) {
-    if (objectId == null)
-      throw new NullPointerException("objectId");
-    m_objectId = objectId;
+  public void setPropertyName(String propertyName) {
+    RTHelper.ensureNotNull(propertyName, "propertyName");
+    this.propertyName = propertyName;
   }
 
   public String getObjectId() {
-    return m_objectId;
+    return this.objectId;
   }
 
-  public void setValue(RTValue value) {
-    m_value = value;
+  public void setObjectId(String objectId) {
+    RTHelper.ensureNotNull(objectId, "objectId");
+    this.objectId = objectId;
   }
 
   public RTValue getValue() {
-    return m_value;
+    return this.value;
   }
 
-  public String setObjectId() {
-    return m_objectId;
+  public void setValue(RTValue value) {
+    this.value = value;
   }
 }

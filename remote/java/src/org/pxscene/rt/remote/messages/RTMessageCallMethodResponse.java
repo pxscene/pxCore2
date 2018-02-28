@@ -8,43 +8,29 @@ import org.pxscene.rt.remote.RTRemoteMessage;
 import org.pxscene.rt.remote.RTRemoteMessageType;
 
 /**
- * The get property by name response entity.
+ * The call method response entity.
  */
-
-public class RTMessageGetPropertyByNameResponse extends RTRemoteMessage {
-
-  /**
-   * the remote object id
-   */
-  private String objectId;
+public class RTMessageCallMethodResponse extends RTRemoteMessage {
 
 
   /**
-   * the response value
+   * the call method response value
    */
-  private RTValue value;
+  RTValue value;
 
   /**
-   * the response status
+   * the call method response status
    */
-  private RTStatus status;
+  RTStatus status;
+
 
   /**
-   * the entity constructor with type.
+   * the entity constructor with type
    */
-  public RTMessageGetPropertyByNameResponse() {
-    super(RTRemoteMessageType.GET_PROPERTY_BYNAME_RESPONSE);
+  public RTMessageCallMethodResponse() {
+    super(RTRemoteMessageType.METHOD_CALL_RESPONSE);
   }
 
-
-  public String getObjectId() {
-    return this.objectId;
-  }
-
-  public void setObjectId(String objectId) {
-    RTHelper.ensureNotNull(objectId, "objectId");
-    this.objectId = objectId;
-  }
 
   public RTValue getValue() {
     return this.value;

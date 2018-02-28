@@ -15,47 +15,108 @@
 //
 package org.pxscene.rt.remote;
 
-import org.pxscene.rt.RTValue;
+import java.util.concurrent.Future;
 import org.pxscene.rt.RTException;
 import org.pxscene.rt.RTObject;
-import org.pxscene.rt.remote.RTRemoteProtocol;
+import org.pxscene.rt.RTValue;
 
-import java.util.concurrent.Future;
-
+/**
+ * the rt remote object
+ */
 public class RTRemoteObject implements RTObject {
-  private RTRemoteProtocol m_protocol;
-  private String m_id;
 
+  /**
+   * the remote protocol instance
+   */
+  private RTRemoteProtocol protocol;
+
+  /**
+   * the remote object id
+   */
+  private String id;
+
+  /**
+   * create new remote object
+   *
+   * @param proto the remote protocol instance
+   * @param objectId the remote object id
+   */
   public RTRemoteObject(RTRemoteProtocol proto, String objectId) {
-    m_protocol = proto;
-    m_id = objectId;
+    protocol = proto;
+    id = objectId;
   }
 
+  /**
+   * set remote object property value
+   *
+   * @param name the property name
+   * @param value the value
+   * @return the future task
+   * @throws RTException if any other error occurred during operation
+   */
   public Future<Void> set(String name, RTValue value) throws RTException {
-    return m_protocol.sendSetByName(m_id, name, value);
+    return protocol.sendSetByName(id, name, value);
   }
 
+  /**
+   * set remote object property value
+   *
+   * @param index the property index
+   * @param value the value
+   * @return the future task
+   * @throws RTException if any other error occurred during operation
+   */
   public Future<Void> set(int index, RTValue value) throws RTException {
-    return m_protocol.sendSetById(m_id, index, value);
+    return protocol.sendSetById(id, index, value);
   }
 
+  /**
+   * get remote object property value
+   *
+   * @param name the property name
+   * @return the future task
+   * @throws RTException if any other error occurred during operation
+   */
   public Future<RTValue> get(String name) throws RTException {
-    return m_protocol.sendGetByName(m_id, name);
+    return protocol.sendGetByName(id, name);
   }
 
+  /**
+   * get remote object property value
+   *
+   * @param index the property index
+   * @return the future task
+   * @throws RTException if any other error occurred during operation
+   */
   public Future<RTValue> get(int index) throws RTException {
-    return m_protocol.sendGetById(m_id, index);
+    return protocol.sendGetById(id, index);
   }
 
+  /**
+   * invoke remote method and no return
+   *
+   * @param name the method name
+   * @param arguments the function args
+   * @return the future task
+   * @throws RTException if any other error occurred during operation
+   */
   public Future<Void> send(String name, RTValue... arguments) throws RTException {
-    return null;
+    return protocol.sendCallByNameAndNoReturns(id, name, arguments);
   }
 
+  /**
+   * invoke remote method and return value
+   *
+   * @param name the method name
+   * @param arguments the function args
+   * @return the future task
+   * @throws RTException if any other error occurred during operation
+   */
   public Future<RTValue> sendReturns(String name, RTValue... arguments) throws RTException {
-    return null;
+    return protocol.sendCallByNameAndReturns(id, name, arguments);
   }
 
   public String getId() {
-    return m_id;
+    return this.id;
   }
 }

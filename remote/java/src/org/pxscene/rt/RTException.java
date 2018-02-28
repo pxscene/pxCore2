@@ -15,18 +15,41 @@
 //
 package org.pxscene.rt;
 
+/**
+ * This is the base exception of the Client exception.
+ */
 public class RTException extends Exception {
+
+  /**
+   * create new RTException
+   */
   public RTException() {
   }
 
+  /**
+   * create new RTException with message
+   *
+   * @param message the message
+   */
   public RTException(String message) {
     super(message);
   }
 
+  /**
+   * create new RTException with message and cause
+   *
+   * @param message the exception message
+   * @param cause the cause exception
+   */
   public RTException(String message, Throwable cause) {
     super(message, cause);
   }
 
+  /**
+   * create new RTException with cause
+   *
+   * @param cause the cause exception
+   */
   public RTException(Throwable cause) {
     super(cause);
   }

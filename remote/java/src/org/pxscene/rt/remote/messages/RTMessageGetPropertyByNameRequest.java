@@ -1,33 +1,47 @@
 package org.pxscene.rt.remote.messages;
 
+
+import org.pxscene.rt.RTHelper;
 import org.pxscene.rt.remote.RTRemoteMessage;
 import org.pxscene.rt.remote.RTRemoteMessageType;
 
 public class RTMessageGetPropertyByNameRequest extends RTRemoteMessage {
-  private String m_propertyName;
-  private String m_objectId;
 
+  /**
+   * the set property name
+   */
+
+  private String propertyName;
+
+
+  /**
+   * the remote object id
+   */
+  private String objectId;
+
+  /**
+   * the entity constructor with type
+   */
   public RTMessageGetPropertyByNameRequest() {
     super(RTRemoteMessageType.GET_PROPERTY_BYNAME_REQUEST);
   }
 
+
   public String getPropertyName() {
-    return m_propertyName;
+    return this.propertyName;
   }
 
-  public void setPropertyName(String s) {
-    if (s == null)
-      throw new NullPointerException("s");
-    m_propertyName = s;
+  public void setPropertyName(String propertyName) {
+    RTHelper.ensureNotNull(propertyName, "propertyName");
+    this.propertyName = propertyName;
   }
 
   public String getObjectId() {
-    return m_objectId;
+    return this.objectId;
   }
 
   public void setObjectId(String objectId) {
-    if (objectId == null)
-      throw new NullPointerException("objectId");
-    m_objectId = objectId;
+    RTHelper.ensureNotNull(objectId, "objectId");
+    this.objectId = objectId;
   }
 }

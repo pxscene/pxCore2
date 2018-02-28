@@ -17,63 +17,75 @@ package org.pxscene.rt;
 
 import java.util.concurrent.Future;
 
+/**
+ * the interface of rtObject
+ */
 public interface RTObject {
 
   /**
+   * set remote object property value
    *
-   * @param name
-   * @return
-   * @throws RTException
+   * @param name the property name
+   * @param value the value
+   * @return the future task
+   * @throws RTException if any other error occurred during operation
    */
   Future<Void> set(String name, RTValue value) throws RTException;
 
+
   /**
+   * set remote object property value
    *
-   * @param index
-   * @param value
-   * @return
-   * @throws RTException
+   * @param index the property index
+   * @param value the value
+   * @return the future task
+   * @throws RTException if any other error occurred during operation
    */
   Future<Void> set(int index, RTValue value) throws RTException;
 
   /**
+   * get remote object property value
    *
-   * @param name
-   * @return
-   * @throws RTException
+   * @param name the property name
+   * @return the future task
+   * @throws RTException if any other error occurred during operation
    */
   Future<RTValue> get(String name) throws RTException;
 
   /**
+   * get remote object property value
    *
-   * @param index
-   * @return
-   * @throws RTException
+   * @param index the property index
+   * @return the future task
+   * @throws RTException if any other error occurred during operation
    */
   Future<RTValue> get(int index) throws RTException;
 
   /**
+   * invoke remote method and no return
    *
-   * @param name
-   * @param arguments
-   * @return
-   * @throws RTException
+   * @param name the method name
+   * @param arguments the function args
+   * @return the future task
+   * @throws RTException if any other error occurred during operation
    */
   Future<Void> send(String name, RTValue... arguments) throws RTException;
 
   /**
+   * invoke remote method and return value
    *
-   * @param name
-   * @param arguments
-   * @return
-   * @throws RTException
+   * @param name the method name
+   * @param arguments the function args
+   * @return the future task
+   * @throws RTException if any other error occurred during operation
    */
   Future<RTValue> sendReturns(String name, RTValue... arguments) throws RTException;
 
 
   /**
+   * get object id
    *
-   * @return
+   * @return object id
    */
   String getId();
 }
