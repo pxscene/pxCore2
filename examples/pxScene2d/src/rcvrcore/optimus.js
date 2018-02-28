@@ -346,8 +346,11 @@ function Optimus() {
     scene = s;
     root = scene.root;
     availableApplicationsArray.splice(0,availableApplicationsArray.length);
-    var availableApps = scene.getAvailableApplications().trim();
-    availableApplicationsArray = availableApps.split(' ');
+    var availableApps = scene.getAvailableApplications();
+    if (availableApps.length > 0)
+    {
+      availableApplicationsArray = JSON.parse(availableApps);
+    }
   }
 }
 
