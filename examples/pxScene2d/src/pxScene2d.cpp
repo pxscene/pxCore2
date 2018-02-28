@@ -3148,6 +3148,36 @@ rtError pxScene2d::getService(const char* name, const rtObjectRef& ctx, rtObject
   }
 }
 
+rtError pxScene2d::getAvailableApplications(rtString& availableApplications)
+{
+#if defined(ENABLE_DFB) || defined(DISABLE_WAYLAND)
+  rtLogWarn("wayland apps are not supported");
+#else
+  if (false == gWaylandAppsConfigLoaded)
+  {
+    populateWaylandAppsConfig();
+#ifndef PXSCENE_ENABLE_ALL_APPS_WAYLAND_CONFIG
+    gWaylandAppsMap.insert(gWaylandRegistryAppsMap.begin(), gWaylandRegistryAppsMap.end());
+#endif // !defined PXSCENE_ENABLE_ALL_APPS_WAYLAND_CONFIG
+    gWaylandAppsConfigLoaded = true;
+  }
+#ifdef PXSCENE_ENABLE_ALL_APPS_WAYLAND_CONFIG
+  gWaylandAppsMap.clear();
+  gWaylandAppsMap.insert(gWaylandRegistryAppsMap.begin(), gWaylandRegistryAppsMap.end());
+  populateAllAppsConfig();
+  gWaylandAppsMap.insert(gPxsceneWaylandAppsMap.begin(), gPxsceneWaylandAppsMap.end());
+#endif
+#endif
+
+  availableApplications = "";
+  for (std::map<string, string>::iterator it=gWaylandAppsMap.begin(); it!=gWaylandAppsMap.end(); ++it)
+  {
+    availableApplications.append((it->first).c_str());
+    availableApplications.append(" ");
+  }
+  return RT_OK;
+}
+
 rtDefineObject(pxScene2d, rtObject);
 rtDefineProperty(pxScene2d, root);
 rtDefineProperty(pxScene2d, info);
@@ -3169,6 +3199,7 @@ rtDefineMethod(pxScene2d, screenshot);
 rtDefineMethod(pxScene2d, clipboardGet);
 rtDefineMethod(pxScene2d, clipboardSet);
 rtDefineMethod(pxScene2d, getService);
+rtDefineMethod(pxScene2d, getAvailableApplications);
 
 rtDefineMethod(pxScene2d, loadArchive);
 rtDefineProperty(pxScene2d, ctx);
