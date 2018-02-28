@@ -227,16 +227,16 @@ rtError pxCanvas::drawPath(rtObjectRef path)
       case pxCanvas2d::StrokeType::center:  sw  = sw; break;
     }
     
-
-   // p->setUseMatrix(false);
-    
     // Set path POSITION
 //    p->setX(mCanvasCtx.extentLeft);
 //    p->setY(mCanvasCtx.extentTop);
     
+    float w = (mCanvasCtx.extentRight  - mCanvasCtx.extentLeft);
+    float h = (mCanvasCtx.extentBottom - mCanvasCtx.extentTop);
+    
     // Set path DIMENSIONS
-    p->setW(mCanvasCtx.extentRight  - mCanvasCtx.extentLeft + sw);
-    p->setH(mCanvasCtx.extentBottom - mCanvasCtx.extentTop  + sw);
+    p->setW(w + sw);
+    p->setH(h + sw);
  }
   
   return RT_OK;
