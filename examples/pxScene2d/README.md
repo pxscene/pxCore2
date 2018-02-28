@@ -142,10 +142,6 @@
       CALL gyp\gyp.bat src\client\windows\breakpad_client.gyp --no-circular-check
       cd src\client\windows
       msbuild breakpad_client.sln /p:Configuration=Release /p:Platform=Win32 /m
-      cd ..\..\..\..\
-      cd libnode-v6.9.0
-      CALL vcbuild.bat x86 nosign
-      cd ..
       ~~~~
 
 4. Build **pxScene**
