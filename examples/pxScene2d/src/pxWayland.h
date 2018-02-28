@@ -89,6 +89,10 @@ public:
   rtError cmd(rtString& s) const { s = mCmd; return RT_OK; }
   rtError setCmd(const char* s)
   {
+#ifdef ENABLE_PERMISSIONS_CHECK
+    rtPermissionsCheck((mSceneContainer != NULL ? mSceneContainer->permissions() : NULL), s, rtPermissions::WAYLAND)
+#endif
+
      mCmd= s;
      return RT_OK;
   }
