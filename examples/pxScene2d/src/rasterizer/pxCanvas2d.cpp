@@ -152,10 +152,11 @@ double mFontSize;
 
 
 pxCanvas2d::pxCanvas2d(): mFontSize(0.0), textX(0.0), textY(0.0), lastX(0.0), lastY(0.0),
-                          mVertexCount(0),   mFillColor(pxRed), mStrokeColor(pxRed), mStrokeWidth(0.0),
+                          mVertexCount(0),   mFillColor(pxRed),
+                          mStrokeColor(pxRed), mStrokeWidth(0.0), mStrokeType(StrokeType::inside),
                           mOffscreen(/*NULL*/),
                           extentLeft(0.0), extentTop(0.0), extentRight(0.0), extentBottom(0.0),
-                          mNeedsRedraw(false), mw(0), mh(0), mStrokeType(StrokeType::inside)
+                          mNeedsRedraw(false), mw(0), mh(0)
 {
 
 }

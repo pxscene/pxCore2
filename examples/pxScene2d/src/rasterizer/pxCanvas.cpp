@@ -220,11 +220,11 @@ rtError pxCanvas::drawPath(rtObjectRef path)
     
     p->strokeWidth(sw); // GET current Stroke Width
     
-    switch(mCanvasCtx.mStrokeType)
+    switch( mCanvasCtx.strokeType() )
     {
       case pxCanvas2d::StrokeType::inside:  sw  = 0; break;
       case pxCanvas2d::StrokeType::outside: sw *= 2; break;
-      case pxCanvas2d::StrokeType::center:  sw  = sw; break;
+      case pxCanvas2d::StrokeType::center:  /* ok */ break;
     }
     
     // Set path POSITION

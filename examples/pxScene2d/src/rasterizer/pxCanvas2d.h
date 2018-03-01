@@ -103,8 +103,7 @@ public:
   enum class StrokeType { inside, outside, center };
   void stroke();  // DEFAULT: inside
   
-  void setStrokeMode(StrokeType s) { mStrokeType = s; };
-  StrokeType mStrokeType;
+  inline void setStrokeMode(StrokeType s) { mStrokeType = s; };
 
   pxColor strokeColor();
   void setStrokeColor(int r, int g, int b, int a = 255);
@@ -212,8 +211,9 @@ private:
 
   pxColor mFillColor;
 
-  pxColor mStrokeColor;
-  double  mStrokeWidth;
+  pxColor    mStrokeColor;
+  double     mStrokeWidth;
+  StrokeType mStrokeType;
 
 //  virtual void draw();
 
