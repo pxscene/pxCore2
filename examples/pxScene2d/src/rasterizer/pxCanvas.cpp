@@ -231,12 +231,12 @@ rtError pxCanvas::drawPath(rtObjectRef path)
 //    p->setX(mCanvasCtx.extentLeft);
 //    p->setY(mCanvasCtx.extentTop);
     
-    float w = (mCanvasCtx.extentRight  - mCanvasCtx.extentLeft);
-    float h = (mCanvasCtx.extentBottom - mCanvasCtx.extentTop);
-    
-    // Set path DIMENSIONS
-    p->setW(w + sw);
-    p->setH(h + sw);
+//    float w = (mCanvasCtx.extentRight  - mCanvasCtx.extentLeft);
+//    float h = (mCanvasCtx.extentBottom - mCanvasCtx.extentTop);
+//    
+//    // Set path DIMENSIONS
+//    p->setW(w + sw);
+//    p->setH(h + sw);
  }
   
   return RT_OK;
