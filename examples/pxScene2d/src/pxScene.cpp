@@ -101,7 +101,13 @@ char** g_origArgv = NULL;
 bool gDumpMemUsage = false;
 extern bool gApplicationIsClosing;
 extern int pxObjectCount;
+
 #include "pxFont.h"
+
+#ifdef PXSCENE_FONT_ATLAS
+extern pxFontAtlas gFontAtlas;
+#endif
+
 #ifdef HAS_LINUX_BREAKPAD
 static bool dumpCallback(const google_breakpad::MinidumpDescriptor& descriptor,
 void* context, bool succeeded) {
@@ -269,6 +275,11 @@ protected:
     free(g_origArgv);
   #endif
 
+#ifdef PXSCENE_FONT_ATLAS
+  gFontAtlas.clearTexture();
+#endif
+    pxFontManager::clearAllFonts();
+    
     context.term();
     script.collectGarbage();
 

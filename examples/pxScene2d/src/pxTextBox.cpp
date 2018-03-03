@@ -209,7 +209,6 @@ void pxTextBox::draw()
 #if PXSCENE_FONT_ATLAS
   if (mDirty)
   {
-    rtLogError("!CLF: mDirty\n");
     mQuadsVector.clear();
     renderText(true);
     mDirty = false;   
