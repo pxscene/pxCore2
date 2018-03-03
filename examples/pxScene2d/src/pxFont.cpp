@@ -30,7 +30,7 @@ using namespace std;
 
 struct GlyphKey 
 {
-  uint32_t mFontId;
+  rtString mFontId;
   uint32_t mPixelSize;
   uint32_t mCodePoint;
 
@@ -85,7 +85,7 @@ pxFontAtlas gFontAtlas;
 pxFont::pxFont(rtString fontUrl, rtString proxyUrl):pxResource(),mFace(NULL),mPixelSize(0), mFontData(0), mFontDataSize(0),
              mFontMutex()
 {  
-  mFontId = gFontId++; 
+  mFontId = fontUrl;//gFontId++; 
   mUrl = fontUrl;
   mProxy = proxyUrl;
 }
@@ -709,6 +709,13 @@ pxFontAtlas::pxFontAtlas(): fence(0)
   mTexture = context.createTexture(PXSCENE_FONT_ATLAS_DIM,PXSCENE_FONT_ATLAS_DIM,PXSCENE_FONT_ATLAS_DIM,PXSCENE_FONT_ATLAS_DIM, NULL);
 }
 
+void pxFontAtlas::clearTexture() 
+{
+  if( mTexture) {
+    mTexture->deleteTexture();
+    mTexture = 0;
+  }
+}
 bool pxFontAtlas::addGlyph(uint32_t w, uint32_t h, void* buffer, GlyphTextureEntry& e)
 {
   //return false;

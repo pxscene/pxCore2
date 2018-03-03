@@ -81,6 +81,7 @@ public:
   pxFontAtlas();
 
   bool addGlyph(uint32_t w, uint32_t h, void* buffer, GlyphTextureEntry& e);
+  void clearTexture();
 
 
   private:
@@ -289,7 +290,7 @@ private:
   rtError init(const FT_Byte*  fontData, FT_Long size, const char* n); 
 
   // FreeType font info
-  uint32_t mFontId;
+  rtString mFontId;
   FT_Face mFace;
   uint32_t mPixelSize;
   char* mFontData; // for remote fonts loaded into memory
