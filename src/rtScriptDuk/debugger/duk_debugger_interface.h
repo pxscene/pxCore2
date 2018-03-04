@@ -1,4 +1,4 @@
-//generic interface class need to be implemented by all the platforms
+/* generic debugger interface class need to be implemented by all the platforms */
 #if !defined(DUK_DEBUGGER_INTERFACE_H_INCLUDED)
 #define DUK_DEBUGGER_INTERFACE_H_INCLUDED
 
