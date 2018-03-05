@@ -67,6 +67,9 @@
 #include "pxClipboard.h"
 #include <rapidjson/document.h>
 #include <rapidjson/filereadstream.h>
+#include <rapidjson/stringbuffer.h>
+#include <rapidjson/writer.h>
+
 using namespace rapidjson;
 
 using namespace std;
@@ -278,6 +281,86 @@ void populateAllAppsConfig()
   }
 }
 
+void populateAllAppDetails(rtString& appDetails)
+{
+  appDetails = "[ ";
+  int appCount = 0;
+  for (std::map<string, string>::iterator it=gWaylandRegistryAppsMap.begin(); it!=gWaylandRegistryAppsMap.end(); ++it)
+  {
+    if (appCount > 0)
+    {
+      appDetails.append(", ");
+    }
+    rtString app("{\"displayName\":\"");
+    app.append((it->first).c_str());
+    app.append("\", \"cmdName\":\"");
+    app.append((it->first).c_str());
+    app.append("\",");
+    app.append("\"uri\":\"");
+    app.append((it->second).c_str());
+    app.append("\",");
+    app.append("\"applicationType\" : \"native\"}");
+    appDetails.append(app);
+    appCount++;
+  }
+  //populate from the apps registry file
+  FILE* fp = NULL;
+  char const* s = getenv("PXSCENE_APPS_CONFIG");
+  if (s)
+  {
+    fp = fopen(s, "rb");
+  }
+  if (NULL == fp)
+  {
+    fp = fopen(DEFAULT_ALL_APPS_CONFIG_FILE, "rb");
+    if (NULL == fp)
+    {
+      rtLogInfo("pxscene app config read error : [unable to read all apps config file]\n");
+      appDetails.append("]");
+      return;
+    }
+  }
+  char readBuffer[65536];
+  memset(readBuffer, 0, sizeof(readBuffer));
+  rapidjson::FileReadStream is(fp, readBuffer, sizeof(readBuffer));
+  rapidjson::Document doc;
+  rapidjson::ParseResult result = doc.ParseStream(is);
+  if (!result)
+  {
+    rapidjson::ParseErrorCode e = doc.GetParseError();
+    rtLogInfo("pxscene app config read error : [JSON parse error while reading all apps conf file: %s (%zu)]\n",rapidjson::GetParseError_En(e), result.Offset());
+    fclose(fp);
+    appDetails.append("]");
+    return;
+  }
+  fclose(fp);
+
+  if (! doc.HasMember("applications"))
+  {
+    rtLogInfo("pxscene apps config read error : [applications element not found]\n");
+    appDetails.append("]");
+    return;
+  }
+
+  const rapidjson::Value& appList = doc["applications"];
+  for (rapidjson::SizeType i = 0; i < appList.Size(); i++)
+  {
+    if (appList[i].IsObject())
+    {
+      if (appCount > 0)
+      {
+        appDetails.append(", ");
+      }
+      rapidjson::StringBuffer sb;
+      Writer<rapidjson::StringBuffer> writer(sb);
+      appList[i].Accept(writer);
+      appDetails.append(sb.GetString());
+      appCount++;
+    }
+  }
+  appDetails.append("]");
+}
+
 static char encoding_table[] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H',
                                 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P',
                                 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X',
@@ -337,16 +420,23 @@ unsigned char *base64_decode(const unsigned char *data,
                              size_t input_length,
                              size_t *output_length) {
 
-    if (decoding_table == NULL) build_decoding_table();
+    if (decoding_table == NULL)
+        build_decoding_table();
 
-    if (input_length % 4 != 0) return NULL;
+    if (output_length)
+        *output_length = input_length / 4 * 3;
 
-    *output_length = input_length / 4 * 3;
-    if (data[input_length - 1] == '=') (*output_length)--;
-    if (data[input_length - 2] == '=') (*output_length)--;
+    if ((input_length == 0) || (input_length % 4 != 0))
+        return NULL;
+
+    if (data[input_length - 1] == '=')
+        (*output_length)--;
+    if (data[input_length - 2] == '=')
+        (*output_length)--;
 
     unsigned char *decoded_data = (unsigned char*)malloc(*output_length);
-    if (decoded_data == NULL) return NULL;
+    if (decoded_data == NULL)
+        return NULL;
 
     for (uint32_t i = 0, j = 0; i < input_length;) {
 
@@ -513,7 +603,7 @@ void pxObject::dispose()
     {
       if ((*it).promise)
       {
-	if(!gApplicationIsClosing)	  
+	if(!gApplicationIsClosing)
           (*it).promise.send("reject",this);
 	else
 	  (*it).promise.send("reject",nullValue);
@@ -645,7 +735,7 @@ rtError pxObject::animateToObj(rtObjectRef props, double duration,
     }
   }
   if (NULL != animateObj.getPtr())
-    ((pxAnimate*)animateObj.getPtr())->setStatus(pxConstantsAnimation::STATUS_INPROGRESS);  
+    ((pxAnimate*)animateObj.getPtr())->setStatus(pxConstantsAnimation::STATUS_INPROGRESS);
   return RT_OK;
 }
 
@@ -735,14 +825,14 @@ rtError pxObject::moveToBack()
   parent->repaint();
   parent->repaintParents();
   mScene->mDirty = true;
-  
+
   return RT_OK;
 }
 
 /**
- * moveForward: Move this child in front of its next closest sibling in z-order, which means 
- *              moving it toward end of array because last item is at top of z-order 
- **/ 
+ * moveForward: Move this child in front of its next closest sibling in z-order, which means
+ *              moving it toward end of array because last item is at top of z-order
+ **/
 rtError pxObject::moveForward()
 {
   pxObject* parent = this->parent();
@@ -768,15 +858,15 @@ rtError pxObject::moveForward()
 
   parent->repaint();
   parent->repaintParents();
-  mScene->mDirty = true;  
+  mScene->mDirty = true;
 
   return RT_OK;
 }
 
 /**
- * moveBackward: Move this child behind its next closest sibling in z-order, which means 
- *               moving it toward beginning of array because first item is at bottom of z-order 
- **/ 
+ * moveBackward: Move this child behind its next closest sibling in z-order, which means
+ *               moving it toward beginning of array because first item is at bottom of z-order
+ **/
 rtError pxObject::moveBackward()
 {
   pxObject* parent = this->parent();
@@ -800,11 +890,11 @@ rtError pxObject::moveBackward()
 
   parent->repaint();
   parent->repaintParents();
-  mScene->mDirty = true; 
+  mScene->mDirty = true;
 
   return RT_OK;
 }
-  
+
 rtError pxObject::animateTo(const char* prop, double to, double duration,
                              uint32_t interp, uint32_t options,
                             int32_t count, rtObjectRef promise)
@@ -838,7 +928,7 @@ void pxObject::cancelAnimation(const char* prop, bool fastforward, bool rewind, 
     if (!a.cancelled && a.prop == prop)
     {
       pxAnimate* pAnimateObj = (pxAnimate*) a.animateObj.getPtr();
-      
+
       // Fastforward or rewind, if specified
       if( fastforward)
         set(prop, a.to);
@@ -854,7 +944,7 @@ void pxObject::cancelAnimation(const char* prop, bool fastforward, bool rewind, 
         if (a.promise)
         {
           a.promise.send(resolve ? "resolve" : "reject", this);
-          
+
           if (NULL != pAnimateObj)
           {
             pAnimateObj->setStatus(pxConstantsAnimation::STATUS_CANCELLED);
@@ -908,9 +998,9 @@ void pxObject::animateToInternal(const char* prop, double to, double duration,
   a.animateObj = animateObj;
 
   mAnimations.push_back(a);
-  
+
   pxAnimate *animObj = (pxAnimate *)a.animateObj.getPtr();
-  
+
   if (NULL != animObj)
   {
     animObj->update(prop, &a, pxConstantsAnimation::STATUS_INPROGRESS);
@@ -1207,7 +1297,7 @@ const float alphaEpsilon = (1.0f/255.0f);
 void pxObject::drawInternal(bool maskPass)
 {
   //rtLogInfo("pxObject::drawInternal mw=%f mh=%f\n", mw, mh);
-  
+
   if (!drawEnabled() && !maskPass)
   {
     return;
@@ -1363,7 +1453,7 @@ void pxObject::drawInternal(bool maskPass)
           continue;
         }
         context.pushState();
-        //rtLogInfo("calling drawInternal() mw=%f mh=%f\n", (*it)->mw, (*it)->mh);                
+        //rtLogInfo("calling drawInternal() mw=%f mh=%f\n", (*it)->mw, (*it)->mh);
         (*it)->drawInternal();
 #ifdef PX_DIRTY_RECTANGLES
         int left = (*it)->mScreenCoordinates.left();
@@ -1796,18 +1886,18 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   mPointerHotSpotY= 16;
   mPointerResource= pxImageManager::getImage("cursor.png");
   #endif
-  
+
   mInfo = new rtMapObject;
   mInfo.set("version", xstr(PX_SCENE_VERSION));
 
 #ifdef ENABLE_RT_NODE
   mInfo.set("engine", script.engine());
 #endif
-  
+
     rtObjectRef build = new rtMapObject;
     build.set("date", xstr(__DATE__));
     build.set("time", xstr(__TIME__));
-  
+
   mInfo.set("build", build);
   mInfo.set("gfxmemory", context.currentTextureMemoryUsageInBytes());
 }
@@ -1925,7 +2015,7 @@ rtError pxScene2d::create(rtObjectRef p, rtObjectRef& o)
     return RT_FAIL;
   }
 
-  // Handle psuedo property here for children.  Probably should make this 
+  // Handle psuedo property here for children.  Probably should make this
   rtObjectRef c = p.get<rtObjectRef>("c");
   if (c)
   {
@@ -1997,7 +2087,7 @@ rtError pxScene2d::createPath(rtObjectRef p, rtObjectRef& o)
     mCanvas.set("y",0);
     mCanvas.set("w",mWidth);
     mCanvas.set("h",mHeight);
-    
+
     mCanvas.send("init");
   }
 
@@ -2071,7 +2161,7 @@ rtError pxScene2d::createScene(rtObjectRef p, rtObjectRef& o)
 
 rtError pxScene2d::logDebugMetrics()
 {
-#ifdef ENABLE_DEBUG_METRICS 
+#ifdef ENABLE_DEBUG_METRICS
     script.collectGarbage();
     rtLogInfo("pxobjectcount is [%d]",pxObjectCount);
 #ifdef PX_PLATFORM_MAC
@@ -2139,7 +2229,7 @@ rtError pxScene2d::createWayland(rtObjectRef p, rtObjectRef& o)
   }*/
 #endif
   rtRef<pxWaylandContainer> c = new pxWaylandContainer(this);
-  c->setView(new pxWayland(true));
+  c->setView(new pxWayland(true, this));
   o = c.getPtr();
   o.set(p);
   o.send("init");
@@ -3023,6 +3113,7 @@ rtError pxScene2d::clipboardGet(rtString type, rtString &retString)
 
 rtError pxScene2d::getService(rtString name, rtObjectRef& returnObject)
 {
+  rtLogDebug("inside getService");
   returnObject = NULL;
 
   // Create context from requesting scene
@@ -3035,6 +3126,7 @@ rtError pxScene2d::getService(rtString name, rtObjectRef& returnObject)
 // todo change rtString to const char*
 rtError pxScene2d::getService(const char* name, const rtObjectRef& ctx, rtObjectRef& service)
 {
+  rtLogDebug("inside getService internal");
   static pxScene2d* reentered = NULL;
 
   // Only query this scene  if we're not already in the middle of querying this scene
@@ -3044,7 +3136,7 @@ rtError pxScene2d::getService(const char* name, const rtObjectRef& ctx, rtObject
     {
       rtValue result;
       rtError e;
-      
+
       reentered = this;
       e = (*i).sendReturns<rtValue>(name, ctx, result);
       reentered = NULL;
@@ -3056,10 +3148,18 @@ rtError pxScene2d::getService(const char* name, const rtObjectRef& ctx, rtObject
           rtString access = result.toString();
           // denied stop searching for service
           if (access == "deny")
+          {
+            rtLogDebug("service denied");
+            return RT_FAIL;
             break;
+          }
           // if not explicitly allowed then break
           if (access != "allow")
+          {
+            rtLogDebug("unknown access string - denied");
+            return RT_FAIL;
             break;
+          }
           // otherwise keep on looking
         }
         else if (result.getType() == RT_objectType)
@@ -3102,7 +3202,7 @@ rtError pxScene2d::getService(const char* name, const rtObjectRef& ctx, rtObject
   }
   else
   {
-    // TODO JRJR should move this to top level container only... 
+    // TODO JRJR should move this to top level container only...
 
   #ifdef ENABLE_PERMISSIONS_CHECK
     if (!mPermissions.allows(name, rtPermissions::SERVICE))
@@ -3121,7 +3221,7 @@ rtError pxScene2d::getService(const char* name, const rtObjectRef& ctx, rtObject
       rtLogWarn("service manager not found");
       return result;
     }
-    result = serviceManager.sendReturns<rtObjectRef>("createService", mScriptView != NULL ? mScriptView->getUrl() : "", name, returnObject);
+    result = serviceManager.sendReturns<rtObjectRef>("createService", mScriptView != NULL ? mScriptView->getUrl() : "", name, service);
     rtLogInfo("create %s service result: %d", name, result);
     return result;
   #else
@@ -3129,6 +3229,25 @@ rtError pxScene2d::getService(const char* name, const rtObjectRef& ctx, rtObject
     return RT_FAIL;
   #endif //PX_SERVICE_MANAGER
   }
+}
+
+rtError pxScene2d::getAvailableApplications(rtString& availableApplications)
+{
+  availableApplications = "";
+#if defined(ENABLE_DFB) || defined(DISABLE_WAYLAND)
+  rtLogWarn("wayland apps are not supported");
+#else
+  if (false == gWaylandAppsConfigLoaded)
+  {
+    populateWaylandAppsConfig();
+#ifndef PXSCENE_ENABLE_ALL_APPS_WAYLAND_CONFIG
+    gWaylandAppsMap.insert(gWaylandRegistryAppsMap.begin(), gWaylandRegistryAppsMap.end());
+#endif // !defined PXSCENE_ENABLE_ALL_APPS_WAYLAND_CONFIG
+    gWaylandAppsConfigLoaded = true;
+  }
+  populateAllAppDetails(availableApplications);
+#endif
+  return RT_OK;
 }
 
 rtDefineObject(pxScene2d, rtObject);
@@ -3152,6 +3271,7 @@ rtDefineMethod(pxScene2d, screenshot);
 rtDefineMethod(pxScene2d, clipboardGet);
 rtDefineMethod(pxScene2d, clipboardSet);
 rtDefineMethod(pxScene2d, getService);
+rtDefineMethod(pxScene2d, getAvailableApplications);
 
 rtDefineMethod(pxScene2d, loadArchive);
 rtDefineProperty(pxScene2d, ctx);
