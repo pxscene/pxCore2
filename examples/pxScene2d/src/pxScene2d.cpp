@@ -524,10 +524,25 @@ void pxObject::dispose()
 
     mAnimations.clear();
     mEmit->clearListeners();
+    size_t nchild = mChildren.size();
     for(vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
     {
-      (*it)->dispose();
-      (*it)->mParent = NULL;  // setParent mutates the mChildren collection
+  	  if (nchild == mChildren.size())
+	  {
+            (*it)->dispose();
+	  }
+	  else
+	  {
+	    break;
+	  }
+	  if (nchild == mChildren.size())
+	  {
+            (*it)->mParent = NULL;  // setParent mutates the mChildren collection
+	  }
+	  else
+	  {
+	    break;
+	  }
     }
     mChildren.clear();
     clearSnapshot(mSnapshotRef);
