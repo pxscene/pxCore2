@@ -245,7 +245,10 @@ rtError rtFileCache::addToCache(const rtHttpCacheData& data)
   if (true != ret)
      return RT_ERROR;
   setFileSizeAndTime(filename);
-  rtLogInfo("addToCache url(%s) filename(%s) size(%ld)", url.cString(), filename.cString(), (long) mFileSizeMap[filename]);
+
+  rtHttpCacheData tempData = data;
+  rtLogInfo("addToCache url(%s) filename(%s) size(%ld) Cache expiration(%s)", url.cString(), filename.cString(), (long) mFileSizeMap[filename], tempData.expirationDate().cString());
+
   mCacheMutex.lock();
   mCurrentSize += mFileSizeMap[filename];
   int64_t size = cleanup();
