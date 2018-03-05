@@ -71,42 +71,43 @@ fi
 
 cd $TRAVIS_BUILD_DIR
 if [ "$TRAVIS_PULL_REQUEST" = "false" ]
-	then
-	echo "*********************** Building pxscene deploy app ***********************" >> $BUILDLOGS
+  then
+  echo "*********************** Building pxscene deploy app ***********************" >> $BUILDLOGS
 
-	if [ "$TRAVIS_EVENT_TYPE" = "cron" ] || [ "$TRAVIS_EVENT_TYPE" = "api" ] ;
-		then
+  if [ "$TRAVIS_EVENT_TYPE" = "cron" ]  ;
+  then
+    cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src/
+    ./mkdeploy.sh "edge" >>$BUILDLOGS 2>&1
+  fi
+        
+  if [ "$TRAVIS_EVENT_TYPE" = "api" ] ;
+  then
+    cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src/
 
-		cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src/
+    if [[ ! -z $PX_VERSION ]]
+    then
+      #make PXVERSION=$PX_VERSION deploy >>$BUILDLOGS 2>&1
+      #checkError $? 0 "make command failed for deploy target" "Compilation error" "check the $BUILDLOGS file"
+      echo "built with cmake"
+     ./mkdeploy.sh $PX_VERSION >>$BUILDLOGS 2>&1
 
-		if [[ ! -z $PX_VERSION ]]
-		then
-			#make PXVERSION=$PX_VERSION deploy >>$BUILDLOGS 2>&1
-			#checkError $? 0 "make command failed for deploy target" "Compilation error" "check the $BUILDLOGS file"
-			echo "built with cmake"
-			./mkdeploy.sh $PX_VERSION >>$BUILDLOGS 2>&1
-
-		else
-
-			if [ "$TRAVIS_EVENT_TYPE" = "cron" ]
-			then
-				export linenumber=`awk '/CFBundleShortVersionString/{ print NR; exit }' $TRAVIS_BUILD_DIR/examples/pxScene2d/src/macstuff/Info.plist`
-				checkError $? 0 "unable to read string CFBundleShortVersionString from Info.plist file" "Parse error" "check whether the Info.plist file in pxscene repo is having CFBundleShortVersionString string or not?"
-				echo $linenumber
-				export PX_VERSION=`sed -n "\`echo $((linenumber+1))\`p" $TRAVIS_BUILD_DIR/examples/pxScene2d/src/macstuff/Info.plist|awk -F '<string>' '{print $2}'|awk -F'</string>' '{print $1}'`
-				checkError $? 0 "unable to read version from Info.plist file" "Parse error" "check whether the Info.plist file in pxscene repo is having version details or not?"
-				#make PXVERSION=$PX_VERSION deploy >>$BUILDLOGS 2>&1
-				./mkdeploy.sh $PX_VERSION >>$BUILDLOGS 2>&1
-				checkError $? 0 "make command failed for deploy target" "Compilation error" "check the $BUILDLOGS file"
-
-			else
-				echo "Deploy terminated as pxversion environment is not set for api event type ************* " >> $BUILDLOGS
-				checkError 1 1 "Deploy terminated as pxversion environment is not set" "PX_VERSION environment variable not set" "Set PX_VERSION environment variable and retrigger"
-			fi
-
-		fi
-
-	fi
+    else
+      export linenumber=`awk '/CFBundleShortVersionString/{ print NR; exit }' $TRAVIS_BUILD_DIR/examples/pxScene2d/src/macstuff/Info.plist`
+      checkError $? 0 "unable to read string CFBundleShortVersionString from Info.plist file" "Parse error" "check whether the Info.plist file in pxscene repo is having CFBundleShortVersionString string or not?"
+      echo $linenumber
+      export PX_VERSION=`sed -n "\`echo $((linenumber+1))\`p" $TRAVIS_BUILD_DIR/examples/pxScene2d/src/macstuff/Info.plist|awk -F '<string>' '{print $2}'|awk -F'</string>' '{print $1}'`
+      checkError $? 0 "unable to read version from Info.plist file" "Parse error" "check whether the Info.plist file in pxscene repo is having version details or not?"
+      #make PXVERSION=$PX_VERSION deploy >>$BUILDLOGS 2>&1
+      ./mkdeploy.sh $PX_VERSION >>$BUILDLOGS 2>&1
+      checkError $? 0 "make command failed for deploy target" "Compilation error" "check the $BUILDLOGS file"
+    fi
+  fi
+#else
+#echo "Deploy terminated as pxversion environment is not set for api event type ************* " >> $BUILDLOGS
+#checkError 1 1 "Deploy terminated as pxversion environment is not set" "PX_VERSION environment variable not set" "Set PX_VERSION environment variable and retrigger"
 fi
+
+
+
 cd $TRAVIS_BUILD_DIR
 exit 0;
