@@ -38,7 +38,14 @@ md build-win32
 cd build-win32
 
 @rem build pxScene
+if "%APPVEYOR_SCHEDULED_BUILD%"=="True" (
+cmake -DCMAKE_VERBOSE_MAKEFILE=ON -DPXSCENE_VERSION="edge" ..
+)
+
+if "%APPVEYOR_SCHEDULED_BUILD%"=="" (
 cmake -DCMAKE_VERBOSE_MAKEFILE=ON ..
+)
+
 cmake --build . --config Release -- /m
 if %errorlevel% neq 0 exit /b %errorlevel%
 
@@ -60,6 +67,6 @@ if "%APPVEYOR_SCHEDULED_BUILD%"=="True" (
 
         @rem Standalone (requires no installation)
         appveyor PushArtifact "build-win32\\_CPack_Packages\\win32\\NSIS\\pxscene-setup.zip" -DeploymentName "portable" -Type "Zip" -Verbosity "Normal"
-    )
+)
 
 
