@@ -1024,25 +1024,6 @@ class rtFileDownloaderTest : public testing::Test, public commonTestFns
       EXPECT_TRUE (request->downloadHandleExpiresTime() == 3);
     }
 
-    void downloadedDataTest()
-    {
-      rtFileCache::instance()->clearCache();
-      addDataToCache("http://fileserver/file.jpeg",getHeader(),getBodyData(),fixedData.length());
-      rtFileDownloadRequest* request = new rtFileDownloadRequest("http://fileserver/file.jpeg",this);
-      expectedStatusCode = 0;
-      expectedCachePresence = true;
-      expectedHttpCode = 200;
-      rtFileDownloader::instance()->downloadFile(request);
-      char *data = new char [1000];
-      size_t size = 0;
-      memset (data, 0, 1000);
-      request->downloadedData(data, size);
-      //since the data would have been consumed by callback
-      EXPECT_TRUE (size == 0);
-      delete[] data;
-      sem_wait(testSem);
-    }
-
     void addToDownloadQueueTest()
     {
       rtFileCache::instance()->clearCache();
@@ -1261,7 +1242,6 @@ TEST_F(rtFileDownloaderTest, checkCacheTests)
   setCallbackFunctionNullTest();
   setCallbackDataTest();
   setDownloadHandleExpiresTimeTest();
-  downloadedDataTest();
   addToDownloadQueueTest();
   setCallbackFunctionNullInDownloadFileTest();
   setDefaultCallbackFunctionNullTest();
