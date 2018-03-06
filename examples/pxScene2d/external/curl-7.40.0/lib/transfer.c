@@ -799,6 +799,7 @@ static CURLcode readwrite_data(struct SessionHandle *data,
 
   } while(data_pending(conn));
 
+
   if(((k->keepon & (KEEP_RECV|KEEP_SEND)) == KEEP_SEND) &&
      conn->bits.close ) {
     /* When we've read the entire thing and the close bit is set, the server
@@ -1176,8 +1177,12 @@ CURLcode Curl_readwrite(struct connectdata *conn,
   }
 
   /* Now update the "done" boolean we return */
-  *done = (0 == (k->keepon&(KEEP_RECV|KEEP_SEND|
-                            KEEP_RECV_PAUSE|KEEP_SEND_PAUSE))) ? TRUE : FALSE;
+  //*done = (0 == (k->keepon&(KEEP_RECV|KEEP_SEND|KEEP_RECV_PAUSE|KEEP_SEND_PAUSE))) ? TRUE : FALSE;
+  *done = (0 == (k->keepon&(KEEP_RECV|KEEP_SEND))) ? TRUE : FALSE;
+
+  if (data->set.connect_only && (k->keepon & (KEEP_RECV_PAUSE))) {
+    *done = TRUE;
+  }
 
   return CURLE_OK;
 }
