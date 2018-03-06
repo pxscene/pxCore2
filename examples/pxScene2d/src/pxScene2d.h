@@ -1517,6 +1517,7 @@ public:
   }
 
   void innerpxObjectDisposed(rtObjectRef ref);
+  // function that returns whether scene is disposed or not
   bool isDisposed() { return mDisposed; }
 
   // Note: Only type currently supported is "image/png;base64"
