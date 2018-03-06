@@ -533,7 +533,7 @@ void pxObject::dispose()
 	  }
 	  else
 	  {
-      rtLogWarn("something went wrong, objects might have leaked !!!!!!!!!!!!!!!!!!");
+      rtLogWarn("something went wrong,objects might have leaked !!!!!!!!!!!!!!!!!!");
 	    break;
 	  }
 	  if (nchild == mChildren.size())
@@ -542,7 +542,7 @@ void pxObject::dispose()
 	  }
 	  else
 	  {
-      rtLogWarn("something went wrong, objects might have leaked !!!!!!!!!!!!!!!!!!");
+      rtLogWarn("something went wrong,objects might have leaked !!!!!!!!!!!!!!!!!!");
 	    break;
 	  }
     }
