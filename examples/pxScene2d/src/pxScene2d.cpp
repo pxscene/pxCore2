@@ -672,20 +672,23 @@ rtError pxObject::children(rtObjectRef& v) const
 
 rtError pxObject::remove()
 {
-  if (mParent)
+  if (mScene && mScene->isDisposed() == false)
   {
-    for(vector<rtRef<pxObject> >::iterator it = mParent->mChildren.begin();
-        it != mParent->mChildren.end(); ++it)
+    if (mParent)
     {
-      if ((it)->getPtr() == this)
+      for(vector<rtRef<pxObject> >::iterator it = mParent->mChildren.begin();
+        it != mParent->mChildren.end(); ++it)
       {
-        pxObject* parent = mParent;
-        mParent->mChildren.erase(it);
-        mParent = NULL;
-        parent->repaint();
-        parent->repaintParents();
-        mScene->mDirty = true;
-        return RT_OK;
+        if ((it)->getPtr() == this)
+        {
+          pxObject* parent = mParent;
+          mParent->mChildren.erase(it);
+          mParent = NULL;
+          parent->repaint();
+          parent->repaintParents();
+          mScene->mDirty = true;
+          return RT_OK;
+        }
       }
     }
   }
@@ -694,14 +697,17 @@ rtError pxObject::remove()
 
 rtError pxObject::removeAll()
 {
-  for(vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
+  if (mScene && mScene->isDisposed() == false)
   {
-    (*it)->mParent = NULL;
+    for(vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
+    {
+      (*it)->mParent = NULL;
+    }
+    mChildren.clear();
+    repaint();
+    repaintParents();
+    mScene->mDirty = true;
   }
-  mChildren.clear();
-  repaint();
-  repaintParents();
-  mScene->mDirty = true;
   return RT_OK;
 }
 
