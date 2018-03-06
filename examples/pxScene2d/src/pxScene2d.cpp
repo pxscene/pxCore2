@@ -614,10 +614,27 @@ void pxObject::dispose()
 
     mAnimations.clear();
     mEmit->clearListeners();
+    size_t nchild = mChildren.size();
     for(vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
     {
-      (*it)->dispose();
-      (*it)->mParent = NULL;  // setParent mutates the mChildren collection
+  	  if (nchild == mChildren.size())
+	  {
+            (*it)->dispose();
+	  }
+	  else
+	  {
+      rtLogWarn("something went wrong,objects might have leaked !!!!!!!!!!!!!!!!!!");
+	    break;
+	  }
+	  if (nchild == mChildren.size())
+	  {
+            (*it)->mParent = NULL;  // setParent mutates the mChildren collection
+	  }
+	  else
+	  {
+      rtLogWarn("something went wrong,objects might have leaked !!!!!!!!!!!!!!!!!!");
+	    break;
+	  }
     }
     mChildren.clear();
     clearSnapshot(mSnapshotRef);
