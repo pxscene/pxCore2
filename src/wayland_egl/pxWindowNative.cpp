@@ -666,6 +666,7 @@ struct wl_shell_surface* pxWindowNative::createWaylandSurface()
     assert(ret == EGL_TRUE);
 
     eglSwapInterval(display->egl.dpy, 0);
+    eglSurfaceAttrib(display->egl.dpy, mEglSurface, EGL_SWAP_BEHAVIOR, EGL_BUFFER_PRESERVED);
 
     return shell_surface;
 }
