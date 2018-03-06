@@ -433,10 +433,48 @@ duk_ret_t objectHandleSet(duk_context *ctx)
   return 1;  
 }
 
-#if 0
+#if 1
 duk_ret_t objectHandleOwnKeys(duk_context *ctx)
 {
-   return 0;
+  if (duk_get_prop_string(ctx, 0, "zpointer"))
+  {
+    rtIObject* p = (rtObject*)duk_require_pointer(ctx,-1);
+    if (p)
+    {
+      duk_get_prop_string(ctx, 0, "isArray");
+      bool isArray = duk_require_boolean(ctx, -1);
+
+      rtValue v;
+      if (!isArray || duk_is_string(ctx,1))
+      {
+        if (p->Get("allKeys", &v) == RT_OK)
+        {
+          rt2duk(ctx, v);
+          return 1;
+       
+        }
+        rt2duk(ctx, v);
+        return 1;
+      }
+      else
+      {
+        uint32_t index = duk_to_uint32(ctx, 1);
+        if (p->Get(index, &v) == RT_OK)
+        {
+          rt2duk(ctx, v);
+          return 1;
+        }
+        #if 1
+        else
+          rtLogError("Failed to get array property, %u, from rtObject", index);
+        #endif
+      }
+    }
+  }
+  #if 1
+  else rtLogError("failed to get rtObjectPointer");
+  #endif
+  return 0;
 }
 #endif
 
@@ -480,7 +518,7 @@ void pushProxyForObject(duk_context *ctx, const rtObjectRef& o) {
     duk_put_prop_string(ctx, handlerIndex, "get");
     duk_push_c_lightfunc(ctx, objectHandleSet, 4, 0, 0);
     duk_put_prop_string(ctx, handlerIndex, "set");
-    #if 0
+    #if 1
     // TODO JR enumeration
     duk_push_c_lightfunc(ctx, objectHandleOwnKeys, 1, 0, 0);
     duk_put_prop_string(ctx, handlerIndex, "ownKeys");

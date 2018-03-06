@@ -89,7 +89,7 @@ void rt2duk(duk_context *ctx, const rtValue& v)
   break;
   case RT_voidPtrType:
     rtLogWarn("attempt to convert from void* to JS object");
-    assert(0);
+    duk_push_null(ctx);
     break;
   case RT_voidType: // This is really a value rtValue() will set mType to zero
     duk_push_null(ctx);
