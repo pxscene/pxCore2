@@ -543,7 +543,7 @@ void pxObject::dispose(bool pumpForChild, bool isRoot)
       mScene->innerpxObjectDisposed(this);
     }
 #ifdef ENABLE_RT_NODE
-    if (pumpForChild || isRoot)
+    //if (pumpForChild || isRoot)
       script.pump();
 #endif
  }
