@@ -3322,7 +3322,8 @@ rtError pxSceneContainer::setPermissions(const rtObjectRef& v)
 }
 #endif
 
-void pxSceneContainer::dispose(bool pumpForChild, bool isRoot=false)
+
+void pxSceneContainer::dispose(bool pumpForChild, bool isRoot)
 {
   if (!mIsDisposed)
   {
