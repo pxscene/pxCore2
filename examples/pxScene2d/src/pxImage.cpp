@@ -238,7 +238,7 @@ void pxImage::resourceReady(rtString readyResolution)
   }
 }
 
-void pxImage::dispose()
+void pxImage::dispose(bool pumpForChild, bool isRoot)
 {
   if (mListenerAdded)
   {
@@ -249,7 +249,7 @@ void pxImage::dispose()
     mResource = NULL;
     mListenerAdded = false;
   }
-  pxObject::dispose();
+  pxObject::dispose(pumpForChild,isRoot);
 }
 
 void pxImage::checkStretchX()

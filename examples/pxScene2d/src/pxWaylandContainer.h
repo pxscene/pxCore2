@@ -40,7 +40,7 @@ public:
   pxWaylandContainer(pxScene2d* scene);
   ~pxWaylandContainer();
   rtError setView(pxWayland* v);
-  virtual void dispose();
+  virtual void dispose(bool pumpForChild=true, bool isRoot=false);
 
   virtual void onInit();
 
