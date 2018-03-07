@@ -1,5 +1,5 @@
 #include "rtJsModules.h"
-#include "rtWrapperUtils.h"
+#include "rtWrapperUtilsDuk.h"
 #include "rtObject.h"
 #include "rtFileDownloader.h"
 

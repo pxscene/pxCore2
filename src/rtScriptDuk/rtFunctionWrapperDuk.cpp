@@ -1,5 +1,5 @@
-#include "rtFunctionWrapper.h"
-#include "rtWrapperUtils.h"
+#include "rtFunctionWrapperDuk.h"
+#include "rtWrapperUtilsDuk.h"
 
 #include <vector>
 

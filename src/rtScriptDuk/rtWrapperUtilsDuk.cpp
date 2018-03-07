@@ -1,6 +1,6 @@
-#include "rtWrapperUtils.h"
-#include "rtObjectWrapper.h"
-#include "rtFunctionWrapper.h"
+#include "rtWrapperUtilsDuk.h"
+#include "rtObjectWrapperDuk.h"
+#include "rtFunctionWrapperDuk.h"
 #ifndef RUNINMAIN
 extern uv_mutex_t threadMutex;
 #endif

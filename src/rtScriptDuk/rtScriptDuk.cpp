@@ -82,7 +82,7 @@ extern "C" {
 //#include "env.h"
 //#include "env-inl.h"
 
-#include "rtWrapperUtils.h"
+#include "rtWrapperUtilsDuk.h"
 #include "rtJsModules.h"
 
 #ifndef WIN32
@@ -117,8 +117,8 @@ extern "C" {
 #include "uv.h"
 #include "libplatform/libplatform.h"
 
-#include "rtObjectWrapper.h"
-#include "rtFunctionWrapper.h"
+#include "rtObjectWrapperDuk.h"
+#include "rtFunctionWrapperDuk.h"
 
 #define SANDBOX_IDENTIFIER  ( (const char*) "_sandboxStuff" )
 #define SANDBOX_JS          ( (const char*) "rcvrcore/sandbox.js")

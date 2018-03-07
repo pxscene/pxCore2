@@ -17,12 +17,12 @@ extern "C" {
 #include "duv.h"
 }
 
+namespace rtScriptDukUtils
+{
+
 #if 0
 bool rtIsMainThreadDuk();
 #endif
-
-namespace rtScriptDukUtils
-{
 
 class rtWrapperError
 {

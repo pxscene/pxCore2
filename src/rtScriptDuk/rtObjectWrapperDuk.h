@@ -1,7 +1,7 @@
 #ifndef RT_OBJECT_WRAPPER_H
 #define RT_OBJECT_WRAPPER_H
 
-#include "rtWrapperUtils.h"
+#include "rtWrapperUtilsDuk.h"
 
 namespace rtScriptDukUtils
 {

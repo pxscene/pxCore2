@@ -3,7 +3,7 @@
 
 #include <rtScriptHeaders.h>
 
-#include "rtWrapperUtils.h"
+#include "rtWrapperUtilsDuk.h"
 
 extern "C" {
 #include "duv.h"
