@@ -354,7 +354,7 @@ void rtDukContext::clonedEnvironment(rtDukContextRef clone_me)
   duk_idx_t thr_idx = duk_push_thread(clone_me->dukCtx);
 
   duk_dup(clone_me->dukCtx, -1);
-  rtDukPutIdentToGlobal(clone_me->dukCtx);
+  rtScriptDukUtils::rtDukPutIdentToGlobal(clone_me->dukCtx);
 
   dukCtx = duk_get_context(clone_me->dukCtx, thr_idx);
 
@@ -386,8 +386,8 @@ rtDukContext::~rtDukContext()
 
 rtError rtDukContext::add(const char *name, rtValue const& val)
 {
-  rt2duk(dukCtx, val);
-  rtDukPutIdentToGlobal(dukCtx, name);
+  rtScriptDukUtils::rt2duk(dukCtx, val);
+  rtScriptDukUtils::rtDukPutIdentToGlobal(dukCtx, name);
 
   return RT_OK;
 }
@@ -1245,7 +1245,7 @@ void rtScriptDuk::init2(int argc, char** argv)
       duk_pop(dukCtx);
     }
 
-    rtSetupJsModuleBindings(dukCtx);
+    rtScriptDukUtils::rtSetupJsModuleBindings(dukCtx);
   }
 }
 

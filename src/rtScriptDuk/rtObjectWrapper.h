@@ -3,6 +3,9 @@
 
 #include "rtWrapperUtils.h"
 
+namespace rtScriptDukUtils
+{
+
 class rtObjectWrapper : public rtWrapper<rtObjectRef, rtObjectWrapper>
 {
 public:
@@ -54,6 +57,6 @@ private:
   std::string  mDukName;
 };
 
-
+} //namespace rtScriptDukUtils
 
 #endif

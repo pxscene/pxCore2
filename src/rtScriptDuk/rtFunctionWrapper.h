@@ -9,6 +9,9 @@ extern "C" {
 #include "duv.h"
 }
 
+namespace rtScriptDukUtils
+{
+
 class rtFunctionWrapper : public rtWrapper<rtFunctionRef, rtFunctionWrapper>
 {
 public:
@@ -64,5 +67,7 @@ private:
 
   rtValue mReturnValue;
 };
+
+} // namespace rtScriptDukUtils
 
 #endif

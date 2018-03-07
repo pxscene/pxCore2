@@ -3,6 +3,9 @@
 #include "rtObject.h"
 #include "rtFileDownloader.h"
 
+namespace rtScriptDukUtils
+{
+
 static std::vector<rtRef<rtFunctionCallback> > gBindings;
 
 static void rtRegisterJsBinding(duk_context *ctx, const char *name, rtFunctionCB cb)
@@ -97,4 +100,6 @@ rtError rtHttpGetBinding(int numArgs, const rtValue* args, rtValue* result, void
 
   return RT_OK;
 }
+
+} //namespace rtScriptDukUtils
 
