@@ -92,6 +92,7 @@ pxWayland::~pxWayland()
   if ( mWCtx )
   {
      WstCompositorDestroy(mWCtx);
+     mWCtx = NULL;
      terminateClient();
   }
 }
@@ -656,9 +657,7 @@ rtError pxWayland::startRemoteObjectLocator()
     rtLogError("pxWayland failed to initialize rtRemoteInit: %d", errorCode);
     if( mUseDispatchThread )
     {
-      mRemoteObjectMutex.lock();
       mWaitingForRemoteObject = false;
-      mRemoteObjectMutex.unlock();
     }
     return errorCode;
   }
@@ -720,9 +719,7 @@ rtError pxWayland::connectToRemoteObject()
         mEvents->isRemoteReady(false);
   }
 
-  mRemoteObjectMutex.lock();
   mWaitingForRemoteObject = false;
-  mRemoteObjectMutex.unlock();
 #endif //ENABLE_PX_WAYLAND_RPC
   return errorCode;
 }

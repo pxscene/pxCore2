@@ -45,8 +45,9 @@ public:
   rtError borderBottom(float& v) const { v = mBorderBottom; return RT_OK; }
   rtError setBorderBottom(float v) { mBorderBottom = v; return RT_OK; }
 
-  rtError maskColor(uint32_t& /*c*/) const
+  rtError maskColor(uint32_t& c) const
   {
+    c = 0;
     rtLogWarn("maskColor get not available");
     return RT_OK;
   }
