@@ -1,6 +1,7 @@
 #!/bin/sh
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 cd $TRAVIS_BUILD_DIR 
 rm -rf temp
 =======
@@ -13,3 +14,7 @@ make clean
 cd $TRAVIS_BUILD_DIR 
 rm -rf temp
 >>>>>>> Update for cmake (#873)
+=======
+cd $TRAVIS_BUILD_DIR 
+rm -rf temp
+>>>>>>> adfea4129d0122c853197b89752863044629b20b
