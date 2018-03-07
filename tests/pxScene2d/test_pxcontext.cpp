@@ -45,22 +45,27 @@ class sceneWindow : public pxWindow, public pxIViewContainer
       UNUSED_PARAM(url);
       pxWindow::init(x,y,w,h);
     }
-  
+
     virtual void invalidateRect(pxRect* r)
     {
       UNUSED_PARAM(r);
     }
-    
+
+    virtual void* RT_STDCALL getInterface(const char* /*t*/)
+    {
+      return NULL;
+    }
+
     rtError setView(pxIView* v)
-    { 
+    {
       UNUSED_PARAM(v);
       return RT_OK;
     }
-    
+
     virtual void onAnimationTimer()
     {
     }
-    
+
 };
 
 class pxContextTest : public testing::Test
@@ -171,7 +176,7 @@ class pxContextTest : public testing::Test
       char *buffer = new char[100*100];
       pxTextureRef alphaTexture = mContext.createTexture(100,100,100,100,buffer);
       EXPECT_TRUE (mContext.textureMemoryOverflow(alphaTexture) == 0);
-      delete buffer;
+      delete[] buffer;
     }
 
     void textureMemoryOverflowFalseTest()
@@ -182,7 +187,7 @@ class pxContextTest : public testing::Test
       pxTextureRef alphaTexture = mContext.createTexture(100,100,100,100,buffer);
       EXPECT_TRUE (mContext.textureMemoryOverflow(alphaTexture) > 0);
       mContext.setTextureMemoryLimit(oldLimit);
-      delete buffer;
+      delete[] buffer;
     }
 
     void adjustCurrentTextureMemorySizeTest()
@@ -365,23 +370,23 @@ class pxFBOTextureTest : public testing::Test
       EXPECT_TRUE(mFramebuffer->getTexture()->width() == 1280);
       EXPECT_TRUE(mFramebuffer->getTexture()->height() == 720);
     }
-    
+
     void getNativeIdTest()
     {
       EXPECT_TRUE (PX_OK == mContext.updateFramebuffer(mFramebuffer,1280,720));
       EXPECT_TRUE(mFramebuffer->getTexture()->getNativeId() != 0);
     }
-    
+
     void bindGLTextureTest()
     {
-      EXPECT_TRUE(mFramebuffer->getTexture()->bindGLTexture(0) == PX_OK);    
+      EXPECT_TRUE(mFramebuffer->getTexture()->bindGLTexture(0) == PX_OK);
     }
-    
+
     void bindGLTextureAsMaskSuccessTest()
     {
       EXPECT_TRUE(mFramebuffer->getTexture()->bindGLTextureAsMask(0) == PX_OK);
     }
-    
+
     private:
       pxContext mContext;
       pxContextFramebufferRef mFramebuffer;
@@ -465,4 +470,3 @@ TEST_F(pxAlphaTextureTest, pxAlphaTextureTests)
   bindGLTextureAsMaskUninitTest();
   bindGLTextureAsMaskTest();
 }
-

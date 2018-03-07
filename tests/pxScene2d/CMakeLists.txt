@@ -149,7 +149,7 @@ endif (PXSCENE_TEST_PERMISSIONS_CHECK)
 
 set(TEST_SOURCE_FILES ${TEST_SOURCE_FILES} ${EXTDIR}/gtest/googletest/src/gtest-all.cc ${EXTDIR}/gtest/googlemock/src/gmock-all.cc)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -fpermissive -g -Wall -Wno-attributes -Wall -Wextra -Wno-write-strings -Wno-format-security -std=c++11 -O3")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -fpermissive -g -Wall -Wno-attributes -Wall -Wextra -Wno-format-security -std=c++11 -O3")
 
 if (BUILD_UNIT_TEST GREATER 0)
     link_directories(${PXSCENETEST_LINK_DIRECTORIES})

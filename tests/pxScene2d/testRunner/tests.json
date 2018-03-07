@@ -10,6 +10,5 @@
       {"url":"../tests/test_moveToBackFront.js", "title":"test_moveToBackFront","useBaseURI":"true"},
       {"url":"../tests/test_getObjectById.js", "title":"test_getObjectById","useBaseURI":"true"},
       {"url":"https://px-apps.sys.comcast.net/pxscene-samples/examples/px-reference/gallery/coverflowtest_v2.js","title":"coverflow", "timeToRun":"10000"},
-      {"url":"../tests/test_fancyNewAnimate.js", "title":"fancyNewAnimate","useBaseURI":"true","timeToRun":"10000"},
-      {"url":"../tests/test_pxConstants.js", "title":"test_pxConstants","useBaseURI":"true"}
+      {"url":"../tests/test_fancyNewAnimate.js", "title":"fancyNewAnimate","useBaseURI":"true","timeToRun":"10000"}
 ]

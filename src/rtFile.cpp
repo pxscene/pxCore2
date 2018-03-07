@@ -44,7 +44,7 @@ rtError rtData::init(size_t length) {
   else return RT_FAIL;
 }
 
-rtError rtData::init(uint8_t* data, size_t length) {
+rtError rtData::init(const uint8_t* data, size_t length) {
   rtError e = RT_FAIL;
   if (init(length) == RT_OK) {
     memcpy(mData, data, length);
@@ -63,7 +63,7 @@ rtError rtStoreFile(const char* f, rtData& data)
 	// use fopen fwrite fclose from stdio.h
 	FILE * fd = fopen(f, "wb");
 	if (fd)
-	{  
+	{
 		if (data.length() > 0)
 			e = (fwrite((void*)data.data(), 1, data.length(), fd) == data.length()) ? RT_OK : RT_FAIL;
 		else
