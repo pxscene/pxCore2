@@ -21,6 +21,7 @@ touch $TRAVIS_BUILD_DIR/logs/test_logs;
 TESTLOGS=$TRAVIS_BUILD_DIR/logs/test_logs;
 ./pxscene2dtests.sh>$TESTLOGS 2>&1 &
 
+cat $TESTLOGS
 grep "Global test environment tear-down" $TESTLOGS
 retVal=$?
 count=0
