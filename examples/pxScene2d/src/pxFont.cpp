@@ -334,6 +334,8 @@ const GlyphCacheEntry* pxFont::getGlyph(uint32_t codePoint)
 void pxFont::measureTextInternal(const char* text, uint32_t size,  float sx, float sy, 
                          float& w, float& h) 
 {
+  w = 0; h = 0;
+
   // TODO ignoring sx and sy now
   sx = 1.0;
   sy = 1.0;
@@ -344,8 +346,7 @@ void pxFont::measureTextInternal(const char* text, uint32_t size,  float sx, flo
   }
 
   setPixelSize(size);
-  
-  w = 0; h = 0;
+
   if (!text) 
     return;
     
