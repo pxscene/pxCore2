@@ -381,7 +381,7 @@ public:
   rtError moveToFront();
   rtError moveToBack();
 
-  virtual void dispose(bool pumpForChild=true, bool isRoot=false);
+  virtual void dispose(bool pumpForChild=true);
 
   void drawInternal(bool maskPass=false);
   virtual void draw() {}
@@ -1015,7 +1015,7 @@ public:
     return c;
   }
 
-  void dispose(bool pumpForChild=true, bool isRoot=false);
+  void dispose();
   rtError url(rtString& v) const { v = mUrl; return RT_OK; }
   rtError setUrl(rtString v);
 

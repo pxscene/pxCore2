@@ -591,7 +591,7 @@ void pxObject::createNewPromise()
   }
 }
 
-void pxObject::dispose(bool pumpForChild, bool isRoot)
+void pxObject::dispose(bool pumpForChild)
 {
   if (!mIsDisposed)
   {
@@ -616,7 +616,7 @@ void pxObject::dispose(bool pumpForChild, bool isRoot)
     mEmit->clearListeners();
     for(vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
     {
-      (*it)->dispose(pumpForChild);
+      (*it)->dispose(false);
       (*it)->mParent = NULL;  // setParent mutates the mChildren collection
     }
     mChildren.clear();
@@ -633,7 +633,7 @@ void pxObject::dispose(bool pumpForChild, bool isRoot)
       mScene->innerpxObjectDisposed(this);
     }
 #ifdef ENABLE_RT_NODE
-    if (pumpForChild || isRoot)
+    if (pumpForChild)
       script.pump();
 #endif
  }
@@ -1926,10 +1926,7 @@ rtError pxScene2d::dispose()
     mInnerpxObjects.clear();
 
     if (mRoot)
-    {
-        mRoot->dispose(false,true);
-    }
-
+      mRoot->dispose();
     mEmit->clearListeners();
 
     mRoot     = NULL;
@@ -3525,17 +3522,15 @@ rtError pxSceneContainer::setPermissions(const rtObjectRef& v)
 }
 #endif
 
-
-void pxSceneContainer::dispose(bool pumpForChild, bool isRoot)
+void pxSceneContainer::dispose()
 {
-  UNUSED_PARAM(isRoot);
-  if (!mIsDisposed)
+   if (!mIsDisposed)
   {
     rtLogInfo(__FUNCTION__);
     //Adding ref to make sure, object not destroyed from event listeners
     AddRef();
     setScriptView(NULL);
-    pxObject::dispose(pumpForChild);
+    pxObject::dispose();
     Release();
   }
 }
