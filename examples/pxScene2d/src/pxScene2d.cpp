@@ -591,7 +591,7 @@ void pxObject::createNewPromise()
   }
 }
 
-void pxObject::dispose()
+void pxObject::dispose(bool pumpJavascript)
 {
   if (!mIsDisposed)
   {
@@ -616,7 +616,7 @@ void pxObject::dispose()
     mEmit->clearListeners();
     for(vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
     {
-      (*it)->dispose();
+      (*it)->dispose(false);
       (*it)->mParent = NULL;  // setParent mutates the mChildren collection
     }
     mChildren.clear();
@@ -633,7 +633,12 @@ void pxObject::dispose()
       mScene->innerpxObjectDisposed(this);
     }
 #ifdef ENABLE_RT_NODE
-    script.pump();
+    if (pumpJavascript)
+    {
+      script.pump();
+    }
+#else
+    (void)pumpJavascript;
 #endif
  }
 }
@@ -1913,13 +1918,13 @@ rtError pxScene2d::dispose()
       pxObject* temp = (pxObject *) (mInnerpxObjects[i].getPtr());
       if ((NULL != temp) && (NULL == temp->parent()))
       {
-        temp->dispose();
+        temp->dispose(false);
       }
     }
     mInnerpxObjects.clear();
 
     if (mRoot)
-      mRoot->dispose();
+      mRoot->dispose(false);
     mEmit->clearListeners();
 
     mRoot     = NULL;
@@ -1928,6 +1933,9 @@ rtError pxScene2d::dispose()
     mFocusObj = NULL;
 
     pxFontManager::clearAllFonts();
+#ifdef ENABLE_RT_NODE
+    script.pump();
+#endif //ENABLE_RT_NODE
     return RT_OK;
 }
 
@@ -3523,7 +3531,7 @@ void pxSceneContainer::dispose()
     //Adding ref to make sure, object not destroyed from event listeners
     AddRef();
     setScriptView(NULL);
-    pxObject::dispose();
+    pxObject::dispose(true);
     Release();
   }
 }
