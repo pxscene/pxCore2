@@ -270,6 +270,9 @@ protected:
   #endif
 
     context.term();
+#ifdef RUNINMAIN
+    script.pump();
+#endif
     script.collectGarbage();
 
     if (gDumpMemUsage)
