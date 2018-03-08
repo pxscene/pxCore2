@@ -30,6 +30,9 @@ while [ "$retVal" -ne 0 ] &&  [ "$count" -ne 180 ]; do
 	retVal=$?
 	count=$((count+60))
 	echo "unittests running for $count seconds"
+	echo "`ps -ef | grep pxscene2dtests`"
+	echo "`ps -ef | grep pxscene2dtests |grep -v grep|grep -v pxscene2dtests.sh|awk '{print $2}'`"
+	echo "===="
 done
 
 echo "kill -9 `ps -ef | grep pxscene2dtests |grep -v grep|grep -v pxscene2dtests.sh|awk '{print $2}'`"
