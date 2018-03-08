@@ -3523,7 +3523,7 @@ rtError pxSceneContainer::setPermissions(const rtObjectRef& v)
 }
 #endif
 
-void pxSceneContainer::dispose()
+void pxSceneContainer::dispose(bool pumpJavascript)
 {
   if (!mIsDisposed)
   {
@@ -3531,7 +3531,7 @@ void pxSceneContainer::dispose()
     //Adding ref to make sure, object not destroyed from event listeners
     AddRef();
     setScriptView(NULL);
-    pxObject::dispose(true);
+    pxObject::dispose(pumpJavascript);
     Release();
   }
 }
