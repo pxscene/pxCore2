@@ -142,32 +142,18 @@ fi
 #-------- BREAKPAD (Non -macOS)
 
 if [ "$(uname)" != "Darwin" ]; then
-
-  cd breakpad
-  quilt push -aq || test $? = 2
-  ./configure
-  make
-  cd ..
-
+  ./breakpad/build.sh
 fi
 
 #-------- NANOSVG
 
-cd nanosvg
-quilt push -aq || test $? = 2
-cd ..
+./nanosvg/build.sh
 
 #-------- DUKTAPE
 
 if [ ! -e dukluv/build/libduktape.a ]
 then
-    cd dukluv
-    quilt push -aq || test $? = 2
-    mkdir -p build
-    cd build
-    cmake ..
-    make "-j${make_parallel}"
-    cd ..
+  ./dukluv/build.sh
 fi
 
 #--------
