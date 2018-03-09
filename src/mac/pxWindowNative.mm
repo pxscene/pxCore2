@@ -825,8 +825,11 @@ void MyDisplayReconfigurationCallBack(CGDirectDisplayID display,
         
           pxClipboardNative *clip = pxClipboardNative::instance();
           
+      if(clip && dropURL)
+      {
           clip->setString("TEXT", [dropURL UTF8String]);
       }
+    }
       else
       {
           // Handle Drag'n'Dropped >> TEXT
@@ -835,7 +838,10 @@ void MyDisplayReconfigurationCallBack(CGDirectDisplayID display,
         
         pxClipboardNative *clip = pxClipboardNative::instance();
         
+      if(clip && text)
+      {
           clip->setString("TEXT", [text UTF8String]);
+      }
       }
         
         pxWindowNative::_helper_onKeyDown(mWindow, 86, 16);  // Fake a CTRL-V

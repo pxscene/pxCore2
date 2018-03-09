@@ -28,19 +28,19 @@ pxClipboardNative *pxClipboardNative::s_instance;
 static Display           *display;
 static Window             window;
 static Window             root;
-  
+
  // NOTE:  Lots of code inspired by ..  "xsel.c"
  //
  // https://raw.githubusercontent.com/kfish/xsel/master/xsel.c
- 
- 
+
+
 //############################################################################################################
 //############################################################################################################
 
 #if 1
 
 /* The name we were invoked as (argv[0]) */
-static char * progname;
+//static char * progname;
 
 /* Maxmimum request size supported by this X server */
 // static long max_req;
@@ -201,34 +201,40 @@ alarm_handler(int sig)
  * Print a formatted error message and errno information to stderr,
  * then exit with return code 1.
  */
-static void
+ static void
+ exit_err (const char * fmt, ...)
+ {
+   va_list ap;
+   int errno_save;
+   char buf[MAXLINE];
+   int n = 0;
+
+   errno_save = errno;
+
+   va_start (ap, fmt);
+
+// snprintf (buf, MAXLINE, "%s: ", progname);
+// n = strlen (buf);
+
+   vsnprintf (buf+n, MAXLINE-n, fmt, ap);
+   n = strlen (buf);
+
+   snprintf (buf+n, MAXLINE-n, ": %s\n", strerror (errno_save));
+
+   fflush (stdout); /* in case stdout and stderr are the same */
+   fputs (buf, stderr);
+   fflush (NULL);
+
+   va_end (ap);
+   exit (1);
+ }
+
+#ifdef __GNUC__
+__attribute__((noreturn)) static void
 exit_err (const char * fmt, ...)
-{
-  va_list ap;
-  int errno_save;
-  char buf[MAXLINE];
-  int n;
-
-  errno_save = errno;
-
-  va_start (ap, fmt);
-
-  snprintf (buf, MAXLINE, "%s: ", progname);
-  n = strlen (buf);
-
-  vsnprintf (buf+n, MAXLINE-n, fmt, ap);
-  n = strlen (buf);
-
-  snprintf (buf+n, MAXLINE-n, ": %s\n", strerror (errno_save));
-
-  fflush (stdout); /* in case stdout and stderr are the same */
-  fputs (buf, stderr);
-  fflush (NULL);
-
-  va_end (ap);
-  exit (1);
-}
-
+          __attribute__((nonnull(1)))
+          __attribute__ ((__format__ (printf, 1, 2)));
+#endif
 
 /*
  * set_timer_timeout ()
@@ -307,7 +313,7 @@ static char * _xs_strdup (const char * s)
     exit_err ("strdup error");
   }
 
-  return ret; 
+  return ret;
 }
 
 /*
@@ -415,7 +421,7 @@ get_append_property (XSelectionEvent * xsl, unsigned char ** buffer,
     free (*buffer);
     *buffer = NULL;
     return False;
-  } 
+  }
   else if (length == 0)
   {
     /* A length of 0 indicates the end of the transfer */
@@ -529,13 +535,13 @@ wait_selection (Atom selection, Atom request_target)
 //        printf("Conversion refused");
         value = NULL;
         keep_waiting = False;
-      } 
+      }
       else if (event.xselection.property == null_atom &&
                  request_target == delete_atom)
       {
       }
       else
-      {          
+      {
         XGetWindowProperty (event.xselection.display,
                     event.xselection.requestor,
                     event.xselection.property, 0L, 1000000,
@@ -555,7 +561,7 @@ wait_selection (Atom selection, Atom request_target)
           retval = wait_incr_selection (selection, &event.xselection,
                                         *(int *)value);
           keep_waiting = False;
-        } 
+        }
         else if (target != utf8_atom && target != XA_STRING &&
                  target != compound_text_atom &&
                  request_target != delete_atom)
@@ -665,7 +671,7 @@ get_selection_text (Atom selection)
   {
     retval = get_selection(selection, XA_STRING);
   }
-  
+
   return retval;
 }
 
@@ -698,7 +704,7 @@ change_property (Display * display, Window requestor, Atom property,
 //   if (nr_bytes <= max_req)
 //   {
 //     printf("data within maximum request size");
-      
+
 //     printf("\n\n####  change_property() - XChangeProperty()\n\n");
 
 //     XChangeProperty(display, requestor, property, target, format, mode,
@@ -800,7 +806,7 @@ handle_delete (Display * display, Window requestor, Atom property)
  * the calling function to delete the corresponding selection.
  * Returns True otherwise.
  */
- 
+
 static Bool
 handle_selection_request (XEvent event, unsigned char * sel)
 {
@@ -939,14 +945,14 @@ set_selection(Atom selection, unsigned char *sel)
 
        // if (do_follow)
        //   sel = (unsigned char *) "My New Selection"; // read_input (sel, True);
-      
+
        // if (!handle_selection_request (event, sel)) return;
-      
+
         break;
     case PropertyNotify:
-    
+
         printf("\nTODO:  skip PropertyNotify !!!");
-    
+
     //   if (event.xproperty.state != PropertyDelete) break;
 
     //   it = find_incrtrack (event.xproperty.atom);
@@ -981,7 +987,7 @@ set_selection__daemon (Atom selection, unsigned char * sel)
 //   }
 
   //become_daemon ();
-  
+
   set_daemon_timeout();
 
   set_selection(selection, sel);
@@ -1010,7 +1016,7 @@ std::string pxClipboardNative::getString(std::string type)
   }
 
   root = XDefaultRootWindow(display);
-  
+
   /* Create an unmapped window for receiving events */
   int black = BlackPixel(display, DefaultScreen (display));
 
@@ -1018,8 +1024,8 @@ std::string pxClipboardNative::getString(std::string type)
 
   /* Get a timestamp */
   XSelectInput(display, window, PropertyChangeMask);
-  timestamp = get_timestamp();  
- 
+  timestamp = get_timestamp();
+
   Atom selection = XInternAtom(display, "CLIPBOARD", False);
 
   /* Get the UTF8_STRING atom */
@@ -1030,11 +1036,11 @@ std::string pxClipboardNative::getString(std::string type)
   }
 
   unsigned char *sel = get_selection_text(selection);
-  
-  // Tidy up    
+
+  // Tidy up
   XDestroyWindow(display, window);
   XCloseDisplay(display);
-      
+
   if (NULL == sel)
   {
     return std::string("");
@@ -1049,7 +1055,7 @@ void pxClipboardNative::setString(std::string type, std::string clip)
   char *display_name = NULL;
   long timeout_ms = 0L;
   timeout = timeout_ms * 1000;
-  
+
   display = XOpenDisplay(display_name);
   if (display==NULL)
   {
@@ -1058,7 +1064,7 @@ void pxClipboardNative::setString(std::string type, std::string clip)
   }
 
   root = XDefaultRootWindow(display);
-  
+
   /* Create an unmapped window for receiving events */
   int black = BlackPixel(display, DefaultScreen (display));
 
@@ -1066,7 +1072,7 @@ void pxClipboardNative::setString(std::string type, std::string clip)
 
   /* Get a timestamp */
   XSelectInput(display, window, PropertyChangeMask);
-  timestamp = get_timestamp();  
+  timestamp = get_timestamp();
 
   /* Get the TEXT atom */
   text_atom = XInternAtom (display, "TEXT", False);
@@ -1081,43 +1087,41 @@ void pxClipboardNative::setString(std::string type, std::string clip)
 //    Atom XA_UTF8      = XInternAtom(display, "UTF8",      0);
 //    Atom XA_UNICODE   = XInternAtom(display, "UNICODE",   0);
    Atom XA_CLIPBOARD = XInternAtom(display, "CLIPBOARD", 0);
-   
+
   printf("\n\n####  pxClipboardNative::setString() - sel = %s  \n\n", clip.c_str());
 
  // set_selection(selection, (unsigned char*) clip.c_str());
 
 // change_property (display, window, /*property*/XA_ATOM, utf8_atom, 8,
-//                      PropModeReplace, 
+//                      PropModeReplace,
 //                      (unsigned char*) clip.c_str(),
 //                      xs_strlen(clip.c_str()),
 //                      selection, get_timestamp(), NULL);
-                     
+
 // XChangeProperty(display, RootWindow(display, 0), XA_CLIPBOARD, XA_UTF8, 8,
-//                 PropModeReplace, 
-//                 (const unsigned char*) clip.c_str(), 
-//                 xs_strlen(clip.c_str()) );  
-            
+//                 PropModeReplace,
+//                 (const unsigned char*) clip.c_str(),
+//                 xs_strlen(clip.c_str()) );
+
     XStoreBytes(display,
-    (const char*) clip.c_str(), 
-        xs_strlen( clip.c_str() ) );  
-  
-  
-   XChangeProperty(display, 
-     DefaultRootWindow(display), 
-     XA_CLIPBOARD, 
-     XA_STRING, 8, PropModeReplace, 
-     (unsigned const char *) clip.c_str(), 
-        xs_strlen( clip.c_str() ) );  
-        
+    (const char*) clip.c_str(),
+        xs_strlen( clip.c_str() ) );
+
+
+   XChangeProperty(display,
+     DefaultRootWindow(display),
+     XA_CLIPBOARD,
+     XA_STRING, 8, PropModeReplace,
+     (unsigned const char *) clip.c_str(),
+        xs_strlen( clip.c_str() ) );
+
     if (XGetSelectionOwner(display, XA_PRIMARY) != window)
-    {           
+    {
       XSetSelectionOwner(display, XA_PRIMARY, window, CurrentTime);
-    }    
-                  
+    }
+
     //property = XInternAtom(dpy, "PASTE", 0);
-//    XSetSelectionOwner(display, selection, window, 0);	
-                
+//    XSetSelectionOwner(display, selection, window, 0);
+
 //  set_selection__daemon(selection, (unsigned char*) clip.c_str());
 }
-
-

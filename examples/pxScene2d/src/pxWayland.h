@@ -21,6 +21,7 @@
 #ifndef PX_WAYLAND_H
 #define PX_WAYLAND_H
 
+#include <atomic>
 #include <pthread.h>
 #include "pxIView.h"
 #include "pxScene2d.h"
@@ -40,7 +41,6 @@ public:
   virtual ~pxWaylandEvents() {}
 
   virtual void invalidate( pxRect* /*r*/ ) {}
-  virtual void decoderHandle ( void * ) {}
   virtual void hidePointer( bool /*hide*/ ) {}
   virtual void clientStarted( int /*pid*/ ) {}  
   virtual void clientConnected( int /*pid*/ ) {}
@@ -55,7 +55,7 @@ public:
 class pxWayland: public pxIView {
 
 public:
-  pxWayland(bool usefbo=false);
+  pxWayland(bool usefbo=false, pxScene2d* sceneContainer=NULL);
   virtual ~pxWayland();
 
   virtual unsigned long AddRef() {
@@ -165,7 +165,7 @@ private:
   pxIViewContainer *mContainer;
   bool mReadyEmitted;
   bool mClientMonitorStarted;
-  bool mWaitingForRemoteObject;
+  std::atomic<bool> mWaitingForRemoteObject;
   bool mUseDispatchThread;
   int mX;
   int mY;
@@ -176,13 +176,11 @@ private:
   pxMatrix4f mLastMatrix;
 
   static void invalidate( WstCompositor *wctx, void *userData );
-  static void decoderHandleCallback( WstCompositor *wctx, void *userData, uint64_t decoderHandle);
   static void hidePointer( WstCompositor *wctx, bool hide, void *userData );
   static void clientStatus( WstCompositor *wctx, int status, int pid, int detail, void *userData );
   static void remoteDisconnectedCB(void *data);
 
   void handleInvalidate();
-  void setDecoderHandle(void* handle);
   void handleHidePointer( bool hide );
   void handleClientStatus( int status, int pid, int detail );
   void launchClient();
@@ -215,6 +213,7 @@ protected:
 #endif //ENABLE_PX_WAYLAND_RPC
   rtString mRemoteObjectName;
   mutable rtMutex mRemoteObjectMutex;
+  pxScene2d* mSceneContainer;
 };
 
 typedef rtRef<pxWayland> pxWaylandRef;
