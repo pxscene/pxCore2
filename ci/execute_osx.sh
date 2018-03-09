@@ -100,7 +100,7 @@ kill -15 `ps -ef | grep pxscene |grep -v grep|grep -v pxscene.sh|awk '{print $2}
 
 # Sleep for 40s as we have sleep for 30s inside code to capture memory of process
 echo "Sleeping to make terminate complete ...";
-sleep 40s
+sleep 60s
 pkill -9 -f pxscene.sh
 cp /var/tmp/pxscene.log $EXECLOGS
 if [ "$dumped_core" -eq 1 ]
