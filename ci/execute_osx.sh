@@ -100,7 +100,7 @@ kill -15 `ps -ef | grep pxscene |grep -v grep|grep -v pxscene.sh|awk '{print $2}
 
 # Sleep for 40s as we have sleep for 30s inside code to capture memory of process
 echo "Sleeping to make terminate complete ...";
-sleep 60s
+sleep 120s
 pkill -9 -f pxscene.sh
 cp /var/tmp/pxscene.log $EXECLOGS
 if [ "$dumped_core" -eq 1 ]
@@ -127,9 +127,11 @@ if [ "$retVal" -ne 0 ]
 fi
 
 # Check for pxobject or texture memory leaks
-grep "pxobjectcount is \[0\]" $EXECLOGS
+#grep "pxobjectcount is \[0\]" $EXECLOGS
+grep "pxobjectcount is \[0\]" /var/tmp/pxscene.log
 pxRetVal=$?
-grep "texture memory usage is \[0\]" $EXECLOGS
+grep "texture memory usage is \[0\]" /var/tmp/pxscene.log
+#grep "texture memory usage is \[0\]" $EXECLOGS
 texRetVal=$?
 
 if [[ $pxRetVal == 0 ]] && [[ $texRetVal == 0 ]] ; then
