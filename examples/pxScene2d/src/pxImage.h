@@ -72,7 +72,7 @@ public:
   // !CLF: To Do: These names are terrible... find better ones!
   virtual float getOnscreenWidth();
   virtual float getOnscreenHeight();
-  virtual void dispose();
+  virtual void dispose(bool pumpForChild=true);
   void checkStretchX();
   void checkStretchY();
   
