@@ -35,6 +35,9 @@ while [ "$retVal" -ne 0 ] &&  [ "$count" -ne 180 ]; do
 	echo "`ps -ef | grep pxscene2dtests |grep -v grep|grep -v pxscene2dtests.sh|awk '{print $2}'`"
 	echo "===="
 done
+==========================================
+cat $TESTLOGS
+=========================================
 
 echo "kill -9 `ps -ef | grep pxscene2dtests |grep -v grep|grep -v pxscene2dtests.sh|awk '{print $2}'`"
 kill -9 `ps -ef | grep pxscene2dtests |grep -v grep|grep -v pxscene2dtests.sh|awk '{print $2}'`
