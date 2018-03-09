@@ -21,5 +21,7 @@
       {"url":"../tests/test_pxImage9.js", "title":"test_pxImage9","useBaseURI":"true"},
       {"url":"../tests/test_moveForwardBackward.js", "title":"test_moveForwardBackward","useBaseURI":"true"},
       {"url":"../tests/test_xre2-267.js",  "title":"test_xre2-267","useBaseURI":"true"},
-      {"url": "http://pxscene.org/examples/px-reference/gallery/fancy.js", "title": "fancy", "timeToRun": "5000", "useBaseURI": "false" }
+      {"url": "http://pxscene.org/examples/px-reference/gallery/fancy.js", "title": "fancy", "timeToRun": "5000", "useBaseURI": "false" },
+      {"url":"https://px-apps.sys.comcast.net/pxscene-samples/examples/px-reference/gallery/coverflowtest_v2.js","title":"coverflow", "timeToRun":"10000"},
+      {"url": "http://pxscene.org/examples/px-reference/gallery/picturepile.js", "title": "picturepile", "timeToRun": "5000", "useBaseURI": "false" }
 ]
