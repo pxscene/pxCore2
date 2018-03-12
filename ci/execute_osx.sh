@@ -100,7 +100,23 @@ kill -15 `ps -ef | grep pxscene |grep -v grep|grep -v pxscene.sh|awk '{print $2}
 
 # Sleep for 40s as we have sleep for 30s inside code to capture memory of process
 echo "Sleeping to make terminate complete ...";
-sleep 120s
+count=0
+max_seconds=240
+while [ "$count" -le "$max_seconds" ]; do
+	printf "\n [execute_osx.sh] snoozing for 30 seconds termination (%d of %d) \n" $count $max_seconds
+	sleep 30; # seconds
+
+	grep "pxobjectcount is " /var/tmp/pxscene.log   # string in [results.js] must be "TEST RESULTS: "
+	retVal=$?
+
+	if [ "$retVal" -eq 0 ] # text found    exit code from Grep is '1' if NOT found
+	then
+		printf "\n ############  counts populated ... finishing up.\n\n"
+		break
+	fi
+	count=$((count+30)) # add 30 seconds
+done
+#sleep 120s
 pkill -9 -f pxscene.sh
 cp /var/tmp/pxscene.log $EXECLOGS
 if [ "$dumped_core" -eq 1 ]
