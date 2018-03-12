@@ -109,6 +109,7 @@ void* context, bool succeeded) {
   UNUSED_PARAM(context);
   return succeeded;
 }
+
 #elif HAS_WINDOWS_BREAKPAD
 bool dumpCallback(const wchar_t* dump_path,
                      const wchar_t* minidump_id,
