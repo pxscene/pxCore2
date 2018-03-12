@@ -117,7 +117,7 @@
       cd examples/pxScene2d/external/breakpad-chrome_55
       ./configure
       make
-      
+      ~~~~
       ~~~~
       For Windows
       ~~~~
