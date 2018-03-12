@@ -16,7 +16,7 @@
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "AECBECCF1B67979F00851BFE"
                BuildableName = "libpxCore.a"
-               BlueprintName = "pxCore (Node) Static Library"
+               BlueprintName = "pxCore Static Library"
                ReferencedContainer = "container:pxCore.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -47,7 +47,7 @@
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "AECBECCF1B67979F00851BFE"
             BuildableName = "libpxCore.a"
-            BlueprintName = "pxCore (Node) Static Library"
+            BlueprintName = "pxCore Static Library"
             ReferencedContainer = "container:pxCore.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
@@ -65,7 +65,7 @@
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "AECBECCF1B67979F00851BFE"
             BuildableName = "libpxCore.a"
-            BlueprintName = "pxCore (Node) Static Library"
+            BlueprintName = "pxCore Static Library"
             ReferencedContainer = "container:pxCore.xcodeproj">
          </BuildableReference>
       </MacroExpansion>

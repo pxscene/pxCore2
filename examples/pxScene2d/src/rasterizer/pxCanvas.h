@@ -23,8 +23,6 @@
 #define RTPLATFORM_WINDOWS
 #endif
 
-#define  CANVAS_W   1280
-#define  CANVAS_H    720
 
 #include "pxCanvas2d.h"
 #include "pxContext.h"
@@ -41,20 +39,20 @@ public:
 public:
    pxCanvas(pxScene2d* scene);
   ~pxCanvas();
-
+  
   void draw();
-
+    
   virtual void onInit();
   virtual void sendPromise();
   virtual void createNewPromise() { rtLogDebug("pxCanvas ignoring createNewPromise\n"); }
 
 //  void needsRedraw()  { mCanvasCtx.clear(); mCanvasCtx.needsRedraw(); };
-
+  
   pxOffscreen &offscreen()    { return mCanvasCtx.offscreen(); };
-
+  
   void initOffscreen(int w, int h)     { offscreen().init(w,h);        };
   void setUpsideDown(bool b)           { offscreen().setUpsideDown(b); };
-
+  
   rtError drawPath(rtObjectRef path);
 
   rtMethodNoArgAndNoReturn("path", init);

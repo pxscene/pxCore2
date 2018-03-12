@@ -17,13 +17,18 @@
 #include <netinet/tcp.h>
 
 rtError
-rtRemoteEndpointAddressToSocket(rtRemoteEndPointPtr addr, sockaddr_storage& ss)
+rtRemoteEndpointAddressToSocket(rtRemoteEndpointPtr addr, sockaddr_storage& ss)
 {
-  if (auto local = std::dynamic_pointer_cast<rtRemoteFileEndPoint>(addr))
+  if (auto local = std::dynamic_pointer_cast<rtRemoteEndpointLocal>(addr))
   {
+    if (!local->isSocket())
+    {
+      rtLogError("local address is not unix domain socket");
+      return RT_FAIL;
+    }
     return rtParseAddress(ss, local->path().c_str(), 0, nullptr);
   }
-  else if (auto net = std::dynamic_pointer_cast<rtRemoteIPEndPoint>(addr))
+  else if (auto net = std::dynamic_pointer_cast<rtRemoteEndpointRemote>(addr))
   {
     return rtParseAddress(ss, net->host().c_str(), net->port(), nullptr);
   }
@@ -34,7 +39,7 @@ rtRemoteEndpointAddressToSocket(rtRemoteEndPointPtr addr, sockaddr_storage& ss)
 }
 
 rtError
-rtRemoteSocketToEndpointAddress(sockaddr_storage const& ss, rtConnType const& connType, rtRemoteEndPointPtr& endpoint)
+rtRemoteSocketToEndpointAddress(sockaddr_storage const& ss, rtConnType const& connType, rtRemoteEndpointPtr& endpoint)
 {
   std::stringstream buff;
   
@@ -66,7 +71,7 @@ rtRemoteSocketToEndpointAddress(sockaddr_storage const& ss, rtConnType const& co
   {
     strncpy(addrBuff, (const char*)addr, sizeof(addrBuff) -1);
     buff << addrBuff;
-    endpoint = std::make_shared<rtRemoteFileEndPoint>(scheme, addrBuff);
+    endpoint = std::make_shared<rtRemoteEndpointLocal>(scheme, addrBuff);
     return RT_OK;
   }
   else
@@ -77,7 +82,7 @@ rtRemoteSocketToEndpointAddress(sockaddr_storage const& ss, rtConnType const& co
     buff << addrBuff;
     buff << ":";
     buff << port;
-    endpoint = std::make_shared<rtRemoteIPEndPoint>(scheme, addrBuff, port);
+    endpoint = std::make_shared<rtRemoteEndpointRemote>(scheme, addrBuff, port);
     return RT_OK;
   }
   return RT_OK;
@@ -158,18 +163,18 @@ rtRemoteSameEndpoint(sockaddr_storage const& first, sockaddr_storage const& seco
 }
 
 bool
-rtRemoteSameEndpoint(rtRemoteEndPointPtr const& first, rtRemoteEndPointPtr const& second)
+rtRemoteSameEndpoint(rtRemoteEndpointPtr const& first, rtRemoteEndpointPtr const& second)
 {
-  if (auto firstLocal = std::dynamic_pointer_cast<rtRemoteFileEndPoint>(first))
+  if (auto firstLocal = std::dynamic_pointer_cast<rtRemoteEndpointLocal>(first))
   {
-    if (auto secondLocal = std::dynamic_pointer_cast<rtRemoteFileEndPoint>(second))
+    if (auto secondLocal = std::dynamic_pointer_cast<rtRemoteEndpointLocal>(second))
       return *firstLocal == *secondLocal;
     else
       return false;
   }
-  else if (auto firstRemote = std::dynamic_pointer_cast<rtRemoteIPEndPoint>(first))
+  else if (auto firstRemote = std::dynamic_pointer_cast<rtRemoteEndpointRemote>(first))
   {
-    if (auto secondRemote = std::dynamic_pointer_cast<rtRemoteIPEndPoint>(second))
+    if (auto secondRemote = std::dynamic_pointer_cast<rtRemoteEndpointRemote>(second))
       return *firstRemote == *secondRemote;
     else
       return false;
@@ -241,9 +246,9 @@ rtRemoteParseCastType(std::string const& host)
 }
 
 rtError
-rtRemoteEndpointToDocument(rtRemoteEndPointPtr& endpoint, rtRemoteMessagePtr& doc)
+rtRemoteEndpointToDocument(rtRemoteEndpointPtr& endpoint, rtRemoteMessagePtr& doc)
 {
-  if (auto remoteEndpoint = std::dynamic_pointer_cast<rtRemoteIPEndPoint>(endpoint))
+  if (auto remoteEndpoint = std::dynamic_pointer_cast<rtRemoteEndpointRemote>(endpoint))
   {
     doc->AddMember(kFieldNameEndpointType, kEndpointTypeRemote, doc->GetAllocator());
     doc->AddMember(kFieldNameScheme, remoteEndpoint->scheme(), doc->GetAllocator());
@@ -251,7 +256,7 @@ rtRemoteEndpointToDocument(rtRemoteEndPointPtr& endpoint, rtRemoteMessagePtr& do
     doc->AddMember(kFieldNamePort, remoteEndpoint->port(), doc->GetAllocator());
     return RT_OK;
   }
-  else if (auto localEndpoint = std::dynamic_pointer_cast<rtRemoteFileEndPoint>(endpoint))
+  else if (auto localEndpoint = std::dynamic_pointer_cast<rtRemoteEndpointLocal>(endpoint))
   {
     doc->AddMember(kFieldNameEndpointType, kEndpointTypeLocal, doc->GetAllocator());
     doc->AddMember(kFieldNameScheme, localEndpoint->scheme(), doc->GetAllocator());
@@ -266,7 +271,7 @@ rtRemoteEndpointToDocument(rtRemoteEndPointPtr& endpoint, rtRemoteMessagePtr& do
 }
 
 rtError
-rtRemoteDocumentToEndpoint(rtRemoteMessagePtr const& doc, rtRemoteEndPointPtr& endpoint)
+rtRemoteDocumentToEndpoint(rtRemoteMessagePtr const& doc, rtRemoteEndpointPtr& endpoint)
 {
   RT_ASSERT(doc->HasMember(kFieldNameScheme));
   RT_ASSERT(doc->HasMember(kFieldNameEndpointType));
@@ -280,7 +285,7 @@ rtRemoteDocumentToEndpoint(rtRemoteMessagePtr const& doc, rtRemoteEndPointPtr& e
     std::string path;
     path = (*doc)[kFieldNamePath].GetString();
     // create and return local endpoint address
-    endpoint = std::make_shared<rtRemoteFileEndPoint>(scheme, path);
+    endpoint = std::make_shared<rtRemoteEndpointLocal>(scheme, path);
     return RT_OK;
   }
   else if (type.compare(kEndpointTypeRemote) == 0)
@@ -292,7 +297,7 @@ rtRemoteDocumentToEndpoint(rtRemoteMessagePtr const& doc, rtRemoteEndPointPtr& e
     host = (*doc)[kFieldNameIp].GetString();
     port = (*doc)[kFieldNamePort].GetInt();
     // create and return net endpoint address
-    endpoint = std::make_shared<rtRemoteIPEndPoint>(scheme, host, port);
+    endpoint = std::make_shared<rtRemoteEndpointRemote>(scheme, host, port);
     return RT_OK;
   }
   else

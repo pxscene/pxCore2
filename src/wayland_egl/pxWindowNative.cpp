@@ -280,6 +280,22 @@ static void shell_surface_configure(void *data, struct wl_shell_surface *shell_s
     }
 }
 
+static void shellSurfaceConfigure(void *data,
+    struct wl_shell_surface *shell_surface,
+    uint32_t edges, int32_t width, int32_t height) { }
+
+static void shellSurfacePing(void *data,
+    struct wl_shell_surface *shell_surface, uint32_t serial)
+{
+    wl_shell_surface_pong(shell_surface, serial);
+}
+
+static const struct wl_shell_surface_listener shell_surface_listener =
+{
+    .ping = shellSurfacePing,
+    .configure = shellSurfaceConfigure,
+};
+
 static void
 buffer_release(void *data, struct wl_buffer *buffer)
 {
@@ -474,12 +490,12 @@ int pxWindowNative::createAndStartEventLoopTimer(int timeoutInMilliseconds )
     struct itimerspec       its;
     struct sigaction        sa;
     int                     sigNo = SIGRTMIN;
-
+    
     if (mEventLoopTimerStarted)
     {
         stopAndDeleteEventLoopTimer();
     }
-
+    
     displayRef dRef;
     waylandDisplay* wDisplay = dRef.getDisplay();
 
@@ -498,12 +514,12 @@ int pxWindowNative::createAndStartEventLoopTimer(int timeoutInMilliseconds )
     te.sigev_signo = sigNo;
     te.sigev_value.sival_ptr = wDisplay;
     timer_create(CLOCK_REALTIME, &te, &mRenderTimerId);
-
+    
     its.it_value.tv_sec = 0;
     its.it_value.tv_nsec = timeoutInMilliseconds * 1000000;
     its.it_interval = its.it_value;
     timer_settime(mRenderTimerId, 0, &its, NULL);
-
+    
     mEventLoopTimerStarted = true;
 
     return(0);
@@ -650,7 +666,6 @@ struct wl_shell_surface* pxWindowNative::createWaylandSurface()
     assert(ret == EGL_TRUE);
 
     eglSwapInterval(display->egl.dpy, 0);
-    eglSurfaceAttrib(display->egl.dpy, mEglSurface, EGL_SWAP_BEHAVIOR, EGL_BUFFER_PRESERVED);
 
     return shell_surface;
 }

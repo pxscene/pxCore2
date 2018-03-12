@@ -1,6 +1,4 @@
-#ifndef ENABLE_RT_NODE
 #define ENABLE_RT_NODE
-#endif
 
 #include <sstream>
 
@@ -23,7 +21,7 @@
 
 using namespace std;
 
-extern rtScript script;
+extern rtNode script;
 extern int gargc;
 extern char** gargv;
 extern int pxObjectCount;
@@ -44,19 +42,14 @@ class sceneWindow : public pxWindow, public pxIViewContainer
       mHeight = h;
       pxWindow::init(x,y,w,h);
     }
-
+  
     virtual void invalidateRect(pxRect* r)
     {
       pxWindow::invalidateRect(r);
     }
-
-    virtual void* RT_STDCALL getInterface(const char* /*t*/)
-    {
-      return NULL;
-    }
-
+    
     rtError setView(pxIView* v)
-    {
+    { 
       mView = v;
       if (v)
       {
@@ -65,14 +58,14 @@ class sceneWindow : public pxWindow, public pxIViewContainer
       }
       return RT_OK;
     }
-
+    
     virtual void onAnimationTimer()
     {
       if (mView)
         mView->onUpdate(pxSeconds());
       script.pump();
     }
-
+    
   private:
     pxIView* mView;
     int mWidth;
@@ -111,15 +104,15 @@ class jsFilesTest : public testing::Test
     {
     }
 
-    void test(const char* file, float timeout)
+    void test(char* file, float timeout)
     {
-      script.collectGarbage();
+      script.garbageCollect();
       int oldpxCount = pxObjectCount;
       long oldtextMem = mContext.currentTextureMemoryUsageInBytes();
       startJsFile(file);
       process(timeout);
       mView->onCloseRequest();
-      script.collectGarbage();
+      script.garbageCollect();
       //currently we are getting the count +1 , due to which test is failing
       //suspecting this is due to scenecontainer without parent leak.
       //EXPECT_TRUE (pxObjectCount == oldpxCount);
@@ -131,7 +124,7 @@ class jsFilesTest : public testing::Test
 
 private:
 
-    void startJsFile(const char *jsfile)
+    void startJsFile(char *jsfile)
     {
       mUrl = jsfile;
       mView = new pxScriptView(mUrl,"");

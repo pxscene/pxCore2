@@ -18,6 +18,7 @@ public:
     rtMutexNativeDesc getNativeMutexDescription();
 private:
     pthread_mutex_t mLock;
+    volatile bool mIsLocked;
 };
 
 class rtThreadConditionNative

@@ -18,7 +18,7 @@
 
 using namespace std;
 
-extern rtScript script;
+extern rtNode script;
 
 class pxSceneContainerLeakTest : public testing::Test
 {
@@ -41,7 +41,7 @@ class pxSceneContainerLeakTest : public testing::Test
       sceneContainer->remove();
       EXPECT_TRUE (sceneContainer->mRefCount > 1);
       EXPECT_TRUE (sceneContainer->parent() == NULL);
-      script.collectGarbage();
+      script.garbageCollect();
     }
 
     void withParentRemovedGCHappenedTest()
@@ -53,10 +53,10 @@ class pxSceneContainerLeakTest : public testing::Test
       pxObject* sceneContainer = mSceneContainer[0];
       sceneContainer->AddRef();
       sceneContainer->remove();
-      script.collectGarbage();
+      script.garbageCollect();
       pxSleepMS(3000);
       EXPECT_TRUE (sceneContainer->mRefCount == 1);
-      script.collectGarbage();
+      script.garbageCollect();
     }
 
     void withoutParentRemovedGCNotHappenedTest()
@@ -68,7 +68,7 @@ class pxSceneContainerLeakTest : public testing::Test
       pxObject* sceneContainer = mSceneContainer[0];
       EXPECT_TRUE (sceneContainer->mRefCount > 1);
       EXPECT_TRUE (sceneContainer->parent() != NULL);
-      script.collectGarbage();
+      script.garbageCollect();
     }
 
     void withoutParentRemovedGCHappenedTest()
@@ -78,14 +78,14 @@ class pxSceneContainerLeakTest : public testing::Test
       populateObjects();
 
       pxObject* sceneContainer = mSceneContainer[0];
-      script.collectGarbage();
+      script.garbageCollect();
       EXPECT_TRUE (sceneContainer->mRefCount > 1);
       EXPECT_TRUE (sceneContainer->parent() != NULL);
     }
 
 private:
 
-    void startJsFile(const char *jsfile)
+    void startJsFile(char *jsfile)
     {
       mUrl = jsfile;
       mView = new pxScriptView(mUrl,"");

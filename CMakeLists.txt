@@ -5,16 +5,6 @@ option(BUILD_PXCORE "BUILD_PXCORE" ON)
 option(BUILD_PXSCENE "BUILD_PXSCENE" ON)
 option(BUILD_PX_TESTS "BUILD_PX_TESTS" OFF)
 option(BUILD_RTREMOTE_LIBS "BUILD_RTREMOTE_LIBS" OFF)
-option(PREFER_SYSTEM_LIBRARIES "Prefer to use system libraries over bundled." "OFF")
-option(DISABLE_DEBUG_MODE "Disable debugging mode." "OFF") # OFF for backward compatibility
-
-option(SUPPORT_DUKTAPE "SUPPORT_DUKTAPE" ON)
-option(SUPPORT_NODE "SUPPORT_NODE" ON)
-
-if (BUILD_DUKTAPE)
-    message("Building duktape with pxcore")
-    add_subdirectory(examples/pxScene2d/external/dukluv)
-endif (BUILD_DUKTAPE)
 
 if (BUILD_PXCORE)
     message("Building pxcore")

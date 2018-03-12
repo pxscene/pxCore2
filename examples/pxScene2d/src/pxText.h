@@ -46,9 +46,8 @@ public:
   rtError text(rtString& s) const;
   virtual rtError setText(const char* text);
 
-  rtError textColor(uint32_t& c) const {
-    c = 0;
-    rtLogWarn("textColor not implemented");
+  rtError textColor(uint32_t& /*c*/) const {
+    
     return RT_OK;
   }
 

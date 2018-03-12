@@ -276,12 +276,12 @@ rtError pxTransform::compile(const char*s)
         while(*s == '_' || isalnum(*s)) 
           s++;
         rtLogDebug("id: %.*s\n", (int)(s-id), id);
-        transformFunc func = getFunc(id,(uint32_t) (s-id) );
+        transformFunc func = getFunc(id,s-id);
         if (func)
           emitCallFunction(func);
         else
         {
-          uint32_t i = getReg(id, (uint32_t) (s-id) );
+          uint32_t i = getReg(id, s-id);
           if (i != INVALID_REG)
             emitPushRegister(i);
           else

@@ -66,16 +66,15 @@ class pxPath: public pxObject
 public:
   rtDeclareObject(pxPath, pxObject);
   
-  rtProperty(d,                  path,           setPath, rtString);
-  rtProperty(fillColor,     fillColor,      setFillColor, uint32_t);
-  rtProperty(strokeColor, strokeColor,    setStrokeColor, uint32_t);
-  rtProperty(strokeWidth, strokeWidth,    setStrokeWidth, float);
-  rtProperty(strokeType,   strokeType,     setStrokeType, rtString);
+  rtProperty(d,                  path,        setPath, rtString);
+  rtProperty(fillColor,     fillColor,   setFillColor, uint32_t);
+  rtProperty(strokeColor, strokeColor, setStrokeColor, uint32_t);
+  rtProperty(strokeWidth, strokeWidth, setStrokeWidth, float);
 
-  rtProperty(extentLeft,     extentLeft,   setExtentLeft, float);
-  rtProperty(extentTop,       extentTop,    setExtentTop, float);
-  rtProperty(extentRight,   extentRight,  setExtentRight, float);
-  rtProperty(extentBottom, extentBottom, setExtentBottom, float);
+  rtProperty(extentLeft,     extentLeft,   setExtentLeft,  float);
+  rtProperty(extentTop,       extentTop,    setExtentTop,  float);
+  rtProperty(extentRight,   extentRight,  setExtentRight,  float);
+  rtProperty(extentBottom, extentBottom, setExtentBottom,  float);
 
 public:
   pxPath(pxScene2d* scene);
@@ -96,27 +95,10 @@ public:
 
   rtError strokeColor(uint32_t& v) const { v = (uint32_t)mStrokeColor.u; return RT_OK; };
   virtual rtError setStrokeColor(const uint32_t c);
-  
+
   rtError strokeWidth(float& v) const { v = (float)mStrokeWidth;    return RT_OK; };
   virtual rtError setStrokeWidth(const float w);
-  
-  rtError strokeType(rtString& v) const
-  {
-    if(mStrokeType == pxCanvas2d::StrokeType::inside)   v = "inside";
-    if(mStrokeType == pxCanvas2d::StrokeType::outside)  v = "outside";
-    if(mStrokeType == pxCanvas2d::StrokeType::center)   v = "center";
-    
-    return RT_OK;
-  };
-  
-  virtual rtError setStrokeType(const rtString v)
-  {
-    if(v == "inside")  mStrokeType = pxCanvas2d::StrokeType::inside;
-    if(v == "outside") mStrokeType = pxCanvas2d::StrokeType::outside;
-    if(v == "center")  mStrokeType = pxCanvas2d::StrokeType::center;
-    
-    return RT_OK;
-  };
+
 
   rtError extentLeft(float& v) const { v = (float)mExtentLeft;      return RT_OK; };
   virtual rtError setExtentLeft(const float v);
@@ -144,7 +126,6 @@ public:
 
   void pushRect(pxPath    *p, float x0, float y0, float w, float h, float rx, float ry);
   void pushEllipse(pxPath *p, float x0, float y0, float rx, float ry);
-  void pushPolygon(pxPath *p, std::vector<float> &points);
 
   float   getFloatAt(int i);
   float   getFloatAt(const uint8_t *p);
@@ -162,8 +143,6 @@ public:
 
   pxColor      mStrokeColor;
   float        mStrokeWidth;
-  
-  pxCanvas2d::StrokeType  mStrokeType;
   
   pxColor      mFillColor;
   rtString     mPath;

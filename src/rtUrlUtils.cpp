@@ -109,7 +109,7 @@ rtString rtUrlGetOrigin(const char* url)
       {
         u += 2;
         for (; *u && *u != '/' && *u != '?' && *u != '#'; u++);
-        uint32_t byteLen = (uint32_t) (u - url);
+        uint32_t byteLen = u - url;
         return rtString(url, byteLen);
       }
     }

@@ -1,7 +1,6 @@
 @echo off
 
 cd %~dp0
-set "VSCMD_START_DIR=%CD%"
 
 if /i "%1"=="help" goto help
 if /i "%1"=="--help" goto help

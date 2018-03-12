@@ -296,7 +296,7 @@ rtSocketToString(sockaddr_storage const& ss)
   memset(addrBuff, 0, sizeof(addrBuff));
   if (ss.ss_family == AF_UNIX)
   {
-    strncpy(addrBuff, reinterpret_cast<char const *>(addr), sizeof(addrBuff) -1);
+    strncpy(addrBuff, (const char*)addr, sizeof(addrBuff) -1);
     port = 0;
   }
   else

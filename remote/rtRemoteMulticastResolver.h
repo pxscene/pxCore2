@@ -10,7 +10,6 @@
 #include <rtObject.h>
 
 #include "rtRemoteCorrelationKey.h"
-#include "rtRemoteEndPoint.h"
 #include "rtRemoteTypes.h"
 #include "rtRemoteSocketUtils.h"
 
@@ -66,7 +65,8 @@ private:
   std::mutex        m_mutex;
   pid_t             m_pid;
   CommandHandlerMap m_command_handlers;
-  rtRemoteEndPointPtr m_rpc_endpoint;
+  std::string       m_rpc_addr;
+  uint16_t          m_rpc_port;
   HostedObjectsMap  m_hosted_objects;
   RequestMap	      m_pending_searches;
   int		            m_shutdown_pipe[2];

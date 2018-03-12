@@ -13,23 +13,15 @@ copy /y libpng-1.6.28\scripts\pnglibconf.h.prebuilt libpng-1.6.28\pnglibconf.h
 copy /y jpeg-9a\jconfig.vc jpeg-9a\jconfig.h
 
 cd vc.build\
-msbuild external.sln /p:Configuration=Release /p:Platform=Win32 /m
+msbuild external.sln /p:Configuration=Release /m
 cd ..
 
 cd breakpad-chrome_55
 CALL gyp\gyp.bat src\client\windows\breakpad_client.gyp --no-circular-check
 cd src\client\windows
-msbuild breakpad_client.sln /p:Configuration=Release /p:Platform=Win32 /m
+msbuild breakpad_client.sln /p:Configuration=Release /m
 cd ..\..\..\..\
 
 cd libnode-v6.9.0
 CALL vcbuild.bat x86 nosign
-cd ..
-
-cd dukluv
-patch -p1 < patches/dukluv.git.patch
-mkdir build
-cd build
-cmake ..
-cmake --build . --config Release -- /m
 cd ..

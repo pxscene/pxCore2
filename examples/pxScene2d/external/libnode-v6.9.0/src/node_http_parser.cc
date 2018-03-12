@@ -420,14 +420,8 @@ class Parser : public AsyncWrap {
 
     Parser* parser;
     ASSIGN_OR_RETURN_UNWRAP(&parser, args.Holder());
-    /* MODIFIED CODE BEGIN */
-    //CHECK(parser->current_buffer_.IsEmpty());
-    if (false == parser->current_buffer_.IsEmpty())
-    {
-      parser->got_exception_ = true;
-      return;
-    }
-    /* MODIFIED CODE END */
+
+    CHECK(parser->current_buffer_.IsEmpty());
     parser->got_exception_ = false;
 
     int rv = http_parser_execute(&(parser->parser_), &settings, nullptr, 0);

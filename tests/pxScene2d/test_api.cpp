@@ -20,7 +20,7 @@
 
 using namespace std;
 
-extern rtScript script;
+extern rtNode script;
 
 
 
@@ -43,7 +43,7 @@ class pxApiTest : public testing::Test
     }
 
 private:
-    void startJsFile(const char *jsfile)
+    void startJsFile(char *jsfile)
     {
       mUrl  = jsfile;
       mView = new pxScriptView(mUrl,"");
@@ -83,3 +83,4 @@ TEST_F(pxApiTest, apiTest)
 {
    runApiTests();
 }
+

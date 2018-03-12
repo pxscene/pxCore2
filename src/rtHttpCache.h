@@ -34,7 +34,7 @@ class rtHttpCacheData
   public:
     rtHttpCacheData();
     rtHttpCacheData(const char* url);
-    rtHttpCacheData(const char* url, const char* headerMetadata, const char* data, size_t size=0);
+    rtHttpCacheData(const char* url, const char* headerMetadata, const char* data, int size=0);
 
     ~rtHttpCacheData();
     /* returns the expiration date of the cache data in localtime */
@@ -62,9 +62,6 @@ class rtHttpCacheData
     /* sets the image file data to be stored in cache */
     void setData(rtData& cacheData);
 
-    /* returns "Invalid" as data, and it will not read data from cache.  This is a blocking call and will check the network for updated data if etag is used */
-    rtError deferCacheRead(rtData& data);
-
     /* returns the url associated with the cache */
     rtError url(rtString& url) const;
 
@@ -81,8 +78,6 @@ class rtHttpCacheData
     rtData& contentsData();
 
     void setFilePointer(FILE* fp);
-
-    FILE* filePointer(void);
 
   private:
     /* populates the map with header attribute and value */

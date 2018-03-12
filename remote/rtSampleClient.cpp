@@ -102,7 +102,6 @@ int main(int /*argc*/, char* /*argv*/ [])
 
   // std::thread t(run);
 
-  int n = 10;
   while (true)
   {
     rtValue val;
@@ -112,16 +111,12 @@ int main(int /*argc*/, char* /*argv*/ [])
     rtLogInfo("Type:%s", val.getTypeStr());
     rtLogInfo("Addr:%p", val.toFunction().getPtr());
     #endif
-    e = obj->Get("prop", &val);
+    e = obj->Get("bigprop", &val);
     rtLogInfo("get  :%s", rtStrError(e));
     rtLogInfo("type :%s", val.getTypeStr());
-    rtLogInfo("value:%d", val.toInt32());
+    rtLogInfo("addr :%p", val.toObject().getPtr());
     rtRemoteRunUntil(env, 1000);
     sleep(1);
-
-    rtValue temp(n);
-    obj->Set("prop", &temp);
-    n++;
   }
   return 0;
 }
