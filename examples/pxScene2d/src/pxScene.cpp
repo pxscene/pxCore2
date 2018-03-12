@@ -271,7 +271,8 @@ protected:
   #endif
 
   rtLogInfo("before term call .................");
-    context.term();
+  context.term();
+  script.collectGarbage();
   rtLogInfo("term call completed ................. [%d]",gDumpMemUsage);
 
     if (gDumpMemUsage)
