@@ -79,7 +79,7 @@ uint32_t npot(uint32_t i)
 }
 
 pxFont::pxFont(rtString fontUrl, rtString proxyUrl):pxResource(),mFace(NULL),mPixelSize(0), mFontData(0), mFontDataSize(0),
-             mFontMutex()
+             mFontMutex(), mFontUrl()
 {  
   mFontId = gFontId++; 
   mUrl = fontUrl;
@@ -148,23 +148,19 @@ void pxFont::loadResourceFromFile()
     } 
 }
 
-// This init(char*) is for load of local font files
 rtError pxFont::init(const char* n)
 {
-  mFontMutex.lock();
   mUrl = n;
-   
-  if(FT_New_Face(ft, n, 0, &mFace)) {
-    mFontMutex.unlock();
+    
+  if(FT_New_Face(ft, n, 0, &mFace))
     return RT_FAIL;
-  }
   
   mInitialized = true;
   setPixelSize(defaultPixelSize);
-  mFontMutex.unlock();
+
   return RT_OK;
 }
-// This init is used by async callback to load downloaded font file data
+
 rtError pxFont::init(const FT_Byte*  fontData, FT_Long size, const char* n)
 {
   mFontMutex.lock();
@@ -172,20 +168,29 @@ rtError pxFont::init(const FT_Byte*  fontData, FT_Long size, const char* n)
   mFontData = (char *)malloc(size);
   memcpy(mFontData, fontData, size);
   mFontDataSize = size;
-  mUrl = n;
+  mFontUrl = n;
+  mFontMutex.unlock();
+  
+  return RT_OK;
+}
+
+rtError pxFont::setupFont()
+{
+  mFontMutex.lock();
   if(FT_New_Memory_Face(ft, (const FT_Byte*)mFontData, mFontDataSize, 0, &mFace))
   {
     mFontMutex.unlock();
     return RT_FAIL;
   }
 
+  mUrl = mFontUrl;
   mInitialized = true;
   setPixelSize(defaultPixelSize);
-
   mFontMutex.unlock();
-  
+
   return RT_OK;
 }
+
 
 void pxFont::setPixelSize(uint32_t s)
 {
@@ -319,9 +324,9 @@ const GlyphCacheEntry* pxFont::getGlyph(uint32_t codePoint)
       entry->bitmap_top = g->bitmap_top;
       entry->bitmapdotwidth = g->bitmap.width;
       entry->bitmapdotrows = g->bitmap.rows;
-      entry->advancedotx = (int32_t) g->advance.x;
-      entry->advancedoty = (int32_t) g->advance.y;
-      entry->vertAdvance = (int32_t) g->metrics.vertAdvance; // !CLF: Why vertAdvance? SHould only be valid for vert layout of text.
+      entry->advancedotx = g->advance.x;
+      entry->advancedoty = g->advance.y;
+      entry->vertAdvance = g->metrics.vertAdvance; // !CLF: Why vertAdvance? SHould only be valid for vert layout of text.
 
       gGlyphCache.insert(make_pair(key,entry));
 
@@ -334,8 +339,6 @@ const GlyphCacheEntry* pxFont::getGlyph(uint32_t codePoint)
 void pxFont::measureTextInternal(const char* text, uint32_t size,  float sx, float sy, 
                          float& w, float& h) 
 {
-  w = 0; h = 0;
-
   // TODO ignoring sx and sy now
   sx = 1.0;
   sy = 1.0;
@@ -346,7 +349,8 @@ void pxFont::measureTextInternal(const char* text, uint32_t size,  float sx, flo
   }
 
   setPixelSize(size);
-
+  
+  w = 0; h = 0;
   if (!text) 
     return;
     

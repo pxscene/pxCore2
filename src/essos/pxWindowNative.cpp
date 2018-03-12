@@ -334,8 +334,6 @@ pxError pxWindow::init(int left, int top, int width, int height)
         mLastHeight = height;
         mResizeFlag = true;
 
-        eglSurfaceAttrib(eglGetCurrentDisplay(), eglGetCurrentSurface(EGL_DRAW), EGL_SWAP_BEHAVIOR, EGL_BUFFER_PRESERVED);
-
         registerWindow(this);
         this->onCreate();
     }

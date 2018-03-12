@@ -1,5 +1,3 @@
-var isDuk=(typeof Duktape != "undefined")?true:false;
-
 px.import({ scene: 'px:scene.1.js',
              keys: 'px:tools.keys.js'
 }).then( function ready(imports)
@@ -8,14 +6,11 @@ px.import({ scene: 'px:scene.1.js',
   var keys  = imports.keys;
 
   function uncaughtException(err) {
-    if (!isDuk) {
-      console.log("Received uncaught exception " + err.stack);
-    }
-  }
-  if (!isDuk) {
-    process.on('uncaughtException', uncaughtException);
+    console.log("Received uncaught exception " + err.stack);
   }
 
+
+  process.on('uncaughtException', uncaughtException);
 
   // JRJR TODO had to add more modules
   var url = queryStringModule.parse(urlModule.parse(module.appSceneContext.packageUrl).query).url;
@@ -107,7 +102,6 @@ if (false)
       else
       if (code == keys.S)  // ctrl-alt-s
       {
-        if (!isDuk) {
         // This returns a data URI string with the image data
         var dataURI = scene.screenshot('image/png;base64');
 
@@ -123,7 +117,7 @@ if (false)
           else
             console.log("Created screenshot.png");
         });
-      }
+
         e.stopPropagation();
       }
       else
@@ -272,9 +266,7 @@ if (false)
   */
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   function releaseResources() {
-    if (!isDuk) {
-      process.removeListener("uncaughtException", uncaughtException);
-    }
+    process.removeListener("uncaughtException", uncaughtException);
   }
 
   scene.on("onClose",releaseResources);

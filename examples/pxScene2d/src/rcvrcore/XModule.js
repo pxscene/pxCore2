@@ -29,44 +29,17 @@ XModule.prototype.load = function(uri) {
 };
 
 XModule.prototype.freeResources = function() {
-  this.name = null;
   this.appSandbox = null;
   this.moduleReadyPromise = null;
-  for(var key in this.exports) {
-    this.exports[key] = null;
-    delete this.exports[key];
-  }
   this.exports = null;
-  for(var key in this.pendingIncludes) {
-    this.pendingIncludes[key] = null;
-    delete this.pendingIncludes[key];
-  }
   this.pendingIncludes = null;
-  if ((undefined != this.moduleNameList) && (null != this.moduleNameList))
-  {
-    var nmodules = this.moduleNameList.length;
-    for (var i=0; i<nmodules; i++)
-    {
-      this.moduleNameList.pop();
-    }
-  }
   this.moduleNameList = null;
-  if ((undefined != this.promises) && (null != this.promises))
-  {
-    var npromises = this.promises.length;
-    for (var i=0; i<npromises; i++)
-    {
-      this.promises.pop();
-    }
-  }
   this.promises = null;
   this.moduleData = null;
   this.appSceneContext = null;
   this.imports = null;
   this.log = null;
   this.importReplacementMap = null;
-  this.basePath = null;
-  this.jarName = null;
 };
 
 XModule.prototype.getBasePath = function() {
@@ -195,37 +168,12 @@ XModule.prototype._importModule = function(requiredModuleSet, readyCallBack, fai
       } else {
         for (var k = 0; k < _this.moduleNameList.length; ++k) {
           ///_this.appSandbox[pathToNameMap[exports[k][1]]] = exports[k][0];
-          // commented below because, these variables are not used anymore
-          // And these variables holds complete imported JS module data, taking more memory
-          //_this.moduleData[_this.moduleNameList[k]] = exports[k][0];
-          //exportsArr[k] = exports[k][0];
+          _this.moduleData[_this.moduleNameList[k]] = exports[k][0];
+          exportsArr[k] = exports[k][0];
           exportsMap[pathToNameMap[exports[k][1]]] = exports[k][0];
-          //since include file is received, remove it from pendingincludes list
-          _this.pendingIncludes[exports[k][1]] = null;
-          delete _this.pendingIncludes[exports[k][1]];
-
           //console.log("TJC: " + _this.name + " gets: module[" + _this.moduleNameList[k] + "]: " + exports[k][0]);
         }
       }
-      //remove the array of modules added for tracking in sandbox
-      var bPath;
-      if( hasExtension(_this.name, '.js') ) {
-        bPath = _this.name.substring(0, _this.name.lastIndexOf('.js'));
-      } else {
-        bPath = _this.name;
-      }
-
-      var imports = _this.appSandbox.importTracking[bPath];
-
-      if(imports !== undefined && imports !== null && imports.length !== undefined) {
-        var nmodules = _this.appSandbox.importTracking[bPath].length;
-        for (var modindex=0; modindex<nmodules; modindex++)
-        {
-          _this.appSandbox.importTracking[bPath].pop();
-        }
-        delete _this.appSandbox.importTracking[bPath];
-      }
-
       log.message(7, "XMODULE ABOUT TO NOTIFY [" + _this.name + "] that all its imports are Ready");
       if( readyCallBack !== null && readyCallBack !== undefined ) {
         readyCallBack(exportsMap);

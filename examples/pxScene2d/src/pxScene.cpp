@@ -18,8 +18,6 @@
 
 // main.cpp
 
-#include "rtPathUtils.h"
-
 #include "pxCore.h"
 #include "pxTimer.h"
 #include "pxEventLoop.h"
@@ -29,18 +27,18 @@
 #include "pxContext.h"
 #include "pxScene2d.h"
 #include "rtUrlUtils.h"
-#include "rtScript.h"
 
+#include "rtNode.h"
 #include "pxUtil.h"
 
 #ifdef RUNINMAIN
-extern rtScript script;
+extern rtNode script;
 #else
 using namespace std;
 #include "rtNodeThread.h"
 #endif
 
-//#include "jsbindings/rtWrapperUtils.h"
+#include "jsbindings/rtWrapperUtils.h"
 #include <signal.h>
 #ifndef WIN32
 #include <unistd.h>
@@ -76,7 +74,11 @@ using namespace std;
 #endif
 
 #ifdef PX_SERVICE_MANAGER
+#include "smqtrtshim.h"
 #include "rtservicemanager.h"
+#include "service.h"
+#include "servicemanager.h"
+#include "applicationmanagerservice.h"
 #endif //PX_SERVICE_MANAGER
 
 #ifndef RUNINMAIN
@@ -86,7 +88,6 @@ static uv_work_t nodeLoopReq;
 #endif
 
 #include <stdlib.h>
-#include <fstream>
 
 pxEventLoop  eventLoop;
 pxEventLoop* gLoop = &eventLoop;
@@ -108,7 +109,6 @@ void* context, bool succeeded) {
   UNUSED_PARAM(context);
   return succeeded;
 }
-
 #elif HAS_WINDOWS_BREAKPAD
 bool dumpCallback(const wchar_t* dump_path,
                      const wchar_t* minidump_id,
@@ -123,11 +123,6 @@ bool dumpCallback(const wchar_t* dump_path,
 #ifdef ENABLE_CODE_COVERAGE
 extern "C" void __gcov_flush();
 #endif
-
-#ifdef ENABLE_OPTIMUS_SUPPORT
-#include "optimus_client.h"
-#endif //ENABLE_OPTIMUS_SUPPORT
-
 class sceneWindow : public pxWindow, public pxIViewContainer
 {
 public:
@@ -184,11 +179,6 @@ public:
 #endif
   }
 
-  void* getInterface(const char* /*name*/)
-  {
-     return NULL;
-  }
-  
   rtError setView(pxIView* v)
   {
     mView = v;
@@ -258,7 +248,7 @@ protected:
    // pxScene.cpp:104:12: warning: deleting object of abstract class type ‘pxIView’ which has non-virtual destructor will cause undefined behaviour [-Wdelete-non-virtual-dtor]
 
   #ifdef RUNINMAIN
-     script.collectGarbage();
+     script.garbageCollect();
   #endif
   ENTERSCENELOCK()
     mView = NULL;
@@ -269,10 +259,7 @@ protected:
   #ifdef ENABLE_DEBUG_MODE
     free(g_origArgv);
   #endif
-
-    context.term();
-    script.collectGarbage();
-
+    script.garbageCollect();
     if (gDumpMemUsage)
     {
       rtLogInfo("pxobjectcount is [%d]",pxObjectCount);
@@ -372,9 +359,6 @@ protected:
     if (mView)
       mView->onUpdate(pxSeconds());
     EXITSCENELOCK()
-#ifdef ENABLE_OPTIMUS_SUPPORT
-    OptimusClient::pumpRemoteObjectQueue();
-#endif //ENABLE_OPTIMUS_SUPPORT
 #ifdef RUNINMAIN
     script.pump();
 #endif
@@ -443,7 +427,7 @@ int pxMain(int argc, char* argv[])
   rtLogWarn("Setting  __rt_main_thread__ to be %x\n",pthread_self());
    __rt_main_thread__ = pthread_self(); //  NB
   rtLogWarn("Now  __rt_main_thread__ is %x\n",__rt_main_thread__);
-  //rtLogWarn("rtIsMainThread() returns %d\n",rtIsMainThread());
+  rtLogWarn("rtIsMainThread() returns %d\n",rtIsMainThread());
 
     #if PX_PLATFORM_X11
     XInitThreads();
@@ -456,7 +440,7 @@ int pxMain(int argc, char* argv[])
   uv_queue_work(nodeLoop, &nodeLoopReq, nodeThread, nodeIsEndingCallback);
   // init asynch that will get notifications about new scripts
   uv_async_init(nodeLoop, &asyncNewScript, processNewScript);
-  uv_async_init(nodeLoop, &gcTrigger,collectGarbage);
+  uv_async_init(nodeLoop, &gcTrigger,garbageCollect);
 
 #endif
 char const* s = getenv("PX_DUMP_MEMUSAGE");
@@ -466,7 +450,6 @@ if (s && (strcmp(s,"1") == 0))
 }
 #ifdef ENABLE_DEBUG_MODE
   int urlIndex  = -1;
-#ifdef RTSCRIPT_SUPPORT_NODE
   bool isDebugging = false;
 
   g_argv = (char**)malloc((argc+2) * sizeof(char*));
@@ -513,7 +496,7 @@ if (s && (strcmp(s,"1") == 0))
         strcpy(nodeInput+curpos,argv[i]);
         *(nodeInput+curpos+strlen(argv[i])) = '\0';
         g_argv[g_argc++] = &nodeInput[curpos];
-        curpos = curpos + (int) strlen(argv[i]) + 1;
+        curpos = curpos + strlen(argv[i]) + 1;
     }
   }
   if (false == isDebugging)
@@ -525,18 +508,32 @@ if (s && (strcmp(s,"1") == 0))
       g_argv[g_argc++] = &nodeInput[curpos];
       curpos = curpos + 35;
   }
-  #endif
-#endif
-
 #ifdef RUNINMAIN
-  script.init();
+  script.initializeNode();
+#endif
 #endif
   char buffer[256];
   sprintf(buffer, "pxscene: %s", xstr(PX_SCENE_VERSION));
-
-  int32_t windowWidth = rtGetEnvAsValue("PXSCENE_WINDOW_WIDTH","1280").toInt32();
-  int32_t windowHeight = rtGetEnvAsValue("PXSCENE_WINDOW_HEIGHT","720").toInt32();
-
+  int windowWidth = 1280;
+  int windowHeight = 720;
+  char const* w = getenv("PXSCENE_WINDOW_WIDTH");
+  if (w)
+  {
+    int value = (int)strtol(w, NULL, 10);
+    if (value > 0)
+    {
+      windowWidth = value;
+    }
+  }
+  char const* h = getenv("PXSCENE_WINDOW_HEIGHT");
+  if (h)
+  {
+    int value = (int)strtol(h, NULL, 10);
+    if (value > 0)
+    {
+      windowHeight = value;
+    }
+  }
   // OSX likes to pass us some weird parameter on first launch after internet install
   rtLogInfo("window width = %d height = %d", windowWidth, windowHeight);
 #ifdef ENABLE_DEBUG_MODE
@@ -547,23 +544,7 @@ if (s && (strcmp(s,"1") == 0))
   win.setTitle(buffer);
   // JRJR TODO Why aren't these necessary for glut... pxCore bug
   win.setVisibility(true);
-
-  uint32_t animationFPS = 60;
-  rtString f;
-  if (RT_OK == rtGetHomeDirectory(f))
-  {
-    f.append(".sparkFps");
-    if (rtFileExists(f))
-    {
-      std::fstream fs(f.cString(), std::fstream::in);
-      uint32_t val = 0;
-      fs >> val;
-      if (val > 0)
-        animationFPS = val;
-    }
-  }
-  rtLogInfo("Animation FPS: %lu", (unsigned long) animationFPS);
-  win.setAnimationFPS(animationFPS);
+  win.setAnimationFPS(60);
 
 #ifdef WIN32
 
@@ -633,13 +614,12 @@ if (s && (strcmp(s,"1") == 0))
 
 #endif
 
-#ifdef ENABLE_OPTIMUS_SUPPORT
-  rtObjectRef tempObject;
-  OptimusClient::registerApi(tempObject);
-#endif //ENABLE_OPTIMUS_SUPPORT
-
 #ifdef PX_SERVICE_MANAGER
+  SMQtRtShim::installDefaultCallback();
   RtServiceManager::start();
+
+  ServiceStruct serviceStruct = { ApplicationManagerService::SERVICE_NAME, createApplicationManagerService };
+  ServiceManager::getInstance()->registerService(ApplicationManagerService::SERVICE_NAME, serviceStruct);
 
 #endif //PX_SERVICE_MANAGER
 

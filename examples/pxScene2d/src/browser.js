@@ -30,22 +30,6 @@ px.import({ scene:      'px:scene.1.js',
   var inputBox = new imports.EditBox( { parent: bg, url: "browser/images/input2.png", x: 10, y: 10, w: 800, h: 35, pts: 24 });
   var helpBox   = null;
 
-  scene.addServiceProvider(function(serviceName, serviceCtx){
-    if (serviceName == ".navigate")
-      // TODO JRJR have to set url in a timer to avoid reentrancy
-      // should move deferring to setUrl method... 
-      return {setUrl:function(u){setTimeout(function(){
-        content.url = u;},1);}}  // return a javascript object that represents the service
-    else
-      return "allow"; // allow request to bubble to parent
-  });  
-
-  scene.on('onClose', function(e) {
-    keys = null;
-    for (var key in inputBox) { delete inputBox[key]; }
-    inputBox = null;
-    scene = null;
-  });
 
   function reload(u)
   {
@@ -258,11 +242,11 @@ px.import({ scene:      'px:scene.1.js',
   scene.on("onResize", function(e) { updateSize(e.w,e.h); });
 
   Promise.all([inputBox, bg, spinner, content, fontRes])
-      .catch( function (err)
+      .catch( (err) => 
       {
           console.log(">>> Loading Assets ... err = " + err);
       })
-      .then( function (success, failure)
+      .then( (success, failure) =>
       {
         inputBox.focus = true;
         spinner.animateTo({r:360},1.0, scene.animation.TWEEN_LINEAR,

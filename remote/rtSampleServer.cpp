@@ -28,12 +28,6 @@ class ContinuousVideoRecorder : public rtObject
   rtDeclareObject(ContinuousVideoRecorder, rtObject);
 
 public:
-
-  ContinuousVideoRecorder()
-    : _n(1234)
-  {
-  }
-
   // define a few properties
   // porperty name is "name"
   // getter is getName
@@ -111,6 +105,8 @@ rtDefineProperty(ContinuousVideoRecorder, bigprop);
 
 int main(int /*argc*/, char* /*argv*/ [])
 {
+  rtLogSetLevel(RT_LOG_INFO);
+
   rtError e;
   rtRemoteEnvironment* env = rtEnvironmentGetGlobal();
   e = rtRemoteInit(env);
@@ -132,7 +128,7 @@ int main(int /*argc*/, char* /*argv*/ [])
   {
     // process incoming messages
     e = rtRemoteRunUntil(env, 1000);
-    // rtLogInfo("rtRemoteRunUntil: %s", rtStrError(e));
+    rtLogInfo("rtRemoteRunUntil: %s", rtStrError(e));
 
     // ((ContinuousVideoRecorder *)obj.getPtr())->fireOnUploadComplete();
   }

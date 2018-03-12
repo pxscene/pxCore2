@@ -2,37 +2,53 @@
 
 var url = require('url');
 
-function AccessControl(scene) {
-  this.scene = scene;
+function AccessControl(innerscene, agent) {
+  this.innerscene = innerscene;
+  this.agent = agent;
 }
 
-AccessControl.prototype.destroy = function () {
-  this.scene = null;
-};
-
-AccessControl.prototype.origin = function () {
-  if (this.scene) {
-    return this.scene.origin;
+AccessControl.prototype.wrapRequestCORS = function(options, cb, originalFunction) {
+  var _origin = this.innerscene.origin;
+  if (!_origin) {
+    return originalFunction(options, cb);
   }
-  return null;
-};
 
-AccessControl.prototype.allows = function (url) {
-  if (this.scene) {
-    return this.scene.allows(url);
+  // 1. add CORS headers
+  options = this.convertOptionsToObject(options);
+  if (!options.headers) {
+    options.headers = {};
   }
-  return true;
+  options.headers["Origin"] = _origin;
+
+  var url = this.convertOptionsToUrlString(options);
+
+  // 2. check response headers
+  var _originalCb = cb;
+  var _this = this;
+  cb = function (response) {
+    var rawHeaders = "";
+    for (var key in response.headers) {
+      if (response.headers.hasOwnProperty(key)) {
+        rawHeaders += (rawHeaders ? "\r\n" : "") + key + ": " + response.headers[key];
+      }
+    }
+    if (!_this.innerscene.checkAccessControlHeaders(url, rawHeaders)) {
+      response.destroy("CORS block");
+    } else if (_originalCb) {
+      _originalCb(response);
+    }
+  };
+
+  return originalFunction(options, cb);
 };
 
-AccessControl.prototype.checkAccessControlHeaders = function (url, rawHeaders) {
-  if (this.scene) {
-    return this.scene.checkAccessControlHeaders(url, rawHeaders);
-  }
-  return true;
+AccessControl.prototype.wrapRequestPermissions = function(options, cb, originalFunction) {
+  options = this.convertOptionsToObject(options);
+  var url = this.convertOptionsToUrlString(options);
+  return this.innerscene.allows(url) ? originalFunction(options, cb) : null;
 };
 
-AccessControl.prototype.wrapArgs = function (options, cb, secure) {
-  var self = this;
+AccessControl.prototype.convertOptionsToObject = function (options) {
   if (typeof options === 'string') {
     options = url.parse(options);
     if (!options.hostname) {
@@ -41,48 +57,15 @@ AccessControl.prototype.wrapArgs = function (options, cb, secure) {
   } else {
     options = util._extend({}, options);
   }
+  return options;
+};
 
-  // 1. add origin header (CORS)
-  var sceneOrigin = self.origin();
-  if (sceneOrigin) {
-    if (!options.headers) {
-      options.headers = {};
-    }
-    options.headers["Origin"] = sceneOrigin;
-  }
-
-  // 2. check if host is permitted (permissions)
-  var protocol = options.protocol || (secure ? "https:" : "http:");
-  var port = options.port ? ":" + options.port : "";
-  var host = options.host || options.hostname || 'localhost';
-  if (host && port && host.indexOf(port, host.length - port.length) !== -1) {
-    port = "";
-  }
-  var reqOrigin = protocol + (protocol.indexOf("//") > 0 ? "" : "//") + host + port;
-  if (!self.allows(reqOrigin)) {
-    return null;
-  }
-
-  // 3. check response headers (CORS)
-  if (cb) {
-    var _originalCb = cb;
-    cb = function (response) {
-      var rawHeaders = "";
-      for (var key in response.headers) {
-        if (response.headers.hasOwnProperty(key)) {
-          rawHeaders += (rawHeaders ? "\r\n" : "") + key + ": " + response.headers[key];
-        }
-      }
-      if (!self.checkAccessControlHeaders(reqOrigin, rawHeaders)) {
-        response.destroy("CORS block");
-      } else if (_originalCb) {
-        _originalCb(response);
-      }
-    };
-  }
-
-  // 4. return modified args
-  return cb ? [options, cb] : [options];
+AccessControl.prototype.convertOptionsToUrlString = function (options) {
+  var protocol = options.protocol || this.agent.protocol;
+  var port = options.port;
+  var host = options.hostname || options.host || 'localhost';
+  var path = options.path || "";
+  return protocol + (protocol.indexOf("//") > 0 ? "" : "//") + host + (port ? ":" + port : "") + path;
 };
 
 module.exports = AccessControl;

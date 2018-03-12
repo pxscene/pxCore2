@@ -87,8 +87,8 @@ rtError pxLoadAImage(const char* imageData, size_t imageDataSize,
     s.init();
     s.addBuffer(o,0);
   }
-
-  return retVal;
+  
+  return retVal;  
 }
 
 
@@ -359,7 +359,7 @@ rtError pxStorePNGImage(const char *filename, pxOffscreen &b, bool /*grayscale*/
  * conjunction with the documentation file libjpeg.txt.
  *
  * This code will not do anything useful as-is, but it may be helpful as a
- * skeleton for constructing routines that call the JPEG library.
+ * skeleton for constructing routines that call the JPEG library.  
  *
  * We present these routines in the same coding style used in the JPEG code
  * (ANSI function definitions, etc); but you are of course free to code your
@@ -708,22 +708,7 @@ rtError pxLoadJPGImageTurbo(const char *buf, size_t buflen, pxOffscreen &o)
     return RT_FAIL;// TODO : add grayscale support for libjpeg turbo.  falling back to libjpeg for now
   }
 
-  // limit memory usage to resolution 4096x4096
-  if (((size_t)width * height) > ((size_t)4096 * 4096))
-  {
-    rtLogError("Error libjpeg-turbo: image too large");
-    tjDestroy(jpegDecompressor);
-    return RT_FAIL;
-  }
-
   unsigned char *imageBuffer = tjAlloc(width * height * 3);
-
-  if (!imageBuffer)
-  {
-    rtLogError("Error allocating libjpeg-turbo buffer");
-    tjDestroy(jpegDecompressor);
-    return RT_FAIL;
-  }
 
   int result = tjDecompress2(jpegDecompressor, (unsigned char *)buf, buflen, imageBuffer, width, 0, height, TJPF_RGB /*(colorComponent == 3) ? TJPF_RGB : jpegColorspace*/, TJFLAG_FASTDCT);
 
@@ -1009,12 +994,7 @@ rtError pxLoadPNGImage(const char *imageData, size_t imageDataSize,
     int height = png_get_image_height(png_ptr, info_ptr);
 
     png_byte color_type = png_get_color_type(png_ptr, info_ptr);
-    png_byte bit_depth = png_get_bit_depth(png_ptr, info_ptr);
-
-    if (bit_depth == 16)
-    {
-        png_set_strip_16(png_ptr);
-    }
+    //png_byte bit_depth = png_get_bit_depth(png_ptr, info_ptr);
 
     if (color_type == PNG_COLOR_TYPE_PALETTE)
     {
@@ -1057,16 +1037,7 @@ rtError pxLoadPNGImage(const char *imageData, size_t imageDataSize,
       }
       e = RT_OK;
     }
-    else
-    {
-      e = RT_FAIL;
-    }
   }
-  else
-  {
-    e = RT_FAIL;
-  }
-
 
   if (e == RT_OK)
   {
@@ -1174,10 +1145,7 @@ rtError pxLoadAPNGImage(const char *imageData, size_t imageDataSize,
   }
 
   //unsigned int width, height, channels, rowbytes, size, i, j;
-  unsigned int width, height, i, j;
-
-  unsigned long size, rowbytes;
-
+  unsigned int width, height, rowbytes, size, i, j;
   png_bytepp rows_image;
   png_bytepp rows_frame;
   unsigned char *p_image;

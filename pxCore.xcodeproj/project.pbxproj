@@ -9,10 +9,13 @@
 /* Begin PBXBuildFile section */
 		46B0773E1E30FF8000BC6B9C /* jsCallback.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46B077331E30FF8000BC6B9C /* jsCallback.cpp */; };
 		46B0773F1E30FF8000BC6B9C /* jsCallback.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B077341E30FF8000BC6B9C /* jsCallback.h */; };
+		46B077401E30FF8000BC6B9C /* jsWindow.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B077351E30FF8000BC6B9C /* jsWindow.h */; };
+		46B077411E30FF8000BC6B9C /* node_headers.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B077361E30FF8000BC6B9C /* node_headers.h */; };
 		46B077421E30FF8000BC6B9C /* rtFunctionWrapper.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46B077371E30FF8000BC6B9C /* rtFunctionWrapper.cpp */; };
 		46B077431E30FF8000BC6B9C /* rtFunctionWrapper.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B077381E30FF8000BC6B9C /* rtFunctionWrapper.h */; };
 		46B077441E30FF8000BC6B9C /* rtObjectWrapper.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46B077391E30FF8000BC6B9C /* rtObjectWrapper.cpp */; };
 		46B077451E30FF8000BC6B9C /* rtObjectWrapper.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B0773A1E30FF8000BC6B9C /* rtObjectWrapper.h */; };
+		46B077461E30FF8000BC6B9C /* rtWrapperInit.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46B0773B1E30FF8000BC6B9C /* rtWrapperInit.cpp */; };
 		46B077471E30FF8000BC6B9C /* rtWrapperUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46B0773C1E30FF8000BC6B9C /* rtWrapperUtils.cpp */; };
 		46B077481E30FF8000BC6B9C /* rtWrapperUtils.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B0773D1E30FF8000BC6B9C /* rtWrapperUtils.h */; };
 		46B0777B1E30FFC700BC6B9C /* ioapi_mem.c in Sources */ = {isa = PBXBuildFile; fileRef = 46B077491E30FFC700BC6B9C /* ioapi_mem.c */; };
@@ -30,9 +33,9 @@
 		46B077881E30FFC700BC6B9C /* rtLog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46B077561E30FFC700BC6B9C /* rtLog.cpp */; };
 		46B077891E30FFC700BC6B9C /* rtLog.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B077571E30FFC700BC6B9C /* rtLog.h */; };
 		46B0778A1E30FFC700BC6B9C /* rtMutex.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B077581E30FFC700BC6B9C /* rtMutex.h */; };
-		46B0778B1E30FFC700BC6B9C /* rtScriptNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46B077591E30FFC700BC6B9C /* rtScriptNode.cpp */; };
-		46B0778C1E30FFC700BC6B9C /* rtScriptNode.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B0775A1E30FFC700BC6B9C /* rtScriptNode.h */; };
-		46B077911E30FFC700BC6B9C /* rtScript.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B0775F1E30FFC700BC6B9C /* rtScript.h */; };
+		46B0778B1E30FFC700BC6B9C /* rtNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46B077591E30FFC700BC6B9C /* rtNode.cpp */; };
+		46B0778C1E30FFC700BC6B9C /* rtNode.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B0775A1E30FFC700BC6B9C /* rtNode.h */; };
+		46B077911E30FFC700BC6B9C /* rtNodeThread.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B0775F1E30FFC700BC6B9C /* rtNodeThread.h */; };
 		46B077921E30FFC700BC6B9C /* rtObject.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46B077601E30FFC700BC6B9C /* rtObject.cpp */; };
 		46B077931E30FFC700BC6B9C /* rtObject.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B077611E30FFC700BC6B9C /* rtObject.h */; };
 		46B077941E30FFC700BC6B9C /* rtObjectMacros.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B077621E30FFC700BC6B9C /* rtObjectMacros.h */; };
@@ -83,231 +86,15 @@
 		4C0C29021E6F0505007013C9 /* Rasterizer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4CEF520E1E6F00E400E7DF59 /* Rasterizer.cpp */; };
 		4C0C29031E6F050B007013C9 /* pxRasterizer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4CEF520C1E6F00E400E7DF59 /* pxRasterizer.cpp */; };
 		4C0C29041E6F0513007013C9 /* pxCanvas.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4CEF52091E6F00E400E7DF59 /* pxCanvas.cpp */; };
-		4C5D0574201FC48F00D2B292 /* unzip.c in Sources */ = {isa = PBXBuildFile; fileRef = 46B077771E30FFC700BC6B9C /* unzip.c */; };
-		4C5D0575201FC48F00D2B292 /* rtThreadPoolNative.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46B077B01E30FFED00BC6B9C /* rtThreadPoolNative.cpp */; };
-		4C5D0576201FC48F00D2B292 /* pxInterpolators.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46D3046A1E673978000C5A5B /* pxInterpolators.cpp */; };
-		4C5D0577201FC48F00D2B292 /* rtLog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46B077561E30FFC700BC6B9C /* rtLog.cpp */; };
-		4C5D0578201FC48F00D2B292 /* rtString.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46B077671E30FFC700BC6B9C /* rtString.cpp */; };
-		4C5D0579201FC48F00D2B292 /* pxWindowNative.mm in Sources */ = {isa = PBXBuildFile; fileRef = AECBED7B1B67B0A800851BFE /* pxWindowNative.mm */; };
-		4C5D057A201FC48F00D2B292 /* Simple.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AECBEE031B683C2F00851BFE /* Simple.cpp */; };
-		4C5D057B201FC48F00D2B292 /* utf8.c in Sources */ = {isa = PBXBuildFile; fileRef = 46B077791E30FFC700BC6B9C /* utf8.c */; };
-		4C5D057C201FC48F00D2B292 /* pxViewWindow.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AECBED5B1B67B09200851BFE /* pxViewWindow.cpp */; };
-		4C5D057D201FC48F00D2B292 /* pxOffscreen.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AECBED561B67B09200851BFE /* pxOffscreen.cpp */; };
-		4C5D057E201FC48F00D2B292 /* rtValue.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46B077731E30FFC700BC6B9C /* rtValue.cpp */; };
-		4C5D057F201FC48F00D2B292 /* pxOffscreenNative.mm in Sources */ = {isa = PBXBuildFile; fileRef = AECBED781B67B0A800851BFE /* pxOffscreenNative.mm */; };
-		4C5D0580201FC48F00D2B292 /* rtHttpCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46D304741E673978000C5A5B /* rtHttpCache.cpp */; };
-		4C5D0581201FC48F00D2B292 /* rtScript.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C9DAFA32019373D00540240 /* rtScript.cpp */; };
-		4C5D0582201FC48F00D2B292 /* rtWrapperUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46B0773C1E30FF8000BC6B9C /* rtWrapperUtils.cpp */; };
-		4C5D0583201FC48F00D2B292 /* rtUrlUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46B077711E30FFC700BC6B9C /* rtUrlUtils.cpp */; };
-		4C5D0584201FC48F00D2B292 /* pxBufferNative.mm in Sources */ = {isa = PBXBuildFile; fileRef = AECBED741B67B0A800851BFE /* pxBufferNative.mm */; };
-		4C5D0585201FC48F00D2B292 /* pxEventLoopNative.mm in Sources */ = {isa = PBXBuildFile; fileRef = AECBED761B67B0A800851BFE /* pxEventLoopNative.mm */; };
-		4C5D0586201FC48F00D2B292 /* rtThreadQueue.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46B0776D1E30FFC700BC6B9C /* rtThreadQueue.cpp */; };
-		4C5D0587201FC48F00D2B292 /* rtFunctionWrapper.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46B077371E30FF8000BC6B9C /* rtFunctionWrapper.cpp */; };
-		4C5D0588201FC48F00D2B292 /* rtFileCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46D304701E673978000C5A5B /* rtFileCache.cpp */; };
-		4C5D0589201FC48F00D2B292 /* rtMutexNative.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46B077AE1E30FFED00BC6B9C /* rtMutexNative.cpp */; };
-		4C5D058A201FC48F00D2B292 /* jsCallback.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46B077331E30FF8000BC6B9C /* jsCallback.cpp */; };
-		4C5D058B201FC48F00D2B292 /* rtTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46B077691E30FFC700BC6B9C /* rtTest.cpp */; };
-		4C5D058C201FC48F00D2B292 /* pxTimerNative.mm in Sources */ = {isa = PBXBuildFile; fileRef = AECBED791B67B0A800851BFE /* pxTimerNative.mm */; };
-		4C5D058D201FC48F00D2B292 /* ioapi_mem.c in Sources */ = {isa = PBXBuildFile; fileRef = 46B077491E30FFC700BC6B9C /* ioapi_mem.c */; };
-		4C5D058E201FC48F00D2B292 /* rtThreadPool.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46B0776B1E30FFC700BC6B9C /* rtThreadPool.cpp */; };
-		4C5D058F201FC48F00D2B292 /* rtZip.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46B077751E30FFC700BC6B9C /* rtZip.cpp */; };
-		4C5D0590201FC48F00D2B292 /* rtLibrary.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46B077541E30FFC700BC6B9C /* rtLibrary.cpp */; };
-		4C5D0591201FC48F00D2B292 /* rtPathUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46B077631E30FFC700BC6B9C /* rtPathUtils.cpp */; };
-		4C5D0592201FC48F00D2B292 /* rtObject.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46B077601E30FFC700BC6B9C /* rtObject.cpp */; };
-		4C5D0593201FC48F00D2B292 /* rtObjectWrapper.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46B077391E30FF8000BC6B9C /* rtObjectWrapper.cpp */; };
-		4C5D0594201FC48F00D2B292 /* rtError.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46B077501E30FFC700BC6B9C /* rtError.cpp */; };
-		4C5D0595201FC48F00D2B292 /* pxWindowUtil.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AECBED5E1B67B09200851BFE /* pxWindowUtil.cpp */; };
-		4C5D0596201FC48F00D2B292 /* rtFileDownloader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46D304721E673978000C5A5B /* rtFileDownloader.cpp */; };
-		4C5D0597201FC48F00D2B292 /* pxUtil.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46D3046E1E673978000C5A5B /* pxUtil.cpp */; };
-		4C5D0598201FC48F00D2B292 /* rtThreadTask.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46B0776F1E30FFC700BC6B9C /* rtThreadTask.cpp */; };
-		4C5D0599201FC48F00D2B292 /* rtFile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46B077521E30FFC700BC6B9C /* rtFile.cpp */; };
-		4C5D059A201FC48F00D2B292 /* rtPromise.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C9DAFA22019373D00540240 /* rtPromise.cpp */; };
-		4C5D059B201FC48F00D2B292 /* rtScriptNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46B077591E30FFC700BC6B9C /* rtScriptNode.cpp */; };
-		4C5D059C201FC48F00D2B292 /* ioapi.c in Sources */ = {isa = PBXBuildFile; fileRef = 46B0774A1E30FFC700BC6B9C /* ioapi.c */; };
-		4C5D059D201FC48F00D2B292 /* pxMatrix4T.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46D3046C1E673978000C5A5B /* pxMatrix4T.cpp */; };
-		4C5D059E201FC48F00D2B292 /* pxClipboardNative.mm in Sources */ = {isa = PBXBuildFile; fileRef = 4C7B86111D10A47300C2489F /* pxClipboardNative.mm */; };
-		4C5D05A1201FC48F00D2B292 /* pxMatrix4T.h in Headers */ = {isa = PBXBuildFile; fileRef = 46D3046D1E673978000C5A5B /* pxMatrix4T.h */; };
-		4C5D05A2201FC48F00D2B292 /* rtZip.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B077761E30FFC700BC6B9C /* rtZip.h */; };
-		4C5D05A3201FC48F00D2B292 /* rtMutexNative.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B077AF1E30FFED00BC6B9C /* rtMutexNative.h */; };
-		4C5D05A4201FC48F00D2B292 /* rtAtomic.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B0774C1E30FFC700BC6B9C /* rtAtomic.h */; };
-		4C5D05A5201FC48F00D2B292 /* rtThreadPool.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B0776C1E30FFC700BC6B9C /* rtThreadPool.h */; };
-		4C5D05A6201FC48F00D2B292 /* pxConfigNative.h in Headers */ = {isa = PBXBuildFile; fileRef = AECBED751B67B0A800851BFE /* pxConfigNative.h */; };
-		4C5D05A7201FC48F00D2B292 /* pxMatrix.h in Headers */ = {isa = PBXBuildFile; fileRef = 4CEF520B1E6F00E400E7DF59 /* pxMatrix.h */; };
-		4C5D05A8201FC48F00D2B292 /* rtLibrary.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B077551E30FFC700BC6B9C /* rtLibrary.h */; };
-		4C5D05A9201FC48F00D2B292 /* pxTimer.h in Headers */ = {isa = PBXBuildFile; fileRef = AECBED5A1B67B09200851BFE /* pxTimer.h */; };
-		4C5D05AA201FC48F00D2B292 /* pxColor.h in Headers */ = {isa = PBXBuildFile; fileRef = AECBED501B67B09200851BFE /* pxColor.h */; };
-		4C5D05AB201FC48F00D2B292 /* rtHttpCache.h in Headers */ = {isa = PBXBuildFile; fileRef = 46D304751E673978000C5A5B /* rtHttpCache.h */; };
-		4C5D05AC201FC48F00D2B292 /* pxRasterizer.h in Headers */ = {isa = PBXBuildFile; fileRef = 4CEF520D1E6F00E400E7DF59 /* pxRasterizer.h */; };
-		4C5D05AD201FC48F00D2B292 /* rtString.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B077681E30FFC700BC6B9C /* rtString.h */; };
-		4C5D05AE201FC48F00D2B292 /* pxIView.h in Headers */ = {isa = PBXBuildFile; fileRef = AECBED541B67B09200851BFE /* pxIView.h */; };
-		4C5D05AF201FC48F00D2B292 /* rtThreadQueue.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B0776E1E30FFC700BC6B9C /* rtThreadQueue.h */; };
-		4C5D05B0201FC48F00D2B292 /* rtWrapperUtils.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B0773D1E30FF8000BC6B9C /* rtWrapperUtils.h */; };
-		4C5D05B1201FC48F00D2B292 /* rtConfigNative.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B077AD1E30FFED00BC6B9C /* rtConfigNative.h */; };
-		4C5D05B2201FC48F00D2B292 /* rtScriptNode.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B0775A1E30FFC700BC6B9C /* rtScriptNode.h */; };
-		4C5D05B3201FC48F00D2B292 /* rtValue.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B077741E30FFC700BC6B9C /* rtValue.h */; };
-		4C5D05B4201FC48F00D2B292 /* rtConfig.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B0774D1E30FFC700BC6B9C /* rtConfig.h */; };
-		4C5D05B5201FC48F00D2B292 /* rtScriptHeaders.h in Headers */ = {isa = PBXBuildFile; fileRef = 4C9DAF9E201936F300540240 /* rtScriptHeaders.h */; };
-		4C5D05B6201FC48F00D2B292 /* rtObjectMacros.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B077621E30FFC700BC6B9C /* rtObjectMacros.h */; };
-		4C5D05B7201FC48F00D2B292 /* rtFile.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B077531E30FFC700BC6B9C /* rtFile.h */; };
-		4C5D05B8201FC48F00D2B292 /* rtUrlUtils.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B077721E30FFC700BC6B9C /* rtUrlUtils.h */; };
-		4C5D05B9201FC48F00D2B292 /* rtMutex.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B077581E30FFC700BC6B9C /* rtMutex.h */; };
-		4C5D05BA201FC48F00D2B292 /* pxViewWindow.h in Headers */ = {isa = PBXBuildFile; fileRef = AECBED5C1B67B09200851BFE /* pxViewWindow.h */; };
-		4C5D05BB201FC48F00D2B292 /* pxWindowNative.h in Headers */ = {isa = PBXBuildFile; fileRef = AECBED7A1B67B0A800851BFE /* pxWindowNative.h */; };
-		4C5D05BC201FC48F00D2B292 /* pxUtil.h in Headers */ = {isa = PBXBuildFile; fileRef = 46D3046F1E673978000C5A5B /* pxUtil.h */; };
-		4C5D05BD201FC48F00D2B292 /* ioapi.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B0774B1E30FFC700BC6B9C /* ioapi.h */; };
-		4C5D05BE201FC48F00D2B292 /* pxRect.h in Headers */ = {isa = PBXBuildFile; fileRef = AECBED591B67B09200851BFE /* pxRect.h */; };
-		4C5D05BF201FC48F00D2B292 /* pxInterpolators.h in Headers */ = {isa = PBXBuildFile; fileRef = 46D3046B1E673978000C5A5B /* pxInterpolators.h */; };
-		4C5D05C0201FC48F00D2B292 /* pxClipboard.h in Headers */ = {isa = PBXBuildFile; fileRef = 4C7B860E1D10A45200C2489F /* pxClipboard.h */; };
-		4C5D05C1201FC48F00D2B292 /* rtTest.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B0776A1E30FFC700BC6B9C /* rtTest.h */; };
-		4C5D05C2201FC48F00D2B292 /* pxBuffer.h in Headers */ = {isa = PBXBuildFile; fileRef = AECBED4F1B67B09200851BFE /* pxBuffer.h */; };
-		4C5D05C3201FC48F00D2B292 /* pxEventLoop.h in Headers */ = {isa = PBXBuildFile; fileRef = AECBED531B67B09200851BFE /* pxEventLoop.h */; };
-		4C5D05C4201FC48F00D2B292 /* pxKeycodes.h in Headers */ = {isa = PBXBuildFile; fileRef = AECBED551B67B09200851BFE /* pxKeycodes.h */; };
-		4C5D05C5201FC48F00D2B292 /* pxConfig.h in Headers */ = {isa = PBXBuildFile; fileRef = AECBED511B67B09200851BFE /* pxConfig.h */; };
-		4C5D05C6201FC48F00D2B292 /* pxOffscreen.h in Headers */ = {isa = PBXBuildFile; fileRef = AECBED571B67B09200851BFE /* pxOffscreen.h */; };
-		4C5D05C7201FC48F00D2B292 /* pxCanvas.h in Headers */ = {isa = PBXBuildFile; fileRef = 4CEF520A1E6F00E400E7DF59 /* pxCanvas.h */; };
-		4C5D05C8201FC48F00D2B292 /* rtObject.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B077611E30FFC700BC6B9C /* rtObject.h */; };
-		4C5D05C9201FC48F00D2B292 /* px2d.h in Headers */ = {isa = PBXBuildFile; fileRef = 4CEF52081E6F00E400E7DF59 /* px2d.h */; };
-		4C5D05CA201FC48F00D2B292 /* rtScript.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B0775F1E30FFC700BC6B9C /* rtScript.h */; };
-		4C5D05CB201FC48F00D2B292 /* rtPathUtils.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B077641E30FFC700BC6B9C /* rtPathUtils.h */; };
-		4C5D05CC201FC48F00D2B292 /* rtThreadTask.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B077701E30FFC700BC6B9C /* rtThreadTask.h */; };
-		4C5D05CD201FC48F00D2B292 /* rtLog.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B077571E30FFC700BC6B9C /* rtLog.h */; };
-		4C5D05CE201FC48F00D2B292 /* rtThreadPoolNative.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B077B11E30FFED00BC6B9C /* rtThreadPoolNative.h */; };
-		4C5D05CF201FC48F00D2B292 /* jsCallback.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B077341E30FF8000BC6B9C /* jsCallback.h */; };
-		4C5D05D0201FC48F00D2B292 /* pxWindowUtil.h in Headers */ = {isa = PBXBuildFile; fileRef = AECBED5F1B67B09200851BFE /* pxWindowUtil.h */; };
-		4C5D05D1201FC48F00D2B292 /* rtObjectWrapper.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B0773A1E30FF8000BC6B9C /* rtObjectWrapper.h */; };
-		4C5D05D2201FC48F00D2B292 /* unzip.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B077781E30FFC700BC6B9C /* unzip.h */; };
-		4C5D05D3201FC48F00D2B292 /* pxPixel.h in Headers */ = {isa = PBXBuildFile; fileRef = AECBED581B67B09200851BFE /* pxPixel.h */; };
-		4C5D05D4201FC48F00D2B292 /* utf8.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B0777A1E30FFC700BC6B9C /* utf8.h */; };
-		4C5D05D5201FC48F00D2B292 /* pxCore.h in Headers */ = {isa = PBXBuildFile; fileRef = AECBED521B67B09200851BFE /* pxCore.h */; };
-		4C5D05D6201FC48F00D2B292 /* pxWindow.h in Headers */ = {isa = PBXBuildFile; fileRef = AECBED5D1B67B09200851BFE /* pxWindow.h */; };
-		4C5D05D7201FC48F00D2B292 /* rtError.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B077511E30FFC700BC6B9C /* rtError.h */; };
-		4C5D05D8201FC48F00D2B292 /* rtFunctionWrapper.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B077381E30FF8000BC6B9C /* rtFunctionWrapper.h */; };
-		4C5D05D9201FC48F00D2B292 /* pxBufferNative.h in Headers */ = {isa = PBXBuildFile; fileRef = AECBED731B67B0A800851BFE /* pxBufferNative.h */; };
-		4C5D05DA201FC48F00D2B292 /* pxOffscreenNative.h in Headers */ = {isa = PBXBuildFile; fileRef = AECBED771B67B0A800851BFE /* pxOffscreenNative.h */; };
-		4C5D05DB201FC48F00D2B292 /* rtPromise.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B077651E30FFC700BC6B9C /* rtPromise.h */; };
-		4C5D05DC201FC48F00D2B292 /* pxClipboardNative.h in Headers */ = {isa = PBXBuildFile; fileRef = 4C7B86121D10A47300C2489F /* pxClipboardNative.h */; };
-		4C5D05DD201FC48F00D2B292 /* rtCore.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B0774E1E30FFC700BC6B9C /* rtCore.h */; };
-		4C5D05DE201FC48F00D2B292 /* rtFileCache.h in Headers */ = {isa = PBXBuildFile; fileRef = 46D304711E673978000C5A5B /* rtFileCache.h */; };
-		4C5D05DF201FC48F00D2B292 /* rtRef.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B077661E30FFC700BC6B9C /* rtRef.h */; };
-		4C5D05E0201FC48F00D2B292 /* rtFileDownloader.h in Headers */ = {isa = PBXBuildFile; fileRef = 46D304731E673978000C5A5B /* rtFileDownloader.h */; };
 		4C7B860F1D10A45200C2489F /* pxClipboard.h in Headers */ = {isa = PBXBuildFile; fileRef = 4C7B860E1D10A45200C2489F /* pxClipboard.h */; };
 		4C7B86131D10A47300C2489F /* pxClipboardNative.mm in Sources */ = {isa = PBXBuildFile; fileRef = 4C7B86111D10A47300C2489F /* pxClipboardNative.mm */; };
 		4C7B86141D10A47300C2489F /* pxClipboardNative.h in Headers */ = {isa = PBXBuildFile; fileRef = 4C7B86121D10A47300C2489F /* pxClipboardNative.h */; };
-		4C9DAF9F201936F300540240 /* rtScriptHeaders.h in Headers */ = {isa = PBXBuildFile; fileRef = 4C9DAF9E201936F300540240 /* rtScriptHeaders.h */; };
-		4C9DAFA62019373D00540240 /* rtPromise.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C9DAFA22019373D00540240 /* rtPromise.cpp */; };
-		4C9DAFA72019373D00540240 /* rtScript.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C9DAFA32019373D00540240 /* rtScript.cpp */; };
 		4CCCA2BF1E96C62400884036 /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AE1D44361B809BA8002E7CAE /* OpenGL.framework */; };
 		4CEF52101E6F00E400E7DF59 /* px2d.h in Headers */ = {isa = PBXBuildFile; fileRef = 4CEF52081E6F00E400E7DF59 /* px2d.h */; };
 		4CEF52121E6F00E400E7DF59 /* pxCanvas.h in Headers */ = {isa = PBXBuildFile; fileRef = 4CEF520A1E6F00E400E7DF59 /* pxCanvas.h */; };
 		4CEF52131E6F00E400E7DF59 /* pxMatrix.h in Headers */ = {isa = PBXBuildFile; fileRef = 4CEF520B1E6F00E400E7DF59 /* pxMatrix.h */; };
 		4CEF52151E6F00E400E7DF59 /* pxRasterizer.h in Headers */ = {isa = PBXBuildFile; fileRef = 4CEF520D1E6F00E400E7DF59 /* pxRasterizer.h */; };
-		4CF5464120210AB600529907 /* unzip.c in Sources */ = {isa = PBXBuildFile; fileRef = 46B077771E30FFC700BC6B9C /* unzip.c */; };
-		4CF5464220210AB600529907 /* rtThreadPoolNative.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46B077B01E30FFED00BC6B9C /* rtThreadPoolNative.cpp */; };
-		4CF5464320210AB600529907 /* pxInterpolators.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46D3046A1E673978000C5A5B /* pxInterpolators.cpp */; };
-		4CF5464420210AB600529907 /* rtLog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46B077561E30FFC700BC6B9C /* rtLog.cpp */; };
-		4CF5464520210AB600529907 /* rtString.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46B077671E30FFC700BC6B9C /* rtString.cpp */; };
-		4CF5464620210AB600529907 /* pxWindowNative.mm in Sources */ = {isa = PBXBuildFile; fileRef = AECBED7B1B67B0A800851BFE /* pxWindowNative.mm */; };
-		4CF5464720210AB600529907 /* Simple.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AECBEE031B683C2F00851BFE /* Simple.cpp */; };
-		4CF5464820210AB600529907 /* utf8.c in Sources */ = {isa = PBXBuildFile; fileRef = 46B077791E30FFC700BC6B9C /* utf8.c */; };
-		4CF5464920210AB600529907 /* pxViewWindow.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AECBED5B1B67B09200851BFE /* pxViewWindow.cpp */; };
-		4CF5464A20210AB600529907 /* pxOffscreen.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AECBED561B67B09200851BFE /* pxOffscreen.cpp */; };
-		4CF5464B20210AB600529907 /* rtValue.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46B077731E30FFC700BC6B9C /* rtValue.cpp */; };
-		4CF5464C20210AB600529907 /* pxOffscreenNative.mm in Sources */ = {isa = PBXBuildFile; fileRef = AECBED781B67B0A800851BFE /* pxOffscreenNative.mm */; };
-		4CF5464D20210AB600529907 /* rtHttpCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46D304741E673978000C5A5B /* rtHttpCache.cpp */; };
-		4CF5464E20210AB600529907 /* rtScript.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C9DAFA32019373D00540240 /* rtScript.cpp */; };
-		4CF5464F20210AB600529907 /* rtWrapperUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46B0773C1E30FF8000BC6B9C /* rtWrapperUtils.cpp */; };
-		4CF5465020210AB600529907 /* rtUrlUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46B077711E30FFC700BC6B9C /* rtUrlUtils.cpp */; };
-		4CF5465120210AB600529907 /* pxBufferNative.mm in Sources */ = {isa = PBXBuildFile; fileRef = AECBED741B67B0A800851BFE /* pxBufferNative.mm */; };
-		4CF5465220210AB600529907 /* pxEventLoopNative.mm in Sources */ = {isa = PBXBuildFile; fileRef = AECBED761B67B0A800851BFE /* pxEventLoopNative.mm */; };
-		4CF5465320210AB600529907 /* rtThreadQueue.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46B0776D1E30FFC700BC6B9C /* rtThreadQueue.cpp */; };
-		4CF5465420210AB600529907 /* rtFunctionWrapper.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46B077371E30FF8000BC6B9C /* rtFunctionWrapper.cpp */; };
-		4CF5465520210AB600529907 /* rtFileCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46D304701E673978000C5A5B /* rtFileCache.cpp */; };
-		4CF5465620210AB600529907 /* rtMutexNative.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46B077AE1E30FFED00BC6B9C /* rtMutexNative.cpp */; };
-		4CF5465720210AB600529907 /* jsCallback.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46B077331E30FF8000BC6B9C /* jsCallback.cpp */; };
-		4CF5465820210AB600529907 /* rtTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46B077691E30FFC700BC6B9C /* rtTest.cpp */; };
-		4CF5465920210AB600529907 /* pxTimerNative.mm in Sources */ = {isa = PBXBuildFile; fileRef = AECBED791B67B0A800851BFE /* pxTimerNative.mm */; };
-		4CF5465A20210AB600529907 /* ioapi_mem.c in Sources */ = {isa = PBXBuildFile; fileRef = 46B077491E30FFC700BC6B9C /* ioapi_mem.c */; };
-		4CF5465B20210AB600529907 /* rtThreadPool.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46B0776B1E30FFC700BC6B9C /* rtThreadPool.cpp */; };
-		4CF5465C20210AB600529907 /* rtZip.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46B077751E30FFC700BC6B9C /* rtZip.cpp */; };
-		4CF5465D20210AB600529907 /* rtLibrary.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46B077541E30FFC700BC6B9C /* rtLibrary.cpp */; };
-		4CF5465E20210AB600529907 /* rtPathUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46B077631E30FFC700BC6B9C /* rtPathUtils.cpp */; };
-		4CF5465F20210AB600529907 /* rtObject.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46B077601E30FFC700BC6B9C /* rtObject.cpp */; };
-		4CF5466020210AB600529907 /* rtObjectWrapper.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46B077391E30FF8000BC6B9C /* rtObjectWrapper.cpp */; };
-		4CF5466120210AB600529907 /* rtError.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46B077501E30FFC700BC6B9C /* rtError.cpp */; };
-		4CF5466220210AB600529907 /* pxWindowUtil.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AECBED5E1B67B09200851BFE /* pxWindowUtil.cpp */; };
-		4CF5466320210AB600529907 /* rtFileDownloader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46D304721E673978000C5A5B /* rtFileDownloader.cpp */; };
-		4CF5466420210AB600529907 /* pxUtil.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46D3046E1E673978000C5A5B /* pxUtil.cpp */; };
-		4CF5466520210AB600529907 /* rtThreadTask.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46B0776F1E30FFC700BC6B9C /* rtThreadTask.cpp */; };
-		4CF5466620210AB600529907 /* rtFile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46B077521E30FFC700BC6B9C /* rtFile.cpp */; };
-		4CF5466720210AB600529907 /* rtPromise.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C9DAFA22019373D00540240 /* rtPromise.cpp */; };
-		4CF5466820210AB600529907 /* rtScriptNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46B077591E30FFC700BC6B9C /* rtScriptNode.cpp */; };
-		4CF5466920210AB600529907 /* ioapi.c in Sources */ = {isa = PBXBuildFile; fileRef = 46B0774A1E30FFC700BC6B9C /* ioapi.c */; };
-		4CF5466A20210AB600529907 /* pxMatrix4T.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46D3046C1E673978000C5A5B /* pxMatrix4T.cpp */; };
-		4CF5466B20210AB600529907 /* pxClipboardNative.mm in Sources */ = {isa = PBXBuildFile; fileRef = 4C7B86111D10A47300C2489F /* pxClipboardNative.mm */; };
-		4CF5466E20210AB600529907 /* pxMatrix4T.h in Headers */ = {isa = PBXBuildFile; fileRef = 46D3046D1E673978000C5A5B /* pxMatrix4T.h */; };
-		4CF5466F20210AB600529907 /* rtZip.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B077761E30FFC700BC6B9C /* rtZip.h */; };
-		4CF5467020210AB600529907 /* rtMutexNative.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B077AF1E30FFED00BC6B9C /* rtMutexNative.h */; };
-		4CF5467120210AB600529907 /* rtAtomic.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B0774C1E30FFC700BC6B9C /* rtAtomic.h */; };
-		4CF5467220210AB600529907 /* rtThreadPool.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B0776C1E30FFC700BC6B9C /* rtThreadPool.h */; };
-		4CF5467320210AB600529907 /* pxConfigNative.h in Headers */ = {isa = PBXBuildFile; fileRef = AECBED751B67B0A800851BFE /* pxConfigNative.h */; };
-		4CF5467420210AB600529907 /* pxMatrix.h in Headers */ = {isa = PBXBuildFile; fileRef = 4CEF520B1E6F00E400E7DF59 /* pxMatrix.h */; };
-		4CF5467520210AB600529907 /* rtLibrary.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B077551E30FFC700BC6B9C /* rtLibrary.h */; };
-		4CF5467620210AB600529907 /* pxTimer.h in Headers */ = {isa = PBXBuildFile; fileRef = AECBED5A1B67B09200851BFE /* pxTimer.h */; };
-		4CF5467720210AB600529907 /* pxColor.h in Headers */ = {isa = PBXBuildFile; fileRef = AECBED501B67B09200851BFE /* pxColor.h */; };
-		4CF5467820210AB600529907 /* rtHttpCache.h in Headers */ = {isa = PBXBuildFile; fileRef = 46D304751E673978000C5A5B /* rtHttpCache.h */; };
-		4CF5467920210AB600529907 /* pxRasterizer.h in Headers */ = {isa = PBXBuildFile; fileRef = 4CEF520D1E6F00E400E7DF59 /* pxRasterizer.h */; };
-		4CF5467A20210AB600529907 /* rtString.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B077681E30FFC700BC6B9C /* rtString.h */; };
-		4CF5467B20210AB600529907 /* pxIView.h in Headers */ = {isa = PBXBuildFile; fileRef = AECBED541B67B09200851BFE /* pxIView.h */; };
-		4CF5467C20210AB600529907 /* rtThreadQueue.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B0776E1E30FFC700BC6B9C /* rtThreadQueue.h */; };
-		4CF5467D20210AB600529907 /* rtWrapperUtils.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B0773D1E30FF8000BC6B9C /* rtWrapperUtils.h */; };
-		4CF5467E20210AB600529907 /* rtConfigNative.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B077AD1E30FFED00BC6B9C /* rtConfigNative.h */; };
-		4CF5467F20210AB600529907 /* rtScriptNode.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B0775A1E30FFC700BC6B9C /* rtScriptNode.h */; };
-		4CF5468020210AB600529907 /* rtValue.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B077741E30FFC700BC6B9C /* rtValue.h */; };
-		4CF5468120210AB600529907 /* rtConfig.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B0774D1E30FFC700BC6B9C /* rtConfig.h */; };
-		4CF5468220210AB600529907 /* rtScriptHeaders.h in Headers */ = {isa = PBXBuildFile; fileRef = 4C9DAF9E201936F300540240 /* rtScriptHeaders.h */; };
-		4CF5468320210AB600529907 /* rtObjectMacros.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B077621E30FFC700BC6B9C /* rtObjectMacros.h */; };
-		4CF5468420210AB600529907 /* rtFile.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B077531E30FFC700BC6B9C /* rtFile.h */; };
-		4CF5468520210AB600529907 /* rtUrlUtils.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B077721E30FFC700BC6B9C /* rtUrlUtils.h */; };
-		4CF5468620210AB600529907 /* rtMutex.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B077581E30FFC700BC6B9C /* rtMutex.h */; };
-		4CF5468720210AB600529907 /* pxViewWindow.h in Headers */ = {isa = PBXBuildFile; fileRef = AECBED5C1B67B09200851BFE /* pxViewWindow.h */; };
-		4CF5468820210AB600529907 /* pxWindowNative.h in Headers */ = {isa = PBXBuildFile; fileRef = AECBED7A1B67B0A800851BFE /* pxWindowNative.h */; };
-		4CF5468920210AB600529907 /* pxUtil.h in Headers */ = {isa = PBXBuildFile; fileRef = 46D3046F1E673978000C5A5B /* pxUtil.h */; };
-		4CF5468A20210AB600529907 /* ioapi.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B0774B1E30FFC700BC6B9C /* ioapi.h */; };
-		4CF5468B20210AB600529907 /* pxRect.h in Headers */ = {isa = PBXBuildFile; fileRef = AECBED591B67B09200851BFE /* pxRect.h */; };
-		4CF5468C20210AB600529907 /* pxInterpolators.h in Headers */ = {isa = PBXBuildFile; fileRef = 46D3046B1E673978000C5A5B /* pxInterpolators.h */; };
-		4CF5468D20210AB600529907 /* pxClipboard.h in Headers */ = {isa = PBXBuildFile; fileRef = 4C7B860E1D10A45200C2489F /* pxClipboard.h */; };
-		4CF5468E20210AB600529907 /* rtTest.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B0776A1E30FFC700BC6B9C /* rtTest.h */; };
-		4CF5468F20210AB600529907 /* pxBuffer.h in Headers */ = {isa = PBXBuildFile; fileRef = AECBED4F1B67B09200851BFE /* pxBuffer.h */; };
-		4CF5469020210AB600529907 /* pxEventLoop.h in Headers */ = {isa = PBXBuildFile; fileRef = AECBED531B67B09200851BFE /* pxEventLoop.h */; };
-		4CF5469120210AB600529907 /* pxKeycodes.h in Headers */ = {isa = PBXBuildFile; fileRef = AECBED551B67B09200851BFE /* pxKeycodes.h */; };
-		4CF5469220210AB600529907 /* pxConfig.h in Headers */ = {isa = PBXBuildFile; fileRef = AECBED511B67B09200851BFE /* pxConfig.h */; };
-		4CF5469320210AB600529907 /* pxOffscreen.h in Headers */ = {isa = PBXBuildFile; fileRef = AECBED571B67B09200851BFE /* pxOffscreen.h */; };
-		4CF5469420210AB600529907 /* pxCanvas.h in Headers */ = {isa = PBXBuildFile; fileRef = 4CEF520A1E6F00E400E7DF59 /* pxCanvas.h */; };
-		4CF5469520210AB600529907 /* rtObject.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B077611E30FFC700BC6B9C /* rtObject.h */; };
-		4CF5469620210AB600529907 /* px2d.h in Headers */ = {isa = PBXBuildFile; fileRef = 4CEF52081E6F00E400E7DF59 /* px2d.h */; };
-		4CF5469720210AB600529907 /* rtScript.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B0775F1E30FFC700BC6B9C /* rtScript.h */; };
-		4CF5469820210AB600529907 /* rtPathUtils.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B077641E30FFC700BC6B9C /* rtPathUtils.h */; };
-		4CF5469920210AB600529907 /* rtThreadTask.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B077701E30FFC700BC6B9C /* rtThreadTask.h */; };
-		4CF5469A20210AB600529907 /* rtLog.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B077571E30FFC700BC6B9C /* rtLog.h */; };
-		4CF5469B20210AB600529907 /* rtThreadPoolNative.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B077B11E30FFED00BC6B9C /* rtThreadPoolNative.h */; };
-		4CF5469C20210AB600529907 /* jsCallback.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B077341E30FF8000BC6B9C /* jsCallback.h */; };
-		4CF5469D20210AB600529907 /* pxWindowUtil.h in Headers */ = {isa = PBXBuildFile; fileRef = AECBED5F1B67B09200851BFE /* pxWindowUtil.h */; };
-		4CF5469E20210AB600529907 /* rtObjectWrapper.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B0773A1E30FF8000BC6B9C /* rtObjectWrapper.h */; };
-		4CF5469F20210AB600529907 /* unzip.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B077781E30FFC700BC6B9C /* unzip.h */; };
-		4CF546A020210AB600529907 /* pxPixel.h in Headers */ = {isa = PBXBuildFile; fileRef = AECBED581B67B09200851BFE /* pxPixel.h */; };
-		4CF546A120210AB600529907 /* utf8.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B0777A1E30FFC700BC6B9C /* utf8.h */; };
-		4CF546A220210AB600529907 /* pxCore.h in Headers */ = {isa = PBXBuildFile; fileRef = AECBED521B67B09200851BFE /* pxCore.h */; };
-		4CF546A320210AB600529907 /* pxWindow.h in Headers */ = {isa = PBXBuildFile; fileRef = AECBED5D1B67B09200851BFE /* pxWindow.h */; };
-		4CF546A420210AB600529907 /* rtError.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B077511E30FFC700BC6B9C /* rtError.h */; };
-		4CF546A520210AB600529907 /* rtFunctionWrapper.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B077381E30FF8000BC6B9C /* rtFunctionWrapper.h */; };
-		4CF546A620210AB600529907 /* pxBufferNative.h in Headers */ = {isa = PBXBuildFile; fileRef = AECBED731B67B0A800851BFE /* pxBufferNative.h */; };
-		4CF546A720210AB600529907 /* pxOffscreenNative.h in Headers */ = {isa = PBXBuildFile; fileRef = AECBED771B67B0A800851BFE /* pxOffscreenNative.h */; };
-		4CF546A820210AB600529907 /* rtPromise.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B077651E30FFC700BC6B9C /* rtPromise.h */; };
-		4CF546A920210AB600529907 /* pxClipboardNative.h in Headers */ = {isa = PBXBuildFile; fileRef = 4C7B86121D10A47300C2489F /* pxClipboardNative.h */; };
-		4CF546AA20210AB600529907 /* rtCore.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B0774E1E30FFC700BC6B9C /* rtCore.h */; };
-		4CF546AB20210AB600529907 /* rtFileCache.h in Headers */ = {isa = PBXBuildFile; fileRef = 46D304711E673978000C5A5B /* rtFileCache.h */; };
-		4CF546AC20210AB600529907 /* rtRef.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B077661E30FFC700BC6B9C /* rtRef.h */; };
-		4CF546AD20210AB600529907 /* rtFileDownloader.h in Headers */ = {isa = PBXBuildFile; fileRef = 46D304731E673978000C5A5B /* rtFileDownloader.h */; };
+		4CFA65511F190ABA00332B6F /* libz.1.1.3.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 4CFA65501F190ABA00332B6F /* libz.1.1.3.tbd */; };
 		AE1D42DD1B7CF611002E7CAE /* Hover.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AE1D42DC1B7CF611002E7CAE /* Hover.cpp */; };
 		AE1D42DE1B7D048B002E7CAE /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AECBEE0B1B685F2100851BFE /* Cocoa.framework */; };
 		AE1D42DF1B7D0493002E7CAE /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AECBEE091B685F1C00851BFE /* Foundation.framework */; };
@@ -391,14 +178,17 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		46B077331E30FF8000BC6B9C /* jsCallback.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = jsCallback.cpp; path = src/rtScriptNode/jsCallback.cpp; sourceTree = SOURCE_ROOT; };
-		46B077341E30FF8000BC6B9C /* jsCallback.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = jsCallback.h; path = src/rtScriptNode/jsCallback.h; sourceTree = SOURCE_ROOT; };
-		46B077371E30FF8000BC6B9C /* rtFunctionWrapper.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = rtFunctionWrapper.cpp; path = src/rtScriptNode/rtFunctionWrapper.cpp; sourceTree = SOURCE_ROOT; };
-		46B077381E30FF8000BC6B9C /* rtFunctionWrapper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = rtFunctionWrapper.h; path = src/rtScriptNode/rtFunctionWrapper.h; sourceTree = SOURCE_ROOT; };
-		46B077391E30FF8000BC6B9C /* rtObjectWrapper.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = rtObjectWrapper.cpp; path = src/rtScriptNode/rtObjectWrapper.cpp; sourceTree = SOURCE_ROOT; };
-		46B0773A1E30FF8000BC6B9C /* rtObjectWrapper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = rtObjectWrapper.h; path = src/rtScriptNode/rtObjectWrapper.h; sourceTree = SOURCE_ROOT; };
-		46B0773C1E30FF8000BC6B9C /* rtWrapperUtils.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = rtWrapperUtils.cpp; path = src/rtScriptNode/rtWrapperUtils.cpp; sourceTree = SOURCE_ROOT; };
-		46B0773D1E30FF8000BC6B9C /* rtWrapperUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = rtWrapperUtils.h; path = src/rtScriptNode/rtWrapperUtils.h; sourceTree = SOURCE_ROOT; };
+		46B077331E30FF8000BC6B9C /* jsCallback.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = jsCallback.cpp; path = src/jsbindings/jsCallback.cpp; sourceTree = SOURCE_ROOT; };
+		46B077341E30FF8000BC6B9C /* jsCallback.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = jsCallback.h; path = src/jsbindings/jsCallback.h; sourceTree = SOURCE_ROOT; };
+		46B077351E30FF8000BC6B9C /* jsWindow.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = jsWindow.h; path = src/jsbindings/jsWindow.h; sourceTree = SOURCE_ROOT; };
+		46B077361E30FF8000BC6B9C /* node_headers.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = node_headers.h; path = src/jsbindings/node_headers.h; sourceTree = SOURCE_ROOT; };
+		46B077371E30FF8000BC6B9C /* rtFunctionWrapper.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = rtFunctionWrapper.cpp; path = src/jsbindings/rtFunctionWrapper.cpp; sourceTree = SOURCE_ROOT; };
+		46B077381E30FF8000BC6B9C /* rtFunctionWrapper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = rtFunctionWrapper.h; path = src/jsbindings/rtFunctionWrapper.h; sourceTree = SOURCE_ROOT; };
+		46B077391E30FF8000BC6B9C /* rtObjectWrapper.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = rtObjectWrapper.cpp; path = src/jsbindings/rtObjectWrapper.cpp; sourceTree = SOURCE_ROOT; };
+		46B0773A1E30FF8000BC6B9C /* rtObjectWrapper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = rtObjectWrapper.h; path = src/jsbindings/rtObjectWrapper.h; sourceTree = SOURCE_ROOT; };
+		46B0773B1E30FF8000BC6B9C /* rtWrapperInit.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = rtWrapperInit.cpp; path = src/jsbindings/rtWrapperInit.cpp; sourceTree = SOURCE_ROOT; };
+		46B0773C1E30FF8000BC6B9C /* rtWrapperUtils.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = rtWrapperUtils.cpp; path = src/jsbindings/rtWrapperUtils.cpp; sourceTree = SOURCE_ROOT; };
+		46B0773D1E30FF8000BC6B9C /* rtWrapperUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = rtWrapperUtils.h; path = src/jsbindings/rtWrapperUtils.h; sourceTree = SOURCE_ROOT; };
 		46B077491E30FFC700BC6B9C /* ioapi_mem.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = ioapi_mem.c; path = src/ioapi_mem.c; sourceTree = SOURCE_ROOT; };
 		46B0774A1E30FFC700BC6B9C /* ioapi.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = ioapi.c; path = src/ioapi.c; sourceTree = SOURCE_ROOT; };
 		46B0774B1E30FFC700BC6B9C /* ioapi.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ioapi.h; path = src/ioapi.h; sourceTree = SOURCE_ROOT; };
@@ -414,9 +204,9 @@
 		46B077561E30FFC700BC6B9C /* rtLog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = rtLog.cpp; path = src/rtLog.cpp; sourceTree = SOURCE_ROOT; };
 		46B077571E30FFC700BC6B9C /* rtLog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = rtLog.h; path = src/rtLog.h; sourceTree = SOURCE_ROOT; };
 		46B077581E30FFC700BC6B9C /* rtMutex.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = rtMutex.h; path = src/rtMutex.h; sourceTree = SOURCE_ROOT; };
-		46B077591E30FFC700BC6B9C /* rtScriptNode.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = rtScriptNode.cpp; path = src/rtScriptNode/rtScriptNode.cpp; sourceTree = SOURCE_ROOT; };
-		46B0775A1E30FFC700BC6B9C /* rtScriptNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = rtScriptNode.h; path = src/rtScriptNode/rtScriptNode.h; sourceTree = SOURCE_ROOT; };
-		46B0775F1E30FFC700BC6B9C /* rtScript.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = rtScript.h; path = src/rtScript.h; sourceTree = SOURCE_ROOT; };
+		46B077591E30FFC700BC6B9C /* rtNode.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = rtNode.cpp; path = src/rtNode.cpp; sourceTree = SOURCE_ROOT; };
+		46B0775A1E30FFC700BC6B9C /* rtNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = rtNode.h; path = src/rtNode.h; sourceTree = SOURCE_ROOT; };
+		46B0775F1E30FFC700BC6B9C /* rtNodeThread.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = rtNodeThread.h; path = src/rtNodeThread.h; sourceTree = SOURCE_ROOT; };
 		46B077601E30FFC700BC6B9C /* rtObject.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = rtObject.cpp; path = src/rtObject.cpp; sourceTree = SOURCE_ROOT; };
 		46B077611E30FFC700BC6B9C /* rtObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = rtObject.h; path = src/rtObject.h; sourceTree = SOURCE_ROOT; };
 		46B077621E30FFC700BC6B9C /* rtObjectMacros.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = rtObjectMacros.h; path = src/rtObjectMacros.h; sourceTree = SOURCE_ROOT; };
@@ -463,13 +253,9 @@
 		46D304751E673978000C5A5B /* rtHttpCache.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = rtHttpCache.h; path = src/rtHttpCache.h; sourceTree = SOURCE_ROOT; };
 		4C0086DE1E6C64C900DB42F4 /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = System/Library/Frameworks/CoreFoundation.framework; sourceTree = SDKROOT; };
 		4C0C29001E6F04C6007013C9 /* Rasterizer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Rasterizer.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		4C5D05E4201FC48F00D2B292 /* libpxCore (Duk) Static Library.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libpxCore (Duk) Static Library.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		4C7B860E1D10A45200C2489F /* pxClipboard.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pxClipboard.h; path = src/pxClipboard.h; sourceTree = SOURCE_ROOT; };
 		4C7B86111D10A47300C2489F /* pxClipboardNative.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = pxClipboardNative.mm; path = src/mac/pxClipboardNative.mm; sourceTree = SOURCE_ROOT; };
 		4C7B86121D10A47300C2489F /* pxClipboardNative.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pxClipboardNative.h; path = src/mac/pxClipboardNative.h; sourceTree = SOURCE_ROOT; };
-		4C9DAF9E201936F300540240 /* rtScriptHeaders.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = rtScriptHeaders.h; path = src/rtScriptHeaders.h; sourceTree = SOURCE_ROOT; };
-		4C9DAFA22019373D00540240 /* rtPromise.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = rtPromise.cpp; path = src/rtPromise.cpp; sourceTree = SOURCE_ROOT; };
-		4C9DAFA32019373D00540240 /* rtScript.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = rtScript.cpp; path = src/rtScript.cpp; sourceTree = SOURCE_ROOT; };
 		4CEF52081E6F00E400E7DF59 /* px2d.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = px2d.h; path = examples/Rasterizer/px2d.h; sourceTree = SOURCE_ROOT; };
 		4CEF52091E6F00E400E7DF59 /* pxCanvas.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = pxCanvas.cpp; path = examples/Rasterizer/pxCanvas.cpp; sourceTree = SOURCE_ROOT; };
 		4CEF520A1E6F00E400E7DF59 /* pxCanvas.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pxCanvas.h; path = examples/Rasterizer/pxCanvas.h; sourceTree = SOURCE_ROOT; };
@@ -477,7 +263,8 @@
 		4CEF520C1E6F00E400E7DF59 /* pxRasterizer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = pxRasterizer.cpp; path = examples/Rasterizer/pxRasterizer.cpp; sourceTree = SOURCE_ROOT; };
 		4CEF520D1E6F00E400E7DF59 /* pxRasterizer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pxRasterizer.h; path = examples/Rasterizer/pxRasterizer.h; sourceTree = SOURCE_ROOT; };
 		4CEF520E1E6F00E400E7DF59 /* Rasterizer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Rasterizer.cpp; path = examples/Rasterizer/Rasterizer.cpp; sourceTree = SOURCE_ROOT; };
-		4CF546B120210AB600529907 /* libpxCore Static Library.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libpxCore Static Library.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		4CFA654C1F1909B700332B6F /* libpng-1.6.28 */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "libpng-1.6.28"; path = "examples/pxScene2d/external/libpng-1.6.28"; sourceTree = "<group>"; };
+		4CFA65501F190ABA00332B6F /* libz.1.1.3.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.1.1.3.tbd; path = usr/lib/libz.1.1.3.tbd; sourceTree = SDKROOT; };
 		AE1D42BC1B7CF5E0002E7CAE /* Hover.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Hover.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AE1D42DC1B7CF611002E7CAE /* Hover.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Hover.cpp; path = examples/Hover/Hover.cpp; sourceTree = SOURCE_ROOT; };
 		AE1D42E51B7D2A23002E7CAE /* Multi.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Multi.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -542,20 +329,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		4C5D059F201FC48F00D2B292 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		4CF5466C20210AB600529907 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		AE1D42B91B7CF5E0002E7CAE /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -600,6 +373,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4CFA65511F190ABA00332B6F /* libz.1.1.3.tbd in Frameworks */,
 				AE1D43861B7D5067002E7CAE /* Foundation.framework in Frameworks */,
 				AEF5F63F1C0C6B4F005A642F /* libpxCore.a in Frameworks */,
 				AE1D43851B7D505F002E7CAE /* Cocoa.framework in Frameworks */,
@@ -674,6 +448,7 @@
 				46B077381E30FF8000BC6B9C /* rtFunctionWrapper.h */,
 				46B077391E30FF8000BC6B9C /* rtObjectWrapper.cpp */,
 				46B0773A1E30FF8000BC6B9C /* rtObjectWrapper.h */,
+				46B0773B1E30FF8000BC6B9C /* rtWrapperInit.cpp */,
 				46B0773C1E30FF8000BC6B9C /* rtWrapperUtils.cpp */,
 				46B0773D1E30FF8000BC6B9C /* rtWrapperUtils.h */,
 				46D304701E673978000C5A5B /* rtFileCache.cpp */,
@@ -699,12 +474,9 @@
 				46B077561E30FFC700BC6B9C /* rtLog.cpp */,
 				46B077571E30FFC700BC6B9C /* rtLog.h */,
 				46B077581E30FFC700BC6B9C /* rtMutex.h */,
-				46B077591E30FFC700BC6B9C /* rtScriptNode.cpp */,
-				4C9DAF9E201936F300540240 /* rtScriptHeaders.h */,
-				46B0775A1E30FFC700BC6B9C /* rtScriptNode.h */,
-				4C9DAFA22019373D00540240 /* rtPromise.cpp */,
-				4C9DAFA32019373D00540240 /* rtScript.cpp */,
-				46B0775F1E30FFC700BC6B9C /* rtScript.h */,
+				46B077591E30FFC700BC6B9C /* rtNode.cpp */,
+				46B0775A1E30FFC700BC6B9C /* rtNode.h */,
+				46B0775F1E30FFC700BC6B9C /* rtNodeThread.h */,
 				46B077601E30FFC700BC6B9C /* rtObject.cpp */,
 				46B077611E30FFC700BC6B9C /* rtObject.h */,
 				46B077621E30FFC700BC6B9C /* rtObjectMacros.h */,
@@ -744,6 +516,8 @@
 				46B0777A1E30FFC700BC6B9C /* utf8.h */,
 				46B077331E30FF8000BC6B9C /* jsCallback.cpp */,
 				46B077341E30FF8000BC6B9C /* jsCallback.h */,
+				46B077351E30FF8000BC6B9C /* jsWindow.h */,
+				46B077361E30FF8000BC6B9C /* node_headers.h */,
 			);
 			name = Other;
 			sourceTree = "<group>";
@@ -865,6 +639,8 @@
 		AECBECA01B6796DC00851BFE = {
 			isa = PBXGroup;
 			children = (
+				4CFA65501F190ABA00332B6F /* libz.1.1.3.tbd */,
+				4CFA654C1F1909B700332B6F /* libpng-1.6.28 */,
 				4C0086DE1E6C64C900DB42F4 /* CoreFoundation.framework */,
 				AE1D44361B809BA8002E7CAE /* OpenGL.framework */,
 				AECBEE0B1B685F2100851BFE /* Cocoa.framework */,
@@ -891,8 +667,6 @@
 				AE1D43E81B7E8E11002E7CAE /* NativeDrawing.app */,
 				AE1D44111B809983002E7CAE /* SimpleOpenGL.app */,
 				4C0C29001E6F04C6007013C9 /* Rasterizer.app */,
-				4C5D05E4201FC48F00D2B292 /* libpxCore (Duk) Static Library.a */,
-				4CF546B120210AB600529907 /* libpxCore Static Library.a */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -963,148 +737,6 @@
 /* End PBXGroup section */
 
 /* Begin PBXHeadersBuildPhase section */
-		4C5D05A0201FC48F00D2B292 /* Headers */ = {
-			isa = PBXHeadersBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				4C5D05A1201FC48F00D2B292 /* pxMatrix4T.h in Headers */,
-				4C5D05A2201FC48F00D2B292 /* rtZip.h in Headers */,
-				4C5D05A3201FC48F00D2B292 /* rtMutexNative.h in Headers */,
-				4C5D05A4201FC48F00D2B292 /* rtAtomic.h in Headers */,
-				4C5D05A5201FC48F00D2B292 /* rtThreadPool.h in Headers */,
-				4C5D05A6201FC48F00D2B292 /* pxConfigNative.h in Headers */,
-				4C5D05A7201FC48F00D2B292 /* pxMatrix.h in Headers */,
-				4C5D05A8201FC48F00D2B292 /* rtLibrary.h in Headers */,
-				4C5D05A9201FC48F00D2B292 /* pxTimer.h in Headers */,
-				4C5D05AA201FC48F00D2B292 /* pxColor.h in Headers */,
-				4C5D05AB201FC48F00D2B292 /* rtHttpCache.h in Headers */,
-				4C5D05AC201FC48F00D2B292 /* pxRasterizer.h in Headers */,
-				4C5D05AD201FC48F00D2B292 /* rtString.h in Headers */,
-				4C5D05AE201FC48F00D2B292 /* pxIView.h in Headers */,
-				4C5D05AF201FC48F00D2B292 /* rtThreadQueue.h in Headers */,
-				4C5D05B0201FC48F00D2B292 /* rtWrapperUtils.h in Headers */,
-				4C5D05B1201FC48F00D2B292 /* rtConfigNative.h in Headers */,
-				4C5D05B2201FC48F00D2B292 /* rtScriptNode.h in Headers */,
-				4C5D05B3201FC48F00D2B292 /* rtValue.h in Headers */,
-				4C5D05B4201FC48F00D2B292 /* rtConfig.h in Headers */,
-				4C5D05B5201FC48F00D2B292 /* rtScriptHeaders.h in Headers */,
-				4C5D05B6201FC48F00D2B292 /* rtObjectMacros.h in Headers */,
-				4C5D05B7201FC48F00D2B292 /* rtFile.h in Headers */,
-				4C5D05B8201FC48F00D2B292 /* rtUrlUtils.h in Headers */,
-				4C5D05B9201FC48F00D2B292 /* rtMutex.h in Headers */,
-				4C5D05BA201FC48F00D2B292 /* pxViewWindow.h in Headers */,
-				4C5D05BB201FC48F00D2B292 /* pxWindowNative.h in Headers */,
-				4C5D05BC201FC48F00D2B292 /* pxUtil.h in Headers */,
-				4C5D05BD201FC48F00D2B292 /* ioapi.h in Headers */,
-				4C5D05BE201FC48F00D2B292 /* pxRect.h in Headers */,
-				4C5D05BF201FC48F00D2B292 /* pxInterpolators.h in Headers */,
-				4C5D05C0201FC48F00D2B292 /* pxClipboard.h in Headers */,
-				4C5D05C1201FC48F00D2B292 /* rtTest.h in Headers */,
-				4C5D05C2201FC48F00D2B292 /* pxBuffer.h in Headers */,
-				4C5D05C3201FC48F00D2B292 /* pxEventLoop.h in Headers */,
-				4C5D05C4201FC48F00D2B292 /* pxKeycodes.h in Headers */,
-				4C5D05C5201FC48F00D2B292 /* pxConfig.h in Headers */,
-				4C5D05C6201FC48F00D2B292 /* pxOffscreen.h in Headers */,
-				4C5D05C7201FC48F00D2B292 /* pxCanvas.h in Headers */,
-				4C5D05C8201FC48F00D2B292 /* rtObject.h in Headers */,
-				4C5D05C9201FC48F00D2B292 /* px2d.h in Headers */,
-				4C5D05CA201FC48F00D2B292 /* rtScript.h in Headers */,
-				4C5D05CB201FC48F00D2B292 /* rtPathUtils.h in Headers */,
-				4C5D05CC201FC48F00D2B292 /* rtThreadTask.h in Headers */,
-				4C5D05CD201FC48F00D2B292 /* rtLog.h in Headers */,
-				4C5D05CE201FC48F00D2B292 /* rtThreadPoolNative.h in Headers */,
-				4C5D05CF201FC48F00D2B292 /* jsCallback.h in Headers */,
-				4C5D05D0201FC48F00D2B292 /* pxWindowUtil.h in Headers */,
-				4C5D05D1201FC48F00D2B292 /* rtObjectWrapper.h in Headers */,
-				4C5D05D2201FC48F00D2B292 /* unzip.h in Headers */,
-				4C5D05D3201FC48F00D2B292 /* pxPixel.h in Headers */,
-				4C5D05D4201FC48F00D2B292 /* utf8.h in Headers */,
-				4C5D05D5201FC48F00D2B292 /* pxCore.h in Headers */,
-				4C5D05D6201FC48F00D2B292 /* pxWindow.h in Headers */,
-				4C5D05D7201FC48F00D2B292 /* rtError.h in Headers */,
-				4C5D05D8201FC48F00D2B292 /* rtFunctionWrapper.h in Headers */,
-				4C5D05D9201FC48F00D2B292 /* pxBufferNative.h in Headers */,
-				4C5D05DA201FC48F00D2B292 /* pxOffscreenNative.h in Headers */,
-				4C5D05DB201FC48F00D2B292 /* rtPromise.h in Headers */,
-				4C5D05DC201FC48F00D2B292 /* pxClipboardNative.h in Headers */,
-				4C5D05DD201FC48F00D2B292 /* rtCore.h in Headers */,
-				4C5D05DE201FC48F00D2B292 /* rtFileCache.h in Headers */,
-				4C5D05DF201FC48F00D2B292 /* rtRef.h in Headers */,
-				4C5D05E0201FC48F00D2B292 /* rtFileDownloader.h in Headers */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		4CF5466D20210AB600529907 /* Headers */ = {
-			isa = PBXHeadersBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				4CF5466E20210AB600529907 /* pxMatrix4T.h in Headers */,
-				4CF5466F20210AB600529907 /* rtZip.h in Headers */,
-				4CF5467020210AB600529907 /* rtMutexNative.h in Headers */,
-				4CF5467120210AB600529907 /* rtAtomic.h in Headers */,
-				4CF5467220210AB600529907 /* rtThreadPool.h in Headers */,
-				4CF5467320210AB600529907 /* pxConfigNative.h in Headers */,
-				4CF5467420210AB600529907 /* pxMatrix.h in Headers */,
-				4CF5467520210AB600529907 /* rtLibrary.h in Headers */,
-				4CF5467620210AB600529907 /* pxTimer.h in Headers */,
-				4CF5467720210AB600529907 /* pxColor.h in Headers */,
-				4CF5467820210AB600529907 /* rtHttpCache.h in Headers */,
-				4CF5467920210AB600529907 /* pxRasterizer.h in Headers */,
-				4CF5467A20210AB600529907 /* rtString.h in Headers */,
-				4CF5467B20210AB600529907 /* pxIView.h in Headers */,
-				4CF5467C20210AB600529907 /* rtThreadQueue.h in Headers */,
-				4CF5467D20210AB600529907 /* rtWrapperUtils.h in Headers */,
-				4CF5467E20210AB600529907 /* rtConfigNative.h in Headers */,
-				4CF5467F20210AB600529907 /* rtScriptNode.h in Headers */,
-				4CF5468020210AB600529907 /* rtValue.h in Headers */,
-				4CF5468120210AB600529907 /* rtConfig.h in Headers */,
-				4CF5468220210AB600529907 /* rtScriptHeaders.h in Headers */,
-				4CF5468320210AB600529907 /* rtObjectMacros.h in Headers */,
-				4CF5468420210AB600529907 /* rtFile.h in Headers */,
-				4CF5468520210AB600529907 /* rtUrlUtils.h in Headers */,
-				4CF5468620210AB600529907 /* rtMutex.h in Headers */,
-				4CF5468720210AB600529907 /* pxViewWindow.h in Headers */,
-				4CF5468820210AB600529907 /* pxWindowNative.h in Headers */,
-				4CF5468920210AB600529907 /* pxUtil.h in Headers */,
-				4CF5468A20210AB600529907 /* ioapi.h in Headers */,
-				4CF5468B20210AB600529907 /* pxRect.h in Headers */,
-				4CF5468C20210AB600529907 /* pxInterpolators.h in Headers */,
-				4CF5468D20210AB600529907 /* pxClipboard.h in Headers */,
-				4CF5468E20210AB600529907 /* rtTest.h in Headers */,
-				4CF5468F20210AB600529907 /* pxBuffer.h in Headers */,
-				4CF5469020210AB600529907 /* pxEventLoop.h in Headers */,
-				4CF5469120210AB600529907 /* pxKeycodes.h in Headers */,
-				4CF5469220210AB600529907 /* pxConfig.h in Headers */,
-				4CF5469320210AB600529907 /* pxOffscreen.h in Headers */,
-				4CF5469420210AB600529907 /* pxCanvas.h in Headers */,
-				4CF5469520210AB600529907 /* rtObject.h in Headers */,
-				4CF5469620210AB600529907 /* px2d.h in Headers */,
-				4CF5469720210AB600529907 /* rtScript.h in Headers */,
-				4CF5469820210AB600529907 /* rtPathUtils.h in Headers */,
-				4CF5469920210AB600529907 /* rtThreadTask.h in Headers */,
-				4CF5469A20210AB600529907 /* rtLog.h in Headers */,
-				4CF5469B20210AB600529907 /* rtThreadPoolNative.h in Headers */,
-				4CF5469C20210AB600529907 /* jsCallback.h in Headers */,
-				4CF5469D20210AB600529907 /* pxWindowUtil.h in Headers */,
-				4CF5469E20210AB600529907 /* rtObjectWrapper.h in Headers */,
-				4CF5469F20210AB600529907 /* unzip.h in Headers */,
-				4CF546A020210AB600529907 /* pxPixel.h in Headers */,
-				4CF546A120210AB600529907 /* utf8.h in Headers */,
-				4CF546A220210AB600529907 /* pxCore.h in Headers */,
-				4CF546A320210AB600529907 /* pxWindow.h in Headers */,
-				4CF546A420210AB600529907 /* rtError.h in Headers */,
-				4CF546A520210AB600529907 /* rtFunctionWrapper.h in Headers */,
-				4CF546A620210AB600529907 /* pxBufferNative.h in Headers */,
-				4CF546A720210AB600529907 /* pxOffscreenNative.h in Headers */,
-				4CF546A820210AB600529907 /* rtPromise.h in Headers */,
-				4CF546A920210AB600529907 /* pxClipboardNative.h in Headers */,
-				4CF546AA20210AB600529907 /* rtCore.h in Headers */,
-				4CF546AB20210AB600529907 /* rtFileCache.h in Headers */,
-				4CF546AC20210AB600529907 /* rtRef.h in Headers */,
-				4CF546AD20210AB600529907 /* rtFileDownloader.h in Headers */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		AECBECCE1B67979F00851BFE /* Headers */ = {
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
@@ -1126,10 +758,9 @@
 				46B077A01E30FFC700BC6B9C /* rtThreadQueue.h in Headers */,
 				46B077481E30FF8000BC6B9C /* rtWrapperUtils.h in Headers */,
 				46B077B21E30FFED00BC6B9C /* rtConfigNative.h in Headers */,
-				46B0778C1E30FFC700BC6B9C /* rtScriptNode.h in Headers */,
+				46B0778C1E30FFC700BC6B9C /* rtNode.h in Headers */,
 				46B077A61E30FFC700BC6B9C /* rtValue.h in Headers */,
 				46B0777F1E30FFC700BC6B9C /* rtConfig.h in Headers */,
-				4C9DAF9F201936F300540240 /* rtScriptHeaders.h in Headers */,
 				46B077941E30FFC700BC6B9C /* rtObjectMacros.h in Headers */,
 				46B077851E30FFC700BC6B9C /* rtFile.h in Headers */,
 				46B077A41E30FFC700BC6B9C /* rtUrlUtils.h in Headers */,
@@ -1150,7 +781,8 @@
 				4CEF52121E6F00E400E7DF59 /* pxCanvas.h in Headers */,
 				46B077931E30FFC700BC6B9C /* rtObject.h in Headers */,
 				4CEF52101E6F00E400E7DF59 /* px2d.h in Headers */,
-				46B077911E30FFC700BC6B9C /* rtScript.h in Headers */,
+				46B077411E30FF8000BC6B9C /* node_headers.h in Headers */,
+				46B077911E30FFC700BC6B9C /* rtNodeThread.h in Headers */,
 				46B077961E30FFC700BC6B9C /* rtPathUtils.h in Headers */,
 				46B077A21E30FFC700BC6B9C /* rtThreadTask.h in Headers */,
 				46B077891E30FFC700BC6B9C /* rtLog.h in Headers */,
@@ -1163,6 +795,7 @@
 				46B077AC1E30FFC700BC6B9C /* utf8.h in Headers */,
 				AECBED641B67B09200851BFE /* pxCore.h in Headers */,
 				AECBED6F1B67B09200851BFE /* pxWindow.h in Headers */,
+				46B077401E30FF8000BC6B9C /* jsWindow.h in Headers */,
 				46B077831E30FFC700BC6B9C /* rtError.h in Headers */,
 				46B077431E30FF8000BC6B9C /* rtFunctionWrapper.h in Headers */,
 				AECBED7D1B67B0A800851BFE /* pxBufferNative.h in Headers */,
@@ -1195,42 +828,6 @@
 			productName = Mandelbrot;
 			productReference = 4C0C29001E6F04C6007013C9 /* Rasterizer.app */;
 			productType = "com.apple.product-type.application";
-		};
-		4C5D0571201FC48F00D2B292 /* pxCore (Duk) Static Library */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 4C5D05E1201FC48F00D2B292 /* Build configuration list for PBXNativeTarget "pxCore (Duk) Static Library" */;
-			buildPhases = (
-				4C5D0572201FC48F00D2B292 /* Run Script - Build Externals */,
-				4C5D0573201FC48F00D2B292 /* Sources */,
-				4C5D059F201FC48F00D2B292 /* Frameworks */,
-				4C5D05A0201FC48F00D2B292 /* Headers */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
-			name = "pxCore (Duk) Static Library";
-			productName = pxCore;
-			productReference = 4C5D05E4201FC48F00D2B292 /* libpxCore (Duk) Static Library.a */;
-			productType = "com.apple.product-type.library.static";
-		};
-		4CF5463E20210AB600529907 /* pxCore Static Library */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 4CF546AE20210AB600529907 /* Build configuration list for PBXNativeTarget "pxCore Static Library" */;
-			buildPhases = (
-				4CF5463F20210AB600529907 /* Run Script - Build Externals */,
-				4CF5464020210AB600529907 /* Sources */,
-				4CF5466C20210AB600529907 /* Frameworks */,
-				4CF5466D20210AB600529907 /* Headers */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
-			name = "pxCore Static Library";
-			productName = pxCore;
-			productReference = 4CF546B120210AB600529907 /* libpxCore Static Library.a */;
-			productType = "com.apple.product-type.library.static";
 		};
 		AE1D42BB1B7CF5E0002E7CAE /* Hover */ = {
 			isa = PBXNativeTarget;
@@ -1385,9 +982,9 @@
 			productReference = AE1D44111B809983002E7CAE /* SimpleOpenGL.app */;
 			productType = "com.apple.product-type.application";
 		};
-		AECBECCF1B67979F00851BFE /* pxCore (Node) Static Library */ = {
+		AECBECCF1B67979F00851BFE /* pxCore Static Library */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = AECBECE11B67979F00851BFE /* Build configuration list for PBXNativeTarget "pxCore (Node) Static Library" */;
+			buildConfigurationList = AECBECE11B67979F00851BFE /* Build configuration list for PBXNativeTarget "pxCore Static Library" */;
 			buildPhases = (
 				4CA4D6791E9BC95A0069CAB3 /* Run Script - Build Externals */,
 				AECBECCC1B67979F00851BFE /* Sources */,
@@ -1398,7 +995,7 @@
 			);
 			dependencies = (
 			);
-			name = "pxCore (Node) Static Library";
+			name = "pxCore Static Library";
 			productName = pxCore;
 			productReference = AECBECD01B67979F00851BFE /* libpxCore.a */;
 			productType = "com.apple.product-type.library.static";
@@ -1477,9 +1074,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				4CF5463E20210AB600529907 /* pxCore Static Library */,
-				AECBECCF1B67979F00851BFE /* pxCore (Node) Static Library */,
-				4C5D0571201FC48F00D2B292 /* pxCore (Duk) Static Library */,
+				AECBECCF1B67979F00851BFE /* pxCore Static Library */,
 				AECBED101B679A7500851BFE /* Simple */,
 				AE1D42BB1B7CF5E0002E7CAE /* Hover */,
 				AE1D42E41B7D2A23002E7CAE /* Multi */,
@@ -1569,35 +1164,7 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		4C5D0572201FC48F00D2B292 /* Run Script - Build Externals */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-			);
-			name = "Run Script - Build Externals";
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "cd $PROJECT_DIR/examples/pxScene2d/external\npwd\n./build.sh";
-		};
 		4CA4D6791E9BC95A0069CAB3 /* Run Script - Build Externals */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-			);
-			name = "Run Script - Build Externals";
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "cd $PROJECT_DIR/examples/pxScene2d/external\npwd\n./build.sh";
-		};
-		4CF5463F20210AB600529907 /* Run Script - Build Externals */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -1621,106 +1188,6 @@
 				4C0C29031E6F050B007013C9 /* pxRasterizer.cpp in Sources */,
 				4C0C29041E6F0513007013C9 /* pxCanvas.cpp in Sources */,
 				4C0C29021E6F0505007013C9 /* Rasterizer.cpp in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		4C5D0573201FC48F00D2B292 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				4C5D0574201FC48F00D2B292 /* unzip.c in Sources */,
-				4C5D0575201FC48F00D2B292 /* rtThreadPoolNative.cpp in Sources */,
-				4C5D0576201FC48F00D2B292 /* pxInterpolators.cpp in Sources */,
-				4C5D0577201FC48F00D2B292 /* rtLog.cpp in Sources */,
-				4C5D0578201FC48F00D2B292 /* rtString.cpp in Sources */,
-				4C5D0579201FC48F00D2B292 /* pxWindowNative.mm in Sources */,
-				4C5D057A201FC48F00D2B292 /* Simple.cpp in Sources */,
-				4C5D057B201FC48F00D2B292 /* utf8.c in Sources */,
-				4C5D057C201FC48F00D2B292 /* pxViewWindow.cpp in Sources */,
-				4C5D057D201FC48F00D2B292 /* pxOffscreen.cpp in Sources */,
-				4C5D057E201FC48F00D2B292 /* rtValue.cpp in Sources */,
-				4C5D057F201FC48F00D2B292 /* pxOffscreenNative.mm in Sources */,
-				4C5D0580201FC48F00D2B292 /* rtHttpCache.cpp in Sources */,
-				4C5D0581201FC48F00D2B292 /* rtScript.cpp in Sources */,
-				4C5D0582201FC48F00D2B292 /* rtWrapperUtils.cpp in Sources */,
-				4C5D0583201FC48F00D2B292 /* rtUrlUtils.cpp in Sources */,
-				4C5D0584201FC48F00D2B292 /* pxBufferNative.mm in Sources */,
-				4C5D0585201FC48F00D2B292 /* pxEventLoopNative.mm in Sources */,
-				4C5D0586201FC48F00D2B292 /* rtThreadQueue.cpp in Sources */,
-				4C5D0587201FC48F00D2B292 /* rtFunctionWrapper.cpp in Sources */,
-				4C5D0588201FC48F00D2B292 /* rtFileCache.cpp in Sources */,
-				4C5D0589201FC48F00D2B292 /* rtMutexNative.cpp in Sources */,
-				4C5D058A201FC48F00D2B292 /* jsCallback.cpp in Sources */,
-				4C5D058B201FC48F00D2B292 /* rtTest.cpp in Sources */,
-				4C5D058C201FC48F00D2B292 /* pxTimerNative.mm in Sources */,
-				4C5D058D201FC48F00D2B292 /* ioapi_mem.c in Sources */,
-				4C5D058E201FC48F00D2B292 /* rtThreadPool.cpp in Sources */,
-				4C5D058F201FC48F00D2B292 /* rtZip.cpp in Sources */,
-				4C5D0590201FC48F00D2B292 /* rtLibrary.cpp in Sources */,
-				4C5D0591201FC48F00D2B292 /* rtPathUtils.cpp in Sources */,
-				4C5D0592201FC48F00D2B292 /* rtObject.cpp in Sources */,
-				4C5D0593201FC48F00D2B292 /* rtObjectWrapper.cpp in Sources */,
-				4C5D0594201FC48F00D2B292 /* rtError.cpp in Sources */,
-				4C5D0595201FC48F00D2B292 /* pxWindowUtil.cpp in Sources */,
-				4C5D0596201FC48F00D2B292 /* rtFileDownloader.cpp in Sources */,
-				4C5D0597201FC48F00D2B292 /* pxUtil.cpp in Sources */,
-				4C5D0598201FC48F00D2B292 /* rtThreadTask.cpp in Sources */,
-				4C5D0599201FC48F00D2B292 /* rtFile.cpp in Sources */,
-				4C5D059A201FC48F00D2B292 /* rtPromise.cpp in Sources */,
-				4C5D059B201FC48F00D2B292 /* rtScriptNode.cpp in Sources */,
-				4C5D059C201FC48F00D2B292 /* ioapi.c in Sources */,
-				4C5D059D201FC48F00D2B292 /* pxMatrix4T.cpp in Sources */,
-				4C5D059E201FC48F00D2B292 /* pxClipboardNative.mm in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		4CF5464020210AB600529907 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				4CF5464120210AB600529907 /* unzip.c in Sources */,
-				4CF5464220210AB600529907 /* rtThreadPoolNative.cpp in Sources */,
-				4CF5464320210AB600529907 /* pxInterpolators.cpp in Sources */,
-				4CF5464420210AB600529907 /* rtLog.cpp in Sources */,
-				4CF5464520210AB600529907 /* rtString.cpp in Sources */,
-				4CF5464620210AB600529907 /* pxWindowNative.mm in Sources */,
-				4CF5464720210AB600529907 /* Simple.cpp in Sources */,
-				4CF5464820210AB600529907 /* utf8.c in Sources */,
-				4CF5464920210AB600529907 /* pxViewWindow.cpp in Sources */,
-				4CF5464A20210AB600529907 /* pxOffscreen.cpp in Sources */,
-				4CF5464B20210AB600529907 /* rtValue.cpp in Sources */,
-				4CF5464C20210AB600529907 /* pxOffscreenNative.mm in Sources */,
-				4CF5464D20210AB600529907 /* rtHttpCache.cpp in Sources */,
-				4CF5464E20210AB600529907 /* rtScript.cpp in Sources */,
-				4CF5464F20210AB600529907 /* rtWrapperUtils.cpp in Sources */,
-				4CF5465020210AB600529907 /* rtUrlUtils.cpp in Sources */,
-				4CF5465120210AB600529907 /* pxBufferNative.mm in Sources */,
-				4CF5465220210AB600529907 /* pxEventLoopNative.mm in Sources */,
-				4CF5465320210AB600529907 /* rtThreadQueue.cpp in Sources */,
-				4CF5465420210AB600529907 /* rtFunctionWrapper.cpp in Sources */,
-				4CF5465520210AB600529907 /* rtFileCache.cpp in Sources */,
-				4CF5465620210AB600529907 /* rtMutexNative.cpp in Sources */,
-				4CF5465720210AB600529907 /* jsCallback.cpp in Sources */,
-				4CF5465820210AB600529907 /* rtTest.cpp in Sources */,
-				4CF5465920210AB600529907 /* pxTimerNative.mm in Sources */,
-				4CF5465A20210AB600529907 /* ioapi_mem.c in Sources */,
-				4CF5465B20210AB600529907 /* rtThreadPool.cpp in Sources */,
-				4CF5465C20210AB600529907 /* rtZip.cpp in Sources */,
-				4CF5465D20210AB600529907 /* rtLibrary.cpp in Sources */,
-				4CF5465E20210AB600529907 /* rtPathUtils.cpp in Sources */,
-				4CF5465F20210AB600529907 /* rtObject.cpp in Sources */,
-				4CF5466020210AB600529907 /* rtObjectWrapper.cpp in Sources */,
-				4CF5466120210AB600529907 /* rtError.cpp in Sources */,
-				4CF5466220210AB600529907 /* pxWindowUtil.cpp in Sources */,
-				4CF5466320210AB600529907 /* rtFileDownloader.cpp in Sources */,
-				4CF5466420210AB600529907 /* pxUtil.cpp in Sources */,
-				4CF5466520210AB600529907 /* rtThreadTask.cpp in Sources */,
-				4CF5466620210AB600529907 /* rtFile.cpp in Sources */,
-				4CF5466720210AB600529907 /* rtPromise.cpp in Sources */,
-				4CF5466820210AB600529907 /* rtScriptNode.cpp in Sources */,
-				4CF5466920210AB600529907 /* ioapi.c in Sources */,
-				4CF5466A20210AB600529907 /* pxMatrix4T.cpp in Sources */,
-				4CF5466B20210AB600529907 /* pxClipboardNative.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1813,7 +1280,6 @@
 				46B077A51E30FFC700BC6B9C /* rtValue.cpp in Sources */,
 				AECBED821B67B0A800851BFE /* pxOffscreenNative.mm in Sources */,
 				46D304801E673978000C5A5B /* rtHttpCache.cpp in Sources */,
-				4C9DAFA72019373D00540240 /* rtScript.cpp in Sources */,
 				46B077471E30FF8000BC6B9C /* rtWrapperUtils.cpp in Sources */,
 				46B077A31E30FFC700BC6B9C /* rtUrlUtils.cpp in Sources */,
 				AECBED7E1B67B0A800851BFE /* pxBufferNative.mm in Sources */,
@@ -1824,6 +1290,7 @@
 				46B077B31E30FFED00BC6B9C /* rtMutexNative.cpp in Sources */,
 				46B0773E1E30FF8000BC6B9C /* jsCallback.cpp in Sources */,
 				46B0779B1E30FFC700BC6B9C /* rtTest.cpp in Sources */,
+				46B077461E30FF8000BC6B9C /* rtWrapperInit.cpp in Sources */,
 				AECBED831B67B0A800851BFE /* pxTimerNative.mm in Sources */,
 				46B0777B1E30FFC700BC6B9C /* ioapi_mem.c in Sources */,
 				46B0779D1E30FFC700BC6B9C /* rtThreadPool.cpp in Sources */,
@@ -1838,8 +1305,7 @@
 				46D3047A1E673978000C5A5B /* pxUtil.cpp in Sources */,
 				46B077A11E30FFC700BC6B9C /* rtThreadTask.cpp in Sources */,
 				46B077841E30FFC700BC6B9C /* rtFile.cpp in Sources */,
-				4C9DAFA62019373D00540240 /* rtPromise.cpp in Sources */,
-				46B0778B1E30FFC700BC6B9C /* rtScriptNode.cpp in Sources */,
+				46B0778B1E30FFC700BC6B9C /* rtNode.cpp in Sources */,
 				46B0777C1E30FFC700BC6B9C /* ioapi.c in Sources */,
 				46D304781E673978000C5A5B /* pxMatrix4T.cpp in Sources */,
 				4C7B86131D10A47300C2489F /* pxClipboardNative.mm in Sources */,
@@ -1880,296 +1346,6 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = "com.liquidthought.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-			};
-			name = Release;
-		};
-		4C5D05E2201FC48F00D2B292 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CLANG_ENABLE_OBJC_ARC = NO;
-				COMBINE_HIDPI_IMAGES = YES;
-				CONFIGURATION_BUILD_DIR = "$(BUILD_DIR)/mac";
-				EXECUTABLE_PREFIX = lib;
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					PX_PLATFORM_MAC,
-					RTSCRIPT_SUPPORT_DUKTAPE,
-					ENABLE_RT_NODE,
-					ENABLE_HTTP_CACHE,
-					RUNINMAIN,
-					"_DARWIN_USE_64_BIT_INODE=1",
-					"NODE_ARCH=\"x64\"",
-					"NODE_WANT_INTERNALS=1",
-					"V8_DEPRECATION_WARNINGS=",
-					NODE_SHARED_MODE,
-					"NODE_USE_V8_PLATFORM=1",
-					"NODE_HAVE_I18N_SUPPORT=1",
-					"NODE_HAVE_SMALL_ICU=1",
-					"HAVE_INSPECTOR=1",
-					"V8_INSPECTOR_USE_STL=1",
-					"V8_INSPECTOR_USE_OLD_STL=1",
-					"HAVE_OPENSSL=1",
-					"HAVE_DTRACE=1",
-					__POSIX__,
-					"NODE_PLATFORM=\"darwin\"",
-					"UCONFIG_NO_TRANSLITERATION=1",
-					"UCONFIG_NO_SERVICE=1",
-					"UCONFIG_NO_REGULAR_EXPRESSIONS=1",
-					"U_ENABLE_DYLOAD=0",
-					"U_STATIC_IMPLEMENTATION=1",
-					"U_HAVE_STD_STRING=0",
-					"UCONFIG_NO_BREAK_ITERATION=0",
-					"UCONFIG_NO_LEGACY_CONVERSION=1",
-					"UCONFIG_NO_CONVERSION=1",
-					"HTTP_PARSER_STRICT=0",
-					_LARGEFILE_SOURCE,
-					"_FILE_OFFSET_BITS=64",
-					RT_PLATFORM_LINUX,
-					ENABLE_NODE_V_6_9,
-					ENABLE_DEBUG_MODE,
-					PNG_APNG_SUPPORTED,
-				);
-				HEADER_SEARCH_PATHS = (
-					"examples/pxScene2d/external/libnode-v6.9.0/src",
-					"examples/pxScene2d/external/libnode-v6.9.0/deps/uv/include",
-					"examples/pxScene2d/external/libnode-v6.9.0/deps/v8",
-					"examples/pxScene2d/external/libnode-v6.9.0/deps/debugger-agent/include",
-					"examples/pxScene2d/external/libnode-v6.9.0/deps/v8/include",
-					"examples/pxScene2d/external/libnode-v6.9.0/deps/cares/include",
-					examples/pxScene2d/external/zlib/,
-					examples/pxScene2d/external/curl/include,
-					examples/pxScene2d/external/jpg,
-					examples/pxScene2d/external/png,
-				);
-				OTHER_CPLUSPLUSFLAGS = (
-					"$(OTHER_CFLAGS)",
-					"-std=c++11",
-				);
-				OTHER_LDFLAGS = (
-					"-framwork",
-					Cocoa,
-					"-framework",
-					Foundation,
-				);
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SYMROOT = build;
-			};
-			name = Debug;
-		};
-		4C5D05E3201FC48F00D2B292 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CLANG_ENABLE_OBJC_ARC = NO;
-				COMBINE_HIDPI_IMAGES = YES;
-				CONFIGURATION_BUILD_DIR = "$(BUILD_DIR)/mac";
-				EXECUTABLE_PREFIX = lib;
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					PX_PLATFORM_MAC,
-					RTSCRIPT_SUPPORT_DUKTAPE,
-					ENABLE_RT_NODE,
-					ENABLE_HTTP_CACHE,
-					RUNINMAIN,
-					"_DARWIN_USE_64_BIT_INODE=1",
-					"NODE_ARCH=\"x64\"",
-					"NODE_WANT_INTERNALS=1",
-					"V8_DEPRECATION_WARNINGS=",
-					NODE_SHARED_MODE,
-					"NODE_USE_V8_PLATFORM=1",
-					"NODE_HAVE_I18N_SUPPORT=1",
-					"NODE_HAVE_SMALL_ICU=1",
-					"HAVE_INSPECTOR=1",
-					"V8_INSPECTOR_USE_STL=1",
-					"V8_INSPECTOR_USE_OLD_STL=1",
-					"HAVE_OPENSSL=1",
-					"HAVE_DTRACE=1",
-					__POSIX__,
-					"NODE_PLATFORM=\"darwin\"",
-					"UCONFIG_NO_TRANSLITERATION=1",
-					"UCONFIG_NO_SERVICE=1",
-					"UCONFIG_NO_REGULAR_EXPRESSIONS=1",
-					"U_ENABLE_DYLOAD=0",
-					"U_STATIC_IMPLEMENTATION=1",
-					"U_HAVE_STD_STRING=0",
-					"UCONFIG_NO_BREAK_ITERATION=0",
-					"UCONFIG_NO_LEGACY_CONVERSION=1",
-					"UCONFIG_NO_CONVERSION=1",
-					"HTTP_PARSER_STRICT=0",
-					_LARGEFILE_SOURCE,
-					"_FILE_OFFSET_BITS=64",
-					RT_PLATFORM_LINUX,
-					ENABLE_NODE_V_6_9,
-					ENABLE_DEBUG_MODE,
-					PNG_APNG_SUPPORTED,
-				);
-				HEADER_SEARCH_PATHS = (
-					"examples/pxScene2d/external/libnode-v6.9.0/src",
-					"examples/pxScene2d/external/libnode-v6.9.0/deps/uv/include",
-					"examples/pxScene2d/external/libnode-v6.9.0/deps/v8",
-					"examples/pxScene2d/external/libnode-v6.9.0/deps/debugger-agent/include",
-					"examples/pxScene2d/external/libnode-v6.9.0/deps/v8/include",
-					"examples/pxScene2d/external/libnode-v6.9.0/deps/cares/include",
-					examples/pxScene2d/external/zlib/,
-					examples/pxScene2d/external/curl/include,
-					examples/pxScene2d/external/jpg,
-					examples/pxScene2d/external/png,
-				);
-				OTHER_CPLUSPLUSFLAGS = (
-					"$(OTHER_CFLAGS)",
-					"-std=c++11",
-				);
-				OTHER_LDFLAGS = (
-					"-framwork",
-					Cocoa,
-					"-framework",
-					Foundation,
-				);
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SYMROOT = build;
-			};
-			name = Release;
-		};
-		4CF546AF20210AB600529907 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CLANG_ENABLE_OBJC_ARC = NO;
-				COMBINE_HIDPI_IMAGES = YES;
-				CONFIGURATION_BUILD_DIR = "$(BUILD_DIR)/mac";
-				EXECUTABLE_PREFIX = lib;
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					PX_PLATFORM_MAC,
-					RTSCRIPT_SUPPORT_NODE,
-					RTSCRIPT_SUPPORT_DUKTAPE,
-					ENABLE_RT_NODE,
-					ENABLE_HTTP_CACHE,
-					RUNINMAIN,
-					"_DARWIN_USE_64_BIT_INODE=1",
-					"NODE_ARCH=\"x64\"",
-					"NODE_WANT_INTERNALS=1",
-					"V8_DEPRECATION_WARNINGS=",
-					NODE_SHARED_MODE,
-					"NODE_USE_V8_PLATFORM=1",
-					"NODE_HAVE_I18N_SUPPORT=1",
-					"NODE_HAVE_SMALL_ICU=1",
-					"HAVE_INSPECTOR=1",
-					"V8_INSPECTOR_USE_STL=1",
-					"V8_INSPECTOR_USE_OLD_STL=1",
-					"HAVE_OPENSSL=1",
-					"HAVE_DTRACE=1",
-					__POSIX__,
-					"NODE_PLATFORM=\"darwin\"",
-					"UCONFIG_NO_TRANSLITERATION=1",
-					"UCONFIG_NO_SERVICE=1",
-					"UCONFIG_NO_REGULAR_EXPRESSIONS=1",
-					"U_ENABLE_DYLOAD=0",
-					"U_STATIC_IMPLEMENTATION=1",
-					"U_HAVE_STD_STRING=0",
-					"UCONFIG_NO_BREAK_ITERATION=0",
-					"UCONFIG_NO_LEGACY_CONVERSION=1",
-					"UCONFIG_NO_CONVERSION=1",
-					"HTTP_PARSER_STRICT=0",
-					_LARGEFILE_SOURCE,
-					"_FILE_OFFSET_BITS=64",
-					RT_PLATFORM_LINUX,
-					ENABLE_NODE_V_6_9,
-					ENABLE_DEBUG_MODE,
-					PNG_APNG_SUPPORTED,
-				);
-				HEADER_SEARCH_PATHS = (
-					"examples/pxScene2d/external/libnode-v6.9.0/src",
-					"examples/pxScene2d/external/libnode-v6.9.0/deps/uv/include",
-					"examples/pxScene2d/external/libnode-v6.9.0/deps/v8",
-					"examples/pxScene2d/external/libnode-v6.9.0/deps/debugger-agent/include",
-					"examples/pxScene2d/external/libnode-v6.9.0/deps/v8/include",
-					"examples/pxScene2d/external/libnode-v6.9.0/deps/cares/include",
-					examples/pxScene2d/external/zlib/,
-					examples/pxScene2d/external/curl/include,
-					examples/pxScene2d/external/jpg,
-					examples/pxScene2d/external/png,
-				);
-				OTHER_CPLUSPLUSFLAGS = (
-					"$(OTHER_CFLAGS)",
-					"-std=c++11",
-				);
-				OTHER_LDFLAGS = (
-					"-framwork",
-					Cocoa,
-					"-framework",
-					Foundation,
-				);
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SYMROOT = build;
-			};
-			name = Debug;
-		};
-		4CF546B020210AB600529907 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CLANG_ENABLE_OBJC_ARC = NO;
-				COMBINE_HIDPI_IMAGES = YES;
-				CONFIGURATION_BUILD_DIR = "$(BUILD_DIR)/mac";
-				EXECUTABLE_PREFIX = lib;
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					PX_PLATFORM_MAC,
-					RTSCRIPT_SUPPORT_NODE,
-					RTSCRIPT_SUPPORT_DUKTAPE,
-					ENABLE_RT_NODE,
-					ENABLE_HTTP_CACHE,
-					RUNINMAIN,
-					"_DARWIN_USE_64_BIT_INODE=1",
-					"NODE_ARCH=\"x64\"",
-					"NODE_WANT_INTERNALS=1",
-					"V8_DEPRECATION_WARNINGS=",
-					NODE_SHARED_MODE,
-					"NODE_USE_V8_PLATFORM=1",
-					"NODE_HAVE_I18N_SUPPORT=1",
-					"NODE_HAVE_SMALL_ICU=1",
-					"HAVE_INSPECTOR=1",
-					"V8_INSPECTOR_USE_STL=1",
-					"V8_INSPECTOR_USE_OLD_STL=1",
-					"HAVE_OPENSSL=1",
-					"HAVE_DTRACE=1",
-					__POSIX__,
-					"NODE_PLATFORM=\"darwin\"",
-					"UCONFIG_NO_TRANSLITERATION=1",
-					"UCONFIG_NO_SERVICE=1",
-					"UCONFIG_NO_REGULAR_EXPRESSIONS=1",
-					"U_ENABLE_DYLOAD=0",
-					"U_STATIC_IMPLEMENTATION=1",
-					"U_HAVE_STD_STRING=0",
-					"UCONFIG_NO_BREAK_ITERATION=0",
-					"UCONFIG_NO_LEGACY_CONVERSION=1",
-					"UCONFIG_NO_CONVERSION=1",
-					"HTTP_PARSER_STRICT=0",
-					_LARGEFILE_SOURCE,
-					"_FILE_OFFSET_BITS=64",
-					RT_PLATFORM_LINUX,
-					ENABLE_NODE_V_6_9,
-					ENABLE_DEBUG_MODE,
-					PNG_APNG_SUPPORTED,
-				);
-				HEADER_SEARCH_PATHS = (
-					"examples/pxScene2d/external/libnode-v6.9.0/src",
-					"examples/pxScene2d/external/libnode-v6.9.0/deps/uv/include",
-					"examples/pxScene2d/external/libnode-v6.9.0/deps/v8",
-					"examples/pxScene2d/external/libnode-v6.9.0/deps/debugger-agent/include",
-					"examples/pxScene2d/external/libnode-v6.9.0/deps/v8/include",
-					"examples/pxScene2d/external/libnode-v6.9.0/deps/cares/include",
-					examples/pxScene2d/external/zlib/,
-					examples/pxScene2d/external/curl/include,
-					examples/pxScene2d/external/jpg,
-					examples/pxScene2d/external/png,
-				);
-				OTHER_CPLUSPLUSFLAGS = (
-					"$(OTHER_CFLAGS)",
-					"-std=c++11",
-				);
-				OTHER_LDFLAGS = (
-					"-framwork",
-					Cocoa,
-					"-framework",
-					Foundation,
-				);
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SYMROOT = build;
 			};
 			name = Release;
 		};
@@ -2524,7 +1700,6 @@
 				EXECUTABLE_PREFIX = lib;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					PX_PLATFORM_MAC,
-					RTSCRIPT_SUPPORT_NODE,
 					ENABLE_RT_NODE,
 					ENABLE_HTTP_CACHE,
 					RUNINMAIN,
@@ -2596,7 +1771,6 @@
 				EXECUTABLE_PREFIX = lib;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					PX_PLATFORM_MAC,
-					RTSCRIPT_SUPPORT_NODE,
 					ENABLE_RT_NODE,
 					ENABLE_HTTP_CACHE,
 					RUNINMAIN,
@@ -2713,24 +1887,6 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		4C5D05E1201FC48F00D2B292 /* Build configuration list for PBXNativeTarget "pxCore (Duk) Static Library" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				4C5D05E2201FC48F00D2B292 /* Debug */,
-				4C5D05E3201FC48F00D2B292 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		4CF546AE20210AB600529907 /* Build configuration list for PBXNativeTarget "pxCore Static Library" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				4CF546AF20210AB600529907 /* Debug */,
-				4CF546B020210AB600529907 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
 		AE1D42D61B7CF5E0002E7CAE /* Build configuration list for PBXNativeTarget "Hover" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -2821,7 +1977,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		AECBECE11B67979F00851BFE /* Build configuration list for PBXNativeTarget "pxCore (Node) Static Library" */ = {
+		AECBECE11B67979F00851BFE /* Build configuration list for PBXNativeTarget "pxCore Static Library" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				AECBECE21B67979F00851BFE /* Debug */,

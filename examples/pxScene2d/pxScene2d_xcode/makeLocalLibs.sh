@@ -13,4 +13,4 @@ install_name_tool -id @executable_path/lib/libnode.48.dylib ./lib/libnode.48.dyl
 
 install_name_tool -id @executable_path/lib/libpng16.16.dylib ./lib/libpng16.16.dylib
 
-install_name_tool -id @executable_path/lib/libz.1.2.11.dylib ./lib/libz.1.2.11.dylib
+install_name_tool -id @executable_path/lib/libz.1.2.8.dylib ./lib/libz.1.2.8.dylib

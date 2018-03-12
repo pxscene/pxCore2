@@ -1,18 +1,8 @@
 #!/bin/sh
-if [ "$TRAVIS_EVENT_TYPE" != "cron" ]
-then
 export DEPLOY_DESTINATION=${DEPLOY_DESTINATION:-/var/www/html/releases}
-else
-export DEPLOY_DESTINATION=${DEPLOY_DESTINATION:-/var/www/html/edge/osx}
-fi
 export DEPLOY_USER="${DEPLOY_USER:-ubuntu}"
 REMOTE_HOST="$1"
-if [ "$TRAVIS_EVENT_TYPE" != "cron" ]
-then
 REMOTE_DIR="${DEPLOY_DESTINATION}/${PX_VERSION}"
-else
-REMOTE_DIR="${DEPLOY_DESTINATION}"
-fi
 #since we saved $1 to REMOTE_HOST delete it from args via shift
 export REMOTE_FILE_COUNT=$(ssh -o StrictHostKeyChecking=no -p 2220 ${DEPLOY_USER}@${REMOTE_HOST} "ls -lrt $DEPLOY_DESTINATION|wc -l")
 export REMOTE_FILE_OLD=$(ssh -o StrictHostKeyChecking=no -p 2220 ${DEPLOY_USER}@${REMOTE_HOST} "ls -t $DEPLOY_DESTINATION|tail -1")

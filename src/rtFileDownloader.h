@@ -83,15 +83,12 @@ public:
   bool cacheEnabled();
   void setDataIsCached(bool val);
   bool isDataCached();
-  void setDeferCacheRead(bool val);
-  bool deferCacheRead();
-  FILE* cacheFilePointer(void);
 #endif //ENABLE_HTTP_CACHE
   void setProgressMeter(bool val);
   bool isProgressMeterSwitchOff();
   void setHTTPFailOnError(bool val);
   bool isHTTPFailOnError();
-  void setHTTPError(const char* httpError);
+  void setHTTPError(char* httpError);
   char* httpErrorBuffer(void);
   void setCurlDefaultTimeout(bool val);
   bool isCurlDefaultTimeoutSet();
@@ -119,7 +116,6 @@ private:
 #ifdef ENABLE_HTTP_CACHE
   bool mCacheEnabled;
   bool mIsDataInCache;
-  bool mDeferCacheRead;
 #endif //ENABLE_HTTP_CACHE
   bool mIsProgressMeterSwitchOff;
   bool mHTTPFailOnError;

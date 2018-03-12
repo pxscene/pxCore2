@@ -24,7 +24,7 @@
 #include "rtThreadPool.h"
 #include "rtThreadQueue.h"
 #include "rtMutex.h"
-#include "rtScript.h"
+#include "rtNode.h"
 
 #include "pxContext.h"
 #include "pxUtil.h"
@@ -111,7 +111,7 @@ extern bool needsFlip;
 #endif //ENABLE_DFB_GENERIC
 
 #ifdef RUNINMAIN
-extern rtScript                   script;
+extern rtNode                   script;
 #else
 extern uv_async_t 				gcTrigger;
 #endif
@@ -956,7 +956,7 @@ public:
       mInitialized = true;
     }
   }
-
+  
   void clear(const pxRect& r)
   {
     mOffscreen.fill(r, pxClear);
@@ -2065,12 +2065,6 @@ void pxContext::init()
   std::srand(unsigned (std::time(0)));
 }
 
-
-void pxContext::term()  // clean up statics 
-{
-  swRasterTexture = NULL;
-}
-
 void pxContext::setSize(int w, int h)
 {
   gResW = w;
@@ -2466,7 +2460,6 @@ void pxContext::drawImage9(float w, float h, float x1, float y1,
 void pxContext::drawImage9Border(float w, float h, 
                   float /*bx1*/, float /*by1*/, float /*bx2*/, float /*by2*/,
                   float ix1, float iy1, float ix2, float iy2,
-                  bool drawCenter, float* color,
                   pxTextureRef texture)
 {
   // TRANSPARENT / DIMENSIONLESS
@@ -2839,7 +2832,7 @@ void pxContext::adjustCurrentTextureMemorySize(int64_t changeInBytes)
   {
     rtLogDebug("\n ###  Texture Memory: %3.1f %%  <<<   GARBAGE COLLECT", pc);
 #ifdef RUNINMAIN
-    script.collectGarbage();
+    script.garbageCollect();
 #else
     uv_async_send(&gcTrigger);
 #endif

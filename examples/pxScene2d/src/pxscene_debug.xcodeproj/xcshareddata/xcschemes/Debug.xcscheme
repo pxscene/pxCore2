@@ -10,7 +10,6 @@
       buildConfiguration = "Debug"
       selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
-      language = ""
       shouldUseLaunchSchemeArgsEnv = "YES">
       <Testables>
       </Testables>
@@ -21,7 +20,6 @@
       buildConfiguration = "Debug"
       selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
-      language = ""
       launchStyle = "0"
       useCustomWorkingDirectory = "NO"
       ignoresPersistentStateOnLaunch = "NO"
@@ -30,7 +28,7 @@
       allowLocationSimulation = "YES">
       <PathRunnable
          runnableDebuggingMode = "0"
-         FilePath = "/Users/johnrobinson/code/pxCore/examples/pxScene2d/src/pxscene.app/Contents/MacOS/pxscene">
+         FilePath = "/Users/johnrobinson/Documents/npxcore/pxCore/examples/pxScene2d/src/pxscene.app/Contents/MacOS/pxscene">
       </PathRunnable>
       <EnvironmentVariables>
          <EnvironmentVariable

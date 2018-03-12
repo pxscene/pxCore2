@@ -299,9 +299,8 @@ rtError rtValue::getBool(bool& v) const
     case RT_doubleType:   v = (mValue.doubleValue==0.0) ? false:true; break;
     case RT_stringType:
     {
-      if (mValue.stringValue) {
-        v = (*mValue.stringValue=="")?false:true;
-      }
+      if (mValue.stringValue)
+        v = (*mValue.stringValue=="")?false:true; break;
     }
     break;
     case RT_objectType: v = mValue.objectValue?     true:false; break;

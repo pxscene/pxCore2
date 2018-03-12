@@ -1,33 +1,19 @@
 #!/bin/sh
 
-EXECLOGS=$TRAVIS_BUILD_DIR/logs/exec_logs
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-printExecLogs()
-{
-  printf "\n\n********************** PRINTING EXEC LOG **************************\n\n"
-  cat $EXECLOGS
-  printf "\n\n**********************     LOG ENDS      **************************\n\n"
-}
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-
 checkError()
 {
   if [ "$1" -ne 0 ]
   then
-    printf "\n\n*********************************************************************";
-    printf "\n********************* SCRIPT FAIL DETAILS *****************************";
-    printf "\nCI failure reason: $2"
-    printf "\nCause: $3"
-    printf "\nReproduction/How to fix: $4"
-    printf "\n*********************************************************************";
-    printf "\n*********************************************************************\n\n";
-    printExecLogs
+    echo "*********************************************************************";
+    echo "*********************SCRIPT FAIL DETAILS*****************************";
+    echo "CI failure reason: $2"
+    echo "Cause: $3"
+    echo "Reproduction/How to fix: $4"
+    echo "*********************************************************************";
+    echo "*********************************************************************";
     exit 1
   fi
 }
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 if [ "$TRAVIS_OS_NAME" = "linux" ]
 then
@@ -55,24 +41,12 @@ export DUMP_STACK_ON_EXCEPTION=1
 cd $TRAVIS_BUILD_DIR/ci
 if [ "$TRAVIS_EVENT_TYPE" = "push" ] || [ "$TRAVIS_EVENT_TYPE" = "pull_request" ] ;
 then
-  sh build_px.sh 
-  checkError $? "#### Build/unittests/execution [build_px.sh] failed" "Either build problem/execution problem" "Analyze corresponding log file"
-
-  sh "build_$TRAVIS_OS_NAME.sh" 
-  checkError $? "#### Build/unittests/execution [build_$TRAVIS_OS_NAME.sh] failed" "Either build problem/execution problem" "Analyze corresponding log file"
-
-  sh "unittests_$TRAVIS_OS_NAME.sh" 
-  checkError $? "#### Build/unittests/execution [unittests_$TRAVIS_OS_NAME.sh] failed" "Either build problem/execution problem" "Analyze corresponding log file"
-
-  sh "execute_$TRAVIS_OS_NAME.sh" 
-  checkError $? "#### Build/unittests/execution [execute_$TRAVIS_OS_NAME.sh] failed" "Either build problem/execution problem" "Analyze corresponding log file"
-
-  sh "code_coverage_$TRAVIS_OS_NAME.sh"
-  checkError $? "#### Build/unittests/execution [code_coverage_$TRAVIS_OS_NAME.sh] failed" "Either build problem/execution problem" "Analyze corresponding log file"
-
+  sh build_px.sh "build_$TRAVIS_OS_NAME.sh" "unittests_$TRAVIS_OS_NAME.sh" "execute_$TRAVIS_OS_NAME.sh" "code_coverage_$TRAVIS_OS_NAME.sh"
 else
   sh build_px.sh "build_$TRAVIS_OS_NAME.sh"
 fi
+checkError $? "Build/unittests/execution failed" "Either build problem/execution problem" "Analyze corresponding log file"
+
 
 if [ "$TRAVIS_EVENT_TYPE" = "cron" ] || [ "$TRAVIS_EVENT_TYPE" = "api" ] ;
 then

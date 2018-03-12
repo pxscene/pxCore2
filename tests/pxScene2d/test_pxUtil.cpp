@@ -103,10 +103,8 @@ class pxUtilTest : public testing::Test
       if (false == mDownloadImageFailed)
       {
         sysRet = system("rm -rf supportfiles/apngimage.png");
-        EXPECT_TRUE (sysRet == 0);
       }
       sysRet = system("rm -rf supportfiles/wrong.png supportfiles/generatedflower.png");
-      EXPECT_TRUE (sysRet == 0);
       mDownloadImageFailed = true;
     }
 
@@ -114,7 +112,6 @@ class pxUtilTest : public testing::Test
     {
       rtData d;
       rtError loadImageSuccess = rtLoadFile("supportfiles/status_bg.png", d);
-      EXPECT_TRUE (loadImageSuccess == RT_OK);
       rtError ret = pxLoadImage((const char*) d.data(), d.length(), mPngData);
       EXPECT_TRUE (ret == RT_OK);
     }
@@ -232,7 +229,6 @@ class pxUtilTest : public testing::Test
     {
       rtData d;
       rtError loadImageSuccess = rtLoadFile("supportfiles/status_bg.png", d);
-      EXPECT_TRUE (loadImageSuccess == RT_OK);
       failPngCreateReadStruct = true;
       rtError ret = pxLoadPNGImage((const char*)d.data(), d.length(), mPngData);
       failPngCreateReadStruct = false;
@@ -277,7 +273,6 @@ class pxUtilTest : public testing::Test
       {
         rtData d;
         rtError loadImageSuccess = rtLoadFile("supportfiles/apngimage.png", d);
-        EXPECT_TRUE (loadImageSuccess == RT_OK);
         rtError ret = pxLoadAImage((const char*) d.data(), d.length(), mAnimatedPngData);
         EXPECT_TRUE (ret == RT_OK);
       }

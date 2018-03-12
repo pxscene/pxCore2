@@ -1,8 +1,12 @@
 'use strict';
 
 var http = require('http');
+var AccessControl = require('rcvrcore/utils/AccessControl');
 
-function HttpWrap(accessControl) {
+function HttpWrap(innerscene) {
+  // do not expose these props through 'this.'
+  var _accessControl = new AccessControl(innerscene, http.globalAgent);
+
   HttpWrap.prototype.IncomingMessage = http.IncomingMessage;
   HttpWrap.prototype.METHODS = http.METHODS;
   HttpWrap.prototype.OutgoingMessage = http.OutgoingMessage;
@@ -15,26 +19,35 @@ function HttpWrap(accessControl) {
   //HttpWrap.prototype.createServer = http.createServer;
 
   HttpWrap.prototype.request = function (options, cb) {
-    var newArgs = accessControl ? accessControl.wrapArgs(options, cb) : arguments;
-    return newArgs ? http.request.apply(this, newArgs) : null;
+    return _accessControl.wrapRequestPermissions(options, cb, function (options1, cb1) {
+      return _accessControl.wrapRequestCORS(options1, cb1, function (options2, cb2) {
+        return http.request(options2, cb2);
+      });
+    });
   };
-  /**
-   * @return {null}
-   */
+
+  // http.request == new http.ClientRequest
   HttpWrap.prototype.ClientRequest = function (options, cb) {
-    var newArgs = accessControl ? accessControl.wrapArgs(options, cb) : arguments;
-    return newArgs ? http.ClientRequest.apply(this, newArgs) : null;
+    return _accessControl.wrapRequestPermissions(options, cb, function (options1, cb1) {
+      return _accessControl.wrapRequestCORS(options1, cb1, function (options2, cb2) {
+        return http.ClientRequest(options2, cb2);
+      });
+    });
   };
+
+  // http.get == http.request (+end)
   HttpWrap.prototype.get = function (options, cb) {
-    var newArgs = accessControl ? accessControl.wrapArgs(options, cb) : arguments;
-    return newArgs ? http.get.apply(this, newArgs) : null;
+    return _accessControl.wrapRequestPermissions(options, cb, function (options1, cb1) {
+      return _accessControl.wrapRequestCORS(options1, cb1, function (options2, cb2) {
+        return http.get(options2, cb2);
+      });
+    });
   };
-  /**
-   * @return {null}
-   */
+
   HttpWrap.prototype.Agent = function (options) {
-    var newArgs = accessControl ? accessControl.wrapArgs(options) : arguments;
-    return newArgs ? http.Agent.apply(this, newArgs) : null;
+    return _accessControl.wrapRequestPermissions(options, null, function (options1) {
+      return http.Agent(options1);
+    });
   };
 
   // deprecated

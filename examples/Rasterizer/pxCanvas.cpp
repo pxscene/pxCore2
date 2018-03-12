@@ -105,8 +105,7 @@ pxCanvas::~pxCanvas()
 
 pxError pxCanvas::term()
 {
-  if(mOffscreen)
-      delete mOffscreen;
+  delete mOffscreen;
   mOffscreen = NULL;
 
   return PX_OK;

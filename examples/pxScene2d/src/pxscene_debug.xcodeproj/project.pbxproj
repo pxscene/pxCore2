@@ -7,19 +7,6 @@
 	objects = {
 
 /* Begin PBXFileReference section */
-		AE67B1691FF18EAF00521C38 /* rtWrapperUtils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = rtWrapperUtils.h; path = ../../../src/rtScriptDuk/rtWrapperUtils.h; sourceTree = "<group>"; };
-		AE67B16A1FF18EB000521C38 /* rtScriptDuk.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = rtScriptDuk.h; path = ../../../src/rtScriptDuk/rtScriptDuk.h; sourceTree = "<group>"; };
-		AE67B16B1FF18EB000521C38 /* rtJsModules.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = rtJsModules.h; path = ../../../src/rtScriptDuk/rtJsModules.h; sourceTree = "<group>"; };
-		AE67B16C1FF18EB000521C38 /* rtObjectWrapper.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = rtObjectWrapper.cpp; path = ../../../src/rtScriptDuk/rtObjectWrapper.cpp; sourceTree = "<group>"; };
-		AE67B16D1FF18EB000521C38 /* rtObjectWrapper.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = rtObjectWrapper.h; path = ../../../src/rtScriptDuk/rtObjectWrapper.h; sourceTree = "<group>"; };
-		AE67B16E1FF18EB000521C38 /* rtFunctionWrapper.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = rtFunctionWrapper.cpp; path = ../../../src/rtScriptDuk/rtFunctionWrapper.cpp; sourceTree = "<group>"; };
-		AE67B16F1FF18EB000521C38 /* node_headers.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = node_headers.h; path = ../../../src/rtScriptDuk/node_headers.h; sourceTree = "<group>"; };
-		AE67B1701FF18EB100521C38 /* rtFunctionWrapper.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = rtFunctionWrapper.h; path = ../../../src/rtScriptDuk/rtFunctionWrapper.h; sourceTree = "<group>"; };
-		AE67B1711FF18EB100521C38 /* rtJsModules.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = rtJsModules.cpp; path = ../../../src/rtScriptDuk/rtJsModules.cpp; sourceTree = "<group>"; };
-		AE67B1721FF18EB100521C38 /* rtScriptDuk.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = rtScriptDuk.cpp; path = ../../../src/rtScriptDuk/rtScriptDuk.cpp; sourceTree = "<group>"; };
-		AE67B1731FF18EB100521C38 /* rtWrapperUtils.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = rtWrapperUtils.cpp; path = ../../../src/rtScriptDuk/rtWrapperUtils.cpp; sourceTree = "<group>"; };
-		AE67B1741FFD30A800521C38 /* rtScript.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = rtScript.cpp; path = ../../../src/rtScript.cpp; sourceTree = "<group>"; };
-		AE67B1751FFD30A800521C38 /* rtScript.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = rtScript.h; path = ../../../src/rtScript.h; sourceTree = "<group>"; };
 		AE8EE04B1E8E70E100C19ED5 /* pxArchive.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = pxArchive.cpp; sourceTree = "<group>"; };
 		AE8EE04C1E8E70E100C19ED5 /* pxArchive.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = pxArchive.h; sourceTree = "<group>"; };
 		AE8EE04D1E8E70E100C19ED5 /* pxConstants.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = pxConstants.cpp; sourceTree = "<group>"; };
@@ -69,19 +56,6 @@
 		AE0663891E5DB3B900928DC5 = {
 			isa = PBXGroup;
 			children = (
-				AE67B1741FFD30A800521C38 /* rtScript.cpp */,
-				AE67B1751FFD30A800521C38 /* rtScript.h */,
-				AE67B16F1FF18EB000521C38 /* node_headers.h */,
-				AE67B16E1FF18EB000521C38 /* rtFunctionWrapper.cpp */,
-				AE67B1701FF18EB100521C38 /* rtFunctionWrapper.h */,
-				AE67B1711FF18EB100521C38 /* rtJsModules.cpp */,
-				AE67B16B1FF18EB000521C38 /* rtJsModules.h */,
-				AE67B16C1FF18EB000521C38 /* rtObjectWrapper.cpp */,
-				AE67B16D1FF18EB000521C38 /* rtObjectWrapper.h */,
-				AE67B1721FF18EB100521C38 /* rtScriptDuk.cpp */,
-				AE67B16A1FF18EB000521C38 /* rtScriptDuk.h */,
-				AE67B1731FF18EB100521C38 /* rtWrapperUtils.cpp */,
-				AE67B1691FF18EAF00521C38 /* rtWrapperUtils.h */,
 				AE8EE0731E8E78F600C19ED5 /* rtObject.cpp */,
 				AE8EE0741E8E78F600C19ED5 /* rtObject.h */,
 				AE8EE0751E8E78F600C19ED5 /* rtPromise.h */,

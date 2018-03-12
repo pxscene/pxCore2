@@ -41,11 +41,10 @@ public:
   }
 
   virtual void onInit() {mReady.send("resolve",this);}
-
-  rtError fillColor(uint32_t& c) const
+  
+  rtError fillColor(uint32_t& /*c*/) const 
   {
     // TODO
-    c = 0;
     rtLogWarn("fillColor not implemented");
     return RT_OK;
   }
@@ -59,10 +58,9 @@ public:
     return RT_OK;
   }
 
-  rtError lineColor(uint32_t& c) const
+  rtError lineColor(uint32_t& /*c*/) const 
   {
     // TODO
-    c = 0;
     rtLogWarn("lineColor not implemented");
     return RT_OK;
   }

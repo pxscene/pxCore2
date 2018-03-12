@@ -5,7 +5,7 @@ var url = require('url');
 var http = require('http');
 var FileArchive = require('rcvrcore/utils/FileArchive');
 var SceneModuleManifest = require('rcvrcore/SceneModuleManifest');
-//var loadFile = require('rcvrcore/utils/FileUtils').loadFile;
+var loadFile = require('rcvrcore/utils/FileUtils').loadFile;
 var Logger = require('rcvrcore/Logger').Logger;
 var log = new Logger('SceneModuleLoader');
 

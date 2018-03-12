@@ -44,9 +44,6 @@ class rtIObject
 
     virtual unsigned long AddRef() = 0;
     virtual unsigned long Release() = 0;
-
-    virtual rtMethodMap* getMap() const = 0;
-    
     virtual rtError Get(const char* name, rtValue* value) const = 0;
     virtual rtError Get(uint32_t i, rtValue* value) const = 0;
     virtual rtError Set(const char* name, const rtValue* value) = 0;
@@ -700,15 +697,15 @@ struct rtNamedValue
 class rtMapObject: public rtObject 
 {
 public:
-  rtDeclareObject(rtMapObject, rtObject);
-  
+
+  std::vector<rtNamedValue>::iterator find(const char* name);
+
   virtual rtError Get(const char* name, rtValue* value) const;
   virtual rtError Get(uint32_t /*i*/, rtValue* /*value*/) const;
   virtual rtError Set(const char* name, const rtValue* value);
   virtual rtError Set(uint32_t /*i*/, const rtValue* /*value*/);
 
 private:
-  std::vector<rtNamedValue>::iterator find(const char* name);
   std::vector<rtNamedValue> mProps;
 };
 
