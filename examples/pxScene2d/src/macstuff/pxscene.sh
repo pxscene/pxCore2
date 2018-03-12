@@ -22,14 +22,12 @@ echo $PXPID > ./lastpid
 # Only try to update this bundle if a version has been included
 # and if this directory is writeable (not a .dmg for example)
 if [ -e ./version ] && [ -w . ]; then
-
-echo "Info: Checking for Software Update"
-
-VERSION=`cat ./version`
-UPDATE_URL=http://www.pxscene.org/dist/osx/pxscene/software_update.plist
-
-./EngineRunner run -productid org.pxscene.pxscene -version $VERSION -url ${UPDATE_URL} &
-
+  echo "Info: Checking for Software Update"
+  VERSION=`cat ./version`
+  if [ "$VERSION" != "edge" ]; then
+    UPDATE_URL=http://www.pxscene.org/dist/osx/pxscene/software_update.plist
+    ./EngineRunner run -productid org.pxscene.pxscene -version $VERSION -url ${UPDATE_URL} &
+  fi
 else
     echo "Info: No ./version file assuming dev build.  Skip software update"
 fi
