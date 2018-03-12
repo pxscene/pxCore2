@@ -127,11 +127,9 @@ if [ "$retVal" -ne 0 ]
 fi
 
 # Check for pxobject or texture memory leaks
-#grep "pxobjectcount is \[0\]" $EXECLOGS
-grep "pxobjectcount is \[0\]" /var/tmp/pxscene.log
+grep "pxobjectcount is \[0\]" $EXECLOGS
 pxRetVal=$?
-grep "texture memory usage is \[0\]" /var/tmp/pxscene.log
-#grep "texture memory usage is \[0\]" $EXECLOGS
+grep "texture memory usage is \[0\]" $EXECLOGS
 texRetVal=$?
 
 if [[ $pxRetVal == 0 ]] && [[ $texRetVal == 0 ]] ; then
