@@ -158,7 +158,9 @@
 - (void)applicationWillTerminate:(NSNotification *)aNotification
 {
   // Insert code here to tear down your application
+    NSLog(@"   willTerminate before closeallwindows");
   pxWindowNative::closeAllWindows();
+    NSLog(@"   willTerminate after closeallwindows");
   //sleep for few seconds to detect leak
   char const* s = getenv("ENABLE_MEMLEAK_CHECK");
   if (s && (strcmp(s,"1") == 0))
