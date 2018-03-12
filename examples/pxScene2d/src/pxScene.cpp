@@ -272,7 +272,7 @@ protected:
 
   rtLogInfo("before term call .................");
   context.term();
-  script.collectGarbage();
+  //script.collectGarbage();
   rtLogInfo("term call completed ................. [%d]",gDumpMemUsage);
 
     if (gDumpMemUsage)
