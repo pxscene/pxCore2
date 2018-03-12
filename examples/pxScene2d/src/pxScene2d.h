@@ -1015,7 +1015,7 @@ public:
     return c;
   }
 
-  void dispose();
+  void dispose(bool pumpForChild=true);
   rtError url(rtString& v) const { v = mUrl; return RT_OK; }
   rtError setUrl(rtString v);
 
