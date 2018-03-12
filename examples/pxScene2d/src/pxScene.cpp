@@ -249,13 +249,14 @@ protected:
       mView->onCloseRequest();
     EXITSCENELOCK()
     // delete mView;
-
+    rtLogInfo("onCloseRequest call completed .................");
 #ifndef RUNINMAIN
     uv_close((uv_handle_t*) &asyncNewScript, NULL);
     uv_close((uv_handle_t*) &gcTrigger, NULL);
 #endif
    // pxScene.cpp:104:12: warning: deleting object of abstract class type ‘pxIView’ which has non-virtual destructor will cause undefined behaviour [-Wdelete-non-virtual-dtor]
 
+  rtLogInfo("uv_close call completed .................");
   #ifdef RUNINMAIN
      script.collectGarbage();
   #endif
@@ -269,8 +270,9 @@ protected:
     free(g_origArgv);
   #endif
 
+  rtLogInfo("before term call .................");
     context.term();
-    script.collectGarbage();
+  rtLogInfo("term call completed ................. [%d]",gDumpMemUsage);
 
     if (gDumpMemUsage)
     {
