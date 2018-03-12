@@ -31,7 +31,9 @@
 #include "pxText.h"
 
 
-#define ELLIPSIS_STR "\u2026"
+const unsigned char eStr[] = {0xE2, 0x80, 0xA6, 0x00};  // 0x00 is NULL termination.  strlen() etc expect it.
+//#define ELLIPSIS_STR '\u2026'
+#define ELLIPSIS_STR ((char *) &eStr[0])
 #define ELLIPSIS_LEN (sizeof(ELLIPSIS_STR)-1)	
 
 /**********************************************************************
