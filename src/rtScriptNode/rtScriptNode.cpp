@@ -1210,8 +1210,9 @@ rtError rtScriptNode::term()
   {
 // JRJRJR  Causing crash???  ask Hugh
 
-    rtLogWarn("\n++++++++++++++++++ DISPOSE\n\n");
-    node_isolate->Dispose();
+    printf("\n++++++++++++++++++ DISPOSE ....................... \n\n");
+    fflush(stdout);
+    //node_isolate->Dispose();
     node_isolate = NULL;
     mIsolate     = NULL;
   }
