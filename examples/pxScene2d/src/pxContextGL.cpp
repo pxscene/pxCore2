@@ -24,7 +24,7 @@
 #include "rtThreadPool.h"
 #include "rtThreadQueue.h"
 #include "rtMutex.h"
-#include "rtNode.h"
+#include "rtScript.h"
 
 #include "pxContext.h"
 #include "pxUtil.h"
@@ -62,6 +62,9 @@
 #define PX_TEXTURE_MIN_FILTER GL_LINEAR
 #define PX_TEXTURE_MAG_FILTER GL_LINEAR
 
+// Values must match pxCanvas.h // TODO FIX 
+#define  CANVAS_W   1280
+#define  CANVAS_H    720
 
 ////////////////////////////////////////////////////////////////
 //
@@ -109,8 +112,14 @@ pxContextSurfaceNativeDesc* currentContextSurface = &defaultContextSurface;
 pxContextFramebufferRef defaultFramebuffer(new pxContextFramebuffer());
 pxContextFramebufferRef currentFramebuffer = defaultFramebuffer;
 
+class pxSwTexture; //fwd
+
+typedef rtRef<pxSwTexture>    pxSwTextureRef;
+static        pxSwTextureRef  swRasterTexture; // aka "fullScreenTextureSoftware"
+
+
 #ifdef RUNINMAIN
-extern rtNode script;
+extern rtScript script;
 #else
 extern uv_async_t gcTrigger;
 #endif
@@ -118,7 +127,7 @@ extern pxContext context;
 rtThreadQueue gUIThreadQueue;
 
 enum pxCurrentGLProgram { PROGRAM_UNKNOWN = 0, PROGRAM_SOLID_SHADER,  PROGRAM_A_TEXTURE_SHADER, PROGRAM_TEXTURE_SHADER,
-    PROGRAM_TEXTURE_MASKED_SHADER};
+    PROGRAM_TEXTURE_MASKED_SHADER, PROGRAM_TEXTURE_BORDER_SHADER};
 
 pxCurrentGLProgram currentGLProgram = PROGRAM_UNKNOWN;
 
@@ -220,6 +229,20 @@ static const char *fTextureShaderText =
   "void main()"
   "{"
   "  gl_FragColor = texture2D(s_texture, v_uv) * u_alpha;"
+  "}";
+
+// assume premultiplied
+static const char *fTextureBorderShaderText =
+  "#ifdef GL_ES \n"
+  "  precision mediump float; \n"
+  "#endif \n"
+  "uniform sampler2D s_texture;"
+  "uniform float u_alpha;"
+  "uniform vec4 u_color;"
+  "varying vec2 v_uv;"
+  "void main()"
+  "{"
+  "  gl_FragColor = texture2D(s_texture, vec2(v_uv.s, 1.0 - v_uv.t)) * u_alpha * u_color;"
   "}";
 
 // assume premultiplied
@@ -916,11 +939,11 @@ public:
     {
       mWidth  = w;
       mHeight = h;
-      
+
       mOffscreen.init(w,h);
       
       mOffscreen.setUpsideDown(true);
-      
+
       mInitialized = true;
     }
   }
@@ -929,17 +952,17 @@ public:
   {
     mOffscreen.fill(r, pxClear);
   }
-  
+
   void clear()
   {
     mOffscreen.fill(pxClear);
   }
-  
+
   pxOffscreen* offscreen()
   {
     return &mOffscreen;
   }
-  
+
   pxError copy(int src_x, int src_y, int dst_x, int dst_y, float w, float h, pxOffscreen &o)
   {
     // COPY / BLIT from 'o' ... to 'mOffscreen'
@@ -949,7 +972,7 @@ public:
 #ifdef PX_PLATFORM_MAC
     
     extern void *makeNSImage(void *rgba_buffer, int w, int h, int depth);
-    
+
     // HACK
     // HACK
     // HACK
@@ -966,7 +989,7 @@ public:
     // HACK
 #endif
 #endif
-    
+
     if (mTextureName != 0)
     {
       glBindTexture(GL_TEXTURE_2D, mTextureName);   TRACK_TEX_CALLS();
@@ -981,7 +1004,7 @@ public:
 //      glTexSubImage2D(GL_TEXTURE_2D, 0, dst_x, dst_y, w, h, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid *) ( (char *) mOffscreen.base() + off));
       
       
-      glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 1280,720, GL_RGBA, GL_UNSIGNED_BYTE, mOffscreen.base());
+      glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, CANVAS_W, CANVAS_H, GL_RGBA, GL_UNSIGNED_BYTE, mOffscreen.base());
       
 #ifndef PX_PLATFORM_WAYLAND_EGL
       //glPixelStorei(GL_UNPACK_ROW_LENGTH,0); //default
@@ -1015,7 +1038,7 @@ public:
   virtual pxError bindGLTexture(int tLoc)
   {
     glActiveTexture(GL_TEXTURE1);
-    
+
     if (!mRasterTextureCreated)
     {
       if (!context.isTextureSpaceAvailable(this))
@@ -1035,23 +1058,21 @@ public:
           return PX_NOTINITIALIZED;
         }
       }
-      
+
       glGenTextures(1, &mTextureName);
       glBindTexture(GL_TEXTURE_2D, mTextureName);   TRACK_TEX_CALLS();
-      
+
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, PX_TEXTURE_MIN_FILTER);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, PX_TEXTURE_MAG_FILTER);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-      
+
       glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
       glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, mWidth, mHeight, 0, GL_RGBA,
                    GL_UNSIGNED_BYTE, mOffscreen.base());
-      
+
       context.adjustCurrentTextureMemorySize(mWidth * mHeight * 4); // USE
       mRasterTextureCreated = true;
-      
-      printf("\n SW TEXTURE >>  glGetError() = %d   >>  mWidth: %d   mHeight: %d\n", glGetError(), mWidth, mHeight);
     }
     else
     {
@@ -1067,7 +1088,7 @@ public:
 private:
   int mWidth;
   int mHeight;
-  
+
   pxOffscreen mOffscreen;
   GLuint mTextureName;
   bool mRasterTextureCreated;
@@ -1631,6 +1652,88 @@ private:
 
 textureShaderProgram *gTextureShader = NULL;
 
+class textureBorderShaderProgram: public shaderProgram
+{
+protected:
+  virtual void prelink()
+  {
+    mPosLoc = 0;
+    mUVLoc = 1;
+    glBindAttribLocation(mProgram, mPosLoc, "pos");
+    glBindAttribLocation(mProgram, mUVLoc, "uv");
+  }
+
+  virtual void postlink()
+  {
+    mResolutionLoc = getUniformLocation("u_resolution");
+    mMatrixLoc = getUniformLocation("amymatrix");
+    mAlphaLoc = getUniformLocation("u_alpha");
+    mColorLoc = getUniformLocation("u_color");
+    mTextureLoc = getUniformLocation("s_texture");
+  }
+
+public:
+  pxError draw(int resW, int resH, float* matrix, float alpha,
+               int count,
+               const void* pos, const void* uv,
+               pxTextureRef texture,
+               int32_t stretchX, int32_t stretchY, const float* color = NULL)
+  {
+    if (currentGLProgram != PROGRAM_TEXTURE_BORDER_SHADER)
+    {
+      use();
+      currentGLProgram = PROGRAM_TEXTURE_BORDER_SHADER;
+    }
+    glUniform2f(mResolutionLoc, resW, resH);
+    glUniformMatrix4fv(mMatrixLoc, 1, GL_FALSE, matrix);
+    glUniform1f(mAlphaLoc, alpha);
+    if (color != NULL)
+    {
+      glUniform4fv(mColorLoc, 1, color);
+    }
+    else
+    {
+      static float defaultColor[4] = {1.0, 1.0, 1.0, 1.0};
+      glUniform4fv(mColorLoc, 1, defaultColor);
+    }
+
+    if (texture->bindGLTexture(mTextureLoc) != PX_OK)
+    {
+      return PX_FAIL;
+    }
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,
+                    (stretchX==pxConstantsStretch::REPEAT)?GL_REPEAT:GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,
+                    (stretchY==pxConstantsStretch::REPEAT)?GL_REPEAT:GL_CLAMP_TO_EDGE);
+
+    glVertexAttribPointer(mPosLoc, 2, GL_FLOAT, GL_FALSE, 0, pos);
+    glVertexAttribPointer(mUVLoc, 2, GL_FLOAT, GL_FALSE, 0, uv);
+    glEnableVertexAttribArray(mPosLoc);
+    glEnableVertexAttribArray(mUVLoc);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, count);  TRACK_DRAW_CALLS();
+    glDisableVertexAttribArray(mPosLoc);
+    glDisableVertexAttribArray(mUVLoc);
+
+    return PX_OK;
+  }
+
+private:
+  GLint mResolutionLoc;
+  GLint mMatrixLoc;
+
+  GLint mPosLoc;
+  GLint mUVLoc;
+
+  GLint mAlphaLoc;
+  GLint mColorLoc;
+
+  GLint mTextureLoc;
+
+}; //CLASS - textureBorderShaderProgram
+
+textureBorderShaderProgram *gTextureBorderShader = NULL;
+
 //====================================================================================================================================================================================
 
 class textureMaskedShaderProgram: public shaderProgram
@@ -1976,6 +2079,7 @@ static void drawImage92(GLfloat x, GLfloat y, GLfloat w, GLfloat h, GLfloat x1, 
 static void drawImage9Border2(GLfloat x, GLfloat y, GLfloat w, GLfloat h, 
                        GLfloat borderX1, GLfloat borderY1, GLfloat borderX2, GLfloat borderY2,
                        GLfloat insetX1, GLfloat insetY1, GLfloat insetX2, GLfloat insetY2,
+                       bool drawCenter, float* color,
                        pxTextureRef texture)
 {
   // args are tested at call site...
@@ -2023,59 +2127,80 @@ static void drawImage9Border2(GLfloat x, GLfloat y, GLfloat w, GLfloat h,
 
 #endif
 
-  const GLfloat verts[22][2] =
-  {
-    { ox1,oy1 },
-    { ix1,oy1 },
-    { ox1,iy1 },
-    { ix1,iy1 },
-    { ox1,iy2 },
-    { ix1,iy2 },
-    { ox1,oy2 },
-    { ix1,oy2 },
-    { ix2,oy2 },
-    { ix1,iy2 },
-    { ix2,iy2 },
-    { ix1,iy1 },
-    { ix2,iy1 },
-    { ix1,oy1 },
-    { ix2,oy1 },
-    { ox2,oy1 },
-    { ix2,iy1 },
-    { ox2,iy1 },
-    { ix2,iy2 },
-    { ox2,iy2 },
-    { ix2,oy2 },
-    { ox2,oy2 }
-  };
+  const GLfloat verts[28][2] =
+      {
+          // border
+          { ox1,oy2 },
+          { ix1,oy2 },
+          { ox1,iy2 },
+          { ix1,iy2 },
+          { ox1,iy1 },
+          { ix1,iy1 },
+          { ox1,oy1 },
+          { ix1,oy1 },
+          { ix1,oy1 },
+          { ix1,iy1 },
+          { ix2,oy1 },
+          { ix2,iy1 },
+          { ox2,oy1 },
+          { ox2,iy1 },
+          { ox2,iy1 },
+          { ix2,iy1 },
+          { ox2,iy2 },
+          { ix2,iy2 },
+          { ox2,oy2 },
+          { ix2,oy2 },
+          { ix2,oy2 },
+          { ix2,iy2 },
+          { ix1,oy2 },
+          { ix1,iy2 },
 
-  const GLfloat uv[22][2] =
-  {
-    { ou1,ov1 },
-    { iu1,ov1 },
-    { ou1,iv1 },
-    { iu1,iv1 },
-    { ou1,iv2 },
-    { iu1,iv2 },
-    { ou1,ov2 },
-    { iu1,ov2 },
-    { iu2,ov2 },
-    { iu1,iv2 },
-    { iu2,iv2 },
-    { iu1,iv1 },
-    { iu2,iv1 },
-    { iu1,ov1 },
-    { iu2,ov1 },
-    { ou2,ov1 },
-    { iu2,iv1 },
-    { ou2,iv1 },
-    { iu2,iv2 },
-    { ou2,iv2 },
-    { iu2,ov2 },
-    { ou2,ov2 }
-  };
+          // center
+          { ix1,iy2 },
+          { ix2,iy2 },
+          { ix1,iy1 },
+          { ix2,iy1 },
+      };
 
-  gTextureShader->draw(gResW,gResH,gMatrix.data(),gAlpha,22,verts,uv,texture,pxConstantsStretch::NONE,pxConstantsStretch::NONE);
+  const GLfloat uv[28][2] =
+      {
+          // border
+          { ou1,ov1 },
+          { iu1,ov1 },
+          { ou1,iv1 },
+          { iu1,iv1 },
+          { ou1,iv2 },
+          { iu1,iv2 },
+          { ou1,ov2 },
+          { iu1,ov2 },
+          { iu1,ov2 },
+          { iu1,iv2 },
+          { iu2,ov2 },
+          { iu2,iv2 },
+          { ou2,ov2 },
+          { ou2,iv2 },
+          { ou2,iv2 },
+          { iu2,iv2 },
+          { ou2,iv1 },
+          { iu2,iv1 },
+          { ou2,ov1 },
+          { iu2,ov1 },
+          { iu2,ov1 },
+          { iu2,iv1 },
+          { iu1,ov1 },
+          { iu1,iv1 },
+
+          // center
+          { iu1,iv1 },
+          { iu2,iv1 },
+          { iu1,iv2 },
+          { iu2,iv2 },
+      };
+
+  float colorPM[4];
+  premultiply(colorPM,color);
+
+  gTextureBorderShader->draw(gResW,gResH,gMatrix.data(),gAlpha,drawCenter? 28 : 24,verts,uv,texture,pxConstantsStretch::NONE,pxConstantsStretch::NONE, colorPM);
 }
 
 bool gContextInit = false;
@@ -2098,6 +2223,12 @@ pxContext::~pxContext()
   {
     delete gTextureShader;
     gTextureShader = NULL;
+  }
+
+  if (gTextureBorderShader)
+  {
+    delete gTextureBorderShader;
+    gTextureBorderShader = NULL;
   }
 
   if (gTextureMaskedShader)
@@ -2136,6 +2267,12 @@ void pxContext::init()
     gTextureShader = NULL;
   }
 
+  if (gTextureBorderShader)
+  {
+    delete gTextureBorderShader;
+    gTextureBorderShader = NULL;
+  }
+
   if (gTextureMaskedShader)
   {
     delete gTextureMaskedShader;
@@ -2150,6 +2287,9 @@ void pxContext::init()
 
   gTextureShader = new textureShaderProgram();
   gTextureShader->init(vShaderText,fTextureShaderText);
+
+  gTextureBorderShader = new textureBorderShaderProgram();
+  gTextureBorderShader->init(vShaderText,fTextureBorderShaderText);
 
   gTextureMaskedShader = new textureMaskedShaderProgram();
   gTextureMaskedShader->init(vShaderText,fTextureMaskedShaderText);
@@ -2173,6 +2313,11 @@ void pxContext::init()
 #endif //PX_PLATFORM_GENERIC_EGL || PX_PLATFORM_WAYLAND_EGL
 
   std::srand(unsigned (std::time(0)));
+}
+
+void pxContext::term()  // clean up statics 
+{
+  swRasterTexture = NULL;
 }
 
 void pxContext::setSize(int w, int h)
@@ -2212,16 +2357,34 @@ void pxContext::clear(int /*w*/, int /*h*/, float *fillColor )
   currentFramebuffer->enableDirtyRectangles(false);
 }
 
-void pxContext::clear(int left, int top, int right, int bottom)
+void pxContext::clear(int left, int top, int width, int height)
 {
-  glEnable(GL_SCISSOR_TEST); //todo - not set each frame
+  if (left < 0)
+  {
+    left = 0;
+  }
+  if (top < 0)
+  {
+    top = 0;
+  }
+  if ((left+width) > gResW)
+  {
+    width = gResW - left;
+  }
+  if ((top+height) > gResH)
+  {
+    height = gResH - top;
+  }
+  int clearTop = gResH-top-height;
 
-  currentFramebuffer->setDirtyRectangle(left, gResH-top-bottom, right, bottom);
+  glEnable(GL_SCISSOR_TEST);
+
+  currentFramebuffer->setDirtyRectangle(left, clearTop, width, height);
   currentFramebuffer->enableDirtyRectangles(true);
 
   //map form screen to window coordinates
-  glScissor(left, gResH-top-bottom, right, bottom);
-  //glClear(GL_COLOR_BUFFER_BIT);
+  glScissor(left, clearTop, width, height);
+  glClear(GL_COLOR_BUFFER_BIT);
 }
 
 void pxContext::enableClipping(bool enable)
@@ -2430,6 +2593,7 @@ void pxContext::drawImage9(float w, float h, float x1, float y1,
 void pxContext::drawImage9Border(float w, float h, 
                   float bx1, float by1, float bx2, float by2,
                   float ix1, float iy1, float ix2, float iy2,
+                  bool drawCenter, float* color,
                   pxTextureRef texture)
 {
   // TRANSPARENT / DIMENSIONLESS
@@ -2446,7 +2610,7 @@ void pxContext::drawImage9Border(float w, float h,
 
   texture->setLastRenderTick(gRenderTick);
 
-  drawImage9Border2(0, 0, w, h, bx1, by1, bx2, by2, ix1, iy1, ix2, iy2, texture);
+  drawImage9Border2(0, 0, w, h, bx1, by1, bx2, by2, ix1, iy1, ix2, iy2, drawCenter, color, texture);
 }
 
 void pxContext::drawImage(float x, float y, float w, float h,
@@ -2496,9 +2660,6 @@ void pxContext::drawImage(float x, float y, float w, float h,
                   color? color : black, stretchX, stretchY);
 }
 
-typedef rtRef<pxSwTexture>    pxSwTextureRef;
-static        pxSwTextureRef  swRasterTexture; // aka "fullScreenTextureSoftware"
-
 void pxContext::drawOffscreen(float src_x, float src_y,
                               float dst_x, float dst_y,
                               float w,     float h,
@@ -2513,9 +2674,11 @@ void pxContext::drawOffscreen(float src_x, float src_y,
   // BACKING
   if (swRasterTexture.getPtr() == NULL)
   {
+    rtLogInfo("CREATE ... pxContext::drawOffscreen() - CREATE 'swRasterTexture' (lazy) \n");
+
     // Lazy init...
     swRasterTexture = pxSwTextureRef(new pxSwTexture());
-    swRasterTexture->init(1280, 720); // HACK - hard coded for now.
+    swRasterTexture->init(CANVAS_W, CANVAS_H); // HACK - hard coded for now.
   }
   
   // COPY from CANVAS (offscreen) to RASTER
@@ -2527,7 +2690,7 @@ void pxContext::drawOffscreen(float src_x, float src_y,
 
   pxTextureRef texture( (pxTexture *) swRasterTexture.getPtr());
   
-  drawImage(/*dst_x, dst_y*/0,0, 1280, 720, texture, nullMask, true, clear,
+  drawImage(/*dst_x, dst_y*/0,0, CANVAS_W, CANVAS_H, texture, nullMask, true, clear,
             pxConstantsStretch::NONE, pxConstantsStretch::NONE);
   
 //  drawImage(dst_x, dst_y, w, h, texture, nullMask, true, clear,
@@ -2560,7 +2723,7 @@ void pxContext::drawOffscreen(float src_x, float src_y,
   
   ///// CRAWL approach only
 //  pxRect rect(src_x, src_y, src_x + w, src_y + h);
-  pxRect rect(0,0,1280,720);
+  pxRect rect(0,0,CANVAS_W,CANVAS_H);
   
   swRasterTexture->clear(rect);
   offscreen.fill(pxClear);
@@ -2759,7 +2922,7 @@ void pxContext::adjustCurrentTextureMemorySize(int64_t changeInBytes)
   {
     rtLogDebug("the texture size is too large: %" PRId64 ".  doing a garbage collect!!!\n", mCurrentTextureMemorySizeInBytes);
 #ifdef RUNINMAIN
-	script.garbageCollect();
+	script.collectGarbage();
 #else
   uv_async_send(&gcTrigger);
 #endif

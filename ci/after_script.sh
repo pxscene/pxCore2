@@ -4,12 +4,12 @@ checkError()
 {
   if [ "$1" -ne 0 ]
   then
-    echo "*********************************************************************";
-    echo "*********************SCRIPT FAIL DETAILS*****************************";
-    echo "CI failure reason: $2"
-    echo "Cause: $3"
-    echo "Reproduction/How to fix: $4"
-    echo "*********************************************************************";
+    printf "\n\n*********************************************************************";
+    printf "\n********************* SCRIPT FAIL DETAILS *****************************";
+    printf "\nCI failure reason: $2"
+    printf "\nCause: $3"
+    printf "\nReproduction/How to fix: $4"
+    printf "\n*********************************************************************\n\n";
     exit 1
   fi
 }
@@ -42,8 +42,11 @@ then
   checkError $? "unable to move artifacts folder to release directory" "artifacts directory created" "Retry"
   tar -cvzf release.tgz release/*
   checkError $? "unable to compress release folder" "release folder present?" "Retry"
-  ./ci/release_osx.sh 96.116.56.119 release.tgz 
-  checkError $? "unable to send artifacts to 96.116.56.119" "96.116.56.119 down?" "Retry"
+  if [ "$TRAVIS_REPO_SLUG" = "pxscene/pxCore" ] && [ "$TRAVIS_BRANCH" = "master" ] ;
+  then
+    ./ci/release_osx.sh 96.116.56.119 release.tgz 
+    checkError $? "unable to send artifacts to 96.116.56.119" "96.116.56.119 down?" "Retry"
+  fi
 fi
 
 if [ "$TRAVIS_EVENT_TYPE" = "push" ] || [ "$TRAVIS_EVENT_TYPE" = "pull_request" ] ;

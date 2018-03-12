@@ -1,30 +1,27 @@
 cmake_minimum_required(VERSION 2.8)
 project(pxscene)
+find_package(PkgConfig)
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
-
 set(PXCOREDIR ${CMAKE_CURRENT_SOURCE_DIR}/../../..)
 set(EXTDIR "${CMAKE_CURRENT_SOURCE_DIR}/../external")
-set(NODEDIR "${EXTDIR}/libnode-v6.9.0/")
-set(NODEINC "${NODEDIR}/src ${NODEDIR}/deps/uv/include ${NODEDIR}/deps/v8 ${NODEDIR}/deps/debugger-agent/include ${NODEDIR}/deps/v8/include ${NODEDIR}/deps/cares/include")
-set(ZLIBINC "${EXTDIR}/zlib-1.2.8/")
-set(CURLINC "${EXTDIR}/curl-7.40.0/include")
-set(JPGINC "${EXTDIR}/jpeg-9a")
-set(JPGTURBOINC "${EXTDIR}/libjpeg-turbo")
-set(PNGINC "${EXTDIR}/libpng-1.6.28")
-set(FREETYPEINC "${EXTDIR}/freetype-2.5.2/include")
+include(${PXCOREDIR}/cmake/CommOpts.cmake)
+include(${PXCOREDIR}/cmake/CommDeps.cmake)
+include(${PXCOREDIR}/cmake/NodeDeps.cmake)
+include(${PXCOREDIR}/cmake/DukeDeps.cmake)
+include(${PXCOREDIR}/cmake/SManDeps.cmake)
+
 set(WESTEROSINC ${EXTDIR}/westeros/external/install/include)
 set(WESTEROSSTUBINC ${EXTDIR}/westeros-stub)
-set(JPEGTURBOINC ${EXTDIR}/libjpeg-turbo)
+
 set(BREAKPADINC ${EXTDIR}/breakpad/src)
 set(RTREMOTEINC ${PXCOREDIR}/remote)
-set(GLEWINC ${EXTDIR}/glew-2.0.0/include)
+
 set(WINSPARKLEINC ${EXTDIR}/WinSparkle/include)
-set(PTHREADINC ${EXTDIR}/pthread-2.9/)
 
 set(PX_LIBRARY_SUPPORT 1)
 set(PXWAYLAND_LIBRARY_SUPPORT 0)
@@ -45,13 +42,16 @@ option(BUILD_PXSCENE_SHARED_LIB "BUILD_PXSCENE_SHARED_LIB" OFF)
 option(BUILD_PXSCENE_STATIC_LIB "BUILD_PXSCENE_STATIC_LIB" OFF)
 option(BUILD_PXWAYLAND_SHARED_LIB "BUILD_PXWAYLAND_SHARED_LIB" OFF)
 option(BUILD_PXWAYLAND_STATIC_LIB "BUILD_PXWAYLAND_STATIC_LIB" ON)
+option(BUILD_OPTIMUS_STATIC_LIB "BUILD_OPTIMUS_STATIC_LIB" OFF)
 option(BUILD_PXSCENE_WITH_NEXUS_SUPPORT "BUILD_PXSCENE_WITH_NEXUS_SUPPORT" OFF)
 option(BUILD_DEBUG_METRICS "BUILD_DEBUG_METRICS" OFF)
 option(BUILD_WITH_STATIC_NODE "BUILD_WITH_STATIC_NODE" OFF)
 option(BUILD_PXSCENE_APP_WITH_PXSCENE_LIB "BUILD_PXSCENE_APP_WITH_PXSCENE_LIB" OFF)
-option(BUILD_PXSCENE_RASTERIZER_PATH "BUILD_PXSCENE_RASTERIZER_PATH" OFF)
+option(BUILD_PXSCENE_RASTERIZER_PATH "BUILD_PXSCENE_RASTERIZER_PATH" ON)
 option(PXSCENE_ACCESS_CONTROL_CHECK "PXSCENE_ACCESS_CONTROL_CHECK" ON)
 option(PXSCENE_PERMISSIONS_CHECK "PXSCENE_PERMISSIONS_CHECK" ON)
+option(PXSCENE_DIRTY_RECTANGLES "PXSCENE_DIRTY_RECTANGLES" OFF)
+
 if(WIN32)
     option(PXSCENE_COMPILE_WARNINGS_AS_ERRORS "PXSCENE_COMPILE_WARNINGS_AS_ERRORS" OFF)
 elseif (APPLE)
@@ -73,17 +73,12 @@ if (APPLE)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -fpermissive -g -Wall -Wno-attributes -Wall -Wextra")
     set(PXSCENE_LINK_DIRECTORIES ${PXCORE_LIB_LOCATION})
     set(PXSCENE_DEFINITIONS ${PXSCENE_DEFINITIONS} ENABLE_NODE_V_6_9 _DARWIN_USE_64_BIT_INODE=1 NODE_ARCH="x64" NODE_WANT_INTERNALS=1 V8_DEPRECATION_WARNINGS= NODE_SHARED_MODE NODE_USE_V8_PLATFORM=1 NODE_HAVE_I18N_SUPPORT=1 NODE_HAVE_SMALL_ICU=1 HAVE_INSPECTOR=1 V8_INSPECTOR_USE_STL=1 V8_INSPECTOR_USE_OLD_STL=1 HAVE_OPENSSL=1 HAVE_DTRACE=1 __POSIX__ NODE_PLATFORM=darwin DUCONFIG_NO_TRANSLITERATION=1 UCONFIG_NO_SERVICE=1 UCONFIG_NO_REGULAR_EXPRESSIONS=1 U_ENABLE_DYLOAD=0 U_STATIC_IMPLEMENTATION=1 U_HAVE_STD_STRING=0 UCONFIG_NO_BREAK_ITERATION=0 UCONFIG_NO_LEGACY_CONVERSION=1 UCONFIG_NO_CONVERSION=1 HTTP_PARSER_STRICT=0 _LARGEFILE_SOURCE _FILE_OFFSET_BITS=64)
-    set(PXSCENE_DEFINITIONS ${PXSCENE_DEFINITIONS} ENABLE_DEBUG_MODE PNG_APNG_SUPPORTED)
     set(PLATFORM_SOURCES mac/pxContextUtils.mm)
     set(PXSCENE_LINKER_OPTIONS "-framework OpenGL -framework Cocoa -framework Foundation")
     set(PXSCENE_LINK_LIBRARIES)
-    set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${EXTDIR}/png/.libs)
-    set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${EXTDIR}/jpg/.libs)
-    set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${EXTDIR}/ft/objs/.libs)
-    set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${EXTDIR}/curl/lib/.libs)
-    set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${EXTDIR}/zlib)
-    set(PLATFORM_LIBRARIES node pxCore rtCore_s pthread v8_libplatform png16 jpeg freetype curl z)
-    include_directories(AFTER ${ZLIBINC} ${CURLINC} ${JPGINC} ${JPGTURBOINC} ${PNGINC} ${FREETYPEINC})
+    set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${NODE_LIBRARY_DIRS} ${DUKE_LIBRARY_DIRS} ${COMM_DEPS_LIBRARY_DIRS})
+    set(PLATFORM_LIBRARIES pxCore rtCore_s pthread ${NODE_LIBRARIES} ${DUKE_LIBRARIES} ${COMM_DEPS_LIBRARIES})
+    include_directories(AFTER ${NODE_INCLUDE_DIRS} ${DUKE_INCLUDE_DIRS} ${COMM_DEPS_INCLUDE_DIRS})
     if (DEFINED ENV{CODE_COVERAGE})
         message("enabling code coverage support")
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-arcs -ftest-coverage -fno-inline")
@@ -95,8 +90,6 @@ if (APPLE)
         set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/${LLVM_VERSION}/lib/darwin)
         set(PXSCENE_LINK_LIBRARIES ${PXSCENE_LINK_LIBRARIES} clang_rt.profile_osx)
     endif ()
-    add_custom_target(pxsceneDone ALL DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/pxscene)
-    add_custom_command(TARGET pxsceneDone COMMENT "making app bundle" POST_BUILD COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/mkapp.sh WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
     #set(PX_LIBRARY_SUPPORT 0)
 elseif (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC -fpermissive -g -Wall -Wno-attributes -Wall -Wextra")
@@ -104,76 +97,79 @@ elseif (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
     execute_process(COMMAND "hostname" OUTPUT_VARIABLE HOSTNAME)
     string(STRIP ${HOSTNAME} HOSTNAME)
     set(PXSCENE_DEFINITIONS ${PXSCENE_DEFINITIONS} RT_PLATFORM_LINUX)
+
+    add_definitions(${COMM_DEPS_DEFINITIONS})
+
+    include_directories(AFTER
+               ${NODE_INCLUDE_DIRS}
+               ${DUKE_INCLUDE_DIRS}
+          ${COMM_DEPS_INCLUDE_DIRS}
+    )
+
+    set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES}
+               ${NODE_LIBRARY_DIRS}
+               ${DUKE_LIBRARY_DIRS}
+          ${COMM_DEPS_LIBRARY_DIRS}
+       )
+    set(PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES}
+                  ${NODE_LIBRARIES}
+                  ${DUKE_LIBRARIES}
+             ${COMM_DEPS_LIBRARIES}
+             pthread rt dl m)
+
+    set(PXSCENE_APP_LIBRARIES ${PXSCENE_APP_LIBRARIES} pxCore rtCore_s)
+
     if (HOSTNAME STREQUAL "raspberrypi")
         message("building pxscene for raspberrypi")
         set(PX_PLATFORM PX_PLATFORM_GENERIC_EGL)
         set(PXCORE_LIB_LOCATION ${PXCOREDIR}/build/egl)
-        set(PXSCENE_LINK_DIRECTORIES ${PXCORE_LIB_LOCATION})
+        set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${PXCORE_LIB_LOCATION})
         set(PLATFORM_SOURCES egl/pxContextUtils.cpp)
         set(PXSCENE_DEFINITIONS ${PXSCENE_DEFINITIONS} PXSCENE_DISABLE_PXCONTEXT_EXT)
-        set(PXSCENE_DEFINITIONS ${PXSCENE_DEFINITIONS} ENABLE_DEBUG_MODE PNG_APNG_SUPPORTED)
         include_directories(AFTER /opt/vc/include /opt/vc/include/interface/vcos/pthreads
                 /opt/vc/include/interface/vmcs_host/linux /opt/vc/include)
-        include_directories(AFTER ${ZLIBINC} ${CURLINC} ${JPGINC} ${JPGTURBOINC} ${PNGINC} ${FREETYPEINC})
         set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} /opt/vc/lib/)
-        set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${EXTDIR}/png/.libs)
-        set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${EXTDIR}/jpg/.libs)
-        set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${EXTDIR}/ft/objs/.libs)
-        set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${EXTDIR}/curl/lib/.libs)
-        set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${EXTDIR}/zlib)
-        set(PLATFORM_LIBRARIES bcm_host EGL GLESv2 dl rt png16 node pxCore rtCore_s pthread v8_libplatform jpeg freetype curl z)
+        set(PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} bcm_host)
     elseif (BUILD_WITH_WINDOWLESS_EGL OR BUILD_PXSCENE_WAYLAND_EGL OR BUILD_PXSCENE_ESSOS)
         if (BUILD_WITH_WINDOWLESS_EGL)
             message("Building pxscene for windowless EGL")
             set(PX_PLATFORM PX_PLATFORM_GENERIC_EGL)
-            set(PXSCENE_ADDITIONAL_RESOURCES ${PXSCENE_ADDITIONAL_RESOURCES} ${PXCOREDIR}/src/gles/pxWindowNative.cpp 
+            set(PXSCENE_ADDITIONAL_RESOURCES ${PXSCENE_ADDITIONAL_RESOURCES} ${PXCOREDIR}/src/gles/pxWindowNative.cpp
                   ${PXCOREDIR}/src/gles/LinuxInputEventDispatcher.cpp)
         elseif (BUILD_PXSCENE_ESSOS)
             message("Building pxscene with essos windows")
             set(PX_PLATFORM PX_PLATFORM_WAYLAND_EGL)
-            set(PXSCENE_APP_LIBRARIES essos wayland-egl wayland-client EGL GLESv2)
+            set(PXSCENE_APP_LIBRARIES ${PXSCENE_APP_LIBRARIES} essos)
         elseif (BUILD_PXSCENE_WAYLAND_EGL)
             message("Building pxscene with wayland windows")
             set(PX_PLATFORM PX_PLATFORM_WAYLAND_EGL)
-            set(PXSCENE_APP_LIBRARIES wayland-egl wayland-client)
+            set(PXSCENE_APP_LIBRARIES ${PXSCENE_APP_LIBRARIES} ${WAYLAND_EGL_LIBRARIES} ${WAYLAND_CLIENT_LIBRARIES})
+            set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${WAYLAND_EGL_LIBRARY_DIRS} ${WAYLAND_CLIENT_LIBRARY_DIRS})
         endif(BUILD_WITH_WINDOWLESS_EGL)
+
         set(PXCORE_LIB_LOCATION ${PXCOREDIR}/build/egl)
-        set(PXSCENE_LINK_DIRECTORIES ${PXCORE_LIB_LOCATION} ${PXCOREDIR}/remote ${NODEDIR}/out/Release/obj.target ${CMAKE_CURRENT_SOURCE_DIR} )
+        set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${PXCORE_LIB_LOCATION} ${PXCOREDIR}/remote ${CMAKE_CURRENT_SOURCE_DIR})
         set(PLATFORM_SOURCES egl/pxContextUtils.cpp)
+
         if (BUILD_PXSCENE_WITH_NEXUS_SUPPORT)
             set(PXSCENE_APP_LIBRARIES ${PXSCENE_APP_LIBRARIES} nxpl)
-            set(PLATFORM_LIBRARIES nexus nxclient)
+            set(PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} nexus nxclient)
             set(PXSCENE_ADDITIONAL_RESOURCES ${PXSCENE_ADDITIONAL_RESOURCES} ${PXCOREDIR}/src/gles/pxEGLProviderNexus.cpp)
         endif(BUILD_PXSCENE_WITH_NEXUS_SUPPORT)
-        set(PXSCENE_APP_LIBRARIES ${PXSCENE_APP_LIBRARIES} pxCore rtCore_s)
-        if (BUILD_WITH_STATIC_NODE)
-            set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${NODEDIR}/out/Release/obj.target/deps/v8_inspector/third_party/v8_inspector/platform/v8_inspector)
-            set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${NODEDIR}/out/Release/obj.target/deps/http_parser )
-            set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${NODEDIR}/out/Release/obj.target/deps/uv )
-            set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${NODEDIR}/out/Release/obj.target/deps/v8_inspector/third_party/v8_inspector/platform/v8_inspector )
-            set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${NODEDIR}/out/Release/obj.target/deps/cares )
-            set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${NODEDIR}/out/Release/obj.target/deps/gtest )
-            set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${NODEDIR}/out/Release/obj.target/deps/zlib )
-           # libnode.a libv8_base.a libcares-libnode.a libhttp_parser.a libuv.a libv8_base.a libv8_libbase.a libv8_nosnapshot.a libv8_libplatform.a libv8_inspector_stl.a
-            
-            set(PXSCENE_APP_LIBRARIES ${PXSCENE_APP_LIBRARIES} node v8_base cares http_parser uv v8_base v8_libbase v8_nosnapshot v8_libplatform v8_inspector_stl gtest zlib )
-        else()
-            set(PXSCENE_APP_LIBRARIES ${PXSCENE_APP_LIBRARIES} node v8_libplatform )
-        endif(BUILD_WITH_STATIC_NODE)
-        set(PXSCENE_APP_LIBRARIES ${PXSCENE_APP_LIBRARIES} pthread freetype rtRemote )
-        if (NOT BUILD_PXSCENE_ESSOS)
-          set(PXSCENE_APP_LIBRARIES ${PXSCENE_APP_LIBRARIES} EGL GLESv2)
-        endif(NOT BUILD_PXSCENE_ESSOS)
-        set(PXSCENE_APP_LIBRARIES ${PXSCENE_APP_LIBRARIES} dl rt png16 jpeg freetype curl z ssl crypto)
+
+        set(PXSCENE_ADDITIONAL_APP_INCLUDES_LIST $ENV{PXSCENE_ADDITIONAL_APP_INCLUDES})
+        separate_arguments(PXSCENE_ADDITIONAL_APP_INCLUDES_LIST)
+        include_directories(AFTER ${PXSCENE_ADDITIONAL_APP_INCLUDES_LIST})
         set(PXSCENE_ADDITIONAL_APP_LIBRARIES_LIST $ENV{PXSCENE_ADDITIONAL_APP_LIBRARIES})
         separate_arguments(PXSCENE_ADDITIONAL_APP_LIBRARIES_LIST)
-        set(PXSCENE_APP_LIBRARIES ${PXSCENE_APP_LIBRARIES} ${PXSCENE_ADDITIONAL_APP_LIBRARIES_LIST} )
+        set(PXSCENE_APP_LIBRARIES ${PXSCENE_APP_LIBRARIES} ${PXSCENE_ADDITIONAL_APP_LIBRARIES_LIST})
+
         if (BUILD_WITH_SERVICE_MANAGER)
-            set(PXSCENE_APP_LIBRARIES ${PXSCENE_APP_LIBRARIES}  servicemanager)
+          include_directories(AFTER                                ${SMAN_DEPS_INCLUDE_DIRS})
+          set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${SMAN_DEPS_LIBRARY_DIRS})
+          set(PXSCENE_APP_LIBRARIES ${PXSCENE_APP_LIBRARIES} rtRemote ${SMAN_DEPS_LIBRARIES})
         endif (BUILD_WITH_SERVICE_MANAGER)
-        set(PXCORE_STAGING_LIST $ENV{PXCORE_STAGING})
-        separate_arguments(PXCORE_STAGING_LIST)
-        include_directories(AFTER ${PXCORE_STAGING_LIST})
+
         set(PXSCENE_DEFINITIONS ${PXSCENE_DEFINITIONS} PX_NO_WINDOW ENABLE_V8_HEAP_PARAMS ENABLE_MAX_TEXTURE_SIZE BSTD_CPU_ENDIAN=BSTD_ENDIAN_LITTLE)
         set(PXSCENE_PLATFORM_DEFINE_LIST)
         if (DEFINED ENV{PXSCENE_PLATFORM_DEFINES})
@@ -182,39 +178,29 @@ elseif (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
             set(PXSCENE_DEFINITIONS ${PXSCENE_DEFINITIONS} ${PXSCENE_PLATFORM_DEFINE_LIST})
             message("Extra platform defines: " ${PXSCENE_PLATFORM_DEFINE_LIST})
         endif (DEFINED ENV{PXSCENE_PLATFORM_DEFINES})
-        if (DEFINED ENV{PXSCENE_DISABLE_APNG_SUPPORT})
-            message("Not including APNG support for pxscene")
-        else ()
-            message("Including APNG support for pxscene")
-            set(PXSCENE_DEFINITIONS ${PXSCENE_DEFINITIONS} PNG_APNG_SUPPORTED)
-        endif (DEFINED ENV{PXSCENE_DISABLE_APNG_SUPPORT})
+
         set(PXSCENE_DEFINITIONS ${PXSCENE_DEFINITIONS} PXSCENE_ENABLE_ALL_APPS_WAYLAND_CONFIG)
         set(PXWAYLAND_LIBRARY_SUPPORT 1)
+        include_directories(AFTER ${WAYLAND_EGL_INCLUDE_DIRS})
+        set(PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} ${WAYLAND_CLIENT_LIBRARIES})
     elseif (BUILD_WITH_WINDOWLESS_DFB)
         message("building pxscene for windowless DFB")
         set(PX_PLATFORM PX_PLATFORM_GENERIC_DFB)
         set(PXCORE_LIB_LOCATION ${PXCOREDIR}/build/dfb)
-        set(PXSCENE_LINK_DIRECTORIES ${PXCORE_LIB_LOCATION})
-        set(PLATFORM_LIBRARIES png15 directfb direct fusion)
+        set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${PXCORE_LIB_LOCATION})
+        set(PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} directfb direct fusion)
         set(PXSCENE_DEFINITIONS ${PXSCENE_DEFINITIONS} PX_NO_WINDOW)
     else ()
         message("building pxscene for glut")
         set(PX_PLATFORM PX_PLATFORM_GLUT)
         set(PXCORE_LIB_LOCATION ${PXCOREDIR}/build/glut)
-        set(PXSCENE_LINK_DIRECTORIES ${PXCORE_LIB_LOCATION})
+        set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${PXCORE_LIB_LOCATION})
         set(PLATFORM_SOURCES glut/pxContextUtils.cpp)
-        set(PXSCENE_DEFINITIONS ${PXSCENE_DEFINITIONS} ENABLE_LIBJPEG_TURBO HAS_LINUX_BREAKPAD)
-        set(PXSCENE_DEFINITIONS ${PXSCENE_DEFINITIONS} ENABLE_DEBUG_MODE PNG_APNG_SUPPORTED)
-        include_directories(AFTER ${ZLIBINC} ${CURLINC} ${JPGINC} ${JPGTURBOINC} ${PNGINC} ${GLUTINC} ${FREETYPEINC})
-        set(PLATFORM_LIBRARIES node pxCore rtCore_s pthread v8_libplatform png16 X11 glut GLEW GL dl rt turbojpeg breakpad_client jpeg freetype curl z)
-        set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${EXTDIR}/png/.libs)
-        set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${EXTDIR}/jpg/.libs)
-        set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${EXTDIR}/ft/objs/.libs)
-        set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${EXTDIR}/curl/lib/.libs)
-        set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${EXTDIR}/zlib)
+        set(PXSCENE_DEFINITIONS ${PXSCENE_DEFINITIONS} HAS_LINUX_BREAKPAD)
+        include_directories(AFTER ${GLUTINC})
+        set(PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} glut breakpad_client)
         set(PX_LIBRARY_LINK_PXCORE 0)
     endif (HOSTNAME STREQUAL "raspberrypi")
-    set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${EXTDIR}/libjpeg-turbo/.libs)
     set(PXSCENE_DEFINITIONS ${PXSCENE_DEFINITIONS} ENABLE_NODE_V_6_9 NODE_PLATFORM="linux" NODE_WANT_INTERNALS=1 V8_DEPRECATION_WARNINGS=1 NODE_SHARED_MODE NODE_USE_V8_PLATFORM=1 NODE_HAVE_I18N_SUPPORT=1 NODE_HAVE_SMALL_ICU=1 HAVE_INSPECTOR=1 V8_INSPECTOR_USE_STL=1 V8_INSPECTOR_USE_OLD_STL=1)
     set(PXSCENE_LINKER_OPTIONS "")
     #set(PXSCENE_LINK_LIBRARIES pthread)
@@ -229,72 +215,65 @@ elseif (WIN32)
     set(CMAKE_BUILD_TYPE Release)
     set(CMAKE_CONFIGURATION_TYPES ${CMAKE_BUILD_TYPE} CACHE STRING "" FORCE)
     add_definitions(-DWIN32 -D_LIB -DPX_PLATFORM_WIN -DRT_PLATFORM_WINDOWS)
-    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT")
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT /Zi /DEBUG")
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /EHs-c-")
     set(PXCORE_LIB_LOCATION ${PXCOREDIR}/build/win/Release)
     set(PXSCENE_LINK_DIRECTORIES ${PXCORE_LIB_LOCATION})
     set(PLATFORM_SOURCES glut/pxContextUtils.cpp)
-    set(PLATFORM_SOURCES ${PLATFORM_SOURCES} ${NODEDIR}/src/async-wrap.cc ${NODEDIR}/src/backtrace_win32.cc
-            ${NODEDIR}/src/cares_wrap.cc ${NODEDIR}/src/connection_wrap.cc ${NODEDIR}/src/connect_wrap.cc
-            ${NODEDIR}/src/debug-agent.cc ${NODEDIR}/src/env.cc ${NODEDIR}/src/fs_event_wrap.cc ${NODEDIR}/src/handle_wrap.cc
-            ${NODEDIR}/src/inspector_agent.cc ${NODEDIR}/src/inspector_socket.cc ${NODEDIR}/src/js_stream.cc ${NODEDIR}/src/node.cc
-            ${NODEDIR}/src/node_buffer.cc ${NODEDIR}/src/node_config.cc ${NODEDIR}/src/node_constants.cc
-            ${NODEDIR}/src/node_contextify.cc ${NODEDIR}/src/node_counters.cc ${NODEDIR}/src/node_crypto.cc
-            ${NODEDIR}/src/node_crypto_bio.cc ${NODEDIR}/src/node_crypto_clienthello.cc ${NODEDIR}/src/node_dtrace.cc
-            ${NODEDIR}/src/node_file.cc ${NODEDIR}/src/node_http_parser.cc ${NODEDIR}/src/node_i18n.cc
-            ${NODEDIR}/src/node_javascript.cc ${NODEDIR}/src/node_os.cc ${NODEDIR}/src/node_revert.cc
-            ${NODEDIR}/src/node_stat_watcher.cc ${NODEDIR}/src/node_util.cc ${NODEDIR}/src/node_v8.cc ${NODEDIR}/src/node_watchdog.cc
-            ${NODEDIR}/src/node_win32_etw_provider.cc ${NODEDIR}/src/node_win32_perfctr_provider.cc ${NODEDIR}/src/node_zlib.cc
-            ${NODEDIR}/src/pipe_wrap.cc ${NODEDIR}/src/process_wrap.cc ${NODEDIR}/src/signal_wrap.cc ${NODEDIR}/src/spawn_sync.cc
-            ${NODEDIR}/src/stream_base.cc ${NODEDIR}/src/stream_wrap.cc ${NODEDIR}/src/string_bytes.cc ${NODEDIR}/src/string_search.cc
-            ${NODEDIR}/src/tcp_wrap.cc ${NODEDIR}/src/timer_wrap.cc ${NODEDIR}/src/tls_wrap.cc ${NODEDIR}/src/tty_wrap.cc
-            ${NODEDIR}/src/udp_wrap.cc ${NODEDIR}/src/util.cc ${NODEDIR}/src/uv.cc ${PXCOREDIR}/src/utf8.c)
+    if (SUPPORT_NODE)
+        set(PLATFORM_SOURCES ${PLATFORM_SOURCES}
+    	    ${NODEDIR}/src/async-wrap.cc ${NODEDIR}/src/backtrace_win32.cc
+    	    ${NODEDIR}/src/cares_wrap.cc ${NODEDIR}/src/connection_wrap.cc ${NODEDIR}/src/connect_wrap.cc
+    	    ${NODEDIR}/src/debug-agent.cc ${NODEDIR}/src/env.cc ${NODEDIR}/src/fs_event_wrap.cc ${NODEDIR}/src/handle_wrap.cc
+    	    ${NODEDIR}/src/inspector_agent.cc ${NODEDIR}/src/inspector_socket.cc ${NODEDIR}/src/js_stream.cc ${NODEDIR}/src/node.cc
+    	    ${NODEDIR}/src/node_buffer.cc ${NODEDIR}/src/node_config.cc ${NODEDIR}/src/node_constants.cc
+    	    ${NODEDIR}/src/node_contextify.cc ${NODEDIR}/src/node_counters.cc ${NODEDIR}/src/node_crypto.cc
+    	    ${NODEDIR}/src/node_crypto_bio.cc ${NODEDIR}/src/node_crypto_clienthello.cc ${NODEDIR}/src/node_dtrace.cc
+    	    ${NODEDIR}/src/node_file.cc ${NODEDIR}/src/node_http_parser.cc ${NODEDIR}/src/node_i18n.cc
+    	    ${NODEDIR}/src/node_javascript.cc ${NODEDIR}/src/node_os.cc ${NODEDIR}/src/node_revert.cc
+    	    ${NODEDIR}/src/node_stat_watcher.cc ${NODEDIR}/src/node_util.cc ${NODEDIR}/src/node_v8.cc ${NODEDIR}/src/node_watchdog.cc
+    	    ${NODEDIR}/src/node_win32_etw_provider.cc ${NODEDIR}/src/node_win32_perfctr_provider.cc ${NODEDIR}/src/node_zlib.cc
+    	    ${NODEDIR}/src/pipe_wrap.cc ${NODEDIR}/src/process_wrap.cc ${NODEDIR}/src/signal_wrap.cc ${NODEDIR}/src/spawn_sync.cc
+    	    ${NODEDIR}/src/stream_base.cc ${NODEDIR}/src/stream_wrap.cc ${NODEDIR}/src/string_bytes.cc ${NODEDIR}/src/string_search.cc
+    	    ${NODEDIR}/src/tcp_wrap.cc ${NODEDIR}/src/timer_wrap.cc ${NODEDIR}/src/tls_wrap.cc ${NODEDIR}/src/tty_wrap.cc
+    	    ${NODEDIR}/src/udp_wrap.cc ${NODEDIR}/src/util.cc ${NODEDIR}/src/uv.cc)
+    endif (SUPPORT_NODE)
+    set(PLATFORM_SOURCES ${PLATFORM_SOURCES} ${PXCOREDIR}/src/utf8.c)
     set_source_files_properties(utf8.c PROPERTIES LANGUAGE CXX)
-    set(PXSCENE_DEFINITIONS ${PXSCENE_DEFINITIONS} ENABLE_DEBUG_MODE PNG_APNG_SUPPORTED HAS_WINDOWS_BREAKPAD)
+    set(PXSCENE_DEFINITIONS ${PXSCENE_DEFINITIONS} HAS_WINDOWS_BREAKPAD)
     add_definitions(-DPX_PLATFORM_WIN -DRT_PLATFORM_WINDOWS -DWIN32 -DWIN32_LEAN_AND_MEAN -DGLEW_STATIC -D_TIMESPEC_DEFINED -D_CONSOLE
             -DCURL_STATICLIB -DRUNINMAIN -DENABLE_RT_NODE -DDISABLE_WAYLAND -DNODE_WANT_INTERNALS=1
             -DENABLE_NODE_V_6_9 -DENABLE_V8_HEAP_PARAMS=1 -DV8_DEPRECATION_WARNINGS=1 -DNODE_SHARED_MODE -DHAVE_INSPECTOR=1
-            -DV8_INSPECTOR_USE_STL=1 -DV8_INSPECTOR_USE_OLD_STL=1 -DENABLE_DEBUG_MODE -DPNG_APNG_SUPPORTED -DENABLE_MAX_TEXTURE_SIZE
+            -DV8_INSPECTOR_USE_STL=1 -DV8_INSPECTOR_USE_OLD_STL=1 -DENABLE_MAX_TEXTURE_SIZE
             -DHAVE_OPENSSL -D_CRT_SECURE_NO_DEPRECATE -D_CRT_NONSTDC_NO_DEPRECATE -D_HAS_EXCEPTIONS=0 -DBUILDING_V8_SHARED=1
             -DBUILDING_UV_SHARED=1 -DNODE_ARCH="ia32" -DNODE_USE_V8_PLATFORM=1 -DNODE_HAVE_I18N_SUPPORT=1 -DNODE_HAVE_SMALL_ICU=1
             -DHAVE_OPENSSL=1 -DHAVE_ETW=1 -DHAVE_PERFCTR=1 -DFD_SETSIZE=1024 -DNODE_PLATFORM="win32" -D_UNICODE=1 -DUCONFIG_NO_TRANSLITERATION=1
             -DUCONFIG_NO_SERVICE=1 -DUCONFIG_NO_REGULAR_EXPRESSIONS=1 -DU_ENABLE_DYLOAD=0 -DU_STATIC_IMPLEMENTATION=1
             -DU_HAVE_STD_STRING=0 -DUCONFIG_NO_BREAK_ITERATION=0 -DUCONFIG_NO_LEGACY_CONVERSION=1 -DUCONFIG_NO_CONVERSION=1
             -DHTTP_PARSER_STRICT=0 -DUSE_RENDER_STATS -D_HAS_EXCEPTIONS=0)
-    include_directories(AFTER ${ZLIBINC} ${CURLINC} ${JPGINC} ${JPGTURBOINC} ${PNGINC} ${FREETYPEINC} ${GLEWINC} ${WINSPARKLEINC} ${EXTDIR}/breakpad-chrome_55/src/)
+    add_definitions(${COMM_DEPS_DEFINITIONS})
+    include_directories(AFTER ${COMM_DEPS_INCLUDE_DIRS} ${NODE_INCLUDE_DIRS} ${DUKE_INCLUDE_DIRS})
+    include_directories(AFTER "${EXTDIR}/pthread-2.9" ${WINSPARKLEINC} ${EXTDIR}/breakpad-chrome_55/src/)
 
-    include_directories(AFTER ${NODEDIR}/deps/openssl/openssl/include ${NODEDIR}/deps/http_parser
-            ${NODEDIR}/deps/v8_inspector/third_party/v8_inspector/
-            ${NODEDIR}/deps/icu-small/source/common/unicode
-            ${NODEDIR}/Release/obj/global_intermediate/blink
-            ${NODEDIR}/Release/obj/global_intermediate
-            ${NODEDIR}/Release/obj/gen/blink
-            ${NODEDIR}/deps/icu-small/source/common
-            ${NODEDIR}/tools/msvs/genfiles)
+    set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${COMM_DEPS_LIBRARY_DIRS} ${NODE_LIBRARY_DIRS} ${DUKE_LIBRARY_DIRS})
 
-    set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${EXTDIR}/vc.build/builds)
-    set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${EXTDIR}/libnode-v6.9.0/build/Release/lib
-            ${EXTDIR}/vc.build/builds ${EXTDIR}/libnode-v6.9.0/Release/lib ${EXTDIR}/libnode-v6.9.0/Release)
+    set(PLATFORM_LIBRARIES pxCore.lib)
+    set(PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} ${COMM_DEPS_LIBRARIES} ${NODE_LIBRARIES} ${DUKE_LIBRARIES})
+    set(PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES}
+        pthreadVC2.lib opengl32.lib Winmm.lib
+        Ws2_32.lib Wldap32.lib msvcrt.lib psapi.lib
+        iphlpapi.lib userenv.lib rtCore_s.lib common.lib
+        crash_generation_client.lib exception_handler.lib)
 
-    set(PLATFORM_LIBRARIES pxCore.lib pthreadVC2.lib opengl32.lib Winmm.lib zlib.lib freetype253MT_D.lib  libcurld.lib
-                    Ws2_32.lib Wldap32.lib glew32s.lib libpng16.lib libjpeg.lib psapi.lib iphlpapi.lib
-                    userenv.lib v8_libplatform.lib v8_libbase.lib v8_nosnapshot.lib v8_snapshot.lib v8_base_0.lib
-                    v8_base_1.lib v8_base_2.lib v8_base_3.lib gtest.lib cares.lib http_parser.lib
-                    icutools.lib icustubdata.lib icudata.lib icuucx.lib icui18n.lib libuv.lib openssl.lib v8_inspector_stl.lib
-                    node.lib cctest.lib rtCore_s.lib common.lib crash_generation_client.lib exception_handler.lib)
-
-    set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${EXTDIR}/libnode-v6.9.0/build/Release/lib)
-    set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${EXTDIR}/libnode-v6.9.0/Release/lib)
-    set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${EXTDIR}/libnode-v6.9.0/Release)
     set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${EXTDIR}/breakpad-chrome_55/src/client/windows/Release/lib)
 
     set(PXSCENE_ADDITIONAL_RESOURCES ${CMAKE_CURRENT_SOURCE_DIR}/win/pxscene.rc)
     set(PX_LIBRARY_LINK_PXCORE 0)
     set(PX_LIBRARY_SUPPORT 0)
-    set(PXSCENE_LINKER_OPTIONS "")
+    set(PXSCENE_LINKER_OPTIONS " /DEBUG ")
     set(PXSCENE_INSTALLER 1)
 else ()
-    message(FATAL_ERROR "Cannot build pxscene.  Unknown platform")
+    message(FATAL_ERROR "Cannot build pxscene. Unknown platform")
 endif (APPLE)
 
 if (DEFINED ENV{PX_BUILD_VERSION})
@@ -310,7 +289,6 @@ else ()
 endif("${PXSCENE_VERSION}" STREQUAL "")
 
 set(TARGETINCLUDE "")
-set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${NODEDIR}/out/Release/obj.target ${NODEDIR}/out/Release ${NODEDIR}/out/Release/obj.target/deps/v8/tools/gyp)
 set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${EXTDIR}/breakpad/src/client/linux)
 
 set(PXSCENE_LINK_LIBRARIES ${PXSCENE_LINK_LIBRARIES} ${PLATFORM_LIBRARIES})
@@ -321,15 +299,16 @@ set(PXSCENE_DEFINITIONS ${PXSCENE_DEFINITIONS} ${PX_PLATFORM} ENABLE_RT_NODE RUN
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-arcs -ftest-coverage")
 #set(PXSCENE_LINKER_OPTIONS "${PXSCENE_LINKER_OPTIONS} -lgcov")
 
-
-include_directories(AFTER ${NODEDIR}/src ${NODEDIR}/deps/uv/include ${NODEDIR}/deps/v8 ${NODEDIR}/deps/debugger-agent/include ${NODEDIR}/deps/v8/include ${NODEDIR}/deps/cares/include)
-include_directories(AFTER ${WESTEROSINC} ${WESTEROSSTUBINC} ${JPEGTURBOINC} ${BREAKPADINC} ${RTREMOTEINC} ${PXCOREDIR}/src)
+include_directories(AFTER ${NODE_INCLUDE_DIRS} ${DUKE_INCLUDE_DIRS})
+include_directories(AFTER ${WESTEROSINC} ${WESTEROSSTUBINC} ${TURBO_JPEG_INCLUDE_DIRS} ${BREAKPADINC} ${RTREMOTEINC} ${PXCOREDIR}/src)
 include_directories(AFTER ${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(AFTER ${CMAKE_CURRENT_SOURCE_DIR}/rasterizer)
 include_directories(AFTER ${CMAKE_CURRENT_SOURCE_DIR}/rasterizer/xs_code)
 
-set(PXSCENE_COMMON_FILES pxScene2d.cpp pxResource.cpp pxConstants.cpp pxRectangle.cpp pxFont.cpp pxText.cpp
+set(PXSCENE_COMMON_FILES pxResource.cpp pxConstants.cpp pxRectangle.cpp pxFont.cpp pxText.cpp
         pxTextBox.cpp pxImage.cpp pxImage9.cpp pxImageA.cpp pxImage9Border.cpp pxArchive.cpp pxAnimate.cpp rasterizer/pxRasterizer.cpp rasterizer/pxCanvas.cpp rasterizer/pxCanvas2d.cpp rasterizer/pxPath.cpp)
+
+set(PXSCENE_COMMON_FILES ${PXSCENE_COMMON_FILES} pxScene2d.cpp)
 
 set(PXWAYLAND_LIB_FILES pxContextGL.cpp egl/pxContextUtils.cpp)
 
@@ -344,10 +323,12 @@ endif (BUILD_WITH_GL)
 if (BUILD_WITH_WAYLAND)
     message("Building with wayland support")
     set(PXSCENE_COMMON_FILES ${PXSCENE_COMMON_FILES} pxWayland.cpp pxWaylandContainer.cpp)
-    set(PXSCENE_DEFINITIONS ${PXSCENE_DEFINITIONS} ENABLE_PX_WAYLAND_RPC)
     set(PXWAYLAND_LIB_FILES ${PXWAYLAND_LIB_FILES} pxWayland.cpp)
-    set(PXSCENE_APP_LIBRARIES ${PXSCENE_APP_LIBRARIES} rtRemote)
-    set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${RTREMOTEINC})
+    if (BUILD_RTREMOTE_LIBS)
+        set(PXSCENE_DEFINITIONS ${PXSCENE_DEFINITIONS} ENABLE_PX_WAYLAND_RPC)
+        set(PXSCENE_APP_LIBRARIES ${PXSCENE_APP_LIBRARIES} rtremote_shared)
+        set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${RTREMOTEINC})
+    endif (BUILD_RTREMOTE_LIBS)
 else ()
     message("Not building with wayland support")
     set(PXSCENE_DEFINITIONS ${PXSCENE_DEFINITIONS} DISABLE_WAYLAND)
@@ -367,6 +348,12 @@ if (BUILD_WITH_SERVICE_MANAGER)
     set(PXSCENE_COMMON_FILES ${PXSCENE_COMMON_FILES} pxServiceManager.cpp)
 endif (BUILD_WITH_SERVICE_MANAGER)
 
+if (BUILD_OPTIMUS_STATIC_LIB)
+    message("Building with Optimus support")
+    set(PXSCENE_APP_LIBRARIES ${PXSCENE_APP_LIBRARIES} optimus)
+    add_definitions(-DENABLE_OPTIMUS_SUPPORT)
+endif (BUILD_OPTIMUS_STATIC_LIB)
+
 if (BUILD_DEBUG_METRICS)
     message("Building with debug metrics")
     add_definitions(-DENABLE_DEBUG_METRICS)
@@ -378,17 +365,16 @@ endif (BUILD_PXSCENE_RASTERIZER_PATH)
 
 set(PXSCENE_COMMON_FILES ${PXSCENE_COMMON_FILES} ${PLATFORM_SOURCES})
 
-if (BUILD_PXSCENE_APP_WITH_PXSCENE_LIB)
-  set(PXSCENE_APP_FILES pxScene.cpp)
-  set(PXSCENE_APP_LIBRARIES pxscene -Wl,--no-as-needed ${PXSCENE_APP_LIBRARIES} )
-else ()
-  set(PXSCENE_APP_FILES ${PXSCENE_COMMON_FILES} pxScene.cpp)
-endif (BUILD_PXSCENE_APP_WITH_PXSCENE_LIB)
+set(PXSCENE_APP_FILES ${PXSCENE_COMMON_FILES} pxScene.cpp)
 set(PXSCENE_LIB_FILES ${PXSCENE_COMMON_FILES})
 
 if (PXSCENE_COMPILE_WARNINGS_AS_ERRORS)
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Werror")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror")
+  if (!APPLE)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Werror")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror")
+  else ()
+    message("Cleanup OSX build!!")
+  endif ()
 endif (PXSCENE_COMPILE_WARNINGS_AS_ERRORS)
 
 if (BUILD_WITH_CXX_11)
@@ -403,11 +389,74 @@ endif (BUILD_WITH_TEXTURE_USAGE_MONITORING)
 
 set(CMAKE_EXE_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS} ${PXSCENE_LINKER_OPTIONS})
 link_directories(${PXSCENE_LINK_DIRECTORIES})
-#link_libraries(${PXSCENE_LINK_LIBRARIES})
+
+if (BUILD_PXSCENE_APP)
+    message("Enabling build support for pxscene app")
+    add_executable(pxscene_app ${PXSCENE_APP_FILES} ${PXSCENE_ADDITIONAL_RESOURCES})
+    set_target_properties(pxscene_app PROPERTIES OUTPUT_NAME "pxscene")
+    target_link_libraries(pxscene_app ${PXSCENE_APP_LIBRARIES} ${PXSCENE_LINK_LIBRARIES})
+    target_compile_definitions(pxscene_app PRIVATE ${PXSCENE_DEFINITIONS})
+
+    if (APPLE)
+        add_custom_command(TARGET pxscene_app COMMENT "making app bundle" POST_BUILD COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/mkapp.sh WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+    endif (APPLE)
+
+    if (PX_LIBRARY_SUPPORT GREATER 0)
+        if (BUILD_PXSCENE_SHARED_LIB OR BUILD_PXSCENE_SHARED_LIB)
+            add_dependencies(pxscene_app pxscene)
+        endif (BUILD_PXSCENE_SHARED_LIB OR BUILD_PXSCENE_SHARED_LIB)
+    endif (PX_LIBRARY_SUPPORT GREATER 0)
+
+    if (BUILD_OPTIMUS_STATIC_LIB)
+      add_dependencies(pxscene_app optimus)
+    endif (BUILD_OPTIMUS_STATIC_LIB)
+
+    if (PXSCENE_INSTALLER GREATER 0)
+      if (WIN32)
+        message("enabling installer support")
+        install(TARGETS pxscene_app RUNTIME DESTINATION . COMPONENT pxscene)
+        install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/browser DESTINATION . COMPONENT pxscene)
+        install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/node_modules DESTINATION . COMPONENT pxscene)
+        if (SUPPORT_DUKTAPE)
+            install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/rcvrcore/" DESTINATION rcvrcore COMPONENT pxscene)
+            install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/duk_modules/" DESTINATION duk_modules COMPONENT pxscene)
+            file(GLOB PXSCENE_INSTALL_FILES_JS "${CMAKE_CURRENT_SOURCE_DIR}/*.js")
+            file(GLOB PXSCENE_INSTALL_FILES_JS2 "${CMAKE_CURRENT_SOURCE_DIR}/duktape/*.js")
+        else (SUPPORT_DUKTAPE)
+            install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/rcvrcore DESTINATION . COMPONENT pxscene)
+            file(GLOB PXSCENE_INSTALL_FILES_JS "${CMAKE_CURRENT_SOURCE_DIR}/*.js")
+        endif (SUPPORT_DUKTAPE)
+
+        file(GLOB PXSCENE_INSTALL_FILES "${CMAKE_CURRENT_SOURCE_DIR}/FreeSans.ttf"
+           "${CMAKE_CURRENT_SOURCE_DIR}/*.json" "${CMAKE_CURRENT_SOURCE_DIR}/*.conf"
+           "${CMAKE_CURRENT_SOURCE_DIR}/../external/vc.build/builds/*.dll" "${CMAKE_CURRENT_SOURCE_DIR}/Release/")
+        if (SUPPORT_DUKTAPE)
+            message("installing additional duktape files")
+            install(FILES ${PXSCENE_INSTALL_FILES_JS2} DESTINATION . COMPONENT pxscene)
+        endif (SUPPORT_DUKTAPE)
+        install(FILES ${PXSCENE_INSTALL_FILES_JS} ${PXSCENE_INSTALL_FILES} DESTINATION . COMPONENT pxscene)
+        set(CPACK_PACKAGE_VERSION "${PXSCENE_VERSION}")
+        set(CPACK_NSIS_CREATE_ICONS_EXTRA "CreateShortCut '$SMPROGRAMS\\\\$STARTMENU_FOLDER\\\\pxscene.lnk' '$INSTDIR\\\\pxscene.exe' ''")
+        set(CPACK_NSIS_DELETE_ICONS_EXTRA "Delete '$SMPROGRAMS\\\\$START_MENU\\\\pxscene.lnk'")
+        set(CPACK_PACKAGE_FILE_NAME "pxscene-setup")
+        set(CPACK_PACKAGE_INSTALL_DIRECTORY "pxscene")
+        set(CPACK_RESOURCE_FILE_LICENSE "${PXCOREDIR}/LICENSE.txt")
+        set(CPACK_PACKAGE_VENDOR "pxscene.org")
+        set(CPACK_NSIS_MUI_ICON "${CMAKE_CURRENT_SOURCE_DIR}/win/pxscene_installer.ico")
+        set(CPACK_NSIS_MUI_UNIICON "${CMAKE_CURRENT_SOURCE_DIR}/win/pxscene_installer.ico")
+        include(CPack)
+      endif (WIN32)
+    endif (PXSCENE_INSTALLER GREATER 0)
+endif (BUILD_PXSCENE_APP)
 
 if (PXSCENE_ACCESS_CONTROL_CHECK)
     add_definitions(-DENABLE_ACCESS_CONTROL_CHECK)
 endif (PXSCENE_ACCESS_CONTROL_CHECK)
+
+if (PXSCENE_DIRTY_RECTANGLES)
+    message("Enabling dirty rectangles support")
+    add_definitions(-DPX_DIRTY_RECTANGLES)
+endif(PXSCENE_DIRTY_RECTANGLES)
 
 if (PXSCENE_PERMISSIONS_CHECK)
     add_definitions(-DENABLE_PERMISSIONS_CHECK)
@@ -416,12 +465,15 @@ endif (PXSCENE_PERMISSIONS_CHECK)
 if (PX_LIBRARY_SUPPORT GREATER 0)
     message("Enabling build support for libraries")
     if (PX_LIBRARY_LINK_PXCORE GREATER 0)
-        set(LIBRARY_LINKER_OPTIONS -Wl,--whole-archive ${PXCORE_LIB_LOCATION}/libpxCore.a -Wl,--no-whole-archive)
+        if (NOT APPLE)
+            set(LIBRARY_LINKER_OPTIONS -Wl,--whole-archive ${PXCORE_LIB_LOCATION}/libpxCore.a -Wl,--no-whole-archive)
+        endif (NOT APPLE)
     endif (PX_LIBRARY_LINK_PXCORE GREATER 0)
 
     if (BUILD_PXSCENE_STATIC_LIB)
         message("Enabling build support for pxscene static libraries")
         add_library(pxscene_static ${PXSCENE_LIB_FILES})
+        add_library(pxscene ALIAS pxscene_static)
         set_target_properties(pxscene_static PROPERTIES OUTPUT_NAME "pxscene")
         target_link_libraries(pxscene_static ${LIBRARY_LINKER_OPTIONS} ${PXSCENE_LINK_LIBRARIES})
         target_compile_definitions(pxscene_static PRIVATE ${PXSCENE_DEFINITIONS})
@@ -433,6 +485,10 @@ if (PX_LIBRARY_SUPPORT GREATER 0)
     if (BUILD_PXSCENE_SHARED_LIB)
         message("Enabling build support for pxscene shared libraries")
         add_library(pxscene_shared SHARED ${PXSCENE_LIB_FILES})
+        if (SUPPORT_DUKTAPE)
+          add_dependencies (pxscene_shared dukluv)
+        endif (SUPPORT_DUKTAPE)
+        add_library(pxscene ALIAS pxscene_shared)
         set_target_properties(pxscene_shared PROPERTIES OUTPUT_NAME "pxscene")
         target_link_libraries(pxscene_shared ${LIBRARY_LINKER_OPTIONS} ${PXSCENE_LINK_LIBRARIES})
         target_compile_definitions(pxscene_shared PRIVATE ${PXSCENE_DEFINITIONS})
@@ -461,41 +517,10 @@ else ()
     message("Disabling build support for libraries")
 endif (PX_LIBRARY_SUPPORT GREATER 0)
 
-if (BUILD_PXSCENE_APP)
-    message("Enabling build support for pxscene app")
-    add_executable(pxscene_app ${PXSCENE_APP_FILES} ${PXSCENE_ADDITIONAL_RESOURCES})
-    set_target_properties(pxscene_app PROPERTIES OUTPUT_NAME "pxscene")
-    target_link_libraries(pxscene_app ${PXSCENE_APP_LIBRARIES} ${PXSCENE_LINK_LIBRARIES})
-    target_compile_definitions(pxscene_app PRIVATE ${PXSCENE_DEFINITIONS})
-    if (BUILD_PXSCENE_SHARED_LIB)
-        add_dependencies(pxscene_app pxscene_shared)
-    elseif (BUILD_PXSCENE_STATIC_LIB)
-        add_dependencies(pxscene_app pxscene_static)
-    endif (BUILD_PXSCENE_SHARED_LIB)
-
-    if (PXSCENE_INSTALLER GREATER 0)
-      if (WIN32)
-        message("enabling installer support")
-        install(TARGETS pxscene_app RUNTIME DESTINATION . COMPONENT pxscene)
-        install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/browser DESTINATION . COMPONENT pxscene)
-        install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/node_modules DESTINATION . COMPONENT pxscene)
-        install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/rcvrcore DESTINATION . COMPONENT pxscene)
-        file(GLOB PXSCENE_INSTALL_FILES 
-           "${CMAKE_CURRENT_SOURCE_DIR}/*.js" "${CMAKE_CURRENT_SOURCE_DIR}/FreeSans.ttf"
-           "${CMAKE_CURRENT_SOURCE_DIR}/*.json" "${CMAKE_CURRENT_SOURCE_DIR}/*.conf"
-           "${CMAKE_CURRENT_SOURCE_DIR}/../external/vc.build/builds/*.dll" "${CMAKE_CURRENT_SOURCE_DIR}/Release/")
-        install(FILES ${PXSCENE_INSTALL_FILES} DESTINATION . COMPONENT pxscene)
-        set(CPACK_PACKAGE_VERSION "${PXSCENE_VERSION}")
-        set(CPACK_NSIS_CREATE_ICONS_EXTRA "CreateShortCut '$SMPROGRAMS\\\\$STARTMENU_FOLDER\\\\pxscene.lnk' '$INSTDIR\\\\pxscene.exe' ''")
-        set(CPACK_NSIS_DELETE_ICONS_EXTRA "Delete '$SMPROGRAMS\\\\$START_MENU\\\\pxscene.lnk'")
-        set(CPACK_PACKAGE_FILE_NAME "pxscene-setup")
-        set(CPACK_PACKAGE_INSTALL_DIRECTORY "pxscene")
-        set(CPACK_RESOURCE_FILE_LICENSE "${PXCOREDIR}/LICENSE.txt")
-        set(CPACK_PACKAGE_VENDOR "pxscene.org")
-        set(CPACK_NSIS_MUI_ICON "${CMAKE_CURRENT_SOURCE_DIR}/win/pxscene_installer.ico")
-        set(CPACK_NSIS_MUI_UNIICON "${CMAKE_CURRENT_SOURCE_DIR}/win/pxscene_installer.ico")
-        include(CPack)
-      endif (WIN32)
-    endif (PXSCENE_INSTALLER GREATER 0)
-endif (BUILD_PXSCENE_APP)
-
+if (BUILD_OPTIMUS_STATIC_LIB)
+    message("Enabling Optimus library support")
+    add_library(optimus_static optimus_client.cpp)
+    add_library(optimus ALIAS optimus_static)
+    set_target_properties(optimus_static PROPERTIES OUTPUT_NAME "optimus")
+    target_compile_definitions(optimus_static PRIVATE ${PXSCENE_DEFINITIONS})
+endif(BUILD_OPTIMUS_STATIC_LIB)

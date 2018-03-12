@@ -1,6 +1,6 @@
 
 #include "pxContext.h"
-#include <rtNode.h>
+#include <rtScript.h>
 #include <signal.h>
 #include <unistd.h>
 
@@ -17,8 +17,8 @@ char** gargv;
 extern int g_argc;
 extern char** g_argv;
 char *nodeInput = NULL;
-extern rtNode script;
 #endif
+extern rtScript script;
 
 void handleSegv(int)
 {
@@ -47,7 +47,6 @@ int main(int argc, char **argv) {
   gargc = argc;
   gargv = argv;
 #ifdef ENABLE_DEBUG_MODE
-  int urlIndex  = -1;
   bool isDebugging = false;
   g_argv = (char**)malloc((argc+2) * sizeof(char*));
   int size  = 0;
@@ -59,13 +58,6 @@ int main(int argc, char **argv) {
       if (strstr(argv[i],"--debug"))
       {
         isDebugging = true;
-      }
-    }
-    else
-    {
-      if (strstr(argv[i],".js"))
-      {
-        urlIndex = i;
       }
     }
   }
@@ -104,8 +96,8 @@ int main(int argc, char **argv) {
       g_argv[g_argc++] = &nodeInput[curpos];
       curpos = curpos + 35;
   }
-  script.initializeNode();
 #endif
+  script.init();
   int retTests = RUN_ALL_TESTS();
   rtLogInfo("Tests executed with return code [%d]", retTests);
   #ifdef ENABLE_CODE_COVERAGE

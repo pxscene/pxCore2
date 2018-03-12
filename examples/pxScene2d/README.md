@@ -30,7 +30,7 @@
 
 ## macOS Setup 
 
->Install Xcode and CMake
+>Install Xcode, CMake and quilt
 >   * Download the latest version of Xcode from https://developer.apple.com/xcode/download/
 >   * Download the latest cmake from https://cmake.org/download/
 >   * Install cmake and setup the following symbolic links in /usr/local/bin
@@ -42,7 +42,7 @@
     ln -s /Applications/CMake.app/Contents/bin/cpack /usr/local/bin/cpack
     ln -s /Applications/CMake.app/Contents/bin/ctest /usr/local/bin/ctest
     ~~~~
-
+>   * Install quilt
 
 
 ## Windows Setup
@@ -52,6 +52,7 @@
 >   * [windows sdk 10.0.16299.0](https://developer.microsoft.com/en-us/windows/downloads/windows-10-sdk),it is included in VS2017 with above workload and only necessary if you have issue to install with VS2017)
 >   * python 2.7.x , make sure python can work in cmd (setup environment variables depending on install location)
 >   * git for windows , make sure git can work in cmd (setup environment variables depending on install location)
+>   * patch utility for windows (this comes with git. setup environment variables depending on install location of patch.exe)
 >   * Download and install cmake for windows from https://cmake.org/download/
 >   * Download and install NSIS installer from http://nsis.sourceforge.net/Download
 >   * **Run all these commands from a Visual Studio Command Prompt**
@@ -72,24 +73,81 @@
     ~~~~
 
 3. Build **externals**:
-    ~~~~
-    cd examples/pxScene2d/external
-    ~~~~
-    For Linux and Mac run:
-    ~~~~
-    ./build.sh
-    ~~~~
-    For Raspberry Pi run:
-    ~~~~
-    ./build_rpi.sh
-    ~~~~
-    For Windows (**Run from inside a Visual Studio Command Prompt**):
-    ~~~~
-    buildWindows.bat
-    ~~~~
+    a. Build all externals for use during the pxscene build.
+      ~~~~
+      cd examples/pxScene2d/external
+      ~~~~
+      For Linux and Mac run:
+      ~~~~
+      ./build.sh
+      ~~~~
+      For Raspberry Pi run:
+      ~~~~
+      ./build_rpi.sh
+      ~~~~
+      For Windows (**Run from inside a Visual Studio Command Prompt**):
+      ~~~~
+      buildWindows.bat
+      ~~~~
+  
+    b. To use system libraries for external libs during pxscene build, install libs on the system. To build just node, duktape and breakpad with the patches necessary for pxscene, do the following.
+      ~~~~
+      For Mac and Linux OS.
+      ~~~~
+      Build duktape
+      ~~~~ 
+      cd examples/pxScene2d/external/dukluv/
+      mkdir build
+      cd build
+      cmake ..
+      cmake --build . --config Release
+      ~~~~
+      Build Node
+      ~~~~
+      cd examples/pxScene2d/external/node
+      ./configure --shared
+      make -j1
+      ln -sf out/Release/obj.target/libnode.so.48 libnode.so.48
+      ln -sf libnode.so.48 libnode.so
+      ln -sf out/Release/libnode.48.dylib libnode.48.dylib
+      ln -sf libnode.48.dylib libnode.dylib
+      ~~~~
+      Build breakpad
+      ~~~~
+      cd examples/pxScene2d/external/breakpad-chrome_55
+      ./configure
+      make
+      
+      ~~~~
+      For Windows
+      ~~~~
+      Build Duktape
+      ~~~~
+      cd examples/pxScene2d/external/dukluv/
+      patch -p1 -i patches/dukluv.git.patch
+      mkdir build
+      cd build
+      cmake ..
+      cmake --build . --config Release -- /m
+      ~~~~
+      Build node
+      ~~~~
+      cd examples/pxScene2d/external/libnode-v6.9.0
+      CALL vcbuild.bat x86 nosign
+      cd ..
+      ~~~~
+      Build breakpad
+      ~~~~	
+      cd examples/pxScene2d/external/breakpad-chrome_55
+      CALL gyp\gyp.bat src\client\windows\breakpad_client.gyp --no-circular-check
+      cd src\client\windows
+      msbuild breakpad_client.sln /p:Configuration=Release /p:Platform=Win32 /m
+      ~~~~
 
 4. Build **pxScene**
-
+    ~~~~
+    On following step 3b, Specify -DPREFER_SYSTEM_LIBRARIES=ON to use system libraries rather than libraries from externals directory.
+    Note :  If a dependent library is not found installed on the system, then the version in externals will be used.
     ~~~~
     cd pxCore/
     mkdir temp

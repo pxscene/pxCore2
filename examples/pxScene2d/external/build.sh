@@ -82,7 +82,7 @@ fi
 
 #--------- ZLIB
 
-if [ ! -e ./zlib/libz.1.2.8.dylib ] ||
+if [ ! -e ./zlib/libz.1.2.11.dylib ] ||
    [ "$(uname)" != "Darwin" ]
 then
 
@@ -124,20 +124,23 @@ fi
 
 #--------- LIBNODE
 
-if [ ! -e node/out/Release/libnode.48.dylib ] ||
+if [ ! -e node/libnode.dylib ] ||
    [ "$(uname)" != "Darwin" ]
 then
 
   cd node
   ./configure --shared
   make "-j${make_parallel}"
-  ln -sf libnode.so.48 out/Release/obj.target/libnode.so
-  ln -sf libnode.48.dylib out/Release/libnode.dylib
+  ln -sf out/Release/obj.target/libnode.so.48 libnode.so.48
+  ln -sf libnode.so.48 libnode.so
+  ln -sf out/Release/libnode.48.dylib libnode.48.dylib
+  ln -sf libnode.48.dylib libnode.dylib
   cd ..
 
 fi
 
 #-------- BREAKPAD (Non -macOS)
+
 if [ "$(uname)" != "Darwin" ]; then
 
   cd breakpad
@@ -146,6 +149,19 @@ if [ "$(uname)" != "Darwin" ]; then
   make
   cd ..
 
+fi
+
+#-------- DUKTAPE
+
+if [ ! -e dukluv/build/libduktape.a ]
+then
+    cd dukluv
+    quilt push -aq || test $? = 2
+    mkdir -p build
+    cd build
+    cmake ..
+    make "-j${make_parallel}"
+    cd ..
 fi
 
 #-------- BODYMOVIN

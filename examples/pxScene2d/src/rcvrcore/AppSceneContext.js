@@ -1,5 +1,7 @@
 //"use strict";
 
+var isDuk=(typeof timers != "undefined")?true:false;
+
 var url = require('url');
 var path = require('path');
 var vm = require('vm');
@@ -11,16 +13,19 @@ var loadFile = require('rcvrcore/utils/FileUtils').loadFile;
 var SceneModuleManifest = require('rcvrcore/SceneModuleManifest');
 var JarFileMap = require('rcvrcore/utils/JarFileMap');
 var AsyncFileAcquisition = require('rcvrcore/utils/AsyncFileAcquisition');
+var AccessControl = require('rcvrcore/utils/AccessControl');
 
 var log = new Logger('AppSceneContext');
 //overriding original timeout and interval functions
-var SetTimeout = setTimeout;
-var ClearTimeout = clearTimeout;
-var SetInterval = setInterval;
-var ClearInterval = clearInterval;
+var SetTimeout = isDuk?timers.setTimeout:setTimeout;
+var ClearTimeout = isDuk?timers.clearTimeout:clearTimeout;
+var SetInterval = isDuk?timers.setInterval:setInterval;
+var ClearInterval = isDuk?timers.clearInterval:clearInterval;
+
 
 var http_wrap = require('rcvrcore/http_wrap');
 var https_wrap = require('rcvrcore/https_wrap');
+var ws_wrap = (isDuk)?"":require('rcvrcore/ws_wrap');
 
 function AppSceneContext(params) {
 
@@ -46,7 +51,8 @@ function AppSceneContext(params) {
   this.scriptMap = {};
   this.xmoduleMap = {};
   this.asyncFileAcquisition = new AsyncFileAcquisition(params.scene);
-  this.lastHrTime = process.hrtime();
+  this.accessControl = new AccessControl(params.scene);
+  this.lastHrTime = isDuk?uv.hrtime():process.hrtime();
   this.resizeTimer = null;
   this.topXModule = null;
   this.jarFileMap = new JarFileMap();
@@ -54,19 +60,21 @@ function AppSceneContext(params) {
   //array to store the list of pending timers
   this.timers = [];
   this.timerIntervals = [];
-
+  this.webSocketManager = null;
   log.message(4, "[[[NEW AppSceneContext]]]: " + this.packageUrl);
 }
+
 
 AppSceneContext.prototype.loadScene = function() {
   //log.info("loadScene() - begins    on ctx: " + getContextID() );
   var urlParts = url.parse(this.packageUrl, true);
   var fullPath = this.packageUrl;
+  var platform = (isDuk)?uv.platform:process.platform;
   if (fullPath.substring(0, 4) !== "http") {
     if( fullPath.charAt(0) === '.' ) {
       // local file system
       this.defaultBaseUri = ".";
-    } else if( process.platform === 'win32' && fullPath.charAt(1) === ':' ) {
+    } else if( platform === 'win32' && fullPath.charAt(1) === ':' ) {
         // Windows OS, so take the url as the whole file path
         urlParts.pathname = this.packageUrl;
     }
@@ -99,33 +107,66 @@ this.innerscene.on('onSceneTerminate', function (e) {
       for(var k in this.innerscene.api) { delete this.innerscene.api[k]; }
     }
 
-    this.innerscene.api = null;
+    if ((undefined != this.innerscene) && (null != this.innerscene))
+    {
+      this.innerscene.api = null;
+    }
     this.innerscene = null;
-    this.sandbox.xmodule = null;
-    this.sandbox.require = null;
-    this.sandbox.sandboxName = null;
-    this.sandbox.runtime = null;
-    this.sandbox.theNamedContext = null;
-    this.sandbox.Buffer = null;
-    this.sandbox.setTimeout = null;
-    this.sandbox.setInterval = null;
-    this.sandbox.clearTimeout = null;
-    this.sandbox.clearInterval = null;
-    this.sandbox.importTracking = {};
+    if ((undefined != this.sandbox) && (null != this.sandbox))
+    {
+      this.sandbox.sandboxName = null;
+      if ((undefined != this.sandbox.xmodule) && (null != this.sandbox.xmodule))
+      {
+        this.sandbox.xmodule.freeResources();
+      }
+      this.sandbox.xmodule = null;
+      this.sandbox.console = null;
+      this.sandbox.runtime = null;
+      this.sandbox.process = null;
+      this.sandbox.urlModule = null;
+      this.sandbox.queryStringModule = null;
+      this.sandbox.theNamedContext = null;
+      this.sandbox.Buffer = null;
+      this.sandbox.require = null;
+      this.sandbox.global = null;
+      this.sandbox.setTimeout = null;
+      this.sandbox.setInterval = null;
+      this.sandbox.clearTimeout = null;
+      this.sandbox.clearInterval = null;
+      for(var k in this.sandbox.importTracking) { delete this.sandbox.importTracking[k]; }
+      this.sandbox.importTracking = null;
+      for(var k in this.sandbox) { delete this.sandbox[k]; }
+    }
     this.sandbox = null;
-    this.scriptMap = null;
     for(var xmodule in this.xmoduleMap) {
       this.xmoduleMap[xmodule].freeResources();
+      delete this.xmoduleMap[xmodule];
     }
     this.xmoduleMap = null;
+    if (null != this.topXModule)
+      this.topXModule.freeResources();
     this.topXModule = null;
     this.jarFileMap = null;
     for(var key in this.scriptMap) {
       this.scriptMap[key].scriptObject = null;
       this.scriptMap[key].readyListeners = null;
+      delete this.scriptMap[key];
     }
     this.scriptMap = null;
+    if (null != this.sceneWrapper)
+      this.sceneWrapper.close();
     this.sceneWrapper = null;
+    if (null != this.webSocketManager)
+    {
+       this.webSocketManager.clearConnections();
+       delete this.webSocketManager;
+    }
+    this.webSocketManager = null;
+    this.rpcController = null;
+    if (this.accessControl) {
+      this.accessControl.destroy();
+      this.accessControl = null;
+    }
   }.bind(this));
 
 if (false) {
@@ -187,16 +228,23 @@ AppSceneContext.prototype.loadPackage = function(packageUri) {
         _this.getFile("package.json").then( function(packageFileContents) {
           var manifest = new SceneModuleManifest();
           manifest.loadFromJSON(packageFileContents);
+          console.info("AppSceneContext#loadScenePackage0");
           _this.runScriptInNewVMContext(packageUri, moduleLoader, manifest.getConfigImport());
-        }).catch(function(e){
-          _this.runScriptInNewVMContext(packageUri, moduleLoader, null);
+          console.info("AppSceneContext#loadScenePackage0 done");
+        }).catch(function (e) {
+            console.info("AppSceneContext#loadScenePackage1");
+            _this.runScriptInNewVMContext(packageUri, moduleLoader, null);
+            console.info("AppSceneContext#loadScenePackage1 done");
         });
       } else {
         var manifest = moduleLoader.getManifest();
+        console.info("AppSceneContext#loadScenePackage2");
         _this.runScriptInNewVMContext(packageUri, moduleLoader, manifest.getConfigImport());
+        console.info("AppSceneContext#loadScenePackage2 done");
       }
     })
-    .catch(function(err) {
+    .catch(function (err) {
+      console.info("AppSceneContext#loadScenePackage3");
       thisMakeReady(false, {});
       console.error("AppSceneContext#loadScenePackage: Error: Did not load fileArchive: Error=" + err );
     });
@@ -268,74 +316,83 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (packageUri, module
   var self = this;
   var newSandbox;
   try {
-    var requireMethod = function (pkg) {
-      log.message(3, "old use of require not supported: " + pkg);
-      // TODO: remove
-      return requireIt(pkg);
-    };
+    if (!isDuk) {
+      var requireMethod = function (pkg) {
+        log.message(3, "old use of require not supported: " + pkg);
+        // TODO: remove
+        return requireIt(pkg);
+      };
 
-    var requireFileOverridePath = process.env.PXSCENE_REQUIRE_ENABLE_FILE_PATH;
-    var requireEnableFilePath = "/tmp/";
-    if (process.env.HOME && process.env.HOME !== '') {
-      requireEnableFilePath = process.env.HOME;
-    }
-    if (requireFileOverridePath && requireFileOverridePath !== ''){
-      requireEnableFilePath = requireFileOverridePath;
+      var requireFileOverridePath = process.env.PXSCENE_REQUIRE_ENABLE_FILE_PATH;
+      var requireEnableFilePath = "/tmp/";
+      if (process.env.HOME && process.env.HOME !== '') {
+        requireEnableFilePath = process.env.HOME;
+      }
+      if (requireFileOverridePath && requireFileOverridePath !== '') {
+        requireEnableFilePath = requireFileOverridePath;
+      }
+
+      var fs = require("fs");
+      var requireEnableFile = requireEnableFilePath + "/.pxsceneEnableRequire";
+      if (fs.existsSync(requireEnableFile)) {
+        console.log("enabling pxscene require support");
+        requireMethod = require;
+      }
     }
 
-    var fs = require("fs");
-    var requireEnableFile = requireEnableFilePath + "/.pxsceneEnableRequire";
-    if (fs.existsSync(requireEnableFile)) {
-      console.log("enabling pxscene require support");
-      requireMethod = require;
-    }
-    
     newSandbox = {
       sandboxName: "InitialSandbox",
       xmodule: xModule,
       console: console,
       runtime: apiForChild,
-      process: process,
       urlModule: require("url"),
       queryStringModule: require("querystring"),
       theNamedContext: "Sandbox: " + uri,
       Buffer: Buffer,
-      require: requireMethod,
-      global: global,
-      setTimeout: function (callback, after, arg1, arg2, arg3) {
-        //pass the timers list to callback function on timeout
-        var timerId = SetTimeout(setTimeoutCallback, after, this.timers, function() { callback(arg1, arg2, arg3)});
-        this.timers.push(timerId);
-        return timerId;
-      }.bind(this),
-      clearTimeout: function (timer) {
-        var index = this.timers.indexOf(timer);
-        if (index != -1)
-        {
-          this.timers.splice(index,1);
-        }
-        ClearTimeout(timer);
-      }.bind(this),
-      setInterval: function (callback, repeat, arg1, arg2, arg3) {
-        var intervalId = SetInterval(callback, repeat, arg1, arg2, arg3);
-        this.timerIntervals.push(intervalId);
-        return intervalId;
-      }.bind(this),
-      clearInterval: function (timer) {
-        var index = this.timerIntervals.indexOf(timer);
-        if (index != -1)
-        {
-          this.timerIntervals.splice(index,1);
-        }
-        ClearInterval(timer);
-      }.bind(this),
       importTracking: {}
     }; // end sandbox
+
+    if (!isDuk) {
+      newSandbox = Object.assign(newSandbox, {
+        process: process,
+        require: requireMethod,
+        global: global,
+        setTimeout: function (callback, after, arg1, arg2, arg3) {
+          //pass the timers list to callback function on timeout
+          var timerId = SetTimeout(setTimeoutCallback, after, this.timers, function() { callback(arg1, arg2, arg3)});
+          this.timers.push(timerId);
+          return timerId;
+        }.bind(this),
+        clearTimeout: function (timer) {
+          var index = this.timers.indexOf(timer);
+          if (index != -1)
+          {
+            this.timers.splice(index,1);
+          }
+          ClearTimeout(timer);
+        }.bind(this),
+        setInterval: function (callback, repeat, arg1, arg2, arg3) {
+          var intervalId = SetInterval(callback, repeat, arg1, arg2, arg3);
+          this.timerIntervals.push(intervalId);
+          return intervalId;
+        }.bind(this),
+        clearInterval: function (timer) {
+          var index = this.timerIntervals.indexOf(timer);
+          if (index != -1)
+          {
+            this.timerIntervals.splice(index,1);
+          }
+          ClearInterval(timer);
+        }.bind(this),
+        importTracking: {}
+      });
+    }
 
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
     xModule.initSandbox(newSandbox);
     thisAppSceneContext.sandbox = newSandbox; //xModule.sandbox;
+
 
     try {
       //JRJRJRJR  This line causing a garbage collection leak...
@@ -343,22 +400,30 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (packageUri, module
 //      this.innerscene.api = {isReady:false, onModuleReady:onAppModuleReady.bind(this) };
 
       var sourceCode = AppSceneContext.wrap(code);
-      //var script = new vm.Script(sourceCode, fname);
-      //var moduleFunc = script.runInNewContext(newSandbox, {filename:fname, displayErrors:true});
-      // fix debug under windows issue
-      var moduleFunc = vm.runInNewContext(sourceCode, newSandbox, {filename:path.normalize(fname), displayErrors:true});
+      log.message(4, "createModule_pxScope.call()");
+      var px = createModule_pxScope.call(this, xModule);
+      log.message(4, "createModule_pxScope.call() done");
+      if (isDuk) {
+        vm.runInNewContext(sourceCode, newSandbox, {
+          filename: path.normalize(fname),
+          displayErrors: true
+        }, px, xModule, fname, this.basePackageUri);
+      } else {
+        var moduleFunc = vm.runInNewContext(sourceCode, newSandbox, {
+          filename: path.normalize(fname),
+          displayErrors: true
+        });
+        moduleFunc(px, xModule, fname, this.basePackageUri);
+      }
+      log.message(4, "vm.runInNewContext done");
 
-      if (process._debugWaitConnect) {
+      if (!isDuk && process._debugWaitConnect) {
         // Set breakpoint on module start
         if (process.env.BREAK_ON_SCRIPTSTART != 1)
           delete process._debugWaitConnect;
         const Debug = vm.runInDebugContext('Debug');
         Debug.setBreakPoint(moduleFunc, 0, 0);
       }
-
-      var px = createModule_pxScope.call(this, xModule);
-      var rtnObject = moduleFunc(px, xModule, fname, this.basePackageUri);
-      rtnObject = xModule.exports;
 /*
 if (false) {
       // TODO do the old scenes context get released when we reload a scenes url??
@@ -375,11 +440,11 @@ if (false) {
 }
 */
 
-      //console.log("Main Module: readyPromise=" + xModule.moduleReadyPromise);
+      console.log("Main Module: readyPromise=" + xModule.moduleReadyPromise);
       if( !xModule.hasOwnProperty('moduleReadyPromise') || xModule.moduleReadyPromise === null ) {
-//        this.container.makeReady(true); // DEPRECATED ?
+        //        this.container.makeReady(true); // DEPRECATED ?
 
-//        this.innerscene.api = {isReady:true};
+        //        this.innerscene.api = {isReady:true};
         this.makeReady(true,{});
       }
       else
@@ -391,7 +456,9 @@ if (false) {
         {
           self.innerscene.api = xModule.exports;
 
-          thisMakeReady(true,xModule.exports);
+          console.log("Main module[" + self.packageUrl + "] about to notify");
+          thisMakeReady(true, xModule.exports);
+          console.log("Main module[" + self.packageUrl + "] about to notify done");
 
         }).catch( function(err)
         {
@@ -399,7 +466,6 @@ if (false) {
           thisMakeReady(false,{});
         } );
       }
-
     }
     catch (err) {
       console.error("failed to run app:" + uri);
@@ -428,6 +494,7 @@ if (false) {
 AppSceneContext.prototype.getPackageBaseFilePath = function() {
   var fullPath;
   var pkgPart;
+  var platform = (isDuk)?uv.platform:process.platform;
   if (this.basePackageUri.substring(0, 4) !== "http") {
     if (this.basePackageUri.charAt(0) == '.') {
       pkgPart = this.basePackageUri.substring(1);
@@ -436,9 +503,9 @@ AppSceneContext.prototype.getPackageBaseFilePath = function() {
     }
     if (pkgPart.charAt(0) == '/') {
       fullPath = this.defaultBaseUri + pkgPart;
-    } else if(process.platform === 'win32' && pkgPart.charAt(1) === ':' ) {
+    } else if(platform === 'win32' && pkgPart.charAt(1) === ':' ) {
       // Windows OS and using drive name, take the pkg part as the file path
-      fullPath = pkgPart;   
+      fullPath = pkgPart;
     } else {
       fullPath = this.defaultBaseUri + "/" + pkgPart;
     }
@@ -507,6 +574,11 @@ AppSceneContext.prototype.include = function(filePath, currentXModule) {
 
   return new Promise(function (onImportComplete, reject) {
     if( filePath === 'px' || filePath === 'url' || filePath === 'querystring' || filePath === 'htmlparser') {
+      if (isDuk && filePath === 'htmlparser') {
+        console.log("Not permitted to use the module " + filePath);
+        reject("include failed due to module not permitted");
+        return;
+      }
       // built-ins
       var modData = require(filePath);
       onImportComplete([modData, origFilePath]);
@@ -516,11 +588,34 @@ AppSceneContext.prototype.include = function(filePath, currentXModule) {
       reject("include failed due to module not permitted");
       return;
     } else if( filePath === 'net' || filePath === 'ws' ) {
+      if (isDuk && filePath === 'ws') {
+        console.log("creating websocket instance")
+        modData = websocket;
+        onImportComplete([modData, origFilePath]);
+        return;
+      }
+      if (!isDuk && filePath === 'ws')
+      {
+        var wsdata = require('rcvrcore/' + filePath + '_wrap');
+        _this.webSocketManager = new wsdata();
+
+        var WebSocket = (function() {
+          var context = this;
+          function WebSocket(address, protocol, options) {
+            var client = context.webSocketManager.WebSocket(address, protocol, options);
+            return client;
+          }
+          return WebSocket;
+         }.bind(_this))();
+        modData = WebSocket;
+        onImportComplete([modData, origFilePath]);
+        return;
+      }
       modData = require('rcvrcore/' + filePath + '_wrap');
       onImportComplete([modData, origFilePath]);
       return;
     } else if( filePath === 'http' || filePath === 'https' ) {
-      modData = filePath === 'http' ? new http_wrap(_this.innerscene) : new https_wrap(_this.innerscene);
+      modData = filePath === 'http' ? new http_wrap(_this.accessControl) : new https_wrap(_this.accessControl);
       onImportComplete([modData, origFilePath]);
       return;
     } else if( filePath.substring(0, 9) === "px:scene.") {
@@ -534,6 +629,11 @@ AppSceneContext.prototype.include = function(filePath, currentXModule) {
       return;
     } else if( filePath.substring(0,9) === "px:tools.") {
       modData = require('rcvrcore/tools/' + filePath.substring(9));
+      onImportComplete([modData, origFilePath]);
+      return;
+    }
+    else if( filePath.substring(0,7) === "optimus") {
+      modData = require('rcvrcore/optimus.js');
       onImportComplete([modData, origFilePath]);
       return;
     }
@@ -630,10 +730,16 @@ AppSceneContext.prototype.processCodeBuffer = function(origFilePath, filePath, c
   }
 
   var sourceCode = AppSceneContext.wrap(codeBuffer);
-  var moduleFunc = vm.runInContext(sourceCode, _this.sandbox, {filename:filePath, displayErrors:true});
-  var px = createModule_pxScope.call(this, xModule);
   log.message(4, "RUN " + filePath);
-  moduleFunc(px, xModule, filePath, filePath);
+  var px = createModule_pxScope.call(this, xModule);
+  if (isDuk) {
+    vm.runInNewContext(sourceCode, _this.sandbox, { filename: filePath, displayErrors: true },
+                         px, xModule, filePath, filePath);
+  }
+  else {
+    var moduleFunc = vm.runInContext(sourceCode, _this.sandbox, {filename:filePath, displayErrors:true});
+    moduleFunc(px, xModule, filePath, filePath);
+  }
   log.message(4, "RUN DONE: " + filePath);
   this.setXModule(filePath, xModule);
 
@@ -666,9 +772,9 @@ AppSceneContext.prototype.processCodeBuffer = function(origFilePath, filePath, c
 };
 
 AppSceneContext.prototype.onResize = function(resizeEvent) {
-  var hrTime = process.hrtime(this.lastHrTime);
+  var hrTime = isDuk?uv.hrtime():process.hrtime(this.lastHrTime);
   var deltaMillis = (hrTime[0] * 1000 + hrTime[1] / 1000000);
-  this.lastHrTime = process.hrtime();
+  this.lastHrTime = isDuk?uv.hrtime():process.hrtime();
   if( deltaMillis > 300 ) {
     if( this.resizeTimer !== null ) {
       clearTimeout(this.resizeTimer);
@@ -701,6 +807,9 @@ AppSceneContext.prototype.callModuleReadyListeners = function(moduleName, module
     if( listeners !== null && listeners.length !== 0 ) {
       for(var k = 0; k < listeners.length; ++k) {
         listeners[k](moduleExports);
+      }
+      for(var k = 0; k < listeners.length; ++k) {
+        listeners.pop();
       }
     }
     this.scriptMap[moduleName].readyListeners = null;

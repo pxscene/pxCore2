@@ -27,12 +27,10 @@
 
 #include "pxPath.h"
 #include "pxCanvas.h"
-#include "pxContext.h"
+#include "pxCanvas2d.h"
 
 #include <stdio.h>
 #include "math.h"
-
-extern pxContext context;
 
 #ifdef USE_PERF_TIMERS
 #include "pxTimer.h"
@@ -42,8 +40,8 @@ rtDefineMethod(pxCanvas, drawPath);
 
 pxCanvas::pxCanvas(pxScene2d* scene): pxObject(scene)
 {
-  mw = 1280;// scene->w();
-  mh =  720;// scene->h();
+  mw = CANVAS_W;// scene->w();
+  mh = CANVAS_H;// scene->h();
 }
 
 pxCanvas::~pxCanvas()
@@ -115,7 +113,7 @@ rtError pxCanvas::drawPath(rtObjectRef path)
         x0 = p->getFloatAt(op); op += sizeof(float);
         y0 = p->getFloatAt(op); op += sizeof(float);
 
-        mCanvasCtx.moveTo(x0, y0);
+        mCanvasCtx.lineTo(x0, y0);
 
 //        printf("\nCanvas: SVG_OP_LINE( x0: %.1f, y0: %.1f) ", x0, y0);
       }
@@ -179,6 +177,7 @@ rtError pxCanvas::drawPath(rtObjectRef path)
   {
     mCanvasCtx.setStrokeColor(p->mStrokeColor);
     mCanvasCtx.setStrokeWidth(p->mStrokeWidth);
+    mCanvasCtx.setStrokeType(p->mStrokeType);
     needsStroke = true;
   }
 
@@ -186,25 +185,11 @@ rtError pxCanvas::drawPath(rtObjectRef path)
   if(needsFill || needsStroke)
   {
     pxMatrix4f m;
-    
-    float ss = p->mStrokeWidth/2;
-    
-    if(ss > 0)
-    {
-      m.translate(ss, ss);
-      mCanvasCtx.setMatrix(m);
-    }
   
     // - - - - - - - - - - - - - - - - - - -
     if(needsFill)   mCanvasCtx.fill();
     if(needsStroke) mCanvasCtx.stroke();
     // - - - - - - - - - - - - - - - - - - -
-
-    if(ss > 0)
-    {
-      m.translate(ss*2, -ss*2);
-      p->applyMatrix(m);
-    }
     
 #if 0
 #ifdef PX_PLATFORM_MAC
@@ -231,8 +216,27 @@ rtError pxCanvas::drawPath(rtObjectRef path)
     p->setExtentRight(  mCanvasCtx.extentRight  );
     p->setExtentBottom( mCanvasCtx.extentBottom );
     
-    p->setW(mCanvasCtx.extentRight  + p->mStrokeWidth);
-    p->setH(mCanvasCtx.extentBottom + p->mStrokeWidth);
+    float sw = 0;
+    
+    p->strokeWidth(sw); // GET current Stroke Width
+    
+    switch( mCanvasCtx.strokeType() )
+    {
+      case pxCanvas2d::StrokeType::inside:  sw  = 0; break;
+      case pxCanvas2d::StrokeType::outside: sw *= 2; break;
+      case pxCanvas2d::StrokeType::center:  /* ok */ break;
+    }
+    
+    // Set path POSITION
+//    p->setX(mCanvasCtx.extentLeft);
+//    p->setY(mCanvasCtx.extentTop);
+    
+//    float w = (mCanvasCtx.extentRight  - mCanvasCtx.extentLeft);
+//    float h = (mCanvasCtx.extentBottom - mCanvasCtx.extentTop);
+//    
+//    // Set path DIMENSIONS
+//    p->setW(w + sw);
+//    p->setH(h + sw);
  }
   
   return RT_OK;

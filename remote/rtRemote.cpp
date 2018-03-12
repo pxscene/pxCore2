@@ -6,7 +6,6 @@
 #include "rtRemoteObjectCache.h"
 #include "rtRemoteServer.h"
 #include "rtRemoteStream.h"
-#include "rtRemoteNameService.h"
 #include "rtRemoteEnvironment.h"
 #include "rtRemoteConfigBuilder.h"
 
@@ -18,7 +17,6 @@
 #include <rtLog.h>
 #include <unistd.h>
 
-static rtRemoteNameService* gNs = nullptr;
 static std::mutex gMutex;
 static rtRemoteEnvironment* gEnv = nullptr;
 
@@ -35,8 +33,8 @@ rtRemoteInit(rtRemoteEnvironment* env)
     e = env->Server->open();
     if (e != RT_OK)
       rtLogError("failed to open rtRemoteServer. %s", rtStrError(e));
-
-    env->start();
+    else
+      env->start();
   }
   else
   {
@@ -53,32 +51,20 @@ rtRemoteInit(rtRemoteEnvironment* env)
   return e;
 }
 
-rtError
-rtRemoteInitNs(rtRemoteEnvironment* env)
-{
-  rtError e = RT_OK;
-  //rtRemoteConfig::getInstance();
-  if (gNs == nullptr)
-  {
-    gNs = new rtRemoteNameService(env);
-    e = gNs->init();
-  }
-
-  return e;
-}
-
 extern rtError rtRemoteShutdownStreamSelector();
 
 rtError
-rtRemoteShutdown(rtRemoteEnvironment* env)
+rtRemoteShutdown(rtRemoteEnvironment* env, bool immediate)
 {
   rtError e = RT_FAIL;
   std::lock_guard<std::mutex> lock(gMutex);
 
-  env->RefCount--;
-  if (env->RefCount == 0)
+  if (!--env->RefCount || immediate)
   {
-    rtLogInfo("environment reference count is zero, deleting");
+    if (env->RefCount)
+      rtLogWarn("immediate shutdown (reference count: %u), deleting", env->RefCount);
+    else
+      rtLogInfo("environment reference count is zero, deleting");
     env->shutdown();
     if (env == gEnv)
       gEnv = nullptr;
@@ -92,17 +78,6 @@ rtRemoteShutdown(rtRemoteEnvironment* env)
   }
 
   return e;
-}
-
-rtError
-rtRemoteShutdownNs()
-{
-  if (gNs)
-  {
-    delete gNs;
-    gNs = nullptr;
-  }
-  return RT_OK;
 }
 
 rtError

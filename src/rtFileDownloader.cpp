@@ -87,18 +87,18 @@ static size_t HeaderCallback(void *contents, size_t size, size_t nmemb, void *us
 {
   size_t downloadSize = size * nmemb;
   struct MemoryStruct *mem = (struct MemoryStruct *)userp;
-  
+
   mem->headerBuffer = (char*)realloc(mem->headerBuffer, mem->headerSize + downloadSize + 1);
   if(mem->headerBuffer == NULL) {
-    /* out of memory! */ 
+    /* out of memory! */
     cout << "out of memory when downloading image\n";
     return 0;
   }
- 
+
   memcpy(&(mem->headerBuffer[mem->headerSize]), contents, downloadSize);
   mem->headerSize += downloadSize;
   mem->headerBuffer[mem->headerSize] = 0;
-  
+
   return downloadSize;
 }
 
@@ -111,15 +111,15 @@ static size_t WriteMemoryCallback(void *contents, size_t size, size_t nmemb, voi
 
   mem->contentsBuffer = (char*)realloc(mem->contentsBuffer, mem->contentsSize + downloadSize + 1);
   if(mem->contentsBuffer == NULL) {
-    /* out of memory! */ 
+    /* out of memory! */
     cout << "out of memory when downloading image\n";
     return 0;
   }
- 
+
   memcpy(&(mem->contentsBuffer[mem->contentsSize]), contents, downloadSize);
   mem->contentsSize += downloadSize;
   mem->contentsBuffer[mem->contentsSize] = 0;
-  
+
   return downloadSize;
 }
 
@@ -147,13 +147,13 @@ void onDownloadHandleCheck()
   }
 }
 
-rtFileDownloadRequest::rtFileDownloadRequest(const char* imageUrl, void* callbackData) 
+rtFileDownloadRequest::rtFileDownloadRequest(const char* imageUrl, void* callbackData)
       : mFileUrl(imageUrl), mProxyServer(),
     mErrorString(), mHttpStatusCode(0), mCallbackFunction(NULL), mDownloadProgressCallbackFunction(NULL), mDownloadProgressUserPtr(NULL),
     mDownloadedData(0), mDownloadedDataSize(), mDownloadStatusCode(0) ,mCallbackData(callbackData),
     mCallbackFunctionMutex(), mHeaderData(0), mHeaderDataSize(0), mHeaderOnly(false), mDownloadHandleExpiresTime(-2)
 #ifdef ENABLE_HTTP_CACHE
-    , mCacheEnabled(true), mIsDataInCache(false)
+    , mCacheEnabled(true), mIsDataInCache(false), mDeferCacheRead(false)
 #endif
     , mIsProgressMeterSwitchOff(false), mHTTPFailOnError(false), mDefaultTimeout(false)
 {
@@ -162,7 +162,7 @@ rtFileDownloadRequest::rtFileDownloadRequest(const char* imageUrl, void* callbac
   memset(mHttpErrorBuffer, 0, sizeof(mHttpErrorBuffer));
 #endif
 }
-        
+
 rtFileDownloadRequest::~rtFileDownloadRequest()
 {
   if (mDownloadedData  != NULL)
@@ -178,30 +178,30 @@ rtFileDownloadRequest::~rtFileDownloadRequest()
   mAdditionalHttpHeaders.clear();
   mHeaderOnly = false;
 }
-  
+
 void rtFileDownloadRequest::setFileUrl(const char* imageUrl) { mFileUrl = imageUrl; }
 rtString rtFileDownloadRequest::fileUrl() const { return mFileUrl; }
-    
+
 void rtFileDownloadRequest::setProxy(const char* proxyServer)
 {
   mProxyServer = proxyServer;
 }
-    
+
 rtString rtFileDownloadRequest::proxy() const
 {
   return mProxyServer;
 }
-  
+
 void rtFileDownloadRequest::setErrorString(const char* errorString)
 {
   mErrorString = errorString;
 }
-    
+
 rtString rtFileDownloadRequest::errorString()
 {
   return mErrorString;
 }
-  
+
 void rtFileDownloadRequest::setCallbackFunction(void (*callbackFunction)(rtFileDownloadRequest*))
 {
   mCallbackFunction = callbackFunction;
@@ -219,17 +219,17 @@ void rtFileDownloadRequest::setCallbackFunctionThreadSafe(void (*callbackFunctio
   mCallbackFunction = callbackFunction;
   mCallbackFunctionMutex.unlock();
 }
-  
+
 long rtFileDownloadRequest::httpStatusCode()
 {
   return mHttpStatusCode;
 }
-  
+
 void rtFileDownloadRequest::setHttpStatusCode(long statusCode)
 {
   mHttpStatusCode = statusCode;
 }
-    
+
 bool rtFileDownloadRequest::executeCallback(int statusCode)
 {
   mDownloadStatusCode = statusCode;
@@ -253,24 +253,24 @@ bool rtFileDownloadRequest::executeDownloadProgressCallback(void * ptr, size_t s
   }
   return false;
 }
-  
+
 void rtFileDownloadRequest::setDownloadedData(char* data, size_t size)
 {
   mDownloadedData = data;
   mDownloadedDataSize = size;
 }
-  
+
 void rtFileDownloadRequest::downloadedData(char*& data, size_t& size)
 {
   data = mDownloadedData;
-  size = mDownloadedDataSize; 
+  size = mDownloadedDataSize;
 }
-  
+
 char* rtFileDownloadRequest::downloadedData()
 {
   return mDownloadedData;
 }
-  
+
 size_t rtFileDownloadRequest::downloadedDataSize()
 {
   return mDownloadedDataSize;
@@ -307,17 +307,17 @@ void rtFileDownloadRequest::setDownloadStatusCode(int statusCode)
 {
   mDownloadStatusCode = statusCode;
 }
-  
+
 int rtFileDownloadRequest::downloadStatusCode()
 {
   return mDownloadStatusCode;
 }
-  
+
 void* rtFileDownloadRequest::callbackData()
 {
   return mCallbackData;
 }
-  
+
 void rtFileDownloadRequest::setCallbackData(void* callbackData)
 {
   mCallbackData = callbackData;
@@ -366,6 +366,29 @@ bool rtFileDownloadRequest::isDataCached()
   return mIsDataInCache;
 }
 
+void rtFileDownloadRequest::setDeferCacheRead(bool val)
+{
+  mDeferCacheRead = val;
+}
+
+bool rtFileDownloadRequest::deferCacheRead()
+{
+  return mDeferCacheRead;
+}
+
+FILE* rtFileDownloadRequest::cacheFilePointer(void)
+{
+  rtHttpCacheData cachedData(this->fileUrl().cString());
+
+  if (true == this->cacheEnabled())
+  {
+    if ((NULL != rtFileCache::instance()) && (RT_OK == rtFileCache::instance()->httpCacheData(this->fileUrl(), cachedData)))
+    {
+      return cachedData.filePointer();
+    }
+  }
+  return NULL;
+}
 #endif //ENABLE_HTTP_CACHE
 
 void rtFileDownloadRequest::setProgressMeter(bool val)
@@ -388,7 +411,7 @@ bool rtFileDownloadRequest::isHTTPFailOnError()
   return mHTTPFailOnError;
 }
 
-void rtFileDownloadRequest::setHTTPError(char* httpError)
+void rtFileDownloadRequest::setHTTPError(const char* httpError)
 {
   if(httpError != NULL)
   {
@@ -422,7 +445,7 @@ rtString rtFileDownloadRequest::origin()
   return mOrigin;
 }
 
-rtFileDownloader::rtFileDownloader() 
+rtFileDownloader::rtFileDownloader()
     : mNumberOfCurrentDownloads(0), mDefaultCallbackFunction(NULL), mDownloadHandles(), mReuseDownloadHandles(false), mCaCertFile(CA_CERTIFICATE)
 {
 #ifdef PX_REUSE_DOWNLOAD_HANDLES
@@ -555,15 +578,26 @@ void rtFileDownloader::downloadFile(rtFileDownloadRequest* downloadRequest)
 
 #ifdef ENABLE_HTTP_CACHE
     // Store the network data in cache
-    if ((true == nwDownloadSuccess) && (true == downloadRequest->cacheEnabled()) && (downloadRequest->httpStatusCode() != 206) && (downloadRequest->httpStatusCode() != 302) && (downloadRequest->httpStatusCode() != 307))
+    if ((true == nwDownloadSuccess) &&
+        (true == downloadRequest->cacheEnabled())  &&
+        (downloadRequest->httpStatusCode() != 206) &&
+        (downloadRequest->httpStatusCode() != 302) &&
+        (downloadRequest->httpStatusCode() != 307))
     {
-      rtHttpCacheData downloadedData(downloadRequest->fileUrl(),downloadRequest->headerData(),downloadRequest->downloadedData(),downloadRequest->downloadedDataSize());
+      rtHttpCacheData downloadedData(downloadRequest->fileUrl(),
+                                     downloadRequest->headerData(),
+                                     downloadRequest->downloadedData(),
+                                     downloadRequest->downloadedDataSize());
+
       if (downloadedData.isWritableToCache())
       {
         if (NULL == rtFileCache::instance())
           rtLogWarn("cache data not added");
         else
+        {
           rtFileCache::instance()->addToCache(downloadedData);
+          rtLogInfo("Cache expiration(%s)", cachedData.expirationDate().cString());
+        }
       }
     }
 
@@ -581,6 +615,8 @@ void rtFileDownloader::downloadFile(rtFileDownloadRequest* downloadRequest)
         rtError err = rtFileCache::instance()->addToCache(cachedData);
         if (RT_OK != err)
           rtLogWarn("Adding url to cache failed (%s)", url.cString());
+        else
+          rtLogInfo("Cache expiration(%s)", cachedData.expirationDate().cString());
       }
     }
 
@@ -640,9 +676,9 @@ bool rtFileDownloader::downloadFromNetwork(rtFileDownloadRequest* downloadReques
     curl_easy_setopt(curl_handle, CURLOPT_TCP_KEEPIDLE, 60);
     curl_easy_setopt(curl_handle, CURLOPT_TCP_KEEPINTVL, 30);
 #endif //!PX_PLATFORM_GENERIC_DFB && !PX_PLATFORM_DFB_NON_X11
-    
+
     int downloadHandleExpiresTime = downloadRequest->downloadHandleExpiresTime();
-    
+
     vector<rtString>& additionalHttpHeaders = downloadRequest->additionalHttpHeaders();
     struct curl_slist *list = NULL;
     for (unsigned int headerOption = 0;headerOption < additionalHttpHeaders.size();headerOption++)
@@ -691,10 +727,10 @@ bool rtFileDownloader::downloadFromNetwork(rtFileDownloadRequest* downloadReques
         downloadRequest->setHTTPError(errorBuffer);
 
     /* check for errors */
-    if (res != CURLE_OK) 
+    if (res != CURLE_OK)
     {
         stringstream errorStringStream;
-        
+
         errorStringStream << "Download error for: " << downloadRequest->fileUrl().cString()
                 << ".  Error code : " << res << ".  Using proxy: ";
         if (useProxy)
@@ -705,17 +741,17 @@ bool rtFileDownloader::downloadFromNetwork(rtFileDownloadRequest* downloadReques
         {
             errorStringStream << "false";
         }
-        
+
         downloadRequest->setErrorString(errorStringStream.str().c_str());
         rtFileDownloader::instance()->releaseDownloadHandle(curl_handle, downloadHandleExpiresTime);
-        
+
         //clean up contents on error
         if (chunk.contentsBuffer != NULL)
         {
             free(chunk.contentsBuffer);
             chunk.contentsBuffer = NULL;
         }
-        
+
         if (chunk.headerBuffer != NULL)
         {
             free(chunk.headerBuffer);
@@ -778,7 +814,10 @@ bool rtFileDownloader::checkAndDownloadFromCache(rtFileDownloadRequest* download
   rtData data;
   if ((NULL != rtFileCache::instance()) && (RT_OK == rtFileCache::instance()->httpCacheData(downloadRequest->fileUrl(),cachedData)))
   {
-    err = cachedData.data(data);
+    if(downloadRequest->deferCacheRead())
+      err = cachedData.deferCacheRead(data);
+    else
+      err = cachedData.data(data);
     if (RT_OK !=  err)
     {
       return false;
@@ -802,9 +841,9 @@ void rtFileDownloader::downloadFileInBackground(rtFileDownloadRequest* downloadR
     {
       downloadRequest->setDownloadHandleExpiresTime(kDefaultDownloadHandleExpiresTime);
     }
-    
+
     rtThreadTask* task = new rtThreadTask(startFileDownloadInBackground, (void*)downloadRequest, downloadRequest->fileUrl());
-    
+
     mainThreadPool->executeTask(task);
 }
 

@@ -1,6 +1,6 @@
 
 px.import({ scene: 'px:scene.1.js',
-             keys: 'px:tools.keys.js'
+             keys: 'px:tools.keys'
 }).then(function importsAreReady(imports)
 {
     var scene = imports.scene;
@@ -212,10 +212,10 @@ px.import({ scene: 'px:scene.1.js',
         var assets = [fontRes, inputRes, inputBg, clipRect, prompt, textInput, textView, cursor, selection];
 
         Promise.all(assets)
-            .catch((err) => {
+            .catch(function (err) {
                 console.log(">>> Loading Assets ... err = " + err);
             })
-            .then((success, failure) => {
+            .then(function (success, failure)  {
 
                 clipRect.interactive  = false;
                 prompt.interactive    = false;
@@ -328,7 +328,7 @@ px.import({ scene: 'px:scene.1.js',
 
 //             console.log(">>> textView.onMouseEnter   showFocus:" + showFocus );
 
-            if(showFocus)
+            if(this.showFocus)
             {
                 textInputBG.a = 0.5;
             }
@@ -340,14 +340,14 @@ px.import({ scene: 'px:scene.1.js',
 
 //            console.log(">>> textView.onMouseLeave   showFocus:" + showFocus + " keepFocus:  " + keepFocus);
 
-            if(showFocus)
+            if(this.showFocus)
             {
                 textInputBG.a = 0.25;
             }
 
             buttonDown = false;
 
-            if(keepFocus === false)
+            if(this.keepFocus === false)
             {
                 hideCursor();
                 clearSelection();
@@ -668,7 +668,7 @@ px.import({ scene: 'px:scene.1.js',
             var metrics;
             var pos_x = 0;
 
-            let lo = -1, hi = array.length;
+            var lo = -1, hi = array.length;
             while (1 + lo !== hi)
             {
                 var mi = lo + ((hi - lo) >> 1);
