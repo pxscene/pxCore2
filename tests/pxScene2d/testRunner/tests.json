@@ -26,8 +26,6 @@
       {"url":"../tests/test_moveForwardBackward.js", "title":"test_moveForwardBackward","useBaseURI":"true"},
       {"url":"../tests/test_draw_SVG_paths.js", "title":"test_draw_SVG_paths","useBaseURI":"true"},
       {"url":"../tests/test_xre2-267.js",  "title":"test_xre2-267","useBaseURI":"true"},
-      {"url":"../tests/test_permissions.js?role=full_trust#", "title":"test_permissions#full_trust","useBaseURI":"true"},
-      {"url":"../tests/test_permissions.js?role=untrust#", "title":"test_permissions#untrust","useBaseURI":"true"},
-      {"url":"../tests/test_permissions.js?role=limited_trust#", "title":"test_permissions#limited_trust","useBaseURI":"true"},
+      {"url":"../tests/test_permissions.js", "title":"test_permissions","useBaseURI":"true"},
       {"url":"../tests/test_permissionsDefault.js", "title":"test_permissionsDefault","useBaseURI":"true"}
 ]
