@@ -1,6 +1,3 @@
-// rtCore CopyRight 2007-2015 John Robinson
-// rtValue.h
-
 /*
 
  pxCore Copyright 2005-2018 John Robinson
@@ -19,6 +16,7 @@
 
 */
 
+// rtValue.h
 #ifndef RT_VALUE_H
 #define RT_VALUE_H
 
