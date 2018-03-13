@@ -1,6 +1,7 @@
 [
       {"url": "http://pxscene.org/examples/px-reference/gallery/fancy.js", "title": "fancy", "timeToRun": "5000", "useBaseURI": "false" },
       {"url": "http://pxscene.org/examples/px-reference/gallery/picturepile.js", "title": "picturepile", "timeToRun": "5000", "useBaseURI": "false" },
+      {"url": "http://pxscene.org/examples/px-reference/gallery/gallery.js", "title": "gallery", "timeToRun": "15000", "useBaseURI": "false" },
       {"url":"../tests/simpleTestApi.js", "title":"simpleTestApi","useBaseURI":"true"},
       {"url":"../tests/textbox_auto.js", "title":"textbox auto","useBaseURI":"true"},
       {"url":"../tests/text2tests.js", "title":"text2tests","useBaseURI":"true"},
@@ -10,6 +11,7 @@
       {"url":"../tests/test_getObjectById.js", "title":"test_getObjectById","useBaseURI":"true"},
       {"url":"https://px-apps.sys.comcast.net/pxscene-samples/examples/px-reference/gallery/coverflowtest_v2.js","title":"coverflow", "timeToRun":"10000"},
       {"url":"../tests/test_fancyNewAnimate.js", "title":"fancyNewAnimate","useBaseURI":"true","timeToRun":"10000"},
+      {"url":"../tests/test_pxConstants.js", "title":"test_pxConstants","useBaseURI":"true"},
       {"url":"../tests/test_pxImageA.js", "title":"test_pxImageA","useBaseURI":"true"},
       {"url":"../tests/test_promiseCreationImage.js", "title":"test_promiseCreationImage","useBaseURI":"true"},
       {"url":"../tests/test_promiseCreationImage9.js", "title":"test_promiseCreationImage9","useBaseURI":"true"},
