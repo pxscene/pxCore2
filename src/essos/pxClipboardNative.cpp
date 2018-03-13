@@ -1,7 +1,4 @@
-//
 //  pxClipboardNative.cpp
-//  pxScene
-//
 
 #include <stdio.h>
 

@@ -1,5 +1,3 @@
-// pxCore CopyRight 2005-2015 John Robinson
-// Portable Framebuffer and Windowing Library
 // pxWindowNativeGlut.h
 
 #ifndef PX_WINDOW_NATIVE_GLUT_H

@@ -1,5 +1,3 @@
-// pxCore CopyRight 2007-2015 John Robinson
-// Portable Framebuffer and Windowing Library
 // pxBufferNative.cpp
 
 #include "../pxCore.h"

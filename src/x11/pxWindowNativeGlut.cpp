@@ -1,5 +1,3 @@
-// pxCore CopyRight 2005-2006 John Robinson
-// Portable Framebuffer and Windowing Library
 // pxWindowNativeGlut.cpp
 
 #include "../pxCore.h"

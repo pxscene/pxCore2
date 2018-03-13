@@ -1,5 +1,3 @@
-// pxCore CopyRight 2007-2009 John Robinson
-// Portable Framebuffer and Windowing Library
 // pxOffscreenNative.cpp
 
 #define PX_NATIVE

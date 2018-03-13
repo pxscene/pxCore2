@@ -1,6 +1,6 @@
 /*
 
- pxCore Copyright 2005-2017 John Robinson
+ pxCore Copyright 2005-2018 John Robinson
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -214,7 +214,7 @@ rtError rtPermissions::loadBootstrapConfig(const char* filename)
   if (!result)
   {
     rapidjson::ParseErrorCode e = doc.GetParseError();
-    rtLogWarn("%s : [JSON parse error : %s (%ld)]", __FUNCTION__, rapidjson::GetParseError_En(e), result.Offset());
+    rtLogWarn("%s : [JSON parse error : %s (%d)]", __FUNCTION__, rapidjson::GetParseError_En(e), result.Offset());
     return RT_FAIL;
   }
 
@@ -259,7 +259,7 @@ rtError rtPermissions::loadBootstrapConfig(const char* filename)
     mRolesMap[key.GetString()] = permissionsJsonToMap(val);
   }
 
-  rtLogInfo("%s : %ld roles, %ld assigned urls", __FUNCTION__, mRolesMap.size(), mAssignMap.size());
+  rtLogInfo("%s : %d roles, %d assigned urls", __FUNCTION__, mRolesMap.size(), mAssignMap.size());
   return RT_OK;
 }
 

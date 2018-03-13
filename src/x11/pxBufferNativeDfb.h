@@ -1,5 +1,3 @@
-// pxCore CopyRight 2007 John Robinson
-// Portable Framebuffer and Windowing Library
 // pxBufferNativeDfb.h
 
 #ifndef PX_BUFFER_NATIVE_DFB_H

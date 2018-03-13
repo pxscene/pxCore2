@@ -1,5 +1,3 @@
-// pxCore CopyRight 2005-2015 John Robinson
-// Portable Framebuffer and Windowing Library
 // pxEventLoopNative.cpp
 
 #include "../pxEventLoop.h"
