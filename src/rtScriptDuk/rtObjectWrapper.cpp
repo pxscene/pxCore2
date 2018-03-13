@@ -539,28 +539,8 @@ void rtObjectWrapper::createFromObjectReference(duk_context *ctx, const rtObject
     {
       rtError err = const_cast<rtObjectRef &>(ref).sendReturns<rtString>("description", desc);
 
-
-
       if (err == RT_OK && strcmp(desc.cString(), "rtPromise") == 0)
       {
-        #if 1
-        rtString val;
-        ref.get("promiseId", val);
-
-        if (!val.isEmpty()) {
-          duk_bool_t rt = duk_get_global_string(ctx, val.cString());
-
-          assert(rt);
-
-          // [js-promise]
-          assert(duk_is_object(ctx, -1));
-          return;
-        }
-        #else
-        if (!ref.get<rtString>("promiseId").isEmpty())
-          return;
-        #endif
-
         duk_bool_t rt = duk_get_global_string(ctx, "constructPromise");
         // [func] 
         assert(rt);
@@ -574,21 +554,9 @@ void rtObjectWrapper::createFromObjectReference(duk_context *ctx, const rtObject
           assert(0);
         }
 
-#if 1
-#if 1
         // [js-promise]
         assert(duk_is_object(ctx, -1));
 
-        duk_dup(ctx, -1);
-
-        // [ obj ]
-        std::string promiseObjName = rtDukPutIdentToGlobal(ctx);
- 
-        const_cast<rtObjectRef &>(ref).set("promiseId", rtString(promiseObjName.c_str()));
-#else
-        const_cast<rtObjectRef &>(ref).set("promiseId", "blah");  
-#endif
-#endif
         return;
       }
     }

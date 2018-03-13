@@ -1184,6 +1184,13 @@ rtError rtScriptDuk::pump()
 
 rtError rtScriptDuk::collectGarbage()
 {
+  for (int i = 0; i < uvLoops.size(); ++i) {
+    duk_context *ctx = (duk_context *)uvLoops[i]->data;
+
+    // there need to be 2 calls here (see function documentation)
+    duk_gc(ctx, 0);
+    duk_gc(ctx, 0);
+  }
   return RT_OK;
 }
 
