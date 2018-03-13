@@ -103,7 +103,9 @@ rtError pxCanvas::drawPath(rtObjectRef path)
 
         mCanvasCtx.moveTo(x0, y0);
 
-//        printf("\nCanvas: SVG_OP_MOVE( %.1f, %.1f ) ", x0,y0);
+        // rtLogWarn("Canvas:   SVG_OP_MOVE( x0: %.1f, y0: %.1f) ####### HF", x0, y0);
+
+//        printf("\nCanvas: SVG_OP_MOVE( x0: %.1f, y0: %.1f ) ", x0,y0);
       }
       break;
 
@@ -115,7 +117,9 @@ rtError pxCanvas::drawPath(rtObjectRef path)
 
         mCanvasCtx.lineTo(x0, y0);
 
-//        printf("\nCanvas: SVG_OP_LINE( x0: %.1f, y0: %.1f) ", x0, y0);
+        // rtLogWarn("Canvas:   SVG_OP_LINE( x0: %.1f, y0: %.1f) ####### HF", x0, y0);
+
+//       printf("\nCanvas: SVG_OP_LINE( x0: %.1f, y0: %.1f) ", x0, y0);####### HF
       }
       break;
 
