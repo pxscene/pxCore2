@@ -53,6 +53,9 @@ if (APPLE)
             mac/pxClipboardNative.mm mac/window.mm
             unix/rtMutexNative.cpp unix/rtThreadPoolNative.cpp
             rtFileCache.cpp rtHttpCache.cpp)
+     	if (SUPPORT_DUKTAPE)
+          set(PXCORE_FILES ${PXCORE_FILES} rtScriptDuk/debugger/unix/duk_debugger_interface.c)
+        endif (SUPPORT_DUKTAPE)
     set(PLATFORM_LINKER_FLAGS "-framework Cocoa -framework Foundation")
     include_directories(AFTER ${ZLIBINC} ${CURLINC} ${JPGINC} ${JPGTURBOINC} ${PNGINC})
     if (DEFINED ENV{CODE_COVERAGE})
@@ -78,6 +81,9 @@ elseif (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
                 gles/pxClipboardNative.cpp gles/pxEGLProviderRPi.cpp gles/LinuxInputEventDispatcher.cpp pxViewWindow.cpp
                 unix/rtMutexNative.cpp unix/rtThreadPoolNative.cpp
                 rtFileCache.cpp rtHttpCache.cpp)
+         if (SUPPORT_DUKTAPE)
+          set(PXCORE_FILES ${PXCORE_FILES} rtScriptDuk/debugger/unix/duk_debugger_interface.c)
+        endif (SUPPORT_DUKTAPE)
         set(PLATFORM_LINKER_FLAGS)
         include_directories(AFTER /opt/vc/include /opt/vc/include/interface/vcos/pthreads
                 /opt/vc/include/interface/vmcs_host/linux /opt/vc/include)
@@ -132,6 +138,9 @@ elseif (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
                 glut/pxEventLoopNative.cpp glut/pxTimerNative.cpp glut/pxClipboardNative.cpp pxViewWindow.cpp
                 unix/rtMutexNative.cpp unix/rtThreadPoolNative.cpp
                 rtFileCache.cpp rtHttpCache.cpp)
+     	if (SUPPORT_DUKTAPE)
+          set(PXCORE_FILES ${PXCORE_FILES} rtScriptDuk/debugger/unix/duk_debugger_interface.c)
+        endif (SUPPORT_DUKTAPE)
         set(PLATFORM_LINKER_FLAGS)
         include_directories(AFTER ${ZLIBINC} ${CURLINC} ${JPGINC} ${JPGTURBOINC} ${PNGINC} ${GLUTINC})
         if (DEFINED ENV{CODE_COVERAGE})
@@ -165,6 +174,9 @@ elseif(WIN32)
     set(PXCORE_FILES win/pxBufferNative.cpp win/pxOffscreenNative.cpp win/pxWindowNative.cpp
             win/pxEventLoopNative.cpp win/pxTimerNative.cpp win/pxClipboardNative.cpp pxViewWindow.cpp
             win/rtMutexNative.cpp win/rtThreadPoolNative.cpp)
+	if (SUPPORT_DUKTAPE)
+      set(PXCORE_FILES ${PXCORE_FILES} rtScriptDuk/debugger/win/duk_debugger_interface.c)
+    endif (SUPPORT_DUKTAPE)
     set_source_files_properties(utf8.c PROPERTIES LANGUAGE CXX)
     set(BUILD_RTCORE_SHARED_LIBRARY 0)
 else ()
@@ -239,7 +251,7 @@ endif (OUTPUT_LIBS_LOCAL)
     include_directories(AFTER ${EXTDIR}/dukluv2/lib/uv/include)
     include_directories(AFTER ${EXTDIR}/dukluv2/src)
 #endif(SUPPORT_DUKTAPE)
-
+    include_directories(AFTER rtScriptDuk/debugger)
 if (BUILD_PXCORE_LIBS)
     message("Building pxcore libs")
     add_library(pxCore ${PXCORE_FILES})
