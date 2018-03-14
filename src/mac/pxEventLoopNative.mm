@@ -164,7 +164,7 @@
   if (s && (strcmp(s,"1") == 0))
   {
     NSLog(@"   willTerminate  sleep so, valgrind can take memory report");
-    sleep(60);
+    sleep(30);
   }
 }
 
