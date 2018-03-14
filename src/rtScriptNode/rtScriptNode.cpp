@@ -804,7 +804,8 @@ rtError rtNodeContext::runScript(const char* script, rtValue* retVal /*= NULL*/,
 //rtError rtNodeContext::runScript(const std::string &script, rtValue* retVal /*= NULL*/, const char* /* args = NULL*/)
 rtError rtNodeContext::runScript(const char* script, rtValue* retVal /*= NULL*/, const char *args /*= NULL*/)
 {
-  rtLogInfo(__FUNCTION__);
+  rtLogInfo(" %s: Script is %s",__PRETTY_FUNCTION__, script);
+ // rtLogInfo("%s", script);
   if(!script || strlen(script) == 0)
   {
     rtLogError(" %s  ... no script given.",__PRETTY_FUNCTION__);

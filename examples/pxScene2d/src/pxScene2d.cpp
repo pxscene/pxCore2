@@ -3519,7 +3519,7 @@ void pxSceneContainer::dispose()
 {
   if (!mIsDisposed)
   {
-    rtLogInfo(__FUNCTION__);
+    rtLogInfo("%s: dispose for '%s'",__PRETTY_FUNCTION__,mUrl.cString());
     //Adding ref to make sure, object not destroyed from event listeners
     AddRef();
     setScriptView(NULL);
@@ -3612,7 +3612,7 @@ void pxScriptView::runScript()
     char buffer[MAX_URL_SIZE + 50];
     memset(buffer, 0, sizeof(buffer));
     snprintf(buffer, sizeof(buffer), "loadUrl(\"%s\");", mUrl.cString());
-    rtLogDebug("pxScriptView::runScript calling runScript with %s\n",mUrl.cString());
+    rtLogInfo("pxScriptView::runScript calling runScript with %s\n",mUrl.cString());
 #ifdef WIN32 // process \\ to /
 		unsigned int bufferLen = strlen(buffer);
 		char * newBuffer = (char*)malloc(sizeof(char)*(bufferLen + 1));
