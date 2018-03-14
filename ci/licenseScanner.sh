@@ -65,5 +65,5 @@ if [  "$scanResult" == "FAIL" ] ; then
   exit 1
 else
   printf "\n [SUCCESS] File scan completed successfully. \n"
-  exit 1
+  exit 0 
 fi
