@@ -583,11 +583,14 @@ void pxFontManager::removeFont(rtString fontName)
 
 void pxFontManager::clearAllFonts()
 {
+  rtLogInfo(__FUNCTION__);
   for (GlyphCache::iterator it =  gGlyphCache.begin(); it != gGlyphCache.end(); it++)
     delete it->second;
 
   gGlyphCache.clear();
   gGlyphTextureCache.clear();
+
+  rtLogInfo("Finished in pxFontManager::clearAllFonts()");
 }
 
 // pxTextMetrics
