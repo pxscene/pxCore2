@@ -11,7 +11,7 @@ fi
 
 LICENSE_STR="Licensed under the Apache License, Version 2.0"
 LICENSE_STR2="Licensed under the"
-COPY_STR="Copyright (C)"
+COPY_STR="copyright"
 
 scanResult="PASS"
 fileCount=0
@@ -31,16 +31,20 @@ for dir in ${dirs[@]}
 do
   printf "\n\nProcessing $dir ...\n"
   printf "=====================================================\n"
-  files=(`find $dir -regex ".*\.\(c\|cpp\|h\)"`)
+  files=(`find $dir -regex ".*\.\(c\|cpp\|h\|js\)"`)
   for file in ${files[@]}
   do
     #printf "Scanning $file \n"
     grep  -q "$LICENSE_STR" $file
     if [ "$?" != "0" ] ; then
       #check for any other license availability
-      grep -q -e "$COPY_STR" -e "$LICENSE_STR2" $file
+      if ( echo "$file" | grep -q "pxScene2d/src/node_modules" ) ; then 
+        printf "[EXCLUDED] Licensed source : $file !!!\n"
+        continue 
+      fi
+      grep -qi -e "$COPY_STR" -e "$LICENSE_STR2" $file
       if [ "$?" == "0" ] ; then
-        printf "[EXCLUDED] Different license available : $file !!!\n"
+        printf "[EXCLUDED] Different License available : $file !!!\n"
         continue
       else
         fileCount=$((fileCount + 1))
