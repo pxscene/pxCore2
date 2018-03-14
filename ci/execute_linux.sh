@@ -83,7 +83,7 @@ done
 kill -15 `ps -ef | grep pxscene |grep -v grep|grep -v pxscene.sh|awk '{print $2}'`
 echo "Sleeping to make terminate complete ......";
 #wait for few seconds to get the application terminate completely, as it is attached with valgrind increasing the timeout
-sleep 20s;
+sleep 60s;
 pkill -9 -f pxscene.sh
 
 chmod 444 $VALGRINDLOGS
