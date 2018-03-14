@@ -24,7 +24,7 @@ for dir in ${dirs[@]}
 do 
 printf "$dir\n" 
 done 
-printf "\nFiles extensions included for scanning : C, CPP, H \n\n"
+printf "\nFiles extensions included for scanning : C, CPP, H, JS \n\n"
 printf "****************************** Message Ends *******************************\n"
 
 for dir in ${dirs[@]}
