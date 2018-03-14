@@ -4,6 +4,7 @@
 #include <rtObject.h>
 #include <memory>
 #include <string>
+#include <unordered_map>
 
 class rtRemoteClient;
 
@@ -28,6 +29,7 @@ private:
   rtAtomic                          m_ref_count;
   std::string                       m_id;
   std::shared_ptr<rtRemoteClient>   m_client;
+  mutable std::unordered_map<std::string, rtFunctionRef> m_functions;
 };
 
 #endif

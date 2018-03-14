@@ -26,7 +26,19 @@ rtRemoteObject::Get(char const* name, rtValue* value) const
   if (name == nullptr)
     return RT_ERROR_INVALID_ARG;
 
-  return m_client->sendGet(m_id, name, *value);
+  auto iter = m_functions.find(name);
+  if (iter != m_functions.end())
+  {
+    *value = iter->second;
+    return RT_OK;
+  }
+
+  rtError rc = m_client->sendGet(m_id, name, *value);
+
+  if (rc == RT_OK && value->getType() == RT_functionType)
+    m_functions[name] = value->toFunction();
+
+  return rc;
 }
 
 rtError
