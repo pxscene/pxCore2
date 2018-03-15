@@ -1053,7 +1053,7 @@ rtError rtScriptNode::pump()
 
     if (sGcTickCount++ > 60)
     {
-      Local<Context> local_context = node::PersistentToLocal<Context>(mIsolate, mContext);
+      Local<Context> local_context = Context::New(mIsolate);
       Context::Scope contextScope(local_context);
       mIsolate->RequestGarbageCollectionForTesting(Isolate::kFullGarbageCollection);
       sGcTickCount = 0;
@@ -1072,7 +1072,7 @@ rtError rtScriptNode::collectGarbage()
   Isolate::Scope isolate_scope(mIsolate);
   HandleScope     handle_scope(mIsolate);    // Create a stack-allocated handle scope.
 
-  Local<Context> local_context = node::PersistentToLocal<Context>(mIsolate, mContext);
+  Local<Context> local_context = Context::New(mIsolate);
   Context::Scope contextScope(local_context);
   mIsolate->LowMemoryNotification();
 //#endif // RUNINMAIN

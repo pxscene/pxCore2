@@ -26,6 +26,8 @@ checkError()
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
+sudo rm -rf /tmp/cache/*
+
 sudo rm -rf /tmp/pxscenecrash
 ulimit -c unlimited
 dumped_core=0
