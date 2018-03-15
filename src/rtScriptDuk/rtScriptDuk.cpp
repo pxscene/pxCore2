@@ -476,15 +476,13 @@ static duk_ret_t duv_loadfile(duk_context *ctx) {
   if (uv_fs_fstat(dukLoop, &req, fd, NULL) < 0) goto fail;
   uv_fs_req_cleanup(&req);
   size = req.statbuf.st_size;
-  chunk = (char*)duk_alloc(ctx, size);
+  chunk = (char*)duk_push_fixed_buffer(ctx, size);
   buf = uv_buf_init(chunk, size);
   if (uv_fs_read(dukLoop, &req, fd, &buf, 1, 0, NULL) < 0) {
-    duk_free(ctx, chunk);
+    duk_pop(ctx);
     goto fail;
   }
   uv_fs_req_cleanup(&req);
-  duk_push_lstring(ctx, chunk, size);
-  duk_free(ctx, chunk);
   uv_fs_close(dukLoop, &req, fd, NULL);
   uv_fs_req_cleanup(&req);
 
@@ -508,15 +506,13 @@ fail:
   if (uv_fs_fstat(dukLoop, &req, fd, NULL) < 0) goto fail;
   uv_fs_req_cleanup(&req);
   size = req.statbuf.st_size;
-  chunk = (char*)duk_alloc(ctx, size);
+  chunk = (char*)duk_push_fixed_buffer(ctx, size);
   buf = uv_buf_init(chunk, size);
   if (uv_fs_read(dukLoop, &req, fd, &buf, 1, 0, NULL) < 0) {
-    duk_free(ctx, chunk);
+    duk_pop(ctx);
     goto fail2;
   }
   uv_fs_req_cleanup(&req);
-  duk_push_lstring(ctx, chunk, size);
-  duk_free(ctx, chunk);
   uv_fs_close(dukLoop, &req, fd, NULL);
   uv_fs_req_cleanup(&req);
 
@@ -850,20 +846,14 @@ static duk_ret_t duv_mod_compile(duk_context *ctx) {
 
   dschema_check(ctx, schema);
 
-  duk_to_string(ctx, 0);
+  duk_size_t bufSize;
+  char *bufData = (char*)duk_get_buffer(ctx, 0, &bufSize);
 
-  duk_push_this(ctx);
-  duk_get_prop_string(ctx, -1, "id");
+  std::string code = 
+  "function(){var module=this,exports=this.exports,require=this.require.bind(this);" 
+  + std::string(bufData, bufSize) + "}";
 
-  // Wrap the code
-  duk_push_string(ctx, "function(){var module=this,exports=this.exports,require=this.require.bind(this);");
-  duk_dup(ctx, 0);
-  duk_push_string(ctx, "}");
-  duk_concat(ctx, 3);
-  duk_insert(ctx, -2);
-
-  // Compile to a function
-  duk_compile(ctx, DUK_COMPILE_FUNCTION);
+  duk_compile_lstring(ctx, DUK_COMPILE_FUNCTION, code.c_str(), code.size());
 
   duk_push_this(ctx);
   duk_call_method(ctx, 0);
@@ -1177,6 +1167,11 @@ rtError rtScriptDuk::pump()
 #else
   for (int i = 0; i < uvLoops.size(); ++i) {
     uv_run(uvLoops[i], UV_RUN_NOWAIT);
+    duk_context *ctx = (duk_context *)uvLoops[i]->data;
+    if (ctx) {
+        duk_gc(ctx, 0);
+        duk_gc(ctx, 0);
+    }
   }
 #endif // RUNINMAIN
   return RT_OK;
