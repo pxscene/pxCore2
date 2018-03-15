@@ -1,4 +1,6 @@
+#ifndef ENABLE_RT_NODE
 #define ENABLE_RT_NODE
+#endif
 
 #include <sstream>
 
@@ -42,7 +44,7 @@ class sceneWindow : public pxWindow, public pxIViewContainer
       mHeight = h;
       pxWindow::init(x,y,w,h);
     }
-  
+
     virtual void invalidateRect(pxRect* r)
     {
       pxWindow::invalidateRect(r);
@@ -52,9 +54,9 @@ class sceneWindow : public pxWindow, public pxIViewContainer
     {
       return NULL;
     }
-    
+
     rtError setView(pxIView* v)
-    { 
+    {
       mView = v;
       if (v)
       {
@@ -63,14 +65,14 @@ class sceneWindow : public pxWindow, public pxIViewContainer
       }
       return RT_OK;
     }
-    
+
     virtual void onAnimationTimer()
     {
       if (mView)
         mView->onUpdate(pxSeconds());
       script.pump();
     }
-    
+
   private:
     pxIView* mView;
     int mWidth;
@@ -109,7 +111,7 @@ class jsFilesTest : public testing::Test
     {
     }
 
-    void test(char* file, float timeout)
+    void test(const char* file, float timeout)
     {
       script.collectGarbage();
       int oldpxCount = pxObjectCount;
@@ -129,7 +131,7 @@ class jsFilesTest : public testing::Test
 
 private:
 
-    void startJsFile(char *jsfile)
+    void startJsFile(const char *jsfile)
     {
       mUrl = jsfile;
       mView = new pxScriptView(mUrl,"");

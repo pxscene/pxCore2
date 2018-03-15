@@ -21,6 +21,7 @@
 #ifndef PX_WAYLAND_H
 #define PX_WAYLAND_H
 
+#include <atomic>
 #include <pthread.h>
 #include "pxIView.h"
 #include "pxScene2d.h"
@@ -54,7 +55,7 @@ public:
 class pxWayland: public pxIView {
 
 public:
-  pxWayland(bool usefbo=false);
+  pxWayland(bool usefbo=false, pxScene2d* sceneContainer=NULL);
   virtual ~pxWayland();
 
   virtual unsigned long AddRef() {
@@ -164,7 +165,7 @@ private:
   pxIViewContainer *mContainer;
   bool mReadyEmitted;
   bool mClientMonitorStarted;
-  bool mWaitingForRemoteObject;
+  std::atomic<bool> mWaitingForRemoteObject;
   bool mUseDispatchThread;
   int mX;
   int mY;
@@ -212,6 +213,7 @@ protected:
 #endif //ENABLE_PX_WAYLAND_RPC
   rtString mRemoteObjectName;
   mutable rtMutex mRemoteObjectMutex;
+  pxScene2d* mSceneContainer;
 };
 
 typedef rtRef<pxWayland> pxWaylandRef;

@@ -76,11 +76,7 @@ using namespace std;
 #endif
 
 #ifdef PX_SERVICE_MANAGER
-#include "smqtrtshim.h"
 #include "rtservicemanager.h"
-#include "service.h"
-#include "servicemanager.h"
-#include "applicationmanagerservice.h"
 #endif //PX_SERVICE_MANAGER
 
 #ifndef RUNINMAIN
@@ -90,6 +86,7 @@ static uv_work_t nodeLoopReq;
 #endif
 
 #include <stdlib.h>
+#include <fstream>
 
 pxEventLoop  eventLoop;
 pxEventLoop* gLoop = &eventLoop;
@@ -125,6 +122,11 @@ bool dumpCallback(const wchar_t* dump_path,
 #ifdef ENABLE_CODE_COVERAGE
 extern "C" void __gcov_flush();
 #endif
+
+#ifdef ENABLE_OPTIMUS_SUPPORT
+#include "optimus_client.h"
+#endif //ENABLE_OPTIMUS_SUPPORT
+
 class sceneWindow : public pxWindow, public pxIViewContainer
 {
 public:
@@ -369,6 +371,9 @@ protected:
     if (mView)
       mView->onUpdate(pxSeconds());
     EXITSCENELOCK()
+#ifdef ENABLE_OPTIMUS_SUPPORT
+    OptimusClient::pumpRemoteObjectQueue();
+#endif //ENABLE_OPTIMUS_SUPPORT
 #ifdef RUNINMAIN
     script.pump();
 #endif
@@ -541,7 +546,23 @@ if (s && (strcmp(s,"1") == 0))
   win.setTitle(buffer);
   // JRJR TODO Why aren't these necessary for glut... pxCore bug
   win.setVisibility(true);
-  win.setAnimationFPS(60);
+
+  uint32_t animationFPS = 60;
+  rtString f;
+  if (RT_OK == rtGetHomeDirectory(f))
+  {
+    f.append(".sparkFps");
+    if (rtFileExists(f))
+    {
+      std::fstream fs(f.cString(), std::fstream::in);
+      uint32_t val = 0;
+      fs >> val;
+      if (val > 0)
+        animationFPS = val;
+    }
+  }
+  rtLogInfo("Animation FPS: %lu", (unsigned long) animationFPS);
+  win.setAnimationFPS(animationFPS);
 
 #ifdef WIN32
 
@@ -611,12 +632,13 @@ if (s && (strcmp(s,"1") == 0))
 
 #endif
 
-#ifdef PX_SERVICE_MANAGER
-  SMQtRtShim::installDefaultCallback();
-  RtServiceManager::start();
+#ifdef ENABLE_OPTIMUS_SUPPORT
+  rtObjectRef tempObject;
+  OptimusClient::registerApi(tempObject);
+#endif //ENABLE_OPTIMUS_SUPPORT
 
-  ServiceStruct serviceStruct = { ApplicationManagerService::SERVICE_NAME, createApplicationManagerService };
-  ServiceManager::getInstance()->registerService(ApplicationManagerService::SERVICE_NAME, serviceStruct);
+#ifdef PX_SERVICE_MANAGER
+  RtServiceManager::start();
 
 #endif //PX_SERVICE_MANAGER
 

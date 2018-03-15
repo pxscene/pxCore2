@@ -66,10 +66,6 @@ void pxTextBox::resourceReady(rtString readyResolution)
   if( !readyResolution.compare("resolve"))
   {
     mFontLoaded = true;
-    if (getFontResource() != NULL)
-    {
-      getFontResource()->setupFont();
-    }
 
     if( mInitialized) {
       setNeedsRecalc(true);

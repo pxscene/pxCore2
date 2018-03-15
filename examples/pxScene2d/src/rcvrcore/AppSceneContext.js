@@ -13,6 +13,7 @@ var loadFile = require('rcvrcore/utils/FileUtils').loadFile;
 var SceneModuleManifest = require('rcvrcore/SceneModuleManifest');
 var JarFileMap = require('rcvrcore/utils/JarFileMap');
 var AsyncFileAcquisition = require('rcvrcore/utils/AsyncFileAcquisition');
+var AccessControl = require('rcvrcore/utils/AccessControl');
 
 var log = new Logger('AppSceneContext');
 //overriding original timeout and interval functions
@@ -21,8 +22,10 @@ var ClearTimeout = isDuk?timers.clearTimeout:clearTimeout;
 var SetInterval = isDuk?timers.setInterval:setInterval;
 var ClearInterval = isDuk?timers.clearInterval:clearInterval;
 
+
 var http_wrap = require('rcvrcore/http_wrap');
 var https_wrap = require('rcvrcore/https_wrap');
+var ws_wrap = (isDuk)?"":require('rcvrcore/ws_wrap');
 
 function AppSceneContext(params) {
 
@@ -48,6 +51,7 @@ function AppSceneContext(params) {
   this.scriptMap = {};
   this.xmoduleMap = {};
   this.asyncFileAcquisition = new AsyncFileAcquisition(params.scene);
+  this.accessControl = new AccessControl(params.scene);
   this.lastHrTime = isDuk?uv.hrtime():process.hrtime();
   this.resizeTimer = null;
   this.topXModule = null;
@@ -56,9 +60,10 @@ function AppSceneContext(params) {
   //array to store the list of pending timers
   this.timers = [];
   this.timerIntervals = [];
-
+  this.webSocketManager = null;
   log.message(4, "[[[NEW AppSceneContext]]]: " + this.packageUrl);
 }
+
 
 AppSceneContext.prototype.loadScene = function() {
   //log.info("loadScene() - begins    on ctx: " + getContextID() );
@@ -151,7 +156,17 @@ this.innerscene.on('onSceneTerminate', function (e) {
     if (null != this.sceneWrapper)
       this.sceneWrapper.close();
     this.sceneWrapper = null;
+    if (null != this.webSocketManager)
+    {
+       this.webSocketManager.clearConnections();
+       delete this.webSocketManager;
+    }
+    this.webSocketManager = null;
     this.rpcController = null;
+    if (this.accessControl) {
+      this.accessControl.destroy();
+      this.accessControl = null;
+    }
   }.bind(this));
 
 if (false) {
@@ -579,11 +594,28 @@ AppSceneContext.prototype.include = function(filePath, currentXModule) {
         onImportComplete([modData, origFilePath]);
         return;
       }
+      if (!isDuk && filePath === 'ws')
+      {
+        var wsdata = require('rcvrcore/' + filePath + '_wrap');
+        _this.webSocketManager = new wsdata();
+
+        var WebSocket = (function() {
+          var context = this;
+          function WebSocket(address, protocol, options) {
+            var client = context.webSocketManager.WebSocket(address, protocol, options);
+            return client;
+          }
+          return WebSocket;
+         }.bind(_this))();
+        modData = WebSocket;
+        onImportComplete([modData, origFilePath]);
+        return;
+      }
       modData = require('rcvrcore/' + filePath + '_wrap');
       onImportComplete([modData, origFilePath]);
       return;
     } else if( filePath === 'http' || filePath === 'https' ) {
-      modData = filePath === 'http' ? new http_wrap(_this.innerscene) : new https_wrap(_this.innerscene);
+      modData = filePath === 'http' ? new http_wrap(_this.accessControl) : new https_wrap(_this.accessControl);
       onImportComplete([modData, origFilePath]);
       return;
     } else if( filePath.substring(0, 9) === "px:scene.") {
@@ -597,6 +629,11 @@ AppSceneContext.prototype.include = function(filePath, currentXModule) {
       return;
     } else if( filePath.substring(0,9) === "px:tools.") {
       modData = require('rcvrcore/tools/' + filePath.substring(9));
+      onImportComplete([modData, origFilePath]);
+      return;
+    }
+    else if( filePath.substring(0,7) === "optimus") {
+      modData = require('rcvrcore/optimus.js');
       onImportComplete([modData, origFilePath]);
       return;
     }

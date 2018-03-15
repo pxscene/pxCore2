@@ -59,7 +59,8 @@ static bcurves_t arcToBezier(a2cReal_t px, a2cReal_t py,
 
 pxPath::pxPath(pxScene2d* scene): pxObject(scene),
                                   mExtentLeft(0.0f), mExtentTop(0.0f), mExtentRight(0.0f), mExtentBottom(0.0f),
-                                  mStrokeColor(pxClear), mStrokeWidth(0), mFillColor(pxClear)
+                                  mStrokeColor(pxClear), mStrokeWidth(0),
+                                  mStrokeType(pxCanvas2d::StrokeType::inside), mFillColor(pxClear)
 {
   mx = 0;
   my = 0;
@@ -224,6 +225,8 @@ void updatePen(float px, float py)
   }
 //  printf("\nPath:   [%s] ", s); // DEBUG
 
+  char poly_str[16]; // 15+1 for '\0'
+  
   float x0 = 0, y0 = 0, x1 = 0, y1 = 0, x2 = 0, y2 = 0, rx = 0, ry = 0, w = 0, h = 0;
   float last_x2 = 0.0, last_y2 = 0.0, xrot, r = 0;
 
@@ -339,6 +342,9 @@ void updatePen(float px, float py)
         p->pushOpcode( 'L' );
         p->pushFloat(x0,y0);
 
+//        p->setX(x0);
+//        p->setY(y0);
+        
         updatePen(x0, y0); // POSITION
 
 //        printf("\nPath:   SVG_OP_V_LINE_TO( x0: %.0f, y0: %.0f) ", x0, y0);
@@ -378,6 +384,9 @@ void updatePen(float px, float py)
         x1 = c.xy1.x;  x2 = c.xy2.x;  x0 = c.xy.x;
         y1 = c.xy1.y;  y2 = c.xy2.y;  y0 = c.xy.y;
 
+//        p->setX(x0);
+//        p->setY(y0);
+        
 //        printf("\nARC:  x1: %f   y1: %f   x2: %f   y2: %f   x0: %f   y0: %f", x1, y1, x2, y2, x0, y0);
 
         // Queue BEZIER curve control points.
@@ -468,6 +477,9 @@ void updatePen(float px, float py)
       p->pushOpcode( *op );
       p->pushFloat(x1, y1, x0, y0);
 
+      p->setW(x0 - x1);
+      p->setH(y0 - y1);
+      
 //      printf("\nPath:   SVG_OP_Q_CURVE( x1: %.0f, y1: %.0f,  x0: %.0f, y0: %.0f) ", x1, y1, x0, y0);
 
       updatePen(x0, y0); // POSITION
@@ -494,6 +506,9 @@ void updatePen(float px, float py)
 
         x1 = (2 * pen_x) - x1;
         y1 = (2 * pen_y) - y1;
+        
+        p->setW(x0 - x1);
+        p->setH(y0 - y1);
 
         p->pushOpcode( 'Q' );
         p->pushFloat(x1, y1, x0, y0);
@@ -515,6 +530,9 @@ void updatePen(float px, float py)
       
       p->pushRect(p, x0, y0, w, h, rx, rx);
       
+      p->setW(w);
+      p->setH(h);
+      
       updatePen(x0, y0); // POSITION
       
       s += n;
@@ -529,6 +547,9 @@ void updatePen(float px, float py)
       
       p->pushRect(p, x0, y0, w, h, zero, zero);
       
+      p->setW(w);
+      p->setH(h);
+      
       updatePen(x0, y0); // POSITION
       
       s += n;
@@ -541,6 +562,9 @@ void updatePen(float px, float py)
       // printf("\nPath:   CIRCLE( x0:%.0f, y0:%.0f, r: %.0f) ", x0, y0, r);
       
       p->pushEllipse(p, x0, y0, r, r); // circle is a special case of an ellipse !
+      
+      p->setW(r * 2);
+      p->setH(r * 2);
       
       updatePen(x0, y0); // POSITION
       
@@ -555,9 +579,56 @@ void updatePen(float px, float py)
       
       p->pushEllipse(p, x0, y0, rx, ry);
       
+      p->setW(rx * 2);
+      p->setH(ry * 2);
+
       updatePen(x0, y0); // POSITION
 
       s += n;
+    }
+    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    else // <polygon points="200,10 250,190 160,210"/>
+    if ( sscanf(s, "%[POLYGON points:]s",&poly_str[0]) == 1)
+    {
+      std::vector<float> points;
+      float pt;
+      
+      s += strlen(poly_str); // SKIP POLYGON
+      
+      float min_x = 100000, max_x = -10000;
+      float min_y = 100000, max_y = -10000;
+      
+      int xy = 0;
+      
+      while(sscanf(s, "%f %n", &pt, &n) == 1)
+      {
+        if( (xy++ %2) ) // y vals
+        {
+          min_y = (pt <  min_y) ? pt : min_y;
+          max_y = (pt >= max_y) ? pt : max_y;
+        }
+        else
+        {
+          min_x = (pt <  min_x) ? pt : min_x;
+          max_x = (pt >= max_x) ? pt : max_x;
+        }
+        
+        points.push_back(pt);
+        s += n;
+      }
+      
+      if( (points.size() % 2 != 0) ) // if ODD number ... Error !
+      {
+        fprintf(stderr, "\n POLYGON parse failed at \"%s\"\n", s);
+        break;
+      }
+      
+      p->setW(max_x - min_x);
+      p->setH(max_y - min_y);
+      
+      p->pushPolygon(p, points);
+      
+      updatePen(x0, y0); // POSITION
     }
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     else
@@ -565,23 +636,17 @@ void updatePen(float px, float py)
       fprintf(stderr, "\n path parse failed at \"%s\"\n", s);
       break;
     }
-
-    //fprintf(stderr, "\n dbg - x0: %.0f  x1: %.0f  x2: %.0f", x0, x1, x2);
-
   }//WHILE
-
- // printf("\n ###  Bounds   WxH:  %.0f x  %.0f ... ", p->w(), p->h());
 
   p->sendPromise();
 
   return RT_OK;
 }
 
-
 //====================================================================================================================================
 
 //  #define KAPPA		0.5522847498 // org
-#define KAPPA		0.552228474
+#define KAPPA   0.552228474
 
 void pxPath::pushRect(pxPath *p, float x0, float y0, float w, float h, float rx, float ry)
 {
@@ -590,27 +655,27 @@ void pxPath::pushRect(pxPath *p, float x0, float y0, float w, float h, float rx,
     // - - - - - - - - - - - - - - - - - - - - - - - - - -
     p->pushOpcode( 'M' );
     p->pushFloat(x0, y0);
-    
+
     // - - - - - - - - - - - - - - - - - - - - - - - - - -
     // Top
     p->pushOpcode( 'L' ); // H
     p->pushFloat(x0+w, y0);
-    
+
     // - - - - - - - - - - - - - - - - - - - - - - - - - -
     // Right
-    p->pushOpcode( 'L' ); // H
+    p->pushOpcode( 'L' ); // V
     p->pushFloat(x0 + w, y0 + h);
-    
+
     // - - - - - - - - - - - - - - - - - - - - - - - - - -
     // Bottom
     p->pushOpcode( 'L' ); // H
     p->pushFloat(x0, y0 + h);
-    
+
     // - - - - - - - - - - - - - - - - - - - - - - - - - -
     // Left
-    //  p->pushOpcode( 'L' ); // H
-    //  p->pushFloat(Hx, Hy);
-    
+//    p->pushOpcode( 'L' ); // V
+//    p->pushFloat(x0, y0);
+
     // - - - - - - - - - - - - - - - - - - - - - - - - - -
     p->pushOpcode( 'Z' );
     // - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -620,34 +685,34 @@ void pxPath::pushRect(pxPath *p, float x0, float y0, float w, float h, float rx,
     // - - - - - - - - - - - - - - - - - - - - - - - - - -
     p->pushOpcode( 'M' );
     p->pushFloat(x0, y0 + ry);
-    
+
     // - - - - - - - - - - - - - - - - - - - - - - - - - -
-    
+
     // Top Left
     p->pushOpcode( 'Q' );
     p->pushFloat( x0,      // X1
                   y0,      // Y1
                   x0 + rx, // X0
                   y0);     // Y0
-    
+
     // - - - - - - - - - - - - - - - - - - - - - - - - - -
     // Top
     p->pushOpcode( 'L' ); // H
     p->pushFloat(x0+w-rx, y0);
-    
+
     // - - - - - - - - - - - - - - - - - - - - - - - - - -
     // Top Right
     p->pushOpcode( 'Q' );
     p->pushFloat( x0 + w,   // X1
                   y0,       // Y1
-                  x0 + w-3,   // X0
+                  x0 + w,   // X0
                   y0 + ry); // Y0
 
     // - - - - - - - - - - - - - - - - - - - - - - - - - -
     // Right
     p->pushOpcode( 'L' ); // H
-    p->pushFloat(x0 + w -3, y0 + h - ry);
-    
+    p->pushFloat(x0 + w, y0 + h - ry);
+
     // - - - - - - - - - - - - - - - - - - - - - - - - - -
     
     // Bottom Right
@@ -656,14 +721,14 @@ void pxPath::pushRect(pxPath *p, float x0, float y0, float w, float h, float rx,
                   y0 + h,      // Y1
                   x0 + w - rx, // X0
                   y0 + h);     // Y0
-    
+
     // - - - - - - - - - - - - - - - - - - - - - - - - - -
     // Bottom
     p->pushOpcode( 'L' ); // H
     p->pushFloat(x0 + rx, y0 + h);
     
     // - - - - - - - - - - - - - - - - - - - - - - - - - -
-    
+
     // Bottom Left
     p->pushOpcode( 'Q' );
     p->pushFloat( x0,           // X1
@@ -684,12 +749,50 @@ void pxPath::pushRect(pxPath *p, float x0, float y0, float w, float h, float rx,
 
 //====================================================================================================================================
 
+void pxPath::pushPolygon(pxPath *p, std::vector<float> &points)
+{
+  size_t len = points.size();
+
+  bool moveToStart = true;
+
+  float x, y;
+
+  if(len > 2)
+  {
+    std::vector<float>::const_iterator  it = points.begin();
+    std::vector<float>::const_iterator end = points.end();
+
+    for(;it != end;)
+    {
+      if(len > 2)
+      {
+        x = *it++;
+        y = *it++;
+        
+        if(moveToStart)
+        {
+           p->pushOpcode( 'M' );
+           p->pushFloat(x, y);
+           moveToStart = false;
+        }
+
+        p->pushOpcode( 'L' );
+        p->pushFloat(x, y);
+      }
+    }//FOR
+  } //ENDIF
+
+  p->pushOpcode( 'Z' );
+}
+
+//====================================================================================================================================
+
 void pxPath::pushEllipse(pxPath *p, float x0, float y0, float rx, float ry)
 {
   p->pushOpcode( 'M' );
   p->pushFloat(x0 + rx,
                y0);
-  
+
   // Bottom Right
   p->pushOpcode( 'C' );
   p->pushFloat((x0 + rx),         // X1
@@ -698,7 +801,7 @@ void pxPath::pushEllipse(pxPath *p, float x0, float y0, float rx, float ry)
                (y0 + ry),         // Y2
                (x0),              // X0
                (y0 + ry));        // Y0
-  
+
   // Bottom Left
   p->pushOpcode( 'C' );
   p->pushFloat((x0 - rx * KAPPA), // X1
@@ -725,7 +828,7 @@ void pxPath::pushEllipse(pxPath *p, float x0, float y0, float rx, float ry)
                (y0 - ry * KAPPA), // Y2
                (x0 + rx),         // X0
                (y0));             // Y0
-  
+
   p->pushOpcode( 'Z' );
 }
 
@@ -733,7 +836,7 @@ void pxPath::pushEllipse(pxPath *p, float x0, float y0, float rx, float ry)
 void pxPath::pushOpcode(uint8_t op)
 {
   uint8_t opcode = toupper(op); // Always ABSOLUTE
-  
+
   opStream.push_back( opcode );
 }
 
@@ -842,6 +945,7 @@ rtDefineProperty(pxPath, d);
 rtDefineProperty(pxPath, fillColor);
 rtDefineProperty(pxPath, strokeColor);
 rtDefineProperty(pxPath, strokeWidth);
+rtDefineProperty(pxPath, strokeType);
 
 //====================================================================================================================================
 //====================================================================================================================================

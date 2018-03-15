@@ -31,7 +31,7 @@ class rtZipTest : public testing::Test
     {
       rtData  buffer;
       rtError ret = rtLoadFile("supportfiles/sample.zip", buffer);
-      
+
       ret = mData.initFromBuffer(buffer.data(), buffer.length());
       EXPECT_TRUE(ret == RT_OK);
     }
@@ -47,10 +47,10 @@ class rtZipTest : public testing::Test
     {
       rtData  buffer;
       rtError ret;
-      
+
       ret = rtLoadFile("supportfiles/sample.zip", buffer);
       EXPECT_TRUE(ret == RT_OK);
-      
+
       ret = mData.initFromBuffer(buffer.data(), buffer.length());
       EXPECT_TRUE(ret == RT_OK);
 
@@ -109,10 +109,12 @@ class rtZipTest : public testing::Test
     {
       rtData  buffer;
       rtError ret = rtLoadFile("supportfiles/test.html", buffer);
+      EXPECT_TRUE(ret == RT_OK);
 
       EXPECT_FALSE( rtZip::isZip(buffer.data(), buffer.length()) );
 
       ret = rtLoadFile("supportfiles/sample.zip", buffer);
+      EXPECT_TRUE(ret == RT_OK);
 
       EXPECT_TRUE( rtZip::isZip(buffer.data(), buffer.length()) );
     }
@@ -134,4 +136,3 @@ TEST_F(rtZipTest, rtZipTests)
 
   isZipTest();
 }
-
