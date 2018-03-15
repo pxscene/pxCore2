@@ -190,7 +190,7 @@ private:
 
 // Weak Map
 typedef std::map<rtString, pxFont*> FontMap;
-
+static rtMutex mFontMgrMutex;
 class pxFontManager
 {
   
@@ -204,6 +204,7 @@ class pxFontManager
     static void initFT();  
     static FontMap mFontMap;
     static bool init;
+  
     
 };
 #endif

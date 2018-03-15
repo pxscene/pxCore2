@@ -616,8 +616,8 @@ void pxObject::dispose()
     mEmit->clearListeners();
     for(vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
     {
-      (*it)->dispose();
       (*it)->mParent = NULL;  // setParent mutates the mChildren collection
+      (*it)->dispose();
     }
     mChildren.clear();
     clearSnapshot(mSnapshotRef);
@@ -3518,7 +3518,7 @@ void pxSceneContainer::dispose()
 {
   if (!mIsDisposed)
   {
-    rtLogInfo("%s: dispose for '%s'",__PRETTY_FUNCTION__,mUrl.cString());
+    rtLogInfo("%s: dispose for '%s'",__FUNCTION__,mUrl.cString());
     //Adding ref to make sure, object not destroyed from event listeners
     AddRef();
     setScriptView(NULL);

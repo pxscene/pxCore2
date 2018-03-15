@@ -1084,8 +1084,8 @@ public:
     // TODO JRJR Do we have GC tests yet
     // Hack to try and reduce leaks until garbage collection can
     // be cleaned up
-
-    mEmit.send("onSceneRemoved", mScene);
+    if (mScene)
+      mEmit.send("onSceneRemoved", mScene);
 
     if (mScene)
       mScene.send("dispose");
