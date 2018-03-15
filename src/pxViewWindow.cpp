@@ -112,9 +112,9 @@ void pxViewWindow::onAnimationTimer()
   }
 }
 
-void pxViewWindow::onDraw(pxSurfaceNative /*s*/)
+void pxViewWindow::onDraw()
 {
   if (mView)
-    mView->onDraw(/*s*/);
+    mView->onDraw();
 }
 
