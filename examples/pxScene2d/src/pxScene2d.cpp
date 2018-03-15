@@ -591,7 +591,7 @@ void pxObject::createNewPromise()
   }
 }
 
-void pxObject::dispose()
+void pxObject::dispose(bool pumpForChild)
 {
   if (!mIsDisposed)
   {
@@ -616,7 +616,7 @@ void pxObject::dispose()
     mEmit->clearListeners();
     for(vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
     {
-      (*it)->dispose();
+      (*it)->dispose(false);
       (*it)->mParent = NULL;  // setParent mutates the mChildren collection
     }
     mChildren.clear();
@@ -633,7 +633,8 @@ void pxObject::dispose()
       mScene->innerpxObjectDisposed(this);
     }
 #ifdef ENABLE_RT_NODE
-    script.pump();
+    if (pumpForChild)
+      script.pump();
 #endif
  }
 }
@@ -762,20 +763,23 @@ rtError pxObject::children(rtObjectRef& v) const
 
 rtError pxObject::remove()
 {
-  if (mParent)
+  if (mScene && mScene->isDisposed() == false)
   {
-    for(vector<rtRef<pxObject> >::iterator it = mParent->mChildren.begin();
-        it != mParent->mChildren.end(); ++it)
+    if (mParent)
     {
-      if ((it)->getPtr() == this)
+      for(vector<rtRef<pxObject> >::iterator it = mParent->mChildren.begin();
+        it != mParent->mChildren.end(); ++it)
       {
-        pxObject* parent = mParent;
-        mParent->mChildren.erase(it);
-        mParent = NULL;
-        parent->repaint();
-        parent->repaintParents();
-        mScene->mDirty = true;
-        return RT_OK;
+        if ((it)->getPtr() == this)
+        {
+          pxObject* parent = mParent;
+          mParent->mChildren.erase(it);
+          mParent = NULL;
+          parent->repaint();
+          parent->repaintParents();
+          mScene->mDirty = true;
+          return RT_OK;
+        }
       }
     }
   }
@@ -784,14 +788,17 @@ rtError pxObject::remove()
 
 rtError pxObject::removeAll()
 {
-  for(vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
+  if (mScene && mScene->isDisposed() == false)
   {
-    (*it)->mParent = NULL;
+    for(vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
+    {
+      (*it)->mParent = NULL;
+    }
+    mChildren.clear();
+    repaint();
+    repaintParents();
+    mScene->mDirty = true;
   }
-  mChildren.clear();
-  repaint();
-  repaintParents();
-  mScene->mDirty = true;
   return RT_OK;
 }
 
@@ -3515,7 +3522,7 @@ rtError pxSceneContainer::setPermissions(const rtObjectRef& v)
 }
 #endif
 
-void pxSceneContainer::dispose()
+void pxSceneContainer::dispose(bool pumpForChild)
 {
   if (!mIsDisposed)
   {
@@ -3523,7 +3530,7 @@ void pxSceneContainer::dispose()
     //Adding ref to make sure, object not destroyed from event listeners
     AddRef();
     setScriptView(NULL);
-    pxObject::dispose();
+    pxObject::dispose(pumpForChild);
     Release();
   }
 }

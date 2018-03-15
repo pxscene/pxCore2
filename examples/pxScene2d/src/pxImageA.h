@@ -53,7 +53,7 @@ public:
 
   virtual void update(double t);
   virtual void draw();
-  virtual void dispose();
+  virtual void dispose(bool pumpForChild=true);
   
 protected:
   virtual void onInit();

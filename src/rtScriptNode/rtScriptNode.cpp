@@ -891,7 +891,8 @@ rtError rtNodeContext::runFile(const char *file, rtValue* retVal /*= NULL*/, con
   // Read the script file
   js_file   = file;
   js_script = readFile(file);
-  
+  printf("File [%s] id[%d] \n",file,mId);
+  fflush(stdout); 
   if( js_script.empty() ) // load error
   {
     rtLogError(" %s  ... load error / not found.",__PRETTY_FUNCTION__);
@@ -1210,7 +1211,6 @@ rtError rtScriptNode::term()
   {
 // JRJRJR  Causing crash???  ask Hugh
 
-    rtLogWarn("\n++++++++++++++++++ DISPOSE\n\n");
     node_isolate->Dispose();
     node_isolate = NULL;
     mIsolate     = NULL;

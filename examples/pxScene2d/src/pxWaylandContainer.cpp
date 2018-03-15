@@ -63,10 +63,10 @@ pxWaylandContainer::~pxWaylandContainer()
   mWayland = NULL;
 }
 
-void pxWaylandContainer::dispose()
+void pxWaylandContainer::dispose(bool pumpForChild)
 {
    setView(NULL);
-   pxObject::dispose();
+   pxObject::dispose(pumpForChild);
 }
 
 void pxWaylandContainer::invalidate( pxRect* r )

@@ -88,8 +88,9 @@ pxFont::pxFont(rtString fontUrl, rtString proxyUrl):pxResource(),mFace(NULL),mPi
 
 pxFont::~pxFont() 
 {
-  rtLogInfo("~pxFont %s\n", mUrl.cString());
+  rtLogInfo("~pxFont 12 %s\n", mUrl.cString());
   gUIThreadQueue.removeAllTasksForObject(this);
+  rtLogInfo("~pxFont13 %s\n", mUrl.cString());
   // download should be canceled/removed in pxResource
   //if (mDownloadRequest != NULL)
   //{
@@ -97,19 +98,24 @@ pxFont::~pxFont()
     //mFontDownloadRequest->setCallbackFunctionThreadSafe(NULL);
   //}  
    
+  rtLogInfo("~pxFont14 %s\n", mUrl.cString());
   pxFontManager::removeFont( mUrl);
  
+  rtLogInfo("~pxFont15 %s\n", mUrl.cString());
   if( mInitialized) 
   {
     FT_Done_Face(mFace);
   }
   mFace = 0;
   
+  rtLogInfo("~pxFont16 %s\n", mUrl.cString());
   if(mFontData) {
+  rtLogInfo("~pxFont17 %s\n", mUrl.cString());
     free(mFontData);
     mFontData = 0;
     mFontDataSize = 0;
   } 
+  rtLogInfo("~pxFont18 %s\n", mUrl.cString());
    
 }
 

@@ -1,9 +1,6 @@
 matrix:
   include:
-  - os: linux
-    dist: trusty
-    sudo: required
-  - os: osx
+  - os: osx		
     osx_image: xcode6.4
 language: c++
 before_install:

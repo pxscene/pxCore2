@@ -21,6 +21,7 @@ touch $TRAVIS_BUILD_DIR/logs/test_logs;
 TESTLOGS=$TRAVIS_BUILD_DIR/logs/test_logs;
 ./pxscene2dtests.sh>$TESTLOGS 2>&1 &
 
+cat $TESTLOGS
 grep "Global test environment tear-down" $TESTLOGS
 retVal=$?
 count=0
@@ -30,7 +31,13 @@ while [ "$retVal" -ne 0 ] &&  [ "$count" -ne 180 ]; do
 	retVal=$?
 	count=$((count+60))
 	echo "unittests running for $count seconds"
+	echo "`ps -ef | grep pxscene2dtests`"
+	echo "`ps -ef | grep pxscene2dtests |grep -v grep|grep -v pxscene2dtests.sh|awk '{print $2}'`"
+	echo "===="
 done
+==========================================
+cat $TESTLOGS
+=========================================
 
 echo "kill -9 `ps -ef | grep pxscene2dtests |grep -v grep|grep -v pxscene2dtests.sh|awk '{print $2}'`"
 kill -9 `ps -ef | grep pxscene2dtests |grep -v grep|grep -v pxscene2dtests.sh|awk '{print $2}'`

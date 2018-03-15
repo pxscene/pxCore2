@@ -381,7 +381,7 @@ public:
   rtError moveToFront();
   rtError moveToBack();
 
-  virtual void dispose();
+  virtual void dispose(bool pumpForChild=true);
 
   void drawInternal(bool maskPass=false);
   virtual void draw() {}
@@ -1015,7 +1015,7 @@ public:
     return c;
   }
 
-  void dispose();
+  void dispose(bool pumpForChild=true);
   rtError url(rtString& v) const { v = mUrl; return RT_OK; }
   rtError setUrl(rtString v);
 
@@ -1554,6 +1554,8 @@ public:
   }
 
   void innerpxObjectDisposed(rtObjectRef ref);
+  // function that returns whether scene is disposed or not
+  bool isDisposed() { return mDisposed; }
 
   // Note: Only type currently supported is "image/png;base64"
   rtError screenshot(rtString type, rtString& pngData);
