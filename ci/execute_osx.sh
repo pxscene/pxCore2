@@ -34,7 +34,7 @@ export PX_DUMP_MEMUSAGE=1
 export RT_LOG_LEVEL=info
 export PXSCENE_PERMISSIONS_CONFIG=$TRAVIS_BUILD_DIR/examples/pxScene2d/src/pxscenepermissions.conf
 export HANDLE_SIGNALS=1
-export ENABLE_MEMLEAK_CHECK=1
+export ENABLE_MEMLEAK_CHECK=0
 export MallocStackLogging=0
 
 EXECLOGS=$TRAVIS_BUILD_DIR/logs/exec_logs
@@ -57,7 +57,7 @@ cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src/pxscene.app/Contents/MacOS
 
 # Monitor testRunner ...
 count=0
-max_seconds=900
+max_seconds=1500
 
 while [ "$count" -le "$max_seconds" ]; do
 	#leaks -nocontext pxscene > $LEAKLOGS
@@ -101,7 +101,7 @@ kill -15 `ps -ef | grep pxscene |grep -v grep|grep -v pxscene.sh|awk '{print $2}
 
 # Sleep for 40s as we have sleep for 30s inside code to capture memory of process
 echo "Sleeping to make terminate complete ...";
-sleep 40s
+sleep 60s
 pkill -9 -f pxscene.sh
 cp /var/tmp/pxscene.log $EXECLOGS
 if [ "$dumped_core" -eq 1 ]
