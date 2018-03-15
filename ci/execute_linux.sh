@@ -25,7 +25,7 @@ else
   printf "\nUSING: TRAVIS_BUILD_DIR=${TRAVIS_BUILD_DIR}\n\n"
 fi
 
-rm -rf /tmp/cache/*
+#rm -rf /tmp/cache/*
 rm -rf $TRAVIS_BUILD_DIR/logs/*
 
 export VALGRINDLOGS=$TRAVIS_BUILD_DIR/logs/valgrind_logs
@@ -57,16 +57,17 @@ printValgrindLogs()
 # Start testRunner ... 
 cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src
 ./pxscene.sh $TESTRUNNERURL?tests=file://$TRAVIS_BUILD_DIR/tests/pxScene2d/testRunner/tests.json > $EXECLOGS 2>&1 &
+echo "pxscene.sh PID is $!"
 
 grep "TEST RESULTS: " $EXECLOGS
 retVal=$?
 
 # Monitor testRunner ...
 count=0
-max_seconds=1500
+max_seconds=2400
 
 while [ "$retVal" -ne 0 ] &&  [ "$count" -ne "$max_seconds" ]; do
-	printf "\n [execute_osx.sh] snoozing for 30 seconds (%d of %d) \n" $count $max_seconds
+	printf "\n [execute_linux.sh] snoozing for 30 seconds (%d of %d) \n" $count $max_seconds
 	sleep 30; # seconds
 
 	grep "TEST RESULTS: " $EXECLOGS
@@ -80,13 +81,20 @@ while [ "$retVal" -ne 0 ] &&  [ "$count" -ne "$max_seconds" ]; do
 	fi
 done
 
+echo "terminate at: `date`"
+echo "pxscene processes: `ps -ef | grep pxscene |grep -v grep`"
+echo "exec log ends with: `tail $EXECLOGS`"
 kill -15 `ps -ef | grep pxscene |grep -v grep|grep -v pxscene.sh|awk '{print $2}'`
-echo "Sleeping to make terminate complete ......";
-#wait for few seconds to get the application terminate completely, as it is attached with valgrind increasing the timeout
-sleep 20s;
+echo "[`date`] Sleeping to make terminate complete ......"
+wait
+echo "[`date`] Terminate complete"
 pkill -9 -f pxscene.sh
-
 chmod 444 $VALGRINDLOGS
+if [ "$TRAVIS_PULL_REQUEST" != "false" ]
+then
+    printExecLogs
+    printValgrindLogs
+fi 
 
 #check for crash
 $TRAVIS_BUILD_DIR/ci/check_dump_cores_linux.sh `pwd` pxscene $EXECLOGS
@@ -94,10 +102,6 @@ retVal=$?
 if [ "$retVal" -eq 1 ]
 	then
 	checkError $retVal "Execution failed" "Core dump" "Test by running locally"
-	if [ "$TRAVIS_PULL_REQUEST" != "false" ]
-		then
-                  printExecLogs
-	fi
 	exit 1;
 fi
 
@@ -112,7 +116,6 @@ if [ "$testRunnerRetVal" -ne 0 ]
 	if [ "$TRAVIS_PULL_REQUEST" != "false" ]
 		then
 		errCause="Cause: Check the above logs"
-		printExecLogs
 	else
 		errCause="Cause: Check the $EXECLOGS file"
 	fi
@@ -141,7 +144,6 @@ if [ "$pxRetVal" -eq 0 ]
 		if [ "$TRAVIS_PULL_REQUEST" != "false" ]
 			then
 			errCause="Check the above logs"
-			printExecLogs
 		else
 			errCause="Check the $EXECLOGS file"
 		fi
@@ -152,7 +154,6 @@ else
 	if [ "$TRAVIS_PULL_REQUEST" != "false" ]
 		then
 		errCause="Check the above logs"
-		printExecLogs
 	else
 		errCause="Check the $EXECLOGS file"
 	fi
@@ -171,7 +172,6 @@ else
 	if [ "$TRAVIS_PULL_REQUEST" != "false" ]
 		then
 		errCause="Check the above logs"
-		printValgrindLogs
 	else
 		errCause="Check the file $VALGRINDLOGS and see for definitely lost count"
 	fi

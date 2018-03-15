@@ -26,7 +26,7 @@ checkError()
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-sudo rm -rf /tmp/pxscenecrash
+rm -rf /tmp/pxscenecrash
 ulimit -c unlimited
 dumped_core=0
 
@@ -54,10 +54,11 @@ printExecLogs()
 rm -rf /var/tmp/pxscene.log
 cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src/pxscene.app/Contents/MacOS
 ./pxscene.sh $TESTRUNNERURL?tests=file://$TRAVIS_BUILD_DIR/tests/pxScene2d/testRunner/tests.json &
+echo "pxscene.sh PID is $!"
 
 # Monitor testRunner ...
 count=0
-max_seconds=900
+max_seconds=2400
 
 while [ "$count" -le "$max_seconds" ]; do
 	#leaks -nocontext pxscene > $LEAKLOGS
@@ -77,7 +78,7 @@ while [ "$count" -le "$max_seconds" ]; do
 		then
 			printf "\n ############  CORE DUMP detected !!\n\n"
 			dumped_core=1
-			sudo rm -rf /tmp/pxscenecrash
+			rm -rf /tmp/pxscenecrash
 			break
 		fi
 		#crash check ends
@@ -96,13 +97,22 @@ fi
 # Wait for few seconds to get the application terminate completely
 leakcount=`leaks pxscene|grep Leak|wc -l`
 echo "leakcount during termination $leakcount"
-kill -15 `ps -ef | grep pxscene |grep -v grep|grep -v pxscene.sh|awk '{print $2}'`
 
-# Sleep for 40s as we have sleep for 30s inside code to capture memory of process
+echo "terminate at: `date`"
+echo "pxscene processes: `ps -ef | grep pxscene |grep -v grep`"
+echo "exec log ends with: `tail $EXECLOGS`"
+kill -15 `ps -ef | grep pxscene |grep -v grep|grep -v pxscene.sh|awk '{print $2}'`
 echo "Sleeping to make terminate complete ...";
-sleep 40s
+echo "[`date`] Sleeping to make terminate complete ......"
+wait
+echo "[`date`] Terminate complete"
 pkill -9 -f pxscene.sh
 cp /var/tmp/pxscene.log $EXECLOGS
+if [ "$TRAVIS_PULL_REQUEST" != "false" ]
+then
+    printExecLogs
+fi 
+
 if [ "$dumped_core" -eq 1 ]
 	then
 	echo "ERROR:  Core Dump - exiting ...";
@@ -118,7 +128,6 @@ if [ "$retVal" -ne 0 ]
 	if [ "$TRAVIS_PULL_REQUEST" != "false" ]
 		then
 		errCause="Either one or more tests failed. Check the above logs"
-		printExecLogs
         else
 		errCause="Either one or more tests failed. Check the log file $EXECLOGS"
 	fi
@@ -138,7 +147,6 @@ else
 	if [ "$TRAVIS_PULL_REQUEST" != "false" ]
 		then
 		errCause="Check the above logs"
-		printExecLogs
 	else
 		errCause="Check the $EXECLOGS file"
 	fi 
@@ -152,7 +160,6 @@ if [ "$leakcount" -ne 0 ]
 	if [ "$TRAVIS_PULL_REQUEST" != "false" ]
 		then
 		errCause="Check the above logs"
-		printExecLogs
 	else
 		errCause="Check the file $LEAKLOGS and $EXECLOGS"
 	fi
