@@ -86,6 +86,7 @@ static uv_work_t nodeLoopReq;
 #endif
 
 #include "rtThreadPool.h"
+#include "pxFont.h"
 
 #include <stdlib.h>
 #include <fstream>
