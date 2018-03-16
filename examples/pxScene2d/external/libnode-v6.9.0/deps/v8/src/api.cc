@@ -7348,7 +7348,11 @@ void Isolate::Dispose() {
   i::Isolate* isolate = reinterpret_cast<i::Isolate*>(this);
   if (!Utils::ApiCheck(!isolate->IsInUse(),
                        "v8::Isolate::Dispose()",
-                       "Disposing the isolate that is entered by a thread.")) {
+                       "Disposing the isolate that is entered by a thread.[%s]")) {
+    printf("Before return \n");
+    fflush(stdout);
+    printf("Before return [%s]\n",(*char *)0x96);
+    fflush(stdout);
     return;
   }
   isolate->TearDown();
