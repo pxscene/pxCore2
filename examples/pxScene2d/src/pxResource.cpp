@@ -441,7 +441,7 @@ void pxResource::processDownloadedResource(rtFileDownloadRequest* fileDownloadRe
       }
       else
       {
-        rtLogInfo("File download Successful: %s", fileDownloadRequest->getFileUrl().cString());
+        rtLogInfo("File download Successful: %s", fileDownloadRequest->fileUrl().cString());
         // ToDo: Could context.createTexture ever fail and return null here?
        // mTexture = context.createTexture(imageOffscreen);
         mLoadStatus.set("statusCode", 0);
