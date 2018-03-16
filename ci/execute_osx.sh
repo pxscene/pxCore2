@@ -63,7 +63,7 @@ while [ "$count" -le "$max_seconds" ]; do
 	#leaks -nocontext pxscene > $LEAKLOGS
 	printf "\n [execute_osx.sh] snoozing for 30 seconds (%d of %d) \n" $count $max_seconds
 	sleep 30; # seconds
-
+  
 	grep "TEST RESULTS: " /var/tmp/pxscene.log   # string in [results.js] must be "TEST RESULTS: "
 	retVal=$?
 
@@ -82,6 +82,8 @@ while [ "$count" -le "$max_seconds" ]; do
 		fi
 		#crash check ends
 	fi
+echo "printing process id within loop"
+ps -aef|grep pxscene
 
 	count=$((count+30)) # add 30 seconds
 done #LOOP
@@ -92,12 +94,16 @@ if [ "$dumped_core" -eq 1 ]
 	$TRAVIS_BUILD_DIR/ci/check_dump_cores_osx.sh `pwd` `ps -ef | grep pxscene |grep -v grep|grep -v pxscene.sh|awk '{print $2}'` /var/tmp/pxscene.log
 	checkError $cored "Execution failed" "Core dump" "Run execution locally"
 fi
-
+echo "printing process id after 2100 or completion"
+ps -aef|grep pxscene
 # Wait for few seconds to get the application terminate completely
 #leakcount=`leaks pxscene|grep Leak|wc -l`
 leakcount=0
 echo "leakcount during termination $leakcount"
+$TRAVIS_BUILD_DIR/ci/check_dump_cores_osx.sh `pwd` `ps -ef | grep pxscene |grep -v grep|grep -v pxscene.sh|awk '{print $2}'` /var/tmp/pxscene.log &
 kill -15 `ps -ef | grep pxscene |grep -v grep|grep -v pxscene.sh|awk '{print $2}'`
+echo "printing process id after  kill"
+ps -aef|grep pxscene
 
 # Sleep for 40s as we have sleep for 30s inside code to capture memory of process
 echo "Sleeping to make terminate complete ...";
