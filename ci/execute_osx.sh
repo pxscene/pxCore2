@@ -98,6 +98,7 @@ fi
 # Wait for few seconds to get the application terminate completely
 leakcount=`leaks pxscene|grep Leak|wc -l`
 echo "leakcount during termination $leakcount"
+$TRAVIS_BUILD_DIR/ci/check_dump_cores_osx.sh `pwd` `ps -ef | grep pxscene |grep -v grep|grep -v pxscene.sh|grep -v monitor.sh|awk '{print $2}'` /var/tmp/pxscene.log &
 kill -15 `ps -ef | grep pxscene |grep -v grep|grep -v pxscene.sh|awk '{print $2}'`
 
 # Sleep for 40s as we have sleep for 30s inside code to capture memory of process
