@@ -18,7 +18,6 @@
       {"url":"../tests/test_promiseCreationImageA.js", "title":"test_promiseCreationImageA","useBaseURI":"true"},
       {"url":"../tests/test_pxAnimate.js", "title":"test_pxAnimate","useBaseURI":"true"},
       {"url":"../tests/test_pxResource.js", "title":"test_pxResource","useBaseURI":"true"},
-      {"url":"../tests/test_pxWayland.js", "title":"test_pxWayland","useBaseURI":"true"},
       {"url":"../tests/test_pxScene2d.js", "title":"test_pxScene2d","useBaseURI":"true"},
       {"url":"../tests/test_pxImage.js", "title":"test_pxImage","useBaseURI":"true"},
       {"url":"../tests/test_pxImageA_2.js", "title":"test_pxImageA_2","useBaseURI":"true"},
