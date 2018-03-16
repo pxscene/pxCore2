@@ -1005,7 +1005,7 @@ public:
 
 //  rtMethod1ArgAndNoReturn("makeReady", makeReady, bool);  // DEPRECATED ?
   
-  pxSceneContainer(pxScene2d* scene):pxViewContainer(scene){  pxSceneContainerCount++;}
+  pxSceneContainer(pxScene2d* scene):pxViewContainer(scene), mScriptView(), mUrl(){  pxSceneContainerCount++;}
   virtual ~pxSceneContainer() {rtLogDebug("###############~pxSceneContainer\n");pxSceneContainerCount--;}
 
   virtual unsigned long Release()
