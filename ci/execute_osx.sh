@@ -27,6 +27,7 @@ checkError()
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 sudo rm -rf /tmp/pxscenecrash
+rm -rf ~/.sparkUseDuktape
 ulimit -c unlimited
 dumped_core=0
 
