@@ -57,7 +57,7 @@ cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src/pxscene.app/Contents/MacOS
 
 # Monitor testRunner ...
 count=0
-max_seconds=2100
+max_seconds=1500
 
 while [ "$count" -le "$max_seconds" ]; do
 	#leaks -nocontext pxscene > $LEAKLOGS
