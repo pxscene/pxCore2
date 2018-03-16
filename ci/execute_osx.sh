@@ -35,7 +35,7 @@ export RT_LOG_LEVEL=info
 export PXSCENE_PERMISSIONS_CONFIG=$TRAVIS_BUILD_DIR/examples/pxScene2d/src/pxscenepermissions.conf
 export HANDLE_SIGNALS=1
 export ENABLE_MEMLEAK_CHECK=1
-export MallocStackLogging=1
+export MallocStackLogging=0
 
 EXECLOGS=$TRAVIS_BUILD_DIR/logs/exec_logs
 LEAKLOGS=$TRAVIS_BUILD_DIR/logs/leak_logs
