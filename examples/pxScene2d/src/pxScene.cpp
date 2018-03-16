@@ -85,6 +85,8 @@ vector<AsyncScriptInfo*> scriptsInfo;
 static uv_work_t nodeLoopReq;
 #endif
 
+#include "rtThreadPool.h"
+
 #include <stdlib.h>
 #include <fstream>
 
@@ -244,6 +246,8 @@ protected:
       gApplicationIsClosing = true;
     
     rtLogInfo(__FUNCTION__);
+    rtThreadPool::globalInstance()->destroy();
+    
     ENTERSCENELOCK();
     if (mView)
       mView->onCloseRequest();
@@ -256,9 +260,7 @@ protected:
 #endif
    // pxScene.cpp:104:12: warning: deleting object of abstract class type ‘pxIView’ which has non-virtual destructor will cause undefined behaviour [-Wdelete-non-virtual-dtor]
 
-  #ifdef RUNINMAIN
-     script.collectGarbage();
-  #endif
+
   ENTERSCENELOCK()
     mView = NULL;
   EXITSCENELOCK()
