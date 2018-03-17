@@ -590,7 +590,10 @@ rtNodeContext::~rtNodeContext()
   //Make sure node is not destroyed abnormally
   if (true == node_is_initialized)
   {
-    runScript("var process = require('process');process._tickCallback();");
+    if (!nodeTerminated)
+    {
+      runScript("var process = require('process');process._tickCallback();");
+    }
     if(mEnv)
     {
       Locker                locker(mIsolate);

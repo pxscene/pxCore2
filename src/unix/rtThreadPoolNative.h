@@ -19,11 +19,12 @@ public:
     void executeTask(rtThreadTask* threadTask);
     void raisePriority(rtString key);
     void startThread();
+    void destroy();
     
 protected:
     
     bool initialize();
-    void destroy();
+
     
     int mNumberOfThreads;
     bool mRunning;
