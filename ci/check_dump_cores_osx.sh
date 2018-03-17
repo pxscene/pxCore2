@@ -6,7 +6,6 @@ process="$2"
 logfile="$3"
 
 #take report from lldb
-
 cd $path
 echo "sudo lldb -o \"attach $process\" -o \"bt all\" -o \"quit\" 1>lldblogs 2>/dev/null"
 sudo lldb -o "attach $process" -o "bt all" -o "quit" 1>lldblogs 2>/dev/null
