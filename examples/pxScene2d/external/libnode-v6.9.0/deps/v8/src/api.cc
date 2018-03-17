@@ -7349,17 +7349,7 @@ void Isolate::Dispose() {
   if (!Utils::ApiCheck(!isolate->IsInUse(),
                        "v8::Isolate::Dispose()",
                        "Disposing the isolate that is entered by a thread.[%s]")) {
-    printf("Before return 1 \n");
-    fflush(stdout);
     return;
-  }
-  else
-  {
-    if (isolate->IsInUse())
-    {
-      printf("Before return 2 \n");
-      fflush(stdout);
-    }
   }
   isolate->TearDown();
 }

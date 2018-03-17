@@ -267,11 +267,7 @@ protected:
   #endif
 
     context.term();
-    printf("Madana before garbage collect ........... \n");
-    fflush(stdout);
     script.collectGarbage();
-    printf("Madana after garbage collect ........... [%d] \n",gDumpMemUsage);
-    fflush(stdout);
 
     if (gDumpMemUsage)
     {
@@ -279,13 +275,12 @@ protected:
 #ifndef PX_PLATFORM_DFB_NON_X11
       rtLogInfo("texture memory usage is [%" PRId64 "]",context.currentTextureMemoryUsageInBytes());
 #endif
+      fflush(stdout);
 // #ifdef PX_PLATFORM_MAC
 //       rtLogInfo("texture memory usage is [%lld]",context.currentTextureMemoryUsageInBytes());
 // #else
 //       rtLogInfo("texture memory usage is [%ld]",context.currentTextureMemoryUsageInBytes());
 // #endif
-    printf("Madana printed ........... \n");
-    fflush(stdout);
     }
     #ifdef ENABLE_CODE_COVERAGE
     __gcov_flush();
