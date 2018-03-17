@@ -40,7 +40,7 @@ export MallocStackLogging=1
 
 EXECLOGS=$TRAVIS_BUILD_DIR/logs/exec_logs
 LEAKLOGS=$TRAVIS_BUILD_DIR/logs/leak_logs
-TESTRUNNERURL="https://px-apps.sys.comcast.net/pxscene-samples/examples/px-reference/test-run/testRunner.js"
+TESTRUNNERURL="https://px-apps.sys.comcast.net/pxscene-samples/examples/px-reference/test-run/testRunner_v2.js"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 printExecLogs()
@@ -125,7 +125,6 @@ if [ "$retVal" -ne 0 ]
 	if [ "$TRAVIS_PULL_REQUEST" != "false" ]
 		then
 		errCause="Either one or more tests failed. Check the above logs"
-		printExecLogs
         else
 		errCause="Either one or more tests failed. Check the log file $EXECLOGS"
 	fi
@@ -145,7 +144,6 @@ else
 	if [ "$TRAVIS_PULL_REQUEST" != "false" ]
 		then
 		errCause="Check the above logs"
-		printExecLogs
 	else
 		errCause="Check the $EXECLOGS file"
 	fi 
@@ -159,7 +157,6 @@ if [ "$leakcount" -ne 0 ]
 	if [ "$TRAVIS_PULL_REQUEST" != "false" ]
 		then
 		errCause="Check the above logs"
-		printExecLogs
 	else
 		errCause="Check the file $LEAKLOGS and $EXECLOGS"
 	fi
