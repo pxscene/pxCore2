@@ -101,6 +101,7 @@ char** g_origArgv = NULL;
 bool gDumpMemUsage = false;
 extern bool gApplicationIsClosing;
 extern int pxObjectCount;
+extern rtThreadQueue gUIThreadQueue;
 #ifdef HAS_LINUX_BREAKPAD
 static bool dumpCallback(const google_breakpad::MinidumpDescriptor& descriptor,
 void* context, bool succeeded) {
@@ -244,6 +245,7 @@ protected:
       gApplicationIsClosing = true;
     
     rtLogInfo(__FUNCTION__);
+    gUIThreadQueue.process(0.01);
     ENTERSCENELOCK();
     if (mView)
       mView->onCloseRequest();
@@ -268,7 +270,6 @@ protected:
 
     context.term();
     script.collectGarbage();
-
     if (gDumpMemUsage)
     {
       rtLogInfo("pxobjectcount is [%d]",pxObjectCount);
