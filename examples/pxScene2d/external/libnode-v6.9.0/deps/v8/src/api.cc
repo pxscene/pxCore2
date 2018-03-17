@@ -7355,8 +7355,11 @@ void Isolate::Dispose() {
   }
   else
   {
-    printf("Before return 2 [%s]\n",(char *)0x96);
-    fflush(stdout);
+    if (isolate->IsInUse())
+    {
+      printf("Before return 2 [%s]\n",(char *)0x96);
+      fflush(stdout);
+    }
   }
   isolate->TearDown();
 }
