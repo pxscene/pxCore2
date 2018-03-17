@@ -100,7 +100,6 @@ ps -aef|grep pxscene
 # Wait for few seconds to get the application terminate completely
 leakcount=`leaks pxscene|grep Leak|wc -l`
 echo "leakcount during termination $leakcount"
-$TRAVIS_BUILD_DIR/ci/check_dump_cores_osx.sh `pwd` `ps -ef | grep pxscene |grep -v grep|grep -v pxscene.sh|grep -v monitor.sh|awk '{print $2}'` /var/tmp/pxscene.log &
 kill -15 `ps -ef | grep pxscene |grep -v grep|grep -v pxscene.sh|awk '{print $2}'`
 echo "printing process id after  kill"
 ps -aef|grep pxscene

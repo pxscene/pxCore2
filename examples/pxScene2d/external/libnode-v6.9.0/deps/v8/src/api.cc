@@ -7348,7 +7348,7 @@ void Isolate::Dispose() {
   i::Isolate* isolate = reinterpret_cast<i::Isolate*>(this);
   if (!Utils::ApiCheck(!isolate->IsInUse(),
                        "v8::Isolate::Dispose()",
-                       "Disposing the isolate that is entered by a thread.[%s]")) {
+                       "Disposing the isolate that is entered by a thread.")) {
     return;
   }
   isolate->TearDown();
