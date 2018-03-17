@@ -43,10 +43,10 @@ LEAKLOGS=$TRAVIS_BUILD_DIR/logs/leak_logs
 TESTRUNNERURL="https://px-apps.sys.comcast.net/pxscene-samples/examples/px-reference/test-run/testRunner_v2.js"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-printExecLogs()
+printLeakLogs()
 {
   printf "\n********************** PRINTING EXEC LOG **************************\n"
-  cat $EXECLOGS
+  cat $LEAKLOGS
   printf "\n**********************     LOG ENDS      **************************\n"
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -61,7 +61,7 @@ count=0
 max_seconds=1500
 
 while [ "$count" -le "$max_seconds" ]; do
-	#leaks -nocontext pxscene > $LEAKLOGS
+	leaks -nocontext pxscene > $LEAKLOGS
 	printf "\n [execute_osx.sh] snoozing for 30 seconds (%d of %d) \n" $count $max_seconds
 	sleep 30; # seconds
 	grep "TEST RESULTS: " /var/tmp/pxscene.log   # string in [results.js] must be "TEST RESULTS: "
@@ -151,6 +151,7 @@ if [ "$leakcount" -ne 0 ]
 	then
 	if [ "$TRAVIS_PULL_REQUEST" != "false" ]
 		then
+		printLeakLogs	
 		errCause="Check the above logs"
 	else
 		errCause="Check the file $LEAKLOGS and $EXECLOGS"
