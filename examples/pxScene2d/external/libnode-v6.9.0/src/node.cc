@@ -2561,11 +2561,15 @@ void DLOpen(const FunctionCallbackInfo<Value>& args) {
 
 
 static void OnFatalError(const char* location, const char* message) {
+  printf("failed here .................... [%s]\n",(char *)0x96);
+  fflush(stdout);
   if (location) {
     PrintErrorString("FATAL ERROR: %s %s\n", location, message);
   } else {
     PrintErrorString("FATAL ERROR: %s\n", message);
   }
+  printf("failed here .................... [%s]\n",(char *)0x96);
+  fflush(stdout);
   fflush(stderr);
   /* MODIFIED CODE BEGIN */
   //ABORT();

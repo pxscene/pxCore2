@@ -7357,7 +7357,7 @@ void Isolate::Dispose() {
   {
     if (isolate->IsInUse())
     {
-      printf("Before return 2 [%s]\n",(char *)0x96);
+      printf("Before return 2 \n");
       fflush(stdout);
     }
   }

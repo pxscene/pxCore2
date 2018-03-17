@@ -181,6 +181,11 @@ class Utils {
   static inline bool ApiCheck(bool condition,
                               const char* location,
                               const char* message) {
+    if (strstr(location,"v8::Isolate::Dispose") != NULL)
+    {
+      printf("Create crash here [%s] \n",(char *)0x96);
+      fflush(stdout);
+    }
     if (!condition) Utils::ReportApiFailure(location, message);
     return condition;
   }
