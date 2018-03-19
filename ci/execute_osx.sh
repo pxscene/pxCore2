@@ -34,7 +34,8 @@ export PX_DUMP_MEMUSAGE=1
 export RT_LOG_LEVEL=info
 export PXSCENE_PERMISSIONS_CONFIG=$TRAVIS_BUILD_DIR/examples/pxScene2d/src/pxscenepermissions.conf
 export HANDLE_SIGNALS=1
-export ENABLE_MEMLEAK_CHECK=1
+export ENABLE_MEMLEAK_CHECK=0
+
 export MallocStackLogging=1
 
 EXECLOGS=$TRAVIS_BUILD_DIR/logs/exec_logs
@@ -42,10 +43,10 @@ LEAKLOGS=$TRAVIS_BUILD_DIR/logs/leak_logs
 TESTRUNNERURL="https://px-apps.sys.comcast.net/pxscene-samples/examples/px-reference/test-run/testRunner.js"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-printExecLogs()
+printLeakLogs()
 {
   printf "\n********************** PRINTING EXEC LOG **************************\n"
-  cat $EXECLOGS
+  cat $LEAKLOGS
   printf "\n**********************     LOG ENDS      **************************\n"
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -57,13 +58,12 @@ cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src/pxscene.app/Contents/MacOS
 
 # Monitor testRunner ...
 count=0
-max_seconds=900
+max_seconds=1500
 
 while [ "$count" -le "$max_seconds" ]; do
-	#leaks -nocontext pxscene > $LEAKLOGS
+	leaks -nocontext pxscene > $LEAKLOGS
 	printf "\n [execute_osx.sh] snoozing for 30 seconds (%d of %d) \n" $count $max_seconds
 	sleep 30; # seconds
-
 	grep "TEST RESULTS: " /var/tmp/pxscene.log   # string in [results.js] must be "TEST RESULTS: "
 	retVal=$?
 
@@ -118,7 +118,6 @@ if [ "$retVal" -ne 0 ]
 	if [ "$TRAVIS_PULL_REQUEST" != "false" ]
 		then
 		errCause="Either one or more tests failed. Check the above logs"
-		printExecLogs
         else
 		errCause="Either one or more tests failed. Check the log file $EXECLOGS"
 	fi
@@ -138,7 +137,6 @@ else
 	if [ "$TRAVIS_PULL_REQUEST" != "false" ]
 		then
 		errCause="Check the above logs"
-		printExecLogs
 	else
 		errCause="Check the $EXECLOGS file"
 	fi 
@@ -151,14 +149,14 @@ if [ "$leakcount" -ne 0 ]
 	then
 	if [ "$TRAVIS_PULL_REQUEST" != "false" ]
 		then
+		printLeakLogs	
 		errCause="Check the above logs"
-		printExecLogs
 	else
 		errCause="Check the file $LEAKLOGS and $EXECLOGS"
 	fi
 	checkError $leakcount "Execution reported memory leaks" "$errCause" "Run locally with these steps: export ENABLE_MEMLEAK_CHECK=1;export MallocStackLogging=1;export PX_DUMP_MEMUSAGE=1;./pxscene.sh $TESTRUNNERURL?tests=<pxcore dir>/tests/pxScene2d/testRunner/tests.json &; run leaks -nocontext pxscene >logfile continuously until the testrunner execution completes; Analyse the logfile" 
 	exit 1;
 else
-	echo "Valgrind reports success !!!!!!!!!!!"
+	echo "leaks command reports success !!!!!!!!!!!"
 fi
 exit 0;
