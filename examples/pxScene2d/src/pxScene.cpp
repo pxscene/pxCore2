@@ -245,7 +245,7 @@ protected:
       gApplicationIsClosing = true;
     
     rtLogInfo(__FUNCTION__);
-    gUIThreadQueue.process(1);
+    gUIThreadQueue.process(0.01);
     ENTERSCENELOCK();
     if (mView)
       mView->onCloseRequest();
@@ -270,6 +270,7 @@ protected:
 
     context.term();
     script.collectGarbage();
+    gUIThreadQueue.process(0.01);
     if (gDumpMemUsage)
     {
       rtLogInfo("pxobjectcount is [%d]",pxObjectCount);
