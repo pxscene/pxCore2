@@ -22,6 +22,26 @@ global.constructPromise = function (obj) {
         obj.then2(resolve, reject);
     });
 }
+
+global.constructProxy = function (obj) {
+    return new Proxy(obj, {
+        has: function (targ, key) {
+            return _hasProxyFunc(targ, key);
+        },
+        get: function (targ, key, recv) {
+            var res = _getProxyFunc(targ, key);
+            return res;
+        },
+        set: function (targ, key, val, recv) {
+            var res = _setProxyFunc(targ, key, val);
+            return res;
+        },
+        deleteProperty: function (targ, key) {
+            _deleteProxyFunc(targ, key);
+        }
+    });
+}
+
 }
 
 var AppSceneContext = require('rcvrcore/AppSceneContext');
