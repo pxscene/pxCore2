@@ -590,7 +590,10 @@ rtNodeContext::~rtNodeContext()
   //Make sure node is not destroyed abnormally
   if (true == node_is_initialized)
   {
-    runScript("var process = require('process');process._tickCallback();");
+    #ifdef ENABLE_NODE_V_6_9    
+    if (!nodeTerminated)
+      runScript("var process = require('process');process._tickCallback();");
+    #endif
     if(mEnv)
     {
       Locker                locker(mIsolate);
@@ -1052,7 +1055,7 @@ rtError rtScriptNode::pump()
 
     if (sGcTickCount++ > 60)
     {
-      Local<Context> local_context = node::PersistentToLocal<Context>(mIsolate, mContext);
+      Local<Context> local_context = Context::New(mIsolate);
       Context::Scope contextScope(local_context);
       mIsolate->RequestGarbageCollectionForTesting(Isolate::kFullGarbageCollection);
       sGcTickCount = 0;
@@ -1071,7 +1074,7 @@ rtError rtScriptNode::collectGarbage()
   Isolate::Scope isolate_scope(mIsolate);
   HandleScope     handle_scope(mIsolate);    // Create a stack-allocated handle scope.
 
-  Local<Context> local_context = node::PersistentToLocal<Context>(mIsolate, mContext);
+  Local<Context> local_context = Context::New(mIsolate);
   Context::Scope contextScope(local_context);
   mIsolate->LowMemoryNotification();
 //#endif // RUNINMAIN
