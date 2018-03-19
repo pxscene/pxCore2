@@ -8,7 +8,7 @@ option(BUILD_RTREMOTE_LIBS "BUILD_RTREMOTE_LIBS" OFF)
 option(PREFER_SYSTEM_LIBRARIES "Prefer to use system libraries over bundled." "OFF")
 option(DISABLE_DEBUG_MODE "Disable debugging mode." "OFF") # OFF for backward compatibility
 
-option(SUPPORT_DUKTAPE "SUPPORT_DUKTAPE" OFF)
+option(SUPPORT_DUKTAPE "SUPPORT_DUKTAPE" ON)
 option(SUPPORT_NODE "SUPPORT_NODE" ON)
 
 if (BUILD_DUKTAPE)
