@@ -1904,6 +1904,7 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
 
 rtError pxScene2d::dispose()
 {
+    gUIThreadQueue.process(1);
     mDisposed = true;
     rtObjectRef e = new rtMapObject;
     mEmit.send("onClose", e);
