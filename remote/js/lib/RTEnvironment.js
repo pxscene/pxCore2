@@ -12,13 +12,13 @@
 const RTConst = require('./RTConst');
 
 /**
- * the rt function map, used to cached local rt function
+ * the rt function map, used to cache local rt function
  * @type {object}
  */
 const rtFunctionMap = {};
 
 /**
- * the rt object map, used to cached local rt object
+ * the rt object map, used to cache local rt object
  * @type {object}
  */
 const rtObjectMap = {};
@@ -32,7 +32,7 @@ let runMode = RTConst.CLIENT_MODE;
 module.exports = {
 
   /**
-   * get rt funtion cache map
+   * get rt function cache map
    * @return {object} the function map
    */
   getRtFunctionMap: () => rtFunctionMap,

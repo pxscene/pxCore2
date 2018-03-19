@@ -15,7 +15,7 @@ const ip = require('ip');
 const RTMessageHelper = require('./RTMessageHelper');
 const RTRemoteSerializer = require('./RTRemoteSerializer');
 const RTConst = require('./RTConst');
-
+const RTException = require('./RTException');
 /**
  * return rt remote object cache map
  * @type {object} the object map
@@ -65,7 +65,7 @@ class RTRemoteMulticastResolver {
     return new Promise((resolve, reject) => {
       this.udpSocketIn.on('error', (err) => {
         logger.error(`server error:\n${err.stack}`);
-        reject(err);
+        reject(new RTException(err.message));
         this.udpSocketIn.close();
       });
 
@@ -94,7 +94,7 @@ class RTRemoteMulticastResolver {
   }
 
   /**
-   * search remote object , this method will be block thread
+   * search remote object, this method will be block thread
    * 1. send udp packet
    * 2. check remote object found or not
    * 3. if not found wait 2*previous time, then send udp packet again
@@ -143,7 +143,7 @@ class RTRemoteMulticastResolver {
           });
         }
       };
-      intervalId = setInterval(sendSearchMessage, 10); // mock thread to found
+      intervalId = setInterval(sendSearchMessage, 10); // mock threads
     });
   }
 }

@@ -8,6 +8,7 @@
  * @author      TCSCODER
  * @version     1.0
  */
+const RTException = require('./RTException');
 
 class RTRemoteObject {
   /**
@@ -24,7 +25,7 @@ class RTRemoteObject {
    * set property by name or index
    * @param {string|number} name the property name or index
    * @param {object} value the rtValue
-   * @return {Promise<object>} the promise with object/rtValue
+   * @return {promise<object> | Promise<{}>} the promise with object/rtValue
    */
   set(name, value) {
     const propertyType = typeof name;
@@ -33,7 +34,7 @@ class RTRemoteObject {
     } else if (propertyType === 'number') {
       return this.protocol.sendSetById(this.id, name, value);
     }
-    return Promise.reject(new Error(`unsupport set type = ${propertyType}`));
+    return Promise.reject(new RTException(`unsupported set type = ${propertyType}`));
   }
 
   /**
@@ -48,13 +49,13 @@ class RTRemoteObject {
     } else if (propertyType === 'number') {
       return this.protocol.sendGetById(this.id, name);
     }
-    return Promise.reject(new Error(`unsupport get type = ${propertyType}`));
+    return Promise.reject(new RTException(`unsupported get type = ${propertyType}`));
   }
 
   /**
-   * send call request with void returns
+   * send call request and void value
    * @param {string} name the method name
-   * @param {array} args the call function args
+   * @param {array} args the arguments used to invoke remote function
    * @return {Promise<void>} the promise with void rtvalue
    */
   send(name, ...args) {
@@ -62,9 +63,9 @@ class RTRemoteObject {
   }
 
   /**
-   * send call request with returns, in fact, this method same as *send*
+   * send call request and return rt value, in fact, this method same as *send*
    * @param {string} name the method name
-   * @param {array} args the call function args
+   * @param {array} args the arguments used to invoke remote function
    * @return {Promise<object>} the promise with object/rtValue
    */
   sendReturns(name, ...args) {

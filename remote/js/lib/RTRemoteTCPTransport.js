@@ -12,7 +12,7 @@
 const logger = require('./common/logger');
 const net = require('net');
 const RTConst = require('./RTConst');
-
+const RTException = require('./RTException');
 /**
  * the rt remote tcp transport class
  */
@@ -20,9 +20,9 @@ class RTRemoteTCPTransport {
   /**
    * create new RTRemoteTCPTransport
    * @param {string} host the host address
-   * @param {number/int} port the host port
+   * @param {number|int|null} port the host port
    */
-  constructor(host, port) {
+  constructor(host, port = null) {
     /**
      * the tcp host name
      * @type {string}
@@ -42,7 +42,7 @@ class RTRemoteTCPTransport {
     this.socket = null;
 
     /**
-     * this mean transport is runing or not
+     * represents transport is running or not
      * @type {boolean}
      */
     this.mRunning = true;
@@ -60,7 +60,7 @@ class RTRemoteTCPTransport {
    * @return {Promise<RTRemoteTCPTransport>} the promise with RTRemoteTCPTransport
    */
   open() {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       const transport = this;
       this.socket = net.connect(transport.port, transport.host, () => {
         logger.info(`new tcp connection to ${transport.host}:${transport.port}`);
@@ -68,7 +68,10 @@ class RTRemoteTCPTransport {
       });
       this.socket.on('error', (err) => {
         logger.error(err);
-        throw new Error(err);
+        if (transport.mRunning) { // should close socket
+          transport.socket.destroy();
+        }
+        reject(new RTException(err.message));
       });
       this.socket.on('close', () => {
         this.mRunning = false;
@@ -88,7 +91,7 @@ class RTRemoteTCPTransport {
       sendBuff.fill(buffer, RTConst.PROTOCOL_HEADER_LEN); // copy content buffer
       this.socket.write(sendBuff, RTConst.DEFAULT_CHARSET); // send buffer
     } else {
-      throw new Error('cannot send because of transport mRunning = false');
+      throw new RTException('cannot send because of transport mRunning = false');
     }
   }
 }

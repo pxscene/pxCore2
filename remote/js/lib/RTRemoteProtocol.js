@@ -16,6 +16,8 @@ const RTStatusCode = require('./RTStatusCode');
 const RTRemoteSerializer = require('./RTRemoteSerializer');
 const RTEnvironment = require('./RTEnvironment');
 const RTRemoteMessageType = require('./RTRemoteMessageType');
+const RTRemoteTask = require('./RTRemoteTask');
+const RTException = require('./RTException');
 const helper = require('./common/helper');
 const logger = require('./common/logger');
 
@@ -42,13 +44,13 @@ class RTRemoteProtocol {
     this.transportOpened = transportOpened;
 
     /**
-     * the buffer queue, used to cache and process packet
+     * the buffer queue, used to cache and process packet datas
      * @type {Buffer}
      */
     this.bufferQueue = Buffer.alloc(0);
 
     /**
-     * this mean protocol is runing or not
+     * represents protocol is running or not
      * @type {boolean}
      */
     this.mRunning = false;
@@ -58,10 +60,16 @@ class RTRemoteProtocol {
      * @type {object}
      */
     this.futures = {};
+
+    /**
+     * the rt remote server
+     * @type {RTRemoteServer}
+     */
+    this.rtRemoteServer = null;
   }
 
   /**
-   * init protocol, it will open tranport first iftransport not opened
+   * init protocol, it will open tranport first if transport not opened
    * @return {Promise<RTRemoteProtocol>} promise with RTRemoteProtocol instance
    */
   init() {
@@ -91,10 +99,10 @@ class RTRemoteProtocol {
         const packetLen = that.bufferQueue.readUInt32BE(0);
         const totalLen = packetLen + RTConst.PROTOCOL_HEADER_LEN;
         if (that.bufferQueue.length >= totalLen) {
-          // this mean is a full packet, this packet can prase as message
+          // it is a full packet, this packet can be parsed as message
           const messageBuffer = Buffer.alloc(packetLen);
           that.bufferQueue.copy(messageBuffer, 0, RTConst.PROTOCOL_HEADER_LEN, totalLen);
-          that.inComeMessage(RTRemoteSerializer.fromBuffer(messageBuffer));
+          that.incomeMessage(RTRemoteSerializer.fromBuffer(messageBuffer));
           that.bufferQueue = that.bufferQueue.slice(totalLen); // remove parsed message
         }
       }
@@ -102,10 +110,10 @@ class RTRemoteProtocol {
   }
 
   /**
-   * in come a message from other side
+   * income a message from other side
    * @param {object} message the remote message object
    */
-  inComeMessage(message) {
+  incomeMessage(message) {
     const key = message[RTConst.CORRELATION_KEY];
     const callContext = this.futures[key];
     if (callContext) { // call context
@@ -124,8 +132,8 @@ class RTRemoteProtocol {
       this.transport.send(RTRemoteSerializer
         .toBuffer(RTMessageHelper.newKeepAliveResponse(message[RTConst.CORRELATION_KEY], RTStatusCode.OK)));
     } else if (message[RTConst.MESSAGE_TYPE] === RTRemoteMessageType.KEEP_ALIVE_RESPONSE) {
-      // this send keep live request to other side, and got reponse from other side
-      // so this reponse can ignored
+      // that's mean this program send keep live request to other side, and got reponse from other side
+      // so this reponse can be ignored
     } else if (RTEnvironment.isServerMode()) {
       this.processMessageInServerMode(message);
     } else {
@@ -154,8 +162,7 @@ class RTRemoteProtocol {
    * @param {object} message the message
    */
   processMessageInServerMode(message) {
-    // TODO need implement in next challenge
-    logger.debug(message, this);
+    this.rtRemoteServer.handlerMessage(new RTRemoteTask(this, message));
   }
 
   /**
@@ -172,7 +179,7 @@ class RTRemoteProtocol {
    * @param {string} objectId the object id
    * @param {string} propName the property name
    * @param {object} value the rtValue
-   * @return {promise<object>} promise with result
+   * @return {Promise<object>} promise with result
    */
   sendSetByName(objectId, propName, value) {
     const messageObj = RTMessageHelper.newSetRequest(objectId, propName, value);
@@ -197,7 +204,7 @@ class RTRemoteProtocol {
    * send call request by method name
    * @param {string} objectId the object id
    * @param {string} methodName the method name
-   * @param {array} args the call function args
+   * @param {array} args the arguments used to invoke remote function
    * @return {Promise<object>} promise with returned rtValue
    */
   sendCallByName(objectId, methodName, ...args) {
@@ -220,7 +227,7 @@ class RTRemoteProtocol {
       callContext.expired = false;
       callContext.timeoutHandler = setTimeout(() => {
         callContext.expired = true;
-        reject(new Error(helper.getStatusStringByCode(RTStatusCode.TIMEOUT)));
+        reject(new RTException(helper.getStatusStringByCode(RTStatusCode.TIMEOUT)));
       }, RTConst.REQUEST_TIMEOUT);
     });
   }
@@ -237,7 +244,7 @@ class RTRemoteProtocol {
   }
 
   /**
-   * send get property by name
+   * send get property by id
    * @param {string} objectId the object id
    * @param {string} index the property name
    * @return {Promise<object>} promise with result

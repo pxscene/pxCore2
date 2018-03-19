@@ -38,11 +38,15 @@ class RTRemoteClientConnection {
 /**
  * create tcp connection
  * @param {string} host the host name
- * @param {number/int} port the host port
+ * @param {number|int} port the host port
  * @return {Promise<RTRemoteClientConnection>} the promise with connection
  */
 function createTCPClientConnection(host, port) {
   const transport = new RTRemoteTCPTransport(host, port);
+
+  // 1. create protocol, the second param is false mean protocol will open transport socket
+  // connection and bind relate input/output events
+  // 2. then use initialized protocol create connection
   return RTRemoteProtocol.create(transport, false).then(protocol => new RTRemoteClientConnection(protocol));
 }
 

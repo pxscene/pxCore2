@@ -20,6 +20,6 @@ module.exports = {
   KEEP_ALIVE_RESPONSE: 'keep_alive.response',
   METHOD_CALL_RESPONSE: 'method.call.response',
   METHOD_CALL_REQUEST: 'method.call.request',
-  SERACH_OBJECT: 'search',
+  SEARCH_OBJECT: 'search',
   LOCATE_OBJECT: 'locate',
 };

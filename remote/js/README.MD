@@ -8,8 +8,8 @@
 
 -  `git clone https://github.com/topcoderinc/pxCore.git`
 -  `cd pxCore`
--  `git checkout 91bd92ee5b032c120da42b4c8216e0d7f7ba9bb4`
--  `git apply remote-js.patch` , note: the current branch crashed on linux, i fixed it , see *remote/rtRemoteServer.cpp* line 89
+-  `git checkout 32e435490d988fc8a4e7be53ac6248133821f720`
+-  `git apply remote-js.patch`
 
 
 
@@ -51,9 +51,11 @@
 
 #### examples validation
 
-* startup c++/java server
-  * **c++ sample server** , Follow *Build remote and run example* section to start up sample server
-  * **java sample server**, Follow *Build java remote* to build java codes, then ``cd pxCore/rtRemote/java` use `mvn exec:java -Dexec.mainClass="examples.server.SampleServer"` to startup server.
+* startup c++/java/node server
+  * **c++ sample server** , Follow *Build remote* section to start up sample server
+  * **java sample server**, Follow *Build java remote* to build java codes, then ``cd pxCore/remote/java` use `mvn exec:java -Dexec.mainClass="examples.server.SampleServer"` to startup server.
+  * **node sample server,** Follow *Build remote* section to install node, then `cd pxCore/remote/js && npm i ` , and use `node examples/server/sampleServer.js` to start node server.
+
 * basic client examples , cd `pxCore/remote/js` ,and run `npm i` to install dependencies, then run `npm run lint` to check code.
   * ` node examples/typeTest.js`, this example include all types test, each type had at least 2 examples,  the test total had 38 examples, the examples include type *FUNCTION, OBJECT,FLOAT,BOOLEAN,INT8,UINT8,INT32,UINT32,INT64,UINT64,DOUBLE,STRING,VOIDPTR*
 
@@ -66,6 +68,14 @@
     method2FunctionAndNoReturn -> the method need two params (params 1 is a function, params 2 is INT32), then no returns, but server should invoke the params1 function with args
 
   * `node examples/multiObjTest.js`, this example create 4 remote objects , and do basic test and method test for each remote object in **parallel** mode.
+
+* basic sample server examples,  **first make sure you start node server**
+
+  * do node client examples (see above section)
+  * do java client exmaples cd `pxCore/remote/java` , `mvn compile`
+    * `mvn exec:java -Dexec.mainClass="examples.TypeTest"`, this example include all types test.
+    *  `mvn exec:java -Dexec.mainClass="examples.MethodTest"`, this example include a lot of method test.
+    * `mvn exec:java -Dexec.mainClass="examples.ThreadTest"`, this example create 4 threads for each 10 seconds to test type and methods.
 
 
 #### loop to find object validation
