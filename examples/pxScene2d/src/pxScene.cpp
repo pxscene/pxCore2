@@ -245,7 +245,7 @@ protected:
       gApplicationIsClosing = true;
     
     rtLogInfo(__FUNCTION__);
-    gUIThreadQueue.process(0.01);
+    gUIThreadQueue.process(5);
     ENTERSCENELOCK();
     if (mView)
       mView->onCloseRequest();
