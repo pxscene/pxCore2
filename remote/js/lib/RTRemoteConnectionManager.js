@@ -11,6 +11,7 @@
 const { URL } = require('url');
 const logger = require('./common/logger');
 const RTRemoteClientConnection = require('./RTRemoteClientConnection');
+const RTException = require('./RTException');
 
 /**
  * the connections map
@@ -50,7 +51,7 @@ function createConnectionFromSpec(url) {
       connection = RTRemoteClientConnection.createTCPClientConnection(url.hostname, url.port);
       break;
     default:
-      throw new Error(`unsupported scheme : ${url.protocol}`);
+      throw new RTException(`unsupported scheme : ${url.protocol}`);
   }
   return connection;
 }

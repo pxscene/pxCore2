@@ -107,7 +107,7 @@ function getRandomLong() {
 }
 
 /**
- * print result and add total/suceed example number
+ * print result and add total/success example number
  * @param type the rtValue type
  * @param old the old value
  * @param newValue the rpc value

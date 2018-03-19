@@ -31,7 +31,7 @@ const resolve = new RTRemoteMulticastResolver('224.10.10.12', 10004);
 let total = 0;
 
 /**
- * the succeed number of examples
+ * the successful number of examples
  * @type {number}
  */
 let succeed = 0;
@@ -172,7 +172,7 @@ function doBasicTest(rtObject, type, value, propertyName) {
 }
 
 /**
- * print result and add total/suceed example number
+ * print result and add total/success example number
  * @param type the rtValue type
  * @param old the old value
  * @param newValue the rpc value

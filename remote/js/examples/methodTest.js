@@ -29,7 +29,7 @@ const resolve = new RTRemoteMulticastResolver('224.10.10.12', 10004);
 let total = 0;
 
 /**
- * the succeed number of examples
+ * the successful number of examples
  * @type {number}
  */
 let succeed = 0;

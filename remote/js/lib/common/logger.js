@@ -30,7 +30,7 @@ if (!config.DISABLE_LOGGING) {
 }
 
 /**
- * crate new logger
+ * create new logger
  */
 const logger = new (winston.Logger)({
   transports,

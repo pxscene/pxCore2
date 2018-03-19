@@ -23,12 +23,30 @@ const RTValueType = require('./RTValueType');
  */
 function newLocateRequest(objectId, replyTo) {
   const locateObj = {};
-  locateObj[RTConst.MESSAGE_TYPE] = RTRemoteMessageType.SERACH_OBJECT;
+  locateObj[RTConst.MESSAGE_TYPE] = RTRemoteMessageType.SEARCH_OBJECT;
   locateObj[RTConst.CORRELATION_KEY] = helper.getRandomUUID();
   locateObj[RTConst.OBJECT_ID_KEY] = objectId;
   locateObj[RTConst.SENDER_ID] = 0;
   locateObj[RTConst.REPLY_TO] = replyTo;
   return locateObj;
+}
+
+/**
+ * create new locate object response message
+ * @param {string} endpoint
+ * @param {string} objectId
+ * @param {number|int} senderId
+ * @param {string} correlationKey
+ * @return {object} the locate object response message
+ */
+function newLocateResponse(endpoint, objectId, senderId, correlationKey) {
+  const response = {};
+  response[RTConst.ENDPOINT] = endpoint;
+  response[RTConst.OBJECT_ID_KEY] = objectId;
+  response[RTConst.SENDER_ID] = senderId;
+  response[RTConst.CORRELATION_KEY] = correlationKey;
+  response[RTConst.MESSAGE_TYPE] = RTRemoteMessageType.LOCATE_OBJECT;
+  return response;
 }
 
 /**
@@ -110,11 +128,49 @@ function newKeepAliveResponse(correlationKey, statusCode) {
   return keepAliveReponseObj;
 }
 
+/**
+ * create new set property response message
+ * @param {string} correlationKey the request correlation key
+ * @param {RTStatusCode|number} statusCode the status code
+ * @param {string} objectId the object id
+ * @return {object} the response message
+ */
+function newSetPropertyResponse(correlationKey, statusCode, objectId) {
+  const setResponse = {};
+  setResponse[RTConst.MESSAGE_TYPE] = RTRemoteMessageType.SET_PROPERTY_BYNAME_RESPONSE;
+  setResponse[RTConst.CORRELATION_KEY] = correlationKey;
+  setResponse[RTConst.STATUS_CODE] = statusCode;
+  setResponse[RTConst.OBJECT_ID_KEY] = objectId;
+  return setResponse;
+}
+
+/**
+ * create new get property response message
+ * @param {string} correlationKey the request correlation key
+ * @param {RTStatusCode|number} statusCode the status code
+ * @param {string} objectId the object id
+ * @param {object} value the rtValue
+ * @return {object} the response message
+ */
+function newGetPropertyResponse(correlationKey, statusCode, objectId, value) {
+  const getResponse = {};
+  getResponse[RTConst.MESSAGE_TYPE] = RTRemoteMessageType.GET_PROPERTY_BYNAME_RESPONSE;
+  getResponse[RTConst.CORRELATION_KEY] = correlationKey;
+  getResponse[RTConst.STATUS_CODE] = statusCode;
+  getResponse[RTConst.OBJECT_ID_KEY] = objectId;
+  getResponse[RTConst.VALUE] = value;
+  return getResponse;
+}
+
+
 module.exports = {
   newLocateRequest,
+  newLocateResponse,
   newSetRequest,
   newGetRequest,
   newCallMethodRequest,
   newCallResponse,
   newKeepAliveResponse,
+  newSetPropertyResponse,
+  newGetPropertyResponse,
 };
