@@ -590,7 +590,10 @@ rtNodeContext::~rtNodeContext()
   //Make sure node is not destroyed abnormally
   if (true == node_is_initialized)
   {
-    runScript("var process = require('process');process._tickCallback();");
+    #ifdef ENABLE_NODE_V_6_9
+      if (!nodeTerminated)
+        runScript("var process = require('process');process._tickCallback();");
+    #endif
     if(mEnv)
     {
       Locker                locker(mIsolate);
@@ -804,7 +807,8 @@ rtError rtNodeContext::runScript(const char* script, rtValue* retVal /*= NULL*/,
 //rtError rtNodeContext::runScript(const std::string &script, rtValue* retVal /*= NULL*/, const char* /* args = NULL*/)
 rtError rtNodeContext::runScript(const char* script, rtValue* retVal /*= NULL*/, const char *args /*= NULL*/)
 {
-  rtLogInfo(__FUNCTION__);
+  rtLogInfo(" %s: Script is %s",__PRETTY_FUNCTION__, script);
+ // rtLogInfo("%s", script);
   if(!script || strlen(script) == 0)
   {
     rtLogError(" %s  ... no script given.",__PRETTY_FUNCTION__);
@@ -1052,7 +1056,7 @@ rtError rtScriptNode::pump()
 
     if (sGcTickCount++ > 60)
     {
-      Local<Context> local_context = node::PersistentToLocal<Context>(mIsolate, mContext);
+      Local<Context> local_context = Context::New(mIsolate);
       Context::Scope contextScope(local_context);
       mIsolate->RequestGarbageCollectionForTesting(Isolate::kFullGarbageCollection);
       sGcTickCount = 0;
@@ -1071,7 +1075,7 @@ rtError rtScriptNode::collectGarbage()
   Isolate::Scope isolate_scope(mIsolate);
   HandleScope     handle_scope(mIsolate);    // Create a stack-allocated handle scope.
 
-  Local<Context> local_context = node::PersistentToLocal<Context>(mIsolate, mContext);
+  Local<Context> local_context = Context::New(mIsolate);
   Context::Scope contextScope(local_context);
   mIsolate->LowMemoryNotification();
 //#endif // RUNINMAIN

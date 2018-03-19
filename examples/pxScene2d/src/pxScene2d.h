@@ -1061,7 +1061,7 @@ public:
   virtual ~pxScriptView()
   {
     rtLogInfo(__FUNCTION__);
-    rtLogDebug("~pxScriptView for mUrl=%s\n",mUrl.cString());
+    rtLogInfo("~pxScriptView for mUrl=%s\n",mUrl.cString());
     // Clear out these references since the script context
     // can outlive this view
 #ifdef ENABLE_RT_NODE
@@ -1084,8 +1084,8 @@ public:
     // TODO JRJR Do we have GC tests yet
     // Hack to try and reduce leaks until garbage collection can
     // be cleaned up
-
-    mEmit.send("onSceneRemoved", mScene);
+    if (mScene)
+      mEmit.send("onSceneRemoved", mScene);
 
     if (mScene)
       mScene.send("dispose");
