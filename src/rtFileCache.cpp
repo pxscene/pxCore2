@@ -78,7 +78,7 @@ void  rtFileCache::initCache()
   retVal = mkdir(mDirectory.cString(), 0777);
 #endif
   if (0 != retVal)
-    rtLogWarn("creation of cache directory failed");
+    rtLogWarn("creation of cache directory %s failed: %d", mDirectory.cString(), retVal);
   populateExistingFiles();
 }
 
