@@ -23,12 +23,19 @@ px.import({ scene:      'px:scene.1.js',
   var fontRes   = scene.create({ t: "fontResource",  url: "FreeSans.ttf" });
 
   var bg        = scene.create({t:"image", parent: root, url:"browser/images/status_bg.png", stretchX: myStretch, stretchY: myStretch});
-  var contentBG = scene.create({t:"rect",  parent: bg, x:10, y:60, fillColor: 0xffffffff, a: 0.05, draw: false});
+  var browser   = scene.create({t:"object", parent: bg} );
+
+  var contentBG = scene.create({t:"rect",  parent: browser, x:10, y:60, fillColor: 0xffffffff, a: 0.05, draw: false});
   var content   = scene.create({t:"scene", parent: bg, x:10, y:60, clip:true});
-  var spinner   = scene.create({t:"image", url:"browser/images/spinningball2.png",cx:50,cy:50,y:-80,parent:bg,sx:0.3,sy:0.3,a:0.0});
-   
-  var inputBox = new imports.EditBox( { parent: bg, url: "browser/images/input2.png", x: 10, y: 10, w: 800, h: 35, pts: 24 });
+  var spinner   = scene.create({t:"image", url:"browser/images/spinningball2.png",cx:50,cy:50,y:-80,parent:browser,sx:0.3,sy:0.3,a:0.0});
+
+  var inputBox = new imports.EditBox( { parent: browser, url: "browser/images/input2.png", x: 10, y: 10, w: 800, h: 35, pts: 24 });
   var helpBox   = null;
+
+  var pageInsetL = 20;
+  var pageInsetT = 70;
+
+  var showFullscreen = false;
 
   scene.addServiceProvider(function(serviceName, serviceCtx){
     if (serviceName == ".navigate")
@@ -43,6 +50,7 @@ px.import({ scene:      'px:scene.1.js',
   scene.on('onClose', function(e) {
     keys = null;
     for (var key in inputBox) { delete inputBox[key]; }
+    browser = null
     inputBox = null;
     scene = null;
   });
@@ -118,7 +126,7 @@ px.import({ scene:      'px:scene.1.js',
           content.focus = true;
 
           inputBox.textColor = urlSucceededColor;
-                         
+
           inputBox.hideCursor();
           inputBox.cancelLater( function() { spinner.a = 0;} );
         },
@@ -144,7 +152,7 @@ px.import({ scene:      'px:scene.1.js',
   {
     inputBox.focus = false;
     content.focus=true;
-  });  
+  });
 
   function updateSize(w,h)
   {
@@ -154,18 +162,18 @@ px.import({ scene:      'px:scene.1.js',
     bg.h = h;
 
     // Apply insets
-    content.w   = w - 20;
-    content.h   = h - 70;
+    content.w   = w - pageInsetL;
+    content.h   = h - pageInsetT;
 
-    contentBG.w = w - 20;
-    contentBG.h = h - 70;  
+    contentBG.w = w - pageInsetL;
+    contentBG.h = h - pageInsetT;  
 
-    inputBox.w  = w - 20;
+    inputBox.w  = w - pageInsetL;
 
     helpBox.x   = inputBox.x;
-    helpBox.y   = inputBox.y + 20;
+    helpBox.y   = inputBox.y + pageInsetL;
 
-    spinner.x   = inputBox.x + inputBox.w - 60;
+    spinner.x   = inputBox.x + inputBox.w - pageInsetT + 10;
     spinner.y  = inputBox.y - inputBox.h;
   }
 
@@ -226,6 +234,30 @@ px.import({ scene:      'px:scene.1.js',
         reload("about.js");
         e.stopPropagation();
       }
+      else if (code == keys.F)  //  CTRL-ALT-F
+      {
+        showFullscreen = !showFullscreen;
+
+        if(showFullscreen)
+        {
+//          console.log("\n\n ######### FULL WINDOW");
+          content.moveToFront();
+        }
+        else
+        {
+//          console.log("\n\n ######### CONTENT AREA");
+          browser.moveToFront();
+        }
+
+        browser.draw = showFullscreen ? false : true;
+        browser.a    = showFullscreen ?     0 : 1;
+
+        content.x    = showFullscreen ?     0 : contentBG.x;
+        content.y    = showFullscreen ?     0 : contentBG.y;
+
+        content.w    = showFullscreen ?  bg.w : contentBG.w;
+        content.h    = showFullscreen ?  bg.h : contentBG.h;
+      }
       else if (code == keys.H)  //  CTRL-ALT-H
       {
         var homeURL = "browser.js";
@@ -278,6 +310,7 @@ px.import({ scene:      'px:scene.1.js',
                                             "\n"+
                                             "  CTRL-ALT-A        ...  Show About.js \n" +
                                             "  CTRL-ALT-R        ...  Reload URL \n" +
+                                            "  CTRL-ALT-F        ...  Toggle 'Fullscreen' \n\n" +
                                             "  CTRL-ALT-H        ...  Load 'Browser.js' \n\n" +
                                             " SHELL:   \n\n"+
                                             "  CTRL-ALT-D        ...  Toggle Dirty Rectangles \n" +
