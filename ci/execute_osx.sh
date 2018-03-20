@@ -103,7 +103,8 @@ kill -15 `ps -ef | grep pxscene |grep -v grep|grep -v pxscene.sh|awk '{print $2}
 # Sleep for 40s as we have sleep for 30s inside code to capture memory of process
 echo "Sleeping to make terminate complete ...";
 sleep 90s
-pkill -9 -f pxscene.sh	+pkill -11 -f pxscene.sh
+#pkill -9 -f pxscene.sh	+pkill -11 -f pxscene.sh
+pkill -9 -f pxscene.sh
 if [ -f "/tmp/pxscenecrash" ] # 'indicator' file created by Signal Handles in pxscene.app
 then
 		printf "\n ############  CORE DUMP detected !!\n\n"
