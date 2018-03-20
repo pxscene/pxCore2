@@ -381,6 +381,7 @@ rtError jsFunctionWrapper::Send(int numArgs, const rtValue* args, rtValue* resul
   //
 
   Locker locker(mIsolate);
+  Isolate::Scope   isolate_scope(mIsolate);
   HandleScope handleScope(mIsolate);
   Local<Context> ctx = PersistentToLocal(mIsolate, mContext);
   Context::Scope contextScope(ctx);
