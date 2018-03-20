@@ -174,7 +174,6 @@ private:
     std::vector<rtFileDownloadHandle> mDownloadHandles;
     bool mReuseDownloadHandles;
     rtString mCaCertFile;
-    rtMutex mFileCacheMutex;
     static rtFileDownloader* mInstance;
 };
 

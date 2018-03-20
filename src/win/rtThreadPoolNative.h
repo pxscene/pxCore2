@@ -16,11 +16,10 @@ public:
   void executeTask(rtThreadTask* threadTask);
   void startThread();
 
-  void destroy();
-
 protected:
 
   bool initialize();
+  void destroy();
 
   int mNumberOfThreads;
   bool mRunning;

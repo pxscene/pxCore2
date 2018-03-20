@@ -63,7 +63,7 @@ public:
   rtReadOnlyProperty(ready,ready,rtObjectRef);
   rtReadOnlyProperty(loadStatus,loadStatus,rtObjectRef);
     
-  pxResource():mUrl(0),mDownloadRequest(0),priorityRaised(false),mReady(), mListenersMutex(), mDownloadRequestMutex(){
+  pxResource():mUrl(0),mDownloadRequest(0),priorityRaised(false),mReady(), mListenersMutex(){  
     mReady = new rtPromise;
     mLoadStatus = new rtMapObject; 
     mLoadStatus.set("statusCode", 0);
@@ -95,8 +95,6 @@ public:
   void addListener(pxResourceListener* pListener);
   void removeListener(pxResourceListener* pListener);
   virtual void loadResource();
-  void clearDownloadRequest();
-  virtual void setupResource() {}
 protected:   
   static void onDownloadComplete(rtFileDownloadRequest* downloadRequest);
   static void onDownloadCompleteUI(void* context, void* data);
@@ -117,7 +115,6 @@ protected:
   rtObjectRef mReady;
   std::list<pxResourceListener*> mListeners;
   rtMutex mListenersMutex;
-  rtMutex mDownloadRequestMutex;
 };
 
 class rtImageResource : public pxResource
@@ -139,9 +136,7 @@ public:
   virtual int32_t h() const;
   virtual rtError h(int32_t& v) const; 
 
-  pxTextureRef getTexture();
-  void setTextureData(pxOffscreen& imageOffscreen, const char* data, const size_t dataSize);
-  virtual void setupResource();
+  pxTextureRef getTexture() { return mTexture; }  
  
   virtual void init();
 
@@ -152,10 +147,6 @@ private:
 
   void loadResourceFromFile();
   pxTextureRef mTexture;
-  rtMutex mTextureMutex;
-  pxOffscreen mImageOffscreen;
-  char* mCompressedData;
-  size_t mCompressedDataSize;
  
 };
 
