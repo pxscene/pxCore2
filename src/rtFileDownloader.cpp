@@ -446,7 +446,8 @@ rtString rtFileDownloadRequest::origin()
 }
 
 rtFileDownloader::rtFileDownloader()
-    : mNumberOfCurrentDownloads(0), mDefaultCallbackFunction(NULL), mDownloadHandles(), mReuseDownloadHandles(false), mCaCertFile(CA_CERTIFICATE)
+    : mNumberOfCurrentDownloads(0), mDefaultCallbackFunction(NULL), mDownloadHandles(), mReuseDownloadHandles(false),
+      mCaCertFile(CA_CERTIFICATE), mFileCacheMutex()
 {
 #ifdef PX_REUSE_DOWNLOAD_HANDLES
   rtLogWarn("enabling curl handle reuse");
@@ -591,6 +592,7 @@ void rtFileDownloader::downloadFile(rtFileDownloadRequest* downloadRequest)
 
       if (downloadedData.isWritableToCache())
       {
+        mFileCacheMutex.lock();
         if (NULL == rtFileCache::instance())
           rtLogWarn("cache data not added");
         else
@@ -598,6 +600,7 @@ void rtFileDownloader::downloadFile(rtFileDownloadRequest* downloadRequest)
           rtFileCache::instance()->addToCache(downloadedData);
           rtLogInfo("Cache expiration(%s)", cachedData.expirationDate().cString());
         }
+        mFileCacheMutex.unlock();
       }
     }
 
@@ -607,12 +610,16 @@ void rtFileDownloader::downloadFile(rtFileDownloadRequest* downloadRequest)
       rtString url;
       cachedData.url(url);
 
+      mFileCacheMutex.lock();
       if (NULL == rtFileCache::instance())
           rtLogWarn("Adding url to cache failed (%s) due to in-process memory issues", url.cString());
       rtFileCache::instance()->removeData(url);
+      mFileCacheMutex.unlock();
       if (cachedData.isWritableToCache())
       {
+        mFileCacheMutex.lock();
         rtError err = rtFileCache::instance()->addToCache(cachedData);
+        mFileCacheMutex.unlock();
         if (RT_OK != err)
           rtLogWarn("Adding url to cache failed (%s)", url.cString());
         else
@@ -812,6 +819,7 @@ bool rtFileDownloader::checkAndDownloadFromCache(rtFileDownloadRequest* download
 {
   rtError err;
   rtData data;
+  mFileCacheMutex.lock();
   if ((NULL != rtFileCache::instance()) && (RT_OK == rtFileCache::instance()->httpCacheData(downloadRequest->fileUrl(),cachedData)))
   {
     if(downloadRequest->deferCacheRead())
@@ -820,6 +828,7 @@ bool rtFileDownloader::checkAndDownloadFromCache(rtFileDownloadRequest* download
       err = cachedData.data(data);
     if (RT_OK !=  err)
     {
+      mFileCacheMutex.unlock();
       return false;
     }
 
@@ -827,8 +836,10 @@ bool rtFileDownloader::checkAndDownloadFromCache(rtFileDownloadRequest* download
     downloadRequest->setDownloadedData((char *)cachedData.contentsData().data(),cachedData.contentsData().length());
     downloadRequest->setDownloadStatusCode(0);
     downloadRequest->setHttpStatusCode(200);
+    mFileCacheMutex.unlock();
     return true;
   }
+  mFileCacheMutex.unlock();
   return false;
 }
 #endif
