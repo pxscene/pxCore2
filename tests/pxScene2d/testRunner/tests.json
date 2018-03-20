@@ -1,7 +1,7 @@
 [
       {"url": "http://pxscene.org/examples/px-reference/gallery/fancy.js", "title": "fancy", "timeToRun": "5000", "useBaseURI": "false" },
       {"url": "http://pxscene.org/examples/px-reference/gallery/picturepile.js", "title": "picturepile", "timeToRun": "5000", "useBaseURI": "false" },
-      {"url": "http://pxscene.org/examples/px-reference/gallery/gallery2.js", "title": "gallery", "timeToRun": "5000", "useBaseURI": "false" },
+      {"url": "http://pxscene.org/examples/px-reference/gallery/gallery3.js", "title": "gallery", "timeToRun": "5000", "useBaseURI": "false" },
       {"url":"../tests/simpleTestApi.js", "title":"simpleTestApi","useBaseURI":"true"},
       {"url":"../tests/textbox_auto.js", "title":"textbox auto","useBaseURI":"true"},
       {"url":"../tests/text2tests.js", "title":"text2tests","useBaseURI":"true"},
