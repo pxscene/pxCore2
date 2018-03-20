@@ -91,10 +91,10 @@ void rtString::term()
 
 void rtString::append(const char* s) 
 {
-  size_t sl = strlen(s);
-  size_t dl = strlen(mData);
+  size_t sl = s?strlen(s):0;
+  size_t dl = mData?strlen(mData):0;
   mData = (char*)realloc((void*)mData, dl+sl+1);
-  strcpy(mData+dl, s);
+  strcpy(mData+dl, s?s:"");
 }
 
 int rtString::compare(const char* s) const 

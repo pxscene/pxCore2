@@ -48,6 +48,18 @@ class rtStringTest : public testing::Test
       // EXPECT_TRUE( std::string(joined == hello_world) );   // TODO:  '==' operator not supported for rtString ?? 
     }
 
+    void appendNULLTest()
+    {
+      rtString nullstring(NULL);
+      rtString append("1234");
+
+      nullstring.append("1234");
+      EXPECT_TRUE( nullstring.compare("1234") == 0 );
+
+      append.append(NULL);
+      EXPECT_TRUE( append.compare("1234") == 0 );
+    }
+
     void compareTest()
     {
       mData = "123";
@@ -135,6 +147,7 @@ TEST_F(rtStringTest, rtStringTests)
 {
   isEmptyTest();
   appendTest();
+  appendNULLTest();
   compareTest();
   lengthTest();
   cStringTest();
