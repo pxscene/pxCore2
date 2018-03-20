@@ -168,9 +168,6 @@ public:
 
   virtual void init() {}
   bool isFontLoaded() { return mInitialized;}
-
-	void setFontData(const FT_Byte*  fontData, FT_Long size, const char* n);
-	virtual void setupResource();
    
 protected:
   // Implementation for pxResource virtuals
@@ -188,10 +185,6 @@ private:
   char* mFontData; // for remote fonts loaded into memory
   size_t mFontDataSize;
   rtMutex mFontMutex;
-	rtMutex mFontDataMutex;
-	char* mFontDownloadedData;
-	size_t mFontDownloadedDataSize;
-	rtString mFontDataUrl;
 
 };
 
