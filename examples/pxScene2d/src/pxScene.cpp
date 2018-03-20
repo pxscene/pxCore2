@@ -278,9 +278,13 @@ protected:
     context.term();
     script.pump();
     script.collectGarbage();
+    #ifndef WIN32
     sleep(5);
+    #endif
     gUIThreadQueue.process(1.0);
+    #ifndef WIN32
     sleep(5);
+    #endif
 
     if (gDumpMemUsage)
     {
