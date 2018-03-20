@@ -6,11 +6,44 @@ extern rtThreadQueue gUIThreadQueue;
 
 #include "rtFileDownloader.h"
 
-pxArchive::pxArchive(): mIsFile(true),mDownloadRequest(NULL) {}
+pxArchive::pxArchive(): mIsFile(true),mDownloadRequest(NULL), mDownloadRequestMutex() {}
 
 pxArchive::~pxArchive()
 {
+  mDownloadRequestMutex.lock();
+  if (mDownloadRequest != NULL)
+  {
+    rtLogInfo("pxArchive::~pxArchive(): mDownloadRequest not null\n");
+    mDownloadRequest->setCallbackFunctionThreadSafe(NULL);
+    mDownloadRequest = NULL;
+  }
+  mDownloadRequestMutex.unlock();
   gUIThreadQueue.removeAllTasksForObject(this);
+}
+
+void pxArchive::setArchiveData(rtFileDownloadRequest* downloadRequest)
+{
+  mDownloadRequestMutex.lock();
+  mLoadStatus.set("statusCode", downloadRequest->downloadStatusCode());
+  // TODO rtValue doesn't like longs... rtValue and fix downloadRequest
+  mLoadStatus.set("httpStatusCode", (uint32_t)downloadRequest->httpStatusCode());
+
+  if (downloadRequest->downloadStatusCode() == 0)
+  {
+    char* data;
+    size_t dataSize;
+    downloadRequest->downloadedData(data, dataSize);
+
+    // TODO another copy here
+    mData.init((uint8_t*)data,dataSize);
+    process(mData.data(),mData.length());
+  }
+  else
+  {
+    gUIThreadQueue.addTask(pxArchive::onDownloadCompleteUI, this, NULL);
+  }
+  mDownloadRequest = NULL;
+  mDownloadRequestMutex.unlock();
 }
 
 rtError pxArchive::initFromUrl(const rtString& url, const rtString& origin)
@@ -142,22 +175,10 @@ void pxArchive::onDownloadComplete(rtFileDownloadRequest* downloadRequest)
 {
   pxArchive* a = (pxArchive*)downloadRequest->callbackData();
 
-  a->mLoadStatus.set("statusCode", downloadRequest->downloadStatusCode());
-  // TODO rtValue doesn't like longs... rtValue and fix downloadRequest
-  a->mLoadStatus.set("httpStatusCode", (uint32_t)downloadRequest->httpStatusCode());
-
-  if (downloadRequest->downloadStatusCode() == 0)
+  if (a != NULL)
   {
-    char* data;
-    size_t dataSize;
-    downloadRequest->downloadedData(data, dataSize);
-
-    // TODO another copy here
-    a->mData.init((uint8_t*)data,dataSize);
-    a->process(a->mData.data(),a->mData.length());
+    a->setArchiveData(downloadRequest);
   }
-  else
-    gUIThreadQueue.addTask(pxArchive::onDownloadCompleteUI, a, NULL);
 }
 
 void pxArchive::onDownloadCompleteUI(void* context, void* /*data*/)

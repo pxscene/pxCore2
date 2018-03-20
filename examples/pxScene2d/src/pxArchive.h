@@ -53,6 +53,8 @@ public:
   rtError getFileAsString(const char* fileName, rtString& s);
   rtError fileNames(rtObjectRef& names) const;
 
+  void setArchiveData(rtFileDownloadRequest* downloadRequest);
+
 protected:
   static void onDownloadComplete(rtFileDownloadRequest* downloadRequest);
   static void onDownloadCompleteUI(void* context, void* data);
@@ -66,6 +68,7 @@ protected:
 
   rtData mData;
   rtFileDownloadRequest* mDownloadRequest;
+  rtMutex mDownloadRequestMutex;
 
   rtZip mZip;
 };
