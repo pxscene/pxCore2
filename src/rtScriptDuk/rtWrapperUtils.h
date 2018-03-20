@@ -17,9 +17,6 @@ extern "C" {
 #include "duv.h"
 }
 
-namespace rtScriptDukUtils
-{
-
 #if 0
 bool rtIsMainThreadDuk();
 #endif
@@ -85,8 +82,6 @@ void rt2duk(duk_context *ctx, const rtValue& val);
 std::string rtAllocDukIdentId();
 std::string rtDukPutIdentToGlobal(duk_context *ctx, const std::string &name = "");
 void rtDukDelGlobalIdent(duk_context *ctx, const std::string &name);
-
-} //namespace rtScriptDukUtils
 
 #endif
 

@@ -1,10 +1,7 @@
 #include "rtJsModules.h"
-#include "rtWrapperUtilsDuk.h"
+#include "rtWrapperUtils.h"
 #include "rtObject.h"
 #include "rtFileDownloader.h"
-
-namespace rtScriptDukUtils
-{
 
 static std::vector<rtRef<rtFunctionCallback> > gBindings;
 
@@ -100,6 +97,4 @@ rtError rtHttpGetBinding(int numArgs, const rtValue* args, rtValue* result, void
 
   return RT_OK;
 }
-
-} //namespace rtScriptDukUtils
 

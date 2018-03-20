@@ -27,7 +27,6 @@ fi
 
 rm -rf /tmp/cache/*
 rm -rf $TRAVIS_BUILD_DIR/logs/*
-rm -rf ~/.sparkUseDuktape
 
 export VALGRINDLOGS=$TRAVIS_BUILD_DIR/logs/valgrind_logs
 export PX_DUMP_MEMUSAGE=1
@@ -37,7 +36,7 @@ export SUPPRESSIONS=$TRAVIS_BUILD_DIR/ci/leak.supp
 
 touch $VALGRINDLOGS
 EXECLOGS=$TRAVIS_BUILD_DIR/logs/exec_logs
-TESTRUNNERURL="https://px-apps.sys.comcast.net/pxscene-samples/examples/px-reference/test-run/testRunner_v2.js"
+TESTRUNNERURL="https://px-apps.sys.comcast.net/pxscene-samples/examples/px-reference/test-run/testRunner.js"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 printExecLogs()

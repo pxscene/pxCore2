@@ -1005,7 +1005,7 @@ public:
 
 //  rtMethod1ArgAndNoReturn("makeReady", makeReady, bool);  // DEPRECATED ?
   
-  pxSceneContainer(pxScene2d* scene):pxViewContainer(scene), mScriptView(), mUrl(){  pxSceneContainerCount++;}
+  pxSceneContainer(pxScene2d* scene):pxViewContainer(scene){  pxSceneContainerCount++;}
   virtual ~pxSceneContainer() {rtLogDebug("###############~pxSceneContainer\n");pxSceneContainerCount--;}
 
   virtual unsigned long Release()
@@ -1061,7 +1061,7 @@ public:
   virtual ~pxScriptView()
   {
     rtLogInfo(__FUNCTION__);
-    rtLogInfo("~pxScriptView for mUrl=%s\n",mUrl.cString());
+    rtLogDebug("~pxScriptView for mUrl=%s\n",mUrl.cString());
     // Clear out these references since the script context
     // can outlive this view
 #ifdef ENABLE_RT_NODE

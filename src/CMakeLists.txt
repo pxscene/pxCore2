@@ -192,8 +192,8 @@ set(PXCORE_FILES ${PXCORE_FILES} pxOffscreen.cpp pxWindowUtil.cpp
 if (SUPPORT_DUKTAPE)
     message("Adding Duktape scripting support")
     add_definitions(-DRTSCRIPT_SUPPORT_DUKTAPE)
-    set(PXCORE_FILES ${PXCORE_FILES} rtScriptDuk/rtScriptDuk.cpp rtScriptDuk/rtFunctionWrapperDuk.cpp rtScriptDuk/rtObjectWrapperDuk.cpp
-        rtScriptDuk/rtWrapperUtilsDuk.cpp rtScriptDuk/rtJsModules.cpp)
+    set(PXCORE_FILES ${PXCORE_FILES} rtScriptDuk/rtScriptDuk.cpp rtScriptDuk/rtFunctionWrapper.cpp rtScriptDuk/rtObjectWrapper.cpp
+        rtScriptDuk/rtWrapperUtils.cpp rtScriptDuk/rtJsModules.cpp)
 endif()
 
 if (SUPPORT_NODE)

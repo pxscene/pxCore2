@@ -1,10 +1,7 @@
 #ifndef RT_OBJECT_WRAPPER_H
 #define RT_OBJECT_WRAPPER_H
 
-#include "rtWrapperUtilsDuk.h"
-
-namespace rtScriptDukUtils
-{
+#include "rtWrapperUtils.h"
 
 class rtObjectWrapper : public rtWrapper<rtObjectRef, rtObjectWrapper>
 {
@@ -57,6 +54,6 @@ private:
   std::string  mDukName;
 };
 
-} //namespace rtScriptDukUtils
+
 
 #endif

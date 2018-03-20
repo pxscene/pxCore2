@@ -3,14 +3,11 @@
 
 #include <rtScriptHeaders.h>
 
-#include "rtWrapperUtilsDuk.h"
+#include "rtWrapperUtils.h"
 
 extern "C" {
 #include "duv.h"
 }
-
-namespace rtScriptDukUtils
-{
 
 class rtFunctionWrapper : public rtWrapper<rtFunctionRef, rtFunctionWrapper>
 {
@@ -67,7 +64,5 @@ private:
 
   rtValue mReturnValue;
 };
-
-} // namespace rtScriptDukUtils
 
 #endif
