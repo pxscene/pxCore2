@@ -101,6 +101,7 @@ char** g_origArgv = NULL;
 bool gDumpMemUsage = false;
 extern bool gApplicationIsClosing;
 extern int pxObjectCount;
+extern rtThreadQueue gUIThreadQueue;
 #ifdef HAS_LINUX_BREAKPAD
 static bool dumpCallback(const google_breakpad::MinidumpDescriptor& descriptor,
 void* context, bool succeeded) {
@@ -240,6 +241,7 @@ protected:
     if (mClosed)
       return;
     mClosed = true;
+    gUIThreadQueue.process(0.01);
     if(gDumpMemUsage)
       gApplicationIsClosing = true;
     
@@ -257,6 +259,7 @@ protected:
    // pxScene.cpp:104:12: warning: deleting object of abstract class type ‘pxIView’ which has non-virtual destructor will cause undefined behaviour [-Wdelete-non-virtual-dtor]
 
   #ifdef RUNINMAIN
+     script.pump();
      script.collectGarbage();
   #endif
   ENTERSCENELOCK()
@@ -270,7 +273,9 @@ protected:
   #endif
 
     context.term();
+    script.pump();
     script.collectGarbage();
+    gUIThreadQueue.process(0.01);
 
     if (gDumpMemUsage)
     {

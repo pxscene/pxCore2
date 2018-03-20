@@ -94,10 +94,6 @@ retVal=$?
 if [ "$retVal" -eq 1 ]
 	then
 	checkError $retVal "Execution failed" "Core dump" "Test by running locally"
-	if [ "$TRAVIS_PULL_REQUEST" != "false" ]
-		then
-                  printExecLogs
-	fi
 	exit 1;
 fi
 
@@ -112,7 +108,6 @@ if [ "$testRunnerRetVal" -ne 0 ]
 	if [ "$TRAVIS_PULL_REQUEST" != "false" ]
 		then
 		errCause="Cause: Check the above logs"
-		printExecLogs
 	else
 		errCause="Cause: Check the $EXECLOGS file"
 	fi
@@ -141,7 +136,6 @@ if [ "$pxRetVal" -eq 0 ]
 		if [ "$TRAVIS_PULL_REQUEST" != "false" ]
 			then
 			errCause="Check the above logs"
-			printExecLogs
 		else
 			errCause="Check the $EXECLOGS file"
 		fi
@@ -152,7 +146,6 @@ else
 	if [ "$TRAVIS_PULL_REQUEST" != "false" ]
 		then
 		errCause="Check the above logs"
-		printExecLogs
 	else
 		errCause="Check the $EXECLOGS file"
 	fi

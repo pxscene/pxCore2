@@ -118,7 +118,6 @@ if [ "$retVal" -ne 0 ]
 	if [ "$TRAVIS_PULL_REQUEST" != "false" ]
 		then
 		errCause="Either one or more tests failed. Check the above logs"
-		printExecLogs
         else
 		errCause="Either one or more tests failed. Check the log file $EXECLOGS"
 	fi
@@ -138,7 +137,6 @@ else
 	if [ "$TRAVIS_PULL_REQUEST" != "false" ]
 		then
 		errCause="Check the above logs"
-		printExecLogs
 	else
 		errCause="Check the $EXECLOGS file"
 	fi 
@@ -152,7 +150,6 @@ if [ "$leakcount" -ne 0 ]
 	if [ "$TRAVIS_PULL_REQUEST" != "false" ]
 		then
 		errCause="Check the above logs"
-		printExecLogs
 	else
 		errCause="Check the file $LEAKLOGS and $EXECLOGS"
 	fi
