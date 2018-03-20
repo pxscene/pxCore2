@@ -278,7 +278,9 @@ protected:
     context.term();
     script.pump();
     script.collectGarbage();
-    gUIThreadQueue.process(0.01);
+    sleep(5);
+    gUIThreadQueue.process(1.0);
+    sleep(5);
 
     if (gDumpMemUsage)
     {
