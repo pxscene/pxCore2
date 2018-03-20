@@ -30,7 +30,7 @@ using namespace std;
 
 struct GlyphKey 
 {
-  rtString mFontId;
+  uint32_t mFontId;
   uint32_t mPixelSize;
   uint32_t mCodePoint;
 
@@ -85,7 +85,7 @@ pxFontAtlas gFontAtlas;
 pxFont::pxFont(rtString fontUrl, rtString proxyUrl):pxResource(),mFace(NULL),mPixelSize(0), mFontData(0), mFontDataSize(0),
              mFontMutex()
 {  
-  mFontId = fontUrl;//gFontId++; 
+  mFontId = gFontId++; 
   mUrl = fontUrl;
   mProxy = proxyUrl;
 }

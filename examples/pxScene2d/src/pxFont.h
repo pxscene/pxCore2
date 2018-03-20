@@ -290,7 +290,7 @@ private:
   rtError init(const FT_Byte*  fontData, FT_Long size, const char* n); 
 
   // FreeType font info
-  rtString mFontId;
+  uint32_t mFontId;
   FT_Face mFace;
   uint32_t mPixelSize;
   char* mFontData; // for remote fonts loaded into memory
