@@ -35,14 +35,17 @@ extern pxContext context;
 pxResource::~pxResource() 
 {
   //rtLogDebug("pxResource::~pxResource()\n");
+  mDownloadRequestMutex.lock();
   if (mDownloadRequest != NULL)
   {
     rtLogInfo("pxResource::~pxResource(): mDownloadRequest not null\n");
     // if there is a previous request pending then set the callback to NULL
     // the previous request will not be processed and the memory will be freed when the download is complete
     mDownloadRequest->setCallbackFunctionThreadSafe(NULL);
-    mDownloadRequest = 0;
+    mDownloadRequest = NULL;
   }
+  mDownloadRequestMutex.unlock();
+
   gUIThreadQueue.removeAllTasksForObject(this);
   //mListeners.clear();
   //rtLogDebug("Leaving pxResource::~pxResource()\n");
@@ -81,8 +84,12 @@ void pxResource::addListener(pxResourceListener* pListener)
 {
   if( mUrl.isEmpty())
     return;
-    
-  if( !mDownloadRequest)
+
+  bool downloadRequestActive = false;
+  mDownloadRequestMutex.lock();
+  downloadRequestActive = mDownloadRequest != NULL;
+  mDownloadRequestMutex.unlock();
+  if( !downloadRequestActive)
   {
     if( mLoadStatus.get<int32_t>("statusCode") == 0)
       pListener->resourceReady("resolve");
@@ -111,16 +118,19 @@ void pxResource::removeListener(pxResourceListener* pListener)
       break;
     }
 
-  }  
+  }
+  int numberOfListeners = mListeners.size();
+  mListenersMutex.unlock();
   // If no listeners are left and a download is still in progress,
   // let's reduce the download priority.
-  if( mListeners.size() == 0 && mDownloadRequest != NULL )
+  mDownloadRequestMutex.lock();
+  if( numberOfListeners <= 0 && mDownloadRequest != NULL )
   {
     mInitialized = false;
     mDownloadRequest->setCallbackFunctionThreadSafe(NULL);
-    mDownloadRequest = 0;    
+    mDownloadRequest = NULL;
   }
-  mListenersMutex.unlock();
+  mDownloadRequestMutex.unlock();
 }
 
 void pxResource::notifyListeners(rtString readyResolution)
@@ -147,6 +157,7 @@ void pxResource::notifyListeners(rtString readyResolution)
 }
 void pxResource::raiseDownloadPriority()
 {
+  mDownloadRequestMutex.lock();
   if (!priorityRaised && !mUrl.isEmpty() && mDownloadRequest != NULL)
   {
     rtLogWarn(">>>>>>>>>>>>>>>>>>>>>>>Inside pxResource::raiseDownloadPriority and download is in progress for %s\n",mUrl.cString());
@@ -158,6 +169,7 @@ void pxResource::raiseDownloadPriority()
     priorityRaised = true;
     rtFileDownloader::instance()->raiseDownloadPriority(mDownloadRequest);
   }
+  mDownloadRequestMutex.unlock();
 }
 /**********************************************************************/
 /**********************************************************************/
@@ -165,7 +177,8 @@ void pxResource::raiseDownloadPriority()
 /**********************************************************************/
 /**********************************************************************/
 
-rtImageResource::rtImageResource(const char* url, const char* proxy)
+rtImageResource::rtImageResource(const char* url, const char* proxy) : mTexture(), mTextureMutex(), mImageOffscreen(),
+                                                                       mCompressedData(NULL), mCompressedDataSize(0)
 {
   setUrl(url, proxy);
 }
@@ -230,7 +243,58 @@ rtError rtImageResource::h(int32_t& v) const
   else 
     v = 0;
   return RT_OK; 
-} 
+}
+
+pxTextureRef rtImageResource::getTexture()
+{
+  if (!mTexture.getPtr())
+  {
+    mTextureMutex.lock();
+    if (mCompressedData != NULL)
+    {
+      mTexture = context.createTexture(mImageOffscreen, mCompressedData, mCompressedDataSize);
+      delete [] mCompressedData;
+      mCompressedData = NULL;
+    }
+    mTextureMutex.unlock();
+  }
+  return mTexture;
+}
+
+void rtImageResource::setTextureData(pxOffscreen& imageOffscreen, const char* data, const size_t dataSize)
+{
+  mTextureMutex.lock();
+  mImageOffscreen = imageOffscreen;
+  if (mCompressedData != NULL)
+  {
+    delete [] mCompressedData;
+    mCompressedData = NULL;
+  }
+  if (data == NULL)
+  {
+    mCompressedData = NULL;
+    mCompressedDataSize = 0;
+  }
+  else
+  {
+    mCompressedData = new char[dataSize];
+    mCompressedDataSize = dataSize;
+    memcpy(mCompressedData, data, mCompressedDataSize);
+  }
+  mTextureMutex.unlock();
+}
+
+void rtImageResource::setupResource()
+{
+  getTexture();
+}
+
+void pxResource::clearDownloadRequest()
+{
+  mDownloadRequestMutex.lock();
+  mDownloadRequest = NULL;
+  mDownloadRequestMutex.unlock();
+}
 
 /** 
  * rtImageResource::loadResource()
@@ -248,10 +312,12 @@ void pxResource::loadResource()
   if (mUrl.beginsWith("http:") || mUrl.beginsWith("https:"))
   {
       mLoadStatus.set("sourceType", "http");
+      mDownloadRequestMutex.lock();
       mDownloadRequest = new rtFileDownloadRequest(mUrl, this);
       mDownloadRequest->setProxy(mProxy);
       // setup for asynchronous load and callback
       mDownloadRequest->setCallbackFunction(pxResource::onDownloadComplete);
+      mDownloadRequestMutex.unlock();
       rtFileDownloader::instance()->addToDownloadQueue(mDownloadRequest);
   }
   else
@@ -264,9 +330,11 @@ void pxResource::onDownloadCompleteUI(void* context, void* data)
 {
   pxResource* res = (rtImageResource*)context;
   rtString resolution = (char*)data;
-  
+
+  res->setupResource();
   res->notifyListeners(resolution);
   res->mReady.send(resolution, res);
+
 
   // Release here since we had to addRef when setting up callback to 
   // this function
@@ -319,7 +387,7 @@ void rtImageResource::loadResourceFromFile()
     gUIThreadQueue.addTask(onDownloadCompleteUI, this, (void *) "resolve");
 
   }
-  
+
 }
 
 
@@ -332,7 +400,7 @@ void pxResource::onDownloadComplete(rtFileDownloadRequest* fileDownloadRequest)
     // Call directly rather than queuing
     ((pxResource*)fileDownloadRequest->callbackData())->processDownloadedResource(fileDownloadRequest);
     // Clear download data
-    ((pxResource*)fileDownloadRequest->callbackData())->mDownloadRequest = 0;
+    ((pxResource*)fileDownloadRequest->callbackData())->clearDownloadRequest();
   }
 }
 
@@ -343,7 +411,7 @@ bool rtImageResource::loadResourceData(rtFileDownloadRequest* fileDownloadReques
                       fileDownloadRequest->downloadedDataSize(),
                       imageOffscreen) == RT_OK)
       {
-        mTexture = context.createTexture(imageOffscreen, fileDownloadRequest->downloadedData(),
+        setTextureData(imageOffscreen, fileDownloadRequest->downloadedData(),
                                          fileDownloadRequest->downloadedDataSize());
         return true;
       }
@@ -373,7 +441,7 @@ void pxResource::processDownloadedResource(rtFileDownloadRequest* fileDownloadRe
       }
       else
       {
-        //rtLogInfo("Image Decode Successful: %s", fileDownloadRequest->getFileUrl().cString());
+        //rtLogInfo("File download Successful: %s", fileDownloadRequest->fileUrl().cString());
         // ToDo: Could context.createTexture ever fail and return null here?
        // mTexture = context.createTexture(imageOffscreen);
         mLoadStatus.set("statusCode", 0);

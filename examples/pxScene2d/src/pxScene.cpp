@@ -85,6 +85,8 @@ vector<AsyncScriptInfo*> scriptsInfo;
 static uv_work_t nodeLoopReq;
 #endif
 
+#include "rtThreadPool.h"
+
 #include <stdlib.h>
 #include <fstream>
 
@@ -245,6 +247,8 @@ protected:
       gApplicationIsClosing = true;
     
     rtLogInfo(__FUNCTION__);
+    rtThreadPool::globalInstance()->destroy();
+    
     ENTERSCENELOCK();
     if (mView)
       mView->onCloseRequest();
