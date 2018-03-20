@@ -616,8 +616,8 @@ void pxObject::dispose()
     mEmit->clearListeners();
     for(vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
     {
-      (*it)->dispose();
       (*it)->mParent = NULL;  // setParent mutates the mChildren collection
+      (*it)->dispose();
     }
     mChildren.clear();
     clearSnapshot(mSnapshotRef);
@@ -1927,7 +1927,6 @@ rtError pxScene2d::dispose()
     mCanvas   = NULL;
     mFocusObj = NULL;
 
-    pxFontManager::clearAllFonts();
     return RT_OK;
 }
 
