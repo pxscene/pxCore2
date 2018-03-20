@@ -1,7 +1,10 @@
-#include "rtFunctionWrapper.h"
-#include "rtWrapperUtils.h"
+#include "rtFunctionWrapperDuk.h"
+#include "rtWrapperUtilsDuk.h"
 
 #include <vector>
+
+namespace rtScriptDukUtils
+{
 
 rtFunctionWrapper::rtFunctionWrapper(const rtFunctionRef& ref)
   : rtWrapper(ref)
@@ -155,3 +158,5 @@ rtError jsFunctionWrapper::Send(int numArgs, const rtValue* args, rtValue* resul
   duk_pop(mDukCtx);
   return 0;
 }
+
+} //namespace rtScriptDukUtils
