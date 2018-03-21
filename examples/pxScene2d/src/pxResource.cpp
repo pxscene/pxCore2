@@ -37,7 +37,7 @@ pxResource::~pxResource()
   //rtLogDebug("pxResource::~pxResource()\n");
   if (mDownloadRequest != NULL)
   {
-    rtLogInfo("pxResource::~pxResource(): mDownloadRequest not null\n");
+    //rtLogInfo("pxResource::~pxResource(): mDownloadRequest not null\n");
     // if there is a previous request pending then set the callback to NULL
     // the previous request will not be processed and the memory will be freed when the download is complete
     rtFileDownloader::setCallbackFunctionThreadSafe(mDownloadRequest, NULL);

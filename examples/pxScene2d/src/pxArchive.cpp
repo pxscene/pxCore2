@@ -16,7 +16,7 @@ pxArchive::~pxArchive()
 {
   if (mDownloadRequest != NULL)
   {
-    rtLogInfo("pxArchive::~pxArchive(): mDownloadRequest not null\n");
+    //rtLogInfo("pxArchive::~pxArchive(): mDownloadRequest not null\n");
     rtFileDownloader::setCallbackFunctionThreadSafe(mDownloadRequest, NULL);
     mDownloadRequest = NULL;
   }
