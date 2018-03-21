@@ -260,7 +260,7 @@ protected:
    // pxScene.cpp:104:12: warning: deleting object of abstract class type ‘pxIView’ which has non-virtual destructor will cause undefined behaviour [-Wdelete-non-virtual-dtor]
 
   #ifdef RUNINMAIN
-  //   script.pump();
+     script.pump();
  //    script.collectGarbage();
   #endif
   pxFontManager::clearAllFonts();
@@ -275,9 +275,9 @@ protected:
     free(g_origArgv);
   #endif
 
-    context.term();
-//    script.pump();
-    script.collectGarbage();
+  context.term();
+  script.pump();
+  script.collectGarbage();
    /* 
     #ifndef WIN32
     sleep(5);
