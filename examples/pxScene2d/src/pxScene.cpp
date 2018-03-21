@@ -261,7 +261,7 @@ protected:
 
   #ifdef RUNINMAIN
      script.pump();
- //    script.collectGarbage();
+     script.collectGarbage();
   #endif
   pxFontManager::clearAllFonts();
 
@@ -276,21 +276,19 @@ protected:
   #endif
 
   context.term();
-  script.pump();
-  script.collectGarbage();
-   /* 
-    #ifndef WIN32
-    sleep(5);
-    #endif 
-*/
-    gUIThreadQueue.process(1.0);
-/*
-    #ifndef WIN32
-    sleep(5);
-    #endif
-*/
+
     if (gDumpMemUsage)
     {
+      script.pump();
+      script.collectGarbage();
+      #ifndef WIN32
+      sleep(5);
+      #endif 
+      gUIThreadQueue.process(1.0);
+      #ifndef WIN32
+      sleep(5);
+      #endif
+
       rtLogInfo("pxobjectcount is [%d]",pxObjectCount);
 #ifndef PX_PLATFORM_DFB_NON_X11
       rtLogInfo("texture memory usage is [%" PRId64 "]",context.currentTextureMemoryUsageInBytes());
