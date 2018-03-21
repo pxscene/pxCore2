@@ -80,6 +80,11 @@ while [ "$retVal" -ne 0 ] &&  [ "$count" -ne "$max_seconds" ]; do
 		retVal=$?
 	fi
 done
+
+echo "gdb -q --command=\"$TRAVIS_BUILD_DIR/ci/debuggercmds_linux\" -c $coreFileName $binary  2&>gdblogs"
+gdb -q --command="$TRAVIS_BUILD_DIR/ci/debuggercmds_linux" "$binary"  2&>gdblogs
+cat gdblogs
+
 kill -15 `ps -ef | grep pxscene |grep -v grep|grep -v pxscene.sh|awk '{print $2}'`
 echo "Sleeping to make terminate complete ......";
 #wait for few seconds to get the application terminate completely, as it is attached with valgrind increasing the timeout

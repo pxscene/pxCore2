@@ -30,9 +30,9 @@ fi
 echo "valgrind --tool=memcheck --log-file=$VALGRINDLOGS --leak-check=yes --show-reachable=yes --num-callers=20 --track-fds=yes ./pxscene $1 $2 $3 $4 $5 $6 $7"
 if [ -z $SUPPRESSIONS ]
 then
-valgrind --tool=memcheck --log-file=$VALGRINDLOGS --leak-check=yes --num-callers=20 ./pxscene $1 $2 $3 $4 $5 $6 $7
+valgrind --tool=memcheck --log-file=$VALGRINDLOGS --leak-check=yes --num-callers=20 --vgdb=yes --vgdb-error=1 ./pxscene $1 $2 $3 $4 $5 $6 $7
 else
-valgrind --tool=memcheck --suppressions=$SUPPRESSIONS  --log-file=$VALGRINDLOGS --leak-check=yes --fair-sched=no --num-callers=20 ./pxscene $1 $2 $3 $4 $5 $6 $7
+valgrind --tool=memcheck --suppressions=$SUPPRESSIONS  --log-file=$VALGRINDLOGS --leak-check=yes --fair-sched=no --num-callers=20 --vgdb=yes --vgdb-error=1 ./pxscene $1 $2 $3 $4 $5 $6 $7
 fi
 else
 ./pxscene $1 $2 $3 $4 $5 $6 $7
