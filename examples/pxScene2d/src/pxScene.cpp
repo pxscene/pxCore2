@@ -261,7 +261,7 @@ protected:
 
   #ifdef RUNINMAIN
      script.pump();
-     script.collectGarbage();
+ //    script.collectGarbage();
   #endif
   pxFontManager::clearAllFonts();
 
@@ -278,15 +278,17 @@ protected:
     context.term();
     script.pump();
     script.collectGarbage();
-    
+   /* 
     #ifndef WIN32
     sleep(5);
     #endif 
+*/
     gUIThreadQueue.process(1.0);
+/*
     #ifndef WIN32
     sleep(5);
     #endif
-
+*/
     if (gDumpMemUsage)
     {
       rtLogInfo("pxobjectcount is [%d]",pxObjectCount);
