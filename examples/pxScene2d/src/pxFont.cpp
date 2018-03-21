@@ -79,7 +79,7 @@ uint32_t npot(uint32_t i)
 }
 
 pxFont::pxFont(rtString fontUrl, rtString proxyUrl):pxResource(),mFace(NULL),mPixelSize(0), mFontData(0), mFontDataSize(0),
-             mFontMutex(), mFontDataMutex(), mFontDownloadedData(NULL), mFontDownloadedDataSize(0), mFontDataUrl()
+             mFontMutex()
 {  
   mFontId = gFontId++; 
   mUrl = fontUrl;
@@ -113,51 +113,11 @@ pxFont::~pxFont()
    
 }
 
-void pxFont::setFontData(const FT_Byte*  fontData, FT_Long size, const char* n)
-{
-  mFontDataMutex.lock();
-  mFontDataUrl = n;
-  if (mFontDownloadedData != NULL)
-  {
-    delete [] mFontDownloadedData;
-    mFontDownloadedData = NULL;
-  }
-  if (fontData == NULL)
-  {
-    mFontDownloadedData = NULL;
-    mFontDownloadedDataSize = 0;
-  }
-  else
-  {
-    mFontDownloadedData = new char[size];
-    mFontDownloadedDataSize = size;
-    memcpy(mFontDownloadedData, fontData, mFontDownloadedDataSize);
-  }
-  mFontDataMutex.unlock();
-}
-
-void pxFont::setupResource()
-{
-  if (!mInitialized)
-  {
-    mFontDataMutex.lock();
-    if (mFontDownloadedData != NULL)
-    {
-      init( (FT_Byte*)mFontDownloadedData,
-            (FT_Long)mFontDownloadedDataSize,
-            mFontDataUrl.cString());
-      delete [] mFontDownloadedData;
-      mFontDownloadedData = NULL;
-    }
-    mFontDataMutex.unlock();
-  }
-}
-
 bool pxFont::loadResourceData(rtFileDownloadRequest* fileDownloadRequest)
 {
       // Load the font data
-    setFontData( (FT_Byte*)fileDownloadRequest->downloadedData(),
-            (FT_Long)fileDownloadRequest->downloadedDataSize(),
+      init( (FT_Byte*)fileDownloadRequest->downloadedData(), 
+            (FT_Long)fileDownloadRequest->downloadedDataSize(), 
             fileDownloadRequest->fileUrl().cString());
             
       return true;
