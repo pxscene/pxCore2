@@ -183,6 +183,7 @@ rtImageResource::~rtImageResource()
 {
   //rtLogDebug("destructor for rtImageResource for %s\n",mUrl.cString());
   //pxImageManager::removeImage( mUrl);
+  clearDownloadedData();
 }
   
 unsigned long rtImageResource::Release() 
@@ -278,6 +279,18 @@ void rtImageResource::setTextureData(pxOffscreen& imageOffscreen, const char* da
     mCompressedDataSize = dataSize;
     memcpy(mCompressedData, data, mCompressedDataSize);
   }
+  mTextureMutex.unlock();
+}
+
+void rtImageResource::clearDownloadedData()
+{
+  mTextureMutex.lock();
+  if (mCompressedData != NULL)
+  {
+    delete [] mCompressedData;
+    mCompressedData = NULL;
+  }
+  mCompressedDataSize = 0;
   mTextureMutex.unlock();
 }
 

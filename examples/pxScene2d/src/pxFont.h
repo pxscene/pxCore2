@@ -171,6 +171,7 @@ public:
 
 	void setFontData(const FT_Byte*  fontData, FT_Long size, const char* n);
 	virtual void setupResource();
+  void clearDownloadedData();
    
 protected:
   // Implementation for pxResource virtuals

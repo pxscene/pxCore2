@@ -125,7 +125,7 @@ class rtImageResource : public pxResource
 {
 public:
   rtImageResource(const char* url = 0, const char* proxy = 0);
-  ~rtImageResource(); 
+  virtual ~rtImageResource();
   
   rtDeclareObject(rtImageResource, pxResource);
   
@@ -143,6 +143,7 @@ public:
   pxTextureRef getTexture();
   void setTextureData(pxOffscreen& imageOffscreen, const char* data, const size_t dataSize);
   virtual void setupResource();
+  void clearDownloadedData();
  
   virtual void init();
 
@@ -164,7 +165,7 @@ class rtImageAResource : public pxResource
 {
 public:
   rtImageAResource(const char* url = 0, const char* proxy = 0);
-  ~rtImageAResource();
+  virtual ~rtImageAResource();
 
   rtDeclareObject(rtImageAResource, pxResource);
 

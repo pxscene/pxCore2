@@ -109,8 +109,9 @@ pxFont::~pxFont()
     free(mFontData);
     mFontData = 0;
     mFontDataSize = 0;
-  } 
-   
+  }
+
+  clearDownloadedData();
 }
 
 void pxFont::setFontData(const FT_Byte*  fontData, FT_Long size, const char* n)
@@ -133,6 +134,18 @@ void pxFont::setFontData(const FT_Byte*  fontData, FT_Long size, const char* n)
     mFontDownloadedDataSize = size;
     memcpy(mFontDownloadedData, fontData, mFontDownloadedDataSize);
   }
+  mFontDataMutex.unlock();
+}
+
+void pxFont::clearDownloadedData()
+{
+  mFontDataMutex.lock();
+  if (mFontDownloadedData != NULL)
+  {
+    delete [] mFontDownloadedData;
+    mFontDownloadedData = NULL;
+  }
+  mFontDownloadedDataSize = 0;
   mFontDataMutex.unlock();
 }
 
