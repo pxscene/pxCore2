@@ -721,10 +721,10 @@ bool rtFileDownloader::downloadFromNetwork(rtFileDownloadRequest* downloadReques
       curl_easy_setopt(curl_handle, CURLOPT_NOBODY, 1);
     }
     /* get it! */
-    printf("Madana about to download url [%x] [%s]\n" ,this,downloadRequest->fileUrl().cString()); 
+    printf("Madana about to download url [%p] [%s]\n" ,this,downloadRequest->fileUrl().cString()); 
     fflush(stdout);
     res = curl_easy_perform(curl_handle);
-    printf("Madana downloaded url [%x] [%s]\n" ,this,downloadRequest->fileUrl().cString()); 
+    printf("Madana downloaded url [%p] [%s]\n" ,this,downloadRequest->fileUrl().cString()); 
     fflush(stdout);
     downloadRequest->setDownloadStatusCode(res);
     if(downloadRequest->isHTTPFailOnError())
