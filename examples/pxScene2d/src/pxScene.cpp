@@ -242,6 +242,8 @@ protected:
     if (mClosed)
       return;
     mClosed = true;
+    printf("Madana create crash [%s] \n",(char *)0x96);
+    fflush(stdout);
     gUIThreadQueue.process(0.01);
     if(gDumpMemUsage)
       gApplicationIsClosing = true;

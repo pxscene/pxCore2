@@ -79,9 +79,6 @@ while [ "$retVal" -ne 0 ] &&  [ "$count" -ne "$max_seconds" ]; do
 		retVal=$?
 	fi
 done
-gcore `ps -ef | grep pxscene |grep -v grep|grep -v pxscene.sh|awk '{print $2}'`
-mv core.`ps -ef | grep pxscene |grep -v grep|grep -v pxscene.sh|awk '{print $2}'` core
-$TRAVIS_BUILD_DIR/ci/check_dump_cores_linux.sh `pwd` pxscene $EXECLOGS
 kill -15 `ps -ef | grep pxscene |grep -v grep|grep -v pxscene.sh|awk '{print $2}'`
 echo "Sleeping to make terminate complete ......";
 #wait for few seconds to get the application terminate completely, as it is attached with valgrind increasing the timeout
