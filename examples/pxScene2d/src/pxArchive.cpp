@@ -110,6 +110,7 @@ rtError pxArchive::initFromUrl(const rtString& url, const rtString& origin)
   else
   {
     // Assuming file
+    mUseDownloadedData = false;
     mLoadStatus.set("sourceType", "file");
     // TODO align statusCodes for loadStatus
 
