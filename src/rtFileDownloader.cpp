@@ -131,6 +131,8 @@ void startFileDownloadInBackground(void* data)
 }
 
 rtFileDownloader* rtFileDownloader::mInstance = NULL;
+std::vector<rtFileDownloadRequest*> rtFileDownloader::mDownloadRequestVector;
+rtMutex rtFileDownloader::mDownloadRequestVectorMutex;
 
 
 void onDownloadHandleCheck()
@@ -515,6 +517,7 @@ bool rtFileDownloader::addToDownloadQueue(rtFileDownloadRequest* downloadRequest
     bool submitted = false;
     //todo: check the download queue before starting download
     submitted = true;
+    addFileDownloadRequest(downloadRequest);
     downloadFileInBackground(downloadRequest);
     //startNextDownloadInBackground();
     return submitted;
@@ -633,8 +636,7 @@ void rtFileDownloader::downloadFile(rtFileDownloadRequest* downloadRequest)
       downloadRequest->setDownloadedData(NULL,0);
     }
 #endif
-
-    delete downloadRequest;
+    clearFileDownloadRequest(downloadRequest);
 }
 
 bool rtFileDownloader::downloadFromNetwork(rtFileDownloadRequest* downloadRequest)
@@ -915,6 +917,58 @@ void rtFileDownloader::releaseDownloadHandle(CURL* curlHandle, int expiresTime)
 #else
     curl_easy_cleanup(curlHandle);
 #endif //PX_REUSE_DOWNLOAD_HANDLES
+}
+
+void rtFileDownloader::addFileDownloadRequest(rtFileDownloadRequest* downloadRequest)
+{
+  mDownloadRequestVectorMutex.lock();
+  bool found = false;
+  for (std::vector<rtFileDownloadRequest*>::iterator it=mDownloadRequestVector.begin(); it!=mDownloadRequestVector.end(); ++it)
+  {
+    if ((*it) == downloadRequest)
+    {
+      found = true;
+      break;
+    }
+  }
+  if (!found)
+  {
+    mDownloadRequestVector.push_back(downloadRequest);
+  }
+  mDownloadRequestVectorMutex.unlock();
+}
+
+void rtFileDownloader::clearFileDownloadRequest(rtFileDownloadRequest* downloadRequest)
+{
+  mDownloadRequestVectorMutex.lock();
+  for (std::vector<rtFileDownloadRequest*>::iterator it=mDownloadRequestVector.begin(); it!=mDownloadRequestVector.end(); ++it)
+  {
+    if ((*it) == downloadRequest)
+    {
+      mDownloadRequestVector.erase(it);
+      break;
+    }
+  }
+  if (downloadRequest != NULL)
+  {
+    delete downloadRequest;
+  }
+  mDownloadRequestVectorMutex.unlock();
+}
+
+void rtFileDownloader::setCallbackFunctionThreadSafe(rtFileDownloadRequest* downloadRequest,
+                                                     void (*callbackFunction)(rtFileDownloadRequest*))
+{
+  mDownloadRequestVectorMutex.lock();
+  for (std::vector<rtFileDownloadRequest*>::iterator it=mDownloadRequestVector.begin(); it!=mDownloadRequestVector.end(); ++it)
+  {
+    if ((*it) == downloadRequest)
+    {
+      downloadRequest->setCallbackFunctionThreadSafe(callbackFunction);
+      break;
+    }
+  }
+  mDownloadRequestVectorMutex.unlock();
 }
 
 void rtFileDownloader::checkForExpiredHandles()

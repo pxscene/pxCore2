@@ -35,16 +35,14 @@ extern pxContext context;
 pxResource::~pxResource() 
 {
   //rtLogDebug("pxResource::~pxResource()\n");
-  mDownloadRequestMutex.lock();
   if (mDownloadRequest != NULL)
   {
     rtLogInfo("pxResource::~pxResource(): mDownloadRequest not null\n");
     // if there is a previous request pending then set the callback to NULL
     // the previous request will not be processed and the memory will be freed when the download is complete
-    mDownloadRequest->setCallbackFunctionThreadSafe(NULL);
+    rtFileDownloader::setCallbackFunctionThreadSafe(mDownloadRequest, NULL);
     mDownloadRequest = NULL;
   }
-  mDownloadRequestMutex.unlock();
 
   gUIThreadQueue.removeAllTasksForObject(this);
   //mListeners.clear();
@@ -86,9 +84,9 @@ void pxResource::addListener(pxResourceListener* pListener)
     return;
 
   bool downloadRequestActive = false;
-  mDownloadRequestMutex.lock();
-  downloadRequestActive = mDownloadRequest != NULL;
-  mDownloadRequestMutex.unlock();
+  mDownloadInProgressMutex.lock();
+  downloadRequestActive = mDownloadInProgress;
+  mDownloadInProgressMutex.unlock();
   if( !downloadRequestActive)
   {
     if( mLoadStatus.get<int32_t>("statusCode") == 0)
@@ -123,14 +121,15 @@ void pxResource::removeListener(pxResourceListener* pListener)
   mListenersMutex.unlock();
   // If no listeners are left and a download is still in progress,
   // let's reduce the download priority.
-  mDownloadRequestMutex.lock();
   if( numberOfListeners <= 0 && mDownloadRequest != NULL )
   {
     mInitialized = false;
-    mDownloadRequest->setCallbackFunctionThreadSafe(NULL);
+    rtFileDownloader::setCallbackFunctionThreadSafe(mDownloadRequest, NULL);
     mDownloadRequest = NULL;
+    mDownloadInProgressMutex.lock();
+    mDownloadInProgress = false;
+    mDownloadInProgressMutex.unlock();
   }
-  mDownloadRequestMutex.unlock();
 }
 
 void pxResource::notifyListeners(rtString readyResolution)
@@ -157,7 +156,6 @@ void pxResource::notifyListeners(rtString readyResolution)
 }
 void pxResource::raiseDownloadPriority()
 {
-  mDownloadRequestMutex.lock();
   if (!priorityRaised && !mUrl.isEmpty() && mDownloadRequest != NULL)
   {
     rtLogWarn(">>>>>>>>>>>>>>>>>>>>>>>Inside pxResource::raiseDownloadPriority and download is in progress for %s\n",mUrl.cString());
@@ -169,7 +167,6 @@ void pxResource::raiseDownloadPriority()
     priorityRaised = true;
     rtFileDownloader::instance()->raiseDownloadPriority(mDownloadRequest);
   }
-  mDownloadRequestMutex.unlock();
 }
 /**********************************************************************/
 /**********************************************************************/
@@ -291,9 +288,9 @@ void rtImageResource::setupResource()
 
 void pxResource::clearDownloadRequest()
 {
-  mDownloadRequestMutex.lock();
-  mDownloadRequest = NULL;
-  mDownloadRequestMutex.unlock();
+  mDownloadInProgressMutex.lock();
+  mDownloadInProgress = false;
+  mDownloadInProgressMutex.unlock();
 }
 
 /** 
@@ -312,12 +309,17 @@ void pxResource::loadResource()
   if (mUrl.beginsWith("http:") || mUrl.beginsWith("https:"))
   {
       mLoadStatus.set("sourceType", "http");
-      mDownloadRequestMutex.lock();
+      if (mDownloadRequest != NULL)
+      {
+        rtFileDownloader::setCallbackFunctionThreadSafe(mDownloadRequest, NULL);
+      }
       mDownloadRequest = new rtFileDownloadRequest(mUrl, this);
       mDownloadRequest->setProxy(mProxy);
       // setup for asynchronous load and callback
       mDownloadRequest->setCallbackFunction(pxResource::onDownloadComplete);
-      mDownloadRequestMutex.unlock();
+      mDownloadInProgressMutex.lock();
+      mDownloadInProgress = true;
+      mDownloadInProgressMutex.unlock();
       rtFileDownloader::instance()->addToDownloadQueue(mDownloadRequest);
   }
   else

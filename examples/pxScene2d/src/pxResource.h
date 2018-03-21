@@ -63,7 +63,7 @@ public:
   rtReadOnlyProperty(ready,ready,rtObjectRef);
   rtReadOnlyProperty(loadStatus,loadStatus,rtObjectRef);
     
-  pxResource():mUrl(0),mDownloadRequest(0),priorityRaised(false),mReady(), mListenersMutex(), mDownloadRequestMutex(){
+  pxResource():mUrl(0),mDownloadRequest(0),mDownloadInProgress(false), priorityRaised(false),mReady(), mListenersMutex(), mDownloadInProgressMutex(){
     mReady = new rtPromise;
     mLoadStatus = new rtMapObject; 
     mLoadStatus.set("statusCode", 0);
@@ -110,14 +110,15 @@ protected:
   
   rtString mUrl;
   rtString mProxy;
-  rtFileDownloadRequest* mDownloadRequest;  
+  rtFileDownloadRequest* mDownloadRequest;
+  bool mDownloadInProgress;
   bool priorityRaised;
 
   rtObjectRef mLoadStatus;
   rtObjectRef mReady;
   std::list<pxResourceListener*> mListeners;
   rtMutex mListenersMutex;
-  rtMutex mDownloadRequestMutex;
+  rtMutex mDownloadInProgressMutex;
 };
 
 class rtImageResource : public pxResource
