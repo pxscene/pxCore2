@@ -242,7 +242,7 @@ protected:
     if (mClosed)
       return;
     mClosed = true;
-    gUIThreadQueue.process(0.01);
+    gUIThreadQueue.process(1);
     if(gDumpMemUsage)
       gApplicationIsClosing = true;
     
@@ -279,15 +279,16 @@ protected:
 
     if (gDumpMemUsage)
     {
-      script.pump();
+  //    script.pump();
       script.collectGarbage();
+/*
       #ifndef WIN32
       sleep(5);
       #endif 
-      gUIThreadQueue.process(1.0);
       #ifndef WIN32
       sleep(5);
       #endif
+*/
 
       rtLogInfo("pxobjectcount is [%d]",pxObjectCount);
 #ifndef PX_PLATFORM_DFB_NON_X11
