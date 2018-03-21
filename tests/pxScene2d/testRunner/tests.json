@@ -1,7 +1,7 @@
 [
       {"url": "http://pxscene.org/examples/px-reference/gallery/fancy.js", "title": "fancy", "timeToRun": "5000", "useBaseURI": "false" },
       {"url": "http://pxscene.org/examples/px-reference/gallery/picturepile.js", "title": "picturepile", "timeToRun": "5000", "useBaseURI": "false" },
-      {"url": "https://px-apps.sys.comcast.net/pxscene-samples/examples/px-reference/tests/gallery_test.js", "title": "gallery", "timeToRun": "10000", "useBaseURI": "false" },
+      {"url": "http://pxscene.org/examples/px-reference/gallery/gallery.js", "title": "gallery", "timeToRun": "5000", "useBaseURI": "false" },
       {"url":"../tests/simpleTestApi.js", "title":"simpleTestApi","useBaseURI":"true"},
       {"url":"../tests/textbox_auto.js", "title":"textbox auto","useBaseURI":"true"},
       {"url":"../tests/text2tests.js", "title":"text2tests","useBaseURI":"true"},
@@ -18,7 +18,6 @@
       {"url":"../tests/test_promiseCreationImageA.js", "title":"test_promiseCreationImageA","useBaseURI":"true"},
       {"url":"../tests/test_pxAnimate.js", "title":"test_pxAnimate","useBaseURI":"true"},
       {"url":"../tests/test_pxResource.js", "title":"test_pxResource","useBaseURI":"true"},
-      {"url":"../tests/test_pxWayland.js", "title":"test_pxWayland","useBaseURI":"true"},
       {"url":"../tests/test_pxScene2d.js", "title":"test_pxScene2d","useBaseURI":"true"},
       {"url":"../tests/test_pxImage.js", "title":"test_pxImage","useBaseURI":"true"},
       {"url":"../tests/test_pxImageA_2.js", "title":"test_pxImageA_2","useBaseURI":"true"},
