@@ -53,10 +53,14 @@ public:
   rtError getFileAsString(const char* fileName, rtString& s);
   rtError fileNames(rtObjectRef& names) const;
 
+  void setArchiveData(int downloadStatusCode, uint32_t httpStatusCode, const char* data, const size_t dataSize);
+  void setupArchive();
+
 protected:
   static void onDownloadComplete(rtFileDownloadRequest* downloadRequest);
   static void onDownloadCompleteUI(void* context, void* data);
   void process(void* data, size_t dataSize);
+  void clearDownloadedData();
 
   bool mIsFile;
   rtString mUrl;
@@ -68,6 +72,12 @@ protected:
   rtFileDownloadRequest* mDownloadRequest;
 
   rtZip mZip;
+  int mDownloadStatusCode;
+  uint32_t mHttpStatusCode;
+  char* mArchiveData;
+  size_t mArchiveDataSize;
+  bool mUseDownloadedData;
+  rtMutex mArchiveDataMutex;
 };
 
 #endif

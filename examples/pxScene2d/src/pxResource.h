@@ -63,7 +63,7 @@ public:
   rtReadOnlyProperty(ready,ready,rtObjectRef);
   rtReadOnlyProperty(loadStatus,loadStatus,rtObjectRef);
     
-  pxResource():mUrl(0),mDownloadRequest(0),priorityRaised(false),mReady(), mListenersMutex(){  
+  pxResource():mUrl(0),mDownloadRequest(0),mDownloadInProgress(false), priorityRaised(false),mReady(), mListenersMutex(), mDownloadInProgressMutex(){
     mReady = new rtPromise;
     mLoadStatus = new rtMapObject; 
     mLoadStatus.set("statusCode", 0);
@@ -95,6 +95,8 @@ public:
   void addListener(pxResourceListener* pListener);
   void removeListener(pxResourceListener* pListener);
   virtual void loadResource();
+  void clearDownloadRequest();
+  virtual void setupResource() {}
 protected:   
   static void onDownloadComplete(rtFileDownloadRequest* downloadRequest);
   static void onDownloadCompleteUI(void* context, void* data);
@@ -108,20 +110,22 @@ protected:
   
   rtString mUrl;
   rtString mProxy;
-  rtFileDownloadRequest* mDownloadRequest;  
+  rtFileDownloadRequest* mDownloadRequest;
+  bool mDownloadInProgress;
   bool priorityRaised;
 
   rtObjectRef mLoadStatus;
   rtObjectRef mReady;
   std::list<pxResourceListener*> mListeners;
   rtMutex mListenersMutex;
+  rtMutex mDownloadInProgressMutex;
 };
 
 class rtImageResource : public pxResource
 {
 public:
   rtImageResource(const char* url = 0, const char* proxy = 0);
-  ~rtImageResource(); 
+  virtual ~rtImageResource();
   
   rtDeclareObject(rtImageResource, pxResource);
   
@@ -136,7 +140,10 @@ public:
   virtual int32_t h() const;
   virtual rtError h(int32_t& v) const; 
 
-  pxTextureRef getTexture() { return mTexture; }  
+  pxTextureRef getTexture();
+  void setTextureData(pxOffscreen& imageOffscreen, const char* data, const size_t dataSize);
+  virtual void setupResource();
+  void clearDownloadedData();
  
   virtual void init();
 
@@ -147,6 +154,10 @@ private:
 
   void loadResourceFromFile();
   pxTextureRef mTexture;
+  rtMutex mTextureMutex;
+  pxOffscreen mImageOffscreen;
+  char* mCompressedData;
+  size_t mCompressedDataSize;
  
 };
 
@@ -154,7 +165,7 @@ class rtImageAResource : public pxResource
 {
 public:
   rtImageAResource(const char* url = 0, const char* proxy = 0);
-  ~rtImageAResource();
+  virtual ~rtImageAResource();
 
   rtDeclareObject(rtImageAResource, pxResource);
 

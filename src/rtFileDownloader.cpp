@@ -131,6 +131,8 @@ void startFileDownloadInBackground(void* data)
 }
 
 rtFileDownloader* rtFileDownloader::mInstance = NULL;
+std::vector<rtFileDownloadRequest*> rtFileDownloader::mDownloadRequestVector;
+rtMutex rtFileDownloader::mDownloadRequestVectorMutex;
 
 
 void onDownloadHandleCheck()
@@ -446,7 +448,8 @@ rtString rtFileDownloadRequest::origin()
 }
 
 rtFileDownloader::rtFileDownloader()
-    : mNumberOfCurrentDownloads(0), mDefaultCallbackFunction(NULL), mDownloadHandles(), mReuseDownloadHandles(false), mCaCertFile(CA_CERTIFICATE)
+    : mNumberOfCurrentDownloads(0), mDefaultCallbackFunction(NULL), mDownloadHandles(), mReuseDownloadHandles(false),
+      mCaCertFile(CA_CERTIFICATE), mFileCacheMutex()
 {
 #ifdef PX_REUSE_DOWNLOAD_HANDLES
   rtLogWarn("enabling curl handle reuse");
@@ -514,6 +517,7 @@ bool rtFileDownloader::addToDownloadQueue(rtFileDownloadRequest* downloadRequest
     bool submitted = false;
     //todo: check the download queue before starting download
     submitted = true;
+    addFileDownloadRequest(downloadRequest);
     downloadFileInBackground(downloadRequest);
     //startNextDownloadInBackground();
     return submitted;
@@ -591,6 +595,7 @@ void rtFileDownloader::downloadFile(rtFileDownloadRequest* downloadRequest)
 
       if (downloadedData.isWritableToCache())
       {
+        mFileCacheMutex.lock();
         if (NULL == rtFileCache::instance())
           rtLogWarn("cache data not added");
         else
@@ -598,6 +603,7 @@ void rtFileDownloader::downloadFile(rtFileDownloadRequest* downloadRequest)
           rtFileCache::instance()->addToCache(downloadedData);
           rtLogInfo("Cache expiration(%s)", cachedData.expirationDate().cString());
         }
+        mFileCacheMutex.unlock();
       }
     }
 
@@ -607,12 +613,16 @@ void rtFileDownloader::downloadFile(rtFileDownloadRequest* downloadRequest)
       rtString url;
       cachedData.url(url);
 
+      mFileCacheMutex.lock();
       if (NULL == rtFileCache::instance())
           rtLogWarn("Adding url to cache failed (%s) due to in-process memory issues", url.cString());
       rtFileCache::instance()->removeData(url);
+      mFileCacheMutex.unlock();
       if (cachedData.isWritableToCache())
       {
+        mFileCacheMutex.lock();
         rtError err = rtFileCache::instance()->addToCache(cachedData);
+        mFileCacheMutex.unlock();
         if (RT_OK != err)
           rtLogWarn("Adding url to cache failed (%s)", url.cString());
         else
@@ -626,8 +636,7 @@ void rtFileDownloader::downloadFile(rtFileDownloadRequest* downloadRequest)
       downloadRequest->setDownloadedData(NULL,0);
     }
 #endif
-
-    delete downloadRequest;
+    clearFileDownloadRequest(downloadRequest);
 }
 
 bool rtFileDownloader::downloadFromNetwork(rtFileDownloadRequest* downloadRequest)
@@ -812,6 +821,7 @@ bool rtFileDownloader::checkAndDownloadFromCache(rtFileDownloadRequest* download
 {
   rtError err;
   rtData data;
+  mFileCacheMutex.lock();
   if ((NULL != rtFileCache::instance()) && (RT_OK == rtFileCache::instance()->httpCacheData(downloadRequest->fileUrl(),cachedData)))
   {
     if(downloadRequest->deferCacheRead())
@@ -820,6 +830,7 @@ bool rtFileDownloader::checkAndDownloadFromCache(rtFileDownloadRequest* download
       err = cachedData.data(data);
     if (RT_OK !=  err)
     {
+      mFileCacheMutex.unlock();
       return false;
     }
 
@@ -827,8 +838,10 @@ bool rtFileDownloader::checkAndDownloadFromCache(rtFileDownloadRequest* download
     downloadRequest->setDownloadedData((char *)cachedData.contentsData().data(),cachedData.contentsData().length());
     downloadRequest->setDownloadStatusCode(0);
     downloadRequest->setHttpStatusCode(200);
+    mFileCacheMutex.unlock();
     return true;
   }
+  mFileCacheMutex.unlock();
   return false;
 }
 #endif
@@ -904,6 +917,58 @@ void rtFileDownloader::releaseDownloadHandle(CURL* curlHandle, int expiresTime)
 #else
     curl_easy_cleanup(curlHandle);
 #endif //PX_REUSE_DOWNLOAD_HANDLES
+}
+
+void rtFileDownloader::addFileDownloadRequest(rtFileDownloadRequest* downloadRequest)
+{
+  mDownloadRequestVectorMutex.lock();
+  bool found = false;
+  for (std::vector<rtFileDownloadRequest*>::iterator it=mDownloadRequestVector.begin(); it!=mDownloadRequestVector.end(); ++it)
+  {
+    if ((*it) == downloadRequest)
+    {
+      found = true;
+      break;
+    }
+  }
+  if (!found)
+  {
+    mDownloadRequestVector.push_back(downloadRequest);
+  }
+  mDownloadRequestVectorMutex.unlock();
+}
+
+void rtFileDownloader::clearFileDownloadRequest(rtFileDownloadRequest* downloadRequest)
+{
+  mDownloadRequestVectorMutex.lock();
+  for (std::vector<rtFileDownloadRequest*>::iterator it=mDownloadRequestVector.begin(); it!=mDownloadRequestVector.end(); ++it)
+  {
+    if ((*it) == downloadRequest)
+    {
+      mDownloadRequestVector.erase(it);
+      break;
+    }
+  }
+  if (downloadRequest != NULL)
+  {
+    delete downloadRequest;
+  }
+  mDownloadRequestVectorMutex.unlock();
+}
+
+void rtFileDownloader::setCallbackFunctionThreadSafe(rtFileDownloadRequest* downloadRequest,
+                                                     void (*callbackFunction)(rtFileDownloadRequest*))
+{
+  mDownloadRequestVectorMutex.lock();
+  for (std::vector<rtFileDownloadRequest*>::iterator it=mDownloadRequestVector.begin(); it!=mDownloadRequestVector.end(); ++it)
+  {
+    if ((*it) == downloadRequest)
+    {
+      downloadRequest->setCallbackFunctionThreadSafe(callbackFunction);
+      break;
+    }
+  }
+  mDownloadRequestVectorMutex.unlock();
 }
 
 void rtFileDownloader::checkForExpiredHandles()

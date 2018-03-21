@@ -6,11 +6,79 @@ extern rtThreadQueue gUIThreadQueue;
 
 #include "rtFileDownloader.h"
 
-pxArchive::pxArchive(): mIsFile(true),mDownloadRequest(NULL) {}
+pxArchive::pxArchive(): mIsFile(true),mDownloadRequest(NULL), mZip(),
+                        mDownloadStatusCode(0), mHttpStatusCode(0), mArchiveData(NULL), mArchiveDataSize(0),
+                        mUseDownloadedData(false), mArchiveDataMutex()
+{
+}
 
 pxArchive::~pxArchive()
 {
+  if (mDownloadRequest != NULL)
+  {
+    //rtLogInfo("pxArchive::~pxArchive(): mDownloadRequest not null\n");
+    rtFileDownloader::setCallbackFunctionThreadSafe(mDownloadRequest, NULL);
+    mDownloadRequest = NULL;
+  }
   gUIThreadQueue.removeAllTasksForObject(this);
+  clearDownloadedData();
+}
+
+void pxArchive::clearDownloadedData()
+{
+  mArchiveDataMutex.lock();
+  if (mArchiveData != NULL)
+  {
+    delete [] mArchiveData;
+    mArchiveData = NULL;
+  }
+  mArchiveDataSize = 0;
+  mArchiveDataMutex.unlock();
+}
+
+void pxArchive::setupArchive()
+{
+  mArchiveDataMutex.lock();
+  if (mUseDownloadedData)
+  {
+    mLoadStatus.set("statusCode", mDownloadStatusCode);
+    // TODO rtValue doesn't like longs... rtValue and fix downloadRequest
+    mLoadStatus.set("httpStatusCode", mHttpStatusCode);
+
+    if (mDownloadStatusCode == 0) {
+      mData.init((uint8_t *) mArchiveData, mArchiveDataSize);
+      process(mData.data(), mData.length());
+    }
+    if (mArchiveData != NULL) {
+      delete[] mArchiveData;
+      mArchiveData = NULL;
+    }
+  }
+  mArchiveDataMutex.unlock();
+}
+
+void pxArchive::setArchiveData(int downloadStatusCode, uint32_t httpStatusCode, const char* data, const size_t dataSize)
+{
+  mArchiveDataMutex.lock();
+  mDownloadStatusCode = downloadStatusCode;
+  mHttpStatusCode = httpStatusCode;
+  if (mArchiveData != NULL)
+  {
+    delete [] mArchiveData;
+    mArchiveData = NULL;
+  }
+  if (data == NULL)
+  {
+    mArchiveData = NULL;
+    mArchiveDataSize = 0;
+  }
+  else
+  {
+    mArchiveData = new char[dataSize];
+    mArchiveDataSize = dataSize;
+    memcpy(mArchiveData, data, mArchiveDataSize);
+  }
+  mArchiveDataMutex.unlock();
 }
 
 rtError pxArchive::initFromUrl(const rtString& url, const rtString& origin)
@@ -29,14 +97,20 @@ rtError pxArchive::initFromUrl(const rtString& url, const rtString& origin)
   {
     mLoadStatus.set("sourceType", "http");
     mLoadStatus.set("statusCode", -1);
+    if (mDownloadRequest != NULL)
+    {
+      rtFileDownloader::setCallbackFunctionThreadSafe(mDownloadRequest, NULL);
+    }
     mDownloadRequest = new rtFileDownloadRequest(url, this);
     mDownloadRequest->setOrigin(origin.cString());
     mDownloadRequest->setCallbackFunction(pxArchive::onDownloadComplete);
+    mUseDownloadedData = true;
     rtFileDownloader::instance()->addToDownloadQueue(mDownloadRequest);
   }
   else
   {
     // Assuming file
+    mUseDownloadedData = false;
     mLoadStatus.set("sourceType", "file");
     // TODO align statusCodes for loadStatus
 
@@ -48,8 +122,8 @@ rtError pxArchive::initFromUrl(const rtString& url, const rtString& origin)
     else
     {
       mLoadStatus.set("statusCode",1);
-      gUIThreadQueue.addTask(pxArchive::onDownloadCompleteUI,this,NULL);
     }
+    gUIThreadQueue.addTask(pxArchive::onDownloadCompleteUI,this,NULL);
   }
 
   return RT_OK;
@@ -142,27 +216,20 @@ void pxArchive::onDownloadComplete(rtFileDownloadRequest* downloadRequest)
 {
   pxArchive* a = (pxArchive*)downloadRequest->callbackData();
 
-  a->mLoadStatus.set("statusCode", downloadRequest->downloadStatusCode());
-  // TODO rtValue doesn't like longs... rtValue and fix downloadRequest
-  a->mLoadStatus.set("httpStatusCode", (uint32_t)downloadRequest->httpStatusCode());
-
-  if (downloadRequest->downloadStatusCode() == 0)
+  if (a != NULL)
   {
-    char* data;
-    size_t dataSize;
-    downloadRequest->downloadedData(data, dataSize);
+    a->setArchiveData(downloadRequest->downloadStatusCode(), (uint32_t)downloadRequest->httpStatusCode(),
+                      downloadRequest->downloadedData(), downloadRequest->downloadedDataSize());
 
-    // TODO another copy here
-    a->mData.init((uint8_t*)data,dataSize);
-    a->process(a->mData.data(),a->mData.length());
-  }
-  else
     gUIThreadQueue.addTask(pxArchive::onDownloadCompleteUI, a, NULL);
+  }
 }
 
 void pxArchive::onDownloadCompleteUI(void* context, void* /*data*/)
 {
   pxArchive* a = (pxArchive*)context;
+
+  a->setupArchive();
 
   // Todo Real error condition
   if (a->mLoadStatus.get<int32_t>("statusCode") == 0)
@@ -189,14 +256,15 @@ void pxArchive::process(void* data, size_t dataSize)
   if (rtZip::isZip(data,dataSize))
   {
     mIsFile = false;
-    if (mZip.initFromBuffer(data,dataSize) == RT_OK)
-      gUIThreadQueue.addTask(pxArchive::onDownloadCompleteUI, this, NULL);
+    if (mZip.initFromBuffer(data,dataSize) != RT_OK)
+    {
+      rtLogWarn("error initializing zip data from buffer");
+    }
   }
   else
   {
     // Single file archive
     mIsFile = true;
-    gUIThreadQueue.addTask(pxArchive::onDownloadCompleteUI, this, NULL);
   }
 }
 

@@ -141,6 +141,7 @@ class rtFileDownloader
 public:
 
     static rtFileDownloader* instance();
+    static void setCallbackFunctionThreadSafe(rtFileDownloadRequest* downloadRequest, void (*callbackFunction)(rtFileDownloadRequest*));
 
     virtual bool addToDownloadQueue(rtFileDownloadRequest* downloadRequest);
     virtual void raiseDownloadPriority(rtFileDownloadRequest* downloadRequest);
@@ -165,6 +166,8 @@ private:
 #endif
     CURL* retrieveDownloadHandle();
     void releaseDownloadHandle(CURL* curlHandle, int expiresTime);
+    static void addFileDownloadRequest(rtFileDownloadRequest* downloadRequest);
+    static void clearFileDownloadRequest(rtFileDownloadRequest* downloadRequest);
     //todo: hash mPendingDownloadRequests;
     //todo: string list mPendingDownloadOrderList;
     //todo: list mActiveDownloads;
@@ -174,7 +177,10 @@ private:
     std::vector<rtFileDownloadHandle> mDownloadHandles;
     bool mReuseDownloadHandles;
     rtString mCaCertFile;
+    rtMutex mFileCacheMutex;
     static rtFileDownloader* mInstance;
+    static std::vector<rtFileDownloadRequest*> mDownloadRequestVector;
+    static rtMutex mDownloadRequestVectorMutex;
 };
 
 #endif //RT_FILE_DOWNLOADER_H
