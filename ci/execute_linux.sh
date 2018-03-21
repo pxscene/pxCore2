@@ -64,7 +64,7 @@ retVal=$?
 
 # Monitor testRunner ...
 count=0
-max_seconds=900
+max_seconds=840
 
 while [ "$retVal" -ne 0 ] &&  [ "$count" -ne "$max_seconds" ]; do
 	printf "\n [execute_linux.sh] snoozing for 30 seconds (%d of %d) \n" $count $max_seconds
@@ -81,8 +81,8 @@ while [ "$retVal" -ne 0 ] &&  [ "$count" -ne "$max_seconds" ]; do
 	fi
 done
 
-echo "gdb -q --command=\"$TRAVIS_BUILD_DIR/ci/debuggercmds_linux\" -c $coreFileName $binary  2&>gdblogs"
-gdb -q --command="$TRAVIS_BUILD_DIR/ci/debuggercmds_linux" pxscene  2&>gdblogs
+echo "gdb -q --command=\"$TRAVIS_BUILD_DIR/ci/debuggercmds_linux\" $TRAVIS_BUILD_DIR/examples/pxScene2d/src/pxscene  2&>gdblogs"
+gdb -q --command="$TRAVIS_BUILD_DIR/ci/debuggercmds_linux" $TRAVIS_BUILD_DIR/examples/pxScene2d/src/pxscene  2&>gdblogs
 cat gdblogs
 
 kill -15 `ps -ef | grep pxscene |grep -v grep|grep -v pxscene.sh|awk '{print $2}'`
