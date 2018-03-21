@@ -81,8 +81,8 @@ while [ "$retVal" -ne 0 ] &&  [ "$count" -ne "$max_seconds" ]; do
 	fi
 done
 
-echo "gdb -q --command=\"$TRAVIS_BUILD_DIR/ci/debuggercmds_linux\" $TRAVIS_BUILD_DIR/examples/pxScene2d/src/pxscene  2&>gdblogs"
-gdb -q --command="$TRAVIS_BUILD_DIR/ci/debuggercmds_linux" $TRAVIS_BUILD_DIR/examples/pxScene2d/src/pxscene  2&>gdblogs
+echo "gdb -q --command=\"$TRAVIS_BUILD_DIR/ci/debuggercmds_linux\" $TRAVIS_BUILD_DIR/examples/pxScene2d/src/pxscene  >gdblogs"
+gdb -q --command="$TRAVIS_BUILD_DIR/ci/debuggercmds_linux" $TRAVIS_BUILD_DIR/examples/pxScene2d/src/pxscene  >gdblogs
 cat gdblogs
 
 kill -15 `ps -ef | grep pxscene |grep -v grep|grep -v pxscene.sh|awk '{print $2}'`
