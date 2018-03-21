@@ -68,7 +68,6 @@ protected:
 
   rtData mData;
   rtFileDownloadRequest* mDownloadRequest;
-  rtMutex mDownloadRequestMutex;
 
   rtZip mZip;
 };
