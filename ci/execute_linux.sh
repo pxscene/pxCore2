@@ -31,6 +31,7 @@ rm -rf $TRAVIS_BUILD_DIR/logs/*
 export VALGRINDLOGS=$TRAVIS_BUILD_DIR/logs/valgrind_logs
 export PX_DUMP_MEMUSAGE=1
 export ENABLE_VALGRIND=1
+
 export RT_LOG_LEVEL=info
 export SUPPRESSIONS=$TRAVIS_BUILD_DIR/ci/leak.supp
 
