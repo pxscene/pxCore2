@@ -481,7 +481,7 @@ rtRef<rtImageResource> pxImageManager::getImage(const char* url, const char* pro
   ImageMap::iterator it = mImageMap.find(url);
   if (it != mImageMap.end())
   {
-    //rtLogInfo("Found rtImageResource in map for \"%s\"\n",url);
+    rtLogInfo("Found rtImageResource in map for \"%s\"\n",url);
     //if( it->second->getRefCount() == 0)
       //rtLogDebug("ZERO REF COUNT IN GETIMAGE!\n");
     pResImage = it->second;
