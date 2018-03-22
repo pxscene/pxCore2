@@ -513,14 +513,18 @@ public:
       return RT_PROP_NOT_FOUND;
   }
 
-  virtual rtError Set(const char* /*name*/, const rtValue* /*value*/)
+  virtual rtError Set(const char* name, const rtValue* value)
   {
+    std::ignore = name;
+    std::ignore = value;
     // readonly property
     return RT_PROP_NOT_FOUND;
   }
 
-  virtual rtError Set(uint32_t /*i*/, const rtValue* /*value*/)
+  virtual rtError Set(uint32_t i, const rtValue* value)
   {
+    std::ignore = i;
+    std::ignore = value;
     // readonly property
     return RT_PROP_NOT_FOUND;
   }
@@ -657,6 +661,14 @@ rtError pxObject::setFocus(bool v)
     return mScene->setFocus(NULL);
   }
 
+}
+
+rtError pxObject::Set(uint32_t i, const rtValue* value)
+{
+  std::ignore = i;
+  std::ignore = value;
+  rtLogError("pxObject::Set(uint32_t, const rtValue*) - not implemented");
+  return RT_ERROR_NOT_IMPLEMENTED;
 }
 
 rtError pxObject::Set(const char* name, const rtValue* value)

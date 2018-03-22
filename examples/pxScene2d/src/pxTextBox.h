@@ -246,7 +246,15 @@ public:
   rtMethodNoArgAndReturn("measureText", measureText, rtObjectRef);
   rtError measureText(rtObjectRef& o); 
 
-  virtual rtError Set(const char* name, const rtValue* value)
+  virtual rtError Set(uint32_t i, const rtValue* value) override
+  {
+    std::ignore = i;
+    std::ignore = value;
+    rtLogError("pxTextBox::Set(uint32_t, const rtValue*) - not implemented");
+    return RT_ERROR_NOT_IMPLEMENTED;
+  }
+
+  virtual rtError Set(const char* name, const rtValue* value) override
   {
 	  //rtLogDebug("pxTextBox Set for %s\n", name );
 
