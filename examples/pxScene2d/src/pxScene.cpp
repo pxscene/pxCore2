@@ -244,6 +244,7 @@ protected:
     mClosed = true;
     if(gDumpMemUsage)
     {
+      script.pump();
       gApplicationIsClosing = true;
       gUIThreadQueue.process(1);
     }
