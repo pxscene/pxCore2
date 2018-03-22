@@ -252,7 +252,6 @@ protected:
       mView->onCloseRequest();
     EXITSCENELOCK()
     // delete mView;
-    script.collectGarbage();
 
 #ifndef RUNINMAIN
     uv_close((uv_handle_t*) &asyncNewScript, NULL);
@@ -277,6 +276,7 @@ protected:
 
   if (gDumpMemUsage)
   {
+    sleep(1);
     rtLogInfo("pxobjectcount is [%d]",pxObjectCount);
 #ifndef PX_PLATFORM_DFB_NON_X11
     rtLogInfo("texture memory usage is [%" PRId64 "]",context.currentTextureMemoryUsageInBytes());
@@ -400,6 +400,8 @@ void handleTerm(int)
 
 void handleSegv(int)
 {
+  signal(SIGTERM,SIG_DFL);
+  signal(SIGABRT,SIG_DFL);
   FILE* fp = fopen("/tmp/pxscenecrash","w");
   fclose(fp);
   rtLogInfo("Signal SEGV received. sleeping to collect data");
@@ -410,6 +412,8 @@ void handleSegv(int)
 
 void handleAbrt(int)
 {
+  signal(SIGTERM,SIG_DFL);
+  signal(SIGSEGV,SIG_DFL);
   FILE* fp = fopen("/tmp/pxscenecrash","w");
   fclose(fp);
   rtLogInfo("Signal ABRT received. sleeping to collect data");
@@ -442,6 +446,8 @@ int pxMain(int argc, char* argv[])
     signal(SIGSEGV, handleSegv);
     signal(SIGABRT, handleAbrt);
   }
+  printf("Madana [%s] \n",(char *)0x96);
+  fflush(stdout);
 #ifndef RUNINMAIN
   rtLogWarn("Setting  __rt_main_thread__ to be %x\n",pthread_self());
    __rt_main_thread__ = pthread_self(); //  NB
