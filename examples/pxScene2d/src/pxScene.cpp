@@ -242,9 +242,10 @@ protected:
     if (mClosed)
       return;
     mClosed = true;
-    gUIThreadQueue.process(1);
     if(gDumpMemUsage)
       gApplicationIsClosing = true;
+
+    gUIThreadQueue.process(1);
     
     rtLogInfo(__FUNCTION__);
     ENTERSCENELOCK();
@@ -259,10 +260,6 @@ protected:
 #endif
    // pxScene.cpp:104:12: warning: deleting object of abstract class type ‘pxIView’ which has non-virtual destructor will cause undefined behaviour [-Wdelete-non-virtual-dtor]
 
-  #ifdef RUNINMAIN
-     script.pump();
-  //   script.collectGarbage();
-  #endif
   pxFontManager::clearAllFonts();
 
   ENTERSCENELOCK()

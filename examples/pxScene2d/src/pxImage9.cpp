@@ -32,8 +32,10 @@ extern pxContext context;
 
 pxImage9::~pxImage9()
 {
+/*
   printf("TEST Image9 destruction [%p] \n",this);
   fflush(stdout);
+*/
   rtLogDebug("~pxImage9()");
   if (mListenerAdded)
   {
@@ -73,8 +75,10 @@ rtError pxImage9::url(rtString& s) const
 
 rtError pxImage9::setUrl(const char* s) 
 { 
+/*
   printf("TEST Image9 seturl [%p][%s] \n",this,s);
   fflush(stdout);
+*/
   rtImageResource* resourceObj = getImageResource();  
   if(resourceObj != NULL && resourceObj->getUrl().length() > 0 && resourceObj->getUrl().compare(s))
   {
