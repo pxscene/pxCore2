@@ -246,13 +246,13 @@ protected:
       gApplicationIsClosing = true;
 
     gUIThreadQueue.process(1);
-    
     rtLogInfo(__FUNCTION__);
     ENTERSCENELOCK();
     if (mView)
       mView->onCloseRequest();
     EXITSCENELOCK()
     // delete mView;
+    script.collectGarbage();
 
 #ifndef RUNINMAIN
     uv_close((uv_handle_t*) &asyncNewScript, NULL);
