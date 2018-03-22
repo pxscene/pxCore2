@@ -40,10 +40,6 @@ public:
   pxImage(pxScene2d* scene) : pxObject(scene),mStretchX(pxConstantsStretch::NONE),mStretchY(pxConstantsStretch::NONE), 
     imageLoaded(false), mListenerAdded(false), mDownscaleSmooth(false)
   { 
-/*
-    printf("TEST Image construction [%p] \n",this);
-    fflush(stdout);
-*/
     mw = -1;
     mh = -1;
     mResource = pxImageManager::getImage("");

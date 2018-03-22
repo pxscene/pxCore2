@@ -243,9 +243,10 @@ protected:
       return;
     mClosed = true;
     if(gDumpMemUsage)
+    {
       gApplicationIsClosing = true;
-
-    gUIThreadQueue.process(1);
+      gUIThreadQueue.process(1);
+    }
     
     rtLogInfo(__FUNCTION__);
     ENTERSCENELOCK();
@@ -273,34 +274,24 @@ protected:
   #endif
 
   context.term();
-  script.collectGarbage();
 
-    if (gDumpMemUsage)
-    {
-  //    script.pump();
-/*
-      #ifndef WIN32
-      sleep(5);
-      #endif 
-      #ifndef WIN32
-      sleep(5);
-      #endif
-*/
-
-      rtLogInfo("pxobjectcount is [%d]",pxObjectCount);
-#ifndef PX_PLATFORM_DFB_NON_X11
-      rtLogInfo("texture memory usage is [%" PRId64 "]",context.currentTextureMemoryUsageInBytes());
+  if (gDumpMemUsage)
+  {
+    script.collectGarbage();
+    rtLogInfo("pxobjectcount is [%d]",pxObjectCount);
+#ifdef PX_PLATFORM_DFB_NON_X11
+    rtLogInfo("texture memory usage is [%" PRId64 "]",context.currentTextureMemoryUsageInBytes());
+#elif
+    fflush(stdout);
+//#ifdef PX_PLATFORM_MAC
+//     rtLogInfo("texture memory usage is [%lld]",context.currentTextureMemoryUsageInBytes());
+//#else
+//     rtLogInfo("texture memory usage is [%ld]",context.currentTextureMemoryUsageInBytes());
 #endif
-      fflush(stdout);
-// #ifdef PX_PLATFORM_MAC
-//       rtLogInfo("texture memory usage is [%lld]",context.currentTextureMemoryUsageInBytes());
-// #else
-//       rtLogInfo("texture memory usage is [%ld]",context.currentTextureMemoryUsageInBytes());
-// #endif
-    }
-    #ifdef ENABLE_CODE_COVERAGE
-    __gcov_flush();
-    #endif
+  }
+  #ifdef ENABLE_CODE_COVERAGE
+  __gcov_flush();
+  #endif
   ENTERSCENELOCK()
       eventLoop.exit();
   EXITSCENELOCK()

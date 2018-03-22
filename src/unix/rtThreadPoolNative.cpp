@@ -93,8 +93,6 @@ void rtThreadPoolNative::startThread()
 
 void rtThreadPoolNative::executeTask(rtThreadTask* threadTask)
 {
-    printf("Madana pushing task \n");
-    fflush(stdout);
     mThreadTaskMutex.lock();
     mThreadTasks.push_back(threadTask);
     mThreadTaskCondition.signal();

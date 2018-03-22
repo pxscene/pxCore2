@@ -31,7 +31,6 @@ rm -rf $TRAVIS_BUILD_DIR/logs/*
 export VALGRINDLOGS=$TRAVIS_BUILD_DIR/logs/valgrind_logs
 export PX_DUMP_MEMUSAGE=1
 export ENABLE_VALGRIND=1
-
 export RT_LOG_LEVEL=info
 export SUPPRESSIONS=$TRAVIS_BUILD_DIR/ci/leak.supp
 
@@ -81,6 +80,7 @@ while [ "$retVal" -ne 0 ] &&  [ "$count" -ne "$max_seconds" ]; do
 	fi
 done
 
+#lines to take stack trace from pxscene running under valgrind
 #echo "gdb -q --command=\"$TRAVIS_BUILD_DIR/ci/debuggercmds_linux\" $TRAVIS_BUILD_DIR/examples/pxScene2d/src/pxscene  >gdblogs"
 #gdb -q --command="$TRAVIS_BUILD_DIR/ci/debuggercmds_linux" $TRAVIS_BUILD_DIR/examples/pxScene2d/src/pxscene  >gdblogs
 #cat gdblogs

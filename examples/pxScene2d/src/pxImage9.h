@@ -38,10 +38,6 @@ public:
   pxImage9(pxScene2d* scene) : pxObject(scene),mInsetLeft(0),mInsetTop(0),mInsetRight(0),mInsetBottom(0), 
                                imageLoaded(false), mListenerAdded(false) 
   { 
-/*
-    printf("TEST Image9 construction [%p] \n",this);
-    fflush(stdout);
-*/
     mResource = pxImageManager::getImage("");
     mw = -1;
     mh = -1;
