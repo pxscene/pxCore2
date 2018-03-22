@@ -402,6 +402,15 @@ rtDukContext::~rtDukContext()
 
 rtError rtDukContext::add(const char *name, rtValue const& val)
 {
+  if (name == NULL) {
+    // Should not accept the NULL pointer as a name.
+    rtLogDebug(" rtDukContext::add() - no symbolic name for rtValue");
+    return RT_FAIL;
+  } else if (val.isEmpty()) {
+    // Should not accept the empty value.
+    rtLogDebug(" rtDukContext::add() - rtValue is empty");
+    return RT_FAIL;
+  }
   rt2duk(dukCtx, val);
   rtDukPutIdentToGlobal(dukCtx, name);
   
@@ -997,6 +1006,11 @@ static duk_int_t myload_code(duk_context *ctx, const char *code)
 //rtError rtDukContext::runScript(const std::string &script, rtValue* retVal /*= NULL*/, const char* /* args = NULL*/)
 rtError rtDukContext::runScript(const char* szscript, rtValue* retVal /*= NULL*/, const char *args /*= NULL*/)
 {
+  // Check nullness of parameters
+  if (szscript == NULL) {
+    rtLogError(" %s  ... Invalid parameters, szscript cannot be NULL.",__PRETTY_FUNCTION__);
+    return RT_FAIL;
+  }
   std::string script = szscript;
   rtLogInfo(__FUNCTION__);
   if(script.empty())
