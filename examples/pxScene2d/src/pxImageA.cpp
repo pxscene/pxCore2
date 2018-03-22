@@ -31,6 +31,8 @@ pxImageA::pxImageA(pxScene2d *scene) : pxObject(scene),
                                        mStretchX(pxConstantsStretch::NONE), mStretchY(pxConstantsStretch::NONE),
                                        mResource(), mImageLoaded(false), mListenerAdded(false)
 {
+  printf("TEST ImageA construction [%p] \n",this);
+  fflush(stdout);
   mCurFrame = 0;
   mCachedFrame = UINT32_MAX;
   mFrameTime = -1;
@@ -40,6 +42,8 @@ pxImageA::pxImageA(pxScene2d *scene) : pxObject(scene),
 
 pxImageA::~pxImageA()
 {
+  printf("TEST ImageA destruction [%p] \n",this);
+  fflush(stdout);
   if (mListenerAdded)
   {
     if (getImageAResource())
@@ -73,6 +77,8 @@ rtError pxImageA::url(rtString &s) const
 rtError pxImageA::setUrl(const char *s)
 {
 
+  printf("TEST ImageA seturl [%p][%s] \n",this,s);
+  fflush(stdout);
   rtImageAResource* resourceObj = getImageAResource();
   if( resourceObj != NULL && resourceObj->getUrl().length() > 0 && resourceObj->getUrl().compare(s))
   {

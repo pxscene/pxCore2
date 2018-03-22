@@ -261,7 +261,7 @@ protected:
 
   #ifdef RUNINMAIN
      script.pump();
-     script.collectGarbage();
+  //   script.collectGarbage();
   #endif
   pxFontManager::clearAllFonts();
 
@@ -276,11 +276,11 @@ protected:
   #endif
 
   context.term();
+  script.collectGarbage();
 
     if (gDumpMemUsage)
     {
   //    script.pump();
-      script.collectGarbage();
 /*
       #ifndef WIN32
       sleep(5);
