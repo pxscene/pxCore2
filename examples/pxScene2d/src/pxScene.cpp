@@ -243,11 +243,9 @@ protected:
       return;
     mClosed = true;
     if(gDumpMemUsage)
-    {
-      script.pump();
       gApplicationIsClosing = true;
-      gUIThreadQueue.process(1);
-    }
+
+    gUIThreadQueue.process(1);
     
     rtLogInfo(__FUNCTION__);
     ENTERSCENELOCK();
@@ -275,10 +273,10 @@ protected:
   #endif
 
   context.term();
+  script.collectGarbage();
 
   if (gDumpMemUsage)
   {
-    script.collectGarbage();
     rtLogInfo("pxobjectcount is [%d]",pxObjectCount);
 #ifndef PX_PLATFORM_DFB_NON_X11
     rtLogInfo("texture memory usage is [%" PRId64 "]",context.currentTextureMemoryUsageInBytes());
