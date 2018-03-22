@@ -42,7 +42,7 @@ bool isPowerOfTwo(int64_t number)
 
 pxImage::~pxImage()
 {
-
+  rtLogDebug("~pxImage()");
   if (mListenerAdded)
   {
     if (getImageResource())
