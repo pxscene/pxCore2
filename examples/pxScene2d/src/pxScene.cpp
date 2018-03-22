@@ -1,4 +1,4 @@
-/*
+﻿/*
 
  pxCore Copyright 2005-2017 John Robinson
 
@@ -279,15 +279,15 @@ protected:
   {
     script.collectGarbage();
     rtLogInfo("pxobjectcount is [%d]",pxObjectCount);
-#ifdef PX_PLATFORM_DFB_NON_X11
+#ifndef PX_PLATFORM_DFB_NON_X11
     rtLogInfo("texture memory usage is [%" PRId64 "]",context.currentTextureMemoryUsageInBytes());
-#elif
-    fflush(stdout);
-//#ifdef PX_PLATFORM_MAC
-//     rtLogInfo("texture memory usage is [%lld]",context.currentTextureMemoryUsageInBytes());
-//#else
-//     rtLogInfo("texture memory usage is [%ld]",context.currentTextureMemoryUsageInBytes());
 #endif
+    fflush(stdout);
+// #ifdef PX_PLATFORM_MAC
+//       rtLogInfo("texture memory usage is [%lld]",context.currentTextureMemoryUsageInBytes());
+// #else
+//       rtLogInfo("texture memory usage is [%ld]",context.currentTextureMemoryUsageInBytes());
+// #endif
   }
   #ifdef ENABLE_CODE_COVERAGE
   __gcov_flush();
