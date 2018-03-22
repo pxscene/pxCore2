@@ -1,4 +1,3 @@
 set logging on
-target remote|vgdb
 thread apply all bt
 quit
