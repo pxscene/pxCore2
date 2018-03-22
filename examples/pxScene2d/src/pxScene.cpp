@@ -446,8 +446,6 @@ int pxMain(int argc, char* argv[])
     signal(SIGSEGV, handleSegv);
     signal(SIGABRT, handleAbrt);
   }
-  printf("Madana [%s] \n",(char *)0x96);
-  fflush(stdout);
 #ifndef RUNINMAIN
   rtLogWarn("Setting  __rt_main_thread__ to be %x\n",pthread_self());
    __rt_main_thread__ = pthread_self(); //  NB
