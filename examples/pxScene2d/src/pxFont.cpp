@@ -89,7 +89,10 @@ pxFont::pxFont(rtString fontUrl, rtString proxyUrl):pxResource(),mFace(NULL),mPi
 pxFont::~pxFont() 
 {
   rtLogInfo("~pxFont %s\n", mUrl.cString());
-  gUIThreadQueue.removeAllTasksForObject(this);
+  if (gUIThreadQueue)
+  {
+    gUIThreadQueue->removeAllTasksForObject(this);
+  }
   // download should be canceled/removed in pxResource
   //if (mDownloadRequest != NULL)
   //{
@@ -186,8 +189,11 @@ void pxFont::loadResourceFromFile()
       // Since this object can be released before we get a async completion
       // We need to maintain this object's lifetime
       // TODO review overall flow and organization
-      AddRef();     
-      gUIThreadQueue.addTask(onDownloadCompleteUI, this, (void*)"reject");
+      AddRef();
+      if (gUIThreadQueue)
+      {
+        gUIThreadQueue->addTask(onDownloadCompleteUI, this, (void*)"reject");
+      }
     }
     else
     {
@@ -195,8 +201,11 @@ void pxFont::loadResourceFromFile()
       // Since this object can be released before we get a async completion
       // We need to maintain this object's lifetime
       // TODO review overall flow and organization
-      AddRef();      
-      gUIThreadQueue.addTask(onDownloadCompleteUI, this, (void*)"resolve");
+      AddRef();
+      if (gUIThreadQueue)
+      {
+        gUIThreadQueue->addTask(onDownloadCompleteUI, this, (void*)"resolve");
+      }
 
     } 
 }

@@ -179,8 +179,8 @@ private:
     rtString mCaCertFile;
     rtMutex mFileCacheMutex;
     static rtFileDownloader* mInstance;
-    static std::vector<rtFileDownloadRequest*> mDownloadRequestVector;
-    static rtMutex mDownloadRequestVectorMutex;
+    static std::vector<rtFileDownloadRequest*>* mDownloadRequestVector;
+    static rtMutex* mDownloadRequestVectorMutex;
 };
 
 #endif //RT_FILE_DOWNLOADER_H

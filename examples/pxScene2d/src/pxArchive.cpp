@@ -2,7 +2,7 @@
 
 #include "rtThreadQueue.h"
 
-extern rtThreadQueue gUIThreadQueue;
+extern rtThreadQueue* gUIThreadQueue;
 
 #include "rtFileDownloader.h"
 
@@ -20,7 +20,10 @@ pxArchive::~pxArchive()
     rtFileDownloader::setCallbackFunctionThreadSafe(mDownloadRequest, NULL);
     mDownloadRequest = NULL;
   }
-  gUIThreadQueue.removeAllTasksForObject(this);
+  if (gUIThreadQueue)
+  {
+    gUIThreadQueue->removeAllTasksForObject(this);
+  }
   clearDownloadedData();
 }
 
@@ -123,7 +126,10 @@ rtError pxArchive::initFromUrl(const rtString& url, const rtString& origin)
     {
       mLoadStatus.set("statusCode",1);
     }
-    gUIThreadQueue.addTask(pxArchive::onDownloadCompleteUI,this,NULL);
+    if (gUIThreadQueue)
+    {
+      gUIThreadQueue->addTask(pxArchive::onDownloadCompleteUI,this,NULL);
+    }
   }
 
   return RT_OK;
@@ -221,7 +227,10 @@ void pxArchive::onDownloadComplete(rtFileDownloadRequest* downloadRequest)
     a->setArchiveData(downloadRequest->downloadStatusCode(), (uint32_t)downloadRequest->httpStatusCode(),
                       downloadRequest->downloadedData(), downloadRequest->downloadedDataSize());
 
-    gUIThreadQueue.addTask(pxArchive::onDownloadCompleteUI, a, NULL);
+    if (gUIThreadQueue)
+    {
+      gUIThreadQueue->addTask(pxArchive::onDownloadCompleteUI, a, NULL);
+    }
   }
 }
 

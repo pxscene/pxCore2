@@ -29,7 +29,7 @@
 
 using namespace std;
 
-extern rtThreadQueue gUIThreadQueue;
+extern rtThreadQueue* gUIThreadQueue;
 extern pxContext context;
 
 pxResource::~pxResource() 
@@ -44,7 +44,10 @@ pxResource::~pxResource()
     mDownloadRequest = NULL;
   }
 
-  gUIThreadQueue.removeAllTasksForObject(this);
+  if (gUIThreadQueue)
+  {
+    gUIThreadQueue->removeAllTasksForObject(this);
+  }
   //mListeners.clear();
   //rtLogDebug("Leaving pxResource::~pxResource()\n");
 }
@@ -385,7 +388,11 @@ void rtImageResource::loadResourceFromFile()
     // We need to maintain this object's lifetime
     // TODO review overall flow and organization
     AddRef();
-    gUIThreadQueue.addTask(onDownloadCompleteUI, this, (void*)"reject");
+
+    if (gUIThreadQueue)
+    {
+      gUIThreadQueue->addTask(onDownloadCompleteUI, this, (void*)"reject");
+    }
     //mTexture->notifyListeners( mTexture, RT_FAIL, errorCode);
 
   }
@@ -398,7 +405,10 @@ void rtImageResource::loadResourceFromFile()
     // We need to maintain this object's lifetime
     // TODO review overall flow and organization
     AddRef();
-    gUIThreadQueue.addTask(onDownloadCompleteUI, this, (void *) "resolve");
+    if (gUIThreadQueue)
+    {
+      gUIThreadQueue->addTask(onDownloadCompleteUI, this, (void *) "resolve");
+    }
 
   }
 
@@ -450,8 +460,11 @@ void pxResource::processDownloadedResource(rtFileDownloadRequest* fileDownloadRe
         // Since this object can be released before we get a async completion
         // We need to maintain this object's lifetime
         // TODO review overall flow and organization
-        AddRef();        
-        gUIThreadQueue.addTask(pxResource::onDownloadCompleteUI, this, (void*)"reject");        
+        AddRef();
+        if (gUIThreadQueue)
+        {
+          gUIThreadQueue->addTask(pxResource::onDownloadCompleteUI, this, (void*)"reject");
+        }
       }
       else
       {
@@ -464,7 +477,10 @@ void pxResource::processDownloadedResource(rtFileDownloadRequest* fileDownloadRe
         // We need to maintain this object's lifetime
         // TODO review overall flow and organization
         AddRef();
-        gUIThreadQueue.addTask(pxResource::onDownloadCompleteUI, this, (void*)"resolve");
+        if (gUIThreadQueue)
+        {
+          gUIThreadQueue->addTask(pxResource::onDownloadCompleteUI, this, (void*)"resolve");
+        }
       }
     }
     else 
@@ -478,8 +494,11 @@ void pxResource::processDownloadedResource(rtFileDownloadRequest* fileDownloadRe
       // Since this object can be released before we get a async completion
       // We need to maintain this object's lifetime
       // TODO review overall flow and organization
-      AddRef();        
-      gUIThreadQueue.addTask(pxResource::onDownloadCompleteUI, this, (void*)"reject");      
+      AddRef();
+      if (gUIThreadQueue)
+      {
+        gUIThreadQueue->addTask(pxResource::onDownloadCompleteUI, this, (void*)"reject");
+      }
     }
   }
 

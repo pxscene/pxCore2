@@ -247,7 +247,6 @@ protected:
       gApplicationIsClosing = true;
     
     rtLogInfo(__FUNCTION__);
-    rtThreadPool::globalInstance()->destroy();
     
     ENTERSCENELOCK();
     if (mView)
