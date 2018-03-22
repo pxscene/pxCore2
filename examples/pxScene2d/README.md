@@ -249,6 +249,7 @@ file:///home/username/directory/filename.js
 2. Build
    ~~~~
    cd pxCore/remote
+   patch -p0 -i patches/rapidjson.patch
    make
    cd ..
    mkdir temp
