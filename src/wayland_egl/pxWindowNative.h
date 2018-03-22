@@ -125,7 +125,7 @@ protected:
 
     virtual void onSize(int32_t w, int32_t h) = 0;
 
-    virtual void onDraw(pxSurfaceNative surface) = 0;
+    virtual void onDraw() = 0;
 
     virtual void onAnimationTimer() = 0;	
 

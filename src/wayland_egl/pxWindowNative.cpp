@@ -854,14 +854,8 @@ void pxWindowNative::drawFrame()
 
     waylandDisplay* wDisplay = dRef.getDisplay();
     struct wl_surface * waylandSurface = (struct wl_surface *)wl_shell_surface_get_user_data(mWaylandSurface);
-    pxSurfaceNativeDesc d;
-    d.windowWidth = mLastWidth;
-    d.windowHeight = mLastHeight;
-    waylandBuffer *buffer = nextBuffer();
-    d.pixelData = (uint32_t*)buffer->shm_data;
 
-
-    onDraw(&d);
+    onDraw();
 
     //this is needed only for egl
     if (WAYLAND_EGL_BUFFER_OPAQUE) {

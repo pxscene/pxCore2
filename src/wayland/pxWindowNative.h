@@ -118,7 +118,7 @@ protected:
 
     virtual void onSize(int w, int h) = 0;
 
-    virtual void onDraw(pxSurfaceNative surface) = 0;
+    virtual void onDraw() = 0;
 
     virtual void onAnimationTimer() = 0;	
 
