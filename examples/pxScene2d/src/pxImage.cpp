@@ -42,9 +42,6 @@ bool isPowerOfTwo(int64_t number)
 
 pxImage::~pxImage()
 {
- /* printf("TEST Image destruction [%p] \n",this);
-  fflush(stdout);
-*/
   if (mListenerAdded)
   {
     if (getImageResource())
@@ -128,10 +125,6 @@ rtError pxImage::url(rtString& s) const
 }
 rtError pxImage::setUrl(const char* s)
 { 
-/*
-  printf("TEST Image url [%p] [%s] \n",this,s);
-  fflush(stdout);
-*/
   //rtLogInfo("pxImage::setUrl init=%d imageLoaded=%d \n", mInitialized, imageLoaded);
   //rtLogDebug("pxImage::setUrl for s=%s mUrl=%s\n", s, mUrl.cString());
   
