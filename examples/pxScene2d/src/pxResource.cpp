@@ -348,7 +348,6 @@ void pxResource::onDownloadCompleteUI(void* context, void* data)
 
   res->setupResource();
   res->notifyListeners(resolution);
-  res->mReady.send(resolution, res);
 
 
   // Release here since we had to addRef when setting up callback to 
