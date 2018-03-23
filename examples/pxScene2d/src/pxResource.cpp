@@ -32,18 +32,22 @@ using namespace std;
 extern rtThreadQueue* gUIThreadQueue;
 extern pxContext context;
 
+#include "pxTimer.h"
+
 pxResource::~pxResource() 
 {
   //rtLogDebug("pxResource::~pxResource()\n");
   if (mDownloadRequest != NULL)
   {
+    double timeStamp = pxMilliseconds();
+    rtLogInfo("pxResource::~pxResource() called resource: %p time: %f", this, timeStamp);
     if (mUrl.length() > 0)
     {
-      rtLogInfo("pxResource::~pxResource(): removing download result callback for resource url: %s", mUrl.cString());
+      rtLogInfo("pxResource::~pxResource(): removing download result callback for resource url: %s resource: %p", mUrl.cString(), this);
     }
     else
     {
-      rtLogInfo("pxResource::~pxResource(): removing download result callback for resource empty url");
+      rtLogInfo("pxResource::~pxResource(): removing download result callback for resource empty url resource: %p", this);
     }
     // if there is a previous request pending then set the callback to NULL
     // the previous request will not be processed and the memory will be freed when the download is complete
@@ -90,6 +94,8 @@ rtValue pxResource::getLoadStatus(rtString key)
 
 void pxResource::addListener(pxResourceListener* pListener) 
 {
+  double timeStamp = pxMilliseconds();
+  rtLogInfo("pxResource::addListener() called resource: %p time: %f", this, timeStamp);
   if( mUrl.isEmpty())
     return;
 
@@ -115,6 +121,8 @@ void pxResource::addListener(pxResourceListener* pListener)
 
 void pxResource::removeListener(pxResourceListener* pListener)
 {
+  double timeStamp = pxMilliseconds();
+  rtLogInfo("pxResource::removeListener() called resource: %p time: %f", this, timeStamp);
   mListenersMutex.lock();
   for (list<pxResourceListener*>::iterator it = mListeners.begin();
          it != mListeners.end(); ++it)
@@ -136,11 +144,12 @@ void pxResource::removeListener(pxResourceListener* pListener)
     mInitialized = false;
     if (mUrl.length() > 0)
     {
-      rtLogInfo("pxResource::removeListener(): removing download result callback for resource url: %s", mUrl.cString());
+      double timeStamp = pxMilliseconds();
+      rtLogInfo("pxResource::removeListener(): removing download result callback for resource url: %s resource: %p time: %f", mUrl.cString(), this, timeStamp);
     }
     else
     {
-      rtLogInfo("pxResource::removeListener(): removing download result callback for resource empty url");
+      rtLogInfo("pxResource::removeListener(): removing download result callback for resource empty url: resource: %p time: %f", this, timeStamp);
     }
     rtFileDownloader::setCallbackFunctionThreadSafe(mDownloadRequest, NULL);
     mDownloadRequest = NULL;
@@ -339,7 +348,8 @@ void pxResource::loadResource()
   //rtLogDebug("rtImageResource::loadResource statusCode should be -1; is statusCode=%d\n",mLoadStatus.get<int32_t>("statusCode"));
   if (mUrl.beginsWith("http:") || mUrl.beginsWith("https:"))
   {
-    rtLogInfo("pxResource::loadResource(): start downloading for: %s resource: %p", mUrl.cString(), this);
+    double timeStamp = pxMilliseconds();
+    rtLogInfo("pxResource::loadResource(): start downloading for: %s resource: %p time: %f", mUrl.cString(), this, timeStamp);
       mLoadStatus.set("sourceType", "http");
       if (mDownloadRequest != NULL)
       {

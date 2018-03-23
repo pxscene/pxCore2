@@ -575,10 +575,12 @@ void rtFileDownloader::downloadFile(rtFileDownloadRequest* downloadRequest)
 
   double downloadEndTime = pxMilliseconds();
   double downloadTime = downloadEndTime-downloadStartTime;
-  rtLogInfo("Download for %s took %f ms.  loaded from cache: %s resource: %p", downloadRequest->fileUrl().cString(), downloadTime, isDataInCache?"true":"false", downloadRequest->callbackData());
+  double timeStamp = pxMilliseconds();
+  rtLogInfo("Download for %s took %f ms.  loaded from cache: %s resource: %p time: %f", downloadRequest->fileUrl().cString(), downloadTime, isDataInCache?"true":"false", downloadRequest->callbackData(), timeStamp);
     if (!downloadRequest->executeCallback(downloadRequest->downloadStatusCode()))
     {
-      rtLogInfo("no download result callback set for %s resource: %p", downloadRequest->fileUrl().cString(), downloadRequest->callbackData());
+      double timeStamp2 = pxMilliseconds();
+      rtLogInfo("no download result callback set for %s resource: %p time: %f", downloadRequest->fileUrl().cString(), downloadRequest->callbackData(), timeStamp2);
       if (mDefaultCallbackFunction != NULL)
       {
         (*mDefaultCallbackFunction)(downloadRequest);
