@@ -134,6 +134,14 @@ void pxResource::removeListener(pxResourceListener* pListener)
   if( numberOfListeners <= 0 && mDownloadRequest != NULL )
   {
     mInitialized = false;
+    if (mUrl.length() > 0)
+    {
+      rtLogInfo("pxResource::removeListener(): removing download result callback for resource url: %s", mUrl.cString());
+    }
+    else
+    {
+      rtLogInfo("pxResource::removeListener(): removing download result callback for resource empty url");
+    }
     rtFileDownloader::setCallbackFunctionThreadSafe(mDownloadRequest, NULL);
     mDownloadRequest = NULL;
     mDownloadInProgressMutex.lock();
@@ -334,7 +342,14 @@ void pxResource::loadResource()
       mLoadStatus.set("sourceType", "http");
       if (mDownloadRequest != NULL)
       {
-        rtFileDownloader::setCallbackFunctionThreadSafe(mDownloadRequest, NULL);
+        if (mUrl.length() > 0)
+        {
+          rtLogInfo("pxResource::loadResource(): should be removing download result callback for resource url: %s", mUrl.cString());
+        }
+        else
+        {
+          rtLogInfo("pxResource::loadResource(): should be removing download result callback for resource empty url");
+        }
       }
       mDownloadRequest = new rtFileDownloadRequest(mUrl, this);
       mDownloadRequest->setProxy(mProxy);
