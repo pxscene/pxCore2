@@ -276,9 +276,6 @@ protected:
 
   if (gDumpMemUsage)
   {
-#ifndef WIN32
-    sleep(1);
-#endif
     rtLogInfo("pxobjectcount is [%d]",pxObjectCount);
 #ifndef PX_PLATFORM_DFB_NON_X11
     rtLogInfo("texture memory usage is [%" PRId64 "]",context.currentTextureMemoryUsageInBytes());
