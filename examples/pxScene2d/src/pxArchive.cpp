@@ -114,7 +114,7 @@ rtError pxArchive::initFromUrl(const rtString& url, const rtString& origin)
       double timeStamp2 = pxMilliseconds();
       rtLogInfo("pxArchive::initFromUrl() will remove previous callback url: %s resource: %p time: %f", mUrl.cString(), this, timeStamp2);
 
-      rtFileDownloader::setCallbackFunctionThreadSafe(mDownloadRequest, NULL);
+      //rtFileDownloader::setCallbackFunctionThreadSafe(mDownloadRequest, NULL);
     }
     mDownloadRequest = new rtFileDownloadRequest(url, this);
     mDownloadRequest->setOrigin(origin.cString());

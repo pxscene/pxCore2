@@ -354,7 +354,7 @@ void pxResource::loadResource()
       if (mDownloadRequest != NULL)
       {
         rtLogInfo("pxResource::loadResource(): should be removing download result callback for resource url: %s", mUrl.cString());
-        rtFileDownloader::setCallbackFunctionThreadSafe(mDownloadRequest, NULL);
+        //rtFileDownloader::setCallbackFunctionThreadSafe(mDownloadRequest, NULL);
       }
       mDownloadRequest = new rtFileDownloadRequest(mUrl, this);
       mDownloadRequest->setProxy(mProxy);
