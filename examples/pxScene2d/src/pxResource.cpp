@@ -325,14 +325,8 @@ void pxResource::loadResource()
   if (mUrl.beginsWith("http:") || mUrl.beginsWith("https:"))
   {
       mLoadStatus.set("sourceType", "http");
-      if (mDownloadRequest != NULL)
-      {
-        rtFileDownloader::setCallbackFunctionThreadSafe(mDownloadRequest, NULL);
-      }
-      mDownloadRequest = new rtFileDownloadRequest(mUrl, this);
+      mDownloadRequest = new rtFileDownloadRequest(mUrl, this, pxResource::onDownloadComplete);
       mDownloadRequest->setProxy(mProxy);
-      // setup for asynchronous load and callback
-      mDownloadRequest->setCallbackFunction(pxResource::onDownloadComplete);
       mDownloadInProgressMutex.lock();
       mDownloadInProgress = true;
       mDownloadInProgressMutex.unlock();
