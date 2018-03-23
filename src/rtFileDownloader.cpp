@@ -550,7 +550,6 @@ void rtFileDownloader::clearFileCache()
 
 void rtFileDownloader::downloadFile(rtFileDownloadRequest* downloadRequest)
 {
-  double downloadStartTime = pxMilliseconds();
 #ifdef ENABLE_HTTP_CACHE
     bool isDataInCache = false;
 #endif
@@ -573,9 +572,6 @@ void rtFileDownloader::downloadFile(rtFileDownloadRequest* downloadRequest)
       nwDownloadSuccess = downloadFromNetwork(downloadRequest);
     }
 
-  double downloadEndTime = pxMilliseconds();
-  double downloadTime = downloadEndTime-downloadStartTime;
-  rtLogInfo("Download for %s took %f ms.  loaded from cache: %s", downloadRequest->fileUrl().cString(), downloadTime, isDataInCache?"true":"false");
     if (!downloadRequest->executeCallback(downloadRequest->downloadStatusCode()))
     {
       if (mDefaultCallbackFunction != NULL)
