@@ -88,7 +88,7 @@ AppSceneContext.prototype.loadScene = function() {
     this.basePackageUri = fullPath.substring(0, fullPath.lastIndexOf('/'));
   }
 
-if (fullPath.substring(0,14) == "launchSparkApp")
+if ((fullPath.length >= 14) && (fullPath.substring(0,14) == "launchSparkApp"))
 {
   var Scene = require("rcvrcore/scene.1.js");
   this.sceneWrapper = new Scene();
