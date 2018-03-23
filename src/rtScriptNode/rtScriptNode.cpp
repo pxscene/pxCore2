@@ -182,8 +182,8 @@ public:
     return rtAtomicInc(&mRefCount);
   }
 
-  unsigned long Release();  
-    
+  unsigned long Release();
+
   rtError init();
 
   rtString engine() { return "node/v8"; }
@@ -238,7 +238,7 @@ private:
   void init2(int argc, char** argv);
 #endif
 
-  int mRefCount;  
+  int mRefCount;
 };
 
 
@@ -401,7 +401,8 @@ void rtNodeContext::createEnvironment()
     {
       char currentPath[100];
       memset(currentPath,0,sizeof(currentPath));
-      getcwd(currentPath,sizeof(currentPath));
+      const char *rv = getcwd(currentPath,sizeof(currentPath));
+      (void)rv;
       StartDebug(mEnv, currentPath, debug_wait_connect, mPlatform);
     }
     else
@@ -564,7 +565,7 @@ void rtNodeContext::clonedEnvironment(rtNodeContextRef clone_me)
     mContextId = GetContextId(clone_local);
 
     mContext.Reset(mIsolate, clone_local); // local to persistent
-    // commenting below code as templates are isolcate specific	  
+    // commenting below code as templates are isolcate specific
 /*
     Context::Scope context_scope(clone_local);
 
@@ -589,7 +590,10 @@ rtNodeContext::~rtNodeContext()
   //Make sure node is not destroyed abnormally
   if (true == node_is_initialized)
   {
-    runScript("var process = require('process');process._tickCallback();");
+    #ifdef ENABLE_NODE_V_6_9    
+    if (!nodeTerminated)
+      runScript("var process = require('process');process._tickCallback();");
+    #endif
     if(mEnv)
     {
       Locker                locker(mIsolate);
@@ -655,7 +659,7 @@ rtError rtNodeContext::add(const char *name, rtValue const& val)
     rtLogDebug(" rtNodeContext::add() - ALREADY HAS '%s' ... over-writing.", name);
    // return; // Allow for "Null"-ing erasure.
   }
-  
+
   if(val.isEmpty())
   {
     rtLogDebug(" rtNodeContext::add() - rtValue is empty");
@@ -671,7 +675,7 @@ rtError rtNodeContext::add(const char *name, rtValue const& val)
   Context::Scope context_scope(local_context);
 
   local_context->Global()->Set( String::NewFromUtf8(mIsolate, name), rt2js(local_context, val));
-  
+
   return RT_OK;
 }
 
@@ -850,7 +854,7 @@ rtError rtNodeContext::runScript(const char* script, rtValue* retVal /*= NULL*/,
       // Return val
       rtWrapperError error;
       *retVal = js2rt(local_context, result, &error);
-      
+
       if(error.hasError())
       {
         rtLogError("js2rt() - return from script error");
@@ -894,7 +898,7 @@ rtError rtNodeContext::runFile(const char *file, rtValue* retVal /*= NULL*/, con
   if( js_script.empty() ) // load error
   {
     rtLogError(" %s  ... load error / not found.",__PRETTY_FUNCTION__);
-     
+
     return RT_FAIL;
   }
 
@@ -1051,7 +1055,7 @@ rtError rtScriptNode::pump()
 
     if (sGcTickCount++ > 60)
     {
-      Local<Context> local_context = node::PersistentToLocal<Context>(mIsolate, mContext);
+      Local<Context> local_context = Context::New(mIsolate);
       Context::Scope contextScope(local_context);
       mIsolate->RequestGarbageCollectionForTesting(Isolate::kFullGarbageCollection);
       sGcTickCount = 0;
@@ -1070,7 +1074,7 @@ rtError rtScriptNode::collectGarbage()
   Isolate::Scope isolate_scope(mIsolate);
   HandleScope     handle_scope(mIsolate);    // Create a stack-allocated handle scope.
 
-  Local<Context> local_context = node::PersistentToLocal<Context>(mIsolate, mContext);
+  Local<Context> local_context = Context::New(mIsolate);
   Context::Scope contextScope(local_context);
   mIsolate->LowMemoryNotification();
 //#endif // RUNINMAIN

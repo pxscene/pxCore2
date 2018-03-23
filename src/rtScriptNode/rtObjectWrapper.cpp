@@ -389,7 +389,11 @@ rtError jsObjectWrapper::getAllKeys(Isolate* isolate, rtValue* value) const
 
 rtError jsObjectWrapper::Get(const char* name, rtValue* value) const
 {
+  Locker locker(mIsolate);
+  Isolate::Scope   isolate_scope(mIsolate);
   HandleScope handle_scope(mIsolate);
+
+  
 
   if (!name)
     return RT_ERROR_INVALID_ARG;
@@ -443,6 +447,7 @@ rtError jsObjectWrapper::Get(uint32_t i, rtValue* value) const
     return RT_ERROR_INVALID_ARG;
 
   Locker locker(mIsolate);
+  Isolate::Scope   isolate_scope(mIsolate);
   HandleScope handleScope(mIsolate);
 
   Local<Object> self = PersistentToLocal(mIsolate, mObject);
@@ -470,6 +475,7 @@ rtError jsObjectWrapper::Set(const char* name, const rtValue* value)
     return RT_ERROR_INVALID_ARG;
 
   Locker locker(mIsolate);
+  Isolate::Scope   isolate_scope(mIsolate);
   HandleScope handleScope(mIsolate);
   Local<String> s = String::NewFromUtf8(mIsolate, name);
   Local<Object> self = PersistentToLocal(mIsolate, mObject);
@@ -503,6 +509,7 @@ rtError jsObjectWrapper::Set(uint32_t i, const rtValue* value)
     return RT_ERROR_INVALID_ARG;
 
   Locker locker(mIsolate);
+  Isolate::Scope   isolate_scope(mIsolate);
   HandleScope handleScope(mIsolate);
   Local<Object> self = PersistentToLocal(mIsolate, mObject);
   Local<Context> ctx = self->CreationContext();

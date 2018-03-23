@@ -512,7 +512,7 @@ int class::rtPropertyCount = sizeof(class::rtPropertyEntries)/sizeof(rtPropertyE
     virtual void* dontStrip##method() { return (void*)&method##EntryInstance; }
 
 #define  rtMethod3ArgAndReturn(name, method, arg1type, arg2type, arg3type, returntype) \
-    rtThunk3ArgAndReturn(method, arg1type, arg2type, returntype); \
+    rtThunk3ArgAndReturn(method, arg1type, arg2type, arg3type, returntype); \
     class method##Entry \
     { \
     public: \

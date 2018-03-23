@@ -85,7 +85,7 @@ class pxSceneContainerLeakTest : public testing::Test
 
 private:
 
-    void startJsFile(char *jsfile)
+    void startJsFile(const char *jsfile)
     {
       mUrl = jsfile;
       mView = new pxScriptView(mUrl,"");
