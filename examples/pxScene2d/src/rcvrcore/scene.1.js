@@ -206,6 +206,10 @@ function Scene() {
     return nativeScene.getService(name, serviceObject);
   };
 
+  this.getAvailableApplications = function getAvailableApplications(appNames) {
+      return nativeScene.getAvailableApplications(appNames);
+  };
+
   this.setAppContext = function(appContextName, appContext) {
     if( !appContextMap.hasOwnProperty(appContextName) ) {
       appContextMap[appContextName] = appContext;
