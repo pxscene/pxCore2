@@ -339,7 +339,7 @@ void pxResource::loadResource()
   //rtLogDebug("rtImageResource::loadResource statusCode should be -1; is statusCode=%d\n",mLoadStatus.get<int32_t>("statusCode"));
   if (mUrl.beginsWith("http:") || mUrl.beginsWith("https:"))
   {
-    rtLogInfo("pxResource::loadResource(): should be removing download result callback for resource url: %s resource: %p", mUrl.cString(), this);
+    rtLogInfo("pxResource::loadResource(): start downloading for: %s resource: %p", mUrl.cString(), this);
       mLoadStatus.set("sourceType", "http");
       if (mDownloadRequest != NULL)
       {
