@@ -91,7 +91,7 @@ public:
   bool isProgressMeterSwitchOff();
   void setHTTPFailOnError(bool val);
   bool isHTTPFailOnError();
-  void setHTTPError(char* httpError);
+  void setHTTPError(const char* httpError);
   char* httpErrorBuffer(void);
   void setCurlDefaultTimeout(bool val);
   bool isCurlDefaultTimeoutSet();

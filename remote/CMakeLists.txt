@@ -18,12 +18,9 @@ option(ENABLE_RTREMOTE_PROFILE "ENABLE_RTREMOTE_PROFILE" OFF)
 set(RTREMOTE_SOURCE_FILES rtremote.conf.gen rtRemoteConfig.h rtRemoteServer.cpp rtRemoteObject.cpp
         rtRemoteFunction.cpp rtRemoteMessage.cpp rtRemoteClient.cpp rtRemoteValueReader.cpp
         rtRemoteValueWriter.cpp rtRemoteSocketUtils.cpp rtRemoteStream.cpp
-        rtRemoteObjectCache.cpp rtRemote.cpp rtRemoteConfig.cpp rtRemoteFactory.cpp
-        rtRemoteFileResolver.cpp rtRemoteMulticastResolver.cpp rtRemoteNsResolver.cpp
-        rtRemoteNameService.cpp rtRemoteConfigBuilder.cpp rtRemoteAsyncHandle.cpp
-        rtRemoteUtils.cpp rtRemoteEnvironment.cpp rtRemoteStreamSelector.cpp rtGuid.cpp
-        rtRemoteMapperMap.cpp rtRemoteMapperFile.cpp rtRemoteMapperSql.cpp
-        rtRemoteEndpointHandleStreamServer.cpp)
+        rtRemoteObjectCache.cpp rtRemote.cpp rtRemoteConfig.cpp rtRemoteEndPoint.cpp rtRemoteFactory.cpp
+        rtRemoteMulticastResolver.cpp rtRemoteConfigBuilder.cpp rtRemoteAsyncHandle.cpp
+        rtRemoteEnvironment.cpp rtRemoteStreamSelector.cpp rtGuid.cpp)
 
 add_definitions(-DRAPIDJSON_HAS_STDSTRING -DRT_PLATFORM_LINUX -DRT_REMOTE_LOOPBACK_ONLY)
 include_directories(AFTER ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/../src ${CMAKE_CURRENT_BINARY_DIR})
