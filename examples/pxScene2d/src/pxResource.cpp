@@ -37,7 +37,14 @@ pxResource::~pxResource()
   //rtLogDebug("pxResource::~pxResource()\n");
   if (mDownloadRequest != NULL)
   {
-    //rtLogInfo("pxResource::~pxResource(): mDownloadRequest not null\n");
+    if (mUrl.length() > 0)
+    {
+      rtLogInfo("pxResource::~pxResource(): removing download result callback for resource url: %s", mUrl.cString());
+    }
+    else
+    {
+      rtLogInfo("pxResource::~pxResource(): removing download result callback for resource empty url");
+    }
     // if there is a previous request pending then set the callback to NULL
     // the previous request will not be processed and the memory will be freed when the download is complete
     rtFileDownloader::setCallbackFunctionThreadSafe(mDownloadRequest, NULL);
@@ -418,6 +425,14 @@ void rtImageResource::loadResourceFromFile()
 // Static callback that gets called when fileDownloadRequest completes 
 void pxResource::onDownloadComplete(rtFileDownloadRequest* fileDownloadRequest)
 {
+  if (fileDownloadRequest)
+  {
+    rtLogInfo("inside download complete callback for %s", fileDownloadRequest->fileUrl().cString());
+  }
+  else
+  {
+    rtLogInfo("inside download complete callback for null request");
+  }
   if (fileDownloadRequest != NULL && fileDownloadRequest->callbackData() != NULL) 
   {
     // Call virtual processDownlodedResource for specialized handling - 

@@ -578,10 +578,15 @@ void rtFileDownloader::downloadFile(rtFileDownloadRequest* downloadRequest)
   rtLogInfo("Download for %s took %f ms.  loaded from cache: %s", downloadRequest->fileUrl().cString(), downloadTime, isDataInCache?"true":"false");
     if (!downloadRequest->executeCallback(downloadRequest->downloadStatusCode()))
     {
+      rtLogInfo("no download result callback set for %s", downloadRequest->fileUrl().cString());
       if (mDefaultCallbackFunction != NULL)
       {
         (*mDefaultCallbackFunction)(downloadRequest);
       }
+    }
+    else
+    {
+      rtLogInfo("download result callback was executed for %s", downloadRequest->fileUrl().cString());
     }
 
 #ifdef ENABLE_HTTP_CACHE
