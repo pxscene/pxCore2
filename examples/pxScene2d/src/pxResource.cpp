@@ -359,7 +359,7 @@ void pxResource::loadResource()
       mDownloadRequest = new rtFileDownloadRequest(mUrl, this);
       mDownloadRequest->setProxy(mProxy);
       // setup for asynchronous load and callback
-      mDownloadRequest->setCallbackFunction(pxResource::onDownloadComplete);
+      mDownloadRequest->setCallbackFunctionThreadSafe(pxResource::onDownloadComplete);
       mDownloadInProgressMutex.lock();
       mDownloadInProgress = true;
       mDownloadInProgressMutex.unlock();

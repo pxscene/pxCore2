@@ -118,7 +118,7 @@ rtError pxArchive::initFromUrl(const rtString& url, const rtString& origin)
     }
     mDownloadRequest = new rtFileDownloadRequest(url, this);
     mDownloadRequest->setOrigin(origin.cString());
-    mDownloadRequest->setCallbackFunction(pxArchive::onDownloadComplete);
+    mDownloadRequest->setCallbackFunctionThreadSafe(pxArchive::onDownloadComplete);
     mUseDownloadedData = true;
     rtFileDownloader::instance()->addToDownloadQueue(mDownloadRequest);
   }
