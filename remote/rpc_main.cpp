@@ -1,7 +1,6 @@
 
 #include "rtRemote.h"
 #include "rtRemoteConfig.h"
-#include "rtRemoteNameService.h"
 #include <rtObject.h>
 #include <functional>
 
@@ -26,7 +25,7 @@ class rtLcd : public rtObject
 public:
   rtLcd()
     : rtObject()
-    // , m_connections(new rtArrayObject())
+    , m_connections(new rtArrayObject())
   {
   }
 

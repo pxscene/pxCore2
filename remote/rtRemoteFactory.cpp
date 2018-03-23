@@ -1,12 +1,9 @@
 #include "rtRemoteFactory.h"
 #include "rtRemoteConfig.h"
 #include "rtRemoteIResolver.h"
-#include "rtRemoteFileResolver.h"
 #include "rtRemoteMulticastResolver.h"
-#include "rtRemoteNsResolver.h"
 #include "rtRemoteTypes.h"
 #include "rtRemoteEnvironment.h"
-#include "rtRemoteEndpoint.h"
 
 static rtResolverType
 rtResolverTypeFromString(std::string const& resolverType)
@@ -48,14 +45,8 @@ rtRemoteFactory::rtRemoteCreateResolver(rtRemoteEnvironment* env)
     case RT_RESOLVER_MULTICAST:
       resolver = new rtRemoteMulticastResolver(env);
       break;
-    case RT_RESOLVER_FILE:
-      resolver = new rtRemoteFileResolver(env);
-      break;
-    case RT_RESOLVER_UNICAST:
-      resolver = new rtRemoteNsResolver(env);
-      break;
     default:
-      resolver = new rtRemoteMulticastResolver(env);
+      assert(false);
       break;
   }
   return resolver;

@@ -1,5 +1,5 @@
 #include "rtJsModules.h"
-#include "rtWrapperUtils.h"
+#include "rtWrapperUtilsDuk.h"
 #include "rtThreadTask.h"
 #include "rtThreadPool.h"
 #include "rtObject.h"
@@ -30,6 +30,9 @@ extern "C"
 #else
 #include <sys/select.h>
 #endif
+
+namespace rtScriptDukUtils
+{
 
 static std::vector<rtRef<rtFunctionCallback> > gBindings;
 
@@ -142,6 +145,7 @@ rtError rtHttpGetBinding(int numArgs, const rtValue* args, rtValue* result, void
   return RT_OK;
 }
 
+<<<<<<< HEAD
 class rtWsSocket;
 
 class rtWsSocketManager 
@@ -1162,3 +1166,6 @@ rtError rtCreateCryptoHashBinding(int numArgs, const rtValue* args, rtValue* res
 
    return RT_OK;
 }
+
+} //namespace rtScriptDukUtils
+

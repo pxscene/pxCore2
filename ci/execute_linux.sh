@@ -25,7 +25,9 @@ else
   printf "\nUSING: TRAVIS_BUILD_DIR=${TRAVIS_BUILD_DIR}\n\n"
 fi
 
-sudo rm -rf /tmp/cache/*
+rm -rf /tmp/cache/*
+rm -rf $TRAVIS_BUILD_DIR/logs/*
+
 export VALGRINDLOGS=$TRAVIS_BUILD_DIR/logs/valgrind_logs
 export PX_DUMP_MEMUSAGE=1
 export ENABLE_VALGRIND=1
@@ -34,7 +36,7 @@ export SUPPRESSIONS=$TRAVIS_BUILD_DIR/ci/leak.supp
 
 touch $VALGRINDLOGS
 EXECLOGS=$TRAVIS_BUILD_DIR/logs/exec_logs
-TESTRUNNERURL="https://px-apps.sys.comcast.net/pxscene-samples/examples/px-reference/test-run/testRunner.js"
+TESTRUNNERURL="https://px-apps.sys.comcast.net/pxscene-samples/examples/px-reference/test-run/testRunner_v2.js"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 printExecLogs()
@@ -44,6 +46,13 @@ printExecLogs()
   printf "\n**********************     LOG ENDS      **************************\n"
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+printValgrindLogs()
+{
+  printf "\n********************** PRINTING VALGRIND LOG **************************\n"
+  grep -i "definitely" -C 50 $VALGRINDLOGS
+  printf "\n**********************     LOG ENDS      **************************\n"
+}
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 # Start testRunner ... 
 cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src
@@ -57,7 +66,7 @@ count=0
 max_seconds=1500
 
 while [ "$retVal" -ne 0 ] &&  [ "$count" -ne "$max_seconds" ]; do
-	printf "\n [execute_osx.sh] snoozing for 30 seconds (%d of %d) \n" $count $max_seconds
+	printf "\n [execute_linux.sh] snoozing for 30 seconds (%d of %d) \n" $count $max_seconds
 	sleep 30; # seconds
 
 	grep "TEST RESULTS: " $EXECLOGS
@@ -74,7 +83,7 @@ done
 kill -15 `ps -ef | grep pxscene |grep -v grep|grep -v pxscene.sh|awk '{print $2}'`
 echo "Sleeping to make terminate complete ......";
 #wait for few seconds to get the application terminate completely, as it is attached with valgrind increasing the timeout
-sleep 20s;
+sleep 60s;
 pkill -9 -f pxscene.sh
 
 chmod 444 $VALGRINDLOGS
@@ -162,7 +171,7 @@ else
 	if [ "$TRAVIS_PULL_REQUEST" != "false" ]
 		then
 		errCause="Check the above logs"
-		printExecLogs
+		printValgrindLogs
 	else
 		errCause="Check the file $VALGRINDLOGS and see for definitely lost count"
 	fi
