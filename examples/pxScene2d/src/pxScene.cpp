@@ -101,7 +101,6 @@ char** g_origArgv = NULL;
 bool gDumpMemUsage = false;
 extern bool gApplicationIsClosing;
 extern int pxObjectCount;
-extern rtThreadQueue gUIThreadQueue;
 #include "pxFont.h"
 #ifdef HAS_LINUX_BREAKPAD
 static bool dumpCallback(const google_breakpad::MinidumpDescriptor& descriptor,
@@ -245,7 +244,6 @@ protected:
     if(gDumpMemUsage)
       gApplicationIsClosing = true;
 
-    gUIThreadQueue.process(1);
     rtLogInfo(__FUNCTION__);
     ENTERSCENELOCK();
     if (mView)
@@ -276,9 +274,6 @@ protected:
 
   if (gDumpMemUsage)
   {
-#ifndef WIN32
-    sleep(1);
-#endif
     rtLogInfo("pxobjectcount is [%d]",pxObjectCount);
 #ifndef PX_PLATFORM_DFB_NON_X11
     rtLogInfo("texture memory usage is [%" PRId64 "]",context.currentTextureMemoryUsageInBytes());
