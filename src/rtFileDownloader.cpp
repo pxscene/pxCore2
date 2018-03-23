@@ -575,10 +575,10 @@ void rtFileDownloader::downloadFile(rtFileDownloadRequest* downloadRequest)
 
   double downloadEndTime = pxMilliseconds();
   double downloadTime = downloadEndTime-downloadStartTime;
-  rtLogInfo("Download for %s took %f ms.  loaded from cache: %s", downloadRequest->fileUrl().cString(), downloadTime, isDataInCache?"true":"false");
+  rtLogInfo("Download for %s took %f ms.  loaded from cache: %s resource: %p", downloadRequest->fileUrl().cString(), downloadTime, isDataInCache?"true":"false", downloadRequest->callbackData());
     if (!downloadRequest->executeCallback(downloadRequest->downloadStatusCode()))
     {
-      rtLogInfo("no download result callback set for %s", downloadRequest->fileUrl().cString());
+      rtLogInfo("no download result callback set for %s resource: %p", downloadRequest->fileUrl().cString(), downloadRequest->callbackData());
       if (mDefaultCallbackFunction != NULL)
       {
         (*mDefaultCallbackFunction)(downloadRequest);
@@ -586,7 +586,7 @@ void rtFileDownloader::downloadFile(rtFileDownloadRequest* downloadRequest)
     }
     else
     {
-      rtLogInfo("download result callback was executed for %s", downloadRequest->fileUrl().cString());
+      rtLogInfo("download result callback was executed for %s resource: %p", downloadRequest->fileUrl().cString(), downloadRequest->callbackData());
     }
 
 #ifdef ENABLE_HTTP_CACHE
