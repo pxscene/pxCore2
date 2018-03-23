@@ -5,6 +5,7 @@
 extern rtThreadQueue* gUIThreadQueue;
 
 #include "rtFileDownloader.h"
+#include "pxTimer.h"
 
 pxArchive::pxArchive(): mIsFile(true),mDownloadRequest(NULL), mZip(),
                         mDownloadStatusCode(0), mHttpStatusCode(0), mArchiveData(NULL), mArchiveDataSize(0),
@@ -14,8 +15,12 @@ pxArchive::pxArchive(): mIsFile(true),mDownloadRequest(NULL), mZip(),
 
 pxArchive::~pxArchive()
 {
+  double timeStamp = pxMilliseconds();
+  rtLogInfo("pxArchive::~pxArchive() url: %s resource: %p time: %f", mUrl.cString(), this, timeStamp);
   if (mDownloadRequest != NULL)
   {
+    double timeStamp2 = pxMilliseconds();
+    rtLogInfo("pxArchive::~pxArchive() removing callback url: %s resource: %p time: %f", mUrl.cString(), this, timeStamp2);
     //rtLogInfo("pxArchive::~pxArchive(): mDownloadRequest not null\n");
     rtFileDownloader::setCallbackFunctionThreadSafe(mDownloadRequest, NULL);
     mDownloadRequest = NULL;
@@ -96,12 +101,19 @@ rtError pxArchive::initFromUrl(const rtString& url, const rtString& origin)
   // TODO review overall flow and organization
   AddRef();
 
+
   if (url.beginsWith("http:") || url.beginsWith("https:"))
   {
+    double timeStamp = pxMilliseconds();
+    rtLogInfo("pxArchive::initFromUrl() url: %s resource: %p time: %f", mUrl.cString(), this, timeStamp);
+
     mLoadStatus.set("sourceType", "http");
     mLoadStatus.set("statusCode", -1);
     if (mDownloadRequest != NULL)
     {
+      double timeStamp2 = pxMilliseconds();
+      rtLogInfo("pxArchive::initFromUrl() will remove previous callback url: %s resource: %p time: %f", mUrl.cString(), this, timeStamp2);
+
       rtFileDownloader::setCallbackFunctionThreadSafe(mDownloadRequest, NULL);
     }
     mDownloadRequest = new rtFileDownloadRequest(url, this);
@@ -221,6 +233,9 @@ rtError pxArchive::fileNames(rtObjectRef& array) const
 void pxArchive::onDownloadComplete(rtFileDownloadRequest* downloadRequest)
 {
   pxArchive* a = (pxArchive*)downloadRequest->callbackData();
+
+  double timeStamp = pxMilliseconds();
+  rtLogInfo("pxArchive download complete url: %s resource: %p time: %f", downloadRequest->fileUrl().cString(), a, timeStamp);
 
   if (a != NULL)
   {
