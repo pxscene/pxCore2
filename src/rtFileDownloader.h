@@ -45,7 +45,7 @@
 class rtFileDownloadRequest
 {
 public:
-   rtFileDownloadRequest(const char* imageUrl, void* callbackData);
+   rtFileDownloadRequest(const char* imageUrl, void* callbackData, void (*callbackFunction)(rtFileDownloadRequest*) = NULL);
   ~rtFileDownloadRequest();
 
   void setFileUrl(const char* imageUrl);

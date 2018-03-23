@@ -356,10 +356,8 @@ void pxResource::loadResource()
         rtLogInfo("pxResource::loadResource(): should be removing download result callback for resource url: %s", mUrl.cString());
         //rtFileDownloader::setCallbackFunctionThreadSafe(mDownloadRequest, NULL);
       }
-      mDownloadRequest = new rtFileDownloadRequest(mUrl, this);
+      mDownloadRequest = new rtFileDownloadRequest(mUrl, this, pxResource::onDownloadComplete);
       mDownloadRequest->setProxy(mProxy);
-      // setup for asynchronous load and callback
-      mDownloadRequest->setCallbackFunctionThreadSafe(pxResource::onDownloadComplete);
       mDownloadInProgressMutex.lock();
       mDownloadInProgress = true;
       mDownloadInProgressMutex.unlock();

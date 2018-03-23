@@ -116,9 +116,8 @@ rtError pxArchive::initFromUrl(const rtString& url, const rtString& origin)
 
       //rtFileDownloader::setCallbackFunctionThreadSafe(mDownloadRequest, NULL);
     }
-    mDownloadRequest = new rtFileDownloadRequest(url, this);
+    mDownloadRequest = new rtFileDownloadRequest(url, this, pxArchive::onDownloadComplete);
     mDownloadRequest->setOrigin(origin.cString());
-    mDownloadRequest->setCallbackFunctionThreadSafe(pxArchive::onDownloadComplete);
     mUseDownloadedData = true;
     rtFileDownloader::instance()->addToDownloadQueue(mDownloadRequest);
   }
