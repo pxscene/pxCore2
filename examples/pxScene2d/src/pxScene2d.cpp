@@ -3610,8 +3610,6 @@ void pxScriptView::runScript()
 #endif
     if (0 == gInitScript.length())
     {
-      printf("Madana reading once ................ \n");
-      fflush(stdout);
       gInitScript = readFile("init.js");
     }
     char buffer[MAX_URL_SIZE+gInitScript.length()+60];

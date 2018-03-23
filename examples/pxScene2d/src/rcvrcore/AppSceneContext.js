@@ -90,15 +90,12 @@ AppSceneContext.prototype.loadScene = function() {
 
 if (fullPath.substring(0,14) == "launchSparkApp")
 {
-  startTime = new Date();
-  console.log(startTime);
   var Scene = require("rcvrcore/scene.1.js");
   this.sceneWrapper = new Scene();
   this.sceneWrapper._setNativeScene(this.innerscene, "");
   this.sceneWrapper._setRPCController(this.rpcController);
   this.shell = new shell(this.sceneWrapper,urlParts.query);
 }
-//CHANGES END
 else if( fullPath !== null)
 {
   this.loadPackage(fullPath);
