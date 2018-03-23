@@ -33,7 +33,9 @@
 #ifdef RTSCRIPT_SUPPORT_DUKTAPE
 #include "rtScriptDuk/rtScriptDuk.h"
 #endif
-
+#include <string>
+#include <fstream>
+#include <sstream>
 
 #ifdef __APPLE__
 static pthread_mutex_t sSceneLock = PTHREAD_RECURSIVE_MUTEX_INITIALIZER; //PTHREAD_MUTEX_INITIALIZER;
@@ -166,6 +168,18 @@ void rtWrapperSceneUpdateExit()
   assert(pthread_mutex_unlock(&sSceneLock) == 0);
 #endif
 #endif // RUNINMAIN
+}
+
+std::string readFile(const char *file)
+{
+  std::ifstream       src_file(file);
+  std::stringstream   src_script;
+
+  src_script << src_file.rdbuf();
+
+  std::string s = src_script.str();
+
+  return s;
 }
 
 rtScript::rtScript():mInitialized(false)  {}

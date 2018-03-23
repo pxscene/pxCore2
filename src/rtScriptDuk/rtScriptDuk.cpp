@@ -133,7 +133,7 @@ class rtScriptDuk;
 class rtDukContext;
 
 typedef rtRef<rtDukContext> rtDukContextRef;
-
+extern std::string readFile(const char*);
 class rtDukContext: rtIScriptContext
 {
 public:
@@ -995,18 +995,6 @@ rtError rtDukContext::runScript(const char* szscript, rtValue* retVal /*= NULL*/
   }
 
   return RT_OK;
-}
-
-static std::string readFile(const char *file)
-{
-  std::ifstream       src_file(file);
-  std::stringstream   src_script;
-
-  src_script << src_file.rdbuf();
-
-  std::string s = src_script.str();
-
-  return s;
 }
 
 rtError rtDukContext::runFile(const char *file, rtValue* retVal /*= NULL*/, const char* args /*= NULL*/)

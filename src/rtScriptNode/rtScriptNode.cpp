@@ -106,6 +106,7 @@ class rtScriptNode;
 class rtNodeContext;
 
 typedef rtRef<rtNodeContext> rtNodeContextRef;
+extern std::string readFile(const char*);
 
 class rtNodeContext: rtIScriptContext  // V8
 {
@@ -869,18 +870,6 @@ rtError rtNodeContext::runScript(const char* script, rtValue* retVal /*= NULL*/,
   return RT_FAIL;
 }
 #endif
-
-static std::string readFile(const char *file)
-{
-  std::ifstream       src_file(file);
-  std::stringstream   src_script;
-
-  src_script << src_file.rdbuf(); // slurp up file
-
-  std::string s = src_script.str();
-
-  return s;
-}
 
 rtError rtNodeContext::runFile(const char *file, rtValue* retVal /*= NULL*/, const char* args /*= NULL*/)
 {

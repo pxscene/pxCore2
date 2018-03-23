@@ -163,10 +163,10 @@ public:
     memset (buffer, 0, sizeof(buffer));
 
     if (std::string::npos != escapedUrl.find("http")) {
-      snprintf(buffer,sizeof(buffer),"shell.js?url=%s",rtUrlEncodeParameters(escapedUrl.c_str()).cString());
+      snprintf(buffer,sizeof(buffer),"launchSparkApp?url=%s",rtUrlEncodeParameters(escapedUrl.c_str()).cString());
     }
     else {
-      snprintf(buffer,sizeof(buffer),"shell.js?url=%s",escapedUrl.c_str());
+      snprintf(buffer,sizeof(buffer),"launchSparkApp?url=%s",escapedUrl.c_str());
     }
 #ifdef RUNINMAIN
     setView( new pxScriptView(buffer,"javascript/node/v8"));
