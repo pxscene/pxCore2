@@ -90,7 +90,7 @@ class AsyncScriptInfo {
 //#define USE_SCENE_POINTER
 
 // TODO Move this to pxEventLoop
-extern rtThreadQueue gUIThreadQueue;
+extern rtThreadQueue* gUIThreadQueue;
 
 // TODO Finish
 //#include "pxTransform.h"
