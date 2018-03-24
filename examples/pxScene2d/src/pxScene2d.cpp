@@ -257,12 +257,12 @@ void populateAllAppsConfig()
   {
     if (appList[i].IsObject())
     {
-      if ((appList[i].HasMember("name")) && (appList[i]["name"].IsString()) && (appList[i].HasMember("uri")) &&
-          (appList[i]["uri"].IsString()) && (appList[i].HasMember("type")) && (appList[i]["type"].IsString()))
+      if ((appList[i].HasMember("cmdName")) && (appList[i]["cmdName"].IsString()) && (appList[i].HasMember("uri")) &&
+          (appList[i]["uri"].IsString()) && (appList[i].HasMember("applicationType")) && (appList[i]["applicationType"].IsString()))
       {
-        string appName = appList[i]["name"].GetString();
+        string appName = appList[i]["cmdName"].GetString();
         string binary = appList[i]["uri"].GetString();
-        string type = appList[i]["type"].GetString();
+        string type = appList[i]["applicationType"].GetString();
         if ((appName.length() != 0) && (binary.length() != 0) && (type == "native"))
         {
           gPxsceneWaylandAppsMap[appName] = binary;
