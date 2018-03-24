@@ -177,7 +177,7 @@ void pxResource::raiseDownloadPriority()
 /**********************************************************************/
 /**********************************************************************/
 
-rtImageResource::rtImageResource(const char* url, const char* proxy) : mTexture(), mTextureMutex(), mImageOffscreen(),
+rtImageResource::rtImageResource(const char* url, const char* proxy) : pxResource(), mTexture(), mTextureMutex(), mImageOffscreen(),
                                                                        mCompressedData(NULL), mCompressedDataSize(0)
 {
   setUrl(url, proxy);
@@ -502,7 +502,7 @@ void pxResource::processDownloadedResource(rtFileDownloadRequest* fileDownloadRe
  * rtImageResource 
  */
 
-rtImageAResource::rtImageAResource(const char* url, const char* proxy) : mTimedOffscreenSequence()
+rtImageAResource::rtImageAResource(const char* url, const char* proxy) : pxResource(), mTimedOffscreenSequence()
 {
   mTimedOffscreenSequence.init();
   setUrl(url, proxy);
