@@ -102,6 +102,7 @@ rtError pxArchive::initFromUrl(const rtString& url, const rtString& origin)
     mLoadStatus.set("statusCode", -1);
     mDownloadRequest = new rtFileDownloadRequest(url, this, pxArchive::onDownloadComplete);
     mDownloadRequest->setOrigin(origin.cString());
+    mDownloadRequest->setCallbackFunctionThreadSafe(pxArchive::onDownloadComplete);
     mUseDownloadedData = true;
     rtFileDownloader::instance()->addToDownloadQueue(mDownloadRequest);
   }
