@@ -16,7 +16,6 @@ checkError()
 }
 
 #This script executes necessary javascript files and measures pxleak checks and memory leaks checks
-
 if [ -z "${TRAVIS_BUILD_DIR}" ]
 then
   printf "\nFATAL ERROR:  'TRAVIS_BUILD_DIR' env var is NOT defined\n\n"
@@ -36,7 +35,7 @@ export SUPPRESSIONS=$TRAVIS_BUILD_DIR/ci/leak.supp
 
 touch $VALGRINDLOGS
 EXECLOGS=$TRAVIS_BUILD_DIR/logs/exec_logs
-TESTRUNNERURL="https://px-apps.sys.comcast.net/pxscene-samples/examples/px-reference/test-run/testRunner_v4.js"
+TESTRUNNERURL="https://px-apps.sys.comcast.net/pxscene-samples/examples/px-reference/test-run/testRunner_v5.js"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 printExecLogs()
