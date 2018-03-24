@@ -127,7 +127,7 @@ void pxResource::removeListener(pxResourceListener* pListener)
   if( numberOfListeners <= 0 && mDownloadRequest != NULL )
   {
     mInitialized = false;
-    rtFileDownloader::setCallbackFunctionThreadSafe(mDownloadRequest, NULL);
+    //rtFileDownloader::setCallbackFunctionThreadSafe(mDownloadRequest, NULL);
     mDownloadRequest = NULL;
     mDownloadInProgressMutex.lock();
     mDownloadInProgress = false;
