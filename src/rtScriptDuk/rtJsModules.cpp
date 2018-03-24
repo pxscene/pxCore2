@@ -1,7 +1,10 @@
 #include "rtJsModules.h"
-#include "rtWrapperUtils.h"
+#include "rtWrapperUtilsDuk.h"
 #include "rtObject.h"
 #include "rtFileDownloader.h"
+
+namespace rtScriptDukUtils
+{
 
 static std::vector<rtRef<rtFunctionCallback> > gBindings;
 
@@ -88,8 +91,7 @@ rtError rtHttpGetBinding(int numArgs, const rtValue* args, rtValue* result, void
   rtObjectRef resp(new rtHttpResponse());
   args[1].toFunction().send(resp);
 
-  rtFileDownloadRequest *downloadRequest = new rtFileDownloadRequest(args[0].toString(), resp.getPtr());
-  downloadRequest->setCallbackFunction(rtHttpResponse::onDownloadComplete);
+  rtFileDownloadRequest *downloadRequest = new rtFileDownloadRequest(args[0].toString(), resp.getPtr(), rtHttpResponse::onDownloadComplete);
   downloadRequest->setDownloadProgressCallbackFunction(rtHttpResponse::onDownloadInProgress, resp.getPtr());
   rtFileDownloader::instance()->addToDownloadQueue(downloadRequest);
   
@@ -97,4 +99,6 @@ rtError rtHttpGetBinding(int numArgs, const rtValue* args, rtValue* result, void
 
   return RT_OK;
 }
+
+} //namespace rtScriptDukUtils
 

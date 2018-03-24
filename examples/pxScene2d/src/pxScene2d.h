@@ -90,7 +90,7 @@ class AsyncScriptInfo {
 //#define USE_SCENE_POINTER
 
 // TODO Move this to pxEventLoop
-extern rtThreadQueue gUIThreadQueue;
+extern rtThreadQueue* gUIThreadQueue;
 
 // TODO Finish
 //#include "pxTransform.h"
@@ -1084,8 +1084,8 @@ public:
     // TODO JRJR Do we have GC tests yet
     // Hack to try and reduce leaks until garbage collection can
     // be cleaned up
-
-    mEmit.send("onSceneRemoved", mScene);
+    if(mScene)
+      mEmit.send("onSceneRemoved", mScene);
 
     if (mScene)
       mScene.send("dispose");
