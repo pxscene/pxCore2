@@ -264,7 +264,7 @@ private:
     }
 
     // Clean up...
-    rtFileDownloader::setCallbackFunctionThreadSafe(downloadRequest, NULL);
+    rtFileDownloader::setCallbackFunctionThreadSafe(downloadRequest, NULL, this);
     rtFileDownloader::instance()->removeDownloadRequest(downloadRequest);
     delete a;
 
