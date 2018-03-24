@@ -961,7 +961,8 @@ class rtFileDownloaderTest : public testing::Test, public commonTestFns
       expectedStatusCode = 0;
       expectedCachePresence = false;
       expectedHttpCode = 0;
-      rtFileDownloader::setCallbackFunctionThreadSafe(request, NULL);
+      EXPECT_TRUE (request->executeCallback(0) == true);
+      sem_wait(testSem);
     }
 
     void setCallbackFunctionNullTest()
@@ -1012,7 +1013,8 @@ class rtFileDownloaderTest : public testing::Test, public commonTestFns
       expectedStatusCode = 0;
       expectedCachePresence = false;
       expectedHttpCode = 0;
-      rtFileDownloader::setCallbackFunctionThreadSafe(request, NULL);
+      EXPECT_TRUE (request->executeCallback(0) == true);
+      sem_wait(testSem);
     }
 
     void setDownloadHandleExpiresTimeTest()
