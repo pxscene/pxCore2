@@ -104,15 +104,14 @@ rtError pxArchive::initFromUrl(const rtString& url, const rtString& origin)
 
   if (url.beginsWith("http:") || url.beginsWith("https:"))
   {
-    double timeStamp = pxMilliseconds();
-    rtLogInfo("pxArchive::initFromUrl() url: %s resource: %p time: %f", mUrl.cString(), this, timeStamp);
+    
 
     mLoadStatus.set("sourceType", "http");
     mLoadStatus.set("statusCode", -1);
     if (mDownloadRequest != NULL)
     {
       double timeStamp2 = pxMilliseconds();
-      rtLogInfo("pxArchive::initFromUrl() will remove previous callback url: %s resource: %p time: %f", mUrl.cString(), this, timeStamp2);
+      rtLogInfo("pxArchive::initFromUrl() will remove previous callback url: %s resource: %p time: %f request: %p", mUrl.cString(), this, timeStamp2, mDownloadRequest);
 
       //rtFileDownloader::setCallbackFunctionThreadSafe(mDownloadRequest, NULL);
     }
@@ -120,6 +119,8 @@ rtError pxArchive::initFromUrl(const rtString& url, const rtString& origin)
     mDownloadRequest->setOrigin(origin.cString());
     mDownloadRequest->setCallbackFunctionThreadSafe(pxArchive::onDownloadComplete);
     mUseDownloadedData = true;
+    double timeStamp = pxMilliseconds();
+    rtLogInfo("pxArchive::initFromUrl() url: %s resource: %p time: %f request: %p", mUrl.cString(), this, timeStamp, mDownloadRequest);
     rtFileDownloader::instance()->addToDownloadQueue(mDownloadRequest);
   }
   else

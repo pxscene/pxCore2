@@ -576,11 +576,11 @@ void rtFileDownloader::downloadFile(rtFileDownloadRequest* downloadRequest)
   double downloadEndTime = pxMilliseconds();
   double downloadTime = downloadEndTime-downloadStartTime;
   double timeStamp = pxMilliseconds();
-  rtLogInfo("Download for %s took %f ms.  loaded from cache: %s resource: %p time: %f", downloadRequest->fileUrl().cString(), downloadTime, isDataInCache?"true":"false", downloadRequest->callbackData(), timeStamp);
+  rtLogInfo("Download for %s took %f ms.  loaded from cache: %s resource: %p time: %f request: %p", downloadRequest->fileUrl().cString(), downloadTime, isDataInCache?"true":"false", downloadRequest->callbackData(), timeStamp, downloadRequest);
     if (!downloadRequest->executeCallback(downloadRequest->downloadStatusCode()))
     {
       double timeStamp2 = pxMilliseconds();
-      rtLogInfo("no download result callback set for %s resource: %p time: %f", downloadRequest->fileUrl().cString(), downloadRequest->callbackData(), timeStamp2);
+      rtLogInfo("no download result callback set for %s resource: %p time: %f request: %p", downloadRequest->fileUrl().cString(), downloadRequest->callbackData(), timeStamp2, downloadRequest);
       if (mDefaultCallbackFunction != NULL)
       {
         (*mDefaultCallbackFunction)(downloadRequest);
@@ -588,7 +588,7 @@ void rtFileDownloader::downloadFile(rtFileDownloadRequest* downloadRequest)
     }
     else
     {
-      rtLogInfo("download result callback was executed for %s resource: %p", downloadRequest->fileUrl().cString(), downloadRequest->callbackData());
+      rtLogInfo("download result callback was executed for %s resource: %p request: %p", downloadRequest->fileUrl().cString(), downloadRequest->callbackData(), downloadRequest);
     }
 
 #ifdef ENABLE_HTTP_CACHE
@@ -975,6 +975,8 @@ void rtFileDownloader::setCallbackFunctionThreadSafe(rtFileDownloadRequest* down
   {
     if ((*it) == downloadRequest)
     {
+      double timeStamp = pxMilliseconds();
+      rtLogInfo("Setting callback for %s to %p resource: %p request: %p time: %f", downloadRequest->fileUrl().cString(), callbackFunction, downloadRequest->callbackData(), downloadRequest, timeStamp);
       downloadRequest->setCallbackFunctionThreadSafe(callbackFunction);
       break;
     }

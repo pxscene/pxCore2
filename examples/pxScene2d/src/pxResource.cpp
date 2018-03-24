@@ -348,8 +348,6 @@ void pxResource::loadResource()
   //rtLogDebug("rtImageResource::loadResource statusCode should be -1; is statusCode=%d\n",mLoadStatus.get<int32_t>("statusCode"));
   if (mUrl.beginsWith("http:") || mUrl.beginsWith("https:"))
   {
-    double timeStamp = pxMilliseconds();
-    rtLogInfo("pxResource::loadResource(): start downloading for: %s resource: %p time: %f", mUrl.cString(), this, timeStamp);
       mLoadStatus.set("sourceType", "http");
       if (mDownloadRequest != NULL)
       {
@@ -362,6 +360,8 @@ void pxResource::loadResource()
       mDownloadInProgressMutex.lock();
       mDownloadInProgress = true;
       mDownloadInProgressMutex.unlock();
+      double timeStamp = pxMilliseconds();
+      rtLogInfo("pxResource::loadResource(): start downloading for: %s resource: %p time: %f request: %p", mUrl.cString(), this, timeStamp, mDownloadRequest);
       rtFileDownloader::instance()->addToDownloadQueue(mDownloadRequest);
   }
   else
