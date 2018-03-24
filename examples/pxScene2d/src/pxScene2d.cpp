@@ -85,7 +85,7 @@ using namespace std;
 // #define DEBUG_SKIP_DRAW       // Skip DRAW   code - for testing.
 // #define DEBUG_SKIP_UPDATE     // Skip UPDATE code - for testing.
 
-extern rtThreadQueue gUIThreadQueue;
+extern rtThreadQueue* gUIThreadQueue;
 
 static int fpsWarningThreshold = 25;
 
@@ -2351,7 +2351,10 @@ void pxScene2d::onUpdate(double t)
   //pxFont::checkForCompletedDownloads();
 
   // Dispatch various tasks on the main UI thread
-  gUIThreadQueue.process(0.01);
+  if (gUIThreadQueue)
+  {
+    gUIThreadQueue->process(0.01);
+  }
 
   if (start == 0)
   {

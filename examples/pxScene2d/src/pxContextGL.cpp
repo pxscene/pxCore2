@@ -124,7 +124,7 @@ extern rtScript script;
 extern uv_async_t gcTrigger;
 #endif
 extern pxContext context;
-rtThreadQueue gUIThreadQueue;
+rtThreadQueue* gUIThreadQueue = new rtThreadQueue();
 
 enum pxCurrentGLProgram { PROGRAM_UNKNOWN = 0, PROGRAM_SOLID_SHADER,  PROGRAM_A_TEXTURE_SHADER, PROGRAM_TEXTURE_SHADER,
     PROGRAM_TEXTURE_MASKED_SHADER, PROGRAM_TEXTURE_BORDER_SHADER};
@@ -1134,11 +1134,17 @@ void decodeTextureData(void* data)
     {
       pxOffscreen *decodedOffscreen = new pxOffscreen();
       pxLoadImage(compressedImageData, compressedImageDataSize, *decodedOffscreen);
-      gUIThreadQueue.addTask(onDecodeComplete, data, decodedOffscreen);
+      if (gUIThreadQueue)
+      {
+        gUIThreadQueue->addTask(onDecodeComplete, data, decodedOffscreen);
+      }
     }
     else
     {
-      gUIThreadQueue.addTask(onDecodeComplete, data, NULL);
+      if (gUIThreadQueue)
+      {
+        gUIThreadQueue->addTask(onDecodeComplete, data, NULL);
+      }
     }
   }
 }
@@ -1161,11 +1167,17 @@ void cleanupOffscreen(void* data)
     if (data != NULL && imageData->textureOffscreen.getPtr() != NULL)
     {
       imageData->textureOffscreen->freeOffscreenData();
-      gUIThreadQueue.addTask(onOffscreenCleanupComplete, data, NULL);
+      if (gUIThreadQueue)
+      {
+        gUIThreadQueue->addTask(onOffscreenCleanupComplete, data, NULL);
+      }
     }
     else
     {
-      gUIThreadQueue.addTask(onOffscreenCleanupComplete, data, NULL);
+      if (gUIThreadQueue)
+      {
+        gUIThreadQueue->addTask(onOffscreenCleanupComplete, data, NULL);
+      }
     }
   }
 }
