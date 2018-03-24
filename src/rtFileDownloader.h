@@ -141,7 +141,7 @@ class rtFileDownloader
 public:
 
     static rtFileDownloader* instance();
-    static void setCallbackFunctionThreadSafe(rtFileDownloadRequest* downloadRequest, void (*callbackFunction)(rtFileDownloadRequest*), void* owner);
+    static void setCallbackFunctionThreadSafe(rtFileDownloadRequest* downloadRequest, void (*callbackFunction)(rtFileDownloadRequest*));
 
     virtual bool addToDownloadQueue(rtFileDownloadRequest* downloadRequest);
     virtual void raiseDownloadPriority(rtFileDownloadRequest* downloadRequest);
