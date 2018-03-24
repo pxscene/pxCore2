@@ -51,7 +51,7 @@ pxResource::~pxResource()
     }
     // if there is a previous request pending then set the callback to NULL
     // the previous request will not be processed and the memory will be freed when the download is complete
-    rtFileDownloader::setCallbackFunctionThreadSafe(mDownloadRequest, NULL);
+    rtFileDownloader::setCallbackFunctionThreadSafe(mDownloadRequest, NULL, this);
     mDownloadRequest = NULL;
   }
 
@@ -151,7 +151,7 @@ void pxResource::removeListener(pxResourceListener* pListener)
     {
       rtLogInfo("pxResource::removeListener(): removing download result callback for resource empty url: resource: %p time: %f", this, timeStamp);
     }
-    rtFileDownloader::setCallbackFunctionThreadSafe(mDownloadRequest, NULL);
+    rtFileDownloader::setCallbackFunctionThreadSafe(mDownloadRequest, NULL, this);
     mDownloadRequest = NULL;
     mDownloadInProgressMutex.lock();
     mDownloadInProgress = false;
@@ -352,7 +352,7 @@ void pxResource::loadResource()
       if (mDownloadRequest != NULL)
       {
         rtLogInfo("pxResource::loadResource(): should be removing download result callback for resource url: %s", mUrl.cString());
-        //rtFileDownloader::setCallbackFunctionThreadSafe(mDownloadRequest, NULL);
+        rtFileDownloader::setCallbackFunctionThreadSafe(mDownloadRequest, NULL, this);
       }
       mDownloadRequest = new rtFileDownloadRequest(mUrl, this, pxResource::onDownloadComplete);
       mDownloadRequest->setProxy(mProxy);

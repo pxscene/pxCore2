@@ -932,6 +932,10 @@ void rtFileDownloader::releaseDownloadHandle(CURL* curlHandle, int expiresTime)
 
 void rtFileDownloader::addFileDownloadRequest(rtFileDownloadRequest* downloadRequest)
 {
+  if (downloadRequest == NULL)
+  {
+    return;
+  }
   mDownloadRequestVectorMutex->lock();
   bool found = false;
   for (std::vector<rtFileDownloadRequest*>::iterator it=mDownloadRequestVector->begin(); it!=mDownloadRequestVector->end(); ++it)
@@ -968,12 +972,13 @@ void rtFileDownloader::clearFileDownloadRequest(rtFileDownloadRequest* downloadR
 }
 
 void rtFileDownloader::setCallbackFunctionThreadSafe(rtFileDownloadRequest* downloadRequest,
-                                                     void (*callbackFunction)(rtFileDownloadRequest*))
+                                                     void (*callbackFunction)(rtFileDownloadRequest*), void* owner)
 {
   mDownloadRequestVectorMutex->lock();
   for (std::vector<rtFileDownloadRequest*>::iterator it=mDownloadRequestVector->begin(); it!=mDownloadRequestVector->end(); ++it)
   {
-    if ((*it) == downloadRequest)
+    rtFileDownloadRequest* r = *it;
+    if (r == downloadRequest && r != NULL && r->callbackData() == owner)
     {
       double timeStamp = pxMilliseconds();
       rtLogInfo("Setting callback for %s to %p resource: %p request: %p time: %f", downloadRequest->fileUrl().cString(), callbackFunction, downloadRequest->callbackData(), downloadRequest, timeStamp);

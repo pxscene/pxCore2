@@ -22,7 +22,7 @@ pxArchive::~pxArchive()
     double timeStamp2 = pxMilliseconds();
     rtLogInfo("pxArchive::~pxArchive() removing callback url: %s resource: %p time: %f", mUrl.cString(), this, timeStamp2);
     //rtLogInfo("pxArchive::~pxArchive(): mDownloadRequest not null\n");
-    rtFileDownloader::setCallbackFunctionThreadSafe(mDownloadRequest, NULL);
+    rtFileDownloader::setCallbackFunctionThreadSafe(mDownloadRequest, NULL, this);
     mDownloadRequest = NULL;
   }
   if (gUIThreadQueue)
