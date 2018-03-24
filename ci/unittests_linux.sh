@@ -5,7 +5,7 @@ checkError()
   if [ "$1" -ne 0 ]
   then
     printf "\n\n*********************************************************************";
-    printf "\n*******************CODE COVERAGE FAIL DETAILS************************";
+    printf "\n*******************UNIT TEST FAIL DETAILS************************";
     printf "\nCI failure reason: "$2""
     printf "\nCause:  "$3""
     printf "\nReproduction/How to fix: "$4""	
@@ -39,8 +39,8 @@ pkill -9 -f pxscene2dtests.sh
 
 #check for process hung
 grep "Global test environment tear-down" $TESTLOGS
-errCause=""
 retVal=$?
+errCause=""
 if [ "$retVal" -ne 0 ]
 	then
 	if [ "$TRAVIS_PULL_REQUEST" != "false" ]

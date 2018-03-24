@@ -35,12 +35,11 @@ export PX_DUMP_MEMUSAGE=1
 export RT_LOG_LEVEL=info
 export PXSCENE_PERMISSIONS_CONFIG=$TRAVIS_BUILD_DIR/examples/pxScene2d/src/pxscenepermissions.conf
 export HANDLE_SIGNALS=1
-export ENABLE_MEMLEAK_CHECK=1
 export MallocStackLogging=1
 
 EXECLOGS=$TRAVIS_BUILD_DIR/logs/exec_logs
 LEAKLOGS=$TRAVIS_BUILD_DIR/logs/leak_logs
-TESTRUNNERURL="https://px-apps.sys.comcast.net/pxscene-samples/examples/px-reference/test-run/testRunner_v2.js"
+TESTRUNNERURL="https://px-apps.sys.comcast.net/pxscene-samples/examples/px-reference/test-run/testRunner_v5.js"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 printExecLogs()
@@ -103,7 +102,8 @@ kill -15 `ps -ef | grep pxscene |grep -v grep|grep -v pxscene.sh|awk '{print $2}
 # Sleep for 40s as we have sleep for 30s inside code to capture memory of process
 echo "Sleeping to make terminate complete ...";
 sleep 90s
-pkill -9 -f pxscene.sh	+pkill -11 -f pxscene.sh
+#pkill -9 -f pxscene.sh	+pkill -11 -f pxscene.sh
+pkill -9 -f pxscene.sh
 if [ -f "/tmp/pxscenecrash" ] # 'indicator' file created by Signal Handles in pxscene.app
 then
 		printf "\n ############  CORE DUMP detected !!\n\n"
@@ -133,7 +133,6 @@ if [ "$retVal" -ne 0 ]
 	if [ "$TRAVIS_PULL_REQUEST" != "false" ]
 		then
 		errCause="Either one or more tests failed. Check the above logs"
-		printExecLogs
         else
 		errCause="Either one or more tests failed. Check the log file $EXECLOGS"
 	fi
@@ -153,7 +152,6 @@ else
 	if [ "$TRAVIS_PULL_REQUEST" != "false" ]
 		then
 		errCause="Check the above logs"
-		printExecLogs
 	else
 		errCause="Check the $EXECLOGS file"
 	fi 
@@ -167,7 +165,6 @@ if [ "$leakcount" -ne 0 ]
 	if [ "$TRAVIS_PULL_REQUEST" != "false" ]
 		then
 		errCause="Check the above logs"
-		printExecLogs
 	else
 		errCause="Check the file $LEAKLOGS and $EXECLOGS"
 	fi

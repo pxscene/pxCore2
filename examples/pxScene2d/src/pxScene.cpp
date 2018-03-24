@@ -243,7 +243,7 @@ protected:
     mClosed = true;
     if(gDumpMemUsage)
       gApplicationIsClosing = true;
-    
+
     rtLogInfo(__FUNCTION__);
     ENTERSCENELOCK();
     if (mView)
@@ -269,25 +269,25 @@ protected:
     free(g_origArgv);
   #endif
 
-    context.term();
-    script.collectGarbage();
+  context.term();
+  script.collectGarbage();
 
-    if (gDumpMemUsage)
-    {
-      rtLogInfo("pxobjectcount is [%d]",pxObjectCount);
+  if (gDumpMemUsage)
+  {
+    rtLogInfo("pxobjectcount is [%d]",pxObjectCount);
 #ifndef PX_PLATFORM_DFB_NON_X11
-      rtLogInfo("texture memory usage is [%" PRId64 "]",context.currentTextureMemoryUsageInBytes());
+    rtLogInfo("texture memory usage is [%" PRId64 "]",context.currentTextureMemoryUsageInBytes());
 #endif
-      fflush(stdout);
+    fflush(stdout);
 // #ifdef PX_PLATFORM_MAC
 //       rtLogInfo("texture memory usage is [%lld]",context.currentTextureMemoryUsageInBytes());
 // #else
 //       rtLogInfo("texture memory usage is [%ld]",context.currentTextureMemoryUsageInBytes());
 // #endif
-    }
-    #ifdef ENABLE_CODE_COVERAGE
-    __gcov_flush();
-    #endif
+  }
+  #ifdef ENABLE_CODE_COVERAGE
+  __gcov_flush();
+  #endif
   ENTERSCENELOCK()
       eventLoop.exit();
   EXITSCENELOCK()
@@ -397,6 +397,8 @@ void handleTerm(int)
 
 void handleSegv(int)
 {
+  signal(SIGTERM,SIG_DFL);
+  signal(SIGABRT,SIG_DFL);
   FILE* fp = fopen("/tmp/pxscenecrash","w");
   fclose(fp);
   rtLogInfo("Signal SEGV received. sleeping to collect data");
@@ -407,6 +409,8 @@ void handleSegv(int)
 
 void handleAbrt(int)
 {
+  signal(SIGTERM,SIG_DFL);
+  signal(SIGSEGV,SIG_DFL);
   FILE* fp = fopen("/tmp/pxscenecrash","w");
   fclose(fp);
   rtLogInfo("Signal ABRT received. sleeping to collect data");

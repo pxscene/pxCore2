@@ -16,7 +16,6 @@ checkError()
 }
 
 #This script executes necessary javascript files and measures pxleak checks and memory leaks checks
-
 if [ -z "${TRAVIS_BUILD_DIR}" ]
 then
   printf "\nFATAL ERROR:  'TRAVIS_BUILD_DIR' env var is NOT defined\n\n"
@@ -36,7 +35,7 @@ export SUPPRESSIONS=$TRAVIS_BUILD_DIR/ci/leak.supp
 
 touch $VALGRINDLOGS
 EXECLOGS=$TRAVIS_BUILD_DIR/logs/exec_logs
-TESTRUNNERURL="https://px-apps.sys.comcast.net/pxscene-samples/examples/px-reference/test-run/testRunner_v2.js"
+TESTRUNNERURL="https://px-apps.sys.comcast.net/pxscene-samples/examples/px-reference/test-run/testRunner_v5.js"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 printExecLogs()
@@ -80,6 +79,11 @@ while [ "$retVal" -ne 0 ] &&  [ "$count" -ne "$max_seconds" ]; do
 	fi
 done
 
+#lines to take stack trace from pxscene running under valgrind
+#echo "gdb -q --command=\"$TRAVIS_BUILD_DIR/ci/debuggercmds_linux\" $TRAVIS_BUILD_DIR/examples/pxScene2d/src/pxscene  >gdblogs"
+#gdb -q --command="$TRAVIS_BUILD_DIR/ci/debuggercmds_linux" $TRAVIS_BUILD_DIR/examples/pxScene2d/src/pxscene  >gdblogs
+#cat gdblogs
+
 kill -15 `ps -ef | grep pxscene |grep -v grep|grep -v pxscene.sh|awk '{print $2}'`
 echo "Sleeping to make terminate complete ......";
 #wait for few seconds to get the application terminate completely, as it is attached with valgrind increasing the timeout
@@ -94,10 +98,6 @@ retVal=$?
 if [ "$retVal" -eq 1 ]
 	then
 	checkError $retVal "Execution failed" "Core dump" "Test by running locally"
-	if [ "$TRAVIS_PULL_REQUEST" != "false" ]
-		then
-                  printExecLogs
-	fi
 	exit 1;
 fi
 
@@ -112,7 +112,6 @@ if [ "$testRunnerRetVal" -ne 0 ]
 	if [ "$TRAVIS_PULL_REQUEST" != "false" ]
 		then
 		errCause="Cause: Check the above logs"
-		printExecLogs
 	else
 		errCause="Cause: Check the $EXECLOGS file"
 	fi
@@ -141,7 +140,6 @@ if [ "$pxRetVal" -eq 0 ]
 		if [ "$TRAVIS_PULL_REQUEST" != "false" ]
 			then
 			errCause="Check the above logs"
-			printExecLogs
 		else
 			errCause="Check the $EXECLOGS file"
 		fi
@@ -152,7 +150,6 @@ else
 	if [ "$TRAVIS_PULL_REQUEST" != "false" ]
 		then
 		errCause="Check the above logs"
-		printExecLogs
 	else
 		errCause="Check the $EXECLOGS file"
 	fi
