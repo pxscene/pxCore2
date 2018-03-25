@@ -37,6 +37,8 @@ then
   export CODE_COVERAGE=1
 fi
 
+cd $TRAVIS_BUILD_DIR/remote
+patch -p0 -i patches/rapidjson.patch
 cd $TRAVIS_BUILD_DIR;
 mkdir -p temp
 cd  temp
