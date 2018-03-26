@@ -2174,6 +2174,32 @@ rtError pxScene2d::logDebugMetrics()
   return RT_OK;
 }
 
+rtError pxScene2d::collectGarbage()
+{
+  rtLogWarn("calling collectGarbage!!!!!!!!!!!!!!!!!!!!!!!!!");
+  static bool collectGarbageEnabled = false;
+  static bool checkEnv = true;
+  if (checkEnv)
+  {
+    char const* s = getenv("SPARK_ENABLE_COLLECT_GARBAGE");
+    if (s && (strcmp(s,"1") == 0))
+    {
+      collectGarbageEnabled = true;
+    }
+    checkEnv = false;
+  }
+  if (collectGarbageEnabled)
+  {
+    rtLogWarn("performing a garbage collection");
+    script.collectGarbage();
+  }
+  else
+  {
+    rtLogWarn("forced garbage collection is disabled");
+  }
+  return RT_OK;
+}
+
 rtError pxScene2d::clock(uint64_t & time)
 {
   time = (uint64_t)pxMilliseconds();
@@ -3263,6 +3289,7 @@ rtDefineProperty(pxScene2d, customAnimator);
 rtDefineMethod(pxScene2d, create);
 rtDefineMethod(pxScene2d, clock);
 rtDefineMethod(pxScene2d, logDebugMetrics);
+rtDefineMethod(pxScene2d, collectGarbage);
 //rtDefineMethod(pxScene2d, createWayland);
 rtDefineMethod(pxScene2d, addListener);
 rtDefineMethod(pxScene2d, delListener);
