@@ -901,7 +901,8 @@ rtError pxObject::animateTo(const char* prop, double to, double duration,
 {
   if (mIsDisposed)
   {
-    promise.send("reject",this);
+    rtValue nullValue;
+    promise.send("reject",nullValue);
     return RT_OK;
   }
   animateToInternal(prop, to, duration, ((pxConstantsAnimation*)CONSTANTS.animationConstants.getPtr())->getInterpFunc(interp),
@@ -1927,6 +1928,8 @@ rtError pxScene2d::dispose()
     mCanvas   = NULL;
     mFocusObj = NULL;
 
+    pxFontManager::clearAllFonts();
+
     return RT_OK;
 }
 
@@ -2176,7 +2179,7 @@ rtError pxScene2d::logDebugMetrics()
 
 rtError pxScene2d::collectGarbage()
 {
-  rtLogWarn("calling collectGarbage!!!!!!!!!!!!!!!!!!!!!!!!!");
+  rtLogDebug("calling collectGarbage");
   static bool collectGarbageEnabled = false;
   static bool checkEnv = true;
   if (checkEnv)
