@@ -40,7 +40,7 @@ pxResource::~pxResource()
     //rtLogInfo("pxResource::~pxResource(): mDownloadRequest not null\n");
     // if there is a previous request pending then set the callback to NULL
     // the previous request will not be processed and the memory will be freed when the download is complete
-    rtFileDownloader::setCallbackFunctionThreadSafe(mDownloadRequest, NULL);
+    rtFileDownloader::setCallbackFunctionThreadSafe(mDownloadRequest, NULL, this);
     mDownloadRequest = NULL;
   }
 
@@ -127,7 +127,7 @@ void pxResource::removeListener(pxResourceListener* pListener)
   if( numberOfListeners <= 0 && mDownloadRequest != NULL )
   {
     mInitialized = false;
-    rtFileDownloader::setCallbackFunctionThreadSafe(mDownloadRequest, NULL);
+    rtFileDownloader::setCallbackFunctionThreadSafe(mDownloadRequest, NULL, this);
     mDownloadRequest = NULL;
     mDownloadInProgressMutex.lock();
     mDownloadInProgress = false;

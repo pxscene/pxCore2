@@ -17,7 +17,7 @@ pxArchive::~pxArchive()
   if (mDownloadRequest != NULL)
   {
     //rtLogInfo("pxArchive::~pxArchive(): mDownloadRequest not null\n");
-    rtFileDownloader::setCallbackFunctionThreadSafe(mDownloadRequest, NULL);
+    rtFileDownloader::setCallbackFunctionThreadSafe(mDownloadRequest, NULL, this);
     mDownloadRequest = NULL;
   }
   if (gUIThreadQueue)
