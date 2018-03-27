@@ -209,10 +209,10 @@ function Shell(scene, urlparams)
     });
   }
 
+  //register the key events and scene related events for this shell
   this.registerSceneEvents();
   this.registerKeyEvents();
 
-  console.log("w is " + this.scene.w);
   this.loadUrl(urlparams.url);
   this.updateSize(this.scene.w, this.scene.h);
 
