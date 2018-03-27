@@ -6,6 +6,7 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
+import java.net.NetworkInterface;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URI;
@@ -76,6 +77,9 @@ public class RTRemoteServer {
     RTEnvironment.setRunMode(RTConst.SERVER_MODE); // set as server mode
     messageQueue = new ConcurrentLinkedDeque<>();
     MulticastSocket socketIn = new MulticastSocket(udpPort);
+    socketIn.setNetworkInterface(NetworkInterface.getByName(RTConst.LISTEN_INTERFACE));
+    socketIn.setBroadcast(true);
+    socketIn.setReuseAddress(true);
     DatagramSocket replySocketOut = new DatagramSocket();
     socketIn.joinGroup(udpGroupAddr);
     logger.debug("server bind multicast socket succeed");

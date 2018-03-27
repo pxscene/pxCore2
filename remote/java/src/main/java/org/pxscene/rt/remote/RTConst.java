@@ -35,5 +35,10 @@ public final class RTConst {
    */
   public static final int BACK_LOG = 50;
 
+  /**
+   * the udp listen interface
+   */
+  public static final String LISTEN_INTERFACE = "lo";
+
 
 }

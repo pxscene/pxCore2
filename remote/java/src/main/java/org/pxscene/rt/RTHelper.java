@@ -104,7 +104,9 @@ public final class RTHelper {
     } catch (NoSuchMethodException ignored) {
     }
 
-    if (field == null && method == null) { // field or method not exist
+    Method functionMethod = RTHelper.getMethodByName(clazz, propertyName);
+
+    if (field == null && method == null && functionMethod == null) { // field or method not exist
       logger.error("cannot found property name = " + propertyName);
       rtStatus.setCode(RTStatusCode.PROPERTY_NOT_FOUND);
     }
@@ -113,13 +115,21 @@ public final class RTHelper {
       if (field != null) {
         Object value = field.get(object);
         getResponse.setValue(new RTValue(value));
-      } else {
+      } else if (method != null) {
         Object value = method.invoke(object);
         if (value != null && value instanceof RTObject) {
           getResponse.setValue(new RTValue(value, RTValueType.OBJECT));
         } else {
           getResponse.setValue(new RTValue(value));
         }
+      }else if(functionMethod != null){
+        RTFunction function = new RTFunction();
+        function.setFunctionName(propertyName);
+        function.setObjectId(getRequest.getObjectId());
+        RTValue rtValue = new RTValue();
+        rtValue.setType(RTValueType.FUNCTION);
+        rtValue.setValue(function);
+        getResponse.setValue(rtValue);
       }
     } catch (IllegalAccessException e) {
       logger.error("set property failed", e);
@@ -131,6 +141,22 @@ public final class RTHelper {
     return getResponse;
   }
 
+
+  /**
+   * get method by name
+   * @param clazz the class
+   * @param name the method name
+   * @return the Method
+   */
+  private static Method getMethodByName(Class<?> clazz, String name) {
+    Method[] methods = clazz.getMethods();
+    for (Method method : methods) {
+      if (method.getName().equals(name)) {
+        return method;
+      }
+    }
+    return null;
+  }
 
   /**
    * invoke object method by method name

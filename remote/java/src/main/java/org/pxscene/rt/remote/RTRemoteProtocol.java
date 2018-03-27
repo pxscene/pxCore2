@@ -35,6 +35,8 @@ import org.pxscene.rt.remote.messages.RTMessageCallMethodRequest;
 import org.pxscene.rt.remote.messages.RTMessageCallMethodResponse;
 import org.pxscene.rt.remote.messages.RTMessageGetPropertyByNameRequest;
 import org.pxscene.rt.remote.messages.RTMessageGetPropertyByNameResponse;
+import org.pxscene.rt.remote.messages.RTMessageOpenSessionRequest;
+import org.pxscene.rt.remote.messages.RTMessageOpenSessionResponse;
 import org.pxscene.rt.remote.messages.RTMessageSetPropertyByNameRequest;
 
 /**
@@ -321,6 +323,13 @@ public class RTRemoteProtocol implements Runnable {
         CallContext context = get(message.getCorrelationKey());
         if (context != null) {
           context.complete(message);
+        } else if(message.getMessageType().equals(RTRemoteMessageType.KEEP_ALIVE_REQUEST)){
+          // return keep alive response
+          this.sendkeepAliveReponse(message.getCorrelationKey());
+        } else if(message.getMessageType().equals(RTRemoteMessageType.KEEP_ALIVE_RESPONSE)){
+          // ignore this
+        } else if(message.getMessageType().equals(RTRemoteMessageType.SESSION_OPEN_REQUEST)){
+          this.sendOpenSessionReponse((RTMessageOpenSessionRequest)message);
         } else if (RTEnvironment.isServerMode()) {
           processMessageInServerMode(message);
         } else {
@@ -333,9 +342,7 @@ public class RTRemoteProtocol implements Runnable {
   }
 
   private void processMessageInClientMode(RTRemoteMessage message) throws RTException {
-    if (message.getMessageType().equals(RTRemoteMessageType.KEEP_ALIVE_REQUEST)) {
-      // TODO this mean server send keep alive request to client, simple continue for now
-    } else if (message.getMessageType().equals(RTRemoteMessageType.METHOD_CALL_REQUEST)) {
+    if (message.getMessageType().equals(RTRemoteMessageType.METHOD_CALL_REQUEST)) {
       // this mean server invoke client function,and these is no CallContext
       // let do this in this thread for now
       RTMessageCallMethodRequest request = (RTMessageCallMethodRequest) message;
@@ -354,6 +361,31 @@ public class RTRemoteProtocol implements Runnable {
 
   private void processMessageInServerMode(RTRemoteMessage message) {
     rtRemoteServer.getMessageQueue().add(new RTRemoteTask(this, message));
+  }
+
+  /**
+   * when otherside send keep alive request, should return response
+   * @param correlationKey the call request correlation key
+   * @throws RTException if any other error occurred during operation
+   */
+  private void sendkeepAliveReponse(String correlationKey) throws RTException {
+    JsonObjectBuilder builder = Json.createObjectBuilder();
+    builder.add(RTConst.MESSAGE_TYPE, RTRemoteMessageType.KEEP_ALIVE_RESPONSE.toString());
+    builder.add(RTConst.CORRELATION_KEY, correlationKey);
+    builder.add(RTConst.STATUS_CODE, RTStatusCode.OK.getCode());
+    transport.send(builder.build().toString().getBytes(RTRemoteSerializer.CHARSET));
+  }
+
+  /**
+   * when otherside send open session request, should return response
+   * @param request the open session request
+   * @throws RTException if any other error occurred during operation
+   */
+  private void sendOpenSessionReponse(RTMessageOpenSessionRequest request) throws RTException {
+    RTMessageOpenSessionResponse response = new RTMessageOpenSessionResponse();
+    response.setObjectId(request.getObjectId());
+    response.setCorrelationKey(request.getCorrelationKey());
+    transport.send(serializer.toBytes(response));
   }
 
   /**

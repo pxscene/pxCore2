@@ -111,6 +111,8 @@ public class RTRemoteSerializer {
         RTRemoteSerializer::fromJson_CallMethodRequest);
     decoders.put(RTRemoteMessageType.SERACH_OBJECT.toString(),
         RTRemoteSerializer::fromJson_SearchObject);
+    decoders.put(RTRemoteMessageType.SESSION_OPEN_REQUEST.toString(),
+        RTRemoteSerializer::fromJson_SessionRequest);
   }
 
   /**
@@ -207,6 +209,24 @@ public class RTRemoteSerializer {
       logger.error(err);
     }
     return locate;
+  }
+
+
+  /**
+   * parse message RTMessageOpenSessionRequest
+   *
+   * @param obj the message json object
+   * @return the RTMessageOpenSessionRequest
+   * @throws NullPointerException if message object is null
+   */
+  private static RTMessageOpenSessionRequest fromJson_SessionRequest(JsonObject obj) {
+    if (obj == null) {
+      throw new NullPointerException("fromJson_SessionRequest obj cannot be null");
+    }
+    RTMessageOpenSessionRequest request = new RTMessageOpenSessionRequest();
+    request.setCorrelationKey(obj.getString(RTConst.CORRELATION_KEY));
+    request.setObjectId(obj.getString(RTConst.OBJECT_ID_KEY));
+    return request;
   }
 
 
@@ -457,8 +477,10 @@ public class RTRemoteSerializer {
         break;
       case FUNCTION:
         RTFunction rtFunction = (RTFunction) value.getValue();
-        builder.add(RTConst.OBJECT_ID_KEY, rtFunction.getObjectId());
-        builder.add(RTConst.FUNCTION_KEY, rtFunction.getFunctionName());
+        JsonObjectBuilder valueBuilder = Json.createObjectBuilder();
+        valueBuilder.add(RTConst.OBJECT_ID_KEY, rtFunction.getObjectId());
+        valueBuilder.add(RTConst.FUNCTION_KEY, rtFunction.getFunctionName());
+        builder.add(RTConst.VALUE, valueBuilder);
         break;
       case OBJECT:
         JsonObjectBuilder objectBuilder = Json.createObjectBuilder();
@@ -515,7 +537,7 @@ public class RTRemoteSerializer {
         value = new RTValue(obj.getJsonNumber(RTConst.VALUE).intValue(), type);
         break;
       case FUNCTION:
-        value = jsonToFunctionValue(obj);
+        value = jsonToFunctionValue(obj.getJsonObject(RTConst.VALUE));
         break;
       case OBJECT:
         value = jsonToObjectValue(obj);
@@ -802,7 +824,11 @@ public class RTRemoteSerializer {
    * @throws NullPointerException if decoder object is null
    */
   private JsonObject toJson(RTMessageOpenSessionResponse res) {
-    return null;
+    return Json.createObjectBuilder()
+        .add(RTConst.MESSAGE_TYPE, res.getMessageType().toString())
+        .add(RTConst.CORRELATION_KEY,res.getCorrelationKey())
+        .add(RTConst.OBJECT_ID_KEY, res.getObjectId())
+        .build();
   }
 
   /**
@@ -847,6 +873,17 @@ public class RTRemoteSerializer {
    * @throws RTException if any other error occurred during operation
    */
   public byte[] toBytes(RTMessageCallMethodRequest m) throws RTException {
+    return RTRemoteSerializer.toBytes(toJson(m));
+  }
+
+  /**
+   * convert RTMessageOpenSessionResponse to bytes
+   *
+   * @param m the RTMessageOpenSessionResponse entity
+   * @return the bytes
+   * @throws RTException if any other error occurred during operation
+   */
+  public byte[] toBytes(RTMessageOpenSessionResponse m) throws RTException {
     return RTRemoteSerializer.toBytes(toJson(m));
   }
 
