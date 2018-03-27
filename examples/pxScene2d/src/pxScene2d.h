@@ -1293,6 +1293,7 @@ public:
   rtMethod1ArgAndReturn("create", create, rtObjectRef, rtObjectRef);
   rtMethodNoArgAndReturn("clock", clock, uint64_t);
   rtMethodNoArgAndNoReturn("logDebugMetrics", logDebugMetrics);
+  rtMethodNoArgAndNoReturn("collectGarbage", collectGarbage);
   rtReadOnlyProperty(info, info, rtObjectRef);
 /*
   rtMethod1ArgAndReturn("createExternal", createExternal, rtObjectRef,
@@ -1425,6 +1426,7 @@ public:
 
   rtError clock(uint64_t & time);
   rtError logDebugMetrics();
+  rtError collectGarbage();
 
   rtError addListener(rtString eventName, const rtFunctionRef& f)
   {
