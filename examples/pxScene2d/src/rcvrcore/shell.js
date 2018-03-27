@@ -14,6 +14,7 @@ function Shell(scene, urlparams)
   this.scene = scene;
   this.keys = keys;
   this.url = "";
+  this.originalURL = "";
   this.blackBg = this.scene.create({t:"rect", fillColor:0x000000ff,lineColor:0xffff0080,lineWidth:0,x:0,y:0,w:1280,h:720,a:0,parent:this.scene.root});
   this.childScene = null;
   
@@ -175,8 +176,8 @@ function Shell(scene, urlparams)
       {
         if(code == keys.R)   // ctrl-alt-r
         {
-          console.log("(shell.js) Reloading url: ", originalURL);
-          _this.childScene.url = originalURL;
+          console.log("(shell.js) Reloading url: ", _this.originalURL);
+          _this.childScene.url = _this.originalURL;
           e.stopPropagation();
         }
         else
@@ -218,9 +219,9 @@ function Shell(scene, urlparams)
 }
 
 Shell.prototype.loadUrl = function(url) {
-    var originalURL = (!url || url==="") ? "browser.js":url;
-    this.url = originalURL;
-    this.childScene = this.scene.create({t:"scene", url:originalURL,parent:this.scene.root});
+    this.originalURL = (!url || url==="") ? "browser.js":url;
+    this.url = this.originalURL;
+    this.childScene = this.scene.create({t:"scene", url:this.originalURL,parent:this.scene.root});
     this.childScene.focus = true;
 
     this.childScene.ready.then( function()
