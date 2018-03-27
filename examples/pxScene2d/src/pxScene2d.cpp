@@ -673,6 +673,11 @@ rtError pxObject::animateToP2(rtObjectRef props, double duration,
                               uint32_t interp, uint32_t options,
                               int32_t count, rtObjectRef& promise)
 {
+  if (mIsDisposed)
+  {
+    return RT_OK;
+  }
+
   if (!props) return RT_FAIL;
 
   // TODO JR... not sure that we should do an early out here... thinking
@@ -901,8 +906,6 @@ rtError pxObject::animateTo(const char* prop, double to, double duration,
 {
   if (mIsDisposed)
   {
-    rtValue nullValue;
-    promise.send("reject",nullValue);
     return RT_OK;
   }
   animateToInternal(prop, to, duration, ((pxConstantsAnimation*)CONSTANTS.animationConstants.getPtr())->getInterpFunc(interp),
