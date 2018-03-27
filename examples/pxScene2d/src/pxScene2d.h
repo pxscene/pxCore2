@@ -1556,7 +1556,6 @@ public:
   }
 
   void innerpxObjectDisposed(rtObjectRef ref);
-  bool isDisposed() { return mDisposed; }
 
   // Note: Only type currently supported is "image/png;base64"
   rtError screenshot(rtString type, rtString& pngData);
