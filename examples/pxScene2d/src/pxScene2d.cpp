@@ -434,6 +434,8 @@ unsigned char *base64_decode(const unsigned char *data,
     if (data[input_length - 2] == '=')
         (*output_length)--;
 
+    if (NULL == output_length)
+      return NULL;
     unsigned char *decoded_data = (unsigned char*)malloc(*output_length);
     if (decoded_data == NULL)
         return NULL;
