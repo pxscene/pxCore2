@@ -33,14 +33,7 @@ extern pxContext context;
 pxImage9::~pxImage9()
 {
   rtLogDebug("~pxImage9()");
-  if (mListenerAdded)
-  {
-    if (getImageResource())
-    {
-      getImageResource()->removeListener(this);
-    }
-    mListenerAdded = false;
-  }
+  clearResource();
 }
 
 void pxImage9::onInit()
@@ -79,8 +72,9 @@ rtError pxImage9::setUrl(const char* s)
       imageLoaded = false;
       pxObject::createNewPromise();
     }
-  } 
+  }
 
+  clearResource();
   mResource = pxImageManager::getImage(s); 
   if(getImageResource() != NULL && getImageResource()->getUrl().length() > 0)
   {
@@ -151,6 +145,20 @@ void pxImage9::resourceReady(rtString readyResolution)
       pxObject::onTextureReady();
       mReady.send("reject",this);
   }
+}
+
+rtError pxImage9::clearResource()
+{
+  if (mListenerAdded)
+  {
+    if (getImageResource())
+    {
+      getImageResource()->removeListener(this);
+    }
+    mResource = NULL;
+    mListenerAdded = false;
+  }
+  return RT_OK;
 }
 
 rtDefineObject(pxImage9, pxObject);

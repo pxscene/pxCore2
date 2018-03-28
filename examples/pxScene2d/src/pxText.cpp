@@ -39,14 +39,7 @@ pxText::pxText(pxScene2d* scene):pxObject(scene), mFontLoaded(false), mFontDownl
 
 pxText::~pxText()
 {
-  if (mListenerAdded)
-  {
-    if (getFontResource())
-    {
-      getFontResource()->removeListener(this);
-    }
-    mListenerAdded = false;
-  }
+  clearResource();
 }
 
 void pxText::onInit()
@@ -212,6 +205,7 @@ rtError pxText::setFontUrl(const char* s)
   mFontLoaded = false;
   createNewPromise();
 
+  clearResource();
   mFont = pxFontManager::getFont(s);
   mListenerAdded = true;
   if (getFontResource() != NULL)
@@ -228,6 +222,7 @@ rtError pxText::setFont(rtObjectRef o)
   createNewPromise();
 
   // !CLF: TODO: Need validation/verification of o
+  clearResource();
   mFont = o; 
   mListenerAdded = true;
   if (getFontResource() != NULL) {
@@ -268,7 +263,21 @@ float pxText::getFBOHeight()
   }
   else 
     return mh; 
-} 
+}
+
+rtError pxText::clearResource()
+{
+  if (mListenerAdded)
+  {
+    if (getFontResource())
+    {
+      getFontResource()->removeListener(this);
+    }
+    mFont = NULL;
+    mListenerAdded = false;
+  }
+  return RT_OK;
+}
 
 rtDefineObject(pxText, pxObject);
 rtDefineProperty(pxText, text);
