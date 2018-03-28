@@ -1034,12 +1034,6 @@ void pxObject::update(double t)
   return;
 #endif
 
-  if (mIsDisposed)
-  {
-    // don't process update if the object is disposed
-    return;
-  }
-
   // Update animations
   vector<animation>::iterator it = mAnimations.begin();
 
