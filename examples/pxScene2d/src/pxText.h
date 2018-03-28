@@ -96,7 +96,8 @@ public:
   virtual void sendPromise();
   virtual float getOnscreenWidth();
   virtual float getOnscreenHeight();
-
+  virtual void createNewPromise();
+  
  protected:
   virtual void draw();
   // !CLF ToDo: Could mFont.send(...) be used in places where mFont is needed, instead
@@ -106,6 +107,7 @@ public:
   rtString mText;
 // TODO should we just use a font object instead of Urls
   bool mFontLoaded;
+  bool mFontFailed;
 //  rtString mFontUrl;
 
   rtObjectRef mFont;
