@@ -48,6 +48,7 @@ public:
 
   rtError resource(rtObjectRef& o) const { /*rtLogDebug("!!!!!!!!!!!!!!!!!!!!pxImage9 getResource\n");*/o = mResource; return RT_OK; }
   rtError setResource(rtObjectRef o) { /*rtLogDebug("!!!!!!!!!!!!!!!!!!!!!!!pxImage9 setResource\n");*/mResource = o; return RT_OK; }
+  rtError removeResourceListener();
     
   rtError insetLeft(float& v) const { v = mInsetLeft; return RT_OK; }
   rtError setInsetLeft(float v) { mInsetLeft = v; return RT_OK; }

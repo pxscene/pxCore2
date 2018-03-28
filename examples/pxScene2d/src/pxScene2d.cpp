@@ -593,7 +593,7 @@ void pxObject::createNewPromise()
   }
 }
 
-void pxObject::dispose()
+void pxObject::dispose(bool pumpJavascript)
 {
   if (!mIsDisposed)
   {
@@ -619,7 +619,7 @@ void pxObject::dispose()
     for(vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
     {
       (*it)->mParent = NULL;  // setParent mutates the mChildren collection
-      (*it)->dispose();
+      (*it)->dispose(false);
     }
     mChildren.clear();
     clearSnapshot(mSnapshotRef);
@@ -635,7 +635,12 @@ void pxObject::dispose()
       mScene->innerpxObjectDisposed(this);
     }
 #ifdef ENABLE_RT_NODE
-    script.pump();
+    if (pumpJavascript)
+    {
+      script.pump();
+    }
+#else
+    (void)pumpJavascript;
 #endif
  }
 }
@@ -1028,12 +1033,6 @@ void pxObject::update(double t)
 #warning " 'DEBUG_SKIP_UPDATE' is Enabled"
   return;
 #endif
-
-  if (mIsDisposed)
-  {
-    // don't process update if the object is disposed
-    return;
-  }
 
   // Update animations
   vector<animation>::iterator it = mAnimations.begin();
@@ -1925,13 +1924,13 @@ rtError pxScene2d::dispose()
       pxObject* temp = (pxObject *) (mInnerpxObjects[i].getPtr());
       if ((NULL != temp) && (NULL == temp->parent()))
       {
-        temp->dispose();
+        temp->dispose(false);
       }
     }
     mInnerpxObjects.clear();
 
     if (mRoot)
-      mRoot->dispose();
+      mRoot->dispose(false);
     mEmit->clearListeners();
 
     mRoot     = NULL;
@@ -1940,6 +1939,9 @@ rtError pxScene2d::dispose()
     mFocusObj = NULL;
 
     pxFontManager::clearAllFonts();
+    #ifdef ENABLE_RT_NODE
+    script.pump();
+    #endif //ENABLE_RT_NODE
 
     return RT_OK;
 }
@@ -3558,7 +3560,7 @@ rtError pxSceneContainer::setPermissions(const rtObjectRef& v)
 }
 #endif
 
-void pxSceneContainer::dispose()
+void pxSceneContainer::dispose(bool pumpJavascript)
 {
   if (!mIsDisposed)
   {
@@ -3566,7 +3568,7 @@ void pxSceneContainer::dispose()
     //Adding ref to make sure, object not destroyed from event listeners
     AddRef();
     setScriptView(NULL);
-    pxObject::dispose();
+    pxObject::dispose(pumpJavascript);
     Release();
   }
 }
