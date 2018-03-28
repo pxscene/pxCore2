@@ -605,10 +605,7 @@ void pxObject::dispose()
     {
       if ((*it).promise)
       {
-	if(!gApplicationIsClosing)
-          (*it).promise.send("reject",this);
-	else
-	  (*it).promise.send("reject",nullValue);
+	      (*it).promise.send("reject",nullValue);
       }
     }
 
@@ -677,6 +674,9 @@ rtError pxObject::animateToP2(rtObjectRef props, double duration,
 {
   if (mIsDisposed)
   {
+    rtValue nullValue;
+    promise = new rtPromise();	
+    promise.send("reject",nullValue);
     return RT_OK;
   }
 
@@ -711,7 +711,7 @@ rtError pxObject::animateToObj(rtObjectRef props, double duration,
                               uint32_t interp, uint32_t options,
                               int32_t count, rtObjectRef& animateObj)
 {
-
+  
   if (!props) return RT_FAIL;
   // TODO JR... not sure that we should do an early out here... thinking
   // we should still return a resolved promise given time...
@@ -1029,6 +1029,10 @@ void pxObject::update(double t)
   return;
 #endif
 
+  if (mIsDisposed)
+  {
+    return;
+  }
   // Update animations
   vector<animation>::iterator it = mAnimations.begin();
 
@@ -3560,7 +3564,7 @@ void pxSceneContainer::dispose()
     //Adding ref to make sure, object not destroyed from event listeners
     AddRef();
     setScriptView(NULL);
-    pxObject::dispose();
+    pxObject::dispose();    
     Release();
   }
 }
