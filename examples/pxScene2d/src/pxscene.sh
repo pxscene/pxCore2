@@ -35,8 +35,7 @@ else
 valgrind --tool=memcheck --suppressions=$SUPPRESSIONS  --log-file=$VALGRINDLOGS --leak-check=yes --show-reachable=yes --num-callers=20 --track-fds=yes ./pxscene $1 $2 $3 $4 $5 $6 $7
 fi
 else
-#./pxscene $1 $2 $3 $4 $5 $6 $7
-echo "here"
+./pxscene $1 $2 $3 $4 $5 $6 $7
 fi
 #To run pxscene as background process
 #./pxscene $1 $2 $3 $4 $5 $6 $7 < `tty` >> /var/tmp/pxscene.log 2>&1 &
@@ -53,6 +52,6 @@ fi
 #time ./pxscene  $1 $2 -R
 
 # NOTE:  To use GDB ... use the DEBUG .so path for libnode
-gdb --args pxscene  $1 $2 $3 $4
+#gdb --args pxscene  $1 $2 $3 $4
 
 #strace -o trace.txt pxscene $1 $2 $3 $4 $5 $6 $7
