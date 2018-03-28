@@ -297,6 +297,23 @@ rtRemoteClient::sendSet(std::string const& objectId, uint32_t propertyIdx, rtVal
 }
 
 rtError
+rtRemoteClient::sendSet(std::string const& objectId, char const* name, uint32_t propertyIdx, rtValue const& value)
+{
+  rtRemoteCorrelationKey k = rtMessage_GetNextCorrelationKey();
+
+  rtRemoteMessagePtr req(new rapidjson::Document());
+  req->SetObject();
+  req->AddMember(kFieldNameMessageType, kMessageTypeSetByIndexRequest, req->GetAllocator());
+  req->AddMember(kFieldNameObjectId, objectId, req->GetAllocator());
+  req->AddMember(kFieldNamePropertyName, std::string(name), req->GetAllocator());
+  req->AddMember(kFieldNamePropertyIndex, propertyIdx, req->GetAllocator());
+  req->AddMember(kFieldNameCorrelationKey, k.toString(), req->GetAllocator());
+  addValue(req, m_env, value);
+
+  return sendSet(req, k);
+}
+
+rtError
 rtRemoteClient::sendSet(rtRemoteMessagePtr const& req, rtRemoteCorrelationKey k)
 {
   std::shared_ptr<rtRemoteStream> s = getStream();
@@ -339,8 +356,24 @@ rtRemoteClient::sendGet(std::string const& objectId, uint32_t propertyIdx, rtVal
 
   rtRemoteMessagePtr req(new rapidjson::Document());
   req->SetObject();
-  req->AddMember(kFieldNameMessageType, kMessageTypeGetByNameRequest, req->GetAllocator());
+  req->AddMember(kFieldNameMessageType, kMessageTypeGetByIndexRequest, req->GetAllocator());
   req->AddMember(kFieldNameObjectId, objectId, req->GetAllocator());
+  req->AddMember(kFieldNamePropertyIndex, propertyIdx, req->GetAllocator());
+  req->AddMember(kFieldNameCorrelationKey, k.toString(), req->GetAllocator());
+
+  return sendGet(req, k, result);
+}
+
+rtError
+rtRemoteClient::sendGet(std::string const& objectId, const char* name, uint32_t propertyIdx, rtValue& result)
+{
+  rtRemoteCorrelationKey k = rtMessage_GetNextCorrelationKey();
+
+  rtRemoteMessagePtr req(new rapidjson::Document());
+  req->SetObject();
+  req->AddMember(kFieldNameMessageType, kMessageTypeGetByIndexRequest, req->GetAllocator());
+  req->AddMember(kFieldNameObjectId, objectId, req->GetAllocator());
+  req->AddMember(kFieldNamePropertyName, std::string(name), req->GetAllocator());
   req->AddMember(kFieldNamePropertyIndex, propertyIdx, req->GetAllocator());
   req->AddMember(kFieldNameCorrelationKey, k.toString(), req->GetAllocator());
 

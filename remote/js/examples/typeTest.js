@@ -45,12 +45,14 @@ resolve.start()
       succeed = 0;
 
       Promise.resolve() // test all type in sequence mode
-
-      // function test
-        .then(() => doFunctionTest(rtObject, 'onTick'))
+        .then(() => doFunctionTest(rtObject, 'onTick')) // function test
 
         // object test
         .then(() => doObjectTest(rtObject, 'objvar'))
+
+        .then(() => doBasicTestWithIndex(rtObject, RTValueType.INT32, 104, 'arr', 0))
+        .then(() => doBasicTestWithIndex(rtObject, RTValueType.FLOAT, 123.2, 'arr', 1))
+        .then(() => doBasicTestWithIndex(rtObject, RTValueType.STRING, 'Sample String', 'arr', 2))
 
         // in c++/java, float only had 7 valid digits
         .then(() => doBasicTest(rtObject, RTValueType.FLOAT, 1.23456789, 'ffloat'))
@@ -169,6 +171,29 @@ function doBasicTest(rtObject, type, value, propertyName) {
   })).catch((err) => {
     logger.error(err);
   });
+}
+
+/**
+ * do basic test with index
+ * @param rtObject the remote object
+ * @param type the rt value type
+ * @param value the value
+ * @param propertyName the property name
+ * @param index the index
+ */
+function doBasicTestWithIndex(rtObject, type, value, propertyName, index) {
+  return rtObject.set(propertyName, RTValueHelper.create(value, type), index)
+    .then(() => rtObject.get(propertyName, index).then((rtValue) => {
+      let result = false;
+      if (type === RTValueType.FLOAT) {
+        result = checkEqualsFloat(rtValue.value, value);
+      } else {
+        result = rtValue.value === value;
+      }
+      printResult(type, value, rtValue.value, result);
+    })).catch((err) => {
+      logger.error(err);
+    });
 }
 
 /**

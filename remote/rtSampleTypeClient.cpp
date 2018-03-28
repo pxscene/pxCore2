@@ -26,26 +26,10 @@ int totalExamplesCount = 0;
 int succeedExamplesCount = 0;
 rtRemoteEnvironment* env = rtEnvironmentGetGlobal();
 
-// test basic type
+// check result
 void
-doBasicTest(const rtObjectRef& remoteObj, const rtValue& value, const char* propName)
+checkResult(rtValue const& value, rtValue const& newVal)
 {
-  totalExamplesCount += 1;
-  rtError e = remoteObj->Set(propName, &value);
-  if (e != RT_OK)
-  {
-    rtLogInfo("%s , passed=[%s], err=%s", value.getTypeStr(), "false", rtStrError(e));
-    return;
-  }
-
-  rtValue newVal;
-  e = remoteObj->Get(propName, &newVal);
-  if (e != RT_OK)
-  {
-    rtLogInfo("%s , passed=[%s], err=%s", value.getTypeStr(), "false", rtStrError(e));
-    return;
-  }
-
   bool result = false;
   char buffer[1024];
   switch (newVal.getType())
@@ -147,6 +131,52 @@ doBasicTest(const rtObjectRef& remoteObj, const rtValue& value, const char* prop
   rtLogInfo("%s test => %s, passed=[%s]", value.getTypeStr(), buffer, result ? "true" : "false");
 }
 
+// test basic type
+void
+doBasicTest(const rtObjectRef& remoteObj, const rtValue& value, const char* propName)
+{
+
+  totalExamplesCount += 1;
+  rtError e = remoteObj->Set(propName, &value);
+  if (e != RT_OK)
+  {
+    rtLogInfo("%s , passed=[%s], err=%s", value.getTypeStr(), "false", rtStrError(e));
+    return;
+  }
+
+  rtValue newVal;
+  e = remoteObj->Get(propName, &newVal);
+  if (e != RT_OK)
+  {
+    rtLogInfo("%s , passed=[%s], err=%s", value.getTypeStr(), "false", rtStrError(e));
+    return;
+  }
+  checkResult(value, newVal);
+}
+
+// test basic type with index
+void
+doBasicTestWithIndex(const rtObjectRef& remoteObj, const rtValue& value, const char* propName, uint32_t index)
+{
+  totalExamplesCount += 1;
+  auto* robj = dynamic_cast<rtRemoteObject*>(remoteObj.getPtr());
+  rtError e = robj->Set(propName, index, &value);
+  if (e != RT_OK)
+  {
+    rtLogInfo("%s , passed=[%s], err=%s", value.getTypeStr(), "false", rtStrError(e));
+    return;
+  }
+
+  rtValue newVal;
+  e = robj->Get(propName, index, &newVal);
+  if (e != RT_OK)
+  {
+    rtLogInfo("%s , passed=[%s], err=%s", value.getTypeStr(), "false", rtStrError(e));
+    return;
+  }
+  checkResult(value, newVal);
+}
+
 void
 testAllTypes(const rtObjectRef& remoteObj)
 {
@@ -210,6 +240,17 @@ testAllTypes(const rtObjectRef& remoteObj)
             totalExamplesCount, totalExamplesCount - succeedExamplesCount);
 }
 
+
+// index test
+void
+doIndexTest(const rtObjectRef& rtObject)
+{
+  doBasicTestWithIndex(rtObject, rtValue(102), "arr", 0);
+  doBasicTestWithIndex(rtObject, rtValue(122.123f), "arr", 1);
+  doBasicTestWithIndex(rtObject, rtValue("Hello world !!!"), "arr", 2);
+}
+
+// object test
 void
 doObjectTest(const rtObjectRef& rtObject, const char* propertyName)
 {
@@ -259,6 +300,7 @@ main(int /*argc*/, char* /*argv*/ [])
     succeedExamplesCount = 0;
     doFunctionTest(obj, "onTick");
     doObjectTest(obj, "objvar");
+    doIndexTest(obj);
     testAllTypes(obj);
     rtLogInfo("test completed, next test will at %ds ...", 10);
     sleep(10);

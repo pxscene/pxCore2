@@ -33,7 +33,7 @@ public class TestObject implements RTObject {
   }
 
   @Override
-  public Future<Void> set(int index, RTValue value) throws RTException {
+  public Future<Void> set(String name, int index, RTValue value) throws RTException {
     return null;
   }
 
@@ -43,7 +43,7 @@ public class TestObject implements RTObject {
   }
 
   @Override
-  public Future<RTValue> get(int index) throws RTException {
+  public Future<RTValue> get(String name, int index) throws RTException {
     return null;
   }
 

@@ -37,6 +37,9 @@ class SampleObject {
     this.onTick = RTValueHelper.create(null, RTValueType.FUNCTION);
     this.objvar = RTValueHelper.create(null, RTValueType.OBJECT);
     this.methodValue = RTValueHelper.create(0, RTValueType.INT32);
+    this.arr = [RTValueHelper.create(10, RTValueType.INT32),
+      RTValueHelper.create(12.3, RTValueType.FLOAT),
+      RTValueHelper.create('hello,world', RTValueType.STRING)];
   }
 
   method0AndReturn10() { // eslint-disable-line class-methods-use-this

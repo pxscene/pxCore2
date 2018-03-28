@@ -34,6 +34,7 @@ module.exports = {
   UNKNOWN_CODE: 'UNKNOWN CODE',
   UNKNOWN_TYPE: 'UNKNOWN TYPE',
   UNKNOWN_MESSAGE_TYPE: 'UNKNOWN MESSAGE TYPE',
+  PROPERTY_INDEX: 'property.index',
   /**
    * the first time to find object, then exponential backoff, the unit is ms
    */

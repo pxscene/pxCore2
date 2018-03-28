@@ -20,8 +20,12 @@ class HostObject : public rtObject
 {
   rtDeclareObject(HostObject, rtObject);
 public:
-  HostObject() : m_count(0)
+  HostObject() : m_count(0), m_arr(new rtArrayObject)
   {
+    auto arr = (rtArrayObject*) m_arr.getPtr();
+    arr->pushBack(rtValue(10));
+    arr->pushBack(rtValue(12.3f));
+    arr->pushBack(rtValue("Hello world"));
   }
 
   // define float property
@@ -64,6 +68,9 @@ public:
 
   // define rtFunctionRef property
   rtProperty(onTick, getOnTickCallback, setOnTickCallback, rtFunctionRef);
+
+  // define array
+  rtProperty(arr, getArr, setArr, rtObjectRef);
 
   rtError getCount(int& c) const
   {
@@ -290,6 +297,18 @@ public:
       }
     }
   }
+
+  rtError getArr(rtObjectRef& obj) const
+  {
+    obj = m_arr;
+    return RT_OK;
+  }
+
+  rtError setArr(const rtObjectRef& obj)
+  {
+    m_arr = obj;
+    return RT_OK;
+  }
 private:
   int m_count;
   rtFunctionRef m_callback;
@@ -311,6 +330,8 @@ private:
 
   rtString m_string;
   voidPtr m_ptr;
+
+  rtObjectRef m_arr;
 };
 
 
@@ -331,6 +352,7 @@ rtDefineProperty(HostObject, vptr);
 rtDefineProperty(HostObject, count);
 rtDefineProperty(HostObject, objvar);
 rtDefineProperty(HostObject, onTick);
+rtDefineProperty(HostObject, arr);
 
 // ---- export methods
 rtDefineMethod(HostObject, method1AndReturn);

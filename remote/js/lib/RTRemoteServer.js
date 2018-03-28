@@ -182,8 +182,12 @@ class RTRemoteServer {
     switch (task.message[RTConst.MESSAGE_TYPE]) {
       case RTRemoteMessageType.GET_PROPERTY_BYNAME_REQUEST:
         return this.handlerGetPropertyByNameRequest(task);
+      case RTRemoteMessageType.GET_PROPERTY_BYINDEX_REQUEST:
+        return this.handlerGetPropertyByIndexRequest(task);
       case RTRemoteMessageType.SET_PROPERTY_BYNAME_REQUEST:
         return this.handlerSetPropertyByNameRequest(task);
+      case RTRemoteMessageType.SET_PROPERTY_BYINDEX_REQUEST:
+        return this.handlerSetPropertyByIndexRequest(task);
       case RTRemoteMessageType.METHOD_CALL_REQUEST:
         return this.handlerCallRequest(task);
       default:
@@ -202,9 +206,36 @@ class RTRemoteServer {
       const rtFunction = message[RTConst.VALUE];
       message[RTConst.VALUE] = helper.updateListenerForRTFuction(task.protocol, rtFunction);
     }
-    const response = helper.setPropertyByName(this.getObjectByName(message[RTConst.OBJECT_ID_KEY]), message);
+    const response = helper.setProperty(this.getObjectByName(message[RTConst.OBJECT_ID_KEY]), message);
     return task.protocol.transport.send(RTRemoteSerializer.toBuffer(response));
   }
+
+  /**
+   * process set property by index request
+   * @param {RTRemoteTask} task the remote task
+   */
+  handlerSetPropertyByIndexRequest(task) {
+    const { message } = task;
+    if (message[RTConst.VALUE][RTConst.TYPE] === RTValueType.FUNCTION) {
+      const rtFunction = message[RTConst.VALUE];
+      message[RTConst.VALUE] = helper.updateListenerForRTFuction(task.protocol, rtFunction);
+    }
+    const response = helper.setProperty(this.getObjectByName(message[RTConst.OBJECT_ID_KEY]), message);
+    response[RTConst.MESSAGE_TYPE] = RTRemoteMessageType.SET_PROPERTY_BYINDEX_RESPONSE;
+    return task.protocol.transport.send(RTRemoteSerializer.toBuffer(response));
+  }
+
+  /**
+   * process set property by index request
+   * @param {RTRemoteTask} task the remote task
+   */
+  handlerGetPropertyByIndexRequest(task) {
+    const { message } = task;
+    const response = helper.getProperty(this.getObjectByName(message[RTConst.OBJECT_ID_KEY]), message);
+    response[RTConst.MESSAGE_TYPE] = RTRemoteMessageType.GET_PROPERTY_BYINDEX_RESPONSE;
+    return task.protocol.transport.send(RTRemoteSerializer.toBuffer(response));
+  }
+
 
   /**
    * process set property by name request
@@ -212,7 +243,7 @@ class RTRemoteServer {
    */
   handlerGetPropertyByNameRequest(task) {
     const { message } = task;
-    const response = helper.getPropertyByName(this.getObjectByName(message[RTConst.OBJECT_ID_KEY]), message);
+    const response = helper.getProperty(this.getObjectByName(message[RTConst.OBJECT_ID_KEY]), message);
     return task.protocol.transport.send(RTRemoteSerializer.toBuffer(response));
   }
 

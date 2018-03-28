@@ -135,7 +135,8 @@ class RTRemoteProtocol {
       // that's mean this program send keep live request to other side, and got reponse from other side
       // so this reponse can be ignored
     } else if (message[RTConst.MESSAGE_TYPE] === RTRemoteMessageType.SESSION_OPEN_REQUEST) {
-      this.transport.send(RTRemoteSerializer.toBuffer(RTMessageHelper.newOpenSessionResponse(message[RTConst.CORRELATION_KEY], message[RTConst.OBJECT_ID_KEY])));
+      this.transport.send(RTRemoteSerializer
+        .toBuffer(RTMessageHelper.newOpenSessionResponse(message[RTConst.CORRELATION_KEY], message[RTConst.OBJECT_ID_KEY])));
     } else if (RTEnvironment.isServerMode()) {
       this.processMessageInServerMode(message);
     } else {
@@ -191,15 +192,16 @@ class RTRemoteProtocol {
   /**
    * send set property by id
    * @param {string} objectId the object id
+   * @param {string} propName the propName
    * @param {number} index the property index
    * @param {object} value the rtValue
    * @return {Promise<{}>} promise with result
    */
-  sendSetById(objectId, index, value) {
-    // TODO need implement
-    logger.debug(objectId, index, value);
-    logger.error('sendSetById didn\'t implement', this);
-    return Promise.resolve({});
+  sendSetByIndex(objectId, propName, index, value) {
+    const messageObj = RTMessageHelper.newSetRequest(objectId, propName, value);
+    messageObj[RTConst.MESSAGE_TYPE] = RTRemoteMessageType.SET_PROPERTY_BYINDEX_REQUEST;
+    messageObj[RTConst.PROPERTY_INDEX] = index;
+    return this.sendRequestMessage(messageObj);
   }
 
   /**
@@ -248,14 +250,15 @@ class RTRemoteProtocol {
   /**
    * send get property by id
    * @param {string} objectId the object id
-   * @param {string} index the property name
+   * @param {string} propName the propName
+   * @param {number} index the property name
    * @return {Promise<object>} promise with result
    */
-  sendGetById(objectId, index) {
-    // TODO need implement
-    logger.debug(objectId, index);
-    logger.error('sendSetById didn\'t implement', this);
-    return Promise.resolve({});
+  sendGetByIndex(objectId, propName, index) {
+    const messageObj = RTMessageHelper.newGetRequest(objectId, propName);
+    messageObj[RTConst.MESSAGE_TYPE] = RTRemoteMessageType.GET_PROPERTY_BYINDEX_REQUEST;
+    messageObj[RTConst.PROPERTY_INDEX] = index;
+    return this.sendRequestMessage(messageObj);
   }
 }
 
