@@ -87,11 +87,39 @@ void pxResource::addListener(pxResourceListener* pListener)
     return;
 
   bool downloadRequestActive = false;
+  bool isDownloadCanceled = rtFileDownloader::isDownloadRequestCanceled(mDownloadRequest, this);
+
   mDownloadInProgressMutex.lock();
   downloadRequestActive = mDownloadInProgress;
   mDownloadInProgressMutex.unlock();
-  if( !downloadRequestActive)
+
+
+  if (isDownloadCanceled)
   {
+    //if the download was canceled then download again
+    //rtLogDebug("download was canceled then download again: %s", mUrl.cString());
+    mListenersMutex.lock();
+    bool found = false;
+    for (list<pxResourceListener*>::iterator it = mListeners.begin();
+         it != mListeners.end(); ++it)
+    {
+      if((*it) == pListener)
+      {
+        found = true;
+        break;
+      }
+    }
+    if (!found)
+    {
+      // only add unique listeners
+      mListeners.push_back(pListener);
+    }
+    mListenersMutex.unlock();
+    loadResource();
+  }
+  else if( !downloadRequestActive)
+  {
+    //rtLogDebug("download was not active for: %s code: %d", mUrl.cString(), mLoadStatus.get<int32_t>("statusCode"));
     if( mLoadStatus.get<int32_t>("statusCode") == 0)
       pListener->resourceReady("resolve");
     else
@@ -124,6 +152,7 @@ void pxResource::addListener(pxResourceListener* pListener)
 
 void pxResource::removeListener(pxResourceListener* pListener)
 {
+  size_t numberOfListeners = 0;
   mListenersMutex.lock();
   for (list<pxResourceListener*>::iterator it = mListeners.begin();
          it != mListeners.end(); ++it)
@@ -136,7 +165,13 @@ void pxResource::removeListener(pxResourceListener* pListener)
     }
 
   }
+  numberOfListeners = mListeners.size();
   mListenersMutex.unlock();
+  if (numberOfListeners <= 0 && mDownloadRequest != NULL)
+  {
+    //rtLogDebug("canceling url: %s", mUrl.cString());
+    rtFileDownloader::cancelDownloadRequestThreadSafe(mDownloadRequest, this);
+  }
 }
 
 void pxResource::notifyListeners(rtString readyResolution)
@@ -357,6 +392,16 @@ void pxResource::onDownloadCompleteUI(void* context, void* data)
   // this function
   res->Release();
 }
+
+void pxResource::onDownloadCanceledUI(void* context, void* data)
+{
+  // no need to notify on canceled downloads
+  (void)data;
+  pxResource* res = (rtImageResource*)context;
+
+  res->Release();
+}
+
 void rtImageResource::loadResourceFromFile()
 {
   pxOffscreen imageOffscreen;
@@ -448,7 +493,18 @@ void pxResource::processDownloadedResource(rtFileDownloadRequest* fileDownloadRe
   rtString val = "reject";
   if (fileDownloadRequest != NULL)
   {
-    if (fileDownloadRequest->downloadStatusCode() == 0 &&
+    bool wasCanceled = fileDownloadRequest->isCanceled();
+    if (wasCanceled)
+    {
+      //rtLogDebug("download was canceled, no need to notify: %s", fileDownloadRequest->fileUrl().cString());
+      mLoadStatus.set("statusCode", PX_RESOURCE_STATUS_UNKNOWN_ERROR);
+      mLoadStatus.set("httpStatusCode",(uint32_t)fileDownloadRequest->httpStatusCode());
+      if (gUIThreadQueue)
+      {
+        gUIThreadQueue->addTask(pxResource::onDownloadCanceledUI, this, (void*)"reject");
+      }
+    }
+    else if (fileDownloadRequest->downloadStatusCode() == 0 &&
         fileDownloadRequest->httpStatusCode() == 200 &&
         fileDownloadRequest->downloadedData() != NULL)
     {

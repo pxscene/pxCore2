@@ -100,6 +100,7 @@ public:
 protected:   
   static void onDownloadComplete(rtFileDownloadRequest* downloadRequest);
   static void onDownloadCompleteUI(void* context, void* data);
+  static void onDownloadCanceledUI(void* context, void* data);
   virtual void processDownloadedResource(rtFileDownloadRequest* fileDownloadRequest);
   virtual bool loadResourceData(rtFileDownloadRequest* fileDownloadRequest) = 0;
   
