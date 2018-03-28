@@ -181,7 +181,7 @@ public:
   rtDeclareObject(pxTextBox, pxText);
 
   pxTextBox(pxScene2d* s);
-  ~pxTextBox(){}
+  virtual ~pxTextBox(){}
   
   rtProperty(wordWrap, wordWrap, setWordWrap, bool);
   rtProperty(ellipsis, ellipsis, setEllipsis, bool);
