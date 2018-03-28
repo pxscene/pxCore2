@@ -30,10 +30,22 @@ rtRemoteEnvironment* env = rtEnvironmentGetGlobal();
 void
 doBasicTest(const rtObjectRef& remoteObj, const rtValue& value, const char* propName)
 {
-  remoteObj->Set(propName, &value);
-  rtValue newVal;
-  remoteObj->Get(propName, &newVal);
   totalExamplesCount += 1;
+  rtError e = remoteObj->Set(propName, &value);
+  if (e != RT_OK)
+  {
+    rtLogInfo("%s , passed=[%s], err=%s", value.getTypeStr(), "false", rtStrError(e));
+    return;
+  }
+
+  rtValue newVal;
+  e = remoteObj->Get(propName, &newVal);
+  if (e != RT_OK)
+  {
+    rtLogInfo("%s , passed=[%s], err=%s", value.getTypeStr(), "false", rtStrError(e));
+    return;
+  }
+
   bool result = false;
   char buffer[1024];
   switch (newVal.getType())
@@ -192,8 +204,8 @@ testAllTypes(const rtObjectRef& remoteObj)
   doBasicTest(remoteObj, rtValue("1"), "string");
 
   // void ptr, java/node void ptr use int64 to store
-  doBasicTest(remoteObj, rtValue((int64_t) 723123231L), "vptr");
-  doBasicTest(remoteObj, rtValue((int64_t) 789892349L), "vptr");
+  doBasicTest(remoteObj, rtValue((voidPtr) 723123231L), "vptr");
+  doBasicTest(remoteObj, rtValue((voidPtr) 789892349L), "vptr");
   rtLogInfo("========= %d of %d example succeed, %d failed.", succeedExamplesCount,
             totalExamplesCount, totalExamplesCount - succeedExamplesCount);
 }

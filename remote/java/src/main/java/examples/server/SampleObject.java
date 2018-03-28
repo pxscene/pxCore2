@@ -8,6 +8,7 @@ import org.pxscene.rt.RTException;
 import org.pxscene.rt.RTFunction;
 import org.pxscene.rt.RTObject;
 import org.pxscene.rt.RTValue;
+import org.pxscene.rt.RTValueType;
 
 /**
  *
@@ -39,7 +40,7 @@ public class SampleObject {
 
   private String string;
 
-  private Long vptr;
+  private RTValue vptr = new RTValue(0, RTValueType.VOIDPTR);
 
   private RTFunction onTick;
 
@@ -175,11 +176,11 @@ public class SampleObject {
     this.string = string;
   }
 
-  public Long getVptr() {
+  public RTValue getVptr() {
     return this.vptr;
   }
 
-  public void setVptr(Long vptr) {
+  public void setVptr(RTValue vptr) {
     this.vptr = vptr;
   }
 
