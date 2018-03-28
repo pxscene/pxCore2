@@ -33,7 +33,8 @@ extern pxContext context;
 pxImage9::~pxImage9()
 {
   rtLogDebug("~pxImage9()");
-  clearResource();
+  removeResourceListener();
+  mResource = NULL;
 }
 
 void pxImage9::onInit()
@@ -74,7 +75,7 @@ rtError pxImage9::setUrl(const char* s)
     }
   }
 
-  clearResource();
+  removeResourceListener();
   mResource = pxImageManager::getImage(s); 
   if(getImageResource() != NULL && getImageResource()->getUrl().length() > 0)
   {
@@ -147,7 +148,7 @@ void pxImage9::resourceReady(rtString readyResolution)
   }
 }
 
-rtError pxImage9::clearResource()
+rtError pxImage9::removeResourceListener()
 {
   if (mListenerAdded)
   {
@@ -155,7 +156,6 @@ rtError pxImage9::clearResource()
     {
       getImageResource()->removeListener(this);
     }
-    mResource = NULL;
     mListenerAdded = false;
   }
   return RT_OK;

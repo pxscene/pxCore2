@@ -45,7 +45,7 @@ public:
   virtual ~pxText();
   rtError text(rtString& s) const;
   virtual rtError setText(const char* text);
-  rtError clearResource();
+  rtError removeResourceListener();
 
   rtError textColor(uint32_t& c) const {
     c = 0;

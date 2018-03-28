@@ -43,7 +43,8 @@ bool isPowerOfTwo(int64_t number)
 pxImage::~pxImage()
 {
   rtLogDebug("~pxImage()");
-  clearResource();
+  removeResourceListener();
+  mResource = NULL;
 }
 
 void pxImage::onInit()
@@ -84,7 +85,7 @@ rtError pxImage::setResource(rtObjectRef o)
     // Only create new promise if url is different 
     if( getImageResource() != NULL && getImageResource()->getUrl().compare(o.get<rtString>("url")) )
     {
-      clearResource();
+      removeResourceListener();
       mResource = o; 
       imageLoaded = false;
       pxObject::createNewPromise();
@@ -146,7 +147,7 @@ rtError pxImage::setUrl(const char* s)
   }
 
 
-  clearResource();
+  removeResourceListener();
   mResource = pxImageManager::getImage(s);
 
   if(getImageResource() != NULL && getImageResource()->getUrl().length() > 0 && mInitialized && !imageLoaded) {
@@ -233,7 +234,8 @@ void pxImage::resourceReady(rtString readyResolution)
 
 void pxImage::dispose(bool pumpJavascript)
 {
-  clearResource();
+  removeResourceListener();
+  mResource = NULL;
   pxObject::dispose(pumpJavascript);
 }
 
@@ -289,7 +291,7 @@ rtError pxImage::setDownscaleSmooth(bool v)
     return RT_OK;
 }
 
-rtError pxImage::clearResource()
+rtError pxImage::removeResourceListener()
 {
   if (mListenerAdded)
   {
@@ -297,7 +299,6 @@ rtError pxImage::clearResource()
     {
       getImageResource()->removeListener(this);
     }
-    mResource = NULL;
     mListenerAdded = false;
   }
   return RT_OK;
