@@ -63,7 +63,11 @@ class RTRemoteServer {
    * @return {Promise<dgram>} the promise with dgram
    */
   openMulticastServer(udpHost, udpPort) {
-    const udpSocketIn = dgram.createSocket('udp4');
+    const udpSocketIn = dgram.createSocket({
+      type: 'udp4',
+      reuseAddr: true,
+    });
+
     const udpSocketOut = dgram.createSocket('udp4');
     udpSocketOut.bind(() => { // create channel to send located message
       udpSocketOut.setBroadcast(true);
@@ -106,7 +110,7 @@ class RTRemoteServer {
         logger.debug(`server bind multicast socket succeed, ${address.address}:${address.port}`);
         resolve(udpSocketIn);
       });
-      udpSocketIn.bind({ address: udpHost, port: udpPort }, () => {
+      udpSocketIn.bind({ port: udpPort }, () => {
         udpSocketIn.setBroadcast(true);
         udpSocketIn.addMembership(udpHost); // join to multicast channel
       });

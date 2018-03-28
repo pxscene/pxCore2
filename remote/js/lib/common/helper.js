@@ -110,20 +110,25 @@ function checkAndDumpObject(objectName, object) {
  * @return {object} the new rt function
  */
 function updateListenerForRTFuction(protocol, rtFunction) {
-  if (rtFunction && rtFunction[RTConst.VALUE]) {
+  if (rtFunction && rtFunction[RTConst.VALUE] && rtFunction[RTConst.VALUE][RTConst.VALUE]) {
     return rtFunction;
   }
 
   const newRtFunction = {};
+  const rtValue = {};
   newRtFunction[RTConst.VALUE] = (rtValueList) => {
     const args = rtValueList || [];
-    return protocol.sendCallByName(rtFunction[RTConst.OBJECT_ID_KEY], rtFunction[RTConst.FUNCTION_KEY], ...args);
+    return protocol.sendCallByName(
+      rtFunction[RTConst.VALUE][RTConst.OBJECT_ID_KEY],
+      rtFunction[RTConst.VALUE][RTConst.FUNCTION_KEY], ...args,
+    );
   };
-  newRtFunction[RTConst.TYPE] = RTValueType.FUNCTION;
-  newRtFunction[RTConst.FUNCTION_KEY] = rtFunction[RTConst.FUNCTION_KEY];
-  newRtFunction[RTConst.OBJECT_ID_KEY] = rtFunction[RTConst.OBJECT_ID_KEY];
-  RTEnvironment.getRtFunctionMap()[rtFunction[RTConst.FUNCTION_KEY]] = newRtFunction[RTConst.VALUE];
-  return newRtFunction;
+  newRtFunction[RTConst.FUNCTION_KEY] = rtFunction[RTConst.VALUE][RTConst.FUNCTION_KEY];
+  newRtFunction[RTConst.OBJECT_ID_KEY] = rtFunction[RTConst.VALUE][RTConst.OBJECT_ID_KEY];
+  rtValue[RTConst.VALUE] = newRtFunction;
+  rtValue[RTConst.TYPE] = RTValueType.FUNCTION;
+  RTEnvironment.getRtFunctionMap()[newRtFunction[RTConst.FUNCTION_KEY]] = newRtFunction[RTConst.VALUE];
+  return rtValue;
 }
 
 /**
@@ -191,7 +196,15 @@ function getPropertyByName(object, getRequest) {
     if (!object[propName]) { // not found
       response[RTConst.STATUS_CODE] = RTStatusCode.PROPERTY_NOT_FOUND;
     } else { // ok
-      response[RTConst.VALUE] = object[propName];
+      if (typeof object[propName] === 'function') {
+        const v = {};
+        v[RTConst.TYPE] = RTValueType.FUNCTION;
+        v[RTConst.OBJECT_ID_KEY] = getRequest[RTConst.OBJECT_ID_KEY];
+        v[RTConst.FUNCTION_KEY] = propName;
+        response[RTConst.VALUE] = v;
+      } else {
+        response[RTConst.VALUE] = object[propName];
+      }
       response[RTConst.STATUS_CODE] = RTStatusCode.OK;
     }
   }

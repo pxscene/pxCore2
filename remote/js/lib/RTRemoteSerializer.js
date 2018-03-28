@@ -34,12 +34,17 @@ function processRTValue(rtValue) {
   if (!rtValue) return;
   const valueType = rtValue[RTConst.TYPE];
   if (valueType === RTValueType.FUNCTION) {
-    const functionCb = RTEnvironment.getRtFunctionMap()[rtValue[RTConst.FUNCTION_KEY]];
+    if (!rtValue[RTConst.VALUE]) {
+      rtValue[RTConst.VALUE] = {};
+      rtValue[RTConst.VALUE][RTConst.FUNCTION_KEY] = rtValue[RTConst.FUNCTION_KEY];
+      rtValue[RTConst.VALUE][RTConst.OBJECT_ID_KEY] = rtValue[RTConst.OBJECT_ID_KEY];
+    }
+    const functionCb = RTEnvironment.getRtFunctionMap()[rtValue[RTConst.VALUE][RTConst.FUNCTION_KEY]];
     // sometimes  RTEnvironment didn't cache the rtFunction, that's mean the rtFunction from remote
     // 1. client get backend rtFunction, but client didn't cache it, that's mean rtFunction located in backend
     // 2. server receive client set->rtFunction, but server didn't cache it, that's mean rtFunction located in client
     if (functionCb) {
-      rtValue.value = functionCb;
+      rtValue.value.value = functionCb;
     }
   } else if (valueType === RTValueType.OBJECT) {
     const obj = RTEnvironment.getRtObjectMap()[rtValue[RTConst.VALUE][RTConst.OBJECT_ID_KEY]];
@@ -65,7 +70,6 @@ function processRTValue(rtValue) {
 function fromBuffer(messageBuffer) {
   const messageObj = JSONbig.parse(messageBuffer.toString(RTConst.DEFAULT_CHARSET));
   const mType = messageObj[RTConst.MESSAGE_TYPE];
-
   switch (mType) {
     case RTRemoteMessageType.SET_PROPERTY_BYNAME_REQUEST:
     case RTRemoteMessageType.SET_PROPERTY_BYNAME_RESPONSE:

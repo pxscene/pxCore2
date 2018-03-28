@@ -198,9 +198,9 @@ function doFunctionTest(rtObject, propertyName) {
   }, RTValueType.FUNCTION);
 
   return rtObject.set(propertyName, oldRtValue).then(() => rtObject.get(propertyName).then((rtValue) => {
-    rtValue.value(null);
-    const result = oldRtValue[RTConst.FUNCTION_KEY] === rtValue[RTConst.FUNCTION_KEY];
-    printResult(RTValueType.FUNCTION, oldRtValue[RTConst.FUNCTION_KEY], rtValue[RTConst.FUNCTION_KEY], result);
+    rtValue.value.value(null);
+    const result = oldRtValue[RTConst.VALUE][RTConst.FUNCTION_KEY] === rtValue[RTConst.VALUE][RTConst.FUNCTION_KEY];
+    printResult(RTValueType.FUNCTION, oldRtValue[RTConst.FUNCTION_KEY], rtValue[RTConst.VALUE][RTConst.FUNCTION_KEY], result);
   }));
 }
 

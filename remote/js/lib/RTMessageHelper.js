@@ -162,6 +162,19 @@ function newGetPropertyResponse(correlationKey, statusCode, objectId, value) {
   return getResponse;
 }
 
+/**
+ * create new get open session response message
+ * @param {string} correlationKey the request correlation key
+ * @param {string} objectId the object id
+ * @return {object} the response message
+ */
+function newOpenSessionResponse(correlationKey, objectId) {
+  const response = {};
+  response[RTConst.MESSAGE_TYPE] = RTRemoteMessageType.SESSION_OPEN_RESPIONSE;
+  response[RTConst.CORRELATION_KEY] = correlationKey;
+  response[RTConst.OBJECT_ID_KEY] = objectId;
+  return response;
+}
 
 module.exports = {
   newLocateRequest,
@@ -173,4 +186,5 @@ module.exports = {
   newKeepAliveResponse,
   newSetPropertyResponse,
   newGetPropertyResponse,
+  newOpenSessionResponse,
 };
