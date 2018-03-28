@@ -49,6 +49,8 @@ std::thread* downloadHandleExpiresCheckThread = NULL;
 bool continueDownloadHandleCheck = true;
 rtMutex downloadHandleMutex;
 
+#define HTTP_DOWNLOAD_CANCELED 499
+
 struct MemoryStruct
 {
     MemoryStruct()
@@ -158,6 +160,7 @@ rtFileDownloadRequest::rtFileDownloadRequest(const char* imageUrl, void* callbac
     , mCacheEnabled(true), mIsDataInCache(false), mDeferCacheRead(false)
 #endif
     , mIsProgressMeterSwitchOff(false), mHTTPFailOnError(false), mDefaultTimeout(false)
+    , mCanceled(false), mCanceledMutex()
 {
   mAdditionalHttpHeaders.clear();
 #ifdef ENABLE_HTTP_CACHE
@@ -447,6 +450,22 @@ rtString rtFileDownloadRequest::origin()
   return mOrigin;
 }
 
+void rtFileDownloadRequest::cancelRequest()
+{
+  mCanceledMutex.lock();
+  mCanceled = true;
+  mCanceledMutex.unlock();
+}
+
+bool rtFileDownloadRequest::isCanceled()
+{
+  bool requestCanceled = false;
+  mCanceledMutex.lock();
+  requestCanceled = mCanceled;
+  mCanceledMutex.unlock();
+  return requestCanceled;
+}
+
 rtFileDownloader::rtFileDownloader()
     : mNumberOfCurrentDownloads(0), mDefaultCallbackFunction(NULL), mDownloadHandles(), mReuseDownloadHandles(false),
       mCaCertFile(CA_CERTIFICATE), mFileCacheMutex()
@@ -550,6 +569,24 @@ void rtFileDownloader::clearFileCache()
 
 void rtFileDownloader::downloadFile(rtFileDownloadRequest* downloadRequest)
 {
+  bool isRequestCanceled = downloadRequest->isCanceled();
+  if (isRequestCanceled)
+  {
+    downloadRequest->setDownloadStatusCode(HTTP_DOWNLOAD_CANCELED);
+    downloadRequest->setDownloadedData(NULL, 0);
+    downloadRequest->setDownloadStatusCode(-1);
+    downloadRequest->setErrorString("canceled request");
+    if (!downloadRequest->executeCallback(downloadRequest->downloadStatusCode()))
+    {
+      if (mDefaultCallbackFunction != NULL)
+      {
+        (*mDefaultCallbackFunction)(downloadRequest);
+      }
+    }
+    clearFileDownloadRequest(downloadRequest);
+    return;
+  }
+
 #ifdef ENABLE_HTTP_CACHE
     bool isDataInCache = false;
 #endif
@@ -973,6 +1010,36 @@ void rtFileDownloader::setCallbackFunctionThreadSafe(rtFileDownloadRequest* down
     }
   }
   mDownloadRequestVectorMutex->unlock();
+}
+
+void rtFileDownloader::cancelDownloadRequestThreadSafe(rtFileDownloadRequest* downloadRequest, void* owner)
+{
+  mDownloadRequestVectorMutex->lock();
+  for (std::vector<rtFileDownloadRequest*>::iterator it=mDownloadRequestVector->begin(); it!=mDownloadRequestVector->end(); ++it)
+  {
+    if ((*it) == downloadRequest && (*it)->callbackData() == owner)
+    {
+      downloadRequest->cancelRequest();
+      break;
+    }
+  }
+  mDownloadRequestVectorMutex->unlock();
+}
+
+bool rtFileDownloader::isDownloadRequestCanceled(rtFileDownloadRequest* downloadRequest, void* owner)
+{
+  bool requestIsCanceled = false;
+  mDownloadRequestVectorMutex->lock();
+  for (std::vector<rtFileDownloadRequest*>::iterator it=mDownloadRequestVector->begin(); it!=mDownloadRequestVector->end(); ++it)
+  {
+    if ((*it) == downloadRequest && (*it)->callbackData() == owner)
+    {
+      requestIsCanceled = downloadRequest->isCanceled();
+      break;
+    }
+  }
+  mDownloadRequestVectorMutex->unlock();
+  return requestIsCanceled;
 }
 
 void rtFileDownloader::checkForExpiredHandles()
