@@ -211,12 +211,12 @@ public class RTRemoteTCPTransport implements RTRemoteTransport, Runnable {
   }
 
   /**
-   * send bytes to remote
-   *
+   * send bytes to remote, this method must be synchronized
+   * 
    * @param buff the bytes
    * @throws RTException if any other error occurred during operation
    */
-  public void send(byte[] buff) throws RTException {
+  public synchronized void send(byte[] buff) throws RTException {
     try {
       dataOutputStream.writeInt(buff.length);
       dataOutputStream.write(buff, 0, buff.length);
