@@ -75,6 +75,7 @@ public:
   virtual void dispose(bool pumpJavascript);
   void checkStretchX();
   void checkStretchY();
+  rtError clearResource();
   
 protected:
   virtual void draw();
