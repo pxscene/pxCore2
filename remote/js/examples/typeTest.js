@@ -97,9 +97,9 @@ resolve.start()
         .then(() => doBasicTest(rtObject, RTValueType.UINT64, new BigNumber('123'), 'uint64'))
 
         // test double
-        .then(() => doBasicTest(rtObject, RTValueType.DOUBLE, 1231.12312312312, 'ddouble'))
-        .then(() => doBasicTest(rtObject, RTValueType.DOUBLE, -1231.12312312312, 'ddouble'))
-        .then(() => doBasicTest(rtObject, RTValueType.DOUBLE, -0.12, 'ddouble'))
+        .then(() => doBasicTest(rtObject, RTValueType.DOUBLE, 12345.1234567891011, 'ddouble'))
+        .then(() => doBasicTest(rtObject, RTValueType.DOUBLE, -12345.1234567891011, 'ddouble'))
+        .then(() => doBasicTest(rtObject, RTValueType.DOUBLE, -0.12345678910111213, 'ddouble'))
 
         // test string
         .then(() => doBasicTest(
@@ -141,7 +141,7 @@ function checkEqualsFloat(v1, v2) {
  * double values can be off by a little bit, so they may not report as exactly equal.
  */
 function checkEqualsDouble(v1, v2) {
-  const eps = 0.0001;
+  const eps = 0.0000001;
   return Math.abs(v1 - v2) < eps;
 }
 

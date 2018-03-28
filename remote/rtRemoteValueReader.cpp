@@ -30,6 +30,11 @@ rtError
 rtRemoteValueReader::read(rtRemoteEnvironment* env, rtValue& to, rapidjson::Value const& from,
   std::shared_ptr<rtRemoteClient> const& client)
 {
+
+  rapidjson::StringBuffer buffer;
+  rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
+  from.Accept(writer);
+  const char* json = buffer.GetString();
   auto type = from.FindMember(kFieldNameValueType);
   if (type  == from.MemberEnd())
   {
@@ -89,7 +94,7 @@ rtRemoteValueReader::read(rtRemoteEnvironment* env, rtValue& to, rapidjson::Valu
     break;
     
     case RT_doubleType:
-    to.setFloat(static_cast<double>(val->value.GetDouble()));
+    to.setDouble(val->value.GetDouble());
     break;
 
     case RT_stringType:

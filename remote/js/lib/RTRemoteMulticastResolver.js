@@ -55,7 +55,7 @@ class RTRemoteMulticastResolver {
   start() {
     // create udp socket to send search response
     this.udpSocketOut = dgram.createSocket({
-      type:'udp4'
+      type: 'udp4',
     });
     this.udpSocketOut.bind(() => {
       this.udpSocketOut.setBroadcast(true);
