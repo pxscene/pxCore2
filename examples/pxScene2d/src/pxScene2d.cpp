@@ -593,7 +593,7 @@ void pxObject::createNewPromise()
   }
 }
 
-void pxObject::dispose()
+void pxObject::dispose(bool pumpJavascript)
 {
   if (!mIsDisposed)
   {
@@ -619,7 +619,7 @@ void pxObject::dispose()
     for(vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
     {
       (*it)->mParent = NULL;  // setParent mutates the mChildren collection
-      (*it)->dispose();
+      (*it)->dispose(false);
     }
     mChildren.clear();
     clearSnapshot(mSnapshotRef);
@@ -635,7 +635,12 @@ void pxObject::dispose()
       mScene->innerpxObjectDisposed(this);
     }
 #ifdef ENABLE_RT_NODE
-    script.pump();
+    if (pumpJavascript)
+    {
+      script.pump();
+    }
+#else
+    (void)pumpJavascript;
 #endif
  }
 }
@@ -675,6 +680,11 @@ rtError pxObject::animateToP2(rtObjectRef props, double duration,
                               uint32_t interp, uint32_t options,
                               int32_t count, rtObjectRef& promise)
 {
+  if (mIsDisposed)
+  {
+    return RT_OK;
+  }
+
   if (!props) return RT_FAIL;
 
   // TODO JR... not sure that we should do an early out here... thinking
@@ -903,7 +913,6 @@ rtError pxObject::animateTo(const char* prop, double to, double duration,
 {
   if (mIsDisposed)
   {
-    promise.send("reject",this);
     return RT_OK;
   }
   animateToInternal(prop, to, duration, ((pxConstantsAnimation*)CONSTANTS.animationConstants.getPtr())->getInterpFunc(interp),
@@ -1917,19 +1926,24 @@ rtError pxScene2d::dispose()
       pxObject* temp = (pxObject *) (mInnerpxObjects[i].getPtr());
       if ((NULL != temp) && (NULL == temp->parent()))
       {
-        temp->dispose();
+        temp->dispose(false);
       }
     }
     mInnerpxObjects.clear();
 
     if (mRoot)
-      mRoot->dispose();
+      mRoot->dispose(false);
     mEmit->clearListeners();
 
     mRoot     = NULL;
     mInfo     = NULL;
     mCanvas   = NULL;
     mFocusObj = NULL;
+
+    pxFontManager::clearAllFonts();
+    #ifdef ENABLE_RT_NODE
+    script.pump();
+    #endif //ENABLE_RT_NODE
 
     return RT_OK;
 }
@@ -2178,6 +2192,32 @@ rtError pxScene2d::logDebugMetrics()
 #else
     rtLogWarn("logDebugMetrics is disabled");
 #endif
+  return RT_OK;
+}
+
+rtError pxScene2d::collectGarbage()
+{
+  rtLogDebug("calling collectGarbage");
+  static bool collectGarbageEnabled = false;
+  static bool checkEnv = true;
+  if (checkEnv)
+  {
+    char const* s = getenv("SPARK_ENABLE_COLLECT_GARBAGE");
+    if (s && (strcmp(s,"1") == 0))
+    {
+      collectGarbageEnabled = true;
+    }
+    checkEnv = false;
+  }
+  if (collectGarbageEnabled)
+  {
+    rtLogWarn("performing a garbage collection");
+    script.collectGarbage();
+  }
+  else
+  {
+    rtLogWarn("forced garbage collection is disabled");
+  }
   return RT_OK;
 }
 
@@ -3253,6 +3293,7 @@ rtDefineProperty(pxScene2d, customAnimator);
 rtDefineMethod(pxScene2d, create);
 rtDefineMethod(pxScene2d, clock);
 rtDefineMethod(pxScene2d, logDebugMetrics);
+rtDefineMethod(pxScene2d, collectGarbage);
 //rtDefineMethod(pxScene2d, createWayland);
 rtDefineMethod(pxScene2d, addListener);
 rtDefineMethod(pxScene2d, delListener);
@@ -3508,7 +3549,7 @@ rtError pxSceneContainer::setScriptView(pxScriptView* scriptView)
   return RT_OK;
 }
 
-void pxSceneContainer::dispose()
+void pxSceneContainer::dispose(bool pumpJavascript)
 {
   if (!mIsDisposed)
   {
@@ -3516,7 +3557,7 @@ void pxSceneContainer::dispose()
     //Adding ref to make sure, object not destroyed from event listeners
     AddRef();
     setScriptView(NULL);
-    pxObject::dispose();
+    pxObject::dispose(pumpJavascript);
     Release();
   }
 }
