@@ -29,6 +29,8 @@ import org.pxscene.rt.RTValue;
 import org.pxscene.rt.RTValueType;
 import org.pxscene.rt.remote.messages.RTMessageCallMethodRequest;
 import org.pxscene.rt.remote.messages.RTMessageCallMethodResponse;
+import org.pxscene.rt.remote.messages.RTMessageGetPropertyByIndexRequest;
+import org.pxscene.rt.remote.messages.RTMessageGetPropertyByIndexResponse;
 import org.pxscene.rt.remote.messages.RTMessageGetPropertyByNameRequest;
 import org.pxscene.rt.remote.messages.RTMessageGetPropertyByNameResponse;
 import org.pxscene.rt.remote.messages.RTMessageKeepAliveRequest;
@@ -37,6 +39,8 @@ import org.pxscene.rt.remote.messages.RTMessageLocate;
 import org.pxscene.rt.remote.messages.RTMessageOpenSessionRequest;
 import org.pxscene.rt.remote.messages.RTMessageOpenSessionResponse;
 import org.pxscene.rt.remote.messages.RTMessageSearch;
+import org.pxscene.rt.remote.messages.RTMessageSetPropertyByIndexRequest;
+import org.pxscene.rt.remote.messages.RTMessageSetPropertyByIndexResponse;
 import org.pxscene.rt.remote.messages.RTMessageSetPropertyByNameRequest;
 import org.pxscene.rt.remote.messages.RTMessageSetPropertyByNameResponse;
 
@@ -111,6 +115,16 @@ public class RTRemoteSerializer {
         RTRemoteSerializer::fromJson_CallMethodRequest);
     decoders.put(RTRemoteMessageType.SERACH_OBJECT.toString(),
         RTRemoteSerializer::fromJson_SearchObject);
+    decoders.put(RTRemoteMessageType.SESSION_OPEN_REQUEST.toString(),
+        RTRemoteSerializer::fromJson_SessionRequest);
+    decoders.put(RTRemoteMessageType.GET_PROPERTY_BYINDEX_REQUEST.toString(),
+        RTRemoteSerializer::fromJson_GetPropertyByIndexRequest);
+    decoders.put(RTRemoteMessageType.GET_PROPERTY_BYINDEX_RESPONSE.toString(),
+        RTRemoteSerializer::fromJson_GetPropertyByIndexResponse);
+    decoders.put(RTRemoteMessageType.SET_PROPERTY_BYINDEX_REQUEST.toString(),
+        RTRemoteSerializer::fromJson_SetPropertyByIndexRequest);
+    decoders.put(RTRemoteMessageType.SET_PROPERTY_BYINDEX_RESPONSE.toString(),
+        RTRemoteSerializer::fromJson_SetPropertyByIndexResponse);
   }
 
   /**
@@ -211,6 +225,24 @@ public class RTRemoteSerializer {
 
 
   /**
+   * parse message RTMessageOpenSessionRequest
+   *
+   * @param obj the message json object
+   * @return the RTMessageOpenSessionRequest
+   * @throws NullPointerException if message object is null
+   */
+  private static RTMessageOpenSessionRequest fromJson_SessionRequest(JsonObject obj) {
+    if (obj == null) {
+      throw new NullPointerException("fromJson_SessionRequest obj cannot be null");
+    }
+    RTMessageOpenSessionRequest request = new RTMessageOpenSessionRequest();
+    request.setCorrelationKey(obj.getString(RTConst.CORRELATION_KEY));
+    request.setObjectId(obj.getString(RTConst.OBJECT_ID_KEY));
+    return request;
+  }
+
+
+  /**
    * parse message SetPropertyByNameRequest
    * example json :
    * "{"message.type":"set.byname.request","object.id":"some_name","property.name":"prop",
@@ -234,6 +266,83 @@ public class RTRemoteSerializer {
     return req;
   }
 
+  /**
+   * parse message SetPropertyByNameRequest
+   *
+   * @param obj the message json object
+   * @return the RTMessageSetPropertyByNameRequest
+   * @throws NullPointerException if message object is null
+   */
+  private static RTMessageGetPropertyByIndexRequest fromJson_GetPropertyByIndexRequest(
+      JsonObject obj) {
+    RTMessageGetPropertyByIndexRequest req = new RTMessageGetPropertyByIndexRequest();
+    req.setCorrelationKey(obj.getString(RTConst.CORRELATION_KEY));
+    req.setObjectId(obj.getString(RTConst.OBJECT_ID_KEY));
+    req.setPropertyName(obj.getString(RTConst.PROPERTY_NAME));
+    req.setIndex(obj.getInt(RTConst.PROPERTY_INDEX));
+    return req;
+  }
+
+  /**
+   * parse message SetPropertyByNameResponse
+   *
+   * @param obj the message json object
+   * @return the RTMessageGetPropertyByNameResponse
+   * @throws NullPointerException if message object is null
+   */
+  private static RTMessageGetPropertyByIndexResponse fromJson_GetPropertyByIndexResponse(
+      JsonObject obj) {
+    RTMessageGetPropertyByIndexResponse res = new RTMessageGetPropertyByIndexResponse();
+    res.setCorrelationKey(obj.getString(RTConst.CORRELATION_KEY));
+    res.setObjectId(obj.getString(RTConst.OBJECT_ID_KEY));
+    res.setStatus(fromJson_SparkStatus(obj));
+    if (obj.containsKey(RTConst.VALUE)) {
+      JsonObject valueObject = obj.getJsonObject(RTConst.VALUE);
+      res.setValue(valueFromJson(valueObject));
+    }
+    return res;
+  }
+
+  /**
+   * parse message RTMessageSetPropertyByIndexRequest
+   *
+   * @param obj the message json object
+   * @return the RTMessageSetPropertyByNameRequest
+   * @throws NullPointerException if message object is null
+   */
+  private static RTMessageSetPropertyByIndexRequest fromJson_SetPropertyByIndexRequest(
+      JsonObject obj) {
+    if (obj == null) {
+      throw new NullPointerException("obj");
+    }
+
+    RTMessageSetPropertyByIndexRequest req = new RTMessageSetPropertyByIndexRequest();
+    req.setCorrelationKey(obj.getString(RTConst.CORRELATION_KEY));
+    req.setObjectId(obj.getString(RTConst.OBJECT_ID_KEY));
+    req.setPropertyName(obj.getString(RTConst.PROPERTY_NAME));
+    req.setIndex(obj.getInt(RTConst.PROPERTY_INDEX));
+    req.setValue(valueFromJson(obj.getJsonObject(RTConst.VALUE)));
+    return req;
+  }
+
+  /**
+   * parse message RTMessageSetPropertyByIndexResponse
+   *
+   * @param obj the message json object
+   * @return the RTMessageGetPropertyByNameResponse
+   * @throws NullPointerException if message object is null
+   */
+  private static RTMessageSetPropertyByIndexResponse fromJson_SetPropertyByIndexResponse(
+      JsonObject obj) {
+    if (obj == null) {
+      throw new NullPointerException("obj");
+    }
+    RTMessageSetPropertyByIndexResponse res = new RTMessageSetPropertyByIndexResponse();
+    res.setCorrelationKey(obj.getString(RTConst.CORRELATION_KEY));
+    res.setObjectId(obj.getString(RTConst.OBJECT_ID_KEY));
+    res.setStatusCode(RTStatusCode.fromInt(obj.getInt(RTConst.STATUS_CODE)));
+    return res;
+  }
 
   /**
    * parse message SetPropertyByNameResponse
@@ -244,15 +353,15 @@ public class RTRemoteSerializer {
    * @return the RTMessageGetPropertyByNameResponse
    * @throws NullPointerException if message object is null
    */
-  private static RTMessageGetPropertyByNameResponse fromJson_SetPropertyByNameResponse(
+  private static RTMessageSetPropertyByNameResponse fromJson_SetPropertyByNameResponse(
       JsonObject obj) {
     if (obj == null) {
       throw new NullPointerException("obj");
     }
-    RTMessageGetPropertyByNameResponse res = new RTMessageGetPropertyByNameResponse();
+    RTMessageSetPropertyByNameResponse res = new RTMessageSetPropertyByNameResponse();
     res.setCorrelationKey(obj.getString(RTConst.CORRELATION_KEY));
     res.setObjectId(obj.getString(RTConst.OBJECT_ID_KEY));
-    res.setStatus(RTRemoteSerializer.fromJson_SparkStatus(obj));
+    res.setStatusCode(RTStatusCode.fromInt(obj.getInt(RTConst.STATUS_CODE)));
     return res;
   }
 
@@ -457,8 +566,10 @@ public class RTRemoteSerializer {
         break;
       case FUNCTION:
         RTFunction rtFunction = (RTFunction) value.getValue();
-        builder.add(RTConst.OBJECT_ID_KEY, rtFunction.getObjectId());
-        builder.add(RTConst.FUNCTION_KEY, rtFunction.getFunctionName());
+        JsonObjectBuilder valueBuilder = Json.createObjectBuilder();
+        valueBuilder.add(RTConst.OBJECT_ID_KEY, rtFunction.getObjectId());
+        valueBuilder.add(RTConst.FUNCTION_KEY, rtFunction.getFunctionName());
+        builder.add(RTConst.VALUE, valueBuilder);
         break;
       case OBJECT:
         JsonObjectBuilder objectBuilder = Json.createObjectBuilder();
@@ -515,7 +626,8 @@ public class RTRemoteSerializer {
         value = new RTValue(obj.getJsonNumber(RTConst.VALUE).intValue(), type);
         break;
       case FUNCTION:
-        value = jsonToFunctionValue(obj);
+        JsonObject v = obj.getJsonObject(RTConst.VALUE);
+        value = jsonToFunctionValue(v == null ? obj : v);
         break;
       case OBJECT:
         value = jsonToObjectValue(obj);
@@ -644,6 +756,27 @@ public class RTRemoteSerializer {
         .add(RTConst.MESSAGE_TYPE, req.getMessageType().toString())
         .add(RTConst.CORRELATION_KEY, req.getCorrelationKey())
         .add(RTConst.PROPERTY_NAME, req.getPropertyName())
+        .add(RTConst.OBJECT_ID_KEY, req.getObjectId())
+        .build();
+    return obj;
+  }
+
+  /**
+   * convert RTMessageGetPropertyByIndexRequest to json object
+   *
+   * @param req the RTMessageGetPropertyByIndexRequest entity
+   * @return the json object
+   * @throws NullPointerException if decoder object is null
+   */
+  private JsonObject toJson(RTMessageGetPropertyByIndexRequest req) {
+    if (req == null) {
+      throw new NullPointerException("req");
+    }
+    JsonObject obj = Json.createObjectBuilder()
+        .add(RTConst.MESSAGE_TYPE, req.getMessageType().toString())
+        .add(RTConst.CORRELATION_KEY, req.getCorrelationKey())
+        .add(RTConst.PROPERTY_NAME, req.getPropertyName())
+        .add(RTConst.PROPERTY_INDEX, req.getIndex())
         .add(RTConst.OBJECT_ID_KEY, req.getObjectId())
         .build();
     return obj;
@@ -802,7 +935,11 @@ public class RTRemoteSerializer {
    * @throws NullPointerException if decoder object is null
    */
   private JsonObject toJson(RTMessageOpenSessionResponse res) {
-    return null;
+    return Json.createObjectBuilder()
+        .add(RTConst.MESSAGE_TYPE, res.getMessageType().toString())
+        .add(RTConst.CORRELATION_KEY,res.getCorrelationKey())
+        .add(RTConst.OBJECT_ID_KEY, res.getObjectId())
+        .build();
   }
 
   /**
@@ -818,6 +955,24 @@ public class RTRemoteSerializer {
         .add(RTConst.CORRELATION_KEY, req.getCorrelationKey())
         .add(RTConst.OBJECT_ID_KEY, req.getObjectId())
         .add(RTConst.PROPERTY_NAME, req.getPropertyName())
+        .add(RTConst.VALUE, RTRemoteSerializer.valueToJson(req.getValue()))
+        .build();
+  }
+
+  /**
+   * convert RTMessageSetPropertyByIndexRequest to json object
+   *
+   * @param req the RTMessageSetPropertyByIndexRequest entity
+   * @return the json object
+   * @throws NullPointerException if decoder object is null
+   */
+  private JsonObject toJson(RTMessageSetPropertyByIndexRequest req) {
+    return Json.createObjectBuilder()
+        .add(RTConst.MESSAGE_TYPE, req.getMessageType().toString())
+        .add(RTConst.CORRELATION_KEY, req.getCorrelationKey())
+        .add(RTConst.OBJECT_ID_KEY, req.getObjectId())
+        .add(RTConst.PROPERTY_NAME, req.getPropertyName())
+        .add(RTConst.PROPERTY_INDEX, req.getIndex())
         .add(RTConst.VALUE, RTRemoteSerializer.valueToJson(req.getValue()))
         .build();
   }
@@ -847,6 +1002,17 @@ public class RTRemoteSerializer {
    * @throws RTException if any other error occurred during operation
    */
   public byte[] toBytes(RTMessageCallMethodRequest m) throws RTException {
+    return RTRemoteSerializer.toBytes(toJson(m));
+  }
+
+  /**
+   * convert RTMessageOpenSessionResponse to bytes
+   *
+   * @param m the RTMessageOpenSessionResponse entity
+   * @return the bytes
+   * @throws RTException if any other error occurred during operation
+   */
+  public byte[] toBytes(RTMessageOpenSessionResponse m) throws RTException {
     return RTRemoteSerializer.toBytes(toJson(m));
   }
 
@@ -884,6 +1050,18 @@ public class RTRemoteSerializer {
   }
 
   /**
+   * convert RTMessageSetPropertyByIndexRequest to bytes
+   *
+   * @param m the RTMessageSetPropertyByIndexRequest entity
+   * @return the bytes
+   * @throws RTException if any other error occurred during operation
+   */
+  public byte[] toBytes(RTMessageSetPropertyByIndexRequest m) throws RTException {
+    return RTRemoteSerializer.toBytes(toJson(m));
+  }
+
+
+  /**
    * convert RTMessageGetPropertyByNameRequest to bytes
    *
    * @param m the RTMessageGetPropertyByNameRequest entity
@@ -891,6 +1069,17 @@ public class RTRemoteSerializer {
    * @throws RTException if any other error occurred during operation
    */
   public byte[] toBytes(RTMessageGetPropertyByNameRequest m) throws RTException {
+    return RTRemoteSerializer.toBytes(toJson(m));
+  }
+
+  /**
+   * convert RTMessageGetPropertyByIndexRequest to bytes
+   *
+   * @param m the RTMessageGetPropertyByNameRequest entity
+   * @return the bytes
+   * @throws RTException if any other error occurred during operation
+   */
+  public byte[] toBytes(RTMessageGetPropertyByIndexRequest m) throws RTException {
     return RTRemoteSerializer.toBytes(toJson(m));
   }
 

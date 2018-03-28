@@ -8,6 +8,7 @@ import org.pxscene.rt.RTException;
 import org.pxscene.rt.RTFunction;
 import org.pxscene.rt.RTObject;
 import org.pxscene.rt.RTValue;
+import org.pxscene.rt.RTValueType;
 
 /**
  *
@@ -39,13 +40,22 @@ public class SampleObject {
 
   private String string;
 
-  private Long vptr;
+  private RTValue vptr = new RTValue(0, RTValueType.VOIDPTR);
 
   private RTFunction onTick;
 
   private RTObject objvar;
 
+  private List<RTValue> arr;
+
   private Integer methodValue = 0;
+
+  public SampleObject() {
+    arr = new ArrayList<>();
+    arr.add(new RTValue(10));
+    arr.add(new RTValue(103.3f));
+    arr.add(new RTValue("hello world"));
+  }
 
   public Integer method1AndReturn(Integer in) {
     return in * 2;
@@ -175,11 +185,11 @@ public class SampleObject {
     this.string = string;
   }
 
-  public Long getVptr() {
+  public RTValue getVptr() {
     return this.vptr;
   }
 
-  public void setVptr(Long vptr) {
+  public void setVptr(RTValue vptr) {
     this.vptr = vptr;
   }
 
@@ -197,5 +207,13 @@ public class SampleObject {
 
   public void setObjvar(RTObject objvar) {
     this.objvar = objvar;
+  }
+
+  public List<RTValue> getArr() {
+    return arr;
+  }
+
+  public void setArr(List<RTValue> arr) {
+    this.arr = arr;
   }
 }

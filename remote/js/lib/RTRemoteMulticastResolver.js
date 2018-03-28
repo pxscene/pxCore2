@@ -54,7 +54,9 @@ class RTRemoteMulticastResolver {
    */
   start() {
     // create udp socket to send search response
-    this.udpSocketOut = dgram.createSocket('udp4');
+    this.udpSocketOut = dgram.createSocket({
+      type: 'udp4',
+    });
     this.udpSocketOut.bind(() => {
       this.udpSocketOut.setBroadcast(true);
       this.udpSocketOut.addMembership(this.address);
@@ -133,7 +135,7 @@ class RTRemoteMulticastResolver {
           preCheckTime = now;
 
           // do next search
-          this.udpSocketOut.send(locateBuffer, this.port, this.address, (err) => {
+          this.udpSocketOut.send(locateBuffer, this.port, ip.address(), (err) => {
             if (err) {
               clearInterval(intervalId);
               reject(err);

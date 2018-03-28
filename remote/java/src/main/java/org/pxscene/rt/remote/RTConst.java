@@ -11,6 +11,7 @@ public final class RTConst {
   public static final String CORRELATION_KEY = "correlation.key";
   public static final String OBJECT_ID_KEY = "object.id";
   public static final String PROPERTY_NAME = "property.name";
+  public static final String PROPERTY_INDEX = "property.index";
   public static final String FUNCTION_ARGS = "function.args";
   public static final String STATUS_MESSAGE = "status.message";
   public static final String MESSAGE_TYPE = "message.type";
@@ -34,6 +35,11 @@ public final class RTConst {
    * the tcp backlog
    */
   public static final int BACK_LOG = 50;
+
+  /**
+   * the udp listen interface
+   */
+  public static final String LISTEN_INTERFACE = "lo";
 
 
 }

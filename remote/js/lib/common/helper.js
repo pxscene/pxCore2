@@ -14,6 +14,7 @@ const RTStatusCode = require('../RTStatusCode');
 const RTValueType = require('../RTValueType');
 const RTConst = require('../RTConst');
 const RTEnvironment = require('../RTEnvironment');
+const RTRemoteMessageType = require('../RTRemoteMessageType');
 const logger = require('./logger');
 
 /**
@@ -110,20 +111,25 @@ function checkAndDumpObject(objectName, object) {
  * @return {object} the new rt function
  */
 function updateListenerForRTFuction(protocol, rtFunction) {
-  if (rtFunction && rtFunction[RTConst.VALUE]) {
+  if (rtFunction && rtFunction[RTConst.VALUE] && rtFunction[RTConst.VALUE][RTConst.VALUE]) {
     return rtFunction;
   }
 
   const newRtFunction = {};
+  const rtValue = {};
   newRtFunction[RTConst.VALUE] = (rtValueList) => {
     const args = rtValueList || [];
-    return protocol.sendCallByName(rtFunction[RTConst.OBJECT_ID_KEY], rtFunction[RTConst.FUNCTION_KEY], ...args);
+    return protocol.sendCallByName(
+      rtFunction[RTConst.VALUE][RTConst.OBJECT_ID_KEY],
+      rtFunction[RTConst.VALUE][RTConst.FUNCTION_KEY], ...args,
+    );
   };
-  newRtFunction[RTConst.TYPE] = RTValueType.FUNCTION;
-  newRtFunction[RTConst.FUNCTION_KEY] = rtFunction[RTConst.FUNCTION_KEY];
-  newRtFunction[RTConst.OBJECT_ID_KEY] = rtFunction[RTConst.OBJECT_ID_KEY];
-  RTEnvironment.getRtFunctionMap()[rtFunction[RTConst.FUNCTION_KEY]] = newRtFunction[RTConst.VALUE];
-  return newRtFunction;
+  newRtFunction[RTConst.FUNCTION_KEY] = rtFunction[RTConst.VALUE][RTConst.FUNCTION_KEY];
+  newRtFunction[RTConst.OBJECT_ID_KEY] = rtFunction[RTConst.VALUE][RTConst.OBJECT_ID_KEY];
+  rtValue[RTConst.VALUE] = newRtFunction;
+  rtValue[RTConst.TYPE] = RTValueType.FUNCTION;
+  RTEnvironment.getRtFunctionMap()[newRtFunction[RTConst.FUNCTION_KEY]] = newRtFunction[RTConst.VALUE];
+  return rtValue;
 }
 
 /**
@@ -138,13 +144,13 @@ function getRTMessageHelper() {
 }
 
 /**
- * set object value by property name
+ * set object value
  *
  * @param object the object value
  * @param requestMessage the set request message
  * @return {object} the set property response
  */
-function setPropertyByName(object, requestMessage) {
+function setProperty(object, requestMessage) {
   const response = getRTMessageHelper().newSetPropertyResponse(
     requestMessage[RTConst.CORRELATION_KEY],
     RTStatusCode.UNKNOWN,
@@ -158,6 +164,16 @@ function setPropertyByName(object, requestMessage) {
     const rtValue = requestMessage[RTConst.VALUE];
     if (!object[propName]) { // not found
       response[RTConst.STATUS_CODE] = RTStatusCode.PROPERTY_NOT_FOUND;
+    } else if (requestMessage[RTConst.MESSAGE_TYPE] === RTRemoteMessageType.SET_PROPERTY_BYINDEX_REQUEST) {
+      const index = requestMessage[RTConst.PROPERTY_INDEX];
+      if (!Array.isArray(object[propName])) { // should be array
+        response[RTConst.STATUS_CODE] = RTStatusCode.TYPE_MISMATCH;
+      } else if (index >= object[propName].length) {
+        response[RTConst.STATUS_CODE] = RTStatusCode.INVALID_ARGUMENT;
+      } else {
+        object[propName][index] = rtValue;
+        response[RTConst.STATUS_CODE] = RTStatusCode.OK;
+      }
     } else if (getValueType(object[propName]) !== rtValue[RTConst.TYPE]) { // type mismatch
       response[RTConst.STATUS_CODE] = RTStatusCode.TYPE_MISMATCH;
     } else { // ok
@@ -172,12 +188,12 @@ function setPropertyByName(object, requestMessage) {
 }
 
 /**
- * get value by property name
+ * get value by property name/index
  * @param {object} object the object value
  * @param {object} getRequest the request message
  * @return {object} the get response with value
  */
-function getPropertyByName(object, getRequest) {
+function getProperty(object, getRequest) {
   const response = getRTMessageHelper().newGetPropertyResponse(
     getRequest[RTConst.CORRELATION_KEY],
     RTStatusCode.UNKNOWN,
@@ -190,8 +206,26 @@ function getPropertyByName(object, getRequest) {
     const propName = getRequest[RTConst.PROPERTY_NAME];
     if (!object[propName]) { // not found
       response[RTConst.STATUS_CODE] = RTStatusCode.PROPERTY_NOT_FOUND;
+    } else if (getRequest[RTConst.MESSAGE_TYPE] === RTRemoteMessageType.GET_PROPERTY_BYINDEX_REQUEST) { // get by index
+      const index = getRequest[RTConst.PROPERTY_INDEX];
+      if (!Array.isArray(object[propName])) { // should be array
+        response[RTConst.STATUS_CODE] = RTStatusCode.TYPE_MISMATCH;
+      } else if (index >= object[propName].length) { // check index
+        response[RTConst.STATUS_CODE] = RTStatusCode.INVALID_ARGUMENT;
+      } else {
+        response[RTConst.VALUE] = object[propName][index];
+        response[RTConst.STATUS_CODE] = RTStatusCode.OK;
+      }
     } else { // ok
-      response[RTConst.VALUE] = object[propName];
+      if (typeof object[propName] === 'function') {
+        const v = {};
+        v[RTConst.TYPE] = RTValueType.FUNCTION;
+        v[RTConst.OBJECT_ID_KEY] = getRequest[RTConst.OBJECT_ID_KEY];
+        v[RTConst.FUNCTION_KEY] = propName;
+        response[RTConst.VALUE] = v;
+      } else {
+        response[RTConst.VALUE] = object[propName];
+      }
       response[RTConst.STATUS_CODE] = RTStatusCode.OK;
     }
   }
@@ -229,9 +263,9 @@ function invokeMethod(object, callRequest) {
 module.exports = {
   getRandomUUID,
   getStatusStringByCode,
-  setPropertyByName,
+  setProperty,
   getTypeStringByType,
-  getPropertyByName,
+  getProperty,
   checkAndDumpObject,
   isBigNumber,
   invokeMethod,

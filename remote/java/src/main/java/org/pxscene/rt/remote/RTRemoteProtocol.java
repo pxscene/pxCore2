@@ -29,13 +29,21 @@ import org.apache.log4j.Logger;
 import org.pxscene.rt.RTEnvironment;
 import org.pxscene.rt.RTException;
 import org.pxscene.rt.RTFunction;
+import org.pxscene.rt.RTStatus;
 import org.pxscene.rt.RTStatusCode;
 import org.pxscene.rt.RTValue;
 import org.pxscene.rt.remote.messages.RTMessageCallMethodRequest;
 import org.pxscene.rt.remote.messages.RTMessageCallMethodResponse;
+import org.pxscene.rt.remote.messages.RTMessageGetPropertyByIndexRequest;
+import org.pxscene.rt.remote.messages.RTMessageGetPropertyByIndexResponse;
 import org.pxscene.rt.remote.messages.RTMessageGetPropertyByNameRequest;
 import org.pxscene.rt.remote.messages.RTMessageGetPropertyByNameResponse;
+import org.pxscene.rt.remote.messages.RTMessageOpenSessionRequest;
+import org.pxscene.rt.remote.messages.RTMessageOpenSessionResponse;
+import org.pxscene.rt.remote.messages.RTMessageSetPropertyByIndexRequest;
+import org.pxscene.rt.remote.messages.RTMessageSetPropertyByIndexResponse;
 import org.pxscene.rt.remote.messages.RTMessageSetPropertyByNameRequest;
+import org.pxscene.rt.remote.messages.RTMessageSetPropertyByNameResponse;
 
 /**
  * the rt remote protocol entity.
@@ -134,7 +142,7 @@ public class RTRemoteProtocol implements Runnable {
   }
 
   /**
-   * send get by property by id request
+   * send get by property by index request
    * TODO not implemented
    *
    * @param objectId the object id
@@ -142,22 +150,60 @@ public class RTRemoteProtocol implements Runnable {
    * @return the future task
    * @throws RTException if any other error occurred during operation
    */
-  Future<RTValue> sendGetById(String objectId, int index) throws RTException {
-    throw new RTException("not implemented");
+  Future<RTValue> sendGetByIndex(String objectId,String name, int index) throws RTException {
+    String correlationKey = RTRemoteProtocol.newCorrelationKey();
+    RTRemoteFuture<RTValue> future = new RTRemoteFuture<>(correlationKey);
+    CallContext context = new CallContext(future, (message, closure) -> {
+      try {
+        RTMessageGetPropertyByIndexResponse res = (RTMessageGetPropertyByIndexResponse) message;
+        closure.complete(res.getValue(), res.getStatus());
+      } catch (Exception err) {
+        logger.warn("error updating status of Future", err);
+      }
+    });
+    put(correlationKey, context);
+    RTMessageGetPropertyByIndexRequest m = new RTMessageGetPropertyByIndexRequest();
+    m.setObjectId(objectId);
+    m.setPropertyName(name);
+    m.setIndex(index);
+    m.setCorrelationKey(correlationKey);
+    transport.send(serializer.toBytes(m));
+    return future;
   }
 
   /**
    * send set by property by id request
-   * TODO not implemented
    *
    * @param objectId the object id
+   * @param name the property name
    * @param index the property index
    * @param value the new value
    * @return the future task
    * @throws RTException if any other error occurred during operation
    */
-  Future<Void> sendSetById(String objectId, int index, RTValue value) throws RTException {
-    throw new RTException("not implemented");
+  Future<Void> sendSetByIndex(String objectId,String name, int index, RTValue value) throws RTException {
+    String correlationKey = RTRemoteProtocol.newCorrelationKey();
+    RTRemoteFuture<Void> future = new RTRemoteFuture<>(correlationKey);
+
+    CallContext context = new CallContext(future, (message, closure) -> {
+      try {
+        RTMessageSetPropertyByIndexResponse res = (RTMessageSetPropertyByIndexResponse) message;
+        closure.complete(null, new RTStatus(res.getStatusCode()));
+      } catch (Exception err) {
+        logger.warn("error updating status of Future", err);
+      }
+    });
+
+    put(correlationKey, context);
+    RTMessageSetPropertyByIndexRequest m = new RTMessageSetPropertyByIndexRequest();
+    m.setObjectId(objectId);
+    m.setPropertyName(name);
+    m.setCorrelationKey(correlationKey);
+    m.setIndex(index);
+    m.setValue(value);
+    transport.send(serializer.toBytes(m));
+
+    return future;
   }
 
 
@@ -257,8 +303,8 @@ public class RTRemoteProtocol implements Runnable {
 
     CallContext context = new CallContext(future, (message, closure) -> {
       try {
-        RTMessageGetPropertyByNameResponse res = (RTMessageGetPropertyByNameResponse) message;
-        closure.complete(null, res.getStatus());
+        RTMessageSetPropertyByNameResponse res = (RTMessageSetPropertyByNameResponse) message;
+        closure.complete(null, new RTStatus(res.getStatusCode()));
       } catch (Exception err) {
         logger.warn("error updating status of Future", err);
       }
@@ -321,6 +367,13 @@ public class RTRemoteProtocol implements Runnable {
         CallContext context = get(message.getCorrelationKey());
         if (context != null) {
           context.complete(message);
+        } else if(message.getMessageType().equals(RTRemoteMessageType.KEEP_ALIVE_REQUEST)){
+          // return keep alive response
+          this.sendkeepAliveReponse(message.getCorrelationKey());
+        } else if(message.getMessageType().equals(RTRemoteMessageType.KEEP_ALIVE_RESPONSE)){
+          // ignore this
+        } else if(message.getMessageType().equals(RTRemoteMessageType.SESSION_OPEN_REQUEST)){
+          this.sendOpenSessionReponse((RTMessageOpenSessionRequest)message);
         } else if (RTEnvironment.isServerMode()) {
           processMessageInServerMode(message);
         } else {
@@ -333,9 +386,7 @@ public class RTRemoteProtocol implements Runnable {
   }
 
   private void processMessageInClientMode(RTRemoteMessage message) throws RTException {
-    if (message.getMessageType().equals(RTRemoteMessageType.KEEP_ALIVE_REQUEST)) {
-      // TODO this mean server send keep alive request to client, simple continue for now
-    } else if (message.getMessageType().equals(RTRemoteMessageType.METHOD_CALL_REQUEST)) {
+    if (message.getMessageType().equals(RTRemoteMessageType.METHOD_CALL_REQUEST)) {
       // this mean server invoke client function,and these is no CallContext
       // let do this in this thread for now
       RTMessageCallMethodRequest request = (RTMessageCallMethodRequest) message;
@@ -354,6 +405,31 @@ public class RTRemoteProtocol implements Runnable {
 
   private void processMessageInServerMode(RTRemoteMessage message) {
     rtRemoteServer.getMessageQueue().add(new RTRemoteTask(this, message));
+  }
+
+  /**
+   * when otherside send keep alive request, should return response
+   * @param correlationKey the call request correlation key
+   * @throws RTException if any other error occurred during operation
+   */
+  private void sendkeepAliveReponse(String correlationKey) throws RTException {
+    JsonObjectBuilder builder = Json.createObjectBuilder();
+    builder.add(RTConst.MESSAGE_TYPE, RTRemoteMessageType.KEEP_ALIVE_RESPONSE.toString());
+    builder.add(RTConst.CORRELATION_KEY, correlationKey);
+    builder.add(RTConst.STATUS_CODE, RTStatusCode.OK.getCode());
+    transport.send(builder.build().toString().getBytes(RTRemoteSerializer.CHARSET));
+  }
+
+  /**
+   * when otherside send open session request, should return response
+   * @param request the open session request
+   * @throws RTException if any other error occurred during operation
+   */
+  private void sendOpenSessionReponse(RTMessageOpenSessionRequest request) throws RTException {
+    RTMessageOpenSessionResponse response = new RTMessageOpenSessionResponse();
+    response.setObjectId(request.getObjectId());
+    response.setCorrelationKey(request.getCorrelationKey());
+    transport.send(serializer.toBytes(response));
   }
 
   /**

@@ -31,6 +31,10 @@ public class RTRemoteMessage {
     return this.messageType;
   }
 
+  public void setMessageType(RTRemoteMessageType messageType) {
+    this.messageType = messageType;
+  }
+
   public String getCorrelationKey() {
     return this.correlationKey;
   }

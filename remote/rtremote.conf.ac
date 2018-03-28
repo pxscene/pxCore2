@@ -13,7 +13,7 @@
     "type":"int32" },
 
 { "name":"rt.rpc.server.socket_family",
-    "default_value":"unix",
+    "default_value":"tcp",
     "type":"string" },
 
 { "name":"rt.rpc.server.use_dispatch_thread",
