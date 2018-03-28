@@ -161,7 +161,7 @@ void pxImageA::draw()
   }
 }
 
-void pxImageA::dispose()
+void pxImageA::dispose(bool pumpJavascript)
 {
   if (mListenerAdded)
   {
@@ -172,7 +172,7 @@ void pxImageA::dispose()
     mResource = NULL;
     mListenerAdded = false;
   }
-  pxObject::dispose();
+  pxObject::dispose(pumpJavascript);
 }
 
 #if 0
