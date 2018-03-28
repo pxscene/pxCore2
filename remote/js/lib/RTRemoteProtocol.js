@@ -135,8 +135,7 @@ class RTRemoteProtocol {
       // that's mean this program send keep live request to other side, and got reponse from other side
       // so this reponse can be ignored
     } else if (message[RTConst.MESSAGE_TYPE] === RTRemoteMessageType.SESSION_OPEN_REQUEST) {
-      this.transport.send(RTRemoteSerializer.toBuffer(RTMessageHelper
-        .newOpenSessionResponse(message[RTConst.CORRELATION_KEY], message[RTConst.OBJECT_ID_KEY])));
+      this.transport.send(RTRemoteSerializer.toBuffer(RTMessageHelper.newOpenSessionResponse(message[RTConst.CORRELATION_KEY], message[RTConst.OBJECT_ID_KEY])));
     } else if (RTEnvironment.isServerMode()) {
       this.processMessageInServerMode(message);
     } else {

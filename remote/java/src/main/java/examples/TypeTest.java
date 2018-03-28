@@ -217,7 +217,7 @@ public class TypeTest {
    * so i need use eps to check equal
    */
   private boolean checkEqualsFloat(Object v1, Object v2) {
-    float eps = 0.000001f;
+    float eps = 0.001f;
     if (Math.abs((float) v1 - (float) v2) < eps) {
       return true;
     }

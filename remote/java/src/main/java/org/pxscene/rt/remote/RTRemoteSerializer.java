@@ -537,8 +537,7 @@ public class RTRemoteSerializer {
         value = new RTValue(obj.getJsonNumber(RTConst.VALUE).intValue(), type);
         break;
       case FUNCTION:
-        JsonObject v = obj.getJsonObject(RTConst.VALUE);
-        value = jsonToFunctionValue(v == null ? obj: v);
+        value = jsonToFunctionValue(obj.getJsonObject(RTConst.VALUE));
         break;
       case OBJECT:
         value = jsonToObjectValue(obj);
