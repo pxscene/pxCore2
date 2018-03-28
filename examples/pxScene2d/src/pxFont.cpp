@@ -185,7 +185,7 @@ void pxFont::loadResourceFromFile()
     if (e != RT_OK)
     {
       rtLogWarn("Could not load font face %s\n", mUrl.cString());
-      mLoadStatus.set("statusCode", PX_RESOURCE_STATUS_FILE_NOT_FOUND);
+      setLoadStatus("statusCode", PX_RESOURCE_STATUS_FILE_NOT_FOUND);
       // Since this object can be released before we get a async completion
       // We need to maintain this object's lifetime
       // TODO review overall flow and organization
@@ -197,7 +197,7 @@ void pxFont::loadResourceFromFile()
     }
     else
     {
-      mLoadStatus.set("statusCode", PX_RESOURCE_STATUS_OK);
+      setLoadStatus("statusCode", PX_RESOURCE_STATUS_OK);
       // Since this object can be released before we get a async completion
       // We need to maintain this object's lifetime
       // TODO review overall flow and organization

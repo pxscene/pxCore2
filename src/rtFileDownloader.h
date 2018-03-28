@@ -97,6 +97,8 @@ public:
   bool isCurlDefaultTimeoutSet();
   void setOrigin(const char* origin);
   rtString origin();
+  void cancelRequest();
+  bool isCanceled();
 
 private:
   rtString mFileUrl;
@@ -126,6 +128,8 @@ private:
   char mHttpErrorBuffer[CURL_ERROR_SIZE];
   bool mDefaultTimeout;
   rtString mOrigin;
+  bool mCanceled;
+  rtMutex mCanceledMutex;
 };
 
 struct rtFileDownloadHandle
@@ -142,6 +146,8 @@ public:
 
     static rtFileDownloader* instance();
     static void setCallbackFunctionThreadSafe(rtFileDownloadRequest* downloadRequest, void (*callbackFunction)(rtFileDownloadRequest*), void* owner);
+    static void cancelDownloadRequestThreadSafe(rtFileDownloadRequest* downloadRequest, void* owner);
+    static bool isDownloadRequestCanceled(rtFileDownloadRequest* downloadRequest, void* owner);
 
     virtual bool addToDownloadQueue(rtFileDownloadRequest* downloadRequest);
     virtual void raiseDownloadPriority(rtFileDownloadRequest* downloadRequest);
