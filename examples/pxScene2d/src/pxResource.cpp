@@ -100,7 +100,23 @@ void pxResource::addListener(pxResourceListener* pListener)
   else 
   {
     mListenersMutex.lock();
-    mListeners.push_back(pListener);
+    bool found = false;
+    for (list<pxResourceListener*>::iterator it = mListeners.begin();
+         it != mListeners.end(); ++it)
+    {
+      if((*it) == pListener)
+      {
+        found = true;
+        break;
+      }
+
+    }
+    if (!found)
+    {
+      // only add unique listeners
+      mListeners.push_back(pListener);
+    }
+
     mListenersMutex.unlock();
   }
   
