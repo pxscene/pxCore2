@@ -49,11 +49,12 @@ public:
 
   rtError resource(rtObjectRef& o) const { o = mResource; return RT_OK; }
   rtError setResource(rtObjectRef o);
+  rtError removeResourceListener();
   virtual void resourceReady(rtString readyResolution);
 
   virtual void update(double t);
   virtual void draw();
-  virtual void dispose();
+  virtual void dispose(bool pumpJavascript);
   
 protected:
   virtual void onInit();

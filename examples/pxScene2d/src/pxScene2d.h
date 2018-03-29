@@ -90,7 +90,7 @@ class AsyncScriptInfo {
 //#define USE_SCENE_POINTER
 
 // TODO Move this to pxEventLoop
-extern rtThreadQueue gUIThreadQueue;
+extern rtThreadQueue* gUIThreadQueue;
 
 // TODO Finish
 //#include "pxTransform.h"
@@ -381,7 +381,7 @@ public:
   rtError moveToFront();
   rtError moveToBack();
 
-  virtual void dispose();
+  virtual void dispose(bool pumpJavascript);
 
   void drawInternal(bool maskPass=false);
   virtual void draw() {}
@@ -697,7 +697,7 @@ public:
 
   rtError releaseResources()
   {
-     dispose();
+     dispose(true);
      return RT_OK;
   }
 
@@ -1015,7 +1015,7 @@ public:
     return c;
   }
 
-  void dispose();
+  virtual void dispose(bool pumpJavascript);
   rtError url(rtString& v) const { v = mUrl; return RT_OK; }
   rtError setUrl(rtString v);
 
@@ -1293,6 +1293,7 @@ public:
   rtMethod1ArgAndReturn("create", create, rtObjectRef, rtObjectRef);
   rtMethodNoArgAndReturn("clock", clock, uint64_t);
   rtMethodNoArgAndNoReturn("logDebugMetrics", logDebugMetrics);
+  rtMethodNoArgAndNoReturn("collectGarbage", collectGarbage);
   rtReadOnlyProperty(info, info, rtObjectRef);
 /*
   rtMethod1ArgAndReturn("createExternal", createExternal, rtObjectRef,
@@ -1425,6 +1426,7 @@ public:
 
   rtError clock(uint64_t & time);
   rtError logDebugMetrics();
+  rtError collectGarbage();
 
   rtError addListener(rtString eventName, const rtFunctionRef& f)
   {

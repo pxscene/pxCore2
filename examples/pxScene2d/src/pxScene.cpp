@@ -85,6 +85,8 @@ vector<AsyncScriptInfo*> scriptsInfo;
 static uv_work_t nodeLoopReq;
 #endif
 
+#include "rtThreadPool.h"
+
 #include <stdlib.h>
 #include <fstream>
 
@@ -251,6 +253,7 @@ protected:
       gApplicationIsClosing = true;
     
     rtLogInfo(__FUNCTION__);
+    
     ENTERSCENELOCK();
     if (mView)
       mView->onCloseRequest();
@@ -281,6 +284,9 @@ protected:
     pxFontManager::clearAllFonts();
     
     context.term();
+#ifdef RUNINMAIN
+    script.pump();
+#endif
     script.collectGarbage();
 
     if (gDumpMemUsage)
