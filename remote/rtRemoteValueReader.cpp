@@ -89,7 +89,7 @@ rtRemoteValueReader::read(rtRemoteEnvironment* env, rtValue& to, rapidjson::Valu
     break;
     
     case RT_doubleType:
-    to.setFloat(static_cast<double>(val->value.GetDouble()));
+    to.setDouble(val->value.GetDouble());
     break;
 
     case RT_stringType:
