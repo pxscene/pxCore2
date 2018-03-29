@@ -29,8 +29,11 @@ WebSocketManager.prototype.clearConnection = function(client) {
 WebSocketManager.prototype.clearConnections = function() {
   var connectionLength = this.connections.length;
   for (var i = 0; i < connectionLength; i++) {
-    this.connections[i].close();
-    delete this.connections[i];
+    if (null != this.connections[i]) {
+      this.connections[i].close();
+      this.connections[i].closeimmediate();
+      delete this.connections[i];
+    }
   };
   this.connections.splice(0, this.connections.length);
   delete this.connections;
