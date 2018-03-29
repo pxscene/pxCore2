@@ -735,6 +735,7 @@ protected:
   bool mRepaint;
   #ifdef PX_DIRTY_RECTANGLES
   bool mIsDirty;
+  bool mIsTreeDirty;
   pxMatrix4f mLastRenderMatrix;
   pxRect mScreenCoordinates;
   pxRect mDirtyRect;
@@ -746,6 +747,7 @@ protected:
   void setDirtyRect(pxRect* r);
   pxRect getBoundingRectInScreenCoordinates();
   pxRect convertToScreenCoordinates(pxRect* r);
+  inline void markBranchDirty();
   #endif //PX_DIRTY_RECTANGLES
 
   pxScene2d* mScene;
@@ -1147,6 +1149,9 @@ public:
     return mEmit->delListener(eventName, f);
   }
   
+  pxIViewContainer* getViewContainer() {
+    return mViewContainer;
+  }
 protected:
 
   static rtError getScene(int /*numArgs*/, const rtValue* /*args*/, rtValue* result, void* ctx);
@@ -1566,6 +1571,9 @@ public:
   rtError getService(const char* name, const rtObjectRef& ctx, rtObjectRef& service);
   rtError getAvailableApplications(rtString& availableApplications);
 
+  pxScriptView* getScriptView() {
+    return mScriptView;
+  }
 private:
   bool bubbleEvent(rtObjectRef e, rtRef<pxObject> t, 
                    const char* preEvent, const char* event) ;
