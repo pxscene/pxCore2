@@ -250,7 +250,10 @@ public:
   {
 	  //rtLogDebug("pxTextBox Set for %s\n", name );
 
-    mDirty = mDirty || (!strcmp(name,"wordWrap")        ||
+    mDirty = mDirty || (!strcmp(name,"clip")            ||
+                        !strcmp(name,"w")               ||
+                        !strcmp(name,"h")               ||
+                        !strcmp(name,"wordWrap")        ||
                         !strcmp(name,"ellipsis")        ||
                         !strcmp(name,"xStartPos")       ||
                         !strcmp(name,"xStopPos")        ||

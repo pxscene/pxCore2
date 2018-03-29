@@ -79,6 +79,7 @@ public:
               !strcmp(name,"text") ||
               !strcmp(name,"pixelSize") ||
               !strcmp(name,"fontUrl") ||
+              !strcmp(name,"font") ||
               !strcmp(name,"sx") || 
               !strcmp(name,"sy");
 #else

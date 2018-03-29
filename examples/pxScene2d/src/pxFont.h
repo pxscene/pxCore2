@@ -244,7 +244,7 @@ protected:
 class pxFont: public pxResource {
 
 public:
-	pxFont(rtString fontUrl, rtString proxyUrl);
+	pxFont(rtString fontUrl, uint32_t id, rtString proxyUrl);
 	virtual ~pxFont() ;
 
 	rtDeclareObject(pxFont, pxResource);
@@ -301,6 +301,7 @@ private:
 
 // Weak Map
 typedef std::map<rtString, pxFont*> FontMap;
+typedef std::map<rtString, uint32_t> FontIdMap;
 static rtMutex mFontMgrMutex;
 class pxFontManager
 {
@@ -314,6 +315,7 @@ class pxFontManager
   protected: 
     static void initFT();  
     static FontMap mFontMap;
+    static FontIdMap mFontIdMap;
     static bool init;
     
 };

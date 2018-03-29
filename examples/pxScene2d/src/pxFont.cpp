@@ -67,7 +67,7 @@ extern "C" {
 #endif
 
 FT_Library ft;
-uint32_t gFontId = 0;
+uint32_t gFontId = 1;
 
 // TODO move out to rt* utility
 uint32_t npot(uint32_t i)
@@ -82,10 +82,10 @@ uint32_t npot(uint32_t i)
 pxFontAtlas gFontAtlas;
 #endif
 
-pxFont::pxFont(rtString fontUrl, rtString proxyUrl):pxResource(),mFace(NULL),mPixelSize(0), mFontData(0), mFontDataSize(0),
+pxFont::pxFont(rtString fontUrl, uint32_t id, rtString proxyUrl):pxResource(),mFace(NULL),mPixelSize(0), mFontData(0), mFontDataSize(0),
              mFontMutex()
 {  
-  mFontId = gFontId++; 
+  mFontId = id; 
   mUrl = fontUrl;
   mProxy = proxyUrl;
 }
@@ -623,6 +623,7 @@ rtError pxFont::measureText(uint32_t pixelSize, rtString stringToMeasure, rtObje
 /**                    pxFontManager                                  */
 /**********************************************************************/
 FontMap pxFontManager::mFontMap;
+FontIdMap pxFontManager::mFontIdMap;
 bool pxFontManager::init = false;
 void pxFontManager::initFT() 
 {
@@ -645,12 +646,25 @@ rtRef<pxFont> pxFontManager::getFont(const char* url, const char* proxy)
   initFT();
 
   rtRef<pxFont> pFont;
+  uint32_t fontId;
 
   if (!url || !url[0])
     url = defaultFont;
-  
-  mFontMgrMutex.lock();
 
+  // Assign font urls an id number if they don't have one
+// !CLF: TODO: NEED MUTEXT FOR IdMap!
+  FontIdMap::iterator itId = mFontIdMap.find(url);
+  if( itId != mFontIdMap.end()) 
+  {
+    fontId = itId->second;
+  }
+  else 
+  {
+    fontId = gFontId++;
+    mFontIdMap.insert(make_pair(url, fontId));
+  }
+
+  mFontMgrMutex.lock();
   FontMap::iterator it = mFontMap.find(url);
   if (it != mFontMap.end())
   {
@@ -663,7 +677,7 @@ rtRef<pxFont> pxFontManager::getFont(const char* url, const char* proxy)
   else 
   {
     rtLogDebug("Create pxFont in map for %s\n",url);
-    pFont = new pxFont(url, proxy);
+    pFont = new pxFont(url, fontId, proxy);
     mFontMap.insert(make_pair(url, pFont));
     mFontMgrMutex.unlock();
     pFont->loadResource();
@@ -690,6 +704,7 @@ void pxFontManager::clearAllFonts()
 
   gGlyphCache.clear();
   gGlyphTextureCache.clear();
+  mFontIdMap.clear();
 }
 
 // pxTextMetrics
