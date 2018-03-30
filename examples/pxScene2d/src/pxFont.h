@@ -310,7 +310,6 @@ private:
 // Weak Map
 typedef std::map<rtString, pxFont*> FontMap;
 typedef std::map<rtString, uint32_t> FontIdMap;
-static rtMutex mFontMgrMutex;
 class pxFontManager
 {
   
