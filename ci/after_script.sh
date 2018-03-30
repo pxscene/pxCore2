@@ -23,8 +23,6 @@ then
     fi
 fi
 
-echo | curl -s checkip.dyndns.org
-
 cd $TRAVIS_BUILD_DIR
 if [ "$TRAVIS_EVENT_TYPE" = "push" ] ;
 then
