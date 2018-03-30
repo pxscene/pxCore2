@@ -153,7 +153,7 @@ void rtHttpCacheData::populateHeaderMap()
   }
 }
 
-rtString rtHttpCacheData::expirationDate()
+rtString rtHttpCacheData::expirationDate() const
 {
   char buffer[100];
   memset(buffer,0,100);
