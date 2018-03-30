@@ -82,7 +82,7 @@ uint32_t npot(uint32_t i)
 pxFontAtlas gFontAtlas;
 #endif
 
-pxFont::pxFont(rtString fontUrl, id, rtString proxyUrl):pxResource(),mFace(NULL),mPixelSize(0), mFontData(0), mFontDataSize(0),
+pxFont::pxFont(rtString fontUrl, uint32_t id, rtString proxyUrl):pxResource(),mFace(NULL),mPixelSize(0), mFontData(0), mFontDataSize(0),
              mFontMutex(), mFontDataMutex(), mFontDownloadedData(NULL), mFontDownloadedDataSize(0), mFontDataUrl()
 {  
   mFontId = id; 
