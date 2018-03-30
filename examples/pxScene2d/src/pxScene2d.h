@@ -701,6 +701,8 @@ public:
      return RT_OK;
   }
 
+  void createSnapshot(pxContextFramebufferRef& fbo, bool separateContext=false, bool antiAliasing=false);
+
 public:
   rtEmitRef mEmit;
 
@@ -737,7 +739,6 @@ protected:
   pxRect mDirtyRect;
   #endif //PX_DIRTY_RECTANGLES
 
-  void createSnapshot(pxContextFramebufferRef& fbo, bool separateContext=false, bool antiAliasing=false);
   void createSnapshotOfChildren();
   void clearSnapshot(pxContextFramebufferRef fbo);
   #ifdef PX_DIRTY_RECTANGLES
