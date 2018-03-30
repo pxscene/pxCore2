@@ -41,9 +41,7 @@ RAPIDJSON_DIAG_OFF(padded)
 #endif
 
 struct DiyFp {
-    /* MODIFIED CODE BEGIN */
-    DiyFp() : f(0), e(0) {}
-    /* MODIFIED CODE END */
+    DiyFp() {}
 
     DiyFp(uint64_t fp, int exp) : f(fp), e(exp) {}
 
