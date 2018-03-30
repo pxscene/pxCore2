@@ -3095,8 +3095,15 @@ rtError pxScene2d::screenshot(rtString type, rtString& pngData)
   // Is this a type we support?
   if (type == "image/png;base64")
   {
+    pxContextFramebufferRef previousRenderSurface = context.getCurrentFramebuffer();
+    pxContextFramebufferRef newFBO;
+    // w/o multisampling
+    // if needed, render texture of a multisample FBO to a non-multisample FBO and then read from it
+    mRoot->createSnapshot(newFBO, true, false);
+    context.setFramebuffer(newFBO);
     pxOffscreen o;
     context.snapshot(o);
+    context.setFramebuffer(previousRenderSurface);
 
     rtData pngData2;
     if (pxStorePNGImage(o, pngData2) == RT_OK)
