@@ -357,7 +357,7 @@ endif (BUILD_WITH_SERVICE_MANAGER)
 
 if (BUILD_OPTIMUS_STATIC_LIB)
     message("Building with Optimus support")
-    set(PXSCENE_APP_LIBRARIES ${PXSCENE_APP_LIBRARIES} optimus)
+    set(PXSCENE_APP_LIBRARIES ${PXSCENE_APP_LIBRARIES} optimus rtRemote)
     add_definitions(-DENABLE_OPTIMUS_SUPPORT)
 endif (BUILD_OPTIMUS_STATIC_LIB)
 
