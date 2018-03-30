@@ -3,6 +3,7 @@
 #include "pxScene2d.h"
 #include "pxContext.h"
 #include "pxWindow.h"
+#include "pxUtil.h"
 #include "test_includes.h" // Needs to be included last
 
 class screenshotTest : public testing::Test
@@ -14,16 +15,6 @@ public:
 
   virtual void TearDown()
   {
-  }
-
-  void test_scene_screenshot()
-  {
-    pxScene2d* scene = new pxScene2d(true, NULL);
-    rtString type("image/png;base64");
-    rtString pngData;
-    EXPECT_EQ ((int)RT_OK, (int)scene->screenshot(type, pngData));
-    EXPECT_GT ((int)pngData.length(), 0);
-    delete scene;
   }
 
   void test_base64_encode()
@@ -107,11 +98,16 @@ public:
 
   void test_pixels()
   {
-    int fbo_w = 101;
-    int fbo_h = 102;
+    int fbo_w = 640;
+    int fbo_h = 480;
+
+    // init opengl
+    pxWindow* win = new pxWindow();
+    win->init(0,0,fbo_w,fbo_h);
+
     pxContext c;
     c.init();
-    pxContextFramebufferRef f = c.createFramebuffer(fbo_w,fbo_h,false);
+    pxContextFramebufferRef f = c.createFramebuffer(fbo_w,fbo_h,true);
     rtError e = c.setFramebuffer(NULL);
     EXPECT_EQ ((int)RT_OK, (int)e);
     if (RT_OK != e)
@@ -128,11 +124,7 @@ public:
     float lineColorRect[4] = {1,1,0,1};
     c.drawRect(fbo_w,fbo_h,10,fillColorRect,lineColorRect);
     pxOffscreen o;
-    GLint mode;
-    glGetIntegerv(GL_READ_BUFFER, &mode);
-    glReadBuffer(GL_COLOR_ATTACHMENT0);
     c.snapshot(o);
-    glReadBuffer(mode);
 
     // verify image
     EXPECT_TRUE (o.upsideDown());
@@ -176,12 +168,13 @@ public:
     EXPECT_EQ (fillColorRect[0]*255, pix2->r);
     EXPECT_EQ (fillColorRect[1]*255, pix2->g);
     EXPECT_EQ (fillColorRect[2]*255, pix2->b);
+
+    delete win;
   }
 };
 
 TEST_F(screenshotTest, screenshotTests)
 {
-  test_scene_screenshot();
   test_base64_encode();
   test_base64_encode_decode();
   test_pxStorePNGImage_empty();
