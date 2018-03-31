@@ -3612,9 +3612,10 @@ void pxScriptView::runScript()
     {
       gInitScript = readFile("init.js");
     }
-    char buffer[MAX_URL_SIZE+gInitScript.length()+60];
-    memset(buffer, 0, sizeof(buffer));
-    snprintf(buffer, sizeof(buffer), "%s;loadUrl(\"%s\");", gInitScript.c_str(),mUrl.cString());
+    unsigned int scriptLen = MAX_URL_SIZE+gInitScript.length()+60;
+    char* buffer = (char*)malloc(sizeof(char)*scriptLen);
+    memset(buffer, 0, scriptLen);
+    snprintf(buffer, scriptLen, "%s;loadUrl(\"%s\");", gInitScript.c_str(),mUrl.cString());
     rtLogDebug("pxScriptView::runScript calling runScript with %s\n",mUrl.cString());
 #ifdef WIN32 // process \\ to /
 		unsigned int bufferLen = strlen(buffer);
@@ -3636,6 +3637,7 @@ void pxScriptView::runScript()
 		free(newBuffer);
 #endif
     mCtx->runScript(buffer);
+    free(buffer);
     rtLogInfo("pxScriptView::runScript() ending\n");
   }
   #endif //ENABLE_RT_NODE
