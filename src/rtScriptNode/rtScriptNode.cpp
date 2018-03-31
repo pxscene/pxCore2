@@ -824,6 +824,8 @@ rtError rtNodeContext::runScript(const char* script, rtValue* retVal /*= NULL*/,
     // Get a Local context...
     Local<Context> local_context = node::PersistentToLocal<Context>(mIsolate, mContext);
     Context::Scope context_scope(local_context);
+    printf("Madana script is [%s]\n",script);
+    fflush(stdout);
 // !CLF TODO: TEST FOR MT
 #ifdef RUNINMAIN
 #ifdef ENABLE_NODE_V_6_9
@@ -844,7 +846,11 @@ rtError rtNodeContext::runScript(const char* script, rtValue* retVal /*= NULL*/,
    if (tryCatch.HasCaught())
     {
       String::Utf8Value trace(tryCatch.StackTrace());
+    printf("Madana about to print trace [%s]\n",*trace);
+    fflush(stdout);
       rtLogWarn("%s", *trace);
+    printf("Madana printed trace [%s]\n",*trace);
+    fflush(stdout);
 
       return RT_FAIL;
     }
@@ -863,6 +869,8 @@ rtError rtNodeContext::runScript(const char* script, rtValue* retVal /*= NULL*/,
       }
     }
 
+    printf("Madana runScript ends \n");
+    fflush(stdout);
    return RT_OK;
 
   }//scope
