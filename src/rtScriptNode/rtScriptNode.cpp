@@ -824,8 +824,8 @@ rtError rtNodeContext::runScript(const char* script, rtValue* retVal /*= NULL*/,
     // Get a Local context...
     Local<Context> local_context = node::PersistentToLocal<Context>(mIsolate, mContext);
     Context::Scope context_scope(local_context);
-    printf("Madana script is [%s]\n",script);
-    fflush(stdout);
+    //printf("Madana script is [%s]\n",script);
+    //fflush(stdout);
 // !CLF TODO: TEST FOR MT
 #ifdef RUNINMAIN
 #ifdef ENABLE_NODE_V_6_9
