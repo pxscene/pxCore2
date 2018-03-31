@@ -1061,7 +1061,8 @@ public:
   virtual ~pxScriptView()
   {
     rtLogInfo(__FUNCTION__);
-    rtLogDebug("~pxScriptView for mUrl=%s\n",mUrl.cString());
+    rtLogInfo("~pxScriptView for mUrl=%s\n",mUrl.cString());
+    fflush(stdout);
     // Clear out these references since the script context
     // can outlive this view
 #ifdef ENABLE_RT_NODE
@@ -1087,11 +1088,17 @@ public:
     if(mScene)
       mEmit.send("onSceneRemoved", mScene);
 
+    rtLogInfo("~pxScriptView scene dispose for mUrl=%s\n",mUrl.cString());
+    fflush(stdout);
     if (mScene)
       mScene.send("dispose");
+    rtLogInfo("~pxScriptView scene dispose end for mUrl=%s\n",mUrl.cString());
+    fflush(stdout);
 
     mView = NULL;
     mScene = NULL;
+    rtLogInfo("~pxScriptView end for mUrl=%s\n",mUrl.cString());
+    fflush(stdout);
   }
 
   virtual unsigned long AddRef() 
