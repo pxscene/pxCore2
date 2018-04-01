@@ -595,8 +595,9 @@ rtNodeContext::~rtNodeContext()
 /*
     if (!nodeTerminated)
       runScript("var process = require('process');process._tickCallback();");
-    #endif
 */
+   #endif
+
     if(mEnv)
     {
       Locker                locker(mIsolate);
