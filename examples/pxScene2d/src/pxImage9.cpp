@@ -98,7 +98,7 @@ void pxImage9::sendPromise()
   {
     if (getImageResource() != NULL)
     {
-      rtLogInfo("pxImage9 SENDPROMISE for %s\n", getImageResource()->getUrl().cString());
+      rtLogDebug("pxImage9 SENDPROMISE for %s\n", getImageResource()->getUrl().cString());
     }
     mReady.send("resolve",this);
   } 

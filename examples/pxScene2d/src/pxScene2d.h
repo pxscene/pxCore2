@@ -1061,8 +1061,7 @@ public:
   virtual ~pxScriptView()
   {
     rtLogInfo(__FUNCTION__);
-    rtLogInfo("~pxScriptView for mUrl=%s\n",mUrl.cString());
-    fflush(stdout);
+    rtLogDebug("~pxScriptView for mUrl=%s\n",mUrl.cString());
     // Clear out these references since the script context
     // can outlive this view
 #ifdef ENABLE_RT_NODE
