@@ -22,7 +22,7 @@ checkError()
     printf "\nReproduction/How to fix: $4"
     printf "\n*********************************************************************";
     printf "\n*********************************************************************\n\n";
-    printExecLogs
+#    printExecLogs
     exit 1
   fi
 }
