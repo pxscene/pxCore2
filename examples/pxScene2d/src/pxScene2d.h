@@ -1088,17 +1088,11 @@ public:
     if(mScene)
       mEmit.send("onSceneRemoved", mScene);
 
-    rtLogInfo("~pxScriptView scene dispose for mUrl=%s\n",mUrl.cString());
-    fflush(stdout);
     if (mScene)
       mScene.send("dispose");
-    rtLogInfo("~pxScriptView scene dispose end for mUrl=%s\n",mUrl.cString());
-    fflush(stdout);
 
     mView = NULL;
     mScene = NULL;
-    rtLogInfo("~pxScriptView end for mUrl=%s\n",mUrl.cString());
-    fflush(stdout);
   }
 
   virtual unsigned long AddRef() 

@@ -48,14 +48,10 @@ void pxImage9::onInit()
   mInitialized = true;
   if (getImageResource() != NULL)
   {
-  rtLogInfo("image9 on init done valid url ..... \n");
-  fflush(stdout);
     setUrl(getImageResource()->getUrl());
   }
   else
   {
-  rtLogInfo("image9 on init done invalid url ..... \n");
-  fflush(stdout);
     setUrl("");
   }
 }
@@ -91,8 +87,6 @@ rtError pxImage9::setUrl(const char* s)
     mListenerAdded = true;
     getImageResource()->addListener(this);
   }
-  rtLogInfo("image9 set url done ..... [%s] loaded[%d]\n",getImageResource()->getUrl().cString(),imageLoaded);
-  fflush(stdout);
     
   return RT_OK;
 }
@@ -133,8 +127,6 @@ void pxImage9::resourceReady(rtString readyResolution)
   //rtLogDebug("pxImage9::resourceReady()\n");
   if( !readyResolution.compare("resolve"))
   {
-      rtLogInfo("image9 resolution ready ..... [%s] \n",getImageResource()->getUrl().cString());
-      fflush(stdout);
     imageLoaded = true; 
     // nineslice gets its w and h from the image only if
     // not set for the pxImage9
@@ -156,8 +148,6 @@ void pxImage9::resourceReady(rtString readyResolution)
   }
   else 
   {
-      rtLogInfo("Sending reject for url ..... [%s] \n",getImageResource()->getUrl().cString());
-      fflush(stdout);
       pxObject::onTextureReady();
       mReady.send("reject",this);
   }
