@@ -194,8 +194,5 @@ void rtDukDelGlobalIdent(duk_context *ctx, const std::string &name)
   duk_del_prop_string(ctx, -1, name.c_str());
   duk_pop(ctx);
 }
-<<<<<<< HEAD:src/rtScriptDuk/rtWrapperUtils.cpp
-=======
 
 }
->>>>>>> 7dec61977a3f65aee3144991ddf31b2d5a4fdad7:src/rtScriptDuk/rtWrapperUtilsDuk.cpp
