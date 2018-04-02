@@ -22,7 +22,7 @@ checkError()
     printf "\nReproduction/How to fix: $4"
     printf "\n*********************************************************************";
     printf "\n*********************************************************************\n\n";
-    printExecLogs
+#    printExecLogs
     exit 1
   fi
 }
@@ -51,7 +51,7 @@ fi
 
 retval=0
 ulimit -c unlimited
-export DUMP_STACK_ON_EXCEPTION=1
+#export DUMP_STACK_ON_EXCEPTION=1
 cd $TRAVIS_BUILD_DIR/ci
 if [ "$TRAVIS_EVENT_TYPE" = "push" ] || [ "$TRAVIS_EVENT_TYPE" = "pull_request" ] ;
 then

@@ -14,7 +14,7 @@ var SceneModuleManifest = require('rcvrcore/SceneModuleManifest');
 var JarFileMap = require('rcvrcore/utils/JarFileMap');
 var AsyncFileAcquisition = require('rcvrcore/utils/AsyncFileAcquisition');
 var AccessControl = require('rcvrcore/utils/AccessControl');
-
+var shell = require('rcvrcore/shell');
 var log = new Logger('AppSceneContext');
 //overriding original timeout and interval functions
 var SetTimeout = isDuk?timers.setTimeout:setTimeout;
@@ -61,6 +61,7 @@ function AppSceneContext(params) {
   this.timers = [];
   this.timerIntervals = [];
   this.webSocketManager = null;
+  this.shell = null;
   log.message(4, "[[[NEW AppSceneContext]]]: " + this.packageUrl);
 }
 
@@ -87,8 +88,18 @@ AppSceneContext.prototype.loadScene = function() {
     this.basePackageUri = fullPath.substring(0, fullPath.lastIndexOf('/'));
   }
 
-if( fullPath !== null)
+if ((fullPath.length >= 14) && (fullPath.substring(0,14) == "launchSparkApp"))
+{
+  var Scene = require("rcvrcore/scene.1.js");
+  this.sceneWrapper = new Scene();
+  this.sceneWrapper._setNativeScene(this.innerscene, "");
+  this.sceneWrapper._setRPCController(this.rpcController);
+  this.shell = new shell(this.sceneWrapper,urlParts.query);
+}
+else if( fullPath !== null)
+{
   this.loadPackage(fullPath);
+}
 
 this.innerscene.on('onSceneTerminate', function (e) {
     //clear the timers and intervals on close
@@ -167,6 +178,11 @@ this.innerscene.on('onSceneTerminate', function (e) {
       this.accessControl.destroy();
       this.accessControl = null;
     }
+
+    if (this.shell != null)
+      delete this.shell;
+    this.shell = null;
+
   }.bind(this));
 
 if (false) {

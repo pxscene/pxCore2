@@ -107,6 +107,8 @@ uint32_t gFboBindCalls;
 #include <stdint.h>
 #include <stdlib.h>
 
+string gInitScript;
+extern std::string readFile(const char* file);
 #ifdef ENABLE_RT_NODE
 extern void rtWrapperSceneUpdateEnter();
 extern void rtWrapperSceneUpdateExit();
@@ -3659,11 +3661,14 @@ void pxScriptView::runScript()
 #ifdef RUNINMAIN
     mReady = new rtPromise();
 #endif
-    mCtx->runFile("init.js");
-
-    char buffer[MAX_URL_SIZE + 50];
-    memset(buffer, 0, sizeof(buffer));
-    snprintf(buffer, sizeof(buffer), "loadUrl(\"%s\");", mUrl.cString());
+    if (0 == gInitScript.length())
+    {
+      gInitScript = readFile("init.js");
+    }
+    unsigned int scriptLen = MAX_URL_SIZE+gInitScript.length()+60;
+    char* buffer = (char*)malloc(sizeof(char)*scriptLen);
+    memset(buffer, 0, scriptLen);
+    snprintf(buffer, scriptLen, "%s;loadUrl(\"%s\");", gInitScript.c_str(),mUrl.cString());
     rtLogDebug("pxScriptView::runScript calling runScript with %s\n",mUrl.cString());
 #ifdef WIN32 // process \\ to /
 		unsigned int bufferLen = strlen(buffer);
@@ -3685,6 +3690,7 @@ void pxScriptView::runScript()
 		free(newBuffer);
 #endif
     mCtx->runScript(buffer);
+    free(buffer);
     rtLogInfo("pxScriptView::runScript() ending\n");
   }
   #endif //ENABLE_RT_NODE
