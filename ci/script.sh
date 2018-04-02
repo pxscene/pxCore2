@@ -6,7 +6,7 @@ EXECLOGS=$TRAVIS_BUILD_DIR/logs/exec_logs
 printExecLogs()
 {
   printf "\n\n********************** PRINTING EXEC LOG **************************\n\n"
-  #cat $EXECLOGS
+  cat $EXECLOGS
   printf "\n\n**********************     LOG ENDS      **************************\n\n"
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
