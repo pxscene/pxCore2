@@ -1,4 +1,6 @@
 
+var baseUrl = "http://www.pxscene.org/examples/px-reference/gallery/";
+
 px.configImport({"browser:" : /*px.getPackageBaseFilePath() + */ "browser/"});
 
 
@@ -82,7 +84,7 @@ px.import({ scene:      'px:scene.1.js',
     else        
     if (u.indexOf(':') == -1)
     {
-      u = 'http://www.pxscene.org/examples/px-reference/gallery/' + u;
+      u = baseUrl + u;
       //  inputBox.text = u;
     }
 
