@@ -88,7 +88,7 @@ class RTRemoteMulticastResolver {
    * get local udp uri to recv packet
    * @return {string} the udp uri
    */
-  getReplyEndopint() {
+  getReplyEndpoint() {
     const address = this.udpSocketIn.address();
     return `udp://${address.address}:${address.port}`;
   }
@@ -102,7 +102,7 @@ class RTRemoteMulticastResolver {
    * @return {Promise} the search promise
    */
   locateObject(objectId) {
-    const locateObj = RTMessageHelper.newLocateRequest(objectId, this.getReplyEndopint());
+    const locateObj = RTMessageHelper.newLocateRequest(objectId, this.getReplyEndpoint());
     const locateBuffer = RTRemoteSerializer.toBuffer(locateObj);
     let intervalId = null;
 
