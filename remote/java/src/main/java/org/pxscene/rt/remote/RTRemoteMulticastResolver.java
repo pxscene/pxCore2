@@ -6,6 +6,7 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.MulticastSocket;
+import java.net.NetworkInterface;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Map;
@@ -67,6 +68,7 @@ public class RTRemoteMulticastResolver {
     this.group = group;
     this.port = port;
     socketOut = new MulticastSocket();
+    socketOut.setNetworkInterface(NetworkInterface.getByName(RTConst.LISTEN_INTERFACE));
     socketOut.joinGroup(this.group);
     socketIn = new DatagramSocket(new InetSocketAddress(InetAddress.getLoopbackAddress(), 0));
 

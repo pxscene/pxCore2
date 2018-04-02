@@ -36,12 +36,13 @@ public interface RTObject {
   /**
    * set remote object property value
    *
-   * @param index the property index
+   * @param name the array property name
+   * @param index the array index
    * @param value the value
    * @return the future task
    * @throws RTException if any other error occurred during operation
    */
-  Future<Void> set(int index, RTValue value) throws RTException;
+  Future<Void> set(String name, int index, RTValue value) throws RTException;
 
   /**
    * get remote object property value
@@ -55,11 +56,12 @@ public interface RTObject {
   /**
    * get remote object property value
    *
+   * @param name the property name
    * @param index the property index
    * @return the future task
    * @throws RTException if any other error occurred during operation
    */
-  Future<RTValue> get(int index) throws RTException;
+  Future<RTValue> get(String name, int index) throws RTException;
 
   /**
    * invoke remote method and no return

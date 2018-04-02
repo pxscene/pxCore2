@@ -8,13 +8,16 @@ import java.lang.reflect.Method;
 import java.net.ServerSocket;
 import java.util.List;
 import org.apache.log4j.Logger;
+import org.pxscene.rt.remote.RTRemoteMessageType;
 import org.pxscene.rt.remote.RTRemoteProtocol;
 import org.pxscene.rt.remote.messages.RTMessageCallMethodRequest;
 import org.pxscene.rt.remote.messages.RTMessageCallMethodResponse;
-import org.pxscene.rt.remote.messages.RTMessageGetPropertyByNameRequest;
+import org.pxscene.rt.remote.messages.RTMessageGetPropertyByIndexRequest;
 import org.pxscene.rt.remote.messages.RTMessageGetPropertyByNameResponse;
-import org.pxscene.rt.remote.messages.RTMessageSetPropertyByNameRequest;
+import org.pxscene.rt.remote.messages.RTMessageGetPropertyRequest;
+import org.pxscene.rt.remote.messages.RTMessageSetPropertyByIndexRequest;
 import org.pxscene.rt.remote.messages.RTMessageSetPropertyByNameResponse;
+import org.pxscene.rt.remote.messages.RTMessageSetPropertyRequest;
 
 /**
  * the remote helper methods
@@ -81,8 +84,8 @@ public final class RTHelper {
    * @param getRequest the request message
    * @return the get response with value
    */
-  public static RTMessageGetPropertyByNameResponse getPropertyByName(
-      Object object, RTMessageGetPropertyByNameRequest getRequest) {
+  public static RTMessageGetPropertyByNameResponse getProperty(
+      Object object, RTMessageGetPropertyRequest getRequest) {
 
     Class<?> clazz = object.getClass();
     String propertyName = getRequest.getPropertyName();
@@ -97,14 +100,33 @@ public final class RTHelper {
       field = clazz.getField(propertyName);
     } catch (NoSuchFieldException ignored) {
     }
+    Method method = getMethodByName(clazz, "get" + firstCapitalize(propertyName));
+    Method functionMethod = RTHelper.getMethodByName(clazz, propertyName);
 
-    Method method = null;
-    try {
-      method = clazz.getMethod("get" + firstCapitalize(propertyName));
-    } catch (NoSuchMethodException ignored) {
+    // get property by index
+    if (getRequest.getMessageType() == RTRemoteMessageType.GET_PROPERTY_BYINDEX_REQUEST) {
+      List<RTValue> arr = null;
+      try {
+        if (field != null) {
+          arr = (List<RTValue>) field.get(object);
+        }
+        if (method != null) {
+          arr = (List<RTValue>) method.invoke(object);
+        }
+        int index = ((RTMessageGetPropertyByIndexRequest) getRequest).getIndex();
+        if (index >= arr.size()) {
+          rtStatus.setCode(RTStatusCode.INVALID_ARGUMENT);
+        } else {
+          getResponse.setValue(arr.get(index));
+          rtStatus.setCode(RTStatusCode.OK);
+        }
+      } catch (Exception e) {
+        rtStatus.setCode(RTStatusCode.TYPE_MISMATCH);
+      }
+      return getResponse;
     }
 
-    if (field == null && method == null) { // field or method not exist
+    if (field == null && method == null && functionMethod == null) { // field or method not exist
       logger.error("cannot found property name = " + propertyName);
       rtStatus.setCode(RTStatusCode.PROPERTY_NOT_FOUND);
     }
@@ -113,13 +135,25 @@ public final class RTHelper {
       if (field != null) {
         Object value = field.get(object);
         getResponse.setValue(new RTValue(value));
-      } else {
+      } else if (method != null) {
         Object value = method.invoke(object);
-        if (value != null && value instanceof RTObject) {
+        if (value == null) {
+          getResponse.setValue(null);
+        } else if (value instanceof RTObject) {
           getResponse.setValue(new RTValue(value, RTValueType.OBJECT));
+        } else if (value.getClass() == RTValue.class) {
+          getResponse.setValue((RTValue) value);
         } else {
           getResponse.setValue(new RTValue(value));
         }
+      } else if (functionMethod != null) {
+        RTFunction function = new RTFunction();
+        function.setFunctionName(propertyName);
+        function.setObjectId(getRequest.getObjectId());
+        RTValue rtValue = new RTValue();
+        rtValue.setType(RTValueType.FUNCTION);
+        rtValue.setValue(function);
+        getResponse.setValue(rtValue);
       }
     } catch (IllegalAccessException e) {
       logger.error("set property failed", e);
@@ -131,6 +165,23 @@ public final class RTHelper {
     return getResponse;
   }
 
+
+  /**
+   * get method by name
+   *
+   * @param clazz the class
+   * @param name the method name
+   * @return the Method
+   */
+  private static Method getMethodByName(Class<?> clazz, String name) {
+    Method[] methods = clazz.getMethods();
+    for (Method method : methods) {
+      if (method.getName().equals(name)) {
+        return method;
+      }
+    }
+    return null;
+  }
 
   /**
    * invoke object method by method name
@@ -192,17 +243,16 @@ public final class RTHelper {
    * @param request the set request message
    * @return the response
    */
-  public static RTMessageSetPropertyByNameResponse setPropertyByName(
-      Object object, RTMessageSetPropertyByNameRequest request) {
+  public static RTMessageSetPropertyByNameResponse setProperty(
+      Object object, RTMessageSetPropertyRequest request) {
 
     RTMessageSetPropertyByNameResponse setResponse = new RTMessageSetPropertyByNameResponse();
     setResponse.setCorrelationKey(request.getCorrelationKey());
-    setResponse.setStatusCode(RTStatusCode.UNKNOWN);
+    RTStatusCode code = RTStatusCode.UNKNOWN;
     setResponse.setObjectId(request.getObjectId());
 
     Class<?> clazz = object.getClass();
     String propertyName = request.getPropertyName();
-    Object value = request.getValue().getValue();
 
     Field field = null;
     try {
@@ -210,36 +260,92 @@ public final class RTHelper {
     } catch (NoSuchFieldException ignored) {
     }
 
-    Method method = null;
-    try {
-      Class setType = value.getClass();
-      if (request.getValue().getType().equals(RTValueType.FUNCTION)) {
-        setType = RTFunction.class;
-      } else if (request.getValue().getType().equals(RTValueType.OBJECT)) {
-        setType = RTObject.class;
-      }
-      method = clazz.getMethod("set" + firstCapitalize(propertyName), setType);
-    } catch (NoSuchMethodException ignored) {
+    Method method;
+    int index = -1;
+    if (request.getMessageType()
+        == RTRemoteMessageType.SET_PROPERTY_BYINDEX_REQUEST) {
+      // set array index, so need get the list first
+      index = ((RTMessageSetPropertyByIndexRequest) request).getIndex();
+      method = getMethodByName(clazz, "get" + firstCapitalize(propertyName));
+    } else {
+      method = getMethodByName(clazz, "set" + firstCapitalize(propertyName));
     }
 
     if (field == null && method == null) {
       logger.error("cannot found property name = " + propertyName);
-      setResponse.setStatusCode(RTStatusCode.PROPERTY_NOT_FOUND);
+      code = RTStatusCode.PROPERTY_NOT_FOUND;
     } else {
       try {
         if (field != null) {
-          field.set(propertyName, value);
-          setResponse.setStatusCode(RTStatusCode.OK);
+          if (index < 0) {
+            code = setField(field, object, request.getValue());
+          } else {
+            code = setPropertyByIndex(field.get(object), index, request.getValue());
+          }
         } else {
-          method.invoke(object, value);
-          setResponse.setStatusCode(RTStatusCode.OK);
+          if (index < 0) {
+            code = setFieldByMethod(method, object, request.getValue());
+          } else {
+            code = setPropertyByIndex(method.invoke(object), index, request.getValue());
+          }
         }
       } catch (Exception e) {
         logger.error("set property failed", e);
         setResponse.setStatusCode(RTStatusCode.TYPE_MISMATCH);
       }
     }
+    setResponse.setStatusCode(code);
     return setResponse;
+  }
+
+  private static RTStatusCode setPropertyByIndex(Object listObj, int index, RTValue value) {
+    List<RTValue> arr = (List<RTValue>) listObj;
+    if (arr == null) {
+      return RTStatusCode.TYPE_MISMATCH;
+    }
+    if (index >= arr.size()) {
+      return RTStatusCode.INVALID_ARGUMENT;
+    }
+
+    RTValue v = arr.get(index);
+    v.setType(value.getType());
+    v.setValue(value.getValue());
+    return RTStatusCode.OK;
+  }
+
+  /**
+   * set value to field
+   *
+   * @param field the field in object
+   * @param obj the object
+   * @param value the rt value
+   */
+  private static RTStatusCode setField(Field field, Object obj, RTValue value)
+      throws IllegalAccessException {
+    if (field.getType() == RTValue.class) {
+      field.set(obj, value);
+    } else {
+      field.set(obj, value.getValue());
+    }
+    return RTStatusCode.OK;
+  }
+
+  /**
+   * set value to field by set* method
+   *
+   * @param method the setter method
+   * @param obj the object
+   * @param value the rt value
+   */
+  private static RTStatusCode setFieldByMethod(Method method, Object obj, RTValue value)
+      throws InvocationTargetException, IllegalAccessException {
+    Class<?>[] inputTypes = method.getParameterTypes();
+    if (inputTypes.length > 0 && inputTypes[0] == RTValue.class) {
+      method.invoke(obj, value);
+    } else {
+      method.invoke(obj, value.getValue());
+    }
+    return RTStatusCode.OK;
   }
 
 

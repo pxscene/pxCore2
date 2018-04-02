@@ -13,7 +13,6 @@ option(BUILD_RTREMOTE_SHARED_LIB "BUILD_RTREMOTE_SHARED_LIB" ON)
 option(BUILD_RTREMOTE_STATIC_LIB "BUILD_RTREMOTE_STATIC_LIB" ON)
 option(BUILD_RTREMOTE_SAMPLE_APP_SHARED "BUILD_RTREMOTE_SAMPLE_APP_SHARED" OFF)
 option(BUILD_RTREMOTE_SAMPLE_APP_STATIC "BUILD_RTREMOTE_SAMPLE_APP_STATIC" OFF)
-option(BUILD_RTREMOTE_SAMPLE_APP_SIMPLE "BUILD_RTREMOTE_SAMPLE_APP_SIMPLE" OFF)
 option(ENABLE_RTREMOTE_DEBUG "ENABLE_RTREMOTE_DEBUG" OFF)
 option(ENABLE_RTREMOTE_PROFILE "ENABLE_RTREMOTE_PROFILE" OFF)
 
@@ -100,18 +99,22 @@ if (BUILD_RTREMOTE_SAMPLE_APP_STATIC)
     target_link_libraries(rtremote_sample_app_static ${LIBRARY_LINKER_OPTIONS} -lrtCore_s rtremote_static -luuid)
 endif (BUILD_RTREMOTE_SAMPLE_APP_STATIC)
 
-if (BUILD_RTREMOTE_SAMPLE_APP_SIMPLE)
-    message ("Building rtRemote sample app with client and server")
-    set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS} -std=c++11")
-    link_directories(${RTREMOTE_LINK_DIRECTORIES})
-    #client
-    add_executable(rtremote_sample_app_client rtSampleClient.cpp)
-    set_target_properties(rtremote_sample_app_client PROPERTIES OUTPUT_NAME "rtSampleClient")
-    target_link_libraries(rtremote_sample_app_client ${LIBRARY_LINKER_OPTIONS} -lrtCore rtremote_shared -luuid)
-    target_compile_definitions(rtremote_sample_app_client PRIVATE RT_PLATFORM_LINUX RAPIDJSON_HAS_STDSTRING)
-    #server
-    add_executable(rtremote_sample_app_server rtSampleServer.cpp)
-    set_target_properties(rtremote_sample_app_server PROPERTIES OUTPUT_NAME "rtSampleServer")
-    target_link_libraries(rtremote_sample_app_server ${LIBRARY_LINKER_OPTIONS} -lrtCore rtremote_shared -luuid)
-    target_compile_definitions(rtremote_sample_app_server PRIVATE RT_PLATFORM_LINUX RAPIDJSON_HAS_STDSTRING)
-endif (BUILD_RTREMOTE_SAMPLE_APP_SIMPLE)
+
+# build sample app
+function(build_sample client_name src)
+    set(client_target ${client_name})
+    add_executable(${client_target} ${src})
+    set_target_properties(${client_target} PROPERTIES OUTPUT_NAME "${client_name}")
+    target_link_libraries(${client_target} ${LIBRARY_LINKER_OPTIONS} -lrtCore rtremote_shared -luuid)
+    target_compile_definitions(${client_target} PRIVATE RT_PLATFORM_LINUX RAPIDJSON_HAS_STDSTRING)
+endfunction()
+
+message("Building rtRemote sample app with client and server")
+set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS} -std=c++11")
+link_directories(${RTREMOTE_LINK_DIRECTORIES})
+build_sample("rtSampleTypeClient" "rtSampleTypeClient.cpp") # type test client
+build_sample("rtSampleMethodClient" "rtSampleMethodClient.cpp") # method test client
+build_sample("rtSampleThreadClient" "rtSampleThreadClient.cpp") # thread test client
+build_sample("rtSampleServer" "rtSampleServer.cpp") # server
+
+

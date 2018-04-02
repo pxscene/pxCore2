@@ -47,6 +47,7 @@ public class TypeTest {
         rtRemoteTestClient.setSucceedExamplesCount(0);
         rtRemoteTestClient.doFunctionTest(obj, "onTick");
         rtRemoteTestClient.doObjectTest(obj, "objvar");
+        rtRemoteTestClient.doIndexTest(obj);
         rtRemoteTestClient.testAllTypes(obj);
         logger.debug("test completed, next test will at 10s ...");
         Thread.sleep(1000 * 10);
@@ -156,6 +157,40 @@ public class TypeTest {
 
 
   /**
+   * do basic tests with index
+   *
+   * @param rtObject the remote object
+   * @param rtValue the rt value
+   * @param name the property name
+   * @param index the array index for property
+   */
+  private void doBasicTestWithIndex(RTObject rtObject, RTValue rtValue, String name, int index)
+      throws RTException, ExecutionException, InterruptedException {
+    rtObject.set(name, index, rtValue).get();
+    Object newVal = rtObject.get(name, index).get().getValue();
+    Object value = rtValue.getValue();
+    totalExamplesCount += 1;
+    boolean result = value.equals(newVal);
+    if (result) {
+      succeedExamplesCount += 1;
+    }
+    logger.debug(getTestResult(rtValue.getType().toString(), value, newVal, result));
+  }
+
+  /**
+   * do index tests
+   *
+   * @param rtObject the remote obj
+   */
+  private void doIndexTest(RTObject rtObject)
+      throws RTException, ExecutionException, InterruptedException {
+    doBasicTestWithIndex(rtObject, new RTValue(102), "arr", 0);
+    doBasicTestWithIndex(rtObject, new RTValue(122.123f), "arr", 1);
+    doBasicTestWithIndex(rtObject, new RTValue("Hello world !!!"), "arr", 2);
+  }
+
+
+  /**
    * test function type
    */
   private void doFunctionTest(RTObject rtObject, String propertiesName)
@@ -253,12 +288,12 @@ public class TypeTest {
     return this.totalExamplesCount;
   }
 
-  public int getSucceedExamplesCount() {
-    return this.succeedExamplesCount;
-  }
-
   public void setTotalExamplesCount(int totalExamplesCount) {
     this.totalExamplesCount = totalExamplesCount;
+  }
+
+  public int getSucceedExamplesCount() {
+    return this.succeedExamplesCount;
   }
 
   public void setSucceedExamplesCount(int succeedExamplesCount) {

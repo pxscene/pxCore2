@@ -6,6 +6,7 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
+import java.net.NetworkInterface;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URI;
@@ -22,10 +23,12 @@ import org.pxscene.rt.RTValue;
 import org.pxscene.rt.RTValueType;
 import org.pxscene.rt.remote.messages.RTMessageCallMethodRequest;
 import org.pxscene.rt.remote.messages.RTMessageCallMethodResponse;
+import org.pxscene.rt.remote.messages.RTMessageGetPropertyByIndexRequest;
 import org.pxscene.rt.remote.messages.RTMessageGetPropertyByNameRequest;
 import org.pxscene.rt.remote.messages.RTMessageGetPropertyByNameResponse;
 import org.pxscene.rt.remote.messages.RTMessageLocate;
 import org.pxscene.rt.remote.messages.RTMessageSearch;
+import org.pxscene.rt.remote.messages.RTMessageSetPropertyByIndexRequest;
 import org.pxscene.rt.remote.messages.RTMessageSetPropertyByNameRequest;
 import org.pxscene.rt.remote.messages.RTMessageSetPropertyByNameResponse;
 
@@ -76,6 +79,9 @@ public class RTRemoteServer {
     RTEnvironment.setRunMode(RTConst.SERVER_MODE); // set as server mode
     messageQueue = new ConcurrentLinkedDeque<>();
     MulticastSocket socketIn = new MulticastSocket(udpPort);
+    socketIn.setNetworkInterface(NetworkInterface.getByName(RTConst.LISTEN_INTERFACE));
+    socketIn.setBroadcast(true);
+    socketIn.setReuseAddress(true);
     DatagramSocket replySocketOut = new DatagramSocket();
     socketIn.joinGroup(udpGroupAddr);
     logger.debug("server bind multicast socket succeed");
@@ -204,8 +210,14 @@ public class RTRemoteServer {
       case GET_PROPERTY_BYNAME_REQUEST:
         this.handlerGetPropertyByNameRequest(rtRemoteTask);
         break;
+      case GET_PROPERTY_BYINDEX_REQUEST:
+        this.handlerGetPropertyByIndexRequest(rtRemoteTask);
+        break;
       case SET_PROPERTY_BYNAME_REQUEST:
         this.handlerSetPropertyByNameRequest(rtRemoteTask);
+        break;
+      case SET_PROPERTY_BYINDEX_REQUEST:
+        this.handlerSetPropertyByIndexRequest(rtRemoteTask);
         break;
       case METHOD_CALL_REQUEST:
         this.handlerCallRequest(rtRemoteTask);
@@ -252,7 +264,22 @@ public class RTRemoteServer {
     RTRemoteMessage message = rtRemoteTask.getMessage();
     RTMessageGetPropertyByNameRequest getRequest = (RTMessageGetPropertyByNameRequest) message;
     RTMessageGetPropertyByNameResponse getResponse = RTHelper
-        .getPropertyByName(getObjectByName(getRequest.getObjectId()), getRequest);
+        .getProperty(getObjectByName(getRequest.getObjectId()), getRequest);
+    rtRemoteTask.getProtocol().getTransport().send(serializer.toBytes(getResponse));
+  }
+
+  /**
+   * process get request by index message task
+   *
+   * @param rtRemoteTask the request message task
+   * @throws RTException raise error if process failed
+   */
+  private void handlerGetPropertyByIndexRequest(RTRemoteTask rtRemoteTask) throws RTException {
+    RTRemoteMessage message = rtRemoteTask.getMessage();
+    RTMessageGetPropertyByIndexRequest getRequest = (RTMessageGetPropertyByIndexRequest) message;
+    RTMessageGetPropertyByNameResponse getResponse = RTHelper
+        .getProperty(getObjectByName(getRequest.getObjectId()), getRequest);
+    getResponse.setMessageType(RTRemoteMessageType.GET_PROPERTY_BYINDEX_RESPONSE);
     rtRemoteTask.getProtocol().getTransport().send(serializer.toBytes(getResponse));
   }
 
@@ -273,8 +300,30 @@ public class RTRemoteServer {
     }
 
     RTMessageSetPropertyByNameResponse setResponse = RTHelper
-        .setPropertyByName(getObjectByName(setRequest.getObjectId()), setRequest);
+        .setProperty(getObjectByName(setRequest.getObjectId()), setRequest);
     rtRemoteTask.getProtocol().getTransport().send(serializer.toBytes(setResponse));
+  }
+
+  /**
+   * process set request by index message task
+   *
+   * @param rtRemoteTask the request message task
+   * @throws RTException raise error if process failed
+   */
+  private void handlerSetPropertyByIndexRequest(RTRemoteTask rtRemoteTask) throws RTException {
+    RTRemoteMessage message = rtRemoteTask.getMessage();
+    RTMessageSetPropertyByIndexRequest setRequest = (RTMessageSetPropertyByIndexRequest) message;
+
+    if (setRequest.getValue().getType().equals(RTValueType.FUNCTION)) { // update listener
+      RTFunction oldFunction = (RTFunction) setRequest.getValue().getValue();
+      setRequest.getValue()
+          .setValue(RTHelper.updateListenerForRTFuction(rtRemoteTask.getProtocol(), oldFunction));
+    }
+
+    RTMessageSetPropertyByNameResponse setResponse = RTHelper
+        .setProperty(getObjectByName(setRequest.getObjectId()), setRequest);
+    setResponse.setMessageType(RTRemoteMessageType.SET_PROPERTY_BYINDEX_RESPONSE);
+    rtRemoteTask.getProtocol().getTransport().send(serializer.toBytes(setResponse)); // write back
   }
 
 
