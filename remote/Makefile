@@ -66,12 +66,17 @@ endif
 ifeq ($(PROFILE), 1)
   CXXFLAGS += -pg
 endif
-
-
-CFLAGS+=-DRAPIDJSON_HAS_STDSTRING -Werror -Wall -Wextra -DRT_PLATFORM_LINUX -I../src -I. -fPIC -Wno-deprecated-declarations
+# code coverage mode compile
+ifdef COVERAGE
+CFLAGS+=-DRAPIDJSON_HAS_STDSTRING -Wall -Wextra -DRT_PLATFORM_LINUX -fprofile-arcs -ftest-coverage -I../src -I. -fPIC -Wno-deprecated-declarations
+LDFLAGS =-pthread -ldl $(LIBUUID) -Wl,-rpath=../../,--enable-new-dtags -coverage
+else
+# normal compile
+CFLAGS+=-DRAPIDJSON_HAS_STDSTRING -Wall -Wextra -DRT_PLATFORM_LINUX -I../src -I. -fPIC -Wno-deprecated-declarations
+LDFLAGS =-pthread -ldl $(LIBUUID) -Wl,-rpath=../../,--enable-new-dtags
+endif
 CFLAGS+=-DRT_REMOTE_LOOPBACK_ONLY
 CXXFLAGS+=-std=c++0x $(CFLAGS)
-LDFLAGS =-pthread -ldl $(LIBUUID) -Wl,-rpath=../../,--enable-new-dtags
 OBJDIR=obj
 
 RTCORE_OBJS =$(patsubst ../%.cpp, %.o        , $(notdir $(RTCORE_SRCS)))

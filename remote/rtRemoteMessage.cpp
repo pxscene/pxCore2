@@ -135,7 +135,12 @@ rtMessage_GetStatusCode(rapidjson::Document const& doc)
 {
   rapidjson::Value::ConstMemberIterator itr = doc.FindMember(kFieldNameStatusCode);
   if (itr == doc.MemberEnd())
+  {
+    // Should return RT_FAIL, otherwise, if this branch is accessed
+    // The following `RT_ASSERT` or `itr->value` will cause a crash
     dumpDoc(doc, "failed to get status code.");
+    return RT_FAIL;
+  }
   RT_ASSERT(itr != doc.MemberEnd());
   return static_cast<rtError>(itr->value.GetInt());
 }

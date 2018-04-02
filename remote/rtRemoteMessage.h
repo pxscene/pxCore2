@@ -83,7 +83,8 @@ rtRemoteCorrelationKey  rtMessage_GetCorrelationKey(rtRemoteMessage const& m);
 char const*             rtMessage_GetObjectId(rtRemoteMessage const& m);
 rtError                 rtMessage_GetStatusCode(rtRemoteMessage const& m);
 char const*             rtMessage_GetStatusMessage(rtRemoteMessage const& m);
-rtError                 rtMessage_Dump(rtRemoteMessage const& m, FILE* out = stdout);
+// Change rtMessage_Dump to rtMessage_DumpDocument since in the cpp file, the function name is rtMessage_DumpDocument
+rtError                 rtMessage_DumpDocument(rtRemoteMessage const& m, FILE* out = stdout);
 rtError                 rtMessage_SetStatus(rtRemoteMessage& m, rtError code, char const* fmt, ...) RT_PRINTF_FORMAT(3, 4);
 rtError                 rtMessage_SetStatus(rtRemoteMessage& m, rtError code);
 rtRemoteCorrelationKey  rtMessage_GetNextCorrelationKey();
