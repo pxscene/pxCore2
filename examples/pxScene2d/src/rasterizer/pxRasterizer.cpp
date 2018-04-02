@@ -1,9 +1,25 @@
 #include "pxTimer.h"
 #include "pxRasterizer.h"
 
-#include "xs_Core.h"
-#include "xs_Float.h"
+#ifdef XS_CODE_ENABLED
+#  include "xs_Core.h"
+#  include "xs_Float.h"
+#else
+#  include <cstdint>
+#  include <math.h>
+   inline int32_t xs_RoundToInt(const double d)
+   {
+     return floor(d + 0.5);
+   }
+
+   inline int32_t xs_CRoundToInt(const double d)
+   {
+     return ceil(d);
+   }
+#endif
+
 //#include "rtLog.h"
+
 
 #include <algorithm>
 
@@ -2374,7 +2390,7 @@ inline pxPixel* pxRasterizer::getTextureSample(int32_t maxU, int32_t maxV, int32
     else
     {
       texU = pxClamp<int32_t>(curU, 0, maxU);
-      texV = pxClamp<int32>(curV, 0, maxV);
+      texV = pxClamp<int32_t>(curV, 0, maxV);
       texU = texU>>UVFIXEDSHIFT;
       texV = texV>>UVFIXEDSHIFT;
     }

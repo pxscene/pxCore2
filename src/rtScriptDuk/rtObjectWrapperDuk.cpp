@@ -1,6 +1,6 @@
-#include "rtObjectWrapper.h"
-#include "rtFunctionWrapper.h"
-#include "rtWrapperUtils.h"
+#include "rtObjectWrapperDuk.h"
+#include "rtFunctionWrapperDuk.h"
+#include "rtWrapperUtilsDuk.h"
 
 #include <rtLog.h>
 #include <string>
@@ -9,6 +9,9 @@
 extern "C" {
 #include "duv.h"
 }
+
+namespace rtScriptDukUtils
+{
 
 static const char* kFuncAllKeys = "allKeys";
 
@@ -644,3 +647,5 @@ void jsObjectWrapper::pushDukWrappedObject()
 
   AddRef();
 }
+
+} //namespace rtScriptDukUtils

@@ -21,7 +21,6 @@ elseif (APPLE)
 else()
     option(PXCORE_COMPILE_WARNINGS_AS_ERRORS "PXCORE_COMPILE_WARNINGS_AS_ERRORS" ON)
 endif(WIN32)
-
 set(EXTDIR "${CMAKE_CURRENT_SOURCE_DIR}/../examples/pxScene2d/external")
 set(NODEDIR "${EXTDIR}/node/")
 include(../cmake/CommOpts.cmake)
@@ -192,8 +191,8 @@ set(PXCORE_FILES ${PXCORE_FILES} pxOffscreen.cpp pxWindowUtil.cpp
 if (SUPPORT_DUKTAPE)
     message("Adding Duktape scripting support")
     add_definitions(-DRTSCRIPT_SUPPORT_DUKTAPE)
-    set(PXCORE_FILES ${PXCORE_FILES} rtScriptDuk/rtScriptDuk.cpp rtScriptDuk/rtFunctionWrapper.cpp rtScriptDuk/rtObjectWrapper.cpp
-        rtScriptDuk/rtWrapperUtils.cpp rtScriptDuk/rtJsModules.cpp)
+    set(PXCORE_FILES ${PXCORE_FILES} rtScriptDuk/rtScriptDuk.cpp rtScriptDuk/rtFunctionWrapperDuk.cpp rtScriptDuk/rtObjectWrapperDuk.cpp
+        rtScriptDuk/rtWrapperUtilsDuk.cpp rtScriptDuk/rtJsModules.cpp)
 endif()
 
 if (SUPPORT_NODE)
@@ -236,6 +235,7 @@ endif (OUTPUT_LIBS_LOCAL)
     include_directories(AFTER ${EXTDIR}/dukluv/lib/uv/include)
     include_directories(AFTER ${EXTDIR}/dukluv/src)
 #endif(USE_DUKTAPE)
+include_directories(AFTER ${EXTDIR}/)
 
 if (BUILD_PXCORE_LIBS)
     message("Building pxcore libs")
