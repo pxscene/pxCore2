@@ -153,7 +153,7 @@ void rtHttpCacheData::populateHeaderMap()
   }
 }
 
-rtString rtHttpCacheData::expirationDate()
+rtString rtHttpCacheData::expirationDate() const
 {
   char buffer[100];
   memset(buffer,0,100);
@@ -444,7 +444,7 @@ rtError rtHttpCacheData::calculateRevalidationNeed(bool& revalidate, bool& reval
 bool rtHttpCacheData::handleDownloadRequest(vector<rtString>& headers,bool downloadBody)
 {
   rtFileDownloadRequest* downloadRequest = NULL;
-  downloadRequest = new rtFileDownloadRequest(mUrl, this);
+  downloadRequest = new rtFileDownloadRequest(mUrl, this, NULL);
   downloadRequest->setAdditionalHttpHeaders(headers);
 
   if (!downloadBody)

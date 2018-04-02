@@ -38,7 +38,7 @@ class rtHttpCacheData
 
     ~rtHttpCacheData();
     /* returns the expiration date of the cache data in localtime */
-    rtString expirationDate();
+    rtString expirationDate() const;
     time_t expirationDateUnix() const;
 
     /* returns true if cache data is expired */

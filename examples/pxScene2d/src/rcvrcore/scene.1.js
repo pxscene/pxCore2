@@ -56,6 +56,10 @@ function Scene() {
     return nativeScene.logDebugMetrics();
   };
 
+  this.collectGarbage = function() {
+    return nativeScene.collectGarbage();
+  };
+
   this.loadArchive = function(u) {
     return nativeScene.loadArchive(u);
   };

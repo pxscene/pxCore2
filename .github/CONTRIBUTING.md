@@ -11,7 +11,7 @@ C++ Google tests can be added in the pxCore/tests/pxScene2d directory, then adde
 
 
 ### JavaScript Tests
-We use [testRunner](https://px-apps.sys.comcast.net/pxscene-samples/examples/px-reference/test-run/testRunner.js) to run JavaScript tests that exercise pxObjects and the JavaScript wrappers. By default, testRunner will run the tests located here: [tests.json](https://px-apps.sys.comcast.net/pxscene-samples/examples/px-reference/test-run/tests.json).  For our Travis CI builds, however, the tests.json from pxCore/tests/pxScene2d/tests/testRunner will be used.
+We use [testRunner](https://www.pxscene.org/examples/px-reference/test-run/testRunner.js) to run JavaScript tests that exercise pxObjects and the JavaScript wrappers. By default, testRunner will run the tests located here: [tests.json](https://www.pxscene.org/examples/px-reference/test-run/tests.json).  For our Travis CI builds, however, the tests.json from pxCore/tests/pxScene2d/tests/testRunner will be used.
 
 For more information on testRunner tests, see [TESTRUNNER](TESTRUNNER.md).
 

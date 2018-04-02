@@ -91,8 +91,7 @@ rtError rtHttpGetBinding(int numArgs, const rtValue* args, rtValue* result, void
   rtObjectRef resp(new rtHttpResponse());
   args[1].toFunction().send(resp);
 
-  rtFileDownloadRequest *downloadRequest = new rtFileDownloadRequest(args[0].toString(), resp.getPtr());
-  downloadRequest->setCallbackFunction(rtHttpResponse::onDownloadComplete);
+  rtFileDownloadRequest *downloadRequest = new rtFileDownloadRequest(args[0].toString(), resp.getPtr(), rtHttpResponse::onDownloadComplete);
   downloadRequest->setDownloadProgressCallbackFunction(rtHttpResponse::onDownloadInProgress, resp.getPtr());
   rtFileDownloader::instance()->addToDownloadQueue(downloadRequest);
   

@@ -5,7 +5,12 @@ option(BUILD_PXCORE "BUILD_PXCORE" ON)
 option(BUILD_PXSCENE "BUILD_PXSCENE" ON)
 option(BUILD_PX_TESTS "BUILD_PX_TESTS" OFF)
 option(BUILD_RTREMOTE_LIBS "BUILD_RTREMOTE_LIBS" OFF)
+
 option(PREFER_SYSTEM_LIBRARIES "Prefer to use system libraries over bundled." "OFF")
+    # Fine selection of which external node package to pick-up, if multiple are installed on the system
+    option(PKG_CONFIG_DISABLE_NODE  "When PREFER_SYSTEM_LIBRARIES=ON, it disables searching for 'node' pkg-config"   OFF)
+    option(PKG_CONFIG_DISABLE_NODE8 "When PREFER_SYSTEM_LIBRARIES=ON, it disables searching for 'node8' pkg-config"  OFF)
+
 option(DISABLE_DEBUG_MODE "Disable debugging mode." "OFF") # OFF for backward compatibility
 
 option(SUPPORT_DUKTAPE "SUPPORT_DUKTAPE" ON)

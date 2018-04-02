@@ -72,9 +72,10 @@ public:
   // !CLF: To Do: These names are terrible... find better ones!
   virtual float getOnscreenWidth();
   virtual float getOnscreenHeight();
-  virtual void dispose();
+  virtual void dispose(bool pumpJavascript);
   void checkStretchX();
   void checkStretchY();
+  rtError removeResourceListener();
   
 protected:
   virtual void draw();

@@ -37,10 +37,12 @@ export PXSCENE_PERMISSIONS_CONFIG=$TRAVIS_BUILD_DIR/examples/pxScene2d/src/pxsce
 export HANDLE_SIGNALS=1
 export ENABLE_MEMLEAK_CHECK=1
 export MallocStackLogging=1
+export SPARK_ENABLE_COLLECT_GARBAGE=1
 
 EXECLOGS=$TRAVIS_BUILD_DIR/logs/exec_logs
 LEAKLOGS=$TRAVIS_BUILD_DIR/logs/leak_logs
-TESTRUNNERURL="https://www.pxscene.org/examples/px-reference/test-run/testRunner.js"
+TESTRUNNERURL="https://www.pxscene.org/examples/px-reference/test-run/testRunner_v5.js"
+
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 printExecLogs()
@@ -97,25 +99,12 @@ fi
 # Wait for few seconds to get the application terminate completely
 leakcount=`leaks pxscene|grep Leak|wc -l`
 echo "leakcount during termination $leakcount"
-$TRAVIS_BUILD_DIR/ci/check_dump_cores_osx.sh `pwd` `ps -ef | grep pxscene |grep -v grep|grep -v pxscene.sh|grep -v monitor.sh|awk '{print $2}'` /var/tmp/pxscene.log &
 kill -15 `ps -ef | grep pxscene |grep -v grep|grep -v pxscene.sh|awk '{print $2}'`
 
 # Sleep for 40s as we have sleep for 30s inside code to capture memory of process
 echo "Sleeping to make terminate complete ...";
 sleep 90s
-pkill -9 -f pxscene.sh	+pkill -11 -f pxscene.sh
-if [ -f "/tmp/pxscenecrash" ] # 'indicator' file created by Signal Handles in pxscene.app
-then
-		printf "\n ############  CORE DUMP detected !!\n\n"
-		dumped_core=1
-		sudo rm -rf /tmp/pxscenecrash
-		break
-fi
-if [ "$dumped_core" -eq 1 ]
-    then
-    $TRAVIS_BUILD_DIR/ci/check_dump_cores_osx.sh `pwd` `ps -ef | grep pxscene |grep -v grep|grep -v pxscene.sh|awk '{print $2}'` /var/tmp/pxscene.log
-    checkError $cored "Execution failed" "Core dump" "Run execution locally"
-fi
+pkill -9 -f pxscene.sh	
 
 cp /var/tmp/pxscene.log $EXECLOGS
 if [ "$dumped_core" -eq 1 ]

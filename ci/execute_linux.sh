@@ -33,10 +33,12 @@ export PX_DUMP_MEMUSAGE=1
 export ENABLE_VALGRIND=1
 export RT_LOG_LEVEL=info
 export SUPPRESSIONS=$TRAVIS_BUILD_DIR/ci/leak.supp
+export SPARK_ENABLE_COLLECT_GARBAGE=1
 
 touch $VALGRINDLOGS
 EXECLOGS=$TRAVIS_BUILD_DIR/logs/exec_logs
-TESTRUNNERURL="https://www.pxscene.org/examples/px-reference/test-run/testRunner.js"
+
+TESTRUNNERURL="https://www.pxscene.org/examples/px-reference/test-run/testRunner_v5.js"
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
