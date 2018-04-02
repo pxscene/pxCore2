@@ -21,7 +21,6 @@ elseif (APPLE)
 else()
     option(PXCORE_COMPILE_WARNINGS_AS_ERRORS "PXCORE_COMPILE_WARNINGS_AS_ERRORS" ON)
 endif(WIN32)
-
 set(EXTDIR "${CMAKE_CURRENT_SOURCE_DIR}/../examples/pxScene2d/external")
 set(NODEDIR "${EXTDIR}/node/")
 include(../cmake/CommOpts.cmake)
