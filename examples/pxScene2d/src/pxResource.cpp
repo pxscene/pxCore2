@@ -176,6 +176,7 @@ void pxResource::removeListener(pxResourceListener* pListener)
   {
     //rtLogDebug("canceling url: %s", mUrl.cString());
     rtFileDownloader::cancelDownloadRequestThreadSafe(mDownloadRequest, this);
+    clearDownloadRequest();
   }
 }
 
@@ -509,7 +510,7 @@ void pxResource::processDownloadedResource(rtFileDownloadRequest* fileDownloadRe
     if (wasCanceled)
     {
       //rtLogDebug("download was canceled, no need to notify: %s", fileDownloadRequest->fileUrl().cString());
-      setLoadStatus("statusCode", PX_RESOURCE_STATUS_UNKNOWN_ERROR);
+      setLoadStatus("statusCode", 0);
       setLoadStatus("httpStatusCode",(uint32_t)fileDownloadRequest->httpStatusCode());
       if (gUIThreadQueue)
       {
