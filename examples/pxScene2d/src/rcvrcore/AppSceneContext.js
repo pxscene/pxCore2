@@ -592,127 +592,6 @@ AppSceneContext.prototype.resolveModulePath = function(filePath, currentXModule)
   return {fileUri:fileUri};
 };
 
-// duktape merge hack
-
-if (isDuk) {
-    AppSceneContext.prototype.include = function(filePath, currentXModule) {
-        log.message(4, ">>> include(" + filePath + ") for " + currentXModule.name + " <<<");
-        var _this = this;
-        var origFilePath = filePath;
-        
-        return new Promise(function (onImportComplete, reject) {
-                           if( filePath === 'px' || filePath === 'url' || filePath === 'querystring') {
-                           // built-ins
-                           var modData = require(filePath);
-                           onImportComplete([modData, origFilePath]);
-                           return;
-                           } else if( filePath === 'fs' || filePath === 'os' ) {
-                           console.log("Not permitted to use the module " + filePath);
-                           reject("include failed due to module not permitted");
-                           return;
-                           } else if ( filePath === 'zlib' || filePath === 'events' || filePath === 'crypto' || filePath === 'stream' || filePath === 'util' || filePath === 'BufferList' ) {
-                           modData = require('duk_modules/' + filePath);
-                           onImportComplete([modData, origFilePath]);
-                           return;
-                           } else if ( filePath === 'ws' ) {
-                           modData = require('rcvrcore/' + filePath + '_wrap');
-                           onImportComplete([modData, origFilePath]);
-                           return;
-                           } else if( filePath === 'net' || filePath === 'htmlparser') {
-                           //modData = require('rcvrcore/' + filePath + '_wrap');
-                           //onImportComplete([modData, origFilePath]);
-                           console.log("Not permitted to use the module " + filePath);
-                           reject("include failed due to module not permitted");
-                           return;
-                           } 
-                           else if (filePath === 'ws') {
-                            console.log("creating websocket instance")
-                            modData = websocket;
-                            onImportComplete([modData, origFilePath]);
-                            return;
-                           } else if (filePath === 'http' || filePath === 'https') {
-                           //console.log("Not permitted to use the module " + filePath);
-                           //reject("include failed due to module not permitted");
-                           if (filePath === 'http')
-                           {
-                           modData = new http_wrap();
-                           }
-                           else
-                           {
-                           modData = new https_wrap();
-                           }
-                           var localapp = true; //(isLocalApp(_this.packageUrl) || isLocalIPV6App(_this.packageUrl));
-                           modData.setLocalApp(localapp);
-                           onImportComplete([modData, origFilePath]);
-                           return;
-                           } else if( filePath.substring(0, 9) === "px:scene.") {
-                           var Scene = require('rcvrcore/' + filePath.substring(3));
-                           if( _this.sceneWrapper === null ) {
-                           _this.sceneWrapper = new Scene();
-                           }
-                           _this.sceneWrapper._setNativeScene(_this.innerscene, currentXModule.name);
-                           _this.sceneWrapper._setRPCController(_this.rpcController);
-                           onImportComplete([_this.sceneWrapper, origFilePath]);
-                           return;
-                           } else if( filePath.substring(0,9) === "px:tools.") {
-                           modData = require('rcvrcore/tools/' + filePath.substring(9));
-                           onImportComplete([modData, origFilePath]);
-                           return;
-                           }
-                           
-                           //console.log("this path is temporarily disabled by akuts");
-                           //reject("this path is temporarily disabled by akuts");
-                           
-                           
-                           filePath = _this.resolveModulePath(filePath, currentXModule).fileUri;
-                           
-                           console.log("this path is by akuts: " + filePath);
-                           
-                           log.message(4, "filePath=" + filePath);
-                           if( _this.isScriptDownloading(filePath) ) {
-                           log.message(4, "Script is downloading for " + filePath);
-                           _this.addModuleReadyListener(filePath, function(moduleExports) {
-                                                        onImportComplete([moduleExports, origFilePath]);
-                                                        });
-                           return;
-                           }
-                           if (_this.isScriptLoaded(filePath)) {
-                           log.message(4, "Already have file loaded and ready, just return the existing content: " + filePath);
-                           modData = _this.getScriptContents(filePath);
-                           onImportComplete([modData, origFilePath]);
-                           return;
-                           }
-                           
-                           _this.setScriptStatus(filePath, 'downloading');
-                           
-                           var file = _this.jarFileMap.getArchiveFile(currentXModule.getJarName(), filePath);
-                           if (file) {
-                           // FIXME: no support for jars in jar because nativeFileArchive uses getFileAsString which is not ok for jar
-                           log.message(4, "Found file '" + filePath+"' in JAR: "+currentXModule.getJarName());
-                           var moduleLoader = new SceneModuleLoader();
-                           moduleLoader.processFileData(filePath, file);
-                           moduleLoader.loadedJarFile = false;
-                           moduleLoader.manifest = new SceneModuleManifest();
-                           moduleLoader.manifest.loadFromJSON(moduleLoader.getFileArchive().getFileContents('package.json'));
-                           _this.processCodeBuffer(origFilePath, filePath, currentXModule, moduleLoader, onImportComplete, reject);
-                           return;
-                           }
-                           
-                           _this.asyncFileAcquisition.acquire(filePath)
-                           .then(function(moduleLoader){
-                                 log.message(4, "PROCESS RCVD MODULE: " + filePath);
-                                 // file acquired
-                                 _this.processCodeBuffer(origFilePath, filePath, currentXModule, moduleLoader, onImportComplete, reject);
-                                 }).catch(function(err){
-                                          console.error("Error: could not load file " + filePath  + ", err=" + err);
-                                          reject("include failed");
-                                          });
-                           });
-    };
-    
-    
-}
-else {
 AppSceneContext.prototype.include = function(filePath, currentXModule) {
   log.message(4, ">>> include(" + filePath + ") for " + currentXModule.name + " <<<");
   var _this = this;
@@ -827,7 +706,6 @@ AppSceneContext.prototype.include = function(filePath, currentXModule) {
       });
   });
 };
-}
 
 AppSceneContext.prototype.processCodeBuffer = function(origFilePath, filePath, currentXModule, moduleLoader, onImportComplete, onImportRejected) {
   var _this = this;
