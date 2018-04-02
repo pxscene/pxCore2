@@ -40,15 +40,8 @@ pxImageA::pxImageA(pxScene2d *scene) : pxObject(scene),
 
 pxImageA::~pxImageA()
 {
-  if (mListenerAdded)
-  {
-    if (getImageAResource())
-    {
-      getImageAResource()->removeListener(this);
-    }
-    mResource = NULL;
-    mListenerAdded = false;
-  }
+  removeResourceListener();
+  mResource = NULL;
 }
 
 void pxImageA::onInit() 
@@ -88,6 +81,7 @@ rtError pxImageA::setUrl(const char *s)
       pxObject::createNewPromise();
     }
   }
+  removeResourceListener();
   mResource = pxImageManager::getImageA(s);
 
   if(getImageAResource() != NULL && getImageAResource()->getUrl().length() > 0 && !mImageLoaded) {
@@ -161,7 +155,7 @@ void pxImageA::draw()
   }
 }
 
-void pxImageA::dispose()
+void pxImageA::dispose(bool pumpJavascript)
 {
   if (mListenerAdded)
   {
@@ -172,7 +166,7 @@ void pxImageA::dispose()
     mResource = NULL;
     mListenerAdded = false;
   }
-  pxObject::dispose();
+  pxObject::dispose(pumpJavascript);
 }
 
 #if 0
@@ -234,6 +228,7 @@ rtError pxImageA::setResource(rtObjectRef o)
     // Only create new promise if url is different
     if( getImageAResource() != NULL && getImageAResource()->getUrl().compare(o.get<rtString>("url")) )
     {
+      removeResourceListener();
       mResource = o;
       mImageLoaded = false;
       pxObject::createNewPromise();
@@ -301,6 +296,19 @@ void pxImageA::resourceReady(rtString readyResolution)
     pxObject::onTextureReady();
     mReady.send("reject",this);
   }
+}
+
+rtError pxImageA::removeResourceListener()
+{
+  if (mListenerAdded)
+  {
+    if (getImageAResource())
+    {
+      getImageAResource()->removeListener(this);
+    }
+    mListenerAdded = false;
+  }
+  return RT_OK;
 }
 
 rtDefineObject(pxImageA, pxObject);

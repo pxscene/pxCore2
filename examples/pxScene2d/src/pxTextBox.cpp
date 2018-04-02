@@ -55,6 +55,7 @@ pxTextBox::pxTextBox(pxScene2d* s): pxText(s),
   measurements= new pxTextMeasurements();
 
   mFontLoaded      = false;
+  mFontFailed      = false;
   
 }
 
@@ -74,6 +75,7 @@ void pxTextBox::resourceReady(rtString readyResolution)
   }
   else
   {
+      mFontFailed = true;
       pxObject::onTextureReady();
       mReady.send("reject",this);
   }
@@ -187,6 +189,7 @@ rtError pxTextBox::setPixelSize(uint32_t v)
 rtError pxTextBox::setFontUrl(const char* s)
 {
   //rtLogDebug("pxTextBox::setFontUrl \"%s\" mInitialized=%d\n",s,mInitialized);
+  mFontFailed = false;
   mFontLoaded = false;
   setNeedsRecalc(true);
   return pxText::setFontUrl(s);
@@ -195,6 +198,7 @@ rtError pxTextBox::setFontUrl(const char* s)
 
 rtError pxTextBox::setFont(rtObjectRef o)
 {
+  mFontFailed = false;
   mFontLoaded = false;
   setNeedsRecalc(true);
 

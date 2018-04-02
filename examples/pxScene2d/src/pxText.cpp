@@ -27,7 +27,7 @@
 extern pxContext context;
 
 
-pxText::pxText(pxScene2d* scene):pxObject(scene), mFontLoaded(false), mFontDownloadRequest(NULL), mListenerAdded(false)
+pxText::pxText(pxScene2d* scene):pxObject(scene), mFontLoaded(false), mFontFailed(false), mFontDownloadRequest(NULL), mListenerAdded(false)
 {
   float c[4] = {1, 1, 1, 1};
   memcpy(mTextColor, c, sizeof(mTextColor));
@@ -39,14 +39,7 @@ pxText::pxText(pxScene2d* scene):pxObject(scene), mFontLoaded(false), mFontDownl
 
 pxText::~pxText()
 {
-  if (mListenerAdded)
-  {
-    if (getFontResource())
-    {
-      getFontResource()->removeListener(this);
-    }
-    mListenerAdded = false;
-  }
+  removeResourceListener();
 }
 
 void pxText::onInit()
@@ -117,6 +110,7 @@ void pxText::resourceReady(rtString readyResolution)
   }
   else 
   {
+      mFontFailed = true;
       pxObject::onTextureReady();
       mReady.send("reject",this);
   }     
@@ -210,8 +204,10 @@ rtError pxText::setFontUrl(const char* s)
     s = defaultFont;
   }
   mFontLoaded = false;
+  mFontFailed = false;
   createNewPromise();
 
+  removeResourceListener();
   mFont = pxFontManager::getFont(s);
   mListenerAdded = true;
   if (getFontResource() != NULL)
@@ -225,9 +221,11 @@ rtError pxText::setFontUrl(const char* s)
 rtError pxText::setFont(rtObjectRef o) 
 { 
   mFontLoaded = false;
+  mFontFailed = false;
   createNewPromise();
 
   // !CLF: TODO: Need validation/verification of o
+  removeResourceListener();
   mFont = o; 
   mListenerAdded = true;
   if (getFontResource() != NULL) {
@@ -268,7 +266,30 @@ float pxText::getFBOHeight()
   }
   else 
     return mh; 
-} 
+}
+
+rtError pxText::removeResourceListener()
+{
+  if (mListenerAdded)
+  {
+    if (getFontResource())
+    {
+      getFontResource()->removeListener(this);
+    }
+    mListenerAdded = false;
+  }
+  return RT_OK;
+}
+void pxText::createNewPromise()
+{
+  // Only create a new promise if the existing one has been
+  // resolved or rejected already and font did not fail
+  if(!mFontFailed && ((rtPromise*)mReady.getPtr())->status())
+  {
+    rtLogDebug("CREATING NEW PROMISE\n");
+    mReady = new rtPromise();
+  }
+}
 
 rtDefineObject(pxText, pxObject);
 rtDefineProperty(pxText, text);

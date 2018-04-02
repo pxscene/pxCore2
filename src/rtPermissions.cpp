@@ -21,9 +21,9 @@
 #include "rtUrlUtils.h"
 #include "rtPathUtils.h"
 
-#include <../remote/rapidjson/document.h>
-#include <../remote/rapidjson/filereadstream.h>
-#include <../remote/rapidjson/error/en.h>
+#include <rapidjson/document.h>
+#include <rapidjson/filereadstream.h>
+#include <rapidjson/error/en.h>
 
 #include <stdlib.h>
 #include <algorithm>

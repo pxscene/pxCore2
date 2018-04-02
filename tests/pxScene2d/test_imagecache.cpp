@@ -975,7 +975,7 @@ class rtFileDownloaderTest : public testing::Test, public commonTestFns
     void setCallbackFunctionThreadSafeTest()
     {
       rtFileDownloadRequest* request = new rtFileDownloadRequest("",this);
-      request->setCallbackFunctionThreadSafe(rtFileDownloaderTest::downloadCallback);
+      rtFileDownloader::setCallbackFunctionThreadSafe(request, rtFileDownloaderTest::downloadCallback);
       expectedStatusCode = 0;
       expectedCachePresence = false;
       expectedHttpCode = 0;
@@ -986,7 +986,7 @@ class rtFileDownloaderTest : public testing::Test, public commonTestFns
     void setCallbackFunctionNullTest()
     {
       rtFileDownloadRequest* request = new rtFileDownloadRequest("",this);
-      request->setCallbackFunctionThreadSafe(NULL);
+      rtFileDownloader::setCallbackFunctionThreadSafe(request, NULL);
       EXPECT_TRUE (request->executeCallback(0) == false);
     }
 
@@ -995,7 +995,7 @@ class rtFileDownloaderTest : public testing::Test, public commonTestFns
       void (*callbackFunction)(rtFileDownloadRequest*);
       callbackFunction = rtFileDownloader::instance()->mDefaultCallbackFunction;
       rtFileDownloadRequest* request = new rtFileDownloadRequest("http://fileserver/file.jpeg",this);
-      request->setCallbackFunctionThreadSafe(NULL);
+      rtFileDownloader::setCallbackFunctionThreadSafe(request, NULL);
       rtFileDownloader::instance()->setDefaultCallbackFunction(rtFileDownloaderTest::defaultDownloadCallback);
       rtFileDownloader::instance()->downloadFile(request);
       sem_wait(testSem);
@@ -1026,7 +1026,7 @@ class rtFileDownloaderTest : public testing::Test, public commonTestFns
     void setCallbackDataTest()
     {
       rtFileDownloadRequest* request = new rtFileDownloadRequest("",NULL);
-      request->setCallbackFunctionThreadSafe(rtFileDownloaderTest::downloadCallback);
+      rtFileDownloader::setCallbackFunctionThreadSafe(request, rtFileDownloaderTest::downloadCallback);
       request->setCallbackData(this);
       expectedStatusCode = 0;
       expectedCachePresence = false;
@@ -1047,7 +1047,7 @@ class rtFileDownloaderTest : public testing::Test, public commonTestFns
       rtFileCache::instance()->clearCache();
       addDataToCache("http://fileserver/file.jpeg",getHeader(),getBodyData(),fixedData.length());
       rtFileDownloadRequest* request = new rtFileDownloadRequest("http://fileserver/file.jpeg",this);
-      request->setCallbackFunctionThreadSafe(rtFileDownloaderTest::downloadCallback);
+      rtFileDownloader::setCallbackFunctionThreadSafe(request, rtFileDownloaderTest::downloadCallback);
       rtFileDownloader::instance()->addToDownloadQueue(request);
       expectedStatusCode = 0;
       expectedHttpCode = 200;
@@ -1065,7 +1065,7 @@ class rtFileDownloaderTest : public testing::Test, public commonTestFns
     {
       rtFileCache::instance()->clearCache();
       rtFileDownloadRequest* request = new rtFileDownloadRequest("http://fileserver/file.jpeg",this);
-      request->setCallbackFunctionThreadSafe(rtFileDownloaderTest::downloadCallback);
+      rtFileDownloader::setCallbackFunctionThreadSafe(request, rtFileDownloaderTest::downloadCallback);
       rtFileDownloader::instance()->addToDownloadQueue(request);
       rtFileDownloader::instance()->raiseDownloadPriority(request);
       expectedStatusCode = 6;

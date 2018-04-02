@@ -78,7 +78,7 @@
   #define TRACK_FBO_CALLS()
 #endif
 
-rtThreadQueue gUIThreadQueue;
+rtThreadQueue* gUIThreadQueue = new rtThreadQueue();
 
 ////////////////////////////////////////////////////////////////
 
@@ -1156,11 +1156,17 @@ void decodeTextureData(void* data)
       pxOffscreen *decodedOffscreen = new pxOffscreen();
 
       pxLoadImage(compressedImageData, compressedImageDataSize, *decodedOffscreen); // background image decode
-      gUIThreadQueue.addTask(onDecodeComplete, data, decodedOffscreen);             // queue image onto UI thread. Task will 'delete' data.
+      if (gUIThreadQueue)
+      {
+        gUIThreadQueue->addTask(onDecodeComplete, data, decodedOffscreen);
+      }             // queue image onto UI thread. Task will 'delete' data.
     }
     else
     {
-      gUIThreadQueue.addTask(onDecodeComplete, data, NULL); // Just clean up !
+      if (gUIThreadQueue)
+      {
+        gUIThreadQueue->addTask(onDecodeComplete, data, NULL); // Just clean up !
+      }
     }
   }
 }
@@ -1186,7 +1192,10 @@ void cleanupOffscreen(void* data)
       imageData->textureOffscreen->freeOffscreenData();
     }
 
-    gUIThreadQueue.addTask(onOffscreenCleanupComplete, data, NULL);
+    if (gUIThreadQueue)
+    {
+      gUIThreadQueue->addTask(onOffscreenCleanupComplete, data, NULL);
+    }
   }
 }
 

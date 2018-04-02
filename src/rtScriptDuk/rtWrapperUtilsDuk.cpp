@@ -16,9 +16,9 @@ limitations under the License.
 
 */
 
-#include "rtWrapperUtils.h"
-#include "rtObjectWrapper.h"
-#include "rtFunctionWrapper.h"
+#include "rtWrapperUtilsDuk.h"
+#include "rtObjectWrapperDuk.h"
+#include "rtFunctionWrapperDuk.h"
 #ifndef RUNINMAIN
 extern uv_mutex_t threadMutex;
 #endif
@@ -27,6 +27,9 @@ extern uv_mutex_t threadMutex;
 
 
 using namespace std;
+
+namespace rtScriptDukUtils
+{
 
 void rt2duk(duk_context *ctx, const rtValue& v)
 {
@@ -191,3 +194,8 @@ void rtDukDelGlobalIdent(duk_context *ctx, const std::string &name)
   duk_del_prop_string(ctx, -1, name.c_str());
   duk_pop(ctx);
 }
+<<<<<<< HEAD:src/rtScriptDuk/rtWrapperUtils.cpp
+=======
+
+}
+>>>>>>> 7dec61977a3f65aee3144991ddf31b2d5a4fdad7:src/rtScriptDuk/rtWrapperUtilsDuk.cpp

@@ -33,6 +33,11 @@ extern "C" {
 #include "duv.h"
 
 }
+namespace rtScriptDukUtils
+{
+
 void rtSetupJsModuleBindings(duk_context *ctx);
+
+} //namespace rtScriptDukUtils
 
 #endif

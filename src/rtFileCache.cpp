@@ -78,7 +78,7 @@ void  rtFileCache::initCache()
   retVal = mkdir(mDirectory.cString(), 0777);
 #endif
   if (0 != retVal)
-    rtLogWarn("creation of cache directory failed");
+    rtLogWarn("creation of cache directory %s failed: %d", mDirectory.cString(), retVal);
   populateExistingFiles();
 }
 
@@ -245,7 +245,9 @@ rtError rtFileCache::addToCache(const rtHttpCacheData& data)
   if (true != ret)
      return RT_ERROR;
   setFileSizeAndTime(filename);
-  rtLogInfo("addToCache url(%s) filename(%s) size(%ld)", url.cString(), filename.cString(), (long) mFileSizeMap[filename]);
+
+  rtLogInfo("addToCache url(%s) filename(%s) size(%ld) Cache expiration(%s)", url.cString(), filename.cString(), (long) mFileSizeMap[filename], data.expirationDate().cString());
+
   mCacheMutex.lock();
   mCurrentSize += mFileSizeMap[filename];
   int64_t size = cleanup();

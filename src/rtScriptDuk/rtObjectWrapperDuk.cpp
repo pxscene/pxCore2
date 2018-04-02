@@ -16,9 +16,9 @@ limitations under the License.
 
 */
 
-#include "rtObjectWrapper.h"
-#include "rtFunctionWrapper.h"
-#include "rtWrapperUtils.h"
+#include "rtObjectWrapperDuk.h"
+#include "rtFunctionWrapperDuk.h"
+#include "rtWrapperUtilsDuk.h"
 
 #include <rtLog.h>
 #include <string>
@@ -27,6 +27,9 @@ limitations under the License.
 extern "C" {
 #include "duv.h"
 }
+
+namespace rtScriptDukUtils
+{
 
 static const char* kFuncAllKeys = "allKeys";
 
@@ -662,3 +665,5 @@ void jsObjectWrapper::pushDukWrappedObject()
 
   AddRef();
 }
+
+} //namespace rtScriptDukUtils
