@@ -196,7 +196,7 @@ class RTRemoteProtocol {
   sendSetById(objectId, index, value) {
     // TODO need implement
     logger.debug(objectId, index, value);
-    logger.error('sendSetById didn\'t implement', this);
+    logger.error('sendSetById is yet to be implemented');
     return Promise.resolve({});
   }
 
@@ -252,7 +252,7 @@ class RTRemoteProtocol {
   sendGetById(objectId, index) {
     // TODO need implement
     logger.debug(objectId, index);
-    logger.error('sendSetById didn\'t implement', this);
+    logger.error('sendGetById is yet to be implemented');
     return Promise.resolve({});
   }
 }
