@@ -593,7 +593,7 @@ void pxObject::createNewPromise()
   }
 }
 
-void pxObject::dispose()
+void pxObject::dispose(bool pumpJavascript)
 {
   if (!mIsDisposed)
   {
@@ -619,7 +619,7 @@ void pxObject::dispose()
     for(vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
     {
       (*it)->mParent = NULL;  // setParent mutates the mChildren collection
-      (*it)->dispose();
+      (*it)->dispose(false);
     }
     mChildren.clear();
     clearSnapshot(mSnapshotRef);
@@ -635,7 +635,12 @@ void pxObject::dispose()
       mScene->innerpxObjectDisposed(this);
     }
 #ifdef ENABLE_RT_NODE
-    script.pump();
+    if (pumpJavascript)
+    {
+      script.pump();
+    }
+#else
+    (void)pumpJavascript;
 #endif
  }
 }
@@ -675,6 +680,11 @@ rtError pxObject::animateToP2(rtObjectRef props, double duration,
                               uint32_t interp, uint32_t options,
                               int32_t count, rtObjectRef& promise)
 {
+  if (mIsDisposed)
+  {
+    return RT_OK;
+  }
+
   if (!props) return RT_FAIL;
 
   // TODO JR... not sure that we should do an early out here... thinking
@@ -903,8 +913,6 @@ rtError pxObject::animateTo(const char* prop, double to, double duration,
 {
   if (mIsDisposed)
   {
-    rtValue nullValue;
-    promise.send("reject",nullValue);
     return RT_OK;
   }
   animateToInternal(prop, to, duration, ((pxConstantsAnimation*)CONSTANTS.animationConstants.getPtr())->getInterpFunc(interp),
@@ -1916,13 +1924,13 @@ rtError pxScene2d::dispose()
       pxObject* temp = (pxObject *) (mInnerpxObjects[i].getPtr());
       if ((NULL != temp) && (NULL == temp->parent()))
       {
-        temp->dispose();
+        temp->dispose(false);
       }
     }
     mInnerpxObjects.clear();
 
     if (mRoot)
-      mRoot->dispose();
+      mRoot->dispose(false);
     mEmit->clearListeners();
 
     mRoot     = NULL;
@@ -1931,6 +1939,9 @@ rtError pxScene2d::dispose()
     mFocusObj = NULL;
 
     pxFontManager::clearAllFonts();
+    #ifdef ENABLE_RT_NODE
+    script.pump();
+    #endif //ENABLE_RT_NODE
 
     return RT_OK;
 }
@@ -3084,8 +3095,15 @@ rtError pxScene2d::screenshot(rtString type, rtString& pngData)
   // Is this a type we support?
   if (type == "image/png;base64")
   {
+    pxContextFramebufferRef previousRenderSurface = context.getCurrentFramebuffer();
+    pxContextFramebufferRef newFBO;
+    // w/o multisampling
+    // if needed, render texture of a multisample FBO to a non-multisample FBO and then read from it
+    mRoot->createSnapshot(newFBO, true, false);
+    context.setFramebuffer(newFBO);
     pxOffscreen o;
     context.snapshot(o);
+    context.setFramebuffer(previousRenderSurface);
 
     rtData pngData2;
     if (pxStorePNGImage(o, pngData2) == RT_OK)
@@ -3549,7 +3567,7 @@ rtError pxSceneContainer::setPermissions(const rtObjectRef& v)
 }
 #endif
 
-void pxSceneContainer::dispose()
+void pxSceneContainer::dispose(bool pumpJavascript)
 {
   if (!mIsDisposed)
   {
@@ -3557,7 +3575,7 @@ void pxSceneContainer::dispose()
     //Adding ref to make sure, object not destroyed from event listeners
     AddRef();
     setScriptView(NULL);
-    pxObject::dispose();
+    pxObject::dispose(pumpJavascript);
     Release();
   }
 }

@@ -381,7 +381,7 @@ public:
   rtError moveToFront();
   rtError moveToBack();
 
-  virtual void dispose();
+  virtual void dispose(bool pumpJavascript);
 
   void drawInternal(bool maskPass=false);
   virtual void draw() {}
@@ -697,9 +697,11 @@ public:
 
   rtError releaseResources()
   {
-     dispose();
+     dispose(true);
      return RT_OK;
   }
+
+  void createSnapshot(pxContextFramebufferRef& fbo, bool separateContext=false, bool antiAliasing=false);
 
 public:
   rtEmitRef mEmit;
@@ -737,7 +739,6 @@ protected:
   pxRect mDirtyRect;
   #endif //PX_DIRTY_RECTANGLES
 
-  void createSnapshot(pxContextFramebufferRef& fbo, bool separateContext=false, bool antiAliasing=false);
   void createSnapshotOfChildren();
   void clearSnapshot(pxContextFramebufferRef fbo);
   #ifdef PX_DIRTY_RECTANGLES
@@ -1015,7 +1016,7 @@ public:
     return c;
   }
 
-  void dispose();
+  virtual void dispose(bool pumpJavascript);
   rtError url(rtString& v) const { v = mUrl; return RT_OK; }
   rtError setUrl(rtString v);
 
@@ -1623,11 +1624,11 @@ public:
   {
      mPointerHidden= hide;
   }
-  bool mDirty;
   #ifdef PX_DIRTY_RECTANGLES
   pxRect mDirtyRect;
   pxRect mLastFrameDirtyRect;
   #endif //PX_DIRTY_RECTANGLES
+  bool mDirty;
   testView* mTestView;
   bool mDisposed;
   std::vector<rtFunctionRef> mServiceProviders;
