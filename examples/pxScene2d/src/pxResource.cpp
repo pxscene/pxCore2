@@ -372,6 +372,11 @@ void pxResource::setLoadStatus(const char* name, rtValue value)
  * */
 void pxResource::loadResource()
 {
+  if(((rtPromise*)mReady.getPtr())->status())
+  {
+    //create a new promise if the old one is complete
+    mReady = new rtPromise();
+  }
   setLoadStatus("statusCode", -1);
   //rtLogDebug("rtImageResource::loadResource statusCode should be -1; is statusCode=%d\n",mLoadStatus.get<int32_t>("statusCode"));
   if (mUrl.beginsWith("http:") || mUrl.beginsWith("https:"))
