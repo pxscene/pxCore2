@@ -1,5 +1,17 @@
 if (PREFER_SYSTEM_LIBRARIES)
-    pkg_search_module(NODE node)
+
+    if ((NOT PKG_CONFIG_DISABLE_NODE8) AND (NOT NODE_FOUND))
+        pkg_search_module(NODE node8)
+    endif((NOT PKG_CONFIG_DISABLE_NODE8) AND (NOT NODE_FOUND))
+
+    if ((NOT PKG_CONFIG_DISABLE_NODE) AND (NOT NODE_FOUND))
+        pkg_search_module(NODE node)
+    endif((NOT PKG_CONFIG_DISABLE_NODE) AND (NOT NODE_FOUND))
+
+    if (NODE_FOUND)
+        message(STATUS "Using external nodejs library (found version \"${NODE_VERSION}\")")
+    endif(NODE_FOUND)
+
 endif(PREFER_SYSTEM_LIBRARIES)
 if (NOT NODE_FOUND)
     message(STATUS "Using built-in nodejs library")

@@ -38,8 +38,8 @@ sleep 5s;
 pkill -9 -f pxscene2dtests.sh
 
 #check for process hung
-grep "Global test environment tear-down" $TESTLOGS
 errCause=""
+grep "Global test environment tear-down" $TESTLOGS
 retVal=$?
 if [ "$retVal" -ne 0 ]
 	then
