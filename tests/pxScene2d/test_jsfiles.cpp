@@ -1,7 +1,3 @@
-#ifndef ENABLE_RT_NODE
-#define ENABLE_RT_NODE
-#endif
-
 #include <sstream>
 
 #define private public

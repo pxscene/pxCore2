@@ -107,7 +107,6 @@ uint32_t gFboBindCalls;
 #include <stdint.h>
 #include <stdlib.h>
 
-#ifdef ENABLE_RT_NODE
 extern void rtWrapperSceneUpdateEnter();
 extern void rtWrapperSceneUpdateExit();
 #ifdef RUNINMAIN
@@ -119,7 +118,6 @@ extern uv_mutex_t moreScriptsMutex;
 extern uv_async_t asyncNewScript;
 extern uv_async_t gcTrigger;
 #endif // RUNINMAIN
-#endif //ENABLE_RT_NODE
 
 #ifdef ENABLE_VALGRIND
 #include <valgrind/callgrind.h>
@@ -634,14 +632,10 @@ void pxObject::dispose(bool pumpJavascript)
     {
       mScene->innerpxObjectDisposed(this);
     }
-#ifdef ENABLE_RT_NODE
     if (pumpJavascript)
     {
       script.pump();
     }
-#else
-    (void)pumpJavascript;
-#endif
  }
 }
 
@@ -1901,13 +1895,11 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   mInfo = new rtMapObject;
   mInfo.set("version", xstr(PX_SCENE_VERSION));
 
-#ifdef ENABLE_RT_NODE
   mInfo.set("engine", script.engine());
-#endif
 
-    rtObjectRef build = new rtMapObject;
-    build.set("date", xstr(__DATE__));
-    build.set("time", xstr(__TIME__));
+  rtObjectRef build = new rtMapObject;
+  build.set("date", xstr(__DATE__));
+  build.set("time", xstr(__TIME__));
 
   mInfo.set("build", build);
   mInfo.set("gfxmemory", context.currentTextureMemoryUsageInBytes());
@@ -1939,9 +1931,7 @@ rtError pxScene2d::dispose()
     mFocusObj = NULL;
 
     pxFontManager::clearAllFonts();
-    #ifdef ENABLE_RT_NODE
     script.pump();
-    #endif //ENABLE_RT_NODE
 
     return RT_OK;
 }
@@ -2382,14 +2372,12 @@ EXITSCENELOCK()
 
 void pxScene2d::onUpdate(double t)
 {
-  #ifdef ENABLE_RT_NODE
   if (mTop)
   {
     rtWrapperSceneUpdateEnter();
   }
-  #endif //ENABLE_RT_NODE
   // TODO if (mTop) check??
- // pxTextureCacheObject::checkForCompletedDownloads();
+  // pxTextureCacheObject::checkForCompletedDownloads();
   //pxFont::checkForCompletedDownloads();
 
   // Dispatch various tasks on the main UI thread
@@ -2483,12 +2471,10 @@ void pxScene2d::onUpdate(double t)
 
   frameCount++;
   }
-  #ifdef ENABLE_RT_NODE
   if (mTop)
   {
     rtWrapperSceneUpdateExit();
   }
-  #endif //ENABLE_RT_NODE
 }
 
 void pxScene2d::onDraw()
@@ -2497,9 +2483,7 @@ void pxScene2d::onDraw()
 
   if (mTop)
   {
-    #ifdef ENABLE_RT_NODE
     rtWrapperSceneUpdateEnter();
-    #endif //ENABLE_RT_NODE
     context.setSize(mWidth, mHeight);
   }
 #if 1
@@ -2515,12 +2499,10 @@ void pxScene2d::onDraw()
 #endif //USE_RENDER_STATS
 
 #endif
-  #ifdef ENABLE_RT_NODE
   if (mTop)
   {
     rtWrapperSceneUpdateExit();
   }
-  #endif //ENABLE_RT_NODE
 }
 
 // Does not draw updates scene to time t
@@ -3641,7 +3623,6 @@ void pxScriptView::runScript()
   }
 // escape url end
 
-  #ifdef ENABLE_RT_NODE
   rtLogDebug("pxScriptView::pxScriptView is just now creating a context for mUrl=%s\n",mUrl.cString());
   //mCtx = script.createContext("javascript");
   script.createContext("javascript", mCtx);
@@ -3687,7 +3668,6 @@ void pxScriptView::runScript()
     mCtx->runScript(buffer);
     rtLogInfo("pxScriptView::runScript() ending\n");
   }
-  #endif //ENABLE_RT_NODE
 }
 
 rtError pxScriptView::getScene(int numArgs, const rtValue* args, rtValue* result, void* ctx)
