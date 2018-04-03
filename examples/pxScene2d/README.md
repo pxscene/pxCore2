@@ -240,6 +240,8 @@ file:///home/username/directory/filename.js
    ./pxscene2dtests.sh
    ~~~~
 
+## Developer CMake options
+   ENABLE_THREAD_SANITIZER - Turn on this option to enable thread sanitizer support.  The default value is OFF
 
 ## Building with rtRemote support (Linux only)
 1. Get source code
