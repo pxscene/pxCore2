@@ -73,7 +73,7 @@ try:
     builds_num = len(builds["builds"])
     logging.info("Builds: %d" % (builds_num))
 
-    keep_builds_num = int(get_env_or_exit('BUILDS_TO_KEEP', default_value = 20))
+    keep_builds_num = int(get_env_or_exit('BUILDS_TO_KEEP', default_value = 50))
 
     to_delete_num = 0
 
