@@ -55,12 +55,12 @@ if [ "$retVal" -ne 0 ]
 	checkError $retVal "unittests execution failed" "$errCause" "Run unittests locally"
 fi
 
-#check for corefile presence		
-$TRAVIS_BUILD_DIR/ci/check_dump_cores_linux.sh `pwd` pxscene2dtests $TESTLOGS		
-retVal=$?		
-if [ "$retVal" -eq 1 ]		
-	then		
-	checkError $retVal "unittests execution failed" "Core dump" "Run unittests locally"		
+#check for corefile presence
+$TRAVIS_BUILD_DIR/ci/check_dump_cores_linux.sh `pwd` pxscene2dtests $TESTLOGS
+retVal=$?
+if [ "$retVal" -eq 1 ]
+	then
+	checkError $retVal "unittests execution failed" "Core dump" "Run unittests locally"
 fi
 
 #check for failed test
