@@ -29,7 +29,7 @@
 #     APPVEYOR_ACCOUNT_NAME=your-account-name
 #     APPVEYOR_PROJECT_NAME=project-name
 #
-#   Optional (default is 20)
+#   Optional (default is 40)
 #     BUILDS_TO_KEEP=number-of-builds-to-keep
 #
 
@@ -73,7 +73,7 @@ try:
     builds_num = len(builds["builds"])
     logging.info("Builds: %d" % (builds_num))
 
-    keep_builds_num = int(get_env_or_exit('BUILDS_TO_KEEP', default_value = 50))
+    keep_builds_num = int(get_env_or_exit('BUILDS_TO_KEEP', default_value = 40))
 
     to_delete_num = 0
 
