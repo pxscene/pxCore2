@@ -2680,6 +2680,16 @@ void pxScene2d::setMouseEntered(rtRef<pxObject> o)//pxObject* o)
 rtError pxScene2d::setFocus(rtObjectRef o)
 {
   rtLogInfo("pxScene2d::setFocus");
+  rtObjectRef focusObj;
+  if (o)
+  {
+    focusObj = o;
+  }
+  else
+  {
+    focusObj = getRoot();
+  }
+
   if(mFocusObj)
   {
     rtObjectRef e = new rtMapObject;
@@ -2687,17 +2697,12 @@ rtError pxScene2d::setFocus(rtObjectRef o)
     e.set("target",mFocusObj);
     rtRef<pxObject> t = (pxObject*)mFocusObj.get<voidPtr>("_pxObject");
     //t->mEmit.send("onBlur",e);
-    bubbleEvent(e,t,"onPreBlur","onBlur");
+    rtRef<pxObject> u = (pxObject*)focusObj.get<voidPtr>("_pxObject");
+    bubbleEventOnBlur(e,t,"onPreBlur","onBlur",u);
   }
 
-  if (o)
-  {
-	  mFocusObj = o;
-  }
-  else
-  {
-	  mFocusObj = getRoot();
-  }
+  mFocusObj = focusObj;
+  
   rtObjectRef e = new rtMapObject;
   ((pxObject*)mFocusObj.get<voidPtr>("_pxObject"))->setFocusInternal(true);
   e.set("target",mFocusObj);
@@ -2807,6 +2812,98 @@ bool pxScene2d::bubbleEvent(rtObjectRef e, rtRef<pxObject> t,
   }
   return consumed;
 }
+
+bool pxScene2d::bubbleEventOnBlur(rtObjectRef e, rtRef<pxObject> t,
+                            const char* preEvent, const char* event,
+                            rtRef<pxObject> o)
+{
+  bool consumed = false;
+  mStopPropagation = false;
+  rtValue stop;
+  if (e && t)
+  {
+    AddRef();  // TODO refactor? make sure scene stays alive while we bubble since we're using the address of mStopPropagation
+    //    e.set("stopPropagation", get<rtFunctionRef>("stopPropagation"));
+    e.set("stopPropagation", new rtFunctionCallback(stopPropagation2, (void*)&mStopPropagation));
+    
+    vector<rtRef<pxObject> > l;
+    while(t)
+    {
+      l.push_back(t);
+      t = t->parent();
+    }
+    
+    vector<rtRef<pxObject> > m;
+    while(o)
+    {
+      m.push_back(o);
+      o = o->parent();
+    }
+
+    // Walk through object hierarchy starting from root for t (object losing focus) and o (object getting focus) to
+    // find index (loseFocusChainIdx) of first common parent.
+    unsigned long loseFocusChainIdx = l.size();
+    vector<rtRef<pxObject> >::reverse_iterator it_l = l.rbegin();
+    vector<rtRef<pxObject> >::reverse_iterator it_m = m.rbegin();
+    while((*it_l == *it_m) && (it_l != l.rend()) && (it_m != m.rend()))
+    {
+      loseFocusChainIdx--;
+      it_l++;
+      it_m++;
+    }
+    
+    //    rtLogDebug("before %s bubble\n", preEvent);
+    e.set("name", preEvent);
+    for (vector<rtRef<pxObject> >::reverse_iterator it = l.rbegin();!mStopPropagation && it != l.rend();++it)
+    {
+      // TODO a bit messy
+      rtFunctionRef emit = (*it)->mEmit.getPtr();
+      if (emit)
+        emit.sendReturns(preEvent,e,stop);
+      if (mStopPropagation)
+        break;
+    }
+    //    rtLogDebug("after %s bubble\n", preEvent);
+    
+    //    rtLogDebug("before %s bubble\n", event);
+    e.set("name", event);
+    for (unsigned long i = 0;!mStopPropagation && i < l.size();i++)
+    {
+      // TODO a bit messy
+      rtFunctionRef emit = l[i]->mEmit.getPtr();
+      // TODO: As we bubble onMouseMove we need to keep adjusting the coordinates into the
+      // coordinate space of the successive parents object ??
+      // JRJR... not convinced on this comment please discus with me first.
+      if (emit)
+      {
+        // For range [0,loseFocusChainIdx),loseFocusChain is true
+        // For range [loseFocusChainIdx,l.size()),loseFocusChain is false
+        
+        //if(!l[i]->id().isEmpty())
+        //  rtLogDebug("\nSetting loseFocusChain for %s",l[i]->id().cString());
+        
+        if(i < loseFocusChainIdx)
+          e.set("loseFocusChain",rtValue(true));
+        else
+          e.set("loseFocusChain",rtValue(false));
+        
+        emit.sendReturns(event,e,stop);
+      }
+      //      rtLogDebug("mStopPropagation %d\n", mStopPropagation);
+      if (mStopPropagation)
+      {
+        rtLogDebug("Event bubble aborted\n");
+        break;
+      }
+    }
+    //    rtLogDebug("after %s bubble\n", event);
+    consumed = mStopPropagation;
+    Release();
+  }
+  return consumed;
+  
+}
+
 
 bool pxScene2d::onMouseMove(int32_t x, int32_t y)
 {

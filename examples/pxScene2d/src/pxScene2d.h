@@ -1566,6 +1566,10 @@ public:
 private:
   bool bubbleEvent(rtObjectRef e, rtRef<pxObject> t, 
                    const char* preEvent, const char* event) ;
+  
+  bool bubbleEventOnBlur(rtObjectRef e, rtRef<pxObject> t,
+                         const char* preEvent, const char* event,
+                         rtRef<pxObject> o) ;
 
   void draw();
   // Does not draw updates scene to time t
