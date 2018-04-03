@@ -758,9 +758,13 @@ void pxFontManager::clearAllFonts()
   for (GlyphCache::iterator it =  gGlyphCache.begin(); it != gGlyphCache.end(); it++)
     delete it->second;
 
+
   gGlyphCache.clear();
   gGlyphTextureCache.clear();
   mFontIdMap.clear();
+#ifdef PXSCENE_FONT_ATLAS
+  gFontAtlas.clearTexture();
+#endif
 }
 
 // pxTextMetrics

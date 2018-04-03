@@ -1938,7 +1938,6 @@ rtError pxScene2d::dispose()
     mCanvas   = NULL;
     mFocusObj = NULL;
 
-    pxFontManager::clearAllFonts();
     #ifdef ENABLE_RT_NODE
     script.pump();
     #endif //ENABLE_RT_NODE

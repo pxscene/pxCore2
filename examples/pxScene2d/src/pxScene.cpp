@@ -266,7 +266,6 @@ protected:
 #endif
    // pxScene.cpp:104:12: warning: deleting object of abstract class type ‘pxIView’ which has non-virtual destructor will cause undefined behaviour [-Wdelete-non-virtual-dtor]
 
-  pxFontManager::clearAllFonts();
 
   ENTERSCENELOCK()
     mView = NULL;
@@ -278,9 +277,6 @@ protected:
     free(g_origArgv);
   #endif
 
-#ifdef PXSCENE_FONT_ATLAS
-  gFontAtlas.clearTexture();
-#endif
     pxFontManager::clearAllFonts();
     
     context.term();
