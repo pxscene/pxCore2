@@ -22,7 +22,6 @@ if (ENABLE_THREAD_SANITIZER)
     message("Enabling thread sanitizer")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=thread")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=thread")
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fsanitize=thread")
 endif (ENABLE_THREAD_SANITIZER)
 
 if (BUILD_DUKTAPE)
