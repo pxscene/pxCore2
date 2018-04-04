@@ -1293,7 +1293,7 @@ public:
   rtProperty(customAnimator, customAnimator, setCustomAnimator, rtFunctionRef);
   rtMethod1ArgAndReturn("loadArchive",loadArchive,rtString,rtObjectRef); 
   rtMethod1ArgAndReturn("create", create, rtObjectRef, rtObjectRef);
-  rtMethodNoArgAndReturn("clock", clock, uint64_t);
+  rtMethodNoArgAndReturn("clock", clock, double);
   rtMethodNoArgAndNoReturn("logDebugMetrics", logDebugMetrics);
   rtMethodNoArgAndNoReturn("collectGarbage", collectGarbage);
   rtReadOnlyProperty(info, info, rtObjectRef);
@@ -1431,7 +1431,7 @@ public:
   rtError createExternal(rtObjectRef p, rtObjectRef& o);
   rtError createWayland(rtObjectRef p, rtObjectRef& o);
 
-  rtError clock(uint64_t & time);
+  rtError clock(double & time);
   rtError logDebugMetrics();
   rtError collectGarbage();
 

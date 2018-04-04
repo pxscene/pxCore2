@@ -2221,9 +2221,9 @@ rtError pxScene2d::collectGarbage()
   return RT_OK;
 }
 
-rtError pxScene2d::clock(uint64_t & time)
+rtError pxScene2d::clock(double & time)
 {
-  time = (uint64_t)pxMilliseconds();
+  time = pxMilliseconds();
 
   return RT_OK;
 }
