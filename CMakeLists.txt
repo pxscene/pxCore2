@@ -16,6 +16,14 @@ option(DISABLE_DEBUG_MODE "Disable debugging mode." "OFF") # OFF for backward co
 option(SUPPORT_DUKTAPE "SUPPORT_DUKTAPE" ON)
 option(SUPPORT_NODE "SUPPORT_NODE" ON)
 
+option(ENABLE_THREAD_SANITIZER "ENABLE_THREAD_SANITIZER" OFF)
+
+if (ENABLE_THREAD_SANITIZER)
+    message("Enabling thread sanitizer")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=thread")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=thread")
+endif (ENABLE_THREAD_SANITIZER)
+
 if (BUILD_DUKTAPE)
     message("Building duktape with pxcore")
     add_subdirectory(examples/pxScene2d/external/dukluv)
