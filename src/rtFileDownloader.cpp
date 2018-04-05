@@ -659,11 +659,11 @@ void rtFileDownloader::downloadFile(rtFileDownloadRequest* downloadRequest)
       {
         mFileCacheMutex.lock();
         rtError err = rtFileCache::instance()->addToCache(cachedData);
-        mFileCacheMutex.unlock();
         if (RT_OK != err)
           rtLogWarn("Adding url to cache failed (%s)", url.cString());
         else
           rtLogInfo("Cache expiration(%s)", cachedData.expirationDate().cString());
+        mFileCacheMutex.unlock();
       }
     }
 
