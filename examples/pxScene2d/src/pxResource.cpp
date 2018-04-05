@@ -176,6 +176,7 @@ void pxResource::removeListener(pxResourceListener* pListener)
   {
     //rtLogDebug("canceling url: %s", mUrl.cString());
     rtFileDownloader::cancelDownloadRequestThreadSafe(mDownloadRequest, this);
+    clearDownloadRequest();
   }
 }
 
@@ -371,6 +372,11 @@ void pxResource::setLoadStatus(const char* name, rtValue value)
  * */
 void pxResource::loadResource()
 {
+  if(((rtPromise*)mReady.getPtr())->status())
+  {
+    //create a new promise if the old one is complete
+    mReady = new rtPromise();
+  }
   setLoadStatus("statusCode", -1);
   //rtLogDebug("rtImageResource::loadResource statusCode should be -1; is statusCode=%d\n",mLoadStatus.get<int32_t>("statusCode"));
   if (mUrl.beginsWith("http:") || mUrl.beginsWith("https:"))
@@ -509,7 +515,7 @@ void pxResource::processDownloadedResource(rtFileDownloadRequest* fileDownloadRe
     if (wasCanceled)
     {
       //rtLogDebug("download was canceled, no need to notify: %s", fileDownloadRequest->fileUrl().cString());
-      setLoadStatus("statusCode", PX_RESOURCE_STATUS_UNKNOWN_ERROR);
+      setLoadStatus("statusCode", 0);
       setLoadStatus("httpStatusCode",(uint32_t)fileDownloadRequest->httpStatusCode());
       if (gUIThreadQueue)
       {

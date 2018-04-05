@@ -65,6 +65,9 @@ rtError pxImageA::url(rtString &s) const
 
 rtError pxImageA::setUrl(const char *s)
 {
+#ifdef ENABLE_PERMISSIONS_CHECK
+  rtPermissionsCheck((mScene != NULL ? mScene->permissions() : NULL), s, rtPermissions::DEFAULT)
+#endif
 
   rtImageAResource* resourceObj = getImageAResource();
   if( resourceObj != NULL && resourceObj->getUrl().length() > 0 && resourceObj->getUrl().compare(s))
