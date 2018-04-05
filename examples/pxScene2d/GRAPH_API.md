@@ -54,7 +54,7 @@ use `json t:` to construct specific resource types:
 * `onResize` - parameter object has properties w, h;
 
 `delListener(string, function)` - unregister a callback function for the specified event;
-`getFocus(Object)` - will return the object that has keyboard focus;
+`getFocus()` - will return the object that has keyboard focus;
 
 ### `Object` instance
 
