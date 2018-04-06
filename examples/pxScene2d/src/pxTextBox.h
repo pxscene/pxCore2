@@ -30,8 +30,12 @@
 #include "pxScene2d.h"
 #include "pxText.h"
 
-
+#ifndef WIN32
 #define ELLIPSIS_STR "\u2026"
+#else
+#define ELLIPSIS_STR "\\u2026"
+#endif
+
 #define ELLIPSIS_LEN (sizeof(ELLIPSIS_STR)-1)	
 
 /**********************************************************************

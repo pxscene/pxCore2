@@ -1127,7 +1127,13 @@ void pxTextBox::renderTextRowWithTruncation(rtString & accString, float lineWidt
     length -= ELLIPSIS_LEN;
     if (getFontResource() != NULL)
     {
-      getFontResource()->measureTextInternal(ELLIPSIS_STR, pixelSize, sx, sy, ellipsisW, charH);
+      #ifndef WIN32
+        getFontResource()->measureTextInternal(ELLIPSIS_STR, pixelSize, sx, sy, ellipsisW, charH);
+	 #else
+	    char ellipsisStr[4] = {0x00};
+	    u8_unescape(ellipsisStr, sizeof(ellipsisStr),  ELLIPSIS_STR);
+	    getFontResource()->measureTextInternal(ellipsisStr, pixelSize, sx, sy, ellipsisW, charH);
+	  #endif
     }
     //rtLogDebug("ellipsisW is %f\n",ellipsisW);
   }
@@ -1184,7 +1190,13 @@ void pxTextBox::renderTextRowWithTruncation(rtString & accString, float lineWidt
         {
           //rtLogDebug("rendering truncated text with ellipsis\n");
           if( render && getFontResource() != NULL) {
-            getFontResource()->renderText(ELLIPSIS_STR, pixelSize, xPos+charW, tempY, 1.0, 1.0, color,lineWidth);
+            #ifndef WIN32
+              getFontResource()->renderText(ELLIPSIS_STR, pixelSize, xPos+charW, tempY, 1.0, 1.0, color,lineWidth);
+			 #else
+	          char ellipsisStr[4] = {0x00};
+	          u8_unescape(ellipsisStr, sizeof(ellipsisStr), ELLIPSIS_STR);
+	          getFontResource()->renderText(ellipsisStr, pixelSize, xPos+charW, tempY, 1.0, 1.0, color,lineWidth);
+	        #endif
           }
           if(!mWordWrap) { setMeasurementBounds(xPos, charW+ellipsisW, tempY, charH); }
           setLineMeasurements(false, xPos+charW+ellipsisW, tempY);
@@ -1237,9 +1249,15 @@ void pxTextBox::renderTextRowWithTruncation(rtString & accString, float lineWidt
         }
         if( mEllipsis)
         {
-          //rtLogDebug("rendering  text on word boundary with ellipsis\n");
+          rtLogDebug("rendering  text on word boundary with ellipsis\n");
           if( render && getFontResource() != NULL) {
-            getFontResource()->renderText(ELLIPSIS_STR, pixelSize, xPos+charW, tempY, 1.0, 1.0, color,lineWidth);
+            #ifndef WIN32
+			 getFontResource()->renderText(ELLIPSIS_STR, pixelSize, xPos+charW, tempY, 1.0, 1.0, color,lineWidth);
+            #else
+	          char ellipsisStr[4] = {0x00};
+	          u8_unescape(ellipsisStr, sizeof(ellipsisStr), ELLIPSIS_STR);
+	          getFontResource()->renderText(ellipsisStr, pixelSize, xPos+charW, tempY, 1.0, 1.0, color,lineWidth);
+	        #endif
           }
           if(!mWordWrap) { setMeasurementBounds(xPos, charW+ellipsisW, tempY, charH); }
           setLineMeasurements(false, xPos+charW+ellipsisW, tempY);
