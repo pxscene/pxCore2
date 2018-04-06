@@ -70,7 +70,7 @@ rtError rtEmit::addListener(const char* eventName, rtIFunction* f)
        it != mEntries.end(); it++)
   {
     _rtEmitEntry& e = (*it);
-    if (e.n == eventName && e.f.getPtr() == f && !e.isProp)
+    if (e.n == eventName && (e.f.getPtr() == f || (f->getInfo() != -1) && (e.info == f->getInfo())) && !e.isProp)
     {
       found = true;
       break;
@@ -82,6 +82,8 @@ rtError rtEmit::addListener(const char* eventName, rtIFunction* f)
     e.n = eventName;
     e.f = f;
     e.isProp = false;
+    e.markForDelete = false;
+    e.info = f->getInfo();
     mEntries.push_back(e);
   }
   
@@ -90,18 +92,23 @@ rtError rtEmit::addListener(const char* eventName, rtIFunction* f)
 
 rtError rtEmit::delListener(const char* eventName, rtIFunction* f)
 {
+  int i = 0;
+  vector<_rtEmitEntry>::iterator toErase = mEntries.end(); 
   for (vector<_rtEmitEntry>::iterator it = mEntries.begin(); 
        it != mEntries.end(); it++)
   {
     _rtEmitEntry& e = (*it);
-    if (e.n == eventName && e.f.getPtr() == f && !e.isProp)
+    if (e.n == eventName && (e.f.getPtr() == f || e.info == f->getInfo()) && !e.isProp)
     {
-      mEntries.erase(it);
+      toErase = it;
+      if (!mProcessingEvents)
+      	mEntries.erase(it);
+      else
+        it->markForDelete = true;
       // There can only be one
       break;
     }
   }
-  
   return RT_OK;
 }
 
@@ -114,6 +121,8 @@ rtError rtEmit::Send(int numArgs, const rtValue* args, rtValue* result)
     rtLogDebug("rtEmit::Send %s", eventName.cString());
 
     vector<_rtEmitEntry>::iterator it = mEntries.begin();
+    
+    mProcessingEvents = true;
     while (it != mEntries.end())
     {
       _rtEmitEntry& e = (*it);
@@ -147,6 +156,19 @@ rtError rtEmit::Send(int numArgs, const rtValue* args, rtValue* result)
         {
           ++it;
         }
+      }
+      else
+      {
+        ++it;
+      }
+    }
+    mProcessingEvents = false;
+    it = mEntries.begin();
+    while (it != mEntries.end())
+    {
+      if (true == it->markForDelete)
+      {
+        it = mEntries.erase(it);
       }
       else
       {

@@ -60,6 +60,8 @@ class rtIFunction
     virtual unsigned long AddRef()=0;
     virtual unsigned long Release()=0;
     virtual rtError Send(int numArgs, const rtValue* args, rtValue* result) = 0;
+    virtual long int getInfo() = 0;
+    virtual void setInfo(long int) = 0;
 };
 
 class rtObjectRef;
@@ -273,6 +275,16 @@ public:
     long l = rtAtomicDec(&mRefCount);
     if (l == 0) delete this;
     return l;
+  }
+
+  virtual long int getInfo()
+  {
+    return -1;
+  }
+
+  virtual void setInfo(long int info)
+  {
+    UNUSED_PARAM(info);
   }
 
  private:
@@ -605,6 +617,16 @@ public:
     return mCB(numArgs, args, result, mContext);
   }
   
+  virtual long int getInfo()
+  {
+    return -1;
+  }
+
+  virtual void setInfo(long int info)
+  {
+    UNUSED_PARAM(info);
+  }
+
   void clearContext()
   {
     mContext = NULL;
@@ -623,7 +645,7 @@ class rtEmit: public rtIFunction
 {
 
 public:
-  rtEmit(): mRefCount(0) {}
+  rtEmit(): mRefCount(0), mProcessingEvents(false) {}
   virtual ~rtEmit() {}
 
   virtual unsigned long AddRef();
@@ -637,16 +659,29 @@ public:
 
   virtual rtError Send(int numArgs,const rtValue* args,rtValue* result);
 
+  virtual long int getInfo()
+  {
+    return -1;
+  }
+
+  virtual void setInfo(long int info)
+  {
+    UNUSED_PARAM(info);
+  }
+
 protected:
   struct _rtEmitEntry 
   {
     rtString n;
     rtFunctionRef f;
     bool isProp;
+    bool markForDelete;
+    long int info;
   };
   
   std::vector<_rtEmitEntry> mEntries;
   rtAtomic mRefCount;
+  bool mProcessingEvents;
 };
 
 class rtEmitRef: public rtRef<rtEmit>, public rtFunctionBase

@@ -67,7 +67,14 @@ public:
   virtual unsigned long getRefCount() const {
     return mRefCount;
   }
+  virtual long int getInfo() {
+    return mInfo;
+  }
 
+  virtual void setInfo(long int info) {
+    UNUSED_PARAM(info);
+  }
+ 
   void signal(rtValue const& returnValue);
 
 private:
@@ -104,7 +111,7 @@ private:
   pthread_mutex_t mMutex;
   pthread_cond_t mCond;
 #endif
-
+  long int mInfo;
   rtValue mReturnValue;
 };
 
@@ -120,6 +127,15 @@ public:
   rtResolverFunction(Disposition d, v8::Local<v8::Context>& ctx, v8::Local<v8::Promise::Resolver>& resolver);
   virtual ~rtResolverFunction();
   virtual rtError Send(int numArgs, const rtValue* args, rtValue* result);
+  virtual long int getInfo()
+  {
+    return -1;
+  }
+
+  virtual void setInfo(long int info) {
+    UNUSED_PARAM(info);
+  }
+
 
 private:
   struct AsyncContext
