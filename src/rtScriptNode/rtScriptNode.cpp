@@ -1210,21 +1210,7 @@ rtError rtScriptNode::term()
 // JRJRJR  Causing crash???  ask Hugh
 
     rtLogWarn("\n++++++++++++++++++ DISPOSE\n\n");
-    static bool expressCleanupEnabled = false;
-    static bool checkCleanupEnv = true;
-    if (checkCleanupEnv)
-    {
-      char const* s = getenv("SPARK_ENABLE_EXPRESS_CLEANUP");
-      if (s && (strcmp(s,"1") == 0))
-      {
-        expressCleanupEnabled = true;
-      }
-      checkCleanupEnv = false;
-    }
-    if (!expressCleanupEnabled)
-    {
-      node_isolate->Dispose();
-    }
+
     node_isolate = NULL;
     mIsolate     = NULL;
   }
