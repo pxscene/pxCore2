@@ -11,7 +11,6 @@ extern "C" {
 
 namespace rtScriptDukUtils
 {
-
 class rtFunctionWrapper : public rtWrapper<rtFunctionRef, rtFunctionWrapper>
 {
 public:
@@ -25,13 +24,21 @@ public:
 class jsFunctionWrapper : public rtIFunction
 {
 public:
-  jsFunctionWrapper(duk_context *ctx, const std::string &funcName) : mRefCount(0), mDukCtx(ctx), mDukFuncName(funcName), mComplete(false), mTeardownThreadingPrimitives(false) {}
+  jsFunctionWrapper(duk_context *ctx, const std::string &funcName) : mRefCount(0), mDukCtx(ctx), mDukFuncName(funcName), mComplete(false), mTeardownThreadingPrimitives(false) { }
   virtual ~jsFunctionWrapper();
 
   virtual unsigned long AddRef();
   virtual unsigned long Release();
   virtual unsigned long getRefCount() const {
     return mRefCount;
+  }
+  virtual long int getInfo() {
+    return mInfo;
+  }
+
+  virtual void setInfo(long int info)
+  {
+    mInfo = info;
   }
 #if 0
   void signal(rtValue const& returnValue);
@@ -64,7 +71,7 @@ private:
   pthread_cond_t mCond;
 #endif
 #endif
-
+  long int mInfo;
   rtValue mReturnValue;
 };
 
