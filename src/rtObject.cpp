@@ -70,6 +70,7 @@ rtError rtEmit::addListener(const char* eventName, rtIFunction* f)
        it != mEntries.end(); it++)
   {
     _rtEmitEntry& e = (*it);
+    // mInfo check for javscript events callback 
     if (e.n == eventName && ((e.f.getPtr() == f) || ((f->getInfo() != -1) && (e.info == f->getInfo()))) && !e.isProp)
     {
       found = true;
@@ -92,15 +93,16 @@ rtError rtEmit::addListener(const char* eventName, rtIFunction* f)
 
 rtError rtEmit::delListener(const char* eventName, rtIFunction* f)
 {
+  if (!eventName || !f)
+    return RT_ERROR;
   int i = 0;
-  vector<_rtEmitEntry>::iterator toErase = mEntries.end(); 
   for (vector<_rtEmitEntry>::iterator it = mEntries.begin(); 
        it != mEntries.end(); it++)
   {
     _rtEmitEntry& e = (*it);
-    if (e.n == eventName && (e.f.getPtr() == f || e.info == f->getInfo()) && !e.isProp)
+    if (e.n == eventName && ((e.f.getPtr() == f) || ((-1 != e.info) && (e.info == f->getInfo()))) && !e.isProp)
     {
-      toErase = it;
+      // if no events is being processed currently, remove the event entries
       if (!mProcessingEvents)
       	mEntries.erase(it);
       else
