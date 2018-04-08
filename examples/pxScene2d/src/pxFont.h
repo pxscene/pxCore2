@@ -49,13 +49,13 @@ typedef uint32_t u_int32_t;
 
 struct GlyphCacheEntry
 {
-  int bitmap_left;
-  int bitmap_top;
-  int bitmapdotwidth;
-  int bitmapdotrows;
-  int advancedotx;
-  int advancedoty;
-  int vertAdvance;
+  int32_t bitmap_left;
+  int32_t bitmap_top;
+  int32_t bitmapdotwidth;
+  int32_t bitmapdotrows;
+  int32_t advancedotx;
+  int32_t advancedoty;
+  int32_t vertAdvance;
 };
 
 struct GlyphTextureEntry
@@ -283,6 +283,7 @@ public:
 	void setFontData(const FT_Byte*  fontData, FT_Long size, const char* n);
 	virtual void setupResource();
   void clearDownloadedData();
+  uint32_t getFontId() { return mFontId;}
    
 protected:
   // Implementation for pxResource virtuals
@@ -308,15 +309,16 @@ private:
 };
 
 // Weak Map
-typedef std::map<rtString, pxFont*> FontMap;
+typedef std::map<uint32_t, pxFont*> FontMap;
 typedef std::map<rtString, uint32_t> FontIdMap;
+static rtMutex mFontMgrMutex;
 class pxFontManager
 {
   
   public: 
     
     static rtRef<pxFont> getFont(const char* url, const char* proxy = NULL);
-    static void removeFont(rtString fontName);
+    static void removeFont(uint32_t fontId);
     static void clearAllFonts();
     
   protected: 

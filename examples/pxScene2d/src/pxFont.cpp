@@ -104,7 +104,7 @@ pxFont::~pxFont()
     //mFontDownloadRequest->setCallbackFunctionThreadSafe(NULL);
   //}  
    
-  pxFontManager::removeFont( mUrl);
+  pxFontManager::removeFont( mFontId);
  
   if( mInitialized) 
   {
@@ -129,6 +129,7 @@ void pxFont::setFontData(const FT_Byte*  fontData, FT_Long size, const char* n)
   {
     delete [] mFontDownloadedData;
     mFontDownloadedData = NULL;
+    mFontDownloadedDataSize = 0;
   }
   if (fontData == NULL)
   {
@@ -168,6 +169,7 @@ void pxFont::setupResource()
             mFontDataUrl.cString());
       delete [] mFontDownloadedData;
       mFontDownloadedData = NULL;
+      mFontDownloadedDataSize = 0;
     }
     mFontDataMutex.unlock();
   }
@@ -714,6 +716,7 @@ rtRef<pxFont> pxFontManager::getFont(const char* url, const char* proxy)
     url = defaultFont;
 
   // Assign font urls an id number if they don't have one
+  mFontMgrMutex.lock();
   FontIdMap::iterator itId = mFontIdMap.find(url);
   if( itId != mFontIdMap.end()) 
   {
@@ -724,12 +727,14 @@ rtRef<pxFont> pxFontManager::getFont(const char* url, const char* proxy)
     fontId = gFontId++;
     mFontIdMap.insert(make_pair(url, fontId));
   }
-
-  FontMap::iterator it = mFontMap.find(url);
+  mFontMgrMutex.unlock();
+  mFontMgrMutex.lock();
+  FontMap::iterator it = mFontMap.find(fontId);
   if (it != mFontMap.end())
   {
     rtLogDebug("Found pxFont in map for %s\n",url);
     pFont = it->second;
+    mFontMgrMutex.unlock();
     return pFont;  
     
   }
@@ -737,20 +742,23 @@ rtRef<pxFont> pxFontManager::getFont(const char* url, const char* proxy)
   {
     rtLogDebug("Create pxFont in map for %s\n",url);
     pFont = new pxFont(url, fontId, proxy);
-    mFontMap.insert(make_pair(url, pFont));
+    mFontMap.insert(make_pair(fontId, pFont));
+    mFontMgrMutex.unlock();
     pFont->loadResource();
   }
   
   return pFont;
 }
 
-void pxFontManager::removeFont(rtString fontName)
+void pxFontManager::removeFont(uint32_t fontId)
 {
-  FontMap::iterator it = mFontMap.find(fontName);
+  mFontMgrMutex.lock();
+  FontMap::iterator it = mFontMap.find(fontId);
   if (it != mFontMap.end())
   {  
     mFontMap.erase(it);
   }
+  mFontMgrMutex.unlock();
 }
 
 void pxFontManager::clearAllFonts()
