@@ -29,5 +29,5 @@
       {"url":"../tests/test_permissions.js", "title":"test_permissions","useBaseURI":"true"},
       {"url":"../tests/test_permissionsDefault.js", "title":"test_permissionsDefault","useBaseURI":"true"},
       {"url":"../tests/test_textFontRejection.js",  "title":"test_textFontRejection","useBaseURI":"true"},
-      {"url":"https://px-apps.sys.comcast.net/pxscene-samples/examples/px-reference/tests/test_onBlur_loseFocusChain.js","title":"test_onBlur_loseFocusChain", "timeToRun":"10000"}
+      {"url":"../tests/test_onBlur_loseFocusChain.js","title":"test_onBlur_loseFocusChain", "useBaseURI":"true"}
 ]
