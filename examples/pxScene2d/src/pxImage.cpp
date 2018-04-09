@@ -196,11 +196,12 @@ void pxImage::draw() {
   static pxTextureRef nullMaskRef;
   if (getImageResource() != NULL)
   {
+    float black[4] = {0,0,0,ma};
     context.drawImage(0, 0,
                       getOnscreenWidth(),
                       getOnscreenHeight(),
                       getImageResource()->getTexture(), nullMaskRef,
-                      false, NULL, mStretchX, mStretchY, mDownscaleSmooth);
+                      false, black, mStretchX, mStretchY, mDownscaleSmooth);
   }
   // Raise the priority if we're still waiting on the image download    
 #if 0
