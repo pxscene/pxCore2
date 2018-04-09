@@ -268,11 +268,11 @@ jsFunctionWrapper::jsFunctionWrapper(Local<Context>& ctx, const Handle<Value>& v
   , mFunction(ctx->GetIsolate(), Handle<Function>::Cast(val))
   , mComplete(false)
   , mTeardownThreadingPrimitives(false)
-  , mInfo(-1)
+  , mHash(-1)
 {
   v8::String::Utf8Value fn(Handle<Function>::Cast(val)->ToString());
   if (NULL != *fn) { 
-    mInfo = hashFn(*fn);
+    mHash = hashFn(*fn);
   }
   mIsolate = ctx->GetIsolate();
   mContext.Reset(ctx->GetIsolate(), ctx);
@@ -291,7 +291,7 @@ jsFunctionWrapper::~jsFunctionWrapper()
     pthread_cond_destroy(&mCond);
 #endif
   }
-  mInfo = -1;
+  mHash = -1;
 }
 
 void jsFunctionWrapper::setupSynchronousWait()

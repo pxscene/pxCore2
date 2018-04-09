@@ -128,8 +128,8 @@ rtValue duk2rt(duk_context *ctx, rtWrapperError* error)
     p = (unsigned char *) duk_get_buffer(ctx, -1, &sz);
     if (NULL != p)
     {
-      long int fnval = hashFn((char *)p);
-      wr->setInfo(fnval);
+      size_t fnval = hashFn((char *)p);
+      wr->setHash(fnval);
     }
     return rtValue(rtFunctionRef(wr));
   }

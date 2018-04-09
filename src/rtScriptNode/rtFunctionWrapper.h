@@ -67,12 +67,12 @@ public:
   virtual unsigned long getRefCount() const {
     return mRefCount;
   }
-  virtual long int getInfo() {
-    return mInfo;
+  virtual size_t hash() {
+    return mHash;
   }
 
-  virtual void setInfo(long int info) {
-    UNUSED_PARAM(info);
+  virtual void setHash(size_t hash) {
+    UNUSED_PARAM(hash);
   }
  
   void signal(rtValue const& returnValue);
@@ -111,7 +111,7 @@ private:
   pthread_mutex_t mMutex;
   pthread_cond_t mCond;
 #endif
-  long int mInfo;
+  size_t mHash;
   rtValue mReturnValue;
 };
 
@@ -127,13 +127,13 @@ public:
   rtResolverFunction(Disposition d, v8::Local<v8::Context>& ctx, v8::Local<v8::Promise::Resolver>& resolver);
   virtual ~rtResolverFunction();
   virtual rtError Send(int numArgs, const rtValue* args, rtValue* result);
-  virtual long int getInfo()
+  virtual size_t hash()
   {
     return -1;
   }
 
-  virtual void setInfo(long int info) {
-    UNUSED_PARAM(info);
+  virtual void setHash(size_t hash) {
+    UNUSED_PARAM(hash);
   }
 
 

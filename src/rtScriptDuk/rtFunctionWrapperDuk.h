@@ -24,7 +24,7 @@ public:
 class jsFunctionWrapper : public rtIFunction
 {
 public:
-  jsFunctionWrapper(duk_context *ctx, const std::string &funcName) : mRefCount(0), mDukCtx(ctx), mDukFuncName(funcName), mComplete(false), mTeardownThreadingPrimitives(false), mInfo(-1) { }
+  jsFunctionWrapper(duk_context *ctx, const std::string &funcName) : mRefCount(0), mDukCtx(ctx), mDukFuncName(funcName), mComplete(false), mTeardownThreadingPrimitives(false), mHash(-1) { }
   virtual ~jsFunctionWrapper();
 
   virtual unsigned long AddRef();
@@ -32,13 +32,13 @@ public:
   virtual unsigned long getRefCount() const {
     return mRefCount;
   }
-  virtual long int getInfo() {
-    return mInfo;
+  virtual size_t hash() {
+    return mHash;
   }
 
-  virtual void setInfo(long int info)
+  virtual void setHash(size_t hash)
   {
-    mInfo = info;
+    mHash = hash;
   }
 #if 0
   void signal(rtValue const& returnValue);
@@ -71,7 +71,7 @@ private:
   pthread_cond_t mCond;
 #endif
 #endif
-  long int mInfo;
+  size_t mHash;
   rtValue mReturnValue;
 };
 

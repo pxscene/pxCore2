@@ -60,8 +60,8 @@ class rtIFunction
     virtual unsigned long AddRef()=0;
     virtual unsigned long Release()=0;
     virtual rtError Send(int numArgs, const rtValue* args, rtValue* result) = 0;
-    virtual long int getInfo() = 0;
-    virtual void setInfo(long int) = 0;
+    virtual size_t hash() = 0;
+    virtual void setHash(size_t) = 0;
 };
 
 class rtObjectRef;
@@ -277,14 +277,14 @@ public:
     return l;
   }
 
-  virtual long int getInfo()
+  virtual size_t hash()
   {
     return -1;
   }
 
-  virtual void setInfo(long int info)
+  virtual void setHash(size_t hash)
   {
-    UNUSED_PARAM(info);
+    UNUSED_PARAM(hash);
   }
 
  private:
@@ -617,14 +617,14 @@ public:
     return mCB(numArgs, args, result, mContext);
   }
   
-  virtual long int getInfo()
+  virtual size_t hash()
   {
     return -1;
   }
 
-  virtual void setInfo(long int info)
+  virtual void setHash(size_t hash)
   {
-    UNUSED_PARAM(info);
+    UNUSED_PARAM(hash);
   }
 
   void clearContext()
@@ -659,14 +659,14 @@ public:
 
   virtual rtError Send(int numArgs,const rtValue* args,rtValue* result);
 
-  virtual long int getInfo()
+  virtual size_t hash()
   {
     return -1;
   }
 
-  virtual void setInfo(long int info)
+  virtual void setHash(size_t hash)
   {
-    UNUSED_PARAM(info);
+    UNUSED_PARAM(hash);
   }
 
 protected:
@@ -676,7 +676,7 @@ protected:
     rtFunctionRef f;
     bool isProp;
     bool markForDelete;
-    long int info;
+    size_t fnHash;
   };
   
   std::vector<_rtEmitEntry> mEntries;

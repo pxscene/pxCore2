@@ -70,8 +70,8 @@ rtError rtEmit::addListener(const char* eventName, rtIFunction* f)
        it != mEntries.end(); it++)
   {
     _rtEmitEntry& e = (*it);
-    // mInfo check for javscript events callback 
-    if (e.n == eventName && ((e.f.getPtr() == f) || ((f->getInfo() != -1) && (e.info == f->getInfo()))) && !e.isProp)
+    // mHash check for javscript events callback 
+    if (e.n == eventName && ((e.f.getPtr() == f) || ((f->hash() != -1) && (e.fnHash == f->hash()))) && !e.isProp)
     {
       found = true;
       break;
@@ -84,7 +84,7 @@ rtError rtEmit::addListener(const char* eventName, rtIFunction* f)
     e.f = f;
     e.isProp = false;
     e.markForDelete = false;
-    e.info = f->getInfo();
+    e.fnHash = f->hash();
     mEntries.push_back(e);
   }
   
@@ -100,7 +100,7 @@ rtError rtEmit::delListener(const char* eventName, rtIFunction* f)
        it != mEntries.end(); it++)
   {
     _rtEmitEntry& e = (*it);
-    if (e.n == eventName && ((e.f.getPtr() == f) || ((-1 != e.info) && (e.info == f->getInfo()))) && !e.isProp)
+    if (e.n == eventName && ((e.f.getPtr() == f) || ((-1 != e.fnHash) && (e.fnHash == f->hash()))) && !e.isProp)
     {
       // if no events is being processed currently, remove the event entries
       if (!mProcessingEvents)
