@@ -590,7 +590,6 @@ rtNodeContext::~rtNodeContext()
   //Make sure node is not destroyed abnormally
   if (true == node_is_initialized)
   {
-    runScript("var process = require('process');process._tickCallback();");
     if(mEnv)
     {
       Locker                locker(mIsolate);
@@ -1052,7 +1051,7 @@ rtError rtScriptNode::pump()
 
     if (sGcTickCount++ > 60)
     {
-      Local<Context> local_context = node::PersistentToLocal<Context>(mIsolate, mContext);
+      Local<Context> local_context = Context::New(mIsolate);
       Context::Scope contextScope(local_context);
       mIsolate->RequestGarbageCollectionForTesting(Isolate::kFullGarbageCollection);
       sGcTickCount = 0;
@@ -1071,7 +1070,7 @@ rtError rtScriptNode::collectGarbage()
   Isolate::Scope isolate_scope(mIsolate);
   HandleScope     handle_scope(mIsolate);    // Create a stack-allocated handle scope.
 
-  Local<Context> local_context = node::PersistentToLocal<Context>(mIsolate, mContext);
+  Local<Context> local_context = Context::New(mIsolate);
   Context::Scope contextScope(local_context);
   mIsolate->LowMemoryNotification();
 //#endif // RUNINMAIN
@@ -1211,7 +1210,21 @@ rtError rtScriptNode::term()
 // JRJRJR  Causing crash???  ask Hugh
 
     rtLogWarn("\n++++++++++++++++++ DISPOSE\n\n");
-    node_isolate->Dispose();
+    static bool expressCleanupEnabled = false;
+    static bool checkCleanupEnv = true;
+    if (checkCleanupEnv)
+    {
+      char const* s = getenv("SPARK_ENABLE_EXPRESS_CLEANUP");
+      if (s && (strcmp(s,"1") == 0))
+      {
+        expressCleanupEnabled = true;
+      }
+      checkCleanupEnv = false;
+    }
+    if (!expressCleanupEnabled)
+    {
+      node_isolate->Dispose();
+    }
     node_isolate = NULL;
     mIsolate     = NULL;
   }

@@ -33,14 +33,8 @@ extern pxContext context;
 pxImage9::~pxImage9()
 {
   rtLogDebug("~pxImage9()");
-  if (mListenerAdded)
-  {
-    if (getImageResource())
-    {
-      getImageResource()->removeListener(this);
-    }
-    mListenerAdded = false;
-  }
+  removeResourceListener();
+  mResource = NULL;
 }
 
 void pxImage9::onInit()
@@ -70,7 +64,11 @@ rtError pxImage9::url(rtString& s) const
 }
 
 rtError pxImage9::setUrl(const char* s) 
-{ 
+{
+#ifdef ENABLE_PERMISSIONS_CHECK
+  rtPermissionsCheck((mScene != NULL ? mScene->permissions() : NULL), s, rtPermissions::DEFAULT)
+#endif
+
   rtImageResource* resourceObj = getImageResource();  
   if(resourceObj != NULL && resourceObj->getUrl().length() > 0 && resourceObj->getUrl().compare(s))
   {
@@ -79,8 +77,9 @@ rtError pxImage9::setUrl(const char* s)
       imageLoaded = false;
       pxObject::createNewPromise();
     }
-  } 
+  }
 
+  removeResourceListener();
   mResource = pxImageManager::getImage(s); 
   if(getImageResource() != NULL && getImageResource()->getUrl().length() > 0)
   {
@@ -151,6 +150,19 @@ void pxImage9::resourceReady(rtString readyResolution)
       pxObject::onTextureReady();
       mReady.send("reject",this);
   }
+}
+
+rtError pxImage9::removeResourceListener()
+{
+  if (mListenerAdded)
+  {
+    if (getImageResource())
+    {
+      getImageResource()->removeListener(this);
+    }
+    mListenerAdded = false;
+  }
+  return RT_OK;
 }
 
 rtDefineObject(pxImage9, pxObject);
