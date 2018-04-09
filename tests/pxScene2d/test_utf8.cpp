@@ -133,8 +133,8 @@ class UTF8Test : public testing::Test
       memset(str, 0x00, strlen(str) + 1);
       memset(buffer, 0x00, sizeof(buffer));
       strcpy(str,"\"u20\"");
-      EXPECT_TRUE (3 == u8_escape(buffer, 32, str, 1));
-    }
+      EXPECT_TRUE (7 == u8_escape(buffer, 32, str, 1));
+}
 
     void convertAsciiToUTF8Test()
     {
