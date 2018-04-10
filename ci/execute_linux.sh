@@ -33,10 +33,11 @@ export PX_DUMP_MEMUSAGE=1
 export ENABLE_VALGRIND=1
 export RT_LOG_LEVEL=info
 export SUPPRESSIONS=$TRAVIS_BUILD_DIR/ci/leak.supp
+export SPARK_ENABLE_COLLECT_GARBAGE=1
 
 touch $VALGRINDLOGS
 EXECLOGS=$TRAVIS_BUILD_DIR/logs/exec_logs
-TESTRUNNERURL="https://px-apps.sys.comcast.net/pxscene-samples/examples/px-reference/test-run/testRunner.js"
+TESTRUNNERURL="https://px-apps.sys.comcast.net/pxscene-samples/examples/px-reference/test-run/testRunner_v5.js"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 printExecLogs()
@@ -86,7 +87,7 @@ done
 kill -15 `ps -ef | grep pxscene |grep -v grep|grep -v pxscene.sh|awk '{print $2}'`
 echo "Sleeping to make terminate complete ......";
 #wait for few seconds to get the application terminate completely, as it is attached with valgrind increasing the timeout
-sleep 20s;
+sleep 60s;
 pkill -9 -f pxscene.sh
 
 chmod 444 $VALGRINDLOGS

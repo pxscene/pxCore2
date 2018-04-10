@@ -21,6 +21,7 @@
 #ifndef PX_WAYLAND_H
 #define PX_WAYLAND_H
 
+#include <atomic>
 #include <pthread.h>
 #include "pxIView.h"
 #include "pxScene2d.h"
@@ -88,6 +89,10 @@ public:
   rtError cmd(rtString& s) const { s = mCmd; return RT_OK; }
   rtError setCmd(const char* s)
   {
+#ifdef ENABLE_PERMISSIONS_CHECK
+    rtPermissionsCheck((mSceneContainer != NULL ? mSceneContainer->permissions() : NULL), s, rtPermissions::WAYLAND)
+#endif
+
      mCmd= s;
      return RT_OK;
   }
@@ -164,7 +169,7 @@ private:
   pxIViewContainer *mContainer;
   bool mReadyEmitted;
   bool mClientMonitorStarted;
-  bool mWaitingForRemoteObject;
+  std::atomic<bool> mWaitingForRemoteObject;
   bool mUseDispatchThread;
   int mX;
   int mY;

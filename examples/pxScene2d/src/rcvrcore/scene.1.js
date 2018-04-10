@@ -56,6 +56,10 @@ function Scene() {
     return nativeScene.logDebugMetrics();
   };
 
+  this.collectGarbage = function() {
+    return nativeScene.collectGarbage();
+  };
+
   this.loadArchive = function(u) {
     return nativeScene.loadArchive(u);
   };
@@ -214,6 +218,10 @@ function Scene() {
 
   this.getService = function getService(name, serviceObject) {
     return nativeScene.getService(name, serviceObject);
+  };
+
+  this.getAvailableApplications = function getAvailableApplications(appNames) {
+      return nativeScene.getAvailableApplications(appNames);
   };
 
   this.setAppContext = function(appContextName, appContext) {

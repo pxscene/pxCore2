@@ -49,6 +49,7 @@ then
   sudo /usr/sbin/DevToolsSecurity --enable
   lldb --version
   lldb --help
+  cmake --version
   man lldb
 fi
 
