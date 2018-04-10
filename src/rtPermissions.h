@@ -20,57 +20,85 @@
 #define _RT_PERMISSIONS
 
 #include "rtObject.h"
+#include "rtRef.h"
+#include "rtAtomic.h"
 
 #include <map>
 #include <string>
 #include <utility>
 
+#define rtPermissionsCheck(permissionsRef, id, type)\
+  if (permissionsRef != NULL)\
+  {\
+    bool o;\
+    permissionsRef->allows(id, type, o);\
+    if (!o)\
+    {\
+      rtLogError("'%s' is not allowed", id);\
+      return RT_ERROR_NOT_ALLOWED;\
+    }\
+  }
+
+class rtPermissions;
+typedef rtRef<rtPermissions> rtPermissionsRef;
+
 class rtPermissions
 {
 public:
-    rtPermissions();
-    ~rtPermissions();
+  rtPermissions(const char* origin = NULL);
+  virtual ~rtPermissions();
 
-    enum Type
-    {
-      DEFAULT = 0,
-      SERVICE,
-      FEATURE,
-      WAYLAND
-    };
+  virtual unsigned long AddRef(){ return rtAtomicInc(&mRef);}
 
-    // Bootstrap
-    static rtError loadBootstrapConfig(const char* filename = NULL);
-    static rtError clearBootstrapConfig();
+  virtual unsigned long Release()
+  {
+    unsigned long l = rtAtomicDec(&mRef);
+    if (l == 0)
+      delete this;
+    return l;
+  }
 
-    rtError setOrigin(const char* origin);
-    rtError set(const rtObjectRef& permissionsObject);
-    rtError setParent(const rtPermissions* parent);
-    rtError allows(const char* s, rtPermissions::Type type, bool& o) const;
-    bool allows(const char* s, rtPermissions::Type type) const { bool a; allows(s, type, a); return a; }
+  enum Type
+  {
+    DEFAULT = 0,
+    SERVICE,
+    FEATURE,
+    WAYLAND
+  };
 
-    // Wildcard stuff
-    typedef std::pair<std::string, Type> wildcard_t;
-    typedef std::map<wildcard_t, bool> permissionsMap_t;
-    typedef std::map<wildcard_t, std::string> assignMap_t;
-    typedef std::map<std::string, permissionsMap_t> roleMap_t;
+  rtError set(const rtObjectRef& permissionsObject);
+  rtError setParent(const rtPermissionsRef& parent);
+  rtError allows(const char* s, rtPermissions::Type type, bool& o) const;
 
-    // Extends std::map::find by supporting wildcard_t as map keys.
-    // Key with the highest length w/o wildcards (*) is preferred
-    template<typename Map> typename Map::const_iterator
-    static findWildcard(Map const& map, typename Map::key_type const& key);
+protected:
+  // Wildcard stuff
+  typedef std::pair<std::string, Type> wildcard_t;
+  typedef std::map<wildcard_t, bool> permissionsMap_t;
+  typedef std::map<wildcard_t, std::string> assignMap_t;
+  typedef std::map<std::string, permissionsMap_t> roleMap_t;
+  // Extends std::map::find by supporting wildcard_t as map keys.
+  // Key with the highest length w/o wildcards (*) is preferred
+  template<typename Map> typename Map::const_iterator
+  static findWildcard(Map const& map, typename Map::key_type const& key);
 
-private:
-    // Bootstrap
-    static const char* DEFAULT_CONFIG_FILE;
-    static const char* CONFIG_ENV_NAME;
-    static const int CONFIG_BUFFER_SIZE;
-    static assignMap_t mAssignMap;
-    static roleMap_t mRolesMap;
-    static std::string mConfigPath;
+  // Parsing
+  static permissionsMap_t permissionsJsonToMap(const void* jsonValue);
+  static permissionsMap_t permissionsObjectToMap(const rtObjectRef& permissionsObject);
 
-    permissionsMap_t mPermissionsMap;
-    const rtPermissions* mParent;
+  // Bootstrap
+  static const char* DEFAULT_CONFIG_FILE;
+  static const int CONFIG_BUFFER_SIZE;
+  static const char* CONFIG_ENV_NAME;
+  static rtError loadConfig();
+  static assignMap_t mAssignMap;
+  static roleMap_t mRolesMap;
+  static std::string mConfigPath;
+
+  permissionsMap_t mPermissionsMap;
+  rtPermissionsRef mParent;
+  rtAtomic mRef;
+
+  friend class rtPermissionsTest;
 };
 
 #endif

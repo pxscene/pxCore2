@@ -33,27 +33,42 @@ function Application(props) {
     h = props["h"];
   }
   if (cmd){
-    if (cmd.includes(".js")){
-      this.externalApp = scene.create({t:"scene", parent:root, url:cmd});
-      this.externalApp.on("onReady", this.applicationReady);
-      this.externalApp.on("onClientStopped", this.applicationClosed);
-      this.setProperties(props);
-      module.exports.onCreate(this);
+    if (scene !== undefined) {
+      if (cmd.includes(".js")){
+        this.externalApp = scene.create({t:"scene", parent:root, url:cmd});
+        this.externalApp.on("onClientStopped", this.applicationClosed);
+        var sparkApp = this;
+        this.externalApp.ready.then(function(o) {
+            console.log("successfully created Spark app: " + sparkApp.id);
+            this.applicationReady();
+          }, function rejection(o) {
+          console.log("failed to launch Spark app: " + sparkApp.id);
+          module.exports.onDestroy(sparkApp);
+        });
+        this.setProperties(props);
+        module.exports.onCreate(this);
+      }
+      else{
+        this.externalApp = scene.create( {t:"wayland", parent:root, cmd:cmd, w:w, h:h, hasApi:true} );
+        this.externalApp.on("onReady", this.applicationReady);
+        this.externalApp.on("onClientStopped", this.applicationClosed);
+        this.externalApp.on("onClientDisconnected", this.applicationClosed);
+        this.setProperties(props);
+        var thisApp = this;
+        this.externalApp.ready.then(function(o) {
+            console.log("successfully created: " + thisApp.id);
+            module.exports.onCreate(thisApp);
+          }, function rejection(o) {
+          console.log("failed to launch app: " + thisApp.id);
+          module.exports.onDestroy(thisApp);
+        });
+      }
     }
-    else{
-      this.externalApp = scene.create( {t:"wayland", parent:root, cmd:cmd, w:w, h:h, hasApi:true} );
-      this.externalApp.on("onReady", this.applicationReady);
-      this.externalApp.on("onClientStopped", this.applicationClosed);
-      this.externalApp.on("onClientDisconnected", this.applicationClosed);
-      this.setProperties(props);
-      var thisApp = this;
-      this.externalApp.ready.then(function(o) {
-        console.log("successfully created: " + thisApp.id);
-        module.exports.onCreate(thisApp);
-      }, function rejection(o) {
-        console.log("failed to launch app: " + thisApp.id);
-        module.exports.onDestroy(thisApp);
-      });
+    else
+    {
+      console.log("cannot create app because the scene is not set");
+      var destroyedApp = this;
+      module.exports.onDestroy(destroyedApp);
     }
   }
   else{

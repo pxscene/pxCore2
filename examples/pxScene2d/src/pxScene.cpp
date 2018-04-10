@@ -85,7 +85,10 @@ vector<AsyncScriptInfo*> scriptsInfo;
 static uv_work_t nodeLoopReq;
 #endif
 
+#include "rtThreadPool.h"
+
 #include <stdlib.h>
+#include <fstream>
 
 pxEventLoop  eventLoop;
 pxEventLoop* gLoop = &eventLoop;
@@ -100,6 +103,7 @@ char** g_origArgv = NULL;
 bool gDumpMemUsage = false;
 extern bool gApplicationIsClosing;
 extern int pxObjectCount;
+#include "pxFont.h"
 #ifdef HAS_LINUX_BREAKPAD
 static bool dumpCallback(const google_breakpad::MinidumpDescriptor& descriptor,
 void* context, bool succeeded) {
@@ -243,6 +247,7 @@ protected:
       gApplicationIsClosing = true;
     
     rtLogInfo(__FUNCTION__);
+    
     ENTERSCENELOCK();
     if (mView)
       mView->onCloseRequest();
@@ -255,9 +260,8 @@ protected:
 #endif
    // pxScene.cpp:104:12: warning: deleting object of abstract class type ‘pxIView’ which has non-virtual destructor will cause undefined behaviour [-Wdelete-non-virtual-dtor]
 
-  #ifdef RUNINMAIN
-     script.collectGarbage();
-  #endif
+  pxFontManager::clearAllFonts();
+
   ENTERSCENELOCK()
     mView = NULL;
   EXITSCENELOCK()
@@ -269,6 +273,9 @@ protected:
   #endif
 
     context.term();
+#ifdef RUNINMAIN
+    script.pump();
+#endif
     script.collectGarbage();
 
     if (gDumpMemUsage)
@@ -277,6 +284,7 @@ protected:
 #ifndef PX_PLATFORM_DFB_NON_X11
       rtLogInfo("texture memory usage is [%" PRId64 "]",context.currentTextureMemoryUsageInBytes());
 #endif
+      fflush(stdout);
 // #ifdef PX_PLATFORM_MAC
 //       rtLogInfo("texture memory usage is [%lld]",context.currentTextureMemoryUsageInBytes());
 // #else
@@ -545,7 +553,23 @@ if (s && (strcmp(s,"1") == 0))
   win.setTitle(buffer);
   // JRJR TODO Why aren't these necessary for glut... pxCore bug
   win.setVisibility(true);
-  win.setAnimationFPS(60);
+
+  uint32_t animationFPS = 60;
+  rtString f;
+  if (RT_OK == rtGetHomeDirectory(f))
+  {
+    f.append(".sparkFps");
+    if (rtFileExists(f))
+    {
+      std::fstream fs(f.cString(), std::fstream::in);
+      uint32_t val = 0;
+      fs >> val;
+      if (val > 0)
+        animationFPS = val;
+    }
+  }
+  rtLogInfo("Animation FPS: %lu", (unsigned long) animationFPS);
+  win.setAnimationFPS(animationFPS);
 
 #ifdef WIN32
 

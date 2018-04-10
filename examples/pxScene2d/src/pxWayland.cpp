@@ -91,9 +91,9 @@ pxWayland::~pxWayland()
 #endif //ENABLE_PX_WAYLAND_RPC
   if ( mWCtx )
   {
+     terminateClient();
      WstCompositorDestroy(mWCtx);
      mWCtx = NULL;
-     terminateClient();
   }
 }
 
