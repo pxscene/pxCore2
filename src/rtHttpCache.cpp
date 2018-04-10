@@ -73,19 +73,19 @@ extern "C" time_t timegm(struct tm * a_tm)
 }
 #endif
 
-rtHttpCacheData::rtHttpCacheData():mExpirationDate(0),mUpdated(false)
+rtHttpCacheData::rtHttpCacheData():mExpirationDate(0),mUpdated(false),mFileName()
 {
   fp = NULL;
 }
 
 rtHttpCacheData::rtHttpCacheData(const char* url) :
-     mUrl(url), mExpirationDate(0), mUpdated(false)
+     mUrl(url), mExpirationDate(0), mUpdated(false), mFileName()
 {
   fp = NULL;
 }
 
 rtHttpCacheData::rtHttpCacheData(const char* url, const char* headerMetadata, const char* data, size_t size) :
-     mUrl(url), mExpirationDate(0), mUpdated(false)
+     mUrl(url), mExpirationDate(0), mUpdated(false), mFileName()
 {
   if ((NULL != headerMetadata) && (NULL != data))
   {
@@ -355,6 +355,11 @@ FILE* rtHttpCacheData::filePointer(void)
   return fp;
 }
 
+void rtHttpCacheData::setFileName(rtString& fileName)
+{
+  mFileName = fileName;
+}
+
 void rtHttpCacheData::setExpirationDate()
 {
   bool foundMaxAge = false;
@@ -593,7 +598,7 @@ rtError rtHttpCacheData::handleEtag(rtData& data)
 
   if (mUpdated)
   {
-    rtLogInfo("ETAG update found");
+    rtLogInfo("ETAG update found for url(%s) filename(%s)", mUrl.cString(), mFileName.cString());
     populateHeaderMap();
     setExpirationDate();
     data.init(mData.data(),mData.length());

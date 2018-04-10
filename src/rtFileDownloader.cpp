@@ -596,7 +596,6 @@ void rtFileDownloader::downloadFile(rtFileDownloadRequest* downloadRequest)
         else
         {
           rtFileCache::instance()->addToCache(downloadedData);
-          rtLogInfo("Cache expiration(%s)", cachedData.expirationDate().cString());
         }
       }
     }
@@ -615,8 +614,6 @@ void rtFileDownloader::downloadFile(rtFileDownloadRequest* downloadRequest)
         rtError err = rtFileCache::instance()->addToCache(cachedData);
         if (RT_OK != err)
           rtLogWarn("Adding url to cache failed (%s)", url.cString());
-        else
-          rtLogInfo("Cache expiration(%s)", cachedData.expirationDate().cString());
       }
     }
 
