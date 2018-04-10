@@ -177,7 +177,8 @@ public:
 
   virtual void init();
   pxTimedOffscreenSequence& getTimedOffscreenSequence() { return mTimedOffscreenSequence; }
-
+  virtual void setupResource() { init(); }
+  
 protected:
   virtual bool loadResourceData(rtFileDownloadRequest* fileDownloadRequest);
 
