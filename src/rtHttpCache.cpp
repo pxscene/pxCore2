@@ -156,8 +156,10 @@ void rtHttpCacheData::populateHeaderMap()
 rtString rtHttpCacheData::expirationDate() const
 {
   char buffer[100];
+  struct tm local_tm;
+
   memset(buffer,0,100);
-  strftime(buffer, 100, "%Y-%m-%d %H:%M:%S", localtime(&mExpirationDate));
+  strftime(buffer, 100, "%Y-%m-%d %H:%M:%S", localtime_r(&mExpirationDate, &local_tm));
   return rtString(buffer);
 }
 
