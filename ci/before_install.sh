@@ -33,6 +33,15 @@ then
     fi
 fi
 
+#do the license check
+
+$TRAVIS_BUILD_DIR/ci/licenseScanner.sh
+if [ "$?" != "0" ] 
+then
+  printf "\n!*!*!* licenseScanner.sh deteced files without proper license. Please refer to the logs above. !*!*!*\n"
+  exit 1;
+fi
+
 #install necessary basic packages for linux and mac 
 if [ "$TRAVIS_OS_NAME" = "linux" ] ; 
 then 
