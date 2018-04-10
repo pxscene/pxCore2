@@ -290,8 +290,9 @@ void pxImageA::resourceReady(rtString readyResolution)
     pxObject* parent = mParent;
     if( !parent)
     {
-      //TODO - do we want to send promises this way or the way we have it?
-      //sendPromise();
+      // Send the promise here because the image will not get an 
+      // update call until it has a parent
+      sendPromise();
     }
   }
   else

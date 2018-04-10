@@ -814,44 +814,50 @@ void MyDisplayReconfigurationCallBack(CGDirectDisplayID display,
      --------------------------------------------------------*/
     if ( [sender draggingSource] != self )
     {
-        NSURL      *fileURL = [NSURL URLFromPasteboard: [sender draggingPasteboard]];
+      pxClipboardNative *clip = pxClipboardNative::instance();
       
-        if(fileURL)
-        {
-          // Handle Drag'n'Dropped >> FILE
-          //
+      if(clip == nil)
+      {
+        NSLog(@"ERROR: performDragOperation() - Failed to get Clipboard instance");
+        return NO;
+      }
+
+      NSURL *fileURL = [NSURL URLFromPasteboard: [sender draggingPasteboard]];
+
+      if(fileURL)
+      {
+        // Handle Drag'n'Dropped >> FILE
+        //
         NSString  *filePath = [fileURL path];
         NSString  *dropURL  = [NSString stringWithFormat:@"file://%@", filePath ];
-        
-          pxClipboardNative *clip = pxClipboardNative::instance();
-          
-      if(clip && dropURL)
-      {
-          clip->setString("TEXT", [dropURL UTF8String]);
+
+        if(dropURL)
+        {
+            clip->setString("TEXT", [dropURL UTF8String]);
+
+            pxWindowNative::_helper_onKeyDown(mWindow, 65, 16);  // Fake a CTRL-A ... select ALL to replace current URL
+        }
       }
-    }
       else
       {
-          // Handle Drag'n'Dropped >> TEXT
-          //
-          NSString *text = [[sender draggingPasteboard] stringForType:NSPasteboardTypeString];
-        
-        pxClipboardNative *clip = pxClipboardNative::instance();
-        
-      if(clip && text)
-      {
-          clip->setString("TEXT", [text UTF8String]);
+        // Handle Drag'n'Dropped >> TEXT
+        //
+        NSString *text = [[sender draggingPasteboard] stringForType:NSPasteboardTypeString];
+
+        if(text)
+        {
+            clip->setString("TEXT", [text UTF8String]);
+        }
       }
-      }
-        
-        pxWindowNative::_helper_onKeyDown(mWindow, 86, 16);  // Fake a CTRL-V
-        
-        // Steal App Focus - become active App...
-        [[NSRunningApplication currentApplication] activateWithOptions:(NSApplicationActivateAllWindows | NSApplicationActivateIgnoringOtherApps)];
-        
-        return YES;
+
+      pxWindowNative::_helper_onKeyDown(mWindow, 86, 16);  // Fake a CTRL-V
+
+      // Steal App Focus - become active App...
+      [[NSRunningApplication currentApplication] activateWithOptions:(NSApplicationActivateAllWindows | NSApplicationActivateIgnoringOtherApps)];
+
+      return YES;
     }
-    
+
     return NO;
 }
 
