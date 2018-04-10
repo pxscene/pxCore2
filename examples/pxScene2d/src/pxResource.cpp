@@ -126,33 +126,7 @@ void pxResource::addListener(pxResourceListener* pListener)
     rtValue statusCode = getLoadStatus("statusCode");
     //rtLogDebug("download was not active for: %s code: %d", mUrl.cString(), statusCode.toInt32());
     if( statusCode.toInt32() == 0)
-    {
-      if( isInitialized())
-        pListener->resourceReady("resolve");
-      else
-      {
-        // TODO so this isn't just a copy/paste of code
-        mListenersMutex.lock();
-        bool found = false;
-        for (list<pxResourceListener*>::iterator it = mListeners.begin();
-             it != mListeners.end(); ++it)
-        {
-          if((*it) == pListener)
-          {
-            found = true;
-            break;
-          }
-          
-        }
-        if (!found)
-        {
-          // only add unique listeners
-          mListeners.push_back(pListener);
-        }
-        
-        mListenersMutex.unlock();
-      }
-    }
+      pListener->resourceReady("resolve");
     else
       pListener->resourceReady("reject");    
   } 

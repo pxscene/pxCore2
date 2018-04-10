@@ -109,18 +109,17 @@ rtError pxImage9::setResource(rtObjectRef o)
   {
     rtString url;
     url = o.get<rtString>("url");
-    return setUrl(url);
     // Only create new promise if url is different 
-    // if( getImageResource() != NULL && getImageResource()->getUrl().compare(o.get<rtString>("url")) )
-    // {
-    //   removeResourceListener();
-    //   mResource = o; 
-    //   imageLoaded = false;
-    //   pxObject::createNewPromise();
-    //   mListenerAdded = true;
-    //   getImageResource()->addListener(this);
-    // }
-    // return RT_OK; 
+    if( getImageResource() != NULL && getImageResource()->getUrl().compare(o.get<rtString>("url")) )
+    {
+      removeResourceListener();
+      mResource = o; 
+      imageLoaded = false;
+      pxObject::createNewPromise();
+      mListenerAdded = true;
+      getImageResource()->addListener(this);
+    }
+    return RT_OK; 
   } 
   else 
   {
