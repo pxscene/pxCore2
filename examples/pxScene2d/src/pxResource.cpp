@@ -371,6 +371,7 @@ void rtImageResource::clearDownloadedData()
 void rtImageResource::setupResource()
 {
   getTexture();
+  init();
 }
 
 void pxResource::clearDownloadRequest()
@@ -694,7 +695,6 @@ rtRef<rtImageResource> pxImageManager::getImage(const char* url, const char* pro
     pResImage = new rtImageResource(url, proxy);
     mImageMap.insert(make_pair(url, pResImage));
     pResImage->loadResource();
-    pResImage->init();
   }
   
   return pResImage;
@@ -735,7 +735,6 @@ rtRef<rtImageAResource> pxImageManager::getImageA(const char* url, const char* p
     pResImageA = new rtImageAResource(url, proxy);
     mImageAMap.insert(make_pair(url, pResImageA));
     pResImageA->loadResource();
-    pResImageA->init();
   }
 
   return pResImageA;
