@@ -82,24 +82,27 @@ rtError pxImage::setResource(rtObjectRef o)
   {
     rtString url;
     url = o.get<rtString>("url");
+    return setUrl(url);
     // Only create new promise if url is different 
-    if( getImageResource() != NULL && getImageResource()->getUrl().compare(o.get<rtString>("url")) )
-    {
-      removeResourceListener();
-      mResource = o; 
-      imageLoaded = false;
-      pxObject::createNewPromise();
-      mListenerAdded = true;
-      getImageResource()->addListener(this);
-      checkStretchX();
-      checkStretchY();
-    }
-    return RT_OK; 
+    // if( getImageResource() != NULL && getImageResource()->getUrl().compare(o.get<rtString>("url")) )
+    // {
+    //   removeResourceListener();
+    //   mResource = o; 
+    //   imageLoaded = false;
+    //   pxObject::createNewPromise();
+    //   mListenerAdded = true;
+    //   getImageResource()->addListener(this);
+    //   //checkStretchX();
+    //   //checkStretchY();
+    // }
+    // return RT_OK; 
   } 
   else 
   {
     rtLogError("Object passed as resource is not an imageResource!\n");
     pxObject::onTextureReady();
+    // Call createNewPromise to ensure the old promise hadn't already been resolved
+    pxObject::createNewPromise();
     mReady.send("reject",this);
     return RT_ERROR; 
   }

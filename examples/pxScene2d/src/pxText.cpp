@@ -40,6 +40,7 @@ pxText::pxText(pxScene2d* scene):pxObject(scene), mFontLoaded(false), mFontFaile
 pxText::~pxText()
 {
   removeResourceListener();
+  mFont = NULL;
 }
 
 void pxText::onInit()
@@ -207,7 +208,9 @@ rtError pxText::setFontUrl(const char* s)
   mFontFailed = false;
   createNewPromise();
 
-  removeResourceListener();
+  if( getFontResource() != NULL && getFontResource()->getUrl().compare(s) )
+    removeResourceListener();
+
   mFont = pxFontManager::getFont(s);
   mListenerAdded = true;
   if (getFontResource() != NULL)
@@ -220,19 +223,30 @@ rtError pxText::setFontUrl(const char* s)
 
 rtError pxText::setFont(rtObjectRef o) 
 { 
-  mFontLoaded = false;
-  mFontFailed = false;
-  createNewPromise();
-
-  // !CLF: TODO: Need validation/verification of o
-  removeResourceListener();
-  mFont = o; 
-  mListenerAdded = true;
-  if (getFontResource() != NULL) {
-    getFontResource()->addListener(this);
+  rtString url;
+  if(!o) {
+    url ="";
+  } 
+  else {
+    url = o.get<rtString>("url");
   }
+  return setFontUrl(url);
+  // mFontLoaded = false;
+  // mFontFailed = false;
+  // createNewPromise();
+
+
+  // // !CLF: TODO: Need validation/verification of o
+  //  if( getFontResource() != NULL && getFontResource()->getUrl().compare(o.get<rtString>("url")) )
+  //   removeResourceListener();
+
+  // mFont = o; 
+  // mListenerAdded = true;
+  // if (getFontResource() != NULL) {
+  //   getFontResource()->addListener(this);
+  // }
     
-  return RT_OK; 
+  // return RT_OK; 
 }
 
 float pxText::getOnscreenWidth()
