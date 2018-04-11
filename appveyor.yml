@@ -26,6 +26,7 @@ image: Visual Studio 2017
 
 environment:
   S: "c:/dw/pxCore"
+  BUILDS_TO_KEEP: 35
 
 clone_folder: "c:/dw/pxCore"
 
