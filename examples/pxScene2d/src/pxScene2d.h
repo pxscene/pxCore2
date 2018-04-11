@@ -701,6 +701,7 @@ public:
      return RT_OK;
   }
 
+  pxScene2d* getScene() { return mScene; }
   void createSnapshot(pxContextFramebufferRef& fbo, bool separateContext=false, bool antiAliasing=false);
 
 public:
@@ -998,7 +999,7 @@ public:
   rtDeclareObject(pxSceneContainer, pxViewContainer);
   rtProperty(url, url, setUrl, rtString);
 #ifdef ENABLE_PERMISSIONS_CHECK
-  // declare 'permissions' before 'ready'
+  // permissions can be set to either scene or to its container
   rtProperty(permissions, permissions, setPermissions, rtObjectRef);
 #endif
   rtReadOnlyProperty(api, api, rtValue);
@@ -1026,8 +1027,8 @@ public:
   rtError ready(rtObjectRef& o) const;
 
 #ifdef ENABLE_PERMISSIONS_CHECK
-  rtError setParentPermissions(const rtPermissions* v);
-  rtError permissions(rtObjectRef& v) const { UNUSED_PARAM(v); rtLogDebug("permissions is write only"); return RT_FAIL; }
+  // permissions can be set to either scene or to its container
+  rtError permissions(rtObjectRef& v) const { UNUSED_PARAM(v); return RT_ERROR_NOT_IMPLEMENTED; }
   rtError setPermissions(const rtObjectRef& v);
 #endif
 
@@ -1132,8 +1133,8 @@ public:
   rtString getUrl() const { return mUrl; }
 
 #ifdef ENABLE_PERMISSIONS_CHECK
-  rtError setParentPermissions(const rtPermissions* v);
-  rtError setPermissions(const rtObjectRef& v);
+  // permissions can be set to either scene or to its container
+  rtError setPermissions(const rtObjectRef& v) { return mScene.set("permissions", v); }
 #endif
 
   static rtError addListener(rtString  eventName, const rtFunctionRef& f)
@@ -1342,6 +1343,11 @@ public:
   rtMethod1ArgAndNoReturn("addServiceProvider", addServiceProvider, rtFunctionRef);
   rtMethod1ArgAndNoReturn("removeServiceProvider", removeServiceProvider, rtFunctionRef);
 
+#ifdef ENABLE_PERMISSIONS_CHECK
+  // permissions can be set to either scene or to its container
+  rtProperty(permissions, permissions, setPermissions, rtObjectRef);
+#endif
+
   pxScene2d(bool top = true, pxScriptView* scriptView = NULL);
   virtual ~pxScene2d()
   {
@@ -1471,9 +1477,10 @@ public:
   rtError truncation(rtObjectRef& v) const {v = CONSTANTS.truncationConstants; return RT_OK;}
 
 #ifdef ENABLE_PERMISSIONS_CHECK
-  rtError setParentPermissions(const rtPermissions* v) { return mPermissions.setParent(v); }
-  rtError setPermissions(const rtObjectRef& v) { return mPermissions.set(v); }
-  rtError permissions(rtPermissions& v) const { v = mPermissions; return RT_OK; }
+  // permissions can be set to either scene or to its container
+  rtPermissionsRef permissions() const { return mPermissions; }
+  rtError permissions(rtObjectRef& v) const { UNUSED_PARAM(v); return RT_ERROR_NOT_IMPLEMENTED; }
+  rtError setPermissions(const rtObjectRef& v) { return mPermissions->set(v); }
 #endif
 
   rtError origin(rtString& v) const { v = mOrigin; return RT_OK; }
@@ -1502,10 +1509,7 @@ public:
   virtual void onDraw();
   virtual void onComplete();
 
-  virtual void setViewContainer(pxIViewContainer* l) 
-  {
-    mContainer = l;
-  }
+  virtual void setViewContainer(pxIViewContainer* l);
 
   void invalidateRect(pxRect* r);
   
@@ -1539,11 +1543,7 @@ public:
   rtError loadArchive(const rtString& url, rtObjectRef& archive)
   {
 #ifdef ENABLE_PERMISSIONS_CHECK
-    if (!mPermissions.allows(url.cString(), rtPermissions::DEFAULT))
-    {
-      rtLogError("url '%s' is not allowed", url.cString());
-      return RT_ERROR_NOT_ALLOWED;
-    }
+    rtPermissionsCheck(mPermissions, url.cString(), rtPermissions::DEFAULT)
 #endif
 
     rtError e = RT_FAIL;
@@ -1569,6 +1569,8 @@ public:
 private:
   bool bubbleEvent(rtObjectRef e, rtRef<pxObject> t, 
                    const char* preEvent, const char* event) ;
+  
+  bool bubbleEventOnBlur(rtObjectRef e, rtRef<pxObject> t, rtRef<pxObject> o);
 
   void draw();
   // Does not draw updates scene to time t
@@ -1617,7 +1619,7 @@ private:
   rtFunctionRef mCustomAnimator;
   rtString mOrigin;
 #ifdef ENABLE_PERMISSIONS_CHECK
-  rtPermissions mPermissions;
+  rtPermissionsRef mPermissions;
 #endif
 public:
   void hidePointer( bool hide )

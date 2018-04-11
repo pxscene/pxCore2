@@ -64,7 +64,11 @@ rtError pxImage9::url(rtString& s) const
 }
 
 rtError pxImage9::setUrl(const char* s) 
-{ 
+{
+#ifdef ENABLE_PERMISSIONS_CHECK
+  rtPermissionsCheck((mScene != NULL ? mScene->permissions() : NULL), s, rtPermissions::DEFAULT)
+#endif
+
   rtImageResource* resourceObj = getImageResource();  
   if(resourceObj != NULL && resourceObj->getUrl().length() > 0 && resourceObj->getUrl().compare(s))
   {
@@ -84,6 +88,49 @@ rtError pxImage9::setUrl(const char* s)
   }
     
   return RT_OK;
+}
+
+/**
+ * setResource
+ * */
+rtError pxImage9::setResource(rtObjectRef o) 
+{ 
+    
+  if(!o)
+  {
+    setUrl("");
+    return RT_OK;
+  }
+  
+  // Verify the object passed in is an rtImageResource
+  rtString desc;
+  o.sendReturns("description",desc);
+  if(!desc.compare("rtImageResource"))
+  {
+    rtString url;
+    url = o.get<rtString>("url");
+    // Only create new promise if url is different 
+    if( getImageResource() != NULL && getImageResource()->getUrl().compare(o.get<rtString>("url")) )
+    {
+      removeResourceListener();
+      mResource = o; 
+      imageLoaded = false;
+      pxObject::createNewPromise();
+      mListenerAdded = true;
+      getImageResource()->addListener(this);
+    }
+    return RT_OK; 
+  } 
+  else 
+  {
+    rtLogError("Object passed as resource is not an imageResource!\n");
+    pxObject::onTextureReady();
+    // Call createNewPromise to ensure the old promise hadn't already been resolved
+    pxObject::createNewPromise();
+    mReady.send("reject",this);
+    return RT_ERROR; 
+  }
+
 }
 
 void pxImage9::sendPromise() 
