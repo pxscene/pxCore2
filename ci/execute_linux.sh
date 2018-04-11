@@ -126,6 +126,11 @@ if [ "$testRunnerRetVal" -ne 0 ]
 	exit 1;
 fi
 
+kill -15 `ps -ef | grep pxscene |grep -v grep|grep -v pxscene.sh|awk '{print $2}'`
+echo "Sleeping to make terminate complete ......";
+#wait for few seconds to get the application terminate completely, as it is attached with valgrind increasing the timeout
+sleep 60s;
+pkill -9 -f pxscene.sh
 # Check for pxobject or texture memory leaks
 grep "pxobjectcount is \[0\]" $EXECLOGS
 pxRetVal=$?
