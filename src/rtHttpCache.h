@@ -84,6 +84,8 @@ class rtHttpCacheData
 
     FILE* filePointer(void);
 
+    void setFileName(rtString& fileName);
+
   private:
     /* populates the map with header attribute and value */
     void populateHeaderMap();
@@ -118,6 +120,7 @@ class rtHttpCacheData
     std::map<rtString, rtString> mHeaderMap;
     time_t mExpirationDate;
     FILE* fp;
+    rtString mFileName;
     bool mUpdated;
 
 };
