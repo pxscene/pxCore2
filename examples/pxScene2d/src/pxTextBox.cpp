@@ -34,11 +34,9 @@ static const char      isNewline_chars[] = "\n\v\f\r";
 static const char isWordBoundary_chars[] = " \t/:&,;.";
 static const char    isSpaceChar_chars[] = " \t";
 
-#ifdef WIN32
+
 const int ARR_SIZE=8;
 char  ellipsisStr[ARR_SIZE] = {0};
-#endif
-
 
 #if 1
 // TODO can we eliminate direct utf8.h usage
@@ -61,9 +59,8 @@ pxTextBox::pxTextBox(pxScene2d* s): pxText(s),
 
   mFontLoaded      = false;
   mFontFailed      = false;
-  #ifdef WIN32
-  u8_unescape(ellipsisStr, 256,  "\\u2026") ; 
-  #endif
+  u8_unescape(ellipsisStr, 256, ELLIPSIS_STR) ; 
+
 }
 
 /** This signals that the font file loaded successfully; now we need to
@@ -1134,7 +1131,7 @@ void pxTextBox::renderTextRowWithTruncation(rtString & accString, float lineWidt
     length -= ELLIPSIS_LEN;
     if (getFontResource() != NULL)
     {
-        getFontResource()->measureTextInternal(ELLIPSIS_STR, pixelSize, sx, sy, ellipsisW, charH);
+        getFontResource()->measureTextInternal(ellipsisStr, pixelSize, sx, sy, ellipsisW, charH);
 	
     }
     //rtLogDebug("ellipsisW is %f\n",ellipsisW);
@@ -1192,7 +1189,7 @@ void pxTextBox::renderTextRowWithTruncation(rtString & accString, float lineWidt
         {
           //rtLogDebug("rendering truncated text with ellipsis\n");
           if( render && getFontResource() != NULL) {
-              getFontResource()->renderText(ELLIPSIS_STR, pixelSize, xPos+charW, tempY, 1.0, 1.0, color,lineWidth);
+              getFontResource()->renderText(ellipsisStr, pixelSize, xPos+charW, tempY, 1.0, 1.0, color,lineWidth);
 			}
           if(!mWordWrap) { setMeasurementBounds(xPos, charW+ellipsisW, tempY, charH); }
           setLineMeasurements(false, xPos+charW+ellipsisW, tempY);
@@ -1247,7 +1244,7 @@ void pxTextBox::renderTextRowWithTruncation(rtString & accString, float lineWidt
         {
           rtLogDebug("rendering  text on word boundary with ellipsis\n");
           if( render && getFontResource() != NULL) {
-            getFontResource()->renderText(ELLIPSIS_STR, pixelSize, xPos+charW, tempY, 1.0, 1.0, color,lineWidth);
+            getFontResource()->renderText(ellipsisStr, pixelSize, xPos+charW, tempY, 1.0, 1.0, color,lineWidth);
            
           }
           if(!mWordWrap) { setMeasurementBounds(xPos, charW+ellipsisW, tempY, charH); }
