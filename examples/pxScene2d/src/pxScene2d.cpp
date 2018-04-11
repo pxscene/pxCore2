@@ -2899,7 +2899,7 @@ bool pxScene2d::bubbleEventOnBlur(rtObjectRef e, rtRef<pxObject> t, rtRef<pxObje
     unsigned long loseFocusChainIdx = l.size();
     vector<rtRef<pxObject> >::reverse_iterator it_l = l.rbegin(); // traverse the hierarchy of object losing focus in REVERSE starting with the top most parent
     vector<rtRef<pxObject> >::reverse_iterator it_m = m.rbegin(); // traverse the hierarchy of object getting focus in REVERSE starting with the top most parent
-    while((*it_l == *it_m) && (it_l != l.rend()) && (it_m != m.rend()))
+    while((it_l != l.rend()) && (it_m != m.rend()) && (*it_l == *it_m))
     {
       loseFocusChainIdx--;
       it_l++;
