@@ -424,6 +424,7 @@ bool rtFileCache::readFileHeader(rtString& filename,rtHttpCacheData& cacheData)
     return false;
   }
   cacheData.setFilePointer(fp);
+  cacheData.setFileName(filename);
   return true;
 }
 
