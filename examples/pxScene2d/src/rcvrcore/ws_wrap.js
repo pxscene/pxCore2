@@ -29,9 +29,17 @@ WebSocketManager.prototype.clearConnection = function(client) {
 WebSocketManager.prototype.clearConnections = function() {
   var connectionLength = this.connections.length;
   for (var i = 0; i < connectionLength; i++) {
-    if (null != this.connections[i]) {
+    if ((null != this.connections[i]) && (undefined != this.connections[i])) {
+      // make sure we close the socket connection and don't wait for process exit to determine it
       this.connections[i].close();
+      // make sure we call listeners of close now, else it is taking some seconds to get landed
       this.connections[i].closeimmediate();
+      // make sure we remove all listeners registered for websocket
+      // this is holding javascript variables reference, causing leaks
+      this.connections[i].removeAllListeners('open');
+      this.connections[i].removeAllListeners('error');
+      this.connections[i].removeAllListeners('message');
+      this.connections[i].removeAllListeners('close');
       delete this.connections[i];
     }
   };
