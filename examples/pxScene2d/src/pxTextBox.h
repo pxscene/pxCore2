@@ -32,7 +32,7 @@
 
 
 #define ELLIPSIS_STR "\\u2026"
-#define ELLIPSIS_LEN (sizeof(ELLIPSIS_STR)-1)	
+#define ELLIPSIS_LEN (sizeof("\2026")-1)	//size of actual unicode
 
 /**********************************************************************
  * 
