@@ -91,8 +91,6 @@ rtError pxImage::setResource(rtObjectRef o)
       pxObject::createNewPromise();
       mListenerAdded = true;
       getImageResource()->addListener(this);
-      checkStretchX();
-      checkStretchY();
     }
     return RT_OK; 
   } 
