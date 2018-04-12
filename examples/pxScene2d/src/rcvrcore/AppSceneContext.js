@@ -92,16 +92,16 @@ if( fullPath !== null)
 
 this.innerscene.on('onSceneTerminate', function (e) {
     //clear the timers and intervals on close
-    var ntimers = this.timers.length;
-    for (var i=0; i<ntimers; i++)
+    for (timer in this.timers)
     {
-      clearTimeout(this.timers.pop());
+      clearTimeout(timer);
     }
-    var ntimerIntervals = this.timerIntervals.length;
-    for (var i=0; i<ntimerIntervals; i++)
+    this.timers.length = 0;
+    for (timer in this.timerIntervals)
     {
-      clearInterval(this.timerIntervals.pop());
+      clearInterval(timer);
     }
+    this.timerIntervals = 0;
     if (this.innerscene.api !== undefined)
     {
       for(var k in this.innerscene.api) { delete this.innerscene.api[k]; }
