@@ -36,12 +36,13 @@ static const char    isSpaceChar_chars[] = " \t";
 
 
 const int ARR_SIZE=8;
-char  ellipsisStr[ARR_SIZE] = {0};
+static char ellipsisStr[ARR_SIZE] = {NULL};
 
 #if 1
 // TODO can we eliminate direct utf8.h usage
 extern "C" {
 #include "../../../src/utf8.h"
+
 }
 #endif
 
@@ -59,8 +60,8 @@ pxTextBox::pxTextBox(pxScene2d* s): pxText(s),
 
   mFontLoaded      = false;
   mFontFailed      = false;
-  u8_unescape(ellipsisStr, 256, ELLIPSIS_STR) ; 
-
+  if (ellipsisStr[0] == NULL)
+	u8_unescape(ellipsisStr, 256, ELLIPSIS_STR) ; 
 }
 
 /** This signals that the font file loaded successfully; now we need to
