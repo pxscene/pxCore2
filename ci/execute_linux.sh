@@ -1,5 +1,5 @@
 #!/bin/sh
-
+#test
 checkError()
 {
   if [ "$1" -ne 0 ]
@@ -81,11 +81,11 @@ while [ "$retVal" -ne 0 ] &&  [ "$count" -ne "$max_seconds" ]; do
 	fi
 done
 
-kill -15 `ps -ef | grep pxscene |grep -v grep|grep -v pxscene.sh|awk '{print $2}'`
-echo "Sleeping to make terminate complete ......";
-#wait for few seconds to get the application terminate completely, as it is attached with valgrind increasing the timeout
-sleep 60s;
-pkill -9 -f pxscene.sh
+#kill -15 `ps -ef | grep pxscene |grep -v grep|grep -v pxscene.sh|awk '{print $2}'`
+#echo "Sleeping to make terminate complete ......";
+##wait for few seconds to get the application terminate completely, as it is attached with valgrind increasing the timeout
+#sleep 60s;
+#pkill -9 -f pxscene.sh
 
 chmod 444 $VALGRINDLOGS
 
@@ -110,6 +110,11 @@ errCause=""
 
 if [ "$testRunnerRetVal" -ne 0 ]
 	then
+	#lines to take stack trace from pxscene running under valgrind
+	echo "gdb -q --command=\"$TRAVIS_BUILD_DIR/ci/debuggercmds_linux\" $TRAVIS_BUILD_DIR/examples/pxScene2d/src/pxscene  >gdblogs"
+	gdb -q --command="$TRAVIS_BUILD_DIR/ci/debuggercmds_linux" $TRAVIS_BUILD_DIR/examples/pxScene2d/src/pxscene  >gdblogs
+	cat gdblogs
+
 	if [ "$TRAVIS_PULL_REQUEST" != "false" ]
 		then
 		errCause="Cause: Check the above logs"
@@ -121,6 +126,11 @@ if [ "$testRunnerRetVal" -ne 0 ]
 	exit 1;
 fi
 
+kill -15 `ps -ef | grep pxscene |grep -v grep|grep -v pxscene.sh|awk '{print $2}'`
+echo "Sleeping to make terminate complete ......";
+#wait for few seconds to get the application terminate completely, as it is attached with valgrind increasing the timeout
+sleep 60s;
+pkill -9 -f pxscene.sh
 # Check for pxobject or texture memory leaks
 grep "pxobjectcount is \[0\]" $EXECLOGS
 pxRetVal=$?
@@ -129,6 +139,7 @@ texRetVal=$?
 echo "Values are $pxRetVal and $texRetVal";
 
 printf "\n\n -------------------------------- \n\n"
+
 
 
 if [ "$pxRetVal" -eq 0 ]
