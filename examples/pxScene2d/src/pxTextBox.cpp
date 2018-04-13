@@ -138,6 +138,9 @@ void pxTextBox::recalc()
 
     //mDirty = true;
     setNeedsRecalc(false);
+    if(clip()) {
+      pxObject::onTextureReady();
+    }
 
   }
 }
@@ -150,6 +153,7 @@ void pxTextBox::setNeedsRecalc(bool recalc)
   {
     //rtLogDebug("TextBox CREATE NEW PROMISE\n");
     createNewPromise();
+    //mDirty = true;
   }
 
 }
@@ -215,7 +219,7 @@ void pxTextBox::draw()
   {
     mQuadsVector.clear();
     renderText(true);
-    mDirty = false;   
+    mDirty = false;
   
   }
   float x = 0, y = 0;
