@@ -277,7 +277,9 @@ px.import({ scene:      'px:scene.1.js',
                                             "\n"+
                                             "  CTRL-ALT-A        ...  Show About.js \n" +
                                             "  CTRL-ALT-R        ...  Reload URL \n" +
-                                            "  CTRL-ALT-H        ...  Load 'Browser.js' \n\n" +
+                                            "  CTRL-ALT-H        ...  Load 'Browser.js' \n" +
+                                            "\n"+
+                                            "  CTRL-ALT-SHIFT-L  ...  Load Another URL \n\n" +
                                             " SHELL:   \n\n"+
                                             "  CTRL-ALT-D        ...  Toggle Dirty Rectangles \n" +
                                             "  CTRL-ALT-O        ...  Toggle Outlines \n" +
