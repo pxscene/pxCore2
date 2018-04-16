@@ -3451,7 +3451,6 @@ rtError pxSceneContainer::setUrl(rtString url)
 
   mUrl = url;
 #ifdef RUNINMAIN
-    setScriptView(NULL);
     setScriptView(new pxScriptView(url.cString(), ""));
 #else
     pxScriptView * scriptView = new pxScriptView(url.cString(),"");
