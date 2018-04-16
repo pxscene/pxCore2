@@ -2794,6 +2794,8 @@ void Isolate::RunMicrotasksInternal() {
         Handle<Object> exception;
         if (result.is_null() && maybe_exception.is_null()) {
           // Clear out any remaining callbacks in the queue.
+          printf("Clearing out remaining callbacks !!!!!!!!!!!!!!!!!!!");
+          fflush(stdout);
           heap()->set_microtask_queue(heap()->empty_fixed_array());
           set_pending_microtask_count(0);
           return;
