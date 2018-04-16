@@ -1,6 +1,5 @@
 "use strict";
 
-
 var hasExtension = require('rcvrcore/utils/FileUtils').hasExtension;
 
 var Logger = require('rcvrcore/Logger').Logger;
