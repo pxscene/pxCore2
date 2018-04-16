@@ -230,7 +230,9 @@ XModule.prototype._importModule = function(requiredModuleSet, readyCallBack, fai
       if( readyCallBack !== null && readyCallBack !== undefined ) {
         readyCallBack(exportsMap);
       }
+      console.log("calling module build resolve");
       moduleBuildResolve();
+      console.log("called module build resolve");
       log.message(8, "XMODULE AFTER NOTIFY [" + _this.name + "] that all its imports are Ready");
     }).catch(function (error) {
       console.error("Error - failed to get Remote modules for: " + _this.name + ", error=" + error);
