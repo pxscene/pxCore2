@@ -3410,7 +3410,6 @@ rtDefineProperty(pxScene2d, origin);
 #ifdef ENABLE_PERMISSIONS_CHECK
 rtDefineProperty(pxScene2d, permissions);
 #endif
-rtDefineMethod(pxScene2d, allows);
 rtDefineMethod(pxScene2d, checkAccessControlHeaders);
 rtDefineMethod(pxScene2d, addServiceProvider);
 rtDefineMethod(pxScene2d, removeServiceProvider);
@@ -3516,17 +3515,6 @@ void pxScene2d::innerpxObjectDisposed(rtObjectRef ref)
       mInnerpxObjects.erase(mInnerpxObjects.begin()+pos);
     }
   }
-}
-
-rtError pxScene2d::allows(const rtString& url, bool& o) const
-{
-#ifdef ENABLE_PERMISSIONS_CHECK
-  return mPermissions->allows(url.cString(), rtPermissions::DEFAULT, o);
-#else
-  UNUSED_PARAM(url);
-  o = true; // default
-  return RT_OK;
-#endif
 }
 
 rtError pxScene2d::checkAccessControlHeaders(const rtString& url, const rtString& rawHeaders, bool& allow) const
@@ -3660,9 +3648,14 @@ void pxSceneContainer::dispose(bool pumpJavascript)
   }
 
 #ifdef ENABLE_PERMISSIONS_CHECK
+rtError pxSceneContainer::permissions(rtObjectRef& v) const
+{
+  return mScriptView != NULL ? mScriptView->permissions(v) : RT_OK;
+}
+
 rtError pxSceneContainer::setPermissions(const rtObjectRef& v)
 {
-  return mScriptView != NULL ? mScriptView->setPermissions(v) : RT_FAIL;
+  return mScriptView != NULL ? mScriptView->setPermissions(v) : RT_OK;
 }
 #endif
 
