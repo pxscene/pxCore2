@@ -52,7 +52,7 @@ function Application(props) {
       }
       else{
         if (cmd == "wpe" && "uri" in launchParams){
-	    uri = launchParams["uri"];
+            uri = launchParams["uri"];
             cmd = cmd + " " + uri;
             console.log("Launching wpe uri: " + uri); 
         }
