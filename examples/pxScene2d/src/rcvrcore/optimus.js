@@ -36,7 +36,7 @@ function Application(props) {
   if (cmd){
     if (scene !== undefined) {
       if ((cmd == "spark") && "uri" in launchParams){
-	uri = launchParams["uri"];
+        uri = launchParams["uri"];
         this.externalApp = scene.create({t:"scene", parent:root, url:uri});
         this.externalApp.on("onClientStopped", this.applicationClosed);
         var sparkApp = this;
