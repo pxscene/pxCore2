@@ -35,14 +35,8 @@ function Application(props) {
   }
   if (cmd){
     if (scene !== undefined) {
-      if (cmd.includes(".js") || (cmd == "spark")){
-        if (cmd.includes(".js")){
-            console.log("This api will be deprecated soon. Use cmd: spark for launching spark application. Launching spark uri: " + cmd); 
-            uri = cmd; 
-        }
-        else if ((cmd == "spark") && "uri" in launchParams){
-	    uri = launchParams["uri"];
-        }
+      if ((cmd == "spark") && "uri" in launchParams){
+	uri = launchParams["uri"];
         this.externalApp = scene.create({t:"scene", parent:root, url:uri});
         this.externalApp.on("onClientStopped", this.applicationClosed);
         var sparkApp = this;
