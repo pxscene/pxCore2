@@ -158,7 +158,7 @@ float pxImage9::getOnscreenHeight()
 
 
 void pxImage9::draw() {
-  if (getImageResource() != NULL)
+  if (getImageResource() != NULL && getImageResource()->isInitialized())
   {
     context.drawImage9(mw, mh, mInsetLeft, mInsetTop, mInsetRight, mInsetBottom, getImageResource()->getTexture());
   }

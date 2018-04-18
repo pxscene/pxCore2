@@ -317,9 +317,9 @@ rtError rtImageResource::h(int32_t& v) const
   return RT_OK; 
 }
 
-pxTextureRef rtImageResource::getTexture()
+pxTextureRef rtImageResource::getTexture(bool initializing)
 {
-  if (!mTexture.getPtr())
+  if (!mTexture.getPtr() && (isInitialized() || initializing))
   {
     mTextureMutex.lock();
     if (mCompressedData != NULL)
@@ -370,7 +370,7 @@ void rtImageResource::clearDownloadedData()
 
 void rtImageResource::setupResource()
 {
-  getTexture();
+  getTexture(true);
   init();
 }
 
