@@ -1920,7 +1920,6 @@ rtError pxScene2d::dispose()
     mDisposed = true;
     rtObjectRef e = new rtMapObject;
     mEmit.send("onClose", e);
-    mEmit.send("onSceneTerminate", e);
     for (unsigned int i=0; i<mInnerpxObjects.size(); i++)
     {
       pxObject* temp = (pxObject *) (mInnerpxObjects[i].getPtr());
@@ -1933,6 +1932,12 @@ rtError pxScene2d::dispose()
 
     if (mRoot)
       mRoot->dispose(false);
+    #ifdef ENABLE_RT_NODE
+    script.pump();
+    #endif //ENABLE_RT_NODE
+    // send scene terminate after dispose to make sure, no cleanup can happen further on app side
+    // after clearing the sandbox
+    mEmit.send("onSceneTerminate", e);
     mEmit->clearListeners();
 
     mRoot     = NULL;
@@ -1940,10 +1945,7 @@ rtError pxScene2d::dispose()
     mCanvas   = NULL;
     mFocusObj = NULL;
 
-    #ifdef ENABLE_RT_NODE
-    script.pump();
-    #endif //ENABLE_RT_NODE
-
+    pxFontManager::clearAllFonts();
     return RT_OK;
 }
 

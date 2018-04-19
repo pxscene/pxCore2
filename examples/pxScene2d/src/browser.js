@@ -173,8 +173,7 @@ px.import({ scene:      'px:scene.1.js',
 
   scene.root.on("onPreKeyDown", function(e)
   {
-    if(keys.is_CTRL( e.flags ) ||
-       keys.is_CMD ( e.flags ) )
+    if(keys.is_CTRL_ALT_SHIFT(e.flags))
     {
       if (e.keyCode == keys.L )
       {
@@ -280,7 +279,9 @@ px.import({ scene:      'px:scene.1.js',
                                             "\n"+
                                             "  CTRL-ALT-A        ...  Show About.js \n" +
                                             "  CTRL-ALT-R        ...  Reload URL \n" +
-                                            "  CTRL-ALT-H        ...  Load 'Browser.js' \n\n" +
+                                            "  CTRL-ALT-H        ...  Load 'Browser.js' \n" +
+                                            "\n"+
+                                            "  CTRL-ALT-SHIFT-L  ...  Load Another URL \n\n" +
                                             " SHELL:   \n\n"+
                                             "  CTRL-ALT-D        ...  Toggle Dirty Rectangles \n" +
                                             "  CTRL-ALT-O        ...  Toggle Outlines \n" +
