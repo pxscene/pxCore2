@@ -20,6 +20,7 @@ set(RTREMOTEINC ${PXCOREDIR}/remote)
 set(GOOGLETESTINC ${EXTDIR}/gtest/googletest/include ${EXTDIR}/gtest/googletest ${EXTDIR}/gtest/googlemock/include ${EXTDIR}/gtest/googlemock)
 set(PXCOREINC ${PXCOREDIR}/src)
 set(PXSCENEINC ${PXCOREDIR}/examples/pxScene2d/src)
+set(PXSCENERASTERINC ${PXCOREDIR}/examples/pxScene2d/src/rasterizer)
 set(PXSCENELIBDIR ${PXCOREDIR}/examples/pxScene2d/src)
 
 set(BUILD_UNIT_TEST 0)
@@ -30,7 +31,7 @@ option(PXSCENE_TEST_ACCESS_CONTROL_CHECK "PXSCENE_TEST_ACCESS_CONTROL_CHECK" ON)
 option(PXSCENE_TEST_PERMISSIONS_CHECK "PXSCENE_TEST_PERMISSIONS_CHECK" ON)
 
 
-include_directories(AFTER ${GOOGLETESTINC} ${PXCOREINC} ${PXSCENEINC})
+include_directories(AFTER ${GOOGLETESTINC} ${PXCOREINC} ${PXSCENEINC} ${PXSCENERASTERINC})
 include_directories(AFTER ${CMAKE_CURRENT_SOURCE_DIR})
 
 add_definitions(${COMM_DEPS_DEFINITIONS})
@@ -140,6 +141,11 @@ if (PXSCENE_TEST_ACCESS_CONTROL_CHECK)
     add_definitions(-DENABLE_ACCESS_CONTROL_CHECK)
     set(TEST_SOURCE_FILES ${TEST_SOURCE_FILES} test_cors.cpp)
 endif (PXSCENE_TEST_ACCESS_CONTROL_CHECK)
+
+if (BUILD_PXSCENE_RASTERIZER_PATH)
+    message("Include RASTERIZER tests")
+    set(TEST_SOURCE_FILES ${TEST_SOURCE_FILES} test_pxCanvas2d.cpp )
+endif (BUILD_PXSCENE_RASTERIZER_PATH)
 
 if (PXSCENE_TEST_PERMISSIONS_CHECK)
     message("Include PERMISSIONS tests")
