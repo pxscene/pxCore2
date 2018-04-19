@@ -21,7 +21,6 @@
 
 #include "rtObject.h"
 #include "rtRef.h"
-#include "rtAtomic.h"
 
 #include <map>
 #include <string>
@@ -42,21 +41,14 @@
 class rtPermissions;
 typedef rtRef<rtPermissions> rtPermissionsRef;
 
-class rtPermissions
+class rtPermissions : public rtObject
 {
 public:
   rtPermissions(const char* origin = NULL);
   virtual ~rtPermissions();
 
-  virtual unsigned long AddRef(){ return rtAtomicInc(&mRef);}
-
-  virtual unsigned long Release()
-  {
-    unsigned long l = rtAtomicDec(&mRef);
-    if (l == 0)
-      delete this;
-    return l;
-  }
+  rtDeclareObject(rtPermissions, rtObject);
+  rtMethod1ArgAndReturn("allows", allows, rtString, bool);
 
   enum Type
   {
@@ -69,6 +61,7 @@ public:
   rtError set(const rtObjectRef& permissionsObject);
   rtError setParent(const rtPermissionsRef& parent);
   rtError allows(const char* s, rtPermissions::Type type, bool& o) const;
+  rtError allows(const rtString& url, bool& o) const;
 
 protected:
   // Wildcard stuff
@@ -96,7 +89,6 @@ protected:
 
   permissionsMap_t mPermissionsMap;
   rtPermissionsRef mParent;
-  rtAtomic mRef;
 
   friend class rtPermissionsTest;
 };
