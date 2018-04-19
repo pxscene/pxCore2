@@ -36,11 +36,14 @@ WebSocketManager.prototype.clearConnections = function() {
       this.connections[i].closeimmediate();
       // make sure we remove all listeners registered for websocket
       // this is holding javascript variables reference, causing leaks
-      this.connections[i].removeAllListeners('open');
-      this.connections[i].removeAllListeners('error');
-      this.connections[i].removeAllListeners('message');
-      this.connections[i].removeAllListeners('close');
-      delete this.connections[i];
+      // having check here, don't know who is setting this value to undefined
+      if ((null != this.connections[i]) && (undefined != this.connections[i])) {
+        this.connections[i].removeAllListeners('open');
+        this.connections[i].removeAllListeners('error');
+        this.connections[i].removeAllListeners('message');
+        this.connections[i].removeAllListeners('close');
+        delete this.connections[i];
+      }
     }
   };
   this.connections.splice(0, this.connections.length);
