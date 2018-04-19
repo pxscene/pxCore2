@@ -8,7 +8,7 @@
  * @author      TCSCODER
  * @version     1.0
  */
-const RTException = require('./RTException');
+
 
 class RTRemoteObject {
   /**
@@ -23,33 +23,27 @@ class RTRemoteObject {
 
   /**
    * set property by name or index
-   * @param {string|number} name the property name or index
+   * @param {string|number} prop the property name or index
    * @param {object} value the rtValue
    * @return {promise<object> | Promise<{}>} the promise with object/rtValue
    */
-  set(name, value) {
-    const propertyType = typeof name;
-    if (propertyType === 'string') {
-      return this.protocol.sendSetByName(this.id, name, value);
-    } else if (propertyType === 'number') {
-      return this.protocol.sendSetById(this.id, name, value);
+  set(prop, value) {
+    if (typeof prop === 'number') {
+      return this.protocol.sendSetByIndex(this.id, prop, value);
     }
-    return Promise.reject(new RTException(`unsupported set type = ${propertyType}`));
+    return this.protocol.sendSetByName(this.id, prop, value);
   }
 
   /**
    * get property by name or index
-   * @param {string|number} name the property name or index
+   * @param {string|number} prop the property name or index
    * @return {Promise<object>} the promise with object/rtValue
    */
-  get(name) {
-    const propertyType = typeof name;
-    if (propertyType === 'string') {
-      return this.protocol.sendGetByName(this.id, name);
-    } else if (propertyType === 'number') {
-      return this.protocol.sendGetById(this.id, name);
+  get(prop) {
+    if (typeof prop === 'number') {
+      return this.protocol.sendGetByIndex(this.id, prop);
     }
-    return Promise.reject(new RTException(`unsupported get type = ${propertyType}`));
+    return this.protocol.sendGetByName(this.id, prop);
   }
 
   /**

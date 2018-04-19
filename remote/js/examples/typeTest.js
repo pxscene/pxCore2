@@ -45,12 +45,14 @@ resolve.start()
       succeed = 0;
 
       Promise.resolve() // test all type in sequence mode
-
-      // function test
-        .then(() => doFunctionTest(rtObject, 'onTick'))
+        .then(() => doFunctionTest(rtObject, 'onTick')) // function test
 
         // object test
         .then(() => doObjectTest(rtObject, 'objvar'))
+
+        .then(() => doBasicTestWithIndex(rtObject, RTValueType.INT32, 104, 0))
+        .then(() => doBasicTestWithIndex(rtObject, RTValueType.FLOAT, 123.2, 1))
+        .then(() => doBasicTestWithIndex(rtObject, RTValueType.STRING, 'Sample String', 2))
 
         // in c++/java, float only had 7 valid digits
         .then(() => doBasicTest(rtObject, RTValueType.FLOAT, 1.23456789, 'ffloat'))
@@ -172,6 +174,29 @@ function doBasicTest(rtObject, type, value, propertyName) {
 }
 
 /**
+ * do basic test with index
+ * @param rtObject the remote object
+ * @param type the rt value type
+ * @param value the value
+ * @param index the index
+ */
+function doBasicTestWithIndex(rtObject, type, value, index) {
+  return rtObject.get('arr') // get array object first
+    .then(arrValue => arrValue.value.set(index, RTValueHelper.create(value, type)).then(() => arrValue))
+    .then(arrValue => arrValue.value.get(index).then((rtValue) => {
+      let result = false;
+      if (type === RTValueType.FLOAT) {
+        result = checkEqualsFloat(rtValue.value, value);
+      } else {
+        result = rtValue.value === value;
+      }
+      printResult(type, value, rtValue.value, result);
+    })).catch((err) => {
+      logger.error(err);
+    });
+}
+
+/**
  * print result and add total/success example number
  * @param type the rtValue type
  * @param old the old value
@@ -198,9 +223,9 @@ function doFunctionTest(rtObject, propertyName) {
   }, RTValueType.FUNCTION);
 
   return rtObject.set(propertyName, oldRtValue).then(() => rtObject.get(propertyName).then((rtValue) => {
-    rtValue.value(null);
-    const result = oldRtValue[RTConst.FUNCTION_KEY] === rtValue[RTConst.FUNCTION_KEY];
-    printResult(RTValueType.FUNCTION, oldRtValue[RTConst.FUNCTION_KEY], rtValue[RTConst.FUNCTION_KEY], result);
+    rtValue.value.value(null);
+    const result = oldRtValue[RTConst.VALUE][RTConst.FUNCTION_KEY] === rtValue[RTConst.VALUE][RTConst.FUNCTION_KEY];
+    printResult(RTValueType.FUNCTION, oldRtValue[RTConst.FUNCTION_KEY], rtValue[RTConst.VALUE][RTConst.FUNCTION_KEY], result);
   }));
 }
 
