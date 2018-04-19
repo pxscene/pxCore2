@@ -91,6 +91,12 @@ if( fullPath !== null)
   this.loadPackage(fullPath);
 
 this.innerscene.on('onSceneTerminate', function (e) {
+    if (null != this.webSocketManager)
+    {
+       this.webSocketManager.clearConnections();
+       delete this.webSocketManager;
+    }
+    this.webSocketManager = null;
     //clear the timers and intervals on close
     var ntimers = this.timers.length;
     for (var i=0; i<ntimers; i++)
@@ -156,12 +162,6 @@ this.innerscene.on('onSceneTerminate', function (e) {
     if (null != this.sceneWrapper)
       this.sceneWrapper.close();
     this.sceneWrapper = null;
-    if (null != this.webSocketManager)
-    {
-       this.webSocketManager.clearConnections();
-       delete this.webSocketManager;
-    }
-    this.webSocketManager = null;
     this.rpcController = null;
     if (this.accessControl) {
       this.accessControl.destroy();
