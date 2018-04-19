@@ -923,7 +923,7 @@ rtError pxObject::animateTo(const char* prop, double to, double duration,
 // Dont fastforward when calling from set* methods since that will
 // recurse indefinitely and crash and we're going to change the value in
 // the set* method anyway.
-void pxObject::cancelAnimation(const char* prop, bool fastforward, bool rewind, bool resolve)
+void pxObject::cancelAnimation(const char* prop, bool fastforward, bool rewind)
 {
   if (!mCancelInSet)
     return;
@@ -952,9 +952,9 @@ void pxObject::cancelAnimation(const char* prop, bool fastforward, bool rewind, 
       {
         if (a.ended)
           a.ended.send(this);
-        if (a.promise)
+        if (a.promise && a.promise.getPtr() != NULL)
         {
-          a.promise.send(resolve ? "resolve" : "reject", this);
+          a.promise.send("resolve", this);
 
           if (NULL != pAnimateObj)
           {
@@ -988,7 +988,7 @@ void pxObject::animateToInternal(const char* prop, double to, double duration,
                          int32_t count, rtObjectRef promise, rtObjectRef animateObj)
 {
   cancelAnimation(prop,(options & pxConstantsAnimation::OPTION_FASTFORWARD),
-                       (options & pxConstantsAnimation::OPTION_REWIND), true);
+                       (options & pxConstantsAnimation::OPTION_REWIND));
 
   // schedule animation
   animation a;
@@ -1059,7 +1059,7 @@ void pxObject::update(double t)
       // TODO this sort of blows since this triggers another
       // animation traversal to cancel animations
 #if 0
-      cancelAnimation(a.prop, true, false, true);
+      cancelAnimation(a.prop, true, false);
 #else
       assert(mCancelInSet);
       mCancelInSet = false;
@@ -1146,7 +1146,7 @@ void pxObject::update(double t)
         {
           animObj->setStatus(pxConstantsAnimation::STATUS_ENDED);
         }
-        cancelAnimation(a.prop, false, false, true);
+        cancelAnimation(a.prop, false, false);
 
         if (NULL != animObj)
         {
