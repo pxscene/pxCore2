@@ -79,7 +79,7 @@ uint32_t npot(uint32_t i)
 }
 
 pxFont::pxFont(rtString fontUrl, rtString proxyUrl):pxResource(),mFace(NULL),mPixelSize(0), mFontData(0), mFontDataSize(0),
-             mFontMutex()
+             mFontMutex(), mFontDataMutex(), mFontDownloadedData(NULL), mFontDownloadedDataSize(0), mFontDataUrl()
 {  
   mFontId = gFontId++; 
   mUrl = fontUrl;
@@ -89,7 +89,10 @@ pxFont::pxFont(rtString fontUrl, rtString proxyUrl):pxResource(),mFace(NULL),mPi
 pxFont::~pxFont() 
 {
   rtLogInfo("~pxFont %s\n", mUrl.cString());
-  gUIThreadQueue.removeAllTasksForObject(this);
+  if (gUIThreadQueue)
+  {
+    gUIThreadQueue->removeAllTasksForObject(this);
+  }
   // download should be canceled/removed in pxResource
   //if (mDownloadRequest != NULL)
   //{
@@ -109,15 +112,68 @@ pxFont::~pxFont()
     free(mFontData);
     mFontData = 0;
     mFontDataSize = 0;
-  } 
-   
+  }
+
+  clearDownloadedData();
+}
+
+void pxFont::setFontData(const FT_Byte*  fontData, FT_Long size, const char* n)
+{
+  mFontDataMutex.lock();
+  mFontDataUrl = n;
+  if (mFontDownloadedData != NULL)
+  {
+    delete [] mFontDownloadedData;
+    mFontDownloadedData = NULL;
+  }
+  if (fontData == NULL)
+  {
+    mFontDownloadedData = NULL;
+    mFontDownloadedDataSize = 0;
+  }
+  else
+  {
+    mFontDownloadedData = new char[size];
+    mFontDownloadedDataSize = size;
+    memcpy(mFontDownloadedData, fontData, mFontDownloadedDataSize);
+  }
+  mFontDataMutex.unlock();
+}
+
+void pxFont::clearDownloadedData()
+{
+  mFontDataMutex.lock();
+  if (mFontDownloadedData != NULL)
+  {
+    delete [] mFontDownloadedData;
+    mFontDownloadedData = NULL;
+  }
+  mFontDownloadedDataSize = 0;
+  mFontDataMutex.unlock();
+}
+
+void pxFont::setupResource()
+{
+  if (!mInitialized)
+  {
+    mFontDataMutex.lock();
+    if (mFontDownloadedData != NULL)
+    {
+      init( (FT_Byte*)mFontDownloadedData,
+            (FT_Long)mFontDownloadedDataSize,
+            mFontDataUrl.cString());
+      delete [] mFontDownloadedData;
+      mFontDownloadedData = NULL;
+    }
+    mFontDataMutex.unlock();
+  }
 }
 
 bool pxFont::loadResourceData(rtFileDownloadRequest* fileDownloadRequest)
 {
       // Load the font data
-      init( (FT_Byte*)fileDownloadRequest->downloadedData(), 
-            (FT_Long)fileDownloadRequest->downloadedDataSize(), 
+    setFontData( (FT_Byte*)fileDownloadRequest->downloadedData(),
+            (FT_Long)fileDownloadRequest->downloadedDataSize(),
             fileDownloadRequest->fileUrl().cString());
             
       return true;
@@ -129,21 +185,27 @@ void pxFont::loadResourceFromFile()
     if (e != RT_OK)
     {
       rtLogWarn("Could not load font face %s\n", mUrl.cString());
-      mLoadStatus.set("statusCode", PX_RESOURCE_STATUS_FILE_NOT_FOUND);
+      setLoadStatus("statusCode", PX_RESOURCE_STATUS_FILE_NOT_FOUND);
       // Since this object can be released before we get a async completion
       // We need to maintain this object's lifetime
       // TODO review overall flow and organization
-      AddRef();     
-      gUIThreadQueue.addTask(onDownloadCompleteUI, this, (void*)"reject");
+      AddRef();
+      if (gUIThreadQueue)
+      {
+        gUIThreadQueue->addTask(onDownloadCompleteUI, this, (void*)"reject");
+      }
     }
     else
     {
-      mLoadStatus.set("statusCode", PX_RESOURCE_STATUS_OK);
+      setLoadStatus("statusCode", PX_RESOURCE_STATUS_OK);
       // Since this object can be released before we get a async completion
       // We need to maintain this object's lifetime
       // TODO review overall flow and organization
-      AddRef();      
-      gUIThreadQueue.addTask(onDownloadCompleteUI, this, (void*)"resolve");
+      AddRef();
+      if (gUIThreadQueue)
+      {
+        gUIThreadQueue->addTask(onDownloadCompleteUI, this, (void*)"resolve");
+      }
 
     } 
 }
@@ -553,11 +615,14 @@ rtRef<pxFont> pxFontManager::getFont(const char* url, const char* proxy)
   if (!url || !url[0])
     url = defaultFont;
   
+  mFontMgrMutex.lock();
+
   FontMap::iterator it = mFontMap.find(url);
   if (it != mFontMap.end())
   {
     rtLogDebug("Found pxFont in map for %s\n",url);
     pFont = it->second;
+    mFontMgrMutex.unlock();
     return pFont;  
     
   }
@@ -566,6 +631,7 @@ rtRef<pxFont> pxFontManager::getFont(const char* url, const char* proxy)
     rtLogDebug("Create pxFont in map for %s\n",url);
     pFont = new pxFont(url, proxy);
     mFontMap.insert(make_pair(url, pFont));
+    mFontMgrMutex.unlock();
     pFont->loadResource();
   }
   
@@ -574,11 +640,13 @@ rtRef<pxFont> pxFontManager::getFont(const char* url, const char* proxy)
 
 void pxFontManager::removeFont(rtString fontName)
 {
+  mFontMgrMutex.lock();
   FontMap::iterator it = mFontMap.find(fontName);
   if (it != mFontMap.end())
   {  
     mFontMap.erase(it);
   }
+  mFontMgrMutex.unlock();
 }
 
 void pxFontManager::clearAllFonts()

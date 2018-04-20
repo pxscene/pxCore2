@@ -91,6 +91,12 @@ if( fullPath !== null)
   this.loadPackage(fullPath);
 
 this.innerscene.on('onSceneTerminate', function (e) {
+    if (null != this.webSocketManager)
+    {
+       this.webSocketManager.clearConnections();
+       delete this.webSocketManager;
+    }
+    this.webSocketManager = null;
     //clear the timers and intervals on close
     var ntimers = this.timers.length;
     for (var i=0; i<ntimers; i++)
@@ -156,12 +162,6 @@ this.innerscene.on('onSceneTerminate', function (e) {
     if (null != this.sceneWrapper)
       this.sceneWrapper.close();
     this.sceneWrapper = null;
-    if (null != this.webSocketManager)
-    {
-       this.webSocketManager.clearConnections();
-       delete this.webSocketManager;
-    }
-    this.webSocketManager = null;
     this.rpcController = null;
     if (this.accessControl) {
       this.accessControl.destroy();
@@ -413,17 +413,17 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (packageUri, module
           filename: path.normalize(fname),
           displayErrors: true
         });
+        if (process._debugWaitConnect) {
+          // Set breakpoint on module start
+          if (process.env.BREAK_ON_SCRIPTSTART != 1)
+            delete process._debugWaitConnect;
+          const Debug = vm.runInDebugContext('Debug');
+          Debug.setBreakPoint(moduleFunc, 0, 0);
+        }
         moduleFunc(px, xModule, fname, this.basePackageUri);
       }
       log.message(4, "vm.runInNewContext done");
 
-      if (!isDuk && process._debugWaitConnect) {
-        // Set breakpoint on module start
-        if (process.env.BREAK_ON_SCRIPTSTART != 1)
-          delete process._debugWaitConnect;
-        const Debug = vm.runInDebugContext('Debug');
-        Debug.setBreakPoint(moduleFunc, 0, 0);
-      }
 /*
 if (false) {
       // TODO do the old scenes context get released when we reload a scenes url??

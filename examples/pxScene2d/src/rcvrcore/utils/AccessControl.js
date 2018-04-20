@@ -19,7 +19,10 @@ AccessControl.prototype.origin = function () {
 
 AccessControl.prototype.allows = function (url) {
   if (this.scene) {
-    return this.scene.allows(url);
+    var permissions = this.scene.permissions;
+    if (permissions) {
+      return permissions.allows(url);
+    }
   }
   return true;
 };

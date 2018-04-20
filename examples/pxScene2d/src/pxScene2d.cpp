@@ -85,7 +85,7 @@ using namespace std;
 // #define DEBUG_SKIP_DRAW       // Skip DRAW   code - for testing.
 // #define DEBUG_SKIP_UPDATE     // Skip UPDATE code - for testing.
 
-extern rtThreadQueue gUIThreadQueue;
+extern rtThreadQueue* gUIThreadQueue;
 
 static int fpsWarningThreshold = 25;
 
@@ -257,12 +257,12 @@ void populateAllAppsConfig()
   {
     if (appList[i].IsObject())
     {
-      if ((appList[i].HasMember("name")) && (appList[i]["name"].IsString()) && (appList[i].HasMember("uri")) &&
-          (appList[i]["uri"].IsString()) && (appList[i].HasMember("type")) && (appList[i]["type"].IsString()))
+      if ((appList[i].HasMember("cmdName")) && (appList[i]["cmdName"].IsString()) && (appList[i].HasMember("uri")) &&
+          (appList[i]["uri"].IsString()) && (appList[i].HasMember("applicationType")) && (appList[i]["applicationType"].IsString()))
       {
-        string appName = appList[i]["name"].GetString();
+        string appName = appList[i]["cmdName"].GetString();
         string binary = appList[i]["uri"].GetString();
-        string type = appList[i]["type"].GetString();
+        string type = appList[i]["applicationType"].GetString();
         if ((appName.length() != 0) && (binary.length() != 0) && (type == "native"))
         {
           gPxsceneWaylandAppsMap[appName] = binary;
@@ -434,6 +434,8 @@ unsigned char *base64_decode(const unsigned char *data,
     if (data[input_length - 2] == '=')
         (*output_length)--;
 
+    if (NULL == output_length)
+      return NULL;
     unsigned char *decoded_data = (unsigned char*)malloc(*output_length);
     if (decoded_data == NULL)
         return NULL;
@@ -591,7 +593,7 @@ void pxObject::createNewPromise()
   }
 }
 
-void pxObject::dispose()
+void pxObject::dispose(bool pumpJavascript)
 {
   if (!mIsDisposed)
   {
@@ -616,8 +618,8 @@ void pxObject::dispose()
     mEmit->clearListeners();
     for(vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
     {
-      (*it)->dispose();
       (*it)->mParent = NULL;  // setParent mutates the mChildren collection
+      (*it)->dispose(false);
     }
     mChildren.clear();
     clearSnapshot(mSnapshotRef);
@@ -633,7 +635,12 @@ void pxObject::dispose()
       mScene->innerpxObjectDisposed(this);
     }
 #ifdef ENABLE_RT_NODE
-    script.pump();
+    if (pumpJavascript)
+    {
+      script.pump();
+    }
+#else
+    (void)pumpJavascript;
 #endif
  }
 }
@@ -673,6 +680,11 @@ rtError pxObject::animateToP2(rtObjectRef props, double duration,
                               uint32_t interp, uint32_t options,
                               int32_t count, rtObjectRef& promise)
 {
+  if (mIsDisposed)
+  {
+    return RT_OK;
+  }
+
   if (!props) return RT_FAIL;
 
   // TODO JR... not sure that we should do an early out here... thinking
@@ -901,7 +913,6 @@ rtError pxObject::animateTo(const char* prop, double to, double duration,
 {
   if (mIsDisposed)
   {
-    promise.send("reject",this);
     return RT_OK;
   }
   animateToInternal(prop, to, duration, ((pxConstantsAnimation*)CONSTANTS.animationConstants.getPtr())->getInterpFunc(interp),
@@ -1846,10 +1857,12 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   if (scriptView != NULL)
   {
     mOrigin = rtUrlGetOrigin(scriptView->getUrl().cString());
-#ifdef ENABLE_PERMISSIONS_CHECK
-    mPermissions.setOrigin(mOrigin);
-#endif
   }
+
+#ifdef ENABLE_PERMISSIONS_CHECK
+  // rtPermissions accounts parent scene permissions too
+  mPermissions = new rtPermissions(mOrigin.cString());
+#endif
 
   // make sure that initial onFocus is sent
   rtObjectRef e = new rtMapObject;
@@ -1907,19 +1920,24 @@ rtError pxScene2d::dispose()
     mDisposed = true;
     rtObjectRef e = new rtMapObject;
     mEmit.send("onClose", e);
-    mEmit.send("onSceneTerminate", e);
     for (unsigned int i=0; i<mInnerpxObjects.size(); i++)
     {
       pxObject* temp = (pxObject *) (mInnerpxObjects[i].getPtr());
       if ((NULL != temp) && (NULL == temp->parent()))
       {
-        temp->dispose();
+        temp->dispose(false);
       }
     }
     mInnerpxObjects.clear();
 
     if (mRoot)
-      mRoot->dispose();
+      mRoot->dispose(false);
+    #ifdef ENABLE_RT_NODE
+    script.pump();
+    #endif //ENABLE_RT_NODE
+    // send scene terminate after dispose to make sure, no cleanup can happen further on app side
+    // after clearing the sandbox
+    mEmit.send("onSceneTerminate", e);
     mEmit->clearListeners();
 
     mRoot     = NULL;
@@ -1955,15 +1973,6 @@ void pxScene2d::init()
 
 rtError pxScene2d::create(rtObjectRef p, rtObjectRef& o)
 {
-#ifdef ENABLE_PERMISSIONS_CHECK
-  rtString url = p.get<rtString>("url");
-  if (!mPermissions.allows(url.cString(), rtPermissions::DEFAULT))
-  {
-    rtLogError("url '%s' is not allowed", url.cString());
-    return RT_ERROR_NOT_ALLOWED;
-  }
-#endif
-
   rtError e = RT_OK;
   rtString t = p.get<rtString>("t");
   bool needpxObjectTracking = true;
@@ -2125,6 +2134,11 @@ rtError pxScene2d::createImageResource(rtObjectRef p, rtObjectRef& o)
 {
   rtString url = p.get<rtString>("url");
   rtString proxy = p.get<rtString>("proxy");
+
+#ifdef ENABLE_PERMISSIONS_CHECK
+  rtPermissionsCheck(mPermissions, url.cString(), rtPermissions::DEFAULT)
+#endif
+
   o = pxImageManager::getImage(url, proxy);
   o.send("init");
   return RT_OK;
@@ -2134,6 +2148,11 @@ rtError pxScene2d::createImageAResource(rtObjectRef p, rtObjectRef& o)
 {
   rtString url = p.get<rtString>("url");
   rtString proxy = p.get<rtString>("proxy");
+
+#ifdef ENABLE_PERMISSIONS_CHECK
+  rtPermissionsCheck(mPermissions, url.cString(), rtPermissions::DEFAULT)
+#endif
+
   o = pxImageManager::getImageA(url, proxy);
   o.send("init");
   return RT_OK;
@@ -2143,6 +2162,11 @@ rtError pxScene2d::createFontResource(rtObjectRef p, rtObjectRef& o)
 {
   rtString url = p.get<rtString>("url");
   rtString proxy = p.get<rtString>("proxy");
+
+#ifdef ENABLE_PERMISSIONS_CHECK
+  rtPermissionsCheck(mPermissions, url.cString(), rtPermissions::DEFAULT)
+#endif
+
   o = pxFontManager::getFont(url, proxy);
   return RT_OK;
 }
@@ -2150,9 +2174,6 @@ rtError pxScene2d::createFontResource(rtObjectRef p, rtObjectRef& o)
 rtError pxScene2d::createScene(rtObjectRef p, rtObjectRef& o)
 {
   pxSceneContainer* sceneContainer = new pxSceneContainer(this);
-#ifdef ENABLE_PERMISSIONS_CHECK
-  sceneContainer->setParentPermissions(&mPermissions);
-#endif
   o = sceneContainer;
   o.set(p);
   o.send("init");
@@ -2175,6 +2196,32 @@ rtError pxScene2d::logDebugMetrics()
   return RT_OK;
 }
 
+rtError pxScene2d::collectGarbage()
+{
+  rtLogDebug("calling collectGarbage");
+  static bool collectGarbageEnabled = false;
+  static bool checkEnv = true;
+  if (checkEnv)
+  {
+    char const* s = getenv("SPARK_ENABLE_COLLECT_GARBAGE");
+    if (s && (strcmp(s,"1") == 0))
+    {
+      collectGarbageEnabled = true;
+    }
+    checkEnv = false;
+  }
+  if (collectGarbageEnabled)
+  {
+    rtLogWarn("performing a garbage collection");
+    script.collectGarbage();
+  }
+  else
+  {
+    rtLogWarn("forced garbage collection is disabled");
+  }
+  return RT_OK;
+}
+
 rtError pxScene2d::clock(uint64_t & time)
 {
   time = (uint64_t)pxMilliseconds();
@@ -2194,15 +2241,6 @@ rtError pxScene2d::createExternal(rtObjectRef p, rtObjectRef& o)
 
 rtError pxScene2d::createWayland(rtObjectRef p, rtObjectRef& o)
 {
-#ifdef ENABLE_PERMISSIONS_CHECK
-  rtString cmd = p.get<rtString>("cmd");
-  if (!mPermissions.allows(cmd.cString(), rtPermissions::WAYLAND))
-  {
-    rtLogError("wayland cmd '%s' is not allowed", cmd.cString());
-    return RT_ERROR_NOT_ALLOWED;
-  }
-#endif
-
 #if defined(ENABLE_DFB) || defined(DISABLE_WAYLAND)
   UNUSED_PARAM(p);
   UNUSED_PARAM(o);
@@ -2352,7 +2390,10 @@ void pxScene2d::onUpdate(double t)
   //pxFont::checkForCompletedDownloads();
 
   // Dispatch various tasks on the main UI thread
-  gUIThreadQueue.process(0.01);
+  if (gUIThreadQueue)
+  {
+    gUIThreadQueue->process(0.01);
+  }
 
   if (start == 0)
   {
@@ -2680,6 +2721,16 @@ void pxScene2d::setMouseEntered(rtRef<pxObject> o)//pxObject* o)
 rtError pxScene2d::setFocus(rtObjectRef o)
 {
   rtLogInfo("pxScene2d::setFocus");
+  rtObjectRef focusObj;
+  if (o)
+  {
+    focusObj = o;
+  }
+  else
+  {
+    focusObj = getRoot();
+  }
+
   if(mFocusObj)
   {
     rtObjectRef e = new rtMapObject;
@@ -2687,17 +2738,12 @@ rtError pxScene2d::setFocus(rtObjectRef o)
     e.set("target",mFocusObj);
     rtRef<pxObject> t = (pxObject*)mFocusObj.get<voidPtr>("_pxObject");
     //t->mEmit.send("onBlur",e);
-    bubbleEvent(e,t,"onPreBlur","onBlur");
+    rtRef<pxObject> u = (pxObject*)focusObj.get<voidPtr>("_pxObject");
+    bubbleEventOnBlur(e,t,u);
   }
 
-  if (o)
-  {
-	  mFocusObj = o;
-  }
-  else
-  {
-	  mFocusObj = getRoot();
-  }
+  mFocusObj = focusObj;
+  
   rtObjectRef e = new rtMapObject;
   ((pxObject*)mFocusObj.get<voidPtr>("_pxObject"))->setFocusInternal(true);
   e.set("target",mFocusObj);
@@ -2807,6 +2853,82 @@ bool pxScene2d::bubbleEvent(rtObjectRef e, rtRef<pxObject> t,
   }
   return consumed;
 }
+
+bool pxScene2d::bubbleEventOnBlur(rtObjectRef e, rtRef<pxObject> t, rtRef<pxObject> o)
+{
+  bool consumed = false;
+  mStopPropagation = false;
+  rtValue stop;
+  if (e && t)
+  {
+    AddRef();
+    e.set("stopPropagation", new rtFunctionCallback(stopPropagation2, (void*)&mStopPropagation));
+    
+    vector<rtRef<pxObject> > l;
+    while(t)
+    {
+      l.push_back(t);
+      t = t->parent();
+    }
+    
+    vector<rtRef<pxObject> > m;
+    while(o)
+    {
+      m.push_back(o);
+      o = o->parent();
+    }
+
+    // Walk through object hierarchy starting from root for t (object losing focus) and o (object getting focus) to
+    // find index (loseFocusChainIdx) of first common parent.
+    unsigned long loseFocusChainIdx = l.size();
+    vector<rtRef<pxObject> >::reverse_iterator it_l = l.rbegin(); // traverse the hierarchy of object losing focus in REVERSE starting with the top most parent
+    vector<rtRef<pxObject> >::reverse_iterator it_m = m.rbegin(); // traverse the hierarchy of object getting focus in REVERSE starting with the top most parent
+    while((it_l != l.rend()) && (it_m != m.rend()) && (*it_l == *it_m))
+    {
+      loseFocusChainIdx--;
+      it_l++;
+      it_m++;
+    }
+    
+    //    rtLogDebug("before %s bubble\n", preEvent);
+    e.set("name", "onPreBlur");
+    for (vector<rtRef<pxObject> >::reverse_iterator it = l.rbegin();!mStopPropagation && it != l.rend();++it)
+    {
+      rtFunctionRef emit = (*it)->mEmit.getPtr();
+      if (emit)
+        emit.sendReturns("onPreBlur",e,stop);
+    }
+    //    rtLogDebug("after %s bubble\n", preEvent);
+    
+    //    rtLogDebug("before %s bubble\n", event);
+    e.set("name", "onBlur");
+    for (unsigned long i = 0;!mStopPropagation && i < l.size();i++)
+    {
+      rtFunctionRef emit = l[i]->mEmit.getPtr();
+      if (emit)
+      {
+        // For range [0,loseFocusChainIdx),loseFocusChain is true
+        // For range [loseFocusChainIdx,l.size()),loseFocusChain is false
+        
+        //if(!l[i]->id().isEmpty())
+        //  rtLogDebug("\nSetting loseFocusChain for %s",l[i]->id().cString());
+        
+        if(i < loseFocusChainIdx)
+          e.set("loseFocusChain",rtValue(true));
+        else
+          e.set("loseFocusChain",rtValue(false));
+        
+        emit.sendReturns("onBlur",e,stop);
+      }
+    }
+    //    rtLogDebug("after %s bubble\n", event);
+    consumed = mStopPropagation;
+    Release();
+  }
+  return consumed;
+  
+}
+
 
 bool pxScene2d::onMouseMove(int32_t x, int32_t y)
 {
@@ -3041,18 +3163,21 @@ rtError pxScene2d::setCustomAnimator(const rtFunctionRef& v)
 rtError pxScene2d::screenshot(rtString type, rtString& pngData)
 {
 #ifdef ENABLE_PERMISSIONS_CHECK
-  if (!mPermissions.allows("screenshot", rtPermissions::FEATURE))
-  {
-    rtLogError("screenshot is not allowed");
-    return RT_ERROR_NOT_ALLOWED;
-  }
+  rtPermissionsCheck(mPermissions, "screenshot", rtPermissions::FEATURE)
 #endif
 
   // Is this a type we support?
   if (type == "image/png;base64")
   {
+    pxContextFramebufferRef previousRenderSurface = context.getCurrentFramebuffer();
+    pxContextFramebufferRef newFBO;
+    // w/o multisampling
+    // if needed, render texture of a multisample FBO to a non-multisample FBO and then read from it
+    mRoot->createSnapshot(newFBO, true, false);
+    context.setFramebuffer(newFBO);
     pxOffscreen o;
     context.snapshot(o);
+    context.setFramebuffer(previousRenderSurface);
 
     rtData pngData2;
     if (pxStorePNGImage(o, pngData2) == RT_OK)
@@ -3115,6 +3240,10 @@ rtError pxScene2d::getService(rtString name, rtObjectRef& returnObject)
 {
   rtLogDebug("inside getService");
   returnObject = NULL;
+
+#ifdef ENABLE_PERMISSIONS_CHECK
+  rtPermissionsCheck(mPermissions, name.cString(), rtPermissions::SERVICE)
+#endif
 
   // Create context from requesting scene
   rtObjectRef ctx = new rtMapObject();
@@ -3204,14 +3333,6 @@ rtError pxScene2d::getService(const char* name, const rtObjectRef& ctx, rtObject
   {
     // TODO JRJR should move this to top level container only...
 
-  #ifdef ENABLE_PERMISSIONS_CHECK
-    if (!mPermissions.allows(name, rtPermissions::SERVICE))
-    {
-      rtLogError("service '%s' is not allowed", name);
-      return RT_ERROR_NOT_ALLOWED;
-    }
-  #endif
-
     rtLogInfo("trying to get service for name: %s", name);
   #ifdef PX_SERVICE_MANAGER
     rtObjectRef serviceManager;
@@ -3261,6 +3382,7 @@ rtDefineProperty(pxScene2d, customAnimator);
 rtDefineMethod(pxScene2d, create);
 rtDefineMethod(pxScene2d, clock);
 rtDefineMethod(pxScene2d, logDebugMetrics);
+rtDefineMethod(pxScene2d, collectGarbage);
 //rtDefineMethod(pxScene2d, createWayland);
 rtDefineMethod(pxScene2d, addListener);
 rtDefineMethod(pxScene2d, delListener);
@@ -3286,7 +3408,9 @@ rtDefineProperty(pxScene2d,truncation);
 rtDefineMethod(pxScene2d, dispose);
 
 rtDefineProperty(pxScene2d, origin);
-rtDefineMethod(pxScene2d, allows);
+#ifdef ENABLE_PERMISSIONS_CHECK
+rtDefineProperty(pxScene2d, permissions);
+#endif
 rtDefineMethod(pxScene2d, checkAccessControlHeaders);
 rtDefineMethod(pxScene2d, addServiceProvider);
 rtDefineMethod(pxScene2d, removeServiceProvider);
@@ -3394,17 +3518,6 @@ void pxScene2d::innerpxObjectDisposed(rtObjectRef ref)
   }
 }
 
-rtError pxScene2d::allows(const rtString& url, bool& o) const
-{
-#ifdef ENABLE_PERMISSIONS_CHECK
-  return mPermissions.allows(url.cString(), rtPermissions::DEFAULT, o);
-#else
-  UNUSED_PARAM(url);
-  o = true; // default
-  return RT_OK;
-#endif
-}
-
 rtError pxScene2d::checkAccessControlHeaders(const rtString& url, const rtString& rawHeaders, bool& allow) const
 {
 #ifdef ENABLE_ACCESS_CONTROL_CHECK
@@ -3415,6 +3528,19 @@ rtError pxScene2d::checkAccessControlHeaders(const rtString& url, const rtString
   UNUSED_PARAM(rawHeaders);
   allow = true; // default
   return RT_OK;
+#endif
+}
+
+void pxScene2d::setViewContainer(pxIViewContainer* l)
+{
+  mContainer = l;
+#ifdef ENABLE_PERMISSIONS_CHECK
+  pxObject* obj = dynamic_cast<pxObject*>(l);
+  if (obj != NULL && obj->getScene())
+  {
+    // rtPermissions accounts parent scene permissions too
+    mPermissions->setParent(obj->getScene()->mPermissions);
+  }
 #endif
 }
 
@@ -3445,6 +3571,11 @@ rtDefineProperty(pxSceneContainer, ready);
 rtError pxSceneContainer::setUrl(rtString url)
 {
   rtLogInfo("pxSceneContainer::setUrl(%s)",url.cString());
+
+#ifdef ENABLE_PERMISSIONS_CHECK
+  rtPermissionsCheck((mScene != NULL ? mScene->permissions() : NULL), url.cString(), rtPermissions::DEFAULT)
+#endif
+
   // If old promise is still unfulfilled resolve it
   // and create a new promise for the context of this Url
   mReady.send("resolve", this);
@@ -3495,27 +3626,7 @@ rtError pxSceneContainer::setScriptView(pxScriptView* scriptView)
   return RT_OK;
 }
 
-#ifdef ENABLE_PERMISSIONS_CHECK
-rtError pxSceneContainer::setParentPermissions(const rtPermissions* v)
-{
-  if (mScriptView)
-  {
-    return mScriptView->setParentPermissions(v);
-  }
-  return RT_FAIL;
-}
-
-rtError pxSceneContainer::setPermissions(const rtObjectRef& v)
-{
-  if (mScriptView)
-  {
-    return mScriptView->setPermissions(v);
-  }
-  return RT_FAIL;
-}
-#endif
-
-void pxSceneContainer::dispose()
+void pxSceneContainer::dispose(bool pumpJavascript)
 {
   if (!mIsDisposed)
   {
@@ -3523,7 +3634,7 @@ void pxSceneContainer::dispose()
     //Adding ref to make sure, object not destroyed from event listeners
     AddRef();
     setScriptView(NULL);
-    pxObject::dispose();
+    pxObject::dispose(pumpJavascript);
     Release();
   }
 }
@@ -3536,6 +3647,18 @@ void pxSceneContainer::dispose()
     }
     return NULL;
   }
+
+#ifdef ENABLE_PERMISSIONS_CHECK
+rtError pxSceneContainer::permissions(rtObjectRef& v) const
+{
+  return mScriptView != NULL ? mScriptView->permissions(v) : RT_OK;
+}
+
+rtError pxSceneContainer::setPermissions(const rtObjectRef& v)
+{
+  return mScriptView != NULL ? mScriptView->setPermissions(v) : RT_OK;
+}
+#endif
 
 #if 0
 void* gObjectFactoryContext = NULL;
@@ -3742,25 +3865,3 @@ rtError pxScriptView::makeReady(int numArgs, const rtValue* args, rtValue* /*res
   }
   return RT_FAIL;
 }
-
-#ifdef ENABLE_PERMISSIONS_CHECK
-rtError pxScriptView::setParentPermissions(const rtPermissions* v)
-{
-  if (mScene)
-  {
-    pxScene2d* s = (pxScene2d*)mScene.getPtr();
-    return s->setParentPermissions(v);
-  }
-  return RT_FAIL;
-}
-
-rtError pxScriptView::setPermissions(const rtObjectRef& v)
-{
-  if (mScene)
-  {
-    pxScene2d* s = (pxScene2d*)mScene.getPtr();
-    return s->setPermissions(v);
-  }
-  return RT_FAIL;
-}
-#endif
