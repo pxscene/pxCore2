@@ -662,7 +662,7 @@ rtError pxWayland::connectToRemoteObject()
 #ifdef ENABLE_PX_WAYLAND_RPC
   int findTime = 0;
 
-  while (findTime < MAX_FIND_REMOTE_TIMEOUT_IN_MS && mClientPID != -1)
+  while (findTime < MAX_FIND_REMOTE_TIMEOUT_IN_MS && mWaitingForRemoteObject)
   {
     findTime += FIND_REMOTE_ATTEMPT_TIMEOUT_IN_MS;
     rtLogInfo("Attempting to find remote object %s", mRemoteObjectName.cString());
