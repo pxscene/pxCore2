@@ -6,8 +6,13 @@ function SceneModuleManifest() {
 }
 
 SceneModuleManifest.prototype.loadFromJSON = function(fileContents) {
-  this.jsonData = JSON.parse(fileContents);
-  this.main = this.jsonData.main;
+  try {
+    this.jsonData = JSON.parse(fileContents);
+    this.main = this.jsonData.main;
+  }
+  catch(exception) {
+    console.log(">>>> EXCEPTION in JSON.parse for fileContents: '"+fileContents+"'"); 
+  }
 };
 
 SceneModuleManifest.prototype.getMain = function() {

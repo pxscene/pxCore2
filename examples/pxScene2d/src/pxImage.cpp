@@ -91,8 +91,6 @@ rtError pxImage::setResource(rtObjectRef o)
       pxObject::createNewPromise();
       mListenerAdded = true;
       getImageResource()->addListener(this);
-      checkStretchX();
-      checkStretchY();
     }
     return RT_OK; 
   } 
@@ -119,7 +117,11 @@ rtError pxImage::url(rtString& s) const
   return RT_OK;
 }
 rtError pxImage::setUrl(const char* s)
-{ 
+{
+#ifdef ENABLE_PERMISSIONS_CHECK
+  rtPermissionsCheck((mScene != NULL ? mScene->permissions() : NULL), s, rtPermissions::DEFAULT)
+#endif
+
   //rtLogInfo("pxImage::setUrl init=%d imageLoaded=%d \n", mInitialized, imageLoaded);
   //rtLogDebug("pxImage::setUrl for s=%s mUrl=%s\n", s, mUrl.cString());
   
@@ -190,7 +192,7 @@ float pxImage::getOnscreenHeight()
 void pxImage::draw() {
   //rtLogDebug("pxImage::draw() mw=%f mh=%f\n", mw, mh);
   static pxTextureRef nullMaskRef;
-  if (getImageResource() != NULL)
+  if (getImageResource() != NULL && getImageResource()->isInitialized())
   {
     context.drawImage(0, 0,
                       getOnscreenWidth(),
@@ -206,13 +208,14 @@ void pxImage::draw() {
 }
 void pxImage::resourceReady(rtString readyResolution)
 {
-  checkStretchX();
-  checkStretchY();
+
   //rtLogDebug("pxImage::resourceReady(%s) mInitialized=%d for \"%s\"\n",readyResolution.cString(),mInitialized,getImageResource()->getUrl().cString());
   if( !readyResolution.compare("resolve"))
   {
     imageLoaded = true; 
     pxObject::onTextureReady();
+    checkStretchX();
+    checkStretchY();
     // Now that image is loaded, must force redraw;
     // dimensions could have changed.
     mScene->mDirty = true;
@@ -242,7 +245,7 @@ void pxImage::dispose(bool pumpJavascript)
 void pxImage::checkStretchX()
 {
   rtImageResource* imageResource = getImageResource();
-  if (mStretchX == pxConstantsStretch::REPEAT && imageResource != NULL)
+  if (mStretchX == pxConstantsStretch::REPEAT && imageResource != NULL && imageResource->isInitialized())
   {
     pxTextureRef texture = imageResource->getTexture();
     if (texture.getPtr() != NULL && (!isPowerOfTwo(texture->width()) || !isPowerOfTwo(texture->height())))
@@ -255,7 +258,7 @@ void pxImage::checkStretchX()
 void pxImage::checkStretchY()
 {
   rtImageResource* imageResource = getImageResource();
-  if (mStretchY == pxConstantsStretch::REPEAT && imageResource != NULL)
+  if (mStretchY == pxConstantsStretch::REPEAT && imageResource != NULL && imageResource->isInitialized())
   {
     pxTextureRef texture = imageResource->getTexture();
     if (texture.getPtr() != NULL && (!isPowerOfTwo(texture->width()) || !isPowerOfTwo(texture->height())))

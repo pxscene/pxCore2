@@ -590,10 +590,6 @@ rtNodeContext::~rtNodeContext()
   //Make sure node is not destroyed abnormally
   if (true == node_is_initialized)
   {
-    #ifdef ENABLE_NODE_V_6_9    
-    if (!nodeTerminated)
-      runScript("var process = require('process');process._tickCallback();");
-    #endif
     if(mEnv)
     {
       Locker                locker(mIsolate);
@@ -1211,10 +1207,7 @@ rtError rtScriptNode::term()
 #endif
   if(node_isolate)
   {
-// JRJRJR  Causing crash???  ask Hugh
-
     rtLogWarn("\n++++++++++++++++++ DISPOSE\n\n");
-    node_isolate->Dispose();
     node_isolate = NULL;
     mIsolate     = NULL;
   }
