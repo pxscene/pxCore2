@@ -61,6 +61,7 @@ void rtResolverFunction::workCallback(uv_work_t* /*req */)
 void rtResolverFunction::afterWorkCallback(uv_work_t* req, int /* status */)
 {
   AsyncContext* ctx = reinterpret_cast<AsyncContext*>(req->data);
+
   printf("MADANA after work callback for ctx [%p] \n",ctx);
   fflush(stdout);
   rtResolverFunction* resolverFunc = static_cast<rtResolverFunction *>(ctx->resolverFunc.getPtr());
