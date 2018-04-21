@@ -252,6 +252,8 @@ rtError pxImageA::setResource(rtObjectRef o)
 
 void pxImageA::loadImageSequence()
 {
+  printf("MADANA loadImageSequence .................... [%s] [%d] [%d] \n",getImageAResource()->getUrl().cString(),getImageAResource() != NULL,(getImageAResource()->getLoadStatus("statusCode") == 0));
+  fflush(stdout);
   if (getImageAResource() != NULL && getImageAResource()->getLoadStatus("statusCode") == 0)
   {
     pxTimedOffscreenSequence& imageSequence = getImageAResource()->getTimedOffscreenSequence();
@@ -263,10 +265,14 @@ void pxImageA::loadImageSequence()
       mw = mImageWidth;
       mh = mImageHeight;
     }
+    printf("MADANA sent ready [%s] \n",getImageAResource()->getUrl().cString());
+    fflush(stdout);
     mReady.send("resolve", this);
   }
   else
   {
+    printf("MADANA sent reject [%s] \n",getImageAResource()->getUrl().cString());
+    fflush(stdout);
     mReady.send("reject", this);
   }
 }
@@ -277,6 +283,8 @@ void pxImageA::resourceReady(rtString readyResolution)
   checkStretchX();
   checkStretchY();
 #endif //0
+  printf("MADANA resource ready .................... [%s] [%s] \n",getImageAResource()->getUrl().cString(),readyResolution.cString());
+  fflush(stdout);
   if( !readyResolution.compare("resolve"))
   {
     mImageLoaded = true;
