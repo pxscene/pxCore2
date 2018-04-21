@@ -129,6 +129,7 @@ function PromiseHandle(value, handler, deferred) {
 
 function PromiseEnqueue(value, tasks, status) {
   var id, name, instrumenting = DEBUG_IS_ACTIVE;
+  console.log("pushing micro task ...............................");
   %EnqueueMicrotask(function() {
     if (instrumenting) {
       %DebugAsyncTaskEvent({ type: "willHandle", id: id, name: name });

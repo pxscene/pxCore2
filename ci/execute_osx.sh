@@ -164,4 +164,5 @@ if [ "$leakcount" -ne 0 ]
 else
 	echo "Valgrind reports success !!!!!!!!!!!"
 fi
+cat $EXECLOGS
 exit 0;

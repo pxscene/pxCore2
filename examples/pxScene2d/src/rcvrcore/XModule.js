@@ -188,6 +188,7 @@ XModule.prototype._importModule = function(requiredModuleSet, readyCallBack, fai
 
     // Now wait for all the include/import promises to be fulfilled
     Promise.all(_this.promises).then(function (exports) {
+      console.log("all promises of this js file resolved " + _this.name);
       var exportsMap = {};
       var exportsArr = [];
       if( isSingleStringImportType ) {
@@ -215,6 +216,7 @@ XModule.prototype._importModule = function(requiredModuleSet, readyCallBack, fai
         bPath = _this.name;
       }
 
+      console.log("import tracking for " + _this.name + " sandbox " + _this.appSandbox);
       var imports = _this.appSandbox.importTracking[bPath];
 
       if(imports !== undefined && imports !== null && imports.length !== undefined) {
@@ -228,8 +230,10 @@ XModule.prototype._importModule = function(requiredModuleSet, readyCallBack, fai
 
       log.message(7, "XMODULE ABOUT TO NOTIFY [" + _this.name + "] that all its imports are Ready");
       if( readyCallBack !== null && readyCallBack !== undefined ) {
+        console.log("calling ready callback for  " + _this.name);
         readyCallBack(exportsMap);
       }
+      console.log(_this.name);
       moduleBuildResolve();
       log.message(8, "XMODULE AFTER NOTIFY [" + _this.name + "] that all its imports are Ready");
     }).catch(function (error) {
