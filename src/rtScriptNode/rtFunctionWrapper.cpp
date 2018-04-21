@@ -47,8 +47,8 @@ rtError rtResolverFunction::Send(int numArgs, const rtValue* args, rtValue* /*re
   }
 
   mReq.data = ctx;
-  printf("MADANA queuing work for ctx [%p] \n",ctx);
-  fflush(stdout);
+  //printf("MADANA queuing work for ctx [%p] \n",ctx);
+  //fflush(stdout);
   uv_queue_work(uv_default_loop(), &mReq, &workCallback, &afterWorkCallback);
   return RT_OK;
 }
@@ -62,8 +62,8 @@ void rtResolverFunction::afterWorkCallback(uv_work_t* req, int /* status */)
 {
   AsyncContext* ctx = reinterpret_cast<AsyncContext*>(req->data);
 
-  printf("MADANA after work callback for ctx [%p] \n",ctx);
-  fflush(stdout);
+  //printf("MADANA after work callback for ctx [%p] \n",ctx);
+  //fflush(stdout);
   rtResolverFunction* resolverFunc = static_cast<rtResolverFunction *>(ctx->resolverFunc.getPtr());
 
   assert(ctx->args.size() < 2);

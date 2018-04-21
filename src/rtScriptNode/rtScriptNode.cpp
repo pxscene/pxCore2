@@ -1035,28 +1035,35 @@ rtError rtScriptNode::pump()
 //#ifndef RUNINMAIN
 //  return;
 //#else
-  Locker                locker(mIsolate);
-  Isolate::Scope isolate_scope(mIsolate);
-  HandleScope     handle_scope(mIsolate);    // Create a stack-allocated handle scope.
-#ifdef ENABLE_NODE_V_6_9
-  v8::platform::PumpMessageLoop(mPlatform, mIsolate);
-#endif //ENABLE_NODE_V_6_9
-  uv_run(uv_default_loop(), UV_RUN_NOWAIT);//UV_RUN_ONCE);
-  mIsolate->RunMicrotasks();
-  //printf("MADANA pump called ............... \n");
-  //fflush(stdout);
-  // Enable this to expedite garbage collection for testing... warning perf hit
-  if (mTestGc)
+  // found a problem where if promise triggered by one event loop gets resolved by other event loop, causing the dependencies between data to fail
+  static bool isPumping = false;
+  if (isPumping == false) 
   {
-    static int sGcTickCount = 0;
-
-    if (sGcTickCount++ > 60)
+    isPumping = true;
+    Locker                locker(mIsolate);
+    Isolate::Scope isolate_scope(mIsolate);
+    HandleScope     handle_scope(mIsolate);    // Create a stack-allocated handle scope.
+#ifdef ENABLE_NODE_V_6_9
+    v8::platform::PumpMessageLoop(mPlatform, mIsolate);
+#endif //ENABLE_NODE_V_6_9
+    uv_run(uv_default_loop(), UV_RUN_NOWAIT);//UV_RUN_ONCE);
+    mIsolate->RunMicrotasks();
+    //printf("MADANA pump called ............... \n");
+    //fflush(stdout);
+    // Enable this to expedite garbage collection for testing... warning perf hit
+    if (mTestGc)
     {
-      Local<Context> local_context = Context::New(mIsolate);
-      Context::Scope contextScope(local_context);
-      mIsolate->RequestGarbageCollectionForTesting(Isolate::kFullGarbageCollection);
-      sGcTickCount = 0;
+      static int sGcTickCount = 0;
+
+      if (sGcTickCount++ > 60)
+      {
+        Local<Context> local_context = Context::New(mIsolate);
+        Context::Scope contextScope(local_context);
+        mIsolate->RequestGarbageCollectionForTesting(Isolate::kFullGarbageCollection);
+        sGcTickCount = 0;
+      }
     }
+    isPumping = false;
   }
 //#endif // RUNINMAIN
   return RT_OK;
