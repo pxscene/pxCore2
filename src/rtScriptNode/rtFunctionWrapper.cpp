@@ -59,7 +59,6 @@ void rtResolverFunction::workCallback(uv_work_t* /*req */)
 void rtResolverFunction::afterWorkCallback(uv_work_t* req, int /* status */)
 {
   AsyncContext* ctx = reinterpret_cast<AsyncContext*>(req->data);
-
   rtResolverFunction* resolverFunc = static_cast<rtResolverFunction *>(ctx->resolverFunc.getPtr());
 
   assert(ctx->args.size() < 2);
