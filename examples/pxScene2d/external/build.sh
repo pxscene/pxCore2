@@ -181,3 +181,11 @@ fi
 
 #--------
 
+#-------- uWebSocket
+if [ ! -e uWebSockets/libuWS.so ]
+then
+  pushd uWebSockets/
+  make
+  popd
+fi
+
