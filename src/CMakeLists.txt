@@ -249,7 +249,6 @@ endif (OUTPUT_LIBS_LOCAL)
     include_directories(AFTER ${EXTDIR}/dukluv/lib/uv/include)
     include_directories(AFTER ${EXTDIR}/dukluv/src)
 #endif(USE_DUKTAPE)
-include_directories(AFTER ${EXTDIR}/)
 
 if (BUILD_PXCORE_LIBS)
     message("Building pxcore libs")
