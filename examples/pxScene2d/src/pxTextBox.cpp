@@ -161,7 +161,7 @@ void pxTextBox::setNeedsRecalc(bool recalc)
 void pxTextBox::sendPromise()
 {
   //rtLogDebug("pxTextBox::sendPromise mInitialized=%d mFontLoaded=%d mNeedsRecalc=%d\n",mInitialized,mFontLoaded,mNeedsRecalc);
-  if(mInitialized && mFontLoaded && !mNeedsRecalc && !mDirty && !((rtPromise*)mReady.getPtr())->status())
+if(mInitialized && mFontLoaded && !mNeedsRecalc && !mDirty && !((rtPromise*)mReady.getPtr())->status())
   {
     //rtLogDebug("pxTextBox SENDPROMISE\n");
     mReady.send("resolve",this);
@@ -214,7 +214,7 @@ rtError pxTextBox::setFont(rtObjectRef o)
 
 void pxTextBox::draw() 
 {
-#if PXSCENE_FONT_ATLAS
+#ifdef PXSCENE_FONT_ATLAS
   if (mDirty)
   {
     mQuadsVector.clear();
@@ -249,6 +249,7 @@ void pxTextBox::draw()
   else
   {
     renderText(true);
+    mDirty = false;
   }
 
   //if (!mFontLoaded && getFontResource()->isDownloadInProgress())
@@ -955,7 +956,7 @@ void pxTextBox::renderOneLine(const char * tempStr, float tempX, float tempY, fl
   // Now, render the text
   if( render && getFontResource() != NULL)
   {
- #if PXSCENE_FONT_ATLAS
+ #ifdef PXSCENE_FONT_ATLAS
      pxTexturedQuads quads;
      getFontResource()->renderTextToQuads(tempStr, size, sx, sy, quads, xPos, tempY);
      mQuadsVector.push_back(quads);
@@ -1217,7 +1218,7 @@ void pxTextBox::renderTextRowWithTruncation(rtString & accString, float lineWidt
         if( lineNumber==0) {setLineMeasurements(true, xPos, tempY);}
 
         if( render && getFontResource() != NULL) {
-#if PXSCENE_FONT_ATLAS
+#ifdef PXSCENE_FONT_ATLAS
           pxTexturedQuads quads;
           getFontResource()->renderTextToQuads(tempStr, pixelSize, sx, sy, quads, xPos, tempY);
           mQuadsVector.push_back(quads);
@@ -1229,7 +1230,7 @@ void pxTextBox::renderTextRowWithTruncation(rtString & accString, float lineWidt
         {
           //rtLogDebug("rendering truncated text with ellipsis\n");
           if( render && getFontResource() != NULL) {
-#if PXSCENE_FONT_ATLAS
+#ifdef PXSCENE_FONT_ATLAS
             pxTexturedQuads quads;  
             getFontResource()->renderTextToQuads(ELLIPSIS_STR, pixelSize, sx, sy, quads, xPos+charW, tempY);
             mQuadsVector.push_back(quads);
@@ -1283,7 +1284,7 @@ void pxTextBox::renderTextRowWithTruncation(rtString & accString, float lineWidt
           if( lineNumber==0) {setLineMeasurements(true, xPos, tempY);  }
           if( render && getFontResource() != NULL)
           {
-#if PXSCENE_FONT_ATLAS
+#ifdef PXSCENE_FONT_ATLAS
             pxTexturedQuads quads;
             getFontResource()->renderTextToQuads(tempStr, pixelSize, sx, sy, quads, xPos, tempY);
             mQuadsVector.push_back(quads);
@@ -1296,7 +1297,7 @@ void pxTextBox::renderTextRowWithTruncation(rtString & accString, float lineWidt
         {
           //rtLogDebug("rendering  text on word boundary with ellipsis\n");
           if( render && getFontResource() != NULL) {
-#if PXSCENE_FONT_ATLAS
+#ifdef PXSCENE_FONT_ATLAS
             pxTexturedQuads quads;
             getFontResource()->renderTextToQuads(ELLIPSIS_STR, pixelSize, sx, sy, quads, xPos+charW, tempY);
             mQuadsVector.push_back(quads);
