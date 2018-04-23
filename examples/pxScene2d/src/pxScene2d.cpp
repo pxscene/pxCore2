@@ -2387,7 +2387,7 @@ static int __frameCount = 0;
 __frameCount++;
 if (__frameCount > 60*5)
 {
-  rtLogWarn("avg frame draw duration(ms): %f\n", __frameTotal/__frameCount);
+  rtLogDebug("avg frame draw duration(ms): %f\n", __frameTotal/__frameCount);
   __frameTotal = 0;
   __frameCount = 0;
 }
