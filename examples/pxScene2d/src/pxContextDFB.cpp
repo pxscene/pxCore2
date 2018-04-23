@@ -2599,7 +2599,6 @@ void pxContext::drawDiagRect(float x, float y, float w, float h, float* color)
   DFB_CHECK (boundFramebuffer->DrawRectangle(boundFramebuffer, x, y, w, h));
 }
 
-
 void pxContext::drawOffscreen(float src_x, float src_y,
                               float dst_x, float dst_y,
                               float w,     float h,
