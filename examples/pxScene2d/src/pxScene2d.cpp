@@ -1920,7 +1920,6 @@ rtError pxScene2d::dispose()
     mDisposed = true;
     rtObjectRef e = new rtMapObject;
     mEmit.send("onClose", e);
-    mEmit.send("onSceneTerminate", e);
     for (unsigned int i=0; i<mInnerpxObjects.size(); i++)
     {
       pxObject* temp = (pxObject *) (mInnerpxObjects[i].getPtr());
@@ -1933,17 +1932,18 @@ rtError pxScene2d::dispose()
 
     if (mRoot)
       mRoot->dispose(false);
+    #ifdef ENABLE_RT_NODE
+    script.pump();
+    #endif //ENABLE_RT_NODE
+    // send scene terminate after dispose to make sure, no cleanup can happen further on app side
+    // after clearing the sandbox
+    mEmit.send("onSceneTerminate", e);
     mEmit->clearListeners();
 
     mRoot     = NULL;
     mInfo     = NULL;
     mCanvas   = NULL;
     mFocusObj = NULL;
-
-    pxFontManager::clearAllFonts();
-    #ifdef ENABLE_RT_NODE
-    script.pump();
-    #endif //ENABLE_RT_NODE
 
     return RT_OK;
 }
@@ -2281,6 +2281,8 @@ void pxScene2d::draw()
   return;
 #endif
 
+  double __frameStart = pxMilliseconds();
+
   //rtLogInfo("pxScene2d::draw()\n");
   #ifdef PX_DIRTY_RECTANGLES
   pxRect dirtyRectangle = mDirtyRect;
@@ -2374,6 +2376,22 @@ EXITSCENELOCK()
                         mPointerTexture, mNullTexture);
   }
 #endif //USE_SCENE_POINTER
+
+double __frameEnd = pxMilliseconds();
+
+static double __frameTotal = 0;
+
+__frameTotal = __frameTotal + (__frameEnd-__frameStart);
+
+static int __frameCount = 0;
+__frameCount++;
+if (__frameCount > 60*5)
+{
+  rtLogDebug("avg frame draw duration(ms): %f\n", __frameTotal/__frameCount);
+  __frameTotal = 0;
+  __frameCount = 0;
+}
+
 }
 
 void pxScene2d::onUpdate(double t)
@@ -2882,7 +2900,7 @@ bool pxScene2d::bubbleEventOnBlur(rtObjectRef e, rtRef<pxObject> t, rtRef<pxObje
     unsigned long loseFocusChainIdx = l.size();
     vector<rtRef<pxObject> >::reverse_iterator it_l = l.rbegin(); // traverse the hierarchy of object losing focus in REVERSE starting with the top most parent
     vector<rtRef<pxObject> >::reverse_iterator it_m = m.rbegin(); // traverse the hierarchy of object getting focus in REVERSE starting with the top most parent
-    while((*it_l == *it_m) && (it_l != l.rend()) && (it_m != m.rend()))
+    while((it_l != l.rend()) && (it_m != m.rend()) && (*it_l == *it_m))
     {
       loseFocusChainIdx--;
       it_l++;
@@ -3410,7 +3428,6 @@ rtDefineProperty(pxScene2d, origin);
 #ifdef ENABLE_PERMISSIONS_CHECK
 rtDefineProperty(pxScene2d, permissions);
 #endif
-rtDefineMethod(pxScene2d, allows);
 rtDefineMethod(pxScene2d, checkAccessControlHeaders);
 rtDefineMethod(pxScene2d, addServiceProvider);
 rtDefineMethod(pxScene2d, removeServiceProvider);
@@ -3516,17 +3533,6 @@ void pxScene2d::innerpxObjectDisposed(rtObjectRef ref)
       mInnerpxObjects.erase(mInnerpxObjects.begin()+pos);
     }
   }
-}
-
-rtError pxScene2d::allows(const rtString& url, bool& o) const
-{
-#ifdef ENABLE_PERMISSIONS_CHECK
-  return mPermissions->allows(url.cString(), rtPermissions::DEFAULT, o);
-#else
-  UNUSED_PARAM(url);
-  o = true; // default
-  return RT_OK;
-#endif
 }
 
 rtError pxScene2d::checkAccessControlHeaders(const rtString& url, const rtString& rawHeaders, bool& allow) const
@@ -3660,9 +3666,14 @@ void pxSceneContainer::dispose(bool pumpJavascript)
   }
 
 #ifdef ENABLE_PERMISSIONS_CHECK
+rtError pxSceneContainer::permissions(rtObjectRef& v) const
+{
+  return mScriptView != NULL ? mScriptView->permissions(v) : RT_OK;
+}
+
 rtError pxSceneContainer::setPermissions(const rtObjectRef& v)
 {
-  return mScriptView != NULL ? mScriptView->setPermissions(v) : RT_FAIL;
+  return mScriptView != NULL ? mScriptView->setPermissions(v) : RT_OK;
 }
 #endif
 

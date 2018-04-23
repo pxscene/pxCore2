@@ -51,6 +51,7 @@ public:
   rtError setResource(rtObjectRef o);
   rtError removeResourceListener();
   virtual void resourceReady(rtString readyResolution);
+  virtual void createNewPromise() { rtLogDebug("pxImageA ignoring createNewPromise\n"); }
 
   virtual void update(double t);
   virtual void draw();

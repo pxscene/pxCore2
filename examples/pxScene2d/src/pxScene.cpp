@@ -103,7 +103,13 @@ char** g_origArgv = NULL;
 bool gDumpMemUsage = false;
 extern bool gApplicationIsClosing;
 extern int pxObjectCount;
+
 #include "pxFont.h"
+
+#ifdef PXSCENE_FONT_ATLAS
+extern pxFontAtlas gFontAtlas;
+#endif
+
 #ifdef HAS_LINUX_BREAKPAD
 static bool dumpCallback(const google_breakpad::MinidumpDescriptor& descriptor,
 void* context, bool succeeded) {
@@ -260,7 +266,6 @@ protected:
 #endif
    // pxScene.cpp:104:12: warning: deleting object of abstract class type ‘pxIView’ which has non-virtual destructor will cause undefined behaviour [-Wdelete-non-virtual-dtor]
 
-  pxFontManager::clearAllFonts();
 
   ENTERSCENELOCK()
     mView = NULL;
@@ -272,6 +277,8 @@ protected:
     free(g_origArgv);
   #endif
 
+    pxFontManager::clearAllFonts();
+    
     context.term();
 #ifdef RUNINMAIN
     script.pump();
