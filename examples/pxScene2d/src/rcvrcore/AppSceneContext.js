@@ -14,6 +14,7 @@ var SceneModuleManifest = require('rcvrcore/SceneModuleManifest');
 var JarFileMap = require('rcvrcore/utils/JarFileMap');
 var AsyncFileAcquisition = require('rcvrcore/utils/AsyncFileAcquisition');
 var AccessControl = require('rcvrcore/utils/AccessControl');
+var WrapObj = require('rcvrcore/utils/WrapObj');
 
 var log = new Logger('AppSceneContext');
 //overriding original timeout and interval functions
@@ -353,10 +354,11 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (packageUri, module
     }; // end sandbox
 
     if (!isDuk) {
+      var process_wrap = WrapObj(process, {"binding":undefined});
       newSandbox = Object.assign(newSandbox, {
-        process: process,
+        process: process_wrap,
         require: requireMethod,
-        global: global,
+        global: WrapObj(global, {"process":process_wrap}),
         setTimeout: function (callback, after, arg1, arg2, arg3) {
           //pass the timers list to callback function on timeout
           var timerId = SetTimeout(setTimeoutCallback, after, this.timers, function() { callback(arg1, arg2, arg3)});
