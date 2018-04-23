@@ -204,13 +204,24 @@ describe('RTRemoteObject', () => {
         .catch(err => logger.error(err));
     });
 
-    it('Setting and Getting value via ID is yet to be implemented', (done) => {
-      doBasicTest(rtObject, RTValueType.FLOAT, 1.23456789, 14758).then((status) => {
-        status.should.be.eql(false);
-        done();
-        // TODO: Once the above functionality is implemented, test should return true
-        // Accordingly SampleObject need to be updated
-      });
+    it('Setting and Getting value in array item by index 0', (done) => {
+      rtObject.get('arr') // get array object first
+        .then(arrValue => arrValue.value.set(0, RTValueHelper.create(12, RTValueType.INT32)).then(() => arrValue))
+        .then(arrValue => arrValue.value.get(0).then((rtValue) => {
+          rtValue.type.should.be.eql(RTValueType.INT32);
+          rtValue.value.should.be.eql(12);
+          done();
+        }));
+    });
+
+    it('Setting and Getting value in array item by index 1', (done) => {
+      rtObject.get('arr') // get array object first
+        .then(arrValue => arrValue.value.set(1, RTValueHelper.create(12.34, RTValueType.FLOAT)).then(() => arrValue))
+        .then(arrValue => arrValue.value.get(1).then((rtValue) => {
+          rtValue.type.should.be.eql(RTValueType.FLOAT);
+          rtValue.value.should.be.eql(12.34);
+          done();
+        }));
     });
 
     it('Setting value with other types will get rejected', (done) => {
@@ -268,11 +279,9 @@ describe('RTRemoteObject', () => {
       };
       const rtOldObj = RTValueHelper.create(testObj, RTValueType.OBJECT);
       rtObject.set('objvar', rtOldObj).then(() => rtObject.get('objvar').then((rtValue) => {
-        const oldObjId = rtOldObj[RTConst.VALUE][RTConst.OBJECT_ID_KEY]; // eslint-disable-line no-unused-vars
-        const newObjId = rtValue[RTConst.VALUE][RTConst.OBJECT_ID_KEY]; // eslint-disable-line no-unused-vars
-        // TODO: Object is not being set properly. While getting the object
-        // it is being returned as value: RTRemoteObject { protocol: null, id: undefined }
-        // oldObjId.should.be.eql(newObjId);
+        const oldObjId = rtOldObj[RTConst.VALUE][RTConst.OBJECT_ID_KEY];
+        const newObjId = rtValue[RTConst.VALUE][RTConst.OBJECT_ID_KEY];
+        oldObjId.should.be.eql(newObjId);
         done();
       }));
     });

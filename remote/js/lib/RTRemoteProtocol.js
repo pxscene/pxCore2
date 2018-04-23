@@ -16,6 +16,7 @@ const RTStatusCode = require('./RTStatusCode');
 const RTRemoteSerializer = require('./RTRemoteSerializer');
 const RTEnvironment = require('./RTEnvironment');
 const RTRemoteMessageType = require('./RTRemoteMessageType');
+const RTRemoteObject = require('./RTRemoteObject');
 const RTRemoteTask = require('./RTRemoteTask');
 const RTException = require('./RTException');
 const helper = require('./common/helper');
@@ -125,6 +126,7 @@ class RTRemoteProtocol {
       if (message[RTConst.STATUS_CODE] !== RTStatusCode.OK) { // status error, reject directly
         callContext.reject(helper.getStatusStringByCode(message[RTConst.STATUS_CODE]));
       } else {
+        this.injectProtocolToMessageObjectValue(message);
         callContext.resolve(message[RTConst.VALUE] || message[RTConst.FUNCTION_RETURN_VALUE]); // resolve
       }
     } else if (message[RTConst.MESSAGE_TYPE] === RTRemoteMessageType.KEEP_ALIVE_REQUEST) {
@@ -134,12 +136,40 @@ class RTRemoteProtocol {
     } else if (message[RTConst.MESSAGE_TYPE] === RTRemoteMessageType.KEEP_ALIVE_RESPONSE) {
       // that's mean this program send keep live request to other side, and got reponse from other side
       // so this reponse can be ignored
+    } else if (message[RTConst.MESSAGE_TYPE] === RTRemoteMessageType.SESSION_OPEN_REQUEST) {
+      this.transport.send(RTRemoteSerializer
+        .toBuffer(RTMessageHelper.newOpenSessionResponse(message[RTConst.CORRELATION_KEY], message[RTConst.OBJECT_ID_KEY])));
     } else if (RTEnvironment.isServerMode()) {
       this.processMessageInServerMode(message);
     } else {
       this.processMessageInClientMode(message);
     }
   }
+
+  /**
+   * inject protocol into message that message contains rtValues(RTObject type)
+   *
+   * @param message the remote message
+   */
+  injectProtocolToMessageObjectValue(message) {
+    const injectProtocol = (rv) => {
+      if (rv && rv.value instanceof RTRemoteObject) {
+        rv.value.protocol = this;
+      }
+    };
+    const type = message[RTConst.MESSAGE_TYPE];
+    if (type === RTRemoteMessageType.GET_PROPERTY_BYINDEX_RESPONSE
+      || type === RTRemoteMessageType.GET_PROPERTY_BYNAME_RESPONSE
+    ) {
+      injectProtocol(message[RTConst.VALUE]);
+    } else if (type === RTRemoteMessageType.METHOD_CALL_REQUEST) {
+      const args = message[RTConst.FUNCTION_ARGS];
+      if (args && args.length > 0) {
+        args.forEach(arg => injectProtocol(arg));
+      }
+    }
+  }
+
 
   /**
    * process message in client mode
@@ -149,6 +179,7 @@ class RTRemoteProtocol {
     if (message[RTConst.MESSAGE_TYPE] === RTRemoteMessageType.METHOD_CALL_REQUEST) {
       const functionCb = RTEnvironment.getRtFunctionMap()[message[RTConst.FUNCTION_KEY]];
       if (functionCb) {
+        this.injectProtocolToMessageObjectValue(message);
         functionCb(message[RTConst.FUNCTION_ARGS]);
       }
       this.sendCallResponse(message[RTConst.CORRELATION_KEY]);
@@ -193,11 +224,11 @@ class RTRemoteProtocol {
    * @param {object} value the rtValue
    * @return {Promise<{}>} promise with result
    */
-  sendSetById(objectId, index, value) {
-    // TODO need implement
-    logger.debug(objectId, index, value);
-    logger.error('sendSetById is yet to be implemented');
-    return Promise.resolve({});
+  sendSetByIndex(objectId, index, value) {
+    const messageObj = RTMessageHelper.newSetRequest(objectId, null, value);
+    messageObj[RTConst.MESSAGE_TYPE] = RTRemoteMessageType.SET_PROPERTY_BYINDEX_REQUEST;
+    messageObj[RTConst.PROPERTY_INDEX] = index;
+    return this.sendRequestMessage(messageObj);
   }
 
   /**
@@ -246,14 +277,14 @@ class RTRemoteProtocol {
   /**
    * send get property by id
    * @param {string} objectId the object id
-   * @param {string} index the property name
+   * @param {number} index the property name
    * @return {Promise<object>} promise with result
    */
-  sendGetById(objectId, index) {
-    // TODO need implement
-    logger.debug(objectId, index);
-    logger.error('sendGetById is yet to be implemented');
-    return Promise.resolve({});
+  sendGetByIndex(objectId, index) {
+    const messageObj = RTMessageHelper.newGetRequest(objectId, null);
+    messageObj[RTConst.MESSAGE_TYPE] = RTRemoteMessageType.GET_PROPERTY_BYINDEX_REQUEST;
+    messageObj[RTConst.PROPERTY_INDEX] = index;
+    return this.sendRequestMessage(messageObj);
   }
 }
 

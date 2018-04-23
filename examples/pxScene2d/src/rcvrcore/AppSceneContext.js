@@ -340,20 +340,17 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (packageUri, module
       }
     }
 
-    newSandbox = {
-      sandboxName: "InitialSandbox",
-      xmodule: xModule,
-      console: console,
-      runtime: apiForChild,
-      urlModule: require("url"),
-      queryStringModule: require("querystring"),
-      theNamedContext: "Sandbox: " + uri,
-      Buffer: Buffer,
-      importTracking: {}
-    }; // end sandbox
-
     if (!isDuk) {
-      newSandbox = Object.assign(newSandbox, {
+      newSandbox = {
+        sandboxName: "InitialSandbox",
+        xmodule: xModule,
+        console: console,
+        runtime: apiForChild,
+        urlModule: require("url"),
+        queryStringModule: require("querystring"),
+        theNamedContext: "Sandbox: " + uri,
+        Buffer: Buffer,
+        importTracking: {},
         process: process,
         require: requireMethod,
         global: global,
@@ -385,7 +382,21 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (packageUri, module
           ClearInterval(timer);
         }.bind(this),
         importTracking: {}
-      });
+      };
+    }
+    else
+    {
+      newSandbox = {
+        sandboxName: "InitialSandbox",
+        xmodule: xModule,
+        console: console,
+        runtime: apiForChild,
+        urlModule: require("url"),
+        queryStringModule: require("querystring"),
+        theNamedContext: "Sandbox: " + uri,
+        Buffer: Buffer,
+        importTracking: {}
+      }; // end sandbox
     }
 
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
