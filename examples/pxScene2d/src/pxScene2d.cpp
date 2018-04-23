@@ -562,8 +562,6 @@ pxObject::~pxObject()
     }
     mChildren.clear();
     pxObjectCount--;
-    rtValue nullValue;
-    mReady.send("reject",nullValue);
     clearSnapshot(mSnapshotRef);
     clearSnapshot(mClipSnapshotRef);
     clearSnapshot(mDrawableSnapshotForMask);
@@ -604,12 +602,7 @@ void pxObject::dispose(bool pumpJavascript)
     for(;it != mAnimations.end();it++)
     {
       if ((*it).promise)
-      {
-	if(!gApplicationIsClosing)
-          (*it).promise.send("reject",this);
-	else
-	  (*it).promise.send("reject",nullValue);
-      }
+    	  (*it).promise.send("reject",nullValue);
     }
 
     mReady.send("reject",nullValue);
@@ -634,14 +627,6 @@ void pxObject::dispose(bool pumpJavascript)
     {
       mScene->innerpxObjectDisposed(this);
     }
-#ifdef ENABLE_RT_NODE
-    if (pumpJavascript)
-    {
-      script.pump();
-    }
-#else
-    (void)pumpJavascript;
-#endif
  }
 }
 

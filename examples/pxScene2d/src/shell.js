@@ -12,6 +12,12 @@ px.import({ scene: 'px:scene.1.js',
       console.log("Received uncaught exception " + err.stack);
     }
   }
+  function unhandledRejection(err) {
+   if (!isDuk) {
+      console.log("Received uncaught rejection.... ");
+    }
+  }
+
   if (!isDuk) {
     process.on('uncaughtException', uncaughtException);
   }
@@ -274,6 +280,7 @@ if (false)
   function releaseResources() {
     if (!isDuk) {
       process.removeListener("uncaughtException", uncaughtException);
+      process.removeListener("unhandledRejection", unhandledRejection);
     }
   }
 
