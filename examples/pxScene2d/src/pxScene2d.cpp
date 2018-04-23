@@ -1945,7 +1945,6 @@ rtError pxScene2d::dispose()
     mCanvas   = NULL;
     mFocusObj = NULL;
 
-    pxFontManager::clearAllFonts();
     return RT_OK;
 }
 
@@ -2282,6 +2281,8 @@ void pxScene2d::draw()
   return;
 #endif
 
+  double __frameStart = pxMilliseconds();
+
   //rtLogInfo("pxScene2d::draw()\n");
   #ifdef PX_DIRTY_RECTANGLES
   pxRect dirtyRectangle = mDirtyRect;
@@ -2375,6 +2376,22 @@ EXITSCENELOCK()
                         mPointerTexture, mNullTexture);
   }
 #endif //USE_SCENE_POINTER
+
+double __frameEnd = pxMilliseconds();
+
+static double __frameTotal = 0;
+
+__frameTotal = __frameTotal + (__frameEnd-__frameStart);
+
+static int __frameCount = 0;
+__frameCount++;
+if (__frameCount > 60*5)
+{
+  rtLogDebug("avg frame draw duration(ms): %f\n", __frameTotal/__frameCount);
+  __frameTotal = 0;
+  __frameCount = 0;
+}
+
 }
 
 void pxScene2d::onUpdate(double t)
