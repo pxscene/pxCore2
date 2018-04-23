@@ -22,6 +22,9 @@ const char *rdk_logger_module_fetch(void);
 #include "rtRemote.h"
 #include "rtRemoteMessage.h"
 #include "rtRemoteCorrelationKey.h"
+#include "rtRemoteFunction.h"
+#include "rtRemoteEnvironment.h"
+#include "rtRemoteObjectCache.h"
 #include "rtSampleClient.h"
 
 #include <cimplog/cimplog.h>
@@ -49,7 +52,6 @@ const char *rdk_logger_module_fetch(void);
 
 using namespace std;
 
-
 class parodusclient {
 
 public:
@@ -59,16 +61,23 @@ public:
     void parodusReceive();
     void parodusSend(char *payload, char *source, char *destination, char *trans_uuid, wrp_msg_type msg_type);
 
-    void getParsed(void *wrp_payload, char *corrltn_key, char *msg_type, char *obj_id, char *prop_name, char *value, char *v_type);
-    void getResponse(char *payload, char *corrltn_key, char *msg_type, char *obj_id, char *value, char *val_type);
+    void getByNameResponse(char *payload, const char *corrltn_key, const char *obj_id, const char *value, const char *val_type);
+    void setByNameResponse(char *payload, const char *corrltn_key, const char *obj_id);
+    void methodCallResponse(char *payload, const char *corrltn_key, const char *obj_id, const char* method_name, const char* result);
+
+    void processRequest(wrp_msg_t *wrp_payload, char *payload);
+    void processGetByNameRequest(char *payload,  rtRemoteMessagePtr msg, const char *key, const char *objId);
+    void processMethodCallRequest(char *payload, rtRemoteMessagePtr msg, const char *key, const char *objId);
+    void processSetByNameRequest(char *payload,  rtRemoteMessagePtr msg, const char *key, const char *objId);
+
     void rtRemoteClientMgr();
     void rtRemoteProcess(wrp_msg_t *wrp_msg, char *payload);
 
+private:
     libpd_instance_t current_instance;
     rtRemoteEnvironment* env;
     rtError e;
     rtObjectRef obj;
-
 
 };
 

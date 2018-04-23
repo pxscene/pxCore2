@@ -83,6 +83,14 @@ public:
     return RT_OK;
   }
 
+  rtMethod2ArgAndReturn ("twoIntNumberSum", twoIntNumberSum, int32_t, int32_t, int32_t);
+  rtError twoIntNumberSum(int32_t in1, int32_t in2, int32_t &res) {
+    res = in2 + in2;
+    printf("At server side result : %d + %d = %d\n", in2, in2, res);
+    return RT_OK;
+
+ }
+
   // helper
   void fireOnUploadComplete()
   {
@@ -110,6 +118,7 @@ rtDefineProperty(ContinuousVideoRecorder, name);
 rtDefineProperty(ContinuousVideoRecorder, onUploadComplete);
 rtDefineProperty(ContinuousVideoRecorder, prop);
 rtDefineProperty(ContinuousVideoRecorder, bigprop);
+rtDefineMethod(ContinuousVideoRecorder, twoIntNumberSum);
 
 
 
