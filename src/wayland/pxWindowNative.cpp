@@ -620,9 +620,9 @@ void pxWindowNative::drawFrame(wl_callback *callback, pxRect *rect)
     pxSurfaceNativeDesc d;
     d.windowWidth = mLastWidth;
     d.windowHeight = mLastHeight;
-    waylandBuffer *buffer = nextBuffer();
-    struct wl_buffer *waylandBuffer = buffer->buffer;
-    d.pixelData = (uint32_t*)buffer->shm_data;
+    //waylandBuffer *buffer = nextBuffer();
+    //struct wl_buffer *waylandBuffer = buffer->buffer;
+    //d.pixelData = (uint32_t*)buffer->shm_data;
 
     int left = 0;
     int top = 0;
