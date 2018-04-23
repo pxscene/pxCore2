@@ -36,7 +36,10 @@ class SampleObject {
     this.vptr = RTValueHelper.create(null, RTValueType.VOIDPTR);
     this.onTick = RTValueHelper.create(null, RTValueType.FUNCTION);
     this.objvar = RTValueHelper.create(null, RTValueType.OBJECT);
-    this.methodValue = 0;
+    this.methodValue = RTValueHelper.create(0, RTValueType.INT32);
+    this.arr = [RTValueHelper.create(10, RTValueType.INT32),
+      RTValueHelper.create(12.3, RTValueType.FLOAT),
+      RTValueHelper.create('hello,world', RTValueType.STRING)];
   }
 
   method0AndReturn10() { // eslint-disable-line class-methods-use-this
@@ -56,8 +59,8 @@ class SampleObject {
   }
 
   method2FunctionAndNoReturn(rtFunction, in1) {
-    if (rtFunction && rtFunction.value) {
-      rtFunction.value([in1, this.methodValue]).then(() => {
+    if (rtFunction && rtFunction.value && rtFunction.value.value) {
+      rtFunction.value.value([in1, this.methodValue]).then(() => {
         logger.debug('method2FunctionAndNoReturn invoke rtFunction succeed');
       }).catch((err) => {
         logger.error(err.stack);
