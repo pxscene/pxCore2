@@ -99,24 +99,23 @@ public:
   void setFillColor(int gray, int a = 255);
   void setFillColor(const pxColor& c);
 
-  // Stroke for the current path
-  enum class StrokeType { inside, outside, center };
-  void stroke();  // DEFAULT: inside
-  
-  inline void setStrokeMode(StrokeType s) { mStrokeType = s; };
-
   pxColor strokeColor();
   void setStrokeColor(int r, int g, int b, int a = 255);
   void setStrokeColor(int gray, int a = 255);
   void setStrokeColor(const pxColor& c);
 
+  // Stroke for the current path
+  enum class StrokeType { inside, outside, center };
+  void stroke();  // DEFAULT: inside
+
   void setStrokeWidth(double w);
+  double strokeWidth()    { return mStrokeWidth; };
+
   void setStrokeType(StrokeType t);
   StrokeType strokeType() { return mStrokeType; };
 
   double alpha() const;
   void setAlpha(double alpha);
-
 
   //void clear();
 

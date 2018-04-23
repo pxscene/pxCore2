@@ -237,10 +237,6 @@ rtError pxImageA::setResource(rtObjectRef o)
       pxObject::createNewPromise();
       mListenerAdded = true;
       getImageAResource()->addListener(this);
-#if 0
-      checkStretchX();
-      checkStretchY();
-#endif //0
     }
     return RT_OK;
   }
@@ -290,8 +286,9 @@ void pxImageA::resourceReady(rtString readyResolution)
     pxObject* parent = mParent;
     if( !parent)
     {
-      //TODO - do we want to send promises this way or the way we have it?
-      //sendPromise();
+      // Send the promise here because the image will not get an 
+      // update call until it has a parent
+      sendPromise();
     }
   }
   else

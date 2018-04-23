@@ -144,7 +144,7 @@ public:
   virtual int32_t h() const;
   virtual rtError h(int32_t& v) const; 
 
-  pxTextureRef getTexture();
+  pxTextureRef getTexture(bool initializing = false);
   void setTextureData(pxOffscreen& imageOffscreen, const char* data, const size_t dataSize);
   virtual void setupResource();
   void clearDownloadedData();
@@ -177,7 +177,8 @@ public:
 
   virtual void init();
   pxTimedOffscreenSequence& getTimedOffscreenSequence() { return mTimedOffscreenSequence; }
-
+  virtual void setupResource() { init(); }
+  
 protected:
   virtual bool loadResourceData(rtFileDownloadRequest* fileDownloadRequest);
 

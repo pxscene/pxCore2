@@ -168,7 +168,7 @@ rtRemoteEnvironment::waitForResponse(std::chrono::milliseconds timeout, rtRemote
 }
 
 rtError
-rtRemoteEnvironment::processSingleWorkItem(std::chrono::milliseconds timeout, bool wait, rtRemoteCorrelationKey* key)
+rtRemoteEnvironment::processSingleWorkItem(std::chrono::milliseconds timeout, bool wait, rtRemoteCorrelationKey* key, const rtRemoteCorrelationKey* const specificKey)
 {
   rtError e = RT_ERROR_TIMEOUT;
 
@@ -179,24 +179,27 @@ rtRemoteEnvironment::processSingleWorkItem(std::chrono::milliseconds timeout, bo
   auto delay = std::chrono::system_clock::now() + timeout;
 
   std::unique_lock<std::mutex> lock(m_queue_mutex);
-  if (!wait && m_queue.empty())
+  if (!wait && m_queue.empty() && m_specific_workitem_map.empty())
     return RT_ERROR_QUEUE_EMPTY;
 
-  //
-  // TODO: if someone is already waiting for a specifc response
-  // then we should use a 2nd queue
-  //
-
-  if (!m_queue_cond.wait_until(lock, delay, [this] { return !this->m_queue.empty() || !m_running; }))
+  if (!m_queue_cond.wait_until(lock, delay, [this] { return !this->m_queue.empty() || !this->m_specific_workitem_map.empty() || !m_running; }))
   {
     e = RT_ERROR_TIMEOUT;
   }
   else
   {
-    if (!m_running)
+    if (!m_running || (specificKey && m_response_handlers.find(*specificKey) == m_response_handlers.end()))
       return RT_OK;
 
-    if (!m_queue.empty())
+    WorkItemMap::iterator it;
+
+    if (specificKey && *specificKey != kInvalidCorrelationKey &&
+      (it = m_specific_workitem_map.find(*specificKey)) != m_specific_workitem_map.end())
+    {
+      workItem = it->second;
+      m_specific_workitem_map.erase(it);
+    }
+    else if (!m_queue.empty())
     {
       workItem = m_queue.front();
       m_queue.pop();
@@ -250,26 +253,23 @@ rtRemoteEnvironment::enqueueWorkItem(std::shared_ptr<rtRemoteClient> const& clnt
 
   std::unique_lock<std::mutex> lock(m_queue_mutex);
 
-  #if 0
-  // TODO if someone is waiting for this message, then deliver it directly
+
+  // If someone is waiting for this message, then store it to a specific map
+  // Otherwise, put it to a queue
   rtRemoteCorrelationKey const k = rtMessage_GetCorrelationKey(*workItem.Message);
   auto itr = m_response_handlers.find(k);
   if (itr != m_response_handlers.end())
   {
-    rtError e = itr->second.Func(workItem.Client, workItem.Message, itr->second.Arg);
-    if (e != RT_OK)
-      rtLogWarn("error dispatching message directly to waiter. %s", rtStrError(e));
+    m_specific_workitem_map.insert(WorkItemMap::value_type(k, workItem));
+    lock.unlock();
+    m_queue_cond.notify_all();
   }
   else
   {
     m_queue.push(workItem);
+    lock.unlock();
     m_queue_cond.notify_all();
   }
-  #endif
-
-  m_queue.push(workItem);
-  lock.unlock();
-  m_queue_cond.notify_all();
 
   if (m_queue_ready_handler != nullptr)
   {
