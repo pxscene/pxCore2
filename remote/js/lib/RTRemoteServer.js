@@ -63,7 +63,11 @@ class RTRemoteServer {
    * @return {Promise<dgram>} the promise with dgram
    */
   openMulticastServer(udpHost, udpPort) {
-    const udpSocketIn = dgram.createSocket('udp4');
+    const udpSocketIn = dgram.createSocket({
+      type: 'udp4',
+      reuseAddr: true,
+    });
+
     const udpSocketOut = dgram.createSocket('udp4');
     udpSocketOut.bind(() => { // create channel to send located message
       udpSocketOut.setBroadcast(true);
@@ -106,7 +110,7 @@ class RTRemoteServer {
         logger.debug(`server bind multicast socket succeed, ${address.address}:${address.port}`);
         resolve(udpSocketIn);
       });
-      udpSocketIn.bind({ address: udpHost, port: udpPort }, () => {
+      udpSocketIn.bind({ port: udpPort }, () => {
         udpSocketIn.setBroadcast(true);
         udpSocketIn.addMembership(udpHost); // join to multicast channel
       });
@@ -178,8 +182,12 @@ class RTRemoteServer {
     switch (task.message[RTConst.MESSAGE_TYPE]) {
       case RTRemoteMessageType.GET_PROPERTY_BYNAME_REQUEST:
         return this.handlerGetPropertyByNameRequest(task);
+      case RTRemoteMessageType.GET_PROPERTY_BYINDEX_REQUEST:
+        return this.handlerGetPropertyByIndexRequest(task);
       case RTRemoteMessageType.SET_PROPERTY_BYNAME_REQUEST:
         return this.handlerSetPropertyByNameRequest(task);
+      case RTRemoteMessageType.SET_PROPERTY_BYINDEX_REQUEST:
+        return this.handlerSetPropertyByIndexRequest(task);
       case RTRemoteMessageType.METHOD_CALL_REQUEST:
         return this.handlerCallRequest(task);
       default:
@@ -198,9 +206,36 @@ class RTRemoteServer {
       const rtFunction = message[RTConst.VALUE];
       message[RTConst.VALUE] = helper.updateListenerForRTFuction(task.protocol, rtFunction);
     }
-    const response = helper.setPropertyByName(this.getObjectByName(message[RTConst.OBJECT_ID_KEY]), message);
+    const response = helper.setProperty(this.getObjectByName(message[RTConst.OBJECT_ID_KEY]), message);
     return task.protocol.transport.send(RTRemoteSerializer.toBuffer(response));
   }
+
+  /**
+   * process set property by index request
+   * @param {RTRemoteTask} task the remote task
+   */
+  handlerSetPropertyByIndexRequest(task) {
+    const { message } = task;
+    if (message[RTConst.VALUE][RTConst.TYPE] === RTValueType.FUNCTION) {
+      const rtFunction = message[RTConst.VALUE];
+      message[RTConst.VALUE] = helper.updateListenerForRTFuction(task.protocol, rtFunction);
+    }
+    const response = helper.setProperty(this.getObjectByName(message[RTConst.OBJECT_ID_KEY]), message);
+    response[RTConst.MESSAGE_TYPE] = RTRemoteMessageType.SET_PROPERTY_BYINDEX_RESPONSE;
+    return task.protocol.transport.send(RTRemoteSerializer.toBuffer(response));
+  }
+
+  /**
+   * process set property by index request
+   * @param {RTRemoteTask} task the remote task
+   */
+  handlerGetPropertyByIndexRequest(task) {
+    const { message } = task;
+    const response = helper.getProperty(this.getObjectByName(message[RTConst.OBJECT_ID_KEY]), message, this);
+    response[RTConst.MESSAGE_TYPE] = RTRemoteMessageType.GET_PROPERTY_BYINDEX_RESPONSE;
+    return task.protocol.transport.send(RTRemoteSerializer.toBuffer(response));
+  }
+
 
   /**
    * process set property by name request
@@ -208,7 +243,7 @@ class RTRemoteServer {
    */
   handlerGetPropertyByNameRequest(task) {
     const { message } = task;
-    const response = helper.getPropertyByName(this.getObjectByName(message[RTConst.OBJECT_ID_KEY]), message);
+    const response = helper.getProperty(this.getObjectByName(message[RTConst.OBJECT_ID_KEY]), message, this);
     return task.protocol.transport.send(RTRemoteSerializer.toBuffer(response));
   }
 
@@ -243,7 +278,14 @@ class RTRemoteServer {
     }
     registeredObjectMap[objectName] = obj;
     logger.info(`object with name = ${objectName} register successfully in server ${this.serverName}`);
-    helper.checkAndDumpObject(objectName, obj);
+  }
+
+  /**
+   * check the objectName is register or not
+   * @param objectName the object name
+   */
+  isRegister(objectName) { // eslint-disable-line
+    return !!registeredObjectMap[objectName];
   }
 
   /**
