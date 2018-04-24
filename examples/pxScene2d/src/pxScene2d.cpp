@@ -563,8 +563,6 @@ pxObject::~pxObject()
     }
     mChildren.clear();
     pxObjectCount--;
-    rtValue nullValue;
-    mReady.send("reject",nullValue);
     clearSnapshot(mSnapshotRef);
     clearSnapshot(mClipSnapshotRef);
     clearSnapshot(mDrawableSnapshotForMask);
@@ -606,9 +604,6 @@ void pxObject::dispose(bool pumpJavascript)
     {
       if ((*it).promise)
       {
-	if(!gApplicationIsClosing)
-          (*it).promise.send("reject",this);
-	else
 	  (*it).promise.send("reject",nullValue);
       }
     }
