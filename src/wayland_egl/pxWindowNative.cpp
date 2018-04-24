@@ -857,8 +857,8 @@ void pxWindowNative::drawFrame()
     pxSurfaceNativeDesc d;
     d.windowWidth = mLastWidth;
     d.windowHeight = mLastHeight;
-    waylandBuffer *buffer = nextBuffer();
-    d.pixelData = (uint32_t*)buffer->shm_data;
+    //waylandBuffer *buffer = nextBuffer();
+    //d.pixelData = (uint32_t*)buffer->shm_data;
 
 
     onDraw(&d);

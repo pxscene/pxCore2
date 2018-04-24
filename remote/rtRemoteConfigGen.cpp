@@ -165,7 +165,7 @@ static std::set<ConfigItem> buildConfigItems(rapidjson::Value const& configParam
       configItems.insert(item);
     }
   });
-  return std::move(configItems);
+  return configItems;
 }
 
 

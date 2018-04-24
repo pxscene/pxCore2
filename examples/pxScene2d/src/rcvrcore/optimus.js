@@ -42,7 +42,7 @@ function Application(props) {
         var sparkApp = this;
         this.externalApp.ready.then(function(o) {
             console.log("successfully created Spark app: " + sparkApp.id);
-            this.applicationReady();
+            sparkApp.applicationReady();
           }, function rejection(o) {
           console.log("failed to launch Spark app: " + sparkApp.id);
           module.exports.onDestroy(sparkApp);
