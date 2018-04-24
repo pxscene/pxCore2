@@ -33,7 +33,3 @@ cd build
 cmake ..
 cmake --build . --config Release -- /m
 cd ..
-
-cd uWebSockets
-msbuild "VC++.vcxproj"
-cd ..
