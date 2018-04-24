@@ -52,8 +52,3 @@ fi
 
 #--------- dukluv
 rm -rf dukluv/build
-
-#--------- uWebSockets
-pushd uWebSockets
-make clean
-popd
