@@ -1035,11 +1035,16 @@ rtError rtScriptNode::pump()
 //#ifndef RUNINMAIN
 //  return;
 //#else
-  // found a problem where if promise triggered by one event loop gets resolved by other event loop, causing the dependencies between data to fail
+#ifdef RUNINMAIN
+  // found a problem where if promise triggered by one event loop gets resolved by other event loop.
+  // It is causing the dependencies between data running between two event loops failed, if one one 
+  // loop didn't complete before other. So, promise not registered by first event loop, before the second
+  // event looop sends back the ready event
   static bool isPumping = false;
   if (isPumping == false) 
   {
     isPumping = true;
+#endif
     Locker                locker(mIsolate);
     Isolate::Scope isolate_scope(mIsolate);
     HandleScope     handle_scope(mIsolate);    // Create a stack-allocated handle scope.
@@ -1061,8 +1066,11 @@ rtError rtScriptNode::pump()
         sGcTickCount = 0;
       }
     }
+}
+#ifdef RUNINMAIN
     isPumping = false;
   }
+#endif
 //#endif // RUNINMAIN
   return RT_OK;
 }
