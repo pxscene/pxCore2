@@ -27,8 +27,11 @@ function create(value, type) {
     case RTValueType.FUNCTION: {
       if (value) { // create rtValue with type function
         const functionName = `func://${helper.getRandomUUID()}`;
-        rtValue[RTConst.FUNCTION_KEY] = functionName;
-        rtValue[RTConst.OBJECT_ID_KEY] = RTConst.FUNCTION_GLOBAL_SCOPE;
+        const v = {};
+        v[RTConst.FUNCTION_KEY] = functionName;
+        v[RTConst.OBJECT_ID_KEY] = RTConst.FUNCTION_GLOBAL_SCOPE;
+        v[RTConst.VALUE] = value;
+        rtValue[RTConst.VALUE] = v;
         RTEnvironment.getRtFunctionMap()[functionName] = value; // cache the callback
       }
       break;

@@ -556,22 +556,10 @@ void pxWayland::terminateClient()
       // process ending.  If it hasn't ended, kill it
       if ( mClientPID >= 0 )
       {
-         int retry= 30;
-         while( retry-- > 0 )
-         {
-            usleep( 10000 );
-            if ( mClientPID <= 0 )
-            {
-               break;
-            }
-            if ( retry <= 0 )
-            {
-               rtLogInfo("pxWayland::terminateClient: client pid %d still alive - killing...", mClientPID);
-               kill( mClientPID, SIGKILL);
-               rtLogInfo("pxWayland::terminateClient: client pid %d killed", mClientPID);
-               mClientPID= -1;
-            }
-         }
+          rtLogInfo("pxWayland::terminateClient: client pid %d still alive - killing...", mClientPID);
+          kill( mClientPID, SIGKILL);
+          rtLogInfo("pxWayland::terminateClient: client pid %d killed", mClientPID);
+          mClientPID= -1;
       }
       pthread_join( mClientMonitorThreadId, NULL );
    }
@@ -674,7 +662,7 @@ rtError pxWayland::connectToRemoteObject()
 #ifdef ENABLE_PX_WAYLAND_RPC
   int findTime = 0;
 
-  while (findTime < MAX_FIND_REMOTE_TIMEOUT_IN_MS && mClientPID != -1)
+  while (findTime < MAX_FIND_REMOTE_TIMEOUT_IN_MS && mWaitingForRemoteObject)
   {
     findTime += FIND_REMOTE_ATTEMPT_TIMEOUT_IN_MS;
     rtLogInfo("Attempting to find remote object %s", mRemoteObjectName.cString());
