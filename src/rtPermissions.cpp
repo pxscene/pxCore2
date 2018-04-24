@@ -164,7 +164,6 @@ rtPermissions::permissionsMap_t rtPermissions::permissionsObjectToMap(const rtOb
 
 rtPermissions::rtPermissions(const char* origin)
   : mParent(NULL)
-  , mRef(0)
 {
   loadConfig();
 
