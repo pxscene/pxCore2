@@ -429,13 +429,14 @@ unsigned char *base64_decode(const unsigned char *data,
     if ((input_length == 0) || (input_length % 4 != 0))
         return NULL;
 
+    if (NULL == output_length)
+      return NULL;
+
     if (data[input_length - 1] == '=')
         (*output_length)--;
     if (data[input_length - 2] == '=')
         (*output_length)--;
 
-    if (NULL == output_length)
-      return NULL;
     unsigned char *decoded_data = (unsigned char*)malloc(*output_length);
     if (decoded_data == NULL)
         return NULL;
@@ -923,7 +924,7 @@ rtError pxObject::animateTo(const char* prop, double to, double duration,
 // Dont fastforward when calling from set* methods since that will
 // recurse indefinitely and crash and we're going to change the value in
 // the set* method anyway.
-void pxObject::cancelAnimation(const char* prop, bool fastforward, bool rewind, bool resolve)
+void pxObject::cancelAnimation(const char* prop, bool fastforward, bool rewind)
 {
   if (!mCancelInSet)
     return;
@@ -952,9 +953,9 @@ void pxObject::cancelAnimation(const char* prop, bool fastforward, bool rewind, 
       {
         if (a.ended)
           a.ended.send(this);
-        if (a.promise)
+        if (a.promise && a.promise.getPtr() != NULL)
         {
-          a.promise.send(resolve ? "resolve" : "reject", this);
+          a.promise.send("resolve", this);
 
           if (NULL != pAnimateObj)
           {
@@ -988,7 +989,7 @@ void pxObject::animateToInternal(const char* prop, double to, double duration,
                          int32_t count, rtObjectRef promise, rtObjectRef animateObj)
 {
   cancelAnimation(prop,(options & pxConstantsAnimation::OPTION_FASTFORWARD),
-                       (options & pxConstantsAnimation::OPTION_REWIND), true);
+                       (options & pxConstantsAnimation::OPTION_REWIND));
 
   // schedule animation
   animation a;
@@ -1059,7 +1060,7 @@ void pxObject::update(double t)
       // TODO this sort of blows since this triggers another
       // animation traversal to cancel animations
 #if 0
-      cancelAnimation(a.prop, true, false, true);
+      cancelAnimation(a.prop, true, false);
 #else
       assert(mCancelInSet);
       mCancelInSet = false;
@@ -1146,7 +1147,7 @@ void pxObject::update(double t)
         {
           animObj->setStatus(pxConstantsAnimation::STATUS_ENDED);
         }
-        cancelAnimation(a.prop, false, false, true);
+        cancelAnimation(a.prop, false, false);
 
         if (NULL != animObj)
         {
@@ -2221,9 +2222,9 @@ rtError pxScene2d::collectGarbage()
   return RT_OK;
 }
 
-rtError pxScene2d::clock(uint64_t & time)
+rtError pxScene2d::clock(double & time)
 {
-  time = (uint64_t)pxMilliseconds();
+  time = pxMilliseconds();
 
   return RT_OK;
 }
