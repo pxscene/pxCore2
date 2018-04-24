@@ -164,6 +164,11 @@ then
     cd ..
 fi
 
+cd uWebSockets
+make
+cd ..
+
+
 #-------- BODYMOVIN
 #
 # TODO:  ensure that "npm" is installed ... possibly via "brew install npm" (on Mac)
