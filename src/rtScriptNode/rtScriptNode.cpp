@@ -1035,7 +1035,10 @@ rtError rtScriptNode::pump()
 //#ifndef RUNINMAIN
 //  return;
 //#else
-  // found a problem where if promise triggered by one event loop gets resolved by other event loop, causing the dependencies between data to fail
+  // found a problem where if promise triggered by one event loop gets resolved by other event loop.
+  // It is causing the dependencies between data running between two event loops failed, if one one 
+  // loop didn't complete before other. So, promise not registered by first event loop, before the second
+  // event looop sends back the ready event
   static bool isPumping = false;
   if (isPumping == false) 
   {

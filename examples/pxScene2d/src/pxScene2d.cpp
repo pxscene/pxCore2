@@ -562,6 +562,7 @@ pxObject::~pxObject()
     }
     mChildren.clear();
     pxObjectCount--;
+    // looks as duplicate reject and previous one is sent in dispose
     //rtValue nullValue;
     //mReady.send("reject",nullValue);
     clearSnapshot(mSnapshotRef);
@@ -605,6 +606,7 @@ void pxObject::dispose(bool pumpJavascript)
     {
       if ((*it).promise)
       {
+      // commenting it out as this is causing unhandled promise rejections in VSCode
 /*
 	if(!gApplicationIsClosing)
           (*it).promise.send("reject",this);
