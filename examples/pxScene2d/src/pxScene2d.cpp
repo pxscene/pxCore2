@@ -429,13 +429,14 @@ unsigned char *base64_decode(const unsigned char *data,
     if ((input_length == 0) || (input_length % 4 != 0))
         return NULL;
 
+    if (NULL == output_length)
+      return NULL;
+
     if (data[input_length - 1] == '=')
         (*output_length)--;
     if (data[input_length - 2] == '=')
         (*output_length)--;
 
-    if (NULL == output_length)
-      return NULL;
     unsigned char *decoded_data = (unsigned char*)malloc(*output_length);
     if (decoded_data == NULL)
         return NULL;
@@ -562,8 +563,6 @@ pxObject::~pxObject()
     }
     mChildren.clear();
     pxObjectCount--;
-    rtValue nullValue;
-    mReady.send("reject",nullValue);
     clearSnapshot(mSnapshotRef);
     clearSnapshot(mClipSnapshotRef);
     clearSnapshot(mDrawableSnapshotForMask);
@@ -605,9 +604,6 @@ void pxObject::dispose(bool pumpJavascript)
     {
       if ((*it).promise)
       {
-	if(!gApplicationIsClosing)
-          (*it).promise.send("reject",this);
-	else
 	  (*it).promise.send("reject",nullValue);
       }
     }
@@ -2221,9 +2217,9 @@ rtError pxScene2d::collectGarbage()
   return RT_OK;
 }
 
-rtError pxScene2d::clock(uint64_t & time)
+rtError pxScene2d::clock(double & time)
 {
-  time = (uint64_t)pxMilliseconds();
+  time = pxMilliseconds();
 
   return RT_OK;
 }
