@@ -475,7 +475,6 @@ void pxWindowNative::runEventLoop()
 {
     exitFlag = false;
     displayRef dRef;
-    essosDisplay* eDisplay = dRef.getDisplay();
     std::vector<pxWindowNative*> windowVector = pxWindowNative::getNativeWindows();
 
     int framerate = ESSOS_PX_CORE_FPS;
