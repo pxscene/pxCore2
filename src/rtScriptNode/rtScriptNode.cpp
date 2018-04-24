@@ -1066,7 +1066,6 @@ rtError rtScriptNode::pump()
         sGcTickCount = 0;
       }
     }
-}
 #ifdef RUNINMAIN
     isPumping = false;
   }
