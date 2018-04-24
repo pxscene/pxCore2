@@ -1,5 +1,5 @@
 
-#ifdef PX_PLATFORM_MAC
+#ifdef __clang__
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wconversion"
 #endif
@@ -173,6 +173,7 @@ inline bool pxPreMultipliedBlendBehind (
   if (a >= 255)
     return 1;
 #endif
+
 	uint32_t alpha1	= 256-a;
 	uint32_t agd1		= (dst1&_agmask)>>8;
 	uint32_t rbd1		=  dst1&_rbmask;
