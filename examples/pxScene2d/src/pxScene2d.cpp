@@ -429,13 +429,14 @@ unsigned char *base64_decode(const unsigned char *data,
     if ((input_length == 0) || (input_length % 4 != 0))
         return NULL;
 
+    if (NULL == output_length)
+      return NULL;
+
     if (data[input_length - 1] == '=')
         (*output_length)--;
     if (data[input_length - 2] == '=')
         (*output_length)--;
 
-    if (NULL == output_length)
-      return NULL;
     unsigned char *decoded_data = (unsigned char*)malloc(*output_length);
     if (decoded_data == NULL)
         return NULL;
