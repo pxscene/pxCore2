@@ -73,17 +73,19 @@ extern "C" time_t timegm(struct tm * a_tm)
 }
 #endif
 
-rtHttpCacheData::rtHttpCacheData():mExpirationDate(0),mUpdated(false)
+rtHttpCacheData::rtHttpCacheData():mExpirationDate(0),mUpdated(false),mFileName()
 {
   fp = NULL;
 }
 
-rtHttpCacheData::rtHttpCacheData(const char* url):mUrl(url),mExpirationDate(0),mUpdated(false)
+rtHttpCacheData::rtHttpCacheData(const char* url) :
+     mUrl(url), mExpirationDate(0), mUpdated(false), mFileName()
 {
   fp = NULL;
 }
 
-rtHttpCacheData::rtHttpCacheData(const char* url, const char* headerMetadata, const char* data, int size):mUrl(url),mExpirationDate(0),mUpdated(false)
+rtHttpCacheData::rtHttpCacheData(const char* url, const char* headerMetadata, const char* data, size_t size) :
+     mUrl(url), mExpirationDate(0), mUpdated(false), mFileName()
 {
   if ((NULL != headerMetadata) && (NULL != data))
   {
@@ -151,11 +153,13 @@ void rtHttpCacheData::populateHeaderMap()
   }
 }
 
-rtString rtHttpCacheData::expirationDate()
+rtString rtHttpCacheData::expirationDate() const
 {
   char buffer[100];
+  struct tm local_tm;
+
   memset(buffer,0,100);
-  strftime(buffer, 100, "%Y-%m-%d %H:%M:%S", localtime(&mExpirationDate));
+  strftime(buffer, 100, "%Y-%m-%d %H:%M:%S", localtime_r(&mExpirationDate, &local_tm));
   return rtString(buffer);
 }
 
@@ -201,7 +205,7 @@ bool rtHttpCacheData::isWritableToCache()
 
 void rtHttpCacheData::setAttributes(char* rawAttributes)
 {
-  mHeaderMetaData.init((uint8_t*)rawAttributes,strlen(rawAttributes));
+  mHeaderMetaData.init((uint8_t*)rawAttributes, (uint32_t) strlen(rawAttributes));
   populateHeaderMap();
   setExpirationDate();
 }
@@ -353,6 +357,11 @@ FILE* rtHttpCacheData::filePointer(void)
   return fp;
 }
 
+void rtHttpCacheData::setFileName(rtString& fileName)
+{
+  mFileName = fileName;
+}
+
 void rtHttpCacheData::setExpirationDate()
 {
   bool foundMaxAge = false;
@@ -442,7 +451,7 @@ rtError rtHttpCacheData::calculateRevalidationNeed(bool& revalidate, bool& reval
 bool rtHttpCacheData::handleDownloadRequest(vector<rtString>& headers,bool downloadBody)
 {
   rtFileDownloadRequest* downloadRequest = NULL;
-  downloadRequest = new rtFileDownloadRequest(mUrl, this);
+  downloadRequest = new rtFileDownloadRequest(mUrl, this, NULL);
   downloadRequest->setAdditionalHttpHeaders(headers);
 
   if (!downloadBody)
@@ -481,8 +490,8 @@ bool rtHttpCacheData::readFileData()
   char *contentsData = NULL;
   char* tmp = NULL;
   char buffer[100];
-  int bytesCount = 0;
-  int totalBytes = 0;
+  size_t bytesCount = 0;
+  uint32_t totalBytes = 0;
   while (!feof(fp))
   {
     bytesCount = fread(buffer,1,100,fp);
@@ -591,7 +600,7 @@ rtError rtHttpCacheData::handleEtag(rtData& data)
 
   if (mUpdated)
   {
-    rtLogInfo("ETAG update found");
+    rtLogInfo("ETAG update found for url(%s) filename(%s)", mUrl.cString(), mFileName.cString());
     populateHeaderMap();
     setExpirationDate();
     data.init(mData.data(),mData.length());

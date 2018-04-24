@@ -296,7 +296,7 @@ rtSocketToString(sockaddr_storage const& ss)
   memset(addrBuff, 0, sizeof(addrBuff));
   if (ss.ss_family == AF_UNIX)
   {
-    strncpy(addrBuff, (const char*)addr, sizeof(addrBuff) -1);
+    strncpy(addrBuff, reinterpret_cast<char const *>(addr), sizeof(addrBuff) -1);
     port = 0;
   }
   else
@@ -422,7 +422,7 @@ rtReadMessage(int fd, rtRemoteSocketBuffer& buff, rtRemoteMessagePtr& doc)
     rtLogError("failed to read payload message of length %d from socket", n);
     return err;
   }
-    
+
   #ifdef RT_RPC_DEBUG
   rtLogDebug("read (%d):\n***IN***\t\"%.*s\"\n", static_cast<int>(buff.size()), static_cast<int>(buff.size()), &buff[0]);
   #endif
@@ -457,7 +457,7 @@ rtParseMessage(char const* buff, int n, rtRemoteMessagePtr& doc)
 
     return RT_FAIL;
   }
-  
+
   return RT_OK;
 }
 
@@ -540,15 +540,13 @@ rtGetDefaultInterface(sockaddr_storage& addr, uint16_t port)
 rtError
 rtCreateUnixSocketName(pid_t pid, char* buff, int n)
 {
-  const char* kUnixSocketTemplate = kUnixSocketTemplateRoot ".%d";
-
   if (!buff)
     return RT_ERROR_INVALID_ARG;
 
   if (pid == 0)
     pid = getpid();
 
-  int count = snprintf(buff, n, kUnixSocketTemplate, pid);
+  int count = snprintf(buff, n, "%s.%d", kUnixSocketTemplateRoot, pid);
   if (count >= n)
   {
     rtLogError("truncated socket path %d <= %d", n, count);

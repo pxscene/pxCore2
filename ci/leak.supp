@@ -17,14 +17,14 @@
   ...
 }
 {
-  shaderLeaksCreateShaderTravis		
-  Memcheck:Leak		
-  match-leak-kinds:all		
-  ...		
-  fun:*createShaderProgram*		
-  ...		
-  fun:*pxMain*		
-  ...		
+  shaderLeaksCreateShaderTravis
+  Memcheck:Leak
+  match-leak-kinds:all
+  ...
+  fun:*createShaderProgram*
+  ...
+  fun:*pxMain*
+  ...
 }
 {
   openglQryExtnsLeaks
@@ -57,7 +57,7 @@
    fun:_Znwm
    fun:_ZN4node6Parser3NewERKN2v820FunctionCallbackInfoINS1_5ValueEEE
    fun:_ZN2v88internal25FunctionCallbackArguments4CallEPFvRKNS_20FunctionCallbackInfoINS_5ValueEEEE
-   fun:_ZN2v88internalL35Builtin_Impl_HandleApiCallConstructENS0_12_GLOBAL__N_116BuiltinArgumentsILNS0_21BuiltinExtraArgumentsE1EEEPNS0_7IsolateE.constprop.186
+   fun:_ZN2v88internalL35Builtin_Impl_HandleApiCallConstructENS0_12_GLOBAL__N_116BuiltinArgumentsILNS0_21BuiltinExtraArgumentsE1EEEPNS0_7IsolateE*
    fun:_ZN2v88internalL30Builtin_HandleApiCallConstructEiPPNS0_6ObjectEPNS0_7IsolateE
    obj:*
    obj:*
@@ -73,7 +73,6 @@
    fun:_ZN2v88Function4CallENS_5LocalINS_7ContextEEENS1_INS_5ValueEEEiPS5_
    fun:_ZN2v88Function4CallENS_5LocalINS_5ValueEEEiPS3_
    fun:_ZN4node9AsyncWrap12MakeCallbackEN2v85LocalINS1_8FunctionEEEiPNS2_INS1_5ValueEEE
-   fun:_ZN4nodeL5AfterEP7uv_fs_s
 }
 {
    textureDrawShaderLeaks

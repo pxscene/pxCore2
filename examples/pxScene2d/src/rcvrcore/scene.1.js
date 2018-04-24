@@ -12,6 +12,8 @@ function Scene() {
   this._setNativeScene = function(scene, filePath) {
     if( nativeScene === null ) {
       nativeScene = scene;
+      // TODO JRJR try to get rid of this stuff... 
+
       this.animation = scene.animation;
       this.stretch   = scene.stretch;
       this.alignVertical = scene.alignVertical;
@@ -20,6 +22,8 @@ function Scene() {
       this.root = scene.root;
       this.info = scene.info;
       this.filePath = filePath;
+      this.addServiceProvider = scene.addServiceProvider;
+      this.removeServiceProvider = scene.removeServiceProvider;
       if (!isDuk) { 
         this.__defineGetter__("w", function() { return scene.w; });
         this.__defineGetter__("h", function() { return scene.h; });
@@ -50,6 +54,10 @@ function Scene() {
 
   this.logDebugMetrics = function() {
     return nativeScene.logDebugMetrics();
+  };
+
+  this.collectGarbage = function() {
+    return nativeScene.collectGarbage();
   };
 
   this.loadArchive = function(u) {
@@ -210,6 +218,10 @@ function Scene() {
 
   this.getService = function getService(name, serviceObject) {
     return nativeScene.getService(name, serviceObject);
+  };
+
+  this.getAvailableApplications = function getAvailableApplications(appNames) {
+      return nativeScene.getAvailableApplications(appNames);
   };
 
   this.setAppContext = function(appContextName, appContext) {

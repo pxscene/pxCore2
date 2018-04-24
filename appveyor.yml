@@ -35,21 +35,15 @@ init:
   - git config --system core.longpaths true
   - ps: "ls \"C:/\""
 
+before_build:
+  - cd %S%
+  - call ci/appveyor-custodian.bat
+
 build_script:
   - echo build_script...
   - cd %S%
   - call ci/build_win32.bat
 
 test: off
-
-artifacts:
-    # NSIS based installer
-  - path: "build-win32\\_CPack_Packages\\win32\\NSIS\\pxscene-setup.exe"
-    name: installer
-    type: Auto
-    # Standalone (requires no installation)
-  - path: "build-win32\\_CPack_Packages\\win32\\NSIS\\pxscene-setup.zip"
-    name: standalone
-    type: Zip
 
 # validator: https://ci.appveyor.com/tools/validate-yaml

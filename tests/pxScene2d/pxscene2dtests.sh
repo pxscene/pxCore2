@@ -51,6 +51,7 @@ ln -s ../../examples/pxScene2d/src/node_modules/ node_modules
 ln -s ../../examples/pxScene2d/src/rcvrcore/ rcvrcore
 ln -s ../../examples/pxScene2d/src/FreeSans.ttf FreeSans.ttf
 ln -s ../../examples/pxScene2d/src/package.json package.json
+ln -s ../../examples/pxScene2d/src/pxscenepermissions.conf pxscenepermissions.conf
 
 ./pxscene2dtests
 
@@ -61,6 +62,7 @@ rm -rf node_modules
 rm -rf rcvrcore
 rm -rf FreeSans.ttf
 rm -rf package.json
+rm -rf pxscenepermissions.conf
 
 #gdb ./pxscene2dtests core
 
