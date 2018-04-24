@@ -18,6 +18,7 @@ function Application(props) {
   var cmd = "";
   var w = 0;
   var h = 0;
+  var uri = "";
 
   if ("launchParams" in props){
     var launchParams = props["launchParams"];
@@ -34,13 +35,14 @@ function Application(props) {
   }
   if (cmd){
     if (scene !== undefined) {
-      if (cmd.includes(".js")){
-        this.externalApp = scene.create({t:"scene", parent:root, url:cmd});
+      if ((cmd == "spark") && "uri" in launchParams){
+        uri = launchParams["uri"];
+        this.externalApp = scene.create({t:"scene", parent:root, url:uri});
         this.externalApp.on("onClientStopped", this.applicationClosed);
         var sparkApp = this;
         this.externalApp.ready.then(function(o) {
             console.log("successfully created Spark app: " + sparkApp.id);
-            this.applicationReady();
+            sparkApp.applicationReady();
           }, function rejection(o) {
           console.log("failed to launch Spark app: " + sparkApp.id);
           module.exports.onDestroy(sparkApp);
@@ -49,6 +51,12 @@ function Application(props) {
         module.exports.onCreate(this);
       }
       else{
+        if (cmd == "wpe" && "uri" in launchParams){
+            uri = launchParams["uri"];
+            cmd = cmd + " " + uri;
+            console.log("Launching wpe uri: " + uri); 
+        }
+ 
         this.externalApp = scene.create( {t:"wayland", parent:root, cmd:cmd, w:w, h:h, hasApi:true} );
         this.externalApp.on("onReady", this.applicationReady);
         this.externalApp.on("onClientStopped", this.applicationClosed);

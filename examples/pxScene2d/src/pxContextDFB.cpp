@@ -1104,6 +1104,8 @@ private:
   bool mInitialized;
 }; // CLASS - pxSwTexture
 
+typedef rtRef<pxSwTexture> pxSwTextureRef;
+static pxSwTextureRef  swRasterTexture; // aka "fullScreenTextureSoftware"
 void onDecodeComplete(void* context, void* data)
 {
   DecodeImageData* imageData = (DecodeImageData*)context;
@@ -2596,9 +2598,6 @@ void pxContext::drawDiagRect(float x, float y, float w, float h, float* color)
 
   DFB_CHECK (boundFramebuffer->DrawRectangle(boundFramebuffer, x, y, w, h));
 }
-
-typedef rtRef<pxSwTexture> pxSwTextureRef;
-static pxSwTextureRef  swRasterTexture; // aka "fullScreenTextureSoftware"
 
 void pxContext::drawOffscreen(float src_x, float src_y,
                               float dst_x, float dst_y,

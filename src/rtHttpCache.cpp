@@ -73,19 +73,19 @@ extern "C" time_t timegm(struct tm * a_tm)
 }
 #endif
 
-rtHttpCacheData::rtHttpCacheData():mExpirationDate(0),mUpdated(false)
+rtHttpCacheData::rtHttpCacheData():mExpirationDate(0),mUpdated(false),mFileName()
 {
   fp = NULL;
 }
 
 rtHttpCacheData::rtHttpCacheData(const char* url) :
-     mUrl(url), mExpirationDate(0), mUpdated(false)
+     mUrl(url), mExpirationDate(0), mUpdated(false), mFileName()
 {
   fp = NULL;
 }
 
 rtHttpCacheData::rtHttpCacheData(const char* url, const char* headerMetadata, const char* data, size_t size) :
-     mUrl(url), mExpirationDate(0), mUpdated(false)
+     mUrl(url), mExpirationDate(0), mUpdated(false), mFileName()
 {
   if ((NULL != headerMetadata) && (NULL != data))
   {
@@ -156,8 +156,10 @@ void rtHttpCacheData::populateHeaderMap()
 rtString rtHttpCacheData::expirationDate() const
 {
   char buffer[100];
+  struct tm local_tm;
+
   memset(buffer,0,100);
-  strftime(buffer, 100, "%Y-%m-%d %H:%M:%S", localtime(&mExpirationDate));
+  strftime(buffer, 100, "%Y-%m-%d %H:%M:%S", localtime_r(&mExpirationDate, &local_tm));
   return rtString(buffer);
 }
 
@@ -353,6 +355,11 @@ void rtHttpCacheData::setFilePointer(FILE* openedDescriptor)
 FILE* rtHttpCacheData::filePointer(void)
 {
   return fp;
+}
+
+void rtHttpCacheData::setFileName(rtString& fileName)
+{
+  mFileName = fileName;
 }
 
 void rtHttpCacheData::setExpirationDate()
@@ -593,7 +600,7 @@ rtError rtHttpCacheData::handleEtag(rtData& data)
 
   if (mUpdated)
   {
-    rtLogInfo("ETAG update found");
+    rtLogInfo("ETAG update found for url(%s) filename(%s)", mUrl.cString(), mFileName.cString());
     populateHeaderMap();
     setExpirationDate();
     data.init(mData.data(),mData.length());
