@@ -716,8 +716,7 @@ rtRef<pxFont> pxFontManager::getFont(const char* url, const char* proxy)
     url = defaultFont;
 
   // Assign font urls an id number if they don't have one
-  mFontMgrMutex.lock();
-  FontIdMap::iterator itId = mFontIdMap.find(url);
+   FontIdMap::iterator itId = mFontIdMap.find(url);
   if( itId != mFontIdMap.end()) 
   {
     fontId = itId->second;
@@ -727,14 +726,12 @@ rtRef<pxFont> pxFontManager::getFont(const char* url, const char* proxy)
     fontId = gFontId++;
     mFontIdMap.insert(make_pair(url, fontId));
   }
-  mFontMgrMutex.unlock();
-  mFontMgrMutex.lock();
+
   FontMap::iterator it = mFontMap.find(fontId);
   if (it != mFontMap.end())
   {
     rtLogDebug("Found pxFont in map for %s\n",url);
     pFont = it->second;
-    mFontMgrMutex.unlock();
     return pFont;  
     
   }
@@ -743,7 +740,6 @@ rtRef<pxFont> pxFontManager::getFont(const char* url, const char* proxy)
     rtLogDebug("Create pxFont in map for %s\n",url);
     pFont = new pxFont(url, fontId, proxy);
     mFontMap.insert(make_pair(fontId, pFont));
-    mFontMgrMutex.unlock();
     pFont->loadResource();
   }
   
@@ -752,13 +748,11 @@ rtRef<pxFont> pxFontManager::getFont(const char* url, const char* proxy)
 
 void pxFontManager::removeFont(uint32_t fontId)
 {
-  mFontMgrMutex.lock();
   FontMap::iterator it = mFontMap.find(fontId);
   if (it != mFontMap.end())
   {  
     mFontMap.erase(it);
   }
-  mFontMgrMutex.unlock();
 }
 
 void pxFontManager::clearAllFonts()
