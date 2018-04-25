@@ -67,7 +67,14 @@ public:
   virtual unsigned long getRefCount() const {
     return mRefCount;
   }
+  virtual size_t hash() {
+    return mHash;
+  }
 
+  virtual void setHash(size_t hash) {
+    UNUSED_PARAM(hash);
+  }
+ 
   void signal(rtValue const& returnValue);
 
 private:
@@ -104,7 +111,7 @@ private:
   pthread_mutex_t mMutex;
   pthread_cond_t mCond;
 #endif
-
+  size_t mHash;
   rtValue mReturnValue;
 };
 
@@ -120,6 +127,15 @@ public:
   rtResolverFunction(Disposition d, v8::Local<v8::Context>& ctx, v8::Local<v8::Promise::Resolver>& resolver);
   virtual ~rtResolverFunction();
   virtual rtError Send(int numArgs, const rtValue* args, rtValue* result);
+  virtual size_t hash()
+  {
+    return -1;
+  }
+
+  virtual void setHash(size_t hash) {
+    UNUSED_PARAM(hash);
+  }
+
 
 private:
   struct AsyncContext

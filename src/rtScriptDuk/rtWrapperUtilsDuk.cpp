@@ -12,6 +12,7 @@ using namespace std;
 
 namespace rtScriptDukUtils
 {
+std::hash<std::string> hashFn;
 
 void rt2duk(duk_context *ctx, const rtValue& v)
 {
@@ -120,7 +121,17 @@ rtValue duk2rt(duk_context *ctx, rtWrapperError* error)
   if (duk_is_function(ctx, -1)) {
     duk_dup(ctx, -1);
     std::string id = rtDukPutIdentToGlobal(ctx);
-    return rtValue(rtFunctionRef(new jsFunctionWrapper(ctx, id)));
+    jsFunctionWrapper *wr = new jsFunctionWrapper(ctx, id);
+    duk_dump_function(ctx);
+    unsigned  char *p;
+    duk_size_t sz;
+    p = (unsigned char *) duk_get_buffer(ctx, -1, &sz);
+    if (NULL != p)
+    {
+      size_t fnval = hashFn((char *)p);
+      wr->setHash(fnval);
+    }
+    return rtValue(rtFunctionRef(wr));
   }
   if (duk_is_object(ctx, -1)) {
     duk_bool_t res = duk_get_prop_string(ctx, -1, "\xff""\xff""data");

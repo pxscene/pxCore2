@@ -255,7 +255,8 @@ public:
     return RT_OK;
   }
 
-  virtual rtError Set(const char* name, const rtValue* value);
+  virtual rtError Set(uint32_t i, const rtValue* value) override;
+  virtual rtError Set(const char* name, const rtValue* value) override;
 
   rtError getChild(uint32_t i, rtObjectRef& r) const
   {
@@ -1643,10 +1644,10 @@ class pxScene2dRef: public rtRef<pxScene2d>, public rtObjectBase
   pxScene2dRef& operator=(pxScene2d* s) { asn(s); return *this; }
   
  private:
-  virtual rtError Get(const char* name, rtValue* value) const;
-  virtual rtError Get(uint32_t i, rtValue* value) const;
-  virtual rtError Set(const char* name, const rtValue* value);
-  virtual rtError Set(uint32_t i, const rtValue* value);
+  virtual rtError Get(const char* name, rtValue* value) const override;
+  virtual rtError Get(uint32_t i, rtValue* value) const override;
+  virtual rtError Set(const char* name, const rtValue* value) override;
+  virtual rtError Set(uint32_t i, const rtValue* value) override;
 };
 
 
