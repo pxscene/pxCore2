@@ -670,7 +670,7 @@ rtError pxWayland::connectToRemoteObject()
                                      pxWayland::remoteDisconnectedCB, this);
     if (errorCode != RT_OK)
     {
-      rtLogError("XREBrowserPlugin failed to find object: %s errorCode %d\n",
+      rtLogError("pxWayland failed to find object: %s errorCode %d\n",
                  mRemoteObjectName.cString(), errorCode);
     }
     else
@@ -798,7 +798,7 @@ rtError pxWayland::connectToRemoteObject(unsigned int timeout_ms)
                                      pxWayland::remoteDisconnectedCB, this);
   if (errorCode != RT_OK)
   {
-    rtLogError("XREBrowserPlugin failed to find object: %s errorCode %d\n",
+    rtLogError("pxWayland failed to find object: %s errorCode %d\n",
         mRemoteObjectName.cString(), errorCode);
   }
   else
@@ -826,6 +826,40 @@ rtError pxWayland::connectToRemoteObject(unsigned int timeout_ms)
   }
 #else
   (void)timeout_ms;
+#endif //ENABLE_PX_WAYLAND_RPC
+  return errorCode;
+}
+
+rtError pxWayland::createWindow(bool& b)
+{
+  rtError errorCode = RT_FAIL;
+#ifdef ENABLE_PX_WAYLAND_RPC
+  rtLogInfo("Attempting to find remote object %s", mRemoteObjectName.cString());
+
+  if( mRemoteObject.getPtr()) 
+  {
+    rtObjectRef tmpVal;
+    errorCode = mRemoteObject.sendReturns("createWindow", mDisplayName, false, tmpVal);
+    if (RT_OK != errorCode)
+    {
+      rtLogError("pxWayland: failed to createWindow, rc=%d", errorCode);
+      b = false;
+      return errorCode;
+    }
+    b = true;
+    mRemoteObject = tmpVal;
+  }
+
+  mAPI = mRemoteObject;
+  if (mSceneContainer != NULL)
+  {
+    rtLogInfo("setting the scene container reference");
+    mRemoteObject.set("sceneContainer", mSceneContainer);
+  }
+  else
+  {
+    rtLogInfo("unable to set the scene container reference because it is null");
+  }
 #endif //ENABLE_PX_WAYLAND_RPC
   return errorCode;
 }

@@ -367,6 +367,16 @@ rtError pxWaylandContainer::destroy(bool& b)
   return RT_OK;
 }
 
+rtError pxWaylandContainer::createWindow(bool& b) 
+{
+  b = false;
+  if ( mWayland )
+  {
+     mWayland->createWindow(b);
+  }
+  return RT_OK;
+}
+
 void pxWaylandContainer::onInit()
 {
   if ( mWayland )
@@ -394,3 +404,4 @@ rtDefineProperty(pxWaylandContainer,server);
 rtDefineMethod(pxWaylandContainer, suspend);
 rtDefineMethod(pxWaylandContainer, resume);
 rtDefineMethod(pxWaylandContainer, destroy);
+rtDefineMethod(pxWaylandContainer, createWindow);
