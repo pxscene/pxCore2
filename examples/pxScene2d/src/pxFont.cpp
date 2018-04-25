@@ -310,7 +310,6 @@ GlyphTextureEntry pxFont::getGlyphTexture(uint32_t codePoint, float sx, float sy
   result.v1 = 0;
   result.u2 = 0;
   result.v2 = 0;
-
   // Select a glyph texture better suited for rendering the glyph
   // taking pixelSize and scale into account
   uint32_t pixelSize=(uint32_t)ceil((sx>sy?sx:sy)*mPixelSize);
