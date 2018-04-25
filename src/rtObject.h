@@ -60,6 +60,8 @@ class rtIFunction
     virtual unsigned long AddRef()=0;
     virtual unsigned long Release()=0;
     virtual rtError Send(int numArgs, const rtValue* args, rtValue* result) = 0;
+    virtual size_t hash() = 0;
+    virtual void setHash(size_t) = 0;
 };
 
 class rtObjectRef;
@@ -273,6 +275,16 @@ public:
     long l = rtAtomicDec(&mRefCount);
     if (l == 0) delete this;
     return l;
+  }
+
+  virtual size_t hash()
+  {
+    return -1;
+  }
+
+  virtual void setHash(size_t hash)
+  {
+    UNUSED_PARAM(hash);
   }
 
  private:
@@ -605,6 +617,16 @@ public:
     return mCB(numArgs, args, result, mContext);
   }
   
+  virtual size_t hash()
+  {
+    return -1;
+  }
+
+  virtual void setHash(size_t hash)
+  {
+    UNUSED_PARAM(hash);
+  }
+
   void clearContext()
   {
     mContext = NULL;
@@ -623,7 +645,7 @@ class rtEmit: public rtIFunction
 {
 
 public:
-  rtEmit(): mRefCount(0) {}
+  rtEmit(): mRefCount(0), mProcessingEvents(false) {}
   virtual ~rtEmit() {}
 
   virtual unsigned long AddRef();
@@ -637,16 +659,29 @@ public:
 
   virtual rtError Send(int numArgs,const rtValue* args,rtValue* result);
 
+  virtual size_t hash()
+  {
+    return -1;
+  }
+
+  virtual void setHash(size_t hash)
+  {
+    UNUSED_PARAM(hash);
+  }
+
 protected:
   struct _rtEmitEntry 
   {
     rtString n;
     rtFunctionRef f;
     bool isProp;
+    bool markForDelete;
+    size_t fnHash;
   };
   
   std::vector<_rtEmitEntry> mEntries;
   rtAtomic mRefCount;
+  bool mProcessingEvents;
 };
 
 class rtEmitRef: public rtRef<rtEmit>, public rtFunctionBase
