@@ -20,6 +20,7 @@ set(RTREMOTEINC ${PXCOREDIR}/remote)
 set(GOOGLETESTINC ${EXTDIR}/gtest/googletest/include ${EXTDIR}/gtest/googletest ${EXTDIR}/gtest/googlemock/include ${EXTDIR}/gtest/googlemock)
 set(PXCOREINC ${PXCOREDIR}/src)
 set(PXSCENEINC ${PXCOREDIR}/examples/pxScene2d/src)
+set(PXSCENERASTERINC ${PXCOREDIR}/examples/pxScene2d/src/rasterizer)
 set(PXSCENELIBDIR ${PXCOREDIR}/examples/pxScene2d/src)
 
 set(BUILD_UNIT_TEST 0)
@@ -30,7 +31,7 @@ option(PXSCENE_TEST_ACCESS_CONTROL_CHECK "PXSCENE_TEST_ACCESS_CONTROL_CHECK" ON)
 option(PXSCENE_TEST_PERMISSIONS_CHECK "PXSCENE_TEST_PERMISSIONS_CHECK" ON)
 
 
-include_directories(AFTER ${GOOGLETESTINC} ${PXCOREINC} ${PXSCENEINC})
+include_directories(AFTER ${GOOGLETESTINC} ${PXCOREINC} ${PXSCENEINC} ${PXSCENERASTERINC})
 include_directories(AFTER ${CMAKE_CURRENT_SOURCE_DIR})
 
 add_definitions(${COMM_DEPS_DEFINITIONS})
@@ -128,7 +129,7 @@ add_definitions(-D${PX_PLATFORM} -DENABLE_RT_NODE -DRUNINMAIN -DENABLE_HTTP_CACH
 set(TEST_SOURCE_FILES pxscene2dtestsmain.cpp  test_example.cpp test_api.cpp  test_pxcontext.cpp test_memoryleak.cpp test_rtnode.cpp test_rtMutex.cpp test_pxImage9Border.cpp
     test_pxAnimate.cpp test_rtFile.cpp test_rtZip.cpp test_rtString.cpp test_rtValue.cpp test_pxImage.cpp test_pxOffscreen.cpp test_pxMatrix4T.cpp test_rtObject.cpp
     test_pxWindowUtil.cpp test_pxTexture.cpp test_pxWindow.cpp test_ioapi.cpp test_rtLog.cpp test_pxTimerNative.cpp
-    test_rtUrlUtils.cpp test_pxArchive.cpp test_pxPixel_h.cpp  ${PLATFORM_TEST_FILES} ${TEST_WAYLAND_SOURCE_FILES})
+    test_rtUrlUtils.cpp test_pxArchive.cpp test_pxPixel_h.cpp test_pxFont.cpp test_rtThreadPool.cpp test_utf8.cpp ${PLATFORM_TEST_FILES} ${TEST_WAYLAND_SOURCE_FILES})
 
 if (DEFINED ENV{USE_HTTP_CACHE})
     message("Include http cache tests")
@@ -140,6 +141,11 @@ if (PXSCENE_TEST_ACCESS_CONTROL_CHECK)
     add_definitions(-DENABLE_ACCESS_CONTROL_CHECK)
     set(TEST_SOURCE_FILES ${TEST_SOURCE_FILES} test_cors.cpp)
 endif (PXSCENE_TEST_ACCESS_CONTROL_CHECK)
+
+if (BUILD_PXSCENE_RASTERIZER_PATH)
+    message("Include RASTERIZER tests")
+    set(TEST_SOURCE_FILES ${TEST_SOURCE_FILES} test_pxCanvas2d.cpp )
+endif (BUILD_PXSCENE_RASTERIZER_PATH)
 
 if (PXSCENE_TEST_PERMISSIONS_CHECK)
     message("Include PERMISSIONS tests")

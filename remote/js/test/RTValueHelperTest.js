@@ -31,11 +31,11 @@ describe('RTValueHelper', () => {
         const someNum = 10;
         return someNum;
       }, RTValueType.FUNCTION);
-      result.should.have.keys('value', 'type', 'function.name', 'object.id');
-      result.value.should.be.type('function');
+      result.should.have.keys('value', 'type');
+      result.value.value.should.be.type('function');
       result.type.should.be.eql(RTValueType.FUNCTION);
-      result['function.name'].should.startWith('func://');
-      result['object.id'].should.eql('global');
+      result.value['function.name'].should.startWith('func://');
+      result.value['object.id'].should.eql('global');
     });
 
     it('Creating RTValue of type FUNCTION with null should not return a function identifier', () => {

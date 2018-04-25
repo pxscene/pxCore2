@@ -429,13 +429,14 @@ unsigned char *base64_decode(const unsigned char *data,
     if ((input_length == 0) || (input_length % 4 != 0))
         return NULL;
 
+    if (NULL == output_length)
+      return NULL;
+
     if (data[input_length - 1] == '=')
         (*output_length)--;
     if (data[input_length - 2] == '=')
         (*output_length)--;
 
-    if (NULL == output_length)
-      return NULL;
     unsigned char *decoded_data = (unsigned char*)malloc(*output_length);
     if (decoded_data == NULL)
         return NULL;
@@ -562,8 +563,6 @@ pxObject::~pxObject()
     }
     mChildren.clear();
     pxObjectCount--;
-    rtValue nullValue;
-    mReady.send("reject",nullValue);
     clearSnapshot(mSnapshotRef);
     clearSnapshot(mClipSnapshotRef);
     clearSnapshot(mDrawableSnapshotForMask);
@@ -605,9 +604,6 @@ void pxObject::dispose(bool pumpJavascript)
     {
       if ((*it).promise)
       {
-	if(!gApplicationIsClosing)
-          (*it).promise.send("reject",this);
-	else
 	  (*it).promise.send("reject",nullValue);
       }
     }
@@ -923,7 +919,7 @@ rtError pxObject::animateTo(const char* prop, double to, double duration,
 // Dont fastforward when calling from set* methods since that will
 // recurse indefinitely and crash and we're going to change the value in
 // the set* method anyway.
-void pxObject::cancelAnimation(const char* prop, bool fastforward, bool rewind, bool resolve)
+void pxObject::cancelAnimation(const char* prop, bool fastforward, bool rewind)
 {
   if (!mCancelInSet)
     return;
@@ -952,9 +948,9 @@ void pxObject::cancelAnimation(const char* prop, bool fastforward, bool rewind, 
       {
         if (a.ended)
           a.ended.send(this);
-        if (a.promise)
+        if (a.promise && a.promise.getPtr() != NULL)
         {
-          a.promise.send(resolve ? "resolve" : "reject", this);
+          a.promise.send("resolve", this);
 
           if (NULL != pAnimateObj)
           {
@@ -988,7 +984,7 @@ void pxObject::animateToInternal(const char* prop, double to, double duration,
                          int32_t count, rtObjectRef promise, rtObjectRef animateObj)
 {
   cancelAnimation(prop,(options & pxConstantsAnimation::OPTION_FASTFORWARD),
-                       (options & pxConstantsAnimation::OPTION_REWIND), true);
+                       (options & pxConstantsAnimation::OPTION_REWIND));
 
   // schedule animation
   animation a;
@@ -1059,7 +1055,7 @@ void pxObject::update(double t)
       // TODO this sort of blows since this triggers another
       // animation traversal to cancel animations
 #if 0
-      cancelAnimation(a.prop, true, false, true);
+      cancelAnimation(a.prop, true, false);
 #else
       assert(mCancelInSet);
       mCancelInSet = false;
@@ -1146,7 +1142,7 @@ void pxObject::update(double t)
         {
           animObj->setStatus(pxConstantsAnimation::STATUS_ENDED);
         }
-        cancelAnimation(a.prop, false, false, true);
+        cancelAnimation(a.prop, false, false);
 
         if (NULL != animObj)
         {
@@ -1920,7 +1916,6 @@ rtError pxScene2d::dispose()
     mDisposed = true;
     rtObjectRef e = new rtMapObject;
     mEmit.send("onClose", e);
-    mEmit.send("onSceneTerminate", e);
     for (unsigned int i=0; i<mInnerpxObjects.size(); i++)
     {
       pxObject* temp = (pxObject *) (mInnerpxObjects[i].getPtr());
@@ -1933,17 +1928,18 @@ rtError pxScene2d::dispose()
 
     if (mRoot)
       mRoot->dispose(false);
+    #ifdef ENABLE_RT_NODE
+    script.pump();
+    #endif //ENABLE_RT_NODE
+    // send scene terminate after dispose to make sure, no cleanup can happen further on app side
+    // after clearing the sandbox
+    mEmit.send("onSceneTerminate", e);
     mEmit->clearListeners();
 
     mRoot     = NULL;
     mInfo     = NULL;
     mCanvas   = NULL;
     mFocusObj = NULL;
-
-    pxFontManager::clearAllFonts();
-    #ifdef ENABLE_RT_NODE
-    script.pump();
-    #endif //ENABLE_RT_NODE
 
     return RT_OK;
 }
@@ -2221,9 +2217,9 @@ rtError pxScene2d::collectGarbage()
   return RT_OK;
 }
 
-rtError pxScene2d::clock(uint64_t & time)
+rtError pxScene2d::clock(double & time)
 {
-  time = (uint64_t)pxMilliseconds();
+  time = pxMilliseconds();
 
   return RT_OK;
 }
@@ -2280,6 +2276,8 @@ void pxScene2d::draw()
 #warning " 'DEBUG_SKIP_DRAW' is Enabled"
   return;
 #endif
+
+  double __frameStart = pxMilliseconds();
 
   //rtLogInfo("pxScene2d::draw()\n");
   #ifdef PX_DIRTY_RECTANGLES
@@ -2374,6 +2372,22 @@ EXITSCENELOCK()
                         mPointerTexture, mNullTexture);
   }
 #endif //USE_SCENE_POINTER
+
+double __frameEnd = pxMilliseconds();
+
+static double __frameTotal = 0;
+
+__frameTotal = __frameTotal + (__frameEnd-__frameStart);
+
+static int __frameCount = 0;
+__frameCount++;
+if (__frameCount > 60*5)
+{
+  rtLogDebug("avg frame draw duration(ms): %f\n", __frameTotal/__frameCount);
+  __frameTotal = 0;
+  __frameCount = 0;
+}
+
 }
 
 void pxScene2d::onUpdate(double t)
@@ -3410,7 +3424,6 @@ rtDefineProperty(pxScene2d, origin);
 #ifdef ENABLE_PERMISSIONS_CHECK
 rtDefineProperty(pxScene2d, permissions);
 #endif
-rtDefineMethod(pxScene2d, allows);
 rtDefineMethod(pxScene2d, checkAccessControlHeaders);
 rtDefineMethod(pxScene2d, addServiceProvider);
 rtDefineMethod(pxScene2d, removeServiceProvider);
@@ -3516,17 +3529,6 @@ void pxScene2d::innerpxObjectDisposed(rtObjectRef ref)
       mInnerpxObjects.erase(mInnerpxObjects.begin()+pos);
     }
   }
-}
-
-rtError pxScene2d::allows(const rtString& url, bool& o) const
-{
-#ifdef ENABLE_PERMISSIONS_CHECK
-  return mPermissions->allows(url.cString(), rtPermissions::DEFAULT, o);
-#else
-  UNUSED_PARAM(url);
-  o = true; // default
-  return RT_OK;
-#endif
 }
 
 rtError pxScene2d::checkAccessControlHeaders(const rtString& url, const rtString& rawHeaders, bool& allow) const
@@ -3660,9 +3662,14 @@ void pxSceneContainer::dispose(bool pumpJavascript)
   }
 
 #ifdef ENABLE_PERMISSIONS_CHECK
+rtError pxSceneContainer::permissions(rtObjectRef& v) const
+{
+  return mScriptView != NULL ? mScriptView->permissions(v) : RT_OK;
+}
+
 rtError pxSceneContainer::setPermissions(const rtObjectRef& v)
 {
-  return mScriptView != NULL ? mScriptView->setPermissions(v) : RT_FAIL;
+  return mScriptView != NULL ? mScriptView->setPermissions(v) : RT_OK;
 }
 #endif
 
