@@ -64,7 +64,7 @@ rtRemoteAsyncHandle::waitUntil(uint32_t timeoutInMilliseconds, std::function<rtE
       rtLogDebug("Waiting for item with key = %s", m_key.toString().c_str());
 
       m_error = RT_ERROR_TIMEOUT;
-      e = m_env->processSingleWorkItem(waitDuration, true, &k);
+      e = m_env->processSingleWorkItem(waitDuration, true, &k, &m_key);
 
       if ( e == RT_ERROR_TIMEOUT )
       {

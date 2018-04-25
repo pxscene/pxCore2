@@ -1064,11 +1064,11 @@ void pxCanvas2d::setStrokeColor(const pxColor& c)
 
 void pxCanvas2d::setStrokeColor(int gray, int a)
 {
-  mStrokeColor.r = mStrokeColor.g = mFillColor.b = gray;
+  mStrokeColor.r = mStrokeColor.g = mStrokeColor.b = gray;
   mStrokeColor.a = a;
 }
 
-pxPixel pxCanvas2d::fillColor()
+pxColor pxCanvas2d::fillColor()
 {
   return mFillColor;
 }
@@ -1081,7 +1081,7 @@ void pxCanvas2d::setStrokeColor(int r, int g, int b, int a)
   mStrokeColor.a = a;
 }
 
-pxPixel pxCanvas2d::strokeColor()
+pxColor pxCanvas2d::strokeColor()
 {
   return mStrokeColor;
 }
