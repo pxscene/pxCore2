@@ -95,7 +95,7 @@ rtError rtEmit::delListener(const char* eventName, rtIFunction* f)
 {
   if (!eventName || !f)
     return RT_ERROR;
-  int i = 0;
+
   for (vector<_rtEmitEntry>::iterator it = mEntries.begin(); 
        it != mEntries.end(); it++)
   {
