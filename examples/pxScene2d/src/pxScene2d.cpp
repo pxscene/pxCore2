@@ -3266,10 +3266,6 @@ rtError pxScene2d::getService(rtString name, rtObjectRef& returnObject)
   rtLogDebug("inside getService");
   returnObject = NULL;
 
-#ifdef ENABLE_PERMISSIONS_CHECK
-  rtPermissionsCheck(mPermissions, name.cString(), rtPermissions::SERVICE)
-#endif
-
   // Create context from requesting scene
   rtObjectRef ctx = new rtMapObject();
   ctx.set("url", mScriptView != NULL ? mScriptView->getUrl() : "");
@@ -3360,6 +3356,9 @@ rtError pxScene2d::getService(const char* name, const rtObjectRef& ctx, rtObject
 
     rtLogInfo("trying to get service for name: %s", name);
   #ifdef PX_SERVICE_MANAGER
+    #ifdef ENABLE_PERMISSIONS_CHECK
+      rtPermissionsCheck(mPermissions, name, rtPermissions::SERVICE)
+    #endif
     rtObjectRef serviceManager;
     rtError result = pxServiceManager::findServiceManager(serviceManager);
     if (result != RT_OK)
