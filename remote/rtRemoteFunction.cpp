@@ -9,6 +9,7 @@ rtRemoteFunction::rtRemoteFunction(std::string const& id, std::string const& nam
   , m_name(name)
   , m_client(client)
   , m_timeout(client->getEnvironment()->Config->environment_request_timeout())
+  , m_Hash(0)
 {
   if (!strcmp(id.c_str(), "global"))
   {
@@ -53,4 +54,16 @@ rtRemoteFunction::Release()
 
   // TODO: send deref here
   return n;
+}
+
+size_t
+rtRemoteFunction::hash()
+{
+  return m_Hash;
+}
+
+void
+rtRemoteFunction::setHash(size_t hash)
+{
+  m_Hash = hash;
 }
