@@ -26,12 +26,16 @@ public:
   inline std::string const& getName() const
     { return m_name; }
 
+  virtual size_t hash();
+  virtual void setHash(size_t hash);
+
 private:
   rtAtomic                          m_ref_count;
   std::string                       m_id;
   std::string                       m_name;
   std::shared_ptr<rtRemoteClient>   m_client;
   uint32_t                          m_timeout;
+  size_t                            m_Hash;
 };
 
 #endif
