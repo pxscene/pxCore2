@@ -90,12 +90,6 @@ void rtRemoteAdapter::startProcess()
             payload = (char*)malloc(PAYLOAD_SIZE);
             memset(payload, 0, sizeof(PAYLOAD_SIZE));
            
-            /*locating the object "some_name"*/ 
-            while ((e = rtRemoteLocateObject(env, "some_name", obj)) != RT_OK)
-            {
-                printf("still looking:%s", rtStrError(e));
-            }
-
             processRequest(wrp_msg, payload);
             if(NULL != payload) {
                 parodusSend(payload, wrp_msg->u.req.source, wrp_msg->u.req.dest, 
@@ -276,7 +270,12 @@ void rtRemoteAdapter::processRequest(wrp_msg_t *wrp_msg, char *payload) {
    
     char* key = (char*)malloc(PARAMS_SIZE);
     sprintf(key, "%s", corr_key);
-    
+
+    /*locating the object "some_name"*/
+    while ((e = rtRemoteLocateObject(env, objId, obj)) != RT_OK) {
+        printf("still looking:%s", rtStrError(e));
+    }
+
     if(msgType != NULL && key != NULL && objId != NULL) { 
         if (strcmp(msgType,"set.byname.request") == 0) {
             processSetByNameRequest(payload, msg, (const char*)key, objId);
@@ -411,3 +410,4 @@ int main(int argc, char** argv)
 
    return 0;
 }
+
