@@ -30,8 +30,8 @@ public class RTRemoteSATToken {
     /*Need to update with user details*/
     m_satUrl = "https://sat-prod.codebig2.net/getSAT";
     m_satContentType = "application/json";
-    m_satClientId = "x1:rdkc:40XXXX";							//Change the with user client id	
-    m_satClientSecret = "f6f20bb82c2b9a4ddd623fXXXXXXXXX";     //Change the with user client secret
+    m_satClientId = "x1:rdkc:40XXXX";							//Change this with user client id	
+    m_satClientSecret = "f6f20bb82c2b9a4ddd623fXXXXXXXXX";     //Change this with user client secret
 
     startTime = getCurrentTime();
   }
@@ -87,9 +87,9 @@ public class RTRemoteSATToken {
       HttpsURLConnection conn = null;
       try {
         sat_url = new URL(m_satUrl);
-	conn = (HttpsURLConnection)sat_url.openConnection();
+	      conn = (HttpsURLConnection)sat_url.openConnection();
 			
-	/* Adding Headers */
+	      /* Adding Headers */
         conn.setRequestMethod("GET");
         conn.setRequestProperty("Accept", m_satContentType);
         conn.setRequestProperty("X-Client-Id", m_satClientId);
