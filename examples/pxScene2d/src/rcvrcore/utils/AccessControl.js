@@ -1,5 +1,3 @@
-'use strict';
-
 var url = require('url');
 
 function AccessControl(scene) {
@@ -41,8 +39,6 @@ AccessControl.prototype.wrapArgs = function (options, cb, secure) {
     if (!options.hostname) {
       throw new Error('Unable to determine the domain name');
     }
-  } else {
-    options = util._extend({}, options);
   }
 
   // 1. add origin header (CORS)
