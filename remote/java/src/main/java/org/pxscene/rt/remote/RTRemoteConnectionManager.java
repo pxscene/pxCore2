@@ -1,11 +1,7 @@
-package org.pxscene.rt.remote;
+
+ckage org.pxscene.rt.remote;
 
 import java.net.URI;
-import java.util.HashMap;
-import java.util.Map;
-import org.apache.log4j.Logger;
-import org.pxscene.rt.RTException;
-import org.pxscene.rt.RTObject;
 
 /**
  * The remote connection manager class.
@@ -31,8 +27,9 @@ public class RTRemoteConnectionManager {
    */
   public static RTObject getObjectProxy(URI uri) throws RTException {
     RTRemoteClientConnection connection;
+    String objectId = null;
 
-    String connectionSpec = uri.getScheme() + "//" + uri.getHost() + ":" + uri.getPort();
+    String connectionSpec = getConnectionSpec(uri);
     if (connections.containsKey(connectionSpec)) {
       connection = connections.get(connectionSpec);
     } else {
@@ -40,7 +37,25 @@ public class RTRemoteConnectionManager {
       connections.put(connectionSpec, connection);
     }
 
-    return connection.getProxyObject(uri.getPath().substring(1));
+    if(uri.getScheme().toString().equals("wrp")) {
+      objectId = uri.getPath().substring(10);
+    } else {
+      objectId = uri.getPath().substring(1);
+    }
+
+    return connection.getProxyObject(objectId);
+  }
+
+
+  private static String getConnectionSpec(URI uri) {
+	String connectionSpec = null;
+	/* If its wrp, need not parse it */
+	if(uri.getScheme().toString().equals("wrp")) {
+		connectionSpec = uri.toString();
+	} else {
+		connectionSpec =  uri.getScheme() + "://" + uri.getHost() + ":" + uri.getPort();
+	}
+	return connectionSpec;
   }
 
   /**
@@ -58,9 +73,14 @@ public class RTRemoteConnectionManager {
         connection = RTRemoteClientConnection
             .createTCPClientConnection(uri.getHost(), uri.getPort());
         break;
+      /* Adding WRP case */
+      case "wrp":
+          connection = RTRemoteClientConnection.createWRPClientConnection(uri);
+          break;
       default:
         throw new RTException("unsupported scheme:" + uri.getScheme());
     }
     return connection;
   }
 }
+

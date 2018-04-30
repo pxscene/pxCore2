@@ -150,12 +150,6 @@ int main(int argc, char* argv [])
     obj->Get("prop", &v);
     printf("\nServer Side,  Value : %d\n",v.toInt32());
     
-//    usleep(1000);
-    
-    //printf("Value :%d",_n);
-    // rtLogInfo("rtRemoteRunUntil: %s", rtStrError(e));
-
-    // ((ContinuousVideoRecorder *)obj.getPtr())->fireOnUploadComplete();
   }
 
   return 0;
