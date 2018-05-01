@@ -1,15 +1,19 @@
-#include "rt_remote_client.h"
+#include "rtRemoteAdapter.h"
 
 const char *rdk_logger_module_fetch(void)
 {
         return "LOG.RDK.PARODUS";
 }
 
-parodusclient::parodusclient(): env(NULL), e(RT_FAIL) {
+rtRemoteAdapter::rtRemoteAdapter(): env(NULL), e(RT_FAIL) {
     
 }
 
-void parodusclient::connectParodus()
+/** @description : connect the parodus.
+ *  @param : none.
+ *  @return : void.
+ */
+void rtRemoteAdapter::connectParodus()
 {
       
     /* Pass NULL to the Parodus and client URL so that the loop back address (127.0.0.1:6666) will be used
@@ -43,7 +47,11 @@ void parodusclient::connectParodus()
     }
 } 
 
-void parodusclient::disconnectParodus() {
+/** @description : disconnect the parodus.
+ *  @param : none.
+ *  @return : void.
+ */
+void rtRemoteAdapter::disconnectParodus() {
     
     int res = RDKC_FAILURE;
        
@@ -51,7 +59,12 @@ void parodusclient::disconnectParodus() {
     printf("libparodus_shutdown respone %d\n", res);
 }
 
-void parodusclient::parodusReceive()
+/** @description : receive data from parodus server.
+ *  process the recieve data. 
+ *  @param : none.
+ *  @return : void.
+ */
+void rtRemoteAdapter::startProcess()
 {
     int rtn;
     wrp_msg_t *wrp_msg;
@@ -76,6 +89,7 @@ void parodusclient::parodusReceive()
 
             payload = (char*)malloc(PAYLOAD_SIZE);
             memset(payload, 0, sizeof(PAYLOAD_SIZE));
+           
             processRequest(wrp_msg, payload);
             if(NULL != payload) {
                 parodusSend(payload, wrp_msg->u.req.source, wrp_msg->u.req.dest, 
@@ -94,7 +108,12 @@ void parodusclient::parodusReceive()
    
 }
 
-void parodusclient::processGetByNameRequest(char *payload, rtRemoteMessagePtr msg, const char *key, const char *objId) {
+/** @description : process the GetByName request.
+ *  @param : payload recived, rtRemote message pointer
+ *  correlation key, object id.
+ *  @return : void.
+ */
+void rtRemoteAdapter::processGetByNameRequest(char *payload, rtRemoteMessagePtr msg, const char *key, const char *objId) {
     
     char *prop_name     = NULL;
     char *val           = NULL;
@@ -116,7 +135,6 @@ void parodusclient::processGetByNameRequest(char *payload, rtRemoteMessagePtr ms
     obj->Get(prop_name, &v);
     sprintf(val_type, "%d", static_cast<int>(v.getType()));
     sprintf(val, "%d", v.toInt32());
-    printf("Value : %s , Value Type : %s\n",val, val_type);
      
     /*Getting Response*/
     getByNameResponse(payload, key, objId, val, val_type);
@@ -127,7 +145,12 @@ void parodusclient::processGetByNameRequest(char *payload, rtRemoteMessagePtr ms
             
 }
 
-void parodusclient::processMethodCallRequest(char *payload, rtRemoteMessagePtr msg, const char *key, const char *objId) {
+/** @description : process the MethodCall request.
+ *  @param : payload recived, rtRemote message pointer
+ *  correlation key, object id.
+ *  @return : void.
+ */
+void rtRemoteAdapter::processMethodCallRequest(char *payload, rtRemoteMessagePtr msg, const char *key, const char *objId) {
     
     vector<rtValue> argv;        
     char *method_name   = NULL;
@@ -182,7 +205,7 @@ void parodusclient::processMethodCallRequest(char *payload, rtRemoteMessagePtr m
                     
             if(e == RT_OK) {
                 sprintf(result, "%d", res.toInt32());
-                printf("result : %s\n", result); 
+                //printf("result : %s\n", result); 
             } 
         } 
     }
@@ -194,7 +217,13 @@ void parodusclient::processMethodCallRequest(char *payload, rtRemoteMessagePtr m
     if(result       != NULL) { free(result); result = NULL;}
     
 }    
-void parodusclient::processSetByNameRequest(char *payload,  rtRemoteMessagePtr msg, const char *key, const char *objId) {
+
+/** @description : process the SetByName request.
+ *  @param : payload recived, rtRemote message pointer
+ *  correlation key, object id.
+ *  @return : void.
+ */
+void rtRemoteAdapter::processSetByNameRequest(char *payload,  rtRemoteMessagePtr msg, char const* key, const char *objId) {
     int val         = -1;
     int val_type    = -1;
     char *prop_name     = NULL;
@@ -224,45 +253,62 @@ void parodusclient::processSetByNameRequest(char *payload,  rtRemoteMessagePtr m
     if(prop_name    != NULL) { free(prop_name); prop_name = NULL;}
 }
 
-
-void parodusclient::processRequest(wrp_msg_t *wrp_msg, char *payload) {
+/** @description : process the rtRemote request.
+ *  @param : msg recived, payload.
+ *  @return : void.
+ */
+void rtRemoteAdapter::processRequest(wrp_msg_t *wrp_msg, char *payload) {
     
     const char* wrpPayload =  reinterpret_cast<const char*>(wrp_msg->u.req.payload);
     rapidjson::Document *doc = new rapidjson::Document();
     doc->Parse(wrpPayload);
     rtRemoteMessagePtr msg =  std::shared_ptr<rtRemoteMessage>(doc);
     
-    char const* msgType = rtMessage_GetMessageType(*msg);
-    char const* objId   = rtMessage_GetObjectId(*msg);
-    char const* key     = rtMessage_GetCorrelationKey(*msg).toString().c_str();
-    
-    while ((e = rtRemoteLocateObject(env, "some_name", obj)) != RT_OK)
-    {
+    const char* msgType = rtMessage_GetMessageType(*msg);
+    const char* objId   = rtMessage_GetObjectId(*msg);
+    const char *corr_key     = rtMessage_GetCorrelationKey(*msg).toString().c_str();
+   
+    char* key = (char*)malloc(PARAMS_SIZE);
+    sprintf(key, "%s", corr_key);
+
+    /*locating the object "some_name"*/
+    while ((e = rtRemoteLocateObject(env, objId, obj)) != RT_OK) {
         printf("still looking:%s", rtStrError(e));
     }
 
     if(msgType != NULL && key != NULL && objId != NULL) { 
         if (strcmp(msgType,"set.byname.request") == 0) {
-            processSetByNameRequest(payload, msg, key, objId);
+            processSetByNameRequest(payload, msg, (const char*)key, objId);
         } else if (strcmp(msgType,"get.byname.request") == 0) {
-            processGetByNameRequest(payload, msg, key, objId);
+            processGetByNameRequest(payload, msg, (const char*)key, objId);
         } else if (strcmp(msgType, "method.call.request") == 0) {
-            processMethodCallRequest(payload, msg, key, objId);
+            processMethodCallRequest(payload, msg, (const char*)key, objId);
         }
     } else {
         printf("Invalid data....\n");
     }
+
+    if(key != NULL ) { free(key); key = NULL;}
 }
 
-void parodusclient::methodCallResponse(char *payload, const char *key, const char *obj_id, const char* method_name, const char* result) {
+/** @description : creating response payload for method request.
+ *  @param : response payload, correlation key, 
+ *  object id, method_name. result.
+ *  @return : void.
+ */
+void rtRemoteAdapter::methodCallResponse(char *payload, const char *key, const char *obj_id, const char* method_name, const char* result) {
     rtRemoteMessagePtr res(new rapidjson::Document());
     res->SetObject();
     
+    rtValue return_value(atoi(result));
+    rapidjson::Value val;
+    
+    rtRemoteValueWriter::write(env, return_value, val, *res);
+    res->AddMember(kFieldNameFunctionReturn, val, res->GetAllocator());
     res->AddMember(kFieldNameMessageType, kMessageTypeMethodCallResponse, res->GetAllocator());
     res->AddMember(kFieldNameFunctionName, rapidjson::StringRef(method_name, strlen(method_name)), res->GetAllocator());
-    res->AddMember(kFieldNameFunctionReturn, rapidjson::StringRef(result, strlen(result)), res->GetAllocator());
-    res->AddMember(kFieldNameCorrelationKey, rapidjson::StringRef(key, strlen(key)), res->GetAllocator());
     res->AddMember(kFieldNameObjectId,  rapidjson::StringRef(obj_id, strlen(obj_id)), res->GetAllocator());
+    res->AddMember(kFieldNameCorrelationKey, rapidjson::StringRef(key, strlen(key)), res->GetAllocator());
     res->AddMember(kFieldNameStatusCode, 0, res->GetAllocator());
 
     rapidjson::StringBuffer buff;
@@ -272,13 +318,18 @@ void parodusclient::methodCallResponse(char *payload, const char *key, const cha
     sprintf(payload, "%s", buff.GetString());
 }
 
-void parodusclient::setByNameResponse(char *payload, const char *key, const char *obj_id) {
+/** @description : creating response payload for SetByName request.
+ *  @param : response payload, correlation key, object id.
+ *  @return : void.
+ */
+void rtRemoteAdapter::setByNameResponse(char *payload, const char *key, const char *obj_id) {
+    
     rtRemoteMessagePtr res(new rapidjson::Document());
     res->SetObject();
     
     res->AddMember(kFieldNameMessageType, kMessageTypeSetByNameResponse, res->GetAllocator());
-    res->AddMember(kFieldNameCorrelationKey, rapidjson::StringRef(key, strlen(key)), res->GetAllocator());
     res->AddMember(kFieldNameObjectId,  rapidjson::StringRef(obj_id, strlen(obj_id)), res->GetAllocator());
+    res->AddMember(kFieldNameCorrelationKey, rapidjson::StringRef(key, strlen(key)), res->GetAllocator());
     res->AddMember(kFieldNameStatusCode, 0, res->GetAllocator());
     
     rapidjson::StringBuffer buff;
@@ -288,7 +339,11 @@ void parodusclient::setByNameResponse(char *payload, const char *key, const char
     sprintf(payload, "%s", buff.GetString());
 }
 
-void parodusclient::getByNameResponse(char *payload, const char *key, const char *obj_id, const char *value, const char *val_type) {
+/** @description : creating response payload for GetByName request.
+ *  @param : response payload, correlation key, object id.
+ *  @return : void.
+ */
+void rtRemoteAdapter::getByNameResponse(char *payload, const char *key, const char *obj_id, const char *value, const char *val_type) {
     rtRemoteMessagePtr res(new rapidjson::Document());
     rapidjson::Value val;
     val.SetObject();
@@ -299,9 +354,8 @@ void parodusclient::getByNameResponse(char *payload, const char *key, const char
 
     res->AddMember(kFieldNameValue, val, res->GetAllocator());
     res->AddMember(kFieldNameMessageType, kMessageTypeGetByNameResponse, res->GetAllocator());
-    res->AddMember(kFieldNameCorrelationKey, rapidjson::StringRef(key, strlen(key)), res->GetAllocator());
     res->AddMember(kFieldNameObjectId,  rapidjson::StringRef(obj_id, strlen(obj_id)), res->GetAllocator());
-    res->AddMember(kFieldNameMessageType, kMessageTypeGetByNameResponse, res->GetAllocator()); 
+    res->AddMember(kFieldNameCorrelationKey, rapidjson::StringRef(key, strlen(key)), res->GetAllocator());
     res->AddMember(kFieldNameStatusCode, 0, res->GetAllocator());
     
     rapidjson::StringBuffer buff;
@@ -311,7 +365,11 @@ void parodusclient::getByNameResponse(char *payload, const char *key, const char
     sprintf(payload, "%s", buff.GetString());
 }
 
-void parodusclient::parodusSend(char *payload, char *source, char *destination, char *trans_uuid, wrp_msg_type msg_type)
+/** @description : sending the response.
+ *  @param : response payload, source, destination, uuid, msg type.
+ *  @return : void.
+ */
+void rtRemoteAdapter::parodusSend(char *payload, char *source, char *destination, char *trans_uuid, wrp_msg_type msg_type)
 {
     
     wrp_msg_t *res_wrp_msg;
@@ -322,7 +380,6 @@ void parodusclient::parodusSend(char *payload, char *source, char *destination, 
     memset(res_wrp_msg, 0, sizeof(wrp_msg_t));
     res_wrp_msg->u.req.payload = (char *)malloc(sizeof(char)*(1096));
     res_wrp_msg->u.req.payload = (void *)payload;
-    printf("Response payload is %s\n",(char *)(res_wrp_msg->u.req.payload));
     res_wrp_msg->u.req.payload_size = strlen((const char*)res_wrp_msg->u.req.payload);
     res_wrp_msg->msg_type = msg_type;
     res_wrp_msg->u.req.source = destination;
@@ -334,23 +391,23 @@ void parodusclient::parodusSend(char *payload, char *source, char *destination, 
     res = libparodus_send(current_instance, res_wrp_msg);
     if(res == 0)
     {
-        printf("Sent message successfully to parodus\n");
+        printf("Sent message successfully\n");
     } else {
         printf("Failed to send message: '%d'\n",res);   
     }
 }
 
-
-void parodusclient::rtRemoteClientMgr()
+void rtRemoteAdapter::rtRemoteClientMgr()
 {
     connectParodus();
 }
 
 int main(int argc, char** argv)
 {
-   parodusclient *client = new parodusclient();
-   client->rtRemoteClientMgr();
-   client->parodusReceive();
+   rtRemoteAdapter *adapter = new rtRemoteAdapter();
+   adapter->rtRemoteClientMgr();
+   adapter->startProcess();
 
    return 0;
 }
+

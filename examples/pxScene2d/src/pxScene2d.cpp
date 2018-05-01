@@ -514,14 +514,18 @@ public:
       return RT_PROP_NOT_FOUND;
   }
 
-  virtual rtError Set(const char* /*name*/, const rtValue* /*value*/)
+  virtual rtError Set(const char* name, const rtValue* value)
   {
+    std::ignore = name;
+    std::ignore = value;
     // readonly property
     return RT_PROP_NOT_FOUND;
   }
 
-  virtual rtError Set(uint32_t /*i*/, const rtValue* /*value*/)
+  virtual rtError Set(uint32_t i, const rtValue* value)
   {
+    std::ignore = i;
+    std::ignore = value;
     // readonly property
     return RT_PROP_NOT_FOUND;
   }
@@ -653,6 +657,14 @@ rtError pxObject::setFocus(bool v)
     return mScene->setFocus(NULL);
   }
 
+}
+
+rtError pxObject::Set(uint32_t i, const rtValue* value)
+{
+  std::ignore = i;
+  std::ignore = value;
+  rtLogError("pxObject::Set(uint32_t, const rtValue*) - not implemented");
+  return RT_ERROR_NOT_IMPLEMENTED;
 }
 
 rtError pxObject::Set(const char* name, const rtValue* value)
@@ -3254,13 +3266,11 @@ rtError pxScene2d::getService(rtString name, rtObjectRef& returnObject)
   rtLogDebug("inside getService");
   returnObject = NULL;
 
-#ifdef ENABLE_PERMISSIONS_CHECK
-  rtPermissionsCheck(mPermissions, name.cString(), rtPermissions::SERVICE)
-#endif
-
   // Create context from requesting scene
   rtObjectRef ctx = new rtMapObject();
   ctx.set("url", mScriptView != NULL ? mScriptView->getUrl() : "");
+  rtValue permissionsValue = mPermissions.getPtr();
+  ctx.set("permissions", permissionsValue);
 
   return getService(name, ctx, returnObject);
 }
@@ -3348,6 +3358,19 @@ rtError pxScene2d::getService(const char* name, const rtObjectRef& ctx, rtObject
 
     rtLogInfo("trying to get service for name: %s", name);
   #ifdef PX_SERVICE_MANAGER
+    #ifdef ENABLE_PERMISSIONS_CHECK
+    rtPermissionsRef serviceCheckPermissions = mPermissions;
+    rtValue permissionsValue;
+    if (ctx.get("permissions", permissionsValue) == RT_OK)
+    {
+      rtObjectRef permissionsRef;
+      if (permissionsValue.getObject(permissionsRef) == RT_OK)
+      {
+        serviceCheckPermissions = permissionsRef;
+      }
+    }
+    rtPermissionsCheck(serviceCheckPermissions, name, rtPermissions::SERVICE)
+    #endif //ENABLE_PERMISSIONS_CHECK
     rtObjectRef serviceManager;
     rtError result = pxServiceManager::findServiceManager(serviceManager);
     if (result != RT_OK)

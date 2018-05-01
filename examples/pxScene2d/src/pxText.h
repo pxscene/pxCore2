@@ -72,7 +72,15 @@ public:
   
   virtual void onInit();
   
-  virtual rtError Set(const char* name, const rtValue* value)
+  virtual rtError Set(uint32_t i, const rtValue* value) override
+  {
+    std::ignore = i;
+    std::ignore = value;
+    rtLogError("pxText::Set(uint32_t, const rtValue*) - not implemented");
+    return RT_ERROR_NOT_IMPLEMENTED;
+  }
+
+  virtual rtError Set(const char* name, const rtValue* value) override
   {
     //rtLogInfo("pxText::Set %s\n",name);
 #if 1

@@ -11,6 +11,7 @@ namespace rtScriptNodeUtils
 
 static const char* kClassName = "Function";
 static Persistent<v8::Function> ctor;
+std::hash<std::string> hashFn;
 
 static void jsFunctionCompletionHandler(void* argp, rtValue const& result)
 {
@@ -267,7 +268,12 @@ jsFunctionWrapper::jsFunctionWrapper(Local<Context>& ctx, const Handle<Value>& v
   , mFunction(ctx->GetIsolate(), Handle<Function>::Cast(val))
   , mComplete(false)
   , mTeardownThreadingPrimitives(false)
+  , mHash(-1)
 {
+  v8::String::Utf8Value fn(Handle<Function>::Cast(val)->ToString());
+  if (NULL != *fn) { 
+    mHash = hashFn(*fn);
+  }
   mIsolate = ctx->GetIsolate();
   mContext.Reset(ctx->GetIsolate(), ctx);
   assert(val->IsFunction());
@@ -285,6 +291,7 @@ jsFunctionWrapper::~jsFunctionWrapper()
     pthread_cond_destroy(&mCond);
 #endif
   }
+  mHash = -1;
 }
 
 void jsFunctionWrapper::setupSynchronousWait()
