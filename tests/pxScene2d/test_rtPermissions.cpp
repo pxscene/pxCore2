@@ -1165,9 +1165,11 @@ public:
     // + Allow serviceManager-s "org.rdk.allowed_1", "org.rdk.allowed_2"
     // + Allow feature "screenshot"
     // + Allow application "browser"
+#ifdef PX_SERVICE_MANAGER
     EXPECT_TRUE (allowsService("org.rdk.allowed_1"));
     EXPECT_TRUE (allowsService("org.rdk.allowed_2"));
     EXPECT_FALSE(allowsService("not.allowed"));
+#endif //PX_SERVICE_MANAGER
     EXPECT_TRUE (allowsScreenshot());
     EXPECT_TRUE (allowsLoadArchive("http://allowed.site.url"));
     EXPECT_TRUE (allowsLoadArchive("http://another.allowed.site.url:80"));
@@ -1435,6 +1437,7 @@ private:
     return RT_ERROR_NOT_ALLOWED != e;
   }
 
+#ifdef PX_SERVICE_MANAGER
   bool allowsService(const char* name)
   {
     rtString nameStr(name);
@@ -1442,6 +1445,7 @@ private:
     rtError e = mScene->getService(nameStr, returnObject);
     return RT_ERROR_NOT_ALLOWED != e;
   }
+#endif //PX_SERVICE_MANAGER
 
   bool allowsLoadArchive(const char* url)
   {
