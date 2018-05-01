@@ -75,9 +75,9 @@ using namespace std;
 #include <client/windows/handler/exception_handler.h>
 #endif
 
-#ifdef PX_SERVICE_MANAGER
+#ifdef PX_SERVICE_MANAGER_LINKED
 #include "rtservicemanager.h"
-#endif //PX_SERVICE_MANAGER
+#endif //PX_SERVICE_MANAGER_LINKED
 
 #ifndef RUNINMAIN
 class AsyncScriptInfo;
@@ -651,10 +651,10 @@ if (s && (strcmp(s,"1") == 0))
   OptimusClient::registerApi(tempObject);
 #endif //ENABLE_OPTIMUS_SUPPORT
 
-#ifdef PX_SERVICE_MANAGER
+#ifdef PX_SERVICE_MANAGER_LINKED
   RtServiceManager::start();
 
-#endif //PX_SERVICE_MANAGER
+#endif //PX_SERVICE_MANAGER_LINKED
 
   eventLoop.run();
 
