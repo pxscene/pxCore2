@@ -40,24 +40,31 @@ class rtEmitTest : public testing::Test
     {
       rtString event("eventone");
       EXPECT_TRUE (RT_OK == mEmit->setListener(event.cString(),&fnCallback));
+      EXPECT_TRUE (1 == mEmit->mEntries.size());
     }
 
     void addListenerEmptyFnTest()
     {
       rtString event("eventone");
+      size_t listenerCountBeforeAdd = mEmit->mEntries.size();
       EXPECT_TRUE (RT_ERROR == mEmit->addListener(event.cString(),NULL));
+      EXPECT_TRUE (listenerCountBeforeAdd == mEmit->mEntries.size());
     }
 
     void addListenerDuplicateEventTest()
     {
       rtString event("eventone");
+      size_t listenerCountBeforeAdd = mEmit->mEntries.size();
       EXPECT_TRUE (RT_OK == mEmit->addListener(event.cString(),&fnCallback));
+      //EXPECT_TRUE (listenerCountBeforeAdd == mEmit->mEntries.size());
     }
 
     void delListenerTest()
     {
       rtString event("eventone");
+      size_t listenerCountBeforeDel = mEmit->mEntries.size();
       EXPECT_TRUE (RT_OK == mEmit->delListener(event.cString(),&fnCallback));
+      EXPECT_TRUE (listenerCountBeforeDel - 1 == mEmit->mEntries.size());
     }
 
   private:

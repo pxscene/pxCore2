@@ -23,8 +23,10 @@ class MockImageResource : public rtImageResource {
 
     MockImageResource(const char* url = 0) { setUrl(IMAGE_URL); UNUSED_PARAM(url); }
 
-    rtError w(int32_t& v) const { v = IMAGE_WIDTH; return RT_OK;}
-    rtError h(int32_t& v) const { v = IMAGE_HEIGHT; return RT_OK; }
+    rtError w(int32_t& v) const override { v = IMAGE_WIDTH; return RT_OK;}
+    rtError h(int32_t& v) const override { v = IMAGE_HEIGHT; return RT_OK; }
+    int32_t w() const override { return IMAGE_WIDTH;}
+    int32_t h() const override { return IMAGE_HEIGHT;}
     rtError description(rtString& d) const { d = "rtImageResource"; return RT_OK; }
 };
 

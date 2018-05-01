@@ -91,6 +91,12 @@ if( fullPath !== null)
   this.loadPackage(fullPath);
 
 this.innerscene.on('onSceneTerminate', function (e) {
+    if (null != this.webSocketManager)
+    {
+       this.webSocketManager.clearConnections();
+       delete this.webSocketManager;
+    }
+    this.webSocketManager = null;
     //clear the timers and intervals on close
     var ntimers = this.timers.length;
     for (var i=0; i<ntimers; i++)
@@ -156,12 +162,6 @@ this.innerscene.on('onSceneTerminate', function (e) {
     if (null != this.sceneWrapper)
       this.sceneWrapper.close();
     this.sceneWrapper = null;
-    if (null != this.webSocketManager)
-    {
-       this.webSocketManager.clearConnections();
-       delete this.webSocketManager;
-    }
-    this.webSocketManager = null;
     this.rpcController = null;
     if (this.accessControl) {
       this.accessControl.destroy();
@@ -340,20 +340,17 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (packageUri, module
       }
     }
 
-    newSandbox = {
-      sandboxName: "InitialSandbox",
-      xmodule: xModule,
-      console: console,
-      runtime: apiForChild,
-      urlModule: require("url"),
-      queryStringModule: require("querystring"),
-      theNamedContext: "Sandbox: " + uri,
-      Buffer: Buffer,
-      importTracking: {}
-    }; // end sandbox
-
     if (!isDuk) {
-      newSandbox = Object.assign(newSandbox, {
+      newSandbox = {
+        sandboxName: "InitialSandbox",
+        xmodule: xModule,
+        console: console,
+        runtime: apiForChild,
+        urlModule: require("url"),
+        queryStringModule: require("querystring"),
+        theNamedContext: "Sandbox: " + uri,
+        Buffer: Buffer,
+        importTracking: {},
         process: process,
         require: requireMethod,
         global: global,
@@ -385,7 +382,21 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (packageUri, module
           ClearInterval(timer);
         }.bind(this),
         importTracking: {}
-      });
+      };
+    }
+    else
+    {
+      newSandbox = {
+        sandboxName: "InitialSandbox",
+        xmodule: xModule,
+        console: console,
+        runtime: apiForChild,
+        urlModule: require("url"),
+        queryStringModule: require("querystring"),
+        theNamedContext: "Sandbox: " + uri,
+        Buffer: Buffer,
+        importTracking: {}
+      }; // end sandbox
     }
 
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
