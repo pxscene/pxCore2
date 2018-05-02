@@ -189,8 +189,7 @@ TEST(pxScene2dTests, rtNodeTests)
     // printf("\n createContext() - With-Clone = %f ms\n\n", t2 );
 
     // Clone create (t2) should be significantly (4 x)  faster than Reference create.
-    EXPECT_TRUE( t2 < (t1 / 4) == true);
+    EXPECT_TRUE((t2 < (t1 / 4)) == true);
 
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 }
-

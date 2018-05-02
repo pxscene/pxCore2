@@ -124,7 +124,7 @@ extern rtScript script;
 extern uv_async_t gcTrigger;
 #endif
 extern pxContext context;
-rtThreadQueue gUIThreadQueue;
+rtThreadQueue* gUIThreadQueue = new rtThreadQueue();
 
 enum pxCurrentGLProgram { PROGRAM_UNKNOWN = 0, PROGRAM_SOLID_SHADER,  PROGRAM_A_TEXTURE_SHADER, PROGRAM_TEXTURE_SHADER,
     PROGRAM_TEXTURE_MASKED_SHADER, PROGRAM_TEXTURE_BORDER_SHADER};
@@ -1134,11 +1134,17 @@ void decodeTextureData(void* data)
     {
       pxOffscreen *decodedOffscreen = new pxOffscreen();
       pxLoadImage(compressedImageData, compressedImageDataSize, *decodedOffscreen);
-      gUIThreadQueue.addTask(onDecodeComplete, data, decodedOffscreen);
+      if (gUIThreadQueue)
+      {
+        gUIThreadQueue->addTask(onDecodeComplete, data, decodedOffscreen);
+      }
     }
     else
     {
-      gUIThreadQueue.addTask(onDecodeComplete, data, NULL);
+      if (gUIThreadQueue)
+      {
+        gUIThreadQueue->addTask(onDecodeComplete, data, NULL);
+      }
     }
   }
 }
@@ -1161,11 +1167,17 @@ void cleanupOffscreen(void* data)
     if (data != NULL && imageData->textureOffscreen.getPtr() != NULL)
     {
       imageData->textureOffscreen->freeOffscreenData();
-      gUIThreadQueue.addTask(onOffscreenCleanupComplete, data, NULL);
+      if (gUIThreadQueue)
+      {
+        gUIThreadQueue->addTask(onOffscreenCleanupComplete, data, NULL);
+      }
     }
     else
     {
-      gUIThreadQueue.addTask(onOffscreenCleanupComplete, data, NULL);
+      if (gUIThreadQueue)
+      {
+        gUIThreadQueue->addTask(onOffscreenCleanupComplete, data, NULL);
+      }
     }
   }
 }
@@ -1189,23 +1201,26 @@ public:
   {
     mTextureType = PX_TEXTURE_ALPHA;
 
-    // copy the pixels
-    int bitmapSize = ih*iw;
-    mBuffer = malloc(bitmapSize);
 
     // TODO consider iw,ih as ints rather than floats...
     int32_t bw = (int32_t)iw;
     int32_t bh = (int32_t)ih;
 
-    //memcpy(mBuffer, buffer, bitmapSize);
-    // Flip here so that we match FBO layout...
-    for (int32_t i = 0; i < bh; i++)
+    if (buffer)
     {
-      uint8_t *s = (uint8_t*)buffer+(bw*i);
-      uint8_t *d = (uint8_t*)mBuffer+(bw*(bh-i-1));
-      uint8_t *de = d+bw;
-      while(d<de)
-        *d++ = *s++;
+      // copy the pixels
+      int bitmapSize = ih*iw;
+      mBuffer = malloc(bitmapSize);
+      //memcpy(mBuffer, buffer, bitmapSize);
+      // Flip here so that we match FBO layout...
+      for (int32_t i = 0; i < bh; i++)
+      {
+        uint8_t *s = (uint8_t*)buffer+(bw*i);
+        uint8_t *d = (uint8_t*)mBuffer+(bw*(bh-i-1));
+        uint8_t *de = d+bw;
+        while(d<de)
+          *d++ = *s++;
+      }
     }
 
 // TODO Moved this to bindTexture because of more pain from JS thread calls
@@ -1262,6 +1277,23 @@ public:
     context.adjustCurrentTextureMemorySize(iw*ih);
 
     mInitialized = true;
+  }
+
+  virtual pxError updateTexture(int x, int y, int w, int h,  void* buffer)
+  {
+    // TODO Moved to here because of js threading issues
+    if (!mInitialized) createAlphaTexture(mDrawWidth,mDrawHeight,mImageWidth,mImageHeight);
+    if (!mInitialized)
+    {
+      return PX_NOTINITIALIZED;
+    }
+
+    glBindTexture(GL_TEXTURE_2D, mTextureId);   TRACK_TEX_CALLS();
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    glTexSubImage2D(GL_TEXTURE_2D,
+        0,x,y,w,h,GL_ALPHA,GL_UNSIGNED_BYTE,buffer);
+
+    return PX_OK;
   }
 
   virtual pxError deleteTexture()
@@ -1531,6 +1563,7 @@ protected:
 
 public:
   pxError draw(int resW, int resH, float* matrix, float alpha,
+            GLenum mode,
             int count,
             const void* pos,
             const void* uv,
@@ -1556,7 +1589,7 @@ public:
     glVertexAttribPointer(mUVLoc, 2, GL_FLOAT, GL_FALSE, 0, uv);
     glEnableVertexAttribArray(mPosLoc);
     glEnableVertexAttribArray(mUVLoc);
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, count);  TRACK_DRAW_CALLS();
+    glDrawArrays(mode, 0, count);  TRACK_DRAW_CALLS();
     glDisableVertexAttribArray(mPosLoc);
     glDisableVertexAttribArray(mUVLoc);
 
@@ -1966,7 +1999,7 @@ static void drawImageTexture(float x, float y, float w, float h, pxTextureRef te
     float colorPM[4];
     premultiply(colorPM,color);
 
-    if (gATextureShader->draw(gResW,gResH,gMatrix.data(),gAlpha,4,verts,uv,texture,colorPM) != PX_OK)
+    if (gATextureShader->draw(gResW,gResH,gMatrix.data(),gAlpha,GL_TRIANGLE_STRIP,4,verts,uv,texture,colorPM) != PX_OK)
     {
       drawRect2(0, 0, iw, ih, blackColor); // DEFAULT - "Missing" - BLACK RECTANGLE
     }
@@ -2127,8 +2160,9 @@ static void drawImage9Border2(GLfloat x, GLfloat y, GLfloat w, GLfloat h,
 
 #endif
 
-  const GLfloat verts[26][2] =
+  const GLfloat verts[28][2] =
       {
+          // border
           { ox1,oy2 },
           { ix1,oy2 },
           { ox1,iy2 },
@@ -2137,28 +2171,33 @@ static void drawImage9Border2(GLfloat x, GLfloat y, GLfloat w, GLfloat h,
           { ix1,iy1 },
           { ox1,oy1 },
           { ix1,oy1 },
+          { ix1,oy1 },
           { ix1,iy1 },
-          { ix2,iy1 },
           { ix2,oy1 },
+          { ix2,iy1 },
           { ox2,oy1 },
+          { ox2,iy1 },
           { ox2,iy1 },
           { ix2,iy1 },
           { ox2,iy2 },
           { ix2,iy2 },
           { ox2,oy2 },
           { ix2,oy2 },
-          { ix2,iy2 },
-          { ix1,iy2 },
-          { ix1,oy2 },
           { ix2,oy2 },
           { ix2,iy2 },
+          { ix1,oy2 },
           { ix1,iy2 },
+
+          // center
+          { ix1,iy2 },
+          { ix2,iy2 },
+          { ix1,iy1 },
           { ix2,iy1 },
-          { ix1,iy1 }
       };
 
-  const GLfloat uv[26][2] =
+  const GLfloat uv[28][2] =
       {
+          // border
           { ou1,ov1 },
           { iu1,ov1 },
           { ou1,iv1 },
@@ -2167,30 +2206,34 @@ static void drawImage9Border2(GLfloat x, GLfloat y, GLfloat w, GLfloat h,
           { iu1,iv2 },
           { ou1,ov2 },
           { iu1,ov2 },
+          { iu1,ov2 },
           { iu1,iv2 },
-          { iu2,iv2 },
           { iu2,ov2 },
+          { iu2,iv2 },
           { ou2,ov2 },
+          { ou2,iv2 },
           { ou2,iv2 },
           { iu2,iv2 },
           { ou2,iv1 },
           { iu2,iv1 },
           { ou2,ov1 },
           { iu2,ov1 },
-          { iu2,iv1 },
-          { iu1,iv1 },
-          { iu1,ov1 },
           { iu2,ov1 },
           { iu2,iv1 },
+          { iu1,ov1 },
           { iu1,iv1 },
+
+          // center
+          { iu1,iv1 },
+          { iu2,iv1 },
+          { iu1,iv2 },
           { iu2,iv2 },
-          { iu1,iv2 }
       };
 
   float colorPM[4];
   premultiply(colorPM,color);
 
-  gTextureBorderShader->draw(gResW,gResH,gMatrix.data(),gAlpha,drawCenter? 26 : 22,verts,uv,texture,pxConstantsStretch::NONE,pxConstantsStretch::NONE, colorPM);
+  gTextureBorderShader->draw(gResW,gResH,gMatrix.data(),gAlpha,drawCenter? 28 : 24,verts,uv,texture,pxConstantsStretch::NONE,pxConstantsStretch::NONE, colorPM);
 }
 
 bool gContextInit = false;
@@ -2649,6 +2692,35 @@ void pxContext::drawImage(float x, float y, float w, float h,
   drawImageTexture(x, y, w, h, t, mask, useTextureDimsAlways,
                   color? color : black, stretchX, stretchY);
 }
+
+#ifdef PXSCENE_FONT_ATLAS
+void pxContext::drawTexturedQuads(int numQuads, const void *verts, const void* uvs,
+                          pxTextureRef t, float* color)
+{
+#ifdef DEBUG_SKIP_IMAGE
+#warning "DEBUG_SKIP_IMAGE enabled ... Skipping "
+  return;
+#endif
+
+  // TRANSPARENT
+  if(gAlpha == 0.0)
+  {
+    return;
+  }
+
+  // TEXTURELESS
+  if (t.getPtr() == NULL)
+  {
+    return;
+  }
+
+  t->setLastRenderTick(gRenderTick);
+
+  float colorPM[4];
+  premultiply(colorPM,color);
+  gATextureShader->draw(gResW,gResH,gMatrix.data(),gAlpha,GL_TRIANGLES,6*numQuads,verts,uvs,t,colorPM);
+}
+#endif
 
 void pxContext::drawOffscreen(float src_x, float src_y,
                               float dst_x, float dst_y,

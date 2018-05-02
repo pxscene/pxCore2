@@ -79,9 +79,6 @@ public:
   // Fill the current path
   void fill(bool time = false);
 
-  // Stroke for the current path
-  void stroke();
-
 #ifdef RTPLATFORM_WINDOWS
   pxError drawChar(const wchar_t c);
   void drawText(const wchar_t* t, double x, double y);
@@ -107,10 +104,18 @@ public:
   void setStrokeColor(int gray, int a = 255);
   void setStrokeColor(const pxColor& c);
 
-  double alpha() const;
-  void setAlpha(double alpha);
+  // Stroke for the current path
+  enum class StrokeType { inside, outside, center };
+  void stroke();  // DEFAULT: inside
 
   void setStrokeWidth(double w);
+  double strokeWidth()    { return mStrokeWidth; };
+
+  void setStrokeType(StrokeType t);
+  StrokeType strokeType() { return mStrokeType; };
+
+  double alpha() const;
+  void setAlpha(double alpha);
 
   //void clear();
 
@@ -152,7 +157,13 @@ public:
 
   void clear();
 
-//private:
+  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+private:
+  
+  void stroke_inout(StrokeType t);
+  void stroke_inside();
+  void stroke_outside();
+  void stroke_center();
   
   // Quadratic
   void addCurve (double x1, double y1, double x2, double y2, double x3, double y3);
@@ -199,11 +210,14 @@ public:
 
   pxColor mFillColor;
 
-  pxColor mStrokeColor;
-  double  mStrokeWidth;
+  pxColor    mStrokeColor;
+  double     mStrokeWidth;
+  StrokeType mStrokeType;
 
 //  virtual void draw();
 
+  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  
 public: // BUGBUG
   pxRasterizer mRasterizer;
   pxOffscreen  mOffscreen;

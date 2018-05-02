@@ -108,7 +108,7 @@ rtRemoteValueWriter::write(rtRemoteEnvironment* env, rtValue const& from,
     case RT_stringType:   to.AddMember("value", std::string(from.toString().cString()), doc.GetAllocator()); break;
     case RT_voidPtrType:
 #if __x86_64
-      to.AddMember("Value", (uint64_t)(from.toVoidPtr()), doc.GetAllocator());
+      to.AddMember("value", (uint64_t)(from.toVoidPtr()), doc.GetAllocator());
 #else
       to.AddMember("value", (uint32_t)(from.toVoidPtr()), doc.GetAllocator());
 #endif

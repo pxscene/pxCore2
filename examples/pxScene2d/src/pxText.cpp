@@ -26,27 +26,19 @@
 
 extern pxContext context;
 
+pxText::pxText(pxScene2d* scene):pxObject(scene), mFontLoaded(false), mFontFailed(false), mDirty(true), mFontDownloadRequest(NULL), mListenerAdded(false)
 
-pxText::pxText(pxScene2d* scene):pxObject(scene), mFontLoaded(false), mFontDownloadRequest(NULL), mListenerAdded(false)
 {
   float c[4] = {1, 1, 1, 1};
   memcpy(mTextColor, c, sizeof(mTextColor));
   // Default to use default font
   mFont = pxFontManager::getFont(defaultFont);
   mPixelSize = defaultPixelSize;
-  mDirty = true;
 }
 
 pxText::~pxText()
 {
-  if (mListenerAdded)
-  {
-    if (getFontResource())
-    {
-      getFontResource()->removeListener(this);
-    }
-    mListenerAdded = false;
-  }
+  removeResourceListener();
 }
 
 void pxText::onInit()
@@ -105,7 +97,6 @@ void pxText::resourceReady(rtString readyResolution)
     // pxText gets its height and width from the text itself, 
     // so measure it
     if (getFontResource() != NULL) {
-       getFontResource()->setupFont();
        getFontResource()->measureTextInternal(mText, mPixelSize, 1.0, 1.0, mw, mh);
 	  }
 	
@@ -118,90 +109,35 @@ void pxText::resourceReady(rtString readyResolution)
   }
   else 
   {
+      mFontFailed = true;
       pxObject::onTextureReady();
       mReady.send("reject",this);
   }     
 }
        
-void pxText::update(double t)
+
+
+void pxText::draw() 
 {
-  pxObject::update(t);
-  
-#if 1
-  if (mDirty)
-  {
-#if 0
-    // TODO magic number
-    if (mText.length() >= 5)
-    {
-      setPainting(true);
-      setPainting(false);
-    }
-    else
-      setPainting(true);
-#else
-    // TODO make this configurable
-    // TODO make caching more intelligent given scaling
-    if (mText.length() >= 10 && msx == 1.0 && msy == 1.0 && mw < MAX_TEXTURE_WIDTH && mh < MAX_TEXTURE_HEIGHT)
-    {
-      mCached = NULL;
-      pxContextFramebufferRef cached = context.createFramebuffer(getFBOWidth(),getFBOHeight());
-      if (cached.getPtr())
-      {
-        pxContextFramebufferRef previousSurface = context.getCurrentFramebuffer();
-        if (context.setFramebuffer(cached) == PX_OK)
-        {
-          pxMatrix4f m;
-          context.setMatrix(m);
-          context.setAlpha(1.0);
-          context.clear(getFBOWidth(), getFBOHeight());
-          draw();
-          mCached = cached;
-        }
-        else
-        {
-          mCached = NULL;
-        }
-        context.setFramebuffer(previousSurface);
-
-      }
-    }
-    else mCached = NULL;
-    
-#endif
-    
-    mDirty = false;
-    }
-#else
-  mDirty = false;
-#endif
-  
-}
-
-void pxText::draw() {
   static pxTextureRef nullMaskRef;
   if( getFontResource() != NULL && getFontResource()->isFontLoaded())
   {
-    // TODO not very intelligent given scaling
-    if (!mDirty && msx == 1.0 && msy == 1.0 && mCached.getPtr() && mCached->getTexture().getPtr())
+
+#ifdef PXSCENE_FONT_ATLAS
+    if (mDirty)
     {
-      // TODO review the max texure size handling
-      // Should be pushed into context properly  not 1 off on every
-      // callsite
-      context.drawImage(0, 0, (mw>MAX_TEXTURE_WIDTH?MAX_TEXTURE_WIDTH:mw), (mh>MAX_TEXTURE_HEIGHT?MAX_TEXTURE_HEIGHT:mh), mCached->getTexture(), nullMaskRef);
+      getFontResource()->renderTextToQuads(mText,mPixelSize,msx,msy,mQuads);
+      mDirty = false;
     }
-    else 
-    {
+    mQuads.draw(0,0,mTextColor);
+#else
       if (getFontResource() != NULL)
       {
         getFontResource()->renderText(mText, mPixelSize, 0, 0, msx, msy, mTextColor, mw);
       }
-    }
+#endif
   }  
-  //else {
-    //if (!mFontLoaded && getFontResource()->isDownloadInProgress())
-      //getFontResource()->raiseDownloadPriority();
-    //}
+
 }
 
 rtError pxText::setFontUrl(const char* s)
@@ -211,8 +147,10 @@ rtError pxText::setFontUrl(const char* s)
     s = defaultFont;
   }
   mFontLoaded = false;
+  mFontFailed = false;
   createNewPromise();
 
+  removeResourceListener();
   mFont = pxFontManager::getFont(s);
   mListenerAdded = true;
   if (getFontResource() != NULL)
@@ -226,9 +164,11 @@ rtError pxText::setFontUrl(const char* s)
 rtError pxText::setFont(rtObjectRef o) 
 { 
   mFontLoaded = false;
+  mFontFailed = false;
   createNewPromise();
 
   // !CLF: TODO: Need validation/verification of o
+  removeResourceListener();
   mFont = o; 
   mListenerAdded = true;
   if (getFontResource() != NULL) {
@@ -269,7 +209,30 @@ float pxText::getFBOHeight()
   }
   else 
     return mh; 
-} 
+}
+
+rtError pxText::removeResourceListener()
+{
+  if (mListenerAdded)
+  {
+    if (getFontResource())
+    {
+      getFontResource()->removeListener(this);
+    }
+    mListenerAdded = false;
+  }
+  return RT_OK;
+}
+void pxText::createNewPromise()
+{
+  // Only create a new promise if the existing one has been
+  // resolved or rejected already and font did not fail
+  if(!mFontFailed && ((rtPromise*)mReady.getPtr())->status())
+  {
+    rtLogDebug("CREATING NEW PROMISE\n");
+    mReady = new rtPromise();
+  }
+}
 
 rtDefineObject(pxText, pxObject);
 rtDefineProperty(pxText, text);

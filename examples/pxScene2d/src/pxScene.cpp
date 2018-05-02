@@ -75,13 +75,9 @@ using namespace std;
 #include <client/windows/handler/exception_handler.h>
 #endif
 
-#ifdef PX_SERVICE_MANAGER
-#include "smqtrtshim.h"
+#ifdef PX_SERVICE_MANAGER_LINKED
 #include "rtservicemanager.h"
-#include "service.h"
-#include "servicemanager.h"
-#include "applicationmanagerservice.h"
-#endif //PX_SERVICE_MANAGER
+#endif //PX_SERVICE_MANAGER_LINKED
 
 #ifndef RUNINMAIN
 class AsyncScriptInfo;
@@ -89,7 +85,10 @@ vector<AsyncScriptInfo*> scriptsInfo;
 static uv_work_t nodeLoopReq;
 #endif
 
+#include "rtThreadPool.h"
+
 #include <stdlib.h>
+#include <fstream>
 
 pxEventLoop  eventLoop;
 pxEventLoop* gLoop = &eventLoop;
@@ -104,6 +103,13 @@ char** g_origArgv = NULL;
 bool gDumpMemUsage = false;
 extern bool gApplicationIsClosing;
 extern int pxObjectCount;
+
+#include "pxFont.h"
+
+#ifdef PXSCENE_FONT_ATLAS
+extern pxFontAtlas gFontAtlas;
+#endif
+
 #ifdef HAS_LINUX_BREAKPAD
 static bool dumpCallback(const google_breakpad::MinidumpDescriptor& descriptor,
 void* context, bool succeeded) {
@@ -125,6 +131,11 @@ bool dumpCallback(const wchar_t* dump_path,
 #ifdef ENABLE_CODE_COVERAGE
 extern "C" void __gcov_flush();
 #endif
+
+#ifdef ENABLE_OPTIMUS_SUPPORT
+#include "optimus_client.h"
+#endif //ENABLE_OPTIMUS_SUPPORT
+
 class sceneWindow : public pxWindow, public pxIViewContainer
 {
 public:
@@ -181,6 +192,11 @@ public:
 #endif
   }
 
+  void* getInterface(const char* /*name*/)
+  {
+     return NULL;
+  }
+  
   rtError setView(pxIView* v)
   {
     mView = v;
@@ -237,6 +253,7 @@ protected:
       gApplicationIsClosing = true;
     
     rtLogInfo(__FUNCTION__);
+    
     ENTERSCENELOCK();
     if (mView)
       mView->onCloseRequest();
@@ -249,9 +266,7 @@ protected:
 #endif
    // pxScene.cpp:104:12: warning: deleting object of abstract class type ‘pxIView’ which has non-virtual destructor will cause undefined behaviour [-Wdelete-non-virtual-dtor]
 
-  #ifdef RUNINMAIN
-     script.collectGarbage();
-  #endif
+
   ENTERSCENELOCK()
     mView = NULL;
   EXITSCENELOCK()
@@ -262,7 +277,12 @@ protected:
     free(g_origArgv);
   #endif
 
+    pxFontManager::clearAllFonts();
+    
     context.term();
+#ifdef RUNINMAIN
+    script.pump();
+#endif
     script.collectGarbage();
 
     if (gDumpMemUsage)
@@ -271,6 +291,7 @@ protected:
 #ifndef PX_PLATFORM_DFB_NON_X11
       rtLogInfo("texture memory usage is [%" PRId64 "]",context.currentTextureMemoryUsageInBytes());
 #endif
+      fflush(stdout);
 // #ifdef PX_PLATFORM_MAC
 //       rtLogInfo("texture memory usage is [%lld]",context.currentTextureMemoryUsageInBytes());
 // #else
@@ -364,6 +385,9 @@ protected:
     if (mView)
       mView->onUpdate(pxSeconds());
     EXITSCENELOCK()
+#ifdef ENABLE_OPTIMUS_SUPPORT
+    OptimusClient::pumpRemoteObjectQueue();
+#endif //ENABLE_OPTIMUS_SUPPORT
 #ifdef RUNINMAIN
     script.pump();
 #endif
@@ -502,7 +526,7 @@ if (s && (strcmp(s,"1") == 0))
         strcpy(nodeInput+curpos,argv[i]);
         *(nodeInput+curpos+strlen(argv[i])) = '\0';
         g_argv[g_argc++] = &nodeInput[curpos];
-        curpos = curpos + strlen(argv[i]) + 1;
+        curpos = curpos + (int) strlen(argv[i]) + 1;
     }
   }
   if (false == isDebugging)
@@ -536,7 +560,23 @@ if (s && (strcmp(s,"1") == 0))
   win.setTitle(buffer);
   // JRJR TODO Why aren't these necessary for glut... pxCore bug
   win.setVisibility(true);
-  win.setAnimationFPS(60);
+
+  uint32_t animationFPS = 60;
+  rtString f;
+  if (RT_OK == rtGetHomeDirectory(f))
+  {
+    f.append(".sparkFps");
+    if (rtFileExists(f))
+    {
+      std::fstream fs(f.cString(), std::fstream::in);
+      uint32_t val = 0;
+      fs >> val;
+      if (val > 0)
+        animationFPS = val;
+    }
+  }
+  rtLogInfo("Animation FPS: %lu", (unsigned long) animationFPS);
+  win.setAnimationFPS(animationFPS);
 
 #ifdef WIN32
 
@@ -606,14 +646,15 @@ if (s && (strcmp(s,"1") == 0))
 
 #endif
 
-#ifdef PX_SERVICE_MANAGER
-  SMQtRtShim::installDefaultCallback();
+#ifdef ENABLE_OPTIMUS_SUPPORT
+  rtObjectRef tempObject;
+  OptimusClient::registerApi(tempObject);
+#endif //ENABLE_OPTIMUS_SUPPORT
+
+#ifdef PX_SERVICE_MANAGER_LINKED
   RtServiceManager::start();
 
-  ServiceStruct serviceStruct = { ApplicationManagerService::SERVICE_NAME, createApplicationManagerService };
-  ServiceManager::getInstance()->registerService(ApplicationManagerService::SERVICE_NAME, serviceStruct);
-
-#endif //PX_SERVICE_MANAGER
+#endif //PX_SERVICE_MANAGER_LINKED
 
   eventLoop.run();
 

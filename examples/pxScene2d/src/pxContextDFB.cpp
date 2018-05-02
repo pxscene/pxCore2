@@ -78,7 +78,7 @@
   #define TRACK_FBO_CALLS()
 #endif
 
-rtThreadQueue gUIThreadQueue;
+rtThreadQueue* gUIThreadQueue = new rtThreadQueue();
 
 ////////////////////////////////////////////////////////////////
 
@@ -1104,6 +1104,8 @@ private:
   bool mInitialized;
 }; // CLASS - pxSwTexture
 
+typedef rtRef<pxSwTexture> pxSwTextureRef;
+static pxSwTextureRef  swRasterTexture; // aka "fullScreenTextureSoftware"
 void onDecodeComplete(void* context, void* data)
 {
   DecodeImageData* imageData = (DecodeImageData*)context;
@@ -1156,11 +1158,17 @@ void decodeTextureData(void* data)
       pxOffscreen *decodedOffscreen = new pxOffscreen();
 
       pxLoadImage(compressedImageData, compressedImageDataSize, *decodedOffscreen); // background image decode
-      gUIThreadQueue.addTask(onDecodeComplete, data, decodedOffscreen);             // queue image onto UI thread. Task will 'delete' data.
+      if (gUIThreadQueue)
+      {
+        gUIThreadQueue->addTask(onDecodeComplete, data, decodedOffscreen);
+      }             // queue image onto UI thread. Task will 'delete' data.
     }
     else
     {
-      gUIThreadQueue.addTask(onDecodeComplete, data, NULL); // Just clean up !
+      if (gUIThreadQueue)
+      {
+        gUIThreadQueue->addTask(onDecodeComplete, data, NULL); // Just clean up !
+      }
     }
   }
 }
@@ -1186,7 +1194,10 @@ void cleanupOffscreen(void* data)
       imageData->textureOffscreen->freeOffscreenData();
     }
 
-    gUIThreadQueue.addTask(onOffscreenCleanupComplete, data, NULL);
+    if (gUIThreadQueue)
+    {
+      gUIThreadQueue->addTask(onOffscreenCleanupComplete, data, NULL);
+    }
   }
 }
 
@@ -2587,9 +2598,6 @@ void pxContext::drawDiagRect(float x, float y, float w, float h, float* color)
 
   DFB_CHECK (boundFramebuffer->DrawRectangle(boundFramebuffer, x, y, w, h));
 }
-
-typedef rtRef<pxSwTexture> pxSwTextureRef;
-static pxSwTextureRef  swRasterTexture; // aka "fullScreenTextureSoftware"
 
 void pxContext::drawOffscreen(float src_x, float src_y,
                               float dst_x, float dst_y,

@@ -40,7 +40,7 @@ public:
   pxWaylandContainer(pxScene2d* scene);
   ~pxWaylandContainer();
   rtError setView(pxWayland* v);
-  virtual void dispose();
+  virtual void dispose(bool pumpJavascript);
 
   virtual void onInit();
 

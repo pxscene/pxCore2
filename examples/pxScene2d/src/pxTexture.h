@@ -62,7 +62,7 @@ public:
       delete this;
     return l;
   }
-  
+  virtual pxError updateTexture(int /*x*/, int /*y*/, int /*w*/, int /*h*/,  void* /*buffer*/) { return PX_FAIL; }
   virtual pxError bindTexture() { return PX_FAIL; }
   virtual pxError bindTextureAsMask() { return PX_FAIL; }
   virtual pxError createTexture(pxOffscreen&) { return PX_FAIL; }

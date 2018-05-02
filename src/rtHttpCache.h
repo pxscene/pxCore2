@@ -34,11 +34,11 @@ class rtHttpCacheData
   public:
     rtHttpCacheData();
     rtHttpCacheData(const char* url);
-    rtHttpCacheData(const char* url, const char* headerMetadata, const char* data, int size=0);
+    rtHttpCacheData(const char* url, const char* headerMetadata, const char* data, size_t size=0);
 
     ~rtHttpCacheData();
     /* returns the expiration date of the cache data in localtime */
-    rtString expirationDate();
+    rtString expirationDate() const;
     time_t expirationDateUnix() const;
 
     /* returns true if cache data is expired */
@@ -84,6 +84,8 @@ class rtHttpCacheData
 
     FILE* filePointer(void);
 
+    void setFileName(rtString& fileName);
+
   private:
     /* populates the map with header attribute and value */
     void populateHeaderMap();
@@ -119,6 +121,7 @@ class rtHttpCacheData
     time_t mExpirationDate;
     FILE* fp;
     bool mUpdated;
+    rtString mFileName;
 
 };
 #endif

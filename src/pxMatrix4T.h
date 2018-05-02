@@ -86,6 +86,9 @@ public:
   inline void setZ(RealT z) { mZ = z; }
   inline void setW(RealT w) { mW = w; }
   
+  inline void setXY( RealT x, RealT y) { mX = x; mY = y; }
+  inline void setXYZ(RealT x, RealT y, RealT z) { mX = x; mY = y; mZ = z; }
+  
   inline RealT x() {return mX;}
   inline RealT y() {return mY;}
   inline RealT z() {return mZ;}

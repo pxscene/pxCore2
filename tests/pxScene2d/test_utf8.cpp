@@ -8,6 +8,8 @@ extern "C"
 
 #include "test_includes.h" // Needs to be included last
 
+#define STR_SIZE 32
+
 using namespace std;
 
 class UTF8Test : public testing::Test
@@ -23,14 +25,16 @@ class UTF8Test : public testing::Test
 
     void lengthTest()
     {
-      char *str = "\x46\x6F\x6F\x20\xC2";
+      char *str = (char*)malloc(sizeof(char)*8);
+      strcpy(str,"\x46\x6F\x6F\x20\xC2");
       EXPECT_TRUE (u8_strlen(str) == 5);
     }
 
     void printTest()
     {
-      char *str = "\x46\x6F\x6F";
-      EXPECT_TRUE (u8_printf("%s",str) == 3);
+      char *str = (char*)malloc(sizeof(char)*4);
+      strcpy(str,"\x46\x6F\x6E");
+      EXPECT_TRUE (u8_printf((char*)"%s",str) == 3);
     }
 
     void charToUTF8Test()
@@ -42,29 +46,32 @@ class UTF8Test : public testing::Test
 
     void charToByteOffsetTest()
     {
-      char *str = "\x46\x6F\x6E";
+      char *str = (char*)malloc(sizeof(char)*4);
+      strcpy(str,"\x46\x6F\x6E");
       EXPECT_TRUE(1 == u8_offset(str,1));
     }
 
     void byteOffsetTocharNumTest()
     {
-      char *str = "\x46\x6F\x6E";
+      char *str = (char*)malloc(sizeof(char)*4);
+      strcpy(str,"\x46\x6F\x6E");
       EXPECT_TRUE(2 == u8_charnum(str,2));
     }
 
     void isLocaleUTF8TrueTest()
     {
-      EXPECT_TRUE (1 == u8_is_locale_utf8(".UTF-8"));
+      EXPECT_TRUE (1 == u8_is_locale_utf8((char*)".UTF-8"));
     }
 
     void isLocaleUTF8FalseTest()
     {
-      EXPECT_TRUE (0 == u8_is_locale_utf8("UTF-8"));
+      EXPECT_TRUE (0 == u8_is_locale_utf8((char*)"UTF-8"));
     }
 
     void strcharPresentTest()
     {
-      char *str = "\x46\x6F\x6E";
+      char *str = (char*)malloc(sizeof(char)*4);
+      strcpy(str,"\x46\x6F\x6E");
       int index = -1;
       char* ptr = NULL;
       ptr = u8_strchr(str,70, &index);
@@ -74,7 +81,8 @@ class UTF8Test : public testing::Test
 
     void strcharAbsentTest()
     {
-      char *str = "\x46\x6F\x6E";
+      char *str = (char*)malloc(sizeof(char)*4);
+      strcpy(str,"\x46\x6F\x6E");
       int index = -1;
       char* ptr = NULL;
       ptr = u8_strchr(str,65, &index);
@@ -84,7 +92,8 @@ class UTF8Test : public testing::Test
 
     void memcharPresentTest()
     {
-      char *str = "\x46\x6F\x6E";
+      char *str = (char*)malloc(sizeof(char)*4);
+      strcpy(str,"\x46\x6F\x6E");
       int index = -1;
       char* ptr = NULL;
       ptr = u8_memchr(str,70, 2, &index);
@@ -94,7 +103,8 @@ class UTF8Test : public testing::Test
 
     void memcharAbsentTest()
     {
-      char *str = "\x46\x6F\x6E";
+      char *str = (char*)malloc(sizeof(char)*4);
+      strcpy(str,"\x46\x6F\x6E");
       int index = -1;
       char* ptr = NULL;
       ptr = u8_memchr(str,70, 0,&index);
@@ -109,44 +119,62 @@ class UTF8Test : public testing::Test
 
     void hexDigitTest()
     {
-      EXPECT_TRUE (hex_digit('F') == 1);
+      EXPECT_TRUE (hex_digit('f') == 1);
     }
 
     void convertUTFToAsciiTest()
     {
-      char *str = "\x46\x6F\x6E";
+      char *str = (char*)malloc(sizeof(char)*32);
+      strcpy(str,"\x46\x6F\x6E");
       char buffer[10];
       memset (buffer, 0, sizeof(buffer));
-      EXPECT_TRUE (3 == u8_escape(buffer, 3, str, 0));
-    }
+      EXPECT_TRUE (3 == u8_escape(buffer, 32, str, 0));
+      
+      memset(str, 0x00, strlen(str) + 1);
+      memset(buffer, 0x00, sizeof(buffer));
+      strcpy(str,"\"u20\"");
+      EXPECT_TRUE (7 == u8_escape(buffer, 32, str, 1));
+}
 
     void convertAsciiToUTF8Test()
     {
-      char *str = "Foo";
-      char buffer[20];
+      char str[STR_SIZE] = "Foo";
+      char buffer[STR_SIZE];
       memset (buffer, 0, sizeof(buffer));
       EXPECT_TRUE (3 == u8_toutf8(buffer, 20, (u_int32_t*)str, 3));
     }
 
     void unescapeTest()
     {
-      char *str = "\\u:";
-      char buffer[20];
+      char str[STR_SIZE] = "\\u:";
+      char buffer[STR_SIZE];
       memset (buffer, 0, sizeof(buffer));
       int ret = u8_unescape(buffer,sizeof(str),str);
       EXPECT_TRUE (2 == ret);
     }
 
+    void u8_incTest()
+    {
+        char str[STR_SIZE] = "spark";
+	int charPos = 0;
+	u8_inc(str, &charPos); 
+    }
+    void u8_decTest()
+    {
+        char str[STR_SIZE] = "spark";
+	int charPos = 0;
+	u8_dec(str, &charPos);
+    }
     void seqLengthTest()
     {
-      char *str = "Foo";
+      char str[STR_SIZE] = "Foo";
       EXPECT_TRUE (1 == u8_seqlen(str));
     }
 
     void u8EscapeWcharTest()
     {
-      char buffer[100];
-      memset(buffer,0,100); 
+      char buffer[STR_SIZE];
+      memset(buffer,0,STR_SIZE); 
       EXPECT_TRUE (2 == u8_escape_wchar(buffer, 100, L'\n'));
       EXPECT_TRUE (2 == u8_escape_wchar(buffer, 100, L'\t'));
       EXPECT_TRUE (2 == u8_escape_wchar(buffer, 100, L'\r'));
@@ -156,11 +184,13 @@ class UTF8Test : public testing::Test
       EXPECT_TRUE (2 == u8_escape_wchar(buffer, 100, L'\v'));
       EXPECT_TRUE (2 == u8_escape_wchar(buffer, 100, L'\a'));
       EXPECT_TRUE (2 == u8_escape_wchar(buffer, 100, L'\\'));
-    }
+      EXPECT_TRUE (4 == u8_escape_wchar(buffer, 100, 0x7f));
+      EXPECT_TRUE (6 == u8_escape_wchar(buffer, 100, 0x80));
+}
 
     void toUTF8Test()
     {
-      char dest[100];
+      char dest[STR_SIZE];
       u_int32_t src1 = 35;
       memset(dest,0,sizeof(dest));
       EXPECT_TRUE (1 == u8_toutf8(dest, sizeof(dest), &src1,1));
@@ -178,7 +208,7 @@ class UTF8Test : public testing::Test
 
     void wctoUTF8Test()
     {
-      char dest[100];
+      char dest[STR_SIZE];
       u_int32_t src1 = 131;
       memset(dest,0,sizeof(dest));
       EXPECT_TRUE (2 == u8_wc_toutf8(dest, src1));
@@ -193,7 +223,7 @@ class UTF8Test : public testing::Test
     void readEscapeSequenceTest()
     {
       u_int32_t dest;
-      char str[1];
+      char str[1], strA[STR_SIZE];
       str[0] = 'n';
       u8_read_escape_sequence(str, &dest);
       EXPECT_TRUE (10 == dest);
@@ -215,6 +245,34 @@ class UTF8Test : public testing::Test
       str[0] = 'a';
       u8_read_escape_sequence(str, &dest);
       EXPECT_TRUE ((uint32_t)('\a') == dest);
+      str[0] = '3';
+      u8_read_escape_sequence(str, &dest);
+      EXPECT_TRUE ((uint32_t)(3) == 3);
+      dest = 0;  
+      strcpy(strA, "x0F");
+      u8_read_escape_sequence(strA, &dest);
+      EXPECT_TRUE (15 == dest);
+
+      memset(strA, 0x00, sizeof(strA)); 
+      dest = 0;      
+      strcpy(strA,"uAA");
+      u8_read_escape_sequence(strA, &dest);
+      EXPECT_TRUE (170 == dest);
+
+      memset(strA, 0x00, sizeof(strA)); 
+      dest = 0;      
+      strcpy(strA,"U2026");
+      u8_read_escape_sequence(strA, &dest);
+      EXPECT_TRUE (8230 == dest);
+    }
+
+    void u8_toucsTest()
+    {
+	u_int32_t dest[STR_SIZE] = {0};
+	char param[8] = "\u2026";
+	int retVal = u8_toucs(dest, STR_SIZE, param, sizeof(param));
+	EXPECT_TRUE (dest[0] == 8230); 
+	EXPECT_TRUE (retVal == 6); 
     }
 };
 
@@ -241,4 +299,7 @@ TEST_F(UTF8Test, UTF8Tests)
   toUTF8Test();
   wctoUTF8Test();
   readEscapeSequenceTest();
+  u8_incTest();
+  u8_decTest();
+  u8_toucsTest();
 }

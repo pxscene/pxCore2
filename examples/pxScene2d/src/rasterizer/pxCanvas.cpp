@@ -27,6 +27,7 @@
 
 #include "pxPath.h"
 #include "pxCanvas.h"
+#include "pxCanvas2d.h"
 
 #include <stdio.h>
 #include "math.h"
@@ -102,7 +103,9 @@ rtError pxCanvas::drawPath(rtObjectRef path)
 
         mCanvasCtx.moveTo(x0, y0);
 
-//        printf("\nCanvas: SVG_OP_MOVE( %.1f, %.1f ) ", x0,y0);
+        // rtLogWarn("Canvas:   SVG_OP_MOVE( x0: %.1f, y0: %.1f) ####### HF", x0, y0);
+
+//        printf("\nCanvas: SVG_OP_MOVE( x0: %.1f, y0: %.1f ) ", x0,y0);
       }
       break;
 
@@ -114,7 +117,9 @@ rtError pxCanvas::drawPath(rtObjectRef path)
 
         mCanvasCtx.lineTo(x0, y0);
 
-//        printf("\nCanvas: SVG_OP_LINE( x0: %.1f, y0: %.1f) ", x0, y0);
+        // rtLogWarn("Canvas:   SVG_OP_LINE( x0: %.1f, y0: %.1f) ####### HF", x0, y0);
+
+//       printf("\nCanvas: SVG_OP_LINE( x0: %.1f, y0: %.1f) ", x0, y0);####### HF
       }
       break;
 
@@ -176,6 +181,7 @@ rtError pxCanvas::drawPath(rtObjectRef path)
   {
     mCanvasCtx.setStrokeColor(p->mStrokeColor);
     mCanvasCtx.setStrokeWidth(p->mStrokeWidth);
+    mCanvasCtx.setStrokeType(p->mStrokeType);
     needsStroke = true;
   }
 
@@ -214,8 +220,27 @@ rtError pxCanvas::drawPath(rtObjectRef path)
     p->setExtentRight(  mCanvasCtx.extentRight  );
     p->setExtentBottom( mCanvasCtx.extentBottom );
     
-    p->setW(mCanvasCtx.extentRight  + p->mStrokeWidth);
-    p->setH(mCanvasCtx.extentBottom + p->mStrokeWidth);
+    float sw = 0;
+    
+    p->strokeWidth(sw); // GET current Stroke Width
+    
+    switch( mCanvasCtx.strokeType() )
+    {
+      case pxCanvas2d::StrokeType::inside:  sw  = 0; break;
+      case pxCanvas2d::StrokeType::outside: sw *= 2; break;
+      case pxCanvas2d::StrokeType::center:  /* ok */ break;
+    }
+    
+    // Set path POSITION
+//    p->setX(mCanvasCtx.extentLeft);
+//    p->setY(mCanvasCtx.extentTop);
+    
+//    float w = (mCanvasCtx.extentRight  - mCanvasCtx.extentLeft);
+//    float h = (mCanvasCtx.extentBottom - mCanvasCtx.extentTop);
+//    
+//    // Set path DIMENSIONS
+//    p->setW(w + sw);
+//    p->setH(h + sw);
  }
   
   return RT_OK;

@@ -47,7 +47,6 @@ int main(int argc, char **argv) {
   gargc = argc;
   gargv = argv;
 #ifdef ENABLE_DEBUG_MODE
-  int urlIndex  = -1;
   bool isDebugging = false;
   g_argv = (char**)malloc((argc+2) * sizeof(char*));
   int size  = 0;
@@ -59,13 +58,6 @@ int main(int argc, char **argv) {
       if (strstr(argv[i],"--debug"))
       {
         isDebugging = true;
-      }
-    }
-    else
-    {
-      if (strstr(argv[i],".js"))
-      {
-        urlIndex = i;
       }
     }
   }

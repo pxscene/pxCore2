@@ -261,13 +261,8 @@ class pxMatrix4Test : public testing::Test
 
 TEST_F(pxMatrix4Test, pxMatrix4CompleteTest)
 {
-#pragma optimize( "", off )
-
     pxMatrix4TSinCosTestD();
     pxMatrix4TSinCosTestF();
-
-#pragma optimize( "", on )
-
     pxMatrix4TVector4Test();
     pxMatrix4TidentityTest();
     pxMatrix4TisIdentityTest();
@@ -280,6 +275,4 @@ TEST_F(pxMatrix4Test, pxMatrix4CompleteTest)
     pxMatrix4Trotate2Test();
     pxMatrix4TtransposeTest();
     pxMatrix4TinvertTest();
-
 }
-
