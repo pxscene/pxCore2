@@ -1,6 +1,6 @@
 /*
 
- pxCore Copyright 2005-2017 John Robinson
+ pxCore Copyright 2005-2018 John Robinson
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -62,7 +62,7 @@ public:
       delete this;
     return l;
   }
-  
+  virtual pxError updateTexture(int /*x*/, int /*y*/, int /*w*/, int /*h*/,  void* /*buffer*/) { return PX_FAIL; }
   virtual pxError bindTexture() { return PX_FAIL; }
   virtual pxError bindTextureAsMask() { return PX_FAIL; }
   virtual pxError createTexture(pxOffscreen&) { return PX_FAIL; }

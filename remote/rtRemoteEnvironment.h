@@ -1,3 +1,21 @@
+/*
+
+pxCore Copyright 2005-2018 John Robinson
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+*/
+
 #ifndef __RT_REMOTE_ENVIRONMENT_H__
 #define __RT_REMOTE_ENVIRONMENT_H__
 
@@ -44,7 +62,7 @@ public:
   void registerResponseHandler(rtRemoteMessageHandler handler, void* argp, rtRemoteCorrelationKey const& k);
   void removeResponseHandler(rtRemoteCorrelationKey const& k);
   void enqueueWorkItem(std::shared_ptr<rtRemoteClient> const& clnt, rtRemoteMessagePtr const& doc);
-  rtError processSingleWorkItem(std::chrono::milliseconds timeout, bool wait, rtRemoteCorrelationKey* key);
+  rtError processSingleWorkItem(std::chrono::milliseconds timeout, bool wait, rtRemoteCorrelationKey* key, const rtRemoteCorrelationKey* const specificKey = nullptr);
   rtError waitForResponse(std::chrono::milliseconds timeout, rtRemoteCorrelationKey key);
 
 private:
@@ -62,6 +80,7 @@ private:
 
   using ResponseHandlerMap = std::map< rtRemoteCorrelationKey, rtRemoteCallback<rtRemoteMessageHandler> >;
   using ResponseMap = std::map< rtRemoteCorrelationKey, ResponseState >;
+  using WorkItemMap = std::map< rtRemoteCorrelationKey, WorkItem >;
 
   void processRunQueue();
 
@@ -80,6 +99,7 @@ private:
   bool                          m_running;
   ResponseHandlerMap            m_response_handlers;
   ResponseMap                   m_waiters;
+  WorkItemMap                   m_specific_workitem_map; // Store workitems for pending requests here, not m_queue
   rtRemoteQueueReady            m_queue_ready_handler;
   void*                         m_queue_ready_context;
 };

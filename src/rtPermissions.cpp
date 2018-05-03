@@ -1,6 +1,6 @@
 /*
 
- pxCore Copyright 2005-2017 John Robinson
+ pxCore Copyright 2005-2018 John Robinson
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -164,7 +164,6 @@ rtPermissions::permissionsMap_t rtPermissions::permissionsObjectToMap(const rtOb
 
 rtPermissions::rtPermissions(const char* origin)
   : mParent(NULL)
-  , mRef(0)
 {
   loadConfig();
 
@@ -319,3 +318,11 @@ rtError rtPermissions::allows(const char* s, rtPermissions::Type type, bool& o) 
 
   return (o && mParent) ? mParent->allows(s, type, o) : RT_OK;
 }
+
+rtError rtPermissions::allows(const rtString& url, bool& o) const
+{
+  return allows(url.cString(), rtPermissions::DEFAULT, o);
+}
+
+rtDefineObject(rtPermissions, rtObject);
+rtDefineMethod(rtPermissions, allows);

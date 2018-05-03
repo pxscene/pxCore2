@@ -1,3 +1,21 @@
+/*
+
+pxCore Copyright 2005-2018 John Robinson
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+*/
+
 //"use strict";
 
 var isDuk=(typeof timers != "undefined")?true:false;
@@ -91,6 +109,12 @@ if( fullPath !== null)
   this.loadPackage(fullPath);
 
 this.innerscene.on('onSceneTerminate', function (e) {
+    if (null != this.webSocketManager)
+    {
+       this.webSocketManager.clearConnections();
+       delete this.webSocketManager;
+    }
+    this.webSocketManager = null;
     //clear the timers and intervals on close
     var ntimers = this.timers.length;
     for (var i=0; i<ntimers; i++)
@@ -156,12 +180,6 @@ this.innerscene.on('onSceneTerminate', function (e) {
     if (null != this.sceneWrapper)
       this.sceneWrapper.close();
     this.sceneWrapper = null;
-    if (null != this.webSocketManager)
-    {
-       this.webSocketManager.clearConnections();
-       delete this.webSocketManager;
-    }
-    this.webSocketManager = null;
     this.rpcController = null;
     if (this.accessControl) {
       this.accessControl.destroy();
@@ -340,20 +358,17 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (packageUri, module
       }
     }
 
-    newSandbox = {
-      sandboxName: "InitialSandbox",
-      xmodule: xModule,
-      console: console,
-      runtime: apiForChild,
-      urlModule: require("url"),
-      queryStringModule: require("querystring"),
-      theNamedContext: "Sandbox: " + uri,
-      Buffer: Buffer,
-      importTracking: {}
-    }; // end sandbox
-
     if (!isDuk) {
-      newSandbox = Object.assign(newSandbox, {
+      newSandbox = {
+        sandboxName: "InitialSandbox",
+        xmodule: xModule,
+        console: console,
+        runtime: apiForChild,
+        urlModule: require("url"),
+        queryStringModule: require("querystring"),
+        theNamedContext: "Sandbox: " + uri,
+        Buffer: Buffer,
+        importTracking: {},
         process: process,
         require: requireMethod,
         global: global,
@@ -385,7 +400,21 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (packageUri, module
           ClearInterval(timer);
         }.bind(this),
         importTracking: {}
-      });
+      };
+    }
+    else
+    {
+      newSandbox = {
+        sandboxName: "InitialSandbox",
+        xmodule: xModule,
+        console: console,
+        runtime: apiForChild,
+        urlModule: require("url"),
+        queryStringModule: require("querystring"),
+        theNamedContext: "Sandbox: " + uri,
+        Buffer: Buffer,
+        importTracking: {}
+      }; // end sandbox
     }
 
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

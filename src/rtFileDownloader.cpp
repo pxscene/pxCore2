@@ -1,6 +1,6 @@
 /*
 
- rtCore Copyright 2005-2017 John Robinson
+ pxCore Copyright 2005-2018 John Robinson
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -638,7 +638,6 @@ void rtFileDownloader::downloadFile(rtFileDownloadRequest* downloadRequest)
         else
         {
           rtFileCache::instance()->addToCache(downloadedData);
-          rtLogInfo("Cache expiration(%s)", cachedData.expirationDate().cString());
         }
         mFileCacheMutex.unlock();
       }
@@ -661,8 +660,7 @@ void rtFileDownloader::downloadFile(rtFileDownloadRequest* downloadRequest)
         rtError err = rtFileCache::instance()->addToCache(cachedData);
         if (RT_OK != err)
           rtLogWarn("Adding url to cache failed (%s)", url.cString());
-        else
-          rtLogInfo("Cache expiration(%s)", cachedData.expirationDate().cString());
+        
         mFileCacheMutex.unlock();
       }
     }
