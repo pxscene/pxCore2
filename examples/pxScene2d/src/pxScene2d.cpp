@@ -1,6 +1,6 @@
 /*
 
- pxCore Copyright 2005-2017 John Robinson
+ pxCore Copyright 2005-2018 John Robinson
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -3266,13 +3266,11 @@ rtError pxScene2d::getService(rtString name, rtObjectRef& returnObject)
   rtLogDebug("inside getService");
   returnObject = NULL;
 
-#ifdef ENABLE_PERMISSIONS_CHECK
-  rtPermissionsCheck(mPermissions, name.cString(), rtPermissions::SERVICE)
-#endif
-
   // Create context from requesting scene
   rtObjectRef ctx = new rtMapObject();
   ctx.set("url", mScriptView != NULL ? mScriptView->getUrl() : "");
+  rtValue permissionsValue = mPermissions.getPtr();
+  ctx.set("permissions", permissionsValue);
 
   return getService(name, ctx, returnObject);
 }
@@ -3360,6 +3358,19 @@ rtError pxScene2d::getService(const char* name, const rtObjectRef& ctx, rtObject
 
     rtLogInfo("trying to get service for name: %s", name);
   #ifdef PX_SERVICE_MANAGER
+    #ifdef ENABLE_PERMISSIONS_CHECK
+    rtPermissionsRef serviceCheckPermissions = mPermissions;
+    rtValue permissionsValue;
+    if (ctx.get("permissions", permissionsValue) == RT_OK)
+    {
+      rtObjectRef permissionsRef;
+      if (permissionsValue.getObject(permissionsRef) == RT_OK)
+      {
+        serviceCheckPermissions = permissionsRef;
+      }
+    }
+    rtPermissionsCheck(serviceCheckPermissions, name, rtPermissions::SERVICE)
+    #endif //ENABLE_PERMISSIONS_CHECK
     rtObjectRef serviceManager;
     rtError result = pxServiceManager::findServiceManager(serviceManager);
     if (result != RT_OK)
