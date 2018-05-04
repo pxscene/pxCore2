@@ -17,7 +17,6 @@ limitations under the License.
 */
 
 #include <sstream>
-#include <stdlib.h>
 
 #include "rtPermissions.h"
 #include "pxScene2d.h"
@@ -1073,7 +1072,7 @@ public:
 
   void testDefaultConfig()
   {
-    // This test uses default Bootstrap config (./pxscenepermissions.conf)
+    // This test uses default Bootstrap config
 
     // "*" : "default"
     EXPECT_TRUE (allows("http://any.web.site", rtPermissions::DEFAULT, "http://default.web.site"));
@@ -1434,17 +1433,13 @@ public:
 private:
   bool allows(const char* url, rtPermissions::Type type)
   {
-    bool a;
-    EXPECT_TRUE (RT_OK == mPermissions->allows(url, type, a));
-    return a;
+    return RT_OK == mPermissions->allows(url, type);
   }
 
   bool allows(const char* url, rtPermissions::Type type, const char* origin)
   {
     rtPermissionsRef permissions = new rtPermissions(origin);
-    bool allows;
-    EXPECT_EQ ((int)RT_OK, (int)permissions->allows(url, type, allows));
-    return allows;
+    return RT_OK == permissions->allows(url, type);
   }
 
   bool allowsScreenshot()

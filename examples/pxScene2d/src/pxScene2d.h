@@ -1540,7 +1540,8 @@ public:
   rtError loadArchive(const rtString& url, rtObjectRef& archive)
   {
 #ifdef ENABLE_PERMISSIONS_CHECK
-    rtPermissionsCheck(mPermissions, url.cString(), rtPermissions::DEFAULT)
+    if (RT_OK != mPermissions->allows(url, rtPermissions::DEFAULT))
+      return RT_ERROR_NOT_ALLOWED;
 #endif
 
     rtError e = RT_FAIL;
