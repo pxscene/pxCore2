@@ -2338,7 +2338,17 @@ void pxContext::init()
 //  glUseProgram(program);
 
 //  gprogram = program;
-  setTextureMemoryLimit(PXSCENE_DEFAULT_TEXTURE_MEMORY_LIMIT_IN_BYTES);
+  int64_t maxTextureMemory = PXSCENE_DEFAULT_TEXTURE_MEMORY_LIMIT_IN_BYTES;
+  char const* s = getenv("SPARK_TEXTURE_LIMIT_IN_MB");
+  if (s)
+  {
+    int64_t textureMemoryLimit = atoi(s) * 1024 * 1024;
+    if (textureMemoryLimit > PXSCENE_DEFAULT_TEXTURE_MEMORY_LIMIT_IN_BYTES)
+    {
+      maxTextureMemory = textureMemoryLimit;
+    }
+  }
+  setTextureMemoryLimit(maxTextureMemory);
 
 #if defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL)
   defaultEglContext = eglGetCurrentContext();
@@ -2994,6 +3004,9 @@ void pxContext::adjustCurrentTextureMemorySize(int64_t changeInBytes)
 
 void pxContext::setTextureMemoryLimit(int64_t textureMemoryLimitInBytes)
 {
+#ifdef ENABLE_PX_SCENE_TEXTURE_USAGE_MONITORING
+  rtLogInfo("texture memory limit set to %" PRId64 " bytes", textureMemoryLimitInBytes);
+#endif //ENABLE_PX_SCENE_TEXTURE_USAGE_MONITORING
   mTextureMemoryLimitInBytes = textureMemoryLimitInBytes;
 }
 
