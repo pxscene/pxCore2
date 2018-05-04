@@ -26,7 +26,7 @@ else
 fi
 
 rm -rf /tmp/cache/*
-rm -rf $TRAVIS_BUILD_DIR/logs/*
+#rm -rf $TRAVIS_BUILD_DIR/logs/*
 
 export VALGRINDLOGS=$TRAVIS_BUILD_DIR/logs/valgrind_logs
 export PX_DUMP_MEMUSAGE=1

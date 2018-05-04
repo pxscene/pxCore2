@@ -2,7 +2,6 @@
 
 export DUKTAPE_SUPPORT=ON
 touch ~/.sparkUseDuktape
-rm -rf $TRAVIS_BUILD_DIR/logs
 pwd
 
 validateExe()
@@ -23,6 +22,7 @@ validateExe "$?" "duktape_install.sh"
 sh $TRAVIS_BUILD_DIR/ci/script.sh
 validateExe "$?" "script.sh"
 
+#The check [ $DUKTAPE_SUPPORT != "ON" ] needs to be removed, once code coverage starts working fine duktape.
 
 if ( [ "$TRAVIS_EVENT_TYPE" = "push" ] || [ "$TRAVIS_EVENT_TYPE" = "pull_request" ] ) && [ $DUKTAPE_SUPPORT != "ON" ] ; then 
   codecov --build "$TRAVIS_OS_NAME-$TRAVIS_COMMIT-$TRAVIS_BUILD_NUMBER" -X gcov -f $TRAVIS_BUILD_DIR/tracefile ; 
@@ -32,6 +32,7 @@ if ( [ "$TRAVIS_EVENT_TYPE" = "push" ] || [ "$TRAVIS_EVENT_TYPE" = "pull_request
   genhtml -o $TRAVIS_BUILD_DIR/logs/codecoverage $TRAVIS_BUILD_DIR/tracefile;
 fi
 
+mv $TRAVIS_BUILD_DIR/logs $TRAVIS_BUILD_DIR/duktape_logs
 
-sh $TRAVIS_BUILD_DIR/ci/after_script.sh
-validateExe "$?" "after_script.sh"
+#sh $TRAVIS_BUILD_DIR/ci/after_script.sh
+#validateExe "$?" "after_script.sh"

@@ -24,9 +24,10 @@ script:
 - ./ci/script.sh
 - if [ "$TRAVIS_EVENT_TYPE" = "push" ] || [ "$TRAVIS_EVENT_TYPE" = "pull_request" ]; then codecov --build "$TRAVIS_OS_NAME-$TRAVIS_COMMIT-$TRAVIS_BUILD_NUMBER" -X gcov -f $TRAVIS_BUILD_DIR/tracefile ; fi
 - if [ "$TRAVIS_EVENT_TYPE" = "push" ] || [ "$TRAVIS_EVENT_TYPE" = "pull_request" ]; then genhtml -o $TRAVIS_BUILD_DIR/logs/codecoverage $TRAVIS_BUILD_DIR/tracefile; fi
-- ./ci/after_script.sh
-- ./ci/execute_duktape.sh 
+- if [ "$TRAVIS_EVENT_TYPE" = "push" ] || [ "$TRAVIS_EVENT_TYPE" = "pull_request" ]; then mv $TRAVIS_BUILD_DIR/logs $TRAVIS_BUILD_DIR/node_logs ; fi
+- ./ci/testDuktape.sh
 after_script:
+- ./ci/after_script.sh
 - if [ "$TRAVIS_EVENT_TYPE" != "pull_request" ]; then  rm -rf /tmp/pxscene-build.pem; fi
 addons:
   ssh_known_hosts: 96.116.56.119
