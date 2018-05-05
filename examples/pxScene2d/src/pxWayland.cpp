@@ -500,8 +500,7 @@ uint32_t pxWayland::getModifiers( uint32_t flags )
 
 bool pxWayland::isRotated()
 {
-   pxMatrix4f matrix = context.getMatrix();
-   float *f = matrix.data(); 
+   float *f= context.getMatrix().data();
    const float e= 1.0e-2;
 
    if ( (fabsf(f[1]) > e) ||
