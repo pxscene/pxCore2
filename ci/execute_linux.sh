@@ -132,7 +132,6 @@ printf "\n\n -------------------------------- \n\n"
 printExecLogs
 printf "\n\n -------------------------------- \n\n"
 
-
 #if [ "$pxRetVal" -eq 0 ]
 #	then
 #	echo "************************** pxobject count success **************************";
