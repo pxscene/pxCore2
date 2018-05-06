@@ -165,6 +165,8 @@ void pxImage::sendPromise()
   if(mInitialized && imageLoaded && !((rtPromise*)mReady.getPtr())->status()) 
   {
       //rtLogDebug("pxImage SENDPROMISE for %s\n", mUrl.cString());
+      printf("MADANA SENDING PROMISE READY FOR IMAGE [%p] [%s] \n",this,getImageResource()->getUrl());
+      fflush(stdout);
       mReady.send("resolve",this); 
   }
 }
