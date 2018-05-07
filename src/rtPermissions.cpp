@@ -164,7 +164,7 @@ rtPermissions::permissionsMap_t rtPermissions::permissionsObjectToMap(const rtOb
   return ret;
 }
 
-rtPermissions::rtPermissions(const char* origin)
+rtPermissions::rtPermissions(const char* origin, const char* filepath)
   : mParent(NULL)
 {
   static bool didCheck = false;
@@ -185,7 +185,7 @@ rtPermissions::rtPermissions(const char* origin)
 
   if (mEnabled)
   {
-    loadConfig();
+    loadConfig(filepath);
 
     if (origin && *origin && !mAssignMap.empty())
     {
@@ -210,33 +210,32 @@ rtPermissions::~rtPermissions()
 {
 }
 
-rtError rtPermissions::loadConfig()
+rtError rtPermissions::loadConfig(const char* filepath)
 {
-  char const* s = getenv(CONFIG_ENV_NAME);
-  if (!s)
-  {
-    s = DEFAULT_CONFIG_FILE;
-  }
-  if (mConfigPath == s)
-  {
-    // already did try this path
+  if (!filepath)
+    filepath = getenv(CONFIG_ENV_NAME);
+
+  if (!filepath)
+    filepath = DEFAULT_CONFIG_FILE;
+
+  // do not reload
+  if (mConfigPath == filepath)
     return RT_OK;
-  }
 
   // try load... first clean up previous config
   mAssignMap.clear();
   mRolesMap.clear();
   mConfigPath.clear();
-  mConfigPath = s;
+  mConfigPath = filepath;
 
   rtString currentDir;
   rtGetCurrentDirectory(currentDir);
   rtLogDebug("%s : currentDir='%s'", __FUNCTION__, currentDir.cString());
 
-  FILE* fp = fopen(s, "rb");
+  FILE* fp = fopen(filepath, "rb");
   if (NULL == fp)
   {
-    rtLogDebug("%s : cannot open '%s'", __FUNCTION__, s);
+    rtLogWarn("%s : cannot open '%s'", __FUNCTION__, filepath);
     return RT_FAIL;
   }
 

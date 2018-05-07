@@ -32,7 +32,7 @@ typedef rtRef<rtPermissions> rtPermissionsRef;
 class rtPermissions : public rtObject
 {
 public:
-  rtPermissions(const char* origin = NULL);
+  rtPermissions(const char* origin = NULL, const char* filepath = NULL);
   virtual ~rtPermissions();
 
   rtDeclareObject(rtPermissions, rtObject);
@@ -71,7 +71,7 @@ protected:
   static const int CONFIG_BUFFER_SIZE;
   static const char* ENABLED_ENV_NAME;
   static const char* CONFIG_ENV_NAME;
-  static rtError loadConfig();
+  static rtError loadConfig(const char* filepath);
   static assignMap_t mAssignMap;
   static roleMap_t mRolesMap;
   static std::string mConfigPath;
