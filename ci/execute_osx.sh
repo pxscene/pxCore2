@@ -88,7 +88,7 @@ while [ "$count" -le "$max_seconds" ]; do
 	count=$((count+30)) # add 30 seconds
 done #LOOP
 
-grep -n "WARNING: ThreadSanitizer: data race" /var/tmp/pxscene.log
+grep -n "WARNING: ThreadSanitizer:" /var/tmp/pxscene.log
 if [ "$?" -eq 0 ]
     then
     checkError -1 "Testcase Failure" "Race Condition detected" "Compile spark with -DENABLE_THREAD_SANITIZER=ON option and test with tests.json file. Verify the pxscene.log file."
