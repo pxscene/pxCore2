@@ -1450,7 +1450,8 @@ inline pxError draw_TEXTURE(int resW, int resH, float* matrix, float alpha,
 // MASK
 inline pxError draw_MASK(int resW, int resH, float* matrix, float alpha,
                       DFBRectangle /*&src*/, DFBRectangle /*&dst*/,
-                      pxTextureRef texture, pxTextureRef mask)
+                      pxTextureRef texture, pxTextureRef mask,
+                      pxConstantsMaskOp::constants maskOp = pxConstantsMaskOp::NORMAL)
 {
   (void) resW; (void) resH; (void) matrix; (void) alpha; (void) texture;
 
@@ -1516,6 +1517,9 @@ inline pxError draw_MASK(int resW, int resH, float* matrix, float alpha,
 
       // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
       // Output....
+
+     // TODO:  maskOp will affect the blending functions here.
+
       DFB_CHECK(boundFramebuffer->SetBlittingFlags(boundFramebuffer,
             DFBSurfaceBlittingFlags( DSBLIT_BLEND_ALPHACHANNEL) ));
 
@@ -1680,7 +1684,8 @@ static void drawRectOutline(float x, float y, float w, float h, float lw, const 
 static void drawImageTexture(float x, float y, float w, float h, pxTextureRef texture,
                              pxTextureRef mask, bool useTextureDimsAlways, float* color, // default: "color = BLACK"
                              pxConstantsStretch::constants xStretch,
-                             pxConstantsStretch::constants yStretch)
+                             pxConstantsStretch::constants yStretch,
+                             pxConstantsMaskOp::constants maskOp = pxConstantsMaskOp::constants::NORMAL)
 {
   // args are tested at call site...
 
@@ -1823,7 +1828,7 @@ static void drawImageTexture(float x, float y, float w, float h, pxTextureRef te
 
   if (mask.getPtr() != NULL)
   {
-      if (textureBindFailure || draw_MASK(gResW, gResH, gMatrix.data(), gAlpha, src, dst, texture, mask) != PX_OK)
+      if (textureBindFailure || draw_MASK(gResW, gResH, gMatrix.data(), gAlpha, src, dst, texture, mask, maskOp) != PX_OK)
       {
         drawRect2(0, 0, iw, ih, blackColor);
       }
@@ -2498,12 +2503,27 @@ void pxContext::drawImage9Border(float w, float h,
   drawImage92(0, 0, w, h, ix1, iy1, ix2, iy2, texture);
 }
 
+// convenience method
+void pxContext::drawImageMasked(float x, float y, float w, float h,
+                                pxConstantsMaskOp::constants maskOp,
+                                pxTextureRef t, pxTextureRef mask)
+{
+  this->drawImage(x, y, w, h, t , mask,
+                    /* useTextureDimsAlways = */ true, /*color = */ NULL,      // DEFAULT
+                    /*             stretchX = */ pxConstantsStretch::STRETCH,  // DEFAULT
+                    /*             stretchY = */ pxConstantsStretch::STRETCH,  // DEFAULT
+                    /*      downscaleSmooth = */ false,                        // DEFAULT
+                                                 maskOp                        // PARAMETER
+                    );
+};
+
 void pxContext::drawImage(float x, float y, float w, float h,
                         pxTextureRef t, pxTextureRef mask,
                         bool useTextureDimsAlways, float* color,
                         pxConstantsStretch::constants stretchX,
                         pxConstantsStretch::constants stretchY,
-                        bool downscaleSmooth)
+                        bool downscaleSmooth,
+                        pxConstantsMaskOp::constants maskOp     /* = pxConstantsMaskOp::NORMAL */ )
 {
 #ifdef DEBUG_SKIP_IMAGE
 #warning "DEBUG_SKIP_IMAGE enabled ... Skipping "
@@ -2541,7 +2561,7 @@ void pxContext::drawImage(float x, float y, float w, float h,
 
   float black[4] = {0,0,0,1};
   drawImageTexture(x, y, w, h, t, mask, useTextureDimsAlways,
-                  color? color : black, stretchX, stretchY);
+                  color? color : black, stretchX, stretchY, maskOp);
 }
 
 void pxContext::drawDiagRect(float x, float y, float w, float h, float* color)
