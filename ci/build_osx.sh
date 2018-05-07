@@ -47,9 +47,9 @@ then
   echo "***************************** Generating config files ****" >> $BUILDLOGS
   if [ "$TRAVIS_EVENT_TYPE" != "cron" ] && [ "$TRAVIS_EVENT_TYPE" != "api" ] ;
   then
-    cmake -DBUILD_PX_TESTS=ON -DBUILD_PXSCENE_STATIC_LIB=ON -DBUILD_DEBUG_METRICS=ON .. >>$BUILDLOGS 2>&1;
+    cmake -DBUILD_PX_TESTS=ON -DBUILD_PXSCENE_STATIC_LIB=ON -DBUILD_DEBUG_METRICS=ON -DENABLE_THREAD_SANITIZER=ON .. >>$BUILDLOGS 2>&1;
   else
-    cmake .. >>$BUILDLOGS 2>&1;
+    cmake -DENABLE_THREAD_SANITIZER=ON .. >>$BUILDLOGS 2>&1;
   fi
 
   checkError $? 0 "cmake config failed" "Config error" "Check the error in $BUILDLOGS"
@@ -61,7 +61,7 @@ then
 else
 
   echo "***************************** Generating config files ****"
-  cmake -DBUILD_PX_TESTS=ON -DBUILD_PXSCENE_STATIC_LIB=ON -DBUILD_DEBUG_METRICS=OFF .. 1>>$BUILDLOGS;
+  cmake -DBUILD_PX_TESTS=ON -DBUILD_PXSCENE_STATIC_LIB=ON -DBUILD_DEBUG_METRICS=OFF -DENABLE_THREAD_SANITIZER=ON .. 1>>$BUILDLOGS;
   checkError $? 1  "cmake config failed" "Config error" "Check the errors displayed in this window"
 
   echo "***************************** Building pxcore,rtcore,pxscene app,libpxscene,unitttests ****" >> $BUILDLOGS

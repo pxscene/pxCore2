@@ -15,7 +15,7 @@ checkError()
   if [ "$1" -ne 0 ]
   then
         printf "\n\n*********************************************************************";
-        printf "\n********************* BUILD FAIL DETAILS ******************************";
+        printf "\n******************** BUILD FAIL DETAILS *****************************";
         printf "\nCI failure reason: $2"
         printf "\nCause: $3"
         printf "\nReproduction/How to fix: $4"
@@ -87,6 +87,13 @@ while [ "$count" -le "$max_seconds" ]; do
 
 	count=$((count+30)) # add 30 seconds
 done #LOOP
+
+grep -n "WARNING: ThreadSanitizer: data race" /var/tmp/pxscene.log
+if [ "$?" -eq 0 ]
+    then
+    checkError -1 "Testcase Failure" "Race Condition detected" "Compile spark with -DENABLE_THREAD_SANITIZER=ON option and test with tests.json file. Verify the pxscene.log file."
+    exit 1
+fi
 
 # Handle crash - 'dumped_core = 1' ?
 if [ "$dumped_core" -eq 1 ]
