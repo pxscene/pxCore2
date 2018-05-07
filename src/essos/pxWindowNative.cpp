@@ -304,8 +304,31 @@ pxError pxWindow::init(int left, int top, int width, int height)
             }
         }
 
+        int keyInitialDelay = 500;
+        char const *keyDelay = getenv("SPARK_KEY_INITIAL_DELAY");
+        if (keyDelay)
+        {
+            int value = atoi(keyDelay);
+            if (value > 0)
+            {
+                keyInitialDelay = value;
+            }
+        }
+
+        int keyRepeatInterval = 250;
+        char const *repeatInterval = getenv("SPARK_KEY_REPEAT_INTERVAL");
+        if (repeatInterval)
+        {
+            int value = atoi(repeatInterval);
+            if (value > 0)
+            {
+                keyRepeatInterval = value;
+            }
+        }
+
         bool error = false;
         rtLogInfo("using wayland: %s\n", useWayland ? "true" : "false");
+        rtLogInfo("initial key delay: %d repeat interval: %d", keyInitialDelay, keyRepeatInterval);
         d->ctx = EssContextCreate();
 
         if (d->ctx)
@@ -325,6 +348,14 @@ pxError pxWindow::init(int left, int top, int width, int height)
             }
 
             if ( !EssContextSetPointerListener( d->ctx, 0, &pointerListener ) )
+            {
+                error = true;
+            }
+            if ( !EssContextSetKeyRepeatInitialDelay(d->ctx, keyInitialDelay))
+            {
+                error = true;
+            }
+            if ( !EssContextSetKeyRepeatPeriod(d->ctx, keyRepeatInterval))
             {
                 error = true;
             }

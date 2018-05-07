@@ -26,11 +26,14 @@
 #include "rtRef.h"
 #include "pxResource.h"
 #include "pxUtil.h"
+#include "rtThreadPool.h"
 
 using namespace std;
 
 extern rtThreadQueue* gUIThreadQueue;
 extern pxContext context;
+
+rtThreadPool textureCreateThreadPool(1);
 
 pxResource::~pxResource() 
 {
@@ -248,8 +251,8 @@ void pxResource::raiseDownloadPriority()
 /**********************************************************************/
 /**********************************************************************/
 
-rtImageResource::rtImageResource(const char* url, const char* proxy) : pxResource(), mTexture(), mTextureMutex(), mImageOffscreen(),
-                                                                       mCompressedData(NULL), mCompressedDataSize(0)
+rtImageResource::rtImageResource(const char* url, const char* proxy) : pxResource(), mTexture(), mDownloadedTexture(), mTextureMutex(),
+                                                                       mDownloadComplete(false)
 {
   setUrl(url, proxy);
 }
@@ -257,7 +260,6 @@ rtImageResource::~rtImageResource()
 {
   //rtLogDebug("destructor for rtImageResource for %s\n",mUrl.cString());
   //pxImageManager::removeImage( mUrl);
-  clearDownloadedData();
 }
   
 unsigned long rtImageResource::Release() 
@@ -322,50 +324,49 @@ pxTextureRef rtImageResource::getTexture(bool initializing)
   if (!mTexture.getPtr() && (isInitialized() || initializing))
   {
     mTextureMutex.lock();
-    if (mCompressedData != NULL)
+    if (mDownloadComplete)
     {
-      mTexture = context.createTexture(mImageOffscreen, mCompressedData, mCompressedDataSize);
-      delete [] mCompressedData;
-      mCompressedData = NULL;
+      mTexture = mDownloadedTexture;
+      mDownloadedTexture = NULL;
     }
     mTextureMutex.unlock();
   }
   return mTexture;
 }
 
-void rtImageResource::setTextureData(pxOffscreen& imageOffscreen, const char* data, const size_t dataSize)
+void prepareImageResource(void* data)
 {
-  mTextureMutex.lock();
-  mImageOffscreen = imageOffscreen;
-  if (mCompressedData != NULL)
-  {
-    delete [] mCompressedData;
-    mCompressedData = NULL;
-  }
-  if (data == NULL)
-  {
-    mCompressedData = NULL;
-    mCompressedDataSize = 0;
-  }
-  else
-  {
-    mCompressedData = new char[dataSize];
-    mCompressedDataSize = dataSize;
-    memcpy(mCompressedData, data, mCompressedDataSize);
-  }
-  mTextureMutex.unlock();
+  rtImageResource* imageResource = (rtImageResource*)data;
+  imageResource->prepare();
 }
 
-void rtImageResource::clearDownloadedData()
+void rtImageResource::prepare()
 {
+#ifdef ENABLE_BACKGROUND_TEXTURE_CREATION
+  context.lockContext();
+  context.enableInternalContext(true);
+  mDownloadedTexture->prepareForRendering();
+  context.enableInternalContext(false);
+  context.unlockContext();
+#endif //ENABLE_BACKGROUND_TEXTURE_CREATION
   mTextureMutex.lock();
-  if (mCompressedData != NULL)
-  {
-    delete [] mCompressedData;
-    mCompressedData = NULL;
-  }
-  mCompressedDataSize = 0;
+  mDownloadComplete = true;
   mTextureMutex.unlock();
+  setLoadStatus("statusCode", 0);
+  // Since this object can be released before we get a async completion
+  // We need to maintain this object's lifetime
+  // TODO review overall flow and organization
+  if (gUIThreadQueue)
+  {
+    gUIThreadQueue->addTask(pxResource::onDownloadCompleteUI, this, (void*)"resolve");
+  }
+}
+
+void rtImageResource::setTextureData(pxOffscreen& imageOffscreen, const char* data, const size_t dataSize)
+{
+  mDownloadedTexture = context.createTexture(imageOffscreen, data, dataSize);
+  rtThreadTask* task = new rtThreadTask(prepareImageResource, (void*)this, "");
+  textureCreateThreadPool.executeTask(task);
 }
 
 void rtImageResource::setupResource()
@@ -518,7 +519,7 @@ void pxResource::onDownloadComplete(rtFileDownloadRequest* fileDownloadRequest)
   }
 }
 
-bool rtImageResource::loadResourceData(rtFileDownloadRequest* fileDownloadRequest)
+uint32_t rtImageResource::loadResourceData(rtFileDownloadRequest* fileDownloadRequest)
 {
       pxOffscreen imageOffscreen;
       if (pxLoadImage(fileDownloadRequest->downloadedData(),
@@ -527,10 +528,10 @@ bool rtImageResource::loadResourceData(rtFileDownloadRequest* fileDownloadReques
       {
         setTextureData(imageOffscreen, fileDownloadRequest->downloadedData(),
                                          fileDownloadRequest->downloadedDataSize());
-        return true;
+        return PX_RESOURCE_LOAD_WAIT;
       }
       
-      return false;
+      return PX_RESOURCE_LOAD_FAIL;
 }
 /** pxResource processDownloadedResource */
 void pxResource::processDownloadedResource(rtFileDownloadRequest* fileDownloadRequest)
@@ -553,7 +554,8 @@ void pxResource::processDownloadedResource(rtFileDownloadRequest* fileDownloadRe
         fileDownloadRequest->httpStatusCode() == 200 &&
         fileDownloadRequest->downloadedData() != NULL)
     {
-      if(!loadResourceData(fileDownloadRequest))
+      int32_t result = loadResourceData(fileDownloadRequest);
+      if(result == PX_RESOURCE_LOAD_FAIL)
       {
         rtLogError("Resource Decode Failed: %s with proxy: %s", fileDownloadRequest->fileUrl().cString(), fileDownloadRequest->proxy().cString());
         setLoadStatus("statusCode", PX_RESOURCE_STATUS_DECODE_FAILURE);
@@ -566,7 +568,7 @@ void pxResource::processDownloadedResource(rtFileDownloadRequest* fileDownloadRe
           gUIThreadQueue->addTask(pxResource::onDownloadCompleteUI, this, (void*)"reject");
         }
       }
-      else
+      else if (result == PX_RESOURCE_LOAD_SUCCESS)
       {
         //rtLogInfo("File download Successful: %s", fileDownloadRequest->fileUrl().cString());
         // ToDo: Could context.createTexture ever fail and return null here?
@@ -635,7 +637,7 @@ void rtImageAResource::init()
   mInitialized = true;
 }
 
-bool rtImageAResource::loadResourceData(rtFileDownloadRequest* fileDownloadRequest)
+uint32_t rtImageAResource::loadResourceData(rtFileDownloadRequest* fileDownloadRequest)
 {
   if (fileDownloadRequest->downloadStatusCode() == 0)
   {
@@ -645,10 +647,10 @@ bool rtImageAResource::loadResourceData(rtFileDownloadRequest* fileDownloadReque
 
     if (pxLoadAImage(data, dataSize, mTimedOffscreenSequence) == RT_OK)
     {
-      return true;
+      return PX_RESOURCE_LOAD_SUCCESS;
     }
   }
-  return false;
+  return PX_RESOURCE_LOAD_FAIL;
 }
 
 void rtImageAResource::loadResourceFromFile()

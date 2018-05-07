@@ -1599,7 +1599,9 @@ rtError pxObject::setPainting(bool v)
 #ifdef RUNINMAIN
     createSnapshot(mSnapshotRef, false, true);
 #else
+    context.lockContext();
     createSnapshot(mSnapshotRef, true, true);
+    context.unlockContext();
 #endif //RUNINMAIN
   }
   else
@@ -2373,7 +2375,9 @@ EXITSCENELOCK()
     pxMatrix4f m;
     context.pushState();
 ENTERSCENELOCK()
+    context.lockContext();
     mRoot->drawInternal(true); // mask it !
+    context.unlockContext();
 EXITSCENELOCK()
     context.popState();
   }

@@ -162,6 +162,7 @@ static pxMatrix4f gMatrix;
 static float gAlpha = 1.0;
 uint32_t gRenderTick = 0;
 std::vector<pxTexture*> textureList;
+rtMutex contextLock;
 
 pxError addToTextureList(pxTexture* texture)
 {
@@ -2840,7 +2841,7 @@ bool pxContext::isObjectOnScreen(float /*x*/, float /*y*/, float /*width*/, floa
 #endif
 }
 
-void pxContext::adjustCurrentTextureMemorySize(int64_t changeInBytes)
+void pxContext::adjustCurrentTextureMemorySize(int64_t changeInBytes, bool allowGarbageCollect)
 {
   if (changeInBytes == 0)
   {
@@ -2865,7 +2866,7 @@ void pxContext::adjustCurrentTextureMemorySize(int64_t changeInBytes)
   }
   //rtLogDebug("the current texture size: %" PRId64 ".", mCurrentTextureMemorySizeInBytes);
 #ifdef ENABLE_PX_SCENE_TEXTURE_USAGE_MONITORING
-  if (pc >= 100.0f)
+  if (allowGarbageCollect && pc >= 100.0f)
   {
     rtLogDebug("\n ###  Texture Memory: %3.1f %%  <<<   GARBAGE COLLECT", pc);
 #ifdef RUNINMAIN
@@ -2886,13 +2887,21 @@ void pxContext::setTextureMemoryLimit(int64_t textureMemoryLimitInBytes)
   mTextureMemoryLimitInBytes = textureMemoryLimitInBytes;
 }
 
-bool pxContext::isTextureSpaceAvailable(pxTextureRef texture)
+bool pxContext::isTextureSpaceAvailable(pxTextureRef texture, bool allowGarbageCollect)
 {
 #ifdef ENABLE_PX_SCENE_TEXTURE_USAGE_MONITORING
   int textureSize = (texture->width()*texture->height()*4);
   if ((textureSize + mCurrentTextureMemorySizeInBytes) >
              (mTextureMemoryLimitInBytes + PXSCENE_DEFAULT_TEXTURE_MEMORY_LIMIT_THRESHOLD_PADDING_IN_BYTES))
   {
+    if (allowGarbageCollect)
+    {
+      #ifdef RUNINMAIN
+          script.collectGarbage();
+      #else
+          uv_async_send(&gcTrigger);
+      #endif
+    }
     return false;
   }
   else
@@ -2942,6 +2951,18 @@ pxError pxContext::setEjectTextureAge(uint32_t age)
 
 pxError pxContext::enableInternalContext(bool)
 {
+  return PX_OK;
+}
+
+pxError pxContext::lockContext()
+{
+  contextLock.lock();
+  return PX_OK;
+}
+
+pxError pxContext::unlockContext()
+{
+  contextLock.unlock();
   return PX_OK;
 }
 

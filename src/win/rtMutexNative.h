@@ -36,7 +36,7 @@ public:
     void unlock();
     rtMutexNativeDesc getNativeMutexDescription();
 private:
-    std::mutex mLock;
+    std::recursive_mutex mLock;
     volatile bool mIsLocked;
 };
 
