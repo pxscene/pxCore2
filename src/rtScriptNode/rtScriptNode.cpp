@@ -94,7 +94,7 @@ using namespace rtScriptNodeUtils;
 
 
 #define USE_CONTEXTIFY_CLONES
-
+bool isPumping = false;
 
 
 namespace node

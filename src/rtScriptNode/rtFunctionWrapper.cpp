@@ -22,6 +22,7 @@ limitations under the License.
 
 #include <vector>
 
+extern bool isPumping;
 using namespace v8;
 
 namespace rtScriptNodeUtils
@@ -125,9 +126,11 @@ void rtResolverFunction::afterWorkCallback(uv_work_t* req, int /* status */)
     rtLogWarn("Error resolving promise");
     rtLogWarn("%s", *trace);
   }
-
-  resolverFunc->mIsolate->RunMicrotasks();
-
+ 
+  if (false == isPumping)
+  {
+    resolverFunc->mIsolate->RunMicrotasks();
+  }
   delete ctx;
 }
 
