@@ -253,16 +253,9 @@ public:
   
   rtMethod1ArgAndReturn("getFontMetrics", getFontMetrics, uint32_t, rtObjectRef);
   rtError getFontMetrics(uint32_t pixelSize, rtObjectRef& o);
-  
   rtMethod2ArgAndReturn("measureText", measureText, uint32_t, rtString, rtObjectRef);
   rtError measureText(uint32_t, rtString, rtObjectRef& o);   
     
-  rtMethod1ArgAndReturn("getPathSVG", getPathSVG, rtString, rtValue);
-  rtError getPathSVG(rtString, rtValue& o);
-  
-  rtMethod1ArgAndReturn("getRawPathSVG", getRawPathSVG, rtString, rtValue);
-  rtError getRawPathSVG(rtString, rtValue& o);
-  
   // FT Face related functions
   void setPixelSize(uint32_t s);  
   const GlyphCacheEntry* getGlyph(uint32_t codePoint);
