@@ -245,24 +245,18 @@ protected:
 class pxFont: public pxResource {
 
 public:
-	pxFont(rtString fontUrl, uint32_t id, rtString proxyUrl);
-	virtual ~pxFont() ;
+  pxFont(rtString fontUrl, uint32_t id, rtString proxyUrl);
+  virtual ~pxFont() ;
 
-	rtDeclareObject(pxFont, pxResource);
+  rtDeclareObject(pxFont, pxResource);
   rtReadOnlyProperty(ready, ready, rtObjectRef);
-  
+
   rtMethod1ArgAndReturn("getFontMetrics", getFontMetrics, uint32_t, rtObjectRef);
   rtError getFontMetrics(uint32_t pixelSize, rtObjectRef& o);
-  
+
   rtMethod2ArgAndReturn("measureText", measureText, uint32_t, rtString, rtObjectRef);
   rtError measureText(uint32_t, rtString, rtObjectRef& o);   
-    
-  rtMethod1ArgAndReturn("getPathSVG", getPathSVG, rtString, rtValue);
-  rtError getPathSVG(rtString, rtValue& o);
-  
-  rtMethod1ArgAndReturn("getRawPathSVG", getRawPathSVG, rtString, rtValue);
-  rtError getRawPathSVG(rtString, rtValue& o);
-  
+
   // FT Face related functions
   void setPixelSize(uint32_t s);  
   const GlyphCacheEntry* getGlyph(uint32_t codePoint);
@@ -288,8 +282,8 @@ public:
   virtual void init() {}
   bool isFontLoaded() { return mInitialized;}
 
-	void setFontData(const FT_Byte*  fontData, FT_Long size, const char* n);
-	virtual void setupResource();
+  void setFontData(const FT_Byte*  fontData, FT_Long size, const char* n);
+  virtual void setupResource();
   void clearDownloadedData();
   uint32_t getFontId() { return mFontId;}
    
