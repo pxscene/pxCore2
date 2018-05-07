@@ -1414,6 +1414,8 @@ void pxObject::drawInternal(bool maskPass)
   //rtLogInfo("pxObject::drawInternal mPainting=%d mw=%f mh=%f\n", mPainting, mw, mh);
   if (mPainting)
   {
+    pxConstantsMaskOperation::constants maskOp = pxConstantsMaskOperation::NORMAL; // default
+    
     // MASKING ? ---------------------------------------------------------------------------------------------------
     bool maskFound = false;
     for(vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
@@ -1422,6 +1424,16 @@ void pxObject::drawInternal(bool maskPass)
       {
         //rtLogInfo("pxObject::drawInternal mask is true mw=%f mh=%f\n", mw, mh);
         maskFound = true;
+        
+        pxImage *img = dynamic_cast<pxImage *>( &*it->getPtr() ) ;
+        if(img)
+        {
+          int32_t val;
+          img->maskOp(val); // get mask operation
+          
+          maskOp = (pxConstantsMaskOperation::constants) val;
+        }
+        
         break;
       }
     }
@@ -1436,7 +1448,8 @@ void pxObject::drawInternal(bool maskPass)
       createSnapshotOfChildren();
       context.setMatrix(m);
       //rtLogInfo("context.drawImage\n");
-      context.drawImage(0, 0, w, h, mDrawableSnapshotForMask->getTexture(), mMaskSnapshot->getTexture());
+      
+      context.drawImageMasked(0, 0, w, h, maskOp, mDrawableSnapshotForMask->getTexture(), mMaskSnapshot->getTexture());
     }
     // CLIPPING ? ---------------------------------------------------------------------------------------------------
     else if (mClip )
@@ -3438,6 +3451,7 @@ rtDefineProperty(pxScene2d, api);
 // Properties for access to Constants
 rtDefineProperty(pxScene2d,animation);
 rtDefineProperty(pxScene2d,stretch);
+rtDefineProperty(pxScene2d,maskOp);
 rtDefineProperty(pxScene2d,alignVertical);
 rtDefineProperty(pxScene2d,alignHorizontal);
 rtDefineProperty(pxScene2d,truncation);

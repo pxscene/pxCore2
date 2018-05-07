@@ -99,11 +99,17 @@ class pxContext {
 
   void drawRect(float w, float h, float lineWidth, float* fillColor, float* lineColor);
 
+  // conveinience method
+  void drawImageMasked(float x, float y, float w, float h,
+                        pxConstantsMaskOperation::constants maskOp,
+                        pxTextureRef t, pxTextureRef mask);
+  
   void drawImage(float x, float y, float w, float h, pxTextureRef t,
                  pxTextureRef mask, bool useTextureDimsAlways = true, float* color = NULL,
                  pxConstantsStretch::constants xStretch = pxConstantsStretch::STRETCH,
                  pxConstantsStretch::constants yStretch = pxConstantsStretch::STRETCH,
-                 bool downscaleSmooth = false);
+                 bool downscaleSmooth = false,
+                 pxConstantsMaskOperation::constants maskOp= pxConstantsMaskOperation::NORMAL);
 
 #ifdef PXSCENE_FONT_ATLAS
   // This is intended to draw numQuads from the same texture.
@@ -135,9 +141,11 @@ class pxContext {
   void adjustCurrentTextureMemorySize(int64_t changeInBytes);
   void setTextureMemoryLimit(int64_t textureMemoryLimitInBytes);
   bool isTextureSpaceAvailable(pxTextureRef texture);
+  
   int64_t currentTextureMemoryUsageInBytes();
   int64_t textureMemoryOverflow(pxTextureRef texture);
   int64_t ejectTextureMemory(int64_t bytesRequested, bool forceEject=false);
+  
   pxError setEjectTextureAge(uint32_t age);
   pxError enableInternalContext(bool enable);
 

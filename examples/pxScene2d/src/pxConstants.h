@@ -122,6 +122,20 @@ public:
 
 
 
+class pxConstantsMaskOperation : public rtObject
+{
+public:
+  enum constants {
+    NORMAL = 0,
+    INVERT,
+  };
+  rtDeclareObject(pxConstantsMaskOperation, rtObject);
+  
+  rtConstantProperty(NORMAL, NORMAL, uint32_t);
+  rtConstantProperty(INVERT, INVERT, uint32_t);
+};
+
+
 class pxConstantsStretch : public rtObject
 {
 public:
@@ -132,9 +146,9 @@ public:
   };
   rtDeclareObject(pxConstantsStretch, rtObject);
   
-  rtConstantProperty(NONE, NONE, uint32_t);
+  rtConstantProperty(NONE,    NONE,    uint32_t);
   rtConstantProperty(STRETCH, STRETCH, uint32_t);
-  rtConstantProperty(REPEAT, REPEAT, uint32_t);
+  rtConstantProperty(REPEAT,  REPEAT,  uint32_t);
 };
 
 
@@ -148,7 +162,7 @@ public:
   };
   rtDeclareObject(pxConstantsAlignVertical, rtObject);
   
-  rtConstantProperty(TOP, TOP, uint32_t);
+  rtConstantProperty(TOP,    TOP,    uint32_t);
   rtConstantProperty(CENTER, CENTER, uint32_t);
   rtConstantProperty(BOTTOM, BOTTOM, uint32_t);
 };
@@ -178,8 +192,8 @@ public:
   };
   rtDeclareObject(pxConstantsTruncation, rtObject);
   
-  rtConstantProperty(NONE, NONE, uint32_t);
-  rtConstantProperty(TRUNCATE, TRUNCATE, uint32_t);
+  rtConstantProperty(NONE,             NONE,             uint32_t);
+  rtConstantProperty(TRUNCATE,         TRUNCATE,         uint32_t);
   rtConstantProperty(TRUNCATE_AT_WORD, TRUNCATE_AT_WORD, uint32_t);
 };
 
@@ -191,10 +205,12 @@ class pxConstants : public rtObject
 public: 
 
   static rtRef<pxConstantsAnimation> animationConstants;
-  static rtRef<pxConstantsStretch> stretchConstants;
-  static rtRef<pxConstantsAlignVertical> alignVerticalConstants;
+  static rtRef<pxConstantsStretch>   stretchConstants;
+  static rtRef<pxConstantsMaskOperation>    maskOpConstants;
+  
+  static rtRef<pxConstantsAlignVertical>   alignVerticalConstants;
   static rtRef<pxConstantsAlignHorizontal> alignHorizontalConstants;
-  static rtRef<pxConstantsTruncation> truncationConstants;  
+  static rtRef<pxConstantsTruncation>      truncationConstants;  
   
 };
 
