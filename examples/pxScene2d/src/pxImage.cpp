@@ -284,7 +284,7 @@ rtError pxImage::setStretchY(int32_t v)
 
 rtError pxImage::setMaskOp(int32_t v)
 {
-  mMaskOp = (pxConstantsMaskOp::constants)v;
+  mMaskOp = (pxConstantsMaskOperation::constants)v;
   return RT_OK;
 }
 

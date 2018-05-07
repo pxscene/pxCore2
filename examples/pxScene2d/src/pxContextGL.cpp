@@ -1800,7 +1800,7 @@ public:
             const void* uv,
             pxTextureRef texture,
             pxTextureRef mask,
-            pxConstantsMaskOp::constants maskOp = pxConstantsMaskOp::NORMAL)
+            pxConstantsMaskOperation::constants maskOp = pxConstantsMaskOperation::NORMAL)
   {
     if (currentGLProgram != PROGRAM_TEXTURE_MASKED_SHADER)
     {
@@ -1810,7 +1810,7 @@ public:
     glUniform2f(mResolutionLoc, resW, resH);
     glUniformMatrix4fv(mMatrixLoc, 1, GL_FALSE, matrix);
     glUniform1f(mAlphaLoc, alpha);
-    glUniform1f(mInvertedLoc, (maskOp == pxConstantsMaskOp::NORMAL) ? 0.0 : 1.0);
+    glUniform1f(mInvertedLoc, (maskOp == pxConstantsMaskOperation::NORMAL) ? 0.0 : 1.0);
     
 
     if (texture->bindGLTexture(mTextureLoc) != PX_OK)
@@ -1913,7 +1913,7 @@ static void drawImageTexture(float x, float y, float w, float h, pxTextureRef te
                              pxTextureRef mask, bool useTextureDimsAlways, float* color, // default: "color = BLACK"
                              pxConstantsStretch::constants xStretch,
                              pxConstantsStretch::constants yStretch,
-                             pxConstantsMaskOp::constants maskOp = pxConstantsMaskOp::constants::NORMAL)
+                             pxConstantsMaskOperation::constants maskOp = pxConstantsMaskOperation::constants::NORMAL)
 {
   // args are tested at call site...
 
@@ -2621,7 +2621,7 @@ void pxContext::drawImage9Border(float w, float h,
 
 // convenience method
 void pxContext::drawImageMasked(float x, float y, float w, float h,
-                                pxConstantsMaskOp::constants maskOp,
+                                pxConstantsMaskOperation::constants maskOp,
                                 pxTextureRef t, pxTextureRef mask)
 {
   this->drawImage(x, y, w, h, t , mask,
@@ -2640,7 +2640,7 @@ void pxContext::drawImage(float x, float y, float w, float h,
                           pxConstantsStretch::constants stretchX, /* = pxConstantsStretch::STRETCH, */
                           pxConstantsStretch::constants stretchY, /* = pxConstantsStretch::STRETCH, */
                           bool downscaleSmooth                    /* = false */,
-                          pxConstantsMaskOp::constants maskOp     /* = pxConstantsMaskOp::NORMAL */ )
+                          pxConstantsMaskOperation::constants maskOp     /* = pxConstantsMaskOperation::NORMAL */ )
 {
 #ifdef DEBUG_SKIP_IMAGE
 #warning "DEBUG_SKIP_IMAGE enabled ... Skipping "

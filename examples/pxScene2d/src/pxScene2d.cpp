@@ -1414,7 +1414,7 @@ void pxObject::drawInternal(bool maskPass)
   //rtLogInfo("pxObject::drawInternal mPainting=%d mw=%f mh=%f\n", mPainting, mw, mh);
   if (mPainting)
   {
-    pxConstantsMaskOp::constants maskOp = pxConstantsMaskOp::NORMAL; // default
+    pxConstantsMaskOperation::constants maskOp = pxConstantsMaskOperation::NORMAL; // default
     
     // MASKING ? ---------------------------------------------------------------------------------------------------
     bool maskFound = false;
@@ -1431,7 +1431,7 @@ void pxObject::drawInternal(bool maskPass)
           int32_t val;
           img->maskOp(val); // get mask operation
           
-          maskOp = (pxConstantsMaskOp::constants) val;
+          maskOp = (pxConstantsMaskOperation::constants) val;
         }
         
         break;

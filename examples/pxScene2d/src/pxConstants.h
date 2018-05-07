@@ -122,14 +122,14 @@ public:
 
 
 
-class pxConstantsMaskOp : public rtObject
+class pxConstantsMaskOperation : public rtObject
 {
 public:
   enum constants {
     NORMAL = 0,
     INVERT,
   };
-  rtDeclareObject(pxConstantsMaskOp, rtObject);
+  rtDeclareObject(pxConstantsMaskOperation, rtObject);
   
   rtConstantProperty(NORMAL, NORMAL, uint32_t);
   rtConstantProperty(INVERT, INVERT, uint32_t);
@@ -206,7 +206,7 @@ public:
 
   static rtRef<pxConstantsAnimation> animationConstants;
   static rtRef<pxConstantsStretch>   stretchConstants;
-  static rtRef<pxConstantsMaskOp>    maskOpConstants;
+  static rtRef<pxConstantsMaskOperation>    maskOpConstants;
   
   static rtRef<pxConstantsAlignVertical>   alignVerticalConstants;
   static rtRef<pxConstantsAlignHorizontal> alignHorizontalConstants;

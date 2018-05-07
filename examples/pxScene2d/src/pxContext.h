@@ -101,7 +101,7 @@ class pxContext {
 
   // conveinience method
   void drawImageMasked(float x, float y, float w, float h,
-                        pxConstantsMaskOp::constants maskOp,
+                        pxConstantsMaskOperation::constants maskOp,
                         pxTextureRef t, pxTextureRef mask);
   
   void drawImage(float x, float y, float w, float h, pxTextureRef t,
@@ -109,7 +109,7 @@ class pxContext {
                  pxConstantsStretch::constants xStretch = pxConstantsStretch::STRETCH,
                  pxConstantsStretch::constants yStretch = pxConstantsStretch::STRETCH,
                  bool downscaleSmooth = false,
-                 pxConstantsMaskOp::constants maskOp= pxConstantsMaskOp::NORMAL);
+                 pxConstantsMaskOperation::constants maskOp= pxConstantsMaskOperation::NORMAL);
 
 #ifdef PXSCENE_FONT_ATLAS
   // This is intended to draw numQuads from the same texture.

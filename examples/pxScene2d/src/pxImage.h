@@ -40,7 +40,7 @@ public:
   rtProperty(downscaleSmooth, downscaleSmooth, setDownscaleSmooth, bool);
   
   pxImage(pxScene2d* scene) : pxObject(scene),mStretchX(pxConstantsStretch::NONE),mStretchY(pxConstantsStretch::NONE), 
-          mMaskOp(pxConstantsMaskOp::NORMAL), imageLoaded(false), mListenerAdded(false), mDownscaleSmooth(false)
+          mMaskOp(pxConstantsMaskOperation::NORMAL), imageLoaded(false), mListenerAdded(false), mDownscaleSmooth(false)
   { 
     mw = -1;
     mh = -1;
@@ -90,7 +90,7 @@ protected:
   pxConstantsStretch::constants mStretchX;
   pxConstantsStretch::constants mStretchY;
   
-  pxConstantsMaskOp::constants  mMaskOp;
+  pxConstantsMaskOperation::constants  mMaskOp;
   
   rtObjectRef mResource;
   

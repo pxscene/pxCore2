@@ -1451,9 +1451,10 @@ inline pxError draw_TEXTURE(int resW, int resH, float* matrix, float alpha,
 inline pxError draw_MASK(int resW, int resH, float* matrix, float alpha,
                       DFBRectangle /*&src*/, DFBRectangle /*&dst*/,
                       pxTextureRef texture, pxTextureRef mask,
-                      pxConstantsMaskOp::constants maskOp = pxConstantsMaskOp::NORMAL)
+                      pxConstantsMaskOperation::constants maskOp /*= pxConstantsMaskOperation::NORMAL*/)
 {
   (void) resW; (void) resH; (void) matrix; (void) alpha; (void) texture;
+  (void) maskOp; // prevent warning
 
   if (mask->bindGLTextureAsMask(0) != PX_OK)  // SETS >> 'boundTextureMask'
   {
@@ -1685,9 +1686,10 @@ static void drawImageTexture(float x, float y, float w, float h, pxTextureRef te
                              pxTextureRef mask, bool useTextureDimsAlways, float* color, // default: "color = BLACK"
                              pxConstantsStretch::constants xStretch,
                              pxConstantsStretch::constants yStretch,
-                             pxConstantsMaskOp::constants maskOp = pxConstantsMaskOp::constants::NORMAL)
+                             pxConstantsMaskOperation::constants maskOp /*= pxConstantsMaskOperation::constants::NORMAL*/)
 {
   // args are tested at call site...
+  (void) maskOp; // prevent warning
 
   if (boundFramebuffer == NULL)
   {
@@ -2505,7 +2507,7 @@ void pxContext::drawImage9Border(float w, float h,
 
 // convenience method
 void pxContext::drawImageMasked(float x, float y, float w, float h,
-                                pxConstantsMaskOp::constants maskOp,
+                                pxConstantsMaskOperation::constants maskOp,
                                 pxTextureRef t, pxTextureRef mask)
 {
   this->drawImage(x, y, w, h, t , mask,
@@ -2523,7 +2525,7 @@ void pxContext::drawImage(float x, float y, float w, float h,
                         pxConstantsStretch::constants stretchX,
                         pxConstantsStretch::constants stretchY,
                         bool downscaleSmooth,
-                        pxConstantsMaskOp::constants maskOp     /* = pxConstantsMaskOp::NORMAL */ )
+                        pxConstantsMaskOperation::constants maskOp     /* = pxConstantsMaskOperation::NORMAL */ )
 {
 #ifdef DEBUG_SKIP_IMAGE
 #warning "DEBUG_SKIP_IMAGE enabled ... Skipping "
