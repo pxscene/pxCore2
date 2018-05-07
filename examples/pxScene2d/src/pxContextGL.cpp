@@ -253,10 +253,13 @@ static const char *fTextureMaskedShaderText =
   "uniform sampler2D s_texture;"
   "uniform sampler2D s_mask;"
   "uniform float u_alpha;"
+  "uniform float u_doInverted;"
   "varying vec2 v_uv;"
   "void main()"
   "{"
-  "  float a = u_alpha * texture2D(s_mask, v_uv).a;"
+  "float tex_a =  texture2D(s_mask, v_uv).a;"
+  "float     a = (1.0 - u_doInverted) * (u_alpha * (      tex_a)) +" // do NORMAL   mask
+  "              (      u_doInverted) * (u_alpha * (1.0 - tex_a)) ;" // do INVERTED mask
   "  gl_FragColor = texture2D(s_texture, v_uv) * a;"
   "}";
 
@@ -1449,7 +1452,7 @@ public:
   virtual void init(const char* v, const char* f)
   {
     glShaderProgDetails details = createShaderProgram(v, f);
-    mProgram = details.program;
+    mProgram    = details.program;
     mFragShader = details.fragShader;
     mVertShader = details.vertShader;
     prelink();
@@ -1489,15 +1492,15 @@ protected:
     mPosLoc = 0;
     mUVLoc = 1;
     glBindAttribLocation(mProgram, mPosLoc, "pos");
-    glBindAttribLocation(mProgram, mUVLoc, "uv");
+    glBindAttribLocation(mProgram, mUVLoc,  "uv");
   }
 
   virtual void postlink()
   {
     mResolutionLoc = getUniformLocation("u_resolution");
-    mMatrixLoc = getUniformLocation("amymatrix");
-    mColorLoc = getUniformLocation("a_color");
-    mAlphaLoc = getUniformLocation("u_alpha");
+    mMatrixLoc     = getUniformLocation("amymatrix");
+    mColorLoc      = getUniformLocation("a_color");
+    mAlphaLoc      = getUniformLocation("u_alpha");
   }
 
 public:
@@ -1549,16 +1552,16 @@ protected:
     mPosLoc = 0;
     mUVLoc = 1;
     glBindAttribLocation(mProgram, mPosLoc, "pos");
-    glBindAttribLocation(mProgram, mUVLoc, "uv");
+    glBindAttribLocation(mProgram, mUVLoc,  "uv");
   }
 
   virtual void postlink()
   {
     mResolutionLoc = getUniformLocation("u_resolution");
-    mMatrixLoc = getUniformLocation("amymatrix");
-    mColorLoc = getUniformLocation("a_color");
-    mAlphaLoc = getUniformLocation("u_alpha");
-    mTextureLoc = getUniformLocation("s_texture");
+    mMatrixLoc     = getUniformLocation("amymatrix");
+    mColorLoc      = getUniformLocation("a_color");
+    mAlphaLoc      = getUniformLocation("u_alpha");
+    mTextureLoc    = getUniformLocation("s_texture");
   }
 
 public:
@@ -1622,15 +1625,15 @@ protected:
     mPosLoc = 0;
     mUVLoc = 1;
     glBindAttribLocation(mProgram, mPosLoc, "pos");
-    glBindAttribLocation(mProgram, mUVLoc, "uv");
+    glBindAttribLocation(mProgram, mUVLoc,  "uv");
   }
 
   virtual void postlink()
   {
     mResolutionLoc = getUniformLocation("u_resolution");
-    mMatrixLoc = getUniformLocation("amymatrix");
-    mAlphaLoc = getUniformLocation("u_alpha");
-    mTextureLoc = getUniformLocation("s_texture");
+    mMatrixLoc     = getUniformLocation("amymatrix");
+    mAlphaLoc      = getUniformLocation("u_alpha");
+    mTextureLoc    = getUniformLocation("s_texture");
   }
 
 public:
@@ -1693,16 +1696,16 @@ protected:
     mPosLoc = 0;
     mUVLoc = 1;
     glBindAttribLocation(mProgram, mPosLoc, "pos");
-    glBindAttribLocation(mProgram, mUVLoc, "uv");
+    glBindAttribLocation(mProgram, mUVLoc,  "uv");
   }
 
   virtual void postlink()
   {
     mResolutionLoc = getUniformLocation("u_resolution");
-    mMatrixLoc = getUniformLocation("amymatrix");
-    mAlphaLoc = getUniformLocation("u_alpha");
-    mColorLoc = getUniformLocation("u_color");
-    mTextureLoc = getUniformLocation("s_texture");
+    mMatrixLoc     = getUniformLocation("amymatrix");
+    mAlphaLoc      = getUniformLocation("u_alpha");
+    mColorLoc      = getUniformLocation("u_color");
+    mTextureLoc    = getUniformLocation("s_texture");
   }
 
 public:
@@ -1777,16 +1780,17 @@ protected:
     mPosLoc = 0;
     mUVLoc = 1;
     glBindAttribLocation(mProgram, mPosLoc, "pos");
-    glBindAttribLocation(mProgram, mUVLoc, "uv");
+    glBindAttribLocation(mProgram, mUVLoc,  "uv");
   }
 
   virtual void postlink()
   {
     mResolutionLoc = getUniformLocation("u_resolution");
-    mMatrixLoc = getUniformLocation("amymatrix");
-    mAlphaLoc = getUniformLocation("u_alpha");
-    mTextureLoc = getUniformLocation("s_texture");
-    mMaskLoc = getUniformLocation("s_mask");
+    mMatrixLoc     = getUniformLocation("amymatrix");
+    mAlphaLoc      = getUniformLocation("u_alpha");
+    mInvertedLoc   = getUniformLocation("u_doInverted");
+    mTextureLoc    = getUniformLocation("s_texture");
+    mMaskLoc       = getUniformLocation("s_mask");
   }
 
 public:
@@ -1795,7 +1799,8 @@ public:
             const void* pos,
             const void* uv,
             pxTextureRef texture,
-            pxTextureRef mask)
+            pxTextureRef mask,
+            pxConstantsMaskOp::constants maskOp = pxConstantsMaskOp::NORMAL)
   {
     if (currentGLProgram != PROGRAM_TEXTURE_MASKED_SHADER)
     {
@@ -1805,6 +1810,8 @@ public:
     glUniform2f(mResolutionLoc, resW, resH);
     glUniformMatrix4fv(mMatrixLoc, 1, GL_FALSE, matrix);
     glUniform1f(mAlphaLoc, alpha);
+    glUniform1f(mInvertedLoc, (maskOp == pxConstantsMaskOp::NORMAL) ? 0.0 : 1.0);
+    
 
     if (texture->bindGLTexture(mTextureLoc) != PX_OK)
     {
@@ -1839,6 +1846,7 @@ private:
   GLint mUVLoc;
 
   GLint mAlphaLoc;
+  GLint mInvertedLoc;
 
   GLint mTextureLoc;
   GLint mMaskLoc;
@@ -1904,7 +1912,8 @@ static void drawRectOutline(GLfloat x, GLfloat y, GLfloat w, GLfloat h, GLfloat 
 static void drawImageTexture(float x, float y, float w, float h, pxTextureRef texture,
                              pxTextureRef mask, bool useTextureDimsAlways, float* color, // default: "color = BLACK"
                              pxConstantsStretch::constants xStretch,
-                             pxConstantsStretch::constants yStretch)
+                             pxConstantsStretch::constants yStretch,
+                             pxConstantsMaskOp::constants maskOp = pxConstantsMaskOp::constants::NORMAL)
 {
   // args are tested at call site...
 
@@ -1981,7 +1990,7 @@ static void drawImageTexture(float x, float y, float w, float h, pxTextureRef te
 
   if (mask.getPtr() != NULL)
   {
-    if (gTextureMaskedShader->draw(gResW,gResH,gMatrix.data(),gAlpha,4,verts,uv,texture,mask) != PX_OK)
+    if (gTextureMaskedShader->draw(gResW,gResH,gMatrix.data(),gAlpha,4,verts,uv,texture,mask, maskOp) != PX_OK)
     {
       drawRect2(0, 0, iw, ih, blackColor); // DEFAULT - "Missing" - BLACK RECTANGLE
     }
@@ -2238,37 +2247,15 @@ static void drawImage9Border2(GLfloat x, GLfloat y, GLfloat w, GLfloat h,
 
 bool gContextInit = false;
 
+#define SAFE_DELETE(p)  if(p) { delete p; p = NULL; };
+
 pxContext::~pxContext()
 {
-  if (gSolidShader)
-  {
-    delete gSolidShader;
-    gSolidShader = NULL;
-  }
-
-  if (gATextureShader)
-  {
-    delete gATextureShader;
-    gATextureShader = NULL;
-  }
-
-  if (gTextureShader)
-  {
-    delete gTextureShader;
-    gTextureShader = NULL;
-  }
-
-  if (gTextureBorderShader)
-  {
-    delete gTextureBorderShader;
-    gTextureBorderShader = NULL;
-  }
-
-  if (gTextureMaskedShader)
-  {
-    delete gTextureMaskedShader;
-    gTextureMaskedShader = NULL;
-  }
+  SAFE_DELETE(gSolidShader);
+  SAFE_DELETE(gATextureShader);
+  SAFE_DELETE(gTextureShader);
+  SAFE_DELETE(gTextureBorderShader);
+  SAFE_DELETE(gTextureMaskedShader);
 }
 
 void pxContext::init()
@@ -2282,35 +2269,11 @@ void pxContext::init()
 
   glClearColor(0, 0, 0, 0);
 
-  if (gSolidShader)
-  {
-    delete gSolidShader;
-    gSolidShader = NULL;
-  }
-
-  if (gATextureShader)
-  {
-    delete gATextureShader;
-    gATextureShader = NULL;
-  }
-
-  if (gTextureShader)
-  {
-    delete gTextureShader;
-    gTextureShader = NULL;
-  }
-
-  if (gTextureBorderShader)
-  {
-    delete gTextureBorderShader;
-    gTextureBorderShader = NULL;
-  }
-
-  if (gTextureMaskedShader)
-  {
-    delete gTextureMaskedShader;
-    gTextureMaskedShader = NULL;
-  }
+  SAFE_DELETE(gSolidShader);
+  SAFE_DELETE(gATextureShader);
+  SAFE_DELETE(gTextureShader);
+  SAFE_DELETE(gTextureBorderShader);
+  SAFE_DELETE(gTextureMaskedShader);
 
   gSolidShader = new solidShaderProgram();
   gSolidShader->init(vShaderText,fSolidShaderText);
@@ -2656,12 +2619,28 @@ void pxContext::drawImage9Border(float w, float h,
   drawImage9Border2(0, 0, w, h, bx1, by1, bx2, by2, ix1, iy1, ix2, iy2, drawCenter, color, texture);
 }
 
+// convenience method
+void pxContext::drawImageMasked(float x, float y, float w, float h,
+                                pxConstantsMaskOp::constants maskOp,
+                                pxTextureRef t, pxTextureRef mask)
+{
+  this->drawImage(x, y, w, h, t , mask,
+                    /* useTextureDimsAlways = */ true, /*color = */ NULL,      // DEFAULT
+                    /*             stretchX = */ pxConstantsStretch::STRETCH,  // DEFAULT
+                    /*             stretchY = */ pxConstantsStretch::STRETCH,  // DEFAULT
+                    /*      downscaleSmooth = */ false,                        // DEFAULT
+                                                 maskOp                        // PARAMETER
+                    );
+};
+
 void pxContext::drawImage(float x, float y, float w, float h,
                           pxTextureRef t, pxTextureRef mask,
-                          bool useTextureDimsAlways, float* color,
-                          pxConstantsStretch::constants stretchX,
-                          pxConstantsStretch::constants stretchY,
-                          bool downscaleSmooth)
+                          bool useTextureDimsAlways               /* = true */,
+                          float* color,                           /* = NULL */
+                          pxConstantsStretch::constants stretchX, /* = pxConstantsStretch::STRETCH, */
+                          pxConstantsStretch::constants stretchY, /* = pxConstantsStretch::STRETCH, */
+                          bool downscaleSmooth                    /* = false */,
+                          pxConstantsMaskOp::constants maskOp     /* = pxConstantsMaskOp::NORMAL */ )
 {
 #ifdef DEBUG_SKIP_IMAGE
 #warning "DEBUG_SKIP_IMAGE enabled ... Skipping "
@@ -2700,7 +2679,7 @@ void pxContext::drawImage(float x, float y, float w, float h,
 
   float black[4] = {0,0,0,1};
   drawImageTexture(x, y, w, h, t, mask, useTextureDimsAlways,
-                  color? color : black, stretchX, stretchY);
+                   color? color : black, stretchX, stretchY, maskOp);
 }
 
 #ifdef PXSCENE_FONT_ATLAS
