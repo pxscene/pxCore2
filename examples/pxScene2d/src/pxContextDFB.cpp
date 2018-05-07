@@ -162,7 +162,9 @@ static pxMatrix4f gMatrix;
 static float gAlpha = 1.0;
 uint32_t gRenderTick = 0;
 std::vector<pxTexture*> textureList;
+#ifdef ENABLE_BACKGROUND_TEXTURE_CREATION
 rtMutex contextLock;
+#endif //ENABLE_BACKGROUND_TEXTURE_CREATION
 
 pxError addToTextureList(pxTexture* texture)
 {
@@ -2956,13 +2958,17 @@ pxError pxContext::enableInternalContext(bool)
 
 pxError pxContext::lockContext()
 {
+#ifdef ENABLE_BACKGROUND_TEXTURE_CREATION
   contextLock.lock();
+#endif //ENABLE_BACKGROUND_TEXTURE_CREATION
   return PX_OK;
 }
 
 pxError pxContext::unlockContext()
 {
+#ifdef ENABLE_BACKGROUND_TEXTURE_CREATION
   contextLock.unlock();
+#endif //ENABLE_BACKGROUND_TEXTURE_CREATION
   return PX_OK;
 }
 
