@@ -2340,7 +2340,9 @@ void pxScene2d::draw()
     context.pushState();
 
 ENTERSCENELOCK()
+    context.lockContext();
     mRoot->drawInternal(true);
+    context.unlockContext();
 EXITSCENELOCK()
     context.popState();
     mLastFrameDirtyRect.setLTRB(mDirtyRect.left(), mDirtyRect.top(), mDirtyRect.right(), mDirtyRect.bottom());
