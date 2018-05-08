@@ -35,10 +35,14 @@ static const char isWordBoundary_chars[] = " \t/:&,;.";
 static const char    isSpaceChar_chars[] = " \t";
 
 
+const int ARR_SIZE=8;
+static char ellipsisStr[ARR_SIZE] = {NULL};
+
 #if 1
 // TODO can we eliminate direct utf8.h usage
 extern "C" {
 #include "../../../src/utf8.h"
+
 }
 #endif
 
@@ -56,7 +60,8 @@ pxTextBox::pxTextBox(pxScene2d* s): pxText(s),
 
   mFontLoaded      = false;
   mFontFailed      = false;
-  
+  if (ellipsisStr[0] == NULL)
+	u8_unescape(ellipsisStr, 256, ELLIPSIS_STR) ; 
 }
 
 /** This signals that the font file loaded successfully; now we need to
@@ -1167,7 +1172,8 @@ void pxTextBox::renderTextRowWithTruncation(rtString & accString, float lineWidt
     length -= ELLIPSIS_LEN;
     if (getFontResource() != NULL)
     {
-      getFontResource()->measureTextInternal(ELLIPSIS_STR, pixelSize, sx, sy, ellipsisW, charH);
+        getFontResource()->measureTextInternal(ellipsisStr, pixelSize, sx, sy, ellipsisW, charH);
+	
     }
     //rtLogDebug("ellipsisW is %f\n",ellipsisW);
   }
@@ -1295,7 +1301,7 @@ void pxTextBox::renderTextRowWithTruncation(rtString & accString, float lineWidt
         }
         if( mEllipsis)
         {
-          //rtLogDebug("rendering  text on word boundary with ellipsis\n");
+          rtLogDebug("rendering  text on word boundary with ellipsis\n");
           if( render && getFontResource() != NULL) {
 #ifdef PXSCENE_FONT_ATLAS
             pxTexturedQuads quads;
