@@ -21,11 +21,7 @@ limitations under the License.
 
 rtMutexNative::rtMutexNative() : mLock()
 {
-    pthread_mutexattr_t a;
-
-    pthread_mutexattr_init(&a);
-    pthread_mutexattr_settype(&a, PTHREAD_MUTEX_RECURSIVE);
-    pthread_mutex_init(&mLock, &a);
+    pthread_mutex_init(&mLock, NULL);
 }
 
 rtMutexNative::~rtMutexNative()
