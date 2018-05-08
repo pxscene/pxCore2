@@ -74,7 +74,7 @@ class rtEmitTest : public testing::Test
       rtString event("eventone");
       size_t listenerCountBeforeAdd = mEmit->mEntries.size();
       EXPECT_TRUE (RT_OK == mEmit->addListener(event.cString(),&fnCallback));
-      //EXPECT_TRUE (listenerCountBeforeAdd == mEmit->mEntries.size());
+      EXPECT_TRUE (listenerCountBeforeAdd /* TODO: remove +1 */ + 1 == mEmit->mEntries.size());
     }
 
     void delListenerTest()
