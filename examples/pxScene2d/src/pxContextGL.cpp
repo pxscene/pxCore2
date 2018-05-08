@@ -3033,8 +3033,8 @@ void pxContext::adjustCurrentTextureMemorySize(int64_t changeInBytes, bool allow
   {
     mCurrentTextureMemorySizeInBytes = 0;
   }
-  int64_t currentTextureMemorySize = mCurrentTextureMemorySizeInBytes;
 #ifdef ENABLE_PX_SCENE_TEXTURE_USAGE_MONITORING
+  int64_t currentTextureMemorySize = mCurrentTextureMemorySizeInBytes;
   int64_t maxTextureMemoryInBytes = mTextureMemoryLimitInBytes;
 #endif // ENABLE_PX_SCENE_TEXTURE_USAGE_MONITORING
   unlockContext();
