@@ -175,9 +175,9 @@ Application.prototype.moveToBack = function() {
   }
   return true;
 }
-Application.prototype.setFocus = function(focus) {
+Application.prototype.setFocus = function() {
   if (this.externalApp){
-    this.externalApp.focus = focus;
+    this.externalApp.focus = true;
   }
   return true;
 }
