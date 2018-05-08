@@ -3036,7 +3036,10 @@ void pxContext::adjustCurrentTextureMemorySize(int64_t changeInBytes, bool allow
 #ifdef ENABLE_PX_SCENE_TEXTURE_USAGE_MONITORING
   int64_t currentTextureMemorySize = mCurrentTextureMemorySizeInBytes;
   int64_t maxTextureMemoryInBytes = mTextureMemoryLimitInBytes;
+#else
+  (void)allowGarbageCollect;
 #endif // ENABLE_PX_SCENE_TEXTURE_USAGE_MONITORING
+
   unlockContext();
   //rtLogDebug("the current texture size: %" PRId64 ".", currentTextureMemorySize);
 #ifdef ENABLE_PX_SCENE_TEXTURE_USAGE_MONITORING
