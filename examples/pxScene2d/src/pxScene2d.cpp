@@ -1599,9 +1599,7 @@ rtError pxObject::setPainting(bool v)
 #ifdef RUNINMAIN
     createSnapshot(mSnapshotRef, false, true);
 #else
-    context.lockContext();
     createSnapshot(mSnapshotRef, true, true);
-    context.unlockContext();
 #endif //RUNINMAIN
   }
   else
@@ -2340,9 +2338,7 @@ void pxScene2d::draw()
     context.pushState();
 
 ENTERSCENELOCK()
-    context.lockContext();
     mRoot->drawInternal(true);
-    context.unlockContext();
 EXITSCENELOCK()
     context.popState();
     mLastFrameDirtyRect.setLTRB(mDirtyRect.left(), mDirtyRect.top(), mDirtyRect.right(), mDirtyRect.bottom());
@@ -2377,9 +2373,7 @@ EXITSCENELOCK()
     pxMatrix4f m;
     context.pushState();
 ENTERSCENELOCK()
-    context.lockContext();
     mRoot->drawInternal(true); // mask it !
-    context.unlockContext();
 EXITSCENELOCK()
     context.popState();
   }

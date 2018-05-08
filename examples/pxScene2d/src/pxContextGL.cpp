@@ -147,6 +147,23 @@ rtMutex textureListMutex;
 rtMutex contextLock;
 #endif //ENABLE_BACKGROUND_TEXTURE_CREATION
 
+
+pxError lockContext()
+{
+#ifdef ENABLE_BACKGROUND_TEXTURE_CREATION
+  contextLock.lock();
+#endif //ENABLE_BACKGROUND_TEXTURE_CREATION
+  return PX_OK;
+}
+
+pxError unlockContext()
+{
+#ifdef ENABLE_BACKGROUND_TEXTURE_CREATION
+  contextLock.unlock();
+#endif //ENABLE_BACKGROUND_TEXTURE_CREATION
+  return PX_OK;
+}
+
 pxError addToTextureList(pxTexture* texture)
 {
   textureListMutex.lock();
@@ -3010,16 +3027,22 @@ bool pxContext::isObjectOnScreen(float /*x*/, float /*y*/, float /*width*/, floa
 
 void pxContext::adjustCurrentTextureMemorySize(int64_t changeInBytes, bool allowGarbageCollect)
 {
+  lockContext();
   mCurrentTextureMemorySizeInBytes += changeInBytes;
   if (mCurrentTextureMemorySizeInBytes < 0)
   {
     mCurrentTextureMemorySizeInBytes = 0;
   }
-  //rtLogDebug("the current texture size: %" PRId64 ".", mCurrentTextureMemorySizeInBytes);
+  int64_t currentTextureMemorySize = mCurrentTextureMemorySizeInBytes;
 #ifdef ENABLE_PX_SCENE_TEXTURE_USAGE_MONITORING
-  if (allowGarbageCollect && changeInBytes > 0 && mCurrentTextureMemorySizeInBytes > mTextureMemoryLimitInBytes)
+  int64_t maxTextureMemoryInBytes = mTextureMemoryLimitInBytes;
+#endif // ENABLE_PX_SCENE_TEXTURE_USAGE_MONITORING
+  unlockContext();
+  //rtLogDebug("the current texture size: %" PRId64 ".", currentTextureMemorySize);
+#ifdef ENABLE_PX_SCENE_TEXTURE_USAGE_MONITORING
+  if (allowGarbageCollect && changeInBytes > 0 && currentTextureMemorySize > maxTextureMemoryInBytes)
   {
-    rtLogDebug("the texture size is too large: %" PRId64 ".  doing a garbage collect!!!\n", mCurrentTextureMemorySizeInBytes);
+    rtLogDebug("the texture size is too large: %" PRId64 ".  doing a garbage collect!!!\n", currentTextureMemorySize);
 #ifdef RUNINMAIN
 	script.collectGarbage();
 #else
@@ -3045,9 +3068,12 @@ bool pxContext::isTextureSpaceAvailable(pxTextureRef, bool)
 {
 #ifdef ENABLE_PX_SCENE_TEXTURE_USAGE_MONITORING
   int64_t textureSize = (texture->width()*texture->height()*4);
+  lockContext();
   int64_t currentTextureMemorySize = mCurrentTextureMemorySizeInBytes;
+  int64_t maxTextureMemoryInBytes = mTextureMemoryLimitInBytes;
+  unlockContext();
   if ((textureSize + currentTextureMemorySize) >
-             (mTextureMemoryLimitInBytes  + PXSCENE_DEFAULT_TEXTURE_MEMORY_LIMIT_THRESHOLD_PADDING_IN_BYTES))
+             (maxTextureMemoryInBytes  + PXSCENE_DEFAULT_TEXTURE_MEMORY_LIMIT_THRESHOLD_PADDING_IN_BYTES))
   {
     if (allowGarbageCollect)
     {
@@ -3116,22 +3142,6 @@ pxError pxContext::enableInternalContext(bool enable)
 #else
   (void)enable;
 #endif // !RUNINMAIN || ENABLE_BACKGROUND_TEXTURE_CREATION
-  return PX_OK;
-}
-
-pxError pxContext::lockContext()
-{
-#ifdef ENABLE_BACKGROUND_TEXTURE_CREATION
-  contextLock.lock();
-#endif //ENABLE_BACKGROUND_TEXTURE_CREATION
-  return PX_OK;
-}
-
-pxError pxContext::unlockContext()
-{
-#ifdef ENABLE_BACKGROUND_TEXTURE_CREATION
-  contextLock.unlock();
-#endif //ENABLE_BACKGROUND_TEXTURE_CREATION
   return PX_OK;
 }
 

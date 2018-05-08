@@ -166,6 +166,22 @@ std::vector<pxTexture*> textureList;
 rtMutex contextLock;
 #endif //ENABLE_BACKGROUND_TEXTURE_CREATION
 
+pxError lockContext()
+{
+#ifdef ENABLE_BACKGROUND_TEXTURE_CREATION
+  contextLock.lock();
+#endif //ENABLE_BACKGROUND_TEXTURE_CREATION
+  return PX_OK;
+}
+
+pxError unlockContext()
+{
+#ifdef ENABLE_BACKGROUND_TEXTURE_CREATION
+  contextLock.unlock();
+#endif //ENABLE_BACKGROUND_TEXTURE_CREATION
+  return PX_OK;
+}
+
 pxError addToTextureList(pxTexture* texture)
 {
   if(texture == NULL)
@@ -2953,22 +2969,6 @@ pxError pxContext::setEjectTextureAge(uint32_t age)
 
 pxError pxContext::enableInternalContext(bool)
 {
-  return PX_OK;
-}
-
-pxError pxContext::lockContext()
-{
-#ifdef ENABLE_BACKGROUND_TEXTURE_CREATION
-  contextLock.lock();
-#endif //ENABLE_BACKGROUND_TEXTURE_CREATION
-  return PX_OK;
-}
-
-pxError pxContext::unlockContext()
-{
-#ifdef ENABLE_BACKGROUND_TEXTURE_CREATION
-  contextLock.unlock();
-#endif //ENABLE_BACKGROUND_TEXTURE_CREATION
   return PX_OK;
 }
 
