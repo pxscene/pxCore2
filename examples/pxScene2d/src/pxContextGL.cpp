@@ -2305,7 +2305,7 @@ void pxContext::init()
   char const* s = getenv("SPARK_TEXTURE_LIMIT_IN_MB");
   if (s)
   {
-    int64_t textureMemoryLimit = atoi(s) * 1024 * 1024;
+    int64_t textureMemoryLimit = (int64_t)atoi(s) * (int64_t)1024 * (int64_t)1024;
     if (textureMemoryLimit > PXSCENE_DEFAULT_TEXTURE_MEMORY_LIMIT_IN_BYTES)
     {
       maxTextureMemory = textureMemoryLimit;
