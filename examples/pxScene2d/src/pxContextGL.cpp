@@ -3038,7 +3038,7 @@ void pxContext::setTextureMemoryLimit(int64_t textureMemoryLimitInBytes)
 }
 
 #ifdef ENABLE_PX_SCENE_TEXTURE_USAGE_MONITORING
-bool pxContext::isTextureSpaceAvailable(pxTextureRef texture, bool allowGarbageCollect=true)
+bool pxContext::isTextureSpaceAvailable(pxTextureRef texture, bool allowGarbageCollect)
 #else
 bool pxContext::isTextureSpaceAvailable(pxTextureRef, bool)
 #endif
