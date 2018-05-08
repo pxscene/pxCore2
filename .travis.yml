@@ -12,6 +12,7 @@ before_install:
 - if [ "$TRAVIS_EVENT_TYPE" != "pull_request" ]; then  chmod 0600 /tmp/pxscene-build.pem; fi
 - if [ "$TRAVIS_EVENT_TYPE" != "pull_request" ]; then  ssh-add /tmp/pxscene-build.pem; fi
 - ./ci/before_install.sh
+- "export RUN_DUKTAPE=OFF"
 - if [ "$TRAVIS_EVENT_TYPE" = "push" ] || [ "$TRAVIS_EVENT_TYPE" = "pull_request" ]; then export PATH=/usr/local/opt/ccache/libexec:$PATH; fi
 install:
 - ./ci/install.sh
@@ -26,6 +27,7 @@ script:
 - if [ "$TRAVIS_EVENT_TYPE" = "push" ] || [ "$TRAVIS_EVENT_TYPE" = "pull_request" ]; then genhtml -o $TRAVIS_BUILD_DIR/logs/codecoverage $TRAVIS_BUILD_DIR/tracefile; fi
 - if [ "$TRAVIS_EVENT_TYPE" = "push" ] || [ "$TRAVIS_EVENT_TYPE" = "pull_request" ]; then mv $TRAVIS_BUILD_DIR/logs $TRAVIS_BUILD_DIR/node_logs ; fi
 - ./ci/testDuktape.sh
+- if [ "$RUN_DUKTAPE" = "ON" ] || [ "$RUN_DUKTAPE" = "" ]; then ./ci/testDuktape.sh ; fi
 after_script:
 - ./ci/after_script.sh
 - if [ "$TRAVIS_EVENT_TYPE" != "pull_request" ]; then  rm -rf /tmp/pxscene-build.pem; fi
