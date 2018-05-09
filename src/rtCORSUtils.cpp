@@ -16,7 +16,7 @@
 
 */
 
-#include "rtPermissions.h"
+#include "rtCORSUtils.h"
 
 #include "rtUrlUtils.h"
 
@@ -40,7 +40,7 @@ rtError rtCORSUtilsCheckOrigin(const rtString& origin, const rtString& reqUrl, c
   }
 
   const rtString& reqUrlOrigin = rtUrlGetOrigin(reqUrl.cString());
-  if (!reqUrlOrigin.isEmpty() && !strcmp(origin, reqUrlOrigin.cString()))
+  if (!reqUrlOrigin.isEmpty() && 0 == reqUrlOrigin.compare(origin.cString()))
   {
     // request is same-origin
     return RT_OK;
