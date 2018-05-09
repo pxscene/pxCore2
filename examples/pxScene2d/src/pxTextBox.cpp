@@ -33,6 +33,9 @@ extern pxContext context;
 static const char      isNewline_chars[] = "\n\v\f\r";
 static const char isWordBoundary_chars[] = " \t/:&,;.";
 static const char    isSpaceChar_chars[] = " \t";
+const int ARR_SIZE						 = 8;
+static char ellipsisStr[ARR_SIZE] 		 = {NULL};
+static int ellipsisLen 					 = 0;
 
 
 #if 1
@@ -52,10 +55,15 @@ pxTextBox::pxTextBox(pxScene2d* s): pxText(s),
                                     lineNumber(0), lastLineNumber(0),
                                     noClipX(0), noClipY(0), noClipW(0), noClipH(0), startY(0)
 {
-  measurements= new pxTextMeasurements();
-
-  mFontLoaded      = false;
-  mFontFailed      = false;
+    measurements= new pxTextMeasurements();
+    mFontLoaded      = false;
+    mFontFailed      = false;
+  
+    if (ellipsisStr[0] == NULL)
+    {
+	    u8_unescape(ellipsisStr, 256, (char*) ELLIPSIS_STR) ;
+	    ellipsisLen = strlen(ellipsisStr);
+	}
   
 }
 
@@ -1164,10 +1172,10 @@ void pxTextBox::renderTextRowWithTruncation(rtString & accString, float lineWidt
   float ellipsisW = 0;
   if( mEllipsis)
   {
-    length -= ELLIPSIS_LEN;
+    length -= ellipsisLen;
     if (getFontResource() != NULL)
     {
-      getFontResource()->measureTextInternal(ELLIPSIS_STR, pixelSize, sx, sy, ellipsisW, charH);
+      getFontResource()->measureTextInternal(ellipsisStr, pixelSize, sx, sy, ellipsisW, charH);
     }
     //rtLogDebug("ellipsisW is %f\n",ellipsisW);
   }
@@ -1232,10 +1240,10 @@ void pxTextBox::renderTextRowWithTruncation(rtString & accString, float lineWidt
           if( render && getFontResource() != NULL) {
 #ifdef PXSCENE_FONT_ATLAS
             pxTexturedQuads quads;  
-            getFontResource()->renderTextToQuads(ELLIPSIS_STR, pixelSize, sx, sy, quads, xPos+charW, tempY);
+            getFontResource()->renderTextToQuads(ellipsisStr, pixelSize, sx, sy, quads, xPos+charW, tempY);
             mQuadsVector.push_back(quads);
 #else
-            getFontResource()->renderText(ELLIPSIS_STR, pixelSize, xPos+charW, tempY, 1.0, 1.0, mTextColor,lineWidth);
+            getFontResource()->renderText(ellipsisStr, pixelSize, xPos+charW, tempY, 1.0, 1.0, mTextColor,lineWidth);
 #endif          
           }
           if(!mWordWrap) { setMeasurementBounds(xPos, charW+ellipsisW, tempY, charH); }
@@ -1299,10 +1307,10 @@ void pxTextBox::renderTextRowWithTruncation(rtString & accString, float lineWidt
           if( render && getFontResource() != NULL) {
 #ifdef PXSCENE_FONT_ATLAS
             pxTexturedQuads quads;
-            getFontResource()->renderTextToQuads(ELLIPSIS_STR, pixelSize, sx, sy, quads, xPos+charW, tempY);
+            getFontResource()->renderTextToQuads(ellipsisStr, pixelSize, sx, sy, quads, xPos+charW, tempY);
             mQuadsVector.push_back(quads);
 #else
-            getFontResource()->renderText(ELLIPSIS_STR, pixelSize, xPos+charW, tempY, 1.0, 1.0, mTextColor,lineWidth);
+            getFontResource()->renderText(ellipsisStr, pixelSize, xPos+charW, tempY, 1.0, 1.0, mTextColor,lineWidth);
 #endif         
           }
           if(!mWordWrap) { setMeasurementBounds(xPos, charW+ellipsisW, tempY, charH); }
