@@ -53,7 +53,7 @@ printExecLogs()
 printValgrindLogs()
 {
   printf "\n********************** PRINTING VALGRIND LOG **************************\n"
-  grep -i "definitely" -C 50 $VALGRINDLOGS
+  tail -150 $VALGRINDLOGS
   printf "\n**********************     LOG ENDS      **************************\n"
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

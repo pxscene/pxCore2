@@ -117,7 +117,7 @@ Application.prototype.applicationClosed = function(e){
   }
 }
 Application.prototype.suspend = function() {
-  if (this.externalApp){
+  if (this.externalApp && this.externalApp.suspend != undefined){
     this.externalApp.suspend();
   }
   var appManager = module.exports;
@@ -130,7 +130,7 @@ Application.prototype.suspend = function() {
   return true;
 }
 Application.prototype.resume = function() {
-  if (this.externalApp){
+  if (this.externalApp && this.externalApp.resume != undefined){
     this.externalApp.resume();
   }
   var appManager = module.exports;
@@ -175,9 +175,9 @@ Application.prototype.moveToBack = function() {
   }
   return true;
 }
-Application.prototype.setFocus = function(focus) {
+Application.prototype.setFocus = function() {
   if (this.externalApp){
-    this.externalApp.focus = focus;
+    this.externalApp.focus = true;
   }
   return true;
 }
