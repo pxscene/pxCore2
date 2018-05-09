@@ -162,6 +162,25 @@ static pxMatrix4f gMatrix;
 static float gAlpha = 1.0;
 uint32_t gRenderTick = 0;
 std::vector<pxTexture*> textureList;
+#ifdef ENABLE_BACKGROUND_TEXTURE_CREATION
+rtMutex contextLock;
+#endif //ENABLE_BACKGROUND_TEXTURE_CREATION
+
+pxError lockContext()
+{
+#ifdef ENABLE_BACKGROUND_TEXTURE_CREATION
+  contextLock.lock();
+#endif //ENABLE_BACKGROUND_TEXTURE_CREATION
+  return PX_OK;
+}
+
+pxError unlockContext()
+{
+#ifdef ENABLE_BACKGROUND_TEXTURE_CREATION
+  contextLock.unlock();
+#endif //ENABLE_BACKGROUND_TEXTURE_CREATION
+  return PX_OK;
+}
 
 pxError addToTextureList(pxTexture* texture)
 {
@@ -2840,7 +2859,7 @@ bool pxContext::isObjectOnScreen(float /*x*/, float /*y*/, float /*width*/, floa
 #endif
 }
 
-void pxContext::adjustCurrentTextureMemorySize(int64_t changeInBytes)
+void pxContext::adjustCurrentTextureMemorySize(int64_t changeInBytes, bool allowGarbageCollect)
 {
   if (changeInBytes == 0)
   {
@@ -2865,7 +2884,7 @@ void pxContext::adjustCurrentTextureMemorySize(int64_t changeInBytes)
   }
   //rtLogDebug("the current texture size: %" PRId64 ".", mCurrentTextureMemorySizeInBytes);
 #ifdef ENABLE_PX_SCENE_TEXTURE_USAGE_MONITORING
-  if (pc >= 100.0f)
+  if (allowGarbageCollect && pc >= 100.0f)
   {
     rtLogDebug("\n ###  Texture Memory: %3.1f %%  <<<   GARBAGE COLLECT", pc);
 #ifdef RUNINMAIN
@@ -2886,13 +2905,21 @@ void pxContext::setTextureMemoryLimit(int64_t textureMemoryLimitInBytes)
   mTextureMemoryLimitInBytes = textureMemoryLimitInBytes;
 }
 
-bool pxContext::isTextureSpaceAvailable(pxTextureRef texture)
+bool pxContext::isTextureSpaceAvailable(pxTextureRef texture, bool allowGarbageCollect)
 {
 #ifdef ENABLE_PX_SCENE_TEXTURE_USAGE_MONITORING
   int textureSize = (texture->width()*texture->height()*4);
   if ((textureSize + mCurrentTextureMemorySizeInBytes) >
              (mTextureMemoryLimitInBytes + PXSCENE_DEFAULT_TEXTURE_MEMORY_LIMIT_THRESHOLD_PADDING_IN_BYTES))
   {
+    if (allowGarbageCollect)
+    {
+      #ifdef RUNINMAIN
+          script.collectGarbage();
+      #else
+          uv_async_send(&gcTrigger);
+      #endif
+    }
     return false;
   }
   else

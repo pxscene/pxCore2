@@ -2856,7 +2856,8 @@ bool pxScene2d::bubbleEvent(rtObjectRef e, rtRef<pxObject> t,
 
 //    rtLogDebug("before %s bubble\n", preEvent);
     e.set("name", preEvent);
-    for (vector<rtRef<pxObject> >::reverse_iterator it = l.rbegin();!mStopPropagation && it != l.rend();++it)
+    vector<rtRef<pxObject> >::reverse_iterator itReverseEnd = l.rend();
+    for (vector<rtRef<pxObject> >::reverse_iterator it = l.rbegin();!mStopPropagation && it != itReverseEnd;++it)
     {
       // TODO a bit messy
       rtFunctionRef emit = (*it)->mEmit.getPtr();
@@ -2869,7 +2870,8 @@ bool pxScene2d::bubbleEvent(rtObjectRef e, rtRef<pxObject> t,
 
 //    rtLogDebug("before %s bubble\n", event);
     e.set("name", event);
-    for (vector<rtRef<pxObject> >::iterator it = l.begin();!mStopPropagation && it != l.end();++it)
+    vector<rtRef<pxObject> >::iterator itEnd = l.end();
+    for (vector<rtRef<pxObject> >::iterator it = l.begin();!mStopPropagation && it != itEnd;++it)
     {
       // TODO a bit messy
       rtFunctionRef emit = (*it)->mEmit.getPtr();
@@ -2919,9 +2921,11 @@ bool pxScene2d::bubbleEventOnBlur(rtObjectRef e, rtRef<pxObject> t, rtRef<pxObje
     // Walk through object hierarchy starting from root for t (object losing focus) and o (object getting focus) to
     // find index (loseFocusChainIdx) of first common parent.
     unsigned long loseFocusChainIdx = l.size();
-    vector<rtRef<pxObject> >::reverse_iterator it_l = l.rbegin(); // traverse the hierarchy of object losing focus in REVERSE starting with the top most parent
+    vector<rtRef<pxObject> >::reverse_iterator it_l = l.rbegin();
+    vector<rtRef<pxObject> >::reverse_iterator it_lEnd = l.rend();
     vector<rtRef<pxObject> >::reverse_iterator it_m = m.rbegin(); // traverse the hierarchy of object getting focus in REVERSE starting with the top most parent
-    while((it_l != l.rend()) && (it_m != m.rend()) && (*it_l == *it_m))
+    vector<rtRef<pxObject> >::reverse_iterator it_mEnd  = m.rend();
+    while((it_l != it_lEnd) && (it_m != it_mEnd) && (*it_l == *it_m))
     {
       loseFocusChainIdx--;
       it_l++;
@@ -2930,7 +2934,8 @@ bool pxScene2d::bubbleEventOnBlur(rtObjectRef e, rtRef<pxObject> t, rtRef<pxObje
     
     //    rtLogDebug("before %s bubble\n", preEvent);
     e.set("name", "onPreBlur");
-    for (vector<rtRef<pxObject> >::reverse_iterator it = l.rbegin();!mStopPropagation && it != l.rend();++it)
+    vector<rtRef<pxObject> >::reverse_iterator it_reverseEnd = l.rend();
+    for (vector<rtRef<pxObject> >::reverse_iterator it = l.rbegin();!mStopPropagation && it != it_reverseEnd;++it)
     {
       rtFunctionRef emit = (*it)->mEmit.getPtr();
       if (emit)
@@ -3282,8 +3287,10 @@ rtError pxScene2d::getService(rtString name, rtObjectRef& returnObject)
   // Create context from requesting scene
   rtObjectRef ctx = new rtMapObject();
   ctx.set("url", mScriptView != NULL ? mScriptView->getUrl() : "");
+#ifdef ENABLE_PERMISSIONS_CHECK
   rtValue permissionsValue = mPermissions.getPtr();
   ctx.set("permissions", permissionsValue);
+#endif //ENABLE_PERMISSIONS_CHECK
 
   return getService(name, ctx, returnObject);
 }

@@ -42,7 +42,7 @@ int pxCreateEglContext()
   {
     return PX_FAIL;
   }
-  rtLogWarn("creating plugin context\n");
+  rtLogInfo("creating new context\n");
   EGLDisplay egl_display      = 0;
   EGLSurface egl_surface      = 0;
   EGLContext egl_context      = 0;
