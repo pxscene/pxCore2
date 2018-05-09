@@ -159,6 +159,7 @@ public:
   rtError delListener(const rtString& eventName, const rtFunctionRef& f);
   rtError startRemoteObjectLocator();
   rtError connectToRemoteObject(unsigned int timeout_ms);
+  rtError createWindow(bool& b);
   rtError useDispatchThread(bool use);
   rtError resume();
   rtError suspend();

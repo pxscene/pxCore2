@@ -36,6 +36,7 @@ class pxWaylandContainer: public pxViewContainer, pxWaylandEvents {
   rtMethodNoArgAndReturn("suspend", suspend, bool);
   rtMethodNoArgAndReturn("resume", resume, bool);
   rtMethodNoArgAndReturn("destroy", destroy, bool);
+  rtMethodNoArgAndReturn("createWindow", createWindow, bool);
 public:
   pxWaylandContainer(pxScene2d* scene);
   ~pxWaylandContainer();
@@ -78,6 +79,7 @@ public:
   rtError suspend(bool& b);
   rtError resume(bool& b);
   rtError destroy(bool& b);
+  rtError createWindow(bool& b);
 
 private:
   rtString mDisplayName;

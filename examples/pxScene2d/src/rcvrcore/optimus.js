@@ -68,6 +68,33 @@ function Application(props) {
         this.setProperties(props);
         module.exports.onCreate(this);
       }
+      else if (cmd == "rdkbrowser2"){
+        if ("uri" in launchParams){
+            uri = launchParams["uri"];
+        }
+        var waylandObj = scene.create( {t:"wayland", parent:root, server:"wl-rdkbrowser2-server", w:w, h:h, hasApi:true} );
+        this.externalApp = waylandObj;
+        this.setProperties(props);
+        waylandObj.remoteReady.then(function(o) {
+            var err = waylandObj.createWindow();
+            if (err == true)
+            {
+              waylandObj.api.url = uri;
+              console.log("launched rdkbrowser2 uri:" + uri);
+              waylandObj.setProperties(props);
+              module.exports.onCreate(waylandObj);
+              waylandObj.applicationReady();
+            }
+            else
+            {
+              console.log("failed to create window for rdkbrowser2");
+              module.exports.onDestroy(waylandObj);
+            }
+          }, function rejection(o) {
+          console.log("failed to create rdkbrowser2");
+          module.exports.onDestroy(waylandObj);
+        });
+      }
       else{
         if (cmd == "wpe" && "uri" in launchParams){
             uri = launchParams["uri"];
