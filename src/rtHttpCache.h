@@ -1,6 +1,6 @@
 /*
 
- rtCore Copyright 2005-2017 John Robinson
+ pxCore Copyright 2005-2018 John Robinson
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -38,7 +38,7 @@ class rtHttpCacheData
 
     ~rtHttpCacheData();
     /* returns the expiration date of the cache data in localtime */
-    rtString expirationDate();
+    rtString expirationDate() const;
     time_t expirationDateUnix() const;
 
     /* returns true if cache data is expired */
@@ -84,6 +84,8 @@ class rtHttpCacheData
 
     FILE* filePointer(void);
 
+    void setFileName(rtString& fileName);
+
   private:
     /* populates the map with header attribute and value */
     void populateHeaderMap();
@@ -119,6 +121,7 @@ class rtHttpCacheData
     time_t mExpirationDate;
     FILE* fp;
     bool mUpdated;
+    rtString mFileName;
 
 };
 #endif

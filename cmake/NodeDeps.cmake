@@ -1,16 +1,37 @@
 if (PREFER_SYSTEM_LIBRARIES)
-    pkg_search_module(NODE node)
+
+    if ((NOT PKG_CONFIG_DISABLE_NODE8) AND (NOT NODE_FOUND))
+        pkg_search_module(NODE node8)
+    endif((NOT PKG_CONFIG_DISABLE_NODE8) AND (NOT NODE_FOUND))
+
+    if ((NOT PKG_CONFIG_DISABLE_NODE) AND (NOT NODE_FOUND))
+        pkg_search_module(NODE node)
+    endif((NOT PKG_CONFIG_DISABLE_NODE) AND (NOT NODE_FOUND))
+
+    if (NODE_FOUND)
+        message(STATUS "Using external nodejs library (found version \"${NODE_VERSION}\")")
+    endif(NODE_FOUND)
+
 endif(PREFER_SYSTEM_LIBRARIES)
 if (NOT NODE_FOUND)
     message(STATUS "Using built-in nodejs library")
-
-    if (NOT WIN32)
-        set(NODEDIR "${EXTDIR}/node/")
-    else (NOT WIN32)
-        set(NODEDIR "${EXTDIR}/libnode-v6.9.0/")
-    endif (NOT WIN32)
+    if (USE_NODE_0_12_7)
+          set(NODEDIR "${EXTDIR}/libnode/")
+    else (USE_NODE_0_12_7)
+      if (NOT WIN32)
+          set(NODEDIR "${EXTDIR}/node/")
+      else (NOT WIN32)
+          set(NODEDIR "${EXTDIR}/libnode-v6.9.0/")
+      endif (NOT WIN32)
+    endif (USE_NODE_0_12_7)
 
     set(NODE_INCLUDE_DIRS ${NODEDIR}/src ${NODEDIR}/deps/uv/include ${NODEDIR}/deps/v8/include ${NODEDIR}/deps/cares/include)
+    if (USE_NODE_0_12_7)
+          set(NODE_INCLUDE_DIRS ${NODE_INCLUDE_DIRS} ${NODEDIR}/deps/debugger-agent/include)
+          set(NODE_INCLUDE_DIRS ${NODE_INCLUDE_DIRS} ${NODEDIR}/deps/v8)
+          set(NODE_LIBRARY_DIRS ${NODE_LIBRARY_DIRS} ${NODEDIR}/out/Release)
+    endif (USE_NODE_0_12_7)
+  
 
   if (NOT BUILD_WITH_STATIC_NODE)
       if (NOT WIN32)

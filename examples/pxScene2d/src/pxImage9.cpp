@@ -1,6 +1,6 @@
 /*
 
- pxCore Copyright 2005-2017 John Robinson
+ pxCore Copyright 2005-2018 John Robinson
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -33,14 +33,8 @@ extern pxContext context;
 pxImage9::~pxImage9()
 {
   rtLogDebug("~pxImage9()");
-  if (mListenerAdded)
-  {
-    if (getImageResource())
-    {
-      getImageResource()->removeListener(this);
-    }
-    mListenerAdded = false;
-  }
+  removeResourceListener();
+  mResource = NULL;
 }
 
 void pxImage9::onInit()
@@ -70,7 +64,11 @@ rtError pxImage9::url(rtString& s) const
 }
 
 rtError pxImage9::setUrl(const char* s) 
-{ 
+{
+#ifdef ENABLE_PERMISSIONS_CHECK
+  rtPermissionsCheck((mScene != NULL ? mScene->permissions() : NULL), s, rtPermissions::DEFAULT)
+#endif
+
   rtImageResource* resourceObj = getImageResource();  
   if(resourceObj != NULL && resourceObj->getUrl().length() > 0 && resourceObj->getUrl().compare(s))
   {
@@ -79,8 +77,9 @@ rtError pxImage9::setUrl(const char* s)
       imageLoaded = false;
       pxObject::createNewPromise();
     }
-  } 
+  }
 
+  removeResourceListener();
   mResource = pxImageManager::getImage(s); 
   if(getImageResource() != NULL && getImageResource()->getUrl().length() > 0)
   {
@@ -89,6 +88,49 @@ rtError pxImage9::setUrl(const char* s)
   }
     
   return RT_OK;
+}
+
+/**
+ * setResource
+ * */
+rtError pxImage9::setResource(rtObjectRef o) 
+{ 
+    
+  if(!o)
+  {
+    setUrl("");
+    return RT_OK;
+  }
+  
+  // Verify the object passed in is an rtImageResource
+  rtString desc;
+  o.sendReturns("description",desc);
+  if(!desc.compare("rtImageResource"))
+  {
+    rtString url;
+    url = o.get<rtString>("url");
+    // Only create new promise if url is different 
+    if( getImageResource() != NULL && getImageResource()->getUrl().compare(o.get<rtString>("url")) )
+    {
+      removeResourceListener();
+      mResource = o; 
+      imageLoaded = false;
+      pxObject::createNewPromise();
+      mListenerAdded = true;
+      getImageResource()->addListener(this);
+    }
+    return RT_OK; 
+  } 
+  else 
+  {
+    rtLogError("Object passed as resource is not an imageResource!\n");
+    pxObject::onTextureReady();
+    // Call createNewPromise to ensure the old promise hadn't already been resolved
+    pxObject::createNewPromise();
+    mReady.send("reject",this);
+    return RT_ERROR; 
+  }
+
 }
 
 void pxImage9::sendPromise() 
@@ -116,7 +158,7 @@ float pxImage9::getOnscreenHeight()
 
 
 void pxImage9::draw() {
-  if (getImageResource() != NULL)
+  if (getImageResource() != NULL && getImageResource()->isInitialized())
   {
     context.drawImage9(mw, mh, mInsetLeft, mInsetTop, mInsetRight, mInsetBottom, getImageResource()->getTexture());
   }
@@ -151,6 +193,19 @@ void pxImage9::resourceReady(rtString readyResolution)
       pxObject::onTextureReady();
       mReady.send("reject",this);
   }
+}
+
+rtError pxImage9::removeResourceListener()
+{
+  if (mListenerAdded)
+  {
+    if (getImageResource())
+    {
+      getImageResource()->removeListener(this);
+    }
+    mListenerAdded = false;
+  }
+  return RT_OK;
 }
 
 rtDefineObject(pxImage9, pxObject);

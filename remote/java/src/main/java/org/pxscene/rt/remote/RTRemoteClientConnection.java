@@ -1,7 +1,6 @@
 package org.pxscene.rt.remote;
 
-import org.pxscene.rt.RTException;
-import org.pxscene.rt.RTObject;
+import java.net.URI;
 
 /**
  * the connection class between client and remote.
@@ -37,6 +36,13 @@ public class RTRemoteClientConnection {
     return new RTRemoteClientConnection(new RTRemoteProtocol(transport, false));
   }
 
+  /* creating WRP Client connection */
+  public static RTRemoteClientConnection createWRPClientConnection(URI uri) throws RTException {
+    RTRemoteTransport transport = new RTRemoteWRPTransport(uri);
+    return new RTRemoteClientConnection(new RTRemoteProtocol(transport, false));
+  }
+
+
   /**
    * create new client-remote object
    *
@@ -47,3 +53,4 @@ public class RTRemoteClientConnection {
     return new RTRemoteObject(proto, objectId);
   }
 }
+

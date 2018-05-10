@@ -1,6 +1,6 @@
 /*
 
- pxCore Copyright 2005-2017 John Robinson
+ pxCore Copyright 2005-2018 John Robinson
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 */
 
-#include "rtPermissions.h"
+#include "rtCORSUtils.h"
 
 #include "rtUrlUtils.h"
 
@@ -40,7 +40,7 @@ rtError rtCORSUtilsCheckOrigin(const rtString& origin, const rtString& reqUrl, c
   }
 
   const rtString& reqUrlOrigin = rtUrlGetOrigin(reqUrl.cString());
-  if (!reqUrlOrigin.isEmpty() && !strcmp(origin, reqUrlOrigin.cString()))
+  if (!reqUrlOrigin.isEmpty() && 0 == reqUrlOrigin.compare(origin.cString()))
   {
     // request is same-origin
     return RT_OK;

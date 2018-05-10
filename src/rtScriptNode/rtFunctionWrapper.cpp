@@ -1,3 +1,21 @@
+/*
+
+pxCore Copyright 2005-2018 John Robinson
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+*/
+
 #include "rtFunctionWrapper.h"
 #include "rtWrapperUtils.h"
 #include "jsCallback.h"
@@ -11,6 +29,7 @@ namespace rtScriptNodeUtils
 
 static const char* kClassName = "Function";
 static Persistent<v8::Function> ctor;
+std::hash<std::string> hashFn;
 
 static void jsFunctionCompletionHandler(void* argp, rtValue const& result)
 {
@@ -267,7 +286,12 @@ jsFunctionWrapper::jsFunctionWrapper(Local<Context>& ctx, const Handle<Value>& v
   , mFunction(ctx->GetIsolate(), Handle<Function>::Cast(val))
   , mComplete(false)
   , mTeardownThreadingPrimitives(false)
+  , mHash(-1)
 {
+  v8::String::Utf8Value fn(Handle<Function>::Cast(val)->ToString());
+  if (NULL != *fn) { 
+    mHash = hashFn(*fn);
+  }
   mIsolate = ctx->GetIsolate();
   mContext.Reset(ctx->GetIsolate(), ctx);
   assert(val->IsFunction());
@@ -285,6 +309,7 @@ jsFunctionWrapper::~jsFunctionWrapper()
     pthread_cond_destroy(&mCond);
 #endif
   }
+  mHash = -1;
 }
 
 void jsFunctionWrapper::setupSynchronousWait()

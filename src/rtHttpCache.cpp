@@ -1,6 +1,6 @@
 /*
 
- rtCore Copyright 2005-2017 John Robinson
+ pxCore Copyright 2005-2018 John Robinson
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -73,19 +73,19 @@ extern "C" time_t timegm(struct tm * a_tm)
 }
 #endif
 
-rtHttpCacheData::rtHttpCacheData():mExpirationDate(0),mUpdated(false)
+rtHttpCacheData::rtHttpCacheData():mExpirationDate(0),mUpdated(false),mFileName()
 {
   fp = NULL;
 }
 
 rtHttpCacheData::rtHttpCacheData(const char* url) :
-     mUrl(url), mExpirationDate(0), mUpdated(false)
+     mUrl(url), mExpirationDate(0), mUpdated(false), mFileName()
 {
   fp = NULL;
 }
 
 rtHttpCacheData::rtHttpCacheData(const char* url, const char* headerMetadata, const char* data, size_t size) :
-     mUrl(url), mExpirationDate(0), mUpdated(false)
+     mUrl(url), mExpirationDate(0), mUpdated(false), mFileName()
 {
   if ((NULL != headerMetadata) && (NULL != data))
   {
@@ -153,11 +153,13 @@ void rtHttpCacheData::populateHeaderMap()
   }
 }
 
-rtString rtHttpCacheData::expirationDate()
+rtString rtHttpCacheData::expirationDate() const
 {
   char buffer[100];
+  struct tm local_tm;
+
   memset(buffer,0,100);
-  strftime(buffer, 100, "%Y-%m-%d %H:%M:%S", localtime(&mExpirationDate));
+  strftime(buffer, 100, "%Y-%m-%d %H:%M:%S", localtime_r(&mExpirationDate, &local_tm));
   return rtString(buffer);
 }
 
@@ -355,6 +357,11 @@ FILE* rtHttpCacheData::filePointer(void)
   return fp;
 }
 
+void rtHttpCacheData::setFileName(rtString& fileName)
+{
+  mFileName = fileName;
+}
+
 void rtHttpCacheData::setExpirationDate()
 {
   bool foundMaxAge = false;
@@ -444,7 +451,7 @@ rtError rtHttpCacheData::calculateRevalidationNeed(bool& revalidate, bool& reval
 bool rtHttpCacheData::handleDownloadRequest(vector<rtString>& headers,bool downloadBody)
 {
   rtFileDownloadRequest* downloadRequest = NULL;
-  downloadRequest = new rtFileDownloadRequest(mUrl, this);
+  downloadRequest = new rtFileDownloadRequest(mUrl, this, NULL);
   downloadRequest->setAdditionalHttpHeaders(headers);
 
   if (!downloadBody)
@@ -593,7 +600,7 @@ rtError rtHttpCacheData::handleEtag(rtData& data)
 
   if (mUpdated)
   {
-    rtLogInfo("ETAG update found");
+    rtLogInfo("ETAG update found for url(%s) filename(%s)", mUrl.cString(), mFileName.cString());
     populateHeaderMap();
     setExpirationDate();
     data.init(mData.data(),mData.length());

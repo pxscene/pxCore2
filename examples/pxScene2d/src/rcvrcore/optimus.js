@@ -1,3 +1,21 @@
+/*
+
+pxCore Copyright 2005-2018 John Robinson
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+*/
+
 'use strict';
 
 //application manager variables
@@ -18,6 +36,7 @@ function Application(props) {
   var cmd = "";
   var w = 0;
   var h = 0;
+  var uri = "";
 
   if ("launchParams" in props){
     var launchParams = props["launchParams"];
@@ -33,27 +52,49 @@ function Application(props) {
     h = props["h"];
   }
   if (cmd){
-    if (cmd.includes(".js")){
-      this.externalApp = scene.create({t:"scene", parent:root, url:cmd});
-      this.externalApp.on("onReady", this.applicationReady);
-      this.externalApp.on("onClientStopped", this.applicationClosed);
-      this.setProperties(props);
-      module.exports.onCreate(this);
+    if (scene !== undefined) {
+      if ((cmd == "spark") && "uri" in launchParams){
+        uri = launchParams["uri"];
+        this.externalApp = scene.create({t:"scene", parent:root, url:uri});
+        this.externalApp.on("onClientStopped", this.applicationClosed);
+        var sparkApp = this;
+        this.externalApp.ready.then(function(o) {
+            console.log("successfully created Spark app: " + sparkApp.id);
+            sparkApp.applicationReady();
+          }, function rejection(o) {
+          console.log("failed to launch Spark app: " + sparkApp.id);
+          module.exports.onDestroy(sparkApp);
+        });
+        this.setProperties(props);
+        module.exports.onCreate(this);
+      }
+      else{
+        if (cmd == "wpe" && "uri" in launchParams){
+            uri = launchParams["uri"];
+            cmd = cmd + " " + uri;
+            console.log("Launching wpe uri: " + uri); 
+        }
+ 
+        this.externalApp = scene.create( {t:"wayland", parent:root, cmd:cmd, w:w, h:h, hasApi:true} );
+        this.externalApp.on("onReady", this.applicationReady);
+        this.externalApp.on("onClientStopped", this.applicationClosed);
+        this.externalApp.on("onClientDisconnected", this.applicationClosed);
+        this.setProperties(props);
+        var thisApp = this;
+        this.externalApp.ready.then(function(o) {
+            console.log("successfully created: " + thisApp.id);
+            module.exports.onCreate(thisApp);
+          }, function rejection(o) {
+          console.log("failed to launch app: " + thisApp.id);
+          module.exports.onDestroy(thisApp);
+        });
+      }
     }
-    else{
-      this.externalApp = scene.create( {t:"wayland", parent:root, cmd:cmd, w:w, h:h, hasApi:true} );
-      this.externalApp.on("onReady", this.applicationReady);
-      this.externalApp.on("onClientStopped", this.applicationClosed);
-      this.externalApp.on("onClientDisconnected", this.applicationClosed);
-      this.setProperties(props);
-      var thisApp = this;
-      this.externalApp.ready.then(function(o) {
-        console.log("successfully created: " + thisApp.id);
-        module.exports.onCreate(thisApp);
-      }, function rejection(o) {
-        console.log("failed to launch app: " + thisApp.id);
-        module.exports.onDestroy(thisApp);
-      });
+    else
+    {
+      console.log("cannot create app because the scene is not set");
+      var destroyedApp = this;
+      module.exports.onDestroy(destroyedApp);
     }
   }
   else{
@@ -76,7 +117,7 @@ Application.prototype.applicationClosed = function(e){
   }
 }
 Application.prototype.suspend = function() {
-  if (this.externalApp){
+  if (this.externalApp && this.externalApp.suspend != undefined){
     this.externalApp.suspend();
   }
   var appManager = module.exports;
@@ -89,7 +130,7 @@ Application.prototype.suspend = function() {
   return true;
 }
 Application.prototype.resume = function() {
-  if (this.externalApp){
+  if (this.externalApp && this.externalApp.resume != undefined){
     this.externalApp.resume();
   }
   var appManager = module.exports;
@@ -134,9 +175,9 @@ Application.prototype.moveToBack = function() {
   }
   return true;
 }
-Application.prototype.setFocus = function(focus) {
+Application.prototype.setFocus = function() {
   if (this.externalApp){
-    this.externalApp.focus = focus;
+    this.externalApp.focus = true;
   }
   return true;
 }

@@ -1,3 +1,21 @@
+/*
+
+pxCore Copyright 2005-2018 John Robinson
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+*/
+
 #include <sstream>
 
 #define private public
@@ -46,6 +64,18 @@ class rtStringTest : public testing::Test
 
       EXPECT_TRUE( std::string(joined.cString()) == "Hello World");
       // EXPECT_TRUE( std::string(joined == hello_world) );   // TODO:  '==' operator not supported for rtString ?? 
+    }
+
+    void appendNULLTest()
+    {
+      rtString nullstring(NULL);
+      rtString append("1234");
+
+      nullstring.append("1234");
+      EXPECT_TRUE( nullstring.compare("1234") == 0 );
+
+      append.append(NULL);
+      EXPECT_TRUE( append.compare("1234") == 0 );
     }
 
     void compareTest()
@@ -135,6 +165,7 @@ TEST_F(rtStringTest, rtStringTests)
 {
   isEmptyTest();
   appendTest();
+  appendNULLTest();
   compareTest();
   lengthTest();
   cStringTest();

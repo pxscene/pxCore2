@@ -1,6 +1,6 @@
 /*
 
- pxCore Copyright 2005-2017 John Robinson
+ pxCore Copyright 2005-2018 John Robinson
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -47,6 +47,12 @@ class rtFileDownloadRequest;
 #define PX_RESOURCE_STATUS_UNKNOWN_ERROR  6
 
 
+// errors specific to rtRemote
+#define PX_RESOURCE_LOAD_SUCCESS 0
+#define PX_RESOURCE_LOAD_FAIL 1
+#define PX_RESOURCE_LOAD_WAIT 2
+
+
 class pxResourceListener 
 {
 public: 
@@ -63,7 +69,8 @@ public:
   rtReadOnlyProperty(ready,ready,rtObjectRef);
   rtReadOnlyProperty(loadStatus,loadStatus,rtObjectRef);
     
-  pxResource():mUrl(0),mDownloadRequest(0),priorityRaised(false),mReady(), mListenersMutex(){  
+  pxResource():mUrl(0),mDownloadRequest(NULL),mDownloadInProgress(false), priorityRaised(false),mReady(), mListeners(),
+               mListenersMutex(), mDownloadInProgressMutex(), mLoadStatusMutex(){
     mReady = new rtPromise;
     mLoadStatus = new rtMapObject; 
     mLoadStatus.set("statusCode", 0);
@@ -95,11 +102,16 @@ public:
   void addListener(pxResourceListener* pListener);
   void removeListener(pxResourceListener* pListener);
   virtual void loadResource();
+  void clearDownloadRequest();
+  virtual void setupResource() {}
+  virtual void prepare() {}
+  void setLoadStatus(const char* name, rtValue value);
 protected:   
   static void onDownloadComplete(rtFileDownloadRequest* downloadRequest);
   static void onDownloadCompleteUI(void* context, void* data);
+  static void onDownloadCanceledUI(void* context, void* data);
   virtual void processDownloadedResource(rtFileDownloadRequest* fileDownloadRequest);
-  virtual bool loadResourceData(rtFileDownloadRequest* fileDownloadRequest) = 0;
+  virtual uint32_t loadResourceData(rtFileDownloadRequest* fileDownloadRequest) = 0;
   
   void notifyListeners(rtString readyResolution);
 
@@ -108,20 +120,23 @@ protected:
   
   rtString mUrl;
   rtString mProxy;
-  rtFileDownloadRequest* mDownloadRequest;  
+  rtFileDownloadRequest* mDownloadRequest;
+  bool mDownloadInProgress;
   bool priorityRaised;
 
   rtObjectRef mLoadStatus;
   rtObjectRef mReady;
   std::list<pxResourceListener*> mListeners;
   rtMutex mListenersMutex;
+  rtMutex mDownloadInProgressMutex;
+  mutable rtMutex mLoadStatusMutex;
 };
 
 class rtImageResource : public pxResource
 {
 public:
   rtImageResource(const char* url = 0, const char* proxy = 0);
-  ~rtImageResource(); 
+  virtual ~rtImageResource();
   
   rtDeclareObject(rtImageResource, pxResource);
   
@@ -136,17 +151,23 @@ public:
   virtual int32_t h() const;
   virtual rtError h(int32_t& v) const; 
 
-  pxTextureRef getTexture() { return mTexture; }  
+  pxTextureRef getTexture(bool initializing = false);
+  void setTextureData(pxOffscreen& imageOffscreen, const char* data, const size_t dataSize);
+  virtual void setupResource();
+  virtual void prepare();
  
   virtual void init();
 
 protected:  
-  virtual bool loadResourceData(rtFileDownloadRequest* fileDownloadRequest);
+  virtual uint32_t loadResourceData(rtFileDownloadRequest* fileDownloadRequest);
   
 private: 
 
   void loadResourceFromFile();
   pxTextureRef mTexture;
+  pxTextureRef mDownloadedTexture;
+  rtMutex mTextureMutex;
+  bool mDownloadComplete;
  
 };
 
@@ -154,7 +175,7 @@ class rtImageAResource : public pxResource
 {
 public:
   rtImageAResource(const char* url = 0, const char* proxy = 0);
-  ~rtImageAResource();
+  virtual ~rtImageAResource();
 
   rtDeclareObject(rtImageAResource, pxResource);
 
@@ -162,9 +183,10 @@ public:
 
   virtual void init();
   pxTimedOffscreenSequence& getTimedOffscreenSequence() { return mTimedOffscreenSequence; }
-
+  virtual void setupResource() { init(); }
+  
 protected:
-  virtual bool loadResourceData(rtFileDownloadRequest* fileDownloadRequest);
+  virtual uint32_t loadResourceData(rtFileDownloadRequest* fileDownloadRequest);
 
 private:
 

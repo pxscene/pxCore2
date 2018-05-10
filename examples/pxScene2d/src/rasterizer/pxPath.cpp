@@ -1,6 +1,6 @@
 /*
  
- pxCore Copyright 2005-2017 John Robinson
+ pxCore Copyright 2005-2018 John Robinson
  
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
@@ -542,7 +542,7 @@ void updatePen(float px, float py)
     if (sscanf(s, "RECT x:%f y:%f width:%f height:%f %n",
                &x0, &y0, &w, &h, &n) == 4)
     {
-      // printf("\nPath:   RECT( x0:%.0f, y0:%.0f) pushRect ", x0, y0, rx, ry);
+      // printf("\nPath:   RECT( x0:%.0f, y0:%.0f) pushRect ", x0, y0, w, h);
       float zero = 0;
       
       p->pushRect(p, x0, y0, w, h, zero, zero);

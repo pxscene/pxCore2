@@ -1,6 +1,6 @@
 ﻿/*
 
- pxCore Copyright 2005-2017 John Robinson
+ pxCore Copyright 2005-2018 John Robinson
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -75,15 +75,17 @@ using namespace std;
 #include <client/windows/handler/exception_handler.h>
 #endif
 
-#ifdef PX_SERVICE_MANAGER
+#ifdef PX_SERVICE_MANAGER_LINKED
 #include "rtservicemanager.h"
-#endif //PX_SERVICE_MANAGER
+#endif //PX_SERVICE_MANAGER_LINKED
 
 #ifndef RUNINMAIN
 class AsyncScriptInfo;
 vector<AsyncScriptInfo*> scriptsInfo;
 static uv_work_t nodeLoopReq;
 #endif
+
+#include "rtThreadPool.h"
 
 #include <stdlib.h>
 #include <fstream>
@@ -101,6 +103,13 @@ char** g_origArgv = NULL;
 bool gDumpMemUsage = false;
 extern bool gApplicationIsClosing;
 extern int pxObjectCount;
+
+#include "pxFont.h"
+
+#ifdef PXSCENE_FONT_ATLAS
+extern pxFontAtlas gFontAtlas;
+#endif
+
 #ifdef HAS_LINUX_BREAKPAD
 static bool dumpCallback(const google_breakpad::MinidumpDescriptor& descriptor,
 void* context, bool succeeded) {
@@ -244,6 +253,7 @@ protected:
       gApplicationIsClosing = true;
     
     rtLogInfo(__FUNCTION__);
+    
     ENTERSCENELOCK();
     if (mView)
       mView->onCloseRequest();
@@ -256,9 +266,7 @@ protected:
 #endif
    // pxScene.cpp:104:12: warning: deleting object of abstract class type ‘pxIView’ which has non-virtual destructor will cause undefined behaviour [-Wdelete-non-virtual-dtor]
 
-  #ifdef RUNINMAIN
-     script.collectGarbage();
-  #endif
+
   ENTERSCENELOCK()
     mView = NULL;
   EXITSCENELOCK()
@@ -269,7 +277,12 @@ protected:
     free(g_origArgv);
   #endif
 
+    pxFontManager::clearAllFonts();
+    
     context.term();
+#ifdef RUNINMAIN
+    script.pump();
+#endif
     script.collectGarbage();
 
     if (gDumpMemUsage)
@@ -278,6 +291,7 @@ protected:
 #ifndef PX_PLATFORM_DFB_NON_X11
       rtLogInfo("texture memory usage is [%" PRId64 "]",context.currentTextureMemoryUsageInBytes());
 #endif
+      fflush(stdout);
 // #ifdef PX_PLATFORM_MAC
 //       rtLogInfo("texture memory usage is [%lld]",context.currentTextureMemoryUsageInBytes());
 // #else
@@ -637,10 +651,10 @@ if (s && (strcmp(s,"1") == 0))
   OptimusClient::registerApi(tempObject);
 #endif //ENABLE_OPTIMUS_SUPPORT
 
-#ifdef PX_SERVICE_MANAGER
+#ifdef PX_SERVICE_MANAGER_LINKED
   RtServiceManager::start();
 
-#endif //PX_SERVICE_MANAGER
+#endif //PX_SERVICE_MANAGER_LINKED
 
   eventLoop.run();
 

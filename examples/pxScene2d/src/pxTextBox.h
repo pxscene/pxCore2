@@ -1,6 +1,6 @@
 /*
 
- pxCore Copyright 2005-2017 John Robinson
+ pxCore Copyright 2005-2018 John Robinson
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -181,7 +181,7 @@ public:
   rtDeclareObject(pxTextBox, pxText);
 
   pxTextBox(pxScene2d* s);
-  ~pxTextBox(){}
+  virtual ~pxTextBox(){}
   
   rtProperty(wordWrap, wordWrap, setWordWrap, bool);
   rtProperty(ellipsis, ellipsis, setEllipsis, bool);
@@ -246,11 +246,22 @@ public:
   rtMethodNoArgAndReturn("measureText", measureText, rtObjectRef);
   rtError measureText(rtObjectRef& o); 
 
-  virtual rtError Set(const char* name, const rtValue* value)
+  virtual rtError Set(uint32_t i, const rtValue* value) override
+  {
+    std::ignore = i;
+    std::ignore = value;
+    rtLogError("pxTextBox::Set(uint32_t, const rtValue*) - not implemented");
+    return RT_ERROR_NOT_IMPLEMENTED;
+  }
+
+  virtual rtError Set(const char* name, const rtValue* value) override
   {
 	  //rtLogDebug("pxTextBox Set for %s\n", name );
 
-    mDirty = mDirty || (!strcmp(name,"wordWrap")        ||
+    mDirty = mDirty || (!strcmp(name,"clip")            ||
+                        !strcmp(name,"w")               ||
+                        !strcmp(name,"h")               ||
+                        !strcmp(name,"wordWrap")        ||
                         !strcmp(name,"ellipsis")        ||
                         !strcmp(name,"xStartPos")       ||
                         !strcmp(name,"xStopPos")        ||
@@ -282,7 +293,11 @@ public:
   
   bool mInitialized;
   bool mNeedsRecalc;
-  
+
+  #ifdef PXSCENE_FONT_ATLAS
+  std::vector<pxTexturedQuads> mQuadsVector;
+  #endif
+
   rtObjectRef measurements;
   uint32_t lineNumber;
   uint32_t lastLineNumber;
@@ -298,11 +313,11 @@ public:
   bool isWordBoundary( char ch );
   bool isSpaceChar( char ch );  
   
-  void renderTextRowWithTruncation(rtString & accString, float lineWidth, float tempX, float tempY, float sx, float sy, uint32_t pixelSize, float* color, bool render);
+  void renderTextRowWithTruncation(rtString & accString, float lineWidth, float tempX, float tempY, float sx, float sy, uint32_t pixelSize, bool render);
   void renderTextNoWordWrap(float sx, float sy, float tempX, bool render);
-  void renderTextWithWordWrap(const char *text, float sx, float sy, float tempX, uint32_t pixelSize, float* color, bool render);
-  void measureTextWithWrapOrNewLine(const char *text, float sx, float sy, float tempX, float &tempY, uint32_t size, float* color, bool render);
-  void renderOneLine(const char * tempStr, float tempX, float tempY, float sx, float sy,  uint32_t size, float* color, float lineWidth, bool render );
+  void renderTextWithWordWrap(const char *text, float sx, float sy, float tempX, uint32_t pixelSize, bool render);
+  void measureTextWithWrapOrNewLine(const char *text, float sx, float sy, float tempX, float &tempY, uint32_t size, bool render);
+  void renderOneLine(const char * tempStr, float tempX, float tempY, float sx, float sy,  uint32_t size, float lineWidth, bool render );
   
   void recalc();
   void clearMeasurements();

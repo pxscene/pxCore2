@@ -1,6 +1,6 @@
 /*
 
- pxCore Copyright 2005-2017 John Robinson
+ pxCore Copyright 2005-2018 John Robinson
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -91,10 +91,10 @@ void rtString::term()
 
 void rtString::append(const char* s) 
 {
-  size_t sl = strlen(s);
-  size_t dl = strlen(mData);
+  size_t sl = s?strlen(s):0;
+  size_t dl = mData?strlen(mData):0;
   mData = (char*)realloc((void*)mData, dl+sl+1);
-  strcpy(mData+dl, s);
+  strcpy(mData+dl, s?s:"");
 }
 
 int rtString::compare(const char* s) const 

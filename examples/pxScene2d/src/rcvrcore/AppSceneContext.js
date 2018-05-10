@@ -1,3 +1,21 @@
+/*
+
+pxCore Copyright 2005-2018 John Robinson
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+*/
+
 //"use strict";
 
 var isDuk=(typeof timers != "undefined")?true:false;
@@ -14,6 +32,7 @@ var SceneModuleManifest = require('rcvrcore/SceneModuleManifest');
 var JarFileMap = require('rcvrcore/utils/JarFileMap');
 var AsyncFileAcquisition = require('rcvrcore/utils/AsyncFileAcquisition');
 var AccessControl = require('rcvrcore/utils/AccessControl');
+var WrapObj = require('rcvrcore/utils/WrapObj');
 
 var log = new Logger('AppSceneContext');
 //overriding original timeout and interval functions
@@ -91,6 +110,12 @@ if( fullPath !== null)
   this.loadPackage(fullPath);
 
 this.innerscene.on('onSceneTerminate', function (e) {
+    if (null != this.webSocketManager)
+    {
+       this.webSocketManager.clearConnections();
+       delete this.webSocketManager;
+    }
+    this.webSocketManager = null;
     //clear the timers and intervals on close
     var ntimers = this.timers.length;
     for (var i=0; i<ntimers; i++)
@@ -156,12 +181,6 @@ this.innerscene.on('onSceneTerminate', function (e) {
     if (null != this.sceneWrapper)
       this.sceneWrapper.close();
     this.sceneWrapper = null;
-    if (null != this.webSocketManager)
-    {
-       this.webSocketManager.clearConnections();
-       delete this.webSocketManager;
-    }
-    this.webSocketManager = null;
     this.rpcController = null;
     if (this.accessControl) {
       this.accessControl.destroy();
@@ -340,23 +359,22 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (packageUri, module
       }
     }
 
-    newSandbox = {
-      sandboxName: "InitialSandbox",
-      xmodule: xModule,
-      console: console,
-      runtime: apiForChild,
-      urlModule: require("url"),
-      queryStringModule: require("querystring"),
-      theNamedContext: "Sandbox: " + uri,
-      Buffer: Buffer,
-      importTracking: {}
-    }; // end sandbox
-
     if (!isDuk) {
-      newSandbox = Object.assign(newSandbox, {
-        process: process,
+      var processWrap = WrapObj(process, {"binding":function() { throw new Error("process.binding is not supported"); }});
+      var globalWrap = WrapObj(global, {"process":processWrap});
+
+      newSandbox = {
+        sandboxName: "InitialSandbox",
+        xmodule: xModule,
+        console: console,
+        runtime: apiForChild,
+        urlModule: require("url"),
+        queryStringModule: require("querystring"),
+        theNamedContext: "Sandbox: " + uri,
+        Buffer: Buffer,
+        process: processWrap,
         require: requireMethod,
-        global: global,
+        global: globalWrap,
         setTimeout: function (callback, after, arg1, arg2, arg3) {
           //pass the timers list to callback function on timeout
           var timerId = SetTimeout(setTimeoutCallback, after, this.timers, function() { callback(arg1, arg2, arg3)});
@@ -385,7 +403,21 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (packageUri, module
           ClearInterval(timer);
         }.bind(this),
         importTracking: {}
-      });
+      };
+    }
+    else
+    {
+      newSandbox = {
+        sandboxName: "InitialSandbox",
+        xmodule: xModule,
+        console: console,
+        runtime: apiForChild,
+        urlModule: require("url"),
+        queryStringModule: require("querystring"),
+        theNamedContext: "Sandbox: " + uri,
+        Buffer: Buffer,
+        importTracking: {}
+      }; // end sandbox
     }
 
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -413,17 +445,17 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (packageUri, module
           filename: path.normalize(fname),
           displayErrors: true
         });
+        if (process._debugWaitConnect) {
+          // Set breakpoint on module start
+          if (process.env.BREAK_ON_SCRIPTSTART != 1)
+            delete process._debugWaitConnect;
+          const Debug = vm.runInDebugContext('Debug');
+          Debug.setBreakPoint(moduleFunc, 0, 0);
+        }
         moduleFunc(px, xModule, fname, this.basePackageUri);
       }
       log.message(4, "vm.runInNewContext done");
 
-      if (!isDuk && process._debugWaitConnect) {
-        // Set breakpoint on module start
-        if (process.env.BREAK_ON_SCRIPTSTART != 1)
-          delete process._debugWaitConnect;
-        const Debug = vm.runInDebugContext('Debug');
-        Debug.setBreakPoint(moduleFunc, 0, 0);
-      }
 /*
 if (false) {
       // TODO do the old scenes context get released when we reload a scenes url??
