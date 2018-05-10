@@ -27,13 +27,20 @@ var scene = undefined;
 var root = undefined;
 
 function Application(props) {
+
+// Application type
+  const TYPE_SPARK = 1;
+  const TYPE_NATIVE = 2;
+  const TYPE_WEB = 3;
+  const TYPE_UNDEFINED = 4;
+
   this.id;
   this.priority	= 1;
   this.appState = "RUNNING";
   this.externalApp = undefined;
   this.appName = "";
   this.browser = undefined;
-  this.type = undefined;
+  this.type = TYPE_UNDEFINED;
 
   var cmd = "";
   var w = 0;
@@ -56,7 +63,7 @@ function Application(props) {
   if (cmd){
     if (scene !== undefined) {
       if ((cmd == "spark") && "uri" in launchParams){
-        this.type = "spark";
+        this.type = TYPE_SPARK;
         uri = launchParams["uri"];
         this.externalApp = scene.create({t:"scene", parent:root, url:uri});
         this.externalApp.on("onClientStopped", this.applicationClosed);
@@ -72,7 +79,7 @@ function Application(props) {
         module.exports.onCreate(this);
       }
       else if (cmd == "rdkbrowser2"){
-        this.type = "web";
+        this.type = TYPE_WEB;
         if ("uri" in launchParams){
             uri = launchParams["uri"];
         }
@@ -113,7 +120,7 @@ function Application(props) {
             cmd = cmd + " " + uri;
             console.log("Launching wpe uri: " + uri); 
         }
-        this.type = "native";
+        this.type = TYPE_NATIVE;
         this.externalApp = scene.create( {t:"wayland", parent:root, cmd:cmd, w:w, h:h, hasApi:true} );
         this.externalApp.on("onReady", this.applicationReady);
         this.externalApp.on("onClientStopped", this.applicationClosed);
@@ -244,7 +251,7 @@ Application.prototype.on = function(e,fn) {
 
 
 Application.prototype.api = function() {
-  if (this.type == "web"){
+  if (this.type == TYPE_WEB){
     if (this.browser){
       return this.browser;
     } else {
