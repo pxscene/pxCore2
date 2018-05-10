@@ -118,28 +118,33 @@ void pxTextBox::onInit()
 
 void pxTextBox::recalc()
 {
-  if( mNeedsRecalc) {
+  if( mNeedsRecalc && mInitialized && mFontLoaded) {
     
      clearMeasurements();
-
-/*
-    // THIS IS ALREADY PERFORMED IN - renderText()
-    //
-
-    if (!mText || !strcmp(mText.cString(),"")) {
-//         clearMeasurements();
-         setMeasurementBounds(mx, 0, my, 0);
-       return;
-    }
-*/
     
-//    clearMeasurements();
+#ifdef PXSCENE_FONT_ATLAS
+    mQuadsVector.clear();
+#endif
     renderText(false);
 
-    //mDirty = true;
     setNeedsRecalc(false);
     if(clip()) {
       pxObject::onTextureReady();
+    }
+
+
+    // if draw is not enabled, we need to at least do final
+    // render in order to finish measurements
+    if(!drawEnabled() ) {
+#ifdef PXSCENE_FONT_ATLAS
+      mQuadsVector.clear();
+#endif
+      renderText(true);
+      mDirty = false;
+    }
+    else {
+      mDirty = true;
+      mScene->mDirty = true;
     }
 
   }
@@ -258,26 +263,13 @@ void pxTextBox::draw()
 }
 void pxTextBox::update(double t)
 {
-  pxText::update(t);
+  pxText::update(t);	 
 
-  //rtLogDebug("pxTextBox::update: mNeedsRecalc=%d\n",mNeedsRecalc);
-   if( mNeedsRecalc ) {
-  //   //rtLogDebug("pxTextBox::update: mNeedsRecalc=%d\n",mNeedsRecalc);
-    
-  //   //rtLogInfo("pxTextBox::update()  mAlignVertical=%d && mAlignHorizontal=%d\n",mAlignVertical, mAlignHorizontal);
-#ifdef PXSCENE_FONT_ATLAS
-     mQuadsVector.clear();
-#endif
+  if( mNeedsRecalc ) {
+
      recalc();
 
-     //setNeedsRecalc(false);
-     mDirty = true;
-     mScene->mDirty = true;
    }
-  
-
-  //pxText::update(t);
-
 
 }
 /** This function needs to measure the text, taking into consideration
