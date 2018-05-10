@@ -55,9 +55,9 @@
 #endif //PX_PLATFORM_WAYLAND_EGL
 #endif
 
-#ifndef RUNINMAIN
+#if !defined(RUNINMAIN) || defined(ENABLE_BACKGROUND_TEXTURE_CREATION)
 #include "pxContextUtils.h"
-#endif //RUNINMAIN
+#endif //!RUNINMAIN || ENABLE_BACKGROUND_TEXTURE_CREATION
 
 #define PX_TEXTURE_MIN_FILTER GL_LINEAR
 #define PX_TEXTURE_MAG_FILTER GL_LINEAR
@@ -143,6 +143,26 @@ static float gAlpha = 1.0;
 uint32_t gRenderTick = 0;
 std::vector<pxTexture*> textureList;
 rtMutex textureListMutex;
+#ifdef ENABLE_BACKGROUND_TEXTURE_CREATION
+rtMutex contextLock;
+#endif //ENABLE_BACKGROUND_TEXTURE_CREATION
+
+
+pxError lockContext()
+{
+#ifdef ENABLE_BACKGROUND_TEXTURE_CREATION
+  contextLock.lock();
+#endif //ENABLE_BACKGROUND_TEXTURE_CREATION
+  return PX_OK;
+}
+
+pxError unlockContext()
+{
+#ifdef ENABLE_BACKGROUND_TEXTURE_CREATION
+  contextLock.unlock();
+#endif //ENABLE_BACKGROUND_TEXTURE_CREATION
+  return PX_OK;
+}
 
 pxError addToTextureList(pxTexture* texture)
 {
@@ -654,6 +674,38 @@ public:
     return PX_OK;
   }
 
+  virtual pxError prepareForRendering()
+  {
+    if (context.isTextureSpaceAvailable(this, false))
+    {
+      glActiveTexture(GL_TEXTURE1);
+      glGenTextures(1, &mTextureName);
+      glBindTexture(GL_TEXTURE_2D, mTextureName);   TRACK_TEX_CALLS();
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, PX_TEXTURE_MIN_FILTER);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, PX_TEXTURE_MAG_FILTER);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+      glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
+                   mOffscreen.width(), mOffscreen.height(), 0, GL_RGBA,
+                   GL_UNSIGNED_BYTE, mOffscreen.base());
+      if (mDownscaleSmooth)
+      {
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glGenerateMipmap(GL_TEXTURE_2D);
+        mMipmapCreated = true;
+      }
+      context.adjustCurrentTextureMemorySize(mOffscreen.width()*mOffscreen.height()*4, false);
+    }
+    return PX_OK;
+  }
+
+  virtual bool initialized()
+  {
+    return (mTextureName != 0);
+  }
+
   virtual pxError deleteTexture()
   {
     rtLogDebug("pxTextureOffscreen::deleteTexture()");
@@ -745,25 +797,38 @@ public:
           return PX_NOTINITIALIZED;
         }
       }
-      glGenTextures(1, &mTextureName);
-      glBindTexture(GL_TEXTURE_2D, mTextureName);   TRACK_TEX_CALLS();
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, PX_TEXTURE_MIN_FILTER);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, PX_TEXTURE_MAG_FILTER);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-      glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
-      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
-                   mOffscreen.width(), mOffscreen.height(), 0, GL_RGBA,
-                   GL_UNSIGNED_BYTE, mOffscreen.base());
-      if (mDownscaleSmooth)
+      if (mTextureName == 0)
       {
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-        glGenerateMipmap(GL_TEXTURE_2D);
-        mMipmapCreated = true;
+        glGenTextures(1, &mTextureName);
+        glBindTexture(GL_TEXTURE_2D, mTextureName);   TRACK_TEX_CALLS();
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, PX_TEXTURE_MIN_FILTER);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, PX_TEXTURE_MAG_FILTER);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+        glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
+                     mOffscreen.width(), mOffscreen.height(), 0, GL_RGBA,
+                     GL_UNSIGNED_BYTE, mOffscreen.base());
+        if (mDownscaleSmooth)
+        {
+          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+          glGenerateMipmap(GL_TEXTURE_2D);
+          mMipmapCreated = true;
+        }
+        context.adjustCurrentTextureMemorySize(mOffscreen.width()*mOffscreen.height()*4);
+      }
+      else
+      {
+        glBindTexture(GL_TEXTURE_2D, mTextureName);   TRACK_TEX_CALLS();
+        if (mDownscaleSmooth && !mMipmapCreated)
+        {
+          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+          glGenerateMipmap(GL_TEXTURE_2D);
+          mMipmapCreated = true;
+        }
       }
       mTextureUploaded = true;
-      context.adjustCurrentTextureMemorySize(mOffscreen.width()*mOffscreen.height()*4);
       //free up unneeded offscreen memory
       freeOffscreenDataInBackground();
     }
@@ -2305,7 +2370,7 @@ void pxContext::init()
   char const* s = getenv("SPARK_TEXTURE_LIMIT_IN_MB");
   if (s)
   {
-    int64_t textureMemoryLimit = atoi(s) * 1024 * 1024;
+    int64_t textureMemoryLimit = (int64_t)atoi(s) * (int64_t)1024 * (int64_t)1024;
     if (textureMemoryLimit > PXSCENE_DEFAULT_TEXTURE_MEMORY_LIMIT_IN_BYTES)
     {
       maxTextureMemory = textureMemoryLimit;
@@ -2960,18 +3025,27 @@ bool pxContext::isObjectOnScreen(float /*x*/, float /*y*/, float /*width*/, floa
 #endif
 }
 
-void pxContext::adjustCurrentTextureMemorySize(int64_t changeInBytes)
+void pxContext::adjustCurrentTextureMemorySize(int64_t changeInBytes, bool allowGarbageCollect)
 {
+  lockContext();
   mCurrentTextureMemorySizeInBytes += changeInBytes;
   if (mCurrentTextureMemorySizeInBytes < 0)
   {
     mCurrentTextureMemorySizeInBytes = 0;
   }
-  //rtLogDebug("the current texture size: %" PRId64 ".", mCurrentTextureMemorySizeInBytes);
 #ifdef ENABLE_PX_SCENE_TEXTURE_USAGE_MONITORING
-  if (changeInBytes > 0 && mCurrentTextureMemorySizeInBytes > mTextureMemoryLimitInBytes)
+  int64_t currentTextureMemorySize = mCurrentTextureMemorySizeInBytes;
+  int64_t maxTextureMemoryInBytes = mTextureMemoryLimitInBytes;
+#else
+  (void)allowGarbageCollect;
+#endif // ENABLE_PX_SCENE_TEXTURE_USAGE_MONITORING
+
+  unlockContext();
+  //rtLogDebug("the current texture size: %" PRId64 ".", currentTextureMemorySize);
+#ifdef ENABLE_PX_SCENE_TEXTURE_USAGE_MONITORING
+  if (allowGarbageCollect && changeInBytes > 0 && currentTextureMemorySize > maxTextureMemoryInBytes)
   {
-    rtLogDebug("the texture size is too large: %" PRId64 ".  doing a garbage collect!!!\n", mCurrentTextureMemorySizeInBytes);
+    rtLogDebug("the texture size is too large: %" PRId64 ".  doing a garbage collect!!!\n", currentTextureMemorySize);
 #ifdef RUNINMAIN
 	script.collectGarbage();
 #else
@@ -2990,16 +3064,28 @@ void pxContext::setTextureMemoryLimit(int64_t textureMemoryLimitInBytes)
 }
 
 #ifdef ENABLE_PX_SCENE_TEXTURE_USAGE_MONITORING
-bool pxContext::isTextureSpaceAvailable(pxTextureRef texture)
+bool pxContext::isTextureSpaceAvailable(pxTextureRef texture, bool allowGarbageCollect)
 #else
-bool pxContext::isTextureSpaceAvailable(pxTextureRef)
+bool pxContext::isTextureSpaceAvailable(pxTextureRef, bool)
 #endif
 {
 #ifdef ENABLE_PX_SCENE_TEXTURE_USAGE_MONITORING
-  int textureSize = (texture->width()*texture->height()*4);
-  if ((textureSize + mCurrentTextureMemorySizeInBytes) >
-             (mTextureMemoryLimitInBytes  + PXSCENE_DEFAULT_TEXTURE_MEMORY_LIMIT_THRESHOLD_PADDING_IN_BYTES))
+  int64_t textureSize = (texture->width()*texture->height()*4);
+  lockContext();
+  int64_t currentTextureMemorySize = mCurrentTextureMemorySizeInBytes;
+  int64_t maxTextureMemoryInBytes = mTextureMemoryLimitInBytes;
+  unlockContext();
+  if ((textureSize + currentTextureMemorySize) >
+             (maxTextureMemoryInBytes  + PXSCENE_DEFAULT_TEXTURE_MEMORY_LIMIT_THRESHOLD_PADDING_IN_BYTES))
   {
+    if (allowGarbageCollect)
+    {
+      #ifdef RUNINMAIN
+        script.collectGarbage();
+      #else
+        uv_async_send(&gcTrigger);
+      #endif
+    }
     return false;
   }
   else
@@ -3018,7 +3104,8 @@ int64_t pxContext::currentTextureMemoryUsageInBytes()
 int64_t pxContext::textureMemoryOverflow(pxTextureRef texture)
 {
   int64_t textureSize = (((int64_t)texture->width())*((int64_t)texture->height())*4);
-  int64_t availableBytes = mTextureMemoryLimitInBytes - mCurrentTextureMemorySizeInBytes;
+  int64_t currentTextureMemorySize = mCurrentTextureMemorySizeInBytes;
+  int64_t availableBytes = mTextureMemoryLimitInBytes - currentTextureMemorySize;
   if (textureSize > availableBytes)
   {
     return (textureSize - availableBytes);
@@ -3028,6 +3115,7 @@ int64_t pxContext::textureMemoryOverflow(pxTextureRef texture)
 
 int64_t pxContext::ejectTextureMemory(int64_t bytesRequested, bool forceEject)
 {
+#ifdef ENABLE_LRU_TEXTURE_EJECTION
   int64_t beforeTextureMemoryUsage = context.currentTextureMemoryUsageInBytes();
   if (!forceEject)
   {
@@ -3039,6 +3127,9 @@ int64_t pxContext::ejectTextureMemory(int64_t bytesRequested, bool forceEject)
   }
   int64_t afterTextureMemoryUsage = context.currentTextureMemoryUsageInBytes();
   return (beforeTextureMemoryUsage-afterTextureMemoryUsage);
+#else
+  return 0;
+#endif //ENABLE_LRU_TEXTURE_EJECTION
 }
 
 pxError pxContext::setEjectTextureAge(uint32_t age)
@@ -3049,11 +3140,11 @@ pxError pxContext::setEjectTextureAge(uint32_t age)
 
 pxError pxContext::enableInternalContext(bool enable)
 {
-#if !defined(RUNINMAIN)
+#if !defined(RUNINMAIN) || defined(ENABLE_BACKGROUND_TEXTURE_CREATION)
     makeInternalGLContextCurrent(enable);
 #else
   (void)enable;
-#endif //!RUNINMAIN
+#endif // !RUNINMAIN || ENABLE_BACKGROUND_TEXTURE_CREATION
   return PX_OK;
 }
 
