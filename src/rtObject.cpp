@@ -85,7 +85,15 @@ rtError rtEmit::addListener(const char* eventName, rtIFunction* f)
     e.isProp = false;
     e.markForDelete = false;
     e.fnHash = f->hash();
-    mEntries.push_back(e);
+    if (!mProcessingEvents)
+    {
+      mEntries.push_back(e);
+    }
+    else
+    {
+      //save pending events to add later after current event processing is done
+      mPendingEntriesToAdd.push_back(e);
+    }
   }
   
   return RT_OK;
@@ -177,6 +185,24 @@ rtError rtEmit::Send(int numArgs, const rtValue* args, rtValue* result)
         ++it;
       }
     }
+
+    vector<_rtEmitEntry>::iterator pendingit = mPendingEntriesToAdd.begin();
+    while (pendingit != mPendingEntriesToAdd.end())
+    {
+      _rtEmitEntry& src = (*pendingit);
+      _rtEmitEntry dest;
+      dest.n = src.n;
+      dest.f = src.f;
+      dest.isProp = src.isProp;
+      dest.markForDelete = src.markForDelete;
+      dest.fnHash = src.fnHash;
+
+      mEntries.push_back(dest);
+      printf("Madana pushing pending for [%p] \n",this);
+      fflush(stdout);
+      ++pendingit;
+    }
+    mPendingEntriesToAdd.clear();
   }
   return RT_OK;
 }
