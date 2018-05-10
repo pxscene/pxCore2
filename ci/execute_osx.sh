@@ -33,7 +33,7 @@ dumped_core=0
 
 export PX_DUMP_MEMUSAGE=1
 export RT_LOG_LEVEL=info
-export SPARK_CORS_ENABLED=false
+export SPARK_CORS_ENABLED=true
 export SPARK_PERMISSIONS_CONFIG=$TRAVIS_BUILD_DIR/examples/pxScene2d/src/sparkpermissions.conf
 export SPARK_PERMISSIONS_ENABLED=true
 export HANDLE_SIGNALS=1

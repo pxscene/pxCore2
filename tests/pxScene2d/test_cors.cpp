@@ -197,7 +197,7 @@ private:
     r->setOrigin(originIn);
     bool ok = rtFileDownloader::instance()->downloadFromNetwork(r);
     bool ret = !ok ||
-      (-1 == r->downloadStatusCode() &&
+      ((RT_ERROR_CORS_ORIGIN_MISMATCH == r->downloadStatusCode() || RT_ERROR_CORS_NO_HEADER == r->downloadStatusCode()) &&
       NULL == r->downloadedData() &&
       0 == r->downloadedDataSize());
 

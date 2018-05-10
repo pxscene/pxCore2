@@ -29,7 +29,7 @@ namespace
 
 rtError rtCORSUtilsCheckOrigin(const rtString& origin, const rtString& url, const rtString& headers)
 {
-  static bool enable = false;
+  static bool enable = true; // default
   static bool didCheck = false;
   if (!didCheck)
   {
@@ -39,10 +39,6 @@ rtError rtCORSUtilsCheckOrigin(const rtString& origin, const rtString& url, cons
     {
       rtString envVal(s);
       enable = 0 == envVal.compare("true") || 0 == envVal.compare("1");
-    }
-    else
-    {
-      enable = false;
     }
   }
 

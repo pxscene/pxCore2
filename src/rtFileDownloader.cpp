@@ -834,7 +834,7 @@ bool rtFileDownloader::downloadFromNetwork(rtFileDownloadRequest* downloadReques
           free(downloadRequest->downloadedData());
         }
         downloadRequest->setDownloadedData(NULL, 0);
-        downloadRequest->setDownloadStatusCode(-1);
+        downloadRequest->setDownloadStatusCode((int)corsStat);
         stringstream errorStringStream;
         errorStringStream << rtStrError(corsStat) << " origin=" << origin.cString() << " url=" << downloadRequest->fileUrl().cString();
         downloadRequest->setErrorString(errorStringStream.str().c_str());
