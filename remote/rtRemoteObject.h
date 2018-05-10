@@ -33,8 +33,11 @@ public:
 
   virtual rtError Get(char const* name, rtValue* value) const;
   virtual rtError Get(uint32_t index, rtValue* value) const;
+  virtual rtError Get(char const* name, uint32_t index, rtValue* value);
   virtual rtError Set(char const* name, rtValue const* value);
   virtual rtError Set(uint32_t index, rtValue const* value);
+  virtual rtError Set(char const* name, uint32_t index, rtValue const* value);
+
 
   virtual unsigned long AddRef();
   virtual unsigned long Release();
