@@ -77,6 +77,13 @@ class rtEmitTest : public testing::Test
       //EXPECT_TRUE (listenerCountBeforeAdd == mEmit->mEntries.size());
     }
 
+    void addPendingEventTest()
+    {
+      rtString event("eventpending");
+      EXPECT_TRUE (RT_OK == mEmit->addListener(event.cString(),&fnCallback));
+      EXPECT_TRUE (0 == mEmit->mPendingEntriesToAdd.size());
+    }
+
     void delListenerTest()
     {
       rtString event("eventone");
@@ -94,6 +101,7 @@ TEST_F(rtEmitTest, rtEmitTests)
   setListenerTest();
   addListenerDuplicateEventTest();
   addListenerEmptyFnTest();
+  addPendingEventTest();
   delListenerTest();
 }
 
