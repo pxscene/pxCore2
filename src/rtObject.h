@@ -645,7 +645,7 @@ class rtEmit: public rtIFunction
 {
 
 public:
-  rtEmit(): mRefCount(0), mProcessingEvents(false) {}
+  rtEmit(): mRefCount(0), mProcessingEvents(false), mPendingEntriesToAdd() {}
   virtual ~rtEmit() {}
 
   virtual unsigned long AddRef();
@@ -682,6 +682,7 @@ protected:
   std::vector<_rtEmitEntry> mEntries;
   rtAtomic mRefCount;
   bool mProcessingEvents;
+  std::vector<_rtEmitEntry> mPendingEntriesToAdd;
 };
 
 class rtEmitRef: public rtRef<rtEmit>, public rtFunctionBase
