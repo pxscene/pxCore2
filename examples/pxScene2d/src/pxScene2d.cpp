@@ -575,8 +575,6 @@ pxObject::~pxObject()
     mClipSnapshotRef = NULL;
     mDrawableSnapshotForMask = NULL;
     mMaskSnapshot = NULL;
-    //printf("pxObjectTracking DESTRUCTION [%p] \n",this);
-    //fflush(stdout);
 }
 
 void pxObject::sendPromise()
@@ -2055,12 +2053,8 @@ rtError pxScene2d::create(rtObjectRef p, rtObjectRef& o)
   }
 
   if (needpxObjectTracking)
-  {
     mInnerpxObjects.push_back((pxObject*)o.getPtr());
-    //printf("pxObjectTracking CREATION [%p] [%s] [%s] \n", o.getPtr(), t.cString(), mScriptView->getUrl().cString());
-    //fflush(stdout);
-  }
-    return e;
+  return e;
 }
 
 rtError pxScene2d::createObject(rtObjectRef p, rtObjectRef& o)

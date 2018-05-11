@@ -130,6 +130,7 @@ echo "Values are $pxRetVal and $texRetVal";
 
 printf "\n\n -------------------------------- \n\n"
 
+
 if [ "$pxRetVal" -eq 0 ]
 	then
 	echo "************************** pxobject count success **************************";
