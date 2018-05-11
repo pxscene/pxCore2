@@ -1939,6 +1939,7 @@
 					examples/pxScene2d/external/curl/include,
 					examples/pxScene2d/external/jpg,
 					examples/pxScene2d/external/png,
+					examples/pxScene2d/external/nanosvg/src,
 				);
 				OTHER_CPLUSPLUSFLAGS = (
 					"$(OTHER_CFLAGS)",
@@ -2011,6 +2012,7 @@
 					examples/pxScene2d/external/curl/include,
 					examples/pxScene2d/external/jpg,
 					examples/pxScene2d/external/png,
+					examples/pxScene2d/external/nanosvg/src,
 				);
 				OTHER_CPLUSPLUSFLAGS = (
 					"$(OTHER_CFLAGS)",
@@ -2084,6 +2086,7 @@
 					examples/pxScene2d/external/curl/include,
 					examples/pxScene2d/external/jpg,
 					examples/pxScene2d/external/png,
+					examples/pxScene2d/external/nanosvg/src,
 				);
 				OTHER_CPLUSPLUSFLAGS = (
 					"$(OTHER_CFLAGS)",
@@ -2157,6 +2160,7 @@
 					examples/pxScene2d/external/curl/include,
 					examples/pxScene2d/external/jpg,
 					examples/pxScene2d/external/png,
+					examples/pxScene2d/external/nanosvg/src,
 				);
 				OTHER_CPLUSPLUSFLAGS = (
 					"$(OTHER_CFLAGS)",
@@ -2571,6 +2575,7 @@
 					examples/pxScene2d/external/curl/include,
 					examples/pxScene2d/external/jpg,
 					examples/pxScene2d/external/png,
+					examples/pxScene2d/external/nanosvg/src,
 				);
 				OTHER_CPLUSPLUSFLAGS = (
 					"$(OTHER_CFLAGS)",
@@ -2643,6 +2648,7 @@
 					examples/pxScene2d/external/curl/include,
 					examples/pxScene2d/external/jpg,
 					examples/pxScene2d/external/png,
+					examples/pxScene2d/external/nanosvg/src,
 				);
 				OTHER_CPLUSPLUSFLAGS = (
 					"$(OTHER_CFLAGS)",

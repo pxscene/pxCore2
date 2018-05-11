@@ -80,7 +80,26 @@ private:
   uint32_t mNumPlays;
 };
 
-rtError pxLoadImage(const char* imageData, size_t imageDataSize, 
+
+typedef enum pxImageType_
+{
+  PX_IMAGE_JPG,      // Joint Photographic Experts Group - .jpeg or .jpg
+  PX_IMAGE_PNG,      // Portable Network Graphics
+  PX_IMAGE_GIF,      // Graphics Interchange Format
+  PX_IMAGE_TIFF,     // Tagged Image File Format
+  PX_IMAGE_BMP,      // Microsoft Bitmap format
+  PX_IMAGE_WEBP,     // Google WebP format, a type of .riff file
+  PX_IMAGE_ICO,      // Microsoft icon format
+  PX_IMAGE_SVG,      // Scalable Vector Graphics
+  PX_IMAGE_INVALID,  // unidentified image types.
+}
+pxImageType;
+
+
+pxImageType getImageType( const uint8_t* data, size_t len );
+
+
+rtError pxLoadImage(const char* imageData, size_t imageDataSize,
                     pxOffscreen& o);
 rtError pxLoadImage(const char* filename, pxOffscreen& b);
 rtError pxStoreImage(const char* filename, pxOffscreen& b);
