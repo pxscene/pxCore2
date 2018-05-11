@@ -35,6 +35,20 @@
 
 #define SUPPORT_PNG
 #define SUPPORT_JPG
+#define SUPPORT_SVG
+
+#ifdef SUPPORT_SVG
+  #include <stdio.h>
+  #include <string.h>
+  #include <float.h>
+
+  //#define STB_IMAGE_WRITE_IMPLEMENTATION
+  //#include "stb_image_write.h"
+  #define NANOSVG_IMPLEMENTATION
+  #include "nanosvg.h"
+  #define NANOSVGRAST_IMPLEMENTATION
+  #include "nanosvgrast.h"
+#endif
 
 // Assume alpha is not premultiplied
 rtError pxLoadImage(const char *imageData, size_t imageDataSize,
@@ -54,6 +68,11 @@ rtError pxLoadImage(const char *imageData, size_t imageDataSize,
 #else
     retVal = pxLoadJPGImage(imageData, imageDataSize, o);
 #endif //ENABLE_LIBJPEG_TURBO
+  }
+
+  if (retVal != RT_OK) // Failed ... trying as SVG
+  {
+    retVal = pxLoadSVGImage(imageData, imageDataSize, o);
   }
 
   // TODO more sane image type detection and flow
@@ -915,6 +934,83 @@ rtError pxLoadJPGImage(const char *buf, size_t buflen, pxOffscreen &o)
   /* And we're done! */
   return RT_OK;
 }
+
+rtError pxStoreSVGImage(const char* filename, pxBuffer& b)  { return RT_FAIL; } // NOT SUPPORTED
+
+//typedef rtRef<NSVGrasterizer> NSVGrasterizerRef;
+//typedef rtRef<NSVGimage> NSVGimageRef;
+
+NSVGrasterizer *rast = NULL;
+
+rtError pxLoadSVGImage(const char* buf, size_t buflen, pxOffscreen& o)
+{
+  if(rast == NULL)
+  {
+  /*NSVGrasterizer */ rast = nsvgCreateRasterizer();
+  }
+  
+  if (rast == NULL)
+  {
+    if(rast)  { delete rast;   rast = NULL; }
+    
+    rtLogError("SVG:  Could not init rasterizer.\n");
+    return RT_FAIL;
+  }
+  
+  NSVGimage *image = nsvgParse( (char *) buf, "px", 96.0f);
+  if (image == NULL)
+  {
+    if(image) { delete image; image = NULL; }
+//    if(rast)  { delete rast;   rast = NULL; }
+    
+    rtLogError("SVG:  Could not init decode SVG.\n");
+    return RT_FAIL;
+  }
+  
+  int w = (int)image->width;
+  int h = (int)image->height;
+  
+  if (w == 0 || h == 0)
+  {
+    if(image) { delete image; image = NULL; }
+//    if(rast)  { delete rast;   rast = NULL; }
+    
+    rtLogError("SVG:  Bad image dimensions  WxH: %d x %d\n", w, h);
+    return RT_FAIL;
+  }
+  
+  o.init(w,h);
+  
+  rtLogDebug("SVG:  Rasterizing image %d x %d\n", w, h);
+  nsvgRasterize(rast, image, 0,0,1, (unsigned char*) o.base(), o.width(), o.height(), o.width() *4);
+  
+  
+#if 0
+#ifdef PX_PLATFORM_MAC
+  
+  extern void *makeNSImage(void *rgba_buffer, int w, int h, int depth);
+  
+  // HACK
+  // HACK
+  // HACK
+  {
+    // In Xcode - hover over 'xcode_image' below and click on the "eye" button.
+    //
+    void *xcode_image = makeNSImage( (void *) o.base(), w, h, 4);
+    rtLogError("\nSet a BREAKPOINT here");
+  }
+  // HACK
+  // HACK
+  // HACK
+#endif
+#endif
+  
+  if(image) { delete image; image = NULL; }
+ // if(rast)  { delete rast;   rast = NULL; }
+  
+  return RT_OK;
+}
+
 
 rtError pxStoreJPGImage(char * /*filename*/, pxBuffer & /*b*/)
 {

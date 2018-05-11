@@ -113,6 +113,10 @@ rtError pxLoadJPGImage(const char* filename, pxOffscreen& o);
 
 #endif //PX_UTIL_H
 
+rtError pxLoadSVGImage(const char* buf, size_t buflen, pxOffscreen& o);
+rtError pxStoreSVGImage(const char* filename, pxBuffer& b); // NOT SUPPORTED
+
+
 #ifdef PX_PLATFORM_MAC
 #pragma clang diagnostic pop
 #endif

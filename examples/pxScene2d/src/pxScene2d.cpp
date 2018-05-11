@@ -3269,9 +3269,12 @@ rtError pxScene2d::getService(rtString name, rtObjectRef& returnObject)
   // Create context from requesting scene
   rtObjectRef ctx = new rtMapObject();
   ctx.set("url", mScriptView != NULL ? mScriptView->getUrl() : "");
+
+#ifdef ENABLE_PERMISSIONS_CHECK
   rtValue permissionsValue = mPermissions.getPtr();
   ctx.set("permissions", permissionsValue);
-
+#endif
+  
   return getService(name, ctx, returnObject);
 }
 
