@@ -111,10 +111,13 @@ rtError pxLoadJPGImage(const char* imageData, size_t imageDataSize,
                        pxOffscreen& o);
 rtError pxLoadJPGImage(const char* filename, pxOffscreen& o);
 
-#endif //PX_UTIL_H
 
-rtError pxLoadSVGImage(const char* buf, size_t buflen, pxOffscreen& o);
+rtError pxLoadSVGImage(const char* buf, size_t buflen, pxOffscreen& o, float scaleXY = 1.0f);
 rtError pxStoreSVGImage(const char* filename, pxBuffer& b); // NOT SUPPORTED
+
+
+
+#endif //PX_UTIL_H
 
 
 #ifdef PX_PLATFORM_MAC

@@ -44,7 +44,8 @@
 
   //#define STB_IMAGE_WRITE_IMPLEMENTATION
   //#include "stb_image_write.h"
-  #define NANOSVG_IMPLEMENTATION
+  #define NANOSVG_ALL_COLOR_KEYWORDS  // Include full list of color keywords.
+  #define NANOSVG_IMPLEMENTATION      // Expands implementation
   #include "nanosvg.h"
   #define NANOSVGRAST_IMPLEMENTATION
   #include "nanosvgrast.h"
@@ -72,7 +73,7 @@ rtError pxLoadImage(const char *imageData, size_t imageDataSize,
 
   if (retVal != RT_OK) // Failed ... trying as SVG
   {
-    retVal = pxLoadSVGImage(imageData, imageDataSize, o);
+    retVal = pxLoadSVGImage(imageData, imageDataSize, o, 1.25);
   }
 
   // TODO more sane image type detection and flow
@@ -935,14 +936,16 @@ rtError pxLoadJPGImage(const char *buf, size_t buflen, pxOffscreen &o)
   return RT_OK;
 }
 
-rtError pxStoreSVGImage(const char* filename, pxBuffer& b)  { return RT_FAIL; } // NOT SUPPORTED
+#ifndef SAFE_DELETE
+#define SAFE_DELETE(x)  { delete (x); (x) = NULL; }
+#endif
 
-//typedef rtRef<NSVGrasterizer> NSVGrasterizerRef;
-//typedef rtRef<NSVGimage> NSVGimageRef;
 
 NSVGrasterizer *rast = NULL;
 
-rtError pxLoadSVGImage(const char* buf, size_t buflen, pxOffscreen& o)
+rtError pxStoreSVGImage(const char* filename, pxBuffer& b)  { return RT_FAIL; } // NOT SUPPORTED
+
+rtError pxLoadSVGImage(const char* buf, size_t buflen, pxOffscreen& o, float scaleXY /* = 1.0 */)
 {
   if(rast == NULL)
   {
@@ -951,7 +954,7 @@ rtError pxLoadSVGImage(const char* buf, size_t buflen, pxOffscreen& o)
   
   if (rast == NULL)
   {
-    if(rast)  { delete rast;   rast = NULL; }
+    SAFE_DELETE(rast)
     
     rtLogError("SVG:  Could not init rasterizer.\n");
     return RT_FAIL;
@@ -960,8 +963,8 @@ rtError pxLoadSVGImage(const char* buf, size_t buflen, pxOffscreen& o)
   NSVGimage *image = nsvgParse( (char *) buf, "px", 96.0f);
   if (image == NULL)
   {
-    if(image) { delete image; image = NULL; }
-//    if(rast)  { delete rast;   rast = NULL; }
+    SAFE_DELETE(image)
+//    SAFE_DELETE(rast)
     
     rtLogError("SVG:  Could not init decode SVG.\n");
     return RT_FAIL;
@@ -972,17 +975,18 @@ rtError pxLoadSVGImage(const char* buf, size_t buflen, pxOffscreen& o)
   
   if (w == 0 || h == 0)
   {
-    if(image) { delete image; image = NULL; }
-//    if(rast)  { delete rast;   rast = NULL; }
+    SAFE_DELETE(image)
+    //    SAFE_DELETE(rast)
     
     rtLogError("SVG:  Bad image dimensions  WxH: %d x %d\n", w, h);
     return RT_FAIL;
   }
   
-  o.init(w,h);
+  o.init(w * scaleXY,h * scaleXY);
   
-  rtLogDebug("SVG:  Rasterizing image %d x %d\n", w, h);
-  nsvgRasterize(rast, image, 0,0,1, (unsigned char*) o.base(), o.width(), o.height(), o.width() *4);
+  rtLogDebug("SVG:  Rasterizing image %d x %d  (scaleXY: %f) \n", w, h, scaleXY);
+  
+  nsvgRasterize(rast, image, 0,0, scaleXY , (unsigned char*) o.base(), o.width(), o.height(), o.width() *4);
   
   
 #if 0
@@ -1005,8 +1009,8 @@ rtError pxLoadSVGImage(const char* buf, size_t buflen, pxOffscreen& o)
 #endif
 #endif
   
-  if(image) { delete image; image = NULL; }
- // if(rast)  { delete rast;   rast = NULL; }
+  SAFE_DELETE(image)
+  //    SAFE_DELETE(rast)
   
   return RT_OK;
 }
