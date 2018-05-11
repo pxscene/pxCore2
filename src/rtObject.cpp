@@ -71,7 +71,8 @@ rtError rtEmit::addListener(const char* eventName, rtIFunction* f)
   {
     _rtEmitEntry& e = (*it);
     // mHash check for javscript events callback 
-    if (e.n == eventName && ((e.f.getPtr() == f) || ((f->hash() != -1) && (e.fnHash == f->hash()))) && !e.isProp)
+    // markForDelete check is added to handle scenario where same handler is deleted and added immediately in same handler
+    if (e.n == eventName && ((e.f.getPtr() == f) || ((f->hash() != -1) && (e.fnHash == f->hash()) && (false == e.markForDelete))) && !e.isProp)
     {
       found = true;
       break;
