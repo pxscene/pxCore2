@@ -92,9 +92,9 @@ using namespace rtScriptNodeUtils;
 #pragma GCC diagnostic pop
 #endif
 
-
-#define USE_CONTEXTIFY_CLONES
-
+#ifndef DISABLE_USE_CONTEXTIFY_CLONES
+# define USE_CONTEXTIFY_CLONES
+#endif
 
 
 namespace node
@@ -618,7 +618,7 @@ rtNodeContext::~rtNodeContext()
     {
     // clear out persistent javascript handles
       HandleMap::clearAllForContext(mId);
-#ifdef ENABLE_NODE_V_6_9
+#if defined(ENABLE_NODE_V_6_9) && defined(USE_CONTEXTIFY_CLONES)
       node::deleteContextifyContext(mContextifyContext);
 #endif
       mContextifyContext = NULL;

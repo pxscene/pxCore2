@@ -175,14 +175,14 @@ void pxFont::setupResource()
   }
 }
 
-bool pxFont::loadResourceData(rtFileDownloadRequest* fileDownloadRequest)
+uint32_t pxFont::loadResourceData(rtFileDownloadRequest* fileDownloadRequest)
 {
       // Load the font data
     setFontData( (FT_Byte*)fileDownloadRequest->downloadedData(),
             (FT_Long)fileDownloadRequest->downloadedDataSize(),
             fileDownloadRequest->fileUrl().cString());
             
-      return true;
+      return PX_RESOURCE_LOAD_SUCCESS;
 }
 
 void pxFont::loadResourceFromFile()

@@ -288,7 +288,7 @@ public:
    
 protected:
   // Implementation for pxResource virtuals
-  virtual bool loadResourceData(rtFileDownloadRequest* fileDownloadRequest);
+  virtual uint32_t loadResourceData(rtFileDownloadRequest* fileDownloadRequest);
   
 private:
   void loadResourceFromFile();

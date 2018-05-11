@@ -214,6 +214,8 @@ void updatePen(float px, float py)
 }
 
 #define is_relative(xx) (islower(xx))
+#define STRINGIFY_HELPER(x) #x
+#define STRINGIFY(X) STRINGIFY_HELPER(X)
 
 /*static*/ rtError pxPath::parsePath(const char *d, pxPath *p /*= NULL*/ )
 {
@@ -225,7 +227,8 @@ void updatePen(float px, float py)
   }
 //  printf("\nPath:   [%s] ", s); // DEBUG
 
-  char poly_str[16]; // 15+1 for '\0'
+# define POLY_LENGTH 15
+  char poly_str[POLY_LENGTH+1]; // 15+1 for '\0'
   
   float x0 = 0, y0 = 0, x1 = 0, y1 = 0, x2 = 0, y2 = 0, rx = 0, ry = 0, w = 0, h = 0;
   float last_x2 = 0.0, last_y2 = 0.0, xrot, r = 0;
@@ -588,7 +591,7 @@ void updatePen(float px, float py)
     }
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     else // <polygon points="200,10 250,190 160,210"/>
-    if ( sscanf(s, "%[POLYGON points:]s",&poly_str[0]) == 1)
+    if ( sscanf(s, "%" STRINGIFY(POLY_LENGTH) "[POLYGON points:]s", &poly_str[0]) == 1)
     {
       std::vector<float> points;
       float pt;

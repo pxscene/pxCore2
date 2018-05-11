@@ -44,7 +44,7 @@
 #define DEFAULT_EJECT_TEXTURE_AGE 5
 
 #ifndef ENABLE_DFB
-  #define PXSCENE_DEFAULT_TEXTURE_MEMORY_LIMIT_IN_BYTES (65 * 1024 * 1024)   // GL
+  #define PXSCENE_DEFAULT_TEXTURE_MEMORY_LIMIT_IN_BYTES (80 * 1024 * 1024)   // GL
   #define PXSCENE_DEFAULT_TEXTURE_MEMORY_LIMIT_THRESHOLD_PADDING_IN_BYTES (5 * 1024 * 1024)
 #else
   #define PXSCENE_DEFAULT_TEXTURE_MEMORY_LIMIT_IN_BYTES (15 * 1024 * 1024)   // DFB .. Shoul be 40 ?
@@ -138,10 +138,9 @@ class pxContext {
   void drawDiagRect(float x, float y, float w, float h, float* color);
   void drawDiagLine(float x1, float y1, float x2, float y2, float* color);
   void enableDirtyRectangles(bool enable);
-  void adjustCurrentTextureMemorySize(int64_t changeInBytes);
+  void adjustCurrentTextureMemorySize(int64_t changeInBytes, bool allowGarbageCollect=true);
   void setTextureMemoryLimit(int64_t textureMemoryLimitInBytes);
-  bool isTextureSpaceAvailable(pxTextureRef texture);
-  
+  bool isTextureSpaceAvailable(pxTextureRef texture, bool allowGarbageCollect=true);
   int64_t currentTextureMemoryUsageInBytes();
   int64_t textureMemoryOverflow(pxTextureRef texture);
   int64_t ejectTextureMemory(int64_t bytesRequested, bool forceEject=false);
