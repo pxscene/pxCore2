@@ -229,8 +229,8 @@ void pxTextBox::draw()
   }
   float x = 0, y = 0;
   if(!clip() && mTruncation == pxConstantsTruncation::NONE) {
-    x = static_cast<int>(noClipX);
-    y = static_cast<int>(noClipY);
+    x = static_cast<int32_t>(noClipX);
+    y = static_cast<int32_t>(noClipY);
   }
 
   for (std::vector<pxTexturedQuads>::iterator it = mQuadsVector.begin() ; it != mQuadsVector.end(); ++it)
@@ -950,7 +950,7 @@ void pxTextBox::renderOneLine(const char * tempStr, float tempX, float tempY, fl
   {
  #ifdef PXSCENE_FONT_ATLAS
      pxTexturedQuads quads;
-     getFontResource()->renderTextToQuads(tempStr, size, sx, sy, quads, static_cast<int>(xPos), static_cast<int>(tempY));
+     getFontResource()->renderTextToQuads(tempStr, size, sx, sy, quads, static_cast<int32_t>(xPos), static_cast<int32_t>(tempY));
      mQuadsVector.push_back(quads);
  #else
    getFontResource()->renderText(tempStr, size, xPos, tempY, sx, sy, mTextColor,lineWidth);
@@ -1212,7 +1212,7 @@ void pxTextBox::renderTextRowWithTruncation(rtString & accString, float lineWidt
         if( render && getFontResource() != NULL) {
 #ifdef PXSCENE_FONT_ATLAS
           pxTexturedQuads quads;
-          getFontResource()->renderTextToQuads(tempStr, pixelSize, sx, sy, quads, static_cast<int>(xPos), static_cast<int>(tempY));
+          getFontResource()->renderTextToQuads(tempStr, pixelSize, sx, sy, quads, static_cast<int32_t>(xPos), static_cast<int32_t>(tempY));
           mQuadsVector.push_back(quads);
 #else
           getFontResource()->renderText(tempStr, pixelSize, xPos, tempY, 1.0, 1.0, mTextColor,lineWidth);
@@ -1224,7 +1224,7 @@ void pxTextBox::renderTextRowWithTruncation(rtString & accString, float lineWidt
           if( render && getFontResource() != NULL) {
 #ifdef PXSCENE_FONT_ATLAS
             pxTexturedQuads quads;  
-            getFontResource()->renderTextToQuads(ELLIPSIS_STR, pixelSize, sx, sy, quads, static_cast<int>(xPos+charW), static_cast<int>(tempY));
+            getFontResource()->renderTextToQuads(ELLIPSIS_STR, pixelSize, sx, sy, quads, static_cast<int32_t>(xPos+charW), static_cast<int32_t>(tempY));
             mQuadsVector.push_back(quads);
 #else
             getFontResource()->renderText(ELLIPSIS_STR, pixelSize, xPos+charW, tempY, 1.0, 1.0, mTextColor,lineWidth);
@@ -1278,7 +1278,7 @@ void pxTextBox::renderTextRowWithTruncation(rtString & accString, float lineWidt
           {
 #ifdef PXSCENE_FONT_ATLAS
             pxTexturedQuads quads;
-            getFontResource()->renderTextToQuads(tempStr, pixelSize, sx, sy, quads, static_cast<int>(xPos), static_cast<int>(tempY));
+            getFontResource()->renderTextToQuads(tempStr, pixelSize, sx, sy, quads, static_cast<int32_t>(xPos), static_cast<int32_t>(tempY));
             mQuadsVector.push_back(quads);
 #else
             getFontResource()->renderText(tempStr, pixelSize, xPos, tempY, 1.0, 1.0, mTextColor,lineWidth);
@@ -1291,7 +1291,7 @@ void pxTextBox::renderTextRowWithTruncation(rtString & accString, float lineWidt
           if( render && getFontResource() != NULL) {
 #ifdef PXSCENE_FONT_ATLAS
             pxTexturedQuads quads;
-            getFontResource()->renderTextToQuads(ELLIPSIS_STR, pixelSize, sx, sy, quads, static_cast<int>(xPos+charW), static_cast<int>(tempY));
+            getFontResource()->renderTextToQuads(ELLIPSIS_STR, pixelSize, sx, sy, quads, static_cast<int32_t>(xPos+charW), static_cast<int32_t>(tempY));
             mQuadsVector.push_back(quads);
 #else
             getFontResource()->renderText(ELLIPSIS_STR, pixelSize, xPos+charW, tempY, 1.0, 1.0, mTextColor,lineWidth);
