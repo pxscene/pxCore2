@@ -70,7 +70,8 @@ public:
   pxRect clip();
   void setClip(const pxRect* r);
 
-  pxBuffer* texture() const {return mTexture;}
+  pxBuffer* buffer()  const { return mBuffer; }
+  pxBuffer* texture() const {return mTexture; }
   void setTexture(pxBuffer* texture);
 
   bool alphaTexture() const     { return mAlphaTexture; }

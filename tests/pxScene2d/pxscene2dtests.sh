@@ -53,7 +53,7 @@ ln -s ../../examples/pxScene2d/src/FreeSans.ttf FreeSans.ttf
 ln -s ../../examples/pxScene2d/src/package.json package.json
 ln -s ../../examples/pxScene2d/src/pxscenepermissions.conf pxscenepermissions.conf
 
-./pxscene2dtests
+${DBG} ./pxscene2dtests "$@"
 
 #remove temporary files created for running js files from unittests
 rm -rf shell.js

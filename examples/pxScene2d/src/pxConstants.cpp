@@ -22,6 +22,7 @@
 
 rtRef<pxConstantsAnimation> pxConstants::animationConstants = new pxConstantsAnimation();
 rtRef<pxConstantsStretch> pxConstants::stretchConstants = new pxConstantsStretch();
+rtRef<pxConstantsMaskOperation>          pxConstants::maskOpConstants          = new pxConstantsMaskOperation();
 rtRef<pxConstantsAlignVertical> pxConstants::alignVerticalConstants = new pxConstantsAlignVertical();
 rtRef<pxConstantsAlignHorizontal> pxConstants::alignHorizontalConstants = new pxConstantsAlignHorizontal();
 rtRef<pxConstantsTruncation> pxConstants::truncationConstants = new pxConstantsTruncation(); 
@@ -77,6 +78,10 @@ rtDefineObject(pxConstantsStretch, rtObject);
 rtDefineProperty(pxConstantsStretch,NONE);
 rtDefineProperty(pxConstantsStretch,STRETCH);
 rtDefineProperty(pxConstantsStretch,REPEAT);
+// Constantes for Mask operation
+rtDefineObject(pxConstantsMaskOperation, rtObject);
+rtDefineProperty(pxConstantsMaskOperation,NORMAL);
+rtDefineProperty(pxConstantsMaskOperation,INVERT);
 // Constants for Vertical Alignment
 rtDefineObject(pxConstantsAlignVertical, rtObject);
 rtDefineProperty(pxConstantsAlignVertical, TOP);
