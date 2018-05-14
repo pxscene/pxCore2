@@ -99,7 +99,9 @@ uint32_t gTexBindCalls;
 uint32_t gFboBindCalls;
 
 #endif //USE_RENDER_STATS
-
+bool gIsRunningScript = false;
+// list of scenes that are being tried to dispose during another script compilation
+vector<pxScene2dRef> gPendingScenes;
 // TODO move to rt*
 // Taken from
 // http://stackoverflow.com/questions/342409/how-do-i-base64-encode-decode-in-c
@@ -1939,33 +1941,38 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
 rtError pxScene2d::dispose()
 {
     mDisposed = true;
-    rtObjectRef e = new rtMapObject;
-    mEmit.send("onClose", e);
-    for (unsigned int i=0; i<mInnerpxObjects.size(); i++)
-    {
-      pxObject* temp = (pxObject *) (mInnerpxObjects[i].getPtr());
-      if ((NULL != temp) && (NULL == temp->parent()))
+    if (!gIsRunningScript) {
+      rtObjectRef e = new rtMapObject;
+      mEmit.send("onClose", e);
+      for (unsigned int i=0; i<mInnerpxObjects.size(); i++)
       {
-        temp->dispose(false);
+        pxObject* temp = (pxObject *) (mInnerpxObjects[i].getPtr());
+        if ((NULL != temp) && (NULL == temp->parent()))
+        {
+          temp->dispose(false);
+        }
       }
+      mInnerpxObjects.clear();
+
+      if (mRoot)
+        mRoot->dispose(false);
+      #ifdef ENABLE_RT_NODE
+      script.pump();
+      #endif //ENABLE_RT_NODE
+      // send scene terminate after dispose to make sure, no cleanup can happen further on app side
+      // after clearing the sandbox
+      mEmit.send("onSceneTerminate", e);
+      mEmit->clearListeners();
+
+      mRoot     = NULL;
+      mInfo     = NULL;
+      mCanvas   = NULL;
+      mFocusObj = NULL;
     }
-    mInnerpxObjects.clear();
-
-    if (mRoot)
-      mRoot->dispose(false);
-    #ifdef ENABLE_RT_NODE
-    script.pump();
-    #endif //ENABLE_RT_NODE
-    // send scene terminate after dispose to make sure, no cleanup can happen further on app side
-    // after clearing the sandbox
-    mEmit.send("onSceneTerminate", e);
-    mEmit->clearListeners();
-
-    mRoot     = NULL;
-    mInfo     = NULL;
-    mCanvas   = NULL;
-    mFocusObj = NULL;
-
+    else
+    {
+      gPendingScenes.push_back(this);
+    }
     return RT_OK;
 }
 
@@ -1973,6 +1980,12 @@ void pxScene2d::onCloseRequest()
 {
   rtLogInfo(__FUNCTION__);
   dispose();
+  // clear pending scenes if any
+  for(vector<pxScene2dRef>::iterator it = gPendingScenes.begin(); it != gPendingScenes.end(); ++it)
+  {
+    (*it)->dispose();
+  }
+  gPendingScenes.clear();
 }
 
 #if 0
@@ -3787,6 +3800,7 @@ void pxScriptView::runScript()
 #ifdef RUNINMAIN
     mReady = new rtPromise();
 #endif
+    gIsRunningScript = true;
     mCtx->runFile("init.js");
 
     char buffer[MAX_URL_SIZE + 50];
@@ -3813,6 +3827,12 @@ void pxScriptView::runScript()
 		free(newBuffer);
 #endif
     mCtx->runScript(buffer);
+    gIsRunningScript = false;
+    for(vector<pxScene2dRef>::iterator it = gPendingScenes.begin(); it != gPendingScenes.end(); ++it)
+    {
+      (*it)->dispose();
+    }
+    gPendingScenes.clear(); 
     rtLogInfo("pxScriptView::runScript() ending\n");
   }
   #endif //ENABLE_RT_NODE
