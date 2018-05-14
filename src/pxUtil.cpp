@@ -62,18 +62,31 @@ rtError pxLoadImage(const char *imageData, size_t imageDataSize,
   switch(imgType)
   {
     case PX_IMAGE_PNG:
-      retVal = pxLoadPNGImage(imageData, imageDataSize, o);
-      break;
+         {
+           retVal = pxLoadPNGImage(imageData, imageDataSize, o);
+         }
+         break;
       
     case PX_IMAGE_JPG:
-      retVal = pxLoadJPGImage(imageData, imageDataSize, o);
-      break;
+         {
+#ifdef ENABLE_LIBJPEG_TURBO
+           retVal = pxLoadJPGImageTurbo(imageData, imageDataSize, o);
+           if (retVal != RT_OK)
+           {
+             retVal = pxLoadJPGImage(imageData, imageDataSize, o);
+           }
+#else
+        retVal = pxLoadJPGImage(imageData, imageDataSize, o);
+#endif //ENABLE_LIBJPEG_TURBO
+         }
+         break;
       
     case PX_IMAGE_SVG:
     default:
-      retVal = pxLoadSVGImage(imageData, imageDataSize, o);
-      break;
-      
+         {
+           retVal = pxLoadSVGImage(imageData, imageDataSize, o);
+         }
+         break;
   }//SWITCH
   
   if (retVal != RT_OK)
@@ -100,9 +113,9 @@ rtError pxLoadImage(const char *imageData, size_t imageDataSize,
 
   if (retVal != RT_OK) // Failed ... trying as SVG
   {
-    retVal = pxLoadSVGImage(imageData, imageDataSize, o, 1.25);
+    retVal = pxLoadSVGImage(imageData, imageDataSize, o);
   }
-#endif
+#endif//0
   
   
   // TODO more sane image type detection and flow
@@ -971,13 +984,15 @@ rtError pxLoadJPGImage(const char *buf, size_t buflen, pxOffscreen &o)
 
 NSVGrasterizer *rast = NULL;
 
-rtError pxStoreSVGImage(const char* filename, pxBuffer& b)  { return RT_FAIL; } // NOT SUPPORTED
+rtError pxStoreSVGImage(const char* /*filename*/, pxBuffer& /*b*/)  { return RT_FAIL; } // NOT SUPPORTED
 
 rtError pxLoadSVGImage(const char* buf, size_t buflen, pxOffscreen& o, float scaleXY /* = 1.0 */)
 {
+//  NSVGrasterizer *rast = NULL;
+  
   if(rast == NULL)
   {
-  /*NSVGrasterizer */ rast = nsvgCreateRasterizer();
+  /*NSVGrasterizer * */ rast = nsvgCreateRasterizer();
   }
   
   if (rast == NULL)
@@ -1004,7 +1019,7 @@ rtError pxLoadSVGImage(const char* buf, size_t buflen, pxOffscreen& o, float sca
   if (w == 0 || h == 0)
   {
     SAFE_DELETE(image)
-    //    SAFE_DELETE(rast)
+    // SAFE_DELETE(rast)
     
     rtLogError("SVG:  Bad image dimensions  WxH: %d x %d\n", w, h);
     return RT_FAIL;
@@ -1016,29 +1031,8 @@ rtError pxLoadSVGImage(const char* buf, size_t buflen, pxOffscreen& o, float sca
   
   nsvgRasterize(rast, image, 0,0, scaleXY , (unsigned char*) o.base(), o.width(), o.height(), o.width() *4);
   
-  
-#if 0
-#ifdef PX_PLATFORM_MAC
-  
-  extern void *makeNSImage(void *rgba_buffer, int w, int h, int depth);
-  
-  // HACK
-  // HACK
-  // HACK
-  {
-    // In Xcode - hover over 'xcode_image' below and click on the "eye" button.
-    //
-    void *xcode_image = makeNSImage( (void *) o.base(), w, h, 4);
-    rtLogError("\nSet a BREAKPOINT here");
-  }
-  // HACK
-  // HACK
-  // HACK
-#endif
-#endif
-  
   SAFE_DELETE(image)
-  //    SAFE_DELETE(rast)
+//  SAFE_DELETE(rast)
   
   return RT_OK;
 }
@@ -1046,7 +1040,7 @@ rtError pxLoadSVGImage(const char* buf, size_t buflen, pxOffscreen& o, float sca
 
 rtError pxStoreJPGImage(char * /*filename*/, pxBuffer & /*b*/)
 {
-  return RT_FAIL;
+  return RT_FAIL; // NOT SUPPORTED
 }
 
 struct PngStruct
