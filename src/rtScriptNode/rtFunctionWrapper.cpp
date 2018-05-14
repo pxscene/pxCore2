@@ -126,8 +126,6 @@ void rtResolverFunction::afterWorkCallback(uv_work_t* req, int /* status */)
     rtLogWarn("%s", *trace);
   }
 
-  resolverFunc->mIsolate->RunMicrotasks();
-
   delete ctx;
 }
 
