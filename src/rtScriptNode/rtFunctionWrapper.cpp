@@ -420,7 +420,10 @@ rtError jsFunctionWrapper::Send(int numArgs, const rtValue* args, rtValue* resul
   {
     if (rtIsMainThreadNode()) // main thread run now
     {
-      *result = callback->run();
+      Isolate::AllowJavascriptExecutionScope allowJavascriptExecution(mIsolate);
+      {
+        *result = callback->run();
+      }
       delete callback;
     }
     else // queue and wait
