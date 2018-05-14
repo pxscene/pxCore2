@@ -26,14 +26,13 @@ var eventListenerHash = {}
 var scene = undefined;
 var root = undefined;
 
+//Application types
+const TYPE_SPARK = 1;
+const TYPE_NATIVE = 2;
+const TYPE_WEB = 3;
+const TYPE_UNDEFINED = 4;
+
 function Application(props) {
-
-// Application type
-  const TYPE_SPARK = 1;
-  const TYPE_NATIVE = 2;
-  const TYPE_WEB = 3;
-  const TYPE_UNDEFINED = 4;
-
   this.id;
   this.priority	= 1;
   this.appState = "RUNNING";
