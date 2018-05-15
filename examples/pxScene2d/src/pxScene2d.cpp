@@ -1940,11 +1940,6 @@ rtError pxScene2d::dispose()
 
     if (mRoot)
       mRoot->dispose(false);
-    #ifdef ENABLE_RT_NODE
-    script.pump();
-    #endif //ENABLE_RT_NODE
-    // send scene terminate after dispose to make sure, no cleanup can happen further on app side
-    // after clearing the sandbox
     mEmit.send("onSceneTerminate", e);
     mEmit->clearListeners();
 
