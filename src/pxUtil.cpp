@@ -49,7 +49,12 @@
   #include "nanosvg.h"
   #define NANOSVGRAST_IMPLEMENTATION
   #include "nanosvgrast.h"
+  
+#ifndef SAFE_DELETE
+  #define SAFE_DELETE(x)  { delete (x); (x) = NULL; }
 #endif
+
+#endif // SUPPORT_SVG
 
 // Assume alpha is not premultiplied
 rtError pxLoadImage(const char *imageData, size_t imageDataSize,
@@ -58,7 +63,7 @@ rtError pxLoadImage(const char *imageData, size_t imageDataSize,
 #if 1
   pxImageType imgType = getImageType( (const uint8_t*) imageData, imageDataSize);
   rtError retVal = RT_FAIL;
-  
+
   switch(imgType)
   {
     case PX_IMAGE_PNG:
@@ -88,7 +93,7 @@ rtError pxLoadImage(const char *imageData, size_t imageDataSize,
          }
          break;
   }//SWITCH
-  
+
   if (retVal != RT_OK)
   {
     rtLogError("ERROR:  pxLoadImage() - failed" );
@@ -116,8 +121,8 @@ rtError pxLoadImage(const char *imageData, size_t imageDataSize,
     retVal = pxLoadSVGImage(imageData, imageDataSize, o);
   }
 #endif//0
-  
-  
+
+
   // TODO more sane image type detection and flow
 
   if (o.mPixelFormat != RT_DEFAULT_PIX)
@@ -977,65 +982,64 @@ rtError pxLoadJPGImage(const char *buf, size_t buflen, pxOffscreen &o)
   return RT_OK;
 }
 
-#ifndef SAFE_DELETE
-#define SAFE_DELETE(x)  { delete (x); (x) = NULL; }
-#endif
-
-
-NSVGrasterizer *rast = NULL;
+#ifdef SUPPORT_SVG
+static NSVGrasterizer *rast = NULL;
 
 rtError pxStoreSVGImage(const char* /*filename*/, pxBuffer& /*b*/)  { return RT_FAIL; } // NOT SUPPORTED
 
 rtError pxLoadSVGImage(const char* buf, size_t buflen, pxOffscreen& o, float scaleXY /* = 1.0 */)
 {
-//  NSVGrasterizer *rast = NULL;
-  
+  if (buf == NULL || buflen == 0 )
+  {
+    rtLogError("SVG:  Bad args.\n");
+    return RT_FAIL;
+  }
+
   if(rast == NULL)
   {
-  /*NSVGrasterizer * */ rast = nsvgCreateRasterizer();
+    rast = nsvgCreateRasterizer(); // retained ... (static)
   }
-  
+
   if (rast == NULL)
   {
     SAFE_DELETE(rast)
-    
+
     rtLogError("SVG:  Could not init rasterizer.\n");
-  return RT_FAIL;
-}
+    return RT_FAIL;
+  }
 
   NSVGimage *image = nsvgParse( (char *) buf, "px", 96.0f);
   if (image == NULL)
   {
     SAFE_DELETE(image)
-//    SAFE_DELETE(rast)
-    
+
     rtLogError("SVG:  Could not init decode SVG.\n");
     return RT_FAIL;
   }
-  
+
   int w = (int)image->width;
   int h = (int)image->height;
-  
+
   if (w == 0 || h == 0)
   {
     SAFE_DELETE(image)
-    // SAFE_DELETE(rast)
     
     rtLogError("SVG:  Bad image dimensions  WxH: %d x %d\n", w, h);
     return RT_FAIL;
   }
-  
+
   o.init(w * scaleXY,h * scaleXY);
-  
+
   rtLogDebug("SVG:  Rasterizing image %d x %d  (scaleXY: %f) \n", w, h, scaleXY);
-  
+
   nsvgRasterize(rast, image, 0,0, scaleXY , (unsigned char*) o.base(), o.width(), o.height(), o.width() *4);
-  
+
   SAFE_DELETE(image)
-//  SAFE_DELETE(rast)
-  
+
   return RT_OK;
 }
+
+#endif // SUPPORT_SVG
 
 
 rtError pxStoreJPGImage(char * /*filename*/, pxBuffer & /*b*/)
@@ -1054,6 +1058,7 @@ struct PngStruct
   size_t imageDataSize;
   int readPosition;
 };
+
 
 void readPngData(png_structp pngPtr, png_bytep data, png_size_t length)
 {
