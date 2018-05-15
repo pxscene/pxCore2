@@ -324,7 +324,6 @@ include_directories(AFTER ${NODE_INCLUDE_DIRS} ${DUKE_INCLUDE_DIRS})
 include_directories(AFTER ${WESTEROSINC} ${WESTEROSSTUBINC} ${TURBO_JPEG_INCLUDE_DIRS} ${BREAKPADINC} ${RTREMOTEINC} ${PXCOREDIR}/src)
 include_directories(AFTER ${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(AFTER ${CMAKE_CURRENT_SOURCE_DIR}/rasterizer)
-include_directories(AFTER ${CMAKE_CURRENT_SOURCE_DIR}/rasterizer/xs_code)
 
 set(PXSCENE_COMMON_FILES pxResource.cpp pxConstants.cpp pxRectangle.cpp pxFont.cpp pxText.cpp
         pxTextBox.cpp pxImage.cpp pxImage9.cpp pxImageA.cpp pxImage9Border.cpp pxArchive.cpp pxAnimate.cpp rasterizer/pxRasterizer.cpp rasterizer/pxCanvas.cpp rasterizer/pxCanvas2d.cpp rasterizer/pxPath.cpp)
