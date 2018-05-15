@@ -84,6 +84,7 @@ public:
   void setLastRenderTick(uint32_t renderTick) { mLastRenderTick = renderTick; }
   void setDownscaleSmooth(bool downscaleSmooth) { mDownscaleSmooth = downscaleSmooth; }
   bool downscaleSmooth() { return mDownscaleSmooth; }
+  bool initialized() { return true; }
 protected:
   rtAtomic mRef;
   pxTextureType mTextureType;

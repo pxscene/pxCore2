@@ -37,7 +37,8 @@ px.import({
       console.log("Event received");
     }
 
-    scene.on("addEventsProper", function() { rect_one.on('onListener', listener); console.log("Received add events proper **************");  });
+    scene.on("addEventsProper", function() { rect_one.on('onListener', listener); scene.on('onPendingEvents', listener); console.log("Received add events proper **************");  });
+    scene.on("addPendingEvents", function() { scene.on('onPendingEvents', listener); console.log("Received add pending events proper **************");  });
     scene.on("removeEventsProper", function() { rect_one.delListener("onListener", listener); });
     scene.on("removeEventsImProper", function() { rect_one.delListener("onListener", null); });
   });

@@ -175,14 +175,14 @@ void pxFont::setupResource()
   }
 }
 
-bool pxFont::loadResourceData(rtFileDownloadRequest* fileDownloadRequest)
+uint32_t pxFont::loadResourceData(rtFileDownloadRequest* fileDownloadRequest)
 {
       // Load the font data
     setFontData( (FT_Byte*)fileDownloadRequest->downloadedData(),
             (FT_Long)fileDownloadRequest->downloadedDataSize(),
             fileDownloadRequest->fileUrl().cString());
             
-      return true;
+      return PX_RESOURCE_LOAD_SUCCESS;
 }
 
 void pxFont::loadResourceFromFile()
@@ -461,6 +461,7 @@ void pxFont::measureTextInternal(const char* text, uint32_t size,  float sx, flo
   h *= sy;
 }
 
+#ifndef PXSCENE_FONT_ATLAS
 void pxFont::renderText(const char *text, uint32_t size, float x, float y, 
                         float nsx, float nsy, 
                         float* color, float mw) 
@@ -537,7 +538,7 @@ void pxFont::renderText(const char *text, uint32_t size, float x, float y,
     }
   }
 }
-
+#endif // #ifndef PXSCENE_FONT_ATLAS
 #ifdef PXSCENE_FONT_ATLAS
 void pxFont::renderTextToQuads(const char *text, uint32_t size, 
                         float nsx, float nsy, 

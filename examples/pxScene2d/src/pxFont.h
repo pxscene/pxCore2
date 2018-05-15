@@ -266,10 +266,12 @@ public:
   void measureTextInternal(const char* text, uint32_t size,  float sx, float sy, 
                    float& w, float& h);
   void measureTextChar(u_int32_t codePoint, uint32_t size,  float sx, float sy, 
-                         float& w, float& h);                   
+                         float& w, float& h);
+  #ifndef PXSCENE_FONT_ATLAS
   void renderText(const char *text, uint32_t size, float x, float y, 
                   float sx, float sy, 
                   float* color, float mw);
+  #endif
 
   #ifdef PXSCENE_FONT_ATLAS
   // Should reinvoke on changes to text, size, or scale params
@@ -288,7 +290,7 @@ public:
    
 protected:
   // Implementation for pxResource virtuals
-  virtual bool loadResourceData(rtFileDownloadRequest* fileDownloadRequest);
+  virtual uint32_t loadResourceData(rtFileDownloadRequest* fileDownloadRequest);
   
 private:
   void loadResourceFromFile();

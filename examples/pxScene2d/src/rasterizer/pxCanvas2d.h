@@ -59,11 +59,6 @@ public:
   
   void closePath();
 
-  // The following methods create a path for the associated shape
-  // to render call either fill() or stroke()
-
-  //void rectangle(float x1, float y1, float x2, float y2);
-
 #if 0
   void rotate(double a);
   void scale(double sx, double sy);
@@ -128,6 +123,8 @@ public:
     mRasterizer.setYOversample(i);
   }
 
+  pxBuffer* buffer() const { return mRasterizer.buffer(); } 
+
   pxBuffer* texture() const;
   void setTexture(pxBuffer* texture);
 
@@ -150,6 +147,9 @@ public:
 
   bool overdraw() const    { return mRasterizer.overdraw();     }
   void setOverdraw(bool f) {        mRasterizer.setOverdraw(f); }
+
+  // The following methods create a path for the associated shape
+  // to render call either fill() or stroke()
 
   void roundRect(double x, double y, double w, double h, double rx, double ry);
   //void roundRectangle(double x, double y, double w, double h, double rad);

@@ -27,11 +27,20 @@ var scene = undefined;
 var root = undefined;
 
 function Application(props) {
+
+// Application type
+  const TYPE_SPARK = 1;
+  const TYPE_NATIVE = 2;
+  const TYPE_WEB = 3;
+  const TYPE_UNDEFINED = 4;
+
   this.id;
   this.priority	= 1;
   this.appState = "RUNNING";
   this.externalApp = undefined;
   this.appName = "";
+  this.browser = undefined;
+  this.type = TYPE_UNDEFINED;
 
   var cmd = "";
   var w = 0;
@@ -54,6 +63,7 @@ function Application(props) {
   if (cmd){
     if (scene !== undefined) {
       if ((cmd == "spark") && "uri" in launchParams){
+        this.type = TYPE_SPARK;
         uri = launchParams["uri"];
         this.externalApp = scene.create({t:"scene", parent:root, url:uri});
         this.externalApp.on("onClientStopped", this.applicationClosed);
@@ -68,13 +78,49 @@ function Application(props) {
         this.setProperties(props);
         module.exports.onCreate(this);
       }
+      else if (cmd == "rdkbrowser2"){
+        this.type = TYPE_WEB;
+        if ("uri" in launchParams){
+            uri = launchParams["uri"];
+        }
+        var waylandObj = scene.create( {t:"wayland", parent:root, server:"wl-rdkbrowser2-server", w:w, h:h, hasApi:true} );
+        this.externalApp = waylandObj;
+        this.setProperties(props);
+        var thisApp = this;
+        waylandObj.remoteReady.then(function(obj) {
+            if(obj)
+            {
+              thisApp.browser = waylandObj.api.createWindow(waylandObj.displayName, false);
+              if (thisApp.browser)
+              {
+                thisApp.browser.url = uri;
+                console.log("launched rdkbrowser2 uri:" + uri);
+                module.exports.onCreate(waylandObj);
+                waylandObj.applicationReady();
+              }
+              else
+              {
+                console.log("failed to create window for rdkbrowser2");
+                module.exports.onDestroy(waylandObj);
+              }
+            }
+            else
+            {
+              console.log("failed to create rdkbrowser2 invalid waylandObj");
+              module.exports.onDestroy(waylandObj);
+            }
+          }, function rejection(o) {
+          console.log("failed to create rdkbrowser2");
+          module.exports.onDestroy(waylandObj);
+        });
+      }
       else{
         if (cmd == "wpe" && "uri" in launchParams){
             uri = launchParams["uri"];
             cmd = cmd + " " + uri;
             console.log("Launching wpe uri: " + uri); 
         }
- 
+        this.type = TYPE_NATIVE;
         this.externalApp = scene.create( {t:"wayland", parent:root, cmd:cmd, w:w, h:h, hasApi:true} );
         this.externalApp.on("onReady", this.applicationReady);
         this.externalApp.on("onClientStopped", this.applicationClosed);
@@ -175,9 +221,9 @@ Application.prototype.moveToBack = function() {
   }
   return true;
 }
-Application.prototype.setFocus = function(focus) {
+Application.prototype.setFocus = function() {
   if (this.externalApp){
-    this.externalApp.focus = focus;
+    this.externalApp.focus = true;
   }
   return true;
 }
@@ -205,7 +251,14 @@ Application.prototype.on = function(e,fn) {
 
 
 Application.prototype.api = function() {
-  if (this.externalApp){
+  if (this.type == TYPE_WEB){
+    if (this.browser){
+      return this.browser;
+    } else {
+      return null;
+    }
+  }
+  else if (this.externalApp){
     return this.externalApp.api;
   } else {
     return null;

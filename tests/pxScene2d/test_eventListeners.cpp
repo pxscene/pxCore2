@@ -112,6 +112,14 @@ private:
       process();
       EXPECT_TRUE(mTestObj->mEmit->mEntries.size() == 0);
     }
+
+    void runPendingListenerTest()
+    {
+      rtObjectRef e = new rtMapObject;
+      mScene->mEmit.send("addPendingEvents",e);
+      process();
+      EXPECT_TRUE(mTestObj->mEmit->mPendingEntriesToAdd.size() == 0);
+    }
 private:
     pxObject*     mRoot;
     pxScriptView* mView;
@@ -126,4 +134,5 @@ TEST_F(eventListenerTests, eventListenerTest)
     runAddListenerTest();
     runDelListenerImproperTest();
     runDelListenerProperTest();
+    runPendingListenerTest();
 }
