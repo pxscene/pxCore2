@@ -44,6 +44,10 @@
 #include "node_javascript.h"
 #include "node_contextify_mods.h"
 
+#if NODE_VERSION_AT_LEAST(8,9,0)
+#include "tracing/agent.h"
+#endif
+
 #include "env.h"
 #include "env-inl.h"
 
@@ -1201,6 +1205,10 @@ void rtScriptNode::init2(int argc, char** argv)
    Platform* platform = platform::CreateDefaultPlatform();
    mPlatform = platform;
    V8::InitializePlatform(platform);
+#if NODE_VERSION_AT_LEAST(8,9,0)
+   // behaves as --trace-events-enabled command line option were not used
+   tracing::TraceEventHelper::SetTracingController(new v8::TracingController());
+#endif
    V8::Initialize();
    Isolate::CreateParams params;
    array_buffer_allocator = new ArrayBufferAllocator();
