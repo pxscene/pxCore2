@@ -95,7 +95,9 @@ using namespace rtScriptNodeUtils;
 #ifndef DISABLE_USE_CONTEXTIFY_CLONES
 # define USE_CONTEXTIFY_CLONES
 #endif
-
+#ifdef RUNINMAIN
+bool isPumping = false;
+#endif
 
 namespace node
 {
@@ -1040,7 +1042,6 @@ rtError rtScriptNode::pump()
   // It is causing the dependencies between data running between two event loops failed, if one one 
   // loop didn't complete before other. So, promise not registered by first event loop, before the second
   // event looop sends back the ready event
-  static bool isPumping = false;
   if (isPumping == false) 
   {
     isPumping = true;
