@@ -1940,6 +1940,8 @@ rtError pxScene2d::dispose()
 
     if (mRoot)
       mRoot->dispose(false);
+    // send scene terminate after dispose to make sure, no cleanup can happen further on app side		
+    // after clearing the sandbox
     mEmit.send("onSceneTerminate", e);
     mEmit->clearListeners();
 
