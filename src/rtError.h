@@ -48,7 +48,6 @@
 #define RT_NO_CONNECTION		9
 #define RT_ERROR_NOT_IMPLEMENTED 10
 #define RT_ERROR_TYPE_MISMATCH 11
-#define RT_ERROR_NOT_ALLOWED 12
 
 // errors specific to rtRemote
 #define RT_ERROR_TIMEOUT 1000
@@ -59,6 +58,11 @@
 #define RT_ERROR_IN_PROGRESS 1005
 #define RT_ERROR_QUEUE_EMPTY 1006
 #define RT_ERROR_STREAM_CLOSED 1007
+
+// errors specific to security model
+#define RT_ERROR_NOT_ALLOWED 2000
+#define RT_ERROR_CORS_NO_HEADER 2001
+#define RT_ERROR_CORS_ORIGIN_MISMATCH 2002
 
 typedef uint32_t rtError;
 

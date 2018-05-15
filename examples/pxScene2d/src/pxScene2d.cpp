@@ -2156,7 +2156,8 @@ rtError pxScene2d::createImageResource(rtObjectRef p, rtObjectRef& o)
   rtString proxy = p.get<rtString>("proxy");
 
 #ifdef ENABLE_PERMISSIONS_CHECK
-  rtPermissionsCheck(mPermissions, url.cString(), rtPermissions::DEFAULT)
+  if (RT_OK != mPermissions->allows(url, rtPermissions::DEFAULT))
+    return RT_ERROR_NOT_ALLOWED;
 #endif
 
   o = pxImageManager::getImage(url, proxy);
@@ -2170,7 +2171,8 @@ rtError pxScene2d::createImageAResource(rtObjectRef p, rtObjectRef& o)
   rtString proxy = p.get<rtString>("proxy");
 
 #ifdef ENABLE_PERMISSIONS_CHECK
-  rtPermissionsCheck(mPermissions, url.cString(), rtPermissions::DEFAULT)
+  if (RT_OK != mPermissions->allows(url, rtPermissions::DEFAULT))
+    return RT_ERROR_NOT_ALLOWED;
 #endif
 
   o = pxImageManager::getImageA(url, proxy);
@@ -2184,7 +2186,8 @@ rtError pxScene2d::createFontResource(rtObjectRef p, rtObjectRef& o)
   rtString proxy = p.get<rtString>("proxy");
 
 #ifdef ENABLE_PERMISSIONS_CHECK
-  rtPermissionsCheck(mPermissions, url.cString(), rtPermissions::DEFAULT)
+  if (RT_OK != mPermissions->allows(url, rtPermissions::DEFAULT))
+    return RT_ERROR_NOT_ALLOWED;
 #endif
 
   o = pxFontManager::getFont(url, proxy);
@@ -3206,7 +3209,8 @@ rtError pxScene2d::setCustomAnimator(const rtFunctionRef& v)
 rtError pxScene2d::screenshot(rtString type, rtString& pngData)
 {
 #ifdef ENABLE_PERMISSIONS_CHECK
-  rtPermissionsCheck(mPermissions, "screenshot", rtPermissions::FEATURE)
+  if (RT_OK != mPermissions->allows("screenshot", rtPermissions::FEATURE))
+    return RT_ERROR_NOT_ALLOWED;
 #endif
 
   // Is this a type we support?
@@ -3389,7 +3393,8 @@ rtError pxScene2d::getService(const char* name, const rtObjectRef& ctx, rtObject
         serviceCheckPermissions = permissionsRef;
       }
     }
-    rtPermissionsCheck(serviceCheckPermissions, name, rtPermissions::SERVICE)
+    if (serviceCheckPermissions != NULL && RT_OK != serviceCheckPermissions->allows(name, rtPermissions::SERVICE))
+      return RT_ERROR_NOT_ALLOWED;
     #endif //ENABLE_PERMISSIONS_CHECK
     rtObjectRef serviceManager;
     rtError result = pxServiceManager::findServiceManager(serviceManager);
@@ -3630,7 +3635,8 @@ rtError pxSceneContainer::setUrl(rtString url)
   rtLogInfo("pxSceneContainer::setUrl(%s)",url.cString());
 
 #ifdef ENABLE_PERMISSIONS_CHECK
-  rtPermissionsCheck((mScene != NULL ? mScene->permissions() : NULL), url.cString(), rtPermissions::DEFAULT)
+  if (mScene != NULL && RT_OK != mScene->permissions()->allows(url, rtPermissions::DEFAULT))
+    return RT_ERROR_NOT_ALLOWED;
 #endif
 
   // If old promise is still unfulfilled resolve it

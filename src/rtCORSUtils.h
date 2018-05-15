@@ -22,8 +22,6 @@
 #include "rtString.h"
 #include "rtError.h"
 
-rtError rtCORSUtilsCheckOrigin(const rtString& origin, const rtString& reqUrl, const rtString& rawHeaders, rtString* errorStr = NULL);
-
-extern const char* USE_ACCESS_CONTROL_CHECK_ENV_NAME;
+rtError rtCORSUtilsCheckOrigin(const rtString& origin, const rtString& url, const rtString& headers);
 
 #endif
