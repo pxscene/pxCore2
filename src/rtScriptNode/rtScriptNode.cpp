@@ -95,7 +95,9 @@ using namespace rtScriptNodeUtils;
 #ifndef DISABLE_USE_CONTEXTIFY_CLONES
 # define USE_CONTEXTIFY_CLONES
 #endif
-
+#ifdef RUNINMAIN
+bool gIsPumpingJavaScript = false;
+#endif
 
 namespace node
 {
@@ -1040,10 +1042,9 @@ rtError rtScriptNode::pump()
   // It is causing the dependencies between data running between two event loops failed, if one one 
   // loop didn't complete before other. So, promise not registered by first event loop, before the second
   // event looop sends back the ready event
-  static bool isPumping = false;
-  if (isPumping == false) 
+  if (gIsPumpingJavaScript == false) 
   {
-    isPumping = true;
+    gIsPumpingJavaScript = true;
 #endif
     Locker                locker(mIsolate);
     Isolate::Scope isolate_scope(mIsolate);
@@ -1067,7 +1068,7 @@ rtError rtScriptNode::pump()
       }
     }
 #ifdef RUNINMAIN
-    isPumping = false;
+    gIsPumpingJavaScript = false;
   }
 #endif
 //#endif // RUNINMAIN
