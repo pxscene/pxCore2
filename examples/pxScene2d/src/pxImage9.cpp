@@ -66,7 +66,8 @@ rtError pxImage9::url(rtString& s) const
 rtError pxImage9::setUrl(const char* s) 
 {
 #ifdef ENABLE_PERMISSIONS_CHECK
-  rtPermissionsCheck((mScene != NULL ? mScene->permissions() : NULL), s, rtPermissions::DEFAULT)
+  if (mScene != NULL && RT_OK != mScene->permissions()->allows(s, rtPermissions::DEFAULT))
+    return RT_ERROR_NOT_ALLOWED;
 #endif
 
   rtImageResource* resourceObj = getImageResource();  

@@ -44,6 +44,10 @@
 #include "node_javascript.h"
 #include "node_contextify_mods.h"
 
+#if NODE_VERSION_AT_LEAST(8,9,0)
+#include "tracing/agent.h"
+#endif
+
 #include "env.h"
 #include "env-inl.h"
 
@@ -274,11 +278,15 @@ extern args_t *s_gArgs;
 #endif
 namespace node
 {
+#if NODE_VERSION_AT_LEAST(8,9,4)
+extern DebugOptions debug_options;
+#else
 extern bool use_debug_agent;
 #ifdef HAVE_INSPECTOR
 extern bool use_inspector;
 #endif
 extern bool debug_wait_connect;
+#endif
 }
 
 static int exec_argc;
@@ -374,8 +382,14 @@ void rtNodeContext::createEnvironment()
 
   // Create Environment.
 
+#if NODE_VERSION_AT_LEAST(8,9,4)
+  IsolateData *isolateData = new IsolateData(mIsolate,uv_default_loop(),array_buffer_allocator->zero_fill_field());
+
+  mEnv = CreateEnvironment(isolateData,
+#else
   mEnv = CreateEnvironment(mIsolate,
                            uv_default_loop(),
+#endif
                            local_context,
 #ifdef ENABLE_DEBUG_MODE
                            g_argc,
@@ -387,11 +401,13 @@ void rtNodeContext::createEnvironment()
                            exec_argc,
                            exec_argv);
 
+#if !NODE_VERSION_AT_LEAST(8,9,4)
    array_buffer_allocator->set_env(mEnv);
-
+#endif
   mIsolate->SetAbortOnUncaughtExceptionCallback(
         ShouldAbortOnUncaughtException);
 #ifdef ENABLE_DEBUG_MODE
+#if !NODE_VERSION_AT_LEAST(8,9,4)
   // Start debug agent when argv has --debug
   if (use_debug_agent)
   {
@@ -411,13 +427,19 @@ void rtNodeContext::createEnvironment()
       StartDebug(mEnv, NULL, debug_wait_connect);
     }
   }
+#else
+#if HAVE_INSPECTOR
+//     if( !mEnv->inspector_agent()->IsStarted() )
+//         mEnv->inspector_agent()->Start(mPlatform, nullptr, debug_options);
 #endif
-  // Load Environment.
+#endif
+#endif
+// Load Environment.
   {
     Environment::AsyncCallbackScope callback_scope(mEnv);
     LoadEnvironment(mEnv);
   }
-#ifdef ENABLE_DEBUG_MODE
+#if defined(ENABLE_DEBUG_MODE) && !NODE_VERSION_AT_LEAST( 8, 9, 4 )
   if (use_debug_agent)
   {
     rtLogWarn("use_debug_agent\n");
@@ -476,11 +498,13 @@ void rtNodeContext::createEnvironment()
                            exec_argv);
 
   // Start debug agent when argv has --debug
+#ifdef ENABLE_DEBUG_MODE
   if (use_debug_agent)
   {
     rtLogWarn("use_debug_agent\n");
     StartDebug(mEnv, debug_wait_connect);
   }
+#endif
 
   // Load Environment.
   LoadEnvironment(mEnv);
@@ -597,6 +621,7 @@ rtNodeContext::~rtNodeContext()
       HandleScope     handle_scope(mIsolate);
 
       RunAtExit(mEnv);
+  #if !NODE_VERSION_AT_LEAST(8,9,4)
     #ifdef ENABLE_NODE_V_6_9
       if (nodeTerminated)
       {
@@ -609,6 +634,7 @@ rtNodeContext::~rtNodeContext()
     #else
       mEnv->Dispose();
     #endif // ENABLE_NODE_V_6_9
+  #endif
       mEnv = NULL;
       #ifndef USE_CONTEXTIFY_CLONES
       HandleMap::clearAllForContext(mId);
@@ -1179,6 +1205,10 @@ void rtScriptNode::init2(int argc, char** argv)
    Platform* platform = platform::CreateDefaultPlatform();
    mPlatform = platform;
    V8::InitializePlatform(platform);
+#if NODE_VERSION_AT_LEAST(8,9,0)
+   // behaves as --trace-events-enabled command line option were not used
+   tracing::TraceEventHelper::SetTracingController(new v8::TracingController());
+#endif
    V8::Initialize();
    Isolate::CreateParams params;
    array_buffer_allocator = new ArrayBufferAllocator();
