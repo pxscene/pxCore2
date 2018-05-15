@@ -420,7 +420,7 @@ void rtFileDownloadRequest::setHTTPError(const char* httpError)
 {
   if(httpError != NULL)
   {
-    strncpy(mHttpErrorBuffer, httpError, CURL_ERROR_SIZE);
+    strncpy(mHttpErrorBuffer, httpError, CURL_ERROR_SIZE-1);
     mHttpErrorBuffer[CURL_ERROR_SIZE-1] = '\0';
   }
 }
