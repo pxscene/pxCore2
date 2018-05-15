@@ -3226,7 +3226,7 @@ rtError pxScene2d::screenshot(rtString type, rtString& pngData)
     pxContextFramebufferRef newFBO;
     // w/o multisampling
     // if needed, render texture of a multisample FBO to a non-multisample FBO and then read from it
-    mRoot->createSnapshot(newFBO, true, false);
+    mRoot->createSnapshot(newFBO, false, false);
     context.setFramebuffer(newFBO);
     pxOffscreen o;
     context.snapshot(o);
