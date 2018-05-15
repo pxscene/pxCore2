@@ -4,6 +4,10 @@ matrix:
     dist: trusty
     sudo: required
   - os: osx
+    if: type IN (push, pull_request)
+    osx_image: xcode9.3
+  - os: osx
+    if: type IN (api, cron)
     osx_image: xcode6.4
 language: c++
 before_install:
