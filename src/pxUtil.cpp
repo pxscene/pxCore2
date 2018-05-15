@@ -28,6 +28,7 @@
 #include <stdarg.h>
 #include <png.h>
 
+
 #include "rtLog.h"
 #include "pxCore.h"
 #include "pxOffscreen.h"
@@ -38,6 +39,9 @@
 #define SUPPORT_SVG
 
 #ifdef SUPPORT_SVG
+#include "rtRef.h"
+#include "rtObject.h"
+
   #include <stdio.h>
   #include <string.h>
   #include <float.h>
@@ -53,6 +57,22 @@
 #ifndef SAFE_DELETE
   #define SAFE_DELETE(x)  { delete (x); (x) = NULL; }
 #endif
+
+
+class NSVGrasterizerEx
+{
+  public:
+       NSVGrasterizerEx()  {  rast = nsvgCreateRasterizer(); } // ctor
+      ~NSVGrasterizerEx()  {  delete rast;                   } // dtor
+  
+  NSVGrasterizer *getPtr() { return rast; };
+  
+  private:
+    NSVGrasterizer *rast;
+    
+}; // CLASS;
+
+static NSVGrasterizerEx rast;
 
 #endif // SUPPORT_SVG
 
@@ -983,7 +1003,6 @@ rtError pxLoadJPGImage(const char *buf, size_t buflen, pxOffscreen &o)
 }
 
 #ifdef SUPPORT_SVG
-static NSVGrasterizer *rast = NULL;
 
 rtError pxStoreSVGImage(const char* /*filename*/, pxBuffer& /*b*/)  { return RT_FAIL; } // NOT SUPPORTED
 
@@ -992,19 +1011,6 @@ rtError pxLoadSVGImage(const char* buf, size_t buflen, pxOffscreen& o, float sca
   if (buf == NULL || buflen == 0 )
   {
     rtLogError("SVG:  Bad args.\n");
-    return RT_FAIL;
-  }
-
-  if(rast == NULL)
-  {
-    rast = nsvgCreateRasterizer(); // retained ... (static)
-  }
-
-  if (rast == NULL)
-  {
-    SAFE_DELETE(rast)
-
-    rtLogError("SVG:  Could not init rasterizer.\n");
     return RT_FAIL;
   }
 
@@ -1032,7 +1038,7 @@ rtError pxLoadSVGImage(const char* buf, size_t buflen, pxOffscreen& o, float sca
 
   rtLogDebug("SVG:  Rasterizing image %d x %d  (scaleXY: %f) \n", w, h, scaleXY);
 
-  nsvgRasterize(rast, image, 0,0, scaleXY , (unsigned char*) o.base(), o.width(), o.height(), o.width() *4);
+  nsvgRasterize(rast.getPtr(), image, 0,0, scaleXY , (unsigned char*) o.base(), o.width(), o.height(), o.width() *4);
 
   SAFE_DELETE(image)
 
