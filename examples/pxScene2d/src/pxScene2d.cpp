@@ -1993,6 +1993,12 @@ void pxScene2d::init()
 
 rtError pxScene2d::create(rtObjectRef p, rtObjectRef& o)
 {
+  if (mDisposed)
+  {
+    rtLogInfo("Scene is disposed, not creating any pxobjects");
+    return RT_FAIL;
+  }
+
   rtError e = RT_OK;
   rtString t = p.get<rtString>("t");
   bool needpxObjectTracking = true;
