@@ -36,9 +36,7 @@
 
 #define SUPPORT_PNG
 #define SUPPORT_JPG
-#define SUPPORT_SVG
 
-#ifdef SUPPORT_SVG
 #include "rtRef.h"
 #include "rtObject.h"
 
@@ -74,13 +72,11 @@ class NSVGrasterizerEx
 
 static NSVGrasterizerEx rast;
 
-#endif // SUPPORT_SVG
 
 // Assume alpha is not premultiplied
 rtError pxLoadImage(const char *imageData, size_t imageDataSize,
                     pxOffscreen &o)
 {
-#if 1
   pxImageType imgType = getImageType( (const uint8_t*) imageData, imageDataSize);
   rtError retVal = RT_FAIL;
 
@@ -119,28 +115,6 @@ rtError pxLoadImage(const char *imageData, size_t imageDataSize,
     rtLogError("ERROR:  pxLoadImage() - failed" );
     return retVal;
   }
-#else
-  // Load as PNG...
-  rtError retVal = pxLoadPNGImage(imageData, imageDataSize, o);
-
-  if (retVal != RT_OK) // Failed ... trying as JPG
-  {
-#ifdef ENABLE_LIBJPEG_TURBO
-    retVal = pxLoadJPGImageTurbo(imageData, imageDataSize, o);
-    if (retVal != RT_OK)
-    {
-      retVal = pxLoadJPGImage(imageData, imageDataSize, o);
-    }
-#else
-    retVal = pxLoadJPGImage(imageData, imageDataSize, o);
-#endif //ENABLE_LIBJPEG_TURBO
-  }
-
-  if (retVal != RT_OK) // Failed ... trying as SVG
-  {
-    retVal = pxLoadSVGImage(imageData, imageDataSize, o);
-  }
-#endif//0
 
 
   // TODO more sane image type detection and flow
@@ -1002,7 +976,6 @@ rtError pxLoadJPGImage(const char *buf, size_t buflen, pxOffscreen &o)
   return RT_OK;
 }
 
-#ifdef SUPPORT_SVG
 
 rtError pxStoreSVGImage(const char* /*filename*/, pxBuffer& /*b*/)  { return RT_FAIL; } // NOT SUPPORTED
 
@@ -1044,9 +1017,6 @@ rtError pxLoadSVGImage(const char* buf, size_t buflen, pxOffscreen& o, float sca
 
   return RT_OK;
 }
-
-#endif // SUPPORT_SVG
-
 
 rtError pxStoreJPGImage(char * /*filename*/, pxBuffer & /*b*/)
 {
