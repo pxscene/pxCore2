@@ -1,25 +1,26 @@
+/*
+
+pxCore Copyright 2005-2018 John Robinson
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+*/
+
 #include "pxTimer.h"
 #include "pxRasterizer.h"
 
-#ifdef XS_CODE_ENABLED
-#  include "xs_Core.h"
-#  include "xs_Float.h"
-#include "rtLog.h"
-#else
-#  include <cstdint>
-#  include <math.h>
-   inline int32_t xs_RoundToInt(const double d)
-   {
-     return floor(d + 0.5);
-   }
-
-   inline int32_t xs_CRoundToInt(const double d)
-   {
-     return ceil(d);
-   }
-#endif
-
-
+#include <cstdint>
+#include <math.h>
 #include <algorithm>
 
 #define MINEDGES 200000
@@ -76,6 +77,15 @@ uint32_t xShift;
 //#endif
 
 
+inline int32_t xs_RoundToInt(const double d)
+{
+ return floor(d + 0.5);
+}
+
+inline int32_t xs_CRoundToInt(const double d)
+{
+ return ceil(d);
+}
 
 
 class span

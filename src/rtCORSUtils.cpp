@@ -1,6 +1,6 @@
 /*
 
- pxCore Copyright 2005-2017 John Robinson
+ pxCore Copyright 2005-2018 John Robinson
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -16,42 +16,50 @@
 
 */
 
-#include "rtPermissions.h"
+#include "rtCORSUtils.h"
 
 #include "rtUrlUtils.h"
 
-#include <sstream>
+#include <ctype.h>
 
-const char* USE_ACCESS_CONTROL_CHECK_ENV_NAME = "USE_ACCESS_CONTROL_CHECK";
-
-rtError rtCORSUtilsCheckOrigin(const rtString& origin, const rtString& reqUrl, const rtString& rawHeaders, rtString* errorStr)
+namespace
 {
-  bool enableCheck = getenv(USE_ACCESS_CONTROL_CHECK_ENV_NAME) != NULL;
-  if (!enableCheck)
+  static const char* ENV_NAME_ENABLED = "SPARK_CORS_ENABLED";
+}
+
+rtError rtCORSUtilsCheckOrigin(const rtString& origin, const rtString& url, const rtString& headers)
+{
+  static bool enable = true; // default
+  static bool didCheck = false;
+  if (!didCheck)
   {
-    // not enabled
-    return RT_OK;
+    didCheck = true;
+    const char* s = getenv(ENV_NAME_ENABLED);
+    if (s != NULL)
+    {
+      rtString envVal(s);
+      enable = 0 == envVal.compare("true") || 0 == envVal.compare("1");
+    }
   }
 
+  if (!enable)
+    return RT_OK;
+
+  // Do not apply restrictions to local files
   if (origin.isEmpty())
-  {
-    // no origin
     return RT_OK;
-  }
 
-  const rtString& reqUrlOrigin = rtUrlGetOrigin(reqUrl.cString());
-  if (!reqUrlOrigin.isEmpty() && !strcmp(origin, reqUrlOrigin.cString()))
-  {
-    // request is same-origin
+  // Do not apply restrictions for same-origin requests
+  const rtString& reqUrlOrigin = rtUrlGetOrigin(url.cString());
+  if (!reqUrlOrigin.isEmpty() && 0 == reqUrlOrigin.compare(origin.cString()))
     return RT_OK;
-  }
 
   rtString allowOrigin;
   const char* allowOriginFieldStart = "access-control-allow-origin:";
-  if (!rawHeaders.isEmpty())
+  if (!headers.isEmpty())
   {
     // Case-insensitive search.
-    const char* h = rawHeaders.cString();
+    const char* h = headers.cString();
     const char* o = allowOriginFieldStart;
     for (; *h && *o && tolower(*h) == *o; h++, o++);
     if (*o != 0)
@@ -76,53 +84,27 @@ rtError rtCORSUtilsCheckOrigin(const rtString& origin, const rtString& reqUrl, c
       }
     }
   }
-  if (!allowOrigin.isEmpty())
-  {
-    // If the value of Access-Control-Allow-Origin is not a case-sensitive match, return fail.
-    if (allowOrigin.compare("*") == 0 ||
-      allowOrigin.compare(origin) == 0 ||
-      allowOrigin.compare("null") == 0)
-    {
-      return RT_OK;
-    }
 
-    // Value can be a list of origins, SP separated
-    const char* a = allowOrigin.cString();
-    const char* o = origin.cString();
-    for (; *a; a++)
+  // If the response includes zero Access-Control-Allow-Origin header values, return fail
+  if (allowOrigin.isEmpty())
+    return RT_ERROR_CORS_NO_HEADER;
+
+  if (allowOrigin.compare("*") == 0 || allowOrigin.compare(origin) == 0 || allowOrigin.compare("null") == 0)
+    return RT_OK;
+
+  // Value can be a list of origins, SP separated
+  const char* a = allowOrigin.cString();
+  const char* o = origin.cString();
+  for (; *a; a++)
+  {
+    o = *a == *o ? o + 1 : origin.cString();
+    if (*o == 0)
     {
-      o = *a == *o ? o + 1 : origin.cString();
-      if (*o == 0)
-      {
-        o = origin.cString();
-        if (*(a + 1) == 0 || *(a + 1) == ' ')
-          return RT_OK;
-      }
+      o = origin.cString();
+      if (*(a + 1) == 0 || *(a + 1) == ' ')
+        return RT_OK;
     }
   }
 
-  if (errorStr != NULL)
-  {
-    std::stringstream errorStream;
-    // If the response includes zero Access-Control-Allow-Origin header values, return fail.
-    if (allowOrigin.isEmpty())
-    {
-      errorStream << "No 'Access-Control-Allow-Origin' header is present on the requested resource.";
-      errorStream << " Origin '";
-      errorStream << origin.cString();
-      errorStream << "' is therefore not allowed access";
-    }
-    else
-    {
-      errorStream << "The 'Access-Control-Allow-Origin' header has a value '";
-      errorStream << allowOrigin.cString();
-      errorStream << "' that is not equal to the supplied origin.";
-      errorStream << " Origin '";
-      errorStream << origin.cString();
-      errorStream << "' is therefore not allowed access";
-    }
-    *errorStr = errorStream.str().c_str();
-  }
-
-  return RT_ERROR_NOT_ALLOWED;
+  return RT_ERROR_CORS_ORIGIN_MISMATCH;
 }

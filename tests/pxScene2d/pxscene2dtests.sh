@@ -41,6 +41,9 @@ fi
 export NODE_PATH=$pxScene2dSrc
 
 export RT_LOG_LEVEL=warn
+export SPARK_CORS_ENABLED=true
+export SPARK_PERMISSIONS_CONFIG=./sparkpermissions.conf
+export SPARK_PERMISSIONS_ENABLED=true
 
 #echo $LD_LIBRARY_PATH
 
@@ -51,9 +54,9 @@ ln -s ../../examples/pxScene2d/src/node_modules/ node_modules
 ln -s ../../examples/pxScene2d/src/rcvrcore/ rcvrcore
 ln -s ../../examples/pxScene2d/src/FreeSans.ttf FreeSans.ttf
 ln -s ../../examples/pxScene2d/src/package.json package.json
-ln -s ../../examples/pxScene2d/src/pxscenepermissions.conf pxscenepermissions.conf
+ln -s ../../examples/pxScene2d/src/sparkpermissions.conf sparkpermissions.conf
 
-./pxscene2dtests
+${DBG} ./pxscene2dtests "$@"
 
 #remove temporary files created for running js files from unittests
 rm -rf shell.js
@@ -62,7 +65,7 @@ rm -rf node_modules
 rm -rf rcvrcore
 rm -rf FreeSans.ttf
 rm -rf package.json
-rm -rf pxscenepermissions.conf
+rm -rf sparkpermissions.conf
 
 #gdb ./pxscene2dtests core
 
