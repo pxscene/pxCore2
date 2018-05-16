@@ -126,7 +126,19 @@ void pxText::draw()
 #ifdef PXSCENE_FONT_ATLAS
     if (mDirty)
     {
-      getFontResource()->renderTextToQuads(mText,mPixelSize,msx,msy,mQuads);
+      if( mw > MAX_TEXTURE_WIDTH || mh > MAX_TEXTURE_HEIGHT)
+      {
+        rtLogWarn("Text width or height is larger than maximum texture allowed: w:%lf h: %lf.  Maximum texture size of %d x %d will be used.",
+                   mw,mh,MAX_TEXTURE_WIDTH, MAX_TEXTURE_HEIGHT);
+        // Find reasonable string length based on approximate char widths
+        uint32_t tempNewLen = (uint32_t) mText.length()/(mw/MAX_TEXTURE_WIDTH);        
+        getFontResource()->renderTextToQuads(rtString(mText,tempNewLen),mPixelSize,msx,msy,mQuads);
+      } 
+      else 
+      {
+        getFontResource()->renderTextToQuads(mText,mPixelSize,msx,msy,mQuads);
+      }
+
       mDirty = false;
     }
     mQuads.draw(0,0,mTextColor);
