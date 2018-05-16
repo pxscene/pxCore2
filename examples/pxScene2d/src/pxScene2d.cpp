@@ -1932,7 +1932,6 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   build.set("date", xstr(__DATE__));
   build.set("time", xstr(__TIME__));
   build.set("revision", xstr(SPARK_BUILD_GIT_REVISION));
-  rtLogError("#######  SPARK_BUILD_GIT_REVISION >>  [%s] ", xstr(SPARK_BUILD_GIT_REVISION));
 
   mInfo.set("build", build);
   mInfo.set("gfxmemory", context.currentTextureMemoryUsageInBytes());
