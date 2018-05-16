@@ -64,7 +64,8 @@ rtRemoteFactory::rtRemoteCreateResolver(rtRemoteEnvironment* env)
       resolver = new rtRemoteMulticastResolver(env);
       break;
     default:
-      assert(false);
+      // Commented out the assert(false) to avoid crash
+      // assert(false);
       break;
   }
   return resolver;
