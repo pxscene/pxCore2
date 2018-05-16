@@ -476,6 +476,7 @@ static duk_ret_t duv_loadfile(duk_context *ctx) {
   if (uv_fs_fstat(dukLoop, &req, fd, NULL) < 0) goto fail;
   uv_fs_req_cleanup(&req);
   size = req.statbuf.st_size;
+  
   chunk = (char*)duk_push_fixed_buffer(ctx, size);
   buf = uv_buf_init(chunk, size);
   if (uv_fs_read(dukLoop, &req, fd, &buf, 1, 0, NULL) < 0) {
