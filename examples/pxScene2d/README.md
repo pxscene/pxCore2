@@ -34,10 +34,10 @@
 >Install Xcode, CMake and quilt
 >   * Download the latest version of Xcode from https://developer.apple.com/xcode/download/
 >   * Download and install the latest version of brew from https://brew.sh/
->   * From terminal install dependencies: cmake, pkg-config, quilt.
+>   * From terminal install dependencies: cmake, pkg-config, quilt, java.
 
 ```bash
-    brew install cmake pkg-config quilt
+    brew install cmake pkg-config quilt caskroom/cask/java
 ```
 
 ## Windows Setup
