@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>RT - Remote</title>
+  <link href="bower_components/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="css/app.css" rel="stylesheet">
+  <script src="bower_components/jquery/dist/jquery.min.js" defer></script>
+  <script src="bower_components/bootstrap/dist/js/bootstrap.min.js" defer></script>
+  <script src="rt-remote.min.js" defer></script>
+  <script src="js/common.js" defer></script>
+  <script src="js/typeTest.js" defer></script>
+  <script src="js/TestObject.js" defer></script>
+  <script src="js/methodTest.js" defer></script>
+  <script src="js/multiTest.js" defer></script>
+  <script src="js/app.js" defer></script>
+</head>
+<body class="bg-light">
+
+<!--app top bar-->
+<nav class="navbar navbar-expand-md fixed-top navbar-dark bg-dark">
+  <a class="navbar-brand" href="#">Hercules rtRemote - Browers examples</a>
+  <button class="navbar-toggler p-0 border-0" type="button" data-toggle="offcanvas">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+  <div class="navbar-collapse offcanvas-collapse" id="navbarsExampleDefault">
+    <ul class="navbar-nav mr-auto">
+      <li class="nav-item active">
+        <a class="nav-link" href="/">Dashboard <span class="sr-only">(current)</span></a>
+      </li>
+    </ul>
+  </div>
+</nav>
+
+<!--tab items-->
+<div class="nav-scroller bg-white box-shadow">
+  <nav class="nav nav-underline">
+    <a class="nav-link active" href="javascript:;" id="type">Type Examples</a>
+    <a class="nav-link" href="javascript:;" id="method">Method Examples</a>
+    <a class="nav-link" href="javascript:;" id="multi">MultiObject Examples</a>
+  </nav>
+</div>
+
+
+<!--main cotainer-->
+<main role="main" class="container">
+  <div class="d-flex align-items-center p-3 my-3 text-white-50 bg-purple rounded box-shadow">
+    <div class="header">
+      <div class="lh-100 header-title">
+        <h6 class="mb-0 text-white lh-100" id="example-title">Type Examples</h6>
+        <small class="total-examples">Succeed Examples /Total examples :
+          <span id="succeed">0</span>/
+          <span id="total">48</span>
+        </small>
+      </div>
+      <button type="button" id="run-btn" class="btn btn-light btn-sm btn-run">Run All Examples</button>
+      <button type="button" id="clear-btn" class="btn btn-danger btn-sm">Clear</button>
+    </div>
+  </div>
+
+  <div class="progress">
+    <div class="progress-bar" id="progressBar" style="width: 0%;">0%</div>
+  </div>
+
+  <div class="my-3 p-3 bg-white rounded box-shadow example-list">
+    <h6 class="border-bottom border-gray pb-2 mb-0">Examples list</h6>
+  </div>
+</main>
+
+</body>
+</html>

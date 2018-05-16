@@ -65,6 +65,10 @@ public:
   rtError processSingleWorkItem(std::chrono::milliseconds timeout, bool wait, rtRemoteCorrelationKey* key, const rtRemoteCorrelationKey* const specificKey = nullptr);
   rtError waitForResponse(std::chrono::milliseconds timeout, rtRemoteCorrelationKey key);
 
+  std::map<int, bool>* getWebsocketFdMap()
+  {
+    return &m_websocket_fds;
+  };
 private:
   struct WorkItem
   {
@@ -96,6 +100,11 @@ private:
   std::condition_variable       m_queue_cond;
   std::queue<WorkItem>          m_queue;
   std::vector< thread_ptr >     m_workers;
+
+  /**
+   * use this map to save websocket fds, so that we can known which fds are from websocket
+   */
+  std::map<int, bool>           m_websocket_fds;
   bool                          m_running;
   ResponseHandlerMap            m_response_handlers;
   ResponseMap                   m_waiters;
