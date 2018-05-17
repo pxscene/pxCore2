@@ -99,7 +99,6 @@ pxImageType;
 
 pxImageType getImageType( const uint8_t* data, size_t len );
 
-
 rtError pxLoadImage(const char* imageData, size_t imageDataSize, 
                     pxOffscreen& o);
 rtError pxLoadImage(const char* filename, pxOffscreen& b);

@@ -56,6 +56,7 @@
   #define SAFE_DELETE(x)  { delete (x); (x) = NULL; }
 #endif
 
+pxImageType getImageType( const uint8_t* data, size_t len ); //fwd
 
 class NSVGrasterizerEx
 {
@@ -173,9 +174,9 @@ rtError pxStoreImage(const char *filename, pxOffscreen &b)
   return pxStorePNGImage(filename, b);
 }
 
-bool pxIsPNGImage(const char * /*imageData*/, size_t /*imageDataSize*/)
+bool pxIsPNGImage(const char *imageData, size_t imageDataSize)
 {
-  return true;
+  return (getImageType( (const uint8_t*) imageData, imageDataSize) == PX_IMAGE_PNG);
 }
 
 rtError pxLoadPNGImage(const char *filename, pxOffscreen &o)
@@ -711,9 +712,9 @@ my_error_exit(j_common_ptr cinfo)
  * temporary files are deleted if the program is interrupted.  See libjpeg.txt.
  */
 
-bool pxIsJPGImage(const char * /*imageData*/, size_t /*imageDataSize*/)
+bool pxIsJPGImage(const char *imageData, size_t imageDataSize)
 {
-  return false;
+  return (getImageType( (const uint8_t*) imageData, imageDataSize) == PX_IMAGE_JPG);
 }
 
 rtError pxLoadJPGImage(const char *filename, pxOffscreen &o)
@@ -1413,6 +1414,7 @@ rtError pxLoadAPNGImage(const char *imageData, size_t imageDataSize,
 
 pxImageType getImageType( const uint8_t* data, size_t len )
 {
+  if ( data == NULL ) return PX_IMAGE_INVALID;
   if ( len < 16 ) return PX_IMAGE_INVALID;
   
   // .jpg:  FF D8 FF
