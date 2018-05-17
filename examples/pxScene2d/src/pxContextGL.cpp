@@ -2748,7 +2748,7 @@ void pxContext::drawImage(float x, float y, float w, float h,
 }
 
 #ifdef PXSCENE_FONT_ATLAS
-void pxContext::drawTexturedQuads(int numQuads, const void *verts, const void* uvs,
+void pxContext::drawTexturedQuads(uint32_t numQuads, const void *verts, const void* uvs,
                           pxTextureRef t, float* color)
 {
 #ifdef DEBUG_SKIP_IMAGE
