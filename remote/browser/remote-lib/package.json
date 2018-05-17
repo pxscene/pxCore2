@@ -8,11 +8,9 @@
     "lint:fix": "eslint index.js lib/** --fix"
   },
   "dependencies": {
-    "ip": "^1.1.5",
     "json-bigint": "^0.2.3",
     "uuid": "^3.2.1",
-    "bignumber.js": "^4.1.0",
-    "winston": "~2.4.0"
+    "bignumber.js": "^4.1.0"
   },
   "devDependencies": {
     "browserify": "^16.2.2",

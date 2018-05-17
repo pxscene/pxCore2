@@ -14,13 +14,13 @@
    * the remote server uri
    * @type {string}
    */
-  var websocketURI = 'ws://192.168.0.118:10005';
+  var websocketURI = '';
   /**
    * the remote defined object names
    * @type {string[]}
    */
   var remoteObjectNames = [ 'host_object', 'obj2', 'obj3', 'obj4' ];
-
+  
   /**
    * the three test objects for three tab
    */
@@ -29,7 +29,7 @@
     method: new TestObject(), // method test
     multi: new TestObject(), // multi test object
   };
-
+  
   var progressBar = $('#progressBar');  // the progress bar html element
   var totalCount = $('#total'); // the total count html element
   var succeedCount = $('#succeed'); // the suceed count html element
@@ -37,10 +37,10 @@
   var runBtn = $('#run-btn'); // the run all button
   var clearBtn = $('#clear-btn'); // the clear button
   var exampleItemList = $('.example-list'); // the example list container
-
+  
   var currentType = ''; // current tab type
   var timeInterval = null; // this used to save interval handler
-
+  
   /**
    * update html progress bar
    * @param value the progress value
@@ -50,7 +50,7 @@
     progressBar.css('width', value.toFixed(2) + '%');
     progressBar.html(value.toFixed(2) + '%');
   }
-
+  
   /**
    * update tab header information
    * @param title the header title
@@ -63,21 +63,21 @@
     succeedCount.html(success);
     totalCount.html(total);
   }
-
+  
   /**
    * updatet the two button status
    * @param testObj the current test object
    */
   function updateButton(testObj) {
     var finished = testObj.finished;
-
+    
     if (!testObj.initialized) {
       runBtn.html('Waiting Initialized');
       runBtn.addClass('disabled');
       clearBtn.addClass('disabled');
       return;
     }
-
+    
     if (finished) {
       runBtn.removeClass('disabled');
       runBtn.html('Run All Examples');
@@ -88,33 +88,33 @@
       clearBtn.addClass('disabled');
     }
   }
-
+  
   /**
    * selected tab, update tab header and example list
    * @param type the tab type
    * @param title the tab title
    */
   function selected(type, title) {
-
+    
     // clear time interval
     if (timeInterval) {
       clearInterval(timeInterval);
     }
-
+    
     // add active style to current tab
     $('.nav-underline .nav-link').removeClass('active');
     $('#' + type).addClass('active');
     currentType = type;
-
+    
     // update information
     updateInformation(title, testObjects[ type ].succeed, testObjects[ type ].total, testObjects[ type ]);
     updateProgressBar(testObjects[ type ].succeed * 100 / testObjects[ type ].total);
     updateButton(testObjects[ type ]);
-
+    
     exampleItemList.find('.texample-item').remove();
     initExampleListItem();  // create dom example items
     updateExampleListItem(); // update items
-
+    
     // start time interval to update test item details
     timeInterval = setInterval(() => {
       var currentObj = testObjects[ currentType ];
@@ -124,7 +124,7 @@
       updateExampleListItem();
     }, 300);
   }
-
+  
   /**
    * create dom test items for current tab
    */
@@ -134,7 +134,7 @@
       appendExampleItem(currentObj.items[ i ]);
     }
   }
-
+  
   /**
    * update current tab example test items
    */
@@ -153,7 +153,7 @@
       statusNode.addClass(item.status);
     }
   }
-
+  
   /**
    * append a test item dom node to list
    * @param item the test item data
@@ -169,7 +169,7 @@
     item.node = node;
     exampleItemList.append(node);
   }
-
+  
   /**
    * get remote object from remote server and create test items
    * @param type the test type
@@ -186,35 +186,36 @@
     };
     testObject.message = ' - Connectting to ' + websocketURI + ' ...';
     updateSelected(); // update title
-
-    method(websocketURI, remoteObjectNames).then(rsp => {
-
+    
+    return method(websocketURI, remoteObjectNames).then(rsp => {
       // get and create test items succeed
+      if (!rsp.items) return rsp;
       testObject.init(rsp.items);
       testObject.message = ' - Connected';
       rsp.rtObject.protocol.transport.on('close', () => {
-        testObject.message = ' - Lost connection, try connection in next 10 seconds';
+        testObject.message = ' - Lost connection, please re initialize';
         testObject.clear();
         testObject.initialized = false;
         updateSelected();
-        setTimeout(() => initTestObject(type, method), 2000);
+        // setTimeout(() => initTestObject(type, method), 2000);
       });
       updateSelected();
+      return rsp;
     }).catch(err => {
-      testObject.message = ' - Connect failed, try again in next 2 seconds';
+      testObject.message = ' - Connect failed, please re initialize';
       updateSelected();
-      console.error(err);
-      setTimeout(() => initTestObject(type, method), 2000);
+      common.showMessage(null, "Connect failed.");
+      // setTimeout(() => initTestObject(type, method), 2000);
     });
   }
-
+  
   /**
    * add click event for tab item
    */
   $('.nav-underline .nav-link').click(function () {
     selected($(this).attr('id'), $(this).html());
   });
-
+  
   /**
    * add click event for run button
    */
@@ -229,7 +230,7 @@
     currentObj.run();
     updateButton(currentObj);
   });
-
+  
   /**
    * add click event for clear button
    */
@@ -240,9 +241,21 @@
     testObjects[ currentType ].clear();
     selected(currentType, $('#' + currentType).html());
   });
-
-  initTestObject('type', createTypeTestExamples); // init type test
-  initTestObject('method', createMethodTestExamples); // init method test
-  initTestObject('multi', createMultiTestExamples); // init multi object test
-
+  
+  $('.btn-init').click(function () {
+    
+    websocketURI = $('.input-entity').val();
+    if (!websocketURI || websocketURI.trim().length === 0) {
+      common.showMessage(null, "remote server should not be empty!");
+      return;
+    }
+    websocketURI = 'ws://' + websocketURI;
+    initTestObject('type', createTypeTestExamples).then((r) => { // init type test
+      if (!r.items) return;
+      initTestObject('method', createMethodTestExamples); // init method test
+      initTestObject('multi', createMultiTestExamples); // init multi object test
+    });
+  });
+  $('#type').trigger('click');
+  
 })();

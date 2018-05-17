@@ -13,6 +13,7 @@ var RTValueHelper = RTRemote.RTValueHelper;
 var RTValueType = RTRemote.RTValueType;
 var helper = RTRemote.helper;
 var RTConst = RTRemote.RTConst;
+var messageTimerHander = null;
 
 /**
  * floating point values can be off by a little bit, so they may not report as exactly equal.
@@ -123,7 +124,7 @@ function doFunctionTest(rtObject, propertyName) {
     console.log('doFunctionTest test...');
     console.log(rtValueList);
   }, RTValueType.FUNCTION);
-
+  
   return rtObject.set(propertyName, oldRtValue).then(() => rtObject.get(propertyName).then((rtValue) => {
     rtValue.value.value(null);
     const result = oldRtValue[ RTConst.VALUE ][ RTConst.FUNCTION_KEY ] === rtValue[ RTConst.VALUE ][ RTConst.FUNCTION_KEY ];
@@ -195,13 +196,13 @@ function createTypeTest(rtObject, type, value, propertyName, testType) {
     additionText: '',
     status: 'pending'
   };
-
+  
   function warpperItem(dItem, rsp) {
     dItem.status = rsp.result ? 'passed' : 'failed';
     dItem.additionText = ', response value = <strong>' + rsp.response + '</strong>';
     return dItem;
   }
-
+  
   if (testType === 'basic' || testType === 'index') {
     item.task = (dItem) => {
       return new Promise((resolve, reject) => {
@@ -249,7 +250,7 @@ function createMethodTest(rtObject, methodName, expectedValue, testType, ...args
     additionText: '',
     status: 'pending'
   };
-
+  
   if (testType === 'return') {
     item.task = (dItem) => {
       return new Promise((resolve, reject) => {
@@ -278,6 +279,31 @@ function createMethodTest(rtObject, methodName, expectedValue, testType, ...args
   return item;
 }
 
+function showMessage(type, message) {
+  
+  function clear() {
+    $('#message-root').remove();
+    if (messageTimerHander) {
+      clearTimeout(messageTimerHander);
+      messageTimerHander = null;
+    }
+  }
+  
+  clear();
+  
+  var node = $('  <div id="message-root" class="alert-body alert alert-' + (type || 'danger') + '" role="alert">\n' + message +
+    '\n' +
+    '    <button type="button" class="close" data-dismiss="modal" aria-label="Close">\n' +
+    '      <span aria-hidden="true">&times;</span>\n' +
+    '    </button>\n' +
+    '  </div>');
+  node.find('.close').click(function () {
+    clear();
+  });
+  $('main').prepend(node);
+  messageTimerHander = setTimeout(() => clear(), 8000);
+}
+
 window.common = {
-  createTypeTest, createMethodTest
+  createTypeTest, createMethodTest, showMessage
 };

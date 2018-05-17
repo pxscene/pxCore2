@@ -151,18 +151,23 @@ if [ "$(uname)" != "Darwin" ]; then
 
 fi
 
+if [ "$1" == "type=remote" ];then
+  echo "build remote skip dukluv..."
+else
+  if [ ! -e dukluv/build/libduktape.a ]
+  then
+      cd dukluv
+      quilt push -aq || test $? = 2
+      mkdir -p build
+      cd build
+      cmake ..
+      make "-j${make_parallel}"
+      cd ..
+  fi
+fi
 #-------- DUKTAPE
 
-if [ ! -e dukluv/build/libduktape.a ]
-then
-    cd dukluv
-    quilt push -aq || test $? = 2
-    mkdir -p build
-    cd build
-    cmake ..
-    make "-j${make_parallel}"
-    cd ..
-fi
+
 
 #-------- BODYMOVIN
 #

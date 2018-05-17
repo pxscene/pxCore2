@@ -487,7 +487,7 @@ rtReadMessage(int fd, rtRemoteSocketBuffer& buff, rtRemoteMessagePtr& doc, rtRem
       (*env->getWebsocketFdMap())[fd] = true;
     }
   }
-  else if (type == WEB_SOCKET_BODY) // websocket body
+  else if (type == WEB_SOCKET_BODY)
   {
     err = rtRemoteWebSocketUtils::readWebsocketMessage(fd, lengthBuff, &buff[0], n, capacity);
     if (err != RT_OK)
@@ -502,6 +502,8 @@ rtReadMessage(int fd, rtRemoteSocketBuffer& buff, rtRemoteMessagePtr& doc, rtRem
     n = htonl(n);
     return rtProcessSocketMessage(fd, buff, doc, n);
   }
+
+  // this mean got un identified bytes, should return failed directly
   return RT_FAIL;
 }
 

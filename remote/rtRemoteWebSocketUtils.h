@@ -27,7 +27,6 @@ limitations under the License.
 #define WEB_SOCKET_BODY 10002
 #define SOCKET_BODY 10003
 
-
 /**
  * The rt remote web socket utils class
  */
@@ -54,13 +53,13 @@ public:
   /**
    * parse websocket message and return the message payload with len
    * @param fd the fd
-   * @param lengthBuff the first length buff, length is 4
+   * @param headerBuff the message first header, length is 3
    * @param dataBuff the out data buffer, start from 0
    * @param dataLength the final payload data length
    * @param capacity the data buffer capacity
    * @return the status code
    */
-  static rtError readWebsocketMessage(int fd, char* lengthBuff, char* dataBuff, int& dataLength, int capacity);
+  static rtError readWebsocketMessage(int fd, char* headerBuff, char* dataBuff, int& dataLength, int capacity);
 
   /**
    * get websocket response header

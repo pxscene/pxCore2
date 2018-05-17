@@ -19,32 +19,45 @@
 
 <!--app top bar-->
 <nav class="navbar navbar-expand-md fixed-top navbar-dark bg-dark">
-  <a class="navbar-brand" href="#">Hercules rtRemote - Browers examples</a>
+  <a class="navbar-brand" href="/">Hercules rtRemote</a>
   <button class="navbar-toggler p-0 border-0" type="button" data-toggle="offcanvas">
     <span class="navbar-toggler-icon"></span>
   </button>
   <div class="navbar-collapse offcanvas-collapse" id="navbarsExampleDefault">
     <ul class="navbar-nav mr-auto">
       <li class="nav-item active">
-        <a class="nav-link" href="/">Dashboard <span class="sr-only">(current)</span></a>
+        <a class="nav-link" href="/">Basic Examples</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="./manual.html">Manual Manipulation</a>
       </li>
     </ul>
   </div>
 </nav>
 
-<!--tab items-->
-<div class="nav-scroller bg-white box-shadow">
-  <nav class="nav nav-underline">
-    <a class="nav-link active" href="javascript:;" id="type">Type Examples</a>
-    <a class="nav-link" href="javascript:;" id="method">Method Examples</a>
-    <a class="nav-link" href="javascript:;" id="multi">MultiObject Examples</a>
-  </nav>
-</div>
-
 
 <!--main cotainer-->
 <main role="main" class="container">
-  <div class="d-flex align-items-center p-3 my-3 text-white-50 bg-purple rounded box-shadow">
+  <div class="server-input-container bg-white box-shadow">
+    <span class="input-title">Please input rtRemote server address <span class="ws-text">ws://</span></span>
+    <div class="server-input input-group">
+      <input type="text" class="input-entity form-control" placeholder="192.168.0.118:10005">
+      <div class="input-group-append">
+        <button class="btn btn-outline-secondary btn-init" type="button">Do initialize</button>
+      </div>
+    </div>
+  </div>
+
+  <!--tab items-->
+  <div class="nav-scroller bg-white box-shadow">
+    <nav class="nav nav-underline">
+      <a class="nav-link active" href="javascript:;" id="type">Type Examples</a>
+      <a class="nav-link" href="javascript:;" id="method">Method Examples</a>
+      <a class="nav-link" href="javascript:;" id="multi">MultiObject Examples</a>
+    </nav>
+  </div>
+
+  <div class="d-flex align-items-center p-3 mb-3 text-white-50 bg-purple rounded box-shadow">
     <div class="header">
       <div class="lh-100 header-title">
         <h6 class="mb-0 text-white lh-100" id="example-title">Type Examples</h6>
@@ -54,7 +67,6 @@
         </small>
       </div>
       <button type="button" id="run-btn" class="btn btn-light btn-sm btn-run">Run All Examples</button>
-      <button type="button" id="clear-btn" class="btn btn-danger btn-sm">Clear</button>
     </div>
   </div>
 
