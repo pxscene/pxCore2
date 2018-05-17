@@ -868,8 +868,9 @@ rtRemoteServer::onSet(std::shared_ptr<rtRemoteClient>& client, rtRemoteMessagePt
   rtObjectRef obj = m_env->ObjectCache->findObject(objectId);
   if (!obj)
   {
-    res->AddMember(kFieldNameStatusCode, 1, res->GetAllocator());
+    res->AddMember(kFieldNameStatusCode, RT_ERROR_OBJECT_NOT_FOUND, res->GetAllocator());
     res->AddMember(kFieldNameStatusMessage, std::string("object not found"), res->GetAllocator());
+    return client->send(res);
   }
   else
   {
@@ -901,9 +902,8 @@ rtRemoteServer::onSet(std::shared_ptr<rtRemoteClient>& client, rtRemoteMessagePt
           err = obj->Set(index, &value);
       }
     }
-
     res->AddMember(kFieldNameStatusCode, static_cast<int>(err), res->GetAllocator());
-    err = client->send(res);
+    return client->send(res);
   }
   return RT_OK;
 }
@@ -975,7 +975,7 @@ rtRemoteServer::onMethodCall(std::shared_ptr<rtRemoteClient>& client, rtRemoteMe
     }
     else
     {
-      rtMessage_SetStatus(*res, 1, "object not found");
+      rtMessage_SetStatus(*res, RT_ERROR_OBJECT_NOT_FOUND, "object not found");
     }
   }
 

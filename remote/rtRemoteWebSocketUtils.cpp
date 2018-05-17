@@ -76,8 +76,9 @@ rtRemoteWebSocketUtils::getMessageType(char* buff, int length)
   if (length < 4)
     return SOCKET_BODY;
 
-  // websocket hand shake request must be start with GET /HTTP
-  if (buff[0] == 'G' && buff[1] == 'E' && buff[2] == 'T')
+  // websocket hand shake request message first string must be start with GET /HTTP
+  // but for compatible normal socket message, we read the first 4 chars, so we must make sure the first 4 chars is G E T ' '
+  if (buff[0] == 'G' && buff[1] == 'E' && buff[2] == 'T' && buff[3] == ' ')
   {
     return WEB_SOCKET_HEADER;
   }
@@ -104,19 +105,19 @@ rtRemoteWebSocketUtils::umask(char* data, int len, char* mask)
 }
 
 rtError
-rtRemoteWebSocketUtils::readWebsocketMessage(int fd, char* lengthBuff, char* dataBuff, int& dataLength, int capacity)
+rtRemoteWebSocketUtils::readWebsocketMessage(int fd, char* headerBuff, char* dataBuff, int& dataLength, int capacity)
 {
   frame_head headEntity;
   frame_head* head = &headEntity;
-  head->fin = (lengthBuff[0] & 0x80) == 0x80;
-  head->opcode = lengthBuff[0] & 0x0F;
-  head->mask = (lengthBuff[1] & 0x80) == 0X80;
-  head->payloadLength = (lengthBuff[1] & 0x7F); // get payload length
+  head->fin = (headerBuff[0] & 0x80) == 0x80;
+  head->opcode = headerBuff[0] & 0x0F;
+  head->mask = (headerBuff[1] & 0x80) == 0X80;
+  head->payloadLength = (headerBuff[1] & 0x7F); // get payload length
 
   // update pauload length, max length is 65535
   if (head->payloadLength == 126)
   {
-    head->payloadLength = (lengthBuff[2] & 0xFF) << 8 | (lengthBuff[3] & 0xFF);
+    head->payloadLength = (headerBuff[2] & 0xFF) << 8 | (headerBuff[3] & 0xFF);
   }
   else if (head->payloadLength == 127) // payload grater than 65535
   {
@@ -129,8 +130,8 @@ rtRemoteWebSocketUtils::readWebsocketMessage(int fd, char* lengthBuff, char* dat
       rtLogError("failed to read from fd %d. %s", fd, rtStrError(e));
       return e;
     }
-    totalLen[0] = lengthBuff[2];
-    totalLen[1] = lengthBuff[3];
+    totalLen[0] = headerBuff[2];
+    totalLen[1] = headerBuff[3];
     for (int i = 0; i < 6; ++i)
     {
       totalLen[i + 2] = externLen[i];
@@ -148,8 +149,8 @@ rtRemoteWebSocketUtils::readWebsocketMessage(int fd, char* lengthBuff, char* dat
   ssize_t maskKeyNeedReadLen = 4;
   if (head->payloadLength < 126)
   {
-    head->maskingKey[0] = lengthBuff[2];
-    head->maskingKey[1] = lengthBuff[3];
+    head->maskingKey[0] = headerBuff[2];
+    head->maskingKey[1] = headerBuff[3];
     maskKeyNeedReadLen = 2;
   }
   if (read(fd, head->maskingKey + 4 - maskKeyNeedReadLen, maskKeyNeedReadLen) <= 0)

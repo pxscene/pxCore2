@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>RT - Remote</title>
+  <link href="bower_components/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="css/app.css" rel="stylesheet">
+  <script src="bower_components/jquery/dist/jquery.min.js" defer></script>
+  <script src="bower_components/bootstrap/dist/js/bootstrap.min.js" defer></script>
+  <script src="rt-remote.min.js" defer></script>
+  <script src="js/common.js" defer></script>
+  <script src="js/pages/manual.js" defer></script>
+</head>
+<body class="bg-light">
+
+<!--app top bar-->
+<nav class="navbar navbar-expand-md fixed-top navbar-dark bg-dark">
+  <a class="navbar-brand" href="/">Hercules rtRemote</a>
+  <button class="navbar-toggler p-0 border-0" type="button" data-toggle="offcanvas">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+  <div class="navbar-collapse offcanvas-collapse" id="navbarsExampleDefault">
+    <ul class="navbar-nav mr-auto">
+      <li class="nav-item">
+        <a class="nav-link" href="/">Basic Examples</a>
+      </li>
+      <li class="nav-item active">
+        <a class="nav-link" href="./manual.html">Manual Manipulation</a>
+      </li>
+    </ul>
+  </div>
+</nav>
+
+
+<!--main cotainer-->
+<main role="main" class="container">
+
+  <div class="server-input-container bg-white box-shadow">
+    <span class="input-title">Please input rtRemote server address <span class="ws-text">ws://</span></span>
+    <div class="server-input input-group">
+      <input type="text" class="input-entity form-control" placeholder="192.168.0.118:10005">
+      <div class="input-group-append">
+        <button class="btn btn-outline-secondary btn-init" type="button">Do initialize</button>
+      </div>
+    </div>
+  </div>
+
+
+  <div class="my-3 p-3 bg-white rounded box-shadow example-list">
+    <h6 class="border-bottom border-gray pb-2 mb-0">Set Action <span class="sub-title"></span></h6>
+
+    <div class="media text-muted pt-3 texample-item border-bottom">
+      <div class="media-body pb-3 mb-0 small lh-125 border-gray item-body">
+        <div class="input-group mb-3">
+          <div class="input-group-prepend">
+            <span class="input-group-text">Object Name</span>
+          </div>
+          <input type="text" class="form-control" id="set-obj-name">
+        </div>
+        <div class="input-group mb-3">
+          <div class="input-group-prepend">
+            <span class="input-group-text">Property Name</span>
+          </div>
+          <input type="text" class="form-control" id="set-prop-name">
+        </div>
+
+        <div class="input-group mb-3">
+          <div class="input-group-prepend">
+            <span class="input-group-text">Property Value</span>
+          </div>
+          <input type="text" class="form-control" id="set-prop-value">
+        </div>
+
+
+        <div class="input-group mb-3">
+          <div class="input-group-prepend">
+            <span class="input-group-text">Value Type</span>
+          </div>
+
+
+          <select class="custom-select" id="set-type">
+            <option value="98" selected>BOOLEAN</option>
+            <option value="49">INT8</option>
+            <option value="50">UINT8</option>
+            <option value="52">INT32</option>
+            <option value="53">UINT32</option>
+            <option value="54">INT64</option>
+            <option value="55">UINT64</option>
+            <option value="101">FLOAT</option>
+            <option value="100">DOUBLE</option>
+            <option value="115">STRING</option>
+            <option value="122">VOIDPTR</option>
+
+          </select>
+        </div>
+
+
+        <button class="btn btn-primary btn-sm btn-action-do btn-action-set">Set new Value</button>
+      </div>
+
+    </div>
+
+  </div>
+
+  <div class="my-3 p-3 bg-white rounded box-shadow example-list">
+    <h6 class="border-bottom border-gray pb-2 mb-0">Get Action <span class="sub-title"></span></h6>
+
+    <div class="media text-muted pt-3 texample-item border-bottom">
+      <div class="media-body pb-3 mb-0 small lh-125 border-gray item-body">
+        <div class="input-group mb-3">
+          <div class="input-group-prepend">
+            <span class="input-group-text">Object Name</span>
+          </div>
+          <input type="text" class="form-control" id="get-obj-name">
+        </div>
+        <div class="input-group mb-3">
+          <div class="input-group-prepend">
+            <span class="input-group-text">Property Name</span>
+          </div>
+          <input type="text" class="form-control" id="get-prop-name">
+        </div>
+
+        <button class="btn btn-primary btn-sm btn-action-do btn-action-get">Get Value</button>
+      </div>
+
+    </div>
+
+  </div>
+</main>
+
+</body>
+</html>

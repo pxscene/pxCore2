@@ -175,3 +175,44 @@ body {
 .red-text {
   color: red;
 }
+
+.server-input-container {
+  background-color: red;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  margin-top: 12px;
+  margin-bottom: 12px;
+  padding: 10px;
+}
+
+.input-title {
+  /*min-width: 400px;*/
+}
+
+.server-input {
+  flex: 1;
+}
+
+.ws-text {
+  margin-left: 12px;
+  margin-right: 2px;
+  font-weight: bold;
+}
+
+.alert-body {
+  margin-top: 12px;
+}
+
+.btn-action-do {
+  margin-right: 12px;
+}
+
+.btn-action-clear {
+  margin-right: 30px;
+}
+
+.title-02 {
+  margin-bottom: 12px;
+}

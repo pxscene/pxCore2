@@ -3,7 +3,7 @@
  */
 
 /**
- * This module contains the winston logger configuration.
+ * This module contains the console logger configuration.
  *
  * @author      TCSCODER
  * @version     1.0

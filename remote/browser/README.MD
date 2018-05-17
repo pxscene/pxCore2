@@ -20,7 +20,7 @@
    * `sudo n 8.9.4`
    * `sudo ln -sf /usr/local/n/versions/node/8.9.4/bin/node /usr/bin/node`
    * `sudo ln -sf /usr/local/n/versions/node/8.9.4/bin/npm /usr/bin/npm`
-* Build dependencies,  `cd examples/pxScene2d/external` and then run `./build_remote.sh`
+* Build dependencies,  `cd examples/pxScene2d/external` and then run `./build.sh type=remote`
 * Build pxScene
   * `cd ../../..`
   * `mkdir build && cd build`
@@ -53,6 +53,21 @@ note:   for browser, just need use this include to html , then remote lib all mo
 - **open  *js/app.js* , update *websocketURI* with your rtRemote Server computer ip.**
 - then use `http-server -p 3000` to serve examples.
 
+### Example deploy on heroku
+
+- make sure you build remote lib and copy it to *browser-examples*
+
+- goto *browser-examples*
+
+- ```
+  git init
+  git add .
+  git commit -m "init"
+  heroku create
+  git push heroku master
+  ```
+
+- note that: because of server only support ws, **so you must use http instead of https** like this http://evening-badlands-51031.herokuapp.com/
 ### Validation
 
 #### examples validation
