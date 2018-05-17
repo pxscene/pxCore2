@@ -1017,6 +1017,23 @@ rtError pxLoadSVGImage(const char* buf, size_t buflen, pxOffscreen& o, float sca
   return RT_OK;
 }
 
+rtError pxLoadSVGImage(const char *filename, pxOffscreen &o)
+{
+  rtData d;
+  rtError e = rtLoadFile(filename, d);
+  if (e == RT_OK)
+  {
+    // TODO get rid of the cast
+    e = pxLoadSVGImage((const char *)d.data(), d.length(), o);
+  }
+  else
+  {
+    rtLogError("Failed to load image file, %s.", filename);
+  }
+
+  return e;
+}
+
 rtError pxStoreJPGImage(char * /*filename*/, pxBuffer & /*b*/)
 {
   return RT_FAIL; // NOT SUPPORTED
