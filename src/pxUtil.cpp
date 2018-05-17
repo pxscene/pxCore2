@@ -56,8 +56,6 @@
   #define SAFE_DELETE(x)  { delete (x); (x) = NULL; }
 #endif
 
-pxImageType getImageType( const uint8_t* data, size_t len ); //fwd
-
 class NSVGrasterizerEx
 {
   public:
