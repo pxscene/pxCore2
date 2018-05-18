@@ -135,32 +135,36 @@ protected:
 class rtImageResource : public pxResource
 {
 public:
-  rtImageResource(const char* url = 0, const char* proxy = 0);
+  rtImageResource(const char* url = 0, const char* proxy = 0, int32_t iw = 0, int32_t ih = 0);
   virtual ~rtImageResource();
-  
+
   rtDeclareObject(rtImageResource, pxResource);
-  
+
   virtual unsigned long Release() ;
 
-  // Need these, or use from texture?  
+  // Need these, or use from texture?
+
   rtReadOnlyProperty(w, w, int32_t);
-  rtReadOnlyProperty(h, h, int32_t);  
+  rtReadOnlyProperty(h, h, int32_t);
+
+  // convey "create-time" dimension preference (SVG only)
+  int32_t   init_w, init_h;
 
   virtual int32_t w() const;
   virtual rtError w(int32_t& v) const;
   virtual int32_t h() const;
   virtual rtError h(int32_t& v) const; 
 
-  pxTextureRef getTexture(bool initializing = false);
+  virtual pxTextureRef getTexture(bool initializing = false);
   void setTextureData(pxOffscreen& imageOffscreen, const char* data, const size_t dataSize);
   virtual void setupResource();
   virtual void prepare();
- 
+
   virtual void init();
 
-protected:  
+protected:
   virtual uint32_t loadResourceData(rtFileDownloadRequest* fileDownloadRequest);
-  
+
 private: 
 
   void loadResourceFromFile();
@@ -195,14 +199,17 @@ private:
 
 };
 
+
 // Weak Map
-typedef std::map<rtString, rtImageResource*> ImageMap;
+typedef std::map<rtString, rtImageResource*>  ImageMap;
 typedef std::map<rtString, rtImageAResource*> ImageAMap;
 class pxImageManager
 {
   
   public: 
-    static rtRef<rtImageResource> getImage(const char* url, const char* proxy = NULL);
+  //  static rtRef<rtImageResource> getImage(const char* url, const char* proxy = NULL);
+    static rtRef<rtImageResource> getImage(const char* url, const char* proxy = NULL, int32_t iw = 0, int32_t ih = 0);
+  
     static void removeImage(rtString imageUrl);
 
     static rtRef<rtImageAResource> getImageA(const char* url, const char* proxy = NULL);
@@ -216,7 +223,6 @@ class pxImageManager
     static rtRef<rtImageAResource> emptyUrlImageAResource;
 
 };
-
 
 
 #endif // PX_RESOURCE

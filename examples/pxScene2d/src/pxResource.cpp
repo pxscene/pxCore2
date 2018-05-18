@@ -251,8 +251,8 @@ void pxResource::raiseDownloadPriority()
 /**********************************************************************/
 /**********************************************************************/
 
-rtImageResource::rtImageResource(const char* url, const char* proxy) : pxResource(), mTexture(), mDownloadedTexture(), mTextureMutex(),
-                                                                       mDownloadComplete(false)
+rtImageResource::rtImageResource(const char* url, const char* proxy, int32_t iw /* = 0 */,  int32_t ih /* = 0 */ )
+    : pxResource(), mTexture(), mDownloadedTexture(), mTextureMutex(), mDownloadComplete(false), init_w(iw), init_h(ih)
 {
   setUrl(url, proxy);
 }
@@ -268,7 +268,7 @@ unsigned long rtImageResource::Release()
   long l = rtAtomicDec(&mRefCount);
   if (l == 0) 
   {
-    pxImageManager::removeImage( mUrl);      
+    pxImageManager::removeImage( mUrl);
     delete this;
     
   }
@@ -277,7 +277,7 @@ unsigned long rtImageResource::Release()
 void rtImageResource::init()
 {
   //rtLogDebug("rtImageResource::init\n");
-  if( mInitialized) 
+  if( mInitialized)
     return; 
     
   mInitialized = true;
@@ -287,19 +287,19 @@ void rtImageResource::init()
 int32_t rtImageResource::w() const 
 { 
   //rtLogDebug("tImageResource::w()\n");
-  if(mTexture.getPtr())  
-    return mTexture->width(); 
+  if(mTexture.getPtr())
+    return mTexture->width();
   else 
-    return 0;  
+    return 0;
 }
 rtError rtImageResource::w(int32_t& v) const 
 { 
   //rtLogDebug("tImageResource::w(int32_t)\n");
   if(mTexture.getPtr()) 
     v = mTexture->width(); 
-  else  
-    v = 0;  
-  return RT_OK; 
+  else
+    v = 0;
+  return RT_OK;
 }
 int32_t rtImageResource::h() const 
 { 
@@ -464,7 +464,7 @@ void rtImageResource::loadResourceFromFile()
   rtError loadImageSuccess = rtLoadFile(mUrl, d);
   if (loadImageSuccess == RT_OK)
   {
-    loadImageSuccess = pxLoadImage((const char *) d.data(), d.length(), imageOffscreen);
+    loadImageSuccess = pxLoadImage((const char *) d.data(), d.length(), imageOffscreen, init_w, init_h);
   }
   else
   {
@@ -532,7 +532,7 @@ uint32_t rtImageResource::loadResourceData(rtFileDownloadRequest* fileDownloadRe
       pxOffscreen imageOffscreen;
       if (pxLoadImage(fileDownloadRequest->downloadedData(),
                       fileDownloadRequest->downloadedDataSize(),
-                      imageOffscreen) == RT_OK)
+                      imageOffscreen, init_w, init_h) == RT_OK)
       {
         setTextureData(imageOffscreen, fileDownloadRequest->downloadedData(),
                                          fileDownloadRequest->downloadedDataSize());
@@ -674,15 +674,15 @@ void rtImageAResource::loadResourceFromFile()
 
 ImageMap pxImageManager::mImageMap;
 rtRef<rtImageResource> pxImageManager::emptyUrlResource = 0;
-/** static pxImageManager::getImage */
-rtRef<rtImageResource> pxImageManager::getImage(const char* url, const char* proxy)
+
+rtRef<rtImageResource> pxImageManager::getImage(const char* url, const char* proxy /* = NULL */, int32_t iw /* = 0 */,  int32_t ih /* = 0 */ )
 {
   //rtLogDebug("pxImageManager::getImage\n");
   // Handle empty url
   if(!url || strlen(url) == 0) {
     if( !emptyUrlResource) {
       //rtLogDebug("Creating empty Url rtImageResource\n");
-      emptyUrlResource = new rtImageResource;
+      emptyUrlResource = new rtImageResource(NULL, NULL, iw, ih);
       //rtLogDebug("Done creating empty Url rtImageResource\n");
     }
     //rtLogDebug("Returning empty Url rtImageResource\n");
@@ -706,7 +706,7 @@ rtRef<rtImageResource> pxImageManager::getImage(const char* url, const char* pro
   else 
   {
     //rtLogInfo("Create rtImageResource in map for \"%s\"\n",url);
-    pResImage = new rtImageResource(url, proxy);
+    pResImage = new rtImageResource(url, proxy, iw, ih);
     mImageMap.insert(make_pair(url, pResImage));
     pResImage->loadResource();
   }

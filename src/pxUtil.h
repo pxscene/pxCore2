@@ -99,9 +99,8 @@ pxImageType;
 
 pxImageType getImageType( const uint8_t* data, size_t len );
 
-rtError pxLoadImage(const char* imageData, size_t imageDataSize, 
-                    pxOffscreen& o);
-rtError pxLoadImage(const char* filename, pxOffscreen& b);
+rtError pxLoadImage( const char* imageData, size_t imageDataSize, pxOffscreen& o, int w = 0, int h = 0);
+rtError pxLoadImage( const char* filename,                        pxOffscreen& b, int w = 0, int h = 0);
 rtError pxStoreImage(const char* filename, pxOffscreen& b);
 
 //bool pxIsPNGImage(const char* imageData, size_t imageDataSize);
@@ -128,13 +127,12 @@ rtError pxStoreJPGImage(const char* filename, pxBuffer& b);
 rtError pxLoadJPGImageTurbo(const char* buf, size_t buflen, pxOffscreen& o);
 #endif //ENABLE_LIBJPEG_TURBO
 
-rtError pxLoadJPGImage(const char* imageData, size_t imageDataSize, 
-                       pxOffscreen& o);
+rtError pxLoadJPGImage(const char* imageData, size_t imageDataSize, pxOffscreen& o);
 rtError pxLoadJPGImage(const char* filename, pxOffscreen& o);
 
 
-rtError pxLoadSVGImage(const char* buf, size_t buflen, pxOffscreen& o, float scaleXY = 1.0f);
-rtError pxLoadSVGImage(const char* filename, pxOffscreen& o);
+rtError pxLoadSVGImage(const char* buf, size_t buflen, pxOffscreen& o, int w = 0, int h = 0);
+rtError pxLoadSVGImage(const char* filename, pxOffscreen& o, int w = 0, int h = 0);
 rtError pxStoreSVGImage(const char* filename, pxBuffer& b); // NOT SUPPORTED
 
 

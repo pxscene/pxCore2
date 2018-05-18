@@ -74,7 +74,7 @@ static NSVGrasterizerEx rast;
 
 // Assume alpha is not premultiplied
 rtError pxLoadImage(const char *imageData, size_t imageDataSize,
-                    pxOffscreen &o)
+                    pxOffscreen &o, int32_t w /* = 0*/, int32_t h /* = 0*/)
 {
   pxImageType imgType = getImageType( (const uint8_t*) imageData, imageDataSize);
   rtError retVal = RT_FAIL;
@@ -104,7 +104,7 @@ rtError pxLoadImage(const char *imageData, size_t imageDataSize,
     case PX_IMAGE_SVG:
     default:
          {
-           retVal = pxLoadSVGImage(imageData, imageDataSize, o);
+           retVal = pxLoadSVGImage(imageData, imageDataSize, o, w, h);
          }
          break;
   }//SWITCH
@@ -153,7 +153,7 @@ rtError pxLoadAImage(const char* imageData, size_t imageDataSize,
 
 // TODO Detection needs to be improved...
 // Handling jpeg as fallback now
-rtError pxLoadImage(const char *filename, pxOffscreen &b)
+rtError pxLoadImage(const char *filename, pxOffscreen &b, int32_t w /* = 0*/, int32_t h /* = 0*/)
 {
   rtData d;
   rtError e = rtLoadFile(filename, d);
@@ -978,7 +978,7 @@ rtError pxLoadJPGImage(const char *buf, size_t buflen, pxOffscreen &o)
 
 rtError pxStoreSVGImage(const char* /*filename*/, pxBuffer& /*b*/)  { return RT_FAIL; } // NOT SUPPORTED
 
-rtError pxLoadSVGImage(const char* buf, size_t buflen, pxOffscreen& o, float scaleXY /* = 1.0 */)
+rtError pxLoadSVGImage(const char* buf, size_t buflen, pxOffscreen& o, int w /* = 0 */, int h /* = 0 */)
 {
   if (buf == NULL || buflen == 0 )
   {
@@ -995,22 +995,47 @@ rtError pxLoadSVGImage(const char* buf, size_t buflen, pxOffscreen& o, float sca
     return RT_FAIL;
   }
 
-  int w = (int)image->width;
-  int h = (int)image->height;
+  int image_w = (int)image->width;
+  int image_h = (int)image->height;
 
-  if (w == 0 || h == 0)
+  int dx = 0;
+  int dy = 0;
+
+  if (image_w == 0 || image_h == 0)
   {
     SAFE_DELETE(image)
     
-    rtLogError("SVG:  Bad image dimensions  WxH: %d x %d\n", w, h);
+    rtLogError("SVG:  Bad image dimensions  WxH: %d x %d\n", image_w, image_h);
     return RT_FAIL;
   }
 
-  o.init(w * scaleXY,h * scaleXY);
+  float scale = 1.0f;
+  if(w > 0 && h > 0)  // <<< requested WxH
+  {
+    float ratioW = (float) w / (float) image_w;
+    float ratioH = (float) h / (float) image_h;
 
-  rtLogDebug("SVG:  Rasterizing image %d x %d  (scaleXY: %f) \n", w, h, scaleXY);
+    scale = (ratioW < ratioH) ? ratioW : ratioH; // MIN()
 
-  nsvgRasterize(rast.getPtr(), image, 0,0, scaleXY , (unsigned char*) o.base(), o.width(), o.height(), o.width() *4);
+    int scaled_w = image_w * scale;
+    int scaled_h = image_h * scale;
+
+//    dx = (w - scaled_w)/2;
+//    dy = (h - scaled_h)/2;
+
+//    dx = dy = 0;
+    
+// rtLogError("SVG:  Translate >>  x: %d   y: %d\n", dx, dy);
+
+    image_w = scaled_w; // update to new size
+    image_h = scaled_h; // update to new size
+  }
+
+  o.init(image_w, image_h); // default sized
+
+//  rtLogDebug("SVG:  Rasterizing image %d x %d  (scale: %f) \n", w, h, scale);
+
+  nsvgRasterize(rast.getPtr(), image, dx, dy, scale , (unsigned char*) o.base(), o.width(), o.height(), o.width() *4);
 
   SAFE_DELETE(image)
 
