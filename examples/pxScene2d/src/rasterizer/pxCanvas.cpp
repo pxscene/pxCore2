@@ -61,7 +61,7 @@ void pxCanvas::onInit()
 {
   mInitialized = true;
   
-  mCanvasCtx.init(mw, mh);
+  mCanvasCtx.init(static_cast<int> (mw), static_cast<int> (mh));
 //  initOffscreen(mw, mh);
   setUpsideDown(true);
 }
@@ -215,10 +215,10 @@ rtError pxCanvas::drawPath(rtObjectRef path)
 #endif
 #endif
     
-    p->setExtentLeft(   mCanvasCtx.extentLeft   );
-    p->setExtentTop(    mCanvasCtx.extentTop    );
-    p->setExtentRight(  mCanvasCtx.extentRight  );
-    p->setExtentBottom( mCanvasCtx.extentBottom );
+    p->setExtentLeft(	static_cast<float> (mCanvasCtx.extentLeft   ));
+    p->setExtentTop(	static_cast<float> (mCanvasCtx.extentTop    ));
+    p->setExtentRight(	static_cast<float> (mCanvasCtx.extentRight  ));
+    p->setExtentBottom(	static_cast<float> (mCanvasCtx.extentBottom ));
     
     float sw = 0;
     

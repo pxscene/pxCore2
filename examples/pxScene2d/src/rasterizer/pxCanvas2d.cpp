@@ -249,16 +249,16 @@ double pxCanvas2d::getPenY()
 
 void pxCanvas2d::moveTo(double x, double y)
 {
-  mVertices[mVertexCount].setX(x);
-  mVertices[mVertexCount].setY(y);
+  mVertices[mVertexCount].setX(static_cast<float>(x));
+  mVertices[mVertexCount].setY(static_cast<float>(y));
   
   mVertexCount++;
 }
 
 void pxCanvas2d::lineTo(double x, double y)
 {
-  mVertices[mVertexCount].setX(x);
-  mVertices[mVertexCount].setY(y);
+  mVertices[mVertexCount].setX(static_cast<float>(x));
+  mVertices[mVertexCount].setY(static_cast<float>(y));
   
   mVertexCount++;
 }
@@ -546,27 +546,27 @@ void pxCanvas2d::fill(bool time)
     pxVertex t3;
     pxVertex t4;
     
-    p1.setX( extentLeft   );
-    p1.setY( extentTop    );
-    p2.setX( extentRight  );
-    p2.setY( extentTop    );
-    p3.setX( extentRight  );
-    p3.setY( extentBottom );
-    p4.setX( extentLeft   );
-    p4.setY( extentBottom );
+    p1.setX( static_cast<float>(extentLeft   ));
+    p1.setY( static_cast<float>(extentTop    ));
+    p2.setX( static_cast<float>(extentRight  ));
+    p2.setY( static_cast<float>(extentTop    ));
+    p3.setX( static_cast<float>(extentRight  ));
+    p3.setY( static_cast<float>(extentBottom ));
+    p4.setX( static_cast<float>(extentLeft   ));
+    p4.setY( static_cast<float>(extentBottom ));
 
     extentRight  -= extentLeft;
     extentBottom -= extentTop;
     extentLeft = extentTop = 0;
   
-    t1.setX( extentLeft   );
-    t1.setY( extentTop    );
-    t2.setX( extentRight  );
-    t2.setY( extentTop    );
-    t3.setX( extentRight  );
-    t3.setY( extentBottom );
-    t4.setX( extentLeft   );
-    t4.setY( extentBottom );
+    t1.setX( static_cast<float>(extentLeft   ));
+    t1.setY( static_cast<float>(extentTop    ));
+    t2.setX( static_cast<float>(extentRight  ));
+    t2.setY( static_cast<float>(extentTop    ));
+    t3.setX( static_cast<float>(extentRight  ));
+    t3.setY( static_cast<float>(extentBottom ));
+    t4.setX( static_cast<float>(extentLeft   ));
+    t4.setY( static_cast<float>(extentBottom ));
 
 #if 1
     pxVertex o1 = mMatrix.multiply(p1);
@@ -670,7 +670,7 @@ void pxCanvas2d::stroke()
       
       mRasterizer.addEdge(bx, by, ax, ay);  // B
       
-      // Remember the START
+       // Remember the START
       if (i == 0)
       {
         firstA1.setXY( a.x() + dy, a.y() - dx );
@@ -803,7 +803,7 @@ void pxCanvas2d::stroke_inout(StrokeType t)
       if (i == 0)
       {
         firstA1.setXY( a.x()     , a.y() );
-        firstA2.setXY( a.x() - dy, a.y() + dx );
+        firstA2.setXY( static_cast<float>(a.x() - dy), static_cast<float>(a.y() + dx) );
       }
       
       
@@ -816,7 +816,7 @@ void pxCanvas2d::stroke_inout(StrokeType t)
 
       // Until the END...
       lastB1.setXY( b.x()     , b.y() );
-      lastB2.setXY( b.x() - dy, b.y() + dx );
+      lastB2.setXY( static_cast<float>(b.x() - dy), static_cast<float>(b.y() + dx ));
       
       if (closed == false)
       {
@@ -969,8 +969,8 @@ void pxCanvas2d::stroke_center()
       // Remember the START
       if (i == 0)
       {
-        firstA1.setXY( (a.x() + dy), (a.y() - dx) );
-        firstA2.setXY( (a.x() - dy), (a.y() + dx) );
+        firstA1.setXY( static_cast<float>(a.x() + dy), static_cast<float>(a.y() - dx) );
+        firstA2.setXY( static_cast<float>(a.x() - dy), static_cast<float>(a.y() + dx) );
       }
       
       // Join this segment to the last segment
@@ -984,8 +984,8 @@ void pxCanvas2d::stroke_center()
       }
       
       // Until the END...
-      lastB1.setXY( (b.x() + dy), (b.y() - dx) );
-      lastB2.setXY( (b.x() - dy), (b.y() + dx) );
+      lastB1.setXY( static_cast<float>(b.x() + dy), static_cast<float>(b.y() - dx) );
+      lastB2.setXY( static_cast<float>(b.x() - dy), static_cast<float>(b.y() + dx) );
       
       if (closed == false)
       {
@@ -1314,7 +1314,7 @@ pxError pxCanvas2d::drawChar(const wchar_t c)
 
         TextMoveTo(convertFixToFloat(hdr->pfxStart.x), convertFixToFloat(hdr->pfxStart.y));
 
-        int s2 = sizeof(TTPOLYGONHEADER);
+        size_t s2 = sizeof(TTPOLYGONHEADER);
         while(s2 < hdr->cb)
         {
           TTPOLYCURVE *c = (TTPOLYCURVE*)(buffer+s+s2);

@@ -384,8 +384,8 @@ void updatePen(float px, float py)
       {
         bcurve_t c = *it;
 
-        x1 = c.xy1.x;  x2 = c.xy2.x;  x0 = c.xy.x;
-        y1 = c.xy1.y;  y2 = c.xy2.y;  y0 = c.xy.y;
+        x1 = static_cast<float>(c.xy1.x);  x2 = static_cast<float>(c.xy2.x);  x0 = static_cast<float>(c.xy.x);
+        y1 = static_cast<float>(c.xy1.y);  y2 = static_cast<float>(c.xy2.y);  y0 = static_cast<float>(c.xy.y);
 
 //        p->setX(x0);
 //        p->setY(y0);
@@ -799,36 +799,36 @@ void pxPath::pushEllipse(pxPath *p, float x0, float y0, float rx, float ry)
   // Bottom Right
   p->pushOpcode( 'C' );
   p->pushFloat((x0 + rx),         // X1
-               (y0 + ry * KAPPA), // Y1
-               (x0 + rx * KAPPA), // X2
+               (static_cast<float>(y0 + ry * KAPPA)), // Y1
+               (static_cast<float>(x0 + rx * KAPPA)), // X2
                (y0 + ry),         // Y2
                (x0),              // X0
                (y0 + ry));        // Y0
 
   // Bottom Left
   p->pushOpcode( 'C' );
-  p->pushFloat((x0 - rx * KAPPA), // X1
+  p->pushFloat(static_cast<float>(x0 - rx * KAPPA), // X1
                (y0 + ry),         // Y1
                (x0 - rx),         // X2
-               (y0 + ry * KAPPA), // Y2
+               static_cast<float>(y0 + ry * KAPPA), // Y2
                (x0 - rx),         // X0
                (y0));             // Y0
   
   // Top Left
   p->pushOpcode( 'C' );
   p->pushFloat((x0 - rx),         // X1
-               (y0 - ry * KAPPA), // Y1
-               (x0 - rx * KAPPA), // X2
+               static_cast<float>(y0 - ry * KAPPA), // Y1
+               static_cast<float>(x0 - rx * KAPPA), // X2
                (y0 - ry),         // Y2
                (x0),              // X0
                (y0 - ry));        // Y0
   
   // Top Right
   p->pushOpcode( 'C' );
-  p->pushFloat((x0 + rx * KAPPA), // X1
+  p->pushFloat(static_cast<float>(x0 + rx * KAPPA), // X1
                (y0 - ry),         // Y1
                (x0 + rx),         // X2
-               (y0 - ry * KAPPA), // Y2
+               static_cast<float>(y0 - ry * KAPPA), // Y2
                (x0 + rx),         // X0
                (y0));             // Y0
 

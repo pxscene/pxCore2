@@ -79,12 +79,12 @@ uint32_t xShift;
 
 inline int32_t xs_RoundToInt(const double d)
 {
- return floor(d + 0.5);
+ return static_cast<int32_t>(floor(d + 0.5));
 }
 
 inline int32_t xs_CRoundToInt(const double d)
 {
- return ceil(d);
+ return static_cast<int32_t>(ceil(d));
 }
 
 
@@ -1369,7 +1369,7 @@ pxRasterizer::pxRasterizer():
   mEdgeManager(NULL),
 #endif
    mCoverage(NULL), mFillMode(fillWinding), mColor(pxRed), mAlpha(1.0),
-   mAlphaDirty(false), mEffectiveAlpha(1.0), mClipValid(false),
+   mAlphaDirty(false), mEffectiveAlpha(static_cast<int32_t>(1.0)), mClipValid(false),
    mClipInternalCalculated(false), mCachedBufferHeight(0), mCachedBufferWidth(0),
    overSampleAdd(0), overSampleAddMinusOne(0), overSampleAdd4MinusOne(0),
    overSampleAdd4(0), overSampleFlush(0), overSampleMask(0),

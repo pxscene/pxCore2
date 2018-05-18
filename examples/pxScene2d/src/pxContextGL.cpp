@@ -1034,7 +1034,7 @@ public:
   pxError copy(int src_x, int src_y, int dst_x, int dst_y, float w, float h, pxOffscreen &o)
   {
     // COPY / BLIT from 'o' ... to 'mOffscreen'
-    o.blit(mOffscreen, dst_x, dst_y, w, h, src_x, src_y);
+    o.blit(mOffscreen, dst_x, dst_y, static_cast<int32_t>(w), static_cast<int32_t>(h), src_x, src_y);
 
 #if 0
 #ifdef PX_PLATFORM_MAC
@@ -1277,7 +1277,7 @@ public:
     if (buffer)
     {
       // copy the pixels
-      int bitmapSize = ih*iw;
+      int bitmapSize = static_cast<int>(ih*iw);
       mBuffer = malloc(bitmapSize);
       //memcpy(mBuffer, buffer, bitmapSize);
       // Flip here so that we match FBO layout...
@@ -1335,14 +1335,14 @@ public:
       GL_TEXTURE_2D,
       0,
       GL_ALPHA,
-      iw,
-      ih,
+      static_cast<GLsizei>(iw),
+      static_cast<GLsizei>(ih),
       0,
       GL_ALPHA,
       GL_UNSIGNED_BYTE,
       mBuffer
     );
-    context.adjustCurrentTextureMemorySize(iw*ih);
+    context.adjustCurrentTextureMemorySize(static_cast<GLsizei>(iw*ih));
 
     mInitialized = true;
   }
@@ -1370,7 +1370,7 @@ public:
     {
       glDeleteTextures(1, &mTextureId);
       mTextureId = 0;
-      context.adjustCurrentTextureMemorySize(-1*mImageWidth*mImageHeight);
+      context.adjustCurrentTextureMemorySize(static_cast<int64_t>(-1*mImageWidth*mImageHeight));
     }
     mInitialized = false;
     return PX_OK;
@@ -1417,8 +1417,8 @@ public:
     return PX_FAIL;
   }
 
-  virtual int width()  {return mDrawWidth;  }
-  virtual int height() {return mDrawHeight; }
+  virtual int width()  {return static_cast<int>(mDrawWidth);  }
+  virtual int height() {return static_cast<int>(mDrawHeight); }
 
 private:
   float mDrawWidth;
@@ -1580,7 +1580,7 @@ public:
       use();
       currentGLProgram = PROGRAM_SOLID_SHADER;
     }
-    glUniform2f(mResolutionLoc, resW, resH);
+    glUniform2f(mResolutionLoc, static_cast<GLfloat>(resW), static_cast<GLfloat>(resH));
     glUniformMatrix4fv(mMatrixLoc, 1, GL_FALSE, matrix);
     glUniform1f(mAlphaLoc, alpha);
     glUniform4fv(mColorLoc, 1, color);
@@ -1643,7 +1643,7 @@ public:
       use();
       currentGLProgram = PROGRAM_A_TEXTURE_SHADER;
     }
-    glUniform2f(mResolutionLoc, resW, resH);
+    glUniform2f(mResolutionLoc, static_cast<GLfloat>(resW), static_cast<GLfloat>(resH));
     glUniformMatrix4fv(mMatrixLoc, 1, GL_FALSE, matrix);
     glUniform1f(mAlphaLoc, alpha);
     glUniform4fv(mColorLoc, 1, color);
@@ -1713,7 +1713,7 @@ public:
       use();
       currentGLProgram = PROGRAM_TEXTURE_SHADER;
     }
-    glUniform2f(mResolutionLoc, resW, resH);
+    glUniform2f(mResolutionLoc, static_cast<GLfloat>(resW), static_cast<GLfloat>(resH));
     glUniformMatrix4fv(mMatrixLoc, 1, GL_FALSE, matrix);
     glUniform1f(mAlphaLoc, alpha);
 
@@ -1785,7 +1785,7 @@ public:
       use();
       currentGLProgram = PROGRAM_TEXTURE_BORDER_SHADER;
     }
-    glUniform2f(mResolutionLoc, resW, resH);
+    glUniform2f(mResolutionLoc, static_cast<float>(resW), static_cast<float>(resH));
     glUniformMatrix4fv(mMatrixLoc, 1, GL_FALSE, matrix);
     glUniform1f(mAlphaLoc, alpha);
     if (color != NULL)
@@ -1872,10 +1872,10 @@ public:
       use();
       currentGLProgram = PROGRAM_TEXTURE_MASKED_SHADER;
     }
-    glUniform2f(mResolutionLoc, resW, resH);
+    glUniform2f(mResolutionLoc, static_cast<GLfloat>(resW), static_cast<GLfloat>(resH));
     glUniformMatrix4fv(mMatrixLoc, 1, GL_FALSE, matrix);
     glUniform1f(mAlphaLoc, alpha);
-    glUniform1f(mInvertedLoc, (maskOp == pxConstantsMaskOperation::NORMAL) ? 0.0 : 1.0);
+    glUniform1f(mInvertedLoc, static_cast<float>((maskOp == pxConstantsMaskOperation::NORMAL) ? 0.0 : 1.0));
     
 
     if (texture->bindGLTexture(mTextureLoc) != PX_OK)
@@ -1982,8 +1982,8 @@ static void drawImageTexture(float x, float y, float w, float h, pxTextureRef te
 {
   // args are tested at call site...
 
-  float iw = texture->width();
-  float ih = texture->height();
+  float iw = static_cast<float>(texture->width());
+  float ih = static_cast<float>(texture->height());
 
   if( useTextureDimsAlways)
   {
@@ -2040,7 +2040,7 @@ static void drawImageTexture(float x, float y, float w, float h, pxTextureRef te
   }
 
   float firstTextureY  = 1.0;
-  float secondTextureY = 1.0-th;
+  float secondTextureY = static_cast<float>(1.0-th);
 
   const float uv[4][2] =
   {
@@ -2095,8 +2095,8 @@ static void drawImage92(GLfloat x, GLfloat y, GLfloat w, GLfloat h, GLfloat x1, 
   float iy2 = y+h-y2;
   float oy2 = y+h;
 
-  float w2 = texture->width();
-  float h2 = texture->height();
+  float w2 = static_cast<float>(texture->width());
+  float h2 = static_cast<float>(texture->height());
 
   float ou1 = 0;
   float iu1 = x1/w2;
@@ -2201,8 +2201,8 @@ static void drawImage9Border2(GLfloat x, GLfloat y, GLfloat w, GLfloat h,
   float iy2 = y+h-insetY2;
   float oy2 = y+h;
 
-  float w2 = texture->width();
-  float h2 = texture->height();
+  float w2 = static_cast<float>(texture->width());
+  float h2 = static_cast<float>(texture->height());
 
   float ou1 = 0;
   float iu1 = borderX1/w2;
@@ -2798,8 +2798,8 @@ void pxContext::drawOffscreen(float src_x, float src_y,
   }
   
   // COPY from CANVAS (offscreen) to RASTER
-  swRasterTexture->copy(src_x, src_y,
-                        dst_x, dst_y, w, h, offscreen);
+  swRasterTexture->copy(static_cast<int>(src_x), static_cast<int>(src_y),
+                        static_cast<int>(dst_x), static_cast<int>(dst_y), w, h, offscreen);
   
   pxTextureRef nullMask;
   static float clear[4] = {0,0,0,0};
@@ -2972,13 +2972,13 @@ void pxContext::mapToScreenCoordinates(float inX, float inY, int &outX, int &out
 
   if (positionCoords.w() == 0)
   {
-    outX = positionCoords.x();
-    outY = positionCoords.y();
+    outX = static_cast<int> (positionCoords.x());
+    outY = static_cast<int> (positionCoords.y());
   }
   else
   {
-    outX = positionCoords.x() / positionCoords.w();
-    outY = positionCoords.y() / positionCoords.w();
+    outX = static_cast<int> (positionCoords.x() / positionCoords.w());
+    outY = static_cast<int> (positionCoords.y() / positionCoords.w());
   }
 }
 
@@ -2989,13 +2989,13 @@ void pxContext::mapToScreenCoordinates(pxMatrix4f& m, float inX, float inY, int 
 
   if (positionCoords.w() == 0)
   {
-    outX = positionCoords.x();
-    outY = positionCoords.y();
+    outX = static_cast<int> (positionCoords.x());
+    outY = static_cast<int> (positionCoords.y());
   }
   else
   {
-    outX = positionCoords.x() / positionCoords.w();
-    outY = positionCoords.y() / positionCoords.w();
+    outX = static_cast<int> (positionCoords.x() / positionCoords.w());
+    outY = static_cast<int> (positionCoords.y() / positionCoords.w());
   }
 }
 
