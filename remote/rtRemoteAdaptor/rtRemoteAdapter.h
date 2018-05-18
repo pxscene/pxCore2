@@ -41,7 +41,7 @@ public:
     rtError processSetByNameRequest(char *payload,  rtRemoteMessagePtr msg, char const*key, const char *obj_id);
 
     /* APIs to create different response */
-    void createFailureResponse(char *payload, const char *msg_type, const char *key,  const char *obj_id);
+    void createFailureResponse(char *payload, const char *msg_type, const char *key, const char *obj_id, rtError err);
     void createGetByNameResponse(char *payload, const char *key, const char *obj_id, rtValue value);
     void createSetByNameResponse(char *payload, const char *key, const char *obj_id);
     void createMethodCallResponse(char *payload, const char *key, const char *obj_id, const char* method_name, rtValue result);
@@ -59,3 +59,4 @@ private:
 };
 
 #endif /* __RT_REMOTE_ADAPTER_H__ */
+

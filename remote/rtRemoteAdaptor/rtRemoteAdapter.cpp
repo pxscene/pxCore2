@@ -66,7 +66,9 @@ rtError rtRemoteAdapter::connectParodus() {
  */
 void rtRemoteAdapter::disconnectParodus() {
     int res = libparodus_shutdown(&m_current_instance);
-    rtLogDebug("Failed to disconnect parodus: '%d'",res);
+    if(res != RT_OK) {
+        rtLogDebug("Failed to disconnect parodus: '%d'",res);
+    }
 }
 
 /** @description : receive data from parodus server.
@@ -130,7 +132,7 @@ rtError rtRemoteAdapter::processGetByNameRequest(char *payload, rtRemoteMessageP
             return err;
         }
     }
-    createFailureResponse(payload, kMessageTypeGetByNameResponse, key, obj_id);
+    createFailureResponse(payload, kMessageTypeGetByNameResponse, key, obj_id, err);
     return err;
 }
 
@@ -176,7 +178,7 @@ rtError rtRemoteAdapter::processMethodCallRequest(char *payload, rtRemoteMessage
             }
         }
     }
-    createFailureResponse(payload, kMessageTypeMethodCallResponse, key, obj_id);
+    createFailureResponse(payload, kMessageTypeMethodCallResponse, key, obj_id, err);
     return err;
 }    
 
@@ -205,7 +207,7 @@ rtError rtRemoteAdapter::processSetByNameRequest(char *payload,  rtRemoteMessage
             }
         }
     }
-    createFailureResponse(payload, kMessageTypeSetByNameResponse, key, obj_id);
+    createFailureResponse(payload, kMessageTypeSetByNameResponse, key, obj_id, err);
     return err;
 }
 
@@ -243,7 +245,7 @@ rtError rtRemoteAdapter::processRequest(wrp_msg_t *wrp_msg, char *payload) {
     }
 
     rtLogError("Invalid data....");
-    createFailureResponse(payload, msgType, key, objId);
+    createFailureResponse(payload, msgType, key, objId, err);
     return err;
 }
 
@@ -251,14 +253,14 @@ rtError rtRemoteAdapter::processRequest(wrp_msg_t *wrp_msg, char *payload) {
  *  @param : response payload, correlation key, object id.
  *  @return : void.
  */
-void rtRemoteAdapter::createFailureResponse(char *payload, const char *msg_type, const char *key, const char *obj_id) {
+void rtRemoteAdapter::createFailureResponse(char *payload, const char *msg_type, const char *key, const char *obj_id, rtError err) {
     rtRemoteMessagePtr res(new rapidjson::Document());
     res->SetObject();
 
     res->AddMember(kFieldNameMessageType,  rapidjson::StringRef(msg_type, strlen(msg_type)), res->GetAllocator());
     res->AddMember(kFieldNameCorrelationKey, rapidjson::StringRef(key, strlen(key)), res->GetAllocator());
     res->AddMember(kFieldNameObjectId,  rapidjson::StringRef(obj_id, strlen(obj_id)), res->GetAllocator());
-    res->AddMember(kFieldNameStatusCode, 1, res->GetAllocator());
+    res->AddMember(kFieldNameStatusCode, static_cast<int32_t>(err), res->GetAllocator());
     
     rapidjson::StringBuffer buff;
     rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buff);
