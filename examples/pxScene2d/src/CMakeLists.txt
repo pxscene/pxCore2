@@ -418,19 +418,13 @@ else ()
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
 endif (BUILD_WITH_CXX_11)
 
-find_package(Git)
-if(GIT_FOUND)
-    execute_process(
-            COMMAND ${GIT_EXECUTABLE} rev-parse HEAD
-            WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-            OUTPUT_VARIABLE SPARK_GIT_REVISION
-            OUTPUT_STRIP_TRAILING_WHITESPACE
-    )
-    message("Building Spark with git revision ${SPARK_GIT_REVISION}")
-else()
-    message("git not found.  revsion unknown")
-    set(SPARK_GIT_REVISION "unknown")
-endif(GIT_FOUND)
+execute_process(
+        COMMAND git rev-parse HEAD
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+        OUTPUT_VARIABLE SPARK_GIT_REVISION
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+message("Building Spark with git revision ${SPARK_GIT_REVISION}")
 
 set(PXSCENE_DEFINITIONS ${PXSCENE_DEFINITIONS} -DSPARK_BUILD_GIT_REVISION="${SPARK_GIT_REVISION}")
 
