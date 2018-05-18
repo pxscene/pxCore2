@@ -59,3 +59,4 @@ private:
 };
 
 #endif /* __RT_REMOTE_ADAPTER_H__ */
+
