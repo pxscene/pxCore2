@@ -33,5 +33,6 @@
       {"url":"../tests/test_promiseRejectionAnimation.js", "title":"test_promiseRejectionAnimation","useBaseURI":"true"},
       {"url":"../tests/test_promiseRejectionImage.js", "title":"test_promiseRejectionImage","useBaseURI":"true"},
       {"url":"../tests/test_promiseRejectionReload.js", "title":"test_promiseRejectionReload","useBaseURI":"true"},
-      {"url":"../tests/test_drawFalse.js", "title":"test_drawFalse","useBaseURI":"true"}
+      {"url":"../tests/test_drawFalse.js", "title":"test_drawFalse","useBaseURI":"true"},
+      {"url":"../tests/test_longText.js", "title":"test_longText","useBaseURI":"true"}
 ]
