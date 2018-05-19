@@ -1,3 +1,4 @@
+
 /*
 
  pxCore Copyright 2005-2018 John Robinson
@@ -549,6 +550,8 @@ pxObject::pxObject(pxScene2d* scene): rtObject(), mParent(NULL), mcx(0), mcy(0),
 #endif //PX_DIRTY_RECTANGLES
     ,mDrawableSnapshotForMask(), mMaskSnapshot(), mIsDisposed(false)
   {
+    printf("pxObjectTracking CREATION CONSTRUCTOR [%p] \n", this);
+    fflush(stdout);
     pxObjectCount++;
     mScene = scene;
     mReady = new rtPromise;
@@ -575,6 +578,8 @@ pxObject::~pxObject()
     mClipSnapshotRef = NULL;
     mDrawableSnapshotForMask = NULL;
     mMaskSnapshot = NULL;
+    printf("pxObjectTracking DESTRUCTION [%p] \n",this);
+    fflush(stdout);
 }
 
 void pxObject::sendPromise()
@@ -2048,6 +2053,8 @@ rtError pxScene2d::create(rtObjectRef p, rtObjectRef& o)
 
   if (needpxObjectTracking)
     mInnerpxObjects.push_back((pxObject*)o.getPtr());
+  printf("pxObjectTracking CREATION [%p] [%s] [%s] \n", o.getPtr(), t.cString(), mScriptView->getUrl().cString());
+  fflush(stdout);
   return e;
 }
 
