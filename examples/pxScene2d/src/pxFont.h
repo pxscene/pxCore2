@@ -291,7 +291,7 @@ public:
 protected:
   // Implementation for pxResource virtuals
   virtual uint32_t loadResourceData(rtFileDownloadRequest* fileDownloadRequest);
-  
+  virtual void dispose(); 
 private:
   void loadResourceFromFile();
   rtError init(const char* n);

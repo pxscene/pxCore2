@@ -234,6 +234,13 @@ void pxText::createNewPromise()
   }
 }
 
+void pxText::dispose(bool pumpJavascript)
+{
+  removeResourceListener();
+  mFont = NULL;
+  pxObject::dispose(pumpJavascript);
+}
+
 rtDefineObject(pxText, pxObject);
 rtDefineProperty(pxText, text);
 rtDefineProperty(pxText, textColor);
