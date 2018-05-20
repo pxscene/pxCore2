@@ -105,7 +105,7 @@ public:
   void clearDownloadRequest();
   virtual void setupResource() {}
   virtual void prepare() {}
-  virtual void dispose() { mReady.send("reject",NULL); }
+  virtual void dispose();
   void setLoadStatus(const char* name, rtValue value);
 protected:   
   static void onDownloadComplete(rtFileDownloadRequest* downloadRequest);

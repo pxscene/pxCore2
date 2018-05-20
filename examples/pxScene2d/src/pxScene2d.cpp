@@ -1942,6 +1942,14 @@ rtError pxScene2d::dispose()
     mDisposed = true;
     rtObjectRef e = new rtMapObject;
     mEmit.send("onClose", e);
+
+    for (unsigned int i=0; i<mInnerpxResources.size(); i++)
+    {
+      pxResource* temp = (pxResource *) (mInnerpxResources[i].getPtr());
+      temp->dispose(false);
+    }
+    mInnerpxResources.clear();
+
     for (unsigned int i=0; i<mInnerpxObjects.size(); i++)
     {
       pxObject* temp = (pxObject *) (mInnerpxObjects[i].getPtr());
@@ -1952,12 +1960,6 @@ rtError pxScene2d::dispose()
     }
     mInnerpxObjects.clear();
 
-    for (unsigned int i=0; i<mInnerpxResources.size(); i++)
-    {
-      pxResource* temp = (pxResource *) (mInnerpxResources[i].getPtr());
-      temp->dispose();
-    }
-    mInnerpxResources.clear();
     if (mRoot)
       mRoot->dispose(false);
     #ifdef ENABLE_RT_NODE

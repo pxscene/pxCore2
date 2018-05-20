@@ -624,6 +624,12 @@ void pxResource::processDownloadedResource(rtFileDownloadRequest* fileDownloadRe
   }
 
 }
+
+void pxResource::dispose()
+{
+  rtValue nullValue;
+  mReady.send("reject",nullValue);
+}
 /**
  * rtImageResource 
  */
