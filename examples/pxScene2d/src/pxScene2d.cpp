@@ -1946,7 +1946,10 @@ rtError pxScene2d::dispose()
     for (unsigned int i=0; i<mInnerpxResources.size(); i++)
     {
       pxResource* temp = (pxResource *) (mInnerpxResources[i].getPtr());
-      temp->dispose(false);
+      if (NULL != temp)
+      {
+        temp->dispose();
+      }
     }
     mInnerpxResources.clear();
 
