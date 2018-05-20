@@ -2072,7 +2072,7 @@ rtError pxScene2d::create(rtObjectRef p, rtObjectRef& o)
 
   if (needpxObjectTracking)
     mInnerpxObjects.push_back((pxObject*)o.getPtr());
-  }
+
   if (needpxResourceTracking)
   {
     mInnerpxResources.push_back((pxResource*)o.getPtr());
