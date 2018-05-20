@@ -303,6 +303,15 @@ void pxFont::getMetrics(uint32_t size, float& height, float& ascender, float& de
 
 }
 
+void pxFont::dispose()
+{
+  if(((rtPromise*)mReady.getPtr())->status() == false)
+  {
+    pxFontManager::removeFont( mFontId);
+    pxResource::dispose();
+  }
+}
+
 GlyphTextureEntry pxFont::getGlyphTexture(uint32_t codePoint, float sx, float sy)
 {
   GlyphTextureEntry result;
