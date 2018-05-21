@@ -32,6 +32,7 @@
 #include "rtScript.h"
 
 #include "pxUtil.h"
+#include "rtSettings.h"
 
 #ifdef RUNINMAIN
 extern rtScript script;
@@ -472,6 +473,18 @@ int pxMain(int argc, char* argv[])
   uv_async_init(nodeLoop, &gcTrigger,collectGarbage);
 
 #endif
+
+  rtString settingsPath;
+  if (RT_OK == rtGetHomeDirectory(settingsPath))
+  {
+    settingsPath.append(".sparkSettings.json");
+    if (rtFileExists(settingsPath))
+      rtSettings::instance()->loadFromFile(settingsPath);
+  }
+
+  // overwrite file settings with settings from the command line
+  rtSettings::instance()->loadFromArgs(argc, argv);
+
 char const* s = getenv("PX_DUMP_MEMUSAGE");
 if (s && (strcmp(s,"1") == 0))
 {
@@ -549,6 +562,12 @@ if (s && (strcmp(s,"1") == 0))
 
   int32_t windowWidth = rtGetEnvAsValue("PXSCENE_WINDOW_WIDTH","1280").toInt32();
   int32_t windowHeight = rtGetEnvAsValue("PXSCENE_WINDOW_HEIGHT","720").toInt32();
+
+  rtValue screenWidth, screenHeight;
+  if (RT_OK == rtSettings::instance()->value("screenWidth", screenWidth))
+    windowWidth = screenWidth.toInt32();
+  if (RT_OK == rtSettings::instance()->value("screenHeight", screenHeight))
+    windowHeight = screenHeight.toInt32();
 
   // OSX likes to pass us some weird parameter on first launch after internet install
   rtLogInfo("window width = %d height = %d", windowWidth, windowHeight);
