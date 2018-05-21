@@ -982,10 +982,10 @@ rtError pxLoadSVGImage(const char* buf, size_t buflen, pxOffscreen& o, int w /* 
   if (buf == NULL || buflen == 0 )
   {
     rtLogError("SVG:  Bad args.\n");
-  return RT_FAIL;
-}
+    return RT_FAIL;
+  }
 
-  NSVGimage *image = nsvgParse( (char *) buf, "px", 96.0f);
+  NSVGimage *image = nsvgParse( (char *) buf, "px", 96.0f); // 96 dpi (suggested defalus) 
   if (image == NULL)
   {
     SAFE_DELETE(image)
@@ -1041,14 +1041,14 @@ rtError pxLoadSVGImage(const char* buf, size_t buflen, pxOffscreen& o, int w /* 
   return RT_OK;
 }
 
-rtError pxLoadSVGImage(const char *filename, pxOffscreen &o)
+rtError pxLoadSVGImage(const char *filename, pxOffscreen &o, int w /* = 0 */, int h /* = 0 */)
 {
   rtData d;
   rtError e = rtLoadFile(filename, d);
   if (e == RT_OK)
   {
     // TODO get rid of the cast
-    e = pxLoadSVGImage((const char *)d.data(), d.length(), o);
+    e = pxLoadSVGImage((const char *)d.data(), d.length(), o, w, h);
   }
   else
   {
