@@ -1,6 +1,8 @@
 package org.pxscene.rt.remote;
 
 import java.net.URI;
+import org.pxscene.rt.RTException;
+import org.pxscene.rt.RTObject;
 
 /**
  * the connection class between client and remote.
@@ -53,4 +55,3 @@ public class RTRemoteClientConnection {
     return new RTRemoteObject(proto, objectId);
   }
 }
-

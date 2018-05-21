@@ -19,27 +19,8 @@ limitations under the License.
 #include "pxTimer.h"
 #include "pxRasterizer.h"
 
-#include "rtLog.h" // for ... rtLogError()
-
-#ifdef XS_CODE_ENABLED
-#  include "xs_Core.h"
-#  include "xs_Float.h"
-#include "rtLog.h"
-#else
-#  include <cstdint>
-#  include <math.h>
-   inline int32_t xs_RoundToInt(const double d)
-   {
-     return floor(d + 0.5);
-   }
-
-   inline int32_t xs_CRoundToInt(const double d)
-   {
-     return ceil(d);
-   }
-#endif
-
-
+#include <cstdint>
+#include <math.h>
 #include <algorithm>
 
 #define MINEDGES 200000
@@ -96,6 +77,15 @@ uint32_t xShift;
 //#endif
 
 
+inline int32_t xs_RoundToInt(const double d)
+{
+ return floor(d + 0.5);
+}
+
+inline int32_t xs_CRoundToInt(const double d)
+{
+ return ceil(d);
+}
 
 
 class span
@@ -2320,12 +2310,6 @@ void pxRasterizer::rasterize()
 // Used to scan out the the coverage for non-filtered polys
 void pxRasterizer::scanCoverage(pxPixel* scanline, int32_t x0, int32_t x1)
 {
-  if(scanline == NULL)
-  {
-    rtLogError(" - scanline == NULL");
-    return;
-  }
-  
 #if 0
   char *o = mCoverage+mCoverageFirst;
   char *o2 = mCoverage+mCoverageLast+1;
@@ -2830,9 +2814,6 @@ void pxRasterizer::rasterizeComplex()
         if (subline == overSampleFlush)
         {
           pxPixel* s = mBuffer->scanline(l>>overSampleShift);
-
-//          if(s == NULL)
-//             rtLogError("\n DEBUG: scanline(%d) ...  subline: %d  BAD", l>>overSampleShift, subline );
 
           {//scope
             
