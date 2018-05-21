@@ -128,8 +128,7 @@ elseif (APPLE)
 
     set(BUILD_UNIT_TEST 1)
     set(TEST_WAYLAND_SOURCE_FILES "")
-    #set(PLATFORM_TEST_FILES "")
-    set(PLATFORM_TEST_FILES test_jsfiles.cpp test_rtError.cpp test_pxUtil.cpp test_screenshot.cpp)
+    set(PLATFORM_TEST_FILES "")
 
     if (DEFINED ENV{CODE_COVERAGE})
         message("enabling code coverage support")
