@@ -77,6 +77,21 @@ rtError pxPath::setPath(const rtString d)
     setH(mImage.height()); // Use SVG size - of not set
   }
   
+  // Premultiply
+  for (int y = 0; y < mImage.height(); y++)
+  {
+    pxPixel* d  =     mImage.scanline(y);
+    pxPixel* de = d + mImage.width();
+    while (d < de)
+    {
+      d->r = (d->r * d->a)/255;
+      d->g = (d->g * d->a)/255;
+      d->b = (d->b * d->a)/255;
+      d++;
+    }
+  }
+
+  
   sendPromise();
 
   return ret;
