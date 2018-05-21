@@ -200,7 +200,7 @@ set(PXCORE_FILES ${PXCORE_FILES} pxOffscreen.cpp pxWindowUtil.cpp
         rtThreadQueue.cpp rtThreadTask.cpp rtUrlUtils.cpp
         rtZip.cpp pxInterpolators.cpp pxUtil.cpp
         rtFileDownloader.cpp unzip.c ioapi.c
-        rtScript.cpp)
+        rtScript.cpp rtSettings.cpp)
         
 if (SUPPORT_DUKTAPE)
     message("Adding Duktape scripting support")
