@@ -135,7 +135,7 @@ protected:
 class rtImageResource : public pxResource
 {
 public:
-  rtImageResource(const char* url = 0, const char* proxy = 0);
+  rtImageResource(const char* url = 0, const char* proxy = 0, int32_t iw = 0, int32_t ih = 0);
   virtual ~rtImageResource();
   
   rtDeclareObject(rtImageResource, pxResource);
@@ -143,8 +143,12 @@ public:
   virtual unsigned long Release() ;
 
   // Need these, or use from texture?  
+
   rtReadOnlyProperty(w, w, int32_t);
   rtReadOnlyProperty(h, h, int32_t);  
+
+  // convey "create-time" dimension preference (SVG only)
+  int32_t   init_w, init_h;
 
   virtual int32_t w() const;
   virtual rtError w(int32_t& v) const;
@@ -202,7 +206,8 @@ class pxImageManager
 {
   
   public: 
-    static rtRef<rtImageResource> getImage(const char* url, const char* proxy = NULL);
+    static rtRef<rtImageResource> getImage(const char* url, const char* proxy = NULL, int32_t iw = 0, int32_t ih = 0);
+  
     static void removeImage(rtString imageUrl);
 
     static rtRef<rtImageAResource> getImageA(const char* url, const char* proxy = NULL);

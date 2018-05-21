@@ -41,7 +41,6 @@
 #include "pxText.h"
 #include "pxTextBox.h"
 #include "pxImage.h"
-#include "pxCanvas.h"
 #include "pxPath.h"
 
 #ifdef PX_SERVICE_MANAGER
@@ -1964,7 +1963,6 @@ rtError pxScene2d::dispose()
 
     mRoot     = NULL;
     mInfo     = NULL;
-    mCanvas   = NULL;
     mFocusObj = NULL;
 
     return RT_OK;
@@ -2012,10 +2010,8 @@ rtError pxScene2d::create(rtObjectRef p, rtObjectRef& o)
     e = createTextBox(p,o);
   else if (!strcmp("image",t.cString()))
     e = createImage(p,o);
-#ifdef ENABLE_PXSCENE_RASTERIZER_PATH
   else if (!strcmp("path",t.cString()))
     e = createPath(p,o);
-#endif //ENABLE_PXSCENE_RASTERIZER_PATH
   else if (!strcmp("image9",t.cString()))
     e = createImage9(p,o);
   else if (!strcmp("imageA",t.cString()))
@@ -2113,20 +2109,6 @@ rtError pxScene2d::createImage(rtObjectRef p, rtObjectRef& o)
 
 rtError pxScene2d::createPath(rtObjectRef p, rtObjectRef& o)
 {
-  if(mCanvas == NULL) // only need one.
-  {
-    // Lazy init... only on 'path'
-    mCanvas = new pxCanvas(this);
-    mCanvas.set(p);
-    mCanvas.set("id","pxCanvas App Singleton");
-    mCanvas.set("x",0);
-    mCanvas.set("y",0);
-    mCanvas.set("w",mWidth);
-    mCanvas.set("h",mHeight);
-
-    mCanvas.send("init");
-  }
-
   o = new pxPath(this);
   o.set(p);
   o.send("init");
@@ -2162,12 +2144,29 @@ rtError pxScene2d::createImageResource(rtObjectRef p, rtObjectRef& o)
   rtString url = p.get<rtString>("url");
   rtString proxy = p.get<rtString>("proxy");
 
+  rtString param_w = p.get<rtString>("w");
+  rtString param_h = p.get<rtString>("h");
+
+  int32_t iw = 0;
+  int32_t ih = 0;
+
+  if(param_w.isEmpty() == false && param_w.length() > 0)
+  {
+    iw = rtValue(param_w).toInt32();
+  }
+
+  if(param_h.isEmpty() == false && param_h.length() > 0)
+  {
+    ih = rtValue(param_h).toInt32();
+  }
+  
 #ifdef ENABLE_PERMISSIONS_CHECK
   if (RT_OK != mPermissions->allows(url, rtPermissions::DEFAULT))
     return RT_ERROR_NOT_ALLOWED;
 #endif
 
-  o = pxImageManager::getImage(url, proxy);
+  o = pxImageManager::getImage(url, proxy, iw, ih);
+  
   o.send("init");
   return RT_OK;
 }
