@@ -995,8 +995,8 @@ rtError pxLoadSVGImage(const char* buf, size_t buflen, pxOffscreen& o, int w /* 
   }
 
   int image_w = (int)image->width;
-  int image_h = (int)image->height;
-
+  int image_h = (int)image->height;  
+  
   int dx = 0;
   int dy = 0;
 
@@ -1030,7 +1030,7 @@ rtError pxLoadSVGImage(const char* buf, size_t buflen, pxOffscreen& o, int w /* 
     image_h = scaled_h; // update to new size
   }
 
-  o.init(image_w, image_h); // default sized
+  o.initWithColor(image_w, image_h, pxClear); // default sized
 
 //  rtLogDebug("SVG:  Rasterizing image %d x %d  (scale: %f) \n", w, h, scale);
 

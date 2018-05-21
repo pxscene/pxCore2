@@ -25,14 +25,8 @@ extern pxContext context;
 
 
 pxPath::pxPath(pxScene2d* scene): pxObject(scene)
-
-                           //       mStrokeColor(pxClear),
-                           //       mStrokeType(pxCanvas2d::StrokeType::inside),
-                           //       mFillColor(pxClear)
 {
-  mx = 0;
-  my = 0;
- // canvas
+  // ctor
 }
 
 
@@ -71,7 +65,18 @@ rtError pxPath::setPath(const rtString d)
   size_t  len = strlen(d);
   
   rtError ret = pxLoadSVGImage(s, len, mImage, w(), h() );
+  
+  
+  if( w() == 0)
+  {
+    setW( mImage.width() ); // Use SVG size - of not set
+  }
 
+  if( h() == 0)
+  {
+    setH(mImage.height()); // Use SVG size - of not set
+  }
+  
   sendPromise();
 
   return ret;
