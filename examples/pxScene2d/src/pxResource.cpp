@@ -229,7 +229,7 @@ void pxResource::notifyListeners(rtString readyResolution)
   //rtLogDebug("notifyListeners for url=%s Ending\n");
   mListeners.clear();
   mListenersMutex.unlock();
-  
+  mDownloadRequest = NULL;
 }
 void pxResource::raiseDownloadPriority()
 {
@@ -381,6 +381,15 @@ void rtImageResource::setupResource()
 {
   getTexture(true);
   init();
+}
+
+void rtImageResource::dispose()
+{
+  if(((rtPromise*)mReady.getPtr())->status() == false)
+  {
+    pxImageManager::removeImage( mUrl);
+    pxResource::dispose();
+  }
 }
 
 void pxResource::clearDownloadRequest()
@@ -615,6 +624,12 @@ void pxResource::processDownloadedResource(rtFileDownloadRequest* fileDownloadRe
   }
 
 }
+
+void pxResource::dispose()
+{
+  rtValue nullValue;
+  mReady.send("reject",nullValue);
+}
 /**
  * rtImageResource 
  */
@@ -669,6 +684,15 @@ void rtImageAResource::loadResourceFromFile()
 {
   //TODO
   setLoadStatus("statusCode",PX_RESOURCE_STATUS_UNKNOWN_ERROR);
+}
+
+void rtImageAResource::dispose()
+{
+  if(((rtPromise*)mReady.getPtr())->status() == false)
+  {
+    pxImageManager::removeImageA( mUrl);
+    pxResource::dispose();
+  }
 }
 
 

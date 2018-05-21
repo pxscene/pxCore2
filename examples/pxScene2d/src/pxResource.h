@@ -105,6 +105,7 @@ public:
   void clearDownloadRequest();
   virtual void setupResource() {}
   virtual void prepare() {}
+  virtual void dispose();
   void setLoadStatus(const char* name, rtValue value);
 protected:   
   static void onDownloadComplete(rtFileDownloadRequest* downloadRequest);
@@ -158,6 +159,7 @@ public:
  
   virtual void init();
 
+  virtual void dispose();
 protected:  
   virtual uint32_t loadResourceData(rtFileDownloadRequest* fileDownloadRequest);
   
@@ -184,6 +186,7 @@ public:
   virtual void init();
   pxTimedOffscreenSequence& getTimedOffscreenSequence() { return mTimedOffscreenSequence; }
   virtual void setupResource() { init(); }
+  virtual void dispose();
   
 protected:
   virtual uint32_t loadResourceData(rtFileDownloadRequest* fileDownloadRequest);

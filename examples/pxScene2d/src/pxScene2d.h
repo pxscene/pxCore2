@@ -1617,6 +1617,7 @@ private:
   #endif
   bool mPointerHidden;
   std::vector<rtObjectRef> mInnerpxObjects;
+  std::vector<rtObjectRef> mInnerpxResources;
   rtFunctionRef mCustomAnimator;
   rtString mOrigin;
 #ifdef ENABLE_PERMISSIONS_CHECK

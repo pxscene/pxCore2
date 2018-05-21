@@ -1863,6 +1863,7 @@ int gTag = 0;
 pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   : start(0), sigma_draw(0), sigma_update(0), end2(0), frameCount(0), mWidth(0), mHeight(0), mStopPropagation(false), mContainer(NULL), mShowDirtyRectangle(false),
     mInnerpxObjects(),
+    mInnerpxResources(),
 #ifdef PX_DIRTY_RECTANGLES
     mDirtyRect(), mLastFrameDirtyRect(),
 #endif //PX_DIRTY_RECTANGLES
@@ -1942,6 +1943,17 @@ rtError pxScene2d::dispose()
     mDisposed = true;
     rtObjectRef e = new rtMapObject;
     mEmit.send("onClose", e);
+
+    for (unsigned int i=0; i<mInnerpxResources.size(); i++)
+    {
+      pxResource* temp = (pxResource *) (mInnerpxResources[i].getPtr());
+      if (NULL != temp)
+      {
+        temp->dispose();
+      }
+    }
+    mInnerpxResources.clear();
+
     for (unsigned int i=0; i<mInnerpxObjects.size(); i++)
     {
       pxObject* temp = (pxObject *) (mInnerpxObjects[i].getPtr());
@@ -2003,6 +2015,7 @@ rtError pxScene2d::create(rtObjectRef p, rtObjectRef& o)
   rtError e = RT_OK;
   rtString t = p.get<rtString>("t");
   bool needpxObjectTracking = true;
+  bool needpxResourceTracking = false;
 
   if (!strcmp("rect",t.cString()))
     e = createRectangle(p,o);
@@ -2026,16 +2039,19 @@ rtError pxScene2d::create(rtObjectRef p, rtObjectRef& o)
   {
     e = createImageResource(p,o);
     needpxObjectTracking = false;
+    needpxResourceTracking = true;
   }
   else if (!strcmp("imageAResource",t.cString()))
   {
     e = createImageAResource(p,o);
     needpxObjectTracking = false;
+    needpxResourceTracking = true;
   }
   else if (!strcmp("fontResource",t.cString()))
   {
     e = createFontResource(p,o);
     needpxObjectTracking = false;
+    needpxResourceTracking = true;
   }
   else if (!strcmp("scene",t.cString()))
     e = createScene(p,o);
@@ -2068,6 +2084,11 @@ rtError pxScene2d::create(rtObjectRef p, rtObjectRef& o)
 
   if (needpxObjectTracking)
     mInnerpxObjects.push_back((pxObject*)o.getPtr());
+
+  if (needpxResourceTracking)
+  {
+    mInnerpxResources.push_back((pxResource*)o.getPtr());
+  }
   return e;
 }
 
