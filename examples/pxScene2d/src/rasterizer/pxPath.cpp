@@ -24,15 +24,38 @@
 extern pxContext context;
 
 
-pxPath::pxPath(pxScene2d* scene): pxObject(scene)
-{
-  // ctor
-}
-
-
 void pxPath::onInit()
 {
-  mInitialized = true;
+  char *s = (char *)mPath.cString();
+  
+  if(!s)
+  {
+    rtLogError("Error creating pxPath - path string is NULL");
+    return;
+  }
+  
+  size_t  len = mPath.length();
+
+  if(!len)
+  {
+    rtLogError("Error creating pxPath - path string is EMPTY");
+    return;
+  }
+
+  float iw = ( w() == 0 ) ? mImage.width()  : w();
+  float ih = ( h() == 0 ) ? mImage.height() : h();
+  
+  rtError ret = pxLoadSVGImage(s, len, mImage, iw, ih);
+  
+  if(ret == RT_OK)
+  {
+    setW( iw ); // Use SVG size - of not set
+    setH( ih ); // Use SVG size - of not set
+    
+    mTexture = context.createTexture(mImage);
+    
+    mInitialized = true;
+  }
   
   sendPromise();
 }
@@ -49,52 +72,23 @@ void pxPath::sendPromise()
 
 void pxPath::draw()
 {
-  context.drawOffscreen(0, 0, 0, 0, mImage.width(), mImage.height(), mImage);
+  if(mInitialized)
+  {
+    static pxTextureRef nullMaskRef;
+
+    context.drawImage(0, 0,  mTexture->width(), mTexture->height(),
+                      mTexture, nullMaskRef,  false, NULL,
+                      pxConstantsStretch::NONE,
+                      pxConstantsStretch::NONE,
+                      false, pxConstantsMaskOperation::NORMAL);
+  }
 }
 
 rtError pxPath::setPath(const rtString d)
 {
   mPath = d;
-  char *s = (char *)d.cString();
-  
-  if(!d || !s)
-  {
-    return RT_ERROR;
-  }
-    
-  size_t  len = strlen(d);
-  
-  rtError ret = pxLoadSVGImage(s, len, mImage, w(), h() );
-  
-  
-  if( w() == 0)
-  {
-    setW( mImage.width() ); // Use SVG size - of not set
-  }
 
-  if( h() == 0)
-  {
-    setH(mImage.height()); // Use SVG size - of not set
-  }
-  
-  // Premultiply
-  for (int y = 0; y < mImage.height(); y++)
-  {
-    pxPixel* d  =     mImage.scanline(y);
-    pxPixel* de = d + mImage.width();
-    while (d < de)
-    {
-      d->r = (d->r * d->a)/255;
-      d->g = (d->g * d->a)/255;
-      d->b = (d->b * d->a)/255;
-      d++;
-    }
-  }
-
-  
-  sendPromise();
-
-  return ret;
+  return RT_OK;
 }
 
 rtDefineObject(pxPath, pxObject);

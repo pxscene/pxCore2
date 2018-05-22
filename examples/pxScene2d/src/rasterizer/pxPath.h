@@ -39,18 +39,27 @@ public:
   rtProperty(d, path, setPath, rtString);
 
 public:
-  pxPath(pxScene2d* scene);
+  
+  pxPath(pxScene2d* scene) : pxObject(scene)
+  {
+    mw = -1;
+    mh = -1;
+  };
+  
   ~pxPath();
 
   virtual void draw();
   virtual void onInit();
   virtual void sendPromise();
-  
+  virtual void createNewPromise() { rtLogDebug("pxPath ignoring createNewPromise\n"); }
+
   virtual rtError setPath(const rtString d);
   virtual rtError path(rtString& v) const { v = mPath; return RT_OK; };
 
   rtString     mPath;
   pxOffscreen  mImage;
+  
+  pxTextureRef mTexture;
 
 }; // CLASS - pxPath
 
