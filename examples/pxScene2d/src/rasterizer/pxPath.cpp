@@ -42,10 +42,17 @@ void pxPath::onInit()
     return;
   }
 
-  float iw = ( w() == 0 ) ? mImage.width()  : w();
-  float ih = ( h() == 0 ) ? mImage.height() : h();
+  // If pxObject dimensions ARE set ... relate to SVG
+  //
+  float iw = ( w() <= 0 ) ? mImage.width()  : w();
+  float ih = ( h() <= 0 ) ? mImage.height() : h();
   
   rtError ret = pxLoadSVGImage(s, len, mImage, iw, ih);
+  
+  // If pxObject dimensions NOT set yet ... infer from SVG
+  //
+  if(iw <=0) iw = mImage.width();
+  if(ih <=0) ih = mImage.height();
   
   if(ret == RT_OK)
   {
