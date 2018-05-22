@@ -79,7 +79,7 @@ void pxPath::sendPromise()
 
 void pxPath::draw()
 {
-  if(mInitialized)
+  if(mInitialized && mTexture)
   {
     static pxTextureRef nullMaskRef;
 
