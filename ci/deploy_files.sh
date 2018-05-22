@@ -15,8 +15,6 @@ $SSH "set -e;
 sudo mkdir $REMOTE_DIR
 cd $REMOTE_TEMPDIR
 sudo tar -C $REMOTE_DIR -xvzf ${filename};
-sudo mv $REMOTE_DIR/logs/* $REMOTE_DIR/.
-sudo rm -rf $REMOTE_DIR/logs
 sudo rm -rf ${REMOTE_TEMPDIR}
 cd $DEPLOY_DESTINATION;
 echo $REMOTE_FILE_COUNT;
