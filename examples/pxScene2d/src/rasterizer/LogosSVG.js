@@ -214,6 +214,8 @@ px.import({ scene:      'px:scene.1.js',
 
         var url = prefix + file;
 
+      //  url = "//Users/hfitzp200/admob.svg"; // JUNK
+
         // Clean up...
         if(svgImage != null)
         {
@@ -221,13 +223,7 @@ px.import({ scene:      'px:scene.1.js',
             svgImage = null;
         }
 
-        // *****************************************************************************
-        //
-        //             SVG using a "image" at native dimensions
-        //
         svgImage = scene.create({t:"image", url:url, parent:root});
-        //
-        // *****************************************************************************
 
         svgImage.ready.then(function(o)
         {
