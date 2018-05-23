@@ -58,6 +58,20 @@ void pxPath::onInit()
   {
     setW( iw ); // Use SVG size - of not set
     setH( ih ); // Use SVG size - of not set
+  
+    // premultiply
+    for (int y = 0; y < mImage.height(); y++)
+    {
+      pxPixel* d = mImage.scanline(y);
+      pxPixel* de = d + mImage.width();
+      while (d < de)
+      {
+        d->r = (d->r * d->a)/255;
+        d->g = (d->g * d->a)/255;
+        d->b = (d->b * d->a)/255;
+        d++;
+      }
+    }
     
     mTexture = context.createTexture(mImage);
     

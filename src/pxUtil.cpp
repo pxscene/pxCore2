@@ -1019,6 +1019,10 @@ rtError pxLoadSVGImage(const char* buf, size_t buflen, pxOffscreen& o, int w /* 
     int scaled_w = image_w * scale;
     int scaled_h = image_h * scale;
 
+    if(scaled_w < w)
+    {
+      
+    }
 //    dx = (w - scaled_w)/2;
 //    dy = (h - scaled_h)/2;
 

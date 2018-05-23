@@ -37,11 +37,14 @@ px.import({
   var base    = px.getPackageBaseFilePath();
   var fontRes = scene.create({ t: "fontResource", url: "FreeSans.ttf" });
 
-  var bg = scene.create({t:"rect", parent: root, x: 0, y: 0, w: 100, h: 100, fillColor: "#CCC", id: "Background"});
+  var COLOR_BG   =  "#CCC";
+  var COLOR_TEXT =  "#222";
+
+  var bg = scene.create({t:"rect", parent: root, x: 0, y: 0, w: 100, h: 100, fillColor: COLOR_BG });
 
   var title = scene.create({t:"textBox", text: "", parent: bg, pixelSize: 15, w: 800, h: 80, x: 0, y: 0,
                 alignHorizontal: scene.alignHorizontal.LEFT, interactive: false,
-                alignVertical:     scene.alignVertical.CENTER, textColor: 0x000000AF, a: 1.0});
+                alignVertical:     scene.alignVertical.CENTER, textColor: COLOR_TEXT, a: 1.0});
 
   var buttonPLAY = null;
 
@@ -54,11 +57,11 @@ px.import({
 
   var buttonData = 
   [
-    { func: "skipbwd()", id: "skipbwd",  key: "step-backward", buttonObj: null, svgObj: null, s: 0.2,  dx: 285, dy: 250,  x: 0, y: 0 },
-    { func: "play()",    id: "play",     key: "play",          buttonObj: null, svgObj: null, s: 0.2,  dx: 350, dy: 250,  x: 0, y: 0 },
-    { func: "stop()",    id: "stop",     key: "stop",          buttonObj: null, svgObj: null, s: 0.2,  dx: 285, dy: 250,  x: 0, y: 0 },
-    { func: "pause()",   id: "pause",    key: "pause",         buttonObj: null, svgObj: null, s: 0.2,  dx: 285, dy: 250,  x: 0, y: 0 },
-    { func: "skipfwd()", id: "skipfwd",  key: "step-forward",  buttonObj: null, svgObj: null, s: 0.2,  dx: 285, dy: 250,  x: 0, y: 0 },
+    { func: "skipbwd()", id: "skipbwd",  key: "step-backward", buttonObj: null, clickObj: null, s: 0.2,  dx: 25, dy: 0,  x: 0, y: 0 },
+    { func: "play()",    id: "play",     key: "play",          buttonObj: null, clickObj: null, s: 0.2,  dx: 50, dy: 0,  x: 0, y: 0 },
+    { func: "stop()",    id: "stop",     key: "stop",          buttonObj: null, clickObj: null, s: 0.2,  dx: 50, dy: 0,  x: 0, y: 0 },
+    { func: "pause()",   id: "pause",    key: "pause",         buttonObj: null, clickObj: null, s: 0.2,  dx: 50, dy: 0,  x: 0, y: 0 },
+    { func: "skipfwd()", id: "skipfwd",  key: "step-forward",  buttonObj: null, clickObj: null, s: 0.2,  dx: 25, dy: 0,  x: 0, y: 0 },
   ];
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -69,58 +72,113 @@ function createButtons()
 
    var allReady =  buttonData.map(data => 
     {
-        x0 = -1;
+       x0 = -1;
 
-        var key    = data.key;
-        var icon   = fa_icons[key];
+       var key    = data.key;
+       var icon   = fa_icons[key];
 
-        var icon_w = icon[0];
-        var icon_h = icon[1];
-        var icon_d = icon[4];
+       var svg_w  = 1024;
+       var svg_h  = 1024;
 
-        var dx = data.dx - (512 - icon_w)/2;
-        var dy = data.dy;
-        
-        var path =  "<svg>"
-                  + "  <defs>"
-                  + "    <linearGradient id='myLinearGradient1' x1='0%' y1='0%' x2='0%' y2='100%'"
-                  + "                    spreadMethod='pad' gradientTransform='rotate(-45)'>"
-                  + "      <stop offset='0%'   stop-color='#aaaaaa' stop-opacity='1'/>"
-                  + "      <stop offset='100%' stop-color='#666666' stop-opacity='1'/>"
-                  + "    </linearGradient>"
-                  + "  </defs>"
-                  + ""
-                  + " <g>"
-                  + "  <circle cx='100' cy='100' r='"+ 100 +"'  "
-                  + "     style='fill:url(#myLinearGradient1);' />"
-    //                 + "     style='fill-opacity:0.0; stroke: #eee; stroke-width: 8; stroke-alignment: inner' />"
-                  + "    <path transform='scale(.2)  translate("+ dx +","+ dy +")' "
-                  + "          style='fill: #000; fill-opacity:0.0; stroke: #eee; stroke-width: 28;'"
-                  + " d='" + icon_d + "/>"
-                    + " </g>" 
-                  + "</svg>"
+       var circle_r  = svg_h / 2;
+
+       var icon_w = 512; //icon[0];
+       var icon_h = 512; //icon[1];
+
+       var icon_d = icon[4];
+
+       var button_w = 512 / 8;
+       var button_h = 512 / 8;
+
+       var init_y = 0;
+       var nudge_x = 32;
+
+       var calibrateMode = false;
+
+       if(calibrateMode)
+        {
+          button_w = 512;
+          button_h = 512;
+          init_y   = -450;
+        }
+ 
+        var linearGradient =  "  <defs>"
+                            + "    <linearGradient id='myLinearGradient1' x1='0%' y1='0%' x2='0%' y2='100%'"
+                            + "                    spreadMethod='pad' gradientTransform='rotate(-45)'>"
+                            + "      <stop offset='0%'   stop-color='#aaaaaa' stop-opacity='1'/>"
+                            + "      <stop offset='100%' stop-color='#666666' stop-opacity='1'/>"
+                            + "    </linearGradient>"
+                            + "  </defs>";
+
+        var iconStyleNormal = " style='fill: #000; fill-opacity:0.0; stroke: #eee; stroke-width: 28;' ";
+        var iconStyleClick  = " style='fill: #000; fill-opacity:0.0; stroke: #ff0; stroke-width: 32;' ";
+
+        // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+        var pathNormal =  "<svg width='"+ svg_w +"' height='"+ svg_h +"'>"
+                        + linearGradient 
+                        + " <g>"
+                        + "  <circle cx='"+ circle_r +"' cy='"+ circle_r +"' r='"+ circle_r +"'  "
+                        + "     style='fill:url(#myLinearGradient1);' />"
+    //            + "     style='fill-opacity:0.0; stroke: #eee; stroke-width: 8; stroke-alignment: inner' />"
+     /*MARKER*/ + ((!calibrateMode) ? "" : "  <path d='M0 0, L1024,1024 M1024,0 L0,1024, M512,0, L512,1024, M0,512 L1024,512' stroke='#f00' stroke-width='4'/>")
+    + "    <path transform=' translate("+ (icon_w/2 + nudge_x) +","+ icon_h/2 +")' "
+                        + iconStyleNormal 
+                        + " d='" + icon_d + "' />"
+                        + " </g>" 
+                        + "</svg>";
+
+        // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+        var pathClick =  "<svg width='"+ svg_w +"' height='"+ svg_h +"'>"
+                        + linearGradient 
+                        + " <g>"
+                        + "  <circle cx='"+ circle_r +"' cy='"+ circle_r +"' r='"+ circle_r +"'  "
+                        + "     style='fill:url(#myLinearGradient1);' />"
+    //                       + "     style='fill-opacity:0.0; stroke: #eee; stroke-width: 8; stroke-alignment: inner' />"
+     /*MARKER*/ + ((!calibrateMode) ? "" : "  <path d='M0 0, L1024,1024 M1024,0 L0,1024, M512,0, L512,1024, M0,512 L1024,512' stroke='#f00' stroke-width='4'/>")
+     + "    <path transform=' translate("+ (icon_w/2 + nudge_x) +","+ icon_h/2 +")' "
+                        + iconStyleClick 
+                        + " d='" + icon_d + "' />"
+                        + " </g>" 
+                        + "</svg>";
+
+        // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
         console.log("Initial Create >> " + data.id);
 
-        var button = scene.create( { t: "path", d: path, w: icon_w/8, h: icon_h/8, parent: root, x: x0, y: y0, 
+        var imageNormal = scene.create( { t: "path", d: pathNormal, w: button_w, h: button_h, parent: root, x: 0, y: init_y,
                                         interactive: true, id: data.id, parent: buttonsPanel } );
 
+        var imageClick = scene.create( { t: "path", d: pathClick, w: button_w, h: button_h, parent: root, x:0, y:0, 
+                                        interactive: false, id: data.id, parent: imageNormal, a: 0} );
+
         // RESPONDERS
-        button.on("onMouseDown",   function (e)
+        imageNormal.on("onMouseDown",   function (e)
         {
           var me = buttonObjects[e.target.id];
           me.buttonObj.y += 3;
+
+          me.clickObj.a = 1.0;
         });
-        button.on("onMouseUp",     function (e)
+        imageNormal.on("onMouseUp",     function (e)
         {
           var me = buttonObjects[e.target.id];
           me.buttonObj.y -= 3;
+
+          if(calibrateMode)
+          {
+            me.buttonObj.moveToBack();
+          }
+
+          me.clickObj.a = 0.0;
         });
 
-        data.buttonObj         = button;
+        data.buttonObj         = imageNormal;
+        data.clickObj          = imageClick;
         buttonObjects[data.id] = data;
 
-        return button.ready.catch(e => { return null; });
+        return imageNormal.ready.catch(e => { return null; });
       }); // MAP
 
       //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -129,10 +187,13 @@ function createButtons()
       Promise.all( allReady ).then(values =>
         {
           console.log("Initial Layout");
-      
+
           var targets = Object.keys(buttonObjects).map(button => { return {x: -1, y: -1}; });
-      
-          layout();
+
+        //  if(this.calibrateMode == false)
+          {
+             layout();
+          }
         });
 
       }// FUNCTION
@@ -155,7 +216,10 @@ function createButtons()
     var buttonW  = 0;
     var buttonH  = 0;
 
-    Object.keys(buttonObjects).map(key =>
+    var keys = Object.keys(buttonObjects);
+
+    // Survey dimensions...
+    keys.map(key =>
     {
       var o = buttonObjects[key];
       var b = o.buttonObj;
@@ -168,13 +232,16 @@ function createButtons()
 
     var spare_x = (buttonsPanel.w - totalW);
 
+    console.log("Do Layout >>   totalW: " + totalW);
+    console.log("Do Layout >>  spare_x: " + spare_x);
+
     // Compute GAP and Initial Position
     gap = spare_x / (buttonData.length + 1);
 
     px  = gap;
     py  = (buttonsPanel.h - buttonH)/2;
 
-    Object.keys(buttonObjects).map(key =>
+    keys.map(key =>
     {
       var o = buttonObjects[key];
       var b = o.buttonObj;
@@ -183,15 +250,10 @@ function createButtons()
       {
         b.animateTo({x: px, y: py }, 0.5, scene.animation.TWEEN_STOP).catch(() => {});
 
-        console.log("Do Layout - px = " + px + "   py =" + py);
-
         o.x = px; // target X
         o.y = py; // target Y
       }
       px += (buttonW + gap);
-
-//       console.log("buttonsW: "+buttonsW+" bg: "+ bg.w + "  spare_x: "+ spare_x+ "  buttons: "+ buttonData.length);
-//       console.log("gap: "+gap+" bw: "+ bw +"  px >> " + px);
     });
   };
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

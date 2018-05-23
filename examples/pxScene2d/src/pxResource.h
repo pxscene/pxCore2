@@ -159,6 +159,9 @@ public:
 
   virtual void init();
 
+  int32_t initW() { return init_w; };
+  int32_t initH() { return init_h; };
+  
 protected:
   virtual uint32_t loadResourceData(rtFileDownloadRequest* fileDownloadRequest);
 
@@ -209,7 +212,7 @@ class pxImageManager
   public: 
     static rtRef<rtImageResource> getImage(const char* url, const char* proxy = NULL, int32_t iw = 0, int32_t ih = 0);
   
-    static void removeImage(rtString imageUrl);
+    static void removeImage(rtString url, int32_t iw = 0, int32_t ih = 0);
 
     static rtRef<rtImageAResource> getImageA(const char* url, const char* proxy = NULL);
     static void removeImageA(rtString imageAUrl);
