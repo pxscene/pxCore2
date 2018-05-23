@@ -557,6 +557,8 @@ pxObject::pxObject(pxScene2d* scene): rtObject(), mParent(NULL), mcx(0), mcy(0),
 
 pxObject::~pxObject()
 {
+    printf("pxObjectTracking DESTRUCTION [%p] \n",this);
+    fflush(stdout);
 //    rtString d;
     // TODO... why is this bad
 //    sendReturns<rtString>("description",d);
@@ -2060,7 +2062,11 @@ rtError pxScene2d::create(rtObjectRef p, rtObjectRef& o)
   }
 
   if (needpxObjectTracking)
+  {
     mInnerpxObjects.push_back((pxObject*)o.getPtr());
+    printf("pxObjectTracking CREATION [%p] [%s] [%s] \n", o.getPtr(), t.cString(), mScriptView->getUrl().cString());
+    fflush(stdout);
+  }
   return e;
 }
 
