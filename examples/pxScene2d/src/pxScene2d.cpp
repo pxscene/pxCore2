@@ -2065,9 +2065,9 @@ rtError pxScene2d::create(rtObjectRef p, rtObjectRef& o)
   if (needpxObjectTracking)
   {
     mInnerpxObjects.push_back((pxObject*)o.getPtr());
-  }
     printf("pxObjectTracking CREATION [%p] [%s] [%s] \n", o.getPtr(), t.cString(), mScriptView->getUrl().cString());
     fflush(stdout);
+  }
   return e;
 }
 
