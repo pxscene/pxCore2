@@ -702,7 +702,7 @@ rtRemoteServer::openRpcListener()
   if (ret < 0)
   {
     rtError e = rtErrorFromErrno(errno);
-    rtLogError("failed to bind tcp socket %s. %s", rtSocketToString(m_rpc_endpoint).c_str(), rtStrError(e));
+    rtLogError("failed to bind socket. %s", rtStrError(e));
     return e;
   }
 
@@ -774,6 +774,7 @@ rtRemoteServer::onGet(std::shared_ptr<rtRemoteClient>& client, rtRemoteMessagePt
 
   rtRemoteMessagePtr res(new rapidjson::Document());
   res->SetObject();
+  res->AddMember(kFieldNameMessageType, kMessageTypeGetByNameResponse, res->GetAllocator());
   res->AddMember(kFieldNameCorrelationKey, key.toString(), res->GetAllocator());
   res->AddMember(kFieldNameObjectId, std::string(objectId), res->GetAllocator());
 
@@ -793,7 +794,6 @@ rtRemoteServer::onGet(std::shared_ptr<rtRemoteClient>& client, rtRemoteMessagePt
 
     if (name)
     {
-      res->AddMember(kFieldNameMessageType, kMessageTypeGetByNameResponse, res->GetAllocator());
       err = obj->Get(name, &value);
       if (err != RT_OK)
       {
@@ -802,7 +802,6 @@ rtRemoteServer::onGet(std::shared_ptr<rtRemoteClient>& client, rtRemoteMessagePt
     }
     else
     {
-      res->AddMember(kFieldNameMessageType, kMessageTypeGetByIndexResponse, res->GetAllocator());
       index = rtMessage_GetPropertyIndex(*doc);
       if (index != kInvalidPropertyIndex)
         err = obj->Get(index, &value);
@@ -842,13 +841,8 @@ rtRemoteServer::onGet(std::shared_ptr<rtRemoteClient>& client, rtRemoteMessagePt
     {
       res->AddMember(kFieldNameStatusCode, static_cast<int32_t>(err), res->GetAllocator());
     }
-  }
 
-  rtError err = client->send(res);
-  if (err != RT_OK)
-  {
-    rtLogError("onGet send to res failed , %s", rtStrError(err));
-    return err;
+    err = client->send(res);
   }
 
   return RT_OK;
@@ -862,15 +856,15 @@ rtRemoteServer::onSet(std::shared_ptr<rtRemoteClient>& client, rtRemoteMessagePt
 
   rtRemoteMessagePtr res(new rapidjson::Document());
   res->SetObject();
+  res->AddMember(kFieldNameMessageType, kMessageTypeSetByNameResponse, res->GetAllocator());
   res->AddMember(kFieldNameCorrelationKey, key.toString(), res->GetAllocator());
   res->AddMember(kFieldNameObjectId, std::string(objectId), res->GetAllocator());
 
   rtObjectRef obj = m_env->ObjectCache->findObject(objectId);
   if (!obj)
   {
-    res->AddMember(kFieldNameStatusCode, RT_ERROR_OBJECT_NOT_FOUND, res->GetAllocator());
+    res->AddMember(kFieldNameStatusCode, 1, res->GetAllocator());
     res->AddMember(kFieldNameStatusMessage, std::string("object not found"), res->GetAllocator());
-    return client->send(res);
   }
   else
   {
@@ -891,19 +885,18 @@ rtRemoteServer::onSet(std::shared_ptr<rtRemoteClient>& client, rtRemoteMessagePt
 
       if (name)
       {
-        res->AddMember(kFieldNameMessageType, kMessageTypeSetByNameResponse, res->GetAllocator());
         err = obj->Set(name, &value);
       }
       else
       {
-        res->AddMember(kFieldNameMessageType, kMessageTypeSetByIndexResponse, res->GetAllocator());
         index = rtMessage_GetPropertyIndex(*doc);
         if (index != kInvalidPropertyIndex)
           err = obj->Set(index, &value);
       }
     }
+
     res->AddMember(kFieldNameStatusCode, static_cast<int>(err), res->GetAllocator());
-    return client->send(res);
+    err = client->send(res);
   }
   return RT_OK;
 }
@@ -975,7 +968,7 @@ rtRemoteServer::onMethodCall(std::shared_ptr<rtRemoteClient>& client, rtRemoteMe
     }
     else
     {
-      rtMessage_SetStatus(*res, RT_ERROR_OBJECT_NOT_FOUND, "object not found");
+      rtMessage_SetStatus(*res, 1, "object not found");
     }
   }
 
