@@ -648,13 +648,12 @@ rtError
 rtRemoteServer::openRpcListener()
 {
   int ret = 0;
-  char path[UNIX_PATH_MAX];
-
-  memset(path, 0, sizeof(path));
   cleanupStaleUnixSockets();
   // this mean empty adress, so we set a random address to it
   if (strcmp(rtSocketToString(m_rpc_endpoint).c_str(), "inet::0") == 0)
   {
+    char path[UNIX_PATH_MAX];
+    memset(path, 0, sizeof(path));
     if (isUnixDomain(m_env))
     {
       rtError e = rtCreateUnixSocketName(0, path, sizeof(path));
