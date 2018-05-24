@@ -93,80 +93,76 @@ function createButtons()
        var init_y = 0;
        var nudge_x = 32;
 
-       var calibrateMode = false;
+       var defineGradient =   " <defs>"
+                            + "   <linearGradient id='myLinearGradient1' x1='0%' y1='0%' x2='0%' y2='100%'"
+                            + "                   spreadMethod='pad' gradientTransform='rotate(-45)'>"
+                            + "     <stop offset='0%'    stop-color='#aaaaaa'  stop-opacity='1' />"
+                            + "     <stop offset='100%'  stop-color='#666666'  stop-opacity='1' />"
+                            + "   </linearGradient>"
+                            + " </defs>";
 
-       if(calibrateMode)
+        var styleGradient   = " style='fill: url(#myLinearGradient1);' ";
+        var styleNormal     = " style='fill: #000; fill-opacity:0.0; stroke: #eee; stroke-width: 28;' ";
+        var styleClick      = " style='fill: #000; fill-opacity:0.0; stroke: #ff0; stroke-width: 32;' ";
+
+        // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+        this.modeX = false; // for calibration
+
+        var pathMarkerX  = ( !modeX ? "" : "<path d='M0 0, L1024,1024 M1024,0 L0,1024, M512,0, L512,1024, M0,512 L1024,512' stroke='#f00' stroke-width='4'/>");
+ 
+        if(modeX)
         {
-          button_w = 512;
-          button_h = 512;
+          button_w = 512;  button_h = 512;
           init_y   = -450;
         }
- 
-        var linearGradient =  "  <defs>"
-                            + "    <linearGradient id='myLinearGradient1' x1='0%' y1='0%' x2='0%' y2='100%'"
-                            + "                    spreadMethod='pad' gradientTransform='rotate(-45)'>"
-                            + "      <stop offset='0%'   stop-color='#aaaaaa' stop-opacity='1'/>"
-                            + "      <stop offset='100%' stop-color='#666666' stop-opacity='1'/>"
-                            + "    </linearGradient>"
-                            + "  </defs>";
-
-        var iconStyleNormal = " style='fill: #000; fill-opacity:0.0; stroke: #eee; stroke-width: 28;' ";
-        var iconStyleClick  = " style='fill: #000; fill-opacity:0.0; stroke: #ff0; stroke-width: 32;' ";
 
         // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
         var pathNormal =  "<svg width='"+ svg_w +"' height='"+ svg_h +"'>"
-                        + linearGradient 
+                        + defineGradient
                         + " <g>"
-                        + "  <circle cx='"+ circle_r +"' cy='"+ circle_r +"' r='"+ circle_r +"'  "
-                        + "     style='fill:url(#myLinearGradient1);' />"
-    //            + "     style='fill-opacity:0.0; stroke: #eee; stroke-width: 8; stroke-alignment: inner' />"
-     /*MARKER*/ + ((!calibrateMode) ? "" : "  <path d='M0 0, L1024,1024 M1024,0 L0,1024, M512,0, L512,1024, M0,512 L1024,512' stroke='#f00' stroke-width='4'/>")
-    + "    <path transform=' translate("+ (icon_w/2 + nudge_x) +","+ icon_h/2 +")' "
-                        + iconStyleNormal 
-                        + " d='" + icon_d + "' />"
-                        + " </g>" 
-                        + "</svg>";
+                        + "  <circle cx='"+ circle_r +"' cy='"+ circle_r +"' r='"+ circle_r +"' " + styleGradient + "/>"
+                        + pathMarkerX // MARKER
+                        + "  <path transform=' translate("+ (icon_w/2 + nudge_x) +","+ icon_h/2 +")' " + styleNormal 
+                        + " d='" + icon_d + "' />" + " </g>" + "</svg>"; // ICON
 
         // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-        var pathClick =  "<svg width='"+ svg_w +"' height='"+ svg_h +"'>"
-                        + linearGradient 
+        var pathClick =   "<svg width='"+ svg_w +"' height='"+ svg_h +"'>"
+                        + defineGradient
                         + " <g>"
-                        + "  <circle cx='"+ circle_r +"' cy='"+ circle_r +"' r='"+ circle_r +"'  "
-                        + "     style='fill:url(#myLinearGradient1);' />"
-    //                       + "     style='fill-opacity:0.0; stroke: #eee; stroke-width: 8; stroke-alignment: inner' />"
-     /*MARKER*/ + ((!calibrateMode) ? "" : "  <path d='M0 0, L1024,1024 M1024,0 L0,1024, M512,0, L512,1024, M0,512 L1024,512' stroke='#f00' stroke-width='4'/>")
-     + "    <path transform=' translate("+ (icon_w/2 + nudge_x) +","+ icon_h/2 +")' "
-                        + iconStyleClick 
-                        + " d='" + icon_d + "' />"
-                        + " </g>" 
-                        + "</svg>";
+                        + "  <circle cx='"+ circle_r +"' cy='"+ circle_r +"' r='"+ circle_r +"' " + styleGradient +"/>"
+                        + pathMarkerX // MARKER
+                        + "  <path transform=' translate("+ (icon_w/2 + nudge_x) +","+ icon_h/2 +")' " + styleClick 
+                        + " d='" + icon_d + "' />" + " </g>"  + "</svg>"; // ICON
 
         // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
         console.log("Initial Create >> " + data.id);
 
         var imageNormal = scene.create( { t: "path", d: pathNormal, w: button_w, h: button_h, parent: root, x: 0, y: init_y,
-                                        interactive: true, id: data.id, parent: buttonsPanel } );
+                                        interactive: true, id: data.id, parent: buttonsPanel} );
 
-        var imageClick = scene.create( { t: "path", d: pathClick, w: button_w, h: button_h, parent: root, x:0, y:0, 
+        var imageClick  = scene.create( { t: "path", d: pathClick,  w: button_w, h: button_h, parent: root, x: 0, y: 0,
                                         interactive: false, id: data.id, parent: imageNormal, a: 0} );
 
+        // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
         // RESPONDERS
-        imageNormal.on("onMouseDown",   function (e)
+        imageNormal.on("onMouseDown", function (e)
         {
           var me = buttonObjects[e.target.id];
           me.buttonObj.y += 3;
 
           me.clickObj.a = 1.0;
         });
-        imageNormal.on("onMouseUp",     function (e)
+        imageNormal.on("onMouseUp",   function (e)
         {
           var me = buttonObjects[e.target.id];
           me.buttonObj.y -= 3;
 
-          if(calibrateMode)
+          if(this.modeX)
           {
             me.buttonObj.moveToBack();
           }
@@ -185,16 +181,11 @@ function createButtons()
       // Initial layout...
 
       Promise.all( allReady ).then(values =>
-        {
-          console.log("Initial Layout");
+      {
+        var targets = Object.keys(buttonObjects).map(button => { return {x: -1, y: -1}; });
 
-          var targets = Object.keys(buttonObjects).map(button => { return {x: -1, y: -1}; });
-
-        //  if(this.calibrateMode == false)
-          {
-             layout();
-          }
-        });
+        layout();
+      });
 
       }// FUNCTION
 
@@ -209,7 +200,10 @@ function createButtons()
 
   function layout()
   {
-    console.log("Do Layout");
+    if(this.modeX == true)
+    {
+      return; // Skip Layout  >> calibration
+    }
 
     var px = 0, py = 0;
     var totalW   = 0;
@@ -231,9 +225,6 @@ function createButtons()
     });
 
     var spare_x = (buttonsPanel.w - totalW);
-
-    console.log("Do Layout >>   totalW: " + totalW);
-    console.log("Do Layout >>  spare_x: " + spare_x);
 
     // Compute GAP and Initial Position
     gap = spare_x / (buttonData.length + 1);
@@ -265,7 +256,7 @@ function createButtons()
 
      console.log("Button Panel WxH >> " + buttonsPanel.w + " x " + buttonsPanel.h);
 
-     buttonsPanel.x = (w - buttonsPanel.w)/2;
+     buttonsPanel.x = (w - buttonsPanel.w) / 2;
      buttonsPanel.y = (h - buttonsPanel.h) - 20;
      
      title.x = 10;
