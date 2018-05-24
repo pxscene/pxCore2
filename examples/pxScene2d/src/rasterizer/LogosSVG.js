@@ -1,4 +1,4 @@
-var files = 
+var files =    // https://github.com/gilbarbara/logos
 [
     "100tb.svg", "500px.svg", "6px.svg", "admob.svg", "adroll.svg", "aerospike.svg", "airbnb.svg",
     "airbrake.svg", "airtable.svg", "akamai.svg", "akka.svg", "alfresco.svg", "algolia.svg",
