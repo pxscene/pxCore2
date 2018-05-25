@@ -121,6 +121,18 @@ pxWindowNative::~pxWindowNative()
   return nil;
 }
 
+- (void)windowDidEnterFullScreen:(NSNotification *)notification
+{
+  NSSize s = [[[notification object] contentView] frame].size;
+  pxWindowNative::_helper_onSize(mWindow, s.width, s.height);  
+}
+
+- (void)windowDidExitFullScreen:(NSNotification *)notification
+{
+  NSSize s = [[[notification object] contentView] frame].size;
+  pxWindowNative::_helper_onSize(mWindow, s.width, s.height);
+}
+
 - (void)windowDidResize: (NSNotification*)notification
 {
   NSSize s = [[[notification object] contentView] frame].size;
@@ -1083,6 +1095,17 @@ pxError pxWindow::init(int left, int top, int width, int height)
                                                  styleMask: NSTitledWindowMask | NSClosableWindowMask |NSMiniaturizableWindowMask | NSResizableWindowMask
                                                    backing: NSBackingStoreBuffered
                                                      defer: NO];
+  
+  
+  NSApplication *app = [NSApplication sharedApplication];
+  
+  NSApplicationPresentationOptions options = [app currentSystemPresentationOptions];
+  [app setPresentationOptions: options | NSApplicationPresentationFullScreen];
+
+  NSWindowCollectionBehavior behavior = [window collectionBehavior];
+  [window setCollectionBehavior: behavior | NSWindowCollectionBehaviorFullScreenPrimary ];
+  
+  
   mWindow = (void*)window;
   
   WinDelegate* delegate = [[WinDelegate alloc] initWithPXWindow:this];
