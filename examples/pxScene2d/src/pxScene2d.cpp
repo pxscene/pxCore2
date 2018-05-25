@@ -1,3 +1,6 @@
+
+
+
 /*
 
  pxCore Copyright 2005-2018 John Robinson
@@ -2065,8 +2068,8 @@ rtError pxScene2d::create(rtObjectRef p, rtObjectRef& o)
   {
     mInnerpxObjects.push_back((pxObject*)o.getPtr());
   }
-    printf("pxObjectTracking CREATION [%p] [%s] [%s] \n", o.getPtr(), t.cString(), mScriptView->getUrl().cString());
-    fflush(stdout);
+  printf("pxObjectTracking CREATION [%p] [%s] [%s] \n", o.getPtr(), t.cString(), mScriptView->getUrl().cString());
+  fflush(stdout);
   return e;
 }
 
