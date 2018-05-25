@@ -221,6 +221,8 @@ px.import({ scene:      'px:scene.1.js',
         //
         //             SVG using a "imageResource" with DIMENSIONS !!
         //
+        svgRes = null;
+
         svgRes   = scene.create({ t: "imageResource", w: max_w, h: max_h, url: url });
         svgImage.resource = svgRes;
         //
