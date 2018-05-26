@@ -162,6 +162,7 @@ else
 fi
 
 #check for crash before valgrind test, as we might have got scenario where pxscene might have crashed during term
+ls -lrt *valgrind*
 $TRAVIS_BUILD_DIR/ci/check_dump_cores_linux.sh `pwd` pxscene $EXECLOGS
 retVal=$?
 if [ "$retVal" -eq 1 ]
