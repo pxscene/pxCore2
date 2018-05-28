@@ -161,6 +161,7 @@ else
 	exit 1;
 fi
 
+
 # Check for valgrind memory leaks
 grep "definitely lost: 0 bytes in 0 blocks" $VALGRINDLOGS
 retVal=$?
