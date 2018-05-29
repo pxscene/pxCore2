@@ -545,19 +545,26 @@ void MyDisplayReconfigurationCallBack(CGDirectDisplayID display,
 
 #pragma mark - Cut and Paste Frist Responders
 
+
+
+- (IBAction)toggleAddressBar:sender
+{
+  pxWindowNative::_helper_onKeyDown(mWindow, PX_KEY_F, PX_MOD_CONTROL | PX_MOD_ALT);  // Fake a CTRL-ALT-F
+}
+
 - (IBAction)cut:sender
 {
-    pxWindowNative::_helper_onKeyDown(mWindow, 88, 16);  // Fake a CTRL-X
+  pxWindowNative::_helper_onKeyDown(mWindow, PX_KEY_X, PX_MOD_CONTROL);  // Fake a CTRL-X
 }
 
 - (IBAction)copy:sender
 {
-    pxWindowNative::_helper_onKeyDown(mWindow, 67, 16);  // Fake a CTRL-C
+    pxWindowNative::_helper_onKeyDown(mWindow, PX_KEY_C, PX_MOD_CONTROL);  // Fake a CTRL-C
 }
 
 - (IBAction)paste:sender
 {
-    pxWindowNative::_helper_onKeyDown(mWindow, 86, 16);  // Fake a CTRL-V
+    pxWindowNative::_helper_onKeyDown(mWindow, PX_KEY_V, PX_MOD_CONTROL);  // Fake a CTRL-V
 }
 
 #pragma mark - Mouse Operations

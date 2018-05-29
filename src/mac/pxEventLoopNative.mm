@@ -135,6 +135,15 @@
     [NSApp    setWindowsMenu: viewMenu];
     [viewMenuItem setSubmenu: viewMenu];
     
+    [[viewMenu addItemWithTitle: @"Toggle Address Bar"
+                         action: @selector(toggleAddressBar:)
+                  keyEquivalent: @"f"]
+     setKeyEquivalentModifierMask:NSControlKeyMask | NSAlternateKeyMask];
+  
+
+    [viewMenu addItem:[NSMenuItem separatorItem]]; // -----------
+
+  
     [[viewMenu addItemWithTitle: @"Enter Full Screen"
                         action: @selector(toggleFullScreen:)
                  keyEquivalent: @"f"]
