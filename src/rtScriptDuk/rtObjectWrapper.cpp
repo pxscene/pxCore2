@@ -360,6 +360,33 @@ duk_ret_t objectHandleGet(duk_context *ctx)
           rt2duk(ctx, v);
           return 1;
         }
+        else
+        {
+  	  if (duk_get_prop_string(ctx, 0, key))
+  	  {
+            if (duk_is_null(ctx, -1))
+            {
+              duk_push_null(ctx);
+            }
+            else if (duk_is_string(ctx, -1))
+            {
+              duk_push_string(ctx,duk_get_string(ctx, -1));
+            }
+            else if (duk_is_boolean(ctx, -1))
+            {
+                duk_push_boolean(ctx,duk_get_boolean(ctx, -1));
+            }
+            else if (duk_is_number(ctx, -1))
+            {
+                duk_push_number(ctx,duk_get_number(ctx, -1));
+            }
+            else if (duk_is_object(ctx, -1))
+            {
+      	      duk_dup(ctx,-1);
+            }
+	    return 1;
+          }
+        }
         #if 0
         else
           rtLogError("Failed to get property, %s, from rtObject", key);
@@ -407,7 +434,34 @@ duk_ret_t objectHandleSet(duk_context *ctx)
           return 1;
         }
         else
+        {
           rtLogError("Failed to set property, %s, to rtObject", key);
+          if (duk_is_null(ctx, 2)) 
+          { 
+            duk_push_null(ctx);
+          }
+          else if (duk_is_string(ctx, 2)) 
+          { 
+            duk_push_string(ctx,duk_get_string(ctx, 2));
+          }
+          else if (duk_is_boolean(ctx, 2))
+          { 
+              duk_push_boolean(ctx,duk_get_boolean(ctx, 2));
+          }
+          else if (duk_is_number(ctx, 2)) 
+          { 
+              duk_push_number(ctx,duk_get_number(ctx, 2));
+          }
+          else if (duk_is_object(ctx, 2))
+          {
+            //duk_require_object(ctx, 2);
+            //duk_push_object(ctx);
+	    duk_dup(ctx,2);
+          }
+          duk_put_prop_string(ctx, 0, key);
+          duk_push_boolean(ctx, true);
+          return 1;
+        }
       }
       else
       {
