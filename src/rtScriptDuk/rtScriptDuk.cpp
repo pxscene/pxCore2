@@ -282,6 +282,9 @@ extern uv_loop_t *nodeLoop;
 #ifdef ENABLE_DEBUG_MODE
 int g_argcduk = 0;
 char** g_argvduk;
+#else
+int argcduk = 0;
+char** argvduk;
 #endif
 #ifndef ENABLE_DEBUG_MODE
 extern args_t *s_gArgs;
