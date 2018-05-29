@@ -516,16 +516,16 @@ public:
 
   virtual rtError Set(const char* name, const rtValue* value)
   {
-    std::ignore = name;
-    std::ignore = value;
+    (void)name;
+    (void)value;
     // readonly property
     return RT_PROP_NOT_FOUND;
   }
 
   virtual rtError Set(uint32_t i, const rtValue* value)
   {
-    std::ignore = i;
-    std::ignore = value;
+    (void)i;
+    (void)value;
     // readonly property
     return RT_PROP_NOT_FOUND;
   }
@@ -661,8 +661,8 @@ rtError pxObject::setFocus(bool v)
 
 rtError pxObject::Set(uint32_t i, const rtValue* value)
 {
-  std::ignore = i;
-  std::ignore = value;
+  (void)i;
+  (void)value;
   rtLogError("pxObject::Set(uint32_t, const rtValue*) - not implemented");
   return RT_ERROR_NOT_IMPLEMENTED;
 }
