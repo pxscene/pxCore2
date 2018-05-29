@@ -139,9 +139,7 @@
                         action: @selector(toggleFullScreen:)
                  keyEquivalent: @"f"]
        setKeyEquivalentModifierMask:NSControlKeyMask | NSCommandKeyMask];
-    
-    [viewMenu addItem:[NSMenuItem separatorItem]]; // -----------
-    
+        
     [viewMenu release];
     
     // WINDOW ---------------------------------------------------------------------------------
