@@ -124,6 +124,26 @@
   
     [editMenu release];
   
+    
+    // VIEW ---------------------------------------------------------------------------------
+    
+    NSMenuItem *viewMenuItem =
+    [bar addItemWithTitle:@"" action:NULL keyEquivalent:@""];
+    
+    NSMenu *viewMenu = [[NSMenu alloc] initWithTitle:@"View"];
+    
+    [NSApp    setWindowsMenu: viewMenu];
+    [viewMenuItem setSubmenu: viewMenu];
+    
+    [[viewMenu addItemWithTitle: @"Enter Full Screen"
+                        action: @selector(toggleFullScreen:)
+                 keyEquivalent: @"f"]
+       setKeyEquivalentModifierMask:NSControlKeyMask | NSCommandKeyMask];
+    
+    [viewMenu addItem:[NSMenuItem separatorItem]]; // -----------
+    
+    [viewMenu release];
+    
     // WINDOW ---------------------------------------------------------------------------------
     
     NSMenuItem *windowMenuItem =
