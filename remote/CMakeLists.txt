@@ -30,14 +30,14 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
 set(LIBRARY_LINKER_OPTIONS -pthread -ldl -luuid -Wl,-rpath=../../,--enable-new-dtags)
 set(RTREMOTE_LINK_DIRECTORIES ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/../src ${CMAKE_CURRENT_SOURCE_DIR}/../build/glut ${CMAKE_CURRENT_SOURCE_DIR}/../build/egl)
 
-if (CMAKE_CROSSCOMPILING)
+if (CMAKE_CROSSCOMPILING OR RTREMOTE_GENERATOR_EXPORT)
     option(RTREMOTE_GENERATOR_EXPORT "Location of rtRemote export file (rtRemoteConfigGen_export.cmake) from a native build" "RTREMOTE_GENERATOR_EXPORT-file-not-found")
     include(${RTREMOTE_GENERATOR_EXPORT})
-else(CMAKE_CROSSCOMPILING)
+else(CMAKE_CROSSCOMPILING OR RTREMOTE_GENERATOR_EXPORT)
     add_executable(rtRemoteConfigGen rtRemoteConfigGen.cpp)
     set_target_properties(rtRemoteConfigGen PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
     export(TARGETS rtRemoteConfigGen FILE "${CMAKE_CURRENT_BINARY_DIR}/rtRemoteConfigGen_export.cmake")
-endif(CMAKE_CROSSCOMPILING)
+endif(CMAKE_CROSSCOMPILING OR RTREMOTE_GENERATOR_EXPORT)
 
 add_custom_command(OUTPUT rtremote.conf.gen
                    DEPENDS rtRemoteConfigGen rtremote.conf.ac

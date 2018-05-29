@@ -1,6 +1,6 @@
 /*
 
- pxCore Copyright 2005-2017 John Robinson
+ pxCore Copyright 2005-2018 John Robinson
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -500,7 +500,8 @@ uint32_t pxWayland::getModifiers( uint32_t flags )
 
 bool pxWayland::isRotated()
 {
-   float *f= context.getMatrix().data();
+   pxMatrix4f matrix = context.getMatrix();
+   float *f = matrix.data(); 
    const float e= 1.0e-2;
 
    if ( (fabsf(f[1]) > e) ||

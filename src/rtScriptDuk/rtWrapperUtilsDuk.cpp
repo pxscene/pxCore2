@@ -1,3 +1,21 @@
+/*
+
+pxCore Copyright 2005-2018 John Robinson
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+*/
+
 #include "rtWrapperUtilsDuk.h"
 #include "rtObjectWrapperDuk.h"
 #include "rtFunctionWrapperDuk.h"
@@ -12,6 +30,7 @@ using namespace std;
 
 namespace rtScriptDukUtils
 {
+std::hash<std::string> hashFn;
 
 void rt2duk(duk_context *ctx, const rtValue& v)
 {
@@ -120,7 +139,17 @@ rtValue duk2rt(duk_context *ctx, rtWrapperError* error)
   if (duk_is_function(ctx, -1)) {
     duk_dup(ctx, -1);
     std::string id = rtDukPutIdentToGlobal(ctx);
-    return rtValue(rtFunctionRef(new jsFunctionWrapper(ctx, id)));
+    jsFunctionWrapper *wr = new jsFunctionWrapper(ctx, id);
+    duk_dump_function(ctx);
+    unsigned  char *p;
+    duk_size_t sz;
+    p = (unsigned char *) duk_get_buffer(ctx, -1, &sz);
+    if (NULL != p)
+    {
+      size_t fnval = hashFn((char *)p);
+      wr->setHash(fnval);
+    }
+    return rtValue(rtFunctionRef(wr));
   }
   if (duk_is_object(ctx, -1)) {
     duk_bool_t res = duk_get_prop_string(ctx, -1, "\xff""\xff""data");

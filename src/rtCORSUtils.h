@@ -1,6 +1,6 @@
 /*
 
- pxCore Copyright 2005-2017 John Robinson
+ pxCore Copyright 2005-2018 John Robinson
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -22,8 +22,6 @@
 #include "rtString.h"
 #include "rtError.h"
 
-rtError rtCORSUtilsCheckOrigin(const rtString& origin, const rtString& reqUrl, const rtString& rawHeaders, rtString* errorStr = NULL);
-
-extern const char* USE_ACCESS_CONTROL_CHECK_ENV_NAME;
+rtError rtCORSUtilsCheckOrigin(const rtString& origin, const rtString& url, const rtString& headers);
 
 #endif

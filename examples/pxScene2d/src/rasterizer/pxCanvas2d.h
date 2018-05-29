@@ -1,6 +1,6 @@
 /*
  
- pxCore Copyright 2005-2017 John Robinson
+ pxCore Copyright 2005-2018 John Robinson
  
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
@@ -58,11 +58,6 @@ public:
   void curveTo(double x2, double y2, double x3, double y3, double x4, double y4); // Cubic
   
   void closePath();
-
-  // The following methods create a path for the associated shape
-  // to render call either fill() or stroke()
-
-  //void rectangle(float x1, float y1, float x2, float y2);
 
 #if 0
   void rotate(double a);
@@ -128,6 +123,8 @@ public:
     mRasterizer.setYOversample(i);
   }
 
+  pxBuffer* buffer() const { return mRasterizer.buffer(); } 
+
   pxBuffer* texture() const;
   void setTexture(pxBuffer* texture);
 
@@ -150,6 +147,9 @@ public:
 
   bool overdraw() const    { return mRasterizer.overdraw();     }
   void setOverdraw(bool f) {        mRasterizer.setOverdraw(f); }
+
+  // The following methods create a path for the associated shape
+  // to render call either fill() or stroke()
 
   void roundRect(double x, double y, double w, double h, double rx, double ry);
   //void roundRectangle(double x, double y, double w, double h, double rad);

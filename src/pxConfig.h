@@ -1,6 +1,6 @@
 /*
 
- pxCore Copyright 2005-2017 John Robinson
+ pxCore Copyright 2005-2018 John Robinson
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -42,6 +42,13 @@
 #define RT_STDCALL //__stdcall
 #else
 #define RT_STDCALL
+#endif
+
+#if defined __GNUC__
+#  define GCC_VERSION (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)
+#  if GCC_VERSION < 40700
+#    define override
+#  endif
 #endif
 
 #endif

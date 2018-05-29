@@ -1,3 +1,21 @@
+/*
+
+pxCore Copyright 2005-2018 John Robinson
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+*/
+
 #include <sstream>
 
 #define private public
@@ -17,7 +35,6 @@ public:
 private:
     int mWidth;
     int mHeight;
-
 };
 
 class pxCanvas2dTest : public testing::Test
@@ -32,11 +49,16 @@ public:
 
     virtual void TearDown()
     {
+      delete canvas2d;
       canvas2d = NULL;
     }
 
   void matrixTest()
   {
+    EXPECT_TRUE (canvas2d            != NULL);
+    EXPECT_TRUE (canvas2d->buffer()  != NULL);
+    EXPECT_TRUE (canvas2d->texture() == NULL);
+
     pxMatrix4T<float> m1; // identity
     pxMatrix4T<float> m2; // identity
 
@@ -63,19 +85,25 @@ public:
 
   void textureTest()
   {
+    EXPECT_TRUE (canvas2d            != NULL);
+    EXPECT_TRUE (canvas2d->buffer()  != NULL);
+    EXPECT_TRUE (canvas2d->texture() == NULL);
+
     pxOffscreen tex;
     tex.init(256, 256);
 
-    pxBuffer *pTex;
-
     canvas2d->setTexture(&tex);
-    pTex = canvas2d->texture();
-
+    pxBuffer *pTex = canvas2d->texture();
     EXPECT_TRUE (pTex == &tex);
+    canvas2d->setTexture(NULL); // reset
   }
 
   void textureClampTest()
   {
+    EXPECT_TRUE (canvas2d            != NULL);
+    EXPECT_TRUE (canvas2d->buffer()  != NULL);
+    EXPECT_TRUE (canvas2d->texture() == NULL);
+
     canvas2d->setTextureClamp(true);
     bool b1 = canvas2d->textureClamp();
 
@@ -89,6 +117,10 @@ public:
 
   void textureClampColorTest()
   {
+    EXPECT_TRUE (canvas2d            != NULL);
+    EXPECT_TRUE (canvas2d->buffer()  != NULL);
+    EXPECT_TRUE (canvas2d->texture() == NULL);
+
     canvas2d->setTextureClampColor(true);
     bool b1 = canvas2d->textureClampColor();
 
@@ -102,6 +134,10 @@ public:
 
   void biLerpTest()
   {
+    EXPECT_TRUE (canvas2d            != NULL);
+    EXPECT_TRUE (canvas2d->buffer()  != NULL);
+    EXPECT_TRUE (canvas2d->texture() == NULL);
+
     canvas2d->setBiLerp(true);
     bool b1 = canvas2d->biLerp();
 
@@ -115,6 +151,10 @@ public:
 
   void alphaTextureTest()
   {
+    EXPECT_TRUE (canvas2d            != NULL);
+    EXPECT_TRUE (canvas2d->buffer()  != NULL);
+    EXPECT_TRUE (canvas2d->texture() == NULL);
+
     canvas2d->setAlphaTexture(true);
     bool b1 = canvas2d->alphaTexture();
 
@@ -128,6 +168,10 @@ public:
 
   void overdrawTest()
   {
+    EXPECT_TRUE (canvas2d            != NULL);
+    EXPECT_TRUE (canvas2d->buffer()  != NULL);
+    EXPECT_TRUE (canvas2d->texture() == NULL);
+
     canvas2d->setOverdraw(true);
     bool b1 = canvas2d->overdraw();
 
@@ -141,6 +185,10 @@ public:
 
   void roundRectTest()
   {
+    EXPECT_TRUE (canvas2d            != NULL);
+    EXPECT_TRUE (canvas2d->buffer()  != NULL);
+    EXPECT_TRUE (canvas2d->texture() == NULL);
+
     canvas2d->roundRect(0,0, 100,100, 10, 10);
 
     // How to test... read back pixels ?
@@ -148,6 +196,10 @@ public:
 
   void bufferInitTest()
   {
+    EXPECT_TRUE (canvas2d            != NULL);
+    EXPECT_TRUE (canvas2d->buffer()  != NULL);
+    EXPECT_TRUE (canvas2d->texture() == NULL);
+
     pxError result1 = canvas2d->initWithBuffer(NULL);
     EXPECT_TRUE (result1 == PX_FAIL);
 
@@ -160,6 +212,10 @@ public:
 
   void getPenTest()
   {
+    EXPECT_TRUE (canvas2d            != NULL);
+    EXPECT_TRUE (canvas2d->buffer()  != NULL);
+    EXPECT_TRUE (canvas2d->texture() == NULL);
+
     double x = canvas2d->getPenX();
     double y = canvas2d->getPenY();
 
@@ -169,11 +225,17 @@ public:
 
   void testStrokeType()
   {
+    canvas2d->init(640, 480);
+
+    EXPECT_TRUE (canvas2d            != NULL);
+    EXPECT_TRUE (canvas2d->buffer()  != NULL);
+    EXPECT_TRUE (canvas2d->texture() == NULL);
+
       canvas2d->setFillColor( pxColor(0xFF0000FF) );// RED
       canvas2d->setStrokeColor( pxColor(0xFF0000FF) );// RED
       canvas2d->setStrokeWidth(4.0);
 
-      canvas2d->rectangle(50,50, 20,20);
+      canvas2d->rectangle(20,20, 200,100);
       canvas2d->fill(); // FILL
 
       // Stoke Types
@@ -200,6 +262,10 @@ public:
 
   void testColor()
   {
+    EXPECT_TRUE (canvas2d            != NULL);
+    EXPECT_TRUE (canvas2d->buffer()  != NULL);
+    EXPECT_TRUE (canvas2d->texture() == NULL);
+
       canvas2d->setFillColor( pxColor(0xFF0000FF) );// RED
       canvas2d->setStrokeColor( pxColor(0xFF0000FF) );// RED
       canvas2d->setStrokeWidth(4.0);
@@ -246,6 +312,10 @@ public:
 
   void rasterTextureMatrixTest()
   {
+    EXPECT_TRUE (canvas2d            != NULL);
+    EXPECT_TRUE (canvas2d->buffer()  != NULL);
+    EXPECT_TRUE (canvas2d->texture() == NULL);
+
       pxOffscreen texture;
       texture.initWithColor(256, 256, pxRed); // RED
 
@@ -272,10 +342,16 @@ public:
       canvas2d->setStrokeType(pxCanvas2d::StrokeType::inside);
       canvas2d->stroke(); //STROKE
       // How to test... read back pixels ?
+
+    canvas2d->setTexture(NULL); //reset
   }
 
   void rasterTextureIdentityTest()
   {
+      EXPECT_TRUE (canvas2d            != NULL);
+      EXPECT_TRUE (canvas2d->buffer()  != NULL);
+      EXPECT_TRUE (canvas2d->texture() == NULL);
+
       pxOffscreen texture;
       texture.initWithColor(256, 256, pxRed); // RED
 
@@ -315,6 +391,8 @@ public:
       canvas2d->clear();
 
       // How to test... read back pixels ?
+
+      canvas2d->setTexture(NULL); //reset
   }
 
   // - -  - -  - -  - -  - -  - -  - -  - -  - -  - - 

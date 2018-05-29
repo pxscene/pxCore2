@@ -1,6 +1,6 @@
 ﻿/*
 
- pxCore Copyright 2005-2017 John Robinson
+ pxCore Copyright 2005-2018 John Robinson
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -75,9 +75,9 @@ using namespace std;
 #include <client/windows/handler/exception_handler.h>
 #endif
 
-#ifdef PX_SERVICE_MANAGER
+#ifdef PX_SERVICE_MANAGER_LINKED
 #include "rtservicemanager.h"
-#endif //PX_SERVICE_MANAGER
+#endif //PX_SERVICE_MANAGER_LINKED
 
 #ifndef RUNINMAIN
 class AsyncScriptInfo;
@@ -651,10 +651,10 @@ if (s && (strcmp(s,"1") == 0))
   OptimusClient::registerApi(tempObject);
 #endif //ENABLE_OPTIMUS_SUPPORT
 
-#ifdef PX_SERVICE_MANAGER
+#ifdef PX_SERVICE_MANAGER_LINKED
   RtServiceManager::start();
 
-#endif //PX_SERVICE_MANAGER
+#endif //PX_SERVICE_MANAGER_LINKED
 
   eventLoop.run();
 
