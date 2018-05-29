@@ -40,7 +40,6 @@ void rtHttpResponse::onDownloadComplete(rtFileDownloadRequest* downloadRequest)
   request->mJsonResponse = downloadRequest->downloadedData(); 
   rtHttpResponse* httpResponse = (rtHttpResponse*)request->mHttpResponse.getPtr();
   httpResponse->populateHeaders(downloadRequest);
-  //may need to populate status code here
   httpResponse->mStatusCode = downloadRequest->httpStatusCode();
   httpResponse->mErrorMessage = downloadRequest->errorString();
   gUIThreadQueue.addTask(onDownloadCompleteUI, (void *)httpResponse, (void*)request);
@@ -58,7 +57,6 @@ void rtHttpResponse::onDownloadCompleteUI(void* context, void* data)
   httpResponse->clearResources();
   request->mCallbackFunction = NULL;
   request->mHttpResponse = NULL;
-  //delete request->mHttpResponse;
   //delete request;
 }
 
@@ -77,13 +75,12 @@ rtError rtHttpGetBinding(int numArgs, const rtValue* args, rtValue* result, void
   }
 
   rtObjectRef resp(new rtHttpResponse());
-//  args[1].toFunction().send(resp);
   struct httpRequest* req = new httpRequest();
   req->mUrl = args[0].toString();
   req->mHttpResponse = resp;
   req->mCallbackFunction = args[1].toFunction();
   handleRequest(req);
-  //*result = resp;
+  *result = resp;
   return RT_OK;
 }
 

@@ -720,6 +720,7 @@ if (isDuk) {
                            }
                            //var localapp = (isLocalApp(_this.packageUrl) || isLocalIPV6App(_this.packageUrl));
                            //modData.setLocalApp(localapp);
+                           // This may not be a problem in master
                            modData.setLocalApp(true);
                            onImportComplete([modData, origFilePath]);
                            return;

@@ -362,6 +362,7 @@ duk_ret_t objectHandleGet(duk_context *ctx)
         }
         else
         {
+          // Handle retrieving the dynamic properties which are not part of rtObject
   	  if (duk_get_prop_string(ctx, 0, key))
   	  {
             if (duk_is_null(ctx, -1))
@@ -436,6 +437,7 @@ duk_ret_t objectHandleSet(duk_context *ctx)
         else
         {
           rtLogError("Failed to set property, %s, to rtObject", key);
+          // Handle setting the dynamic property which are not part of rtObject
           if (duk_is_null(ctx, 2)) 
           { 
             duk_push_null(ctx);
@@ -454,8 +456,6 @@ duk_ret_t objectHandleSet(duk_context *ctx)
           }
           else if (duk_is_object(ctx, 2))
           {
-            //duk_require_object(ctx, 2);
-            //duk_push_object(ctx);
 	    duk_dup(ctx,2);
           }
           duk_put_prop_string(ctx, 0, key);

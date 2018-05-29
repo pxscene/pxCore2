@@ -21,6 +21,7 @@ extern "C" {
 }
 void rtSetupJsModuleBindings(duk_context *ctx);
 
+/* container for the http request to track single download request and response */
 struct httpRequest
 {
   rtString mUrl;
@@ -73,6 +74,7 @@ public:
   static void onDownloadCompleteUI(void* context, void* data);
 
 private:
+  /* populate headers from the download request */
   void populateHeaders(rtFileDownloadRequest*);
   int32_t mStatusCode;
   rtString mErrorMessage;
