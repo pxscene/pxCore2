@@ -718,8 +718,9 @@ if (isDuk) {
                            {
                            modData = new https_wrap();
                            }
-                           var localapp = (isLocalApp(_this.packageUrl) || isLocalIPV6App(_this.packageUrl));
-                           modData.setLocalApp(localapp);
+                           //var localapp = (isLocalApp(_this.packageUrl) || isLocalIPV6App(_this.packageUrl));
+                           //modData.setLocalApp(localapp);
+                           modData.setLocalApp(true);
                            onImportComplete([modData, origFilePath]);
                            return;
                            } else if( filePath.substring(0, 9) === "px:scene.") {
