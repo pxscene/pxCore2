@@ -598,36 +598,11 @@ void updatePen(float px, float py)
       
       s += strlen(poly_str); // SKIP POLYGON
       
-      float min_x = 100000, max_x = -10000;
-      float min_y = 100000, max_y = -10000;
-      
-      int xy = 0;
-      
       while(sscanf(s, "%f %n", &pt, &n) == 1)
       {
-        if( (xy++ %2) ) // y vals
-        {
-          min_y = (pt <  min_y) ? pt : min_y;
-          max_y = (pt >= max_y) ? pt : max_y;
-        }
-        else
-        {
-          min_x = (pt <  min_x) ? pt : min_x;
-          max_x = (pt >= max_x) ? pt : max_x;
-        }
-        
         points.push_back(pt);
         s += n;
       }
-      
-      if( (points.size() % 2 != 0) ) // if ODD number ... Error !
-      {
-        fprintf(stderr, "\n POLYGON parse failed at \"%s\"\n", s);
-        break;
-      }
-      
-      p->setW(max_x - min_x);
-      p->setH(max_y - min_y);
       
       p->pushPolygon(p, points);
       
@@ -714,7 +689,7 @@ void pxPath::pushRect(pxPath *p, float x0, float y0, float w, float h, float rx,
     // - - - - - - - - - - - - - - - - - - - - - - - - - -
     // Right
     p->pushOpcode( 'L' ); // H
-    p->pushFloat(x0 + w, y0 + h - ry);
+    p->pushFloat(x0 + w -3, y0 + h - ry);
 
     // - - - - - - - - - - - - - - - - - - - - - - - - - -
     
