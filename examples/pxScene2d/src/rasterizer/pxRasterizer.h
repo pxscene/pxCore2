@@ -1,10 +1,28 @@
-// Copyright 2007 John Robinson
+/*
+
+pxCore Copyright 2005-2018 John Robinson
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+*/
+
 
 #ifndef  _H_PXRASTERIZER
 #define _H_PXRASTERIZER
 
 #include "px2d.h"
 
+#include <stdint.h>
 
 #include "pxMatrix4T.h"
 #include "pxOffscreen.h"
@@ -42,38 +60,31 @@ public:
 
   // 1, 2, 4, 8, 16 supported
   // This will reset the rasterizer
-  void setYOversample(int i);
+  void setYOversample(int32_t i);
 
   // ??
   // This will reset the rasterizer
   // Valid values for this are 0, 1, 2, 4, 8, 16
-  void setXResolution(int i);
+  void setXResolution(int32_t i);
 
   pxRect clip();
   void setClip(const pxRect* r);
 
-  pxBuffer* texture() const {return mTexture;}
+  pxBuffer* buffer()  const { return mBuffer; }
+  pxBuffer* texture() const {return mTexture; }
   void setTexture(pxBuffer* texture);
 
-#if 0
-  bool alphaTexture() const { return mAlphaTexture; }
-  void setAlphaTexture(bool f) 
-  { 
-    mAlphaTexture = f; 
-  }
-#else
-  bool alphaTexture() const;
-  void setAlphaTexture(bool f);
-#endif
+  bool alphaTexture() const     { return mAlphaTexture; }
+  void setAlphaTexture(bool f)  { mAlphaTexture = f;    }
 
   void setTextureCoordinates(pxVertex& e1, pxVertex& e2, pxVertex& e3, pxVertex& e4,
                              pxVertex& t1, pxVertex& t2, pxVertex& t3, pxVertex& t4);
 
-  bool textureClamp() const { return mTextureClamp; }
-  void setTextureClamp(bool f) { mTextureClamp = f; }
+  bool textureClamp() const    { return mTextureClamp; }
+  void setTextureClamp(bool f) { mTextureClamp = f;    }
 
-  bool textureClampColor() const { return mTextureClampColor; }
-  void setTextureClampColor(bool f) { mTextureClampColor = f; }
+  bool textureClampColor() const    { return mTextureClampColor; }
+  void setTextureClampColor(bool f) { mTextureClampColor = f;    }
 
 	void matrix(pxMatrix4T<float>& m) const;
 	void setMatrix(const pxMatrix4T<float>& m);
@@ -81,13 +92,15 @@ public:
   void textureMatrix(pxMatrix4T<float>& m) const;
   void setTextureMatrix(const pxMatrix4T<float>& m);
 
-  bool biLerp() const { return mBiLerp; }
-  void setBiLerp(bool f) { mBiLerp = f; }
+  bool biLerp() const    { return mBiLerp; }
+  void setBiLerp(bool f) { mBiLerp = f;    }
 
-  bool overdraw() const { return mOverdraw; }
-  void setOverdraw(bool f) { mOverdraw = f;; }
+  bool overdraw() const    { return mOverdraw; }
+  void setOverdraw(bool f) { mOverdraw = f;    }
 
   void clear();
+
+
 
 private:
 
@@ -102,11 +115,11 @@ private:
 
   void calculateEffectiveAlpha();
 
-  int mYOversample;
-  int mXResolution;
+  int32_t mYOversample;
+  int32_t mXResolution;
 
-  int mFirst, mLast;
-  int mLeftExtent, mRightExtent;
+  int32_t mFirst, mLast;
+  int32_t mLeftExtent, mRightExtent;
 
   pxBuffer* mBuffer;
 
@@ -117,15 +130,15 @@ private:
   void* mEdgeArray;
   void * miStarts;
   void * miEnds;
-  int mEdgeCount;
+  int32_t mEdgeCount;
 #else
   void* mEdgeManager;
 #endif
 
 #ifdef USELONGCOVERAGE
-  char* mCoverage;
+  int8_t*  mCoverage;
 #else
-  unsigned char* mCoverage;
+  uint8_t* mCoverage;
 #endif
 
   pxFillMode mFillMode;
@@ -133,16 +146,16 @@ private:
   double mAlpha;
 
   bool mAlphaDirty;
-  unsigned char mEffectiveAlpha;
-  unsigned char mCoverage2Alpha[256];
+  uint8_t mEffectiveAlpha;
+  uint8_t mCoverage2Alpha[256];
 
   pxRect mClip;
   bool mClipValid;
   pxRect mClipInternal;  // mClip interescted with the bounds of the current buffer.
   bool mClipInternalCalculated;
 
-  int mCachedBufferHeight;
-  int mCachedBufferWidth;
+  int32_t mCachedBufferHeight;
+  int32_t mCachedBufferWidth;
 
   // mYOversample derived values
   uint32_t overSampleAdd;
@@ -155,7 +168,6 @@ private:
 
   pxBuffer* mTexture;
 
-//    public: // BUGBUG
   bool mTextureClamp;
   bool mTextureClampColor;
   bool mBiLerp;
@@ -163,11 +175,8 @@ private:
 
   bool mOverdraw;
 
-  unsigned char ltEdgeCover[16];  // static?  can be shared
-  unsigned char rtEdgeCover[16];
-
-  pxMatrix4T<float> mMatrix22;
-  pxMatrix4T<float> mTextureMatrix22;
+  uint8_t ltEdgeCover[16];  // static?  can be shared
+  uint8_t rtEdgeCover[16];
 
   pxMatrix4T<float> mMatrix;
   pxMatrix4T<float> mTextureMatrix;

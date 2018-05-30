@@ -1,3 +1,21 @@
+/*
+
+pxCore Copyright 2005-2018 John Robinson
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+*/
+
 'use strict';
 
 //application manager variables
@@ -8,16 +26,25 @@ var eventListenerHash = {}
 var scene = undefined;
 var root = undefined;
 
+//Application types
+const TYPE_SPARK = 1;
+const TYPE_NATIVE = 2;
+const TYPE_WEB = 3;
+const TYPE_UNDEFINED = 4;
+
 function Application(props) {
   this.id;
   this.priority	= 1;
   this.appState = "RUNNING";
   this.externalApp = undefined;
   this.appName = "";
+  this.browser = undefined;
+  this.type = TYPE_UNDEFINED;
 
   var cmd = "";
   var w = 0;
   var h = 0;
+  var uri = "";
 
   if ("launchParams" in props){
     var launchParams = props["launchParams"];
@@ -34,13 +61,15 @@ function Application(props) {
   }
   if (cmd){
     if (scene !== undefined) {
-      if (cmd.includes(".js")){
-        this.externalApp = scene.create({t:"scene", parent:root, url:cmd});
+      if ((cmd == "spark") && "uri" in launchParams){
+        this.type = TYPE_SPARK;
+        uri = launchParams["uri"];
+        this.externalApp = scene.create({t:"scene", parent:root, url:uri});
         this.externalApp.on("onClientStopped", this.applicationClosed);
         var sparkApp = this;
         this.externalApp.ready.then(function(o) {
             console.log("successfully created Spark app: " + sparkApp.id);
-            this.applicationReady();
+            sparkApp.applicationReady();
           }, function rejection(o) {
           console.log("failed to launch Spark app: " + sparkApp.id);
           module.exports.onDestroy(sparkApp);
@@ -48,7 +77,49 @@ function Application(props) {
         this.setProperties(props);
         module.exports.onCreate(this);
       }
+      else if (cmd == "rdkbrowser2"){
+        this.type = TYPE_WEB;
+        if ("uri" in launchParams){
+            uri = launchParams["uri"];
+        }
+        var waylandObj = scene.create( {t:"wayland", parent:root, server:"wl-rdkbrowser2-server", w:w, h:h, hasApi:true} );
+        this.externalApp = waylandObj;
+        this.setProperties(props);
+        var thisApp = this;
+        waylandObj.remoteReady.then(function(obj) {
+            if(obj)
+            {
+              thisApp.browser = waylandObj.api.createWindow(waylandObj.displayName, false);
+              if (thisApp.browser)
+              {
+                thisApp.browser.url = uri;
+                console.log("launched rdkbrowser2 uri:" + uri);
+                module.exports.onCreate(waylandObj);
+                waylandObj.applicationReady();
+              }
+              else
+              {
+                console.log("failed to create window for rdkbrowser2");
+                module.exports.onDestroy(waylandObj);
+              }
+            }
+            else
+            {
+              console.log("failed to create rdkbrowser2 invalid waylandObj");
+              module.exports.onDestroy(waylandObj);
+            }
+          }, function rejection(o) {
+          console.log("failed to create rdkbrowser2");
+          module.exports.onDestroy(waylandObj);
+        });
+      }
       else{
+        if (cmd == "wpe" && "uri" in launchParams){
+            uri = launchParams["uri"];
+            cmd = cmd + " " + uri;
+            console.log("Launching wpe uri: " + uri); 
+        }
+        this.type = TYPE_NATIVE;
         this.externalApp = scene.create( {t:"wayland", parent:root, cmd:cmd, w:w, h:h, hasApi:true} );
         this.externalApp.on("onReady", this.applicationReady);
         this.externalApp.on("onClientStopped", this.applicationClosed);
@@ -91,7 +162,7 @@ Application.prototype.applicationClosed = function(e){
   }
 }
 Application.prototype.suspend = function() {
-  if (this.externalApp){
+  if (this.externalApp && this.externalApp.suspend != undefined){
     this.externalApp.suspend();
   }
   var appManager = module.exports;
@@ -104,7 +175,7 @@ Application.prototype.suspend = function() {
   return true;
 }
 Application.prototype.resume = function() {
-  if (this.externalApp){
+  if (this.externalApp && this.externalApp.resume != undefined){
     this.externalApp.resume();
   }
   var appManager = module.exports;
@@ -149,9 +220,9 @@ Application.prototype.moveToBack = function() {
   }
   return true;
 }
-Application.prototype.setFocus = function(focus) {
+Application.prototype.setFocus = function() {
   if (this.externalApp){
-    this.externalApp.focus = focus;
+    this.externalApp.focus = true;
   }
   return true;
 }
@@ -179,7 +250,14 @@ Application.prototype.on = function(e,fn) {
 
 
 Application.prototype.api = function() {
-  if (this.externalApp){
+  if (this.type == TYPE_WEB){
+    if (this.browser){
+      return this.browser;
+    } else {
+      return null;
+    }
+  }
+  else if (this.externalApp){
     return this.externalApp.api;
   } else {
     return null;

@@ -1,6 +1,6 @@
 /*
 
- pxCore Copyright 2005-2017 John Robinson
+ pxCore Copyright 2005-2018 John Robinson
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -40,7 +40,7 @@ pxImage9Border::~pxImage9Border()
 }
 
 void pxImage9Border::draw() {
-  if (getImageResource() != NULL)
+  if (getImageResource() != NULL && getImageResource()->isInitialized())
   {
     context.drawImage9Border(mw, mh, mBorderLeft, mBorderTop, mBorderRight, mBorderBottom, mInsetLeft, mInsetTop, mInsetRight, mInsetBottom,
                              mDrawCenter, mMaskColor, getImageResource()->getTexture());

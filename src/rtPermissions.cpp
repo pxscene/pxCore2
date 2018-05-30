@@ -1,6 +1,6 @@
 /*
 
- pxCore Copyright 2005-2017 John Robinson
+ pxCore Copyright 2005-2018 John Robinson
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -21,21 +21,23 @@
 #include "rtUrlUtils.h"
 #include "rtPathUtils.h"
 
-#include <rapidjson/document.h>
-#include <rapidjson/filereadstream.h>
-#include <rapidjson/error/en.h>
+#include <../remote/rapidjson/document.h>
+#include <../remote/rapidjson/filereadstream.h>
+#include <../remote/rapidjson/error/en.h>
 
 #include <stdlib.h>
 #include <algorithm>
 
 
 // Bootstrap
-const char* rtPermissions::DEFAULT_CONFIG_FILE = "./pxscenepermissions.conf";
-const char* rtPermissions::CONFIG_ENV_NAME = "PXSCENE_PERMISSIONS_CONFIG";
+const char* rtPermissions::DEFAULT_CONFIG_FILE = "./sparkpermissions.conf";
+const char* rtPermissions::CONFIG_ENV_NAME = "SPARK_PERMISSIONS_CONFIG";
+const char* rtPermissions::ENABLED_ENV_NAME = "SPARK_PERMISSIONS_ENABLED";
 const int rtPermissions::CONFIG_BUFFER_SIZE = 65536;
 rtPermissions::assignMap_t rtPermissions::mAssignMap;
 rtPermissions::roleMap_t rtPermissions::mRolesMap;
 std::string rtPermissions::mConfigPath;
+bool rtPermissions::mEnabled;
 
 
 template<typename Map> typename Map::const_iterator
@@ -80,8 +82,9 @@ rtPermissions::findWildcard(Map const& map, typename Map::key_type const& key)
   return best;
 }
 
-rtPermissions::permissionsMap_t permissionsJsonToMap(const rapidjson::Value& json)
+rtPermissions::permissionsMap_t rtPermissions::permissionsJsonToMap(const void* jsonValue)
 {
+  const rapidjson::Value& json = *static_cast<const rapidjson::Value*>(jsonValue);
   rtPermissions::permissionsMap_t ret;
   for (int i = 0; i < 4; i++)
   {
@@ -128,7 +131,7 @@ rtPermissions::permissionsMap_t permissionsJsonToMap(const rapidjson::Value& jso
   return ret;
 }
 
-rtPermissions::permissionsMap_t permissionsObjectToMap(const rtObjectRef& permissionsObject)
+rtPermissions::permissionsMap_t rtPermissions::permissionsObjectToMap(const rtObjectRef& permissionsObject)
 {
   rtPermissions::permissionsMap_t ret;
   for (int i = 0; i < 4; i++)
@@ -161,45 +164,78 @@ rtPermissions::permissionsMap_t permissionsObjectToMap(const rtObjectRef& permis
   return ret;
 }
 
-rtPermissions::rtPermissions()
+rtPermissions::rtPermissions(const char* origin, const char* filepath)
   : mParent(NULL)
 {
-  loadBootstrapConfig();
+  static bool didCheck = false;
+  if (!didCheck)
+  {
+    didCheck = true;
+    const char* s = getenv(ENABLED_ENV_NAME);
+    if (s != NULL)
+    {
+      rtString envVal(s);
+      mEnabled = 0 == envVal.compare("true") || 0 == envVal.compare("1");
+    }
+    else
+    {
+      mEnabled = true;
+    }
+  }
+
+  if (mEnabled)
+  {
+    loadConfig(filepath);
+
+    if (origin && *origin && !mAssignMap.empty())
+    {
+      wildcard_t w;
+      w.first = origin;
+      w.second = DEFAULT;
+      assignMap_t::const_iterator it = findWildcard(mAssignMap, w);
+      if (it != mAssignMap.end())
+      {
+        roleMap_t::const_iterator jt = mRolesMap.find(it->second);
+        if (jt != mRolesMap.end())
+        {
+          mPermissionsMap = jt->second;
+          rtLogDebug("%s : permissions for '%s': '%s'", __FUNCTION__, origin, it->second.c_str());
+        }
+      }
+    }
+  }
 }
 
 rtPermissions::~rtPermissions()
 {
 }
 
-rtError rtPermissions::loadBootstrapConfig(const char* filename)
+rtError rtPermissions::loadConfig(const char* filepath)
 {
-  char const* s = filename;
-  if (!s)
-  {
-    s = getenv(CONFIG_ENV_NAME);
-  }
-  if (!s)
-  {
-    s = DEFAULT_CONFIG_FILE;
-  }
-  if (mConfigPath == s)
-  {
-    // already did try this path
+  if (!filepath)
+    filepath = getenv(CONFIG_ENV_NAME);
+
+  if (!filepath)
+    filepath = DEFAULT_CONFIG_FILE;
+
+  // do not reload
+  if (mConfigPath == filepath)
     return RT_OK;
-  }
 
   // try load... first clean up previous config
-  clearBootstrapConfig();
-  mConfigPath = s;
+  mAssignMap.clear();
+  mRolesMap.clear();
+  mConfigPath.clear();
+  mConfigPath = filepath;
 
   rtString currentDir;
   rtGetCurrentDirectory(currentDir);
   rtLogDebug("%s : currentDir='%s'", __FUNCTION__, currentDir.cString());
 
-  FILE* fp = fopen(s, "rb");
+  FILE* fp = fopen(filepath, "rb");
   if (NULL == fp)
   {
-    rtLogDebug("%s : cannot open '%s'", __FUNCTION__, s);
+    rtLogWarn("%s : cannot open '%s'", __FUNCTION__, filepath);
     return RT_FAIL;
   }
 
@@ -256,45 +292,11 @@ rtError rtPermissions::loadBootstrapConfig(const char* filename)
       rtLogWarn("%s : 'roles' key/value is not string/object", __FUNCTION__);
       continue;
     }
-    mRolesMap[key.GetString()] = permissionsJsonToMap(val);
+    mRolesMap[key.GetString()] = permissionsJsonToMap(&val);
   }
 
   rtLogInfo("%s : %ld roles, %ld assigned urls", __FUNCTION__, mRolesMap.size(), mAssignMap.size());
   return RT_OK;
-}
-
-rtError rtPermissions::clearBootstrapConfig()
-{
-  mAssignMap.clear();
-  mRolesMap.clear();
-  mConfigPath.clear();
-
-  return RT_OK;
-}
-
-rtError rtPermissions::setOrigin(const char* origin)
-{
-  if (origin && *origin && !mAssignMap.empty())
-  {
-    wildcard_t w;
-    w.first = origin;
-    w.second = DEFAULT;
-    assignMap_t::const_iterator it = findWildcard(mAssignMap, w);
-    if (it != mAssignMap.end())
-    {
-      roleMap_t::const_iterator jt = mRolesMap.find(it->second);
-      if (jt != mRolesMap.end())
-      {
-        mPermissionsMap = jt->second;
-        rtLogDebug("%s : mapping for '%s': '%s'", __FUNCTION__, origin, it->second.c_str());
-        return RT_OK;
-      }
-    }
-
-    rtLogDebug("%s : no mapping for '%s'", __FUNCTION__, origin);
-  }
-
-  return RT_FAIL;
 }
 
 rtError rtPermissions::set(const rtObjectRef& permissionsObject)
@@ -304,18 +306,16 @@ rtError rtPermissions::set(const rtObjectRef& permissionsObject)
   return RT_OK;
 }
 
-rtError rtPermissions::setParent(const rtPermissions* parent)
+rtError rtPermissions::setParent(const rtPermissionsRef& parent)
 {
   mParent = parent;
 
   return RT_OK;
 }
 
-rtError rtPermissions::allows(const char* s, rtPermissions::Type type, bool& o) const
+rtError rtPermissions::allows(const char* s, rtPermissions::Type type) const
 {
-  o = true; // default
-
-  if (s && !mPermissionsMap.empty())
+  if (s && mEnabled && !mPermissionsMap.empty())
   {
     wildcard_t w;
     w.second = type;
@@ -328,11 +328,21 @@ rtError rtPermissions::allows(const char* s, rtPermissions::Type type, bool& o) 
       w.first = s;
     }
     permissionsMap_t::const_iterator it = findWildcard(mPermissionsMap, w);
-    if (it != mPermissionsMap.end())
+    if (it != mPermissionsMap.end() && false == it->second)
     {
-      o = it->second;
+      return RT_ERROR_NOT_ALLOWED;
     }
   }
 
-  return (o && mParent) ? mParent->allows(s, type, o) : RT_OK;
+  return mParent ? mParent->allows(s, type) : RT_OK;
 }
+
+rtError rtPermissions::allows(const rtString& url, bool& o) const
+{
+  rtError e = allows(url.cString(), rtPermissions::DEFAULT);
+  o = RT_OK == e;
+  return RT_OK;
+}
+
+rtDefineObject(rtPermissions, rtObject);
+rtDefineMethod(rtPermissions, allows);

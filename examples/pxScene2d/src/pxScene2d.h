@@ -1,6 +1,6 @@
 /*
 
- pxCore Copyright 2005-2017 John Robinson
+ pxCore Copyright 2005-2018 John Robinson
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -255,7 +255,8 @@ public:
     return RT_OK;
   }
 
-  virtual rtError Set(const char* name, const rtValue* value);
+  virtual rtError Set(uint32_t i, const rtValue* value) override;
+  virtual rtError Set(const char* name, const rtValue* value) override;
 
   rtError getChild(uint32_t i, rtObjectRef& r) const
   {
@@ -409,7 +410,7 @@ public:
                  pxInterp interp, pxConstantsAnimation::animationOptions options,
                  int32_t count, rtObjectRef promise, rtObjectRef animateObj);
 
-  void cancelAnimation(const char* prop, bool fastforward = false, bool rewind = false, bool resolve = false);
+  void cancelAnimation(const char* prop, bool fastforward = false, bool rewind = false);
 
   rtError addListener(rtString eventName, const rtFunctionRef& f)
   {
@@ -701,6 +702,7 @@ public:
      return RT_OK;
   }
 
+  pxScene2d* getScene() { return mScene; }
   void createSnapshot(pxContextFramebufferRef& fbo, bool separateContext=false, bool antiAliasing=false);
 
 public:
@@ -998,7 +1000,7 @@ public:
   rtDeclareObject(pxSceneContainer, pxViewContainer);
   rtProperty(url, url, setUrl, rtString);
 #ifdef ENABLE_PERMISSIONS_CHECK
-  // declare 'permissions' before 'ready'
+  // permissions can be set to either scene or to its container
   rtProperty(permissions, permissions, setPermissions, rtObjectRef);
 #endif
   rtReadOnlyProperty(api, api, rtValue);
@@ -1026,8 +1028,7 @@ public:
   rtError ready(rtObjectRef& o) const;
 
 #ifdef ENABLE_PERMISSIONS_CHECK
-  rtError setParentPermissions(const rtPermissions* v);
-  rtError permissions(rtObjectRef& v) const { UNUSED_PARAM(v); rtLogDebug("permissions is write only"); return RT_FAIL; }
+  rtError permissions(rtObjectRef& v) const;
   rtError setPermissions(const rtObjectRef& v);
 #endif
 
@@ -1132,8 +1133,8 @@ public:
   rtString getUrl() const { return mUrl; }
 
 #ifdef ENABLE_PERMISSIONS_CHECK
-  rtError setParentPermissions(const rtPermissions* v);
-  rtError setPermissions(const rtObjectRef& v);
+  rtError permissions(rtObjectRef& v) const { return mScene.get("permissions", v); }
+  rtError setPermissions(const rtObjectRef& v) { return mScene.set("permissions", v); }
 #endif
 
   static rtError addListener(rtString  eventName, const rtFunctionRef& f)
@@ -1292,7 +1293,7 @@ public:
   rtProperty(customAnimator, customAnimator, setCustomAnimator, rtFunctionRef);
   rtMethod1ArgAndReturn("loadArchive",loadArchive,rtString,rtObjectRef); 
   rtMethod1ArgAndReturn("create", create, rtObjectRef, rtObjectRef);
-  rtMethodNoArgAndReturn("clock", clock, uint64_t);
+  rtMethodNoArgAndReturn("clock", clock, double);
   rtMethodNoArgAndNoReturn("logDebugMetrics", logDebugMetrics);
   rtMethodNoArgAndNoReturn("collectGarbage", collectGarbage);
   rtReadOnlyProperty(info, info, rtObjectRef);
@@ -1329,18 +1330,23 @@ public:
   // Properties for returning various CONSTANTS
   rtReadOnlyProperty(animation,animation,rtObjectRef);
   rtReadOnlyProperty(stretch,stretch,rtObjectRef);
+  rtReadOnlyProperty(maskOp,maskOp,rtObjectRef);
   rtReadOnlyProperty(alignVertical,alignVertical,rtObjectRef);
   rtReadOnlyProperty(alignHorizontal,alignHorizontal,rtObjectRef);
   rtReadOnlyProperty(truncation,truncation,rtObjectRef);
 
   rtReadOnlyProperty(origin, origin, rtString);
-  rtMethod1ArgAndReturn("allows", allows, rtString, bool);
   rtMethod2ArgAndReturn("checkAccessControlHeaders", checkAccessControlHeaders, rtString, rtString, bool);
 
   rtMethodNoArgAndNoReturn("dispose",dispose);
 
   rtMethod1ArgAndNoReturn("addServiceProvider", addServiceProvider, rtFunctionRef);
   rtMethod1ArgAndNoReturn("removeServiceProvider", removeServiceProvider, rtFunctionRef);
+
+#ifdef ENABLE_PERMISSIONS_CHECK
+  // permissions can be set to either scene or to its container
+  rtProperty(permissions, permissions, setPermissions, rtObjectRef);
+#endif
 
   pxScene2d(bool top = true, pxScriptView* scriptView = NULL);
   virtual ~pxScene2d()
@@ -1425,7 +1431,7 @@ public:
   rtError createExternal(rtObjectRef p, rtObjectRef& o);
   rtError createWayland(rtObjectRef p, rtObjectRef& o);
 
-  rtError clock(uint64_t & time);
+  rtError clock(double & time);
   rtError logDebugMetrics();
   rtError collectGarbage();
 
@@ -1465,19 +1471,20 @@ public:
   rtError emit(rtFunctionRef& v) const { v = mEmit; return RT_OK; }
   
   rtError animation(rtObjectRef& v) const {v = CONSTANTS.animationConstants; return RT_OK;}
-  rtError stretch(rtObjectRef& v) const {v = CONSTANTS.stretchConstants; return RT_OK;}
-  rtError alignVertical(rtObjectRef& v) const {v = CONSTANTS.alignVerticalConstants; return RT_OK;}
+  rtError stretch(rtObjectRef& v)   const {v = CONSTANTS.stretchConstants;   return RT_OK;}
+  rtError maskOp(rtObjectRef& v)    const {v = CONSTANTS.maskOpConstants;    return RT_OK;}  
+  
+  rtError alignVertical(rtObjectRef& v)   const {v = CONSTANTS.alignVerticalConstants;   return RT_OK;}
   rtError alignHorizontal(rtObjectRef& v) const {v = CONSTANTS.alignHorizontalConstants; return RT_OK;}
-  rtError truncation(rtObjectRef& v) const {v = CONSTANTS.truncationConstants; return RT_OK;}
+  rtError truncation(rtObjectRef& v)      const {v = CONSTANTS.truncationConstants;      return RT_OK;}
 
 #ifdef ENABLE_PERMISSIONS_CHECK
-  rtError setParentPermissions(const rtPermissions* v) { return mPermissions.setParent(v); }
-  rtError setPermissions(const rtObjectRef& v) { return mPermissions.set(v); }
-  rtError permissions(rtPermissions& v) const { v = mPermissions; return RT_OK; }
+  rtPermissionsRef permissions() const { return mPermissions; }
+  rtError permissions(rtObjectRef& v) const { v = mPermissions; return RT_OK; }
+  rtError setPermissions(const rtObjectRef& v) { return mPermissions->set(v); }
 #endif
 
   rtError origin(rtString& v) const { v = mOrigin; return RT_OK; }
-  rtError allows(const rtString& url, bool& o) const;
   rtError checkAccessControlHeaders(const rtString& url, const rtString& rawHeaders, bool& allow) const;
 
   void setMouseEntered(rtRef<pxObject> o);//setMouseEntered(pxObject* o);
@@ -1502,10 +1509,7 @@ public:
   virtual void onDraw();
   virtual void onComplete();
 
-  virtual void setViewContainer(pxIViewContainer* l) 
-  {
-    mContainer = l;
-  }
+  virtual void setViewContainer(pxIViewContainer* l);
 
   void invalidateRect(pxRect* r);
   
@@ -1539,11 +1543,8 @@ public:
   rtError loadArchive(const rtString& url, rtObjectRef& archive)
   {
 #ifdef ENABLE_PERMISSIONS_CHECK
-    if (!mPermissions.allows(url.cString(), rtPermissions::DEFAULT))
-    {
-      rtLogError("url '%s' is not allowed", url.cString());
+    if (RT_OK != mPermissions->allows(url, rtPermissions::DEFAULT))
       return RT_ERROR_NOT_ALLOWED;
-    }
 #endif
 
     rtError e = RT_FAIL;
@@ -1569,6 +1570,8 @@ public:
 private:
   bool bubbleEvent(rtObjectRef e, rtRef<pxObject> t, 
                    const char* preEvent, const char* event) ;
+  
+  bool bubbleEventOnBlur(rtObjectRef e, rtRef<pxObject> t, rtRef<pxObject> o);
 
   void draw();
   // Does not draw updates scene to time t
@@ -1617,7 +1620,7 @@ private:
   rtFunctionRef mCustomAnimator;
   rtString mOrigin;
 #ifdef ENABLE_PERMISSIONS_CHECK
-  rtPermissions mPermissions;
+  rtPermissionsRef mPermissions;
 #endif
 public:
   void hidePointer( bool hide )
@@ -1645,10 +1648,10 @@ class pxScene2dRef: public rtRef<pxScene2d>, public rtObjectBase
   pxScene2dRef& operator=(pxScene2d* s) { asn(s); return *this; }
   
  private:
-  virtual rtError Get(const char* name, rtValue* value) const;
-  virtual rtError Get(uint32_t i, rtValue* value) const;
-  virtual rtError Set(const char* name, const rtValue* value);
-  virtual rtError Set(uint32_t i, const rtValue* value);
+  virtual rtError Get(const char* name, rtValue* value) const override;
+  virtual rtError Get(uint32_t i, rtValue* value) const override;
+  virtual rtError Set(const char* name, const rtValue* value) override;
+  virtual rtError Set(uint32_t i, const rtValue* value) override;
 };
 
 

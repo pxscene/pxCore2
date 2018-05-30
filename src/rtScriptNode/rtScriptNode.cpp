@@ -1,6 +1,6 @@
 /*
 
- rtCore Copyright 2005-2017 John Robinson
+ pxCore Copyright 2005-2018 John Robinson
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -43,6 +43,10 @@
 #include "node.h"
 #include "node_javascript.h"
 #include "node_contextify_mods.h"
+
+#if NODE_VERSION_AT_LEAST(8,9,0)
+#include "tracing/agent.h"
+#endif
 
 #include "env.h"
 #include "env-inl.h"
@@ -92,10 +96,12 @@ using namespace rtScriptNodeUtils;
 #pragma GCC diagnostic pop
 #endif
 
-
-#define USE_CONTEXTIFY_CLONES
-
-
+#ifndef DISABLE_USE_CONTEXTIFY_CLONES
+# define USE_CONTEXTIFY_CLONES
+#endif
+#ifdef RUNINMAIN
+bool gIsPumpingJavaScript = false;
+#endif
 
 namespace node
 {
@@ -274,11 +280,15 @@ extern args_t *s_gArgs;
 #endif
 namespace node
 {
+#if NODE_VERSION_AT_LEAST(8,9,4)
+extern DebugOptions debug_options;
+#else
 extern bool use_debug_agent;
 #ifdef HAVE_INSPECTOR
 extern bool use_inspector;
 #endif
 extern bool debug_wait_connect;
+#endif
 }
 
 static int exec_argc;
@@ -374,8 +384,14 @@ void rtNodeContext::createEnvironment()
 
   // Create Environment.
 
+#if NODE_VERSION_AT_LEAST(8,9,4)
+  IsolateData *isolateData = new IsolateData(mIsolate,uv_default_loop(),array_buffer_allocator->zero_fill_field());
+
+  mEnv = CreateEnvironment(isolateData,
+#else
   mEnv = CreateEnvironment(mIsolate,
                            uv_default_loop(),
+#endif
                            local_context,
 #ifdef ENABLE_DEBUG_MODE
                            g_argc,
@@ -387,11 +403,13 @@ void rtNodeContext::createEnvironment()
                            exec_argc,
                            exec_argv);
 
+#if !NODE_VERSION_AT_LEAST(8,9,4)
    array_buffer_allocator->set_env(mEnv);
-
+#endif
   mIsolate->SetAbortOnUncaughtExceptionCallback(
         ShouldAbortOnUncaughtException);
 #ifdef ENABLE_DEBUG_MODE
+#if !NODE_VERSION_AT_LEAST(8,9,4)
   // Start debug agent when argv has --debug
   if (use_debug_agent)
   {
@@ -411,13 +429,19 @@ void rtNodeContext::createEnvironment()
       StartDebug(mEnv, NULL, debug_wait_connect);
     }
   }
+#else
+#if HAVE_INSPECTOR
+//     if( !mEnv->inspector_agent()->IsStarted() )
+//         mEnv->inspector_agent()->Start(mPlatform, nullptr, debug_options);
 #endif
-  // Load Environment.
+#endif
+#endif
+// Load Environment.
   {
     Environment::AsyncCallbackScope callback_scope(mEnv);
     LoadEnvironment(mEnv);
   }
-#ifdef ENABLE_DEBUG_MODE
+#if defined(ENABLE_DEBUG_MODE) && !NODE_VERSION_AT_LEAST( 8, 9, 4 )
   if (use_debug_agent)
   {
     rtLogWarn("use_debug_agent\n");
@@ -476,11 +500,13 @@ void rtNodeContext::createEnvironment()
                            exec_argv);
 
   // Start debug agent when argv has --debug
+#ifdef ENABLE_DEBUG_MODE
   if (use_debug_agent)
   {
     rtLogWarn("use_debug_agent\n");
     StartDebug(mEnv, debug_wait_connect);
   }
+#endif
 
   // Load Environment.
   LoadEnvironment(mEnv);
@@ -590,10 +616,6 @@ rtNodeContext::~rtNodeContext()
   //Make sure node is not destroyed abnormally
   if (true == node_is_initialized)
   {
-    #ifdef ENABLE_NODE_V_6_9    
-    if (!nodeTerminated)
-      runScript("var process = require('process');process._tickCallback();");
-    #endif
     if(mEnv)
     {
       Locker                locker(mIsolate);
@@ -601,6 +623,7 @@ rtNodeContext::~rtNodeContext()
       HandleScope     handle_scope(mIsolate);
 
       RunAtExit(mEnv);
+  #if !NODE_VERSION_AT_LEAST(8,9,4)
     #ifdef ENABLE_NODE_V_6_9
       if (nodeTerminated)
       {
@@ -613,6 +636,7 @@ rtNodeContext::~rtNodeContext()
     #else
       mEnv->Dispose();
     #endif // ENABLE_NODE_V_6_9
+  #endif
       mEnv = NULL;
       #ifndef USE_CONTEXTIFY_CLONES
       HandleMap::clearAllForContext(mId);
@@ -622,7 +646,7 @@ rtNodeContext::~rtNodeContext()
     {
     // clear out persistent javascript handles
       HandleMap::clearAllForContext(mId);
-#ifdef ENABLE_NODE_V_6_9
+#if defined(ENABLE_NODE_V_6_9) && defined(USE_CONTEXTIFY_CLONES)
       node::deleteContextifyContext(mContextifyContext);
 #endif
       mContextifyContext = NULL;
@@ -1039,28 +1063,40 @@ rtError rtScriptNode::pump()
 //#ifndef RUNINMAIN
 //  return;
 //#else
-  Locker                locker(mIsolate);
-  Isolate::Scope isolate_scope(mIsolate);
-  HandleScope     handle_scope(mIsolate);    // Create a stack-allocated handle scope.
-#ifdef ENABLE_NODE_V_6_9
-  v8::platform::PumpMessageLoop(mPlatform, mIsolate);
-#endif //ENABLE_NODE_V_6_9
-  uv_run(uv_default_loop(), UV_RUN_NOWAIT);//UV_RUN_ONCE);
-  mIsolate->RunMicrotasks();
-
-  // Enable this to expedite garbage collection for testing... warning perf hit
-  if (mTestGc)
+#ifdef RUNINMAIN
+  // found a problem where if promise triggered by one event loop gets resolved by other event loop.
+  // It is causing the dependencies between data running between two event loops failed, if one one 
+  // loop didn't complete before other. So, promise not registered by first event loop, before the second
+  // event looop sends back the ready event
+  if (gIsPumpingJavaScript == false) 
   {
-    static int sGcTickCount = 0;
-
-    if (sGcTickCount++ > 60)
+    gIsPumpingJavaScript = true;
+#endif
+    Locker                locker(mIsolate);
+    Isolate::Scope isolate_scope(mIsolate);
+    HandleScope     handle_scope(mIsolate);    // Create a stack-allocated handle scope.
+#ifdef ENABLE_NODE_V_6_9
+    v8::platform::PumpMessageLoop(mPlatform, mIsolate);
+#endif //ENABLE_NODE_V_6_9
+    uv_run(uv_default_loop(), UV_RUN_NOWAIT);//UV_RUN_ONCE);
+    mIsolate->RunMicrotasks();
+    // Enable this to expedite garbage collection for testing... warning perf hit
+    if (mTestGc)
     {
-      Local<Context> local_context = Context::New(mIsolate);
-      Context::Scope contextScope(local_context);
-      mIsolate->RequestGarbageCollectionForTesting(Isolate::kFullGarbageCollection);
-      sGcTickCount = 0;
+      static int sGcTickCount = 0;
+
+      if (sGcTickCount++ > 60)
+      {
+        Local<Context> local_context = Context::New(mIsolate);
+        Context::Scope contextScope(local_context);
+        mIsolate->RequestGarbageCollectionForTesting(Isolate::kFullGarbageCollection);
+        sGcTickCount = 0;
+      }
     }
+#ifdef RUNINMAIN
+    gIsPumpingJavaScript = false;
   }
+#endif
 //#endif // RUNINMAIN
   return RT_OK;
 }
@@ -1170,6 +1206,10 @@ void rtScriptNode::init2(int argc, char** argv)
    Platform* platform = platform::CreateDefaultPlatform();
    mPlatform = platform;
    V8::InitializePlatform(platform);
+#if NODE_VERSION_AT_LEAST(8,9,0)
+   // behaves as --trace-events-enabled command line option were not used
+   tracing::TraceEventHelper::SetTracingController(new v8::TracingController());
+#endif
    V8::Initialize();
    Isolate::CreateParams params;
    array_buffer_allocator = new ArrayBufferAllocator();
@@ -1211,10 +1251,7 @@ rtError rtScriptNode::term()
 #endif
   if(node_isolate)
   {
-// JRJRJR  Causing crash???  ask Hugh
-
     rtLogWarn("\n++++++++++++++++++ DISPOSE\n\n");
-    node_isolate->Dispose();
     node_isolate = NULL;
     mIsolate     = NULL;
   }

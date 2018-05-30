@@ -1,6 +1,6 @@
 /*
 
- pxCore Copyright 2005-2017 John Robinson
+ pxCore Copyright 2005-2018 John Robinson
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -47,7 +47,7 @@ public:
   rtError setUrl(const char* s);
 
   rtError resource(rtObjectRef& o) const { /*rtLogDebug("!!!!!!!!!!!!!!!!!!!!pxImage9 getResource\n");*/o = mResource; return RT_OK; }
-  rtError setResource(rtObjectRef o) { /*rtLogDebug("!!!!!!!!!!!!!!!!!!!!!!!pxImage9 setResource\n");*/mResource = o; return RT_OK; }
+  rtError setResource(rtObjectRef o);// { /*rtLogDebug("!!!!!!!!!!!!!!!!!!!!!!!pxImage9 setResource\n");*/mResource = o; return RT_OK; }
   rtError removeResourceListener();
     
   rtError insetLeft(float& v) const { v = mInsetLeft; return RT_OK; }

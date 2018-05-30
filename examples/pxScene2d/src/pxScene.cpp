@@ -1,6 +1,6 @@
 ﻿/*
 
- pxCore Copyright 2005-2017 John Robinson
+ pxCore Copyright 2005-2018 John Robinson
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -75,9 +75,9 @@ using namespace std;
 #include <client/windows/handler/exception_handler.h>
 #endif
 
-#ifdef PX_SERVICE_MANAGER
+#ifdef PX_SERVICE_MANAGER_LINKED
 #include "rtservicemanager.h"
-#endif //PX_SERVICE_MANAGER
+#endif //PX_SERVICE_MANAGER_LINKED
 
 #ifndef RUNINMAIN
 class AsyncScriptInfo;
@@ -103,7 +103,13 @@ char** g_origArgv = NULL;
 bool gDumpMemUsage = false;
 extern bool gApplicationIsClosing;
 extern int pxObjectCount;
+
 #include "pxFont.h"
+
+#ifdef PXSCENE_FONT_ATLAS
+extern pxFontAtlas gFontAtlas;
+#endif
+
 #ifdef HAS_LINUX_BREAKPAD
 static bool dumpCallback(const google_breakpad::MinidumpDescriptor& descriptor,
 void* context, bool succeeded) {
@@ -260,7 +266,6 @@ protected:
 #endif
    // pxScene.cpp:104:12: warning: deleting object of abstract class type ‘pxIView’ which has non-virtual destructor will cause undefined behaviour [-Wdelete-non-virtual-dtor]
 
-  pxFontManager::clearAllFonts();
 
   ENTERSCENELOCK()
     mView = NULL;
@@ -272,6 +277,8 @@ protected:
     free(g_origArgv);
   #endif
 
+    pxFontManager::clearAllFonts();
+    
     context.term();
 #ifdef RUNINMAIN
     script.pump();
@@ -644,10 +651,10 @@ if (s && (strcmp(s,"1") == 0))
   OptimusClient::registerApi(tempObject);
 #endif //ENABLE_OPTIMUS_SUPPORT
 
-#ifdef PX_SERVICE_MANAGER
+#ifdef PX_SERVICE_MANAGER_LINKED
   RtServiceManager::start();
 
-#endif //PX_SERVICE_MANAGER
+#endif //PX_SERVICE_MANAGER_LINKED
 
   eventLoop.run();
 

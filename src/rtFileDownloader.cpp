@@ -1,6 +1,6 @@
 /*
 
- rtCore Copyright 2005-2017 John Robinson
+ pxCore Copyright 2005-2018 John Robinson
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -420,7 +420,7 @@ void rtFileDownloadRequest::setHTTPError(const char* httpError)
 {
   if(httpError != NULL)
   {
-    strncpy(mHttpErrorBuffer, httpError, CURL_ERROR_SIZE);
+    strncpy(mHttpErrorBuffer, httpError, CURL_ERROR_SIZE-1);
     mHttpErrorBuffer[CURL_ERROR_SIZE-1] = '\0';
   }
 }
@@ -638,7 +638,6 @@ void rtFileDownloader::downloadFile(rtFileDownloadRequest* downloadRequest)
         else
         {
           rtFileCache::instance()->addToCache(downloadedData);
-          rtLogInfo("Cache expiration(%s)", cachedData.expirationDate().cString());
         }
         mFileCacheMutex.unlock();
       }
@@ -659,11 +658,10 @@ void rtFileDownloader::downloadFile(rtFileDownloadRequest* downloadRequest)
       {
         mFileCacheMutex.lock();
         rtError err = rtFileCache::instance()->addToCache(cachedData);
-        mFileCacheMutex.unlock();
         if (RT_OK != err)
           rtLogWarn("Adding url to cache failed (%s)", url.cString());
-        else
-          rtLogInfo("Cache expiration(%s)", cachedData.expirationDate().cString());
+        
+        mFileCacheMutex.unlock();
       }
     }
 
@@ -826,20 +824,20 @@ bool rtFileDownloader::downloadFromNetwork(rtFileDownloadRequest* downloadReques
     {
       downloadRequest->setDownloadedData(chunk.contentsBuffer, chunk.contentsSize);
 #ifdef ENABLE_ACCESS_CONTROL_CHECK
-      rtString errorStr;
       rtString rawHeaders(downloadRequest->headerData(), downloadRequest->headerDataSize());
-      if (RT_OK != rtCORSUtilsCheckOrigin(origin, downloadRequest->fileUrl(), rawHeaders, &errorStr))
+      rtError corsStat = rtCORSUtilsCheckOrigin(origin, downloadRequest->fileUrl(), rawHeaders);
+      if (RT_OK != corsStat)
       {
-        rtLogWarn("disallow access for origin '%s' because: %s", origin.cString(), errorStr.cString());
-
         // Disallow access to the resource's contents.
         if (downloadRequest->downloadedData() != NULL)
         {
           free(downloadRequest->downloadedData());
         }
         downloadRequest->setDownloadedData(NULL, 0);
-        downloadRequest->setDownloadStatusCode(-1);
-        downloadRequest->setErrorString(errorStr.cString());
+        downloadRequest->setDownloadStatusCode((int)corsStat);
+        stringstream errorStringStream;
+        errorStringStream << rtStrError(corsStat) << " origin=" << origin.cString() << " url=" << downloadRequest->fileUrl().cString();
+        downloadRequest->setErrorString(errorStringStream.str().c_str());
       }
 #endif
     }

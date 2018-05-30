@@ -1,6 +1,6 @@
 /*
 
- pxCore Copyright 2005-2017 John Robinson
+ pxCore Copyright 2005-2018 John Robinson
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -91,8 +91,6 @@ rtError pxImage::setResource(rtObjectRef o)
       pxObject::createNewPromise();
       mListenerAdded = true;
       getImageResource()->addListener(this);
-      checkStretchX();
-      checkStretchY();
     }
     return RT_OK; 
   } 
@@ -119,7 +117,12 @@ rtError pxImage::url(rtString& s) const
   return RT_OK;
 }
 rtError pxImage::setUrl(const char* s)
-{ 
+{
+#ifdef ENABLE_PERMISSIONS_CHECK
+  if (mScene != NULL && RT_OK != mScene->permissions()->allows(s, rtPermissions::DEFAULT))
+    return RT_ERROR_NOT_ALLOWED;
+#endif
+
   //rtLogInfo("pxImage::setUrl init=%d imageLoaded=%d \n", mInitialized, imageLoaded);
   //rtLogDebug("pxImage::setUrl for s=%s mUrl=%s\n", s, mUrl.cString());
   
@@ -190,13 +193,13 @@ float pxImage::getOnscreenHeight()
 void pxImage::draw() {
   //rtLogDebug("pxImage::draw() mw=%f mh=%f\n", mw, mh);
   static pxTextureRef nullMaskRef;
-  if (getImageResource() != NULL)
+  if (getImageResource() != NULL && getImageResource()->isInitialized())
   {
     context.drawImage(0, 0,
                       getOnscreenWidth(),
                       getOnscreenHeight(),
                       getImageResource()->getTexture(), nullMaskRef,
-                      false, NULL, mStretchX, mStretchY, mDownscaleSmooth);
+                      false, NULL, mStretchX, mStretchY, mDownscaleSmooth, mMaskOp);
   }
   // Raise the priority if we're still waiting on the image download    
 #if 0
@@ -206,13 +209,14 @@ void pxImage::draw() {
 }
 void pxImage::resourceReady(rtString readyResolution)
 {
-  checkStretchX();
-  checkStretchY();
+
   //rtLogDebug("pxImage::resourceReady(%s) mInitialized=%d for \"%s\"\n",readyResolution.cString(),mInitialized,getImageResource()->getUrl().cString());
   if( !readyResolution.compare("resolve"))
   {
     imageLoaded = true; 
     pxObject::onTextureReady();
+    checkStretchX();
+    checkStretchY();
     // Now that image is loaded, must force redraw;
     // dimensions could have changed.
     mScene->mDirty = true;
@@ -242,7 +246,7 @@ void pxImage::dispose(bool pumpJavascript)
 void pxImage::checkStretchX()
 {
   rtImageResource* imageResource = getImageResource();
-  if (mStretchX == pxConstantsStretch::REPEAT && imageResource != NULL)
+  if (mStretchX == pxConstantsStretch::REPEAT && imageResource != NULL && imageResource->isInitialized())
   {
     pxTextureRef texture = imageResource->getTexture();
     if (texture.getPtr() != NULL && (!isPowerOfTwo(texture->width()) || !isPowerOfTwo(texture->height())))
@@ -255,7 +259,7 @@ void pxImage::checkStretchX()
 void pxImage::checkStretchY()
 {
   rtImageResource* imageResource = getImageResource();
-  if (mStretchY == pxConstantsStretch::REPEAT && imageResource != NULL)
+  if (mStretchY == pxConstantsStretch::REPEAT && imageResource != NULL && imageResource->isInitialized())
   {
     pxTextureRef texture = imageResource->getTexture();
     if (texture.getPtr() != NULL && (!isPowerOfTwo(texture->width()) || !isPowerOfTwo(texture->height())))
@@ -276,6 +280,12 @@ rtError pxImage::setStretchY(int32_t v)
 {
   mStretchY = (pxConstantsStretch::constants)v;
   checkStretchY();
+  return RT_OK;
+}
+
+rtError pxImage::setMaskOp(int32_t v)
+{
+  mMaskOp = (pxConstantsMaskOperation::constants)v;
   return RT_OK;
 }
 
@@ -305,10 +315,9 @@ rtError pxImage::removeResourceListener()
 }
 
 rtDefineObject(pxImage,pxObject);
-rtDefineProperty(pxImage,url);
+rtDefineProperty(pxImage, url);
 rtDefineProperty(pxImage, resource);
-rtDefineProperty(pxImage,stretchX);
-rtDefineProperty(pxImage,stretchY);
-rtDefineProperty(pxImage,downscaleSmooth);
-
-
+rtDefineProperty(pxImage, stretchX);
+rtDefineProperty(pxImage, stretchY);
+rtDefineProperty(pxImage, maskOp);
+rtDefineProperty(pxImage, downscaleSmooth);

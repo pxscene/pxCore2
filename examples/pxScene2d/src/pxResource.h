@@ -1,6 +1,6 @@
 /*
 
- pxCore Copyright 2005-2017 John Robinson
+ pxCore Copyright 2005-2018 John Robinson
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -45,6 +45,12 @@ class rtFileDownloadRequest;
 #define PX_RESOURCE_STATUS_DECODE_FAILURE 4
 #define PX_RESOURCE_STATUS_HTTP_ERROR     5
 #define PX_RESOURCE_STATUS_UNKNOWN_ERROR  6
+
+
+// errors specific to rtRemote
+#define PX_RESOURCE_LOAD_SUCCESS 0
+#define PX_RESOURCE_LOAD_FAIL 1
+#define PX_RESOURCE_LOAD_WAIT 2
 
 
 class pxResourceListener 
@@ -98,13 +104,14 @@ public:
   virtual void loadResource();
   void clearDownloadRequest();
   virtual void setupResource() {}
+  virtual void prepare() {}
   void setLoadStatus(const char* name, rtValue value);
 protected:   
   static void onDownloadComplete(rtFileDownloadRequest* downloadRequest);
   static void onDownloadCompleteUI(void* context, void* data);
   static void onDownloadCanceledUI(void* context, void* data);
   virtual void processDownloadedResource(rtFileDownloadRequest* fileDownloadRequest);
-  virtual bool loadResourceData(rtFileDownloadRequest* fileDownloadRequest) = 0;
+  virtual uint32_t loadResourceData(rtFileDownloadRequest* fileDownloadRequest) = 0;
   
   void notifyListeners(rtString readyResolution);
 
@@ -144,24 +151,23 @@ public:
   virtual int32_t h() const;
   virtual rtError h(int32_t& v) const; 
 
-  pxTextureRef getTexture();
+  pxTextureRef getTexture(bool initializing = false);
   void setTextureData(pxOffscreen& imageOffscreen, const char* data, const size_t dataSize);
   virtual void setupResource();
-  void clearDownloadedData();
+  virtual void prepare();
  
   virtual void init();
 
 protected:  
-  virtual bool loadResourceData(rtFileDownloadRequest* fileDownloadRequest);
+  virtual uint32_t loadResourceData(rtFileDownloadRequest* fileDownloadRequest);
   
 private: 
 
   void loadResourceFromFile();
   pxTextureRef mTexture;
+  pxTextureRef mDownloadedTexture;
   rtMutex mTextureMutex;
-  pxOffscreen mImageOffscreen;
-  char* mCompressedData;
-  size_t mCompressedDataSize;
+  bool mDownloadComplete;
  
 };
 
@@ -177,9 +183,10 @@ public:
 
   virtual void init();
   pxTimedOffscreenSequence& getTimedOffscreenSequence() { return mTimedOffscreenSequence; }
-
+  virtual void setupResource() { init(); }
+  
 protected:
-  virtual bool loadResourceData(rtFileDownloadRequest* fileDownloadRequest);
+  virtual uint32_t loadResourceData(rtFileDownloadRequest* fileDownloadRequest);
 
 private:
 

@@ -1,6 +1,6 @@
 /*
 
- pxCore Copyright 2005-2017 John Robinson
+ pxCore Copyright 2005-2018 John Robinson
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -91,9 +91,9 @@ pxWayland::~pxWayland()
 #endif //ENABLE_PX_WAYLAND_RPC
   if ( mWCtx )
   {
+     terminateClient();
      WstCompositorDestroy(mWCtx);
      mWCtx = NULL;
-     terminateClient();
   }
 }
 
@@ -500,7 +500,8 @@ uint32_t pxWayland::getModifiers( uint32_t flags )
 
 bool pxWayland::isRotated()
 {
-   float *f= context.getMatrix().data();
+   pxMatrix4f matrix = context.getMatrix();
+   float *f = matrix.data(); 
    const float e= 1.0e-2;
 
    if ( (fabsf(f[1]) > e) ||
@@ -556,22 +557,10 @@ void pxWayland::terminateClient()
       // process ending.  If it hasn't ended, kill it
       if ( mClientPID >= 0 )
       {
-         int retry= 30;
-         while( retry-- > 0 )
-         {
-            usleep( 10000 );
-            if ( mClientPID <= 0 )
-            {
-               break;
-            }
-            if ( retry <= 0 )
-            {
-               rtLogInfo("pxWayland::terminateClient: client pid %d still alive - killing...", mClientPID);
-               kill( mClientPID, SIGKILL);
-               rtLogInfo("pxWayland::terminateClient: client pid %d killed", mClientPID);
-               mClientPID= -1;
-            }
-         }
+          rtLogInfo("pxWayland::terminateClient: client pid %d still alive - killing...", mClientPID);
+          kill( mClientPID, SIGKILL);
+          rtLogInfo("pxWayland::terminateClient: client pid %d killed", mClientPID);
+          mClientPID= -1;
       }
       pthread_join( mClientMonitorThreadId, NULL );
    }
@@ -674,7 +663,7 @@ rtError pxWayland::connectToRemoteObject()
 #ifdef ENABLE_PX_WAYLAND_RPC
   int findTime = 0;
 
-  while (findTime < MAX_FIND_REMOTE_TIMEOUT_IN_MS && mClientPID != -1)
+  while (findTime < MAX_FIND_REMOTE_TIMEOUT_IN_MS && mWaitingForRemoteObject)
   {
     findTime += FIND_REMOTE_ATTEMPT_TIMEOUT_IN_MS;
     rtLogInfo("Attempting to find remote object %s", mRemoteObjectName.cString());

@@ -1,3 +1,21 @@
+/*
+
+pxCore Copyright 2005-2018 John Robinson
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+*/
+
 #include <sstream>
 
 #define private public
@@ -23,8 +41,10 @@ class MockImageResource : public rtImageResource {
 
     MockImageResource(const char* url = 0) { setUrl(IMAGE_URL); UNUSED_PARAM(url); }
 
-    rtError w(int32_t& v) const { v = IMAGE_WIDTH; return RT_OK;}
-    rtError h(int32_t& v) const { v = IMAGE_HEIGHT; return RT_OK; }
+    rtError w(int32_t& v) const override { v = IMAGE_WIDTH; return RT_OK;}
+    rtError h(int32_t& v) const override { v = IMAGE_HEIGHT; return RT_OK; }
+    int32_t w() const override { return IMAGE_WIDTH;}
+    int32_t h() const override { return IMAGE_HEIGHT;}
     rtError description(rtString& d) const { d = "rtImageResource"; return RT_OK; }
 };
 
@@ -94,6 +114,16 @@ class pxImageTest : public testing::Test
         EXPECT_TRUE(pImage->getOnscreenHeight() == IMAGE_HEIGHT * 3);
     }
 
+    void pxImageCreateFailedTest()
+    {
+      pxScene2d* scene = mScene.getPtr();
+      scene->mDisposed = true;
+      rtObjectRef param;
+      rtObjectRef img;
+      EXPECT_TRUE(RT_FAIL == scene->create(param, img));
+      scene->mDisposed = false;
+    }
+
     pxScene2dRef mScene;
     rtObjectRef mImage;
 };
@@ -102,4 +132,5 @@ TEST_F(pxImageTest, pxImageCompleteTest)
 {
     pxImageOnScreenWidthTest();
     pxImageOnScreenHeightTest();
+    pxImageCreateFailedTest();
 }

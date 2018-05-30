@@ -1,3 +1,21 @@
+/*
+
+pxCore Copyright 2005-2018 John Robinson
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+*/
+
 'use strict';
 var WS = require('ws/lib/WebSocket');
 
@@ -29,8 +47,22 @@ WebSocketManager.prototype.clearConnection = function(client) {
 WebSocketManager.prototype.clearConnections = function() {
   var connectionLength = this.connections.length;
   for (var i = 0; i < connectionLength; i++) {
-    this.connections[i].close();
-    delete this.connections[i];
+    if ((null != this.connections[i]) && (undefined != this.connections[i])) {
+      // make sure we close the socket connection and don't wait for process exit to determine it
+      this.connections[i].close();
+      // make sure we call listeners of close now, else it is taking some seconds to get landed
+      this.connections[i].closeimmediate();
+      // make sure we remove all listeners registered for websocket
+      // this is holding javascript variables reference, causing leaks
+      // having check here, don't know who is setting this value to undefined
+      if ((null != this.connections[i]) && (undefined != this.connections[i])) {
+        this.connections[i].removeAllListeners('open');
+        this.connections[i].removeAllListeners('error');
+        this.connections[i].removeAllListeners('message');
+        this.connections[i].removeAllListeners('close');
+        delete this.connections[i];
+      }
+    }
   };
   this.connections.splice(0, this.connections.length);
   delete this.connections;
