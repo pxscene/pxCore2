@@ -30,6 +30,7 @@ limitations under the License.
 #define USELONGCOVERAGE 1
 #define EDGECLEANUP
 
+typedef pxMatrix4T<RealType> pxMatrix4_t;
 
 //#define FRONT2BACK
 
@@ -86,11 +87,11 @@ public:
   bool textureClampColor() const    { return mTextureClampColor; }
   void setTextureClampColor(bool f) { mTextureClampColor = f;    }
 
-	void matrix(pxMatrix4T<float>& m) const;
-	void setMatrix(const pxMatrix4T<float>& m);
+  void matrix(pxMatrix4_t& m) const;
+  void setMatrix(const pxMatrix4_t& m);
 
-  void textureMatrix(pxMatrix4T<float>& m) const;
-  void setTextureMatrix(const pxMatrix4T<float>& m);
+  void textureMatrix(pxMatrix4_t& m) const;
+  void setTextureMatrix(const pxMatrix4_t& m);
 
   bool biLerp() const    { return mBiLerp; }
   void setBiLerp(bool f) { mBiLerp = f;    }

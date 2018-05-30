@@ -205,8 +205,8 @@ private:
 
   int vertexCount() const    { return mVertexCount; }
 
-  pxMatrix4T<float> mMatrix;
-  pxMatrix4T<float> mTextureMatrix;
+  pxMatrix4_t mMatrix;
+  pxMatrix4_t mTextureMatrix;
 
   pxColor mFillColor;
 

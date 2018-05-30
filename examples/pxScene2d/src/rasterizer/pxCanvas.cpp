@@ -188,7 +188,7 @@ rtError pxCanvas::drawPath(rtObjectRef path)
   // Drawing
   if(needsFill || needsStroke)
   {
-    pxMatrix4f m;
+   // pxMatrix4f m;
   
     // - - - - - - - - - - - - - - - - - - -
     if(needsFill)   mCanvasCtx.fill();
