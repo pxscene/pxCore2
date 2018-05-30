@@ -56,7 +56,18 @@
 class pxContext {
  public:
 
-  pxContext(): mShowOutlines(false), mCurrentTextureMemorySizeInBytes(0), mTextureMemoryLimitInBytes(PXSCENE_DEFAULT_TEXTURE_MEMORY_LIMIT_IN_BYTES), mEjectTextureAge(DEFAULT_EJECT_TEXTURE_AGE) {}
+  pxContext()
+  : mShowOutlines(false)
+  , mCurrentTextureMemorySizeInBytes(0)
+  , mTextureMemoryLimitInBytes(PXSCENE_DEFAULT_TEXTURE_MEMORY_LIMIT_IN_BYTES)
+  , mTextureMemoryLimitThresholdPaddingInBytes(PXSCENE_DEFAULT_TEXTURE_MEMORY_LIMIT_THRESHOLD_PADDING_IN_BYTES)
+#ifdef ENABLE_PX_SCENE_TEXTURE_USAGE_MONITORING
+  , mEnableTextureMemoryMonitoring(true)
+#else
+  , mEnableTextureMemoryMonitoring(false)
+#endif
+  , mEjectTextureAge(DEFAULT_EJECT_TEXTURE_AGE)
+  {}
   ~pxContext();
 
   void init();
@@ -152,6 +163,8 @@ private:
   bool mShowOutlines;
   int64_t mCurrentTextureMemorySizeInBytes;
   int64_t mTextureMemoryLimitInBytes;
+  int64_t mTextureMemoryLimitThresholdPaddingInBytes;
+  bool mEnableTextureMemoryMonitoring;
   uint32_t mEjectTextureAge;
 };
 

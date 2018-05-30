@@ -25,6 +25,7 @@
 #include "rtThreadQueue.h"
 #include "rtMutex.h"
 #include "rtScript.h"
+#include "rtSettings.h"
 
 #include "pxContext.h"
 #include "pxUtil.h"
@@ -185,7 +186,7 @@ pxError removeFromTextureList(pxTexture* texture)
 pxError ejectNotRecentlyUsedTextureMemory(int64_t bytesNeeded, uint32_t maxAge=5)
 {
   //rtLogDebug("attempting to eject %" PRId64 " bytes of texture memory with max age %u", bytesNeeded, maxAge);
-#if defined(ENABLE_PX_SCENE_TEXTURE_USAGE_MONITORING) && !defined(DISABLE_TEXTURE_EJECTION)
+#if !defined(DISABLE_TEXTURE_EJECTION)
   int numberEjected = 0;
   int64_t beforeTextureMemoryUsage = context.currentTextureMemoryUsageInBytes();
 
@@ -217,7 +218,7 @@ pxError ejectNotRecentlyUsedTextureMemory(int64_t bytesNeeded, uint32_t maxAge=5
 #else
   (void)bytesNeeded;
   (void)maxAge;
-#endif //ENABLE_PX_SCENE_TEXTURE_USAGE_MONITORING && !DISABLE_TEXTURE_EJECTION
+#endif //!DISABLE_TEXTURE_EJECTION
   return PX_OK;
 }
 
@@ -2186,17 +2187,21 @@ void pxContext::init()
 //  glUseProgram(program);
 
 //  gprogram = program;
-  int64_t maxTextureMemory = PXSCENE_DEFAULT_TEXTURE_MEMORY_LIMIT_IN_BYTES;
-  char const* s = getenv("SPARK_TEXTURE_LIMIT_IN_MB");
-  if (s)
+
+  rtValue val;
+  if (RT_OK == rtSettings::instance()->value("enableTextureMemoryMonitoring", val))
   {
-    int64_t textureMemoryLimit = (int64_t)atoi(s) * (int64_t)1024 * (int64_t)1024;
-    if (textureMemoryLimit > PXSCENE_DEFAULT_TEXTURE_MEMORY_LIMIT_IN_BYTES)
-    {
-      maxTextureMemory = textureMemoryLimit;
-    }
+    mEnableTextureMemoryMonitoring = val.toString().compare("true") == 0;
   }
-  setTextureMemoryLimit(maxTextureMemory);
+  if (RT_OK == rtSettings::instance()->value("textureMemoryLimitInMb", val))
+  {
+    setTextureMemoryLimit((int64_t)val.toInt32() * (int64_t)1024 * (int64_t)1024);
+  }
+  if (mEnableTextureMemoryMonitoring)
+  {
+    rtLogInfo("texture memory limit set to %" PRId64 " bytes, threshold padding %" PRId64 " bytes",
+      mTextureMemoryLimitInBytes, mTextureMemoryLimitThresholdPaddingInBytes);
+  }
 
 #if defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL)
   defaultEglContext = eglGetCurrentContext();
@@ -2784,17 +2789,12 @@ void pxContext::adjustCurrentTextureMemorySize(int64_t changeInBytes, bool allow
   {
     mCurrentTextureMemorySizeInBytes = 0;
   }
-#ifdef ENABLE_PX_SCENE_TEXTURE_USAGE_MONITORING
   int64_t currentTextureMemorySize = mCurrentTextureMemorySizeInBytes;
   int64_t maxTextureMemoryInBytes = mTextureMemoryLimitInBytes;
-#else
-  (void)allowGarbageCollect;
-#endif // ENABLE_PX_SCENE_TEXTURE_USAGE_MONITORING
 
   unlockContext();
   //rtLogDebug("the current texture size: %" PRId64 ".", currentTextureMemorySize);
-#ifdef ENABLE_PX_SCENE_TEXTURE_USAGE_MONITORING
-  if (allowGarbageCollect && changeInBytes > 0 && currentTextureMemorySize > maxTextureMemoryInBytes)
+  if (mEnableTextureMemoryMonitoring && allowGarbageCollect && changeInBytes > 0 && currentTextureMemorySize > maxTextureMemoryInBytes)
   {
     rtLogDebug("the texture size is too large: %" PRId64 ".  doing a garbage collect!!!\n", currentTextureMemorySize);
 #ifdef RUNINMAIN
@@ -2803,31 +2803,25 @@ void pxContext::adjustCurrentTextureMemorySize(int64_t changeInBytes, bool allow
   uv_async_send(&gcTrigger);
 #endif
   }
-#endif // ENABLE_PX_SCENE_TEXTURE_USAGE_MONITORING
 }
 
 void pxContext::setTextureMemoryLimit(int64_t textureMemoryLimitInBytes)
 {
-#ifdef ENABLE_PX_SCENE_TEXTURE_USAGE_MONITORING
-  rtLogInfo("texture memory limit set to %" PRId64 " bytes", textureMemoryLimitInBytes);
-#endif //ENABLE_PX_SCENE_TEXTURE_USAGE_MONITORING
   mTextureMemoryLimitInBytes = textureMemoryLimitInBytes;
 }
 
-#ifdef ENABLE_PX_SCENE_TEXTURE_USAGE_MONITORING
 bool pxContext::isTextureSpaceAvailable(pxTextureRef texture, bool allowGarbageCollect)
-#else
-bool pxContext::isTextureSpaceAvailable(pxTextureRef, bool)
-#endif
 {
-#ifdef ENABLE_PX_SCENE_TEXTURE_USAGE_MONITORING
+  if (!mEnableTextureMemoryMonitoring)
+    return true;
+
   int64_t textureSize = (texture->width()*texture->height()*4);
   lockContext();
   int64_t currentTextureMemorySize = mCurrentTextureMemorySizeInBytes;
   int64_t maxTextureMemoryInBytes = mTextureMemoryLimitInBytes;
   unlockContext();
   if ((textureSize + currentTextureMemorySize) >
-             (maxTextureMemoryInBytes  + PXSCENE_DEFAULT_TEXTURE_MEMORY_LIMIT_THRESHOLD_PADDING_IN_BYTES))
+             (maxTextureMemoryInBytes  + mTextureMemoryLimitThresholdPaddingInBytes))
   {
     if (allowGarbageCollect)
     {
@@ -2839,11 +2833,6 @@ bool pxContext::isTextureSpaceAvailable(pxTextureRef, bool)
     }
     return false;
   }
-  else
-  {
-    return true;
-  }
-#endif //ENABLE_PX_SCENE_TEXTURE_USAGE_MONITORING
   return true;
 }
 
@@ -2867,6 +2856,9 @@ int64_t pxContext::textureMemoryOverflow(pxTextureRef texture)
 int64_t pxContext::ejectTextureMemory(int64_t bytesRequested, bool forceEject)
 {
 #ifdef ENABLE_LRU_TEXTURE_EJECTION
+  if (!mEnableTextureMemoryMonitoring)
+    return 0;
+
   int64_t beforeTextureMemoryUsage = context.currentTextureMemoryUsageInBytes();
   if (!forceEject)
   {
