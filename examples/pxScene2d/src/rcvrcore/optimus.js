@@ -191,6 +191,8 @@ Application.prototype.destroy = function() {
   if (this.externalApp){
     if (this.externalApp.destroy) {
       this.externalApp.destroy();
+    } else if (this.type === TYPE_SPARK && this.externalApp.api && this.externalApp.api.destroy) {
+      this.externalApp.api.destroy();
     }
     this.externalApp.remove();
     this.externalApp = null;
