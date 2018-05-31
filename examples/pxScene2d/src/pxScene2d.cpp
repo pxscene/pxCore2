@@ -1928,9 +1928,10 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   mInfo.set("engine", script.engine());
 #endif
 
-    rtObjectRef build = new rtMapObject;
-    build.set("date", xstr(__DATE__));
-    build.set("time", xstr(__TIME__));
+  rtObjectRef build = new rtMapObject;
+  build.set("date", xstr(__DATE__));
+  build.set("time", xstr(__TIME__));
+  build.set("revision", xstr(SPARK_BUILD_GIT_REVISION));
 
   mInfo.set("build", build);
   mInfo.set("gfxmemory", context.currentTextureMemoryUsageInBytes());
