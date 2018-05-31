@@ -23,8 +23,8 @@ var applicationsArray = [];
 var availableApplicationsArray = [];
 var eventListenerHash = {}
 
-var scene = undefined;
-var root = undefined;
+var scene;
+var root;
 
 //Application types
 const TYPE_SPARK = 1;
@@ -33,113 +33,106 @@ const TYPE_WEB = 3;
 const TYPE_UNDEFINED = 4;
 
 function Application(props) {
-  this.id;
+  this.id = undefined;
   this.priority	= 1;
   this.appState = "RUNNING";
   this.externalApp = undefined;
   this.appName = "";
   this.browser = undefined;
   this.type = TYPE_UNDEFINED;
+  this.ready = undefined;
 
   var cmd = "";
   var w = 0;
   var h = 0;
   var uri = "";
+  var launchParams;
+  var _this = this;
 
   if ("launchParams" in props){
-    var launchParams = props["launchParams"];
+    launchParams = props.launchParams;
     if ("cmd" in launchParams){
-      cmd = launchParams["cmd"];
+      cmd = launchParams.cmd;
     }
-    console.log("cmd: " + cmd);
+    if ("uri" in launchParams){
+      uri = launchParams.uri;
+    }
   }
   if ("w" in props){
-    w = props["w"];
+    w = props.w;
   }
   if ("h" in props){
-    h = props["h"];
+    h = props.h;
   }
+  if (cmd === "wpe" && uri){
+    cmd = cmd + " " + uri;
+  }
+
+  console.log("cmd:",cmd,"uri:",uri,"w:",w,"h:",h);
+
   if (cmd){
     if (scene !== undefined) {
-      if ((cmd == "spark") && "uri" in launchParams){
+      if (cmd === "spark"){
         this.type = TYPE_SPARK;
-        uri = launchParams["uri"];
         this.externalApp = scene.create({t:"scene", parent:root, url:uri});
+        this.ready = this.externalApp.ready;
         this.externalApp.on("onClientStopped", this.applicationClosed);
-        var sparkApp = this;
-        this.externalApp.ready.then(function(o) {
-            console.log("successfully created Spark app: " + sparkApp.id);
-            sparkApp.applicationReady();
-          }, function rejection(o) {
-          console.log("failed to launch Spark app: " + sparkApp.id);
-          module.exports.onDestroy(sparkApp);
+        this.externalApp.ready.then(function() {
+          console.log("successfully created Spark app: " + _this.id);
+          _this.applicationReady();
+        }, function rejection() {
+          console.log("failed to launch Spark app: " + _this.id);
+          _this.applicationClosed();
         });
         this.setProperties(props);
-        module.exports.onCreate(this);
+        this.applicationCreated();
       }
-      else if (cmd == "WebApp"){
+      else if (cmd === "WebApp"){
         this.type = TYPE_WEB;
-        if ("uri" in launchParams){
-            uri = launchParams["uri"];
-        }
-        var waylandObj = scene.create( {t:"wayland", parent:root, server:"wl-rdkbrowser2-server", w:w, h:h, hasApi:true} );
-        this.externalApp = waylandObj;
+        this.externalApp = scene.create( {t:"wayland", parent:root, server:"wl-rdkbrowser2-server", w:w, h:h, hasApi:true} );
+        this.ready = this.externalApp.remoteReady;
         this.setProperties(props);
-        var thisApp = this;
-        waylandObj.remoteReady.then(function(obj) {
-            if(obj)
-            {
-              thisApp.browser = waylandObj.api.createWindow(waylandObj.displayName, false);
-              if (thisApp.browser)
-              {
-                thisApp.browser.url = uri;
-                console.log("launched WebApp uri:" + uri);
-                module.exports.onCreate(waylandObj);
-                waylandObj.applicationReady();
-              }
-              else
-              {
-                console.log("failed to create window for WebApp");
-                module.exports.onDestroy(waylandObj);
-              }
+        this.externalApp.remoteReady.then(function(obj) {
+          if(obj) {
+            _this.browser = _this.externalApp.api.createWindow(_this.externalApp.displayName, false);
+            if (_this.browser) {
+              _this.browser.url = uri;
+              console.log("launched WebApp uri:" + uri);
+              _this.applicationCreated();
+              _this.applicationReady();
+            } else {
+              console.log("failed to create window for WebApp");
+              _this.applicationClosed();
             }
-            else
-            {
-              console.log("failed to create WebApp invalid waylandObj");
-              module.exports.onDestroy(waylandObj);
-            }
-          }, function rejection(o) {
+          } else {
+            console.log("failed to create WebApp invalid waylandObj");
+            _this.applicationClosed();
+          }
+        }, function rejection() {
           console.log("failed to create WebApp");
-          module.exports.onDestroy(waylandObj);
+          _this.applicationClosed();
         });
       }
       else{
-        if (cmd == "wpe" && "uri" in launchParams){
-            uri = launchParams["uri"];
-            cmd = cmd + " " + uri;
-            console.log("Launching wpe uri: " + uri); 
-        }
         this.type = TYPE_NATIVE;
         this.externalApp = scene.create( {t:"wayland", parent:root, cmd:cmd, w:w, h:h, hasApi:true} );
+        this.ready = this.externalApp.ready;
         this.externalApp.on("onReady", this.applicationReady);
         this.externalApp.on("onClientStopped", this.applicationClosed);
         this.externalApp.on("onClientDisconnected", this.applicationClosed);
         this.setProperties(props);
-        var thisApp = this;
-        this.externalApp.ready.then(function(o) {
-            console.log("successfully created: " + thisApp.id);
-            module.exports.onCreate(thisApp);
-          }, function rejection(o) {
-          console.log("failed to launch app: " + thisApp.id);
-          module.exports.onDestroy(thisApp);
+        this.externalApp.ready.then(function() {
+          console.log("successfully created: " + _this.id);
+          _this.applicationReady();
+        }, function rejection() {
+          console.log("failed to launch app: " + _this.id);
+          _this.applicationClosed();
         });
+        this.applicationCreated();
       }
-    }
-    else
-    {
+    } else {
       console.log("cannot create app because the scene is not set");
-      var destroyedApp = this;
-      module.exports.onDestroy(destroyedApp);
+      this.applicationClosed();
     }
   }
   else{
@@ -149,6 +142,12 @@ function Application(props) {
 Application.prototype.applicationManager = function() {
   return module.exports;
 }
+Application.prototype.applicationCreated = function(){
+  var appManager = module.exports;
+  if (appManager){
+    appManager.onCreate(this);
+  }
+};
 Application.prototype.applicationReady = function(e){
   var appManager = module.exports;
   if (appManager){
