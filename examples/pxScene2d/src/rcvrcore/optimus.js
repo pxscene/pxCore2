@@ -64,7 +64,9 @@ function Application(props) {
       if ((cmd == "spark") && "uri" in launchParams){
         this.type = TYPE_SPARK;
         uri = launchParams["uri"];
-        this.externalApp = scene.create({t:"scene", parent:root, url:uri});
+        var serviceContext = {}
+        if("serviceContext" in props) { serviceContext = props["serviceContext"]}
+        this.externalApp = scene.create({t:"scene", parent:root, url:uri,serviceContext:serviceContext});
         this.externalApp.on("onClientStopped", this.applicationClosed);
         var sparkApp = this;
         this.externalApp.ready.then(function(o) {
@@ -268,7 +270,7 @@ Application.prototype.setProperties = function(props) {
   var app = this.externalApp;
   for (var key in props)
   {
-    switch(key){
+    switch(key){  
       case "id":
         this.id = props[key];
         break;
