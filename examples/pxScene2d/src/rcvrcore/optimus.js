@@ -77,7 +77,7 @@ function Application(props) {
         this.setProperties(props);
         module.exports.onCreate(this);
       }
-      else if (cmd == "rdkbrowser2"){
+      else if (cmd == "WebApp"){
         this.type = TYPE_WEB;
         if ("uri" in launchParams){
             uri = launchParams["uri"];
@@ -93,23 +93,23 @@ function Application(props) {
               if (thisApp.browser)
               {
                 thisApp.browser.url = uri;
-                console.log("launched rdkbrowser2 uri:" + uri);
+                console.log("launched WebApp uri:" + uri);
                 module.exports.onCreate(waylandObj);
                 waylandObj.applicationReady();
               }
               else
               {
-                console.log("failed to create window for rdkbrowser2");
+                console.log("failed to create window for WebApp");
                 module.exports.onDestroy(waylandObj);
               }
             }
             else
             {
-              console.log("failed to create rdkbrowser2 invalid waylandObj");
+              console.log("failed to create WebApp invalid waylandObj");
               module.exports.onDestroy(waylandObj);
             }
           }, function rejection(o) {
-          console.log("failed to create rdkbrowser2");
+          console.log("failed to create WebApp");
           module.exports.onDestroy(waylandObj);
         });
       }
