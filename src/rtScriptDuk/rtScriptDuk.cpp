@@ -196,7 +196,7 @@ private:
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
+std::vector<uv_loop_t *>       uvLoops;
 typedef std::map<uint32_t, rtDukContextRef> rtDukContexts;
 //typedef std::map<uint32_t, rtDukContextRef>::const_iterator rtNodeContexts_iterator;
 
@@ -246,7 +246,6 @@ private:
   void nodePath();
 
   duk_context                   *dukCtx;
-  std::vector<uv_loop_t *>       uvLoops;
   //uv_thread_t                    dukTid;
   bool                           duk_is_initialized;
 
@@ -398,6 +397,16 @@ rtDukContext::~rtDukContext()
 {
   rtLogInfo(__FUNCTION__);
   //Make sure node is not destroyed abnormally
+  size_t i = 0;
+  for (i = 0; i < uvLoops.size(); ++i) {
+    if (uvLoops[i] == uvLoop)
+    {
+      uvLoops.erase(uvLoops.begin() + i);
+      break;
+    }
+  }
+  uv_loop_close(uvLoop);
+  delete uvLoop;
   Release();
   // NOTE: 'mIsolate' is owned by rtNode.  Don't destroy here !
 }
@@ -1191,7 +1200,7 @@ rtError rtScriptDuk::pump()
 #ifndef RUNINMAIN
   return RT_OK;
 #else
-  for (int i = 0; i < uvLoops.size(); ++i) {
+  for (size_t i = 0; i < uvLoops.size(); ++i) {
     uv_run(uvLoops[i], UV_RUN_NOWAIT);
   }
 #endif // RUNINMAIN
@@ -1416,7 +1425,7 @@ rtDukContextRef rtScriptDuk::createContext(bool ownThread)
     // rtLogInfo("\n createContext()  >>  CLONE CREATED !!!!!!");
     ctxref = new rtDukContext(mRefContext); // CLONE !!!
     assert(ctxref->uvLoop != NULL);
-    uvLoops.push_back(mRefContext->uvLoop);
+    uvLoops.push_back(ctxref->uvLoop);
   }
 #else
     ctxref = new rtDukContext(mIsolate,mPlatform);
