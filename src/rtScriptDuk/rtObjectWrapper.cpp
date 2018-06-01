@@ -788,6 +788,5 @@ void jsObjectWrapper::pushDukWrappedObject()
 {
   duk_bool_t res = duk_get_global_string(mDukCtx, mDukName.c_str());
   assert(res);
-
-  AddRef();
+  //AddRef();
 }
