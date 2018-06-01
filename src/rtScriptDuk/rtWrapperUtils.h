@@ -82,6 +82,7 @@ void rt2duk(duk_context *ctx, const rtValue& val);
 std::string rtAllocDukIdentId();
 std::string rtDukPutIdentToGlobal(duk_context *ctx, const std::string &name = "");
 void rtDukDelGlobalIdent(duk_context *ctx, const std::string &name);
+void rtClearAllGlobalIdents(duk_context *ctx);
 
 #endif
 
