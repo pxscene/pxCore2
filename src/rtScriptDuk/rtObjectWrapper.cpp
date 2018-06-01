@@ -49,6 +49,8 @@ struct dukObjectFunctionInfo
   dukObjectFunctionInfo *mNext;
 };
 
+#if 0
+// Move it to #if 0 .. #endif because its caller has been excluded from compilation.
 static duk_ret_t dukObjectMethodGetStub(duk_context *ctx)
 {
   duk_push_this(ctx);
@@ -123,8 +125,6 @@ static duk_ret_t dukObjectMethodGetStub(duk_context *ctx)
   return 1;
 }
 
-
-#if 0
 static void wrapObjToDuk(duk_context *ctx, const rtObjectRef& ref)
 {
   static std::map<rtMethodMap *, dukObjectFunctionInfo *> methodCache;
