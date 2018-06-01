@@ -80,9 +80,6 @@
 		4C0C28F91E6F04C6007013C9 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AECBEE091B685F1C00851BFE /* Foundation.framework */; };
 		4C0C28FA1E6F04C6007013C9 /* libpxCore.a in Frameworks */ = {isa = PBXBuildFile; fileRef = AECBECD01B67979F00851BFE /* libpxCore.a */; };
 		4C0C28FB1E6F04C6007013C9 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AECBEE0B1B685F2100851BFE /* Cocoa.framework */; };
-		4C0C29021E6F0505007013C9 /* Rasterizer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4CEF520E1E6F00E400E7DF59 /* Rasterizer.cpp */; };
-		4C0C29031E6F050B007013C9 /* pxRasterizer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4CEF520C1E6F00E400E7DF59 /* pxRasterizer.cpp */; };
-		4C0C29041E6F0513007013C9 /* pxCanvas.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4CEF52091E6F00E400E7DF59 /* pxCanvas.cpp */; };
 		4C5D0574201FC48F00D2B292 /* unzip.c in Sources */ = {isa = PBXBuildFile; fileRef = 46B077771E30FFC700BC6B9C /* unzip.c */; };
 		4C5D0575201FC48F00D2B292 /* rtThreadPoolNative.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46B077B01E30FFED00BC6B9C /* rtThreadPoolNative.cpp */; };
 		4C5D0576201FC48F00D2B292 /* pxInterpolators.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46D3046A1E673978000C5A5B /* pxInterpolators.cpp */; };
@@ -137,7 +134,6 @@
 		4C5D05A9201FC48F00D2B292 /* pxTimer.h in Headers */ = {isa = PBXBuildFile; fileRef = AECBED5A1B67B09200851BFE /* pxTimer.h */; };
 		4C5D05AA201FC48F00D2B292 /* pxColor.h in Headers */ = {isa = PBXBuildFile; fileRef = AECBED501B67B09200851BFE /* pxColor.h */; };
 		4C5D05AB201FC48F00D2B292 /* rtHttpCache.h in Headers */ = {isa = PBXBuildFile; fileRef = 46D304751E673978000C5A5B /* rtHttpCache.h */; };
-		4C5D05AC201FC48F00D2B292 /* pxRasterizer.h in Headers */ = {isa = PBXBuildFile; fileRef = 4CEF520D1E6F00E400E7DF59 /* pxRasterizer.h */; };
 		4C5D05AD201FC48F00D2B292 /* rtString.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B077681E30FFC700BC6B9C /* rtString.h */; };
 		4C5D05AE201FC48F00D2B292 /* pxIView.h in Headers */ = {isa = PBXBuildFile; fileRef = AECBED541B67B09200851BFE /* pxIView.h */; };
 		4C5D05AF201FC48F00D2B292 /* rtThreadQueue.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B0776E1E30FFC700BC6B9C /* rtThreadQueue.h */; };
@@ -164,9 +160,7 @@
 		4C5D05C4201FC48F00D2B292 /* pxKeycodes.h in Headers */ = {isa = PBXBuildFile; fileRef = AECBED551B67B09200851BFE /* pxKeycodes.h */; };
 		4C5D05C5201FC48F00D2B292 /* pxConfig.h in Headers */ = {isa = PBXBuildFile; fileRef = AECBED511B67B09200851BFE /* pxConfig.h */; };
 		4C5D05C6201FC48F00D2B292 /* pxOffscreen.h in Headers */ = {isa = PBXBuildFile; fileRef = AECBED571B67B09200851BFE /* pxOffscreen.h */; };
-		4C5D05C7201FC48F00D2B292 /* pxCanvas.h in Headers */ = {isa = PBXBuildFile; fileRef = 4CEF520A1E6F00E400E7DF59 /* pxCanvas.h */; };
 		4C5D05C8201FC48F00D2B292 /* rtObject.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B077611E30FFC700BC6B9C /* rtObject.h */; };
-		4C5D05C9201FC48F00D2B292 /* px2d.h in Headers */ = {isa = PBXBuildFile; fileRef = 4CEF52081E6F00E400E7DF59 /* px2d.h */; };
 		4C5D05CA201FC48F00D2B292 /* rtScript.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B0775F1E30FFC700BC6B9C /* rtScript.h */; };
 		4C5D05CB201FC48F00D2B292 /* rtPathUtils.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B077641E30FFC700BC6B9C /* rtPathUtils.h */; };
 		4C5D05CC201FC48F00D2B292 /* rtThreadTask.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B077701E30FFC700BC6B9C /* rtThreadTask.h */; };
@@ -197,10 +191,7 @@
 		4C9DAFA62019373D00540240 /* rtPromise.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C9DAFA22019373D00540240 /* rtPromise.cpp */; };
 		4C9DAFA72019373D00540240 /* rtScript.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C9DAFA32019373D00540240 /* rtScript.cpp */; };
 		4CCCA2BF1E96C62400884036 /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AE1D44361B809BA8002E7CAE /* OpenGL.framework */; };
-		4CEF52101E6F00E400E7DF59 /* px2d.h in Headers */ = {isa = PBXBuildFile; fileRef = 4CEF52081E6F00E400E7DF59 /* px2d.h */; };
-		4CEF52121E6F00E400E7DF59 /* pxCanvas.h in Headers */ = {isa = PBXBuildFile; fileRef = 4CEF520A1E6F00E400E7DF59 /* pxCanvas.h */; };
 		4CEF52131E6F00E400E7DF59 /* pxMatrix.h in Headers */ = {isa = PBXBuildFile; fileRef = 4CEF520B1E6F00E400E7DF59 /* pxMatrix.h */; };
-		4CEF52151E6F00E400E7DF59 /* pxRasterizer.h in Headers */ = {isa = PBXBuildFile; fileRef = 4CEF520D1E6F00E400E7DF59 /* pxRasterizer.h */; };
 		4CF5464120210AB600529907 /* unzip.c in Sources */ = {isa = PBXBuildFile; fileRef = 46B077771E30FFC700BC6B9C /* unzip.c */; };
 		4CF5464220210AB600529907 /* rtThreadPoolNative.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46B077B01E30FFED00BC6B9C /* rtThreadPoolNative.cpp */; };
 		4CF5464320210AB600529907 /* pxInterpolators.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46D3046A1E673978000C5A5B /* pxInterpolators.cpp */; };
@@ -255,7 +246,6 @@
 		4CF5467620210AB600529907 /* pxTimer.h in Headers */ = {isa = PBXBuildFile; fileRef = AECBED5A1B67B09200851BFE /* pxTimer.h */; };
 		4CF5467720210AB600529907 /* pxColor.h in Headers */ = {isa = PBXBuildFile; fileRef = AECBED501B67B09200851BFE /* pxColor.h */; };
 		4CF5467820210AB600529907 /* rtHttpCache.h in Headers */ = {isa = PBXBuildFile; fileRef = 46D304751E673978000C5A5B /* rtHttpCache.h */; };
-		4CF5467920210AB600529907 /* pxRasterizer.h in Headers */ = {isa = PBXBuildFile; fileRef = 4CEF520D1E6F00E400E7DF59 /* pxRasterizer.h */; };
 		4CF5467A20210AB600529907 /* rtString.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B077681E30FFC700BC6B9C /* rtString.h */; };
 		4CF5467B20210AB600529907 /* pxIView.h in Headers */ = {isa = PBXBuildFile; fileRef = AECBED541B67B09200851BFE /* pxIView.h */; };
 		4CF5467C20210AB600529907 /* rtThreadQueue.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B0776E1E30FFC700BC6B9C /* rtThreadQueue.h */; };
@@ -282,9 +272,7 @@
 		4CF5469120210AB600529907 /* pxKeycodes.h in Headers */ = {isa = PBXBuildFile; fileRef = AECBED551B67B09200851BFE /* pxKeycodes.h */; };
 		4CF5469220210AB600529907 /* pxConfig.h in Headers */ = {isa = PBXBuildFile; fileRef = AECBED511B67B09200851BFE /* pxConfig.h */; };
 		4CF5469320210AB600529907 /* pxOffscreen.h in Headers */ = {isa = PBXBuildFile; fileRef = AECBED571B67B09200851BFE /* pxOffscreen.h */; };
-		4CF5469420210AB600529907 /* pxCanvas.h in Headers */ = {isa = PBXBuildFile; fileRef = 4CEF520A1E6F00E400E7DF59 /* pxCanvas.h */; };
 		4CF5469520210AB600529907 /* rtObject.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B077611E30FFC700BC6B9C /* rtObject.h */; };
-		4CF5469620210AB600529907 /* px2d.h in Headers */ = {isa = PBXBuildFile; fileRef = 4CEF52081E6F00E400E7DF59 /* px2d.h */; };
 		4CF5469720210AB600529907 /* rtScript.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B0775F1E30FFC700BC6B9C /* rtScript.h */; };
 		4CF5469820210AB600529907 /* rtPathUtils.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B077641E30FFC700BC6B9C /* rtPathUtils.h */; };
 		4CF5469920210AB600529907 /* rtThreadTask.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B077701E30FFC700BC6B9C /* rtThreadTask.h */; };
@@ -462,7 +450,6 @@
 		46D304741E673978000C5A5B /* rtHttpCache.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = rtHttpCache.cpp; path = src/rtHttpCache.cpp; sourceTree = SOURCE_ROOT; };
 		46D304751E673978000C5A5B /* rtHttpCache.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = rtHttpCache.h; path = src/rtHttpCache.h; sourceTree = SOURCE_ROOT; };
 		4C0086DE1E6C64C900DB42F4 /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = System/Library/Frameworks/CoreFoundation.framework; sourceTree = SDKROOT; };
-		4C0C29001E6F04C6007013C9 /* Rasterizer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Rasterizer.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		4C5D05E4201FC48F00D2B292 /* libpxCore (Duk) Static Library.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libpxCore (Duk) Static Library.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		4C7B860E1D10A45200C2489F /* pxClipboard.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pxClipboard.h; path = src/pxClipboard.h; sourceTree = SOURCE_ROOT; };
 		4C7B86111D10A47300C2489F /* pxClipboardNative.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = pxClipboardNative.mm; path = src/mac/pxClipboardNative.mm; sourceTree = SOURCE_ROOT; };
@@ -470,13 +457,6 @@
 		4C9DAF9E201936F300540240 /* rtScriptHeaders.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = rtScriptHeaders.h; path = src/rtScriptHeaders.h; sourceTree = SOURCE_ROOT; };
 		4C9DAFA22019373D00540240 /* rtPromise.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = rtPromise.cpp; path = src/rtPromise.cpp; sourceTree = SOURCE_ROOT; };
 		4C9DAFA32019373D00540240 /* rtScript.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = rtScript.cpp; path = src/rtScript.cpp; sourceTree = SOURCE_ROOT; };
-		4CEF52081E6F00E400E7DF59 /* px2d.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = px2d.h; path = examples/Rasterizer/px2d.h; sourceTree = SOURCE_ROOT; };
-		4CEF52091E6F00E400E7DF59 /* pxCanvas.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = pxCanvas.cpp; path = examples/Rasterizer/pxCanvas.cpp; sourceTree = SOURCE_ROOT; };
-		4CEF520A1E6F00E400E7DF59 /* pxCanvas.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pxCanvas.h; path = examples/Rasterizer/pxCanvas.h; sourceTree = SOURCE_ROOT; };
-		4CEF520B1E6F00E400E7DF59 /* pxMatrix.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pxMatrix.h; path = examples/Rasterizer/pxMatrix.h; sourceTree = SOURCE_ROOT; };
-		4CEF520C1E6F00E400E7DF59 /* pxRasterizer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = pxRasterizer.cpp; path = examples/Rasterizer/pxRasterizer.cpp; sourceTree = SOURCE_ROOT; };
-		4CEF520D1E6F00E400E7DF59 /* pxRasterizer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pxRasterizer.h; path = examples/Rasterizer/pxRasterizer.h; sourceTree = SOURCE_ROOT; };
-		4CEF520E1E6F00E400E7DF59 /* Rasterizer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Rasterizer.cpp; path = examples/Rasterizer/Rasterizer.cpp; sourceTree = SOURCE_ROOT; };
 		4CF546B120210AB600529907 /* libpxCore Static Library.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libpxCore Static Library.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		AE1D42BC1B7CF5E0002E7CAE /* Hover.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Hover.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AE1D42DC1B7CF611002E7CAE /* Hover.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Hover.cpp; path = examples/Hover/Hover.cpp; sourceTree = SOURCE_ROOT; };
@@ -890,7 +870,6 @@
 				AE1D43BF1B7D51BF002E7CAE /* KeyboardAndMouse.app */,
 				AE1D43E81B7E8E11002E7CAE /* NativeDrawing.app */,
 				AE1D44111B809983002E7CAE /* SimpleOpenGL.app */,
-				4C0C29001E6F04C6007013C9 /* Rasterizer.app */,
 				4C5D05E4201FC48F00D2B292 /* libpxCore (Duk) Static Library.a */,
 				4CF546B120210AB600529907 /* libpxCore Static Library.a */,
 			);
@@ -978,7 +957,6 @@
 				4C5D05A9201FC48F00D2B292 /* pxTimer.h in Headers */,
 				4C5D05AA201FC48F00D2B292 /* pxColor.h in Headers */,
 				4C5D05AB201FC48F00D2B292 /* rtHttpCache.h in Headers */,
-				4C5D05AC201FC48F00D2B292 /* pxRasterizer.h in Headers */,
 				4C5D05AD201FC48F00D2B292 /* rtString.h in Headers */,
 				4C5D05AE201FC48F00D2B292 /* pxIView.h in Headers */,
 				4C5D05AF201FC48F00D2B292 /* rtThreadQueue.h in Headers */,
@@ -1005,9 +983,7 @@
 				4C5D05C4201FC48F00D2B292 /* pxKeycodes.h in Headers */,
 				4C5D05C5201FC48F00D2B292 /* pxConfig.h in Headers */,
 				4C5D05C6201FC48F00D2B292 /* pxOffscreen.h in Headers */,
-				4C5D05C7201FC48F00D2B292 /* pxCanvas.h in Headers */,
 				4C5D05C8201FC48F00D2B292 /* rtObject.h in Headers */,
-				4C5D05C9201FC48F00D2B292 /* px2d.h in Headers */,
 				4C5D05CA201FC48F00D2B292 /* rtScript.h in Headers */,
 				4C5D05CB201FC48F00D2B292 /* rtPathUtils.h in Headers */,
 				4C5D05CC201FC48F00D2B292 /* rtThreadTask.h in Headers */,
@@ -1049,7 +1025,6 @@
 				4CF5467620210AB600529907 /* pxTimer.h in Headers */,
 				4CF5467720210AB600529907 /* pxColor.h in Headers */,
 				4CF5467820210AB600529907 /* rtHttpCache.h in Headers */,
-				4CF5467920210AB600529907 /* pxRasterizer.h in Headers */,
 				4CF5467A20210AB600529907 /* rtString.h in Headers */,
 				4CF5467B20210AB600529907 /* pxIView.h in Headers */,
 				4CF5467C20210AB600529907 /* rtThreadQueue.h in Headers */,
@@ -1076,9 +1051,7 @@
 				4CF5469120210AB600529907 /* pxKeycodes.h in Headers */,
 				4CF5469220210AB600529907 /* pxConfig.h in Headers */,
 				4CF5469320210AB600529907 /* pxOffscreen.h in Headers */,
-				4CF5469420210AB600529907 /* pxCanvas.h in Headers */,
 				4CF5469520210AB600529907 /* rtObject.h in Headers */,
-				4CF5469620210AB600529907 /* px2d.h in Headers */,
 				4CF5469720210AB600529907 /* rtScript.h in Headers */,
 				4CF5469820210AB600529907 /* rtPathUtils.h in Headers */,
 				4CF5469920210AB600529907 /* rtThreadTask.h in Headers */,
@@ -1120,7 +1093,6 @@
 				AECBED6C1B67B09200851BFE /* pxTimer.h in Headers */,
 				AECBED621B67B09200851BFE /* pxColor.h in Headers */,
 				46D304811E673978000C5A5B /* rtHttpCache.h in Headers */,
-				4CEF52151E6F00E400E7DF59 /* pxRasterizer.h in Headers */,
 				46B0779A1E30FFC700BC6B9C /* rtString.h in Headers */,
 				AECBED661B67B09200851BFE /* pxIView.h in Headers */,
 				46B077A01E30FFC700BC6B9C /* rtThreadQueue.h in Headers */,
@@ -1147,9 +1119,7 @@
 				AECBED671B67B09200851BFE /* pxKeycodes.h in Headers */,
 				AECBED631B67B09200851BFE /* pxConfig.h in Headers */,
 				AECBED691B67B09200851BFE /* pxOffscreen.h in Headers */,
-				4CEF52121E6F00E400E7DF59 /* pxCanvas.h in Headers */,
 				46B077931E30FFC700BC6B9C /* rtObject.h in Headers */,
-				4CEF52101E6F00E400E7DF59 /* px2d.h in Headers */,
 				46B077911E30FFC700BC6B9C /* rtScript.h in Headers */,
 				46B077961E30FFC700BC6B9C /* rtPathUtils.h in Headers */,
 				46B077A21E30FFC700BC6B9C /* rtThreadTask.h in Headers */,
@@ -1179,23 +1149,6 @@
 /* End PBXHeadersBuildPhase section */
 
 /* Begin PBXNativeTarget section */
-		4C0C28F51E6F04C6007013C9 /* Rasterizer */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 4C0C28FD1E6F04C6007013C9 /* Build configuration list for PBXNativeTarget "Rasterizer" */;
-			buildPhases = (
-				4C0C28F61E6F04C6007013C9 /* Sources */,
-				4C0C28F81E6F04C6007013C9 /* Frameworks */,
-				4C0C28FC1E6F04C6007013C9 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
-			name = Rasterizer;
-			productName = Mandelbrot;
-			productReference = 4C0C29001E6F04C6007013C9 /* Rasterizer.app */;
-			productType = "com.apple.product-type.application";
-		};
 		4C5D0571201FC48F00D2B292 /* pxCore (Duk) Static Library */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 4C5D05E1201FC48F00D2B292 /* Build configuration list for PBXNativeTarget "pxCore (Duk) Static Library" */;
@@ -1486,7 +1439,6 @@
 				AE1D430D1B7D2B47002E7CAE /* Animation */,
 				AE1D43381B7D45EB002E7CAE /* Sprite */,
 				AE1D43611B7D4F6E002E7CAE /* Mandelbrot */,
-				4C0C28F51E6F04C6007013C9 /* Rasterizer */,
 				AE1D43BE1B7D51BF002E7CAE /* KeyboardAndMouse */,
 				AE1D43E71B7E8E11002E7CAE /* NativeDrawing */,
 				AE1D43AE1B7D5113002E7CAE /* Timer */,
@@ -1614,16 +1566,6 @@
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		4C0C28F61E6F04C6007013C9 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				4C0C29031E6F050B007013C9 /* pxRasterizer.cpp in Sources */,
-				4C0C29041E6F0513007013C9 /* pxCanvas.cpp in Sources */,
-				4C0C29021E6F0505007013C9 /* Rasterizer.cpp in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		4C5D0573201FC48F00D2B292 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -1939,6 +1881,7 @@
 					examples/pxScene2d/external/curl/include,
 					examples/pxScene2d/external/jpg,
 					examples/pxScene2d/external/png,
+					examples/pxScene2d/external/nanosvg/src,
 				);
 				OTHER_CPLUSPLUSFLAGS = (
 					"$(OTHER_CFLAGS)",
@@ -2011,6 +1954,7 @@
 					examples/pxScene2d/external/curl/include,
 					examples/pxScene2d/external/jpg,
 					examples/pxScene2d/external/png,
+					examples/pxScene2d/external/nanosvg/src,
 				);
 				OTHER_CPLUSPLUSFLAGS = (
 					"$(OTHER_CFLAGS)",
@@ -2084,6 +2028,7 @@
 					examples/pxScene2d/external/curl/include,
 					examples/pxScene2d/external/jpg,
 					examples/pxScene2d/external/png,
+					examples/pxScene2d/external/nanosvg/src,
 				);
 				OTHER_CPLUSPLUSFLAGS = (
 					"$(OTHER_CFLAGS)",
@@ -2157,6 +2102,7 @@
 					examples/pxScene2d/external/curl/include,
 					examples/pxScene2d/external/jpg,
 					examples/pxScene2d/external/png,
+					examples/pxScene2d/external/nanosvg/src,
 				);
 				OTHER_CPLUSPLUSFLAGS = (
 					"$(OTHER_CFLAGS)",
@@ -2571,6 +2517,7 @@
 					examples/pxScene2d/external/curl/include,
 					examples/pxScene2d/external/jpg,
 					examples/pxScene2d/external/png,
+					examples/pxScene2d/external/nanosvg/src,
 				);
 				OTHER_CPLUSPLUSFLAGS = (
 					"$(OTHER_CFLAGS)",
@@ -2643,6 +2590,7 @@
 					examples/pxScene2d/external/curl/include,
 					examples/pxScene2d/external/jpg,
 					examples/pxScene2d/external/png,
+					examples/pxScene2d/external/nanosvg/src,
 				);
 				OTHER_CPLUSPLUSFLAGS = (
 					"$(OTHER_CFLAGS)",
@@ -2704,15 +2652,6 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		4C0C28FD1E6F04C6007013C9 /* Build configuration list for PBXNativeTarget "Rasterizer" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				4C0C28FE1E6F04C6007013C9 /* Debug */,
-				4C0C28FF1E6F04C6007013C9 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
 		4C5D05E1201FC48F00D2B292 /* Build configuration list for PBXNativeTarget "pxCore (Duk) Static Library" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

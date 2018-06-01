@@ -106,16 +106,11 @@
 
 ////////////////////////////////////////////////////////////////
 
-pxContextSurfaceNativeDesc defaultContextSurface;
+pxContextSurfaceNativeDesc  defaultContextSurface;
 pxContextSurfaceNativeDesc* currentContextSurface = &defaultContextSurface;
 
 pxContextFramebufferRef defaultFramebuffer(new pxContextFramebuffer());
 pxContextFramebufferRef currentFramebuffer = defaultFramebuffer;
-
-class pxSwTexture; //fwd
-
-typedef rtRef<pxSwTexture>    pxSwTextureRef;
-static        pxSwTextureRef  swRasterTexture; // aka "fullScreenTextureSoftware"
 
 
 #ifdef RUNINMAIN
@@ -987,181 +982,6 @@ private:
 
 }; // CLASS - pxTextureOffscreen
 
-class pxSwTexture: public pxTexture
-{
-public:
-  pxSwTexture() : mWidth(0), mHeight(0), mOffscreen(), mTextureName(0), mRasterTextureCreated(false),  mInitialized(false)
-  {
-    //ctor
-  };
-  
-  ~pxSwTexture()
-  {
-    deleteTexture();
-    mOffscreen.term();
-  };
-  
-  void init(int w, int h)
-  {
-    if(!mInitialized)
-    {
-      mWidth  = w;
-      mHeight = h;
-
-      mOffscreen.init(w,h);
-      
-      mOffscreen.setUpsideDown(true);
-
-      mInitialized = true;
-    }
-  }
-  
-  void clear(const pxRect& r)
-  {
-    mOffscreen.fill(r, pxClear);
-  }
-
-  void clear()
-  {
-    mOffscreen.fill(pxClear);
-  }
-
-  pxOffscreen* offscreen()
-  {
-    return &mOffscreen;
-  }
-
-  pxError copy(int src_x, int src_y, int dst_x, int dst_y, float w, float h, pxOffscreen &o)
-  {
-    // COPY / BLIT from 'o' ... to 'mOffscreen'
-    o.blit(mOffscreen, dst_x, dst_y, w, h, src_x, src_y);
-
-#if 0
-#ifdef PX_PLATFORM_MAC
-    
-    extern void *makeNSImage(void *rgba_buffer, int w, int h, int depth);
-
-    // HACK
-    // HACK
-    // HACK
-    static int frame = 20;
-    if(frame-- == 0)
-    {
-      void *img_raster = makeNSImage(o.base(), o.width(), o.height(), 4);
-      void *img_render = makeNSImage(mOffscreen.base(), mOffscreen.width(), mOffscreen.height(), 4);
-      
-      frame = -1;
-    }
-    // HACK
-    // HACK
-    // HACK
-#endif
-#endif
-
-    if (mTextureName != 0)
-    {
-      glBindTexture(GL_TEXTURE_2D, mTextureName);   TRACK_TEX_CALLS();
- 
-//      int f = mOffscreen.width();
-//      
-//      glPixelStorei(GL_UNPACK_ROW_LENGTH, mOffscreen.width());
-//
-//      int32_t off = (mOffscreen.width() * dst_y) + dst_x;
-      
-      // Upload (CRAWL) entire RENTER offscreen to TEXTURE on GPU
-//      glTexSubImage2D(GL_TEXTURE_2D, 0, dst_x, dst_y, w, h, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid *) ( (char *) mOffscreen.base() + off));
-      
-      
-      glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, CANVAS_W, CANVAS_H, GL_RGBA, GL_UNSIGNED_BYTE, mOffscreen.base());
-      
-#ifndef PX_PLATFORM_WAYLAND_EGL
-      //glPixelStorei(GL_UNPACK_ROW_LENGTH,0); //default
-#endif //PX_PLATFORM_WAYLAND_EGL
-
-//      glBindTexture(GL_TEXTURE_2D, GL_NONE); // unbind
-    }
-    
-    return PX_OK;
-  };
-  
-  // baggage
-  virtual inline int width()                        { return mWidth;  };
-  virtual inline int height()                       { return mHeight; };
-  virtual pxError getOffscreen(pxOffscreen& /*o*/)  { return PX_FAIL; };
-  virtual pxError bindGLTextureAsMask(int /*mLoc*/) { return PX_FAIL; };
-
-  virtual pxError deleteTexture()
-  {
-    if (mTextureName != 0)
-    {
-      glDeleteTextures(1, &mTextureName);
-      mTextureName = 0;
-      mRasterTextureCreated = false;
-      context.adjustCurrentTextureMemorySize(-1 * mWidth * mHeight * 4); // FREE
-    }
-    mInitialized = false;
-    return PX_OK;
-  }
-  
-  virtual pxError bindGLTexture(int tLoc)
-  {
-    glActiveTexture(GL_TEXTURE1);
-
-    if (!mRasterTextureCreated)
-    {
-      if (!context.isTextureSpaceAvailable(this))
-      {
-        //attempt to free texture memory
-        int64_t textureMemoryNeeded = context.textureMemoryOverflow(this);
-        context.ejectTextureMemory(textureMemoryNeeded);
-        
-        if (!context.isTextureSpaceAvailable(this))
-        {
-          rtLogError("not enough texture memory remaining to create raster texture");
-          mInitialized = false;
-          return PX_FAIL;
-        }
-        else if (!mInitialized)
-        {
-          return PX_NOTINITIALIZED;
-        }
-      }
-
-      glGenTextures(1, &mTextureName);
-      glBindTexture(GL_TEXTURE_2D, mTextureName);   TRACK_TEX_CALLS();
-
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, PX_TEXTURE_MIN_FILTER);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, PX_TEXTURE_MAG_FILTER);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-      glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
-      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, mWidth, mHeight, 0, GL_RGBA,
-                   GL_UNSIGNED_BYTE, mOffscreen.base());
-
-      context.adjustCurrentTextureMemorySize(mWidth * mHeight * 4); // USE
-      mRasterTextureCreated = true;
-    }
-    else
-    {
-      glBindTexture(GL_TEXTURE_2D, mTextureName);   TRACK_TEX_CALLS();
-    }
-
-    mInitialized = true;
-
-    glUniform1i(tLoc, 1);
-    return PX_OK;
-  }
-
-private:
-  int mWidth;
-  int mHeight;
-
-  pxOffscreen mOffscreen;
-  GLuint mTextureName;
-  bool mRasterTextureCreated;
-  bool mInitialized;
-}; // CLASS - pxSwTexture
 
 void onDecodeComplete(void* context, void* data)
 {
@@ -2388,7 +2208,6 @@ void pxContext::init()
 
 void pxContext::term()  // clean up statics 
 {
-  swRasterTexture = NULL;
 }
 
 void pxContext::setSize(int w, int h)
@@ -2776,74 +2595,6 @@ void pxContext::drawTexturedQuads(int numQuads, const void *verts, const void* u
 }
 #endif
 
-void pxContext::drawOffscreen(float src_x, float src_y,
-                              float dst_x, float dst_y,
-                              float w,     float h,
-                              pxOffscreen  &offscreen)
-{
-  // TRANSPARENT / DIMENSIONLESS
-  if(gAlpha == 0.0 || w <= 0.0 || h <= 0.0)
-  {
-    return;
-  }
-  
-  // BACKING
-  if (swRasterTexture.getPtr() == NULL)
-  {
-    rtLogInfo("CREATE ... pxContext::drawOffscreen() - CREATE 'swRasterTexture' (lazy) \n");
-
-    // Lazy init...
-    swRasterTexture = pxSwTextureRef(new pxSwTexture());
-    swRasterTexture->init(CANVAS_W, CANVAS_H); // HACK - hard coded for now.
-  }
-  
-  // COPY from CANVAS (offscreen) to RASTER
-  swRasterTexture->copy(src_x, src_y,
-                        dst_x, dst_y, w, h, offscreen);
-  
-  pxTextureRef nullMask;
-  static float clear[4] = {0,0,0,0};
-
-  pxTextureRef texture( (pxTexture *) swRasterTexture.getPtr());
-  
-  drawImage(/*dst_x, dst_y*/0,0, CANVAS_W, CANVAS_H, texture, nullMask, true, clear,
-            pxConstantsStretch::NONE, pxConstantsStretch::NONE);
-  
-//  drawImage(dst_x, dst_y, w, h, texture, nullMask, true, clear,
-//            pxConstantsStretch::NONE, pxConstantsStretch::NONE);
-  
-#if 0
-#ifdef PX_PLATFORM_MAC
-  
-  extern void *makeNSImage(void *rgba_buffer, int w, int h, int depth);
-  
-  // HACK
-  // HACK
-  // HACK
-  static int frame = 20;
-  if(frame-- == 0)
-  {
-    pxOffscreen *tex = (pxOffscreen *) swRasterTexture->offscreen();
-    
-    void *img_raster = makeNSImage(tex->base(), tex->width(), tex->height(), 4);
-    void *img_render = makeNSImage(offscreen.base(), offscreen.width(), offscreen.height(), 4);
-    
-    frame = -1;
-  }
-  // HACK
-  // HACK
-  // HACK
-#endif
-#endif
-  
-  
-  ///// CRAWL approach only
-//  pxRect rect(src_x, src_y, src_x + w, src_y + h);
-  pxRect rect(0,0,CANVAS_W,CANVAS_H);
-  
-  swRasterTexture->clear(rect);
-  offscreen.fill(pxClear);
-}
 
 void pxContext::drawDiagRect(float x, float y, float w, float h, float* color)
 {
