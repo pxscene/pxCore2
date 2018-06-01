@@ -103,6 +103,7 @@ px.import({ scene:      'px:scene.1.js',
       content.ready.then(
         function(o)
         {
+          console.log(o);
           contentBG.draw = true;
           content.focus = true;
 

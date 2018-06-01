@@ -22,8 +22,8 @@ SceneModuleLoader.prototype.loadScenePackage = function(scene, fileSpec) {
   var filePath = fileSpec.fileUri;
   var _this = this;
   return new Promise(function (resolve, reject) {
-    var archive = scene.loadArchive(fileSpec.fileUri);
-    archive.ready.then(function(a) {
+    scene.loadArchive(fileSpec.fileUri)
+      .ready.then(function(a) {
           if (a.loadStatus.httpStatusCode && a.loadStatus.httpStatusCode != 200)
           {
             console.error("http status is not 200 rejecting");
@@ -32,6 +32,7 @@ SceneModuleLoader.prototype.loadScenePackage = function(scene, fileSpec) {
           else
           {
         log.message(4, "loadScenePackage: loadArchive succeeded for (",filePath,").");
+
         _this.fileArchive = new FileArchive(filePath, a);
         log.message(4, "Number of files: " + a.fileNames.length);
         _this.loadedJarFile = (a.fileNames.length > 1);
@@ -49,7 +50,7 @@ SceneModuleLoader.prototype.loadScenePackage = function(scene, fileSpec) {
         _this.manifest = new SceneModuleManifest();
         _this.manifest.loadFromJSON(_this.fileArchive.getFileContents('package.json'));
         resolve();
-       }
+          }
 
       }, function(a){
         console.error("loadScenePackage: loadArchive failed for (",filePath,").");

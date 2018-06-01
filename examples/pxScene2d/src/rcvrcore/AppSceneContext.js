@@ -20,52 +20,9 @@ var SetTimeout = isDuk?timers.setTimeout:setTimeout;
 var ClearTimeout = isDuk?timers.clearTimeout:clearTimeout;
 var SetInterval = isDuk?timers.setInterval:setInterval;
 var ClearInterval = isDuk?timers.clearInterval:clearInterval;
-var CloseTimer = isDuk?timers.closeTimer:"";
 
 var http_wrap = require('rcvrcore/http_wrap');
 var https_wrap = require('rcvrcore/https_wrap');
-
-var setTimeoutCallback_node = function() {
-  // gets the timers list and remove the callback timer from the list of pending lists
-  var contextTimers = arguments[0];
-  var callback = arguments[1];
-  callback();
-  callback = null;
-
-  var index = contextTimers.indexOf(this);
-  if (index != -1)
-  {
-    contextTimers.splice(index,1);
-  }
-  ClearTimeout(this);
-};
-
-var setTimeoutCallback_duk = function ()
-{
-  var callback = arguments[1];
-  var testvar = arguments[2];
-  var tid = arguments[3];
-  callback();
-  callback = null;
-  var index = this.timers.indexOf(tid);
-  if (index != -1)
-  {
-    this.timers.splice(index,1);
-  }
-};
-
-var setTimeoutCallback=isDuk?setTimeoutCallback_duk:setTimeoutCallback_node;
-
-var setTimeout = function (callback, after, arg1, arg2, arg3) {
-                      var timerId = SetTimeout(setTimeoutCallback.bind(this), after , this.timers , function () { callback(arg1, arg2, arg3); } , "test");
-                      this.timers.push(timerId);
-                      return timerId;
-                    } 
-
-var clearTimeout = function (timer) {
-                        console.log("clearing timers clearTimeout call ......" + this.timers.length );
-                        ClearTimeout(timer);
-                      }
 
 function AppSceneContext(params) {
 
@@ -133,10 +90,7 @@ this.innerscene.on('onSceneTerminate', function (e) {
     var ntimers = this.timers.length;
     for (var i=0; i<ntimers; i++)
     {
-      CloseTimer(this.timers[i]);
-    }
-    for(var k = 0; k < ntimers.length; ++k) {
-      this.timers.pop();
+      clearTimeout(this.timers.pop());
     }
     var ntimerIntervals = this.timerIntervals.length;
     for (var i=0; i<ntimerIntervals; i++)
@@ -281,6 +235,21 @@ AppSceneContext.prototype.loadPackage = function(packageUri) {
     });
 };
 
+var setTimeoutCallback = function() {
+  // gets the timers list and remove the callback timer from the list of pending lists
+  var contextTimers = arguments[0];
+  var callback = arguments[1];
+  callback();
+  callback = null;
+
+  var index = contextTimers.indexOf(this);
+  if (index != -1)
+  {
+    contextTimers.splice(index,1);
+  }
+  ClearTimeout(this);
+};
+
 function createModule_pxScope(xModule) {
   return {
     log: xModule.log,
@@ -345,9 +314,7 @@ if (isDuk) {
             queryStringModule: require("querystring"),
             theNamedContext: "Sandbox: " + uri,
             Buffer: Buffer,
-            importTracking: {},
-            setTimeout: setTimeout.bind(this),
-            clearTimeout : clearTimeout.bind(this)
+            importTracking: {}
             }; // end sandbox
             
             // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
