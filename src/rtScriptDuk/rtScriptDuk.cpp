@@ -1271,7 +1271,9 @@ bool rtNode::isInitialized()
 
 duk_ret_t my_print(duk_context *ctx)
 {
+    if (NULL != duk_get_string(ctx, -1)) {
     printf("%s\n", duk_get_string(ctx, -1));
+    }
     return 0;
 }
 
