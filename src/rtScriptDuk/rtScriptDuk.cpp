@@ -1145,7 +1145,7 @@ rtError rtScriptDuk::pump()
 #ifndef RUNINMAIN
   return RT_OK;
 #else
-  for (int i = 0; i < uvLoops.size(); ++i) {
+  for (size_t i = 0; i < uvLoops.size(); ++i) {
     uv_run(uvLoops[i], UV_RUN_NOWAIT);
   }
 #endif // RUNINMAIN

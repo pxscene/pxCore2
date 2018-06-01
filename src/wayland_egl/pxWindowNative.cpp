@@ -288,12 +288,22 @@ static void shell_surface_ping(void *data,
 
 static void shell_surface_configure(void *data, struct wl_shell_surface *shell_surface, uint32_t edges, int32_t width, int32_t height)
 {
-    pxWindowNative* w = (pxWindowNative*)data;
+    struct wl_surface *surface = (struct wl_surface *)data;
 
-    if (w->getWaylandNative())
-    {
-        wl_egl_window_resize(w->getWaylandNative(), width, height, 0, 0);
-    }
+    if (surface == NULL)
+        return;
+
+    pxWindowNative *pxWindow = (pxWindowNative *)wl_surface_get_user_data(surface);
+
+    if (pxWindow == NULL)
+        return;
+
+    struct wl_egl_window *egl_window = pxWindow->getWaylandNative();
+
+    if (egl_window == NULL)
+        return;
+
+    wl_egl_window_resize(egl_window, width, height, 0, 0);
 }
 
 static void
@@ -385,7 +395,8 @@ bool exitFlag = false;
 
 pxWindowNative::pxWindowNative(): mTimerFPS(0), mLastWidth(-1), mLastHeight(-1),
     mResizeFlag(false), mLastAnimationTime(0.0), mVisible(false), mDirty(true),
-    mWaylandSurface(NULL), mWaylandBuffer(), waylandBufferIndex(0)
+    mWaylandSurface(NULL), mWaylandBuffer(), waylandBufferIndex(0),
+    mEglNativeWindow(NULL), mEglSurface(NULL)
 {
 }
 
@@ -407,6 +418,7 @@ pxError pxWindow::init(int left, int top, int width, int height)
         //mShellSurfaceListener
         mShellSurfaceListener.ping = shell_surface_ping;
         mShellSurfaceListener.configure = shell_surface_configure;
+        mShellSurfaceListener.popup_done = NULL;
 
         mLastWidth = width;
         mLastHeight = height;
@@ -577,7 +589,6 @@ void pxWindowNative::runEventLoop()
     fileDescriptors[0].fd = wl_display_get_fd(display->display);
     fileDescriptors[0].events = POLLIN;
     int pollResult = 0;
-    int pollTimeout = 1000 / framerate;
 #endif //PXCORE_WL_DISPLAY_READ_EVENTS
     double maxSleepTime = (1000 / framerate) * 1000;
     rtLogInfo("max sleep time in microseconds: %f", maxSleepTime);
@@ -597,7 +608,11 @@ void pxWindowNative::runEventLoop()
         }
         wl_display_flush(display->display);
 
-        pollResult = poll(fileDescriptors, 1, pollTimeout);
+        do
+        {
+          pollResult = poll(fileDescriptors, 1, 1);
+        } while(pollResult == -1 && pollResult == EINTR);
+
         if (pollResult <= 0)
           wl_display_cancel_read(display->display);
         else
@@ -645,10 +660,10 @@ struct wl_shell_surface* pxWindowNative::createWaylandSurface()
     }
 
     wl_shell_surface_add_listener(shell_surface,
-        &mShellSurfaceListener, this);
+        &mShellSurfaceListener, surface);
     wl_shell_surface_set_toplevel(shell_surface);
-    wl_shell_surface_set_user_data(shell_surface, surface);
-    wl_surface_set_user_data(surface, NULL);
+
+    wl_surface_set_user_data(surface, this);
 
     //egl stuff
     mEglNativeWindow = (struct wl_egl_window *)wl_egl_window_create(surface,
@@ -681,6 +696,7 @@ void pxWindowNative::cleanupWaylandData()
 
     eglDestroySurface(display->egl.dpy, mEglSurface);
     wl_egl_window_destroy(mEglNativeWindow);
+    mEglNativeWindow = NULL;
     //end egl stuff
 
     if (mWaylandBuffer[0].buffer)

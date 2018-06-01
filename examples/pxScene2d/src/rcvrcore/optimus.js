@@ -26,14 +26,13 @@ var eventListenerHash = {}
 var scene = undefined;
 var root = undefined;
 
+//Application types
+const TYPE_SPARK = 1;
+const TYPE_NATIVE = 2;
+const TYPE_WEB = 3;
+const TYPE_UNDEFINED = 4;
+
 function Application(props) {
-
-// Application type
-  const TYPE_SPARK = 1;
-  const TYPE_NATIVE = 2;
-  const TYPE_WEB = 3;
-  const TYPE_UNDEFINED = 4;
-
   this.id;
   this.priority	= 1;
   this.appState = "RUNNING";
@@ -78,7 +77,7 @@ function Application(props) {
         this.setProperties(props);
         module.exports.onCreate(this);
       }
-      else if (cmd == "rdkbrowser2"){
+      else if (cmd == "WebApp"){
         this.type = TYPE_WEB;
         if ("uri" in launchParams){
             uri = launchParams["uri"];
@@ -94,23 +93,23 @@ function Application(props) {
               if (thisApp.browser)
               {
                 thisApp.browser.url = uri;
-                console.log("launched rdkbrowser2 uri:" + uri);
+                console.log("launched WebApp uri:" + uri);
                 module.exports.onCreate(waylandObj);
                 waylandObj.applicationReady();
               }
               else
               {
-                console.log("failed to create window for rdkbrowser2");
+                console.log("failed to create window for WebApp");
                 module.exports.onDestroy(waylandObj);
               }
             }
             else
             {
-              console.log("failed to create rdkbrowser2 invalid waylandObj");
+              console.log("failed to create WebApp invalid waylandObj");
               module.exports.onDestroy(waylandObj);
             }
           }, function rejection(o) {
-          console.log("failed to create rdkbrowser2");
+          console.log("failed to create WebApp");
           module.exports.onDestroy(waylandObj);
         });
       }

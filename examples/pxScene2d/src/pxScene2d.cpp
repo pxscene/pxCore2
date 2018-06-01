@@ -516,16 +516,16 @@ public:
 
   virtual rtError Set(const char* name, const rtValue* value)
   {
-    std::ignore = name;
-    std::ignore = value;
+    (void)name;
+    (void)value;
     // readonly property
     return RT_PROP_NOT_FOUND;
   }
 
   virtual rtError Set(uint32_t i, const rtValue* value)
   {
-    std::ignore = i;
-    std::ignore = value;
+    (void)i;
+    (void)value;
     // readonly property
     return RT_PROP_NOT_FOUND;
   }
@@ -661,8 +661,8 @@ rtError pxObject::setFocus(bool v)
 
 rtError pxObject::Set(uint32_t i, const rtValue* value)
 {
-  std::ignore = i;
-  std::ignore = value;
+  (void)i;
+  (void)value;
   rtLogError("pxObject::Set(uint32_t, const rtValue*) - not implemented");
   return RT_ERROR_NOT_IMPLEMENTED;
 }
@@ -1928,9 +1928,10 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   mInfo.set("engine", script.engine());
 #endif
 
-    rtObjectRef build = new rtMapObject;
-    build.set("date", xstr(__DATE__));
-    build.set("time", xstr(__TIME__));
+  rtObjectRef build = new rtMapObject;
+  build.set("date", xstr(__DATE__));
+  build.set("time", xstr(__TIME__));
+  build.set("revision", xstr(SPARK_BUILD_GIT_REVISION));
 
   mInfo.set("build", build);
   mInfo.set("gfxmemory", context.currentTextureMemoryUsageInBytes());
@@ -1993,6 +1994,12 @@ void pxScene2d::init()
 
 rtError pxScene2d::create(rtObjectRef p, rtObjectRef& o)
 {
+  if (mDisposed)
+  {
+    rtLogInfo("Scene is disposed, not creating any pxobjects");
+    return RT_FAIL;
+  }
+
   rtError e = RT_OK;
   rtString t = p.get<rtString>("t");
   bool needpxObjectTracking = true;
@@ -2156,7 +2163,8 @@ rtError pxScene2d::createImageResource(rtObjectRef p, rtObjectRef& o)
   rtString proxy = p.get<rtString>("proxy");
 
 #ifdef ENABLE_PERMISSIONS_CHECK
-  rtPermissionsCheck(mPermissions, url.cString(), rtPermissions::DEFAULT)
+  if (RT_OK != mPermissions->allows(url, rtPermissions::DEFAULT))
+    return RT_ERROR_NOT_ALLOWED;
 #endif
 
   o = pxImageManager::getImage(url, proxy);
@@ -2170,7 +2178,8 @@ rtError pxScene2d::createImageAResource(rtObjectRef p, rtObjectRef& o)
   rtString proxy = p.get<rtString>("proxy");
 
 #ifdef ENABLE_PERMISSIONS_CHECK
-  rtPermissionsCheck(mPermissions, url.cString(), rtPermissions::DEFAULT)
+  if (RT_OK != mPermissions->allows(url, rtPermissions::DEFAULT))
+    return RT_ERROR_NOT_ALLOWED;
 #endif
 
   o = pxImageManager::getImageA(url, proxy);
@@ -2184,7 +2193,8 @@ rtError pxScene2d::createFontResource(rtObjectRef p, rtObjectRef& o)
   rtString proxy = p.get<rtString>("proxy");
 
 #ifdef ENABLE_PERMISSIONS_CHECK
-  rtPermissionsCheck(mPermissions, url.cString(), rtPermissions::DEFAULT)
+  if (RT_OK != mPermissions->allows(url, rtPermissions::DEFAULT))
+    return RT_ERROR_NOT_ALLOWED;
 #endif
 
   o = pxFontManager::getFont(url, proxy);
@@ -3206,7 +3216,8 @@ rtError pxScene2d::setCustomAnimator(const rtFunctionRef& v)
 rtError pxScene2d::screenshot(rtString type, rtString& pngData)
 {
 #ifdef ENABLE_PERMISSIONS_CHECK
-  rtPermissionsCheck(mPermissions, "screenshot", rtPermissions::FEATURE)
+  if (RT_OK != mPermissions->allows("screenshot", rtPermissions::FEATURE))
+    return RT_ERROR_NOT_ALLOWED;
 #endif
 
   // Is this a type we support?
@@ -3216,7 +3227,7 @@ rtError pxScene2d::screenshot(rtString type, rtString& pngData)
     pxContextFramebufferRef newFBO;
     // w/o multisampling
     // if needed, render texture of a multisample FBO to a non-multisample FBO and then read from it
-    mRoot->createSnapshot(newFBO, true, false);
+    mRoot->createSnapshot(newFBO, false, false);
     context.setFramebuffer(newFBO);
     pxOffscreen o;
     context.snapshot(o);
@@ -3389,7 +3400,8 @@ rtError pxScene2d::getService(const char* name, const rtObjectRef& ctx, rtObject
         serviceCheckPermissions = permissionsRef;
       }
     }
-    rtPermissionsCheck(serviceCheckPermissions, name, rtPermissions::SERVICE)
+    if (serviceCheckPermissions != NULL && RT_OK != serviceCheckPermissions->allows(name, rtPermissions::SERVICE))
+      return RT_ERROR_NOT_ALLOWED;
     #endif //ENABLE_PERMISSIONS_CHECK
     rtObjectRef serviceManager;
     rtError result = pxServiceManager::findServiceManager(serviceManager);
@@ -3630,7 +3642,8 @@ rtError pxSceneContainer::setUrl(rtString url)
   rtLogInfo("pxSceneContainer::setUrl(%s)",url.cString());
 
 #ifdef ENABLE_PERMISSIONS_CHECK
-  rtPermissionsCheck((mScene != NULL ? mScene->permissions() : NULL), url.cString(), rtPermissions::DEFAULT)
+  if (mScene != NULL && RT_OK != mScene->permissions()->allows(url, rtPermissions::DEFAULT))
+    return RT_ERROR_NOT_ALLOWED;
 #endif
 
   // If old promise is still unfulfilled resolve it

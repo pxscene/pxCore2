@@ -265,7 +265,7 @@ AppSceneContext.prototype.loadPackage = function(packageUri) {
     .catch(function (err) {
       console.info("AppSceneContext#loadScenePackage3");
       thisMakeReady(false, {});
-      console.error("AppSceneContext#loadScenePackage: Error: Did not load fileArchive: Error=" + err );
+      console.error("AppSceneContext#loadScenePackage: Error: Did not load fileArchive: Error=",err );
     });
 };
 
@@ -708,7 +708,7 @@ AppSceneContext.prototype.include = function(filePath, currentXModule) {
         // file acquired
         _this.processCodeBuffer(origFilePath, filePath, currentXModule, moduleLoader, onImportComplete, reject);
       }).catch(function(err){
-        console.error("Error: could not load file " + filePath  + ", err=" + err);
+        console.error("Error: could not load file ", filePath, ", err=", err);
         reject("include failed");
       });
   });
