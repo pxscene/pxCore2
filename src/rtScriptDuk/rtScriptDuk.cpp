@@ -407,6 +407,7 @@ rtDukContext::~rtDukContext()
   }
   uv_loop_close(uvLoop);
   delete uvLoop;
+  clearAllPendingrtFns(dukCtx);
   Release();
   // NOTE: 'mIsolate' is owned by rtNode.  Don't destroy here !
 }
