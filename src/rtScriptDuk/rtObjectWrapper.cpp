@@ -680,7 +680,11 @@ rtError jsObjectWrapper::getAllKeys(rtValue* value) const
     if (error.hasError()) {
       return RT_FAIL;
     } else {
-      result->pushBack(val);
+      rtString key = val.toString();
+      if (key.compare(jsObjectWrapper::kIsJavaScriptObjectWrapper) != 0)
+      {
+        result->pushBack(val);
+      }
     }
     duk_pop(mDukCtx);
   }
@@ -697,6 +701,9 @@ rtError jsObjectWrapper::Get(const char* name, rtValue* value) const
     return RT_ERROR_INVALID_ARG;
   if (!value)
     return RT_ERROR_INVALID_ARG;
+
+  if (strcmp(name, jsObjectWrapper::kIsJavaScriptObjectWrapper) == 0)
+    return RT_OK;
 
   // TODO: does array support this?
   if (strcmp(name, kFuncAllKeys) == 0) {
