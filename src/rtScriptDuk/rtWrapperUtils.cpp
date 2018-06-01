@@ -126,7 +126,7 @@ rtValue duk2rt(duk_context *ctx, duk_idx_t idx, rtWrapperError* error)
 
     if (res) {
       //printf("recovered rtObject pointer\n");
-      rtIObject *obj = (rtIObject*)duk_require_pointer(ctx, idx);
+      rtIObject *obj = (rtIObject*)duk_require_pointer(ctx, -1);
       //printf("recovered rtObject pointer %p\n", obj);
       duk_pop(ctx);
       return rtValue(obj);
