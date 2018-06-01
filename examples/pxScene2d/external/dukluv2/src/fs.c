@@ -415,7 +415,9 @@ duk_ret_t duv_fs_access(duk_context *ctx) {
   uv_fs_t* req = duk_push_fixed_buffer(ctx, sizeof(*req));
   req->data = duv_setup_req(ctx, 2);
   //FS_CALL(access, req, path, mode);
-  int ret = uv_fs_access(duv_loop(ctx), req, path, mode, NULL);
+  // MODIFIED CODE BEGIN
+  int ret = uv_fs_access(duv_loop(ctx), req, path, mode, duv_fs_cb);
+  // MODIFIED CODE END
   duk_pop(ctx);
   duk_push_int(ctx, ret);
   return 1;
