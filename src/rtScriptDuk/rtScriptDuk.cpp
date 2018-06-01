@@ -146,7 +146,7 @@ class rtScriptDuk;
 class rtDukContext;
 
 typedef rtRef<rtDukContext> rtDukContextRef;
-
+extern void clearAllPendingrtFns(duk_context *ctx);
 class rtDukContext: rtIScriptContext
 {
 public:
@@ -1206,6 +1206,7 @@ rtError rtScriptDuk::collectGarbage()
       rtClearAllGlobalIdents(ctx);
     }
     rtClearAllObjectIdents(ctx);
+    clearAllPendingrtFns(ctx);
     // there need to be 2 calls here (see function documentation)
     duk_gc(ctx, 0);
     duk_gc(ctx, 0);
