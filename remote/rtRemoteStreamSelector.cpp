@@ -71,7 +71,7 @@ rtRemoteStreamSelector::registerStream(std::shared_ptr<rtRemoteStream> const& s)
 rtError
 rtRemoteStreamSelector::shutdown()
 {
-  char buff[] = { "shudown" };
+  char buff[] = { "shutdown" };
 
   {
     std::unique_lock<std::mutex> lock(m_mutex);

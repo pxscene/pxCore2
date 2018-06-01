@@ -42,7 +42,7 @@ public:
   rtError touch(std::string const& id, std::chrono::steady_clock::time_point now);
   rtError erase(std::string const& id);
   rtError markUnevictable(std::string const& id, bool state);
-  rtError removeUnused();
+  rtError removeUnused(bool expireAll = false);
   rtError clear();
 
 private:
