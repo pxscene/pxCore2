@@ -1,7 +1,13 @@
 
-ckage org.pxscene.rt.remote;
+package org.pxscene.rt.remote;
 
 import java.net.URI;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.apache.log4j.Logger;
+import org.pxscene.rt.RTException;
+import org.pxscene.rt.RTObject;
 
 /**
  * The remote connection manager class.
@@ -83,4 +89,3 @@ public class RTRemoteConnectionManager {
     return connection;
   }
 }
-

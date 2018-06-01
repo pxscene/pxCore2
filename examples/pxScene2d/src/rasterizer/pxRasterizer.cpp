@@ -19,25 +19,8 @@ limitations under the License.
 #include "pxTimer.h"
 #include "pxRasterizer.h"
 
-#ifdef XS_CODE_ENABLED
-#  include "xs_Core.h"
-#  include "xs_Float.h"
-#include "rtLog.h"
-#else
-#  include <cstdint>
-#  include <math.h>
-   inline int32_t xs_RoundToInt(const double d)
-   {
-     return floor(d + 0.5);
-   }
-
-   inline int32_t xs_CRoundToInt(const double d)
-   {
-     return ceil(d);
-   }
-#endif
-
-
+#include <cstdint>
+#include <math.h>
 #include <algorithm>
 
 #define MINEDGES 200000
@@ -94,6 +77,15 @@ uint32_t xShift;
 //#endif
 
 
+inline int32_t xs_RoundToInt(const double d)
+{
+ return floor(d + 0.5);
+}
+
+inline int32_t xs_CRoundToInt(const double d)
+{
+ return ceil(d);
+}
 
 
 class span

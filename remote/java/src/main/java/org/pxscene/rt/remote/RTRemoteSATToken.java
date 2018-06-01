@@ -20,7 +20,7 @@ public class RTRemoteSATToken {
   private static long startTime = 0;
   private String m_satToken;
   private String m_satUrl;
-  private String m_satContentType;a
+  private String m_satContentType;
   private String m_satClientId;	
   private String m_satClientSecret;
  
@@ -154,5 +154,4 @@ public class RTRemoteSATToken {
     }
     return auth;
   }
-}	 
-
+}

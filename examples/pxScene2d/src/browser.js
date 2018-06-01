@@ -44,11 +44,10 @@ px.import({ scene:      'px:scene.1.js',
 
   var bg        = scene.create({t:"image", parent: root, url:"browser/images/status_bg.png", stretchX: myStretch, stretchY: myStretch});
   var browser   = scene.create({t:"object", parent: bg} );
+  var content   = scene.create({t:"scene",  parent: bg,      x:10, y:60, clip:true });
 
-  var contentBG = scene.create({t:"rect",  parent: browser, x:10, y:60, fillColor: 0xffffffff, a: 0.05, draw: false});
-  var content   = scene.create({t:"scene", parent: bg, x:10, y:60, clip:true});
-  var spinner   = scene.create({t:"image", url:"browser/images/spinningball2.png",cx:50,cy:50,y:-80,parent:browser,sx:0.3,sy:0.3,a:0.0});
-
+  var contentBG = scene.create({t:"rect",   parent: browser, x:10, y:60, fillColor: 0xffffffff, a: 0.05 });
+  var spinner   = scene.create({t:"image",  parent: browser, url: "browser/images/spinningball2.png",  y:-80, cx: 50, cy: 50, sx: 0.3, sy: 0.3,a:0.0 });
   var inputBox = new imports.EditBox( { parent: browser, url: "browser/images/input2.png", x: 10, y: 10, w: 800, h: 35, pts: 24 });
   var helpBox   = null;
 
@@ -176,17 +175,21 @@ px.import({ scene:      'px:scene.1.js',
 
   function updateSize(w,h)
   {
-    // console.log("Resizing...");
+    // console.log("\n\n BROWSER:  Resizing... WxH: " + w + " x " + h + " \n\n");
 
     bg.w = w;
     bg.h = h;
 
-    // Apply insets
-    content.w   = w - pageInsetL;
-    content.h   = h - pageInsetT;
+    // Anchor
+    content.x   = showFullscreen ?  0 : 10;
+    content.y   = showFullscreen ?  0 : 60;
 
-    contentBG.w = w - pageInsetL;
-    contentBG.h = h - pageInsetT;  
+    // Apply insets
+    content.w   = showFullscreen ?  w : w - pageInsetL;
+    content.h   = showFullscreen ?  h : h - pageInsetT;
+
+    contentBG.w = content.w;
+    contentBG.h = content.h;
 
     inputBox.w  = w - pageInsetL;
 
@@ -259,12 +262,10 @@ px.import({ scene:      'px:scene.1.js',
 
         if(showFullscreen)
         {
-//          console.log("\n\n ######### FULL WINDOW");
           content.moveToFront();
         }
         else
         {
-//          console.log("\n\n ######### CONTENT AREA");
           browser.moveToFront();
         }
 

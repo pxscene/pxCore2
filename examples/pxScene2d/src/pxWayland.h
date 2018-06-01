@@ -90,7 +90,8 @@ public:
   rtError setCmd(const char* s)
   {
 #ifdef ENABLE_PERMISSIONS_CHECK
-    rtPermissionsCheck((mSceneContainer != NULL ? mSceneContainer->permissions() : NULL), s, rtPermissions::WAYLAND)
+  if (mSceneContainer != NULL && RT_OK != mSceneContainer->permissions()->allows(s, rtPermissions::WAYLAND))
+    return RT_ERROR_NOT_ALLOWED;
 #endif
 
      mCmd= s;

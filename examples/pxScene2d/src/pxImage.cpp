@@ -119,7 +119,8 @@ rtError pxImage::url(rtString& s) const
 rtError pxImage::setUrl(const char* s)
 {
 #ifdef ENABLE_PERMISSIONS_CHECK
-  rtPermissionsCheck((mScene != NULL ? mScene->permissions() : NULL), s, rtPermissions::DEFAULT)
+  if (mScene != NULL && RT_OK != mScene->permissions()->allows(s, rtPermissions::DEFAULT))
+    return RT_ERROR_NOT_ALLOWED;
 #endif
 
   //rtLogInfo("pxImage::setUrl init=%d imageLoaded=%d \n", mInitialized, imageLoaded);
@@ -198,7 +199,7 @@ void pxImage::draw() {
                       getOnscreenWidth(),
                       getOnscreenHeight(),
                       getImageResource()->getTexture(), nullMaskRef,
-                      false, NULL, mStretchX, mStretchY, mDownscaleSmooth);
+                      false, NULL, mStretchX, mStretchY, mDownscaleSmooth, mMaskOp);
   }
   // Raise the priority if we're still waiting on the image download    
 #if 0
@@ -282,6 +283,12 @@ rtError pxImage::setStretchY(int32_t v)
   return RT_OK;
 }
 
+rtError pxImage::setMaskOp(int32_t v)
+{
+  mMaskOp = (pxConstantsMaskOperation::constants)v;
+  return RT_OK;
+}
+
 rtError pxImage::downscaleSmooth(bool& v) const
 {
     v = mDownscaleSmooth;
@@ -308,10 +315,9 @@ rtError pxImage::removeResourceListener()
 }
 
 rtDefineObject(pxImage,pxObject);
-rtDefineProperty(pxImage,url);
+rtDefineProperty(pxImage, url);
 rtDefineProperty(pxImage, resource);
-rtDefineProperty(pxImage,stretchX);
-rtDefineProperty(pxImage,stretchY);
-rtDefineProperty(pxImage,downscaleSmooth);
-
-
+rtDefineProperty(pxImage, stretchX);
+rtDefineProperty(pxImage, stretchY);
+rtDefineProperty(pxImage, maskOp);
+rtDefineProperty(pxImage, downscaleSmooth);

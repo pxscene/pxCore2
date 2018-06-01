@@ -55,9 +55,9 @@
 #endif //PX_PLATFORM_WAYLAND_EGL
 #endif
 
-#ifndef RUNINMAIN
+#if !defined(RUNINMAIN) || defined(ENABLE_BACKGROUND_TEXTURE_CREATION)
 #include "pxContextUtils.h"
-#endif //RUNINMAIN
+#endif //!RUNINMAIN || ENABLE_BACKGROUND_TEXTURE_CREATION
 
 #define PX_TEXTURE_MIN_FILTER GL_LINEAR
 #define PX_TEXTURE_MAG_FILTER GL_LINEAR
@@ -143,6 +143,26 @@ static float gAlpha = 1.0;
 uint32_t gRenderTick = 0;
 std::vector<pxTexture*> textureList;
 rtMutex textureListMutex;
+#ifdef ENABLE_BACKGROUND_TEXTURE_CREATION
+rtMutex contextLock;
+#endif //ENABLE_BACKGROUND_TEXTURE_CREATION
+
+
+pxError lockContext()
+{
+#ifdef ENABLE_BACKGROUND_TEXTURE_CREATION
+  contextLock.lock();
+#endif //ENABLE_BACKGROUND_TEXTURE_CREATION
+  return PX_OK;
+}
+
+pxError unlockContext()
+{
+#ifdef ENABLE_BACKGROUND_TEXTURE_CREATION
+  contextLock.unlock();
+#endif //ENABLE_BACKGROUND_TEXTURE_CREATION
+  return PX_OK;
+}
 
 pxError addToTextureList(pxTexture* texture)
 {
@@ -253,10 +273,13 @@ static const char *fTextureMaskedShaderText =
   "uniform sampler2D s_texture;"
   "uniform sampler2D s_mask;"
   "uniform float u_alpha;"
+  "uniform float u_doInverted;"
   "varying vec2 v_uv;"
   "void main()"
   "{"
-  "  float a = u_alpha * texture2D(s_mask, v_uv).a;"
+  "float tex_a =  texture2D(s_mask, v_uv).a;"
+  "float     a = (1.0 - u_doInverted) * (u_alpha * (      tex_a)) +" // do NORMAL   mask
+  "              (      u_doInverted) * (u_alpha * (1.0 - tex_a)) ;" // do INVERTED mask
   "  gl_FragColor = texture2D(s_texture, v_uv) * a;"
   "}";
 
@@ -651,6 +674,38 @@ public:
     return PX_OK;
   }
 
+  virtual pxError prepareForRendering()
+  {
+    if (context.isTextureSpaceAvailable(this, false))
+    {
+      glActiveTexture(GL_TEXTURE1);
+      glGenTextures(1, &mTextureName);
+      glBindTexture(GL_TEXTURE_2D, mTextureName);   TRACK_TEX_CALLS();
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, PX_TEXTURE_MIN_FILTER);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, PX_TEXTURE_MAG_FILTER);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+      glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
+                   mOffscreen.width(), mOffscreen.height(), 0, GL_RGBA,
+                   GL_UNSIGNED_BYTE, mOffscreen.base());
+      if (mDownscaleSmooth)
+      {
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glGenerateMipmap(GL_TEXTURE_2D);
+        mMipmapCreated = true;
+      }
+      context.adjustCurrentTextureMemorySize(mOffscreen.width()*mOffscreen.height()*4, false);
+    }
+    return PX_OK;
+  }
+
+  virtual bool initialized()
+  {
+    return (mTextureName != 0);
+  }
+
   virtual pxError deleteTexture()
   {
     rtLogDebug("pxTextureOffscreen::deleteTexture()");
@@ -742,25 +797,38 @@ public:
           return PX_NOTINITIALIZED;
         }
       }
-      glGenTextures(1, &mTextureName);
-      glBindTexture(GL_TEXTURE_2D, mTextureName);   TRACK_TEX_CALLS();
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, PX_TEXTURE_MIN_FILTER);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, PX_TEXTURE_MAG_FILTER);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-      glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
-      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
-                   mOffscreen.width(), mOffscreen.height(), 0, GL_RGBA,
-                   GL_UNSIGNED_BYTE, mOffscreen.base());
-      if (mDownscaleSmooth)
+      if (mTextureName == 0)
       {
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-        glGenerateMipmap(GL_TEXTURE_2D);
-        mMipmapCreated = true;
+        glGenTextures(1, &mTextureName);
+        glBindTexture(GL_TEXTURE_2D, mTextureName);   TRACK_TEX_CALLS();
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, PX_TEXTURE_MIN_FILTER);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, PX_TEXTURE_MAG_FILTER);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+        glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
+                     mOffscreen.width(), mOffscreen.height(), 0, GL_RGBA,
+                     GL_UNSIGNED_BYTE, mOffscreen.base());
+        if (mDownscaleSmooth)
+        {
+          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+          glGenerateMipmap(GL_TEXTURE_2D);
+          mMipmapCreated = true;
+        }
+        context.adjustCurrentTextureMemorySize(mOffscreen.width()*mOffscreen.height()*4);
+      }
+      else
+      {
+        glBindTexture(GL_TEXTURE_2D, mTextureName);   TRACK_TEX_CALLS();
+        if (mDownscaleSmooth && !mMipmapCreated)
+        {
+          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+          glGenerateMipmap(GL_TEXTURE_2D);
+          mMipmapCreated = true;
+        }
       }
       mTextureUploaded = true;
-      context.adjustCurrentTextureMemorySize(mOffscreen.width()*mOffscreen.height()*4);
       //free up unneeded offscreen memory
       freeOffscreenDataInBackground();
     }
@@ -1449,7 +1517,7 @@ public:
   virtual void init(const char* v, const char* f)
   {
     glShaderProgDetails details = createShaderProgram(v, f);
-    mProgram = details.program;
+    mProgram    = details.program;
     mFragShader = details.fragShader;
     mVertShader = details.vertShader;
     prelink();
@@ -1489,15 +1557,15 @@ protected:
     mPosLoc = 0;
     mUVLoc = 1;
     glBindAttribLocation(mProgram, mPosLoc, "pos");
-    glBindAttribLocation(mProgram, mUVLoc, "uv");
+    glBindAttribLocation(mProgram, mUVLoc,  "uv");
   }
 
   virtual void postlink()
   {
     mResolutionLoc = getUniformLocation("u_resolution");
-    mMatrixLoc = getUniformLocation("amymatrix");
-    mColorLoc = getUniformLocation("a_color");
-    mAlphaLoc = getUniformLocation("u_alpha");
+    mMatrixLoc     = getUniformLocation("amymatrix");
+    mColorLoc      = getUniformLocation("a_color");
+    mAlphaLoc      = getUniformLocation("u_alpha");
   }
 
 public:
@@ -1549,16 +1617,16 @@ protected:
     mPosLoc = 0;
     mUVLoc = 1;
     glBindAttribLocation(mProgram, mPosLoc, "pos");
-    glBindAttribLocation(mProgram, mUVLoc, "uv");
+    glBindAttribLocation(mProgram, mUVLoc,  "uv");
   }
 
   virtual void postlink()
   {
     mResolutionLoc = getUniformLocation("u_resolution");
-    mMatrixLoc = getUniformLocation("amymatrix");
-    mColorLoc = getUniformLocation("a_color");
-    mAlphaLoc = getUniformLocation("u_alpha");
-    mTextureLoc = getUniformLocation("s_texture");
+    mMatrixLoc     = getUniformLocation("amymatrix");
+    mColorLoc      = getUniformLocation("a_color");
+    mAlphaLoc      = getUniformLocation("u_alpha");
+    mTextureLoc    = getUniformLocation("s_texture");
   }
 
 public:
@@ -1622,15 +1690,15 @@ protected:
     mPosLoc = 0;
     mUVLoc = 1;
     glBindAttribLocation(mProgram, mPosLoc, "pos");
-    glBindAttribLocation(mProgram, mUVLoc, "uv");
+    glBindAttribLocation(mProgram, mUVLoc,  "uv");
   }
 
   virtual void postlink()
   {
     mResolutionLoc = getUniformLocation("u_resolution");
-    mMatrixLoc = getUniformLocation("amymatrix");
-    mAlphaLoc = getUniformLocation("u_alpha");
-    mTextureLoc = getUniformLocation("s_texture");
+    mMatrixLoc     = getUniformLocation("amymatrix");
+    mAlphaLoc      = getUniformLocation("u_alpha");
+    mTextureLoc    = getUniformLocation("s_texture");
   }
 
 public:
@@ -1693,16 +1761,16 @@ protected:
     mPosLoc = 0;
     mUVLoc = 1;
     glBindAttribLocation(mProgram, mPosLoc, "pos");
-    glBindAttribLocation(mProgram, mUVLoc, "uv");
+    glBindAttribLocation(mProgram, mUVLoc,  "uv");
   }
 
   virtual void postlink()
   {
     mResolutionLoc = getUniformLocation("u_resolution");
-    mMatrixLoc = getUniformLocation("amymatrix");
-    mAlphaLoc = getUniformLocation("u_alpha");
-    mColorLoc = getUniformLocation("u_color");
-    mTextureLoc = getUniformLocation("s_texture");
+    mMatrixLoc     = getUniformLocation("amymatrix");
+    mAlphaLoc      = getUniformLocation("u_alpha");
+    mColorLoc      = getUniformLocation("u_color");
+    mTextureLoc    = getUniformLocation("s_texture");
   }
 
 public:
@@ -1777,16 +1845,17 @@ protected:
     mPosLoc = 0;
     mUVLoc = 1;
     glBindAttribLocation(mProgram, mPosLoc, "pos");
-    glBindAttribLocation(mProgram, mUVLoc, "uv");
+    glBindAttribLocation(mProgram, mUVLoc,  "uv");
   }
 
   virtual void postlink()
   {
     mResolutionLoc = getUniformLocation("u_resolution");
-    mMatrixLoc = getUniformLocation("amymatrix");
-    mAlphaLoc = getUniformLocation("u_alpha");
-    mTextureLoc = getUniformLocation("s_texture");
-    mMaskLoc = getUniformLocation("s_mask");
+    mMatrixLoc     = getUniformLocation("amymatrix");
+    mAlphaLoc      = getUniformLocation("u_alpha");
+    mInvertedLoc   = getUniformLocation("u_doInverted");
+    mTextureLoc    = getUniformLocation("s_texture");
+    mMaskLoc       = getUniformLocation("s_mask");
   }
 
 public:
@@ -1795,7 +1864,8 @@ public:
             const void* pos,
             const void* uv,
             pxTextureRef texture,
-            pxTextureRef mask)
+            pxTextureRef mask,
+            pxConstantsMaskOperation::constants maskOp = pxConstantsMaskOperation::NORMAL)
   {
     if (currentGLProgram != PROGRAM_TEXTURE_MASKED_SHADER)
     {
@@ -1805,6 +1875,8 @@ public:
     glUniform2f(mResolutionLoc, resW, resH);
     glUniformMatrix4fv(mMatrixLoc, 1, GL_FALSE, matrix);
     glUniform1f(mAlphaLoc, alpha);
+    glUniform1f(mInvertedLoc, (maskOp == pxConstantsMaskOperation::NORMAL) ? 0.0 : 1.0);
+    
 
     if (texture->bindGLTexture(mTextureLoc) != PX_OK)
     {
@@ -1839,6 +1911,7 @@ private:
   GLint mUVLoc;
 
   GLint mAlphaLoc;
+  GLint mInvertedLoc;
 
   GLint mTextureLoc;
   GLint mMaskLoc;
@@ -1904,7 +1977,8 @@ static void drawRectOutline(GLfloat x, GLfloat y, GLfloat w, GLfloat h, GLfloat 
 static void drawImageTexture(float x, float y, float w, float h, pxTextureRef texture,
                              pxTextureRef mask, bool useTextureDimsAlways, float* color, // default: "color = BLACK"
                              pxConstantsStretch::constants xStretch,
-                             pxConstantsStretch::constants yStretch)
+                             pxConstantsStretch::constants yStretch,
+                             pxConstantsMaskOperation::constants maskOp = pxConstantsMaskOperation::constants::NORMAL)
 {
   // args are tested at call site...
 
@@ -1981,7 +2055,7 @@ static void drawImageTexture(float x, float y, float w, float h, pxTextureRef te
 
   if (mask.getPtr() != NULL)
   {
-    if (gTextureMaskedShader->draw(gResW,gResH,gMatrix.data(),gAlpha,4,verts,uv,texture,mask) != PX_OK)
+    if (gTextureMaskedShader->draw(gResW,gResH,gMatrix.data(),gAlpha,4,verts,uv,texture,mask, maskOp) != PX_OK)
     {
       drawRect2(0, 0, iw, ih, blackColor); // DEFAULT - "Missing" - BLACK RECTANGLE
     }
@@ -2238,37 +2312,15 @@ static void drawImage9Border2(GLfloat x, GLfloat y, GLfloat w, GLfloat h,
 
 bool gContextInit = false;
 
+#define SAFE_DELETE(p)  if(p) { delete p; p = NULL; };
+
 pxContext::~pxContext()
 {
-  if (gSolidShader)
-  {
-    delete gSolidShader;
-    gSolidShader = NULL;
-  }
-
-  if (gATextureShader)
-  {
-    delete gATextureShader;
-    gATextureShader = NULL;
-  }
-
-  if (gTextureShader)
-  {
-    delete gTextureShader;
-    gTextureShader = NULL;
-  }
-
-  if (gTextureBorderShader)
-  {
-    delete gTextureBorderShader;
-    gTextureBorderShader = NULL;
-  }
-
-  if (gTextureMaskedShader)
-  {
-    delete gTextureMaskedShader;
-    gTextureMaskedShader = NULL;
-  }
+  SAFE_DELETE(gSolidShader);
+  SAFE_DELETE(gATextureShader);
+  SAFE_DELETE(gTextureShader);
+  SAFE_DELETE(gTextureBorderShader);
+  SAFE_DELETE(gTextureMaskedShader);
 }
 
 void pxContext::init()
@@ -2282,35 +2334,11 @@ void pxContext::init()
 
   glClearColor(0, 0, 0, 0);
 
-  if (gSolidShader)
-  {
-    delete gSolidShader;
-    gSolidShader = NULL;
-  }
-
-  if (gATextureShader)
-  {
-    delete gATextureShader;
-    gATextureShader = NULL;
-  }
-
-  if (gTextureShader)
-  {
-    delete gTextureShader;
-    gTextureShader = NULL;
-  }
-
-  if (gTextureBorderShader)
-  {
-    delete gTextureBorderShader;
-    gTextureBorderShader = NULL;
-  }
-
-  if (gTextureMaskedShader)
-  {
-    delete gTextureMaskedShader;
-    gTextureMaskedShader = NULL;
-  }
+  SAFE_DELETE(gSolidShader);
+  SAFE_DELETE(gATextureShader);
+  SAFE_DELETE(gTextureShader);
+  SAFE_DELETE(gTextureBorderShader);
+  SAFE_DELETE(gTextureMaskedShader);
 
   gSolidShader = new solidShaderProgram();
   gSolidShader->init(vShaderText,fSolidShaderText);
@@ -2338,7 +2366,17 @@ void pxContext::init()
 //  glUseProgram(program);
 
 //  gprogram = program;
-  setTextureMemoryLimit(PXSCENE_DEFAULT_TEXTURE_MEMORY_LIMIT_IN_BYTES);
+  int64_t maxTextureMemory = PXSCENE_DEFAULT_TEXTURE_MEMORY_LIMIT_IN_BYTES;
+  char const* s = getenv("SPARK_TEXTURE_LIMIT_IN_MB");
+  if (s)
+  {
+    int64_t textureMemoryLimit = (int64_t)atoi(s) * (int64_t)1024 * (int64_t)1024;
+    if (textureMemoryLimit > PXSCENE_DEFAULT_TEXTURE_MEMORY_LIMIT_IN_BYTES)
+    {
+      maxTextureMemory = textureMemoryLimit;
+    }
+  }
+  setTextureMemoryLimit(maxTextureMemory);
 
 #if defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL)
   defaultEglContext = eglGetCurrentContext();
@@ -2646,12 +2684,28 @@ void pxContext::drawImage9Border(float w, float h,
   drawImage9Border2(0, 0, w, h, bx1, by1, bx2, by2, ix1, iy1, ix2, iy2, drawCenter, color, texture);
 }
 
+// convenience method
+void pxContext::drawImageMasked(float x, float y, float w, float h,
+                                pxConstantsMaskOperation::constants maskOp,
+                                pxTextureRef t, pxTextureRef mask)
+{
+  this->drawImage(x, y, w, h, t , mask,
+                    /* useTextureDimsAlways = */ true, /*color = */ NULL,      // DEFAULT
+                    /*             stretchX = */ pxConstantsStretch::STRETCH,  // DEFAULT
+                    /*             stretchY = */ pxConstantsStretch::STRETCH,  // DEFAULT
+                    /*      downscaleSmooth = */ false,                        // DEFAULT
+                                                 maskOp                        // PARAMETER
+                    );
+};
+
 void pxContext::drawImage(float x, float y, float w, float h,
                           pxTextureRef t, pxTextureRef mask,
-                          bool useTextureDimsAlways, float* color,
-                          pxConstantsStretch::constants stretchX,
-                          pxConstantsStretch::constants stretchY,
-                          bool downscaleSmooth)
+                          bool useTextureDimsAlways               /* = true */,
+                          float* color,                           /* = NULL */
+                          pxConstantsStretch::constants stretchX, /* = pxConstantsStretch::STRETCH, */
+                          pxConstantsStretch::constants stretchY, /* = pxConstantsStretch::STRETCH, */
+                          bool downscaleSmooth                    /* = false */,
+                          pxConstantsMaskOperation::constants maskOp     /* = pxConstantsMaskOperation::NORMAL */ )
 {
 #ifdef DEBUG_SKIP_IMAGE
 #warning "DEBUG_SKIP_IMAGE enabled ... Skipping "
@@ -2690,7 +2744,7 @@ void pxContext::drawImage(float x, float y, float w, float h,
 
   float black[4] = {0,0,0,1};
   drawImageTexture(x, y, w, h, t, mask, useTextureDimsAlways,
-                  color? color : black, stretchX, stretchY);
+                   color? color : black, stretchX, stretchY, maskOp);
 }
 
 #ifdef PXSCENE_FONT_ATLAS
@@ -2971,18 +3025,27 @@ bool pxContext::isObjectOnScreen(float /*x*/, float /*y*/, float /*width*/, floa
 #endif
 }
 
-void pxContext::adjustCurrentTextureMemorySize(int64_t changeInBytes)
+void pxContext::adjustCurrentTextureMemorySize(int64_t changeInBytes, bool allowGarbageCollect)
 {
+  lockContext();
   mCurrentTextureMemorySizeInBytes += changeInBytes;
   if (mCurrentTextureMemorySizeInBytes < 0)
   {
     mCurrentTextureMemorySizeInBytes = 0;
   }
-  //rtLogDebug("the current texture size: %" PRId64 ".", mCurrentTextureMemorySizeInBytes);
 #ifdef ENABLE_PX_SCENE_TEXTURE_USAGE_MONITORING
-  if (changeInBytes > 0 && mCurrentTextureMemorySizeInBytes > mTextureMemoryLimitInBytes)
+  int64_t currentTextureMemorySize = mCurrentTextureMemorySizeInBytes;
+  int64_t maxTextureMemoryInBytes = mTextureMemoryLimitInBytes;
+#else
+  (void)allowGarbageCollect;
+#endif // ENABLE_PX_SCENE_TEXTURE_USAGE_MONITORING
+
+  unlockContext();
+  //rtLogDebug("the current texture size: %" PRId64 ".", currentTextureMemorySize);
+#ifdef ENABLE_PX_SCENE_TEXTURE_USAGE_MONITORING
+  if (allowGarbageCollect && changeInBytes > 0 && currentTextureMemorySize > maxTextureMemoryInBytes)
   {
-    rtLogDebug("the texture size is too large: %" PRId64 ".  doing a garbage collect!!!\n", mCurrentTextureMemorySizeInBytes);
+    rtLogDebug("the texture size is too large: %" PRId64 ".  doing a garbage collect!!!\n", currentTextureMemorySize);
 #ifdef RUNINMAIN
 	script.collectGarbage();
 #else
@@ -2994,20 +3057,35 @@ void pxContext::adjustCurrentTextureMemorySize(int64_t changeInBytes)
 
 void pxContext::setTextureMemoryLimit(int64_t textureMemoryLimitInBytes)
 {
+#ifdef ENABLE_PX_SCENE_TEXTURE_USAGE_MONITORING
+  rtLogInfo("texture memory limit set to %" PRId64 " bytes", textureMemoryLimitInBytes);
+#endif //ENABLE_PX_SCENE_TEXTURE_USAGE_MONITORING
   mTextureMemoryLimitInBytes = textureMemoryLimitInBytes;
 }
 
 #ifdef ENABLE_PX_SCENE_TEXTURE_USAGE_MONITORING
-bool pxContext::isTextureSpaceAvailable(pxTextureRef texture)
+bool pxContext::isTextureSpaceAvailable(pxTextureRef texture, bool allowGarbageCollect)
 #else
-bool pxContext::isTextureSpaceAvailable(pxTextureRef)
+bool pxContext::isTextureSpaceAvailable(pxTextureRef, bool)
 #endif
 {
 #ifdef ENABLE_PX_SCENE_TEXTURE_USAGE_MONITORING
-  int textureSize = (texture->width()*texture->height()*4);
-  if ((textureSize + mCurrentTextureMemorySizeInBytes) >
-             (mTextureMemoryLimitInBytes  + PXSCENE_DEFAULT_TEXTURE_MEMORY_LIMIT_THRESHOLD_PADDING_IN_BYTES))
+  int64_t textureSize = (texture->width()*texture->height()*4);
+  lockContext();
+  int64_t currentTextureMemorySize = mCurrentTextureMemorySizeInBytes;
+  int64_t maxTextureMemoryInBytes = mTextureMemoryLimitInBytes;
+  unlockContext();
+  if ((textureSize + currentTextureMemorySize) >
+             (maxTextureMemoryInBytes  + PXSCENE_DEFAULT_TEXTURE_MEMORY_LIMIT_THRESHOLD_PADDING_IN_BYTES))
   {
+    if (allowGarbageCollect)
+    {
+      #ifdef RUNINMAIN
+        script.collectGarbage();
+      #else
+        uv_async_send(&gcTrigger);
+      #endif
+    }
     return false;
   }
   else
@@ -3026,7 +3104,8 @@ int64_t pxContext::currentTextureMemoryUsageInBytes()
 int64_t pxContext::textureMemoryOverflow(pxTextureRef texture)
 {
   int64_t textureSize = (((int64_t)texture->width())*((int64_t)texture->height())*4);
-  int64_t availableBytes = mTextureMemoryLimitInBytes - mCurrentTextureMemorySizeInBytes;
+  int64_t currentTextureMemorySize = mCurrentTextureMemorySizeInBytes;
+  int64_t availableBytes = mTextureMemoryLimitInBytes - currentTextureMemorySize;
   if (textureSize > availableBytes)
   {
     return (textureSize - availableBytes);
@@ -3036,6 +3115,7 @@ int64_t pxContext::textureMemoryOverflow(pxTextureRef texture)
 
 int64_t pxContext::ejectTextureMemory(int64_t bytesRequested, bool forceEject)
 {
+#ifdef ENABLE_LRU_TEXTURE_EJECTION
   int64_t beforeTextureMemoryUsage = context.currentTextureMemoryUsageInBytes();
   if (!forceEject)
   {
@@ -3047,6 +3127,9 @@ int64_t pxContext::ejectTextureMemory(int64_t bytesRequested, bool forceEject)
   }
   int64_t afterTextureMemoryUsage = context.currentTextureMemoryUsageInBytes();
   return (beforeTextureMemoryUsage-afterTextureMemoryUsage);
+#else
+  return 0;
+#endif //ENABLE_LRU_TEXTURE_EJECTION
 }
 
 pxError pxContext::setEjectTextureAge(uint32_t age)
@@ -3057,11 +3140,11 @@ pxError pxContext::setEjectTextureAge(uint32_t age)
 
 pxError pxContext::enableInternalContext(bool enable)
 {
-#if !defined(RUNINMAIN)
+#if !defined(RUNINMAIN) || defined(ENABLE_BACKGROUND_TEXTURE_CREATION)
     makeInternalGLContextCurrent(enable);
 #else
   (void)enable;
-#endif //!RUNINMAIN
+#endif // !RUNINMAIN || ENABLE_BACKGROUND_TEXTURE_CREATION
   return PX_OK;
 }
 
