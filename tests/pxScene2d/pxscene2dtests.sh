@@ -5,7 +5,7 @@ THIS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 machine=`uname -s`
 cd $THIS_DIR
 
-pxScene2dDir=../../examples/pxScene2d
+pxScene2dDir=`realpath ../../examples/pxScene2d`
 pxScene2dSrc=$pxScene2dDir/src
 if [ $machine = "Darwin" ];
 then
@@ -48,6 +48,7 @@ export RT_LOG_LEVEL=warn
 ln -s ../../examples/pxScene2d/src/shell.js shell.js
 ln -s ../../examples/pxScene2d/src/init.js init.js
 ln -s ../../examples/pxScene2d/src/node_modules/ node_modules
+ln -s ../../examples/pxScene2d/src/duk_modules/ duk_modules
 ln -s ../../examples/pxScene2d/src/rcvrcore/ rcvrcore
 ln -s ../../examples/pxScene2d/src/FreeSans.ttf FreeSans.ttf
 ln -s ../../examples/pxScene2d/src/package.json package.json
@@ -58,6 +59,7 @@ ln -s ../../examples/pxScene2d/src/package.json package.json
 rm -rf shell.js
 rm -rf init.js
 rm -rf node_modules
+rm -fr duk_modules
 rm -rf rcvrcore
 rm -rf FreeSans.ttf
 rm -rf package.json

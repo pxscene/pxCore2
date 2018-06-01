@@ -7,6 +7,8 @@ extern uv_mutex_t threadMutex;
 #include <rtMutex.h>
 
 
+#include <set>
+#include <sstream>
 
 using namespace std;
 
@@ -125,7 +127,6 @@ rtValue duk2rt(duk_context *ctx, duk_idx_t idx, rtWrapperError* error)
 
     if (res) {
       //printf("recovered rtObject pointer\n");
-      //rtIObject *obj = (rtIObject*)duk_require_pointer(ctx, idx);
       rtIObject *obj = (rtIObject*)duk_require_pointer(ctx, -1);
       //printf("recovered rtObject pointer %p\n", obj);
       duk_pop(ctx);
@@ -159,6 +160,10 @@ std::string rtAllocDukIdentId()
 }
 
 
+static std::set<std::string> g_globalIdsSet;
+static std::map<duk_context*, std::set<std::string>> g_dukRtObjectSet;
+
+
 std::string rtDukPutIdentToGlobal(duk_context *ctx, const std::string &name)
 {
   std::string id = name;
@@ -167,6 +172,7 @@ std::string rtDukPutIdentToGlobal(duk_context *ctx, const std::string &name)
   }
   duk_bool_t rc = duk_put_global_string(ctx, id.c_str());
   assert(rc);
+  g_globalIdsSet.insert(id);
   return id;
 }
 
@@ -176,4 +182,77 @@ void rtDukDelGlobalIdent(duk_context *ctx, const std::string &name)
   duk_push_global_object(ctx);
   duk_del_prop_string(ctx, -1, name.c_str());
   duk_pop(ctx);
+  g_globalIdsSet.erase(name);
+}
+
+
+void rtClearAllGlobalIdents(duk_context *ctx)
+{
+  std::set<std::string> copySet(g_globalIdsSet);
+  for (std::set<std::string>::iterator it = copySet.begin(); it != copySet.end(); ++it) {
+    if ((*it).substr(0, 7) == "__ident") {
+      rtDukDelGlobalIdent(ctx, *it);
+    }
+  }
+}
+
+void rtDukAllocObjectIdent(duk_context *ctx, rtIObject* o, duk_idx_t index)
+{
+  rtString objReferenceKey = "rtObject_";
+  std::stringstream ss;
+  ss << o;
+  objReferenceKey.append(ss.str().c_str());
+  duk_push_thread_stash(ctx, ctx);
+  duk_push_string(ctx,objReferenceKey.cString());
+  duk_dup(ctx, index);
+  duk_bool_t rc = duk_put_prop(ctx, -3);
+  duk_pop(ctx);
+  g_dukRtObjectSet[ctx].insert(objReferenceKey.cString());
+}
+
+bool rtDukCheckObjectIdent(duk_context *ctx, rtIObject* o)
+{
+  rtString objReferenceKey = "rtObject_"; 
+  std::stringstream ss;
+  ss << o;
+  objReferenceKey.append(ss.str().c_str());
+
+  duk_push_thread_stash(ctx, ctx);
+  duk_push_string(ctx,objReferenceKey.cString());
+  duk_bool_t isPresent = duk_get_prop(ctx, -2);
+  if (isPresent)
+  {
+    duk_swap(ctx, -1, -2);
+    duk_pop(ctx);
+  }
+  else
+  {
+    duk_pop(ctx);
+    duk_pop(ctx);
+  }
+  return isPresent;
+}
+
+void rtDukDelObjectIdent(duk_context *ctx, rtIObject* o)
+{
+  rtString objReferenceKey = "rtObject_";
+  std::stringstream ss;
+  ss << o;
+  objReferenceKey.append(ss.str().c_str());
+  duk_push_thread_stash(ctx,ctx);
+  duk_del_prop_string(ctx, -1, objReferenceKey.cString());
+  duk_pop(ctx);
+  g_dukRtObjectSet[ctx].erase(objReferenceKey.cString());
+}
+
+void rtClearAllObjectIdents(duk_context *ctx)
+{
+  std::set<std::string> copySet(g_dukRtObjectSet[ctx]);
+  for (std::set<std::string>::iterator it = copySet.begin(); it != copySet.end(); ++it) {
+    duk_push_thread_stash(ctx,ctx);
+    duk_del_prop_string(ctx, -1, (*it).c_str());
+    duk_pop(ctx);
+    g_dukRtObjectSet[ctx].erase((*it));
+  }
+  g_dukRtObjectSet.erase(ctx);
 }

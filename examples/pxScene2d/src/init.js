@@ -5,15 +5,9 @@ global.console = require('console');
 global.timers = require('timers');
 global.Promise = require('bluebird');
 global.websocket = require("ws.js");
-
-global.setTimeout = timers.setTimeout;
-global.clearTimeout = timers.clearTimeout;
-global.setInterval = timers.setInterval;
-global.clearInterval = timers.clearInterval;
-
 Promise.setScheduler(function (fn) {
     var timer = uv.new_timer.call({});
-    uv.timer_start(timer, 0, 0, fn);
+    uv.timer_start(timer, 0, 0, function() { uv.close(timer);fn(); });
 });
 
 global.constructPromise = function (obj) {

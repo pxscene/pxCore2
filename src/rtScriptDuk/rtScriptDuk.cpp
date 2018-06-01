@@ -146,7 +146,7 @@ class rtScriptDuk;
 class rtDukContext;
 
 typedef rtRef<rtDukContext> rtDukContextRef;
-
+extern void clearAllPendingrtFns(duk_context *ctx);
 class rtDukContext: rtIScriptContext
 {
 public:
@@ -196,7 +196,7 @@ private:
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
+std::vector<uv_loop_t *>       uvLoops;
 typedef std::map<uint32_t, rtDukContextRef> rtDukContexts;
 //typedef std::map<uint32_t, rtDukContextRef>::const_iterator rtNodeContexts_iterator;
 
@@ -246,7 +246,6 @@ private:
   void nodePath();
 
   duk_context                   *dukCtx;
-  std::vector<uv_loop_t *>       uvLoops;
   //uv_thread_t                    dukTid;
   bool                           duk_is_initialized;
 
@@ -376,7 +375,6 @@ void rtDukContext::clonedEnvironment(rtDukContextRef clone_me)
   rtDukPutIdentToGlobal(clone_me->dukCtx);
 
   dukCtx = duk_get_context(clone_me->dukCtx, thr_idx);
-
   uv_loop_t *dukLoop = new uv_loop_t();
   uv_loop_init(dukLoop);
   dukLoop->data = dukCtx;
@@ -399,12 +397,32 @@ rtDukContext::~rtDukContext()
 {
   rtLogInfo(__FUNCTION__);
   //Make sure node is not destroyed abnormally
+  size_t i = 0;
+  for (i = 0; i < uvLoops.size(); ++i) {
+    if (uvLoops[i] == uvLoop)
+    {
+      uvLoops.erase(uvLoops.begin() + i);
+      break;
+    }
+  }
+  uv_loop_close(uvLoop);
+  delete uvLoop;
+  clearAllPendingrtFns(dukCtx);
   Release();
   // NOTE: 'mIsolate' is owned by rtNode.  Don't destroy here !
 }
 
 rtError rtDukContext::add(const char *name, rtValue const& val)
 {
+  if (name == NULL) {
+    // Should not accept the NULL pointer as a name.
+    rtLogDebug(" rtDukContext::add() - no symbolic name for rtValue");
+    return RT_FAIL;
+  } else if (val.isEmpty()) {
+    // Should not accept the empty value.
+    rtLogDebug(" rtDukContext::add() - rtValue is empty");
+    return RT_FAIL;
+  }
   rt2duk(dukCtx, val);
   rtDukPutIdentToGlobal(dukCtx, name);
   
@@ -1000,6 +1018,11 @@ static duk_int_t myload_code(duk_context *ctx, const char *code)
 //rtError rtDukContext::runScript(const std::string &script, rtValue* retVal /*= NULL*/, const char* /* args = NULL*/)
 rtError rtDukContext::runScript(const char* szscript, rtValue* retVal /*= NULL*/, const char *args /*= NULL*/)
 {
+  // Check nullness of parameters
+  if (szscript == NULL) {
+    rtLogError(" %s  ... Invalid parameters, szscript cannot be NULL.",__PRETTY_FUNCTION__);
+    return RT_FAIL;
+  }
   std::string script = szscript;
   rtLogInfo(__FUNCTION__);
   if(script.empty())
@@ -1178,7 +1201,7 @@ rtError rtScriptDuk::pump()
 #ifndef RUNINMAIN
   return RT_OK;
 #else
-  for (int i = 0; i < uvLoops.size(); ++i) {
+  for (size_t i = 0; i < uvLoops.size(); ++i) {
     uv_run(uvLoops[i], UV_RUN_NOWAIT);
   }
 #endif // RUNINMAIN
@@ -1187,6 +1210,17 @@ rtError rtScriptDuk::pump()
 
 rtError rtScriptDuk::collectGarbage()
 {
+  for (int i = 0; i < uvLoops.size(); ++i) {
+    duk_context *ctx = (duk_context *)uvLoops[i]->data;
+    if (i == 0) {
+      rtClearAllGlobalIdents(ctx);
+    }
+    rtClearAllObjectIdents(ctx);
+    clearAllPendingrtFns(ctx);
+    // there need to be 2 calls here (see function documentation)
+    duk_gc(ctx, 0);
+    duk_gc(ctx, 0);
+  }
   return RT_OK;
 }
 
@@ -1237,7 +1271,9 @@ bool rtNode::isInitialized()
 
 duk_ret_t my_print(duk_context *ctx)
 {
+    if (NULL != duk_get_string(ctx, -1)) {
     printf("%s\n", duk_get_string(ctx, -1));
+    }
     return 0;
 }
 
@@ -1392,7 +1428,7 @@ rtDukContextRef rtScriptDuk::createContext(bool ownThread)
     // rtLogInfo("\n createContext()  >>  CLONE CREATED !!!!!!");
     ctxref = new rtDukContext(mRefContext); // CLONE !!!
     assert(ctxref->uvLoop != NULL);
-    uvLoops.push_back(mRefContext->uvLoop);
+    uvLoops.push_back(ctxref->uvLoop);
   }
 #else
     ctxref = new rtDukContext(mIsolate,mPlatform);
