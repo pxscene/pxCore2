@@ -376,7 +376,6 @@ void rtDukContext::clonedEnvironment(rtDukContextRef clone_me)
   rtDukPutIdentToGlobal(clone_me->dukCtx);
 
   dukCtx = duk_get_context(clone_me->dukCtx, thr_idx);
-
   uv_loop_t *dukLoop = new uv_loop_t();
   uv_loop_init(dukLoop);
   dukLoop->data = dukCtx;
@@ -1203,7 +1202,10 @@ rtError rtScriptDuk::collectGarbage()
 {
   for (int i = 0; i < uvLoops.size(); ++i) {
     duk_context *ctx = (duk_context *)uvLoops[i]->data;
-
+    if (i == 0) {
+      rtClearAllGlobalIdents(ctx);
+    }
+    rtClearAllObjectIdents(ctx);
     // there need to be 2 calls here (see function documentation)
     duk_gc(ctx, 0);
     duk_gc(ctx, 0);

@@ -83,6 +83,11 @@ std::string rtAllocDukIdentId();
 std::string rtDukPutIdentToGlobal(duk_context *ctx, const std::string &name = "");
 void rtDukDelGlobalIdent(duk_context *ctx, const std::string &name);
 void rtClearAllGlobalIdents(duk_context *ctx);
+/* Manage rtObject allocations */
+void rtDukAllocObjectIdent(duk_context *ctx, rtIObject* o, duk_idx_t index);
+bool rtDukCheckObjectIdent(duk_context *ctx, rtIObject* o);
+void rtDukDelObjectIdent(duk_context *ctx, rtIObject* o);
+void rtClearAllObjectIdents(duk_context *ctx);
 
 #endif
 

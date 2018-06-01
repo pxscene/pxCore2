@@ -322,7 +322,7 @@ duk_ret_t proxyWrapperFinalizer(duk_context *ctx)
   if (duk_get_prop_string(ctx, 0, "zpointer"))
   {
     rtIObject* p = (rtObject*)duk_require_pointer(ctx,-1);
-
+    rtDukDelObjectIdent(ctx, p);
     if (p)
       p->Release();
 
@@ -579,44 +579,50 @@ void pushProxyForObject(duk_context *ctx, const rtObjectRef& o) {
     #endif
   }
 
-  duk_push_proxy(ctx, 0);
+  duk_idx_t index = duk_push_proxy(ctx, 0);
+  rtDukAllocObjectIdent(ctx, o.getPtr(), index);
 }
 
 void rtObjectWrapper::createFromObjectReference(duk_context *ctx, const rtObjectRef& ref)
 {
   assert(ref.getPtr() != NULL);
-
-  // promise
+  duk_bool_t isPropPresent = rtDukCheckObjectIdent(ctx, ref.getPtr());
+  if (isPropPresent)
   {
-    rtString desc;
-    if (ref)
+  }
+  else
+  {
+    // promise
     {
-      rtError err = const_cast<rtObjectRef &>(ref).sendReturns<rtString>("description", desc);
-
-      if (err == RT_OK && strcmp(desc.cString(), "rtPromise") == 0)
+      rtString desc;
+      if (ref)
       {
-        duk_bool_t rt = duk_get_global_string(ctx, "constructPromise");
-        // [func] 
-        assert(rt);
+        rtError err = const_cast<rtObjectRef &>(ref).sendReturns<rtString>("description", desc);
 
-        pushProxyForObject(ctx, ref);
+        if (err == RT_OK && strcmp(desc.cString(), "rtPromise") == 0)
+        {
+          duk_bool_t rt = duk_get_global_string(ctx, "constructPromise");
+          // [func] 
+          assert(rt);
 
-        // [func obj] 
+          pushProxyForObject(ctx, ref);
 
-        if (duk_pcall(ctx, 1) != 0) {
-          duv_dump_error(ctx, -1);
-          assert(0);
+          // [func obj] 
+
+          if (duk_pcall(ctx, 1) != 0) {
+            duv_dump_error(ctx, -1);
+            assert(0);
+          }
+
+          // [js-promise]
+          assert(duk_is_object(ctx, -1));
+
+          return;
         }
-
-        // [js-promise]
-        assert(duk_is_object(ctx, -1));
-
-        return;
       }
     }
+    pushProxyForObject(ctx, ref);
   }
-
-  pushProxyForObject(ctx, ref);
 }
 
 jsObjectWrapper::jsObjectWrapper(duk_context *ctx, const std::string &name, bool isArray)

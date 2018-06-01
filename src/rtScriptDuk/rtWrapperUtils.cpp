@@ -8,6 +8,7 @@ extern uv_mutex_t threadMutex;
 
 
 #include <set>
+#include <sstream>
 
 using namespace std;
 
@@ -160,6 +161,7 @@ std::string rtAllocDukIdentId()
 
 
 static std::set<std::string> g_globalIdsSet;
+static std::map<duk_context*, std::set<std::string>> g_dukRtObjectSet;
 
 
 std::string rtDukPutIdentToGlobal(duk_context *ctx, const std::string &name)
@@ -192,4 +194,65 @@ void rtClearAllGlobalIdents(duk_context *ctx)
       rtDukDelGlobalIdent(ctx, *it);
     }
   }
+}
+
+void rtDukAllocObjectIdent(duk_context *ctx, rtIObject* o, duk_idx_t index)
+{
+  rtString objReferenceKey = "rtObject_";
+  std::stringstream ss;
+  ss << o;
+  objReferenceKey.append(ss.str().c_str());
+  duk_push_thread_stash(ctx, ctx);
+  duk_push_string(ctx,objReferenceKey.cString());
+  duk_dup(ctx, index);
+  duk_bool_t rc = duk_put_prop(ctx, -3);
+  duk_pop(ctx);
+  g_dukRtObjectSet[ctx].insert(objReferenceKey.cString());
+}
+
+bool rtDukCheckObjectIdent(duk_context *ctx, rtIObject* o)
+{
+  rtString objReferenceKey = "rtObject_"; 
+  std::stringstream ss;
+  ss << o;
+  objReferenceKey.append(ss.str().c_str());
+
+  duk_push_thread_stash(ctx, ctx);
+  duk_push_string(ctx,objReferenceKey.cString());
+  duk_bool_t isPresent = duk_get_prop(ctx, -2);
+  if (isPresent)
+  {
+    duk_swap(ctx, -1, -2);
+    duk_pop(ctx);
+  }
+  else
+  {
+    duk_pop(ctx);
+    duk_pop(ctx);
+  }
+  return isPresent;
+}
+
+void rtDukDelObjectIdent(duk_context *ctx, rtIObject* o)
+{
+  rtString objReferenceKey = "rtObject_";
+  std::stringstream ss;
+  ss << o;
+  objReferenceKey.append(ss.str().c_str());
+  duk_push_thread_stash(ctx,ctx);
+  duk_del_prop_string(ctx, -1, objReferenceKey.cString());
+  duk_pop(ctx);
+  g_dukRtObjectSet[ctx].erase(objReferenceKey.cString());
+}
+
+void rtClearAllObjectIdents(duk_context *ctx)
+{
+  std::set<std::string> copySet(g_dukRtObjectSet[ctx]);
+  for (std::set<std::string>::iterator it = copySet.begin(); it != copySet.end(); ++it) {
+    duk_push_thread_stash(ctx,ctx);
+    duk_del_prop_string(ctx, -1, (*it).c_str());
+    duk_pop(ctx);
+    g_dukRtObjectSet[ctx].erase((*it));
+  }
+  g_dukRtObjectSet.erase(ctx);
 }
