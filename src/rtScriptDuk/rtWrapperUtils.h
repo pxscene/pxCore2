@@ -86,7 +86,7 @@ void rtClearAllGlobalIdents(duk_context *ctx);
 /* Manage rtObject allocations */
 void rtDukAllocObjectIdent(duk_context *ctx, rtIObject* o, duk_idx_t index);
 bool rtDukCheckObjectIdent(duk_context *ctx, rtIObject* o);
-void rtDukDelObjectIdent(duk_context *ctx, rtIObject* o);
+duk_bool_t rtDukDelObjectIdent(duk_context *ctx, rtIObject* o);
 void rtClearAllObjectIdents(duk_context *ctx);
 
 #endif

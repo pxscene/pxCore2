@@ -180,7 +180,7 @@ std::string rtDukPutIdentToGlobal(duk_context *ctx, const std::string &name)
 void rtDukDelGlobalIdent(duk_context *ctx, const std::string &name)
 {
   duk_push_global_object(ctx);
-  duk_del_prop_string(ctx, -1, name.c_str());
+  duk_bool_t ret = duk_del_prop_string(ctx, -1, name.c_str());
   duk_pop(ctx);
   g_globalIdsSet.erase(name);
 }
@@ -207,6 +207,10 @@ void rtDukAllocObjectIdent(duk_context *ctx, rtIObject* o, duk_idx_t index)
   duk_dup(ctx, index);
   duk_bool_t rc = duk_put_prop(ctx, -3);
   duk_pop(ctx);
+  if (g_dukRtObjectSet.find(ctx) == g_dukRtObjectSet.end())
+  {
+    g_dukRtObjectSet.insert(std::pair<duk_context*,std::set<std::string>>(ctx,std::set<std::string>()));
+  }
   g_dukRtObjectSet[ctx].insert(objReferenceKey.cString());
 }
 
@@ -233,16 +237,17 @@ bool rtDukCheckObjectIdent(duk_context *ctx, rtIObject* o)
   return isPresent;
 }
 
-void rtDukDelObjectIdent(duk_context *ctx, rtIObject* o)
+duk_bool_t rtDukDelObjectIdent(duk_context *ctx, rtIObject* o)
 {
   rtString objReferenceKey = "rtObject_";
   std::stringstream ss;
   ss << o;
   objReferenceKey.append(ss.str().c_str());
   duk_push_thread_stash(ctx,ctx);
-  duk_del_prop_string(ctx, -1, objReferenceKey.cString());
+  duk_bool_t ret = duk_del_prop_string(ctx, -1, objReferenceKey.cString());
   duk_pop(ctx);
   g_dukRtObjectSet[ctx].erase(objReferenceKey.cString());
+  return ret;
 }
 
 void rtClearAllObjectIdents(duk_context *ctx)
