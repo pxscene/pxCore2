@@ -36,9 +36,11 @@ duk_ret_t proxyWrapperFinalizer(duk_context *ctx)
   if (duk_get_prop_string(ctx, 0, "zpointer"))
   {
     rtIObject* p = (rtObject*)duk_require_pointer(ctx,-1);
-    rtDukDelObjectIdent(ctx, p);
-    if (p)
-      p->Release();
+    if (true == rtDukDelObjectIdent(ctx, p))
+    {
+      if (p)
+        p->Release();
+    }
 
     // in case we get called again
     duk_push_pointer(ctx,NULL);

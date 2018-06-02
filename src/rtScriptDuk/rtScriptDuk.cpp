@@ -407,6 +407,11 @@ rtDukContext::~rtDukContext()
   }
   uv_loop_close(uvLoop);
   delete uvLoop;
+  if (i == 0)
+  {
+    rtClearAllGlobalIdents(dukCtx);
+  }
+  rtClearAllObjectIdents(dukCtx);
   clearAllPendingrtFns(dukCtx);
   Release();
   // NOTE: 'mIsolate' is owned by rtNode.  Don't destroy here !
@@ -1183,7 +1188,8 @@ return RT_OK;
 rtScriptDuk::~rtScriptDuk()
 {
   // rtLogInfo(__FUNCTION__);
-  term();
+  //term();
+  duk_destroy_heap(dukCtx);
 }
 
 unsigned long rtScriptDuk::Release()
@@ -1210,13 +1216,13 @@ rtError rtScriptDuk::pump()
 
 rtError rtScriptDuk::collectGarbage()
 {
-  for (int i = 0; i < uvLoops.size(); ++i) {
+  for (size_t i = 0; i < uvLoops.size(); ++i) {
     duk_context *ctx = (duk_context *)uvLoops[i]->data;
-    if (i == 0) {
-      rtClearAllGlobalIdents(ctx);
-    }
+/*
+    rtClearAllGlobalIdents(ctx);
     rtClearAllObjectIdents(ctx);
     clearAllPendingrtFns(ctx);
+*/
     // there need to be 2 calls here (see function documentation)
     duk_gc(ctx, 0);
     duk_gc(ctx, 0);
@@ -1347,21 +1353,27 @@ void rtScriptDuk::init2(int argc, char** argv)
 rtError rtScriptDuk::term()
 {
   rtLogInfo(__FUNCTION__);
-  //nodeTerminated = true;
-  #ifdef ENABLE_DEBUG_MODE
-  duk_debugger_finish(dukCtx);
-  #endif
-  //uv_loop_close(dukLoop);
-  duk_destroy_heap(dukCtx);
+  fflush(stdout);
+  static bool  isTerminated = false;
+  if (false == isTerminated)
+  { 
+    //nodeTerminated = true;
+    #ifdef ENABLE_DEBUG_MODE
+    duk_debugger_finish(dukCtx);
+    #endif
+    //uv_loop_close(dukLoop);
+    mRefContext = NULL;
 
-#if 0
-#ifdef USE_CONTEXTIFY_CLONES
-  if( mRefContext.getPtr() )
-  {
-    mRefContext->Release();
+    #if 0
+    #ifdef USE_CONTEXTIFY_CLONES
+      if( mRefContext.getPtr() )
+      {
+        mRefContext->Release();
+      }
+    #endif
+    #endif
   }
-#endif
-#endif
+  isTerminated = true;
   return RT_OK;
 }
 
