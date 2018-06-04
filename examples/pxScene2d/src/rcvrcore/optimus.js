@@ -21,16 +21,17 @@ limitations under the License.
 //application manager variables
 var applicationsArray = [];
 var availableApplicationsArray = [];
-var eventListenerHash = {}
+var eventListenerHash = {};
 
 var scene;
 var root;
 
-//Application types
-const TYPE_SPARK = 1;
-const TYPE_NATIVE = 2;
-const TYPE_WEB = 3;
-const TYPE_UNDEFINED = 4;
+var ApplicationType = Object.freeze({
+  "SPARK":1,
+  "NATIVE":2,
+  "WEB":3,
+  "UNDEFINED":4
+});
 
 function Application(props) {
   this.id = undefined;
@@ -39,7 +40,7 @@ function Application(props) {
   this.externalApp = undefined;
   this.appName = "";
   this.browser = undefined;
-  this.type = TYPE_UNDEFINED;
+  this.type = ApplicationType.UNDEFINED;
   this.ready = undefined;
 
   var cmd = "";
@@ -68,70 +69,83 @@ function Application(props) {
     cmd = cmd + " " + uri;
   }
 
-  console.log("cmd:",cmd,"uri:",uri,"w:",w,"h:",h);
+  this.log("cmd:",cmd,"uri:",uri,"w:",w,"h:",h);
 
   if (cmd){
     if (scene !== undefined) {
       if (cmd === "spark"){
-        this.type = TYPE_SPARK;
+        this.type = ApplicationType.SPARK;
         this.externalApp = scene.create({t:"scene", parent:root, url:uri});
         this.ready = this.externalApp.ready;
-        this.externalApp.on("onClientStopped", this.applicationClosed);
+        this.externalApp.on("onReady", function () { _this.log("onReady"); }); // is never called
+        this.externalApp.on("onClientStarted", function () { _this.log("onClientStarted"); }); // is never called
+        this.externalApp.on("onClientConnected", function () { _this.log("onClientConnected"); }); // is never called
+        this.externalApp.on("onClientDisconnected", function () { _this.log("onClientDisconnected"); }); // is never called
+        this.externalApp.on("onClientStopped", function () { _this.log( "onClientStopped"); }); // is never called
         this.externalApp.ready.then(function() {
-          console.log("successfully created Spark app: " + _this.id);
+          _this.log("successfully created Spark app: " + _this.id);
           _this.applicationReady();
         }, function rejection() {
-          console.log("failed to launch Spark app: " + _this.id);
+          _this.log("failed to launch Spark app: " + _this.id);
           _this.applicationClosed();
         });
         this.setProperties(props);
         this.applicationCreated();
       }
       else if (cmd === "WebApp"){
-        this.type = TYPE_WEB;
+        this.type = ApplicationType.WEB;
         this.externalApp = scene.create( {t:"wayland", parent:root, server:"wl-rdkbrowser2-server", w:w, h:h, hasApi:true} );
         this.ready = this.externalApp.remoteReady;
-        this.setProperties(props);
+        // The following doesn't work - causes black screen:
+        //this.externalApp.on("onReady", function () { _this.log("onReady"); });
+        //this.externalApp.on("onClientStarted", function () { _this.log("onClientStarted"); });
+        //this.externalApp.on("onClientConnected", function () { _this.log("onClientConnected"); });
+        //this.externalApp.on("onClientDisconnected", function () { _this.log("onClientDisconnected"); });
+        //this.externalApp.on("onClientStopped", function () { _this.log("onClientStopped"); });
         this.externalApp.remoteReady.then(function(obj) {
           if(obj) {
+            _this.log("about to create browser window");
             _this.browser = _this.externalApp.api.createWindow(_this.externalApp.displayName, false);
             if (_this.browser) {
               _this.browser.url = uri;
-              console.log("launched WebApp uri:" + uri);
+              _this.log("launched WebApp uri:" + uri);
               _this.applicationCreated();
               _this.applicationReady();
             } else {
-              console.log("failed to create window for WebApp");
+              _this.log("failed to create window for WebApp");
               _this.applicationClosed();
             }
           } else {
-            console.log("failed to create WebApp invalid waylandObj");
+            _this.log("failed to create WebApp invalid waylandObj");
             _this.applicationClosed();
           }
         }, function rejection() {
-          console.log("failed to create WebApp");
+          _this.log("failed to create WebApp");
           _this.applicationClosed();
         });
+        this.setProperties(props);
       }
       else{
-        this.type = TYPE_NATIVE;
+        this.type = ApplicationType.NATIVE;
         this.externalApp = scene.create( {t:"wayland", parent:root, cmd:cmd, w:w, h:h, hasApi:true} );
         this.ready = this.externalApp.ready;
-        this.externalApp.on("onReady", this.applicationReady);
-        this.externalApp.on("onClientStopped", this.applicationClosed);
-        this.externalApp.on("onClientDisconnected", this.applicationClosed);
-        this.setProperties(props);
+        this.externalApp.on("onReady", function () { _this.log("onReady"); }); // is never called
+        this.externalApp.on("onClientStarted", function () { _this.log("onClientStarted"); });
+        this.externalApp.on("onClientConnected", function () { _this.log("onClientConnected"); }); // called multiple times
+        this.externalApp.on("onClientDisconnected", function () { _this.log("onClientDisconnected"); }); // is never called
+        this.externalApp.on("onClientStopped", function () { _this.log("onClientStopped"); }); // is never called
         this.externalApp.ready.then(function() {
-          console.log("successfully created: " + _this.id);
+          _this.log("successfully created: " + _this.id);
           _this.applicationReady();
         }, function rejection() {
-          console.log("failed to launch app: " + _this.id);
+          _this.log("failed to launch app: " + _this.id);
           _this.applicationClosed();
         });
+        this.setProperties(props);
         this.applicationCreated();
       }
     } else {
-      console.log("cannot create app because the scene is not set");
+      this.log("cannot create app because the scene is not set");
       this.applicationClosed();
     }
   }
@@ -139,68 +153,121 @@ function Application(props) {
     this.setProperties(props);
   }
 }
+
+Application.prototype.log = function() {
+  var _args = ["optimus"];
+  if (this.id) {
+    _args.push("id="+this.id);
+  }
+  if (this.type) {
+    for (var key in ApplicationType) {
+      if (ApplicationType[key] === this.type) {
+        _args.push("type="+key);
+        break;
+      }
+    }
+  }
+  if (this.appState) {
+    _args.push("state="+this.appState);
+  }
+  if (this.appName) {
+    _args.push("name="+this.appName);
+  }
+  _args.push.apply(_args, arguments);
+  console.log.apply(console, _args);
+};
+
 Application.prototype.applicationManager = function() {
   return module.exports;
-}
+};
 Application.prototype.applicationCreated = function(){
+  this.log("applicationCreated");
   var appManager = module.exports;
   if (appManager){
     appManager.onCreate(this);
   }
 };
-Application.prototype.applicationReady = function(e){
+Application.prototype.applicationReady = function(){
+  this.log("applicationReady");
   var appManager = module.exports;
   if (appManager){
     appManager.onReady(this);
   }
-}
-Application.prototype.applicationClosed = function(e){
+};
+Application.prototype.applicationClosed = function(){
+  this.log("applicationClosed");
   var appManager = module.exports;
   if (appManager){
     appManager.onDestroy(this);
   }
-}
-Application.prototype.suspend = function() {
-  if (this.externalApp && this.externalApp.suspend != undefined){
-    this.externalApp.suspend();
-  }
+};
+Application.prototype.applicationSuspended = function(){
+  this.log("applicationSuspended");
   var appManager = module.exports;
   if (appManager){
-    appManager.onSuspend(this);
+    appManager.onDestroy(this);
   }
-  if (this.appState !== "DESTROYED"){
-    this.appState = "SUSPENDED";
-  }
-  return true;
-}
-Application.prototype.resume = function() {
-  if (this.externalApp && this.externalApp.resume != undefined){
-    this.externalApp.resume();
-  }
+};
+Application.prototype.applicationResumed = function(){
+  this.log("applicationResumed");
   var appManager = module.exports;
   if (appManager){
     appManager.onResume(this);
   }
-  if (this.appState !== "DESTROYED"){
-    this.appState = "RUNNING";
-  }
-  return true;
-}
-Application.prototype.destroy = function() {
-  if (this.externalApp){
-    if (this.externalApp.destroy) {
-      this.externalApp.destroy();
-    }
-    this.externalApp.remove();
-    this.externalApp = null;
-  }
+};
+Application.prototype.applicationDestroyed = function(){
+  this.log("applicationDestroyed");
   var appManager = module.exports;
   if (appManager){
     appManager.onDestroy(this);
   }
-  this.appState = "DESTROYED";
+};
+
+Application.prototype.suspend = function() {
+  if (this.externalApp && this.externalApp.suspend){
+    this.externalApp.suspend();
+  }
+  if (this.appState !== "DESTROYED"){
+    this.appState = "SUSPENDED";
+  }
+  this.applicationSuspended();
   return true;
-}
+};
+Application.prototype.resume = function() {
+  if (this.externalApp && this.externalApp.resume){
+    this.externalApp.resume();
+  }
+  if (this.appState !== "DESTROYED"){
+    this.appState = "RUNNING";
+  }
+  this.applicationResumed();
+  return true;
+};
+Application.prototype.destroy = function() {
+  if (this.externalApp){
+    try {
+      this.log("about to remove");
+      if (this.externalApp.remove) {
+        this.externalApp.remove();
+      }
+    } catch (e) {
+      this.log("failed to remove",e);
+    }
+    try {
+      this.log("about to destroy");
+      if (this.externalApp.destroy) {
+        this.externalApp.destroy();
+      }
+    } catch (e) {
+      this.log("failed to destroy",e);
+    }
+    this.externalApp = null;
+  }
+  this.appState = "DESTROYED";
+  this.applicationDestroyed();
+  return true;
+};
+
 Application.prototype.state = function() {
   return this.appState;
 }
@@ -249,7 +316,7 @@ Application.prototype.on = function(e,fn) {
 
 
 Application.prototype.api = function() {
-  if (this.type == TYPE_WEB){
+  if (this.type === ApplicationType.WEB){
     if (this.browser){
       return this.browser;
     } else {
@@ -323,7 +390,7 @@ Application.prototype.setProperties = function(props) {
         if (app) {app.draw = props[key];}
         break;
       default:
-        console.log("unknown property " + key);
+        this.log("unknown property " + key);
         break;
     }
   }
