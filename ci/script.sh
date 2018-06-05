@@ -31,11 +31,17 @@ checkError()
 
 if [ "$TRAVIS_OS_NAME" = "linux" ]
 then
-    if [ "$TRAVIS_EVENT_TYPE" = "cron" ] || [ "$TRAVIS_EVENT_TYPE" = "api" ]
+  if  [ "$TRAVIS_EVENT_TYPE" = "api" ]
     then
-      echo "Ignoring script stage for $TRAVIS_EVENT_TYPE event";
-      exit 0
-    fi
+    echo "Ignoring script stage for $TRAVIS_EVENT_TYPE event";
+    exit 0
+  fi
+  if [ "$TRAVIS_EVENT_TYPE" = "cron" ] 
+  then
+    ./ci/uploadWindowsArtifact.sh
+    checkError $? "./ci/uploadWindowsArtifact.sh Failed" "Artifact not available or Failed to upload" "Verify ./ci/uploadWindowsArtifact.sh locally"
+    exit 0
+  fi
 fi
 
 
