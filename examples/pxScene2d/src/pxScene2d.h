@@ -1530,8 +1530,6 @@ public:
     v = getRoot();
     return RT_OK;
   }
-
-  rtObjectRef getCanvas() const { return mCanvas; };
  
   rtObjectRef  getInfo() const;
   rtError info(rtObjectRef& v) const
@@ -1587,8 +1585,6 @@ private:
   int frameCount;
   int mWidth;
   int mHeight;
-
-  rtObjectRef mCanvas; // for SVG drawing
 
   rtEmitRef mEmit;
 

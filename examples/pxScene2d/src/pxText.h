@@ -74,8 +74,8 @@ public:
   
   virtual rtError Set(uint32_t i, const rtValue* value) override
   {
-    std::ignore = i;
-    std::ignore = value;
+    (void)i;
+    (void)value;
     rtLogError("pxText::Set(uint32_t, const rtValue*) - not implemented");
     return RT_ERROR_NOT_IMPLEMENTED;
   }
