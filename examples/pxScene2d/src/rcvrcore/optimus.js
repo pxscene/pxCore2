@@ -357,12 +357,16 @@ function Optimus() {
    * optimus.on("ready", (app) => { app.log("one more ready callback!"); });
    * optimus.on("suspend", (app) => { app.log("suspend callback!"); });
    * optimus.on("resume", (app) => { app.log("resume callback!"); });
-   * optimus.on("destroy", (app) => { app.log("destroy callback!"); });
-   * setTimeout(() => { app.animateTo({ x: 600 }, 1, scene.animation.TWEEN_LINEAR, scene.animation.OPTION_FASTFORWARD, 1).then(() => { app.log("animated!"); }, () => { app.log("not animated!"); }); }, 30000);
+   * var destroyCallback = (app) => { app.log("destroy callback!"); };
+   * optimus.on("destroy", destroyCallback);
+   * var animateFn = () => { return app.animateTo({ x: 600 }, 1, scene.animation.TWEEN_LINEAR, scene.animation.OPTION_FASTFORWARD, 1); };
+   * setTimeout(() => { animateFn().then(() => { app.log("animated!"); }, () => { app.log("not animated!"); }); }, 30000);
    * setTimeout(() => { app.x=0; app.log("moved!"); }, 40000);
    * setTimeout(() => { app.suspend(); }, 50000);
    * setTimeout(() => { app.resume(); }, 60000);
    * setTimeout(() => { app.destroy(); }, 70000);
+   * var removeListeners = () => { optimus.removeListener("suspend"); optimus.removeListener("destroy", destroyCallback); };
+   * setTimeout(() => { removeListeners(); app.log("unsubscribed!"); app.suspend(); app.destroy(); }, 80000);
    * // grep log for 'optimus'
    * @param props
    * @returns {Application}
@@ -400,6 +404,20 @@ function Optimus() {
       _array.push(handler);
     } else {
       eventListenerHash[eventName] = [handler];
+    }
+  };
+  this.removeListener = function(eventName, handler){
+    if (eventName in eventListenerHash){
+      if (handler) {
+        var _array = eventListenerHash[eventName];
+        var _index = _array.indexOf(handler);
+        while (_index !== -1) {
+          _array.splice(_index, 1);
+          _index = _array.indexOf(handler);
+        }
+      } else {
+        delete eventListenerHash[eventName];
+      }
     }
   };
   this.onCreate = function(app){
