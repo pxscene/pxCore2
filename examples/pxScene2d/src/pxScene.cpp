@@ -477,8 +477,19 @@ if (s && (strcmp(s,"1") == 0))
 {
   gDumpMemUsage = true;
 }
+
+  const char* url = "browser.js";
+  for (int i=1;i<argc;i++)
+  {
+    const char* arg = argv[i];
+    if (arg && arg[0] != '-')
+    {
+      url = arg;
+      break;
+    }
+  }
+
 #ifdef ENABLE_DEBUG_MODE
-  int urlIndex  = -1;
 #ifdef RTSCRIPT_SUPPORT_NODE
   bool isDebugging = false;
 
@@ -494,13 +505,6 @@ if (s && (strcmp(s,"1") == 0))
         isDebugging = true;
       }
       size += strlen(argv[i])+1;
-    }
-    else
-    {
-      if (strstr(argv[i],".js"))
-      {
-        urlIndex = i;
-      }
     }
   }
   if (isDebugging == true)
@@ -552,11 +556,7 @@ if (s && (strcmp(s,"1") == 0))
 
   // OSX likes to pass us some weird parameter on first launch after internet install
   rtLogInfo("window width = %d height = %d", windowWidth, windowHeight);
-#ifdef ENABLE_DEBUG_MODE
-  win.init(10, 10, windowWidth, windowHeight, (urlIndex != -1)?argv[urlIndex]:"browser.js");
-#else
-  win.init(10, 10, windowWidth, windowHeight, (argc >= 2 && argv[1][0] != '-')?argv[1]:"browser.js");
-#endif
+  win.init(10, 10, windowWidth, windowHeight, url);
   win.setTitle(buffer);
   // JRJR TODO Why aren't these necessary for glut... pxCore bug
   win.setVisibility(true);
