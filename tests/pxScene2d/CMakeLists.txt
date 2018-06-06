@@ -135,11 +135,11 @@ elseif (APPLE)
         add_definitions(-DENABLE_CODE_COVERAGE)
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-arcs -ftest-coverage -fno-inline -fno-elide-constructors")
 
-    execute_process(COMMAND clang --version OUTPUT_VARIABLE LLVM_VERSION1 ERROR_VARIABLE ERROR_VARIABLE1 COMMAND grep "LLVM version" OUTPUT_VARIABLE LLVM_VERSION2 ERROR_VARIABLE LLVM_ERROR2 COMMAND awk "{print $4}" OUTPUT_FILE llvmoutput OUTPUT_VARIABLE LLVM_VERSION3 ERROR_VARIABLE LLVM_ERROR3)
-    execute_process(COMMAND awk "{ printf \"%s\", $0 }" llvmoutput OUTPUT_VARIABLE LLVM_VERSION)
-    execute_process(COMMAND rm llvmoutput)
+        execute_process(COMMAND clang --version OUTPUT_VARIABLE LLVM_VERSION1 ERROR_VARIABLE ERROR_VARIABLE1 COMMAND grep "LLVM version" OUTPUT_VARIABLE LLVM_VERSION2 ERROR_VARIABLE LLVM_ERROR2 COMMAND awk "{print $4}" OUTPUT_FILE llvmoutput OUTPUT_VARIABLE LLVM_VERSION3 ERROR_VARIABLE LLVM_ERROR3)
+        execute_process(COMMAND awk "{ printf \"%s\", $0 }" llvmoutput OUTPUT_VARIABLE LLVM_VERSION)
+        execute_process(COMMAND rm llvmoutput)
 
-    set(TEST_APP_LINKER_OPTIONS ${TEST_APP_LINKER_OPTIONS} "-L/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/${LLVM_VERSION}/lib/darwin -lclang_rt.profile_osx")
+        set(TEST_APP_LINKER_OPTIONS ${TEST_APP_LINKER_OPTIONS} "-L/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/${LLVM_VERSION}/lib/darwin -lclang_rt.profile_osx")
     endif () # CODE_COVERAGE
 
 # NONE # NONE # NONE # NONE # NONE # NONE # NONE # NONE # NONE # NONE # NONE # NONE # NONE # NONE # NONE #
@@ -156,7 +156,9 @@ add_definitions(-D${PX_PLATFORM} -DENABLE_RT_NODE -DRUNINMAIN -DENABLE_HTTP_CACH
 set(TEST_SOURCE_FILES pxscene2dtestsmain.cpp  test_example.cpp test_api.cpp  test_pxcontext.cpp test_memoryleak.cpp test_rtnode.cpp test_rtMutex.cpp test_pxImage9Border.cpp test_eventListeners.cpp
     test_pxAnimate.cpp test_rtFile.cpp test_rtZip.cpp test_rtString.cpp test_rtValue.cpp test_pxImage.cpp test_pxOffscreen.cpp test_pxMatrix4T.cpp test_rtObject.cpp
     test_pxWindowUtil.cpp test_pxTexture.cpp test_pxWindow.cpp test_ioapi.cpp test_rtLog.cpp test_pxTimerNative.cpp
-    test_rtUrlUtils.cpp test_pxArchive.cpp test_pxPixel_h.cpp test_pxFont.cpp test_rtThreadPool.cpp test_utf8.cpp ${PLATFORM_TEST_FILES} ${TEST_WAYLAND_SOURCE_FILES})
+    test_rtUrlUtils.cpp test_pxArchive.cpp test_pxPixel_h.cpp test_pxFont.cpp test_rtThreadPool.cpp test_utf8.cpp
+    test_rtSettings.cpp
+    ${PLATFORM_TEST_FILES} ${TEST_WAYLAND_SOURCE_FILES})
 
 if (DEFINED ENV{USE_HTTP_CACHE})
     message("Include http cache tests")
@@ -168,11 +170,6 @@ if (PXSCENE_TEST_ACCESS_CONTROL_CHECK)
     add_definitions(-DENABLE_ACCESS_CONTROL_CHECK)
     set(TEST_SOURCE_FILES ${TEST_SOURCE_FILES} test_cors.cpp)
 endif (PXSCENE_TEST_ACCESS_CONTROL_CHECK)
-
-if (BUILD_PXSCENE_RASTERIZER_PATH)
-    message("Include RASTERIZER tests")
-    set(TEST_SOURCE_FILES ${TEST_SOURCE_FILES} test_pxCanvas2d.cpp )
-endif (BUILD_PXSCENE_RASTERIZER_PATH)
 
 if (PXSCENE_TEST_PERMISSIONS_CHECK)
     message("Include PERMISSIONS tests")

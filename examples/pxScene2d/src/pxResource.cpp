@@ -251,8 +251,8 @@ void pxResource::raiseDownloadPriority()
 /**********************************************************************/
 /**********************************************************************/
 
-rtImageResource::rtImageResource(const char* url, const char* proxy) : pxResource(), mTexture(), mDownloadedTexture(), mTextureMutex(),
-                                                                       mDownloadComplete(false)
+rtImageResource::rtImageResource(const char* url, const char* proxy, int32_t iw /* = 0 */,  int32_t ih /* = 0 */ )
+    : pxResource(), mTexture(), mDownloadedTexture(), mTextureMutex(), mDownloadComplete(false), init_w(iw), init_h(ih)
 {
   setUrl(url, proxy);
 }
@@ -268,7 +268,7 @@ unsigned long rtImageResource::Release()
   long l = rtAtomicDec(&mRefCount);
   if (l == 0) 
   {
-    pxImageManager::removeImage( mUrl);      
+    pxImageManager::removeImage( mUrl, init_w, init_h);
     delete this;
     
   }
@@ -464,7 +464,7 @@ void rtImageResource::loadResourceFromFile()
   rtError loadImageSuccess = rtLoadFile(mUrl, d);
   if (loadImageSuccess == RT_OK)
   {
-    loadImageSuccess = pxLoadImage((const char *) d.data(), d.length(), imageOffscreen);
+    loadImageSuccess = pxLoadImage((const char *) d.data(), d.length(), imageOffscreen, init_w, init_h);
   }
   else
   {
@@ -532,7 +532,7 @@ uint32_t rtImageResource::loadResourceData(rtFileDownloadRequest* fileDownloadRe
       pxOffscreen imageOffscreen;
       if (pxLoadImage(fileDownloadRequest->downloadedData(),
                       fileDownloadRequest->downloadedDataSize(),
-                      imageOffscreen) == RT_OK)
+                      imageOffscreen, init_w, init_h) == RT_OK)
       {
         setTextureData(imageOffscreen, fileDownloadRequest->downloadedData(),
                                          fileDownloadRequest->downloadedDataSize());
@@ -674,24 +674,37 @@ void rtImageAResource::loadResourceFromFile()
 
 ImageMap pxImageManager::mImageMap;
 rtRef<rtImageResource> pxImageManager::emptyUrlResource = 0;
-/** static pxImageManager::getImage */
-rtRef<rtImageResource> pxImageManager::getImage(const char* url, const char* proxy)
+
+rtRef<rtImageResource> pxImageManager::getImage(const char* url, const char* proxy /* = NULL */, int32_t iw /* = 0 */,  int32_t ih /* = 0 */ )
 {
   //rtLogDebug("pxImageManager::getImage\n");
   // Handle empty url
   if(!url || strlen(url) == 0) {
     if( !emptyUrlResource) {
       //rtLogDebug("Creating empty Url rtImageResource\n");
-      emptyUrlResource = new rtImageResource;
+      emptyUrlResource = new rtImageResource(NULL, NULL, iw, ih);
       //rtLogDebug("Done creating empty Url rtImageResource\n");
     }
     //rtLogDebug("Returning empty Url rtImageResource\n");
     return emptyUrlResource;
   }
   
+  rtString key = url;
+  
+  // For SVG  (and scaled PNG/JPG in the future) at a given WxH dimensions ... append to key
+  if(iw > 0 || ih > 0)
+  {
+    rtValue ww = iw;
+    rtValue hh = ih;
+    
+    key.append( ww.toString() );
+    key.append( "x" );
+    key.append( hh.toString() );
+  }
+  
   rtRef<rtImageResource> pResImage;
   
-  ImageMap::iterator it = mImageMap.find(url);
+  ImageMap::iterator it = mImageMap.find(key.cString());
   if (it != mImageMap.end())
   {
     //rtLogInfo("Found rtImageResource in map for \"%s\"\n",url);
@@ -706,23 +719,35 @@ rtRef<rtImageResource> pxImageManager::getImage(const char* url, const char* pro
   else 
   {
     //rtLogInfo("Create rtImageResource in map for \"%s\"\n",url);
-    pResImage = new rtImageResource(url, proxy);
-    mImageMap.insert(make_pair(url, pResImage));
+    pResImage = new rtImageResource(url, proxy, iw, ih);
+    mImageMap.insert(make_pair(key.cString(), pResImage));
     pResImage->loadResource();
   }
   
   return pResImage;
 }
 
-void pxImageManager::removeImage(rtString imageUrl)
+void pxImageManager::removeImage(rtString url, int32_t iw /* = 0 */,  int32_t ih /* = 0 */ )
 {
+  rtString key = url;
+
+  // For SVG  (and scaled PNG/JPG in the future) at a given WxH dimensions ... append to key
+  if(iw > 0 || ih > 0)
+  {
+    rtValue ww = iw;
+    rtValue hh = ih;
+    
+    key.append( ww.toString() );
+    key.append( "x" );
+    key.append( hh.toString() );
+  }
+  
   //rtLogDebug("pxImageManager::removeImage(\"%s\")\n",imageUrl.cString());
-  ImageMap::iterator it = mImageMap.find(imageUrl);
+  ImageMap::iterator it = mImageMap.find(key.cString());
   if (it != mImageMap.end())
   {  
     mImageMap.erase(it);
   }
-  //mImageMap.erase(imageUrl);
 }
 
 ImageAMap pxImageManager::mImageAMap;

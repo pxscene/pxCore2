@@ -32,6 +32,7 @@
 #include "rtScript.h"
 
 #include "pxUtil.h"
+#include "rtSettings.h"
 
 #ifdef RUNINMAIN
 extern rtScript script;
@@ -472,13 +473,36 @@ int pxMain(int argc, char* argv[])
   uv_async_init(nodeLoop, &gcTrigger,collectGarbage);
 
 #endif
+
+  rtString settingsPath;
+  if (RT_OK == rtGetHomeDirectory(settingsPath))
+  {
+    settingsPath.append(".sparkSettings.json");
+    if (rtFileExists(settingsPath))
+      rtSettings::instance()->loadFromFile(settingsPath);
+  }
+
+  // overwrite file settings with settings from the command line
+  rtSettings::instance()->loadFromArgs(argc, argv);
+
 char const* s = getenv("PX_DUMP_MEMUSAGE");
 if (s && (strcmp(s,"1") == 0))
 {
   gDumpMemUsage = true;
 }
+
+  const char* url = "browser.js";
+  for (int i=1;i<argc;i++)
+  {
+    const char* arg = argv[i];
+    if (arg && arg[0] != '-')
+    {
+      url = arg;
+      break;
+    }
+  }
+
 #ifdef ENABLE_DEBUG_MODE
-  int urlIndex  = -1;
 #ifdef RTSCRIPT_SUPPORT_NODE
   bool isDebugging = false;
 
@@ -494,13 +518,6 @@ if (s && (strcmp(s,"1") == 0))
         isDebugging = true;
       }
       size += strlen(argv[i])+1;
-    }
-    else
-    {
-      if (strstr(argv[i],".js"))
-      {
-        urlIndex = i;
-      }
     }
   }
   if (isDebugging == true)
@@ -550,13 +567,15 @@ if (s && (strcmp(s,"1") == 0))
   int32_t windowWidth = rtGetEnvAsValue("PXSCENE_WINDOW_WIDTH","1280").toInt32();
   int32_t windowHeight = rtGetEnvAsValue("PXSCENE_WINDOW_HEIGHT","720").toInt32();
 
+  rtValue screenWidth, screenHeight;
+  if (RT_OK == rtSettings::instance()->value("screenWidth", screenWidth))
+    windowWidth = screenWidth.toInt32();
+  if (RT_OK == rtSettings::instance()->value("screenHeight", screenHeight))
+    windowHeight = screenHeight.toInt32();
+
   // OSX likes to pass us some weird parameter on first launch after internet install
   rtLogInfo("window width = %d height = %d", windowWidth, windowHeight);
-#ifdef ENABLE_DEBUG_MODE
-  win.init(10, 10, windowWidth, windowHeight, (urlIndex != -1)?argv[urlIndex]:"browser.js");
-#else
-  win.init(10, 10, windowWidth, windowHeight, (argc >= 2 && argv[1][0] != '-')?argv[1]:"browser.js");
-#endif
+  win.init(10, 10, windowWidth, windowHeight, url);
   win.setTitle(buffer);
   // JRJR TODO Why aren't these necessary for glut... pxCore bug
   win.setVisibility(true);
