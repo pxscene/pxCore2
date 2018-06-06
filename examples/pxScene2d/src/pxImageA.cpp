@@ -26,16 +26,15 @@ extern pxContext context;
 //TODO UGH!!
 static pxTextureRef nullMaskRef;
 
-pxImageA::pxImageA(pxScene2d *scene) : pxObject(scene), 
-                                       mImageWidth(0), mImageHeight(0),
+pxImageA::pxImageA(pxScene2d *scene) : pxObject(scene),
+                                       mCurFrame(0), mNumFrames(0), mCachedFrame(0), mPlays(0),
+                                       mImageWidth(0), mImageHeight(0), mTimeFactor(1.0),
                                        mStretchX(pxConstantsStretch::NONE), mStretchY(pxConstantsStretch::NONE),
-                                       mResource(), mImageLoaded(false), mListenerAdded(false)
+                                       mResource(), mImageLoaded(false), mListenerAdded(false), mPaused(false)
 {
-  mCurFrame = 0;
   mCachedFrame = UINT32_MAX;
-  mFrameTime = -1;
-  mPlays = 0;
-  mResource = pxImageManager::getImageA("");
+  mFrameTime   = -1;
+  mResource    = pxImageManager::getImageA("");
 }
 
 pxImageA::~pxImageA()
@@ -75,13 +74,14 @@ rtError pxImageA::setUrl(const char *s)
   {
     if(mImageLoaded || ((rtPromise*)mReady.getPtr())->status())
     {
-      mCurFrame = 0;
+      mCurFrame    = 0;
       mCachedFrame = UINT32_MAX;
-      mFrameTime = -1;
-      mPlays = 0;
-      mImageWidth = 0;
+      mFrameTime   = -1;
+      mPlays       = 0;
+      mImageWidth  = 0;
       mImageHeight = 0;
       mImageLoaded = false;
+      
       pxObject::createNewPromise();
     }
   }
@@ -107,27 +107,26 @@ void pxImageA::update(double t)
   }
 
   pxTimedOffscreenSequence& imageSequence = getImageAResource()->getTimedOffscreenSequence();
-  uint32_t numFrames = imageSequence.numFrames();
 
-  if (numFrames > 0)
+  if (mNumFrames > 0 && mPaused == false)
   {
     if (mFrameTime < 0)
     {
-      mCurFrame = 0;
+      mCurFrame  = 0;
       mFrameTime = t;
     }
 
-    for (; mCurFrame < numFrames; mCurFrame++)
+    for (; mCurFrame < mNumFrames; mCurFrame++)
     {
       double d = imageSequence.getDuration(mCurFrame);
       if (mFrameTime + d >= t)
         break;
-      mFrameTime += d;
+      mFrameTime += d * mTimeFactor;
     }
 
-    if (mCurFrame >= numFrames)
+    if (mCurFrame >= mNumFrames)
     {
-      mCurFrame = numFrames - 1; // snap animation to last frame
+      mCurFrame = mNumFrames - 1; // snap animation to last frame
 
       if (!imageSequence.numPlays() || mPlays < imageSequence.numPlays())
       {
@@ -136,14 +135,33 @@ void pxImageA::update(double t)
       }
     }
 
-    if (mCachedFrame != mCurFrame)
-    {
-      pxOffscreen &o = imageSequence.getFrameBuffer(mCurFrame);
-      mTexture = context.createTexture(o);
-      mCachedFrame = mCurFrame;
-      pxRect r(0, 0, mImageHeight, mImageWidth);
-      mScene->invalidateRect(&r);
-    }
+    displayFrame();
+    
+//    if (mCachedFrame != mCurFrame)
+//    {
+//      pxOffscreen &o = imageSequence.getFrameBuffer(mCurFrame);
+//      mTexture = context.createTexture(o);
+//      mCachedFrame = mCurFrame;
+//      pxRect r(0, 0, mImageHeight, mImageWidth);
+//      mScene->invalidateRect(&r);
+//    }
+  }
+}
+
+void pxImageA::displayFrame()
+{
+  if (mCachedFrame != mCurFrame)
+  {
+    pxTimedOffscreenSequence& imageSequence = getImageAResource()->getTimedOffscreenSequence();
+
+    pxOffscreen &o = imageSequence.getFrameBuffer(mCurFrame);
+    
+    mTexture = context.createTexture(o);
+    
+    mCachedFrame = mCurFrame;
+    pxRect r(0, 0, mImageHeight, mImageWidth);
+    
+    mScene->invalidateRect(&r);
   }
 }
 
@@ -151,8 +169,7 @@ void pxImageA::draw()
 {
   if (getImageAResource() != NULL && mImageLoaded)
   {
-    pxTimedOffscreenSequence &imageSequence = getImageAResource()->getTimedOffscreenSequence();
-    if (imageSequence.numFrames() > 0)
+    if (mNumFrames > 0)
     {
       context.drawImage(0, 0, mw, mh, mTexture, nullMaskRef, false, NULL, mStretchX, mStretchY);
     }
@@ -215,6 +232,36 @@ rtError pxImageA::setStretchY(int32_t v)
   return RT_OK;
 }
 
+rtError pxImageA::setTimeFactor(double v)
+{
+  mTimeFactor = v;
+  return RT_OK;
+}
+
+
+rtError pxImageA::setCurrentFrame(uint32_t v)
+{
+  pxTimedOffscreenSequence& imageSequence = getImageAResource()->getTimedOffscreenSequence();
+  uint32_t numFrames = imageSequence.numFrames();
+
+  if(v < numFrames)
+  {
+    mCurFrame = v;
+    displayFrame();
+    
+    return RT_OK;
+  }
+  
+  return RT_FAIL;
+}
+
+rtError pxImageA::setPaused(bool v)
+{
+  mPaused = v;
+  return RT_OK;
+}
+
+
 rtError pxImageA::setResource(rtObjectRef o)
 {
   if(!o)
@@ -263,6 +310,8 @@ void pxImageA::loadImageSequence()
       mImageHeight = o.height();
       mw = mImageWidth;
       mh = mImageHeight;
+      
+      mNumFrames = imageSequence.numFrames();
     }
     mReady.send("resolve", this);
   }
@@ -317,3 +366,8 @@ rtDefineProperty(pxImageA, url);
 rtDefineProperty(pxImageA, resource);
 rtDefineProperty(pxImageA, stretchX);
 rtDefineProperty(pxImageA, stretchY);
+rtDefineProperty(pxImageA, timeFactor);
+rtDefineProperty(pxImageA, numFrames);
+rtDefineProperty(pxImageA, currentFrame);
+rtDefineProperty(pxImageA, paused);
+

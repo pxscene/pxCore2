@@ -114,9 +114,7 @@ rtError pxLoadImage(const char *imageData, size_t imageDataSize,
     return retVal;
   }
 
-
   // TODO more sane image type detection and flow
-
   if (o.mPixelFormat != RT_DEFAULT_PIX)
   {
     o.swizzleTo(RT_DEFAULT_PIX);
@@ -150,8 +148,6 @@ rtError pxLoadAImage(const char* imageData, size_t imageDataSize,
   return retVal;
 }
 
-// TODO Detection needs to be improved...
-// Handling jpeg as fallback now
 rtError pxLoadImage(const char *filename, pxOffscreen &b, int32_t w /* = 0*/, int32_t h /* = 0*/)
 {
   rtData d;
@@ -1477,10 +1473,34 @@ pxImageType getImageType( const uint8_t* data, size_t len )
       PX_IMAGE_JPG : PX_IMAGE_INVALID;
       
     case (uint8_t)'\x89':
+    {
       return ( !strncmp( (const char*)data,
                         "\x89\x50\x4E\x47\x0D\x0A\x1A\x0A", 8 )) ?
       PX_IMAGE_PNG : PX_IMAGE_INVALID;
-      
+
+/*     
+      // Determine if it's APNG 
+      if( strncmp( (const char*)data, "\x89\x50\x4E\x47\x0D\x0A\x1A\x0A", 8) == 0)
+      {
+        // Check for APNG
+        static const char *acTL = "acTL"; // (APNG have a "acTL" chunk in them)
+        
+        for(int i=8; (i < (len - 4) && i < 300); i+= 4 )
+        {
+          if(strncmp(acTL, (const char*) &data[i], 4) == 0)
+          {
+            return PX_IMAGE_APNG;
+          }
+        }
+        // Nah... it's just a PNG
+        return PX_IMAGE_PNG;
+      }
+      else
+      {
+        return PX_IMAGE_INVALID;
+      }
+*/
+    }
     case 'G':
       return ( !strncmp( (const char*)data, "GIF87a", 6 ) ||
               !strncmp( (const char*)data, "GIF89a", 6 ) ) ?

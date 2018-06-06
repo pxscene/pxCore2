@@ -86,6 +86,7 @@ typedef enum pxImageType_
 {
   PX_IMAGE_JPG,      // Joint Photographic Experts Group - .jpeg or .jpg
   PX_IMAGE_PNG,      // Portable Network Graphics
+  PX_IMAGE_APNG,     // Portable Network Graphics <<< ANIMATED !   (APNG have a "acTL" chunk in them)
   PX_IMAGE_GIF,      // Graphics Interchange Format
   PX_IMAGE_TIFF,     // Tagged Image File Format
   PX_IMAGE_BMP,      // Microsoft Bitmap format

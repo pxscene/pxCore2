@@ -508,9 +508,7 @@ void rtImageResource::loadResourceFromFile()
     {
       gUIThreadQueue->addTask(onDownloadCompleteUI, this, (void *) "resolve");
     }
-
   }
-
 }
 
 
@@ -545,10 +543,10 @@ uint32_t rtImageResource::loadResourceData(rtFileDownloadRequest* fileDownloadRe
       
       return PX_RESOURCE_LOAD_FAIL;
 }
+
 /** pxResource processDownloadedResource */
 void pxResource::processDownloadedResource(rtFileDownloadRequest* fileDownloadRequest)
 {
-  rtString val = "reject";
   if (fileDownloadRequest != NULL)
   {
     bool wasCanceled = fileDownloadRequest->isCanceled();
@@ -586,7 +584,7 @@ void pxResource::processDownloadedResource(rtFileDownloadRequest* fileDownloadRe
         // ToDo: Could context.createTexture ever fail and return null here?
        // mTexture = context.createTexture(imageOffscreen);
         setLoadStatus("statusCode", 0);
-        val = "resolve";
+
         // Since this object can be released before we get a async completion
         // We need to maintain this object's lifetime
         // TODO review overall flow and organization
@@ -667,10 +665,67 @@ uint32_t rtImageAResource::loadResourceData(rtFileDownloadRequest* fileDownloadR
 
 void rtImageAResource::loadResourceFromFile()
 {
-  //TODO
-  setLoadStatus("statusCode",PX_RESOURCE_STATUS_UNKNOWN_ERROR);
+  pxOffscreen imageOffscreen;
+  rtString status = "resolve";
+  rtData d;
+  rtError loadImageSuccess = rtLoadFile(mUrl, d);
+  if (loadImageSuccess == RT_OK)
+  {
+    char*      data = (char *) d.data();
+    size_t dataSize = d.length();
+    
+    loadImageSuccess = pxLoadAImage(data, dataSize, mTimedOffscreenSequence);
+    if(loadImageSuccess == RT_OK)
+    {
+      rtLogInfo("Loaded image file %s.", mUrl.cString() );
+      setLoadStatus("statusCode",PX_RESOURCE_STATUS_OK);
 }
+  }
+  else
+  {
+    loadImageSuccess = RT_RESOURCE_NOT_FOUND;
+    setLoadStatus("statusCode",RT_RESOURCE_NOT_FOUND);
 
+    rtLogError("Could not load image file %s.", mUrl.cString());
+  }
+  if ( loadImageSuccess != RT_OK)
+  {
+    rtLogWarn("image load failed"); // TODO: why?
+    if (loadImageSuccess == RT_RESOURCE_NOT_FOUND)
+    {
+      setLoadStatus("statusCode",PX_RESOURCE_STATUS_FILE_NOT_FOUND);
+    }
+    else
+    {
+      setLoadStatus("statusCode", PX_RESOURCE_STATUS_DECODE_FAILURE);
+    }
+    
+    // Since this object can be released before we get a async completion
+    // We need to maintain this object's lifetime
+    // TODO review overall flow and organization
+    AddRef();
+    
+    if (gUIThreadQueue)
+    {
+      gUIThreadQueue->addTask(onDownloadCompleteUI, this, (void*)"reject");
+    }
+    //mTexture->notifyListeners( mTexture, RT_FAIL, errorCode);
+  }
+  else
+  {
+    // create offscreen texture for local image
+  //  mTexture = context.createTexture(imageOffscreen, (const char *) d.data(), d.length());
+    setLoadStatus("statusCode",0);
+    // Since this object can be released before we get a async completion
+    // We need to maintain this object's lifetime
+    // TODO review overall flow and organization
+    AddRef();
+    if (gUIThreadQueue)
+    {
+      gUIThreadQueue->addTask(onDownloadCompleteUI, this, (void *) "resolve");
+    }
+  }
+}
 
 ImageMap pxImageManager::mImageMap;
 rtRef<rtImageResource> pxImageManager::emptyUrlResource = 0;

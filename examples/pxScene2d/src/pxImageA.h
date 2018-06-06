@@ -33,6 +33,14 @@ public:
   rtProperty(url, url, setUrl, rtString);
   rtProperty(stretchX, stretchX, setStretchX, int32_t);
   rtProperty(stretchY, stretchY, setStretchY, int32_t);
+
+  rtProperty(timeFactor, timeFactor, setTimeFactor, double);
+  rtProperty(currentFrame, currentFrame, setCurrentFrame, uint32_t);
+
+  rtProperty(paused, paused, setPaused, bool);
+
+  rtReadOnlyProperty(numFrames, numFrames, uint32_t);
+  
   rtProperty(resource, resource, setResource, rtObjectRef);
 
   pxImageA(pxScene2d* scene);
@@ -47,9 +55,22 @@ public:
   rtError stretchY(int32_t& v) const { v = (int32_t)mStretchY; return RT_OK; }
   rtError setStretchY(int32_t v);
 
+  rtError timeFactor(double& v)     const { v = (int32_t)mTimeFactor; return RT_OK; }
+  rtError setTimeFactor(double v);
+  
+  rtError currentFrame(uint32_t& v) const { v = (uint32_t)mCurFrame; return RT_OK; }
+  rtError setCurrentFrame(uint32_t v);
+
+  rtError paused(bool& v)       const { v = (bool)mPaused; return RT_OK; }
+  rtError setPaused(bool v);
+
   rtError resource(rtObjectRef& o) const { o = mResource; return RT_OK; }
   rtError setResource(rtObjectRef o);
   rtError removeResourceListener();
+  
+  rtError numFrames(uint32_t& v)    const { v = mNumFrames; return RT_OK;   }
+
+  
   virtual void resourceReady(rtString readyResolution);
   virtual void createNewPromise() { rtLogDebug("pxImageA ignoring createNewPromise\n"); }
 
@@ -63,13 +84,17 @@ protected:
 
   void sendPromise() {} // shortcircuit  TODO...not sure if I like this pattern
   void loadImageSequence();
+  void displayFrame();
 
   uint32_t mCurFrame;
+  uint32_t mNumFrames;
   uint32_t mCachedFrame;
   uint32_t mPlays;
 
   uint32_t mImageWidth;
   uint32_t mImageHeight;
+
+  double   mTimeFactor;
 
   pxTextureRef mTexture;
 
@@ -80,6 +105,7 @@ protected:
   rtObjectRef mResource;
   bool mImageLoaded;
   bool mListenerAdded;
+  bool mPaused;
 };
 
 #endif
