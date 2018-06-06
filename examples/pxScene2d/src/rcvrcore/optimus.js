@@ -90,18 +90,18 @@ function Application(props) {
   var _browser;
 
   // Public functions that use _externalApp
-  this.suspend = function() {
+  this.suspend = function(o) {
     if (_externalApp && _externalApp.suspend){
-      _externalApp.suspend();
+      _externalApp.suspend(o);
     }
     if (this.state !== "DESTROYED"){
       this.state = "SUSPENDED";
     }
     this.applicationSuspended();
   };
-  this.resume = function() {
+  this.resume = function(o) {
     if (_externalApp && _externalApp.resume){
-      _externalApp.resume();
+      _externalApp.resume(o);
     }
     if (this.state !== "DESTROYED"){
       this.state = "RUNNING";
