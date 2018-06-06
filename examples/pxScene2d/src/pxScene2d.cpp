@@ -3298,7 +3298,10 @@ rtError pxScene2d::getService(rtString name, rtObjectRef& returnObject)
   rtObjectRef ctx = new rtMapObject();
   rtObjectRef o;
   ctx.set("url", mScriptView != NULL ? mScriptView->getUrl() : "");
-  ((pxSceneContainer*)mContainer)->serviceContext(o);
+  pxSceneContainer * container = dynamic_cast<pxSceneContainer*>(mContainer);
+  if( container != NULL)  {
+    container->serviceContext(o);
+  }
   ctx.set("serviceContext", o);
     
 #ifdef ENABLE_PERMISSIONS_CHECK
