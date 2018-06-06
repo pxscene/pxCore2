@@ -353,7 +353,7 @@ rtError pxWaylandContainer::resume(const rtValue& v, bool& b)
   return RT_OK;
 }
 
-rtError pxWaylandContainer::destroy(const rtValue& /*v*/, bool& b)
+rtError pxWaylandContainer::destroy(bool& b)
 {
   b = false;
   if ( mWayland )
