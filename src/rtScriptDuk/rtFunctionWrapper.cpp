@@ -49,6 +49,16 @@ static duk_ret_t dukFunctionStub(duk_context *ctx)
 }
 
 
+static duk_ret_t dukFunctionFinalizer(duk_context *ctx) 
+{
+   bool res = duk_get_prop_string(ctx, 0, "\xff""\xff""data");
+   if (res) {
+      rtIFunction* func = (rtIFunction*)duk_require_pointer(ctx, -1);
+      func->Release();
+      duk_del_prop_string(ctx, 0, "\xff""\xff""data");
+   }
+}
+
 void rtFunctionWrapper::createFromFunctionReference(duk_context *ctx, const rtFunctionRef& func)
 {
   duk_idx_t objidx = duk_push_c_function(ctx, &dukFunctionStub, DUK_VARARGS);
@@ -59,6 +69,9 @@ void rtFunctionWrapper::createFromFunctionReference(duk_context *ctx, const rtFu
   func->AddRef();
 
   // [func]
+
+  duk_push_c_function(ctx, dukFunctionFinalizer, 1);
+  duk_set_finalizer(ctx, objidx);
 }
 
 jsFunctionWrapper::~jsFunctionWrapper()
