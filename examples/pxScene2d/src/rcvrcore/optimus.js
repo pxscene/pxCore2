@@ -85,6 +85,7 @@ function Application(props) {
   var w = 0;
   var h = 0;
   var uri = "";
+  var serviceContext = {};
   var launchParams;
   var _externalApp;
   var _browser;
@@ -207,12 +208,16 @@ function Application(props) {
   if (cmd === "wpe" && uri){
     cmd = cmd + " " + uri;
   }
+  if("serviceContext" in props) { 
+    serviceContext = props["serviceContext"]
+  }
+
   this.log("cmd:",cmd,"uri:",uri,"w:",w,"h:",h);
   if (cmd){
     if (scene !== undefined) {
       if (cmd === "spark"){
         this.type = ApplicationType.SPARK;
-        _externalApp = scene.create({t:"scene", parent:root, url:uri});
+        _externalApp = scene.create({t:"scene", parent:root, url:uri, serviceContext:serviceContext});
         this.ready = _externalApp.ready;
         _externalApp.on("onReady", function () { _this.log("onReady"); }); // is never called
         _externalApp.on("onClientStarted", function () { _this.log("onClientStarted"); }); // is never called
