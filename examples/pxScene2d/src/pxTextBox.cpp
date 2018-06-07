@@ -133,19 +133,15 @@ void pxTextBox::recalc()
     }
 
 
-    // if draw is not enabled, we need to at least do final
-    // render in order to finish measurements
-    if(!drawEnabled() ) {
+    // always do renderText(true) here rather than 
+    // waiting for draw() call so that even when the 
+    // textBox or its parent has draw=false, the measurements
+    // get calculated and the promise gets resolved.
 #ifdef PXSCENE_FONT_ATLAS
       mQuadsVector.clear();
 #endif
       renderText(true);
       mDirty = false;
-    }
-    else {
-      mDirty = true;
-      mScene->mDirty = true;
-    }
 
   }
 }

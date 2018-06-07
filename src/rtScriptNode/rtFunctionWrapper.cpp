@@ -21,7 +21,9 @@ limitations under the License.
 #include "jsCallback.h"
 
 #include <vector>
-
+#ifdef RUNINMAIN
+extern bool gIsPumpingJavaScript;
+#endif
 using namespace v8;
 
 namespace rtScriptNodeUtils
@@ -125,9 +127,14 @@ void rtResolverFunction::afterWorkCallback(uv_work_t* req, int /* status */)
     rtLogWarn("Error resolving promise");
     rtLogWarn("%s", *trace);
   }
-
+#ifdef RUNINMAIN
+  if (false == gIsPumpingJavaScript)
+  {
+#endif
   resolverFunc->mIsolate->RunMicrotasks();
-
+#ifdef RUNINMAIN
+  }
+#endif
   delete ctx;
 }
 

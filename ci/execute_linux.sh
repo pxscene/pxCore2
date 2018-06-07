@@ -164,6 +164,19 @@ else
 	exit 1;
 fi
 
+#check for crash before valgrind test, as we might have got scenario where pxscene might have crashed during term
+ls -lrt "*valgrind*"
+$TRAVIS_BUILD_DIR/ci/check_dump_cores_linux.sh `pwd` pxscene $EXECLOGS
+retVal=$?
+if [ "$retVal" -eq 1 ]
+	then
+	checkError $retVal "Execution failed" "Core dump during exit" "Test by running locally"
+	if [ "$TRAVIS_PULL_REQUEST" != "false" ]
+		then
+                  printExecLogs
+	fi
+	exit 1;
+fi
 
 # Check for valgrind memory leaks
 grep "definitely lost: 0 bytes in 0 blocks" $VALGRINDLOGS

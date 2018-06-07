@@ -1005,6 +1005,7 @@ public:
 #endif
   rtReadOnlyProperty(api, api, rtValue);
   rtReadOnlyProperty(ready, ready, rtObjectRef);
+  rtProperty(serviceContext, serviceContext, setServiceContext, rtObjectRef);
 
 //  rtMethod1ArgAndNoReturn("makeReady", makeReady, bool);  // DEPRECATED ?
   
@@ -1026,6 +1027,9 @@ public:
 
   rtError api(rtValue& v) const;
   rtError ready(rtObjectRef& o) const;
+  
+  rtError serviceContext(rtObjectRef& o) const { o = mServiceContext; return RT_OK;}
+  rtError setServiceContext(rtObjectRef o);
 
 #ifdef ENABLE_PERMISSIONS_CHECK
   rtError permissions(rtObjectRef& v) const;
@@ -1045,6 +1049,7 @@ public:
 private:
   rtRef<pxScriptView> mScriptView;
   rtString mUrl;
+  rtObjectRef mServiceContext;
 };
 typedef rtRef<pxSceneContainer> pxSceneContainerRef;
 
@@ -1530,8 +1535,6 @@ public:
     v = getRoot();
     return RT_OK;
   }
-
-  rtObjectRef getCanvas() const { return mCanvas; };
  
   rtObjectRef  getInfo() const;
   rtError info(rtObjectRef& v) const
@@ -1587,8 +1590,6 @@ private:
   int frameCount;
   int mWidth;
   int mHeight;
-
-  rtObjectRef mCanvas; // for SVG drawing
 
   rtEmitRef mEmit;
 

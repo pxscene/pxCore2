@@ -200,7 +200,7 @@ set(PXCORE_FILES ${PXCORE_FILES} pxOffscreen.cpp pxWindowUtil.cpp
         rtThreadQueue.cpp rtThreadTask.cpp rtUrlUtils.cpp
         rtZip.cpp pxInterpolators.cpp pxUtil.cpp
         rtFileDownloader.cpp unzip.c ioapi.c
-        rtScript.cpp)
+        rtScript.cpp rtSettings.cpp)
         
 if (SUPPORT_DUKTAPE)
     message("Adding Duktape scripting support")
@@ -236,6 +236,8 @@ set(RTCORE_FILES utf8.c rtString.cpp rtLog.cpp rtValue.cpp rtError.cpp ioapi_mem
 set(RTCORE_FILES ${RTCORE_FILES} rtPromise.cpp)
 
 set(RTCORE_FILES ${RTCORE_FILES} rtObject.cpp)
+
+include_directories(AFTER ${EXTDIR}/nanosvg/src)
 
 if (OUTPUT_LIBS_LOCAL)
     message("Output pxCore and rtCore libs locally")
