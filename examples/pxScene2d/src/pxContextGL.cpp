@@ -2871,6 +2871,8 @@ int64_t pxContext::ejectTextureMemory(int64_t bytesRequested, bool forceEject)
   int64_t afterTextureMemoryUsage = context.currentTextureMemoryUsageInBytes();
   return (beforeTextureMemoryUsage-afterTextureMemoryUsage);
 #else
+  (void)bytesRequested;
+  (void)forceEject;
   return 0;
 #endif //ENABLE_LRU_TEXTURE_EJECTION
 }

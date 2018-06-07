@@ -3296,7 +3296,14 @@ rtError pxScene2d::getService(rtString name, rtObjectRef& returnObject)
 
   // Create context from requesting scene
   rtObjectRef ctx = new rtMapObject();
+  rtObjectRef o;
   ctx.set("url", mScriptView != NULL ? mScriptView->getUrl() : "");
+  pxSceneContainer * container = dynamic_cast<pxSceneContainer*>(mContainer);
+  if( container != NULL)  {
+    container->serviceContext(o);
+  }
+  ctx.set("serviceContext", o);
+    
 #ifdef ENABLE_PERMISSIONS_CHECK
   rtValue permissionsValue = mPermissions.getPtr();
   ctx.set("permissions", permissionsValue);
@@ -3633,6 +3640,7 @@ rtDefineProperty(pxSceneContainer, permissions);
 #endif
 rtDefineProperty(pxSceneContainer, api);
 rtDefineProperty(pxSceneContainer, ready);
+rtDefineProperty(pxSceneContainer, serviceContext);
 //rtDefineMethod(pxSceneContainer, makeReady);   // DEPRECATED ?
 
 
@@ -3686,6 +3694,13 @@ rtError pxSceneContainer::ready(rtObjectRef& o) const
   }
   rtLogInfo("mScriptView is NOT set!\n");
   return RT_FAIL;
+}
+
+rtError pxSceneContainer::setServiceContext(rtObjectRef o) 
+{ 
+  // Only allow serviceContext to be set at construction time
+  if( !mInitialized)
+    mServiceContext = o; return RT_OK;
 }
 
 rtError pxSceneContainer::setScriptView(pxScriptView* scriptView)
