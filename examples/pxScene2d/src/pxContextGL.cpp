@@ -1785,7 +1785,7 @@ public:
       use();
       currentGLProgram = PROGRAM_TEXTURE_BORDER_SHADER;
     }
-    glUniform2f(mResolutionLoc, static_cast<float>(resW), static_cast<float>(resH));
+    glUniform2f(mResolutionLoc, static_cast<GLfloat>(resW), static_cast<GLfloat>(resH));
     glUniformMatrix4fv(mMatrixLoc, 1, GL_FALSE, matrix);
     glUniform1f(mAlphaLoc, alpha);
     if (color != NULL)
@@ -1875,7 +1875,7 @@ public:
     glUniform2f(mResolutionLoc, static_cast<GLfloat>(resW), static_cast<GLfloat>(resH));
     glUniformMatrix4fv(mMatrixLoc, 1, GL_FALSE, matrix);
     glUniform1f(mAlphaLoc, alpha);
-    glUniform1f(mInvertedLoc, static_cast<float>((maskOp == pxConstantsMaskOperation::NORMAL) ? 0.0 : 1.0));
+    glUniform1f(mInvertedLoc, static_cast<GLfloat>((maskOp == pxConstantsMaskOperation::NORMAL) ? 0.0 : 1.0));
     
 
     if (texture->bindGLTexture(mTextureLoc) != PX_OK)
