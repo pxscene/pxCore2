@@ -366,8 +366,11 @@ rtDefineProperty(pxImageA, url);
 rtDefineProperty(pxImageA, resource);
 rtDefineProperty(pxImageA, stretchX);
 rtDefineProperty(pxImageA, stretchY);
-rtDefineProperty(pxImageA, timeFactor);
-rtDefineProperty(pxImageA, numFrames);
-rtDefineProperty(pxImageA, currentFrame);
-rtDefineProperty(pxImageA, paused);
+//
+// TODO: Uncomment and expose these new properties to JS *soon*
+//
+//rtDefineProperty(pxImageA, timeFactor);
+//rtDefineProperty(pxImageA, numFrames);
+//rtDefineProperty(pxImageA, currentFrame);
+//rtDefineProperty(pxImageA, paused);
 
