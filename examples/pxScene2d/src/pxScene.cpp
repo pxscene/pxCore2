@@ -411,6 +411,7 @@ void handleTerm(int)
 
 void handleSegv(int)
 {
+  signal(SIGSEGV, SIG_DFL);
   FILE* fp = fopen("/tmp/pxscenecrash","w");
   fclose(fp);
   rtLogInfo("Signal SEGV received. sleeping to collect data");
