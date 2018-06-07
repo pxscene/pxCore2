@@ -262,6 +262,7 @@ protected:
     free(g_origArgv);
   #endif
     script.collectGarbage();
+    script.term();
     if (gDumpMemUsage)
     {
       rtLogInfo("pxobjectcount is [%d]",pxObjectCount);

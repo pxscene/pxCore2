@@ -208,6 +208,7 @@ rtError rtScript::init()
 
 rtError rtScript::term()
 {
+  mScript->term();
   return RT_OK;
 }
 
