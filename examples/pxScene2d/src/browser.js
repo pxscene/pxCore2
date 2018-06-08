@@ -270,7 +270,7 @@ px.import({ scene:      'px:scene.1.js',
         }
 
         browser.draw = showFullscreen ? false : true;
-        browser.a    = showFullscreen ?     0 : 1;
+        //browser.a    = showFullscreen ?     0 : 1;
 
         content.x    = showFullscreen ?     0 : contentBG.x;
         content.y    = showFullscreen ?     0 : contentBG.y;
