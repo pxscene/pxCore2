@@ -124,9 +124,9 @@ else (NOT WIN32)
     set(PNG_LIBRARY_DIRS "${VCLIBS}")
     set(PNG_LIBRARIES "libpng16.lib")
 
-    set(FREETYPE_INCLUDE_DIRS "${EXTDIR}/freetype-2.5.2/include")
+    set(FREETYPE_INCLUDE_DIRS "${EXTDIR}/freetype-2.8.1/include")
     set(FREETYPE_LIBRARY_DIRS "${VCLIBS}")
-    set(FREETYPE_LIBRARIES "freetype253MT_D.lib")
+    set(FREETYPE_LIBRARIES "freetype281MT_D.lib")
 
     set(GLEW_INCLUDE_DIRS "${EXTDIR}/glew-2.0.0/include")
     set(GLEW_LIBRARY_DIRS "${VCLIBS}")
