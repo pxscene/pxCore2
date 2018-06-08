@@ -2105,11 +2105,6 @@ void pxContext::init()
   {
     setTextureMemoryLimit((int64_t)val.toInt32() * (int64_t)1024 * (int64_t)1024);
   }
-  if (mEnableTextureMemoryMonitoring)
-  {
-    rtLogInfo("texture memory limit set to %" PRId64 " bytes, threshold padding %" PRId64 " bytes",
-      mTextureMemoryLimitInBytes, mTextureMemoryLimitThresholdPaddingInBytes);
-  }
 
   rtLogSetLevel(RT_LOG_INFO); // LOG LEVEL
 

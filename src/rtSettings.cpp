@@ -69,7 +69,7 @@ rtError rtSettings::keys(std::vector<rtString>& keys) const
 
 rtError rtSettings::remove(const rtString& key)
 {
-  std::map<rtString, rtValue>::const_iterator it = mValues.find(key);
+  std::map<rtString, rtValue>::iterator it = mValues.find(key);
   if (it != mValues.end())
   {
     mValues.erase(it);
