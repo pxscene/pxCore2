@@ -46,8 +46,8 @@ pxImageA::~pxImageA()
 
 void pxImageA::onInit() 
 {
-  mw = mImageWidth;
-  mh = mImageHeight;
+  mw = static_cast<float>(mImageWidth);
+  mh = static_cast<float>(mImageHeight);
 }
 
 rtError pxImageA::url(rtString &s) const
@@ -261,8 +261,8 @@ void pxImageA::loadImageSequence()
       pxOffscreen &o = imageSequence.getFrameBuffer(0);
       mImageWidth = o.width();
       mImageHeight = o.height();
-      mw = mImageWidth;
-      mh = mImageHeight;
+      mw = static_cast<float>(mImageWidth);
+      mh = static_cast<float>(mImageHeight);
     }
     mReady.send("resolve", this);
   }
