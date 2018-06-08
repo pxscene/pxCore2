@@ -165,6 +165,8 @@ public:
   rtProperty(y, y, setY, float);
   rtProperty(w, w, setW, float);
   rtProperty(h, h, setH, float);
+  rtProperty(px, px, setPX, float);
+  rtProperty(py, py, setPY, float);
   rtProperty(cx, cx, setCX, float);
   rtProperty(cy, cy, setCY, float);
   rtProperty(sx, sx, setSX, float);
@@ -318,6 +320,12 @@ public:
   float h()             const { return mh; }
   rtError h(float& v)   const { v = mh; return RT_OK;   }
   virtual rtError setH(float v)       { cancelAnimation("h"); createNewPromise();mh = v; return RT_OK;   }
+  float px()            const { return mpx;}
+  rtError px(float& v)  const { v = mpx; return RT_OK;  }
+  rtError setPX(float v)      { cancelAnimation("px"); createNewPromise();mpx = (v > 1) ? 1 : (v < 0) ? 0 : v; return RT_OK;  }
+  float py()            const { return mpy;}
+  rtError py(float& v)  const { v = mpy; return RT_OK;  }
+  rtError setPY(float v)      { cancelAnimation("py"); createNewPromise();mpy = (v > 1) ? 1 : (v < 0) ? 0 : v; return RT_OK;  }
   float cx()            const { return mcx;}
   rtError cx(float& v)  const { v = mcx; return RT_OK;  }
   rtError setCX(float v)      { cancelAnimation("cx"); createNewPromise();mcx = v; return RT_OK;  }
@@ -494,9 +502,14 @@ public:
     if (!mUseMatrix)
     {
 #if 1
+      float dx = -(mpx * mw);
+      float dy = -(mpy * mh);
+      
       // translate based on xy rotate/scale based on cx, cy
-      m.translate(mx+mcx, my+mcy);
-      if (mr) {
+      m.translate(mx + mcx + dx, my + mcy + dy);
+      
+      if (mr)
+      {
         m.rotateInDegrees(mr
 #ifdef ANIMATION_ROTATE_XYZ
         , mrx, mry, mrz
@@ -714,7 +727,7 @@ protected:
   pxObject* mParent;
   std::vector<rtRef<pxObject> > mChildren;
 //  vector<animation> mAnimations;
-  float mcx, mcy, mx, my, ma, mr;
+  float mpx, mpy, mcx, mcy, mx, my, ma, mr;
 #ifdef ANIMATION_ROTATE_XYZ
   float mrx, mry, mrz;
 #endif // ANIMATION_ROTATE_XYZ
