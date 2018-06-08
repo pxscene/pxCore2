@@ -2813,7 +2813,7 @@ bool pxContext::isTextureSpaceAvailable(pxTextureRef texture, bool allowGarbageC
   if (!mEnableTextureMemoryMonitoring)
     return true;
 
-  int64_t textureSize = (texture->width()*texture->height()*4);
+  int64_t textureSize = ((int64_t)(texture->width())*(int64_t)(texture->height())*(int64_t)4);
   lockContext();
   int64_t currentTextureMemorySize = mCurrentTextureMemorySizeInBytes;
   int64_t maxTextureMemoryInBytes = mTextureMemoryLimitInBytes;

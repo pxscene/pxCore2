@@ -31,11 +31,20 @@ checkError()
 
 if [ "$TRAVIS_OS_NAME" = "linux" ]
 then
-    if [ "$TRAVIS_EVENT_TYPE" = "cron" ] || [ "$TRAVIS_EVENT_TYPE" = "api" ]
+  if  [ "$TRAVIS_EVENT_TYPE" = "api" ]
     then
-      echo "Ignoring script stage for $TRAVIS_EVENT_TYPE event";
-      exit 0
-    fi
+    echo "Ignoring script stage for $TRAVIS_EVENT_TYPE event";
+    exit 0
+  fi
+  if [ "$TRAVIS_EVENT_TYPE" = "cron" ] 
+  then
+    # Since We don't have any plans to include permission file to appveyor, uploading of artifacts to build server directly from appveyor cannot be done.
+    # So it is planned to fetch the artifact from appveyor in travis builds and to upload it to build server.
+    # By this, the below script is called during the travis cron job, and it will upload the latest available artifact to build server.
+    ./ci/uploadWindowsArtifact.sh
+    checkError $? "./ci/uploadWindowsArtifact.sh Failed" "Artifact not available or Failed to upload" "Verify ./ci/uploadWindowsArtifact.sh locally"
+    exit 0
+  fi
 fi
 
 
