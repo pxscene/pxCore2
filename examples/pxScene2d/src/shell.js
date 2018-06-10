@@ -47,6 +47,71 @@ px.import({ scene: 'px:scene.1.js',
   console.log("url:",originalURL);
 
   var    blackBg = scene.create({t:"rect", fillColor:0x000000ff,x:0,y:0,w:1280,h:720,a:0,parent:scene.root});
+  var childScene = scene.create({t:"scene", url:originalURL,parent:scene.root});
+  childScene.focus = true;
+
+  var showFPS = false;
+  var fpsBg      = scene.create({t:"rect", fillColor:0x00000080,lineColor:0xffff0080,lineWidth:3,x:10,y:10,a:showFPS?1:0,parent:scene.root});
+  var fpsCounter = scene.create({t:"text", x:5,textColor:0xffffffff,pixelSize:24,text:"0fps",parent:fpsBg});
+  fpsBg.w = fpsCounter.w+16;
+  fpsBg.h = fpsCounter.h;
+
+  // Prevent interaction with scenes...
+  fpsBg.interactive = false;
+  fpsCounter.interactive = false;
+
+  function updateSize(w, h)
+  {
+    childScene.w = w;
+    childScene.h = h;
+    blackBg.w = w;
+    blackBg.h = h;
+  }
+
+  // TODO if I log out event object e... there is extra stuff??
+  scene.on("onResize", function(e) { updateSize(e.w, e.h);});
+  updateSize(scene.w, scene.h);
+
+  scene.on("onFPS", function(e) {
+    if(showFPS) {
+      fpsCounter.text = ""+Math.floor(e.fps)+"fps";
+      fpsBg.w = fpsCounter.w+16;
+      fpsBg.h = fpsCounter.h;
+    }
+  });
+
+if (false)
+{
+  // TODO Cursor emulation mostly for egl targets right now.
+
+  // TODO hacky raspberry pi detection
+  var os = require("os");
+  var hostname = os.hostname();
+
+  if (hostname == "raspberrypi") {
+    var cursor = scene.create({t:"image", url:"cursor.png",parent:scene.root,
+                               interactive:false});
+
+    scene.on("onMouseMove", function(e) {
+	    cursor.x = e.x-23;
+	    cursor.y = e.y-10;
+    });
+  }
+}
+
+  scene.root.on("onPreKeyDown", function(e) {
+	  var code  = e.keyCode;
+    var flags = e.flags;
+
+    var loggingDisabled = process.env.PXSCENE_KEY_LOGGING_DISABLED;
+    if (loggingDisabled && loggingDisabled === '1'){
+      console.log("onPreKeyDown value hidden");
+    } else {
+      console.log("SHELL: onPreKeyDown:", code, " key: ", keys.name(code), ", ", flags);
+    }
+
+    if( keys.is_CTRL_ALT( flags ) )
+    {
       switch(code)
       {
         // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
