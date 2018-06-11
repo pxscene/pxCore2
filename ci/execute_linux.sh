@@ -191,7 +191,7 @@ else
 	then
 		errCause="Memory leaks present"
 	else
- 		errCause="Execution stopped due to crash or abnormal execution"
+		errCause="Execution stopped due to crash or abnormal execution"
 	fi
 	if [ "$TRAVIS_PULL_REQUEST" != "false" ]
 	then
