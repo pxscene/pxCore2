@@ -1016,8 +1016,8 @@ rtError pxLoadSVGImage(const char* buf, size_t buflen, pxOffscreen& o, int w /* 
 
     scale = (ratioW < ratioH) ? ratioW : ratioH; // MIN()
 
-    int scaled_w = image_w * scale;
-    int scaled_h = image_h * scale;
+    int scaled_w = static_cast<int>(image_w * scale);
+    int scaled_h = static_cast<int>(image_h * scale);
 
     if(scaled_w < w)
     {
@@ -1038,7 +1038,7 @@ rtError pxLoadSVGImage(const char* buf, size_t buflen, pxOffscreen& o, int w /* 
 
 //  rtLogDebug("SVG:  Rasterizing image %d x %d  (scale: %f) \n", w, h, scale);
 
-  nsvgRasterize(rast.getPtr(), image, dx, dy, scale , (unsigned char*) o.base(), o.width(), o.height(), o.width() *4);
+  nsvgRasterize(rast.getPtr(), image, static_cast<float>(dx), static_cast<float>(dy), scale , (unsigned char*) o.base(), o.width(), o.height(), o.width() *4);
 
   SAFE_DELETE(image)
 
