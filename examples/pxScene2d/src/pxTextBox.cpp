@@ -71,6 +71,12 @@ void pxTextBox::resourceReady(rtString readyResolution)
     if( mInitialized) {
       setNeedsRecalc(true);
       pxObject::onTextureReady();
+      if( !mParent)
+      {
+        // Send the promise here because the textbox will not get an 
+        // update call until it has a parent
+        sendPromise();
+      }
     }
   }
   else
@@ -111,8 +117,7 @@ void pxTextBox::onInit()
   // If this is using the default font, we would not get a callback
   if(mFontLoaded || (getFontResource() != NULL && getFontResource()->isFontLoaded()))
   {
-    mFontLoaded = true;
-    setNeedsRecalc(true);
+    resourceReady("resolve");
   }
 }
 
@@ -162,7 +167,7 @@ void pxTextBox::setNeedsRecalc(bool recalc)
 void pxTextBox::sendPromise()
 {
   //rtLogDebug("pxTextBox::sendPromise mInitialized=%d mFontLoaded=%d mNeedsRecalc=%d\n",mInitialized,mFontLoaded,mNeedsRecalc);
-if(mInitialized && mFontLoaded && !mNeedsRecalc && !mDirty && !((rtPromise*)mReady.getPtr())->status())
+if(mInitialized && mFontLoaded && !((rtPromise*)mReady.getPtr())->status())
   {
     //rtLogDebug("pxTextBox SENDPROMISE\n");
     mReady.send("resolve",this);
