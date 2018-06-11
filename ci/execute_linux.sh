@@ -185,8 +185,8 @@ if [ "$retVal" -eq 0 ]
 	then
 	echo "************************* Valgrind reports success *************************";
 else
-        grep "definitely lost:" $VALGRINDLOGS
- 	leakcheck=$?
+	grep "definitely lost:" $VALGRINDLOGS
+	leakcheck=$?
 	if [ "$leakcheck" -eq 0 ]
 	then
 		errCause="Memory leaks present"
