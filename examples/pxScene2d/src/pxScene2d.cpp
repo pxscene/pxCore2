@@ -41,7 +41,10 @@
 #include "pxText.h"
 #include "pxTextBox.h"
 #include "pxImage.h"
+
+#ifdef ENABLE_PXPATH
 #include "pxPath.h"
+#endif
 
 #ifdef PX_SERVICE_MANAGER
 #include "pxServiceManager.h"
@@ -2010,8 +2013,10 @@ rtError pxScene2d::create(rtObjectRef p, rtObjectRef& o)
     e = createTextBox(p,o);
   else if (!strcmp("image",t.cString()))
     e = createImage(p,o);
-//  else if (!strcmp("path",t.cString()))
-//    e = createPath(p,o);
+#ifdef ENABLE_PXPATH
+  else if (!strcmp("path",t.cString()))
+    e = createPath(p,o);
+#endif // ENABLE_PXPATH
   else if (!strcmp("image9",t.cString()))
     e = createImage9(p,o);
   else if (!strcmp("imageA",t.cString()))
@@ -2106,7 +2111,7 @@ rtError pxScene2d::createImage(rtObjectRef p, rtObjectRef& o)
   o.send("init");
   return RT_OK;
 }
-
+#ifdef ENABLE_PXPATH
 rtError pxScene2d::createPath(rtObjectRef p, rtObjectRef& o)
 {
   o = new pxPath(this);
@@ -2114,6 +2119,7 @@ rtError pxScene2d::createPath(rtObjectRef p, rtObjectRef& o)
   o.send("init");
   return RT_OK;
 }
+#endif // ENABLE_PXPATH
 
 rtError pxScene2d::createImage9(rtObjectRef p, rtObjectRef& o)
 {
