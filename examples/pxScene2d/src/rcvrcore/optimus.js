@@ -147,6 +147,21 @@ function Application(props) {
       _externalApp.focus = true;
     }
   };
+  this.onKeyDown = function(e) {
+    if (_externalApp && _externalApp.onKeyDown !== undefined && typeof _externalApp.onKeyDown === "function" ){
+      _externalApp.onKeyDown(e);
+    }
+  };
+  this.onKeyUp = function(e) {
+    if (_externalApp && _externalApp.onKeyUp !== undefined && typeof _externalApp.onKeyUp === "function" ){
+      _externalApp.onKeyUp(e);
+    }
+  };
+  this.onChar = function(e) {
+    if (_externalApp && _externalApp.onChar !== undefined && typeof _externalApp.onChar === "function" ){
+      _externalApp.onChar(e);
+    }
+  };
   this.animateTo = function(animationProperties, duration, tween, type, count) {
     if (_externalApp){
       return _externalApp.animateTo(animationProperties, duration, tween, type, count);
