@@ -93,8 +93,10 @@ done #LOOP
 # Handle crash - 'dumped_core = 1' ?
 if [ "$dumped_core" -eq 1 ]
 	then
+	ps -ef | grep pxscene |grep -v grep >> /var/tmp/pxscene.log
+        ps -ef |grep /bin/sh |grep -v grep >> /var/tmp/pxscene.log
 	$TRAVIS_BUILD_DIR/ci/check_dump_cores_osx.sh `pwd` `ps -ef | grep pxscene |grep -v grep|grep -v pxscene.sh|awk '{print $2}'` /var/tmp/pxscene.log
-	checkError $cored "Execution failed" "Core dump" "Run execution locally"
+	checkError $dumped_core "Execution failed" "Core dump" "Run execution locally"
 fi
 
 # Wait for few seconds to get the application terminate completely

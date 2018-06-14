@@ -94,6 +94,9 @@ public:
 
 class pxTexturedQuads
 {
+  // limit the size of vectors per quad to prevent memory
+  // issues when rendering
+  static const int maxVectorSize = 60000;
   public:
 
   struct quads
@@ -107,7 +110,7 @@ class pxTexturedQuads
 
   void addQuad(float x1,float y1,float x2,float y2, float u1, float v1, float u2, float v2, pxTextureRef t)
   {
-    if (mQuads.empty() || mQuads[mQuads.size()-1].t != t)
+    if (mQuads.empty() || mQuads[mQuads.size()-1].t != t || mQuads[mQuads.size()-1].verts.size() >= maxVectorSize)
     {
       quads q;
       q.t = t;

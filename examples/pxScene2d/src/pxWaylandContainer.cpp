@@ -331,23 +331,23 @@ void pxWaylandContainer::sendPromise()
   }
 }
 
-rtError pxWaylandContainer::suspend(bool& b)
+rtError pxWaylandContainer::suspend(const rtValue &v, bool& b)
 {
   b = false;
   if ( mWayland )
   {
-    mWayland->suspend();
+    mWayland->suspend(v);
     b = true;
   }
   return RT_OK;
 }
 
-rtError pxWaylandContainer::resume(bool& b)
+rtError pxWaylandContainer::resume(const rtValue& v, bool& b)
 {
   b = false;
   if ( mWayland )
   {
-    mWayland->resume();
+    mWayland->resume(v);
     b = true;
   }
   return RT_OK;

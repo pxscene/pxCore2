@@ -19,12 +19,11 @@
       {"url":"../tests/test_pxAnimate.js", "title":"test_pxAnimate","useBaseURI":"true"},
       {"url":"../tests/test_pxResource.js", "title":"test_pxResource","useBaseURI":"true"},
       {"url":"../tests/test_pxWayland.js", "title":"test_pxWayland","useBaseURI":"true"},
-      {"url":"../tests/test_pxScene2d.js", "title":"test_pxScene2d","useBaseURI":"true"},
+      {"url":"../tests/test_pxScene2d_v2.js", "title":"test_pxScene2d_v2","useBaseURI":"true"},
       {"url":"../tests/test_pxImage.js", "title":"test_pxImage","useBaseURI":"true"},
       {"url":"../tests/test_pxImageA_2.js", "title":"test_pxImageA_2","useBaseURI":"true"},
       {"url":"../tests/test_pxImage9.js", "title":"test_pxImage9","useBaseURI":"true"},
       {"url":"../tests/test_moveForwardBackward.js", "title":"test_moveForwardBackward","useBaseURI":"true"},
-      {"url":"../tests/test_draw_SVG_paths.js", "title":"test_draw_SVG_paths","useBaseURI":"true"},
       {"url":"../tests/test_xre2-267.js",  "title":"test_xre2-267","useBaseURI":"true"},
       {"url":"../tests/test_permissions.js", "title":"test_permissions","useBaseURI":"true"},
       {"url":"../tests/test_permissionsDefault.js", "title":"test_permissionsDefault","useBaseURI":"true"},
@@ -33,5 +32,7 @@
       {"url":"../tests/test_promiseRejectionAnimation.js", "title":"test_promiseRejectionAnimation","useBaseURI":"true"},
       {"url":"../tests/test_promiseRejectionImage.js", "title":"test_promiseRejectionImage","useBaseURI":"true"},
       {"url":"../tests/test_promiseRejectionReload.js", "title":"test_promiseRejectionReload","useBaseURI":"true"},
-      {"url":"../tests/test_drawFalse.js", "title":"test_drawFalse","useBaseURI":"true"}
+      {"url":"../tests/test_drawFalse.js", "title":"test_drawFalse","useBaseURI":"true"},
+      {"url":"../tests/test_longText.js", "title":"test_longText","useBaseURI":"true"},
+      {"url":"../tests/test_parentDrawFalse.js", "title":"test_parentDrawFalse","useBaseURI":"true"}
 ]
