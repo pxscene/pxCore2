@@ -147,6 +147,13 @@ function Application(props) {
       _externalApp.focus = true;
     }
   };
+  this.isFocused = function() {
+    if (_externalApp){
+      return _externalApp.focus;
+    } else {
+      return false;
+    }
+  };
   this.onKeyDown = function(e) {
     if (_externalApp && _externalApp.onKeyDown !== undefined && typeof _externalApp.onKeyDown === "function" ){
       _externalApp.onKeyDown(e);
