@@ -69,6 +69,7 @@ class NSVGrasterizerEx
 }; // CLASS;
 
 static NSVGrasterizerEx rast;
+static rtMutex          rastMutex;
 
 
 // Assume alpha is not premultiplied
@@ -979,6 +980,8 @@ rtError pxStoreSVGImage(const char* /*filename*/, pxBuffer& /*b*/)  { return RT_
 
 rtError pxLoadSVGImage(const char* buf, size_t buflen, pxOffscreen& o, int w /* = 0 */, int h /* = 0 */)
 {
+  rtMutexLockGuard  autoLock(rastMutex);
+  
   if (buf == NULL || buflen == 0 )
   {
     rtLogError("SVG:  Bad args.\n");
