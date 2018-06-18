@@ -28,6 +28,7 @@ var SceneModuleLoader = require('rcvrcore/SceneModuleLoader');
 var XModule = require('rcvrcore/XModule').XModule;
 var xmodImportModule = require('rcvrcore/XModule').importModule;
 var loadFile = require('rcvrcore/utils/FileUtils').loadFile;
+var loadFileWithSparkPermissionsCheck = require('rcvrcore/utils/FileUtils').loadFileWithSparkPermissionsCheck;
 var SceneModuleManifest = require('rcvrcore/SceneModuleManifest');
 var JarFileMap = require('rcvrcore/utils/JarFileMap');
 var AsyncFileAcquisition = require('rcvrcore/utils/AsyncFileAcquisition');
@@ -80,6 +81,9 @@ function AppSceneContext(params) {
   this.timers = [];
   this.timerIntervals = [];
   this.webSocketManager = null;
+  this.httpwrap = new http_wrap(this.accessControl);
+  this.httpswrap = new https_wrap(this.accessControl);
+  this.useSparkPermissionForFileAccess = this.innerscene.sparkSetting("useSparkPermissionsForPxFileAccess")
   log.message(4, "[[[NEW AppSceneContext]]]: " + this.packageUrl);
 }
 
@@ -186,6 +190,8 @@ this.innerscene.on('onSceneTerminate', function (e) {
       this.accessControl.destroy();
       this.accessControl = null;
     }
+    this.httpwrap = null;
+    this.httpswrap = null;
   }.bind(this));
 
 if (false) {
@@ -570,7 +576,14 @@ AppSceneContext.prototype.getModuleFile = function(filePath, xModule) {
 
 AppSceneContext.prototype.getFile = function(filePath) {
   log.message(4, "getFile: requestedFile=" + filePath);
-  return loadFile(filePath);
+  if (true == this.useSparkPermissionForFileAccess)
+  {
+    return loadFileWithSparkPermissionsCheck(this.httpwrap, this.httpswrap, filePath);
+  }
+  else
+  {
+    return loadFile(filePath);
+  }
 };
 
 AppSceneContext.prototype.resolveModulePath = function(filePath, currentXModule) {
@@ -647,7 +660,14 @@ AppSceneContext.prototype.include = function(filePath, currentXModule) {
       onImportComplete([modData, origFilePath]);
       return;
     } else if( filePath === 'http' || filePath === 'https' ) {
-      modData = filePath === 'http' ? new http_wrap(_this.accessControl) : new https_wrap(_this.accessControl);
+      if (filePath === 'http')
+      {
+        modData = _this.httpwrap;
+      }
+      else
+      {
+        modData = _this.httpswrap;
+      }
       onImportComplete([modData, origFilePath]);
       return;
     } else if( filePath.substring(0, 9) === "px:scene.") {

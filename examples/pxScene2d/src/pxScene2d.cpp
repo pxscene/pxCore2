@@ -3488,6 +3488,7 @@ rtDefineProperty(pxScene2d, origin);
 rtDefineProperty(pxScene2d, permissions);
 #endif
 rtDefineMethod(pxScene2d, checkAccessControlHeaders);
+rtDefineMethod(pxScene2d, sparkSetting);
 rtDefineMethod(pxScene2d, addServiceProvider);
 rtDefineMethod(pxScene2d, removeServiceProvider);
 
@@ -3605,6 +3606,18 @@ rtError pxScene2d::checkAccessControlHeaders(const rtString& url, const rtString
   allow = true; // default
   return RT_OK;
 #endif
+}
+
+rtError pxScene2d::sparkSetting(const rtString& setting, rtValue& value) const
+{
+  rtValue val;
+  if (RT_OK != rtSettings::instance()->value(setting, val))
+  {
+    value = rtString("SETTINGS_NOT_FOUND");
+    return RT_OK;
+  }
+  value = val;
+  return RT_OK;
 }
 
 void pxScene2d::setViewContainer(pxIViewContainer* l)
