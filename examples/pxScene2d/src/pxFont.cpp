@@ -798,7 +798,6 @@ void pxFontAtlas::clearTexture()
 {
   if( mTexture) {
     mTexture->deleteTexture();
-    mTexture = 0;
   }
 }
 bool pxFontAtlas::addGlyph(uint32_t w, uint32_t h, void* buffer, GlyphTextureEntry& e)
