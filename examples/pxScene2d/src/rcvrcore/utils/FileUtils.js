@@ -19,9 +19,8 @@ limitations under the License.
 "use strict";
 
 var fs = require("fs");
-// keep different name for http and https from js engine
-var http_global = require("http");
-var https_global = require("https");
+var http = require("http");
+var https = require("https");
 var url = require("url");
 
 var Logger = require('rcvrcore/Logger').Logger;
@@ -53,10 +52,10 @@ function loadFile(fileUri) {
         });
       };
       if (fileUri.substring(0, 5) == "https") {
-        req = https_global.get(options, httpCallback);
+        req = https.get(options, httpCallback);
       }
       else {
-        req = http_global.get(options, httpCallback);
+        req = http.get(options, httpCallback);
       }
       req.on('error', function (err) {
         log.error("Error: FAILED to read file[" + fileUri + "] from web service");
@@ -87,55 +86,6 @@ function loadFile(fileUri) {
   });
 }
 
-// same as above , but do local file, spark permission and CORS check
-function loadFileWithSparkPermissionsCheck(http, https, fileUri) {
-  console.log("in loadFileWithSparkPermissionsCheck" + fileUri);
-  return new Promise(function(resolve, reject) {
-    var code = [];
-    if (fileUri.substring(0, 4) == "http") {
-      var options = url.parse(fileUri);
-      var req = null;
-      var httpCallback = function (res) {
-        res.on('data', function (data) {
-          code += data;
-        });
-        res.on('end', function () {
-          if( res.statusCode == 200 ) {
-            log.message(3, "Got file[" + fileUri + "] from web service");
-            resolve(code);
-          } else {
-            log.error("StatusCode Bad: FAILED to read file[" + fileUri + "] from web service");
-            reject(res.statusCode);
-          }
-        });
-      };
-      if (fileUri.substring(0, 5) == "https") {
-        req = https.get(options, httpCallback);
-      }
-      else {
-        req = http.get(options, httpCallback);
-      }
-      // handling of request failed may be due to spark permissions check
-      // CORS denial case enters below error condition handler
-      if (null != req)
-      {
-        req.on('error', function (err) {
-          log.error("Error: FAILED to read file[" + fileUri + "] from web service");
-          reject(err);
-        });
-      }
-      else
-      {
-        reject("Access of file not allowed");
-      }
-    }
-    else {
-      //local file access not allowed
-      reject("Local file access not allowed");
-    }
-  });
-}
-
 function hasExtension(filePath, extension) {
   var idx = filePath.lastIndexOf(extension);
   return( (idx !== -1) && ((idx + extension.length) === filePath.length) );
@@ -143,6 +93,5 @@ function hasExtension(filePath, extension) {
 
 module.exports = {
   loadFile: loadFile,
-  loadFileWithSparkPermissionsCheck:loadFileWithSparkPermissionsCheck,
   hasExtension: hasExtension
 };

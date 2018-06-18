@@ -69,7 +69,7 @@
 #endif
 
 #include "rtServiceProvider.h"
-#include "rtSettings.h"
+
 #ifdef RUNINMAIN
 #define ENTERSCENELOCK()
 #define EXITSCENELOCK() 
@@ -1342,7 +1342,6 @@ public:
 
   rtReadOnlyProperty(origin, origin, rtString);
   rtMethod2ArgAndReturn("checkAccessControlHeaders", checkAccessControlHeaders, rtString, rtString, bool);
-  rtMethod1ArgAndReturn("sparkSetting", sparkSetting, rtString, rtValue);
 
   rtMethodNoArgAndNoReturn("dispose",dispose);
 
@@ -1492,7 +1491,6 @@ public:
 
   rtError origin(rtString& v) const { v = mOrigin; return RT_OK; }
   rtError checkAccessControlHeaders(const rtString& url, const rtString& rawHeaders, bool& allow) const;
-  rtError sparkSetting(const rtString& setting, rtValue& value) const;
 
   void setMouseEntered(rtRef<pxObject> o);//setMouseEntered(pxObject* o);
 
