@@ -173,8 +173,8 @@ void pxImage9::resourceReady(rtString readyResolution)
     imageLoaded = true; 
     // nineslice gets its w and h from the image only if
     // not set for the pxImage9
-    if( mw == -1 && getImageResource() != NULL) { mw = getImageResource()->w(); }
-    if( mh == -1 && getImageResource() != NULL) { mh = getImageResource()->h(); }
+    if( mw == -1 && getImageResource() != NULL) { mw = static_cast<float>(getImageResource()->w()); }
+    if( mh == -1 && getImageResource() != NULL) { mh = static_cast<float>(getImageResource()->h()); }
     imageLoaded = true;
     pxObject::onTextureReady();
     // Now that image is loaded, must force redraw;

@@ -45,6 +45,7 @@ cp macstuff/Info.plist $bundle/Contents
 #
 cp -a browser $bundleRes
 cp FreeSans.ttf $bundleRes
+cp sparkpermissions.conf $bundleRes
 
 cp package.json $bundleRes
 cp pxscene $bundleBin

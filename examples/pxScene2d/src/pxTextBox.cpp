@@ -225,8 +225,8 @@ void pxTextBox::draw()
   }
   float x = 0, y = 0;
   if(!clip() && mTruncation == pxConstantsTruncation::NONE) {
-    x = static_cast<int32_t>(noClipX);
-    y = static_cast<int32_t>(noClipY);
+    x = static_cast<float>(noClipX);
+    y = static_cast<float>(noClipY);
   }
 
   for (std::vector<pxTexturedQuads>::iterator it = mQuadsVector.begin() ; it != mQuadsVector.end(); ++it)
@@ -703,8 +703,9 @@ void pxTextBox::renderOneLine(const char * tempStr, float tempX, float tempY, fl
       {
         rtLogWarn("Text width is larger than maximum texture allowed: %lf.  Maximum texture size of %d will be used.",charW, MAX_TEXTURE_WIDTH);
         float tempWidthRatio = charW/MAX_TEXTURE_WIDTH;
-        size_t strLen = strlen(tempStr);
-        uint32_t tempNewLen = (uint32_t) strLen/tempWidthRatio;
+        uint32_t strLen = strlen(tempStr);
+        uint32_t tempNewLen = static_cast<uint32_t> (strLen/tempWidthRatio);
+
         char* trimmedTempStr = (char *)malloc(tempNewLen+1);
         memset(trimmedTempStr,'\0',tempNewLen+1);
 
@@ -946,7 +947,7 @@ void pxTextBox::renderOneLine(const char * tempStr, float tempX, float tempY, fl
   {
  #ifdef PXSCENE_FONT_ATLAS
      pxTexturedQuads quads;
-     getFontResource()->renderTextToQuads(tempStr, size, sx, sy, quads, static_cast<int32_t>(xPos), static_cast<int32_t>(tempY));
+     getFontResource()->renderTextToQuads(tempStr, size, sx, sy, quads, static_cast<float>(xPos), static_cast<float>(tempY));
      mQuadsVector.push_back(quads);
  #else
    getFontResource()->renderText(tempStr, size, xPos, tempY, sx, sy, mTextColor,lineWidth);
@@ -1208,7 +1209,7 @@ void pxTextBox::renderTextRowWithTruncation(rtString & accString, float lineWidt
         if( render && getFontResource() != NULL) {
 #ifdef PXSCENE_FONT_ATLAS
           pxTexturedQuads quads;
-          getFontResource()->renderTextToQuads(tempStr, pixelSize, sx, sy, quads, static_cast<int32_t>(xPos), static_cast<int32_t>(tempY));
+          getFontResource()->renderTextToQuads(tempStr, pixelSize, sx, sy, quads, static_cast<float>(xPos), static_cast<float>(tempY));
           mQuadsVector.push_back(quads);
 #else
           getFontResource()->renderText(tempStr, pixelSize, xPos, tempY, 1.0, 1.0, mTextColor,lineWidth);
@@ -1220,7 +1221,7 @@ void pxTextBox::renderTextRowWithTruncation(rtString & accString, float lineWidt
           if( render && getFontResource() != NULL) {
 #ifdef PXSCENE_FONT_ATLAS
             pxTexturedQuads quads;  
-            getFontResource()->renderTextToQuads(ELLIPSIS_STR, pixelSize, sx, sy, quads, static_cast<int32_t>(xPos+charW), static_cast<int32_t>(tempY));
+            getFontResource()->renderTextToQuads(ELLIPSIS_STR, pixelSize, sx, sy, quads, static_cast<float>(xPos+charW), static_cast<float>(tempY));
             mQuadsVector.push_back(quads);
 #else
             getFontResource()->renderText(ELLIPSIS_STR, pixelSize, xPos+charW, tempY, 1.0, 1.0, mTextColor,lineWidth);
@@ -1274,7 +1275,7 @@ void pxTextBox::renderTextRowWithTruncation(rtString & accString, float lineWidt
           {
 #ifdef PXSCENE_FONT_ATLAS
             pxTexturedQuads quads;
-            getFontResource()->renderTextToQuads(tempStr, pixelSize, sx, sy, quads, static_cast<int32_t>(xPos), static_cast<int32_t>(tempY));
+            getFontResource()->renderTextToQuads(tempStr, pixelSize, sx, sy, quads, static_cast<float>(xPos), static_cast<float>(tempY));
             mQuadsVector.push_back(quads);
 #else
             getFontResource()->renderText(tempStr, pixelSize, xPos, tempY, 1.0, 1.0, mTextColor,lineWidth);
@@ -1287,7 +1288,7 @@ void pxTextBox::renderTextRowWithTruncation(rtString & accString, float lineWidt
           if( render && getFontResource() != NULL) {
 #ifdef PXSCENE_FONT_ATLAS
             pxTexturedQuads quads;
-            getFontResource()->renderTextToQuads(ELLIPSIS_STR, pixelSize, sx, sy, quads, static_cast<int32_t>(xPos+charW), static_cast<int32_t>(tempY));
+            getFontResource()->renderTextToQuads(ELLIPSIS_STR, pixelSize, sx, sy, quads, static_cast<float>(xPos+charW), static_cast<float>(tempY));
             mQuadsVector.push_back(quads);
 #else
             getFontResource()->renderText(ELLIPSIS_STR, pixelSize, xPos+charW, tempY, 1.0, 1.0, mTextColor,lineWidth);
