@@ -3310,9 +3310,7 @@ rtError pxScene2d::getService(rtString name, rtObjectRef& returnObject)
   ctx.set("permissions", permissionsValue);
 #endif //ENABLE_PERMISSIONS_CHECK
 
-  returnObject = NULL;
-  getService(name, ctx, returnObject);
-  return RT_OK;
+  return getService(name, ctx, returnObject);
 }
 
 // todo change rtString to const char*
