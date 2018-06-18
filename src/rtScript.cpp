@@ -30,6 +30,10 @@
 #include "rtScriptNode/rtScriptNode.h"
 #endif
 
+#ifdef RTSCRIPT_SUPPORT_V8
+#include "rtScriptV8/rtScriptV8.h"
+#endif
+
 #ifdef RTSCRIPT_SUPPORT_DUKTAPE
 #include "rtScriptDuk/rtScriptDuk.h"
 #endif
@@ -192,6 +196,8 @@ rtError rtScript::init()
         createScriptDuk(mScript);
       else
         createScriptNode(mScript);
+    #elif defined(RTSCRIPT_SUPPORT_V8)
+        createScriptV8(mScript);
     #elif defined(RTSCRIPT_SUPPORT_DUKTAPE)
         createScriptDuk(mScript);
     #elif defined(RTSCRIPT_SUPPORT_NODE)

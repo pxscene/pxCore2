@@ -216,6 +216,12 @@ if (SUPPORT_NODE)
         rtScriptNode/rtObjectWrapper.cpp rtScriptNode/rtWrapperUtils.cpp)
 endif()
 
+if (SUPPORT_V8)
+    message("Adding V8 scripting support")
+    add_definitions(-DRTSCRIPT_SUPPORT_V8)
+    set(PXCORE_FILES ${PXCORE_FILES} rtScriptV8/rtScriptV8.cpp rtScriptV8/jsCallback.cpp rtScriptV8/rtFunctionWrapper.cpp
+	      rtScriptV8/rtObjectWrapper.cpp rtScriptV8/rtWrapperUtils.cpp)
+endif()
 
 if (PXCORE_MATRIX_HELPERS)
   set(PXCORE_FILES ${PXCORE_FILES} pxMatrix4T.cpp)
