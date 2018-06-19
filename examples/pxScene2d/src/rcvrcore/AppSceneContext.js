@@ -83,7 +83,11 @@ function AppSceneContext(params) {
   this.webSocketManager = null;
   this.httpwrap = new http_wrap(this.accessControl);
   this.httpswrap = new https_wrap(this.accessControl);
-  this.useSparkPermissionForFileAccess = this.innerscene.sparkSetting("useSparkPermissionsForPxFileAccess")
+  this.disableFilePermissionCheck = this.innerscene.sparkSetting("disableFilePermissionCheck");
+  if (undefined == this.disableFilePermissionCheck)
+  {
+    this.disableFilePermissionCheck = false;
+  }
   log.message(4, "[[[NEW AppSceneContext]]]: " + this.packageUrl);
 }
 
@@ -576,13 +580,13 @@ AppSceneContext.prototype.getModuleFile = function(filePath, xModule) {
 
 AppSceneContext.prototype.getFile = function(filePath) {
   log.message(4, "getFile: requestedFile=" + filePath);
-  if (true == this.useSparkPermissionForFileAccess)
+  if ("true" == this.disableFilePermissionCheck || true == this.disableFilePermissionCheck)
   {
-    return loadFileWithSparkPermissionsCheck(this.httpwrap, this.httpswrap, filePath);
+    return loadFile(filePath);
   }
   else
   {
-    return loadFile(filePath);
+    return loadFileWithSparkPermissionsCheck(this.httpwrap, this.httpswrap, filePath);
   }
 };
 

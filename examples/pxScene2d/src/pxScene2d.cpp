@@ -3613,7 +3613,7 @@ rtError pxScene2d::sparkSetting(const rtString& setting, rtValue& value) const
   rtValue val;
   if (RT_OK != rtSettings::instance()->value(setting, val))
   {
-    value = rtString("SETTINGS_NOT_FOUND");
+    value = rtValue();
     return RT_OK;
   }
   value = val;
