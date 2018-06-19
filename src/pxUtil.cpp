@@ -50,10 +50,12 @@
   #include "nanosvg.h"
   #define NANOSVGRAST_IMPLEMENTATION
   #include "nanosvgrast.h"
-  
-#ifndef SAFE_DELETE
-  #define SAFE_DELETE(x)  { delete (x); (x) = NULL; }
+
+#ifdef SAFE_FREE
+#undef SAFE_FREE
 #endif
+#define SAFE_FREE(x)  do { free(x); (x) = NULL; } while(0)
+
 
 class NSVGrasterizerEx
 {
@@ -991,8 +993,6 @@ rtError pxLoadSVGImage(const char* buf, size_t buflen, pxOffscreen& o, int w /* 
   NSVGimage *image = nsvgParse( (char *) buf, "px", 96.0f); // 96 dpi (suggested defalus) 
   if (image == NULL)
   {
-    SAFE_DELETE(image)
-
     rtLogError("SVG:  Could not init decode SVG.\n");
     return RT_FAIL;
   }
@@ -1005,8 +1005,8 @@ rtError pxLoadSVGImage(const char* buf, size_t buflen, pxOffscreen& o, int w /* 
 
   if (image_w == 0 || image_h == 0)
   {
-    SAFE_DELETE(image)
-    
+    SAFE_FREE(image);
+
     rtLogError("SVG:  Bad image dimensions  WxH: %d x %d\n", image_w, image_h);
     return RT_FAIL;
   }
@@ -1043,7 +1043,7 @@ rtError pxLoadSVGImage(const char* buf, size_t buflen, pxOffscreen& o, int w /* 
 
   nsvgRasterize(rast.getPtr(), image, dx, dy, scale , (unsigned char*) o.base(), o.width(), o.height(), o.width() *4);
 
-  SAFE_DELETE(image)
+  SAFE_FREE(image);
 
   return RT_OK;
 }
