@@ -1,3 +1,9 @@
+/*
+ * Commands to test: 
+ * To get name of the service : node rtservicemanager.js getName
+ * To get current resolution  : node rtservicemanager.js getCurrentResolution HDMI0
+ * To set current resolution  : node rtservicemanager.js setCurrentResolution HDMI0 480p/720p
+*/
 
 const RTRemoteMulticastResolver = require('../lib/RTRemoteMulticastResolver');
 const RTRemoteConnectionManager = require('../lib/RTRemoteConnectionManager');
