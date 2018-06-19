@@ -75,8 +75,11 @@ AccessControl.prototype.createClientRequest = function (options, callback, reque
   // Do not expose AccessControlClientRequest's prototype... wrap everything
   // Note: set properties in constructor or prototype so that they don't get lost here
   // Note: socket is not exposed
-  var wrap = WrapObj(req, {socket: undefined, connection: undefined});
-  return wrap;
+  return WrapObj(req, {
+    socket: undefined,
+    connection: undefined,
+    agent: undefined
+  });
 };
 
 AccessControl._extend = function (target, source) {
@@ -122,6 +125,7 @@ function AccessControlClientRequest(options, callback, accessControl, protocol) 
     this.blocked = true;
     this.abort();
     setTimeout(function () {
+      _this.emit('error', new Error(message));
       _this.emit('blocked', new Error(message));
     });
   }
@@ -153,8 +157,12 @@ function AccessControlClientRequest(options, callback, accessControl, protocol) 
   function createEmitWrapper(_emit) {
     return function (type, arg2, arg3, arg4) {
       if (type === 'socket') {
-        // Note: socket is not exposed
-        return _emit.call(_this, type, null);
+        // Note: socket is not exposed, only setTimeout to have node internals work
+        return _emit.call(_this, type, {
+          setTimeout: function () {
+            arg2.setTimeout.apply(arg2, arguments);
+          }
+        });
       } else if (type === 'connect' || type === 'upgrade') {
         if (checkResponseHeaders(arg2) === false) {
           return false;

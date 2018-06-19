@@ -33,11 +33,11 @@ function HttpWrap(accessControl) {
   };
 }
 
-HttpWrap.prototype.IncomingMessage = http.IncomingMessage;
-HttpWrap.prototype.METHODS = http.METHODS;
-HttpWrap.prototype.OutgoingMessage = http.OutgoingMessage;
-HttpWrap.prototype.globalAgent = http.globalAgent;
-HttpWrap.prototype.Agent = http.Agent;
+// No not expose sockets.
+//HttpWrap.prototype.globalAgent = http.globalAgent;
+//HttpWrap.prototype.Agent = http.Agent;
+//HttpWrap.prototype.IncomingMessage = http.IncomingMessage;
+//HttpWrap.prototype.OutgoingMessage = http.OutgoingMessage;
 
 // Use 'request' instead
 //HttpWrap.prototype.ClientRequest
