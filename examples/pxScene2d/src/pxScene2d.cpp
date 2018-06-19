@@ -3707,7 +3707,9 @@ rtError pxSceneContainer::setServiceContext(rtObjectRef o)
 { 
   // Only allow serviceContext to be set at construction time
   if( !mInitialized)
-    mServiceContext = o; return RT_OK;
+    mServiceContext = o;
+
+  return RT_OK;
 }
 
 rtError pxSceneContainer::setScriptView(pxScriptView* scriptView)
