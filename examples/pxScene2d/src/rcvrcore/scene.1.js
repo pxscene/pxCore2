@@ -96,51 +96,52 @@ function Scene() {
   this.getHeight = function() {
     return nativeScene.h; };
 
-  this.getColor = function(val)
-  {
-    clr = "" + val + ""; //string
-    var ans = 0x00000000; // transparent (default)
-    
-    // Support #RRGGBB web style color syntax
-    if(clr.match(/#([0-9a-f]{6})/i) )
-    {
-      clr = clr.replace(/#([0-9a-f]{6})/i, "0x$1FF");  // tack on ALPHA at lsb to ($1) amtch
-      ans = parseInt(clr, 16);
-    }
-    else
-    // Support #RGB web style color syntax
-    if(clr.match(/#([0-9a-f]{1})([0-9a-f]{1})([0-9a-f]{1})/i) )
-    {
-      clr = clr.replace(/#([0-9a-f]{1})([0-9a-f]{1})([0-9a-f]{1})/i, "0x$1$1$2$2$3$3FF"); //  #rgb >>> 0xrrggbb
-      ans = parseInt(clr, 16);
-    }
-    else
-    {
-      ans = val; // pass-through
-    }
-
-    return ans;
-  }
-
   this.create = function create(params) {
     applyStyle.call(this, params);
 
+      function getColor(val)
+      {
+        clr = "" + val + "";
+        
+        var ans = 0x00000000; // transparent (default)
+        
+        // Support #RRGGBB web style color syntax
+        if(clr.match(/#([0-9a-f]{6})/i) )
+        {
+          clr = clr.replace(/#([0-9a-f]{6})/i, "0x$1FF");  // tack on ALPHA at lsb to ($1) amtch
+          ans = parseInt(clr, 16);
+        }
+        else
+        // Support #RGB web style color syntax
+        if(clr.match(/#([0-9a-f]{1})([0-9a-f]{1})([0-9a-f]{1})/i) )
+        {
+          clr = clr.replace(/#([0-9a-f]{1})([0-9a-f]{1})([0-9a-f]{1})/i, "0x$1$1$2$2$3$3FF"); //  #rgb >>> 0xrrggbb
+          ans = parseInt(clr, 16);
+        }
+        else
+        {
+          ans = val; // pass-through
+        }
+        
+        return ans;
+      }
+        
       // Support for Web colors using #RGB  or #RRGGBB syntax
       if(params.hasOwnProperty("textColor") )
       {
-        params.textColor = this.getColor(params.textColor);
+        params.textColor = getColor(params.textColor);
       }
       
       // Support for Web colors using #RGB  or #RRGGBB syntax
       if(params.hasOwnProperty("lineColor") )
       {
-        params.lineColor = this.getColor(params.lineColor);
+        params.lineColor = getColor(params.lineColor);
       }
   
       // Support for Web colors using #RGB  or #RRGGBB syntax
       if(params.hasOwnProperty("fillColor") )
       {
-        params.fillColor = this.getColor(params.fillColor);
+        params.fillColor = getColor(params.fillColor);
       }
    
       var component = null;
