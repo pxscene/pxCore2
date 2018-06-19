@@ -264,7 +264,7 @@ if [ "$testRunnerRetVal" -ne 0 ]
         else
                 errCause="Cause: Check the $ACCESSFAILLOGS file"
         fi
-        checkError $testRunnerRetVal "Testrunner failure for access test" "$errCause" "Follow the steps locally: copy sparkPermissions.conf file from ci/supportfiles folder to src dir. Run ./pxscene.sh https://px-apps.sys.comcast.net/pxscene-samples/examples/px-reference/test-run/testRunner_AccessTest.js locally and check for 'Failures: 0' in logs. Analyze whether failures is present or not"
+        checkError $testRunnerRetVal "Testrunner failure for access test" "$errCause" "Follow the steps locally: copy sparkPermissions.conf file from ci/supportfiles folder to src dir. copy .sparksettings.json file from ci/supportfiles folder to user home directory. Run ./pxscene.sh https://px-apps.sys.comcast.net/pxscene-samples/examples/px-reference/test-run/testRunner_AccessTest.js locally and check for 'Failures: 0' in logs. Analyze whether failures is present or not"
         exit 1;
 fi
 
