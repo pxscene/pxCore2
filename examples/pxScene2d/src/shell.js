@@ -46,7 +46,7 @@ px.import({ scene: 'px:scene.1.js',
   var originalURL = (!url || url==="") ? "browser.js":url;
   console.log("url:",originalURL);
 
-  var    blackBg = scene.create({t:"rect", fillColor:0x000000ff,x:0,y:0,w:1280,h:720,a:0,parent:scene.root});
+  var    blackBg = scene.create({t:"rect", fillColor:0x000000ff,lineColor:0xffff0080,lineWidth:0,x:0,y:0,w:1280,h:720,a:0,parent:scene.root});
   var childScene = scene.create({t:"scene", url:originalURL,parent:scene.root});
   childScene.focus = true;
 
@@ -60,8 +60,7 @@ px.import({ scene: 'px:scene.1.js',
   fpsBg.interactive = false;
   fpsCounter.interactive = false;
 
-  function updateSize(w, h)
-  {
+  function updateSize(w, h) {
     childScene.w = w;
     childScene.h = h;
     blackBg.w = w;
@@ -80,6 +79,7 @@ px.import({ scene: 'px:scene.1.js',
     }
   });
 
+////
 if (false)
 {
   // TODO Cursor emulation mostly for egl targets right now.
@@ -112,93 +112,79 @@ if (false)
 
     if( keys.is_CTRL_ALT( flags ) )
     {
-      switch(code)
+      if(code == keys.Y)  // ctrl-alt-y
       {
-        // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-        case keys.Y:  // ctrl-alt-y
-        {
-          showFPS = !showFPS;
-          fpsBg.a = (showFPS)?1.0:0;
-          e.stopPropagation();
-        }
-        break;
-        // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-        case keys.O:  // ctrl-alt-o
-        {
-          scene.showOutlines = !scene.showOutlines;
-          e.stopPropagation();
-        }
-        break;
-        // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-        case keys.S:  // ctrl-alt-s
-        {
-          if (!isDuk)
-          {
-            // This returns a data URI string with the image data
-            var dataURI = scene.screenshot('image/png;base64');
+//        console.log("SHELL: onPreKeyDown: FPS !!!  ############# ");
 
-            // convert the data URI by stripping off the scheme and type information
-            // to a base64 encoded string with just the PNG image data
-            var base64PNGData = dataURI.slice(dataURI.indexOf(',')+1);
+        showFPS = !showFPS;
+        fpsBg.a = (showFPS)?1.0:0;
+        e.stopPropagation();
+      }
+      else
+      if(code == keys.O)  // ctrl-alt-o
+      {
+//        console.log("SHELL: onPreKeyDown: showOutlines !!!  ############# ");
 
-            // decode the base64 data and write it to a file
-            fs.writeFile("screenshot.png", new Buffer(base64PNGData, 'base64'), function(err)
-            {
-              if (err)
-                console.log("Error creating screenshot.png");
-              else
-                console.log("Created screenshot.png");
-            });
-          }
-          e.stopPropagation();
-        }
-        break;
-        // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-        case  keys.D:  // ctrl-alt-d
+        scene.showOutlines = !scene.showOutlines;
+        e.stopPropagation();
+      }
+      else
+      if (code == keys.S)  // ctrl-alt-s
+      {
+        if (!isDuk) {
+        // This returns a data URI string with the image data
+        var dataURI = scene.screenshot('image/png;base64');
+
+        // convert the data URI by stripping off the scheme and type information
+        // to a base64 encoded string with just the PNG image data
+        var base64PNGData = dataURI.slice(dataURI.indexOf(',')+1);
+
+        // decode the base64 data and write it to a file
+        fs.writeFile("screenshot.png", new Buffer(base64PNGData, 'base64'), function(err)
         {
-          // console.log("SHELL: onPreKeyDown: show dirty rect !!!  ############# ");
+          if (err)
+            console.log("Error creating screenshot.png");
+          else
+            console.log("Created screenshot.png");
+        });
+      }
+        e.stopPropagation();
+      }
+      else
+      if(code == keys.D)  // ctrl-alt-d
+      {
+        // console.log("SHELL: onPreKeyDown: show dirty rect !!!  ############# ");
 
-          scene.showDirtyRect = !scene.showDirtyRect;
-          e.stopPropagation();
-        }
-        break;
-        // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-      }//SWITCH ctrl-alt
+        scene.showDirtyRect = !scene.showDirtyRect;
+        e.stopPropagation();
+      }
     }// ctrl-alt
     else
     if( keys.is_CTRL_ALT_SHIFT( flags ) )
     {
-      switch(code)
+      if(code == keys.R)  // ctrl-alt-shft-r
       {
-        // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-        case keys.R:  // ctrl-alt-shft-r
-        {
-          // console.log("SHELL: onPreKeyDown: Reloading url [ "+originalURL+" ] !!!  ############# ");
+        // console.log("SHELL: onPreKeyDown: Reloading url [ "+originalURL+" ] !!!  ############# ");
 
-          console.log("Reloading url: ", originalURL);
-          childScene.url = originalURL;
-          e.stopPropagation();
-        }
-        break;
-        // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-        case keys.H:  // ctrl-alt-shft-h
-        {
-          // console.log("SHELL: onPreKeyDown: Loading HOME url [ "+"browser.js"+" ] !!!  ############# ");
+        console.log("Reloading url: ", originalURL);
+        childScene.url = originalURL;
+        e.stopPropagation();
+      }
+      else
+      if(code == keys.H)  // ctrl-alt-shft-h
+      {
+        // console.log("SHELL: onPreKeyDown: Loading HOME url [ "+"browser.js"+" ] !!!  ############# ");
 
-          var homeURL = "browser.js";
-          console.log("Loading home url: ", homeURL);
-          childScene.url = homeURL;
-          e.stopPropagation();
-        }
-        break;
-        // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-        case keys.D:  // ctrl-alt-shft-d
-        {
-          scene.logDebugMetrics();
-        }
-        break;
-        // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-      }//SWITCH
+        var homeURL = "browser.js";
+        console.log("Loading home url: ", homeURL);
+        childScene.url = homeURL;
+        e.stopPropagation();
+      }
+      else
+      if(code == keys.D)  // ctrl-alt-shft-d
+      {
+	scene.logDebugMetrics();
+      }
     }// ctrl-alt-shift
   });
 
@@ -242,27 +228,20 @@ if (false)
 
       if( keys.is_CTRL_ALT( flags ) )
       {
-         switch(code)
+        if(code == keys.R)   // ctrl-alt-r
         {
-            // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-            case keys.R: // ctrl-alt-r
-            {
-              console.log("(shell.js) Reloading url: ", originalURL);
-              childScene.url = originalURL;
-              e.stopPropagation();
-            }
-            break;
-            // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-            case keys.H: // ctrl-alt-h
-            {
-              var homeURL = "browser.js";
-              console.log("Loading home url: ", homeURL);
-              childScene.url = homeURL;
-              e.stopPropagation();
-            }
-            break
-            // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-        }//SWITCH
+          console.log("(shell.js) Reloading url: ", originalURL);
+          childScene.url = originalURL;
+          e.stopPropagation();
+        }
+        else
+        if (code == keys.H)  // ctrl-alt-h
+        {
+          var homeURL = "browser.js";
+          console.log("Loading home url: ", homeURL);
+          childScene.url = homeURL;
+          e.stopPropagation();
+        }
       }// ctrl-alt
     });
   }
@@ -299,6 +278,7 @@ if (false)
       {
         if(childScene.api.wantsClearscreen()) // use delegate preference - returns bool
           blackBg.a = 1; 
+
       }
       else {
           blackBg.a = 1; 
@@ -309,13 +289,12 @@ if (false)
   //
   // Returns:   BOOL preference of 'shell' performing Clearscreen per frame.
   /*
-  module.exports.wantsClearscreen = function()  // delegate
+  module.exports.wantsClearscreen1 = function()  // delegate
   {
     return false;
   };
   */
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
   function releaseResources() {
     if (!isDuk) {
       process.removeListener("uncaughtException", uncaughtException);
