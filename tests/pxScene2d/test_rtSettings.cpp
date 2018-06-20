@@ -217,21 +217,21 @@ public:
 
   void testPermissionPresentRead()
   {
-    rtSettings::instance()->setValue("useSparkPermissionsForPxFileAccess",true);
+    rtSettings::instance()->setValue("disableFilePermissionCheck",true);
     pxScene2d* scene = new pxScene2d();
     rtValue val;
-    EXPECT_TRUE(scene->sparkSetting("useSparkPermissionsForPxFileAccess",val) == RT_OK);
+    EXPECT_TRUE(scene->sparkSetting("disableFilePermissionCheck",val) == RT_OK);
     EXPECT_TRUE(val.toBool() == true);
     delete scene;
-    rtSettings::instance()->remove("useSparkPermissionsForPxFileAccess");
+    rtSettings::instance()->remove("disableFilePermissionCheck");
   }
 
   void testPermissionAbsentRead()
   {
     pxScene2d* scene = new pxScene2d();
     rtValue val;
-    EXPECT_TRUE(scene->sparkSetting("useSparkPermissionsForPxFileAccess",val) == RT_OK);
-    EXPECT_TRUE(0 == strcmp(val.toString().cString(),"SETTINGS_NOT_FOUND"));
+    EXPECT_TRUE(scene->sparkSetting("disableFilePermissionCheck",val) == RT_OK);
+    EXPECT_TRUE(true == val.isEmpty());
     delete scene;
   }
 };
