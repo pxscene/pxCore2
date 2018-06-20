@@ -798,10 +798,15 @@ void pxFontAtlas::clearTexture()
 {
   if( mTexture) {
     mTexture->deleteTexture();
+    mTexture = 0;
   }
 }
 bool pxFontAtlas::addGlyph(uint32_t w, uint32_t h, void* buffer, GlyphTextureEntry& e)
 {
+  if (!mTexture)
+  {
+    mTexture = context.createTexture(PXSCENE_FONT_ATLAS_DIM,PXSCENE_FONT_ATLAS_DIM,PXSCENE_FONT_ATLAS_DIM,PXSCENE_FONT_ATLAS_DIM, NULL);
+  }
   //return false;
   // bail on biggish glyphs
   if (h < 128)
