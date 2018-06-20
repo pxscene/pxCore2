@@ -1,6 +1,6 @@
 /*
 
- pxCore Copyright 2005-2017 John Robinson
+ pxCore Copyright 2005-2018 John Robinson
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -40,8 +40,8 @@ testView(): mContainer(NULL),mRefCount(0),mw(0),mh(0),mEntered(false),mMouseX(0)
   virtual void RT_STDCALL onSize(int32_t w, int32_t h)
   {
     rtLogInfo("testView::onSize(%d, %d)", w, h);
-    mw = w;
-    mh = h;
+    mw = static_cast<float>(w);
+    mh = static_cast<float>(h);
   }
 
   virtual bool RT_STDCALL onMouseDown(int32_t x, int32_t y, uint32_t flags)

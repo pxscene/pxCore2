@@ -1,6 +1,6 @@
 /*
 
- pxCore Copyright 2005-2017 John Robinson
+ pxCore Copyright 2005-2018 John Robinson
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@
 // rtUrlUtils.h
 
 #include "rtUrlUtils.h"
-#include <string.h>
 #include <ctype.h>
 
 
@@ -91,21 +90,30 @@ rtString rtUrlEncodeParameters(const char* url)
  * rtUrlGetOrigin: Takes an url in the form of
  *  "http://blahblah/index.js?some=some1&parm=value" and
  *  returns an rtString in form scheme://host or
- *  an empty rtString if url is not valid
+ *  an empty rtString if url is not valid or is the local file system
  */
 rtString rtUrlGetOrigin(const char* url)
 {
   if (url != NULL)
   {
+    // See https://tools.ietf.org/html/rfc8089
+    const char* u = url;
+    const char* f = "file:";
+    for (; *u && *f && tolower(*u) == *f; u++, f++);
+    if (*f == 0)
+    {
+      return rtString();
+    }
+
     // See http://www.ietf.org/rfc/rfc3986.txt.
     // URI = scheme ":" hier-part [ "?" query ] [ "#" fragment ]
     // scheme = ALPHA *( ALPHA / DIGIT / "+" / "-" / "." )
-    const char* u = url;
+    u = url;
     for (; *u && (*u == '+' || *u == '-' || *u == '.' || isalpha(*u) || isdigit(*u)); u++);
     if (*u == ':' && u != url)
     {
       u++;
-      if (0 == strncmp(u, "//", 2))
+      if (*u == '/' && *(u + 1) == '/')
       {
         u += 2;
         for (; *u && *u != '/' && *u != '?' && *u != '#'; u++);

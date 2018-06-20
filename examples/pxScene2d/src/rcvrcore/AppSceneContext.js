@@ -1,3 +1,21 @@
+/*
+
+pxCore Copyright 2005-2018 John Robinson
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+*/
+
 //"use strict";
 
 var isDuk=(typeof timers != "undefined")?true:false;
@@ -14,6 +32,7 @@ var SceneModuleManifest = require('rcvrcore/SceneModuleManifest');
 var JarFileMap = require('rcvrcore/utils/JarFileMap');
 var AsyncFileAcquisition = require('rcvrcore/utils/AsyncFileAcquisition');
 var AccessControl = require('rcvrcore/utils/AccessControl');
+var WrapObj = require('rcvrcore/utils/WrapObj');
 
 var log = new Logger('AppSceneContext');
 //overriding original timeout and interval functions
@@ -246,7 +265,7 @@ AppSceneContext.prototype.loadPackage = function(packageUri) {
     .catch(function (err) {
       console.info("AppSceneContext#loadScenePackage3");
       thisMakeReady(false, {});
-      console.error("AppSceneContext#loadScenePackage: Error: Did not load fileArchive: Error=" + err );
+      console.error("AppSceneContext#loadScenePackage: Error: Did not load fileArchive: Error=",err );
     });
 };
 
@@ -341,6 +360,9 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (packageUri, module
     }
 
     if (!isDuk) {
+      var processWrap = WrapObj(process, {"binding":function() { throw new Error("process.binding is not supported"); }});
+      var globalWrap = WrapObj(global, {"process":processWrap});
+
       newSandbox = {
         sandboxName: "InitialSandbox",
         xmodule: xModule,
@@ -350,10 +372,9 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (packageUri, module
         queryStringModule: require("querystring"),
         theNamedContext: "Sandbox: " + uri,
         Buffer: Buffer,
-        importTracking: {},
-        process: process,
+        process: processWrap,
         require: requireMethod,
-        global: global,
+        global: globalWrap,
         setTimeout: function (callback, after, arg1, arg2, arg3) {
           //pass the timers list to callback function on timeout
           var timerId = SetTimeout(setTimeoutCallback, after, this.timers, function() { callback(arg1, arg2, arg3)});
@@ -687,7 +708,7 @@ AppSceneContext.prototype.include = function(filePath, currentXModule) {
         // file acquired
         _this.processCodeBuffer(origFilePath, filePath, currentXModule, moduleLoader, onImportComplete, reject);
       }).catch(function(err){
-        console.error("Error: could not load file " + filePath  + ", err=" + err);
+        console.error("Error: could not load file ", filePath, ", err=", err);
         reject("include failed");
       });
   });

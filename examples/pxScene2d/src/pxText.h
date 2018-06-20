@@ -1,6 +1,6 @@
 /*
 
- pxCore Copyright 2005-2017 John Robinson
+ pxCore Copyright 2005-2018 John Robinson
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -74,8 +74,8 @@ public:
   
   virtual rtError Set(uint32_t i, const rtValue* value) override
   {
-    std::ignore = i;
-    std::ignore = value;
+    (void)i;
+    (void)value;
     rtLogError("pxText::Set(uint32_t, const rtValue*) - not implemented");
     return RT_ERROR_NOT_IMPLEMENTED;
   }

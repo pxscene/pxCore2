@@ -33,18 +33,12 @@
 
 >Install Xcode, CMake and quilt
 >   * Download the latest version of Xcode from https://developer.apple.com/xcode/download/
->   * Download the latest cmake from https://cmake.org/download/
->   * Install cmake and setup the following symbolic links in /usr/local/bin
-1. Install cmake and setup the following symbolic links in /usr/local/bin:
-    ~~~~
-    ln -s /Applications/CMake.app/Contents/bin/ccmake /usr/local/bin/ccmake 
-    ln -s /Applications/CMake.app/Contents/bin/cmake /usr/local/bin/cmake 
-    ln -s /Applications/CMake.app/Contents/bin/cmake-gui /usr/local/bin/cmake-gui
-    ln -s /Applications/CMake.app/Contents/bin/cpack /usr/local/bin/cpack
-    ln -s /Applications/CMake.app/Contents/bin/ctest /usr/local/bin/ctest
-    ~~~~
->   * Install quilt
+>   * Download and install the latest version of brew from https://brew.sh/
+>   * From terminal install dependencies: cmake, pkg-config, quilt, java.
 
+```bash
+    brew install cmake pkg-config quilt caskroom/cask/java
+```
 
 ## Windows Setup
 >Setup Windows 10

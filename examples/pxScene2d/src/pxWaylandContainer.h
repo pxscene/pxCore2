@@ -1,6 +1,6 @@
 /*
 
- pxCore Copyright 2005-2017 John Robinson
+ pxCore Copyright 2005-2018 John Robinson
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -33,8 +33,8 @@ class pxWaylandContainer: public pxViewContainer, pxWaylandEvents {
   rtProperty(hasApi, hasApi, setHasApi, bool);
   rtReadOnlyProperty(api, api, rtValue);
   rtReadOnlyProperty(remoteReady, remoteReady, rtValue);
-  rtMethodNoArgAndReturn("suspend", suspend, bool);
-  rtMethodNoArgAndReturn("resume", resume, bool);
+  rtMethod1ArgAndReturn("suspend", suspend, rtValue, bool);
+  rtMethod1ArgAndReturn("resume", resume, rtValue, bool);
   rtMethodNoArgAndReturn("destroy", destroy, bool);
 public:
   pxWaylandContainer(pxScene2d* scene);
@@ -75,8 +75,8 @@ public:
   rtError api(rtValue& v) const;
   rtError remoteReady(rtValue& v) const;
 
-  rtError suspend(bool& b);
-  rtError resume(bool& b);
+  rtError suspend(const rtValue& v, bool& b);
+  rtError resume(const rtValue& v, bool& b);
   rtError destroy(bool& b);
 
 private:

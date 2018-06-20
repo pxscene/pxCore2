@@ -1,6 +1,6 @@
 /*
 
- pxCore Copyright 2005-2017 John Robinson
+ pxCore Copyright 2005-2018 John Robinson
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -26,11 +26,14 @@
 #include "rtRef.h"
 #include "pxResource.h"
 #include "pxUtil.h"
+#include "rtThreadPool.h"
 
 using namespace std;
 
 extern rtThreadQueue* gUIThreadQueue;
 extern pxContext context;
+
+rtThreadPool textureCreateThreadPool(1);
 
 pxResource::~pxResource() 
 {
@@ -248,8 +251,8 @@ void pxResource::raiseDownloadPriority()
 /**********************************************************************/
 /**********************************************************************/
 
-rtImageResource::rtImageResource(const char* url, const char* proxy) : pxResource(), mTexture(), mTextureMutex(), mImageOffscreen(),
-                                                                       mCompressedData(NULL), mCompressedDataSize(0)
+rtImageResource::rtImageResource(const char* url, const char* proxy, int32_t iw /* = 0 */,  int32_t ih /* = 0 */ )
+    : pxResource(), mTexture(), mDownloadedTexture(), mTextureMutex(), mDownloadComplete(false), init_w(iw), init_h(ih)
 {
   setUrl(url, proxy);
 }
@@ -257,7 +260,6 @@ rtImageResource::~rtImageResource()
 {
   //rtLogDebug("destructor for rtImageResource for %s\n",mUrl.cString());
   //pxImageManager::removeImage( mUrl);
-  clearDownloadedData();
 }
   
 unsigned long rtImageResource::Release() 
@@ -266,7 +268,7 @@ unsigned long rtImageResource::Release()
   long l = rtAtomicDec(&mRefCount);
   if (l == 0) 
   {
-    pxImageManager::removeImage( mUrl);      
+    pxImageManager::removeImage( mUrl, init_w, init_h);
     delete this;
     
   }
@@ -322,50 +324,57 @@ pxTextureRef rtImageResource::getTexture(bool initializing)
   if (!mTexture.getPtr() && (isInitialized() || initializing))
   {
     mTextureMutex.lock();
-    if (mCompressedData != NULL)
+    if (mDownloadComplete)
     {
-      mTexture = context.createTexture(mImageOffscreen, mCompressedData, mCompressedDataSize);
-      delete [] mCompressedData;
-      mCompressedData = NULL;
+      mTexture = mDownloadedTexture;
+      mDownloadedTexture = NULL;
     }
     mTextureMutex.unlock();
   }
   return mTexture;
 }
 
-void rtImageResource::setTextureData(pxOffscreen& imageOffscreen, const char* data, const size_t dataSize)
+void prepareImageResource(void* data)
 {
-  mTextureMutex.lock();
-  mImageOffscreen = imageOffscreen;
-  if (mCompressedData != NULL)
-  {
-    delete [] mCompressedData;
-    mCompressedData = NULL;
-  }
-  if (data == NULL)
-  {
-    mCompressedData = NULL;
-    mCompressedDataSize = 0;
-  }
-  else
-  {
-    mCompressedData = new char[dataSize];
-    mCompressedDataSize = dataSize;
-    memcpy(mCompressedData, data, mCompressedDataSize);
-  }
-  mTextureMutex.unlock();
+  rtImageResource* imageResource = (rtImageResource*)data;
+  imageResource->prepare();
 }
 
-void rtImageResource::clearDownloadedData()
+void rtImageResource::prepare()
 {
-  mTextureMutex.lock();
-  if (mCompressedData != NULL)
+#ifdef ENABLE_BACKGROUND_TEXTURE_CREATION
+  static bool enableInternalContextOnce = true;
+  if (enableInternalContextOnce)
   {
-    delete [] mCompressedData;
-    mCompressedData = NULL;
+    context.enableInternalContext(true);
   }
-  mCompressedDataSize = 0;
+  enableInternalContextOnce = false;
+  mDownloadedTexture->prepareForRendering();
+#endif //ENABLE_BACKGROUND_TEXTURE_CREATION
+  mTextureMutex.lock();
+  mDownloadComplete = true;
   mTextureMutex.unlock();
+  setLoadStatus("statusCode", 0);
+  // Since this object can be released before we get a async completion
+  // We need to maintain this object's lifetime
+  // TODO review overall flow and organization
+  if (gUIThreadQueue)
+  {
+    gUIThreadQueue->addTask(pxResource::onDownloadCompleteUI, this, (void*)"resolve");
+  }
+}
+
+void rtImageResource::setTextureData(pxOffscreen& imageOffscreen, const char* data, const size_t dataSize)
+{
+  mDownloadedTexture = context.createTexture(imageOffscreen, data, dataSize);
+#ifdef ENABLE_BACKGROUND_TEXTURE_CREATION
+  rtThreadTask* task = new rtThreadTask(prepareImageResource, (void*)this, "");
+  textureCreateThreadPool.executeTask(task);
+#else
+  mTextureMutex.lock();
+  mDownloadComplete = true;
+  mTextureMutex.unlock();
+#endif //ENABLE_BACKGROUND_TEXTURE_CREATION
 }
 
 void rtImageResource::setupResource()
@@ -455,7 +464,7 @@ void rtImageResource::loadResourceFromFile()
   rtError loadImageSuccess = rtLoadFile(mUrl, d);
   if (loadImageSuccess == RT_OK)
   {
-    loadImageSuccess = pxLoadImage((const char *) d.data(), d.length(), imageOffscreen);
+    loadImageSuccess = pxLoadImage((const char *) d.data(), d.length(), imageOffscreen, init_w, init_h);
   }
   else
   {
@@ -518,19 +527,23 @@ void pxResource::onDownloadComplete(rtFileDownloadRequest* fileDownloadRequest)
   }
 }
 
-bool rtImageResource::loadResourceData(rtFileDownloadRequest* fileDownloadRequest)
+uint32_t rtImageResource::loadResourceData(rtFileDownloadRequest* fileDownloadRequest)
 {
       pxOffscreen imageOffscreen;
       if (pxLoadImage(fileDownloadRequest->downloadedData(),
                       fileDownloadRequest->downloadedDataSize(),
-                      imageOffscreen) == RT_OK)
+                      imageOffscreen, init_w, init_h) == RT_OK)
       {
         setTextureData(imageOffscreen, fileDownloadRequest->downloadedData(),
                                          fileDownloadRequest->downloadedDataSize());
-        return true;
+#ifdef ENABLE_BACKGROUND_TEXTURE_CREATION
+        return PX_RESOURCE_LOAD_WAIT;
+#else
+        return PX_RESOURCE_LOAD_SUCCESS;
+#endif  //ENABLE_BACKGROUND_TEXTURE_CREATION
       }
       
-      return false;
+      return PX_RESOURCE_LOAD_FAIL;
 }
 /** pxResource processDownloadedResource */
 void pxResource::processDownloadedResource(rtFileDownloadRequest* fileDownloadRequest)
@@ -553,7 +566,8 @@ void pxResource::processDownloadedResource(rtFileDownloadRequest* fileDownloadRe
         fileDownloadRequest->httpStatusCode() == 200 &&
         fileDownloadRequest->downloadedData() != NULL)
     {
-      if(!loadResourceData(fileDownloadRequest))
+      int32_t result = loadResourceData(fileDownloadRequest);
+      if(result == PX_RESOURCE_LOAD_FAIL)
       {
         rtLogError("Resource Decode Failed: %s with proxy: %s", fileDownloadRequest->fileUrl().cString(), fileDownloadRequest->proxy().cString());
         setLoadStatus("statusCode", PX_RESOURCE_STATUS_DECODE_FAILURE);
@@ -566,7 +580,7 @@ void pxResource::processDownloadedResource(rtFileDownloadRequest* fileDownloadRe
           gUIThreadQueue->addTask(pxResource::onDownloadCompleteUI, this, (void*)"reject");
         }
       }
-      else
+      else if (result == PX_RESOURCE_LOAD_SUCCESS)
       {
         //rtLogInfo("File download Successful: %s", fileDownloadRequest->fileUrl().cString());
         // ToDo: Could context.createTexture ever fail and return null here?
@@ -635,7 +649,7 @@ void rtImageAResource::init()
   mInitialized = true;
 }
 
-bool rtImageAResource::loadResourceData(rtFileDownloadRequest* fileDownloadRequest)
+uint32_t rtImageAResource::loadResourceData(rtFileDownloadRequest* fileDownloadRequest)
 {
   if (fileDownloadRequest->downloadStatusCode() == 0)
   {
@@ -645,10 +659,10 @@ bool rtImageAResource::loadResourceData(rtFileDownloadRequest* fileDownloadReque
 
     if (pxLoadAImage(data, dataSize, mTimedOffscreenSequence) == RT_OK)
     {
-      return true;
+      return PX_RESOURCE_LOAD_SUCCESS;
     }
   }
-  return false;
+  return PX_RESOURCE_LOAD_FAIL;
 }
 
 void rtImageAResource::loadResourceFromFile()
@@ -660,24 +674,37 @@ void rtImageAResource::loadResourceFromFile()
 
 ImageMap pxImageManager::mImageMap;
 rtRef<rtImageResource> pxImageManager::emptyUrlResource = 0;
-/** static pxImageManager::getImage */
-rtRef<rtImageResource> pxImageManager::getImage(const char* url, const char* proxy)
+
+rtRef<rtImageResource> pxImageManager::getImage(const char* url, const char* proxy /* = NULL */, int32_t iw /* = 0 */,  int32_t ih /* = 0 */ )
 {
   //rtLogDebug("pxImageManager::getImage\n");
   // Handle empty url
   if(!url || strlen(url) == 0) {
     if( !emptyUrlResource) {
       //rtLogDebug("Creating empty Url rtImageResource\n");
-      emptyUrlResource = new rtImageResource;
+      emptyUrlResource = new rtImageResource(NULL, NULL, iw, ih);
       //rtLogDebug("Done creating empty Url rtImageResource\n");
     }
     //rtLogDebug("Returning empty Url rtImageResource\n");
     return emptyUrlResource;
   }
   
+  rtString key = url;
+  
+  // For SVG  (and scaled PNG/JPG in the future) at a given WxH dimensions ... append to key
+  if(iw > 0 || ih > 0)
+  {
+    rtValue ww = iw;
+    rtValue hh = ih;
+    
+    key.append( ww.toString() );
+    key.append( "x" );
+    key.append( hh.toString() );
+  }
+  
   rtRef<rtImageResource> pResImage;
   
-  ImageMap::iterator it = mImageMap.find(url);
+  ImageMap::iterator it = mImageMap.find(key.cString());
   if (it != mImageMap.end())
   {
     //rtLogInfo("Found rtImageResource in map for \"%s\"\n",url);
@@ -692,23 +719,35 @@ rtRef<rtImageResource> pxImageManager::getImage(const char* url, const char* pro
   else 
   {
     //rtLogInfo("Create rtImageResource in map for \"%s\"\n",url);
-    pResImage = new rtImageResource(url, proxy);
-    mImageMap.insert(make_pair(url, pResImage));
+    pResImage = new rtImageResource(url, proxy, iw, ih);
+    mImageMap.insert(make_pair(key.cString(), pResImage));
     pResImage->loadResource();
   }
   
   return pResImage;
 }
 
-void pxImageManager::removeImage(rtString imageUrl)
+void pxImageManager::removeImage(rtString url, int32_t iw /* = 0 */,  int32_t ih /* = 0 */ )
 {
+  rtString key = url;
+
+  // For SVG  (and scaled PNG/JPG in the future) at a given WxH dimensions ... append to key
+  if(iw > 0 || ih > 0)
+  {
+    rtValue ww = iw;
+    rtValue hh = ih;
+    
+    key.append( ww.toString() );
+    key.append( "x" );
+    key.append( hh.toString() );
+  }
+  
   //rtLogDebug("pxImageManager::removeImage(\"%s\")\n",imageUrl.cString());
-  ImageMap::iterator it = mImageMap.find(imageUrl);
+  ImageMap::iterator it = mImageMap.find(key.cString());
   if (it != mImageMap.end())
   {  
     mImageMap.erase(it);
   }
-  //mImageMap.erase(imageUrl);
 }
 
 ImageAMap pxImageManager::mImageAMap;

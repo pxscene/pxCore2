@@ -1,6 +1,6 @@
  /*
 
- rtCore Copyright 2005-2017 John Robinson
+ pxCore Copyright 2005-2018 John Robinson
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -645,7 +645,7 @@ class rtEmit: public rtIFunction
 {
 
 public:
-  rtEmit(): mRefCount(0), mProcessingEvents(false) {}
+  rtEmit(): mRefCount(0), mProcessingEvents(false), mPendingEntriesToAdd() {}
   virtual ~rtEmit() {}
 
   virtual unsigned long AddRef();
@@ -682,6 +682,7 @@ protected:
   std::vector<_rtEmitEntry> mEntries;
   rtAtomic mRefCount;
   bool mProcessingEvents;
+  std::vector<_rtEmitEntry> mPendingEntriesToAdd;
 };
 
 class rtEmitRef: public rtRef<rtEmit>, public rtFunctionBase

@@ -1,6 +1,6 @@
 /*
 
- pxCore Copyright 2005-2017 John Robinson
+ pxCore Copyright 2005-2018 John Robinson
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -41,8 +41,10 @@
 #include "pxText.h"
 #include "pxTextBox.h"
 #include "pxImage.h"
-#include "pxCanvas.h"
+
+#ifdef BUILD_WITH_PXPATH
 #include "pxPath.h"
+#endif
 
 #ifdef PX_SERVICE_MANAGER
 #include "pxServiceManager.h"
@@ -516,16 +518,16 @@ public:
 
   virtual rtError Set(const char* name, const rtValue* value)
   {
-    std::ignore = name;
-    std::ignore = value;
+    (void)name;
+    (void)value;
     // readonly property
     return RT_PROP_NOT_FOUND;
   }
 
   virtual rtError Set(uint32_t i, const rtValue* value)
   {
-    std::ignore = i;
-    std::ignore = value;
+    (void)i;
+    (void)value;
     // readonly property
     return RT_PROP_NOT_FOUND;
   }
@@ -661,8 +663,8 @@ rtError pxObject::setFocus(bool v)
 
 rtError pxObject::Set(uint32_t i, const rtValue* value)
 {
-  std::ignore = i;
-  std::ignore = value;
+  (void)i;
+  (void)value;
   rtLogError("pxObject::Set(uint32_t, const rtValue*) - not implemented");
   return RT_ERROR_NOT_IMPLEMENTED;
 }
@@ -1004,7 +1006,7 @@ void pxObject::animateToInternal(const char* prop, double to, double duration,
   a.cancelled = false;
   a.prop     = prop;
   a.from     = get<float>(prop);
-  a.to       = to;
+  a.to       = static_cast<float>(to);
   a.start    = -1;
   a.duration = duration;
   a.interpFunc  = interp ? interp : pxInterpLinear;
@@ -1167,7 +1169,7 @@ void pxObject::update(double t)
 
     }
 
-    float v = from + (to - from) * d;
+    float v = static_cast<float> (from + (to - from) * d);
     assert(mCancelInSet);
     mCancelInSet = false;
     set(a.prop, v);
@@ -1414,6 +1416,8 @@ void pxObject::drawInternal(bool maskPass)
   //rtLogInfo("pxObject::drawInternal mPainting=%d mw=%f mh=%f\n", mPainting, mw, mh);
   if (mPainting)
   {
+    pxConstantsMaskOperation::constants maskOp = pxConstantsMaskOperation::NORMAL; // default
+    
     // MASKING ? ---------------------------------------------------------------------------------------------------
     bool maskFound = false;
     for(vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
@@ -1422,6 +1426,16 @@ void pxObject::drawInternal(bool maskPass)
       {
         //rtLogInfo("pxObject::drawInternal mask is true mw=%f mh=%f\n", mw, mh);
         maskFound = true;
+        
+        pxImage *img = dynamic_cast<pxImage *>( &*it->getPtr() ) ;
+        if(img)
+        {
+          int32_t val;
+          img->maskOp(val); // get mask operation
+          
+          maskOp = (pxConstantsMaskOperation::constants) val;
+        }
+        
         break;
       }
     }
@@ -1436,7 +1450,8 @@ void pxObject::drawInternal(bool maskPass)
       createSnapshotOfChildren();
       context.setMatrix(m);
       //rtLogInfo("context.drawImage\n");
-      context.drawImage(0, 0, w, h, mDrawableSnapshotForMask->getTexture(), mMaskSnapshot->getTexture());
+      
+      context.drawImageMasked(0, 0, w, h, maskOp, mDrawableSnapshotForMask->getTexture(), mMaskSnapshot->getTexture());
     }
     // CLIPPING ? ---------------------------------------------------------------------------------------------------
     else if (mClip )
@@ -1625,7 +1640,7 @@ void pxObject::createSnapshot(pxContextFramebufferRef& fbo, bool separateContext
   {
     clearSnapshot(fbo);
     //rtLogInfo("createFramebuffer  mw=%f mh=%f\n", w, h);
-    fbo = context.createFramebuffer(floor(w), floor(h), antiAliasing);
+    fbo = context.createFramebuffer(static_cast<int>(floor(w)), static_cast<int>(floor(h)), antiAliasing);
 #ifdef PX_DIRTY_RECTANGLES
     fullFboRepaint = true;
 #endif //PX_DIRTY_RECTANGLES
@@ -1633,11 +1648,12 @@ void pxObject::createSnapshot(pxContextFramebufferRef& fbo, bool separateContext
   else
   {
     //rtLogInfo("updateFramebuffer  mw=%f mh=%f\n", w, h);
-    context.updateFramebuffer(fbo, floor(w), floor(h));
+    context.updateFramebuffer(fbo, static_cast<int>(floor(w)), static_cast<int>(floor(h)));
   }
   pxContextFramebufferRef previousRenderSurface = context.getCurrentFramebuffer();
   if (mRepaint && context.setFramebuffer(fbo) == PX_OK)
   {
+    context.clear(static_cast<int>(w), static_cast<int>(h));
 #ifdef PX_DIRTY_RECTANGLES
     int clearX = mDirtyRect.left();
     int clearY = mDirtyRect.top();
@@ -1653,7 +1669,7 @@ void pxObject::createSnapshot(pxContextFramebufferRef& fbo, bool separateContext
     }
     context.clear(clearX, clearY, clearWidth, clearHeight);
 #else
-    context.clear(w, h);
+    context.clear(static_cast<int>(w), static_cast<int>(h));
 #endif //PX_DIRTY_RECTANGLES
     draw();
 
@@ -1688,26 +1704,26 @@ void pxObject::createSnapshotOfChildren()
 
   if (mDrawableSnapshotForMask.getPtr() == NULL || mDrawableSnapshotForMask->width() != floor(w) || mDrawableSnapshotForMask->height() != floor(h))
   {
-    mDrawableSnapshotForMask = context.createFramebuffer(floor(w), floor(h));
+    mDrawableSnapshotForMask = context.createFramebuffer(static_cast<int>(floor(w)), static_cast<int>(floor(h)));
   }
   else
   {
-    context.updateFramebuffer(mDrawableSnapshotForMask, floor(w), floor(h));
+    context.updateFramebuffer(mDrawableSnapshotForMask, static_cast<int>(floor(w)), static_cast<int>(floor(h)));
   }
 
   if (mMaskSnapshot.getPtr() == NULL || mMaskSnapshot->width() != floor(w) || mMaskSnapshot->height() != floor(h))
   {
-    mMaskSnapshot = context.createFramebuffer(floor(w), floor(h));
+    mMaskSnapshot = context.createFramebuffer(static_cast<int>(floor(w)), static_cast<int>(floor(h)));
   }
   else
   {
-    context.updateFramebuffer(mMaskSnapshot, floor(w), floor(h));
+    context.updateFramebuffer(mMaskSnapshot, static_cast<int>(floor(w)), static_cast<int>(floor(h)));
   }
 
   pxContextFramebufferRef previousRenderSurface = context.getCurrentFramebuffer();
   if (context.setFramebuffer(mMaskSnapshot) == PX_OK)
   {
-    context.clear(w, h);
+    context.clear(static_cast<int>(w), static_cast<int>(h));
 
     for(vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
     {
@@ -1722,7 +1738,7 @@ void pxObject::createSnapshotOfChildren()
 
   if (context.setFramebuffer(mDrawableSnapshotForMask) == PX_OK)
   {
-    context.clear(w, h);
+    context.clear(static_cast<int>(w), static_cast<int>(h));
 
     for(vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
     {
@@ -1915,9 +1931,10 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   mInfo.set("engine", script.engine());
 #endif
 
-    rtObjectRef build = new rtMapObject;
-    build.set("date", xstr(__DATE__));
-    build.set("time", xstr(__TIME__));
+  rtObjectRef build = new rtMapObject;
+  build.set("date", xstr(__DATE__));
+  build.set("time", xstr(__TIME__));
+  build.set("revision", xstr(SPARK_BUILD_GIT_REVISION));
 
   mInfo.set("build", build);
   mInfo.set("gfxmemory", context.currentTextureMemoryUsageInBytes());
@@ -1950,7 +1967,6 @@ rtError pxScene2d::dispose()
 
     mRoot     = NULL;
     mInfo     = NULL;
-    mCanvas   = NULL;
     mFocusObj = NULL;
 
     return RT_OK;
@@ -1980,6 +1996,12 @@ void pxScene2d::init()
 
 rtError pxScene2d::create(rtObjectRef p, rtObjectRef& o)
 {
+  if (mDisposed)
+  {
+    rtLogInfo("Scene is disposed, not creating any pxobjects");
+    return RT_FAIL;
+  }
+
   rtError e = RT_OK;
   rtString t = p.get<rtString>("t");
   bool needpxObjectTracking = true;
@@ -1992,10 +2014,10 @@ rtError pxScene2d::create(rtObjectRef p, rtObjectRef& o)
     e = createTextBox(p,o);
   else if (!strcmp("image",t.cString()))
     e = createImage(p,o);
-#ifdef ENABLE_PXSCENE_RASTERIZER_PATH
+#ifdef BUILD_WITH_PXPATH
   else if (!strcmp("path",t.cString()))
     e = createPath(p,o);
-#endif //ENABLE_PXSCENE_RASTERIZER_PATH
+#endif // BUILD_WITH_PXPATH
   else if (!strcmp("image9",t.cString()))
     e = createImage9(p,o);
   else if (!strcmp("imageA",t.cString()))
@@ -2090,28 +2112,15 @@ rtError pxScene2d::createImage(rtObjectRef p, rtObjectRef& o)
   o.send("init");
   return RT_OK;
 }
-
+#ifdef BUILD_WITH_PXPATH
 rtError pxScene2d::createPath(rtObjectRef p, rtObjectRef& o)
 {
-  if(mCanvas == NULL) // only need one.
-  {
-    // Lazy init... only on 'path'
-    mCanvas = new pxCanvas(this);
-    mCanvas.set(p);
-    mCanvas.set("id","pxCanvas App Singleton");
-    mCanvas.set("x",0);
-    mCanvas.set("y",0);
-    mCanvas.set("w",mWidth);
-    mCanvas.set("h",mHeight);
-
-    mCanvas.send("init");
-  }
-
   o = new pxPath(this);
   o.set(p);
   o.send("init");
   return RT_OK;
 }
+#endif // BUILD_WITH_PXPATH
 
 rtError pxScene2d::createImage9(rtObjectRef p, rtObjectRef& o)
 {
@@ -2142,11 +2151,29 @@ rtError pxScene2d::createImageResource(rtObjectRef p, rtObjectRef& o)
   rtString url = p.get<rtString>("url");
   rtString proxy = p.get<rtString>("proxy");
 
+  rtString param_w = p.get<rtString>("w");
+  rtString param_h = p.get<rtString>("h");
+
+  int32_t iw = 0;
+  int32_t ih = 0;
+
+  if(param_w.isEmpty() == false && param_w.length() > 0)
+  {
+    iw = rtValue(param_w).toInt32();
+  }
+
+  if(param_h.isEmpty() == false && param_h.length() > 0)
+  {
+    ih = rtValue(param_h).toInt32();
+  }
+  
 #ifdef ENABLE_PERMISSIONS_CHECK
-  rtPermissionsCheck(mPermissions, url.cString(), rtPermissions::DEFAULT)
+  if (RT_OK != mPermissions->allows(url, rtPermissions::DEFAULT))
+    return RT_ERROR_NOT_ALLOWED;
 #endif
 
-  o = pxImageManager::getImage(url, proxy);
+  o = pxImageManager::getImage(url, proxy, iw, ih);
+  
   o.send("init");
   return RT_OK;
 }
@@ -2157,7 +2184,8 @@ rtError pxScene2d::createImageAResource(rtObjectRef p, rtObjectRef& o)
   rtString proxy = p.get<rtString>("proxy");
 
 #ifdef ENABLE_PERMISSIONS_CHECK
-  rtPermissionsCheck(mPermissions, url.cString(), rtPermissions::DEFAULT)
+  if (RT_OK != mPermissions->allows(url, rtPermissions::DEFAULT))
+    return RT_ERROR_NOT_ALLOWED;
 #endif
 
   o = pxImageManager::getImageA(url, proxy);
@@ -2171,7 +2199,8 @@ rtError pxScene2d::createFontResource(rtObjectRef p, rtObjectRef& o)
   rtString proxy = p.get<rtString>("proxy");
 
 #ifdef ENABLE_PERMISSIONS_CHECK
-  rtPermissionsCheck(mPermissions, url.cString(), rtPermissions::DEFAULT)
+  if (RT_OK != mPermissions->allows(url, rtPermissions::DEFAULT))
+    return RT_ERROR_NOT_ALLOWED;
 #endif
 
   o = pxFontManager::getFont(url, proxy);
@@ -2441,7 +2470,7 @@ void pxScene2d::onUpdate(double t)
   if (mTop)
   {
     unsigned int target_frame_ms = 60;
-    int targetFPS = (1.0 / ((double) target_frame_ms)) * 1000;
+    int targetFPS = static_cast<int> ((1.0 / ((double) target_frame_ms)) * 1000);
 
     if (frameCount >= targetFPS)
     {
@@ -2629,7 +2658,7 @@ bool pxScene2d::onMouseDown(int32_t x, int32_t y, uint32_t flags)
   {
     //Looking for an object
     pxMatrix4f m;
-    pxPoint2f pt(x,y), hitPt;
+    pxPoint2f pt(static_cast<float>(x),static_cast<float>(y)), hitPt;
     //    pt.x = x; pt.y = y;
     rtRef<pxObject> hit;
 
@@ -2637,8 +2666,8 @@ bool pxScene2d::onMouseDown(int32_t x, int32_t y, uint32_t flags)
     {
       mMouseDown = hit;
       // scene coordinates
-      mMouseDownPt.x = x;
-      mMouseDownPt.y = y;
+      mMouseDownPt.x = static_cast<float>(x);
+      mMouseDownPt.y = static_cast<float>(y);
 
       rtObjectRef e = new rtMapObject;
       e.set("name", "onMouseDown");
@@ -2672,7 +2701,7 @@ bool pxScene2d::onMouseUp(int32_t x, int32_t y, uint32_t flags)
   {
     //Looking for an object
     pxMatrix4f m;
-    pxPoint2f pt(x,y), hitPt;
+    pxPoint2f pt(static_cast<float>(x),static_cast<float>(y)), hitPt;
     rtRef<pxObject> hit;
     rtRef<pxObject> tMouseDown = mMouseDown;
 
@@ -2843,7 +2872,8 @@ bool pxScene2d::bubbleEvent(rtObjectRef e, rtRef<pxObject> t,
 
 //    rtLogDebug("before %s bubble\n", preEvent);
     e.set("name", preEvent);
-    for (vector<rtRef<pxObject> >::reverse_iterator it = l.rbegin();!mStopPropagation && it != l.rend();++it)
+    vector<rtRef<pxObject> >::reverse_iterator itReverseEnd = l.rend();
+    for (vector<rtRef<pxObject> >::reverse_iterator it = l.rbegin();!mStopPropagation && it != itReverseEnd;++it)
     {
       // TODO a bit messy
       rtFunctionRef emit = (*it)->mEmit.getPtr();
@@ -2856,7 +2886,8 @@ bool pxScene2d::bubbleEvent(rtObjectRef e, rtRef<pxObject> t,
 
 //    rtLogDebug("before %s bubble\n", event);
     e.set("name", event);
-    for (vector<rtRef<pxObject> >::iterator it = l.begin();!mStopPropagation && it != l.end();++it)
+    vector<rtRef<pxObject> >::iterator itEnd = l.end();
+    for (vector<rtRef<pxObject> >::iterator it = l.begin();!mStopPropagation && it != itEnd;++it)
     {
       // TODO a bit messy
       rtFunctionRef emit = (*it)->mEmit.getPtr();
@@ -2906,9 +2937,11 @@ bool pxScene2d::bubbleEventOnBlur(rtObjectRef e, rtRef<pxObject> t, rtRef<pxObje
     // Walk through object hierarchy starting from root for t (object losing focus) and o (object getting focus) to
     // find index (loseFocusChainIdx) of first common parent.
     unsigned long loseFocusChainIdx = l.size();
-    vector<rtRef<pxObject> >::reverse_iterator it_l = l.rbegin(); // traverse the hierarchy of object losing focus in REVERSE starting with the top most parent
+    vector<rtRef<pxObject> >::reverse_iterator it_l = l.rbegin();
+    vector<rtRef<pxObject> >::reverse_iterator it_lEnd = l.rend();
     vector<rtRef<pxObject> >::reverse_iterator it_m = m.rbegin(); // traverse the hierarchy of object getting focus in REVERSE starting with the top most parent
-    while((it_l != l.rend()) && (it_m != m.rend()) && (*it_l == *it_m))
+    vector<rtRef<pxObject> >::reverse_iterator it_mEnd  = m.rend();
+    while((it_l != it_lEnd) && (it_m != it_mEnd) && (*it_l == *it_m))
     {
       loseFocusChainIdx--;
       it_l++;
@@ -2917,7 +2950,8 @@ bool pxScene2d::bubbleEventOnBlur(rtObjectRef e, rtRef<pxObject> t, rtRef<pxObje
     
     //    rtLogDebug("before %s bubble\n", preEvent);
     e.set("name", "onPreBlur");
-    for (vector<rtRef<pxObject> >::reverse_iterator it = l.rbegin();!mStopPropagation && it != l.rend();++it)
+    vector<rtRef<pxObject> >::reverse_iterator it_reverseEnd = l.rend();
+    for (vector<rtRef<pxObject> >::reverse_iterator it = l.rbegin();!mStopPropagation && it != it_reverseEnd;++it)
     {
       rtFunctionRef emit = (*it)->mEmit.getPtr();
       if (emit)
@@ -2977,13 +3011,13 @@ bool pxScene2d::onMouseMove(int32_t x, int32_t y)
 #if 1
   //Looking for an object
   pxMatrix4f m;
-  pxPoint2f pt(x,y), hitPt;
+  pxPoint2f pt(static_cast<float>(x),static_cast<float>(y)), hitPt;
   rtRef<pxObject> hit;
 
   if (mMouseDown)
   {
     {
-      pxVector4f from(x,y,0,1);
+      pxVector4f from(static_cast<float>(x),static_cast<float>(y),0,1);
       pxVector4f to;
       pxObject::transformPointFromSceneToObject(mMouseDown, from, to);
 
@@ -3188,7 +3222,8 @@ rtError pxScene2d::setCustomAnimator(const rtFunctionRef& v)
 rtError pxScene2d::screenshot(rtString type, rtString& pngData)
 {
 #ifdef ENABLE_PERMISSIONS_CHECK
-  rtPermissionsCheck(mPermissions, "screenshot", rtPermissions::FEATURE)
+  if (RT_OK != mPermissions->allows("screenshot", rtPermissions::FEATURE))
+    return RT_ERROR_NOT_ALLOWED;
 #endif
 
   // Is this a type we support?
@@ -3198,7 +3233,7 @@ rtError pxScene2d::screenshot(rtString type, rtString& pngData)
     pxContextFramebufferRef newFBO;
     // w/o multisampling
     // if needed, render texture of a multisample FBO to a non-multisample FBO and then read from it
-    mRoot->createSnapshot(newFBO, true, false);
+    mRoot->createSnapshot(newFBO, false, false);
     context.setFramebuffer(newFBO);
     pxOffscreen o;
     context.snapshot(o);
@@ -3268,9 +3303,18 @@ rtError pxScene2d::getService(rtString name, rtObjectRef& returnObject)
 
   // Create context from requesting scene
   rtObjectRef ctx = new rtMapObject();
+  rtObjectRef o;
   ctx.set("url", mScriptView != NULL ? mScriptView->getUrl() : "");
+  pxSceneContainer * container = dynamic_cast<pxSceneContainer*>(mContainer);
+  if( container != NULL)  {
+    container->serviceContext(o);
+  }
+  ctx.set("serviceContext", o);
+    
+#ifdef ENABLE_PERMISSIONS_CHECK
   rtValue permissionsValue = mPermissions.getPtr();
   ctx.set("permissions", permissionsValue);
+#endif //ENABLE_PERMISSIONS_CHECK
 
   return getService(name, ctx, returnObject);
 }
@@ -3369,7 +3413,8 @@ rtError pxScene2d::getService(const char* name, const rtObjectRef& ctx, rtObject
         serviceCheckPermissions = permissionsRef;
       }
     }
-    rtPermissionsCheck(serviceCheckPermissions, name, rtPermissions::SERVICE)
+    if (serviceCheckPermissions != NULL && RT_OK != serviceCheckPermissions->allows(name, rtPermissions::SERVICE))
+      return RT_ERROR_NOT_ALLOWED;
     #endif //ENABLE_PERMISSIONS_CHECK
     rtObjectRef serviceManager;
     rtError result = pxServiceManager::findServiceManager(serviceManager);
@@ -3438,6 +3483,7 @@ rtDefineProperty(pxScene2d, api);
 // Properties for access to Constants
 rtDefineProperty(pxScene2d,animation);
 rtDefineProperty(pxScene2d,stretch);
+rtDefineProperty(pxScene2d,maskOp);
 rtDefineProperty(pxScene2d,alignVertical);
 rtDefineProperty(pxScene2d,alignHorizontal);
 rtDefineProperty(pxScene2d,truncation);
@@ -3485,8 +3531,8 @@ void RT_STDCALL testView::onDraw()
   float red[]= {1,0,0,1};
   float green[] = {0,1,0,1};
   context.drawRect(mw, mh, 1, mEntered?green:red, white);
-  context.drawDiagLine(0,mMouseY,mw,mMouseY,black);
-  context.drawDiagLine(mMouseX,0,mMouseX,mh,black);
+  context.drawDiagLine(0,static_cast<float>(mMouseY),mw,static_cast<float>(mMouseY),black);
+  context.drawDiagLine(static_cast<float>(mMouseX),0,static_cast<float>(mMouseX),mh,black);
 }
 
 void pxViewContainer::invalidateRect(pxRect* r)
@@ -3601,6 +3647,7 @@ rtDefineProperty(pxSceneContainer, permissions);
 #endif
 rtDefineProperty(pxSceneContainer, api);
 rtDefineProperty(pxSceneContainer, ready);
+rtDefineProperty(pxSceneContainer, serviceContext);
 //rtDefineMethod(pxSceneContainer, makeReady);   // DEPRECATED ?
 
 
@@ -3609,7 +3656,8 @@ rtError pxSceneContainer::setUrl(rtString url)
   rtLogInfo("pxSceneContainer::setUrl(%s)",url.cString());
 
 #ifdef ENABLE_PERMISSIONS_CHECK
-  rtPermissionsCheck((mScene != NULL ? mScene->permissions() : NULL), url.cString(), rtPermissions::DEFAULT)
+  if (mScene != NULL && RT_OK != mScene->permissions()->allows(url, rtPermissions::DEFAULT))
+    return RT_ERROR_NOT_ALLOWED;
 #endif
 
   // If old promise is still unfulfilled resolve it
@@ -3653,6 +3701,15 @@ rtError pxSceneContainer::ready(rtObjectRef& o) const
   }
   rtLogInfo("mScriptView is NOT set!\n");
   return RT_FAIL;
+}
+
+rtError pxSceneContainer::setServiceContext(rtObjectRef o) 
+{ 
+  // Only allow serviceContext to be set at construction time
+  if( !mInitialized)
+    mServiceContext = o;
+
+  return RT_OK;
 }
 
 rtError pxSceneContainer::setScriptView(pxScriptView* scriptView)
@@ -3776,7 +3833,7 @@ void pxScriptView::runScript()
 		unsigned int bufferLen = strlen(buffer);
 		char * newBuffer = (char*)malloc(sizeof(char)*(bufferLen + 1));
 		unsigned int newBufferLen = 0;
-		for (int i = 0; i < bufferLen - 1; i++) {
+		for (size_t i = 0; i < bufferLen - 1; i++) {
 			if (buffer[i] == '\\') {
 				newBuffer[newBufferLen++] = '/';
 				if (buffer[i + 1] == '\\') {

@@ -1,6 +1,6 @@
 /*
 
- pxCore Copyright 2005-2017 John Robinson
+ pxCore Copyright 2005-2018 John Robinson
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -175,14 +175,14 @@ void pxFont::setupResource()
   }
 }
 
-bool pxFont::loadResourceData(rtFileDownloadRequest* fileDownloadRequest)
+uint32_t pxFont::loadResourceData(rtFileDownloadRequest* fileDownloadRequest)
 {
       // Load the font data
     setFontData( (FT_Byte*)fileDownloadRequest->downloadedData(),
             (FT_Long)fileDownloadRequest->downloadedDataSize(),
             fileDownloadRequest->fileUrl().cString());
             
-      return true;
+      return PX_RESOURCE_LOAD_SUCCESS;
 }
 
 void pxFont::loadResourceFromFile()
@@ -277,7 +277,7 @@ void pxFont::getHeight(uint32_t size, float& height)
   
 	FT_Size_Metrics* metrics = &mFace->size->metrics;
   	
-	height = metrics->height>>6; 
+	height = static_cast<float>(metrics->height>>6); 
 }
   
 void pxFont::getMetrics(uint32_t size, float& height, float& ascender, float& descender, float& naturalLeading)
@@ -296,9 +296,9 @@ void pxFont::getMetrics(uint32_t size, float& height, float& ascender, float& de
   
 	FT_Size_Metrics* metrics = &mFace->size->metrics;
   	
-	height = metrics->height>>6;
-	ascender = metrics->ascender>>6; 
-	descender = -metrics->descender>>6; 
+	height = static_cast<float>(metrics->height>>6);
+	ascender =static_cast<float>(metrics->ascender>>6); 
+	descender = static_cast<float>(-metrics->descender>>6); 
   naturalLeading = height - (ascender + descender);
 
 }
@@ -353,8 +353,8 @@ GlyphTextureEntry pxFont::getGlyphTexture(uint32_t codePoint, float sx, float sy
       {
 #endif
         rtLogWarn("Glyph not in atlas");
-        result.t = context.createTexture(g->bitmap.width, g->bitmap.rows, 
-                                                g->bitmap.width, g->bitmap.rows, 
+        result.t = context.createTexture(static_cast<float>(g->bitmap.width), static_cast<float>(g->bitmap.rows), 
+                                                static_cast<float>(g->bitmap.width), static_cast<float>(g->bitmap.rows), 
                                                 g->bitmap.buffer);
 
         result.u1 = 0;
@@ -437,7 +437,7 @@ void pxFont::measureTextInternal(const char* text, uint32_t size,  float sx, flo
   
   FT_Size_Metrics* metrics = &mFace->size->metrics;
   
-  h = metrics->height>>6;
+  h = static_cast<float>(metrics->height>>6);
   float lw = 0;
   while((codePoint = u8_nextchar((char*)text, &i)) != 0) 
   {
@@ -461,6 +461,7 @@ void pxFont::measureTextInternal(const char* text, uint32_t size,  float sx, flo
   h *= sy;
 }
 
+#ifndef PXSCENE_FONT_ATLAS
 void pxFont::renderText(const char *text, uint32_t size, float x, float y, 
                         float nsx, float nsy, 
                         float* color, float mw) 
@@ -486,8 +487,8 @@ void pxFont::renderText(const char *text, uint32_t size, float x, float y,
     float x2 = x + entry->bitmap_left;
     //float y2 = y - g->bitmap_top;
     float y2 = (y - entry->bitmap_top) + (metrics->ascender>>6);
-    float w = entry->bitmapdotwidth;
-    float h = entry->bitmapdotrows;
+    float w = static_cast<float>(entry->bitmapdotwidth);
+    float h = static_cast<float>(entry->bitmapdotrows);
     
     if (codePoint != '\n')
     {
@@ -537,7 +538,7 @@ void pxFont::renderText(const char *text, uint32_t size, float x, float y,
     }
   }
 }
-
+#endif // #ifndef PXSCENE_FONT_ATLAS
 #ifdef PXSCENE_FONT_ATLAS
 void pxFont::renderTextToQuads(const char *text, uint32_t size, 
                         float nsx, float nsy, 
@@ -567,8 +568,8 @@ void pxFont::renderTextToQuads(const char *text, uint32_t size,
     float x2 = x + entry->bitmap_left;
 //    float y2 = y - g->bitmap_top;
     float y2 = (y - entry->bitmap_top) + (metrics->ascender>>6);
-    float w = entry->bitmapdotwidth;
-    float h = entry->bitmapdotrows;
+    float w = static_cast<float>(entry->bitmapdotwidth);
+    float h = static_cast<float>(entry->bitmapdotrows);
     
     if (codePoint != '\n')
     {
@@ -609,7 +610,7 @@ void pxFont::measureTextChar(u_int32_t codePoint, uint32_t size,  float sx, floa
   
   FT_Size_Metrics* metrics = &mFace->size->metrics;
   
-  h = metrics->height>>6;
+  h = static_cast<float>(metrics->height>>6);
   float lw = 0;
 
   const GlyphCacheEntry* entry = getGlyph(codePoint);
@@ -675,8 +676,8 @@ rtError pxFont::measureText(uint32_t pixelSize, rtString stringToMeasure, rtObje
   float w, h;
   measureTextInternal(stringToMeasure, pixelSize, 1.0,1.0, w, h);
   //rtLogDebug("pxFont::measureText returned %f and %f for pixelSize=%d and text \"%s\"\n",w, h,pixelSize, stringToMeasure.cString());
-  measure->setW(w);
-  measure->setH(h);
+  measure->setW(static_cast<int32_t>(w));
+  measure->setH(static_cast<int32_t>(h));
   o = measure;
   
   return RT_OK; 

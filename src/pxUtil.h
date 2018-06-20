@@ -1,6 +1,6 @@
 /*
 
- pxCore Copyright 2005-2017 John Robinson
+ pxCore Copyright 2005-2018 John Robinson
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -78,11 +78,29 @@ private:
   std::vector<entry> mSequence;
   double mTotalTime;
   uint32_t mNumPlays;
-};
 
-rtError pxLoadImage(const char* imageData, size_t imageDataSize, 
-                    pxOffscreen& o);
-rtError pxLoadImage(const char* filename, pxOffscreen& b);
+}; // CALSS - pxTimedOffscreenSequence
+
+
+typedef enum pxImageType_
+{
+  PX_IMAGE_JPG,      // Joint Photographic Experts Group - .jpeg or .jpg
+  PX_IMAGE_PNG,      // Portable Network Graphics
+  PX_IMAGE_GIF,      // Graphics Interchange Format
+  PX_IMAGE_TIFF,     // Tagged Image File Format
+  PX_IMAGE_BMP,      // Microsoft Bitmap format
+  PX_IMAGE_WEBP,     // Google WebP format, a type of .riff file
+  PX_IMAGE_ICO,      // Microsoft icon format
+  PX_IMAGE_SVG,      // Scalable Vector Graphics
+  PX_IMAGE_INVALID,  // unidentified image types.
+}
+pxImageType;
+
+
+pxImageType getImageType( const uint8_t* data, size_t len );
+
+rtError pxLoadImage( const char* imageData, size_t imageDataSize, pxOffscreen& o, int w = 0, int h = 0);
+rtError pxLoadImage( const char* filename,                        pxOffscreen& b, int w = 0, int h = 0);
 rtError pxStoreImage(const char* filename, pxOffscreen& b);
 
 //bool pxIsPNGImage(const char* imageData, size_t imageDataSize);
@@ -104,12 +122,19 @@ rtError pxStorePNGImage(pxOffscreen& b, rtData& pngData);
 bool pxIsJPGImage(const char* imageData, size_t imageDataSize);
 rtError pxStoreJPGImage(const char* filename, pxBuffer& b);
 #endif
+
 #ifdef ENABLE_LIBJPEG_TURBO
 rtError pxLoadJPGImageTurbo(const char* buf, size_t buflen, pxOffscreen& o);
 #endif //ENABLE_LIBJPEG_TURBO
-rtError pxLoadJPGImage(const char* imageData, size_t imageDataSize, 
-                       pxOffscreen& o);
+
+rtError pxLoadJPGImage(const char* imageData, size_t imageDataSize, pxOffscreen& o);
 rtError pxLoadJPGImage(const char* filename, pxOffscreen& o);
+
+
+rtError pxLoadSVGImage(const char* buf, size_t buflen, pxOffscreen& o, int w = 0, int h = 0);
+rtError pxLoadSVGImage(const char* filename, pxOffscreen& o, int w = 0, int h = 0);
+rtError pxStoreSVGImage(const char* filename, pxBuffer& b); // NOT SUPPORTED
+
 
 #endif //PX_UTIL_H
 
