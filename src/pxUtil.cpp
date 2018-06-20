@@ -61,7 +61,7 @@ class NSVGrasterizerEx
 {
   public:
        NSVGrasterizerEx()  {  rast = nsvgCreateRasterizer(); } // ctor
-      ~NSVGrasterizerEx()  {  delete rast;                   } // dtor
+      ~NSVGrasterizerEx()  {  SAFE_FREE(rast);               } // dtor
   
   NSVGrasterizer *getPtr() { return rast; };
   
