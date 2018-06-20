@@ -226,7 +226,7 @@ bool rtIsPromise(const rtValue& v)
 
 using namespace v8;
 
-Handle<Value> rt2js(Local<Context>& ctx, const rtValue& v)
+Handle<Value> rt2v8(Local<Context>& ctx, const rtValue& v)
 {
   Context::Scope contextScope(ctx);
 
@@ -314,7 +314,7 @@ Handle<Value> rt2js(Local<Context>& ctx, const rtValue& v)
   return Undefined(isolate);
 }
 
-rtValue js2rt(v8::Local<v8::Context>& ctx, const Handle<Value>& val, rtWrapperError* )
+rtValue v82rt(v8::Local<v8::Context>& ctx, const Handle<Value>& val, rtWrapperError* )
 {
   v8::Isolate* isolate = ctx->GetIsolate();
 

@@ -92,7 +92,7 @@ void rtResolverFunction::afterWorkCallback(uv_work_t* req, int /* status */)
   Handle<Value> value;
   if (ctx->args.size() > 0)
   {
-    value = rt2js(creationContext, ctx->args[0]);
+    value = rt2v8(creationContext, ctx->args[0]);
   }
 
   Local<Promise::Resolver> resolver = PersistentToLocal(resolverFunc->mIsolate, resolverFunc->mResolver);
@@ -216,7 +216,7 @@ void rtFunctionWrapper::call(const FunctionCallbackInfo<Value>& args)
   std::vector<rtValue> argList;
   for (int i = 0; i < args.Length(); ++i)
   {
-    argList.push_back(js2rt(ctx, args[i], &error));
+    argList.push_back(v82rt(ctx, args[i], &error));
     if (error.hasError())
       isolate->ThrowException(error.toTypeError(isolate));
   }
@@ -251,7 +251,7 @@ void rtFunctionWrapper::call(const FunctionCallbackInfo<Value>& args)
   }
   else
   {
-    args.GetReturnValue().Set(rt2js(ctx, result));
+    args.GetReturnValue().Set(rt2v8(ctx, result));
   }
 }
 

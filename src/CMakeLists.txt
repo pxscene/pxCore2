@@ -27,6 +27,7 @@ set(NODEDIR "${EXTDIR}/node/")
 include(../cmake/CommOpts.cmake)
 include(../cmake/CommDeps.cmake)
 include(../cmake/NodeDeps.cmake)
+include(../cmake/V8Deps.cmake)
 
 set(BUILD_RTCORE_SHARED_LIBRARY 1)
 
@@ -69,7 +70,7 @@ elseif (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
     add_definitions(${COMM_DEPS_DEFINITIONS})
 
     include_directories(AFTER
-               ${NODE_INCLUDE_DIRS}
+               ${NODE_INCLUDE_DIRS} ${V8_INCLUDE_DIRS}
           ${COMM_DEPS_INCLUDE_DIRS}
     )
 
@@ -191,6 +192,7 @@ if (PXCORE_COMPILE_WARNINGS_AS_ERRORS)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror")
 endif (PXCORE_COMPILE_WARNINGS_AS_ERRORS)
 
+include_directories(AFTER ${V8_INCLUDE_DIRS})
 include_directories(AFTER ${NODE_INCLUDE_DIRS})
 include_directories(AFTER ${CMAKE_CURRENT_SOURCE_DIR})
 
