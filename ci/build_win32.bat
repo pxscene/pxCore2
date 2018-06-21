@@ -67,7 +67,6 @@ if %errorlevel% neq 0 exit /b %errorlevel%
 
 cpack .
 if %errorlevel% neq 0  (
-  ls -l "C:/dw/pxCore/build-win32/_CPack_Packages/win32/NSIS/"
   type _CPack_Packages\win32\NSIS\NSISOutput.log
   exit /b %errorlevel% 
 )
