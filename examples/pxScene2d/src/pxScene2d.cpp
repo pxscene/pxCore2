@@ -41,7 +41,10 @@
 #include "pxText.h"
 #include "pxTextBox.h"
 #include "pxImage.h"
+
+#ifdef BUILD_WITH_PXPATH
 #include "pxPath.h"
+#endif
 
 #ifdef PX_SERVICE_MANAGER
 #include "pxServiceManager.h"
@@ -1003,7 +1006,7 @@ void pxObject::animateToInternal(const char* prop, double to, double duration,
   a.cancelled = false;
   a.prop     = prop;
   a.from     = get<float>(prop);
-  a.to       = to;
+  a.to       = static_cast<float>(to);
   a.start    = -1;
   a.duration = duration;
   a.interpFunc  = interp ? interp : pxInterpLinear;
@@ -1166,7 +1169,7 @@ void pxObject::update(double t)
 
     }
 
-    float v = from + (to - from) * d;
+    float v = static_cast<float> (from + (to - from) * d);
     assert(mCancelInSet);
     mCancelInSet = false;
     set(a.prop, v);
@@ -1637,7 +1640,7 @@ void pxObject::createSnapshot(pxContextFramebufferRef& fbo, bool separateContext
   {
     clearSnapshot(fbo);
     //rtLogInfo("createFramebuffer  mw=%f mh=%f\n", w, h);
-    fbo = context.createFramebuffer(floor(w), floor(h), antiAliasing);
+    fbo = context.createFramebuffer(static_cast<int>(floor(w)), static_cast<int>(floor(h)), antiAliasing);
 #ifdef PX_DIRTY_RECTANGLES
     fullFboRepaint = true;
 #endif //PX_DIRTY_RECTANGLES
@@ -1645,11 +1648,12 @@ void pxObject::createSnapshot(pxContextFramebufferRef& fbo, bool separateContext
   else
   {
     //rtLogInfo("updateFramebuffer  mw=%f mh=%f\n", w, h);
-    context.updateFramebuffer(fbo, floor(w), floor(h));
+    context.updateFramebuffer(fbo, static_cast<int>(floor(w)), static_cast<int>(floor(h)));
   }
   pxContextFramebufferRef previousRenderSurface = context.getCurrentFramebuffer();
   if (mRepaint && context.setFramebuffer(fbo) == PX_OK)
   {
+    context.clear(static_cast<int>(w), static_cast<int>(h));
 #ifdef PX_DIRTY_RECTANGLES
     int clearX = mDirtyRect.left();
     int clearY = mDirtyRect.top();
@@ -1665,7 +1669,7 @@ void pxObject::createSnapshot(pxContextFramebufferRef& fbo, bool separateContext
     }
     context.clear(clearX, clearY, clearWidth, clearHeight);
 #else
-    context.clear(w, h);
+    context.clear(static_cast<int>(w), static_cast<int>(h));
 #endif //PX_DIRTY_RECTANGLES
     draw();
 
@@ -1700,26 +1704,26 @@ void pxObject::createSnapshotOfChildren()
 
   if (mDrawableSnapshotForMask.getPtr() == NULL || mDrawableSnapshotForMask->width() != floor(w) || mDrawableSnapshotForMask->height() != floor(h))
   {
-    mDrawableSnapshotForMask = context.createFramebuffer(floor(w), floor(h));
+    mDrawableSnapshotForMask = context.createFramebuffer(static_cast<int>(floor(w)), static_cast<int>(floor(h)));
   }
   else
   {
-    context.updateFramebuffer(mDrawableSnapshotForMask, floor(w), floor(h));
+    context.updateFramebuffer(mDrawableSnapshotForMask, static_cast<int>(floor(w)), static_cast<int>(floor(h)));
   }
 
   if (mMaskSnapshot.getPtr() == NULL || mMaskSnapshot->width() != floor(w) || mMaskSnapshot->height() != floor(h))
   {
-    mMaskSnapshot = context.createFramebuffer(floor(w), floor(h));
+    mMaskSnapshot = context.createFramebuffer(static_cast<int>(floor(w)), static_cast<int>(floor(h)));
   }
   else
   {
-    context.updateFramebuffer(mMaskSnapshot, floor(w), floor(h));
+    context.updateFramebuffer(mMaskSnapshot, static_cast<int>(floor(w)), static_cast<int>(floor(h)));
   }
 
   pxContextFramebufferRef previousRenderSurface = context.getCurrentFramebuffer();
   if (context.setFramebuffer(mMaskSnapshot) == PX_OK)
   {
-    context.clear(w, h);
+    context.clear(static_cast<int>(w), static_cast<int>(h));
 
     for(vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
     {
@@ -1734,7 +1738,7 @@ void pxObject::createSnapshotOfChildren()
 
   if (context.setFramebuffer(mDrawableSnapshotForMask) == PX_OK)
   {
-    context.clear(w, h);
+    context.clear(static_cast<int>(w), static_cast<int>(h));
 
     for(vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
     {
@@ -2010,8 +2014,10 @@ rtError pxScene2d::create(rtObjectRef p, rtObjectRef& o)
     e = createTextBox(p,o);
   else if (!strcmp("image",t.cString()))
     e = createImage(p,o);
-//  else if (!strcmp("path",t.cString()))
-//    e = createPath(p,o);
+#ifdef BUILD_WITH_PXPATH
+  else if (!strcmp("path",t.cString()))
+    e = createPath(p,o);
+#endif // BUILD_WITH_PXPATH
   else if (!strcmp("image9",t.cString()))
     e = createImage9(p,o);
   else if (!strcmp("imageA",t.cString()))
@@ -2106,7 +2112,7 @@ rtError pxScene2d::createImage(rtObjectRef p, rtObjectRef& o)
   o.send("init");
   return RT_OK;
 }
-
+#ifdef BUILD_WITH_PXPATH
 rtError pxScene2d::createPath(rtObjectRef p, rtObjectRef& o)
 {
   o = new pxPath(this);
@@ -2114,6 +2120,7 @@ rtError pxScene2d::createPath(rtObjectRef p, rtObjectRef& o)
   o.send("init");
   return RT_OK;
 }
+#endif // BUILD_WITH_PXPATH
 
 rtError pxScene2d::createImage9(rtObjectRef p, rtObjectRef& o)
 {
@@ -2480,7 +2487,7 @@ void pxScene2d::onUpdate(double t)
   if (mTop)
   {
     unsigned int target_frame_ms = 60;
-    int targetFPS = (1.0 / ((double) target_frame_ms)) * 1000;
+    int targetFPS = static_cast<int> ((1.0 / ((double) target_frame_ms)) * 1000);
 
     if (frameCount >= targetFPS)
     {
@@ -2668,7 +2675,7 @@ bool pxScene2d::onMouseDown(int32_t x, int32_t y, uint32_t flags)
   {
     //Looking for an object
     pxMatrix4f m;
-    pxPoint2f pt(x,y), hitPt;
+    pxPoint2f pt(static_cast<float>(x),static_cast<float>(y)), hitPt;
     //    pt.x = x; pt.y = y;
     rtRef<pxObject> hit;
 
@@ -2676,8 +2683,8 @@ bool pxScene2d::onMouseDown(int32_t x, int32_t y, uint32_t flags)
     {
       mMouseDown = hit;
       // scene coordinates
-      mMouseDownPt.x = x;
-      mMouseDownPt.y = y;
+      mMouseDownPt.x = static_cast<float>(x);
+      mMouseDownPt.y = static_cast<float>(y);
 
       rtObjectRef e = new rtMapObject;
       e.set("name", "onMouseDown");
@@ -2711,7 +2718,7 @@ bool pxScene2d::onMouseUp(int32_t x, int32_t y, uint32_t flags)
   {
     //Looking for an object
     pxMatrix4f m;
-    pxPoint2f pt(x,y), hitPt;
+    pxPoint2f pt(static_cast<float>(x),static_cast<float>(y)), hitPt;
     rtRef<pxObject> hit;
     rtRef<pxObject> tMouseDown = mMouseDown;
 
@@ -3021,13 +3028,13 @@ bool pxScene2d::onMouseMove(int32_t x, int32_t y)
 #if 1
   //Looking for an object
   pxMatrix4f m;
-  pxPoint2f pt(x,y), hitPt;
+  pxPoint2f pt(static_cast<float>(x),static_cast<float>(y)), hitPt;
   rtRef<pxObject> hit;
 
   if (mMouseDown)
   {
     {
-      pxVector4f from(x,y,0,1);
+      pxVector4f from(static_cast<float>(x),static_cast<float>(y),0,1);
       pxVector4f to;
       pxObject::transformPointFromSceneToObject(mMouseDown, from, to);
 
@@ -3313,7 +3320,14 @@ rtError pxScene2d::getService(rtString name, rtObjectRef& returnObject)
 
   // Create context from requesting scene
   rtObjectRef ctx = new rtMapObject();
+  rtObjectRef o;
   ctx.set("url", mScriptView != NULL ? mScriptView->getUrl() : "");
+  pxSceneContainer * container = dynamic_cast<pxSceneContainer*>(mContainer);
+  if( container != NULL)  {
+    container->serviceContext(o);
+  }
+  ctx.set("serviceContext", o);
+    
 #ifdef ENABLE_PERMISSIONS_CHECK
   rtValue permissionsValue = mPermissions.getPtr();
   ctx.set("permissions", permissionsValue);
@@ -3534,8 +3548,8 @@ void RT_STDCALL testView::onDraw()
   float red[]= {1,0,0,1};
   float green[] = {0,1,0,1};
   context.drawRect(mw, mh, 1, mEntered?green:red, white);
-  context.drawDiagLine(0,mMouseY,mw,mMouseY,black);
-  context.drawDiagLine(mMouseX,0,mMouseX,mh,black);
+  context.drawDiagLine(0,static_cast<float>(mMouseY),mw,static_cast<float>(mMouseY),black);
+  context.drawDiagLine(static_cast<float>(mMouseX),0,static_cast<float>(mMouseX),mh,black);
 }
 
 void pxViewContainer::invalidateRect(pxRect* r)
@@ -3650,6 +3664,7 @@ rtDefineProperty(pxSceneContainer, permissions);
 #endif
 rtDefineProperty(pxSceneContainer, api);
 rtDefineProperty(pxSceneContainer, ready);
+rtDefineProperty(pxSceneContainer, serviceContext);
 //rtDefineMethod(pxSceneContainer, makeReady);   // DEPRECATED ?
 
 
@@ -3703,6 +3718,15 @@ rtError pxSceneContainer::ready(rtObjectRef& o) const
   }
   rtLogInfo("mScriptView is NOT set!\n");
   return RT_FAIL;
+}
+
+rtError pxSceneContainer::setServiceContext(rtObjectRef o) 
+{ 
+  // Only allow serviceContext to be set at construction time
+  if( !mInitialized)
+    mServiceContext = o;
+
+  return RT_OK;
 }
 
 rtError pxSceneContainer::setScriptView(pxScriptView* scriptView)
@@ -3826,7 +3850,7 @@ void pxScriptView::runScript()
 		unsigned int bufferLen = strlen(buffer);
 		char * newBuffer = (char*)malloc(sizeof(char)*(bufferLen + 1));
 		unsigned int newBufferLen = 0;
-		for (int i = 0; i < bufferLen - 1; i++) {
+		for (size_t i = 0; i < bufferLen - 1; i++) {
 			if (buffer[i] == '\\') {
 				newBuffer[newBufferLen++] = '/';
 				if (buffer[i + 1] == '\\') {

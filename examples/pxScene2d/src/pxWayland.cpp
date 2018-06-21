@@ -719,19 +719,17 @@ rtError pxWayland::useDispatchThread(bool use)
   return RT_OK;
 }
 
-rtError pxWayland::resume()
+rtError pxWayland::resume(const rtValue& v)
 {
   mSuspended = false;
-  rtValue args;
-  callMethod("resume", 0, &args);
+  callMethod("resume", 1, &v);
   return RT_OK;
 }
 
-rtError pxWayland::suspend()
+rtError pxWayland::suspend(const rtValue& v)
 {
   mSuspended = true;
-  rtValue args;
-  callMethod("suspend", 0, &args);
+  callMethod("suspend", 1, &v);
   return RT_OK;
 }
 
