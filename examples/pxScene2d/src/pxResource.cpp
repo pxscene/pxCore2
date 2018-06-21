@@ -374,12 +374,14 @@ void rtImageResource::prepare()
 
 void rtImageResource::setTextureData(pxOffscreen& imageOffscreen, const char* data, const size_t dataSize)
 {
-  mDownloadedTexture = context.createTexture(imageOffscreen, data, dataSize);
+  mTextureMutex.lock();
 #ifdef ENABLE_BACKGROUND_TEXTURE_CREATION
+  mDownloadedTexture = context.createTexture(imageOffscreen, data, dataSize);
+  mTextureMutex.unlock();
   rtThreadTask* task = new rtThreadTask(prepareImageResource, (void*)this, "");
   textureCreateThreadPool.executeTask(task);
 #else
-  mTextureMutex.lock();
+  mDownloadedTexture = context.createTexture(imageOffscreen, data, dataSize);
   mDownloadComplete = true;
   mTextureMutex.unlock();
 #endif //ENABLE_BACKGROUND_TEXTURE_CREATION
