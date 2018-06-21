@@ -46,30 +46,97 @@ px.import({ scene: 'px:scene.1.js',
   var originalURL = (!url || url==="") ? "browser.js":url;
   console.log("url:",originalURL);
 
-  var    blackBg = scene.create({t:"rect", fillColor:0x000000ff,lineColor:0xffff0080,lineWidth:0,x:0,y:0,w:1280,h:720,a:0,parent:scene.root});
-  var childScene = scene.create({t:"scene", url:originalURL,parent:scene.root});
+////
+////
+if(false)
+{
+  function getMimeTypes(u)
+  {
+    return new Promise(function (resolve, reject)
+    {
+      var filePromise = px.getFile(u);
+      filePromise.then(function(data)
+      {
+//          console.log("data is "+data);
+          resolve(data);
+      }).catch(function(exception)
+      { 
+        console.log("Error occurred trying to get Mime JSON file "+u);
+        reject();
+      });
+    });
+  }
+
+  function getMimeUrl(url)
+  {
+    var ext = url.split('.').pop();
+
+    console.log("MIME >>> url: [" + url + "]  <<<< ??");
+    console.log("MIME >>> ext: [" + ext + "]  <<<< ??");
+    console.log("MIME >>> this.mimeTypes: [" + this.mimeTypes + "]  <<<< ??");
+
+    if(ext == undefined || this.mimeTypes[ext] == undefined)
+    {
+      console.log("MIME >>> ext: [" + ext + "] ...  MIME type not supported");
+      return url; // MIME type not supported
+    }
+
+    if (url.indexOf("file://") === 0) // TODO: oX handle  http:// URLs too !
+    {
+      url = url.slice(7, url.length); // trim off "file://" prefix
+    }
+
+    var mime_url = /*base + "/" +*/ this.mimeTypes[ext] + "?url=" + url;
+
+//    console.log("MIME >>> url:  [" + mime + "]");
+
+    return mime_url;
+  }
+
+  console.log("Load MIME types ");
+
+  var mime = getMimeTypes( "pxMimeTypes.json").then(  // TODO:  URL needs to be formalized
+    function(d)
+    {
+      console.log("Load MIME types - d: " + d);
+
+      this.mimeTypes = JSON.parse(d);
+  
+      console.log("Load MIME types - DONE !");
+  
+      childScene.url = getMimeUrl(originalURL);
+    }
+  );
+}//false
+////
+////
+
+  var    blackBg = scene.create({t:"rect", fillColor:0x000000ff,x:0,y:0,w:1280,h:720,a:0,parent:scene.root});
+  var childScene = scene.create({t:"scene", url: originalURL, parent:scene.root});
   childScene.focus = true;
 
   var showFPS = false;
-  var fpsBg      = scene.create({t:"rect", fillColor:0x00000080,lineColor:0xffff0080,lineWidth:3,x:10,y:10,a:showFPS?1:0,parent:scene.root});
+  var fpsBg      = scene.create({t:"rect",     fillColor:0x00000080,lineColor:0xffff0080,lineWidth:3,x:10,y:10,a:showFPS?1:0,parent:scene.root});
   var fpsCounter = scene.create({t:"text", x:5,textColor:0xffffffff,pixelSize:24,text:"0fps",parent:fpsBg});
   fpsBg.w = fpsCounter.w+16;
   fpsBg.h = fpsCounter.h;
 
   // Prevent interaction with scenes...
-  fpsBg.interactive = false;
+  fpsBg.interactive      = false;
   fpsCounter.interactive = false;
 
-  function updateSize(w, h) {
+  function updateSize(w, h)
+  {
     childScene.w = w;
     childScene.h = h;
-    blackBg.w = w;
-    blackBg.h = h;
+    blackBg.w    = w;
+    blackBg.h    = h;
   }
 
   // TODO if I log out event object e... there is extra stuff??
   scene.on("onResize", function(e) { updateSize(e.w, e.h);});
-  updateSize(scene.w, scene.h);
+
+  // updateSize(scene.w, scene.h);
 
   scene.on("onFPS", function(e) {
     if(showFPS) {
@@ -93,14 +160,14 @@ if (false)
                                interactive:false});
 
     scene.on("onMouseMove", function(e) {
-	    cursor.x = e.x-23;
-	    cursor.y = e.y-10;
+      cursor.x = e.x-23;
+      cursor.y = e.y-10;
     });
   }
 }
-
+////
   scene.root.on("onPreKeyDown", function(e) {
-	  var code  = e.keyCode;
+    var code  = e.keyCode;
     var flags = e.flags;
 
     var loggingDisabled = process.env.PXSCENE_KEY_LOGGING_DISABLED;
@@ -183,7 +250,7 @@ if (false)
       else
       if(code == keys.D)  // ctrl-alt-shft-d
       {
-	scene.logDebugMetrics();
+        scene.logDebugMetrics();
       }
     }// ctrl-alt-shift
   });
@@ -196,7 +263,7 @@ if (false)
     } else {
       console.log("in onPreKeyUp", e.keyCode, e.flags);
     }
-	  var code  = e.keyCode;
+    var code  = e.keyCode;
     var flags = e.flags;
 
     if (loggingDisabled && loggingDisabled === '1'){
@@ -249,14 +316,14 @@ if (false)
   scene.root.on("onPreChar", function(e)
   {
     console.log("in onchar");
-	  var c = e.charCode;
+    var c = e.charCode;
     var loggingDisabled = process.env.PXSCENE_KEY_LOGGING_DISABLED;
     if (loggingDisabled && loggingDisabled === '1'){
       console.log("onChar value hidden");
     } else {
       console.log("onChar:", c);
     }
-	  // TODO eating some "undesired" chars for now... need to redo this
+    // TODO eating some "undesired" chars for now... need to redo this
     if (c<32) {
       console.log("stop onChar");
       e.stopPropagation();
@@ -289,7 +356,7 @@ if (false)
   //
   // Returns:   BOOL preference of 'shell' performing Clearscreen per frame.
   /*
-  module.exports.wantsClearscreen1 = function()  // delegate
+  module.exports.wantsClearscreen = function()  // delegate
   {
     return false;
   };
