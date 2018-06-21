@@ -121,7 +121,7 @@ Handle<Object> rtObjectWrapper::createFromObjectReference(v8::Local<v8::Context>
         rtValue item;
         rtError err = ref->Get(i, &item);
         if (err == RT_OK)
-          arr->Set(Number::New(isolate, i), rt2js(ctx, item));
+          arr->Set(Number::New(isolate, i), rt2v8(ctx, item));
       }
       return scope.Escape(arr);
     }
@@ -208,8 +208,8 @@ void rtObjectWrapper::getProperty(const T& prop, const PropertyCallbackInfo<Valu
   {
     Local<Value> v;
     EscapableHandleScope scope(info.GetIsolate());
-    v = rt2js(ctx, value);
-//    info.GetReturnValue().Set(rt2js(info.GetIsolate(), value));
+    v = rt2v8(ctx, value);
+//    info.GetReturnValue().Set(rt2v8(info.GetIsolate(), value));
     scope.Escape(v);
     info.GetReturnValue().Set(v);
   }
@@ -224,7 +224,7 @@ void rtObjectWrapper::setProperty(const T& prop, Local<Value> val, const Propert
   Local<Context> creationContext = info.This()->CreationContext();
 
   rtWrapperError error;
-  rtValue value = js2rt(creationContext, val, &error);
+  rtValue value = v82rt(creationContext, val, &error);
   if (error.hasError())
     info.GetIsolate()->ThrowException(error.toTypeError(info.GetIsolate()));
 
@@ -334,7 +334,7 @@ rtError jsObjectWrapper::getAllKeys(Isolate* isolate, rtValue* value) const
   for (int i = 0, n = names->Length(); i < n; ++i)
   {
     rtWrapperError error;
-    rtValue val = js2rt(ctx, names->Get(i), &error);
+    rtValue val = v82rt(ctx, names->Get(i), &error);
     if (error.hasError())
       return RT_FAIL;
     else
@@ -385,7 +385,7 @@ rtError jsObjectWrapper::Get(const char* name, rtValue* value) const
     else
     {
       rtWrapperError error;
-      *value = js2rt(ctx, self->Get(s), &error);
+      *value = v82rt(ctx, self->Get(s), &error);
       if (error.hasError())
         err = RT_ERROR_INVALID_ARG;
     }
@@ -408,7 +408,7 @@ rtError jsObjectWrapper::Get(uint32_t i, rtValue* value) const
   if (!(self->Has(ctx,i).FromMaybe(false)))
    return RT_PROPERTY_NOT_FOUND;
   rtWrapperError error;
-  *value = js2rt(ctx, self->Get(i), &error);
+  *value = v82rt(ctx, self->Get(i), &error);
   if (error.hasError())
     return RT_ERROR_INVALID_ARG;
 
@@ -441,7 +441,7 @@ rtError jsObjectWrapper::Set(const char* name, const rtValue* value)
   }
   else
   {
-    err = self->Set(s, rt2js(ctx, *value));
+    err = self->Set(s, rt2v8(ctx, *value));
   }
 
   return err;
@@ -458,7 +458,7 @@ rtError jsObjectWrapper::Set(uint32_t i, const rtValue* value)
   Local<Object> self = PersistentToLocal(mIsolate, mObject);
   Local<Context> ctx = self->CreationContext();
 
-  if (!self->Set(i, rt2js(ctx, *value)))
+  if (!self->Set(i, rt2v8(ctx, *value)))
     return RT_FAIL;
 
   return RT_OK;

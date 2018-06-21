@@ -301,9 +301,9 @@ protected:
   TRef mWrappedObject;
 };
 
-rtValue js2rt(v8::Local<v8::Context>& ctx, const v8::Handle<v8::Value>& val, rtWrapperError* error);
+rtValue v82rt(v8::Local<v8::Context>& ctx, const v8::Handle<v8::Value>& val, rtWrapperError* error);
 
-v8::Handle<v8::Value> rt2js(v8::Local<v8::Context>& ctx, const rtValue& val);
+v8::Handle<v8::Value> rt2v8(v8::Local<v8::Context>& ctx, const rtValue& val);
 
 
 class HandleMap

@@ -3804,10 +3804,16 @@ void pxScriptView::runScript()
 
   if (mCtx)
   {
+#ifdef PXSCENE_V8_TEST
+    mPrintFunc = new rtFunctionCallback(printFunc, this);
+#endif
     mGetScene = new rtFunctionCallback(getScene,  this);
     mMakeReady = new rtFunctionCallback(makeReady, this);
     mGetContextID = new rtFunctionCallback(getContextID, this);
 
+#ifdef PXSCENE_V8_TEST
+    mCtx->add("print", mPrintFunc.getPtr());
+#endif
     mCtx->add("getScene", mGetScene.getPtr());
     mCtx->add("makeReady", mMakeReady.getPtr());
     mCtx->add("getContextID", mGetContextID.getPtr());
@@ -3815,6 +3821,10 @@ void pxScriptView::runScript()
 #ifdef RUNINMAIN
     mReady = new rtPromise();
 #endif
+
+#ifdef PXSCENE_V8_TEST
+    mCtx->runFile(mUrl);
+#else
     mCtx->runFile("init.js");
 
     char buffer[MAX_URL_SIZE + 50];
@@ -3842,9 +3852,30 @@ void pxScriptView::runScript()
 #endif
     mCtx->runScript(buffer);
     rtLogInfo("pxScriptView::runScript() ending\n");
+#endif
   }
   #endif //ENABLE_RT_NODE
 }
+
+#ifdef PXSCENE_V8_TEST
+rtError pxScriptView::printFunc(int numArgs, const rtValue* args, rtValue* result, void* ctx)
+{
+  rtLogInfo(__FUNCTION__);
+
+  if (ctx)
+  {
+    pxScriptView* v = (pxScriptView*)ctx;
+
+    if (numArgs > 0 && !args[0].isEmpty())
+    {
+      rtString toPrint = args[0].toString();
+      rtLogWarn("%s", toPrint.cString());
+    }
+  }
+
+  return RT_OK;
+}
+#endif
 
 rtError pxScriptView::getScene(int numArgs, const rtValue* args, rtValue* result, void* ctx)
 {

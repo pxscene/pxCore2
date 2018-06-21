@@ -75,7 +75,7 @@ Handle<Value>* jsCallback::makeArgs(Local<Context>& ctx)
 
   for (size_t i = 0; i < mArgs.size(); ++i)
   {
-    args[i] = rt2js(ctx, mArgs[i]);
+    args[i] = rt2v8(ctx, mArgs[i]);
   }
 
   return args;
@@ -147,7 +147,7 @@ rtValue jsCallback::run()
   else
   {
     rtWrapperError error;
-    returnValue = js2rt(context, val, &error);
+    returnValue = v82rt(context, val, &error);
   }
 
   return returnValue;
