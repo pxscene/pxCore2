@@ -69,11 +69,12 @@ class NSVGrasterizerEx
 }; // CLASS;
 
 static NSVGrasterizerEx rast;
+static rtMutex          rastMutex;
 
 
 // Assume alpha is not premultiplied
 rtError pxLoadImage(const char *imageData, size_t imageDataSize,
-                    pxOffscreen &o, int32_t w /* = 0*/, int32_t h /* = 0*/)
+                    pxOffscreen &o, int32_t w /* = 0*/, int32_t h /* = 0*/, float sx /*= 1.0f*/, float sy /*= 1.0f*/)
 {
   pxImageType imgType = getImageType( (const uint8_t*) imageData, imageDataSize);
   rtError retVal = RT_FAIL;
@@ -103,7 +104,7 @@ rtError pxLoadImage(const char *imageData, size_t imageDataSize,
     case PX_IMAGE_SVG:
     default:
          {
-           retVal = pxLoadSVGImage(imageData, imageDataSize, o, w, h);
+           retVal = pxLoadSVGImage(imageData, imageDataSize, o, w, h, sx, sy);
          }
          break;
   }//SWITCH
@@ -977,29 +978,36 @@ rtError pxLoadJPGImage(const char *buf, size_t buflen, pxOffscreen &o)
 
 rtError pxStoreSVGImage(const char* /*filename*/, pxBuffer& /*b*/)  { return RT_FAIL; } // NOT SUPPORTED
 
-rtError pxLoadSVGImage(const char* buf, size_t buflen, pxOffscreen& o, int w /* = 0 */, int h /* = 0 */)
+
+rtError pxLoadSVGImage(const char* buf, size_t buflen, pxOffscreen& o, int  w /* = 0    */,      int h /* = 0    */,
+                                                                     float sx /* = 1.0f */,   float sy /* = 1.0f */)
 {
+  rtMutexLockGuard  autoLock(rastMutex);
+  
   if (buf == NULL || buflen == 0 )
   {
     rtLogError("SVG:  Bad args.\n");
     return RT_FAIL;
   }
-
-  NSVGimage *image = nsvgParse( (char *) buf, "px", 96.0f); // 96 dpi (suggested defalus) 
-  if (image == NULL)
+  
+  if (sx == 0.0f || sx == 0.0f)
   {
-    SAFE_DELETE(image)
-
-    rtLogError("SVG:  Could not init decode SVG.\n");
+    rtLogError("SVG:  Bad image scale  sx: %f  sy: %f\n", sx, sy);
     return RT_FAIL;
   }
 
-  int image_w = (int)image->width;
-  int image_h = (int)image->height;  
+  NSVGimage *image = nsvgParse( (char *) buf, "px", 96.0f); // 96 dpi (suggested default)
+  if (image == NULL)
+  {
+    SAFE_DELETE(image)
+    
+    rtLogError("SVG:  Could not init decode SVG.\n");
+    return RT_FAIL;
+  }
   
-  int dx = 0;
-  int dy = 0;
-
+  int image_w = (int)image->width;  // parsed SVG image dimensions
+  int image_h = (int)image->height; // parsed SVG image dimensions
+  
   if (image_w == 0 || image_h == 0)
   {
     SAFE_DELETE(image)
@@ -1007,52 +1015,36 @@ rtError pxLoadSVGImage(const char* buf, size_t buflen, pxOffscreen& o, int w /* 
     rtLogError("SVG:  Bad image dimensions  WxH: %d x %d\n", image_w, image_h);
     return RT_FAIL;
   }
-
-  float scale = 1.0f;
-  if(w > 0 && h > 0)  // <<< requested WxH
+  
+  // Dimensions WxH ... *only* if no Scale XY
+  if( (sx == 1.0f && sy == 1.0f) && (w > 0 && h > 0) ) // <<< Use WxH only if no scale. Scale takes precedence
   {
     float ratioW = (float) w / (float) image_w;
     float ratioH = (float) h / (float) image_h;
-
-    scale = (ratioW < ratioH) ? ratioW : ratioH; // MIN()
-
-    int scaled_w = image_w * scale;
-    int scaled_h = image_h * scale;
-
-    if(scaled_w < w)
-    {
-      
-    }
-//    dx = (w - scaled_w)/2;
-//    dy = (h - scaled_h)/2;
-
-//    dx = dy = 0;
     
-// rtLogError("SVG:  Translate >>  x: %d   y: %d\n", dx, dy);
-
-    image_w = scaled_w; // update to new size
-    image_h = scaled_h; // update to new size
+    sx = sy = (ratioW < ratioH) ? ratioW : ratioH; // MIN()
   }
-
-  o.initWithColor(image_w, image_h, pxClear); // default sized
-
-//  rtLogDebug("SVG:  Rasterizing image %d x %d  (scale: %f) \n", w, h, scale);
-
-  nsvgRasterize(rast.getPtr(), image, dx, dy, scale , (unsigned char*) o.base(), o.width(), o.height(), o.width() *4);
+  
+  o.initWithColor( (image_w * sx), (image_h * sy), pxClear); // default sized
+  
+  nsvgRasterizeFull(rast.getPtr(), image, 0, 0, sx, sy,
+                    (unsigned char*) o.base(), o.width(), o.height(), o.width() *4);
 
   SAFE_DELETE(image)
-
+  
   return RT_OK;
 }
 
-rtError pxLoadSVGImage(const char *filename, pxOffscreen &o, int w /* = 0 */, int h /* = 0 */)
+
+rtError pxLoadSVGImage(const char *filename, pxOffscreen &o, int  w /* = 0    */,      int h /* = 0    */,
+                                                           float sx /* = 1.0f */,   float sy /* = 1.0f */)
 {
   rtData d;
   rtError e = rtLoadFile(filename, d);
   if (e == RT_OK)
   {
     // TODO get rid of the cast
-    e = pxLoadSVGImage((const char *)d.data(), d.length(), o, w, h);
+    e = pxLoadSVGImage((const char *)d.data(), d.length(), o, w, h, sx, sy);
   }
   else
   {
