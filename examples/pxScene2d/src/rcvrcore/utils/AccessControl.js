@@ -118,9 +118,10 @@ function AccessControlClientRequest(options, callback, accessControl, protocol) 
   http.ClientRequest.call(this, options, callback);
 
   var _this = this;
+  var appOrigin = accessControl.origin();
   var requestOrigin = AccessControl._getRequestOrigin(options, protocol);
   if (!accessControl.allows(requestOrigin)) {
-    var message = "Permissions block for request to origin: '" + requestOrigin + "' from origin '" + accessControl.origin() + "'";
+    var message = "Permissions block for request to origin: '" + requestOrigin + "' from origin '" + appOrigin + "'";
     log.warn(message);
     this.blocked = true;
     this.abort();
@@ -130,9 +131,9 @@ function AccessControlClientRequest(options, callback, accessControl, protocol) 
     });
   }
 
-  if (accessControl.origin()) {
-    log.message(2, "for request to origin: '" + requestOrigin + "' set origin '" + accessControl.origin() + "'");
-    http.ClientRequest.prototype.setHeader.call(this, "Origin", accessControl.origin());
+  if (appOrigin) {
+    log.message(2, "for request to origin: '" + requestOrigin + "' set origin '" + appOrigin + "'");
+    http.ClientRequest.prototype.setHeader.call(this, "Origin", appOrigin);
   }
 
   function checkResponseHeaders(res) {
@@ -142,9 +143,9 @@ function AccessControlClientRequest(options, callback, accessControl, protocol) 
         rawHeaders += (rawHeaders ? "\r\n" : "") + key + ": " + res.headers[key];
       }
     }
-    log.message(4, "check for request to origin: '" + requestOrigin + "' from origin '" + accessControl.origin() + "' headers: " + rawHeaders);
+    log.message(4, "check for request to origin: '" + requestOrigin + "' from origin '" + appOrigin + "' headers: " + rawHeaders);
     if (!accessControl.checkAccessControlHeaders(requestOrigin, rawHeaders)) {
-      var message = "CORS block for request to origin: '" + requestOrigin + "' from origin '" + accessControl.origin() + "'";
+      var message = "CORS block for request to origin: '" + requestOrigin + "' from origin '" + appOrigin + "'";
       log.warn(message);
       _this.blocked = true;
       res.destroy(new Error(message));
@@ -183,24 +184,6 @@ function AccessControlClientRequest(options, callback, accessControl, protocol) 
   _this.emit = createEmitWrapper(_this.emit);
   _this.$emit = createEmitWrapper(_this.$emit);
 
-  AccessControlClientRequest.prototype.setHeader = function (name) {
-    if (AccessControl.isCORSRequestHeader(name)) {
-      var message = "not allowed to set header '" + name + "'";
-      log.warn(message);
-      throw new Error(message);
-    }
-    return http.ClientRequest.prototype.setHeader.apply(this, arguments);
-  };
-
-  AccessControlClientRequest.prototype.removeHeader = function (name) {
-    if (AccessControl.isCORSRequestHeader(name)) {
-      var message = "not allowed to remove header '" + name + "'";
-      log.warn(message);
-      throw new Error(message);
-    }
-    return http.ClientRequest.prototype.removeHeader.apply(this, arguments);
-  };
-
   log.message(4, "created a request to origin: '" + requestOrigin + "'");
 }
 
@@ -208,5 +191,23 @@ AccessControlClientRequest.prototype = Object.create(http.ClientRequest.prototyp
 AccessControlClientRequest.prototype.constructor = AccessControlClientRequest;
 
 AccessControlClientRequest.prototype.blocked = undefined;
+
+AccessControlClientRequest.prototype.setHeader = function (name) {
+  if (AccessControl.isCORSRequestHeader(name)) {
+    var message = "not allowed to set header '" + name + "'";
+    log.warn(message);
+    throw new Error(message);
+  }
+  return http.ClientRequest.prototype.setHeader.apply(this, arguments);
+};
+
+AccessControlClientRequest.prototype.removeHeader = function (name) {
+  if (AccessControl.isCORSRequestHeader(name)) {
+    var message = "not allowed to remove header '" + name + "'";
+    log.warn(message);
+    throw new Error(message);
+  }
+  return http.ClientRequest.prototype.removeHeader.apply(this, arguments);
+};
 
 module.exports = AccessControl;
