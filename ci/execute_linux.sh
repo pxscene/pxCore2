@@ -74,15 +74,15 @@ while [ "$retVal" -ne 0 ] &&  [ "$count" -ne "$max_seconds" ]; do
 	printf "\n [execute_linux.sh] snoozing for 30 seconds (%d of %d) \n" $count $max_seconds
 	sleep 30; # seconds
 
-        if [ "$isimage9" -eq 0 ] 
-	then
+ if [ "$isimage9" -eq 0 ] 
+ then
 		grep "Running image9 testReload" $EXECLOGS
-                isimage9success=$?
-                if [ "$isimage9success" -ne 0 ] 
-	        then
+    isimage9success=$?
+    if [ "$isimage9success" -ne 0 ] 
+    then
 				gdb $TRAVIS_BUILD_DIR/examples/pxScene2d/src/pxscene -batch -q -ex "target remote | vgdb" -ex "thread apply all bt" -ex "quit"
-            fi
-                isimage9=1
+    fi
+    isimage9=1
 		crossedimage9=1
 	fi
 	grep "TEST RESULTS: " $EXECLOGS
@@ -95,11 +95,11 @@ while [ "$retVal" -ne 0 ] &&  [ "$count" -ne "$max_seconds" ]; do
 		retVal=$?
 	fi
 
-    if [ "$crossedimage9" -eq 0 ] 
+  if [ "$crossedimage9" -eq 0 ] 
 	then
 		grep "Running image9 testLoad" $EXECLOGS
 		isimage9=$?
-    fi
+  fi
 done
 
 kill -15 `ps -ef | grep pxscene |grep -v grep|grep -v pxscene.sh|awk '{print $2}'`
