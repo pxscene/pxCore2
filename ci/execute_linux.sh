@@ -76,15 +76,15 @@ while [ "$retVal" -ne 0 ] &&  [ "$count" -ne "$max_seconds" ]; do
 
  if [ "$isimage9" -eq 0 ] 
  then
-		grep "Running image9 testReload" $EXECLOGS
+    grep "Running image9 testReload" $EXECLOGS
     isimage9success=$?
     if [ "$isimage9success" -ne 0 ] 
     then
-				gdb $TRAVIS_BUILD_DIR/examples/pxScene2d/src/pxscene -batch -q -ex "target remote | vgdb" -ex "thread apply all bt" -ex "quit"
+		  gdb $TRAVIS_BUILD_DIR/examples/pxScene2d/src/pxscene -batch -q -ex "target remote | vgdb" -ex "thread apply all bt" -ex "quit"
     fi
     isimage9=1
-		crossedimage9=1
-	fi
+    crossedimage9=1
+  fi
 	grep "TEST RESULTS: " $EXECLOGS
 	retVal=$?
 	
@@ -96,9 +96,9 @@ while [ "$retVal" -ne 0 ] &&  [ "$count" -ne "$max_seconds" ]; do
 	fi
 
   if [ "$crossedimage9" -eq 0 ] 
-	then
-		grep "Running image9 testLoad" $EXECLOGS
-		isimage9=$?
+  then
+    grep "Running image9 testLoad" $EXECLOGS
+    isimage9=$?
   fi
 done
 
