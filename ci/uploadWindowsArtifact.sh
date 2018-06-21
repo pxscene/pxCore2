@@ -28,6 +28,6 @@ done
 filename="pxscene-setup.exe"
 DEPLOY_USER="${DEPLOY_USER:-ubuntu}"
 REMOTE_HOST="96.116.56.119"
-REMOTE_DIR="/var/www/html/edge/windows"
+REMOTE_DIR="/var/www/html/edge/windows/pxsceneEdge-setup.exe"
 
 scp -P 2220 -o StrictHostKeyChecking=no ${filename} ${DEPLOY_USER}@${REMOTE_HOST}:${REMOTE_DIR}
