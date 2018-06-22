@@ -132,7 +132,7 @@ rtError pxLoadJPGImage(const char* filename, pxOffscreen& o);
 
 
 rtError pxLoadSVGImage(const char* buf, size_t buflen, pxOffscreen& o, int w = 0, int h = 0, float sx = 1.0f, float sy = 1.0f);
-rtError pxLoadSVGImage(const char* filename, pxOffscreen& o, int w = 0, int h = 0, float sx = 1.0f, float sy = 1.0f);
+rtError pxLoadSVGImage(const char* filename,           pxOffscreen& o, int w = 0, int h = 0, float sx = 1.0f, float sy = 1.0f);
 rtError pxStoreSVGImage(const char* filename, pxBuffer& b); // NOT SUPPORTED
 
 
