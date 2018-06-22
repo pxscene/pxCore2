@@ -164,7 +164,7 @@ class pxUtilTest : public testing::Test
     void pxLoadImage2ArgsPngSuccessTest ()
     {
       pxOffscreen o;
-      rtError ret = pxLoadImage("supportfiles/status_bg.png", o);
+      rtError ret = pxLoadImage((const char*) "supportfiles/status_bg.png", o);
       EXPECT_TRUE (ret == RT_OK);
     }
 
@@ -178,7 +178,7 @@ class pxUtilTest : public testing::Test
     void pxLoadImage2ArgsFailureTest ()
     {
       pxOffscreen o;
-      rtError ret = pxLoadImage("supportfiles1/sampleimage.jpeg", o);
+      rtError ret = pxLoadImage( (const char*) "supportfiles1/sampleimage.jpeg", o);
       EXPECT_TRUE (ret != RT_OK);
     }
 
@@ -371,8 +371,10 @@ TEST_F(pxUtilTest, pxutilsTest)
     pxLoadImage3ArgsFailureTest();
     pxLoadImage3ArgsLessLengthFailureTest();
 
-//    pxLoadImage2ArgsSuccessTest();
-    pxLoadImage2ArgsFailureTest();
+   pxLoadImage2ArgsPngSuccessTest();
+
+  //  pxLoadImage2ArgsSuccessTest();
+   pxLoadImage2ArgsFailureTest();
 
     pxLoadPNGImage2ArgsSuccessTest();
     pxLoadPNGImage2ArgsFailureTest();

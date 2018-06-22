@@ -99,8 +99,8 @@ pxImageType;
 
 pxImageType getImageType( const uint8_t* data, size_t len );
 
-rtError pxLoadImage( const char* imageData, size_t imageDataSize, pxOffscreen& o, int w = 0, int h = 0, float sx = 1.0f, float sy = 1.0f);
-rtError pxLoadImage( const char* filename,                        pxOffscreen& b, int w = 0, int h = 0, float sx = 1.0f, float sy = 1.0f);
+rtError pxLoadImage( const char* imageData, size_t imageDataSize, pxOffscreen& o, int32_t w = 0, int32_t h = 0, float sx = 1.0f, float sy = 1.0f);
+rtError pxLoadImage( const char* filename,                        pxOffscreen& b, int32_t w = 0, int32_t h = 0, float sx = 1.0f, float sy = 1.0f);
 rtError pxStoreImage(const char* filename, pxOffscreen& b);
 
 //bool pxIsPNGImage(const char* imageData, size_t imageDataSize);
