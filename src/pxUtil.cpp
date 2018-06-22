@@ -74,8 +74,9 @@ static rtMutex          rastMutex;
 
 
 // Assume alpha is not premultiplied
-rtError pxLoadImage(const char *imageData, size_t imageDataSize,
-                    pxOffscreen &o, int32_t w /* = 0*/, int32_t h /* = 0*/, float sx /*= 1.0f*/, float sy /*= 1.0f*/)
+rtError pxLoadImage(const char *imageData, size_t imageDataSize,  pxOffscreen &o, 
+                        int32_t w /* = 0   */, int32_t h /* = 0    */, 
+                        float sx /* = 1.0f */,  float sy /* = 1.0f */)
 {
   pxImageType imgType = getImageType( (const uint8_t*) imageData, imageDataSize);
   rtError retVal = RT_FAIL;
@@ -154,7 +155,9 @@ rtError pxLoadAImage(const char* imageData, size_t imageDataSize,
 
 // TODO Detection needs to be improved...
 // Handling jpeg as fallback now
-rtError pxLoadImage(const char *filename, pxOffscreen &b, int32_t w /* = 0*/, int32_t h /* = 0*/)
+rtError pxLoadImage(const char *filename, pxOffscreen &b,
+                        int32_t w /* = 0    */, int32_t h /* = 0    */,
+                         float sx /* = 1.0f */,  float sy /* = 1.0f */)
 {
   rtData d;
   rtError e = rtLoadFile(filename, d);
