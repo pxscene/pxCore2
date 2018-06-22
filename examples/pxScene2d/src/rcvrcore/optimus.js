@@ -123,6 +123,8 @@ function Application(props) {
         this.log("about to destroy");
         if (_externalApp.destroy) {
           _externalApp.destroy();
+        } else if (this.type === ApplicationType.SPARK && _externalApp.api && _externalApp.api.destroy) {
+           _externalApp.api.destroy();
         }
       } catch (e) {
         this.log("failed to destroy",e);

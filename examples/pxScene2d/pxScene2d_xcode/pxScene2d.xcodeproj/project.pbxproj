@@ -78,6 +78,7 @@
 		4C5D06292020D0A000D2B292 /* libz.1.2.11.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C5D05EA201FC5B500D2B292 /* libz.1.2.11.dylib */; };
 		4C5D062A2020D34200D2B292 /* libz.1.2.11.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C5D05EA201FC5B500D2B292 /* libz.1.2.11.dylib */; };
 		4C63A6831E7878AA00313D9C /* package.json in Resources */ = {isa = PBXBuildFile; fileRef = 4C63A6821E7878AA00313D9C /* package.json */; };
+		4C8440CC20D8362E00C24E45 /* sparkpermissions.conf in Resources */ = {isa = PBXBuildFile; fileRef = 4C8440CB20D8362E00C24E45 /* sparkpermissions.conf */; };
 		4C93A1712021160D002278E5 /* libz.1.2.11.dylib in Copy Dynamic Library Files */ = {isa = PBXBuildFile; fileRef = 4CF5463A2020F6E200529907 /* libz.1.2.11.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		4C93A17D2021161E002278E5 /* libz.1.2.11.dylib in Copy Dynamic Library Files */ = {isa = PBXBuildFile; fileRef = 4CF5463A2020F6E200529907 /* libz.1.2.11.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		4C9F22AC1E6A24D200979F4E /* westeros-stub.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C9F22AB1E6A24D200979F4E /* westeros-stub.cpp */; };
@@ -359,6 +360,7 @@
 		4C62369520B342CF00DAB86F /* nanosvg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = nanosvg.h; path = external/nanosvg/src/nanosvg.h; sourceTree = "<group>"; };
 		4C62369620B342CF00DAB86F /* nanosvgrast.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = nanosvgrast.h; path = external/nanosvg/src/nanosvgrast.h; sourceTree = "<group>"; };
 		4C63A6821E7878AA00313D9C /* package.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; name = package.json; path = ../../src/package.json; sourceTree = "<group>"; };
+		4C8440CB20D8362E00C24E45 /* sparkpermissions.conf */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = sparkpermissions.conf; path = src/sparkpermissions.conf; sourceTree = "<group>"; };
 		4C9F22AA1E6A24D200979F4E /* westeros-compositor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "westeros-compositor.h"; path = "external/westeros-stub/westeros-compositor.h"; sourceTree = "<group>"; };
 		4C9F22AB1E6A24D200979F4E /* westeros-stub.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = "westeros-stub.cpp"; path = "external/westeros-stub/westeros-stub.cpp"; sourceTree = "<group>"; };
 		4CF546362020F5B600529907 /* pxScene2d.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = pxScene2d.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -424,6 +426,7 @@
 		4C04660D1E574CAE00D59925 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				4C8440CB20D8362E00C24E45 /* sparkpermissions.conf */,
 				4C0466191E574CEE00D59925 /* shell.js */,
 				4C04661A1E574CEE00D59925 /* init.js */,
 				4C5B75C21F4FB51600664DC6 /* about.js */,
@@ -868,6 +871,7 @@
 			files = (
 				4CF546292020F5B600529907 /* package.json in Resources */,
 				4CF5462A2020F5B600529907 /* browser in Resources */,
+				4C8440CC20D8362E00C24E45 /* sparkpermissions.conf in Resources */,
 				4CF5462B2020F5B600529907 /* about.js in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -929,7 +933,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "cd $PROJECT_DIR/../src\n\n# Copy\ncp package.json $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/MacOS\ncp -R macstuff/Resources $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents\ncp    macstuff/EngineRunner $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/MacOS\ncp    macstuff/pxscene.sh $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/MacOS\n\ncp FreeSans.ttf $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\ncp -R browser $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\ncp -R node_modules $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\n\nminifyJS=\"true\"\n\nif [ \"$minifyJS\" == \"true\" ]\nthen\n\n  # Minify JS to App Bundle\n  printf \"\\n ###  Minify JS code to App Bundle\\n\"\n\n  ./jsMinFolder.sh rcvrcore $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources/rcvrcore\n  cp -R browser $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\n\n  ./jsMin.sh init.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources/init.js\n  ./jsMin.sh shell.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources/shell.js\n  ./jsMin.sh about.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources/about.js\n  ./jsMin.sh browser.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources/browser.js\n  ./jsMin.sh browser/editbox.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources/browser/editbox.js\nelse\n\n  # Skip JS Minify - just copy\n  printf \"\\n ###  Skip JS Minify - just copy\\n\"\n\n  cp -R rcvrcore $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\n  cp -R browser $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\n\n  cp init.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\n  cp shell.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\n  cp about.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\n  cp browser.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\nfi\n\necho $PROJECT_DIR/../lib\n";
+			shellScript = "cd $PROJECT_DIR/../src\n\n# Copy\ncp package.json $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/MacOS\ncp sparkpermissions.conf $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/MacOS\ncp -R macstuff/Resources $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents\ncp    macstuff/EngineRunner $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/MacOS\ncp    macstuff/pxscene.sh $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/MacOS\n\ncp FreeSans.ttf $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\ncp -R browser $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\ncp -R node_modules $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\n\nminifyJS=\"true\"\n\nif [ \"$minifyJS\" == \"true\" ]\nthen\n\n  # Minify JS to App Bundle\n  printf \"\\n ###  Minify JS code to App Bundle\\n\"\n\n  ./jsMinFolder.sh rcvrcore $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources/rcvrcore\n  cp -R browser $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\n\n  ./jsMin.sh init.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources/init.js\n  ./jsMin.sh shell.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources/shell.js\n  ./jsMin.sh about.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources/about.js\n  ./jsMin.sh browser.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources/browser.js\n  ./jsMin.sh browser/editbox.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources/browser/editbox.js\nelse\n\n  # Skip JS Minify - just copy\n  printf \"\\n ###  Skip JS Minify - just copy\\n\"\n\n  cp -R rcvrcore $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\n  cp -R browser $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\n\n  cp init.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\n  cp shell.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\n  cp about.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\n  cp browser.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\nfi\n\necho $PROJECT_DIR/../lib\n";
 		};
 		4CF546042020F5B600529907 /* Run Library Script */ = {
 			isa = PBXShellScriptBuildPhase;

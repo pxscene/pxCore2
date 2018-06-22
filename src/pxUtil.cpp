@@ -50,16 +50,18 @@
   #include "nanosvg.h"
   #define NANOSVGRAST_IMPLEMENTATION
   #include "nanosvgrast.h"
-  
-#ifndef SAFE_DELETE
-  #define SAFE_DELETE(x)  { delete (x); (x) = NULL; }
+
+#ifdef SAFE_FREE
+#undef SAFE_FREE
 #endif
+#define SAFE_FREE(x)  do { free(x); (x) = NULL; } while(0)
+
 
 class NSVGrasterizerEx
 {
   public:
        NSVGrasterizerEx()  {  rast = nsvgCreateRasterizer(); } // ctor
-      ~NSVGrasterizerEx()  {  delete rast;                   } // dtor
+      ~NSVGrasterizerEx()  {  SAFE_FREE(rast);               } // dtor
   
   NSVGrasterizer *getPtr() { return rast; };
   
@@ -69,6 +71,7 @@ class NSVGrasterizerEx
 }; // CLASS;
 
 static NSVGrasterizerEx rast;
+static rtMutex          rastMutex;
 
 
 // Assume alpha is not premultiplied
@@ -979,6 +982,8 @@ rtError pxStoreSVGImage(const char* /*filename*/, pxBuffer& /*b*/)  { return RT_
 
 rtError pxLoadSVGImage(const char* buf, size_t buflen, pxOffscreen& o, int w /* = 0 */, int h /* = 0 */)
 {
+  rtMutexLockGuard  autoLock(rastMutex);
+  
   if (buf == NULL || buflen == 0 )
   {
     rtLogError("SVG:  Bad args.\n");
@@ -988,8 +993,6 @@ rtError pxLoadSVGImage(const char* buf, size_t buflen, pxOffscreen& o, int w /* 
   NSVGimage *image = nsvgParse( (char *) buf, "px", 96.0f); // 96 dpi (suggested defalus) 
   if (image == NULL)
   {
-    SAFE_DELETE(image)
-
     rtLogError("SVG:  Could not init decode SVG.\n");
     return RT_FAIL;
   }
@@ -1002,8 +1005,8 @@ rtError pxLoadSVGImage(const char* buf, size_t buflen, pxOffscreen& o, int w /* 
 
   if (image_w == 0 || image_h == 0)
   {
-    SAFE_DELETE(image)
-    
+    SAFE_FREE(image);
+
     rtLogError("SVG:  Bad image dimensions  WxH: %d x %d\n", image_w, image_h);
     return RT_FAIL;
   }
@@ -1016,8 +1019,8 @@ rtError pxLoadSVGImage(const char* buf, size_t buflen, pxOffscreen& o, int w /* 
 
     scale = (ratioW < ratioH) ? ratioW : ratioH; // MIN()
 
-    int scaled_w = image_w * scale;
-    int scaled_h = image_h * scale;
+    int scaled_w = static_cast<int>(image_w * scale);
+    int scaled_h = static_cast<int>(image_h * scale);
 
     if(scaled_w < w)
     {
@@ -1038,9 +1041,9 @@ rtError pxLoadSVGImage(const char* buf, size_t buflen, pxOffscreen& o, int w /* 
 
 //  rtLogDebug("SVG:  Rasterizing image %d x %d  (scale: %f) \n", w, h, scale);
 
-  nsvgRasterize(rast.getPtr(), image, dx, dy, scale , (unsigned char*) o.base(), o.width(), o.height(), o.width() *4);
+  nsvgRasterize(rast.getPtr(), image, static_cast<float>(dx), static_cast<float>(dy), scale , (unsigned char*) o.base(), o.width(), o.height(), o.width() *4);
 
-  SAFE_DELETE(image)
+  SAFE_FREE(image);
 
   return RT_OK;
 }
