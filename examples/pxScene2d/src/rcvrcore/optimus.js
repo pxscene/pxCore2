@@ -361,9 +361,14 @@ function Application(props) {
         this.ready = _externalApp.ready;
         _externalApp.on("onReady", function () { _this.log("onReady"); }); // is never called
         _externalApp.on("onClientStarted", function () { _this.log("onClientStarted"); });
-        _externalApp.on("onClientConnected", function () { _this.log("onClientConnected"); }); // called multiple times
-        _externalApp.on("onClientDisconnected", function () { _this.log("onClientDisconnected"); }); // is never called
-        _externalApp.on("onClientStopped", function () { _this.log("onClientStopped"); }); // is never called
+        _externalApp.on("onClientConnected", function () { _this.log("onClientConnected"); });
+        _externalApp.on("onClientDisconnected", function () { _this.log("onClientDisconnected"); }); // called on client crash
+        _externalApp.on("onClientStopped", function () { // called on client crash
+          _this.log("onClientStopped");
+          setTimeout(function () {
+            _this.destroy();
+          });
+        });
         _externalApp.ready.then(function() {
           _this.log("successfully created: " + _this.id);
           _this.applicationReady();
