@@ -1457,10 +1457,13 @@ void pxObject::drawInternal(bool maskPass)
     else if (mClip )
     {
       //rtLogInfo("calling createSnapshot for mw=%f mh=%f\n", mw, mh);
-      createSnapshot(mClipSnapshotRef);
+      if (mClipSnapshotRef.getPtr() == NULL || mRepaint)
+      {
+        createSnapshot(mClipSnapshotRef);
 
-      context.setMatrix(m); // TODO: Move within if() below ?
-      context.setAlpha(ma); // TODO: Move within if() below ?
+        context.setMatrix(m);
+        context.setAlpha(ma);
+      }
 
       if (mClipSnapshotRef.getPtr() != NULL)
       {
