@@ -1457,7 +1457,7 @@ void pxObject::drawInternal(bool maskPass)
     else if (mClip )
     {
       //rtLogInfo("calling createSnapshot for mw=%f mh=%f\n", mw, mh);
-      if (mClipSnapshotRef.getPtr() == NULL || mRepaint)
+      if (mRepaint)
       {
         createSnapshot(mClipSnapshotRef);
 
