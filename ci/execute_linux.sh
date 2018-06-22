@@ -73,7 +73,7 @@ crossedimage9=0
 while [ "$retVal" -ne 0 ] &&  [ "$count" -ne "$max_seconds" ]; do
 	printf "\n [execute_linux.sh] snoozing for 30 seconds (%d of %d) \n" $count $max_seconds
 	sleep 30; # seconds
-
+#handle image9 test hang scenario and take the stack frame at the time of hang
  if [ "$isimage9" -eq 0 ] 
  then
     grep "Running image9 testReload" $EXECLOGS
