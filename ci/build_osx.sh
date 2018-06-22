@@ -49,6 +49,14 @@ then
   then
     cmake -DBUILD_PX_TESTS=ON -DBUILD_PXSCENE_STATIC_LIB=ON -DBUILD_DEBUG_METRICS=ON .. >>$BUILDLOGS 2>&1;
   else
+    if [ "$TRAVIS_EVENT_TYPE" == "cron" ] ; 
+    then
+    echo "*******************copying files";
+    cp ../examples/pxScene2d/src/macstuff/Resources/SparkEdge.icns ../examples/pxScene2d/src/macstuff/Resources/pxscene.icns
+    cp ../examples/pxScene2d/src/macstuff/Resources/SparkEdge.icns ../examples/pxScene2d/src/macstuff/Resources/AppIcon.icns
+    cp ../examples/pxScene2d/src/macstuff/Resources/SparkEdge.icns ../examples/pxScene2d/src/macstuff/dmgresources/pxscene.icns
+    cp ../examples/pxScene2d/src/macstuff/Resources/SparkEdge.icns ../examples/pxScene2d/src/macstuff/Resources/pxscene.icns
+    fi
     cmake .. >>$BUILDLOGS 2>&1;
   fi
 
