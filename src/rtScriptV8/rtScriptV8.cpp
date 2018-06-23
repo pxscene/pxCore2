@@ -52,6 +52,7 @@
 #include "rtValue.h"
 #include "rtAtomic.h"
 #include "rtScript.h"
+#include "rtPromise.h"
 #include "rtFunctionWrapper.h"
 #include "rtObjectWrapper.h"
 
@@ -305,9 +306,86 @@ rtError rtTestObjectReturnBinding(int numArgs, const rtValue* args, rtValue* res
   return RT_OK;
 }
 
+rtError rtTestPromiseReturnResolvedBinding(int numArgs, const rtValue* args, rtValue* result, void* context)
+{
+  rtPromise* ret = new rtPromise();
+
+  ret->resolve(2);
+
+  *result = ret;
+
+  return RT_OK;
+}
+
+rtError rtTestPromiseReturnRejectedBinding(int numArgs, const rtValue* args, rtValue* result, void* context)
+{
+  rtPromise* ret = new rtPromise();
+
+  ret->reject(3);
+
+  *result = ret;
+
+  return RT_OK;
+}
+
+static void testPromiseDoWork(uv_work_t* req)
+{
+
+}
+
+static void testPromiseDoResolveCallback(uv_work_t* req, int status)
+{
+  rtPromise *promise = (rtPromise *)req->data;
+  promise->resolve(3);
+  promise->Release();
+}
+
+static void testPromiseDoRejectCallback(uv_work_t* req, int status)
+{
+  rtPromise *promise = (rtPromise *)req->data;
+  promise->reject(promise);
+  promise->Release();
+}
+
+rtError rtTestPromiseReturnBinding(int numArgs, const rtValue* args, rtValue* result, void* context)
+{
+  rtPromise* ret = new rtPromise();
+
+  ret->AddRef();
+
+  uv_work_t *work = new uv_work_t();
+  work->data = (void*)ret;
+
+  uv_queue_work(uv_default_loop(), work, &testPromiseDoWork, &testPromiseDoResolveCallback);
+
+  *result = ret;
+
+  return RT_OK;
+}
+
+rtError rtTestPromiseReturnRejectBinding(int numArgs, const rtValue* args, rtValue* result, void* context)
+{
+  rtPromise* ret = new rtPromise();
+
+  ret->AddRef();
+
+  uv_work_t *work = new uv_work_t();
+  work->data = (void*)ret;
+
+  uv_queue_work(uv_default_loop(), work, &testPromiseDoWork, &testPromiseDoRejectCallback);
+
+  *result = ret;
+
+  return RT_OK;
+}
+
 rtRef<rtFunctionCallback> g_testArrayReturnFunc;
 rtRef<rtFunctionCallback> g_testMapReturnFunc;
 rtRef<rtFunctionCallback> g_testObjectReturnFunc;
+rtRef<rtFunctionCallback> g_testPromiseResolvedReturnFunc;
+rtRef<rtFunctionCallback> g_testPromiseReturnFunc;
+rtRef<rtFunctionCallback> g_testPromiseRejectedReturnFunc;
+rtRef<rtFunctionCallback> g_testPromiseReturnRejectFunc;
 
 #endif
 
@@ -336,10 +414,18 @@ rtV8Context::rtV8Context(Isolate *isolate, Platform *platform) :
   g_testArrayReturnFunc = new rtFunctionCallback(rtTestArrayReturnBinding);
   g_testMapReturnFunc = new rtFunctionCallback(rtTestMapReturnBinding);
   g_testObjectReturnFunc = new rtFunctionCallback(rtTestObjectReturnBinding);
+  g_testPromiseResolvedReturnFunc = new rtFunctionCallback(rtTestPromiseReturnResolvedBinding);
+  g_testPromiseReturnFunc = new rtFunctionCallback(rtTestPromiseReturnBinding);
+  g_testPromiseRejectedReturnFunc = new rtFunctionCallback(rtTestPromiseReturnRejectedBinding);
+  g_testPromiseReturnRejectFunc = new rtFunctionCallback(rtTestPromiseReturnRejectBinding);
 
   add("_testArrayReturnFunc", g_testArrayReturnFunc.getPtr());
   add("_testMapReturnFunc", g_testMapReturnFunc.getPtr());
   add("_testObjectReturnFunc", g_testObjectReturnFunc.getPtr());
+  add("_testPromiseResolvedReturnFunc", g_testPromiseResolvedReturnFunc.getPtr());
+  add("_testPromiseReturnFunc", g_testPromiseReturnFunc.getPtr());
+  add("_testPromiseRejectedReturnFunc", g_testPromiseRejectedReturnFunc.getPtr());
+  add("_testPromiseReturnRejectFunc", g_testPromiseReturnRejectFunc.getPtr());
 }
 
 #ifdef USE_CONTEXTIFY_CLONES
