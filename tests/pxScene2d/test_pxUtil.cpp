@@ -25,6 +25,8 @@ limitations under the License.
 #include "pxResource.h"
 #include "rtFileDownloader.h"
 #include "rtString.h"
+#include "pxUtil.h"
+
 #include <string.h>
 #include <unistd.h>
 #include <pxOffscreen.h>
@@ -102,15 +104,23 @@ png_infop png_create_info_struct(png_structp png_ptr)
 class pxUtilTest : public testing::Test
 {
   public:
+    pxUtilTest() : mDownloadImageFailed(true)
+    {
+      //ctor
+    }
+
     virtual void SetUp()
     {
       bool sysRet = system("wget http://apng.onevcat.com/assets/elephant.png");
       mDownloadImageFailed = sysRet;
       if (false == mDownloadImageFailed)
+      {
+        printf("INFO !!!! APNG image was downloaded, everything is fine !\n");
         sysRet = system("mv elephant.png supportfiles/apngimage.png");
+      }
       else
       {
-        printf("WARNING !!!! apngimage not downloaded, so some test cases may not execute\n");
+        printf("WARNING !!!! APNG image NOT downloaded, so some test cases may not execute\n");
         fflush(stdout);
       }
     }
@@ -164,7 +174,7 @@ class pxUtilTest : public testing::Test
     void pxLoadImage2ArgsPngSuccessTest ()
     {
       pxOffscreen o;
-      rtError ret = pxLoadImage((const char*) "supportfiles/status_bg.png", o);
+      rtError ret = pxLoadImage("supportfiles/status_bg.png", o);
       EXPECT_TRUE (ret == RT_OK);
     }
 
@@ -178,7 +188,7 @@ class pxUtilTest : public testing::Test
     void pxLoadImage2ArgsFailureTest ()
     {
       pxOffscreen o;
-      rtError ret = pxLoadImage( (const char*) "supportfiles1/sampleimage.jpeg", o);
+      rtError ret = pxLoadImage("supportfiles1/sampleimage.jpeg", o);
       EXPECT_TRUE (ret != RT_OK);
     }
 
@@ -320,10 +330,16 @@ ret=RT_FAIL; // TODO <<< FIX
       if (false == mDownloadImageFailed)
       {
         rtData d;
+
         rtError loadImageSuccess = rtLoadFile("supportfiles/apngimage.png", d);
         EXPECT_TRUE (loadImageSuccess == RT_OK);
+
         rtError ret = pxLoadAImage((const char*) d.data(), d.length(), mAnimatedPngData);
         EXPECT_TRUE (ret == RT_OK);
+      }
+      else
+      {
+         printf("WARNING !!!! APNG image NOT downloaded, skipping %s \n", __FUNCTION__);
       }
     }
 
@@ -371,8 +387,6 @@ TEST_F(pxUtilTest, pxutilsTest)
     pxLoadImage3ArgsFailureTest();
     pxLoadImage3ArgsLessLengthFailureTest();
 
-   pxLoadImage2ArgsPngSuccessTest();
-
   //  pxLoadImage2ArgsSuccessTest();
    pxLoadImage2ArgsFailureTest();
 
@@ -385,8 +399,7 @@ TEST_F(pxUtilTest, pxutilsTest)
     pxLoadSVGImage3ArgsCreateReadStructFailTest();
 
 //    pxLoadJPGImage3ArgsSuccessTest();
-
-    //pxLoadJPGImage2ArgsSuccessTest();
+//    pxLoadJPGImage2ArgsSuccessTest();
     pxLoadJPGImage2ArgsFailureTest();
 
     pxStoreImageSuccessTest();
@@ -400,7 +413,7 @@ TEST_F(pxUtilTest, pxutilsTest)
     pxStorePngImagertdataCreateWriteStructFailTest();
     //pxStorePngImagertdataCreateInfoStructFailTest();
 
-    pxLoadAPngSuccessTest();
+//    pxLoadAPngSuccessTest();
     pxLoadAPngFailureTest();
 
     pxLoadAPNGImage2ArgsSmallImageLengthTest();

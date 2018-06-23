@@ -56,6 +56,8 @@
 #endif
 #define SAFE_FREE(x)  do { free(x); (x) = NULL; } while(0)
 
+pxImageType getImageType( const uint8_t* data, size_t len ); //fwd
+
 class NSVGrasterizerEx
 {
   public:
@@ -75,8 +77,8 @@ static rtMutex          rastMutex;
 
 // Assume alpha is not premultiplied
 rtError pxLoadImage(const char *imageData, size_t imageDataSize,  pxOffscreen &o, 
-                        int32_t w /* = 0   */, int32_t h /* = 0    */, 
-                        float sx /* = 1.0f */,  float sy /* = 1.0f */)
+                        int32_t w /* = 0    */, int32_t h /* = 0    */,
+                         float sx /* = 1.0f */,  float sy /* = 1.0f */)
 {
   pxImageType imgType = getImageType( (const uint8_t*) imageData, imageDataSize);
   rtError retVal = RT_FAIL;
@@ -128,14 +130,21 @@ rtError pxLoadImage(const char *imageData, size_t imageDataSize,  pxOffscreen &o
   return retVal;
 }
 
+// APNG looks like a PNG with extra chunks ... can fallback to display static PNG
+
 rtError pxLoadAImage(const char* imageData, size_t imageDataSize,
   pxTimedOffscreenSequence &s)
 {
   // Load as PNG...
   rtError retVal = pxLoadAPNGImage(imageData, imageDataSize, s);
 
-  if (retVal != RT_OK) // Failed ... trying as JPG
+  if (retVal != RT_OK) // Failed ... trying as JPG (why?)
   {
+#if 1
+    rtLogError("ERROR:  pxLoadAPNGImage() - failed to load APNG ... " );
+
+    return retVal;
+#else
     pxOffscreen o;
 #ifdef ENABLE_LIBJPEG_TURBO
     retVal = pxLoadJPGImageTurbo(imageData, imageDataSize, o);
@@ -148,6 +157,7 @@ rtError pxLoadAImage(const char* imageData, size_t imageDataSize,
 #endif //ENABLE_LIBJPEG_TURBO
     s.init();
     s.addBuffer(o,0);
+#endif // 0
   }
 
   return retVal;
@@ -174,6 +184,11 @@ rtError pxLoadImage(const char *filename, pxOffscreen &b,
 rtError pxStoreImage(const char *filename, pxOffscreen &b)
 {
   return pxStorePNGImage(filename, b);
+}
+
+bool pxIsPNGImage(rtData d)
+{
+  return (getImageType( (const uint8_t*) d.data(), d.length()) == PX_IMAGE_PNG);
 }
 
 bool pxIsPNGImage(const char *imageData, size_t imageDataSize)
@@ -1282,10 +1297,6 @@ void BlendOver(unsigned char **rows_dst, unsigned char **rows_src, unsigned int 
 rtError pxLoadAPNGImage(const char *imageData, size_t imageDataSize,
                         pxTimedOffscreenSequence &s)
 {
-  s.init();
-
-  PngStruct pngStruct((char *)imageData, imageDataSize);
-
   if (!imageData)
   {
     rtLogError("FATAL: Invalid arguments - imageData = NULL");
@@ -1297,6 +1308,10 @@ rtError pxLoadAPNGImage(const char *imageData, size_t imageDataSize,
     rtLogError("FATAL: Invalid arguments - imageDataSize < 8");
     return RT_FAIL;
   }
+
+  s.init();
+
+  PngStruct pngStruct((char *)imageData, imageDataSize);
 
   unsigned char header[8]; // 8 is the maximum size that can be checked
 
@@ -1445,6 +1460,22 @@ rtError pxLoadAPNGImage(const char *imageData, size_t imageDataSize,
   png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
 
   return RT_OK;
+}
+
+rtString imageType2str(pxImageType t)
+{
+  switch(t)
+  {
+    case PX_IMAGE_JPG:      return rtString("PX_IMAGE_JPG");
+    case PX_IMAGE_PNG:      return rtString("PX_IMAGE_PNG");
+    case PX_IMAGE_GIF:      return rtString("PX_IMAGE_GIF");
+    case PX_IMAGE_TIFF:     return rtString("PX_IMAGE_TIFF");
+    case PX_IMAGE_BMP:      return rtString("PX_IMAGE_BMP");
+    case PX_IMAGE_WEBP:     return rtString("PX_IMAGE_WEBP");
+    case PX_IMAGE_ICO:      return rtString("PX_IMAGE_ICO");
+    case PX_IMAGE_SVG:      return rtString("PX_IMAGE_SVG");
+    case PX_IMAGE_INVALID:  return rtString("PX_IMAGE_INVALID");
+  }
 }
 
 pxImageType getImageType( const uint8_t* data, size_t len )
