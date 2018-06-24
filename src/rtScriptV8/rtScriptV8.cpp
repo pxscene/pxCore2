@@ -16,6 +16,12 @@
 
 */
 
+#define RT_V8_TEST_BINDINGS
+
+#ifdef  RT_V8_TEST_BINDINGS
+#pragma optimize("", off)
+#endif
+
 #if defined WIN32
 #include <Windows.h>
 #include <direct.h>
@@ -26,6 +32,8 @@
 
 #include <stdio.h>
 #include <errno.h>
+
+#include <uv.h>
 
 #include <string>
 #include <fstream>
@@ -56,7 +64,6 @@
 #include "rtFunctionWrapper.h"
 #include "rtObjectWrapper.h"
 
-
 #include <string>
 #include <map>
 
@@ -85,8 +92,7 @@ public:
   virtual void* Allocate(size_t size)
   {
     void *ret = AllocateUninitialized(size);
-    if (!ret)
-    {
+    if (!ret) {
       return NULL;
     }
     memset(ret, 0, size);
@@ -139,9 +145,9 @@ typedef rtRef<rtV8Context> rtV8ContextRef;
 class rtV8Context: rtIScriptContext  // V8
 {
 public:
-  rtV8Context(v8::Isolate *isolate, v8::Platform* platform);
+  rtV8Context(v8::Isolate *isolate, v8::Platform* platform, uv_loop_t *loop);
 #ifdef USE_CONTEXTIFY_CLONES
-  rtV8Context(v8::Isolate *isolate, rtV8ContextRef clone_me);
+  rtV8Context(v8::Isolate *isolate, rtV8ContextRef clone_me, uv_loop_t *loop);
 #endif
 
   virtual ~rtV8Context();
@@ -161,10 +167,20 @@ public:
 
   unsigned long Release();
 
+  Local<Value> loadV8Module(const rtString &name);
+
+private:
+  void addMethod(const char *name, v8::FunctionCallback callback);
+  void setupModuleLoading();
+
 private:
    v8::Isolate                   *mIsolate;
    v8::Platform                  *mPlatform;
    v8::Persistent<v8::Context>    mContext;
+   uv_loop_t                     *mUvLoop;
+
+   std::map<rtString, Persistent<Value> *> mLoadedModuleCache;
+
    int mRefCount;
 
    const char   *js_file;
@@ -215,6 +231,7 @@ private:
   v8::Isolate                   *mIsolate;
   v8::Persistent<v8::Context>    mContext;
   v8::Platform                  *mPlatform;
+  uv_loop_t                     *mUvLoop;
 
   bool                           mV8Initialized;
 
@@ -224,7 +241,6 @@ private:
 
 using namespace v8;
 
-#define RT_V8_TEST_BINDINGS
 #ifdef  RT_V8_TEST_BINDINGS
 
 rtError rtTestArrayReturnBinding(int numArgs, const rtValue* args, rtValue* result, void* context);
@@ -389,8 +405,8 @@ rtRef<rtFunctionCallback> g_testPromiseReturnRejectFunc;
 
 #endif
 
-rtV8Context::rtV8Context(Isolate *isolate, Platform *platform) :
-     mIsolate(isolate), mRefCount(0), mPlatform(platform)
+rtV8Context::rtV8Context(Isolate *isolate, Platform *platform, uv_loop_t *loop) :
+     mIsolate(isolate), mRefCount(0), mPlatform(platform), mUvLoop(loop)
 {
   rtLogInfo(__FUNCTION__);
   Locker                locker(mIsolate);
@@ -409,8 +425,11 @@ rtV8Context::rtV8Context(Isolate *isolate, Platform *platform) :
   rtObjectWrapper::exportPrototype(mIsolate, global);
   rtFunctionWrapper::exportPrototype(mIsolate, global);
 
+  setupModuleLoading();
+
   v8::platform::PumpMessageLoop(mPlatform, mIsolate);
 
+#ifdef  RT_V8_TEST_BINDINGS
   g_testArrayReturnFunc = new rtFunctionCallback(rtTestArrayReturnBinding);
   g_testMapReturnFunc = new rtFunctionCallback(rtTestMapReturnBinding);
   g_testObjectReturnFunc = new rtFunctionCallback(rtTestObjectReturnBinding);
@@ -426,10 +445,11 @@ rtV8Context::rtV8Context(Isolate *isolate, Platform *platform) :
   add("_testPromiseReturnFunc", g_testPromiseReturnFunc.getPtr());
   add("_testPromiseRejectedReturnFunc", g_testPromiseRejectedReturnFunc.getPtr());
   add("_testPromiseReturnRejectFunc", g_testPromiseReturnRejectFunc.getPtr());
+#endif
 }
 
 #ifdef USE_CONTEXTIFY_CLONES
-rtV8Context::rtV8Context(Isolate *isolate, rtV8ContextRef clone_me)
+rtV8Context::rtV8Context(Isolate *isolate, rtV8ContextRef clone_me, uv_loop_t *loop)
 {
   assert(0);
 }
@@ -437,23 +457,184 @@ rtV8Context::rtV8Context(Isolate *isolate, rtV8ContextRef clone_me)
 
 rtV8Context::~rtV8Context()
 {
+  if (!mLoadedModuleCache.empty()) {
+    for (auto it = mLoadedModuleCache.begin(); it != mLoadedModuleCache.end(); ++it) {
+      delete (*it).second;
+    }
+  }
+}
+
+
+static bool bloatFileFromPath(uv_loop_t *loop, const rtString &path, rtString &data)
+{
+  uv_fs_t req;
+  int fd = 0;
+  uint64_t size;
+  char* chunk;
+  uv_buf_t buf;
+
+  if (uv_fs_open(loop, &req, path.cString(), 0, 0644, NULL) < 0) {
+    goto fail;
+  }
+  uv_fs_req_cleanup(&req);
+  fd = req.result;
+  if (uv_fs_fstat(loop, &req, fd, NULL) < 0) {
+    goto fail;
+  }
+  uv_fs_req_cleanup(&req);
+  size = req.statbuf.st_size;
+  chunk = (char*)malloc(size);
+  buf = uv_buf_init(chunk, static_cast<unsigned int>(size));
+  if (uv_fs_read(loop, &req, fd, &buf, 1, 0, NULL) < 0) {
+    free(chunk);
+    goto fail;
+  }
+  uv_fs_req_cleanup(&req);
+  data = rtString(chunk, size);
+  free(chunk);
+  return true;
+
+fail:
+  uv_fs_req_cleanup(&req);
+  if (fd) {
+    uv_fs_close(loop, &req, fd, NULL);
+  }
+  uv_fs_req_cleanup(&req);
+  return false;
+}
+
+static rtString getTryCatchResult(Local<Context> context, const TryCatch &tryCatch)
+{
+  if (tryCatch.HasCaught()) {
+    MaybeLocal<Value> val = tryCatch.StackTrace(context);
+    if (val.IsEmpty()) {
+      return rtString();
+    }
+    Local<Value> ret = val.ToLocalChecked();
+    String::Utf8Value trace(ret);
+    return rtString(*trace);
+  }
+  return rtString();
+}
+
+Local<Value> rtV8Context::loadV8Module(const rtString &name)
+{
+  rtString path = name;
+  if (!name.endsWith(".js")) {
+    path.append(".js");
+  }
+
+  rtString contents;
+  if (!bloatFileFromPath(mUvLoop, path, contents)) {
+    rtString path1("v8_modules/");
+    path1.append(path.cString());
+    path = path1;
+    if (!bloatFileFromPath(mUvLoop, path, contents)) {
+      rtLogWarn("module '%s' not found", name.cString());
+      return Local<Value>();
+    }
+  }
+
+  Locker                locker(mIsolate);
+  Isolate::Scope isolate_scope(mIsolate);
+  HandleScope     handle_scope(mIsolate);
+
+  Local<Context> localContext = PersistentToLocal<Context>(mIsolate, mContext);
+  Context::Scope context_scope(localContext);
+
+  // check in cache
+  if (mLoadedModuleCache.find(path) != mLoadedModuleCache.end()) {
+    Persistent<Value> *loadedModule = mLoadedModuleCache[path];
+    return PersistentToLocal<Value>(mIsolate, *loadedModule);
+  }
+
+  rtString contents1 = "(function(){var module=this,exports=this.exports;";
+  contents1.append(contents.cString());
+  contents1.append(" return this.exports; })");
+
+  v8::Local<v8::String> source =
+    v8::String::NewFromUtf8(mIsolate, contents1.cString(), v8::NewStringType::kNormal).ToLocalChecked();
+
+  TryCatch tryCatch(mIsolate);
+ 
+  v8::MaybeLocal<v8::Script> script = v8::Script::Compile(localContext, source);
+
+  if (script.IsEmpty()) {
+    rtLogWarn("module '%s' compilation failed (%s)", name.cString(), getTryCatchResult(localContext, tryCatch).cString());
+    return Local<Value>();
+  }
+
+  v8::MaybeLocal<v8::Value> result = script.ToLocalChecked()->Run(localContext);
+
+  if (result.IsEmpty() || !result.ToLocalChecked()->IsFunction()) {
+    rtLogWarn("module '%s' unexpected result (%s)", name.cString(), getTryCatchResult(localContext, tryCatch).cString());
+    return Local<Value>();
+  }
+
+  v8::Function *func = v8::Function::Cast(*result.ToLocalChecked());
+  MaybeLocal<v8::Value> ret =  func->Call(localContext, result.ToLocalChecked(), 0, NULL);
+
+  if (ret.IsEmpty()) {
+    rtLogWarn("module '%s' unexpected call result (%s)", name.cString(), getTryCatchResult(localContext, tryCatch).cString());
+    return Local<Value>();
+  }
+
+  Local<Value> toRet = ret.ToLocalChecked();
+  Persistent<Value> *toRetPersistent = new Persistent<Value>(mIsolate, toRet);
+
+  // store in cache
+  mLoadedModuleCache[path] = toRetPersistent;
+
+  return toRet;
+}
+
+
+static void requireCallback(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+  assert(args.Data()->isExternal());
+  v8::External *val = v8::External::Cast(*args.Data());
+  assert(val != NULL);
+  rtV8Context *ctx = (rtV8Context *)val->Value();
+  assert(args.Length() == 1);
+  assert(args[0].IsString());
+
+  rtString moduleName = toString(args[0]->ToString());
+  args.GetReturnValue().Set(ctx->loadV8Module(moduleName));
+}
+
+
+void rtV8Context::addMethod(const char *name, v8::FunctionCallback callback)
+{
+  Locker                locker(mIsolate);
+  Isolate::Scope isolate_scope(mIsolate);
+  HandleScope     handle_scope(mIsolate);
+
+  Local<FunctionTemplate> fTemplate = v8::FunctionTemplate::New(mIsolate, callback, v8::External::New(mIsolate, (void*)this));
+  Local<Context> localContext = PersistentToLocal<Context>(mIsolate, mContext);
+  Context::Scope context_scope(localContext);
+  localContext->Global()->Set(
+    String::NewFromUtf8(mIsolate, name, NewStringType::kNormal).ToLocalChecked(),
+    fTemplate->GetFunction()
+  );
+}
+
+void rtV8Context::setupModuleLoading()
+{
+  addMethod("require", &requireCallback);
 }
 
 rtError rtV8Context::add(const char *name, const rtValue& val)
 {
-  if (name == NULL)
-  {
+  if (name == NULL) {
     rtLogDebug(" rtNodeContext::add() - no symbolic name for rtValue");
     return RT_FAIL;
   }
-  else if (this->has(name))
-  {
+  else if (this->has(name)) {
     rtLogDebug(" rtNodeContext::add() - ALREADY HAS '%s' ... over-writing.", name);
     // return; // Allow for "Null"-ing erasure.
   }
 
-  if (val.isEmpty())
-  {
+  if (val.isEmpty()) {
     rtLogDebug(" rtNodeContext::add() - rtValue is empty");
     return RT_FAIL;
   }
@@ -473,8 +654,7 @@ rtError rtV8Context::add(const char *name, const rtValue& val)
 
 rtValue rtV8Context::get(const char *name)
 {
-  if (name == NULL)
-  {
+  if (name == NULL) {
     rtLogError(" rtNodeContext::get() - no symbolic name for rtValue");
     return rtValue();
   }
@@ -492,13 +672,11 @@ rtValue rtV8Context::get(const char *name)
   // Get the object
   Local<Value> object = global->Get(String::NewFromUtf8(mIsolate, name));
 
-  if (object->IsUndefined() || object->IsNull())
-  {
+  if (object->IsUndefined() || object->IsNull()) {
     rtLogError("FATAL: '%s' is Undefined ", name);
     return rtValue();
   }
-  else
-  {
+  else {
     rtWrapperError error; // TODO - handle error
     return v82rt(local_context, object, &error);
   }
@@ -506,8 +684,7 @@ rtValue rtV8Context::get(const char *name)
 
 bool rtV8Context::has(const char *name)
 {
-  if (name == NULL)
-  {
+  if (name == NULL) {
     rtLogError(" rtNodeContext::has() - no symbolic name for rtValue");
     return false;
   }
@@ -525,8 +702,7 @@ bool rtV8Context::has(const char *name)
   TryCatch try_catch(mIsolate);
   Handle<Value> value = global->Get(String::NewFromUtf8(mIsolate, name));
 
-  if (try_catch.HasCaught())
-  {
+  if (try_catch.HasCaught()) {
     rtLogError("\n ## has() - HasCaught()  ... ERROR");
     return false;
   }
@@ -540,8 +716,7 @@ bool rtV8Context::has(const char *name)
 rtError rtV8Context::runScript(const char *script, rtValue* retVal /*= NULL*/, const char *args /*= NULL*/)
 {
   rtLogInfo(__FUNCTION__);
-  if (!script || strlen(script) == 0)
-  {
+  if (!script || strlen(script) == 0) {
     rtLogError(" %s  ... no script given.", __PRETTY_FUNCTION__);
 
     return RT_FAIL;
@@ -565,16 +740,14 @@ rtError rtV8Context::runScript(const char *script, rtValue* retVal /*= NULL*/, c
     // Run the script to get the result.
     Local<Value> result = run_script->Run();
     // !CLF TODO: TEST FOR MT
-    if (tryCatch.HasCaught())
-    {
+    if (tryCatch.HasCaught()) {
       String::Utf8Value trace(tryCatch.StackTrace());
       rtLogWarn("%s", *trace);
 
       return RT_FAIL;
     }
 
-    if (retVal)
-    {
+    if (retVal) {
       // Return val
       rtWrapperError error;
       *retVal = v82rt(local_context, result, &error);
@@ -604,10 +777,8 @@ static std::string v8ReadFile(const char *file)
 
 rtError rtV8Context::runFile(const char *file, rtValue* retVal /*= NULL*/, const char *args /*= NULL*/)
 {
-  if (file == NULL)
-  {
+  if (file == NULL) {
     rtLogError(" %s  ... no script given.", __PRETTY_FUNCTION__);
-
     return RT_FAIL;
   }
 
@@ -615,20 +786,24 @@ rtError rtV8Context::runFile(const char *file, rtValue* retVal /*= NULL*/, const
   js_file = file;
   js_script = v8ReadFile(file);
 
-  if (js_script.empty()) // load error
-  {
+  if (js_script.empty()) { // load error 
     rtLogError(" %s  ... load error / not found.", __PRETTY_FUNCTION__);
-
     return RT_FAIL;
   }
 
-  return runScript(js_script.c_str(), retVal, args);
+  rtError ret = runScript(js_script.c_str(), retVal, args);
+  if (ret == RT_FAIL) {
+    rtLogError("runFile v8 script '%s' failed", js_file);
+  }
+
+  return ret;
 }
 
 rtScriptV8::rtScriptV8():mRefCount(0), mV8Initialized(false)
 {
   mIsolate = NULL;
   mPlatform = NULL;
+  mUvLoop = NULL;
   init();
 }
 
@@ -640,8 +815,7 @@ rtScriptV8::~rtScriptV8()
 unsigned long rtScriptV8::Release()
 {
     long l = rtAtomicDec(&mRefCount);
-    if (l == 0)
-    {
+    if (l == 0) {
      delete this;
     }
     return l;
@@ -651,9 +825,9 @@ rtError rtScriptV8::init()
 {
   rtLogInfo(__FUNCTION__);
 
-  if (mV8Initialized == false)
-  {
+  if (mV8Initialized == false) {
     V8::InitializeICU();
+    mUvLoop = uv_default_loop();
     Platform* platform = platform::CreateDefaultPlatform();
     mPlatform = platform;
     V8::InitializePlatform(platform);
@@ -683,11 +857,9 @@ rtError rtScriptV8::init()
 
 rtError rtScriptV8::term()
 {
-  if (mV8Initialized == true)
-  {
+  if (mV8Initialized == true) {
     V8::ShutdownPlatform();
-    if (mPlatform)
-    {
+    if (mPlatform) {
       delete mPlatform;
       mPlatform = NULL;
     }
@@ -708,7 +880,7 @@ rtError rtScriptV8::createContext(const char *lang, rtScriptContextRef& ctx)
 
 rtV8ContextRef rtScriptV8::createContext()
 {
-  return new rtV8Context(mIsolate, mPlatform);
+  return new rtV8Context(mIsolate, mPlatform, mUvLoop);
 }
 
 rtError rtScriptV8::pump()
@@ -719,7 +891,7 @@ rtError rtScriptV8::pump()
 
   v8::platform::PumpMessageLoop(mPlatform, mIsolate);
   mIsolate->RunMicrotasks();
-  uv_run(uv_default_loop(), UV_RUN_NOWAIT);
+  uv_run(mUvLoop, UV_RUN_NOWAIT);
 
   return RT_OK;
 }
@@ -746,8 +918,7 @@ void* rtScriptV8::getParameter(rtString param)
 unsigned long rtV8Context::Release()
 {
     long l = rtAtomicDec(&mRefCount);
-    if (l == 0)
-    {
+    if (l == 0) {
      delete this;
     }
     return l;
