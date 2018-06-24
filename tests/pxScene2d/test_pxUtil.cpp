@@ -413,7 +413,7 @@ TEST_F(pxUtilTest, pxutilsTest)
     pxStorePngImagertdataCreateWriteStructFailTest();
     //pxStorePngImagertdataCreateInfoStructFailTest();
 
-//    pxLoadAPngSuccessTest();
+    pxLoadAPngSuccessTest();
     pxLoadAPngFailureTest();
 
     pxLoadAPNGImage2ArgsSmallImageLengthTest();
