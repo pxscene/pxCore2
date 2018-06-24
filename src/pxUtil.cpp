@@ -140,7 +140,7 @@ rtError pxLoadAImage(const char* imageData, size_t imageDataSize,
 
   if (retVal != RT_OK) // Failed ... trying as JPG (why?)
   {
-#if 1
+#if 0
     rtLogError("ERROR:  pxLoadAPNGImage() - failed to load APNG ... " );
 
     return retVal;
