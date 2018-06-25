@@ -164,20 +164,10 @@ then
     cd ..
 fi
 
-#-------- BODYMOVIN
-#
-# TODO:  ensure that "npm" is installed ... possibly via "brew install npm" (on Mac)
-#
+#-------- NANOSVG
 
-# cd bodymovin
-# if [ ! -e node_modules ] ||
-#   [ "$(uname)" != "Darwin" ]
-# then
-#   npm install
-# fi
-
-# gulp
-# cd ..
+  cd nanosvg
+  quilt push -aq || test $? = 2
 
 #--------
 
