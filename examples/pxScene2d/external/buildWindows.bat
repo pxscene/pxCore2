@@ -17,7 +17,7 @@ copy /y jpeg-9a\jconfig.vc jpeg-9a\jconfig.h
 set buildExternal=0
 if NOT [%APPVEYOR_REPO_COMMIT%] == [] (
     FOR /F "tokens=* USEBACKQ" %%F IN (`git diff --name-only %APPVEYOR_REPO_COMMIT% %APPVEYOR_REPO_COMMIT%~`) DO (
-    echo.%%F|findstr "zlib-1.2.11 WinSparkle pthread-2.9 libpng-1.6.28 libjpeg-turbo-1.5.1 glew-2.0.0 freetype-2.5.2 curl-7.40.0 jpeg-9a"
+    echo.%%F|findstr "zlib-1.2.11 WinSparkle pthread-2.9 libpng-1.6.28 libjpeg-turbo-1.5.1 glew-2.0.0 freetype-2.8.1 curl-7.40.0 jpeg-9a"
     if !errorlevel! == 0 (
       set buildExternal=1
       echo. External library files are modified. Need to build external : !buildExternal! .
