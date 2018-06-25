@@ -151,6 +151,12 @@ if [ "$(uname)" != "Darwin" ]; then
 
 fi
 
+#-------- NANOSVG
+
+cd nanosvg
+quilt push -aq || test $? = 2
+cd ..
+
 #-------- DUKTAPE
 
 if [ ! -e dukluv/build/libduktape.a ]
@@ -163,12 +169,6 @@ then
     make "-j${make_parallel}"
     cd ..
 fi
-
-#-------- NANOSVG
-
-cd nanosvg
-quilt push -aq || test $? = 2
-cd ..
 
 #--------
 
