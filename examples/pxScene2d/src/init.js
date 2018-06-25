@@ -43,7 +43,7 @@ global.constructPromise = function (obj) {
 }
 
 var AppSceneContext = require('rcvrcore/AppSceneContext');
-var RPCController = require('rcvrcore/rpcController');
+//var RPCController = require('rcvrcore/rpcController');
 
 if (isDuk) {
 global.loadUrl = function loadUrl(url) {
@@ -51,8 +51,7 @@ global.loadUrl = function loadUrl(url) {
   var ctx = new AppSceneContext({        scene: getScene("scene.1"),
                                      makeReady: this.makeReady,
                                   getContextID: this.getContextID,
-                                    packageUrl: url,
-                                 rpcController: new RPCController() } );
+                                    packageUrl: url } );
 
   // console.log("JS >>>> loadURL()  ctx: " + getContextID() );
 
@@ -65,8 +64,7 @@ else {
         var ctx = new AppSceneContext({        scene: getScene("scene.1"),
                                            makeReady: this.makeReady,
                                         getContextID: this.getContextID,
-                                          packageUrl: url,
-                                       rpcController: new RPCController() } );
+                                          packageUrl: url } );
       
         // console.log("JS >>>> loadURL()  ctx: " + getContextID() );
       
