@@ -166,8 +166,9 @@ fi
 
 #-------- NANOSVG
 
-  cd nanosvg
-  quilt push -aq || test $? = 2
+cd nanosvg
+quilt push -aq || test $? = 2
+cd ..
 
 #--------
 
