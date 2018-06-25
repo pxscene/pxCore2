@@ -43,7 +43,6 @@ global.constructPromise = function (obj) {
 }
 
 var AppSceneContext = require('rcvrcore/AppSceneContext');
-//var RPCController = require('rcvrcore/rpcController');
 
 if (isDuk) {
 global.loadUrl = function loadUrl(url) {
