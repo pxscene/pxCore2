@@ -16,13 +16,24 @@ limitations under the License.
 
 */
 
+var http = require('http');
 var url = require('url');
+var WrapObj = require('rcvrcore/utils/WrapObj');
+var Logger = require('rcvrcore/Logger').Logger;
+var log = new Logger('AccessControl');
 
+/**
+ * Public wrapper around scene's access control functionality.
+ *
+ * @param scene
+ * @constructor
+ */
 function AccessControl(scene) {
   this.scene = scene;
 }
 
 AccessControl.prototype.destroy = function () {
+  log.message(4, "destroy");
   this.scene = null;
 };
 
@@ -50,56 +61,153 @@ AccessControl.prototype.checkAccessControlHeaders = function (url, rawHeaders) {
   return true;
 };
 
-AccessControl.prototype.wrapArgs = function (options, cb, secure) {
-  var self = this;
-  if (typeof options === 'string') {
-    options = url.parse(options);
-    if (!options.hostname) {
-      throw new Error('Unable to determine the domain name');
+AccessControl.isCORSRequestHeader = function (name) {
+  if (name) {
+    if (name.match(/^(Origin|Access-Control-Request-Method|Access-Control-Request-Headers)$/ig)) {
+      return true;
     }
   }
+  return false;
+};
 
-  // 1. add origin header (CORS)
-  var sceneOrigin = self.origin();
-  if (sceneOrigin) {
-    if (!options.headers) {
-      options.headers = {};
+AccessControl.prototype.createClientRequest = function (options, callback, requestOrigin) {
+  var req = AccessControlClientRequest(options, callback, this, requestOrigin);
+  // Do not expose AccessControlClientRequest's prototype... wrap everything
+  // Note: set properties in constructor or prototype so that they don't get lost here
+  // Note: socket is not exposed
+  return WrapObj(req, {
+    socket: undefined,
+    connection: undefined,
+    agent: undefined
+  });
+};
+
+AccessControl._extend = function (target, source) {
+  if (source === null || typeof source !== 'object') return target;
+  var keys = Object.keys(source);
+  var i = keys.length;
+  while (i--) {
+    target[keys[i]] = source[keys[i]];
+  }
+  return target;
+};
+
+AccessControl._getRequestOrigin = function (options, protocol) {
+  var optionsCopy = AccessControl._extend({}, typeof options === 'string' ? url.parse(options) : options);
+  delete optionsCopy.headers;
+  var testReq = new http.ClientRequest(optionsCopy);
+  var host = testReq.getHeader('host');
+  testReq.abort();
+  return host ? protocol + host : null;
+};
+
+/**
+ * Private class AccessControlClientRequest, inherits from http.ClientRequest.
+ * Applies CORS and permissions.
+ *
+ * @param options
+ * @param callback
+ * @param accessControl
+ * @param protocol
+ * @constructor
+ */
+function AccessControlClientRequest(options, callback, accessControl, protocol) {
+  if (!(this instanceof AccessControlClientRequest))
+    return new AccessControlClientRequest(options, callback, accessControl, protocol);
+
+  http.ClientRequest.call(this, options, callback);
+
+  var _this = this;
+  var appOrigin = accessControl.origin();
+  var requestOrigin = AccessControl._getRequestOrigin(options, protocol);
+  if (!accessControl.allows(requestOrigin)) {
+    var message = "Permissions block for request to origin: '" + requestOrigin + "' from origin '" + appOrigin + "'";
+    log.warn(message);
+    this.blocked = true;
+    this.abort();
+    setTimeout(function () {
+      _this.emit('error', new Error(message));
+      _this.emit('blocked', new Error(message));
+    });
+  }
+
+  if (appOrigin) {
+    log.message(2, "for request to origin: '" + requestOrigin + "' set origin '" + appOrigin + "'");
+    http.ClientRequest.prototype.setHeader.call(this, "Origin", appOrigin);
+  }
+
+  function checkResponseHeaders(res) {
+    var rawHeaders = "";
+    for (var key in res.headers) {
+      if (res.headers.hasOwnProperty(key)) {
+        rawHeaders += (rawHeaders ? "\r\n" : "") + key + ": " + res.headers[key];
+      }
     }
-    options.headers["Origin"] = sceneOrigin;
+    log.message(4, "check for request to origin: '" + requestOrigin + "' from origin '" + appOrigin + "' headers: " + rawHeaders);
+    if (!accessControl.checkAccessControlHeaders(requestOrigin, rawHeaders)) {
+      var message = "CORS block for request to origin: '" + requestOrigin + "' from origin '" + appOrigin + "'";
+      log.warn(message);
+      _this.blocked = true;
+      res.destroy(new Error(message));
+      _this.emit('blocked', new Error(message));
+      return false;
+    }
+    return true;
   }
 
-  // 2. check if host is permitted (permissions)
-  var protocol = options.protocol || (secure ? "https:" : "http:");
-  var port = options.port ? ":" + options.port : "";
-  var host = options.host || options.hostname || 'localhost';
-  if (host && port && host.indexOf(port, host.length - port.length) !== -1) {
-    port = "";
-  }
-  var reqOrigin = protocol + (protocol.indexOf("//") > 0 ? "" : "//") + host + port;
-  if (!self.allows(reqOrigin)) {
-    return null;
-  }
-
-  // 3. check response headers (CORS)
-  if (cb) {
-    var _originalCb = cb;
-    cb = function (response) {
-      var rawHeaders = "";
-      for (var key in response.headers) {
-        if (response.headers.hasOwnProperty(key)) {
-          rawHeaders += (rawHeaders ? "\r\n" : "") + key + ": " + response.headers[key];
+  function createEmitWrapper(_emit) {
+    return function (type, arg2, arg3, arg4) {
+      if (type === 'socket') {
+        // Note: socket is not exposed, only setTimeout to have node internals work
+        return _emit.call(_this, type, {
+          setTimeout: function () {
+            arg2.setTimeout.apply(arg2, arguments);
+          }
+        });
+      } else if (type === 'connect' || type === 'upgrade') {
+        if (checkResponseHeaders(arg2) === false) {
+          return false;
         }
+        // Note: socket is not exposed
+        return _emit.call(_this, type, WrapObj(arg2, {socket: undefined}), null, arg4);
+      } else if (type === 'information' || type === 'response') {
+        if (checkResponseHeaders(arg2) === false) {
+          return false;
+        }
+        // Note: socket is not exposed
+        return _emit.call(_this, type, WrapObj(arg2, {socket: undefined}));
       }
-      if (!self.checkAccessControlHeaders(reqOrigin, rawHeaders)) {
-        response.destroy("CORS block");
-      } else if (_originalCb) {
-        _originalCb(response);
-      }
+      return _emit.apply(_this, arguments);
     };
   }
 
-  // 4. return modified args
-  return cb ? [options, cb] : [options];
+  _this.emit = createEmitWrapper(_this.emit);
+  _this.$emit = createEmitWrapper(_this.$emit);
+
+  log.message(4, "created a request to origin: '" + requestOrigin + "'");
+}
+
+AccessControlClientRequest.prototype = Object.create(http.ClientRequest.prototype);
+AccessControlClientRequest.prototype.constructor = AccessControlClientRequest;
+
+AccessControlClientRequest.prototype.blocked = undefined;
+
+AccessControlClientRequest.prototype.setHeader = function (name) {
+  if (AccessControl.isCORSRequestHeader(name)) {
+    var message = "not allowed to set header '" + name + "'";
+    log.warn(message);
+    throw new Error(message);
+  }
+  return http.ClientRequest.prototype.setHeader.apply(this, arguments);
+};
+
+AccessControlClientRequest.prototype.removeHeader = function (name) {
+  if (AccessControl.isCORSRequestHeader(name)) {
+    var message = "not allowed to remove header '" + name + "'";
+    log.warn(message);
+    throw new Error(message);
+  }
+  return http.ClientRequest.prototype.removeHeader.apply(this, arguments);
 };
 
 module.exports = AccessControl;
