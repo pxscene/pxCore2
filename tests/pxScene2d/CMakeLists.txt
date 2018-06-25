@@ -129,7 +129,7 @@ elseif (APPLE)
     set(BUILD_UNIT_TEST 1)
     set(TEST_WAYLAND_SOURCE_FILES "")
 # Some do not work on Mac ... Why ? >>    set(PLATFORM_TEST_FILES test_jsfiles.cpp test_rtError.cpp test_pxUtil.cpp test_screenshot.cpp)
-    set(PLATFORM_TEST_FILES "")
+    set(PLATFORM_TEST_FILES "test_pxUtil.cpp")
 
     if (DEFINED ENV{CODE_COVERAGE})
         message("enabling code coverage support")

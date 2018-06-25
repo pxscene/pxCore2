@@ -279,29 +279,39 @@ class pxUtilTest : public testing::Test
       EXPECT_TRUE (ret != RT_OK);
     }
 
-
-    void pxLoadSVGImage3ArgsCreateReadStructFailTest()
-    {
-      rtData d;
-      rtError loadImageSuccess = rtLoadFile("supportfiles/Spark_logo.svg", d);
-      EXPECT_TRUE (loadImageSuccess == RT_OK);
-      
-//      failPngCreateReadStruct = true;
-      rtError ret = pxLoadSVGImage((const char*)d.data(), d.length(), mSvgData);
-ret=RT_FAIL; // TODO <<< FIX
-//      failPngCreateReadStruct = false;
-      EXPECT_TRUE (ret == RT_FAIL);
-    }
-
     void pxLoadSVGImage2ArgsSuccessTest()
     {
       rtError ret = pxLoadSVGImage("supportfiles/Spark_logo.svg", mSvgData);
       EXPECT_TRUE (ret == RT_OK);
     }
 
+    void pxLoadSVGImage4ArgsSuccessTest()
+    {
+      rtError ret = pxLoadSVGImage("supportfiles/Spark_logo.svg", mSvgData, 500, 500);
+      EXPECT_TRUE (ret == RT_OK);
+    }
+
+    void pxLoadSVGImage6ArgsSuccessTest()
+    {
+      rtError ret = pxLoadSVGImage("supportfiles/Spark_logo.svg", mSvgData, 0, 0, 2.0, 2.0);
+      EXPECT_TRUE (ret == RT_OK);
+    }
+
     void pxLoadSVGImage2ArgsFailureTest()
     {
       rtError ret = pxLoadSVGImage("bad_path_to_file/Spark_logo.svg", mSvgData);
+      EXPECT_TRUE (ret != RT_OK);
+    }
+
+    void pxLoadSVGImage4ArgsFailureTest()
+    {
+      rtError ret = pxLoadSVGImage("bad_path_to_file/Spark_logo.svg", mSvgData, 0, 0);
+      EXPECT_TRUE (ret != RT_OK);
+    }
+
+    void pxLoadSVGImage6ArgsFailureTest()
+    {
+      rtError ret = pxLoadSVGImage("bad_path_to_file/Spark_logo.svg", mSvgData, 0, 0, 0.0, 0.0);
       EXPECT_TRUE (ret != RT_OK);
     }
 
@@ -390,14 +400,21 @@ TEST_F(pxUtilTest, pxutilsTest)
   //  pxLoadImage2ArgsSuccessTest();
    pxLoadImage2ArgsFailureTest();
 
+    // PNG tests...
     pxLoadPNGImage2ArgsSuccessTest();
     pxLoadPNGImage2ArgsFailureTest();
     pxLoadPNGImage3ArgsCreateReadStructFailTest();
 
+    // SVG tests...
     pxLoadSVGImage2ArgsSuccessTest();
-    pxLoadSVGImage2ArgsFailureTest();
-    pxLoadSVGImage3ArgsCreateReadStructFailTest();
+    pxLoadSVGImage4ArgsSuccessTest();
+    pxLoadSVGImage6ArgsSuccessTest();
 
+    pxLoadSVGImage2ArgsFailureTest();
+    pxLoadSVGImage4ArgsSuccessTest();
+    pxLoadSVGImage6ArgsSuccessTest();
+
+    // JPG tests...
 //    pxLoadJPGImage3ArgsSuccessTest();
 //    pxLoadJPGImage2ArgsSuccessTest();
     pxLoadJPGImage2ArgsFailureTest();
