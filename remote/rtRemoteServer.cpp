@@ -468,7 +468,7 @@ rtRemoteServer::processMessage(std::shared_ptr<rtRemoteClient>& client, rtRemote
   auto itr = m_command_handlers.find(msgType);
   if (itr == m_command_handlers.end())
   {
-    rtLogWarn("no command handler for:%s", msgType);
+    rtLogError("processMessage: no command handler for:%s. RT_ERROR_PROTOCOL_ERROR", msgType);
     return RT_ERROR_PROTOCOL_ERROR;
   }
 
