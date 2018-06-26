@@ -51,6 +51,12 @@ pxResource::~pxResource()
   {
     gUIThreadQueue->removeAllTasksForObject(this);
   }
+  if(((rtPromise*)mReady.getPtr())->status() == false)
+  {
+    rtValue nullValue;
+    mReady.send("reject",nullValue);
+  }
+
   //mListeners.clear();
   //rtLogDebug("Leaving pxResource::~pxResource()\n");
 }

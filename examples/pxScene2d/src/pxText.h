@@ -105,6 +105,7 @@ public:
   virtual float getOnscreenWidth();
   virtual float getOnscreenHeight();
   virtual void createNewPromise();
+  virtual void dispose(bool pumpJavascript);
   
  protected:
   virtual void draw();
