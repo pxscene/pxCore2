@@ -34,6 +34,8 @@ var AsyncFileAcquisition = require('rcvrcore/utils/AsyncFileAcquisition');
 var AccessControl = require('rcvrcore/utils/AccessControl');
 var WrapObj = require('rcvrcore/utils/WrapObj');
 
+var RPCController = require('rcvrcore/rpcController');
+
 var log = new Logger('AppSceneContext');
 //overriding original timeout and interval functions
 var SetTimeout = isDuk?timers.setTimeout:setTimeout;
@@ -46,12 +48,17 @@ var http_wrap = require('rcvrcore/http_wrap');
 var https_wrap = require('rcvrcore/https_wrap');
 var ws_wrap = (isDuk)?"":require('rcvrcore/ws_wrap');
 
+var rpc_controller = undefined;
+
 function AppSceneContext(params) {
 
   this.getContextID = params.getContextID;
   this.makeReady = params.makeReady;
   this.innerscene = params.scene;
-  this.rpcController = params.rpcController;
+  if( rpc_controller === undefined) {
+    rpc_controller = new RPCController();
+  }
+  this.rpcController = rpc_controller;//params.rpcController;
   if( params.packageUrl.indexOf('?') != -1 ) {
     var urlParts = url.parse(params.packageUrl, true);
     this.queryParams = urlParts.query;
