@@ -122,7 +122,7 @@ rtRemoteValueReader::read(rtRemoteEnvironment* env, rtValue& to, rapidjson::Valu
       RT_ASSERT(client != NULL);
       if (!client)
       {
-        rtLogError("read: no client. RT_ERROR_PROTOCOL_ERROR", kFieldNameFunctionReturn);
+        rtLogError("read: no client. RT_ERROR_PROTOCOL_ERROR");
         return RT_ERROR_PROTOCOL_ERROR;
       }
 
@@ -150,7 +150,7 @@ rtRemoteValueReader::read(rtRemoteEnvironment* env, rtValue& to, rapidjson::Valu
       RT_ASSERT(client != NULL);
       if (!client)
       {
-        rtLogError("read: no client. RT_ERROR_PROTOCOL_ERROR", kFieldNameFunctionReturn);
+        rtLogError("read: no client. RT_ERROR_PROTOCOL_ERROR");
         return RT_ERROR_PROTOCOL_ERROR;
       }
 
