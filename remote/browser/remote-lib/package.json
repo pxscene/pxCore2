@@ -1,0 +1,24 @@
+{
+  "name": "remote-lib",
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "watchify index.js --standalone RTRemote -o ../browser-examples/rt-remote.min.js",
+    "build": "browserify index.js --standalone RTRemote | uglifyjs > dist/rt-remote.min.js",
+    "lint": "eslint index.js lib/**",
+    "lint:fix": "eslint index.js lib/** --fix"
+  },
+  "dependencies": {
+    "json-bigint": "^0.2.3",
+    "uuid": "^3.2.1",
+    "bignumber.js": "^4.1.0"
+  },
+  "devDependencies": {
+    "browserify": "^16.2.2",
+    "uglify-es": "^3.3.9",
+    "watchify": "^3.11.0",
+    "eslint": "^4.18.2",
+    "eslint-config-airbnb": "^16.1.0",
+    "eslint-config-airbnb-base": "^12.1.0",
+    "eslint-plugin-import": "^2.9.0"
+  }
+}

@@ -30,6 +30,7 @@ limitations under the License.
 
 #include "rtRemoteSocketBuffer.h"
 #include "rtRemoteMessage.h"
+#include "rtRemoteEnvironment.h"
 
 #ifndef UNIX_PATH_MAX
 #define UNIX_PATH_MAX    108
@@ -46,12 +47,12 @@ rtError rtGetInetAddr(sockaddr_storage const& ss, void** addr);
 rtError rtGetPort(sockaddr_storage const& ss, uint16_t* port);
 rtError rtPushFd(fd_set* fds, int fd, int* maxFd);
 rtError rtReadUntil(int fd, char* buff, int n);
-rtError rtReadMessage(int fd, rtRemoteSocketBuffer& buff, rtRemoteMessagePtr& doc);
+rtError rtReadMessage(int fd, rtRemoteSocketBuffer& buff, rtRemoteMessagePtr& doc, rtRemoteEnvironment* env);
 rtError rtParseMessage(char const* buff, int n, rtRemoteMessagePtr& doc);
 std::string rtSocketToString(sockaddr_storage const& ss);
 
 // this really doesn't belong here, but putting it here for now
-rtError rtSendDocument(rtRemoteMessage const& m, int fd, sockaddr_storage const* dest);
+rtError rtSendDocument(rtRemoteMessage const& m, int fd, sockaddr_storage const* dest, rtRemoteEnvironment* env = nullptr);
 rtError rtGetPeerName(int fd, sockaddr_storage& endpoint);
 rtError rtGetSockName(int fd, sockaddr_storage& endpoint);
 rtError	rtCloseSocket(int& fd);

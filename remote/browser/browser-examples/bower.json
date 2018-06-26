@@ -1,0 +1,19 @@
+{
+  "name": "remote_js",
+  "authors": "",
+  "description": "remote_js",
+  "main": "",
+  "license": "MIT",
+  "homepage": "",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "jquery": "^3.2.1",
+    "bootstrap": "^4.1.1"
+  }
+}

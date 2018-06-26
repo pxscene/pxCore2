@@ -360,7 +360,7 @@ rtRemoteClient::sendGet(std::string const& objectId, uint32_t propertyIdx, rtVal
 
   rtRemoteMessagePtr req(new rapidjson::Document());
   req->SetObject();
-  req->AddMember(kFieldNameMessageType, kMessageTypeGetByNameRequest, req->GetAllocator());
+  req->AddMember(kFieldNameMessageType, kMessageTypeGetByIndexRequest, req->GetAllocator());
   req->AddMember(kFieldNameObjectId, objectId, req->GetAllocator());
   req->AddMember(kFieldNamePropertyIndex, propertyIdx, req->GetAllocator());
   req->AddMember(kFieldNameCorrelationKey, k.toString(), req->GetAllocator());

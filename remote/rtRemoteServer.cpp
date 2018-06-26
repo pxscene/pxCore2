@@ -201,6 +201,17 @@ rtRemoteServer::rtRemoteServer(rtRemoteEnvironment* env)
 {
   memset(&m_rpc_endpoint, 0, sizeof(m_rpc_endpoint));
 
+  // read from config file
+  uint16_t const tcp_port = m_env->Config->resolver_tcp_port();
+  std::string tcp_address = m_env->Config->resolver_tcp_address();
+  // parse rpc tcp endpoint
+  rtError e = rtParseAddress(m_rpc_endpoint, tcp_address.c_str(), tcp_port, nullptr);
+  if (e != RT_OK)
+  {
+    rtLogWarn("failed to parse rpc tcp  address: %s. %s", tcp_address.c_str(), rtStrError(e));
+    memset(&m_rpc_endpoint, 0, sizeof(m_rpc_endpoint));
+  }
+
   m_shutdown_pipe[0] = -1;
   m_shutdown_pipe[1] = -1;
 
@@ -637,31 +648,33 @@ rtError
 rtRemoteServer::openRpcListener()
 {
   int ret = 0;
-  char path[UNIX_PATH_MAX];
-
-  memset(path, 0, sizeof(path));
   cleanupStaleUnixSockets();
-
-  if (isUnixDomain(m_env))
+  // this mean empty adress, so we set a random address to it
+  if (strcmp(rtSocketToString(m_rpc_endpoint).c_str(), "inet::0") == 0)
   {
-    rtError e = rtCreateUnixSocketName(0, path, sizeof(path));
-    if (e != RT_OK)
-      return e;
-
-    ret = unlink(path); // reuse path if needed
-    if (ret == -1 && errno != ENOENT)
+    char path[UNIX_PATH_MAX];
+    memset(path, 0, sizeof(path));
+    if (isUnixDomain(m_env))
     {
-      rtError e = rtErrorFromErrno(errno);
-      rtLogInfo("error trying to remove %s. %s", path, rtStrError(e));
-    }
+      rtError e = rtCreateUnixSocketName(0, path, sizeof(path));
+      if (e != RT_OK)
+        return e;
 
-    struct sockaddr_un *unAddr = reinterpret_cast<sockaddr_un*>(&m_rpc_endpoint);
-    unAddr->sun_family = AF_UNIX;
-    strncpy(unAddr->sun_path, path, UNIX_PATH_MAX);
-  }
-  else
-  {
-    rtGetDefaultInterface(m_rpc_endpoint, 0);
+      ret = unlink(path); // reuse path if needed
+      if (ret == -1 && errno != ENOENT)
+      {
+        rtError e = rtErrorFromErrno(errno);
+        rtLogInfo("error trying to remove %s. %s", path, rtStrError(e));
+      }
+
+      struct sockaddr_un* unAddr = reinterpret_cast<sockaddr_un*>(&m_rpc_endpoint);
+      unAddr->sun_family = AF_UNIX;
+      strncpy(unAddr->sun_path, path, UNIX_PATH_MAX);
+    }
+    else
+    {
+      rtGetDefaultInterface(m_rpc_endpoint, 0);
+    }
   }
 
   m_listen_fd = socket(m_rpc_endpoint.ss_family, SOCK_STREAM, 0);
@@ -673,7 +686,8 @@ rtRemoteServer::openRpcListener()
   }
 
   fcntl(m_listen_fd, F_SETFD, fcntl(m_listen_fd, F_GETFD) | FD_CLOEXEC);
-
+  int reuse = 1;
+  setsockopt(m_listen_fd, SOL_SOCKET, SO_REUSEADDR, (char *)&reuse, sizeof(reuse));
   if (m_rpc_endpoint.ss_family != AF_UNIX)
   {
     uint32_t one = 1;
