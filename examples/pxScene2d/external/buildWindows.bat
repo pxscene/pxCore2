@@ -16,15 +16,27 @@ cd vc.build\
 msbuild external.sln /p:Configuration=Release /p:Platform=Win32 /m
 cd ..
 
+REM --------- BREAKPAD
+
 cd breakpad-chrome_55
 CALL gyp\gyp.bat src\client\windows\breakpad_client.gyp --no-circular-check
 cd src\client\windows
 msbuild breakpad_client.sln /p:Configuration=Release /p:Platform=Win32 /m
 cd ..\..\..\..\
 
+REM --------- NANOSVG
+
+cd nanosvg
+patch -p1 < patches/add_ScaleXY.diff
+cd ..
+
+REM --------- LIBNODE
+
 cd libnode-v6.9.0
 CALL vcbuild.bat x86 nosign
 cd ..
+
+REM --------- DUKLUV
 
 cd dukluv
 patch -p1 < patches/dukluv.git.patch
