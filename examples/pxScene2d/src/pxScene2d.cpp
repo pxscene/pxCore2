@@ -538,7 +538,7 @@ private:
 
 
 // pxObject methods
-pxObject::pxObject(pxScene2d* scene): rtObject(), mParent(NULL), mcx(0), mcy(0), mx(0), my(0), ma(1.0), mr(0),
+pxObject::pxObject(pxScene2d* scene): rtObject(), mParent(NULL), mpx(0), mpy(0), mcx(0), mcy(0), mx(0), my(0), ma(1.0), mr(0),
 #ifdef ANIMATION_ROTATE_XYZ
     mrx(0), mry(0), mrz(1.0),
 #endif //ANIMATION_ROTATE_XYZ
@@ -1802,6 +1802,8 @@ rtDefineProperty(pxObject, x);
 rtDefineProperty(pxObject, y);
 rtDefineProperty(pxObject, w);
 rtDefineProperty(pxObject, h);
+rtDefineProperty(pxObject, px);
+rtDefineProperty(pxObject, py);
 rtDefineProperty(pxObject, cx);
 rtDefineProperty(pxObject, cy);
 rtDefineProperty(pxObject, sx);
