@@ -3364,14 +3364,14 @@ rtError pxScene2d::getService(const char* name, const rtObjectRef& ctx, rtObject
         {
           rtString access = result.toString();
           // denied stop searching for service
-          if (access == "deny")
+          if ((access == "deny") || (access == "DENY"))
           {
             rtLogDebug("service denied");
             return RT_FAIL;
             break;
           }
           // if not explicitly allowed then break
-          if (access != "allow")
+          if (!((access == "allow") || (access == "ALLOW")))
           {
             rtLogDebug("unknown access string - denied");
             return RT_FAIL;
