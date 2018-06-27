@@ -41,7 +41,10 @@
 #include "pxText.h"
 #include "pxTextBox.h"
 #include "pxImage.h"
+
+#ifdef BUILD_WITH_PXPATH
 #include "pxPath.h"
+#endif
 
 #ifdef PX_SERVICE_MANAGER
 #include "pxServiceManager.h"
@@ -535,7 +538,7 @@ private:
 
 
 // pxObject methods
-pxObject::pxObject(pxScene2d* scene): rtObject(), mParent(NULL), mcx(0), mcy(0), mx(0), my(0), ma(1.0), mr(0),
+pxObject::pxObject(pxScene2d* scene): rtObject(), mParent(NULL), mpx(0), mpy(0), mcx(0), mcy(0), mx(0), my(0), ma(1.0), mr(0),
 #ifdef ANIMATION_ROTATE_XYZ
     mrx(0), mry(0), mrz(1.0),
 #endif //ANIMATION_ROTATE_XYZ
@@ -1454,10 +1457,13 @@ void pxObject::drawInternal(bool maskPass)
     else if (mClip )
     {
       //rtLogInfo("calling createSnapshot for mw=%f mh=%f\n", mw, mh);
-      createSnapshot(mClipSnapshotRef);
+      if (mRepaint)
+      {
+        createSnapshot(mClipSnapshotRef);
 
-      context.setMatrix(m); // TODO: Move within if() below ?
-      context.setAlpha(ma); // TODO: Move within if() below ?
+        context.setMatrix(m);
+        context.setAlpha(ma);
+      }
 
       if (mClipSnapshotRef.getPtr() != NULL)
       {
@@ -1796,6 +1802,8 @@ rtDefineProperty(pxObject, x);
 rtDefineProperty(pxObject, y);
 rtDefineProperty(pxObject, w);
 rtDefineProperty(pxObject, h);
+rtDefineProperty(pxObject, px);
+rtDefineProperty(pxObject, py);
 rtDefineProperty(pxObject, cx);
 rtDefineProperty(pxObject, cy);
 rtDefineProperty(pxObject, sx);
@@ -2011,8 +2019,10 @@ rtError pxScene2d::create(rtObjectRef p, rtObjectRef& o)
     e = createTextBox(p,o);
   else if (!strcmp("image",t.cString()))
     e = createImage(p,o);
-//  else if (!strcmp("path",t.cString()))
-//    e = createPath(p,o);
+#ifdef BUILD_WITH_PXPATH
+  else if (!strcmp("path",t.cString()))
+    e = createPath(p,o);
+#endif // BUILD_WITH_PXPATH
   else if (!strcmp("image9",t.cString()))
     e = createImage9(p,o);
   else if (!strcmp("imageA",t.cString()))
@@ -2107,7 +2117,7 @@ rtError pxScene2d::createImage(rtObjectRef p, rtObjectRef& o)
   o.send("init");
   return RT_OK;
 }
-
+#ifdef BUILD_WITH_PXPATH
 rtError pxScene2d::createPath(rtObjectRef p, rtObjectRef& o)
 {
   o = new pxPath(this);
@@ -2115,6 +2125,7 @@ rtError pxScene2d::createPath(rtObjectRef p, rtObjectRef& o)
   o.send("init");
   return RT_OK;
 }
+#endif // BUILD_WITH_PXPATH
 
 rtError pxScene2d::createImage9(rtObjectRef p, rtObjectRef& o)
 {
@@ -2142,15 +2153,21 @@ rtError pxScene2d::createImage9Border(rtObjectRef p, rtObjectRef& o)
 
 rtError pxScene2d::createImageResource(rtObjectRef p, rtObjectRef& o)
 {
-  rtString url = p.get<rtString>("url");
-  rtString proxy = p.get<rtString>("proxy");
-
+  rtString url     = p.get<rtString>("url");
+  rtString proxy   = p.get<rtString>("proxy");
+  
   rtString param_w = p.get<rtString>("w");
   rtString param_h = p.get<rtString>("h");
+  
+  rtString param_sx = p.get<rtString>("sx");
+  rtString param_sy = p.get<rtString>("sy");
 
   int32_t iw = 0;
   int32_t ih = 0;
-
+  float   sx = 1.0f;
+  float   sy = 1.0f;
+  
+  // W x H dimensions
   if(param_w.isEmpty() == false && param_w.length() > 0)
   {
     iw = rtValue(param_w).toInt32();
@@ -2160,13 +2177,24 @@ rtError pxScene2d::createImageResource(rtObjectRef p, rtObjectRef& o)
   {
     ih = rtValue(param_h).toInt32();
   }
+
+  // X Y scaling
+  if(param_sx.isEmpty() == false && param_sx.length() > 0)
+  {
+    sx = rtValue(param_sx).toFloat();
+  }
+
+  if(param_sy.isEmpty() == false && param_sy.length() > 0)
+  {
+    sy = rtValue(param_sy).toFloat();
+  }
   
 #ifdef ENABLE_PERMISSIONS_CHECK
   if (RT_OK != mPermissions->allows(url, rtPermissions::DEFAULT))
     return RT_ERROR_NOT_ALLOWED;
 #endif
 
-  o = pxImageManager::getImage(url, proxy, iw, ih);
+  o = pxImageManager::getImage(url, proxy, iw, ih, sx, sy);
   
   o.send("init");
   return RT_OK;
@@ -2174,7 +2202,7 @@ rtError pxScene2d::createImageResource(rtObjectRef p, rtObjectRef& o)
 
 rtError pxScene2d::createImageAResource(rtObjectRef p, rtObjectRef& o)
 {
-  rtString url = p.get<rtString>("url");
+  rtString url   = p.get<rtString>("url");
   rtString proxy = p.get<rtString>("proxy");
 
 #ifdef ENABLE_PERMISSIONS_CHECK
@@ -3714,7 +3742,9 @@ rtError pxSceneContainer::setServiceContext(rtObjectRef o)
 { 
   // Only allow serviceContext to be set at construction time
   if( !mInitialized)
-    mServiceContext = o; return RT_OK;
+    mServiceContext = o;
+
+  return RT_OK;
 }
 
 rtError pxSceneContainer::setScriptView(pxScriptView* scriptView)

@@ -123,6 +123,8 @@ function Application(props) {
         this.log("about to destroy");
         if (_externalApp.destroy) {
           _externalApp.destroy();
+        } else if (this.type === ApplicationType.SPARK && _externalApp.api && _externalApp.api.destroy) {
+           _externalApp.api.destroy();
         }
       } catch (e) {
         this.log("failed to destroy",e);
@@ -145,6 +147,28 @@ function Application(props) {
   this.setFocus = function() {
     if (_externalApp){
       _externalApp.focus = true;
+    }
+  };
+  this.isFocused = function() {
+    if (_externalApp){
+      return _externalApp.focus;
+    } else {
+      return false;
+    }
+  };
+  this.onKeyDown = function(e) {
+    if (_externalApp && _externalApp.onKeyDown !== undefined && typeof _externalApp.onKeyDown === "function" ){
+      _externalApp.onKeyDown(e);
+    }
+  };
+  this.onKeyUp = function(e) {
+    if (_externalApp && _externalApp.onKeyUp !== undefined && typeof _externalApp.onKeyUp === "function" ){
+      _externalApp.onKeyUp(e);
+    }
+  };
+  this.onChar = function(e) {
+    if (_externalApp && _externalApp.onChar !== undefined && typeof _externalApp.onChar === "function" ){
+      _externalApp.onChar(e);
     }
   };
   this.animateTo = function(animationProperties, duration, tween, type, count) {

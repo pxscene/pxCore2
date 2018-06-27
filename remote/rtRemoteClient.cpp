@@ -328,7 +328,10 @@ rtRemoteClient::sendSet(rtRemoteMessagePtr const& req, rtRemoteCorrelationKey k)
   {
     rtRemoteMessagePtr res = handle.response();
     if (!res)
+    {
+      rtLogError("sendSet: no response. RT_ERROR_PROTOCOL_ERROR");
       return RT_ERROR_PROTOCOL_ERROR;
+    }
 
     e = rtMessage_GetStatusCode(*res);
   }
@@ -379,7 +382,10 @@ rtRemoteClient::sendGet(rtRemoteMessagePtr const& req, rtRemoteCorrelationKey k,
   {
     rtRemoteMessagePtr res = handle.response();
     if (!res)
+    {
+      rtLogError("sendGet: no response. RT_ERROR_PROTOCOL_ERROR");
       return RT_ERROR_PROTOCOL_ERROR;
+    }
     rtError statusCode = rtMessage_GetStatusCode(*res);
     if (statusCode != RT_OK)
     {
@@ -387,7 +393,10 @@ rtRemoteClient::sendGet(rtRemoteMessagePtr const& req, rtRemoteCorrelationKey k,
     }
     auto itr = res->FindMember(kFieldNameValue);
     if (itr == res->MemberEnd())
+    {
+      rtLogError("sendGet: failed to find member '%s' in response. RT_ERROR_PROTOCOL_ERROR", kFieldNameValue);
       return RT_ERROR_PROTOCOL_ERROR;
+    }
 
     e = rtRemoteValueReader::read(m_env, value, itr->value, shared_from_this());
     if (e == RT_OK)
@@ -429,11 +438,17 @@ rtRemoteClient::sendCall(rtRemoteMessagePtr const& req, rtRemoteCorrelationKey k
   {
     rtRemoteMessagePtr res = handle.response();
     if (!res)
+    {
+      rtLogError("sendCall: no response. RT_ERROR_PROTOCOL_ERROR");
       return RT_ERROR_PROTOCOL_ERROR;
+    }
 
     auto itr = res->FindMember(kFieldNameFunctionReturn);
     if (itr == res->MemberEnd())
+    {
+      rtLogError("sendCall: failed to find member '%s' in response. RT_ERROR_PROTOCOL_ERROR", kFieldNameFunctionReturn);
       return RT_ERROR_PROTOCOL_ERROR;
+    }
 
     e = rtRemoteValueReader::read(m_env, result, itr->value, shared_from_this());
     if (e == RT_OK)

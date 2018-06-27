@@ -18,11 +18,11 @@
 
 #include "rtSettings.h"
 
-#include <../remote/rapidjson/document.h>
-#include <../remote/rapidjson/filereadstream.h>
-#include <../remote/rapidjson/error/en.h>
-#include <../remote/rapidjson/filewritestream.h>
-#include <../remote/rapidjson/writer.h>
+#include "../remote/rapidjson/document.h"
+#include "../remote/rapidjson/filereadstream.h"
+#include "../remote/rapidjson/error/en.h"
+#include "../remote/rapidjson/filewritestream.h"
+#include "../remote/rapidjson/writer.h"
 
 #include <string.h>
 
@@ -69,7 +69,7 @@ rtError rtSettings::keys(std::vector<rtString>& keys) const
 
 rtError rtSettings::remove(const rtString& key)
 {
-  std::map<rtString, rtValue>::const_iterator it = mValues.find(key);
+  std::map<rtString, rtValue>::iterator it = mValues.find(key);
   if (it != mValues.end())
   {
     mValues.erase(it);

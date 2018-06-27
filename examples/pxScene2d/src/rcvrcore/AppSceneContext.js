@@ -636,18 +636,15 @@ AppSceneContext.prototype.include = function(filePath, currentXModule) {
       console.log("Not permitted to use the module " + filePath);
       reject("include failed due to module not permitted");
       return;
-    } else if( filePath === 'net' || filePath === 'ws' ) {
-      if (isDuk && filePath === 'ws') {
+    } else if(filePath === 'ws') {
+      if (isDuk) {
         console.log("creating websocket instance")
         modData = websocket;
         onImportComplete([modData, origFilePath]);
         return;
-      }
-      if (!isDuk && filePath === 'ws')
-      {
-        var wsdata = require('rcvrcore/' + filePath + '_wrap');
+      } else {
+        var wsdata = require('rcvrcore/ws_wrap');
         _this.webSocketManager = new wsdata();
-
         var WebSocket = (function() {
           var context = this;
           function WebSocket(address, protocol, options) {
@@ -660,9 +657,6 @@ AppSceneContext.prototype.include = function(filePath, currentXModule) {
         onImportComplete([modData, origFilePath]);
         return;
       }
-      modData = require('rcvrcore/' + filePath + '_wrap');
-      onImportComplete([modData, origFilePath]);
-      return;
     } else if( filePath === 'http' || filePath === 'https' ) {
       if (filePath === 'http')
       {
