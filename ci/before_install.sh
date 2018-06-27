@@ -28,7 +28,8 @@ if [ "$TRAVIS_OS_NAME" = "linux" ]
 then
     if [ "$TRAVIS_EVENT_TYPE" = "cron" ] || [ "$TRAVIS_EVENT_TYPE" = "api" ]
     then
-      echo "Ignoring before install stage for $TRAVIS_EVENT_TYPE event";
+      sudo apt-get install jq
+      sudo apt-get install wget
       exit 0;
     fi
 fi

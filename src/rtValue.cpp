@@ -159,6 +159,7 @@ void rtValue::setValue(const rtValue& v)
 #endif
     else
       mValue = v.mValue;
+    mIsEmpty = v.mIsEmpty;
   }
 }
 

@@ -47,6 +47,12 @@ class rtFileDownloadRequest;
 #define PX_RESOURCE_STATUS_UNKNOWN_ERROR  6
 
 
+// errors specific to rtRemote
+#define PX_RESOURCE_LOAD_SUCCESS 0
+#define PX_RESOURCE_LOAD_FAIL 1
+#define PX_RESOURCE_LOAD_WAIT 2
+
+
 class pxResourceListener 
 {
 public: 
@@ -98,13 +104,14 @@ public:
   virtual void loadResource();
   void clearDownloadRequest();
   virtual void setupResource() {}
+  virtual void prepare() {}
   void setLoadStatus(const char* name, rtValue value);
 protected:   
   static void onDownloadComplete(rtFileDownloadRequest* downloadRequest);
   static void onDownloadCompleteUI(void* context, void* data);
   static void onDownloadCanceledUI(void* context, void* data);
   virtual void processDownloadedResource(rtFileDownloadRequest* fileDownloadRequest);
-  virtual bool loadResourceData(rtFileDownloadRequest* fileDownloadRequest) = 0;
+  virtual uint32_t loadResourceData(rtFileDownloadRequest* fileDownloadRequest) = 0;
   
   void notifyListeners(rtString readyResolution);
 
@@ -128,14 +135,15 @@ protected:
 class rtImageResource : public pxResource
 {
 public:
-  rtImageResource(const char* url = 0, const char* proxy = 0);
+  rtImageResource(const char* url = 0, const char* proxy = 0, int32_t iw = 0, int32_t ih = 0, float sx = 1.0f, float sy = 1.0f);
   virtual ~rtImageResource();
-  
+
   rtDeclareObject(rtImageResource, pxResource);
-  
+
   virtual unsigned long Release() ;
 
   // Need these, or use from texture?  
+
   rtReadOnlyProperty(w, w, int32_t);
   rtReadOnlyProperty(h, h, int32_t);  
 
@@ -147,22 +155,31 @@ public:
   pxTextureRef getTexture(bool initializing = false);
   void setTextureData(pxOffscreen& imageOffscreen, const char* data, const size_t dataSize);
   virtual void setupResource();
-  void clearDownloadedData();
- 
-  virtual void init();
+  virtual void prepare();
 
-protected:  
-  virtual bool loadResourceData(rtFileDownloadRequest* fileDownloadRequest);
+  virtual void init();
   
-private: 
+  int32_t initW()  { return init_w;  };
+  int32_t initH()  { return init_h;  };
+  
+  float   initSX() { return init_sx; };
+  float   initSY() { return init_sy; };
+  
+protected:
+  virtual uint32_t loadResourceData(rtFileDownloadRequest* fileDownloadRequest);
+
+private:
 
   void loadResourceFromFile();
+
   pxTextureRef mTexture;
+  pxTextureRef mDownloadedTexture;
   rtMutex mTextureMutex;
-  pxOffscreen mImageOffscreen;
-  char* mCompressedData;
-  size_t mCompressedDataSize;
- 
+  bool mDownloadComplete;
+
+  // convey "create-time" dimension & scale preference (SVG only)
+  int32_t   init_w,  init_h;
+  float     init_sx, init_sy;
 };
 
 class rtImageAResource : public pxResource
@@ -180,7 +197,7 @@ public:
   virtual void setupResource() { init(); }
   
 protected:
-  virtual bool loadResourceData(rtFileDownloadRequest* fileDownloadRequest);
+  virtual uint32_t loadResourceData(rtFileDownloadRequest* fileDownloadRequest);
 
 private:
 
@@ -196,8 +213,10 @@ class pxImageManager
 {
   
   public: 
-    static rtRef<rtImageResource> getImage(const char* url, const char* proxy = NULL);
-    static void removeImage(rtString imageUrl);
+    static rtRef<rtImageResource> getImage(const char* url, const char* proxy = NULL,
+                                          int32_t iw = 0, int32_t ih = 0, float sx = 1.0f, float sy = 1.0f);
+  
+    static void removeImage(rtString url, int32_t iw = 0, int32_t ih = 0, float sx = 1.0f, float sy = 1.0f);
 
     static rtRef<rtImageAResource> getImageA(const char* url, const char* proxy = NULL);
     static void removeImageA(rtString imageAUrl);

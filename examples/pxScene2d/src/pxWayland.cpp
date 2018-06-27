@@ -500,7 +500,8 @@ uint32_t pxWayland::getModifiers( uint32_t flags )
 
 bool pxWayland::isRotated()
 {
-   float *f= context.getMatrix().data();
+   pxMatrix4f matrix = context.getMatrix();
+   float *f = matrix.data(); 
    const float e= 1.0e-2;
 
    if ( (fabsf(f[1]) > e) ||
@@ -718,19 +719,17 @@ rtError pxWayland::useDispatchThread(bool use)
   return RT_OK;
 }
 
-rtError pxWayland::resume()
+rtError pxWayland::resume(const rtValue& v)
 {
   mSuspended = false;
-  rtValue args;
-  callMethod("resume", 0, &args);
+  callMethod("resume", 1, &v);
   return RT_OK;
 }
 
-rtError pxWayland::suspend()
+rtError pxWayland::suspend(const rtValue& v)
 {
   mSuspended = true;
-  rtValue args;
-  callMethod("suspend", 0, &args);
+  callMethod("suspend", 1, &v);
   return RT_OK;
 }
 

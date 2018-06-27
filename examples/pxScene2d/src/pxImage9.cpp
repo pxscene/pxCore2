@@ -66,7 +66,8 @@ rtError pxImage9::url(rtString& s) const
 rtError pxImage9::setUrl(const char* s) 
 {
 #ifdef ENABLE_PERMISSIONS_CHECK
-  rtPermissionsCheck((mScene != NULL ? mScene->permissions() : NULL), s, rtPermissions::DEFAULT)
+  if (mScene != NULL && RT_OK != mScene->permissions()->allows(s, rtPermissions::DEFAULT))
+    return RT_ERROR_NOT_ALLOWED;
 #endif
 
   rtImageResource* resourceObj = getImageResource();  
@@ -172,8 +173,8 @@ void pxImage9::resourceReady(rtString readyResolution)
     imageLoaded = true; 
     // nineslice gets its w and h from the image only if
     // not set for the pxImage9
-    if( mw == -1 && getImageResource() != NULL) { mw = getImageResource()->w(); }
-    if( mh == -1 && getImageResource() != NULL) { mh = getImageResource()->h(); }
+    if( mw == -1 && getImageResource() != NULL) { mw = static_cast<float>(getImageResource()->w()); }
+    if( mh == -1 && getImageResource() != NULL) { mh = static_cast<float>(getImageResource()->h()); }
     imageLoaded = true;
     pxObject::onTextureReady();
     // Now that image is loaded, must force redraw;

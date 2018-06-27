@@ -46,8 +46,8 @@ pxImageA::~pxImageA()
 
 void pxImageA::onInit() 
 {
-  mw = mImageWidth;
-  mh = mImageHeight;
+  mw = static_cast<float>(mImageWidth);
+  mh = static_cast<float>(mImageHeight);
 }
 
 rtError pxImageA::url(rtString &s) const
@@ -66,7 +66,8 @@ rtError pxImageA::url(rtString &s) const
 rtError pxImageA::setUrl(const char *s)
 {
 #ifdef ENABLE_PERMISSIONS_CHECK
-  rtPermissionsCheck((mScene != NULL ? mScene->permissions() : NULL), s, rtPermissions::DEFAULT)
+  if (mScene != NULL && RT_OK != mScene->permissions()->allows(s, rtPermissions::DEFAULT))
+    return RT_ERROR_NOT_ALLOWED;
 #endif
 
   rtImageAResource* resourceObj = getImageAResource();
@@ -260,8 +261,8 @@ void pxImageA::loadImageSequence()
       pxOffscreen &o = imageSequence.getFrameBuffer(0);
       mImageWidth = o.width();
       mImageHeight = o.height();
-      mw = mImageWidth;
-      mh = mImageHeight;
+      mw = static_cast<float>(mImageWidth);
+      mh = static_cast<float>(mImageHeight);
     }
     mReady.send("resolve", this);
   }

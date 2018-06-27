@@ -33,7 +33,9 @@ dumped_core=0
 
 export PX_DUMP_MEMUSAGE=1
 export RT_LOG_LEVEL=info
-export PXSCENE_PERMISSIONS_CONFIG=$TRAVIS_BUILD_DIR/examples/pxScene2d/src/pxscenepermissions.conf
+export SPARK_CORS_ENABLED=true
+export SPARK_PERMISSIONS_CONFIG=$TRAVIS_BUILD_DIR/examples/pxScene2d/src/sparkpermissions.conf
+export SPARK_PERMISSIONS_ENABLED=true
 export HANDLE_SIGNALS=1
 export ENABLE_MEMLEAK_CHECK=1
 export MallocStackLogging=1
@@ -91,8 +93,10 @@ done #LOOP
 # Handle crash - 'dumped_core = 1' ?
 if [ "$dumped_core" -eq 1 ]
 	then
+	ps -ef | grep pxscene |grep -v grep >> /var/tmp/pxscene.log
+        ps -ef |grep /bin/sh |grep -v grep >> /var/tmp/pxscene.log
 	$TRAVIS_BUILD_DIR/ci/check_dump_cores_osx.sh `pwd` `ps -ef | grep pxscene |grep -v grep|grep -v pxscene.sh|awk '{print $2}'` /var/tmp/pxscene.log
-	checkError $cored "Execution failed" "Core dump" "Run execution locally"
+	checkError $dumped_core "Execution failed" "Core dump" "Run execution locally"
 fi
 
 # Wait for few seconds to get the application terminate completely

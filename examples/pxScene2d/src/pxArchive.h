@@ -53,7 +53,7 @@ public:
   rtError getFileAsString(const char* fileName, rtString& s);
   rtError fileNames(rtObjectRef& names) const;
 
-  void setArchiveData(int downloadStatusCode, uint32_t httpStatusCode, const char* data, const size_t dataSize);
+  void setArchiveData(int downloadStatusCode, uint32_t httpStatusCode, const char* data, const size_t dataSize, const rtString& errorString);
   void setupArchive();
 
 protected:
@@ -78,6 +78,7 @@ protected:
   size_t mArchiveDataSize;
   bool mUseDownloadedData;
   rtMutex mArchiveDataMutex;
+  rtString mErrorString;
 };
 
 #endif

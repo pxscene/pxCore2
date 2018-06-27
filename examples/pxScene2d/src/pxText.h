@@ -74,8 +74,8 @@ public:
   
   virtual rtError Set(uint32_t i, const rtValue* value) override
   {
-    std::ignore = i;
-    std::ignore = value;
+    (void)i;
+    (void)value;
     rtLogError("pxText::Set(uint32_t, const rtValue*) - not implemented");
     return RT_ERROR_NOT_IMPLEMENTED;
   }
@@ -105,6 +105,7 @@ public:
   virtual float getOnscreenWidth();
   virtual float getOnscreenHeight();
   virtual void createNewPromise();
+  virtual void dispose(bool pumpJavascript);
   
  protected:
   virtual void draw();

@@ -18,11 +18,11 @@ limitations under the License.
 
 #include "pxServiceManager.h"
 
-rtRemoteEnvironment* pxServiceManager::mEnv = nullptr;
+rtRemoteEnvironment* pxServiceManager::mEnv = NULL;
 
 rtError pxServiceManager::findServiceManager(rtObjectRef &result)
 {
-  if (mEnv == nullptr)
+  if (mEnv == NULL)
   {
     mEnv = rtEnvironmentGetGlobal();
     rtError e = rtRemoteInit(mEnv);
