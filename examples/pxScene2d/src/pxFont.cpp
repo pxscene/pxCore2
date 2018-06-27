@@ -706,7 +706,7 @@ void pxFontManager::initFT()
   }
   
 }
-rtRef<pxFont> pxFontManager::getFont(const char* url, const char* proxy)
+rtRef<pxFont> pxFontManager::getFont(const char* url, const char* proxy, const rtCORSRef& cors)
 {
   initFT();
 
@@ -740,6 +740,7 @@ rtRef<pxFont> pxFontManager::getFont(const char* url, const char* proxy)
   {
     rtLogDebug("Create pxFont in map for %s\n",url);
     pFont = new pxFont(url, fontId, proxy);
+    pFont->setCORS(cors);
     mFontMap.insert(make_pair(fontId, pFont));
     pFont->loadResource();
   }

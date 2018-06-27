@@ -27,7 +27,6 @@ set(BUILD_UNIT_TEST 0)
 
 option(BUILD_WITH_WINDOWLESS_EGL "BUILD_WITH_WINDOWLESS_EGL" OFF)
 option(PXSCENE_TEST_HTTP_CACHE "PXSCENE_TEST_HTTP_CACHE" OFF)
-option(PXSCENE_TEST_ACCESS_CONTROL_CHECK "PXSCENE_TEST_ACCESS_CONTROL_CHECK" ON)
 option(PXSCENE_TEST_PERMISSIONS_CHECK "PXSCENE_TEST_PERMISSIONS_CHECK" ON)
 
 
@@ -158,19 +157,13 @@ set(TEST_SOURCE_FILES pxscene2dtestsmain.cpp  test_example.cpp test_api.cpp  tes
     test_pxAnimate.cpp test_rtFile.cpp test_rtZip.cpp test_rtString.cpp test_rtValue.cpp test_pxImage.cpp test_pxOffscreen.cpp test_pxMatrix4T.cpp test_rtObject.cpp
     test_pxWindowUtil.cpp test_pxTexture.cpp test_pxWindow.cpp test_ioapi.cpp test_rtLog.cpp test_pxTimerNative.cpp
     test_rtUrlUtils.cpp test_pxArchive.cpp test_pxPixel_h.cpp test_pxFont.cpp test_rtThreadPool.cpp test_utf8.cpp
-    test_rtSettings.cpp
+    test_rtSettings.cpp test_cors.cpp
     ${PLATFORM_TEST_FILES} ${TEST_WAYLAND_SOURCE_FILES})
 
 if (DEFINED ENV{USE_HTTP_CACHE})
     message("Include http cache tests")
     set(TEST_SOURCE_FILES ${TEST_SOURCE_FILES} test_imagecache.cpp)
 endif (DEFINED ENV{USE_HTTP_CACHE})
-
-if (PXSCENE_TEST_ACCESS_CONTROL_CHECK)
-    message("Include CORS tests")
-    add_definitions(-DENABLE_ACCESS_CONTROL_CHECK)
-    set(TEST_SOURCE_FILES ${TEST_SOURCE_FILES} test_cors.cpp)
-endif (PXSCENE_TEST_ACCESS_CONTROL_CHECK)
 
 if (PXSCENE_TEST_PERMISSIONS_CHECK)
     message("Include PERMISSIONS tests")

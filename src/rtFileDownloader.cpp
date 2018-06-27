@@ -26,9 +26,6 @@
 #include "rtThreadPool.h"
 #include "pxTimer.h"
 #include "rtLog.h"
-#ifdef ENABLE_ACCESS_CONTROL_CHECK
-#include "rtCORSUtils.h"
-#endif
 #include <sstream>
 #include <iostream>
 #include <thread>
@@ -440,16 +437,6 @@ bool rtFileDownloadRequest::isCurlDefaultTimeoutSet()
   return mDefaultTimeout;
 }
 
-void rtFileDownloadRequest::setOrigin(const char* origin)
-{
-  mOrigin = origin;
-}
-
-rtString rtFileDownloadRequest::origin()
-{
-  return mOrigin;
-}
-
 void rtFileDownloadRequest::cancelRequest()
 {
   mCanceledMutex.lock();
@@ -729,15 +716,8 @@ bool rtFileDownloader::downloadFromNetwork(rtFileDownloadRequest* downloadReques
     {
       list = curl_slist_append(list, additionalHttpHeaders[headerOption].cString());
     }
-#ifdef ENABLE_ACCESS_CONTROL_CHECK
-    const rtString& origin = downloadRequest->origin();
-    if (!origin.isEmpty())
-    {
-      rtString headerOrigin("Origin:");
-      headerOrigin.append(origin.cString());
-      list = curl_slist_append(list, headerOrigin.cString());
-    }
-#endif
+    if (downloadRequest->cors() != NULL)
+      downloadRequest->cors()->updateRequestForAccessControl(&list);
     curl_easy_setopt(curl_handle, CURLOPT_HTTPHEADER, list);
     //CA certificates
     // !CLF: Use system CA Cert rather than CA_CERTIFICATE fo now.  Revisit!
@@ -823,23 +803,6 @@ bool rtFileDownloader::downloadFromNetwork(rtFileDownloadRequest* downloadReques
     if (false == headerOnly)
     {
       downloadRequest->setDownloadedData(chunk.contentsBuffer, chunk.contentsSize);
-#ifdef ENABLE_ACCESS_CONTROL_CHECK
-      rtString rawHeaders(downloadRequest->headerData(), downloadRequest->headerDataSize());
-      rtError corsStat = rtCORSUtilsCheckOrigin(origin, downloadRequest->fileUrl(), rawHeaders);
-      if (RT_OK != corsStat)
-      {
-        // Disallow access to the resource's contents.
-        if (downloadRequest->downloadedData() != NULL)
-        {
-          free(downloadRequest->downloadedData());
-        }
-        downloadRequest->setDownloadedData(NULL, 0);
-        downloadRequest->setDownloadStatusCode((int)corsStat);
-        stringstream errorStringStream;
-        errorStringStream << rtStrError(corsStat) << " origin=" << origin.cString() << " url=" << downloadRequest->fileUrl().cString();
-        downloadRequest->setErrorString(errorStringStream.str().c_str());
-      }
-#endif
     }
     else if (chunk.contentsBuffer != NULL)
     {
@@ -848,6 +811,8 @@ bool rtFileDownloader::downloadFromNetwork(rtFileDownloadRequest* downloadReques
     }
     chunk.headerBuffer = NULL;
     chunk.contentsBuffer = NULL;
+    if (downloadRequest->cors() != NULL)
+      downloadRequest->cors()->updateResponseForAccessControl(downloadRequest);
     return true;
 }
 
