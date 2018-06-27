@@ -170,16 +170,16 @@ pxError addToTextureList(pxTexture* texture)
 
 pxError removeFromTextureList(pxTexture* texture)
 {
+  textureListMutex.lock();
   for(std::vector<pxTexture*>::iterator it = textureList.begin(); it != textureList.end(); ++it)
   {
     if ((*it) == texture)
     {
-      textureListMutex.lock();
       textureList.erase(it);
-      textureListMutex.unlock();
-      return PX_OK;
+      break;
     }
   }
+  textureListMutex.unlock();
   return PX_OK;
 }
 
