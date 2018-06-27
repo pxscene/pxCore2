@@ -33,7 +33,7 @@ px.import({ scene:      'px:scene.1.js',
   var scene = imports.scene;
   var keys  = imports.keys;
   var root  = imports.scene.root;
-
+ 
   var urlFocusColor     = 0x303030ff;
   var urlSucceededColor = 0x0c8508ff;
   var urlFailedColor    = 0xde0700ff;
@@ -197,7 +197,7 @@ px.import({ scene:      'px:scene.1.js',
     helpBox.y   = inputBox.y + pageInsetL;
 
     spinner.x   = inputBox.x + inputBox.w - pageInsetT + 10;
-    spinner.y  = inputBox.y - inputBox.h;
+    spinner.y   = inputBox.y - inputBox.h;
   }
 
   scene.root.on("onPreKeyDown", function(e)

@@ -538,7 +538,7 @@ private:
 
 
 // pxObject methods
-pxObject::pxObject(pxScene2d* scene): rtObject(), mParent(NULL), mcx(0), mcy(0), mx(0), my(0), ma(1.0), mr(0),
+pxObject::pxObject(pxScene2d* scene): rtObject(), mParent(NULL), mpx(0), mpy(0), mcx(0), mcy(0), mx(0), my(0), ma(1.0), mr(0),
 #ifdef ANIMATION_ROTATE_XYZ
     mrx(0), mry(0), mrz(1.0),
 #endif //ANIMATION_ROTATE_XYZ
@@ -1457,10 +1457,13 @@ void pxObject::drawInternal(bool maskPass)
     else if (mClip )
     {
       //rtLogInfo("calling createSnapshot for mw=%f mh=%f\n", mw, mh);
-      createSnapshot(mClipSnapshotRef);
+      if (mRepaint)
+      {
+        createSnapshot(mClipSnapshotRef);
 
-      context.setMatrix(m); // TODO: Move within if() below ?
-      context.setAlpha(ma); // TODO: Move within if() below ?
+        context.setMatrix(m);
+        context.setAlpha(ma);
+      }
 
       if (mClipSnapshotRef.getPtr() != NULL)
       {
@@ -1799,6 +1802,8 @@ rtDefineProperty(pxObject, x);
 rtDefineProperty(pxObject, y);
 rtDefineProperty(pxObject, w);
 rtDefineProperty(pxObject, h);
+rtDefineProperty(pxObject, px);
+rtDefineProperty(pxObject, py);
 rtDefineProperty(pxObject, cx);
 rtDefineProperty(pxObject, cy);
 rtDefineProperty(pxObject, sx);
@@ -2148,15 +2153,21 @@ rtError pxScene2d::createImage9Border(rtObjectRef p, rtObjectRef& o)
 
 rtError pxScene2d::createImageResource(rtObjectRef p, rtObjectRef& o)
 {
-  rtString url = p.get<rtString>("url");
-  rtString proxy = p.get<rtString>("proxy");
-
+  rtString url     = p.get<rtString>("url");
+  rtString proxy   = p.get<rtString>("proxy");
+  
   rtString param_w = p.get<rtString>("w");
   rtString param_h = p.get<rtString>("h");
+  
+  rtString param_sx = p.get<rtString>("sx");
+  rtString param_sy = p.get<rtString>("sy");
 
   int32_t iw = 0;
   int32_t ih = 0;
-
+  float   sx = 1.0f;
+  float   sy = 1.0f;
+  
+  // W x H dimensions
   if(param_w.isEmpty() == false && param_w.length() > 0)
   {
     iw = rtValue(param_w).toInt32();
@@ -2166,13 +2177,24 @@ rtError pxScene2d::createImageResource(rtObjectRef p, rtObjectRef& o)
   {
     ih = rtValue(param_h).toInt32();
   }
+
+  // X Y scaling
+  if(param_sx.isEmpty() == false && param_sx.length() > 0)
+  {
+    sx = rtValue(param_sx).toFloat();
+  }
+
+  if(param_sy.isEmpty() == false && param_sy.length() > 0)
+  {
+    sy = rtValue(param_sy).toFloat();
+  }
   
 #ifdef ENABLE_PERMISSIONS_CHECK
   if (RT_OK != mPermissions->allows(url, rtPermissions::DEFAULT))
     return RT_ERROR_NOT_ALLOWED;
 #endif
 
-  o = pxImageManager::getImage(url, proxy, iw, ih);
+  o = pxImageManager::getImage(url, proxy, iw, ih, sx, sy);
   
   o.send("init");
   return RT_OK;
@@ -2180,7 +2202,7 @@ rtError pxScene2d::createImageResource(rtObjectRef p, rtObjectRef& o)
 
 rtError pxScene2d::createImageAResource(rtObjectRef p, rtObjectRef& o)
 {
-  rtString url = p.get<rtString>("url");
+  rtString url   = p.get<rtString>("url");
   rtString proxy = p.get<rtString>("proxy");
 
 #ifdef ENABLE_PERMISSIONS_CHECK
