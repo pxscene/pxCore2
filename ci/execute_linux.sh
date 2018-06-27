@@ -1,5 +1,6 @@
 #!/bin/sh
 
+
 checkError()
 {
   if [ "$1" -ne 0 ]
