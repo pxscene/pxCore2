@@ -90,7 +90,6 @@ function Application(props) {
   // Public variables
   this.id = undefined;
   this.priority = 1;
-  this.state = ApplicationState.RUNNING;
   this.name = "";
   this.type = ApplicationType.UNDEFINED;
   this.ready = undefined;
@@ -104,16 +103,17 @@ function Application(props) {
   var launchParams;
   var _externalApp;
   var _browser;
+  var _state = ApplicationState.RUNNING;
 
   // Public functions that use _externalApp
   // Suspends the application. Returns true if the application was suspended, or false otherwise
   this.suspend = function(o) {
     var ret;
-    if (this.state === ApplicationState.DESTROYED){
+    if (_state === ApplicationState.DESTROYED){
       this.log("suspend on already destroyed app");
       return false;
     }
-    if (this.state === ApplicationState.SUSPENDED){
+    if (_state === ApplicationState.SUSPENDED){
       this.log("suspend on already suspended app");
       return false;
     }
@@ -123,7 +123,7 @@ function Application(props) {
     }
     ret = _externalApp.suspend(o);
     if (ret === true) {
-      this.state = ApplicationState.SUSPENDED;
+      _state = ApplicationState.SUSPENDED;
       this.applicationSuspended();
     } else {
       this.log("suspend returned:", ret);
@@ -133,11 +133,11 @@ function Application(props) {
   // Resumes a suspended application. Returns true if the application was resumed, or false otherwise
   this.resume = function(o) {
     var ret;
-    if (this.state === ApplicationState.DESTROYED){
+    if (_state === ApplicationState.DESTROYED){
       this.log("resume on already destroyed app");
       return false;
     }
-    if (this.state === ApplicationState.RUNNING){
+    if (_state === ApplicationState.RUNNING){
       this.log("resume on already running app");
       return false;
     }
@@ -147,7 +147,7 @@ function Application(props) {
     }
     ret = _externalApp.resume(o);
     if (ret === true) {
-      this.state = ApplicationState.RUNNING;
+      _state = ApplicationState.RUNNING;
       this.applicationResumed();
     } else {
       this.log("resume returned:", ret);
@@ -157,7 +157,7 @@ function Application(props) {
   // Destroys the application. Returns true if destroyed or false if not destroyed
   this.destroy = function() {
     var ret = false;
-    if (this.state === ApplicationState.DESTROYED){
+    if (_state === ApplicationState.DESTROYED){
       this.log("destroy on already destroyed app");
       return false;
     }
@@ -188,7 +188,7 @@ function Application(props) {
     }
     if (ret === true) {
       _externalApp = null;
-      this.state = ApplicationState.DESTROYED;
+      _state = ApplicationState.DESTROYED;
       this.applicationDestroyed();
     } else {
       this.log("destroy returned:", ret);
@@ -275,6 +275,9 @@ function Application(props) {
         _this.log("unknown property " + k);
       }
     });
+  };
+  this.state = function () {
+    return _state;
   };
 
   // Constructor
@@ -397,8 +400,8 @@ Application.prototype.log = function() {
   if (this.type) {
     _args.push("type="+this.type);
   }
-  if (this.state) {
-    _args.push("state="+this.state);
+  if (this.state()) {
+    _args.push("state="+this.state());
   }
   if (this.name) {
     _args.push("name="+this.name);
