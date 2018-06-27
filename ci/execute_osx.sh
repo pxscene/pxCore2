@@ -2,7 +2,6 @@
 
 #This script executes necessary javascript files and mesaures pxleak checks and memory leaks checks
 
-
 if [ -z "${TRAVIS_BUILD_DIR}" ]
 then
   printf "\nFATAL ERROR:  'TRAVIS_BUILD_DIR' env var is NOT defined\n\n"
