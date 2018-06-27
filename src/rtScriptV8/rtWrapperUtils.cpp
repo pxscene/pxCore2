@@ -135,6 +135,8 @@ HandleMap::clearAllForContext(uint32_t contextId)
 
 void HandleMap::addWeakReference(v8::Isolate* isolate, const rtObjectRef& from, Local<Object>& to)
 {
+    // TODO
+#if 0
   HandleScope handleScope(isolate);
   Local<Context> creationContext = to->CreationContext();
 
@@ -161,6 +163,7 @@ void HandleMap::addWeakReference(v8::Isolate* isolate, const rtObjectRef& from, 
     objectMap.insert(std::make_pair(from.getPtr(), entry));
   }
 rtWrapperSceneUpdateExit();
+#endif
 
   #if 0
   static FILE* f = NULL;

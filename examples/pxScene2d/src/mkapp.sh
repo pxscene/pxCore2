@@ -67,6 +67,9 @@ ${minJS} shell.js $bundleRes/shell.js
 ${minJS} browser.js $bundleRes/browser.js
 ${minJS} about.js $bundleRes/about.js
 ${minJS} browser/editbox.js $bundleRes/browser/editbox.js
+${minJS} test_binding.js $bundleRes/test_binding.js
+${minJS} test_module_loading.js $bundleRes/test_module_loading.js
+${minJS} test_promises.js $bundleRes/test_promises.js
 #./jsMinFolder.sh browser $bundleRes/browser
 
 
@@ -74,6 +77,9 @@ ${minJS} browser/editbox.js $bundleRes/browser/editbox.js
 cp -a duk_modules $bundleRes/duk_modules
 # Copy node modules
 cp -a node_modules $bundleRes/node_modules
+# Copy v8 modules
+cp -a v8_modules $bundleRes/v8_modules
+
 
 # Copy OTHER to Resources...
 #

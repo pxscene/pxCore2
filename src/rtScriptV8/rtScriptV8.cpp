@@ -591,12 +591,12 @@ Local<Value> rtV8Context::loadV8Module(const rtString &name)
 
 static void requireCallback(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-  assert(args.Data()->isExternal());
+  assert(args.Data()->IsExternal());
   v8::External *val = v8::External::Cast(*args.Data());
   assert(val != NULL);
   rtV8Context *ctx = (rtV8Context *)val->Value();
   assert(args.Length() == 1);
-  assert(args[0].IsString());
+  assert(args[0]->IsString());
 
   rtString moduleName = toString(args[0]->ToString());
   args.GetReturnValue().Set(ctx->loadV8Module(moduleName));
