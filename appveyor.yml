@@ -46,4 +46,6 @@ build_script:
 
 test: off
 
+cache:		
+    - c:/dw/pxCore/examples/pxScene2d/external/vc.build/builds/
 # validator: https://ci.appveyor.com/tools/validate-yaml
