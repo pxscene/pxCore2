@@ -39,7 +39,7 @@ then
   $TRAVIS_BUILD_DIR/ci/licenseScanner.sh
   if [ "$?" != "0" ] 
   then
-    printf "\n!*!*!* licenseScanner.sh deteced files without proper license. Please refer to the logs above. !*!*!*\n"
+    printf "\n!*!*!* licenseScanner.sh detected files without proper license. Please refer to the logs above. !*!*!*\n"
     exit 1;
   fi
 fi
