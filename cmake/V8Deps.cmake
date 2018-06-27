@@ -21,7 +21,10 @@ if (WIN32)
           icutools.lib icustubdata.lib icudata.lib icuucx.lib icui18n.lib
           libuv.lib openssl.lib v8_inspector_stl.lib cctest.lib
          )
-else (WIN32)
+elseif (APPLE)
+    set(V8_LIBRARY_DIRS ${NODEDIR})
+    set(V8_LIBRARIES node)
+else ()
       set(V8_LIBRARY_DIRS 
           ${NODEDIR}/out/Release/obj.target
           ${NODEDIR}/out/Release/obj.target/deps/v8_inspector/third_party/v8_inspector/platform/v8_inspector
@@ -48,7 +51,7 @@ else (WIN32)
           icuucx
           icudata
          )
-endif (WIN32)
+endif ()
 
 if (NOT SUPPORT_V8)
     unset(V8_INCLUDE_DIRS)
