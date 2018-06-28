@@ -24,9 +24,9 @@
       {"url":"../tests/test_pxImageA_2.js", "title":"test_pxImageA_2","useBaseURI":"true"},
       {"url":"../tests/test_pxImage9.js", "title":"test_pxImage9","useBaseURI":"true"},
       {"url":"../tests/test_moveForwardBackward.js", "title":"test_moveForwardBackward","useBaseURI":"true"},
-      {"url":"../tests/test_xre2-267.js",  "title":"test_xre2-267","useBaseURI":"true"},
-      {"url":"../tests/test_permissions.js", "title":"test_permissions","useBaseURI":"true"},
-      {"url":"../tests/test_permissionsDefault.js", "title":"test_permissionsDefault","useBaseURI":"true"},
+      {"url":"../tests/test_permissions_v2.js", "title":"test_permissions_v2","useBaseURI":"true"},
+      {"url":"../tests/test_permissionsDefault_v3.js", "title":"test_permissionsDefault_v2","useBaseURI":"true"},
+      {"url":"../tests/test_cors_v2.js", "title":"test_cors_v2","useBaseURI":"true"},
       {"url":"../tests/test_textFontRejection.js",  "title":"test_textFontRejection","useBaseURI":"true"},
       {"url":"../tests/test_onBlur_loseFocusChain.js","title":"test_onBlur_loseFocusChain", "useBaseURI":"true"},
       {"url":"../tests/test_promiseRejectionAnimation.js", "title":"test_promiseRejectionAnimation","useBaseURI":"true"},
@@ -34,5 +34,6 @@
       {"url":"../tests/test_promiseRejectionReload.js", "title":"test_promiseRejectionReload","useBaseURI":"true"},
       {"url":"../tests/test_drawFalse.js", "title":"test_drawFalse","useBaseURI":"true"},
       {"url":"../tests/test_longText.js", "title":"test_longText","useBaseURI":"true"},
-      {"url":"../tests/test_parentDrawFalse.js", "title":"test_parentDrawFalse","useBaseURI":"true"}
+      {"url":"../tests/test_parentDrawFalse.js", "title":"test_parentDrawFalse","useBaseURI":"true"},
+      {"url":"../tests/test_pxText_v2.js", "title":"test_pxText","useBaseURI":"true"}
 ]

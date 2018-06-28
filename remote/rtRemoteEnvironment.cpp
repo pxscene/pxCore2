@@ -178,9 +178,11 @@ rtRemoteEnvironment::waitForResponse(std::chrono::milliseconds timeout, rtRemote
     e = RT_ERROR_TIMEOUT;
   }
 
-  // TODO: Is this the proper code?
   if (!m_running)
+  {
+    rtLogError("waitForResponse: env is not running. RT_FAIL");
     e = RT_FAIL;
+  }
 
   return e;
 }
@@ -206,7 +208,13 @@ rtRemoteEnvironment::processSingleWorkItem(std::chrono::milliseconds timeout, bo
   }
   else
   {
-    if (!m_running || (specificKey && m_response_handlers.find(*specificKey) == m_response_handlers.end()))
+    if (!m_running)
+    {
+      rtLogError("processSingleWorkItem: env is not running. RT_FAIL");
+      return RT_FAIL;
+    }
+
+    if (specificKey && m_response_handlers.find(*specificKey) == m_response_handlers.end())
       return RT_OK;
 
     WorkItemMap::iterator it;

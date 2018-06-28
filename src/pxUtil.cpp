@@ -50,16 +50,19 @@
   #include "nanosvg.h"
   #define NANOSVGRAST_IMPLEMENTATION
   #include "nanosvgrast.h"
-  
-#ifndef SAFE_DELETE
-  #define SAFE_DELETE(x)  { delete (x); (x) = NULL; }
+
+#ifdef SAFE_FREE
+#undef SAFE_FREE
 #endif
+#define SAFE_FREE(x)  do { free(x); (x) = NULL; } while(0)
+
+pxImageType getImageType( const uint8_t* data, size_t len ); //fwd
 
 class NSVGrasterizerEx
 {
   public:
        NSVGrasterizerEx()  {  rast = nsvgCreateRasterizer(); } // ctor
-      ~NSVGrasterizerEx()  {  delete rast;                   } // dtor
+      ~NSVGrasterizerEx()  {  SAFE_FREE(rast);               } // dtor
   
   NSVGrasterizer *getPtr() { return rast; };
   
@@ -69,11 +72,13 @@ class NSVGrasterizerEx
 }; // CLASS;
 
 static NSVGrasterizerEx rast;
+static rtMutex          rastMutex;
 
 
 // Assume alpha is not premultiplied
-rtError pxLoadImage(const char *imageData, size_t imageDataSize,
-                    pxOffscreen &o, int32_t w /* = 0*/, int32_t h /* = 0*/)
+rtError pxLoadImage(const char *imageData, size_t imageDataSize,  pxOffscreen &o, 
+                        int32_t w /* = 0    */, int32_t h /* = 0    */,
+                         float sx /* = 1.0f */,  float sy /* = 1.0f */)
 {
   pxImageType imgType = getImageType( (const uint8_t*) imageData, imageDataSize);
   rtError retVal = RT_FAIL;
@@ -103,7 +108,7 @@ rtError pxLoadImage(const char *imageData, size_t imageDataSize,
     case PX_IMAGE_SVG:
     default:
          {
-           retVal = pxLoadSVGImage(imageData, imageDataSize, o, w, h);
+           retVal = pxLoadSVGImage(imageData, imageDataSize, o, w, h, sx, sy);
          }
          break;
   }//SWITCH
@@ -125,14 +130,21 @@ rtError pxLoadImage(const char *imageData, size_t imageDataSize,
   return retVal;
 }
 
+// APNG looks like a PNG with extra chunks ... can fallback to display static PNG
+
 rtError pxLoadAImage(const char* imageData, size_t imageDataSize,
   pxTimedOffscreenSequence &s)
 {
   // Load as PNG...
   rtError retVal = pxLoadAPNGImage(imageData, imageDataSize, s);
 
-  if (retVal != RT_OK) // Failed ... trying as JPG
+  if (retVal != RT_OK) // Failed ... trying as JPG (why?)
   {
+#if 0
+    rtLogError("ERROR:  pxLoadAPNGImage() - failed to load APNG ... " );
+
+    return retVal;
+#else
     pxOffscreen o;
 #ifdef ENABLE_LIBJPEG_TURBO
     retVal = pxLoadJPGImageTurbo(imageData, imageDataSize, o);
@@ -145,6 +157,7 @@ rtError pxLoadAImage(const char* imageData, size_t imageDataSize,
 #endif //ENABLE_LIBJPEG_TURBO
     s.init();
     s.addBuffer(o,0);
+#endif // 0
   }
 
   return retVal;
@@ -152,7 +165,9 @@ rtError pxLoadAImage(const char* imageData, size_t imageDataSize,
 
 // TODO Detection needs to be improved...
 // Handling jpeg as fallback now
-rtError pxLoadImage(const char *filename, pxOffscreen &b, int32_t w /* = 0*/, int32_t h /* = 0*/)
+rtError pxLoadImage(const char *filename, pxOffscreen &b,
+                        int32_t w /* = 0    */, int32_t h /* = 0    */,
+                         float sx /* = 1.0f */,  float sy /* = 1.0f */)
 {
   rtData d;
   rtError e = rtLoadFile(filename, d);
@@ -169,6 +184,11 @@ rtError pxLoadImage(const char *filename, pxOffscreen &b, int32_t w /* = 0*/, in
 rtError pxStoreImage(const char *filename, pxOffscreen &b)
 {
   return pxStorePNGImage(filename, b);
+}
+
+bool pxIsPNGImage(rtData d)
+{
+  return (getImageType( (const uint8_t*) d.data(), d.length()) == PX_IMAGE_PNG);
 }
 
 bool pxIsPNGImage(const char *imageData, size_t imageDataSize)
@@ -977,82 +997,70 @@ rtError pxLoadJPGImage(const char *buf, size_t buflen, pxOffscreen &o)
 
 rtError pxStoreSVGImage(const char* /*filename*/, pxBuffer& /*b*/)  { return RT_FAIL; } // NOT SUPPORTED
 
-rtError pxLoadSVGImage(const char* buf, size_t buflen, pxOffscreen& o, int w /* = 0 */, int h /* = 0 */)
+
+rtError pxLoadSVGImage(const char* buf, size_t buflen, pxOffscreen& o, int  w /* = 0    */,      int h /* = 0    */,
+                                                                     float sx /* = 1.0f */,   float sy /* = 1.0f */)
 {
+  rtMutexLockGuard  autoLock(rastMutex);
+  
   if (buf == NULL || buflen == 0 )
   {
     rtLogError("SVG:  Bad args.\n");
     return RT_FAIL;
   }
+  
+  if (sx == 0.0f || sx == 0.0f)
+  {
+    rtLogError("SVG:  Bad image scale  sx: %f  sy: %f\n", sx, sy);
+    return RT_FAIL;
+  }
 
-  NSVGimage *image = nsvgParse( (char *) buf, "px", 96.0f); // 96 dpi (suggested defalus) 
+  NSVGimage *image = nsvgParse( (char *) buf, "px", 96.0f); // 96 dpi (suggested default)
   if (image == NULL)
   {
-    SAFE_DELETE(image)
-
     rtLogError("SVG:  Could not init decode SVG.\n");
     return RT_FAIL;
   }
-
-  int image_w = (int)image->width;
-  int image_h = (int)image->height;  
   
-  int dx = 0;
-  int dy = 0;
-
+  int image_w = (int)image->width;  // parsed SVG image dimensions
+  int image_h = (int)image->height; // parsed SVG image dimensions
+  
   if (image_w == 0 || image_h == 0)
   {
-    SAFE_DELETE(image)
-    
+    SAFE_FREE(image);
+
     rtLogError("SVG:  Bad image dimensions  WxH: %d x %d\n", image_w, image_h);
     return RT_FAIL;
   }
-
-  float scale = 1.0f;
-  if(w > 0 && h > 0)  // <<< requested WxH
+  
+  // Dimensions WxH ... *only* if no Scale XY
+  if( (sx == 1.0f && sy == 1.0f) && (w > 0 && h > 0) ) // <<< Use WxH only if no scale. Scale takes precedence
   {
     float ratioW = (float) w / (float) image_w;
     float ratioH = (float) h / (float) image_h;
-
-    scale = (ratioW < ratioH) ? ratioW : ratioH; // MIN()
-
-    int scaled_w = image_w * scale;
-    int scaled_h = image_h * scale;
-
-    if(scaled_w < w)
-    {
-      
-    }
-//    dx = (w - scaled_w)/2;
-//    dy = (h - scaled_h)/2;
-
-//    dx = dy = 0;
     
-// rtLogError("SVG:  Translate >>  x: %d   y: %d\n", dx, dy);
-
-    image_w = scaled_w; // update to new size
-    image_h = scaled_h; // update to new size
+    sx = sy = (ratioW < ratioH) ? ratioW : ratioH; // MIN()
   }
+  
+  o.initWithColor( (image_w * sx), (image_h * sy), pxClear); // default sized
+  
+  nsvgRasterizeFull(rast.getPtr(), image, 0, 0, sx, sy,
+                    (unsigned char*) o.base(), o.width(), o.height(), o.width() *4);
 
-  o.initWithColor(image_w, image_h, pxClear); // default sized
-
-//  rtLogDebug("SVG:  Rasterizing image %d x %d  (scale: %f) \n", w, h, scale);
-
-  nsvgRasterize(rast.getPtr(), image, dx, dy, scale , (unsigned char*) o.base(), o.width(), o.height(), o.width() *4);
-
-  SAFE_DELETE(image)
-
+  SAFE_FREE(image);
   return RT_OK;
 }
 
-rtError pxLoadSVGImage(const char *filename, pxOffscreen &o, int w /* = 0 */, int h /* = 0 */)
+
+rtError pxLoadSVGImage(const char *filename, pxOffscreen &o, int  w /* = 0    */,      int h /* = 0    */,
+                                                           float sx /* = 1.0f */,   float sy /* = 1.0f */)
 {
   rtData d;
   rtError e = rtLoadFile(filename, d);
   if (e == RT_OK)
   {
     // TODO get rid of the cast
-    e = pxLoadSVGImage((const char *)d.data(), d.length(), o, w, h);
+    e = pxLoadSVGImage((const char *)d.data(), d.length(), o, w, h, sx, sy);
   }
   else
   {
@@ -1289,10 +1297,6 @@ void BlendOver(unsigned char **rows_dst, unsigned char **rows_src, unsigned int 
 rtError pxLoadAPNGImage(const char *imageData, size_t imageDataSize,
                         pxTimedOffscreenSequence &s)
 {
-  s.init();
-
-  PngStruct pngStruct((char *)imageData, imageDataSize);
-
   if (!imageData)
   {
     rtLogError("FATAL: Invalid arguments - imageData = NULL");
@@ -1304,6 +1308,10 @@ rtError pxLoadAPNGImage(const char *imageData, size_t imageDataSize,
     rtLogError("FATAL: Invalid arguments - imageDataSize < 8");
     return RT_FAIL;
   }
+
+  s.init();
+
+  PngStruct pngStruct((char *)imageData, imageDataSize);
 
   unsigned char header[8]; // 8 is the maximum size that can be checked
 
@@ -1452,6 +1460,23 @@ rtError pxLoadAPNGImage(const char *imageData, size_t imageDataSize,
   png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
 
   return RT_OK;
+}
+
+rtString imageType2str(pxImageType t)
+{
+  switch(t)
+  {
+    case PX_IMAGE_JPG:      return rtString("PX_IMAGE_JPG");
+    case PX_IMAGE_PNG:      return rtString("PX_IMAGE_PNG");
+    case PX_IMAGE_GIF:      return rtString("PX_IMAGE_GIF");
+    case PX_IMAGE_TIFF:     return rtString("PX_IMAGE_TIFF");
+    case PX_IMAGE_BMP:      return rtString("PX_IMAGE_BMP");
+    case PX_IMAGE_WEBP:     return rtString("PX_IMAGE_WEBP");
+    case PX_IMAGE_ICO:      return rtString("PX_IMAGE_ICO");
+    case PX_IMAGE_SVG:      return rtString("PX_IMAGE_SVG");
+    default:
+    case PX_IMAGE_INVALID:  return rtString("PX_IMAGE_INVALID");
+  }
 }
 
 pxImageType getImageType( const uint8_t* data, size_t len )
