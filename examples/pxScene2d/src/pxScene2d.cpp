@@ -3822,9 +3822,9 @@ void pxScriptView::runScript()
     mReady = new rtPromise();
 #endif
 
-#ifdef PXSCENE_V8_TEST
-    mCtx->runFile(mUrl);
-#else
+//#ifdef PXSCENE_V8_TEST
+    //mCtx->runFile(mUrl);
+//#else
     mCtx->runFile("init.js");
 
     char buffer[MAX_URL_SIZE + 50];
@@ -3852,7 +3852,7 @@ void pxScriptView::runScript()
 #endif
     mCtx->runScript(buffer);
     rtLogInfo("pxScriptView::runScript() ending\n");
-#endif
+//#endif
   }
   #endif //ENABLE_RT_NODE
 }

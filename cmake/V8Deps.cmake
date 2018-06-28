@@ -1,4 +1,3 @@
-
 set(NODEDIR "${EXTDIR}/libnode-v6.9.0/")
 set(V8_INCLUDE_DIRS ${NODEDIR}/src ${NODEDIR}/deps/uv/include ${NODEDIR}/deps/v8/include ${NODEDIR}/deps/cares/include)
 
@@ -23,8 +22,10 @@ if (WIN32)
          )
 elseif (APPLE)
     set(V8_LIBRARY_DIRS ${NODEDIR})
+    set (V8_INCLUDE_DIRS ${V8_INCLUDE_DIRS} ${NODEDIR}/deps/icu-small/source/common/)
     set(V8_LIBRARIES node)
 else ()
+      set (V8_INCLUDE_DIRS ${V8_INCLUDE_DIRS} ${NODEDIR}/deps/icu-small/source/common/)
       set(V8_LIBRARY_DIRS 
           ${NODEDIR}/out/Release/obj.target
           ${NODEDIR}/out/Release/obj.target/deps/v8_inspector/third_party/v8_inspector/platform/v8_inspector
@@ -47,9 +48,9 @@ else ()
           zlib
           http_parser
           icustubdata
-          icui18n
-          icuucx
           icudata
+          icuucx
+          icui18n
          )
 endif ()
 
