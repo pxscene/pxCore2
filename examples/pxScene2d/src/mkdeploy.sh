@@ -21,7 +21,12 @@ DEPLOY_DIR=deploy/mac/.stage
 PX_SCENE_VERSION=$1
 mkdir -p $DEPLOY_DIR
 rm -r $DEPLOY_DIR/pxscene.app
+if [ "$TRAVIS_EVENT_TYPE" == "cron" ]
+then
+cp -a pxsceneEdge.app $DEPLOY_DIR
+else
 cp -a pxscene.app $DEPLOY_DIR
+fi
 echo $PX_SCENE_VERSION > $DEPLOY_DIR/pxscene.app/Contents/MacOS/version
 #build dmg
 ./mkdmg.sh
