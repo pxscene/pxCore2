@@ -338,7 +338,7 @@ static void v8TimerCallback(uv_timer_t* handle)
   Local<v8::Function> func = PersistentToLocal(data->mIsolate, data->mFunc);
   Local<v8::Value> argv[1] = { func.As<Value>() };
 
-  func->Call(ctx, argv[0], 1, argv);
+  (void)func->Call(ctx, argv[0], 1, argv);
 }
 
 static void uvTimerStart(const v8::FunctionCallbackInfo<v8::Value>& args)
