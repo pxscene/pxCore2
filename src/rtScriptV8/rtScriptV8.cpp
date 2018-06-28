@@ -41,12 +41,30 @@
 #include <iostream>
 #include <sstream>
 
+#include <unicode/putil.h>
+#include <unicode/udata.h>
+#include <unicode/uidna.h>
+
+/* if this is defined, we have a 'secondary' entry point.
+compare following to utypes.h defs for U_ICUDATA_ENTRY_POINT */
+#define SMALL_ICUDATA_ENTRY_POINT \
+  SMALL_DEF2(U_ICU_VERSION_MAJOR_NUM, U_LIB_SUFFIX_C_NAME)
+#define SMALL_DEF2(major, suff) SMALL_DEF(major, suff)
+#ifndef U_LIB_SUFFIX_C_NAME
+#define SMALL_DEF(major, suff) icusmdt##major##_dat
+#else
+#define SMALL_DEF(major, suff) icusmdt##suff##major##_dat
+#endif
+
+extern "C" const char U_DATA_API SMALL_ICUDATA_ENTRY_POINT[];
+
 #ifndef WIN32
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 #endif
 
 #include "rtWrapperUtils.h"
+#include "rtJsModules.h"
 
 #ifndef WIN32
 #pragma GCC diagnostic pop
@@ -54,6 +72,7 @@
 
 #include "rtScriptV8.h"
 
+#include "node.h"
 
 #include "rtCore.h"
 #include "rtObject.h"
@@ -170,8 +189,9 @@ public:
   Local<Value> loadV8Module(const rtString &name);
 
 private:
-  void addMethod(const char *name, v8::FunctionCallback callback);
+  void addMethod(const char *name, v8::FunctionCallback callback, void *data = NULL);
   void setupModuleLoading();
+  void setupModuleBindings();
 
 private:
    v8::Isolate                   *mIsolate;
@@ -421,11 +441,16 @@ rtV8Context::rtV8Context(Isolate *isolate, Platform *platform, uv_loop_t *loop) 
   Context::Scope contextScope(localContext);
 
   Handle<Object> global = localContext->Global();
+  global->Set(String::NewFromUtf8(mIsolate, "isV8", NewStringType::kNormal).ToLocalChecked(), 
+    v8::Integer::New(isolate, 1));
+  global->Set(String::NewFromUtf8(mIsolate, "global", NewStringType::kNormal).ToLocalChecked(),
+    v8::Object::New(isolate));
 
   rtObjectWrapper::exportPrototype(mIsolate, global);
   rtFunctionWrapper::exportPrototype(mIsolate, global);
 
   setupModuleLoading();
+  setupModuleBindings();
 
   v8::platform::PumpMessageLoop(mPlatform, mIsolate);
 
@@ -548,7 +573,7 @@ Local<Value> rtV8Context::loadV8Module(const rtString &name)
     return PersistentToLocal<Value>(mIsolate, *loadedModule);
   }
 
-  rtString contents1 = "(function(){var module=this,exports=this.exports;";
+  rtString contents1 = "(function(){var module=this; var exports=(this.exports = new Object());";
   contents1.append(contents.cString());
   contents1.append(" return this.exports; })");
 
@@ -603,13 +628,13 @@ static void requireCallback(const v8::FunctionCallbackInfo<v8::Value>& args)
 }
 
 
-void rtV8Context::addMethod(const char *name, v8::FunctionCallback callback)
+void rtV8Context::addMethod(const char *name, v8::FunctionCallback callback, void *data)
 {
   Locker                locker(mIsolate);
   Isolate::Scope isolate_scope(mIsolate);
   HandleScope     handle_scope(mIsolate);
 
-  Local<FunctionTemplate> fTemplate = v8::FunctionTemplate::New(mIsolate, callback, v8::External::New(mIsolate, (void*)this));
+  Local<FunctionTemplate> fTemplate = v8::FunctionTemplate::New(mIsolate, callback, v8::External::New(mIsolate, data));
   Local<Context> localContext = PersistentToLocal<Context>(mIsolate, mContext);
   Context::Scope context_scope(localContext);
   localContext->Global()->Set(
@@ -620,7 +645,15 @@ void rtV8Context::addMethod(const char *name, v8::FunctionCallback callback)
 
 void rtV8Context::setupModuleLoading()
 {
-  addMethod("require", &requireCallback);
+  addMethod("require", &requireCallback, (void*)this);
+}
+
+void rtV8Context::setupModuleBindings()
+{
+  for (int i = 0; v8ModuleBindings[i].mName != NULL; ++i) {
+    const rtV8FunctionItem &item = v8ModuleBindings[i];
+    addMethod(item.mName, item.mCallback, (void*)mUvLoop);
+  }
 }
 
 rtError rtV8Context::add(const char *name, const rtValue& val)
@@ -826,7 +859,10 @@ rtError rtScriptV8::init()
   rtLogInfo(__FUNCTION__);
 
   if (mV8Initialized == false) {
-    V8::InitializeICU();
+    UErrorCode status = U_ZERO_ERROR;
+    udata_setCommonData(&SMALL_ICUDATA_ENTRY_POINT, &status);
+
+    v8::V8::InitializeICU();
     mUvLoop = uv_default_loop();
     Platform* platform = platform::CreateDefaultPlatform();
     mPlatform = platform;

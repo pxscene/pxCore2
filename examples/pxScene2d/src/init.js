@@ -41,6 +41,15 @@ global.constructPromise = function (obj) {
     });
 }
 }
+else if (isV8) {
+console = require('console');
+timers = require('timers');
+
+setTimeout = timers.setTimeout;
+clearTimeout = timers.clearTimeout;
+setInterval = timers.setInterval;
+clearInterval = timers.clearInterval;
+}
 
 var AppSceneContext = require('rcvrcore/AppSceneContext');
 var RPCController = require('rcvrcore/rpcController');

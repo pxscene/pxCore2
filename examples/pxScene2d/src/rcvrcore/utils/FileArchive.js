@@ -25,7 +25,7 @@ var url = require('url');
 var http = require('http');
 
 // FIXME !!!!!!!!!! duktape merge hack
-if (!isDuk) {
+if (!isDuk && !isV8) {
   var JSZip = require("jszip");
 }
 

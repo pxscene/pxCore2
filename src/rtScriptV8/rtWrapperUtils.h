@@ -38,6 +38,14 @@ limitations under the License.
 namespace rtScriptV8Utils
 {
 
+typedef void (*FuncCallback)(const v8::FunctionCallbackInfo<v8::Value>& args);
+
+struct rtV8FunctionItem
+{
+  const char  *mName;
+  FuncCallback mCallback;
+};
+
 //bool rtIsRenderThread();
 bool rtIsPromise(const rtValue& v);
 
