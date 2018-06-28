@@ -3823,7 +3823,7 @@ void pxScriptView::runScript()
 #endif
 
 //#ifdef PXSCENE_V8_TEST
-//    mCtx->runFile(mUrl);
+    //mCtx->runFile(mUrl);
 //#else
     mCtx->runFile("init.js");
 
@@ -3849,10 +3849,10 @@ void pxScriptView::runScript()
 		newBuffer[newBufferLen++] = '\0';
 		strcpy(buffer, newBuffer);
 		free(newBuffer);
-//#endif
+#endif
     mCtx->runScript(buffer);
     rtLogInfo("pxScriptView::runScript() ending\n");
-#endif
+//#endif
   }
   #endif //ENABLE_RT_NODE
 }

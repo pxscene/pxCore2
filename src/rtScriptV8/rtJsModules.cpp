@@ -103,7 +103,7 @@ static void uvGetHrTime(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 uv_loop_t *getEventLoopFromArgs(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-  assert(args.Data()->isExternal());
+  assert(args.Data()->IsExternal());
   v8::External *val = v8::External::Cast(*args.Data());
   assert(val != NULL);
   uv_loop_t *loop = (uv_loop_t *)val->Value();
@@ -124,8 +124,8 @@ static void uvFsAccess(const v8::FunctionCallbackInfo<v8::Value>& args)
   }
 
   assert(args.Length() == 2);
-  assert(args[0].IsString());
-  assert(args[1].IsString());
+  assert(args[0]->IsString());
+  assert(args[1]->IsString());
 
   rtString filePath = toString(args[0]->ToString());
   rtString fileOpenMode = toString(args[1]->ToString());
@@ -163,7 +163,7 @@ static void uvFsGetSize(const v8::FunctionCallbackInfo<v8::Value>& args)
   }
 
   assert(args.Length() == 1);
-  assert(args[0].IsString());
+  assert(args[0]->IsString());
 
   rtString filePath = toString(args[0]->ToString());
 
@@ -218,9 +218,8 @@ static void uvFsOpen(const v8::FunctionCallbackInfo<v8::Value>& args)
   }
 
   assert(args.Length() == 3);
-  assert(args[0].IsString());
-  assert(args[1].IsString());
-  assert(args[2].IsInteger());
+  assert(args[0]->IsString());
+  assert(args[1]->IsString());
 
   rtString filePath = toString(args[0]->ToString());
   rtString fileOpenMode = toString(args[1]->ToString());
@@ -253,8 +252,6 @@ static void uvFsRead(const v8::FunctionCallbackInfo<v8::Value>& args)
 
   assert(args.Length() == 3);
   assert(args[0]->IsExternal());
-  assert(args[1]->IsInteger());
-  assert(args[2]->IsInteger());
 
   v8::External *val = v8::External::Cast(*args[0]);
   void *fd = (void *)val->Value();
@@ -265,7 +262,7 @@ static void uvFsRead(const v8::FunctionCallbackInfo<v8::Value>& args)
   uv_buf_t buf = uv_buf_init((char *)ptr, size);
 
   uv_fs_t req;
-  uv_fs_read(loop, &req, (uv_file)fd, &buf, 1, offset, NULL);
+  uv_fs_read(loop, &req, static_cast<uv_file>(reinterpret_cast<uint64_t>(fd)), &buf, 1, offset, NULL);
 
   if (req.result <= 0) {
     free(ptr);
@@ -292,13 +289,13 @@ static void uvFsClose(const v8::FunctionCallbackInfo<v8::Value>& args)
   }
 
   assert(args.Length() == 1);
-  assert(args[0].IsExternal());
+  assert(args[0]->IsExternal());
 
   v8::External *val = v8::External::Cast(*args[0]);
   void *fd = (void *)val->Value();
 
   uv_fs_t req;
-  int ret = uv_fs_close(loop, &req, (uv_file)fd, NULL);
+  int ret = uv_fs_close(loop, &req, static_cast<uv_file>(reinterpret_cast<uint64_t>(fd)), NULL);
 
   if (ret < 0) {
     return;
@@ -358,10 +355,8 @@ static void uvTimerStart(const v8::FunctionCallbackInfo<v8::Value>& args)
   }
 
   assert(args.Length() == 4);
-  assert(args[0].IsExternal());
-  assert(args[1].IsInteger());
-  assert(args[2].IsInteger());
-  assert(args[3].IsFunction());
+  assert(args[0]->IsExternal());
+  assert(args[3]->IsFunction());
 
   v8::External *val = v8::External::Cast(*args[0]);
   uv_timer_t *handle = (uv_timer_t *)val->Value();
@@ -396,7 +391,7 @@ static void uvTimerStop(const v8::FunctionCallbackInfo<v8::Value>& args)
   }
 
   assert(args.Length() == 1);
-  assert(args[0].IsExternal());
+  assert(args[0]->IsExternal());
 
   v8::External *val = v8::External::Cast(*args[0]);
   uv_timer_t *handle = (uv_timer_t *)val->Value();
@@ -432,7 +427,7 @@ static void uvRunInContext(const v8::FunctionCallbackInfo<v8::Value>& args)
   }*/
 
   assert(args.Length() >= 1);
-  assert(args[0].IsString());
+  assert(args[0]->IsString());
 
   rtString sourceCode = toString(args[0]->ToString());
 

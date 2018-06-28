@@ -41,6 +41,7 @@
 #include <iostream>
 #include <sstream>
 
+#include <unicode/uvernum.h>
 #include <unicode/putil.h>
 #include <unicode/udata.h>
 #include <unicode/uidna.h>
