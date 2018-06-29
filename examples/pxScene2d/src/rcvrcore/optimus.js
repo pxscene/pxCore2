@@ -29,10 +29,16 @@ var appManager = new Optimus();
 module.exports = appManager;
 
 var ApplicationType = Object.freeze({
-  "SPARK":1,
-  "NATIVE":2,
-  "WEB":3,
-  "UNDEFINED":4
+  SPARK:"SPARK",
+  NATIVE:"NATIVE",
+  WEB:"WEB",
+  UNDEFINED:"UNDEFINED"
+});
+
+var ApplicationState = Object.freeze({
+  RUNNING:"RUNNING",
+  SUSPENDED:"SUSPENDED",
+  DESTROYED:"DESTROYED"
 });
 
 /**
@@ -61,21 +67,29 @@ var ApplicationType = Object.freeze({
 function Application(props) {
 
   // Getters/setters
-  var _externalAppPropsReadWrite = {x:"x",y:"y",w:"w",h:"h",cx:"cx",cy:"cy",sx:"sx",sy:"sy",r:"r",a:"a",
-    interactive:"interactive",painting:"painting",clip:"clip",mask:"mask",draw:"draw"};
-  var _externalAppPropsReadonly = {hasApi:"hasApi",pid:"clientPID"};
+  var _externalAppPropsReadWrite = {
+    x:"x",y:"y",w:"w",h:"h",cx:"cx",cy:"cy",sx:"sx",sy:"sy",r:"r",a:"a",
+    interactive:"interactive",painting:"painting",clip:"clip",mask:"mask",draw:"draw",hasApi:"hasApi"
+  };
+  var _externalAppPropsReadonly = {
+    pid:"clientPID" // integer process id associated with the application
+  };
   var _this = this;
   Object.keys(_externalAppPropsReadWrite).forEach(function(key) {
-    Object.defineProperty(_this, key, { get: function() { return _externalApp[_externalAppPropsReadWrite[key]]; }, set: function(v) { _externalApp[_externalAppPropsReadWrite[key]] = v; }});
+    Object.defineProperty(_this, key, {
+      get: function() { return _externalApp[_externalAppPropsReadWrite[key]]; },
+      set: function(v) { _externalApp[_externalAppPropsReadWrite[key]] = v; }
+    });
   });
   Object.keys(_externalAppPropsReadonly).forEach(function(key) {
-    Object.defineProperty(_this, key, { get: function() { return _externalApp[_externalAppPropsReadonly[key]]; }});
+    Object.defineProperty(_this, key, {
+      get: function() { return _externalApp[_externalAppPropsReadonly[key]]; }
+    });
   });
 
   // Public variables
   this.id = undefined;
   this.priority = 1;
-  this.state = "RUNNING";
   this.name = "";
   this.type = ApplicationType.UNDEFINED;
   this.ready = undefined;
@@ -89,66 +103,117 @@ function Application(props) {
   var launchParams;
   var _externalApp;
   var _browser;
+  var _state = ApplicationState.RUNNING;
 
   // Public functions that use _externalApp
+  // Suspends the application. Returns true if the application was suspended, or false otherwise
   this.suspend = function(o) {
-    if (_externalApp && _externalApp.suspend){
-      _externalApp.suspend(o);
+    var ret;
+    if (_state === ApplicationState.DESTROYED){
+      this.log("suspend on already destroyed app");
+      return false;
     }
-    if (this.state !== "DESTROYED"){
-      this.state = "SUSPENDED";
+    if (_state === ApplicationState.SUSPENDED){
+      this.log("suspend on already suspended app");
+      return false;
     }
-    this.applicationSuspended();
+    if (!_externalApp || !_externalApp.suspend){
+      this.log("suspend not supported");
+      return false;
+    }
+    ret = _externalApp.suspend(o);
+    if (ret === true) {
+      _state = ApplicationState.SUSPENDED;
+      this.applicationSuspended();
+    } else {
+      this.log("suspend returned:", ret);
+    }
+    return ret;
   };
+  // Resumes a suspended application. Returns true if the application was resumed, or false otherwise
   this.resume = function(o) {
-    if (_externalApp && _externalApp.resume){
-      _externalApp.resume(o);
+    var ret;
+    if (_state === ApplicationState.DESTROYED){
+      this.log("resume on already destroyed app");
+      return false;
     }
-    if (this.state !== "DESTROYED"){
-      this.state = "RUNNING";
+    if (_state === ApplicationState.RUNNING){
+      this.log("resume on already running app");
+      return false;
     }
-    this.applicationResumed();
+    if (!_externalApp || !_externalApp.resume){
+      this.log("resume not supported");
+      return false;
+    }
+    ret = _externalApp.resume(o);
+    if (ret === true) {
+      _state = ApplicationState.RUNNING;
+      this.applicationResumed();
+    } else {
+      this.log("resume returned:", ret);
+    }
+    return ret;
   };
+  // Destroys the application. Returns true if destroyed or false if not destroyed
   this.destroy = function() {
-    if (_externalApp){
-      try {
-        this.log("about to remove");
-        if (_externalApp.remove) {
-          _externalApp.remove();
-        }
-      } catch (e) {
-        this.log("failed to remove",e);
-      }
-      try {
-        this.log("about to destroy");
-        if (_externalApp.destroy) {
-          _externalApp.destroy();
-        } else if (this.type === ApplicationType.SPARK && _externalApp.api && _externalApp.api.destroy) {
-           _externalApp.api.destroy();
-        }
-      } catch (e) {
-        this.log("failed to destroy",e);
-      }
-      _externalApp = null;
+    var ret = false;
+    if (_state === ApplicationState.DESTROYED){
+      this.log("destroy on already destroyed app");
+      return false;
     }
-    this.state = "DESTROYED";
-    this.applicationDestroyed();
+    if (!_externalApp || (!_externalApp.destroy && !_externalApp.dispose)){
+      this.log("destroy not supported");
+      return false;
+    }
+    try {
+      this.log("about to remove");
+      if (_externalApp.remove) {
+        _externalApp.remove();
+      }
+    } catch (e) {
+      this.log("failed to remove",e);
+    }
+    try {
+      this.log("about to destroy");
+      if (_externalApp.destroy) {
+        ret = _externalApp.destroy();
+      } else if (this.type === ApplicationType.SPARK && _externalApp.api && _externalApp.api.destroy) {
+        ret = _externalApp.api.destroy();
+      } else if (_externalApp.dispose) {
+        _externalApp.dispose();
+        ret = true;
+      }
+    } catch (e) {
+      this.log("failed to destroy",e);
+    }
+    if (ret === true) {
+      _externalApp = null;
+      _state = ApplicationState.DESTROYED;
+      this.applicationDestroyed();
+    } else {
+      this.log("destroy returned:", ret);
+    }
+    return ret;
   };
+  // Sets the Z-order of this application to the highest value
   this.moveToFront = function() {
     if (_externalApp){
       _externalApp.moveToFront();
     }
   };
+  // Sets the Z-order of this application to the lowest value
   this.moveToBack = function() {
     if (_externalApp){
       _externalApp.moveToBack();
     }
   };
+  // Sets the input focus to this application
   this.setFocus = function() {
     if (_externalApp){
       _externalApp.focus = true;
     }
   };
+  // Returns true if this application currently has focus, false if it does not
   this.isFocused = function() {
     if (_externalApp){
       return _externalApp.focus;
@@ -171,6 +236,7 @@ function Application(props) {
       _externalApp.onChar(e);
     }
   };
+  // Returns a promise that will fulfill when the animation is complete.
   this.animateTo = function(animationProperties, duration, tween, type, count) {
     if (_externalApp){
       return _externalApp.animateTo(animationProperties, duration, tween, type, count);
@@ -180,13 +246,10 @@ function Application(props) {
       });
     }
   };
+  // This version of animate does not return a promise.
   this.animate = function(animationProperties, duration, tween, type, count) {
     if (_externalApp){
       return _externalApp.animate(animationProperties, duration, tween, type, count);
-    } else {
-      return new Promise(function(resolve,reject) {
-        reject("not supported");
-      });
     }
   };
   this.on = function(e,fn) {
@@ -194,6 +257,7 @@ function Application(props) {
       _externalApp.on(e,fn);
     }
   };
+  // Returns an object containing this application's external API
   this.api = function() {
     if (this.type === ApplicationType.WEB){
       return _browser;
@@ -211,6 +275,9 @@ function Application(props) {
         _this.log("unknown property " + k);
       }
     });
+  };
+  this.state = function () {
+    return _state;
   };
 
   // Constructor
@@ -297,9 +364,14 @@ function Application(props) {
         this.ready = _externalApp.ready;
         _externalApp.on("onReady", function () { _this.log("onReady"); }); // is never called
         _externalApp.on("onClientStarted", function () { _this.log("onClientStarted"); });
-        _externalApp.on("onClientConnected", function () { _this.log("onClientConnected"); }); // called multiple times
-        _externalApp.on("onClientDisconnected", function () { _this.log("onClientDisconnected"); }); // is never called
-        _externalApp.on("onClientStopped", function () { _this.log("onClientStopped"); }); // is never called
+        _externalApp.on("onClientConnected", function () { _this.log("onClientConnected"); });
+        _externalApp.on("onClientDisconnected", function () { _this.log("onClientDisconnected"); }); // called on client crash
+        _externalApp.on("onClientStopped", function () { // called on client crash
+          _this.log("onClientStopped");
+          setTimeout(function () {
+            _this.destroy();
+          });
+        });
         _externalApp.ready.then(function() {
           _this.log("successfully created: " + _this.id);
           _this.applicationReady();
@@ -326,15 +398,10 @@ Application.prototype.log = function() {
     _args.push("id="+this.id);
   }
   if (this.type) {
-    for (var key in ApplicationType) {
-      if (ApplicationType[key] === this.type) {
-        _args.push("type="+key);
-        break;
-      }
-    }
+    _args.push("type="+this.type);
   }
-  if (this.state) {
-    _args.push("state="+this.state);
+  if (this.state()) {
+    _args.push("state="+this.state());
   }
   if (this.name) {
     _args.push("name="+this.name);
@@ -343,9 +410,11 @@ Application.prototype.log = function() {
   console.log.apply(console, _args);
 };
 
+// Returns the ApplicationManager
 Application.prototype.applicationManager = function() {
   return appManager;
 };
+
 Application.prototype.applicationCreated = function(){
   this.log("applicationCreated");
   appManager.onCreate(this);

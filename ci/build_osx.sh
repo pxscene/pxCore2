@@ -54,6 +54,7 @@ then
       cp ../examples/pxScene2d/src/macstuff/Resources/SparkEdge.icns ../examples/pxScene2d/src/macstuff/Resources/pxscene.icns
       cp ../examples/pxScene2d/src/macstuff/Resources/SparkEdge.icns ../examples/pxScene2d/src/macstuff/Resources/AppIcon.icns
       cp ../examples/pxScene2d/src/macstuff/Resources/SparkEdge.icns ../examples/pxScene2d/src/macstuff/dmgresources/pxscene.icns
+       
       cmake -DPXSCENE_VERSION="edge" .. >>$BUILDLOGS 2>&1;
     else
       cmake .. >>$BUILDLOGS 2>&1;
