@@ -56,7 +56,7 @@ then
     cp ../examples/pxScene2d/src/macstuff/Resources/SparkEdge.icns ../examples/pxScene2d/src/macstuff/Resources/AppIcon.icns
     cp ../examples/pxScene2d/src/macstuff/Resources/SparkEdge.icns ../examples/pxScene2d/src/macstuff/dmgresources/pxscene.icns
     fi
-    cmake .. >>$BUILDLOGS 2>&1;
+    cmake -DPXSCENE_VERSION="edge" .. >>$BUILDLOGS 2>&1;
   fi
 
   checkError $? 0 "cmake config failed" "Config error" "Check the error in $BUILDLOGS"
