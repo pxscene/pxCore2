@@ -55,9 +55,9 @@ printExecLogs()
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 # Start testRunner ...
-rm -rf /var/tmp/pxscene.log
+rm -rf /var/tmp/spark.log
 cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src/pxscene.app/Contents/MacOS
-./pxscene.sh $TESTRUNNERURL?tests=file://$TRAVIS_BUILD_DIR/tests/pxScene2d/testRunner/tests.json &
+./spark.sh $TESTRUNNERURL?tests=file://$TRAVIS_BUILD_DIR/tests/pxScene2d/testRunner/tests.json &
 
 # Monitor testRunner ...
 count=0
@@ -68,7 +68,7 @@ while [ "$count" -le "$max_seconds" ]; do
 	printf "\n [execute_osx.sh] snoozing for 30 seconds (%d of %d) \n" $count $max_seconds
 	sleep 30; # seconds
 
-	grep "TEST RESULTS: " /var/tmp/pxscene.log   # string in [results.js] must be "TEST RESULTS: "
+	grep "TEST RESULTS: " /var/tmp/spark.log   # string in [results.js] must be "TEST RESULTS: "
 	retVal=$?
 
 	if [ "$retVal" -eq 0 ] # text found    exit code from Grep is '1' if NOT found
@@ -93,23 +93,23 @@ done #LOOP
 # Handle crash - 'dumped_core = 1' ?
 if [ "$dumped_core" -eq 1 ]
 	then
-	ps -ef | grep pxscene |grep -v grep >> /var/tmp/pxscene.log
-        ps -ef |grep /bin/sh |grep -v grep >> /var/tmp/pxscene.log
-	$TRAVIS_BUILD_DIR/ci/check_dump_cores_osx.sh `pwd` `ps -ef | grep pxscene |grep -v grep|grep -v pxscene.sh|awk '{print $2}'` /var/tmp/pxscene.log
+	ps -ef | grep Spark |grep -v grep >> /var/tmp/spark.log
+        ps -ef |grep /bin/sh |grep -v grep >> /var/tmp/spark.log
+	$TRAVIS_BUILD_DIR/ci/check_dump_cores_osx.sh `pwd` `ps -ef | grep Spark |grep -v grep|grep -v spark.sh|awk '{print $2}'` /var/tmp/spark.log
 	checkError $dumped_core "Execution failed" "Core dump" "Run execution locally"
 fi
 
 # Wait for few seconds to get the application terminate completely
 leakcount=`leaks pxscene|grep Leak|wc -l`
 echo "leakcount during termination $leakcount"
-kill -15 `ps -ef | grep pxscene |grep -v grep|grep -v pxscene.sh|awk '{print $2}'`
+kill -15 `ps -ef | grep Spark |grep -v grep|grep -v spark.sh|awk '{print $2}'`
 
 # Sleep for 40s as we have sleep for 30s inside code to capture memory of process
 echo "Sleeping to make terminate complete ...";
 sleep 90s
-pkill -9 -f pxscene.sh	
+pkill -9 -f spark.sh	
 
-cp /var/tmp/pxscene.log $EXECLOGS
+cp /var/tmp/spark.log $EXECLOGS
 if [ "$dumped_core" -eq 1 ]
 	then
 	echo "ERROR:  Core Dump - exiting ...";
@@ -129,7 +129,7 @@ if [ "$retVal" -ne 0 ]
         else
 		errCause="Either one or more tests failed. Check the log file $EXECLOGS"
 	fi
-	checkError $retVal "Testrunner execution failed" "$errCause" "Run pxscene with testrunner.js locally as ./pxscene.sh https://px-apps.sys.comcast.net/pxscene-samples/examples/px-reference/test-run/testRunner.js?tests=<pxcore dir>tests/pxScene2d/testRunner/tests.json"
+	checkError $retVal "Testrunner execution failed" "$errCause" "Run pxscene with testrunner.js locally as ./spark.sh https://px-apps.sys.comcast.net/pxscene-samples/examples/px-reference/test-run/testRunner.js?tests=<pxcore dir>tests/pxScene2d/testRunner/tests.json"
 	exit 1;
 fi
 
@@ -149,7 +149,7 @@ else
 	else
 		errCause="Check the $EXECLOGS file"
 	fi 
-	checkError -1 "Texture leak or pxobject leak" "$errCause" "Follow steps locally: export PX_DUMP_MEMUSAGE=1;export RT_LOG_LEVEL=info;./pxscene.sh $TESTRUNNERURL?tests=<pxcore dir>/tests/pxScene2d/testRunner/tests.json locally and check for 'texture memory usage is' and 'pxobjectcount is' in logs and see which is non-zero" 
+	checkError -1 "Texture leak or pxobject leak" "$errCause" "Follow steps locally: export PX_DUMP_MEMUSAGE=1;export RT_LOG_LEVEL=info;./spark.sh $TESTRUNNERURL?tests=<pxcore dir>/tests/pxScene2d/testRunner/tests.json locally and check for 'texture memory usage is' and 'pxobjectcount is' in logs and see which is non-zero" 
 	exit 1;
 fi
 
@@ -163,7 +163,7 @@ if [ "$leakcount" -ne 0 ]
 	else
 		errCause="Check the file $LEAKLOGS and $EXECLOGS"
 	fi
-	checkError $leakcount "Execution reported memory leaks" "$errCause" "Run locally with these steps: export ENABLE_MEMLEAK_CHECK=1;export MallocStackLogging=1;export PX_DUMP_MEMUSAGE=1;./pxscene.sh $TESTRUNNERURL?tests=<pxcore dir>/tests/pxScene2d/testRunner/tests.json &; run leaks -nocontext pxscene >logfile continuously until the testrunner execution completes; Analyse the logfile" 
+	checkError $leakcount "Execution reported memory leaks" "$errCause" "Run locally with these steps: export ENABLE_MEMLEAK_CHECK=1;export MallocStackLogging=1;export PX_DUMP_MEMUSAGE=1;./spark.sh $TESTRUNNERURL?tests=<pxcore dir>/tests/pxScene2d/testRunner/tests.json &; run leaks -nocontext pxscene >logfile continuously until the testrunner execution completes; Analyse the logfile" 
 	exit 1;
 else
 	echo "Valgrind reports success !!!!!!!!!!!"
