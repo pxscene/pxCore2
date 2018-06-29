@@ -2285,49 +2285,44 @@ rtError pxScene2d::clock(double & time)
 }
 rtError pxScene2d::createExternal(rtObjectRef p, rtObjectRef& o)
 {
-  rtRef<pxViewContainer> c = new pxViewContainer(this);
-  mTestView = new testView;
-  c->setView(mTestView);
-  o = c.getPtr();
-  o.set(p);
-  o.send("init");
-  return RT_OK;
+    #if defined(ENABLE_DFB) || defined(DISABLE_WAYLAND)
+        UNUSED_PARAM(p);
+        UNUSED_PARAM(o);
+
+        UNUSED_PARAM(gWaylandAppsConfigLoaded);
+
+        return RT_FAIL;
+    #else
+        if (false == gWaylandAppsConfigLoaded)
+        {
+            populateWaylandAppsConfig();
+    #ifndef PXSCENE_ENABLE_ALL_APPS_WAYLAND_CONFIG
+            gWaylandAppsMap.insert(gWaylandRegistryAppsMap.begin(), gWaylandRegistryAppsMap.end());
+    #endif // !defined PXSCENE_ENABLE_ALL_APPS_WAYLAND_CONFIG
+            gWaylandAppsConfigLoaded = true;
+        }
+    #ifdef PXSCENE_ENABLE_ALL_APPS_WAYLAND_CONFIG
+        gWaylandAppsMap.clear();
+        gWaylandAppsMap.insert(gWaylandRegistryAppsMap.begin(), gWaylandRegistryAppsMap.end());
+        populateAllAppsConfig();
+        gWaylandAppsMap.insert(gPxsceneWaylandAppsMap.begin(), gPxsceneWaylandAppsMap.end());
+        /*for(std::map<string,string>::iterator it = gWaylandAppsMap.begin(); it != gWaylandAppsMap.end(); ++it) {
+         rtLogDebug("key: %s !!!!!", it->first.c_str());
+         }*/
+    #endif
+        rtRef<pxWaylandContainer> c = new pxWaylandContainer(this);
+        c->setView(new pxWayland(true, this));
+        o = c.getPtr();
+        o.set(p);
+        o.send("init");
+        return RT_OK;
+    #endif //ENABLE_DFB
 }
 
 rtError pxScene2d::createWayland(rtObjectRef p, rtObjectRef& o)
 {
-#if defined(ENABLE_DFB) || defined(DISABLE_WAYLAND)
-  UNUSED_PARAM(p);
-  UNUSED_PARAM(o);
-
-  UNUSED_PARAM(gWaylandAppsConfigLoaded);
-
-  return RT_FAIL;
-#else
-  if (false == gWaylandAppsConfigLoaded)
-  {
-    populateWaylandAppsConfig();
-#ifndef PXSCENE_ENABLE_ALL_APPS_WAYLAND_CONFIG
-    gWaylandAppsMap.insert(gWaylandRegistryAppsMap.begin(), gWaylandRegistryAppsMap.end());
-#endif // !defined PXSCENE_ENABLE_ALL_APPS_WAYLAND_CONFIG
-    gWaylandAppsConfigLoaded = true;
-  }
-#ifdef PXSCENE_ENABLE_ALL_APPS_WAYLAND_CONFIG
-  gWaylandAppsMap.clear();
-  gWaylandAppsMap.insert(gWaylandRegistryAppsMap.begin(), gWaylandRegistryAppsMap.end());
-  populateAllAppsConfig();
-  gWaylandAppsMap.insert(gPxsceneWaylandAppsMap.begin(), gPxsceneWaylandAppsMap.end());
-  /*for(std::map<string,string>::iterator it = gWaylandAppsMap.begin(); it != gWaylandAppsMap.end(); ++it) {
-   rtLogDebug("key: %s !!!!!", it->first.c_str());
-  }*/
-#endif
-  rtRef<pxWaylandContainer> c = new pxWaylandContainer(this);
-  c->setView(new pxWayland(true, this));
-  o = c.getPtr();
-  o.set(p);
-  o.send("init");
-  return RT_OK;
-#endif //ENABLE_DFB
+    rtLogWarn("Type 'wayland' is deprecated; use 'external' instead.\n");
+    return this->createExternal(p, o);
 }
 
 void pxScene2d::draw()
