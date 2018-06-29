@@ -64,6 +64,7 @@ count=0
 max_seconds=900
 isimage9=1
 crossedimage9=0
+
 while [ "$count" -le "$max_seconds" ]; do
 	#leaks -nocontext pxscene > $LEAKLOGS
 	printf "\n [execute_osx.sh] snoozing for 30 seconds (%d of %d) \n" $count $max_seconds
