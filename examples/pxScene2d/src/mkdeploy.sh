@@ -24,10 +24,12 @@ rm -r $DEPLOY_DIR/pxscene.app
 if [ "$TRAVIS_EVENT_TYPE" == "cron" ]
 then
 cp -a pxsceneEdge.app $DEPLOY_DIR
+echo $PX_SCENE_VERSION > $DEPLOY_DIR/pxsceneEdge.app/Contents/MacOS/version
 else
 cp -a pxscene.app $DEPLOY_DIR
-fi
 echo $PX_SCENE_VERSION > $DEPLOY_DIR/pxscene.app/Contents/MacOS/version
+fi
+
 #build dmg
 ./mkdmg.sh
 mkUpdate $PX_SCENE_VERSION
