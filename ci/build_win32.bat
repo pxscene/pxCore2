@@ -38,7 +38,7 @@ md build-win32
 cd build-win32
 set addVer=False
 set uploadArtifact=False
-@rem build pxScene
+@rem build Spark
 if "%APPVEYOR_SCHEDULED_BUILD%"=="True" (
   echo "building edge"
   set uploadArtifact=True

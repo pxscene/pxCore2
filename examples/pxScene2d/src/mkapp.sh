@@ -2,9 +2,9 @@
 
 #minJS=cp        #don't minify
 minJS=./jsMin.sh  #minify
-
+appName=Spark
 externalDir=../external
-bundle=pxscene.app
+bundle=${appName}.app
 bundleBin=$bundle/Contents/MacOS
 
 #bundleRes=$bundle/Contents/Resources
@@ -48,9 +48,9 @@ cp FreeSans.ttf $bundleRes
 cp sparkpermissions.conf $bundleRes
 
 cp package.json $bundleRes
-cp pxscene $bundleBin
+cp ${appName} $bundleBin
 
-cp macstuff/pxscene.sh $bundleBin
+cp macstuff/spark.sh $bundleBin
 cp macstuff/EngineRunner $bundleBin
 
 # Minify JS into Bundle...
