@@ -23,6 +23,7 @@ limitations under the License.
 #include "rtRemoteSocketUtils.h"
 #include "rtRemoteAsyncHandle.h"
 #include "rtRemoteCallback.h"
+#include "Hub.h"
 
 #include <deque>
 #include <map>
@@ -53,6 +54,8 @@ public:
 
   rtRemoteStream(rtRemoteEnvironment* env, int fd,
     sockaddr_storage const& local_endpoint, sockaddr_storage const& remote_endpoint);
+
+  rtRemoteStream(rtRemoteEnvironment* env, uWS::WebSocket<uWS::SERVER>* ws);
   ~rtRemoteStream();
 
   rtRemoteStream(rtRemoteStream const&) = delete;
@@ -88,6 +91,7 @@ private:
   std::weak_ptr<CallbackHandler>        m_callback_handler;
   sockaddr_storage                      m_local_endpoint;
   sockaddr_storage                      m_remote_endpoint;
+  uWS::WebSocket<uWS::SERVER>*          m_ws;
   rtRemoteEnvironment*                  m_env;
 };
 

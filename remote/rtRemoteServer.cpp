@@ -272,6 +272,7 @@ rtRemoteServer::~rtRemoteServer()
 rtError
 rtRemoteServer::open()
 {
+  openWebSocketListener();
   rtError err = openRpcListener();
   if (err != RT_OK)
     return err;
@@ -377,6 +378,8 @@ rtRemoteServer::runListener()
       if (err == RT_OK)
         lastKeepAliveCheck = now;
     }
+    // poll websocket events
+    m_websocket_hub->poll();
   }
 }
 
@@ -405,6 +408,17 @@ rtRemoteServer::doAccept(int fd)
   newClient->setStateChangedHandler(&rtRemoteServer::onClientStateChanged_Dispatch, this);
   newClient->open();
   m_connected_clients.push_back(newClient);
+}
+
+std::shared_ptr<rtRemoteClient>
+rtRemoteServer::doWebSocketAccept(uWS::WebSocket<uWS::SERVER>* ws)
+{
+  rtLogInfo("new websocket connection from %s", ws->getAddress().address);
+  std::shared_ptr<rtRemoteClient> newClient(new rtRemoteClient(m_env, ws));
+  newClient->setStateChangedHandler(&rtRemoteServer::onClientStateChanged_Dispatch, this);
+  newClient->open();
+  m_connected_clients.push_back(newClient);
+  return newClient;
 }
 
 rtError
@@ -631,6 +645,56 @@ rtRemoteServer::unregisterDisconnectedCallback( clientDisconnectedCallback cb, v
     rtLogInfo("%p : %p removed callback pair from the callbacks list", cb, cbdata);
 
     return RT_OK;
+}
+
+rtError
+rtRemoteServer::openWebSocketListener()
+{
+  m_websocket_hub = new uWS::Hub();
+
+  int32_t const port = m_env->Config->resolver_web_socket_port();
+  std::string address = m_env->Config->resolver_web_socket_address();
+  if (!m_websocket_hub->listen(address.c_str(), port))
+  {
+    rtLogWarn("websocket server start failed : %s %d", address.c_str(), port);
+    return RT_ERROR_INVALID_ARG;
+  }
+
+  m_websocket_hub->onConnection(
+    [&](uWS::WebSocket<uWS::SERVER>* ws, uWS::HttpRequest /*httpRequest*/)
+    {
+      std::shared_ptr<rtRemoteClient> client = this->doWebSocketAccept(ws);
+      ws->setUserData(&client);
+    }
+  );
+
+  m_websocket_hub->onMessage(
+    [&](uWS::WebSocket<uWS::SERVER>* ws, char* buffer, size_t bufferLen, uWS::OpCode code)
+    {
+      std::shared_ptr<rtRemoteClient> * sharedPtr = static_cast<std::shared_ptr<rtRemoteClient>*>(ws->getUserData());
+      if (sharedPtr)
+      {
+        rtError err = (*sharedPtr)->onWebSocketMessage(buffer, bufferLen);
+        if(err != RT_OK){
+          rtLogError("websocket message read fail %s", rtStrError(err));
+        }
+      }
+    });
+
+  m_websocket_hub->onDisconnection(
+    [&](uWS::WebSocket<uWS::SERVER>* ws, int code, char* buffer, size_t bufferLen)
+    {
+      std::shared_ptr<rtRemoteClient> * sharedPtr = static_cast<std::shared_ptr<rtRemoteClient>*>(ws->getUserData());
+      if (sharedPtr)
+      {
+        rtLogInfo("a websocket disconnect from %s", ws->getAddress().address);
+        (*sharedPtr).reset();
+      }
+      ws->setUserData(nullptr);
+    }
+  );
+  rtLogInfo("websocket server on %s:%d", address.c_str(), port);
+  return RT_OK;
 }
 
 rtError
