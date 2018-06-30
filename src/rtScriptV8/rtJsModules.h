@@ -36,6 +36,8 @@ limitations under the License.
 
 #include <assert.h>
 
+#define RT_V8_TEST_BINDINGS
+
 namespace rtScriptV8Utils
 {
 

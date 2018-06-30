@@ -405,6 +405,31 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (packageUri, module
         importTracking: {}
       };
     }
+    else if (isV8) 
+    {
+      newSandbox = {
+        sandboxName: "InitialSandbox",
+        xmodule: xModule,
+        console: console,
+        timers: timers,
+        global: global,
+        setTimeout: setTimeout,
+        clearTimeout: clearTimeout,
+        setInterval: setInterval,
+        clearInterval: clearInterval,
+        runtime: apiForChild,
+        urlModule: require("url"),
+        require: require,
+        loadUrl: loadUrl,
+        queryStringModule: require("querystring"),
+        theNamedContext: "Sandbox: " + uri,
+        //Buffer: Buffer,
+        importTracking: {}
+      }; // end sandbox
+
+      queryStringModule = require("querystring");
+      urlModule = require("url");
+    }
     else
     {
       newSandbox = {
@@ -776,8 +801,10 @@ AppSceneContext.prototype.processCodeBuffer = function(origFilePath, filePath, c
     vm.runInNewContext(sourceCode, _this.sandbox, { filename: filePath, displayErrors: true },
                          px, xModule, filePath, filePath);
   } else if (isV8) {
-    vm.runInNewContext(sourceCode, _this.sandbox, { filename: filePath, displayErrors: true },
+    var moduleFunc = vm.runInNewContext(sourceCode, _this.sandbox, { filename: filePath, displayErrors: true },
                          px, xModule, filePath, filePath);
+
+    moduleFunc(px, xModule, filePath, filePath);
   } else {
     var moduleFunc = vm.runInContext(sourceCode, _this.sandbox, {filename:filePath, displayErrors:true});
     moduleFunc(px, xModule, filePath, filePath);

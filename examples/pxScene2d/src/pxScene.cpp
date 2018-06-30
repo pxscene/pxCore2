@@ -171,16 +171,12 @@ public:
     char buffer[MAX_URL_SIZE + 50];
     memset (buffer, 0, sizeof(buffer));
 
-#ifdef PXSCENE_V8_TEST
-    snprintf(buffer, sizeof(buffer), "%s", escapedUrl.c_str());
-#else
     if (std::string::npos != escapedUrl.find("http")) {
       snprintf(buffer,sizeof(buffer),"shell.js?url=%s",rtUrlEncodeParameters(escapedUrl.c_str()).cString());
     }
     else {
       snprintf(buffer,sizeof(buffer),"shell.js?url=%s",escapedUrl.c_str());
     }
-#endif
 
 #ifdef RUNINMAIN
     setView( new pxScriptView(buffer,"javascript/node/v8"));

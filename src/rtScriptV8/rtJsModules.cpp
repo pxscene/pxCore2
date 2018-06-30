@@ -26,6 +26,10 @@ limitations under the License.
 #include <fstream>
 #include <sstream>
 
+#ifdef  RT_V8_TEST_BINDINGS
+#pragma optimize("", off)
+#endif
+
 #if defined(USE_STD_THREADS)
 #include <thread>
 #include <mutex>
@@ -452,6 +456,118 @@ static void uvRunInContext(const v8::FunctionCallbackInfo<v8::Value>& args)
   args.GetReturnValue().Set(result);
 }
 
+static void v8CopyProperties(Isolate *isolate, Local<Context> &fromContext, Local<Context> &toContext, Local<Object> sandboxObj)
+{
+  HandleScope scope(isolate);
+
+  Local<Object> global = toContext->Global()->GetPrototype()->ToObject(isolate);
+  Local<Function> clone_property_method;
+
+  Local<Array> names = global->GetOwnPropertyNames();
+  int length = names->Length();
+  for (int i = 0; i < length; i++) {
+    Local<String> key = names->Get(i)->ToString(isolate);
+    auto maybe_has = sandboxObj->HasOwnProperty(toContext, key);
+
+    // Check for pending exceptions
+    if (!maybe_has.IsJust())
+      break;
+
+    bool has = maybe_has.FromJust();
+
+    if (!has) {
+      // Could also do this like so:
+      //
+      // PropertyAttribute att = global->GetPropertyAttributes(key_v);
+      // Local<Value> val = global->Get(key_v);
+      // sandbox->ForceSet(key_v, val, att);
+      //
+      // However, this doesn't handle ES6-style properties configured with
+      // Object.defineProperty, and that's exactly what we're up against at
+      // this point.  ForceSet(key,val,att) only supports value properties
+      // with the ES3-style attribute flags (DontDelete/DontEnum/ReadOnly),
+      // which doesn't faithfully capture the full range of configurations
+      // that can be done using Object.defineProperty.
+      if (clone_property_method.IsEmpty()) {
+        Local<String> code = String::NewFromUtf8(isolate,
+          "(function cloneProperty(source, key, target) {\n"
+          "  if (key === 'Proxy') return;\n"
+          "  try {\n"
+          "    var desc = Object.getOwnPropertyDescriptor(source, key);\n"
+          "    if (desc.value === source) desc.value = target;\n"
+          "    Object.defineProperty(target, key, desc);\n"
+          "  } catch (e) {\n"
+          "   // Catch sealed properties errors\n"
+          "  }\n"
+          "})");
+
+        Local<Script> script =
+          Script::Compile(toContext, code).ToLocalChecked();
+        clone_property_method = Local<Function>::Cast(script->Run());
+        assert(clone_property_method->IsFunction());
+      }
+      Local<Value> args[] = { global, key, sandboxObj };
+      clone_property_method->Call(global, sizeof(args) / sizeof(args[0]), args);
+    }
+  }
+}
+
+static void uvRunInNewContext(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+  Isolate* isolate = args.GetIsolate();
+  HandleScope scope(isolate);
+
+  uv_loop_t *loop = getEventLoopFromArgs(args);
+
+  args.GetReturnValue().SetNull();
+
+  assert(args.Length() >= 2);
+  assert(args[0]->IsString());
+  assert(args[1]->IsObject());
+
+  rtString sourceCode = toString(args[0]->ToString());
+  Local<Object> sandbox = args[1].As<Object>();
+
+  Locker                locker(isolate);
+  Isolate::Scope isolate_scope(isolate);
+  HandleScope     handle_scope(isolate);
+
+  Local<Context> toContext = Context::New(isolate);
+
+  v8::Persistent<v8::Context> pContext;
+  pContext.Reset(isolate, toContext);
+
+  Local<Context> fromContext = isolate->GetCurrentContext();
+
+  Context::Scope contextScope(toContext);
+
+  TryCatch tryCatch(isolate);
+
+  v8CopyProperties(isolate, fromContext, toContext, sandbox);
+
+  {
+    Handle<Object> global = toContext->Global();
+    global->Set(String::NewFromUtf8(isolate, "isV8", NewStringType::kNormal).ToLocalChecked(),
+      v8::Integer::New(isolate, 1));
+  }
+
+  Local<String> source = String::NewFromUtf8(isolate, sourceCode.cString());
+  MaybeLocal<Script> run_script = Script::Compile(toContext, source);
+  if (run_script.IsEmpty()) {
+    rtLogWarn("uvRunInNewContext: compilation failed");
+    return;
+  }
+  MaybeLocal<Value> result = run_script.ToLocalChecked()->Run(toContext);
+
+  if (result.IsEmpty() || tryCatch.HasCaught()) {
+    String::Utf8Value trace(tryCatch.StackTrace());
+    rtLogWarn("uvRunInNewContext: '%s'", *trace);
+    return;
+  }
+
+  args.GetReturnValue().Set(result.ToLocalChecked());
+}
+
 rtV8FunctionItem v8ModuleBindings[] = {
   { "uv_platform", &uvGetPlatform },
   { "uv_hrtime", &uvGetHrTime },
@@ -464,6 +580,7 @@ rtV8FunctionItem v8ModuleBindings[] = {
   { "uv_timer_start", &uvTimerStart },
   { "uv_timer_stop", &uvTimerStop },
   { "uv_run_in_context", &uvRunInContext },
+  { "uv_run_in_new_context", &uvRunInNewContext },
   { NULL, NULL },
 };
 
