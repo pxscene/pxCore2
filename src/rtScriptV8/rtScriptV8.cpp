@@ -16,11 +16,6 @@
 
 */
 
-#define RT_V8_TEST_BINDINGS
-
-#ifdef  RT_V8_TEST_BINDINGS
-#pragma optimize("", off)
-#endif
 
 #if defined WIN32
 #include <Windows.h>
@@ -67,6 +62,12 @@ extern "C" const char U_DATA_API SMALL_ICUDATA_ENTRY_POINT[];
 #include "rtWrapperUtils.h"
 #include "rtJsModules.h"
 
+
+#ifdef  RT_V8_TEST_BINDINGS
+#pragma optimize("", off)
+#endif
+
+
 #ifndef WIN32
 #pragma GCC diagnostic pop
 #endif
@@ -104,8 +105,6 @@ extern "C" const char U_DATA_API SMALL_ICUDATA_ENTRY_POINT[];
 #if !defined(WIN32) & !defined(ENABLE_DFB)
 #pragma GCC diagnostic pop
 #endif
-
-#define USE_CONTEXTIFY_CLONES
 
 class V8ArrayBufferAllocator : public v8::ArrayBuffer::Allocator {
 public:
@@ -166,9 +165,6 @@ class rtV8Context: rtIScriptContext  // V8
 {
 public:
   rtV8Context(v8::Isolate *isolate, v8::Platform* platform, uv_loop_t *loop);
-#ifdef USE_CONTEXTIFY_CLONES
-  rtV8Context(v8::Isolate *isolate, rtV8ContextRef clone_me, uv_loop_t *loop);
-#endif
 
   virtual ~rtV8Context();
 
@@ -473,13 +469,6 @@ rtV8Context::rtV8Context(Isolate *isolate, Platform *platform, uv_loop_t *loop) 
   add("_testPromiseReturnRejectFunc", g_testPromiseReturnRejectFunc.getPtr());
 #endif
 }
-
-#ifdef USE_CONTEXTIFY_CLONES
-rtV8Context::rtV8Context(Isolate *isolate, rtV8ContextRef clone_me, uv_loop_t *loop)
-{
-  assert(0);
-}
-#endif
 
 rtV8Context::~rtV8Context()
 {

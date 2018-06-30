@@ -19,10 +19,14 @@ limitations under the License.
 "use strict";
 
 function runInNewContext(code, sandbox, options, px, xModule, filename, dirname) {
-    // TODO
+    return uv_run_in_context(code, sandbox, options, px, xModule, filename, dirname);
+}
+
+function runInContext(code, sandbox, options, px, xModule, filename, dirname) {
     return uv_run_in_context(code, sandbox, options, px, xModule, filename, dirname);
 }
 
 module.exports = {
     runInNewContext: runInNewContext,
+    runInContext: runInContext,
 }
