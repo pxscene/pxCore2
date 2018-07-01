@@ -20,7 +20,7 @@
     "default_value":"10005",
     "type":"int32" },
 
-{ "name":"rt.rpc.resolver.tcp.address",
+{ "name":"rt.rpc.resolver.web_socket.address",
     "default_value":"0.0.0.0",
     "type":"string" },
 
