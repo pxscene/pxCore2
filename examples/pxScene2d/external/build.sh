@@ -151,6 +151,12 @@ if [ "$(uname)" != "Darwin" ]; then
 
 fi
 
+#-------- NANOSVG
+
+cd nanosvg
+quilt push -aq || test $? = 2
+cd ..
+
 #-------- DUKTAPE
 
 if [ ! -e dukluv/build/libduktape.a ]
@@ -176,20 +182,4 @@ then
   
 fi
 
-#-------- BODYMOVIN
-#
-# TODO:  ensure that "npm" is installed ... possibly via "brew install npm" (on Mac)
-#
-
-# cd bodymovin
-# if [ ! -e node_modules ] ||
-#   [ "$(uname)" != "Darwin" ]
-# then
-#   npm install
-# fi
-
-# gulp
-# cd ..
-
 #--------
-
