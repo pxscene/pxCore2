@@ -1,0 +1,30 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClInclude Include="..\uWebSockets-0.14.8\src\Asio.h" />
+    <ClInclude Include="..\uWebSockets-0.14.8\src\Backend.h" />
+    <ClInclude Include="..\uWebSockets-0.14.8\src\Epoll.h" />
+    <ClInclude Include="..\uWebSockets-0.14.8\src\Extensions.h" />
+    <ClInclude Include="..\uWebSockets-0.14.8\src\Group.h" />
+    <ClInclude Include="..\uWebSockets-0.14.8\src\HTTPSocket.h" />
+    <ClInclude Include="..\uWebSockets-0.14.8\src\Hub.h" />
+    <ClInclude Include="..\uWebSockets-0.14.8\src\Libuv.h" />
+    <ClInclude Include="..\uWebSockets-0.14.8\src\Networking.h" />
+    <ClInclude Include="..\uWebSockets-0.14.8\src\Node.h" />
+    <ClInclude Include="..\uWebSockets-0.14.8\src\Socket.h" />
+    <ClInclude Include="..\uWebSockets-0.14.8\src\uWS.h" />
+    <ClInclude Include="..\uWebSockets-0.14.8\src\WebSocket.h" />
+    <ClInclude Include="..\uWebSockets-0.14.8\src\WebSocketProtocol.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\uWebSockets-0.14.8\src\Epoll.cpp" />
+    <ClCompile Include="..\uWebSockets-0.14.8\src\Extensions.cpp" />
+    <ClCompile Include="..\uWebSockets-0.14.8\src\Group.cpp" />
+    <ClCompile Include="..\uWebSockets-0.14.8\src\HTTPSocket.cpp" />
+    <ClCompile Include="..\uWebSockets-0.14.8\src\Hub.cpp" />
+    <ClCompile Include="..\uWebSockets-0.14.8\src\Networking.cpp" />
+    <ClCompile Include="..\uWebSockets-0.14.8\src\Node.cpp" />
+    <ClCompile Include="..\uWebSockets-0.14.8\src\Socket.cpp" />
+    <ClCompile Include="..\uWebSockets-0.14.8\src\WebSocket.cpp" />
+  </ItemGroup>
+</Project>

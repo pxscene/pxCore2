@@ -164,6 +164,18 @@ then
     cd ..
 fi
 
+#--------- uWebSockets
+
+if [ ! -e ./uWebSockets/libuWS.dylib ] ||
+   [ "$(uname)" != "Darwin" ]
+then
+
+  cd uWebSockets
+  make
+  cd ..
+  
+fi
+
 #-------- BODYMOVIN
 #
 # TODO:  ensure that "npm" is installed ... possibly via "brew install npm" (on Mac)
