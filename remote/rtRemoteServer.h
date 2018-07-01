@@ -22,6 +22,7 @@ limitations under the License.
 #include "rtRemoteClient.h"
 #include "rtRemoteSocketUtils.h"
 #include "rtRemoteMessageHandler.h"
+#include "Hub.h"
 
 #include <condition_variable>
 #include <map>
@@ -62,6 +63,7 @@ private:
 
   void runListener();
   void doAccept(int fd);
+  std::shared_ptr<rtRemoteClient> doWebSocketAccept(uWS::WebSocket<uWS::SERVER>* ws);
 
 
   static rtError onOpenSession_Dispatch(std::shared_ptr<rtRemoteClient>& client, rtRemoteMessagePtr const& doc, void* argp)
@@ -99,6 +101,7 @@ private:
   rtError onKeepAlive(std::shared_ptr<rtRemoteClient>& client, rtRemoteMessagePtr const& doc);
   rtError onKeepAliveResponse(std::shared_ptr<rtRemoteClient>& client, rtRemoteMessagePtr const& doc);
   rtError openRpcListener();
+  rtError openWebSocketListener();
   rtError onClientStateChanged(std::shared_ptr<rtRemoteClient> const& client, rtRemoteClient::State state);
 
 private:
@@ -137,6 +140,7 @@ private:
   int                           m_shutdown_pipe[2];
   uint32_t                      m_keep_alive_interval;
   rtRemoteEnvironment*          m_env;
+  uWS::Hub*                     m_websocket_hub;
 };
 
 #endif

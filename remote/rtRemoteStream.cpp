@@ -32,13 +32,26 @@ limitations under the License.
 #include <fcntl.h>
 #include <rtLog.h>
 
+#include <rapidjson/memorystream.h>
+#include <rapidjson/stringbuffer.h>
+#include <rapidjson/writer.h>
+
 rtRemoteStream::rtRemoteStream(rtRemoteEnvironment* env, int fd, sockaddr_storage const& local_endpoint,
   sockaddr_storage const& remote_endpoint)
   : m_fd(fd)
   , m_env(env)
+  , m_ws(nullptr)
 {
   memcpy(&m_remote_endpoint, &remote_endpoint, sizeof(m_remote_endpoint));
   memcpy(&m_local_endpoint, &local_endpoint, sizeof(m_local_endpoint));
+}
+
+rtRemoteStream::rtRemoteStream(rtRemoteEnvironment* env, uWS::WebSocket<uWS::SERVER>* ws)
+  : m_fd(kInvalidSocket)
+  , m_env(env)
+  , m_ws(ws)
+{
+
 }
 
 rtRemoteStream::~rtRemoteStream()
@@ -126,6 +139,15 @@ rtRemoteStream::connectTo(sockaddr_storage const& endpoint)
 rtError
 rtRemoteStream::send(rtRemoteMessagePtr const& msg)
 {
+  if (m_ws != nullptr && m_fd == kInvalidSocket)
+  {
+    rapidjson::StringBuffer buff;
+    rapidjson::Writer<rapidjson::StringBuffer> writer(buff);
+    msg->Accept(writer);
+    m_ws->send(buff.GetString(), uWS::OpCode::TEXT);
+    // we don't known the status when websocket sending, let us return RT_OK
+    return RT_OK;
+  }
   return rtSendDocument(*msg, m_fd, nullptr);
 }
 
