@@ -1043,10 +1043,10 @@ rtError pxLoadSVGImage(const char* buf, size_t buflen, pxOffscreen& o, int  w /*
   }
   
   o.initWithColor( (image_w * sx), (image_h * sy), pxClear); // default sized
-  
+ /* 
   nsvgRasterizeFull(rast.getPtr(), image, 0, 0, sx, sy,
                     (unsigned char*) o.base(), o.width(), o.height(), o.width() *4);
-
+*/
   SAFE_FREE(image);
   return RT_OK;
 }
