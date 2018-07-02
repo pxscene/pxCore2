@@ -692,6 +692,9 @@ rtError pxObject::animateToP2(rtObjectRef props, double duration,
 {
   if (mIsDisposed)
   {
+    promise = new rtPromise();
+    rtValue nullValue;
+    promise.send("reject",nullValue);
     return RT_OK;
   }
 
@@ -742,7 +745,8 @@ rtError pxObject::animateToObj(rtObjectRef props, double duration,
   animateObj = new pxAnimate(props, interp, (pxConstantsAnimation::animationOptions)options, duration, count, promise, this);
   if (mIsDisposed)
   {
-    promise.send("reject",this);
+    rtValue nullValue;
+    promise.send("reject",nullValue);
     return RT_OK;
   }
 
