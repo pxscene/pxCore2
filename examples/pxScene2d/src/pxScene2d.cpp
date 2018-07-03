@@ -2347,6 +2347,7 @@ rtError pxScene2d::clock(double & time)
 }
 rtError pxScene2d::createExternal(rtObjectRef p, rtObjectRef& o)
 {
+#if defined(ENABLE_DFB) || defined(DISABLE_WAYLAND)
   rtRef<pxViewContainer> c = new pxViewContainer(this);
   mTestView = new testView;
   c->setView(mTestView);
@@ -2354,17 +2355,6 @@ rtError pxScene2d::createExternal(rtObjectRef p, rtObjectRef& o)
   o.set(p);
   o.send("init");
   return RT_OK;
-}
-
-rtError pxScene2d::createWayland(rtObjectRef p, rtObjectRef& o)
-{
-#if defined(ENABLE_DFB) || defined(DISABLE_WAYLAND)
-  UNUSED_PARAM(p);
-  UNUSED_PARAM(o);
-
-  UNUSED_PARAM(gWaylandAppsConfigLoaded);
-
-  return RT_FAIL;
 #else
   if (false == gWaylandAppsConfigLoaded)
   {
@@ -2390,6 +2380,13 @@ rtError pxScene2d::createWayland(rtObjectRef p, rtObjectRef& o)
   o.send("init");
   return RT_OK;
 #endif //ENABLE_DFB
+}
+
+rtError pxScene2d::createWayland(rtObjectRef p, rtObjectRef& o)
+{
+  rtLogWarn("Type 'wayland' is deprecated; use 'external' instead.\n");
+  UNUSED_PARAM(p);
+  return this->createExternal(p, o);
 }
 
 void pxScene2d::draw()
