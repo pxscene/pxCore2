@@ -16,20 +16,34 @@ limitations under the License.
 
 */
 
-module.exports = function (orig, override) {
-  var wrapper = override ? override : {};
-  for (var prop in orig) {
-    if (!wrapper.hasOwnProperty(prop)) {
+/**
+ * Note: 'this.' properties must be declared in constructor or prototype otherwise the wrap won't have them.
+ * @param orig - object
+ * @param override - object or null
+ * @param useOriginalThis - true/false
+ * @param onlySelectedProps - array
+ * @returns {{}}
+ */
+module.exports = function (orig, override, useOriginalThis, onlySelectedProps) {
+  var ret = override ? override : {};
+  var keys = onlySelectedProps ? onlySelectedProps : [];
+  if (!onlySelectedProps) {
+    for (var prop in orig) {
+      keys.push(prop);
+    }
+  }
+  keys.forEach(function(prop) {
+    if (!ret.hasOwnProperty(prop)) {
       (function (prop) {
         if (typeof(orig[prop]) === 'function') {
-          wrapper[prop] = function () {
-            return orig[prop].apply(this, arguments);
+          ret[prop] = function () {
+            return orig[prop].apply(useOriginalThis ? orig : this, arguments);
           };
         } else {
-          Object.defineProperty(wrapper, prop, {
+          Object.defineProperty(ret, prop, {
             'get': function () {
               if (orig[prop] === orig) {
-                return wrapper;
+                return ret;
               } else {
                 return orig[prop];
               }
@@ -41,6 +55,6 @@ module.exports = function (orig, override) {
         }
       })(prop);
     }
-  }
-  return wrapper;
+  });
+  return ret;
 };
