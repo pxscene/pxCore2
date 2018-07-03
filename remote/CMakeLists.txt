@@ -13,6 +13,7 @@ option(BUILD_RTREMOTE_STATIC_LIB "BUILD_RTREMOTE_STATIC_LIB" ON)
 option(BUILD_RTREMOTE_SAMPLE_APP_SHARED "BUILD_RTREMOTE_SAMPLE_APP_SHARED" OFF)
 option(BUILD_RTREMOTE_SAMPLE_APP_STATIC "BUILD_RTREMOTE_SAMPLE_APP_STATIC" OFF)
 option(BUILD_RTREMOTE_SAMPLE_APP_SIMPLE "BUILD_RTREMOTE_SAMPLE_APP_SIMPLE" OFF)
+option(BUILD_STB_SERVER "BUILD_STB_SERVER" OFF)
 option(ENABLE_RTREMOTE_DEBUG "ENABLE_RTREMOTE_DEBUG" OFF)
 option(ENABLE_RTREMOTE_PROFILE "ENABLE_RTREMOTE_PROFILE" OFF)
 
@@ -100,17 +101,16 @@ if (BUILD_RTREMOTE_SAMPLE_APP_STATIC)
 endif (BUILD_RTREMOTE_SAMPLE_APP_STATIC)
 
 
+# build simple app function
+function(build_sample client_name src)
+    set(client_target ${client_name})
+    add_executable(${client_target} ${src})
+    set_target_properties(${client_target} PROPERTIES OUTPUT_NAME "${client_name}")
+    target_link_libraries(${client_target} ${LIBRARY_LINKER_OPTIONS} -lrtCore rtremote_shared -luuid -luWS -lssl -lz)
+    target_compile_definitions(${client_target} PRIVATE RT_PLATFORM_LINUX RAPIDJSON_HAS_STDSTRING)
+endfunction()
 
 if (BUILD_RTREMOTE_SAMPLE_APP_SIMPLE)
-    # build simple app
-    function(build_sample client_name src)
-        set(client_target ${client_name})
-        add_executable(${client_target} ${src})
-        set_target_properties(${client_target} PROPERTIES OUTPUT_NAME "${client_name}")
-        target_link_libraries(${client_target} ${LIBRARY_LINKER_OPTIONS} -lrtCore rtremote_shared -luuid -luWS -lssl -lz)
-        target_compile_definitions(${client_target} PRIVATE RT_PLATFORM_LINUX RAPIDJSON_HAS_STDSTRING)
-    endfunction()
-
     message("Building rtRemote sample app with client and server")
     set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS} -std=c++11")
     link_directories(${RTREMOTE_LINK_DIRECTORIES})
@@ -119,3 +119,10 @@ if (BUILD_RTREMOTE_SAMPLE_APP_SIMPLE)
     build_sample("rtSampleThreadClient" "rtSampleThreadClient.cpp") # thread test client
     build_sample("rtSampleServer" "rtSampleServer.cpp") # server
 endif (BUILD_RTREMOTE_SAMPLE_APP_SIMPLE)
+
+if (BUILD_STB_SERVER)
+    message("Building stb server ...")
+    set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS} -std=c++11")
+    link_directories(${RTREMOTE_LINK_DIRECTORIES})
+    build_sample("stbRemoteServer" "stbRemoteServer.cpp")
+endif (BUILD_STB_SERVER)
