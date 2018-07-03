@@ -37,7 +37,7 @@ limitations under the License.
 #include "rtRemoteMessage.h"
 #include "rtRemoteSocketUtils.h"
 #include "rtRemoteStream.h"
-#include "Hub.h"
+#include "rtRemoteTypes.h"
 
 
 class rtRemoteClient
@@ -56,7 +56,7 @@ public:
 
   rtRemoteClient(rtRemoteEnvironment* env, int fd, sockaddr_storage const& localEndpoint,
     sockaddr_storage const& remoteEndpoint);
-  rtRemoteClient(rtRemoteEnvironment* env, uWS::WebSocket<uWS::SERVER>* ws);
+  rtRemoteClient(rtRemoteEnvironment* env, WebSocketHandler* ws);
   rtRemoteClient(rtRemoteEnvironment* env, sockaddr_storage const& remoteEndpoint);
   ~rtRemoteClient();
 
@@ -122,7 +122,7 @@ private:
   std::vector<std::string>                  m_objects;
   std::recursive_mutex mutable              m_mutex;
   rtRemoteEnvironment*                      m_env;
-  uWS::WebSocket<uWS::SERVER>*              m_ws_instance;
+  WebSocketHandler*                         m_ws_instance;
   rtRemoteCallback<StateChangedHandler>     m_state_changed_handler;
 };
 

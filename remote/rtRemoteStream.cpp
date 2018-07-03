@@ -46,7 +46,7 @@ rtRemoteStream::rtRemoteStream(rtRemoteEnvironment* env, int fd, sockaddr_storag
   memcpy(&m_local_endpoint, &local_endpoint, sizeof(m_local_endpoint));
 }
 
-rtRemoteStream::rtRemoteStream(rtRemoteEnvironment* env, uWS::WebSocket<uWS::SERVER>* ws)
+rtRemoteStream::rtRemoteStream(rtRemoteEnvironment* env, WebSocketHandler* ws)
   : m_fd(kInvalidSocket)
   , m_env(env)
   , m_ws(ws)
@@ -139,6 +139,7 @@ rtRemoteStream::connectTo(sockaddr_storage const& endpoint)
 rtError
 rtRemoteStream::send(rtRemoteMessagePtr const& msg)
 {
+#ifdef SUPPORT_WEBSOCKET_TRANSPORT
   if (m_ws != nullptr && m_fd == kInvalidSocket)
   {
     rapidjson::StringBuffer buff;
@@ -148,6 +149,7 @@ rtRemoteStream::send(rtRemoteMessagePtr const& msg)
     // we don't known the status when websocket sending, let us return RT_OK
     return RT_OK;
   }
+#endif
   return rtSendDocument(*msg, m_fd, nullptr);
 }
 

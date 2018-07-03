@@ -24,4 +24,21 @@ enum class rtCastType     { NONE, UNICAST, MULTICAST, BROADCAST };
 enum class rtConnType     { NONE, STREAM, DGRAM };
 // enum class rtResolverType { NONE, MULTICAST, FILE, UNICAST };
 
+#ifdef SUPPORT_WEBSOCKET_TRANSPORT
+#include "Hub.h"
+typedef uWS::WebSocket<uWS::SERVER> WebSocketHandler;
+typedef uWS::Hub                    WebSocketServerHub;
+#else
+
+class PlaceholderClass
+{
+public:
+  void poll()
+  {}
+};
+
+typedef PlaceholderClass WebSocketHandler;
+typedef PlaceholderClass WebSocketServerHub;
+#endif
+
 #endif
