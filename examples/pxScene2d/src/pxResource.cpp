@@ -51,6 +51,12 @@ pxResource::~pxResource()
   {
     gUIThreadQueue->removeAllTasksForObject(this);
   }
+  if(((rtPromise*)mReady.getPtr())->status() == false)
+  {
+    rtValue nullValue;
+    mReady.send("reject",nullValue);
+  }
+
   //mListeners.clear();
   //rtLogDebug("Leaving pxResource::~pxResource()\n");
 }
@@ -227,10 +233,29 @@ void pxResource::notifyListeners(rtString readyResolution)
 
   }
   //rtLogDebug("notifyListeners for url=%s Ending\n");
-  mListeners.clear();
+  //mListeners.clear();
   mListenersMutex.unlock();
   
 }
+
+void pxResource::notifyListenersResourceDirty()
+{
+  mListenersMutex.lock();
+  if( mListeners.size() == 0)
+  {
+    mListenersMutex.unlock();
+    return;
+  }
+  for (list<pxResourceListener*>::iterator it = mListeners.begin();
+       it != mListeners.end(); ++it)
+  {
+    (*it)->resourceDirty();
+
+  }
+  mListenersMutex.unlock();
+
+}
+
 void pxResource::raiseDownloadPriority()
 {
   if (!priorityRaised && !mUrl.isEmpty() && mDownloadRequest != NULL)
@@ -251,15 +276,21 @@ void pxResource::raiseDownloadPriority()
 /**********************************************************************/
 /**********************************************************************/
 
-rtImageResource::rtImageResource(const char* url, const char* proxy, int32_t iw /* = 0 */,  int32_t ih /* = 0 */ )
-    : pxResource(), mTexture(), mDownloadedTexture(), mTextureMutex(), mDownloadComplete(false), init_w(iw), init_h(ih)
+rtImageResource::rtImageResource(const char* url, const char* proxy, int32_t iw /* = 0 */,  int32_t ih /* = 0 */,
+                                                                       float sx /* = 1.0f*/,  float sy /* = 1.0f*/ )
+    : pxResource(), mTexture(), mDownloadedTexture(), mTextureMutex(), mDownloadComplete(false), init_w(iw), init_h(ih), init_sx(sx), init_sy(sy)
 {
   setUrl(url, proxy);
 }
+
 rtImageResource::~rtImageResource() 
 {
   //rtLogDebug("destructor for rtImageResource for %s\n",mUrl.cString());
   //pxImageManager::removeImage( mUrl);
+  if (mTexture.getPtr())
+  {
+    mTexture->setTextureListener(NULL);
+  }
 }
   
 unsigned long rtImageResource::Release() 
@@ -268,7 +299,7 @@ unsigned long rtImageResource::Release()
   long l = rtAtomicDec(&mRefCount);
   if (l == 0) 
   {
-    pxImageManager::removeImage( mUrl, init_w, init_h);
+    pxImageManager::removeImage( mUrl, init_w, init_h, init_sx, init_sy);
     delete this;
     
   }
@@ -282,6 +313,43 @@ void rtImageResource::init()
     
   mInitialized = true;
 
+}
+
+void rtImageResource::releaseData()
+{
+  if (mTexture.getPtr())
+  {
+    mTextureMutex.lock();
+    if (mDownloadComplete)
+    {
+      mTexture->unloadTextureData();
+    }
+    mTextureMutex.unlock();
+  }
+  pxResource::releaseData();
+}
+
+void rtImageResource::reloadData()
+{
+  if (!mTexture.getPtr())
+  {
+    mTextureMutex.lock();
+    if (mDownloadComplete)
+    {
+      mTexture->loadTextureData();
+    }
+    mTextureMutex.unlock();
+  }
+  pxResource::reloadData();
+}
+
+void rtImageResource::textureReady()
+{
+  if (gUIThreadQueue)
+  {
+    AddRef();
+    gUIThreadQueue->addTask(pxResource::onResourceDirtyUI, this, NULL);
+  }
 }
 
 int32_t rtImageResource::w() const 
@@ -328,6 +396,7 @@ pxTextureRef rtImageResource::getTexture(bool initializing)
     {
       mTexture = mDownloadedTexture;
       mDownloadedTexture = NULL;
+      mTexture->setTextureListener(this);
     }
     mTextureMutex.unlock();
   }
@@ -366,12 +435,14 @@ void rtImageResource::prepare()
 
 void rtImageResource::setTextureData(pxOffscreen& imageOffscreen, const char* data, const size_t dataSize)
 {
-  mDownloadedTexture = context.createTexture(imageOffscreen, data, dataSize);
+  mTextureMutex.lock();
 #ifdef ENABLE_BACKGROUND_TEXTURE_CREATION
+  mDownloadedTexture = context.createTexture(imageOffscreen, data, dataSize);
+  mTextureMutex.unlock();
   rtThreadTask* task = new rtThreadTask(prepareImageResource, (void*)this, "");
   textureCreateThreadPool.executeTask(task);
 #else
-  mTextureMutex.lock();
+  mDownloadedTexture = context.createTexture(imageOffscreen, data, dataSize);
   mDownloadComplete = true;
   mTextureMutex.unlock();
 #endif //ENABLE_BACKGROUND_TEXTURE_CREATION
@@ -395,6 +466,14 @@ void pxResource::setLoadStatus(const char* name, rtValue value)
   mLoadStatusMutex.lock();
   mLoadStatus.set(name, value);
   mLoadStatusMutex.unlock();
+}
+
+void pxResource::releaseData()
+{
+}
+
+void pxResource::reloadData()
+{
 }
 
 /** 
@@ -456,6 +535,18 @@ void pxResource::onDownloadCanceledUI(void* context, void* data)
   res->Release();
 }
 
+void pxResource::onResourceDirtyUI(void* context, void* /*data*/)
+{
+  pxResource* res = (pxResource*)context;
+
+  res->notifyListenersResourceDirty();
+
+  // Release here since we had to addRef when setting up callback to
+  // this function
+  res->Release();
+}
+
+
 void rtImageResource::loadResourceFromFile()
 {
   pxOffscreen imageOffscreen;
@@ -464,7 +555,7 @@ void rtImageResource::loadResourceFromFile()
   rtError loadImageSuccess = rtLoadFile(mUrl, d);
   if (loadImageSuccess == RT_OK)
   {
-    loadImageSuccess = pxLoadImage((const char *) d.data(), d.length(), imageOffscreen, init_w, init_h);
+    loadImageSuccess = pxLoadImage((const char *) d.data(), d.length(), imageOffscreen, init_w, init_h, init_sx, init_sy);
   }
   else
   {
@@ -499,6 +590,7 @@ void rtImageResource::loadResourceFromFile()
   {
     // create offscreen texture for local image
     mTexture = context.createTexture(imageOffscreen, (const char *) d.data(), d.length());
+    mTexture->setTextureListener(this);
     setLoadStatus("statusCode",0);
     // Since this object can be released before we get a async completion
     // We need to maintain this object's lifetime
@@ -509,6 +601,8 @@ void rtImageResource::loadResourceFromFile()
       gUIThreadQueue->addTask(onDownloadCompleteUI, this, (void *) "resolve");
     }
   }
+
+  mDownloadComplete = true;
 }
 
 
@@ -530,7 +624,7 @@ uint32_t rtImageResource::loadResourceData(rtFileDownloadRequest* fileDownloadRe
       pxOffscreen imageOffscreen;
       if (pxLoadImage(fileDownloadRequest->downloadedData(),
                       fileDownloadRequest->downloadedDataSize(),
-                      imageOffscreen, init_w, init_h) == RT_OK)
+                      imageOffscreen, init_w, init_h, init_sx, init_sy) == RT_OK)
       {
         setTextureData(imageOffscreen, fileDownloadRequest->downloadedData(),
                                          fileDownloadRequest->downloadedDataSize());
@@ -730,14 +824,16 @@ void rtImageAResource::loadResourceFromFile()
 ImageMap pxImageManager::mImageMap;
 rtRef<rtImageResource> pxImageManager::emptyUrlResource = 0;
 
-rtRef<rtImageResource> pxImageManager::getImage(const char* url, const char* proxy /* = NULL */, int32_t iw /* = 0 */,  int32_t ih /* = 0 */ )
+rtRef<rtImageResource> pxImageManager::getImage(const char* url, const char* proxy    /* = NULL  */,
+                                                int32_t iw /* = 0    */,   int32_t ih /* = 0     */,
+                                                  float sx /* = 1.0f */,   float sy   /* = 1.0f  */)
 {
   //rtLogDebug("pxImageManager::getImage\n");
   // Handle empty url
   if(!url || strlen(url) == 0) {
     if( !emptyUrlResource) {
       //rtLogDebug("Creating empty Url rtImageResource\n");
-      emptyUrlResource = new rtImageResource(NULL, NULL, iw, ih);
+      emptyUrlResource = new rtImageResource(NULL, NULL, iw, ih, sx, sy);
       //rtLogDebug("Done creating empty Url rtImageResource\n");
     }
     //rtLogDebug("Returning empty Url rtImageResource\n");
@@ -746,7 +842,18 @@ rtRef<rtImageResource> pxImageManager::getImage(const char* url, const char* pro
   
   rtString key = url;
   
-  // For SVG  (and scaled PNG/JPG in the future) at a given WxH dimensions ... append to key
+  // For SVG  (and scaled PNG/JPG in the future) at a given SxSy SCALE ... append to key
+  if(sx != 1.0 || sy != 1.0)
+  {
+    rtValue xx = sx;
+    rtValue yy = sy;
+    
+    key.append( xx.toString() );
+    key.append( "sxsy" );
+    key.append( yy.toString() );
+  }
+
+  // For SVG  (and scaled PNG/JPG in the future) at a given WxH DIMENSIONS ... append to key
   if(iw > 0 || ih > 0)
   {
     rtValue ww = iw;
@@ -774,7 +881,7 @@ rtRef<rtImageResource> pxImageManager::getImage(const char* url, const char* pro
   else 
   {
     //rtLogInfo("Create rtImageResource in map for \"%s\"\n",url);
-    pResImage = new rtImageResource(url, proxy, iw, ih);
+    pResImage = new rtImageResource(url, proxy, iw, ih, sx, sy);
     mImageMap.insert(make_pair(key.cString(), pResImage));
     pResImage->loadResource();
   }
@@ -782,11 +889,24 @@ rtRef<rtImageResource> pxImageManager::getImage(const char* url, const char* pro
   return pResImage;
 }
 
-void pxImageManager::removeImage(rtString url, int32_t iw /* = 0 */,  int32_t ih /* = 0 */ )
+void pxImageManager::removeImage(rtString url, int32_t iw /* = 0 */,   int32_t ih /* = 0 */,
+                                                 float sx /* = 1.0f*/,   float sy /* = 1.0f*/)
 {
   rtString key = url;
 
-  // For SVG  (and scaled PNG/JPG in the future) at a given WxH dimensions ... append to key
+  
+  // For SVG  (and scaled PNG/JPG in the future) at a given SxSy SCALE ... append to key
+  if(sx != 1.0 || sy != 1.0)
+  {
+    rtValue xx = sx;
+    rtValue yy = sy;
+    
+    key.append( xx.toString() );
+    key.append( "sxsy" );
+    key.append( yy.toString() );
+  }
+
+  // For SVG  (and scaled PNG/JPG in the future) at a given WxH DIMENSIONS ... append to key
   if(iw > 0 || ih > 0)
   {
     rtValue ww = iw;

@@ -45,8 +45,8 @@ pxImageA::~pxImageA()
 
 void pxImageA::onInit() 
 {
-  mw = mImageWidth;
-  mh = mImageHeight;
+  mw = static_cast<float>(mImageWidth);
+  mh = static_cast<float>(mImageHeight);
 }
 
 rtError pxImageA::url(rtString &s) const
@@ -167,7 +167,7 @@ void pxImageA::displayFrame()
 
 void pxImageA::draw()
 {
-  if (getImageAResource() != NULL && mImageLoaded)
+  if (getImageAResource() != NULL && mImageLoaded && !mSceneSuspended)
   {
     if (mNumFrames > 0)
     {
@@ -308,8 +308,8 @@ void pxImageA::loadImageSequence()
       pxOffscreen &o = imageSequence.getFrameBuffer(0);
       mImageWidth = o.width();
       mImageHeight = o.height();
-      mw = mImageWidth;
-      mh = mImageHeight;
+      mw = static_cast<float>(mImageWidth);
+      mh = static_cast<float>(mImageHeight);
       
       mNumFrames = imageSequence.numFrames();
     }
@@ -348,6 +348,11 @@ void pxImageA::resourceReady(rtString readyResolution)
   }
 }
 
+void pxImageA::resourceDirty()
+{
+  pxObject::onTextureReady();
+}
+
 rtError pxImageA::removeResourceListener()
 {
   if (mListenerAdded)
@@ -359,6 +364,16 @@ rtError pxImageA::removeResourceListener()
     mListenerAdded = false;
   }
   return RT_OK;
+}
+
+void pxImageA::releaseData(bool sceneSuspended)
+{
+  pxObject::releaseData(sceneSuspended);
+}
+
+void pxImageA::reloadData(bool sceneSuspended)
+{
+  pxObject::reloadData(sceneSuspended);
 }
 
 rtDefineObject(pxImageA, pxObject);
