@@ -198,6 +198,7 @@ rtRemoteServer::rtRemoteServer(rtRemoteEnvironment* env)
   , m_resolver(nullptr)
   , m_keep_alive_interval(std::numeric_limits<uint32_t>::max())
   , m_env(env)
+  , m_websocket_hub(nullptr)
 {
   memset(&m_rpc_endpoint, 0, sizeof(m_rpc_endpoint));
 
@@ -379,7 +380,10 @@ rtRemoteServer::runListener()
         lastKeepAliveCheck = now;
     }
     // poll websocket events
-    m_websocket_hub->poll();
+    if (m_websocket_hub)
+    {
+      m_websocket_hub->poll();
+    }
   }
 }
 
@@ -411,14 +415,16 @@ rtRemoteServer::doAccept(int fd)
 }
 
 std::shared_ptr<rtRemoteClient>
-rtRemoteServer::doWebSocketAccept(uWS::WebSocket<uWS::SERVER>* ws)
+rtRemoteServer::doWebSocketAccept(WebSocketHandler* ws)
 {
+#ifdef SUPPORT_WEBSOCKET_TRANSPORT
   rtLogInfo("new websocket connection from %s", ws->getAddress().address);
   std::shared_ptr<rtRemoteClient> newClient(new rtRemoteClient(m_env, ws));
   newClient->setStateChangedHandler(&rtRemoteServer::onClientStateChanged_Dispatch, this);
   newClient->open();
   m_connected_clients.push_back(newClient);
   return newClient;
+#endif
 }
 
 rtError
@@ -650,6 +656,7 @@ rtRemoteServer::unregisterDisconnectedCallback( clientDisconnectedCallback cb, v
 rtError
 rtRemoteServer::openWebSocketListener()
 {
+#ifdef SUPPORT_WEBSOCKET_TRANSPORT
   m_websocket_hub = new uWS::Hub();
 
   int32_t const port = m_env->Config->resolver_web_socket_port();
@@ -699,6 +706,7 @@ rtRemoteServer::openWebSocketListener()
     }
   );
   rtLogInfo("websocket server on %s:%d", address.c_str(), port);
+#endif
   return RT_OK;
 }
 

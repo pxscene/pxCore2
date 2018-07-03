@@ -90,7 +90,7 @@ rtRemoteClient::rtRemoteClient(rtRemoteEnvironment* env, sockaddr_storage const&
 {
 }
 
-rtRemoteClient::rtRemoteClient(rtRemoteEnvironment* env, uWS::WebSocket<uWS::SERVER>* ws)
+rtRemoteClient::rtRemoteClient(rtRemoteEnvironment* env, WebSocketHandler* ws)
   : m_stream(new rtRemoteStream(env, ws))
   , m_env(env)
   , m_ws_instance(ws)
