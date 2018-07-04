@@ -25,6 +25,6 @@ limitations under the License.
 
 class rtRemoteClient;
 
-using rtRemoteMessageHandler = rtError (*)(std::shared_ptr<rtRemoteClient>& client, rtRemoteMessagePtr const& msg, void* argp);
+typedef rtError (*rtRemoteMessageHandler)(std::shared_ptr<rtRemoteClient>& client, rtRemoteMessagePtr const& msg, void* argp);
 
 #endif

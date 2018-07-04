@@ -259,9 +259,9 @@ rtRemoteClient::sendKeepAlive()
   msg->SetObject();
   msg->AddMember(kFieldNameMessageType, kMessageTypeKeepAliveRequest, msg->GetAllocator());
   msg->AddMember(kFieldNameCorrelationKey,k.toString(), msg->GetAllocator());
-
-  for (std::string const& name : m_objects)
+  for (std::vector<std::string>::iterator iter = m_objects.begin(); iter != m_objects.end(); iter++)
   {
+    std::string name = (*iter);
     auto itr = msg->FindMember(kFieldNameKeepAliveIds);
     if (itr == msg->MemberEnd())
     {

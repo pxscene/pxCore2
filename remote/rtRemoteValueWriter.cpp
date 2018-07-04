@@ -45,7 +45,7 @@ namespace
   std::string getId(rtObjectRef const& ref)
   {
     rtRemoteObject const* obj = dynamic_cast<rtRemoteObject const *>(ref.getPtr());
-    if (obj != nullptr)
+    if (obj != NULL)
     {
       return obj->getId();
     }

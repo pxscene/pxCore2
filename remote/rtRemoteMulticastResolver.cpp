@@ -129,7 +129,7 @@ rtError rtRemoteMulticastResolver::sendSearchAndWait(const std::string& name, co
         searchResponse = itr->second;
         this->m_pending_searches.erase(itr);
       }
-      return searchResponse != nullptr;
+      return (searchResponse?true:false);
     });
 
     if (searchResponse)
@@ -158,7 +158,7 @@ rtRemoteMulticastResolver::init()
   std::string dstaddr = m_env->Config->resolver_multicast_address();
   std::string srcaddr = m_env->Config->resolver_multicast_interface();
 
-  err = rtParseAddress(m_mcast_dest, dstaddr.c_str(), port, nullptr);
+  err = rtParseAddress(m_mcast_dest, dstaddr.c_str(), port, NULL);
   if (err != RT_OK)
   {
     rtLogWarn("failed to parse address: %s. %s", dstaddr.c_str(), rtStrError(err));
@@ -174,7 +174,7 @@ rtRemoteMulticastResolver::init()
       return err;
   }
 
-  err = rtParseAddress(m_ucast_endpoint, srcaddr.c_str(), 0, nullptr);
+  err = rtParseAddress(m_ucast_endpoint, srcaddr.c_str(), 0, NULL);
   if (err != RT_OK)
   {
     err = rtGetDefaultInterface(m_ucast_endpoint, 0);
@@ -450,7 +450,7 @@ rtRemoteMulticastResolver::locateObject(std::string const& name, sockaddr_storag
   {
     std::unique_ptr<rtRemoteEndPoint> e(rtRemoteEndPoint::fromString(rpc_endpoint->value.GetString()));
     endpoint = e->toSockAddr();
-    // err = rtParseAddress(endpoint, e.host().c_str(), e.port(), nullptr);
+    // err = rtParseAddress(endpoint, e.host().c_str(), e.port(), NULL);
   }
 
   return err;

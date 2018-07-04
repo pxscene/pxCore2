@@ -47,7 +47,7 @@ rtRemoteStreamSelector::pollFds(void* argp)
   rtError e = selector->doPollFds();
   if (e != RT_OK)
     rtLogInfo("pollFds error. %s", rtStrError(e));
-  return nullptr;
+  return NULL;
 }
 
 rtError
@@ -55,7 +55,7 @@ rtRemoteStreamSelector::start()
 {
   m_running = true;
   rtLogInfo("starting StreamSelector");
-  pthread_create(&m_thread, nullptr, &rtRemoteStreamSelector::pollFds, this);
+  pthread_create(&m_thread, NULL, &rtRemoteStreamSelector::pollFds, this);
   return RT_OK;
 }
 
@@ -88,7 +88,7 @@ rtRemoteStreamSelector::shutdown()
     rtLogWarn("failed to write. %s", rtStrError(e));
   }
 
-  void* retval = nullptr;
+  void* retval = NULL;
   pthread_join(m_thread, &retval);
 
   ::close(m_shutdown_pipe[0]);
@@ -104,7 +104,7 @@ rtRemoteStreamSelector::doPollFds()
   buff.reserve(m_env->Config->stream_socket_buffer_size());
 
   const auto keepAliveInterval = std::chrono::seconds(m_env->Config->stream_keep_alive_interval());
-  auto lastKeepAliveSent = std::chrono::steady_clock::now();
+  auto lastKeepAliveSent = std::chrono::monotonic_clock::now();
 
   while (true)
   {
@@ -135,10 +135,10 @@ rtRemoteStreamSelector::doPollFds()
         m_streams.erase(itr);
     }
 
-    for (auto const& s : m_streams)
+    for (std::vector< std::shared_ptr<rtRemoteStream> >::iterator s=m_streams.begin(); s!=m_streams.end(); s++)
     {
-      rtPushFd(&readFds, s->m_fd, &maxFd);
-      rtPushFd(&errFds, s->m_fd, &maxFd);
+      rtPushFd(&readFds, (*s)->m_fd, &maxFd);
+      rtPushFd(&errFds, (*s)->m_fd, &maxFd);
     }
     }
     rtPushFd(&readFds, m_shutdown_pipe[0], &maxFd);
@@ -161,7 +161,7 @@ rtRemoteStreamSelector::doPollFds()
       return RT_OK;
     }
 
-    auto now = std::chrono::steady_clock::now();
+    auto now = std::chrono::monotonic_clock::now();
     bool sentKeepAlive = false;
 
     std::unique_lock<std::mutex> lock(m_mutex);
@@ -203,7 +203,7 @@ rtRemoteStreamSelector::doPollFds()
 
     // remove all dead streams
     auto end = std::remove_if(m_streams.begin(), m_streams.end(),
-        [](std::shared_ptr<rtRemoteStream> const& s) { return s == nullptr; });
+        [](std::shared_ptr<rtRemoteStream> const& s) { return s?true:false; });
     m_streams.erase(end, m_streams.end());
     // rtLogDebug("streams size:%d", (int) m_streams.size());
     lock.unlock();

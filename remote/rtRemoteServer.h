@@ -117,11 +117,11 @@ private:
       bool operator == (const ClientDisconnectedCB& other) const {return func == other.func && data == other.data;}
   };
 
-  using ClientMap = std::map< std::string, std::shared_ptr<rtRemoteClient> >;
-  using ClientDisconnectedCBMap = std::map< rtRemoteClient*, std::vector<ClientDisconnectedCB> >;
-  using ClientList = std::vector< std::shared_ptr<rtRemoteClient > >;
-  using CommandHandlerMap = std::map< std::string, rtRemoteCallback<rtRemoteMessageHandler> >;
-  using ObjectRefeMap = std::map< std::string, ObjectReference >;
+  typedef std::map< std::string, std::shared_ptr<rtRemoteClient> > ClientMap;
+  typedef std::map< rtRemoteClient*, std::vector<ClientDisconnectedCB> > ClientDisconnectedCBMap;
+  typedef std::vector< std::shared_ptr<rtRemoteClient > > ClientList;
+  typedef std::map< std::string, rtRemoteCallback<rtRemoteMessageHandler> > CommandHandlerMap;
+  typedef std::map< std::string, ObjectReference > ObjectRefeMap;
 
   sockaddr_storage              m_rpc_endpoint;
   int                           m_listen_fd;

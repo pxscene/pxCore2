@@ -138,8 +138,11 @@ rtRemoteParseUri(std::string const& uri, std::string& scheme, std::string& path,
     {
       portString = uri.substr(portIndex+1, std::string::npos);
     }
-    *port = stoi(portString);
-    
+    std::stringstream convert;
+    convert << portString;
+    uint16_t p;
+    convert >> p;
+    *port = p;
     // get host
     host = uri.substr(index, portIndex - index);
   }
@@ -239,7 +242,11 @@ rtRemoteParseCastType(std::string const& host)
   if (netType == rtNetType::IPV4)
   {
     prefix = host.substr(0, host.find('.'));
-    if (stoi(prefix) >= 224 && stoi(prefix) <= 239)
+    std::stringstream convert;
+    convert << prefix;
+    uint16_t ipprefix;
+    convert >> ipprefix;
+    if (ipprefix >= 224 && ipprefix <= 239)
       return rtCastType::MULTICAST;
     else
       return rtCastType::UNICAST;

@@ -29,7 +29,7 @@ rtResolverTypeFromString(std::string const& resolverType)
   char const* s = resolverType.c_str();
 
   rtResolverType t = RT_RESOLVER_MULTICAST;
-  if (s != nullptr)
+  if (s != NULL)
   {
     if (strcasecmp(s, "multicast") == 0)
       t = RT_RESOLVER_MULTICAST;
@@ -56,7 +56,7 @@ rtRemoteFactory::~rtRemoteFactory()
 rtRemoteIResolver*
 rtRemoteFactory::rtRemoteCreateResolver(rtRemoteEnvironment* env)
 {
-  rtRemoteIResolver* resolver = nullptr;
+  rtRemoteIResolver* resolver = NULL;
   rtResolverType t = rtResolverTypeFromString(env->Config->resolver_type());
   switch (t)
   {

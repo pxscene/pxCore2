@@ -21,6 +21,6 @@ limitations under the License.
 
 #include "rtGuid.h"
 
-using rtRemoteCorrelationKey = rtGuid;
+typedef rtGuid rtRemoteCorrelationKey;
 
 #endif

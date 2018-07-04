@@ -164,7 +164,7 @@ static void processConfigParamList(FILE* f, rapidjson::Value const& configParams
 static std::set<ConfigItem> buildConfigItems(rapidjson::Value const& configParamsList)
 {
   std::set<ConfigItem> configItems;
-  processConfigParamList(nullptr, configParamsList, [&configItems](FILE*, ConfigItem const& item)
+  processConfigParamList(NULL, configParamsList, [&configItems](FILE*, ConfigItem const& item)
   {
     if (item.Platform.size() > 0)
     {
@@ -197,7 +197,7 @@ static void printHeader(FILE* f, char const* fname)
 {
   char buff[256];
 
-  time_t now = time(nullptr);
+  time_t now = time(NULL);
   struct tm* tmp = localtime(&now);
   strftime(buff, sizeof(buff), "%a, %d %b %y %T %z", tmp);
   fprintf(f, "// %s\n", fname);
@@ -236,8 +236,11 @@ static bool doGenConfig(rapidjson::Document const& doc, std::string const& outfi
   std::set<ConfigItem> configItems = buildConfigItems(itr->value);
 
   std::unique_ptr<FILE, int (*)(FILE *)> out(fopen(outfile.c_str(), "w"), safeClose);
-  for (auto i: configItems)
-    fprintf(out.get(), "%s=%s\n", i.Name.c_str(), i.DefaultValue.c_str());
+  std::set<ConfigItem>::iterator i;
+  for (i=configItems.begin(); i != configItems.end(); i++)
+  {
+    fprintf(out.get(), "%s=%s\n", (*i).Name.c_str(), (*i).DefaultValue.c_str());
+  }
 
   return true;
 }
@@ -263,20 +266,23 @@ static bool doGenerateHeader(rapidjson::Document const& doc, std::string const& 
   std::set<ConfigItem> configItems = buildConfigItems(itr->value);
 
   fprintf(out.get(), "public:\n");
-  for (auto i : configItems)
+  std::set<ConfigItem>::iterator i;
+  for (i=configItems.begin(); i != configItems.end(); i++)
   {
-    fprintf(out.get(), "  // %s\n", i.Json.c_str());
-    printGetter(out.get(), i);
-    fprintf(out.get(), "  inline void set_%s(%s arg)\n", getMemberName(i).c_str(),
-        getType(i).c_str());
-    fprintf(out.get(), "    { m_%s = arg; }\n", getMemberName(i).c_str());
+    fprintf(out.get(), "  // %s\n", (*i).Json.c_str());
+    printGetter(out.get(), *i);
+    fprintf(out.get(), "  inline void set_%s(%s arg)\n", getMemberName(*i).c_str(),
+        getType(*i).c_str());
+    fprintf(out.get(), "    { m_%s = arg; }\n", getMemberName(*i).c_str());
     fprintf(out.get(), "\n\n");
   }
 
   fprintf(out.get(), "\n");
   fprintf(out.get(), "private:\n");
-  for (auto i : configItems)
-    fprintf(out.get(), "  %-15s m_%s;\n", getType(i).c_str(), getMemberName(i).c_str());
+  for (i=configItems.begin(); i != configItems.end(); i++)
+  {
+    fprintf(out.get(), "  %-15s m_%s;\n", getType(*i).c_str(), getMemberName(*i).c_str());
+  }
 
   fprintf(out.get(), "};\n\n");
   fprintf(out.get(), "#endif\n");
@@ -307,14 +313,15 @@ static bool doGenerateSource(rapidjson::Document const& doc, std::string const& 
 
   std::set<ConfigItem> configItems = buildConfigItems(itr->value);
 
-  for (auto i : configItems)
+  std::set<ConfigItem>::iterator i;
+  for (i=configItems.begin(); i != configItems.end(); i++)
   {
-    fprintf(out.get(), "\n  // %s\n", i.Json.c_str());
+    fprintf(out.get(), "\n  // %s\n", (*i).Json.c_str());
     fprintf(out.get(), "  // WARNING: default may have been overridden by configuration file\n");
     fprintf(out.get(), "  {\n");
-    fprintf(out.get(), "    %s const val = this->%s(\"%s\");\n", getType(i).c_str(),
-        getBuilderGetter(i).c_str(), i.Name.c_str());
-    fprintf(out.get(), "    conf->set_%s(val);\n", getMemberName(i).c_str());
+    fprintf(out.get(), "    %s const val = this->%s(\"%s\");\n", getType(*i).c_str(),
+        getBuilderGetter(*i).c_str(), (*i).Name.c_str());
+    fprintf(out.get(), "    conf->set_%s(val);\n", getMemberName(*i).c_str());
     fprintf(out.get(), "  }\n");
   }
 
@@ -324,11 +331,11 @@ static bool doGenerateSource(rapidjson::Document const& doc, std::string const& 
   fprintf(out.get(), "\n\n");
   fprintf(out.get(), "rtRemoteConfigBuilder::rtRemoteConfigBuilder()\n");
   fprintf(out.get(), "{\n");
-  for (auto i : configItems)
+  for (i=configItems.begin(); i != configItems.end(); i++)
   {
-    fprintf(out.get(), "  // %s\n", i.Json.c_str());
+    fprintf(out.get(), "  // %s\n", (*i).Json.c_str());
     fprintf(out.get(), "  m_map.insert(std::map<std::string, std::string>::value_type(\"%s\", \"%s\"));\n",
-      i.Name.c_str(), i.DefaultValue.c_str());
+      (*i).Name.c_str(), (*i).DefaultValue.c_str());
     fprintf(out.get(), "\n");
   }
   fprintf(out.get(), "}\n");

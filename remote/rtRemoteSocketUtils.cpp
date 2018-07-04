@@ -50,9 +50,9 @@ rtFindFirstInetInterface(char* name, size_t len)
     return e;
   }
 
-  for (ifaddrs* i = ifaddr; i != nullptr; i = i->ifa_next)
+  for (ifaddrs* i = ifaddr; i != NULL; i = i->ifa_next)
   {
-    if (i->ifa_addr == nullptr)
+    if (i->ifa_addr == NULL)
       continue;
     if (i->ifa_addr->sa_family != AF_INET && i->ifa_addr->sa_family != AF_INET6)
       continue;
@@ -77,7 +77,7 @@ rtParseAddress(sockaddr_storage& ss, char const* addr, uint16_t port, uint32_t* 
 {
   int ret = 0;
 
-  if (index != nullptr)
+  if (index != NULL)
     *index = -1;
 
   if (addr[0] == '/')
@@ -113,7 +113,7 @@ rtParseAddress(sockaddr_storage& ss, char const* addr, uint16_t port, uint32_t* 
       if (err != RT_OK)
         return err;
 
-      if (index != nullptr)
+      if (index != NULL)
         *index = if_nametoindex(addr);
 
       if (ss.ss_family == AF_INET)
@@ -451,7 +451,7 @@ rtReadMessage(int fd, rtRemoteSocketBuffer& buff, rtRemoteMessagePtr& doc)
 rtError
 rtParseMessage(char const* buff, int n, rtRemoteMessagePtr& doc)
 {
-  RT_ASSERT(buff != nullptr);
+  RT_ASSERT(buff != NULL);
   RT_ASSERT(n > 0);
 
   if (!buff)
@@ -547,7 +547,7 @@ rtGetDefaultInterface(sockaddr_storage& addr, uint16_t port)
   if (e == RT_OK)
   {
     sockaddr_storage temp;
-    e = rtParseAddress(temp, name, port, nullptr);
+    e = rtParseAddress(temp, name, port, NULL);
     if (e == RT_OK)
       memcpy(&addr, &temp, sizeof(sockaddr_storage));
   }
@@ -596,7 +596,7 @@ rtParseAddress(sockaddr_storage& ss, char const* s)
   }
 
   std::string addr(p1, (p2 - p1));
-  uint16_t    port = static_cast<uint16_t>(strtol(p2 + 1, nullptr, 10));
+  uint16_t    port = static_cast<uint16_t>(strtol(p2 + 1, NULL, 10));
 
-  return rtParseAddress(ss, addr.c_str(), port, nullptr);
+  return rtParseAddress(ss, addr.c_str(), port, NULL);
 }

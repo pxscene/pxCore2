@@ -25,14 +25,14 @@ limitations under the License.
 
 rtRemoteEnvironment::rtRemoteEnvironment(rtRemoteConfig* config)
   : Config(config)
-  , Server(nullptr)
-  , ObjectCache(nullptr)
-  , StreamSelector(nullptr)
+  , Server(NULL)
+  , ObjectCache(NULL)
+  , StreamSelector(NULL)
   , RefCount(1)
   , Initialized(false)
   , m_running(false)
-  , m_queue_ready_handler(nullptr)
-  , m_queue_ready_context(nullptr)
+  , m_queue_ready_handler(NULL)
+  , m_queue_ready_context(NULL)
 {
   StreamSelector = new rtRemoteStreamSelector(this);
   StreamSelector->start();
@@ -49,7 +49,7 @@ rtRemoteEnvironment::~rtRemoteEnvironment()
 void
 rtRemoteEnvironment::start()
 {
-  static int const kNumWorkers = 4;
+  static size_t const kNumWorkers = 4;
 
   m_running = true;
   if (Config->server_use_dispatch_thread())
@@ -70,7 +70,7 @@ rtRemoteEnvironment::processRunQueue()
 
   while (true)
   {
-    rtError e = processSingleWorkItem(timeout, true,  nullptr);
+    rtError e = processSingleWorkItem(timeout, true,  NULL);
     if (e != RT_OK)
     {
       std::unique_lock<std::mutex> lock(m_queue_mutex);
@@ -135,14 +135,18 @@ rtRemoteEnvironment::shutdown()
   m_running = false;
   lock.unlock();
   m_queue_cond.notify_all();
-
+  for (std::vector< thread_ptr >::iterator t = m_workers.begin(); t!=m_workers.end(); t++)
+  {
+    (*t)->join();
+  }
+/*
   for (auto& t : m_workers)
     t->join();
-
+*/
   if (Server)
   {
     delete Server;
-    Server = nullptr;
+    Server = NULL;
   }
 
   if (StreamSelector)
@@ -152,7 +156,7 @@ rtRemoteEnvironment::shutdown()
       rtLogWarn("failed to shutdown StreamSelector. %s", rtStrError(e));
 
     delete StreamSelector;
-    StreamSelector = nullptr;
+    StreamSelector = NULL;
   }
 
   if (ObjectCache)
@@ -162,7 +166,7 @@ rtRemoteEnvironment::shutdown()
       rtLogWarn("failed to clear object cache. %s", rtStrError(e));
 
     delete ObjectCache;
-    ObjectCache = nullptr;
+    ObjectCache = NULL;
   }
 }
 
@@ -234,8 +238,8 @@ rtRemoteEnvironment::processSingleWorkItem(std::chrono::milliseconds timeout, bo
 
   if (workItem.Message)
   {
-    rtRemoteMessageHandler messageHandler = nullptr;
-    void* argp = nullptr;
+    rtRemoteMessageHandler messageHandler = NULL;
+    void* argp = NULL;
 
     rtRemoteCorrelationKey const k = rtMessage_GetCorrelationKey(*workItem.Message);
     auto itr = m_response_handlers.find(k);
@@ -247,7 +251,7 @@ rtRemoteEnvironment::processSingleWorkItem(std::chrono::milliseconds timeout, bo
     }
     lock.unlock();
 
-    if (messageHandler != nullptr)
+    if (messageHandler != NULL)
       e = messageHandler(workItem.Client, workItem.Message, argp);
     else
       e = Server->processMessage(workItem.Client, workItem.Message);
@@ -297,7 +301,7 @@ rtRemoteEnvironment::enqueueWorkItem(std::shared_ptr<rtRemoteClient> const& clnt
     m_queue_cond.notify_all();
   }
 
-  if (m_queue_ready_handler != nullptr)
+  if (m_queue_ready_handler != NULL)
   {
     m_queue_ready_handler(m_queue_ready_context);
   }

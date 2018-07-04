@@ -73,7 +73,7 @@ namespace
     if (p)
     {
       p++;
-      pid = strtol(p, nullptr, 10);
+      pid = strtol(p, NULL, 10);
     }
     return pid;
   } // parsePid
@@ -90,7 +90,7 @@ namespace
     }
 
     dirent* entry = reinterpret_cast<dirent *>(malloc(1024));
-    dirent* result = nullptr;
+    dirent* result = NULL;
 
     std::set<int> active_pids;
 
@@ -98,16 +98,16 @@ namespace
     do
     {
       ret = readdir_r(d, entry, &result);
-      if (ret == 0 && (result != nullptr))
+      if (ret == 0 && (result != NULL))
       {
         if (isValidPid(result->d_name))
         {
-          int pid = static_cast<int>(strtol(result->d_name, nullptr, 10));
+          int pid = static_cast<int>(strtol(result->d_name, NULL, 10));
           active_pids.insert(pid);
         }
       }
     }
-    while ((result != nullptr) && ret == 0);
+    while ((result != NULL) && ret == 0);
     closedir(d);
 
     d = opendir("/tmp");
@@ -122,7 +122,7 @@ namespace
     do
     {
       ret = readdir_r(d, entry, &result);
-      if (ret == 0 && (result != nullptr))
+      if (ret == 0 && (result != NULL))
       {
         memset(path, 0, sizeof(path));
         strcpy(path, "/tmp/");
@@ -144,7 +144,7 @@ namespace
         }
       }
     }
-    while ((result != nullptr) && ret == 0);
+    while ((result != NULL) && ret == 0);
 
     closedir(d);
     free(entry);
@@ -195,7 +195,7 @@ namespace
 
 rtRemoteServer::rtRemoteServer(rtRemoteEnvironment* env)
   : m_listen_fd(-1)
-  , m_resolver(nullptr)
+  , m_resolver(NULL)
   , m_keep_alive_interval(std::numeric_limits<uint32_t>::max())
   , m_env(env)
 {
@@ -370,7 +370,7 @@ rtRemoteServer::runListener()
     if (FD_ISSET(m_listen_fd, &readFds))
       doAccept(m_listen_fd);
 
-    time_t now = time(nullptr);
+    time_t now = time(NULL);
     if (now - lastKeepAliveCheck > 1)
     {
       rtError err = removeStaleObjects();
@@ -473,7 +473,7 @@ rtRemoteServer::processMessage(std::shared_ptr<rtRemoteClient>& client, rtRemote
   }
 
   rtRemoteCallback<rtRemoteMessageHandler> handler = itr->second;
-  if (handler.Func != nullptr)
+  if (handler.Func != NULL)
     e = handler.Func(client, msg, handler.Arg);
   else
     e = RT_ERROR_INVALID_ARG;
@@ -535,11 +535,12 @@ rtRemoteServer::findObject(std::string const& objectId, rtObjectRef& obj, uint32
 
       // if a client is already "hosting" this object, 
       // then just re-use it
-      for (auto i : m_object_map)
+      ClientMap::iterator i;
+      for (i = m_object_map.begin(); i != m_object_map.end(); i++)
       {
-        if (sameEndpoint(i.second->getRemoteEndpoint(), objectEndpoint))
+        if (sameEndpoint((*i).second->getRemoteEndpoint(), objectEndpoint))
         {
-          client = i.second;
+          client = (*i).second;
           break;
         }
       }
@@ -803,7 +804,7 @@ rtRemoteServer::onGet(std::shared_ptr<rtRemoteClient>& client, rtRemoteMessagePt
         {
           rtFunctionRef ref = value.toFunction();
           rtRemoteFunction* remoteFunc = dynamic_cast<rtRemoteFunction *>(ref.getPtr());
-          if (remoteFunc != nullptr)
+          if (remoteFunc != NULL)
             val.AddMember(kFieldNameFunctionName, remoteFunc->getName(), res->GetAllocator());
           else
             val.AddMember(kFieldNameFunctionName, std::string(name), res->GetAllocator());
@@ -973,7 +974,7 @@ rtRemoteServer::onKeepAlive(std::shared_ptr<rtRemoteClient>& client, rtRemoteMes
   auto itr = req->FindMember(kFieldNameKeepAliveIds);
   if (itr != req->MemberEnd())
   {
-    auto now = std::chrono::steady_clock::now();
+    auto now = std::chrono::monotonic_clock::now();
 
     std::unique_lock<std::mutex> lock(m_mutex);
     for (rapidjson::Value::ConstValueIterator id  = itr->value.Begin(); id != itr->value.End(); ++id)
@@ -1008,7 +1009,8 @@ rtError
 rtRemoteServer::removeStaleObjects()
 {
   std::unique_lock<std::mutex> lock(m_mutex);
-  for (auto itr = m_object_map.begin(); itr != m_object_map.end();)
+  ClientMap::iterator itr;
+  for (itr = m_object_map.begin(); itr != m_object_map.end();)
   {
     // TODO: I'm not sure if this works. This is a map of connections to remote peers.
     // when connecting to mulitple remote objects, we'll re-use the remote connection.

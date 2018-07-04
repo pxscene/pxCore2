@@ -38,10 +38,10 @@ rtRemoteObject::~rtRemoteObject()
 rtError
 rtRemoteObject::Get(char const* name, rtValue* value) const
 {
-  if (value == nullptr)
+  if (value == NULL)
     return RT_ERROR_INVALID_ARG;
 
-  if (name == nullptr)
+  if (name == NULL)
     return RT_ERROR_INVALID_ARG;
 
   return m_client->sendGet(m_id, name, *value);
@@ -50,7 +50,7 @@ rtRemoteObject::Get(char const* name, rtValue* value) const
 rtError
 rtRemoteObject::Get(uint32_t index, rtValue* value) const
 {
-  if (value == nullptr)
+  if (value == NULL)
     return RT_ERROR_INVALID_ARG;
 
   return m_client->sendGet(m_id, index, *value);
@@ -59,7 +59,7 @@ rtRemoteObject::Get(uint32_t index, rtValue* value) const
 rtError
 rtRemoteObject::Set(char const* name, rtValue const* value)
 {
-  if (value == nullptr)
+  if (value == NULL)
     return RT_ERROR_INVALID_ARG;
 
   return m_client->sendSet(m_id, name, *value);
@@ -68,7 +68,7 @@ rtRemoteObject::Set(char const* name, rtValue const* value)
 rtError
 rtRemoteObject::Set(uint32_t index, rtValue const* value)
 {
-  if (value == nullptr)
+  if (value == NULL)
     return RT_ERROR_INVALID_ARG;
 
   return m_client->sendSet(m_id, index, *value);

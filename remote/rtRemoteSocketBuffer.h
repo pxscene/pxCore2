@@ -21,6 +21,6 @@ limitations under the License.
 
 #include <vector>
 
-using rtRemoteSocketBuffer = std::vector<char>;
+typedef std::vector<char> rtRemoteSocketBuffer;
 
 #endif

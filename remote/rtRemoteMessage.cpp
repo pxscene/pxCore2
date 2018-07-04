@@ -170,7 +170,7 @@ rtMessage_GetStatusMessage(rapidjson::Document const& doc)
 rtError
 rtMessage_DumpDocument(rapidjson::Document const& doc, FILE* out)
 {
-  if (out == nullptr)
+  if (out == NULL)
     out = stdout;
   rapidjson::StringBuffer buff;
   rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buff);
@@ -193,7 +193,7 @@ rtMessage_SetStatus(rapidjson::Document& doc, rtError code, char const* fmt, ...
   rtError e = RT_OK;
   doc.AddMember(kFieldNameStatusCode, code, doc.GetAllocator());
 
-  if (fmt != nullptr)
+  if (fmt != NULL)
   {
     char buff[256];
     memset(buff, 0, sizeof(buff));

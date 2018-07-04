@@ -25,7 +25,7 @@ limitations under the License.
 #include <iostream>
 #include <chrono>
 
-using std::chrono::steady_clock;
+using std::chrono::monotonic_clock;
 
 namespace
 {
@@ -33,18 +33,18 @@ namespace
   {
     rtObjectRef              Object;
     rtFunctionRef            Function;
-    steady_clock::time_point LastUsed;
+    monotonic_clock::time_point LastUsed;
     std::chrono::seconds     MaxIdleTime;
     bool                     Unevictable;
 
-    bool isActive(const steady_clock::time_point& now) const
+    bool isActive(const monotonic_clock::time_point& now) const
     {
       return (now - LastUsed) < MaxIdleTime;
     }
 
   };
 
-  using refmap = std::map< std::string, Entry >;
+  typedef std::map< std::string, Entry > refmap;
 
   std::mutex    sMutex;
   refmap        sRefMap;
@@ -105,7 +105,7 @@ rtRemoteObjectCache::insert(std::string const& id, rtFunctionRef const& ref)
   RT_ASSERT(!!ref);
 
   Entry entry;
-  entry.LastUsed = std::chrono::steady_clock::now();
+  entry.LastUsed = std::chrono::monotonic_clock::now();
   entry.Function = ref;
   entry.MaxIdleTime = std::chrono::seconds(m_env->Config->cache_max_object_lifetime());
   entry.Unevictable = false;
@@ -132,7 +132,7 @@ rtRemoteObjectCache::insert(std::string const& id, rtObjectRef const& ref)
   RT_ASSERT(!!ref);
 
   Entry entry;
-  entry.LastUsed = std::chrono::steady_clock::now();
+  entry.LastUsed = std::chrono::monotonic_clock::now();
   entry.Object = ref;
   entry.MaxIdleTime = std::chrono::seconds(m_env->Config->cache_max_object_lifetime());
   entry.Unevictable = false;
@@ -146,7 +146,7 @@ rtRemoteObjectCache::insert(std::string const& id, rtObjectRef const& ref)
 }
 
 rtError
-rtRemoteObjectCache::touch(std::string const& id, std::chrono::steady_clock::time_point now)
+rtRemoteObjectCache::touch(std::string const& id, monotonic_clock::time_point now)
 {
   rtError e = RT_OK;
 
@@ -199,7 +199,7 @@ rtRemoteObjectCache::erase(std::string const& id)
 rtError
 rtRemoteObjectCache::removeUnused()
 {
-  auto now = std::chrono::steady_clock::now();
+  auto now = std::chrono::monotonic_clock::now();
 
   std::unique_lock<std::mutex> lock(sMutex);
   for (auto itr = sRefMap.begin(); itr != sRefMap.end();)
