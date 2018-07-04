@@ -42,18 +42,17 @@ public:
   ~rtRemoteMulticastResolver();
 
 public:
-  virtual rtError open(sockaddr_storage const& rpc_endpoint) override;
-  virtual rtError close() override;
-  virtual rtError registerObject(std::string const& name, sockaddr_storage const& endpoint) override;
-  virtual rtError locateObject(std::string const& name, sockaddr_storage& endpoint,
-    uint32_t timeout) override;
-  virtual rtError unregisterObject(std::string const& name) override;
+  virtual rtError open(sockaddr_storage const& rpc_endpoint);
+  virtual rtError close();
+  virtual rtError registerObject(std::string const& name, sockaddr_storage const& endpoint);
+  virtual rtError locateObject(std::string const& name, sockaddr_storage& endpoint, uint32_t timeout);
+  virtual rtError unregisterObject(std::string const& name);
 
 private:
-  using CommandHandler = rtError (rtRemoteMulticastResolver::*)(rtRemoteMessagePtr const&, sockaddr_storage const&);
-  using HostedObjectsMap = std::map< std::string, sockaddr_storage >;
-  using CommandHandlerMap = std::map< std::string, CommandHandler >;
-  using RequestMap = std::map< rtRemoteCorrelationKey, rtRemoteMessagePtr >;
+  typedef rtError (rtRemoteMulticastResolver::*CommandHandler) (rtRemoteMessagePtr const&, sockaddr_storage const&);
+  typedef std::map< std::string, sockaddr_storage > HostedObjectsMap;
+  typedef std::map< std::string, CommandHandler > CommandHandlerMap;
+  typedef std::map< rtRemoteCorrelationKey, rtRemoteMessagePtr > RequestMap;
 
   void runListener();
   void doRead(int fd, rtRemoteSocketBuffer& buff);

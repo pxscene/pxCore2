@@ -58,10 +58,10 @@ rtRemoteAsyncHandle::waitUntil(uint32_t timeoutInMilliseconds, std::function<rtE
 
   rtError e = RT_OK;
 
-  auto nowTime = std::chrono::steady_clock::now();
+  auto nowTime = std::chrono::monotonic_clock::now();
   auto stopTime = nowTime + std::chrono::milliseconds(timeoutInMilliseconds);
 
-  for (; stopTime > nowTime; nowTime = std::chrono::steady_clock::now())
+  for (; stopTime > nowTime; nowTime = std::chrono::monotonic_clock::now())
   {
     if ((e = connectionState()) != RT_OK)
     {

@@ -126,14 +126,14 @@ rtRemoteStream::connectTo(sockaddr_storage const& endpoint)
 rtError
 rtRemoteStream::send(rtRemoteMessagePtr const& msg)
 {
-  return rtSendDocument(*msg, m_fd, nullptr);
+  return rtSendDocument(*msg, m_fd, NULL);
 }
 
 rtRemoteAsyncHandle
 rtRemoteStream::sendWithWait(rtRemoteMessagePtr const& msg, rtRemoteCorrelationKey k)
 {
   rtRemoteAsyncHandle asyncHandle(m_env, k);
-  rtError e = rtSendDocument(*msg, m_fd, nullptr);
+  rtError e = rtSendDocument(*msg, m_fd, NULL);
   if (e != RT_OK)
     asyncHandle.complete(rtRemoteMessagePtr(), e);
   return asyncHandle;
@@ -159,7 +159,8 @@ rtRemoteStream::onIncomingMessage(rtRemoteSocketBuffer& buff)
 {
   std::shared_ptr<CallbackHandler> handler = m_callback_handler.lock();
 
-  rtRemoteMessagePtr doc = nullptr;
+  //rtRemoteMessagePtr doc = (rtRemoteMessagePtr)NULL;
+  rtRemoteMessagePtr doc;
   rtError e = rtReadMessage(m_fd, buff, doc);
   if (e != RT_OK)
   {

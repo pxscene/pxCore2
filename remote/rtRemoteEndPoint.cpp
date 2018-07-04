@@ -25,7 +25,7 @@ limitations under the License.
 rtRemoteEndPoint*
 rtRemoteEndPoint::fromString(std::string const& s)
 {
-  rtRemoteEndPoint* e = nullptr;
+  rtRemoteEndPoint* e = NULL;
   if (strncmp(s.c_str(), "unix", 4) == 0)
   {
     e = rtRemoteFileEndPoint::fromString(s);
@@ -44,14 +44,14 @@ rtRemoteFileEndPoint::toSockAddr() const
 {
   sockaddr_storage s;
   memset(&s, 0, sizeof(s));
-  rtParseAddress(s, m_path.c_str(), 0, nullptr);
+  rtParseAddress(s, m_path.c_str(), 0, NULL);
   return s;
 }
 
 rtRemoteFileEndPoint*
 rtRemoteFileEndPoint::fromSockAddr(sockaddr_storage const& s)
 {
-  void* addr = nullptr;
+  void* addr = NULL;
   rtGetInetAddr(s, &addr);
 
   return new rtRemoteFileEndPoint("unix", reinterpret_cast<char const *>(addr));
@@ -62,7 +62,7 @@ rtRemoteIPEndPoint::toSockAddr() const
 {
   sockaddr_storage s;
   memset(&s, 0, sizeof(s));
-  rtParseAddress(s, m_host.c_str(), m_port, nullptr);
+  rtParseAddress(s, m_host.c_str(), m_port, NULL);
   return s;
 }
 
@@ -75,7 +75,7 @@ rtRemoteIPEndPoint::fromSockAddr(std::string const& scheme, sockaddr_storage con
   uint16_t port;
   rtGetPort(ss, &port);
 
-  void* addr = nullptr;
+  void* addr = NULL;
   rtGetInetAddr(ss, &addr);
 
   char buff[256];
@@ -105,7 +105,9 @@ rtRemoteIPEndPoint::fromString(std::string const& s)
   if (end == std::string::npos)
     return e;
   e->m_host = s.substr(begin, (end - begin));
-  e->m_port = std::stoi(s.substr(end + 1));
+  std::stringstream convert;
+  convert << s.substr(end + 1);
+  convert >> e->m_port;
   return e;
 }
 

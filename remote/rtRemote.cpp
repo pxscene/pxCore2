@@ -36,7 +36,7 @@ limitations under the License.
 #include <unistd.h>
 
 static std::mutex gMutex;
-static rtRemoteEnvironment* gEnv = nullptr;
+static rtRemoteEnvironment* gEnv = NULL;
 
 rtError
 rtRemoteInit(rtRemoteEnvironment* env)
@@ -85,7 +85,7 @@ rtRemoteShutdown(rtRemoteEnvironment* env, bool immediate)
       rtLogInfo("environment reference count is zero, deleting");
     env->shutdown();
     if (env == gEnv)
-      gEnv = nullptr;
+      gEnv = NULL;
     delete env;
     e = RT_OK;
   }
@@ -101,10 +101,10 @@ rtRemoteShutdown(rtRemoteEnvironment* env, bool immediate)
 rtError
 rtRemoteRegisterObject(rtRemoteEnvironment* env, char const* id, rtObjectRef const& obj)
 {
-  if (env == nullptr)
+  if (env == NULL)
     return RT_FAIL;
 
-  if (id == nullptr)
+  if (id == NULL)
     return RT_ERROR_INVALID_ARG;
 
   if (!obj)
@@ -116,10 +116,10 @@ rtRemoteRegisterObject(rtRemoteEnvironment* env, char const* id, rtObjectRef con
 rtError
 rtRemoteUnregisterObject(rtRemoteEnvironment* env, char const* id)
 {
-  if (env == nullptr)
+  if (env == NULL)
     return RT_ERROR_INVALID_ARG;
 
-  if (id == nullptr)
+  if (id == NULL)
     return RT_ERROR_INVALID_ARG;
 
   return env->Server->unregisterObject(id);
@@ -129,10 +129,10 @@ rtError
 rtRemoteLocateObject(rtRemoteEnvironment* env, char const* id, rtObjectRef& obj, int timeout,
         remoteDisconnectedCallback cb, void *cbdata)
 {
-  if (env == nullptr)
+  if (env == NULL)
     return RT_ERROR_INVALID_ARG;
 
-  if (id == nullptr)
+  if (id == NULL)
     return RT_ERROR_INVALID_ARG;
 
   return env->Server->findObject(id, obj, timeout, cb, cbdata);
@@ -157,7 +157,7 @@ rtRemoteProcessSingleItem(rtRemoteEnvironment* env)
   using namespace std::chrono;
   const uint32_t dummy_timeout_to_guarantee_one_item_processing = 0;
 
-  return env->processSingleWorkItem(milliseconds(dummy_timeout_to_guarantee_one_item_processing), false, nullptr);
+  return env->processSingleWorkItem(milliseconds(dummy_timeout_to_guarantee_one_item_processing), false, NULL);
 };
 
 rtError
@@ -173,11 +173,11 @@ rtRemoteRun(rtRemoteEnvironment* env, uint32_t timeout)
 
   do
   {
-    auto start = std::chrono::steady_clock::now();
-    e = env->processSingleWorkItem(time_remaining, false, nullptr);
+    auto start = std::chrono::monotonic_clock::now();
+    e = env->processSingleWorkItem(time_remaining, false, NULL);
     if (e != RT_OK)
       return e;
-    auto end = std::chrono::steady_clock::now();
+    auto end = std::chrono::monotonic_clock::now();
     time_remaining -= std::chrono::milliseconds((end - start).count());
   }
   while ((time_remaining > std::chrono::milliseconds(0)) && (e == RT_OK));
@@ -188,7 +188,7 @@ rtRemoteRun(rtRemoteEnvironment* env, uint32_t timeout)
 rtRemoteEnvironment*
 rtEnvironmentFromFile(char const* configFile)
 {
-  RT_ASSERT(configFile != nullptr);
+  RT_ASSERT(configFile != NULL);
 
   rtRemoteConfigBuilder* builder(rtRemoteConfigBuilder::fromFile(configFile));
   rtRemoteEnvironment* env(new rtRemoteEnvironment(builder->build()));
@@ -202,7 +202,7 @@ rtRemoteEnvironment*
 rtEnvironmentGetGlobal()
 {
   std::lock_guard<std::mutex> lock(gMutex);
-  if (gEnv == nullptr)
+  if (gEnv == NULL)
   {
     rtRemoteConfigBuilder* builder = rtRemoteConfigBuilder::getDefaultConfig();
     rtRemoteConfig* conf = builder->build();

@@ -91,8 +91,8 @@ limitations under the License.
 #define kNsStatusSuccess "ns.status.success"
 #define kNsStatusFail "ns.status.fail"
 
-using rtRemoteMessage     = rapidjson::Document;
-using rtRemoteMessagePtr  = std::shared_ptr<rtRemoteMessage>;
+typedef rapidjson::Document rtRemoteMessage;
+typedef std::shared_ptr<rtRemoteMessage> rtRemoteMessagePtr;
 
 char const*             rtMessage_GetPropertyName(rtRemoteMessage const& m);
 uint32_t                rtMessage_GetPropertyIndex(rtRemoteMessage const& m);

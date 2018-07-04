@@ -18,13 +18,13 @@ limitations under the License.
 
 #ifndef __RT_REMOTE_CALLBACK_H__
 #define __RT_REMOTE_CALLBACK_H__
-
+#include <stddef.h>
 template<class TFunc>
 struct rtRemoteCallback
 {
   rtRemoteCallback() 
-    : Func(nullptr)
-    , Arg(nullptr) { }
+    : Func(NULL)
+    , Arg(NULL) { }
 
   rtRemoteCallback(TFunc func, void* arg) 
     : Func(func),

@@ -49,7 +49,7 @@ protected:
 	std::string m_scheme;
 };
 
-using rtRemoteEndPointPtr = std::shared_ptr< rtRemoteEndPoint >;
+typedef std::shared_ptr< rtRemoteEndPoint > rtRemoteEndPointPtr;
 
 /* Local endpoints.
  * Used to stored address information for unix domain sockets,
@@ -65,8 +65,8 @@ public:
   static rtRemoteFileEndPoint* fromString(std::string const& s);
   static rtRemoteFileEndPoint* fromSockAddr(sockaddr_storage const& s);
 
-  virtual sockaddr_storage toSockAddr() const override;
-  virtual std::string toString() override
+  virtual sockaddr_storage toSockAddr() const;
+  virtual std::string toString()
   {
     std::stringstream buff;
     buff << m_scheme;
@@ -104,8 +104,8 @@ public:
   static rtRemoteIPEndPoint* fromString(std::string const& s);
   static rtRemoteIPEndPoint* fromSockAddr(std::string const& scheme, sockaddr_storage const& ss);
 	
-  virtual sockaddr_storage toSockAddr() const override;
-  virtual std::string toString() override
+  virtual sockaddr_storage toSockAddr() const;
+  virtual std::string toString()
   {
     std::stringstream buff;
     buff << m_scheme;

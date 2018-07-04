@@ -53,7 +53,7 @@ public:
   rtRemoteObjectCache*      ObjectCache;
   rtRemoteStreamSelector*   StreamSelector;
 
-  using rtRemoteQueueReady = void (*)(void*);
+  typedef void (*rtRemoteQueueReady)(void*);
 
   uint32_t RefCount;
   bool     Initialized;
@@ -62,7 +62,7 @@ public:
   void registerResponseHandler(rtRemoteMessageHandler handler, void* argp, rtRemoteCorrelationKey const& k);
   void removeResponseHandler(rtRemoteCorrelationKey const& k);
   void enqueueWorkItem(std::shared_ptr<rtRemoteClient> const& clnt, rtRemoteMessagePtr const& doc);
-  rtError processSingleWorkItem(std::chrono::milliseconds timeout, bool wait, rtRemoteCorrelationKey* key, const rtRemoteCorrelationKey* const specificKey = nullptr);
+  rtError processSingleWorkItem(std::chrono::milliseconds timeout, bool wait, rtRemoteCorrelationKey* key, const rtRemoteCorrelationKey* const specificKey = NULL);
   rtError waitForResponse(std::chrono::milliseconds timeout, rtRemoteCorrelationKey key);
 
 private:
@@ -78,9 +78,9 @@ private:
     Dispatched
   };
 
-  using ResponseHandlerMap = std::map< rtRemoteCorrelationKey, rtRemoteCallback<rtRemoteMessageHandler> >;
-  using ResponseMap = std::map< rtRemoteCorrelationKey, ResponseState >;
-  using WorkItemMap = std::map< rtRemoteCorrelationKey, WorkItem >;
+  typedef std::map< rtRemoteCorrelationKey, rtRemoteCallback<rtRemoteMessageHandler> > ResponseHandlerMap;
+  typedef std::map< rtRemoteCorrelationKey, ResponseState > ResponseMap;
+  typedef std::map< rtRemoteCorrelationKey, WorkItem > WorkItemMap;
 
   void processRunQueue();
 
@@ -90,7 +90,7 @@ private:
     return (itr != m_waiters.end()) && (itr->second == ResponseState::Dispatched);
   }
 
-  using thread_ptr = std::unique_ptr<std::thread>;
+  typedef std::unique_ptr<std::thread> thread_ptr;
 
   mutable std::mutex            m_queue_mutex;
   std::condition_variable       m_queue_cond;

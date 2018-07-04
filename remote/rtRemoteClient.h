@@ -50,8 +50,7 @@ public:
     Shutdown
   };
 
-  using StateChangedHandler = rtError (*)(std::shared_ptr<rtRemoteClient> const& client,
-    State state, void* argp);
+  typedef rtError (*StateChangedHandler)(std::shared_ptr<rtRemoteClient> const& client,State state, void* argp);
 
   rtRemoteClient(rtRemoteEnvironment* env, int fd, sockaddr_storage const& localEndpoint,
     sockaddr_storage const& remoteEndpoint);

@@ -51,7 +51,7 @@ rtRemoteFunction::Send(int argc, rtValue const* argv, rtValue* result)
   rtError e = m_client->sendCall(m_id, m_name, argc, argv, res);
   if (e == RT_OK)
   {
-    if (result != nullptr)
+    if (result != NULL)
       *result = res;
   }
   return e;

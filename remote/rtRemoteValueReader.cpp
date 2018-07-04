@@ -119,7 +119,6 @@ rtRemoteValueReader::read(rtRemoteEnvironment* env, rtValue& to, rapidjson::Valu
 
     case RT_objectType:
     {
-      RT_ASSERT(client != NULL);
       if (!client)
       {
         rtLogError("read: no client. RT_ERROR_PROTOCOL_ERROR");
@@ -147,7 +146,6 @@ rtRemoteValueReader::read(rtRemoteEnvironment* env, rtValue& to, rapidjson::Valu
 
     case RT_functionType:
     {
-      RT_ASSERT(client != NULL);
       if (!client)
       {
         rtLogError("read: no client. RT_ERROR_PROTOCOL_ERROR");

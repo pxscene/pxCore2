@@ -56,13 +56,13 @@ static inline std::string& trim(std::string& s)
 
 static std::string trim(char const* begin, char const* end)
 {
-  if (begin == nullptr)
+  if (begin == NULL)
   {
     rtLogError("invalid 'begin' pointer");
     return std::string();
   }
 
-  if (end == nullptr)
+  if (end == NULL)
   {
     rtLogError("invalid 'end' pointer");
     return std::string();
@@ -75,15 +75,15 @@ static std::string trim(char const* begin, char const* end)
 template<class T>
 static T numeric_cast(char const* s, std::function<T (const char *nptr, char **endptr, int base)> converter)
 {
-  if (s == nullptr)
+  if (s == NULL)
   {
     // TODO: this should throw an exception and/or return something clearly
     // invalid
-    rtLogError("can't conver nullptr to long int");
+    rtLogError("can't conver NULL to long int");
     return T();
   }
 
-  T const val = converter(s, nullptr, 10);
+  T const val = converter(s, NULL, 10);
   if (val == std::numeric_limits<T>::min()) // underflow
   {
     rtLogError("underflow: %s", s);
@@ -123,18 +123,22 @@ rtRemoteConfigBuilder::getDefaultConfig()
   configFiles.push_back("./rtrpc.conf");
   configFiles.push_back("/etc/rtrpc.conf");
 
-  for (std::string const& fileName : configFiles)
+  for (std::vector<std::string>::iterator iter = configFiles.begin(); iter < configFiles.end(); iter++)
   {
+    std::string  fileName = *iter;
+  //for (std::string const& fileName : configFiles)
+  //{
     // overrite any existing defaults from file
     std::unique_ptr<rtRemoteConfigBuilder> confFromFile(rtRemoteConfigBuilder::fromFile(fileName.c_str()));
     if (confFromFile)
     {
       rtLogInfo("loading configuration settings (%d) from: %s",
         static_cast<int>(confFromFile->m_map.size()), fileName.c_str());
-      for (auto const& itr : confFromFile->m_map)
+      std::map< std::string, std::string >::iterator itr;
+      for (itr = confFromFile->m_map.begin(); itr != confFromFile->m_map.end(); itr++)
       {
-        rtLogDebug("'%s' -> '%s'", itr.first.c_str(), itr.second.c_str());
-        conf->m_map[itr.first] = itr.second;
+        rtLogDebug("'%s' -> '%s'", (*itr).first.c_str(), (*itr).second.c_str());
+        conf->m_map[(*itr).first] = (*itr).second;
       }
     }
     else
@@ -151,7 +155,7 @@ rtRemoteConfigBuilder::getBool(char const* key) const
 {
   bool b = false;
   char const* val = getString(key);
-  if (val != nullptr)
+  if (val != NULL)
     b = strcasecmp(val, "true") == 0;
   return b;
 }
@@ -177,20 +181,20 @@ rtRemoteConfigBuilder::getUInt32(char const* key) const
 char const*
 rtRemoteConfigBuilder::getString(char const* key) const
 {
-  RT_ASSERT(key != nullptr);
+  RT_ASSERT(key != NULL);
   RT_ASSERT(strlen(key) > 0);
 
-  if (key == nullptr)
-    return nullptr;
+  if (key == NULL)
+    return NULL;
 
   if (strlen(key) == 0)
-    return nullptr;
+    return NULL;
 
   auto itr = m_map.find(key);
   if (itr == m_map.end())
   {
     rtLogWarn("failed to find key: %s", key);
-    return nullptr;
+    return NULL;
   }
 
   return itr->second.c_str();
@@ -201,17 +205,17 @@ rtRemoteConfigBuilder::getString(char const* key) const
 rtRemoteConfigBuilder*
 rtRemoteConfigBuilder::fromFile(char const* file)
 {
-  if (file == nullptr)
+  if (file == NULL)
   {
     rtLogError("null file path");
-    return nullptr;
+    return NULL;
   }
 
   std::unique_ptr<FILE, int (*)(FILE *)> f(fopen(file, "r"), fclose);
   if (!f)
   {
     rtLogDebug("can't open: %s. %s", file, strerror(errno));
-    return nullptr;
+    return NULL;
   }
 
   rtRemoteConfigBuilder* builder(new rtRemoteConfigBuilder());
@@ -222,8 +226,8 @@ rtRemoteConfigBuilder::fromFile(char const* file)
 
   int line = 1;
 
-  char* p = nullptr;
-  while ((p = fgets(&buff[0], static_cast<int>(buff.size()), f.get())) != nullptr)
+  char* p = NULL;
+  while ((p = fgets(&buff[0], static_cast<int>(buff.size()), f.get())) != NULL)
   {
     if (!p) break;
 
