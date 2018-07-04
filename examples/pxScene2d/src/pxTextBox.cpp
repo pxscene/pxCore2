@@ -173,7 +173,7 @@ void pxTextBox::setNeedsRecalc(bool recalc)
 void pxTextBox::sendPromise()
 {
   //rtLogDebug("pxTextBox::sendPromise mInitialized=%d mFontLoaded=%d mNeedsRecalc=%d\n",mInitialized,mFontLoaded,mNeedsRecalc);
-if(mInitialized && mFontLoaded && !mNeedsRecalc && !mDirty && !((rtPromise*)mReady.getPtr())->status())
+if(mInitialized && mFontLoaded && !((rtPromise*)mReady.getPtr())->status())
   {
     //rtLogDebug("pxTextBox SENDPROMISE\n");
     mReady.send("resolve",this);
