@@ -1137,6 +1137,7 @@ void pxObject::update(double t)
       }
       else if( a.reversing && (fmod(t2,2) == 0))
       {
+        toVal = a.from;
         justReverseChange = true;
         a.reversing = false;
         a.actualCount++;
