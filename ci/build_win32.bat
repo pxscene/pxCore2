@@ -73,7 +73,7 @@ if %errorlevel% neq 0  (
 
 @rem create standalone archive
 cd _CPack_Packages/win32/NSIS
-7z a -y pxscene-setup.zip pxscene-setup
+7z a -y spark-setup.zip spark-setup
 
 cd %ORIG_DIR%
 
@@ -83,10 +83,10 @@ echo.uploadArtifact : %uploadArtifact%
 if "%uploadArtifact%" == "True" (
 
         @rem NSIS based installer
-        appveyor PushArtifact "build-win32\\_CPack_Packages\\win32\\NSIS\\pxscene-setup.exe" -DeploymentName "installer" -Type "Auto" -Verbosity "Normal"
+        appveyor PushArtifact "build-win32\\_CPack_Packages\\win32\\NSIS\\spark-setup.exe" -DeploymentName "installer" -Type "Auto" -Verbosity "Normal"
 
         @rem Standalone (requires no installation)
-        appveyor PushArtifact "build-win32\\_CPack_Packages\\win32\\NSIS\\pxscene-setup.zip" -DeploymentName "portable" -Type "Zip" -Verbosity "Normal"
+        appveyor PushArtifact "build-win32\\_CPack_Packages\\win32\\NSIS\\spark-setup.zip" -DeploymentName "portable" -Type "Zip" -Verbosity "Normal"
 )
 
 GOTO scriptEnd
