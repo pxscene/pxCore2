@@ -49,8 +49,11 @@ if "%APPVEYOR_SCHEDULED_BUILD%"=="True" (
   call:replaceString "CPackSourceConfig.cmake" "pxscene.exe" "pxsceneEdge.exe"
   call:replaceString "CPackConfig.cmake" ""pxscene"" ""pxsceneEdge""
   call:replaceString "CPackSourceConfig.cmake" ""pxscene"" ""pxsceneEdge""
+  call:replaceString "CPackConfig.cmake" "pxscene.lnk" "pxsceneEdge.lnk"
+  call:replaceString "CPackSourceConfig.cmake" "pxscene.lnk" "pxsceneEdge.lnk"
   call:replaceString "CPackConfig.cmake" "Spark_installer.ico" "SparkEdge_installer.ico"
   call:replaceString "CPackSourceConfig.cmake" "Spark_installer.ico" "SparkEdge_installer.ico"
+  
   )
 
 for /f "tokens=1,* delims=]" %%a in ('find /n /v "" ^< "..\examples\pxScene2d\src\win\pxscene.rc" ^| findstr "FILEVERSION" ') DO ( 
