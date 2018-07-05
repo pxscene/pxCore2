@@ -40,7 +40,7 @@ pxImage9Border::~pxImage9Border()
 }
 
 void pxImage9Border::draw() {
-  if (getImageResource() != NULL && getImageResource()->isInitialized())
+  if (getImageResource() != NULL && getImageResource()->isInitialized() && !mSceneSuspended)
   {
     context.drawImage9Border(mw, mh, mBorderLeft, mBorderTop, mBorderRight, mBorderBottom, mInsetLeft, mInsetTop, mInsetRight, mInsetBottom,
                              mDrawCenter, mMaskColor, getImageResource()->getTexture());

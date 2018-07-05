@@ -201,7 +201,7 @@ float pxImage::getOnscreenHeight()
 void pxImage::draw() {
   //rtLogDebug("pxImage::draw() mw=%f mh=%f\n", mw, mh);
   static pxTextureRef nullMaskRef;
-  if (getImageResource() != NULL && getImageResource()->isInitialized())
+  if (getImageResource() != NULL && getImageResource()->isInitialized() && !mSceneSuspended)
   {
     context.drawImage(0, 0,
                       getOnscreenWidth(),
@@ -217,7 +217,6 @@ void pxImage::draw() {
 }
 void pxImage::resourceReady(rtString readyResolution)
 {
-
   //rtLogDebug("pxImage::resourceReady(%s) mInitialized=%d for \"%s\"\n",readyResolution.cString(),mInitialized,getImageResource()->getUrl().cString());
   if( !readyResolution.compare("resolve"))
   {
@@ -242,6 +241,22 @@ void pxImage::resourceReady(rtString readyResolution)
       pxObject::onTextureReady();
       mReady.send("reject",this);
   }
+
+  bool isSceneSuspended = false;
+  if (getScene())
+  {
+    getScene()->suspended(isSceneSuspended);
+  }
+  mSceneSuspended = isSceneSuspended;
+  if (isSceneSuspended && getImageResource())
+  {
+    getImageResource()->releaseData();
+  }
+}
+
+void pxImage::resourceDirty()
+{
+  pxObject::onTextureReady();
 }
 
 void pxImage::dispose(bool pumpJavascript)
@@ -320,6 +335,24 @@ rtError pxImage::removeResourceListener()
     mListenerAdded = false;
   }
   return RT_OK;
+}
+
+void pxImage::releaseData(bool sceneSuspended)
+{
+  if (getImageResource())
+  {
+    getImageResource()->releaseData();
+  }
+  pxObject::releaseData(sceneSuspended);
+}
+
+void pxImage::reloadData(bool sceneSuspended)
+{
+  if (getImageResource())
+  {
+    getImageResource()->reloadData();
+  }
+  pxObject::reloadData(sceneSuspended);
 }
 
 rtDefineObject(pxImage,pxObject);

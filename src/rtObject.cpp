@@ -54,6 +54,8 @@ rtError rtEmit::setListener(const char* eventName, rtIFunction* f)
     e.n = eventName;
     e.f = f;
     e.isProp = true;
+    e.markForDelete = false;
+    e.fnHash = f->hash();
     mEntries.push_back(e);      
   }
   
