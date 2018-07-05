@@ -57,6 +57,7 @@ class pxResourceListener
 {
 public: 
   virtual void resourceReady(rtString readyResolution) = 0;
+  virtual void resourceDirty() = 0;
 };
 
 class pxResource : public rtObject
@@ -106,14 +107,18 @@ public:
   virtual void setupResource() {}
   virtual void prepare() {}
   void setLoadStatus(const char* name, rtValue value);
+  virtual void releaseData();
+  virtual void reloadData();
 protected:   
   static void onDownloadComplete(rtFileDownloadRequest* downloadRequest);
   static void onDownloadCompleteUI(void* context, void* data);
   static void onDownloadCanceledUI(void* context, void* data);
+  static void onResourceDirtyUI(void* context, void* data);
   virtual void processDownloadedResource(rtFileDownloadRequest* fileDownloadRequest);
   virtual uint32_t loadResourceData(rtFileDownloadRequest* fileDownloadRequest) = 0;
   
   void notifyListeners(rtString readyResolution);
+  void notifyListenersResourceDirty();
 
   virtual void loadResourceFromFile() = 0;
 
@@ -132,10 +137,10 @@ protected:
   mutable rtMutex mLoadStatusMutex;
 };
 
-class rtImageResource : public pxResource
+class rtImageResource : public pxResource, public pxTextureListener
 {
 public:
-  rtImageResource(const char* url = 0, const char* proxy = 0, int32_t iw = 0, int32_t ih = 0);
+  rtImageResource(const char* url = 0, const char* proxy = 0, int32_t iw = 0, int32_t ih = 0, float sx = 1.0f, float sy = 1.0f);
   virtual ~rtImageResource();
 
   rtDeclareObject(rtImageResource, pxResource);
@@ -158,9 +163,16 @@ public:
   virtual void prepare();
 
   virtual void init();
+  
+  int32_t initW()  { return init_w;  };
+  int32_t initH()  { return init_h;  };
+  
+  float   initSX() { return init_sx; };
+  float   initSY() { return init_sy; };
 
-  int32_t initW() { return init_w; };
-  int32_t initH() { return init_h; };
+  virtual void releaseData();
+  virtual void reloadData();
+  virtual void textureReady();
   
 protected:
   virtual uint32_t loadResourceData(rtFileDownloadRequest* fileDownloadRequest);
@@ -174,9 +186,9 @@ private:
   rtMutex mTextureMutex;
   bool mDownloadComplete;
 
-  // convey "create-time" dimension preference (SVG only)
-  int32_t   init_w, init_h;
-
+  // convey "create-time" dimension & scale preference (SVG only)
+  int32_t   init_w,  init_h;
+  float     init_sx, init_sy;
 };
 
 class rtImageAResource : public pxResource
@@ -210,9 +222,10 @@ class pxImageManager
 {
   
   public: 
-    static rtRef<rtImageResource> getImage(const char* url, const char* proxy = NULL, int32_t iw = 0, int32_t ih = 0);
+    static rtRef<rtImageResource> getImage(const char* url, const char* proxy = NULL,
+                                          int32_t iw = 0, int32_t ih = 0, float sx = 1.0f, float sy = 1.0f);
   
-    static void removeImage(rtString url, int32_t iw = 0, int32_t ih = 0);
+    static void removeImage(rtString url, int32_t iw = 0, int32_t ih = 0, float sx = 1.0f, float sy = 1.0f);
 
     static rtRef<rtImageAResource> getImageA(const char* url, const char* proxy = NULL);
     static void removeImageA(rtString imageAUrl);

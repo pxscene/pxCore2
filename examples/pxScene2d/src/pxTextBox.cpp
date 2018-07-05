@@ -34,6 +34,7 @@ static const char      isNewline_chars[] = "\n\v\f\r";
 static const char isWordBoundary_chars[] = " \t/:&,;.";
 static const char    isSpaceChar_chars[] = " \t";
 
+#define ELLIPSIS_STR u8"\u2026"
 
 #if 1
 // TODO can we eliminate direct utf8.h usage
@@ -56,7 +57,7 @@ pxTextBox::pxTextBox(pxScene2d* s): pxText(s),
 
   mFontLoaded      = false;
   mFontFailed      = false;
-  
+
 }
 
 /** This signals that the font file loaded successfully; now we need to
@@ -1153,7 +1154,7 @@ void pxTextBox::renderTextRowWithTruncation(rtString & accString, float lineWidt
   float ellipsisW = 0;
   if( mEllipsis)
   {
-    length -= ELLIPSIS_LEN;
+    // Determine ellipsis width in pixels
     if (getFontResource() != NULL)
     {
       getFontResource()->measureTextInternal(ELLIPSIS_STR, pixelSize, sx, sy, ellipsisW, charH);
@@ -1174,11 +1175,12 @@ void pxTextBox::renderTextRowWithTruncation(rtString & accString, float lineWidt
     }
   }
 
-
-  // TODO this looks pretty inefficient... We should revisit... 
+ 
+    // TODO this looks pretty inefficient... We should revisit...
   for(int i = length; i > 0; i--)
   {
-    tempStr[i] = '\0';
+    // eliminate a utf8 character to see if new string width fits
+    tempStr[u8_offset(tempStr,i)] = '\0';
     charW = 0;
     charH = 0;
     if (getFontResource() != NULL)
