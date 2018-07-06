@@ -15,7 +15,7 @@ PathR=$externalLibs:$externalDir/libnode-v6.9.0/out/Release/obj.target
 
 export LD_LIBRARY_PATH=$PathR
 
-export NODE_PATH=.
+export NODE_PATH=${NODE_PATH:-.}
 
 #export RT_LOG_LEVEL=info
 
@@ -35,7 +35,7 @@ else
 valgrind --vgdb=yes --tool=memcheck --suppressions=$SUPPRESSIONS  --log-file=$VALGRINDLOGS --leak-check=yes --show-reachable=yes --num-callers=20 --track-fds=yes ./Spark $1 $2 $3 $4 $5 $6 $7
 fi
 else
-./Spark $1 $2 $3 $4 $5 $6 $7
+${DBG} ./Spark $1 $2 $3 $4 $5 $6 $7
 fi
 #To run Spark as background process
 #./Spark $1 $2 $3 $4 $5 $6 $7 < `tty` >> /var/tmp/spark.log 2>&1 &
