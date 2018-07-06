@@ -71,7 +71,8 @@ public:
   rtReadOnlyProperty(loadStatus,loadStatus,rtObjectRef);
     
   pxResource():mUrl(0),mDownloadRequest(NULL),mDownloadInProgress(false), priorityRaised(false),mReady(), mListeners(),
-               mListenersMutex(), mDownloadInProgressMutex(), mLoadStatusMutex(){
+               mListenersMutex(), mDownloadInProgressMutex(), mLoadStatusMutex()
+  {
     mReady = new rtPromise;
     mLoadStatus = new rtMapObject; 
     mLoadStatus.set("statusCode", 0);
@@ -121,10 +122,11 @@ protected:
   void notifyListenersResourceDirty();
 
   virtual void loadResourceFromFile() = 0;
-
   
   rtString mUrl;
   rtString mProxy;
+  rtData   mData;
+
   rtFileDownloadRequest* mDownloadRequest;
   bool mDownloadInProgress;
   bool priorityRaised;
@@ -140,7 +142,9 @@ protected:
 class rtImageResource : public pxResource, public pxTextureListener
 {
 public:
-  rtImageResource(const char* url = 0, const char* proxy = 0, int32_t iw = 0, int32_t ih = 0, float sx = 1.0f, float sy = 1.0f);
+  rtImageResource();
+  rtImageResource(const char* url, const char* proxy = 0, int32_t iw = 0, int32_t ih = 0, float sx = 1.0f, float sy = 1.0f);
+
   virtual ~rtImageResource();
 
   rtDeclareObject(rtImageResource, pxResource);
@@ -169,6 +173,9 @@ public:
   
   float   initSX() { return init_sx; };
   float   initSY() { return init_sy; };
+
+  void initUriData(const uint8_t* data, size_t length) { mData.init(data, length);                                };
+  void initUriData(rtString s)                         { mData.init( (const uint8_t* ) s.cString(), s.length() ); };
 
   virtual void releaseData();
   virtual void reloadData();
@@ -219,8 +226,7 @@ private:
 typedef std::map<rtString, rtImageResource*> ImageMap;
 typedef std::map<rtString, rtImageAResource*> ImageAMap;
 class pxImageManager
-{
-  
+{ 
   public: 
     static rtRef<rtImageResource> getImage(const char* url, const char* proxy = NULL,
                                           int32_t iw = 0, int32_t ih = 0, float sx = 1.0f, float sy = 1.0f);
@@ -236,10 +242,7 @@ class pxImageManager
 
     static ImageAMap mImageAMap;
     static rtRef<rtImageAResource> emptyUrlImageAResource;
-
 };
-
-
 
 #endif // PX_RESOURCE
 
