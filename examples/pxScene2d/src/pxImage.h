@@ -34,11 +34,13 @@ public:
   rtProperty(url, url, setUrl, rtString);
   rtProperty(stretchX, stretchX, setStretchX, int32_t);
   rtProperty(stretchY, stretchY, setStretchY, int32_t);
+  rtProperty(maskOp, maskOp, setMaskOp, int32_t);
+  
   rtProperty(resource, resource, setResource, rtObjectRef);
   rtProperty(downscaleSmooth, downscaleSmooth, setDownscaleSmooth, bool);
   
   pxImage(pxScene2d* scene) : pxObject(scene),mStretchX(pxConstantsStretch::NONE),mStretchY(pxConstantsStretch::NONE), 
-    imageLoaded(false), mListenerAdded(false), mDownscaleSmooth(false)
+          mMaskOp(pxConstantsMaskOperation::NORMAL), imageLoaded(false), mListenerAdded(false), mDownscaleSmooth(false)
   { 
     mw = -1;
     mh = -1;
@@ -61,6 +63,9 @@ public:
   rtError stretchY(int32_t& v) const { v = (int32_t)mStretchY; return RT_OK; }
   rtError setStretchY(int32_t v);
   
+  rtError maskOp(int32_t& v)   const { v = (int32_t)  mMaskOp; return RT_OK; }
+  rtError setMaskOp(int32_t v);
+  
   rtError resource(rtObjectRef& o) const { /*rtLogDebug("!!!!!!!!!!!!!!!!!!!!!!!pxImage getResource\n");*/o = mResource; return RT_OK; }
   rtError setResource(rtObjectRef o);
 
@@ -68,6 +73,7 @@ public:
   rtError setDownscaleSmooth(bool v);
 
   virtual void resourceReady(rtString readyResolution);
+  virtual void resourceDirty();
   //virtual bool onTextureReady(pxTextureCacheObject* textureCacheObject) {return true;}
   // !CLF: To Do: These names are terrible... find better ones!
   virtual float getOnscreenWidth();
@@ -76,6 +82,9 @@ public:
   void checkStretchX();
   void checkStretchY();
   rtError removeResourceListener();
+
+  virtual void releaseData(bool sceneSuspended);
+  virtual void reloadData(bool sceneSuspended);
   
 protected:
   virtual void draw();
@@ -84,6 +93,9 @@ protected:
 
   pxConstantsStretch::constants mStretchX;
   pxConstantsStretch::constants mStretchY;
+  
+  pxConstantsMaskOperation::constants  mMaskOp;
+  
   rtObjectRef mResource;
   
   bool imageLoaded;

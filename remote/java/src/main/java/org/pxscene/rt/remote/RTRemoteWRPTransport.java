@@ -1,4 +1,4 @@
-ipackage org.pxscene.rt.remote;
+package org.pxscene.rt.remote;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -144,4 +144,3 @@ public class RTRemoteWRPTransport implements RTRemoteTransport{
     return mac.toString();
   } 
 }
-

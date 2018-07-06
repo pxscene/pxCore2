@@ -163,13 +163,13 @@ long ZCALLBACK fseek_mem_func (opaque, stream, offset, origin)
   switch (origin)
   {
   case ZLIB_FILEFUNC_SEEK_CUR :
-    new_pos = mem->cur_offset + offset;
+    new_pos = (uLong)(mem->cur_offset + offset);
     break;
   case ZLIB_FILEFUNC_SEEK_END :
-    new_pos = mem->limit + offset;
+    new_pos = (uLong)(mem->limit + offset);
     break;
   case ZLIB_FILEFUNC_SEEK_SET :
-    new_pos = offset;
+    new_pos = (uLong)(offset);
     break;
   default: return -1;
   }

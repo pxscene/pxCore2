@@ -114,6 +114,16 @@ class pxImageTest : public testing::Test
         EXPECT_TRUE(pImage->getOnscreenHeight() == IMAGE_HEIGHT * 3);
     }
 
+    void pxImageCreateFailedTest()
+    {
+      pxScene2d* scene = mScene.getPtr();
+      scene->mDisposed = true;
+      rtObjectRef param;
+      rtObjectRef img;
+      EXPECT_TRUE(RT_FAIL == scene->create(param, img));
+      scene->mDisposed = false;
+    }
+
     pxScene2dRef mScene;
     rtObjectRef mImage;
 };
@@ -122,4 +132,5 @@ TEST_F(pxImageTest, pxImageCompleteTest)
 {
     pxImageOnScreenWidthTest();
     pxImageOnScreenHeightTest();
+    pxImageCreateFailedTest();
 }

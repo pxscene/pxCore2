@@ -1,3 +1,21 @@
+/*
+
+pxCore Copyright 2005-2018 John Robinson
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+*/
+
 #ifndef ENABLE_RT_NODE
 #define ENABLE_RT_NODE
 #endif
@@ -94,6 +112,14 @@ private:
       process();
       EXPECT_TRUE(mTestObj->mEmit->mEntries.size() == 0);
     }
+
+    void runPendingListenerTest()
+    {
+      rtObjectRef e = new rtMapObject;
+      mScene->mEmit.send("addPendingEvents",e);
+      process();
+      EXPECT_TRUE(mTestObj->mEmit->mPendingEntriesToAdd.size() == 0);
+    }
 private:
     pxObject*     mRoot;
     pxScriptView* mView;
@@ -108,4 +134,5 @@ TEST_F(eventListenerTests, eventListenerTest)
     runAddListenerTest();
     runDelListenerImproperTest();
     runDelListenerProperTest();
+    runPendingListenerTest();
 }

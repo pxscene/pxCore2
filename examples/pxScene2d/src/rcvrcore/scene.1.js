@@ -34,6 +34,7 @@ function Scene() {
 
       this.animation = scene.animation;
       this.stretch   = scene.stretch;
+      this.maskOp    = scene.maskOp;
       this.alignVertical = scene.alignVertical;
       this.alignHorizontal = scene.alignHorizontal;
       this.truncation = scene.truncation;
@@ -78,6 +79,14 @@ function Scene() {
     return nativeScene.collectGarbage();
   };
 
+  this.suspend = function() {
+    return nativeScene.suspend({});
+  };
+
+  this.resume = function() {
+    return nativeScene.resume({});
+  };
+
   this.loadArchive = function(u) {
     return nativeScene.loadArchive(u);
   };
@@ -98,108 +107,63 @@ function Scene() {
   this.create = function create(params) {
     applyStyle.call(this, params);
 
-    if(params.t === "path")
-    {
-      if(params.hasOwnProperty("strokeColor") )
+      function getColor(val)
       {
-        var clr = "" + params.strokeColor + "";
+        clr = "" + val + "";
         
-        // Support #RRGGBB  and #RGB web style color syntax
+        var ans = 0x00000000; // transparent (default)
+        
+        // Support #RRGGBB web style color syntax
         if(clr.match(/#([0-9a-f]{6})/i) )
         {
-          clr = clr.replace(/#([0-9a-f]{6})/i, "0x$1FF");
-          params.strokeColor = parseInt(clr, 16);
+          clr = clr.replace(/#([0-9a-f]{6})/i, "0x$1FF");  // tack on ALPHA at lsb to ($1) amtch
+          ans = parseInt(clr, 16);
         }
         else
-          if(clr.match(/#([0-9a-f]{1})([0-9a-f]{1})([0-9a-f]{1})/i) )
-          {
-            clr = clr.replace(/#([0-9a-f]{1})([0-9a-f]{1})([0-9a-f]{1})/i, "0x0$10$20$3FF");
-            params.strokeColor = parseInt(clr, 16);
-          }
+        // Support #RGB web style color syntax
+        if(clr.match(/#([0-9a-f]{1})([0-9a-f]{1})([0-9a-f]{1})/i) )
+        {
+          clr = clr.replace(/#([0-9a-f]{1})([0-9a-f]{1})([0-9a-f]{1})/i, "0x$1$1$2$2$3$3FF"); //  #rgb >>> 0xrrggbb
+          ans = parseInt(clr, 16);
+        }
+        else
+        {
+          ans = val; // pass-through
+        }
         
+        return ans;
+      }
+        
+      // Support for Web colors using #RGB  or #RRGGBB syntax
+      if(params.hasOwnProperty("textColor") )
+      {
+        params.textColor = getColor(params.textColor);
       }
       
+      // Support for Web colors using #RGB  or #RRGGBB syntax
+      if(params.hasOwnProperty("lineColor") )
+      {
+        params.lineColor = getColor(params.lineColor);
+      }
+  
+      // Support for Web colors using #RGB  or #RRGGBB syntax
       if(params.hasOwnProperty("fillColor") )
       {
-        var clr = "" + params.fillColor + "";
-        
-        // Support #RRGGBB  and #RGB web style color syntax
-        if(clr.match(/#([0-9a-f]{6})/i) )
-        {
-          clr = clr.replace(/#([0-9a-f]{6})/i, "0x$1FF");
-          params.fillColor = parseInt(clr, 16);
-        }
-        else
-          if(clr.match(/#([0-9a-f]{1})([0-9a-f]{1})([0-9a-f]{1})/i) )
-          {
-            clr = clr.replace(/#([0-9a-f]{1})([0-9a-f]{1})([0-9a-f]{1})/i, "0x0$10$20$3FF");
-            params.fillColor = parseInt(clr, 16);
-          }
+        params.fillColor = getColor(params.fillColor);
       }
-      
-      if(params.hasOwnProperty("d") )
-    {
-        if(params.d.match(/rect/i) )
-        {
-          params.d = params.d.replace(/rect/gi, "RECT");
-          
-          // normalize the path
-          params.d = params.d.replace(/,/g," ")
-          .replace(/-/g," -")
-          .replace(/ +/g," ");
-        }
-        else
-        if(params.d.match(/circle/i) )
-        {
-          params.d = params.d.replace(/circle/gi, "CIRCLE");
-          
-          // normalize the path
-          params.d = params.d.replace(/,/g," ")
-          .replace(/-/g," -")
-          .replace(/ +/g," ");
-        }
-        else
-        if(params.d.match(/ellipse/i))
-        {
-          params.d = params.d.replace(/ellipse/gi, "ELLIPSE");
-          
-          // normalize the path
-          params.d = params.d.replace(/,/g," ")
-          .replace(/-/g," -")
-          .replace(/ +/g," ");
-        }
-        else
-        if(params.d.match(/polygon/i))
-        {
-          params.d = params.d.replace(/polygon/gi, "POLYGON");
-          
-          // normalize the path
-          params.d = params.d.replace(/,/g," ")
-          .replace(/-/g," -")
-          .replace(/ +/g," ");
-        }
-        else
-        {
-          // normalize the path
-          params.d = params.d.replace(/\s*([mlvhqczastTSAMLVHQCZ])\s*/g,"\n$1 ")
-          .replace(/,/g," ")
-          .replace(/-/g," -")
-          .replace(/ +/g," ");
-        }
-      } // 'd' path
-    }//"path"
- 
-    var component = null;
-    if( componentDefinitions !== null && params.hasOwnProperty("t") ) {
-      component = createComponent(params);
-    }
+   
+      var component = null;
+      if( componentDefinitions !== null && params.hasOwnProperty("t") )
+      {
+        component = createComponent(params);
+      }
 
-    if( component !== null ) {
-      return component;
-    } else {
-      return nativeScene.create(params);
-    }
-  };
+      if( component !== null ) {
+        return component;
+      } else {
+        return nativeScene.create(params);
+      }
+  }; // ENDIF - create()
   
   this.stopPropagation = function() {
     return nativeScene.stopPropagation();

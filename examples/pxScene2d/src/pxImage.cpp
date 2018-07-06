@@ -119,7 +119,8 @@ rtError pxImage::url(rtString& s) const
 rtError pxImage::setUrl(const char* s)
 {
 #ifdef ENABLE_PERMISSIONS_CHECK
-  rtPermissionsCheck((mScene != NULL ? mScene->permissions() : NULL), s, rtPermissions::DEFAULT)
+  if (mScene != NULL && RT_OK != mScene->permissions()->allows(s, rtPermissions::DEFAULT))
+    return RT_ERROR_NOT_ALLOWED;
 #endif
 
   //rtLogInfo("pxImage::setUrl init=%d imageLoaded=%d \n", mInitialized, imageLoaded);
@@ -148,9 +149,17 @@ rtError pxImage::setUrl(const char* s)
     } */
   }
 
-
   removeResourceListener();
-  mResource = pxImageManager::getImage(s);
+  
+  if(resourceObj)
+  {
+    mResource = pxImageManager::getImage(s, NULL, resourceObj->initW(),  resourceObj->initH(),
+                                                  resourceObj->initSX(), resourceObj->initSY() );
+  }
+  else
+  {
+    mResource = pxImageManager::getImage(s, NULL);
+  }
 
   if(getImageResource() != NULL && getImageResource()->getUrl().length() > 0 && mInitialized && !imageLoaded) {
     mListenerAdded = true;
@@ -192,13 +201,13 @@ float pxImage::getOnscreenHeight()
 void pxImage::draw() {
   //rtLogDebug("pxImage::draw() mw=%f mh=%f\n", mw, mh);
   static pxTextureRef nullMaskRef;
-  if (getImageResource() != NULL && getImageResource()->isInitialized())
+  if (getImageResource() != NULL && getImageResource()->isInitialized() && !mSceneSuspended)
   {
     context.drawImage(0, 0,
                       getOnscreenWidth(),
                       getOnscreenHeight(),
                       getImageResource()->getTexture(), nullMaskRef,
-                      false, NULL, mStretchX, mStretchY, mDownscaleSmooth);
+                      false, NULL, mStretchX, mStretchY, mDownscaleSmooth, mMaskOp);
   }
   // Raise the priority if we're still waiting on the image download    
 #if 0
@@ -208,7 +217,6 @@ void pxImage::draw() {
 }
 void pxImage::resourceReady(rtString readyResolution)
 {
-
   //rtLogDebug("pxImage::resourceReady(%s) mInitialized=%d for \"%s\"\n",readyResolution.cString(),mInitialized,getImageResource()->getUrl().cString());
   if( !readyResolution.compare("resolve"))
   {
@@ -233,6 +241,22 @@ void pxImage::resourceReady(rtString readyResolution)
       pxObject::onTextureReady();
       mReady.send("reject",this);
   }
+
+  bool isSceneSuspended = false;
+  if (getScene())
+  {
+    getScene()->suspended(isSceneSuspended);
+  }
+  mSceneSuspended = isSceneSuspended;
+  if (isSceneSuspended && getImageResource())
+  {
+    getImageResource()->releaseData();
+  }
+}
+
+void pxImage::resourceDirty()
+{
+  pxObject::onTextureReady();
 }
 
 void pxImage::dispose(bool pumpJavascript)
@@ -282,6 +306,12 @@ rtError pxImage::setStretchY(int32_t v)
   return RT_OK;
 }
 
+rtError pxImage::setMaskOp(int32_t v)
+{
+  mMaskOp = (pxConstantsMaskOperation::constants)v;
+  return RT_OK;
+}
+
 rtError pxImage::downscaleSmooth(bool& v) const
 {
     v = mDownscaleSmooth;
@@ -307,11 +337,28 @@ rtError pxImage::removeResourceListener()
   return RT_OK;
 }
 
+void pxImage::releaseData(bool sceneSuspended)
+{
+  if (getImageResource())
+  {
+    getImageResource()->releaseData();
+  }
+  pxObject::releaseData(sceneSuspended);
+}
+
+void pxImage::reloadData(bool sceneSuspended)
+{
+  if (getImageResource())
+  {
+    getImageResource()->reloadData();
+  }
+  pxObject::reloadData(sceneSuspended);
+}
+
 rtDefineObject(pxImage,pxObject);
-rtDefineProperty(pxImage,url);
+rtDefineProperty(pxImage, url);
 rtDefineProperty(pxImage, resource);
-rtDefineProperty(pxImage,stretchX);
-rtDefineProperty(pxImage,stretchY);
-rtDefineProperty(pxImage,downscaleSmooth);
-
-
+rtDefineProperty(pxImage, stretchX);
+rtDefineProperty(pxImage, stretchY);
+rtDefineProperty(pxImage, maskOp);
+rtDefineProperty(pxImage, downscaleSmooth);

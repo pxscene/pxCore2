@@ -66,7 +66,8 @@ rtError pxImage9::url(rtString& s) const
 rtError pxImage9::setUrl(const char* s) 
 {
 #ifdef ENABLE_PERMISSIONS_CHECK
-  rtPermissionsCheck((mScene != NULL ? mScene->permissions() : NULL), s, rtPermissions::DEFAULT)
+  if (mScene != NULL && RT_OK != mScene->permissions()->allows(s, rtPermissions::DEFAULT))
+    return RT_ERROR_NOT_ALLOWED;
 #endif
 
   rtImageResource* resourceObj = getImageResource();  
@@ -158,7 +159,7 @@ float pxImage9::getOnscreenHeight()
 
 
 void pxImage9::draw() {
-  if (getImageResource() != NULL && getImageResource()->isInitialized())
+  if (getImageResource() != NULL && getImageResource()->isInitialized() && !mSceneSuspended)
   {
     context.drawImage9(mw, mh, mInsetLeft, mInsetTop, mInsetRight, mInsetBottom, getImageResource()->getTexture());
   }
@@ -172,8 +173,8 @@ void pxImage9::resourceReady(rtString readyResolution)
     imageLoaded = true; 
     // nineslice gets its w and h from the image only if
     // not set for the pxImage9
-    if( mw == -1 && getImageResource() != NULL) { mw = getImageResource()->w(); }
-    if( mh == -1 && getImageResource() != NULL) { mh = getImageResource()->h(); }
+    if( mw == -1 && getImageResource() != NULL) { mw = static_cast<float>(getImageResource()->w()); }
+    if( mh == -1 && getImageResource() != NULL) { mh = static_cast<float>(getImageResource()->h()); }
     imageLoaded = true;
     pxObject::onTextureReady();
     // Now that image is loaded, must force redraw;
@@ -195,6 +196,11 @@ void pxImage9::resourceReady(rtString readyResolution)
   }
 }
 
+void pxImage9::resourceDirty()
+{
+  pxObject::onTextureReady();
+}
+
 rtError pxImage9::removeResourceListener()
 {
   if (mListenerAdded)
@@ -206,6 +212,24 @@ rtError pxImage9::removeResourceListener()
     mListenerAdded = false;
   }
   return RT_OK;
+}
+
+void pxImage9::releaseData(bool sceneSuspended)
+{
+  if (getImageResource())
+  {
+    getImageResource()->releaseData();
+  }
+  pxObject::releaseData(sceneSuspended);
+}
+
+void pxImage9::reloadData(bool sceneSuspended)
+{
+  if (getImageResource())
+  {
+    getImageResource()->reloadData();
+  }
+  pxObject::reloadData(sceneSuspended);
 }
 
 rtDefineObject(pxImage9, pxObject);

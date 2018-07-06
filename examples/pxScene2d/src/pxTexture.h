@@ -41,6 +41,11 @@ public:
   virtual pxError bindGLTextureAsMask(int mLoc) = 0;
 };
 
+class pxTextureListener
+{
+public:
+  virtual void textureReady() = 0;
+};
 
 class pxTexture: public pxTextureNative
 {
@@ -77,6 +82,7 @@ public:
   virtual pxError loadTextureData() { return PX_OK; }
   virtual pxError unloadTextureData() { return PX_OK; }
   virtual pxError freeOffscreenData() { return PX_OK; }
+  virtual pxError setTextureListener(pxTextureListener* /*textureListener*/) { return PX_OK; }
   bool premultipliedAlpha() { return mPremultipliedAlpha; }
   void enablePremultipliedAlpha(bool enable) { mPremultipliedAlpha = enable; }
   virtual void* getSurface() { return NULL; }
@@ -84,6 +90,7 @@ public:
   void setLastRenderTick(uint32_t renderTick) { mLastRenderTick = renderTick; }
   void setDownscaleSmooth(bool downscaleSmooth) { mDownscaleSmooth = downscaleSmooth; }
   bool downscaleSmooth() { return mDownscaleSmooth; }
+  bool initialized() { return true; }
 protected:
   rtAtomic mRef;
   pxTextureType mTextureType;

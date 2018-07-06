@@ -54,6 +54,8 @@ rtError rtEmit::setListener(const char* eventName, rtIFunction* f)
     e.n = eventName;
     e.f = f;
     e.isProp = true;
+    e.markForDelete = false;
+    e.fnHash = f->hash();
     mEntries.push_back(e);      
   }
   
@@ -71,7 +73,8 @@ rtError rtEmit::addListener(const char* eventName, rtIFunction* f)
   {
     _rtEmitEntry& e = (*it);
     // mHash check for javscript events callback 
-    if (e.n == eventName && ((e.f.getPtr() == f) || ((f->hash() != -1) && (e.fnHash == f->hash()))) && !e.isProp)
+    // markForDelete check is added to handle scenario where same handler is deleted and added immediately in same handler
+    if (e.n == eventName && ((e.f.getPtr() == f) || ((f->hash() != (size_t)-1) && (e.fnHash == f->hash()) && (false == e.markForDelete))) && !e.isProp)
     {
       found = true;
       break;
@@ -85,7 +88,15 @@ rtError rtEmit::addListener(const char* eventName, rtIFunction* f)
     e.isProp = false;
     e.markForDelete = false;
     e.fnHash = f->hash();
-    mEntries.push_back(e);
+    if (!mProcessingEvents)
+    {
+      mEntries.push_back(e);
+    }
+    else
+    {
+      //save pending events to add later after current event processing is done
+      mPendingEntriesToAdd.push_back(e);
+    }
   }
   
   return RT_OK;
@@ -177,6 +188,22 @@ rtError rtEmit::Send(int numArgs, const rtValue* args, rtValue* result)
         ++it;
       }
     }
+
+    vector<_rtEmitEntry>::iterator pendingit = mPendingEntriesToAdd.begin();
+    while (pendingit != mPendingEntriesToAdd.end())
+    {
+      _rtEmitEntry& src = (*pendingit);
+      _rtEmitEntry dest;
+      dest.n = src.n;
+      dest.f = src.f;
+      dest.isProp = src.isProp;
+      dest.markForDelete = src.markForDelete;
+      dest.fnHash = src.fnHash;
+
+      mEntries.push_back(dest);
+      ++pendingit;
+    }
+    mPendingEntriesToAdd.clear();
   }
   return RT_OK;
 }

@@ -94,6 +94,9 @@ public:
 
 class pxTexturedQuads
 {
+  // limit the size of vectors per quad to prevent memory
+  // issues when rendering
+  static const int maxVectorSize = 60000;
   public:
 
   struct quads
@@ -107,7 +110,7 @@ class pxTexturedQuads
 
   void addQuad(float x1,float y1,float x2,float y2, float u1, float v1, float u2, float v2, pxTextureRef t)
   {
-    if (mQuads.empty() || mQuads[mQuads.size()-1].t != t)
+    if (mQuads.empty() || mQuads[mQuads.size()-1].t != t || mQuads[mQuads.size()-1].verts.size() >= maxVectorSize)
     {
       quads q;
       q.t = t;
@@ -266,10 +269,12 @@ public:
   void measureTextInternal(const char* text, uint32_t size,  float sx, float sy, 
                    float& w, float& h);
   void measureTextChar(u_int32_t codePoint, uint32_t size,  float sx, float sy, 
-                         float& w, float& h);                   
+                         float& w, float& h);
+  #ifndef PXSCENE_FONT_ATLAS
   void renderText(const char *text, uint32_t size, float x, float y, 
                   float sx, float sy, 
                   float* color, float mw);
+  #endif
 
   #ifdef PXSCENE_FONT_ATLAS
   // Should reinvoke on changes to text, size, or scale params
@@ -288,7 +293,7 @@ public:
    
 protected:
   // Implementation for pxResource virtuals
-  virtual bool loadResourceData(rtFileDownloadRequest* fileDownloadRequest);
+  virtual uint32_t loadResourceData(rtFileDownloadRequest* fileDownloadRequest);
   
 private:
   void loadResourceFromFile();
