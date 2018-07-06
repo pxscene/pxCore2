@@ -68,11 +68,23 @@ retVal=$?
 # Monitor testRunner ...
 count=0
 max_seconds=1500
-
+isimage9=1
+crossedimage9=0
 while [ "$retVal" -ne 0 ] &&  [ "$count" -ne "$max_seconds" ]; do
 	printf "\n [execute_linux.sh] snoozing for 30 seconds (%d of %d) \n" $count $max_seconds
 	sleep 30; # seconds
-
+#handle image9 test hang scenario and take the stack frame at the time of hang
+ if [ "$isimage9" -eq 0 ] 
+ then
+    grep "Running image9 testReload" $EXECLOGS
+    isimage9success=$?
+    if [ "$isimage9success" -ne 0 ] 
+    then
+		  gdb $TRAVIS_BUILD_DIR/examples/pxScene2d/src/pxscene -batch -q -ex "target remote | vgdb" -ex "thread apply all bt" -ex "quit"
+    fi
+    isimage9=1
+    crossedimage9=1
+  fi
 	grep "TEST RESULTS: " $EXECLOGS
 	retVal=$?
 	
@@ -82,6 +94,12 @@ while [ "$retVal" -ne 0 ] &&  [ "$count" -ne "$max_seconds" ]; do
 		ls -lrt core
 		retVal=$?
 	fi
+
+  if [ "$crossedimage9" -eq 0 ] 
+  then
+    grep "Running image9 testLoad" $EXECLOGS
+    isimage9=$?
+  fi
 done
 
 kill -15 `ps -ef | grep pxscene |grep -v grep|grep -v pxscene.sh|awk '{print $2}'`
@@ -165,7 +183,7 @@ else
 fi
 
 #check for crash before valgrind test, as we might have got scenario where pxscene might have crashed during term
-ls -lrt "*valgrind*"
+ls -lrt *valgrind*
 $TRAVIS_BUILD_DIR/ci/check_dump_cores_linux.sh `pwd` pxscene $EXECLOGS
 retVal=$?
 if [ "$retVal" -eq 1 ]
@@ -185,14 +203,22 @@ if [ "$retVal" -eq 0 ]
 	then
 	echo "************************* Valgrind reports success *************************";
 else
+	grep "definitely lost:" $VALGRINDLOGS
+	leakcheck=$?
+	if [ "$leakcheck" -eq 0 ]
+	then
+		errCause="Memory leaks present"
+	else
+		errCause="Execution stopped due to crash or abnormal execution"
+	fi
 	if [ "$TRAVIS_PULL_REQUEST" != "false" ]
-		then
-		errCause="Check the above logs"
+	then
+		errCause="$errCause . Check the above logs"
 		printValgrindLogs
 	else
-		errCause="Check the file $VALGRINDLOGS and see for definitely lost count"
+		errCause="$errCause . Check the file $VALGRINDLOGS "
 	fi
-	checkError $retVal "Valgrind execution reported memory leaks" "$errCause" "Follow the steps locally : export ENABLE_VALGRIND=1;export SUPPRESSIONS=<pxcore dir>/ci/leak.supp;./pxscene.sh $TESTRUNNERURL?tests=<pxcore dir>/tests/pxScene2d/testRunner/tests.json and fix the leaks"
+	checkError $retVal "Valgrind execution reported problem" "$errCause" "Follow the steps locally : export ENABLE_VALGRIND=1;export SUPPRESSIONS=<pxcore dir>/ci/leak.supp;./pxscene.sh $TESTRUNNERURL?tests=<pxcore dir>/tests/pxScene2d/testRunner/tests.json and fix it"
 	exit 1;
 fi
 exit 0;
