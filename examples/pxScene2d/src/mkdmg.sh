@@ -147,7 +147,12 @@ createDMG() {
   #applescript clauses to set icon positions within the dmg
   BACKGROUND_CLAUSE="set background picture of opts to file \".background:${BACKGROUND_FILE_NAME}\""
   REPOSITION_HIDDEN_FILES_CLAUSE="set position of every item to {theBottomRightX + 100, 100}"
-  POSITION_CLAUSE="${POSITION_CLAUSE}set position of item \"pxscene.app\" to {240, 140}"
+  if [ "$TRAVIS_EVENT_TYPE" == "cron" ]
+  then  
+    POSITION_CLAUSE="${POSITION_CLAUSE}set position of item \"pxsceneEdge.app\" to {240, 140}"
+  else
+    POSITION_CLAUSE="${POSITION_CLAUSE}set position of item \"pxscene.app\" to {240, 140}"
+  fi  
   APPLICATION_CLAUSE="set position of item \"Applications\" to {240, 390}"
 
   DMG_FILE="deploy/mac/pxscene.dmg"

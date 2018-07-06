@@ -33,7 +33,7 @@ px.import({ scene:      'px:scene.1.js',
   var scene = imports.scene;
   var keys  = imports.keys;
   var root  = imports.scene.root;
-
+ 
   var urlFocusColor     = 0x303030ff;
   var urlSucceededColor = 0x0c8508ff;
   var urlFailedColor    = 0xde0700ff;
@@ -42,7 +42,7 @@ px.import({ scene:      'px:scene.1.js',
 
   var fontRes   = scene.create({ t: "fontResource",  url: "FreeSans.ttf" });
 
-  var bg        = scene.create({t:"image", parent: root, url:"browser/images/status_bg.png", stretchX: myStretch, stretchY: myStretch});
+  var bg        = scene.create({t:"image",  parent: root, url:"browser/images/status_bg.png", stretchX: myStretch, stretchY: myStretch});
   var browser   = scene.create({t:"object", parent: bg} );
   var content   = scene.create({t:"scene",  parent: bg,      x:10, y:60, clip:true });
 
@@ -197,7 +197,7 @@ px.import({ scene:      'px:scene.1.js',
     helpBox.y   = inputBox.y + pageInsetL;
 
     spinner.x   = inputBox.x + inputBox.w - pageInsetT + 10;
-    spinner.y  = inputBox.y - inputBox.h;
+    spinner.y   = inputBox.y - inputBox.h;
   }
 
   scene.root.on("onPreKeyDown", function(e)

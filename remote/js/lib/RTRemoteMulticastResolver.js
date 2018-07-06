@@ -135,7 +135,7 @@ class RTRemoteMulticastResolver {
           preCheckTime = now;
 
           // do next search
-          this.udpSocketOut.send(locateBuffer, this.port, ip.address(), (err) => {
+          this.udpSocketOut.send(locateBuffer, this.port, this.address, (err) => {
             if (err) {
               clearInterval(intervalId);
               reject(err);

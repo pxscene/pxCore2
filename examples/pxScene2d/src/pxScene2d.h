@@ -162,6 +162,8 @@ public:
   rtProperty(y, y, setY, float);
   rtProperty(w, w, setW, float);
   rtProperty(h, h, setH, float);
+  rtProperty(px, px, setPX, float);
+  rtProperty(py, py, setPY, float);
   rtProperty(cx, cx, setCX, float);
   rtProperty(cy, cy, setCY, float);
   rtProperty(sx, sx, setSX, float);
@@ -315,6 +317,12 @@ public:
   float h()             const { return mh; }
   rtError h(float& v)   const { v = mh; return RT_OK;   }
   virtual rtError setH(float v)       { cancelAnimation("h"); createNewPromise();mh = v; return RT_OK;   }
+  float px()            const { return mpx;}
+  rtError px(float& v)  const { v = mpx; return RT_OK;  }
+  rtError setPX(float v)      { cancelAnimation("px"); createNewPromise();mpx = (v > 1) ? 1 : (v < 0) ? 0 : v; return RT_OK;  }
+  float py()            const { return mpy;}
+  rtError py(float& v)  const { v = mpy; return RT_OK;  }
+  rtError setPY(float v)      { cancelAnimation("py"); createNewPromise();mpy = (v > 1) ? 1 : (v < 0) ? 0 : v; return RT_OK;  }
   float cx()            const { return mcx;}
   rtError cx(float& v)  const { v = mcx; return RT_OK;  }
   rtError setCX(float v)      { cancelAnimation("cx"); createNewPromise();mcx = v; return RT_OK;  }
@@ -433,6 +441,8 @@ public:
   //}
 
   virtual void update(double t);
+  virtual void releaseData(bool sceneSuspended);
+  virtual void reloadData(bool sceneSuspended);
 
   // non-destructive applies transform on top of of provided matrix
   virtual void applyMatrix(pxMatrix4f& m)
@@ -491,9 +501,14 @@ public:
     if (!mUseMatrix)
     {
 #if 1
+      float dx = -(mpx * mw);
+      float dy = -(mpy * mh);
+      
       // translate based on xy rotate/scale based on cx, cy
-      m.translate(mx+mcx, my+mcy);
-      if (mr) {
+      m.translate(mx + mcx + dx, my + mcy + dy);
+      
+      if (mr)
+      {
         m.rotateInDegrees(mr
 #ifdef ANIMATION_ROTATE_XYZ
         , mrx, mry, mrz
@@ -711,7 +726,7 @@ protected:
   pxObject* mParent;
   std::vector<rtRef<pxObject> > mChildren;
 //  vector<animation> mAnimations;
-  float mcx, mcy, mx, my, ma, mr;
+  float mpx, mpy, mcx, mcy, mx, my, ma, mr;
 #ifdef ANIMATION_ROTATE_XYZ
   float mrx, mry, mrz;
 #endif // ANIMATION_ROTATE_XYZ
@@ -752,6 +767,7 @@ protected:
   pxContextFramebufferRef mDrawableSnapshotForMask;
   pxContextFramebufferRef mMaskSnapshot;
   bool mIsDisposed;
+  bool mSceneSuspended;
 
  private:
   rtError _pxObject(voidPtr& v) const {
@@ -1042,6 +1058,8 @@ public:
   virtual void createNewPromise(){ rtLogDebug("pxSceneContainer ignoring createNewPromise\n"); }
 
   virtual void* getInterface(const char* name);
+  virtual void releaseData(bool sceneSuspended);
+  virtual void reloadData(bool sceneSuspended);
   
 private:
   rtRef<pxScriptView> mScriptView;
@@ -1148,6 +1166,9 @@ public:
   {
     return mEmit->delListener(eventName, f);
   }
+
+  rtError suspend(const rtValue& v, bool& b);
+  rtError resume(const rtValue& v, bool& b);
   
 protected:
 
@@ -1299,6 +1320,9 @@ public:
   rtMethodNoArgAndNoReturn("logDebugMetrics", logDebugMetrics);
   rtMethodNoArgAndNoReturn("collectGarbage", collectGarbage);
   rtReadOnlyProperty(info, info, rtObjectRef);
+  rtMethod1ArgAndReturn("suspend", suspend, rtValue, bool);
+  rtMethod1ArgAndReturn("resume", resume, rtValue, bool);
+  rtMethodNoArgAndReturn("suspended", suspended, bool);
 /*
   rtMethod1ArgAndReturn("createExternal", createExternal, rtObjectRef,
                         rtObjectRef);
@@ -1436,6 +1460,9 @@ public:
   rtError clock(double & time);
   rtError logDebugMetrics();
   rtError collectGarbage();
+  rtError suspend(const rtValue& v, bool& b);
+  rtError resume(const rtValue& v, bool& b);
+  rtError suspended(bool &b);
 
   rtError addListener(rtString eventName, const rtFunctionRef& f)
   {
@@ -1620,6 +1647,7 @@ private:
 #ifdef ENABLE_PERMISSIONS_CHECK
   rtPermissionsRef mPermissions;
 #endif
+  bool mSuspended;
 public:
   void hidePointer( bool hide )
   {
