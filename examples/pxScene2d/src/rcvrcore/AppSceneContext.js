@@ -413,6 +413,7 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (packageUri, module
         console: console,
         timers: timers,
         global: global,
+        isV8: isV8,
         setTimeout: setTimeout,
         clearTimeout: clearTimeout,
         setInterval: setInterval,
@@ -424,7 +425,11 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (packageUri, module
         queryStringModule: require("querystring"),
         theNamedContext: "Sandbox: " + uri,
         //Buffer: Buffer,
-        importTracking: {}
+        importTracking: {},
+        print: print,
+        getScene: getScene,
+        makeReady: makeReady,
+        getContextID: getContextID
       }; // end sandbox
 
       queryStringModule = require("querystring");
@@ -679,8 +684,9 @@ AppSceneContext.prototype.include = function(filePath, currentXModule) {
       modData = require('rcvrcore/' + filePath + '_wrap');
       onImportComplete([modData, origFilePath]);
       return;
-    } else if( filePath === 'http' || filePath === 'https' ) {
-      modData = filePath === 'http' ? new http_wrap(_this.accessControl) : new https_wrap(_this.accessControl);
+    } else if (filePath === 'http' || filePath === 'https') {
+      var accessControl = (isV8 || isDuk) ? null : _this.accessControl;
+      modData = filePath === 'http' ? new http_wrap(accessControl) : new https_wrap(accessControl);
       onImportComplete([modData, origFilePath]);
       return;
     } else if( filePath.substring(0, 9) === "px:scene.") {

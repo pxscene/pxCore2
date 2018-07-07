@@ -16,9 +16,9 @@ limitations under the License.
 
 */
 
-#include "rtFunctionWrapper.h"
-#include "rtWrapperUtils.h"
-#include "jsCallback.h"
+#include "rtFunctionWrapperV8.h"
+#include "rtWrapperUtilsV8.h"
+#include "jsCallbackV8.h"
 
 #include <vector>
 using namespace v8;
@@ -392,20 +392,8 @@ rtError jsFunctionWrapper::Send(int numArgs, const rtValue* args, rtValue* resul
 
   if (result) // wants result run synchronously
   {
-    //if (rtIsMainThreadNode()) // main thread run now
-    {
-      *result = callback->run();
-      delete callback;
-    }
-    //else // queue and wait
-    //{
-    //  setupSynchronousWait();
-    //  callback->registerForCompletion(jsFunctionCompletionHandler, this);
-    //  callback->enqueue();
-
-    //  // !CLF: When/why was this wait() introduced?  Need fix for multi-thread solution
-    // // *result = wait();
-    //}
+    *result = callback->run();
+    delete callback;
   }
   else // just queue
   {

@@ -19,8 +19,8 @@ limitations under the License.
 #ifndef RT_FUNCTION_WRAPPER_H
 #define RT_FUNCTION_WRAPPER_H
 
-#include "rtWrapperUtils.h"
-#include "jsCallback.h"
+#include "rtWrapperUtilsV8.h"
+#include "jsCallbackV8.h"
 
 #ifdef USE_STD_THREADS
 #  include <mutex>

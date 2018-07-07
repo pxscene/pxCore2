@@ -16,10 +16,11 @@ limitations under the License.
 
 */
 
-#include "rtWrapperUtils.h"
-#include "rtObjectWrapper.h"
-#include "rtFunctionWrapper.h"
-#include "rtJsModules.h"
+#include "rtWrapperUtilsV8.h"
+#include "rtObjectWrapperV8.h"
+#include "rtFunctionWrapperV8.h"
+#include "rtJsModulesV8.h"
+#include "rtFileDownloader.h"
 #include <rtMutex.h>
 
 #include <string>
@@ -537,7 +538,7 @@ static void uvRunInNewContext(const v8::FunctionCallbackInfo<v8::Value>& args)
   v8::Persistent<v8::Context> pContext;
   pContext.Reset(isolate, toContext);
 
-  Local<Context> fromContext = isolate->GetCurrentContext();
+  Local<Context> fromContext = isolate->GetCallingContext();
 
   Context::Scope contextScope(toContext);
 
@@ -545,10 +546,11 @@ static void uvRunInNewContext(const v8::FunctionCallbackInfo<v8::Value>& args)
 
   v8CopyProperties(isolate, fromContext, toContext, sandbox);
 
-  {
-    Handle<Object> global = toContext->Global();
-    global->Set(String::NewFromUtf8(isolate, "isV8", NewStringType::kNormal).ToLocalChecked(),
-      v8::Integer::New(isolate, 1));
+  for (int i = 0; v8ModuleBindings[i].mName != NULL; ++i) {
+    Local<FunctionTemplate> fTemplate = v8::FunctionTemplate::New(isolate, 
+      v8ModuleBindings[i].mCallback, v8::External::New(isolate, loop));
+    toContext->Global()->Set(String::NewFromUtf8(isolate,
+      v8ModuleBindings[i].mName, NewStringType::kNormal).ToLocalChecked(), fTemplate->GetFunction());
   }
 
   Local<String> source = String::NewFromUtf8(isolate, sourceCode.cString());
@@ -583,5 +585,82 @@ rtV8FunctionItem v8ModuleBindings[] = {
   { "uv_run_in_new_context", &uvRunInNewContext },
   { NULL, NULL },
 };
+
+class rtHttpResponse : public rtObject
+{
+public:
+  rtDeclareObject(rtHttpResponse, rtObject);
+  rtReadOnlyProperty(statusCode, statusCode, int32_t);
+  rtReadOnlyProperty(message, errorMessage, rtString);
+  rtMethod2ArgAndNoReturn("on", addListener, rtString, rtFunctionRef);
+
+  rtHttpResponse() : mStatusCode(0) {
+    mEmit = new rtEmit();
+  }
+
+  rtError statusCode(int32_t& v) const { v = mStatusCode;  return RT_OK; }
+  rtError errorMessage(rtString& v) const { v = mErrorMessage;  return RT_OK; }
+  rtError addListener(rtString eventName, const rtFunctionRef& f) { mEmit->addListener(eventName, f); return RT_OK; }
+
+  static void onDownloadComplete(rtFileDownloadRequest* downloadRequest);
+  static size_t onDownloadInProgress(void *ptr, size_t size, size_t nmemb, void *userData);
+
+private:
+  int32_t mStatusCode;
+  rtString mErrorMessage;
+  rtEmitRef mEmit;
+};
+
+rtDefineObject(rtHttpResponse, rtObject);
+rtDefineProperty(rtHttpResponse, statusCode);
+rtDefineProperty(rtHttpResponse, message);
+rtDefineMethod(rtHttpResponse, addListener);
+
+void rtHttpResponse::onDownloadComplete(rtFileDownloadRequest* downloadRequest)
+{
+  rtHttpResponse* resp = (rtHttpResponse*)downloadRequest->callbackData();
+
+  resp->mStatusCode = downloadRequest->httpStatusCode();
+  resp->mErrorMessage = downloadRequest->errorString();
+
+  resp->mEmit.send(resp->mErrorMessage.isEmpty() ? "end" : "error", (rtIObject *)resp);
+}
+
+size_t rtHttpResponse::onDownloadInProgress(void *ptr, size_t size, size_t nmemb, void *userData)
+{
+  rtHttpResponse* resp = (rtHttpResponse*)userData;
+
+  if (size * nmemb > 0) {
+    resp->mEmit.send("data", rtString((const char *)ptr, size*nmemb));
+  }
+  return 0;
+}
+
+rtError rtHttpGetBinding(int numArgs, const rtValue* args, rtValue* result, void* context)
+{
+  if (numArgs != 2) {
+    return RT_ERROR_INVALID_ARG;
+  }
+
+  if (args[0].getType() != RT_stringType) {
+    return RT_ERROR_INVALID_ARG;
+  }
+
+  if (args[1].getType() != RT_functionType) {
+    return RT_ERROR_INVALID_ARG;
+  }
+
+  rtValue ret;
+  rtObjectRef resp(new rtHttpResponse());
+  args[1].toFunction().sendReturns(resp, ret);
+
+  rtFileDownloadRequest *downloadRequest = new rtFileDownloadRequest(args[0].toString(), resp.getPtr(), rtHttpResponse::onDownloadComplete);
+  downloadRequest->setDownloadProgressCallbackFunction(rtHttpResponse::onDownloadInProgress, resp.getPtr());
+  rtFileDownloader::instance()->addToDownloadQueue(downloadRequest);
+
+  *result = resp;
+
+  return RT_OK;
+}
 
 } // namespace

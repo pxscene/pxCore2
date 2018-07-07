@@ -27,7 +27,7 @@ limitations under the License.
 #include <rtValue.h>
 
 #include "rtScript.h"
-#include "rtWrapperUtils.h"
+#include "rtWrapperUtilsV8.h"
 
 #include <stdarg.h>
 #include <string>
@@ -42,6 +42,8 @@ namespace rtScriptV8Utils
 {
 
   extern rtV8FunctionItem v8ModuleBindings[];
+
+  rtError rtHttpGetBinding(int numArgs, const rtValue* args, rtValue* result, void* context);
 
 } // namespace
 

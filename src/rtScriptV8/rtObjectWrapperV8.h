@@ -19,7 +19,7 @@ limitations under the License.
 #ifndef RT_OBJECT_WRAPPER_H
 #define RT_OBJECT_WRAPPER_H
 
-#include "rtWrapperUtils.h"
+#include "rtWrapperUtilsV8.h"
 
 using namespace v8;
 

@@ -16,9 +16,9 @@ limitations under the License.
 
 */
 
-#include "rtObjectWrapper.h"
-#include "rtFunctionWrapper.h"
-#include "rtWrapperUtils.h"
+#include "rtObjectWrapperV8.h"
+#include "rtFunctionWrapperV8.h"
+#include "rtWrapperUtilsV8.h"
 
 #include <rtLog.h>
 
