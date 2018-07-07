@@ -300,7 +300,7 @@ protected:
 // #endif
     }
 
-    //rtThreadPool::globalInstance()->destroy();
+    rtThreadPool::globalInstance()->destroy();
 #ifdef ENABLE_CODE_COVERAGE
     __gcov_flush();
 #endif
