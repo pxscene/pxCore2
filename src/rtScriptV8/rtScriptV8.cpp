@@ -59,8 +59,8 @@ extern "C" const char U_DATA_API SMALL_ICUDATA_ENTRY_POINT[];
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 #endif
 
-#include "rtWrapperUtils.h"
-#include "rtJsModules.h"
+#include "rtWrapperUtilsV8.h"
+#include "rtJsModulesV8.h"
 
 
 #ifdef  RT_V8_TEST_BINDINGS
@@ -82,8 +82,8 @@ extern "C" const char U_DATA_API SMALL_ICUDATA_ENTRY_POINT[];
 #include "rtAtomic.h"
 #include "rtScript.h"
 #include "rtPromise.h"
-#include "rtFunctionWrapper.h"
-#include "rtObjectWrapper.h"
+#include "rtFunctionWrapperV8.h"
+#include "rtObjectWrapperV8.h"
 
 #include <string>
 #include <map>
@@ -98,9 +98,9 @@ extern "C" const char U_DATA_API SMALL_ICUDATA_ENTRY_POINT[];
 #include  "v8_headers.h"
 #include "libplatform/libplatform.h"
 
-#include "rtObjectWrapper.h"
-#include "rtFunctionWrapper.h"
-#include "rtWrapperUtils.h"
+#include "rtObjectWrapperV8.h"
+#include "rtFunctionWrapperV8.h"
+#include "rtWrapperUtilsV8.h"
 
 #if !defined(WIN32) & !defined(ENABLE_DFB)
 #pragma GCC diagnostic pop
@@ -197,6 +197,8 @@ private:
    uv_loop_t                     *mUvLoop;
 
    std::map<rtString, Persistent<Value> *> mLoadedModuleCache;
+
+   rtRef<rtFunctionCallback>      mHttpGetBinding;
 
    int mRefCount;
 
@@ -468,6 +470,10 @@ rtV8Context::rtV8Context(Isolate *isolate, Platform *platform, uv_loop_t *loop) 
   add("_testPromiseRejectedReturnFunc", g_testPromiseRejectedReturnFunc.getPtr());
   add("_testPromiseReturnRejectFunc", g_testPromiseReturnRejectFunc.getPtr());
 #endif
+
+  mHttpGetBinding = new rtFunctionCallback(rtHttpGetBinding);
+
+  add("httpGet", mHttpGetBinding.getPtr());
 }
 
 rtV8Context::~rtV8Context()
@@ -552,7 +558,7 @@ Local<Value> rtV8Context::loadV8Module(const rtString &name)
 
   Locker                locker(mIsolate);
   Isolate::Scope isolate_scope(mIsolate);
-  HandleScope     handle_scope(mIsolate);
+  EscapableHandleScope  handle_scope(mIsolate);
 
   Local<Context> localContext = PersistentToLocal<Context>(mIsolate, mContext);
   Context::Scope context_scope(localContext);
@@ -560,7 +566,7 @@ Local<Value> rtV8Context::loadV8Module(const rtString &name)
   // check in cache
   if (mLoadedModuleCache.find(path) != mLoadedModuleCache.end()) {
     Persistent<Value> *loadedModule = mLoadedModuleCache[path];
-    return PersistentToLocal<Value>(mIsolate, *loadedModule);
+    return  handle_scope.Escape(PersistentToLocal<Value>(mIsolate, *loadedModule));
   }
 
   rtString contents1 = "(function(){var module=this; var exports=(this.exports = new Object());";
@@ -576,14 +582,14 @@ Local<Value> rtV8Context::loadV8Module(const rtString &name)
 
   if (script.IsEmpty()) {
     rtLogWarn("module '%s' compilation failed (%s)", name.cString(), getTryCatchResult(localContext, tryCatch).cString());
-    return Local<Value>();
+    return  Local<Value>();
   }
 
   v8::MaybeLocal<v8::Value> result = script.ToLocalChecked()->Run(localContext);
 
   if (result.IsEmpty() || !result.ToLocalChecked()->IsFunction()) {
     rtLogWarn("module '%s' unexpected result (%s)", name.cString(), getTryCatchResult(localContext, tryCatch).cString());
-    return Local<Value>();
+    return  Local<Value>();
   }
 
   v8::Function *func = v8::Function::Cast(*result.ToLocalChecked());
@@ -591,7 +597,7 @@ Local<Value> rtV8Context::loadV8Module(const rtString &name)
 
   if (ret.IsEmpty()) {
     rtLogWarn("module '%s' unexpected call result (%s)", name.cString(), getTryCatchResult(localContext, tryCatch).cString());
-    return Local<Value>();
+    return  Local<Value>();
   }
 
   Local<Value> toRet = ret.ToLocalChecked();
@@ -600,7 +606,7 @@ Local<Value> rtV8Context::loadV8Module(const rtString &name)
   // store in cache
   mLoadedModuleCache[path] = toRetPersistent;
 
-  return toRet;
+  return handle_scope.Escape(toRet);
 }
 
 

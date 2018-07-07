@@ -16,9 +16,13 @@ limitations under the License.
 
 */
 
-#include "jsCallback.h"
-#include "rtWrapperUtils.h"
+#include "jsCallbackV8.h"
+#include "rtWrapperUtilsV8.h"
+#include "rtJsModulesV8.h"
 
+#ifdef  RT_V8_TEST_BINDINGS
+#pragma optimize("", off)
+#endif
 
 using namespace v8;
 

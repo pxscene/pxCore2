@@ -16,9 +16,9 @@ limitations under the License.
 
 */
 
-#include "rtWrapperUtils.h"
-#include "rtObjectWrapper.h"
-#include "rtFunctionWrapper.h"
+#include "rtWrapperUtilsV8.h"
+#include "rtObjectWrapperV8.h"
+#include "rtFunctionWrapperV8.h"
 #include <rtMutex.h>
 
 #if defined(USE_STD_THREADS)
@@ -136,7 +136,7 @@ HandleMap::clearAllForContext(uint32_t contextId)
 void HandleMap::addWeakReference(v8::Isolate* isolate, const rtObjectRef& from, Local<Object>& to)
 {
     // TODO
-#if 0
+#if 1
   HandleScope handleScope(isolate);
   Local<Context> creationContext = to->CreationContext();
 
@@ -162,7 +162,6 @@ void HandleMap::addWeakReference(v8::Isolate* isolate, const rtObjectRef& from, 
     entry->CreationContextId = contextIdCreation;
     objectMap.insert(std::make_pair(from.getPtr(), entry));
   }
-rtWrapperSceneUpdateExit();
 #endif
 
   #if 0
