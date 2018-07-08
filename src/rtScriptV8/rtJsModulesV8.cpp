@@ -642,8 +642,23 @@ rtError rtHttpGetBinding(int numArgs, const rtValue* args, rtValue* result, void
     return RT_ERROR_INVALID_ARG;
   }
 
-  if (args[0].getType() != RT_stringType) {
-    return RT_ERROR_INVALID_ARG;
+  rtString resourceUrl;
+  if (args[0].getType() == RT_stringType) {
+    resourceUrl = args[0].toString();
+  } else {
+    if (args[0].getType() != RT_objectType) {
+      return RT_ERROR_INVALID_ARG;
+    }
+    rtObjectRef obj = args[0].toObject();
+
+    rtString proto = obj.get<rtString>("protocol");
+    rtString host = obj.get<rtString>("host");
+    rtString path = obj.get<rtString>("path");
+
+    resourceUrl.append(proto.cString());
+    resourceUrl.append("//");
+    resourceUrl.append(host.cString());
+    resourceUrl.append(path.cString());
   }
 
   if (args[1].getType() != RT_functionType) {
@@ -654,7 +669,7 @@ rtError rtHttpGetBinding(int numArgs, const rtValue* args, rtValue* result, void
   rtObjectRef resp(new rtHttpResponse());
   args[1].toFunction().sendReturns(resp, ret);
 
-  rtFileDownloadRequest *downloadRequest = new rtFileDownloadRequest(args[0].toString(), resp.getPtr(), rtHttpResponse::onDownloadComplete);
+  rtFileDownloadRequest *downloadRequest = new rtFileDownloadRequest(resourceUrl, resp.getPtr(), rtHttpResponse::onDownloadComplete);
   downloadRequest->setDownloadProgressCallbackFunction(rtHttpResponse::onDownloadInProgress, resp.getPtr());
   rtFileDownloader::instance()->addToDownloadQueue(downloadRequest);
 
