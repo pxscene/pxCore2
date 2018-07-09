@@ -471,7 +471,7 @@ rtV8Context::rtV8Context(Isolate *isolate, Platform *platform, uv_loop_t *loop) 
   add("_testPromiseReturnRejectFunc", g_testPromiseReturnRejectFunc.getPtr());
 #endif
 
-  mHttpGetBinding = new rtFunctionCallback(rtHttpGetBinding);
+  mHttpGetBinding = new rtFunctionCallback(rtHttpGetBinding, loop);
 
   add("httpGet", mHttpGetBinding.getPtr());
 }
