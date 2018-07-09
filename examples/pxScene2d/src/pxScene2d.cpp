@@ -146,7 +146,9 @@ bool gApplicationIsClosing = false;
 map<string, string> gWaylandAppsMap;
 map<string, string> gWaylandRegistryAppsMap;
 map<string, string> gPxsceneWaylandAppsMap;
+#if !(defined(ENABLE_DFB) || defined(DISABLE_WAYLAND))
 static bool gWaylandAppsConfigLoaded = false;
+#endif
 #define DEFAULT_WAYLAND_APP_CONFIG_FILE "./waylandregistry.conf"
 #define DEFAULT_ALL_APPS_CONFIG_FILE "./pxsceneappregistry.conf"
 
