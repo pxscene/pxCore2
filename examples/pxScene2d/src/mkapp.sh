@@ -2,9 +2,17 @@
 
 #minJS=cp        #don't minify
 minJS=./jsMin.sh  #minify
+if [ "$TRAVIS_EVENT_TYPE" == "cron" ]
+then
 appName=Spark
+else
+appName=SparkEdge
+fi
+edgeAppName=SparkEdge
 externalDir=../external
+
 bundle=${appName}.app
+
 bundleBin=$bundle/Contents/MacOS
 
 #bundleRes=$bundle/Contents/Resources
@@ -48,9 +56,22 @@ cp FreeSans.ttf $bundleRes
 cp sparkpermissions.conf $bundleRes
 
 cp package.json $bundleRes
-cp ${appName} $bundleBin
 
+if [ "$TRAVIS_EVENT_TYPE" == "cron" ]  
+then
+echo "************ building edge"
+cp ${appName} $bundleBin/pxsceneEdge
+else
+cp ${appName} $bundleBin
+fi
+
+
+if [ "$TRAVIS_EVENT_TYPE" == "cron" ]  
+then
+sed -i -e 's/\.\/pxscene/\.\/pxsceneEdge/g' macstuff/spark.sh.sh
+fi
 cp macstuff/spark.sh $bundleBin
+
 cp macstuff/EngineRunner $bundleBin
 
 # Minify JS into Bundle...
