@@ -1,0 +1,13 @@
+Index: nanosvg/src/nanosvgrast.h
+===================================================================
+--- nanosvg.orig/src/nanosvgrast.h
++++ nanosvg/src/nanosvgrast.h
+@@ -1114,7 +1114,7 @@ static void nsvg__rasterizeSortedEdges(N
+ 	int y, s;
+ 	int e = 0;
+ 	int maxWeight = (255 / NSVG__SUBSAMPLES);  // weight per vertical scanline
+-	int xmin, xmax;
++	int xmin = 0, xmax = 0;
+ 
+ 	for (y = 0; y < r->height; y++) {
+ 		memset(r->scanline, 0, r->width);

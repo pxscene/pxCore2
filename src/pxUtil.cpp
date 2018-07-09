@@ -1009,7 +1009,7 @@ rtError pxLoadSVGImage(const char* buf, size_t buflen, pxOffscreen& o, int  w /*
     return RT_FAIL;
   }
   
-  if (sx == 0.0f || sx == 0.0f)
+  if (sx <= 0.0f || sy <= 0.0f)
   {
     rtLogError("SVG:  Bad image scale  sx: %f  sy: %f\n", sx, sy);
     return RT_FAIL;
