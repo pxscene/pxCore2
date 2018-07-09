@@ -602,7 +602,9 @@ void rtImageResource::loadResourceFromFile()
     }
   }
 
+  mTextureMutex.lock();
   mDownloadComplete = true;
+  mTextureMutex.unlock();
 }
 
 
