@@ -99,6 +99,9 @@ if [ "$dumped_core" -eq 1 ]
 	checkError $dumped_core "Execution failed" "Core dump" "Run execution locally"
 fi
 
+#take the process state
+$TRAVIS_BUILD_DIR/ci/check_dump_cores_osx.sh `pwd` `ps -ef | grep pxscene |grep -v grep|grep -v pxscene.sh|awk '{print $2}'` /var/tmp/pxscene.log
+
 # Wait for few seconds to get the application terminate completely
 leakcount=`leaks pxscene|grep Leak|wc -l`
 echo "leakcount during termination $leakcount"
