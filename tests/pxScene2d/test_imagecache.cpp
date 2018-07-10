@@ -747,6 +747,35 @@ class rtHttpCacheTest : public testing::Test, public commonTestFns
     }
 #endif // } UNAVAILABLE_MEMORY_TEST_ENABLED
 
+    void handleDownloadRequest404Test()
+    {
+      rtHttpCacheData data("http://www.pxscene.org/examples/px-reference/gallery/fancy1.js");
+      vector<rtString> headers;
+      bool ret = data.handleDownloadRequest(headers,true);
+      EXPECT_TRUE(false == ret); 
+    }
+  
+    void handleDownloadRequestProperTest()
+    {
+      rtHttpCacheData data("http://www.pxscene.org/examples/px-reference/gallery/fancy.js");
+      vector<rtString> headers;
+      bool ret = data.handleDownloadRequest(headers,true);
+      EXPECT_TRUE(true == ret); 
+    }
+
+    void filePointerTest()
+    {
+      rtHttpCacheData data("http://www.pxscene.org/examples/px-reference/gallery/fancy.js");
+      EXPECT_TRUE(NULL == data.filePointer());
+    }
+
+    void deferCacheReadFailTest()
+    {
+      rtData d;
+      rtHttpCacheData data("http://www.pxscene.org/examples/px-reference/gallery/fancy.js");
+      EXPECT_TRUE(RT_ERROR == data.deferCacheRead(d));
+    }
+
     private:
       rtString defaultCacheHeader;
 };
@@ -786,6 +815,10 @@ TEST_F(rtHttpCacheTest, httpCacheCompleteTest)
 #ifdef UNAVAILABLE_MEMORY_TEST_ENABLED // {
   memoryUnAvailableTest();
 #endif // } UNAVAILABLE_MEMORY_TEST_ENABLED
+  handleDownloadRequest404Test();
+  handleDownloadRequestProperTest();
+  filePointerTest();
+  deferCacheReadFailTest();
 }
 
 class rtFileDownloaderTest : public testing::Test, public commonTestFns
