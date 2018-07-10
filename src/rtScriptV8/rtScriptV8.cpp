@@ -106,6 +106,8 @@ extern "C" const char U_DATA_API SMALL_ICUDATA_ENTRY_POINT[];
 #pragma GCC diagnostic pop
 #endif
 
+static rtAtomic sNextId = 100;
+
 class V8ArrayBufferAllocator : public v8::ArrayBuffer::Allocator {
 public:
   virtual void* Allocate(size_t size)
@@ -201,6 +203,8 @@ private:
    rtRef<rtFunctionCallback>      mHttpGetBinding;
 
    int mRefCount;
+
+   rtAtomic mId;
 
    const char   *js_file;
    std::string   js_script;
@@ -432,8 +436,12 @@ rtV8Context::rtV8Context(Isolate *isolate, Platform *platform, uv_loop_t *loop) 
   Isolate::Scope isolate_scope(mIsolate);
   HandleScope     handle_scope(mIsolate);
 
+  mId = rtAtomicInc(&sNextId);
+
   // Create a new context.
   Local<Context> localContext = Context::New(mIsolate);
+
+  localContext->SetEmbedderData(HandleMap::kContextIdIndex, Integer::New(mIsolate, mId));
 
   mContext.Reset(mIsolate, localContext); // local to persistent
 
