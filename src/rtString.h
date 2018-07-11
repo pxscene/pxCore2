@@ -53,6 +53,9 @@ public:
   rtString& operator=(const rtString& s);
   rtString& operator=(const char* s);
 
+  rtString& operator+(const char* s)     { return append(s);           };
+  rtString& operator+(const rtString& s) { return append(s.cString()); };
+  
   /**
    * Determines if the string is empty.
    * @returns true if string length is zero or is null
@@ -61,7 +64,7 @@ public:
 
   void term();
 
-  void append(const char* s);
+  rtString&  append(const char* s);
 
   int compare(const char* s) const;
 

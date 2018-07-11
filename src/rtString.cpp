@@ -29,15 +29,15 @@ extern "C"
 #include "utf8.h"
 }
 
-rtString::rtString(): mData(0) {}
+rtString::rtString(): mData(NULL) {}
 
-rtString::rtString(const char* s): mData(0) 
+rtString::rtString(const char* s): mData(NULL)
 {
   if (s)
     mData = strdup(s);
 }
 
-rtString::rtString(const char* s, uint32_t byteLen): mData(0)
+rtString::rtString(const char* s, uint32_t byteLen): mData(NULL)
 {
   if (s)
   {
@@ -47,7 +47,7 @@ rtString::rtString(const char* s, uint32_t byteLen): mData(0)
   }
 }
 
-rtString::rtString(const rtString& s): mData(0) 
+rtString::rtString(const rtString& s): mData(NULL)
 {
   if (s.mData)
     mData = strdup(s.mData);
@@ -89,12 +89,14 @@ void rtString::term()
   mData = 0;
 }
 
-void rtString::append(const char* s) 
+rtString& rtString::append(const char* s)
 {
   size_t sl = s?strlen(s):0;
   size_t dl = mData?strlen(mData):0;
   mData = (char*)realloc((void*)mData, dl+sl+1);
   strcpy(mData+dl, s?s:"");
+  
+  return *this;
 }
 
 int rtString::compare(const char* s) const 

@@ -28,6 +28,7 @@
 #include "pxUtil.h"
 #include "rtThreadPool.h"
 
+
 using namespace std;
 
 extern rtThreadQueue* gUIThreadQueue;
@@ -276,6 +277,12 @@ void pxResource::raiseDownloadPriority()
 /**********************************************************************/
 /**********************************************************************/
 
+
+rtImageResource::rtImageResource()
+: pxResource(), mTexture(), mDownloadedTexture(), mTextureMutex(), mDownloadComplete(false), init_w(0), init_h(0)
+{
+}
+
 rtImageResource::rtImageResource(const char* url, const char* proxy, int32_t iw /* = 0 */,  int32_t ih /* = 0 */,
                                                                        float sx /* = 1.0f*/,  float sy /* = 1.0f*/ )
     : pxResource(), mTexture(), mDownloadedTexture(), mTextureMutex(), mDownloadComplete(false), init_w(iw), init_h(ih), init_sx(sx), init_sy(sy)
@@ -523,7 +530,6 @@ void pxResource::onDownloadCompleteUI(void* context, void* data)
   res->setupResource();
   res->notifyListeners(resolution);
 
-
   // Release here since we had to addRef when setting up callback to 
   // this function
   res->Release();
@@ -554,11 +560,22 @@ void rtImageResource::loadResourceFromFile()
 {
   pxOffscreen imageOffscreen;
   rtString status = "resolve";
-  rtData d;
-  rtError loadImageSuccess = rtLoadFile(mUrl, d);
+
+  rtError loadImageSuccess = RT_FAIL;
+
+  if(mData.length() == 0)
+  {
+    loadImageSuccess = rtLoadFile(mUrl, mData);
+  }
+  else
+  {
+    // We have BASE64 or SVG string already...
+    loadImageSuccess = RT_OK;
+  }
+  
   if (loadImageSuccess == RT_OK)
   {
-    loadImageSuccess = pxLoadImage((const char *) d.data(), d.length(), imageOffscreen, init_w, init_h, init_sx, init_sy);
+    loadImageSuccess = pxLoadImage((const char *) mData.data(), mData.length(), imageOffscreen, init_w, init_h);
   }
   else
   {
@@ -587,13 +604,15 @@ void rtImageResource::loadResourceFromFile()
       gUIThreadQueue->addTask(onDownloadCompleteUI, this, (void*)"reject");
     }
     //mTexture->notifyListeners( mTexture, RT_FAIL, errorCode);
-
   }
   else
   {
     // create offscreen texture for local image
-    mTexture = context.createTexture(imageOffscreen, (const char *) d.data(), d.length());
+    mTexture = context.createTexture(imageOffscreen, (const char *) mData.data(), mData.length());
     mTexture->setTextureListener(this);
+
+    mData.term(); // Dump the source data...
+
     setLoadStatus("statusCode",0);
     // Since this object can be released before we get a async completion
     // We need to maintain this object's lifetime
@@ -603,7 +622,6 @@ void rtImageResource::loadResourceFromFile()
     {
       gUIThreadQueue->addTask(onDownloadCompleteUI, this, (void *) "resolve");
     }
-
   }
 
   mTextureMutex.lock();
@@ -779,8 +797,10 @@ rtRef<rtImageResource> pxImageManager::getImage(const char* url, const char* pro
 {
   //rtLogDebug("pxImageManager::getImage\n");
   // Handle empty url
-  if(!url || strlen(url) == 0) {
-    if( !emptyUrlResource) {
+  if(!url || strlen(url) == 0)
+  {
+    if( !emptyUrlResource)
+    {
       //rtLogDebug("Creating empty Url rtImageResource\n");
       emptyUrlResource = new rtImageResource(NULL, NULL, iw, ih, sx, sy);
       //rtLogDebug("Done creating empty Url rtImageResource\n");
@@ -789,7 +809,25 @@ rtRef<rtImageResource> pxImageManager::getImage(const char* url, const char* pro
     return emptyUrlResource;
   }
   
+  rtString md5uri;
+  rtString uri_string(url);
+  
+  int32_t index_of_comma = uri_string.find(0,','); // find the data.
+  int32_t index_of_slash = uri_string.find(0,'/'); // find the data.
+  
+  
   rtString key = url;
+
+  if(uri_string.beginsWith("data:image/"))
+  {
+    rtString md5     = getMD5sum(uri_string);
+    rtString imgType = uri_string.substring(index_of_slash, index_of_comma - index_of_slash);
+    
+    md5uri  = rtString( rtString("md5sum") + imgType + rtString(",") + md5);
+    
+    key = md5uri;
+  }
+
   
   // For SVG  (and scaled PNG/JPG in the future) at a given SxSy SCALE ... append to key
   if(sx != 1.0 || sy != 1.0)
@@ -832,6 +870,58 @@ rtRef<rtImageResource> pxImageManager::getImage(const char* url, const char* pro
     //rtLogInfo("Create rtImageResource in map for \"%s\"\n",url);
     pResImage = new rtImageResource(url, proxy, iw, ih, sx, sy);
     mImageMap.insert(make_pair(key.cString(), pResImage));
+    
+    if(uri_string.beginsWith("data:image/svg,")) // SVG
+    {
+      // data: [<mediatype>][;base64],<data>
+      //
+      // data:image/png;base64,<data>
+      // data:image/jpg;base64,<data>
+      // data:image/svg,<data>
+      //
+      //
+      
+      if(index_of_comma < 0 || index_of_slash < 0)
+      {
+        rtLogError("Malformed data URI");
+       // return RT_FAIL;
+      }
+      
+      rtString dataUri( (const char*) uri_string.cString() + index_of_comma + 1); // Skip ahead +1 ... "after commma"
+      
+      pResImage->initUriData(dataUri);
+      
+      pResImage->setUrl(key); // DUMP the URL
+    }
+    else
+    if(uri_string.beginsWith("data:image/")) // BASE64 PNG/JPG
+    {
+      // data: [<mediatype>][;base64],<data>
+      //
+      // data:image/png;base64,<data>
+      // data:image/jpg;base64,<data>
+      // data:image/svg,<data>
+      //
+      //
+
+      if(index_of_comma < 0 || index_of_slash < 0)
+      {
+        rtLogError("Malformed data URI");
+        // return RT_FAIL;
+      }
+      
+      rtString dataUri( (const char*) uri_string.cString() + index_of_comma + 1); // Skip ahead +1 ... "after commma"
+
+      size_t output_length = 0;
+      const   uint8_t* raw = (const uint8_t*) base64_decode( (const unsigned char*) dataUri.cString(), (size_t) dataUri.length(), &output_length);
+
+      pResImage->initUriData(raw, output_length);
+
+      pResImage->setUrl(key); // DUMP the URL
+
+      if(raw) free( (void*) raw); // Base64 decode cleanup
+    }
+    
     pResImage->loadResource();
   }
   
