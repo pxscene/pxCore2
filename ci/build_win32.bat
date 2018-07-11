@@ -40,10 +40,20 @@ set addVer=False
 set uploadArtifact=False
 @rem build pxScene
 if "%APPVEYOR_SCHEDULED_BUILD%"=="True" (
-   echo "building edge"
-   set uploadArtifact=True
-cmake -DCMAKE_VERBOSE_MAKEFILE=ON -DPXSCENE_VERSION="edge" ..
-)
+  echo "building edge"
+  set uploadArtifact=True
+  call:replaceString "..\examples\pxScene2d\src\win\pxscene.rc" "Spark_installer.ico" "SparkEdge_installer.ico"
+  cmake -DCMAKE_VERBOSE_MAKEFILE=ON -DPXSCENE_VERSION="edge" ..
+  call:replaceString "examples\pxScene2d\src\cmake_install.cmake" "pxscene.exe" "pxsceneEdge.exe"
+  call:replaceString "CPackConfig.cmake" "pxscene.exe" "pxsceneEdge.exe"
+  call:replaceString "CPackSourceConfig.cmake" "pxscene.exe" "pxsceneEdge.exe"
+  call:replaceString "CPackConfig.cmake" ""pxscene"" ""pxsceneEdge""
+  call:replaceString "CPackSourceConfig.cmake" ""pxscene"" ""pxsceneEdge""
+  call:replaceString "CPackConfig.cmake" "pxscene.lnk" "pxsceneEdge.lnk"
+  call:replaceString "CPackSourceConfig.cmake" "pxscene.lnk" "pxsceneEdge.lnk"
+  call:replaceString "CPackConfig.cmake" "Spark_installer.ico" "SparkEdge_installer.ico"
+  call:replaceString "CPackSourceConfig.cmake" "Spark_installer.ico" "SparkEdge_installer.ico"
+  )
 
 for /f "tokens=1,* delims=]" %%a in ('find /n /v "" ^< "..\examples\pxScene2d\src\win\pxscene.rc" ^| findstr "FILEVERSION" ') DO ( 
 			call set verInfo=%%b
@@ -62,8 +72,15 @@ for /f "tokens=1,* delims=]" %%a in ('find /n /v "" ^< "..\examples\pxScene2d\sr
 cmake --build . --config Release -- /m
 if %errorlevel% neq 0 exit /b %errorlevel%
 
+if "%APPVEYOR_SCHEDULED_BUILD%"=="True" (
+move ..\examples\pxScene2d\src\Release\pxscene.exe ..\examples\pxScene2d\src\Release\pxsceneEdge.exe
+)
+
 cpack .
-if %errorlevel% neq 0 exit /b %errorlevel%
+if %errorlevel% neq 0  (
+  type _CPack_Packages\win32\NSIS\NSISOutput.log
+  exit /b %errorlevel% 
+)
 
 @rem create standalone archive
 cd _CPack_Packages/win32/NSIS
@@ -83,4 +100,25 @@ if "%uploadArtifact%" == "True" (
         appveyor PushArtifact "build-win32\\_CPack_Packages\\win32\\NSIS\\pxscene-setup.zip" -DeploymentName "portable" -Type "Zip" -Verbosity "Normal"
 )
 
+GOTO scriptEnd
 
+:replaceString <fileName>
+set INTEXTFILE=%~1
+set OUTTEXTFILE=%~1.mod
+set SEARCHTEXT=%~2
+set REPLACETEXT=%~3
+for /f "tokens=1,* delims=¶" %%A in ( '"type %INTEXTFILE%"') do (
+    SET string=%%A
+        setlocal EnableDelayedExpansion
+            SET modified=!string:%SEARCHTEXT%=%REPLACETEXT%!
+
+                >> %OUTTEXTFILE% echo(!modified!
+                    endlocal
+                    )
+                    del %INTEXTFILE%
+                    copy %OUTTEXTFILE% %INTEXTFILE%
+                    del %OUTTEXTFILE%
+goto:eof
+
+:ScriptEnd
+@rem exit 0

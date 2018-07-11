@@ -391,6 +391,7 @@ rtDefineProperty(pxWaylandContainer,fillColor);
 rtDefineProperty(pxWaylandContainer,api);
 rtDefineProperty(pxWaylandContainer,remoteReady);
 rtDefineProperty(pxWaylandContainer,server);
+rtDefineProperty(pxWaylandContainer,hasApi);
 rtDefineMethod(pxWaylandContainer, suspend);
 rtDefineMethod(pxWaylandContainer, resume);
 rtDefineMethod(pxWaylandContainer, destroy);

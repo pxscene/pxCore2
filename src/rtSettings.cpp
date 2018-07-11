@@ -18,11 +18,11 @@
 
 #include "rtSettings.h"
 
-#include <../remote/rapidjson/document.h>
-#include <../remote/rapidjson/filereadstream.h>
-#include <../remote/rapidjson/error/en.h>
-#include <../remote/rapidjson/filewritestream.h>
-#include <../remote/rapidjson/writer.h>
+#include "../remote/rapidjson/document.h"
+#include "../remote/rapidjson/filereadstream.h"
+#include "../remote/rapidjson/error/en.h"
+#include "../remote/rapidjson/filewritestream.h"
+#include "../remote/rapidjson/writer.h"
 
 #include <string.h>
 

@@ -51,7 +51,7 @@ rtRemoteValueReader::read(rtRemoteEnvironment* env, rtValue& to, rapidjson::Valu
   auto type = from.FindMember(kFieldNameValueType);
   if (type  == from.MemberEnd())
   {
-    rtLogWarn("failed to find member: %s", kFieldNameValueType);
+    rtLogError("read: failed to find member '%s'. RT_ERROR_PROTOCOL_ERROR", kFieldNameValueType);
     return RT_ERROR_PROTOCOL_ERROR;
   }
 
@@ -60,7 +60,7 @@ rtRemoteValueReader::read(rtRemoteEnvironment* env, rtValue& to, rapidjson::Valu
   auto val = from.FindMember(kFieldNameValueValue);
   if (((typeId != RT_functionType) && (typeId != RT_voidType)) && (val == from.MemberEnd()))
   {
-    rtLogWarn("failed to find member: %s", kFieldNameValueValue);
+    rtLogError("read: failed to find member '%s'. RT_ERROR_PROTOCOL_ERROR", kFieldNameValueValue);
     return RT_ERROR_PROTOCOL_ERROR;
   }
 
@@ -121,7 +121,10 @@ rtRemoteValueReader::read(rtRemoteEnvironment* env, rtValue& to, rapidjson::Valu
     {
       RT_ASSERT(client != NULL);
       if (!client)
+      {
+        rtLogError("read: no client. RT_ERROR_PROTOCOL_ERROR");
         return RT_ERROR_PROTOCOL_ERROR;
+      }
 
       auto const& obj = from.FindMember("value");
       RT_ASSERT(obj != from.MemberEnd());
@@ -146,7 +149,10 @@ rtRemoteValueReader::read(rtRemoteEnvironment* env, rtValue& to, rapidjson::Valu
     {
       RT_ASSERT(client != NULL);
       if (!client)
+      {
+        rtLogError("read: no client. RT_ERROR_PROTOCOL_ERROR");
         return RT_ERROR_PROTOCOL_ERROR;
+      }
 
       std::string objectId;
       std::string functionId;
