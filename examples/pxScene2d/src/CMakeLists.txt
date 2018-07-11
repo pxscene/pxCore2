@@ -28,6 +28,7 @@ set(PXWAYLAND_LIBRARY_SUPPORT 0)
 set(PX_LIBRARY_LINK_PXCORE 1)
 
 option(BUILD_WITH_GL "BUILD_WITH_GL" ON)
+option(BUILD_WITH_PXPATH "BUILD_WITH_PXPATH" OFF)
 option(BUILD_WITH_WAYLAND "BUILD_WITH_WAYLAND" OFF)
 option(BUILD_WITH_WESTEROS "BUILD_WITH_WESTEROS" OFF)
 option(BUILD_WITH_CXX_11 "BUILD_WITH_CXX_11" ON)
@@ -325,7 +326,12 @@ include_directories(AFTER ${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(AFTER ${CMAKE_CURRENT_SOURCE_DIR}/rasterizer)
 
 set(PXSCENE_COMMON_FILES pxResource.cpp pxConstants.cpp pxRectangle.cpp pxFont.cpp pxText.cpp
-        pxTextBox.cpp pxImage.cpp pxImage9.cpp pxImageA.cpp pxImage9Border.cpp pxArchive.cpp pxAnimate.cpp rasterizer/pxPath.cpp)
+        pxTextBox.cpp pxImage.cpp pxImage9.cpp pxImageA.cpp pxImage9Border.cpp pxArchive.cpp pxAnimate.cpp)
+
+if (BUILD_WITH_PXPATH)
+    message("Building with pxPath support")
+    set(PXSCENE_COMMON_FILES  rasterizer/pxPath.cpp)
+endif (BUILD_WITH_PXPATH)
 
 set(PXSCENE_COMMON_FILES ${PXSCENE_COMMON_FILES} pxScene2d.cpp)
 
@@ -482,8 +488,8 @@ if (BUILD_PXSCENE_APP)
         set(CPACK_PACKAGE_INSTALL_DIRECTORY "pxscene")
         set(CPACK_RESOURCE_FILE_LICENSE "${PXCOREDIR}/LICENSE.txt")
         set(CPACK_PACKAGE_VENDOR "pxscene.org")
-        set(CPACK_NSIS_MUI_ICON "${CMAKE_CURRENT_SOURCE_DIR}/win/pxscene_installer.ico")
-        set(CPACK_NSIS_MUI_UNIICON "${CMAKE_CURRENT_SOURCE_DIR}/win/pxscene_installer.ico")
+        set(CPACK_NSIS_MUI_ICON "${CMAKE_CURRENT_SOURCE_DIR}/win/Spark_installer.ico")
+        set(CPACK_NSIS_MUI_UNIICON "${CMAKE_CURRENT_SOURCE_DIR}/win/Spark_installer.ico")
         include(CPack)
       endif (WIN32)
     endif (PXSCENE_INSTALLER GREATER 0)
