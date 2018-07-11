@@ -56,7 +56,10 @@ const wrapperNativeValueToRTValue = (v) => {
  */
 const proxyHandler = {
   get(target, propKey) {
-    if (['id', 'protocol', 'then'].findIndex(v => v === propKey) >= 0) {
+    if (['id', 'protocol', 'then', 'inspect', 'valueOf'].findIndex(v => v === propKey) >= 0) {
+      return target[propKey];
+    }
+    if (typeof propKey === 'symbol') {
       return target[propKey];
     }
     return (...args) => {
@@ -64,8 +67,15 @@ const proxyHandler = {
       args.forEach(v => newArgs.push(wrapperNativeValueToRTValue(v)));
       return target.send(propKey, ...newArgs)
         .then((rtValue) => {
-          endFunction();
-          return Promise.resolve(rtValue);
+          let { value } = rtValue;
+          if (rtValue.type === RTValueType.STRING) {
+            try {
+              value = JSON.parse(value);
+            } catch (e) {
+              // ignore
+            }
+          }
+          return Promise.resolve(value);
         })
         .catch((err) => {
           console.error(`invoke method ${propKey} failed, error  = ${err}`);
