@@ -168,7 +168,7 @@ rtError pxImage::setUrl(const char* s)
   if(getImageResource() != NULL && getImageResource()->getUrl().length() > 0 && mInitialized && !imageLoaded)
 {
     mListenerAdded = true;
-    pRes->addListener(this);
+    getImageResource()->addListener(this);
   }
   
   return RT_OK;

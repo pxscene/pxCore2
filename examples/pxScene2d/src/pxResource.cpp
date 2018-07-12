@@ -931,7 +931,7 @@ void pxImageManager::removeImage(rtString url, int32_t iw /* = 0 */,   int32_t i
 {
   rtString key = url;
 
-  if(key.beginsWith("md5sum/") == false)
+  if(key.beginsWith("md5sum/") == false) // if a File URL ... augment the key with SCALE / DIMENSION
   {
     // For SVG  (and scaled PNG/JPG in the future) at a given SxSy SCALE ... append to key
     if(sx != 1.0 || sy != 1.0)
