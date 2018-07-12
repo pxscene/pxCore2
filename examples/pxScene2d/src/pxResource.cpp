@@ -575,7 +575,8 @@ void rtImageResource::loadResourceFromFile()
   
   if (loadImageSuccess == RT_OK)
   {
-    loadImageSuccess = pxLoadImage((const char *) mData.data(), mData.length(), imageOffscreen, init_w, init_h);
+    loadImageSuccess = pxLoadImage((const char *) mData.data(), mData.length(), imageOffscreen,
+                                      init_w, init_h, init_sx, init_sy);
   }
   else
   {
@@ -827,7 +828,6 @@ rtRef<rtImageResource> pxImageManager::getImage(const char* url, const char* pro
     
     key = md5uri;
   }
-
   
   // For SVG  (and scaled PNG/JPG in the future) at a given SxSy SCALE ... append to key
   if(sx != 1.0 || sy != 1.0)
@@ -835,9 +835,9 @@ rtRef<rtImageResource> pxImageManager::getImage(const char* url, const char* pro
     rtValue xx = sx;
     rtValue yy = sy;
     
-    key.append( xx.toString() );
-    key.append( "sxsy" );
-    key.append( yy.toString() );
+    // Append scale factors
+    key += rtString("sx") + xx.toString() +
+           rtString("sy") + yy.toString();
   }
 
   // For SVG  (and scaled PNG/JPG in the future) at a given WxH DIMENSIONS ... append to key
@@ -846,9 +846,7 @@ rtRef<rtImageResource> pxImageManager::getImage(const char* url, const char* pro
     rtValue ww = iw;
     rtValue hh = ih;
     
-    key.append( ww.toString() );
-    key.append( "x" );
-    key.append( hh.toString() );
+    key +=  ww.toString() + rtString("x") + hh.toString();
   }
   
   rtRef<rtImageResource> pResImage;
@@ -933,27 +931,27 @@ void pxImageManager::removeImage(rtString url, int32_t iw /* = 0 */,   int32_t i
 {
   rtString key = url;
 
-  
-  // For SVG  (and scaled PNG/JPG in the future) at a given SxSy SCALE ... append to key
-  if(sx != 1.0 || sy != 1.0)
+  if(key.beginsWith("md5sum/") == false)
   {
-    rtValue xx = sx;
-    rtValue yy = sy;
-    
-    key.append( xx.toString() );
-    key.append( "sxsy" );
-    key.append( yy.toString() );
-  }
+    // For SVG  (and scaled PNG/JPG in the future) at a given SxSy SCALE ... append to key
+    if(sx != 1.0 || sy != 1.0)
+    {
+      rtValue xx = sx;
+      rtValue yy = sy;
+      
+      // Append scale factors
+      key += rtString("sx") + xx.toString() +
+             rtString("sy") + yy.toString();
+    }
 
-  // For SVG  (and scaled PNG/JPG in the future) at a given WxH DIMENSIONS ... append to key
-  if(iw > 0 || ih > 0)
-  {
-    rtValue ww = iw;
-    rtValue hh = ih;
-    
-    key.append( ww.toString() );
-    key.append( "x" );
-    key.append( hh.toString() );
+    // For SVG  (and scaled PNG/JPG in the future) at a given WxH DIMENSIONS ... append to key
+    if(iw > 0 || ih > 0)
+    {
+      rtValue ww = iw;
+      rtValue hh = ih;
+      
+      key +=  ww.toString() + rtString("x") + hh.toString();
+    }
   }
   
   //rtLogDebug("pxImageManager::removeImage(\"%s\")\n",imageUrl.cString());

@@ -49,12 +49,14 @@ public:
   rtString(const rtString& s);
   
   ~rtString();
-  
+
   rtString& operator=(const rtString& s);
   rtString& operator=(const char* s);
 
-  rtString& operator+(const char* s)     { return append(s);           };
-  rtString& operator+(const rtString& s) { return append(s.cString()); };
+  rtString& operator +(const char* s)     { return append(s);           };
+  rtString& operator +(const rtString& s) { return append(s.cString()); };
+  rtString& operator+=(const char* s)     { return append(s);           };
+  rtString& operator+=(const rtString& s) { return append(s.cString()); };
   
   /**
    * Determines if the string is empty.
