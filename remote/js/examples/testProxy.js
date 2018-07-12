@@ -30,32 +30,32 @@ resolve.start()
         .then(() => {
           /*Getting the property int32 of Object*/
           var result = obj.int32;
-	  result().then(function(result) {
+	        result().then(function(result) {
             logger.debug(`Get Value = ${result.value}`);
-	  })
+	        })
           .then(() => {
-	    /*Calling twoIntNumberSum method*/
+	        /*Calling twoIntNumberSum method*/
             var res = obj.twoIntNumberSum(RTValueHelper.create(20, RTValueType.INT32), RTValueHelper.create(10, RTValueType.INT32));
- 	    res.then(function(res) {
+ 	          res.then(function(res) {
               logger.debug(`Sum of two number : ${res.value}`);
-	    })
+	          })
             .then(() => {
-	      /**Setting the property int32 and 
-	       *checking wheather it is set or 
-	       *not by getting the value
-               */	
+	          /**Setting the property int32 and 
+	           *checking wheather it is set or 
+	           *not by getting the value
+              */	
               var val = 10;
               obj.int32 = val;
-	      setTimeout((function() {
+	            setTimeout((function() {
                 var result = obj.int32;
-	        result().then(function(result) {
+	              result().then(function(result) {
                  logger.debug(`Get Value = ${result.value}`);
-	        })
+	              })
               }), 1000);
             })
           })
         })
-	setTimeout((function() {return process.exit(0);}), 5000);
+	      setTimeout((function() {return process.exit(0);}), 5000);
     }
     proxyTest();  
   }).catch(err => logger.error(err));
