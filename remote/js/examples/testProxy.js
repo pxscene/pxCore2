@@ -15,7 +15,6 @@ const RTValueHelper = require('../lib/RTValueHelper');
 const RTValueType = require('../lib/RTValueType');
 const helper = require('../lib/common/helper');
 const logger = require('../lib/common/logger');
-const ip = require('ip');
 
 const resolve = new RTRemoteMulticastResolver('224.10.10.12', 10004);
 

@@ -1,4 +1,3 @@
-
 /**
  * A Sample program to test different method 
  * of servicemanager in box using proxy object.	

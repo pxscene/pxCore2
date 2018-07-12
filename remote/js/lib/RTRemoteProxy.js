@@ -21,31 +21,31 @@ class RTRemoteProxy {
           return rtObject.get(property).then((response) => {
             if(response.type == "f".charCodeAt(0)) {
               //TODO :: need to add condition to use sendReturns or send both.
-	      var methodName = property;
+	            var methodName = property;
               return rtObject.sendReturns(methodName, ...args);
             } 
             else {
               return response;
-	    }
+	          }
           });
-	};
+	      };
       },
       set : function(rtObject, property, value) {
         return rtObject.get(property).then((response) => {
-	  var type = response.type;
+	        var type = response.type;
        	  return rtObject.set(property, RTValueHelper.create(value, type)).then(() => {
             return rtObject.get(property).then((response) => {
               let result = false;
-	      if (type === RTValueType.UINT64 || type === RTValueType.INT64) {
-	        result = value.toString() === response.value.toString();
-	      } else {
-	        result = response.value === value;
-	      }
-	      logger.debug(`Set succesfull ? ${result}`);
-	    }).catch((err) => {
-	      logger.error(err);
-	    });
-	  })
+	            if (type === RTValueType.UINT64 || type === RTValueType.INT64) {
+	              result = value.toString() === response.value.toString();
+	            } else {
+	              result = response.value === value;
+	            }
+	            logger.debug(`Set succesfull ? ${result}`);
+	          }).catch((err) => {
+	            logger.error(err);
+	          });
+	        })
         })
       }	
     });
@@ -53,3 +53,4 @@ class RTRemoteProxy {
 }
 
 module.exports = RTRemoteProxy;
+
