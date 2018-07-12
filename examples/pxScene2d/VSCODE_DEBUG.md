@@ -36,6 +36,7 @@
       "name": "DBG file in pxscene",
       "type": "node",
       "request": "launch",
+      "protocol": "legacy",
       "cwd": "/Applications/pxscene.app/Contents/MacOS",
       "runtimeExecutable": "/Applications/pxscene.app/Contents/MacOS/pxscene",
       "args":["${file}"],
@@ -49,6 +50,7 @@
       "name": "DBG pxscene",
       "type": "node",
       "request": "launch",
+      "protocol": "legacy",
       "cwd": "/Applications/pxscene.app/Contents/MacOS",
       "runtimeExecutable": "/Applications/pxscene.app/Contents/MacOS/pxscene",
       "env" : {
