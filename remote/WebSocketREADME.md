@@ -6,11 +6,14 @@
  * `cd ..`
 * `./stbRemoteServer` 
 
+*NOTE* - On Ubuntu you'll want to open up port 10004:  `sudo ufw allow 10004`
 For Node client
 
 * `cd remote/js`
  * `npm i`
  * `node repl`
- * `rtRemote.connect('224.10.10.12', 10004, 'DisplayManager').then(rtObj => stb = rtObj)` (replace 224.10.10.12 with the STB server IP address)
-4. `var r = stb.getResolution();` and then enter `r` to see result.
+* `stb = yield rtRemote.connect('224.10.0.12', 10004, 'DisplayManager')`
+* `res = yield stb.getResolution()`
+* `res.w`
+* `res.h`
 5. `stb.setResolution(1920,1080)` to update resolution
