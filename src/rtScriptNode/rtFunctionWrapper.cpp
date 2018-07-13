@@ -453,9 +453,10 @@ rtError jsFunctionWrapper::Send(int numArgs, const rtValue* args, rtValue* resul
 
 Local<Function> jsFunctionWrapper::FunctionLookup::lookup(v8::Local<v8::Context>& ctx)
 {
-  EscapableHandleScope handleScope(mParent->mIsolate);
+  jsFunctionWrapper* parent = (jsFunctionWrapper*)mParent.getPtr();
+  EscapableHandleScope handleScope(parent->mIsolate);
   Context::Scope contextScope(ctx);
-  Local<Function> func = PersistentToLocal(mParent->mIsolate, mParent->mFunction);
+  Local<Function> func = PersistentToLocal(parent->mIsolate, parent->mFunction);
   return handleScope.Escape(func);
 }
 
