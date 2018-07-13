@@ -22,7 +22,7 @@
 
 3. Click on the debug icon in Visual Studio Code (along the left-hand side) and then click on the gear (top of the left-most panel) this should open a file called launch.json.  Replace the contents of launch.json with the code block below.
 
-
+NOTE:  From VSCode 1.25 and greater ... it is necessry to include `"request": "launch",` in *launch.json*.
 
   ~~~~
 // Reference
@@ -99,8 +99,6 @@
 3.  Within pxscene enter the file: url of the js file that you want to debug.
 
 4.  Within visual studio code navigate to the source for the js file that you want to debug.  You should now be able to set and hit breakpoints.
-
-NOTE:  From VSCode circa ~1.25 ... it is necessry to include `"request": "launch",` in *launch.json*.
 
 ## See Also
 
