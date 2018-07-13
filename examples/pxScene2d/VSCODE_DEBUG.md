@@ -100,6 +100,7 @@
 
 4.  Within visual studio code navigate to the source for the js file that you want to debug.  You should now be able to set and hit breakpoints.
 
+NOTE:  From VSCode circa ~1.25 ... it is necessry to include `"request": "launch",` in *launch.json*.
 
 ## See Also
 
