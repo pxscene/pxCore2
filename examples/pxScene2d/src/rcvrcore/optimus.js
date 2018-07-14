@@ -207,6 +207,18 @@ function Application(props) {
       _externalApp.moveToBack();
     }
   };
+  // Move this child in front of its next closest sibling in z-order
+  this.moveForward = function() {
+    if (_externalApp){
+      _externalApp.moveForward();
+    }
+  };
+  // Move this child behind its next closest sibling in z-order
+  this.moveBackward = function() {
+    if (_externalApp){
+      _externalApp.moveBackward();
+    }
+  };
   // Sets the input focus to this application
   this.setFocus = function() {
     if (_externalApp){

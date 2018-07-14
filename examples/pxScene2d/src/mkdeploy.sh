@@ -2,7 +2,12 @@
 
 
 function mkUpdate() {
+if [ "$TRAVIS_EVENT_TYPE" == "cron" ]
+then
 APPNAME=Spark
+else
+APPNAME=SparkEdge
+fi
 INFILE=macstuff/software_update.plist
 OUTFILE=deploy/mac/software_update.plist
 DMGFILE=deploy/mac/${APPNAME}.dmg
@@ -20,9 +25,11 @@ m4 -D__HASH__="${HASH}" -D__SIZE__="${SIZE}" -D__VERSION__="${VERS}" ${INFILE} >
 DEPLOY_DIR=deploy/mac/.stage
 PX_SCENE_VERSION=$1
 mkdir -p $DEPLOY_DIR
+
 rm -r $DEPLOY_DIR/${APPNAME}.app
 cp -a ${APPNAME}.app $DEPLOY_DIR
 echo $PX_SCENE_VERSION > $DEPLOY_DIR/${APPNAME}.app/Contents/MacOS/version
+
 #build dmg
 ./mkdmg.sh
 mkUpdate $PX_SCENE_VERSION

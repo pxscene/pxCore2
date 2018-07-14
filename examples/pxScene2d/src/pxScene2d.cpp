@@ -549,7 +549,7 @@ pxObject::pxObject(pxScene2d* scene): rtObject(), mParent(NULL), mpx(0), mpy(0),
 #ifdef PX_DIRTY_RECTANGLES
     , mIsDirty(true), mLastRenderMatrix(), mScreenCoordinates(), mDirtyRect()
 #endif //PX_DIRTY_RECTANGLES
-    ,mDrawableSnapshotForMask(), mMaskSnapshot(), mIsDisposed(false)
+    ,mDrawableSnapshotForMask(), mMaskSnapshot(), mIsDisposed(false), mSceneSuspended(false)
   {
     pxObjectCount++;
     mScene = scene;
@@ -692,6 +692,9 @@ rtError pxObject::animateToP2(rtObjectRef props, double duration,
 {
   if (mIsDisposed)
   {
+    promise = new rtPromise();
+    rtValue nullValue;
+    promise.send("reject",nullValue);
     return RT_OK;
   }
 
@@ -742,7 +745,8 @@ rtError pxObject::animateToObj(rtObjectRef props, double duration,
   animateObj = new pxAnimate(props, interp, (pxConstantsAnimation::animationOptions)options, duration, count, promise, this);
   if (mIsDisposed)
   {
-    promise.send("reject",this);
+    rtValue nullValue;
+    promise.send("reject",nullValue);
     return RT_OK;
   }
 
@@ -1217,6 +1221,30 @@ EXITSCENELOCK()
   sendPromise();
 }
 
+void pxObject::releaseData(bool sceneSuspended)
+{
+  clearSnapshot(mClipSnapshotRef);
+  clearSnapshot(mDrawableSnapshotForMask);
+  clearSnapshot(mMaskSnapshot);
+  mSceneSuspended = sceneSuspended;
+  // Recursively suspend the children
+  for(vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
+  {
+    (*it)->releaseData(sceneSuspended);
+  }
+}
+
+void pxObject::reloadData(bool sceneSuspended)
+{
+  mSceneSuspended = sceneSuspended;
+  mRepaint = true;
+  // Recursively resume the children
+  for(vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
+  {
+    (*it)->reloadData(sceneSuspended);
+  }
+}
+
 #ifdef PX_DIRTY_RECTANGLES
 void pxObject::setDirtyRect(pxRect *r)
 {
@@ -1399,7 +1427,7 @@ void pxObject::drawInternal(bool maskPass)
   context.setMatrix(m);
   context.setAlpha(ma);
 
-  if (mClip && !context.isObjectOnScreen(0,0,w,h))
+  if ((mClip && !context.isObjectOnScreen(0,0,w,h)) || mSceneSuspended)
   {
     //rtLogInfo("pxObject::drawInternal returning because object is not on screen mw=%f mh=%f\n", mw, mh);
     return;
@@ -1454,7 +1482,7 @@ void pxObject::drawInternal(bool maskPass)
       context.drawImageMasked(0, 0, w, h, maskOp, mDrawableSnapshotForMask->getTexture(), mMaskSnapshot->getTexture());
     }
     // CLIPPING ? ---------------------------------------------------------------------------------------------------
-    else if (mClip )
+    else if (mClip)
     {
       //rtLogInfo("calling createSnapshot for mw=%f mh=%f\n", mw, mh);
       if (mRepaint)
@@ -1771,6 +1799,10 @@ bool pxObject::onTextureReady()
 {
   repaint();
   repaintParents();
+  if (mScene != NULL)
+  {
+    mScene->invalidateRect(NULL);
+  }
   #ifdef PX_DIRTY_RECTANGLES
   mIsDirty = true;
   #endif //PX_DIRTY_RECTANGLES
@@ -1870,7 +1902,7 @@ int gTag = 0;
 
 pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   : start(0), sigma_draw(0), sigma_update(0), end2(0), frameCount(0), mWidth(0), mHeight(0), mStopPropagation(false), mContainer(NULL), mShowDirtyRectangle(false),
-    mInnerpxObjects(),
+    mInnerpxObjects(), mSuspended(false),
 #ifdef PX_DIRTY_RECTANGLES
     mDirtyRect(), mLastFrameDirtyRect(),
 #endif //PX_DIRTY_RECTANGLES
@@ -2277,6 +2309,36 @@ rtError pxScene2d::collectGarbage()
   return RT_OK;
 }
 
+rtError pxScene2d::suspend(const rtValue &/*v*/, bool& b)
+{
+  //rtLogDebug("before suspend: %" PRId64 ".", context.currentTextureMemoryUsageInBytes());
+  mSuspended = true;
+  b = true;
+  ENTERSCENELOCK()
+  mRoot->releaseData(true);
+  EXITSCENELOCK()
+  mDirty = true;
+  //rtLogDebug("after suspend complete: %" PRId64 ".", context.currentTextureMemoryUsageInBytes());
+  return RT_OK;
+}
+
+rtError pxScene2d::resume(const rtValue& /*v*/, bool& b)
+{
+  mSuspended = false;
+  b = true;
+  ENTERSCENELOCK()
+  mRoot->reloadData(false);
+  EXITSCENELOCK()
+  mDirty = true;
+  return RT_OK;
+}
+
+rtError pxScene2d::suspended(bool &b)
+{
+  b = mSuspended;
+  return RT_OK;
+}
+
 rtError pxScene2d::clock(double & time)
 {
   time = pxMilliseconds();
@@ -2285,6 +2347,7 @@ rtError pxScene2d::clock(double & time)
 }
 rtError pxScene2d::createExternal(rtObjectRef p, rtObjectRef& o)
 {
+#if defined(ENABLE_DFB) || defined(DISABLE_WAYLAND)
   rtRef<pxViewContainer> c = new pxViewContainer(this);
   mTestView = new testView;
   c->setView(mTestView);
@@ -2292,17 +2355,6 @@ rtError pxScene2d::createExternal(rtObjectRef p, rtObjectRef& o)
   o.set(p);
   o.send("init");
   return RT_OK;
-}
-
-rtError pxScene2d::createWayland(rtObjectRef p, rtObjectRef& o)
-{
-#if defined(ENABLE_DFB) || defined(DISABLE_WAYLAND)
-  UNUSED_PARAM(p);
-  UNUSED_PARAM(o);
-
-  UNUSED_PARAM(gWaylandAppsConfigLoaded);
-
-  return RT_FAIL;
 #else
   if (false == gWaylandAppsConfigLoaded)
   {
@@ -2328,6 +2380,13 @@ rtError pxScene2d::createWayland(rtObjectRef p, rtObjectRef& o)
   o.send("init");
   return RT_OK;
 #endif //ENABLE_DFB
+}
+
+rtError pxScene2d::createWayland(rtObjectRef p, rtObjectRef& o)
+{
+  rtLogWarn("Type 'wayland' is deprecated; use 'external' instead.\n");
+  UNUSED_PARAM(p);
+  return this->createExternal(p, o);
 }
 
 void pxScene2d::draw()
@@ -3485,6 +3544,9 @@ rtDefineMethod(pxScene2d, create);
 rtDefineMethod(pxScene2d, clock);
 rtDefineMethod(pxScene2d, logDebugMetrics);
 rtDefineMethod(pxScene2d, collectGarbage);
+rtDefineMethod(pxScene2d, suspend);
+rtDefineMethod(pxScene2d, resume);
+rtDefineMethod(pxScene2d, suspended);
 //rtDefineMethod(pxScene2d, createWayland);
 rtDefineMethod(pxScene2d, addListener);
 rtDefineMethod(pxScene2d, delListener);
@@ -3762,6 +3824,28 @@ void pxSceneContainer::dispose(bool pumpJavascript)
     return NULL;
   }
 
+void pxSceneContainer::releaseData(bool sceneSuspended)
+{
+  if (mScriptView.getPtr())
+  {
+    rtValue v;
+    bool result;
+    mScriptView->suspend(v, result);
+  }
+  pxObject::releaseData(sceneSuspended);
+}
+
+void pxSceneContainer::reloadData(bool sceneSuspended)
+{
+  if (mScriptView.getPtr())
+  {
+    rtValue v;
+    bool result;
+    mScriptView->resume(v, result);
+  }
+  pxObject::reloadData(sceneSuspended);
+}
+
 #ifdef ENABLE_PERMISSIONS_CHECK
 rtError pxSceneContainer::permissions(rtObjectRef& v) const
 {
@@ -3873,6 +3957,26 @@ void pxScriptView::runScript()
     rtLogInfo("pxScriptView::runScript() ending\n");
   }
   #endif //ENABLE_RT_NODE
+}
+
+rtError pxScriptView::suspend(const rtValue& v, bool& b)
+{
+  b = false;
+  if (mScene)
+  {
+    b = mScene.send("suspend", v);
+  }
+  return RT_OK;
+}
+
+rtError pxScriptView::resume(const rtValue& v, bool& b)
+{
+  b = false;
+  if (mScene)
+  {
+    b = mScene.send("resume", v);
+  }
+  return RT_OK;
 }
 
 rtError pxScriptView::getScene(int numArgs, const rtValue* args, rtValue* result, void* ctx)

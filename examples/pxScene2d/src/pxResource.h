@@ -57,6 +57,7 @@ class pxResourceListener
 {
 public: 
   virtual void resourceReady(rtString readyResolution) = 0;
+  virtual void resourceDirty() = 0;
 };
 
 class pxResource : public rtObject
@@ -106,14 +107,18 @@ public:
   virtual void setupResource() {}
   virtual void prepare() {}
   void setLoadStatus(const char* name, rtValue value);
+  virtual void releaseData();
+  virtual void reloadData();
 protected:   
   static void onDownloadComplete(rtFileDownloadRequest* downloadRequest);
   static void onDownloadCompleteUI(void* context, void* data);
   static void onDownloadCanceledUI(void* context, void* data);
+  static void onResourceDirtyUI(void* context, void* data);
   virtual void processDownloadedResource(rtFileDownloadRequest* fileDownloadRequest);
   virtual uint32_t loadResourceData(rtFileDownloadRequest* fileDownloadRequest) = 0;
   
   void notifyListeners(rtString readyResolution);
+  void notifyListenersResourceDirty();
 
   virtual void loadResourceFromFile() = 0;
 
@@ -132,7 +137,7 @@ protected:
   mutable rtMutex mLoadStatusMutex;
 };
 
-class rtImageResource : public pxResource
+class rtImageResource : public pxResource, public pxTextureListener
 {
 public:
   rtImageResource(const char* url = 0, const char* proxy = 0, int32_t iw = 0, int32_t ih = 0, float sx = 1.0f, float sy = 1.0f);
@@ -164,6 +169,10 @@ public:
   
   float   initSX() { return init_sx; };
   float   initSY() { return init_sy; };
+
+  virtual void releaseData();
+  virtual void reloadData();
+  virtual void textureReady();
   
 protected:
   virtual uint32_t loadResourceData(rtFileDownloadRequest* fileDownloadRequest);
