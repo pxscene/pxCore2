@@ -63,7 +63,7 @@ if (APPLE)
     endif ()
 elseif (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC -g")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated -fPIC -g")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated-declarations -Wno-deprecated -fPIC -g")
     execute_process(COMMAND "hostname" OUTPUT_VARIABLE HOSTNAME)
     string(STRIP ${HOSTNAME} HOSTNAME)
 

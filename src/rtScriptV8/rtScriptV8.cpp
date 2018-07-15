@@ -74,8 +74,6 @@ extern "C" const char U_DATA_API SMALL_ICUDATA_ENTRY_POINT[];
 
 #include "rtScriptV8.h"
 
-#include "node.h"
-
 #include "rtCore.h"
 #include "rtObject.h"
 #include "rtValue.h"

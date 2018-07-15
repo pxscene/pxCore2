@@ -94,7 +94,7 @@ if (APPLE)
     set(PXSCENE_LINK_LIBRARIES)
     set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${NODE_LIBRARY_DIRS} ${V8_LIBRARY_DIRS} ${DUKE_LIBRARY_DIRS} ${COMM_DEPS_LIBRARY_DIRS})
     set(PLATFORM_LIBRARIES pxCore rtCore_s pthread ${NODE_LIBRARIES} ${V8_LIBRARIES} ${DUKE_LIBRARIES} ${COMM_DEPS_LIBRARIES})
-    include_directories(AFTER ${NODE_INCLUDE_DIRS} ${V8_INCLUDE_DIRS} ${DUKE_INCLUDE_DIRS} ${COMM_DEPS_INCLUDE_DIRS})
+    include_directories(AFTER ${NODE_INCLUDE_DIRS} ${DUKE_INCLUDE_DIRS} ${COMM_DEPS_INCLUDE_DIRS})
     if (DEFINED ENV{CODE_COVERAGE})
         message("enabling code coverage support")
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-arcs -ftest-coverage -fno-inline")
@@ -116,8 +116,8 @@ elseif (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
     add_definitions(${COMM_DEPS_DEFINITIONS})
 
     include_directories(AFTER
-               ${NODE_INCLUDE_DIRS}
                ${V8_INCLUDE_DIRS}
+               ${NODE_INCLUDE_DIRS}
                ${DUKE_INCLUDE_DIRS}
           ${COMM_DEPS_INCLUDE_DIRS}
     )
