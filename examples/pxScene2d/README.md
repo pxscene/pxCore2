@@ -6,7 +6,7 @@
 
 ## Minimum requirements
 >macOS
->   * OS : Macbook Pro (macOS Sierra)
+>   * OS : Macbook Pro (macOS Sierra >=10.12)
 >   * RAM Size : 256 MB
 >   * Disk space : 24 MB
 >   * Processor speed : 1 GHz
@@ -32,7 +32,7 @@
 ## macOS Setup 
 
 >Install Xcode, CMake and quilt
->   * Download the latest version of Xcode from https://developer.apple.com/xcode/download/
+>   * Download the latest version of Xcode (>=9.2) from https://developer.apple.com/xcode/download/
 >   * Download and install the latest version of brew from https://brew.sh/
 >   * From terminal install dependencies: cmake, pkg-config, quilt, java.
 
@@ -44,7 +44,7 @@
 >Setup Windows 10
 >   * Windows 10 
 >   * Visual Studio 2017 community with `Desktop development with C++` workload
->   * [windows sdk 10.0.16299.0](https://developer.microsoft.com/en-us/windows/downloads/windows-10-sdk),it is included in VS2017 with above workload and only necessary if you have issue to install with VS2017)
+>   * [windows sdk 10.0.16299 and windows sdk 10.0.17134(aka 1803)] (https://developer.microsoft.com/en-us/windows/downloads/sdk-archive)
 >   * python 2.7.x , make sure python can work in cmd (setup environment variables depending on install location)
 >   * git for windows , make sure git can work in cmd (setup environment variables depending on install location)
 >   * patch utility for windows (this comes with git. setup environment variables depending on install location of patch.exe)

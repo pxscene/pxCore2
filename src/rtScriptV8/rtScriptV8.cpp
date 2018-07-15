@@ -74,8 +74,6 @@ extern "C" const char U_DATA_API SMALL_ICUDATA_ENTRY_POINT[];
 
 #include "rtScriptV8.h"
 
-#include "node.h"
-
 #include "rtCore.h"
 #include "rtObject.h"
 #include "rtValue.h"
@@ -867,17 +865,15 @@ rtError rtScriptV8::init()
     udata_setCommonData(&SMALL_ICUDATA_ENTRY_POINT, &status);
 
     v8::V8::InitializeICU();
+    v8::V8::InitializeExternalStartupData("");
     mUvLoop = uv_default_loop();
     Platform* platform = platform::CreateDefaultPlatform();
     mPlatform = platform;
     V8::InitializePlatform(platform);
     V8::Initialize();
+
     Isolate::CreateParams params;
-    array_buffer_allocator = new V8ArrayBufferAllocator();
-    const char* source1 = "function pxSceneFooFunction(){ return 0;}";
-    static v8::StartupData data = v8::V8::CreateSnapshotDataBlob(source1);
-    params.snapshot_blob = &data;
-    params.array_buffer_allocator = array_buffer_allocator;
+    params.array_buffer_allocator = v8::ArrayBuffer::Allocator::NewDefaultAllocator();
     mIsolate = Isolate::New(params);
 
 #if 0
