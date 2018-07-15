@@ -16,6 +16,8 @@ cd vc.build\
 msbuild external.sln /p:Configuration=Release /p:Platform=Win32 /m
 cd ..
 
+CALL buildV8.bat
+
 cd breakpad-chrome_55
 CALL gyp\gyp.bat src\client\windows\breakpad_client.gyp --no-circular-check
 cd src\client\windows

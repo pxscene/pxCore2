@@ -1,25 +1,19 @@
 set(NODEDIR "${EXTDIR}/libnode-v6.9.0/")
-set(V8_INCLUDE_DIRS ${NODEDIR}/src ${NODEDIR}/deps/uv/include ${NODEDIR}/deps/v8/include ${NODEDIR}/deps/cares/include)
+set(V8DIR "${EXTDIR}/v8/")
 
 if (WIN32)
-    set(V8_INCLUDE_DIRS ${V8_INCLUDE_DIRS}
-          ${NODEDIR}/deps/openssl/openssl/include ${NODEDIR}/deps/http_parser
-          ${NODEDIR}/deps/v8_inspector/third_party/v8_inspector/
-          ${NODEDIR}/deps/icu-small/source/common/unicode
-          ${NODEDIR}/Release/obj/global_intermediate/blink
-          ${NODEDIR}/Release/obj/global_intermediate
-          ${NODEDIR}/Release/obj/gen/blink
-          ${NODEDIR}/deps/icu-small/source/common
-          ${NODEDIR}/tools/msvs/genfiles
-         )
-    set(V8_LIBRARY_DIRS ${NODEDIR}build/Release/lib ${NODEDIR}Release/lib ${NODEDIR}Release)
+    set(V8_INCLUDE_DIRS ${V8DIR}/include
+        ${NODEDIR}/deps/uv/include 
+        ${NODEDIR}/deps/cares/include
+        ${NODEDIR}/deps/openssl/openssl/include
+        ${NODEDIR}/deps/icu-small/source/common/unicode
+        ${NODEDIR}/deps/icu-small/source/common)
+    set(V8_LIBRARY_DIRS ${V8DIR}/out.gn/ia32.release ${NODEDIR}build/Release/lib ${NODEDIR}Release/lib ${NODEDIR}Release)
     set(V8_LIBRARIES
-          v8_libplatform.lib v8_libbase.lib v8_nosnapshot.lib v8_snapshot.lib v8_base_0.lib
-          v8_base_1.lib v8_base_2.lib v8_base_3.lib
-          gtest.lib cares.lib http_parser.lib
+          v8.dll.lib v8_libbase.dll.lib v8_libplatform.dll.lib
           icutools.lib icustubdata.lib icudata.lib icuucx.lib icui18n.lib
-          libuv.lib openssl.lib v8_inspector_stl.lib cctest.lib
-         )
+          winmm.lib dbghelp.lib shlwapi.lib
+          libuv.lib openssl.lib)
 elseif (APPLE)
     set(V8_LIBRARY_DIRS ${NODEDIR})
     set (V8_INCLUDE_DIRS ${V8_INCLUDE_DIRS} ${NODEDIR}/deps/icu-small/source/common/)
