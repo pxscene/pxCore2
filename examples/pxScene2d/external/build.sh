@@ -140,7 +140,7 @@ then
 fi
 
 # v8
-# bash buildV8.sh
+bash buildV8.sh
 
 #-------- BREAKPAD (Non -macOS)
 
