@@ -15,9 +15,17 @@ if (WIN32)
           winmm.lib dbghelp.lib shlwapi.lib
           libuv.lib openssl.lib)
 elseif (APPLE)
-    set(V8_LIBRARY_DIRS ${NODEDIR})
     set (V8_INCLUDE_DIRS ${V8_INCLUDE_DIRS} ${NODEDIR}/deps/icu-small/source/common/)
-    set(V8_LIBRARIES node)
+    set(V8_LIBRARY_DIRS 
+		${V8DIR}/out.gn/x64.release/obj
+		${NODEDIR})
+    set(V8_LIBRARIES  
+          v8_base
+          v8_external_snapshot
+          v8_libplatform
+          v8_libsampler
+          v8_libbase
+		node)
 else ()
       set (V8_INCLUDE_DIRS ${V8_INCLUDE_DIRS} ${NODEDIR}/deps/icu-small/source/common/)
       set(V8_LIBRARY_DIRS 
