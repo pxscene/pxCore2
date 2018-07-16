@@ -35,6 +35,7 @@ const RTRemoteMulticastResolver = require('./RTRemoteMulticastResolver');
 const RTRemoteObject = require('./RTRemoteObject');
 const RTRemoteProtocol = require('./RTRemoteProtocol');
 const RTRemoteProxy = require('./RTRemoteProxy');
+const RTRemoteReplProxy = require('./RTRemoteReplProxy');
 const RTRemoteSerializer = require('./RTRemoteSerializer');
 const RTRemoteServer = require('./RTRemoteServer');
 const RTRemoteTask = require('./RTRemoteTask');
@@ -66,6 +67,7 @@ module.exports = {
   RTStatusCode,
   RTValueHelper,
   RTValueType,
-  ...{ ...RTRemoteProxy }, // make rtRemote proxy in export context root path
+  RTRemoteProxy,
+  ...{ ...RTRemoteReplProxy }, // make rtRemote proxy in export context root path
 };
 

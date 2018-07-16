@@ -16,15 +16,20 @@ limitations under the License.
 
 */
 
+#include <map>
+
 #include "rtRemote.h"
 #include "rtObject.h"
+#include "rtRemoteObject.h"
+
+rtRemoteEnvironment* env = nullptr;
 
 
-class DisplayManager : public rtObject
+class DisplaySetting : public rtObject
 {
-  rtDeclareObject(DisplayManager, rtObject);
+  rtDeclareObject(DisplaySetting, rtObject);
 public:
-  DisplayManager() : m_resolutionW(1280), m_resolutionH(720)
+  DisplaySetting() : m_resolutionW(1280), m_resolutionH(720)
   {
   }
 
@@ -33,6 +38,19 @@ public:
 
   rtProperty(resolutionH, getResolutionH, setResolutionH, int32_t);
 
+  rtProperty(id, getId, setId, rtString);
+
+  rtError getId(rtString& out) const
+  {
+    out = _id;
+    return RT_OK;
+  }
+
+  rtError setId(rtString in)
+  {
+    _id = in;
+    return RT_OK;
+  }
 
   rtError getResolutionW(int32_t& w) const
   {
@@ -100,25 +118,66 @@ public:
 private:
   int32_t m_resolutionW;
   int32_t m_resolutionH;
+  rtString _id;
 };
 
 
-rtDefineObject(DisplayManager, rtObject);
+rtDefineObject(DisplaySetting, rtObject);
 
 // ---- export properties
-rtDefineProperty(DisplayManager, resolutionW);
-rtDefineProperty(DisplayManager, resolutionH);
+rtDefineProperty(DisplaySetting, resolutionW);
+rtDefineProperty(DisplaySetting, resolutionH);
+rtDefineProperty(DisplaySetting, id);
 
 // ---- export methods
-rtDefineMethod(DisplayManager, getResolution);
-rtDefineMethod(DisplayManager, setResolution);
+rtDefineMethod(DisplaySetting, getResolution);
+rtDefineMethod(DisplaySetting, setResolution);
+
+
+class ServiceManager : public rtObject
+{
+  rtDeclareObject(ServiceManager, rtObject);
+public:
+
+  ServiceManager()
+  {
+    _serviceMap = std::map<rtString, rtObjectRef>();
+  }
+
+  rtMethod1ArgAndReturn("createService", createService, rtString, rtObjectRef);
+
+  rtError createService(rtString serviceName, rtObjectRef& outRef)
+  {
+    rtObjectRef ref = _serviceMap[serviceName];
+    if (ref == nullptr || ref.ptr() == nullptr)
+    {
+      rtLogInfo("cannot found service named \"%s\", created a new", serviceName.cString());
+      ref = rtObjectRef(new DisplaySetting());
+      _serviceMap[serviceName] = ref;
+      ref.getPtr()->Set("id", new rtValue(serviceName));
+      rtRemoteRegisterObject(env, serviceName.cString(), ref);
+    }
+    else
+    {
+      rtLogInfo("found service named \"%s\", return it directly", serviceName.cString());
+    }
+    outRef = ref;
+  }
+
+private:
+  std::map<rtString, rtObjectRef> _serviceMap;
+};
+
+rtDefineObject(ServiceManager, rtObject);
+// ---- export methods
+rtDefineMethod(ServiceManager, createService);
 
 int
 main(int /*argc*/, char* /*argv*/ [])
 {
   rtLogSetLevel(RT_LOG_DEBUG);   // set log level
   rtError e;
-  rtRemoteEnvironment* env = rtEnvironmentGetGlobal();
+  env = rtEnvironmentGetGlobal();
   e = rtRemoteInit(env);
   if (e != RT_OK)
   {
@@ -126,10 +185,10 @@ main(int /*argc*/, char* /*argv*/ [])
     exit(1);
   }
 
-  rtObjectRef dmObj(new DisplayManager());
+  rtObjectRef dmObj(new ServiceManager());
 
   // register 4 objects
-  e = rtRemoteRegisterObject(env, "DisplayManager", dmObj);
+  e = rtRemoteRegisterObject(env, "rtServiceManager", dmObj);
   if (e != RT_OK)
   {
     rtLogError("rtRemoteRegisterObject stb failed, error = %s", rtStrError(e));

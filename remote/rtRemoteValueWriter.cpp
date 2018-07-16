@@ -49,15 +49,24 @@ namespace
     {
       return obj->getId();
     }
-    else
-    {
-      rtGuid id = rtGuid::newRandom();
 
-      std::stringstream ss;
-      ss << "obj://";
-      ss << id.toString();
-      return ss.str();
+    if (ref.getPtr() != nullptr) // return exist id
+    {
+      rtValue rtId;
+      rtError err = ref.getPtr()->Get("id", &rtId);
+      if (err == RT_OK)
+      {
+        rtString id;
+        rtId.getString(id);
+        return std::string(id.cString());
+      }
     }
+
+    rtGuid id = rtGuid::newRandom();
+    std::stringstream ss;
+    ss << "obj://";
+    ss << id.toString();
+    return ss.str();
   }
 }
 
