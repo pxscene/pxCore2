@@ -16,21 +16,32 @@ limitations under the License.
 
 */
 
-#include "rtWrapperUtilsV8.h"
-#include "rtObjectWrapperV8.h"
-#include "rtFunctionWrapperV8.h"
+#include "rtWrapperUtils.h"
+#include "rtObjectWrapper.h"
+#include "rtFunctionWrapper.h"
+#ifndef RUNINMAIN
+extern uv_mutex_t threadMutex;
+#endif
 #include <rtMutex.h>
 
-#if defined(USE_STD_THREADS)
+#ifdef __APPLE__
+#ifndef RUNINMAIN
+static pthread_mutex_t sObjectMapMutex = PTHREAD_RECURSIVE_MUTEX_INITIALIZER; //PTHREAD_MUTEX_INITIALIZER;
+#endif //!RUNINMAIN
+#elif defined(USE_STD_THREADS)
 #include <thread>
 #include <mutex>
+#else
+#ifndef RUNINMAIN
+static pthread_mutex_t sObjectMapMutex = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
+#endif //!RUNINMAIN
 #endif
 
 using namespace std;
 
 //-----------------------------------
 
-namespace rtScriptV8Utils
+namespace rtScriptV8NodeUtils
 {
 
 const int HandleMap::kContextIdIndex = 2;
@@ -55,43 +66,134 @@ GetContextId(Local<Context>& ctx)
   assert(!val.IsEmpty());
   return val->Uint32Value();
 }
-
+#if defined ENABLE_NODE_V_6_9 || defined RTSCRIPT_SUPPORT_V8
 static void WeakCallback(const WeakCallbackInfo<rtIObject>& data) {
-   Locker locker(data.GetIsolate());
-   Isolate::Scope isolateScope(data.GetIsolate());
-   HandleScope handleScope(data.GetIsolate());
-   rtObjectRef temp;
-   ObjectReferenceMap::iterator j = objectMap.find(data.GetParameter());
-   if (j != objectMap.end())
-   {
-      // TODO: Removing this temporarily until we understand how this callback works. I
-      // would have assumed that this is a weak persistent since we called SetWeak() on it
-      // before inserting it into the objectMap_rt2v8 map.
-      // assert(p->IsWeak());
-      //
-      j->second->PersistentObject.ClearWeak();
-      j->second->PersistentObject.Reset();
-      temp = j->second->RTObject;
-      delete j->second;
-      objectMap.erase(j);
-   }
-   else
-   {
-      rtLogWarn("failed to find:%p in map", data.GetParameter());
-   }
-   if (NULL != temp.getPtr())
-   {
-      rtObjectRef parentRef;
-      rtError err = temp.get<rtObjectRef>("parent",parentRef);
-      if (err == RT_OK)
-      {
-         if (NULL == parentRef)
-         {
-            temp.send("dispose");
-         }
-      }
-   }
+  Locker locker(data.GetIsolate());
+  Isolate::Scope isolateScope(data.GetIsolate());
+  HandleScope handleScope(data.GetIsolate());
+  rtObjectRef temp;
+rtWrapperSceneUpdateEnter();
+#ifndef RUNINMAIN
+  pthread_mutex_lock(&sObjectMapMutex);
+#endif
+  ObjectReferenceMap::iterator j = objectMap.find(data.GetParameter());
+  if (j != objectMap.end())
+  {
+    // TODO: Removing this temporarily until we understand how this callback works. I
+    // would have assumed that this is a weak persistent since we called SetWeak() on it
+    // before inserting it into the objectMap_rt2v8 map.
+    // assert(p->IsWeak());
+    //
+    j->second->PersistentObject.ClearWeak();
+    j->second->PersistentObject.Reset();
+    temp = j->second->RTObject;
+    delete j->second;
+    objectMap.erase(j);
+  }
+  else
+  {
+    rtLogWarn("failed to find:%p in map", data.GetParameter());
+  }
+rtWrapperSceneUpdateExit();
+#ifndef RUNINMAIN
+  pthread_mutex_unlock(&sObjectMapMutex);
+#endif
+  if (NULL != temp.getPtr())
+  {
+    rtObjectRef parentRef;
+    rtError err = temp.get<rtObjectRef>("parent",parentRef);
+    if (err == RT_OK)
+    {
+        if (NULL == parentRef)
+        {
+          temp.send("dispose");
+        }
+    }
+  }
 }
+#else
+void weakCallback_rt2v8(const WeakCallbackData<Object, rtIObject>& data)
+{
+  Locker locker(data.GetIsolate());
+  Isolate::Scope isolateScope(data.GetIsolate());
+  HandleScope handleScope(data.GetIsolate());
+  rtObjectRef temp;
+  // rtLogInfo("ptr: %p", data.GetParameter());
+
+  Local<Object> obj = data.GetValue();
+  assert(!obj.IsEmpty());
+
+  Local<Context> ctx = obj->CreationContext();
+  assert(!ctx.IsEmpty());
+
+  #if 0
+  Local<String> s = obj->GetConstructorName();
+  String::Utf8Value v(s);
+  rtLogInfo("OBJ: %s", *v);
+
+  int index = 0;
+  rtIObject* rt = data.GetParameter();
+  rtValue value;
+  while (rt->Get(index++, &value) == RT_OK)
+  {
+    rtLogInfo("  type:%d", value.getType());
+  }
+  #endif
+
+  // uint32_t contextId = GetContextId(ctx);
+  // rtLogInfo("contextId: %u addr:%p", contextId, data.GetParameter());
+rtWrapperSceneUpdateEnter();
+#ifndef RUNINMAIN
+  pthread_mutex_lock(&sObjectMapMutex);
+#endif
+  ObjectReferenceMap::iterator j = objectMap.find(data.GetParameter());
+  if (j != objectMap.end())
+  {
+    // TODO: Removing this temporarily until we understand how this callback works. I
+    // would have assumed that this is a weak persistent since we called SetWeak() on it
+    // before inserting it into the objectMap_rt2v8 map.
+    // assert(p->IsWeak());
+    //
+    j->second->PersistentObject.ClearWeak();
+    j->second->PersistentObject.Reset();
+    temp = j->second->RTObject;
+#if 0
+    if (!p->IsWeak())
+      rtLogWarn("TODO: Why isn't this handle weak?");
+    if (p)
+    {
+      // delete p;
+    }
+    else
+    {
+      rtLogError("null handle in map");
+    }
+#endif
+    delete j->second;
+    objectMap.erase(j);
+  }
+  else
+  {
+    rtLogWarn("failed to find:%p in map", data.GetParameter());
+  }
+rtWrapperSceneUpdateExit();
+#ifndef RUNINMAIN
+  pthread_mutex_unlock(&sObjectMapMutex);
+#endif
+  if (NULL != temp.getPtr())
+  {
+    rtObjectRef parentRef;
+    rtError err = temp.get<rtObjectRef>("parent",parentRef);
+    if (err == RT_OK)
+    {
+        if (NULL == parentRef)
+        {
+          temp.send("dispose");
+        }
+    }
+  }
+}
+#endif
 
 void
 HandleMap::clearAllForContext(uint32_t contextId)
@@ -99,6 +201,10 @@ HandleMap::clearAllForContext(uint32_t contextId)
   typedef ObjectReferenceMap::iterator iterator;
 
   int n = 0;
+rtWrapperSceneUpdateEnter();
+#ifndef RUNINMAIN
+  pthread_mutex_lock(&sObjectMapMutex);
+#endif
   rtLogInfo("clearing all persistent handles for: %u size:%u", contextId,
     static_cast<unsigned>(objectMap.size()));
   vector<iterator> refs;
@@ -131,17 +237,23 @@ HandleMap::clearAllForContext(uint32_t contextId)
   refs.clear();
   //rtLogInfo("clear complete for id[%d] . removed:%d size:%u", contextId, n,
       //static_cast<unsigned>(objectMap.size()));
+rtWrapperSceneUpdateExit();
+#ifndef RUNINMAIN
+  pthread_mutex_unlock(&sObjectMapMutex);
+#endif
 }
 
 void HandleMap::addWeakReference(v8::Isolate* isolate, const rtObjectRef& from, Local<Object>& to)
 {
-    // TODO
-#if 1
   HandleScope handleScope(isolate);
   Local<Context> creationContext = to->CreationContext();
 
   uint32_t const contextIdCreation = GetContextId(creationContext);
   assert(contextIdCreation != 0);
+rtWrapperSceneUpdateEnter();
+#ifndef RUNINMAIN
+  pthread_mutex_lock(&sObjectMapMutex);
+#endif
   ObjectReferenceMap::iterator i = objectMap.find(from.getPtr());
   if (i != objectMap.end())
   {
@@ -157,11 +269,18 @@ void HandleMap::addWeakReference(v8::Isolate* isolate, const rtObjectRef& from, 
     // rtLogInfo("add id:%u addr:%p", contextIdCreation, from.getPtr());
     ObjectReference* entry(new ObjectReference());
     entry->PersistentObject.Reset(isolate, to);
+#if defined ENABLE_NODE_V_6_9 || defined RTSCRIPT_SUPPORT_V8
     entry->PersistentObject.SetWeak(from.getPtr(), WeakCallback, v8::WeakCallbackType::kParameter);
+#else
+    entry->PersistentObject.SetWeak(from.getPtr(), &weakCallback_rt2v8);
+#endif
     entry->RTObject = from;
     entry->CreationContextId = contextIdCreation;
     objectMap.insert(std::make_pair(from.getPtr(), entry));
   }
+rtWrapperSceneUpdateExit();
+#ifndef RUNINMAIN
+  pthread_mutex_unlock(&sObjectMapMutex);
 #endif
 
   #if 0
@@ -183,13 +302,26 @@ Local<Object> HandleMap::lookupSurrogate(v8::Local<v8::Context>& ctx, const rtOb
   Isolate* isolate = ctx->GetIsolate();
   EscapableHandleScope scope(isolate);
   Local<Object> obj;
+rtWrapperSceneUpdateEnter();
+#ifndef RUNINMAIN
+  pthread_mutex_lock(&sObjectMapMutex);
+#endif
   ObjectReferenceMap::iterator i = objectMap.find(from.getPtr());
   if (i == objectMap.end())
   {
+    rtWrapperSceneUpdateExit();
+#ifndef RUNINMAIN
+    pthread_mutex_unlock(&sObjectMapMutex);
+#endif
     return scope.Escape(obj);
   }
   obj = PersistentToLocal(isolate, i->second->PersistentObject);
+rtWrapperSceneUpdateExit();
+#ifndef RUNINMAIN
+  pthread_mutex_unlock(&sObjectMapMutex);
+#endif
 
+  #if 1
   if (!obj.IsEmpty())
   {
     // JR sanity check
@@ -203,6 +335,7 @@ Local<Object> HandleMap::lookupSurrogate(v8::Local<v8::Context>& ctx, const rtOb
       assert(false);
     }
   }
+  #endif
 
   return scope.Escape(obj);
 }
@@ -228,7 +361,7 @@ bool rtIsPromise(const rtValue& v)
 
 using namespace v8;
 
-Handle<Value> rt2v8(Local<Context>& ctx, const rtValue& v)
+Handle<Value> rt2js(Local<Context>& ctx, const rtValue& v)
 {
   Context::Scope contextScope(ctx);
 
@@ -277,7 +410,11 @@ Handle<Value> rt2v8(Local<Context>& ctx, const rtValue& v)
         rtFunctionRef func = v.toFunction();
         if (!func)
           return v8::Null(isolate);
+#if defined ENABLE_NODE_V_6_9 || defined RTSCRIPT_SUPPORT_V8
         return rtFunctionWrapper::createFromFunctionReference(ctx, isolate, func);
+#else
+        return rtFunctionWrapper::createFromFunctionReference(isolate, func);
+#endif
       }
       break;
     case RT_rtObjectRefType:
@@ -316,7 +453,7 @@ Handle<Value> rt2v8(Local<Context>& ctx, const rtValue& v)
   return Undefined(isolate);
 }
 
-rtValue v82rt(v8::Local<v8::Context>& ctx, const Handle<Value>& val, rtWrapperError* )
+rtValue js2rt(v8::Local<v8::Context>& ctx, const Handle<Value>& val, rtWrapperError* )
 {
   v8::Isolate* isolate = ctx->GetIsolate();
 

@@ -44,8 +44,6 @@
 #include "rtPromise.h"
 #include "rtThreadQueue.h"
 
-#define PXSCENE_V8_TEST // TODO: remove
-
 #define ANIMATION_ROTATE_XYZ
 
 #include "pxResource.h"
@@ -1156,9 +1154,7 @@ public:
   
 protected:
 
-#ifdef PXSCENE_V8_TEST
   static rtError printFunc(int /*numArgs*/, const rtValue* /*args*/, rtValue* result, void* ctx);
-#endif
 
   static rtError getScene(int /*numArgs*/, const rtValue* /*args*/, rtValue* result, void* ctx);
   static rtError makeReady(int /*numArgs*/, const rtValue* /*args*/, rtValue* result, void* ctx);
@@ -1276,9 +1272,7 @@ protected:
   rtObjectRef mReady;
   rtObjectRef mScene;
   rtRef<pxIView> mView;
-#ifdef PXSCENE_V8_TEST
   rtRef<rtFunctionCallback> mPrintFunc;
-#endif
   rtRef<rtFunctionCallback> mGetScene;
   rtRef<rtFunctionCallback> mMakeReady;
   rtRef<rtFunctionCallback> mGetContextID;

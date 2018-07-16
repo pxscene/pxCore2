@@ -19,6 +19,7 @@ limitations under the License.
 "use strict";
 
 var isDuk=(typeof Duktape != "undefined")?true:false;
+var isV8=(typeof _isV8 != "undefined")?true:false;
 var Logger = require('rcvrcore/Logger').Logger;
 var SceneModuleLoader = require('rcvrcore/SceneModuleLoader');
 var log = new Logger('AsyncFileAcquisition');

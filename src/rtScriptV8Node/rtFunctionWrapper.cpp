@@ -16,14 +16,17 @@ limitations under the License.
 
 */
 
-#include "rtFunctionWrapperV8.h"
-#include "rtWrapperUtilsV8.h"
-#include "jsCallbackV8.h"
+#include "rtFunctionWrapper.h"
+#include "rtWrapperUtils.h"
+#include "jsCallback.h"
 
 #include <vector>
+#ifdef RUNINMAIN
+extern bool gIsPumpingJavaScript;
+#endif
 using namespace v8;
 
-namespace rtScriptV8Utils
+namespace rtScriptV8NodeUtils
 {
 
 static const char* kClassName = "Function";
@@ -89,17 +92,26 @@ void rtResolverFunction::afterWorkCallback(uv_work_t* req, int /* status */)
   Local<Context> creationContext = PersistentToLocal(resolverFunc->mIsolate, resolverFunc->mContext);
   Context::Scope contextScope(creationContext);
 
+//DEBUG
+  // uint32_t id = GetContextId(creationContext);
+  // rtLogInfo("rtResolverFunction:: >>> Send:%u", id);
+//DEBUG
+
   Handle<Value> value;
   if (ctx->args.size() > 0)
   {
-    value = rt2v8(creationContext, ctx->args[0]);
+    value = rt2js(creationContext, ctx->args[0]);
   }
 
   Local<Promise::Resolver> resolver = PersistentToLocal(resolverFunc->mIsolate, resolverFunc->mResolver);
   Local<Context> local_context = resolver->CreationContext();
   Context::Scope context_scope(local_context);
 
+#if defined ENABLE_NODE_V_6_9 || defined RTSCRIPT_SUPPORT_V8
   TryCatch tryCatch(resolverFunc->mIsolate);
+#else
+  TryCatch tryCatch;
+#endif //ENABLE_NODE_V_6_9
   if (resolverFunc->mDisposition == DispositionResolve)
   {
     resolver->Resolve(value);
@@ -115,7 +127,14 @@ void rtResolverFunction::afterWorkCallback(uv_work_t* req, int /* status */)
     rtLogWarn("Error resolving promise");
     rtLogWarn("%s", *trace);
   }
+#ifdef RUNINMAIN
+  if (false == gIsPumpingJavaScript)
+  {
+#endif
   resolverFunc->mIsolate->RunMicrotasks();
+#ifdef RUNINMAIN
+  }
+#endif
   delete ctx;
 }
 
@@ -175,8 +194,11 @@ void rtFunctionWrapper::create(const FunctionCallbackInfo<Value>& args)
   wrapper->Wrap(args.This());
 }
 
-
+#if defined ENABLE_NODE_V_6_9 || defined RTSCRIPT_SUPPORT_V8
 Handle<Object> rtFunctionWrapper::createFromFunctionReference(v8::Local<v8::Context>& ctx, Isolate* isolate, const rtFunctionRef& func)
+#else
+Handle<Object> rtFunctionWrapper::createFromFunctionReference(Isolate* isolate, const rtFunctionRef& func)
+#endif
 {
   Locker                       locker(isolate);
   Isolate::Scope        isolate_scope(isolate);
@@ -188,7 +210,11 @@ Handle<Object> rtFunctionWrapper::createFromFunctionReference(v8::Local<v8::Cont
   };
 
   Local<Function> c = PersistentToLocal(isolate, ctor);
+#ifdef ENABLE_NODE_V_6_9
   return scope.Escape((c->NewInstance(ctx, 1, argv)).FromMaybe(Local<Object>()));
+#else
+  return scope.Escape(c->NewInstance(1, argv));
+#endif
 }
 
 void rtFunctionWrapper::call(const FunctionCallbackInfo<Value>& args)
@@ -216,16 +242,18 @@ void rtFunctionWrapper::call(const FunctionCallbackInfo<Value>& args)
   std::vector<rtValue> argList;
   for (int i = 0; i < args.Length(); ++i)
   {
-    argList.push_back(v82rt(ctx, args[i], &error));
+    argList.push_back(js2rt(ctx, args[i], &error));
     if (error.hasError())
       isolate->ThrowException(error.toTypeError(isolate));
   }
 
   rtValue result;
+  rtWrapperSceneUpdateEnter();
   rtError err = unwrap(args)->Send(args.Length(), &argList[0], &result);
 
   if (err != RT_OK)
   {
+    rtWrapperSceneUpdateExit();
     return throwRtError(isolate, err, "failed to invoke function");
   }
 
@@ -244,6 +272,10 @@ void rtFunctionWrapper::call(const FunctionCallbackInfo<Value>& args)
 
     rtError err = promise.send("then", resolve, reject, newPromise);
 
+    // must hold this lock to prevent promise from resolving internally before we
+    // actually register our function callbacks.
+    rtWrapperSceneUpdateExit();
+
     if (err != RT_OK)
       return throwRtError(isolate, err, "failed to register for promise callback");
     else
@@ -251,7 +283,8 @@ void rtFunctionWrapper::call(const FunctionCallbackInfo<Value>& args)
   }
   else
   {
-    args.GetReturnValue().Set(rt2v8(ctx, result));
+    rtWrapperSceneUpdateExit();
+    args.GetReturnValue().Set(rt2js(ctx, result));
   }
 }
 
@@ -392,8 +425,23 @@ rtError jsFunctionWrapper::Send(int numArgs, const rtValue* args, rtValue* resul
 
   if (result) // wants result run synchronously
   {
-    *result = callback->run();
-    delete callback;
+    if (rtIsMainThreadNode()) // main thread run now
+    {
+      *result = callback->run();
+      delete callback;
+    }
+    else // queue and wait
+    {
+      setupSynchronousWait();
+      callback->registerForCompletion(jsFunctionCompletionHandler, this);
+      callback->enqueue();
+
+      // don't block render thread while waiting for callback to complete
+      rtWrapperSceneUnlocker unlocker;
+
+      // !CLF: When/why was this wait() introduced?  Need fix for multi-thread solution
+     // *result = wait();
+    }
   }
   else // just queue
   {

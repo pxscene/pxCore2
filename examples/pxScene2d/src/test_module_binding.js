@@ -17,4 +17,4 @@ uv_timer_start(tm1, 5000, 0, function () { print("OK1"); uv_timer_stop(tm2); });
 
 uv_run_in_context("print(\"in eval context\");");
 
-print("isV8 " + isV8);
+print("isV8 " + _isV8);
