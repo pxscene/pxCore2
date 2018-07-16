@@ -427,7 +427,8 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
         // The text in hand will not fit on the current line, so prepare
         // to render what we've got and skip to next line.
         // Note: Last line will never be set when truncation is NONE.
-        if( lastLine)
+
+        if(!(mTruncation == pxConstantsTruncation::NONE) && (charH * (lineNumber+1)) > (this->h() - 0.5*charH))
         {
           //rtLogDebug("LastLine: Calling renderTextRowWithTruncation with mx=%f for string \"%s\"\n",mx,accString.cString());
           renderTextRowWithTruncation(accString, lineWidth, 0, tempY, sx, sy, size, render);
