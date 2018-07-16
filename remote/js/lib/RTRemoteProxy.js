@@ -1,103 +1,55 @@
-/*
- pxCore Copyright 2005-2018 John Robinson
-
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
-
-     http://www.apache.org/licenses/LICENSE-2.0
-
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
-*/
-
-/**
- * the rt remote proxy function
- *
- * @author      TCSCODER
- * @version     1.0
- */
-
-const RTRemoteMulticastResolver = require('../lib/RTRemoteMulticastResolver');
-const RTRemoteConnectionManager = require('../lib/RTRemoteConnectionManager');
 const RTValueHelper = require('../lib/RTValueHelper');
 const RTValueType = require('../lib/RTValueType');
+const logger = require('../lib/common/logger');
 
 /**
- * the end function when promise work done
- */
-let endFunction = () => {
-};
+ * RTRemoteProxy class
+ * Returns a proxy object of passed rtObject
+ * set : allows to set a property
+ * get allows to get property if available
+ * or return value from function call
+ **/
 
 
-/**
- * warpper native value to rtValue
- * @param v the native value
- * @return {object} the rtValue
- */
-const wrapperNativeValueToRTValue = (v) => {
-  const isInt = n => Number(n) === n && n % 1 === 0;
-  const isFloat = n => Number(n) === n && n % 1 !== 0;
-  if (isInt(v)) {
-    return RTValueHelper.create(v, RTValueType.INT32);
-  } else if (isFloat(v)) {
-    return RTValueHelper.create(v, RTValueType.FLOAT);
-  } else if (typeof v === 'string') {
-    return RTValueHelper.create(v, RTValueType.STRING);
-  }
-  throw new Error(`cannot identify rtValue type for ${v}`);
-};
+class RTRemoteProxy {
 
-/**
- * the rtObject proxy handler
- */
-const proxyHandler = {
-  get(target, propKey) {
-    if (['id', 'protocol', 'then', 'inspect', 'valueOf'].findIndex(v => v === propKey) >= 0) {
-      return target[propKey];
-    }
-    if (typeof propKey === 'symbol') {
-      return target[propKey];
-    }
-    return (...args) => {
-      const newArgs = [];
-      args.forEach(v => newArgs.push(wrapperNativeValueToRTValue(v)));
-      return target.send(propKey, ...newArgs)
-        .then((rtValue) => {
-          let { value } = rtValue;
-          if (rtValue.type === RTValueType.STRING) {
-            try {
-              value = JSON.parse(value);
-            } catch (e) {
-              // ignore
+  /*create new proxy object*/
+  constructor(rtObject) {
+    return new Proxy(rtObject, {
+      get : function(rtObject, property, receiver) {
+        return (...args) => {
+          return rtObject.get(property).then((response) => {
+            if(response.type == "f".charCodeAt(0)) {
+              //TODO :: need to add condition to use sendReturns or send both.
+              var methodName = property;
+              return rtObject.sendReturns(methodName, ...args);
             }
-          }
-          return Promise.resolve(value);
+            else {
+              return response;
+            }
+          });
+        };
+      },
+      set : function(rtObject, property, value) {
+        return rtObject.get(property).then((response) => {
+          var type = response.type;
+          return rtObject.set(property, RTValueHelper.create(value, type)).then(() => {
+            return rtObject.get(property).then((response) => {
+              let result = false;
+              if (type === RTValueType.UINT64 || type === RTValueType.INT64) {
+                result = value.toString() === response.value.toString();
+              } else {
+                result = response.value === value;
+              }
+              logger.debug(`Set succesfull ? ${result}`);
+            }).catch((err) => {
+              logger.error(err);
+            });
+          })
         })
-        .catch((err) => {
-          console.error(`invoke method ${propKey} failed, error  = ${err}`);
-          endFunction();
-        });
-    };
-  },
-};
+      }
+    });
+  }
+}
 
-module.exports = {
-  connect: (host, port, objectId) => {
-    const resolve = new RTRemoteMulticastResolver(host, port);
-    return resolve.start()
-      .then(() => resolve.locateObject(objectId))
-      .then(uri => RTRemoteConnectionManager.getObjectProxy(uri))
-      .then((rtObject) => {
-        endFunction();
-        return Promise.resolve(new Proxy(rtObject, proxyHandler)); // wrapper rtObject into proxy
-      });
-  },
-  setEndFunction: (cb) => {
-    endFunction = cb;
-    return null;
-  },
-};
+module.exports = RTRemoteProxy;
