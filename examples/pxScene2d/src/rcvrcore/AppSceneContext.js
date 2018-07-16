@@ -19,6 +19,7 @@ limitations under the License.
 //"use strict";
 
 var isDuk=(typeof Duktape != "undefined")?true:false;
+var isV8=(typeof _isV8 != "undefined")?true:false;
 
 var url = require('url');
 var path = require('path');

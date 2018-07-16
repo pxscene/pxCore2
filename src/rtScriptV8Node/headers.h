@@ -16,36 +16,19 @@ limitations under the License.
 
 */
 
-#ifndef RT_JS_MODULES
-#define RT_JS_MODULES
+#ifndef NODE_HEADERS_H
+#define NODE_HEADERS_H
 
-#include "v8_headers.h"
+#include <rtScriptHeaders.h>
 
-#include <rtError.h>
-#include <rtObject.h>
-#include <rtString.h>
-#include <rtValue.h>
+#ifdef RTSCRIPT_SUPPORT_NODE
+#include <node.h>
+#include <node_object_wrap.h>
+#endif
 
-#include "rtScript.h"
-#include "rtWrapperUtilsV8.h"
-
-#include <stdarg.h>
-#include <string>
-#include <map>
-#include <memory>
-
-#include <assert.h>
-
-#define RT_V8_TEST_BINDINGS
-
-namespace rtScriptV8Utils
-{
-
-  extern rtV8FunctionItem v8ModuleBindings[];
-
-  rtError rtHttpGetBinding(int numArgs, const rtValue* args, rtValue* result, void* context);
-
-} // namespace
+#include <v8.h>
+#include <v8-util.h>
+#include <uv.h>
 
 #endif
 

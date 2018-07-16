@@ -17,6 +17,7 @@ limitations under the License.
 */
 
 var isDuk = (typeof Duktape != "undefined")?true:false;
+var isV8 = (typeof _isV8 != "undefined")?true:false;
 
 if (isDuk) {
 global.console = require('console');

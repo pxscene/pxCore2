@@ -16,6 +16,7 @@
 
 */
 
+#ifdef RTSCRIPT_SUPPORT_V8
 
 #if defined WIN32
 #include <Windows.h>
@@ -59,20 +60,14 @@ extern "C" const char U_DATA_API SMALL_ICUDATA_ENTRY_POINT[];
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 #endif
 
-#include "rtWrapperUtilsV8.h"
-#include "rtJsModulesV8.h"
-
-
-#ifdef  RT_V8_TEST_BINDINGS
-#pragma optimize("", off)
-#endif
+#include "rtWrapperUtils.h"
 
 
 #ifndef WIN32
 #pragma GCC diagnostic pop
 #endif
 
-#include "rtScriptV8.h"
+#include "rtScriptV8Node.h"
 
 #include "rtCore.h"
 #include "rtObject.h"
@@ -80,11 +75,54 @@ extern "C" const char U_DATA_API SMALL_ICUDATA_ENTRY_POINT[];
 #include "rtAtomic.h"
 #include "rtScript.h"
 #include "rtPromise.h"
-#include "rtFunctionWrapperV8.h"
-#include "rtObjectWrapperV8.h"
+#include "rtFunctionWrapper.h"
+#include "rtObjectWrapper.h"
 
 #include <string>
 #include <map>
+
+#include "rtFileDownloader.h"
+#include <rtMutex.h>
+
+#include <string>
+#include <fstream>
+#include <sstream>
+
+#if defined(USE_STD_THREADS)
+#include <thread>
+#include <mutex>
+#endif
+
+#if !defined(_WIN32)
+#include <unistd.h>
+#endif
+
+#if defined(_WIN32)
+#include <fcntl.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#ifndef  S_ISREG
+# define S_ISREG(x)  (((x) & _S_IFMT) == _S_IFREG)
+#endif
+#ifndef  S_ISDIR
+# define S_ISDIR(x)  (((x) & _S_IFMT) == _S_IFDIR)
+#endif
+#ifndef  S_ISFIFO
+# define S_ISFIFO(x) (((x) & _S_IFMT) == _S_IFIFO)
+#endif
+#ifndef  S_ISCHR
+# define S_ISCHR(x)  (((x) & _S_IFMT) == _S_IFCHR)
+#endif
+#ifndef  S_ISBLK
+# define S_ISBLK(x)  0
+#endif
+#ifndef  S_ISLINK
+# define S_ISLNK(x)  0
+#endif
+#ifndef  S_ISSOCK
+# define S_ISSOCK(x) 0
+#endif
+#endif
 
 #if !defined(WIN32) && !defined(ENABLE_DFB)
 #pragma GCC diagnostic push
@@ -93,18 +131,32 @@ extern "C" const char U_DATA_API SMALL_ICUDATA_ENTRY_POINT[];
 #pragma GCC diagnostic ignored "-Wall"
 #endif
 
-#include  "v8_headers.h"
+#include  "headers.h"
 #include "libplatform/libplatform.h"
 
-#include "rtObjectWrapperV8.h"
-#include "rtFunctionWrapperV8.h"
-#include "rtWrapperUtilsV8.h"
+#include "rtObjectWrapper.h"
+#include "rtFunctionWrapper.h"
+#include "rtWrapperUtils.h"
 
 #if !defined(WIN32) & !defined(ENABLE_DFB)
 #pragma GCC diagnostic pop
 #endif
 
 static rtAtomic sNextId = 100;
+
+bool gIsPumpingJavaScript = false;
+
+bool rtIsMainThreadNode()
+{
+  return true;
+}
+
+namespace rtScriptV8NodeUtils
+{
+  extern rtV8FunctionItem v8ModuleBindings[];
+
+  rtError rtHttpGetBinding(int numArgs, const rtValue* args, rtValue* result, void* context);
+} 
 
 class V8ArrayBufferAllocator : public v8::ArrayBuffer::Allocator {
 public:
@@ -154,7 +206,7 @@ inline v8::Local<TypeName> V8PersistentToLocal(
 }
 #endif
 
-using namespace rtScriptV8Utils;
+using namespace rtScriptV8NodeUtils;
 
 
 class rtV8Context;
@@ -262,170 +314,6 @@ private:
 
 using namespace v8;
 
-#ifdef  RT_V8_TEST_BINDINGS
-
-rtError rtTestArrayReturnBinding(int numArgs, const rtValue* args, rtValue* result, void* context);
-rtError rtTestMapReturnBinding(int numArgs, const rtValue* args, rtValue* result, void* context);
-rtError rtTestObjectReturnBinding(int numArgs, const rtValue* args, rtValue* result, void* context);
-
-rtError rtTestArrayReturnBinding(int numArgs, const rtValue* args, rtValue* result, void* context)
-{
-  rtArrayObject* ret = new rtArrayObject();
-
-  ret->pushBack(rtValue(1));
-  ret->pushBack(rtValue(2));
-  ret->pushBack(rtValue(3));
-
-  *result = ret;
-
-  return RT_OK;
-}
-
-rtError rtTestMapReturnBinding(int numArgs, const rtValue* args, rtValue* result, void* context)
-{
-  rtMapObject* ret = new rtMapObject();
-
-  rtValue v1(1);
-  ret->Set("a1", &v1);
-  rtValue v2(2);
-  ret->Set("a2", &v2);
-  rtValue v3(3);
-  ret->Set("a3", &v3);
-
-  *result = ret;
-
-  return RT_OK;
-}
-
-class rtTestObject : public rtObject
-{
-public:
-  rtDeclareObject(rtTestObject, rtObject);
-  rtProperty(propA, propA, setPropA, int);
-  rtReadOnlyProperty(propB, propB, int);
-  rtProperty(propC, propC, setPropC, rtFunctionRef);
-  rtMethodNoArgAndNoReturn("methodA", methodA);
-  rtMethodNoArgAndReturn("methodB", methodB, int);
-  rtMethod1ArgAndReturn("methodC", methodC, rtString, rtString);
-
-  rtTestObject() : mPropA(1), mPropB(2) {}
-
-  rtError propA(int& v) const { v = mPropA;  return RT_OK; }
-  rtError setPropA(int v) { mPropA = v;  return RT_OK; }
-  rtError propB(int& v) const { v = mPropB;  return RT_OK; }
-  rtError propC(rtFunctionRef& v) const { v = mPropC;  return RT_OK; }
-  rtError setPropC(rtFunctionRef v) { mPropC = v;  return RT_OK; }
-
-  rtError methodA() { return RT_OK; }
-  rtError methodB(int &b) { b = 123; return RT_OK; }
-  rtError methodC(const rtString &in1, rtString &out1) { out1 = in1; return RT_OK; }
-
-private:
-  int mPropA;
-  int mPropB;
-  rtFunctionRef mPropC;
-};
-
-rtDefineObject(rtTestObject, rtObject);
-rtDefineProperty(rtTestObject, propA);
-rtDefineProperty(rtTestObject, propB);
-rtDefineProperty(rtTestObject, propC);
-rtDefineMethod(rtTestObject, methodA);
-rtDefineMethod(rtTestObject, methodB);
-rtDefineMethod(rtTestObject, methodC);
-
-rtError rtTestObjectReturnBinding(int numArgs, const rtValue* args, rtValue* result, void* context)
-{
-  rtTestObject* ret = new rtTestObject();
-
-  *result = ret;
-
-  return RT_OK;
-}
-
-rtError rtTestPromiseReturnResolvedBinding(int numArgs, const rtValue* args, rtValue* result, void* context)
-{
-  rtPromise* ret = new rtPromise();
-
-  ret->resolve(2);
-
-  *result = ret;
-
-  return RT_OK;
-}
-
-rtError rtTestPromiseReturnRejectedBinding(int numArgs, const rtValue* args, rtValue* result, void* context)
-{
-  rtPromise* ret = new rtPromise();
-
-  ret->reject(3);
-
-  *result = ret;
-
-  return RT_OK;
-}
-
-static void testPromiseDoWork(uv_work_t* req)
-{
-
-}
-
-static void testPromiseDoResolveCallback(uv_work_t* req, int status)
-{
-  rtPromise *promise = (rtPromise *)req->data;
-  promise->resolve(3);
-  promise->Release();
-}
-
-static void testPromiseDoRejectCallback(uv_work_t* req, int status)
-{
-  rtPromise *promise = (rtPromise *)req->data;
-  promise->reject(promise);
-  promise->Release();
-}
-
-rtError rtTestPromiseReturnBinding(int numArgs, const rtValue* args, rtValue* result, void* context)
-{
-  rtPromise* ret = new rtPromise();
-
-  ret->AddRef();
-
-  uv_work_t *work = new uv_work_t();
-  work->data = (void*)ret;
-
-  uv_queue_work(uv_default_loop(), work, &testPromiseDoWork, &testPromiseDoResolveCallback);
-
-  *result = ret;
-
-  return RT_OK;
-}
-
-rtError rtTestPromiseReturnRejectBinding(int numArgs, const rtValue* args, rtValue* result, void* context)
-{
-  rtPromise* ret = new rtPromise();
-
-  ret->AddRef();
-
-  uv_work_t *work = new uv_work_t();
-  work->data = (void*)ret;
-
-  uv_queue_work(uv_default_loop(), work, &testPromiseDoWork, &testPromiseDoRejectCallback);
-
-  *result = ret;
-
-  return RT_OK;
-}
-
-rtRef<rtFunctionCallback> g_testArrayReturnFunc;
-rtRef<rtFunctionCallback> g_testMapReturnFunc;
-rtRef<rtFunctionCallback> g_testObjectReturnFunc;
-rtRef<rtFunctionCallback> g_testPromiseResolvedReturnFunc;
-rtRef<rtFunctionCallback> g_testPromiseReturnFunc;
-rtRef<rtFunctionCallback> g_testPromiseRejectedReturnFunc;
-rtRef<rtFunctionCallback> g_testPromiseReturnRejectFunc;
-
-#endif
-
 rtV8Context::rtV8Context(Isolate *isolate, Platform *platform, uv_loop_t *loop) :
      mIsolate(isolate), mRefCount(0), mPlatform(platform), mUvLoop(loop)
 {
@@ -446,7 +334,7 @@ rtV8Context::rtV8Context(Isolate *isolate, Platform *platform, uv_loop_t *loop) 
   Context::Scope contextScope(localContext);
 
   Handle<Object> global = localContext->Global();
-  global->Set(String::NewFromUtf8(mIsolate, "isV8", NewStringType::kNormal).ToLocalChecked(), 
+  global->Set(String::NewFromUtf8(mIsolate, "_isV8", NewStringType::kNormal).ToLocalChecked(), 
     v8::Integer::New(isolate, 1));
   global->Set(String::NewFromUtf8(mIsolate, "global", NewStringType::kNormal).ToLocalChecked(),
     v8::Object::New(isolate));
@@ -458,24 +346,6 @@ rtV8Context::rtV8Context(Isolate *isolate, Platform *platform, uv_loop_t *loop) 
   setupModuleBindings();
 
   v8::platform::PumpMessageLoop(mPlatform, mIsolate);
-
-#ifdef  RT_V8_TEST_BINDINGS
-  g_testArrayReturnFunc = new rtFunctionCallback(rtTestArrayReturnBinding);
-  g_testMapReturnFunc = new rtFunctionCallback(rtTestMapReturnBinding);
-  g_testObjectReturnFunc = new rtFunctionCallback(rtTestObjectReturnBinding);
-  g_testPromiseResolvedReturnFunc = new rtFunctionCallback(rtTestPromiseReturnResolvedBinding);
-  g_testPromiseReturnFunc = new rtFunctionCallback(rtTestPromiseReturnBinding);
-  g_testPromiseRejectedReturnFunc = new rtFunctionCallback(rtTestPromiseReturnRejectedBinding);
-  g_testPromiseReturnRejectFunc = new rtFunctionCallback(rtTestPromiseReturnRejectBinding);
-
-  add("_testArrayReturnFunc", g_testArrayReturnFunc.getPtr());
-  add("_testMapReturnFunc", g_testMapReturnFunc.getPtr());
-  add("_testObjectReturnFunc", g_testObjectReturnFunc.getPtr());
-  add("_testPromiseResolvedReturnFunc", g_testPromiseResolvedReturnFunc.getPtr());
-  add("_testPromiseReturnFunc", g_testPromiseReturnFunc.getPtr());
-  add("_testPromiseRejectedReturnFunc", g_testPromiseRejectedReturnFunc.getPtr());
-  add("_testPromiseReturnRejectFunc", g_testPromiseReturnRejectFunc.getPtr());
-#endif
 
   mHttpGetBinding = new rtFunctionCallback(rtHttpGetBinding, loop);
 
@@ -682,7 +552,7 @@ rtError rtV8Context::add(const char *name, const rtValue& val)
   Local<Context> local_context = PersistentToLocal<Context>(mIsolate, mContext);
   Context::Scope context_scope(local_context);
 
-  local_context->Global()->Set(String::NewFromUtf8(mIsolate, name), rt2v8(local_context, val));
+  local_context->Global()->Set(String::NewFromUtf8(mIsolate, name), rt2js(local_context, val));
 
   return RT_OK;
 }
@@ -713,7 +583,7 @@ rtValue rtV8Context::get(const char *name)
   }
   else {
     rtWrapperError error; // TODO - handle error
-    return v82rt(local_context, object, &error);
+    return js2rt(local_context, object, &error);
   }
 }
 
@@ -785,7 +655,7 @@ rtError rtV8Context::runScript(const char *script, rtValue* retVal /*= NULL*/, c
     if (retVal) {
       // Return val
       rtWrapperError error;
-      *retVal = v82rt(local_context, result, &error);
+      *retVal = js2rt(local_context, result, &error);
 
       if (error.hasError())
       {
@@ -965,3 +835,617 @@ rtError createScriptV8(rtScriptRef& script)
   script = new rtScriptV8();
   return RT_OK;
 }
+
+using namespace std;
+
+//-----------------------------------
+
+namespace rtScriptV8NodeUtils
+{
+
+  static void uvGetPlatform(const v8::FunctionCallbackInfo<v8::Value>& args)
+  {
+    Isolate* isolate = args.GetIsolate();
+    HandleScope scope(isolate);
+    const char *platform = "unknown";
+#ifdef _WIN32
+    platform = "win32";
+#elif defined(__linux__)
+    platform = "linux";
+#elif defined(__APPLE__)
+    platform = "macosx";
+#endif
+    args.GetReturnValue().Set<v8::String>(String::NewFromUtf8(args.GetIsolate(), platform, NewStringType::kNormal).ToLocalChecked());
+  }
+
+  static void uvGetHrTime(const v8::FunctionCallbackInfo<v8::Value>& args)
+  {
+    Isolate* isolate = args.GetIsolate();
+    HandleScope scope(isolate);
+    uint64_t hrtime = uv_hrtime();
+    int nanoseconds = hrtime % (int)1e9;
+    int seconds = hrtime / 1e9;
+
+    Local<Array> arr = Array::New(isolate, 2);
+    arr->Set(0, Integer::New(isolate, seconds));
+    arr->Set(1, Integer::New(isolate, nanoseconds));
+
+    args.GetReturnValue().Set<Array>(arr);
+  }
+
+  uv_loop_t *getEventLoopFromArgs(const v8::FunctionCallbackInfo<v8::Value>& args)
+  {
+    assert(args.Data()->IsExternal());
+    v8::External *val = v8::External::Cast(*args.Data());
+    assert(val != NULL);
+    uv_loop_t *loop = (uv_loop_t *)val->Value();
+    return loop;
+  }
+
+  static void uvFsAccess(const v8::FunctionCallbackInfo<v8::Value>& args)
+  {
+    Isolate* isolate = args.GetIsolate();
+    HandleScope scope(isolate);
+
+    uv_loop_t *loop = getEventLoopFromArgs(args);
+
+    args.GetReturnValue().Set(-1);
+
+    if (args.Length() != 2) {
+      return;
+    }
+
+    assert(args.Length() == 2);
+    assert(args[0]->IsString());
+    assert(args[1]->IsString());
+
+    rtString filePath = toString(args[0]->ToString());
+    rtString fileOpenMode = toString(args[1]->ToString());
+
+    int mode = 0;
+    size_t i, l;
+    for (i = 0, l = fileOpenMode.length(); i < l; ++i) {
+      switch (fileOpenMode[i]) {
+      case 'r': case 'R': mode |= R_OK; break;
+      case 'w': case 'W': mode |= W_OK; break;
+      case 'x': case 'X': mode |= X_OK; break;
+      default:
+        rtLogWarn("Unknown file access mode '%s'", fileOpenMode.cString());
+        return;
+      }
+    }
+
+    uv_fs_t req;
+    int ret = uv_fs_access(loop, &req, filePath.cString(), mode, NULL);
+
+    args.GetReturnValue().Set(ret);
+  }
+
+  static void uvFsGetSize(const v8::FunctionCallbackInfo<v8::Value>& args)
+  {
+    Isolate* isolate = args.GetIsolate();
+    HandleScope scope(isolate);
+
+    uv_loop_t *loop = getEventLoopFromArgs(args);
+
+    args.GetReturnValue().Set(-1);
+
+    if (args.Length() != 1) {
+      return;
+    }
+
+    assert(args.Length() == 1);
+    assert(args[0]->IsString());
+
+    rtString filePath = toString(args[0]->ToString());
+
+    uv_fs_t req;
+    int ret = uv_fs_stat(loop, &req, filePath.cString(), NULL);
+
+    if (ret < 0) {
+      return;
+    }
+
+    args.GetReturnValue().Set((uint32_t)req.statbuf.st_size);
+  }
+
+  static int stringToFlags(const char* s)
+  {
+    bool read = false;
+    bool write = false;
+    int flags = 0;
+    while (s && s[0]) {
+      switch (s[0]) {
+      case 'r': read = true; break;
+      case 'w': write = true; flags |= O_TRUNC | O_CREAT; break;
+      case 'a': write = true; flags |= O_APPEND | O_CREAT; break;
+      case '+': read = true; write = true; break;
+      case 'x': flags |= O_EXCL; break;
+
+#ifndef _WIN32
+      case 's': flags |= O_SYNC; break;
+#endif
+
+      default:
+        return 0;
+      }
+      s++;
+    }
+    flags |= read ? (write ? O_RDWR : O_RDONLY) :
+      (write ? O_WRONLY : 0);
+    return flags;
+  }
+
+  static void uvFsOpen(const v8::FunctionCallbackInfo<v8::Value>& args)
+  {
+    Isolate* isolate = args.GetIsolate();
+    HandleScope scope(isolate);
+
+    uv_loop_t *loop = getEventLoopFromArgs(args);
+
+    args.GetReturnValue().SetNull();
+
+    if (args.Length() != 3) {
+      return;
+    }
+
+    assert(args.Length() == 3);
+    assert(args[0]->IsString());
+    assert(args[1]->IsString());
+
+    rtString filePath = toString(args[0]->ToString());
+    rtString fileOpenMode = toString(args[1]->ToString());
+
+    int flags = stringToFlags(fileOpenMode.cString());
+    int mode = (int)args[2]->ToInteger()->Value();
+
+    uv_fs_t req;
+    int ret = uv_fs_open(loop, &req, filePath.cString(), flags, mode, NULL);
+
+    if (ret < 0) {
+      return;
+    }
+
+    args.GetReturnValue().Set(v8::External::New(isolate, (void *)req.result));
+  }
+
+  static void uvFsRead(const v8::FunctionCallbackInfo<v8::Value>& args)
+  {
+    Isolate* isolate = args.GetIsolate();
+    HandleScope scope(isolate);
+
+    uv_loop_t *loop = getEventLoopFromArgs(args);
+
+    args.GetReturnValue().SetNull();
+
+    if (args.Length() != 3 || !args[0]->IsExternal()) {
+      return;
+    }
+
+    assert(args.Length() == 3);
+    assert(args[0]->IsExternal());
+
+    v8::External *val = v8::External::Cast(*args[0]);
+    void *fd = (void *)val->Value();
+    int size = (int)args[1]->ToInteger()->Value();
+    int offset = (int)args[2]->ToInteger()->Value();
+
+    void *ptr = malloc(size);
+    uv_buf_t buf = uv_buf_init((char *)ptr, size);
+
+    uv_fs_t req;
+    uv_fs_read(loop, &req, static_cast<uv_file>(reinterpret_cast<uint64_t>(fd)), &buf, 1, offset, NULL);
+
+    if (req.result <= 0) {
+      free(ptr);
+      return;
+    }
+
+    Local<ArrayBuffer> arrBuf = ArrayBuffer::New(isolate, ptr, req.result, ArrayBufferCreationMode::kInternalized);
+    free(ptr);
+
+    args.GetReturnValue().Set(arrBuf);
+  }
+
+  static void uvFsClose(const v8::FunctionCallbackInfo<v8::Value>& args)
+  {
+    Isolate* isolate = args.GetIsolate();
+    HandleScope scope(isolate);
+
+    uv_loop_t *loop = getEventLoopFromArgs(args);
+
+    args.GetReturnValue().Set(-1);
+
+    if (args.Length() != 1 || !args[0]->IsExternal()) {
+      return;
+    }
+
+    assert(args.Length() == 1);
+    assert(args[0]->IsExternal());
+
+    v8::External *val = v8::External::Cast(*args[0]);
+    void *fd = (void *)val->Value();
+
+    uv_fs_t req;
+    int ret = uv_fs_close(loop, &req, static_cast<uv_file>(reinterpret_cast<uint64_t>(fd)), NULL);
+
+    if (ret < 0) {
+      return;
+    }
+
+    args.GetReturnValue().Set(1);
+  }
+
+  static void uvTimerNew(const v8::FunctionCallbackInfo<v8::Value>& args)
+  {
+    Isolate* isolate = args.GetIsolate();
+    HandleScope scope(isolate);
+
+    uv_loop_t *loop = getEventLoopFromArgs(args);
+
+    args.GetReturnValue().SetNull();
+
+    if (args.Length() != 0) {
+      return;
+    }
+
+    uv_timer_t *timer = new uv_timer_t();
+    uv_timer_init(loop, timer);
+
+    args.GetReturnValue().Set(v8::External::New(isolate, (void *)timer));
+  }
+
+  struct cbData
+  {
+    Isolate *mIsolate;
+    v8::Persistent<v8::Context> mContext;
+    v8::Persistent<v8::Function> mFunc;
+  };
+
+  static void v8TimerCallback(uv_timer_t* handle)
+  {
+    cbData *data = (cbData *)handle->data;
+
+    Local<v8::Context> ctx = PersistentToLocal(data->mIsolate, data->mContext);
+    Local<v8::Function> func = PersistentToLocal(data->mIsolate, data->mFunc);
+    Local<v8::Value> argv[1] = { func.As<Value>() };
+
+    (void)func->Call(ctx, argv[0], 1, argv);
+  }
+
+  static void uvTimerStart(const v8::FunctionCallbackInfo<v8::Value>& args)
+  {
+    Isolate* isolate = args.GetIsolate();
+    HandleScope scope(isolate);
+
+    uv_loop_t *loop = getEventLoopFromArgs(args);
+
+    args.GetReturnValue().Set(-1);
+
+    if (args.Length() != 4 || !args[0]->IsExternal()) {
+      return;
+    }
+
+    assert(args.Length() == 4);
+    assert(args[0]->IsExternal());
+    assert(args[3]->IsFunction());
+
+    v8::External *val = v8::External::Cast(*args[0]);
+    uv_timer_t *handle = (uv_timer_t *)val->Value();
+    int timeout = (int)args[1]->ToInteger()->Value();
+    int repeat = (int)args[2]->ToInteger()->Value();
+
+    v8::Persistent<v8::Function> func(isolate, Local<v8::Function>::Cast(args[3]));
+
+    cbData *data = new cbData();
+
+    handle->data = data;
+    data->mIsolate = isolate;
+    data->mContext.Reset(isolate, isolate->GetCurrentContext());
+    data->mFunc.Reset(isolate, Local<v8::Function>::Cast(args[3]));
+
+    uv_timer_start(handle, &v8TimerCallback, timeout, repeat);
+
+    args.GetReturnValue().Set(1);
+  }
+
+  static void uvTimerStop(const v8::FunctionCallbackInfo<v8::Value>& args)
+  {
+    Isolate* isolate = args.GetIsolate();
+    HandleScope scope(isolate);
+
+    uv_loop_t *loop = getEventLoopFromArgs(args);
+
+    args.GetReturnValue().Set(-1);
+
+    if (args.Length() != 1 || !args[0]->IsExternal()) {
+      return;
+    }
+
+    assert(args.Length() == 1);
+    assert(args[0]->IsExternal());
+
+    v8::External *val = v8::External::Cast(*args[0]);
+    uv_timer_t *handle = (uv_timer_t *)val->Value();
+
+    uv_timer_stop(handle);
+
+    args.GetReturnValue().Set(1);
+  }
+
+  static std::string v8ReadFile(const char *file)
+  {
+    std::ifstream       src_file(file);
+    std::stringstream   src_script;
+
+    src_script << src_file.rdbuf(); // slurp up file
+
+    std::string s = src_script.str();
+
+    return s;
+  }
+
+  static void uvRunInContext(const v8::FunctionCallbackInfo<v8::Value>& args)
+  {
+    Isolate* isolate = args.GetIsolate();
+    HandleScope scope(isolate);
+
+    uv_loop_t *loop = getEventLoopFromArgs(args);
+
+    args.GetReturnValue().SetNull();
+
+    /*if (args.Length() != 1) {
+    return;
+    }*/
+
+    assert(args.Length() >= 1);
+    assert(args[0]->IsString());
+
+    rtString sourceCode = toString(args[0]->ToString());
+
+    Locker                locker(isolate);
+    Isolate::Scope isolate_scope(isolate);
+    HandleScope     handle_scope(isolate);
+
+    Local<Context> local_context = isolate->GetCurrentContext();
+    Context::Scope context_scope(local_context);
+
+    TryCatch tryCatch(isolate);
+    Local<String> source = String::NewFromUtf8(isolate, sourceCode.cString());
+    Local<Script> run_script = Script::Compile(source);
+    Local<Value> result = run_script->Run();
+
+    if (tryCatch.HasCaught()) {
+      String::Utf8Value trace(tryCatch.StackTrace());
+      rtLogWarn("uvRunInContext: '%s'", *trace);
+      return;
+    }
+
+    args.GetReturnValue().Set(result);
+  }
+
+  static void v8CopyProperties(Isolate *isolate, Local<Context> &fromContext, Local<Context> &toContext, Local<Object> sandboxObj)
+  {
+    HandleScope scope(isolate);
+
+    Local<Object> global = toContext->Global()->GetPrototype()->ToObject(isolate);
+    Local<Function> clone_property_method;
+
+    Local<Array> names = global->GetOwnPropertyNames();
+    int length = names->Length();
+    for (int i = 0; i < length; i++) {
+      Local<String> key = names->Get(i)->ToString(isolate);
+      auto maybe_has = sandboxObj->HasOwnProperty(toContext, key);
+
+      // Check for pending exceptions
+      if (!maybe_has.IsJust())
+        break;
+
+      bool has = maybe_has.FromJust();
+
+      if (!has) {
+        // Could also do this like so:
+        //
+        // PropertyAttribute att = global->GetPropertyAttributes(key_v);
+        // Local<Value> val = global->Get(key_v);
+        // sandbox->ForceSet(key_v, val, att);
+        //
+        // However, this doesn't handle ES6-style properties configured with
+        // Object.defineProperty, and that's exactly what we're up against at
+        // this point.  ForceSet(key,val,att) only supports value properties
+        // with the ES3-style attribute flags (DontDelete/DontEnum/ReadOnly),
+        // which doesn't faithfully capture the full range of configurations
+        // that can be done using Object.defineProperty.
+        if (clone_property_method.IsEmpty()) {
+          Local<String> code = String::NewFromUtf8(isolate,
+            "(function cloneProperty(source, key, target) {\n"
+            "  if (key === 'Proxy') return;\n"
+            "  try {\n"
+            "    var desc = Object.getOwnPropertyDescriptor(source, key);\n"
+            "    if (desc.value === source) desc.value = target;\n"
+            "    Object.defineProperty(target, key, desc);\n"
+            "  } catch (e) {\n"
+            "   // Catch sealed properties errors\n"
+            "  }\n"
+            "})");
+
+          Local<Script> script =
+            Script::Compile(toContext, code).ToLocalChecked();
+          clone_property_method = Local<Function>::Cast(script->Run());
+          assert(clone_property_method->IsFunction());
+        }
+        Local<Value> args[] = { global, key, sandboxObj };
+        clone_property_method->Call(global, sizeof(args) / sizeof(args[0]), args);
+      }
+    }
+  }
+
+  static void uvRunInNewContext(const v8::FunctionCallbackInfo<v8::Value>& args)
+  {
+    Isolate* isolate = args.GetIsolate();
+    HandleScope scope(isolate);
+
+    uv_loop_t *loop = getEventLoopFromArgs(args);
+
+    args.GetReturnValue().SetNull();
+
+    assert(args.Length() >= 2);
+    assert(args[0]->IsString());
+    assert(args[1]->IsObject());
+
+    rtString sourceCode = toString(args[0]->ToString());
+    Local<Object> sandbox = args[1].As<Object>();
+
+    Locker                locker(isolate);
+    Isolate::Scope isolate_scope(isolate);
+    HandleScope     handle_scope(isolate);
+
+    Local<Context> toContext = Context::New(isolate);
+
+    v8::Persistent<v8::Context> pContext;
+    pContext.Reset(isolate, toContext);
+
+    Local<Context> fromContext = isolate->GetCallingContext();
+
+    Context::Scope contextScope(toContext);
+
+    TryCatch tryCatch(isolate);
+
+    v8CopyProperties(isolate, fromContext, toContext, sandbox);
+
+    for (int i = 0; v8ModuleBindings[i].mName != NULL; ++i) {
+      Local<FunctionTemplate> fTemplate = v8::FunctionTemplate::New(isolate,
+        v8ModuleBindings[i].mCallback, v8::External::New(isolate, loop));
+      toContext->Global()->Set(String::NewFromUtf8(isolate,
+        v8ModuleBindings[i].mName, NewStringType::kNormal).ToLocalChecked(), fTemplate->GetFunction());
+    }
+
+    Local<String> source = String::NewFromUtf8(isolate, sourceCode.cString());
+    MaybeLocal<Script> run_script = Script::Compile(toContext, source);
+    if (run_script.IsEmpty()) {
+      rtLogWarn("uvRunInNewContext: compilation failed");
+      return;
+    }
+    MaybeLocal<Value> result = run_script.ToLocalChecked()->Run(toContext);
+
+    if (result.IsEmpty() || tryCatch.HasCaught()) {
+      String::Utf8Value trace(tryCatch.StackTrace());
+      rtLogWarn("uvRunInNewContext: '%s'", *trace);
+      return;
+    }
+
+    args.GetReturnValue().Set(result.ToLocalChecked());
+  }
+
+  rtV8FunctionItem v8ModuleBindings[] = {
+    { "uv_platform", &uvGetPlatform },
+    { "uv_hrtime", &uvGetHrTime },
+    { "uv_fs_access", &uvFsAccess },
+    { "uv_fs_size", &uvFsGetSize },
+    { "uv_fs_open", &uvFsOpen },
+    { "uv_fs_read", &uvFsRead },
+    { "uv_fs_close", &uvFsClose },
+    { "uv_timer_new", &uvTimerNew },
+    { "uv_timer_start", &uvTimerStart },
+    { "uv_timer_stop", &uvTimerStop },
+    { "uv_run_in_context", &uvRunInContext },
+    { "uv_run_in_new_context", &uvRunInNewContext },
+    { NULL, NULL },
+  };
+
+  class rtHttpResponse : public rtObject
+  {
+  public:
+    rtDeclareObject(rtHttpResponse, rtObject);
+    rtReadOnlyProperty(statusCode, statusCode, int32_t);
+    rtReadOnlyProperty(message, errorMessage, rtString);
+    rtMethod2ArgAndNoReturn("on", addListener, rtString, rtFunctionRef);
+
+    rtHttpResponse() : mStatusCode(0) {
+      mEmit = new rtEmit();
+    }
+
+    rtError statusCode(int32_t& v) const { v = mStatusCode;  return RT_OK; }
+    rtError errorMessage(rtString& v) const { v = mErrorMessage;  return RT_OK; }
+    rtError addListener(rtString eventName, const rtFunctionRef& f) { mEmit->addListener(eventName, f); return RT_OK; }
+
+    static void onDownloadComplete(rtFileDownloadRequest* downloadRequest);
+    static size_t onDownloadInProgress(void *ptr, size_t size, size_t nmemb, void *userData);
+
+  private:
+    int32_t mStatusCode;
+    rtString mErrorMessage;
+    rtEmitRef mEmit;
+  };
+
+  rtDefineObject(rtHttpResponse, rtObject);
+  rtDefineProperty(rtHttpResponse, statusCode);
+  rtDefineProperty(rtHttpResponse, message);
+  rtDefineMethod(rtHttpResponse, addListener);
+
+  void rtHttpResponse::onDownloadComplete(rtFileDownloadRequest* downloadRequest)
+  {
+    rtHttpResponse* resp = (rtHttpResponse*)downloadRequest->callbackData();
+
+    resp->mStatusCode = downloadRequest->httpStatusCode();
+    resp->mErrorMessage = downloadRequest->errorString();
+
+    resp->mEmit.send(resp->mErrorMessage.isEmpty() ? "end" : "error", (rtIObject *)resp);
+  }
+
+  size_t rtHttpResponse::onDownloadInProgress(void *ptr, size_t size, size_t nmemb, void *userData)
+  {
+    rtHttpResponse* resp = (rtHttpResponse*)userData;
+
+    if (size * nmemb > 0) {
+      resp->mEmit.send("data", rtString((const char *)ptr, size*nmemb));
+    }
+    return 0;
+  }
+
+  rtError rtHttpGetBinding(int numArgs, const rtValue* args, rtValue* result, void* context)
+  {
+    if (numArgs != 2) {
+      return RT_ERROR_INVALID_ARG;
+    }
+
+    rtString resourceUrl;
+    if (args[0].getType() == RT_stringType) {
+      resourceUrl = args[0].toString();
+    }
+    else {
+      if (args[0].getType() != RT_objectType) {
+        return RT_ERROR_INVALID_ARG;
+      }
+      rtObjectRef obj = args[0].toObject();
+
+      rtString proto = obj.get<rtString>("protocol");
+      rtString host = obj.get<rtString>("host");
+      rtString path = obj.get<rtString>("path");
+
+      resourceUrl.append(proto.cString());
+      resourceUrl.append("//");
+      resourceUrl.append(host.cString());
+      resourceUrl.append(path.cString());
+    }
+
+    if (args[1].getType() != RT_functionType) {
+      return RT_ERROR_INVALID_ARG;
+    }
+
+    rtValue ret;
+    rtObjectRef resp(new rtHttpResponse());
+    args[1].toFunction().sendReturns(resp, ret);
+
+    rtFileDownloadRequest *downloadRequest = new rtFileDownloadRequest(resourceUrl, resp.getPtr(), rtHttpResponse::onDownloadComplete);
+    downloadRequest->setDownloadProgressCallbackFunction(rtHttpResponse::onDownloadInProgress, resp.getPtr());
+    rtFileDownloader::instance()->addToDownloadQueue(downloadRequest);
+
+    *result = resp;
+
+    return RT_OK;
+  }
+
+} // namespace
+
+#endif
