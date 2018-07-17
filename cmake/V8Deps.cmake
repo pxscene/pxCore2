@@ -8,16 +8,19 @@ set(V8_INCLUDE_DIRS ${V8DIR}/include
         ${NODEDIR}/deps/icu-small/source/common)
 
 if (WIN32)
-    set(V8_LIBRARY_DIRS ${V8DIR}/out.gn/ia32.release ${NODEDIR}build/Release/lib ${NODEDIR}Release/lib ${NODEDIR}Release)
+    set(V8_LIBDIR ${V8DIR}/out.gn/ia32.release)
+    set(V8_LIBRARY_DIRS ${V8_LIBDIR} ${NODEDIR}build/Release/lib ${NODEDIR}Release/lib ${NODEDIR}Release)
     set(V8_LIBRARIES
           v8.dll.lib v8_libbase.dll.lib v8_libplatform.dll.lib
           icutools.lib icustubdata.lib icudata.lib icuucx.lib icui18n.lib
           winmm.lib dbghelp.lib shlwapi.lib
           libuv.lib openssl.lib)
+    set(V8_BUILD_PATH_CHECK ${V8_LIBDIR}/v8.dll.lib)
 elseif (APPLE)
+    set(V8_LIBDIR ${V8DIR}/out.gn/x64.release/obj)
     set (V8_INCLUDE_DIRS ${V8_INCLUDE_DIRS} ${NODEDIR}/deps/icu-small/source/common/)
     set(V8_LIBRARY_DIRS 
-		${V8DIR}/out.gn/x64.release/obj
+        ${V8_LIBDIR}
 		${NODEDIR})
     set(V8_LIBRARIES  
           v8_base
@@ -26,10 +29,12 @@ elseif (APPLE)
           v8_libsampler
           v8_libbase
 		node)
+    set(V8_BUILD_PATH_CHECK ${V8_LIBDIR}/libv8_base.a)
 else ()
+      set(V8_LIBDIR ${V8DIR}/out.gn/x64.release/obj)
       set (V8_INCLUDE_DIRS ${V8_INCLUDE_DIRS} ${NODEDIR}/deps/icu-small/source/common/)
       set(V8_LIBRARY_DIRS 
-          ${V8DIR}/out.gn/x64.release/obj
+          ${V8_LIBDIR}
           ${NODEDIR}/out/Release/obj.target
           ${NODEDIR}/out/Release/obj.target/deps/uv
           ${NODEDIR}/out/Release/obj.target/deps/v8/tools/gyp
@@ -53,10 +58,17 @@ else ()
           icuucx
           icui18n
          )
+    set(V8_BUILD_PATH_CHECK ${V8_LIBDIR}/libv8_base.a)
 endif ()
 
-if (NOT SUPPORT_V8)
+if  (SUPPORT_V8)
+    if(EXISTS ${V8_BUILD_PATH_CHECK})
+        message("external/v8 library is built successfully")
+    else ()
+        message(FATAL_ERROR "external/v8 library is not built, please build it first")
+    endif ()
+else (SUPPORT_V8)
     unset(V8_INCLUDE_DIRS)
     unset(V8_LIBRARY_DIRS)
     unset(V8_LIBRARIES)
-endif (NOT SUPPORT_V8)
+endif (SUPPORT_V8)
