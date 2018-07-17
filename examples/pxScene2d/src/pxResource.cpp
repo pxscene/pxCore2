@@ -396,7 +396,10 @@ pxTextureRef rtImageResource::getTexture(bool initializing)
     {
       mTexture = mDownloadedTexture;
       mDownloadedTexture = NULL;
-      mTexture->setTextureListener(this);
+      if (mTexture.getPtr())
+      {
+        mTexture->setTextureListener(this);
+      }
     }
     mTextureMutex.unlock();
   }

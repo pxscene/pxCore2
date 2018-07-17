@@ -146,7 +146,9 @@ bool gApplicationIsClosing = false;
 map<string, string> gWaylandAppsMap;
 map<string, string> gWaylandRegistryAppsMap;
 map<string, string> gPxsceneWaylandAppsMap;
+#if !(defined(ENABLE_DFB) || defined(DISABLE_WAYLAND))
 static bool gWaylandAppsConfigLoaded = false;
+#endif
 #define DEFAULT_WAYLAND_APP_CONFIG_FILE "./waylandregistry.conf"
 #define DEFAULT_ALL_APPS_CONFIG_FILE "./pxsceneappregistry.conf"
 
@@ -827,6 +829,14 @@ rtError pxObject::moveToFront()
 
   if(!parent) return RT_OK;
 
+  // If this pxObject is already at the front (last child),
+  // make this a no-op
+  uint32_t size = parent->mChildren.size();
+  rtRef<pxObject> lastChild = parent->mChildren[size-1];
+  if( lastChild.getPtr() == this) {
+    return RT_OK;
+  }
+
   remove();
   setParent(parent);
 
@@ -842,6 +852,13 @@ rtError pxObject::moveToBack()
   pxObject* parent = this->parent();
 
   if(!parent) return RT_OK;
+
+  // If this pxObject is already at the back (first child),
+  // make this a no-op
+  rtRef<pxObject> firstChild = parent->mChildren[0];
+  if( firstChild.getPtr() == this) {
+    return RT_OK;
+  }
 
   remove();
   mParent = parent;
