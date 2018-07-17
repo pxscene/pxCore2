@@ -12,8 +12,20 @@ For Node client
 * `cd remote/js`
  * `npm i`
  * `node repl`
-* `stb = yield rtRemote.connect('224.10.0.12', 10004, 'DisplayManager')`
-* `res = yield stb.getResolution()`
-* `res.w`
-* `res.h`
-5. `stb.setResolution(1920,1080)` to update resolution
+
+## Example:
+
+```
+var serviceManager = yield rtRemote.locateObject('rtServiceManager');
+var displayManager = yield serviceManager.createService("org.sa")
+var res = yield displayManager.getResolution()
+res = yield displayManager.setResolution(1920,1080)
+yield displayManager.set("resolutionW",2000)
+res = yield displayManager.get("resolutionW")
+
+ret = displayManager.getProperty("resolutionW");
+ret.then((returnValue) => {
+   // setProperty likely returns NULL
+  console.log("Return value:" + returnValue); 
+});
+```
