@@ -20,7 +20,7 @@
 
 // TODO what is this for??
 #define XRELOG_NOCTRACE
-
+#include <curl/curl.h>
 #include "rtFileDownloader.h"
 #include "rtThreadTask.h"
 #include "rtThreadPool.h"
@@ -470,6 +470,11 @@ rtFileDownloader::rtFileDownloader()
     : mNumberOfCurrentDownloads(0), mDefaultCallbackFunction(NULL), mDownloadHandles(), mReuseDownloadHandles(false),
       mCaCertFile(CA_CERTIFICATE), mFileCacheMutex()
 {
+  CURLcode rv = curl_global_init(CURL_GLOBAL_ALL);
+  if (CURLE_OK != rv)
+  {
+    rtLogError("curl global init failed (error code: %d)", rv);
+  }
 #ifdef PX_REUSE_DOWNLOAD_HANDLES
   rtLogWarn("enabling curl handle reuse");
   for (int i = 0; i < kMaxDownloadHandles; i++)
