@@ -1646,22 +1646,17 @@ unsigned char *base64_decode(const unsigned char *data,
 }
 
 
-rtString getMD5sum(rtString d)
+rtString md5sum(rtString d)
 {
-  unsigned char *md5_result = NULL;
-    
-  md5_result = (unsigned char *) malloc(MD5_DIGEST_LENGTH);
+  char md5_result[MD5_DIGEST_LENGTH];        // binary
+  char str_result[MD5_DIGEST_LENGTH*2 + 1];  // char string
   
-  MD5( (const unsigned char *) d.cString(), d.length(), md5_result);
+  MD5( (const unsigned char *) d.cString(), d.length(), (unsigned char *) &md5_result[0] );
 
-  char result_hex[MD5_DIGEST_LENGTH*2];
-  
   for(int i=0; i < MD5_DIGEST_LENGTH; i++)
   {
-    sprintf(&result_hex[i*2], "%02X",  md5_result[i]);
+    sprintf(&str_result[i*2], "%02X",  md5_result[i]); // sprintf() ... will null terminate
   }
 
-  free(md5_result);
-
-  return rtString(result_hex);
+  return rtString(str_result);
 }
