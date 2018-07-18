@@ -1657,8 +1657,6 @@ rtString md5sum(rtString d)
     sprintf( (char *) &str_result[i*2], "%02X",  md5_result[i]); // sprintf() ... will null terminate
   }
   
-  rtString foo = getMD5sum(d);
-  
   return rtString(  (char *) str_result);
 }
 
