@@ -756,7 +756,7 @@ void pxTextBox::renderOneLine(const char * tempStr, float tempX, float tempY, fl
         if( lineNumber == 0)
         {
           //rtLogDebug("LineNumber is 0\n");
-          xPos = mXStartPos;
+          xPos = tempX;
           noClipX = mXStartPos;
         }
         else
