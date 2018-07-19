@@ -60,24 +60,26 @@ public:
     {
       rtData pngData2;
       pngData2.init(i);
-      size_t l;
-      char* d = base64_encode(pngData2.data(), pngData2.length(), &l);
-      EXPECT_EQ (l, 4*((i+2)/3));
-      EXPECT_TRUE (l == 0 || NULL != d);
 
-      if (NULL != d)
+      rtString out;
+
+      rtError res1 = base64_encode(pngData2.data(), pngData2.length(), out);
+
+      EXPECT_EQ (out.length(), 4*((i+2)/3));
+      EXPECT_TRUE (out.length() == 0 || NULL != d);
+
+      if (NULL != out..data() )
       {
-        size_t l2;
-        unsigned char *d2 = base64_decode((const unsigned char *)d, l, &l2);
-        EXPECT_TRUE (l < 4 || NULL != d2);
-        if (d2)
+        rtString d2;
+        rtError res2 = base64_decode(out, d2);
+
+        EXPECT_TRUE (d2.length() < 4 || NULL != d2.data();
+        if (d2.data())
         {
-          EXPECT_EQ (pngData2.length(), l2);
-          int eq = memcmp(pngData2.data(), d2, pngData2.length());
+          EXPECT_EQ (pngData2.length(), d2.length());
+          int eq = memcmp(pngData2.data(), d2.data(), pngData2.length());
           EXPECT_EQ (eq, 0);
-          free(d2);
         }
-        free(d);
       }
     }
   }
