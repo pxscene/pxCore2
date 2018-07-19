@@ -1632,6 +1632,9 @@ rtError base64_encode(const unsigned char *data, size_t input_length, rtString& 
   if(ans != NULL)
   {
     s.init( (const char*) ans, output_length);
+
+    free(ans);
+
     return RT_OK;
   }
   else
