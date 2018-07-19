@@ -1049,6 +1049,11 @@ void pxObject::update(double t)
       // Prevent one more loop through oscillate
       if(a.count != pxConstantsAnimation::COUNT_FOREVER && a.actualCount >= a.count )
       {
+          // if(a.actualCount == a.count)
+          // {
+          //   justReverseChange = false;
+          // }
+
           if (true == justReverseChange)
           {
             mCancelInSet = false;
@@ -3234,15 +3239,36 @@ rtError pxScene2d::screenshot(rtString type, rtString& pngData)
 //HACK JUNK HACK JUNK HACK JUNK HACK JUNK HACK JUNK
 //HACK JUNK HACK JUNK HACK JUNK HACK JUNK HACK JUNK
 
-      size_t l;
-      char* d = base64_encode(pngData2.data(), pngData2.length(), &l);
-      if (d)
+      rtString ans;
+//      size_t l;
+//      char* d = base64_encode(pngData2.data(), pngData2.length(), &l);
+//      if (d)
+//      {
+//        // We return a data Url string containing the image data
+//        pngData = "data:image/png;base64,";
+//        rtString base64str(d, (uint32_t) l); // NULL-terminated
+//        pngData.append(base64str.cString());
+//        free(d);
+//        return RT_OK;
+//      }
+      
+      if( base64_encode(pngData2, ans) == RT_OK )
       {
         // We return a data Url string containing the image data
         pngData = "data:image/png;base64,";
-        rtString base64str(d, (uint32_t) l); // NULL-terminated
-        pngData.append(base64str.cString());
-        free(d);
+        
+        FILE *myFile = fopen("/var/tmp/snap.png", "wt");
+        if( myFile != NULL)
+        {
+          fwrite( ans.cString(), sizeof(char), ans.length(), myFile);
+          fclose(myFile);
+        }
+//        rtString base64str( (const char*) ans.data(), ans.length() ); // NULL-terminated
+//        
+//        pngData.append(base64str.cString());
+
+        pngData += ans;
+        
         return RT_OK;
       }
       else

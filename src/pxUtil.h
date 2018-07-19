@@ -30,9 +30,15 @@
 #include <vector>
 
 
-rtString md5sum(rtString d); //fwd
-char *base64_encode(const unsigned char *data, size_t input_length, size_t *output_length); //fwd
-unsigned char *base64_decode(const unsigned char *data, size_t input_length, size_t *output_length); //fwd
+rtString md5sum(rtString &d); //fwd
+
+void    base64_cleanup();
+
+rtError base64_encode(rtData &d, rtString &s);
+rtError base64_encode(const unsigned char *data, size_t input_length, rtString &s);
+
+rtError base64_decode(rtString &s, rtData &d);
+rtError base64_decode(const unsigned char *data, size_t input_length, rtData &d);
 
 class pxTimedOffscreenSequence
 {

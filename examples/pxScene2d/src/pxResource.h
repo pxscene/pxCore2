@@ -175,7 +175,8 @@ public:
   float   initSY() { return init_sy; };
 
   void initUriData(const uint8_t* data, size_t length) { mData.init(data, length);                                };
-  void initUriData(rtString s)                         { mData.init( (const uint8_t* ) s.cString(), s.length() ); };
+  void initUriData(rtData&   d)                        { mData.init(d.data(), d.length());                        };
+  void initUriData(rtString& s)                        { mData.init( (const uint8_t* ) s.cString(), s.length() ); };
 
   virtual void releaseData();
   virtual void reloadData();

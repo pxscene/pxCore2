@@ -64,6 +64,8 @@ public:
    */
   bool isEmpty() const;
 
+  rtString& init(const char* s, size_t byteLen);
+
   void term();
 
   rtString&  append(const char* s);

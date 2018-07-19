@@ -41,10 +41,22 @@ rtString::rtString(const char* s, uint32_t byteLen): mData(NULL)
 {
   if (s)
   {
+    init(s, byteLen);
+  }
+}
+
+rtString& rtString::init(const char* s, size_t byteLen)
+{
+  mData = NULL;
+  
+  if (s)
+  {
     mData = (char*)malloc(byteLen+1);
     memcpy(mData, s, byteLen);
     mData[byteLen] = 0; // null terminate
   }
+
+  return *this;
 }
 
 rtString::rtString(const rtString& s): mData(NULL)

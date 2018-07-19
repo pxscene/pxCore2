@@ -37,6 +37,8 @@ class rtData
   rtData(rtData &d);
   rtData(const uint8_t* data, size_t length);
 
+  rtData& operator=(const rtData& d);
+
   // TODO copy constructor and assignment
   rtError init(size_t length);
   rtError init(const uint8_t* data, size_t length);

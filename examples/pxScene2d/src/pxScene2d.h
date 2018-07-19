@@ -1383,6 +1383,8 @@ public:
        //delete mTestView; // HACK: Only used in testing... 'delete' causes unknown crash.
        mTestView = NULL;
     }
+
+    base64_cleanup();
   }
   
   virtual unsigned long AddRef() 
