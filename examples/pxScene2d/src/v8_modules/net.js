@@ -18,11 +18,11 @@ limitations under the License.
 
 "use strict";
 
-function get(url, cb) {
-    return httpGet(url, cb);
-}
-
 module.exports = {
-    'get': get,
-    'request': get,
+    'connect': function () {},
+    'createConnection': function () { },
+    'Socket': function () { },
+    'isIP': function () { return 1; },
+    'isIPv4': function () { return 1; },
+    'isIPv6': function () { return 1; },
 }

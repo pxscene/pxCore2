@@ -24,4 +24,5 @@ function get(url, cb) {
 
 module.exports = {
     'get': get,
+    'request': get,
 }

@@ -1041,10 +1041,11 @@ namespace rtScriptV8NodeUtils
       return;
     }
 
-    Local<ArrayBuffer> arrBuf = ArrayBuffer::New(isolate, ptr, req.result, ArrayBufferCreationMode::kInternalized);
+    Local<String> ret = String::NewFromOneByte(isolate, (const uint8_t *)ptr, v8::NewStringType::kNormal, req.result).ToLocalChecked();
+
     free(ptr);
 
-    args.GetReturnValue().Set(arrBuf);
+    args.GetReturnValue().Set(ret);
   }
 
   static void uvFsClose(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -1360,6 +1361,7 @@ namespace rtScriptV8NodeUtils
     rtReadOnlyProperty(statusCode, statusCode, int32_t);
     rtReadOnlyProperty(message, errorMessage, rtString);
     rtMethod2ArgAndNoReturn("on", addListener, rtString, rtFunctionRef);
+    rtMethodNoArgAndNoReturn("abort", abort);
 
     rtHttpResponse() : mStatusCode(0) {
       mEmit = new rtEmit();
@@ -1368,6 +1370,7 @@ namespace rtScriptV8NodeUtils
     rtError statusCode(int32_t& v) const { v = mStatusCode;  return RT_OK; }
     rtError errorMessage(rtString& v) const { v = mErrorMessage;  return RT_OK; }
     rtError addListener(rtString eventName, const rtFunctionRef& f) { mEmit->addListener(eventName, f); return RT_OK; }
+    rtError abort() const { return RT_OK; }
 
     static void onDownloadComplete(rtFileDownloadRequest* downloadRequest);
     static size_t onDownloadInProgress(void *ptr, size_t size, size_t nmemb, void *userData);
@@ -1382,6 +1385,7 @@ namespace rtScriptV8NodeUtils
   rtDefineProperty(rtHttpResponse, statusCode);
   rtDefineProperty(rtHttpResponse, message);
   rtDefineMethod(rtHttpResponse, addListener);
+  rtDefineMethod(rtHttpResponse, abort);
 
   void rtHttpResponse::onDownloadComplete(rtFileDownloadRequest* downloadRequest)
   {
@@ -1405,7 +1409,7 @@ namespace rtScriptV8NodeUtils
 
   rtError rtHttpGetBinding(int numArgs, const rtValue* args, rtValue* result, void* context)
   {
-    if (numArgs != 2) {
+    if (numArgs < 1) {
       return RT_ERROR_INVALID_ARG;
     }
 
@@ -1429,17 +1433,15 @@ namespace rtScriptV8NodeUtils
       resourceUrl.append(path.cString());
     }
 
-    if (args[1].getType() != RT_functionType) {
-      return RT_ERROR_INVALID_ARG;
-    }
-
     rtValue ret;
     rtObjectRef resp(new rtHttpResponse());
-    args[1].toFunction().sendReturns(resp, ret);
 
-    rtFileDownloadRequest *downloadRequest = new rtFileDownloadRequest(resourceUrl, resp.getPtr(), rtHttpResponse::onDownloadComplete);
-    downloadRequest->setDownloadProgressCallbackFunction(rtHttpResponse::onDownloadInProgress, resp.getPtr());
-    rtFileDownloader::instance()->addToDownloadQueue(downloadRequest);
+    if (numArgs > 1 && args[1].getType() == RT_functionType) {
+      args[1].toFunction().sendReturns(resp, ret);
+      rtFileDownloadRequest *downloadRequest = new rtFileDownloadRequest(resourceUrl, resp.getPtr(), rtHttpResponse::onDownloadComplete);
+      downloadRequest->setDownloadProgressCallbackFunction(rtHttpResponse::onDownloadInProgress, resp.getPtr());
+      rtFileDownloader::instance()->addToDownloadQueue(downloadRequest);
+    }
 
     *result = resp;
 
