@@ -41,7 +41,7 @@ set uploadArtifact=False
 @rem build pxScene
 if "%APPVEYOR_SCHEDULED_BUILD%"=="True" (
   echo "building edge"
-  copy ../examples/pxScene2d/src/browser/images/status_bg_edge.svg ../examples/pxScene2d/src/browser/images/status_bg.svg
+  copy ..\examples\pxScene2d\src\browser\images\status_bg_edge.svg ..\examples\pxScene2d\src\browser\images\status_bg.svg
 
   set uploadArtifact=True
   call:replaceString "..\examples\pxScene2d\src\win\pxscene.rc" "Spark_installer.ico" "SparkEdge_installer.ico"
