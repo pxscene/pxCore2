@@ -57,7 +57,7 @@ if "%APPVEYOR_SCHEDULED_BUILD%"=="True" (
   call:replaceString "CPackSourceConfig.cmake" "Spark_installer.ico" "SparkEdge_installer.ico"
   )
 
-rm ../examples/pxScene2d/src/browser/images/status_bg_edge.png
+del ../examples/pxScene2d/src/browser/images/status_bg_edge.png
 
 for /f "tokens=1,* delims=]" %%a in ('find /n /v "" ^< "..\examples\pxScene2d\src\win\pxscene.rc" ^| findstr "FILEVERSION" ') DO ( 
 			call set verInfo=%%b
