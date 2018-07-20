@@ -471,50 +471,50 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
           int    length = accString.length();
           int         n = length-1;
 
-        while(!isWordBoundary(tempStr[n]) && n >= 0)
-        {
-          n--;
-        }
-        if( isWordBoundary(tempStr[n]))
-        {
-          tempStr[n+1] = '\0';
-          // write out entire string that will fit
-          // Use horizonal positioning
-          //rtLogDebug("Calling renderOneLine with lineNumber=%d\n",lineNumber);
-          renderOneLine(tempStr, 0, tempY, sx, sy, size, lineWidth, render);
-          free(tempStr);
-
-          // Now reset accString to hold remaining text
-          tempStr = strdup(accString.cString());
-          n++;
-
-          if( strlen(tempStr+n) > 0)
+          while(!isWordBoundary(tempStr[n]) && n >= 0)
           {
-            if( isSpaceChar(tempStr[n]))
+            n--;
+          }
+          if( isWordBoundary(tempStr[n]))
+          {
+            tempStr[n+1] = '\0';
+            // write out entire string that will fit
+            // Use horizonal positioning
+            //rtLogDebug("Calling renderOneLine with lineNumber=%d\n",lineNumber);
+            renderOneLine(tempStr, 0, tempY, sx, sy, size, lineWidth, render);
+            free(tempStr);
+
+            // Now reset accString to hold remaining text
+            tempStr = strdup(accString.cString());
+            n++;
+
+            if( strlen(tempStr+n) > 0)
             {
-              //rtLogDebug("Attempting to move past leading space at %d in string \"%s\"\n",n, tempStr);
-              accString = tempStr+n+1;
+              if( isSpaceChar(tempStr[n]))
+              {
+                //rtLogDebug("Attempting to move past leading space at %d in string \"%s\"\n",n, tempStr);
+                accString = tempStr+n+1;
+              }
+              else
+              {
+                //rtLogDebug("Is not leading space at %d in string \"%s\"\n",n, tempStr);
+                accString = tempStr+n;
+                //rtLogDebug("So accString is now \"%s\"\n",accString.cString());
+              }
             }
             else
             {
-              //rtLogDebug("Is not leading space at %d in string \"%s\"\n",n, tempStr);
-              accString = tempStr+n;
-              //rtLogDebug("So accString is now \"%s\"\n",accString.cString());
+              accString = "";
             }
-          }
-          else
-          {
-            accString = "";
-          }
 
-          if( !isSpaceChar(tempChar[0]) || (isSpaceChar(tempChar[0]) && accString.length() != 0))
-          {
-            //rtLogDebug("space char check to add to string: \"%s\"\n",accString.cString());
-            //rtLogDebug("space char check: \"%s\"\n",tempChar);
-            accString.append(tempChar);
+            if( !isSpaceChar(tempChar[0]) || (isSpaceChar(tempChar[0]) && accString.length() != 0))
+            {
+              //rtLogDebug("space char check to add to string: \"%s\"\n",accString.cString());
+              //rtLogDebug("space char check: \"%s\"\n",tempChar);
+              accString.append(tempChar);
+            }
+            
           }
-          
-        }
 
           delete [] tempChar;
           tempChar = NULL;
