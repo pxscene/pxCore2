@@ -686,7 +686,7 @@ AppSceneContext.prototype.include = function(filePath, currentXModule) {
       onImportComplete([modData, origFilePath]);
       return;
     } else if (filePath === 'http' || filePath === 'https') {
-      var accessControl = (isV8 || isDuk) ? null : _this.accessControl;
+      var accessControl = _this.accessControl;
       modData = filePath === 'http' ? new http_wrap(accessControl) : new https_wrap(accessControl);
       onImportComplete([modData, origFilePath]);
       return;
