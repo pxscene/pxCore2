@@ -3210,75 +3210,87 @@ rtError pxScene2d::screenshot(rtString type, rtString& pngData)
 #endif
 
   // Is this a type we support?
-  if (type == "image/png;base64")
+  if (type != "image/png;base64")
   {
-    pxContextFramebufferRef previousRenderSurface = context.getCurrentFramebuffer();
-    pxContextFramebufferRef newFBO;
-    // w/o multisampling
-    // if needed, render texture of a multisample FBO to a non-multisample FBO and then read from it
-    mRoot->createSnapshot(newFBO, false, false);
-    context.setFramebuffer(newFBO);
-    pxOffscreen o;
-    context.snapshot(o);
-    context.setFramebuffer(previousRenderSurface);
+    return RT_FAIL;
+  }
 
-    rtData pngData2;
-    if (pxStorePNGImage(o, pngData2) == RT_OK)
-    {
+  pxContextFramebufferRef previousRenderSurface = context.getCurrentFramebuffer();
+  pxContextFramebufferRef newFBO;
+  // w/o multisampling
+  // if needed, render texture of a multisample FBO to a non-multisample FBO and then read from it
+  mRoot->createSnapshot(newFBO, false, false);
+  context.setFramebuffer(newFBO);
+  pxOffscreen o;
+  context.snapshot(o);
+  context.setFramebuffer(previousRenderSurface);
+
+  rtData pngData2;
+  if (pxStorePNGImage(o, pngData2) != RT_OK)
+  {
+    return RT_FAIL;
+  }
 
 //HACK JUNK HACK JUNK HACK JUNK HACK JUNK HACK JUNK
 //HACK JUNK HACK JUNK HACK JUNK HACK JUNK HACK JUNK
 #if 0
-    FILE *myFile = fopen("/mnt/nfs/env/snap.png", "wb");
-    if( myFile != NULL)
-    {
-      fwrite( pngData2.data(), sizeof(char), pngData2.length(),myFile);
-      fclose(myFile);
-    }
+  FILE *myFile = fopen("/mnt/nfs/env/snap.png", "wb");
+  if( myFile != NULL)
+  {
+    fwrite( pngData2.data(), sizeof(char), pngData2.length(),myFile);
+    fclose(myFile);
+  }
 #endif
 //HACK JUNK HACK JUNK HACK JUNK HACK JUNK HACK JUNK
 //HACK JUNK HACK JUNK HACK JUNK HACK JUNK HACK JUNK
 
-      rtString ans;
-//      size_t l;
-//      char* d = base64_encode(pngData2.data(), pngData2.length(), &l);
-//      if (d)
-//      {
-//        // We return a data Url string containing the image data
-//        pngData = "data:image/png;base64,";
-//        rtString base64str(d, (uint32_t) l); // NULL-terminated
-//        pngData.append(base64str.cString());
-//        free(d);
-//        return RT_OK;
-//      }
-      
-      if( base64_encode(pngData2, ans) == RT_OK )
-      {
-        // We return a data Url string containing the image data
-        pngData = "data:image/png;base64,";
-        
-        FILE *myFile = fopen("/var/tmp/snap.png", "wt");
-        if( myFile != NULL)
-        {
-          fwrite( ans.cString(), sizeof(char), ans.length(), myFile);
-          fclose(myFile);
-        }
-//        rtString base64str( (const char*) ans.data(), ans.length() ); // NULL-terminated
-//        
-//        pngData.append(base64str.cString());
-
-        pngData += ans;
-        
+  rtString base64coded;
+  
+  if( base64_encode(pngData2, base64coded) == RT_OK )
+  {
+    // We return a data Url string containing the image data
+    pngData = "data:image/png;base64,";
+    
+    pngData += base64coded;
+    
+//        FILE *saveFile  = fopen("/var/tmp/snap.txt", "wt"); // base64
+//        fwrite( base64coded.cString(), base64coded.length(), sizeof(char), saveFile);
+//        fclose(saveFile);
+//     
+//        FILE *inFile  = fopen("/var/tmp/snap.txt", "rt"); // base64
+//        if( inFile != NULL)
+//        {
+//          fseek(inFile, 0L, SEEK_END);
+//          size_t sz = ftell(inFile);
+//          fseek(inFile, 0L, SEEK_SET);
+//          
+//          rtData base64in; base64in.init(sz);
+//          fread(base64in.data(), base64in.length(), 1, inFile);
+//          fclose(inFile);
+//          
+//          rtString my64string( (const char* ) base64in.data(), base64in.length());
+//          
+//          rtData pngData2;
+//          
+//          rtError res = base64_decode(my64string, pngData2);
+//          
+//          if(res == RT_OK)
+//          {
+//            FILE *outFile = fopen("/var/tmp/snap.png", "wb"); // PNG
+//            
+//            if(outFile)
+//            {
+//              fwrite( pngData2.data(), pngData2.length(), sizeof(char), outFile);
+//              fclose(outFile);
+//            }
+//          }
+//        }
+    
         return RT_OK;
-      }
-      else
-        return RT_FAIL;
-    }
-    else
-      return RT_FAIL;
-  }
-  else
-    return RT_FAIL;
+      
+  }//ENDIF
+
+  return RT_FAIL;
 }
 
 rtError pxScene2d::clipboardSet(rtString type, rtString clipString)

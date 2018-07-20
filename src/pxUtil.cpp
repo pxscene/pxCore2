@@ -1729,20 +1729,28 @@ rtError base64_decode(const unsigned char *data, size_t input_length, rtData& d)
   }
 }
 
+//void testBase64()
+//{
+//    rtString  in1 = "VGVzdGluZzEyMw=="; // "Testing123" in Base64
+//    rtData   out1;
+//  
+//    base64_decode( (const unsigned char *) in1.cString(), in1.length(), out1);
+//  
+//    rtString txt = "Testing123";
+//    rtData   in2( (const uint8_t*) txt.cString(), txt.length());
+//    rtString out2;
+//  
+//    base64_encode( in2, out2 );
+//  
+//    if(memcmp(out1.data(), in2.data(), out1.length()) == 0)
+//    {
+//      printf("OK");
+//    }
+//}
 
 rtError base64_decode(rtString& s, rtData& d)
 {
-//  rtString  in1 = "VGVzdGluZzEyMw=="; // "Testing123" in Base64
-//  rtData   out1;
-//
-//  base64_decode( (const unsigned char *) in1.cString(), in1.length(), out1);
-//
-//  rtString txt = "Testing123";
-//  rtData   in2( (const uint8_t*) txt.cString(), txt.length());
-//  rtString out2;
-//
-//  base64_encode( in2, out2 );
-
+  // testBase64();
   return base64_decode( (const unsigned char *) s.cString(), s.length(), d);
 }
 
