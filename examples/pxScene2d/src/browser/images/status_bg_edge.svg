@@ -6,5 +6,5 @@
 	<stop  offset="0.0056" style="stop-color:#8f8f8f"/>
 	<stop  offset="1" style="stop-color:#595959"/>
 </radialGradient>
-<rect x="0.5" y="0.5" fill="url(#SVGID_1_)" stroke="#000000" stroke-miterlimit="10" width="1279" height="719"/>
+<rect x="0.5" y="0.5" fill="url(#SVGID_1_)" width="1279" height="719"/>
 </svg>
