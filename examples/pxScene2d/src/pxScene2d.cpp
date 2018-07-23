@@ -26,7 +26,7 @@
 #include "rtLog.h"
 #include "rtRef.h"
 #include "rtString.h"
-//#include "rtNode.h"
+
 #include "rtPathUtils.h"
 #include "rtUrlUtils.h"
 
@@ -88,6 +88,7 @@ using namespace std;
 // #define DEBUG_SKIP_UPDATE     // Skip UPDATE code - for testing.
 
 extern rtThreadQueue* gUIThreadQueue;
+extern pxContext      context;
 
 static int fpsWarningThreshold = 25;
 
@@ -365,124 +366,6 @@ void populateAllAppDetails(rtString& appDetails)
   appDetails.append("]");
 }
 
-static char encoding_table[] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H',
-                                'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P',
-                                'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X',
-                                'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f',
-                                'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n',
-                                'o', 'p', 'q', 'r', 's', 't', 'u', 'v',
-                                'w', 'x', 'y', 'z', '0', '1', '2', '3',
-                                '4', '5', '6', '7', '8', '9', '+', '/'};
-static char *decoding_table = NULL;
-static int mod_table[] = {0, 2, 1};
-
-void build_decoding_table() {
-
-  decoding_table = (char*)malloc(256);
-
-    for (int i = 0; i < 64; i++)
-        decoding_table[(unsigned char) encoding_table[i]] = i;
-}
-
-
-void base64_cleanup() {
-    free(decoding_table);
-}
-
-char *base64_encode(const unsigned char *data,
-                    size_t input_length,
-                    size_t *output_length) {
-
-    *output_length = 4 * ((input_length + 2) / 3);
-
-    char *encoded_data = (char *)malloc(*output_length);
-    if (encoded_data == NULL) return NULL;
-
-    for (uint32_t i = 0, j = 0; i < input_length;)
-    {
-
-        uint32_t octet_a = i < input_length ? (unsigned char)data[i++] : 0;
-        uint32_t octet_b = i < input_length ? (unsigned char)data[i++] : 0;
-        uint32_t octet_c = i < input_length ? (unsigned char)data[i++] : 0;
-
-        uint32_t triple = (octet_a << 0x10) + (octet_b << 0x08) + octet_c;
-
-        encoded_data[j++] = encoding_table[(triple >> 3 * 6) & 0x3F];
-        encoded_data[j++] = encoding_table[(triple >> 2 * 6) & 0x3F];
-        encoded_data[j++] = encoding_table[(triple >> 1 * 6) & 0x3F];
-        encoded_data[j++] = encoding_table[(triple >> 0 * 6) & 0x3F];
-    }
-
-    for (int i = 0; i < mod_table[input_length % 3]; i++)
-        encoded_data[*output_length - 1 - i] = '=';
-
-    return encoded_data;
-}
-
-
-unsigned char *base64_decode(const unsigned char *data,
-                             size_t input_length,
-                             size_t *output_length) {
-
-    if (decoding_table == NULL)
-        build_decoding_table();
-
-    if (output_length)
-        *output_length = input_length / 4 * 3;
-
-    if ((input_length == 0) || (input_length % 4 != 0))
-        return NULL;
-
-    if (NULL == output_length)
-      return NULL;
-
-    if (data[input_length - 1] == '=')
-        (*output_length)--;
-    if (data[input_length - 2] == '=')
-        (*output_length)--;
-
-    unsigned char *decoded_data = (unsigned char*)malloc(*output_length);
-    if (decoded_data == NULL)
-        return NULL;
-
-    for (uint32_t i = 0, j = 0; i < input_length;) {
-
-        uint32_t sextet_a = data[i] == '=' ? 0 & i++ : decoding_table[data[i++]];
-        uint32_t sextet_b = data[i] == '=' ? 0 & i++ : decoding_table[data[i++]];
-        uint32_t sextet_c = data[i] == '=' ? 0 & i++ : decoding_table[data[i++]];
-        uint32_t sextet_d = data[i] == '=' ? 0 & i++ : decoding_table[data[i++]];
-
-        uint32_t triple = (sextet_a << 3 * 6)
-        + (sextet_b << 2 * 6)
-        + (sextet_c << 1 * 6)
-        + (sextet_d << 0 * 6);
-
-        if (j < *output_length) decoded_data[j++] = (triple >> 2 * 8) & 0xFF;
-        if (j < *output_length) decoded_data[j++] = (triple >> 1 * 8) & 0xFF;
-        if (j < *output_length) decoded_data[j++] = (triple >> 0 * 8) & 0xFF;
-    }
-
-    return decoded_data;
-}
-
-// TODO get rid of globals
-extern pxContext context;
-rtFunctionRef gOnScene;
-
-#if 0
-pxInterp interps[] =
-{
-  pxInterpLinear,
-  easeOutElastic,
-  easeOutBounce,
-  pxExp,
-  pxStop,
-};
-int numInterps = sizeof(interps)/sizeof(interps[0]);
-#else
-
-
-#endif
 
 // Small helper class that vends the children of a pxObject as a collection
 class pxObjectChildren: public rtObject {
@@ -1166,6 +1049,11 @@ void pxObject::update(double t)
       // Prevent one more loop through oscillate
       if(a.count != pxConstantsAnimation::COUNT_FOREVER && a.actualCount >= a.count )
       {
+          // if(a.actualCount == a.count)
+          // {
+          //   justReverseChange = false;
+          // }
+
           if (true == justReverseChange)
           {
             mCancelInSet = false;
@@ -3322,54 +3210,87 @@ rtError pxScene2d::screenshot(rtString type, rtString& pngData)
 #endif
 
   // Is this a type we support?
-  if (type == "image/png;base64")
+  if (type != "image/png;base64")
   {
-    pxContextFramebufferRef previousRenderSurface = context.getCurrentFramebuffer();
-    pxContextFramebufferRef newFBO;
-    // w/o multisampling
-    // if needed, render texture of a multisample FBO to a non-multisample FBO and then read from it
-    mRoot->createSnapshot(newFBO, false, false);
-    context.setFramebuffer(newFBO);
-    pxOffscreen o;
-    context.snapshot(o);
-    context.setFramebuffer(previousRenderSurface);
+    return RT_FAIL;
+  }
 
-    rtData pngData2;
-    if (pxStorePNGImage(o, pngData2) == RT_OK)
-    {
+  pxContextFramebufferRef previousRenderSurface = context.getCurrentFramebuffer();
+  pxContextFramebufferRef newFBO;
+  // w/o multisampling
+  // if needed, render texture of a multisample FBO to a non-multisample FBO and then read from it
+  mRoot->createSnapshot(newFBO, false, false);
+  context.setFramebuffer(newFBO);
+  pxOffscreen o;
+  context.snapshot(o);
+  context.setFramebuffer(previousRenderSurface);
+
+  rtData pngData2;
+  if (pxStorePNGImage(o, pngData2) != RT_OK)
+  {
+    return RT_FAIL;
+  }
 
 //HACK JUNK HACK JUNK HACK JUNK HACK JUNK HACK JUNK
 //HACK JUNK HACK JUNK HACK JUNK HACK JUNK HACK JUNK
 #if 0
-    FILE *myFile = fopen("/mnt/nfs/env/snap.png", "wb");
-    if( myFile != NULL)
-    {
-      fwrite( pngData2.data(), sizeof(char), pngData2.length(),myFile);
-      fclose(myFile);
-    }
+  FILE *myFile = fopen("/mnt/nfs/env/snap.png", "wb");
+  if( myFile != NULL)
+  {
+    fwrite( pngData2.data(), sizeof(char), pngData2.length(),myFile);
+    fclose(myFile);
+  }
 #endif
 //HACK JUNK HACK JUNK HACK JUNK HACK JUNK HACK JUNK
 //HACK JUNK HACK JUNK HACK JUNK HACK JUNK HACK JUNK
 
-      size_t l;
-      char* d = base64_encode(pngData2.data(), pngData2.length(), &l);
-      if (d)
-      {
-        // We return a data Url string containing the image data
-        pngData = "data:image/png;base64,";
-        rtString base64str(d, (uint32_t) l); // NULL-terminated
-        pngData.append(base64str.cString());
-        free(d);
+  rtString base64coded;
+  
+  if( base64_encode(pngData2, base64coded) == RT_OK )
+  {
+    // We return a data Url string containing the image data
+    pngData = "data:image/png;base64,";
+    
+    pngData += base64coded;
+    
+//        FILE *saveFile  = fopen("/var/tmp/snap.txt", "wt"); // base64
+//        fwrite( base64coded.cString(), base64coded.length(), sizeof(char), saveFile);
+//        fclose(saveFile);
+//     
+//        FILE *inFile  = fopen("/var/tmp/snap.txt", "rt"); // base64
+//        if( inFile != NULL)
+//        {
+//          fseek(inFile, 0L, SEEK_END);
+//          size_t sz = ftell(inFile);
+//          fseek(inFile, 0L, SEEK_SET);
+//          
+//          rtData base64in; base64in.init(sz);
+//          fread(base64in.data(), base64in.length(), 1, inFile);
+//          fclose(inFile);
+//          
+//          rtString my64string( (const char* ) base64in.data(), base64in.length());
+//          
+//          rtData pngData2;
+//          
+//          rtError res = base64_decode(my64string, pngData2);
+//          
+//          if(res == RT_OK)
+//          {
+//            FILE *outFile = fopen("/var/tmp/snap.png", "wb"); // PNG
+//            
+//            if(outFile)
+//            {
+//              fwrite( pngData2.data(), pngData2.length(), sizeof(char), outFile);
+//              fclose(outFile);
+//            }
+//          }
+//        }
+    
         return RT_OK;
-      }
-      else
-        return RT_FAIL;
-    }
-    else
-      return RT_FAIL;
-  }
-  else
-    return RT_FAIL;
+      
+  }//ENDIF
+
+  return RT_FAIL;
 }
 
 rtError pxScene2d::clipboardSet(rtString type, rtString clipString)

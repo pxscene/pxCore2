@@ -99,9 +99,6 @@ extern rtThreadQueue* gUIThreadQueue;
 // Constants
 static pxConstants CONSTANTS;
 
-char *base64_encode(const unsigned char *data, size_t input_length, size_t *output_length);
-unsigned char *base64_decode(const unsigned char *data, size_t input_length, size_t *output_length);
-
 #if 0
 typedef rtError (*objectFactory)(void* context, const char* t, rtObjectRef& o);
 void registerObjectFactory(objectFactory f, void* context);
@@ -1386,6 +1383,8 @@ public:
        //delete mTestView; // HACK: Only used in testing... 'delete' causes unknown crash.
        mTestView = NULL;
     }
+
+    base64_cleanup();
   }
   
   virtual unsigned long AddRef() 
