@@ -79,7 +79,6 @@ public:
    }
   virtual ~pxResource();
 
-  
   rtError url(rtString& s) const { s = mUrl; return RT_OK;}
   rtError setUrl(const char* s, const char* proxy = NULL);
   rtString getUrl() { return mUrl;}
@@ -125,7 +124,6 @@ protected:
   
   rtString mUrl;
   rtString mProxy;
-  rtData   mData;
 
   rtFileDownloadRequest* mDownloadRequest;
   bool mDownloadInProgress;
@@ -197,6 +195,8 @@ private:
   // convey "create-time" dimension & scale preference (SVG only)
   int32_t   init_w,  init_h;
   float     init_sx, init_sy;
+
+  rtData   mData;
 };
 
 class rtImageAResource : public pxResource
