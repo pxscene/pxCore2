@@ -1049,7 +1049,7 @@ rtError pxLoadSVGImage(const char* buf, size_t buflen, pxOffscreen& o, int  w /*
   nsvgRasterizeFull(rast.getPtr(), image, 0, 0, sx, sy,
                     (unsigned char*) o.base(), o.width(), o.height(), o.width() *4);
 
-  SAFE_FREE(image);
+  nsvgDelete(image);
   return RT_OK;
 }
 
