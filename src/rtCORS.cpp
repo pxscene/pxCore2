@@ -68,7 +68,13 @@ rtError rtCORS::updateRequestForAccessControl(struct curl_slist** headerList) co
     rtString headerOrigin("Origin: ");
     headerOrigin.append(mOrigin.cString());
     rtLogDebug("%s : append header '%s'", __FUNCTION__, headerOrigin.cString());
-    *headerList = curl_slist_append(*headerList, headerOrigin.cString());
+    struct curl_slist* newHeaderList = curl_slist_append(*headerList, headerOrigin.cString());
+    if (!newHeaderList)
+    {
+      rtLogError("%s : failed to add header '%s'", __FUNCTION__, headerOrigin.cString());
+      return RT_ERROR;
+    }
+    *headerList = newHeaderList;
   }
 
   return RT_OK;

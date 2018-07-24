@@ -746,6 +746,8 @@ bool rtFileDownloader::downloadFromNetwork(rtFileDownloadRequest* downloadReques
     }
     /* get it! */
     res = curl_easy_perform(curl_handle);
+    curl_slist_free_all(list);
+
     downloadRequest->setDownloadStatusCode(res);
     if(downloadRequest->isHTTPFailOnError())
         downloadRequest->setHTTPError(errorBuffer);
@@ -790,7 +792,6 @@ bool rtFileDownloader::downloadFromNetwork(rtFileDownloadRequest* downloadReques
     {
         downloadRequest->setHttpStatusCode(httpCode);
     }
-    curl_slist_free_all(list);
     rtFileDownloader::instance()->releaseDownloadHandle(curl_handle, downloadHandleExpiresTime);
 
     //todo read the header information before closing

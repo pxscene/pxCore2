@@ -3839,18 +3839,32 @@ void pxSceneContainer::reloadData(bool sceneSuspended)
 #ifdef ENABLE_PERMISSIONS_CHECK
 rtError pxSceneContainer::permissions(rtObjectRef& v) const
 {
-  return mScriptView != NULL ? mScriptView->permissions(v) : RT_OK;
+  if (mScriptView.getPtr())
+  {
+    return mScriptView->permissions(v);
+  }
+  v = NULL;
+  return RT_OK;
 }
 
 rtError pxSceneContainer::setPermissions(const rtObjectRef& v)
 {
-  return mScriptView != NULL ? mScriptView->setPermissions(v) : RT_OK;
+  if (mScriptView.getPtr())
+  {
+    return mScriptView->setPermissions(v);
+  }
+  return RT_OK;
 }
 #endif
 
 rtError pxSceneContainer::cors(rtObjectRef& v) const
 {
-  return mScriptView != NULL ? mScriptView->cors(v) : RT_OK;
+  if (mScriptView.getPtr())
+  {
+    return mScriptView->cors(v);
+  }
+  v = NULL;
+  return RT_OK;
 }
 
 #if 0
