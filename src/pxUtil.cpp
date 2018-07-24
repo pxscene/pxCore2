@@ -66,7 +66,7 @@ class NSVGrasterizerEx
        NSVGrasterizerEx()  {  rast = nsvgCreateRasterizer(); } // ctor
       ~NSVGrasterizerEx()  {  nsvgDeleteRasterizer(rast);    } // dtor
 
-  NSVGrasterizer *getPtr() { return rast; };
+    NSVGrasterizer *getPtr() { return rast; };
 
   private:
     NSVGrasterizer *rast;
@@ -1005,6 +1005,12 @@ rtError pxLoadSVGImage(const char* buf, size_t buflen, pxOffscreen& o, int  w /*
 {
   rtMutexLockGuard  autoLock(rastMutex);
 
+  if (rast.getPtr() == NULL)
+  {
+    rtLogError("SVG:  No rasterizer available \n");
+    return RT_FAIL;
+  }
+
   if (buf == NULL || buflen == 0 )
   {
     rtLogError("SVG:  Bad args.\n");
@@ -1029,7 +1035,7 @@ rtError pxLoadSVGImage(const char* buf, size_t buflen, pxOffscreen& o, int  w /*
 
   if (image_w == 0 || image_h == 0)
   {
-    SAFE_FREE(image);
+    nsvgDelete(image);
 
     rtLogError("SVG:  Bad image dimensions  WxH: %d x %d\n", image_w, image_h);
     return RT_FAIL;
@@ -1050,6 +1056,7 @@ rtError pxLoadSVGImage(const char* buf, size_t buflen, pxOffscreen& o, int  w /*
                     (unsigned char*) o.base(), o.width(), o.height(), o.width() *4);
 
   nsvgDelete(image);
+
   return RT_OK;
 }
 

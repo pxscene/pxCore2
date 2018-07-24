@@ -196,7 +196,7 @@ private:
   int32_t   init_w,  init_h;
   float     init_sx, init_sy;
 
-  rtData   mData;
+  rtData    mData;
 };
 
 class rtImageAResource : public pxResource

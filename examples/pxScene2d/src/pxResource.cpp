@@ -816,7 +816,6 @@ rtRef<rtImageResource> pxImageManager::getImage(const char* url, const char* pro
   int32_t index_of_comma = uri_string.find(0,','); // find the data.
   int32_t index_of_slash = uri_string.find(0,'/'); // find the data.
 
-
   rtString key = url;
 
   if(uri_string.beginsWith("data:image/"))
@@ -824,7 +823,7 @@ rtRef<rtImageResource> pxImageManager::getImage(const char* url, const char* pro
     rtString md5     = md5sum(uri_string);
     rtString imgType = uri_string.substring(index_of_slash, index_of_comma - index_of_slash);
 
-    md5uri  = rtString( rtString("md5sum") + imgType + rtString(",") + md5);
+    md5uri = "md5sum" + imgType + "," + md5;
 
     key = md5uri;
   }

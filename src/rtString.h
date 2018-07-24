@@ -53,6 +53,14 @@ public:
   rtString& operator=(const rtString& s);
   rtString& operator=(const char* s);
 
+  friend
+  rtString operator+(const rtString& lhs, const char *rhs)
+  {
+    rtString ans(lhs);
+    ans = ans.append(rhs);
+    return ans;
+  }
+
   rtString& operator +(const char* s)     { return append(s);           };
   rtString& operator +(const rtString& s) { return append(s.cString()); };
   rtString& operator+=(const char* s)     { return append(s);           };
