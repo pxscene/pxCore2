@@ -35,6 +35,7 @@
 #ifdef ENABLE_HTTP_CACHE
 #include "rtFileCache.h"
 #endif
+#include "rtCORS.h"
 #include <map>
 class rtFileDownloadRequest;
 
@@ -109,6 +110,8 @@ public:
   void setLoadStatus(const char* name, rtValue value);
   virtual void releaseData();
   virtual void reloadData();
+  void setCORS(const rtCORSRef& cors) { mCORS = cors; }
+
 protected:   
   static void onDownloadComplete(rtFileDownloadRequest* downloadRequest);
   static void onDownloadCompleteUI(void* context, void* data);
@@ -135,6 +138,7 @@ protected:
   rtMutex mListenersMutex;
   rtMutex mDownloadInProgressMutex;
   mutable rtMutex mLoadStatusMutex;
+  rtCORSRef mCORS;
 };
 
 class rtImageResource : public pxResource, public pxTextureListener
@@ -222,12 +226,12 @@ class pxImageManager
 {
   
   public: 
-    static rtRef<rtImageResource> getImage(const char* url, const char* proxy = NULL,
+    static rtRef<rtImageResource> getImage(const char* url, const char* proxy = NULL, const rtCORSRef& cors = NULL,
                                           int32_t iw = 0, int32_t ih = 0, float sx = 1.0f, float sy = 1.0f);
   
     static void removeImage(rtString url, int32_t iw = 0, int32_t ih = 0, float sx = 1.0f, float sy = 1.0f);
 
-    static rtRef<rtImageAResource> getImageA(const char* url, const char* proxy = NULL);
+    static rtRef<rtImageAResource> getImageA(const char* url, const char* proxy = NULL, const rtCORSRef& cors = NULL);
     static void removeImageA(rtString imageAUrl);
     
   private: 
