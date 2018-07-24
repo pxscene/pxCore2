@@ -64,6 +64,10 @@ else
 cp pxscene $bundleBin
 fi
 
+if [ "$TRAVIS_EVENT_TYPE" == "cron" ]  
+then
+  sed -i -e 's/\.\/pxscene/\.\/pxsceneEdge/g' macstuff/pxscene.sh
+fi
 
 cp macstuff/pxscene.sh $bundleBin
 cp macstuff/EngineRunner $bundleBin
