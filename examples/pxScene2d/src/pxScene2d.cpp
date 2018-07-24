@@ -1166,12 +1166,17 @@ void pxObject::update(double t)
       // Prevent one more loop through oscillate
       if(a.count != pxConstantsAnimation::COUNT_FOREVER && a.actualCount >= a.count )
       {
-          if (true == justReverseChange)
-          {
-            mCancelInSet = false;
-            set(a.prop, toVal);
-            mCancelInSet = true;
-          }
+        if(a.actualCount == a.count)
+        {
+          justReverseChange = false;
+        }
+
+        if (true == justReverseChange)
+        {
+          mCancelInSet = false;
+          set(a.prop, toVal);
+          mCancelInSet = true;
+        }
 
         if (NULL != animObj)
         {
@@ -1187,7 +1192,6 @@ void pxObject::update(double t)
         it = mAnimations.erase(it);
         continue;
       }
-
     }
 
     float v = static_cast<float> (from + (to - from) * d);
