@@ -8,7 +8,6 @@ option(WINDOWLESS_EGL "WINDOWLESS_EGL" OFF)
 option(PXCORE_WAYLAND_EGL "PXCORE_WAYLAND_EGL" OFF)
 option(PXCORE_ESSOS "PXCORE_ESSOS" OFF)
 option(PXCORE_MATRIX_HELPERS "PXCORE_MATRIX_HELPERS" ON)
-option(PXCORE_ACCESS_CONTROL_CHECK "PXCORE_ACCESS_CONTROL_CHECK" ON)
 option(PXCORE_PERMISSIONS_CHECK "PXCORE_PERMISSIONS_CHECK" ON)
 option(BUILD_RTCORE_LIBS "BUILD_RTCORE_LIBS" ON)
 option(BUILD_PXCORE_LIBS "BUILD_PXCORE_LIBS" ON)
@@ -119,6 +118,18 @@ elseif (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
                 gles/pxEventLoopNative.cpp gles/pxTimerNative.cpp gles/pxClipboardNative.cpp)
         endif (PXCORE_ESSOS)
         set(PLATFORM_LINKER_FLAGS)
+    elseif (PXCORE_DFB)
+        message("Building pxcore for dfb ")
+        set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../build/dfb)
+        set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../build/dfb)
+        set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../build/dfb)
+    	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3")
+    	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
+        set(PXCORE_INCLUDES $ENV{PXCORE_INCLUDES})
+        separate_arguments(PXCORE_INCLUDES)
+	include_directories(BEFORE ${PXCORE_INCLUDES})
+        add_definitions(-DRT_PLATFORM_LINUX -DPX_NO_WINDOW -DENABLE_RT_NODE -DENABLE_HTTP_CACHE -DRUNINMAIN -DRAPIDJSON_HAS_STDSTRING -DENABLE_DFB -DENABLE_DFB_GENERIC -DBSTD_CPU_ENDIAN=BSTD_ENDIAN_LITTLE -DPX_PLATFORM_GENERIC_DFB)
+        set(PXCORE_FILES x11/pxBufferNativeDfb.cpp x11/pxOffscreenNativeDfb.cpp x11/pxEventLoopNative.cpp x11/pxTimerNative.cpp x11/pxClipboardNative.cpp unix/rtMutexNative.cpp unix/rtThreadPoolNative.cpp rtFileCache.cpp rtHttpCache.cpp)
     else ()
         message("Building pxcore for glut")
         set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../build/glut)
@@ -170,8 +181,9 @@ else ()
     message(FATAL_ERROR "Cannot build pxcore.  Unknown platform")
 endif (APPLE)
 
-
+if (NOT PXCORE_DFB)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpermissive -std=c++11")
+endif (NOT PXCORE_DFB)
 
 if (PXCORE_COMPILE_WARNINGS_AS_ERRORS)
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Werror")
@@ -187,7 +199,7 @@ set(PXCORE_FILES ${PXCORE_FILES} pxOffscreen.cpp pxWindowUtil.cpp
         rtThreadQueue.cpp rtThreadTask.cpp rtUrlUtils.cpp
         rtZip.cpp pxInterpolators.cpp pxUtil.cpp
         rtFileDownloader.cpp unzip.c ioapi.c
-        rtScript.cpp)
+        rtScript.cpp rtSettings.cpp rtCORS.cpp)
         
 if (SUPPORT_DUKTAPE)
     message("Adding Duktape scripting support")
@@ -208,11 +220,6 @@ if (PXCORE_MATRIX_HELPERS)
   set(PXCORE_FILES ${PXCORE_FILES} pxMatrix4T.cpp)
 endif(PXCORE_MATRIX_HELPERS)
 
-if (PXCORE_ACCESS_CONTROL_CHECK)
-    add_definitions(-DENABLE_ACCESS_CONTROL_CHECK)
-    set(PXCORE_FILES ${PXCORE_FILES} rtCORSUtils.cpp)
-endif (PXCORE_ACCESS_CONTROL_CHECK)
-
 if (PXCORE_PERMISSIONS_CHECK)
     add_definitions(-DENABLE_PERMISSIONS_CHECK)
     set(PXCORE_FILES ${PXCORE_FILES} rtPermissions.cpp)
@@ -223,6 +230,8 @@ set(RTCORE_FILES utf8.c rtString.cpp rtLog.cpp rtValue.cpp rtError.cpp ioapi_mem
 set(RTCORE_FILES ${RTCORE_FILES} rtPromise.cpp)
 
 set(RTCORE_FILES ${RTCORE_FILES} rtObject.cpp)
+
+include_directories(AFTER ${EXTDIR}/nanosvg/src)
 
 if (OUTPUT_LIBS_LOCAL)
     message("Output pxCore and rtCore libs locally")

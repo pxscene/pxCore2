@@ -1,5 +1,21 @@
-// pxCore CopyRight 2005-2006 John Robinson
-// Portable Framebuffer and Windowing Library
+/*
+
+pxCore Copyright 2005-2018 John Robinson
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+*/
+
 // pxWindowNative.cpp
 
 #include "../pxCore.h"
@@ -288,8 +304,31 @@ pxError pxWindow::init(int left, int top, int width, int height)
             }
         }
 
+        int keyInitialDelay = 500;
+        char const *keyDelay = getenv("SPARK_KEY_INITIAL_DELAY");
+        if (keyDelay)
+        {
+            int value = atoi(keyDelay);
+            if (value > 0)
+            {
+                keyInitialDelay = value;
+            }
+        }
+
+        int keyRepeatInterval = 250;
+        char const *repeatInterval = getenv("SPARK_KEY_REPEAT_INTERVAL");
+        if (repeatInterval)
+        {
+            int value = atoi(repeatInterval);
+            if (value > 0)
+            {
+                keyRepeatInterval = value;
+            }
+        }
+
         bool error = false;
         rtLogInfo("using wayland: %s\n", useWayland ? "true" : "false");
+        rtLogInfo("initial key delay: %d repeat interval: %d", keyInitialDelay, keyRepeatInterval);
         d->ctx = EssContextCreate();
 
         if (d->ctx)
@@ -309,6 +348,14 @@ pxError pxWindow::init(int left, int top, int width, int height)
             }
 
             if ( !EssContextSetPointerListener( d->ctx, 0, &pointerListener ) )
+            {
+                error = true;
+            }
+            if ( !EssContextSetKeyRepeatInitialDelay(d->ctx, keyInitialDelay))
+            {
+                error = true;
+            }
+            if ( !EssContextSetKeyRepeatPeriod(d->ctx, keyRepeatInterval))
             {
                 error = true;
             }
@@ -475,7 +522,6 @@ void pxWindowNative::runEventLoop()
 {
     exitFlag = false;
     displayRef dRef;
-    essosDisplay* eDisplay = dRef.getDisplay();
     std::vector<pxWindowNative*> windowVector = pxWindowNative::getNativeWindows();
 
     int framerate = ESSOS_PX_CORE_FPS;

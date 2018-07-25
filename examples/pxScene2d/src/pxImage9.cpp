@@ -1,6 +1,6 @@
 /*
 
- pxCore Copyright 2005-2017 John Robinson
+ pxCore Copyright 2005-2018 John Robinson
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -66,7 +66,8 @@ rtError pxImage9::url(rtString& s) const
 rtError pxImage9::setUrl(const char* s) 
 {
 #ifdef ENABLE_PERMISSIONS_CHECK
-  rtPermissionsCheck((mScene != NULL ? mScene->permissions() : NULL), s, rtPermissions::DEFAULT)
+  if (mScene != NULL && RT_OK != mScene->permissions()->allows(s, rtPermissions::DEFAULT))
+    return RT_ERROR_NOT_ALLOWED;
 #endif
 
   rtImageResource* resourceObj = getImageResource();  
@@ -80,7 +81,7 @@ rtError pxImage9::setUrl(const char* s)
   }
 
   removeResourceListener();
-  mResource = pxImageManager::getImage(s); 
+  mResource = pxImageManager::getImage(s, NULL, mScene ? mScene->cors() : NULL);
   if(getImageResource() != NULL && getImageResource()->getUrl().length() > 0)
   {
     mListenerAdded = true;
@@ -88,6 +89,49 @@ rtError pxImage9::setUrl(const char* s)
   }
     
   return RT_OK;
+}
+
+/**
+ * setResource
+ * */
+rtError pxImage9::setResource(rtObjectRef o) 
+{ 
+    
+  if(!o)
+  {
+    setUrl("");
+    return RT_OK;
+  }
+  
+  // Verify the object passed in is an rtImageResource
+  rtString desc;
+  o.sendReturns("description",desc);
+  if(!desc.compare("rtImageResource"))
+  {
+    rtString url;
+    url = o.get<rtString>("url");
+    // Only create new promise if url is different 
+    if( getImageResource() != NULL && getImageResource()->getUrl().compare(o.get<rtString>("url")) )
+    {
+      removeResourceListener();
+      mResource = o; 
+      imageLoaded = false;
+      pxObject::createNewPromise();
+      mListenerAdded = true;
+      getImageResource()->addListener(this);
+    }
+    return RT_OK; 
+  } 
+  else 
+  {
+    rtLogError("Object passed as resource is not an imageResource!\n");
+    pxObject::onTextureReady();
+    // Call createNewPromise to ensure the old promise hadn't already been resolved
+    pxObject::createNewPromise();
+    mReady.send("reject",this);
+    return RT_ERROR; 
+  }
+
 }
 
 void pxImage9::sendPromise() 
@@ -115,7 +159,7 @@ float pxImage9::getOnscreenHeight()
 
 
 void pxImage9::draw() {
-  if (getImageResource() != NULL)
+  if (getImageResource() != NULL && getImageResource()->isInitialized() && !mSceneSuspended)
   {
     context.drawImage9(mw, mh, mInsetLeft, mInsetTop, mInsetRight, mInsetBottom, getImageResource()->getTexture());
   }
@@ -129,8 +173,8 @@ void pxImage9::resourceReady(rtString readyResolution)
     imageLoaded = true; 
     // nineslice gets its w and h from the image only if
     // not set for the pxImage9
-    if( mw == -1 && getImageResource() != NULL) { mw = getImageResource()->w(); }
-    if( mh == -1 && getImageResource() != NULL) { mh = getImageResource()->h(); }
+    if( mw == -1 && getImageResource() != NULL) { mw = static_cast<float>(getImageResource()->w()); }
+    if( mh == -1 && getImageResource() != NULL) { mh = static_cast<float>(getImageResource()->h()); }
     imageLoaded = true;
     pxObject::onTextureReady();
     // Now that image is loaded, must force redraw;
@@ -152,6 +196,11 @@ void pxImage9::resourceReady(rtString readyResolution)
   }
 }
 
+void pxImage9::resourceDirty()
+{
+  pxObject::onTextureReady();
+}
+
 rtError pxImage9::removeResourceListener()
 {
   if (mListenerAdded)
@@ -163,6 +212,24 @@ rtError pxImage9::removeResourceListener()
     mListenerAdded = false;
   }
   return RT_OK;
+}
+
+void pxImage9::releaseData(bool sceneSuspended)
+{
+  if (getImageResource())
+  {
+    getImageResource()->releaseData();
+  }
+  pxObject::releaseData(sceneSuspended);
+}
+
+void pxImage9::reloadData(bool sceneSuspended)
+{
+  if (getImageResource())
+  {
+    getImageResource()->reloadData();
+  }
+  pxObject::reloadData(sceneSuspended);
 }
 
 rtDefineObject(pxImage9, pxObject);

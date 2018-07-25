@@ -1,6 +1,6 @@
 /*
 
- pxCore Copyright 2005-2017 John Robinson
+ pxCore Copyright 2005-2018 John Robinson
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@ void sincos(double x, double *s, double *c) {
 
 #ifndef _GLIBCXX_HAVE_SINCOSF
 void sincosf(float x, float *s, float *c) {
-  *s = sin(x);
-  *c = cos(x);
+  *s = static_cast<float>(sin(x));
+  *c = static_cast<float>(cos(x));
 }
 #endif

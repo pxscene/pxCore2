@@ -1,6 +1,6 @@
 /*
 
- pxCore Copyright 2005-2017 John Robinson
+ pxCore Copyright 2005-2018 John Robinson
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -70,19 +70,27 @@ public:
   rtError font(rtObjectRef& o) const { o = mFont; return RT_OK; }
   virtual rtError setFont(rtObjectRef o);
   
-  virtual void update(double t);
   virtual void onInit();
   
-  virtual rtError Set(const char* name, const rtValue* value)
+  virtual rtError Set(uint32_t i, const rtValue* value) override
+  {
+    (void)i;
+    (void)value;
+    rtLogError("pxText::Set(uint32_t, const rtValue*) - not implemented");
+    return RT_ERROR_NOT_IMPLEMENTED;
+  }
+
+  virtual rtError Set(const char* name, const rtValue* value) override
   {
     //rtLogInfo("pxText::Set %s\n",name);
 #if 1
-    mDirty = mDirty || (!strcmp(name,"w") ||
-              !strcmp(name,"h") ||
+    mDirty = mDirty ||
               !strcmp(name,"text") ||
               !strcmp(name,"pixelSize") ||
               !strcmp(name,"fontUrl") ||
-              !strcmp(name,"textColor"));
+              !strcmp(name,"font") ||
+              !strcmp(name,"sx") || 
+              !strcmp(name,"sy");
 #else
     mDirty = true;
 #endif
@@ -93,10 +101,12 @@ public:
   }
 
   virtual void resourceReady(rtString readyResolution);
+  virtual void resourceDirty();
   virtual void sendPromise();
   virtual float getOnscreenWidth();
   virtual float getOnscreenHeight();
   virtual void createNewPromise();
+  virtual void dispose(bool pumpJavascript);
   
  protected:
   virtual void draw();
@@ -121,6 +131,10 @@ public:
   virtual float getFBOWidth();
   virtual float getFBOHeight();
   bool mListenerAdded;
+
+  #ifdef PXSCENE_FONT_ATLAS
+  pxTexturedQuads mQuads;
+  #endif
 };
 
 #endif

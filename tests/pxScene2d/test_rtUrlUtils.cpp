@@ -1,3 +1,21 @@
+/*
+
+pxCore Copyright 2005-2018 John Robinson
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+*/
+
 #include <sstream>
 
 #include "rtUrlUtils.h"
@@ -33,6 +51,7 @@ public:
     EXPECT_TRUE (rtUrlGetOrigin("news:comp.infosystems.www.servers.unix").isEmpty());
     EXPECT_TRUE (rtUrlGetOrigin("tel:+1-816-555-1212").isEmpty());
     EXPECT_TRUE (rtUrlGetOrigin("urn:oasis:names:specification:docbook:dtd:xml:4.1.2").isEmpty());
+    EXPECT_TRUE (rtUrlGetOrigin("file:///etc/hosts").isEmpty());
   }
 
   void testUrlGetOriginNormal()
@@ -74,7 +93,6 @@ public:
     EXPECT_EQ (0, (int)rtUrlGetOrigin("http://www.w3.org/Addressing/").compare("http://www.w3.org"));
     EXPECT_EQ (0, (int)rtUrlGetOrigin("ftp://foo.example.com/rfc/").compare("ftp://foo.example.com"));
     EXPECT_EQ (0, (int)rtUrlGetOrigin("http://www.ics.uci.edu/pub/ietf/uri/historical.html#WARNING").compare("http://www.ics.uci.edu"));
-    EXPECT_EQ (0, (int)rtUrlGetOrigin("file:///etc/hosts").compare("file://"));
     EXPECT_EQ (0, (int)rtUrlGetOrigin("ftp://ftp.is.co.za/rfc/rfc1808.txt").compare("ftp://ftp.is.co.za"));
     EXPECT_EQ (0, (int)rtUrlGetOrigin("http://www.ietf.org/rfc/rfc2396.txt").compare("http://www.ietf.org"));
     EXPECT_EQ (0, (int)rtUrlGetOrigin("ldap://[2001:db8::7]/c=GB?objectClass?one").compare("ldap://[2001:db8::7]"));

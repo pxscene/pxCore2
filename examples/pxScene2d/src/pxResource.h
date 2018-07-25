@@ -1,6 +1,6 @@
 /*
 
- pxCore Copyright 2005-2017 John Robinson
+ pxCore Copyright 2005-2018 John Robinson
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -35,6 +35,7 @@
 #ifdef ENABLE_HTTP_CACHE
 #include "rtFileCache.h"
 #endif
+#include "rtCORS.h"
 #include <map>
 class rtFileDownloadRequest;
 
@@ -47,10 +48,17 @@ class rtFileDownloadRequest;
 #define PX_RESOURCE_STATUS_UNKNOWN_ERROR  6
 
 
+// errors specific to rtRemote
+#define PX_RESOURCE_LOAD_SUCCESS 0
+#define PX_RESOURCE_LOAD_FAIL 1
+#define PX_RESOURCE_LOAD_WAIT 2
+
+
 class pxResourceListener 
 {
 public: 
   virtual void resourceReady(rtString readyResolution) = 0;
+  virtual void resourceDirty() = 0;
 };
 
 class pxResource : public rtObject
@@ -98,15 +106,22 @@ public:
   virtual void loadResource();
   void clearDownloadRequest();
   virtual void setupResource() {}
+  virtual void prepare() {}
   void setLoadStatus(const char* name, rtValue value);
+  virtual void releaseData();
+  virtual void reloadData();
+  void setCORS(const rtCORSRef& cors) { mCORS = cors; }
+
 protected:   
   static void onDownloadComplete(rtFileDownloadRequest* downloadRequest);
   static void onDownloadCompleteUI(void* context, void* data);
   static void onDownloadCanceledUI(void* context, void* data);
+  static void onResourceDirtyUI(void* context, void* data);
   virtual void processDownloadedResource(rtFileDownloadRequest* fileDownloadRequest);
-  virtual bool loadResourceData(rtFileDownloadRequest* fileDownloadRequest) = 0;
+  virtual uint32_t loadResourceData(rtFileDownloadRequest* fileDownloadRequest) = 0;
   
   void notifyListeners(rtString readyResolution);
+  void notifyListenersResourceDirty();
 
   virtual void loadResourceFromFile() = 0;
 
@@ -123,19 +138,21 @@ protected:
   rtMutex mListenersMutex;
   rtMutex mDownloadInProgressMutex;
   mutable rtMutex mLoadStatusMutex;
+  rtCORSRef mCORS;
 };
 
-class rtImageResource : public pxResource
+class rtImageResource : public pxResource, public pxTextureListener
 {
 public:
-  rtImageResource(const char* url = 0, const char* proxy = 0);
+  rtImageResource(const char* url = 0, const char* proxy = 0, int32_t iw = 0, int32_t ih = 0, float sx = 1.0f, float sy = 1.0f);
   virtual ~rtImageResource();
-  
+
   rtDeclareObject(rtImageResource, pxResource);
-  
+
   virtual unsigned long Release() ;
 
   // Need these, or use from texture?  
+
   rtReadOnlyProperty(w, w, int32_t);
   rtReadOnlyProperty(h, h, int32_t);  
 
@@ -144,25 +161,38 @@ public:
   virtual int32_t h() const;
   virtual rtError h(int32_t& v) const; 
 
-  pxTextureRef getTexture();
+  pxTextureRef getTexture(bool initializing = false);
   void setTextureData(pxOffscreen& imageOffscreen, const char* data, const size_t dataSize);
   virtual void setupResource();
-  void clearDownloadedData();
- 
-  virtual void init();
+  virtual void prepare();
 
-protected:  
-  virtual bool loadResourceData(rtFileDownloadRequest* fileDownloadRequest);
+  virtual void init();
   
-private: 
+  int32_t initW()  { return init_w;  };
+  int32_t initH()  { return init_h;  };
+  
+  float   initSX() { return init_sx; };
+  float   initSY() { return init_sy; };
+
+  virtual void releaseData();
+  virtual void reloadData();
+  virtual void textureReady();
+  
+protected:
+  virtual uint32_t loadResourceData(rtFileDownloadRequest* fileDownloadRequest);
+
+private:
 
   void loadResourceFromFile();
+
   pxTextureRef mTexture;
+  pxTextureRef mDownloadedTexture;
   rtMutex mTextureMutex;
-  pxOffscreen mImageOffscreen;
-  char* mCompressedData;
-  size_t mCompressedDataSize;
- 
+  bool mDownloadComplete;
+
+  // convey "create-time" dimension & scale preference (SVG only)
+  int32_t   init_w,  init_h;
+  float     init_sx, init_sy;
 };
 
 class rtImageAResource : public pxResource
@@ -177,9 +207,10 @@ public:
 
   virtual void init();
   pxTimedOffscreenSequence& getTimedOffscreenSequence() { return mTimedOffscreenSequence; }
-
+  virtual void setupResource() { init(); }
+  
 protected:
-  virtual bool loadResourceData(rtFileDownloadRequest* fileDownloadRequest);
+  virtual uint32_t loadResourceData(rtFileDownloadRequest* fileDownloadRequest);
 
 private:
 
@@ -195,10 +226,12 @@ class pxImageManager
 {
   
   public: 
-    static rtRef<rtImageResource> getImage(const char* url, const char* proxy = NULL);
-    static void removeImage(rtString imageUrl);
+    static rtRef<rtImageResource> getImage(const char* url, const char* proxy = NULL, const rtCORSRef& cors = NULL,
+                                          int32_t iw = 0, int32_t ih = 0, float sx = 1.0f, float sy = 1.0f);
+  
+    static void removeImage(rtString url, int32_t iw = 0, int32_t ih = 0, float sx = 1.0f, float sy = 1.0f);
 
-    static rtRef<rtImageAResource> getImageA(const char* url, const char* proxy = NULL);
+    static rtRef<rtImageAResource> getImageA(const char* url, const char* proxy = NULL, const rtCORSRef& cors = NULL);
     static void removeImageA(rtString imageAUrl);
     
   private: 

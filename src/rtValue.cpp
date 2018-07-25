@@ -1,7 +1,7 @@
 
 /*
 
- pxCore Copyright 2005-2017 John Robinson
+ pxCore Copyright 2005-2018 John Robinson
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -159,6 +159,7 @@ void rtValue::setValue(const rtValue& v)
 #endif
     else
       mValue = v.mValue;
+    mIsEmpty = v.mIsEmpty;
   }
 }
 

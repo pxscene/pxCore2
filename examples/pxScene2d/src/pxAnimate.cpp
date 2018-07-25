@@ -1,6 +1,6 @@
 /*
 
- pxCore Copyright 2005-2017 John Robinson
+ pxCore Copyright 2005-2018 John Robinson
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -83,7 +83,7 @@ rtError pxAnimate::cancel ()
       for (uint32_t i = 0; i < len; i++)
       {
         rtString key = keys.get<rtString>(i);
-        mAnimatedObj.getPtr()->cancelAnimation(key, (mType & pxConstantsAnimation::OPTION_FASTFORWARD), (mType & pxConstantsAnimation::OPTION_REWIND), true);
+        mAnimatedObj.getPtr()->cancelAnimation(key, (mType & pxConstantsAnimation::OPTION_FASTFORWARD), (mType & pxConstantsAnimation::OPTION_REWIND));
       }
     }
   }
@@ -108,7 +108,7 @@ void pxAnimate::update (const char* prop, struct animation* params, pxConstantsA
     {
       if (status > propParamsPtr->mStatus)
         propParamsPtr->mStatus = status;
-      propParamsPtr->mCount = params->actualCount;
+      propParamsPtr->mCount = static_cast<int32_t>(params->actualCount);
       if (propParamsPtr->mStatus != pxConstantsAnimation::STATUS_ENDED)
         propParamsPtr->mCancelled = params->cancelled;
       propParamsPtr->mDuration = params->duration;

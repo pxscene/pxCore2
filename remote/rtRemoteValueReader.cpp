@@ -1,3 +1,21 @@
+/*
+
+pxCore Copyright 2005-2018 John Robinson
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+*/
+
 #include "rtRemoteValueReader.h"
 #include "rtRemoteObjectCache.h"
 #include "rtRemoteClient.h"
@@ -33,7 +51,7 @@ rtRemoteValueReader::read(rtRemoteEnvironment* env, rtValue& to, rapidjson::Valu
   auto type = from.FindMember(kFieldNameValueType);
   if (type  == from.MemberEnd())
   {
-    rtLogWarn("failed to find member: %s", kFieldNameValueType);
+    rtLogError("read: failed to find member '%s'. RT_ERROR_PROTOCOL_ERROR", kFieldNameValueType);
     return RT_ERROR_PROTOCOL_ERROR;
   }
 
@@ -42,7 +60,7 @@ rtRemoteValueReader::read(rtRemoteEnvironment* env, rtValue& to, rapidjson::Valu
   auto val = from.FindMember(kFieldNameValueValue);
   if (((typeId != RT_functionType) && (typeId != RT_voidType)) && (val == from.MemberEnd()))
   {
-    rtLogWarn("failed to find member: %s", kFieldNameValueValue);
+    rtLogError("read: failed to find member '%s'. RT_ERROR_PROTOCOL_ERROR", kFieldNameValueValue);
     return RT_ERROR_PROTOCOL_ERROR;
   }
 
@@ -103,7 +121,10 @@ rtRemoteValueReader::read(rtRemoteEnvironment* env, rtValue& to, rapidjson::Valu
     {
       RT_ASSERT(client != NULL);
       if (!client)
+      {
+        rtLogError("read: no client. RT_ERROR_PROTOCOL_ERROR");
         return RT_ERROR_PROTOCOL_ERROR;
+      }
 
       auto const& obj = from.FindMember("value");
       RT_ASSERT(obj != from.MemberEnd());
@@ -128,7 +149,10 @@ rtRemoteValueReader::read(rtRemoteEnvironment* env, rtValue& to, rapidjson::Valu
     {
       RT_ASSERT(client != NULL);
       if (!client)
+      {
+        rtLogError("read: no client. RT_ERROR_PROTOCOL_ERROR");
         return RT_ERROR_PROTOCOL_ERROR;
+      }
 
       std::string objectId;
       std::string functionId;

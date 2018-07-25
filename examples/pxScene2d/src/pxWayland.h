@@ -1,6 +1,6 @@
 /*
 
- pxCore Copyright 2005-2017 John Robinson
+ pxCore Copyright 2005-2018 John Robinson
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -90,7 +90,8 @@ public:
   rtError setCmd(const char* s)
   {
 #ifdef ENABLE_PERMISSIONS_CHECK
-    rtPermissionsCheck((mSceneContainer != NULL ? mSceneContainer->permissions() : NULL), s, rtPermissions::WAYLAND)
+  if (mSceneContainer != NULL && RT_OK != mSceneContainer->permissions()->allows(s, rtPermissions::WAYLAND))
+    return RT_ERROR_NOT_ALLOWED;
 #endif
 
      mCmd= s;
@@ -160,8 +161,8 @@ public:
   rtError startRemoteObjectLocator();
   rtError connectToRemoteObject(unsigned int timeout_ms);
   rtError useDispatchThread(bool use);
-  rtError resume();
-  rtError suspend();
+  rtError resume(const rtValue& v);
+  rtError suspend(const rtValue& v);
 private:
   rtAtomic mRefCount;
   pthread_t mClientMonitorThreadId;

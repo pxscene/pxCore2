@@ -1,6 +1,6 @@
 /*
 
- pxCore Copyright 2005-2017 John Robinson
+ pxCore Copyright 2005-2018 John Robinson
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -51,10 +51,15 @@ public:
   rtError setResource(rtObjectRef o);
   rtError removeResourceListener();
   virtual void resourceReady(rtString readyResolution);
+  virtual void resourceDirty();
+  virtual void createNewPromise() { rtLogDebug("pxImageA ignoring createNewPromise\n"); }
 
   virtual void update(double t);
   virtual void draw();
   virtual void dispose(bool pumpJavascript);
+
+  virtual void releaseData(bool sceneSuspended);
+  virtual void reloadData(bool sceneSuspended);
   
 protected:
   virtual void onInit();
