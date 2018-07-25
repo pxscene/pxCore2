@@ -339,6 +339,17 @@ class pxContextTest : public testing::Test
       mContext.setAlpha(gAlphaTemp);
     }
    
+    void isTextureSpaceAvailableTest()
+    {
+      bool mEnableTextureMemoryMonitoringTemp = mContext.mEnableTextureMemoryMonitoring;
+      mContext.mEnableTextureMemoryMonitoring = true;
+      pxOffscreen mOffscreen;
+      pxTextureRef mOffscreenTexture = mContext.createTexture(mOffscreen);
+      bool ret = mContext.isTextureSpaceAvailable(mOffscreenTexture, true);
+      EXPECT_TRUE (true == ret);
+      mContext.mEnableTextureMemoryMonitoring = mEnableTextureMemoryMonitoringTemp;
+    }   
+
 private:
 
     sceneWindow* mSceneWin;
@@ -375,6 +386,7 @@ TEST_F(pxContextTest, pxContextTests)
   drawDiagLineTest();
   drawImage9Test();
   drawImage9BorderTest();
+  isTextureSpaceAvailableTest();
 }
 
 
@@ -437,8 +449,11 @@ class pxFBOTextureTest : public testing::Test
 
     void bindGLTextureTest()
     {
+      mFramebuffer->getTexture()->unloadTextureData();
       EXPECT_TRUE(mFramebuffer->getTexture()->bindGLTexture(0) == PX_OK);
+      mFramebuffer->getTexture()->loadTextureData();
     }
+ 
 
     void bindGLTextureAsMaskSuccessTest()
     {
@@ -474,6 +489,22 @@ class pxTextureOffscreenTest : public testing::Test
     {
       EXPECT_TRUE (PX_OK == mOffscreenTexture->bindGLTextureAsMask(0));
     }
+    
+    void bindGLTextureTest()
+    {
+      EXPECT_TRUE (PX_OK == mOffscreenTexture->bindGLTexture(0));
+    }
+    
+    void bindGLTextureUnloadTest()
+    {
+      mOffscreenTexture->unloadTextureData();      
+      EXPECT_TRUE (PX_OK !=  mOffscreenTexture->bindGLTexture(0));
+    }
+  
+    void prepareForRenderingTest()
+    {
+      EXPECT_TRUE (PX_OK == mOffscreenTexture->prepareForRendering());  
+    }
 
     private:
       pxOffscreen mOffscreen;
@@ -484,6 +515,9 @@ class pxTextureOffscreenTest : public testing::Test
 TEST_F(pxTextureOffscreenTest, pxTextureOffscreenTests)
 {
   bindGLTextureAsMaskTest();
+  bindGLTextureTest();
+  bindGLTextureUnloadTest();
+  prepareForRenderingTest();
 }
 
 class pxAlphaTextureTest : public testing::Test
