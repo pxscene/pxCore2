@@ -35,12 +35,12 @@ addons:
     build_command_prepend: "echo build prepend"
     build_command:   "./ci/make_coverity.sh"
     branch_pattern: coverity_scan
-    apt:
-      sources:
-      - ubuntu-toolchain-r-test
-      packages:
-      - gcc-6
-      - g++-6
+  apt:
+    sources:
+    - ubuntu-toolchain-r-test
+    packages:
+    - gcc-6
+    - g++-6
 
 env:
   global:
