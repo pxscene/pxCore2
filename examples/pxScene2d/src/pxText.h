@@ -101,10 +101,12 @@ public:
   }
 
   virtual void resourceReady(rtString readyResolution);
+  virtual void resourceDirty();
   virtual void sendPromise();
   virtual float getOnscreenWidth();
   virtual float getOnscreenHeight();
   virtual void createNewPromise();
+  virtual void dispose(bool pumpJavascript);
   
  protected:
   virtual void draw();

@@ -468,7 +468,7 @@ rtRemoteServer::processMessage(std::shared_ptr<rtRemoteClient>& client, rtRemote
   auto itr = m_command_handlers.find(msgType);
   if (itr == m_command_handlers.end())
   {
-    rtLogWarn("no command handler for:%s", msgType);
+    rtLogError("processMessage: no command handler for:%s. RT_ERROR_PROTOCOL_ERROR", msgType);
     return RT_ERROR_PROTOCOL_ERROR;
   }
 
@@ -659,6 +659,13 @@ rtRemoteServer::openRpcListener()
     unAddr->sun_family = AF_UNIX;
     strncpy(unAddr->sun_path, path, UNIX_PATH_MAX);
   }
+  else if (m_env->Config->server_listen_interface() != "lo")
+  {
+      rtError e = rtParseAddress(m_rpc_endpoint, m_env->Config->server_listen_interface().c_str(), 0, nullptr);
+      if (e != RT_OK)
+          rtGetDefaultInterface(m_rpc_endpoint, 0);
+  }
+
   else
   {
     rtGetDefaultInterface(m_rpc_endpoint, 0);
