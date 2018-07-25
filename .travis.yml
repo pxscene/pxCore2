@@ -13,9 +13,10 @@ before_install:
   - if [ "$TRAVIS_EVENT_TYPE" = "cron" ]; then ./ci/auto_merge_coverity.sh; fi
   - ./ci/before_install.sh
   - if [ "$TRAVIS_EVENT_TYPE" != "cron" ] && {[ "$TRAVIS_EVENT_TYPE" = "push" ] || [ "$TRAVIS_EVENT_TYPE" = "pull_request" ]}; then export PATH=/usr/local/opt/ccache/libexec:$PATH; fi
-  - if [ "$TRAVIS_EVENT_TYPE" != "cron" ] && [ "$TRAVIS_OS_NAME" = "linux" ]; then  export CC=/usr/bin/gcc-6; export CXX=/usr/bin/g++-6 ; sudo ln -s /usr/bin/gcc-6 /usr/local/bin/gcc ; sudo ln -s /usr/bin/g++-6 /usr/local/bin/g++ ; fi
+# NOTE THAT COVERITY IS COMPATIBLE WITH gcc 7; upload to coverity fails when using gcc 6 
+#  - if [ "$TRAVIS_EVENT_TYPE" != "cron" ] && [ "$TRAVIS_OS_NAME" = "linux" ]; then  export CC=/usr/bin/gcc-6; export CXX=/usr/bin/g++-6 ; sudo ln -s /usr/bin/gcc-6 /usr/local/bin/gcc ; sudo ln -s /usr/bin/g++-6 /usr/local/bin/g++ ; fi
   - if [ "$TRAVIS_EVENT_TYPE" != "cron" ] && {[ "$TRAVIS_EVENT_TYPE" = "push" ] || [ "$TRAVIS_EVENT_TYPE" = "pull_request" ]}; then echo -n | openssl s_client -connect scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-; fi
-  - gcc -v && g++ -v 
+#  - gcc -v && g++ -v 
 
 
 install:
@@ -35,12 +36,12 @@ addons:
     build_command_prepend: "echo build prepend"
     build_command:   "./ci/make_coverity.sh"
     branch_pattern: coverity_scan
-  apt:
-    sources:
-    - ubuntu-toolchain-r-test
-    packages:
-    - gcc-6
-    - g++-6
+#  apt:
+#    sources:
+#    - ubuntu-toolchain-r-test
+#    packages:
+#    - gcc-6
+#    - g++-6
 
 env:
   global:
