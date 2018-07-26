@@ -48,7 +48,11 @@ cp macstuff/Info.plist $bundle/Contents
 
 # Copy RESOURCES to Bundle...
 #
+
+rm browser/images/status_bg_edge.svg
+
 cp -a browser $bundleRes
+rm $bundleRes/browser/images/status_bg_edge.svg
 cp FreeSans.ttf $bundleRes
 cp sparkpermissions.conf $bundleRes
 
@@ -61,11 +65,11 @@ else
 cp pxscene $bundleBin
 fi
 
-
 if [ "$TRAVIS_EVENT_TYPE" == "cron" ]  
 then
-sed -i -e 's/\.\/pxscene/\.\/pxsceneEdge/g' macstuff/pxscene.sh
+  sed -i -e 's/\.\/pxscene/\.\/pxsceneEdge/g' macstuff/pxscene.sh
 fi
+
 cp macstuff/pxscene.sh $bundleBin
 cp macstuff/EngineRunner $bundleBin
 
