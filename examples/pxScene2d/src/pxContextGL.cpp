@@ -1127,6 +1127,11 @@ public:
           *d++ = *s++;
       }
     }
+    else
+    {
+      int bitmapSize = static_cast<int>(ih*iw);
+      mBuffer = calloc(bitmapSize, sizeof(char));
+    }
 
 // TODO Moved this to bindTexture because of more pain from JS thread calls
 //    createTexture(w, h, iw, ih);
