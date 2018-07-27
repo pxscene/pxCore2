@@ -26,10 +26,13 @@ TESTLOGS=$TRAVIS_BUILD_DIR/logs/test_logs;
 grep "Global test environment tear-down" $TESTLOGS
 retVal=$?
 count=0
-while [ "$retVal" -ne 0 ] &&  [ "$count" -ne 180 ]; do
+corefile=1
+while [ "$retVal" -ne 0 ] &&  [ "$count" -ne 180 ]i && [ "$corefile" -eq 1 ] ; do
 	sleep 60;
 	grep "Global test environment tear-down" $TESTLOGS
 	retVal=$?
+        ls /tmp/pxscenecrash
+        corefile=$? 
 	count=$((count+60))
 	echo "unittests running for $count seconds"
 done
