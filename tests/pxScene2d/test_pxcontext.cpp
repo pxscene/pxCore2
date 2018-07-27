@@ -519,8 +519,8 @@ class pxTextureOffscreenTest : public testing::Test
     {
       pxOffscreen mOffscreen;
       pxTextureRef mOffscreenTexture = mContext.createTexture(mOffscreen);
-      mOffscreenTexture->deleteTexture();
-      mOffscreenTexture->loadTextureData();
+      EXPECT_TRUE (PX_OK == mOffscreenTexture->deleteTexture());
+      EXPECT_TRUE (PX_OK == mOffscreenTexture->loadTextureData());
     }
 
     private:
