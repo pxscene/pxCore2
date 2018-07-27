@@ -328,6 +328,13 @@ class pxContextTest : public testing::Test
       mContext.setAlpha(gAlphaTemp);
     }
    
+    void drawImageTextureDimDefault()
+    {
+      pxOffscreen mOffscreen;
+      pxTextureRef mOffscreenTexture = mContext.createTexture(mOffscreen);
+      mContext.drawImage(1.0, 1.0, 1.0, 1.0, mOffscreenTexture, mOffscreenTexture, true); 
+    }
+    
     void drawImage9BorderTest()
     {
       float gAlphaTemp = mContext.getAlpha();
@@ -349,6 +356,7 @@ class pxContextTest : public testing::Test
       EXPECT_TRUE (true == ret);
       mContext.mEnableTextureMemoryMonitoring = mEnableTextureMemoryMonitoringTemp;
     }   
+
 
 private:
 
@@ -385,6 +393,7 @@ TEST_F(pxContextTest, pxContextTests)
   drawRectTest();
   drawDiagLineTest();
   drawImage9Test();
+  drawImageTextureDimDefault();
   drawImage9BorderTest();
   isTextureSpaceAvailableTest();
 }
@@ -506,6 +515,14 @@ class pxTextureOffscreenTest : public testing::Test
       EXPECT_TRUE (PX_OK == mOffscreenTexture->prepareForRendering());  
     }
 
+    void loadTextureDataTest()
+    {
+      pxOffscreen mOffscreen;
+      pxTextureRef mOffscreenTexture = mContext.createTexture(mOffscreen);
+      mOffscreenTexture->deleteTexture();
+      mOffscreenTexture->loadTextureData();
+    }
+
     private:
       pxOffscreen mOffscreen;
       pxTextureRef mOffscreenTexture;
@@ -518,6 +535,7 @@ TEST_F(pxTextureOffscreenTest, pxTextureOffscreenTests)
   bindGLTextureTest();
   bindGLTextureUnloadTest();
   prepareForRenderingTest();
+  loadTextureDataTest();
 }
 
 class pxAlphaTextureTest : public testing::Test
@@ -562,3 +580,4 @@ TEST_F(pxAlphaTextureTest, pxAlphaTextureTests)
   bindGLTextureAsMaskUninitTest();
   bindGLTextureAsMaskTest();
 }
+
