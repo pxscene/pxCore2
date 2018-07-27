@@ -35,6 +35,7 @@ using namespace std;
 extern rtThreadQueue* gUIThreadQueue;
 extern pxContext context;
 
+
 rtThreadPool textureCreateThreadPool(1);
 
 pxResource::~pxResource() 
