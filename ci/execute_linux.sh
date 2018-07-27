@@ -6,9 +6,9 @@ checkError()
   then
         printf "\n\n*******************************************************************";
 	printf "\n******************* BUILD FAIL DETAILS ******************************";
-        printf "\n failure reason: $2"
-        printf "\nuse: $3"
-        printf "\nproduction/How to fix: $4"
+        printf "\nCI Failure reason: $2"
+        printf "\nCause: $3"
+        printf "\nReproduction/How to fix: $4"
 	printf "\n*******************************************************************";
 	printf "\n*******************************************************************\n\n";
         #exit 1;
@@ -27,9 +27,11 @@ fi
 
 rm -rf /tmp/cache/*
 rm -rf $TRAVIS_BUILD_DIR/logs/*
+rm /tmp/pxscenecrash
 
 export VALGRINDLOGS=$TRAVIS_BUILD_DIR/logs/valgrind_logs
 export PX_DUMP_MEMUSAGE=1
+export HANDLE_SIGNALS=1
 export ENABLE_VALGRIND=1
 export RT_LOG_LEVEL=info
 export SPARK_CORS_ENABLED=true
@@ -91,7 +93,7 @@ while [ "$retVal" -ne 0 ] &&  [ "$count" -ne "$max_seconds" ]; do
 	count=$((count+30))
 	if [ "$retVal" -ne 0 ]
 		then
-		ls -lrt core
+		ls -lrt /tmp/pxscenecrash
 		retVal=$?
 	fi
 
@@ -111,16 +113,20 @@ pkill -9 -f pxscene.sh
 chmod 444 $VALGRINDLOGS
 
 #check for crash
-$TRAVIS_BUILD_DIR/ci/check_dump_cores_linux.sh `pwd` pxscene $EXECLOGS
+ls -l /tmp/pxscenecrash
 retVal=$?
-if [ "$retVal" -eq 1 ]
-	then
-	checkError $retVal "Execution failed" "Core dump" "Test by running locally"
-	if [ "$TRAVIS_PULL_REQUEST" != "false" ]
-		then
-                  printExecLogs
-	fi
-	exit 1;
+if [ "$retVal" -eq 0 ]
+  then
+  if [ "$TRAVIS_PULL_REQUEST" != "false" ]
+  then
+    echo "****************************** CORE DUMP DETAILS ******************************"
+    cat $VALGRINDLOGS | head -150
+    echo "*******************************************************************************"
+    checkError -1 "Execution failed" "Core dump" "Kindly refer the above trace and test by running locally"
+  else
+    checkError -1 "Execution failed" "Core dump" "Kindly refer $VALGRINDLOGS and test by running locally"
+  fi
+  exit 1;
 fi
 
 
@@ -184,16 +190,19 @@ fi
 
 #check for crash before valgrind test, as we might have got scenario where pxscene might have crashed during term
 ls -lrt *valgrind*
-$TRAVIS_BUILD_DIR/ci/check_dump_cores_linux.sh `pwd` pxscene $EXECLOGS
 retVal=$?
-if [ "$retVal" -eq 1 ]
-	then
-	checkError $retVal "Execution failed" "Core dump during exit" "Test by running locally"
-	if [ "$TRAVIS_PULL_REQUEST" != "false" ]
-		then
-                  printExecLogs
-	fi
-	exit 1;
+if [ "$retVal" -eq 0 ]
+  then
+  if [ "$TRAVIS_PULL_REQUEST" != "false" ]
+  then
+    echo "****************************** CORE DUMP DETAILS ******************************"
+    cat $VALGRINDLOGS | head -150
+    echo "*******************************************************************************"
+    checkError -1 "Execution failed" "Core dump" "Kindly refer the above trace and test by running locally"
+  else
+    checkError -1 "Execution failed" "Core dump" "Kindly refer $VALGRINDLOGS and test by running locally"
+  fi
+  exit 1;
 fi
 
 # Check for valgrind memory leaks
