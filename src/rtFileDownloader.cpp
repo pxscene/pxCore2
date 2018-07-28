@@ -569,6 +569,8 @@ void rtFileDownloader::clearFileCache()
 
 void rtFileDownloader::downloadFile(rtFileDownloadRequest* downloadRequest)
 {
+  printf("rtFileDownloader::downloadFile called [%s] \n",downloadRequest->fileUrl().cString());
+  fflush(stdout);
   bool isRequestCanceled = downloadRequest->isCanceled();
   if (isRequestCanceled)
   {
@@ -676,6 +678,9 @@ void rtFileDownloader::downloadFile(rtFileDownloadRequest* downloadRequest)
 
 bool rtFileDownloader::downloadFromNetwork(rtFileDownloadRequest* downloadRequest)
 {
+    printf("rtFileDownloader::downloadFromNetwork called [%s] \n",downloadRequest->fileUrl().cString());
+    fflush(stdout);
+
     CURL *curl_handle = NULL;
     CURLcode res = CURLE_OK;
     char errorBuffer[CURL_ERROR_SIZE];
@@ -773,6 +778,9 @@ bool rtFileDownloader::downloadFromNetwork(rtFileDownloadRequest* downloadReques
     /* check for errors */
     if (res != CURLE_OK)
     {
+          printf("rtFileDownloader::downloadFromNetwork curl failed [%s] \n",downloadRequest->fileUrl().cString());
+    fflush(stdout);
+
         stringstream errorStringStream;
 
         errorStringStream << "Download error for: " << downloadRequest->fileUrl().cString()
@@ -848,6 +856,9 @@ bool rtFileDownloader::downloadFromNetwork(rtFileDownloadRequest* downloadReques
     }
     chunk.headerBuffer = NULL;
     chunk.contentsBuffer = NULL;
+    printf("rtFileDownloader::downloadFromNetwork ended [%s] \n",downloadRequest->fileUrl().cString());
+    fflush(stdout);
+
     return true;
 }
 
