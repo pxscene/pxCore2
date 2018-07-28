@@ -555,7 +555,7 @@ uint32_t rtImageResource::loadResourceData(rtFileDownloadRequest* fileDownloadRe
 void pxResource::processDownloadedResource(rtFileDownloadRequest* fileDownloadRequest)
 {
   rtString val = "reject";
-  printf("pxResource::loadResource download initiated [%s] \n",mUrl.cString());
+  printf("pxResource::loadResource processDownloadedResource [%s] \n",mUrl.cString());
   fflush(stdout); 
   if (fileDownloadRequest != NULL)
   {
