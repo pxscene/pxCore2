@@ -79,7 +79,7 @@ private:
   double mTotalTime;
   uint32_t mNumPlays;
 
-}; // CALSS - pxTimedOffscreenSequence
+}; // CLASS - pxTimedOffscreenSequence
 
 
 typedef enum pxImageType_
@@ -97,13 +97,15 @@ typedef enum pxImageType_
 pxImageType;
 
 
-pxImageType getImageType( const uint8_t* data, size_t len );
+pxImageType getImageType(const uint8_t* data, size_t len);
+rtString imageType2str(pxImageType t);
 
-rtError pxLoadImage( const char* imageData, size_t imageDataSize, pxOffscreen& o, int w = 0, int h = 0);
-rtError pxLoadImage( const char* filename,                        pxOffscreen& b, int w = 0, int h = 0);
+rtError pxLoadImage( const char* imageData, size_t imageDataSize, pxOffscreen& o, int32_t w = 0, int32_t h = 0, float sx = 1.0f, float sy = 1.0f);
+rtError pxLoadImage( const char* filename,                        pxOffscreen& b, int32_t w = 0, int32_t h = 0, float sx = 1.0f, float sy = 1.0f);
 rtError pxStoreImage(const char* filename, pxOffscreen& b);
 
-//bool pxIsPNGImage(const char* imageData, size_t imageDataSize);
+bool pxIsPNGImage(rtData d);
+bool pxIsPNGImage(const char* imageData, size_t imageDataSize);
 
 rtError pxLoadAImage(const char* imageData, size_t imageDataSize,
   pxTimedOffscreenSequence &s);
@@ -131,8 +133,8 @@ rtError pxLoadJPGImage(const char* imageData, size_t imageDataSize, pxOffscreen&
 rtError pxLoadJPGImage(const char* filename, pxOffscreen& o);
 
 
-rtError pxLoadSVGImage(const char* buf, size_t buflen, pxOffscreen& o, int w = 0, int h = 0);
-rtError pxLoadSVGImage(const char* filename, pxOffscreen& o, int w = 0, int h = 0);
+rtError pxLoadSVGImage(const char* buf, size_t buflen, pxOffscreen& o, int w = 0, int h = 0, float sx = 1.0f, float sy = 1.0f);
+rtError pxLoadSVGImage(const char* filename,           pxOffscreen& o, int w = 0, int h = 0, float sx = 1.0f, float sy = 1.0f);
 rtError pxStoreSVGImage(const char* filename, pxBuffer& b); // NOT SUPPORTED
 
 

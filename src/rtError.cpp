@@ -116,8 +116,6 @@ const char* rtStrError_BuiltIn(rtError e)
     RT_ERROR_CASE(RT_ERROR_STREAM_CLOSED);
 
     RT_ERROR_CASE(RT_ERROR_NOT_ALLOWED);
-    RT_ERROR_CASE(RT_ERROR_CORS_NO_HEADER);
-    RT_ERROR_CASE(RT_ERROR_CORS_ORIGIN_MISMATCH);
     default:
       break;
   }

@@ -25,6 +25,8 @@ limitations under the License.
 #include "pxResource.h"
 #include "rtFileDownloader.h"
 #include "rtString.h"
+#include "pxUtil.h"
+
 #include <string.h>
 #include <unistd.h>
 #include <pxOffscreen.h>
@@ -102,15 +104,23 @@ png_infop png_create_info_struct(png_structp png_ptr)
 class pxUtilTest : public testing::Test
 {
   public:
+    pxUtilTest() : mDownloadImageFailed(true)
+    {
+      //ctor
+    }
+
     virtual void SetUp()
     {
       bool sysRet = system("wget http://apng.onevcat.com/assets/elephant.png");
       mDownloadImageFailed = sysRet;
       if (false == mDownloadImageFailed)
+      {
+        printf("INFO !!!! APNG image was downloaded, everything is fine !\n");
         sysRet = system("mv elephant.png supportfiles/apngimage.png");
+      }
       else
       {
-        printf("WARNING !!!! apngimage not downloaded, so some test cases may not execute\n");
+        printf("WARNING !!!! APNG image NOT downloaded, so some test cases may not execute\n");
         fflush(stdout);
       }
     }
@@ -269,29 +279,39 @@ class pxUtilTest : public testing::Test
       EXPECT_TRUE (ret != RT_OK);
     }
 
-
-    void pxLoadSVGImage3ArgsCreateReadStructFailTest()
-    {
-      rtData d;
-      rtError loadImageSuccess = rtLoadFile("supportfiles/Spark_logo.svg", d);
-      EXPECT_TRUE (loadImageSuccess == RT_OK);
-      
-//      failPngCreateReadStruct = true;
-      rtError ret = pxLoadSVGImage((const char*)d.data(), d.length(), mSvgData);
-ret=RT_FAIL; // TODO <<< FIX
-//      failPngCreateReadStruct = false;
-      EXPECT_TRUE (ret == RT_FAIL);
-    }
-
     void pxLoadSVGImage2ArgsSuccessTest()
     {
       rtError ret = pxLoadSVGImage("supportfiles/Spark_logo.svg", mSvgData);
       EXPECT_TRUE (ret == RT_OK);
     }
 
+    void pxLoadSVGImage4ArgsSuccessTest()
+    {
+      rtError ret = pxLoadSVGImage("supportfiles/Spark_logo.svg", mSvgData, 500, 500);
+      EXPECT_TRUE (ret == RT_OK);
+    }
+
+    void pxLoadSVGImage6ArgsSuccessTest()
+    {
+      rtError ret = pxLoadSVGImage("supportfiles/Spark_logo.svg", mSvgData, 0, 0, 2.0, 2.0);
+      EXPECT_TRUE (ret == RT_OK);
+    }
+
     void pxLoadSVGImage2ArgsFailureTest()
     {
       rtError ret = pxLoadSVGImage("bad_path_to_file/Spark_logo.svg", mSvgData);
+      EXPECT_TRUE (ret != RT_OK);
+    }
+
+    void pxLoadSVGImage4ArgsFailureTest()
+    {
+      rtError ret = pxLoadSVGImage("bad_path_to_file/Spark_logo.svg", mSvgData, 0, 0);
+      EXPECT_TRUE (ret != RT_OK);
+    }
+
+    void pxLoadSVGImage6ArgsFailureTest()
+    {
+      rtError ret = pxLoadSVGImage("bad_path_to_file/Spark_logo.svg", mSvgData, 0, 0, 0.0, 0.0);
       EXPECT_TRUE (ret != RT_OK);
     }
 
@@ -320,10 +340,16 @@ ret=RT_FAIL; // TODO <<< FIX
       if (false == mDownloadImageFailed)
       {
         rtData d;
+
         rtError loadImageSuccess = rtLoadFile("supportfiles/apngimage.png", d);
         EXPECT_TRUE (loadImageSuccess == RT_OK);
+
         rtError ret = pxLoadAImage((const char*) d.data(), d.length(), mAnimatedPngData);
         EXPECT_TRUE (ret == RT_OK);
+      }
+      else
+      {
+         printf("WARNING !!!! APNG image NOT downloaded, skipping %s \n", __FUNCTION__);
       }
     }
 
@@ -371,20 +397,26 @@ TEST_F(pxUtilTest, pxutilsTest)
     pxLoadImage3ArgsFailureTest();
     pxLoadImage3ArgsLessLengthFailureTest();
 
-//    pxLoadImage2ArgsSuccessTest();
-    pxLoadImage2ArgsFailureTest();
+  //  pxLoadImage2ArgsSuccessTest();
+   pxLoadImage2ArgsFailureTest();
 
+    // PNG tests...
     pxLoadPNGImage2ArgsSuccessTest();
     pxLoadPNGImage2ArgsFailureTest();
     pxLoadPNGImage3ArgsCreateReadStructFailTest();
 
+    // SVG tests...
     pxLoadSVGImage2ArgsSuccessTest();
+    pxLoadSVGImage4ArgsSuccessTest();
+    pxLoadSVGImage6ArgsSuccessTest();
+
     pxLoadSVGImage2ArgsFailureTest();
-    pxLoadSVGImage3ArgsCreateReadStructFailTest();
+    pxLoadSVGImage4ArgsSuccessTest();
+    pxLoadSVGImage6ArgsSuccessTest();
 
+    // JPG tests...
 //    pxLoadJPGImage3ArgsSuccessTest();
-
-    //pxLoadJPGImage2ArgsSuccessTest();
+//    pxLoadJPGImage2ArgsSuccessTest();
     pxLoadJPGImage2ArgsFailureTest();
 
     pxStoreImageSuccessTest();
