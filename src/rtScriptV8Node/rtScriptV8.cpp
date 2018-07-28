@@ -18,6 +18,11 @@
 
 #ifdef RTSCRIPT_SUPPORT_V8
 
+extern unsigned char natives_blob_bin_data[];
+extern int natives_blob_bin_size;
+extern unsigned char snapshot_blob_bin_data[];
+extern int snapshot_blob_bin_size;
+
 #if defined WIN32
 #include <Windows.h>
 #include <direct.h>
@@ -735,7 +740,17 @@ rtError rtScriptV8::init()
     udata_setCommonData(&SMALL_ICUDATA_ENTRY_POINT, &status);
 
     v8::V8::InitializeICU();
-    v8::V8::InitializeExternalStartupData("");
+
+    StartupData nativesBlob;
+    nativesBlob.data = (const char*)natives_blob_bin_data;
+    nativesBlob.raw_size = natives_blob_bin_size;
+    v8::V8::SetNativesDataBlob(&nativesBlob);
+
+    StartupData snapshotBlob;
+    snapshotBlob.data = (const char*)snapshot_blob_bin_data;
+    snapshotBlob.raw_size = snapshot_blob_bin_size;
+    v8::V8::SetSnapshotDataBlob(&snapshotBlob);
+
     mUvLoop = uv_default_loop();
     Platform* platform = platform::CreateDefaultPlatform();
     mPlatform = platform;

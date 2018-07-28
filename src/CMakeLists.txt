@@ -222,7 +222,7 @@ if (SUPPORT_V8)
     message("Adding V8 scripting support")
     add_definitions(-DRTSCRIPT_SUPPORT_V8)
     set(PXCORE_FILES ${PXCORE_FILES} rtScriptV8Node/rtScriptV8.cpp rtScriptV8Node/jsCallback.cpp rtScriptV8Node/rtFunctionWrapper.cpp 
-        rtScriptV8Node/rtObjectWrapper.cpp rtScriptV8Node/rtWrapperUtils.cpp)
+        rtScriptV8Node/rtObjectWrapper.cpp rtScriptV8Node/rtWrapperUtils.cpp ${V8_SOURCES})
 endif()
 
 if (PXCORE_MATRIX_HELPERS)

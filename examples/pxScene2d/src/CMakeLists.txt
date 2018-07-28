@@ -477,7 +477,6 @@ if (BUILD_PXSCENE_APP)
            "${CMAKE_CURRENT_SOURCE_DIR}/*.json" "${CMAKE_CURRENT_SOURCE_DIR}/*.conf"
            "${CMAKE_CURRENT_SOURCE_DIR}/../external/vc.build/builds/*.dll" 
            "${CMAKE_CURRENT_SOURCE_DIR}/../external/v8/out.gn/ia32.release/v8*.dll"
-           "${CMAKE_CURRENT_SOURCE_DIR}/../external/v8/out.gn/ia32.release/*.bin"
            "${CMAKE_CURRENT_SOURCE_DIR}/Release/")
         if (SUPPORT_DUKTAPE)
             message("installing additional duktape files")
