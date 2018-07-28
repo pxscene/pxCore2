@@ -17,10 +17,6 @@ export LD_LIBRARY_PATH=$PathR
 
 export NODE_PATH=.
 
-# bin files
-ln -fs $externalDir/v8/out.gn/x64.release/natives_blob.bin  
-ln -fs $externalDir/v8/out.gn/x64.release/snapshot_blob.bin
-
 #export RT_LOG_LEVEL=info
 
 #valgrind integration
