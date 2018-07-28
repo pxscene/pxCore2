@@ -114,8 +114,11 @@ void pxText::resourceReady(rtString readyResolution)
       mReady.send("reject",this);
   }     
 }
-       
 
+void pxText::resourceDirty()
+{
+  pxObject::onTextureReady();
+}
 
 void pxText::draw() 
 {
@@ -232,6 +235,13 @@ void pxText::createNewPromise()
     rtLogDebug("CREATING NEW PROMISE\n");
     mReady = new rtPromise();
   }
+}
+
+void pxText::dispose(bool pumpJavascript)
+{
+  removeResourceListener();
+  mFont = NULL;
+  pxObject::dispose(pumpJavascript);
 }
 
 rtDefineObject(pxText, pxObject);

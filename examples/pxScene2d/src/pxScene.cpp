@@ -496,7 +496,7 @@ if (s && (strcmp(s,"1") == 0))
   for (int i=1;i<argc;i++)
   {
     const char* arg = argv[i];
-    if (arg && arg[0] != '-')
+    if (arg && arg[0] != '-' && arg[0] != 'Y') // Xcode Debugger adds args of "-NSDocumentRevisionsDebugMode YES"
     {
       url = arg;
       break;
