@@ -504,8 +504,8 @@ void pxResource::loadResource()
   if (mUrl.beginsWith("http:") || mUrl.beginsWith("https:"))
   {
       setLoadStatus("sourceType", "http");
-      printf("pxResource::loadResource download initiated [%s] \n",mUrl.cString());
-      fflush(stdout); 
+      printf("pxResource::loadResource initiated [%s] \n",mUrl.cString());
+      fflush(stdout);
       mDownloadRequest = new rtFileDownloadRequest(mUrl, this, pxResource::onDownloadComplete);
       mDownloadRequest->setProxy(mProxy);
       mDownloadRequest->setCallbackFunctionThreadSafe(pxResource::onDownloadComplete);
@@ -654,8 +654,6 @@ uint32_t rtImageResource::loadResourceData(rtFileDownloadRequest* fileDownloadRe
 void pxResource::processDownloadedResource(rtFileDownloadRequest* fileDownloadRequest)
 {
   rtString val = "reject";
-  printf("pxResource::loadResource processDownloadedResource [%s] \n",mUrl.cString());
-  fflush(stdout); 
   if (fileDownloadRequest != NULL)
   {
     bool wasCanceled = fileDownloadRequest->isCanceled();
