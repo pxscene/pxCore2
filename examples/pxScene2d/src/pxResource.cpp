@@ -934,3 +934,4 @@ rtDefineProperty(rtImageResource, w);
 rtDefineProperty(rtImageResource, h);
 
 rtDefineObject(rtImageAResource, pxResource);
+
