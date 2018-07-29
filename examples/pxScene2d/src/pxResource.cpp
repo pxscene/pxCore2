@@ -1,3 +1,4 @@
+
 /*
 
  pxCore Copyright 2005-2018 John Robinson
@@ -16,6 +17,7 @@
 
 */
 
+
 // pxResource.cpp
 #include "pxScene2d.h"
 
@@ -32,6 +34,7 @@ using namespace std;
 
 extern rtThreadQueue* gUIThreadQueue;
 extern pxContext context;
+
 
 rtThreadPool textureCreateThreadPool(1);
 
@@ -218,7 +221,8 @@ void pxResource::removeListener(pxResourceListener* pListener)
 void pxResource::notifyListeners(rtString readyResolution)
 {
   //rtLogDebug("notifyListeners for url=%s # of listeners=%d\n",mUrl.cString(),mListeners.size());
- 
+  printf("Received pxResource::notifyListeners [%s] \n",mUrl.cString());
+  fflush(stdout); 
   mReady.send(readyResolution,this); 
   mListenersMutex.lock();
   if( mListeners.size() == 0)
@@ -500,6 +504,8 @@ void pxResource::loadResource()
   if (mUrl.beginsWith("http:") || mUrl.beginsWith("https:"))
   {
       setLoadStatus("sourceType", "http");
+      printf("pxResource::loadResource initiated [%s] \n",mUrl.cString());
+      fflush(stdout);
       mDownloadRequest = new rtFileDownloadRequest(mUrl, this, pxResource::onDownloadComplete);
       mDownloadRequest->setProxy(mProxy);
       mDownloadRequest->setCallbackFunctionThreadSafe(pxResource::onDownloadComplete);
