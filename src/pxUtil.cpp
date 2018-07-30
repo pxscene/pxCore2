@@ -36,25 +36,89 @@
 #define SUPPORT_PNG
 #define SUPPORT_JPG
 
-// Assume alpha is not premultiplied
-rtError pxLoadImage(const char *imageData, size_t imageDataSize,
-                    pxOffscreen &o)
-{
-  // Load as PNG...
-  rtError retVal = pxLoadPNGImage(imageData, imageDataSize, o);
+#include "rtRef.h"
+#include "rtObject.h"
 
-  if (retVal != RT_OK) // Failed ... trying as JPG
+  #include <stdio.h>
+  #include <string.h>
+  #include <float.h>
+
+  //#define STB_IMAGE_WRITE_IMPLEMENTATION
+  //#include "stb_image_write.h"
+  #define NANOSVG_ALL_COLOR_KEYWORDS  // Include full list of color keywords.
+  #define NANOSVG_IMPLEMENTATION      // Expands implementation
+  #include "nanosvg.h"
+  #define NANOSVGRAST_IMPLEMENTATION
+  #include "nanosvgrast.h"
+
+#ifdef SAFE_FREE
+#undef SAFE_FREE
+#endif
+#define SAFE_FREE(x)  do { free(x); (x) = NULL; } while(0)
+
+pxImageType getImageType( const uint8_t* data, size_t len ); //fwd
+
+class NSVGrasterizerEx
+{
+  public:
+       NSVGrasterizerEx()  {  rast = nsvgCreateRasterizer(); } // ctor
+      ~NSVGrasterizerEx()  {  SAFE_FREE(rast);               } // dtor
+  
+  NSVGrasterizer *getPtr() { return rast; };
+  
+  private:
+    NSVGrasterizer *rast;
+    
+}; // CLASS;
+
+static NSVGrasterizerEx rast;
+static rtMutex          rastMutex;
+
+
+// Assume alpha is not premultiplied
+rtError pxLoadImage(const char *imageData, size_t imageDataSize,  pxOffscreen &o, 
+                        int32_t w /* = 0    */, int32_t h /* = 0    */,
+                         float sx /* = 1.0f */,  float sy /* = 1.0f */)
+{
+  pxImageType imgType = getImageType( (const uint8_t*) imageData, imageDataSize);
+  rtError retVal = RT_FAIL;
+
+  switch(imgType)
   {
+    case PX_IMAGE_PNG:
+         {
+           retVal = pxLoadPNGImage(imageData, imageDataSize, o);
+         }
+         break;
+      
+    case PX_IMAGE_JPG:
+         {
 #ifdef ENABLE_LIBJPEG_TURBO
-    retVal = pxLoadJPGImageTurbo(imageData, imageDataSize, o);
-    if (retVal != RT_OK)
-    {
-      retVal = pxLoadJPGImage(imageData, imageDataSize, o);
-    }
+           retVal = pxLoadJPGImageTurbo(imageData, imageDataSize, o);
+           if (retVal != RT_OK)
+           {
+             retVal = pxLoadJPGImage(imageData, imageDataSize, o);
+           }
 #else
-    retVal = pxLoadJPGImage(imageData, imageDataSize, o);
+        retVal = pxLoadJPGImage(imageData, imageDataSize, o);
 #endif //ENABLE_LIBJPEG_TURBO
+         }
+         break;
+      
+    case PX_IMAGE_SVG:
+    default:
+         {
+           retVal = pxLoadSVGImage(imageData, imageDataSize, o, w, h, sx, sy);
+         }
+         break;
+  }//SWITCH
+
+  if (retVal != RT_OK)
+  {
+    rtLogError("ERROR:  pxLoadImage() - failed" );
+    return retVal;
   }
+
 
   // TODO more sane image type detection and flow
 
@@ -66,14 +130,21 @@ rtError pxLoadImage(const char *imageData, size_t imageDataSize,
   return retVal;
 }
 
+// APNG looks like a PNG with extra chunks ... can fallback to display static PNG
+
 rtError pxLoadAImage(const char* imageData, size_t imageDataSize,
   pxTimedOffscreenSequence &s)
 {
   // Load as PNG...
   rtError retVal = pxLoadAPNGImage(imageData, imageDataSize, s);
 
-  if (retVal != RT_OK) // Failed ... trying as JPG
+  if (retVal != RT_OK) // Failed ... trying as JPG (why?)
   {
+#if 0
+    rtLogError("ERROR:  pxLoadAPNGImage() - failed to load APNG ... " );
+
+    return retVal;
+#else
     pxOffscreen o;
 #ifdef ENABLE_LIBJPEG_TURBO
     retVal = pxLoadJPGImageTurbo(imageData, imageDataSize, o);
@@ -86,15 +157,17 @@ rtError pxLoadAImage(const char* imageData, size_t imageDataSize,
 #endif //ENABLE_LIBJPEG_TURBO
     s.init();
     s.addBuffer(o,0);
+#endif // 0
   }
 
   return retVal;
 }
 
-
 // TODO Detection needs to be improved...
 // Handling jpeg as fallback now
-rtError pxLoadImage(const char *filename, pxOffscreen &b)
+rtError pxLoadImage(const char *filename, pxOffscreen &b,
+                        int32_t w /* = 0    */, int32_t h /* = 0    */,
+                         float sx /* = 1.0f */,  float sy /* = 1.0f */)
 {
   rtData d;
   rtError e = rtLoadFile(filename, d);
@@ -113,9 +186,14 @@ rtError pxStoreImage(const char *filename, pxOffscreen &b)
   return pxStorePNGImage(filename, b);
 }
 
-bool pxIsPNGImage(const char * /*imageData*/, size_t /*imageDataSize*/)
+bool pxIsPNGImage(rtData d)
 {
-  return true;
+  return (getImageType( (const uint8_t*) d.data(), d.length()) == PX_IMAGE_PNG);
+}
+
+bool pxIsPNGImage(const char *imageData, size_t imageDataSize)
+{
+  return (getImageType( (const uint8_t*) imageData, imageDataSize) == PX_IMAGE_PNG);
 }
 
 rtError pxLoadPNGImage(const char *filename, pxOffscreen &o)
@@ -651,9 +729,9 @@ my_error_exit(j_common_ptr cinfo)
  * temporary files are deleted if the program is interrupted.  See libjpeg.txt.
  */
 
-bool pxIsJPGImage(const char * /*imageData*/, size_t /*imageDataSize*/)
+bool pxIsJPGImage(const char *imageData, size_t imageDataSize)
 {
-  return false;
+  return (getImageType( (const uint8_t*) imageData, imageDataSize) == PX_IMAGE_JPG);
 }
 
 rtError pxLoadJPGImage(const char *filename, pxOffscreen &o)
@@ -916,9 +994,85 @@ rtError pxLoadJPGImage(const char *buf, size_t buflen, pxOffscreen &o)
   return RT_OK;
 }
 
+
+rtError pxStoreSVGImage(const char* /*filename*/, pxBuffer& /*b*/)  { return RT_FAIL; } // NOT SUPPORTED
+
+
+rtError pxLoadSVGImage(const char* buf, size_t buflen, pxOffscreen& o, int  w /* = 0    */,      int h /* = 0    */,
+                                                                     float sx /* = 1.0f */,   float sy /* = 1.0f */)
+{
+  rtMutexLockGuard  autoLock(rastMutex);
+  
+  if (buf == NULL || buflen == 0 )
+  {
+    rtLogError("SVG:  Bad args.\n");
+    return RT_FAIL;
+  }
+  
+  if (sx <= 0.0f || sy <= 0.0f)
+  {
+    rtLogError("SVG:  Bad image scale  sx: %f  sy: %f\n", sx, sy);
+    return RT_FAIL;
+  }
+
+  NSVGimage *image = nsvgParse( (char *) buf, "px", 96.0f); // 96 dpi (suggested default)
+  if (image == NULL)
+  {
+    rtLogError("SVG:  Could not init decode SVG.\n");
+    return RT_FAIL;
+  }
+  
+  int image_w = (int)image->width;  // parsed SVG image dimensions
+  int image_h = (int)image->height; // parsed SVG image dimensions
+  
+  if (image_w == 0 || image_h == 0)
+  {
+    SAFE_FREE(image);
+
+    rtLogError("SVG:  Bad image dimensions  WxH: %d x %d\n", image_w, image_h);
+    return RT_FAIL;
+  }
+  
+  // Dimensions WxH ... *only* if no Scale XY
+  if( (sx == 1.0f && sy == 1.0f) && (w > 0 && h > 0) ) // <<< Use WxH only if no scale. Scale takes precedence
+  {
+    float ratioW = (float) w / (float) image_w;
+    float ratioH = (float) h / (float) image_h;
+    
+    sx = sy = (ratioW < ratioH) ? ratioW : ratioH; // MIN()
+  }
+  
+  o.initWithColor( (image_w * sx), (image_h * sy), pxClear); // default sized
+  
+  nsvgRasterizeFull(rast.getPtr(), image, 0, 0, sx, sy,
+                    (unsigned char*) o.base(), o.width(), o.height(), o.width() *4);
+
+  SAFE_FREE(image);
+  return RT_OK;
+}
+
+
+rtError pxLoadSVGImage(const char *filename, pxOffscreen &o, int  w /* = 0    */,      int h /* = 0    */,
+                                                           float sx /* = 1.0f */,   float sy /* = 1.0f */)
+{
+  rtData d;
+  rtError e = rtLoadFile(filename, d);
+  if (e == RT_OK)
+  {
+    // TODO get rid of the cast
+    e = pxLoadSVGImage((const char *)d.data(), d.length(), o, w, h, sx, sy);
+  }
+  else
+  {
+    rtLogError("Failed to load image file, %s.", filename);
+  }
+
+  return e;
+}
+
 rtError pxStoreJPGImage(char * /*filename*/, pxBuffer & /*b*/)
 {
-  return RT_FAIL;
+  return RT_FAIL; // NOT SUPPORTED
 }
 
 struct PngStruct
@@ -1143,10 +1297,6 @@ void BlendOver(unsigned char **rows_dst, unsigned char **rows_src, unsigned int 
 rtError pxLoadAPNGImage(const char *imageData, size_t imageDataSize,
                         pxTimedOffscreenSequence &s)
 {
-  s.init();
-
-  PngStruct pngStruct((char *)imageData, imageDataSize);
-
   if (!imageData)
   {
     rtLogError("FATAL: Invalid arguments - imageData = NULL");
@@ -1158,6 +1308,10 @@ rtError pxLoadAPNGImage(const char *imageData, size_t imageDataSize,
     rtLogError("FATAL: Invalid arguments - imageDataSize < 8");
     return RT_FAIL;
   }
+
+  s.init();
+
+  PngStruct pngStruct((char *)imageData, imageDataSize);
 
   unsigned char header[8]; // 8 is the maximum size that can be checked
 
@@ -1306,4 +1460,84 @@ rtError pxLoadAPNGImage(const char *imageData, size_t imageDataSize,
   png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
 
   return RT_OK;
+}
+
+rtString imageType2str(pxImageType t)
+{
+  switch(t)
+  {
+    case PX_IMAGE_JPG:      return rtString("PX_IMAGE_JPG");
+    case PX_IMAGE_PNG:      return rtString("PX_IMAGE_PNG");
+    case PX_IMAGE_GIF:      return rtString("PX_IMAGE_GIF");
+    case PX_IMAGE_TIFF:     return rtString("PX_IMAGE_TIFF");
+    case PX_IMAGE_BMP:      return rtString("PX_IMAGE_BMP");
+    case PX_IMAGE_WEBP:     return rtString("PX_IMAGE_WEBP");
+    case PX_IMAGE_ICO:      return rtString("PX_IMAGE_ICO");
+    case PX_IMAGE_SVG:      return rtString("PX_IMAGE_SVG");
+    default:
+    case PX_IMAGE_INVALID:  return rtString("PX_IMAGE_INVALID");
+  }
+}
+
+pxImageType getImageType( const uint8_t* data, size_t len )
+{
+  if ( data == NULL ) return PX_IMAGE_INVALID;
+  if ( len < 16 ) return PX_IMAGE_INVALID;
+  
+  // .jpg:  FF D8 FF
+  // .png:  89 50 4E 47 0D 0A 1A 0A
+  // .gif:  GIF87a
+  //        GIF89a
+  // .tiff: 49 49 2A 00
+  //        4D 4D 00 2A
+  // .bmp:  BM
+  // .webp: RIFF ???? WEBP
+  // .ico   00 00 01 00
+  //        00 00 02 00 ( cursor files )
+  
+  switch ( data[0] )
+  {
+    case (uint8_t)'\xFF':
+      return ( !strncmp( (const char*)data, "\xFF\xD8\xFF", 3 )) ?
+      PX_IMAGE_JPG : PX_IMAGE_INVALID;
+      
+    case (uint8_t)'\x89':
+      return ( !strncmp( (const char*)data,
+                        "\x89\x50\x4E\x47\x0D\x0A\x1A\x0A", 8 )) ?
+      PX_IMAGE_PNG : PX_IMAGE_INVALID;
+      
+    case 'G':
+      return ( !strncmp( (const char*)data, "GIF87a", 6 ) ||
+              !strncmp( (const char*)data, "GIF89a", 6 ) ) ?
+      PX_IMAGE_GIF : PX_IMAGE_INVALID;
+      
+    case 'I':
+      return ( !strncmp( (const char*)data, "\x49\x49\x2A\x00", 4 )) ?
+      PX_IMAGE_TIFF : PX_IMAGE_INVALID;
+      
+    case 'M':
+      return ( !strncmp( (const char*)data, "\x4D\x4D\x00\x2A", 4 )) ?
+      PX_IMAGE_TIFF : PX_IMAGE_INVALID;
+      
+    case 'B':
+      return (( data[1] == 'M' )) ?
+      PX_IMAGE_BMP : PX_IMAGE_INVALID;
+      
+    case 'R':
+      if ( strncmp( (const char*)data,     "RIFF", 4 ))
+        return PX_IMAGE_INVALID;
+      if ( strncmp( (const char*)(data+8), "WEBP", 4 ))
+        return PX_IMAGE_INVALID;
+      return PX_IMAGE_WEBP;
+      
+    case '\0':
+      if ( !strncmp( (const char*)data, "\x00\x00\x01\x00", 4 ))
+        return PX_IMAGE_ICO;
+      if ( !strncmp( (const char*)data, "\x00\x00\x02\x00", 4 ))
+        return PX_IMAGE_ICO;
+      return PX_IMAGE_INVALID;
+      
+    default:
+      return PX_IMAGE_INVALID;
+  }
 }

@@ -33,6 +33,8 @@
 #include "rtFileDownloader.h"
 
 #include "rtZip.h"
+#include "rtCORS.h"
+
 class pxArchive: public rtObject
 {
 public:
@@ -45,7 +47,7 @@ public:
   pxArchive();
   virtual ~pxArchive();
 
-  rtError initFromUrl(const rtString& url, const rtString& origin = rtString());
+  rtError initFromUrl(const rtString& url, const rtCORSRef& cors = NULL);
   rtError ready(rtObjectRef& r) const;
 
   rtError loadStatus(rtObjectRef& v) const;

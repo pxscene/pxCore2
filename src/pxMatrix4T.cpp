@@ -33,7 +33,7 @@ void sincos(double x, double *s, double *c) {
 
 #ifndef _GLIBCXX_HAVE_SINCOSF
 void sincosf(float x, float *s, float *c) {
-  *s = sin(x);
-  *c = cos(x);
+  *s = static_cast<float>(sin(x));
+  *c = static_cast<float>(cos(x));
 }
 #endif

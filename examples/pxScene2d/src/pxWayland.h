@@ -161,8 +161,8 @@ public:
   rtError startRemoteObjectLocator();
   rtError connectToRemoteObject(unsigned int timeout_ms);
   rtError useDispatchThread(bool use);
-  rtError resume();
-  rtError suspend();
+  rtError resume(const rtValue& v);
+  rtError suspend(const rtValue& v);
 private:
   rtAtomic mRefCount;
   pthread_t mClientMonitorThreadId;
