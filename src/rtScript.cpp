@@ -27,7 +27,7 @@
 #include "assert.h"
 
 #if defined RTSCRIPT_SUPPORT_NODE || defined RTSCRIPT_SUPPORT_V8
-#include "rtScriptV8Node/rtScriptV8Node.h"
+#include "rtScriptV8/rtScriptV8Node.h"
 #endif
 
 #ifdef RTSCRIPT_SUPPORT_DUKTAPE

@@ -214,15 +214,15 @@ endif()
 if (SUPPORT_NODE)
     message("Adding Node scripting support")
     add_definitions(-DRTSCRIPT_SUPPORT_NODE)
-    set(PXCORE_FILES ${PXCORE_FILES} rtScriptV8Node/rtScriptNode.cpp rtScriptV8Node/jsCallback.cpp rtScriptV8Node/rtFunctionWrapper.cpp 
-        rtScriptV8Node/rtObjectWrapper.cpp rtScriptV8Node/rtWrapperUtils.cpp)
+    set(PXCORE_FILES ${PXCORE_FILES} rtScriptV8/rtScriptNode.cpp rtScriptV8/jsCallback.cpp rtScriptV8/rtFunctionWrapper.cpp 
+        rtScriptV8/rtObjectWrapper.cpp rtScriptV8/rtWrapperUtils.cpp)
 endif()
 
 if (SUPPORT_V8)
     message("Adding V8 scripting support")
     add_definitions(-DRTSCRIPT_SUPPORT_V8)
-    set(PXCORE_FILES ${PXCORE_FILES} rtScriptV8Node/rtScriptV8.cpp rtScriptV8Node/jsCallback.cpp rtScriptV8Node/rtFunctionWrapper.cpp 
-        rtScriptV8Node/rtObjectWrapper.cpp rtScriptV8Node/rtWrapperUtils.cpp)
+    set(PXCORE_FILES ${PXCORE_FILES} rtScriptV8/rtScriptV8.cpp rtScriptV8/jsCallback.cpp rtScriptV8/rtFunctionWrapper.cpp 
+        rtScriptV8/rtObjectWrapper.cpp rtScriptV8/rtWrapperUtils.cpp ${V8_SOURCES})
 endif()
 
 if (PXCORE_MATRIX_HELPERS)
