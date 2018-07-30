@@ -60,9 +60,6 @@
 #include "pxContext.h"
 #include "rtFileDownloader.h"
 #include "rtMutex.h"
-#ifdef ENABLE_ACCESS_CONTROL_CHECK
-#include "rtCORSUtils.h"
-#endif
 
 #include "pxIView.h"
 
@@ -1158,6 +1155,7 @@ void pxObject::update(double t)
       }
       else if( a.reversing && (fmod(t2,2) == 0))
       {
+        toVal = a.from;
         justReverseChange = true;
         a.reversing = false;
         a.actualCount++;
@@ -1941,6 +1939,9 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   // rtPermissions accounts parent scene permissions too
   mPermissions = new rtPermissions(mOrigin.cString());
 #endif
+#ifdef ENABLE_ACCESS_CONTROL_CHECK
+  mCORS = new rtCORS(mOrigin.cString());
+#endif
 
   // make sure that initial onFocus is sent
   rtObjectRef e = new rtMapObject;
@@ -2240,7 +2241,7 @@ rtError pxScene2d::createImageResource(rtObjectRef p, rtObjectRef& o)
     return RT_ERROR_NOT_ALLOWED;
 #endif
 
-  o = pxImageManager::getImage(url, proxy, iw, ih, sx, sy);
+  o = pxImageManager::getImage(url, proxy, mCORS, iw, ih, sx, sy);
   
   o.send("init");
   return RT_OK;
@@ -2256,7 +2257,7 @@ rtError pxScene2d::createImageAResource(rtObjectRef p, rtObjectRef& o)
     return RT_ERROR_NOT_ALLOWED;
 #endif
 
-  o = pxImageManager::getImageA(url, proxy);
+  o = pxImageManager::getImageA(url, proxy, mCORS);
   o.send("init");
   return RT_OK;
 }
@@ -2271,7 +2272,7 @@ rtError pxScene2d::createFontResource(rtObjectRef p, rtObjectRef& o)
     return RT_ERROR_NOT_ALLOWED;
 #endif
 
-  o = pxFontManager::getFont(url, proxy);
+  o = pxFontManager::getFont(url, proxy, mCORS);
   return RT_OK;
 }
 
@@ -3593,7 +3594,7 @@ rtDefineProperty(pxScene2d, origin);
 #ifdef ENABLE_PERMISSIONS_CHECK
 rtDefineProperty(pxScene2d, permissions);
 #endif
-rtDefineMethod(pxScene2d, checkAccessControlHeaders);
+rtDefineProperty(pxScene2d, cors);
 rtDefineMethod(pxScene2d, addServiceProvider);
 rtDefineMethod(pxScene2d, removeServiceProvider);
 
@@ -3700,19 +3701,6 @@ void pxScene2d::innerpxObjectDisposed(rtObjectRef ref)
   }
 }
 
-rtError pxScene2d::checkAccessControlHeaders(const rtString& url, const rtString& rawHeaders, bool& allow) const
-{
-#ifdef ENABLE_ACCESS_CONTROL_CHECK
-  allow = RT_OK == rtCORSUtilsCheckOrigin(mOrigin, url, rawHeaders);
-  return RT_OK;
-#else
-  UNUSED_PARAM(url);
-  UNUSED_PARAM(rawHeaders);
-  allow = true; // default
-  return RT_OK;
-#endif
-}
-
 void pxScene2d::setViewContainer(pxIViewContainer* l)
 {
   mContainer = l;
@@ -3745,6 +3733,7 @@ rtDefineProperty(pxSceneContainer, url);
 #ifdef ENABLE_PERMISSIONS_CHECK
 rtDefineProperty(pxSceneContainer, permissions);
 #endif
+rtDefineProperty(pxSceneContainer, cors);
 rtDefineProperty(pxSceneContainer, api);
 rtDefineProperty(pxSceneContainer, ready);
 rtDefineProperty(pxSceneContainer, serviceContext);
@@ -3866,14 +3855,33 @@ void pxSceneContainer::reloadData(bool sceneSuspended)
 #ifdef ENABLE_PERMISSIONS_CHECK
 rtError pxSceneContainer::permissions(rtObjectRef& v) const
 {
-  return mScriptView != NULL ? mScriptView->permissions(v) : RT_OK;
+  if (mScriptView.getPtr())
+  {
+    return mScriptView->permissions(v);
+  }
+  v = NULL;
+  return RT_OK;
 }
 
 rtError pxSceneContainer::setPermissions(const rtObjectRef& v)
 {
-  return mScriptView != NULL ? mScriptView->setPermissions(v) : RT_OK;
+  if (mScriptView.getPtr())
+  {
+    return mScriptView->setPermissions(v);
+  }
+  return RT_OK;
 }
 #endif
+
+rtError pxSceneContainer::cors(rtObjectRef& v) const
+{
+  if (mScriptView.getPtr())
+  {
+    return mScriptView->cors(v);
+  }
+  v = NULL;
+  return RT_OK;
+}
 
 #if 0
 void* gObjectFactoryContext = NULL;

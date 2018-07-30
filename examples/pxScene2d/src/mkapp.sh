@@ -52,6 +52,7 @@ cp macstuff/Info.plist $bundle/Contents
 rm browser/images/status_bg_edge.svg
 
 cp -a browser $bundleRes
+rm $bundleRes/browser/images/status_bg_edge.svg
 cp FreeSans.ttf $bundleRes
 cp sparkpermissions.conf $bundleRes
 
