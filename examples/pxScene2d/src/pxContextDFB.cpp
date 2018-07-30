@@ -25,6 +25,7 @@
 #include "rtThreadQueue.h"
 #include "rtMutex.h"
 #include "rtScript.h"
+#include "rtSettings.h"
 
 #include "pxContext.h"
 #include "pxUtil.h"
@@ -210,7 +211,7 @@ pxError removeFromTextureList(pxTexture* texture)
 pxError ejectNotRecentlyUsedTextureMemory(int64_t bytesNeeded, uint32_t maxAge=5)
 {
   rtLogDebug("attempting to eject %d bytes of texture memory with max age %u", bytesNeeded, maxAge);
-#if defined(ENABLE_PX_SCENE_TEXTURE_USAGE_MONITORING) && !defined(DISABLE_TEXTURE_EJECTION)
+#if !defined(DISABLE_TEXTURE_EJECTION)
   int numberEjected = 0;
   int64_t beforeTextureMemoryUsage = context.currentTextureMemoryUsageInBytes();
 
@@ -237,7 +238,7 @@ pxError ejectNotRecentlyUsedTextureMemory(int64_t bytesNeeded, uint32_t maxAge=5
     rtLogWarn("%d textures have been ejected and %d bytes of texture memory has been freed",
         numberEjected, (beforeTextureMemoryUsage - afterTextureMemoryUsage));
   }
-#endif //ENABLE_PX_SCENE_TEXTURE_USAGE_MONITORING && !DISABLE_TEXTURE_EJECTION
+#endif //!DISABLE_TEXTURE_EJECTION
   return PX_OK;
 }
 
@@ -2095,7 +2096,15 @@ void pxContext::init()
   DFB_CHECK(boundFramebuffer->SetRenderOptions(boundFramebuffer,
           DFBSurfaceRenderOptions(DSRO_MATRIX /*| DSRO_ANTIALIAS*/) ));
 
-  setTextureMemoryLimit(PXSCENE_DEFAULT_TEXTURE_MEMORY_LIMIT_IN_BYTES );
+  rtValue val;
+  if (RT_OK == rtSettings::instance()->value("enableTextureMemoryMonitoring", val))
+  {
+    mEnableTextureMemoryMonitoring = val.toString().compare("true") == 0;
+  }
+  if (RT_OK == rtSettings::instance()->value("textureMemoryLimitInMb", val))
+  {
+    setTextureMemoryLimit((int64_t)val.toInt32() * (int64_t)1024 * (int64_t)1024);
+  }
 
   rtLogSetLevel(RT_LOG_INFO); // LOG LEVEL
 
@@ -2883,8 +2892,7 @@ void pxContext::adjustCurrentTextureMemorySize(int64_t changeInBytes, bool allow
     //    pc, mCurrentTextureMemorySizeInBytes, changeInBytes);
   }
   //rtLogDebug("the current texture size: %" PRId64 ".", mCurrentTextureMemorySizeInBytes);
-#ifdef ENABLE_PX_SCENE_TEXTURE_USAGE_MONITORING
-  if (allowGarbageCollect && pc >= 100.0f)
+  if (mEnableTextureMemoryMonitoring && allowGarbageCollect && pc >= 100.0f)
   {
     rtLogDebug("\n ###  Texture Memory: %3.1f %%  <<<   GARBAGE COLLECT", pc);
 #ifdef RUNINMAIN
@@ -2897,7 +2905,6 @@ void pxContext::adjustCurrentTextureMemorySize(int64_t changeInBytes, bool allow
   // {
   //     rtLogDebug("\n ###  Texture Memory: %3.2f %% ", pc);
   // }
-#endif // ENABLE_PX_SCENE_TEXTURE_USAGE_MONITORING
 }
 
 void pxContext::setTextureMemoryLimit(int64_t textureMemoryLimitInBytes)
@@ -2907,10 +2914,12 @@ void pxContext::setTextureMemoryLimit(int64_t textureMemoryLimitInBytes)
 
 bool pxContext::isTextureSpaceAvailable(pxTextureRef texture, bool allowGarbageCollect)
 {
-#ifdef ENABLE_PX_SCENE_TEXTURE_USAGE_MONITORING
+  if (!mEnableTextureMemoryMonitoring)
+    return true;
+
   int textureSize = (texture->width()*texture->height()*4);
   if ((textureSize + mCurrentTextureMemorySizeInBytes) >
-             (mTextureMemoryLimitInBytes + PXSCENE_DEFAULT_TEXTURE_MEMORY_LIMIT_THRESHOLD_PADDING_IN_BYTES))
+             (mTextureMemoryLimitInBytes + mTextureMemoryLimitThresholdPaddingInBytes))
   {
     if (allowGarbageCollect)
     {
@@ -2922,11 +2931,6 @@ bool pxContext::isTextureSpaceAvailable(pxTextureRef texture, bool allowGarbageC
     }
     return false;
   }
-  else
-  {
-    return true;
-  }
-#endif //ENABLE_PX_SCENE_TEXTURE_USAGE_MONITORING
   return true;
 }
 
@@ -2948,6 +2952,9 @@ int64_t pxContext::textureMemoryOverflow(pxTextureRef texture)
 
 int64_t pxContext::ejectTextureMemory(int64_t bytesRequested, bool forceEject)
 {
+  if (!mEnableTextureMemoryMonitoring)
+    return 0;
+
   int64_t beforeTextureMemoryUsage = context.currentTextureMemoryUsageInBytes();
   if (!forceEject)
   {
