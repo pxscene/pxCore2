@@ -70,6 +70,7 @@ fi
 if [ "$TRAVIS_EVENT_TYPE" == "cron" ]  
 then
 sed -i -e 's/\.\/Spark/\.\/SparkEdge/g' macstuff/spark.sh
+sed -i -e 's/spark.log /sparkEdge.log /g' macstuff/spark.sh
 fi
 cp macstuff/spark.sh $bundleBin
 cp macstuff/EngineRunner $bundleBin

@@ -46,11 +46,11 @@ if "%APPVEYOR_SCHEDULED_BUILD%"=="True" (
   set uploadArtifact=True
   call:replaceString "..\examples\pxScene2d\src\win\pxscene.rc" "Spark_installer.ico" "SparkEdge_installer.ico"
   cmake -DCMAKE_VERBOSE_MAKEFILE=ON -DPXSCENE_VERSION="edge" ..
-  call:replaceString "examples\pxScene2d\src\cmake_install.cmake" "pxscene.exe" "pxsceneEdge.exe"
-  call:replaceString "CPackConfig.cmake" "pxscene.exe" "pxsceneEdge.exe"
-  call:replaceString "CPackSourceConfig.cmake" "pxscene.exe" "pxsceneEdge.exe"
-  call:replaceString "CPackConfig.cmake" ""pxscene"" ""pxsceneEdge""
-  call:replaceString "CPackSourceConfig.cmake" ""pxscene"" ""pxsceneEdge""
+  call:replaceString "examples\pxScene2d\src\cmake_install.cmake" "Spark.exe" "SparkEdge.exe"
+  call:replaceString "CPackConfig.cmake" "Spark.exe" "SparkEdge.exe"
+  call:replaceString "CPackSourceConfig.cmake" "Spark.exe" "SparkEdge.exe"
+  call:replaceString "CPackConfig.cmake" ""Spark"" ""SparkEdge""
+  call:replaceString "CPackSourceConfig.cmake" ""Spark"" ""SparkEdge""
   call:replaceString "CPackConfig.cmake" "pxscene.lnk" "pxsceneEdge.lnk"
   call:replaceString "CPackSourceConfig.cmake" "pxscene.lnk" "pxsceneEdge.lnk"
   call:replaceString "CPackConfig.cmake" "Spark_installer.ico" "SparkEdge_installer.ico"
@@ -78,7 +78,7 @@ cmake --build . --config Release -- /m
 if %errorlevel% neq 0 exit /b %errorlevel%
 
 if "%APPVEYOR_SCHEDULED_BUILD%"=="True" (
-move ..\examples\pxScene2d\src\Release\pxscene.exe ..\examples\pxScene2d\src\Release\pxsceneEdge.exe
+move ..\examples\pxScene2d\src\Release\Spark.exe ..\examples\pxScene2d\src\Release\SparkEdge.exe
 )
 
 cpack .
