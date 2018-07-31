@@ -21,7 +21,6 @@ if [ "$retVal" -eq 0 ]
 		cat gdblogs  >> $logfile
 		echo "***************************************************************************" >> $logfile
 	fi
-	rm -rf "$tempLogFile"
 	rm -rf gdblogs
 	exit 1;
 else

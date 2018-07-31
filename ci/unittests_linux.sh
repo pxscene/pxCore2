@@ -43,11 +43,13 @@ ls -l /tmp/pxscenecrash
 retVal=$?
 if [ "$retVal" -eq 0 ]
   then
-  $TRAVIS_BUILD_DIR/ci/check_dump_cores_linux.sh `pwd` "$TRAVIS_BUILD_DIR/tests/pxScene2d/pxscene2dtests" $processId $TESTLOGS
-  checkError $retVal "unittests execution failed" "Core dump"  "Run unittests locally."
+  $TRAVIS_BUILD_DIR/ci/check_dump_cores_linux.sh `pwd` "$TRAVIS_BUILD_DIR/tests/pxScene2d/pxscene2dtests" "$processId" "$TESTLOGS"
+  kill -9 $processId
+  sleep 5s;
+  pkill -9 -f pxscene2dtests.sh
+  checkError -1 "unittests execution failed" "Core dump"  "Run unittests locally."
 fi
 
-echo "kill -9 $processId"
 kill -9 $processId
 sleep 5s;
 pkill -9 -f pxscene2dtests.sh
