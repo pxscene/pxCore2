@@ -3,6 +3,13 @@ matrix:
   - os: linux
     dist: trusty
     sudo: required
+    addons:
+      apt:
+        sources:
+        - ubuntu-toolchain-r-test
+        packages:
+        - gcc-6
+        - g++-6
   - os: osx
     osx_image: xcode6.4
 language: c++
@@ -13,6 +20,8 @@ before_install:
 - if [ "$TRAVIS_EVENT_TYPE" != "pull_request" ]; then  ssh-add /tmp/pxscene-build.pem; fi
 - ./ci/before_install.sh
 - if [ "$TRAVIS_EVENT_TYPE" = "push" ] || [ "$TRAVIS_EVENT_TYPE" = "pull_request" ]; then export PATH=/usr/local/opt/ccache/libexec:$PATH; fi
+- if [ "$TRAVIS_OS_NAME" = "linux" ]; then  export CC=/usr/bin/gcc-6; export CXX=/usr/bin/g++-6 ; sudo ln -s /usr/bin/gcc-6 /usr/local/bin/gcc ; sudo ln -s /usr/bin/g++-6 /usr/local/bin/g++ ; fi
+- gcc -v && g++ -v 
 install:
 - ./ci/install.sh
 before_script:
