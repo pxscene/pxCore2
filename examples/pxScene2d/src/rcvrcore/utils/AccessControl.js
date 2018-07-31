@@ -56,9 +56,12 @@ AccessControl.prototype.allows = function (url) {
   return true;
 };
 
-AccessControl.prototype.checkAccessControlHeaders = function (url, rawHeaders) {
+AccessControl.prototype.passesAccessControlCheck = function (rawHeaders, withCredentials, origin) {
   if (this.scene) {
-    return this.scene.checkAccessControlHeaders(url, rawHeaders);
+    var cors = this.scene.cors;
+    if (cors) {
+      return cors.passesAccessControlCheck(rawHeaders, withCredentials, origin);
+    }
   }
   return true;
 };
@@ -158,7 +161,7 @@ function AccessControlClientRequest(options, callback, accessControl, protocol) 
       }
     }
     log.message(4, "check for request to origin: '" + requestOrigin + "' from origin '" + appOrigin + "' headers: " + rawHeaders);
-    if (!accessControl.checkAccessControlHeaders(requestOrigin, rawHeaders)) {
+    if (!accessControl.passesAccessControlCheck(rawHeaders, false, requestOrigin)) {
       var message = "CORS block for request to origin: '" + requestOrigin + "' from origin '" + appOrigin + "'";
       log.warn(message);
       _this.blocked = true;

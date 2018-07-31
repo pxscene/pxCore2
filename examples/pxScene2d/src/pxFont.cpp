@@ -28,6 +28,10 @@
 
 using namespace std;
 
+#define FREETYPE_TYPEOF( type )  ( decltype ( type ) )
+#define FREETYPE_PIXEL_FLOOR( x )     ( (x) & ~FREETYPE_TYPEOF( x )63 )
+#define FREETYPE_PIXEL_ROUND( x )     FREETYPE_PIXEL_FLOOR( (x) + 32 )
+
 struct GlyphKey 
 {
   uint32_t mFontId;
@@ -67,6 +71,9 @@ extern "C" {
 #endif
 
 FT_Library ft;
+FT_Int ft_major_version;
+FT_Int ft_minor_version;
+
 uint32_t gFontId = 1;
 
 // TODO move out to rt* utility
@@ -261,6 +268,12 @@ void pxFont::setPixelSize(uint32_t s)
   {
     //rtLogDebug("pxFont::setPixelSize size=%d mPixelSize=%d mInitialized=%d and mFace=%d\n", s,mPixelSize,mInitialized, mFace);
     FT_Set_Pixel_Sizes(mFace, 0, s);
+    if ((ft_major_version >= 2) && ( ft_minor_version >= 8))
+    {
+      mFace->size->metrics.ascender  = FREETYPE_PIXEL_ROUND( FT_MulFix( mFace->ascender, mFace->size->metrics.y_scale ) );
+      mFace->size->metrics.descender = FREETYPE_PIXEL_ROUND( FT_MulFix( mFace->descender, mFace->size->metrics.y_scale ) );
+      mFace->size->metrics.height = FREETYPE_PIXEL_ROUND( FT_MulFix( mFace->height, mFace->size->metrics.y_scale ) );
+    }
     mPixelSize = s;
   }
 }
@@ -341,6 +354,12 @@ GlyphTextureEntry pxFont::getGlyphTexture(uint32_t codePoint, float sx, float sy
     // temporarily set pixel size to more optimal size for
     // rendering texture 
     FT_Set_Pixel_Sizes(mFace, 0, pixelSize);
+    if ((ft_major_version >= 2) && ( ft_minor_version >= 8))
+    {
+      mFace->size->metrics.ascender  = FREETYPE_PIXEL_ROUND( FT_MulFix( mFace->ascender, mFace->size->metrics.y_scale ) );
+      mFace->size->metrics.descender = FREETYPE_PIXEL_ROUND( FT_MulFix( mFace->descender, mFace->size->metrics.y_scale ) );
+      mFace->size->metrics.height = FREETYPE_PIXEL_ROUND( FT_MulFix( mFace->height, mFace->size->metrics.y_scale ) );
+    }
     // TODO only need to render glyph here
     if(!FT_Load_Char(mFace, codePoint, FT_LOAD_RENDER))
     {
@@ -369,10 +388,22 @@ GlyphTextureEntry pxFont::getGlyphTexture(uint32_t codePoint, float sx, float sy
 
       // restore current pixelSize
       FT_Set_Pixel_Sizes(mFace, 0, mPixelSize);
+      if ((ft_major_version >= 2) && ( ft_minor_version >= 8))
+      {
+        mFace->size->metrics.ascender  = FREETYPE_PIXEL_ROUND( FT_MulFix( mFace->ascender, mFace->size->metrics.y_scale ) );
+        mFace->size->metrics.descender = FREETYPE_PIXEL_ROUND( FT_MulFix( mFace->descender, mFace->size->metrics.y_scale ) );
+        mFace->size->metrics.height = FREETYPE_PIXEL_ROUND( FT_MulFix( mFace->height, mFace->size->metrics.y_scale ) );
+      }
       return result;  
     }
     // restore current pixelSize
     FT_Set_Pixel_Sizes(mFace, 0, mPixelSize);
+    if ((ft_major_version >= 2) && ( ft_minor_version >= 8))
+    {
+      mFace->size->metrics.ascender  = FREETYPE_PIXEL_ROUND( FT_MulFix( mFace->ascender, mFace->size->metrics.y_scale ) );
+      mFace->size->metrics.descender = FREETYPE_PIXEL_ROUND( FT_MulFix( mFace->descender, mFace->size->metrics.y_scale ) );
+      mFace->size->metrics.height = FREETYPE_PIXEL_ROUND( FT_MulFix( mFace->height, mFace->size->metrics.y_scale ) );
+    }
   }
   return result;  
 }
@@ -704,9 +735,10 @@ void pxFontManager::initFT()
     rtLogError("Could not init freetype library\n");
     return;
   }
-  
+
+  FT_Library_Version( ft, &ft_major_version, &ft_minor_version, NULL);
 }
-rtRef<pxFont> pxFontManager::getFont(const char* url, const char* proxy)
+rtRef<pxFont> pxFontManager::getFont(const char* url, const char* proxy, const rtCORSRef& cors)
 {
   initFT();
 
@@ -740,6 +772,7 @@ rtRef<pxFont> pxFontManager::getFont(const char* url, const char* proxy)
   {
     rtLogDebug("Create pxFont in map for %s\n",url);
     pFont = new pxFont(url, fontId, proxy);
+    pFont->setCORS(cors);
     mFontMap.insert(make_pair(fontId, pFont));
     pFont->loadResource();
   }
