@@ -62,6 +62,7 @@ then
     brew install gcovr
     brew install lcov
     brew install ccache
+    brew install libuv
     ls -al $HOME/.ccache
   fi
 fi
