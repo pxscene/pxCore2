@@ -167,7 +167,7 @@ then
     cd build
     cmake ..
     make "-j${make_parallel}"
-    cd ..
+    cd ../..
 fi
 
 #--------- uWebSockets
