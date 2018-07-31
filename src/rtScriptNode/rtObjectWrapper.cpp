@@ -117,54 +117,78 @@ Handle<Object> rtObjectWrapper::createFromObjectReference(v8::Local<v8::Context>
   if (!obj.IsEmpty())
     return scope.Escape(obj);
 
+  rtString desc;
+  rtError err = RT_PROP_NOT_FOUND;
+  if (ref) {
+    err = const_cast<rtObjectRef &>(ref).sendReturns<rtString>("description", desc);
+  }
+
   // introspect for rtArrayValue
-  // TODO: not sure this is good. Any object can have a 'length' property
+  if (err == RT_OK && desc.compare("rtArrayObject") == 0)
   {
     rtValue length;
-    if (ref && ref->Get("length", &length) != RT_PROP_NOT_FOUND)
+    if (ref->Get("length", &length) != RT_PROP_NOT_FOUND)
     {
       const int n = length.toInt32();
       Local<Array> arr = Array::New(isolate, n);
       for (int i = 0; i < n; ++i)
       {
         rtValue item;
-        rtError err = ref->Get(i, &item);
-        if (err == RT_OK)
+        if (ref->Get(i, &item) == RT_OK)
           arr->Set(Number::New(isolate, i), rt2js(ctx, item));
       }
       return scope.Escape(arr);
     }
   }
 
+  // rtMapObject
+  if (err == RT_OK && desc.compare("rtMapObject") == 0)
   {
-    rtString desc;
-    if (ref)
+    rtValue allKeys;
+    if (ref->Get("allKeys", &allKeys) != RT_PROP_NOT_FOUND)
     {
-      rtError err = const_cast<rtObjectRef &>(ref).sendReturns<rtString>("description", desc);
-      if (err == RT_OK && strcmp(desc.cString(), "rtPromise") == 0)
+      rtObjectRef arr = allKeys.toObject();
+      rtValue length;
+      arr->Get("length", &length);
+      const int n = length.toInt32();
+      obj = Object::New(isolate);
+      for (int i = 0; i < n; ++i)
       {
-        Local<Promise::Resolver> resolver = Promise::Resolver::New(isolate);
+        rtValue key;
+        if (arr->Get(i, &key) == RT_OK)
+        {
+          rtString str = key.toString();
+          rtValue item;
+          if (ref->Get(str.cString(), &item) == RT_OK)
+            obj->Set(String::NewFromUtf8(isolate, str.cString()), rt2js(ctx, item));
+        }
 
-        rtFunctionRef resolve(new rtResolverFunction(rtResolverFunction::DispositionResolve, ctx, resolver));
-        rtFunctionRef reject(new rtResolverFunction(rtResolverFunction::DispositionReject, ctx, resolver));
-
-        rtObjectRef newPromise;
-        rtObjectRef promise = ref;
-
-        Local<Object> jsPromise = resolver->GetPromise();
-
-        // rtLogInfo("addp id:%u addr:%p", GetContextId(creationContext), ref.getPtr());
-        HandleMap::addWeakReference(isolate, ref, jsPromise);
-
-        err = promise.send("then", resolve, reject, newPromise);
-        if (err == RT_OK)
-          return scope.Escape(jsPromise);
-        else
-          rtLogError("failed to setup promise");
-
-        return scope.Escape(Local<Object>());
       }
+      return scope.Escape(obj);
     }
+  }
+
+  // rtPromise
+  if (err == RT_OK && desc.compare("rtPromise") == 0)
+  {
+    Local<Promise::Resolver> resolver = Promise::Resolver::New(isolate);
+
+    rtFunctionRef resolve(new rtResolverFunction(rtResolverFunction::DispositionResolve, ctx, resolver));
+    rtFunctionRef reject(new rtResolverFunction(rtResolverFunction::DispositionReject, ctx, resolver));
+
+    rtObjectRef newPromise;
+    rtObjectRef promise = ref;
+
+    Local<Object> jsPromise = resolver->GetPromise();
+
+    // rtLogInfo("addp id:%u addr:%p", GetContextId(creationContext), ref.getPtr());
+    HandleMap::addWeakReference(isolate, ref, jsPromise);
+
+    if (promise.send("then", resolve, reject, newPromise) == RT_OK)
+      return scope.Escape(jsPromise);
+
+    rtLogError("failed to setup promise");
+    return scope.Escape(Local<Object>());
   }
 
   Local<Value> argv[1] =
