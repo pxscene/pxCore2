@@ -503,6 +503,7 @@ void pxResource::loadResource()
       mDownloadRequest = new rtFileDownloadRequest(mUrl, this, pxResource::onDownloadComplete);
       mDownloadRequest->setProxy(mProxy);
       mDownloadRequest->setCallbackFunctionThreadSafe(pxResource::onDownloadComplete);
+      mDownloadRequest->setCORS(mCORS);
       mDownloadInProgressMutex.lock();
       mDownloadInProgress = true;
       mDownloadInProgressMutex.unlock();
@@ -773,7 +774,7 @@ void rtImageAResource::loadResourceFromFile()
 ImageMap pxImageManager::mImageMap;
 rtRef<rtImageResource> pxImageManager::emptyUrlResource = 0;
 
-rtRef<rtImageResource> pxImageManager::getImage(const char* url, const char* proxy    /* = NULL  */,
+rtRef<rtImageResource> pxImageManager::getImage(const char* url, const char* proxy    /* = NULL  */, const rtCORSRef& cors /* = NULL  */,
                                                 int32_t iw /* = 0    */,   int32_t ih /* = 0     */,
                                                   float sx /* = 1.0f */,   float sy   /* = 1.0f  */)
 {
@@ -831,6 +832,7 @@ rtRef<rtImageResource> pxImageManager::getImage(const char* url, const char* pro
   {
     //rtLogInfo("Create rtImageResource in map for \"%s\"\n",url);
     pResImage = new rtImageResource(url, proxy, iw, ih, sx, sy);
+    pResImage->setCORS(cors);
     mImageMap.insert(make_pair(key.cString(), pResImage));
     pResImage->loadResource();
   }
@@ -877,7 +879,7 @@ void pxImageManager::removeImage(rtString url, int32_t iw /* = 0 */,   int32_t i
 ImageAMap pxImageManager::mImageAMap;
 rtRef<rtImageAResource> pxImageManager::emptyUrlImageAResource = 0;
 /** static pxImageManager::getImage */
-rtRef<rtImageAResource> pxImageManager::getImageA(const char* url, const char* proxy)
+rtRef<rtImageAResource> pxImageManager::getImageA(const char* url, const char* proxy, const rtCORSRef& cors)
 {
   if(!url || strlen(url) == 0) {
     if( !emptyUrlImageAResource) {
@@ -896,6 +898,7 @@ rtRef<rtImageAResource> pxImageManager::getImageA(const char* url, const char* p
   else
   {
     pResImageA = new rtImageAResource(url, proxy);
+    pResImageA->setCORS(cors);
     mImageAMap.insert(make_pair(url, pResImageA));
     pResImageA->loadResource();
   }

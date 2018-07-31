@@ -86,7 +86,7 @@ rtError pxImageA::setUrl(const char *s)
     }
   }
   removeResourceListener();
-  mResource = pxImageManager::getImageA(s);
+  mResource = pxImageManager::getImageA(s, NULL, mScene ? mScene->cors() : NULL);
 
   if(getImageAResource() != NULL && getImageAResource()->getUrl().length() > 0 && !mImageLoaded) {
     mListenerAdded = true;
