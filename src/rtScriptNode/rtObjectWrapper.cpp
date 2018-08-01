@@ -120,7 +120,12 @@ Handle<Object> rtObjectWrapper::createFromObjectReference(v8::Local<v8::Context>
   rtString desc;
   rtError err = RT_PROP_NOT_FOUND;
   if (ref) {
-    err = const_cast<rtObjectRef &>(ref).sendReturns<rtString>("description", desc);
+    //err = const_cast<rtObjectRef &>(ref).sendReturns<rtString>("description", desc);
+    rtMethodMap* methodMap = ref.getPtr()->getMap();
+    if (methodMap) {
+      desc = methodMap->className;
+      err = RT_OK;
+    }
   }
 
   // introspect for rtArrayValue
