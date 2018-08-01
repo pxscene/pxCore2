@@ -33,7 +33,7 @@
 #include "pxContext.h"
 
 #ifdef ENABLE_RT_NODE
-#include "rtScriptNode/rtWrapperUtils.h"
+#include "rtScript.h"
 #endif //ENABLE_RT_NODE
 
 #include <map>

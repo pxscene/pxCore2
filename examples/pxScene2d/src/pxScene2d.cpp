@@ -70,7 +70,7 @@
 #include <rapidjson/writer.h>
 
 #ifdef ENABLE_RT_NODE
-#include "rtScriptNode/rtWrapperUtils.h"
+#include "rtScript.h"
 #endif //ENABLE_RT_NODE
 
 using namespace rapidjson;
