@@ -29,7 +29,7 @@ const char* rtCORS::ENV_NAME_ENABLED = "SPARK_CORS_ENABLED";
 const char* rtCORS::HTTPHeaderName_AccessControlAllowOrigin = "access-control-allow-origin";
 const char* rtCORS::HTTPHeaderName_AccessControlAllowCredentials = "access-control-allow-credentials";
 
-bool rtCORS::mEnabled = true; // default
+bool rtCORS::mEnabled = false; // default
 
 rtCORS::rtCORS(const rtString& origin)
   : mOrigin(origin)
