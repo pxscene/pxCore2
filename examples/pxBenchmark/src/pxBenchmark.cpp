@@ -12,6 +12,27 @@
 #include "rtSettings.h"
 #include "pxEventLoop.h"
 
+#include <cassert>
+#include <cmath>
+
+#include <celero/Archive.h>
+#include <celero/Benchmark.h>
+#include <celero/Callbacks.h>
+#include <celero/Celero.h>
+#include <celero/CommandLine.h>
+#include <celero/Console.h>
+#include <celero/Distribution.h>
+#include <celero/Exceptions.h>
+#include <celero/Executor.h>
+#include <celero/JUnit.h>
+#include <celero/Print.h>
+#include <celero/ResultTable.h>
+#include <celero/TestVector.h>
+#include <celero/Utilities.h>
+#include <cassert>
+#include <cmath>
+#include <fstream>
+#include <iostream>
 //-----------------------------------------------------------------------------------
 // Globals
 //-----------------------------------------------------------------------------------
@@ -42,31 +63,21 @@ void benchmarkWindow::init(const int32_t& x, const int32_t& y, const int32_t& w,
     {
         mApiFixture = std::shared_ptr<pxApiFixture>(&pxApiFixture::Instance());
         
+        std::cout << "Writing results to: " << mOutputTableCSV << std::endl;
+        celero::ResultTable::Instance().setFileName(mOutputTableCSV);
+        
+        celero::AddExperimentResultCompleteFunction([](std::shared_ptr<celero::ExperimentResult> p) { celero::ResultTable::Instance().add(p); });
+  
+        std::cout << "Archiving results to: " << mArchiveCSV << std::endl;
+        celero::Archive::Instance().setFileName(mArchiveCSV);
+        
+        celero::AddExperimentResultCompleteFunction([](std::shared_ptr<celero::ExperimentResult> p) { celero::Archive::Instance().add(p); });
+        
         pxWindow::init(x,y,w,h);
         
-        mExperimentFactory = std::shared_ptr<pxBenchmarkFactory>(&pxBenchmarkFactory::Instance());
-        
-        mBm = celero::RegisterBaseline(mGroupName.c_str(), mBenchmarkName.c_str(), mSamples,
-                                                                    1/*mIterations*/, mThreads,
-                                                                    mExperimentFactory);
-        
-        g_argv[g_argc++] = (char*)mGroupName.c_str();
-        g_argv[g_argc++] = (char*)("--archive=pxBenchmark_archive.csv");
-        g_argv[g_argc++] = (char*)("--outputTable=pxBenchmark_outputTable.csv");
-        /*g_argv[g_argc++] = (char*)mBenchmarkName.c_str();
-        g_argv[g_argc++] = (char*)mSamples;
-        g_argv[g_argc++] = (char*)mIterations;
-        g_argv[g_argc++] = (char*)mThreads;*/
-        
-        // We will run some total number of sets of tests all together.
-        // Each one growing by a power of 2.
-        mApiFixture->popExperimentValues().push_back({int64_t(pxApiFixture::type::xDrawRect)});
-        mApiFixture->popExperimentValues().push_back({int64_t(pxApiFixture::type::xDrawDiagLine)});
-        mApiFixture->popExperimentValues().push_back({int64_t(pxApiFixture::type::xDrawDiagRect)});
-        mApiFixture->popExperimentValues().push_back({int64_t(pxApiFixture::type::xDrawImage)});
-        mApiFixture->popExperimentValues().push_back({int64_t(pxApiFixture::type::xDrawImage9)});
-        mApiFixture->popExperimentValues().push_back({int64_t(pxApiFixture::type::xDrawImageBorder9)});
-        mApiFixture->popExperimentValues().push_back({int64_t(pxApiFixture::type::xDrawAll)});
+        mApiFixture->popExperimentValue().Value = pxApiFixture::type::xDrawRect;
+        mApiFixture->popExperimentValue().Iterations = 0;
+        mApiFixture->popExperimentValue().mTotalTime = 0;
     }
     
 void* benchmarkWindow::getInterface(const char* /*name*/)
@@ -86,6 +97,7 @@ void benchmarkWindow::invalidateRect(pxRect* r)
     
 void benchmarkWindow::close()
     {
+        celero::ResultTable::Instance().closeFile();
         onCloseRequest();
     }
 
@@ -95,6 +107,7 @@ void benchmarkWindow::onSize(/*const */int32_t/*&*/ w, /*const */int32_t/*&*/ h)
         {
             mWidth  = w;
             mHeight = h;
+            reset();
         }
     }
 
@@ -146,30 +159,103 @@ void benchmarkWindow::onKeyUp(/*const */uint32_t/*&*/ keycode, /*const */uint32_
 void benchmarkWindow::onChar(/*const */uint32_t/*&*/ c)
     {
     }
+
+void benchmarkWindow::RegisterTest (const string& groupName, const string& benchmarkName, const uint64_t samples,
+                                    const uint64_t iterations, const uint64_t threads)
+    {
+    if (NULL == mExperimentFactory)
+        mExperimentFactory = std::shared_ptr<pxBenchmarkFactory>(&pxBenchmarkFactory::Instance());
     
+    celero::TestVector::Instance().clear();
+        
+    mBaselineBm = celero::RegisterBaseline(groupName.c_str(), benchmarkName.c_str(), samples,
+                                           iterations, threads,
+                                           mExperimentFactory);
+        
+    /*mBms.push_back (celero::RegisterTest(groupName.c_str(), benchmarkName.c_str(), samples,
+                                         iterations, threads,
+                                         mExperimentFactory));*/
+   /* g_argc = 0;
+    g_argv[g_argc++] = (char*)groupName.c_str();
+    g_argv[g_argc++] = (char*)("--archive=pxBenchmark_archive.csv");
+    g_argv[g_argc++] = (char*)("--outputTable=pxBenchmark_outputTable.csv");
+
+    string tag = "--group=" + groupName;
+    g_argv[g_argc++] = (char*)tag.c_str();*/
+    }
+
+void benchmarkWindow::reset()
+{
+    if (mExperimentFactory == NULL)
+        mExperimentFactory = std::shared_ptr<pxBenchmarkFactory>(&pxBenchmarkFactory::Instance());
+    
+    switch ((int)mApiFixture->popExperimentValue().Value) {
+        case pxApiFixture::type::xDrawRect:
+            mGroupName = "DrawRect";
+            break;
+        case pxApiFixture::type::xDrawDiagLine:
+            mGroupName = "DrawDiagLine";
+            break;
+        case pxApiFixture::type::xDrawDiagRect:
+            mGroupName = "DrawDiagRect";
+            break;
+        case pxApiFixture::type::xDrawImage9:
+            mGroupName = "DrawImage9";
+            break;
+        case pxApiFixture::type::xDrawImage:
+            mGroupName = "DrawImage";
+            break;
+        case pxApiFixture::type::xDrawImageBorder9:
+            mGroupName = "DrawImageBorder9";
+            break;
+        case pxApiFixture::type::xDrawAll:
+            mGroupName = "DrawAll";
+            break;
+        default:
+            break;
+    }
+    
+    RegisterTest(mGroupName, mBenchmarkName, mSamples, 1, mThreads);
+    
+    mApiFixture->popExperimentValue().Iterations = 0;
+    mApiFixture->popExperimentValue().mTotalTime = 0;
+    mApiFixture->mCurrentY = 0;
+    mApiFixture->mCurrentX = 0;
+    
+    pxWindow::invalidateRect(NULL);
+}
+
 void benchmarkWindow::onDraw(pxSurfaceNative/*&*/ sn)
     {
-        
         if (mApiFixture->getIterationCounter() == 0)
         {
             context.setSize(win.GetWidth(), win.GetHeight());
             float fillColor[] = {1.0, 1.0, 0.0, 1.0};
             context.clear(0, 0, fillColor);
             // context.clear(1280, 720);
-            //celero::Run();
         }
         
-        if (mApiFixture->getIterationCounter() == mIterations)
-            return;
-        
-        if (mApiFixture->getExperimentValues()[0].Iterations >= mIterations)
-        {
-            celero::Run(g_argc, g_argv);
-            mApiFixture->setIterationCounter(mIterations);
-            
-        }
-        else if (mApiFixture->getExperimentValues()[0].Iterations < mIterations)
-            celero::Run();
+        if (mApiFixture->getIterationCounter() <= mIterations)
+            celero::executor::Run(mGroupName);
+        else if (mApiFixture->popExperimentValue().Value == pxApiFixture::type::xDrawAll)
+                {
+                    celero::ResultTable::Instance().closeFile();
+                    return;
+                }
+         else
+         {
+                context.setSize(win.GetWidth(), win.GetHeight());
+                float fillColor[] = {1.0, 1.0, 0.0, 1.0};
+                context.clear(0, 0, fillColor);
+                // context.clear(1280, 720);
+                
+                mApiFixture->popExperimentValue().Value++;
+                
+                mApiFixture->setIterationCounter(0);
+                
+                reset ();
+            }
+       
     }
     
 void benchmarkWindow::onAnimationTimer()
@@ -189,9 +275,9 @@ void benchmarkWindow::StopTimer()
     }
 
 uint64_t benchmarkWindow::GetCurrentTimeElapsed() const
-{
+    {
     return celero::timer::GetSystemTime() - mTimer;
-}
+    }
 
 std::shared_ptr<pxApiFixture> benchmarkWindow::getPxApiFixture () const
     {
@@ -199,7 +285,7 @@ std::shared_ptr<pxApiFixture> benchmarkWindow::getPxApiFixture () const
     }
 
 //-----------------------------------------------------------------------------------
-//  pxApiFixture:
+//  pxBenchmarkFactory:
 //-----------------------------------------------------------------------------------
 std::shared_ptr<TestFixture> pxBenchmarkFactory::Create()
     {
@@ -207,30 +293,30 @@ std::shared_ptr<TestFixture> pxBenchmarkFactory::Create()
     }
 
 pxBenchmarkFactory& pxBenchmarkFactory::Instance()
-{
+    {
     static pxBenchmarkFactory singleton;
     return singleton;
-}
+    }
 
 //-----------------------------------------------------------------------------------
 //  pxApiFixture:
 //-----------------------------------------------------------------------------------
 
 pxApiFixture& pxApiFixture::Instance()
-{
+    {
     static pxApiFixture singleton;
     return singleton;
-}
+    }
 
 uint64_t pxApiFixture::getIterationCounter() const
-{
+    {
     return mIterationCounter;
-}
+    }
 
 void pxApiFixture::setIterationCounter(uint64_t val)
-{
+    {
     mIterationCounter = val;
-}
+    }
 
 //-----------------------------------------------------------------------------------
 /// \param threads The number of working threads.
@@ -276,15 +362,10 @@ uint64_t pxApiFixture::run(const uint64_t threads, const uint64_t iterations, co
         // See how long it took.
         totalTime += celero::timer::GetSystemTime() - startTime;
         
-        for (int i = 0; i <= xDrawAll; ++i)
-            if (mExperimentValue[i].Value == experimentValue.Value)
-            {
-                mExperimentValue[i].mTotalTime += totalTime;
-                mExperimentValue[i].Iterations++;
-                totalTime = mExperimentValue[i].mTotalTime;// / mExperimentValue[i].Iterations;
-                mIterationCounter = mExperimentValue[i].Iterations;
-                break;
-            }
+        mExperimentValue.mTotalTime += totalTime;
+        mExperimentValue.Iterations++;
+        totalTime = mExperimentValue.mTotalTime;// / mExperimentValue[i].Iterations;
+        mIterationCounter++;
         
         // Tear down the testing fixture.
         this->tearDown();
@@ -300,18 +381,18 @@ void pxApiFixture::TestDrawRect ()
 {
     static float color[4] = {1., 0.0, 0.0, 1.0};
     
-    context.drawRect(mUnitWidth, mUnitHeight, mCurrentX+mCurrentY, color, color);
+    context.drawRect(mCurrentX + mUnitWidth, mCurrentY + mUnitHeight, 1, NULL, color);
 }
 
 void pxApiFixture::TestDrawDiagLine ()
 {
-    static float color[4] = {1., 0.0, 0.0, 1.0};
+    static float color[4] = {0., 0.0, 1.0, 1.0};
     context.drawDiagLine(mCurrentX, mCurrentY, mCurrentX+mUnitWidth, mCurrentY+mUnitHeight, color);
 }
 
 void pxApiFixture::TestDrawDiagRect ()
 {
-    static float color[4] = {1., 0.0, 0.0, 1.0};
+    static float color[4] = {0., 1.0, 0.0, 1.0};
     
     //float x = mExperimentValue[xDrawDiagRect].Iterations;
     //float y = mExperimentValue[xDrawDiagRect].Iterations;
@@ -329,35 +410,30 @@ void pxApiFixture::TestDrawImage ()
 
 void pxApiFixture::TestDrawImage9 ()
 {
-    pxTextureRef textureRef9 = context.createTexture(100, 100, 200, 200);
-    context.drawImage9(100, 100, 400, 400, 500, 500, textureRef9);
+    pxTextureRef textureRef9 = context.createTexture(mUnitWidth, mUnitHeight, mUnitWidth, mUnitHeight);
+    context.drawImage9(mUnitWidth, mUnitHeight, mCurrentX, mCurrentY, mCurrentX + mUnitWidth, mCurrentY + mUnitHeight, textureRef9);
 }
 
 void pxApiFixture::TestDrawImage9Border ()
 {
     static float color[4] = {1., 0.0, 0.0, 1.0};
-    pxTextureRef textureRef9Border = context.createTexture(100, 100, 200, 200);
-    context.drawImage9Border(100, 100, 400, 400, 500, 500, 0, 0, 0, 0, true, color, textureRef9Border);
+    pxTextureRef textureRef9Border = context.createTexture(mUnitWidth, mUnitHeight, mUnitWidth, mUnitHeight);
+    context.drawImage9Border(mUnitWidth, mUnitHeight, mCurrentX, mCurrentY, mCurrentX + mUnitWidth, mCurrentY + mUnitHeight, mCurrentX, mCurrentY, mCurrentX + mUnitWidth, mCurrentY + mUnitHeight, true, color, textureRef9Border);
 }
 
 void pxApiFixture::TestDrawAll ()
 {
-    static float color[4] = {1., 0.0, 0.0, 1.0};
-    context.drawRect(100, 100, 400, color, color);
+    TestDrawRect();
     
-    pxTextureRef textureRef = context.createTexture(200, 200, 400, 400);
-    context.drawDiagLine(400, 400, 500, 500, color);
+    TestDrawDiagLine();
     
-    context.drawDiagRect(200, 200, 400, 400, color);
+    TestDrawDiagRect();
     
-    pxTextureRef nullMaskRef;
-    context.drawImage(400, 400, 200, 200, textureRef, nullMaskRef, true, color, pxConstantsStretch::STRETCH, pxConstantsStretch::STRETCH, true, pxConstantsMaskOperation::NORMAL);
+    TestDrawImage9Border();
     
-    pxTextureRef textureRef9 = context.createTexture(100, 100, 200, 200);
-    context.drawImage9(100, 100, 400, 400, 500, 500, textureRef9);
+    TestDrawImage();
     
-    pxTextureRef textureRef9Border = context.createTexture(100, 100, 200, 200);
-    context.drawImage9Border(100, 100, 400, 400, 500, 500, 0, 0, 0, 0, true, color, textureRef9Border);
+    TestDrawImage9();
 }
 
 void pxApiFixture::onExperimentStart(const celero::TestFixture::ExperimentValue& exp)
@@ -368,7 +444,7 @@ void pxApiFixture::onExperimentStart(const celero::TestFixture::ExperimentValue&
     context.setAlpha(1.0);
     
     context.setShowOutlines(true);
-    if (mCurrentX > win.GetWidth() && mCurrentY > win.GetHeight())
+    if (mCurrentX >= win.GetWidth() && mCurrentY >= win.GetHeight())
     {
         mCurrentX = 0.0;
         mCurrentY = 0.0;
@@ -381,8 +457,9 @@ void pxApiFixture::onExperimentStart(const celero::TestFixture::ExperimentValue&
         mCurrentY += mUnitHeight;
     }
     
-     switch ((int)exp.Value) {
+    switch ((int)mExperimentValue.Value) {
         case xDrawRect:
+             TestDrawRect();
             break;
         case xDrawDiagLine:
              TestDrawDiagLine();
@@ -391,36 +468,34 @@ void pxApiFixture::onExperimentStart(const celero::TestFixture::ExperimentValue&
             TestDrawDiagRect();
             break;
         case xDrawImage9:
+             TestDrawImage9();
             break;
         case xDrawImage:
+             TestDrawImage();
             break;
         case xDrawImageBorder9:
+             TestDrawImage9Border();
             break;
         case xDrawAll:
+             TestDrawAll();
             break;
         default:
             break;
     }
-    
 }
 
 void pxApiFixture::onExperimentEnd()
 {
-   // mProblemSpace.clear();
 }
 
 std::vector<celero::TestFixture::ExperimentValue> pxApiFixture::getExperimentValues() const
 {
     std::vector<celero::TestFixture::ExperimentValue> problemSpace;
-    for (int i = 0; i <= xDrawAll; ++i)
-    {
-        problemSpace.push_back(mExperimentValue[i]);
-        //problemSpace[i].Iterations = 1;
-    }
+    problemSpace.push_back(mExperimentValue);
     return problemSpace;
 }
 
-std::vector<pxBenchmarkExperimentValue>& pxApiFixture::popExperimentValues()
+pxBenchmarkExperimentValue& pxApiFixture::popExperimentValue()
 {
     return mExperimentValue;
 }
@@ -431,7 +506,6 @@ void pxApiFixture::setUp(const celero::TestFixture::ExperimentValue& experimentV
 
 void pxApiFixture::tearDown()
 {
-    //mExperimentValue.clear();
 }
 
 void pxApiFixture::UserBenchmark()

@@ -84,7 +84,7 @@ public:
 class pxApiFixture : public celero::TestFixture
 {
     
-    std::vector<pxBenchmarkExperimentValue>   mExperimentValue;
+    pxBenchmarkExperimentValue                mExperimentValue;
     uint64_t                                  mIterationCounter;
     
     void TestDrawRect ();
@@ -115,14 +115,13 @@ public:
     : mIterationCounter(0)
     , mCurrentX (0)
     , mCurrentY (0)
-    , mUnitWidth (10)
-    , mUnitHeight (10)
+    , mUnitWidth (25)
+    , mUnitHeight (25)
     {
     }
     
     ~pxApiFixture()
     {
-        mExperimentValue.clear();
     }
     
     virtual void onExperimentStart(const celero::TestFixture::ExperimentValue&) override;
@@ -138,7 +137,7 @@ public:
     
     virtual void UserBenchmark() override;
     
-    std::vector<pxBenchmarkExperimentValue>& popExperimentValues();
+    pxBenchmarkExperimentValue& popExperimentValue();
     
     static pxApiFixture& Instance();
     
@@ -192,10 +191,13 @@ class benchmarkWindow : public pxWindow, public pxIViewContainer, public Benchma
     
     int32_t             mWindowWidth;
     int32_t             mWindowHeight;
+    std::string         mArchiveCSV;
+    std::string         mOutputTableCSV;
     
-    std::shared_ptr<pxApiFixture>       mApiFixture;
-    std::shared_ptr<celero::Benchmark>  mBm;
-    std::shared_ptr<pxBenchmarkFactory>    mExperimentFactory;
+    std::shared_ptr<pxApiFixture>                   mApiFixture;
+    std::shared_ptr<celero::Benchmark>              mBaselineBm;
+    std::vector<std::shared_ptr<celero::Benchmark>> mBms;
+    std::shared_ptr<pxBenchmarkFactory>             mExperimentFactory;
     
 public:
     benchmarkWindow ()
@@ -206,8 +208,10 @@ public:
         , mGroupName ("pxApiTest")
         , mBenchmarkName ("pxApiTest")
         , mSamples (1)
-        , mIterations (1000)
+        , mIterations (1056)
         , mThreads (1)
+        , mArchiveCSV ("pxBenchmark_archive.csv")
+        , mOutputTableCSV ("pxBenchmark_outputTable.csv")
         {
             
         }
@@ -235,6 +239,8 @@ public:
     uint64_t GetCurrentTimeElapsed () const;
     //float GetCurrentX () { return mCurrentX; }
     //float GetCurrentY () { return mCurrentY; }
+    
+    void reset();
 protected:
     
     virtual void onSize(/*const */int32_t/*&*/ w, /*const */int32_t/*&*/ h);
@@ -268,6 +274,8 @@ protected:
     
     void StopTimer();
     
+    void RegisterTest (const std::string& groupName, const std::string& benchmarkName, const uint64_t samples,
+                                        const uint64_t iterations, const uint64_t threads);
 };
 
 #endif /* pxBenchmark_h */

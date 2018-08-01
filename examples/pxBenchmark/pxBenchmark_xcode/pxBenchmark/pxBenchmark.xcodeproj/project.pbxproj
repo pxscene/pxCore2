@@ -43,6 +43,7 @@
 		B583E84A20FFAE370097BB4B /* pxRectangle.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B583E84920FFAE360097BB4B /* pxRectangle.cpp */; };
 		B583E86020FFBEDF0097BB4B /* pxImageA.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B583E85F20FFBEDE0097BB4B /* pxImageA.cpp */; };
 		B5906B992100E5A700603BF6 /* mkapp.sh in Resources */ = {isa = PBXBuildFile; fileRef = B5906B982100E5A700603BF6 /* mkapp.sh */; };
+		B5A2D874210FA36B00EF83F1 /* rtCORS.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5A2D867210FA36B00EF83F1 /* rtCORS.cpp */; };
 		B5ECEF3921021EFF000A3A83 /* libcurl.4.dylib in Copy Dynamic Library Files */ = {isa = PBXBuildFile; fileRef = B5ECEF3321021EFE000A3A83 /* libcurl.4.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		B5ECEF3A21021EFF000A3A83 /* libjpeg.9.dylib in Copy Dynamic Library Files */ = {isa = PBXBuildFile; fileRef = B5ECEF3421021EFF000A3A83 /* libjpeg.9.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		B5ECEF3B21021EFF000A3A83 /* libfreetype.6.dylib in Copy Dynamic Library Files */ = {isa = PBXBuildFile; fileRef = B5ECEF3521021EFF000A3A83 /* libfreetype.6.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
@@ -261,6 +262,7 @@
 		B583E84920FFAE360097BB4B /* pxRectangle.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = pxRectangle.cpp; path = ../../../../../../pxScene2d/src/pxRectangle.cpp; sourceTree = "<group>"; };
 		B583E85F20FFBEDE0097BB4B /* pxImageA.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = pxImageA.cpp; path = ../../../../../../pxScene2d/src/pxImageA.cpp; sourceTree = "<group>"; };
 		B5906B982100E5A700603BF6 /* mkapp.sh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.sh; name = mkapp.sh; path = ../../../../src/mkapp.sh; sourceTree = "<group>"; };
+		B5A2D867210FA36B00EF83F1 /* rtCORS.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = rtCORS.cpp; path = ../../../../../../../src/rtCORS.cpp; sourceTree = "<group>"; };
 		B5ECEF3321021EFE000A3A83 /* libcurl.4.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; path = libcurl.4.dylib; sourceTree = "<group>"; };
 		B5ECEF3421021EFF000A3A83 /* libjpeg.9.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; path = libjpeg.9.dylib; sourceTree = "<group>"; };
 		B5ECEF3521021EFF000A3A83 /* libfreetype.6.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; path = libfreetype.6.dylib; sourceTree = "<group>"; };
@@ -440,6 +442,7 @@
 		B583E7CA20FF9C840097BB4B /* pxScene2d */ = {
 			isa = PBXGroup;
 			children = (
+				B5A2D867210FA36B00EF83F1 /* rtCORS.cpp */,
 				B583E85F20FFBEDE0097BB4B /* pxImageA.cpp */,
 				B583E84920FFAE360097BB4B /* pxRectangle.cpp */,
 				B583E84720FFAB590097BB4B /* pxArchive.cpp */,
@@ -817,6 +820,7 @@
 				B583E7EF20FF9D270097BB4B /* pxAnimate.cpp in Sources */,
 				B5ECEF8021062C29000A3A83 /* Timer.cpp in Sources */,
 				B5ECEF7B21062C29000A3A83 /* Executor.cpp in Sources */,
+				B5A2D874210FA36B00EF83F1 /* rtCORS.cpp in Sources */,
 				B5ECEF8C21062C29000A3A83 /* ExperimentResult.cpp in Sources */,
 				B583E7E020FF9D270097BB4B /* pxFont.cpp in Sources */,
 				B583E76D20FF9BDB0097BB4B /* main.m in Sources */,
