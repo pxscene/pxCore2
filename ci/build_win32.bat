@@ -51,8 +51,8 @@ if "%APPVEYOR_SCHEDULED_BUILD%"=="True" (
   call:replaceString "CPackSourceConfig.cmake" "Spark.exe" "SparkEdge.exe"
   call:replaceString "CPackConfig.cmake" ""Spark"" ""SparkEdge""
   call:replaceString "CPackSourceConfig.cmake" ""Spark"" ""SparkEdge""
-  call:replaceString "CPackConfig.cmake" "pxscene.lnk" "pxsceneEdge.lnk"
-  call:replaceString "CPackSourceConfig.cmake" "pxscene.lnk" "pxsceneEdge.lnk"
+  call:replaceString "CPackConfig.cmake" "Spark.lnk" "SparkEdge.lnk"
+  call:replaceString "CPackSourceConfig.cmake" "Spark.lnk" "SparkEdge.lnk"
   call:replaceString "CPackConfig.cmake" "Spark_installer.ico" "SparkEdge_installer.ico"
   call:replaceString "CPackSourceConfig.cmake" "Spark_installer.ico" "SparkEdge_installer.ico"
   )
