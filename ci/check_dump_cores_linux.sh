@@ -10,7 +10,7 @@ ls -lrt /tmp/pxscenecrash
 retVal=$?
 if [ "$retVal" -eq 0 ]
 	then
-        sudo gdb -q --command="$TRAVIS_BUILD_DIR/ci/debuggercmds_linux" --pid=$3 $2 2&> gdblogs
+        sudo gdb -q --command="$TRAVIS_BUILD_DIR/ci/debuggercmds_linux" --pid="$processId" "$binary" 2&> gdblogs
         if [ "$TRAVIS_PULL_REQUEST" != "false" ]
 		then
 		echo "**********************PRINTING CORE STACK DETAILS**************************"

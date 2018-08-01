@@ -27,7 +27,7 @@ grep "Global test environment tear-down" $TESTLOGS
 retVal=$?
 count=0
 corefile=1
-while [ "$retVal" -ne 0 ] &&  [ "$count" -ne 180 ]i && [ "$corefile" -eq 1 ] ; do
+while [ "$retVal" -ne 0 ] &&  [ "$count" -ne 180 ] && [ "$corefile" -eq 1 ] ; do
 	sleep 60;
 	grep "Global test environment tear-down" $TESTLOGS
 	retVal=$?
@@ -47,7 +47,10 @@ if [ "$retVal" -eq 0 ]
   kill -9 $processId
   sleep 5s;
   pkill -9 -f pxscene2dtests.sh
-  checkError -1 "unittests execution failed" "Core dump"  "Run unittests locally."
+  echo "********************** PRINTING TEST LOG **************************"
+  cat $TESTLOGS
+  echo "************************** LOG ENDS *******************************"
+  checkError -1 "Unittests execution failed" "Core dump"  "Verify Unit test logs/Run unittests locally."
 fi
 
 kill -9 $processId
