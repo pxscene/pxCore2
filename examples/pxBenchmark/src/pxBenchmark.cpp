@@ -33,6 +33,8 @@
 #include <cmath>
 #include <fstream>
 #include <iostream>
+
+
 //-----------------------------------------------------------------------------------
 // Globals
 //-----------------------------------------------------------------------------------
@@ -60,129 +62,129 @@ char** g_origArgv = NULL;
 //-----------------------------------------------------------------------------------
 
 void benchmarkWindow::init(const int32_t& x, const int32_t& y, const int32_t& w, const int32_t& h, const char* url/* = NULL*/)
-    {
-        mApiFixture = std::shared_ptr<pxApiFixture>(&pxApiFixture::Instance());
-        
-        std::cout << "Writing results to: " << mOutputTableCSV << std::endl;
-        celero::ResultTable::Instance().setFileName(mOutputTableCSV);
-        
-        celero::AddExperimentResultCompleteFunction([](std::shared_ptr<celero::ExperimentResult> p) { celero::ResultTable::Instance().add(p); });
-  
-        std::cout << "Archiving results to: " << mArchiveCSV << std::endl;
-        celero::Archive::Instance().setFileName(mArchiveCSV);
-        
-        celero::AddExperimentResultCompleteFunction([](std::shared_ptr<celero::ExperimentResult> p) { celero::Archive::Instance().add(p); });
-        
-        pxWindow::init(x,y,w,h);
-        
-        mApiFixture->popExperimentValue().Value = pxApiFixture::type::xDrawRect;
-        mApiFixture->popExperimentValue().Iterations = 0;
-        mApiFixture->popExperimentValue().mTotalTime = 0;
-    }
+{
+    mApiFixture = std::shared_ptr<pxApiFixture>(&pxApiFixture::Instance());
     
+    std::cout << "Writing results to: " << mOutputTableCSV << std::endl;
+    celero::ResultTable::Instance().setFileName(mOutputTableCSV);
+    
+    celero::AddExperimentResultCompleteFunction([](std::shared_ptr<celero::ExperimentResult> p) { celero::ResultTable::Instance().add(p); });
+    
+    std::cout << "Archiving results to: " << mArchiveCSV << std::endl;
+    celero::Archive::Instance().setFileName(mArchiveCSV);
+    
+    celero::AddExperimentResultCompleteFunction([](std::shared_ptr<celero::ExperimentResult> p) { celero::Archive::Instance().add(p); });
+    
+    pxWindow::init(x,y,w,h);
+    
+    mApiFixture->popExperimentValue().Value = pxApiFixture::type::xDrawRect;
+    mApiFixture->popExperimentValue().Iterations = 0;
+    mApiFixture->popExperimentValue().mTotalTime = 0;
+}
+
 void* benchmarkWindow::getInterface(const char* /*name*/)
-    {
-        return NULL;
-    }
-    
+{
+    return NULL;
+}
+
 rtError benchmarkWindow::setView(pxIView* v)
-    {
-        return RT_OK;
-    }
+{
+    return RT_OK;
+}
 
 void benchmarkWindow::invalidateRect(pxRect* r)
-    {
-        pxWindow::invalidateRect(r);
-    }
-    
+{
+    pxWindow::invalidateRect(r);
+}
+
 void benchmarkWindow::close()
-    {
-        celero::ResultTable::Instance().closeFile();
-        onCloseRequest();
-    }
+{
+    celero::ResultTable::Instance().closeFile();
+    onCloseRequest();
+}
 
 void benchmarkWindow::onSize(/*const */int32_t/*&*/ w, /*const */int32_t/*&*/ h)
+{
+    if (mWidth != w || mHeight != h)
     {
-        if (mWidth != w || mHeight != h)
-        {
-            mWidth  = w;
-            mHeight = h;
-            reset();
-        }
+        mWidth  = w;
+        mHeight = h;
+        reset();
     }
+}
 
 void benchmarkWindow::onMouseDown(/*const */int32_t/*&*/ x, /*const */int32_t/*&*/ y, /*const */uint32_t/*&*/ flags)
-    {
-    }
-    
+{
+}
+
 void benchmarkWindow::onCloseRequest()
-    {
-        if (mClosed)
+{
+    if (mClosed)
         return;
-        mClosed = true;
-        rtLogInfo(__FUNCTION__);
-        context.term();
-       
-        ENTERSCENELOCK()
-        eventLoop.exit();
-        EXITSCENELOCK()
-    }
+    mClosed = true;
+    rtLogInfo(__FUNCTION__);
+    context.term();
     
+    ENTERSCENELOCK()
+    eventLoop.exit();
+    EXITSCENELOCK()
+}
+
 void benchmarkWindow::onMouseUp(/*const */int32_t/*&*/ x, /*const */int32_t/*&*/ y, /*const */uint32_t/*&*/ flags)
-    {
-    }
-    
+{
+}
+
 void benchmarkWindow::onMouseLeave()
-    {
-    }
-    
+{
+}
+
 void benchmarkWindow::onMouseMove(/*const */int32_t/*&*/ x, /*const */int32_t/*&*/ y)
-    {
-    }
-    
+{
+}
+
 void benchmarkWindow::onFocus()
-    {
-    }
+{
+}
 
 void benchmarkWindow::onBlur()
-    {
-    }
-    
+{
+}
+
 void benchmarkWindow::onKeyDown(/*const */uint32_t/*&*/ keycode, /*const */uint32_t/*&*/ flags)
-    {
-    }
-    
+{
+}
+
 void benchmarkWindow::onKeyUp(/*const */uint32_t/*&*/ keycode, /*const */uint32_t/*&*/ flags)
-    {
-    }
-    
+{
+}
+
 void benchmarkWindow::onChar(/*const */uint32_t/*&*/ c)
-    {
-    }
+{
+}
 
 void benchmarkWindow::RegisterTest (const string& groupName, const string& benchmarkName, const uint64_t samples,
                                     const uint64_t iterations, const uint64_t threads)
-    {
+{
     if (NULL == mExperimentFactory)
         mExperimentFactory = std::shared_ptr<pxBenchmarkFactory>(&pxBenchmarkFactory::Instance());
     
     celero::TestVector::Instance().clear();
-        
+    
     mBaselineBm = celero::RegisterBaseline(groupName.c_str(), benchmarkName.c_str(), samples,
                                            iterations, threads,
                                            mExperimentFactory);
-        
+    
     /*mBms.push_back (celero::RegisterTest(groupName.c_str(), benchmarkName.c_str(), samples,
-                                         iterations, threads,
-                                         mExperimentFactory));*/
-   /* g_argc = 0;
-    g_argv[g_argc++] = (char*)groupName.c_str();
-    g_argv[g_argc++] = (char*)("--archive=pxBenchmark_archive.csv");
-    g_argv[g_argc++] = (char*)("--outputTable=pxBenchmark_outputTable.csv");
-
-    string tag = "--group=" + groupName;
-    g_argv[g_argc++] = (char*)tag.c_str();*/
-    }
+     iterations, threads,
+     mExperimentFactory));*/
+    /* g_argc = 0;
+     g_argv[g_argc++] = (char*)groupName.c_str();
+     g_argv[g_argc++] = (char*)("--archive=pxBenchmark_archive.csv");
+     g_argv[g_argc++] = (char*)("--outputTable=pxBenchmark_outputTable.csv");
+     
+     string tag = "--group=" + groupName;
+     g_argv[g_argc++] = (char*)tag.c_str();*/
+}
 
 void benchmarkWindow::reset()
 {
@@ -208,6 +210,12 @@ void benchmarkWindow::reset()
         case pxApiFixture::type::xDrawImageBorder9:
             mGroupName = "DrawImageBorder9";
             break;
+        case pxApiFixture::type::xDrawImageMasked:
+            mGroupName = "DrawImageMasked";
+            break;
+        case pxApiFixture::type::xDrawTextureQuads:
+            mGroupName = "DrawTextureQuads";
+            break;
         case pxApiFixture::type::xDrawAll:
             mGroupName = "DrawAll";
             break;
@@ -226,97 +234,97 @@ void benchmarkWindow::reset()
 }
 
 void benchmarkWindow::onDraw(pxSurfaceNative/*&*/ sn)
+{
+    if (mApiFixture->getIterationCounter() == 0)
     {
-        if (mApiFixture->getIterationCounter() == 0)
-        {
-            context.setSize(win.GetWidth(), win.GetHeight());
-            float fillColor[] = {1.0, 1.0, 0.0, 1.0};
-            context.clear(0, 0, fillColor);
-            // context.clear(1280, 720);
-        }
-        
-        if (mApiFixture->getIterationCounter() <= mIterations)
-            celero::executor::Run(mGroupName);
-        else if (mApiFixture->popExperimentValue().Value == pxApiFixture::type::xDrawAll)
-                {
-                    celero::ResultTable::Instance().closeFile();
-                    return;
-                }
-         else
-         {
-                context.setSize(win.GetWidth(), win.GetHeight());
-                float fillColor[] = {1.0, 1.0, 0.0, 1.0};
-                context.clear(0, 0, fillColor);
-                // context.clear(1280, 720);
-                
-                mApiFixture->popExperimentValue().Value++;
-                
-                mApiFixture->setIterationCounter(0);
-                
-                reset ();
-            }
-       
+        context.setSize(win.GetWidth(), win.GetHeight());
+        float fillColor[] = {1.0, 1.0, 0.0, 1.0};
+        context.clear(0, 0, fillColor);
+        //context.clear(1280, 720);
     }
     
-void benchmarkWindow::onAnimationTimer()
+    if (mApiFixture->getIterationCounter() <= mIterations)
+        celero::executor::Run(mGroupName);
+    else if (mApiFixture->popExperimentValue().Value == pxApiFixture::type::xDrawAll)
     {
-        pxWindow::invalidateRect(NULL);
+        celero::ResultTable::Instance().closeFile();
+        return;
     }
+    else
+    {
+        context.setSize(win.GetWidth(), win.GetHeight());
+        float fillColor[] = {1.0, 1.0, 0.0, 1.0};
+        context.clear(0, 0, fillColor);
+        //context.clear(1280, 720);
+        
+        mApiFixture->popExperimentValue().Value++;
+        
+        mApiFixture->setIterationCounter(0);
+        
+        reset ();
+    }
+    
+}
+
+void benchmarkWindow::onAnimationTimer()
+{
+    pxWindow::invalidateRect(NULL);
+}
 
 void benchmarkWindow::StartTimer()
-    {
-   mTimer = celero::timer::GetSystemTime();
-    }
+{
+    mTimer = celero::timer::GetSystemTime();
+}
 
 void benchmarkWindow::StopTimer()
-    {
+{
     mTimer = celero::timer::GetSystemTime() - mTimer;
     rtLogInfo("Timer = %d", (int)mTimer);
-    }
+}
 
 uint64_t benchmarkWindow::GetCurrentTimeElapsed() const
-    {
+{
     return celero::timer::GetSystemTime() - mTimer;
-    }
+}
 
 std::shared_ptr<pxApiFixture> benchmarkWindow::getPxApiFixture () const
-    {
+{
     return mApiFixture;
-    }
+}
 
 //-----------------------------------------------------------------------------------
 //  pxBenchmarkFactory:
 //-----------------------------------------------------------------------------------
 std::shared_ptr<TestFixture> pxBenchmarkFactory::Create()
-    {
+{
     return win.getPxApiFixture();
-    }
+}
 
 pxBenchmarkFactory& pxBenchmarkFactory::Instance()
-    {
+{
     static pxBenchmarkFactory singleton;
     return singleton;
-    }
+}
 
 //-----------------------------------------------------------------------------------
 //  pxApiFixture:
 //-----------------------------------------------------------------------------------
 
 pxApiFixture& pxApiFixture::Instance()
-    {
+{
     static pxApiFixture singleton;
     return singleton;
-    }
+}
 
 uint64_t pxApiFixture::getIterationCounter() const
-    {
+{
     return mIterationCounter;
-    }
+}
 
 void pxApiFixture::setIterationCounter(uint64_t val)
-    {
+{
     mIterationCounter = val;
-    }
+}
 
 //-----------------------------------------------------------------------------------
 /// \param threads The number of working threads.
@@ -337,8 +345,8 @@ uint64_t pxApiFixture::run(const uint64_t threads, const uint64_t iterations, co
         this->setUp(experimentValue);
         
         // Run the test body for each iterations.
-       // if (!mIterationCounter)
-          //  mIterationCounter = iterations;
+        // if (!mIterationCounter)
+        //  mIterationCounter = iterations;
         
         // Get the starting time.
         const auto startTime = celero::timer::GetSystemTime();
@@ -356,7 +364,7 @@ uint64_t pxApiFixture::run(const uint64_t threads, const uint64_t iterations, co
             this->onExperimentEnd();
             
             
-          //  if (win.GetCurrentTimeElapsed() > 16000)
+            //  if (win.GetCurrentTimeElapsed() > 16000)
             //    return totalTime;
         }
         // See how long it took.
@@ -380,45 +388,64 @@ uint64_t pxApiFixture::run(const uint64_t threads, const uint64_t iterations, co
 void pxApiFixture::TestDrawRect ()
 {
     static float color[4] = {1., 0.0, 0.0, 1.0};
-    
+    //context.clear(1280, 720);
     context.drawRect(mCurrentX + mUnitWidth, mCurrentY + mUnitHeight, 1, NULL, color);
 }
 
 void pxApiFixture::TestDrawDiagLine ()
 {
     static float color[4] = {0., 0.0, 1.0, 1.0};
+    //context.clear(1280, 720);
     context.drawDiagLine(mCurrentX, mCurrentY, mCurrentX+mUnitWidth, mCurrentY+mUnitHeight, color);
 }
 
 void pxApiFixture::TestDrawDiagRect ()
 {
     static float color[4] = {0., 1.0, 0.0, 1.0};
-    
-    //float x = mExperimentValue[xDrawDiagRect].Iterations;
-    //float y = mExperimentValue[xDrawDiagRect].Iterations;
-    
+    //context.clear(1280, 720);
     context.drawDiagRect(mCurrentX, mCurrentY, mUnitWidth, mUnitHeight, color);
 }
 
 void pxApiFixture::TestDrawImage ()
 {
     static float color[4] = {1., 0.0, 0.0, 1.0};
-    pxTextureRef nullMaskRef;
-    pxTextureRef textureRef = context.createTexture(200, 200, 400, 400);
-    context.drawImage(400, 400, 200, 200, textureRef, nullMaskRef, true, color, pxConstantsStretch::STRETCH, pxConstantsStretch::STRETCH, true, pxConstantsMaskOperation::NORMAL);
+    pxContextFramebufferRef drawableSnapshotForMask = context.createFramebuffer(static_cast<int>(floor(mUnitWidth)), static_cast<int>(floor(mUnitHeight)));
+    
+    pxContextFramebufferRef maskSnapshot = context.createFramebuffer(static_cast<int>(floor(mUnitWidth)), static_cast<int>(floor(mUnitHeight)));
+    //context.clear(1280, 720);
+    context.drawImage(mCurrentX, mCurrentY, mCurrentX + mUnitWidth, mCurrentY + mUnitHeight, drawableSnapshotForMask->getTexture(), maskSnapshot->getTexture(), true, color, ((int)mCurrentX) % 2 == 0 ? pxConstantsStretch::STRETCH : pxConstantsStretch::REPEAT, ((int)mCurrentX) % 2 == 0 ? pxConstantsStretch::STRETCH : ((int)mCurrentY) % 2 == 0 ? pxConstantsStretch::REPEAT : pxConstantsStretch::NONE, true, ((int)mCurrentX) % 2 == 0 ? pxConstantsMaskOperation::NORMAL : pxConstantsMaskOperation::INVERT);
 }
 
 void pxApiFixture::TestDrawImage9 ()
 {
-    pxTextureRef textureRef9 = context.createTexture(mUnitWidth, mUnitHeight, mUnitWidth, mUnitHeight);
-    context.drawImage9(mUnitWidth, mUnitHeight, mCurrentX, mCurrentY, mCurrentX + mUnitWidth, mCurrentY + mUnitHeight, textureRef9);
+    pxContextFramebufferRef drawableSnapshotForMask = context.createFramebuffer(static_cast<int>(floor(mUnitWidth)), static_cast<int>(floor(mUnitHeight)));
+    //context.clear(1280, 720);
+    context.drawImage9(mUnitWidth, mUnitHeight, mCurrentX, mCurrentY, mCurrentX + mUnitWidth, mCurrentY + mUnitHeight, drawableSnapshotForMask->getTexture());
 }
 
 void pxApiFixture::TestDrawImage9Border ()
 {
-    static float color[4] = {1., 0.0, 0.0, 1.0};
-    pxTextureRef textureRef9Border = context.createTexture(mUnitWidth, mUnitHeight, mUnitWidth, mUnitHeight);
-    context.drawImage9Border(mUnitWidth, mUnitHeight, mCurrentX, mCurrentY, mCurrentX + mUnitWidth, mCurrentY + mUnitHeight, mCurrentX, mCurrentY, mCurrentX + mUnitWidth, mCurrentY + mUnitHeight, true, color, textureRef9Border);
+    pxContextFramebufferRef drawableSnapshotForMask = context.createFramebuffer(static_cast<int>(floor(mUnitWidth)), static_cast<int>(floor(mUnitHeight)));
+    
+    static float color[4] = {0., 1.0, 0.0, 1.0};
+
+    context.drawImage9Border(mUnitWidth, mUnitHeight, mCurrentX, mCurrentY, mCurrentX + mUnitWidth, mCurrentY + mUnitHeight, mCurrentX, mCurrentY, mCurrentX + mUnitWidth, mCurrentY + mUnitHeight, ((int)mCurrentX) % 2 == 0 ? true : false, color, drawableSnapshotForMask->getTexture());
+}
+
+void pxApiFixture::TestDrawImageMasked ()
+{
+    pxContextFramebufferRef drawableSnapshotForMask = context.createFramebuffer(static_cast<int>(floor(mUnitWidth)), static_cast<int>(floor(mUnitHeight)));
+    
+    pxContextFramebufferRef maskSnapshot = context.createFramebuffer(static_cast<int>(floor(mUnitWidth)), static_cast<int>(floor(mUnitHeight)));
+    //context.clear(1280, 720);
+    context.drawImageMasked(mCurrentX, mCurrentY, mUnitWidth, mUnitHeight, ((int)mCurrentX) % 2 == 0 ? pxConstantsMaskOperation::constants::NORMAL : pxConstantsMaskOperation::constants::INVERT, drawableSnapshotForMask->getTexture(), maskSnapshot->getTexture());
+}
+
+void pxApiFixture::TestDrawTextureQuads()
+{
+    //static float color[4] = {0., 1.0, 0.0, 1.0};
+    //pxTexturedQuads quads;
+    //quads.draw (mCurrentX, mCurrentY, color);
 }
 
 void pxApiFixture::TestDrawAll ()
@@ -459,25 +486,31 @@ void pxApiFixture::onExperimentStart(const celero::TestFixture::ExperimentValue&
     
     switch ((int)mExperimentValue.Value) {
         case xDrawRect:
-             TestDrawRect();
+            TestDrawRect();
             break;
         case xDrawDiagLine:
-             TestDrawDiagLine();
-             break;
+            TestDrawDiagLine();
+            break;
         case xDrawDiagRect:
             TestDrawDiagRect();
             break;
         case xDrawImage9:
-             TestDrawImage9();
+            TestDrawImage9();
             break;
         case xDrawImage:
-             TestDrawImage();
+            TestDrawImage();
             break;
         case xDrawImageBorder9:
-             TestDrawImage9Border();
+            TestDrawImage9Border();
+            break;
+        case xDrawImageMasked:
+            TestDrawImageMasked();
+            break;
+        case xDrawTextureQuads:
+            TestDrawTextureQuads();
             break;
         case xDrawAll:
-             TestDrawAll();
+            TestDrawAll();
             break;
         default:
             break;
@@ -513,160 +546,160 @@ void pxApiFixture::UserBenchmark()
 }
 
 /*BASELINE_F(_DrawRect, baseline, pxApiFixture, 30, 10000)
-{
-    context.setSize(win.GetWidth(), win.GetHeight());
-    float fillColor[] = {1.0, 1.0, 0.0, 1.0};
-    context.clear(0, 0, fillColor);
-    // context.clear(1280, 720);
-    
-    pxMatrix4f m;
-    context.setMatrix(m);
-    
-    context.setAlpha(1.0);
-    
-    context.setShowOutlines(true);
-    
-    static float color[4] = {1.0, 0.0, 0.0, 1.0};
-    
-    context.drawRect(100, 100, 400, color, color);
-}
-
-BENCHMARK_F(_DrawRect, baseline_rsp, pxApiFixture, 30, 10000)
-{
-    context.setSize(win.GetWidth(), win.GetHeight());
-    float fillColor[] = {1.0, 1.0, 0.0, 1.0};
-    context.clear(0, 0, fillColor);
-    // context.clear(1280, 720);
-    
-    pxMatrix4f m;
-    context.setMatrix(m);
-    
-    context.setAlpha(1.0);
-    
-    context.setShowOutlines(true);
-    
-    static float color[4] = {1.0, 0.0, 0.0, 1.0};
-    
-    context.drawRect(100, 100, 400, color, color);
-}*/
+ {
+ context.setSize(win.GetWidth(), win.GetHeight());
+ float fillColor[] = {1.0, 1.0, 0.0, 1.0};
+ context.clear(0, 0, fillColor);
+ // context.clear(1280, 720);
+ 
+ pxMatrix4f m;
+ context.setMatrix(m);
+ 
+ context.setAlpha(1.0);
+ 
+ context.setShowOutlines(true);
+ 
+ static float color[4] = {1.0, 0.0, 0.0, 1.0};
+ 
+ context.drawRect(100, 100, 400, color, color);
+ }
+ 
+ BENCHMARK_F(_DrawRect, baseline_rsp, pxApiFixture, 30, 10000)
+ {
+ context.setSize(win.GetWidth(), win.GetHeight());
+ float fillColor[] = {1.0, 1.0, 0.0, 1.0};
+ context.clear(0, 0, fillColor);
+ // context.clear(1280, 720);
+ 
+ pxMatrix4f m;
+ context.setMatrix(m);
+ 
+ context.setAlpha(1.0);
+ 
+ context.setShowOutlines(true);
+ 
+ static float color[4] = {1.0, 0.0, 0.0, 1.0};
+ 
+ context.drawRect(100, 100, 400, color, color);
+ }*/
 
 /*
-BASELINE_FIXED_F(_DrawRect, baseline_rsp, pxApiFixture, 30, 10000, 1)
-{
-    context.setSize(win.GetWidth(), win.GetHeight());
-    float fillColor[] = {1.0, 1.0, 0.0, 1.0};
-    context.clear(0, 0, fillColor);
-    // context.clear(1280, 720);
-    
-    pxMatrix4f m;
-    context.setMatrix(m);
-    
-    context.setAlpha(1.0);
-    
-    context.setShowOutlines(true);
-    
-    static float color[4] = {1.0, 0.0, 0.0, 1.0};
-    
-    context.drawRect(100, 100, 400, color, color);
-}
-
-BASELINE_FIXED_F(_DrawDiagLine, baseline_rsp, pxApiFixture, 30, 10000, 1)
-{
-    context.setSize(win.GetWidth(), win.GetHeight());
-    float fillColor[] = {1.0, 1.0, 0.0, 1.0};
-    context.clear(0, 0, fillColor);
-    // context.clear(1280, 720);
-    
-    pxMatrix4f m;
-    context.setMatrix(m);
-    
-    context.setAlpha(1.0);
-    
-    context.setShowOutlines(true);
-    
-    static float color[4] = {1.0, 0.0, 0.0, 1.0};
-    
-    context.drawDiagLine(400, 400, 500, 500, color);
-}
-
-BASELINE_FIXED_F(_DrawDiagRect, baseline_rsp, pxApiFixture, 30, 10000, 1)
-{
-    context.setSize(win.GetWidth(), win.GetHeight());
-    float fillColor[] = {1.0, 1.0, 0.0, 1.0};
-    context.clear(0, 0, fillColor);
-    // context.clear(1280, 720);
-    
-    pxMatrix4f m;
-    context.setMatrix(m);
-    
-    context.setAlpha(1.0);
-    
-    context.setShowOutlines(true);
-    
-    static float color[4] = {1.0, 0.0, 0.0, 1.0};
-    
-    context.drawDiagRect(200, 200, 400, 400, color);
-}
-
-BASELINE_FIXED_F(_DrawImage, baseline_rsp, pxApiFixture, 30, 10000, 1)
-{
-    context.setSize(win.GetWidth(), win.GetHeight());
-    float fillColor[] = {1.0, 1.0, 0.0, 1.0};
-    context.clear(0, 0, fillColor);
-    // context.clear(1280, 720);
-    
-    pxMatrix4f m;
-    context.setMatrix(m);
-    
-    context.setAlpha(1.0);
-    
-    context.setShowOutlines(true);
-    
-    static float color[4] = {1.0, 0.0, 0.0, 1.0};
-
-    pxTextureRef nullMaskRef;
-    pxTextureRef textureRef = context.createTexture(200, 200, 400, 400);
-    
-    context.drawImage(400, 400, 200, 200, textureRef, nullMaskRef, true, color, pxConstantsStretch::STRETCH, pxConstantsStretch::STRETCH, true, pxConstantsMaskOperation::NORMAL);
-}
-
-BASELINE_FIXED_F(_DrawImage9, baseline_rsp, pxApiFixture, 30, 10000, 1)
-{
-    context.setSize(win.GetWidth(), win.GetHeight());
-    float fillColor[] = {1.0, 1.0, 0.0, 1.0};
-    context.clear(0, 0, fillColor);
-    // context.clear(1280, 720);
-    
-    pxMatrix4f m;
-    context.setMatrix(m);
-    
-    context.setAlpha(1.0);
-    
-    context.setShowOutlines(true);
-    
-    pxTextureRef textureRef9 = context.createTexture(100, 100, 200, 200);
-    context.drawImage9(100, 100, 400, 400, 500, 500, textureRef9);
-}
-
-BASELINE_FIXED_F(_DrawImage9Border, baseline_rsp, pxApiFixture, 30, 10000, 1)
-{
-    context.setSize(win.GetWidth(), win.GetHeight());
-    float fillColor[] = {1.0, 1.0, 0.0, 1.0};
-    context.clear(0, 0, fillColor);
-    // context.clear(1280, 720);
-    
-    pxMatrix4f m;
-    context.setMatrix(m);
-    
-    context.setAlpha(1.0);
-    
-    context.setShowOutlines(true);
-    
-    static float color[4] = {1.0, 0.0, 0.0, 1.0};
-    pxTextureRef textureRef9Border = context.createTexture(100, 100, 200, 200);
-    context.drawImage9Border(100, 100, 400, 400, 500, 500, 0, 0, 0, 0, true, color, textureRef9Border);
-}
-*/
+ BASELINE_FIXED_F(_DrawRect, baseline_rsp, pxApiFixture, 30, 10000, 1)
+ {
+ context.setSize(win.GetWidth(), win.GetHeight());
+ float fillColor[] = {1.0, 1.0, 0.0, 1.0};
+ context.clear(0, 0, fillColor);
+ // context.clear(1280, 720);
+ 
+ pxMatrix4f m;
+ context.setMatrix(m);
+ 
+ context.setAlpha(1.0);
+ 
+ context.setShowOutlines(true);
+ 
+ static float color[4] = {1.0, 0.0, 0.0, 1.0};
+ 
+ context.drawRect(100, 100, 400, color, color);
+ }
+ 
+ BASELINE_FIXED_F(_DrawDiagLine, baseline_rsp, pxApiFixture, 30, 10000, 1)
+ {
+ context.setSize(win.GetWidth(), win.GetHeight());
+ float fillColor[] = {1.0, 1.0, 0.0, 1.0};
+ context.clear(0, 0, fillColor);
+ // context.clear(1280, 720);
+ 
+ pxMatrix4f m;
+ context.setMatrix(m);
+ 
+ context.setAlpha(1.0);
+ 
+ context.setShowOutlines(true);
+ 
+ static float color[4] = {1.0, 0.0, 0.0, 1.0};
+ 
+ context.drawDiagLine(400, 400, 500, 500, color);
+ }
+ 
+ BASELINE_FIXED_F(_DrawDiagRect, baseline_rsp, pxApiFixture, 30, 10000, 1)
+ {
+ context.setSize(win.GetWidth(), win.GetHeight());
+ float fillColor[] = {1.0, 1.0, 0.0, 1.0};
+ context.clear(0, 0, fillColor);
+ // context.clear(1280, 720);
+ 
+ pxMatrix4f m;
+ context.setMatrix(m);
+ 
+ context.setAlpha(1.0);
+ 
+ context.setShowOutlines(true);
+ 
+ static float color[4] = {1.0, 0.0, 0.0, 1.0};
+ 
+ context.drawDiagRect(200, 200, 400, 400, color);
+ }
+ 
+ BASELINE_FIXED_F(_DrawImage, baseline_rsp, pxApiFixture, 30, 10000, 1)
+ {
+ context.setSize(win.GetWidth(), win.GetHeight());
+ float fillColor[] = {1.0, 1.0, 0.0, 1.0};
+ context.clear(0, 0, fillColor);
+ // context.clear(1280, 720);
+ 
+ pxMatrix4f m;
+ context.setMatrix(m);
+ 
+ context.setAlpha(1.0);
+ 
+ context.setShowOutlines(true);
+ 
+ static float color[4] = {1.0, 0.0, 0.0, 1.0};
+ 
+ pxTextureRef nullMaskRef;
+ pxTextureRef textureRef = context.createTexture(200, 200, 400, 400);
+ 
+ context.drawImage(400, 400, 200, 200, textureRef, nullMaskRef, true, color, pxConstantsStretch::STRETCH, pxConstantsStretch::STRETCH, true, pxConstantsMaskOperation::NORMAL);
+ }
+ 
+ BASELINE_FIXED_F(_DrawImage9, baseline_rsp, pxApiFixture, 30, 10000, 1)
+ {
+ context.setSize(win.GetWidth(), win.GetHeight());
+ float fillColor[] = {1.0, 1.0, 0.0, 1.0};
+ context.clear(0, 0, fillColor);
+ // context.clear(1280, 720);
+ 
+ pxMatrix4f m;
+ context.setMatrix(m);
+ 
+ context.setAlpha(1.0);
+ 
+ context.setShowOutlines(true);
+ 
+ pxTextureRef textureRef9 = context.createTexture(100, 100, 200, 200);
+ context.drawImage9(100, 100, 400, 400, 500, 500, textureRef9);
+ }
+ 
+ BASELINE_FIXED_F(_DrawImage9Border, baseline_rsp, pxApiFixture, 30, 10000, 1)
+ {
+ context.setSize(win.GetWidth(), win.GetHeight());
+ float fillColor[] = {1.0, 1.0, 0.0, 1.0};
+ context.clear(0, 0, fillColor);
+ // context.clear(1280, 720);
+ 
+ pxMatrix4f m;
+ context.setMatrix(m);
+ 
+ context.setAlpha(1.0);
+ 
+ context.setShowOutlines(true);
+ 
+ static float color[4] = {1.0, 0.0, 0.0, 1.0};
+ pxTextureRef textureRef9Border = context.createTexture(100, 100, 200, 200);
+ context.drawImage9Border(100, 100, 400, 400, 500, 500, 0, 0, 0, 0, true, color, textureRef9Border);
+ }
+ */
 //-----------------------------------------------------------------------------------
 //  pxMain:
 //-----------------------------------------------------------------------------------

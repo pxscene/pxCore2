@@ -43,7 +43,8 @@ using namespace celero;
 class pxBenchmarkExperimentValue : public TestFixture::ExperimentValue
 {
 public:
-    uint64_t    mTotalTime;
+    uint64_t         mTotalTime;
+    //std::string      mName;
     
     pxBenchmarkExperimentValue()
     : mTotalTime (0)
@@ -58,16 +59,16 @@ public:
     }
     
     pxBenchmarkExperimentValue(int64_t v, uint64_t totTime)
-        : ExperimentValue (v)
-        , mTotalTime (totTime)
+    : ExperimentValue (v)
+    , mTotalTime (totTime)
     {
     }
     
     pxBenchmarkExperimentValue(int64_t v, int64_t i, uint64_t totTime)
-        : ExperimentValue (v, i)
-        , mTotalTime (totTime)
-        {
-        };
+    : ExperimentValue (v, i)
+    , mTotalTime (totTime)
+    {
+    };
     
     ~pxBenchmarkExperimentValue()
     {
@@ -94,6 +95,9 @@ class pxApiFixture : public celero::TestFixture
     void TestDrawImage9 ();
     void TestDrawImage9Border ();
     void TestDrawAll ();
+    void TestDrawImageMasked ();
+    void TestDrawTextureQuads ();
+    
 public:
     enum type
     {
@@ -103,6 +107,8 @@ public:
         xDrawImage,
         xDrawImage9,
         xDrawImageBorder9,
+        xDrawImageMasked,
+        xDrawTextureQuads,
         xDrawAll
     };
     
@@ -127,12 +133,12 @@ public:
     virtual void onExperimentStart(const celero::TestFixture::ExperimentValue&) override;
     
     virtual void onExperimentEnd() override;
-
+    
     virtual std::vector<celero::TestFixture::ExperimentValue> getExperimentValues() const override;
     
     /// Before each run, build a vector of random integers.
     virtual void setUp(const celero::TestFixture::ExperimentValue& x) override;
-   
+    
     virtual void tearDown() override;
     
     virtual void UserBenchmark() override;
@@ -201,24 +207,24 @@ class benchmarkWindow : public pxWindow, public pxIViewContainer, public Benchma
     
 public:
     benchmarkWindow ()
-        : mWidth (-1)
-        , mHeight (-1)
-        , mClosed (false)
-        , mTimer (0)
-        , mGroupName ("pxApiTest")
-        , mBenchmarkName ("pxApiTest")
-        , mSamples (1)
-        , mIterations (1056)
-        , mThreads (1)
-        , mArchiveCSV ("pxBenchmark_archive.csv")
-        , mOutputTableCSV ("pxBenchmark_outputTable.csv")
-        {
-            
-        }
+    : mWidth (-1)
+    , mHeight (-1)
+    , mClosed (false)
+    , mTimer (0)
+    , mGroupName ("pxApiTest")
+    , mBenchmarkName ("pxApiTest")
+    , mSamples (1)
+    , mIterations (1056)
+    , mThreads (1)
+    , mArchiveCSV ("pxBenchmark_archive.csv")
+    , mOutputTableCSV ("pxBenchmark_outputTable.csv")
+    {
+        
+    }
     
     virtual ~benchmarkWindow()
-        {
-        }
+    {
+    }
     
     void init(const int32_t& x, const int32_t& y, const int32_t& w, const int32_t& h, const char* url = NULL);
     
@@ -268,14 +274,14 @@ protected:
     virtual void onDraw(pxSurfaceNative/*&*/);
     
     virtual void onAnimationTimer();
-  
+    
     // Benchmark
     void StartTimer();
     
     void StopTimer();
     
     void RegisterTest (const std::string& groupName, const std::string& benchmarkName, const uint64_t samples,
-                                        const uint64_t iterations, const uint64_t threads);
+                       const uint64_t iterations, const uint64_t threads);
 };
 
 #endif /* pxBenchmark_h */
