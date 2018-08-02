@@ -93,7 +93,7 @@ fi
 
 if [ "$TRAVIS_EVENT_TYPE" = "cron" ] ;
 then
-  cp $TRAVIS_BUILD_DIR/examples/pxScene2d/src/deploy/mac/pxscene.dmg $TRAVIS_BUILD_DIR/artifacts/pxsceneEdge.dmg
+  cp $TRAVIS_BUILD_DIR/examples/pxScene2d/src/deploy/mac/Spark.dmg $TRAVIS_BUILD_DIR/artifacts/SparkEdge.dmg
   checkError $? "Copying dmg file failed" "Could be build problem or file not generated" "Analyze build logs"
 fi
 

@@ -60,7 +60,7 @@ printValgrindLogs()
 
 # Start testRunner ... 
 cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src
-./pxscene.sh $TESTRUNNERURL?tests=file://$TRAVIS_BUILD_DIR/tests/pxScene2d/testRunner/tests.json > $EXECLOGS 2>&1 &
+./spark.sh $TESTRUNNERURL?tests=file://$TRAVIS_BUILD_DIR/tests/pxScene2d/testRunner/tests.json > $EXECLOGS 2>&1 &
 
 grep "TEST RESULTS: " $EXECLOGS
 retVal=$?
@@ -80,7 +80,7 @@ while [ "$retVal" -ne 0 ] &&  [ "$count" -ne "$max_seconds" ]; do
     isimage9success=$?
     if [ "$isimage9success" -ne 0 ] 
     then
-		  gdb $TRAVIS_BUILD_DIR/examples/pxScene2d/src/pxscene -batch -q -ex "target remote | vgdb" -ex "thread apply all bt" -ex "quit"
+		  gdb $TRAVIS_BUILD_DIR/examples/pxScene2d/src/Spark -batch -q -ex "target remote | vgdb" -ex "thread apply all bt" -ex "quit"
     fi
     isimage9=1
     crossedimage9=1
@@ -102,16 +102,16 @@ while [ "$retVal" -ne 0 ] &&  [ "$count" -ne "$max_seconds" ]; do
   fi
 done
 
-kill -15 `ps -ef | grep pxscene |grep -v grep|grep -v pxscene.sh|awk '{print $2}'`
+kill -15 `ps -ef | grep Spark |grep -v grep|grep -v spark.sh|awk '{print $2}'`
 echo "Sleeping to make terminate complete ......";
 #wait for few seconds to get the application terminate completely, as it is attached with valgrind increasing the timeout
 sleep 60s;
-pkill -9 -f pxscene.sh
+pkill -9 -f spark.sh
 
 chmod 444 $VALGRINDLOGS
 
 #check for crash
-$TRAVIS_BUILD_DIR/ci/check_dump_cores_linux.sh `pwd` pxscene $EXECLOGS
+$TRAVIS_BUILD_DIR/ci/check_dump_cores_linux.sh `pwd` Spark $EXECLOGS
 retVal=$?
 if [ "$retVal" -eq 1 ]
 	then
@@ -138,7 +138,7 @@ if [ "$testRunnerRetVal" -ne 0 ]
 	else
 		errCause="Cause: Check the $EXECLOGS file"
 	fi
-	checkError $testRunnerRetVal "Testrunner failure" "$errCause" "Follow the steps locally: export PX_DUMP_MEMUSAGE=1;export RT_LOG_LEVEL=info;./pxscene.sh $TESTRUNNERURL?tests=<pxcore dir>/tests/pxScene2d/testRunner/tests.json locally and check for 'Failures: 0' in logs. Analyze whether failures is present or not"
+	checkError $testRunnerRetVal "Testrunner failure" "$errCause" "Follow the steps locally: export PX_DUMP_MEMUSAGE=1;export RT_LOG_LEVEL=info;./spark.sh $TESTRUNNERURL?tests=<pxcore dir>/tests/pxScene2d/testRunner/tests.json locally and check for 'Failures: 0' in logs. Analyze whether failures is present or not"
 	exit 1;
 fi
 
@@ -167,7 +167,7 @@ if [ "$pxRetVal" -eq 0 ]
 		else
 			errCause="Check the $EXECLOGS file"
 		fi
-		checkError $texRetVal "Texture leak" "$errCause" "Follow the steps locally: export PX_DUMP_MEMUSAGE=1;export RT_LOG_LEVEL=info;./pxscene.sh $TESTRUNNERURL?tests=<pxcore dir>/tests/pxScene2d/testRunner/tests.json locally and check for 'texture memory usage is' in logs. Analyze why the usage is not 0" 
+		checkError $texRetVal "Texture leak" "$errCause" "Follow the steps locally: export PX_DUMP_MEMUSAGE=1;export RT_LOG_LEVEL=info;./spark.sh $TESTRUNNERURL?tests=<pxcore dir>/tests/pxScene2d/testRunner/tests.json locally and check for 'texture memory usage is' in logs. Analyze why the usage is not 0" 
 		exit 1;
 	fi
 else
@@ -178,13 +178,13 @@ else
 	else
 		errCause="Check the $EXECLOGS file"
 	fi
-	checkError $pxRetVal "pxobject leak" "$errCause" "Follow the steps locally: export PX_DUMP_MEMUSAGE=1;export RT_LOG_LEVEL=info;./pxscene.sh $TESTRUNNERURL?tests=<pxcore dir>/tests/pxScene2d/testRunner/tests.json locally and check for 'pxobjectcount is' in logs. Analyze why the count is not 0?"
+	checkError $pxRetVal "pxobject leak" "$errCause" "Follow the steps locally: export PX_DUMP_MEMUSAGE=1;export RT_LOG_LEVEL=info;./spark.sh $TESTRUNNERURL?tests=<pxcore dir>/tests/pxScene2d/testRunner/tests.json locally and check for 'pxobjectcount is' in logs. Analyze why the count is not 0?"
 	exit 1;
 fi
 
 #check for crash before valgrind test, as we might have got scenario where pxscene might have crashed during term
 ls -lrt *valgrind*
-$TRAVIS_BUILD_DIR/ci/check_dump_cores_linux.sh `pwd` pxscene $EXECLOGS
+$TRAVIS_BUILD_DIR/ci/check_dump_cores_linux.sh `pwd` Spark $EXECLOGS
 retVal=$?
 if [ "$retVal" -eq 1 ]
 	then
@@ -218,7 +218,7 @@ else
 	else
 		errCause="$errCause . Check the file $VALGRINDLOGS "
 	fi
-	checkError $retVal "Valgrind execution reported problem" "$errCause" "Follow the steps locally : export ENABLE_VALGRIND=1;export SUPPRESSIONS=<pxcore dir>/ci/leak.supp;./pxscene.sh $TESTRUNNERURL?tests=<pxcore dir>/tests/pxScene2d/testRunner/tests.json and fix it"
+	checkError $retVal "Valgrind execution reported problem" "$errCause" "Follow the steps locally : export ENABLE_VALGRIND=1;export SUPPRESSIONS=<pxcore dir>/ci/leak.supp;./spark.sh $TESTRUNNERURL?tests=<pxcore dir>/tests/pxScene2d/testRunner/tests.json and fix it"
 	exit 1;
 fi
 exit 0;

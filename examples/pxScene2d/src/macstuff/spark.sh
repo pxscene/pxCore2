@@ -8,15 +8,15 @@ cd "$THIS_DIR"
 export DYLD_LIBRARY_PATH=./lib/
 export LD_LIBRARY_PATH=./lib/
 
-./pxscene $* < /dev/zero >> /var/tmp/pxscene.log 2>&1 &
+./Spark $* < /dev/zero >> /var/tmp/spark.log 2>&1 &
 
 # Software update below
 
-# Get pid of last background process which should be pxscene
+# Get pid of last background process which should be Spark
 PXPID=$!
 
 # This file is required by the .engine_install script
-# so that it can wait for pxscene to shutdown prior to software update
+# so that it can wait for Spark to shutdown prior to software update
 echo $PXPID > ./lastpid
 
 # Only try to update this bundle if a version has been included
