@@ -20,7 +20,6 @@ before_install:
 - if [ "$TRAVIS_EVENT_TYPE" != "pull_request" ]; then  ssh-add /tmp/pxscene-build.pem; fi
 - ./ci/before_install.sh
 - if ( [ "$TRAVIS_EVENT_TYPE" = "push" ] || [ "$TRAVIS_EVENT_TYPE" = "pull_request" ] ) && [ -z "${TRAVIS_TAG}" ] ; then export PATH=/usr/local/opt/ccache/libexec:$PATH; fi
-- if ( [ "$TRAVIS_EVENT_TYPE" = "push" ] || [ "$TRAVIS_EVENT_TYPE" = "pull_request" ] ) && [ -z "${TRAVIS_TAG}" ] ; then export PATH=/usr/local/opt/ccache/libexec:$PATH; fi
 install:
 - ./ci/install.sh
 before_script:
