@@ -681,6 +681,8 @@ if (s && (strcmp(s,"1") == 0))
 #ifdef WIN32
   win_sparkle_cleanup();
 #endif
+  
+  base64_cleanup();
 
   return 0;
 }
