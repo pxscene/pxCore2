@@ -67,6 +67,7 @@
 #ifdef ENABLE_PERMISSIONS_CHECK
 #include "rtPermissions.h"
 #endif
+#include "rtCORS.h"
 
 #include "rtServiceProvider.h"
 #include "rtSettings.h"
@@ -444,6 +445,8 @@ public:
   //}
 
   virtual void update(double t);
+  virtual void releaseData(bool sceneSuspended);
+  virtual void reloadData(bool sceneSuspended);
 
   // non-destructive applies transform on top of of provided matrix
   virtual void applyMatrix(pxMatrix4f& m)
@@ -768,6 +771,7 @@ protected:
   pxContextFramebufferRef mDrawableSnapshotForMask;
   pxContextFramebufferRef mMaskSnapshot;
   bool mIsDisposed;
+  bool mSceneSuspended;
 
  private:
   rtError _pxObject(voidPtr& v) const {
@@ -1016,6 +1020,7 @@ public:
   // permissions can be set to either scene or to its container
   rtProperty(permissions, permissions, setPermissions, rtObjectRef);
 #endif
+  rtReadOnlyProperty(cors, cors, rtObjectRef);
   rtReadOnlyProperty(api, api, rtValue);
   rtReadOnlyProperty(ready, ready, rtObjectRef);
   rtProperty(serviceContext, serviceContext, setServiceContext, rtObjectRef);
@@ -1048,16 +1053,19 @@ public:
   rtError permissions(rtObjectRef& v) const;
   rtError setPermissions(const rtObjectRef& v);
 #endif
+  rtError cors(rtObjectRef& v) const;
 
 //  rtError makeReady(bool ready);  // DEPRECATED ?
 
   // in the case of pxSceneContainer, the makeReady should be the  
   // catalyst for ready to fire, so override sendPromise and 
   // createNewPromise to prevent firing from update() 
-  virtual void sendPromise() { rtLogDebug("pxSceneContainer ignoring sendPromise\n"); }
+  virtual void sendPromise() { /*rtLogDebug("pxSceneContainer ignoring sendPromise\n");*/ }
   virtual void createNewPromise(){ rtLogDebug("pxSceneContainer ignoring createNewPromise\n"); }
 
   virtual void* getInterface(const char* name);
+  virtual void releaseData(bool sceneSuspended);
+  virtual void reloadData(bool sceneSuspended);
   
 private:
   rtRef<pxScriptView> mScriptView;
@@ -1154,6 +1162,7 @@ public:
   rtError permissions(rtObjectRef& v) const { return mScene.get("permissions", v); }
   rtError setPermissions(const rtObjectRef& v) { return mScene.set("permissions", v); }
 #endif
+  rtError cors(rtObjectRef& v) const { return mScene.get("cors", v); }
 
   static rtError addListener(rtString  eventName, const rtFunctionRef& f)
   {
@@ -1164,6 +1173,9 @@ public:
   {
     return mEmit->delListener(eventName, f);
   }
+
+  rtError suspend(const rtValue& v, bool& b);
+  rtError resume(const rtValue& v, bool& b);
   
 protected:
 
@@ -1315,6 +1327,9 @@ public:
   rtMethodNoArgAndNoReturn("logDebugMetrics", logDebugMetrics);
   rtMethodNoArgAndNoReturn("collectGarbage", collectGarbage);
   rtReadOnlyProperty(info, info, rtObjectRef);
+  rtMethod1ArgAndReturn("suspend", suspend, rtValue, bool);
+  rtMethod1ArgAndReturn("resume", resume, rtValue, bool);
+  rtMethodNoArgAndReturn("suspended", suspended, bool);
 /*
   rtMethod1ArgAndReturn("createExternal", createExternal, rtObjectRef,
                         rtObjectRef);
@@ -1354,7 +1369,6 @@ public:
   rtReadOnlyProperty(truncation,truncation,rtObjectRef);
 
   rtReadOnlyProperty(origin, origin, rtString);
-  rtMethod2ArgAndReturn("checkAccessControlHeaders", checkAccessControlHeaders, rtString, rtString, bool);
   rtMethod1ArgAndReturn("sparkSetting", sparkSetting, rtString, rtValue);
 
   rtMethodNoArgAndNoReturn("dispose",dispose);
@@ -1366,6 +1380,7 @@ public:
   // permissions can be set to either scene or to its container
   rtProperty(permissions, permissions, setPermissions, rtObjectRef);
 #endif
+  rtReadOnlyProperty(cors, cors, rtObjectRef);
 
   pxScene2d(bool top = true, pxScriptView* scriptView = NULL);
   virtual ~pxScene2d()
@@ -1453,6 +1468,9 @@ public:
   rtError clock(double & time);
   rtError logDebugMetrics();
   rtError collectGarbage();
+  rtError suspend(const rtValue& v, bool& b);
+  rtError resume(const rtValue& v, bool& b);
+  rtError suspended(bool &b);
 
   rtError addListener(rtString eventName, const rtFunctionRef& f)
   {
@@ -1502,9 +1520,9 @@ public:
   rtError permissions(rtObjectRef& v) const { v = mPermissions; return RT_OK; }
   rtError setPermissions(const rtObjectRef& v) { return mPermissions->set(v); }
 #endif
-
+  rtCORSRef cors() const { return mCORS; }
+  rtError cors(rtObjectRef& v) const { v = mCORS; return RT_OK; }
   rtError origin(rtString& v) const { v = mOrigin; return RT_OK; }
-  rtError checkAccessControlHeaders(const rtString& url, const rtString& rawHeaders, bool& allow) const;
   rtError sparkSetting(const rtString& setting, rtValue& value) const;
 
   void setMouseEntered(rtRef<pxObject> o);//setMouseEntered(pxObject* o);
@@ -1567,7 +1585,7 @@ public:
 
     rtError e = RT_FAIL;
     rtRef<pxArchive> a = new pxArchive;
-    if (a->initFromUrl(url, mOrigin) == RT_OK)
+    if (a->initFromUrl(url, mCORS) == RT_OK)
     {
       archive = a;
       e = RT_OK;
@@ -1638,6 +1656,9 @@ private:
 #ifdef ENABLE_PERMISSIONS_CHECK
   rtPermissionsRef mPermissions;
 #endif
+  bool mSuspended;
+  rtCORSRef mCORS;
+
 public:
   void hidePointer( bool hide )
   {

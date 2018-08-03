@@ -233,10 +233,29 @@ void pxResource::notifyListeners(rtString readyResolution)
 
   }
   //rtLogDebug("notifyListeners for url=%s Ending\n");
-  mListeners.clear();
+  //mListeners.clear();
   mListenersMutex.unlock();
   
 }
+
+void pxResource::notifyListenersResourceDirty()
+{
+  mListenersMutex.lock();
+  if( mListeners.size() == 0)
+  {
+    mListenersMutex.unlock();
+    return;
+  }
+  for (list<pxResourceListener*>::iterator it = mListeners.begin();
+       it != mListeners.end(); ++it)
+  {
+    (*it)->resourceDirty();
+
+  }
+  mListenersMutex.unlock();
+
+}
+
 void pxResource::raiseDownloadPriority()
 {
   if (!priorityRaised && !mUrl.isEmpty() && mDownloadRequest != NULL)
@@ -268,6 +287,10 @@ rtImageResource::~rtImageResource()
 {
   //rtLogDebug("destructor for rtImageResource for %s\n",mUrl.cString());
   //pxImageManager::removeImage( mUrl);
+  if (mTexture.getPtr())
+  {
+    mTexture->setTextureListener(NULL);
+  }
 }
   
 unsigned long rtImageResource::Release() 
@@ -290,6 +313,43 @@ void rtImageResource::init()
     
   mInitialized = true;
 
+}
+
+void rtImageResource::releaseData()
+{
+  if (mTexture.getPtr())
+  {
+    mTextureMutex.lock();
+    if (mDownloadComplete)
+    {
+      mTexture->unloadTextureData();
+    }
+    mTextureMutex.unlock();
+  }
+  pxResource::releaseData();
+}
+
+void rtImageResource::reloadData()
+{
+  if (!mTexture.getPtr())
+  {
+    mTextureMutex.lock();
+    if (mDownloadComplete)
+    {
+      mTexture->loadTextureData();
+    }
+    mTextureMutex.unlock();
+  }
+  pxResource::reloadData();
+}
+
+void rtImageResource::textureReady()
+{
+  if (gUIThreadQueue)
+  {
+    AddRef();
+    gUIThreadQueue->addTask(pxResource::onResourceDirtyUI, this, NULL);
+  }
 }
 
 int32_t rtImageResource::w() const 
@@ -336,6 +396,10 @@ pxTextureRef rtImageResource::getTexture(bool initializing)
     {
       mTexture = mDownloadedTexture;
       mDownloadedTexture = NULL;
+      if (mTexture.getPtr())
+      {
+        mTexture->setTextureListener(this);
+      }
     }
     mTextureMutex.unlock();
   }
@@ -374,12 +438,14 @@ void rtImageResource::prepare()
 
 void rtImageResource::setTextureData(pxOffscreen& imageOffscreen, const char* data, const size_t dataSize)
 {
-  mDownloadedTexture = context.createTexture(imageOffscreen, data, dataSize);
+  mTextureMutex.lock();
 #ifdef ENABLE_BACKGROUND_TEXTURE_CREATION
+  mDownloadedTexture = context.createTexture(imageOffscreen, data, dataSize);
+  mTextureMutex.unlock();
   rtThreadTask* task = new rtThreadTask(prepareImageResource, (void*)this, "");
   textureCreateThreadPool.executeTask(task);
 #else
-  mTextureMutex.lock();
+  mDownloadedTexture = context.createTexture(imageOffscreen, data, dataSize);
   mDownloadComplete = true;
   mTextureMutex.unlock();
 #endif //ENABLE_BACKGROUND_TEXTURE_CREATION
@@ -403,6 +469,14 @@ void pxResource::setLoadStatus(const char* name, rtValue value)
   mLoadStatusMutex.lock();
   mLoadStatus.set(name, value);
   mLoadStatusMutex.unlock();
+}
+
+void pxResource::releaseData()
+{
+}
+
+void pxResource::reloadData()
+{
 }
 
 /** 
@@ -429,6 +503,7 @@ void pxResource::loadResource()
       mDownloadRequest = new rtFileDownloadRequest(mUrl, this, pxResource::onDownloadComplete);
       mDownloadRequest->setProxy(mProxy);
       mDownloadRequest->setCallbackFunctionThreadSafe(pxResource::onDownloadComplete);
+      mDownloadRequest->setCORS(mCORS);
       mDownloadInProgressMutex.lock();
       mDownloadInProgress = true;
       mDownloadInProgressMutex.unlock();
@@ -463,6 +538,18 @@ void pxResource::onDownloadCanceledUI(void* context, void* data)
 
   res->Release();
 }
+
+void pxResource::onResourceDirtyUI(void* context, void* /*data*/)
+{
+  pxResource* res = (pxResource*)context;
+
+  res->notifyListenersResourceDirty();
+
+  // Release here since we had to addRef when setting up callback to
+  // this function
+  res->Release();
+}
+
 
 void rtImageResource::loadResourceFromFile()
 {
@@ -507,6 +594,7 @@ void rtImageResource::loadResourceFromFile()
   {
     // create offscreen texture for local image
     mTexture = context.createTexture(imageOffscreen, (const char *) d.data(), d.length());
+    mTexture->setTextureListener(this);
     setLoadStatus("statusCode",0);
     // Since this object can be released before we get a async completion
     // We need to maintain this object's lifetime
@@ -519,6 +607,9 @@ void rtImageResource::loadResourceFromFile()
 
   }
 
+  mTextureMutex.lock();
+  mDownloadComplete = true;
+  mTextureMutex.unlock();
 }
 
 
@@ -683,7 +774,7 @@ void rtImageAResource::loadResourceFromFile()
 ImageMap pxImageManager::mImageMap;
 rtRef<rtImageResource> pxImageManager::emptyUrlResource = 0;
 
-rtRef<rtImageResource> pxImageManager::getImage(const char* url, const char* proxy    /* = NULL  */,
+rtRef<rtImageResource> pxImageManager::getImage(const char* url, const char* proxy    /* = NULL  */, const rtCORSRef& cors /* = NULL  */,
                                                 int32_t iw /* = 0    */,   int32_t ih /* = 0     */,
                                                   float sx /* = 1.0f */,   float sy   /* = 1.0f  */)
 {
@@ -741,6 +832,7 @@ rtRef<rtImageResource> pxImageManager::getImage(const char* url, const char* pro
   {
     //rtLogInfo("Create rtImageResource in map for \"%s\"\n",url);
     pResImage = new rtImageResource(url, proxy, iw, ih, sx, sy);
+    pResImage->setCORS(cors);
     mImageMap.insert(make_pair(key.cString(), pResImage));
     pResImage->loadResource();
   }
@@ -787,7 +879,7 @@ void pxImageManager::removeImage(rtString url, int32_t iw /* = 0 */,   int32_t i
 ImageAMap pxImageManager::mImageAMap;
 rtRef<rtImageAResource> pxImageManager::emptyUrlImageAResource = 0;
 /** static pxImageManager::getImage */
-rtRef<rtImageAResource> pxImageManager::getImageA(const char* url, const char* proxy)
+rtRef<rtImageAResource> pxImageManager::getImageA(const char* url, const char* proxy, const rtCORSRef& cors)
 {
   if(!url || strlen(url) == 0) {
     if( !emptyUrlImageAResource) {
@@ -806,6 +898,7 @@ rtRef<rtImageAResource> pxImageManager::getImageA(const char* url, const char* p
   else
   {
     pResImageA = new rtImageAResource(url, proxy);
+    pResImageA->setCORS(cors);
     mImageAMap.insert(make_pair(url, pResImageA));
     pResImageA->loadResource();
   }

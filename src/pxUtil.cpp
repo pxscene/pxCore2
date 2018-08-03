@@ -1009,7 +1009,7 @@ rtError pxLoadSVGImage(const char* buf, size_t buflen, pxOffscreen& o, int  w /*
     return RT_FAIL;
   }
   
-  if (sx == 0.0f || sx == 0.0f)
+  if (sx <= 0.0f || sy <= 0.0f)
   {
     rtLogError("SVG:  Bad image scale  sx: %f  sy: %f\n", sx, sy);
     return RT_FAIL;
@@ -1474,6 +1474,7 @@ rtString imageType2str(pxImageType t)
     case PX_IMAGE_WEBP:     return rtString("PX_IMAGE_WEBP");
     case PX_IMAGE_ICO:      return rtString("PX_IMAGE_ICO");
     case PX_IMAGE_SVG:      return rtString("PX_IMAGE_SVG");
+    default:
     case PX_IMAGE_INVALID:  return rtString("PX_IMAGE_INVALID");
   }
 }

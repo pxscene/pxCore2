@@ -318,7 +318,18 @@ void pxWaylandContainer::sendPromise()
 {
   if(mInitialized && !((rtPromise*)mReady.getPtr())->status())
   {
-    if (access( mBinary.cString(), F_OK ) != -1)
+    int32_t processNameIndex = mBinary.find(0, ' ');
+    rtString processName;
+    if (processNameIndex > 0)
+    {
+      processName = mBinary.substring(0, processNameIndex);
+    }
+    else
+    {
+      processName = mBinary;
+    }
+    rtLogInfo("process name: %s orig: %s", processName.cString(), mBinary.cString());
+    if (access( processName.cString(), F_OK ) != -1)
     {
       rtLogDebug("sending resolve promise");
       mReady.send("resolve",this);
@@ -391,6 +402,7 @@ rtDefineProperty(pxWaylandContainer,fillColor);
 rtDefineProperty(pxWaylandContainer,api);
 rtDefineProperty(pxWaylandContainer,remoteReady);
 rtDefineProperty(pxWaylandContainer,server);
+rtDefineProperty(pxWaylandContainer,hasApi);
 rtDefineMethod(pxWaylandContainer, suspend);
 rtDefineMethod(pxWaylandContainer, resume);
 rtDefineMethod(pxWaylandContainer, destroy);

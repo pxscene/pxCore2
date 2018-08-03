@@ -18,6 +18,7 @@ limitations under the License.
 
 var http = require('http');
 var url = require('url');
+var events = require('events');
 var WrapObj = require('rcvrcore/utils/WrapObj');
 var Logger = require('rcvrcore/Logger').Logger;
 var log = new Logger('AccessControl');
@@ -29,6 +30,7 @@ var log = new Logger('AccessControl');
  * @constructor
  */
 function AccessControl(scene) {
+  log.message(4, "create");
   this.scene = scene;
 }
 
@@ -54,9 +56,12 @@ AccessControl.prototype.allows = function (url) {
   return true;
 };
 
-AccessControl.prototype.checkAccessControlHeaders = function (url, rawHeaders) {
+AccessControl.prototype.passesAccessControlCheck = function (rawHeaders, withCredentials, origin) {
   if (this.scene) {
-    return this.scene.checkAccessControlHeaders(url, rawHeaders);
+    var cors = this.scene.cors;
+    if (cors) {
+      return cors.passesAccessControlCheck(rawHeaders, withCredentials, origin);
+    }
   }
   return true;
 };
@@ -72,14 +77,12 @@ AccessControl.isCORSRequestHeader = function (name) {
 
 AccessControl.prototype.createClientRequest = function (options, callback, requestOrigin) {
   var req = AccessControlClientRequest(options, callback, this, requestOrigin);
-  // Do not expose AccessControlClientRequest's prototype... wrap everything
-  // Note: set properties in constructor or prototype so that they don't get lost here
-  // Note: socket is not exposed
-  return WrapObj(req, {
-    socket: undefined,
-    connection: undefined,
-    agent: undefined
-  });
+
+  // In order to prevent hacks do not expose the AccessControlClientRequest.
+  // Exposed object is an external EventEmitter + selected APIs
+  return WrapObj(req, WrapObj(req._externalEvents), true, [
+    'blocked','abort','aborted','end','getHeader','maxHeadersCount','removeHeader','setHeader','setNoDelay','setSocketKeepAlive','setTimeout','write'
+  ]);
 };
 
 AccessControl._extend = function (target, source) {
@@ -115,7 +118,20 @@ function AccessControlClientRequest(options, callback, accessControl, protocol) 
   if (!(this instanceof AccessControlClientRequest))
     return new AccessControlClientRequest(options, callback, accessControl, protocol);
 
-  http.ClientRequest.call(this, options, callback);
+  this._externalEvents = new events();
+  this._externalEvents.once('response', callback);
+
+  http.ClientRequest.call(this, options);
+
+  // Internal listener. If no 'error' handler is added, then 'uncaught exception' is thrown.
+  this.on('error', function (e) {
+    log.message(4, "internal error handler fired: " + e);
+  });
+
+  // Internal listener. If no 'response' handler is added, then the response will be entirely discarded.
+  this.on('response', function (r) {
+    log.message(4, "internal response handler fired: HTTP " + r.statusCode);
+  });
 
   var _this = this;
   var appOrigin = accessControl.origin();
@@ -126,6 +142,7 @@ function AccessControlClientRequest(options, callback, accessControl, protocol) 
     this.blocked = true;
     this.abort();
     setTimeout(function () {
+      log.message(4, "about to emit error/blocked");
       _this.emit('error', new Error(message));
       _this.emit('blocked', new Error(message));
     });
@@ -144,7 +161,7 @@ function AccessControlClientRequest(options, callback, accessControl, protocol) 
       }
     }
     log.message(4, "check for request to origin: '" + requestOrigin + "' from origin '" + appOrigin + "' headers: " + rawHeaders);
-    if (!accessControl.checkAccessControlHeaders(requestOrigin, rawHeaders)) {
+    if (!accessControl.passesAccessControlCheck(rawHeaders, false, requestOrigin)) {
       var message = "CORS block for request to origin: '" + requestOrigin + "' from origin '" + appOrigin + "'";
       log.warn(message);
       _this.blocked = true;
@@ -155,34 +172,40 @@ function AccessControlClientRequest(options, callback, accessControl, protocol) 
     return true;
   }
 
+  // Events handled by _externalEvents event handler hide socket from argument lists
+  function wrapExternalArgs(type) {
+    var args = Array.prototype.slice.call(arguments);
+    if (type === 'socket') {
+      args[1] = null; // socket obj
+    } else if (type === 'connect' || type === 'upgrade') {
+      args[1] = WrapObj(args[1], {socket: undefined}, true); // response obj
+      args[2] = null; // socket obj
+    } else if (type === 'information' || type === 'response') {
+      args[1] = WrapObj(args[1], {socket: undefined}, true); // response obj
+    }
+    return args;
+  }
+
   function createEmitWrapper(_emit) {
-    return function (type, arg2, arg3, arg4) {
-      if (type === 'socket') {
-        // Note: socket is not exposed, only setTimeout to have node internals work
-        return _emit.call(_this, type, {
-          setTimeout: function () {
-            arg2.setTimeout.apply(arg2, arguments);
-          }
-        });
-      } else if (type === 'connect' || type === 'upgrade') {
+    return function (type, arg2) {
+      log.message(4, "event is about to emit: "+type);
+      if (typeof type === 'string' && type.match(/^(connect|upgrade|information|response)$/ig)) {
         if (checkResponseHeaders(arg2) === false) {
           return false;
         }
-        // Note: socket is not exposed
-        return _emit.call(_this, type, WrapObj(arg2, {socket: undefined}), null, arg4);
-      } else if (type === 'information' || type === 'response') {
-        if (checkResponseHeaders(arg2) === false) {
-          return false;
-        }
-        // Note: socket is not exposed
-        return _emit.call(_this, type, WrapObj(arg2, {socket: undefined}));
       }
+      log.message(4, type+": external listeners count: "+_this._externalEvents.listenerCount(type));
+      var externalArgs = wrapExternalArgs.apply(null, arguments);
+      _this._externalEvents.emit.apply(_this._externalEvents, externalArgs);
+      log.message(4, type+": internal listeners count: "+_this.listenerCount(type));
       return _emit.apply(_this, arguments);
     };
   }
 
-  _this.emit = createEmitWrapper(_this.emit);
-  _this.$emit = createEmitWrapper(_this.$emit);
+  var _emit = this.emit;
+  var _emit2 = this.$emit;
+  this.emit = createEmitWrapper(_emit);
+  this.$emit = createEmitWrapper(_emit2);
 
   log.message(4, "created a request to origin: '" + requestOrigin + "'");
 }
@@ -191,6 +214,7 @@ AccessControlClientRequest.prototype = Object.create(http.ClientRequest.prototyp
 AccessControlClientRequest.prototype.constructor = AccessControlClientRequest;
 
 AccessControlClientRequest.prototype.blocked = undefined;
+AccessControlClientRequest.prototype._externalEvents = undefined;
 
 AccessControlClientRequest.prototype.setHeader = function (name) {
   if (AccessControl.isCORSRequestHeader(name)) {

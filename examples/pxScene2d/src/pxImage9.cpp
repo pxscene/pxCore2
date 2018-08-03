@@ -81,7 +81,7 @@ rtError pxImage9::setUrl(const char* s)
   }
 
   removeResourceListener();
-  mResource = pxImageManager::getImage(s); 
+  mResource = pxImageManager::getImage(s, NULL, mScene ? mScene->cors() : NULL);
   if(getImageResource() != NULL && getImageResource()->getUrl().length() > 0)
   {
     mListenerAdded = true;
@@ -159,7 +159,7 @@ float pxImage9::getOnscreenHeight()
 
 
 void pxImage9::draw() {
-  if (getImageResource() != NULL && getImageResource()->isInitialized())
+  if (getImageResource() != NULL && getImageResource()->isInitialized() && !mSceneSuspended)
   {
     context.drawImage9(mw, mh, mInsetLeft, mInsetTop, mInsetRight, mInsetBottom, getImageResource()->getTexture());
   }
@@ -196,6 +196,11 @@ void pxImage9::resourceReady(rtString readyResolution)
   }
 }
 
+void pxImage9::resourceDirty()
+{
+  pxObject::onTextureReady();
+}
+
 rtError pxImage9::removeResourceListener()
 {
   if (mListenerAdded)
@@ -207,6 +212,24 @@ rtError pxImage9::removeResourceListener()
     mListenerAdded = false;
   }
   return RT_OK;
+}
+
+void pxImage9::releaseData(bool sceneSuspended)
+{
+  if (getImageResource())
+  {
+    getImageResource()->releaseData();
+  }
+  pxObject::releaseData(sceneSuspended);
+}
+
+void pxImage9::reloadData(bool sceneSuspended)
+{
+  if (getImageResource())
+  {
+    getImageResource()->reloadData();
+  }
+  pxObject::reloadData(sceneSuspended);
 }
 
 rtDefineObject(pxImage9, pxObject);
