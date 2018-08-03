@@ -32,7 +32,7 @@ fi
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-if [ "$TRAVIS_EVENT_TYPE" != "cron" ] && [ "$TRAVIS_EVENT_TYPE" != "api" ] ;
+if [ "$TRAVIS_EVENT_TYPE" != "cron" ] && [ "$TRAVIS_EVENT_TYPE" != "api" ] && [ -z "${TRAVIS_TAG}" ] 
 then
   export CODE_COVERAGE=1
   export USE_HTTP_CACHE=1
@@ -45,7 +45,7 @@ if [ "$TRAVIS_PULL_REQUEST" = "false" ]
 then
 
   echo "***************************** Generating config files ****" >> $BUILDLOGS
-  if [ "$TRAVIS_EVENT_TYPE" != "cron" ] && [ "$TRAVIS_EVENT_TYPE" != "api" ] ;
+  if [ "$TRAVIS_EVENT_TYPE" != "cron" ] && [ "$TRAVIS_EVENT_TYPE" != "api" ] && [ -z "${TRAVIS_TAG}" ] 
   then
     cmake -DBUILD_PX_TESTS=ON -DBUILD_PXSCENE_STATIC_LIB=ON -DBUILD_DEBUG_METRICS=ON -DPXSCENE_TEST_HTTP_CACHE=ON .. >>$BUILDLOGS 2>&1;
   else
@@ -90,7 +90,7 @@ if [ "$TRAVIS_PULL_REQUEST" = "false" ]
     ./mkdeploy.sh edge_`date +%Y-%m-%d` >>$BUILDLOGS 2>&1
   fi
         
-  if [ "$TRAVIS_EVENT_TYPE" = "api" ] ;
+  if [ "$TRAVIS_EVENT_TYPE" = "api" ] || [ ! -z "${TRAVIS_TAG}" ] 
   then
     cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src/
 
