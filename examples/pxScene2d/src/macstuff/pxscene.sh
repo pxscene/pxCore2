@@ -24,7 +24,7 @@ echo $PXPID > ./lastpid
 if [ -e ./version ] && [ -w . ]; then
   echo "Info: Checking for Software Update"
   VERSION=`cat ./version`
-  if [ "$VERSION" != "edge" ]; then
+  if [[ "$VERSION" != "edge"* ]]; then
     UPDATE_URL=http://www.pxscene.org/dist/osx/pxscene/software_update.plist
     ./EngineRunner run -productid org.pxscene.pxscene -version $VERSION -url ${UPDATE_URL} &
   fi
