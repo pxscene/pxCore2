@@ -302,7 +302,14 @@ function createModule_pxScope(xModule, isImported) {
   //xModule.basePath is used for imported files, as xModule is per javascript file basis
   if (true == isImported)
   {
-    params.getPackageBaseFilePath = getPackageBaseFilePathImported.bind(xModule.basePath+"/");
+    if (xModule.basePath == "")
+    {
+      params.getPackageBaseFilePath = getPackageBaseFilePathImported.bind("./");
+    }
+    else
+    {
+      params.getPackageBaseFilePath = getPackageBaseFilePathImported.bind(xModule.basePath+"/");
+    }
   }
   else
   {
