@@ -40,8 +40,6 @@ using namespace std;
 
 extern rtScript script;
 
-
-
 class oscillateTests : public testing::Test
 {
   public:
