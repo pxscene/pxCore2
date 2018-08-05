@@ -36,7 +36,9 @@
       {"url":"../tests/test_drawFalse.js", "title":"test_drawFalse","useBaseURI":"true"},
       {"url":"../tests/test_longText.js", "title":"test_longText","useBaseURI":"true"},
       {"url":"../tests/test_parentDrawFalse.js", "title":"test_parentDrawFalse","useBaseURI":"true"},
-      {"url":"../tests/test_pxText_v2.js", "title":"test_pxText","useBaseURI":"true"},
+      {"url":"../tests/test_pxText_v3.js", "title":"test_pxText","useBaseURI":"true"},
+      {"url":"../tests/test_pxRectangle_v1.js", "title":"test_pxText","useBaseURI":"true"},
+      {"url":"../tests/test_animationOscillate.js", "title":"test_ANIM_oscillate","useBaseURI":"true"},
       {"url":"../tests/test_textBoxEllipsis_oneLine.js", "title":"test_textBoxEllipsis_oneLine","useBaseURI":"true"},
       {"url":"../tests/test_textBoxWrapBounds.js", "title":"test_textBoxWrapBounds","useBaseURI":"true"}
 ]
