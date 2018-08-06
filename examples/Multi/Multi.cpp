@@ -86,11 +86,6 @@ private:
       invalidateRect();
     }
   }
-
-  void onScrollWheel(float dx, float dy)
-  {
-    // TODO
-  }
   
   void onMouseLeave()
   {

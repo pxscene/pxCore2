@@ -3225,19 +3225,6 @@ bool pxScene2d::onScrollWheel(float dx, float dy)
     return bubbleEvent(e, t, "onPreScrollWheel", "onScrollWheel");
   }
   return false;
-  
-//#if 1
-//  {
-//    // Send to root scene in global window coordinates
-//    rtObjectRef e = new rtMapObject;
-//    e.set("name", "onScrollWheel");
-//    e.set("dx", dx);
-//    e.set("dy", dy);
-//    mEmit.send("onScrollWheel", e);
-//  }
-//#endif
-  
-  return false;
 }
 
 
