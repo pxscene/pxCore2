@@ -42,8 +42,10 @@
 		B583E84820FFAB590097BB4B /* pxArchive.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B583E84720FFAB590097BB4B /* pxArchive.cpp */; };
 		B583E84A20FFAE370097BB4B /* pxRectangle.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B583E84920FFAE360097BB4B /* pxRectangle.cpp */; };
 		B583E86020FFBEDF0097BB4B /* pxImageA.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B583E85F20FFBEDE0097BB4B /* pxImageA.cpp */; };
+		B5901F7D2117D5D6009D0B92 /* sparkpermissions.conf in Resources */ = {isa = PBXBuildFile; fileRef = B5901F7C2117D5D6009D0B92 /* sparkpermissions.conf */; };
 		B5906B992100E5A700603BF6 /* mkapp.sh in Resources */ = {isa = PBXBuildFile; fileRef = B5906B982100E5A700603BF6 /* mkapp.sh */; };
 		B5A2D874210FA36B00EF83F1 /* rtCORS.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5A2D867210FA36B00EF83F1 /* rtCORS.cpp */; };
+		B5C51A252114AE61009FBDE7 /* spinningball2.png in Resources */ = {isa = PBXBuildFile; fileRef = B5C51A242114AE61009FBDE7 /* spinningball2.png */; };
 		B5ECEF3921021EFF000A3A83 /* libcurl.4.dylib in Copy Dynamic Library Files */ = {isa = PBXBuildFile; fileRef = B5ECEF3321021EFE000A3A83 /* libcurl.4.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		B5ECEF3A21021EFF000A3A83 /* libjpeg.9.dylib in Copy Dynamic Library Files */ = {isa = PBXBuildFile; fileRef = B5ECEF3421021EFF000A3A83 /* libjpeg.9.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		B5ECEF3B21021EFF000A3A83 /* libfreetype.6.dylib in Copy Dynamic Library Files */ = {isa = PBXBuildFile; fileRef = B5ECEF3521021EFF000A3A83 /* libfreetype.6.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
@@ -261,8 +263,10 @@
 		B583E84720FFAB590097BB4B /* pxArchive.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = pxArchive.cpp; path = ../../../../../../pxScene2d/src/pxArchive.cpp; sourceTree = "<group>"; };
 		B583E84920FFAE360097BB4B /* pxRectangle.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = pxRectangle.cpp; path = ../../../../../../pxScene2d/src/pxRectangle.cpp; sourceTree = "<group>"; };
 		B583E85F20FFBEDE0097BB4B /* pxImageA.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = pxImageA.cpp; path = ../../../../../../pxScene2d/src/pxImageA.cpp; sourceTree = "<group>"; };
+		B5901F7C2117D5D6009D0B92 /* sparkpermissions.conf */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = sparkpermissions.conf; path = ../../../../src/sparkpermissions.conf; sourceTree = "<group>"; };
 		B5906B982100E5A700603BF6 /* mkapp.sh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.sh; name = mkapp.sh; path = ../../../../src/mkapp.sh; sourceTree = "<group>"; };
 		B5A2D867210FA36B00EF83F1 /* rtCORS.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = rtCORS.cpp; path = ../../../../../../../src/rtCORS.cpp; sourceTree = "<group>"; };
+		B5C51A242114AE61009FBDE7 /* spinningball2.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = spinningball2.png; sourceTree = "<group>"; };
 		B5ECEF3321021EFE000A3A83 /* libcurl.4.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; path = libcurl.4.dylib; sourceTree = "<group>"; };
 		B5ECEF3421021EFF000A3A83 /* libjpeg.9.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; path = libjpeg.9.dylib; sourceTree = "<group>"; };
 		B5ECEF3521021EFF000A3A83 /* libfreetype.6.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; path = libfreetype.6.dylib; sourceTree = "<group>"; };
@@ -429,6 +433,7 @@
 		B583E7C920FF9C5F0097BB4B /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
+				B5901F7C2117D5D6009D0B92 /* sparkpermissions.conf */,
 				B583E84020FFAAB70097BB4B /* checkLocalLibs.sh */,
 				B583E83F20FFAAB70097BB4B /* EngineRunner */,
 				B583E83E20FFAAB60097BB4B /* getLocalLibs.sh */,
@@ -488,6 +493,7 @@
 		B5ECEF4F2104F130000A3A83 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				B5C51A242114AE61009FBDE7 /* spinningball2.png */,
 				B5ECEF512104F152000A3A83 /* browser */,
 				B5ECEF502104F152000A3A83 /* browser.js */,
 				B5ECEF522104F152000A3A83 /* shell.js */,
@@ -742,7 +748,9 @@
 				B583E76720FF9BDB0097BB4B /* Assets.xcassets in Resources */,
 				B5ECEF542104F152000A3A83 /* browser in Resources */,
 				B583E84620FFAAB70097BB4B /* checkLocalLibs.sh in Resources */,
+				B5901F7D2117D5D6009D0B92 /* sparkpermissions.conf in Resources */,
 				B583E76A20FF9BDB0097BB4B /* Main.storyboard in Resources */,
+				B5C51A252114AE61009FBDE7 /* spinningball2.png in Resources */,
 				B583E7CE20FF9CE50097BB4B /* CMakeLists.txt in Resources */,
 				B583E84220FFAAB70097BB4B /* makeLocalLibs.sh in Resources */,
 				B583E84420FFAAB70097BB4B /* getLocalLibs.sh in Resources */,
@@ -1067,6 +1075,7 @@
 					PXBENCHMARK_DISABLE_WST_DECODER,
 					PXSCENE_DISABLE_WST_DECODER,
 					"SPARK_BUILD_GIT_REVISION=\"Xcode User\"",
+					PXSCENE_FONT_ATLAS,
 				);
 				HEADER_SEARCH_PATHS = (
 					"$(PROJECT_DIR)/../../src",
@@ -1159,6 +1168,7 @@
 					PXBENCHMARK_DISABLE_WST_DECODER,
 					PXSCENE_DISABLE_WST_DECODER,
 					"SPARK_BUILD_GIT_REVISION=\"Xcode User\"",
+					PXSCENE_FONT_ATLAS,
 				);
 				HEADER_SEARCH_PATHS = (
 					"$(PROJECT_DIR)/../../src",

@@ -6,9 +6,9 @@ minJS=./jsMin.sh  #minify
 externalDir=../../pxScene2d/external
 if [ "$TRAVIS_EVENT_TYPE" == "cron" ]
 then
-bundle=pxsceneEdge.app
+bundle=pxbenchmarkEdge.app
 else
-bundle=pxscene.app
+bundle=pxbenchmark.app
 fi
 bundleBin=$bundle/Contents/MacOS
 
@@ -37,7 +37,7 @@ cp $externalDir/jpg/.libs/libjpeg.9.dylib $bundleLib
 
 # Copy OTHER to Bundle...
 #
-cp macstuff/Info.plist $bundle/Contents
+cp ../pxBenchmark_xcode/pxBenchmark/pxBenchmark/Info.plist $bundle/Contents
 
 # Make the RES folders...
 #
@@ -48,49 +48,49 @@ cp macstuff/Info.plist $bundle/Contents
 
 # Copy RESOURCES to Bundle...
 #
-cp -a browser $bundleRes
-cp FreeSans.ttf $bundleRes
+#cp -a browser $bundleRes
+#cp FreeSans.ttf $bundleRes
 cp sparkpermissions.conf $bundleRes
 
-cp package.json $bundleRes
+#cp package.json $bundleRes
 if [ "$TRAVIS_EVENT_TYPE" == "cron" ]  
 then
 echo "************ building edge"
-cp pxscene $bundleBin/pxsceneEdge
+cp pxbenchmark $bundleBin/pxbenchmarkEdge
 else
-cp pxscene $bundleBin
+cp pxbenchmark $bundleBin
 fi
 
 
 if [ "$TRAVIS_EVENT_TYPE" == "cron" ]  
 then
-sed -i -e 's/\.\/pxbenchmark/\.\/pxbenchmarkEdge/g' macstuff/pxbenchmark.sh
+sed -i -e 's/\.\/pxbenchmark/\.\/pxbenchmarkEdge/g' /../pxBenchmark_xcode/pxbenchmark.sh
 fi
-cp macstuff/pxbenchmark.sh $bundleBin
-cp macstuff/EngineRunner $bundleBin
+cp ../pxBenchmark_xcode/pxbenchmark.sh $bundleBin
+cp ../pxBenchmark_xcode/EngineRunner $bundleBin
 
 # Minify JS into Bundle...
 #
 # For Node
 #./jsMinFolder.sh rcvrcore $bundleRes/rcvrcore
-cp -a rcvrcore/* $bundleRes/rcvrcore
+#cp -a rcvrcore/* $bundleRes/rcvrcore
 
 
 # NOTE" jsMin.sh will default to a 'min' name with 1 arg.  E.g.  "jsMin.sh INPUT.js"  >> INPUT.min.js
 #
-${minJS} init.js $bundleRes/init.js
-${minJS} shell.js $bundleRes/shell.js
-${minJS} browser.js $bundleRes/browser.js
-${minJS} about.js $bundleRes/about.js
-${minJS} browser/editbox.js $bundleRes/browser/editbox.js
+#${minJS} init.js $bundleRes/init.js
+#${minJS} shell.js $bundleRes/shell.js
+#${minJS} browser.js $bundleRes/browser.js
+#${minJS} about.js $bundleRes/about.js
+#${minJS} browser/editbox.js $bundleRes/browser/editbox.js
 #./jsMinFolder.sh browser $bundleRes/browser
 
 
 # Copy duktape modules
-cp -a duk_modules $bundleRes/duk_modules
+#cp -a duk_modules $bundleRes/duk_modules
 # Copy node modules
-cp -a node_modules $bundleRes/node_modules
+#cp -a node_modules $bundleRes/node_modules
 
 # Copy OTHER to Resources...
 #
-cp -a macstuff/Resources $bundle/Contents/Resources
+cp -a ../Resources $bundle/Contents/Resources

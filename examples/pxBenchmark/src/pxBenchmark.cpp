@@ -75,10 +75,14 @@ void benchmarkWindow::init(const int32_t& x, const int32_t& y, const int32_t& w,
     
     celero::AddExperimentResultCompleteFunction([](std::shared_ptr<celero::ExperimentResult> p) { celero::Archive::Instance().add(p); });
     
+    print::TableBanner();
+    
     pxWindow::init(x,y,w,h);
     
     mApiFixture->popExperimentValue().Value = pxApiFixture::type::xDrawRect;
+    
     mApiFixture->popExperimentValue().Iterations = 0;
+    
     mApiFixture->popExperimentValue().mTotalTime = 0;
 }
 
@@ -168,7 +172,7 @@ void benchmarkWindow::RegisterTest (const string& groupName, const string& bench
     if (NULL == mExperimentFactory)
         mExperimentFactory = std::shared_ptr<pxBenchmarkFactory>(&pxBenchmarkFactory::Instance());
     
-    celero::TestVector::Instance().clear();
+    // TODO celero::TestVector::Instance().clear();
     
     mBaselineBm = celero::RegisterBaseline(groupName.c_str(), benchmarkName.c_str(), samples,
                                            iterations, threads,
@@ -215,6 +219,9 @@ void benchmarkWindow::reset()
             break;
         case pxApiFixture::type::xDrawTextureQuads:
             mGroupName = "DrawTextureQuads";
+            break;
+        case pxApiFixture::type::xDrawOffscreen:
+            mGroupName = "DrawOffscreen";
             break;
         case pxApiFixture::type::xDrawAll:
             mGroupName = "DrawAll";
@@ -408,12 +415,32 @@ void pxApiFixture::TestDrawDiagRect ()
 
 void pxApiFixture::TestDrawImage ()
 {
-    static float color[4] = {1., 0.0, 0.0, 1.0};
-    pxContextFramebufferRef drawableSnapshotForMask = context.createFramebuffer(static_cast<int>(floor(mUnitWidth)), static_cast<int>(floor(mUnitHeight)));
+    context.clear(1280, 720);
+    rtString settingsPath;
+    string url = "/resources/1.jpeg";
+    if (RT_OK == rtGetHomeDirectory(settingsPath))
+        url = settingsPath.cString() + url;
     
-    pxContextFramebufferRef maskSnapshot = context.createFramebuffer(static_cast<int>(floor(mUnitWidth)), static_cast<int>(floor(mUnitHeight)));
-    //context.clear(1280, 720);
-    context.drawImage(mCurrentX, mCurrentY, mCurrentX + mUnitWidth, mCurrentY + mUnitHeight, drawableSnapshotForMask->getTexture(), maskSnapshot->getTexture(), true, color, ((int)mCurrentX) % 2 == 0 ? pxConstantsStretch::STRETCH : pxConstantsStretch::REPEAT, ((int)mCurrentX) % 2 == 0 ? pxConstantsStretch::STRETCH : ((int)mCurrentY) % 2 == 0 ? pxConstantsStretch::REPEAT : pxConstantsStretch::NONE, true, ((int)mCurrentX) % 2 == 0 ? pxConstantsMaskOperation::NORMAL : pxConstantsMaskOperation::INVERT);
+    //if (!rtFileExists((char*)url.c_str()))
+    //    return;
+    
+    rtRef<rtImageResource> resource = pxImageManager::getImage((char*)url.c_str());
+    pxTextureRef texture = resource->getTexture();
+    if (texture == NULL)
+        return;
+    
+    //pxTimedOffscreenSequence& imageSequence = resource->getTimedOffscreenSequence();
+    
+    //pxOffscreen &o = imageSequence.getFrameBuffer(mCurFrame);
+    // context.createTexture(o)
+    //static float color[4] = {1., 0.0, 0.0, 1.0};
+    
+    //pxContextFramebufferRef drawableSnapshotForMask = context.createFramebuffer(static_cast<int>(floor(mUnitWidth)), static_cast<int>(floor(mUnitHeight)));
+    
+   // pxContextFramebufferRef maskSnapshot = context.createFramebuffer(static_cast<int>(floor(mUnitWidth)), static_cast<int>(floor(mUnitHeight)));
+    
+    //
+    context.drawImage(mCurrentX, mCurrentY, mCurrentX + mUnitWidth, mCurrentY + mUnitHeight, resource->getTexture(), nullptr, true, NULL, ((int)mCurrentX) % 2 == 0 ? pxConstantsStretch::STRETCH : pxConstantsStretch::REPEAT, ((int)mCurrentX) % 2 == 0 ? pxConstantsStretch::STRETCH : ((int)mCurrentY) % 2 == 0 ? pxConstantsStretch::REPEAT : pxConstantsStretch::NONE, true, ((int)mCurrentX) % 2 == 0 ? pxConstantsMaskOperation::NORMAL : pxConstantsMaskOperation::INVERT);
 }
 
 void pxApiFixture::TestDrawImage9 ()
@@ -443,9 +470,44 @@ void pxApiFixture::TestDrawImageMasked ()
 
 void pxApiFixture::TestDrawTextureQuads()
 {
-    //static float color[4] = {0., 1.0, 0.0, 1.0};
-    //pxTexturedQuads quads;
-    //quads.draw (mCurrentX, mCurrentY, color);
+    pxContextFramebufferRef drawableSnapshotForMask = context.createFramebuffer(static_cast<int>(floor(mUnitWidth)), static_cast<int>(floor(mUnitHeight)));
+    
+    pxTextureRef textureRef = drawableSnapshotForMask->getTexture();/* context.createTexture(static_cast<float>(mUnitWidth), static_cast<float>(mUnitHeight),
+                                                    static_cast<float>(mUnitWidth), static_cast<float>(mUnitHeight),
+                                                    NULL);*/
+    
+    static float color[4] = {1., 0.0, 0.0, 1.0};
+    const float verts[6][2] =
+    {
+        { mCurrentX,     mCurrentY },
+        { mCurrentX + mUnitWidth,   mCurrentY },
+        { mCurrentX,   mCurrentY + mUnitHeight },
+        { mCurrentX + mUnitWidth,   mCurrentY },
+        { mCurrentX,   mCurrentY + mUnitHeight },
+        { mCurrentX + mUnitWidth, mCurrentY + mUnitHeight }
+    };
+    float u1 = ((int)mCurrentX) % 2 == 0 ? 0 : 1;
+    float v1 = ((int)mCurrentY) % 2 == 0 ? 1 : 0;
+    float u2 = ((int)mCurrentX) % 2 == 0 ? 1 : 0;
+    float v2 = ((int)mCurrentY) % 2 == 0 ? 0 : 1;
+    const float uvs[6][2] =
+    {
+        { u1, v1  },
+        { u2, v1  },
+        { u1, v2 },
+        { u2, v1  },
+        { u1, v2 },
+        { u2, v2 }
+    };
+    
+    context.drawTexturedQuads(1, verts, uvs, textureRef, color);
+}
+
+void pxApiFixture::TestDrawOffscreen()
+{
+    /*pxContextFramebufferRef drawableSnapshotForMask = context.createFramebuffer(static_cast<int>(floor(mUnitWidth)), static_cast<int>(floor(mUnitHeight)));
+    pxOffscreen offscreen;
+    context.drawOffscreen(mCurrentX, mCurrentY, mCurrentX + mUnitWidth, mCurrentY + mUnitHeight, mUnitWidth, mUnitHeight, offscreen);*/
 }
 
 void pxApiFixture::TestDrawAll ()
@@ -461,6 +523,12 @@ void pxApiFixture::TestDrawAll ()
     TestDrawImage();
     
     TestDrawImage9();
+    
+    TestDrawImageMasked();
+    
+    TestDrawTextureQuads();
+    
+    TestDrawOffscreen();
 }
 
 void pxApiFixture::onExperimentStart(const celero::TestFixture::ExperimentValue& exp)
@@ -508,6 +576,9 @@ void pxApiFixture::onExperimentStart(const celero::TestFixture::ExperimentValue&
             break;
         case xDrawTextureQuads:
             TestDrawTextureQuads();
+            break;
+        case xDrawOffscreen:
+            TestDrawOffscreen();
             break;
         case xDrawAll:
             TestDrawAll();
@@ -709,7 +780,7 @@ void pxApiFixture::UserBenchmark()
 int pxMain(int argc, char* argv[])
 {
     g_argv = (char**)malloc((argc+2) * sizeof(char*));
-    g_origArgv = g_argv;
+    g_origArgv = argv;
     
     char buffer[256];
     sprintf(buffer, "pxbenchmark: %s", xstr(PX_BENCHMARK_VERSION));
