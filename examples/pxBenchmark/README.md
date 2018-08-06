@@ -27,8 +27,11 @@
     ~~~~
     sudo apt-get install git libglew-dev freeglut3 freeglut3-dev libgcrypt11-dev zlib1g-dev g++ libssl-dev nasm autoconf libtool cmake quilt
     
-sudo apt-get install libncurses5-dev
 
+    ~~~~
+    
+    sudo apt-get install libncurses5-dev
+    
     ~~~~
 
 ## macOS Setup 
@@ -175,7 +178,7 @@ sudo apt-get install libncurses5-dev
     On macOS
     ~~~~
     cd pxCore/examples/pxScene2d/src/pxbenchmark.app/Contents/MacOS
-    ./pxscene.sh window_width windowHeight unit_widht unit_height
+    ./pxbenchmark.sh window_width windowHeight unit_widht unit_height
     ~~~~
 
     On Windows
@@ -188,53 +191,14 @@ sudo apt-get install libncurses5-dev
 
 Examples:
   ~~~~
-./pxscene.sh http://www.pxscene.org/examples/px-reference/gallery/picturepile.js
-./pxscene.sh http://www.pxscene.org/examples/px-reference/gallery/gallery.js
+./pxbenchmark.sh 1280 720 50 50
+./pxbenchmark.sh 1920 1080 572 572
   ~~~~
-Running ./pxscene.sh without a parameter will load the local browser.js that will take a .js pathname relative to http://www.pxscene.org/examples/px-reference/gallery to run.  Alternatively, a fully qualified url can be used, for example:
-  ~~~~
-http://www.pxscene.org/examples/px-reference/gallery/picturepile.js
-http://www.pxscene.org/examples/px-reference/gallery/gallery.js
-file:///home/username/directory/filename.js
-  ~~~~
+Running ./pxscene.sh without a parameter will load application with default window size and unit size for rendering
+
 6. Write your own app!
 
-7. Run the unit tests (if they were built using the configuration in step 4)
-   
-    ~~~~
-    cd pxCore/tests/pxBenchmark
-    ~~~~
 
-    On Linux, Mac, and Raspberry Pi run: 
-    ~~~~
-    ./pxbenchmarktests.sh
-    ~~~~
-
-    On Windows
-    ~~~~
-    pxbenchmarktests.exe
-    ~~~~
-
-## Building and running unit tests
-1. Get source code
-   ~~~~
-   git clone https://github.com/pxscene/pxCore
-   ~~~~
-
-2. Build
-   ~~~~
-   cd pxCore/
-   mkdir temp
-   cd temp
-   cmake -DBUILD_PX_TESTS=ON -DBUILD_PXSCENE_STATIC_LIB=ON -DPXSCENE_TEST_HTTP_CACHE=OFF ..
-   cmake --build . --config Release
-   ~~~~
-
-3. Run
-   ~~~~
-   cd pxCore/tests/pxScene2d
-   ./pxscene2dtests.sh
-   ~~~~
 
 ## Developer CMake options
    ENABLE_THREAD_SANITIZER - Turn on this option to enable thread sanitizer support.  The default value is OFF
