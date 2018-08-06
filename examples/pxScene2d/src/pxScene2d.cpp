@@ -3212,6 +3212,35 @@ bool pxScene2d::onMouseMove(int32_t x, int32_t y)
   return false;
 }
 
+
+bool pxScene2d::onScrollWheel(float dx, float dy)
+{
+  if (mFocusObj)
+  {
+    rtObjectRef e = new rtMapObject;
+    e.set("name", "onScrollWheel");
+    e.set("dx", dx);
+    e.set("dy", dy);
+    rtRef<pxObject> t = (pxObject*)mFocusObj.get<voidPtr>("_pxObject");
+    return bubbleEvent(e, t, "onPreScrollWheel", "onScrollWheel");
+  }
+  return false;
+  
+//#if 1
+//  {
+//    // Send to root scene in global window coordinates
+//    rtObjectRef e = new rtMapObject;
+//    e.set("name", "onScrollWheel");
+//    e.set("dx", dx);
+//    e.set("dy", dy);
+//    mEmit.send("onScrollWheel", e);
+//  }
+//#endif
+  
+  return false;
+}
+
+
 bool pxScene2d::onKeyDown(uint32_t keyCode, uint32_t flags)
 {
   if (mFocusObj)
@@ -3720,6 +3749,7 @@ rtDefineProperty(pxViewContainer, h);
 rtDefineMethod(pxViewContainer, onMouseDown);
 rtDefineMethod(pxViewContainer, onMouseUp);
 rtDefineMethod(pxViewContainer, onMouseMove);
+rtDefineMethod(pxViewContainer, onScrollWheel);
 rtDefineMethod(pxViewContainer, onMouseEnter);
 rtDefineMethod(pxViewContainer, onMouseLeave);
 rtDefineMethod(pxViewContainer, onFocus);

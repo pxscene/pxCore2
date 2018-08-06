@@ -263,6 +263,12 @@ bool pxWayland::onMouseMove(int32_t x, int32_t y)
    return false;
 }
 
+bool pxWayland::onScrollWheel(float dx, float dy)
+{
+  // TODO
+  return false;
+}
+
 bool pxWayland::onFocus()
 {
    // Nothing to do

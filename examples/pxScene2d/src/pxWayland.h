@@ -146,6 +146,7 @@ public:
   virtual bool onMouseEnter();
   virtual bool onMouseLeave();
   virtual bool onMouseMove(int32_t x, int32_t y);
+  virtual bool onScrollWheel(float dx, float dy);
   virtual bool onFocus();
   virtual bool onBlur();
   virtual bool onKeyDown(uint32_t keycode, uint32_t flags);

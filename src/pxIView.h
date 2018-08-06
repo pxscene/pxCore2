@@ -55,6 +55,7 @@ public:
   virtual bool RT_STDCALL onMouseDown(int32_t x, int32_t y, uint32_t flags) = 0;
   virtual bool RT_STDCALL onMouseUp(int32_t x, int32_t y, uint32_t flags) = 0;
   virtual bool RT_STDCALL onMouseMove(int32_t x, int32_t y) = 0;
+  virtual bool RT_STDCALL onScrollWheel(float dx, float dy) = 0;
 
   virtual bool RT_STDCALL onMouseEnter() = 0;
   virtual bool RT_STDCALL onMouseLeave() = 0;
