@@ -143,7 +143,7 @@ set(PXCORE_LIB_LOCATION ${PXCOREDIR}/build/egl)
 set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${PXCORE_LIB_LOCATION})
 set(PLATFORM_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/../../pxScene2d/src/egl/pxContextUtils.cpp)
 set(PXSCENE_DEFINITIONS ${PXSCENE_DEFINITIONS} -DPXSCENE_DISABLE_PXCONTEXT_EXT)
-include_directories(AFeglTER /opt/vc/include /opt/vc/include/interface/vcos/pthreads
+include_directories(AFTER /opt/vc/include /opt/vc/include/interface/vcos/pthreads
 /opt/vc/include/interface/vmcs_host/linux /opt/vc/include)
 set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} /opt/vc/lib/)
 set(PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} bcm_host)
