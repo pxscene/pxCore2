@@ -110,7 +110,7 @@ public:
         xDrawImageBorder9,
         xDrawImageMasked,
         xDrawTextureQuads,
-        xDrawOffscreen,
+        //xDrawOffscreen,
         xDrawAll
     };
     
@@ -123,8 +123,8 @@ public:
     : mIterationCounter(0)
     , mCurrentX (0)
     , mCurrentY (0)
-    , mUnitWidth (25) // TODO 20->50x50 image size 512x512
-    , mUnitHeight (25)
+    , mUnitWidth (50) // TODO 20->50x50 image size 512x512
+    , mUnitHeight (50)
     {
     }
     

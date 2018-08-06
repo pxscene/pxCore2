@@ -220,9 +220,9 @@ void benchmarkWindow::reset()
         case pxApiFixture::type::xDrawTextureQuads:
             mGroupName = "DrawTextureQuads";
             break;
-        case pxApiFixture::type::xDrawOffscreen:
-            mGroupName = "DrawOffscreen";
-            break;
+        //case pxApiFixture::type::xDrawOffscreen:
+        //    mGroupName = "DrawOffscreen";
+        //    break;
         case pxApiFixture::type::xDrawAll:
             mGroupName = "DrawAll";
             break;
@@ -415,9 +415,9 @@ void pxApiFixture::TestDrawDiagRect ()
 
 void pxApiFixture::TestDrawImage ()
 {
-    context.clear(1280, 720);
+    //context.clear(1280, 720);
     rtString settingsPath;
-    string url = "/resources/1.jpeg";
+    string url = "Resources/" + to_string((mExperimentValue.Iterations%15)+1) + ".jpg";
     if (RT_OK == rtGetHomeDirectory(settingsPath))
         url = settingsPath.cString() + url;
     
@@ -445,27 +445,71 @@ void pxApiFixture::TestDrawImage ()
 
 void pxApiFixture::TestDrawImage9 ()
 {
-    pxContextFramebufferRef drawableSnapshotForMask = context.createFramebuffer(static_cast<int>(floor(mUnitWidth)), static_cast<int>(floor(mUnitHeight)));
+    //pxContextFramebufferRef drawableSnapshotForMask = context.createFramebuffer(static_cast<int>(floor(mUnitWidth)), static_cast<int>(floor(mUnitHeight)));
     //context.clear(1280, 720);
-    context.drawImage9(mUnitWidth, mUnitHeight, mCurrentX, mCurrentY, mCurrentX + mUnitWidth, mCurrentY + mUnitHeight, drawableSnapshotForMask->getTexture());
+    
+    rtString settingsPath;
+    string url = "Resources/" + to_string((mExperimentValue.Iterations%15)+1) + ".jpg";
+    if (RT_OK == rtGetHomeDirectory(settingsPath))
+        url = settingsPath.cString() + url;
+    
+    //if (!rtFileExists((char*)url.c_str()))
+    //    return;
+    
+    rtRef<rtImageResource> resource = pxImageManager::getImage((char*)url.c_str());
+    pxTextureRef texture = resource->getTexture();
+    if (texture == NULL)
+        return;
+    
+    context.drawImage9(mUnitWidth, mUnitHeight, mCurrentX, mCurrentY, mCurrentX + mUnitWidth, mCurrentY + mUnitHeight, texture);
 }
 
 void pxApiFixture::TestDrawImage9Border ()
 {
-    pxContextFramebufferRef drawableSnapshotForMask = context.createFramebuffer(static_cast<int>(floor(mUnitWidth)), static_cast<int>(floor(mUnitHeight)));
+    //pxContextFramebufferRef drawableSnapshotForMask = context.createFramebuffer(static_cast<int>(floor(mUnitWidth)), static_cast<int>(floor(mUnitHeight)));
     
     static float color[4] = {0., 1.0, 0.0, 1.0};
-
-    context.drawImage9Border(mUnitWidth, mUnitHeight, mCurrentX, mCurrentY, mCurrentX + mUnitWidth, mCurrentY + mUnitHeight, mCurrentX, mCurrentY, mCurrentX + mUnitWidth, mCurrentY + mUnitHeight, ((int)mCurrentX) % 2 == 0 ? true : false, color, drawableSnapshotForMask->getTexture());
+    rtString settingsPath;
+    string url = "Resources/" + to_string((mExperimentValue.Iterations%15)+1) + ".jpg";
+    if (RT_OK == rtGetHomeDirectory(settingsPath))
+        url = settingsPath.cString() + url;
+    
+    //if (!rtFileExists((char*)url.c_str()))
+    //    return;
+    
+    rtRef<rtImageResource> resource = pxImageManager::getImage((char*)url.c_str());
+    pxTextureRef texture = resource->getTexture();
+    if (texture == NULL)
+        return;
+    
+    context.drawImage9Border(mUnitWidth, mUnitHeight, mCurrentX, mCurrentY, mCurrentX + mUnitWidth, mCurrentY + mUnitHeight, mCurrentX, mCurrentY, mCurrentX + mUnitWidth, mCurrentY + mUnitHeight, ((int)mCurrentX) % 2 == 0 ? true : false, color, texture);
 }
 
 void pxApiFixture::TestDrawImageMasked ()
 {
-    pxContextFramebufferRef drawableSnapshotForMask = context.createFramebuffer(static_cast<int>(floor(mUnitWidth)), static_cast<int>(floor(mUnitHeight)));
+    //pxContextFramebufferRef drawableSnapshotForMask = context.createFramebuffer(static_cast<int>(floor(mUnitWidth)), static_cast<int>(floor(mUnitHeight)));
     
-    pxContextFramebufferRef maskSnapshot = context.createFramebuffer(static_cast<int>(floor(mUnitWidth)), static_cast<int>(floor(mUnitHeight)));
+    //pxContextFramebufferRef maskSnapshot = context.createFramebuffer(static_cast<int>(floor(mUnitWidth)), static_cast<int>(floor(mUnitHeight)));
     //context.clear(1280, 720);
-    context.drawImageMasked(mCurrentX, mCurrentY, mUnitWidth, mUnitHeight, ((int)mCurrentX) % 2 == 0 ? pxConstantsMaskOperation::constants::NORMAL : pxConstantsMaskOperation::constants::INVERT, drawableSnapshotForMask->getTexture(), maskSnapshot->getTexture());
+    
+    rtString settingsPath;
+    string url = "Resources/" + to_string((mExperimentValue.Iterations%15)+1) + ".jpg";
+    if (RT_OK == rtGetHomeDirectory(settingsPath))
+        url = settingsPath.cString() + url;
+    
+    rtRef<rtImageResource> resource = pxImageManager::getImage((char*)url.c_str());
+    pxTextureRef texture = resource->getTexture();
+    if (texture == NULL)
+        return;
+    
+    
+    url = "Resources/" + to_string((mExperimentValue.Iterations%15)+2) + ".jpg";
+    
+    url = settingsPath.cString() + url;
+    
+    resource = pxImageManager::getImage((char*)url.c_str());
+   
+    context.drawImageMasked(mCurrentX, mCurrentY, mUnitWidth, mUnitHeight, ((int)mCurrentX) % 2 == 0 ? pxConstantsMaskOperation::constants::NORMAL : pxConstantsMaskOperation::constants::INVERT, texture, resource->getTexture());
 }
 
 void pxApiFixture::TestDrawTextureQuads()
@@ -543,6 +587,11 @@ void pxApiFixture::onExperimentStart(const celero::TestFixture::ExperimentValue&
     {
         mCurrentX = 0.0;
         mCurrentY = 0.0;
+        
+        context.setSize(win.GetWidth(), win.GetHeight());
+        
+        float fillColor[] = {1.0, 1.0, 0.0, 1.0};
+        context.clear(0, 0, fillColor);
     }
     else if (mCurrentX < win.GetWidth())
         mCurrentX += mUnitWidth;
@@ -577,9 +626,9 @@ void pxApiFixture::onExperimentStart(const celero::TestFixture::ExperimentValue&
         case xDrawTextureQuads:
             TestDrawTextureQuads();
             break;
-        case xDrawOffscreen:
-            TestDrawOffscreen();
-            break;
+        //case xDrawOffscreen:
+        //    TestDrawOffscreen();
+        //    break;
         case xDrawAll:
             TestDrawAll();
             break;
