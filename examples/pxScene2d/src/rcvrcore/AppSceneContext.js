@@ -33,7 +33,6 @@ var AsyncFileAcquisition = require('rcvrcore/utils/AsyncFileAcquisition');
 var AccessControl = require('rcvrcore/utils/AccessControl').AccessControl;
 var WrapObj = require('rcvrcore/utils/WrapObj');
 var http2_wrap = require('rcvrcore/http2_wrap');
-var ws_wrap = (isDuk)?"":require('rcvrcore/ws_wrap');
 
 var log = new Logger('AppSceneContext');
 //overriding original timeout and interval functions
