@@ -61,7 +61,7 @@ char** g_origArgv = NULL;
 // class pxbenchmarkWindow
 //-----------------------------------------------------------------------------------
 
-void benchmarkWindow::init(const int32_t& x, const int32_t& y, const int32_t& w, const int32_t& h, const char* url/* = NULL*/)
+void benchmarkWindow::init(const int32_t& x, const int32_t& y, const int32_t& w, const int32_t& h, const int32_t& mw, const int32_t& mh)
 {
     mApiFixture = std::shared_ptr<pxApiFixture>(&pxApiFixture::Instance());
     
@@ -78,6 +78,10 @@ void benchmarkWindow::init(const int32_t& x, const int32_t& y, const int32_t& w,
     print::TableBanner();
     
     pxWindow::init(x,y,w,h);
+    
+    mApiFixture->mUnitWidth = mw;
+    
+    mApiFixture->mUnitHeight = mh;
     
     mApiFixture->popExperimentValue().Value = pxApiFixture::type::xDrawRect;
     
@@ -530,10 +534,10 @@ void pxApiFixture::TestDrawTextureQuads()
         { mCurrentX,   mCurrentY + mUnitHeight },
         { mCurrentX + mUnitWidth, mCurrentY + mUnitHeight }
     };
-    float u1 = ((int)mCurrentX) % 2 == 0 ? 0 : 1;
-    float v1 = ((int)mCurrentY) % 2 == 0 ? 1 : 0;
-    float u2 = ((int)mCurrentX) % 2 == 0 ? 1 : 0;
-    float v2 = ((int)mCurrentY) % 2 == 0 ? 0 : 1;
+    float u1 = 0;//((int)mCurrentX) % 2 == 0 ? 0 : 1;
+    float v1 = 1;//((int)mCurrentY) % 2 == 0 ? 1 : 0;
+    float u2 = 1;//((int)mCurrentX) % 2 == 0 ? 1 : 0;
+    float v2 = 0;//((int)mCurrentY) % 2 == 0 ? 0 : 1;
     const float uvs[6][2] =
     {
         { u1, v1  },
@@ -845,15 +849,24 @@ int pxMain(int argc, char* argv[])
     if (RT_OK == rtSettings::instance()->value("screenHeight", screenHeight))
         windowHeight = screenHeight.toInt32();
     
+    
+    int32_t unitW = 25;
+    int32_t unitH = 25;
     if (argc > 3)
     {
-        windowWidth = stoi(argv[3]);
-        windowHeight = stoi(argv[4]);
+        unitW = stoi(argv[3]);
+        unitH = stoi(argv[4]);
+    }
+    
+    if (argc > 5)
+    {
+        windowWidth = stoi(argv[5]);
+        windowHeight = stoi(argv[6]);
     }
     // OSX likes to pass us some weird parameter on first launch after internet install
     rtLogInfo("window width = %d height = %d", windowWidth, windowHeight);
     
-    win.init(10, 10, windowWidth, windowHeight, NULL);//, url);
+    win.init(0, 0, windowWidth, windowHeight, unitW, unitH);
     
     win.setTitle(buffer);
     

@@ -123,8 +123,8 @@ public:
     : mIterationCounter(0)
     , mCurrentX (0)
     , mCurrentY (0)
-    , mUnitWidth (50) // TODO 20->50x50 image size 512x512
-    , mUnitHeight (50)
+    , mUnitWidth (572) // TODO 20->50x50 image size 512x512
+    , mUnitHeight (572)
     {
     }
     
@@ -228,7 +228,7 @@ public:
     {
     }
     
-    void init(const int32_t& x, const int32_t& y, const int32_t& w, const int32_t& h, const char* url = NULL);
+    void init(const int32_t& x, const int32_t& y, const int32_t& w, const int32_t& h, const int32_t& mw, const int32_t& mh);
     
     void* getInterface(const char* /*name*/);
     
