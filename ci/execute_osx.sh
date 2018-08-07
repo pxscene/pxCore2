@@ -1,6 +1,7 @@
 #!/bin/sh
 #This script executes necessary javascript files and mesaures pxleak checks and memory leaks checks
 
+
 if [ -z "${TRAVIS_BUILD_DIR}" ]
 then
   printf "\nFATAL ERROR:  'TRAVIS_BUILD_DIR' env var is NOT defined\n\n"
@@ -8,7 +9,6 @@ then
 else
   printf "\nUSING: TRAVIS_BUILD_DIR=${TRAVIS_BUILD_DIR}\n\n"
 fi
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 checkError()
 {
@@ -33,7 +33,9 @@ dumped_core=0
 
 export PX_DUMP_MEMUSAGE=1
 export RT_LOG_LEVEL=info
-export PXSCENE_PERMISSIONS_CONFIG=$TRAVIS_BUILD_DIR/examples/pxScene2d/src/pxscenepermissions.conf
+export SPARK_CORS_ENABLED=true
+export SPARK_PERMISSIONS_CONFIG=$TRAVIS_BUILD_DIR/examples/pxScene2d/src/sparkpermissions.conf
+export SPARK_PERMISSIONS_ENABLED=true
 export HANDLE_SIGNALS=1
 export ENABLE_MEMLEAK_CHECK=1
 export MallocStackLogging=1
@@ -41,7 +43,7 @@ export SPARK_ENABLE_COLLECT_GARBAGE=1
 
 EXECLOGS=$TRAVIS_BUILD_DIR/logs/exec_logs
 LEAKLOGS=$TRAVIS_BUILD_DIR/logs/leak_logs
-TESTRUNNERURL="https://px-apps.sys.comcast.net/pxscene-samples/examples/px-reference/test-run/testRunner_v5.js"
+TESTRUNNERURL="https://px-apps.sys.comcast.net/pxscene-samples/examples/px-reference/test-run/testRunner_v5.1.js"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 printExecLogs()
@@ -65,7 +67,6 @@ while [ "$count" -le "$max_seconds" ]; do
 	#leaks -nocontext pxscene > $LEAKLOGS
 	printf "\n [execute_osx.sh] snoozing for 30 seconds (%d of %d) \n" $count $max_seconds
 	sleep 30; # seconds
-
 	grep "TEST RESULTS: " /var/tmp/pxscene.log   # string in [results.js] must be "TEST RESULTS: "
 	retVal=$?
 
@@ -98,8 +99,10 @@ fi
 # Handle crash - 'dumped_core = 1' ?
 if [ "$dumped_core" -eq 1 ]
 	then
+	ps -ef | grep pxscene |grep -v grep >> /var/tmp/pxscene.log
+        ps -ef |grep /bin/sh |grep -v grep >> /var/tmp/pxscene.log
 	$TRAVIS_BUILD_DIR/ci/check_dump_cores_osx.sh `pwd` `ps -ef | grep pxscene |grep -v grep|grep -v pxscene.sh|awk '{print $2}'` /var/tmp/pxscene.log
-	checkError $cored "Execution failed" "Core dump" "Run execution locally"
+	checkError $dumped_core "Execution failed" "Core dump" "Run execution locally"
 fi
 
 # Wait for few seconds to get the application terminate completely

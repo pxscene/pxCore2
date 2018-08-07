@@ -1,6 +1,6 @@
 /*
 
- pxCore Copyright 2005-2017 John Robinson
+ pxCore Copyright 2005-2018 John Robinson
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -47,13 +47,28 @@ public:
   virtual rtError setText(const char* text);
   rtError removeResourceListener();
 
-  rtError textColor(uint32_t& c) const {
-    c = 0;
-    rtLogWarn("textColor not implemented");
+  rtError textColor(uint32_t& c) const
+  {
+#ifdef PX_LITTLEENDIAN_PIXELS
+
+    c = ((uint8_t) (mTextColor[0] * 255.0f) << 24) |  // R
+        ((uint8_t) (mTextColor[1] * 255.0f) << 16) |  // G
+        ((uint8_t) (mTextColor[2] * 255.0f) <<  8) |  // B
+        ((uint8_t) (mTextColor[3] * 255.0f) <<  0);   // A
+#else
+
+    c = ((uint8_t) (mTextColor[3] * 255.0f) << 24) |  // A
+        ((uint8_t) (mTextColor[2] * 255.0f) << 16) |  // B
+        ((uint8_t) (mTextColor[1] * 255.0f) <<  8) |  // G
+        ((uint8_t) (mTextColor[0] * 255.0f) <<  0);   // R
+#endif
+
+    
     return RT_OK;
   }
 
-  rtError setTextColor(uint32_t c) {
+  rtError setTextColor(uint32_t c)
+  {
     mTextColor[0] = (float)((c>>24)&0xff)/255.0f;
     mTextColor[1] = (float)((c>>16)&0xff)/255.0f;
     mTextColor[2] = (float)((c>>8)&0xff)/255.0f;
@@ -74,8 +89,8 @@ public:
   
   virtual rtError Set(uint32_t i, const rtValue* value) override
   {
-    std::ignore = i;
-    std::ignore = value;
+    (void)i;
+    (void)value;
     rtLogError("pxText::Set(uint32_t, const rtValue*) - not implemented");
     return RT_ERROR_NOT_IMPLEMENTED;
   }
@@ -101,10 +116,12 @@ public:
   }
 
   virtual void resourceReady(rtString readyResolution);
+  virtual void resourceDirty();
   virtual void sendPromise();
   virtual float getOnscreenWidth();
   virtual float getOnscreenHeight();
   virtual void createNewPromise();
+  virtual void dispose(bool pumpJavascript);
   
  protected:
   virtual void draw();

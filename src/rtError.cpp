@@ -1,6 +1,6 @@
 /*
 
- pxCore Copyright 2005-2017 John Robinson
+ pxCore Copyright 2005-2018 John Robinson
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -105,7 +105,6 @@ const char* rtStrError_BuiltIn(rtError e)
     RT_ERROR_CASE(RT_NO_CONNECTION);
     RT_ERROR_CASE(RT_ERROR_NOT_IMPLEMENTED);
     RT_ERROR_CASE(RT_ERROR_TYPE_MISMATCH);
-    RT_ERROR_CASE(RT_ERROR_NOT_ALLOWED);
 
     RT_ERROR_CASE(RT_ERROR_TIMEOUT);
     RT_ERROR_CASE(RT_ERROR_DUPLICATE_ENTRY);
@@ -115,6 +114,8 @@ const char* rtStrError_BuiltIn(rtError e)
     RT_ERROR_CASE(RT_ERROR_IN_PROGRESS);
     RT_ERROR_CASE(RT_ERROR_QUEUE_EMPTY);
     RT_ERROR_CASE(RT_ERROR_STREAM_CLOSED);
+
+    RT_ERROR_CASE(RT_ERROR_NOT_ALLOWED);
     default:
       break;
   }

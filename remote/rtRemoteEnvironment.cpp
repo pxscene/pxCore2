@@ -1,3 +1,21 @@
+/*
+
+pxCore Copyright 2005-2018 John Robinson
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+*/
+
 #include "rtRemoteEnvironment.h"
 #include "rtRemoteConfig.h"
 #include "rtRemoteServer.h"
@@ -160,9 +178,11 @@ rtRemoteEnvironment::waitForResponse(std::chrono::milliseconds timeout, rtRemote
     e = RT_ERROR_TIMEOUT;
   }
 
-  // TODO: Is this the proper code?
   if (!m_running)
+  {
+    rtLogError("waitForResponse: env is not running. RT_FAIL");
     e = RT_FAIL;
+  }
 
   return e;
 }
@@ -188,7 +208,13 @@ rtRemoteEnvironment::processSingleWorkItem(std::chrono::milliseconds timeout, bo
   }
   else
   {
-    if (!m_running || (specificKey && m_response_handlers.find(*specificKey) == m_response_handlers.end()))
+    if (!m_running)
+    {
+      rtLogError("processSingleWorkItem: env is not running. RT_FAIL");
+      return RT_FAIL;
+    }
+
+    if (specificKey && m_response_handlers.find(*specificKey) == m_response_handlers.end())
       return RT_OK;
 
     WorkItemMap::iterator it;

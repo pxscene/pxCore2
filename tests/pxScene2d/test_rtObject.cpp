@@ -1,3 +1,21 @@
+/*
+
+pxCore Copyright 2005-2018 John Robinson
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+*/
+
 #include <sstream>
 
 #define private public
@@ -56,7 +74,14 @@ class rtEmitTest : public testing::Test
       rtString event("eventone");
       size_t listenerCountBeforeAdd = mEmit->mEntries.size();
       EXPECT_TRUE (RT_OK == mEmit->addListener(event.cString(),&fnCallback));
-      //EXPECT_TRUE (listenerCountBeforeAdd == mEmit->mEntries.size());
+      EXPECT_TRUE (listenerCountBeforeAdd /* TODO: remove +1 */ + 1 == mEmit->mEntries.size());
+    }
+
+    void addPendingEventTest()
+    {
+      rtString event("eventpending");
+      EXPECT_TRUE (RT_OK == mEmit->addListener(event.cString(),&fnCallback));
+      EXPECT_TRUE (0 == mEmit->mPendingEntriesToAdd.size());
     }
 
     void delListenerTest()
@@ -76,6 +101,7 @@ TEST_F(rtEmitTest, rtEmitTests)
   setListenerTest();
   addListenerDuplicateEventTest();
   addListenerEmptyFnTest();
+  addPendingEventTest();
   delListenerTest();
 }
 

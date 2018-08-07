@@ -1,3 +1,21 @@
+/*
+
+pxCore Copyright 2005-2018 John Robinson
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+*/
+
 
 var baseUrl = "http://www.pxscene.org/examples/px-reference/gallery/";
 
@@ -6,6 +24,7 @@ px.configImport({"browser:" : /*px.getPackageBaseFilePath() + */ "browser/"});
 
 px.import({ scene:      'px:scene.1.js',
              keys:      'px:tools.keys.js',
+             ListBox: 'browser:listbox.js',
              EditBox: 'browser:editbox.js'
 }).then( function importsAreReady(imports)
 {  
@@ -15,7 +34,7 @@ px.import({ scene:      'px:scene.1.js',
   var scene = imports.scene;
   var keys  = imports.keys;
   var root  = imports.scene.root;
-
+ 
   var urlFocusColor     = 0x303030ff;
   var urlSucceededColor = 0x0c8508ff;
   var urlFailedColor    = 0xde0700ff;
@@ -24,14 +43,16 @@ px.import({ scene:      'px:scene.1.js',
 
   var fontRes   = scene.create({ t: "fontResource",  url: "FreeSans.ttf" });
 
-  var bg        = scene.create({t:"image", parent: root, url:"browser/images/status_bg.png", stretchX: myStretch, stretchY: myStretch});
+  var bg        = scene.create({t:"image",  parent: root, url:"browser/images/status_bg.svg", stretchX: myStretch, stretchY: myStretch });
   var browser   = scene.create({t:"object", parent: bg} );
+  var content   = scene.create({t:"scene",  parent: bg,      x:10, y:60, clip:true });
 
-  var contentBG = scene.create({t:"rect",  parent: browser, x:10, y:60, fillColor: 0xffffffff, a: 0.05, draw: false});
-  var content   = scene.create({t:"scene", parent: bg, x:10, y:60, clip:true});
-  var spinner   = scene.create({t:"image", url:"browser/images/spinningball2.png",cx:50,cy:50,y:-80,parent:browser,sx:0.3,sy:0.3,a:0.0});
-
+  var contentBG = scene.create({t:"rect",   parent: browser, x:10, y:60, fillColor: 0xffffffff, a: 0.05 });
+  var spinner   = scene.create({t:"image",  parent: browser, url: "browser/images/spinningball2.png",  y:-80, cx: 50, cy: 50, sx: 0.3, sy: 0.3,a:0.0 });
   var inputBox = new imports.EditBox( { parent: browser, url: "browser/images/input2.png", x: 10, y: 10, w: 800, h: 35, pts: 24 });
+  var listBox = new imports.ListBox( { parent: content, x: 950, y: 0, w: 200, h: 100, visible:false, numItems:3 });
+
+  
   var helpBox   = null;
 
   var pageInsetL = 20;
@@ -123,7 +144,7 @@ px.import({ scene:      'px:scene.1.js',
       content.ready.then(
         function(o)
         {
-          console.log(o);
+          listBox.addItem(inputBox.text);
           contentBG.draw = true;
           content.focus = true;
 
@@ -158,17 +179,21 @@ px.import({ scene:      'px:scene.1.js',
 
   function updateSize(w,h)
   {
-    // console.log("Resizing...");
+    // console.log("\n\n BROWSER:  Resizing... WxH: " + w + " x " + h + " \n\n");
 
     bg.w = w;
     bg.h = h;
 
-    // Apply insets
-    content.w   = w - pageInsetL;
-    content.h   = h - pageInsetT;
+    // Anchor
+    content.x   = showFullscreen ?  0 : 10;
+    content.y   = showFullscreen ?  0 : 60;
 
-    contentBG.w = w - pageInsetL;
-    contentBG.h = h - pageInsetT;  
+    // Apply insets
+    content.w   = showFullscreen ?  w : w - pageInsetL;
+    content.h   = showFullscreen ?  h : h - pageInsetT;
+
+    contentBG.w = content.w;
+    contentBG.h = content.h;
 
     inputBox.w  = w - pageInsetL;
 
@@ -176,7 +201,7 @@ px.import({ scene:      'px:scene.1.js',
     helpBox.y   = inputBox.y + pageInsetL;
 
     spinner.x   = inputBox.x + inputBox.w - pageInsetT + 10;
-    spinner.y  = inputBox.y - inputBox.h;
+    spinner.y   = inputBox.y - inputBox.h;
   }
 
   scene.root.on("onPreKeyDown", function(e)
@@ -241,12 +266,10 @@ px.import({ scene:      'px:scene.1.js',
 
         if(showFullscreen)
         {
-//          console.log("\n\n ######### FULL WINDOW");
           content.moveToFront();
         }
         else
         {
-//          console.log("\n\n ######### CONTENT AREA");
           browser.moveToFront();
         }
 
@@ -274,6 +297,25 @@ px.import({ scene:      'px:scene.1.js',
         e.stopPropagation();
     }
     }
+    // display or hide the listbox
+    else if(e.keyCode == keys.PAGEDOWN)
+    {
+      listBox.visible = !listBox.visible;
+      listBox.focus = !listBox.focus;
+    }
+    else if( code == keys.ENTER && listBox.visible == true)
+    {
+      var listBoxItem = listBox.selectedItem();
+      if (listBoxItem == "UNAVAILABLE")
+      {
+        url = inputBox.text;
+      }
+      else
+      {
+        url = listBoxItem;
+      }
+      reload(url);
+    }
     else if( code == keys.ENTER && inputBox.focus == true)
     {
       url = inputBox.text;
@@ -290,7 +332,7 @@ px.import({ scene:      'px:scene.1.js',
 
   scene.on("onResize", function(e) { updateSize(e.w,e.h); });
 
-  Promise.all([inputBox, bg, spinner, content, fontRes])
+  Promise.all([listBox, inputBox, bg, spinner, content, fontRes])
       .catch( function (err)
       {
           console.log(">>> Loading Assets ... err = " + err);

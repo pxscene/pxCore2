@@ -1,3 +1,21 @@
+/*
+
+pxCore Copyright 2005-2018 John Robinson
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+*/
+
 
 px.import({ scene: 'px:scene.1.js' }).then( function importsAreReady(imports)
 {
@@ -18,7 +36,7 @@ px.import({ scene: 'px:scene.1.js' }).then( function importsAreReady(imports)
 
   var label_w   = 175;
   var label_h   = 26;
-  var value_w   = 225;
+  var value_w   = 355;
   var value_h   = 26;
 
   var max_w     = label_w + value_w;
@@ -79,7 +97,7 @@ px.import({ scene: 'px:scene.1.js' }).then( function importsAreReady(imports)
 
      var valueTxt  = scene.create({ t: "textBox", parent: valueRect, textColor: 0x000000ff,
                                     w: value_w, h: value_h,     x: 0, y: 0,
-                                    font: fontRes, pixelSize: textPts, wordWrap: true,
+                                    font: fontRes, pixelSize: textPts, wordWrap: true, truncation: scene.truncation.TRUNCATE,
                                     xStartPos: ix, xStopPos: ix,
                                     text: value, // ### VALUE
                                     alignHorizontal: scene.alignHorizontal.LEFT,
@@ -93,11 +111,12 @@ px.import({ scene: 'px:scene.1.js' }).then( function importsAreReady(imports)
   {
     var gfx = parseInt( parseInt( scene.info.gfxmemory ) / 1024);
 
-    addRow(rows, "InfoBuildVersion", "Version: ",         scene.info.version);
-    addRow(rows, "InfoBuildEngine", "Engine: ",         scene.info.engine);
-    addRow(rows, "InfoBuildDate",    "Build Date: ",      scene.info.build.date.replace(/"/g, '') ); // global RegEx
-    addRow(rows, "InfoBuildTime",    "Build Time: ",      scene.info.build.time.replace(/"/g, '') ); // global RegEx
-    addRow(rows, "InfoGfxMemory",    "Base GFX memory: ", gfx.toLocaleString()  + " KB");
+    addRow(rows, "InfoBuildVersion",  "Version: ",         scene.info.version);
+    addRow(rows, "InfoBuildEngine",   "Engine: ",          scene.info.engine);
+    addRow(rows, "InfoBuildDate",     "Build Date: ",      scene.info.build.date.replace(/"/g, '') ); // global RegEx
+    addRow(rows, "InfoBuildTime",     "Build Time: ",      scene.info.build.time.replace(/"/g, '') ); // global RegEx
+    addRow(rows, "InfoBuildRevision", "Build Revision: ",  scene.info.build.revision.replace(/"\s*/g, '')); // global RegEx
+    addRow(rows, "InfoGfxMemory",     "Base GFX memory: ", gfx.toLocaleString()  + " KB");
   }
 
   function updateSize(w,h)

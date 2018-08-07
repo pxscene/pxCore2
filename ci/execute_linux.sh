@@ -6,9 +6,9 @@ checkError()
   then
         printf "\n\n*******************************************************************";
 	printf "\n******************* BUILD FAIL DETAILS ******************************";
-        printf "\n failure reason: $2"
-        printf "\nuse: $3"
-        printf "\nproduction/How to fix: $4"
+        printf "\nCI Failure reason: $2"
+        printf "\nCause: $3"
+        printf "\nReproduction/How to fix: $4"
 	printf "\n*******************************************************************";
 	printf "\n*******************************************************************\n\n";
         #exit 1;
@@ -27,17 +27,22 @@ fi
 
 rm -rf /tmp/cache/*
 rm -rf $TRAVIS_BUILD_DIR/logs/*
+rm /tmp/pxscenecrash
 
 export VALGRINDLOGS=$TRAVIS_BUILD_DIR/logs/valgrind_logs
 export PX_DUMP_MEMUSAGE=1
+export HANDLE_SIGNALS=1
 export ENABLE_VALGRIND=1
 export RT_LOG_LEVEL=info
+export SPARK_CORS_ENABLED=true
+export SPARK_PERMISSIONS_CONFIG=$TRAVIS_BUILD_DIR/examples/pxScene2d/src/sparkpermissions.conf
+export SPARK_PERMISSIONS_ENABLED=true
 export SUPPRESSIONS=$TRAVIS_BUILD_DIR/ci/leak.supp
 export SPARK_ENABLE_COLLECT_GARBAGE=1
 
 touch $VALGRINDLOGS
 EXECLOGS=$TRAVIS_BUILD_DIR/logs/exec_logs
-TESTRUNNERURL="https://px-apps.sys.comcast.net/pxscene-samples/examples/px-reference/test-run/testRunner_v5.js"
+TESTRUNNERURL="https://px-apps.sys.comcast.net/pxscene-samples/examples/px-reference/test-run/testRunner_v5.1.js"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 printExecLogs()
@@ -50,7 +55,7 @@ printExecLogs()
 printValgrindLogs()
 {
   printf "\n********************** PRINTING VALGRIND LOG **************************\n"
-  grep -i "definitely" -C 50 $VALGRINDLOGS
+  tail -150 $VALGRINDLOGS
   printf "\n**********************     LOG ENDS      **************************\n"
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -65,18 +70,16 @@ retVal=$?
 # Monitor testRunner ...
 count=0
 max_seconds=1500
-
 while [ "$retVal" -ne 0 ] &&  [ "$count" -ne "$max_seconds" ]; do
 	printf "\n [execute_linux.sh] snoozing for 30 seconds (%d of %d) \n" $count $max_seconds
 	sleep 30; # seconds
-
 	grep "TEST RESULTS: " $EXECLOGS
 	retVal=$?
 	
 	count=$((count+30))
 	if [ "$retVal" -ne 0 ]
 		then
-		ls -lrt core
+		ls -lrt /tmp/pxscenecrash
 		retVal=$?
 	fi
 done
@@ -90,16 +93,20 @@ pkill -9 -f pxscene.sh
 chmod 444 $VALGRINDLOGS
 
 #check for crash
-$TRAVIS_BUILD_DIR/ci/check_dump_cores_linux.sh `pwd` pxscene $EXECLOGS
+ls -l /tmp/pxscenecrash
 retVal=$?
-if [ "$retVal" -eq 1 ]
-	then
-	checkError $retVal "Execution failed" "Core dump" "Test by running locally"
-	if [ "$TRAVIS_PULL_REQUEST" != "false" ]
-		then
-                  printExecLogs
-	fi
-	exit 1;
+if [ "$retVal" -eq 0 ]
+  then
+  if [ "$TRAVIS_PULL_REQUEST" != "false" ]
+  then
+    echo "****************************** CORE DUMP DETAILS ******************************"
+    cat $VALGRINDLOGS | head -150
+    echo "*******************************************************************************"
+    checkError -1 "Execution failed" "Core dump" "Kindly refer the above trace and test by running locally"
+  else
+    checkError -1 "Execution failed" "Core dump" "Kindly refer $VALGRINDLOGS and test by running locally"
+  fi
+  exit 1;
 fi
 
 
@@ -161,6 +168,22 @@ else
 	exit 1;
 fi
 
+#check for crash before valgrind test, as we might have got scenario where pxscene might have crashed during term
+ls -lrt *valgrind*
+retVal=$?
+if [ "$retVal" -eq 0 ]
+  then
+  if [ "$TRAVIS_PULL_REQUEST" != "false" ]
+  then
+    echo "****************************** CORE DUMP DETAILS ******************************"
+    cat $VALGRINDLOGS | head -150
+    echo "*******************************************************************************"
+    checkError -1 "Execution failed" "Core dump" "Kindly refer the above trace and test by running locally"
+  else
+    checkError -1 "Execution failed" "Core dump" "Kindly refer $VALGRINDLOGS and test by running locally"
+  fi
+  exit 1;
+fi
 
 # Check for valgrind memory leaks
 grep "definitely lost: 0 bytes in 0 blocks" $VALGRINDLOGS
@@ -169,14 +192,22 @@ if [ "$retVal" -eq 0 ]
 	then
 	echo "************************* Valgrind reports success *************************";
 else
+	grep "definitely lost:" $VALGRINDLOGS
+	leakcheck=$?
+	if [ "$leakcheck" -eq 0 ]
+	then
+		errCause="Memory leaks present"
+	else
+		errCause="Execution stopped due to crash or abnormal execution"
+	fi
 	if [ "$TRAVIS_PULL_REQUEST" != "false" ]
-		then
-		errCause="Check the above logs"
+	then
+		errCause="$errCause . Check the above logs"
 		printValgrindLogs
 	else
-		errCause="Check the file $VALGRINDLOGS and see for definitely lost count"
+		errCause="$errCause . Check the file $VALGRINDLOGS "
 	fi
-	checkError $retVal "Valgrind execution reported memory leaks" "$errCause" "Follow the steps locally : export ENABLE_VALGRIND=1;export SUPPRESSIONS=<pxcore dir>/ci/leak.supp;./pxscene.sh $TESTRUNNERURL?tests=<pxcore dir>/tests/pxScene2d/testRunner/tests.json and fix the leaks"
+	checkError $retVal "Valgrind execution reported problem" "$errCause" "Follow the steps locally : export ENABLE_VALGRIND=1;export SUPPRESSIONS=<pxcore dir>/ci/leak.supp;./pxscene.sh $TESTRUNNERURL?tests=<pxcore dir>/tests/pxScene2d/testRunner/tests.json and fix it"
 	exit 1;
 fi
 exit 0;

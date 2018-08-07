@@ -28,6 +28,7 @@ set(PXWAYLAND_LIBRARY_SUPPORT 0)
 set(PX_LIBRARY_LINK_PXCORE 1)
 
 option(BUILD_WITH_GL "BUILD_WITH_GL" ON)
+option(BUILD_WITH_PXPATH "BUILD_WITH_PXPATH" OFF)
 option(BUILD_WITH_WAYLAND "BUILD_WITH_WAYLAND" OFF)
 option(BUILD_WITH_WESTEROS "BUILD_WITH_WESTEROS" OFF)
 option(BUILD_WITH_CXX_11 "BUILD_WITH_CXX_11" ON)
@@ -48,10 +49,11 @@ option(BUILD_PXSCENE_WITH_NEXUS_SUPPORT "BUILD_PXSCENE_WITH_NEXUS_SUPPORT" OFF)
 option(BUILD_DEBUG_METRICS "BUILD_DEBUG_METRICS" OFF)
 option(BUILD_WITH_STATIC_NODE "BUILD_WITH_STATIC_NODE" OFF)
 option(BUILD_PXSCENE_APP_WITH_PXSCENE_LIB "BUILD_PXSCENE_APP_WITH_PXSCENE_LIB" OFF)
-option(BUILD_PXSCENE_RASTERIZER_PATH "BUILD_PXSCENE_RASTERIZER_PATH" OFF)
 option(PXSCENE_ACCESS_CONTROL_CHECK "PXSCENE_ACCESS_CONTROL_CHECK" ON)
 option(PXSCENE_PERMISSIONS_CHECK "PXSCENE_PERMISSIONS_CHECK" ON)
 option(PXSCENE_DIRTY_RECTANGLES "PXSCENE_DIRTY_RECTANGLES" OFF)
+option(SPARK_ENABLE_LRU_TEXTURE_EJECTION "SPARK_ENABLE_LRU_TEXTURE_EJECTION" ON)
+option(SPARK_BACKGROUND_TEXTURE_CREATION "SPARK_BACKGROUND_TEXTURE_CREATION" OFF)
 
 if(WIN32)
     option(PXSCENE_COMPILE_WARNINGS_AS_ERRORS "PXSCENE_COMPILE_WARNINGS_AS_ERRORS" OFF)
@@ -322,10 +324,14 @@ include_directories(AFTER ${NODE_INCLUDE_DIRS} ${DUKE_INCLUDE_DIRS})
 include_directories(AFTER ${WESTEROSINC} ${WESTEROSSTUBINC} ${TURBO_JPEG_INCLUDE_DIRS} ${BREAKPADINC} ${RTREMOTEINC} ${PXCOREDIR}/src)
 include_directories(AFTER ${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(AFTER ${CMAKE_CURRENT_SOURCE_DIR}/rasterizer)
-include_directories(AFTER ${CMAKE_CURRENT_SOURCE_DIR}/rasterizer/xs_code)
 
 set(PXSCENE_COMMON_FILES pxResource.cpp pxConstants.cpp pxRectangle.cpp pxFont.cpp pxText.cpp
-        pxTextBox.cpp pxImage.cpp pxImage9.cpp pxImageA.cpp pxImage9Border.cpp pxArchive.cpp pxAnimate.cpp rasterizer/pxRasterizer.cpp rasterizer/pxCanvas.cpp rasterizer/pxCanvas2d.cpp rasterizer/pxPath.cpp)
+        pxTextBox.cpp pxImage.cpp pxImage9.cpp pxImageA.cpp pxImage9Border.cpp pxArchive.cpp pxAnimate.cpp)
+
+if (BUILD_WITH_PXPATH)
+    message("Building with pxPath support")
+    set(PXSCENE_COMMON_FILES  rasterizer/pxPath.cpp)
+endif (BUILD_WITH_PXPATH)
 
 set(PXSCENE_COMMON_FILES ${PXSCENE_COMMON_FILES} pxScene2d.cpp)
 
@@ -383,9 +389,15 @@ if (BUILD_DEBUG_METRICS)
     add_definitions(-DENABLE_DEBUG_METRICS)
 endif (BUILD_DEBUG_METRICS)
 
-if (BUILD_PXSCENE_RASTERIZER_PATH)
-    add_definitions(-DENABLE_PXSCENE_RASTERIZER_PATH)
-endif (BUILD_PXSCENE_RASTERIZER_PATH)
+if (SPARK_ENABLE_LRU_TEXTURE_EJECTION)
+    message("Building with LRU texture ejection")
+    add_definitions(-DENABLE_LRU_TEXTURE_EJECTION)
+endif (SPARK_ENABLE_LRU_TEXTURE_EJECTION)
+
+if (SPARK_BACKGROUND_TEXTURE_CREATION)
+    message("Building with background texture creation")
+    add_definitions(-DENABLE_BACKGROUND_TEXTURE_CREATION)
+endif (SPARK_BACKGROUND_TEXTURE_CREATION)
 
 set(PXSCENE_COMMON_FILES ${PXSCENE_COMMON_FILES} ${PLATFORM_SOURCES})
 
@@ -407,19 +419,13 @@ else ()
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
 endif (BUILD_WITH_CXX_11)
 
-find_package(Git)
-if(GIT_FOUND)
-    execute_process(
-            COMMAND ${GIT_EXECUTABLE} rev-parse HEAD
-            WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-            OUTPUT_VARIABLE SPARK_GIT_REVISION
-            OUTPUT_STRIP_TRAILING_WHITESPACE
-    )
-    message("Building Spark with git revision ${SPARK_GIT_REVISION}")
-else()
-    message("git not found.  revsion unknown")
-    set(SPARK_GIT_REVISION "unknown")
-endif(GIT_FOUND)
+execute_process(
+        COMMAND git rev-parse HEAD
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+        OUTPUT_VARIABLE SPARK_GIT_REVISION
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+message("Building Spark with git revision ${SPARK_GIT_REVISION}")
 
 set(PXSCENE_DEFINITIONS ${PXSCENE_DEFINITIONS} -DSPARK_BUILD_GIT_REVISION="${SPARK_GIT_REVISION}")
 
@@ -482,8 +488,8 @@ if (BUILD_PXSCENE_APP)
         set(CPACK_PACKAGE_INSTALL_DIRECTORY "pxscene")
         set(CPACK_RESOURCE_FILE_LICENSE "${PXCOREDIR}/LICENSE.txt")
         set(CPACK_PACKAGE_VENDOR "pxscene.org")
-        set(CPACK_NSIS_MUI_ICON "${CMAKE_CURRENT_SOURCE_DIR}/win/pxscene_installer.ico")
-        set(CPACK_NSIS_MUI_UNIICON "${CMAKE_CURRENT_SOURCE_DIR}/win/pxscene_installer.ico")
+        set(CPACK_NSIS_MUI_ICON "${CMAKE_CURRENT_SOURCE_DIR}/win/Spark_installer.ico")
+        set(CPACK_NSIS_MUI_UNIICON "${CMAKE_CURRENT_SOURCE_DIR}/win/Spark_installer.ico")
         include(CPack)
       endif (WIN32)
     endif (PXSCENE_INSTALLER GREATER 0)

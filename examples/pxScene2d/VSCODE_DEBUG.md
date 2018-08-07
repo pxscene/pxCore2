@@ -22,7 +22,7 @@
 
 3. Click on the debug icon in Visual Studio Code (along the left-hand side) and then click on the gear (top of the left-most panel) this should open a file called launch.json.  Replace the contents of launch.json with the code block below.
 
-
+NOTE:  From VSCode 1.25 and greater ... it is necessary to include `"protocol": "legacy",` in *launch.json*.
 
   ~~~~
 // Reference
@@ -36,6 +36,7 @@
       "name": "DBG file in pxscene",
       "type": "node",
       "request": "launch",
+      "protocol": "legacy",
       "cwd": "/Applications/pxscene.app/Contents/MacOS",
       "runtimeExecutable": "/Applications/pxscene.app/Contents/MacOS/pxscene",
       "args":["${file}"],
@@ -49,6 +50,7 @@
       "name": "DBG pxscene",
       "type": "node",
       "request": "launch",
+      "protocol": "legacy",
       "cwd": "/Applications/pxscene.app/Contents/MacOS",
       "runtimeExecutable": "/Applications/pxscene.app/Contents/MacOS/pxscene",
       "env" : {
@@ -97,7 +99,6 @@
 3.  Within pxscene enter the file: url of the js file that you want to debug.
 
 4.  Within visual studio code navigate to the source for the js file that you want to debug.  You should now be able to set and hit breakpoints.
-
 
 ## See Also
 

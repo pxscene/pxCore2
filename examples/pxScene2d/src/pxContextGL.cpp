@@ -1,6 +1,6 @@
 /*
 
- pxCore Copyright 2005-2017 John Robinson
+ pxCore Copyright 2005-2018 John Robinson
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@
 #include "rtThreadQueue.h"
 #include "rtMutex.h"
 #include "rtScript.h"
+#include "rtSettings.h"
 
 #include "pxContext.h"
 #include "pxUtil.h"
@@ -55,9 +56,9 @@
 #endif //PX_PLATFORM_WAYLAND_EGL
 #endif
 
-#ifndef RUNINMAIN
+#if !defined(RUNINMAIN) || defined(ENABLE_BACKGROUND_TEXTURE_CREATION)
 #include "pxContextUtils.h"
-#endif //RUNINMAIN
+#endif //!RUNINMAIN || ENABLE_BACKGROUND_TEXTURE_CREATION
 
 #define PX_TEXTURE_MIN_FILTER GL_LINEAR
 #define PX_TEXTURE_MAG_FILTER GL_LINEAR
@@ -106,16 +107,11 @@
 
 ////////////////////////////////////////////////////////////////
 
-pxContextSurfaceNativeDesc defaultContextSurface;
+pxContextSurfaceNativeDesc  defaultContextSurface;
 pxContextSurfaceNativeDesc* currentContextSurface = &defaultContextSurface;
 
 pxContextFramebufferRef defaultFramebuffer(new pxContextFramebuffer());
 pxContextFramebufferRef currentFramebuffer = defaultFramebuffer;
-
-class pxSwTexture; //fwd
-
-typedef rtRef<pxSwTexture>    pxSwTextureRef;
-static        pxSwTextureRef  swRasterTexture; // aka "fullScreenTextureSoftware"
 
 
 #ifdef RUNINMAIN
@@ -143,6 +139,26 @@ static float gAlpha = 1.0;
 uint32_t gRenderTick = 0;
 std::vector<pxTexture*> textureList;
 rtMutex textureListMutex;
+#ifdef ENABLE_BACKGROUND_TEXTURE_CREATION
+rtMutex contextLock;
+#endif //ENABLE_BACKGROUND_TEXTURE_CREATION
+
+
+pxError lockContext()
+{
+#ifdef ENABLE_BACKGROUND_TEXTURE_CREATION
+  contextLock.lock();
+#endif //ENABLE_BACKGROUND_TEXTURE_CREATION
+  return PX_OK;
+}
+
+pxError unlockContext()
+{
+#ifdef ENABLE_BACKGROUND_TEXTURE_CREATION
+  contextLock.unlock();
+#endif //ENABLE_BACKGROUND_TEXTURE_CREATION
+  return PX_OK;
+}
 
 pxError addToTextureList(pxTexture* texture)
 {
@@ -154,23 +170,23 @@ pxError addToTextureList(pxTexture* texture)
 
 pxError removeFromTextureList(pxTexture* texture)
 {
+  textureListMutex.lock();
   for(std::vector<pxTexture*>::iterator it = textureList.begin(); it != textureList.end(); ++it)
   {
     if ((*it) == texture)
     {
-      textureListMutex.lock();
       textureList.erase(it);
-      textureListMutex.unlock();
-      return PX_OK;
+      break;
     }
   }
+  textureListMutex.unlock();
   return PX_OK;
 }
 
 pxError ejectNotRecentlyUsedTextureMemory(int64_t bytesNeeded, uint32_t maxAge=5)
 {
   //rtLogDebug("attempting to eject %" PRId64 " bytes of texture memory with max age %u", bytesNeeded, maxAge);
-#if defined(ENABLE_PX_SCENE_TEXTURE_USAGE_MONITORING) && !defined(DISABLE_TEXTURE_EJECTION)
+#if !defined(DISABLE_TEXTURE_EJECTION)
   int numberEjected = 0;
   int64_t beforeTextureMemoryUsage = context.currentTextureMemoryUsageInBytes();
 
@@ -202,7 +218,7 @@ pxError ejectNotRecentlyUsedTextureMemory(int64_t bytesNeeded, uint32_t maxAge=5
 #else
   (void)bytesNeeded;
   (void)maxAge;
-#endif //ENABLE_PX_SCENE_TEXTURE_USAGE_MONITORING && !DISABLE_TEXTURE_EJECTION
+#endif //!DISABLE_TEXTURE_EJECTION
   return PX_OK;
 }
 
@@ -253,10 +269,13 @@ static const char *fTextureMaskedShaderText =
   "uniform sampler2D s_texture;"
   "uniform sampler2D s_mask;"
   "uniform float u_alpha;"
+  "uniform float u_doInverted;"
   "varying vec2 v_uv;"
   "void main()"
   "{"
-  "  float a = u_alpha * texture2D(s_mask, v_uv).a;"
+  "float tex_a =  texture2D(s_mask, v_uv).a;"
+  "float     a = (1.0 - u_doInverted) * (u_alpha * (      tex_a)) +" // do NORMAL   mask
+  "              (      u_doInverted) * (u_alpha * (1.0 - tex_a)) ;" // do INVERTED mask
   "  gl_FragColor = texture2D(s_texture, v_uv) * a;"
   "}";
 
@@ -552,7 +571,7 @@ public:
                          mTextureUploaded(false), mTextureDataAvailable(false),
                          mLoadTextureRequested(false), mWidth(0), mHeight(0), mOffscreenMutex(),
                          mFreeOffscreenDataRequested(false), mCompressedData(NULL), mCompressedDataSize(0),
-                         mMipmapCreated(false)
+                         mMipmapCreated(false), mTextureListener(NULL), mTextureListenerMutex()
   {
     mTextureType = PX_TEXTURE_OFFSCREEN;
     addToTextureList(this);
@@ -563,7 +582,7 @@ public:
                                        mTextureUploaded(false), mTextureDataAvailable(false),
                                        mLoadTextureRequested(false), mWidth(0), mHeight(0), mOffscreenMutex(),
                                        mFreeOffscreenDataRequested(false), mCompressedData(NULL), mCompressedDataSize(0),
-                                       mMipmapCreated(false)
+                                       mMipmapCreated(false), mTextureListener(NULL), mTextureListenerMutex()
   {
     mTextureType = PX_TEXTURE_OFFSCREEN;
     setCompressedData(compressedData, compressedDataSize);
@@ -648,7 +667,46 @@ public:
     mLoadTextureRequested = false;
     mInitialized = true;
 
+    mTextureListenerMutex.lock();
+    if (mTextureListener != NULL)
+    {
+      mTextureListener->textureReady();
+    }
+    mTextureListenerMutex.unlock();
+
     return PX_OK;
+  }
+
+  virtual pxError prepareForRendering()
+  {
+    if (context.isTextureSpaceAvailable(this, false))
+    {
+      glActiveTexture(GL_TEXTURE1);
+      glGenTextures(1, &mTextureName);
+      glBindTexture(GL_TEXTURE_2D, mTextureName);   TRACK_TEX_CALLS();
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, PX_TEXTURE_MIN_FILTER);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, PX_TEXTURE_MAG_FILTER);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+      glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
+                   mOffscreen.width(), mOffscreen.height(), 0, GL_RGBA,
+                   GL_UNSIGNED_BYTE, mOffscreen.base());
+      if (mDownscaleSmooth)
+      {
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glGenerateMipmap(GL_TEXTURE_2D);
+        mMipmapCreated = true;
+      }
+      context.adjustCurrentTextureMemorySize(mOffscreen.width()*mOffscreen.height()*4, false);
+    }
+    return PX_OK;
+  }
+
+  virtual bool initialized()
+  {
+    return (mTextureName != 0);
   }
 
   virtual pxError deleteTexture()
@@ -710,6 +768,14 @@ public:
     return PX_OK;
   }
 
+  virtual pxError setTextureListener(pxTextureListener* textureListener)
+  {
+    mTextureListenerMutex.lock();
+    mTextureListener = textureListener;
+    mTextureListenerMutex.unlock();
+    return PX_OK;
+  }
+
   virtual pxError bindGLTexture(int tLoc)
   {
     if (!mInitialized)
@@ -742,25 +808,38 @@ public:
           return PX_NOTINITIALIZED;
         }
       }
-      glGenTextures(1, &mTextureName);
-      glBindTexture(GL_TEXTURE_2D, mTextureName);   TRACK_TEX_CALLS();
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, PX_TEXTURE_MIN_FILTER);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, PX_TEXTURE_MAG_FILTER);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-      glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
-      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
-                   mOffscreen.width(), mOffscreen.height(), 0, GL_RGBA,
-                   GL_UNSIGNED_BYTE, mOffscreen.base());
-      if (mDownscaleSmooth)
+      if (mTextureName == 0)
       {
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-        glGenerateMipmap(GL_TEXTURE_2D);
-        mMipmapCreated = true;
+        glGenTextures(1, &mTextureName);
+        glBindTexture(GL_TEXTURE_2D, mTextureName);   TRACK_TEX_CALLS();
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, PX_TEXTURE_MIN_FILTER);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, PX_TEXTURE_MAG_FILTER);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+        glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
+                     mOffscreen.width(), mOffscreen.height(), 0, GL_RGBA,
+                     GL_UNSIGNED_BYTE, mOffscreen.base());
+        if (mDownscaleSmooth)
+        {
+          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+          glGenerateMipmap(GL_TEXTURE_2D);
+          mMipmapCreated = true;
+        }
+        context.adjustCurrentTextureMemorySize(mOffscreen.width()*mOffscreen.height()*4);
+      }
+      else
+      {
+        glBindTexture(GL_TEXTURE_2D, mTextureName);   TRACK_TEX_CALLS();
+        if (mDownscaleSmooth && !mMipmapCreated)
+        {
+          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+          glGenerateMipmap(GL_TEXTURE_2D);
+          mMipmapCreated = true;
+        }
       }
       mTextureUploaded = true;
-      context.adjustCurrentTextureMemorySize(mOffscreen.width()*mOffscreen.height()*4);
       //free up unneeded offscreen memory
       freeOffscreenDataInBackground();
     }
@@ -916,184 +995,10 @@ private:
   char* mCompressedData;
   size_t mCompressedDataSize;
   bool mMipmapCreated;
+  pxTextureListener* mTextureListener;
+  rtMutex mTextureListenerMutex;
 
 }; // CLASS - pxTextureOffscreen
-
-class pxSwTexture: public pxTexture
-{
-public:
-  pxSwTexture() : mWidth(0), mHeight(0), mOffscreen(), mTextureName(0), mRasterTextureCreated(false),  mInitialized(false)
-  {
-    //ctor
-  };
-  
-  ~pxSwTexture()
-  {
-    deleteTexture();
-    mOffscreen.term();
-  };
-  
-  void init(int w, int h)
-  {
-    if(!mInitialized)
-    {
-      mWidth  = w;
-      mHeight = h;
-
-      mOffscreen.init(w,h);
-      
-      mOffscreen.setUpsideDown(true);
-
-      mInitialized = true;
-    }
-  }
-  
-  void clear(const pxRect& r)
-  {
-    mOffscreen.fill(r, pxClear);
-  }
-
-  void clear()
-  {
-    mOffscreen.fill(pxClear);
-  }
-
-  pxOffscreen* offscreen()
-  {
-    return &mOffscreen;
-  }
-
-  pxError copy(int src_x, int src_y, int dst_x, int dst_y, float w, float h, pxOffscreen &o)
-  {
-    // COPY / BLIT from 'o' ... to 'mOffscreen'
-    o.blit(mOffscreen, dst_x, dst_y, w, h, src_x, src_y);
-
-#if 0
-#ifdef PX_PLATFORM_MAC
-    
-    extern void *makeNSImage(void *rgba_buffer, int w, int h, int depth);
-
-    // HACK
-    // HACK
-    // HACK
-    static int frame = 20;
-    if(frame-- == 0)
-    {
-      void *img_raster = makeNSImage(o.base(), o.width(), o.height(), 4);
-      void *img_render = makeNSImage(mOffscreen.base(), mOffscreen.width(), mOffscreen.height(), 4);
-      
-      frame = -1;
-    }
-    // HACK
-    // HACK
-    // HACK
-#endif
-#endif
-
-    if (mTextureName != 0)
-    {
-      glBindTexture(GL_TEXTURE_2D, mTextureName);   TRACK_TEX_CALLS();
- 
-//      int f = mOffscreen.width();
-//      
-//      glPixelStorei(GL_UNPACK_ROW_LENGTH, mOffscreen.width());
-//
-//      int32_t off = (mOffscreen.width() * dst_y) + dst_x;
-      
-      // Upload (CRAWL) entire RENTER offscreen to TEXTURE on GPU
-//      glTexSubImage2D(GL_TEXTURE_2D, 0, dst_x, dst_y, w, h, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid *) ( (char *) mOffscreen.base() + off));
-      
-      
-      glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, CANVAS_W, CANVAS_H, GL_RGBA, GL_UNSIGNED_BYTE, mOffscreen.base());
-      
-#ifndef PX_PLATFORM_WAYLAND_EGL
-      //glPixelStorei(GL_UNPACK_ROW_LENGTH,0); //default
-#endif //PX_PLATFORM_WAYLAND_EGL
-
-//      glBindTexture(GL_TEXTURE_2D, GL_NONE); // unbind
-    }
-    
-    return PX_OK;
-  };
-  
-  // baggage
-  virtual inline int width()                        { return mWidth;  };
-  virtual inline int height()                       { return mHeight; };
-  virtual pxError getOffscreen(pxOffscreen& /*o*/)  { return PX_FAIL; };
-  virtual pxError bindGLTextureAsMask(int /*mLoc*/) { return PX_FAIL; };
-
-  virtual pxError deleteTexture()
-  {
-    if (mTextureName != 0)
-    {
-      glDeleteTextures(1, &mTextureName);
-      mTextureName = 0;
-      mRasterTextureCreated = false;
-      context.adjustCurrentTextureMemorySize(-1 * mWidth * mHeight * 4); // FREE
-    }
-    mInitialized = false;
-    return PX_OK;
-  }
-  
-  virtual pxError bindGLTexture(int tLoc)
-  {
-    glActiveTexture(GL_TEXTURE1);
-
-    if (!mRasterTextureCreated)
-    {
-      if (!context.isTextureSpaceAvailable(this))
-      {
-        //attempt to free texture memory
-        int64_t textureMemoryNeeded = context.textureMemoryOverflow(this);
-        context.ejectTextureMemory(textureMemoryNeeded);
-        
-        if (!context.isTextureSpaceAvailable(this))
-        {
-          rtLogError("not enough texture memory remaining to create raster texture");
-          mInitialized = false;
-          return PX_FAIL;
-        }
-        else if (!mInitialized)
-        {
-          return PX_NOTINITIALIZED;
-        }
-      }
-
-      glGenTextures(1, &mTextureName);
-      glBindTexture(GL_TEXTURE_2D, mTextureName);   TRACK_TEX_CALLS();
-
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, PX_TEXTURE_MIN_FILTER);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, PX_TEXTURE_MAG_FILTER);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-      glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
-      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, mWidth, mHeight, 0, GL_RGBA,
-                   GL_UNSIGNED_BYTE, mOffscreen.base());
-
-      context.adjustCurrentTextureMemorySize(mWidth * mHeight * 4); // USE
-      mRasterTextureCreated = true;
-    }
-    else
-    {
-      glBindTexture(GL_TEXTURE_2D, mTextureName);   TRACK_TEX_CALLS();
-    }
-
-    mInitialized = true;
-
-    glUniform1i(tLoc, 1);
-    return PX_OK;
-  }
-
-private:
-  int mWidth;
-  int mHeight;
-
-  pxOffscreen mOffscreen;
-  GLuint mTextureName;
-  bool mRasterTextureCreated;
-  bool mInitialized;
-}; // CLASS - pxSwTexture
 
 void onDecodeComplete(void* context, void* data)
 {
@@ -1209,7 +1114,7 @@ public:
     if (buffer)
     {
       // copy the pixels
-      int bitmapSize = ih*iw;
+      int bitmapSize = static_cast<int>(ih*iw);
       mBuffer = malloc(bitmapSize);
       //memcpy(mBuffer, buffer, bitmapSize);
       // Flip here so that we match FBO layout...
@@ -1221,6 +1126,11 @@ public:
         while(d<de)
           *d++ = *s++;
       }
+    }
+    else
+    {
+      int bitmapSize = static_cast<int>(ih*iw);
+      mBuffer = calloc(bitmapSize, sizeof(char));
     }
 
 // TODO Moved this to bindTexture because of more pain from JS thread calls
@@ -1267,14 +1177,14 @@ public:
       GL_TEXTURE_2D,
       0,
       GL_ALPHA,
-      iw,
-      ih,
+      static_cast<GLsizei>(iw),
+      static_cast<GLsizei>(ih),
       0,
       GL_ALPHA,
       GL_UNSIGNED_BYTE,
       mBuffer
     );
-    context.adjustCurrentTextureMemorySize(iw*ih);
+    context.adjustCurrentTextureMemorySize(static_cast<GLsizei>(iw*ih));
 
     mInitialized = true;
   }
@@ -1302,7 +1212,7 @@ public:
     {
       glDeleteTextures(1, &mTextureId);
       mTextureId = 0;
-      context.adjustCurrentTextureMemorySize(-1*mImageWidth*mImageHeight);
+      context.adjustCurrentTextureMemorySize(static_cast<int64_t>(-1*mImageWidth*mImageHeight));
     }
     mInitialized = false;
     return PX_OK;
@@ -1349,8 +1259,8 @@ public:
     return PX_FAIL;
   }
 
-  virtual int width()  {return mDrawWidth;  }
-  virtual int height() {return mDrawHeight; }
+  virtual int width()  {return static_cast<int>(mDrawWidth);  }
+  virtual int height() {return static_cast<int>(mDrawHeight); }
 
 private:
   float mDrawWidth;
@@ -1449,7 +1359,7 @@ public:
   virtual void init(const char* v, const char* f)
   {
     glShaderProgDetails details = createShaderProgram(v, f);
-    mProgram = details.program;
+    mProgram    = details.program;
     mFragShader = details.fragShader;
     mVertShader = details.vertShader;
     prelink();
@@ -1489,15 +1399,15 @@ protected:
     mPosLoc = 0;
     mUVLoc = 1;
     glBindAttribLocation(mProgram, mPosLoc, "pos");
-    glBindAttribLocation(mProgram, mUVLoc, "uv");
+    glBindAttribLocation(mProgram, mUVLoc,  "uv");
   }
 
   virtual void postlink()
   {
     mResolutionLoc = getUniformLocation("u_resolution");
-    mMatrixLoc = getUniformLocation("amymatrix");
-    mColorLoc = getUniformLocation("a_color");
-    mAlphaLoc = getUniformLocation("u_alpha");
+    mMatrixLoc     = getUniformLocation("amymatrix");
+    mColorLoc      = getUniformLocation("a_color");
+    mAlphaLoc      = getUniformLocation("u_alpha");
   }
 
 public:
@@ -1512,7 +1422,7 @@ public:
       use();
       currentGLProgram = PROGRAM_SOLID_SHADER;
     }
-    glUniform2f(mResolutionLoc, resW, resH);
+    glUniform2f(mResolutionLoc, static_cast<GLfloat>(resW), static_cast<GLfloat>(resH));
     glUniformMatrix4fv(mMatrixLoc, 1, GL_FALSE, matrix);
     glUniform1f(mAlphaLoc, alpha);
     glUniform4fv(mColorLoc, 1, color);
@@ -1549,16 +1459,16 @@ protected:
     mPosLoc = 0;
     mUVLoc = 1;
     glBindAttribLocation(mProgram, mPosLoc, "pos");
-    glBindAttribLocation(mProgram, mUVLoc, "uv");
+    glBindAttribLocation(mProgram, mUVLoc,  "uv");
   }
 
   virtual void postlink()
   {
     mResolutionLoc = getUniformLocation("u_resolution");
-    mMatrixLoc = getUniformLocation("amymatrix");
-    mColorLoc = getUniformLocation("a_color");
-    mAlphaLoc = getUniformLocation("u_alpha");
-    mTextureLoc = getUniformLocation("s_texture");
+    mMatrixLoc     = getUniformLocation("amymatrix");
+    mColorLoc      = getUniformLocation("a_color");
+    mAlphaLoc      = getUniformLocation("u_alpha");
+    mTextureLoc    = getUniformLocation("s_texture");
   }
 
 public:
@@ -1575,7 +1485,7 @@ public:
       use();
       currentGLProgram = PROGRAM_A_TEXTURE_SHADER;
     }
-    glUniform2f(mResolutionLoc, resW, resH);
+    glUniform2f(mResolutionLoc, static_cast<GLfloat>(resW), static_cast<GLfloat>(resH));
     glUniformMatrix4fv(mMatrixLoc, 1, GL_FALSE, matrix);
     glUniform1f(mAlphaLoc, alpha);
     glUniform4fv(mColorLoc, 1, color);
@@ -1622,15 +1532,15 @@ protected:
     mPosLoc = 0;
     mUVLoc = 1;
     glBindAttribLocation(mProgram, mPosLoc, "pos");
-    glBindAttribLocation(mProgram, mUVLoc, "uv");
+    glBindAttribLocation(mProgram, mUVLoc,  "uv");
   }
 
   virtual void postlink()
   {
     mResolutionLoc = getUniformLocation("u_resolution");
-    mMatrixLoc = getUniformLocation("amymatrix");
-    mAlphaLoc = getUniformLocation("u_alpha");
-    mTextureLoc = getUniformLocation("s_texture");
+    mMatrixLoc     = getUniformLocation("amymatrix");
+    mAlphaLoc      = getUniformLocation("u_alpha");
+    mTextureLoc    = getUniformLocation("s_texture");
   }
 
 public:
@@ -1645,7 +1555,7 @@ public:
       use();
       currentGLProgram = PROGRAM_TEXTURE_SHADER;
     }
-    glUniform2f(mResolutionLoc, resW, resH);
+    glUniform2f(mResolutionLoc, static_cast<GLfloat>(resW), static_cast<GLfloat>(resH));
     glUniformMatrix4fv(mMatrixLoc, 1, GL_FALSE, matrix);
     glUniform1f(mAlphaLoc, alpha);
 
@@ -1693,16 +1603,16 @@ protected:
     mPosLoc = 0;
     mUVLoc = 1;
     glBindAttribLocation(mProgram, mPosLoc, "pos");
-    glBindAttribLocation(mProgram, mUVLoc, "uv");
+    glBindAttribLocation(mProgram, mUVLoc,  "uv");
   }
 
   virtual void postlink()
   {
     mResolutionLoc = getUniformLocation("u_resolution");
-    mMatrixLoc = getUniformLocation("amymatrix");
-    mAlphaLoc = getUniformLocation("u_alpha");
-    mColorLoc = getUniformLocation("u_color");
-    mTextureLoc = getUniformLocation("s_texture");
+    mMatrixLoc     = getUniformLocation("amymatrix");
+    mAlphaLoc      = getUniformLocation("u_alpha");
+    mColorLoc      = getUniformLocation("u_color");
+    mTextureLoc    = getUniformLocation("s_texture");
   }
 
 public:
@@ -1717,7 +1627,7 @@ public:
       use();
       currentGLProgram = PROGRAM_TEXTURE_BORDER_SHADER;
     }
-    glUniform2f(mResolutionLoc, resW, resH);
+    glUniform2f(mResolutionLoc, static_cast<GLfloat>(resW), static_cast<GLfloat>(resH));
     glUniformMatrix4fv(mMatrixLoc, 1, GL_FALSE, matrix);
     glUniform1f(mAlphaLoc, alpha);
     if (color != NULL)
@@ -1777,16 +1687,17 @@ protected:
     mPosLoc = 0;
     mUVLoc = 1;
     glBindAttribLocation(mProgram, mPosLoc, "pos");
-    glBindAttribLocation(mProgram, mUVLoc, "uv");
+    glBindAttribLocation(mProgram, mUVLoc,  "uv");
   }
 
   virtual void postlink()
   {
     mResolutionLoc = getUniformLocation("u_resolution");
-    mMatrixLoc = getUniformLocation("amymatrix");
-    mAlphaLoc = getUniformLocation("u_alpha");
-    mTextureLoc = getUniformLocation("s_texture");
-    mMaskLoc = getUniformLocation("s_mask");
+    mMatrixLoc     = getUniformLocation("amymatrix");
+    mAlphaLoc      = getUniformLocation("u_alpha");
+    mInvertedLoc   = getUniformLocation("u_doInverted");
+    mTextureLoc    = getUniformLocation("s_texture");
+    mMaskLoc       = getUniformLocation("s_mask");
   }
 
 public:
@@ -1795,16 +1706,19 @@ public:
             const void* pos,
             const void* uv,
             pxTextureRef texture,
-            pxTextureRef mask)
+            pxTextureRef mask,
+            pxConstantsMaskOperation::constants maskOp = pxConstantsMaskOperation::NORMAL)
   {
     if (currentGLProgram != PROGRAM_TEXTURE_MASKED_SHADER)
     {
       use();
       currentGLProgram = PROGRAM_TEXTURE_MASKED_SHADER;
     }
-    glUniform2f(mResolutionLoc, resW, resH);
+    glUniform2f(mResolutionLoc, static_cast<GLfloat>(resW), static_cast<GLfloat>(resH));
     glUniformMatrix4fv(mMatrixLoc, 1, GL_FALSE, matrix);
     glUniform1f(mAlphaLoc, alpha);
+    glUniform1f(mInvertedLoc, static_cast<GLfloat>((maskOp == pxConstantsMaskOperation::NORMAL) ? 0.0 : 1.0));
+    
 
     if (texture->bindGLTexture(mTextureLoc) != PX_OK)
     {
@@ -1839,6 +1753,7 @@ private:
   GLint mUVLoc;
 
   GLint mAlphaLoc;
+  GLint mInvertedLoc;
 
   GLint mTextureLoc;
   GLint mMaskLoc;
@@ -1904,12 +1819,13 @@ static void drawRectOutline(GLfloat x, GLfloat y, GLfloat w, GLfloat h, GLfloat 
 static void drawImageTexture(float x, float y, float w, float h, pxTextureRef texture,
                              pxTextureRef mask, bool useTextureDimsAlways, float* color, // default: "color = BLACK"
                              pxConstantsStretch::constants xStretch,
-                             pxConstantsStretch::constants yStretch)
+                             pxConstantsStretch::constants yStretch,
+                             pxConstantsMaskOperation::constants maskOp = pxConstantsMaskOperation::constants::NORMAL)
 {
   // args are tested at call site...
 
-  float iw = texture->width();
-  float ih = texture->height();
+  float iw = static_cast<float>(texture->width());
+  float ih = static_cast<float>(texture->height());
 
   if( useTextureDimsAlways)
   {
@@ -1966,7 +1882,7 @@ static void drawImageTexture(float x, float y, float w, float h, pxTextureRef te
   }
 
   float firstTextureY  = 1.0;
-  float secondTextureY = 1.0-th;
+  float secondTextureY = static_cast<float>(1.0-th);
 
   const float uv[4][2] =
   {
@@ -1981,7 +1897,7 @@ static void drawImageTexture(float x, float y, float w, float h, pxTextureRef te
 
   if (mask.getPtr() != NULL)
   {
-    if (gTextureMaskedShader->draw(gResW,gResH,gMatrix.data(),gAlpha,4,verts,uv,texture,mask) != PX_OK)
+    if (gTextureMaskedShader->draw(gResW,gResH,gMatrix.data(),gAlpha,4,verts,uv,texture,mask, maskOp) != PX_OK)
     {
       drawRect2(0, 0, iw, ih, blackColor); // DEFAULT - "Missing" - BLACK RECTANGLE
     }
@@ -2021,8 +1937,8 @@ static void drawImage92(GLfloat x, GLfloat y, GLfloat w, GLfloat h, GLfloat x1, 
   float iy2 = y+h-y2;
   float oy2 = y+h;
 
-  float w2 = texture->width();
-  float h2 = texture->height();
+  float w2 = static_cast<float>(texture->width());
+  float h2 = static_cast<float>(texture->height());
 
   float ou1 = 0;
   float iu1 = x1/w2;
@@ -2127,8 +2043,8 @@ static void drawImage9Border2(GLfloat x, GLfloat y, GLfloat w, GLfloat h,
   float iy2 = y+h-insetY2;
   float oy2 = y+h;
 
-  float w2 = texture->width();
-  float h2 = texture->height();
+  float w2 = static_cast<float>(texture->width());
+  float h2 = static_cast<float>(texture->height());
 
   float ou1 = 0;
   float iu1 = borderX1/w2;
@@ -2238,37 +2154,15 @@ static void drawImage9Border2(GLfloat x, GLfloat y, GLfloat w, GLfloat h,
 
 bool gContextInit = false;
 
+#define SAFE_DELETE(p)  if(p) { delete p; p = NULL; };
+
 pxContext::~pxContext()
 {
-  if (gSolidShader)
-  {
-    delete gSolidShader;
-    gSolidShader = NULL;
-  }
-
-  if (gATextureShader)
-  {
-    delete gATextureShader;
-    gATextureShader = NULL;
-  }
-
-  if (gTextureShader)
-  {
-    delete gTextureShader;
-    gTextureShader = NULL;
-  }
-
-  if (gTextureBorderShader)
-  {
-    delete gTextureBorderShader;
-    gTextureBorderShader = NULL;
-  }
-
-  if (gTextureMaskedShader)
-  {
-    delete gTextureMaskedShader;
-    gTextureMaskedShader = NULL;
-  }
+  SAFE_DELETE(gSolidShader);
+  SAFE_DELETE(gATextureShader);
+  SAFE_DELETE(gTextureShader);
+  SAFE_DELETE(gTextureBorderShader);
+  SAFE_DELETE(gTextureMaskedShader);
 }
 
 void pxContext::init()
@@ -2282,35 +2176,11 @@ void pxContext::init()
 
   glClearColor(0, 0, 0, 0);
 
-  if (gSolidShader)
-  {
-    delete gSolidShader;
-    gSolidShader = NULL;
-  }
-
-  if (gATextureShader)
-  {
-    delete gATextureShader;
-    gATextureShader = NULL;
-  }
-
-  if (gTextureShader)
-  {
-    delete gTextureShader;
-    gTextureShader = NULL;
-  }
-
-  if (gTextureBorderShader)
-  {
-    delete gTextureBorderShader;
-    gTextureBorderShader = NULL;
-  }
-
-  if (gTextureMaskedShader)
-  {
-    delete gTextureMaskedShader;
-    gTextureMaskedShader = NULL;
-  }
+  SAFE_DELETE(gSolidShader);
+  SAFE_DELETE(gATextureShader);
+  SAFE_DELETE(gTextureShader);
+  SAFE_DELETE(gTextureBorderShader);
+  SAFE_DELETE(gTextureMaskedShader);
 
   gSolidShader = new solidShaderProgram();
   gSolidShader->init(vShaderText,fSolidShaderText);
@@ -2338,7 +2208,21 @@ void pxContext::init()
 //  glUseProgram(program);
 
 //  gprogram = program;
-  setTextureMemoryLimit(PXSCENE_DEFAULT_TEXTURE_MEMORY_LIMIT_IN_BYTES);
+
+  rtValue val;
+  if (RT_OK == rtSettings::instance()->value("enableTextureMemoryMonitoring", val))
+  {
+    mEnableTextureMemoryMonitoring = val.toString().compare("true") == 0;
+  }
+  if (RT_OK == rtSettings::instance()->value("textureMemoryLimitInMb", val))
+  {
+    setTextureMemoryLimit((int64_t)val.toInt32() * (int64_t)1024 * (int64_t)1024);
+  }
+  if (mEnableTextureMemoryMonitoring)
+  {
+    rtLogInfo("texture memory limit set to %" PRId64 " bytes, threshold padding %" PRId64 " bytes",
+      mTextureMemoryLimitInBytes, mTextureMemoryLimitThresholdPaddingInBytes);
+  }
 
 #if defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL)
   defaultEglContext = eglGetCurrentContext();
@@ -2350,7 +2234,6 @@ void pxContext::init()
 
 void pxContext::term()  // clean up statics 
 {
-  swRasterTexture = NULL;
 }
 
 void pxContext::setSize(int w, int h)
@@ -2646,12 +2529,28 @@ void pxContext::drawImage9Border(float w, float h,
   drawImage9Border2(0, 0, w, h, bx1, by1, bx2, by2, ix1, iy1, ix2, iy2, drawCenter, color, texture);
 }
 
+// convenience method
+void pxContext::drawImageMasked(float x, float y, float w, float h,
+                                pxConstantsMaskOperation::constants maskOp,
+                                pxTextureRef t, pxTextureRef mask)
+{
+  this->drawImage(x, y, w, h, t , mask,
+                    /* useTextureDimsAlways = */ true, /*color = */ NULL,      // DEFAULT
+                    /*             stretchX = */ pxConstantsStretch::STRETCH,  // DEFAULT
+                    /*             stretchY = */ pxConstantsStretch::STRETCH,  // DEFAULT
+                    /*      downscaleSmooth = */ false,                        // DEFAULT
+                                                 maskOp                        // PARAMETER
+                    );
+};
+
 void pxContext::drawImage(float x, float y, float w, float h,
                           pxTextureRef t, pxTextureRef mask,
-                          bool useTextureDimsAlways, float* color,
-                          pxConstantsStretch::constants stretchX,
-                          pxConstantsStretch::constants stretchY,
-                          bool downscaleSmooth)
+                          bool useTextureDimsAlways               /* = true */,
+                          float* color,                           /* = NULL */
+                          pxConstantsStretch::constants stretchX, /* = pxConstantsStretch::STRETCH, */
+                          pxConstantsStretch::constants stretchY, /* = pxConstantsStretch::STRETCH, */
+                          bool downscaleSmooth                    /* = false */,
+                          pxConstantsMaskOperation::constants maskOp     /* = pxConstantsMaskOperation::NORMAL */ )
 {
 #ifdef DEBUG_SKIP_IMAGE
 #warning "DEBUG_SKIP_IMAGE enabled ... Skipping "
@@ -2690,7 +2589,7 @@ void pxContext::drawImage(float x, float y, float w, float h,
 
   float black[4] = {0,0,0,1};
   drawImageTexture(x, y, w, h, t, mask, useTextureDimsAlways,
-                  color? color : black, stretchX, stretchY);
+                   color? color : black, stretchX, stretchY, maskOp);
 }
 
 #ifdef PXSCENE_FONT_ATLAS
@@ -2721,75 +2620,6 @@ void pxContext::drawTexturedQuads(int numQuads, const void *verts, const void* u
   gATextureShader->draw(gResW,gResH,gMatrix.data(),gAlpha,GL_TRIANGLES,6*numQuads,verts,uvs,t,colorPM);
 }
 #endif
-
-void pxContext::drawOffscreen(float src_x, float src_y,
-                              float dst_x, float dst_y,
-                              float w,     float h,
-                              pxOffscreen  &offscreen)
-{
-  // TRANSPARENT / DIMENSIONLESS
-  if(gAlpha == 0.0 || w <= 0.0 || h <= 0.0)
-  {
-    return;
-  }
-  
-  // BACKING
-  if (swRasterTexture.getPtr() == NULL)
-  {
-    rtLogInfo("CREATE ... pxContext::drawOffscreen() - CREATE 'swRasterTexture' (lazy) \n");
-
-    // Lazy init...
-    swRasterTexture = pxSwTextureRef(new pxSwTexture());
-    swRasterTexture->init(CANVAS_W, CANVAS_H); // HACK - hard coded for now.
-  }
-  
-  // COPY from CANVAS (offscreen) to RASTER
-  swRasterTexture->copy(src_x, src_y,
-                        dst_x, dst_y, w, h, offscreen);
-  
-  pxTextureRef nullMask;
-  static float clear[4] = {0,0,0,0};
-
-  pxTextureRef texture( (pxTexture *) swRasterTexture.getPtr());
-  
-  drawImage(/*dst_x, dst_y*/0,0, CANVAS_W, CANVAS_H, texture, nullMask, true, clear,
-            pxConstantsStretch::NONE, pxConstantsStretch::NONE);
-  
-//  drawImage(dst_x, dst_y, w, h, texture, nullMask, true, clear,
-//            pxConstantsStretch::NONE, pxConstantsStretch::NONE);
-  
-#if 0
-#ifdef PX_PLATFORM_MAC
-  
-  extern void *makeNSImage(void *rgba_buffer, int w, int h, int depth);
-  
-  // HACK
-  // HACK
-  // HACK
-  static int frame = 20;
-  if(frame-- == 0)
-  {
-    pxOffscreen *tex = (pxOffscreen *) swRasterTexture->offscreen();
-    
-    void *img_raster = makeNSImage(tex->base(), tex->width(), tex->height(), 4);
-    void *img_render = makeNSImage(offscreen.base(), offscreen.width(), offscreen.height(), 4);
-    
-    frame = -1;
-  }
-  // HACK
-  // HACK
-  // HACK
-#endif
-#endif
-  
-  
-  ///// CRAWL approach only
-//  pxRect rect(src_x, src_y, src_x + w, src_y + h);
-  pxRect rect(0,0,CANVAS_W,CANVAS_H);
-  
-  swRasterTexture->clear(rect);
-  offscreen.fill(pxClear);
-}
 
 void pxContext::drawDiagRect(float x, float y, float w, float h, float* color)
 {
@@ -2918,13 +2748,13 @@ void pxContext::mapToScreenCoordinates(float inX, float inY, int &outX, int &out
 
   if (positionCoords.w() == 0)
   {
-    outX = positionCoords.x();
-    outY = positionCoords.y();
+    outX = static_cast<int> (positionCoords.x());
+    outY = static_cast<int> (positionCoords.y());
   }
   else
   {
-    outX = positionCoords.x() / positionCoords.w();
-    outY = positionCoords.y() / positionCoords.w();
+    outX = static_cast<int> (positionCoords.x() / positionCoords.w());
+    outY = static_cast<int> (positionCoords.y() / positionCoords.w());
   }
 }
 
@@ -2935,13 +2765,13 @@ void pxContext::mapToScreenCoordinates(pxMatrix4f& m, float inX, float inY, int 
 
   if (positionCoords.w() == 0)
   {
-    outX = positionCoords.x();
-    outY = positionCoords.y();
+    outX = static_cast<int> (positionCoords.x());
+    outY = static_cast<int> (positionCoords.y());
   }
   else
   {
-    outX = positionCoords.x() / positionCoords.w();
-    outY = positionCoords.y() / positionCoords.w();
+    outX = static_cast<int> (positionCoords.x() / positionCoords.w());
+    outY = static_cast<int> (positionCoords.y() / positionCoords.w());
   }
 }
 
@@ -2971,25 +2801,28 @@ bool pxContext::isObjectOnScreen(float /*x*/, float /*y*/, float /*width*/, floa
 #endif
 }
 
-void pxContext::adjustCurrentTextureMemorySize(int64_t changeInBytes)
+void pxContext::adjustCurrentTextureMemorySize(int64_t changeInBytes, bool allowGarbageCollect)
 {
+  lockContext();
   mCurrentTextureMemorySizeInBytes += changeInBytes;
   if (mCurrentTextureMemorySizeInBytes < 0)
   {
     mCurrentTextureMemorySizeInBytes = 0;
   }
-  //rtLogDebug("the current texture size: %" PRId64 ".", mCurrentTextureMemorySizeInBytes);
-#ifdef ENABLE_PX_SCENE_TEXTURE_USAGE_MONITORING
-  if (changeInBytes > 0 && mCurrentTextureMemorySizeInBytes > mTextureMemoryLimitInBytes)
+  int64_t currentTextureMemorySize = mCurrentTextureMemorySizeInBytes;
+  int64_t maxTextureMemoryInBytes = mTextureMemoryLimitInBytes;
+
+  unlockContext();
+  //rtLogDebug("the current texture size: %" PRId64 ".", currentTextureMemorySize);
+  if (mEnableTextureMemoryMonitoring && allowGarbageCollect && changeInBytes > 0 && currentTextureMemorySize > maxTextureMemoryInBytes)
   {
-    rtLogDebug("the texture size is too large: %" PRId64 ".  doing a garbage collect!!!\n", mCurrentTextureMemorySizeInBytes);
+    rtLogDebug("the texture size is too large: %" PRId64 ".  doing a garbage collect!!!\n", currentTextureMemorySize);
 #ifdef RUNINMAIN
 	script.collectGarbage();
 #else
   uv_async_send(&gcTrigger);
 #endif
   }
-#endif // ENABLE_PX_SCENE_TEXTURE_USAGE_MONITORING
 }
 
 void pxContext::setTextureMemoryLimit(int64_t textureMemoryLimitInBytes)
@@ -2997,24 +2830,29 @@ void pxContext::setTextureMemoryLimit(int64_t textureMemoryLimitInBytes)
   mTextureMemoryLimitInBytes = textureMemoryLimitInBytes;
 }
 
-#ifdef ENABLE_PX_SCENE_TEXTURE_USAGE_MONITORING
-bool pxContext::isTextureSpaceAvailable(pxTextureRef texture)
-#else
-bool pxContext::isTextureSpaceAvailable(pxTextureRef)
-#endif
+bool pxContext::isTextureSpaceAvailable(pxTextureRef texture, bool allowGarbageCollect)
 {
-#ifdef ENABLE_PX_SCENE_TEXTURE_USAGE_MONITORING
-  int textureSize = (texture->width()*texture->height()*4);
-  if ((textureSize + mCurrentTextureMemorySizeInBytes) >
-             (mTextureMemoryLimitInBytes  + PXSCENE_DEFAULT_TEXTURE_MEMORY_LIMIT_THRESHOLD_PADDING_IN_BYTES))
+  if (!mEnableTextureMemoryMonitoring)
+    return true;
+
+  int64_t textureSize = ((int64_t)(texture->width())*(int64_t)(texture->height())*(int64_t)4);
+  lockContext();
+  int64_t currentTextureMemorySize = mCurrentTextureMemorySizeInBytes;
+  int64_t maxTextureMemoryInBytes = mTextureMemoryLimitInBytes;
+  unlockContext();
+  if ((textureSize + currentTextureMemorySize) >
+             (maxTextureMemoryInBytes  + mTextureMemoryLimitThresholdPaddingInBytes))
   {
+    if (allowGarbageCollect)
+    {
+      #ifdef RUNINMAIN
+        script.collectGarbage();
+      #else
+        uv_async_send(&gcTrigger);
+      #endif
+    }
     return false;
   }
-  else
-  {
-    return true;
-  }
-#endif //ENABLE_PX_SCENE_TEXTURE_USAGE_MONITORING
   return true;
 }
 
@@ -3026,7 +2864,8 @@ int64_t pxContext::currentTextureMemoryUsageInBytes()
 int64_t pxContext::textureMemoryOverflow(pxTextureRef texture)
 {
   int64_t textureSize = (((int64_t)texture->width())*((int64_t)texture->height())*4);
-  int64_t availableBytes = mTextureMemoryLimitInBytes - mCurrentTextureMemorySizeInBytes;
+  int64_t currentTextureMemorySize = mCurrentTextureMemorySizeInBytes;
+  int64_t availableBytes = mTextureMemoryLimitInBytes - currentTextureMemorySize;
   if (textureSize > availableBytes)
   {
     return (textureSize - availableBytes);
@@ -3036,6 +2875,10 @@ int64_t pxContext::textureMemoryOverflow(pxTextureRef texture)
 
 int64_t pxContext::ejectTextureMemory(int64_t bytesRequested, bool forceEject)
 {
+#ifdef ENABLE_LRU_TEXTURE_EJECTION
+  if (!mEnableTextureMemoryMonitoring)
+    return 0;
+
   int64_t beforeTextureMemoryUsage = context.currentTextureMemoryUsageInBytes();
   if (!forceEject)
   {
@@ -3047,6 +2890,11 @@ int64_t pxContext::ejectTextureMemory(int64_t bytesRequested, bool forceEject)
   }
   int64_t afterTextureMemoryUsage = context.currentTextureMemoryUsageInBytes();
   return (beforeTextureMemoryUsage-afterTextureMemoryUsage);
+#else
+  (void)bytesRequested;
+  (void)forceEject;
+  return 0;
+#endif //ENABLE_LRU_TEXTURE_EJECTION
 }
 
 pxError pxContext::setEjectTextureAge(uint32_t age)
@@ -3057,11 +2905,11 @@ pxError pxContext::setEjectTextureAge(uint32_t age)
 
 pxError pxContext::enableInternalContext(bool enable)
 {
-#if !defined(RUNINMAIN)
+#if !defined(RUNINMAIN) || defined(ENABLE_BACKGROUND_TEXTURE_CREATION)
     makeInternalGLContextCurrent(enable);
 #else
   (void)enable;
-#endif //!RUNINMAIN
+#endif // !RUNINMAIN || ENABLE_BACKGROUND_TEXTURE_CREATION
   return PX_OK;
 }
 

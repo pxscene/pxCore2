@@ -1,6 +1,6 @@
 /*
 
- pxCore Copyright 2005-2017 John Robinson
+ pxCore Copyright 2005-2018 John Robinson
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -114,8 +114,11 @@ void pxText::resourceReady(rtString readyResolution)
       mReady.send("reject",this);
   }     
 }
-       
 
+void pxText::resourceDirty()
+{
+  pxObject::onTextureReady();
+}
 
 void pxText::draw() 
 {
@@ -232,6 +235,13 @@ void pxText::createNewPromise()
     rtLogDebug("CREATING NEW PROMISE\n");
     mReady = new rtPromise();
   }
+}
+
+void pxText::dispose(bool pumpJavascript)
+{
+  removeResourceListener();
+  mFont = NULL;
+  pxObject::dispose(pumpJavascript);
 }
 
 rtDefineObject(pxText, pxObject);
