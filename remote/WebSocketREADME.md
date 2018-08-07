@@ -51,6 +51,7 @@ This describes how to build rtRemote with general websocket support, assuming th
 
 ### Build the sample app
 * `cd remote` 
+* `mkdir build`
  * `cd build && cmake .. -DSUPPORT_WEBSOCKET_TRANSPORT=YES -DBUILD_RTREMOTE_SAMPLE_APP_SIMPLE=YES` 
  * `make`
  * `cd ..`
