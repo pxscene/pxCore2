@@ -50,6 +50,8 @@ pxEventLoop* gLoop = &eventLoop;
 
 pxContext context;
 
+int MAX_IMAGES_CNT = 42;
+
 
 #ifdef ENABLE_DEBUG_MODE
 extern int          g_argc;
@@ -421,7 +423,7 @@ void pxApiFixture::TestDrawImage ()
 {
     //context.clear(1280, 720);
     rtString settingsPath;
-    string url = "Resources/" + to_string((mExperimentValue.Iterations%15)+1) + ".jpg";
+    string url = "Resources/" + to_string((mExperimentValue.Iterations % MAX_IMAGES_CNT) + 1) + ".jpg";
     if (RT_OK == rtGetHomeDirectory(settingsPath))
         url = settingsPath.cString() + url;
     
@@ -444,7 +446,7 @@ void pxApiFixture::TestDrawImage ()
    // pxContextFramebufferRef maskSnapshot = context.createFramebuffer(static_cast<int>(floor(mUnitWidth)), static_cast<int>(floor(mUnitHeight)));
     
     //
-    context.drawImage(mCurrentX, mCurrentY, mCurrentX + mUnitWidth, mCurrentY + mUnitHeight, resource->getTexture(), nullptr, true, NULL, ((int)mCurrentX) % 2 == 0 ? pxConstantsStretch::STRETCH : pxConstantsStretch::REPEAT, ((int)mCurrentX) % 2 == 0 ? pxConstantsStretch::STRETCH : ((int)mCurrentY) % 2 == 0 ? pxConstantsStretch::REPEAT : pxConstantsStretch::NONE, true, ((int)mCurrentX) % 2 == 0 ? pxConstantsMaskOperation::NORMAL : pxConstantsMaskOperation::INVERT);
+    context.drawImage(mCurrentX, mCurrentY, mCurrentX + mUnitWidth, mCurrentY + mUnitHeight, resource->getTexture(), nullptr, false, NULL, ((int)mCurrentX) % 2 == 0 ? pxConstantsStretch::STRETCH : pxConstantsStretch::REPEAT, ((int)mCurrentX) % 2 == 0 ? pxConstantsStretch::STRETCH : ((int)mCurrentY) % 2 == 0 ? pxConstantsStretch::REPEAT : pxConstantsStretch::NONE, true, ((int)mCurrentX) % 2 == 0 ? pxConstantsMaskOperation::NORMAL : pxConstantsMaskOperation::INVERT);
 }
 
 void pxApiFixture::TestDrawImage9 ()
@@ -453,7 +455,7 @@ void pxApiFixture::TestDrawImage9 ()
     //context.clear(1280, 720);
     
     rtString settingsPath;
-    string url = "Resources/" + to_string((mExperimentValue.Iterations%15)+1) + ".jpg";
+    string url = "Resources/" + to_string((mExperimentValue.Iterations % MAX_IMAGES_CNT) + 1) + ".jpg";
     if (RT_OK == rtGetHomeDirectory(settingsPath))
         url = settingsPath.cString() + url;
     
@@ -472,9 +474,9 @@ void pxApiFixture::TestDrawImage9Border ()
 {
     //pxContextFramebufferRef drawableSnapshotForMask = context.createFramebuffer(static_cast<int>(floor(mUnitWidth)), static_cast<int>(floor(mUnitHeight)));
     
-    static float color[4] = {0., 1.0, 0.0, 1.0};
+    static float color[4] = {1., 0.0, 0.0, 1.0};
     rtString settingsPath;
-    string url = "Resources/" + to_string((mExperimentValue.Iterations%15)+1) + ".jpg";
+    string url = "Resources/" + to_string((mExperimentValue.Iterations % MAX_IMAGES_CNT) + 1) + ".jpg";
     if (RT_OK == rtGetHomeDirectory(settingsPath))
         url = settingsPath.cString() + url;
     
@@ -497,7 +499,7 @@ void pxApiFixture::TestDrawImageMasked ()
     //context.clear(1280, 720);
     
     rtString settingsPath;
-    string url = "Resources/" + to_string((mExperimentValue.Iterations%15)+1) + ".jpg";
+    string url = "Resources/" + to_string((mExperimentValue.Iterations % MAX_IMAGES_CNT) + 1) + ".jpg";
     if (RT_OK == rtGetHomeDirectory(settingsPath))
         url = settingsPath.cString() + url;
     
@@ -507,7 +509,7 @@ void pxApiFixture::TestDrawImageMasked ()
         return;
     
     
-    url = "Resources/" + to_string((mExperimentValue.Iterations%15)+2) + ".jpg";
+    url = "Resources/" + to_string((mExperimentValue.Iterations % MAX_IMAGES_CNT) + 2) + ".jpg";
     
     url = settingsPath.cString() + url;
     
@@ -523,6 +525,15 @@ void pxApiFixture::TestDrawTextureQuads()
     pxTextureRef textureRef = drawableSnapshotForMask->getTexture();/* context.createTexture(static_cast<float>(mUnitWidth), static_cast<float>(mUnitHeight),
                                                     static_cast<float>(mUnitWidth), static_cast<float>(mUnitHeight),
                                                     NULL);*/
+    rtString settingsPath;
+    string url = "Resources/" + to_string((mExperimentValue.Iterations % MAX_IMAGES_CNT) + 1) + ".jpg";
+    if (RT_OK == rtGetHomeDirectory(settingsPath))
+        url = settingsPath.cString() + url;
+    
+    rtRef<rtImageResource> resource = pxImageManager::getImage((char*)url.c_str());
+    pxTextureRef texture = resource->getTexture();
+    if (texture == NULL)
+        return;
     
     static float color[4] = {1., 0.0, 0.0, 1.0};
     const float verts[6][2] =
@@ -548,7 +559,7 @@ void pxApiFixture::TestDrawTextureQuads()
         { u2, v2 }
     };
     
-    context.drawTexturedQuads(1, verts, uvs, textureRef, color);
+    context.drawTexturedQuads(1, verts, uvs, texture, color);
 }
 
 void pxApiFixture::TestDrawOffscreen()
