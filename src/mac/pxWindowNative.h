@@ -121,7 +121,7 @@ protected:
   virtual void onMouseUp(int32_t x, int32_t y, uint32_t flags) = 0;
   
   virtual void onMouseMove(int32_t x, int32_t y) = 0;
-  virtual void onScrollWheel(float dx, float dy);
+  virtual void onScrollWheel(float dx, float dy) { /*empty*/ };
   
   virtual void onMouseEnter() = 0;
   virtual void onMouseLeave() = 0;
