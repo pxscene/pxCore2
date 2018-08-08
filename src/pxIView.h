@@ -24,7 +24,12 @@
 #include "pxCore.h"
 #include "pxRect.h"
 
+#include "rtCore.h"
 #include "rtRef.h"
+
+#ifndef UNUSED_PARAM
+#error("HERE")
+#endif
 
 // A pxIViewContainer must unregister itself
 // upon being destroyed
@@ -33,7 +38,7 @@ class pxIViewContainer
 public:    
   // In view coordinates on pixel boundaries
   // NULL means invalidate everything
-  virtual void RT_STDCALL invalidateRect(pxRect* r) = 0;
+  virtual void  RT_STDCALL invalidateRect(pxRect* r) = 0;
   virtual void* RT_STDCALL getInterface(const char* t) = 0;
 };
 
@@ -55,6 +60,8 @@ public:
   virtual bool RT_STDCALL onMouseDown(int32_t x, int32_t y, uint32_t flags) = 0;
   virtual bool RT_STDCALL onMouseUp(int32_t x, int32_t y, uint32_t flags) = 0;
   virtual bool RT_STDCALL onMouseMove(int32_t x, int32_t y) = 0;
+  
+  virtual bool RT_STDCALL onScrollWheel(float dx, float dy) { UNUSED_PARAM(dx); UNUSED_PARAM(dy); return false; };
 
   virtual bool RT_STDCALL onMouseEnter() = 0;
   virtual bool RT_STDCALL onMouseLeave() = 0;

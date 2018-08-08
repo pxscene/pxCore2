@@ -93,6 +93,7 @@ pxWindowNative(): mTimerFPS(0),/*, mLastWidth(-1), mLastHeight(-1),
   virtual void onMouseDown(int32_t x, int32_t y, uint32_t flags) = 0;
   virtual void onMouseUp(int32_t x, int32_t y, uint32_t flags) = 0;
 
+  virtual void onScrollWheel(float dx, float dy) = 0;
   virtual void onMouseMove(int32_t x, int32_t y) = 0;
 
   virtual void onMouseEnter() = 0;
@@ -136,6 +137,7 @@ protected:
   static void onGlutTimer(int v);
   static void onGlutDisplay();
   static void onGlutMouse(int button, int state, int x, int y);
+  static void onGlutScrollWheel(int button, int dir, int x, int y);
   static void onGlutMouseMotion(int x, int y);
   static void onGlutMousePassiveMotion(int x, int y);
   static void onGlutKeyboard(unsigned char key, int x, int y);

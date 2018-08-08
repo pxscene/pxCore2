@@ -86,7 +86,7 @@ private:
       invalidateRect();
     }
   }
-
+  
   void onMouseLeave()
   {
     if (hovered)
