@@ -1919,7 +1919,7 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   : start(0), sigma_draw(0), sigma_update(0), end2(0), frameCount(0), mWidth(0), mHeight(0), mStopPropagation(false), mContainer(NULL), mShowDirtyRectangle(false),
     mInnerpxObjects(), mSuspended(false),
 #ifdef PX_DIRTY_RECTANGLES
-    mDirtyRect(), mLastFrameDirtyRect(),
+    mDirtyRect(), mLastFrameDirtyRect(),mArchive(),
 #endif //PX_DIRTY_RECTANGLES
     mDirty(true), mTestView(NULL), mDisposed(false)
 {
@@ -2241,7 +2241,7 @@ rtError pxScene2d::createImageResource(rtObjectRef p, rtObjectRef& o)
     return RT_ERROR_NOT_ALLOWED;
 #endif
 
-  o = pxImageManager::getImage(url, proxy, mCORS, iw, ih, sx, sy);
+  o = pxImageManager::getImage(url, proxy, mCORS, iw, ih, sx, sy, mArchive);
   
   o.send("init");
   return RT_OK;
@@ -2257,7 +2257,7 @@ rtError pxScene2d::createImageAResource(rtObjectRef p, rtObjectRef& o)
     return RT_ERROR_NOT_ALLOWED;
 #endif
 
-  o = pxImageManager::getImageA(url, proxy, mCORS);
+  o = pxImageManager::getImageA(url, proxy, mCORS, mArchive);
   o.send("init");
   return RT_OK;
 }
@@ -2271,8 +2271,8 @@ rtError pxScene2d::createFontResource(rtObjectRef p, rtObjectRef& o)
   if (RT_OK != mPermissions->allows(url, rtPermissions::DEFAULT))
     return RT_ERROR_NOT_ALLOWED;
 #endif
-
-  o = pxFontManager::getFont(url, proxy, mCORS);
+  
+  o = pxFontManager::getFont(url, proxy, mCORS, mArchive);
   return RT_OK;
 }
 

@@ -187,6 +187,27 @@ rtError pxArchive::getFileAsString(const char* fileName, rtString& s)
   return e;
 }
 
+rtError pxArchive::getFileData(const char* fileName, rtData& d)
+{
+  rtError e = RT_FAIL;
+  if (mLoadStatus.get<int32_t>("statusCode") == 0)
+  {
+    if (mIsFile)
+    {
+      d = mData;
+      e = RT_OK;
+    }
+    else
+    {
+      if (mZip.getFileData(fileName,d)==RT_OK)
+      {
+        e = RT_OK;
+      }
+    }
+  }
+  return e;
+}
+
 rtError pxArchive::fileNames(rtObjectRef& array) const
 {
   rtError e = RT_FAIL;
@@ -292,6 +313,16 @@ void pxArchive::process(void* data, size_t dataSize)
     // Single file archive
     mIsFile = true;
   }
+}
+
+bool pxArchive::isFile()
+{
+  return mIsFile;
+}
+
+rtString pxArchive::getName()
+{
+  return mUrl;
 }
 
 rtDefineObject(pxArchive,rtObject);
