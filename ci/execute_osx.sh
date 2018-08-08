@@ -92,6 +92,7 @@ done #LOOP
 grep -n "WARNING: ThreadSanitizer:" /var/tmp/pxscene.log
 if [ "$?" -eq 0 ]
     then
+    cp /var/tmp/pxscene.log $EXECLOGS
     checkError -1 "Testcase Failure" "Race Condition detected" "Compile spark with -DENABLE_THREAD_SANITIZER=ON option and test with tests.json file. Verify the pxscene.log file."
     exit 1
 fi
