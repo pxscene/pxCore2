@@ -64,6 +64,12 @@ void pxViewWindow::onSize(int32_t w, int32_t h)
     mView->onSize(w, h);
 }
 
+void pxViewWindow::onScrollWheel(float dx, float dy)
+{
+  if (mView)
+    mView->onScrollWheel(dx, dy);
+}
+
 void pxViewWindow::onMouseDown(int32_t x, int32_t y, uint32_t flags)
 {
   if (mView)

@@ -24,7 +24,12 @@
 #include "pxCore.h"
 #include "pxRect.h"
 
+#include "rtCore.h"
 #include "rtRef.h"
+
+#ifndef UNUSED_PARAM
+#error("HERE")
+#endif
 
 // A pxIViewContainer must unregister itself
 // upon being destroyed
@@ -33,7 +38,7 @@ class pxIViewContainer
 public:    
   // In view coordinates on pixel boundaries
   // NULL means invalidate everything
-  virtual void RT_STDCALL invalidateRect(pxRect* r) = 0;
+  virtual void  RT_STDCALL invalidateRect(pxRect* r) = 0;
   virtual void* RT_STDCALL getInterface(const char* t) = 0;
 };
 
