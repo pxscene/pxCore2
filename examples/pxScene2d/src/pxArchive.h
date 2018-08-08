@@ -53,10 +53,14 @@ public:
   rtError loadStatus(rtObjectRef& v) const;
 
   rtError getFileAsString(const char* fileName, rtString& s);
+  rtError getFileData(const char* fileName, rtData& d);
   rtError fileNames(rtObjectRef& names) const;
 
   void setArchiveData(int downloadStatusCode, uint32_t httpStatusCode, const char* data, const size_t dataSize, const rtString& errorString);
   void setupArchive();
+
+  bool isFile();
+  rtString getName();
 
 protected:
   static void onDownloadComplete(rtFileDownloadRequest* downloadRequest);

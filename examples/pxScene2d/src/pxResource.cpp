@@ -56,7 +56,7 @@ pxResource::~pxResource()
     rtValue nullValue;
     mReady.send("reject",nullValue);
   }
-
+  mArchive = NULL;
   //mListeners.clear();
   //rtLogDebug("Leaving pxResource::~pxResource()\n");
 }
@@ -299,7 +299,7 @@ unsigned long rtImageResource::Release()
   long l = rtAtomicDec(&mRefCount);
   if (l == 0) 
   {
-    pxImageManager::removeImage( mUrl, init_w, init_h, init_sx, init_sy);
+    pxImageManager::removeImage( mUrl, init_w, init_h, init_sx, init_sy, mArchive);
     delete this;
     
   }
@@ -510,6 +510,10 @@ void pxResource::loadResource()
       AddRef(); //ensure this object is not deleted while downloading
       rtFileDownloader::instance()->addToDownloadQueue(mDownloadRequest);
   }
+  else if ((mArchive.getPtr() != NULL ) && (((pxArchive*)mArchive.getPtr())->isFile() == false))
+  {
+    loadResourceFromArchive();
+  }
   else
   {
     loadResourceFromFile();
@@ -612,6 +616,66 @@ void rtImageResource::loadResourceFromFile()
   mTextureMutex.unlock();
 }
 
+
+void rtImageResource::loadResourceFromArchive()
+{
+  pxArchive* archive = (pxArchive*)mArchive.getPtr();
+  pxOffscreen imageOffscreen;
+  rtString status = "resolve";
+  rtData d;
+  rtError loadImageSuccess = RT_OK;
+  if ((NULL != archive) && (RT_OK == archive->getFileData(mUrl, d)))
+  {
+    loadImageSuccess = pxLoadImage((const char *) d.data(), d.length(), imageOffscreen, init_w, init_h, init_sx, init_sy);
+  }
+  else
+  {
+    loadImageSuccess = RT_RESOURCE_NOT_FOUND;
+    rtLogError("Could not load image file from archive %s.", mUrl.cString());
+  }
+  if ( loadImageSuccess != RT_OK)
+  {
+    rtLogWarn("image load failed"); // TODO: why?
+    if (loadImageSuccess == RT_RESOURCE_NOT_FOUND)
+    {
+      setLoadStatus("statusCode",PX_RESOURCE_STATUS_FILE_NOT_FOUND);
+    }
+    else
+    {
+      setLoadStatus("statusCode", PX_RESOURCE_STATUS_DECODE_FAILURE);
+    }
+
+    // Since this object can be released before we get a async completion
+    // We need to maintain this object's lifetime
+    // TODO review overall flow and organization
+    AddRef();
+
+    if (gUIThreadQueue)
+    {
+      gUIThreadQueue->addTask(onDownloadCompleteUI, this, (void*)"reject");
+    }
+  }
+  else
+  {
+    // create offscreen texture for local image
+    mTexture = context.createTexture(imageOffscreen, (const char *) d.data(), d.length());
+    mTexture->setTextureListener(this);
+    setLoadStatus("statusCode",0);
+    // Since this object can be released before we get a async completion
+    // We need to maintain this object's lifetime
+    // TODO review overall flow and organization
+    AddRef();
+    if (gUIThreadQueue)
+    {
+      gUIThreadQueue->addTask(onDownloadCompleteUI, this, (void *) "resolve");
+    }
+
+    mTextureMutex.lock();
+    mDownloadComplete = true;
+    mTextureMutex.unlock();
+    rtLogInfo("rtImageResource::loadResourceFromArchive succeeded !!!!!!!!!!!!!!!!! \n");
+  }
+}
 
 // Static callback that gets called when fileDownloadRequest completes 
 void pxResource::onDownloadComplete(rtFileDownloadRequest* fileDownloadRequest)
@@ -733,7 +797,7 @@ unsigned long rtImageAResource::Release()
   long l = rtAtomicDec(&mRefCount);
   if (l == 0)
   {
-    pxImageManager::removeImageA( mUrl);
+    pxImageManager::removeImageA( mUrl, mArchive);
     delete this;
 
   }
@@ -770,13 +834,18 @@ void rtImageAResource::loadResourceFromFile()
   setLoadStatus("statusCode",PX_RESOURCE_STATUS_UNKNOWN_ERROR);
 }
 
+void rtImageAResource::loadResourceFromArchive()
+{
+  //TODO
+  setLoadStatus("statusCode",PX_RESOURCE_STATUS_UNKNOWN_ERROR);
+}
 
 ImageMap pxImageManager::mImageMap;
 rtRef<rtImageResource> pxImageManager::emptyUrlResource = 0;
 
 rtRef<rtImageResource> pxImageManager::getImage(const char* url, const char* proxy    /* = NULL  */, const rtCORSRef& cors /* = NULL  */,
                                                 int32_t iw /* = 0    */,   int32_t ih /* = 0     */,
-                                                  float sx /* = 1.0f */,   float sy   /* = 1.0f  */)
+                                                  float sx /* = 1.0f */,   float sy   /* = 1.0f  */, rtObjectRef archive)
 {
   //rtLogDebug("pxImageManager::getImage\n");
   // Handle empty url
@@ -815,7 +884,19 @@ rtRef<rtImageResource> pxImageManager::getImage(const char* url, const char* pro
   }
   
   rtRef<rtImageResource> pResImage;
-  
+ 
+  // if running from archived app, we need to search the different url for relative paths
+  // url format is <appname_resource path> eg: football.zip, images/ball.png <football.zip_images/ball.png>
+  pxArchive* arc = (pxArchive*)archive.getPtr();
+  if (NULL != arc)
+  {
+    if (false == arc->isFile())
+    {
+      key = arc->getName();
+      key.append("_");
+      key.append(url);
+    }
+  }
   ImageMap::iterator it = mImageMap.find(key.cString());
   if (it != mImageMap.end())
   {
@@ -833,6 +914,7 @@ rtRef<rtImageResource> pxImageManager::getImage(const char* url, const char* pro
     //rtLogInfo("Create rtImageResource in map for \"%s\"\n",url);
     pResImage = new rtImageResource(url, proxy, iw, ih, sx, sy);
     pResImage->setCORS(cors);
+    pResImage->setArchive(archive);
     mImageMap.insert(make_pair(key.cString(), pResImage));
     pResImage->loadResource();
   }
@@ -841,7 +923,7 @@ rtRef<rtImageResource> pxImageManager::getImage(const char* url, const char* pro
 }
 
 void pxImageManager::removeImage(rtString url, int32_t iw /* = 0 */,   int32_t ih /* = 0 */,
-                                                 float sx /* = 1.0f*/,   float sy /* = 1.0f*/)
+                                                 float sx /* = 1.0f*/,   float sy /* = 1.0f*/, rtObjectRef archive)
 {
   rtString key = url;
 
@@ -867,7 +949,20 @@ void pxImageManager::removeImage(rtString url, int32_t iw /* = 0 */,   int32_t i
     key.append( "x" );
     key.append( hh.toString() );
   }
-  
+ 
+  // if running from archived app, we need to search the different url for relative paths
+  // url format is <appname_resource path> eg: football.zip, images/ball.png <football.zip_images/ball.png>
+  pxArchive* arc = (pxArchive*)archive.getPtr();
+  if (NULL != arc)
+  {
+    if (false == arc->isFile())
+    {
+      key = arc->getName();
+      key.append("_");
+      key.append(url);
+    }
+  } 
+
   //rtLogDebug("pxImageManager::removeImage(\"%s\")\n",imageUrl.cString());
   ImageMap::iterator it = mImageMap.find(key.cString());
   if (it != mImageMap.end())
@@ -879,7 +974,7 @@ void pxImageManager::removeImage(rtString url, int32_t iw /* = 0 */,   int32_t i
 ImageAMap pxImageManager::mImageAMap;
 rtRef<rtImageAResource> pxImageManager::emptyUrlImageAResource = 0;
 /** static pxImageManager::getImage */
-rtRef<rtImageAResource> pxImageManager::getImageA(const char* url, const char* proxy, const rtCORSRef& cors)
+rtRef<rtImageAResource> pxImageManager::getImageA(const char* url, const char* proxy, const rtCORSRef& cors, rtObjectRef archive)
 {
   if(!url || strlen(url) == 0) {
     if( !emptyUrlImageAResource) {
@@ -889,8 +984,21 @@ rtRef<rtImageAResource> pxImageManager::getImageA(const char* url, const char* p
   }
 
   rtRef<rtImageAResource> pResImageA;
+  rtString key = url;
+  // if running from archived app, we need to search the different url for relative paths
+  // url format is <appname_resource path> eg: football.zip, images/ball.png <football.zip_images/ball.png>
+  pxArchive* arc = (pxArchive*)archive.getPtr();
+  if (NULL != arc)
+  {
+    if (false == arc->isFile())
+    {
+      key = arc->getName();
+      key.append("_");
+      key.append(url);
+    }
+  }
 
-  ImageAMap::iterator it = mImageAMap.find(url);
+  ImageAMap::iterator it = mImageAMap.find(key);
   if (it != mImageAMap.end())
   {
     pResImageA = it->second;
@@ -899,16 +1007,31 @@ rtRef<rtImageAResource> pxImageManager::getImageA(const char* url, const char* p
   {
     pResImageA = new rtImageAResource(url, proxy);
     pResImageA->setCORS(cors);
-    mImageAMap.insert(make_pair(url, pResImageA));
+    pResImageA->setArchive(archive);
+    mImageAMap.insert(make_pair(key, pResImageA));
     pResImageA->loadResource();
   }
 
   return pResImageA;
 }
 
-void pxImageManager::removeImageA(rtString imageUrl)
+void pxImageManager::removeImageA(rtString imageUrl, rtObjectRef archive)
 {
-  ImageAMap::iterator it = mImageAMap.find(imageUrl);
+  rtString key = imageUrl;
+  // if running from archived app, we need to search the different url for relative paths
+  // url format is <appname_resource path> eg: football.zip, images/ball.png <football.zip_images/ball.png>
+  pxArchive* arc = (pxArchive*)archive.getPtr();
+  if (NULL != arc)
+  {
+    if (false == arc->isFile())
+    {
+      key = arc->getName();
+      key.append("_");
+      key.append(imageUrl);
+    }
+  }
+
+  ImageAMap::iterator it = mImageAMap.find(key);
   if (it != mImageAMap.end())
   {
     mImageAMap.erase(it);

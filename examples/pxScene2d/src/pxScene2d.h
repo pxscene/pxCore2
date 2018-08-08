@@ -1390,6 +1390,7 @@ public:
        //delete mTestView; // HACK: Only used in testing... 'delete' causes unknown crash.
        mTestView = NULL;
     }
+    mArchive = NULL;
   }
   
   virtual unsigned long AddRef() 
@@ -1588,6 +1589,7 @@ public:
       archive = a;
       e = RT_OK;
     }
+    mArchive = a;
     return e;
   }
 
@@ -1600,6 +1602,10 @@ public:
   rtError getService(rtString name, rtObjectRef& returnObject);
   rtError getService(const char* name, const rtObjectRef& ctx, rtObjectRef& service);
   rtError getAvailableApplications(rtString& availableApplications);
+  rtObjectRef getArchive()
+  {
+    return mArchive;
+  }
 
 private:
   bool bubbleEvent(rtObjectRef e, rtRef<pxObject> t, 
@@ -1656,7 +1662,7 @@ private:
 #endif
   bool mSuspended;
   rtCORSRef mCORS;
-
+  rtObjectRef mArchive;
 public:
   void hidePointer( bool hide )
   {

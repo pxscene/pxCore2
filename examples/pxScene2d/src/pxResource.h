@@ -72,7 +72,7 @@ public:
   rtReadOnlyProperty(loadStatus,loadStatus,rtObjectRef);
     
   pxResource():mUrl(0),mDownloadRequest(NULL),mDownloadInProgress(false), priorityRaised(false),mReady(), mListeners(),
-               mListenersMutex(), mDownloadInProgressMutex(), mLoadStatusMutex(){
+               mListenersMutex(), mDownloadInProgressMutex(), mLoadStatusMutex(), mArchive() {
     mReady = new rtPromise;
     mLoadStatus = new rtMapObject; 
     mLoadStatus.set("statusCode", 0);
@@ -111,7 +111,7 @@ public:
   virtual void releaseData();
   virtual void reloadData();
   void setCORS(const rtCORSRef& cors) { mCORS = cors; }
-
+  void setArchive(rtObjectRef archive) { mArchive = archive; }
 protected:   
   static void onDownloadComplete(rtFileDownloadRequest* downloadRequest);
   static void onDownloadCompleteUI(void* context, void* data);
@@ -124,7 +124,7 @@ protected:
   void notifyListenersResourceDirty();
 
   virtual void loadResourceFromFile() = 0;
-
+  virtual void loadResourceFromArchive() = 0;
   
   rtString mUrl;
   rtString mProxy;
@@ -139,6 +139,7 @@ protected:
   rtMutex mDownloadInProgressMutex;
   mutable rtMutex mLoadStatusMutex;
   rtCORSRef mCORS;
+  rtObjectRef mArchive;
 };
 
 class rtImageResource : public pxResource, public pxTextureListener
@@ -184,6 +185,7 @@ protected:
 private:
 
   void loadResourceFromFile();
+  void loadResourceFromArchive();
 
   pxTextureRef mTexture;
   pxTextureRef mDownloadedTexture;
@@ -215,6 +217,7 @@ protected:
 private:
 
   void loadResourceFromFile();
+  void loadResourceFromArchive();
   pxTimedOffscreenSequence mTimedOffscreenSequence;
 
 };
@@ -227,12 +230,12 @@ class pxImageManager
   
   public: 
     static rtRef<rtImageResource> getImage(const char* url, const char* proxy = NULL, const rtCORSRef& cors = NULL,
-                                          int32_t iw = 0, int32_t ih = 0, float sx = 1.0f, float sy = 1.0f);
+                                          int32_t iw = 0, int32_t ih = 0, float sx = 1.0f, float sy = 1.0f, rtObjectRef archive = NULL);
   
-    static void removeImage(rtString url, int32_t iw = 0, int32_t ih = 0, float sx = 1.0f, float sy = 1.0f);
+    static void removeImage(rtString url, int32_t iw = 0, int32_t ih = 0, float sx = 1.0f, float sy = 1.0f, rtObjectRef archive = NULL);
 
-    static rtRef<rtImageAResource> getImageA(const char* url, const char* proxy = NULL, const rtCORSRef& cors = NULL);
-    static void removeImageA(rtString imageAUrl);
+    static rtRef<rtImageAResource> getImageA(const char* url, const char* proxy = NULL, const rtCORSRef& cors = NULL, rtObjectRef archive = NULL);
+    static void removeImageA(rtString imageAUrl, rtObjectRef archive = NULL);
     
   private: 
     static ImageMap mImageMap;
