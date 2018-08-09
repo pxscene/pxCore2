@@ -68,6 +68,8 @@ if [ "$TRAVIS_EVENT_TYPE" == "cron" ]
 then
   sed -i -e 's/\.\/pxscene/\.\/pxsceneEdge/g' macstuff/pxscene.sh
   sed -i -e 's/pxscene.log /pxsceneEdge.log /g' macstuff/pxscene.sh
+  sed -i -e 's/pxscene.app /pxsceneEdge.app /g' macstuff/dmgresources/engine_install
+  sed -i -e 's/pxscene_update.log /pxsceneEdge_update.log  macstuff/dmgresources/engine_install
 fi
 
 cp macstuff/pxscene.sh $bundleBin

@@ -5,8 +5,29 @@ THIS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 cd "$THIS_DIR"
 
-export DYLD_LIBRARY_PATH=./lib/
+updateEdge=true
+cmdLineArgs=false
 export LD_LIBRARY_PATH=./lib/
+export DYLD_LIBRARY_PATH=./lib/
+$LD_LIBRARY_PATH
+for i in $*; do 
+   if [[ $i == "-autoUpdateEdge="* ]] ; 
+   then
+     IFS='=' tokens=( $i )
+     updateEdge=`echo ${tokens[1]} | tr '[:upper:]' '[:lower:]'`
+     cmdLineArgs=true
+     break 
+   fi 
+ done
+
+if [[ $cmdLineArgs == false ]] ;
+then
+  if [[ -e $HOME/.sparkSettings.json ]]; 
+  then
+  KEY=autoUpdateEdge
+  num=1
+    updateEdge=`cat $HOME/.sparkSettings.json | awk -F"[,:}]" '{for(i=1;i<=NF;i++){if($i~/'$KEY'\042/){print $(i+1)}}}' | tr -d '"' | sed -n ${num}p| tr '[:upper:]' '[:lower:]'`
+fi
 
 ./pxscene $* < /dev/zero >> /var/tmp/pxscene.log 2>&1 &
 
@@ -27,10 +48,13 @@ if [ -e ./version ] && [ -w . ]; then
   if [[ "$VERSION" != "edge"* ]]; then
     UPDATE_URL=http://www.pxscene.org/dist/osx/pxscene/software_update.plist
     ./EngineRunner run -productid org.pxscene.pxscene -version $VERSION -url ${UPDATE_URL} &
+  else
+    if [[ $updateEdge == "true" ]] || [[ $updateEdge == 1 ]] ; then
+      UPDATE_URL=http://96.116.56.119/test/edge/osx/artifacts/software_update.plist
+      ./EngineRunner run -productid org.pxscene.pxscene -version $VERSION -url ${UPDATE_URL} &
+    fi
   fi
 else
     echo "Info: No ./version file assuming dev build.  Skip software update"
 fi
-
-
 
