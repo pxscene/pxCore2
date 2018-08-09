@@ -155,7 +155,7 @@ rtError pxImage::setUrl(const char* s)
 
   removeResourceListener();
 
-  if(!imageLoaded && pRes && pRes->getUrl().length() > 0)
+  if(pRes && !imageLoaded)
   {
     mResource = pxImageManager::getImage(s, NULL, mScene ? mScene->cors() : NULL,
                                                   pRes->initW(),  pRes->initH(),

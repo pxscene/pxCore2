@@ -279,13 +279,14 @@ void pxResource::raiseDownloadPriority()
 
 
 rtImageResource::rtImageResource()
-: pxResource(), mTexture(), mDownloadedTexture(), mTextureMutex(), mDownloadComplete(false), init_w(0), init_h(0)
+: pxResource(), mTexture(), mDownloadedTexture(), mTextureMutex(), mDownloadComplete(false), init_w(0), init_h(0), mData()
 {
 }
 
 rtImageResource::rtImageResource(const char* url, const char* proxy, int32_t iw /* = 0 */,  int32_t ih /* = 0 */,
                                                                        float sx /* = 1.0f*/,  float sy /* = 1.0f*/ )
-    : pxResource(), mTexture(), mDownloadedTexture(), mTextureMutex(), mDownloadComplete(false), init_w(iw), init_h(ih), init_sx(sx), init_sy(sy)
+    : pxResource(), mTexture(), mDownloadedTexture(), mTextureMutex(), mDownloadComplete(false),
+      init_w(iw), init_h(ih), init_sx(sx), init_sy(sy), mData()
 {
   setUrl(url, proxy);
 }
