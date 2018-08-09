@@ -122,6 +122,7 @@ public:
   virtual float getOnscreenHeight();
   virtual void createNewPromise();
   virtual void dispose(bool pumpJavascript);
+  virtual void update(double t);
   
  protected:
   virtual void draw();
