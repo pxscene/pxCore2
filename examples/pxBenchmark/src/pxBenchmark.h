@@ -108,6 +108,7 @@ class pxApiFixture : public celero::TestFixture
     void TestDrawTextureQuadsRan ();
     pxTextureRef GetImageTexture ();
     
+    pxTextureRef CreateTexture ();
 public:
     enum type
     {
@@ -270,6 +271,8 @@ public:
     void reset();
     
     pxOffscreen& GetTexture() { return mTexture; }
+    
+    void SetIterations (uint64_t iterations) { mIterations = iterations; }
 protected:
     
     virtual void onSize(/*const */int32_t/*&*/ w, /*const */int32_t/*&*/ h);

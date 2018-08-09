@@ -67,13 +67,17 @@ void benchmarkWindow::init(const int32_t& x, const int32_t& y, const int32_t& w,
 {
     mApiFixture = std::shared_ptr<pxApiFixture>(&pxApiFixture::Instance());
     
+    rtString settingsPath;
+    rtGetHomeDirectory(settingsPath);
+    mOutputTableCSV = "pxBenchmark_outputTable.csv";
+    
     std::cout << "Writing results to: " << mOutputTableCSV << std::endl;
-    celero::ResultTable::Instance().setFileName(mOutputTableCSV);
+    celero::ResultTable::Instance().setFileName(settingsPath.cString() + mOutputTableCSV);
     
     celero::AddExperimentResultCompleteFunction([](std::shared_ptr<celero::ExperimentResult> p) { celero::ResultTable::Instance().add(p); });
     
     std::cout << "Archiving results to: " << mArchiveCSV << std::endl;
-    celero::Archive::Instance().setFileName(mArchiveCSV);
+    celero::Archive::Instance().setFileName(settingsPath.cString() + mArchiveCSV);
     
     celero::AddExperimentResultCompleteFunction([](std::shared_ptr<celero::ExperimentResult> p) { celero::Archive::Instance().add(p); });
     
@@ -735,6 +739,37 @@ void random( pxBuffer& b, long double xmin, long double xmax, long double ymin, 
     }
 }
 
+pxTextureRef pxApiFixture::CreateTexture ()
+{
+    pxOffscreen o;
+    o.init(mUnitWidth, mUnitHeight);
+    random(o, -3, 2, -2.5, 2.5, 18);
+    // premultiply
+    for (int y = 0; y < mUnitHeight; y++)
+    {
+        pxPixel* d = o.scanline(y);
+        pxPixel* de = d + (int)mUnitWidth;
+        int x = 0;
+        while (d < de)
+        {
+             d->r = rand() / 255;// (d->r * d->a)/255;
+             d->g = rand() / 255;// (d->g * d->a)/255;
+             d->b = rand() / 255; //(d->b * d->a)/255;
+            
+            
+           /* double xyValue = x * 5.0 / mUnitWidth + y * 10.0 / mUnitHeight + 5.0 * rand() / 256.0;
+            double sineValue = 226 * fabs(sin(xyValue * 3.14159));
+            d->r = 30 + sineValue;
+            d->g = 10 + sineValue;
+            d->b = sineValue;*/
+            
+            d++;
+            
+        }
+    }
+    
+    return context.createTexture(o);
+}
 void pxApiFixture::setUp(const celero::TestFixture::ExperimentValue& experimentValue)
 {
     pxMatrix4f m;
@@ -743,6 +778,25 @@ void pxApiFixture::setUp(const celero::TestFixture::ExperimentValue& experimentV
     context.setAlpha(1.0);
     
     context.setShowOutlines(true);
+    
+    switch ((int)mExperimentValue.Value) {
+        case xDrawImage9Ran:
+        case xDrawImageRan:
+        case xDrawImageBorder9Ran:
+        case xDrawImageMaskedRan:
+        case xDrawTextureQuadsRan:
+            mUnitWidth = (rand() % (int)win.GetWidth());// / (int)win.GetWidth();
+            mUnitWidth = mUnitWidth < 50 ? 50 : mUnitWidth;
+            mUnitHeight = (rand() % (int)win.GetHeight());// / (int)win.GetHeight();
+            mUnitHeight = mUnitHeight < 50 ? 50 : mUnitHeight;
+            context.clear(win.GetWidth(), win.GetHeight());
+            win.SetIterations (100);
+            break;
+        default:
+            win.SetIterations (1056);
+            break;
+    }
+    
     if (mCurrentX >= win.GetWidth() && mCurrentY >= win.GetHeight())
     {
         mCurrentX = 0.0;
@@ -762,73 +816,11 @@ void pxApiFixture::setUp(const celero::TestFixture::ExperimentValue& experimentV
         mCurrentX = 0;
         mCurrentY += mUnitHeight;
     }
-    switch ((int)mExperimentValue.Value) {
-        case xDrawImage9Ran:
-        case xDrawImageRan:
-        case xDrawImageBorder9Ran:
-        case xDrawImageMaskedRan:
-        case xDrawTextureQuadsRan:
-            mUnitWidth = (rand() % (int)win.GetWidth());// / (int)win.GetWidth();
-            mUnitWidth = mUnitWidth < 50 ? 50 : mUnitWidth;
-            mUnitHeight = (rand() % (int)win.GetHeight());// / (int)win.GetHeight();
-            mUnitHeight = mUnitHeight < 50 ? 50 : mUnitHeight;
-            context.clear(win.GetWidth(), win.GetHeight());
-            break;
-        default:
-            break;
-    }
-    //if (mTextureRef == NULL)
-    {
-        
-     //   pxContextFramebufferRef drawableSnapshotForMask = context.createFramebuffer(static_cast<int>(floor(mUnitWidth)), static_cast<int>(floor(mUnitHeight)));
-    //drawableSnapshotForMask->setDirtyRectangle(mCurrentX, mCurrentY, mUnitWidth, mUnitHeight);
     
-    //drawableSnapshotForMask->enableDirtyRectangles(true);
-    
-   // pxContextFramebufferRef maskSnapshot = context.createFramebuffer(static_cast<int>(floor(mUnitWidth)), static_cast<int>(floor(mUnitHeight)));
-    
-    //pxTimedOffscreenSequence& imageSequence = resource->getTimedOffscreenSequence();
-    
-    //pxOffscreen &o = imageSequence.getFrameBuffer(mCurFrame);
-    // context.createTexture(o)
-    //static float color[4] = {1., 0.0, 0.0, 1.0};
-    
-    // mTextureRef = GetImageTexture ();
-    //mTextureRef = drawableSnapshotForMask->getTexture();
-    
-    pxOffscreen o;
-    o.init(mUnitWidth, mUnitHeight);
-    random(o, -3, 2, -2.5, 2.5, 18);
-    // premultiply
-    for (int y = 0; y < mUnitHeight; y++)
-    {
-        pxPixel* d = o.scanline(y);
-        pxPixel* de = d + (int)mUnitWidth;
-        int x = 0;
-        while (d < de)
-        {
-           /* d->r = rand() / 255;// (d->r * d->a)/255;
-            d->g = rand() / 255;// (d->g * d->a)/255;
-            d->b = rand() / 255; //(d->b * d->a)/255;
-            */
-            
-            double xyValue = x * 5.0 / mUnitWidth + y * 10.0 / mUnitHeight + 5.0 * rand() / 256.0;
-            double sineValue = 226 * fabs(sin(xyValue * 3.14159));
-            d->r = 30 + sineValue;
-            d->g = 10 + sineValue;
-            d->b = sineValue;
-            
-            d++;
-            
-        }
-    }
-        
-    mTextureRef = context.createTexture(o);
-    //mTextureRef = context.createTexture(mUnitWidth, mUnitHeight, mUnitWidth, mUnitHeight, context);
-    }
+    mTextureRef = CreateTexture(); //GetImageTexture ();
     
     //mTextureRef = context.createTexture(win.GetTexture());
-    mTextureMaskRef = NULL;//maskSnapshot->getTexture();
+    mTextureMaskRef = NULL;// CreateTexture();//maskSnapshot->getTexture();
 }
 
 void pxApiFixture::tearDown()
