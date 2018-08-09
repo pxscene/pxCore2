@@ -24,12 +24,13 @@ if [[ $cmdLineArgs == false ]] ;
 then
   if [[ -e $HOME/.sparkSettings.json ]]; 
   then
-  KEY=autoUpdateEdge
-  num=1
+    KEY=autoUpdateEdge
+    num=1
     updateEdge=`cat $HOME/.sparkSettings.json | awk -F"[,:}]" '{for(i=1;i<=NF;i++){if($i~/'$KEY'\042/){print $(i+1)}}}' | tr -d '"' | sed -n ${num}p| tr '[:upper:]' '[:lower:]'`
+  fi
 fi
 
-./pxscene $* < /dev/zero >> /var/tmp/pxscene.log 2>&1 &
+./pxsceneEdge $* < /dev/zero >> /var/tmp/pxsceneEdge.log 2>&1 &
 
 # Software update below
 
