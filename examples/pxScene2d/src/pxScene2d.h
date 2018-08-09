@@ -1082,7 +1082,7 @@ typedef rtRef<pxObject> pxObjectRef;
 class pxScriptView: public pxIView
 {
 public:
-  pxScriptView(const char* url, const char* /*lang*/);
+  pxScriptView(const char* url, const char* /*lang*/, pxIViewContainer* container=NULL);
 #ifndef RUNINMAIN
   void runScript(); // Run the script
 #endif
@@ -1547,7 +1547,7 @@ public:
   virtual void onComplete();
 
   virtual void setViewContainer(pxIViewContainer* l);
-
+  pxIViewContainer* viewContainer();
   void invalidateRect(pxRect* r);
   
   void getMatrixFromObjectToScene(pxObject* o, pxMatrix4f& m);
@@ -1584,7 +1584,18 @@ public:
 
     rtError e = RT_FAIL;
     rtRef<pxArchive> a = new pxArchive;
-    if (a->initFromUrl(url, mCORS) == RT_OK)
+    pxIViewContainer* view = viewContainer();
+    pxSceneContainer* sceneContainer = (pxSceneContainer*)view;
+    rtObjectRef parentArchive = NULL;
+    if (NULL != sceneContainer)
+    {
+      pxScene2d* scene = sceneContainer->getScene();
+      if (NULL != scene)
+      {
+        parentArchive = scene->getArchive();
+      }
+    }
+    if (a->initFromUrl(url, mCORS, parentArchive) == RT_OK)
     {
       archive = a;
       e = RT_OK;

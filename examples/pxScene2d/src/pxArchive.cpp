@@ -104,7 +104,7 @@ void pxArchive::setArchiveData(int downloadStatusCode, uint32_t httpStatusCode, 
   mArchiveDataMutex.unlock();
 }
 
-rtError pxArchive::initFromUrl(const rtString& url, const rtCORSRef& cors)
+rtError pxArchive::initFromUrl(const rtString& url, const rtCORSRef& cors, rtObjectRef archive)
 {
   mReady = new rtPromise;
   mLoadStatus = new rtMapObject;
@@ -132,8 +132,19 @@ rtError pxArchive::initFromUrl(const rtString& url, const rtCORSRef& cors)
     mUseDownloadedData = false;
     mLoadStatus.set("sourceType", "file");
     // TODO align statusCodes for loadStatus
-
-    if (rtLoadFile(url, mData) == RT_OK)
+    rtError loadStatus = RT_ERROR;
+    pxArchive* arc = (pxArchive*) archive.getPtr();
+    if ((arc != NULL ) && (arc->isFile() == false))
+    {
+      loadStatus = arc->getFileData(mUrl, mData);
+    }
+    else
+    {
+      printf("Madana loading from file [%s] \n",mUrl.cString());
+      fflush(stdout);
+      loadStatus = rtLoadFile(url, mData);
+    }
+    if (loadStatus == RT_OK)
     {
       mLoadStatus.set("statusCode",0);
       process(mData.data(),mData.length());

@@ -3714,6 +3714,11 @@ void pxScene2d::setViewContainer(pxIViewContainer* l)
 #endif
 }
 
+pxIViewContainer* pxScene2d::viewContainer()
+{
+  return mContainer;
+}
+
 rtDefineObject(pxViewContainer, pxObject);
 rtDefineProperty(pxViewContainer, w);
 rtDefineProperty(pxViewContainer, h);
@@ -3756,9 +3761,9 @@ rtError pxSceneContainer::setUrl(rtString url)
 
   mUrl = url;
 #ifdef RUNINMAIN
-    setScriptView(new pxScriptView(url.cString(), ""));
+    setScriptView(new pxScriptView(url.cString(), "", this));
 #else
-    pxScriptView * scriptView = new pxScriptView(url.cString(),"");
+    pxScriptView * scriptView = new pxScriptView(url.cString(),"", this);
     AsyncScriptInfo * info = new AsyncScriptInfo();
     info->m_pView = scriptView;
     //info->m_pWindow = this;
@@ -3898,8 +3903,8 @@ rtError createObject2(const char* t, rtObjectRef& o)
 }
 #endif
 
-pxScriptView::pxScriptView(const char* url, const char* /*lang*/)
-     : mWidth(-1), mHeight(-1), mViewContainer(NULL), mRefCount(0)
+pxScriptView::pxScriptView(const char* url, const char* /*lang*/, pxIViewContainer* container)
+     : mWidth(-1), mHeight(-1), mViewContainer(container), mRefCount(0)
 {
   rtLogInfo(__FUNCTION__);
   rtLogDebug("pxScriptView::pxScriptView()entering\n");
