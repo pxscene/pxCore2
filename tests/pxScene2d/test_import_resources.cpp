@@ -56,7 +56,7 @@ class importTests : public testing::Test
 
     void initialize()
     {
-      startJsFile("supportfiles/test_import.js");
+      startJsFile("supportfiles/test_import_resources.js");
     }
 
 private:

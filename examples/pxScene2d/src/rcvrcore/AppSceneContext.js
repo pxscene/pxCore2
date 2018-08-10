@@ -284,7 +284,7 @@ var setTimeoutCallback = function() {
   ClearTimeout(this);
 };
 
-function getPackageBaseFilePathImported()
+function getBaseFilePath()
 {
   return this;
 }
@@ -295,6 +295,7 @@ function createModule_pxScope(xModule, isImported) {
     configImport: xModule.configImport.bind(xModule),
     resolveFilePath: xModule.resolveFilePath.bind(xModule),
     appQueryParams: this.queryParams,
+    getPackageBaseFilePath: getPackageBaseFilePath.bind(this),
     getFile: getFile.bind(this),
     getModuleFile: xModule.getFile.bind(xModule)
   };
@@ -304,16 +305,16 @@ function createModule_pxScope(xModule, isImported) {
   {
     if (xModule.basePath == "")
     {
-      params.getPackageBaseFilePath = getPackageBaseFilePathImported.bind("./");
+      params.getBaseFilePath = getBaseFilePath.bind("./");
     }
     else
     {
-      params.getPackageBaseFilePath = getPackageBaseFilePathImported.bind(xModule.basePath+"/");
+      params.getBaseFilePath = getBaseFilePath.bind(xModule.basePath+"/");
     }
   }
   else
   {
-    params.getPackageBaseFilePath = getPackageBaseFilePath.bind(this);
+    params.getBaseFilePath = params.getPackageBaseFilePath;
   }
   return params;
 }
@@ -780,16 +781,7 @@ AppSceneContext.prototype.processCodeBuffer = function(origFilePath, filePath, c
 
   var sourceCode = AppSceneContext.wrap(codeBuffer);
   log.message(4, "RUN " + filePath);
-  var px;
-  if (isJar)
-  {
-    px = createModule_pxScope.call(this, xModule);
-  }
-  else
-  {
-    // imported file execution
-    px = createModule_pxScope.call(this, xModule, true);
-  }
+  var px = createModule_pxScope.call(this, xModule, true);
   if (isDuk) {
     vm.runInNewContext(sourceCode, _this.sandbox, { filename: filePath, displayErrors: true },
                          px, xModule, filePath, filePath);
