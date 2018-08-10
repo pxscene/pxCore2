@@ -30,7 +30,7 @@ then
   fi
 fi
 
-./pxsceneEdge $* < /dev/zero >> /var/tmp/pxsceneEdge.log 2>&1 &
+./pxscene $* < /dev/zero >> /var/tmp/pxscene.log 2>&1 &
 
 # Software update below
 
@@ -51,7 +51,7 @@ if [ -e ./version ] && [ -w . ]; then
     ./EngineRunner run -productid org.pxscene.pxscene -version $VERSION -url ${UPDATE_URL} &
   else
     if [[ $updateEdge == "true" ]] || [[ $updateEdge == 1 ]] ; then
-      UPDATE_URL=http://96.116.56.119/test/edge/osx/artifacts/software_update.plist
+      UPDATE_URL=http://96.116.56.119/edge/osx/artifacts/software_update.plist
       ./EngineRunner run -productid org.pxscene.pxscene -version $VERSION -url ${UPDATE_URL} &
     fi
   fi

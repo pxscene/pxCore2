@@ -13,7 +13,7 @@ VERS=$1
 
 if [ "$TRAVIS_EVENT_TYPE" == "cron" ]
 then
-IMGURL="http://96.116.56.119/test/edge/osx/artifacts/pxsceneEdge.dmg"
+IMGURL="http://96.116.56.119/edge/osx/artifacts/pxsceneEdge.dmg"
 else
 IMGURL="http://www.pxscene.org/dist/osx/pxscene/pxscene.dmg"
 fi
