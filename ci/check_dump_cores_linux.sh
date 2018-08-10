@@ -3,31 +3,24 @@
 
 path="$1"
 binary="$2"
-logfile="$3"
+processId="$3"
+logfile="$4"
 cd $path
-ls -lrt core
+ls -lrt /tmp/pxscenecrash
 retVal=$?
 if [ "$retVal" -eq 0 ]
 	then
-	tempLogFile="gdb.txt"
-	coreFileName="core"
-	sudo chmod 777 $coreFileName
-	echo "gdb -q --command=\"$TRAVIS_BUILD_DIR/ci/debuggercmds_linux\" -c $coreFileName $binary  2&>gdblogs"
-	gdb -q --command="$TRAVIS_BUILD_DIR/ci/debuggercmds_linux" -c $coreFileName $binary  2&>gdblogs
-	cat gdblogs
-	if [ "$TRAVIS_PULL_REQUEST" != "false" ]
+        sudo gdb -q --command="$TRAVIS_BUILD_DIR/ci/debuggercmds_linux" --pid="$processId" "$binary" 2&> gdblogs
+        if [ "$TRAVIS_PULL_REQUEST" != "false" ]
 		then
 		echo "**********************PRINTING CORE STACK DETAILS**************************"
-		echo "PATH :  $path"
-		cat $tempLogFile
+		cat gdblogs
 		echo "***************************************************************************"
 	else
 		echo "**********************PRINTING CORE STACK DETAILS**************************" >> $logfile 
-		echo "PATH :  $path" >> $logfile
-		cat "$tempLogFile" >> $logfile
+		cat gdblogs  >> $logfile
 		echo "***************************************************************************" >> $logfile
 	fi
-	rm -rf "$tempLogFile"
 	rm -rf gdblogs
 	exit 1;
 else

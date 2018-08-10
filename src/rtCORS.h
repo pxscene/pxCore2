@@ -41,8 +41,10 @@ public:
 
   rtDeclareObject(rtCORS, rtObject);
   rtMethod3ArgAndReturn("passesAccessControlCheck", passesAccessControlCheck, rtString, bool, rtString, bool);
+  rtReadOnlyProperty(isEnabled, isEnabled, bool);
 
   rtError passesAccessControlCheck(const rtString& rawHeaderData, bool withCredentials, const rtString& origin, bool& passes) const;
+  rtError isEnabled(bool& v) const { v = mEnabled; return RT_OK; }
 
   rtError updateRequestForAccessControl(struct curl_slist** headerList) const;
   rtError updateResponseForAccessControl(rtFileDownloadRequest* request) const;
@@ -57,7 +59,7 @@ protected:
   static const char* HTTPHeaderName_AccessControlAllowOrigin;
   static const char* HTTPHeaderName_AccessControlAllowCredentials;
 
-  static bool mEnable;
+  static bool mEnabled;
 
   rtString mOrigin;
 };
