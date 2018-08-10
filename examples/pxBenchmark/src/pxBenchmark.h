@@ -27,13 +27,13 @@
 #endif
 #include <stdlib.h>
 #include <fstream>
-
 #include <stdint.h>    // for PRId64
 #include <inttypes.h>  // for PRId6
 
 #include <celero/Celero.h>
 using namespace celero;
 
+#include "pxTexture.h"
 //-----------------------------------------------------------------------------------
 //  class pxBenchmarkExperimentValue
 //  Notes: This is class is degined to test the performance of graphics API
@@ -87,6 +87,8 @@ class pxApiFixture : public celero::TestFixture
     
     pxBenchmarkExperimentValue                mExperimentValue;
     uint64_t                                  mIterationCounter;
+    pxTextureRef                              mTextureRef;
+    pxTextureRef                              mTextureMaskRef;
     
     void TestDrawRect ();
     void TestDrawDiagLine ();
@@ -99,6 +101,14 @@ class pxApiFixture : public celero::TestFixture
     void TestDrawTextureQuads ();
     void TestDrawOffscreen ();
     
+    void TestDrawImageRan ();
+    void TestDrawImage9Ran ();
+    void TestDrawImage9BorderRan ();
+    void TestDrawImageMaskedRan ();
+    void TestDrawTextureQuadsRan ();
+    pxTextureRef GetImageTexture ();
+    
+    pxTextureRef CreateTexture ();
 public:
     enum type
     {
@@ -111,6 +121,11 @@ public:
         xDrawImageMasked,
         xDrawTextureQuads,
         //xDrawOffscreen,
+        xDrawImageRan,
+        xDrawImage9Ran,
+        xDrawImageBorder9Ran,
+        xDrawImageMaskedRan,
+        xDrawTextureQuadsRan,
         xDrawAll
     };
     
@@ -125,6 +140,8 @@ public:
     , mCurrentY (0)
     , mUnitWidth (572) // TODO 20->50x50 image size 512x512
     , mUnitHeight (572)
+    , mTextureRef (NULL)
+    , mTextureMaskRef (NULL)
     {
     }
     
@@ -202,11 +219,14 @@ class benchmarkWindow : public pxWindow, public pxIViewContainer, public Benchma
     std::string         mArchiveCSV;
     std::string         mOutputTableCSV;
     
+    pxOffscreen         mTexture;
+    
     std::shared_ptr<pxApiFixture>                   mApiFixture;
     std::shared_ptr<celero::Benchmark>              mBaselineBm;
     std::vector<std::shared_ptr<celero::Benchmark>> mBms;
     std::shared_ptr<pxBenchmarkFactory>             mExperimentFactory;
     
+    void drawBackground(pxBuffer& b);
 public:
     benchmarkWindow ()
     : mWidth (-1)
@@ -249,6 +269,10 @@ public:
     //float GetCurrentY () { return mCurrentY; }
     
     void reset();
+    
+    pxOffscreen& GetTexture() { return mTexture; }
+    
+    void SetIterations (uint64_t iterations) { mIterations = iterations; }
 protected:
     
     virtual void onSize(/*const */int32_t/*&*/ w, /*const */int32_t/*&*/ h);

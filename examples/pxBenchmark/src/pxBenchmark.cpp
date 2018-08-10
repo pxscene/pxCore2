@@ -50,6 +50,8 @@ pxEventLoop* gLoop = &eventLoop;
 
 pxContext context;
 
+int MAX_IMAGES_CNT = 42;
+
 
 #ifdef ENABLE_DEBUG_MODE
 extern int          g_argc;
@@ -65,13 +67,17 @@ void benchmarkWindow::init(const int32_t& x, const int32_t& y, const int32_t& w,
 {
     mApiFixture = std::shared_ptr<pxApiFixture>(&pxApiFixture::Instance());
     
+    rtString settingsPath;
+    rtGetHomeDirectory(settingsPath);
+    mOutputTableCSV = "pxBenchmark_outputTable.csv";
+    
     std::cout << "Writing results to: " << mOutputTableCSV << std::endl;
-    celero::ResultTable::Instance().setFileName(mOutputTableCSV);
+    celero::ResultTable::Instance().setFileName(settingsPath.cString() + mOutputTableCSV);
     
     celero::AddExperimentResultCompleteFunction([](std::shared_ptr<celero::ExperimentResult> p) { celero::ResultTable::Instance().add(p); });
     
     std::cout << "Archiving results to: " << mArchiveCSV << std::endl;
-    celero::Archive::Instance().setFileName(mArchiveCSV);
+    celero::Archive::Instance().setFileName(settingsPath.cString() + mArchiveCSV);
     
     celero::AddExperimentResultCompleteFunction([](std::shared_ptr<celero::ExperimentResult> p) { celero::Archive::Instance().add(p); });
     
@@ -88,6 +94,30 @@ void benchmarkWindow::init(const int32_t& x, const int32_t& y, const int32_t& w,
     mApiFixture->popExperimentValue().Iterations = 0;
     
     mApiFixture->popExperimentValue().mTotalTime = 0;
+    
+    
+    mTexture.init(mWidth, mHeight);
+    
+    drawBackground(mTexture);
+}
+
+void benchmarkWindow::drawBackground(pxBuffer& b)
+{
+    // Fill the buffer with a simple pattern as a function of f(x,y)
+    int w = b.width();
+    int h = b.height();
+    
+    for (int y = 0; y < h; y++)
+    {
+        pxPixel* p = b.scanline(y);
+        for (int x = 0; x < w; x++)
+        {
+            p->r = pxClamp<int>(x+y, 255);
+            p->g = pxClamp<int>(y,   255);
+            p->b = pxClamp<int>(x,   255);
+            p++;
+        }
+    }
 }
 
 void* benchmarkWindow::getInterface(const char* /*name*/)
@@ -224,6 +254,21 @@ void benchmarkWindow::reset()
         case pxApiFixture::type::xDrawTextureQuads:
             mGroupName = "DrawTextureQuads";
             break;
+        case pxApiFixture::type::xDrawImage9Ran:
+            mGroupName = "DrawImage9Ran";
+            break;
+        case pxApiFixture::type::xDrawImageRan:
+            mGroupName = "DrawImageRan";
+            break;
+        case pxApiFixture::type::xDrawImageBorder9Ran:
+            mGroupName = "DrawImageBorder9Ran";
+            break;
+        case pxApiFixture::type::xDrawImageMaskedRan:
+            mGroupName = "DrawImageMaskedRan";
+            break;
+        case pxApiFixture::type::xDrawTextureQuadsRan:
+            mGroupName = "DrawTextureQuadsRan";
+            break;
         //case pxApiFixture::type::xDrawOffscreen:
         //    mGroupName = "DrawOffscreen";
         //    break;
@@ -249,9 +294,10 @@ void benchmarkWindow::onDraw(pxSurfaceNative/*&*/ sn)
     if (mApiFixture->getIterationCounter() == 0)
     {
         context.setSize(win.GetWidth(), win.GetHeight());
-        float fillColor[] = {1.0, 1.0, 0.0, 1.0};
-        context.clear(0, 0, fillColor);
-        //context.clear(1280, 720);
+        //float fillColor[] = {1.0, 1.0, 0.0, 1.0};
+        //context.clear(0, 0, fillColor);
+        context.clear(win.GetWidth(), win.GetHeight());
+        
     }
     
     if (mApiFixture->getIterationCounter() <= mIterations)
@@ -264,9 +310,10 @@ void benchmarkWindow::onDraw(pxSurfaceNative/*&*/ sn)
     else
     {
         context.setSize(win.GetWidth(), win.GetHeight());
-        float fillColor[] = {1.0, 1.0, 0.0, 1.0};
-        context.clear(0, 0, fillColor);
-        //context.clear(1280, 720);
+        //float fillColor[] = {1.0, 1.0, 0.0, 1.0};
+        //context.clear(0, 0, fillColor);
+        context.clear(win.GetWidth(), win.GetHeight());
+        
         
         mApiFixture->popExperimentValue().Value++;
         
@@ -274,6 +321,9 @@ void benchmarkWindow::onDraw(pxSurfaceNative/*&*/ sn)
         
         reset ();
     }
+    
+    // Draw the texture into this window
+   // mTexture.blit(sn);
     
 }
 
@@ -399,131 +449,65 @@ uint64_t pxApiFixture::run(const uint64_t threads, const uint64_t iterations, co
 void pxApiFixture::TestDrawRect ()
 {
     static float color[4] = {1., 0.0, 0.0, 1.0};
-    //context.clear(1280, 720);
     context.drawRect(mCurrentX + mUnitWidth, mCurrentY + mUnitHeight, 1, NULL, color);
 }
 
 void pxApiFixture::TestDrawDiagLine ()
 {
     static float color[4] = {0., 0.0, 1.0, 1.0};
-    //context.clear(1280, 720);
     context.drawDiagLine(mCurrentX, mCurrentY, mCurrentX+mUnitWidth, mCurrentY+mUnitHeight, color);
 }
 
 void pxApiFixture::TestDrawDiagRect ()
 {
     static float color[4] = {0., 1.0, 0.0, 1.0};
-    //context.clear(1280, 720);
     context.drawDiagRect(mCurrentX, mCurrentY, mUnitWidth, mUnitHeight, color);
+}
+
+pxTextureRef pxApiFixture::GetImageTexture ()
+{
+    rtString settingsPath;
+    string url = "Resources/" + to_string((mExperimentValue.Iterations % MAX_IMAGES_CNT) + 1) + ".jpg";
+    if (RT_OK == rtGetHomeDirectory(settingsPath))
+        url = settingsPath.cString() + url;
+    
+    if (!rtFileExists((char*)url.c_str()))
+        return NULL;
+    
+    rtRef<rtImageResource> resource = pxImageManager::getImage((char*)url.c_str());
+    pxTextureRef texture = resource->getTexture();
+    if (texture == NULL)
+        return NULL;
+    
+    return texture;
 }
 
 void pxApiFixture::TestDrawImage ()
 {
-    //context.clear(1280, 720);
-    rtString settingsPath;
-    string url = "Resources/" + to_string((mExperimentValue.Iterations%15)+1) + ".jpg";
-    if (RT_OK == rtGetHomeDirectory(settingsPath))
-        url = settingsPath.cString() + url;
+    static float color[4] = {0., 0.0, 1.0, 1.0};
     
-    //if (!rtFileExists((char*)url.c_str()))
-    //    return;
-    
-    rtRef<rtImageResource> resource = pxImageManager::getImage((char*)url.c_str());
-    pxTextureRef texture = resource->getTexture();
-    if (texture == NULL)
-        return;
-    
-    //pxTimedOffscreenSequence& imageSequence = resource->getTimedOffscreenSequence();
-    
-    //pxOffscreen &o = imageSequence.getFrameBuffer(mCurFrame);
-    // context.createTexture(o)
-    //static float color[4] = {1., 0.0, 0.0, 1.0};
-    
-    //pxContextFramebufferRef drawableSnapshotForMask = context.createFramebuffer(static_cast<int>(floor(mUnitWidth)), static_cast<int>(floor(mUnitHeight)));
-    
-   // pxContextFramebufferRef maskSnapshot = context.createFramebuffer(static_cast<int>(floor(mUnitWidth)), static_cast<int>(floor(mUnitHeight)));
-    
-    //
-    context.drawImage(mCurrentX, mCurrentY, mCurrentX + mUnitWidth, mCurrentY + mUnitHeight, resource->getTexture(), nullptr, true, NULL, ((int)mCurrentX) % 2 == 0 ? pxConstantsStretch::STRETCH : pxConstantsStretch::REPEAT, ((int)mCurrentX) % 2 == 0 ? pxConstantsStretch::STRETCH : ((int)mCurrentY) % 2 == 0 ? pxConstantsStretch::REPEAT : pxConstantsStretch::NONE, true, ((int)mCurrentX) % 2 == 0 ? pxConstantsMaskOperation::NORMAL : pxConstantsMaskOperation::INVERT);
+    context.drawImage(mCurrentX, mCurrentY, mUnitWidth, mUnitHeight, mTextureRef, mTextureMaskRef, true, color, ((int)mCurrentX) % 2 == 0 ? pxConstantsStretch::STRETCH : pxConstantsStretch::REPEAT, ((int)mCurrentX) % 2 == 0 ? pxConstantsStretch::STRETCH : ((int)mCurrentY) % 2 == 0 ? pxConstantsStretch::REPEAT : pxConstantsStretch::NONE, true, ((int)mCurrentX) % 2 == 0 ? pxConstantsMaskOperation::NORMAL : pxConstantsMaskOperation::INVERT);
 }
 
 void pxApiFixture::TestDrawImage9 ()
 {
-    //pxContextFramebufferRef drawableSnapshotForMask = context.createFramebuffer(static_cast<int>(floor(mUnitWidth)), static_cast<int>(floor(mUnitHeight)));
-    //context.clear(1280, 720);
-    
-    rtString settingsPath;
-    string url = "Resources/" + to_string((mExperimentValue.Iterations%15)+1) + ".jpg";
-    if (RT_OK == rtGetHomeDirectory(settingsPath))
-        url = settingsPath.cString() + url;
-    
-    //if (!rtFileExists((char*)url.c_str()))
-    //    return;
-    
-    rtRef<rtImageResource> resource = pxImageManager::getImage((char*)url.c_str());
-    pxTextureRef texture = resource->getTexture();
-    if (texture == NULL)
-        return;
-    
-    context.drawImage9(mUnitWidth, mUnitHeight, mCurrentX, mCurrentY, mCurrentX + mUnitWidth, mCurrentY + mUnitHeight, texture);
+    context.drawImage9(mUnitWidth, mUnitHeight, mCurrentX, mCurrentY, mCurrentX + mUnitWidth, mCurrentY + mUnitHeight, mTextureRef);
 }
 
 void pxApiFixture::TestDrawImage9Border ()
 {
-    //pxContextFramebufferRef drawableSnapshotForMask = context.createFramebuffer(static_cast<int>(floor(mUnitWidth)), static_cast<int>(floor(mUnitHeight)));
+    static float color[4] = {1., 0.0, 0.0, 1.0};
     
-    static float color[4] = {0., 1.0, 0.0, 1.0};
-    rtString settingsPath;
-    string url = "Resources/" + to_string((mExperimentValue.Iterations%15)+1) + ".jpg";
-    if (RT_OK == rtGetHomeDirectory(settingsPath))
-        url = settingsPath.cString() + url;
-    
-    //if (!rtFileExists((char*)url.c_str()))
-    //    return;
-    
-    rtRef<rtImageResource> resource = pxImageManager::getImage((char*)url.c_str());
-    pxTextureRef texture = resource->getTexture();
-    if (texture == NULL)
-        return;
-    
-    context.drawImage9Border(mUnitWidth, mUnitHeight, mCurrentX, mCurrentY, mCurrentX + mUnitWidth, mCurrentY + mUnitHeight, mCurrentX, mCurrentY, mCurrentX + mUnitWidth, mCurrentY + mUnitHeight, ((int)mCurrentX) % 2 == 0 ? true : false, color, texture);
+    context.drawImage9Border(mUnitWidth, mUnitHeight, mCurrentX, mCurrentY, mCurrentX + mUnitWidth, mCurrentY + mUnitHeight, mCurrentX, mCurrentY, mCurrentX + mUnitWidth, mCurrentY + mUnitHeight, false, color, mTextureRef);
 }
 
 void pxApiFixture::TestDrawImageMasked ()
 {
-    //pxContextFramebufferRef drawableSnapshotForMask = context.createFramebuffer(static_cast<int>(floor(mUnitWidth)), static_cast<int>(floor(mUnitHeight)));
-    
-    //pxContextFramebufferRef maskSnapshot = context.createFramebuffer(static_cast<int>(floor(mUnitWidth)), static_cast<int>(floor(mUnitHeight)));
-    //context.clear(1280, 720);
-    
-    rtString settingsPath;
-    string url = "Resources/" + to_string((mExperimentValue.Iterations%15)+1) + ".jpg";
-    if (RT_OK == rtGetHomeDirectory(settingsPath))
-        url = settingsPath.cString() + url;
-    
-    rtRef<rtImageResource> resource = pxImageManager::getImage((char*)url.c_str());
-    pxTextureRef texture = resource->getTexture();
-    if (texture == NULL)
-        return;
-    
-    
-    url = "Resources/" + to_string((mExperimentValue.Iterations%15)+2) + ".jpg";
-    
-    url = settingsPath.cString() + url;
-    
-    resource = pxImageManager::getImage((char*)url.c_str());
-   
-    context.drawImageMasked(mCurrentX, mCurrentY, mUnitWidth, mUnitHeight, ((int)mCurrentX) % 2 == 0 ? pxConstantsMaskOperation::constants::NORMAL : pxConstantsMaskOperation::constants::INVERT, texture, resource->getTexture());
+    context.drawImageMasked(mCurrentX, mCurrentY, mUnitWidth, mUnitHeight, ((int)mCurrentX) % 2 == 0 ? pxConstantsMaskOperation::constants::NORMAL : pxConstantsMaskOperation::constants::INVERT, mTextureRef, mTextureMaskRef);
 }
 
 void pxApiFixture::TestDrawTextureQuads()
 {
-    pxContextFramebufferRef drawableSnapshotForMask = context.createFramebuffer(static_cast<int>(floor(mUnitWidth)), static_cast<int>(floor(mUnitHeight)));
-    
-    pxTextureRef textureRef = drawableSnapshotForMask->getTexture();/* context.createTexture(static_cast<float>(mUnitWidth), static_cast<float>(mUnitHeight),
-                                                    static_cast<float>(mUnitWidth), static_cast<float>(mUnitHeight),
-                                                    NULL);*/
-    
     static float color[4] = {1., 0.0, 0.0, 1.0};
     const float verts[6][2] =
     {
@@ -534,27 +518,26 @@ void pxApiFixture::TestDrawTextureQuads()
         { mCurrentX,   mCurrentY + mUnitHeight },
         { mCurrentX + mUnitWidth, mCurrentY + mUnitHeight }
     };
-    float u1 = 0;//((int)mCurrentX) % 2 == 0 ? 0 : 1;
-    float v1 = 1;//((int)mCurrentY) % 2 == 0 ? 1 : 0;
-    float u2 = 1;//((int)mCurrentX) % 2 == 0 ? 1 : 0;
-    float v2 = 0;//((int)mCurrentY) % 2 == 0 ? 0 : 1;
+    float u1 = ((int)mCurrentX) % 2 == 0 ? 0 : 1;
+    float v1 = ((int)mCurrentY) % 2 == 0 ? 1 : 0;
+    float u2 = ((int)mCurrentX) % 2 == 0 ? 1 : 0;
+    float v2 = ((int)mCurrentY) % 2 == 0 ? 0 : 1;
     const float uvs[6][2] =
     {
-        { u1, v1  },
-        { u2, v1  },
+        { u1, v1 },
+        { u2, v1 },
         { u1, v2 },
-        { u2, v1  },
+        { u2, v1 },
         { u1, v2 },
         { u2, v2 }
     };
     
-    context.drawTexturedQuads(1, verts, uvs, textureRef, color);
+    context.drawTexturedQuads(1, verts, uvs, mTextureRef, color);
 }
 
 void pxApiFixture::TestDrawOffscreen()
 {
-    /*pxContextFramebufferRef drawableSnapshotForMask = context.createFramebuffer(static_cast<int>(floor(mUnitWidth)), static_cast<int>(floor(mUnitHeight)));
-    pxOffscreen offscreen;
+    /*pxOffscreen offscreen;
     context.drawOffscreen(mCurrentX, mCurrentY, mCurrentX + mUnitWidth, mCurrentY + mUnitHeight, mUnitWidth, mUnitHeight, offscreen);*/
 }
 
@@ -579,32 +562,61 @@ void pxApiFixture::TestDrawAll ()
     TestDrawOffscreen();
 }
 
+void pxApiFixture::TestDrawImageRan ()
+{
+    static float color[4] = {0., 0.0, 1.0, 1.0};
+
+    context.drawImage(mCurrentX, mCurrentY, mUnitWidth, mUnitHeight, mTextureRef, mTextureMaskRef, true, color, ((int)mCurrentX) % 2 == 0 ? pxConstantsStretch::STRETCH : pxConstantsStretch::REPEAT, ((int)mCurrentX) % 2 == 0 ? pxConstantsStretch::STRETCH : ((int)mCurrentY) % 2 == 0 ? pxConstantsStretch::REPEAT : pxConstantsStretch::NONE, true, ((int)mCurrentX) % 2 == 0 ? pxConstantsMaskOperation::NORMAL : pxConstantsMaskOperation::INVERT);
+}
+
+void pxApiFixture::TestDrawImage9Ran ()
+{
+    context.drawImage9(mUnitWidth, mUnitHeight, mCurrentX, mCurrentY, mCurrentX + mUnitWidth, mCurrentY + mUnitHeight, mTextureRef);
+}
+
+void pxApiFixture::TestDrawImage9BorderRan ()
+{
+    static float color[4] = {1., 0.0, 0.0, 1.0};
+    
+    context.drawImage9Border(mUnitWidth, mUnitHeight, mCurrentX, mCurrentY, mCurrentX + mUnitWidth, mCurrentY + mUnitHeight, mCurrentX, mCurrentY, mCurrentX + mUnitWidth, mCurrentY + mUnitHeight, false, color, mTextureRef);
+}
+
+void pxApiFixture::TestDrawImageMaskedRan ()
+{
+    context.drawImageMasked(mCurrentX, mCurrentY, mUnitWidth, mUnitHeight, ((int)mCurrentX) % 2 == 0 ? pxConstantsMaskOperation::constants::NORMAL : pxConstantsMaskOperation::constants::INVERT, mTextureRef, mTextureMaskRef);
+}
+
+void pxApiFixture::TestDrawTextureQuadsRan()
+{
+    static float color[4] = {1., 0.0, 0.0, 1.0};
+    const float verts[6][2] =
+    {
+        { mCurrentX,     mCurrentY },
+        { mCurrentX + mUnitWidth,   mCurrentY },
+        { mCurrentX,   mCurrentY + mUnitHeight },
+        { mCurrentX + mUnitWidth,   mCurrentY },
+        { mCurrentX,   mCurrentY + mUnitHeight },
+        { mCurrentX + mUnitWidth, mCurrentY + mUnitHeight }
+    };
+    float u1 = ((int)mCurrentX) % 2 == 0 ? 0 : 1;
+    float v1 = ((int)mCurrentY) % 2 == 0 ? 1 : 0;
+    float u2 = ((int)mCurrentX) % 2 == 0 ? 1 : 0;
+    float v2 = ((int)mCurrentY) % 2 == 0 ? 0 : 1;
+    const float uvs[6][2] =
+    {
+        { u1, v1 },
+        { u2, v1 },
+        { u1, v2 },
+        { u2, v1 },
+        { u1, v2 },
+        { u2, v2 }
+    };
+    
+    context.drawTexturedQuads(1, verts, uvs, mTextureRef, color);
+}
+
 void pxApiFixture::onExperimentStart(const celero::TestFixture::ExperimentValue& exp)
 {
-    pxMatrix4f m;
-    context.setMatrix(m);
-    
-    context.setAlpha(1.0);
-    
-    context.setShowOutlines(true);
-    if (mCurrentX >= win.GetWidth() && mCurrentY >= win.GetHeight())
-    {
-        mCurrentX = 0.0;
-        mCurrentY = 0.0;
-        
-        context.setSize(win.GetWidth(), win.GetHeight());
-        
-        float fillColor[] = {1.0, 1.0, 0.0, 1.0};
-        context.clear(0, 0, fillColor);
-    }
-    else if (mCurrentX < win.GetWidth())
-        mCurrentX += mUnitWidth;
-    else
-    {
-        mCurrentX = 0;
-        mCurrentY += mUnitHeight;
-    }
-    
     switch ((int)mExperimentValue.Value) {
         case xDrawRect:
             TestDrawRect();
@@ -629,6 +641,21 @@ void pxApiFixture::onExperimentStart(const celero::TestFixture::ExperimentValue&
             break;
         case xDrawTextureQuads:
             TestDrawTextureQuads();
+            break;
+        case xDrawImage9Ran:
+            TestDrawImage9Ran();
+            break;
+        case xDrawImageRan:
+            TestDrawImageRan();
+            break;
+        case xDrawImageBorder9Ran:
+            TestDrawImage9BorderRan();
+            break;
+        case xDrawImageMaskedRan:
+            TestDrawImageMaskedRan();
+            break;
+        case xDrawTextureQuadsRan:
+            TestDrawTextureQuadsRan();
             break;
         //case xDrawOffscreen:
         //    TestDrawOffscreen();
@@ -657,8 +684,143 @@ pxBenchmarkExperimentValue& pxApiFixture::popExperimentValue()
     return mExperimentValue;
 }
 
+void random( pxBuffer& b, long double xmin, long double xmax, long double ymin, long double ymax, unsigned maxiter )
+{
+    int nx = b.width();
+    int ny = b.height();
+    
+    short ix, iy;
+    unsigned iter;
+    long double cx, cy;
+    long double x, y, x2, y2, temp;
+    
+    for( iy = 0; iy < ny; iy ++ )
+    {
+        cy = ymin + iy * ( ymax - ymin ) / ( ny - 1 );
+        
+        for( ix = 0; ix < nx; ix ++ )
+        {
+            // for a given pixel calculate if that point is in
+            // the mandelbrot set
+            cx = xmin + ix * ( xmax - xmin ) / ( nx - 1 );
+            x = y = x2 = y2 = 0.0;
+            iter = 0;
+            
+            // use an escape radius of 9.0
+            while( iter < maxiter && ( x2 + y2 ) <= 9.0 )
+            {
+                temp = x2 - y2 + cx;
+                y = 2 * x * y + cy;
+                x = temp;
+                x2 = x * x;
+                y2 = y * y;
+                iter++;
+            }
+            
+            pxPixel* p = b.pixel(ix, iy);
+            
+            
+            // Select a color based on how many iterations it took to escape
+            // the mandelbrot set
+            if (iter >= maxiter)
+            {
+                p->r = p->b = p->g = 0;
+                p->a = 32;
+            }
+            else
+            {
+                double v = (double)iter/(double)maxiter;
+                p->r = (unsigned char)(255*v);
+                p->b = (unsigned char)(80*(1.0-v));
+                p->g = (unsigned char)(255*(1.0-v));
+                p->a = 255;
+            }
+        }
+    }
+}
+
+pxTextureRef pxApiFixture::CreateTexture ()
+{
+    pxOffscreen o;
+    o.init(mUnitWidth, mUnitHeight);
+    random(o, -3, 2, -2.5, 2.5, 18);
+    // premultiply
+    for (int y = 0; y < mUnitHeight; y++)
+    {
+        pxPixel* d = o.scanline(y);
+        pxPixel* de = d + (int)mUnitWidth;
+        int x = 0;
+        while (d < de)
+        {
+             d->r = rand() / 255;// (d->r * d->a)/255;
+             d->g = rand() / 255;// (d->g * d->a)/255;
+             d->b = rand() / 255; //(d->b * d->a)/255;
+            
+            
+           /* double xyValue = x * 5.0 / mUnitWidth + y * 10.0 / mUnitHeight + 5.0 * rand() / 256.0;
+            double sineValue = 226 * fabs(sin(xyValue * 3.14159));
+            d->r = 30 + sineValue;
+            d->g = 10 + sineValue;
+            d->b = sineValue;*/
+            
+            d++;
+            
+        }
+    }
+    
+    return context.createTexture(o);
+}
 void pxApiFixture::setUp(const celero::TestFixture::ExperimentValue& experimentValue)
 {
+    pxMatrix4f m;
+    context.setMatrix(m);
+    
+    context.setAlpha(1.0);
+    
+    context.setShowOutlines(true);
+    
+    switch ((int)mExperimentValue.Value) {
+        case xDrawImage9Ran:
+        case xDrawImageRan:
+        case xDrawImageBorder9Ran:
+        case xDrawImageMaskedRan:
+        case xDrawTextureQuadsRan:
+            mUnitWidth = (rand() % (int)win.GetWidth());// / (int)win.GetWidth();
+            mUnitWidth = mUnitWidth < 50 ? 50 : mUnitWidth;
+            mUnitHeight = (rand() % (int)win.GetHeight());// / (int)win.GetHeight();
+            mUnitHeight = mUnitHeight < 50 ? 50 : mUnitHeight;
+            context.clear(win.GetWidth(), win.GetHeight());
+            win.SetIterations (100);
+            break;
+        default:
+            win.SetIterations (1056);
+            break;
+    }
+    
+    if (mCurrentX >= win.GetWidth() && mCurrentY >= win.GetHeight())
+    {
+        mCurrentX = 0.0;
+        mCurrentY = 0.0;
+        
+        context.setSize(win.GetWidth(), win.GetHeight());
+        
+        context.clear(win.GetWidth(), win.GetHeight());
+        
+        //float fillColor[] = {1.0, 1.0, 0.0, 1.0};
+        //context.clear(0, 0, fillColor);
+    }
+    else if (mCurrentX < win.GetWidth())
+        mCurrentX += mUnitWidth;
+    else
+    {
+        mCurrentX = 0;
+        mCurrentY += mUnitHeight;
+    }
+    
+    mTextureRef = CreateTexture(); //GetImageTexture ();
+    
+    //mTextureRef = context.createTexture(win.GetTexture());
+    mTextureMaskRef = NULL;// CreateTexture();//maskSnapshot->getTexture();
 }
 
 void pxApiFixture::tearDown()
