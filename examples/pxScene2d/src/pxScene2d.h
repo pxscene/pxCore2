@@ -1600,7 +1600,21 @@ public:
       archive = a;
       e = RT_OK;
     }
-    mArchive = a;
+
+    pxArchive* myArchive = (pxArchive*) a.getPtr();
+    if ((parentArchive != NULL ) && (((pxArchive*)parentArchive.getPtr())->isFile() == false))
+    {
+      if ((myArchive != NULL ) && (myArchive->isFile() == false))
+      {
+        mArchive = a;
+      }
+      else
+      {
+        mArchive = parentArchive;
+      }
+    }
+    else
+      mArchive = a;
     return e;
   }
 
