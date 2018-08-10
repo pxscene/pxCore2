@@ -25,7 +25,7 @@
 
 include(CheckTypeSize)
 
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 2.8.9)
 
 set(LIBUVDIR ${CMAKE_CURRENT_LIST_DIR}/lib/uv)
 
@@ -121,6 +121,7 @@ else()
     ${LIBUVDIR}/src/unix/timer.c
     ${LIBUVDIR}/src/unix/tty.c
     ${LIBUVDIR}/src/unix/udp.c
+    ${LIBUVDIR}/src/unix/pthread-barrier.c
   )
 endif()
 
@@ -157,7 +158,6 @@ if(APPLE)
     -D=_DARWIN_USE_64_BIT_INODE
   )
   set(SOURCES ${SOURCES}
-    ${LIBUVDIR}/src/unix/pthread-barrier.c
     ${LIBUVDIR}/src/unix/proctitle.c
     ${LIBUVDIR}/src/unix/darwin.c
     ${LIBUVDIR}/src/unix/fsevents.c

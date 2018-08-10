@@ -460,8 +460,8 @@ private:
 
     do
     {
-      int ret = readdir_r(dir, entry, &result);
-      if (ret > 0)
+      result = readdir(dir);
+      if (NULL == result)
       {
         rtLogError("failed reading %s: %s", kDevInputByPath, getSystemError(errno).c_str());
         closedir(dir);

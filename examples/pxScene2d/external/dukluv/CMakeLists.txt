@@ -1,10 +1,7 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 2.8.9)
 
 project (dukluv)
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fpic")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpic")
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/build)
 include(duktape.cmake)
 include(uv.cmake)
 
@@ -26,7 +23,6 @@ add_library(duv
   src/uv_schema.c
   src/callbacks.c
   src/miniz.c
-  src/dns.c
 )
 
 
