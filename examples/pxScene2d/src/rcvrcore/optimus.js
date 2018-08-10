@@ -352,6 +352,10 @@ function Application(props) {
             _this.log("about to create browser window");
             _browser = _externalApp.api.createWindow(_externalApp.displayName, false);
             if (_browser) {
+              
+              //FIXME read from a config file (per a webapp, disabled by default)
+              _browser.localStorageEnabled = true;
+              
               _browser.url = uri;
               _this.log("launched WebApp uri:" + uri);
               _this.applicationCreated();
