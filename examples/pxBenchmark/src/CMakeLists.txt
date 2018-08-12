@@ -145,12 +145,8 @@ set(PLATFORM_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/../../pxScene2d/src/egl/pxConte
 set(PXSCENE_DEFINITIONS ${PXSCENE_DEFINITIONS} -DPXSCENE_DISABLE_PXCONTEXT_EXT)
 include_directories(AFTER /opt/vc/include /opt/vc/include/interface/vcos/pthreads
 /opt/vc/include/interface/vmcs_host/linux /opt/vc/include)
-set(RT_EGL_PROVIDER=libprovider.soinitializing)
-set(PLATFORM_LINKER_FLAGS)
-set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} /opt/vc/lib/ /usr/lib/ //lib/arm-linux-gnueabihf)
-set(PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} bcm_host)
-set(PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} /usr/lib/arm-linux-gnueabihf/libEGL.so.1.0.0 /usr/lib/arm-linux-gnueabihf/libpthread.so //lib/arm-linux-gnueabihf/libdl.so.2 //lib/arm-linux-gnueabihf/librt.so.1)
-    
+set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} /opt/vc/lib/ /usr/lib/ /opt/minecraft-pi/lib/bcrm/)
+set(PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} bcm_host /opt/minecraft-pi/lib/brcm/libEGL.so /opt/minecraft-pi/lib/brcm/libGLESv2.so)
 elseif (BUILD_WITH_WINDOWLESS_EGL OR BUILD_PXSCENE_WAYLAND_EGL OR BUILD_PXSCENE_ESSOS)
 if (BUILD_WITH_WINDOWLESS_EGL)
 message("Building pxbenchmark for windowless EGL")
