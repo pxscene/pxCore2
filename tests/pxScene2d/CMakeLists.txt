@@ -95,7 +95,7 @@ if (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
         set(BUILD_UNIT_TEST 1)
         set(TEST_WAYLAND_SOURCE_FILES "")
         #set(TEST_WAYLAND_SOURCE_FILES test_pxWayland.cpp test_pxWaylandContainer.cpp)
-        set(PLATFORM_TEST_FILES test_jsfiles.cpp test_rtError.cpp test_pxUtil.cpp test_screenshot.cpp)
+        set(PLATFORM_TEST_FILES test_jsfiles.cpp test_rtError.cpp test_pxUtil.cpp 
 
         if (PXSCENE_TEST_HTTP_CACHE)
                 message("Enabling http cache tests")
