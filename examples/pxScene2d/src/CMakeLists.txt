@@ -145,7 +145,7 @@ elseif (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
         include_directories(AFTER /opt/vc/include /opt/vc/include/interface/vcos/pthreads
                 /opt/vc/include/interface/vmcs_host/linux /opt/vc/include)
         set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} /opt/vc/lib/)
-        set(PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} bcm_host)
+        set(PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} bcm_host brcmEGL brcmGLESv2)
     elseif (BUILD_WITH_WINDOWLESS_EGL OR BUILD_PXSCENE_WAYLAND_EGL OR BUILD_PXSCENE_ESSOS)
         if (BUILD_WITH_WINDOWLESS_EGL)
             message("Building pxscene for windowless EGL")
