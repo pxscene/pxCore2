@@ -140,8 +140,6 @@ rtError pxArchive::initFromUrl(const rtString& url, const rtCORSRef& cors, rtObj
     }
     else
     {
-      printf("Madana loading from file [%s] \n",mUrl.cString());
-      fflush(stdout);
       loadStatus = rtLoadFile(url, mData);
     }
     if (loadStatus == RT_OK)
@@ -205,8 +203,7 @@ rtError pxArchive::getFileData(const char* fileName, rtData& d)
   {
     if (mIsFile)
     {
-      d = mData;
-      e = RT_OK;
+      e = d.init(mData.data(), mData.length());
     }
     else
     {

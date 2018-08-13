@@ -519,7 +519,6 @@ void pxResource::loadResource(rtObjectRef archive)
   {
     loadResourceFromFile();
   }
-
 }
 void pxResource::onDownloadCompleteUI(void* context, void* data)
 {
