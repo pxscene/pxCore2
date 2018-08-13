@@ -69,6 +69,10 @@
 #include <rapidjson/stringbuffer.h>
 #include <rapidjson/writer.h>
 
+#ifdef ENABLE_RT_NODE
+#include "rtScript.h"
+#endif //ENABLE_RT_NODE
+
 using namespace rapidjson;
 
 using namespace std;
@@ -2617,12 +2621,15 @@ void pxScene2d::onUpdate(double t)
     rtLogDebug("%d fps   pxObjects: %d\n", fps, pxObjectCount);
 #endif //USE_RENDER_STATS
 
-    // TODO FUTURES... might be nice to have "struct" style object's that get copied
-    // at the interop layer so we don't get remoted calls back to the render thread
-    // for accessing the values (events would be the primary usecase)
-    rtObjectRef e = new rtMapObject;
-    e.set("fps", fps);
-    mEmit.send("onFPS", e);
+    {
+#ifdef ENABLE_RT_NODE
+      rtWrapperSceneUnlocker unlocker;
+#endif //ENABLE_RT_NODE
+
+      rtObjectRef e = new rtMapObject;
+      e.set("fps", fps);
+      mEmit.send("onFPS", e);
+    }
 
       start = end2; // start of frame
     frameCount = 0;
