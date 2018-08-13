@@ -32,6 +32,10 @@
 
 #include "pxContext.h"
 
+#ifdef ENABLE_RT_NODE
+#include "rtScript.h"
+#endif //ENABLE_RT_NODE
+
 #include <map>
 using namespace std;
 
@@ -313,6 +317,10 @@ void pxWayland::onUpdate(double t)
 
   if(!mReadyEmitted && mEvents && mWCtx && (!mUseDispatchThread || !mWaitingForRemoteObject) )
   {
+#ifdef ENABLE_RT_NODE
+    rtWrapperSceneUnlocker unlocker;
+#endif //ENABLE_RT_NODE
+
     mReadyEmitted= true;
     mEvents->isReady(true);
   }
