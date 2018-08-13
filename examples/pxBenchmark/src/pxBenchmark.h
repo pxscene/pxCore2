@@ -164,7 +164,7 @@ public:
     
     pxBenchmarkExperimentValue& popExperimentValue();
     
-    static pxApiFixture& Instance();
+    //static pxApiFixture& Instance();
     
     virtual uint64_t run(const uint64_t threads, const uint64_t iterations, const celero::TestFixture::ExperimentValue& experimentValue) override;
     
@@ -192,7 +192,7 @@ public:
     
     virtual std::shared_ptr<TestFixture> Create() override;
     
-    static pxBenchmarkFactory& Instance();
+    //static pxBenchmarkFactory& Instance();
 };
 
 //-----------------------------------------------------------------------------------

@@ -65,7 +65,7 @@ char** g_origArgv = NULL;
 
 void benchmarkWindow::init(const int32_t& x, const int32_t& y, const int32_t& w, const int32_t& h, const int32_t& mw, const int32_t& mh)
 {
-    mApiFixture = std::shared_ptr<pxApiFixture>(&pxApiFixture::Instance());
+    mApiFixture = std::shared_ptr<pxApiFixture>(new pxApiFixture());//&pxApiFixture::Instance());
     
     rtString settingsPath;
     rtGetHomeDirectory(settingsPath);
@@ -204,7 +204,7 @@ void benchmarkWindow::RegisterTest (const string& groupName, const string& bench
                                     const uint64_t iterations, const uint64_t threads)
 {
     if (NULL == mExperimentFactory)
-        mExperimentFactory = std::shared_ptr<pxBenchmarkFactory>(&pxBenchmarkFactory::Instance());
+        mExperimentFactory = std::shared_ptr<pxBenchmarkFactory>(new pxBenchmarkFactory());//&pxBenchmarkFactory::Instance());
     
     // TODO celero::TestVector::Instance().clear();
     
@@ -227,7 +227,7 @@ void benchmarkWindow::RegisterTest (const string& groupName, const string& bench
 void benchmarkWindow::reset()
 {
     if (mExperimentFactory == NULL)
-        mExperimentFactory = std::shared_ptr<pxBenchmarkFactory>(&pxBenchmarkFactory::Instance());
+        mExperimentFactory = std::shared_ptr<pxBenchmarkFactory>(new pxBenchmarkFactory());//&pxBenchmarkFactory::Instance());
     
     switch ((int)mApiFixture->popExperimentValue().Value) {
         case pxApiFixture::type::xDrawRect:
@@ -361,21 +361,21 @@ std::shared_ptr<TestFixture> pxBenchmarkFactory::Create()
     return win.getPxApiFixture();
 }
 
-pxBenchmarkFactory& pxBenchmarkFactory::Instance()
+/*pxBenchmarkFactory& pxBenchmarkFactory::Instance()
 {
     static pxBenchmarkFactory singleton;
     return singleton;
-}
+}*/
 
 //-----------------------------------------------------------------------------------
 //  pxApiFixture:
 //-----------------------------------------------------------------------------------
 
-pxApiFixture& pxApiFixture::Instance()
+/*pxApiFixture& pxApiFixture::Instance()
 {
     static pxApiFixture singleton;
     return singleton;
-}
+}*/
 
 uint64_t pxApiFixture::getIterationCounter() const
 {
