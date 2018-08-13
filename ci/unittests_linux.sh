@@ -27,7 +27,7 @@ grep "Global test environment tear-down" $TESTLOGS
 retVal=$?
 count=0
 corefile=1
-while [ "$retVal" -ne 0 ] &&  [ "$count" -ne 180 ] && [ "$corefile" -eq 1 ] ; do
+while [ "$retVal" -ne 0 ] &&  [ "$count" -ne 240 ] && [ "$corefile" -eq 1 ] ; do
 	sleep 60;
 	grep "Global test environment tear-down" $TESTLOGS
 	retVal=$?
@@ -36,6 +36,16 @@ while [ "$retVal" -ne 0 ] &&  [ "$count" -ne 180 ] && [ "$corefile" -eq 1 ] ; do
 	count=$((count+60))
 	echo "unittests running for $count seconds"
 done
+
+ls -lrt core*
+sudo gdb -q --command="$TRAVIS_BUILD_DIR/ci/debuggercmds_linux" -c core "$binary" 2&> gdblogs
+cat gdblogs
+
+echo "--------------------------"
+
+processId=`ps -ef | grep pxscene2dtests |grep -v grep|grep -v pxscene2dtests.sh|awk '{print $2}'`
+sudo gdb -q --command="$TRAVIS_BUILD_DIR/ci/debuggercmds_linux" -c "core.$processId" "$binary" 2&> gdblogs
+cat gdblogs
 
 #check for corefile presence
 processId=`ps -ef | grep pxscene2dtests |grep -v grep|grep -v pxscene2dtests.sh|awk '{print $2}'`
