@@ -503,7 +503,9 @@ void pxResource::loadResource()
       mDownloadRequest = new rtFileDownloadRequest(mUrl, this, pxResource::onDownloadComplete);
       mDownloadRequest->setProxy(mProxy);
       mDownloadRequest->setCallbackFunctionThreadSafe(pxResource::onDownloadComplete);
+#ifdef ENABLE_CORS_FOR_RESOURCES
       mDownloadRequest->setCORS(mCORS);
+#endif
       mDownloadInProgressMutex.lock();
       mDownloadInProgress = true;
       mDownloadInProgressMutex.unlock();
