@@ -1390,7 +1390,10 @@ public:
        //delete mTestView; // HACK: Only used in testing... 'delete' causes unknown crash.
        mTestView = NULL;
     }
-    mArchive = NULL;
+    if (mArchive != NULL)
+    {
+       mArchive = NULL;
+    }
   }
   
   virtual unsigned long AddRef() 
