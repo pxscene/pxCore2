@@ -28,6 +28,7 @@
 #include "pxUtil.h"
 #include "rtThreadPool.h"
 
+
 using namespace std;
 
 extern rtThreadQueue* gUIThreadQueue;
@@ -35,7 +36,7 @@ extern pxContext context;
 
 rtThreadPool textureCreateThreadPool(1);
 
-pxResource::~pxResource() 
+pxResource::~pxResource()
 {
   //rtLogDebug("pxResource::~pxResource()\n");
   if (mDownloadRequest != NULL)
@@ -66,7 +67,7 @@ rtError pxResource::setUrl(const char* url, const char* proxy)
   //rtLogDebug("pxResource::setUrl for url=\"%s\"\n",url);
   mUrl = url;
   mProxy = proxy;
-  
+
   return RT_OK;
 }
 
@@ -94,7 +95,7 @@ rtValue pxResource::getLoadStatus(rtString key)
 }
 
 
-void pxResource::addListener(pxResourceListener* pListener) 
+void pxResource::addListener(pxResourceListener* pListener)
 {
   if( mUrl.isEmpty())
     return;
@@ -151,21 +152,21 @@ void pxResource::addListener(pxResourceListener* pListener)
             found = true;
             break;
           }
-          
+
         }
         if (!found)
         {
           // only add unique listeners
           mListeners.push_back(pListener);
         }
-        
+
         mListenersMutex.unlock();
       }
     }
     else
-      pListener->resourceReady("reject");    
-  } 
-  else 
+      pListener->resourceReady("reject");
+  }
+  else
   {
     mListenersMutex.lock();
     bool found = false;
@@ -187,7 +188,7 @@ void pxResource::addListener(pxResourceListener* pListener)
 
     mListenersMutex.unlock();
   }
-  
+
 }
 
 void pxResource::removeListener(pxResourceListener* pListener)
@@ -197,7 +198,7 @@ void pxResource::removeListener(pxResourceListener* pListener)
   for (list<pxResourceListener*>::iterator it = mListeners.begin();
          it != mListeners.end(); ++it)
   {
-    if((*it) == pListener) 
+    if((*it) == pListener)
     {
       // remove listener
       mListeners.erase(it);
@@ -218,8 +219,8 @@ void pxResource::removeListener(pxResourceListener* pListener)
 void pxResource::notifyListeners(rtString readyResolution)
 {
   //rtLogDebug("notifyListeners for url=%s # of listeners=%d\n",mUrl.cString(),mListeners.size());
- 
-  mReady.send(readyResolution,this); 
+
+  mReady.send(readyResolution,this);
   mListenersMutex.lock();
   if( mListeners.size() == 0)
   {
@@ -235,7 +236,7 @@ void pxResource::notifyListeners(rtString readyResolution)
   //rtLogDebug("notifyListeners for url=%s Ending\n");
   //mListeners.clear();
   mListenersMutex.unlock();
-  
+
 }
 
 void pxResource::notifyListenersResourceDirty()
@@ -264,7 +265,7 @@ void pxResource::raiseDownloadPriority()
     mListenersMutex.lock();
     size_t lisenersSize = mListeners.size();
     mListenersMutex.unlock();
-    if( lisenersSize == 0) 
+    if( lisenersSize == 0)
       rtLogInfo("But size is 0, so no one cares!!!!!\n");
     priorityRaised = true;
     rtFileDownloader::instance()->raiseDownloadPriority(mDownloadRequest);
@@ -276,14 +277,21 @@ void pxResource::raiseDownloadPriority()
 /**********************************************************************/
 /**********************************************************************/
 
+
+rtImageResource::rtImageResource()
+: pxResource(), mTexture(), mDownloadedTexture(), mTextureMutex(), mDownloadComplete(false), init_w(0), init_h(0), mData()
+{
+}
+
 rtImageResource::rtImageResource(const char* url, const char* proxy, int32_t iw /* = 0 */,  int32_t ih /* = 0 */,
                                                                        float sx /* = 1.0f*/,  float sy /* = 1.0f*/ )
-    : pxResource(), mTexture(), mDownloadedTexture(), mTextureMutex(), mDownloadComplete(false), init_w(iw), init_h(ih), init_sx(sx), init_sy(sy)
+    : pxResource(), mTexture(), mDownloadedTexture(), mTextureMutex(), mDownloadComplete(false),
+      init_w(iw), init_h(ih), init_sx(sx), init_sy(sy), mData()
 {
   setUrl(url, proxy);
 }
 
-rtImageResource::~rtImageResource() 
+rtImageResource::~rtImageResource()
 {
   //rtLogDebug("destructor for rtImageResource for %s\n",mUrl.cString());
   //pxImageManager::removeImage( mUrl);
@@ -292,25 +300,25 @@ rtImageResource::~rtImageResource()
     mTexture->setTextureListener(NULL);
   }
 }
-  
-unsigned long rtImageResource::Release() 
+
+unsigned long rtImageResource::Release()
 {
 
   long l = rtAtomicDec(&mRefCount);
-  if (l == 0) 
+  if (l == 0)
   {
     pxImageManager::removeImage( mName);
     delete this;
-    
+
   }
   return l;
 }
 void rtImageResource::init()
 {
   //rtLogDebug("rtImageResource::init\n");
-  if( mInitialized) 
-    return; 
-    
+  if( mInitialized)
+    return;
+
   mInitialized = true;
 
 }
@@ -352,39 +360,39 @@ void rtImageResource::textureReady()
   }
 }
 
-int32_t rtImageResource::w() const 
-{ 
+int32_t rtImageResource::w() const
+{
   //rtLogDebug("tImageResource::w()\n");
-  if(mTexture.getPtr())  
-    return mTexture->width(); 
-  else 
-    return 0;  
-}
-rtError rtImageResource::w(int32_t& v) const 
-{ 
-  //rtLogDebug("tImageResource::w(int32_t)\n");
-  if(mTexture.getPtr()) 
-    v = mTexture->width(); 
-  else  
-    v = 0;  
-  return RT_OK; 
-}
-int32_t rtImageResource::h() const 
-{ 
-  //rtLogDebug("tImageResource::h()\n");
   if(mTexture.getPtr())
-    return mTexture->height(); 
-  else 
+    return mTexture->width();
+  else
     return 0;
 }
-rtError rtImageResource::h(int32_t& v) const 
-{ 
+rtError rtImageResource::w(int32_t& v) const
+{
+  //rtLogDebug("tImageResource::w(int32_t)\n");
+  if(mTexture.getPtr())
+    v = mTexture->width();
+  else
+    v = 0;
+  return RT_OK;
+}
+int32_t rtImageResource::h() const
+{
+  //rtLogDebug("tImageResource::h()\n");
+  if(mTexture.getPtr())
+    return mTexture->height();
+  else
+    return 0;
+}
+rtError rtImageResource::h(int32_t& v) const
+{
   //rtLogDebug("tImageResource::h(int32_t)\n");
   if(mTexture.getPtr())
-    v = mTexture->height(); 
-  else 
+    v = mTexture->height();
+  else
     v = 0;
-  return RT_OK; 
+  return RT_OK;
 }
 
 pxTextureRef rtImageResource::getTexture(bool initializing)
@@ -479,14 +487,14 @@ void pxResource::reloadData()
 {
 }
 
-/** 
+/**
  * rtImageResource::loadResource()
- * 
+ *
  * This method will actually start the download of the image for mUrl.
- * 
+ *
  * ImageManager calls this method when the url is not already present
  * in the cache map.
- * 
+ *
  * */
 void pxResource::loadResource(rtObjectRef archive)
 {
@@ -531,8 +539,7 @@ void pxResource::onDownloadCompleteUI(void* context, void* data)
   res->setupResource();
   res->notifyListeners(resolution);
 
-
-  // Release here since we had to addRef when setting up callback to 
+  // Release here since we had to addRef when setting up callback to
   // this function
   res->Release();
 }
@@ -562,11 +569,23 @@ void rtImageResource::loadResourceFromFile()
 {
   pxOffscreen imageOffscreen;
   rtString status = "resolve";
-  rtData d;
-  rtError loadImageSuccess = rtLoadFile(mUrl, d);
+
+  rtError loadImageSuccess = RT_FAIL;
+
+  if(mData.length() == 0)
+  {
+    loadImageSuccess = rtLoadFile(mUrl, mData);
+  }
+  else
+  {
+    // We have BASE64 or SVG string already...
+    loadImageSuccess = RT_OK;
+  }
+
   if (loadImageSuccess == RT_OK)
   {
-    loadImageSuccess = pxLoadImage((const char *) d.data(), d.length(), imageOffscreen, init_w, init_h, init_sx, init_sy);
+    loadImageSuccess = pxLoadImage((const char *) mData.data(), mData.length(), imageOffscreen,
+                                      init_w, init_h, init_sx, init_sy);
   }
   else
   {
@@ -580,7 +599,7 @@ void rtImageResource::loadResourceFromFile()
     {
       setLoadStatus("statusCode",PX_RESOURCE_STATUS_FILE_NOT_FOUND);
     }
-    else 
+    else
     {
       setLoadStatus("statusCode", PX_RESOURCE_STATUS_DECODE_FAILURE);
     }
@@ -595,13 +614,15 @@ void rtImageResource::loadResourceFromFile()
       gUIThreadQueue->addTask(onDownloadCompleteUI, this, (void*)"reject");
     }
     //mTexture->notifyListeners( mTexture, RT_FAIL, errorCode);
-
   }
   else
   {
     // create offscreen texture for local image
-    mTexture = context.createTexture(imageOffscreen, (const char *) d.data(), d.length());
+    mTexture = context.createTexture(imageOffscreen, (const char *) mData.data(), mData.length());
     mTexture->setTextureListener(this);
+
+    mData.term(); // Dump the source data...
+
     setLoadStatus("statusCode",0);
     // Since this object can be released before we get a async completion
     // We need to maintain this object's lifetime
@@ -611,7 +632,6 @@ void rtImageResource::loadResourceFromFile()
     {
       gUIThreadQueue->addTask(onDownloadCompleteUI, this, (void *) "resolve");
     }
-
   }
 
   mTextureMutex.lock();
@@ -683,9 +703,9 @@ void rtImageResource::loadResourceFromArchive(rtObjectRef archiveRef)
 // Static callback that gets called when fileDownloadRequest completes 
 void pxResource::onDownloadComplete(rtFileDownloadRequest* fileDownloadRequest)
 {
-  if (fileDownloadRequest != NULL && fileDownloadRequest->callbackData() != NULL) 
+  if (fileDownloadRequest != NULL && fileDownloadRequest->callbackData() != NULL)
   {
-    // Call virtual processDownlodedResource for specialized handling - 
+    // Call virtual processDownlodedResource for specialized handling -
     // Call directly rather than queuing
     ((pxResource*)fileDownloadRequest->callbackData())->processDownloadedResource(fileDownloadRequest);
     // Clear download data
@@ -708,7 +728,7 @@ uint32_t rtImageResource::loadResourceData(rtFileDownloadRequest* fileDownloadRe
         return PX_RESOURCE_LOAD_SUCCESS;
 #endif  //ENABLE_BACKGROUND_TEXTURE_CREATION
       }
-      
+
       return PX_RESOURCE_LOAD_FAIL;
 }
 /** pxResource processDownloadedResource */
@@ -762,7 +782,7 @@ void pxResource::processDownloadedResource(rtFileDownloadRequest* fileDownloadRe
         }
       }
     }
-    else 
+    else
     {
       rtLogWarn("Resource Download Failed: %s Error: %s HTTP Status Code: %ld",
                 fileDownloadRequest->fileUrl().cString(),
@@ -782,7 +802,7 @@ void pxResource::processDownloadedResource(rtFileDownloadRequest* fileDownloadRe
 
 }
 /**
- * rtImageResource 
+ * rtImageResource
  */
 
 rtImageAResource::rtImageAResource(const char* url, const char* proxy) : pxResource(), mTimedOffscreenSequence()
@@ -853,8 +873,10 @@ rtRef<rtImageResource> pxImageManager::getImage(const char* url, const char* pro
 {
   //rtLogDebug("pxImageManager::getImage\n");
   // Handle empty url
-  if(!url || strlen(url) == 0) {
-    if( !emptyUrlResource) {
+  if(!url || strlen(url) == 0)
+  {
+    if( !emptyUrlResource)
+    {
       //rtLogDebug("Creating empty Url rtImageResource\n");
       emptyUrlResource = new rtImageResource(NULL, NULL, iw, ih, sx, sy);
       //rtLogDebug("Done creating empty Url rtImageResource\n");
@@ -862,7 +884,13 @@ rtRef<rtImageResource> pxImageManager::getImage(const char* url, const char* pro
     //rtLogDebug("Returning empty Url rtImageResource\n");
     return emptyUrlResource;
   }
-  
+
+  rtString md5uri;
+  rtString uri_string(url);
+
+  int32_t index_of_comma = uri_string.find(0,','); // find the data.
+  int32_t index_of_slash = uri_string.find(0,'/'); // find the data.
+
   rtString key = url;
 
   if (false == ((key.beginsWith("http:")) || (key.beginsWith("https:"))))
@@ -881,15 +909,25 @@ rtRef<rtImageResource> pxImageManager::getImage(const char* url, const char* pro
     }
   }
   
+  if(uri_string.beginsWith("data:image/"))
+  {
+    rtString md5     = md5sum(uri_string);
+    rtString imgType = uri_string.substring(index_of_slash, index_of_comma - index_of_slash);
+
+    md5uri = "md5sum" + imgType + "," + md5;
+
+    key = md5uri;
+  }
+
   // For SVG  (and scaled PNG/JPG in the future) at a given SxSy SCALE ... append to key
   if(sx != 1.0 || sy != 1.0)
   {
     rtValue xx = sx;
     rtValue yy = sy;
-    
-    key.append( xx.toString() );
-    key.append( "sxsy" );
-    key.append( yy.toString() );
+
+    // Append scale factors
+    key += rtString("sx") + xx.toString() +
+           rtString("sy") + yy.toString();
   }
 
   // For SVG  (and scaled PNG/JPG in the future) at a given WxH DIMENSIONS ... append to key
@@ -897,14 +935,12 @@ rtRef<rtImageResource> pxImageManager::getImage(const char* url, const char* pro
   {
     rtValue ww = iw;
     rtValue hh = ih;
-    
-    key.append( ww.toString() );
-    key.append( "x" );
-    key.append( hh.toString() );
+
+    key +=  ww.toString() + rtString("x") + hh.toString();
   }
-  
+
   rtRef<rtImageResource> pResImage;
-  
+
   ImageMap::iterator it = mImageMap.find(key.cString());
   if (it != mImageMap.end())
   {
@@ -917,7 +953,7 @@ rtRef<rtImageResource> pxImageManager::getImage(const char* url, const char* pro
       //pResImage->init();
     //}
   }
-  else 
+  else
   {
     //rtLogInfo("Create rtImageResource in map for \"%s\"\n",url);
     pResImage = new rtImageResource(url, proxy, iw, ih, sx, sy);
@@ -926,7 +962,7 @@ rtRef<rtImageResource> pxImageManager::getImage(const char* url, const char* pro
     mImageMap.insert(make_pair(key.cString(), pResImage));
     pResImage->loadResource(archive);
   }
-  
+
   return pResImage;
 }
 
@@ -935,7 +971,7 @@ void pxImageManager::removeImage(rtString name)
   //rtLogDebug("pxImageManager::removeImage(\"%s\")\n",imageUrl.cString());
   ImageMap::iterator it = mImageMap.find(name.cString());
   if (it != mImageMap.end())
-  {  
+  {
     mImageMap.erase(it);
   }
 }

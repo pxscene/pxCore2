@@ -40,6 +40,7 @@ function Scene() {
       this.truncation = scene.truncation;
       this.root = scene.root;
       this.info = scene.info;
+      this.capabilities = scene.capabilities;
       this.filePath = filePath;
       this.addServiceProvider = scene.addServiceProvider;
       this.removeServiceProvider = scene.removeServiceProvider;

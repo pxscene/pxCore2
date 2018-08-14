@@ -79,7 +79,6 @@ public:
    }
   virtual ~pxResource();
 
-  
   rtError url(rtString& s) const { s = mUrl; return RT_OK;}
   rtError setUrl(const char* s, const char* proxy = NULL);
   rtString getUrl() { return mUrl;}
@@ -128,6 +127,7 @@ protected:
   
   rtString mUrl;
   rtString mProxy;
+
   rtFileDownloadRequest* mDownloadRequest;
   bool mDownloadInProgress;
   bool priorityRaised;
@@ -145,7 +145,9 @@ protected:
 class rtImageResource : public pxResource, public pxTextureListener
 {
 public:
-  rtImageResource(const char* url = 0, const char* proxy = 0, int32_t iw = 0, int32_t ih = 0, float sx = 1.0f, float sy = 1.0f);
+  rtImageResource();
+  rtImageResource(const char* url, const char* proxy = 0, int32_t iw = 0, int32_t ih = 0, float sx = 1.0f, float sy = 1.0f);
+
   virtual ~rtImageResource();
 
   rtDeclareObject(rtImageResource, pxResource);
@@ -175,6 +177,10 @@ public:
   float   initSX() { return init_sx; };
   float   initSY() { return init_sy; };
 
+  void initUriData(const uint8_t* data, size_t length) { mData.init(data, length);                                };
+  void initUriData(rtData&   d)                        { mData.init(d.data(), d.length());                        };
+  void initUriData(rtString& s)                        { mData.init( (const uint8_t* ) s.cString(), s.length() ); };
+
   virtual void releaseData();
   virtual void reloadData();
   virtual void textureReady();
@@ -195,6 +201,8 @@ private:
   // convey "create-time" dimension & scale preference (SVG only)
   int32_t   init_w,  init_h;
   float     init_sx, init_sy;
+
+  rtData    mData;
 };
 
 class rtImageAResource : public pxResource
@@ -226,8 +234,7 @@ private:
 typedef std::map<rtString, rtImageResource*> ImageMap;
 typedef std::map<rtString, rtImageAResource*> ImageAMap;
 class pxImageManager
-{
-  
+{  
   public: 
     static rtRef<rtImageResource> getImage(const char* url, const char* proxy = NULL, const rtCORSRef& cors = NULL,
                                           int32_t iw = 0, int32_t ih = 0, float sx = 1.0f, float sy = 1.0f, rtObjectRef archive = NULL);
@@ -243,10 +250,7 @@ class pxImageManager
 
     static ImageAMap mImageAMap;
     static rtRef<rtImageAResource> emptyUrlImageAResource;
-
 };
-
-
 
 #endif // PX_RESOURCE
 
