@@ -140,15 +140,11 @@ public:
     pxContextFramebufferRef f = c.createFramebuffer(fbo_w,fbo_h,true);
     rtError e = c.setFramebuffer(NULL);
     EXPECT_EQ ((int)RT_OK, (int)e);
-    printf("test_pixels 1\n");
-    fflush(stdout);
     if (RT_OK != e)
       return;
 
     e = c.setFramebuffer(f);
     EXPECT_EQ ((int)RT_OK, (int)e);
-    printf("test_pixels 2\n");
-    fflush(stdout);
     if (RT_OK != e)
       return;
 
@@ -167,8 +163,6 @@ public:
     EXPECT_EQ (fbo_w,o.width());
     EXPECT_EQ (fbo_h,o.height());
 
-    printf("test_pixels 4\n");
-    fflush(stdout);
     if (o.width() != fbo_w || o.height() != fbo_h)
       return;
     printf("test_pixels 5\n");
@@ -201,8 +195,6 @@ public:
     if (o2.width() != fbo_w || o2.height() != fbo_h)
       return;
 
-    printf("test_pixels 8\n");
-    fflush(stdout);
     pix1 = o2.pixel(0,0);
     EXPECT_EQ (lineColorRect[0]*255, pix1->r);
     EXPECT_EQ (lineColorRect[1]*255, pix1->g);
@@ -214,8 +206,6 @@ public:
     EXPECT_EQ (fillColorRect[2]*255, pix2->b);
 
     delete win;
-    printf("test_pixels 9\n");
-    fflush(stdout);
   }
 };
 
