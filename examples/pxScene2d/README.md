@@ -29,6 +29,21 @@
     
     ~~~~
 
+### Ubuntu 18.04
+
+If you're using Ubuntu 18.04, you'll need to install earlier versions of gcc and g++ to be able to build some of the dependencies.  You can select the earlier version of gcc and g++ using the `update-alternatives` command if you have trouble building libnode or other dependencies.
+
+```
+sudo apt-get install gcc-5 g++-5
+sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-5 10
+sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-7 20
+
+sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-5 10
+sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-7 20
+
+sudo update-alternatives --config gcc
+sudo update-alternatives --config g++
+```
 ## macOS Setup 
 
 >Install Xcode, CMake and quilt
