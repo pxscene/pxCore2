@@ -1082,7 +1082,7 @@ typedef rtRef<pxObject> pxObjectRef;
 class pxScriptView: public pxIView
 {
 public:
-  pxScriptView(const char* url, const char* /*lang*/);
+  pxScriptView(const char* url, const char* /*lang*/, pxIViewContainer* container=NULL);
 #ifndef RUNINMAIN
   void runScript(); // Run the script
 #endif
@@ -1390,6 +1390,10 @@ public:
        //delete mTestView; // HACK: Only used in testing... 'delete' causes unknown crash.
        mTestView = NULL;
     }
+    if (mArchive != NULL)
+    {
+       mArchive = NULL;
+    }
   }
   
   virtual unsigned long AddRef() 
@@ -1546,7 +1550,7 @@ public:
   virtual void onComplete();
 
   virtual void setViewContainer(pxIViewContainer* l);
-
+  pxIViewContainer* viewContainer();
   void invalidateRect(pxRect* r);
   
   void getMatrixFromObjectToScene(pxObject* o, pxMatrix4f& m);
@@ -1583,11 +1587,37 @@ public:
 
     rtError e = RT_FAIL;
     rtRef<pxArchive> a = new pxArchive;
-    if (a->initFromUrl(url, mCORS) == RT_OK)
+    pxIViewContainer* view = viewContainer();
+    pxSceneContainer* sceneContainer = (pxSceneContainer*)view;
+    rtObjectRef parentArchive = NULL;
+    if (NULL != sceneContainer)
+    {
+      pxScene2d* scene = sceneContainer->getScene();
+      if (NULL != scene)
+      {
+        parentArchive = scene->getArchive();
+      }
+    }
+    if (a->initFromUrl(url, mCORS, parentArchive) == RT_OK)
     {
       archive = a;
       e = RT_OK;
     }
+
+    pxArchive* myArchive = (pxArchive*) a.getPtr();
+    if ((parentArchive != NULL ) && (((pxArchive*)parentArchive.getPtr())->isFile() == false))
+    {
+      if ((myArchive != NULL ) && (myArchive->isFile() == false))
+      {
+        mArchive = a;
+      }
+      else
+      {
+        mArchive = parentArchive;
+      }
+    }
+    else
+      mArchive = a;
     return e;
   }
 
@@ -1600,6 +1630,10 @@ public:
   rtError getService(rtString name, rtObjectRef& returnObject);
   rtError getService(const char* name, const rtObjectRef& ctx, rtObjectRef& service);
   rtError getAvailableApplications(rtString& availableApplications);
+  rtObjectRef getArchive()
+  {
+    return mArchive;
+  }
 
 private:
   bool bubbleEvent(rtObjectRef e, rtRef<pxObject> t, 
@@ -1656,7 +1690,7 @@ private:
 #endif
   bool mSuspended;
   rtCORSRef mCORS;
-
+  rtObjectRef mArchive;
 public:
   void hidePointer( bool hide )
   {
