@@ -158,12 +158,12 @@ rtError pxImage::setUrl(const char* s)
   if(pRes && !imageLoaded)
   {
     mResource = pxImageManager::getImage(s, NULL, mScene ? mScene->cors() : NULL,
-                                                  pRes->initW(),  pRes->initH(),
-                                                  pRes->initSX(), pRes->initSY() );
+                                                  resourceObj->initW(),  resourceObj->initH(),
+                                                  resourceObj->initSX(), resourceObj->initSY(), mScene->getArchive() );
   }
   else
   {
-    mResource = pxImageManager::getImage(s, NULL, mScene ? mScene->cors() : NULL);
+    mResource = pxImageManager::getImage(s, NULL, mScene ? mScene->cors() : NULL, 0, 0, 1.0f, 1.0f, mScene->getArchive());
   }
 
   if(getImageResource() != NULL && getImageResource()->getUrl().length() > 0 && mInitialized && !imageLoaded)

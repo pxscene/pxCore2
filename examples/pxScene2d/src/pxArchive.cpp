@@ -104,7 +104,7 @@ void pxArchive::setArchiveData(int downloadStatusCode, uint32_t httpStatusCode, 
   mArchiveDataMutex.unlock();
 }
 
-rtError pxArchive::initFromUrl(const rtString& url, const rtCORSRef& cors)
+rtError pxArchive::initFromUrl(const rtString& url, const rtCORSRef& cors, rtObjectRef archive)
 {
   mReady = new rtPromise;
   mLoadStatus = new rtMapObject;
@@ -132,8 +132,17 @@ rtError pxArchive::initFromUrl(const rtString& url, const rtCORSRef& cors)
     mUseDownloadedData = false;
     mLoadStatus.set("sourceType", "file");
     // TODO align statusCodes for loadStatus
-
-    if (rtLoadFile(url, mData) == RT_OK)
+    rtError loadStatus = RT_ERROR;
+    pxArchive* arc = (pxArchive*) archive.getPtr();
+    if ((arc != NULL ) && (arc->isFile() == false))
+    {
+      loadStatus = arc->getFileData(mUrl, mData);
+    }
+    else
+    {
+      loadStatus = rtLoadFile(url, mData);
+    }
+    if (loadStatus == RT_OK)
     {
       mLoadStatus.set("statusCode",0);
       process(mData.data(),mData.length());
@@ -180,6 +189,26 @@ rtError pxArchive::getFileAsString(const char* fileName, rtString& s)
       if (mZip.getFileData(fileName,d)==RT_OK)
       {
         s = rtString((const char*)d.data(),d.length());
+        e = RT_OK;
+      }
+    }
+  }
+  return e;
+}
+
+rtError pxArchive::getFileData(const char* fileName, rtData& d)
+{
+  rtError e = RT_FAIL;
+  if (mLoadStatus.get<int32_t>("statusCode") == 0)
+  {
+    if (mIsFile)
+    {
+      e = d.init(mData.data(), mData.length());
+    }
+    else
+    {
+      if (mZip.getFileData(fileName,d)==RT_OK)
+      {
         e = RT_OK;
       }
     }
@@ -292,6 +321,16 @@ void pxArchive::process(void* data, size_t dataSize)
     // Single file archive
     mIsFile = true;
   }
+}
+
+bool pxArchive::isFile()
+{
+  return mIsFile;
+}
+
+rtString pxArchive::getName()
+{
+  return mUrl;
 }
 
 rtDefineObject(pxArchive,rtObject);

@@ -298,6 +298,7 @@ protected:
   
 private:
   void loadResourceFromFile();
+  void loadResourceFromArchive(rtObjectRef archiveRef);
   rtError init(const char* n);
   rtError init(const FT_Byte*  fontData, FT_Long size, const char* n); 
 
@@ -323,7 +324,7 @@ class pxFontManager
   
   public: 
     
-    static rtRef<pxFont> getFont(const char* url, const char* proxy = NULL, const rtCORSRef& cors = NULL);
+    static rtRef<pxFont> getFont(const char* url, const char* proxy = NULL, const rtCORSRef& cors = NULL, rtObjectRef archive = NULL);
     static void removeFont(uint32_t fontId);
     static void clearAllFonts();
     
