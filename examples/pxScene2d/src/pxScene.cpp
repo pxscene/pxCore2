@@ -383,7 +383,7 @@ protected:
   virtual void onAnimationTimer()
   {
     ENTERSCENELOCK()
-    if (mView)
+    if (mView && !mClosed)
       mView->onUpdate(pxSeconds());
     EXITSCENELOCK()
 #ifdef ENABLE_OPTIMUS_SUPPORT
