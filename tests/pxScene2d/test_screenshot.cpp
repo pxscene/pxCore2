@@ -37,6 +37,8 @@ public:
 
   void test_base64_encode()
   {
+    printf("test_base64_encode \n");
+    fflush(stdout);
     for (int i = 0; i<100; i++)
     {
       rtData pngData2;
@@ -56,6 +58,8 @@ public:
 
   void test_base64_encode_decode()
   {
+    printf("test_base64_encode_decode \n");
+    fflush(stdout);
     for (size_t i = 0; i<100; i++)
     {
       rtData pngData2;
@@ -84,6 +88,8 @@ public:
 
   void test_pxStorePNGImage_empty()
   {
+    printf("test_pxStorePNGImage_empty \n");
+    fflush(stdout);
     pxOffscreen o;
     o.setUpsideDown(true);
     rtData pngData2;
@@ -93,6 +99,8 @@ public:
 
   void test_pxStorePNGImage_zero()
   {
+    printf("test_pxStorePNGImage_zero \n");
+    fflush(stdout);
     pxOffscreen o;
     EXPECT_EQ (RT_OK, o.init(0, 0));
     o.setUpsideDown(true);
@@ -103,6 +111,8 @@ public:
 
   void test_pxStorePNGImage_normal()
   {
+    printf("test_pxStorePNGImage_normal \n");
+    fflush(stdout);
     for (int i = 1; i<=100; i++)
     {
       pxOffscreen o;
@@ -116,6 +126,8 @@ public:
 
   void test_pixels()
   {
+    printf("test_pixels \n");
+    fflush(stdout);
     int fbo_w = 640;
     int fbo_h = 480;
 
