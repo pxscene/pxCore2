@@ -1808,7 +1808,7 @@ rtDefineObject(pxRoot,pxObject);
 int gTag = 0;
 
 pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
-  : start(0), sigma_draw(0), sigma_update(0), end2(0), frameCount(0), mWidth(0), mHeight(0), mStopPropagation(false), mContainer(NULL), mShowDirtyRectangle(false),
+  : mRoot(), mInfo(), mCapabilityVersions(), start(0), sigma_draw(0), sigma_update(0), end2(0), frameCount(0), mWidth(0), mHeight(0), mStopPropagation(false), mContainer(NULL), mShowDirtyRectangle(false),
     mInnerpxObjects(), mSuspended(false),
 #ifdef PX_DIRTY_RECTANGLES
     mDirtyRect(), mLastFrameDirtyRect(),
@@ -1885,6 +1885,13 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
 
   mInfo.set("build", build);
   mInfo.set("gfxmemory", context.currentTextureMemoryUsageInBytes());
+
+
+  //capability versions
+  mCapabilityVersions = new rtMapObject;
+  rtObjectRef graphicsCapabilities = new rtMapObject;
+  graphicsCapabilities.set("svg", 1);
+  mCapabilityVersions.set("graphics", graphicsCapabilities);
 }
 
 rtError pxScene2d::dispose()
@@ -1911,6 +1918,7 @@ rtError pxScene2d::dispose()
 
     mRoot     = NULL;
     mInfo     = NULL;
+    mCapabilityVersions = NULL;
     mFocusObj = NULL;
 
     return RT_OK;
@@ -2599,6 +2607,11 @@ pxObject* pxScene2d::getRoot() const
 rtObjectRef pxScene2d::getInfo() const
 {
   return mInfo;
+}
+
+rtObjectRef pxScene2d::getCapabilities() const
+{
+  return mCapabilityVersions;
 }
 
 void pxScene2d::onComplete()
@@ -3481,6 +3494,7 @@ rtError pxScene2d::getAvailableApplications(rtString& availableApplications)
 rtDefineObject(pxScene2d, rtObject);
 rtDefineProperty(pxScene2d, root);
 rtDefineProperty(pxScene2d, info);
+rtDefineProperty(pxScene2d, capabilities);
 rtDefineProperty(pxScene2d, w);
 rtDefineProperty(pxScene2d, h);
 rtDefineProperty(pxScene2d, showOutlines);

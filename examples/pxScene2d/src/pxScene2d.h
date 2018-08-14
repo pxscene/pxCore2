@@ -1324,6 +1324,7 @@ public:
   rtMethodNoArgAndNoReturn("logDebugMetrics", logDebugMetrics);
   rtMethodNoArgAndNoReturn("collectGarbage", collectGarbage);
   rtReadOnlyProperty(info, info, rtObjectRef);
+  rtReadOnlyProperty(capabilities, capabilities, rtObjectRef);
   rtMethod1ArgAndReturn("suspend", suspend, rtValue, bool);
   rtMethod1ArgAndReturn("resume", resume, rtValue, bool);
   rtMethodNoArgAndReturn("suspended", suspended, bool);
@@ -1571,6 +1572,13 @@ public:
     return RT_OK;
   }
 
+  rtObjectRef  getCapabilities() const;
+  rtError capabilities(rtObjectRef& v) const
+  {
+    v = getCapabilities();
+    return RT_OK;
+  }
+
   rtError loadArchive(const rtString& url, rtObjectRef& archive)
   {
 #ifdef ENABLE_PERMISSIONS_CHECK
@@ -1612,6 +1620,7 @@ private:
 
   rtRef<pxObject> mRoot;
   rtObjectRef mInfo;
+  rtObjectRef mCapabilityVersions;
   rtObjectRef mFocusObj;
   double start, sigma_draw, sigma_update, end2;
 
