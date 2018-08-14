@@ -383,7 +383,7 @@ protected:
   virtual void onAnimationTimer()
   {
     ENTERSCENELOCK()
-    if (mView)
+    if (mView && !mClosed)
       mView->onUpdate(pxSeconds());
     EXITSCENELOCK()
 #ifdef ENABLE_OPTIMUS_SUPPORT
@@ -681,6 +681,8 @@ if (s && (strcmp(s,"1") == 0))
 #ifdef WIN32
   win_sparkle_cleanup();
 #endif
+  
+  base64_cleanup();
 
   return 0;
 }

@@ -624,7 +624,7 @@ AppSceneContext.prototype.include = function(filePath, currentXModule) {
   var origFilePath = filePath;
 
   return new Promise(function (onImportComplete, reject) {
-    if (/^(px|url|querystring|htmlparser|crypto|oauth|http2)$/.test(filePath)) {
+    if (/^(px|url|querystring|htmlparser|crypto|oauth)$/.test(filePath)) {
       if (isDuk && filePath === 'htmlparser') {
         console.log("Not permitted to use the module " + filePath);
         reject("include failed due to module not permitted");
@@ -668,6 +668,10 @@ AppSceneContext.prototype.include = function(filePath, currentXModule) {
       {
         modData = _this.httpswrap;
       }
+      onImportComplete([modData, origFilePath]);
+      return;
+    } else if( filePath === 'http2' ) {
+      modData = require('rcvrcore/http2_wrap');
       onImportComplete([modData, origFilePath]);
       return;
     } else if( filePath.substring(0, 9) === "px:scene.") {
