@@ -37,6 +37,8 @@ public:
 
   void test_base64_encode()
   {
+    printf("test_base64_encode \n");
+    fflush(stdout);
     for (int i = 0; i<100; i++)
     {
       rtData pngData2;
@@ -56,6 +58,8 @@ public:
 
   void test_base64_encode_decode()
   {
+    printf("test_base64_encode_decode \n");
+    fflush(stdout);
     for (size_t i = 0; i<100; i++)
     {
       rtData pngData2;
@@ -84,6 +88,8 @@ public:
 
   void test_pxStorePNGImage_empty()
   {
+    printf("test_pxStorePNGImage_empty \n");
+    fflush(stdout);
     pxOffscreen o;
     o.setUpsideDown(true);
     rtData pngData2;
@@ -93,6 +99,8 @@ public:
 
   void test_pxStorePNGImage_zero()
   {
+    printf("test_pxStorePNGImage_zero \n");
+    fflush(stdout);
     pxOffscreen o;
     EXPECT_EQ (RT_OK, o.init(0, 0));
     o.setUpsideDown(true);
@@ -103,6 +111,8 @@ public:
 
   void test_pxStorePNGImage_normal()
   {
+    printf("test_pxStorePNGImage_normal \n");
+    fflush(stdout);
     for (int i = 1; i<=100; i++)
     {
       pxOffscreen o;
@@ -116,6 +126,8 @@ public:
 
   void test_pixels()
   {
+    printf("test_pixels \n");
+    fflush(stdout);
     int fbo_w = 640;
     int fbo_h = 480;
 
@@ -128,14 +140,20 @@ public:
     pxContextFramebufferRef f = c.createFramebuffer(fbo_w,fbo_h,true);
     rtError e = c.setFramebuffer(NULL);
     EXPECT_EQ ((int)RT_OK, (int)e);
+    printf("test_pixels 1\n");
+    fflush(stdout);
     if (RT_OK != e)
       return;
 
     e = c.setFramebuffer(f);
     EXPECT_EQ ((int)RT_OK, (int)e);
+    printf("test_pixels 2\n");
+    fflush(stdout);
     if (RT_OK != e)
       return;
 
+    printf("test_pixels 3\n");
+    fflush(stdout);
     float fillColor[] = {0,0,0,0};
     c.clear(0,0,fillColor);
     float fillColorRect[4] = {1,0,1,1};
@@ -149,8 +167,12 @@ public:
     EXPECT_EQ (fbo_w,o.width());
     EXPECT_EQ (fbo_h,o.height());
 
+    printf("test_pixels 4\n");
+    fflush(stdout);
     if (o.width() != fbo_w || o.height() != fbo_h)
       return;
+    printf("test_pixels 5\n");
+    fflush(stdout);
 
     pxPixel* pix1 = o.pixel(0,0);
     EXPECT_EQ (lineColorRect[0]*255, pix1->r);
@@ -174,9 +196,13 @@ public:
     EXPECT_EQ (fbo_w,o2.width());
     EXPECT_EQ (fbo_h,o2.height());
 
+    printf("test_pixels 7\n");
+    fflush(stdout);
     if (o2.width() != fbo_w || o2.height() != fbo_h)
       return;
 
+    printf("test_pixels 8\n");
+    fflush(stdout);
     pix1 = o2.pixel(0,0);
     EXPECT_EQ (lineColorRect[0]*255, pix1->r);
     EXPECT_EQ (lineColorRect[1]*255, pix1->g);
@@ -188,6 +214,8 @@ public:
     EXPECT_EQ (fillColorRect[2]*255, pix2->b);
 
     delete win;
+    printf("test_pixels 9\n");
+    fflush(stdout);
   }
 };
 
