@@ -99,7 +99,6 @@ if (NOT WIN32)
     endif (NOT DFB)
     pkg_search_module(CRYPTO libcrypto)
     
-    pkg_search_module(OPENSSL openssl)
     if (PREFER_SYSTEM_LIBRARIES)
         pkg_search_module(OPENSSL openssl)
     endif (PREFER_SYSTEM_LIBRARIES)
