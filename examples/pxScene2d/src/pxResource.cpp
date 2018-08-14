@@ -57,7 +57,7 @@ pxResource::~pxResource()
     rtValue nullValue;
     mReady.send("reject",nullValue);
   }
-
+  mName = "";
   //mListeners.clear();
   //rtLogDebug("Leaving pxResource::~pxResource()\n");
 }
@@ -307,7 +307,7 @@ unsigned long rtImageResource::Release()
   long l = rtAtomicDec(&mRefCount);
   if (l == 0)
   {
-    pxImageManager::removeImage( mUrl, init_w, init_h, init_sx, init_sy);
+    pxImageManager::removeImage( mName);
     delete this;
 
   }
@@ -496,7 +496,7 @@ void pxResource::reloadData()
  * in the cache map.
  *
  * */
-void pxResource::loadResource()
+void pxResource::loadResource(rtObjectRef archive)
 {
   if(((rtPromise*)mReady.getPtr())->status())
   {
@@ -504,6 +504,7 @@ void pxResource::loadResource()
     mReady = new rtPromise();
   }
   setLoadStatus("statusCode", -1);
+  pxArchive* arc = (pxArchive*)archive.getPtr();
   //rtLogDebug("rtImageResource::loadResource statusCode should be -1; is statusCode=%d\n",mLoadStatus.get<int32_t>("statusCode"));
   if (mUrl.beginsWith("http:") || mUrl.beginsWith("https:"))
   {
@@ -519,6 +520,10 @@ void pxResource::loadResource()
       mDownloadInProgressMutex.unlock();
       AddRef(); //ensure this object is not deleted while downloading
       rtFileDownloader::instance()->addToDownloadQueue(mDownloadRequest);
+  }
+  else if ((arc != NULL ) && (arc->isFile() == false))
+  {
+    loadResourceFromArchive(arc);
   }
   else
   {
@@ -570,6 +575,89 @@ void rtImageResource::loadResourceFromFile()
   if(mData.length() == 0)
   {
     loadImageSuccess = rtLoadFile(mUrl, mData);
+  }
+  else
+  {
+    // We have BASE64 or SVG string already...
+    loadImageSuccess = RT_OK;
+  }
+
+  if (loadImageSuccess == RT_OK)
+  {
+    loadImageSuccess = pxLoadImage((const char *) mData.data(), mData.length(), imageOffscreen,
+                                      init_w, init_h, init_sx, init_sy);
+  }
+  else
+  {
+    loadImageSuccess = RT_RESOURCE_NOT_FOUND;
+    rtLogError("Could not load image file %s.", mUrl.cString());
+  }
+  if ( loadImageSuccess != RT_OK)
+  {
+    rtLogWarn("image load failed"); // TODO: why?
+    if (loadImageSuccess == RT_RESOURCE_NOT_FOUND)
+    {
+      setLoadStatus("statusCode",PX_RESOURCE_STATUS_FILE_NOT_FOUND);
+    }
+    else
+    {
+      setLoadStatus("statusCode", PX_RESOURCE_STATUS_DECODE_FAILURE);
+    }
+
+    // Since this object can be released before we get a async completion
+    // We need to maintain this object's lifetime
+    // TODO review overall flow and organization
+    AddRef();
+
+    if (gUIThreadQueue)
+    {
+      gUIThreadQueue->addTask(onDownloadCompleteUI, this, (void*)"reject");
+    }
+    //mTexture->notifyListeners( mTexture, RT_FAIL, errorCode);
+  }
+  else
+  {
+    // create offscreen texture for local image
+    mTexture = context.createTexture(imageOffscreen, (const char *) mData.data(), mData.length());
+    mTexture->setTextureListener(this);
+
+    mData.term(); // Dump the source data...
+
+    setLoadStatus("statusCode",0);
+    // Since this object can be released before we get a async completion
+    // We need to maintain this object's lifetime
+    // TODO review overall flow and organization
+    AddRef();
+    if (gUIThreadQueue)
+    {
+      gUIThreadQueue->addTask(onDownloadCompleteUI, this, (void *) "resolve");
+    }
+  }
+
+  mTextureMutex.lock();
+  mDownloadComplete = true;
+  mTextureMutex.unlock();
+}
+
+void rtImageResource::loadResourceFromArchive(rtObjectRef archiveRef)
+{
+  pxArchive* archive = (pxArchive*)archiveRef.getPtr();
+  pxOffscreen imageOffscreen;
+  rtString status = "resolve";
+
+  rtError loadImageSuccess = RT_FAIL;
+
+  if(mData.length() == 0)
+  {
+    if ((NULL != archive) && (RT_OK == archive->getFileData(mUrl, mData)))
+    {
+      loadImageSuccess == RT_OK;
+    }
+    else
+    {
+      loadImageSuccess = RT_RESOURCE_NOT_FOUND;
+      rtLogError("Could not load image file from archive %s.", mUrl.cString());
+    }
   }
   else
   {
@@ -755,7 +843,7 @@ unsigned long rtImageAResource::Release()
   long l = rtAtomicDec(&mRefCount);
   if (l == 0)
   {
-    pxImageManager::removeImageA( mUrl);
+    pxImageManager::removeImageA( mName);
     delete this;
 
   }
@@ -792,13 +880,19 @@ void rtImageAResource::loadResourceFromFile()
   setLoadStatus("statusCode",PX_RESOURCE_STATUS_UNKNOWN_ERROR);
 }
 
+void rtImageAResource::loadResourceFromArchive(rtObjectRef archiveRef)
+{
+  UNUSED_PARAM(archiveRef);
+  //TODO
+  setLoadStatus("statusCode",PX_RESOURCE_STATUS_UNKNOWN_ERROR);
+}
 
 ImageMap pxImageManager::mImageMap;
 rtRef<rtImageResource> pxImageManager::emptyUrlResource = 0;
 
 rtRef<rtImageResource> pxImageManager::getImage(const char* url, const char* proxy    /* = NULL  */, const rtCORSRef& cors /* = NULL  */,
                                                 int32_t iw /* = 0    */,   int32_t ih /* = 0     */,
-                                                  float sx /* = 1.0f */,   float sy   /* = 1.0f  */)
+                                                  float sx /* = 1.0f */,   float sy   /* = 1.0f  */, rtObjectRef archive)
 {
   //rtLogDebug("pxImageManager::getImage\n");
   // Handle empty url
@@ -832,6 +926,22 @@ rtRef<rtImageResource> pxImageManager::getImage(const char* url, const char* pro
     key = md5uri;
   }
 
+  if (false == ((key.beginsWith("http:")) || (key.beginsWith("https:"))))
+  {
+    // if running from archived app, we need to search the different url for relative paths
+    // url format is <appname_resource path> eg: football.zip, images/ball.png <football.zip_images/ball.png>
+    pxArchive* arc = (pxArchive*)archive.getPtr();
+    if (NULL != arc)
+    {
+      if (false == arc->isFile())
+      {
+        key = arc->getName();
+        key.append("_");
+        key.append(url);
+      }
+    }
+  }
+  
   // For SVG  (and scaled PNG/JPG in the future) at a given SxSy SCALE ... append to key
   if(sx != 1.0 || sy != 1.0)
   {
@@ -871,6 +981,7 @@ rtRef<rtImageResource> pxImageManager::getImage(const char* url, const char* pro
     //rtLogInfo("Create rtImageResource in map for \"%s\"\n",url);
     pResImage = new rtImageResource(url, proxy, iw, ih, sx, sy);
     pResImage->setCORS(cors);
+    pResImage->setName(key);
     mImageMap.insert(make_pair(key.cString(), pResImage));
 
     if(uri_string.beginsWith("data:image/svg,")) // SVG
@@ -923,44 +1034,18 @@ rtRef<rtImageResource> pxImageManager::getImage(const char* url, const char* pro
       }
     }
 
-    pResImage->loadResource();
+    pResImage->loadResource(archive);
   }
 
   return pResImage;
 }
 
-void pxImageManager::removeImage(rtString url, int32_t iw /* = 0 */,   int32_t ih /* = 0 */,
-                                                 float sx /* = 1.0f*/,   float sy /* = 1.0f*/)
+void pxImageManager::removeImage(rtString name)
 {
-  rtString key = url;
-
-  if(key.beginsWith("md5sum/") == false) // if a File URL ... augment the key with SCALE / DIMENSION
-  {
-    // For SVG  (and scaled PNG/JPG in the future) at a given SxSy SCALE ... append to key
-    if(sx != 1.0 || sy != 1.0)
-    {
-      rtValue xx = sx;
-      rtValue yy = sy;
-
-      // Append scale factors
-      key += rtString("sx") + xx.toString() +
-             rtString("sy") + yy.toString();
-    }
-
-    // For SVG  (and scaled PNG/JPG in the future) at a given WxH DIMENSIONS ... append to key
-    if(iw > 0 || ih > 0)
-    {
-      rtValue ww = iw;
-      rtValue hh = ih;
-
-      key +=  ww.toString() + rtString("x") + hh.toString();
-    }
-  }
-
   //rtLogDebug("pxImageManager::removeImage(\"%s\")\n",imageUrl.cString());
-  ImageMap::iterator it = mImageMap.find(key.cString());
+  ImageMap::iterator it = mImageMap.find(name.cString());
   if (it != mImageMap.end())
-  {
+  {  
     mImageMap.erase(it);
   }
 }
@@ -968,7 +1053,7 @@ void pxImageManager::removeImage(rtString url, int32_t iw /* = 0 */,   int32_t i
 ImageAMap pxImageManager::mImageAMap;
 rtRef<rtImageAResource> pxImageManager::emptyUrlImageAResource = 0;
 /** static pxImageManager::getImage */
-rtRef<rtImageAResource> pxImageManager::getImageA(const char* url, const char* proxy, const rtCORSRef& cors)
+rtRef<rtImageAResource> pxImageManager::getImageA(const char* url, const char* proxy, const rtCORSRef& cors, rtObjectRef archive)
 {
   if(!url || strlen(url) == 0) {
     if( !emptyUrlImageAResource) {
@@ -978,8 +1063,24 @@ rtRef<rtImageAResource> pxImageManager::getImageA(const char* url, const char* p
   }
 
   rtRef<rtImageAResource> pResImageA;
+  rtString key = url;
+  if (false == ((key.beginsWith("http:")) || (key.beginsWith("https:"))))
+  {
+    // if running from archived app, we need to search the different url for relative paths
+    // url format is <appname_resource path> eg: football.zip, images/ball.png <football.zip_images/ball.png>
+    pxArchive* arc = (pxArchive*)archive.getPtr();
+    if (NULL != arc)
+    {
+      if (false == arc->isFile())
+      {
+        key = arc->getName();
+        key.append("_");
+        key.append(url);
+      }
+    }
+  }
 
-  ImageAMap::iterator it = mImageAMap.find(url);
+  ImageAMap::iterator it = mImageAMap.find(key);
   if (it != mImageAMap.end())
   {
     pResImageA = it->second;
@@ -988,16 +1089,17 @@ rtRef<rtImageAResource> pxImageManager::getImageA(const char* url, const char* p
   {
     pResImageA = new rtImageAResource(url, proxy);
     pResImageA->setCORS(cors);
-    mImageAMap.insert(make_pair(url, pResImageA));
-    pResImageA->loadResource();
+    pResImageA->setName(key);
+    pResImageA->loadResource(archive);
+    mImageAMap.insert(make_pair(key, pResImageA));
   }
 
   return pResImageA;
 }
 
-void pxImageManager::removeImageA(rtString imageUrl)
+void pxImageManager::removeImageA(rtString name)
 {
-  ImageAMap::iterator it = mImageAMap.find(imageUrl);
+  ImageAMap::iterator it = mImageAMap.find(name);
   if (it != mImageAMap.end())
   {
     mImageAMap.erase(it);
