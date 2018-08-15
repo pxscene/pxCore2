@@ -11,6 +11,7 @@ appName=SparkEdge
 else
 appName=Spark
 fi
+
 bundle=${appName}.app
 bundleBin=$bundle/Contents/MacOS
 
@@ -61,15 +62,15 @@ cp package.json $bundleRes
 if [ "$TRAVIS_EVENT_TYPE" == "cron" ]  
 then
 echo "************ building edge"
-cp ${appName} $bundleBin/SparkEdge
+cp Spark $bundleBin/SparkEdge
 else
 cp ${appName} $bundleBin
 fi
 
 if [ "$TRAVIS_EVENT_TYPE" == "cron" ]  
 then
-  sed -i -e 's/\.\/pxscene/\.\/SparkEdge/g' macstuff/spark.sh
-  sed -i -e 's/pxscene.log /SparkEdge.log /g' macstuff/spark.sh
+  sed -i -e 's/\.\/Spark/\.\/SparkEdge/g' macstuff/spark.sh
+  sed -i -e 's/Spark.log /SparkEdge.log /g' macstuff/spark.sh
 fi
 
 cp macstuff/spark.sh $bundleBin
