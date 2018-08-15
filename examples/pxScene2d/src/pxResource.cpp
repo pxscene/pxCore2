@@ -279,8 +279,9 @@ void pxResource::raiseDownloadPriority()
 
 
 rtImageResource::rtImageResource()
-: pxResource(), mTexture(), mDownloadedTexture(), mTextureMutex(), mDownloadComplete(false), init_w(0), init_h(0), mData()
+: pxResource(), mTexture(), mDownloadedTexture(), mTextureMutex(), mDownloadComplete(false), init_w(0), init_h(0), init_sx(0.0f), init_sy(0.0f), mData()
 {
+  // empty
 }
 
 rtImageResource::rtImageResource(const char* url, const char* proxy, int32_t iw /* = 0 */,  int32_t ih /* = 0 */,
