@@ -18,7 +18,8 @@ limitations under the License.
 
 //"use strict";
 
-var isDuk=(typeof timers != "undefined")?true:false;
+var isDuk=(typeof Duktape != "undefined")?true:false;
+var isV8=(typeof _isV8 != "undefined")?true:false;
 
 var url = require('url');
 var path = require('path');
@@ -36,15 +37,15 @@ var WrapObj = require('rcvrcore/utils/WrapObj');
 
 var log = new Logger('AppSceneContext');
 //overriding original timeout and interval functions
-var SetTimeout = isDuk?timers.setTimeout:setTimeout;
-var ClearTimeout = isDuk?timers.clearTimeout:clearTimeout;
-var SetInterval = isDuk?timers.setInterval:setInterval;
-var ClearInterval = isDuk?timers.clearInterval:clearInterval;
+var SetTimeout = (isDuk || isV8)?timers.setTimeout:setTimeout;
+var ClearTimeout = (isDuk || isV8)?timers.clearTimeout:clearTimeout;
+var SetInterval = (isDuk || isV8)?timers.setInterval:setInterval;
+var ClearInterval = (isDuk || isV8)?timers.clearInterval:clearInterval;
 
 
 var http_wrap = require('rcvrcore/http_wrap');
 var https_wrap = require('rcvrcore/https_wrap');
-var ws_wrap = (isDuk)?"":require('rcvrcore/ws_wrap');
+var ws_wrap = (isDuk || isV8)?"":require('rcvrcore/ws_wrap');
 
 function AppSceneContext(params) {
 
@@ -71,7 +72,7 @@ function AppSceneContext(params) {
   this.xmoduleMap = {};
   this.asyncFileAcquisition = new AsyncFileAcquisition(params.scene);
   this.accessControl = new AccessControl(params.scene);
-  this.lastHrTime = isDuk?uv.hrtime():process.hrtime();
+  this.lastHrTime = isDuk?uv.hrtime():(isV8?uv_hrtime():process.hrtime());
   this.resizeTimer = null;
   this.topXModule = null;
   this.jarFileMap = new JarFileMap();
@@ -88,7 +89,7 @@ AppSceneContext.prototype.loadScene = function() {
   //log.info("loadScene() - begins    on ctx: " + getContextID() );
   var urlParts = url.parse(this.packageUrl, true);
   var fullPath = this.packageUrl;
-  var platform = (isDuk)?uv.platform:process.platform;
+  var platform = (isDuk)?uv.platform:(isV8?uv_platform():process.platform);
   if (fullPath.substring(0, 4) !== "http") {
     if( fullPath.charAt(0) === '.' ) {
       // local file system
@@ -335,7 +336,7 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (packageUri, module
   var self = this;
   var newSandbox;
   try {
-    if (!isDuk) {
+    if (!isDuk && !isV8) {
       var requireMethod = function (pkg) {
         log.message(3, "old use of require not supported: " + pkg);
         // TODO: remove
@@ -359,7 +360,7 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (packageUri, module
       }
     }
 
-    if (!isDuk) {
+    if (!isDuk && !isV8) {
       var processWrap = WrapObj(process, {"binding":function() { throw new Error("process.binding is not supported"); }});
       var globalWrap = WrapObj(global, {"process":processWrap});
 
@@ -405,6 +406,36 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (packageUri, module
         importTracking: {}
       };
     }
+    else if (isV8) 
+    {
+      newSandbox = {
+        sandboxName: "InitialSandbox",
+        xmodule: xModule,
+        console: console,
+        timers: timers,
+        global: global,
+        isV8: isV8,
+        setTimeout: setTimeout,
+        clearTimeout: clearTimeout,
+        setInterval: setInterval,
+        clearInterval: clearInterval,
+        runtime: apiForChild,
+        urlModule: require("url"),
+        require: require,
+        loadUrl: loadUrl,
+        queryStringModule: require("querystring"),
+        theNamedContext: "Sandbox: " + uri,
+        //Buffer: Buffer,
+        importTracking: {},
+        print: print,
+        getScene: getScene,
+        makeReady: makeReady,
+        getContextID: getContextID
+      }; // end sandbox
+
+      queryStringModule = require("querystring");
+      urlModule = require("url");
+    }
     else
     {
       newSandbox = {
@@ -415,7 +446,7 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (packageUri, module
         urlModule: require("url"),
         queryStringModule: require("querystring"),
         theNamedContext: "Sandbox: " + uri,
-        Buffer: Buffer,
+        //Buffer: Buffer,
         importTracking: {}
       }; // end sandbox
     }
@@ -440,6 +471,14 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (packageUri, module
           filename: path.normalize(fname),
           displayErrors: true
         }, px, xModule, fname, this.basePackageUri);
+      } else if (isV8) {
+        var moduleFunc = vm.runInNewContext(sourceCode, newSandbox, {
+          filename: path.normalize(fname),
+          displayErrors: true
+        }, px, xModule, fname, this.basePackageUri);
+
+        moduleFunc(px, xModule, fname, this.basePackageUri);
+
       } else {
         var moduleFunc = vm.runInNewContext(sourceCode, newSandbox, {
           filename: path.normalize(fname),
@@ -526,7 +565,7 @@ if (false) {
 AppSceneContext.prototype.getPackageBaseFilePath = function() {
   var fullPath;
   var pkgPart;
-  var platform = (isDuk)?uv.platform:process.platform;
+  var platform = (isDuk)?uv.platform:(isV8?uv_platform():process.platform);
   if (this.basePackageUri.substring(0, 4) !== "http") {
     if (this.basePackageUri.charAt(0) == '.') {
       pkgPart = this.basePackageUri.substring(1);
@@ -646,8 +685,9 @@ AppSceneContext.prototype.include = function(filePath, currentXModule) {
       modData = require('rcvrcore/' + filePath + '_wrap');
       onImportComplete([modData, origFilePath]);
       return;
-    } else if( filePath === 'http' || filePath === 'https' ) {
-      modData = filePath === 'http' ? new http_wrap(_this.accessControl) : new https_wrap(_this.accessControl);
+    } else if (filePath === 'http' || filePath === 'https') {
+      var accessControl = _this.accessControl;
+      modData = filePath === 'http' ? new http_wrap(accessControl) : new https_wrap(accessControl);
       onImportComplete([modData, origFilePath]);
       return;
     } else if( filePath.substring(0, 9) === "px:scene.") {
@@ -767,8 +807,12 @@ AppSceneContext.prototype.processCodeBuffer = function(origFilePath, filePath, c
   if (isDuk) {
     vm.runInNewContext(sourceCode, _this.sandbox, { filename: filePath, displayErrors: true },
                          px, xModule, filePath, filePath);
-  }
-  else {
+  } else if (isV8) {
+    var moduleFunc = vm.runInNewContext(sourceCode, _this.sandbox, { filename: filePath, displayErrors: true },
+                         px, xModule, filePath, filePath);
+
+    moduleFunc(px, xModule, filePath, filePath);
+  } else {
     var moduleFunc = vm.runInContext(sourceCode, _this.sandbox, {filename:filePath, displayErrors:true});
     moduleFunc(px, xModule, filePath, filePath);
   }
@@ -804,9 +848,9 @@ AppSceneContext.prototype.processCodeBuffer = function(origFilePath, filePath, c
 };
 
 AppSceneContext.prototype.onResize = function(resizeEvent) {
-  var hrTime = isDuk?uv.hrtime():process.hrtime(this.lastHrTime);
+  var hrTime = isDuk?uv.hrtime():(isV8?uv_hrtime():process.hrtime(this.lastHrTime));
   var deltaMillis = (hrTime[0] * 1000 + hrTime[1] / 1000000);
-  this.lastHrTime = isDuk?uv.hrtime():process.hrtime();
+  this.lastHrTime = isDuk?uv.hrtime():(isV8?uv_hrtime():process.hrtime());
   if( deltaMillis > 300 ) {
     if( this.resizeTimer !== null ) {
       clearTimeout(this.resizeTimer);

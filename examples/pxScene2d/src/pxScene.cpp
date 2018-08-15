@@ -177,6 +177,7 @@ public:
     else {
       snprintf(buffer,sizeof(buffer),"shell.js?url=%s",escapedUrl.c_str());
     }
+
 #ifdef RUNINMAIN
     setView( new pxScriptView(buffer,"javascript/node/v8"));
 #else

@@ -27,6 +27,7 @@ set(NODEDIR "${EXTDIR}/node/")
 include(../cmake/CommOpts.cmake)
 include(../cmake/CommDeps.cmake)
 include(../cmake/NodeDeps.cmake)
+include(../cmake/V8Deps.cmake)
 
 set(BUILD_RTCORE_SHARED_LIBRARY 1)
 
@@ -62,14 +63,14 @@ if (APPLE)
     endif ()
 elseif (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC -g")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated -fPIC -g")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated-declarations -Wno-deprecated -fPIC -g")
     execute_process(COMMAND "hostname" OUTPUT_VARIABLE HOSTNAME)
     string(STRIP ${HOSTNAME} HOSTNAME)
 
     add_definitions(${COMM_DEPS_DEFINITIONS})
 
     include_directories(AFTER
-               ${NODE_INCLUDE_DIRS}
+               ${NODE_INCLUDE_DIRS} ${V8_INCLUDE_DIRS}
           ${COMM_DEPS_INCLUDE_DIRS}
     )
 
@@ -191,6 +192,7 @@ if (PXCORE_COMPILE_WARNINGS_AS_ERRORS)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror")
 endif (PXCORE_COMPILE_WARNINGS_AS_ERRORS)
 
+include_directories(AFTER ${V8_INCLUDE_DIRS})
 include_directories(AFTER ${NODE_INCLUDE_DIRS})
 include_directories(AFTER ${CMAKE_CURRENT_SOURCE_DIR})
 
@@ -212,10 +214,16 @@ endif()
 if (SUPPORT_NODE)
     message("Adding Node scripting support")
     add_definitions(-DRTSCRIPT_SUPPORT_NODE)
-    set(PXCORE_FILES ${PXCORE_FILES} rtScriptNode/rtScriptNode.cpp rtScriptNode/jsCallback.cpp rtScriptNode/rtFunctionWrapper.cpp 
-        rtScriptNode/rtObjectWrapper.cpp rtScriptNode/rtWrapperUtils.cpp)
+    set(PXCORE_FILES ${PXCORE_FILES} rtScriptV8/rtScriptNode.cpp rtScriptV8/jsCallback.cpp rtScriptV8/rtFunctionWrapper.cpp 
+        rtScriptV8/rtObjectWrapper.cpp rtScriptV8/rtWrapperUtils.cpp)
 endif()
 
+if (SUPPORT_V8)
+    message("Adding V8 scripting support")
+    add_definitions(-DRTSCRIPT_SUPPORT_V8)
+    set(PXCORE_FILES ${PXCORE_FILES} rtScriptV8/rtScriptV8.cpp rtScriptV8/jsCallback.cpp rtScriptV8/rtFunctionWrapper.cpp 
+        rtScriptV8/rtObjectWrapper.cpp rtScriptV8/rtWrapperUtils.cpp ${V8_SOURCES})
+endif()
 
 if (PXCORE_MATRIX_HELPERS)
   set(PXCORE_FILES ${PXCORE_FILES} pxMatrix4T.cpp)

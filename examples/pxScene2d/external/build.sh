@@ -139,6 +139,9 @@ then
 
 fi
 
+# v8
+bash buildV8.sh
+
 #-------- BREAKPAD (Non -macOS)
 
 if [ "$(uname)" != "Darwin" ]; then

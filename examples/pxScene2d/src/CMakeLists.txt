@@ -14,6 +14,7 @@ include(${PXCOREDIR}/cmake/CommDeps.cmake)
 include(${PXCOREDIR}/cmake/NodeDeps.cmake)
 include(${PXCOREDIR}/cmake/DukeDeps.cmake)
 include(${PXCOREDIR}/cmake/SManDeps.cmake)
+include(${PXCOREDIR}/cmake/V8Deps.cmake)
 
 set(WESTEROSINC ${EXTDIR}/westeros/external/install/include)
 set(WESTEROSSTUBINC ${EXTDIR}/westeros-stub)
@@ -91,8 +92,8 @@ if (APPLE)
         set(PXSCENE_LINKER_OPTIONS "${PXSCENE_LINKER_OPTIONS} -fsanitize=address")
     endif (ENABLE_ADDRESS_SANITIZER)
     set(PXSCENE_LINK_LIBRARIES)
-    set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${NODE_LIBRARY_DIRS} ${DUKE_LIBRARY_DIRS} ${COMM_DEPS_LIBRARY_DIRS})
-    set(PLATFORM_LIBRARIES pxCore rtCore_s pthread ${NODE_LIBRARIES} ${DUKE_LIBRARIES} ${COMM_DEPS_LIBRARIES})
+    set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${NODE_LIBRARY_DIRS} ${V8_LIBRARY_DIRS} ${DUKE_LIBRARY_DIRS} ${COMM_DEPS_LIBRARY_DIRS})
+    set(PLATFORM_LIBRARIES pxCore rtCore_s pthread ${NODE_LIBRARIES} ${V8_LIBRARIES} ${DUKE_LIBRARIES} ${COMM_DEPS_LIBRARIES})
     include_directories(AFTER ${NODE_INCLUDE_DIRS} ${DUKE_INCLUDE_DIRS} ${COMM_DEPS_INCLUDE_DIRS})
     if (DEFINED ENV{CODE_COVERAGE})
         message("enabling code coverage support")
@@ -115,6 +116,7 @@ elseif (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
     add_definitions(${COMM_DEPS_DEFINITIONS})
 
     include_directories(AFTER
+               ${V8_INCLUDE_DIRS}
                ${NODE_INCLUDE_DIRS}
                ${DUKE_INCLUDE_DIRS}
           ${COMM_DEPS_INCLUDE_DIRS}
@@ -122,11 +124,13 @@ elseif (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
 
     set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES}
                ${NODE_LIBRARY_DIRS}
+               ${V8_LIBRARY_DIRS}
                ${DUKE_LIBRARY_DIRS}
           ${COMM_DEPS_LIBRARY_DIRS}
        )
     set(PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES}
                   ${NODE_LIBRARIES}
+                  ${V8_LIBRARIES}
                   ${DUKE_LIBRARIES}
              ${COMM_DEPS_LIBRARIES}
              pthread rt dl m)
@@ -272,13 +276,14 @@ elseif (WIN32)
             -DU_HAVE_STD_STRING=0 -DUCONFIG_NO_BREAK_ITERATION=0 -DUCONFIG_NO_LEGACY_CONVERSION=1 -DUCONFIG_NO_CONVERSION=1
             -DHTTP_PARSER_STRICT=0 -DUSE_RENDER_STATS -D_HAS_EXCEPTIONS=0)
     add_definitions(${COMM_DEPS_DEFINITIONS})
-    include_directories(AFTER ${COMM_DEPS_INCLUDE_DIRS} ${NODE_INCLUDE_DIRS} ${DUKE_INCLUDE_DIRS})
+    include_directories(AFTER ${COMM_DEPS_INCLUDE_DIRS} ${NODE_INCLUDE_DIRS} ${V8_INCLUDE_DIRS} ${DUKE_INCLUDE_DIRS})
     include_directories(AFTER "${EXTDIR}/pthread-2.9" ${WINSPARKLEINC} ${EXTDIR}/breakpad-chrome_55/src/)
 
-    set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${COMM_DEPS_LIBRARY_DIRS} ${NODE_LIBRARY_DIRS} ${DUKE_LIBRARY_DIRS})
+    set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${COMM_DEPS_LIBRARY_DIRS} ${NODE_LIBRARY_DIRS}
+        ${V8_LIBRARY_DIRS} ${DUKE_LIBRARY_DIRS})
 
     set(PLATFORM_LIBRARIES pxCore.lib)
-    set(PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} ${COMM_DEPS_LIBRARIES} ${NODE_LIBRARIES} ${DUKE_LIBRARIES})
+    set(PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} ${COMM_DEPS_LIBRARIES} ${NODE_LIBRARIES} ${V8_LIBRARIES} ${DUKE_LIBRARIES})
     set(PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES}
         pthreadVC2.lib opengl32.lib Winmm.lib
         Ws2_32.lib Wldap32.lib msvcrt.lib psapi.lib
@@ -319,7 +324,7 @@ set(PXSCENE_DEFINITIONS ${PXSCENE_DEFINITIONS} -D${PX_PLATFORM} -DENABLE_RT_NODE
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-arcs -ftest-coverage")
 #set(PXSCENE_LINKER_OPTIONS "${PXSCENE_LINKER_OPTIONS} -lgcov")
 
-include_directories(AFTER ${NODE_INCLUDE_DIRS} ${DUKE_INCLUDE_DIRS})
+include_directories(AFTER ${NODE_INCLUDE_DIRS} ${V8_INCLUDE_DIRS} ${DUKE_INCLUDE_DIRS})
 include_directories(AFTER ${WESTEROSINC} ${WESTEROSSTUBINC} ${TURBO_JPEG_INCLUDE_DIRS} ${BREAKPADINC} ${RTREMOTEINC} ${PXCOREDIR}/src)
 include_directories(AFTER ${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(AFTER ${CMAKE_CURRENT_SOURCE_DIR}/rasterizer)
@@ -457,6 +462,7 @@ if (BUILD_PXSCENE_APP)
         install(TARGETS pxscene_app RUNTIME DESTINATION . COMPONENT pxscene)
         install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/browser DESTINATION . COMPONENT pxscene)
         install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/node_modules DESTINATION . COMPONENT pxscene)
+        install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/v8_modules DESTINATION . COMPONENT pxscene)
         if (SUPPORT_DUKTAPE)
             install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/rcvrcore/" DESTINATION rcvrcore COMPONENT pxscene)
             install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/duk_modules/" DESTINATION duk_modules COMPONENT pxscene)
@@ -469,7 +475,9 @@ if (BUILD_PXSCENE_APP)
 
         file(GLOB PXSCENE_INSTALL_FILES "${CMAKE_CURRENT_SOURCE_DIR}/FreeSans.ttf"
            "${CMAKE_CURRENT_SOURCE_DIR}/*.json" "${CMAKE_CURRENT_SOURCE_DIR}/*.conf"
-           "${CMAKE_CURRENT_SOURCE_DIR}/../external/vc.build/builds/*.dll" "${CMAKE_CURRENT_SOURCE_DIR}/Release/")
+           "${CMAKE_CURRENT_SOURCE_DIR}/../external/vc.build/builds/*.dll" 
+           "${CMAKE_CURRENT_SOURCE_DIR}/../external/v8/out.gn/ia32.release/v8*.dll"
+           "${CMAKE_CURRENT_SOURCE_DIR}/Release/")
         if (SUPPORT_DUKTAPE)
             message("installing additional duktape files")
             install(FILES ${PXSCENE_INSTALL_FILES_JS2} DESTINATION . COMPONENT pxscene)
