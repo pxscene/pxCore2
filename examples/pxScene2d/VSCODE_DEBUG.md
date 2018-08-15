@@ -37,12 +37,12 @@ NOTE:  From VSCode 1.25 and greater ... it is necessary to include `"protocol": 
       "type": "node",
       "request": "launch",
       "protocol": "legacy",
-      "cwd": "/Applications/pxscene.app/Contents/MacOS",
-      "runtimeExecutable": "/Applications/pxscene.app/Contents/MacOS/pxscene",
+      "cwd": "/Applications/spark.app/Contents/MacOS",
+      "runtimeExecutable": "/Applications/spark.app/Contents/MacOS/pxscene",
       "args":["${file}"],
       "env" : {
-      "LD_LIBRARY_PATH":"/Applications/pxscene.app/Contents/MacOS/lib",
-      "DYLD_LIBRARY_PATH":"/Applications/pxscene.app/Contents/MacOS/lib"
+      "LD_LIBRARY_PATH":"/Applications/spark.app/Contents/MacOS/lib",
+      "DYLD_LIBRARY_PATH":"/Applications/spark.app/Contents/MacOS/lib"
       //,"BREAK_ON_SCRIPTSTART":1    
       }
     },
@@ -51,11 +51,11 @@ NOTE:  From VSCode 1.25 and greater ... it is necessary to include `"protocol": 
       "type": "node",
       "request": "launch",
       "protocol": "legacy",
-      "cwd": "/Applications/pxscene.app/Contents/MacOS",
-      "runtimeExecutable": "/Applications/pxscene.app/Contents/MacOS/pxscene",
+      "cwd": "/Applications/spark.app/Contents/MacOS",
+      "runtimeExecutable": "/Applications/spark.app/Contents/MacOS/pxscene",
       "env" : {
-      "LD_LIBRARY_PATH":"/Applications/pxscene.app/Contents/MacOS/lib",
-      "DYLD_LIBRARY_PATH":"/Applications/pxscene.app/Contents/MacOS/lib"
+      "LD_LIBRARY_PATH":"/Applications/spark.app/Contents/MacOS/lib",
+      "DYLD_LIBRARY_PATH":"/Applications/spark.app/Contents/MacOS/lib"
       //,"BREAK_ON_SCRIPTSTART":1      
       }
     },   
@@ -86,11 +86,11 @@ NOTE:  From VSCode 1.25 and greater ... it is necessary to include `"protocol": 
 > Note: If you have set environment variable `BREAK_ON_SCRIPTSTART=1`, execution will get stopped as the javascript file loads; otherwise, execution will stop at breakpoints only.
 
 
-## Attaching to a running instance of pxscene
+## Attaching to a running instance of spark
 
 
-> Note: You must have started pxscene with the --debug=5858 (5858 being the ip port specified in your .vscode/launch.json 
-> config file) command line option in order for this to work.  eg. ./pxscene.sh --debug=5858
+> Note: You must have started spark with the --debug=5858 (5858 being the ip port specified in your .vscode/launch.json 
+> config file) command line option in order for this to work.  eg. ./spark.sh --debug=5858
 
 1.  Launch pxscene as described above.
 
