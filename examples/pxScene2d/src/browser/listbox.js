@@ -354,7 +354,7 @@ px.import({ scene: 'px:scene.1.js',
                   var code = e.keyCode;
                   if (code == keys.ENTER)
                   {
-                    if (false == mouseActive)
+                    if ((false == mouseActive) && (-1 != activeItemIndex))
                     {
                       var data = text[activeItemIndex].text;
                       iscontrolpressed = false;
