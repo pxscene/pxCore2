@@ -103,27 +103,5 @@ private:
   rtScriptRef mScript;
 };
 
-class rtWrapperSceneUnlocker
-{
-public:
-  rtWrapperSceneUnlocker()
-    : m_hadLock(false)
-  {
-    if (rtWrapperSceneUpdateHasLock())
-    {
-      m_hadLock = true;
-      rtWrapperSceneUpdateExit();
-    }
-  }
-
-  ~rtWrapperSceneUnlocker()
-  {
-    if (m_hadLock)
-      rtWrapperSceneUpdateEnter();
-  }
-private:
-  bool m_hadLock;
-};
-
 
 #endif
