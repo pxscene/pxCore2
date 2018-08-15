@@ -25,7 +25,7 @@
 1. Install required packages:
     
     ~~~~
-    sudo apt-get install git libglew-dev freeglut3 freeglut3-dev libgcrypt11-dev zlib1g-dev g++ libssl-dev nasm autoconf libtool cmake quilt libuv-dev
+    sudo apt-get install git libglew-dev freeglut3 freeglut3-dev libgcrypt11-dev zlib1g-dev g++ libssl-dev nasm autoconf libtool cmake quilt libuv-dev quilt
     
     ~~~~
 
@@ -33,8 +33,10 @@
 
 If you're using Ubuntu 18.04, you'll need to install earlier versions of gcc and g++ to be able to build some of the dependencies.  You can select the earlier version of gcc and g++ using the `update-alternatives` command if you have trouble building libnode or other dependencies.
 
+You also need to install the 1.0 version of libssl for the 7.4.0 version of libcurl to use.
+
 ```
-sudo apt-get install gcc-5 g++-5
+sudo apt-get install gcc-5 g++-5 libssl1.0-dev
 sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-5 10
 sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-7 20
 
