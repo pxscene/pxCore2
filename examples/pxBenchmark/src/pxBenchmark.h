@@ -126,7 +126,8 @@ public:
         xDrawImageBorder9Ran,
         xDrawImageMaskedRan,
         xDrawTextureQuadsRan,
-        xDrawAll
+        xDrawAll,
+        xEnd
     };
     
     float               mCurrentX;

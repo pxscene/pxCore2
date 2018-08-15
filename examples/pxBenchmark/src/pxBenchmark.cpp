@@ -65,19 +65,21 @@ char** g_origArgv = NULL;
 
 void benchmarkWindow::init(const int32_t& x, const int32_t& y, const int32_t& w, const int32_t& h, const int32_t& mw, const int32_t& mh)
 {
-    mApiFixture = std::shared_ptr<pxApiFixture>(new pxApiFixture());//&pxApiFixture::Instance());
+    mApiFixture = std::shared_ptr<pxApiFixture>(new pxApiFixture());
+    
     
     rtString settingsPath;
     rtGetHomeDirectory(settingsPath);
-    mOutputTableCSV = "pxBenchmark_outputTable.csv";
+    mOutputTableCSV = settingsPath.cString() + mOutputTableCSV;
     
     std::cout << "Writing results to: " << mOutputTableCSV << std::endl;
-    celero::ResultTable::Instance().setFileName(settingsPath.cString() + mOutputTableCSV);
+    celero::ResultTable::Instance().setFileName(mOutputTableCSV);
     
     celero::AddExperimentResultCompleteFunction([](std::shared_ptr<celero::ExperimentResult> p) { celero::ResultTable::Instance().add(p); });
     
+    mArchiveCSV = settingsPath.cString() + mArchiveCSV;
     std::cout << "Archiving results to: " << mArchiveCSV << std::endl;
-    celero::Archive::Instance().setFileName(settingsPath.cString() + mArchiveCSV);
+    celero::Archive::Instance().setFileName(mArchiveCSV);
     
     celero::AddExperimentResultCompleteFunction([](std::shared_ptr<celero::ExperimentResult> p) { celero::Archive::Instance().add(p); });
     
@@ -137,7 +139,6 @@ void benchmarkWindow::invalidateRect(pxRect* r)
 
 void benchmarkWindow::close()
 {
-    celero::ResultTable::Instance().closeFile();
     onCloseRequest();
 }
 
@@ -166,6 +167,8 @@ void benchmarkWindow::onCloseRequest()
     ENTERSCENELOCK()
     eventLoop.exit();
     EXITSCENELOCK()
+    
+    celero::ResultTable::Instance().closeFile();
 }
 
 void benchmarkWindow::onMouseUp(/*const */int32_t/*&*/ x, /*const */int32_t/*&*/ y, /*const */uint32_t/*&*/ flags)
@@ -204,7 +207,7 @@ void benchmarkWindow::RegisterTest (const string& groupName, const string& bench
                                     const uint64_t iterations, const uint64_t threads)
 {
     if (NULL == mExperimentFactory)
-        mExperimentFactory = std::shared_ptr<pxBenchmarkFactory>(new pxBenchmarkFactory());//&pxBenchmarkFactory::Instance());
+        mExperimentFactory = std::shared_ptr<pxBenchmarkFactory>(new pxBenchmarkFactory());
     
     // TODO celero::TestVector::Instance().clear();
     
@@ -227,7 +230,7 @@ void benchmarkWindow::RegisterTest (const string& groupName, const string& bench
 void benchmarkWindow::reset()
 {
     if (mExperimentFactory == NULL)
-        mExperimentFactory = std::shared_ptr<pxBenchmarkFactory>(new pxBenchmarkFactory());//&pxBenchmarkFactory::Instance());
+        mExperimentFactory = std::shared_ptr<pxBenchmarkFactory>(new pxBenchmarkFactory());
     
     switch ((int)mApiFixture->popExperimentValue().Value) {
         case pxApiFixture::type::xDrawRect:
@@ -302,9 +305,14 @@ void benchmarkWindow::onDraw(pxSurfaceNative/*&*/ sn)
     
     if (mApiFixture->getIterationCounter() <= mIterations)
         celero::executor::Run(mGroupName);
-    else if (mApiFixture->popExperimentValue().Value == pxApiFixture::type::xDrawAll)
+    else if (mApiFixture->popExperimentValue().Value == pxApiFixture::type::xEnd || mApiFixture->popExperimentValue().Value == pxApiFixture::type::xDrawAll)
     {
         celero::ResultTable::Instance().closeFile();
+        string cmnd = "open " + mOutputTableCSV;
+        system(cmnd.c_str());
+        
+        if (mApiFixture->popExperimentValue().Value == pxApiFixture::type::xDrawAll)
+            mApiFixture->popExperimentValue().Value++;
         return;
     }
     else
@@ -749,7 +757,7 @@ pxTextureRef pxApiFixture::CreateTexture ()
     {
         pxPixel* d = o.scanline(y);
         pxPixel* de = d + (int)mUnitWidth;
-        int x = 0;
+        //int x = 0;
         while (d < de)
         {
              d->r = rand() / 255;// (d->r * d->a)/255;
@@ -790,10 +798,10 @@ void pxApiFixture::setUp(const celero::TestFixture::ExperimentValue& experimentV
             mUnitHeight = (rand() % (int)win.GetHeight());// / (int)win.GetHeight();
             mUnitHeight = mUnitHeight < 50 ? 50 : mUnitHeight;
             context.clear(win.GetWidth(), win.GetHeight());
-            win.SetIterations (100);
+            win.SetIterations (100); // TEMP DEMO
             break;
         default:
-            win.SetIterations (1056);
+            win.SetIterations (100); // TEMP DEMO
             break;
     }
     
