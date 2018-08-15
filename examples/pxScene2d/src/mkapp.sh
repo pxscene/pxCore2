@@ -8,8 +8,6 @@ APPNAME=Spark
 if [ "$TRAVIS_EVENT_TYPE" == "cron" ]
 then
 APPNAME=SparkEdge
-else
-APPNAME=Spark
 fi
 
 bundle=${APPNAME}.app
