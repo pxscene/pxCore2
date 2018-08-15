@@ -301,6 +301,8 @@ void benchmarkWindow::onDraw(pxSurfaceNative/*&*/ sn)
         //context.clear(0, 0, fillColor);
         context.clear(win.GetWidth(), win.GetHeight());
         
+        float fillColor[] = {0.0, 0.0, 0.0, 1.0};
+        context.clear(0, 0, fillColor);
     }
     
     if (mApiFixture->getIterationCounter() <= mIterations)
@@ -801,7 +803,7 @@ void pxApiFixture::setUp(const celero::TestFixture::ExperimentValue& experimentV
             win.SetIterations (100); // TEMP DEMO
             break;
         default:
-            win.SetIterations (100); // TEMP DEMO
+            win.SetIterations (1056); // TEMP DEMO
             break;
     }
     
@@ -814,8 +816,8 @@ void pxApiFixture::setUp(const celero::TestFixture::ExperimentValue& experimentV
         
         context.clear(win.GetWidth(), win.GetHeight());
         
-        //float fillColor[] = {1.0, 1.0, 0.0, 1.0};
-        //context.clear(0, 0, fillColor);
+        float fillColor[] = {0.0, 0.0, 0.0, 1.0};
+        context.clear(0, 0, fillColor);
     }
     else if (mCurrentX < win.GetWidth())
         mCurrentX += mUnitWidth;
