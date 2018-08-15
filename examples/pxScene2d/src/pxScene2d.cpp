@@ -371,6 +371,9 @@ void populateAllAppDetails(rtString& appDetails)
 // Small helper class that vends the children of a pxObject as a collection
 class pxObjectChildren: public rtObject {
 public:
+
+  rtDeclareObject(pxObjectChildren, rtObject);
+
   pxObjectChildren(pxObject* o)
   {
     mObject = o;
@@ -421,6 +424,8 @@ public:
 private:
   rtRef<pxObject> mObject;
 };
+
+rtDefineObject(pxObjectChildren, rtObject);
 
 
 // pxObject methods
