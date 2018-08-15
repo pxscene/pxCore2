@@ -313,8 +313,14 @@ void benchmarkWindow::onDraw(pxSurfaceNative/*&*/ sn)
         {
             mApiFixture->popExperimentValue().Value++;
             celero::ResultTable::Instance().closeFile();
+#if PX_PLATFORM_GENERIC_EGL
+            string cmnd = "libreoffice --calc " + mOutputTableCSV;
+            system(cmnd.c_str());
+#else
             string cmnd = "open " + mOutputTableCSV;
             system(cmnd.c_str());
+#endif
+            
         }
         return;
     }
