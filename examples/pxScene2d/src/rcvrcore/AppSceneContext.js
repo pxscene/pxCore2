@@ -584,6 +584,8 @@ AppSceneContext.prototype.getPackageBaseFilePath = function() {
     fullPath = this.basePackageUri;
   }
 
+  fullPath = fullPath.replace('%20', '\ '); // replace HTML escaped spaces with C/C++ escaping
+
   return fullPath;
 };
 
@@ -644,7 +646,7 @@ AppSceneContext.prototype.include = function(filePath, currentXModule) {
   var origFilePath = filePath;
 
   return new Promise(function (onImportComplete, reject) {
-    if( filePath === 'px' || filePath === 'url' || filePath === 'querystring' || filePath === 'htmlparser') {
+    if (/^(px|url|querystring|htmlparser|crypto|oauth)$/.test(filePath)) {
       if (isDuk && filePath === 'htmlparser') {
         console.log("Not permitted to use the module " + filePath);
         reject("include failed due to module not permitted");
@@ -658,18 +660,15 @@ AppSceneContext.prototype.include = function(filePath, currentXModule) {
       console.log("Not permitted to use the module " + filePath);
       reject("include failed due to module not permitted");
       return;
-    } else if( filePath === 'net' || filePath === 'ws' ) {
-      if (isDuk && filePath === 'ws') {
+    } else if(filePath === 'ws') {
+      if (isDuk) {
         console.log("creating websocket instance")
         modData = websocket;
         onImportComplete([modData, origFilePath]);
         return;
-      }
-      if (!isDuk && filePath === 'ws')
-      {
-        var wsdata = require('rcvrcore/' + filePath + '_wrap');
+      } else {
+        var wsdata = require('rcvrcore/ws_wrap');
         _this.webSocketManager = new wsdata();
-
         var WebSocket = (function() {
           var context = this;
           function WebSocket(address, protocol, options) {
@@ -682,12 +681,13 @@ AppSceneContext.prototype.include = function(filePath, currentXModule) {
         onImportComplete([modData, origFilePath]);
         return;
       }
-      modData = require('rcvrcore/' + filePath + '_wrap');
-      onImportComplete([modData, origFilePath]);
-      return;
-    } else if (filePath === 'http' || filePath === 'https') {
+    } else if( filePath === 'http' || filePath === 'https' ) {
       var accessControl = _this.accessControl;
       modData = filePath === 'http' ? new http_wrap(accessControl) : new https_wrap(accessControl);
+      onImportComplete([modData, origFilePath]);
+      return;
+    } else if( filePath === 'http2' ) {
+      modData = require('rcvrcore/http2_wrap');
       onImportComplete([modData, origFilePath]);
       return;
     } else if( filePath.substring(0, 9) === "px:scene.") {

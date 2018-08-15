@@ -706,7 +706,7 @@ void pxFontManager::initFT()
   }
   
 }
-rtRef<pxFont> pxFontManager::getFont(const char* url, const char* proxy)
+rtRef<pxFont> pxFontManager::getFont(const char* url, const char* proxy, const rtCORSRef& cors)
 {
   initFT();
 
@@ -740,6 +740,7 @@ rtRef<pxFont> pxFontManager::getFont(const char* url, const char* proxy)
   {
     rtLogDebug("Create pxFont in map for %s\n",url);
     pFont = new pxFont(url, fontId, proxy);
+    pFont->setCORS(cors);
     mFontMap.insert(make_pair(fontId, pFont));
     pFont->loadResource();
   }
@@ -803,6 +804,10 @@ void pxFontAtlas::clearTexture()
 }
 bool pxFontAtlas::addGlyph(uint32_t w, uint32_t h, void* buffer, GlyphTextureEntry& e)
 {
+  if (!mTexture)
+  {
+    mTexture = context.createTexture(PXSCENE_FONT_ATLAS_DIM,PXSCENE_FONT_ATLAS_DIM,PXSCENE_FONT_ATLAS_DIM,PXSCENE_FONT_ATLAS_DIM, NULL);
+  }
   //return false;
   // bail on biggish glyphs
   if (h < 128)

@@ -8,7 +8,6 @@ option(WINDOWLESS_EGL "WINDOWLESS_EGL" OFF)
 option(PXCORE_WAYLAND_EGL "PXCORE_WAYLAND_EGL" OFF)
 option(PXCORE_ESSOS "PXCORE_ESSOS" OFF)
 option(PXCORE_MATRIX_HELPERS "PXCORE_MATRIX_HELPERS" ON)
-option(PXCORE_ACCESS_CONTROL_CHECK "PXCORE_ACCESS_CONTROL_CHECK" ON)
 option(PXCORE_PERMISSIONS_CHECK "PXCORE_PERMISSIONS_CHECK" ON)
 option(BUILD_RTCORE_LIBS "BUILD_RTCORE_LIBS" ON)
 option(BUILD_PXCORE_LIBS "BUILD_PXCORE_LIBS" ON)
@@ -63,7 +62,7 @@ if (APPLE)
     endif ()
 elseif (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC -g")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated-declarations -Wno-deprecated -fPIC -g")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated -fPIC -g")
     execute_process(COMMAND "hostname" OUTPUT_VARIABLE HOSTNAME)
     string(STRIP ${HOSTNAME} HOSTNAME)
 
@@ -202,7 +201,7 @@ set(PXCORE_FILES ${PXCORE_FILES} pxOffscreen.cpp pxWindowUtil.cpp
         rtThreadQueue.cpp rtThreadTask.cpp rtUrlUtils.cpp
         rtZip.cpp pxInterpolators.cpp pxUtil.cpp
         rtFileDownloader.cpp unzip.c ioapi.c
-        rtScript.cpp rtSettings.cpp)
+        rtScript.cpp rtSettings.cpp rtCORS.cpp)
         
 if (SUPPORT_DUKTAPE)
     message("Adding Duktape scripting support")
@@ -225,14 +224,10 @@ if (SUPPORT_V8)
         rtScriptV8/rtObjectWrapper.cpp rtScriptV8/rtWrapperUtils.cpp ${V8_SOURCES})
 endif()
 
+
 if (PXCORE_MATRIX_HELPERS)
   set(PXCORE_FILES ${PXCORE_FILES} pxMatrix4T.cpp)
 endif(PXCORE_MATRIX_HELPERS)
-
-if (PXCORE_ACCESS_CONTROL_CHECK)
-    add_definitions(-DENABLE_ACCESS_CONTROL_CHECK)
-    set(PXCORE_FILES ${PXCORE_FILES} rtCORSUtils.cpp)
-endif (PXCORE_ACCESS_CONTROL_CHECK)
 
 if (PXCORE_PERMISSIONS_CHECK)
     add_definitions(-DENABLE_PERMISSIONS_CHECK)

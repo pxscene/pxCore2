@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Scheme
-   LastUpgradeVersion = "0710"
+   LastUpgradeVersion = "0720"
    version = "1.3">
    <BuildAction
       parallelizeBuildables = "YES"
@@ -14,9 +14,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "AECBECCF1B67979F00851BFE"
-               BuildableName = "libpxCore.a"
-               BlueprintName = "pxCore (Node) Static Library"
+               BlueprintIdentifier = "4CF5463E20210AB600529907"
+               BuildableName = "libpxCore Static Library.a"
+               BlueprintName = "pxCore Static Library"
                ReferencedContainer = "container:pxCore.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -45,9 +45,9 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "AECBECCF1B67979F00851BFE"
-            BuildableName = "libpxCore.a"
-            BlueprintName = "pxCore (Node) Static Library"
+            BlueprintIdentifier = "4CF5463E20210AB600529907"
+            BuildableName = "libpxCore Static Library.a"
+            BlueprintName = "pxCore Static Library"
             ReferencedContainer = "container:pxCore.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
@@ -63,9 +63,9 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "AECBECCF1B67979F00851BFE"
-            BuildableName = "libpxCore.a"
-            BlueprintName = "pxCore (Node) Static Library"
+            BlueprintIdentifier = "4CF5463E20210AB600529907"
+            BuildableName = "libpxCore Static Library.a"
+            BlueprintName = "pxCore Static Library"
             ReferencedContainer = "container:pxCore.xcodeproj">
          </BuildableReference>
       </MacroExpansion>

@@ -4,7 +4,14 @@
 minJS=./jsMin.sh  #minify
 
 externalDir=../external
-bundle=pxscene.app
+appName=Spark
+if [ "$TRAVIS_EVENT_TYPE" == "cron" ]
+then
+appName=SparkEdge
+else
+appName=Spark
+fi
+bundle=${appName}.app
 bundleBin=$bundle/Contents/MacOS
 
 #bundleRes=$bundle/Contents/Resources
@@ -44,14 +51,29 @@ cp macstuff/Info.plist $bundle/Contents
 
 # Copy RESOURCES to Bundle...
 #
+
+rm -f browser/images/status_bg_edge.svg
+
 cp -a browser $bundleRes
 cp FreeSans.ttf $bundleRes
 cp sparkpermissions.conf $bundleRes
 
 cp package.json $bundleRes
-cp pxscene $bundleBin
+if [ "$TRAVIS_EVENT_TYPE" == "cron" ]  
+then
+echo "************ building edge"
+cp ${appName} $bundleBin/SparkEdge
+else
+cp ${appName} $bundleBin
+fi
 
-cp macstuff/pxscene.sh $bundleBin
+if [ "$TRAVIS_EVENT_TYPE" == "cron" ]  
+then
+  sed -i -e 's/\.\/pxscene/\.\/SparkEdge/g' macstuff/spark.sh
+  sed -i -e 's/pxscene.log /SparkEdge.log /g' macstuff/spark.sh
+fi
+
+cp macstuff/spark.sh $bundleBin
 cp macstuff/EngineRunner $bundleBin
 
 # Minify JS into Bundle...
