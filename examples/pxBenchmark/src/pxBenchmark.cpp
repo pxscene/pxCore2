@@ -309,12 +309,13 @@ void benchmarkWindow::onDraw(pxSurfaceNative/*&*/ sn)
         celero::executor::Run(mGroupName);
     else if (mApiFixture->popExperimentValue().Value == pxApiFixture::type::xEnd || mApiFixture->popExperimentValue().Value == pxApiFixture::type::xDrawAll)
     {
-        celero::ResultTable::Instance().closeFile();
-        string cmnd = "open " + mOutputTableCSV;
-        system(cmnd.c_str());
-        
         if (mApiFixture->popExperimentValue().Value == pxApiFixture::type::xDrawAll)
+        {
             mApiFixture->popExperimentValue().Value++;
+            celero::ResultTable::Instance().closeFile();
+            string cmnd = "open " + mOutputTableCSV;
+            system(cmnd.c_str());
+        }
         return;
     }
     else
