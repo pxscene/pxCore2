@@ -46,7 +46,8 @@ if %buildExternal% == 1 (
 
 REM --------- BREAKPAD
 
-CALL buildV8.bat
+REM todo uncomment - if you want to build v8 then call buildV8.bat directly
+REM CALL buildV8.bat
 
 cd breakpad-chrome_55
 CALL gyp\gyp.bat src\client\windows\breakpad_client.gyp --no-circular-check

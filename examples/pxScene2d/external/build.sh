@@ -140,7 +140,8 @@ then
 fi
 
 # v8
-bash buildV8.sh
+# todo - uncomment - for now build v8 with buildV8.sh directly
+#bash buildV8.sh
 
 #-------- BREAKPAD (Non -macOS)
 
