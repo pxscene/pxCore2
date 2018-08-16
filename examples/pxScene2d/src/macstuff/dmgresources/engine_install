@@ -9,7 +9,7 @@ anywait(){
     done
 }
 
-LOGFILE=/var/tmp/pxscene_update.log
+LOGFILE=/var/tmp/Spark_update.log
 
 echo "Enter pxscene .engine_install " `date` >> $LOGFILE
 echo disk image: $1 >> $LOGFILE
@@ -29,7 +29,7 @@ if [ $PKGEXT == "app" ]; then
     echo "Info: Running in app" >> $LOGFILE
     echo "Info: Copying software..." >> $LOGFILE
     rm -r $PKGNAME
-    cp -a $1/pxscene.app $PKGNAME
+    cp -a $1/Spark.app $PKGNAME
     echo $PKGNAME >> $LOGFILE
     echo "Info: Software Updated" >> $LOGFILE
 else
