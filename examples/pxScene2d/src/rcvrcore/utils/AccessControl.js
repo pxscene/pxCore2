@@ -25,9 +25,9 @@ var WrapObj = require('rcvrcore/utils/WrapObj');
 var Logger = require('rcvrcore/Logger').Logger;
 
 var LogLevel = Object.freeze({
-  info: 2, // Always
+  info: 2, // Log always
   debug: 4, // Debugging
-  trace: 100 // Everything
+  trace: 100 // Log everything
 });
 
 /**
@@ -39,11 +39,16 @@ function AccessControl(scene) {
   this.log = new Logger('AccessControl');
   this.log.message(LogLevel.debug, "create");
   this.scene = scene;
+  this.wraps = [];
 }
 
 AccessControl.prototype.destroy = function () {
   this.log.message(LogLevel.debug, "destroy");
   this.scene = null;
+  this.wraps.forEach(function (t) {
+    t.removeAllListeners();
+  });
+  this.wraps = null;
 };
 
 AccessControl.prototype.origin = function () {
@@ -119,18 +124,11 @@ module.exports.request = function (accessControl, options, callback) {
 function _RequestWrapper(accessControl, options) {
   this.log = new Logger('RequestWrapper');
   this.accessControl = accessControl;
-  if (typeof options === 'string') {
-    this.log.message(LogLevel.trace, "options is URL: " + options);
-    this.options = url.parse(options);
-  } else {
-    this.log.message(LogLevel.trace, "options is object");
-    this.options = Utils._extend({}, options);
-  }
+  this.fromOrigin = this.accessControl ? this.accessControl.origin() : null;
+  this.options = this.normalizeOptions(options);
   this.toOrigin = Utils._getRequestOrigin(this.options);
   this.withCredentials = this.isWithCredentials();
-  this.fromOrigin = this.accessControl ? this.accessControl.origin() : null;
   this.block = this.accessControl ? !this.accessControl.allows(this.toOrigin) : false;
-  this.updateOptions();
   var message = "created. block: " + this.block;
   message += " to origin: '" + this.toOrigin + "' from origin '" + this.fromOrigin + "'";
   message += " withCredentials: " + this.withCredentials;
@@ -143,8 +141,8 @@ function _RequestWrapper(accessControl, options) {
  */
 _RequestWrapper.prototype.isWithCredentials = function () {
   var result = false;
-  var h = this.options ? this.options.headers : null;
-  if (h && this.accessControl) {
+  if (this.options && this.options.headers && this.accessControl) {
+    var h = this.options.headers;
     var _this = this;
     Object.keys(h).forEach(function (k) {
       if (_this.accessControl.isCredentialsRequestHeader(k)) {
@@ -157,13 +155,22 @@ _RequestWrapper.prototype.isWithCredentials = function () {
 };
 
 /**
- * Updates options according to CORS.
+ * Creates an options object from input, takes care of required headers (for example CORS).
+ * @param options
+ * @returns {*}
  */
-_RequestWrapper.prototype.updateOptions = function () {
+_RequestWrapper.prototype.normalizeOptions = function (options) {
+  if (typeof options === 'string') {
+    this.log.message(LogLevel.trace, "options is URL: " + options);
+    options = url.parse(options);
+  } else {
+    this.log.message(LogLevel.trace, "options is object");
+    options = Utils._extend({}, options);
+  }
   if (this.fromOrigin && this.accessControl) {
-    var h = this.options.headers;
+    var h = options.headers;
     if (!h) {
-      h = this.options.headers = {};
+      h = options.headers = {};
     }
     var _this = this;
     Object.keys(h).forEach(function (k) {
@@ -175,6 +182,7 @@ _RequestWrapper.prototype.updateOptions = function () {
     this.log.message(LogLevel.info, "set header: 'Origin'=" + this.fromOrigin + "'");
     h.Origin = this.fromOrigin;
   }
+  return options;
 };
 
 /**
@@ -188,13 +196,14 @@ _RequestWrapper.prototype.request = function (callback) {
     this.req = new http2.ClientRequest();
     this.block_Http2_OutgoingRequest(this.req);
     ret = this.wrap(this.req);
-    ret.on('response', callback);
   } else if (Utils._isHttpURL(this.toOrigin)) {
     if (this.accessControl) {
       this.log.message(LogLevel.trace, "create wrapped http request");
       this.req = http.request(this.options);
       ret = this.wrap(this.req);
-      ret.on('response', callback);
+      if (callback) {
+        ret.on('response', callback);
+      }
     } else {
       this.log.message(LogLevel.trace, "create http request");
       this.req = http.request(this.options, callback);
@@ -205,7 +214,9 @@ _RequestWrapper.prototype.request = function (callback) {
       this.log.message(LogLevel.trace, "create wrapped http2 request");
       this.req = http2.request(this.options);
       ret = this.wrap(this.req);
-      ret.on('response', callback);
+      if (callback) {
+        ret.on('response', callback);
+      }
     } else {
       this.log.message(LogLevel.trace, "create http2 request");
       this.req = http2.request(this.options, callback);
@@ -319,21 +330,26 @@ _RequestWrapper.prototype.wrap = function (o) {
   if (o instanceof http2.IncomingResponse) {
     this.log.message(LogLevel.trace, "wrap '" + cl + "'");
     o = this.wrap_http2_IncomingResponse(o);
+    this.accessControl.wraps.push(o);
   } else if (cl === 'IncomingPromise') {
     this.log.message(LogLevel.trace, "wrap '" + cl + "'");
     o = this.wrap_http2_IncomingPromise(o);
+    this.accessControl.wraps.push(o);
   } else if (o instanceof http2.OutgoingRequest) {
     this.log.message(LogLevel.trace, "wrap '" + cl + "'");
     o = this.wrap_http2_OutgoingRequest(o);
+    this.accessControl.wraps.push(o);
   } else if (cl === 'Stream') {
     this.log.message(LogLevel.trace, "wrap '" + cl + "'");
     o = null;
   } else if (o instanceof http.ClientRequest) {
     this.log.message(LogLevel.trace, "wrap '" + cl + "'");
     o = this.wrap_http_ClientRequest(o);
+    this.accessControl.wraps.push(o);
   } else if (o instanceof http.IncomingMessage) {
     this.log.message(LogLevel.trace, "wrap '" + cl + "'");
     o = this.wrap_http_IncomingMessage(o);
+    this.accessControl.wraps.push(o);
   } else {
     this.log.message(LogLevel.trace, "skip wrap for '" + cl + "'");
   }
@@ -538,5 +554,5 @@ Utils._isHttpURL = function (url) {
 };
 
 Utils._getClassName = function (o) {
-  return o.constructor ? o.constructor.name : typeof o;
+  return o && o.constructor ? o.constructor.name : typeof o;
 };

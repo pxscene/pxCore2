@@ -18,16 +18,14 @@ limitations under the License.
 
 'use strict';
 
-var Events = require('events');
-
 /**
  * Creates a wrapper around {@see from} and based on {@see to}. Result has props/functions of both.
  * @param from
  * @param to
  * @param thisArg - replaces 'this' in result's functions
  * @param props - a set of props from {@see from}, otherwise all props
- * @param events - a set of events from {@see from}, otherwise all events
- * @param eventArgWrapper - if {@see events} set, use this to modify event params
+ * @param events - if set, result is an event emitter with given events from {@see from}
+ * @param eventArgWrapper - if {@see events} set, used to modify event params
  * @returns {{}}
  */
 function wrap(from, to, thisArg, props, events, eventArgWrapper) {
@@ -39,22 +37,23 @@ function wrap(from, to, thisArg, props, events, eventArgWrapper) {
   }
   var ret = {};
   if (events) {
-    var e = new Events();
-    events.forEach(function (k) {
-      from.on(k, function () {
-        var args = Array.prototype.slice.call(arguments);
-        if (eventArgWrapper) {
-          args = args.map(eventArgWrapper);
+    // TODO: using EventEmitter here causes leaks
+    ret = {
+      on: function (type, listener) {
+        if (events.indexOf(type) !== -1) {
+          return from.on(type, function () {
+            var args = Array.prototype.slice.call(arguments);
+            if (eventArgWrapper) {
+              args = args.map(eventArgWrapper);
+            }
+            listener.apply(this, args);
+          });
         }
-        args.unshift(k);
-        e.emit.apply(e, args);
-      });
-    });
-    if (to) {
-      ret = wrap(to, e);
-    } else {
-      ret = e;
-    }
+      },
+      removeAllListeners: function () {
+        from.removeAllListeners();
+      }
+    };
   } else if (to) {
     ret = to;
   }
