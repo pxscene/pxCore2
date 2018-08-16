@@ -1,9 +1,14 @@
 #!/bin/bash
 
 
+APPNAME=Spark
+if [ "$TRAVIS_EVENT_TYPE" == "cron" ]
+then
+APPNAME=SparkEdge
+fi
+
 function mkUpdate() {
 
-APPNAME=Spark
 INFILE=macstuff/software_update.plist
 OUTFILE=deploy/mac/software_update.plist
 DMGFILE=deploy/mac/${APPNAME}.dmg
@@ -22,14 +27,8 @@ DEPLOY_DIR=deploy/mac/.stage
 PX_SCENE_VERSION=$1
 mkdir -p $DEPLOY_DIR
 rm -r $DEPLOY_DIR/${APPNAME}.app
-if [ "$TRAVIS_EVENT_TYPE" == "cron" ]
-then
-cp -a SparkEdge.app $DEPLOY_DIR
-echo $PX_SCENE_VERSION > $DEPLOY_DIR/SparkEdge.app/Contents/MacOS/version
-else
 cp -a ${APPNAME}.app $DEPLOY_DIR
 echo $PX_SCENE_VERSION > $DEPLOY_DIR/${APPNAME}.app/Contents/MacOS/version
-fi
 
 #build dmg
 ./mkdmg.sh

@@ -88,9 +88,8 @@ if [ "$TRAVIS_PULL_REQUEST" = "false" ]
   then
     cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src/
     ./mkdeploy.sh edge_`date +%Y-%m-%d` >>$BUILDLOGS 2>&1
-  fi
         
-  if [ "$TRAVIS_EVENT_TYPE" = "api" ] || [ ! -z "${TRAVIS_TAG}" ] 
+  elif [ "$TRAVIS_EVENT_TYPE" = "api" ] || [ ! -z "${TRAVIS_TAG}" ] 
   then
     cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src/
 
@@ -100,7 +99,6 @@ if [ "$TRAVIS_PULL_REQUEST" = "false" ]
       #checkError $? 0 "make command failed for deploy target" "Compilation error" "check the $BUILDLOGS file"
       echo "built with cmake"
      ./mkdeploy.sh $PX_VERSION >>$BUILDLOGS 2>&1
-
     else
       export linenumber=`awk '/CFBundleShortVersionString/{ print NR; exit }' $TRAVIS_BUILD_DIR/examples/pxScene2d/src/macstuff/Info.plist`
       checkError $? 0 "unable to read string CFBundleShortVersionString from Info.plist file" "Parse error" "check whether the Info.plist file in pxscene repo is having CFBundleShortVersionString string or not?"
