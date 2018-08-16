@@ -169,7 +169,7 @@ px.import({ scene: 'px:scene.1.js' }).then( function importsAreReady(imports)
                                                       
   }).then( function () 
   {
-    title = scene.create({ t: "text", text: "About pxscene", font: fontRes, parent: panel, pixelSize: titlePts, textColor: 0xFFFFFFff });
+    title = scene.create({ t: "text", text: "About Spark", font: fontRes, parent: panel, pixelSize: titlePts, textColor: 0xFFFFFFff });
         
     title.ready.then( function () 
     {

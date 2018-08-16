@@ -38,7 +38,7 @@ md build-win32
 cd build-win32
 set addVer=False
 set uploadArtifact=False
-@rem build pxScene
+@rem build Spark
 if "%APPVEYOR_SCHEDULED_BUILD%"=="True" (
   echo "building edge"
   copy ..\examples\pxScene2d\src\browser\images\status_bg_edge.svg ..\examples\pxScene2d\src\browser\images\status_bg.svg
@@ -46,13 +46,13 @@ if "%APPVEYOR_SCHEDULED_BUILD%"=="True" (
   set uploadArtifact=True
   call:replaceString "..\examples\pxScene2d\src\win\pxscene.rc" "Spark_installer.ico" "SparkEdge_installer.ico"
   cmake -DCMAKE_VERBOSE_MAKEFILE=ON -DPXSCENE_VERSION=edge_%date:~-4%-%date:~4,2%-%date:~7,2% ..
-  call:replaceString "examples\pxScene2d\src\cmake_install.cmake" "pxscene.exe" "pxsceneEdge.exe"
-  call:replaceString "CPackConfig.cmake" "pxscene.exe" "pxsceneEdge.exe"
-  call:replaceString "CPackSourceConfig.cmake" "pxscene.exe" "pxsceneEdge.exe"
-  call:replaceString "CPackConfig.cmake" ""pxscene"" ""pxsceneEdge""
-  call:replaceString "CPackSourceConfig.cmake" ""pxscene"" ""pxsceneEdge""
-  call:replaceString "CPackConfig.cmake" "pxscene.lnk" "pxsceneEdge.lnk"
-  call:replaceString "CPackSourceConfig.cmake" "pxscene.lnk" "pxsceneEdge.lnk"
+  call:replaceString "examples\pxScene2d\src\cmake_install.cmake" "Spark.exe" "SparkEdge.exe"
+  call:replaceString "CPackConfig.cmake" "Spark.exe" "SparkEdge.exe"
+  call:replaceString "CPackSourceConfig.cmake" "Spark.exe" "SparkEdge.exe"
+  call:replaceString "CPackConfig.cmake" ""Spark"" ""SparkEdge""
+  call:replaceString "CPackSourceConfig.cmake" ""Spark"" ""SparkEdge""
+  call:replaceString "CPackConfig.cmake" "Spark.lnk" "SparkEdge.lnk"
+  call:replaceString "CPackSourceConfig.cmake" "Spark.lnk" "SparkEdge.lnk"
   call:replaceString "CPackConfig.cmake" "Spark_installer.ico" "SparkEdge_installer.ico"
   call:replaceString "CPackSourceConfig.cmake" "Spark_installer.ico" "SparkEdge_installer.ico"
   )
@@ -78,7 +78,7 @@ cmake --build . --config Release -- /m
 if %errorlevel% neq 0 exit /b %errorlevel%
 
 if "%APPVEYOR_SCHEDULED_BUILD%"=="True" (
-move ..\examples\pxScene2d\src\Release\pxscene.exe ..\examples\pxScene2d\src\Release\pxsceneEdge.exe
+move ..\examples\pxScene2d\src\Release\Spark.exe ..\examples\pxScene2d\src\Release\SparkEdge.exe
 )
 
 cpack .
@@ -89,7 +89,7 @@ if %errorlevel% neq 0  (
 
 @rem create standalone archive
 cd _CPack_Packages/win32/NSIS
-7z a -y pxscene-setup.zip pxscene-setup
+7z a -y spark-setup.zip spark-setup
 
 cd %ORIG_DIR%
 
@@ -99,10 +99,10 @@ echo.uploadArtifact : %uploadArtifact%
 if "%uploadArtifact%" == "True" (
 
         @rem NSIS based installer
-        appveyor PushArtifact "build-win32\\_CPack_Packages\\win32\\NSIS\\pxscene-setup.exe" -DeploymentName "installer" -Type "Auto" -Verbosity "Normal"
+        appveyor PushArtifact "build-win32\\_CPack_Packages\\win32\\NSIS\\spark-setup.exe" -DeploymentName "installer" -Type "Auto" -Verbosity "Normal"
 
         @rem Standalone (requires no installation)
-        appveyor PushArtifact "build-win32\\_CPack_Packages\\win32\\NSIS\\pxscene-setup.zip" -DeploymentName "portable" -Type "Zip" -Verbosity "Normal"
+        appveyor PushArtifact "build-win32\\_CPack_Packages\\win32\\NSIS\\spark-setup.zip" -DeploymentName "portable" -Type "Zip" -Verbosity "Normal"
 )
 
 GOTO scriptEnd

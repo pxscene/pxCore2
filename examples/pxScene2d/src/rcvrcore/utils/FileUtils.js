@@ -53,9 +53,11 @@ function loadFile(fileUri) {
       };
       if (fileUri.substring(0, 5) == "https") {
         req = https.get(options, httpCallback);
+        process._tickCallback();
       }
       else {
         req = http.get(options, httpCallback);
+        process._tickCallback();
       }
       req.on('error', function (err) {
         log.error("Error: FAILED to read file[" + fileUri + "] from web service");
