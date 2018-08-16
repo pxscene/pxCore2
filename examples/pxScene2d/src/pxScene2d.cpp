@@ -3937,6 +3937,7 @@ rtError pxScriptView::printFunc(int numArgs, const rtValue* args, rtValue* resul
       rtLogWarn("%s", toPrint.cString());
     }
   }
+  return RT_OK;
 }
 
 rtError pxScriptView::suspend(const rtValue& v, bool& b)
