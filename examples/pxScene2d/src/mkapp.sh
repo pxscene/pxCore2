@@ -4,15 +4,13 @@
 minJS=./jsMin.sh  #minify
 
 externalDir=../external
-appName=Spark
+APPNAME=Spark
 if [ "$TRAVIS_EVENT_TYPE" == "cron" ]
 then
-appName=SparkEdge
-else
-appName=Spark
+APPNAME=SparkEdge
 fi
 
-bundle=${appName}.app
+bundle=${APPNAME}.app
 bundleBin=$bundle/Contents/MacOS
 
 #bundleRes=$bundle/Contents/Resources
@@ -64,7 +62,7 @@ then
 echo "************ building edge"
 cp Spark $bundleBin/SparkEdge
 else
-cp ${appName} $bundleBin
+cp ${APPNAME} $bundleBin
 fi
 
 if [ "$TRAVIS_EVENT_TYPE" == "cron" ]  
