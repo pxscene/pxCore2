@@ -7,7 +7,7 @@
  */
 
 'use strict';
-const mimeBaseURL = 'https://sparkdown-dev.herokuapp.com/mime/'
+const mimeBaseURL = 'https://pxscene.org/mime/'
 module.exports = {
   svg: {
     url: mimeBaseURL + 'mime_IMAGE.js',
