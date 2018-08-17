@@ -24,13 +24,21 @@ echo "Info: Proceeding now that spark has shut down" >> $LOGFILE
 PKGNAME="$(dirname $(dirname `pwd`))"
 PKGBASE="$(basename $PKGNAME)"
 PKGEXT="${PKGBASE##*.}"
+PKGNAMEUPDT="${PKGNAME}"
 
 if [ $PKGEXT == "app" ]; then
     echo "Info: Running in app" >> $LOGFILE
     echo "Info: Copying software..." >> $LOGFILE
     rm -r $PKGNAME
-    cp -a $1/Spark.app Spark.app
-    echo $PKGNAME >> $LOGFILE
+    
+    if [[ "$PKGNAME" == *pxscene.app ]] ;
+    then
+    echo "app name is pxscene"
+      PKGNAMEUPDT=`echo "${PKGNAME/pxscene.app/Spark.app}"`
+    fi
+  
+    cp -a $1/Spark.app $PKGNAMEUPDT
+    echo $PKGNAMEUPDT >> $LOGFILE
     echo "Info: Software Updated" >> $LOGFILE
 else
     echo "Warning: Not running in app bundle.  Skip." >> $LOGFILE
