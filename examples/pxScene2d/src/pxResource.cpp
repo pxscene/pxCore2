@@ -279,8 +279,9 @@ void pxResource::raiseDownloadPriority()
 
 
 rtImageResource::rtImageResource()
-: pxResource(), mTexture(), mDownloadedTexture(), mTextureMutex(), mDownloadComplete(false), init_w(0), init_h(0), mData()
+: pxResource(), mTexture(), mDownloadedTexture(), mTextureMutex(), mDownloadComplete(false), init_w(0), init_h(0), init_sx(0.0f), init_sy(0.0f), mData()
 {
+  // empty
 }
 
 rtImageResource::rtImageResource(const char* url, const char* proxy, int32_t iw /* = 0 */,  int32_t ih /* = 0 */,
@@ -822,7 +823,10 @@ rtRef<rtImageResource> pxImageManager::getImage(const char* url, const char* pro
 
   rtString key = url;
 
-  if(uri_string.beginsWith("data:image/"))
+  // Correctly formed URI string ?
+  if(index_of_comma >= 0 && 
+     index_of_slash >= 0 && 
+     uri_string.beginsWith("data:image/"))
   {
     rtString md5     = md5sum(uri_string);
     rtString imgType = uri_string.substring(index_of_slash, index_of_comma - index_of_slash);
@@ -839,8 +843,7 @@ rtRef<rtImageResource> pxImageManager::getImage(const char* url, const char* pro
     rtValue yy = sy;
 
     // Append scale factors
-    key += rtString("sx") + xx.toString() +
-           rtString("sy") + yy.toString();
+    key += "sx" + xx.toString() + "sy" + yy.toString();
   }
 
   // For SVG  (and scaled PNG/JPG in the future) at a given WxH DIMENSIONS ... append to key
@@ -849,7 +852,8 @@ rtRef<rtImageResource> pxImageManager::getImage(const char* url, const char* pro
     rtValue ww = iw;
     rtValue hh = ih;
 
-    key +=  ww.toString() + rtString("x") + hh.toString();
+    // Append dimensions
+    key +=  ww.toString() + "x" + hh.toString();
   }
 
   rtRef<rtImageResource> pResImage;
@@ -873,7 +877,9 @@ rtRef<rtImageResource> pxImageManager::getImage(const char* url, const char* pro
     pResImage->setCORS(cors);
     mImageMap.insert(make_pair(key.cString(), pResImage));
 
-    if(uri_string.beginsWith("data:image/svg,")) // SVG
+    // Is this a Data URI ?
+    if(index_of_comma >= 0 && 
+       index_of_slash >= 0)
     {
       // data: [<mediatype>][;base64],<data>
       //
@@ -882,46 +888,25 @@ rtRef<rtImageResource> pxImageManager::getImage(const char* url, const char* pro
       // data:image/svg,<data>
       //
       //
-
-      if(index_of_comma < 0 || index_of_slash < 0)
-      {
-        rtLogError("Malformed data -SVG- URI");
-       // return RT_FAIL;
-      }
-
       rtData   data;
       rtString dataUri( (const char*) uri_string.cString() + index_of_comma + 1); // Skip ahead +1 ... "after commma"
 
-      pResImage->initUriData(dataUri);
-
-      pResImage->setUrl(key); // DUMP the URL
-    }
-    else
-    if(uri_string.beginsWith("data:image/")) // BASE64 PNG/JPG
-    {
-      // data: [<mediatype>][;base64],<data>
-      //
-      // data:image/png;base64,<data>
-      // data:image/jpg;base64,<data>
-      // data:image/svg,<data>
-      //
-      //
-
-      if(index_of_comma < 0 || index_of_slash < 0)
+      if(uri_string.beginsWith("data:image/svg,")) // SVG
       {
-        rtLogError("Malformed data -Base64- URI");
-        // return RT_FAIL;
+        pResImage->initUriData(dataUri);
+
+        pResImage->setUrl(key); // DUMP the URL
       }
-
-      rtData   data;
-      rtString dataUri( (const char*) uri_string.cString() + index_of_comma + 1); // Skip ahead +1 ... "after commma"
-
-      if( base64_decode( dataUri, data ) == RT_OK)
+      else
+      if(uri_string.beginsWith("data:image/")) // BASE64 PNG/JPG
       {
-        pResImage->initUriData( data );
-        pResImage->setUrl(key);         // DUMP the URL
+        if( base64_decode( dataUri, data ) == RT_OK)
+        {
+          pResImage->initUriData( data );
+          pResImage->setUrl(key);         // DUMP the URL
+        }
       }
-    }
+    }//ENDIF - index_of_comma + index_of_slash
 
     pResImage->loadResource();
   }
