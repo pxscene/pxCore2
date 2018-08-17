@@ -29,7 +29,7 @@ if [ $PKGEXT == "app" ]; then
     echo "Info: Running in app" >> $LOGFILE
     echo "Info: Copying software..." >> $LOGFILE
     rm -r $PKGNAME
-    cp -a $1/Spark.app $PKGNAME
+    cp -a $1/Spark.app Spark.app
     echo $PKGNAME >> $LOGFILE
     echo "Info: Software Updated" >> $LOGFILE
 else
