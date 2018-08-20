@@ -30,7 +30,7 @@ then
   fi
 fi
 
-./Spark $* < /dev/zero >> /var/tmp/spark.log 2>&1 &
+./Spark $* < /dev/zero >> /var/tmp/Spark.log 2>&1 &
 
 # Software update below
 
