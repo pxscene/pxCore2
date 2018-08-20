@@ -19,9 +19,9 @@ VERS=$1
 
 if [ "$TRAVIS_EVENT_TYPE" == "cron" ]
 then
-IMGURL="http://96.116.56.119/edge/osx/artifacts/pxsceneEdge.dmg"
+IMGURL="http://96.116.56.119/edge/osx/artifacts/SparkEdge.dmg"
 else
-IMGURL="http://www.pxscene.org/dist/osx/pxscene/pxscene.dmg"
+IMGURL="http://www.pxscene.org/dist/osx/pxscene/Spark.dmg"
 fi
 
 printf "Updating ${FILE} for ${1}\n"
