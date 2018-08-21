@@ -89,13 +89,15 @@ class pxApiFixture : public celero::TestFixture
     uint64_t                                  mIterationCounter;
     pxTextureRef                              mTextureRef;
     pxTextureRef                              mTextureMaskRef;
-    
+    bool                                      mDoCreateTexture;
     void TestDrawRect ();
     void TestDrawDiagLine ();
     void TestDrawDiagRect ();
     void TestDrawImage ();
     void TestDrawImage9 ();
     void TestDrawImage9Border ();
+    void TestDrawImageJPG ();
+    void TestDrawImagePNG ();
     void TestDrawAll ();
     void TestDrawImageMasked ();
     void TestDrawTextureQuads ();
@@ -106,7 +108,7 @@ class pxApiFixture : public celero::TestFixture
     void TestDrawImage9BorderRan ();
     void TestDrawImageMaskedRan ();
     void TestDrawTextureQuadsRan ();
-    pxTextureRef GetImageTexture ();
+    pxTextureRef GetImageTexture (const std::string& format);
     
     pxTextureRef CreateTexture ();
 public:
@@ -126,6 +128,8 @@ public:
         xDrawImageBorder9Ran,
         xDrawImageMaskedRan,
         xDrawTextureQuadsRan,
+        xDrawImageJPG,
+        xDrawImagePNG,
         xDrawAll,
         xEnd
     };
@@ -143,6 +147,7 @@ public:
     , mUnitHeight (572)
     , mTextureRef (NULL)
     , mTextureMaskRef (NULL)
+    , mDoCreateTexture (true)
     {
     }
     
@@ -172,6 +177,8 @@ public:
     uint64_t getIterationCounter() const;
     
     void setIterationCounter(uint64_t val);
+    
+    void SetDoCreateTexture (bool doCreateTexture) { mDoCreateTexture = doCreateTexture; }
 };
 
 //-----------------------------------------------------------------------------------
@@ -249,7 +256,7 @@ public:
     {
     }
     
-    void init(const int32_t& x, const int32_t& y, const int32_t& w, const int32_t& h, const int32_t& mw, const int32_t& mh);
+    void init(const int32_t& x, const int32_t& y, const int32_t& w, const int32_t& h, const int32_t& mw, const int32_t& mh, const bool doCreateTexture = true);
     
     void* getInterface(const char* /*name*/);
     

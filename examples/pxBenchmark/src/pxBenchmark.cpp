@@ -63,7 +63,7 @@ char** g_origArgv = NULL;
 // class pxbenchmarkWindow
 //-----------------------------------------------------------------------------------
 
-void benchmarkWindow::init(const int32_t& x, const int32_t& y, const int32_t& w, const int32_t& h, const int32_t& mw, const int32_t& mh)
+void benchmarkWindow::init(const int32_t& x, const int32_t& y, const int32_t& w, const int32_t& h, const int32_t& mw, const int32_t& mh, bool doCreateTexture /*= true*/)
 {
     mApiFixture = std::shared_ptr<pxApiFixture>(new pxApiFixture());
     
@@ -85,22 +85,23 @@ void benchmarkWindow::init(const int32_t& x, const int32_t& y, const int32_t& w,
     
     print::TableBanner();
     
+    mApiFixture->popExperimentValue().Value = pxApiFixture::type::xDrawRect;
+    
     pxWindow::init(x,y,w,h);
     
     mApiFixture->mUnitWidth = mw;
     
     mApiFixture->mUnitHeight = mh;
     
-    mApiFixture->popExperimentValue().Value = pxApiFixture::type::xDrawRect;
-    
     mApiFixture->popExperimentValue().Iterations = 0;
     
     mApiFixture->popExperimentValue().mTotalTime = 0;
     
+    mApiFixture->SetDoCreateTexture(doCreateTexture);
     
     mTexture.init(mWidth, mHeight);
     
-    drawBackground(mTexture);
+   // drawBackground(mTexture);
 }
 
 void benchmarkWindow::drawBackground(pxBuffer& b)
@@ -248,6 +249,12 @@ void benchmarkWindow::reset()
         case pxApiFixture::type::xDrawImage:
             mGroupName = "DrawImage";
             break;
+        case pxApiFixture::type::xDrawImageJPG:
+            mGroupName = "DrawImageJPG";
+            break;
+        case pxApiFixture::type::xDrawImagePNG:
+            mGroupName = "DrawImagePNG";
+            break;
         case pxApiFixture::type::xDrawImageBorder9:
             mGroupName = "DrawImageBorder9";
             break;
@@ -331,6 +338,8 @@ void benchmarkWindow::onDraw(pxSurfaceNative/*&*/ sn)
         //context.clear(0, 0, fillColor);
         context.clear(win.GetWidth(), win.GetHeight());
         
+        float fillColor[] = {0.0, 0.0, 0.0, 1.0};
+        context.clear(0, 0, fillColor);
         
         mApiFixture->popExperimentValue().Value++;
         
@@ -481,10 +490,10 @@ void pxApiFixture::TestDrawDiagRect ()
     context.drawDiagRect(mCurrentX, mCurrentY, mUnitWidth, mUnitHeight, color);
 }
 
-pxTextureRef pxApiFixture::GetImageTexture ()
+pxTextureRef pxApiFixture::GetImageTexture (const string& format)
 {
     rtString settingsPath;
-    string url = "Resources/" + to_string((mExperimentValue.Iterations % MAX_IMAGES_CNT) + 1) + ".jpg";
+    string url = "Resources/" + to_string((mExperimentValue.Iterations % MAX_IMAGES_CNT) + 1) + format;
     if (RT_OK == rtGetHomeDirectory(settingsPath))
         url = settingsPath.cString() + url;
     
@@ -556,6 +565,30 @@ void pxApiFixture::TestDrawOffscreen()
 {
     /*pxOffscreen offscreen;
     context.drawOffscreen(mCurrentX, mCurrentY, mCurrentX + mUnitWidth, mCurrentY + mUnitHeight, mUnitWidth, mUnitHeight, offscreen);*/
+}
+
+void pxApiFixture::TestDrawImageJPG ()
+{
+    if (mTextureRef != NULL)
+        mTextureRef->deleteTexture();
+    
+    mTextureRef = GetImageTexture (".jpg");
+    
+    mTextureMaskRef = NULL;
+    
+    context.drawImage(mCurrentX, mCurrentY, mUnitWidth, mUnitHeight, mTextureRef, mTextureMaskRef, false, NULL, ((int)mCurrentX) % 2 == 0 ? pxConstantsStretch::STRETCH : pxConstantsStretch::REPEAT, ((int)mCurrentX) % 2 == 0 ? pxConstantsStretch::STRETCH : ((int)mCurrentY) % 2 == 0 ? pxConstantsStretch::REPEAT : pxConstantsStretch::NONE, true, ((int)mCurrentX) % 2 == 0 ? pxConstantsMaskOperation::NORMAL : pxConstantsMaskOperation::INVERT);
+}
+
+void pxApiFixture::TestDrawImagePNG ()
+{
+    if (mTextureRef != NULL)
+        mTextureRef->deleteTexture();
+    
+    mTextureRef = GetImageTexture (".png");
+    
+    mTextureMaskRef = NULL;
+    
+    context.drawImage(mCurrentX, mCurrentY, mUnitWidth, mUnitHeight, mTextureRef, mTextureMaskRef, false, NULL, ((int)mCurrentX) % 2 == 0 ? pxConstantsStretch::STRETCH : pxConstantsStretch::REPEAT, ((int)mCurrentX) % 2 == 0 ? pxConstantsStretch::STRETCH : ((int)mCurrentY) % 2 == 0 ? pxConstantsStretch::REPEAT : pxConstantsStretch::NONE, true, ((int)mCurrentX) % 2 == 0 ? pxConstantsMaskOperation::NORMAL : pxConstantsMaskOperation::INVERT);
 }
 
 void pxApiFixture::TestDrawAll ()
@@ -649,6 +682,12 @@ void pxApiFixture::onExperimentStart(const celero::TestFixture::ExperimentValue&
             break;
         case xDrawImage:
             TestDrawImage();
+            break;
+        case xDrawImageJPG:
+            TestDrawImageJPG();
+            break;
+        case xDrawImagePNG:
+            TestDrawImagePNG();
             break;
         case xDrawImageBorder9:
             TestDrawImage9Border();
@@ -833,8 +872,13 @@ void pxApiFixture::setUp(const celero::TestFixture::ExperimentValue& experimentV
         mCurrentX = 0;
         mCurrentY += mUnitHeight;
     }
+    if (NULL != mTextureRef)
+    {
+        mTextureRef->deleteTexture();
+        mTextureRef = NULL;
+    }
     
-    mTextureRef = CreateTexture(); //GetImageTexture ();
+    mTextureRef = mDoCreateTexture ? CreateTexture() : GetImageTexture ("jpg");
     
     //mTextureRef = context.createTexture(win.GetTexture());
     mTextureMaskRef = NULL;// CreateTexture();//maskSnapshot->getTexture();
@@ -1042,10 +1086,16 @@ int pxMain(int argc, char* argv[])
         windowWidth = stoi(argv[5]);
         windowHeight = stoi(argv[6]);
     }
+    
+    bool doCreateTexture = true;
+    if (argc > 6)
+    {
+        doCreateTexture = stoi(argv[7]);
+    }
     // OSX likes to pass us some weird parameter on first launch after internet install
     rtLogInfo("window width = %d height = %d", windowWidth, windowHeight);
     
-    win.init(0, 0, windowWidth, windowHeight, unitW, unitH);
+    win.init(0, 0, windowWidth, windowHeight, unitW, unitH, doCreateTexture);
     
     win.setTitle(buffer);
     
