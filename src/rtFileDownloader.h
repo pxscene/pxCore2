@@ -96,8 +96,8 @@ public:
   char* httpErrorBuffer(void);
   void setCurlDefaultTimeout(bool val);
   bool isCurlDefaultTimeoutSet();
-  void setCORS(const rtCORSRef& cors) { mCORS = cors; }
-  rtCORSRef cors() const { return mCORS; }
+  void setCORS(const rtCORSRef& cors);
+  rtCORSRef cors() const;
   void cancelRequest();
   bool isCanceled();
 
