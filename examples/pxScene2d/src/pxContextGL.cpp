@@ -25,6 +25,7 @@
 #include "rtThreadQueue.h"
 #include "rtMutex.h"
 #include "rtScript.h"
+#include "rtSettings.h"
 
 #include "pxContext.h"
 #include "pxUtil.h"
@@ -169,23 +170,23 @@ pxError addToTextureList(pxTexture* texture)
 
 pxError removeFromTextureList(pxTexture* texture)
 {
+  textureListMutex.lock();
   for(std::vector<pxTexture*>::iterator it = textureList.begin(); it != textureList.end(); ++it)
   {
     if ((*it) == texture)
     {
-      textureListMutex.lock();
       textureList.erase(it);
-      textureListMutex.unlock();
-      return PX_OK;
+      break;
     }
   }
+  textureListMutex.unlock();
   return PX_OK;
 }
 
 pxError ejectNotRecentlyUsedTextureMemory(int64_t bytesNeeded, uint32_t maxAge=5)
 {
   //rtLogDebug("attempting to eject %" PRId64 " bytes of texture memory with max age %u", bytesNeeded, maxAge);
-#if defined(ENABLE_PX_SCENE_TEXTURE_USAGE_MONITORING) && !defined(DISABLE_TEXTURE_EJECTION)
+#if !defined(DISABLE_TEXTURE_EJECTION)
   int numberEjected = 0;
   int64_t beforeTextureMemoryUsage = context.currentTextureMemoryUsageInBytes();
 
@@ -217,7 +218,7 @@ pxError ejectNotRecentlyUsedTextureMemory(int64_t bytesNeeded, uint32_t maxAge=5
 #else
   (void)bytesNeeded;
   (void)maxAge;
-#endif //ENABLE_PX_SCENE_TEXTURE_USAGE_MONITORING && !DISABLE_TEXTURE_EJECTION
+#endif //!DISABLE_TEXTURE_EJECTION
   return PX_OK;
 }
 
@@ -570,7 +571,7 @@ public:
                          mTextureUploaded(false), mTextureDataAvailable(false),
                          mLoadTextureRequested(false), mWidth(0), mHeight(0), mOffscreenMutex(),
                          mFreeOffscreenDataRequested(false), mCompressedData(NULL), mCompressedDataSize(0),
-                         mMipmapCreated(false)
+                         mMipmapCreated(false), mTextureListener(NULL), mTextureListenerMutex()
   {
     mTextureType = PX_TEXTURE_OFFSCREEN;
     addToTextureList(this);
@@ -581,7 +582,7 @@ public:
                                        mTextureUploaded(false), mTextureDataAvailable(false),
                                        mLoadTextureRequested(false), mWidth(0), mHeight(0), mOffscreenMutex(),
                                        mFreeOffscreenDataRequested(false), mCompressedData(NULL), mCompressedDataSize(0),
-                                       mMipmapCreated(false)
+                                       mMipmapCreated(false), mTextureListener(NULL), mTextureListenerMutex()
   {
     mTextureType = PX_TEXTURE_OFFSCREEN;
     setCompressedData(compressedData, compressedDataSize);
@@ -665,6 +666,13 @@ public:
 
     mLoadTextureRequested = false;
     mInitialized = true;
+
+    mTextureListenerMutex.lock();
+    if (mTextureListener != NULL)
+    {
+      mTextureListener->textureReady();
+    }
+    mTextureListenerMutex.unlock();
 
     return PX_OK;
   }
@@ -757,6 +765,14 @@ public:
     }
     mFreeOffscreenDataRequested = false;
     mOffscreenMutex.unlock();
+    return PX_OK;
+  }
+
+  virtual pxError setTextureListener(pxTextureListener* textureListener)
+  {
+    mTextureListenerMutex.lock();
+    mTextureListener = textureListener;
+    mTextureListenerMutex.unlock();
     return PX_OK;
   }
 
@@ -979,9 +995,10 @@ private:
   char* mCompressedData;
   size_t mCompressedDataSize;
   bool mMipmapCreated;
+  pxTextureListener* mTextureListener;
+  rtMutex mTextureListenerMutex;
 
 }; // CLASS - pxTextureOffscreen
-
 
 void onDecodeComplete(void* context, void* data)
 {
@@ -1097,7 +1114,7 @@ public:
     if (buffer)
     {
       // copy the pixels
-      int bitmapSize = ih*iw;
+      int bitmapSize = static_cast<int>(ih*iw);
       mBuffer = malloc(bitmapSize);
       //memcpy(mBuffer, buffer, bitmapSize);
       // Flip here so that we match FBO layout...
@@ -1109,6 +1126,11 @@ public:
         while(d<de)
           *d++ = *s++;
       }
+    }
+    else
+    {
+      int bitmapSize = static_cast<int>(ih*iw);
+      mBuffer = calloc(bitmapSize, sizeof(char));
     }
 
 // TODO Moved this to bindTexture because of more pain from JS thread calls
@@ -1155,14 +1177,14 @@ public:
       GL_TEXTURE_2D,
       0,
       GL_ALPHA,
-      iw,
-      ih,
+      static_cast<GLsizei>(iw),
+      static_cast<GLsizei>(ih),
       0,
       GL_ALPHA,
       GL_UNSIGNED_BYTE,
       mBuffer
     );
-    context.adjustCurrentTextureMemorySize(iw*ih);
+    context.adjustCurrentTextureMemorySize(static_cast<GLsizei>(iw*ih));
 
     mInitialized = true;
   }
@@ -1190,7 +1212,7 @@ public:
     {
       glDeleteTextures(1, &mTextureId);
       mTextureId = 0;
-      context.adjustCurrentTextureMemorySize(-1*mImageWidth*mImageHeight);
+      context.adjustCurrentTextureMemorySize(static_cast<int64_t>(-1*mImageWidth*mImageHeight));
     }
     mInitialized = false;
     return PX_OK;
@@ -1237,8 +1259,8 @@ public:
     return PX_FAIL;
   }
 
-  virtual int width()  {return mDrawWidth;  }
-  virtual int height() {return mDrawHeight; }
+  virtual int width()  {return static_cast<int>(mDrawWidth);  }
+  virtual int height() {return static_cast<int>(mDrawHeight); }
 
 private:
   float mDrawWidth;
@@ -1400,7 +1422,7 @@ public:
       use();
       currentGLProgram = PROGRAM_SOLID_SHADER;
     }
-    glUniform2f(mResolutionLoc, resW, resH);
+    glUniform2f(mResolutionLoc, static_cast<GLfloat>(resW), static_cast<GLfloat>(resH));
     glUniformMatrix4fv(mMatrixLoc, 1, GL_FALSE, matrix);
     glUniform1f(mAlphaLoc, alpha);
     glUniform4fv(mColorLoc, 1, color);
@@ -1463,7 +1485,7 @@ public:
       use();
       currentGLProgram = PROGRAM_A_TEXTURE_SHADER;
     }
-    glUniform2f(mResolutionLoc, resW, resH);
+    glUniform2f(mResolutionLoc, static_cast<GLfloat>(resW), static_cast<GLfloat>(resH));
     glUniformMatrix4fv(mMatrixLoc, 1, GL_FALSE, matrix);
     glUniform1f(mAlphaLoc, alpha);
     glUniform4fv(mColorLoc, 1, color);
@@ -1533,7 +1555,7 @@ public:
       use();
       currentGLProgram = PROGRAM_TEXTURE_SHADER;
     }
-    glUniform2f(mResolutionLoc, resW, resH);
+    glUniform2f(mResolutionLoc, static_cast<GLfloat>(resW), static_cast<GLfloat>(resH));
     glUniformMatrix4fv(mMatrixLoc, 1, GL_FALSE, matrix);
     glUniform1f(mAlphaLoc, alpha);
 
@@ -1605,7 +1627,7 @@ public:
       use();
       currentGLProgram = PROGRAM_TEXTURE_BORDER_SHADER;
     }
-    glUniform2f(mResolutionLoc, resW, resH);
+    glUniform2f(mResolutionLoc, static_cast<GLfloat>(resW), static_cast<GLfloat>(resH));
     glUniformMatrix4fv(mMatrixLoc, 1, GL_FALSE, matrix);
     glUniform1f(mAlphaLoc, alpha);
     if (color != NULL)
@@ -1692,10 +1714,10 @@ public:
       use();
       currentGLProgram = PROGRAM_TEXTURE_MASKED_SHADER;
     }
-    glUniform2f(mResolutionLoc, resW, resH);
+    glUniform2f(mResolutionLoc, static_cast<GLfloat>(resW), static_cast<GLfloat>(resH));
     glUniformMatrix4fv(mMatrixLoc, 1, GL_FALSE, matrix);
     glUniform1f(mAlphaLoc, alpha);
-    glUniform1f(mInvertedLoc, (maskOp == pxConstantsMaskOperation::NORMAL) ? 0.0 : 1.0);
+    glUniform1f(mInvertedLoc, static_cast<GLfloat>((maskOp == pxConstantsMaskOperation::NORMAL) ? 0.0 : 1.0));
     
 
     if (texture->bindGLTexture(mTextureLoc) != PX_OK)
@@ -1802,8 +1824,8 @@ static void drawImageTexture(float x, float y, float w, float h, pxTextureRef te
 {
   // args are tested at call site...
 
-  float iw = texture->width();
-  float ih = texture->height();
+  float iw = static_cast<float>(texture->width());
+  float ih = static_cast<float>(texture->height());
 
   if( useTextureDimsAlways)
   {
@@ -1860,7 +1882,7 @@ static void drawImageTexture(float x, float y, float w, float h, pxTextureRef te
   }
 
   float firstTextureY  = 1.0;
-  float secondTextureY = 1.0-th;
+  float secondTextureY = static_cast<float>(1.0-th);
 
   const float uv[4][2] =
   {
@@ -1915,8 +1937,8 @@ static void drawImage92(GLfloat x, GLfloat y, GLfloat w, GLfloat h, GLfloat x1, 
   float iy2 = y+h-y2;
   float oy2 = y+h;
 
-  float w2 = texture->width();
-  float h2 = texture->height();
+  float w2 = static_cast<float>(texture->width());
+  float h2 = static_cast<float>(texture->height());
 
   float ou1 = 0;
   float iu1 = x1/w2;
@@ -2021,8 +2043,8 @@ static void drawImage9Border2(GLfloat x, GLfloat y, GLfloat w, GLfloat h,
   float iy2 = y+h-insetY2;
   float oy2 = y+h;
 
-  float w2 = texture->width();
-  float h2 = texture->height();
+  float w2 = static_cast<float>(texture->width());
+  float h2 = static_cast<float>(texture->height());
 
   float ou1 = 0;
   float iu1 = borderX1/w2;
@@ -2186,17 +2208,21 @@ void pxContext::init()
 //  glUseProgram(program);
 
 //  gprogram = program;
-  int64_t maxTextureMemory = PXSCENE_DEFAULT_TEXTURE_MEMORY_LIMIT_IN_BYTES;
-  char const* s = getenv("SPARK_TEXTURE_LIMIT_IN_MB");
-  if (s)
+
+  rtValue val;
+  if (RT_OK == rtSettings::instance()->value("enableTextureMemoryMonitoring", val))
   {
-    int64_t textureMemoryLimit = (int64_t)atoi(s) * (int64_t)1024 * (int64_t)1024;
-    if (textureMemoryLimit > PXSCENE_DEFAULT_TEXTURE_MEMORY_LIMIT_IN_BYTES)
-    {
-      maxTextureMemory = textureMemoryLimit;
-    }
+    mEnableTextureMemoryMonitoring = val.toString().compare("true") == 0;
   }
-  setTextureMemoryLimit(maxTextureMemory);
+  if (RT_OK == rtSettings::instance()->value("textureMemoryLimitInMb", val))
+  {
+    setTextureMemoryLimit((int64_t)val.toInt32() * (int64_t)1024 * (int64_t)1024);
+  }
+  if (mEnableTextureMemoryMonitoring)
+  {
+    rtLogInfo("texture memory limit set to %" PRId64 " bytes, threshold padding %" PRId64 " bytes",
+      mTextureMemoryLimitInBytes, mTextureMemoryLimitThresholdPaddingInBytes);
+  }
 
 #if defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL)
   defaultEglContext = eglGetCurrentContext();
@@ -2595,7 +2621,6 @@ void pxContext::drawTexturedQuads(int numQuads, const void *verts, const void* u
 }
 #endif
 
-
 void pxContext::drawDiagRect(float x, float y, float w, float h, float* color)
 {
 #ifdef DEBUG_SKIP_DIAG_RECT
@@ -2723,13 +2748,13 @@ void pxContext::mapToScreenCoordinates(float inX, float inY, int &outX, int &out
 
   if (positionCoords.w() == 0)
   {
-    outX = positionCoords.x();
-    outY = positionCoords.y();
+    outX = static_cast<int> (positionCoords.x());
+    outY = static_cast<int> (positionCoords.y());
   }
   else
   {
-    outX = positionCoords.x() / positionCoords.w();
-    outY = positionCoords.y() / positionCoords.w();
+    outX = static_cast<int> (positionCoords.x() / positionCoords.w());
+    outY = static_cast<int> (positionCoords.y() / positionCoords.w());
   }
 }
 
@@ -2740,13 +2765,13 @@ void pxContext::mapToScreenCoordinates(pxMatrix4f& m, float inX, float inY, int 
 
   if (positionCoords.w() == 0)
   {
-    outX = positionCoords.x();
-    outY = positionCoords.y();
+    outX = static_cast<int> (positionCoords.x());
+    outY = static_cast<int> (positionCoords.y());
   }
   else
   {
-    outX = positionCoords.x() / positionCoords.w();
-    outY = positionCoords.y() / positionCoords.w();
+    outX = static_cast<int> (positionCoords.x() / positionCoords.w());
+    outY = static_cast<int> (positionCoords.y() / positionCoords.w());
   }
 }
 
@@ -2784,17 +2809,12 @@ void pxContext::adjustCurrentTextureMemorySize(int64_t changeInBytes, bool allow
   {
     mCurrentTextureMemorySizeInBytes = 0;
   }
-#ifdef ENABLE_PX_SCENE_TEXTURE_USAGE_MONITORING
   int64_t currentTextureMemorySize = mCurrentTextureMemorySizeInBytes;
   int64_t maxTextureMemoryInBytes = mTextureMemoryLimitInBytes;
-#else
-  (void)allowGarbageCollect;
-#endif // ENABLE_PX_SCENE_TEXTURE_USAGE_MONITORING
 
   unlockContext();
   //rtLogDebug("the current texture size: %" PRId64 ".", currentTextureMemorySize);
-#ifdef ENABLE_PX_SCENE_TEXTURE_USAGE_MONITORING
-  if (allowGarbageCollect && changeInBytes > 0 && currentTextureMemorySize > maxTextureMemoryInBytes)
+  if (mEnableTextureMemoryMonitoring && allowGarbageCollect && changeInBytes > 0 && currentTextureMemorySize > maxTextureMemoryInBytes)
   {
     rtLogDebug("the texture size is too large: %" PRId64 ".  doing a garbage collect!!!\n", currentTextureMemorySize);
 #ifdef RUNINMAIN
@@ -2803,31 +2823,25 @@ void pxContext::adjustCurrentTextureMemorySize(int64_t changeInBytes, bool allow
   uv_async_send(&gcTrigger);
 #endif
   }
-#endif // ENABLE_PX_SCENE_TEXTURE_USAGE_MONITORING
 }
 
 void pxContext::setTextureMemoryLimit(int64_t textureMemoryLimitInBytes)
 {
-#ifdef ENABLE_PX_SCENE_TEXTURE_USAGE_MONITORING
-  rtLogInfo("texture memory limit set to %" PRId64 " bytes", textureMemoryLimitInBytes);
-#endif //ENABLE_PX_SCENE_TEXTURE_USAGE_MONITORING
   mTextureMemoryLimitInBytes = textureMemoryLimitInBytes;
 }
 
-#ifdef ENABLE_PX_SCENE_TEXTURE_USAGE_MONITORING
 bool pxContext::isTextureSpaceAvailable(pxTextureRef texture, bool allowGarbageCollect)
-#else
-bool pxContext::isTextureSpaceAvailable(pxTextureRef, bool)
-#endif
 {
-#ifdef ENABLE_PX_SCENE_TEXTURE_USAGE_MONITORING
-  int64_t textureSize = (texture->width()*texture->height()*4);
+  if (!mEnableTextureMemoryMonitoring)
+    return true;
+
+  int64_t textureSize = ((int64_t)(texture->width())*(int64_t)(texture->height())*(int64_t)4);
   lockContext();
   int64_t currentTextureMemorySize = mCurrentTextureMemorySizeInBytes;
   int64_t maxTextureMemoryInBytes = mTextureMemoryLimitInBytes;
   unlockContext();
   if ((textureSize + currentTextureMemorySize) >
-             (maxTextureMemoryInBytes  + PXSCENE_DEFAULT_TEXTURE_MEMORY_LIMIT_THRESHOLD_PADDING_IN_BYTES))
+             (maxTextureMemoryInBytes  + mTextureMemoryLimitThresholdPaddingInBytes))
   {
     if (allowGarbageCollect)
     {
@@ -2839,11 +2853,15 @@ bool pxContext::isTextureSpaceAvailable(pxTextureRef, bool)
     }
     return false;
   }
-  else
+  else if (allowGarbageCollect && (textureSize + currentTextureMemorySize) > maxTextureMemoryInBytes)
   {
-    return true;
+#ifdef RUNINMAIN
+    rtLogInfo("gc for texture memory");
+    script.collectGarbage();
+#else
+    uv_async_send(&gcTrigger);
+#endif
   }
-#endif //ENABLE_PX_SCENE_TEXTURE_USAGE_MONITORING
   return true;
 }
 
@@ -2867,6 +2885,9 @@ int64_t pxContext::textureMemoryOverflow(pxTextureRef texture)
 int64_t pxContext::ejectTextureMemory(int64_t bytesRequested, bool forceEject)
 {
 #ifdef ENABLE_LRU_TEXTURE_EJECTION
+  if (!mEnableTextureMemoryMonitoring)
+    return 0;
+
   int64_t beforeTextureMemoryUsage = context.currentTextureMemoryUsageInBytes();
   if (!forceEject)
   {
@@ -2879,6 +2900,8 @@ int64_t pxContext::ejectTextureMemory(int64_t bytesRequested, bool forceEject)
   int64_t afterTextureMemoryUsage = context.currentTextureMemoryUsageInBytes();
   return (beforeTextureMemoryUsage-afterTextureMemoryUsage);
 #else
+  (void)bytesRequested;
+  (void)forceEject;
   return 0;
 #endif //ENABLE_LRU_TEXTURE_EJECTION
 }

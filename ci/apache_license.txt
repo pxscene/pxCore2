@@ -16,12 +16,3 @@
 
 */
 
-#ifndef _RT_CORS_UTILS
-#define _RT_CORS_UTILS
-
-#include "rtString.h"
-#include "rtError.h"
-
-rtError rtCORSUtilsCheckOrigin(const rtString& origin, const rtString& url, const rtString& headers);
-
-#endif

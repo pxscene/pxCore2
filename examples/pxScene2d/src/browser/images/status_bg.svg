@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 width="1280px" height="720px" viewBox="0 0 1280 720" xml:space="preserve">
+<radialGradient id="SVGID_1_" cx="640" cy="360" r="518.7487" gradientUnits="userSpaceOnUse">
+	<stop  offset="0.0056" style="stop-color:#7393AB"/>
+	<stop  offset="1" style="stop-color:#3D5A76"/>
+</radialGradient>
+<rect x="0.5" y="0.5" fill="url(#SVGID_1_)" width="1279" height="719"/>
+</svg>
