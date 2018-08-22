@@ -21,7 +21,7 @@ then
 
   if [ "$(uname)" = "Darwin" ]; then
     ./configure --with-darwinssl
-    #Removing api definition for compacatability.
+    #Removing api definition for Yosemite compatibility.
     sed -i '' '/#define HAVE_CLOCK_GETTIME_MONOTONIC 1/d' lib/curl_config.h
   else
       if [ $(echo "$(openssl version | cut -d' ' -f 2 | cut -d. -f1-2)>1.0" | bc) ]; then
