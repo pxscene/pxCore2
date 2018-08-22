@@ -35,6 +35,9 @@ then
       fi
   fi
 
+  #Removing api definition for compacatability.
+  sed -i '' '/#define HAVE_CLOCK_GETTIME_MONOTONIC 1/d' lib/curl_config.h
+  
   make all "-j${make_parallel}"
   cd ..
 
