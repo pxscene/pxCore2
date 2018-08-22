@@ -25,7 +25,7 @@ limitations under the License.
  */
 
 'use strict';
-const mimeBaseURL = 'https://pxscene.org/mime/'
+const mimeBaseURL = 'https://www.pxscene.org/mime/'
 module.exports = {
   svg: {
     url: mimeBaseURL + 'mime_IMAGE.js',
