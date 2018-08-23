@@ -1610,6 +1610,10 @@ public:
     }
 
     pxArchive* myArchive = (pxArchive*) a.getPtr();
+    /* decide whether further file access from this scene need to to taken from,
+       parent -> if this scene is created from archive
+       itself -> if this file itself is archive
+    */
     if ((parentArchive != NULL ) && (((pxArchive*)parentArchive.getPtr())->isFile() == false))
     {
       if ((myArchive != NULL ) && (myArchive->isFile() == false))
