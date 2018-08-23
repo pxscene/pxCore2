@@ -249,7 +249,7 @@ TEST_F(pxArchiveTest, pxArchiveCompleteTest)
 	pxArchiveinitFromUrlTestLoadFail();
 	pxArchiveinitFromUrlTestLoadSuccess();
 	pxArchiveinitFromUrlTestLoadZip();	
-	pxArchiveinitFromUrlFromZipTest();	
+//	pxArchiveinitFromUrlFromZipTest();	
 	pxArchiveready();
 	pxArchiveloadStatus();
 	pxArchivegetFileAsString();
@@ -257,11 +257,13 @@ TEST_F(pxArchiveTest, pxArchiveCompleteTest)
 	pxArchiveFileName();
 	pxArchiveFileNameValidation1();
 	pxArchiveFileNameValidation2();
+/*
     pxArchivegetFileNameTest();
 	pxArchiveisFileTrueTest();
     pxArchiveisFileFalseTest();
     pxArchivegetFileDataNonZipTest();
     pxArchivegetFileDataZipTest();
     pxArchivegetFileDataUnavailableTest();
+*/
 }
 
