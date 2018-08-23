@@ -146,9 +146,9 @@ TEST_F(pxImageTest, pxImageCompleteTest)
     pxImageOnScreenWidthTest();
     pxImageOnScreenHeightTest();
     pxImageCreateFailedTest();
-    //pxImageLoadFromArchiveTest();
+    pxImageLoadFromArchiveTest();
 }
-/*
+
 class rtImageResourceTest : public testing::Test
 {
   public:
@@ -231,4 +231,4 @@ TEST_F(rtImageAResourceTest, rtImageAResourcesTest)
 {
     rtImageAResourceLoadFromArchiveTest();
 }
-*/
+
