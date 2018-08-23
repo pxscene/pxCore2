@@ -65,7 +65,7 @@ printf("\n >>>>>>>>>>>>>>>>>>>>> [%d]  len = %d   res = %d",i, out.length(), res
       rtError res1 = base64_encode(pngData2.data(), pngData2.length(), s1);
 
       EXPECT_TRUE (res1 == (i == 0) ? RT_FAIL : RT_OK);
-      EXPECT_EQ (s1.length(), 4*((i+2)/3));
+      EXPECT_EQ ((size_t)s1.length(), 4*((i+2)/3));
       EXPECT_TRUE (s1.length() == 0 || NULL != s1.cString());
 
       if (NULL != s1.cString() )
