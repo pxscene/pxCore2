@@ -1127,6 +1127,11 @@ public:
           *d++ = *s++;
       }
     }
+    else
+    {
+      int bitmapSize = static_cast<int>(ih*iw);
+      mBuffer = calloc(bitmapSize, sizeof(char));
+    }
 
 // TODO Moved this to bindTexture because of more pain from JS thread calls
 //    createTexture(w, h, iw, ih);
@@ -2847,6 +2852,15 @@ bool pxContext::isTextureSpaceAvailable(pxTextureRef texture, bool allowGarbageC
       #endif
     }
     return false;
+  }
+  else if (allowGarbageCollect && (textureSize + currentTextureMemorySize) > maxTextureMemoryInBytes)
+  {
+#ifdef RUNINMAIN
+    rtLogInfo("gc for texture memory");
+    script.collectGarbage();
+#else
+    uv_async_send(&gcTrigger);
+#endif
   }
   return true;
 }

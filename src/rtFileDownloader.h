@@ -26,6 +26,7 @@
 #ifdef ENABLE_HTTP_CACHE
 #include <rtFileCache.h>
 #endif
+#include "rtCORS.h"
 
 // TODO Eliminate std::string
 #include <string.h>
@@ -95,8 +96,8 @@ public:
   char* httpErrorBuffer(void);
   void setCurlDefaultTimeout(bool val);
   bool isCurlDefaultTimeoutSet();
-  void setOrigin(const char* origin);
-  rtString origin();
+  void setCORS(const rtCORSRef& cors);
+  rtCORSRef cors() const;
   void cancelRequest();
   bool isCanceled();
 
@@ -127,7 +128,7 @@ private:
   bool mHTTPFailOnError;
   char mHttpErrorBuffer[CURL_ERROR_SIZE];
   bool mDefaultTimeout;
-  rtString mOrigin;
+  rtCORSRef mCORS;
   bool mCanceled;
   rtMutex mCanceledMutex;
 };

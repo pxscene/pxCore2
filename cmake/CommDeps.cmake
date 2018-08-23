@@ -98,7 +98,14 @@ if (NOT WIN32)
       pkg_search_module(X11 x11)
     endif (NOT DFB)
     pkg_search_module(CRYPTO libcrypto)
-    pkg_search_module(OPENSSL openssl)
+    
+    if (PREFER_SYSTEM_LIBRARIES)
+        pkg_search_module(OPENSSL openssl)
+    endif (PREFER_SYSTEM_LIBRARIES)
+    if (NOT OPENSSL_FOUND)
+        set(OPENSSL_INCLUDE_DIRS "${EXTDIR}/libnode-v6.9.0/deps/openssl/openssl/include")
+    endif (NOT OPENSSL_FOUND)
+    
     pkg_search_module(UV libuv)
 
     pkg_search_module(WAYLAND_EGL wayland-egl)

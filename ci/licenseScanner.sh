@@ -39,12 +39,12 @@ do
     if [ "$?" != "0" ] ; then
       #check for any other license availability
       if ( echo "$file" | grep -q "pxScene2d/src/node_modules" ) ; then 
-        printf "[EXCLUDED] Licensed source : $file !!!\n"
+        #printf "[EXCLUDED] Licensed source : $file !!!\n"
         continue 
       fi
       grep -qi -e "$COPY_STR" -e "$LICENSE_STR2" $file
       if [ "$?" == "0" ] ; then
-        printf "[EXCLUDED] Different License available : $file !!!\n"
+        #printf "[EXCLUDED] Different License available : $file !!!\n"
         continue
       else
         fileCount=$((fileCount + 1))

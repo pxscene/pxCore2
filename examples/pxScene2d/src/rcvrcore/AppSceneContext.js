@@ -545,6 +545,8 @@ AppSceneContext.prototype.getPackageBaseFilePath = function() {
     fullPath = this.basePackageUri;
   }
 
+  fullPath = fullPath.replace('%20', '\ '); // replace HTML escaped spaces with C/C++ escaping
+
   return fullPath;
 };
 
@@ -605,7 +607,7 @@ AppSceneContext.prototype.include = function(filePath, currentXModule) {
   var origFilePath = filePath;
 
   return new Promise(function (onImportComplete, reject) {
-    if( filePath === 'px' || filePath === 'url' || filePath === 'querystring' || filePath === 'htmlparser') {
+    if (/^(px|url|querystring|htmlparser|crypto|oauth)$/.test(filePath)) {
       if (isDuk && filePath === 'htmlparser') {
         console.log("Not permitted to use the module " + filePath);
         reject("include failed due to module not permitted");
@@ -642,6 +644,10 @@ AppSceneContext.prototype.include = function(filePath, currentXModule) {
       }
     } else if( filePath === 'http' || filePath === 'https' ) {
       modData = filePath === 'http' ? new http_wrap(_this.accessControl) : new https_wrap(_this.accessControl);
+      onImportComplete([modData, origFilePath]);
+      return;
+    } else if( filePath === 'http2' ) {
+      modData = require('rcvrcore/http2_wrap');
       onImportComplete([modData, origFilePath]);
       return;
     } else if( filePath.substring(0, 9) === "px:scene.") {
