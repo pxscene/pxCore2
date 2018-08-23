@@ -61,7 +61,7 @@ TEST(pxFontTest, testRemoveFont)
   
 
 }
-/*
+
 TEST(pxFontTest, loadResourceFromArchiveSuccessTest)
 {
       pxScene2d* scene = new pxScene2d();
@@ -93,4 +93,4 @@ TEST(pxFontTest, loadResourceFromArchiveFailureTest)
       EXPECT_TRUE(status == PX_RESOURCE_STATUS_FILE_NOT_FOUND);
       delete scene;
 }
-*/
+
