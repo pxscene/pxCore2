@@ -136,6 +136,8 @@ elseif (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
 
     set(PXSCENE_APP_LIBRARIES ${PXSCENE_APP_LIBRARIES} pxCore rtCore_s)
 
+    execute_process(COMMAND cp ${CMAKE_CURRENT_SOURCE_DIR}/mime/pxMimeTypes.js ${CMAKE_CURRENT_SOURCE_DIR})
+
     if (HOSTNAME STREQUAL "raspberrypi")
         message("building pxscene for raspberrypi")
         set(PX_PLATFORM PX_PLATFORM_GENERIC_EGL)
