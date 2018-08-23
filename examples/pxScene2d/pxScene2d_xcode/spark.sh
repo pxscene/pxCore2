@@ -9,7 +9,7 @@ export DYLD_LIBRARY_PATH=../MacOS/lib/
 export LD_LIBRARY_PATH=../MacOS/lib/
 
 #../MacOS/pxscene $* < /dev/zero >> /var/tmp/pxscene.log 2>&1 &
-../MacOS/pxScene2d $* < /dev/zero >> /var/tmp/pxscene.log 2>&1 &
+../MacOS/pxScene2d $* < /dev/zero >> /var/tmp/spark.log 2>&1 &
 
 # Software update below
 

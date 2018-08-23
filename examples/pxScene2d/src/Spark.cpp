@@ -563,7 +563,7 @@ if (s && (strcmp(s,"1") == 0))
   script.init();
 #endif
   char buffer[256];
-  sprintf(buffer, "pxscene: %s", xstr(PX_SCENE_VERSION));
+  sprintf(buffer, "Spark: %s", xstr(PX_SCENE_VERSION));
 
   int32_t windowWidth = rtGetEnvAsValue("PXSCENE_WINDOW_WIDTH","1280").toInt32();
   int32_t windowHeight = rtGetEnvAsValue("PXSCENE_WINDOW_HEIGHT","720").toInt32();

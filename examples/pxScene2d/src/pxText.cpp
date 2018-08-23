@@ -125,7 +125,24 @@ void pxText::draw()
   static pxTextureRef nullMaskRef;
   if( getFontResource() != NULL && getFontResource()->isFontLoaded())
   {
-
+    pxContextFramebufferRef previousSurface;
+    pxContextFramebufferRef cached;
+    if ((msx < 1.0) || (msy < 1.0))
+    {
+      context.pushState();
+      previousSurface = context.getCurrentFramebuffer();
+      cached = context.createFramebuffer(getFBOWidth(),getFBOHeight());
+      if (cached.getPtr())
+      {
+        if (context.setFramebuffer(cached) == PX_OK)
+        {
+          pxMatrix4f m;
+          context.setMatrix(m);
+          context.setAlpha(1.0);
+          context.clear(getFBOWidth(), getFBOHeight());
+        }
+      }
+    }
 #ifdef PXSCENE_FONT_ATLAS
     if (mDirty)
     {
@@ -134,13 +151,21 @@ void pxText::draw()
     }
     mQuads.draw(0,0,mTextColor);
 #else
-      if (getFontResource() != NULL)
-      {
-        getFontResource()->renderText(mText, mPixelSize, 0, 0, msx, msy, mTextColor, mw);
-      }
+    if (getFontResource() != NULL)
+    {
+      getFontResource()->renderText(mText, mPixelSize, 0, 0, msx, msy, mTextColor, mw);
+    }
 #endif
-  }  
-
+    if ((msx < 1.0) || (msy < 1.0))
+    {
+      context.setFramebuffer(previousSurface);
+      context.popState();
+      if (cached.getPtr() && cached->getTexture().getPtr())
+      {
+        context.drawImage(0, 0, (mw>MAX_TEXTURE_WIDTH?MAX_TEXTURE_WIDTH:mw), (mh>MAX_TEXTURE_HEIGHT?MAX_TEXTURE_HEIGHT:mh), cached->getTexture(), nullMaskRef);
+      }
+    }
+  }
 }
 
 rtError pxText::setFontUrl(const char* s)
