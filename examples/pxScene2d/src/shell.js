@@ -299,10 +299,8 @@ if (false)
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   function releaseResources() {
     if (!isDuk) {
-      if (undefined != process) {
         process.removeListener("uncaughtException", uncaughtException);
         process.removeListener("unhandledRejection", unhandledRejection);
-      }
     }
   }
 
