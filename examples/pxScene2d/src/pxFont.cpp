@@ -757,9 +757,10 @@ rtRef<pxFont> pxFontManager::getFont(const char* url, const char* proxy, const r
     {
       if (false == arc->isFile())
       {
-        key = arc->getName();
-        key.append("_");
-        key.append(url);
+        rtString data = arc->getName();
+        data.append("_");
+        data.append(url);
+        key = data;
       }
     }
   }
