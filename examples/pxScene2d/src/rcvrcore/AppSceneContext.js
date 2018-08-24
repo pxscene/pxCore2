@@ -110,6 +110,7 @@ if( fullPath !== null)
   this.loadPackage(fullPath);
 
 this.innerscene.on('onSceneTerminate', function (e) {
+    console.log("on sceneterminate called");
     if (null != this.webSocketManager)
     {
        this.webSocketManager.clearConnections();

@@ -298,9 +298,12 @@ if (false)
   */
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   function releaseResources() {
+    console.log("release resources called");
     if (!isDuk) {
-      process.removeListener("uncaughtException", uncaughtException);
-      process.removeListener("unhandledRejection", unhandledRejection);
+      if (undefined != process) {
+        process.removeListener("uncaughtException", uncaughtException);
+        process.removeListener("unhandledRejection", unhandledRejection);
+      }
     }
   }
 
