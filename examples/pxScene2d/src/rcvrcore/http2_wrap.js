@@ -20,11 +20,11 @@ limitations under the License.
 
 var request = require('rcvrcore/utils/AccessControl').request;
 
-function Http2Wrap(accessControl) {
-  Http2Wrap.prototype.request = function (options, callback) {
-    return request(accessControl, options, callback);
+function Http2Wrap(accessControl, defaultToHttp1) {
+  this.request = function (options, callback) {
+    return request(accessControl, options, callback, defaultToHttp1);
   };
-  Http2Wrap.prototype.get = function (options, callback) {
+  this.get = function (options, callback) {
     var req = this.request.apply(this, arguments);
     req.end();
     return req;

@@ -68,7 +68,6 @@ function AppSceneContext(params) {
   this.xmoduleMap = {};
   this.asyncFileAcquisition = new AsyncFileAcquisition(params.scene);
   this.accessControl = new AccessControl(params.scene);
-  this.http2_wrap = new http2_wrap(this.accessControl);
   this.lastHrTime = isDuk?uv.hrtime():process.hrtime();
   this.resizeTimer = null;
   this.topXModule = null;
@@ -184,7 +183,6 @@ this.innerscene.on('onSceneTerminate', function (e) {
       this.accessControl.destroy();
       this.accessControl = null;
     }
-    this.http2_wrap = null;
   }.bind(this));
 
 if (false) {
@@ -646,7 +644,7 @@ AppSceneContext.prototype.include = function(filePath, currentXModule) {
       if (/^(http|https)$/.test(filePath)) {
         console.warn("module '" + filePath + "' support is deprecated, use 'http2' instead");
       }
-      modData = _this.http2_wrap;
+      modData = new http2_wrap(_this.accessControl, filePath === 'http');
       onImportComplete([modData, origFilePath]);
       return;
     } else if( filePath.substring(0, 9) === "px:scene.") {

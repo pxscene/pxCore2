@@ -108,30 +108,36 @@ module.exports.AccessControl = AccessControl;
  * @param accessControl
  * @param options
  * @param callback
+ * @param defaultToHttp1
  * @returns {*}
  */
-module.exports.request = function (accessControl, options, callback) {
-  return new _RequestWrapper(accessControl, options).request(callback);
+module.exports.request = function (accessControl, options, callback, defaultToHttp1) {
+  return new _RequestWrapper(accessControl, options, defaultToHttp1).request(callback);
 };
 
 /**
  * A context object which creates a request.
  * @param accessControl
  * @param options
+ * @param defaultToHttp1
  * @constructor
  * @private
  */
-function _RequestWrapper(accessControl, options) {
+function _RequestWrapper(accessControl, options, defaultToHttp1) {
   this.log = new Logger('RequestWrapper');
   this.accessControl = accessControl;
+  this.defaultToHttp1 = defaultToHttp1;
   this.fromOrigin = this.accessControl ? this.accessControl.origin() : null;
   this.options = this.normalizeOptions(options);
-  this.toOrigin = Utils._getRequestOrigin(this.options);
+  this.toOrigin = Utils._getRequestOrigin(this.options, this.defaultToHttp1);
+  this.scheme = Utils._getRequestScheme(this.options, this.defaultToHttp1);
   this.withCredentials = this.isWithCredentials();
   this.block = this.accessControl ? !this.accessControl.allows(this.toOrigin) : false;
   var message = "created. block: " + this.block;
-  message += " to origin: '" + this.toOrigin + "' from origin '" + this.fromOrigin + "'";
-  message += " withCredentials: " + this.withCredentials;
+  message += ", to origin: '" + this.toOrigin + "', from origin '" + this.fromOrigin + "'";
+  message += ", withCredentials: " + this.withCredentials;
+  message += ", defaultToHttp1: " + this.defaultToHttp1;
+  message += ", scheme: " + this.scheme;
   this.log.message(LogLevel.debug, message);
 }
 
@@ -196,7 +202,7 @@ _RequestWrapper.prototype.request = function (callback) {
     this.req = new http2.ClientRequest();
     this.block_Http2_OutgoingRequest(this.req);
     ret = this.wrap(this.req);
-  } else if (Utils._isHttpURL(this.toOrigin)) {
+  } else if (this.scheme === 'http') {
     if (this.accessControl) {
       this.log.message(LogLevel.trace, "create wrapped http request");
       this.req = http.request(this.options);
@@ -519,10 +525,10 @@ Utils._packHeaders = function (headers) {
   return rawHeaders.slice(2);
 };
 
-Utils._getRequestOrigin = function (options) {
-  var protocol = options.protocol || 'https:';
+Utils._getRequestOrigin = function (options, defaultToHttp1) {
+  var protocol = Utils._getRequestScheme(options, defaultToHttp1);
   var host = options.host || options.hostname || 'localhost';
-  var result = protocol + "//" + host;
+  var result = protocol + "://" + host;
   if (options.port) {
     var portPart = ':' + options.port;
     if (result.substr(-portPart.length) !== portPart) {
@@ -549,8 +555,16 @@ Utils._assert = function (condition, message) {
   }
 };
 
-Utils._isHttpURL = function (url) {
-  return url ? url.substring(0, 5).toLowerCase() === "http:" : false;
+Utils._getRequestScheme = function (options, defaultToHttp1) {
+  var scheme = options.protocol;
+  if (!scheme) {
+    scheme = defaultToHttp1 ? 'http' : 'https';
+  }
+  var pos = scheme.indexOf(':');
+  if (pos !== -1) {
+    scheme = scheme.substring(0, scheme.indexOf(':'));
+  }
+  return scheme.toLowerCase();
 };
 
 Utils._getClassName = function (o) {
