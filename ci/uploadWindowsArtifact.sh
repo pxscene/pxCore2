@@ -21,19 +21,19 @@ while [  $counter -lt 20 ]; do
     isTagTrue=$(echo $build | jq -r $tagValStr)
 
     if [[ $artifactCounts -gt 0 ]] && [[ "$isTagTrue" = "true" ]] ; then
-      downloadArtifact="wget -q https://ci.appveyor.com/api/buildjobs/"$buildVer"/artifacts/pxscene-setup.exe"
+      downloadArtifact="wget -q https://ci.appveyor.com/api/buildjobs/"$buildVer"/artifacts/spark-setup.exe"
       echo "Artifact count : $artifactCounts, Build version :  $buildVer, JobId : $jobId)"
       $downloadArtifact
-      #DOWNLOAD_ARTIFACT="$(curl -sS --header "Content-type: application/json" "https://ci.appveyor.com/api/buildjobs/"$buildVer"/artifacts/pxscene-setup.exe")" 
-      echo "::::wget -q https://ci.appveyor.com/api/buildjobs/"$buildVer"/artifacts/pxscene-setup.exe :::: " $downloadArtifact
+      #DOWNLOAD_ARTIFACT="$(curl -sS --header "Content-type: application/json" "https://ci.appveyor.com/api/buildjobs/"$buildVer"/artifacts/spark-setup.exe")" 
+      echo "::::wget -q https://ci.appveyor.com/api/buildjobs/"$buildVer"/artifacts/spark-setup.exe :::: " $downloadArtifact
       break;
     fi
   fi
 done
 
-filename="pxscene-setup.exe"
+filename="spark-setup.exe"
 DEPLOY_USER="${DEPLOY_USER:-ubuntu}"
 REMOTE_HOST="96.116.56.119"
-REMOTE_DIR="/var/www/html/edge/windows/pxsceneEdge-setup.exe"
+REMOTE_DIR="/var/www/html/edge/windows/sparkEdge-setup.exe"
 
 scp -P 2220 -o StrictHostKeyChecking=no ${filename} ${DEPLOY_USER}@${REMOTE_HOST}:${REMOTE_DIR}
