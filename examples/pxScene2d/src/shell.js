@@ -298,7 +298,6 @@ if (false)
   */
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   function releaseResources() {
-    console.log("release resources called");
     if (!isDuk) {
       if (undefined != process) {
         process.removeListener("uncaughtException", uncaughtException);
