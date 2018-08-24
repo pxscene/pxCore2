@@ -107,7 +107,7 @@ private:
     FunctionLookup(jsFunctionWrapper* parent) : mParent(parent) { }
     virtual v8::Local<v8::Function> lookup(v8::Local<v8::Context>& ctx);
   private:
-    jsFunctionWrapper* mParent;
+    rtFunctionRef mParent;
   };
 
   friend class FunctionLookup;
