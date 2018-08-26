@@ -20,7 +20,7 @@ while [  $counter -lt 20 ]; do
     buildVer=$(echo $build | jq -r  $buildStr)
     isTagTrue=$(echo $build | jq -r $tagValStr)
 
-    if [[ $artifactCounts -gt 0 ]] && [[ "$isTagTrue" = "true" ]] ; then
+    if [[ $artifactCounts -gt 0 ]] && [[ "$isTagTrue" = "false" ]] ; then
       downloadArtifact="wget -q https://ci.appveyor.com/api/buildjobs/"$buildVer"/artifacts/spark-setup.exe"
       echo "Artifact count : $artifactCounts, Build version :  $buildVer, JobId : $jobId)"
       $downloadArtifact
