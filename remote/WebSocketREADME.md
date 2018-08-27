@@ -95,21 +95,28 @@ Note that you can run the Node client on a separate computer from the server, bu
 
 * `cd remote/js`
  * `npm i`
- * `node repl`
+ * `node`
 
 ## Example:
 
 ```
-var serviceManager = yield rtRemote.locateObject('rtServiceManager');
-var displayManager = yield serviceManager.createService("org.sa")
-var res = yield displayManager.getResolution()
-res = yield displayManager.setResolution(1920,1080)
-yield displayManager.set("resolutionW",2000)
-res = yield displayManager.get("resolutionW")
+var rt = require('./lib')
+var stm = rt.locateObject('rtServiceManager')
 
-ret = displayManager.getProperty("resolutionW");
-ret.then((returnValue) => {
-   // setProperty likely returns NULL
-  console.log("Return value:" + returnValue); 
-});
+//enter stm.status to check status, if status is "<DONE>", stm.ret is the RTObject instance
+var sa = stm.ret.createService("org.sa")
+var res = sa.ret.getResolution()
+
+//Query the current properties
+res.ret['w']
+res.ret['h']
+
+//Set a new resolution
+sa.ret.setResolution(1920,1080)
+
+res = sa.ret.getResolution()
+
+//Query the current properties
+res.ret['w']
+res.ret['h']
 ```
