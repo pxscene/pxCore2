@@ -281,6 +281,8 @@ public:
     pxOffscreen& GetTexture() { return mTexture; }
     
     void SetIterations (uint64_t iterations) { mIterations = iterations; }
+    
+    std::shared_ptr<celero::Benchmark>& popBaselineBm () { return mBaselineBm; };
 protected:
     
     virtual void onSize(/*const */int32_t/*&*/ w, /*const */int32_t/*&*/ h);

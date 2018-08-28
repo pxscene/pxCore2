@@ -289,7 +289,8 @@ void benchmarkWindow::reset()
             break;
     }
     
-    RegisterTest(mGroupName, mBenchmarkName, mSamples, 1, mThreads);
+    string experimentName = to_string((int)mApiFixture->mUnitWidth) + "x" + to_string((int)mApiFixture->mUnitHeight);
+    RegisterTest(mGroupName, experimentName, mSamples, 1, mThreads);
     
     mApiFixture->popExperimentValue().Iterations = 0;
     mApiFixture->popExperimentValue().mTotalTime = 0;
@@ -313,7 +314,9 @@ void benchmarkWindow::onDraw(pxSurfaceNative/*&*/ sn)
     }
     
     if (mApiFixture->getIterationCounter() <= mIterations)
+    {
         celero::executor::Run(mGroupName);
+    }
     else if (mApiFixture->popExperimentValue().Value == pxApiFixture::type::xEnd || mApiFixture->popExperimentValue().Value == pxApiFixture::type::xDrawAll)
     {
         if (mApiFixture->popExperimentValue().Value == pxApiFixture::type::xDrawAll)
@@ -504,7 +507,7 @@ pxTextureRef pxApiFixture::GetImageTexture (const string& format)
     pxTextureRef texture = resource->getTexture();
     if (texture == NULL)
         return NULL;
-    
+    resource->clearDownloadRequest();
     return texture;
 }
 
@@ -841,14 +844,22 @@ void pxApiFixture::setUp(const celero::TestFixture::ExperimentValue& experimentV
         case xDrawImageBorder9Ran:
         case xDrawImageMaskedRan:
         case xDrawTextureQuadsRan:
-            mUnitWidth = (rand() % (int)win.GetWidth());// / (int)win.GetWidth();
+        case xDrawImageJPG:
+        case xDrawImagePNG:
+           mUnitWidth = (rand() % (int)win.GetWidth());// / (int)win.GetWidth();
             mUnitWidth = mUnitWidth < 50 ? 50 : mUnitWidth;
             mUnitHeight = (rand() % (int)win.GetHeight());// / (int)win.GetHeight();
             mUnitHeight = mUnitHeight < 50 ? 50 : mUnitHeight;
+        
+       // mUnitHeight = (mCurrentY + mUnitHeight*50) > win.GetHeight() ? 100 : (mUnitHeight + mUnitHeight * 50);
+       // mUnitWidth = (mCurrentX + mUnitWidth*50) > win.GetWidth() ? 100 : (mUnitWidth + mUnitWidth * 50);
+        
             context.clear(win.GetWidth(), win.GetHeight());
             win.SetIterations (100); // TEMP DEMO
             break;
         default:
+        //mUnitHeight = mCurrentY + mUnitHeight*2 > win.GetHeight() ? 100 : mUnitHeight + mUnitHeight * 2;
+        //mUnitWidth = mCurrentX + mUnitWidth*2 > win.GetWidth() ? 100 : mUnitWidth + mUnitWidth * 2;
             win.SetIterations (1056); // TEMP DEMO
             break;
     }
@@ -878,10 +889,20 @@ void pxApiFixture::setUp(const celero::TestFixture::ExperimentValue& experimentV
         mTextureRef = NULL;
     }
     
-    mTextureRef = mDoCreateTexture ? CreateTexture() : GetImageTexture ("jpg");
+    if (mExperimentValue.Value != xDrawImagePNG && mExperimentValue.Value != xDrawImageJPG)
+        mTextureRef = mDoCreateTexture ? CreateTexture() : GetImageTexture ("jpg");
     
     //mTextureRef = context.createTexture(win.GetTexture());
     mTextureMaskRef = NULL;// CreateTexture();//maskSnapshot->getTexture();
+    
+    //if (win.popBaselineBm()->getExperimentSize() > 0)
+    {
+        shared_ptr<Experiment> exp = win.popBaselineBm()->getBaseline();
+        string experimentName = to_string((int)mUnitWidth) + "x" + to_string((int)mUnitHeight);
+        
+        exp->setName (experimentName);
+        win.popBaselineBm()->setBaseline(exp);
+    }
 }
 
 void pxApiFixture::tearDown()
