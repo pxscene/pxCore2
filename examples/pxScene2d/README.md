@@ -167,29 +167,29 @@
     On Linux
     ~~~~
     cd pxCore/examples/pxScene2d/src
-    ./pxscene.sh {path_to_javascript_file_name}.js
+    ./spark.sh {path_to_javascript_file_name}.js
     ~~~~
 
     On macOS
     ~~~~
-    cd pxCore/examples/pxScene2d/src/pxscene.app/Contents/MacOS
-    ./pxscene.sh {path_to_javascript_file_name}.js
+    cd pxCore/examples/pxScene2d/src/spark.app/Contents/MacOS
+    ./spark.sh {path_to_javascript_file_name}.js
     ~~~~
 
     On Windows
     ~~~~
     cd pxCore\temp\
     cpack .
-    cd pxCore\temp\_CPack_Packages\win32\NSIS\pxscene-setup
-    pxscene.exe {path_to_javascript_file_name}.js
+    cd pxCore\temp\_CPack_Packages\win32\NSIS\spark-setup
+    Spark.exe {path_to_javascript_file_name}.js
     ~~~~
 
 Examples:
   ~~~~
-./pxscene.sh http://www.pxscene.org/examples/px-reference/gallery/picturepile.js
-./pxscene.sh http://www.pxscene.org/examples/px-reference/gallery/gallery.js
+./spark.sh http://www.pxscene.org/examples/px-reference/gallery/picturepile.js
+./spark.sh http://www.pxscene.org/examples/px-reference/gallery/gallery.js
   ~~~~
-Running ./pxscene.sh without a parameter will load the local browser.js that will take a .js pathname relative to http://www.pxscene.org/examples/px-reference/gallery to run.  Alternatively, a fully qualified url can be used, for example:
+Running ./spark.sh without a parameter will load the local browser.js that will take a .js pathname relative to http://www.pxscene.org/examples/px-reference/gallery to run.  Alternatively, a fully qualified url can be used, for example:
   ~~~~
 http://www.pxscene.org/examples/px-reference/gallery/picturepile.js
 http://www.pxscene.org/examples/px-reference/gallery/gallery.js

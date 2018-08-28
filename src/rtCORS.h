@@ -36,7 +36,7 @@ typedef rtRef<rtCORS> rtCORSRef;
 class rtCORS : public rtObject
 {
 public:
-  rtCORS(const rtString& origin);
+  rtCORS(const rtString& origin = rtString());
   virtual ~rtCORS();
 
   rtDeclareObject(rtCORS, rtObject);
