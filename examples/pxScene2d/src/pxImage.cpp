@@ -53,9 +53,12 @@ void pxImage::onInit()
   mInitialized = true;
   //rtLogDebug("pxImage::onInit for mUrl=\n");
   //rtLogDebug("%s\n",getImageResource()->getUrl().cString());
-  if (getImageResource() != NULL)
+
+  rtImageResource *pRes = getImageResource();
+
+  if (pRes != NULL)
   {
-    setUrl(getImageResource()->getUrl());
+    setUrl(pRes->getUrl());
   }
   else
   {
@@ -116,6 +119,7 @@ rtError pxImage::url(rtString& s) const
   }
   return RT_OK;
 }
+
 rtError pxImage::setUrl(const char* s)
 {
 #ifdef ENABLE_PERMISSIONS_CHECK
@@ -129,8 +133,8 @@ rtError pxImage::setUrl(const char* s)
   // we don't want to createNewPromise on the first time through when the 
   // url is initially being set because it's already created on construction
   // If mUrl is already set and loaded and s is different, create a new promise
-  rtImageResource* resourceObj = getImageResource();
-  if( resourceObj != NULL && resourceObj->getUrl().length() > 0 && resourceObj->getUrl().compare(s))
+  rtImageResource* pRes = getImageResource();
+  if( pRes != NULL && pRes->getUrl().length() > 0 && pRes->getUrl().compare(s))
   {
     // This could be an error case where the url was invalid and promise was rejected.
     // If promise was already fulfilled/rejected, create a new one since the url is changing
@@ -144,24 +148,26 @@ rtError pxImage::setUrl(const char* s)
     /*else if(!imageLoaded)
     {
       // Stop listening for the old resource that this image was using
-      resourceObj->removeListener(this);
+      pRes->removeListener(this);
       mReady.send("reject",this); // reject the original promise for old image
     } */
   }
 
   removeResourceListener();
-  
-  if(resourceObj)
+
+  if(pRes && !imageLoaded)
   {
-    mResource = pxImageManager::getImage(s, NULL, resourceObj->initW(),  resourceObj->initH(),
-                                                  resourceObj->initSX(), resourceObj->initSY() );
+    mResource = pxImageManager::getImage(s, NULL, mScene ? mScene->cors() : NULL,
+                                                  pRes->initW(),  pRes->initH(),
+                                                  pRes->initSX(), pRes->initSY() );
   }
   else
   {
-    mResource = pxImageManager::getImage(s, NULL);
+    mResource = pxImageManager::getImage(s, NULL, mScene ? mScene->cors() : NULL);
   }
 
-  if(getImageResource() != NULL && getImageResource()->getUrl().length() > 0 && mInitialized && !imageLoaded) {
+  if(getImageResource() != NULL && getImageResource()->getUrl().length() > 0 && mInitialized && !imageLoaded)
+{
     mListenerAdded = true;
     getImageResource()->addListener(this);
   }

@@ -104,7 +104,7 @@ void pxArchive::setArchiveData(int downloadStatusCode, uint32_t httpStatusCode, 
   mArchiveDataMutex.unlock();
 }
 
-rtError pxArchive::initFromUrl(const rtString& url, const rtString& origin)
+rtError pxArchive::initFromUrl(const rtString& url, const rtCORSRef& cors)
 {
   mReady = new rtPromise;
   mLoadStatus = new rtMapObject;
@@ -121,7 +121,7 @@ rtError pxArchive::initFromUrl(const rtString& url, const rtString& origin)
     mLoadStatus.set("sourceType", "http");
     mLoadStatus.set("statusCode", -1);
     mDownloadRequest = new rtFileDownloadRequest(url, this, pxArchive::onDownloadComplete);
-    mDownloadRequest->setOrigin(origin.cString());
+    mDownloadRequest->setCORS(cors);
     mDownloadRequest->setCallbackFunctionThreadSafe(pxArchive::onDownloadComplete);
     mUseDownloadedData = true;
     rtFileDownloader::instance()->addToDownloadQueue(mDownloadRequest);
