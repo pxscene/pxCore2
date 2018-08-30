@@ -129,10 +129,10 @@ Handle<Object> rtObjectWrapper::createFromObjectReference(v8::Local<v8::Context>
   }
 
   // introspect for rtArrayValue
-  if (err == RT_OK && desc.compare("rtArrayObject") == 0)
+  if (err == RT_OK && (desc.compare("rtArrayObject") == 0 || desc.compare("pxObjectChildren") == 0))
   {
     rtValue length;
-    if (ref->Get("length", &length) != RT_PROP_NOT_FOUND)
+    if (ref->Get(kPropLength, &length) != RT_PROP_NOT_FOUND)
     {
       const int n = length.toInt32();
       Local<Array> arr = Array::New(isolate, n);
@@ -150,11 +150,11 @@ Handle<Object> rtObjectWrapper::createFromObjectReference(v8::Local<v8::Context>
   if (err == RT_OK && desc.compare("rtMapObject") == 0)
   {
     rtValue allKeys;
-    if (ref->Get("allKeys", &allKeys) != RT_PROP_NOT_FOUND)
+    if (ref->Get(kFuncAllKeys, &allKeys) != RT_PROP_NOT_FOUND)
     {
       rtObjectRef arr = allKeys.toObject();
       rtValue length;
-      arr->Get("length", &length);
+      arr->Get(kPropLength, &length);
       const int n = length.toInt32();
       obj = Object::New(isolate);
       for (int i = 0; i < n; ++i)

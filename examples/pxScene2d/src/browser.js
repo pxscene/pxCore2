@@ -73,6 +73,7 @@ px.import({ scene:      'px:scene.1.js',
   scene.on('onClose', function(e) {
     keys = null;
     for (var key in inputBox) { delete inputBox[key]; }
+    listBox = null;
     browser = null
     inputBox = null;
     scene = null;
