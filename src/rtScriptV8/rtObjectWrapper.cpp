@@ -24,7 +24,7 @@ limitations under the License.
 
 using namespace v8;
 
-namespace rtScriptNodeUtils
+namespace rtScriptV8NodeUtils
 {
 
 static const char* kClassName   = "rtObject";
@@ -202,7 +202,7 @@ Handle<Object> rtObjectWrapper::createFromObjectReference(v8::Local<v8::Context>
   };
 
   Local<Function> func = PersistentToLocal(isolate, ctor);
-#ifdef ENABLE_NODE_V_6_9
+#if defined ENABLE_NODE_V_6_9 || defined RTSCRIPT_SUPPORT_V8
   obj = (func->NewInstance(ctx, 1, argv)).FromMaybe(Local<Object>());
 #else
   obj = func->NewInstance(1, argv);
@@ -227,7 +227,7 @@ void rtObjectWrapper::getProperty(const T& prop, const PropertyCallbackInfo<Valu
   HandleScope handle_scope(info.GetIsolate());
   Local<Context> ctx = info.This()->CreationContext();
 
-  rtObjectWrapper* wrapper = node::ObjectWrap::Unwrap<rtObjectWrapper>(info.This());
+  rtObjectWrapper* wrapper = OBJECT_WRAP_CLASS::Unwrap<rtObjectWrapper>(info.This());
   if (!wrapper)
     return;
 
@@ -281,7 +281,7 @@ void rtObjectWrapper::setProperty(const T& prop, Local<Value> val, const Propert
 
 void rtObjectWrapper::getEnumerable(const PropertyCallbackInfo<Array>& info, enumerable_item_creator_t create)
 {
-  rtObjectWrapper* wrapper = node::ObjectWrap::Unwrap<rtObjectWrapper>(info.This());
+  rtObjectWrapper* wrapper = OBJECT_WRAP_CLASS::Unwrap<rtObjectWrapper>(info.This());
   if (!wrapper)
     return;
 
@@ -324,7 +324,7 @@ void rtObjectWrapper::queryProperty(const  T& prop, const PropertyCallbackInfo<I
 {
   HandleScope handle_scope(info.GetIsolate());
 
-  rtObjectWrapper* wrapper = node::ObjectWrap::Unwrap<rtObjectWrapper>(info.This());
+  rtObjectWrapper* wrapper = OBJECT_WRAP_CLASS::Unwrap<rtObjectWrapper>(info.This());
   if (!wrapper)
   {
     info.GetReturnValue().Set(64);
@@ -465,7 +465,7 @@ rtError jsObjectWrapper::Get(const char* name, rtValue* value) const
     if (!strcmp(name, "length"))
       *value = rtValue(Array::Cast(*self)->Length());
     else
-#ifdef ENABLE_NODE_V_6_9
+#if defined ENABLE_NODE_V_6_9 || defined RTSCRIPT_SUPPORT_V8
       err = Get((s->ToArrayIndex(ctx)).FromMaybe(Local<Uint32>())->Value(), value);
 #else
       err = Get(s->ToArrayIndex()->Value(), value);
@@ -500,7 +500,7 @@ rtError jsObjectWrapper::Get(uint32_t i, rtValue* value) const
   Local<Object> self = PersistentToLocal(mIsolate, mObject);
   Local<Context> ctx = self->CreationContext();
 
-#ifdef ENABLE_NODE_V_6_9
+#if defined ENABLE_NODE_V_6_9 || defined RTSCRIPT_SUPPORT_V8
   if (!(self->Has(ctx,i).FromMaybe(false)))
 #else
   if (!self->Has(i))
@@ -532,7 +532,7 @@ rtError jsObjectWrapper::Set(const char* name, const rtValue* value)
 
   if (mIsArray)
   {
-#ifdef ENABLE_NODE_V_6_9
+#if defined ENABLE_NODE_V_6_9 || defined RTSCRIPT_SUPPORT_V8
     Local<Uint32> idx = (s->ToArrayIndex(ctx)).FromMaybe(Local<Uint32>());
 #else
     Local<Uint32> idx = s->ToArrayIndex();

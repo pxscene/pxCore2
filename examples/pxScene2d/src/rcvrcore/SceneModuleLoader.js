@@ -47,7 +47,7 @@ SceneModuleLoader.prototype.loadScenePackage = function(scene, fileSpec) {
           }
           else
           {
-        log.message(4, "loadScenePackage: loadArchive succeeded for (",filePath,").");
+        log.message(4, "loadScenePackage: loadArchive succeeded for ("+filePath+").");
 
         _this.fileArchive = new FileArchive(filePath, a);
         log.message(4, "Number of files: " + a.fileNames.length);
