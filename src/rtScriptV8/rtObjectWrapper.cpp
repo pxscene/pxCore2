@@ -24,7 +24,7 @@ limitations under the License.
 
 using namespace v8;
 
-namespace rtScriptNodeUtils
+namespace rtScriptV8NodeUtils
 {
 
 static const char* kClassName   = "rtObject";
@@ -117,54 +117,83 @@ Handle<Object> rtObjectWrapper::createFromObjectReference(v8::Local<v8::Context>
   if (!obj.IsEmpty())
     return scope.Escape(obj);
 
+  rtString desc;
+  rtError err = RT_PROP_NOT_FOUND;
+  if (ref) {
+    //err = const_cast<rtObjectRef &>(ref).sendReturns<rtString>("description", desc);
+    rtMethodMap* methodMap = ref.getPtr()->getMap();
+    if (methodMap) {
+      desc = methodMap->className;
+      err = RT_OK;
+    }
+  }
+
   // introspect for rtArrayValue
-  // TODO: not sure this is good. Any object can have a 'length' property
+  if (err == RT_OK && (desc.compare("rtArrayObject") == 0 || desc.compare("pxObjectChildren") == 0))
   {
     rtValue length;
-    if (ref && ref->Get("length", &length) != RT_PROP_NOT_FOUND)
+    if (ref->Get(kPropLength, &length) != RT_PROP_NOT_FOUND)
     {
       const int n = length.toInt32();
       Local<Array> arr = Array::New(isolate, n);
       for (int i = 0; i < n; ++i)
       {
         rtValue item;
-        rtError err = ref->Get(i, &item);
-        if (err == RT_OK)
+        if (ref->Get(i, &item) == RT_OK)
           arr->Set(Number::New(isolate, i), rt2js(ctx, item));
       }
       return scope.Escape(arr);
     }
   }
 
+  // rtMapObject
+  if (err == RT_OK && desc.compare("rtMapObject") == 0)
   {
-    rtString desc;
-    if (ref)
+    rtValue allKeys;
+    if (ref->Get(kFuncAllKeys, &allKeys) != RT_PROP_NOT_FOUND)
     {
-      rtError err = const_cast<rtObjectRef &>(ref).sendReturns<rtString>("description", desc);
-      if (err == RT_OK && strcmp(desc.cString(), "rtPromise") == 0)
+      rtObjectRef arr = allKeys.toObject();
+      rtValue length;
+      arr->Get(kPropLength, &length);
+      const int n = length.toInt32();
+      obj = Object::New(isolate);
+      for (int i = 0; i < n; ++i)
       {
-        Local<Promise::Resolver> resolver = Promise::Resolver::New(isolate);
+        rtValue key;
+        if (arr->Get(i, &key) == RT_OK)
+        {
+          rtString str = key.toString();
+          rtValue item;
+          if (ref->Get(str.cString(), &item) == RT_OK)
+            obj->Set(String::NewFromUtf8(isolate, str.cString()), rt2js(ctx, item));
+        }
 
-        rtFunctionRef resolve(new rtResolverFunction(rtResolverFunction::DispositionResolve, ctx, resolver));
-        rtFunctionRef reject(new rtResolverFunction(rtResolverFunction::DispositionReject, ctx, resolver));
-
-        rtObjectRef newPromise;
-        rtObjectRef promise = ref;
-
-        Local<Object> jsPromise = resolver->GetPromise();
-
-        // rtLogInfo("addp id:%u addr:%p", GetContextId(creationContext), ref.getPtr());
-        HandleMap::addWeakReference(isolate, ref, jsPromise);
-
-        err = promise.send("then", resolve, reject, newPromise);
-        if (err == RT_OK)
-          return scope.Escape(jsPromise);
-        else
-          rtLogError("failed to setup promise");
-
-        return scope.Escape(Local<Object>());
       }
+      return scope.Escape(obj);
     }
+  }
+
+  // rtPromise
+  if (err == RT_OK && desc.compare("rtPromise") == 0)
+  {
+    Local<Promise::Resolver> resolver = Promise::Resolver::New(isolate);
+
+    rtFunctionRef resolve(new rtResolverFunction(rtResolverFunction::DispositionResolve, ctx, resolver));
+    rtFunctionRef reject(new rtResolverFunction(rtResolverFunction::DispositionReject, ctx, resolver));
+
+    rtObjectRef newPromise;
+    rtObjectRef promise = ref;
+
+    Local<Object> jsPromise = resolver->GetPromise();
+
+    // rtLogInfo("addp id:%u addr:%p", GetContextId(creationContext), ref.getPtr());
+    HandleMap::addWeakReference(isolate, ref, jsPromise);
+
+    if (promise.send("then", resolve, reject, newPromise) == RT_OK)
+      return scope.Escape(jsPromise);
+
+    rtLogError("failed to setup promise");
+    return scope.Escape(Local<Object>());
   }
 
   Local<Value> argv[1] =
@@ -173,7 +202,7 @@ Handle<Object> rtObjectWrapper::createFromObjectReference(v8::Local<v8::Context>
   };
 
   Local<Function> func = PersistentToLocal(isolate, ctor);
-#ifdef ENABLE_NODE_V_6_9
+#if defined ENABLE_NODE_V_6_9 || defined RTSCRIPT_SUPPORT_V8
   obj = (func->NewInstance(ctx, 1, argv)).FromMaybe(Local<Object>());
 #else
   obj = func->NewInstance(1, argv);
@@ -198,7 +227,7 @@ void rtObjectWrapper::getProperty(const T& prop, const PropertyCallbackInfo<Valu
   HandleScope handle_scope(info.GetIsolate());
   Local<Context> ctx = info.This()->CreationContext();
 
-  rtObjectWrapper* wrapper = node::ObjectWrap::Unwrap<rtObjectWrapper>(info.This());
+  rtObjectWrapper* wrapper = OBJECT_WRAP_CLASS::Unwrap<rtObjectWrapper>(info.This());
   if (!wrapper)
     return;
 
@@ -252,7 +281,7 @@ void rtObjectWrapper::setProperty(const T& prop, Local<Value> val, const Propert
 
 void rtObjectWrapper::getEnumerable(const PropertyCallbackInfo<Array>& info, enumerable_item_creator_t create)
 {
-  rtObjectWrapper* wrapper = node::ObjectWrap::Unwrap<rtObjectWrapper>(info.This());
+  rtObjectWrapper* wrapper = OBJECT_WRAP_CLASS::Unwrap<rtObjectWrapper>(info.This());
   if (!wrapper)
     return;
 
@@ -295,7 +324,7 @@ void rtObjectWrapper::queryProperty(const  T& prop, const PropertyCallbackInfo<I
 {
   HandleScope handle_scope(info.GetIsolate());
 
-  rtObjectWrapper* wrapper = node::ObjectWrap::Unwrap<rtObjectWrapper>(info.This());
+  rtObjectWrapper* wrapper = OBJECT_WRAP_CLASS::Unwrap<rtObjectWrapper>(info.This());
   if (!wrapper)
   {
     info.GetReturnValue().Set(64);
@@ -436,7 +465,7 @@ rtError jsObjectWrapper::Get(const char* name, rtValue* value) const
     if (!strcmp(name, "length"))
       *value = rtValue(Array::Cast(*self)->Length());
     else
-#ifdef ENABLE_NODE_V_6_9
+#if defined ENABLE_NODE_V_6_9 || defined RTSCRIPT_SUPPORT_V8
       err = Get((s->ToArrayIndex(ctx)).FromMaybe(Local<Uint32>())->Value(), value);
 #else
       err = Get(s->ToArrayIndex()->Value(), value);
@@ -471,7 +500,7 @@ rtError jsObjectWrapper::Get(uint32_t i, rtValue* value) const
   Local<Object> self = PersistentToLocal(mIsolate, mObject);
   Local<Context> ctx = self->CreationContext();
 
-#ifdef ENABLE_NODE_V_6_9
+#if defined ENABLE_NODE_V_6_9 || defined RTSCRIPT_SUPPORT_V8
   if (!(self->Has(ctx,i).FromMaybe(false)))
 #else
   if (!self->Has(i))
@@ -503,7 +532,7 @@ rtError jsObjectWrapper::Set(const char* name, const rtValue* value)
 
   if (mIsArray)
   {
-#ifdef ENABLE_NODE_V_6_9
+#if defined ENABLE_NODE_V_6_9 || defined RTSCRIPT_SUPPORT_V8
     Local<Uint32> idx = (s->ToArrayIndex(ctx)).FromMaybe(Local<Uint32>());
 #else
     Local<Uint32> idx = s->ToArrayIndex();

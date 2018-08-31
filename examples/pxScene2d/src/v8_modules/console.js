@@ -16,19 +16,32 @@ limitations under the License.
 
 */
 
-'use strict';
+"use strict";
 
-var request = require('rcvrcore/utils/AccessControl').request;
-
-function Http2Wrap(accessControl, defaultToHttp1) {
-  this.request = function (options, callback) {
-    return request(accessControl, options, callback, defaultToHttp1);
-  };
-  this.get = function (options, callback) {
-    var req = this.request.apply(this, arguments);
-    req.end();
-    return req;
-  };
+function trace(msg) {
+    print("[LOG TRACE] " + msg);
 }
 
-module.exports = Http2Wrap;
+function warn(msg) {
+    print("[LOG WARN] " + msg);
+}
+
+function error(msg) {
+    print("[LOG ERROR] " + msg);
+}
+
+function log(msg) {
+    print("[LOG LOG] " + msg);
+}
+
+function info(msg) {
+    print("[LOG INFO] " + msg);
+}
+
+module.exports = {
+    trace: trace,
+    warn: warn,
+    error: error,
+    log: log,
+    info: info,
+}

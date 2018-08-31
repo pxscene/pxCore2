@@ -27,7 +27,7 @@ limitations under the License.
 #  include <condition_variable>
 #endif
 
-namespace rtScriptNodeUtils
+namespace rtScriptV8NodeUtils
 {
 
 class rtAbstractFunction : public rtIFunction
@@ -63,7 +63,7 @@ public:
 public:
   static void exportPrototype(v8::Isolate* isolate, v8::Handle<v8::Object> exports);
   static void destroyPrototype();
-#ifdef ENABLE_NODE_V_6_9
+#if defined ENABLE_NODE_V_6_9 || defined RTSCRIPT_SUPPORT_V8
   static v8::Handle<v8::Object> createFromFunctionReference(v8::Local<v8::Context>& ctx, v8::Isolate* isolate, const rtFunctionRef& func);
 #else
   static v8::Handle<v8::Object> createFromFunctionReference(v8::Isolate* isolate, const rtFunctionRef& func);
@@ -107,7 +107,7 @@ private:
     FunctionLookup(jsFunctionWrapper* parent) : mParent(parent) { }
     virtual v8::Local<v8::Function> lookup(v8::Local<v8::Context>& ctx);
   private:
-    jsFunctionWrapper* mParent;
+    rtFunctionRef mParent;
   };
 
   friend class FunctionLookup;

@@ -16,19 +16,7 @@ limitations under the License.
 
 */
 
-'use strict';
-
-var request = require('rcvrcore/utils/AccessControl').request;
-
-function Http2Wrap(accessControl, defaultToHttp1) {
-  this.request = function (options, callback) {
-    return request(accessControl, options, callback, defaultToHttp1);
-  };
-  this.get = function (options, callback) {
-    var req = this.request.apply(this, arguments);
-    req.end();
-    return req;
-  };
-}
-
-module.exports = Http2Wrap;
+var mod = require("test_module");
+mod.info("hi");
+var mod2 = require("test_module");
+mod2.info("hi2");
