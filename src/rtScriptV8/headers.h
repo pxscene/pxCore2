@@ -16,19 +16,19 @@ limitations under the License.
 
 */
 
-'use strict';
+#ifndef NODE_HEADERS_H
+#define NODE_HEADERS_H
 
-var request = require('rcvrcore/utils/AccessControl').request;
+#include <rtScriptHeaders.h>
 
-function Http2Wrap(accessControl, defaultToHttp1) {
-  this.request = function (options, callback) {
-    return request(accessControl, options, callback, defaultToHttp1);
-  };
-  this.get = function (options, callback) {
-    var req = this.request.apply(this, arguments);
-    req.end();
-    return req;
-  };
-}
+#ifdef RTSCRIPT_SUPPORT_NODE
+#include <node.h>
+#include <node_object_wrap.h>
+#endif
 
-module.exports = Http2Wrap;
+#include <v8.h>
+#include <v8-util.h>
+#include <uv.h>
+
+#endif
+

@@ -16,19 +16,21 @@ limitations under the License.
 
 */
 
-'use strict';
+"use strict";
 
-var request = require('rcvrcore/utils/AccessControl').request;
-
-function Http2Wrap(accessControl, defaultToHttp1) {
-  this.request = function (options, callback) {
-    return request(accessControl, options, callback, defaultToHttp1);
-  };
-  this.get = function (options, callback) {
-    var req = this.request.apply(this, arguments);
-    req.end();
-    return req;
-  };
+function readFile(filePath, cb) {
+    var ares = uv_fs_access(filePath, 'r');
+    if (ares < 0) {
+        cb(ares, "");
+        return;
+    }
+    var fd = uv_fs_open(filePath, 'r', 420);
+    var size = uv_fs_size(filePath);
+    var res = uv_fs_read(fd, size, 0);
+    uv_fs_close(fd);
+    cb(0, res);
 }
 
-module.exports = Http2Wrap;
+module.exports = {
+    'readFile': readFile,
+}

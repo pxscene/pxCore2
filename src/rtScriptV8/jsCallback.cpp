@@ -22,7 +22,7 @@ limitations under the License.
 
 using namespace v8;
 
-namespace rtScriptNodeUtils
+namespace rtScriptV8NodeUtils
 {
 
 jsCallback::jsCallback(v8::Local<v8::Context>& ctx)
@@ -129,7 +129,7 @@ rtValue jsCallback::run()
 
   Local<Value> val;
 
-#ifdef ENABLE_NODE_V_6_9
+#if defined ENABLE_NODE_V_6_9 || defined RTSCRIPT_SUPPORT_V8
   TryCatch tryCatch(mIsolate);
 #else
   TryCatch tryCatch;
