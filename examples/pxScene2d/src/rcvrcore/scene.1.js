@@ -16,7 +16,7 @@ limitations under the License.
 
 */
 
-var isDuk = (typeof timers != "undefined")?true:false;
+var isDuk=(typeof Duktape != "undefined")?true:false;
 
 var RPCContext = require('rcvrcore/rpcContext');
 

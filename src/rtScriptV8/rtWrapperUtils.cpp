@@ -41,7 +41,7 @@ using namespace std;
 
 //-----------------------------------
 
-namespace rtScriptNodeUtils
+namespace rtScriptV8NodeUtils
 {
 
 const int HandleMap::kContextIdIndex = 2;
@@ -66,7 +66,7 @@ GetContextId(Local<Context>& ctx)
   assert(!val.IsEmpty());
   return val->Uint32Value();
 }
-#ifdef ENABLE_NODE_V_6_9
+#if defined ENABLE_NODE_V_6_9 || defined RTSCRIPT_SUPPORT_V8
 static void WeakCallback(const WeakCallbackInfo<rtIObject>& data) {
   Locker locker(data.GetIsolate());
   Isolate::Scope isolateScope(data.GetIsolate());
@@ -269,7 +269,7 @@ rtWrapperSceneUpdateEnter();
     // rtLogInfo("add id:%u addr:%p", contextIdCreation, from.getPtr());
     ObjectReference* entry(new ObjectReference());
     entry->PersistentObject.Reset(isolate, to);
-#ifdef ENABLE_NODE_V_6_9
+#if defined ENABLE_NODE_V_6_9 || defined RTSCRIPT_SUPPORT_V8
     entry->PersistentObject.SetWeak(from.getPtr(), WeakCallback, v8::WeakCallbackType::kParameter);
 #else
     entry->PersistentObject.SetWeak(from.getPtr(), &weakCallback_rt2v8);
@@ -410,7 +410,7 @@ Handle<Value> rt2js(Local<Context>& ctx, const rtValue& v)
         rtFunctionRef func = v.toFunction();
         if (!func)
           return v8::Null(isolate);
-#ifdef ENABLE_NODE_V_6_9
+#if defined ENABLE_NODE_V_6_9 || defined RTSCRIPT_SUPPORT_V8
         return rtFunctionWrapper::createFromFunctionReference(ctx, isolate, func);
 #else
         return rtFunctionWrapper::createFromFunctionReference(isolate, func);

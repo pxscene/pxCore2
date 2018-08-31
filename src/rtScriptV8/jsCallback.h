@@ -20,11 +20,11 @@ limitations under the License.
 #define RT_JAVASCRIPT_CALLBACK_H
 
 
-#include "node_headers.h"
+#include "headers.h"
 #include <rtValue.h>
 #include <vector>
 
-namespace rtScriptNodeUtils
+namespace rtScriptV8NodeUtils
 {
 
 typedef void (*jsCallbackCompletionFunc)(void* argp, rtValue const& result);
