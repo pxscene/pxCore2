@@ -194,7 +194,6 @@ function terminateScene() {
 }
 
 this.innerscene.on('onSceneTerminate', function(e) { 
-     console.log(" on scene terminate received ");
      this.isTermEvtRcvd = true;
      this.termEvent = e;
      if (true == this.isCloseEvtRcvd) {
@@ -203,10 +202,8 @@ this.innerscene.on('onSceneTerminate', function(e) {
   }.bind(this));
 
 this.innerscene.on('onClose', function() {
-    console.log(" on close received ");
     if (true == this.isTermEvtRcvd)
     {
-      console.log(" on close after term received ");
       terminateScene.bind(this)();
     }
     this.isCloseEvtRcvd = true;
