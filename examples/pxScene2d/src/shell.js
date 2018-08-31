@@ -300,10 +300,8 @@ if (false)
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   function releaseResources() {
     if (!isDuk && !isV8) {
-        if (undefined != process) {
-          process.removeListener("uncaughtException", uncaughtException);
-          process.removeListener("unhandledRejection", unhandledRejection);
-        }  
+        process.removeListener("uncaughtException", uncaughtException);
+        process.removeListener("unhandledRejection", unhandledRejection);
     }
   }
 
