@@ -78,9 +78,10 @@ function AppSceneContext(params) {
   this.timers = [];
   this.timerIntervals = [];
   this.webSocketManager = null;
+  // event received indicators for close and terminate
   this.isCloseEvtRcvd = false;
   this.isTermEvtRcvd = false;
-  this.termEvent = {};
+  this.termEvent = null;
   log.message(4, "[[[NEW AppSceneContext]]]: " + this.packageUrl);
 }
 
@@ -190,7 +191,7 @@ function terminateScene() {
     }
     this.isCloseEvtRcvd = false;
     this.isTermEvtRcvd = false;
-    this.termEvent = {};
+    this.termEvent = null;
 }
 
 this.innerscene.on('onSceneTerminate', function(e) { 
