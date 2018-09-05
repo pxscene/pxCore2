@@ -16,16 +16,13 @@ limitations under the License.
 
 */
 
-#ifndef NODE_HEADERS_H
-#define NODE_HEADERS_H
+"use strict";
 
-#include <rtScriptHeaders.h>
-
-#include <node.h>
-#include <node_object_wrap.h>
-#include <v8.h>
-#include <v8-util.h>
-#include <uv.h>
-
-#endif
-
+module.exports = {
+    'connect': function () {},
+    'createConnection': function () { },
+    'Socket': function () { },
+    'isIP': function () { return 1; },
+    'isIPv4': function () { return 1; },
+    'isIPv6': function () { return 1; },
+}

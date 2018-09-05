@@ -21,6 +21,8 @@ then
 
   if [ "$(uname)" = "Darwin" ]; then
     ./configure --with-darwinssl
+    #Removing api definition for Yosemite compatibility.
+    sed -i '' '/#define HAVE_CLOCK_GETTIME_MONOTONIC 1/d' lib/curl_config.h
   else
       if [ $(echo "$(openssl version | cut -d' ' -f 2 | cut -d. -f1-2)>1.0" | bc) ]; then
           echo "Openssl is too new for this version of libcurl.  Opting for gnutls instead..."
@@ -35,6 +37,7 @@ then
       fi
   fi
 
+  
   make all "-j${make_parallel}"
   cd ..
 
@@ -138,6 +141,10 @@ then
   cd ..
 
 fi
+
+# v8
+# todo - uncomment - for now build v8 with buildV8.sh directly
+#bash buildV8.sh
 
 #-------- BREAKPAD (Non -macOS)
 

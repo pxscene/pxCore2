@@ -19,7 +19,7 @@ limitations under the License.
 #ifndef RT_WRAPPER_UTILS
 #define RT_WRAPPER_UTILS
 
-#include "node_headers.h"
+#include "headers.h"
 
 #include <rtError.h>
 #include <rtObject.h>
@@ -33,10 +33,20 @@ limitations under the License.
 #include <map>
 #include <memory>
 
+#include <assert.h>
+
 bool rtIsMainThreadNode();
 
-namespace rtScriptNodeUtils
+namespace rtScriptV8NodeUtils
 {
+
+typedef void(*FuncCallback)(const v8::FunctionCallbackInfo<v8::Value>& args);
+
+struct rtV8FunctionItem
+{
+  const char  *mName;
+  FuncCallback mCallback;
+};
 
 //bool rtIsRenderThread();
 bool rtIsPromise(const rtValue& v);
@@ -150,8 +160,109 @@ inline int toInt32(const v8::FunctionCallbackInfo<v8::Value>& args, int which, i
   return i;
 }
 
+class V8ObjectWrap {
+public:
+  V8ObjectWrap() {
+    refs_ = 0;
+  }
+
+
+  virtual ~V8ObjectWrap() {
+    if (persistent().IsEmpty())
+      return;
+    assert(persistent().IsNearDeath());
+    persistent().ClearWeak();
+    persistent().Reset();
+  }
+
+
+  template <class T>
+  static inline T* Unwrap(v8::Local<v8::Object> handle) {
+    assert(!handle.IsEmpty());
+    assert(handle->InternalFieldCount() > 0);
+    // Cast to V8ObjectWrap before casting to T.  A direct cast from void
+    // to T won't work right when T has more than one base class.
+    void* ptr = handle->GetAlignedPointerFromInternalField(0);
+    V8ObjectWrap* wrap = static_cast<V8ObjectWrap*>(ptr);
+    return static_cast<T*>(wrap);
+  }
+
+
+  inline v8::Local<v8::Object> handle() {
+    return handle(v8::Isolate::GetCurrent());
+  }
+
+
+  inline v8::Local<v8::Object> handle(v8::Isolate* isolate) {
+    return v8::Local<v8::Object>::New(isolate, persistent());
+  }
+
+
+  inline v8::Persistent<v8::Object>& persistent() {
+    return handle_;
+  }
+
+
+protected:
+  inline void Wrap(v8::Local<v8::Object> handle) {
+    assert(persistent().IsEmpty());
+    assert(handle->InternalFieldCount() > 0);
+    handle->SetAlignedPointerInInternalField(0, this);
+    persistent().Reset(v8::Isolate::GetCurrent(), handle);
+    MakeWeak();
+  }
+
+
+  inline void MakeWeak(void) {
+    persistent().SetWeak(this, WeakCallback, v8::WeakCallbackType::kParameter);
+    persistent().MarkIndependent();
+  }
+
+  /* Ref() marks the object as being attached to an event loop.
+  * Refed objects will not be garbage collected, even if
+  * all references are lost.
+  */
+  virtual void Ref() {
+    assert(!persistent().IsEmpty());
+    persistent().ClearWeak();
+    refs_++;
+  }
+
+  /* Unref() marks an object as detached from the event loop.  This is its
+  * default state.  When an object with a "weak" reference changes from
+  * attached to detached state it will be freed. Be careful not to access
+  * the object after making this call as it might be gone!
+  * (A "weak reference" means an object that only has a
+  * persistent handle.)
+  *
+  * DO NOT CALL THIS FROM DESTRUCTOR
+  */
+  virtual void Unref() {
+    assert(!persistent().IsEmpty());
+    assert(!persistent().IsWeak());
+    assert(refs_ > 0);
+    if (--refs_ == 0)
+      MakeWeak();
+  }
+
+  int refs_;  // ro
+
+private:
+  static void WeakCallback(
+    const v8::WeakCallbackInfo<V8ObjectWrap>& data) {
+    V8ObjectWrap* wrap = data.GetParameter();
+    assert(wrap->refs_ == 0);
+    wrap->handle_.Reset();
+    delete wrap;
+  }
+
+  v8::Persistent<v8::Object> handle_;
+};
+
+#define OBJECT_WRAP_CLASS V8ObjectWrap
+
 template<typename TRef, typename TWrapper>
-class rtWrapper : public node::ObjectWrap
+class rtWrapper : public OBJECT_WRAP_CLASS
 {
 protected:
   rtWrapper(const TRef& ref) : mWrappedObject(ref)
@@ -162,17 +273,17 @@ protected:
 
   static TRef unwrap(const v8::FunctionCallbackInfo<v8::Value>& args)
   {
-    return node::ObjectWrap::Unwrap<TWrapper>(args.This())->mWrappedObject;
+    return OBJECT_WRAP_CLASS::Unwrap<TWrapper>(args.This())->mWrappedObject;
   }
 
   static TRef unwrap(const v8::PropertyCallbackInfo<v8::Value>& args)
   {
-    return node::ObjectWrap::Unwrap<TWrapper>(args.This())->mWrappedObject;
+    return OBJECT_WRAP_CLASS::Unwrap<TWrapper>(args.This())->mWrappedObject;
   }
 
   static TRef unwrap(const v8::Local<v8::Object>& obj)
   {
-    return node::ObjectWrap::Unwrap<TWrapper>(obj)->mWrappedObject;
+    return OBJECT_WRAP_CLASS::Unwrap<TWrapper>(obj)->mWrappedObject;
   }
 
   static void throwRtError(v8::Isolate* isolate, rtError err, const char* format, ...)
@@ -221,28 +332,6 @@ public:
 
 
 } // namespace
-
-class rtWrapperSceneUnlocker
-{
-public:
-  rtWrapperSceneUnlocker()
-    : m_hadLock(false)
-  {
-    if (rtWrapperSceneUpdateHasLock())
-    {
-      m_hadLock = true;
-      rtWrapperSceneUpdateExit();
-    }
-  }
-
-  ~rtWrapperSceneUnlocker()
-  {
-    if (m_hadLock)
-      rtWrapperSceneUpdateEnter();
-  }
-private:
-  bool m_hadLock;
-};
 
 #endif
 
