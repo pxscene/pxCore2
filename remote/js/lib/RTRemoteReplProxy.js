@@ -26,13 +26,11 @@ const RTRemoteConnectionManager = require('../lib/RTRemoteConnectionManager');
 const RTValueHelper = require('../lib/RTValueHelper');
 const RTValueType = require('../lib/RTValueType');
 const logger = require('../lib/common/logger');
-const RTPromise = require('./RTPromise');
 
 /**
  * the end function when promise work done
  */
 let endFunction = () => {
-  process.stdout.write('\n> ');
 };
 
 
@@ -101,14 +99,12 @@ const proxyHandler = {
       if (['getProperty', 'get'].indexOf(propKey) >= 0) {
         if (args.length <= 0 || typeof args[0] !== 'string') {
           logger.error('get method only need one parameter, and the type must be string');
-          endFunction();
           return Promise.resolve();
         }
         promise = target.get(args[0]);
       } else if (['setProperty', 'set'].indexOf(propKey) >= 0) {
         if (args.length < 2 || typeof args[0] !== 'string') {
           logger.error('set method must be had two parameters, and the first must be string');
-          endFunction();
           return Promise.resolve();
         }
         promise = target.set(args[0], wrapperNativeValueToRTValue(args[1]));
@@ -117,7 +113,7 @@ const proxyHandler = {
         args.forEach(v => newArgs.push(wrapperNativeValueToRTValue(v)));
         promise = target.send(propKey, ...newArgs);
       }
-      return new RTPromise(promise, propKey).then(rtValue => unpackRTValue(rtValue))
+      return promise.then(rtValue => unpackRTValue(rtValue))
         .catch((err) => {
           logger.error(`invoke remote method ${propKey} failed, error  = ${err}`);
           endFunction();
@@ -137,18 +133,14 @@ module.exports = {
     options = options || {};
     options.multicastAddress = options.multicastAddress || '224.10.10.12';
     options.multicastPort = options.multicastPort || '10004';
-
-    return new RTPromise(new Promise(((resolve, reject) => {
-      const resolver = new RTRemoteMulticastResolver(options.multicastAddress, options.multicastPort);
-      return resolver.start()
-        .then(() => resolver.locateObject(objectId))
-        .then(uri => RTRemoteConnectionManager.getObjectProxy(uri))
-        .then((rtObject) => {
-          endFunction();
-          resolve(new Proxy(rtObject, proxyHandler)); // wrapper rtObject into proxy
-        })
-        .catch(err => reject(err));
-    })), 'locateObject');
+    const resolve = new RTRemoteMulticastResolver(options.multicastAddress, options.multicastPort);
+    return resolve.start()
+      .then(() => resolve.locateObject(objectId))
+      .then(uri => RTRemoteConnectionManager.getObjectProxy(uri))
+      .then((rtObject) => {
+        endFunction();
+        return Promise.resolve(new Proxy(rtObject, proxyHandler)); // wrapper rtObject into proxy
+      });
   },
   /**
    * send repl end function

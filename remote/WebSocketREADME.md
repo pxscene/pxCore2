@@ -101,22 +101,20 @@ Note that you can run the Node client on a separate computer from the server, bu
 
 ```
 var rt = require('./lib')
-var stm = rt.locateObject('rtServiceManager')
+rt.locateObject('rtServiceManager').then((resp) => stm = resp)
 
-//enter stm.status to check status, if status is "<DONE>", stm.ret is the RTObject instance
-var sa = stm.ret.createService("org.sa")
-var res = sa.ret.getResolution()
+stm.createService("org.sa").then((resp) => sa = resp)
+sa.getResolution().then((resp) => resolution = resp)
 
 //Query the current properties
-res.ret['w']
-res.ret['h']
+resolution['w']
+resolution['h']
 
 //Set a new resolution
-sa.ret.setResolution(1920,1080)
+sa.setResolution(1920,1080)
 
-res = sa.ret.getResolution()
+sa.getResolution().then((resp) => resolution = resp)
 
-//Query the current properties
-res.ret['w']
-res.ret['h']
+resolution['w']
+resolution['h']
 ```
