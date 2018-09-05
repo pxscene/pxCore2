@@ -176,7 +176,7 @@ static void duv_on_nameinfo(uv_getnameinfo_t* req, int status, const char* hostn
   else {
     duk_push_string(ctx, hostname);
     duk_push_string(ctx, service);
-    duk_dump_context_stdout(ctx);
+    //duk_dump_context_stdout(ctx);
     //duv_resolve((uv_req_t*)req, 3);
     duv_fulfill_req(ctx, (uv_req_t*)req, 3);
   }

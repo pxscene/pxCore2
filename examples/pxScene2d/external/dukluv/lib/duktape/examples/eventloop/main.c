@@ -8,7 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#ifndef NO_SIGNAL
+#if !defined(NO_SIGNAL)
 #include <signal.h>
 #endif
 
@@ -18,12 +18,14 @@ extern void poll_register(duk_context *ctx);
 extern void ncurses_register(duk_context *ctx);
 extern void socket_register(duk_context *ctx);
 extern void fileio_register(duk_context *ctx);
+extern void fileio_push_file_buffer(duk_context *ctx, const char *filename);
+extern void fileio_push_file_string(duk_context *ctx, const char *filename);
 extern void eventloop_register(duk_context *ctx);
-extern int eventloop_run(duk_context *ctx);  /* Duktape/C function, safe called */
+extern duk_ret_t eventloop_run(duk_context *ctx, void *udata);
 
 static int c_evloop = 0;
 
-#ifndef NO_SIGNAL
+#if !defined(NO_SIGNAL)
 static void my_sighandler(int x) {
 	fprintf(stderr, "Got signal %d\n", x);
 	fflush(stderr);
@@ -54,9 +56,24 @@ static void print_error(duk_context *ctx, FILE *f) {
 	duk_pop(ctx);
 }
 
-int wrapped_compile_execute(duk_context *ctx) {
+static duk_ret_t native_print(duk_context *ctx) {
+	duk_push_string(ctx, " ");
+	duk_insert(ctx, 0);
+	duk_join(ctx, duk_get_top(ctx) - 1);
+	printf("%s\n", duk_safe_to_string(ctx, -1));
+	return 0;
+}
+
+static void print_register(duk_context *ctx) {
+	duk_push_c_function(ctx, native_print, DUK_VARARGS);
+	duk_put_global_string(ctx, "print");
+}
+
+duk_ret_t wrapped_compile_execute(duk_context *ctx, void *udata) {
 	int comp_flags = 0;
 	int rc;
+
+	(void) udata;
 
 	/* Compile input and place it into global _USERCODE */
 	duk_compile(ctx, comp_flags);
@@ -82,7 +99,7 @@ int wrapped_compile_execute(duk_context *ctx) {
 	if (c_evloop) {
 		fprintf(stderr, "calling eventloop_run()\n");
 		fflush(stderr);
-		rc = duk_safe_call(ctx, eventloop_run, 0 /*nargs*/, 1 /*nrets*/);
+		rc = duk_safe_call(ctx, eventloop_run, NULL, 0 /*nargs*/, 1 /*nrets*/);
 		if (rc != 0) {
 			fprintf(stderr, "eventloop_run() failed: %s\n", duk_to_string(ctx, -1));
 			fflush(stderr);
@@ -125,7 +142,7 @@ int handle_fh(duk_context *ctx, FILE *f, const char *filename) {
 	free(buf);
 	buf = NULL;
 
-	rc = duk_safe_call(ctx, wrapped_compile_execute, 2 /*nargs*/, 1 /*nret*/);
+	rc = duk_safe_call(ctx, wrapped_compile_execute, NULL, 2 /*nargs*/, 1 /*nret*/);
 	if (rc != DUK_EXEC_SUCCESS) {
 		print_error(ctx, stderr);
 		goto error;
@@ -176,7 +193,7 @@ int main(int argc, char *argv[]) {
 	const char *filename = NULL;
 	int i;
 
-#ifndef NO_SIGNAL
+#if !defined(NO_SIGNAL)
 	set_sigint_handler();
 
 	/* This is useful at the global level; libraries should avoid SIGPIPE though */
@@ -205,6 +222,7 @@ int main(int argc, char *argv[]) {
 
 	ctx = duk_create_heap_default();
 
+	print_register(ctx);
 	poll_register(ctx);
 	ncurses_register(ctx);
 	socket_register(ctx);
@@ -215,12 +233,14 @@ int main(int argc, char *argv[]) {
 		fflush(stderr);
 
 		eventloop_register(ctx);
-		duk_eval_file(ctx, "c_eventloop.js");
+		fileio_push_file_string(ctx, "c_eventloop.js");
+		duk_eval(ctx);
 	} else {
 		fprintf(stderr, "Using Ecmascript based eventloop (give -c to use C based eventloop)\n");
 		fflush(stderr);
 
-		duk_eval_file(ctx, "ecma_eventloop.js");
+		fileio_push_file_string(ctx, "ecma_eventloop.js");
+		duk_eval(ctx);
 	}
 
 	fprintf(stderr, "Executing code from: '%s'\n", filename);
