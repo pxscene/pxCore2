@@ -24,6 +24,31 @@ var isV8=(typeof _isV8 != "undefined")?true:false;
 var url = require('url');
 var path = require('path');
 var vm = require('vm');
+
+if (isDuk) {
+    var BufferList = require('BufferList');
+    var crypto = require('crypto');
+    var options = require('options');
+    var zlib = require('zlib');
+    var ultron = require('ultron');
+    var string_decoder = require('string_decoder');
+    var util = require('util');
+    var events = require('events');
+    var stream = require('stream');
+    var errcodes = require('ws/lib/ErrorCodes');
+    var bufpool = require('ws/lib/BufferPool');
+    var permsgdeflate = require('ws/lib/PerMessageDeflate');
+    var bufutil = require('ws/lib/BufferUtil');
+    var validation = require('ws/lib/Validation');
+    var extensions = require('ws/lib/Extensions');
+    var Sender = require('ws/lib/Sender');
+    var Receiver = require('ws/lib/Receiver');
+    var SenderHixie = require('ws/lib/Sender.hixie');
+    var ReceiverHixie = require('ws/lib/Receiver.hixie');
+    var Extensions = require('ws/lib/Extensions');
+    var PerMessageDeflate = require('ws/lib/PerMessageDeflate');
+}
+
 var Logger = require('rcvrcore/Logger').Logger;
 var SceneModuleLoader = require('rcvrcore/SceneModuleLoader');
 var XModule = require('rcvrcore/XModule').XModule;
