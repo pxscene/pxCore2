@@ -60,9 +60,7 @@
 #include "pxAnimate.h"
 #include "testView.h"
 
-#ifdef ENABLE_RT_NODE
 #include "rtScript.h"
-#endif //ENABLE_RT_NODE
 
 #ifdef ENABLE_PERMISSIONS_CHECK
 #include "rtPermissions.h"
@@ -1089,7 +1087,6 @@ public:
     rtLogDebug("~pxScriptView for mUrl=%s\n",mUrl.cString());
     // Clear out these references since the script context
     // can outlive this view
-#ifdef ENABLE_RT_NODE
     if(mCtx)
     {
       mGetScene->clearContext();
@@ -1101,7 +1098,6 @@ public:
       mCtx->add("makeReady", 0);
       mCtx->add("getContextID", 0);
     }
-#endif //ENABLE_RT_NODE
 
     if (mView)
       mView->setViewContainer(NULL);
@@ -1299,9 +1295,7 @@ protected:
   rtRef<rtFunctionCallback> mMakeReady;
   rtRef<rtFunctionCallback> mGetContextID;
 
-#ifdef ENABLE_RT_NODE
   rtScriptContextRef mCtx;
-#endif //ENABLE_RT_NODE
   pxIViewContainer* mViewContainer;
   unsigned long mRefCount;
   rtString mUrl;
