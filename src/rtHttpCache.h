@@ -120,6 +120,7 @@ class rtHttpCacheData
     std::map<rtString, rtString> mHeaderMap;
     time_t mExpirationDate;
     FILE* fp;
+    rtString mFileName;
     bool mUpdated;
     rtString mFileName;
 
