@@ -25,10 +25,10 @@
       {"url":"../tests/test_pxImageA_2.js", "title":"test_pxImageA_2","useBaseURI":"true"},
       {"url":"../tests/test_pxImage9.js", "title":"test_pxImage9","useBaseURI":"true"},
       {"url":"../tests/test_moveForwardBackward.js", "title":"test_moveForwardBackward","useBaseURI":"true"},
-      {"url":"../tests/test_imports.js", "title":"test_imports","useBaseURI":"true"},
+      {"url":"../tests/test_imports_v2.js", "title":"test_imports","useBaseURI":"true"},
       {"url":"../tests/test_permissions_v4.js", "title":"test_permissions","useBaseURI":"true"},
       {"url":"../tests/test_permissionsDefault_v4.js", "title":"test_permissionsDefault","useBaseURI":"true"},
-      {"url":"../tests/test_cors_v4.js", "title":"test_cors","useBaseURI":"true"},
+      {"url":"../tests/test_cors_v5.js", "title":"test_cors","useBaseURI":"true"},
       {"url":"../tests/test_textFontRejection.js",  "title":"test_textFontRejection","useBaseURI":"true"},
       {"url":"../tests/test_onBlur_loseFocusChain.js","title":"test_onBlur_loseFocusChain", "useBaseURI":"true"},
       {"url":"../tests/test_promiseRejectionAnimation.js", "title":"test_promiseRejectionAnimation","useBaseURI":"true"},
@@ -37,13 +37,13 @@
       {"url":"../tests/test_drawFalse.js", "title":"test_drawFalse","useBaseURI":"true"},
       {"url":"../tests/test_longText.js", "title":"test_longText","useBaseURI":"true"},
       {"url":"../tests/test_parentDrawFalse.js", "title":"test_parentDrawFalse","useBaseURI":"true"},
+      {"url":"../tests/test_getFile.js", "title":"test_getFile","useBaseURI":"true"},
       {"url":"../tests/test_pxImageResource64svg.js", "title":"test_pxImageResource64svg","useBaseURI":"true"},
       {"url":"../tests/test_pxText_v3.js", "title":"test_pxText","useBaseURI":"true"},
       {"url":"../tests/test_pxRectangle_v1.js", "title":"test_pxText","useBaseURI":"true"},
       {"url":"../tests/test_animationOscillate.js", "title":"test_ANIM_oscillate","useBaseURI":"true"},
       {"url":"../tests/test_textBoxEllipsis_oneLine.js", "title":"test_textBoxEllipsis_oneLine","useBaseURI":"true"},
       {"url":"../tests/test_textBoxWrapBounds.js", "title":"test_textBoxWrapBounds","useBaseURI":"true"},
-
       {"url": "../tests/mime/test_empty.js", "title": "Empty test", "useBaseURI": "true" },
       {"url": "../tests/mime/test_md_basic.js", "title": "Emphasis (bold, italics, underline)", "useBaseURI": "true" },
       {"url": "../tests/mime/test_md_list.js", "title": "Ordered&Unordered lists", "useBaseURI": "true" },
@@ -52,5 +52,6 @@
       {"url": "../tests/mime/test_md_quote.js", "title": "Blockquotes", "useBaseURI": "true" },
       {"url": "../tests/mime/test_md_code.js", "title": "Inline code", "useBaseURI": "true" },
       {"url": "../tests/mime/test_md_link.js", "title": "Markdown links", "useBaseURI": "true" },
-      {"url": "../tests/mime/test_md_theme.js", "title": "Markdown theme", "useBaseURI": "true" }
+      {"url": "../tests/mime/test_md_theme.js", "title": "Markdown theme", "useBaseURI": "true" },
+      {"url":"../tests/test_textWithoutParent.js", "title":"textWithoutParent","useBaseURI":"true"}
 ]

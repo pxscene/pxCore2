@@ -177,6 +177,7 @@ public:
     else {
       snprintf(buffer,sizeof(buffer),"shell.js?url=%s",escapedUrl.c_str());
     }
+
 #ifdef RUNINMAIN
     setView( new pxScriptView(buffer,"javascript/node/v8"));
 #else
@@ -288,6 +289,11 @@ protected:
 
     if (gDumpMemUsage)
     {
+    
+      #ifdef RUNINMAIN
+          script.pump();
+      #endif
+      script.collectGarbage();
       rtLogInfo("pxobjectcount is [%d]",pxObjectCount);
 #ifndef PX_PLATFORM_DFB_NON_X11
       rtLogInfo("texture memory usage is [%" PRId64 "]",context.currentTextureMemoryUsageInBytes());
