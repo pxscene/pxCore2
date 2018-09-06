@@ -61,3 +61,36 @@ TEST(pxFontTest, testRemoveFont)
   
 
 }
+
+TEST(pxFontTest, loadResourceFromArchiveSuccessTest)
+{
+      pxScene2d* scene = new pxScene2d();
+      rtObjectRef archive;
+      EXPECT_TRUE(RT_OK == scene->loadArchive("supportfiles/test_arc_resources.jar", archive));
+      pxFont* font = new pxFont("", 0, "");
+      font->setUrl("XFINITYSansTTCond-Medium.ttf");
+      font->loadResourceFromArchive(scene->getArchive());
+      rtObjectRef loadStatus = new rtMapObject;
+      font->loadStatus(loadStatus);
+      rtValue status;
+      loadStatus.Get("statusCode",&status);
+      EXPECT_TRUE(status == PX_RESOURCE_STATUS_OK);
+      delete scene;
+}
+
+TEST(pxFontTest, loadResourceFromArchiveFailureTest)
+{
+      pxScene2d* scene = new pxScene2d();
+      rtObjectRef archive;
+      EXPECT_TRUE(RT_OK == scene->loadArchive("supportfiles/test_arc_resources.jar", archive));
+      pxFont* font = new pxFont("", 0, "");
+      font->setUrl("XFINITYSansTTCond-Medium1.ttf");
+      font->loadResourceFromArchive(scene->getArchive());
+      rtObjectRef loadStatus = new rtMapObject;
+      font->loadStatus(loadStatus);
+      rtValue status;
+      loadStatus.Get("statusCode",&status);
+      EXPECT_TRUE(status == PX_RESOURCE_STATUS_FILE_NOT_FOUND);
+      delete scene;
+}
+

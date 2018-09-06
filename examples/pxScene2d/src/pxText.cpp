@@ -32,7 +32,7 @@ pxText::pxText(pxScene2d* scene):pxObject(scene), mFontLoaded(false), mFontFaile
   float c[4] = {1, 1, 1, 1};
   memcpy(mTextColor, c, sizeof(mTextColor));
   // Default to use default font
-  mFont = pxFontManager::getFont(defaultFont);
+  mFont = pxFontManager::getFont(defaultFont, NULL, NULL, scene->getArchive());
   mPixelSize = defaultPixelSize;
 }
 
@@ -104,8 +104,15 @@ void pxText::resourceReady(rtString readyResolution)
     mScene->mDirty = true;
     // !CLF: ToDo Use pxObject::onTextureReady() and rename it.
     if( mInitialized) 
+    {
+      if( !mParent)
+      {
+        // Send the promise here because the text will not get an 
+        // update call until it has parent
+        sendPromise();
+      }
       pxObject::onTextureReady();
-    
+    }
   }
   else 
   {
@@ -179,7 +186,7 @@ rtError pxText::setFontUrl(const char* s)
   createNewPromise();
 
   removeResourceListener();
-  mFont = pxFontManager::getFont(s);
+  mFont = pxFontManager::getFont(s, NULL, NULL, mScene->getArchive());
   mListenerAdded = true;
   if (getFontResource() != NULL)
   {

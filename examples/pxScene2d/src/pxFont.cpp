@@ -185,6 +185,39 @@ uint32_t pxFont::loadResourceData(rtFileDownloadRequest* fileDownloadRequest)
       return PX_RESOURCE_LOAD_SUCCESS;
 }
 
+void pxFont::loadResourceFromArchive(rtObjectRef archiveRef)
+{
+  pxArchive* archive = (pxArchive*)archiveRef.getPtr();
+  pxOffscreen imageOffscreen;
+  rtData d;
+  if ((NULL != archive) && (archive->getFileData(mUrl, d) == RT_OK))
+  {
+    init( (FT_Byte*)d.data(),
+          (FT_Long)d.length(),
+          mUrl.cString());
+    setLoadStatus("statusCode", PX_RESOURCE_STATUS_OK);
+    AddRef();
+    if (gUIThreadQueue)
+    {
+      gUIThreadQueue->addTask(onDownloadCompleteUI, this, (void*)"resolve");
+    }
+    rtLogInfo("Resource [%s] loaded from archive successfully !!!",mUrl.cString());
+  }
+  else
+  {
+    rtLogWarn("Could not load font face from archive %s\n", mUrl.cString());
+    setLoadStatus("statusCode", PX_RESOURCE_STATUS_FILE_NOT_FOUND);
+    // Since this object can be released before we get a async completion
+    // We need to maintain this object's lifetime
+    // TODO review overall flow and organization
+    AddRef();
+    if (gUIThreadQueue)
+    {
+      gUIThreadQueue->addTask(onDownloadCompleteUI, this, (void*)"reject");
+    }
+  }
+}
+
 void pxFont::loadResourceFromFile()
 {
     rtError e = init(mUrl);
@@ -706,7 +739,7 @@ void pxFontManager::initFT()
   }
   
 }
-rtRef<pxFont> pxFontManager::getFont(const char* url, const char* proxy, const rtCORSRef& cors)
+rtRef<pxFont> pxFontManager::getFont(const char* url, const char* proxy, const rtCORSRef& cors, rtObjectRef archive)
 {
   initFT();
 
@@ -716,8 +749,23 @@ rtRef<pxFont> pxFontManager::getFont(const char* url, const char* proxy, const r
   if (!url || !url[0])
     url = defaultFont;
 
+  rtString key = url;
+  if (false == ((key.beginsWith("http:")) || (key.beginsWith("https:"))))
+  {
+    pxArchive* arc = (pxArchive*)archive.getPtr();
+    if (NULL != arc)
+    {
+      if (false == arc->isFile())
+      {
+        rtString data = arc->getName();
+        data.append("_");
+        data.append(url);
+        key = data;
+      }
+    }
+  }
   // Assign font urls an id number if they don't have one
-   FontIdMap::iterator itId = mFontIdMap.find(url);
+  FontIdMap::iterator itId = mFontIdMap.find(key);
   if( itId != mFontIdMap.end()) 
   {
     fontId = itId->second;
@@ -725,7 +773,7 @@ rtRef<pxFont> pxFontManager::getFont(const char* url, const char* proxy, const r
   else 
   {
     fontId = gFontId++;
-    mFontIdMap.insert(make_pair(url, fontId));
+    mFontIdMap.insert(make_pair(key, fontId));
   }
 
   FontMap::iterator it = mFontMap.find(fontId);
@@ -742,7 +790,7 @@ rtRef<pxFont> pxFontManager::getFont(const char* url, const char* proxy, const r
     pFont = new pxFont(url, fontId, proxy);
     pFont->setCORS(cors);
     mFontMap.insert(make_pair(fontId, pFont));
-    pFont->loadResource();
+    pFont->loadResource(archive);
   }
   
   return pFont;

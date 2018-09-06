@@ -1816,7 +1816,7 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   : mRoot(), mInfo(), mCapabilityVersions(), start(0), sigma_draw(0), sigma_update(0), end2(0), frameCount(0), mWidth(0), mHeight(0), mStopPropagation(false), mContainer(NULL), mShowDirtyRectangle(false),
     mInnerpxObjects(), mSuspended(false),
 #ifdef PX_DIRTY_RECTANGLES
-    mDirtyRect(), mLastFrameDirtyRect(),
+    mDirtyRect(), mLastFrameDirtyRect(),mArchive(),
 #endif //PX_DIRTY_RECTANGLES
     mDirty(true), mTestView(NULL), mDisposed(false)
 {
@@ -2144,7 +2144,7 @@ rtError pxScene2d::createImageResource(rtObjectRef p, rtObjectRef& o)
     return RT_ERROR_NOT_ALLOWED;
 #endif
 
-  o = pxImageManager::getImage(url, proxy, mCORS, iw, ih, sx, sy);
+  o = pxImageManager::getImage(url, proxy, mCORS, iw, ih, sx, sy, mArchive);
   
   o.send("init");
   return RT_OK;
@@ -2160,7 +2160,7 @@ rtError pxScene2d::createImageAResource(rtObjectRef p, rtObjectRef& o)
     return RT_ERROR_NOT_ALLOWED;
 #endif
 
-  o = pxImageManager::getImageA(url, proxy, mCORS);
+  o = pxImageManager::getImageA(url, proxy, mCORS, mArchive);
   o.send("init");
   return RT_OK;
 }
@@ -2174,8 +2174,8 @@ rtError pxScene2d::createFontResource(rtObjectRef p, rtObjectRef& o)
   if (RT_OK != mPermissions->allows(url, rtPermissions::DEFAULT))
     return RT_ERROR_NOT_ALLOWED;
 #endif
-
-  o = pxFontManager::getFont(url, proxy, mCORS);
+  
+  o = pxFontManager::getFont(url, proxy, mCORS, mArchive);
   return RT_OK;
 }
 
@@ -3658,6 +3658,11 @@ void pxScene2d::setViewContainer(pxIViewContainer* l)
 #endif
 }
 
+pxIViewContainer* pxScene2d::viewContainer()
+{
+  return mContainer;
+}
+
 rtDefineObject(pxViewContainer, pxObject);
 rtDefineProperty(pxViewContainer, w);
 rtDefineProperty(pxViewContainer, h);
@@ -3700,9 +3705,9 @@ rtError pxSceneContainer::setUrl(rtString url)
 
   mUrl = url;
 #ifdef RUNINMAIN
-    setScriptView(new pxScriptView(url.cString(), ""));
+    setScriptView(new pxScriptView(url.cString(), "", this));
 #else
-    pxScriptView * scriptView = new pxScriptView(url.cString(),"");
+    pxScriptView * scriptView = new pxScriptView(url.cString(),"", this);
     AsyncScriptInfo * info = new AsyncScriptInfo();
     info->m_pView = scriptView;
     //info->m_pWindow = this;
@@ -3842,8 +3847,8 @@ rtError createObject2(const char* t, rtObjectRef& o)
 }
 #endif
 
-pxScriptView::pxScriptView(const char* url, const char* /*lang*/)
-     : mWidth(-1), mHeight(-1), mViewContainer(NULL), mRefCount(0)
+pxScriptView::pxScriptView(const char* url, const char* /*lang*/, pxIViewContainer* container)
+     : mWidth(-1), mHeight(-1), mViewContainer(container), mRefCount(0)
 {
   rtLogInfo(__FUNCTION__);
   rtLogDebug("pxScriptView::pxScriptView()entering\n");
@@ -3934,12 +3939,11 @@ void pxScriptView::runScript()
 
 rtError pxScriptView::printFunc(int numArgs, const rtValue* args, rtValue* result, void* ctx)
 {
+  UNUSED_PARAM(result);
   rtLogInfo(__FUNCTION__);
 
   if (ctx)
   {
-    pxScriptView* v = (pxScriptView*)ctx;
-
     if (numArgs > 0 && !args[0].isEmpty())
     {
       rtString toPrint = args[0].toString();

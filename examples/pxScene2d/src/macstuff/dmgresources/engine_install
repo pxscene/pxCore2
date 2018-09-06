@@ -48,4 +48,6 @@ else
 echo "Warning: No file ./lastpid. Skip." >> $LOGFILE
 fi
 
+
 echo "Exit spark .engine_install" `date` >> $LOGFILE
+

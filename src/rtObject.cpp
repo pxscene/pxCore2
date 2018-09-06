@@ -111,7 +111,7 @@ rtError rtEmit::delListener(const char* eventName, rtIFunction* f)
        it != mEntries.end(); it++)
   {
     _rtEmitEntry& e = (*it);
-    if (e.n == eventName && ((e.f.getPtr() == f) || ((-1 != e.fnHash) && (e.fnHash == f->hash()))) && !e.isProp)
+    if (e.n == eventName && ((e.f.getPtr() == f) || (((size_t)-1 != e.fnHash) && (e.fnHash == f->hash()))) && !e.isProp)
     {
       // if no events is being processed currently, remove the event entries
       if (!mProcessingEvents)
