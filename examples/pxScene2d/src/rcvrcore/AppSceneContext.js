@@ -76,6 +76,10 @@ function AppSceneContext(params) {
   this.timers = [];
   this.timerIntervals = [];
   this.webSocketManager = null;
+  // event received indicators for close and terminate
+  this.isCloseEvtRcvd = false;
+  this.isTermEvtRcvd = false;
+  this.termEvent = null;
   log.message(4, "[[[NEW AppSceneContext]]]: " + this.packageUrl);
 }
 
@@ -105,7 +109,8 @@ AppSceneContext.prototype.loadScene = function() {
 if( fullPath !== null)
   this.loadPackage(fullPath);
 
-this.innerscene.on('onSceneTerminate', function (e) {
+function terminateScene() {
+    var e = this.termEvent;
     if (null != this.webSocketManager)
     {
        this.webSocketManager.clearConnections();
@@ -182,6 +187,27 @@ this.innerscene.on('onSceneTerminate', function (e) {
       this.accessControl.destroy();
       this.accessControl = null;
     }
+    this.isCloseEvtRcvd = false;
+    this.isTermEvtRcvd = false;
+    this.termEvent = null;
+}
+
+this.innerscene.on('onSceneTerminate', function(e) { 
+     this.isTermEvtRcvd = true;
+     this.termEvent = e;
+     // make sure we are sending terminate event only after close event
+     if (true == this.isCloseEvtRcvd) {
+       terminateScene.bind(this)(); 
+     }
+  }.bind(this));
+
+this.innerscene.on('onClose', function() {
+    // make sure terminate event is sent after immediately if onClose comes after it
+    if (true == this.isTermEvtRcvd)
+    {
+      terminateScene.bind(this)();
+    }
+    this.isCloseEvtRcvd = true;
   }.bind(this));
 
   //log.info("loadScene() - ends    on ctx: " + getContextID() );
