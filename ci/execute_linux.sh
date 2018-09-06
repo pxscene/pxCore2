@@ -62,7 +62,7 @@ printValgrindLogs()
 
 # Start testRunner ... 
 cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src
-./spark.sh $TESTRUNNERURL?tests=file://$TRAVIS_BUILD_DIR/tests/pxScene2d/testRunner/tests.json > $EXECLOGS 2>&1 &
+./spark.sh -disableFilePermissionCheck=true $TESTRUNNERURL?tests=file://$TRAVIS_BUILD_DIR/tests/pxScene2d/testRunner/tests.json > $EXECLOGS 2>&1 &
 
 grep "TEST RESULTS: " $EXECLOGS
 retVal=$?
@@ -210,4 +210,71 @@ else
 	checkError $retVal "Valgrind execution reported problem" "$errCause" "Follow the steps locally : export ENABLE_VALGRIND=1;export SUPPRESSIONS=<pxcore dir>/ci/leak.supp;./spark.sh $TESTRUNNERURL?tests=<pxcore dir>/tests/pxScene2d/testRunner/tests.json and fix it"
 	exit 1;
 fi
+
+
+#add test for getFile failure for localhost and pxscene.org
+cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src
+export ACCESSFAILLOGS=$TRAVIS_BUILD_DIR/logs/access_logs
+touch $ACCESSFAILLOGS
+unset ENABLE_VALGRIND
+./pxscene.sh https://px-apps.sys.comcast.net/pxscene-samples/examples/px-reference/test-run/testRunner_AccessTest.js > $ACCESSFAILLOGS 2>&1 &
+retVal=1
+count=0
+while [ "$retVal" -ne 0 ] &&  [ "$count" -ne 30 ]; do
+        printf "\n [execute_linux.sh] snoozing for 10 seconds for access test \n"
+        sleep 10; # seconds
+
+        grep "TEST RESULTS: " $ACCESSFAILLOGS
+        retVal=$?
+
+        count=$((count+10))
+        if [ "$retVal" -ne 0 ]
+                then
+                ls -lrt core
+                retVal=$?
+        fi
+done
+
+kill -15 `ps -ef | grep pxscene |grep -v grep|grep -v pxscene.sh|awk '{print $2}'`
+pkill -9 -f pxscene.sh
+
+chmod 444 $ACCESSFAILLOGS
+
+#check for crash
+$TRAVIS_BUILD_DIR/ci/check_dump_cores_linux.sh `pwd` pxscene $ACCESSFAILLOGS
+retVal=$?
+if [ "$retVal" -eq 1 ]
+        then
+        if [ "$TRAVIS_PULL_REQUEST" != "false" ]
+                then
+                printf "\n********************** PRINTING ACCESS CHECK LOG **************************\n"
+                cat $ACCESSFAILLOGS
+                printf "\n********************** PRINTING ACCESS CHECK LOG END **************************\n"
+        else
+                errCause="Cause: Check the $ACCESSFAILLOGS file"
+        fi
+        checkError $retVal "Execution failed during access test" "Core dump" "Test by running locally"
+        exit 1;
+fi
+
+# Check for any testRunner failures
+grep "Failures: 0" $ACCESSFAILLOGS
+testRunnerRetVal=$?   # Will return 1 if NOT found
+errCause=""
+
+if [ "$testRunnerRetVal" -ne 0 ]
+        then
+        if [ "$TRAVIS_PULL_REQUEST" != "false" ]
+                then
+                errCause="Please check the above printed access check logs"
+                printf "\n********************** PRINTING ACCESS CHECK LOG **************************\n"
+                cat $ACCESSFAILLOGS
+                printf "\n********************** PRINTING ACCESS CHECK LOG END **************************\n"
+        else
+                errCause="Cause: Check the $ACCESSFAILLOGS file"
+        fi
+        checkError $testRunnerRetVal "Testrunner failure for access test" "$errCause" "Follow the steps locally: Run ./pxscene.sh https://px-apps.sys.comcast.net/pxscene-samples/examples/px-reference/test-run/testRunner_AccessTest.js locally and check for 'Failures: 0' in logs. Analyze whether failures is present or not"
+        exit 1;
+fi
+
 exit 0;
