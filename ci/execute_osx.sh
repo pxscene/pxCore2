@@ -57,7 +57,7 @@ printExecLogs()
 # Start testRunner ...
 rm -rf /var/tmp/spark.log
 cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src/spark.app/Contents/MacOS
-./spark.sh -disableFilePermissionCheck=true $TESTRUNNERURL?tests=file://$TRAVIS_BUILD_DIR/tests/pxScene2d/testRunner/tests.json &
+./spark.sh $TESTRUNNERURL?tests=file://$TRAVIS_BUILD_DIR/tests/pxScene2d/testRunner/tests.json &
 
 # Monitor testRunner ...
 count=0
