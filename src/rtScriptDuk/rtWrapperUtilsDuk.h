@@ -74,30 +74,6 @@ protected:
   TRef mWrappedObject;
 };
 
-#if 0
-class rtWrapperSceneUnlocker
-{
-public:
-  rtWrapperSceneUnlocker()
-    : m_hadLock(false)
-  {
-    if (rtWrapperSceneUpdateHasLock())
-    {
-      m_hadLock = true;
-      rtWrapperSceneUpdateExit();
-    }
-  }
-
-  ~rtWrapperSceneUnlocker()
-  {
-    if (m_hadLock)
-      rtWrapperSceneUpdateEnter();
-  }
-private:
-  bool m_hadLock;
-};
-#endif
-
 rtValue duk2rt(duk_context *ctx, rtWrapperError* error = NULL);
 void rt2duk(duk_context *ctx, const rtValue& val);
 std::string rtAllocDukIdentId();

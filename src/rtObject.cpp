@@ -111,7 +111,7 @@ rtError rtEmit::delListener(const char* eventName, rtIFunction* f)
        it != mEntries.end(); it++)
   {
     _rtEmitEntry& e = (*it);
-    if (e.n == eventName && ((e.f.getPtr() == f) || ((-1 != e.fnHash) && (e.fnHash == f->hash()))) && !e.isProp)
+    if (e.n == eventName && ((e.f.getPtr() == f) || (((size_t)-1 != e.fnHash) && (e.fnHash == f->hash()))) && !e.isProp)
     {
       // if no events is being processed currently, remove the event entries
       if (!mProcessingEvents)
@@ -131,6 +131,16 @@ rtError rtEmit::Send(int numArgs, const rtValue* args, rtValue* result)
   if (numArgs > 0)
   {
     rtString eventName = args[0].toString();
+    // check whether the js call need to be synchronous or not
+    bool sync = true;
+    if (numArgs > 1)
+    {
+      rtType type = args[1].getType();
+      if (RT_boolType == type)
+      {
+        sync = args[1].toBool();
+      }
+    }
     rtLogDebug("rtEmit::Send %s", eventName.cString());
 
     vector<_rtEmitEntry>::iterator it = mEntries.begin();
@@ -149,7 +159,15 @@ rtError rtEmit::Send(int numArgs, const rtValue* args, rtValue* result)
 #ifndef DISABLE_SYNC_EVENTS
         // SYNC EVENTS ... enables stopPropagation() ...
         //
-        err = e.f->Send(numArgs-1, args+1, &discard);
+        // pass NULL as final argument for indication of asynchronous call
+        if (sync)
+        {
+          err = e.f->Send(numArgs-1, args+1, &discard);
+        }
+        else
+        {
+          err = e.f->Send(numArgs-1, args+1, NULL);
+        }
 #else
 
 #warning "  >>>>>>  No SYNC EVENTS... stopPropagation() will be broken !!"

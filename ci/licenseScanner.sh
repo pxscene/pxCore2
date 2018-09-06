@@ -51,11 +51,11 @@ do
         scanResult="FAIL"
         printf "[FAILED] License Not Found : $file !!!\n"
       fi
-      #if [ "$1" == "ON" ] ; then 
-        #cp "$TRAVIS_BUILD_DIR/ci/apache_license.txt" $file.tmp
-        #cat $file >> $file.tmp
-        #mv $file.tmp $file
-      #fi
+      if [ "$1" == "ON" ] ; then 
+        cp "$TRAVIS_BUILD_DIR/ci/apache_license.txt" $file.tmp
+        cat $file >> $file.tmp
+        mv $file.tmp $file
+      fi
     fi 
   done
 done

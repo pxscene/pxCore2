@@ -61,6 +61,7 @@ class sceneWindow : public pxWindow, public pxIViewContainer
       mWidth = w;
       mHeight = h;
       pxWindow::init(x,y,w,h);
+      std::ignore = url;
     }
 
     virtual void invalidateRect(pxRect* r)
