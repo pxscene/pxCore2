@@ -4,15 +4,6 @@
 
 - ubuntu 16.04
 
-### Download pxCore code
-
--  `git clone https://github.com/topcoderinc/pxCore.git`
--  `cd pxCore`
--  `git checkout 32e435490d988fc8a4e7be53ac6248133821f720`
--  `git apply remote-js.patch`
-
-
-
 ### Build remote
 
 * Install dependencies,  `sudo apt-get install git libglew-dev freeglut3 freeglut3-dev libgcrypt11-dev zlib1g-dev g++ libssl-dev nasm autoconf libtool cmake gnutls-bin libgnutls-dev autoconf libtool nasm uuid-dev maven quilt`

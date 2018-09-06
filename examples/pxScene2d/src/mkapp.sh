@@ -70,6 +70,8 @@ if [ "$TRAVIS_EVENT_TYPE" == "cron" ]
 then
   sed -i -e 's/\.\/Spark/\.\/SparkEdge/g' macstuff/spark.sh
   sed -i -e 's/Spark.log /SparkEdge.log /g' macstuff/spark.sh
+  sed -i -e 's/Spark.app /SparkEdge.app /g' macstuff/dmgresources/engine_install
+  sed -i -e 's/Spark_update.log /SparkEdge_update.log /g' macstuff/dmgresources/engine_install
 fi
 
 cp macstuff/spark.sh $bundleBin

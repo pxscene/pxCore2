@@ -171,19 +171,20 @@ public:
       "expires: Tue, 10 Jul 2018 14:33:54 GMT\r\n"
       "connection: close"
     ;
-    char* rawHeaderData_str = new char[rawHeaderData.byteLength()];
+    char* rawHeaderData_str = (char*)malloc(rawHeaderData.byteLength()+1);
+    memset(rawHeaderData_str, 0, rawHeaderData.byteLength()+1);
     strcpy(rawHeaderData_str, rawHeaderData.cString());
     request.setHeaderData(rawHeaderData_str, rawHeaderData.byteLength());
     rtString downloadedData;
     downloadedData =
       "data"
     ;
-    char* downloadedData_str = new char[downloadedData.byteLength()];
+    char* downloadedData_str = (char*)malloc(downloadedData.byteLength()+1);
+    memset(downloadedData_str, 0, downloadedData.byteLength()+1);
     strcpy(downloadedData_str, downloadedData.cString());
     request.setDownloadedData(downloadedData_str, downloadedData.byteLength());
     EXPECT_FALSE (NULL == request.downloadedData());
     EXPECT_EQ ((int)downloadedData.byteLength(), (int)request.downloadedDataSize());
-
     cors.updateResponseForAccessControl(&request);
 
     int statusCode = request.downloadStatusCode();
