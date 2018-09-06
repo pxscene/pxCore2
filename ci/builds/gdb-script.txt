@@ -1,0 +1,21 @@
+set confirm off
+set pagination off
+set height unlimited
+set width unlimited
+set print thread-events off
+#
+handle SIG37 nostop
+handle SIGPIPE nostop
+set br pe on
+b abort
+#
+b __asan_report_error
+br __msan_warning
+br __msan_warning_noreturn
+#
+# clang memory-sanitizer
+b __sanitizer::Die
+b __asan_report_error
+#
+set overload-resolution off
+set disable-randomization off
