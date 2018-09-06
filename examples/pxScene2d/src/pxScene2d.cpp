@@ -2356,7 +2356,7 @@ ENTERSCENELOCK()
     mRoot->drawInternal(true);
 EXITSCENELOCK()
     context.popState();
-    mLastFrameDirtyRect.setLTRB(mDirtyRect.left(), mDirtyRect.top(), mDirtyRect.right(), mDirtyRect.bottom());
+    mLastFrameDirtyRect.setLTRB(dirtyRectangle.left(), dirtyRectangle.top(), dirtyRectangle.right(), dirtyRectangle.bottom());
     mDirtyRect.setEmpty();
   }
 
