@@ -70,7 +70,7 @@
 #include "rtCORS.h"
 
 #include "rtServiceProvider.h"
-
+#include "rtSettings.h"
 #ifdef RUNINMAIN
 #define ENTERSCENELOCK()
 #define EXITSCENELOCK() 
@@ -99,9 +99,6 @@ extern rtThreadQueue* gUIThreadQueue;
 
 // Constants
 static pxConstants CONSTANTS;
-
-char *base64_encode(const unsigned char *data, size_t input_length, size_t *output_length);
-unsigned char *base64_decode(const unsigned char *data, size_t input_length, size_t *output_length);
 
 #if 0
 typedef rtError (*objectFactory)(void* context, const char* t, rtObjectRef& o);
@@ -1179,6 +1176,8 @@ public:
   
 protected:
 
+  static rtError printFunc(int /*numArgs*/, const rtValue* /*args*/, rtValue* result, void* ctx);
+
   static rtError getScene(int /*numArgs*/, const rtValue* /*args*/, rtValue* result, void* ctx);
   static rtError makeReady(int /*numArgs*/, const rtValue* /*args*/, rtValue* result, void* ctx);
 
@@ -1295,6 +1294,7 @@ protected:
   rtObjectRef mReady;
   rtObjectRef mScene;
   rtRef<pxIView> mView;
+  rtRef<rtFunctionCallback> mPrintFunc;
   rtRef<rtFunctionCallback> mGetScene;
   rtRef<rtFunctionCallback> mMakeReady;
   rtRef<rtFunctionCallback> mGetContextID;
@@ -1327,6 +1327,7 @@ public:
   rtMethodNoArgAndNoReturn("logDebugMetrics", logDebugMetrics);
   rtMethodNoArgAndNoReturn("collectGarbage", collectGarbage);
   rtReadOnlyProperty(info, info, rtObjectRef);
+  rtReadOnlyProperty(capabilities, capabilities, rtObjectRef);
   rtMethod1ArgAndReturn("suspend", suspend, rtValue, bool);
   rtMethod1ArgAndReturn("resume", resume, rtValue, bool);
   rtMethodNoArgAndReturn("suspended", suspended, bool);
@@ -1368,7 +1369,7 @@ public:
   rtReadOnlyProperty(alignHorizontal,alignHorizontal,rtObjectRef);
   rtReadOnlyProperty(truncation,truncation,rtObjectRef);
 
-  rtReadOnlyProperty(origin, origin, rtString);
+  rtMethod1ArgAndReturn("sparkSetting", sparkSetting, rtString, rtValue);
 
   rtMethodNoArgAndNoReturn("dispose",dispose);
 
@@ -1521,7 +1522,7 @@ public:
 #endif
   rtCORSRef cors() const { return mCORS; }
   rtError cors(rtObjectRef& v) const { v = mCORS; return RT_OK; }
-  rtError origin(rtString& v) const { v = mOrigin; return RT_OK; }
+  rtError sparkSetting(const rtString& setting, rtValue& value) const;
 
   void setMouseEntered(rtRef<pxObject> o);//setMouseEntered(pxObject* o);
 
@@ -1574,6 +1575,13 @@ public:
     return RT_OK;
   }
 
+  rtObjectRef  getCapabilities() const;
+  rtError capabilities(rtObjectRef& v) const
+  {
+    v = getCapabilities();
+    return RT_OK;
+  }
+
   rtError loadArchive(const rtString& url, rtObjectRef& archive)
   {
 #ifdef ENABLE_PERMISSIONS_CHECK
@@ -1615,6 +1623,7 @@ private:
 
   rtRef<pxObject> mRoot;
   rtObjectRef mInfo;
+  rtObjectRef mCapabilityVersions;
   rtObjectRef mFocusObj;
   double start, sigma_draw, sigma_update, end2;
 
@@ -1650,7 +1659,6 @@ private:
   bool mPointerHidden;
   std::vector<rtObjectRef> mInnerpxObjects;
   rtFunctionRef mCustomAnimator;
-  rtString mOrigin;
 #ifdef ENABLE_PERMISSIONS_CHECK
   rtPermissionsRef mPermissions;
 #endif

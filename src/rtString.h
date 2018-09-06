@@ -49,19 +49,34 @@ public:
   rtString(const rtString& s);
   
   ~rtString();
-  
+
   rtString& operator=(const rtString& s);
   rtString& operator=(const char* s);
 
+  friend
+  rtString operator+(const rtString& lhs, const char *rhs)
+  {
+    rtString ans(lhs);
+    ans = ans.append(rhs);
+    return ans;
+  }
+
+  rtString& operator +(const char* s)     { return append(s);           };
+  rtString& operator +(const rtString& s) { return append(s.cString()); };
+  rtString& operator+=(const char* s)     { return append(s);           };
+  rtString& operator+=(const rtString& s) { return append(s.cString()); };
+  
   /**
    * Determines if the string is empty.
    * @returns true if string length is zero or is null
    */
   bool isEmpty() const;
 
+  rtString& init(const char* s, size_t byteLen);
+
   void term();
 
-  void append(const char* s);
+  rtString&  append(const char* s);
 
   int compare(const char* s) const;
 

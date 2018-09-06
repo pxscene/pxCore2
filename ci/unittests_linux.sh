@@ -6,9 +6,9 @@ checkError()
   then
     printf "\n\n*********************************************************************";
     printf "\n*******************CODE COVERAGE FAIL DETAILS************************";
-    printf "\nCI failure reason: "$2""
-    printf "\nCause:  "$3""
-    printf "\nReproduction/How to fix: "$4""	
+    printf "\nCI failure reason: $2"
+    printf "\nCause:  $3"
+    printf "\nReproduction/How to fix: $4"	
     printf "\n*********************************************************************";
     printf "\n*********************************************************************\n\n";
     exit 1
@@ -16,6 +16,8 @@ checkError()
 }
 
 ulimit -c unlimited
+export HANDLE_SIGNALS=1
+rm /tmp/pxscenecrash
 cd $TRAVIS_BUILD_DIR/tests/pxScene2d;
 touch $TRAVIS_BUILD_DIR/logs/test_logs;
 TESTLOGS=$TRAVIS_BUILD_DIR/logs/test_logs;
@@ -24,16 +26,34 @@ TESTLOGS=$TRAVIS_BUILD_DIR/logs/test_logs;
 grep "Global test environment tear-down" $TESTLOGS
 retVal=$?
 count=0
-while [ "$retVal" -ne 0 ] &&  [ "$count" -ne 180 ]; do
+corefile=1
+while [ "$retVal" -ne 0 ] &&  [ "$count" -ne 180 ] && [ "$corefile" -eq 1 ] ; do
 	sleep 60;
 	grep "Global test environment tear-down" $TESTLOGS
 	retVal=$?
+        ls /tmp/pxscenecrash
+        corefile=$? 
 	count=$((count+60))
 	echo "unittests running for $count seconds"
 done
 
-echo "kill -9 `ps -ef | grep pxscene2dtests |grep -v grep|grep -v pxscene2dtests.sh|awk '{print $2}'`"
-kill -9 `ps -ef | grep pxscene2dtests |grep -v grep|grep -v pxscene2dtests.sh|awk '{print $2}'`
+#check for corefile presence
+processId=`ps -ef | grep pxscene2dtests |grep -v grep|grep -v pxscene2dtests.sh|awk '{print $2}'`
+ls -l /tmp/pxscenecrash
+retVal=$?
+if [ "$retVal" -eq 0 ]
+  then
+  $TRAVIS_BUILD_DIR/ci/check_dump_cores_linux.sh `pwd` "$TRAVIS_BUILD_DIR/tests/pxScene2d/pxscene2dtests" "$processId" "$TESTLOGS"
+  kill -9 $processId
+  sleep 5s;
+  pkill -9 -f pxscene2dtests.sh
+  echo "********************** PRINTING TEST LOG **************************"
+  cat $TESTLOGS
+  echo "************************** LOG ENDS *******************************"
+  checkError -1 "Unittests execution failed" "Core dump"  "Verify Unit test logs/Run unittests locally."
+fi
+
+kill -9 $processId
 sleep 5s;
 pkill -9 -f pxscene2dtests.sh
 
@@ -55,13 +75,6 @@ if [ "$retVal" -ne 0 ]
 	checkError $retVal "unittests execution failed" "$errCause" "Run unittests locally"
 fi
 
-#check for corefile presence
-$TRAVIS_BUILD_DIR/ci/check_dump_cores_linux.sh `pwd` pxscene2dtests $TESTLOGS
-retVal=$?
-if [ "$retVal" -eq 1 ]
-	then
-	checkError $retVal "unittests execution failed" "Core dump" "Run unittests locally"
-fi
 
 #check for failed test
 grep "FAILED TEST" $TESTLOGS

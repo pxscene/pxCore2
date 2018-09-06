@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		464BD7D8210F6ABD00C4EFB7 /* rtCORS.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 464BD7D6210F6ABD00C4EFB7 /* rtCORS.cpp */; };
+		464BD7D9210F6ABD00C4EFB7 /* rtCORS.h in Headers */ = {isa = PBXBuildFile; fileRef = 464BD7D7210F6ABD00C4EFB7 /* rtCORS.h */; };
+		464BD7DA210F6ACA00C4EFB7 /* rtCORS.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 464BD7D6210F6ABD00C4EFB7 /* rtCORS.cpp */; };
+		464BD7DB210F6ACA00C4EFB7 /* rtCORS.h in Sources */ = {isa = PBXBuildFile; fileRef = 464BD7D7210F6ABD00C4EFB7 /* rtCORS.h */; };
 		46B0773E1E30FF8000BC6B9C /* jsCallback.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46B077331E30FF8000BC6B9C /* jsCallback.cpp */; };
 		46B0773F1E30FF8000BC6B9C /* jsCallback.h in Headers */ = {isa = PBXBuildFile; fileRef = 46B077341E30FF8000BC6B9C /* jsCallback.h */; };
 		46B077421E30FF8000BC6B9C /* rtFunctionWrapper.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46B077371E30FF8000BC6B9C /* rtFunctionWrapper.cpp */; };
@@ -383,6 +387,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		464BD7D6210F6ABD00C4EFB7 /* rtCORS.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = rtCORS.cpp; path = src/rtCORS.cpp; sourceTree = SOURCE_ROOT; };
+		464BD7D7210F6ABD00C4EFB7 /* rtCORS.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = rtCORS.h; path = src/rtCORS.h; sourceTree = SOURCE_ROOT; };
 		46B077331E30FF8000BC6B9C /* jsCallback.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = jsCallback.cpp; path = src/rtScriptNode/jsCallback.cpp; sourceTree = SOURCE_ROOT; };
 		46B077341E30FF8000BC6B9C /* jsCallback.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = jsCallback.h; path = src/rtScriptNode/jsCallback.h; sourceTree = SOURCE_ROOT; };
 		46B077371E30FF8000BC6B9C /* rtFunctionWrapper.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = rtFunctionWrapper.cpp; path = src/rtScriptNode/rtFunctionWrapper.cpp; sourceTree = SOURCE_ROOT; };
@@ -647,6 +653,8 @@
 		4C12026B1E9683C900B0F89C /* rtCode */ = {
 			isa = PBXGroup;
 			children = (
+				464BD7D6210F6ABD00C4EFB7 /* rtCORS.cpp */,
+				464BD7D7210F6ABD00C4EFB7 /* rtCORS.h */,
 				46B077371E30FF8000BC6B9C /* rtFunctionWrapper.cpp */,
 				46B077381E30FF8000BC6B9C /* rtFunctionWrapper.h */,
 				46B077391E30FF8000BC6B9C /* rtObjectWrapper.cpp */,
@@ -1074,6 +1082,7 @@
 				4CF546A820210AB600529907 /* rtPromise.h in Headers */,
 				4CF546A920210AB600529907 /* pxClipboardNative.h in Headers */,
 				4CF546AA20210AB600529907 /* rtCore.h in Headers */,
+				464BD7D9210F6ABD00C4EFB7 /* rtCORS.h in Headers */,
 				4C8440BA20D82FAD00C24E45 /* rtPermissions.h in Headers */,
 				4CF546AB20210AB600529907 /* rtFileCache.h in Headers */,
 				4CF546AC20210AB600529907 /* rtRef.h in Headers */,
@@ -1622,6 +1631,7 @@
 				4CF5464220210AB600529907 /* rtThreadPoolNative.cpp in Sources */,
 				4CF5464320210AB600529907 /* pxInterpolators.cpp in Sources */,
 				4CF5464420210AB600529907 /* rtLog.cpp in Sources */,
+				464BD7D8210F6ABD00C4EFB7 /* rtCORS.cpp in Sources */,
 				4CF5464520210AB600529907 /* rtString.cpp in Sources */,
 				4CF5464620210AB600529907 /* pxWindowNative.mm in Sources */,
 				4C8440B520D82F7E00C24E45 /* rtSettings.cpp in Sources */,
@@ -1742,6 +1752,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				464BD7DA210F6ACA00C4EFB7 /* rtCORS.cpp in Sources */,
+				464BD7DB210F6ACA00C4EFB7 /* rtCORS.h in Sources */,
 				46B077A91E30FFC700BC6B9C /* unzip.c in Sources */,
 				46B077B51E30FFED00BC6B9C /* rtThreadPoolNative.cpp in Sources */,
 				46D304761E673978000C5A5B /* pxInterpolators.cpp in Sources */,
@@ -1851,6 +1863,7 @@
 					"examples/pxScene2d/external/libnode-v6.9.0/deps/uv/include",
 					"examples/pxScene2d/external/libnode-v6.9.0/deps/v8",
 					"examples/pxScene2d/external/libnode-v6.9.0/deps/debugger-agent/include",
+					"examples/pxScene2d/external/libnode-v6.9.0/deps/openssl/openssl/include",
 					"examples/pxScene2d/external/libnode-v6.9.0/deps/v8/include",
 					"examples/pxScene2d/external/libnode-v6.9.0/deps/cares/include",
 					examples/pxScene2d/external/zlib/,
@@ -1997,6 +2010,7 @@
 					"examples/pxScene2d/external/libnode-v6.9.0/src",
 					"examples/pxScene2d/external/libnode-v6.9.0/deps/uv/include",
 					"examples/pxScene2d/external/libnode-v6.9.0/deps/v8",
+					"examples/pxScene2d/external/libnode-v6.9.0/deps/openssl/openssl/include",
 					"examples/pxScene2d/external/libnode-v6.9.0/deps/debugger-agent/include",
 					"examples/pxScene2d/external/libnode-v6.9.0/deps/v8/include",
 					"examples/pxScene2d/external/libnode-v6.9.0/deps/cares/include",
@@ -2071,6 +2085,7 @@
 					"examples/pxScene2d/external/libnode-v6.9.0/src",
 					"examples/pxScene2d/external/libnode-v6.9.0/deps/uv/include",
 					"examples/pxScene2d/external/libnode-v6.9.0/deps/v8",
+					"examples/pxScene2d/external/libnode-v6.9.0/deps/openssl/openssl/include",
 					"examples/pxScene2d/external/libnode-v6.9.0/deps/debugger-agent/include",
 					"examples/pxScene2d/external/libnode-v6.9.0/deps/v8/include",
 					"examples/pxScene2d/external/libnode-v6.9.0/deps/cares/include",
@@ -2487,6 +2502,7 @@
 					"examples/pxScene2d/external/libnode-v6.9.0/deps/uv/include",
 					"examples/pxScene2d/external/libnode-v6.9.0/deps/v8",
 					"examples/pxScene2d/external/libnode-v6.9.0/deps/debugger-agent/include",
+					"examples/pxScene2d/external/libnode-v6.9.0/deps/openssl/openssl/include",
 					"examples/pxScene2d/external/libnode-v6.9.0/deps/v8/include",
 					"examples/pxScene2d/external/libnode-v6.9.0/deps/cares/include",
 					examples/pxScene2d/external/zlib/,
@@ -2560,6 +2576,7 @@
 					"examples/pxScene2d/external/libnode-v6.9.0/deps/uv/include",
 					"examples/pxScene2d/external/libnode-v6.9.0/deps/v8",
 					"examples/pxScene2d/external/libnode-v6.9.0/deps/debugger-agent/include",
+					"examples/pxScene2d/external/libnode-v6.9.0/deps/openssl/openssl/include",
 					"examples/pxScene2d/external/libnode-v6.9.0/deps/v8/include",
 					"examples/pxScene2d/external/libnode-v6.9.0/deps/cares/include",
 					examples/pxScene2d/external/zlib/,
