@@ -1642,6 +1642,7 @@ void pxObject::createSnapshotOfChildren()
 
   float w = getOnscreenWidth();
   float h = getOnscreenHeight();
+  float color[] = {0.0, 0.0, 0.0, parentAlpha};
 
   //rtLogInfo("createSnapshotOfChildren  w=%f h=%f\n", w, h);
 
@@ -1667,6 +1668,7 @@ void pxObject::createSnapshotOfChildren()
   if (context.setFramebuffer(mMaskSnapshot) == PX_OK)
   {
     context.clear(static_cast<int>(w), static_cast<int>(h));
+    context.clear(0, 0, color);
 
     for(vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
     {
@@ -1682,6 +1684,7 @@ void pxObject::createSnapshotOfChildren()
   if (context.setFramebuffer(mDrawableSnapshotForMask) == PX_OK)
   {
     context.clear(static_cast<int>(w), static_cast<int>(h));
+    context.clear(0, 0, color);
 
     for(vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
     {
