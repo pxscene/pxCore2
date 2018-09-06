@@ -43,14 +43,5 @@
       {"url":"../tests/test_animationOscillate.js", "title":"test_ANIM_oscillate","useBaseURI":"true"},
       {"url":"../tests/test_textBoxEllipsis_oneLine.js", "title":"test_textBoxEllipsis_oneLine","useBaseURI":"true"},
       {"url":"../tests/test_textBoxWrapBounds.js", "title":"test_textBoxWrapBounds","useBaseURI":"true"},
-      {"url": "../tests/mime/test_empty.js", "title": "Empty test", "useBaseURI": "true" },
-      {"url": "../tests/mime/test_md_basic.js", "title": "Emphasis (bold, italics, underline)", "useBaseURI": "true" },
-      {"url": "../tests/mime/test_md_list.js", "title": "Ordered&Unordered lists", "useBaseURI": "true" },
-      {"url": "../tests/mime/test_md_header.js", "title": "Headers", "useBaseURI": "true" },
-      {"url": "../tests/mime/test_md_image.js", "title": "Images (using the MIME dispatcher)", "useBaseURI": "true" },
-      {"url": "../tests/mime/test_md_quote.js", "title": "Blockquotes", "useBaseURI": "true" },
-      {"url": "../tests/mime/test_md_code.js", "title": "Inline code", "useBaseURI": "true" },
-      {"url": "../tests/mime/test_md_link.js", "title": "Markdown links", "useBaseURI": "true" },
-      {"url": "../tests/mime/test_md_theme.js", "title": "Markdown theme", "useBaseURI": "true" },
       {"url":"../tests/test_textWithoutParent.js", "title":"textWithoutParent","useBaseURI":"true"}
 ]
