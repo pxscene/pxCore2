@@ -18,6 +18,7 @@
 
 #include "pxScene2d.h"
 #include "pxContext.h"
+
 #include "pxPath.h"
 
 
@@ -47,12 +48,12 @@ void pxPath::onInit()
   float iw = ( w() <= 0 ) ? mImage.width()  : w();
   float ih = ( h() <= 0 ) ? mImage.height() : h();
   
-  rtError ret = pxLoadSVGImage(s, len, mImage, iw, ih);
+  rtError ret = pxLoadSVGImage(s, len, mImage, static_cast<int>(iw), static_cast<int>(ih));
   
   // If pxObject dimensions NOT set yet ... infer from SVG
   //
-  if(iw <=0) iw = mImage.width();
-  if(ih <=0) ih = mImage.height();
+  if(iw <=0) iw = static_cast<float>(mImage.width());
+  if(ih <=0) ih = static_cast<float>(mImage.height());
   
   if(ret == RT_OK)
   {
@@ -97,7 +98,7 @@ void pxPath::draw()
   {
     static pxTextureRef nullMaskRef;
 
-    context.drawImage(0, 0,  mTexture->width(), mTexture->height(),
+    context.drawImage(0, 0,  static_cast<float>(mTexture->width()), static_cast<float>(mTexture->height()),
                       mTexture, nullMaskRef,  false, NULL,
                       pxConstantsStretch::NONE,
                       pxConstantsStretch::NONE,

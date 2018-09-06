@@ -16,32 +16,72 @@ limitations under the License.
 
 */
 
+'use strict';
 
-module.exports = function (orig, override) {
-  var wrapper = {};
-  for (var prop in orig) {
-    (function(prop) {
-      if (override && override.hasOwnProperty(prop)) {
-        wrapper[prop] = override[prop];
-      } else if (typeof(orig[prop]) === 'function') {
-        wrapper[prop] = function () {
-          return orig[prop].apply(this, arguments);
-        }
-      } else {
-        Object.defineProperty(wrapper, prop, {
-          'get': function () {
-            if (orig[prop] === orig) {
-              return wrapper;
-            } else {
-              return orig[prop];
-            }
-          },
-          'set': function (value) {
-            orig[prop] = value;
-          }
-        });
-      }
-    })(prop);
+/**
+ * Creates a wrapper around {@see from} and based on {@see to}. Result has props/functions of both.
+ * @param from
+ * @param to
+ * @param thisArg - replaces 'this' in result's functions
+ * @param props - a set of props from {@see from}, otherwise all props
+ * @param events - if set, result is an event emitter with given events from {@see from}
+ * @param eventArgWrapper - if {@see events} set, used to modify event params
+ * @returns {{}}
+ */
+function wrap(from, to, thisArg, props, events, eventArgWrapper) {
+  var keys = props ? props : [];
+  if (!props) {
+    for (var prop in from) {
+      keys.push(prop);
+    }
   }
-  return wrapper;
-};
+  var ret = {};
+  if (events) {
+    // TODO: using EventEmitter here causes leaks
+    ret = {
+      on: function (type, listener) {
+        if (events.indexOf(type) !== -1) {
+          return from.on(type, function () {
+            var args = Array.prototype.slice.call(arguments);
+            if (eventArgWrapper) {
+              args = args.map(eventArgWrapper);
+            }
+            listener.apply(this, args);
+          });
+        }
+      },
+      removeAllListeners: function () {
+        from.removeAllListeners();
+      }
+    };
+  } else if (to) {
+    ret = to;
+  }
+  keys.forEach(function(prop) {
+    if (!ret.hasOwnProperty(prop)) {
+      (function (prop) {
+        if (typeof(from[prop]) === 'function') {
+          ret[prop] = function () {
+            return from[prop].apply(thisArg ? thisArg : this, arguments);
+          };
+        } else {
+          Object.defineProperty(ret, prop, {
+            'get': function () {
+              if (from[prop] === from) {
+                return ret;
+              } else {
+                return from[prop];
+              }
+            },
+            'set': function (value) {
+              from[prop] = value;
+            }
+          });
+        }
+      })(prop);
+    }
+  });
+  return ret;
+}
+
+module.exports = wrap;

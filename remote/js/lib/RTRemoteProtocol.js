@@ -167,6 +167,11 @@ class RTRemoteProtocol {
       if (args && args.length > 0) {
         args.forEach(arg => injectProtocol(arg));
       }
+    } else if (type === RTRemoteMessageType.METHOD_CALL_RESPONSE) {
+      const args = message[RTConst.FUNCTION_RETURN_VALUE];
+      if (args && Object.keys(args).length > 0) {
+        injectProtocol(args);
+      }
     }
   }
 
@@ -302,3 +307,4 @@ function create(transport, transportOpened) {
 module.exports = {
   create,
 };
+
