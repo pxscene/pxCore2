@@ -58,7 +58,6 @@ class sceneWindow : public pxWindow, public pxIViewContainer
   public:
     void init(int x, int y, int w, int h, const char* url = NULL)
     {
-      UNUSED_PARAM(url);
       mWidth = w;
       mHeight = h;
       pxWindow::init(x,y,w,h);

@@ -60,7 +60,6 @@ rm -rf /var/tmp/spark.log
 cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src/spark.app/Contents/MacOS
 ./spark.sh -disableFilePermissionCheck=true $TESTRUNNERURL?tests=$TESTS &
 
-
 # Monitor testRunner ...
 count=0
 max_seconds=900
