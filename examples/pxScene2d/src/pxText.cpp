@@ -108,7 +108,7 @@ void pxText::resourceReady(rtString readyResolution)
       if( !mParent)
       {
         // Send the promise here because the text will not get an 
-        // update call until it has a parent
+        // update call until it has parent
         sendPromise();
       }
       pxObject::onTextureReady();
