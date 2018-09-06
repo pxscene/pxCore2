@@ -21,6 +21,8 @@ limitations under the License.
  */
 'use strict';
 
+var baseUrl = "http://www.pxscene.org/examples/px-reference/gallery/";
+
 px.import({
   mimeTypes: 'pxMimeTypes.js',
 })
