@@ -58,7 +58,7 @@ printExecLogs()
 # Start testRunner ...
 rm -rf /var/tmp/spark.log
 cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src/spark.app/Contents/MacOS
-./spark.sh $TESTRUNNERURL?tests=$TESTS &
+./spark.sh -disableFilePermissionCheck=true $TESTRUNNERURL?tests=$TESTS &
 
 
 # Monitor testRunner ...
@@ -91,12 +91,29 @@ while [ "$count" -le "$max_seconds" ]; do
 	count=$((count+30)) # add 30 seconds
 done #LOOP
 
+grep -n "WARNING: ThreadSanitizer:" /var/tmp/pxscene.log
+if [ "$?" -eq 0 ]
+    then
+    cp /var/tmp/pxscene.log $EXECLOGS
+    if [ "$TRAVIS_PULL_REQUEST" != "false" ]
+    then
+      errCause="Race Condition detected. Check the above logs"
+      printExecLogs
+    else
+      errCause="Race Condition detected. Check the log file $EXECLOGS"
+    fi
+    checkError -1 "Testcase Failure" "$errCause" "Compile spark with -DENABLE_THREAD_SANITIZER=ON option and test with tests.json file."
+    exit 1
+fi
+
 # Handle crash - 'dumped_core = 1' ?
 if [ "$dumped_core" -eq 1 ]
 	then
 	ps -ef | grep Spark |grep -v grep >> /var/tmp/spark.log
-        ps -ef |grep /bin/sh |grep -v grep >> /var/tmp/spark.log
+  ps -ef |grep /bin/sh |grep -v grep >> /var/tmp/spark.log
 	$TRAVIS_BUILD_DIR/ci/check_dump_cores_osx.sh `pwd` `ps -ef | grep Spark |grep -v grep|grep -v spark.sh|awk '{print $2}'` /var/tmp/spark.log
+  cp /var/tmp/pxscene.log $EXECLOGS
+  printExecLogs
 	checkError $dumped_core "Execution failed" "Core dump" "Run execution locally"
 fi
 

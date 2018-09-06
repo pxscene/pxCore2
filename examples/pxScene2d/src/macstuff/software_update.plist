@@ -9,7 +9,7 @@
       <key>Predicate</key>
       <string>Ticket.version != '__VERSION__'</string>
       <key>Codebase</key>
-      <string>http://www.pxscene.org/dist/osx/pxscene/pxscene.dmg</string>
+      <string>__IMG_URL__</string>
       <key>Hash</key>
       <string>__HASH__</string>
       <key>Size</key>

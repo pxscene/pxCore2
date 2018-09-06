@@ -157,7 +157,7 @@ rtFileDownloadRequest::rtFileDownloadRequest(const char* imageUrl, void* callbac
     , mCacheEnabled(true), mIsDataInCache(false), mDeferCacheRead(false)
 #endif
     , mIsProgressMeterSwitchOff(false), mHTTPFailOnError(false), mDefaultTimeout(false)
-    , mCanceled(false), mCanceledMutex()
+    , mCORS(), mCanceled(false), mCanceledMutex()
 {
   mAdditionalHttpHeaders.clear();
 #ifdef ENABLE_HTTP_CACHE
@@ -435,6 +435,16 @@ void rtFileDownloadRequest::setCurlDefaultTimeout(bool val)
 bool rtFileDownloadRequest::isCurlDefaultTimeoutSet()
 {
   return mDefaultTimeout;
+}
+
+void rtFileDownloadRequest::setCORS(const rtCORSRef& cors)
+{
+  mCORS = cors;
+}
+
+rtCORSRef rtFileDownloadRequest::cors() const
+{
+  return mCORS;
 }
 
 void rtFileDownloadRequest::cancelRequest()

@@ -171,19 +171,20 @@ public:
       "expires: Tue, 10 Jul 2018 14:33:54 GMT\r\n"
       "connection: close"
     ;
-    char* rawHeaderData_str = new char[rawHeaderData.byteLength()];
+    char* rawHeaderData_str = (char*)malloc(rawHeaderData.byteLength()+1);
+    memset(rawHeaderData_str, 0, rawHeaderData.byteLength()+1);
     strcpy(rawHeaderData_str, rawHeaderData.cString());
     request.setHeaderData(rawHeaderData_str, rawHeaderData.byteLength());
     rtString downloadedData;
     downloadedData =
       "data"
     ;
-    char* downloadedData_str = new char[downloadedData.byteLength()];
+    char* downloadedData_str = (char*)malloc(downloadedData.byteLength()+1);
+    memset(downloadedData_str, 0, downloadedData.byteLength()+1);
     strcpy(downloadedData_str, downloadedData.cString());
     request.setDownloadedData(downloadedData_str, downloadedData.byteLength());
     EXPECT_FALSE (NULL == request.downloadedData());
     EXPECT_EQ ((int)downloadedData.byteLength(), (int)request.downloadedDataSize());
-
     cors.updateResponseForAccessControl(&request);
 
     int statusCode = request.downloadStatusCode();
@@ -274,6 +275,63 @@ public:
     e = cors.passesAccessControlCheck("Access-Control-Allow-Origin: *", false, "", passes);
     EXPECT_EQ ((int)RT_ERROR, (int)e);
   }
+
+  void isCORSRequestHeader_test()
+  {
+    rtError e;
+    bool result;
+    rtCORS cors("http://example.com");
+
+    e = cors.isCORSRequestHeader("", result);
+    EXPECT_EQ ((int)RT_OK, (int)e);
+    EXPECT_FALSE (result);
+
+    e = cors.isCORSRequestHeader("Access-Control-Allow-Origin", result);
+    EXPECT_EQ ((int)RT_OK, (int)e);
+    EXPECT_FALSE (result);
+
+    e = cors.isCORSRequestHeader("Origin", result);
+    EXPECT_EQ ((int)RT_OK, (int)e);
+    EXPECT_TRUE (result);
+
+    e = cors.isCORSRequestHeader("access-control-request-headers", result);
+    EXPECT_EQ ((int)RT_OK, (int)e);
+    EXPECT_TRUE (result);
+  }
+
+  void isCredentialsRequestHeader_test()
+  {
+    rtError e;
+    bool result;
+    rtCORS cors("http://example.com");
+
+    e = cors.isCredentialsRequestHeader("", result);
+    EXPECT_EQ ((int)RT_OK, (int)e);
+    EXPECT_FALSE (result);
+
+    e = cors.isCredentialsRequestHeader("Access-Control-Allow-Origin", result);
+    EXPECT_EQ ((int)RT_OK, (int)e);
+    EXPECT_FALSE (result);
+
+    e = cors.isCredentialsRequestHeader("Cookie", result);
+    EXPECT_EQ ((int)RT_OK, (int)e);
+    EXPECT_TRUE (result);
+
+    e = cors.isCredentialsRequestHeader("authorization", result);
+    EXPECT_EQ ((int)RT_OK, (int)e);
+    EXPECT_TRUE (result);
+  }
+
+  void origin_test()
+  {
+    rtError e;
+    rtString result;
+    rtCORS cors("http://example.com");
+
+    e = cors.origin(result);
+    EXPECT_EQ ((int)RT_OK, (int)e);
+    EXPECT_EQ ((int)0, (int)result.compare("http://example.com"));
+  }
 };
 
 TEST_F(corsTest, corsTests)
@@ -283,4 +341,7 @@ TEST_F(corsTest, corsTests)
   updateRequestForAccessControl_test();
   updateResponseForAccessControl_test();
   passesAccessControlCheck_test();
+  isCORSRequestHeader_test();
+  isCredentialsRequestHeader_test();
+  origin_test();
 }
