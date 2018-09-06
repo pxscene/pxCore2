@@ -322,20 +322,20 @@ protected:
       mView->onMouseLeave();
     EXITSCENELOCK()
   }
+  
+  virtual void onScrollWheel(float dx, float dy)
+  {
+    ENTERSCENELOCK()
+    if (mView)
+    mView->onScrollWheel(dx, dy);
+    EXITSCENELOCK()
+  }
 
   virtual void onMouseMove(int32_t x, int32_t y)
   {
     ENTERSCENELOCK()
     if (mView)
       mView->onMouseMove(x, y);
-    EXITSCENELOCK()
-  }
-
-  virtual void onScrollWheel(float dx, float dy)
-  {
-    ENTERSCENELOCK()
-    if (mView)
-    mView->onScrollWheel(dx, dy);
     EXITSCENELOCK()
   }
 
