@@ -3084,6 +3084,19 @@ bool pxScene2d::bubbleEventOnBlur(rtObjectRef e, rtRef<pxObject> t, rtRef<pxObje
   
 }
 
+bool pxScene2d::onScrollWheel(float dx, float dy)
+{
+  if (mFocusObj)
+  {
+    rtObjectRef e = new rtMapObject;
+    e.set("name", "onScrollWheel");
+    e.set("dx", dx);
+    e.set("dy", dy);
+    rtRef<pxObject> t = (pxObject*)mFocusObj.get<voidPtr>("_pxObject");
+    return bubbleEvent(e, t, "onPreScrollWheel", "onScrollWheel");
+  }
+  return false;
+}
 
 bool pxScene2d::onMouseMove(int32_t x, int32_t y)
 {
@@ -3209,21 +3222,6 @@ bool pxScene2d::onMouseMove(int32_t x, int32_t y)
     rtLogDebug("found object id: %s\n", id.isEmpty()?"none":id.cString());
   }
 #endif
-  return false;
-}
-
-
-bool pxScene2d::onScrollWheel(float dx, float dy)
-{
-  if (mFocusObj)
-  {
-    rtObjectRef e = new rtMapObject;
-    e.set("name", "onScrollWheel");
-    e.set("dx", dx);
-    e.set("dy", dy);
-    rtRef<pxObject> t = (pxObject*)mFocusObj.get<voidPtr>("_pxObject");
-    return bubbleEvent(e, t, "onPreScrollWheel", "onScrollWheel");
-  }
   return false;
 }
 
@@ -3735,8 +3733,8 @@ rtDefineProperty(pxViewContainer, w);
 rtDefineProperty(pxViewContainer, h);
 rtDefineMethod(pxViewContainer, onMouseDown);
 rtDefineMethod(pxViewContainer, onMouseUp);
-rtDefineMethod(pxViewContainer, onMouseMove);
 rtDefineMethod(pxViewContainer, onScrollWheel);
+rtDefineMethod(pxViewContainer, onMouseMove);
 rtDefineMethod(pxViewContainer, onMouseEnter);
 rtDefineMethod(pxViewContainer, onMouseLeave);
 rtDefineMethod(pxViewContainer, onFocus);
