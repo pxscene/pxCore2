@@ -306,6 +306,14 @@ protected:
       eventLoop.exit();
   EXITSCENELOCK()
   }
+  
+  virtual void onScrollWheel(float dx, float dy)
+  {
+    ENTERSCENELOCK()
+    if (mView)
+    mView->onScrollWheel(dx, dy);
+    EXITSCENELOCK()
+  }
 
   virtual void onMouseUp(int32_t x, int32_t y, uint32_t flags)
   {
@@ -320,14 +328,6 @@ protected:
     ENTERSCENELOCK()
     if (mView)
       mView->onMouseLeave();
-    EXITSCENELOCK()
-  }
-  
-  virtual void onScrollWheel(float dx, float dy)
-  {
-    ENTERSCENELOCK()
-    if (mView)
-    mView->onScrollWheel(dx, dy);
     EXITSCENELOCK()
   }
 
