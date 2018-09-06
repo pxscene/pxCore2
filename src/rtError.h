@@ -61,10 +61,8 @@
 
 // errors specific to security model
 #define RT_ERROR_NOT_ALLOWED 2000
-#define RT_ERROR_CORS_NO_HEADER 2001
-#define RT_ERROR_CORS_ORIGIN_MISMATCH 2002
 
-typedef uint32_t rtError;
+typedef int rtError;
 
 const char* rtStrError(rtError e);
 

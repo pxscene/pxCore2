@@ -8,7 +8,6 @@ option(WINDOWLESS_EGL "WINDOWLESS_EGL" OFF)
 option(PXCORE_WAYLAND_EGL "PXCORE_WAYLAND_EGL" OFF)
 option(PXCORE_ESSOS "PXCORE_ESSOS" OFF)
 option(PXCORE_MATRIX_HELPERS "PXCORE_MATRIX_HELPERS" ON)
-option(PXCORE_ACCESS_CONTROL_CHECK "PXCORE_ACCESS_CONTROL_CHECK" ON)
 option(PXCORE_PERMISSIONS_CHECK "PXCORE_PERMISSIONS_CHECK" ON)
 option(BUILD_RTCORE_LIBS "BUILD_RTCORE_LIBS" ON)
 option(BUILD_PXCORE_LIBS "BUILD_PXCORE_LIBS" ON)
@@ -27,6 +26,7 @@ set(NODEDIR "${EXTDIR}/node/")
 include(../cmake/CommOpts.cmake)
 include(../cmake/CommDeps.cmake)
 include(../cmake/NodeDeps.cmake)
+include(../cmake/V8Deps.cmake)
 
 set(BUILD_RTCORE_SHARED_LIBRARY 1)
 
@@ -69,7 +69,7 @@ elseif (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
     add_definitions(${COMM_DEPS_DEFINITIONS})
 
     include_directories(AFTER
-               ${NODE_INCLUDE_DIRS}
+               ${NODE_INCLUDE_DIRS} ${V8_INCLUDE_DIRS}
           ${COMM_DEPS_INCLUDE_DIRS}
     )
 
@@ -191,6 +191,7 @@ if (PXCORE_COMPILE_WARNINGS_AS_ERRORS)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror")
 endif (PXCORE_COMPILE_WARNINGS_AS_ERRORS)
 
+include_directories(AFTER ${V8_INCLUDE_DIRS})
 include_directories(AFTER ${NODE_INCLUDE_DIRS})
 include_directories(AFTER ${CMAKE_CURRENT_SOURCE_DIR})
 
@@ -200,7 +201,7 @@ set(PXCORE_FILES ${PXCORE_FILES} pxOffscreen.cpp pxWindowUtil.cpp
         rtThreadQueue.cpp rtThreadTask.cpp rtUrlUtils.cpp
         rtZip.cpp pxInterpolators.cpp pxUtil.cpp
         rtFileDownloader.cpp unzip.c ioapi.c
-        rtScript.cpp rtSettings.cpp)
+        rtScript.cpp rtSettings.cpp rtCORS.cpp)
         
 if (SUPPORT_DUKTAPE)
     message("Adding Duktape scripting support")
@@ -212,19 +213,21 @@ endif()
 if (SUPPORT_NODE)
     message("Adding Node scripting support")
     add_definitions(-DRTSCRIPT_SUPPORT_NODE)
-    set(PXCORE_FILES ${PXCORE_FILES} rtScriptNode/rtScriptNode.cpp rtScriptNode/jsCallback.cpp rtScriptNode/rtFunctionWrapper.cpp 
-        rtScriptNode/rtObjectWrapper.cpp rtScriptNode/rtWrapperUtils.cpp)
+    set(PXCORE_FILES ${PXCORE_FILES} rtScriptV8/rtScriptNode.cpp rtScriptV8/jsCallback.cpp rtScriptV8/rtFunctionWrapper.cpp 
+        rtScriptV8/rtObjectWrapper.cpp rtScriptV8/rtWrapperUtils.cpp)
+endif()
+
+if (SUPPORT_V8)
+    message("Adding V8 scripting support")
+    add_definitions(-DRTSCRIPT_SUPPORT_V8)
+    set(PXCORE_FILES ${PXCORE_FILES} rtScriptV8/rtScriptV8.cpp rtScriptV8/jsCallback.cpp rtScriptV8/rtFunctionWrapper.cpp 
+        rtScriptV8/rtObjectWrapper.cpp rtScriptV8/rtWrapperUtils.cpp ${V8_SOURCES})
 endif()
 
 
 if (PXCORE_MATRIX_HELPERS)
   set(PXCORE_FILES ${PXCORE_FILES} pxMatrix4T.cpp)
 endif(PXCORE_MATRIX_HELPERS)
-
-if (PXCORE_ACCESS_CONTROL_CHECK)
-    add_definitions(-DENABLE_ACCESS_CONTROL_CHECK)
-    set(PXCORE_FILES ${PXCORE_FILES} rtCORSUtils.cpp)
-endif (PXCORE_ACCESS_CONTROL_CHECK)
 
 if (PXCORE_PERMISSIONS_CHECK)
     add_definitions(-DENABLE_PERMISSIONS_CHECK)

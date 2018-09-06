@@ -16,7 +16,7 @@ limitations under the License.
 
 */
 
-var isDuk = (typeof timers != "undefined")?true:false;
+var isDuk=(typeof Duktape != "undefined")?true:false;
 
 var RPCContext = require('rcvrcore/rpcContext');
 
@@ -40,6 +40,7 @@ function Scene() {
       this.truncation = scene.truncation;
       this.root = scene.root;
       this.info = scene.info;
+      this.capabilities = scene.capabilities;
       this.filePath = filePath;
       this.addServiceProvider = scene.addServiceProvider;
       this.removeServiceProvider = scene.removeServiceProvider;

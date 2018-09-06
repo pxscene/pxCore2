@@ -23,6 +23,7 @@
 
 #include "rtString.h"
 #include "rtRef.h"
+#include "rtCORS.h"
 
 // TODO it would be nice to push this back into implemention
 #include <ft2build.h>
@@ -322,7 +323,7 @@ class pxFontManager
   
   public: 
     
-    static rtRef<pxFont> getFont(const char* url, const char* proxy = NULL);
+    static rtRef<pxFont> getFont(const char* url, const char* proxy = NULL, const rtCORSRef& cors = NULL);
     static void removeFont(uint32_t fontId);
     static void clearAllFonts();
     
