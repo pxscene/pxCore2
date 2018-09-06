@@ -1,0 +1,5 @@
+[
+      {"url": "http://pxscene.org/examples/px-reference/gallery/gallery.js", "title": "gallery", "timeToRun": "5000", "useBaseURI": "false" },
+      {"url":"../tests/test_pxWayland.js", "title":"test_pxWayland","useBaseURI":"true"},
+      {"url":"../gallery/coverflowtest_v2.js","title":"coverflow","useBaseURI":"true","timeToRun":"10000"}
+]

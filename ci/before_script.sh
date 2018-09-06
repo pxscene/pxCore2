@@ -1,6 +1,9 @@
 #!/bin/sh
 
 TESTS_DIR="${TRAVIS_BUILD_DIR}/tests/pxScene2d"
+TESTSDESKTOP_JSON="${TESTS_DIR}/testRunner/testsDesktop.json"
+cp "${TESTSDESKTOP_JSON}" "${TESTS_DIR}/testRunner/testsDesktop.json_orig"
+
 TESTS_JSON="${TESTS_DIR}/testRunner/tests.json"
 cp "${TESTS_JSON}" "${TESTS_DIR}/testRunner/tests.json_orig"
 
@@ -18,7 +21,7 @@ drop_json_lines()
 }
 
 #make arrangements for ignoring some tests
-drop_json_lines "pxWayland" "${TESTS_JSON}"
+drop_json_lines "pxWayland" "${TESTSDESKTOP_JSON}"
 if ! grep -q "TEST_PERMISSIONS_CHECK\" ON" "${TESTS_DIR}/CMakeLists.txt" ; then
   drop_json_lines "permissions" "${TESTS_JSON}"
 fi
