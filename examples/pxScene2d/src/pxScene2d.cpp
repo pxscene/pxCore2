@@ -3947,12 +3947,11 @@ void pxScriptView::runScript()
 
 rtError pxScriptView::printFunc(int numArgs, const rtValue* args, rtValue* result, void* ctx)
 {
+  UNUSED_PARAM(result);
   rtLogInfo(__FUNCTION__);
 
   if (ctx)
   {
-    pxScriptView* v = (pxScriptView*)ctx;
-
     if (numArgs > 0 && !args[0].isEmpty())
     {
       rtString toPrint = args[0].toString();
