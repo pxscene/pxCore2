@@ -3225,7 +3225,6 @@ bool pxScene2d::onMouseMove(int32_t x, int32_t y)
   return false;
 }
 
-
 bool pxScene2d::onKeyDown(uint32_t keyCode, uint32_t flags)
 {
   if (mFocusObj)
