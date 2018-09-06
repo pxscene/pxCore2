@@ -34,12 +34,12 @@ public:
   rtProperty(stretchX, stretchX, setStretchX, int32_t);
   rtProperty(stretchY, stretchY, setStretchY, int32_t);
 
-  rtProperty(timeFactor, timeFactor, setTimeFactor, double);
-  rtProperty(currentFrame, currentFrame, setCurrentFrame, uint32_t);
+  //rtProperty(timeFactor, timeFactor, setTimeFactor, double);
+  //rtProperty(currentFrame, currentFrame, setCurrentFrame, uint32_t);
 
-  rtProperty(paused, paused, setPaused, bool);
+  //rtProperty(paused, paused, setPaused, bool);
 
-  rtReadOnlyProperty(numFrames, numFrames, uint32_t);
+  //rtReadOnlyProperty(numFrames, numFrames, uint32_t);
   
   rtProperty(resource, resource, setResource, rtObjectRef);
 
