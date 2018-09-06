@@ -1816,7 +1816,7 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   : mRoot(), mInfo(), mCapabilityVersions(), start(0), sigma_draw(0), sigma_update(0), end2(0), frameCount(0), mWidth(0), mHeight(0), mStopPropagation(false), mContainer(NULL), mShowDirtyRectangle(false),
     mInnerpxObjects(), mSuspended(false),
 #ifdef PX_DIRTY_RECTANGLES
-    mDirtyRect(), mLastFrameDirtyRect(),mArchive(),
+    mArchive(),mDirtyRect(), mLastFrameDirtyRect(),
 #endif //PX_DIRTY_RECTANGLES
     mDirty(true), mTestView(NULL), mDisposed(false)
 {
