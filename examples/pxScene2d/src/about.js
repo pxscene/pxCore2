@@ -182,7 +182,7 @@ px.import({ scene: 'px:scene.1.js' }).then( function importsAreReady(imports)
         title_bg.h = title.h;
 
         max_h += title.h;
-        max_h += dismissTXT.h + 15;
+        max_h += dismissTXT.h + value_h;
 
         createPanel();
 
