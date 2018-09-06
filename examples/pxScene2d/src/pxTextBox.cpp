@@ -72,6 +72,13 @@ void pxTextBox::resourceReady(rtString readyResolution)
     if( mInitialized) {
       setNeedsRecalc(true);
       pxObject::onTextureReady();
+      if( !mParent)
+      {
+        // Send the promise here because the textbox will not get an 
+        // update call until it has parent
+        recalc();
+        sendPromise();
+      }
     }
   }
   else
@@ -114,6 +121,10 @@ void pxTextBox::onInit()
   {
     mFontLoaded = true;
     setNeedsRecalc(true);
+    if (!mParent)
+    {
+      resourceReady("resolve");
+    }
   }
 }
 
@@ -427,7 +438,7 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
         // The text in hand will not fit on the current line, so prepare
         // to render what we've got and skip to next line.
         // Note: Last line will never be set when truncation is NONE.
-        if( lastLine)
+        if( lastLine || (mTruncation != pxConstantsTruncation::NONE && (tempY + ((mLeading*sy) + charH) >= this->h())) )
         {
           //rtLogDebug("LastLine: Calling renderTextRowWithTruncation with mx=%f for string \"%s\"\n",mx,accString.cString());
           renderTextRowWithTruncation(accString, lineWidth, 0, tempY, sx, sy, size, render);
@@ -756,7 +767,7 @@ void pxTextBox::renderOneLine(const char * tempStr, float tempX, float tempY, fl
         if( lineNumber == 0)
         {
           //rtLogDebug("LineNumber is 0\n");
-             xPos = tempX;
+          xPos = tempX;
           noClipX = mXStartPos;
         }
         else
@@ -1205,6 +1216,7 @@ void pxTextBox::renderTextRowWithTruncation(rtString & accString, float lineWidt
         }
 
         if(!mWordWrap) {setMeasurementBounds(xPos, charW, tempY, charH); }
+        else { setMeasurementBoundsX(false, charW);}
         setLineMeasurements(false, xPos+charW, tempY);
         if( lineNumber==0) {setLineMeasurements(true, xPos, tempY);}
 
@@ -1230,6 +1242,7 @@ void pxTextBox::renderTextRowWithTruncation(rtString & accString, float lineWidt
 #endif          
           }
           if(!mWordWrap) { setMeasurementBounds(xPos, charW+ellipsisW, tempY, charH); }
+          else { setMeasurementBoundsX(false, charW+ellipsisW);}
           setLineMeasurements(false, xPos+charW+ellipsisW, tempY);
         }
         break;
@@ -1271,6 +1284,7 @@ void pxTextBox::renderTextRowWithTruncation(rtString & accString, float lineWidt
             xPos = lineWidth - charW - ellipsisW;
           }
           if(!mWordWrap){ setMeasurementBounds(xPos, charW, tempY, charH); }
+          else { setMeasurementBoundsX(false, charW);}
           setLineMeasurements(false, xPos+charW, tempY);
           if( lineNumber==0) {setLineMeasurements(true, xPos, tempY);  }
           if( render && getFontResource() != NULL)
@@ -1297,6 +1311,7 @@ void pxTextBox::renderTextRowWithTruncation(rtString & accString, float lineWidt
 #endif         
           }
           if(!mWordWrap) { setMeasurementBounds(xPos, charW+ellipsisW, tempY, charH); }
+          else { setMeasurementBoundsX(false, charW+ellipsisW);}
           setLineMeasurements(false, xPos+charW+ellipsisW, tempY);
         }
         break;

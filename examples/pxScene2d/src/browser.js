@@ -22,9 +22,11 @@ var baseUrl = "http://www.pxscene.org/examples/px-reference/gallery/";
 px.configImport({"browser:" : /*px.getPackageBaseFilePath() + */ "browser/"});
 
 
-px.import({ scene:      'px:scene.1.js',
-             keys:      'px:tools.keys.js',
-             EditBox: 'browser:editbox.js'
+px.import({ scene:    'px:scene.1.js',
+             keys:    'px:tools.keys.js',
+             ListBox: 'browser:listbox.js',
+             EditBox: 'browser:editbox.js',
+             mime:    'mime.js'
 }).then( function importsAreReady(imports)
 {  
   var url   = "";
@@ -34,6 +36,9 @@ px.import({ scene:      'px:scene.1.js',
   var keys  = imports.keys;
   var root  = imports.scene.root;
  
+  var resolveSceneUrl = imports.mime.resolveSceneUrl;
+  var base  = px.getPackageBaseFilePath();
+
   var urlFocusColor     = 0x303030ff;
   var urlSucceededColor = 0x0c8508ff;
   var urlFailedColor    = 0xde0700ff;
@@ -42,13 +47,16 @@ px.import({ scene:      'px:scene.1.js',
 
   var fontRes   = scene.create({ t: "fontResource",  url: "FreeSans.ttf" });
 
-  var bg        = scene.create({t:"image",  parent: root, url:"browser/images/status_bg.png", stretchX: myStretch, stretchY: myStretch});
+  var bg        = scene.create({t:"image",  parent: root, url:"browser/images/status_bg.svg", stretchX: myStretch, stretchY: myStretch });
   var browser   = scene.create({t:"object", parent: bg} );
   var content   = scene.create({t:"scene",  parent: bg,      x:10, y:60, clip:true });
 
   var contentBG = scene.create({t:"rect",   parent: browser, x:10, y:60, fillColor: 0xffffffff, a: 0.05 });
   var spinner   = scene.create({t:"image",  parent: browser, url: "browser/images/spinningball2.png",  y:-80, cx: 50, cy: 50, sx: 0.3, sy: 0.3,a:0.0 });
   var inputBox = new imports.EditBox( { parent: browser, url: "browser/images/input2.png", x: 10, y: 10, w: 800, h: 35, pts: 24 });
+  var listBox = new imports.ListBox( { parent: content, x: 950, y: 0, w: 200, h: 100, visible:false, numItems:3 });
+
+  
   var helpBox   = null;
 
   var pageInsetL = 20;
@@ -69,6 +77,7 @@ px.import({ scene:      'px:scene.1.js',
   scene.on('onClose', function(e) {
     keys = null;
     for (var key in inputBox) { delete inputBox[key]; }
+    listBox = null;
     browser = null
     inputBox = null;
     scene = null;
@@ -76,43 +85,7 @@ px.import({ scene:      'px:scene.1.js',
 
   function reload(u)
   {
-    if (!u)
-      u = inputBox.text;
-    else
-      inputBox.text = u;
-
-    if (u.indexOf("local:") === 0) // LOCAL shorthand
-    {
-      var txt = u.slice(6, u.length);
-      var pos = txt.indexOf(':');
-      if ( pos == -1)
-      {
-        u = "http://localhost:8080/" + txt;   // SHORTCUT:   "local:filename.js""  >>  "http://localhost:8080/filename.js" (default to 8080)
-      }
-      else
-      {
-        var str = txt.split('');
-        str[pos] = "/"; // replace : with /
-        txt = str.join('');
-
-        u = "http://localhost:" + txt;       // SHORTCUT:   "local:8081:filename.js" >> "http://localhost:8081/filename.js""
-      }
-
-      url = u;
-    }
-
-    // TODO Temporary hack
-    if(u == "about.js")
-    {
-        u = "about.js";
-    }
-    else        
-    if (u.indexOf(':') == -1)
-    {
-      u = baseUrl + u;
-      //  inputBox.text = u;
-    }
-
+    u = resolveSceneUrl(u);
     console.log("RELOADING.... [ " + u + " ]");
 
     // Prime the Spinner !
@@ -140,7 +113,7 @@ px.import({ scene:      'px:scene.1.js',
       content.ready.then(
         function(o)
         {
-          console.log(o);
+          listBox.addItem(inputBox.text);
           contentBG.draw = true;
           content.focus = true;
 
@@ -293,6 +266,25 @@ px.import({ scene:      'px:scene.1.js',
         e.stopPropagation();
     }
     }
+    // display or hide the listbox
+    else if(e.keyCode == keys.PAGEDOWN)
+    {
+      listBox.visible = !listBox.visible;
+      listBox.focus = !listBox.focus;
+    }
+    else if( code == keys.ENTER && listBox.visible == true)
+    {
+      var listBoxItem = listBox.selectedItem();
+      if (listBoxItem == "UNAVAILABLE")
+      {
+        url = inputBox.text;
+      }
+      else
+      {
+        url = listBoxItem;
+      }
+      reload(url);
+    }
     else if( code == keys.ENTER && inputBox.focus == true)
     {
       url = inputBox.text;
@@ -309,7 +301,7 @@ px.import({ scene:      'px:scene.1.js',
 
   scene.on("onResize", function(e) { updateSize(e.w,e.h); });
 
-  Promise.all([inputBox, bg, spinner, content, fontRes])
+  Promise.all([listBox, inputBox, bg, spinner, content, fontRes])
       .catch( function (err)
       {
           console.log(">>> Loading Assets ... err = " + err);

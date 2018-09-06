@@ -32,30 +32,30 @@ fi
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-if [ "$TRAVIS_EVENT_TYPE" != "cron" ] && [ "$TRAVIS_EVENT_TYPE" != "api" ] ;
+if [ "$TRAVIS_EVENT_TYPE" != "cron" ] && [ "$TRAVIS_EVENT_TYPE" != "api" ] && [ -z "${TRAVIS_TAG}" ] 
 then
   export CODE_COVERAGE=1
+  export USE_HTTP_CACHE=1
 fi
-
 cd $TRAVIS_BUILD_DIR;
 mkdir -p temp
 cd  temp
 
 if [ "$TRAVIS_PULL_REQUEST" = "false" ]
 then
-
   echo "***************************** Generating config files ****" >> $BUILDLOGS
-  if [ "$TRAVIS_EVENT_TYPE" != "cron" ] && [ "$TRAVIS_EVENT_TYPE" != "api" ] ;
+  if [ "$TRAVIS_EVENT_TYPE" != "cron" ] && [ "$TRAVIS_EVENT_TYPE" != "api" ] && [ -z "${TRAVIS_TAG}" ] 
   then
-    cmake -DBUILD_PX_TESTS=ON -DBUILD_PXSCENE_STATIC_LIB=ON -DBUILD_DEBUG_METRICS=ON .. >>$BUILDLOGS 2>&1;
+    cmake -DBUILD_PX_TESTS=ON -DBUILD_PXSCENE_STATIC_LIB=ON -DBUILD_DEBUG_METRICS=ON -DPXSCENE_TEST_HTTP_CACHE=ON -DENABLE_THREAD_SANITIZER=ON .. >>$BUILDLOGS 2>&1;
   else
     if [ "$TRAVIS_EVENT_TYPE" == "cron" ] ; 
     then
       cp ../examples/pxScene2d/src/macstuff/Resources/SparkEdge.icns ../examples/pxScene2d/src/macstuff/Resources/pxscene.icns
       cp ../examples/pxScene2d/src/macstuff/Resources/SparkEdge.icns ../examples/pxScene2d/src/macstuff/Resources/AppIcon.icns
       cp ../examples/pxScene2d/src/macstuff/Resources/SparkEdge.icns ../examples/pxScene2d/src/macstuff/dmgresources/pxscene.icns
+      cp ../examples/pxScene2d/src/browser/images/status_bg_edge.svg ../examples/pxScene2d/src/browser/images/status_bg.svg
        
-      cmake -DPXSCENE_VERSION="edge" .. >>$BUILDLOGS 2>&1;
+      cmake -DPXSCENE_VERSION=edge_`date +%Y-%m-%d` .. >>$BUILDLOGS 2>&1;
     else
       cmake .. >>$BUILDLOGS 2>&1;
     fi
@@ -70,7 +70,7 @@ then
 else
 
   echo "***************************** Generating config files ****"
-  cmake -DBUILD_PX_TESTS=ON -DBUILD_PXSCENE_STATIC_LIB=ON -DBUILD_DEBUG_METRICS=OFF .. 1>>$BUILDLOGS;
+  cmake -DBUILD_PX_TESTS=ON -DBUILD_PXSCENE_STATIC_LIB=ON -DBUILD_DEBUG_METRICS=OFF -DPXSCENE_TEST_HTTP_CACHE=ON -DENABLE_THREAD_SANITIZER=ON .. 1>>$BUILDLOGS;
   checkError $? 1  "cmake config failed" "Config error" "Check the errors displayed in this window"
 
   echo "***************************** Building pxcore,rtcore,pxscene app,libpxscene,unitttests ****" >> $BUILDLOGS
@@ -86,10 +86,9 @@ if [ "$TRAVIS_PULL_REQUEST" = "false" ]
   if [ "$TRAVIS_EVENT_TYPE" = "cron" ]  ;
   then
     cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src/
-    ./mkdeploy.sh "edge" >>$BUILDLOGS 2>&1
-  fi
+    ./mkdeploy.sh edge_`date +%Y-%m-%d` >>$BUILDLOGS 2>&1
         
-  if [ "$TRAVIS_EVENT_TYPE" = "api" ] ;
+  elif [ "$TRAVIS_EVENT_TYPE" = "api" ] || [ ! -z "${TRAVIS_TAG}" ] 
   then
     cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src/
 
@@ -99,7 +98,6 @@ if [ "$TRAVIS_PULL_REQUEST" = "false" ]
       #checkError $? 0 "make command failed for deploy target" "Compilation error" "check the $BUILDLOGS file"
       echo "built with cmake"
      ./mkdeploy.sh $PX_VERSION >>$BUILDLOGS 2>&1
-
     else
       export linenumber=`awk '/CFBundleShortVersionString/{ print NR; exit }' $TRAVIS_BUILD_DIR/examples/pxScene2d/src/macstuff/Info.plist`
       checkError $? 0 "unable to read string CFBundleShortVersionString from Info.plist file" "Parse error" "check whether the Info.plist file in pxscene repo is having CFBundleShortVersionString string or not?"

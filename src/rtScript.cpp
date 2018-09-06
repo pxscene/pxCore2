@@ -26,8 +26,8 @@
 
 #include "assert.h"
 
-#ifdef RTSCRIPT_SUPPORT_NODE
-#include "rtScriptNode/rtScriptNode.h"
+#if defined RTSCRIPT_SUPPORT_NODE || defined RTSCRIPT_SUPPORT_V8
+#include "rtScriptV8/rtScriptV8Node.h"
 #endif
 
 #ifdef RTSCRIPT_SUPPORT_DUKTAPE
@@ -192,6 +192,8 @@ rtError rtScript::init()
         createScriptDuk(mScript);
       else
         createScriptNode(mScript);
+    #elif defined(RTSCRIPT_SUPPORT_V8)
+        createScriptV8(mScript);
     #elif defined(RTSCRIPT_SUPPORT_DUKTAPE)
         createScriptDuk(mScript);
     #elif defined(RTSCRIPT_SUPPORT_NODE)
