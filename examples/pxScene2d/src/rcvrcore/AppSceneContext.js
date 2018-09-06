@@ -197,12 +197,14 @@ function terminateScene() {
 this.innerscene.on('onSceneTerminate', function(e) { 
      this.isTermEvtRcvd = true;
      this.termEvent = e;
+     // make sure we are sending terminate event only after close event
      if (true == this.isCloseEvtRcvd) {
        terminateScene.bind(this)(); 
      }
   }.bind(this));
 
 this.innerscene.on('onClose', function() {
+    // make sure terminate event is sent after immediately if onClose comes after it
     if (true == this.isTermEvtRcvd)
     {
       terminateScene.bind(this)();
