@@ -67,6 +67,7 @@
 #include "rtValue.h"
 #include "rtAtomic.h"
 #include "rtScript.h"
+#include "rtPathUtils.h"
 
 
 
@@ -1304,17 +1305,7 @@ rtNodeContextRef rtScriptNode::createContext(bool ownThread)
     mRefContext = new rtNodeContext(mIsolate,mPlatform);
     ctxref = mRefContext;
 
-    static std::string sandbox_path;
-
-    if(sandbox_path.empty()) // only once.
-    {
-      char *nodePath = ::getenv("NODE_PATH");
-      if (NULL != nodePath)
-      {
-        const std::string NODE_PATH = nodePath;
-        sandbox_path = NODE_PATH + "/" + SANDBOX_JS;
-      }
-    }
+    static std::string sandbox_path = rtGetRootModulePath(SANDBOX_JS);
 
     // Populate 'sandbox' vars in JS...
     if(fileExists(sandbox_path.c_str()))

@@ -481,6 +481,8 @@ int pxMain(int argc, char* argv[])
 
 #endif
 
+  rtModuleDirs::instance();
+
   rtString settingsPath;
   if (RT_OK == rtGetHomeDirectory(settingsPath))
   {
