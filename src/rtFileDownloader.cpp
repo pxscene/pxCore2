@@ -632,12 +632,7 @@ void rtFileDownloader::downloadFile(rtFileDownloadRequest* downloadRequest)
       }
     }
 
-    if (false == isDataInCache)
-#endif
-    {
-      nwDownloadSuccess = downloadFromNetwork(downloadRequest);
-    }
-    else
+    if (isDataInCache)
     {
         if(downloadRequest->deferCacheRead())
         {
@@ -673,6 +668,11 @@ void rtFileDownloader::downloadFile(rtFileDownloadRequest* downloadRequest)
             mFileCacheMutex.unlock();
         }
     }
+    else
+#endif
+    {
+      nwDownloadSuccess = downloadFromNetwork(downloadRequest);
+    }    
     
     if (!downloadRequest->executeCallback(downloadRequest->downloadStatusCode()))
     {
