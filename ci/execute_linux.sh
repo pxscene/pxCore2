@@ -220,6 +220,7 @@ export ACCESSFAILLOGS=$TRAVIS_BUILD_DIR/logs/access_logs
 touch $ACCESSFAILLOGS
 unset ENABLE_VALGRIND
 ./spark.sh https://px-apps.sys.comcast.net/pxscene-samples/examples/px-reference/test-run/testRunner_AccessTest.js > $ACCESSFAILLOGS 2>&1 &
+>>>>>>> 0a23df7734286b9b13b19c72b3cf44a14cf8ce01
 retVal=1
 count=0
 while [ "$retVal" -ne 0 ] &&  [ "$count" -ne 30 ]; do
