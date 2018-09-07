@@ -62,7 +62,7 @@
 // errors specific to security model
 #define RT_ERROR_NOT_ALLOWED 2000
 
-typedef uint32_t rtError;
+typedef int rtError;
 
 const char* rtStrError(rtError e);
 

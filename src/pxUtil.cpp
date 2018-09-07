@@ -33,6 +33,8 @@
 #include "pxOffscreen.h"
 #include "pxUtil.h"
 
+#include <openssl/md5.h>
+
 #define SUPPORT_PNG
 #define SUPPORT_JPG
 
@@ -62,13 +64,13 @@ class NSVGrasterizerEx
 {
   public:
        NSVGrasterizerEx()  {  rast = nsvgCreateRasterizer(); } // ctor
-      ~NSVGrasterizerEx()  {  SAFE_FREE(rast);               } // dtor
-  
-  NSVGrasterizer *getPtr() { return rast; };
-  
+      ~NSVGrasterizerEx()  {  nsvgDeleteRasterizer(rast);    } // dtor
+
+    NSVGrasterizer *getPtr() { return rast; };
+
   private:
     NSVGrasterizer *rast;
-    
+
 }; // CLASS;
 
 static NSVGrasterizerEx rast;
@@ -76,7 +78,7 @@ static rtMutex          rastMutex;
 
 
 // Assume alpha is not premultiplied
-rtError pxLoadImage(const char *imageData, size_t imageDataSize,  pxOffscreen &o, 
+rtError pxLoadImage(const char *imageData, size_t imageDataSize,  pxOffscreen &o,
                         int32_t w /* = 0    */, int32_t h /* = 0    */,
                          float sx /* = 1.0f */,  float sy /* = 1.0f */)
 {
@@ -90,7 +92,7 @@ rtError pxLoadImage(const char *imageData, size_t imageDataSize,  pxOffscreen &o
            retVal = pxLoadPNGImage(imageData, imageDataSize, o);
          }
          break;
-      
+
     case PX_IMAGE_JPG:
          {
 #ifdef ENABLE_LIBJPEG_TURBO
@@ -104,7 +106,7 @@ rtError pxLoadImage(const char *imageData, size_t imageDataSize,  pxOffscreen &o
 #endif //ENABLE_LIBJPEG_TURBO
          }
          break;
-      
+
     case PX_IMAGE_SVG:
     default:
          {
@@ -1002,13 +1004,19 @@ rtError pxLoadSVGImage(const char* buf, size_t buflen, pxOffscreen& o, int  w /*
                                                                      float sx /* = 1.0f */,   float sy /* = 1.0f */)
 {
   rtMutexLockGuard  autoLock(rastMutex);
-  
+
+  if (rast.getPtr() == NULL)
+  {
+    rtLogError("SVG:  No rasterizer available \n");
+    return RT_FAIL;
+  }
+
   if (buf == NULL || buflen == 0 )
   {
     rtLogError("SVG:  Bad args.\n");
     return RT_FAIL;
   }
-  
+
   if (sx <= 0.0f || sy <= 0.0f)
   {
     rtLogError("SVG:  Bad image scale  sx: %f  sy: %f\n", sx, sy);
@@ -1021,33 +1029,34 @@ rtError pxLoadSVGImage(const char* buf, size_t buflen, pxOffscreen& o, int  w /*
     rtLogError("SVG:  Could not init decode SVG.\n");
     return RT_FAIL;
   }
-  
+
   int image_w = (int)image->width;  // parsed SVG image dimensions
   int image_h = (int)image->height; // parsed SVG image dimensions
-  
+
   if (image_w == 0 || image_h == 0)
   {
-    SAFE_FREE(image);
+    nsvgDelete(image);
 
     rtLogError("SVG:  Bad image dimensions  WxH: %d x %d\n", image_w, image_h);
     return RT_FAIL;
   }
-  
+
   // Dimensions WxH ... *only* if no Scale XY
   if( (sx == 1.0f && sy == 1.0f) && (w > 0 && h > 0) ) // <<< Use WxH only if no scale. Scale takes precedence
   {
     float ratioW = (float) w / (float) image_w;
     float ratioH = (float) h / (float) image_h;
-    
+
     sx = sy = (ratioW < ratioH) ? ratioW : ratioH; // MIN()
   }
-  
+
   o.initWithColor( (image_w * sx), (image_h * sy), pxClear); // default sized
-  
+
   nsvgRasterizeFull(rast.getPtr(), image, 0, 0, sx, sy,
                     (unsigned char*) o.base(), o.width(), o.height(), o.width() *4);
 
-  SAFE_FREE(image);
+  nsvgDelete(image);
+
   return RT_OK;
 }
 
@@ -1483,7 +1492,7 @@ pxImageType getImageType( const uint8_t* data, size_t len )
 {
   if ( data == NULL ) return PX_IMAGE_INVALID;
   if ( len < 16 ) return PX_IMAGE_INVALID;
-  
+
   // .jpg:  FF D8 FF
   // .png:  89 50 4E 47 0D 0A 1A 0A
   // .gif:  GIF87a
@@ -1494,50 +1503,278 @@ pxImageType getImageType( const uint8_t* data, size_t len )
   // .webp: RIFF ???? WEBP
   // .ico   00 00 01 00
   //        00 00 02 00 ( cursor files )
-  
+
   switch ( data[0] )
   {
     case (uint8_t)'\xFF':
       return ( !strncmp( (const char*)data, "\xFF\xD8\xFF", 3 )) ?
       PX_IMAGE_JPG : PX_IMAGE_INVALID;
-      
+
     case (uint8_t)'\x89':
       return ( !strncmp( (const char*)data,
                         "\x89\x50\x4E\x47\x0D\x0A\x1A\x0A", 8 )) ?
       PX_IMAGE_PNG : PX_IMAGE_INVALID;
-      
+
     case 'G':
       return ( !strncmp( (const char*)data, "GIF87a", 6 ) ||
               !strncmp( (const char*)data, "GIF89a", 6 ) ) ?
       PX_IMAGE_GIF : PX_IMAGE_INVALID;
-      
+
     case 'I':
       return ( !strncmp( (const char*)data, "\x49\x49\x2A\x00", 4 )) ?
       PX_IMAGE_TIFF : PX_IMAGE_INVALID;
-      
+
     case 'M':
       return ( !strncmp( (const char*)data, "\x4D\x4D\x00\x2A", 4 )) ?
       PX_IMAGE_TIFF : PX_IMAGE_INVALID;
-      
+
     case 'B':
       return (( data[1] == 'M' )) ?
       PX_IMAGE_BMP : PX_IMAGE_INVALID;
-      
+
     case 'R':
       if ( strncmp( (const char*)data,     "RIFF", 4 ))
         return PX_IMAGE_INVALID;
       if ( strncmp( (const char*)(data+8), "WEBP", 4 ))
         return PX_IMAGE_INVALID;
       return PX_IMAGE_WEBP;
-      
+
     case '\0':
       if ( !strncmp( (const char*)data, "\x00\x00\x01\x00", 4 ))
         return PX_IMAGE_ICO;
       if ( !strncmp( (const char*)data, "\x00\x00\x02\x00", 4 ))
         return PX_IMAGE_ICO;
       return PX_IMAGE_INVALID;
-      
+
     default:
       return PX_IMAGE_INVALID;
   }
 }
+
+
+static char encoding_table[] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H',
+                                'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P',
+                                'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X',
+                                'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f',
+                                'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n',
+                                'o', 'p', 'q', 'r', 's', 't', 'u', 'v',
+                                'w', 'x', 'y', 'z', '0', '1', '2', '3',
+                                '4', '5', '6', '7', '8', '9', '+', '/'};
+
+static char *decoding_table = NULL;
+static int mod_table[] = {0, 2, 1};
+
+void build_decoding_table()
+{
+  decoding_table = (char*)malloc(256);
+
+  for (int i = 0; i < 64; i++)
+    decoding_table[(unsigned char) encoding_table[i]] = i;
+}
+
+
+void base64_cleanup()
+{
+  if(decoding_table)
+  {
+    free(decoding_table);
+    decoding_table = NULL;
+  }
+}
+
+// ENCODE
+char *base64_encode(const unsigned char *data,
+                    size_t input_length,
+                    size_t *output_length)
+{
+  if(output_length == NULL)
+  {
+    return NULL;
+  }
+
+  if(data == NULL)
+  {
+    output_length = 0;
+    return NULL;
+  }
+
+  if(input_length == 0)
+  {
+    output_length = 0;
+    return NULL;
+  }
+
+  *output_length = 4 * ((input_length + 2) / 3);
+
+  char *encoded_data = (char *)malloc(*output_length);
+  if (encoded_data == NULL) return NULL;
+
+  for (uint32_t i = 0, j = 0; i < input_length;)
+  {
+
+    uint32_t octet_a = i < input_length ? (unsigned char)data[i++] : 0;
+    uint32_t octet_b = i < input_length ? (unsigned char)data[i++] : 0;
+    uint32_t octet_c = i < input_length ? (unsigned char)data[i++] : 0;
+
+    uint32_t triple = (octet_a << 0x10) + (octet_b << 0x08) + octet_c;
+
+    encoded_data[j++] = encoding_table[(triple >> 3 * 6) & 0x3F];
+    encoded_data[j++] = encoding_table[(triple >> 2 * 6) & 0x3F];
+    encoded_data[j++] = encoding_table[(triple >> 1 * 6) & 0x3F];
+    encoded_data[j++] = encoding_table[(triple >> 0 * 6) & 0x3F];
+  }
+
+  for (int i = 0; i < mod_table[input_length % 3]; i++)
+  encoded_data[*output_length - 1 - i] = '=';
+
+  return encoded_data;
+}
+
+rtError base64_encode(const unsigned char *data, size_t input_length, rtString& s)
+{
+  size_t output_length = 0;
+
+  char *ans = base64_encode(data, input_length, &output_length);
+
+  if(ans != NULL)
+  {
+    s.init( (const char*) ans, output_length);
+
+    free(ans);
+
+    return RT_OK;
+  }
+  else
+  {
+    return RT_FAIL;
+  }
+}
+
+rtError base64_encode(rtData& d, rtString& s)
+{
+  return base64_encode( (const unsigned char *) d.data(), d.length(), s);
+}
+
+
+// DECODE
+unsigned char *base64_decode(const unsigned char *data,
+                             size_t input_length,
+                             size_t *output_length)
+{
+  if (data == NULL)
+  {
+    return NULL;
+  }
+
+  if (output_length == NULL)
+  {
+    return NULL;
+  }
+
+  if ((input_length == 0) || (input_length % 4 != 0))
+  {
+    return NULL;
+  }
+
+  if (output_length)
+    *output_length = input_length / 4 * 3;
+
+  if (data[input_length - 1] == '=')
+    (*output_length)--;
+  if (data[input_length - 2] == '=')
+    (*output_length)--;
+
+  unsigned char *decoded_data = (unsigned char*)malloc(*output_length);
+
+  if (decoded_data == NULL)
+  {
+    return NULL;
+  }
+
+  if (decoding_table == NULL)
+  {
+    build_decoding_table();
+  }
+
+  for (uint32_t i = 0, j = 0; i < input_length;)
+  {
+    uint32_t sextet_a = data[i] == '=' ? 0 & i++ : decoding_table[data[i++]];
+    uint32_t sextet_b = data[i] == '=' ? 0 & i++ : decoding_table[data[i++]];
+    uint32_t sextet_c = data[i] == '=' ? 0 & i++ : decoding_table[data[i++]];
+    uint32_t sextet_d = data[i] == '=' ? 0 & i++ : decoding_table[data[i++]];
+
+    uint32_t triple = (sextet_a << 3 * 6)
+    + (sextet_b << 2 * 6)
+    + (sextet_c << 1 * 6)
+    + (sextet_d << 0 * 6);
+
+    if (j < *output_length) decoded_data[j++] = (triple >> 2 * 8) & 0xFF;
+    if (j < *output_length) decoded_data[j++] = (triple >> 1 * 8) & 0xFF;
+    if (j < *output_length) decoded_data[j++] = (triple >> 0 * 8) & 0xFF;
+  }
+
+  return decoded_data;
+}
+
+rtError base64_decode(const unsigned char *data, size_t input_length, rtData& d)
+{
+  size_t output_length = 0;
+
+  unsigned char *ans = base64_decode(data, input_length, &output_length);
+
+  if(ans)
+  {
+    d.init((const uint8_t*) ans, output_length);
+
+    free(ans);
+
+    return RT_OK;
+  }
+  else
+  {
+    return RT_FAIL;
+  }
+}
+
+//void testBase64()
+//{
+//    rtString  in1 = "VGVzdGluZzEyMw=="; // "Testing123" in Base64
+//    rtData   out1;
+//  
+//    base64_decode( (const unsigned char *) in1.cString(), in1.length(), out1);
+//  
+//    rtString txt = "Testing123";
+//    rtData   in2( (const uint8_t*) txt.cString(), txt.length());
+//    rtString out2;
+//  
+//    base64_encode( in2, out2 );
+//  
+//    if(memcmp(out1.data(), in2.data(), out1.length()) == 0)
+//    {
+//      printf("OK");
+//    }
+//}
+
+rtError base64_decode(rtString& s, rtData& d)
+{
+  // testBase64();
+  return base64_decode( (const unsigned char *) s.cString(), s.length(), d);
+}
+
+
+
+rtString md5sum(rtString &d)
+{
+  unsigned char md5_result[MD5_DIGEST_LENGTH];        // binary
+  unsigned char str_result[MD5_DIGEST_LENGTH*2 + 1];  // char string
+
+  MD5( (const unsigned char *) d.cString(), d.length(), (unsigned char *) &md5_result[0] );
+
+  for(int i=0; i < MD5_DIGEST_LENGTH; i++)
+  {
+    sprintf( (char *) &str_result[i*2], "%02X",  md5_result[i]); // sprintf() ... will null terminate
+  }
+
+  return rtString(  (char *) str_result);
+}
+

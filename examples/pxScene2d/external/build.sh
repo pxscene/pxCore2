@@ -21,6 +21,8 @@ then
 
   if [ "$(uname)" = "Darwin" ]; then
     ./configure --with-darwinssl
+    #Removing api definition for Yosemite compatibility.
+    sed -i '' '/#define HAVE_CLOCK_GETTIME_MONOTONIC 1/d' lib/curl_config.h
   else
       if [ $(echo "$(openssl version | cut -d' ' -f 2 | cut -d. -f1-2)>1.0" | bc) ]; then
           echo "Openssl is too new for this version of libcurl.  Opting for gnutls instead..."
@@ -35,6 +37,7 @@ then
       fi
   fi
 
+  
   make all "-j${make_parallel}"
   cd ..
 
@@ -139,35 +142,25 @@ then
 
 fi
 
+# v8
+# todo - uncomment - for now build v8 with buildV8.sh directly
+#bash buildV8.sh
+
 #-------- BREAKPAD (Non -macOS)
 
 if [ "$(uname)" != "Darwin" ]; then
-
-  cd breakpad
-  quilt push -aq || test $? = 2
-  ./configure
-  make
-  cd ..
-
+  ./breakpad/build.sh
 fi
 
 #-------- NANOSVG
 
-cd nanosvg
-quilt push -aq || test $? = 2
-cd ..
+./nanosvg/build.sh
 
 #-------- DUKTAPE
 
 if [ ! -e dukluv/build/libduktape.a ]
 then
-    cd dukluv
-    quilt push -aq || test $? = 2
-    mkdir -p build
-    cd build
-    cmake ..
-    make "-j${make_parallel}"
-    cd ..
+  ./dukluv/build.sh
 fi
 
 #--------
