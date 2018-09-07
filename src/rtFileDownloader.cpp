@@ -648,7 +648,8 @@ void rtFileDownloader::downloadFile(rtFileDownloadRequest* downloadRequest)
             {
                 char* buffer = new char[downloadRequest->getCachedFileReadSize()];
                 int bytesCount = 0;
-                size_t dataSize = 0;
+                size_t dataSize = 0;                
+				char invalidData[8] = "Invalid";
 
                 // The cahced file has expiration value ends with | delimeter.
                 while ( !feof(fp) )
@@ -665,7 +666,7 @@ void rtFileDownloader::downloadFile(rtFileDownloadRequest* downloadRequest)
                     downloadRequest->executeDownloadProgressCallback((unsigned char*)buffer, bytesCount, 1 );
                 }
                 // For deferCacheRead, the user requires the downloadedDataSize but not the data.
-                downloadRequest->setDownloadedData( "Invalid", dataSize);
+                downloadRequest->setDownloadedData( invalidData, dataSize);
                 delete [] buffer;
                 fclose(fp);
             }
