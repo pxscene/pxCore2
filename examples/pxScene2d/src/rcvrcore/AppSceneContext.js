@@ -315,9 +315,13 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (packageUri, module
   try {
     if (!isDuk && !isV8) {
       var requireMethod = function (pkg) {
-        log.message(3, "old use of require not supported: " + pkg);
-        // TODO: remove
-        return requireIt(pkg);
+        if (typeof requireIt === "function") { 
+          // TODO: remove
+          return requireIt(pkg);
+        }
+        else{
+          log.message(1, "old use of require not supported: " + pkg);
+        }
       };
 
       var requireFileOverridePath = process.env.PXSCENE_REQUIRE_ENABLE_FILE_PATH;
