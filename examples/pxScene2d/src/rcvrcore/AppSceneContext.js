@@ -77,6 +77,7 @@ function AppSceneContext(params) {
   this.timers = [];
   this.timerIntervals = [];
   this.webSocketManager = null;
+  // create objects for http1 and http2 to be used
   this.http1wrap = new http2_wrap(this.accessControl, true);
   this.http2wrap = new http2_wrap(this.accessControl, false);
   this.disableFilePermissionCheck = this.innerscene.sparkSetting("disableFilePermissionCheck");
