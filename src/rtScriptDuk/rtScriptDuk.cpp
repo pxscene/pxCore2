@@ -98,6 +98,7 @@ extern "C" {
 #include "rtAtomic.h"
 
 #include "rtScript.h"
+#include "rtPathUtils.h"
 
 // TODO eliminate std::string
 #include <string>
@@ -1301,17 +1302,7 @@ rtDukContextRef rtScriptDuk::createContext(bool ownThread)
     assert(uvLoops.size() == 1);
     mRefContext->uvLoop = uvLoops[0];
 
-    static std::string sandbox_path;
-
-    if(sandbox_path.empty()) // only once.
-    {
-      char *nodePath = ::getenv("NODE_PATH");
-      if (NULL != nodePath)
-      {
-        const std::string NODE_PATH = nodePath;
-        sandbox_path = NODE_PATH + "/" + SANDBOX_JS;
-      }
-    }
+    static std::string sandbox_path = rtGetRootModulePath(SANDBOX_JS);
 
     // Populate 'sandbox' vars in JS...
     if(fileExists(sandbox_path.c_str()))

@@ -15,7 +15,7 @@ checkError()
   if [ "$1" -ne 0 ]
   then
         printf "\n\n*********************************************************************";
-        printf "\n******************** BUILD FAIL DETAILS *****************************";
+        printf "\n********************* BUILD FAIL DETAILS ******************************";
         printf "\nCI failure reason: $2"
         printf "\nCause: $3"
         printf "\nReproduction/How to fix: $4"
@@ -43,7 +43,8 @@ export SPARK_ENABLE_COLLECT_GARBAGE=1
 
 EXECLOGS=$TRAVIS_BUILD_DIR/logs/exec_logs
 LEAKLOGS=$TRAVIS_BUILD_DIR/logs/leak_logs
-TESTRUNNERURL="https://px-apps.sys.comcast.net/pxscene-samples/examples/px-reference/test-run/testRunner_v5.2.js"
+TESTRUNNERURL="https://px-apps.sys.comcast.net/pxscene-samples/examples/px-reference/test-run/testRunner_v7.js"
+TESTS="file://$TRAVIS_BUILD_DIR/tests/pxScene2d/testRunner/tests.json,file://$TRAVIS_BUILD_DIR/tests/pxScene2d/testRunner/testsDesktop.json"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 printExecLogs()
@@ -57,7 +58,8 @@ printExecLogs()
 # Start testRunner ...
 rm -rf /var/tmp/spark.log
 cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src/spark.app/Contents/MacOS
-./spark.sh $TESTRUNNERURL?tests=file://$TRAVIS_BUILD_DIR/tests/pxScene2d/testRunner/tests.json &
+./spark.sh $TESTRUNNERURL?tests=$TESTS &
+
 
 # Monitor testRunner ...
 count=0
@@ -165,7 +167,7 @@ else
 	else
 		errCause="Check the $EXECLOGS file"
 	fi 
-	checkError -1 "Texture leak or pxobject leak" "$errCause" "Follow steps locally: export PX_DUMP_MEMUSAGE=1;export RT_LOG_LEVEL=info;./spark.sh $TESTRUNNERURL?tests=<pxcore dir>/tests/pxScene2d/testRunner/tests.json locally and check for 'texture memory usage is' and 'pxobjectcount is' in logs and see which is non-zero" 
+	checkError -1 "Texture leak or pxobject leak" "$errCause" "Follow steps locally: export PX_DUMP_MEMUSAGE=1;export RT_LOG_LEVEL=info;./spark.sh $TESTRUNNERURL?tests=$TESTS locally and check for 'texture memory usage is' and 'pxobjectcount is' in logs and see which is non-zero" 
 	exit 1;
 fi
 
@@ -179,7 +181,7 @@ if [ "$leakcount" -ne 0 ]
 	else
 		errCause="Check the file $LEAKLOGS and $EXECLOGS"
 	fi
-	checkError $leakcount "Execution reported memory leaks" "$errCause" "Run locally with these steps: export ENABLE_MEMLEAK_CHECK=1;export MallocStackLogging=1;export PX_DUMP_MEMUSAGE=1;./spark.sh $TESTRUNNERURL?tests=<pxcore dir>/tests/pxScene2d/testRunner/tests.json &; run leaks -nocontext Spark >logfile continuously until the testrunner execution completes; Analyse the logfile" 
+	checkError $leakcount "Execution reported memory leaks" "$errCause" "Run locally with these steps: export ENABLE_MEMLEAK_CHECK=1;export MallocStackLogging=1;export PX_DUMP_MEMUSAGE=1;./spark.sh $TESTRUNNERURL?tests=$TESTS &; run leaks -nocontext Spark >logfile continuously until the testrunner execution completes; Analyse the logfile" 
 	exit 1;
 else
 	echo "Valgrind reports success !!!!!!!!!!!"
