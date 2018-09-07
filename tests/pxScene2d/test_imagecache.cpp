@@ -1161,10 +1161,11 @@ class rtFileDownloaderTest : public testing::Test, public commonTestFns
 
     void executeDownloadProgressCallbackPresentTest()
     {
+      size_t size = 0, nmemb = 0;
       rtFileCache::instance()->clearCache();
       rtFileDownloadRequest request("https://px-apps.sys.comcast.net/pxscene-samples/images/tiles/008.jpg",this);
       request.setDownloadProgressCallbackFunction(rtFileDownloaderTest::downloadProgressCallback, this);
-      EXPECT_TRUE (true == request.executeDownloadProgressCallback(NULL, 0, 0));
+      EXPECT_TRUE ((size * nmemb) == request.executeDownloadProgressCallback(NULL, size, nmemb));
     }
 
     void executeDownloadProgressCallbackAbsentTest()
