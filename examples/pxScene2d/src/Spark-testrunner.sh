@@ -19,8 +19,8 @@ SCRIPT_DIR=$(cd `dirname $0` && pwd)
 pushd $SCRIPT_DIR
 
 SPARK_BIN="${SPARK_BIN:-./Spark}"
-SPARK_URL="${SPARK_URL:-https://px-apps.sys.comcast.net/pxscene-samples/examples/px-reference/test-run/testRunner_v5.2.js?tests=}"
-SPARK_TEST="${SPARK_TEST:-file:../../../tests/pxScene2d/testRunner/tests.json}"
+SPARK_URL="${SPARK_URL:-https://px-apps.sys.comcast.net/pxscene-samples/examples/px-reference/test-run/testRunner_v7.js?tests=}"
+SPARK_TEST="${SPARK_TEST:-file:../../../tests/pxScene2d/testRunner/testsDesktop.json,file:../../../tests/pxScene2d/testRunner/tests.json,file:../../../tests/pxScene2d/testRunner/testsExit.json}"
 
 ${DBG} ${SPARK_BIN} "${SPARK_URL}${SPARK_TEST}"
 
