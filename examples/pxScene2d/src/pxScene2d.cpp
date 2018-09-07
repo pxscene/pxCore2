@@ -26,7 +26,7 @@
 #include "rtLog.h"
 #include "rtRef.h"
 #include "rtString.h"
-//#include "rtNode.h"
+
 #include "rtPathUtils.h"
 #include "rtUrlUtils.h"
 
@@ -69,6 +69,10 @@
 #include <rapidjson/stringbuffer.h>
 #include <rapidjson/writer.h>
 
+#ifdef ENABLE_RT_NODE
+#include "rtScript.h"
+#endif //ENABLE_RT_NODE
+
 using namespace rapidjson;
 
 using namespace std;
@@ -85,6 +89,7 @@ using namespace std;
 // #define DEBUG_SKIP_UPDATE     // Skip UPDATE code - for testing.
 
 extern rtThreadQueue* gUIThreadQueue;
+extern pxContext      context;
 
 static int fpsWarningThreshold = 25;
 
@@ -362,128 +367,13 @@ void populateAllAppDetails(rtString& appDetails)
   appDetails.append("]");
 }
 
-static char encoding_table[] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H',
-                                'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P',
-                                'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X',
-                                'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f',
-                                'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n',
-                                'o', 'p', 'q', 'r', 's', 't', 'u', 'v',
-                                'w', 'x', 'y', 'z', '0', '1', '2', '3',
-                                '4', '5', '6', '7', '8', '9', '+', '/'};
-static char *decoding_table = NULL;
-static int mod_table[] = {0, 2, 1};
-
-void build_decoding_table() {
-
-  decoding_table = (char*)malloc(256);
-
-    for (int i = 0; i < 64; i++)
-        decoding_table[(unsigned char) encoding_table[i]] = i;
-}
-
-
-void base64_cleanup() {
-    free(decoding_table);
-}
-
-char *base64_encode(const unsigned char *data,
-                    size_t input_length,
-                    size_t *output_length) {
-
-    *output_length = 4 * ((input_length + 2) / 3);
-
-    char *encoded_data = (char *)malloc(*output_length);
-    if (encoded_data == NULL) return NULL;
-
-    for (uint32_t i = 0, j = 0; i < input_length;)
-    {
-
-        uint32_t octet_a = i < input_length ? (unsigned char)data[i++] : 0;
-        uint32_t octet_b = i < input_length ? (unsigned char)data[i++] : 0;
-        uint32_t octet_c = i < input_length ? (unsigned char)data[i++] : 0;
-
-        uint32_t triple = (octet_a << 0x10) + (octet_b << 0x08) + octet_c;
-
-        encoded_data[j++] = encoding_table[(triple >> 3 * 6) & 0x3F];
-        encoded_data[j++] = encoding_table[(triple >> 2 * 6) & 0x3F];
-        encoded_data[j++] = encoding_table[(triple >> 1 * 6) & 0x3F];
-        encoded_data[j++] = encoding_table[(triple >> 0 * 6) & 0x3F];
-    }
-
-    for (int i = 0; i < mod_table[input_length % 3]; i++)
-        encoded_data[*output_length - 1 - i] = '=';
-
-    return encoded_data;
-}
-
-
-unsigned char *base64_decode(const unsigned char *data,
-                             size_t input_length,
-                             size_t *output_length) {
-
-    if (decoding_table == NULL)
-        build_decoding_table();
-
-    if (output_length)
-        *output_length = input_length / 4 * 3;
-
-    if ((input_length == 0) || (input_length % 4 != 0))
-        return NULL;
-
-    if (NULL == output_length)
-      return NULL;
-
-    if (data[input_length - 1] == '=')
-        (*output_length)--;
-    if (data[input_length - 2] == '=')
-        (*output_length)--;
-
-    unsigned char *decoded_data = (unsigned char*)malloc(*output_length);
-    if (decoded_data == NULL)
-        return NULL;
-
-    for (uint32_t i = 0, j = 0; i < input_length;) {
-
-        uint32_t sextet_a = data[i] == '=' ? 0 & i++ : decoding_table[data[i++]];
-        uint32_t sextet_b = data[i] == '=' ? 0 & i++ : decoding_table[data[i++]];
-        uint32_t sextet_c = data[i] == '=' ? 0 & i++ : decoding_table[data[i++]];
-        uint32_t sextet_d = data[i] == '=' ? 0 & i++ : decoding_table[data[i++]];
-
-        uint32_t triple = (sextet_a << 3 * 6)
-        + (sextet_b << 2 * 6)
-        + (sextet_c << 1 * 6)
-        + (sextet_d << 0 * 6);
-
-        if (j < *output_length) decoded_data[j++] = (triple >> 2 * 8) & 0xFF;
-        if (j < *output_length) decoded_data[j++] = (triple >> 1 * 8) & 0xFF;
-        if (j < *output_length) decoded_data[j++] = (triple >> 0 * 8) & 0xFF;
-    }
-
-    return decoded_data;
-}
-
-// TODO get rid of globals
-extern pxContext context;
-rtFunctionRef gOnScene;
-
-#if 0
-pxInterp interps[] =
-{
-  pxInterpLinear,
-  easeOutElastic,
-  easeOutBounce,
-  pxExp,
-  pxStop,
-};
-int numInterps = sizeof(interps)/sizeof(interps[0]);
-#else
-
-
-#endif
 
 // Small helper class that vends the children of a pxObject as a collection
 class pxObjectChildren: public rtObject {
 public:
+
+  rtDeclareObject(pxObjectChildren, rtObject);
+
   pxObjectChildren(pxObject* o)
   {
     mObject = o;
@@ -534,6 +424,8 @@ public:
 private:
   rtRef<pxObject> mObject;
 };
+
+rtDefineObject(pxObjectChildren, rtObject);
 
 
 // pxObject methods
@@ -1164,6 +1056,11 @@ void pxObject::update(double t)
       // Prevent one more loop through oscillate
       if(a.count != pxConstantsAnimation::COUNT_FOREVER && a.actualCount >= a.count )
       {
+          // if(a.actualCount == a.count)
+          // {
+          //   justReverseChange = false;
+          // }
+
           if (true == justReverseChange)
           {
             mCancelInSet = false;
@@ -1916,10 +1813,10 @@ rtDefineObject(pxRoot,pxObject);
 int gTag = 0;
 
 pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
-  : start(0), sigma_draw(0), sigma_update(0), end2(0), frameCount(0), mWidth(0), mHeight(0), mStopPropagation(false), mContainer(NULL), mShowDirtyRectangle(false),
+  : mRoot(), mInfo(), mCapabilityVersions(), start(0), sigma_draw(0), sigma_update(0), end2(0), frameCount(0), mWidth(0), mHeight(0), mStopPropagation(false), mContainer(NULL), mShowDirtyRectangle(false),
     mInnerpxObjects(), mSuspended(false),
 #ifdef PX_DIRTY_RECTANGLES
-    mDirtyRect(), mLastFrameDirtyRect(),
+    mArchive(),mDirtyRect(), mLastFrameDirtyRect(),
 #endif //PX_DIRTY_RECTANGLES
     mDirty(true), mTestView(NULL), mDisposed(false)
 {
@@ -1930,17 +1827,13 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   mScriptView = scriptView;
   mTag = gTag++;
 
-  if (scriptView != NULL)
-  {
-    mOrigin = rtUrlGetOrigin(scriptView->getUrl().cString());
-  }
-
+  rtString origin = scriptView != NULL ? rtUrlGetOrigin(scriptView->getUrl().cString()) : rtString();
 #ifdef ENABLE_PERMISSIONS_CHECK
   // rtPermissions accounts parent scene permissions too
-  mPermissions = new rtPermissions(mOrigin.cString());
+  mPermissions = new rtPermissions(origin.cString());
 #endif
 #ifdef ENABLE_ACCESS_CONTROL_CHECK
-  mCORS = new rtCORS(mOrigin.cString());
+  mCORS = new rtCORS(origin.cString());
 #endif
 
   // make sure that initial onFocus is sent
@@ -1993,13 +1886,21 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
 
   mInfo.set("build", build);
   mInfo.set("gfxmemory", context.currentTextureMemoryUsageInBytes());
+
+
+  //capability versions
+  mCapabilityVersions = new rtMapObject;
+  rtObjectRef graphicsCapabilities = new rtMapObject;
+  graphicsCapabilities.set("svg", 1);
+  mCapabilityVersions.set("graphics", graphicsCapabilities);
 }
 
 rtError pxScene2d::dispose()
 {
     mDisposed = true;
     rtObjectRef e = new rtMapObject;
-    mEmit.send("onClose", e);
+    // pass false to make onClose asynchronous
+    mEmit.send("onClose", false, e);
     for (unsigned int i=0; i<mInnerpxObjects.size(); i++)
     {
       pxObject* temp = (pxObject *) (mInnerpxObjects[i].getPtr());
@@ -2014,11 +1915,13 @@ rtError pxScene2d::dispose()
       mRoot->dispose(false);
     // send scene terminate after dispose to make sure, no cleanup can happen further on app side		
     // after clearing the sandbox
-    mEmit.send("onSceneTerminate", e);
+    // pass false to make onSceneTerminate asynchronous
+    mEmit.send("onSceneTerminate", false, e);
     mEmit->clearListeners();
 
     mRoot     = NULL;
     mInfo     = NULL;
+    mCapabilityVersions = NULL;
     mFocusObj = NULL;
 
     return RT_OK;
@@ -2241,7 +2144,7 @@ rtError pxScene2d::createImageResource(rtObjectRef p, rtObjectRef& o)
     return RT_ERROR_NOT_ALLOWED;
 #endif
 
-  o = pxImageManager::getImage(url, proxy, mCORS, iw, ih, sx, sy);
+  o = pxImageManager::getImage(url, proxy, mCORS, iw, ih, sx, sy, mArchive);
   
   o.send("init");
   return RT_OK;
@@ -2257,7 +2160,7 @@ rtError pxScene2d::createImageAResource(rtObjectRef p, rtObjectRef& o)
     return RT_ERROR_NOT_ALLOWED;
 #endif
 
-  o = pxImageManager::getImageA(url, proxy, mCORS);
+  o = pxImageManager::getImageA(url, proxy, mCORS, mArchive);
   o.send("init");
   return RT_OK;
 }
@@ -2271,8 +2174,8 @@ rtError pxScene2d::createFontResource(rtObjectRef p, rtObjectRef& o)
   if (RT_OK != mPermissions->allows(url, rtPermissions::DEFAULT))
     return RT_ERROR_NOT_ALLOWED;
 #endif
-
-  o = pxFontManager::getFont(url, proxy, mCORS);
+  
+  o = pxFontManager::getFont(url, proxy, mCORS, mArchive);
   return RT_OK;
 }
 
@@ -2617,12 +2520,15 @@ void pxScene2d::onUpdate(double t)
     rtLogDebug("%d fps   pxObjects: %d\n", fps, pxObjectCount);
 #endif //USE_RENDER_STATS
 
-    // TODO FUTURES... might be nice to have "struct" style object's that get copied
-    // at the interop layer so we don't get remoted calls back to the render thread
-    // for accessing the values (events would be the primary usecase)
-    rtObjectRef e = new rtMapObject;
-    e.set("fps", fps);
-    mEmit.send("onFPS", e);
+    {
+#ifdef ENABLE_RT_NODE
+      rtWrapperSceneUnlocker unlocker;
+#endif //ENABLE_RT_NODE
+
+      rtObjectRef e = new rtMapObject;
+      e.set("fps", fps);
+      mEmit.send("onFPS", e);
+    }
 
       start = end2; // start of frame
     frameCount = 0;
@@ -2704,6 +2610,11 @@ pxObject* pxScene2d::getRoot() const
 rtObjectRef pxScene2d::getInfo() const
 {
   return mInfo;
+}
+
+rtObjectRef pxScene2d::getCapabilities() const
+{
+  return mCapabilityVersions;
 }
 
 void pxScene2d::onComplete()
@@ -3323,54 +3234,87 @@ rtError pxScene2d::screenshot(rtString type, rtString& pngData)
 #endif
 
   // Is this a type we support?
-  if (type == "image/png;base64")
+  if (type != "image/png;base64")
   {
-    pxContextFramebufferRef previousRenderSurface = context.getCurrentFramebuffer();
-    pxContextFramebufferRef newFBO;
-    // w/o multisampling
-    // if needed, render texture of a multisample FBO to a non-multisample FBO and then read from it
-    mRoot->createSnapshot(newFBO, false, false);
-    context.setFramebuffer(newFBO);
-    pxOffscreen o;
-    context.snapshot(o);
-    context.setFramebuffer(previousRenderSurface);
+    return RT_FAIL;
+  }
 
-    rtData pngData2;
-    if (pxStorePNGImage(o, pngData2) == RT_OK)
-    {
+  pxContextFramebufferRef previousRenderSurface = context.getCurrentFramebuffer();
+  pxContextFramebufferRef newFBO;
+  // w/o multisampling
+  // if needed, render texture of a multisample FBO to a non-multisample FBO and then read from it
+  mRoot->createSnapshot(newFBO, false, false);
+  context.setFramebuffer(newFBO);
+  pxOffscreen o;
+  context.snapshot(o);
+  context.setFramebuffer(previousRenderSurface);
+
+  rtData pngData2;
+  if (pxStorePNGImage(o, pngData2) != RT_OK)
+  {
+    return RT_FAIL;
+  }
 
 //HACK JUNK HACK JUNK HACK JUNK HACK JUNK HACK JUNK
 //HACK JUNK HACK JUNK HACK JUNK HACK JUNK HACK JUNK
 #if 0
-    FILE *myFile = fopen("/mnt/nfs/env/snap.png", "wb");
-    if( myFile != NULL)
-    {
-      fwrite( pngData2.data(), sizeof(char), pngData2.length(),myFile);
-      fclose(myFile);
-    }
+  FILE *myFile = fopen("/mnt/nfs/env/snap.png", "wb");
+  if( myFile != NULL)
+  {
+    fwrite( pngData2.data(), sizeof(char), pngData2.length(),myFile);
+    fclose(myFile);
+  }
 #endif
 //HACK JUNK HACK JUNK HACK JUNK HACK JUNK HACK JUNK
 //HACK JUNK HACK JUNK HACK JUNK HACK JUNK HACK JUNK
 
-      size_t l;
-      char* d = base64_encode(pngData2.data(), pngData2.length(), &l);
-      if (d)
-      {
-        // We return a data Url string containing the image data
-        pngData = "data:image/png;base64,";
-        rtString base64str(d, (uint32_t) l); // NULL-terminated
-        pngData.append(base64str.cString());
-        free(d);
+  rtString base64coded;
+  
+  if( base64_encode(pngData2, base64coded) == RT_OK )
+  {
+    // We return a data Url string containing the image data
+    pngData = "data:image/png;base64,";
+    
+    pngData += base64coded;
+    
+//        FILE *saveFile  = fopen("/var/tmp/snap.txt", "wt"); // base64
+//        fwrite( base64coded.cString(), base64coded.length(), sizeof(char), saveFile);
+//        fclose(saveFile);
+//     
+//        FILE *inFile  = fopen("/var/tmp/snap.txt", "rt"); // base64
+//        if( inFile != NULL)
+//        {
+//          fseek(inFile, 0L, SEEK_END);
+//          size_t sz = ftell(inFile);
+//          fseek(inFile, 0L, SEEK_SET);
+//          
+//          rtData base64in; base64in.init(sz);
+//          fread(base64in.data(), base64in.length(), 1, inFile);
+//          fclose(inFile);
+//          
+//          rtString my64string( (const char* ) base64in.data(), base64in.length());
+//          
+//          rtData pngData2;
+//          
+//          rtError res = base64_decode(my64string, pngData2);
+//          
+//          if(res == RT_OK)
+//          {
+//            FILE *outFile = fopen("/var/tmp/snap.png", "wb"); // PNG
+//            
+//            if(outFile)
+//            {
+//              fwrite( pngData2.data(), pngData2.length(), sizeof(char), outFile);
+//              fclose(outFile);
+//            }
+//          }
+//        }
+    
         return RT_OK;
-      }
-      else
-        return RT_FAIL;
-    }
-    else
-      return RT_FAIL;
-  }
-  else
-    return RT_FAIL;
+      
+  }//ENDIF
+
+  return RT_FAIL;
 }
 
 rtError pxScene2d::clipboardSet(rtString type, rtString clipString)
@@ -3553,6 +3497,7 @@ rtError pxScene2d::getAvailableApplications(rtString& availableApplications)
 rtDefineObject(pxScene2d, rtObject);
 rtDefineProperty(pxScene2d, root);
 rtDefineProperty(pxScene2d, info);
+rtDefineProperty(pxScene2d, capabilities);
 rtDefineProperty(pxScene2d, w);
 rtDefineProperty(pxScene2d, h);
 rtDefineProperty(pxScene2d, showOutlines);
@@ -3590,7 +3535,6 @@ rtDefineProperty(pxScene2d,alignHorizontal);
 rtDefineProperty(pxScene2d,truncation);
 rtDefineMethod(pxScene2d, dispose);
 
-rtDefineProperty(pxScene2d, origin);
 #ifdef ENABLE_PERMISSIONS_CHECK
 rtDefineProperty(pxScene2d, permissions);
 #endif
@@ -3714,6 +3658,11 @@ void pxScene2d::setViewContainer(pxIViewContainer* l)
 #endif
 }
 
+pxIViewContainer* pxScene2d::viewContainer()
+{
+  return mContainer;
+}
+
 rtDefineObject(pxViewContainer, pxObject);
 rtDefineProperty(pxViewContainer, w);
 rtDefineProperty(pxViewContainer, h);
@@ -3756,9 +3705,9 @@ rtError pxSceneContainer::setUrl(rtString url)
 
   mUrl = url;
 #ifdef RUNINMAIN
-    setScriptView(new pxScriptView(url.cString(), ""));
+    setScriptView(new pxScriptView(url.cString(), "", this));
 #else
-    pxScriptView * scriptView = new pxScriptView(url.cString(),"");
+    pxScriptView * scriptView = new pxScriptView(url.cString(),"", this);
     AsyncScriptInfo * info = new AsyncScriptInfo();
     info->m_pView = scriptView;
     //info->m_pWindow = this;
@@ -3898,8 +3847,8 @@ rtError createObject2(const char* t, rtObjectRef& o)
 }
 #endif
 
-pxScriptView::pxScriptView(const char* url, const char* /*lang*/)
-     : mWidth(-1), mHeight(-1), mViewContainer(NULL), mRefCount(0)
+pxScriptView::pxScriptView(const char* url, const char* /*lang*/, pxIViewContainer* container)
+     : mWidth(-1), mHeight(-1), mViewContainer(container), mRefCount(0)
 {
   rtLogInfo(__FUNCTION__);
   rtLogDebug("pxScriptView::pxScriptView()entering\n");
@@ -3942,10 +3891,12 @@ void pxScriptView::runScript()
 
   if (mCtx)
   {
+    mPrintFunc = new rtFunctionCallback(printFunc, this);
     mGetScene = new rtFunctionCallback(getScene,  this);
     mMakeReady = new rtFunctionCallback(makeReady, this);
     mGetContextID = new rtFunctionCallback(getContextID, this);
 
+    mCtx->add("print", mPrintFunc.getPtr());
     mCtx->add("getScene", mGetScene.getPtr());
     mCtx->add("makeReady", mMakeReady.getPtr());
     mCtx->add("getContextID", mGetContextID.getPtr());
@@ -3953,6 +3904,7 @@ void pxScriptView::runScript()
 #ifdef RUNINMAIN
     mReady = new rtPromise();
 #endif
+
     mCtx->runFile("init.js");
 
     char buffer[MAX_URL_SIZE + 50];
@@ -3980,8 +3932,25 @@ void pxScriptView::runScript()
 #endif
     mCtx->runScript(buffer);
     rtLogInfo("pxScriptView::runScript() ending\n");
+//#endif
   }
   #endif //ENABLE_RT_NODE
+}
+
+rtError pxScriptView::printFunc(int numArgs, const rtValue* args, rtValue* result, void* ctx)
+{
+  UNUSED_PARAM(result);
+  rtLogInfo(__FUNCTION__);
+
+  if (ctx)
+  {
+    if (numArgs > 0 && !args[0].isEmpty())
+    {
+      rtString toPrint = args[0].toString();
+      rtLogWarn("%s", toPrint.cString());
+    }
+  }
+  return RT_OK;
 }
 
 rtError pxScriptView::suspend(const rtValue& v, bool& b)

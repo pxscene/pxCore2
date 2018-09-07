@@ -32,7 +32,7 @@ pxText::pxText(pxScene2d* scene):pxObject(scene), mFontLoaded(false), mFontFaile
   float c[4] = {1, 1, 1, 1};
   memcpy(mTextColor, c, sizeof(mTextColor));
   // Default to use default font
-  mFont = pxFontManager::getFont(defaultFont);
+  mFont = pxFontManager::getFont(defaultFont, NULL, NULL, scene->getArchive());
   mPixelSize = defaultPixelSize;
 }
 
@@ -104,8 +104,15 @@ void pxText::resourceReady(rtString readyResolution)
     mScene->mDirty = true;
     // !CLF: ToDo Use pxObject::onTextureReady() and rename it.
     if( mInitialized) 
+    {
+      if( !mParent)
+      {
+        // Send the promise here because the text will not get an 
+        // update call until it has parent
+        sendPromise();
+      }
       pxObject::onTextureReady();
-    
+    }
   }
   else 
   {
@@ -125,7 +132,24 @@ void pxText::draw()
   static pxTextureRef nullMaskRef;
   if( getFontResource() != NULL && getFontResource()->isFontLoaded())
   {
-
+    pxContextFramebufferRef previousSurface;
+    pxContextFramebufferRef cached;
+    if ((msx < 1.0) || (msy < 1.0))
+    {
+      context.pushState();
+      previousSurface = context.getCurrentFramebuffer();
+      cached = context.createFramebuffer(getFBOWidth(),getFBOHeight());
+      if (cached.getPtr())
+      {
+        if (context.setFramebuffer(cached) == PX_OK)
+        {
+          pxMatrix4f m;
+          context.setMatrix(m);
+          context.setAlpha(1.0);
+          context.clear(getFBOWidth(), getFBOHeight());
+        }
+      }
+    }
 #ifdef PXSCENE_FONT_ATLAS
     if (mDirty)
     {
@@ -134,13 +158,21 @@ void pxText::draw()
     }
     mQuads.draw(0,0,mTextColor);
 #else
-      if (getFontResource() != NULL)
-      {
-        getFontResource()->renderText(mText, mPixelSize, 0, 0, msx, msy, mTextColor, mw);
-      }
+    if (getFontResource() != NULL)
+    {
+      getFontResource()->renderText(mText, mPixelSize, 0, 0, msx, msy, mTextColor, mw);
+    }
 #endif
-  }  
-
+    if ((msx < 1.0) || (msy < 1.0))
+    {
+      context.setFramebuffer(previousSurface);
+      context.popState();
+      if (cached.getPtr() && cached->getTexture().getPtr())
+      {
+        context.drawImage(0, 0, (mw>MAX_TEXTURE_WIDTH?MAX_TEXTURE_WIDTH:mw), (mh>MAX_TEXTURE_HEIGHT?MAX_TEXTURE_HEIGHT:mh), cached->getTexture(), nullMaskRef);
+      }
+    }
+  }
 }
 
 rtError pxText::setFontUrl(const char* s)
@@ -154,7 +186,7 @@ rtError pxText::setFontUrl(const char* s)
   createNewPromise();
 
   removeResourceListener();
-  mFont = pxFontManager::getFont(s);
+  mFont = pxFontManager::getFont(s, NULL, NULL, mScene->getArchive());
   mListenerAdded = true;
   if (getFontResource() != NULL)
   {

@@ -1,0 +1,10 @@
+match_max 32
+expect "(gdb) "
+send "r\n"
+expect "(gdb) "
+send "thread apply all bt full\n";
+expect "(gdb) "
+# sometimes this is more readable
+send "thread apply all bt\n";
+expect "(gdb) "
+send "quit\n";

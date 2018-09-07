@@ -41,16 +41,15 @@ public:
     {
       rtData pngData2;
       pngData2.init(i);
-      size_t l;
-      char* d = base64_encode(pngData2.data(), pngData2.length(), &l);
-      EXPECT_EQ ((int)l, 4*((i+2)/3));
-      EXPECT_TRUE (i == 0 || (NULL != d && *d != 0));
-      if (NULL != d && *d != 0)
-      {
-        size_t sl = strlen(rtString(d, l).cString());
-        EXPECT_EQ (sl, l);
-        free(d);
-      }
+      rtString out;
+
+      rtError res = base64_encode(pngData2, out);
+
+printf("\n >>>>>>>>>>>>>>>>>>>>> [%d]  len = %d   res = %d",i, out.length(), res);
+
+      EXPECT_TRUE (res == (i == 0) ? RT_FAIL : RT_OK);
+      EXPECT_EQ ((int)out.length(), 4*((i+2)/3));
+      EXPECT_TRUE (i == 0 || (NULL != out.cString() && out.length() != 0));
     }
   }
 
@@ -60,24 +59,28 @@ public:
     {
       rtData pngData2;
       pngData2.init(i);
-      size_t l;
-      char* d = base64_encode(pngData2.data(), pngData2.length(), &l);
-      EXPECT_EQ (l, 4*((i+2)/3));
-      EXPECT_TRUE (l == 0 || NULL != d);
 
-      if (NULL != d)
+      rtString s1;
+
+      rtError res1 = base64_encode(pngData2.data(), pngData2.length(), s1);
+
+      EXPECT_TRUE (res1 == (i == 0) ? RT_FAIL : RT_OK);
+      EXPECT_EQ ((size_t)s1.length(), 4*((i+2)/3));
+      EXPECT_TRUE (s1.length() == 0 || NULL != s1.cString());
+
+      if (NULL != s1.cString() )
       {
-        size_t l2;
-        unsigned char *d2 = base64_decode((const unsigned char *)d, l, &l2);
-        EXPECT_TRUE (l < 4 || NULL != d2);
-        if (d2)
+        rtData d2;
+        rtError res2 = base64_decode(s1, d2);
+
+        EXPECT_TRUE (res2 == (i == 0) ? RT_FAIL : RT_OK);
+        EXPECT_TRUE (d2.length() < 4 || NULL != d2.data());
+        if (d2.length() > 0)
         {
-          EXPECT_EQ (pngData2.length(), l2);
-          int eq = memcmp(pngData2.data(), d2, pngData2.length());
+          EXPECT_EQ (pngData2.length(), d2.length());
+          int eq = memcmp(pngData2.data(), d2.data(), pngData2.length());
           EXPECT_EQ (eq, 0);
-          free(d2);
         }
-        free(d);
       }
     }
   }

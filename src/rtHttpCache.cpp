@@ -459,12 +459,20 @@ bool rtHttpCacheData::handleDownloadRequest(vector<rtString>& headers,bool downl
 
   if (false == rtFileDownloader::instance()->downloadFromNetwork(downloadRequest))
   {
+     rtLogWarn("download failed %s Error: %s HTTP Status Code: %ld",
+                downloadRequest->fileUrl().cString(),
+                downloadRequest->errorString().cString(),
+                downloadRequest->httpStatusCode());
      delete downloadRequest;
      return false;
   }
 
   if ((downloadRequest->httpStatusCode() == 404) || (downloadRequest->httpStatusCode() == 403))
   {
+    rtLogWarn("download failed %s Error: %s HTTP Status Code: %ld",
+               downloadRequest->fileUrl().cString(),
+               downloadRequest->errorString().cString(),
+               downloadRequest->httpStatusCode());
     delete downloadRequest;
     return false;
   }
