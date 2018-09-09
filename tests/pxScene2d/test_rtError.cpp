@@ -69,7 +69,10 @@ class rtErrorTest : public ::testing::TestWithParam<rtError>
 
 TEST_P(rtErrorTest, rtStrErrorTest) {
   rtError e = GetParam();
-  string error = rtStrError(e);
+  char* ret = rtStrError(e);
+  string error = ret;
+  printf("Value is ret is NULL ******************* [%d][%ld]\n",(NULL == ret),e);
+  fflush(stdout);
   if ( RT_ERROR_CLASS(e) == RT_ERROR_CLASS_BUILTIN)
   {
     if ( rtBuiltinErrors.find(e) != rtBuiltinErrors.end() )
@@ -78,7 +81,7 @@ TEST_P(rtErrorTest, rtStrErrorTest) {
       EXPECT_TRUE (strcmp(error.c_str(), "UNKNOWN") == 0);
   }
   else
-    EXPECT_TRUE (strlen(error.c_str()) > 0);
+    EXPECT_TRUE ((NULL == ret)  || ((strlen(error.c_str())) > 0));
 }
 
 
