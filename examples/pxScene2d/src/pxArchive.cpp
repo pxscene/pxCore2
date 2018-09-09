@@ -17,7 +17,7 @@ limitations under the License.
 */
 
 #include "pxArchive.h"
-
+#include "rtPathUtils.h"
 #include "rtThreadQueue.h"
 
 extern rtThreadQueue* gUIThreadQueue;
@@ -133,24 +133,41 @@ rtError pxArchive::initFromUrl(const rtString& url, const rtCORSRef& cors, rtObj
     mLoadStatus.set("sourceType", "file");
     // TODO align statusCodes for loadStatus
     rtError loadStatus = RT_ERROR;
-    pxArchive* arc = (pxArchive*) archive.getPtr();
-    if ((arc != NULL ) && (arc->isFile() == false))
+
+    do
     {
-      loadStatus = arc->getFileData(mUrl, mData);
-    }
-    else
-    {
+      pxArchive* arc = (pxArchive*) archive.getPtr();
+      if ((arc != NULL ) && (arc->isFile() == false))
+      {
+        loadStatus = arc->getFileData(mUrl, mData);
+        if (loadStatus == RT_OK)
+          break;
+      }
+
       loadStatus = rtLoadFile(url, mData);
-    }
+      if (loadStatus == RT_OK)
+        break;
+
+      if (rtIsPathAbsolute(url))
+        break;
+
+      rtModuleDirs *dirs = rtModuleDirs::instance();
+
+      for (rtModuleDirs::iter it = dirs->iterator(); it.first != it.second; it.first++)
+      {
+        loadStatus = rtLoadFile(rtConcatenatePath(*it.first, url.cString()).c_str(), mData);
+        if (loadStatus == RT_OK)
+          break;
+      }
+    } while (0);
+
+    mLoadStatus.set("statusCode", loadStatus == RT_OK ? 0 : 1);
+
     if (loadStatus == RT_OK)
     {
-      mLoadStatus.set("statusCode",0);
-      process(mData.data(),mData.length());
+      process(mData.data(), mData.length());
     }
-    else
-    {
-      mLoadStatus.set("statusCode",1);
-    }
+
     if (gUIThreadQueue)
     {
       gUIThreadQueue->addTask(pxArchive::onDownloadCompleteUI,this,NULL);
