@@ -1816,7 +1816,7 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   : mRoot(), mInfo(), mCapabilityVersions(), start(0), sigma_draw(0), sigma_update(0), end2(0), frameCount(0), mWidth(0), mHeight(0), mStopPropagation(false), mContainer(NULL), mShowDirtyRectangle(false),
     mInnerpxObjects(), mSuspended(false),
 #ifdef PX_DIRTY_RECTANGLES
-    mDirtyRect(), mLastFrameDirtyRect(),mArchive(),
+    mArchive(),mDirtyRect(), mLastFrameDirtyRect(),
 #endif //PX_DIRTY_RECTANGLES
     mDirty(true), mTestView(NULL), mDisposed(false)
 {
@@ -3538,6 +3538,7 @@ rtDefineMethod(pxScene2d, dispose);
 #ifdef ENABLE_PERMISSIONS_CHECK
 rtDefineProperty(pxScene2d, permissions);
 #endif
+rtDefineMethod(pxScene2d, sparkSetting);
 rtDefineProperty(pxScene2d, cors);
 rtDefineMethod(pxScene2d, addServiceProvider);
 rtDefineMethod(pxScene2d, removeServiceProvider);
@@ -3643,6 +3644,18 @@ void pxScene2d::innerpxObjectDisposed(rtObjectRef ref)
       mInnerpxObjects.erase(mInnerpxObjects.begin()+pos);
     }
   }
+}
+
+rtError pxScene2d::sparkSetting(const rtString& setting, rtValue& value) const
+{
+  rtValue val;
+  if (RT_OK != rtSettings::instance()->value(setting, val))
+  {
+    value = rtValue();
+    return RT_OK;
+  }
+  value = val;
+  return RT_OK;
 }
 
 void pxScene2d::setViewContainer(pxIViewContainer* l)

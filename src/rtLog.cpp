@@ -136,7 +136,6 @@ void rtLogPrintf(rtLogLevel level, const char* file, int line, const char* forma
   if (sLogHandler == NULL)
   {
     printf(RT_LOGPREFIX "%5s %s:%d -- Thread-%" RT_THREADID_FMT ": ", logLevel, path, line, threadId);
-
     va_list ptr;
     va_start(ptr, format);
     vprintf(format, ptr);

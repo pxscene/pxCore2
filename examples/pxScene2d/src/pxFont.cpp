@@ -18,6 +18,7 @@
 
 // pxFont.cpp
 
+#include "rtPathUtils.h"
 #include "rtFileDownloader.h"
 #include "pxFont.h"
 #include "pxTimer.h"
@@ -254,16 +255,38 @@ rtError pxFont::init(const char* n)
 {
   mFontMutex.lock();
   mUrl = n;
-   
-  if(FT_New_Face(ft, n, 0, &mFace)) {
-    mFontMutex.unlock();
-    return RT_FAIL;
+  rtError loadFontStatus = RT_FAIL;
+
+  do {
+    if (FT_New_Face(ft, n, 0, &mFace) == 0)
+    {
+      loadFontStatus = RT_OK;
+      break;
+    }
+
+    if (rtIsPathAbsolute(n))
+      break;
+
+    rtModuleDirs *dirs = rtModuleDirs::instance();
+
+    for (rtModuleDirs::iter it = dirs->iterator(); it.first != it.second; it.first++)
+    {
+      if (FT_New_Face(ft, rtConcatenatePath(*it.first, n).c_str(), 0, &mFace) == 0)
+      {
+        loadFontStatus = RT_OK;
+        break;
+      }
+    }
+  } while (0);
+
+  if(loadFontStatus == RT_OK)
+  {
+    mInitialized = true;
+    setPixelSize(defaultPixelSize);
   }
-  
-  mInitialized = true;
-  setPixelSize(defaultPixelSize);
+
   mFontMutex.unlock();
-  return RT_OK;
+  return loadFontStatus;
 }
 // This init is used by async callback to load downloaded font file data
 rtError pxFont::init(const FT_Byte*  fontData, FT_Long size, const char* n)
