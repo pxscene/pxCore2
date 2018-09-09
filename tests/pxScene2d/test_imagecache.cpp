@@ -938,8 +938,7 @@ class rtFileDownloaderTest : public testing::Test, public commonTestFns
       request->setCallbackFunction(rtFileDownloaderTest::downloadCallbackForUseCallbackDataSize);
       request->setDownloadProgressCallbackFunction(rtFileDownloaderTest::downloadProgressCallbackForUseCallbackDataSize, this);
       request->setUseDownloadProgressCallbackDataSize(true);
-      expectedStatusCode = 0;
-      expectedHttpCode = 200;
+      expectedStatusCode = CURLE_WRITE_ERROR;
       rtFileDownloader::instance()->downloadFile(request);
       sem_wait(testSem);
     }
@@ -1240,7 +1239,6 @@ class rtFileDownloaderTest : public testing::Test, public commonTestFns
       {
         rtFileDownloaderTest* callbackData = (rtFileDownloaderTest*) fileDownloadRequest->callbackData();
         EXPECT_TRUE (callbackData->expectedHttpCode == fileDownloadRequest->httpStatusCode());
-        EXPECT_TRUE (callbackData->expectedStatusCode ==  fileDownloadRequest->downloadStatusCode());
         EXPECT_FALSE (fileDownloadRequest->isDataCached());
         sem_post(callbackData->testSem);
       }
