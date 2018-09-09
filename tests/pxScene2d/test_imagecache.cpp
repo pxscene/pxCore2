@@ -914,6 +914,7 @@ class rtFileDownloaderTest : public testing::Test, public commonTestFns
       //EXPECT_TRUE (RT_OK ==rtFileCache::instance()->httpCacheData("https://px-apps.sys.comcast.net/pxscene-samples/images/tiles/008.jpg",data));
     }
 
+    #define DEFER_CACHE_BUFFER_SIZE 	 (16*1024) // 16 K Added similar to CURL_MAX_WRITE_SIZE (the usual default is 16K)
     void setDeferCacheReadTest()
     {
       // TODO TESTS images files downloaded from pxscene-samples need expiry date
@@ -921,9 +922,24 @@ class rtFileDownloaderTest : public testing::Test, public commonTestFns
       rtFileDownloadRequest* request = new rtFileDownloadRequest("https://px-apps.sys.comcast.net/pxscene-samples/images/tiles/008.jpg",this);
       request->setCallbackFunction(rtFileDownloaderTest::downloadCallbackForDeferCache);
       request->setDeferCacheRead(true);
+      request->setCachedFileReadSize(DEFER_CACHE_BUFFER_SIZE);
       expectedStatusCode = 0;
       expectedHttpCode = 200;
       expectedCachePresence = false;
+      rtFileDownloader::instance()->downloadFile(request);
+      sem_wait(testSem);
+    }
+
+    void setUseCallbackDataSizeTest()
+    {
+      // TODO TESTS images files downloaded from pxscene-samples need expiry date
+      rtFileCache::instance()->clearCache();
+      rtFileDownloadRequest* request = new rtFileDownloadRequest("https://px-apps.sys.comcast.net/pxscene-samples/images/tiles/008.jpg",this);
+      request->setCallbackFunction(rtFileDownloaderTest::downloadCallbackForUseCallbackDataSize);
+      request->setDownloadProgressCallbackFunction(rtFileDownloaderTest::downloadProgressCallbackForUseCallbackDataSize, this);
+      request->setUseDownloadProgressCallbackDataSize(true);
+      expectedStatusCode = 0;
+      expectedHttpCode = 200;
       rtFileDownloader::instance()->downloadFile(request);
       sem_wait(testSem);
     }
@@ -1186,7 +1202,6 @@ class rtFileDownloaderTest : public testing::Test, public commonTestFns
     }
     // download progress test ends
 
-	#define DEFER_CACHE_BUFFER_SIZE 	 (16*1024) // 16 K Added similar to CURL_MAX_WRITE_SIZE (the usual default is 16K)
     static void downloadCallbackForDeferCache(rtFileDownloadRequest* fileDownloadRequest)
     {
       rtHttpCacheData cachedData;
@@ -1198,28 +1213,10 @@ class rtFileDownloaderTest : public testing::Test, public commonTestFns
         EXPECT_TRUE (callbackData->expectedCachePresence == rtFileDownloader::instance()->checkAndDownloadFromCache(fileDownloadRequest,cachedData));
         if(fileDownloadRequest->isDataCached())
         {
-          FILE *fp = fileDownloadRequest->cacheFilePointer();
+		  char* invalidData;
           size_t dataSizeFromDeferCache = 0;
 
-          if((fp != NULL) && (fileDownloadRequest->deferCacheRead() == true))
-          {
-            char buffer[DEFER_CACHE_BUFFER_SIZE]="";
-            int bytesCount = 0;
-
-            // The cahced file has expiration value ends with | delimeter.
-            while ( !feof(fp) )
-            {
-              if (fgetc(fp) == '|')
-                break;
-            }
-            while (!feof(fp))
-            {
-              memset(buffer, 0, DEFER_CACHE_BUFFER_SIZE);
-              bytesCount = fread(buffer,1,DEFER_CACHE_BUFFER_SIZE,fp);
-              dataSizeFromDeferCache += bytesCount;
-            }
-            fclose(fp);
-          }
+          fileDownloadRequest->downloadedData(invalidData, dataSizeFromDeferCache);
 
           fileDownloadRequest->setDeferCacheRead(false);
           rtHttpCacheData cachedData(fileDownloadRequest->fileUrl().cString());
@@ -1232,6 +1229,19 @@ class rtFileDownloaderTest : public testing::Test, public commonTestFns
             EXPECT_TRUE (dataSize == dataSizeFromDeferCache);
           }
         }
+        sem_post(callbackData->testSem);
+      }
+    }
+
+    static void downloadCallbackForUseCallbackDataSize(rtFileDownloadRequest* fileDownloadRequest)
+    {
+      rtHttpCacheData cachedData;
+      if (fileDownloadRequest != NULL && fileDownloadRequest->callbackData() != NULL)
+      {
+        rtFileDownloaderTest* callbackData = (rtFileDownloaderTest*) fileDownloadRequest->callbackData();
+        EXPECT_TRUE (callbackData->expectedHttpCode == fileDownloadRequest->httpStatusCode());
+        EXPECT_TRUE (callbackData->expectedStatusCode ==  fileDownloadRequest->downloadStatusCode());
+        EXPECT_FALSE (fileDownloadRequest->isDataCached());
         sem_post(callbackData->testSem);
       }
     }
@@ -1260,6 +1270,16 @@ class rtFileDownloaderTest : public testing::Test, public commonTestFns
       }
     }
 
+    static size_t downloadProgressCallbackForUseCallbackDataSize(void *ptr, size_t size, size_t nmemb, void *userData)
+    {
+      // Lets consider an example of due to user/caller interuption this callback consumed only half of the data.
+      int consumed= (size*nmemb)/2;
+      UNUSED_PARAM (ptr);
+      UNUSED_PARAM(userData);
+
+      return consumed;
+    }
+
     static size_t downloadProgressCallback(void *ptr, size_t size, size_t nmemb, void *userData)
     {
       UNUSED_PARAM (ptr);
@@ -1286,6 +1306,8 @@ TEST_F(rtFileDownloaderTest, checkCacheTests)
   downloadFileCacheDataProperAvailableTest();
   disableCacheTest();
   downloadFileAddToCacheTest();
+  setDeferCacheReadTest();
+  setUseCallbackDataSizeTest();
   checkAndDownloadFromNetworkSuccess();
   checkAndDownloadFromNetworkFailure();
   startFileDownloadInBackgroundTest();
