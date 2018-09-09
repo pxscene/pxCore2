@@ -155,7 +155,13 @@ createDMG() {
   fi  
   APPLICATION_CLAUSE="set position of item \"Applications\" to {240, 390}"
 
+  if [ "$TRAVIS_EVENT_TYPE" == "cron" ]
+  then
+  DMG_FILE="deploy/mac/SparkEdge.dmg"
+  else
   DMG_FILE="deploy/mac/Spark.dmg"
+  fi
+  
   DMG_DIRNAME="$(dirname "${DMG_FILE}")"
   DMG_DIR="$(cd "${DMG_DIRNAME}" > /dev/null; pwd)"
   DMG_NAME="$(basename "${DMG_FILE}")"

@@ -69,7 +69,7 @@ class rtErrorTest : public ::testing::TestWithParam<rtError>
 
 TEST_P(rtErrorTest, rtStrErrorTest) {
   rtError e = GetParam();
-  char* ret = rtStrError(e);
+  const char* ret = rtStrError(e);
   string error = ret;
   printf("Value is ret is NULL ******************* [%d][%ld]\n",(NULL == ret),e);
   fflush(stdout);
