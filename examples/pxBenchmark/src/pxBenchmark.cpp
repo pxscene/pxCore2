@@ -855,12 +855,12 @@ void pxApiFixture::setUp(const celero::TestFixture::ExperimentValue& experimentV
        // mUnitWidth = (mCurrentX + mUnitWidth*50) > win.GetWidth() ? 100 : (mUnitWidth + mUnitWidth * 50);
         
             context.clear(win.GetWidth(), win.GetHeight());
-            win.SetIterations (100); // TEMP DEMO
+            //win.SetIterations (100); // TEMP DEMO
             break;
         default:
         //mUnitHeight = mCurrentY + mUnitHeight*2 > win.GetHeight() ? 100 : mUnitHeight + mUnitHeight * 2;
         //mUnitWidth = mCurrentX + mUnitWidth*2 > win.GetWidth() ? 100 : mUnitWidth + mUnitWidth * 2;
-            win.SetIterations (1056); // TEMP DEMO
+           // win.SetIterations (1056); // TEMP DEMO
             break;
     }
     
