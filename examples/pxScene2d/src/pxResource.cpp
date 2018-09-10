@@ -27,6 +27,7 @@
 #include "pxResource.h"
 #include "pxUtil.h"
 #include "rtThreadPool.h"
+#include "rtPathUtils.h"
 
 
 using namespace std;
@@ -574,15 +575,33 @@ void rtImageResource::loadResourceFromFile()
 
   rtError loadImageSuccess = RT_FAIL;
 
-  if(mData.length() == 0)
+  do
   {
+    if (mData.length() != 0)
+    {
+      // We have BASE64 or SVG string already...
+      loadImageSuccess = RT_OK;
+      break;
+    }
+
     loadImageSuccess = rtLoadFile(mUrl, mData);
-  }
-  else
-  {
-    // We have BASE64 or SVG string already...
-    loadImageSuccess = RT_OK;
-  }
+    if (loadImageSuccess == RT_OK)
+      break;
+
+    if (rtIsPathAbsolute(mUrl))
+      break;
+
+    rtModuleDirs *dirs = rtModuleDirs::instance();
+
+    for (rtModuleDirs::iter it = dirs->iterator(); it.first != it.second; it.first++)
+    {
+      if (rtLoadFile(rtConcatenatePath(*it.first, mUrl.cString()).c_str(), mData) == RT_OK)
+      {
+        loadImageSuccess = RT_OK;
+        break;
+      }
+    }
+  } while(0);
 
   if (loadImageSuccess == RT_OK)
   {

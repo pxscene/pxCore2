@@ -292,7 +292,7 @@ elseif (WIN32)
     set(PLATFORM_LIBRARIES pxCore.lib)
     set(PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} ${COMM_DEPS_LIBRARIES} ${NODE_LIBRARIES} ${V8_LIBRARIES} ${DUKE_LIBRARIES})
     set(PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES}
-        pthreadVC2.lib opengl32.lib Winmm.lib
+        pthreadVC2.lib opengl32.lib Winmm.lib Shlwapi.lib
         Ws2_32.lib Wldap32.lib msvcrt.lib psapi.lib
         iphlpapi.lib userenv.lib rtCore_s.lib common.lib
         crash_generation_client.lib exception_handler.lib)
