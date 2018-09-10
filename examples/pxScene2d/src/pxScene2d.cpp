@@ -1893,6 +1893,15 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   rtObjectRef graphicsCapabilities = new rtMapObject;
   graphicsCapabilities.set("svg", 1);
   mCapabilityVersions.set("graphics", graphicsCapabilities);
+
+  rtObjectRef networkCapabilities = new rtMapObject;
+#ifdef ENABLE_ACCESS_CONTROL_CHECK
+  networkCapabilities.set("cors", 1);
+#ifdef ENABLE_CORS_FOR_RESOURCES
+  networkCapabilities.set("corsResources", 1);
+#endif
+#endif
+  mCapabilityVersions.set("network", networkCapabilities);
 }
 
 rtError pxScene2d::dispose()
