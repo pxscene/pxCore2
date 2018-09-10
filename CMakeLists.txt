@@ -5,6 +5,7 @@ option(BUILD_PXCORE "BUILD_PXCORE" ON)
 option(BUILD_PXSCENE "BUILD_PXSCENE" ON)
 option(BUILD_PX_TESTS "BUILD_PX_TESTS" OFF)
 option(BUILD_RTREMOTE_LIBS "BUILD_RTREMOTE_LIBS" OFF)
+option(BUILD_PXBENCHMARK "BUILD_PXBENCHMARK" OFF)
 
 option(PREFER_SYSTEM_LIBRARIES "Prefer to use system libraries over bundled." "OFF")
     # Fine selection of which external node package to pick-up, if multiple are installed on the system
@@ -55,3 +56,8 @@ if (BUILD_PX_TESTS)
     message("Including unit test support")
     add_subdirectory(tests/pxScene2d)
 endif (BUILD_PX_TESTS)
+
+if (BUILD_PXBENCHMARK)
+    message("Building pxbenchmark")
+    add_subdirectory(examples/pxBenchmark/src)
+endif (BUILD_PXBENCHMARK)
