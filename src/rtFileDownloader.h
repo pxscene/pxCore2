@@ -92,8 +92,8 @@ public:
 #endif //ENABLE_HTTP_CACHE
   void setProgressMeter(bool val);
   bool isProgressMeterSwitchOff();
-  void setUseDownloadProgressCallbackDataSize(bool val);
-  bool useDownloadProgressCallbackDataSize();
+  void setUseCallbackDataSize(bool val);
+  bool useCallbackDataSize();
   void setHTTPFailOnError(bool val);
   bool isHTTPFailOnError();
   void setHTTPError(const char* httpError);
@@ -135,7 +135,7 @@ private:
   bool mDefaultTimeout;
   rtCORSRef mCORS;
   bool mCanceled;
-  bool mUseDownloadProgressCallbackDataSize;
+  bool mUseCallbackDataSize;
   rtMutex mCanceledMutex;
 };
 

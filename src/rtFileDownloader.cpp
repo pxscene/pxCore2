@@ -120,7 +120,7 @@ static size_t WriteMemoryCallback(void *contents, size_t size, size_t nmemb, voi
   mem->contentsSize += downloadSize;
   mem->contentsBuffer[mem->contentsSize] = 0;
 
-  if (mem->downloadRequest->useDownloadProgressCallbackDataSize() == true)
+  if (mem->downloadRequest->useCallbackDataSize() == true)
   {
      return downloadCallbackSize;
   }
@@ -158,7 +158,7 @@ void onDownloadHandleCheck()
 
 rtFileDownloadRequest::rtFileDownloadRequest(const char* imageUrl, void* callbackData, void (*callbackFunction)(rtFileDownloadRequest*))
       : mFileUrl(imageUrl), mProxyServer(),
-    mErrorString(), mHttpStatusCode(0), mCallbackFunction(callbackFunction), mDownloadProgressCallbackFunction(NULL), mUseDownloadProgressCallbackDataSize(false), mDownloadProgressUserPtr(NULL),
+    mErrorString(), mHttpStatusCode(0), mCallbackFunction(callbackFunction), mDownloadProgressCallbackFunction(NULL), mUseCallbackDataSize(false), mDownloadProgressUserPtr(NULL),
     mDownloadedData(0), mDownloadedDataSize(), mDownloadStatusCode(0) ,mCallbackData(callbackData),
     mCallbackFunctionMutex(), mHeaderData(0), mHeaderDataSize(0), mHeaderOnly(false), mDownloadHandleExpiresTime(-2)
 #ifdef ENABLE_HTTP_CACHE
@@ -415,14 +415,14 @@ void rtFileDownloadRequest::setProgressMeter(bool val)
   mIsProgressMeterSwitchOff = val;
 }
 
-void rtFileDownloadRequest::setUseDownloadProgressCallbackDataSize(bool val)
+void rtFileDownloadRequest::setUseCallbackDataSize(bool val)
 {
-  mUseDownloadProgressCallbackDataSize = val;
+  mUseCallbackDataSize = val;
 }
 
-bool rtFileDownloadRequest::useDownloadProgressCallbackDataSize()
+bool rtFileDownloadRequest::useCallbackDataSize()
 {
-  return mUseDownloadProgressCallbackDataSize;
+  return mUseCallbackDataSize;
 }
 
 bool rtFileDownloadRequest::isProgressMeterSwitchOff()

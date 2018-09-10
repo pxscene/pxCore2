@@ -937,8 +937,7 @@ class rtFileDownloaderTest : public testing::Test, public commonTestFns
       rtFileDownloadRequest* request = new rtFileDownloadRequest("https://px-apps.sys.comcast.net/pxscene-samples/images/tiles/008.jpg",this);
       request->setCallbackFunction(rtFileDownloaderTest::downloadCallbackForUseCallbackDataSize);
       request->setDownloadProgressCallbackFunction(rtFileDownloaderTest::downloadProgressCallbackForUseCallbackDataSize, this);
-      request->setUseDownloadProgressCallbackDataSize(true);
-      expectedStatusCode = CURLE_WRITE_ERROR;
+      request->setUseCallbackDataSize(true);
       rtFileDownloader::instance()->downloadFile(request);
       sem_wait(testSem);
     }
@@ -1238,8 +1237,7 @@ class rtFileDownloaderTest : public testing::Test, public commonTestFns
       if (fileDownloadRequest != NULL && fileDownloadRequest->callbackData() != NULL)
       {
         rtFileDownloaderTest* callbackData = (rtFileDownloaderTest*) fileDownloadRequest->callbackData();
-        EXPECT_TRUE (callbackData->expectedHttpCode == fileDownloadRequest->httpStatusCode());
-        EXPECT_FALSE (fileDownloadRequest->isDataCached());
+        EXPECT_TRUE ( false == fileDownloadRequest->isDataCached());
         sem_post(callbackData->testSem);
       }
     }
