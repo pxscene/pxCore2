@@ -1107,13 +1107,13 @@ int pxMain(int argc, char* argv[])
     
     if (argc > 6)
     {
-        string path(argv[7]);
+        std::string path(argv[7]);
         win.SetOutPath(path);
     }
     // OSX likes to pass us some weird parameter on first launch after internet install
-    rtLogInfo("window width = %d height = %d", windowWidth, windowHeight, true);
+    rtLogInfo("window width = %d height = %d", windowWidth, windowHeight);
     
-    win.init(0, 0, windowWidth, windowHeight, unitW, unitH);
+    win.init(0, 0, windowWidth, windowHeight, unitW, unitH, true);
     
     win.setTitle(buffer);
     

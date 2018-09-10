@@ -36,7 +36,7 @@
     <PngSrcDir>..\libpng-1.6.28</PngSrcDir>
     <CurlSrcDir>..\curl-7.40.0</CurlSrcDir>
     <TurboJpegSrcDir>..\libjpeg-turbo-1.5.1</TurboJpegSrcDir>
-    <FreeType2SrcDir>..\freetype-2.5.2</FreeType2SrcDir>
+    <FreeType2SrcDir>..\freetype-2.8.1</FreeType2SrcDir>
     <NodeSrcDir>..\libnode-v6.9.0</NodeSrcDir>
 
     <!-- The following line allows compilation for an ARM target with Visual

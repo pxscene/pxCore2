@@ -1284,14 +1284,14 @@ struct glShaderProgDetails
 static glShaderProgDetails  createShaderProgram(const char* vShaderTxt, const char* fShaderTxt)
 {
   struct glShaderProgDetails details = { 0,0,0 };
-  GLint stat = GL_FALSE;
+  GLint stat;
 
   details.fragShader = glCreateShader(GL_FRAGMENT_SHADER);
   glShaderSource(details.fragShader, 1, (const char **) &fShaderTxt, NULL);
   glCompileShader(details.fragShader);
   glGetShaderiv(details.fragShader, GL_COMPILE_STATUS, &stat);
 
-  if (GL_FALSE == stat)
+  if (!stat)
   {
     rtLogError("Error: fragment shader did not compile: %d", glGetError());
 
