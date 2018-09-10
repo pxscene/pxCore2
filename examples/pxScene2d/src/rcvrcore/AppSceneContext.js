@@ -317,6 +317,7 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (packageUri, module
       var requireMethod = function (pkg) {
         if (typeof requireIt === "function") { 
           // TODO: remove
+          log.message(1, "old use of require not supported: " + pkg);
           return requireIt(pkg);
         }
         else{
