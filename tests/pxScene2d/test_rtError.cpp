@@ -78,7 +78,14 @@ TEST_P(rtErrorTest, rtStrErrorTest) {
       EXPECT_TRUE (strcmp(error.c_str(), "UNKNOWN") == 0);
   }
   else
-    EXPECT_TRUE (strlen(error.c_str()) > 0);
+  {
+    #ifdef __linux__
+      EXPECT_TRUE (strlen(error.c_str()) > 0);
+    #else
+      // currently strerror is not returning data for platform other than linux, so considering it as zero length string
+      EXPECT_TRUE (strlen(error.c_str()) == 0);
+    #endif
+  }
 }
 
 

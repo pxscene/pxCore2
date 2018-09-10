@@ -92,7 +92,12 @@ function Application(props) {
   this.priority = 1;
   this.name = "";
   this.type = ApplicationType.UNDEFINED;
-  this.ready = undefined;
+  var _readyResolve = undefined;
+  var _readyReject = undefined;
+  this.ready = new Promise(function (resolve, reject) {
+    _readyResolve = resolve;
+    _readyReject = reject;
+  });
 
   // Private variables
   var cmd = "";
@@ -316,91 +321,108 @@ function Application(props) {
   }
 
   this.log("cmd:",cmd,"uri:",uri,"w:",w,"h:",h);
-  if (cmd){
-    if (scene !== undefined) {
-      if (cmd === "spark"){
-        this.type = ApplicationType.SPARK;
-        _externalApp = scene.create({t:"scene", parent:root, url:uri, serviceContext:serviceContext});
-        this.ready = _externalApp.ready;
-        _externalApp.on("onReady", function () { _this.log("onReady"); }); // is never called
-        _externalApp.on("onClientStarted", function () { _this.log("onClientStarted"); }); // is never called
-        _externalApp.on("onClientConnected", function () { _this.log("onClientConnected"); }); // is never called
-        _externalApp.on("onClientDisconnected", function () { _this.log("onClientDisconnected"); }); // is never called
-        _externalApp.on("onClientStopped", function () { _this.log( "onClientStopped"); }); // is never called
-        _externalApp.ready.then(function() {
-          _this.log("successfully created Spark app: " + _this.id);
+
+  if (!cmd) {
+    this.log('cannot create app because cmd is not set');
+    _readyReject(new Error('cmd is not set'));
+    setTimeout(function () { // app not created yet
+      _this.applicationClosed();
+    });
+  }
+  else if (!scene) {
+    this.log('cannot create app because the scene is not set');
+    _readyReject(new Error('scene is not set'));
+    setTimeout(function () { // app not created yet
+      _this.applicationClosed();
+    });
+  }
+  else if (appManager.getApplicationById(props.id)) {
+    this.log('cannot create app with duplicate ID: ' + props.id);
+    _readyReject(new Error('duplicate ID: ' + props.id));
+    setTimeout(function () { // app not created yet
+      _this.applicationClosed();
+    });
+  }
+  else if (cmd === "spark"){
+    this.type = ApplicationType.SPARK;
+    _externalApp = scene.create({t:"scene", parent:root, url:uri, serviceContext:serviceContext});
+    _externalApp.on("onReady", function () { _this.log("onReady"); }); // is never called
+    _externalApp.on("onClientStarted", function () { _this.log("onClientStarted"); }); // is never called
+    _externalApp.on("onClientConnected", function () { _this.log("onClientConnected"); }); // is never called
+    _externalApp.on("onClientDisconnected", function () { _this.log("onClientDisconnected"); }); // is never called
+    _externalApp.on("onClientStopped", function () { _this.log( "onClientStopped"); }); // is never called
+    _externalApp.ready.then(function() {
+      _this.log("successfully created Spark app: " + _this.id);
+      _readyResolve();
+      _this.applicationReady();
+    }, function rejection() {
+      _this.log("failed to launch Spark app: " + _this.id);
+      _readyReject(new Error("failed to create"));
+      _this.applicationClosed();
+    });
+    this.setProperties(props);
+    this.applicationCreated();
+  }
+  else if (cmd === "WebApp"){
+    this.type = ApplicationType.WEB;
+    _externalApp = scene.create( {t:"external", parent:root, server:"wl-rdkbrowser2-server", w:w, h:h, hasApi:true} );
+    // The following doesn't work - causes black screen:
+    //_externalApp.on("onReady", function () { _this.log("onReady"); });
+    //_externalApp.on("onClientStarted", function () { _this.log("onClientStarted"); });
+    //_externalApp.on("onClientConnected", function () { _this.log("onClientConnected"); });
+    //_externalApp.on("onClientDisconnected", function () { _this.log("onClientDisconnected"); });
+    //_externalApp.on("onClientStopped", function () { _this.log("onClientStopped"); });
+    _externalApp.remoteReady.then(function(obj) {
+      if(obj) {
+        _this.log("about to create browser window");
+        _browser = _externalApp.api.createWindow(_externalApp.displayName, false);
+        if (_browser) {
+          _browser.url = uri;
+          _this.log("launched WebApp uri:" + uri);
+          _this.applicationCreated();
+          _readyResolve();
           _this.applicationReady();
-        }, function rejection() {
-          _this.log("failed to launch Spark app: " + _this.id);
+        } else {
+          _this.log("failed to create window for WebApp");
+          _readyReject(new Error("failed to create"));
           _this.applicationClosed();
-        });
-        this.setProperties(props);
-        this.applicationCreated();
+        }
+      } else {
+        _this.log("failed to create WebApp invalid waylandObj");
+        _readyReject(new Error("failed to create"));
+        _this.applicationClosed();
       }
-      else if (cmd === "WebApp"){
-        this.type = ApplicationType.WEB;
-        _externalApp = scene.create( {t:"wayland", parent:root, server:"wl-rdkbrowser2-server", w:w, h:h, hasApi:true} );
-        this.ready = _externalApp.remoteReady;
-        // The following doesn't work - causes black screen:
-        //_externalApp.on("onReady", function () { _this.log("onReady"); });
-        //_externalApp.on("onClientStarted", function () { _this.log("onClientStarted"); });
-        //_externalApp.on("onClientConnected", function () { _this.log("onClientConnected"); });
-        //_externalApp.on("onClientDisconnected", function () { _this.log("onClientDisconnected"); });
-        //_externalApp.on("onClientStopped", function () { _this.log("onClientStopped"); });
-        _externalApp.remoteReady.then(function(obj) {
-          if(obj) {
-            _this.log("about to create browser window");
-            _browser = _externalApp.api.createWindow(_externalApp.displayName, false);
-            if (_browser) {
-              _browser.url = uri;
-              _this.log("launched WebApp uri:" + uri);
-              _this.applicationCreated();
-              _this.applicationReady();
-            } else {
-              _this.log("failed to create window for WebApp");
-              _this.applicationClosed();
-            }
-          } else {
-            _this.log("failed to create WebApp invalid waylandObj");
-            _this.applicationClosed();
-          }
-        }, function rejection() {
-          _this.log("failed to create WebApp");
-          _this.applicationClosed();
-        });
-        this.setProperties(props);
-      }
-      else{
-        this.type = ApplicationType.NATIVE;
-        _externalApp = scene.create( {t:"wayland", parent:root, cmd:cmd, w:w, h:h, hasApi:true} );
-        this.ready = _externalApp.ready;
-        _externalApp.on("onReady", function () { _this.log("onReady"); }); // is never called
-        _externalApp.on("onClientStarted", function () { _this.log("onClientStarted"); });
-        _externalApp.on("onClientConnected", function () { _this.log("onClientConnected"); });
-        _externalApp.on("onClientDisconnected", function () { _this.log("onClientDisconnected"); }); // called on client crash
-        _externalApp.on("onClientStopped", function () { // called on client crash
-          _this.log("onClientStopped");
-          setTimeout(function () {
-            _this.destroy();
-          });
-        });
-        _externalApp.ready.then(function() {
-          _this.log("successfully created: " + _this.id);
-          _this.applicationReady();
-        }, function rejection() {
-          _this.log("failed to launch app: " + _this.id);
-          _this.applicationClosed();
-        });
-        this.setProperties(props);
-        this.applicationCreated();
-      }
-    } else {
-      this.log("cannot create app because the scene is not set");
-      this.applicationClosed();
-    }
+    }, function rejection() {
+      _this.log("failed to create WebApp");
+      _readyReject(new Error("failed to create"));
+      _this.applicationClosed();
+    });
+    this.setProperties(props);
   }
   else{
+    this.type = ApplicationType.NATIVE;
+    _externalApp = scene.create( {t:"external", parent:root, cmd:cmd, w:w, h:h, hasApi:true} );
+    _externalApp.on("onReady", function () { _this.log("onReady"); }); // is never called
+    _externalApp.on("onClientStarted", function () { _this.log("onClientStarted"); });
+    _externalApp.on("onClientConnected", function () { _this.log("onClientConnected"); });
+    _externalApp.on("onClientDisconnected", function () { _this.log("onClientDisconnected"); }); // called on client crash
+    _externalApp.on("onClientStopped", function () { // called on client crash
+      _this.log("onClientStopped");
+      setTimeout(function () {
+        _this.destroy();
+      });
+    });
+    _externalApp.ready.then(function() {
+      _this.log("successfully created: " + _this.id);
+      _readyResolve();
+      _this.applicationReady();
+    }, function rejection() {
+      _this.log("failed to launch app: " + _this.id);
+      _readyReject(new Error("failed to create"));
+      _this.applicationClosed();
+    });
     this.setProperties(props);
+    this.applicationCreated();
   }
 }
 
