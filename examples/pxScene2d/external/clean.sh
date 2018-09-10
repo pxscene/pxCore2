@@ -9,6 +9,7 @@ cd ..
 
 #--------- FT 
 cd ft
+./configure
 make clean -j3
 cd ..
 
