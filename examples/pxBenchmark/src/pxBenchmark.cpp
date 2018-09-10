@@ -67,19 +67,13 @@ void benchmarkWindow::init(const int32_t& x, const int32_t& y, const int32_t& w,
 {
     mApiFixture = std::shared_ptr<pxApiFixture>(new pxApiFixture());
     
-    
-    rtString settingsPath;
-    rtGetHomeDirectory(settingsPath);
-    mOutputTableCSV = settingsPath.cString() + mOutputTableCSV;
-    
-    std::cout << "Writing results to: " << mOutputTableCSV << std::endl;
-    celero::ResultTable::Instance().setFileName(mOutputTableCSV);
+    std::cout << "Writing results to: " << GetOutPath() + mOutputTableCSV << std::endl;
+    celero::ResultTable::Instance().setFileName(GetOutPath() + mOutputTableCSV);
     
     celero::AddExperimentResultCompleteFunction([](std::shared_ptr<celero::ExperimentResult> p) { celero::ResultTable::Instance().add(p); });
     
-    mArchiveCSV = settingsPath.cString() + mArchiveCSV;
-    std::cout << "Archiving results to: " << mArchiveCSV << std::endl;
-    celero::Archive::Instance().setFileName(mArchiveCSV);
+    std::cout << "Archiving results to: " << GetOutPath() + mArchiveCSV << std::endl;
+    celero::Archive::Instance().setFileName(GetOutPath() + mArchiveCSV);
     
     celero::AddExperimentResultCompleteFunction([](std::shared_ptr<celero::ExperimentResult> p) { celero::Archive::Instance().add(p); });
     
@@ -264,7 +258,7 @@ void benchmarkWindow::reset()
         case pxApiFixture::type::xDrawTextureQuads:
             mGroupName = "DrawTextureQuads";
             break;
-        case pxApiFixture::type::xDrawImage9Ran:
+        /*case pxApiFixture::type::xDrawImage9Ran:
             mGroupName = "DrawImage9Ran";
             break;
         case pxApiFixture::type::xDrawImageRan:
@@ -282,6 +276,7 @@ void benchmarkWindow::reset()
         //case pxApiFixture::type::xDrawOffscreen:
         //    mGroupName = "DrawOffscreen";
         //    break;
+         */
         case pxApiFixture::type::xDrawAll:
             mGroupName = "DrawAll";
             break;
@@ -324,10 +319,10 @@ void benchmarkWindow::onDraw(pxSurfaceNative/*&*/ sn)
             mApiFixture->popExperimentValue().Value++;
             celero::ResultTable::Instance().closeFile();
 #if PX_PLATFORM_GENERIC_EGL
-            string cmnd = "libreoffice --calc " + mOutputTableCSV;
+            string cmnd = "libreoffice --calc " + mOutPath + mOutputTableCSV;
             system(cmnd.c_str());
 #else
-            string cmnd = "open " + mOutputTableCSV;
+            string cmnd = "open " + mOutPath + mOutputTableCSV;
             system(cmnd.c_str());
 #endif
             
@@ -495,10 +490,9 @@ void pxApiFixture::TestDrawDiagRect ()
 
 pxTextureRef pxApiFixture::GetImageTexture (const string& format)
 {
-    rtString settingsPath;
-    string url = "Resources/" + to_string((mExperimentValue.Iterations % MAX_IMAGES_CNT) + 1) + format;
-    if (RT_OK == rtGetHomeDirectory(settingsPath))
-        url = settingsPath.cString() + url;
+    string url = "../Resources/" + to_string((mExperimentValue.Iterations % MAX_IMAGES_CNT) + 1) + format;
+    
+    //url = win.GetOutPath() + url;
     
     if (!rtFileExists((char*)url.c_str()))
         return NULL;
@@ -701,7 +695,7 @@ void pxApiFixture::onExperimentStart(const celero::TestFixture::ExperimentValue&
         case xDrawTextureQuads:
             TestDrawTextureQuads();
             break;
-        case xDrawImage9Ran:
+        /*case xDrawImage9Ran:
             TestDrawImage9Ran();
             break;
         case xDrawImageRan:
@@ -715,7 +709,7 @@ void pxApiFixture::onExperimentStart(const celero::TestFixture::ExperimentValue&
             break;
         case xDrawTextureQuadsRan:
             TestDrawTextureQuadsRan();
-            break;
+            break;*/
         //case xDrawOffscreen:
         //    TestDrawOffscreen();
         //    break;
@@ -838,6 +832,8 @@ void pxApiFixture::setUp(const celero::TestFixture::ExperimentValue& experimentV
     
     context.setShowOutlines(true);
     
+   // context.clear(win.GetWidth(), win.GetHeight());
+   /*
     switch ((int)mExperimentValue.Value) {
         case xDrawImage9Ran:
         case xDrawImageRan:
@@ -862,27 +858,9 @@ void pxApiFixture::setUp(const celero::TestFixture::ExperimentValue& experimentV
         //mUnitWidth = mCurrentX + mUnitWidth*2 > win.GetWidth() ? 100 : mUnitWidth + mUnitWidth * 2;
            // win.SetIterations (1056); // TEMP DEMO
             break;
-    }
+    }*/
     
-    if (mCurrentX >= win.GetWidth() && mCurrentY >= win.GetHeight())
-    {
-        mCurrentX = 0.0;
-        mCurrentY = 0.0;
-        
-        context.setSize(win.GetWidth(), win.GetHeight());
-        
-        context.clear(win.GetWidth(), win.GetHeight());
-        
-        float fillColor[] = {0.0, 0.0, 0.0, 1.0};
-        context.clear(0, 0, fillColor);
-    }
-    else if (mCurrentX < win.GetWidth())
-        mCurrentX += mUnitWidth;
-    else
-    {
-        mCurrentX = 0;
-        mCurrentY += mUnitHeight;
-    }
+    
     if (NULL != mTextureRef)
     {
         mTextureRef->deleteTexture();
@@ -907,6 +885,25 @@ void pxApiFixture::setUp(const celero::TestFixture::ExperimentValue& experimentV
 
 void pxApiFixture::tearDown()
 {
+    if (mCurrentX >= win.GetWidth() && mCurrentY >= win.GetHeight())
+    {
+        mCurrentX = 0.0;
+        mCurrentY = 0.0;
+        
+        context.setSize(win.GetWidth(), win.GetHeight());
+        
+        context.clear(win.GetWidth(), win.GetHeight());
+        
+        float fillColor[] = {0.0, 0.0, 0.0, 1.0};
+        context.clear(0, 0, fillColor);
+    }
+    else if (mCurrentX < win.GetWidth())
+        mCurrentX += mUnitWidth;
+    else
+    {
+        mCurrentX = 0;
+        mCurrentY += mUnitHeight;
+    }
 }
 
 void pxApiFixture::UserBenchmark()
@@ -1108,15 +1105,15 @@ int pxMain(int argc, char* argv[])
         windowHeight = stoi(argv[6]);
     }
     
-    bool doCreateTexture = true;
     if (argc > 6)
     {
-        doCreateTexture = stoi(argv[7]);
+        string path(argv[7]);
+        win.SetOutPath(path);
     }
     // OSX likes to pass us some weird parameter on first launch after internet install
-    rtLogInfo("window width = %d height = %d", windowWidth, windowHeight);
+    rtLogInfo("window width = %d height = %d", windowWidth, windowHeight, true);
     
-    win.init(0, 0, windowWidth, windowHeight, unitW, unitH, doCreateTexture);
+    win.init(0, 0, windowWidth, windowHeight, unitW, unitH);
     
     win.setTitle(buffer);
     

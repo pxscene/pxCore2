@@ -123,11 +123,11 @@ public:
         xDrawImageMasked,
         xDrawTextureQuads,
         //xDrawOffscreen,
-        xDrawImageRan,
+        /*xDrawImageRan,
         xDrawImage9Ran,
         xDrawImageBorder9Ran,
         xDrawImageMaskedRan,
-        xDrawTextureQuadsRan,
+        xDrawTextureQuadsRan,*/
         xDrawImageJPG,
         xDrawImagePNG,
         xDrawAll,
@@ -226,6 +226,7 @@ class benchmarkWindow : public pxWindow, public pxIViewContainer, public Benchma
     int32_t             mWindowHeight;
     std::string         mArchiveCSV;
     std::string         mOutputTableCSV;
+    std::string         mOutPath;
     
     pxOffscreen         mTexture;
     
@@ -248,6 +249,7 @@ public:
     , mThreads (1)
     , mArchiveCSV ("pxBenchmark_archive.csv")
     , mOutputTableCSV ("pxBenchmark_outputTable.csv")
+    , mOutPath ("/tmp/")
     {
         
     }
@@ -271,6 +273,10 @@ public:
     int32_t GetWidth () const { return mWidth; }
     
     int32_t GetHeight () const { return mHeight; }
+    
+    std::string GetOutPath () const { return mOutPath; }
+    
+    void SetOutPath (const std::string& path) { mOutPath = path; }
     
     uint64_t GetCurrentTimeElapsed () const;
     //float GetCurrentX () { return mCurrentX; }

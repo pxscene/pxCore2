@@ -93,4 +93,4 @@ cp ../pxBenchmark_xcode/EngineRunner $bundleBin
 
 # Copy OTHER to Resources...
 #
-cp -a ../Resources $bundle/Contents/Resources
+cp -a ../resources $bundle/Contents/Resources
