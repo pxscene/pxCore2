@@ -81,8 +81,8 @@ rtError pxImage9::setUrl(const char* s)
   }
 
   removeResourceListener();
-  mResource = pxImageManager::getImage(s, NULL, mScene ? mScene->cors() : NULL);
-  if(getImageResource() != NULL && getImageResource()->getUrl().length() > 0)
+  mResource = pxImageManager::getImage(s, NULL, mScene ? mScene->cors() : NULL, 0, 0, 1.0f, 1.0f, mScene ? mScene->getArchive(): NULL);
+  if(getImageResource() != NULL && (getImageResource()->getUrl().length() > 0) && mInitialized && !imageLoaded)
   {
     mListenerAdded = true;
     getImageResource()->addListener(this);

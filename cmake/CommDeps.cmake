@@ -98,7 +98,14 @@ if (NOT WIN32)
       pkg_search_module(X11 x11)
     endif (NOT DFB)
     pkg_search_module(CRYPTO libcrypto)
-    pkg_search_module(OPENSSL openssl)
+    
+    if (PREFER_SYSTEM_LIBRARIES)
+        pkg_search_module(OPENSSL openssl)
+    endif (PREFER_SYSTEM_LIBRARIES)
+    if (NOT OPENSSL_FOUND)
+        set(OPENSSL_INCLUDE_DIRS "${EXTDIR}/libnode-v6.9.0/deps/openssl/openssl/include")
+    endif (NOT OPENSSL_FOUND)
+    
     pkg_search_module(UV libuv)
 
     pkg_search_module(WAYLAND_EGL wayland-egl)
@@ -124,9 +131,10 @@ else (NOT WIN32)
     set(PNG_LIBRARY_DIRS "${VCLIBS}")
     set(PNG_LIBRARIES "libpng16.lib")
 
-    set(FREETYPE_INCLUDE_DIRS "${EXTDIR}/freetype-2.5.2/include")
+    set(FREETYPE_INCLUDE_DIRS "${EXTDIR}/freetype-2.8.1/include")
     set(FREETYPE_LIBRARY_DIRS "${VCLIBS}")
-    set(FREETYPE_LIBRARIES "freetype253MT_D.lib")
+    set(FREETYPE_LIBRARIES "freetype281MT_D.lib")
+    
 
     set(GLEW_INCLUDE_DIRS "${EXTDIR}/glew-2.0.0/include")
     set(GLEW_LIBRARY_DIRS "${VCLIBS}")

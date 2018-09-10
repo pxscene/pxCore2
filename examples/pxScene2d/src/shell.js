@@ -17,6 +17,7 @@ limitations under the License.
 */
 
 var isDuk=(typeof Duktape != "undefined")?true:false;
+var isV8 = (typeof _isV8 != "undefined")?true:false;
 
 px.import({ scene: 'px:scene.1.js',
              keys: 'px:tools.keys.js'
@@ -26,22 +27,22 @@ px.import({ scene: 'px:scene.1.js',
   var keys  = imports.keys;
 
   function uncaughtException(err) {
-    if (!isDuk) {
+    if (!isDuk && !isV8) {
       console.log("Received uncaught exception " + err.stack);
     }
   }
   function unhandledRejection(err) {
-    if (!isDuk) {
+    if (!isDuk && !isV8) {
       console.log("Received uncaught rejection.... " + err);
     }
   }
-  if (!isDuk) {
+  if (!isDuk && !isV8) {
     process.on('uncaughtException', uncaughtException);
     process.on('unhandledRejection', unhandledRejection);
   }
 
 
-  // JRJR TODO had to add more modules
+    // JRJR TODO had to add more modules
   var url = queryStringModule.parse(urlModule.parse(module.appSceneContext.packageUrl).query).url;
   var originalURL = (!url || url==="") ? "browser.js":url;
   console.log("url:",originalURL);
@@ -133,7 +134,7 @@ if (false)
       else
       if (code == keys.S)  // ctrl-alt-s
       {
-        if (!isDuk) {
+        if (!isDuk && !isV8) {
         // This returns a data URI string with the image data
         var dataURI = scene.screenshot('image/png;base64');
 
@@ -298,9 +299,9 @@ if (false)
   */
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   function releaseResources() {
-    if (!isDuk) {
-      process.removeListener("uncaughtException", uncaughtException);
-      process.removeListener("unhandledRejection", unhandledRejection);
+    if (!isDuk && !isV8) {
+        process.removeListener("uncaughtException", uncaughtException);
+        process.removeListener("unhandledRejection", unhandledRejection);
     }
   }
 

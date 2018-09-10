@@ -4,12 +4,13 @@
 minJS=./jsMin.sh  #minify
 
 externalDir=../external
+APPNAME=Spark
 if [ "$TRAVIS_EVENT_TYPE" == "cron" ]
 then
-bundle=pxsceneEdge.app
-else
-bundle=pxscene.app
+APPNAME=SparkEdge
 fi
+
+bundle=${APPNAME}.app
 bundleBin=$bundle/Contents/MacOS
 
 #bundleRes=$bundle/Contents/Resources
@@ -34,6 +35,7 @@ cp $externalDir/curl/lib/.libs/libcurl.4.dylib $bundleLib
 cp $externalDir/libnode-v6.9.0/out/Release/libnode*.dylib $bundleLib
 cp $externalDir/ft/objs/.libs/libfreetype.6.dylib $bundleLib
 cp $externalDir/jpg/.libs/libjpeg.9.dylib $bundleLib
+cp $externalDir/v8/out.gn/x64.release/*.bin $bundleBin
 
 # Copy OTHER to Bundle...
 #
@@ -49,10 +51,9 @@ cp macstuff/Info.plist $bundle/Contents
 # Copy RESOURCES to Bundle...
 #
 
-rm browser/images/status_bg_edge.svg
+rm -f browser/images/status_bg_edge.svg
 
 cp -a browser $bundleRes
-rm $bundleRes/browser/images/status_bg_edge.svg
 cp FreeSans.ttf $bundleRes
 cp sparkpermissions.conf $bundleRes
 
@@ -60,17 +61,20 @@ cp package.json $bundleRes
 if [ "$TRAVIS_EVENT_TYPE" == "cron" ]  
 then
 echo "************ building edge"
-cp pxscene $bundleBin/pxsceneEdge
+cp Spark $bundleBin/SparkEdge
 else
-cp pxscene $bundleBin
+cp ${APPNAME} $bundleBin
 fi
 
 if [ "$TRAVIS_EVENT_TYPE" == "cron" ]  
 then
-  sed -i -e 's/\.\/pxscene/\.\/pxsceneEdge/g' macstuff/pxscene.sh
+  sed -i -e 's/\.\/Spark/\.\/SparkEdge/g' macstuff/spark.sh
+  sed -i -e 's/Spark.log /SparkEdge.log /g' macstuff/spark.sh
+  sed -i -e 's/Spark.app /SparkEdge.app /g' macstuff/dmgresources/engine_install
+  sed -i -e 's/Spark_update.log /SparkEdge_update.log /g' macstuff/dmgresources/engine_install
 fi
 
-cp macstuff/pxscene.sh $bundleBin
+cp macstuff/spark.sh $bundleBin
 cp macstuff/EngineRunner $bundleBin
 
 # Minify JS into Bundle...
@@ -87,6 +91,10 @@ ${minJS} shell.js $bundleRes/shell.js
 ${minJS} browser.js $bundleRes/browser.js
 ${minJS} about.js $bundleRes/about.js
 ${minJS} browser/editbox.js $bundleRes/browser/editbox.js
+${minJS} test_binding.js $bundleRes/test_binding.js
+${minJS} test_module_loading.js $bundleRes/test_module_loading.js
+${minJS} test_module_binding.js $bundleRes/test_module_binding.js
+${minJS} test_promises.js $bundleRes/test_promises.js
 #./jsMinFolder.sh browser $bundleRes/browser
 
 
@@ -94,6 +102,9 @@ ${minJS} browser/editbox.js $bundleRes/browser/editbox.js
 cp -a duk_modules $bundleRes/duk_modules
 # Copy node modules
 cp -a node_modules $bundleRes/node_modules
+# Copy v8 modules
+cp -a v8_modules $bundleRes/v8_modules
+
 
 # Copy OTHER to Resources...
 #

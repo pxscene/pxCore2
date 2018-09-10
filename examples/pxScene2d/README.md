@@ -6,7 +6,7 @@
 
 ## Minimum requirements
 >macOS
->   * OS : Macbook Pro (macOS Sierra)
+>   * OS : Macbook Pro (macOS Sierra >=10.12)
 >   * RAM Size : 256 MB
 >   * Disk space : 24 MB
 >   * Processor speed : 1 GHz
@@ -32,7 +32,7 @@
 ## macOS Setup 
 
 >Install Xcode, CMake and quilt
->   * Download the latest version of Xcode from https://developer.apple.com/xcode/download/
+>   * Download the latest version of Xcode (>=9.2) from https://developer.apple.com/xcode/download/
 >   * Download and install the latest version of brew from https://brew.sh/
 >   * From terminal install dependencies: cmake, pkg-config, quilt, java.
 
@@ -44,7 +44,7 @@
 >Setup Windows 10
 >   * Windows 10 
 >   * Visual Studio 2017 community with `Desktop development with C++` workload
->   * [windows sdk 10.0.16299.0](https://developer.microsoft.com/en-us/windows/downloads/windows-10-sdk),it is included in VS2017 with above workload and only necessary if you have issue to install with VS2017)
+>   * [windows sdk 10.0.16299 and windows sdk 10.0.17134(aka 1803)] (https://developer.microsoft.com/en-us/windows/downloads/sdk-archive)
 >   * python 2.7.x , make sure python can work in cmd (setup environment variables depending on install location)
 >   * git for windows , make sure git can work in cmd (setup environment variables depending on install location)
 >   * patch utility for windows (this comes with git. setup environment variables depending on install location of patch.exe)
@@ -167,29 +167,29 @@
     On Linux
     ~~~~
     cd pxCore/examples/pxScene2d/src
-    ./pxscene.sh {path_to_javascript_file_name}.js
+    ./spark.sh {path_to_javascript_file_name}.js
     ~~~~
 
     On macOS
     ~~~~
-    cd pxCore/examples/pxScene2d/src/pxscene.app/Contents/MacOS
-    ./pxscene.sh {path_to_javascript_file_name}.js
+    cd pxCore/examples/pxScene2d/src/spark.app/Contents/MacOS
+    ./spark.sh {path_to_javascript_file_name}.js
     ~~~~
 
     On Windows
     ~~~~
     cd pxCore\temp\
     cpack .
-    cd pxCore\temp\_CPack_Packages\win32\NSIS\pxscene-setup
-    pxscene.exe {path_to_javascript_file_name}.js
+    cd pxCore\temp\_CPack_Packages\win32\NSIS\spark-setup
+    Spark.exe {path_to_javascript_file_name}.js
     ~~~~
 
 Examples:
   ~~~~
-./pxscene.sh http://www.pxscene.org/examples/px-reference/gallery/picturepile.js
-./pxscene.sh http://www.pxscene.org/examples/px-reference/gallery/gallery.js
+./spark.sh http://www.pxscene.org/examples/px-reference/gallery/picturepile.js
+./spark.sh http://www.pxscene.org/examples/px-reference/gallery/gallery.js
   ~~~~
-Running ./pxscene.sh without a parameter will load the local browser.js that will take a .js pathname relative to http://www.pxscene.org/examples/px-reference/gallery to run.  Alternatively, a fully qualified url can be used, for example:
+Running ./spark.sh without a parameter will load the local browser.js that will take a .js pathname relative to http://www.pxscene.org/examples/px-reference/gallery to run.  Alternatively, a fully qualified url can be used, for example:
   ~~~~
 http://www.pxscene.org/examples/px-reference/gallery/picturepile.js
 http://www.pxscene.org/examples/px-reference/gallery/gallery.js

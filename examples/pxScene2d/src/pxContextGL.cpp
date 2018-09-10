@@ -2853,6 +2853,15 @@ bool pxContext::isTextureSpaceAvailable(pxTextureRef texture, bool allowGarbageC
     }
     return false;
   }
+  else if (allowGarbageCollect && (textureSize + currentTextureMemorySize) > maxTextureMemoryInBytes)
+  {
+#ifdef RUNINMAIN
+    rtLogInfo("gc for texture memory");
+    script.collectGarbage();
+#else
+    uv_async_send(&gcTrigger);
+#endif
+  }
   return true;
 }
 

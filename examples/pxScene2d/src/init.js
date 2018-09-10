@@ -17,6 +17,7 @@ limitations under the License.
 */
 
 var isDuk = (typeof Duktape != "undefined")?true:false;
+var isV8 = (typeof _isV8 != "undefined")?true:false;
 
 if (isDuk) {
 global.console = require('console');
@@ -40,6 +41,15 @@ global.constructPromise = function (obj) {
         obj.then2(resolve, reject);
     });
 }
+}
+else if (isV8) {
+console = require('console');
+timers = require('timers');
+
+setTimeout = timers.setTimeout;
+clearTimeout = timers.clearTimeout;
+setInterval = timers.setInterval;
+clearInterval = timers.clearInterval;
 }
 
 var AppSceneContext = require('rcvrcore/AppSceneContext');

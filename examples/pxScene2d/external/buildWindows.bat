@@ -17,7 +17,7 @@ copy /y jpeg-9a\jconfig.vc jpeg-9a\jconfig.h
 set buildExternal=0
 if NOT [%APPVEYOR_REPO_COMMIT%] == [] (
     FOR /F "tokens=* USEBACKQ" %%F IN (`git diff --name-only %APPVEYOR_REPO_COMMIT% %APPVEYOR_REPO_COMMIT%~`) DO (
-    echo.%%F|findstr "zlib-1.2.11 WinSparkle pthread-2.9 libpng-1.6.28 libjpeg-turbo-1.5.1 glew-2.0.0 freetype-2.5.2 curl-7.40.0 jpeg-9a"
+    echo.%%F|findstr "zlib WinSparkle pthread libpng libjpeg-turbo glew freetype curl jpeg-9a"
     if !errorlevel! == 0 (
       set buildExternal=1
       echo. External library files are modified. Need to build external : !buildExternal! .
@@ -25,6 +25,21 @@ if NOT [%APPVEYOR_REPO_COMMIT%] == [] (
     )
   )
 )
+
+@rem freetype latest version needs to be updated here. Because the lib is named based on version, so to avoid a build failure and to build the external when there is a difference in version.
+cat vc.build\config.props | grep "freetype-2.8.1"
+if !errorlevel! == 0 (
+  if exist vc.build\builds\freetype281MT_D.lib ( 
+    echo "freetpye cache available"
+    ) ELSE (
+    set buildExternal=1
+	echo "Exact cache is not present, Externals will be built"
+	)
+  ) ELSE (
+  set buildExternal=1
+  echo "Exact library version is not present, Externals will be built"
+)
+
 
 if [%APPVEYOR_REPO_COMMIT%] == [] (
 set buildExternal=1
@@ -45,6 +60,9 @@ if %buildExternal% == 1 (
 )
 
 REM --------- BREAKPAD
+
+REM todo uncomment - if you want to build v8 then call buildV8.bat directly
+REM CALL buildV8.bat
 
 cd breakpad-chrome_55
 CALL gyp\gyp.bat src\client\windows\breakpad_client.gyp --no-circular-check
