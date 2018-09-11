@@ -29,4 +29,9 @@ if ! grep -q "ACCESS_CONTROL_CHECK\" ON" "${TRAVIS_BUILD_DIR}/examples/pxScene2d
   drop_json_lines "cors" "${TESTS_JSON}"
 fi
 
+if [ "$TRAVIS_OS_NAME" = "osx" ]; then
+  sed -i -n 's/  "assign" : {/  "assign" : {\n    "https:\/\/px-apps.sys.comcast.net" : "local",/g' "${TRAVIS_BUILD_DIR}/examples/pxScene2d/src/sparkpermissions.conf"
+else
+  sed -i 's/  "assign" : {/  "assign" : {\n    "https:\/\/px-apps.sys.comcast.net" : "local",/g' "${TRAVIS_BUILD_DIR}/examples/pxScene2d/src/sparkpermissions.conf"
+fi
 exit 0;
