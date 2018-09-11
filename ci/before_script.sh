@@ -28,4 +28,5 @@ fi
 if ! grep -q "ACCESS_CONTROL_CHECK\" ON" "${TRAVIS_BUILD_DIR}/examples/pxScene2d/src/CMakeLists.txt"; then
   drop_json_lines "cors" "${TESTS_JSON}"
 fi
+
 exit 0;
