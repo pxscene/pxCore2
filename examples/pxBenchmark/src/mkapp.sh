@@ -50,7 +50,7 @@ cp ../pxBenchmark_xcode/pxBenchmark/pxBenchmark/Info.plist $bundle/Contents
 #
 #cp -a browser $bundleRes
 #cp FreeSans.ttf $bundleRes
-cp sparkpermissions.conf $bundleRes
+#cp sparkpermissions.conf $bundleRes
 
 #cp package.json $bundleRes
 if [ "$TRAVIS_EVENT_TYPE" == "cron" ]  
