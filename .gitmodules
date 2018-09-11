@@ -1,0 +1,3 @@
+[submodule "examples/pxBenchmark/external/Celero"]
+	path = examples/pxBenchmark/external/Celero
+	url = https://github.com/DigitalInBlue/Celero.git
