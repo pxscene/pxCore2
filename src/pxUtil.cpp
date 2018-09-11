@@ -1031,13 +1031,12 @@ rtError pxLoadSVGImage(const char* buf, size_t buflen, pxOffscreen& o, int  w /*
   memcpy(buf_copy, buf, buflen);
   
   NSVGimage *image = nsvgParse( (char *) buf_copy, "px", 96.0f); // 96 dpi (suggested default)
+  free(buf_copy); // clean-up
   if (image == NULL)
   {
     rtLogError("SVG:  Could not init decode SVG.\n");
     return RT_FAIL;
   }
-
-  free(buf_copy); // clean-up
 
   int image_w = (int)image->width;  // parsed SVG image dimensions
   int image_h = (int)image->height; // parsed SVG image dimensions
