@@ -947,7 +947,7 @@ AppSceneContext.prototype.include = function(filePath, currentXModule) {
 
     filePath = _this.resolveModulePath(filePath, currentXModule).fileUri;
 
-    if (filePath in _this.codemap) {
+    if ((undefined != _this.codemap) && (filePath in _this.codemap)) {
       _this.processNonLoadCodeBuffer(origFilePath, filePath, currentXModule, onImportComplete, reject);
       return;
     }
