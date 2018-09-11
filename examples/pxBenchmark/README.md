@@ -72,12 +72,6 @@
     cd pxCore
     git checkout pxBenchmark
     ~~~~
-
-      ~~~~
-     cd examples/pxBenchmark/external/
-     
-     git clone https://github.com/DigitalInBlue/Celero.git
-     ~~~~
      
 3. Build **externals**:
     a. Build all externals for use during the pxscene build.
