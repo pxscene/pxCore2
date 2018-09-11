@@ -226,6 +226,16 @@ this.innerscene.on('onClose', function() {
 
 AppSceneContext.prototype.loadPackage = function(packageUri) {
   var _this = this;
+  var map = _this.innerscene.getService("getCode");
+  if ((undefined != map)  && ("details" in map))
+  {
+    _this.codemap = map["details"];
+  }
+  if ((undefined != _this.codemap)  && (packageUri in _this.codemap)) {
+    _this.runScriptInNewVMContextNonLoad(packageUri);
+    console.info("AppSceneContext#loadPackage from bundle done");
+    return;
+  }
   var moduleLoader = new SceneModuleLoader();
   // Fixed scene loading promise rejection
   var thisMakeReady = this.makeReady;
@@ -282,7 +292,8 @@ function createModule_pxScope(xModule) {
     appQueryParams: this.queryParams,
     getPackageBaseFilePath: this.getPackageBaseFilePath.bind(this),
     getFile: this.getFile.bind(this),
-    getModuleFile: xModule.getFile.bind(xModule)
+    getModuleFile: xModule.getFile.bind(xModule),
+    registerCode : function (map) { this.codemap = map; this.innerscene.addServiceProvider(function(name) { if (name == "getCode") { return {"details": this.codemap} } return "ALLOW"; }.bind(this)); }.bind(this)
   };
 }
 
@@ -319,6 +330,246 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (packageUri, module
     this.jarFileMap.addArchive(xModule.name,currentFileArchive);
     log.message(4, "JAR added: " + xModule.name);
   }
+
+  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  var self = this;
+  var newSandbox;
+  try {
+    if (!isDuk && !isV8) {
+      var requireMethod = function (pkg) {
+        log.message(3, "old use of require not supported: " + pkg);
+        // TODO: remove
+        return requireIt(pkg);
+      };
+
+      var requireFileOverridePath = process.env.PXSCENE_REQUIRE_ENABLE_FILE_PATH;
+      var requireEnableFilePath = "/tmp/";
+      if (process.env.HOME && process.env.HOME !== '') {
+        requireEnableFilePath = process.env.HOME;
+      }
+      if (requireFileOverridePath && requireFileOverridePath !== '') {
+        requireEnableFilePath = requireFileOverridePath;
+      }
+
+      var fs = require("fs");
+      var requireEnableFile = requireEnableFilePath + "/.pxsceneEnableRequire";
+      if (fs.existsSync(requireEnableFile)) {
+        console.log("enabling pxscene require support");
+        requireMethod = require;
+      }
+    }
+
+    if (!isDuk && !isV8) {
+      var processWrap = WrapObj(process, {"binding":function() { throw new Error("process.binding is not supported"); }});
+      var globalWrap = WrapObj(global, {"process":processWrap});
+
+      newSandbox = {
+        sandboxName: "InitialSandbox",
+        xmodule: xModule,
+        console: console,
+        runtime: apiForChild,
+        urlModule: require("url"),
+        queryStringModule: require("querystring"),
+        theNamedContext: "Sandbox: " + uri,
+        Buffer: Buffer,
+        process: processWrap,
+        require: requireMethod,
+        global: globalWrap,
+        setTimeout: function (callback, after, arg1, arg2, arg3) {
+          //pass the timers list to callback function on timeout
+          var timerId = SetTimeout(setTimeoutCallback, after, this.timers, function() { callback(arg1, arg2, arg3)});
+          this.timers.push(timerId);
+          return timerId;
+        }.bind(this),
+        clearTimeout: function (timer) {
+          var index = this.timers.indexOf(timer);
+          if (index != -1)
+          {
+            this.timers.splice(index,1);
+          }
+          ClearTimeout(timer);
+        }.bind(this),
+        setInterval: function (callback, repeat, arg1, arg2, arg3) {
+          var intervalId = SetInterval(callback, repeat, arg1, arg2, arg3);
+          this.timerIntervals.push(intervalId);
+          return intervalId;
+        }.bind(this),
+        clearInterval: function (timer) {
+          var index = this.timerIntervals.indexOf(timer);
+          if (index != -1)
+          {
+            this.timerIntervals.splice(index,1);
+          }
+          ClearInterval(timer);
+        }.bind(this),
+        importTracking: {}
+      };
+    }
+    else if (isV8) 
+    {
+      newSandbox = {
+        sandboxName: "InitialSandbox",
+        xmodule: xModule,
+        console: console,
+        timers: timers,
+        global: global,
+        isV8: isV8,
+        setTimeout: setTimeout,
+        clearTimeout: clearTimeout,
+        setInterval: setInterval,
+        clearInterval: clearInterval,
+        runtime: apiForChild,
+        urlModule: require("url"),
+        require: require,
+        loadUrl: loadUrl,
+        queryStringModule: require("querystring"),
+        theNamedContext: "Sandbox: " + uri,
+        //Buffer: Buffer,
+        importTracking: {},
+        print: print,
+        getScene: getScene,
+        makeReady: makeReady,
+        getContextID: getContextID
+      }; // end sandbox
+
+      queryStringModule = require("querystring");
+      urlModule = require("url");
+    }
+    else
+    {
+      newSandbox = {
+        sandboxName: "InitialSandbox",
+        xmodule: xModule,
+        console: console,
+        runtime: apiForChild,
+        urlModule: require("url"),
+        queryStringModule: require("querystring"),
+        theNamedContext: "Sandbox: " + uri,
+        //Buffer: Buffer,
+        importTracking: {}
+      }; // end sandbox
+    }
+
+    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+    xModule.initSandbox(newSandbox);
+    thisAppSceneContext.sandbox = newSandbox; //xModule.sandbox;
+
+
+    try {
+      //JRJRJRJR  This line causing a garbage collection leak...
+      // LEAKLEAK
+//      this.innerscene.api = {isReady:false, onModuleReady:onAppModuleReady.bind(this) };
+
+      var sourceCode = AppSceneContext.wrap(code);
+      log.message(4, "createModule_pxScope.call()");
+      var px = createModule_pxScope.call(this, xModule);
+      log.message(4, "createModule_pxScope.call() done");
+      if (isDuk) {
+        vm.runInNewContext(sourceCode, newSandbox, {
+          filename: path.normalize(fname),
+          displayErrors: true
+        }, px, xModule, fname, this.basePackageUri);
+      } else if (isV8) {
+        var moduleFunc = vm.runInNewContext(sourceCode, newSandbox, {
+          filename: path.normalize(fname),
+          displayErrors: true
+        }, px, xModule, fname, this.basePackageUri);
+
+        moduleFunc(px, xModule, fname, this.basePackageUri);
+
+      } else {
+        var moduleFunc = vm.runInNewContext(sourceCode, newSandbox, {
+          filename: path.normalize(fname),
+          displayErrors: true
+        });
+        if (process._debugWaitConnect) {
+          // Set breakpoint on module start
+          if (process.env.BREAK_ON_SCRIPTSTART != 1)
+            delete process._debugWaitConnect;
+          const Debug = vm.runInDebugContext('Debug');
+          Debug.setBreakPoint(moduleFunc, 0, 0);
+        }
+        moduleFunc(px, xModule, fname, this.basePackageUri);
+      }
+      log.message(4, "vm.runInNewContext done");
+
+/*
+if (false) {
+      // TODO do the old scenes context get released when we reload a scenes url??
+      // TODO part of an experiment to eliminate intermediate rendering of the scene - from original load.js
+      // while it is being set up
+      if (true) { // enable to fade scenes in
+        this.container.a = 0;
+        this.container.painting = true;
+        this.container.animateTo({a: 1}, 0.2, this.innerscene.animation.TWEEN_LINEAR,this.innerscene.animation.OPTION_LOOP,1);
+      }
+      else {
+        this.container.painting = true;
+      }
+}
+*/
+
+      console.log("Main Module: readyPromise=" + xModule.moduleReadyPromise);
+      if( !xModule.hasOwnProperty('moduleReadyPromise') || xModule.moduleReadyPromise === null ) {
+        console.log("Main module[" + self.packageUrl + "] about to notify. xModule.exports:"+(typeof xModule.exports));
+        self.innerscene.api = xModule.exports;
+        this.makeReady(true, xModule.exports);
+        console.log("Main module[" + self.packageUrl + "] about to notify done");
+      } else {
+        xModule.moduleReadyPromise.then( function() {
+          console.log("Main module[" + self.packageUrl + "] about to notify. xModule.exports:"+(typeof xModule.exports));
+          self.innerscene.api = xModule.exports;
+          self.makeReady(true, xModule.exports);
+          console.log("Main module[" + self.packageUrl + "] about to notify done");
+        }).catch( function(err) {
+          console.error("Main module[" + self.packageUrl + "]" + " load has failed - on failed imports: " + ", err=" + err);
+          self.makeReady(false, {});
+        });
+      }
+    }
+    catch (err) {
+      console.error("failed to run app:" + uri);
+      console.error(err);
+
+      // TODO: scene.onError(err); ???
+      // TODO: at this point we need to destroy the child scene
+      scene.url = "";  // This destroys the child scene and releases scene.ctx
+      apiForChild.destroyScene(sandbox.scene);
+
+      sandbox.console = null;
+      sandbox.scene = null;
+      sandbox.runtime = null;
+      sandbox.process = null;
+
+      // log.message(4, util.inspect(sandbox));
+    }
+  }
+  catch (err) {
+    console.error("failed to load script:" + uri + "; error=" + err);
+    console.error(err);
+    // TODO: scene.onError(err); ???
+  }
+};
+
+AppSceneContext.prototype.runScriptInNewVMContextNonLoad = function (packageUri) {
+  var apiForChild = this;
+  var code = this.codemap[packageUri];
+  code = "(" + code + ".call())";
+
+  // TODO: This is the name that will show up in stack traces. We should
+  // resolve ./ to full paths (maybe).
+  var fname = packageUri;
+  var urlParts = url.parse(packageUri, true);
+  var moduleName = urlParts.pathname;
+  var uri = packageUri;
+  var basePath, jarName="";
+  basePath = packageUri.substring(0, packageUri.lastIndexOf('/'));
+
+  var thisAppSceneContext = this;
+  log.message(4, "runScriptInNewVMContextNonLoad: create XModule(" + moduleName + ") basePath=" + basePath + " packageUri=" + packageUri);
+  var xModule = new XModule(moduleName, this, basePath, jarName);
+  this.topXModule = xModule;
 
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   var self = this;
@@ -696,6 +947,11 @@ AppSceneContext.prototype.include = function(filePath, currentXModule) {
 
     filePath = _this.resolveModulePath(filePath, currentXModule).fileUri;
 
+    if (filePath in _this.codemap) {
+      _this.processNonLoadCodeBuffer(origFilePath, filePath, currentXModule, onImportComplete, reject);
+      return;
+    }
+
     log.message(4, "filePath=" + filePath);
     if( _this.isScriptDownloading(filePath) ) {
       log.message(4, "Script is downloading for " + filePath);
@@ -785,6 +1041,83 @@ AppSceneContext.prototype.processCodeBuffer = function(origFilePath, filePath, c
     log.message(4, "JAR added: " + xModule.name);
   }
 
+  var sourceCode = AppSceneContext.wrap(codeBuffer);
+  log.message(4, "RUN " + filePath);
+  var px = createModule_pxScope.call(this, xModule);
+  if (isDuk) {
+    vm.runInNewContext(sourceCode, _this.sandbox, { filename: filePath, displayErrors: true },
+                         px, xModule, filePath, filePath);
+  } else if (isV8) {
+    var moduleFunc = vm.runInNewContext(sourceCode, _this.sandbox, { filename: filePath, displayErrors: true },
+                         px, xModule, filePath, filePath);
+
+    moduleFunc(px, xModule, filePath, filePath);
+  } else {
+    var moduleFunc = vm.runInContext(sourceCode, _this.sandbox, {filename:filePath, displayErrors:true});
+    moduleFunc(px, xModule, filePath, filePath);
+  }
+  log.message(4, "RUN DONE: " + filePath);
+  this.setXModule(filePath, xModule);
+
+  // Set up a async wait until module indicates it's completly ready
+  if( !xModule.moduleReadyPromise ) {
+    // No use of px.import or it's possible that these exports have already been added
+    log.message(4, "["+xModule.name+"]: <" + filePath + "> MODULE INDICATES IT'S FULLY READY. xModule.exports:" + (typeof xModule.exports));
+    _this.addScript(filePath, 'ready', xModule.exports);
+    log.message(4, "is about to notify [" + currentXModule.name + "] that <" + filePath + "> has been imported and is ready");
+    onImportComplete([xModule.exports, origFilePath]);
+    log.message(4, "after notifying [:" + currentXModule.name + "] about import <" + filePath + ">");
+    _this.callModuleReadyListeners(filePath, xModule.exports);
+  } else {
+    // Now wait for module to indicate that it's fully ready to go
+    xModule.moduleReadyPromise.then(function () {
+      log.message(4, "["+xModule.name+"]: <" + filePath + "> MODULE INDICATES IT'S FULLY READY. xModule.exports:" + (typeof xModule.exports));
+      _this.addScript(filePath, 'loaded', xModule.exports);
+      _this.setScriptStatus(filePath, 'ready');
+      log.message(4, "is about to notify [" + currentXModule.name + "] that <" + filePath + "> has been imported and is ready");
+      onImportComplete([xModule.exports, origFilePath]);
+      log.message(4, "after notifying [:" + currentXModule.name + "] about import <" + filePath + ">");
+      _this.callModuleReadyListeners(filePath, xModule.exports);
+    }).catch(function (error) {
+      onImportRejected("include(2): failed while waiting for module <" + filePath + "> to be ready for [" + currentXModule.name + "] - error=" + error);
+    });
+  }
+};
+
+AppSceneContext.prototype.processNonLoadCodeBuffer = function(origFilePath, filePath, currentXModule, onImportComplete, onImportRejected) {
+  var _this = this;
+  if( _this.isScriptReady(filePath) ) {
+    var modExports = _this.getScriptContents(filePath);
+    onImportComplete([modExports, origFilePath]);
+    return;
+  } else if( _this.isScriptLoaded((filePath))) {
+    log.message(4, "It looks like module script is already loaded -- no need to run it");
+    _this.addModuleReadyListener(filePath, function(moduleExports) {
+      log.message(7, "Received moduleExports from other download" );
+      onImportComplete([moduleExports, origFilePath]);
+    });
+    return;
+  }
+
+  log.message(4, "Need to run script: " + filePath);
+
+  // FIXME: XModule names are not unique
+  var xModule = this.getXModule(filePath);
+  if( xModule !== 'undefined' ) {
+    log.message(4, "xModule already exists: " + filePath);
+    return;
+  }
+
+  var codeBuffer = this.codemap[filePath];
+  var basePath, jarName;
+  basePath = filePath.substring(0, filePath.lastIndexOf('/'));
+  jarName = currentXModule.getJarName();
+
+  log.message(7, "cb Creating new XModule for " + filePath + " basePath="+basePath);
+  xModule = new XModule(filePath, _this, basePath, jarName);
+  xModule.initSandbox(_this.sandbox);
+
+  codeBuffer = "(" + codeBuffer + ".call())";
   var sourceCode = AppSceneContext.wrap(codeBuffer);
   log.message(4, "RUN " + filePath);
   var px = createModule_pxScope.call(this, xModule);
