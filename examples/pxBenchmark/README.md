@@ -74,7 +74,7 @@
     ~~~~
 
       ~~~~
-     cd examples/pxBenchmark/
+     cd examples/pxBenchmark/external/
      
      git clone https://github.com/DigitalInBlue/Celero.git
      ~~~~

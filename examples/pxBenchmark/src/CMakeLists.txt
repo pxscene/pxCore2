@@ -293,18 +293,18 @@ include_directories(AFTER ${NODE_INCLUDE_DIRS} ${DUKE_INCLUDE_DIRS})
 include_directories(AFTER ${WESTEROSINC} ${WESTEROSSTUBINC} ${TURBO_JPEG_INCLUDE_DIRS} ${BREAKPADINC} ${RTREMOTEINC} ${PXCOREDIR}/src)
 include_directories(AFTER ${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(AFTER ${CMAKE_CURRENT_SOURCE_DIR}/rasterizer)
-include_directories(AFTER ${CMAKE_CURRENT_SOURCE_DIR}/../Celero/include/)
+include_directories(AFTER ${CMAKE_CURRENT_SOURCE_DIR}/../external/Celero/include/)
 include_directories(AFTER ${CMAKE_CURRENT_SOURCE_DIR}/../../pxScene2d/src/)
-message(** ${CMAKE_CURRENT_SOURCE_DIR}/../Celero/include/} **)
+message(** ${CMAKE_CURRENT_SOURCE_DIR}/../external/Celero/include/} **)
 
 set(PXSCENE_COMMON_FILES ${CMAKE_CURRENT_SOURCE_DIR}/../../pxScene2d/src/pxResource.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../../pxScene2d/src/pxConstants.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../../pxScene2d/src/pxRectangle.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../../pxScene2d/src/pxFont.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../../pxScene2d/src/pxText.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/../../pxScene2d/src/pxTextBox.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../../pxScene2d/src/pxImage.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../../pxScene2d/src/pxImage9.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../../pxScene2d/src/pxImageA.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../../pxScene2d/src/pxImage9Border.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../../pxScene2d/src/pxArchive.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../../pxScene2d/src/pxAnimate.cpp)
 
-set(CELERO_DEFINITIONS "${CMAKE_CURRENT_SOURCE_DIR}/../Celero/include")
+set(CELERO_DEFINITIONS "${CMAKE_CURRENT_SOURCE_DIR}/../external/Celero/include")
 
 set(CELERO_DEFINITIONS ${CELERO_DEFINITIONS})
 
-set(CELERO_COMMON_FILES ${CMAKE_CURRENT_SOURCE_DIR}/../Celero/src/Archive.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../Celero/src/Benchmark.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../Celero/src/Callbacks.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../Celero/src/Console.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../Celero/src/Distribution.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../Celero/src/Exceptions.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../Celero/src/Executor.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../Celero/src/Experiment.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../Celero/src/ExperimentResult.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../Celero/src/JUnit.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../Celero/src/Memory.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../Celero/src/Print.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../Celero/src/ResultTable.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../Celero/src/Statistics.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../Celero/src/TestFixture.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../Celero/src/TestVector.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../Celero/src/ThreadTestFixture.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../Celero/src/Timer.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../Celero/src/Utilities.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../Celero/src/Celero.cpp)
+set(CELERO_COMMON_FILES ${CMAKE_CURRENT_SOURCE_DIR}/../external/Celero/src/Archive.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../external/Celero/src/Benchmark.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../external/Celero/src/Callbacks.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../external/Celero/src/Console.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../external/Celero/src/Distribution.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../external/Celero/src/Exceptions.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../external/Celero/src/Executor.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../external/Celero/src/Experiment.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../external/Celero/src/ExperimentResult.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../external/Celero/src/JUnit.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../external/Celero/src/Memory.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../external/Celero/src/Print.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../external/Celero/src/ResultTable.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../external/Celero/src/Statistics.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../external/Celero/src/TestFixture.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../external/Celero/src/TestVector.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../external/Celero/src/ThreadTestFixture.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../external/Celero/src/Timer.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../external/Celero/src/Utilities.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../external/Celero/src/Celero.cpp)
 
 
 set(PXSCENE_COMMON_FILES ${PXSCENE_COMMON_FILES} ${CMAKE_CURRENT_SOURCE_DIR}/../../pxScene2d/src/pxScene2d.cpp)
