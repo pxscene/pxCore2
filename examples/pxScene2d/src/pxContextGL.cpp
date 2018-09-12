@@ -37,6 +37,7 @@
 #include <GLUT/glut.h>
 #include <OpenGL/gl.h>
 #include <OpenGL/glu.h>
+#include <OpenGL/gl3.h>
 #else
 #if defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL)
 #include <GLES2/gl2.h>
@@ -328,13 +329,16 @@ inline void premultiply(float* d, const float* s)
 class pxFBOTexture : public pxTexture
 {
 public:
-  pxFBOTexture(bool antiAliasing) : mWidth(0), mHeight(0), mFramebufferId(0), mTextureId(0), mBindTexture(true)
+  pxFBOTexture(bool antiAliasing) : mWidth(0), mHeight(0), /*mFramebufferId(0), mTextureId(0),*/ mBindTexture(true)
 
-#if (defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL)) && !defined(PXSCENE_DISABLE_PXCONTEXT_EXT)
+#if (defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL) || !defined(PXSCENE_DISABLE_PXCONTEXT_EXT))
         ,mAntiAliasing(antiAliasing)
 #endif        
   {
-    UNUSED_PARAM(antiAliasing);                             
+      for (int i = 0; i < 8; ++i)
+          mRenderRelatedIds[i] = 0;
+      
+    UNUSED_PARAM(antiAliasing);
 
     mTextureType = PX_TEXTURE_FRAME_BUFFER;
   }
@@ -343,7 +347,7 @@ public:
 
   void createFboTexture(int w, int h)
   {
-    if (mFramebufferId != 0 && mTextureId != 0)
+    if (mRenderRelatedIds[NORMAL_FBO] != 0 && mRenderRelatedIds[NORMAL_TEXTURE] != 0)
     {
       deleteTexture();
     }
@@ -357,18 +361,85 @@ public:
       return;
     }
 
-    glGenFramebuffers(1, &mFramebufferId);
-    glGenTextures(1, &mTextureId);
-
-    glBindTexture(GL_TEXTURE_2D, mTextureId); TRACK_TEX_CALLS();
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
-                 mWidth, mHeight, 0, GL_RGBA,
-                 GL_UNSIGNED_BYTE, NULL);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, PX_TEXTURE_MIN_FILTER);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, PX_TEXTURE_MAG_FILTER);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+#if (defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL) || !defined(PXSCENE_DISABLE_PXCONTEXT_EXT))
+      if (mAntiAliasing)
+      {
+          glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+          glEnable (GL_BLEND);
+          glEnable (GL_LINE_SMOOTH);
+          glHint (GL_LINE_SMOOTH_HINT, GL_NICEST);
+          glEnable(GL_POLYGON_SMOOTH);
+          glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
+          //glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH | GLUT_MULTISAMPLE);
+          glEnable(GL_MULTISAMPLE);
+          glHint(GL_MULTISAMPLE_FILTER_HINT_NV, GL_NICEST);
+          glDisable(GL_CULL_FACE);
+          glDisable(GL_DEPTH_TEST);
+          glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
+          //glfwWindowHint(GLFW_SAMPLES, 4);
+      }
+#endif
+ 
+      
+#if (defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL) || !defined(PXSCENE_DISABLE_PXCONTEXT_EXT))
+      if (mAntiAliasing)
+      {
+          // Create a multisampling texture.
+          glGenTextures(1, &mRenderRelatedIds[MULTISAMPLING_TEXTURE]);
+          glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, mRenderRelatedIds[MULTISAMPLING_TEXTURE]);
+          {
+              glTexParameterf(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+              glTexParameterf(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_MIN_FILTER, GL_LINEAR/*GL_LINEAR_MIPMAP_LINEAR*/);
+              glTexParameterf(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+              glTexParameterf(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+              glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_GENERATE_MIPMAP, GL_TRUE);
+          }
+          
+          //We need to find out what the maximum supported samples is
+          GLint samples;
+          glGetIntegerv(GL_MAX_SAMPLES, &samples);
+          
+          glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, samples, GL_RGBA, mWidth, mHeight, GL_FALSE);
+          
+          // Create a multisampling color render buffer object and a multisampling depth render buffer object.
+          glGenRenderbuffersEXT(1, &mRenderRelatedIds[MULTISAMPLING_COLOR_RBO]);
+          glBindRenderbufferEXT(GL_RENDERBUFFER, mRenderRelatedIds[MULTISAMPLING_COLOR_RBO]);
+          glRenderbufferStorageMultisampleEXT(GL_RENDERBUFFER, 4, GL_RGBA8, mWidth, mHeight);
+          
+          glGenRenderbuffersEXT(1, &mRenderRelatedIds[MULTISAMPLING_DEPTH_RBO]);
+          glBindRenderbufferEXT(GL_RENDERBUFFER, mRenderRelatedIds[MULTISAMPLING_DEPTH_RBO]);
+          glRenderbufferStorageMultisampleEXT(GL_RENDERBUFFER, 4, GL_DEPTH_COMPONENT24, mWidth, mHeight);
+          
+          // Create and bind the multisampling frame buffer
+          glGenFramebuffersEXT(1, &mRenderRelatedIds[MULTISAMPLING_FBO]);
+          glBindFramebufferEXT(GL_FRAMEBUFFER, mRenderRelatedIds[MULTISAMPLING_FBO]);
+      }
+      else
+      {
+          glGenFramebuffers(1, &mRenderRelatedIds[NORMAL_FBO]);
+          glGenTextures(1, &mRenderRelatedIds[NORMAL_TEXTURE]);
+          glBindTexture(GL_TEXTURE_2D, mRenderRelatedIds[NORMAL_TEXTURE]); TRACK_TEX_CALLS();
+          glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
+                       mWidth, mHeight, 0, GL_RGBA,
+                       GL_UNSIGNED_BYTE, NULL);
+          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, PX_TEXTURE_MIN_FILTER);
+          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, PX_TEXTURE_MAG_FILTER);
+          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+      }
+#else
+      glGenFramebuffers(1, &mRenderRelatedIds[NORMAL_FBO]);
+      glGenTextures(1, &mRenderRelatedIds[NNORMAL_TEXTURE]);
+      glBindTexture(GL_TEXTURE_2D, mRenderRelatedIds[NORMAL_TEXTURE]); TRACK_TEX_CALLS();
+      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
+                   mWidth, mHeight, 0, GL_RGBA,
+                   GL_UNSIGNED_BYTE, NULL);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, PX_TEXTURE_MIN_FILTER);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, PX_TEXTURE_MAG_FILTER);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+#endif
+      
     context.adjustCurrentTextureMemorySize(mWidth*mHeight*4);
     mBindTexture = true;
   }
@@ -376,7 +447,7 @@ public:
   pxError resizeTexture(int w, int h)
   {
     if (mWidth != w || mHeight != h ||
-        mFramebufferId == 0 || mTextureId == 0)
+        ((mRenderRelatedIds[NORMAL_FBO] == 0 || mRenderRelatedIds[NORMAL_TEXTURE] == 0) && (mRenderRelatedIds[MULTISAMPLING_FBO] == 0 || mRenderRelatedIds[MULTISAMPLING_TEXTURE] == 0)))
     {
       createFboTexture(w, h);
       return PX_OK;
@@ -403,56 +474,118 @@ public:
 
   virtual pxError deleteTexture()
   {
-    if (mFramebufferId!= 0)
+    if (mRenderRelatedIds[NORMAL_FBO] != 0)
     {
-#if (defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL)) && !defined(PXSCENE_DISABLE_PXCONTEXT_EXT)
+#if (defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL) || !defined(PXSCENE_DISABLE_PXCONTEXT_EXT))
       if (mAntiAliasing)
       {
         GLint currentFBO = 0;
         glGetIntegerv(GL_FRAMEBUFFER_BINDING, &currentFBO);
-        glBindFramebuffer(GL_FRAMEBUFFER, mFramebufferId);
+        glBindFramebuffer(GL_FRAMEBUFFER, mRenderRelatedIds[MULTISAMPLING_FBO]);
         GLenum discardAttachments[] = { GL_DEPTH_ATTACHMENT };
+#ifdef __APPLE__
+        glDeleteRenderbuffersEXT(1, discardAttachments);
+        glDeleteFramebuffersEXT(1, &mRenderRelatedIds[MULTISAMPLING_FBO]);
+        glDeleteFramebuffersEXT(1, &mRenderRelatedIds[MULTISAMPLING_COLOR_RBO]);
+        glDeleteFramebuffersEXT(1, &mRenderRelatedIds[MULTISAMPLING_DEPTH_RBO]);
+          
+        mRenderRelatedIds[MULTISAMPLING_FBO] = 0;
+        mRenderRelatedIds[MULTISAMPLING_COLOR_RBO] = 0;
+        mRenderRelatedIds[MULTISAMPLING_DEPTH_RBO] = 0;
+#else
         glDiscardFramebufferEXT(GL_FRAMEBUFFER, 1, discardAttachments);
+#endif
         glBindFramebuffer(GL_FRAMEBUFFER, currentFBO);
       }
 #endif
 
-      glDeleteFramebuffers(1, &mFramebufferId);
-      mFramebufferId = 0;
+      glDeleteFramebuffers(1, &mRenderRelatedIds[NORMAL_FBO]);
+      mRenderRelatedIds[NORMAL_FBO] = 0;
     }
 
-    if (mTextureId != 0)
+    if (mRenderRelatedIds[NORMAL_TEXTURE] != 0)
     {
-      glDeleteTextures(1, &mTextureId);
-      mTextureId = 0;
+      glDeleteTextures(1, &mRenderRelatedIds[NORMAL_TEXTURE]);
+      mRenderRelatedIds[NORMAL_TEXTURE] = 0;
       context.adjustCurrentTextureMemorySize(-1*mWidth*mHeight*4);
     }
-
+    else if (mRenderRelatedIds[MULTISAMPLING_TEXTURE] != 0)
+    {
+        glDeleteTextures(1, &mRenderRelatedIds[MULTISAMPLING_TEXTURE]);
+        mRenderRelatedIds[MULTISAMPLING_TEXTURE] = 0;
+        context.adjustCurrentTextureMemorySize(-1*mWidth*mHeight*4);
+    }
     return PX_OK;
   }
 
   virtual unsigned int getNativeId()
   {
-    return mTextureId;
+    return mRenderRelatedIds[NORMAL_TEXTURE];
   }
 
   virtual pxError prepareForRendering()
   {
-    if (mFramebufferId == 0 || mTextureId == 0)
-    {
-      return PX_FAIL;
-    }
-    glBindFramebuffer(GL_FRAMEBUFFER, mFramebufferId);   TRACK_FBO_CALLS();
+    if ((mRenderRelatedIds[NORMAL_FBO] == 0 || mRenderRelatedIds[NORMAL_TEXTURE] == 0) && (mRenderRelatedIds[MULTISAMPLING_FBO] == 0 || mRenderRelatedIds[MULTISAMPLING_TEXTURE] == 0))
+        return PX_FAIL;
+
+#if (defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL) || !defined(PXSCENE_DISABLE_PXCONTEXT_EXT))
+      if (mAntiAliasing)
+      {
+          glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+          glEnable (GL_BLEND);
+          glEnable (GL_LINE_SMOOTH);
+          glHint (GL_LINE_SMOOTH_HINT, GL_NICEST);
+          glEnable(GL_POLYGON_SMOOTH);
+          glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
+          //glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH | GLUT_MULTISAMPLE);
+          glEnable(GL_MULTISAMPLE);
+          glHint(GL_MULTISAMPLE_FILTER_HINT_NV, GL_NICEST);
+          glDisable(GL_CULL_FACE);
+          glDisable(GL_DEPTH_TEST);
+          //glfwWindowHint(GLFW_SAMPLES, 4);
+      }
+#endif
+      
+    glBindFramebuffer(GL_FRAMEBUFFER, mRenderRelatedIds[NORMAL_FBO]);   TRACK_FBO_CALLS();
     if (mBindTexture)
     {
       glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-                             GL_TEXTURE_2D, mTextureId, 0);
+                             GL_TEXTURE_2D, mRenderRelatedIds[NORMAL_TEXTURE], 0);
 
-#if (defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL)) && !defined(PXSCENE_DISABLE_PXCONTEXT_EXT)
+#if (defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL) || !defined(PXSCENE_DISABLE_PXCONTEXT_EXT))
       if (mAntiAliasing)
       {
-        glFramebufferTexture2DMultisampleEXT(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mTextureId, 0, 2);
+#ifdef __APPLE__
+          
+          // Attach the multisampling texture, color render buffer, depth render buffer to FBO.
+          glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, mRenderRelatedIds[MULTISAMPLING_TEXTURE], 0);
+          glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, mRenderRelatedIds[MULTISAMPLING_COLOR_RBO]);
+          glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, mRenderRelatedIds[MULTISAMPLING_DEPTH_RBO]);
+          
+          // Blit the multisampling FBO to the normal FBO
+          glBindFramebuffer(GL_READ_FRAMEBUFFER, mRenderRelatedIds[MULTISAMPLING_FBO]);
+          glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mRenderRelatedIds[NORMAL_FBO]);
+          
+          //glDrawBuffer(GL_BACK);
+          glBlitFramebuffer(0, 0, mWidth, mHeight, 0, 0, mWidth, mHeight, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+          glBindFramebuffer(GL_FRAMEBUFFER, mRenderRelatedIds[NORMAL_FBO]);
+          
+          //Bind the standard FBO for reading
+          //GLvoid pixels;
+          //glReadPixels(0, 0, mWidth, mHeight, GL_BGRA, GL_UNSIGNED_BYTE, &pixels);
+          
+          // Switch the FBO back to screen
+          //glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
+          //glViewport(0, 0, mWidth, mHeight);
+          //glEnable(GL_MULTISAMPLE);
+          //glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
+#else
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mRenderRelatedIds[NORMAL_TEXTURE], 0);
+        glFramebufferTexture2DMultisampleEXT(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mRenderRelatedIds[NORMAL_TEXTURE], 0, 2);
+#endif
       }
+     else
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mRenderRelatedIds[NORMAL_TEXTURE], 0);
 #endif
 
       if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
@@ -478,11 +611,13 @@ public:
   // TODO get rid of bindTexture() and bindTextureAsMask()
   virtual pxError bindGLTexture(int tLoc)
   {
-    if (mFramebufferId == 0 || mTextureId == 0)
-      return PX_NOTINITIALIZED;
+    if ((mRenderRelatedIds[NORMAL_FBO] == 0 || mRenderRelatedIds[NORMAL_TEXTURE] == 0) && (mRenderRelatedIds[MULTISAMPLING_FBO] == 0 || mRenderRelatedIds[MULTISAMPLING_TEXTURE] == 0))
+      {
+          return PX_NOTINITIALIZED;
+      }
 
     glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, mTextureId);  TRACK_TEX_CALLS();
+    glBindTexture(mRenderRelatedIds[MULTISAMPLING_TEXTURE] != 0 ? GL_TEXTURE_2D_MULTISAMPLE : GL_TEXTURE_2D, mRenderRelatedIds[NORMAL_TEXTURE] != 0 ? mRenderRelatedIds[NORMAL_TEXTURE] : mRenderRelatedIds[MULTISAMPLING_TEXTURE]);  TRACK_TEX_CALLS();
     glUniform1i(tLoc,1);
 
     return PX_OK;
@@ -490,13 +625,13 @@ public:
 
   virtual pxError bindGLTextureAsMask(int mLoc)
   {
-    if (mFramebufferId == 0 || mTextureId == 0)
-    {
-      return PX_NOTINITIALIZED;
-    }
-
+    if ((mRenderRelatedIds[NORMAL_FBO] == 0 || mRenderRelatedIds[NORMAL_TEXTURE] == 0) && (mRenderRelatedIds[MULTISAMPLING_FBO] == 0 || mRenderRelatedIds[MULTISAMPLING_TEXTURE] == 0))
+      {
+          return PX_NOTINITIALIZED;
+      }
+      
     glActiveTexture(GL_TEXTURE2);
-    glBindTexture(GL_TEXTURE_2D, mTextureId);   TRACK_TEX_CALLS();
+    glBindTexture(mRenderRelatedIds[MULTISAMPLING_TEXTURE] != 0 ? GL_TEXTURE_2D_MULTISAMPLE : GL_TEXTURE_2D, mRenderRelatedIds[NORMAL_TEXTURE] != 0 ? mRenderRelatedIds[NORMAL_TEXTURE] : mRenderRelatedIds[MULTISAMPLING_TEXTURE]);   TRACK_TEX_CALLS();
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
     glUniform1i(mLoc, 2);
@@ -518,11 +653,24 @@ public:
 private:
   int mWidth;
   int mHeight;
-  GLuint mFramebufferId;
-  GLuint mTextureId;
+  //GLuint mFramebufferId;
+  //GLuint mTextureId;
   bool mBindTexture;
-
-#if (defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL)) && !defined(PXSCENE_DISABLE_PXCONTEXT_EXT)
+  
+  enum FBORenderTarget
+    {
+        NORMAL_FBO,
+        NORMAL_TEXTURE,
+        NORMAL_COLOR_RBO,
+        NORMAL_DEPTH_RBO,
+        MULTISAMPLING_FBO,
+        MULTISAMPLING_TEXTURE,
+        MULTISAMPLING_COLOR_RBO,
+        MULTISAMPLING_DEPTH_RBO,
+    };
+  GLuint mRenderRelatedIds[8];
+    
+#if (defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL) || !defined(PXSCENE_DISABLE_PXCONTEXT_EXT))
   bool mAntiAliasing;
 #endif
 
