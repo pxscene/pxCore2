@@ -1,0 +1,9 @@
+//
+//  pxScene2d.xcconfig
+//  pxScene2d
+//
+
+PREBINDING = NO
+
+DYLD_LIBRARY_PATH=@executable_path/../../pxScene2d/pxScene2d_xcode/lib/
+LD_LIBRARY_PATH=@executable_path/../../pxScene2d/pxScene2d_xcode/lib/

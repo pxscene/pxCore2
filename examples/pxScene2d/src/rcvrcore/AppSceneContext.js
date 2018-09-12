@@ -593,7 +593,7 @@ AppSceneContext.prototype.getFile = function(filePath) {
   }
   else
   {
-    return loadFileWithSparkPermissionsCheck(this.http1wrap, this.http2wrap, filePath);
+    return loadFileWithSparkPermissionsCheck(this.accessControl, this.http1wrap, this.http2wrap, filePath);
   }
 };
 

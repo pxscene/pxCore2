@@ -583,6 +583,7 @@ rtError pxObject::animateToP2(rtObjectRef props, double duration,
 {
   if (mIsDisposed)
   {
+    rtLogWarn("animation is performed on disposed object !!!!");
     promise = new rtPromise();
     rtValue nullValue;
     promise.send("reject",nullValue);
@@ -636,6 +637,7 @@ rtError pxObject::animateToObj(rtObjectRef props, double duration,
   animateObj = new pxAnimate(props, interp, (pxConstantsAnimation::animationOptions)options, duration, count, promise, this);
   if (mIsDisposed)
   {
+    rtLogWarn("animation is performed on disposed object !!!!");
     rtValue nullValue;
     promise.send("reject",nullValue);
     return RT_OK;

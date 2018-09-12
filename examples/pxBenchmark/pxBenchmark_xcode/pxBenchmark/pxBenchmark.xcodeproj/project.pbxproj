@@ -1,0 +1,1226 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 50;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		B583E76720FF9BDB0097BB4B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B583E76620FF9BDB0097BB4B /* Assets.xcassets */; };
+		B583E76A20FF9BDB0097BB4B /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B583E76820FF9BDB0097BB4B /* Main.storyboard */; };
+		B583E77820FF9BDB0097BB4B /* pxBenchmarkTests.m in Sources */ = {isa = PBXBuildFile; fileRef = B583E77720FF9BDB0097BB4B /* pxBenchmarkTests.m */; };
+		B583E78320FF9BDB0097BB4B /* pxBenchmarkUITests.m in Sources */ = {isa = PBXBuildFile; fileRef = B583E78220FF9BDB0097BB4B /* pxBenchmarkUITests.m */; };
+		B583E7CE20FF9CE50097BB4B /* CMakeLists.txt in Resources */ = {isa = PBXBuildFile; fileRef = B583E7CB20FF9CE50097BB4B /* CMakeLists.txt */; };
+		B583E7CF20FF9CE50097BB4B /* pxBenchmark.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B583E7CD20FF9CE50097BB4B /* pxBenchmark.cpp */; };
+		B583E7E020FF9D270097BB4B /* pxFont.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B583E7D020FF9D260097BB4B /* pxFont.cpp */; };
+		B583E7E420FF9D270097BB4B /* pxImage9Border.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B583E7D420FF9D260097BB4B /* pxImage9Border.cpp */; };
+		B583E7E520FF9D270097BB4B /* pxImage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B583E7D520FF9D260097BB4B /* pxImage.cpp */; };
+		B583E7E620FF9D270097BB4B /* pxTextBox.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B583E7D620FF9D260097BB4B /* pxTextBox.cpp */; };
+		B583E7E720FF9D270097BB4B /* pxResource.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B583E7D720FF9D260097BB4B /* pxResource.cpp */; };
+		B583E7E920FF9D270097BB4B /* pxText.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B583E7D920FF9D260097BB4B /* pxText.cpp */; };
+		B583E7EA20FF9D270097BB4B /* pxConstants.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B583E7DA20FF9D260097BB4B /* pxConstants.cpp */; };
+		B583E7EB20FF9D270097BB4B /* pxScene2d.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B583E7DB20FF9D270097BB4B /* pxScene2d.cpp */; };
+		B583E7EC20FF9D270097BB4B /* pxContextGL.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B583E7DC20FF9D270097BB4B /* pxContextGL.cpp */; };
+		B583E7EE20FF9D270097BB4B /* pxImage9.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B583E7DE20FF9D270097BB4B /* pxImage9.cpp */; };
+		B583E7EF20FF9D270097BB4B /* pxAnimate.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B583E7DF20FF9D270097BB4B /* pxAnimate.cpp */; };
+		B583E7F120FF9D3B0097BB4B /* westeros-stub.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B583E7F020FF9D3B0097BB4B /* westeros-stub.cpp */; };
+		B583E80220FF9DCE0097BB4B /* libpxCore.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B583E7A320FF9C0D0097BB4B /* libpxCore.a */; };
+		B583E80420FF9DEA0097BB4B /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B583E80320FF9DEA0097BB4B /* Cocoa.framework */; };
+		B583E80620FF9DF00097BB4B /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B583E80520FF9DF00097BB4B /* OpenGL.framework */; };
+		B583E84120FFAAB70097BB4B /* pxbenchmark.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = B583E83B20FFAAB60097BB4B /* pxbenchmark.xcconfig */; };
+		B583E84320FFAAB70097BB4B /* pxbenchmark.sh in Resources */ = {isa = PBXBuildFile; fileRef = B583E83D20FFAAB60097BB4B /* pxbenchmark.sh */; };
+		B583E84820FFAB590097BB4B /* pxArchive.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B583E84720FFAB590097BB4B /* pxArchive.cpp */; };
+		B583E84A20FFAE370097BB4B /* pxRectangle.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B583E84920FFAE360097BB4B /* pxRectangle.cpp */; };
+		B583E86020FFBEDF0097BB4B /* pxImageA.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B583E85F20FFBEDE0097BB4B /* pxImageA.cpp */; };
+		B5906B992100E5A700603BF6 /* mkapp.sh in Resources */ = {isa = PBXBuildFile; fileRef = B5906B982100E5A700603BF6 /* mkapp.sh */; };
+		B5A2D874210FA36B00EF83F1 /* rtCORS.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5A2D867210FA36B00EF83F1 /* rtCORS.cpp */; };
+		B5ECEF7A21062C29000A3A83 /* Utilities.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5ECEF6621062C28000A3A83 /* Utilities.cpp */; };
+		B5ECEF7B21062C29000A3A83 /* Executor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5ECEF6721062C28000A3A83 /* Executor.cpp */; };
+		B5ECEF7C21062C29000A3A83 /* ThreadTestFixture.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5ECEF6821062C28000A3A83 /* ThreadTestFixture.cpp */; };
+		B5ECEF7D21062C29000A3A83 /* Console.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5ECEF6921062C28000A3A83 /* Console.cpp */; };
+		B5ECEF7E21062C29000A3A83 /* Exceptions.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5ECEF6A21062C28000A3A83 /* Exceptions.cpp */; };
+		B5ECEF7F21062C29000A3A83 /* TestFixture.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5ECEF6B21062C28000A3A83 /* TestFixture.cpp */; };
+		B5ECEF8021062C29000A3A83 /* Timer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5ECEF6C21062C29000A3A83 /* Timer.cpp */; };
+		B5ECEF8121062C29000A3A83 /* TestVector.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5ECEF6D21062C29000A3A83 /* TestVector.cpp */; };
+		B5ECEF8221062C29000A3A83 /* Celero.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5ECEF6E21062C29000A3A83 /* Celero.cpp */; };
+		B5ECEF8321062C29000A3A83 /* Experiment.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5ECEF6F21062C29000A3A83 /* Experiment.cpp */; };
+		B5ECEF8421062C29000A3A83 /* Archive.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5ECEF7021062C29000A3A83 /* Archive.cpp */; };
+		B5ECEF8521062C29000A3A83 /* Benchmark.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5ECEF7121062C29000A3A83 /* Benchmark.cpp */; };
+		B5ECEF8621062C29000A3A83 /* Callbacks.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5ECEF7221062C29000A3A83 /* Callbacks.cpp */; };
+		B5ECEF8721062C29000A3A83 /* Memory.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5ECEF7321062C29000A3A83 /* Memory.cpp */; };
+		B5ECEF8821062C29000A3A83 /* Print.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5ECEF7421062C29000A3A83 /* Print.cpp */; };
+		B5ECEF8921062C29000A3A83 /* Distribution.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5ECEF7521062C29000A3A83 /* Distribution.cpp */; };
+		B5ECEF8A21062C29000A3A83 /* Statistics.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5ECEF7621062C29000A3A83 /* Statistics.cpp */; };
+		B5ECEF8B21062C29000A3A83 /* ResultTable.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5ECEF7721062C29000A3A83 /* ResultTable.cpp */; };
+		B5ECEF8C21062C29000A3A83 /* ExperimentResult.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5ECEF7821062C29000A3A83 /* ExperimentResult.cpp */; };
+		B5ECEF8D21062C29000A3A83 /* JUnit.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5ECEF7921062C29000A3A83 /* JUnit.cpp */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		B583E77420FF9BDB0097BB4B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = B583E75520FF9BDB0097BB4B /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = B583E75C20FF9BDB0097BB4B;
+			remoteInfo = pxBenchmark;
+		};
+		B583E77F20FF9BDB0097BB4B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = B583E75520FF9BDB0097BB4B /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = B583E75C20FF9BDB0097BB4B;
+			remoteInfo = pxBenchmark;
+		};
+		B583E7A020FF9C0D0097BB4B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = B583E79020FF9C0D0097BB4B /* pxCore.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 4CF546B120210AB600529907;
+			remoteInfo = "pxCore Static Library";
+		};
+		B583E7A220FF9C0D0097BB4B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = B583E79020FF9C0D0097BB4B /* pxCore.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = AECBECD01B67979F00851BFE;
+			remoteInfo = "pxCore (Node) Static Library";
+		};
+		B583E7A420FF9C0D0097BB4B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = B583E79020FF9C0D0097BB4B /* pxCore.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 4C5D05E4201FC48F00D2B292;
+			remoteInfo = "pxCore (Duk) Static Library";
+		};
+		B583E7A620FF9C0D0097BB4B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = B583E79020FF9C0D0097BB4B /* pxCore.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = AECBED111B679A7500851BFE;
+			remoteInfo = Simple;
+		};
+		B583E7A820FF9C0D0097BB4B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = B583E79020FF9C0D0097BB4B /* pxCore.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = AE1D42BC1B7CF5E0002E7CAE;
+			remoteInfo = Hover;
+		};
+		B583E7AA20FF9C0D0097BB4B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = B583E79020FF9C0D0097BB4B /* pxCore.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = AE1D42E51B7D2A23002E7CAE;
+			remoteInfo = Multi;
+		};
+		B583E7AC20FF9C0D0097BB4B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = B583E79020FF9C0D0097BB4B /* pxCore.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = AE1D430E1B7D2B47002E7CAE;
+			remoteInfo = Animation;
+		};
+		B583E7AE20FF9C0D0097BB4B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = B583E79020FF9C0D0097BB4B /* pxCore.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = AE1D43391B7D45EB002E7CAE;
+			remoteInfo = Sprite;
+		};
+		B583E7B020FF9C0D0097BB4B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = B583E79020FF9C0D0097BB4B /* pxCore.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = AE1D43621B7D4F6E002E7CAE;
+			remoteInfo = Mandelbrot;
+		};
+		B583E7B220FF9C0D0097BB4B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = B583E79020FF9C0D0097BB4B /* pxCore.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = AE1D43BF1B7D51BF002E7CAE;
+			remoteInfo = KeyboardAndMouse;
+		};
+		B583E7B420FF9C0D0097BB4B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = B583E79020FF9C0D0097BB4B /* pxCore.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = AE1D43E81B7E8E11002E7CAE;
+			remoteInfo = NativeDrawing;
+		};
+		B583E7B620FF9C0D0097BB4B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = B583E79020FF9C0D0097BB4B /* pxCore.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = AE1D43AF1B7D5113002E7CAE;
+			remoteInfo = Timer;
+		};
+		B583E7B820FF9C0D0097BB4B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = B583E79020FF9C0D0097BB4B /* pxCore.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = AE1D44111B809983002E7CAE;
+			remoteInfo = SimpleOpenGL;
+		};
+		B583E7F220FF9D980097BB4B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = B583E79020FF9C0D0097BB4B /* pxCore.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 4CF5463E20210AB600529907;
+			remoteInfo = "pxCore Static Library";
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		B5ECEF2621021E97000A3A83 /* Copy Dynamic Library Files */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = lib;
+			dstSubfolderSpec = 6;
+			files = (
+			);
+			name = "Copy Dynamic Library Files";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		B583E75D20FF9BDB0097BB4B /* pxBenchmark.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = pxBenchmark.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		B583E76620FF9BDB0097BB4B /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		B583E76920FF9BDB0097BB4B /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+		B583E76B20FF9BDB0097BB4B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		B583E76E20FF9BDB0097BB4B /* pxBenchmark.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = pxBenchmark.entitlements; sourceTree = "<group>"; };
+		B583E77320FF9BDB0097BB4B /* pxBenchmarkTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = pxBenchmarkTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		B583E77720FF9BDB0097BB4B /* pxBenchmarkTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = pxBenchmarkTests.m; sourceTree = "<group>"; };
+		B583E77920FF9BDB0097BB4B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		B583E77E20FF9BDB0097BB4B /* pxBenchmarkUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = pxBenchmarkUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		B583E78220FF9BDB0097BB4B /* pxBenchmarkUITests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = pxBenchmarkUITests.m; sourceTree = "<group>"; };
+		B583E78420FF9BDB0097BB4B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		B583E79020FF9C0D0097BB4B /* pxCore.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = pxCore.xcodeproj; path = ../../../../pxCore.xcodeproj; sourceTree = "<group>"; };
+		B583E7CB20FF9CE50097BB4B /* CMakeLists.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = CMakeLists.txt; path = ../../../../src/CMakeLists.txt; sourceTree = "<group>"; };
+		B583E7CC20FF9CE50097BB4B /* pxBenchmark.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pxBenchmark.h; path = ../../../../src/pxBenchmark.h; sourceTree = "<group>"; };
+		B583E7CD20FF9CE50097BB4B /* pxBenchmark.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = pxBenchmark.cpp; path = ../../../../src/pxBenchmark.cpp; sourceTree = "<group>"; };
+		B583E7D020FF9D260097BB4B /* pxFont.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = pxFont.cpp; path = ../../../../../../pxScene2d/src/pxFont.cpp; sourceTree = "<group>"; };
+		B583E7D420FF9D260097BB4B /* pxImage9Border.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = pxImage9Border.cpp; path = ../../../../../../pxScene2d/src/pxImage9Border.cpp; sourceTree = "<group>"; };
+		B583E7D520FF9D260097BB4B /* pxImage.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = pxImage.cpp; path = ../../../../../../pxScene2d/src/pxImage.cpp; sourceTree = "<group>"; };
+		B583E7D620FF9D260097BB4B /* pxTextBox.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = pxTextBox.cpp; path = ../../../../../../pxScene2d/src/pxTextBox.cpp; sourceTree = "<group>"; };
+		B583E7D720FF9D260097BB4B /* pxResource.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = pxResource.cpp; path = ../../../../../../pxScene2d/src/pxResource.cpp; sourceTree = "<group>"; };
+		B583E7D920FF9D260097BB4B /* pxText.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = pxText.cpp; path = ../../../../../../pxScene2d/src/pxText.cpp; sourceTree = "<group>"; };
+		B583E7DA20FF9D260097BB4B /* pxConstants.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = pxConstants.cpp; path = ../../../../../../pxScene2d/src/pxConstants.cpp; sourceTree = "<group>"; };
+		B583E7DB20FF9D270097BB4B /* pxScene2d.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = pxScene2d.cpp; path = ../../../../../../pxScene2d/src/pxScene2d.cpp; sourceTree = "<group>"; };
+		B583E7DC20FF9D270097BB4B /* pxContextGL.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = pxContextGL.cpp; path = ../../../../../../pxScene2d/src/pxContextGL.cpp; sourceTree = "<group>"; };
+		B583E7DE20FF9D270097BB4B /* pxImage9.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = pxImage9.cpp; path = ../../../../../../pxScene2d/src/pxImage9.cpp; sourceTree = "<group>"; };
+		B583E7DF20FF9D270097BB4B /* pxAnimate.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = pxAnimate.cpp; path = ../../../../../../pxScene2d/src/pxAnimate.cpp; sourceTree = "<group>"; };
+		B583E7F020FF9D3B0097BB4B /* westeros-stub.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = "westeros-stub.cpp"; path = "../../../../../../pxScene2d/external/westeros-stub/westeros-stub.cpp"; sourceTree = "<group>"; };
+		B583E80320FF9DEA0097BB4B /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
+		B583E80520FF9DF00097BB4B /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
+		B583E83B20FFAAB60097BB4B /* pxbenchmark.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = pxbenchmark.xcconfig; path = ../../../pxbenchmark.xcconfig; sourceTree = "<group>"; };
+		B583E83D20FFAAB60097BB4B /* pxbenchmark.sh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.sh; name = pxbenchmark.sh; path = ../../../pxbenchmark.sh; sourceTree = "<group>"; };
+		B583E84720FFAB590097BB4B /* pxArchive.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = pxArchive.cpp; path = ../../../../../../pxScene2d/src/pxArchive.cpp; sourceTree = "<group>"; };
+		B583E84920FFAE360097BB4B /* pxRectangle.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = pxRectangle.cpp; path = ../../../../../../pxScene2d/src/pxRectangle.cpp; sourceTree = "<group>"; };
+		B583E85F20FFBEDE0097BB4B /* pxImageA.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = pxImageA.cpp; path = ../../../../../../pxScene2d/src/pxImageA.cpp; sourceTree = "<group>"; };
+		B5906B982100E5A700603BF6 /* mkapp.sh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.sh; name = mkapp.sh; path = ../../../../src/mkapp.sh; sourceTree = "<group>"; };
+		B5A2D867210FA36B00EF83F1 /* rtCORS.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = rtCORS.cpp; path = ../../../../../../../src/rtCORS.cpp; sourceTree = "<group>"; };
+		B5ECEF6621062C28000A3A83 /* Utilities.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Utilities.cpp; path = ../../../../../Celero/src/Utilities.cpp; sourceTree = "<group>"; };
+		B5ECEF6721062C28000A3A83 /* Executor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Executor.cpp; path = ../../../../../Celero/src/Executor.cpp; sourceTree = "<group>"; };
+		B5ECEF6821062C28000A3A83 /* ThreadTestFixture.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ThreadTestFixture.cpp; path = ../../../../../Celero/src/ThreadTestFixture.cpp; sourceTree = "<group>"; };
+		B5ECEF6921062C28000A3A83 /* Console.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Console.cpp; path = ../../../../../Celero/src/Console.cpp; sourceTree = "<group>"; };
+		B5ECEF6A21062C28000A3A83 /* Exceptions.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Exceptions.cpp; path = ../../../../../Celero/src/Exceptions.cpp; sourceTree = "<group>"; };
+		B5ECEF6B21062C28000A3A83 /* TestFixture.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TestFixture.cpp; path = ../../../../../Celero/src/TestFixture.cpp; sourceTree = "<group>"; };
+		B5ECEF6C21062C29000A3A83 /* Timer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Timer.cpp; path = ../../../../../Celero/src/Timer.cpp; sourceTree = "<group>"; };
+		B5ECEF6D21062C29000A3A83 /* TestVector.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TestVector.cpp; path = ../../../../../Celero/src/TestVector.cpp; sourceTree = "<group>"; };
+		B5ECEF6E21062C29000A3A83 /* Celero.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Celero.cpp; path = ../../../../../Celero/src/Celero.cpp; sourceTree = "<group>"; };
+		B5ECEF6F21062C29000A3A83 /* Experiment.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Experiment.cpp; path = ../../../../../Celero/src/Experiment.cpp; sourceTree = "<group>"; };
+		B5ECEF7021062C29000A3A83 /* Archive.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Archive.cpp; path = ../../../../../Celero/src/Archive.cpp; sourceTree = "<group>"; };
+		B5ECEF7121062C29000A3A83 /* Benchmark.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Benchmark.cpp; path = ../../../../../Celero/src/Benchmark.cpp; sourceTree = "<group>"; };
+		B5ECEF7221062C29000A3A83 /* Callbacks.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Callbacks.cpp; path = ../../../../../Celero/src/Callbacks.cpp; sourceTree = "<group>"; };
+		B5ECEF7321062C29000A3A83 /* Memory.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Memory.cpp; path = ../../../../../Celero/src/Memory.cpp; sourceTree = "<group>"; };
+		B5ECEF7421062C29000A3A83 /* Print.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Print.cpp; path = ../../../../../Celero/src/Print.cpp; sourceTree = "<group>"; };
+		B5ECEF7521062C29000A3A83 /* Distribution.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Distribution.cpp; path = ../../../../../Celero/src/Distribution.cpp; sourceTree = "<group>"; };
+		B5ECEF7621062C29000A3A83 /* Statistics.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Statistics.cpp; path = ../../../../../Celero/src/Statistics.cpp; sourceTree = "<group>"; };
+		B5ECEF7721062C29000A3A83 /* ResultTable.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ResultTable.cpp; path = ../../../../../Celero/src/ResultTable.cpp; sourceTree = "<group>"; };
+		B5ECEF7821062C29000A3A83 /* ExperimentResult.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ExperimentResult.cpp; path = ../../../../../Celero/src/ExperimentResult.cpp; sourceTree = "<group>"; };
+		B5ECEF7921062C29000A3A83 /* JUnit.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = JUnit.cpp; path = ../../../../../Celero/src/JUnit.cpp; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		B583E75A20FF9BDB0097BB4B /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B583E80620FF9DF00097BB4B /* OpenGL.framework in Frameworks */,
+				B583E80420FF9DEA0097BB4B /* Cocoa.framework in Frameworks */,
+				B583E80220FF9DCE0097BB4B /* libpxCore.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B583E77020FF9BDB0097BB4B /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B583E77B20FF9BDB0097BB4B /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		B583E75420FF9BDB0097BB4B = {
+			isa = PBXGroup;
+			children = (
+				B583E79020FF9C0D0097BB4B /* pxCore.xcodeproj */,
+				B583E75F20FF9BDB0097BB4B /* pxBenchmark */,
+				B583E77620FF9BDB0097BB4B /* pxBenchmarkTests */,
+				B583E78120FF9BDB0097BB4B /* pxBenchmarkUITests */,
+				B583E75E20FF9BDB0097BB4B /* Products */,
+				B583E7F420FF9DAF0097BB4B /* Frameworks */,
+			);
+			sourceTree = "<group>";
+		};
+		B583E75E20FF9BDB0097BB4B /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				B583E75D20FF9BDB0097BB4B /* pxBenchmark.app */,
+				B583E77320FF9BDB0097BB4B /* pxBenchmarkTests.xctest */,
+				B583E77E20FF9BDB0097BB4B /* pxBenchmarkUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		B583E75F20FF9BDB0097BB4B /* pxBenchmark */ = {
+			isa = PBXGroup;
+			children = (
+				B583E76620FF9BDB0097BB4B /* Assets.xcassets */,
+				B583E76820FF9BDB0097BB4B /* Main.storyboard */,
+				B583E76B20FF9BDB0097BB4B /* Info.plist */,
+				B583E76E20FF9BDB0097BB4B /* pxBenchmark.entitlements */,
+				B583E7C920FF9C5F0097BB4B /* Supporting Files */,
+				B583E7BB20FF9C510097BB4B /* src */,
+			);
+			path = pxBenchmark;
+			sourceTree = "<group>";
+		};
+		B583E77620FF9BDB0097BB4B /* pxBenchmarkTests */ = {
+			isa = PBXGroup;
+			children = (
+				B583E77720FF9BDB0097BB4B /* pxBenchmarkTests.m */,
+				B583E77920FF9BDB0097BB4B /* Info.plist */,
+			);
+			path = pxBenchmarkTests;
+			sourceTree = "<group>";
+		};
+		B583E78120FF9BDB0097BB4B /* pxBenchmarkUITests */ = {
+			isa = PBXGroup;
+			children = (
+				B583E78220FF9BDB0097BB4B /* pxBenchmarkUITests.m */,
+				B583E78420FF9BDB0097BB4B /* Info.plist */,
+			);
+			path = pxBenchmarkUITests;
+			sourceTree = "<group>";
+		};
+		B583E79120FF9C0D0097BB4B /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				B583E7A120FF9C0D0097BB4B /* libpxCore Static Library.a */,
+				B583E7A320FF9C0D0097BB4B /* libpxCore.a */,
+				B583E7A520FF9C0D0097BB4B /* libpxCore (Duk) Static Library.a */,
+				B583E7A720FF9C0D0097BB4B /* Simple.app */,
+				B583E7A920FF9C0D0097BB4B /* Hover.app */,
+				B583E7AB20FF9C0D0097BB4B /* Multi.app */,
+				B583E7AD20FF9C0D0097BB4B /* Animation.app */,
+				B583E7AF20FF9C0D0097BB4B /* Sprite.app */,
+				B583E7B120FF9C0D0097BB4B /* Mandelbrot.app */,
+				B583E7B320FF9C0D0097BB4B /* KeyboardAndMouse.app */,
+				B583E7B520FF9C0D0097BB4B /* NativeDrawing.app */,
+				B583E7B720FF9C0D0097BB4B /* Timer */,
+				B583E7B920FF9C0D0097BB4B /* SimpleOpenGL.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		B583E7BB20FF9C510097BB4B /* src */ = {
+			isa = PBXGroup;
+			children = (
+				B5ECEF5921062C09000A3A83 /* Celero */,
+				B5ECEF4F2104F130000A3A83 /* Resources */,
+				B583E7CA20FF9C840097BB4B /* pxScene2d */,
+				B583E7CB20FF9CE50097BB4B /* CMakeLists.txt */,
+				B583E7CD20FF9CE50097BB4B /* pxBenchmark.cpp */,
+				B5906B982100E5A700603BF6 /* mkapp.sh */,
+				B583E7CC20FF9CE50097BB4B /* pxBenchmark.h */,
+			);
+			path = src;
+			sourceTree = "<group>";
+		};
+		B583E7C920FF9C5F0097BB4B /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				B583E83D20FFAAB60097BB4B /* pxbenchmark.sh */,
+				B583E83B20FFAAB60097BB4B /* pxbenchmark.xcconfig */,
+			);
+			path = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		B583E7CA20FF9C840097BB4B /* pxScene2d */ = {
+			isa = PBXGroup;
+			children = (
+				B5A2D867210FA36B00EF83F1 /* rtCORS.cpp */,
+				B583E85F20FFBEDE0097BB4B /* pxImageA.cpp */,
+				B583E84920FFAE360097BB4B /* pxRectangle.cpp */,
+				B583E84720FFAB590097BB4B /* pxArchive.cpp */,
+				B583E7F020FF9D3B0097BB4B /* westeros-stub.cpp */,
+				B583E7DF20FF9D270097BB4B /* pxAnimate.cpp */,
+				B583E7DA20FF9D260097BB4B /* pxConstants.cpp */,
+				B583E7DC20FF9D270097BB4B /* pxContextGL.cpp */,
+				B583E7D020FF9D260097BB4B /* pxFont.cpp */,
+				B583E7D520FF9D260097BB4B /* pxImage.cpp */,
+				B583E7DE20FF9D270097BB4B /* pxImage9.cpp */,
+				B583E7D420FF9D260097BB4B /* pxImage9Border.cpp */,
+				B583E7D720FF9D260097BB4B /* pxResource.cpp */,
+				B583E7DB20FF9D270097BB4B /* pxScene2d.cpp */,
+				B583E7D920FF9D260097BB4B /* pxText.cpp */,
+				B583E7D620FF9D260097BB4B /* pxTextBox.cpp */,
+			);
+			path = pxScene2d;
+			sourceTree = "<group>";
+		};
+		B583E7F420FF9DAF0097BB4B /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				B583E80520FF9DF00097BB4B /* OpenGL.framework */,
+				B583E80320FF9DEA0097BB4B /* Cocoa.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		B5ECEF4F2104F130000A3A83 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		B5ECEF5921062C09000A3A83 /* Celero */ = {
+			isa = PBXGroup;
+			children = (
+				B5ECEF8E21062D30000A3A83 /* Includes */,
+				B5ECEF7021062C29000A3A83 /* Archive.cpp */,
+				B5ECEF7121062C29000A3A83 /* Benchmark.cpp */,
+				B5ECEF7221062C29000A3A83 /* Callbacks.cpp */,
+				B5ECEF6E21062C29000A3A83 /* Celero.cpp */,
+				B5ECEF6921062C28000A3A83 /* Console.cpp */,
+				B5ECEF7521062C29000A3A83 /* Distribution.cpp */,
+				B5ECEF6A21062C28000A3A83 /* Exceptions.cpp */,
+				B5ECEF6721062C28000A3A83 /* Executor.cpp */,
+				B5ECEF6F21062C29000A3A83 /* Experiment.cpp */,
+				B5ECEF7821062C29000A3A83 /* ExperimentResult.cpp */,
+				B5ECEF7921062C29000A3A83 /* JUnit.cpp */,
+				B5ECEF7321062C29000A3A83 /* Memory.cpp */,
+				B5ECEF7421062C29000A3A83 /* Print.cpp */,
+				B5ECEF7721062C29000A3A83 /* ResultTable.cpp */,
+				B5ECEF7621062C29000A3A83 /* Statistics.cpp */,
+				B5ECEF6B21062C28000A3A83 /* TestFixture.cpp */,
+				B5ECEF6D21062C29000A3A83 /* TestVector.cpp */,
+				B5ECEF6821062C28000A3A83 /* ThreadTestFixture.cpp */,
+				B5ECEF6C21062C29000A3A83 /* Timer.cpp */,
+				B5ECEF6621062C28000A3A83 /* Utilities.cpp */,
+			);
+			path = Celero;
+			sourceTree = "<group>";
+		};
+		B5ECEF8E21062D30000A3A83 /* Includes */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Includes;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		B583E75C20FF9BDB0097BB4B /* pxBenchmark */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B583E78720FF9BDB0097BB4B /* Build configuration list for PBXNativeTarget "pxBenchmark" */;
+			buildPhases = (
+				B583E75920FF9BDB0097BB4B /* Sources */,
+				B583E75A20FF9BDB0097BB4B /* Frameworks */,
+				B583E75B20FF9BDB0097BB4B /* Resources */,
+				B5ECEF2621021E97000A3A83 /* Copy Dynamic Library Files */,
+				B5ECEF4021021F87000A3A83 /* Run Script - Copy Resources to App Bundle */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				B583E7F320FF9D980097BB4B /* PBXTargetDependency */,
+			);
+			name = pxBenchmark;
+			productName = pxBenchmark;
+			productReference = B583E75D20FF9BDB0097BB4B /* pxBenchmark.app */;
+			productType = "com.apple.product-type.application";
+		};
+		B583E77220FF9BDB0097BB4B /* pxBenchmarkTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B583E78A20FF9BDB0097BB4B /* Build configuration list for PBXNativeTarget "pxBenchmarkTests" */;
+			buildPhases = (
+				B583E76F20FF9BDB0097BB4B /* Sources */,
+				B583E77020FF9BDB0097BB4B /* Frameworks */,
+				B583E77120FF9BDB0097BB4B /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				B583E77520FF9BDB0097BB4B /* PBXTargetDependency */,
+			);
+			name = pxBenchmarkTests;
+			productName = pxBenchmarkTests;
+			productReference = B583E77320FF9BDB0097BB4B /* pxBenchmarkTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		B583E77D20FF9BDB0097BB4B /* pxBenchmarkUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B583E78D20FF9BDB0097BB4B /* Build configuration list for PBXNativeTarget "pxBenchmarkUITests" */;
+			buildPhases = (
+				B583E77A20FF9BDB0097BB4B /* Sources */,
+				B583E77B20FF9BDB0097BB4B /* Frameworks */,
+				B583E77C20FF9BDB0097BB4B /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				B583E78020FF9BDB0097BB4B /* PBXTargetDependency */,
+			);
+			name = pxBenchmarkUITests;
+			productName = pxBenchmarkUITests;
+			productReference = B583E77E20FF9BDB0097BB4B /* pxBenchmarkUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		B583E75520FF9BDB0097BB4B /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0940;
+				ORGANIZATIONNAME = "Kalokhe, Ashwini";
+				TargetAttributes = {
+					B583E75C20FF9BDB0097BB4B = {
+						CreatedOnToolsVersion = 9.4.1;
+					};
+					B583E77220FF9BDB0097BB4B = {
+						CreatedOnToolsVersion = 9.4.1;
+						TestTargetID = B583E75C20FF9BDB0097BB4B;
+					};
+					B583E77D20FF9BDB0097BB4B = {
+						CreatedOnToolsVersion = 9.4.1;
+						TestTargetID = B583E75C20FF9BDB0097BB4B;
+					};
+				};
+			};
+			buildConfigurationList = B583E75820FF9BDB0097BB4B /* Build configuration list for PBXProject "pxBenchmark" */;
+			compatibilityVersion = "Xcode 9.3";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = B583E75420FF9BDB0097BB4B;
+			productRefGroup = B583E75E20FF9BDB0097BB4B /* Products */;
+			projectDirPath = "";
+			projectReferences = (
+				{
+					ProductGroup = B583E79120FF9C0D0097BB4B /* Products */;
+					ProjectRef = B583E79020FF9C0D0097BB4B /* pxCore.xcodeproj */;
+				},
+			);
+			projectRoot = "";
+			targets = (
+				B583E75C20FF9BDB0097BB4B /* pxBenchmark */,
+				B583E77220FF9BDB0097BB4B /* pxBenchmarkTests */,
+				B583E77D20FF9BDB0097BB4B /* pxBenchmarkUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXReferenceProxy section */
+		B583E7A120FF9C0D0097BB4B /* libpxCore Static Library.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = "libpxCore Static Library.a";
+			remoteRef = B583E7A020FF9C0D0097BB4B /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		B583E7A320FF9C0D0097BB4B /* libpxCore.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libpxCore.a;
+			remoteRef = B583E7A220FF9C0D0097BB4B /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		B583E7A520FF9C0D0097BB4B /* libpxCore (Duk) Static Library.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = "libpxCore (Duk) Static Library.a";
+			remoteRef = B583E7A420FF9C0D0097BB4B /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		B583E7A720FF9C0D0097BB4B /* Simple.app */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.application;
+			path = Simple.app;
+			remoteRef = B583E7A620FF9C0D0097BB4B /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		B583E7A920FF9C0D0097BB4B /* Hover.app */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.application;
+			path = Hover.app;
+			remoteRef = B583E7A820FF9C0D0097BB4B /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		B583E7AB20FF9C0D0097BB4B /* Multi.app */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.application;
+			path = Multi.app;
+			remoteRef = B583E7AA20FF9C0D0097BB4B /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		B583E7AD20FF9C0D0097BB4B /* Animation.app */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.application;
+			path = Animation.app;
+			remoteRef = B583E7AC20FF9C0D0097BB4B /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		B583E7AF20FF9C0D0097BB4B /* Sprite.app */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.application;
+			path = Sprite.app;
+			remoteRef = B583E7AE20FF9C0D0097BB4B /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		B583E7B120FF9C0D0097BB4B /* Mandelbrot.app */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.application;
+			path = Mandelbrot.app;
+			remoteRef = B583E7B020FF9C0D0097BB4B /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		B583E7B320FF9C0D0097BB4B /* KeyboardAndMouse.app */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.application;
+			path = KeyboardAndMouse.app;
+			remoteRef = B583E7B220FF9C0D0097BB4B /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		B583E7B520FF9C0D0097BB4B /* NativeDrawing.app */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.application;
+			path = NativeDrawing.app;
+			remoteRef = B583E7B420FF9C0D0097BB4B /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		B583E7B720FF9C0D0097BB4B /* Timer */ = {
+			isa = PBXReferenceProxy;
+			fileType = "compiled.mach-o.executable";
+			path = Timer;
+			remoteRef = B583E7B620FF9C0D0097BB4B /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		B583E7B920FF9C0D0097BB4B /* SimpleOpenGL.app */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.application;
+			path = SimpleOpenGL.app;
+			remoteRef = B583E7B820FF9C0D0097BB4B /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+/* End PBXReferenceProxy section */
+
+/* Begin PBXResourcesBuildPhase section */
+		B583E75B20FF9BDB0097BB4B /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B5906B992100E5A700603BF6 /* mkapp.sh in Resources */,
+				B583E76720FF9BDB0097BB4B /* Assets.xcassets in Resources */,
+				B583E76A20FF9BDB0097BB4B /* Main.storyboard in Resources */,
+				B583E7CE20FF9CE50097BB4B /* CMakeLists.txt in Resources */,
+				B583E84320FFAAB70097BB4B /* pxbenchmark.sh in Resources */,
+				B583E84120FFAAB70097BB4B /* pxbenchmark.xcconfig in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B583E77120FF9BDB0097BB4B /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B583E77C20FF9BDB0097BB4B /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		B5ECEF4021021F87000A3A83 /* Run Script - Copy Resources to App Bundle */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Run Script - Copy Resources to App Bundle";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "";
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		B583E75920FF9BDB0097BB4B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B583E7F120FF9D3B0097BB4B /* westeros-stub.cpp in Sources */,
+				B5ECEF7E21062C29000A3A83 /* Exceptions.cpp in Sources */,
+				B5ECEF8A21062C29000A3A83 /* Statistics.cpp in Sources */,
+				B583E84820FFAB590097BB4B /* pxArchive.cpp in Sources */,
+				B5ECEF8821062C29000A3A83 /* Print.cpp in Sources */,
+				B5ECEF7D21062C29000A3A83 /* Console.cpp in Sources */,
+				B5ECEF8521062C29000A3A83 /* Benchmark.cpp in Sources */,
+				B583E7EA20FF9D270097BB4B /* pxConstants.cpp in Sources */,
+				B583E7E420FF9D270097BB4B /* pxImage9Border.cpp in Sources */,
+				B583E7E720FF9D270097BB4B /* pxResource.cpp in Sources */,
+				B5ECEF8921062C29000A3A83 /* Distribution.cpp in Sources */,
+				B5ECEF8121062C29000A3A83 /* TestVector.cpp in Sources */,
+				B5ECEF8721062C29000A3A83 /* Memory.cpp in Sources */,
+				B583E7E520FF9D270097BB4B /* pxImage.cpp in Sources */,
+				B583E86020FFBEDF0097BB4B /* pxImageA.cpp in Sources */,
+				B583E84A20FFAE370097BB4B /* pxRectangle.cpp in Sources */,
+				B583E7E920FF9D270097BB4B /* pxText.cpp in Sources */,
+				B583E7EC20FF9D270097BB4B /* pxContextGL.cpp in Sources */,
+				B5ECEF7A21062C29000A3A83 /* Utilities.cpp in Sources */,
+				B5ECEF8B21062C29000A3A83 /* ResultTable.cpp in Sources */,
+				B583E7E620FF9D270097BB4B /* pxTextBox.cpp in Sources */,
+				B583E7EB20FF9D270097BB4B /* pxScene2d.cpp in Sources */,
+				B5ECEF7F21062C29000A3A83 /* TestFixture.cpp in Sources */,
+				B5ECEF8D21062C29000A3A83 /* JUnit.cpp in Sources */,
+				B5ECEF8621062C29000A3A83 /* Callbacks.cpp in Sources */,
+				B583E7EF20FF9D270097BB4B /* pxAnimate.cpp in Sources */,
+				B5ECEF8021062C29000A3A83 /* Timer.cpp in Sources */,
+				B5ECEF7B21062C29000A3A83 /* Executor.cpp in Sources */,
+				B5A2D874210FA36B00EF83F1 /* rtCORS.cpp in Sources */,
+				B5ECEF8C21062C29000A3A83 /* ExperimentResult.cpp in Sources */,
+				B583E7E020FF9D270097BB4B /* pxFont.cpp in Sources */,
+				B5ECEF8321062C29000A3A83 /* Experiment.cpp in Sources */,
+				B583E7EE20FF9D270097BB4B /* pxImage9.cpp in Sources */,
+				B5ECEF7C21062C29000A3A83 /* ThreadTestFixture.cpp in Sources */,
+				B5ECEF8221062C29000A3A83 /* Celero.cpp in Sources */,
+				B5ECEF8421062C29000A3A83 /* Archive.cpp in Sources */,
+				B583E7CF20FF9CE50097BB4B /* pxBenchmark.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B583E76F20FF9BDB0097BB4B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B583E77820FF9BDB0097BB4B /* pxBenchmarkTests.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B583E77A20FF9BDB0097BB4B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B583E78320FF9BDB0097BB4B /* pxBenchmarkUITests.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		B583E77520FF9BDB0097BB4B /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = B583E75C20FF9BDB0097BB4B /* pxBenchmark */;
+			targetProxy = B583E77420FF9BDB0097BB4B /* PBXContainerItemProxy */;
+		};
+		B583E78020FF9BDB0097BB4B /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = B583E75C20FF9BDB0097BB4B /* pxBenchmark */;
+			targetProxy = B583E77F20FF9BDB0097BB4B /* PBXContainerItemProxy */;
+		};
+		B583E7F320FF9D980097BB4B /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "pxCore Static Library";
+			targetProxy = B583E7F220FF9D980097BB4B /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin PBXVariantGroup section */
+		B583E76820FF9BDB0097BB4B /* Main.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				B583E76920FF9BDB0097BB4B /* Base */,
+			);
+			name = Main.storyboard;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		B583E78520FF9BDB0097BB4B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "Mac Developer";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					PX_PLATFORM_MAC,
+					RT_PLATFORM_WINDOWS,
+					"NODE_ARCH=\"x64\"",
+					"V8_DEPRECATION_WARNINGS=1",
+					"V8_INSPECTOR_USE_STL=1",
+					"V8_INSPECTOR_USE_OLD_STL=1",
+					RTSCRIPT_SUPPORT_NODE,
+					"SPARK_BUILD_GIT_REVISION=\"Xcode User\"",
+					"NODE_PLATFORM=\"darwin\"",
+					RUNINMAIN,
+					ENABLE_RT_NODE,
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.13;
+				MTL_ENABLE_DEBUG_INFO = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				OTHER_LDFLAGS = "";
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		B583E78620FF9BDB0097BB4B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "Mac Developer";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					PX_PLATFORM_MAC,
+					RT_PLATFORM_WINDOWS,
+					"NODE_ARCH=\"x64\"",
+					"V8_DEPRECATION_WARNINGS=1",
+					"V8_INSPECTOR_USE_STL=1",
+					"V8_INSPECTOR_USE_OLD_STL=1",
+					RTSCRIPT_SUPPORT_NODE,
+					"SPARK_BUILD_GIT_REVISION=\"Xcode User\"",
+					"NODE_PLATFORM=\"darwin\"",
+					RUNINMAIN,
+					ENABLE_RT_NODE,
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.13;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				OTHER_LDFLAGS = "";
+				"OTHER_LDFLAGS[arch=*]" = "";
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		B583E78820FF9BDB0097BB4B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = pxBenchmark/pxBenchmark.entitlements;
+				CODE_SIGN_IDENTITY = "Mac Developer";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = US98KR3N9K;
+				DYLD_LIBRARY_PATH = "@executable_path/lib";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					RT_PLATFORM_LINUX,
+					PX_PLATFORM_MAC,
+					RTSCRIPT_SUPPORT_NODE,
+					ENABLE_RT_NODE,
+					RUNINMAIN,
+					ENABLE_HTTP_CACHE,
+					"_DARWIN_USE_64_BIT_INODE=1",
+					"NODE_ARCH=\"x64\"",
+					"NODE_WANT_INTERNALS=1",
+					"V8_DEPRECATION_WARNINGS=1",
+					NODE_SHARED_MODE,
+					"NODE_USE_V8_PLATFORM=1",
+					"NODE_HAVE_I18N_SUPPORT=1",
+					"NODE_HAVE_SMALL_ICU=1",
+					"HAVE_INSPECTOR=1",
+					"V8_INSPECTOR_USE_STL=1",
+					"V8_INSPECTOR_USE_OLD_STL=1",
+					"HAVE_OPENSSL=1",
+					"HAVE_DTRACE=1",
+					__POSIX__,
+					"NODE_PLATFORM=\"darwin\"",
+					"UCONFIG_NO_TRANSLITERATION=1",
+					"UCONFIG_NO_SERVICE=1",
+					"UCONFIG_NO_REGULAR_EXPRESSIONS=1",
+					"U_ENABLE_DYLOAD=0",
+					"U_STATIC_IMPLEMENTATION=1",
+					"U_HAVE_STD_STRING=0",
+					"UCONFIG_NO_BREAK_ITERATION=0",
+					"UCONFIG_NO_LEGACY_CONVERSION=1",
+					"UCONFIG_NO_CONVERSION=1",
+					"HTTP_PARSER_STRICT=0",
+					_LARGEFILE_SOURCE,
+					"_FILE_OFFSET_BITS=64",
+					AENABLE_DEBUG_MODE,
+					ENABLE_LIBJPEG_TURBO11111111,
+					ENABLE_DEBUG_MODE,
+					PXBENCHMARK_DISABLE_WST_DECODER,
+					PXSCENE_DISABLE_WST_DECODER,
+					"SPARK_BUILD_GIT_REVISION=\"Xcode User\"",
+					PXSCENE_FONT_ATLAS,
+				);
+				HEADER_SEARCH_PATHS = (
+					"$(PROJECT_DIR)/../../src",
+					"$(PROJECT_DIR)/../../../../src",
+					"$(PROJECT_DIR)/../../../pxScene2d/external/libnode-v6.9.0/src",
+					"$(PROJECT_DIR)/../../../pxScene2d/external/libnode-v6.9.0/deps/v8",
+					"$(PROJECT_DIR)/../../../pxScene2d/external/libnode-v6.9.0/deps/v8/include",
+					"$(PROJECT_DIR)/../../../pxScene2d/external/libnode-v6.9.0/deps/uv/include",
+					"$(PROJECT_DIR)/../../../pxScene2d/external/zlib",
+					"$(PROJECT_DIR)/../../../pxScene2d/external/png",
+					"$(PROJECT_DIR)/../../../pxScene2d/external/jpg",
+					"$(PROJECT_DIR)/../../../pxScene2d/external/curl/include",
+					"$(PROJECT_DIR)/../../../pxScene2d/external/ft/include",
+					"$(PROJECT_DIR)/../../../pxScene2d/external/westeros-stub",
+					"$(PROJECT_DIR)/../../../../remote",
+					"$(PROJECT_DIR)/../../../pxScene2d/src",
+					"$(PROJECT_DIR)/../../Celero/**",
+				);
+				INFOPLIST_FILE = pxBenchmark/Info.plist;
+				LD_LIBRARY_PATH = "@executable_path/lib";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(PROJECT_DIR)/../lib",
+					"$(PROJECT_DIR)/../../../pxScene2d/external/png/.libs",
+					"$(PROJECT_DIR)/../../../pxScene2d/external/libpng-1.6.28/.libs",
+					"$(PROJECT_DIR)/../../../pxScene2d/external/zlib/",
+					"$(PROJECT_DIR)/../../../pxScene2d/external/curl/lib/.libs",
+				);
+				New = "";
+				OTHER_LDFLAGS = (
+					"-rpath",
+					"@executable_path/lib",
+				);
+				OTHER_LIBTOOLFLAGS = "";
+				PRODUCT_BUNDLE_IDENTIFIER = Comcast.pxBenchmark;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+			};
+			name = Debug;
+		};
+		B583E78920FF9BDB0097BB4B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = pxBenchmark/pxBenchmark.entitlements;
+				CODE_SIGN_IDENTITY = "Mac Developer";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = US98KR3N9K;
+				DYLD_LIBRARY_PATH = "@executable_path/lib";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					RT_PLATFORM_LINUX,
+					PX_PLATFORM_MAC,
+					RTSCRIPT_SUPPORT_NODE,
+					ENABLE_RT_NODE,
+					RUNINMAIN,
+					ENABLE_HTTP_CACHE,
+					"_DARWIN_USE_64_BIT_INODE=1",
+					"NODE_ARCH=\"x64\"",
+					"NODE_WANT_INTERNALS=1",
+					"V8_DEPRECATION_WARNINGS=1",
+					NODE_SHARED_MODE,
+					"NODE_USE_V8_PLATFORM=1",
+					"NODE_HAVE_I18N_SUPPORT=1",
+					"NODE_HAVE_SMALL_ICU=1",
+					"HAVE_INSPECTOR=1",
+					"V8_INSPECTOR_USE_STL=1",
+					"V8_INSPECTOR_USE_OLD_STL=1",
+					"HAVE_OPENSSL=1",
+					"HAVE_DTRACE=1",
+					__POSIX__,
+					"NODE_PLATFORM=\"darwin\"",
+					"UCONFIG_NO_TRANSLITERATION=1",
+					"UCONFIG_NO_SERVICE=1",
+					"UCONFIG_NO_REGULAR_EXPRESSIONS=1",
+					"U_ENABLE_DYLOAD=0",
+					"U_STATIC_IMPLEMENTATION=1",
+					"U_HAVE_STD_STRING=0",
+					"UCONFIG_NO_BREAK_ITERATION=0",
+					"UCONFIG_NO_LEGACY_CONVERSION=1",
+					"UCONFIG_NO_CONVERSION=1",
+					"HTTP_PARSER_STRICT=0",
+					_LARGEFILE_SOURCE,
+					"_FILE_OFFSET_BITS=64",
+					AENABLE_DEBUG_MODE,
+					ENABLE_LIBJPEG_TURBO11111111,
+					ENABLE_DEBUG_MODE,
+					PXBENCHMARK_DISABLE_WST_DECODER,
+					PXSCENE_DISABLE_WST_DECODER,
+					"SPARK_BUILD_GIT_REVISION=\"Xcode User\"",
+					PXSCENE_FONT_ATLAS,
+				);
+				HEADER_SEARCH_PATHS = (
+					"$(PROJECT_DIR)/../../src",
+					"$(PROJECT_DIR)/../../../../src",
+					"$(PROJECT_DIR)/../../../pxScene2d/external/libnode-v6.9.0/src",
+					"$(PROJECT_DIR)/../../../pxScene2d/external/libnode-v6.9.0/deps/v8",
+					"$(PROJECT_DIR)/../../../pxScene2d/external/libnode-v6.9.0/deps/v8/include",
+					"$(PROJECT_DIR)/../../../pxScene2d/external/libnode-v6.9.0/deps/uv/include",
+					"$(PROJECT_DIR)/../../../pxScene2d/external/zlib",
+					"$(PROJECT_DIR)/../../../pxScene2d/external/png",
+					"$(PROJECT_DIR)/../../../pxScene2d/external/jpg",
+					"$(PROJECT_DIR)/../../../pxScene2d/external/curl/include",
+					"$(PROJECT_DIR)/../../../pxScene2d/external/ft/include",
+					"$(PROJECT_DIR)/../../../pxScene2d/external/westeros-stub",
+					"$(PROJECT_DIR)/../../../../remote",
+					"$(PROJECT_DIR)/../../../pxScene2d/src",
+					"$(PROJECT_DIR)/../../Celero/**",
+				);
+				INFOPLIST_FILE = pxBenchmark/Info.plist;
+				LD_LIBRARY_PATH = "@executable_path/lib";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(PROJECT_DIR)/../lib",
+					"$(PROJECT_DIR)/../../../pxScene2d/external/png/.libs",
+					"$(PROJECT_DIR)/../../../pxScene2d/external/libpng-1.6.28/.libs",
+					"$(PROJECT_DIR)/../../../pxScene2d/external/zlib/",
+					"$(PROJECT_DIR)/../../../pxScene2d/external/curl/lib/.libs",
+				);
+				New = "";
+				OTHER_LDFLAGS = (
+					"-rpath",
+					"@executable_path/lib",
+				);
+				OTHER_LIBTOOLFLAGS = "";
+				PRODUCT_BUNDLE_IDENTIFIER = Comcast.pxBenchmark;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+			};
+			name = Release;
+		};
+		B583E78B20FF9BDB0097BB4B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = US98KR3N9K;
+				INFOPLIST_FILE = pxBenchmarkTests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = Comcast.pxBenchmarkTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/pxBenchmark.app/Contents/MacOS/pxBenchmark";
+			};
+			name = Debug;
+		};
+		B583E78C20FF9BDB0097BB4B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = US98KR3N9K;
+				INFOPLIST_FILE = pxBenchmarkTests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = Comcast.pxBenchmarkTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/pxBenchmark.app/Contents/MacOS/pxBenchmark";
+			};
+			name = Release;
+		};
+		B583E78E20FF9BDB0097BB4B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = US98KR3N9K;
+				INFOPLIST_FILE = pxBenchmarkUITests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = Comcast.pxBenchmarkUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TEST_TARGET_NAME = pxBenchmark;
+			};
+			name = Debug;
+		};
+		B583E78F20FF9BDB0097BB4B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = US98KR3N9K;
+				INFOPLIST_FILE = pxBenchmarkUITests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = Comcast.pxBenchmarkUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TEST_TARGET_NAME = pxBenchmark;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		B583E75820FF9BDB0097BB4B /* Build configuration list for PBXProject "pxBenchmark" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B583E78520FF9BDB0097BB4B /* Debug */,
+				B583E78620FF9BDB0097BB4B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		B583E78720FF9BDB0097BB4B /* Build configuration list for PBXNativeTarget "pxBenchmark" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B583E78820FF9BDB0097BB4B /* Debug */,
+				B583E78920FF9BDB0097BB4B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		B583E78A20FF9BDB0097BB4B /* Build configuration list for PBXNativeTarget "pxBenchmarkTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B583E78B20FF9BDB0097BB4B /* Debug */,
+				B583E78C20FF9BDB0097BB4B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		B583E78D20FF9BDB0097BB4B /* Build configuration list for PBXNativeTarget "pxBenchmarkUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B583E78E20FF9BDB0097BB4B /* Debug */,
+				B583E78F20FF9BDB0097BB4B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = B583E75520FF9BDB0097BB4B /* Project object */;
+}
