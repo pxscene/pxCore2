@@ -134,6 +134,7 @@ function loadFileWithSparkPermissionsCheck( accessControl, http1, http2, fileUri
       }
     }
     else {
+      // do check from access control module for file allowed or disallowed access
       var isAllowed = accessControl.allows(fileUri);
       if (true == isAllowed)
       {
