@@ -91,7 +91,7 @@ function loadFile(fileUri) {
 }
 
 // same as above , but do local file, spark permission and CORS check
-function loadFileWithSparkPermissionsCheck( http1, http2, fileUri) {
+function loadFileWithSparkPermissionsCheck( accessControl, http1, http2, fileUri) {
   console.log("in loadFileWithSparkPermissionsCheck " + fileUri);
   return new Promise(function(resolve, reject) {
     var code = [];
@@ -134,9 +134,35 @@ function loadFileWithSparkPermissionsCheck( http1, http2, fileUri) {
       }
     }
     else {
-      //local file access not allowed
-      console.log("local file access not allowed !!!");
-      reject("Local file access not allowed");
+      // do check from access control module for file allowed or disallowed access
+      var isAllowed = accessControl.allows(fileUri);
+      if (true == isAllowed)
+      {
+        console.log("local file access allowed for current file !!!");
+
+        if( fileUri.substring(0,5) === 'file:' ) {
+          fileUri = fileUri.substring(5);
+          if( fileUri.substring(0,2) === '//') {
+            fileUri = fileUri.substring(1);
+          }
+        }
+
+        fs.readFile(fileUri, function (err, data) {
+            if (err) {
+                log.error("FAILED to read file[" + fileUri + "] from file system (error=" + err + ")");
+                reject(err);
+            } else {
+                log.message(3, "Got file[" + fileUri + "] from file system");
+                resolve(data);
+            }
+        });
+      }
+      else
+      {
+        //local file access not allowed
+        console.log("local file access not allowed !!!");
+        reject("Local file access not allowed");
+      }
     }
   });
 }
