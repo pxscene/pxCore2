@@ -41,6 +41,7 @@ extern int snapshot_blob_bin_size;
 
 #include <iostream>
 #include <sstream>
+#include <list>
 
 #include <unicode/uvernum.h>
 #include <unicode/putil.h>
@@ -246,6 +247,7 @@ private:
   void addMethod(const char *name, v8::FunctionCallback callback, void *data = NULL);
   void setupModuleLoading();
   void setupModuleBindings();
+  bool resolveModulePath(const rtString &name, rtString &data);
 
 private:
    v8::Isolate                   *mIsolate;
@@ -260,6 +262,7 @@ private:
    int mRefCount;
 
    rtAtomic mId;
+   rtString mDirname;
 
    const char   *js_file;
    std::string   js_script;
@@ -320,7 +323,7 @@ private:
 using namespace v8;
 
 rtV8Context::rtV8Context(Isolate *isolate, Platform *platform, uv_loop_t *loop) :
-     mIsolate(isolate), mRefCount(0), mPlatform(platform), mUvLoop(loop)
+     mIsolate(isolate), mRefCount(0), mPlatform(platform), mUvLoop(loop), mDirname(rtString())
 {
   rtLogInfo(__FUNCTION__);
   Locker                locker(mIsolate);
@@ -366,6 +369,52 @@ rtV8Context::~rtV8Context()
   }
 }
 
+bool rtV8Context::resolveModulePath(const rtString &name, rtString &data)
+{
+  uv_fs_t req;
+  std::list<rtString> dirs;
+  std::list<rtString> endings;
+  bool found = false;
+  rtString path;
+
+  if (name.beginsWith("./") || name.beginsWith("../")) {
+    if (!mDirname.isEmpty()) {
+      dirs.push_back(mDirname);
+    }
+  }
+
+  dirs.push_back(""); // this dir
+  dirs.push_back("v8_modules/");
+  dirs.push_back("node_modules/");
+  dirs.push_back("../external/libnode-v6.9.0/lib/");
+  dirs.push_back("../external/libnode-v6.9.0/lib/internal/");
+
+  endings.push_back(".js");
+  // not parsing package.json
+  endings.push_back("/index.js");
+  endings.push_back("/lib/index.js");
+
+  std::list<rtString>::const_iterator it, jt;
+  for (it = dirs.begin(); !found && it != dirs.end(); ++it) {
+    rtString s = *it;
+    if (!s.isEmpty() && !s.endsWith("/")) {
+      s.append("/");
+    }
+    s.append(name.beginsWith("./") ? name.substring(2) : name);
+    for (jt = endings.begin(); !found && jt != endings.end(); ++jt) {
+      path = s;
+      if (!path.endsWith((*jt).cString())) {
+        path.append(*jt);
+      }
+      found = uv_fs_stat(mUvLoop, &req, path.cString(), NULL) == 0;
+      uv_fs_req_cleanup(&req);
+    }
+  }
+
+  if (found)
+    data = path;
+  return found;
+}
 
 static bool bloatFileFromPath(uv_loop_t *loop, const rtString &path, rtString &data)
 {
@@ -421,20 +470,16 @@ static rtString getTryCatchResult(Local<Context> context, const TryCatch &tryCat
 
 Local<Value> rtV8Context::loadV8Module(const rtString &name)
 {
-  rtString path = name;
-  if (!name.endsWith(".js")) {
-    path.append(".js");
+  rtString path;
+  if (!resolveModulePath(name, path)) {
+    rtLogWarn("module '%s' not found", name.cString());
+    return Local<Value>();
   }
 
   rtString contents;
   if (!bloatFileFromPath(mUvLoop, path, contents)) {
-    rtString path1("v8_modules/");
-    path1.append(path.cString());
-    path = path1;
-    if (!bloatFileFromPath(mUvLoop, path, contents)) {
-      rtLogWarn("module '%s' not found", name.cString());
-      return Local<Value>();
-    }
+    rtLogWarn("module '%s' not found", name.cString());
+    return Local<Value>();
   }
 
   Locker                locker(mIsolate);
@@ -458,7 +503,7 @@ Local<Value> rtV8Context::loadV8Module(const rtString &name)
     v8::String::NewFromUtf8(mIsolate, contents1.cString(), v8::NewStringType::kNormal).ToLocalChecked();
 
   TryCatch tryCatch(mIsolate);
- 
+
   v8::MaybeLocal<v8::Script> script = v8::Script::Compile(localContext, source);
 
   if (script.IsEmpty()) {
@@ -474,7 +519,14 @@ Local<Value> rtV8Context::loadV8Module(const rtString &name)
   }
 
   v8::Function *func = v8::Function::Cast(*result.ToLocalChecked());
+  rtString currentDirname = mDirname;
+  int32_t pos = -1, p = -1;
+  while ((p = path.find(p + 1, '/')) != -1) {
+    pos = p;
+  }
+  mDirname = pos != -1 ? path.substring(0, pos + 1) : "";
   MaybeLocal<v8::Value> ret =  func->Call(localContext, result.ToLocalChecked(), 0, NULL);
+  mDirname = currentDirname;
 
   if (ret.IsEmpty()) {
     rtLogWarn("module '%s' unexpected call result (%s)", name.cString(), getTryCatchResult(localContext, tryCatch).cString());
