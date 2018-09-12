@@ -158,14 +158,14 @@ void onDownloadHandleCheck()
 
 rtFileDownloadRequest::rtFileDownloadRequest(const char* imageUrl, void* callbackData, void (*callbackFunction)(rtFileDownloadRequest*))
       : mFileUrl(imageUrl), mProxyServer(),
-    mErrorString(), mHttpStatusCode(0), mCallbackFunction(callbackFunction), mDownloadProgressCallbackFunction(NULL), mUseCallbackDataSize(false), mDownloadProgressUserPtr(NULL),
+    mErrorString(), mHttpStatusCode(0), mCallbackFunction(callbackFunction), mDownloadProgressCallbackFunction(NULL), mDownloadProgressUserPtr(NULL),
     mDownloadedData(0), mDownloadedDataSize(), mDownloadStatusCode(0) ,mCallbackData(callbackData),
     mCallbackFunctionMutex(), mHeaderData(0), mHeaderDataSize(0), mHeaderOnly(false), mDownloadHandleExpiresTime(-2)
 #ifdef ENABLE_HTTP_CACHE
     , mCacheEnabled(true), mIsDataInCache(false), mDeferCacheRead(false), mCachedFileReadSize(0)
 #endif
     , mIsProgressMeterSwitchOff(false), mHTTPFailOnError(false), mDefaultTimeout(false)
-    , mCORS(), mCanceled(false), mCanceledMutex()
+    , mCORS(), mCanceled(false), mUseCallbackDataSize(false), mCanceledMutex()
 {
   mAdditionalHttpHeaders.clear();
 #ifdef ENABLE_HTTP_CACHE
