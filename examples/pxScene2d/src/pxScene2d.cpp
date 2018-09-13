@@ -3702,7 +3702,7 @@ void pxScene2d::invalidateRect(pxRect* r)
   if (mContainer && !mTop)
   {
 #ifdef PX_DIRTY_RECTANGLES
-    mContainer->invalidateRect(&mDirtyRect);
+    mContainer->invalidateRect(mDirty ? &mDirtyRect : NULL);
 #else
     mContainer->invalidateRect(NULL);
 #endif //PX_DIRTY_RECTANGLES
