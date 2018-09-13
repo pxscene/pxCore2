@@ -29,6 +29,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include "rtSettings.h"
 
 #define DEFAULT_MAX_CACHE_SIZE 20971520
 
@@ -62,6 +63,12 @@ rtFileCache::rtFileCache():mMaxSize(DEFAULT_MAX_CACHE_SIZE),mCurrentSize(0),mDir
     {
       mDirectory = s;
     }
+  }
+  rtValue cacheDirectory;
+  if (RT_OK == rtSettings::instance()->value("cacheDirectory", cacheDirectory))
+  {
+    rtLogInfo("using the rtSettings value for the cache");
+    mDirectory = cacheDirectory.toString();
   }
   rtLogInfo("The cache directory is set to %s", mDirectory.cString());
   mFileSizeMap.clear();
