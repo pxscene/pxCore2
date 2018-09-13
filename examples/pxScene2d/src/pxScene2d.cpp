@@ -537,7 +537,7 @@ private:
 
 
 // pxObject methods
-pxObject::pxObject(pxScene2d* scene): rtObject(), mParent(NULL), mpx(0), mpy(0), mcx(0), mcy(0), mx(0), my(0), ma(1.0), mr(0),
+pxObject::pxObject(pxScene2d* scene): rtObject(), mParent(NULL), mpx(0), mpy(0), mcx(0), mcy(0), mx(0), my(0), ma(1.0), mr(0), 
 #ifdef ANIMATION_ROTATE_XYZ
     mrx(0), mry(0), mrz(1.0),
 #endif //ANIMATION_ROTATE_XYZ
@@ -546,7 +546,7 @@ pxObject::pxObject(pxScene2d* scene): rtObject(), mParent(NULL), mpx(0), mpy(0),
     mSnapshotRef(), mPainting(true), mClip(false), mMask(false), mDraw(true), mHitTest(true), mReady(),
     mFocus(false),mClipSnapshotRef(),mCancelInSet(true),mUseMatrix(false), mRepaint(true)
 #ifdef PX_DIRTY_RECTANGLES
-    , mIsDirty(true), mRenderMatrix(), mScreenCoordinates(), mDirtyRect()
+    , mIsDirty(true), mRenderMatrix(), mx_p(0), my_p(0), mr_p(0), msx_p(0), msy_p(0), mScreenCoordinates(), mDirtyRect()
 #endif //PX_DIRTY_RECTANGLES
     ,mDrawableSnapshotForMask(), mMaskSnapshot(), mIsDisposed(false), mSceneSuspended(false)
   {
@@ -1400,8 +1400,17 @@ void pxObject::drawInternal(bool maskPass)
 #ifdef PX_DIRTY_RECTANGLES
     if (!mIsDirty)
         applyMatrix(m);
-    else
-        applyMatrix(mRenderMatrix); // ANIMATE !!!
+    else if (mx != mx_p || my != my_p || mr != mr_p || msx != msx_p || msy != msy_p)
+    {
+        applyMatrix(m);
+        context.setMatrix(m);
+        mRenderMatrix = context.getMatrix(); // ANIMATE !!!
+        mx_p = mx;
+        my_p = my;
+        mr_p = mr;
+        msx_p = msx;
+        msy_p = msy;
+    }
 #else
     applyMatrix(m); // ANIMATE !!!
 #endif
