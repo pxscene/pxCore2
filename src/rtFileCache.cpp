@@ -55,6 +55,15 @@ void rtFileCache::destroy()
 rtFileCache* rtFileCache::mCache = NULL;
 rtFileCache::rtFileCache():mMaxSize(DEFAULT_MAX_CACHE_SIZE),mCurrentSize(0),mDirectory("/tmp/cache"),mCacheMutex()
 {
+  char const *s = getenv("SPARK_CACHE_DIRECTORY");
+  if (s)
+  {
+    if (strlen(s) > 0)
+    {
+      mDirectory = s;
+    }
+  }
+  rtLogInfo("The cache directory is set to %s", mDirectory.cString());
   mFileSizeMap.clear();
   mFileTimeMap.clear();
   initCache();
