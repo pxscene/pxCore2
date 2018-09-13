@@ -1447,8 +1447,6 @@ void pxObject::drawInternal(bool maskPass)
 #ifdef PX_DIRTY_RECTANGLES
     if (!mIsDirty)
         context.setMatrix(m);
-    else
-        applyMatrix(mRenderMatrix); // ANIMATE !!!
 #else
     context.setMatrix(m);
 #endif
@@ -1506,8 +1504,6 @@ void pxObject::drawInternal(bool maskPass)
 #ifdef PX_DIRTY_RECTANGLES
         if (!mIsDirty)
             context.setMatrix(m);
-        else
-            applyMatrix(mRenderMatrix); // ANIMATE !!!
 #else
         context.setMatrix(m);
 #endif
@@ -1525,8 +1521,6 @@ void pxObject::drawInternal(bool maskPass)
 #ifdef PX_DIRTY_RECTANGLES
           if (!mIsDirty)
               context.setMatrix(m);
-          else
-              applyMatrix(mRenderMatrix); // ANIMATE !!!
 #else
           context.setMatrix(m);
 #endif
