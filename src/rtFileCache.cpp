@@ -29,6 +29,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include "rtSettings.h"
 
 #define DEFAULT_MAX_CACHE_SIZE 20971520
 
@@ -55,6 +56,21 @@ void rtFileCache::destroy()
 rtFileCache* rtFileCache::mCache = NULL;
 rtFileCache::rtFileCache():mMaxSize(DEFAULT_MAX_CACHE_SIZE),mCurrentSize(0),mDirectory("/tmp/cache"),mCacheMutex()
 {
+  char const *s = getenv("SPARK_CACHE_DIRECTORY");
+  if (s)
+  {
+    if (strlen(s) > 0)
+    {
+      mDirectory = s;
+    }
+  }
+  rtValue cacheDirectory;
+  if (RT_OK == rtSettings::instance()->value("cacheDirectory", cacheDirectory))
+  {
+    rtLogInfo("using the rtSettings value for the cache");
+    mDirectory = cacheDirectory.toString();
+  }
+  rtLogInfo("The cache directory is set to %s", mDirectory.cString());
   mFileSizeMap.clear();
   mFileTimeMap.clear();
   initCache();
