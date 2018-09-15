@@ -293,7 +293,9 @@ function createModule_pxScope(xModule) {
     getPackageBaseFilePath: this.getPackageBaseFilePath.bind(this),
     getFile: this.getFile.bind(this),
     getModuleFile: xModule.getFile.bind(xModule),
-    registerCode : function (map) { this.codemap = map; this.innerscene.addServiceProvider(function(name) { if (name == "getCode") { return {"details": this.codemap} } return "ALLOW"; }.bind(this)); }.bind(this)
+    registerCode : function (map) { this.codemap = map; this.innerscene.addServiceProvider(function(name) { if (name == "getCode") { return {"details": this.codemap} } return "ALLOW"; }.bind(this)); }.bind(this),
+    module: xModule,
+    exports: xModule.exports
   };
 }
 
@@ -815,7 +817,10 @@ AppSceneContext.prototype.getPackageBaseFilePath = function() {
   }
 
   fullPath = fullPath.replace('%20', '\ '); // replace HTML escaped spaces with C/C++ escaping
-
+  if (fullPath == "/")
+  {
+    fullPath = ".";
+  }
   return fullPath;
 };
 
