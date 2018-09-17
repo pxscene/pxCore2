@@ -276,6 +276,18 @@ void pxText::dispose(bool pumpJavascript)
   pxObject::dispose(pumpJavascript);
 }
 
+uint64_t pxText::textureMemoryUsage()
+{
+  uint64_t textureMemory = 0;
+  if (mCached.getPtr() != NULL)
+  {
+    textureMemory += (mCached->width() * mCached->height() * 4);
+  }
+
+  return textureMemory;
+}
+
+
 rtDefineObject(pxText, pxObject);
 rtDefineProperty(pxText, text);
 rtDefineProperty(pxText, textColor);

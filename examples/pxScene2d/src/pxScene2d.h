@@ -445,6 +445,7 @@ public:
   virtual void update(double t);
   virtual void releaseData(bool sceneSuspended);
   virtual void reloadData(bool sceneSuspended);
+  virtual uint64_t textureMemoryUsage();
 
   // non-destructive applies transform on top of of provided matrix
   virtual void applyMatrix(pxMatrix4f& m)
@@ -1332,6 +1333,7 @@ public:
   rtMethod1ArgAndReturn("suspend", suspend, rtValue, bool);
   rtMethod1ArgAndReturn("resume", resume, rtValue, bool);
   rtMethodNoArgAndReturn("suspended", suspended, bool);
+  rtMethodNoArgAndReturn("textureMemoryUsage", textureMemoryUsage, rtValue);
 /*
   rtMethod1ArgAndReturn("createExternal", createExternal, rtObjectRef,
                         rtObjectRef);
@@ -1475,6 +1477,7 @@ public:
   rtError suspend(const rtValue& v, bool& b);
   rtError resume(const rtValue& v, bool& b);
   rtError suspended(bool &b);
+  rtError textureMemoryUsage(rtValue &v);
 
   rtError addListener(rtString eventName, const rtFunctionRef& f)
   {

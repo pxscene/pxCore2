@@ -122,6 +122,7 @@ public:
   virtual float getOnscreenHeight();
   virtual void createNewPromise();
   virtual void dispose(bool pumpJavascript);
+  virtual uint64_t textureMemoryUsage();
   
  protected:
   virtual void draw();
