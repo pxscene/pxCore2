@@ -3860,6 +3860,19 @@ void pxSceneContainer::reloadData(bool sceneSuspended)
   pxObject::reloadData(sceneSuspended);
 }
 
+uint64_t pxSceneContainer::textureMemoryUsage()
+{
+  uint64_t textureMemory = 0;
+  if (mScriptView.getPtr())
+  {
+    rtValue v;
+    mScriptView->textureMemoryUsage(v);
+    textureMemory += v.toUInt64();
+  }
+  textureMemory += pxObject::textureMemoryUsage();
+  return textureMemory;
+}
+
 #ifdef ENABLE_PERMISSIONS_CHECK
 rtError pxSceneContainer::permissions(rtObjectRef& v) const
 {
@@ -4017,7 +4030,7 @@ rtError pxScriptView::suspend(const rtValue& v, bool& b)
   b = false;
   if (mScene)
   {
-    b = mScene.send("suspend", v);
+    mScene.sendReturns("suspend", v, b);
   }
   return RT_OK;
 }
@@ -4027,7 +4040,17 @@ rtError pxScriptView::resume(const rtValue& v, bool& b)
   b = false;
   if (mScene)
   {
-    b = mScene.send("resume", v);
+    mScene.sendReturns("resume", v, b);
+  }
+  return RT_OK;
+}
+
+rtError pxScriptView::textureMemoryUsage(rtValue& v)
+{
+  v = 0;
+  if (mScene)
+  {
+    mScene.sendReturns("textureMemoryUsage",v);
   }
   return RT_OK;
 }

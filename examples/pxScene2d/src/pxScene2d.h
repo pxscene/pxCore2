@@ -1065,6 +1065,7 @@ public:
   virtual void* getInterface(const char* name);
   virtual void releaseData(bool sceneSuspended);
   virtual void reloadData(bool sceneSuspended);
+  virtual uint64_t textureMemoryUsage();
   
 private:
   rtRef<pxScriptView> mScriptView;
@@ -1175,6 +1176,7 @@ public:
 
   rtError suspend(const rtValue& v, bool& b);
   rtError resume(const rtValue& v, bool& b);
+  rtError textureMemoryUsage(rtValue& v);
   
 protected:
 
