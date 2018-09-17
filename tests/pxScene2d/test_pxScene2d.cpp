@@ -245,7 +245,7 @@ class pxScene2dTest : public testing::Test
       EXPECT_TRUE ( RT_OK == scenePtr->createImageA(imageA, cImageA));
       EXPECT_TRUE ( RT_OK == scenePtr->createImage9Border(imageA, cImageA));
       EXPECT_TRUE ( RT_OK == scenePtr->createImageAResource(imageA, cImageA));
-    
+
       rtString paramVal;
       EXPECT_TRUE ( RT_OK == scenePtr->clipboardSet("text", "codeCoverage")); 
       EXPECT_TRUE ( RT_OK == scenePtr->clipboardGet("text", paramVal));
@@ -394,7 +394,6 @@ class pxScene2dTest : public testing::Test
 
  }
 
-
   private:
     pxObject*     mRoot;
     pxScriptView* mView;
@@ -414,4 +413,5 @@ TEST_F(pxScene2dTest, pxScene2dTests)
     pxScene2dClassTest();
     pxScene2dHdrTest();
     pxScriptViewTest();
+
 }
