@@ -327,6 +327,8 @@ void benchmarkWindow::onDraw(pxSurfaceNative/*&*/ sn)
 #endif
             
         }
+        std::cout << "Results logged to " << mOutPath + mOutputTableCSV << std::endl;
+        exit(0);
         return;
     }
     else
@@ -1073,8 +1075,10 @@ void pxApiFixture::UserBenchmark()
 
 int pxMain(int argc, char* argv[])
 {
+#ifdef ENABLE_DEBUG_MOD
     g_argv = (char**)malloc((argc+2) * sizeof(char*));
     g_origArgv = argv;
+#endif //ENABLE_DEBUG_MOD
     
     char buffer[256];
     sprintf(buffer, "pxbenchmark: %s", xstr(PX_BENCHMARK_VERSION));
