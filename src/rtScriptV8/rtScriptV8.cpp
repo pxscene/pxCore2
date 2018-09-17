@@ -386,8 +386,8 @@ bool rtV8Context::resolveModulePath(const rtString &name, rtString &data)
   dirs.push_back(""); // this dir
   dirs.push_back("v8_modules/");
   dirs.push_back("node_modules/");
-  dirs.push_back("../external/libnode-v6.9.0/lib/");
-  dirs.push_back("../external/libnode-v6.9.0/lib/internal/");
+  //dirs.push_back("../external/libnode-v6.9.0/lib/");
+  //dirs.push_back("../external/libnode-v6.9.0/lib/internal/");
 
   endings.push_back(".js");
   // not parsing package.json
@@ -474,6 +474,8 @@ Local<Value> rtV8Context::loadV8Module(const rtString &name)
   if (!resolveModulePath(name, path)) {
     rtLogWarn("module '%s' not found", name.cString());
     return Local<Value>();
+  } else {
+    rtLogInfo("module '%s' found at '%s'", name.cString(), path.cString());
   }
 
   rtString contents;

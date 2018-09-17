@@ -3962,7 +3962,7 @@ void pxScriptView::runScript()
 rtError pxScriptView::printFunc(int numArgs, const rtValue* args, rtValue* result, void* ctx)
 {
   UNUSED_PARAM(result);
-  rtLogInfo(__FUNCTION__);
+  //rtLogInfo(__FUNCTION__);
 
   if (ctx)
   {
