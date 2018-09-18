@@ -509,8 +509,12 @@ public:
       float dy = -(mpy * mh);
       
       // translate based on xy rotate/scale based on cx, cy
-      m.translate(mx + mcx + dx, my + mcy + dy);
-      
+      bool doTransToOrig = msx != 1.0 || msy != 1.0 || mr;
+      if (doTransToOrig)
+        m.translate(mx + mcx + dx, my + mcy + dy);
+      else
+        m.translate(mx + dx, my + dy);
+        
       if (mr)
       {
         m.rotateInDegrees(mr
@@ -532,7 +536,8 @@ public:
         );
       }
       if (msx != 1.0 || msy != 1.0) m.scale(msx, msy);
-      m.translate(-mcx, -mcy);
+      if (doTransToOrig)
+        m.translate(-mcx, -mcy);
 #endif
     }
     else
@@ -753,7 +758,6 @@ protected:
   #ifdef PX_DIRTY_RECTANGLES
   bool mIsDirty;
   pxMatrix4f mRenderMatrix;
-  float mx_p, my_p, mr_p, msx_p, msy_p;
   pxRect mScreenCoordinates;
   pxRect mDirtyRect;
   #endif //PX_DIRTY_RECTANGLES
