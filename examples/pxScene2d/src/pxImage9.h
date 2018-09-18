@@ -72,6 +72,7 @@ public:
 
   virtual void releaseData(bool sceneSuspended);
   virtual void reloadData(bool sceneSuspended);
+  virtual uint64_t textureMemoryUsage();
   
 protected:
   virtual void draw();

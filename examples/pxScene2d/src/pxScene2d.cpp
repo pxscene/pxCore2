@@ -1159,6 +1159,33 @@ void pxObject::reloadData(bool sceneSuspended)
   }
 }
 
+uint64_t pxObject::textureMemoryUsage()
+{
+  uint64_t textureMemory = 0;
+  if (mClipSnapshotRef.getPtr() != NULL)
+  {
+    textureMemory += (mClipSnapshotRef->width() * mClipSnapshotRef->height() * 4);
+  }
+  if (mDrawableSnapshotForMask.getPtr() != NULL)
+  {
+    textureMemory += (mDrawableSnapshotForMask->width() * mDrawableSnapshotForMask->height() * 4);
+  }
+  if (mSnapshotRef.getPtr() != NULL)
+  {
+    textureMemory += (mSnapshotRef->width() * mSnapshotRef->height() * 4);
+  }
+  if (mMaskSnapshot.getPtr() != NULL)
+  {
+    textureMemory += (mMaskSnapshot->width() * mMaskSnapshot->height() * 4);
+  }
+
+  for(vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
+  {
+    textureMemory += (*it)->textureMemoryUsage();
+  }
+  return textureMemory;
+}
+
 #ifdef PX_DIRTY_RECTANGLES
 void pxObject::setDirtyRect(pxRect *r)
 {
@@ -1904,6 +1931,10 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
 #endif
 #endif
   mCapabilityVersions.set("network", networkCapabilities);
+
+  rtObjectRef metricsCapabilities = new rtMapObject;
+  metricsCapabilities.set("textureMemory", 1);
+  mCapabilityVersions.set("metrics", metricsCapabilities);
 }
 
 rtError pxScene2d::dispose()
@@ -2268,6 +2299,14 @@ rtError pxScene2d::resume(const rtValue& /*v*/, bool& b)
 rtError pxScene2d::suspended(bool &b)
 {
   b = mSuspended;
+  return RT_OK;
+}
+
+rtError pxScene2d::textureMemoryUsage(rtValue &v)
+{
+  uint64_t textureMemory = 0;
+  textureMemory += mRoot->textureMemoryUsage();
+  v.setUInt64(textureMemory);
   return RT_OK;
 }
 
@@ -3521,6 +3560,7 @@ rtDefineMethod(pxScene2d, collectGarbage);
 rtDefineMethod(pxScene2d, suspend);
 rtDefineMethod(pxScene2d, resume);
 rtDefineMethod(pxScene2d, suspended);
+rtDefineMethod(pxScene2d, textureMemoryUsage);
 //rtDefineMethod(pxScene2d, createWayland);
 rtDefineMethod(pxScene2d, addListener);
 rtDefineMethod(pxScene2d, delListener);
@@ -3825,6 +3865,19 @@ void pxSceneContainer::reloadData(bool sceneSuspended)
   pxObject::reloadData(sceneSuspended);
 }
 
+uint64_t pxSceneContainer::textureMemoryUsage()
+{
+  uint64_t textureMemory = 0;
+  if (mScriptView.getPtr())
+  {
+    rtValue v;
+    mScriptView->textureMemoryUsage(v);
+    textureMemory += v.toUInt64();
+  }
+  textureMemory += pxObject::textureMemoryUsage();
+  return textureMemory;
+}
+
 #ifdef ENABLE_PERMISSIONS_CHECK
 rtError pxSceneContainer::permissions(rtObjectRef& v) const
 {
@@ -3982,7 +4035,7 @@ rtError pxScriptView::suspend(const rtValue& v, bool& b)
   b = false;
   if (mScene)
   {
-    b = mScene.send("suspend", v);
+    mScene.sendReturns("suspend", v, b);
   }
   return RT_OK;
 }
@@ -3992,7 +4045,17 @@ rtError pxScriptView::resume(const rtValue& v, bool& b)
   b = false;
   if (mScene)
   {
-    b = mScene.send("resume", v);
+    mScene.sendReturns("resume", v, b);
+  }
+  return RT_OK;
+}
+
+rtError pxScriptView::textureMemoryUsage(rtValue& v)
+{
+  v = 0;
+  if (mScene)
+  {
+    mScene.sendReturns("textureMemoryUsage",v);
   }
   return RT_OK;
 }

@@ -327,6 +327,17 @@ void pxImageA::reloadData(bool sceneSuspended)
   pxObject::reloadData(sceneSuspended);
 }
 
+uint64_t pxImageA::textureMemoryUsage()
+{
+  uint64_t textureMemory = 0;
+  if (mTexture.getPtr() != NULL)
+  {
+    textureMemory += (mTexture->width() * mTexture->height() * 4);
+  }
+  textureMemory += pxObject::textureMemoryUsage();
+  return textureMemory;
+}
+
 rtDefineObject(pxImageA, pxObject);
 rtDefineProperty(pxImageA, url);
 rtDefineProperty(pxImageA, resource);
