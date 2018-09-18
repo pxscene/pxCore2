@@ -9,7 +9,7 @@ updateEdge=true
 cmdLineArgs=false
 export LD_LIBRARY_PATH=./lib/
 export DYLD_LIBRARY_PATH=./lib/
-$LD_LIBRARY_PATH
+
 for i in $*; do 
    if [[ $i == "-autoUpdateEdge="* ]] ; 
    then
