@@ -429,7 +429,7 @@ rtDefineObject(pxObjectChildren, rtObject);
 
 
 // pxObject methods
-pxObject::pxObject(pxScene2d* scene): rtObject(), mParent(NULL), mpx(0), mpy(0), mcx(0), mcy(0), mx(0), my(0), ma(1.0), mr(0),
+pxObject::pxObject(pxScene2d* scene): rtObject(), mParent(NULL), mpx(0), mpy(0), mcx(0), mcy(0), mx(0), my(0), ma(1.0), mr(0), 
 #ifdef ANIMATION_ROTATE_XYZ
     mrx(0), mry(0), mrz(1.0),
 #endif //ANIMATION_ROTATE_XYZ
@@ -438,7 +438,7 @@ pxObject::pxObject(pxScene2d* scene): rtObject(), mParent(NULL), mpx(0), mpy(0),
     mSnapshotRef(), mPainting(true), mClip(false), mMask(false), mDraw(true), mHitTest(true), mReady(),
     mFocus(false),mClipSnapshotRef(),mCancelInSet(true),mUseMatrix(false), mRepaint(true)
 #ifdef PX_DIRTY_RECTANGLES
-    , mIsDirty(true), mLastRenderMatrix(), mScreenCoordinates(), mDirtyRect()
+    , mIsDirty(true), mRenderMatrix(), mx_p(0), my_p(0), mr_p(0), msx_p(0), msy_p(0), mScreenCoordinates(), mDirtyRect()
 #endif //PX_DIRTY_RECTANGLES
     ,mDrawableSnapshotForMask(), mMaskSnapshot(), mIsDisposed(false), mSceneSuspended(false)
   {
@@ -1104,10 +1104,10 @@ void pxObject::update(double t)
   pxMatrix4f m;
   applyMatrix(m);
   context.setMatrix(m);
+  mRenderMatrix = context.getMatrix();
   if (mIsDirty)
   {
     mScene->invalidateRect(&mScreenCoordinates);
-    mLastRenderMatrix = context.getMatrix();
     pxRect dirtyRect = getBoundingRectInScreenCoordinates();
     mScene->invalidateRect(&dirtyRect);
     dirtyRect.unionRect(mScreenCoordinates);
@@ -1204,10 +1204,10 @@ pxRect pxObject::getBoundingRectInScreenCoordinates()
   int w = getOnscreenWidth();
   int h = getOnscreenHeight();
   int x[4], y[4];
-  context.mapToScreenCoordinates(mLastRenderMatrix, 0,0,x[0],y[0]);
-  context.mapToScreenCoordinates(mLastRenderMatrix, w, h, x[1], y[1]);
-  context.mapToScreenCoordinates(mLastRenderMatrix, 0, h, x[2], y[2]);
-  context.mapToScreenCoordinates(mLastRenderMatrix, w, 0, x[3], y[3]);
+  context.mapToScreenCoordinates(mRenderMatrix, 0,0,x[0],y[0]);
+  context.mapToScreenCoordinates(mRenderMatrix, w, h, x[1], y[1]);
+  context.mapToScreenCoordinates(mRenderMatrix, 0, h, x[2], y[2]);
+  context.mapToScreenCoordinates(mRenderMatrix, w, 0, x[3], y[3]);
   int left, right, top, bottom;
 
   left = x[0];
@@ -1248,10 +1248,10 @@ pxRect pxObject::convertToScreenCoordinates(pxRect* r)
   int rectTop = r->top();
   int rectBottom = r->bottom();
   int x[4], y[4];
-  context.mapToScreenCoordinates(mLastRenderMatrix, rectLeft,rectTop,x[0],y[0]);
-  context.mapToScreenCoordinates(mLastRenderMatrix, rectRight, rectBottom, x[1], y[1]);
-  context.mapToScreenCoordinates(mLastRenderMatrix, rectLeft, rectBottom, x[2], y[2]);
-  context.mapToScreenCoordinates(mLastRenderMatrix, rectRight, rectTop, x[3], y[3]);
+  context.mapToScreenCoordinates(mRenderMatrix, rectLeft,rectTop,x[0],y[0]);
+  context.mapToScreenCoordinates(mRenderMatrix, rectRight, rectBottom, x[1], y[1]);
+  context.mapToScreenCoordinates(mRenderMatrix, rectLeft, rectBottom, x[2], y[2]);
+  context.mapToScreenCoordinates(mRenderMatrix, rectRight, rectTop, x[3], y[3]);
   int left, right, top, bottom;
 
   left = x[0];
@@ -1323,8 +1323,23 @@ void pxObject::drawInternal(bool maskPass)
   m.translate(-mcx, -mcy);
 #else
 
-    applyMatrix(m);  // ANIMATE !!!
-
+#ifdef PX_DIRTY_RECTANGLES
+    if (!mIsDirty)
+        applyMatrix(m);
+    else if (mx != mx_p || my != my_p || mr != mr_p || msx != msx_p || msy != msy_p)
+    {
+        applyMatrix(m);
+        context.setMatrix(m);
+        mRenderMatrix = context.getMatrix(); // ANIMATE !!!
+        mx_p = mx;
+        my_p = my;
+        mr_p = mr;
+        msx_p = msx;
+        msy_p = msy;
+    }
+#else
+    applyMatrix(m); // ANIMATE !!!
+#endif
 #endif
 #else
   // translate/rotate/scale based on cx, cy
@@ -1364,8 +1379,12 @@ void pxObject::drawInternal(bool maskPass)
 
 #endif
 
-
-  context.setMatrix(m);
+#ifdef PX_DIRTY_RECTANGLES
+    if (!mIsDirty)
+        context.setMatrix(m);
+#else
+    context.setMatrix(m);
+#endif
   context.setAlpha(ma);
 
   if ((mClip && !context.isObjectOnScreen(0,0,w,h)) || mSceneSuspended)
@@ -1375,7 +1394,7 @@ void pxObject::drawInternal(bool maskPass)
   }
 
   #ifdef PX_DIRTY_RECTANGLES
-  mLastRenderMatrix = context.getMatrix();
+  mRenderMatrix = context.getMatrix();
   mScreenCoordinates = getBoundingRectInScreenCoordinates();
   #endif //PX_DIRTY_RECTANGLES
 
@@ -1417,7 +1436,12 @@ void pxObject::drawInternal(bool maskPass)
         draw();
       }
       createSnapshotOfChildren();
-      context.setMatrix(m);
+#ifdef PX_DIRTY_RECTANGLES
+        if (!mIsDirty)
+            context.setMatrix(m);
+#else
+        context.setMatrix(m);
+#endif
       //rtLogInfo("context.drawImage\n");
       
       context.drawImageMasked(0, 0, w, h, maskOp, mDrawableSnapshotForMask->getTexture(), mMaskSnapshot->getTexture());
@@ -1429,8 +1453,12 @@ void pxObject::drawInternal(bool maskPass)
       if (mRepaint)
       {
         createSnapshot(mClipSnapshotRef);
-
-        context.setMatrix(m);
+#ifdef PX_DIRTY_RECTANGLES
+          if (!mIsDirty)
+              context.setMatrix(m);
+#else
+          context.setMatrix(m);
+#endif
         context.setAlpha(ma);
       }
 
@@ -1625,21 +1653,22 @@ void pxObject::createSnapshot(pxContextFramebufferRef& fbo, bool separateContext
   pxContextFramebufferRef previousRenderSurface = context.getCurrentFramebuffer();
   if (mRepaint && context.setFramebuffer(fbo) == PX_OK)
   {
-    context.clear(static_cast<int>(w), static_cast<int>(h));
+    //context.clear(static_cast<int>(w), static_cast<int>(h));
 #ifdef PX_DIRTY_RECTANGLES
     int clearX = mDirtyRect.left();
     int clearY = mDirtyRect.top();
     int clearWidth = mDirtyRect.right() - clearX+1;
     int clearHeight = mDirtyRect.bottom() - clearY+1;
 
+    context.clear(static_cast<int>(w), static_cast<int>(h));
     if (fullFboRepaint)
     {
-      clearX = 0;
-      clearY = 0;
-      clearWidth = w;
-      clearHeight = h;
+        clearX = 0;
+        clearY = 0;
+        clearWidth = w;
+        clearHeight = h;
+        context.clear(clearX, clearY, clearWidth, clearHeight);
     }
-    context.clear(clearX, clearY, clearWidth, clearHeight);
 #else
     context.clear(static_cast<int>(w), static_cast<int>(h));
 #endif //PX_DIRTY_RECTANGLES
@@ -3672,7 +3701,7 @@ void pxScene2d::invalidateRect(pxRect* r)
   if (mContainer && !mTop)
   {
 #ifdef PX_DIRTY_RECTANGLES
-    mContainer->invalidateRect(&mDirtyRect);
+    mContainer->invalidateRect(mDirty ? &mDirtyRect : NULL);
 #else
     mContainer->invalidateRect(NULL);
 #endif //PX_DIRTY_RECTANGLES
