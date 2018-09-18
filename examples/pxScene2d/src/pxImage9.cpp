@@ -232,6 +232,17 @@ void pxImage9::reloadData(bool sceneSuspended)
   pxObject::reloadData(sceneSuspended);
 }
 
+uint64_t pxImage9::textureMemoryUsage()
+{
+  uint64_t textureMemory = 0;
+  if (getImageResource())
+  {
+    textureMemory += getImageResource()->textureMemoryUsage();
+  }
+  textureMemory += pxObject::textureMemoryUsage();
+  return textureMemory;
+}
+
 rtDefineObject(pxImage9, pxObject);
 rtDefineProperty(pxImage9, url);
 rtDefineProperty(pxImage9, insetLeft);
