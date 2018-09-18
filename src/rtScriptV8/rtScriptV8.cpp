@@ -441,16 +441,21 @@ static bool bloatFileFromPath(uv_loop_t *loop, const rtString &path, rtString &d
     goto fail;
   }
   uv_fs_req_cleanup(&req);
+  if (fd) {
+    uv_fs_close(loop, &req, fd, NULL);
+    uv_fs_req_cleanup(&req);
+  }
   data = rtString(chunk, size);
   free(chunk);
   return true;
 
 fail:
+  rtLogError("%s errno: %d", __FUNCTION__, errno);
   uv_fs_req_cleanup(&req);
   if (fd) {
     uv_fs_close(loop, &req, fd, NULL);
+    uv_fs_req_cleanup(&req);
   }
-  uv_fs_req_cleanup(&req);
   return false;
 }
 
@@ -551,7 +556,7 @@ static void requireCallback(const v8::FunctionCallbackInfo<v8::Value>& args)
   v8::External *val = v8::External::Cast(*args.Data());
   assert(val != NULL);
   rtV8Context *ctx = (rtV8Context *)val->Value();
-  assert(args.Length() == 1);
+  assert(args.Length() >= 1);
   assert(args[0]->IsString());
 
   rtString moduleName = toString(args[0]->ToString());
