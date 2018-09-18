@@ -356,7 +356,7 @@ void rtImageResource::reloadData()
 
 uint64_t rtImageResource::textureMemoryUsage()
 {
-  int64_t textureMemory = 0;
+  uint64_t textureMemory = 0;
   if (mTexture.getPtr() != NULL)
   {
     textureMemory = (mTexture->width() * mTexture->height() * 4);
