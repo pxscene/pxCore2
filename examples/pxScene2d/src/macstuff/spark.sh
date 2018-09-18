@@ -9,7 +9,6 @@ updateEdge=true
 cmdLineArgs=false
 export LD_LIBRARY_PATH=./lib/
 export DYLD_LIBRARY_PATH=./lib/
-
 for i in $*; do 
    if [[ $i == "-autoUpdateEdge="* ]] ; 
    then
@@ -27,6 +26,9 @@ then
     KEY=autoUpdateEdge
     num=1
     updateEdge=`cat $HOME/.sparkSettings.json | awk -F"[,:}]" '{for(i=1;i<=NF;i++){if($i~/'$KEY'\042/){print $(i+1)}}}' | tr -d '"' | sed -n ${num}p| tr '[:upper:]' '[:lower:]'`
+    if [[ $updateEdge != "false" ]] && [[ $updateEdge != "0" ]] ; then
+      updateEdge=true
+    fi
   fi
 fi
 
