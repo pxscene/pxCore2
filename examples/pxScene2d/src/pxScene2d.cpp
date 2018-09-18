@@ -1170,10 +1170,15 @@ uint64_t pxObject::textureMemoryUsage()
   {
     textureMemory += (mDrawableSnapshotForMask->width() * mDrawableSnapshotForMask->height() * 4);
   }
+  if (mSnapshotRef.getPtr() != NULL)
+  {
+    textureMemory += (mSnapshotRef->width() * mSnapshotRef->height() * 4);
+  }
   if (mMaskSnapshot.getPtr() != NULL)
   {
     textureMemory += (mMaskSnapshot->width() * mMaskSnapshot->height() * 4);
   }
+
   for(vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
   {
     textureMemory += (*it)->textureMemoryUsage();
