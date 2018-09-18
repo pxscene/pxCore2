@@ -411,7 +411,7 @@ TEST_F(pxScene2dTest, pxScene2dTests)
     populateAllAppDetailsTest();
     pxObjectTest();
     pxScene2dClassTest();
-    pxScene2dHdrTest();
+    //pxScene2dHdrTest();
     pxScriptViewTest();
 
 }
