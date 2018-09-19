@@ -110,6 +110,7 @@ public:
   void setLoadStatus(const char* name, rtValue value);
   virtual void releaseData();
   virtual void reloadData();
+  virtual uint64_t textureMemoryUsage();
   void setCORS(const rtCORSRef& cors) { mCORS = cors; }
   void setName(rtString name) { mName = name; }
 protected:   
@@ -184,6 +185,7 @@ public:
 
   virtual void releaseData();
   virtual void reloadData();
+  virtual uint64_t textureMemoryUsage();
   virtual void textureReady();
   
 protected:
@@ -219,7 +221,7 @@ public:
   virtual void init();
   pxTimedOffscreenSequence& getTimedOffscreenSequence() { return mTimedOffscreenSequence; }
   virtual void setupResource() { init(); }
-  
+
 protected:
   virtual uint32_t loadResourceData(rtFileDownloadRequest* fileDownloadRequest);
 

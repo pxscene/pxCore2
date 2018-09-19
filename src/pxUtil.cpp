@@ -1023,7 +1023,15 @@ rtError pxLoadSVGImage(const char* buf, size_t buflen, pxOffscreen& o, int  w /*
     return RT_FAIL;
   }
 
-  NSVGimage *image = nsvgParse( (char *) buf, "px", 96.0f); // 96 dpi (suggested default)
+  // NOTE:  'nanosvg' is *destructive* to the SVG source buffer
+  //
+  //        Pass it a copy !
+  //
+  void *buf_copy = malloc(buflen);
+  memcpy(buf_copy, buf, buflen);
+  
+  NSVGimage *image = nsvgParse( (char *) buf_copy, "px", 96.0f); // 96 dpi (suggested default)
+  free(buf_copy); // clean-up
   if (image == NULL)
   {
     rtLogError("SVG:  Could not init decode SVG.\n");

@@ -27,8 +27,10 @@ rtRemoteFunction::rtRemoteFunction(std::string const& id, std::string const& nam
   , m_name(name)
   , m_client(client)
   , m_timeout(client->getEnvironment()->Config->environment_request_timeout())
-  , m_Hash(0)
 {
+  std::hash<std::string> hashFn;
+  m_Hash = hashFn(name);
+
   if (!strcmp(id.c_str(), "global"))
   {
     m_client->registerKeepAliveForObject(m_name);

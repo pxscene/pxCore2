@@ -354,6 +354,16 @@ void rtImageResource::reloadData()
   pxResource::reloadData();
 }
 
+uint64_t rtImageResource::textureMemoryUsage()
+{
+  uint64_t textureMemory = 0;
+  if (mTexture.getPtr() != NULL)
+  {
+    textureMemory = (mTexture->width() * mTexture->height() * 4);
+  }
+  return textureMemory;
+}
+
 void rtImageResource::textureReady()
 {
   if (gUIThreadQueue)
@@ -488,6 +498,11 @@ void pxResource::releaseData()
 
 void pxResource::reloadData()
 {
+}
+
+uint64_t pxResource::textureMemoryUsage()
+{
+  return 0;
 }
 
 /**

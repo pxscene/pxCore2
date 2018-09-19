@@ -104,9 +104,10 @@ static size_t HeaderCallback(void *contents, size_t size, size_t nmemb, void *us
 static size_t WriteMemoryCallback(void *contents, size_t size, size_t nmemb, void *userp)
 {
   size_t downloadSize = size * nmemb;
+  size_t downloadCallbackSize = 0;
   struct MemoryStruct *mem = (struct MemoryStruct *)userp;
 
-  mem->downloadRequest->executeDownloadProgressCallback(contents, size, nmemb );
+  downloadCallbackSize = mem->downloadRequest->executeDownloadProgressCallback(contents, size, nmemb );
 
   mem->contentsBuffer = (char*)realloc(mem->contentsBuffer, mem->contentsSize + downloadSize + 1);
   if(mem->contentsBuffer == NULL) {
@@ -119,7 +120,14 @@ static size_t WriteMemoryCallback(void *contents, size_t size, size_t nmemb, voi
   mem->contentsSize += downloadSize;
   mem->contentsBuffer[mem->contentsSize] = 0;
 
-  return downloadSize;
+  if (mem->downloadRequest->useCallbackDataSize() == true)
+  {
+     return downloadCallbackSize;
+  }
+  else
+  {
+     return downloadSize;
+  }
 }
 
 
@@ -154,10 +162,10 @@ rtFileDownloadRequest::rtFileDownloadRequest(const char* imageUrl, void* callbac
     mDownloadedData(0), mDownloadedDataSize(), mDownloadStatusCode(0) ,mCallbackData(callbackData),
     mCallbackFunctionMutex(), mHeaderData(0), mHeaderDataSize(0), mHeaderOnly(false), mDownloadHandleExpiresTime(-2)
 #ifdef ENABLE_HTTP_CACHE
-    , mCacheEnabled(true), mIsDataInCache(false), mDeferCacheRead(false)
+    , mCacheEnabled(true), mIsDataInCache(false), mDeferCacheRead(false), mCachedFileReadSize(0)
 #endif
     , mIsProgressMeterSwitchOff(false), mHTTPFailOnError(false), mDefaultTimeout(false)
-    , mCORS(), mCanceled(false), mCanceledMutex()
+    , mCORS(), mCanceled(false), mUseCallbackDataSize(false), mCanceledMutex()
 {
   mAdditionalHttpHeaders.clear();
 #ifdef ENABLE_HTTP_CACHE
@@ -246,14 +254,13 @@ bool rtFileDownloadRequest::executeCallback(int statusCode)
   return false;
 }
 
-bool rtFileDownloadRequest::executeDownloadProgressCallback(void * ptr, size_t size, size_t nmemb)
+size_t rtFileDownloadRequest::executeDownloadProgressCallback(void * ptr, size_t size, size_t nmemb)
 {
   if(mDownloadProgressCallbackFunction)
   {
-    mDownloadProgressCallbackFunction(ptr, size, nmemb, mDownloadProgressUserPtr);
-    return true;
+    return mDownloadProgressCallbackFunction(ptr, size, nmemb, mDownloadProgressUserPtr);
   }
-  return false;
+  return 0;
 }
 
 void rtFileDownloadRequest::setDownloadedData(char* data, size_t size)
@@ -368,6 +375,16 @@ bool rtFileDownloadRequest::isDataCached()
   return mIsDataInCache;
 }
 
+size_t rtFileDownloadRequest::getCachedFileReadSize(void )
+{
+  return mCachedFileReadSize;
+}
+
+void rtFileDownloadRequest::setCachedFileReadSize(size_t cachedFileReadSize)
+{
+  mCachedFileReadSize = cachedFileReadSize;
+}
+
 void rtFileDownloadRequest::setDeferCacheRead(bool val)
 {
   mDeferCacheRead = val;
@@ -396,6 +413,16 @@ FILE* rtFileDownloadRequest::cacheFilePointer(void)
 void rtFileDownloadRequest::setProgressMeter(bool val)
 {
   mIsProgressMeterSwitchOff = val;
+}
+
+void rtFileDownloadRequest::setUseCallbackDataSize(bool val)
+{
+  mUseCallbackDataSize = val;
+}
+
+bool rtFileDownloadRequest::useCallbackDataSize()
+{
+  return mUseCallbackDataSize;
 }
 
 bool rtFileDownloadRequest::isProgressMeterSwitchOff()
@@ -605,12 +632,48 @@ void rtFileDownloader::downloadFile(rtFileDownloadRequest* downloadRequest)
       }
     }
 
-    if (false == isDataInCache)
+    if (isDataInCache)
+    {
+        if(downloadRequest->deferCacheRead())
+        {
+            mFileCacheMutex.lock();
+            FILE *fp = downloadRequest->cacheFilePointer();
+
+            if(fp != NULL)
+            {
+                char* buffer = new char[downloadRequest->getCachedFileReadSize()];
+                int bytesCount = 0;
+                size_t dataSize = 0;                
+				char invalidData[8] = "Invalid";
+
+                // The cahced file has expiration value ends with | delimeter.
+                while ( !feof(fp) )
+                {
+                    dataSize++;
+                    if (fgetc(fp) == '|')
+                        break;
+                }
+                while (!feof(fp))
+                {
+                    memset(buffer, 0, downloadRequest->getCachedFileReadSize());
+                    bytesCount = fread(buffer, 1, downloadRequest->getCachedFileReadSize(), fp);
+                    dataSize += bytesCount;
+                    downloadRequest->executeDownloadProgressCallback((unsigned char*)buffer, bytesCount, 1 );
+                }
+                // For deferCacheRead, the user requires the downloadedDataSize but not the data.
+                downloadRequest->setDownloadedData( invalidData, dataSize);
+                delete [] buffer;
+                fclose(fp);
+            }
+            mFileCacheMutex.unlock();
+        }
+    }
+    else
 #endif
     {
       nwDownloadSuccess = downloadFromNetwork(downloadRequest);
-    }
-
+    }    
+    
     if (!downloadRequest->executeCallback(downloadRequest->downloadStatusCode()))
     {
       if (mDefaultCallbackFunction != NULL)
