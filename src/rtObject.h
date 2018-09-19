@@ -31,6 +31,7 @@
 
 #include <string.h>
 #include <vector>
+#include <string>
 
 // rtIObject and rtIFunction are designed to be an
 // Abstract Binary Interface(ABI)
@@ -632,11 +633,21 @@ public:
     mContext = NULL;
   }
   
+  void setId(std::string id)
+  {
+    mId = id;
+  }
+
+  std::string getId()
+  {
+    return mId;
+  }
 
 private:  
   rtFunctionCB mCB;
   void* mContext;
   rtAtomic mRefCount;
+  std::string mId;
 };
 
 
