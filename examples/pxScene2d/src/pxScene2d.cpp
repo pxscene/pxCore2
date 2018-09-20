@@ -438,7 +438,7 @@ pxObject::pxObject(pxScene2d* scene): rtObject(), mParent(NULL), mpx(0), mpy(0),
     mSnapshotRef(), mPainting(true), mClip(false), mMask(false), mDraw(true), mHitTest(true), mReady(),
     mFocus(false),mClipSnapshotRef(),mCancelInSet(true),mUseMatrix(false), mRepaint(true)
 #ifdef PX_DIRTY_RECTANGLES
-    , mIsDirty(true), mLastRenderMatrix(), mScreenCoordinates(), mDirtyRect()
+    , mIsDirty(true), mIsTreeDirty(true), mLastRenderMatrix(), mScreenCoordinates(), mDirtyRect()
 #endif //PX_DIRTY_RECTANGLES
     ,mDrawableSnapshotForMask(), mMaskSnapshot(), mIsDisposed(false), mSceneSuspended(false)
   {
@@ -563,9 +563,8 @@ rtError pxObject::Set(uint32_t i, const rtValue* value)
 rtError pxObject::Set(const char* name, const rtValue* value)
 {
   #ifdef PX_DIRTY_RECTANGLES
-  mIsDirty = true;
+  markBranchDirty();
   //mScreenCoordinates = getBoundingRectInScreenCoordinates();
-
   #endif //PX_DIRTY_RECTANGLES
   if (strcmp(name, "x") != 0 && strcmp(name, "y") != 0 &&  strcmp(name, "a") != 0)
   {
@@ -658,6 +657,28 @@ rtError pxObject::animateToObj(rtObjectRef props, double duration,
   return RT_OK;
 }
 
+#ifdef PX_DIRTY_RECTANGLES
+inline void pxObject::markBranchDirty()
+{
+  mIsDirty      = true;
+  mIsTreeDirty  = true;
+  pxObject *_o  = this;
+  while( _o->mParent && !_o->mParent->mIsTreeDirty ) {
+      _o = _o->mParent;
+      _o->mIsTreeDirty = true;
+  }
+  if (auto scene = _o->mScene) {
+    if (auto sv = scene->getScriptView()) {
+      if (auto vc = sv->getViewContainer()) {
+        if (typeid(*vc) == typeid(pxSceneContainer)) {
+          static_cast<pxSceneContainer*>(vc)->markBranchDirty();
+        }
+      }
+    }
+  }
+}
+#endif //PX_DIRTY_RECTANGLES
+
 void pxObject::setParent(rtRef<pxObject>& parent)
 {
   if (mParent != parent)
@@ -667,7 +688,7 @@ void pxObject::setParent(rtRef<pxObject>& parent)
     if (parent)
       parent->mChildren.push_back(this);
 #ifdef PX_DIRTY_RECTANGLES
-    mIsDirty = true;
+    markBranchDirty();
     mScreenCoordinates = getBoundingRectInScreenCoordinates();
 #endif //PX_DIRTY_RECTANGLES
   }
@@ -931,7 +952,9 @@ void pxObject::animateToInternal(const char* prop, double to, double duration,
   a.animateObj = animateObj;
 
   mAnimations.push_back(a);
-
+#ifdef PX_DIRTY_RECTANGLES
+  markBranchDirty();
+#endif
   pxAnimate *animObj = (pxAnimate *)a.animateObj.getPtr();
 
   if (NULL != animObj)
@@ -1101,6 +1124,9 @@ void pxObject::update(double t)
 
 
   #ifdef PX_DIRTY_RECTANGLES
+  if( !mIsTreeDirty && mParent )       // nothing to update below
+      return;
+  mIsTreeDirty = false;
   pxMatrix4f m;
   applyMatrix(m);
   context.setMatrix(m);
@@ -1745,7 +1771,7 @@ bool pxObject::onTextureReady()
     mScene->invalidateRect(NULL);
   }
   #ifdef PX_DIRTY_RECTANGLES
-  mIsDirty = true;
+  markBranchDirty();
   #endif //PX_DIRTY_RECTANGLES
   return false;
 }
