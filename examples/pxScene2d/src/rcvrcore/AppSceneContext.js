@@ -280,7 +280,7 @@ function getBaseFilePath()
 
 function createModule_pxScope(xModule, isImported) {
   var params  = {     log: xModule.log,
-    import: xmodImportModule.bind(xModule),
+    import: xModule.importModule.bind(xModule),
     configImport: xModule.configImport.bind(xModule),
     resolveFilePath: xModule.resolveFilePath.bind(xModule),
     appQueryParams: this.queryParams,
