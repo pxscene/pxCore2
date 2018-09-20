@@ -273,9 +273,13 @@ var setTimeoutCallback = function() {
   ClearTimeout(this);
 };
 
-function createModule_pxScope(xModule) {
-  return {
-    log: xModule.log,
+function getBaseFilePath()
+{
+  return this;
+}
+
+function createModule_pxScope(xModule, isImported) {
+  var params  = {     log: xModule.log,
     import: xModule.importModule.bind(xModule),
     configImport: xModule.configImport.bind(xModule),
     resolveFilePath: xModule.resolveFilePath.bind(xModule),
@@ -284,6 +288,24 @@ function createModule_pxScope(xModule) {
     getFile: this.getFile.bind(this),
     getModuleFile: xModule.getFile.bind(xModule)
   };
+
+  //xModule.basePath is used for imported files, as xModule is per javascript file basis
+  if (true == isImported)
+  {
+    if (xModule.basePath == "")
+    {
+      params.getBaseFilePath = getBaseFilePath.bind("./");
+    }
+    else
+    {
+      params.getBaseFilePath = getBaseFilePath.bind(xModule.basePath+"/");
+    }
+  }
+  else
+  {
+    params.getBaseFilePath = params.getPackageBaseFilePath;
+  }
+  return params;
 }
 
 AppSceneContext.prototype.runScriptInNewVMContext = function (packageUri, moduleLoader, configImport) {
@@ -792,7 +814,7 @@ AppSceneContext.prototype.processCodeBuffer = function(origFilePath, filePath, c
 
   var sourceCode = AppSceneContext.wrap(codeBuffer);
   log.message(4, "RUN " + filePath);
-  var px = createModule_pxScope.call(this, xModule);
+  var px = createModule_pxScope.call(this, xModule, true);
   if (isDuk) {
     vm.runInNewContext(sourceCode, _this.sandbox, { filename: filePath, displayErrors: true },
                          px, xModule, filePath, filePath);
