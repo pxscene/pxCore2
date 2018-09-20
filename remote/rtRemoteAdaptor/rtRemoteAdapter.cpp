@@ -1,5 +1,5 @@
 /*
-
+  
 pxCore Copyright 2005-2018 John Robinson
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,33 +16,50 @@ limitations under the License.
 
 */
 
+#include "rtRemote.h"
 #include "rtRemoteAdapter.h"
+#include "rtRemoteFunction.h"
+#include "rtRemoteValueWriter.h"
+#include "rtRemoteValueReader.h"
+#include "rtRemoteCorrelationKey.h"
 
-const char *rdk_logger_module_fetch(void)
-{
+#include <chrono>
+#include <thread>
+#include <cimplog/cimplog.h>
+#include <rapidjson/writer.h>
+#include <rapidjson/document.h>
+#include <rapidjson/memorystream.h>
+#include <rapidjson/prettywriter.h>
+#include <rapidjson/stringbuffer.h>
+
+const char *rdk_logger_module_fetch(void) {
         return "LOG.RDK.PARODUS";
 }
 
 rtRemoteAdapter::rtRemoteAdapter()
-    : m_env(NULL)
-    , m_current_instance(NULL) 
+    : m_current_instance(NULL)
+    , m_env(NULL)
     , m_obj(NULL)
     , m_wait(2) {
-    
+    m_content_type = new char[PARAMS_SIZE];
+    m_payload = new char[PAYLOAD_SIZE];
+}
+
+rtRemoteAdapter::~rtRemoteAdapter() {
+    delete []m_content_type;
+    delete []m_payload;
 }
 
 /** @description : connect the parodus.
  *  @param : none.
- *  @return : void.
+ *  @return : rtError.
  */
 rtError rtRemoteAdapter::connectParodus() {
-      
     /* Pass NULL to the Parodus and client URL so that the loop back address (127.0.0.1:6666) will be used
        for communication between Parodus and LibParodus within the same chip set.*/
-    rtError err = RT_FAIL;
-    libpd_cfg_t cfg1 = {.service_name = "iot", .receive = true, .keepalive_timeout_secs = 64,
-                           .parodus_url = NULL, .client_url = "tcp://127.0.0.1:6668", 
-                          };
+    libpd_cfg_t cfg1 = {.service_name = "iot",
+                        .receive = true, .keepalive_timeout_secs = 64,
+                        .parodus_url = NULL, .client_url = "tcp://127.0.0.1:6668"};
    
     rtLogDebug("libparodus_init with parodus url %s and client url %s",cfg1.parodus_url,cfg1.client_url);
     
@@ -51,16 +68,14 @@ rtError rtRemoteAdapter::connectParodus() {
         if(ret ==0) {
             rtLogInfo("Init for parodus Success..!!");
             break;
-        } else {
-            rtLogError("Init for parodus failed: '%d'",ret);
         }
+
+        rtLogError("Init for parodus failed: '%d'",ret);
         disconnectParodus();
     }
     
     m_env = rtEnvironmentGetGlobal();
-    err = rtRemoteInit(m_env);
-    return err;
-
+    return rtRemoteInit(m_env);
 } 
 
 /** @description : disconnect the parodus.
@@ -68,9 +83,10 @@ rtError rtRemoteAdapter::connectParodus() {
  *  @return : void.
  */
 void rtRemoteAdapter::disconnectParodus() {
-    int res = RT_FAIL;       
-    res =  libparodus_shutdown(&m_current_instance);
-    rtLogDebug("Failed to disconnect parodus: '%d'",res);
+    int res = libparodus_shutdown(&m_current_instance);
+    if(res != RT_OK) {
+        rtLogDebug("Failed to disconnect parodus: '%d'",res);
+    }
 }
 
 /** @description : receive data from parodus server.
@@ -79,39 +95,41 @@ void rtRemoteAdapter::disconnectParodus() {
  *  @return : void.
  */
 void rtRemoteAdapter::startProcess() {
-    int rtn;
-    rtError err = RT_FAIL;
-    wrp_msg_t *wrp_msg;
-    char *payload = new char[PAYLOAD_SIZE];
+    int rtn = RT_FAIL;
+    wrp_msg_t *wrp_msg = NULL;
 
     while (1) {
-        rtn = libparodus_receive (m_current_instance, &wrp_msg, 2000);
+        rtn = libparodus_receive (m_current_instance, &wrp_msg, PAYLOAD_SIZE);
         if (rtn == 1) {
             rtLogInfo("Return : %d, Continuing ....", rtn);
             continue;
-        }
-        if (rtn != 0) {
+        } else if (rtn != 0) {
             rtLogDebug("Libparodus failed to recieve message: '%d'",rtn);
             std::this_thread::sleep_for(std::chrono::seconds(m_wait));
             continue;
         }
+
         if ((wrp_msg != NULL) && (wrp_msg->msg_type == WRP_MSG_TYPE__REQ)) {
-            memset(payload, 0, PAYLOAD_SIZE);
-            err = processRequest(wrp_msg, payload);
-            if(err == RT_OK && payload != NULL) {
-                parodusSend(payload, wrp_msg->u.req.source, wrp_msg->u.req.dest, 
+            memset(m_payload, 0, PAYLOAD_SIZE);
+            if((processRequest(wrp_msg, m_payload) != RT_OK)) {
+                rtLogError("Failed to process the request.");
+            }
+
+            if( m_payload != NULL) {
+                parodusSend(m_payload, wrp_msg->u.req.source, wrp_msg->u.req.dest,
                                         wrp_msg->u.req.transaction_uuid, wrp_msg->msg_type );
             } else {
-                rtLogError("Failed to process the request.");    
+                rtLogError("Failed to send the response.");
             }
-            
         }
-        wrp_free_struct (wrp_msg);
-   }
-  
-   delete []payload;
-   disconnectParodus();
+
+        if(wrp_msg != NULL) {
+            wrp_free_struct (wrp_msg);
+            wrp_msg = NULL;
+        }
+    }
    
+    disconnectParodus();
 }
 
 /** @description : process the GetByName request.
@@ -119,18 +137,20 @@ void rtRemoteAdapter::startProcess() {
  *  correlation key, object id.
  *  @return : rtError.
  */
-rtError rtRemoteAdapter::processGetByNameRequest(char *payload, rtRemoteMessagePtr msg, const char *key, const char *objId) {
+rtError rtRemoteAdapter::processGetByNameRequest(char *payload, rtRemoteMessagePtr msg, const char *key, const char *obj_id) {
     rtValue v;
     rtError err = RT_FAIL;
-    char const* propName = rtMessage_GetPropertyName(*msg);
     
-    /*Getting the value*/
-    err = m_obj->Get(propName, &v);
-    if(err == RT_OK) { 
-        getByNameResponse(payload, key, objId, v);
-        return err;        
+    if(key != NULL && (strlen(key) != 0) &&
+        obj_id != NULL && (strlen(obj_id) != 0)) {
+        char const* propName = rtMessage_GetPropertyName(*msg);
+        err = m_obj->Get(propName, &v);
+        if(err == RT_OK) {
+            createGetByNameResponse(payload, key, obj_id, v);
+            return err;
+        }
     }
-    failureResponse(payload, kMessageTypeGetByNameResponse, key, objId);
+    createFailureResponse(payload, kMessageTypeGetByNameResponse, key, obj_id, err);
     return err;
 }
 
@@ -139,46 +159,45 @@ rtError rtRemoteAdapter::processGetByNameRequest(char *payload, rtRemoteMessageP
  *  correlation key, object id.
  *  @return : rtError.
  */
-rtError rtRemoteAdapter::processMethodCallRequest(char *payload, rtRemoteMessagePtr msg, const char *key, const char *objId) {
-    
+rtError rtRemoteAdapter::processMethodCallRequest(char *payload, rtRemoteMessagePtr msg, const char *key, const char *obj_id) {
     vector<rtValue> argv;        
     rtValue res;
     rtFunctionRef func;
     rtError err = RT_FAIL; 
     
-    auto func_itr = msg->FindMember(kFieldNameFunctionName);
-        
-    if (func_itr != msg->MemberEnd()) { 
-        auto args_itr = msg->FindMember(kFieldNameFunctionArgs);
-        auto funcName = func_itr->value.GetString();
-        
-        if (args_itr != msg->MemberEnd()) { 
-            for (rapidjson::Value::ConstValueIterator itr = args_itr->value.Begin(); itr != args_itr->value.End(); ++itr) { 
-                rtValue arg;
-                rtRemoteValueReader::read(m_env, arg, *itr, NULL); 
-                argv.push_back(arg);
-            } 
-
-            /* Method Call */
-            if(!argv.empty()) {
-                if (m_obj) {
-                    err = m_obj.get<rtFunctionRef>(funcName, func);
-                } else {
-                    func = m_env->ObjectCache->findFunction(funcName);
+    if(key != NULL && (strlen(key) != 0) &&
+        obj_id != NULL && (strlen(obj_id) != 0)) {
+        auto func_itr = msg->FindMember(kFieldNameFunctionName);
+        if (func_itr != msg->MemberEnd()) {
+            auto args_itr = msg->FindMember(kFieldNameFunctionArgs);
+            auto funcName = func_itr->value.GetString();
+            if (args_itr != msg->MemberEnd()) {
+                for (auto itr = args_itr->value.Begin(); itr != args_itr->value.End(); ++itr) {
+                    rtValue arg;
+                    rtRemoteValueReader::read(m_env, arg, *itr, NULL);
+                    argv.push_back(arg);
                 }
-                if (err == RT_OK && !!func) {
-                    err = func->Send(static_cast<int>(argv.size()), (rtValue const*)&argv[0], &res);
-                    if(err == RT_OK) {
-                        methodCallResponse(payload, key, objId, funcName, res);
-                        return err;
+                /* Method Call */
+                if(!argv.empty()) {
+                    if (m_obj) {
+                        err = m_obj.get<rtFunctionRef>(funcName, func);
+                    } else {
+                        func = m_env->ObjectCache->findFunction(funcName);
+                    }
+
+                    if (err == RT_OK && !!func) {
+                        err = func->Send(static_cast<int>(argv.size()), (rtValue const*)&argv[0], &res);
+                        if(err == RT_OK) {
+                            createMethodCallResponse(payload, key, obj_id, funcName, res);
+                            return err;
+                        }
                     }
                 }
             }
         }
-    } 
-    failureResponse(payload, kMessageTypeMethodCallResponse, key, objId);    
-    return err;   
-    
+    }
+    createFailureResponse(payload, kMessageTypeMethodCallResponse, key, obj_id, err);
+    return err;
 }    
 
 /** @description : process the SetByName request.
@@ -186,27 +205,28 @@ rtError rtRemoteAdapter::processMethodCallRequest(char *payload, rtRemoteMessage
  *  correlation key, object id.
  *  @return : rtError.
  */
-rtError rtRemoteAdapter::processSetByNameRequest(char *payload,  rtRemoteMessagePtr msg, char const* key, const char *objId) {
-  
+rtError rtRemoteAdapter::processSetByNameRequest(char *payload,  rtRemoteMessagePtr msg, const char* key, const char *obj_id) {
     rtValue value;
     rtError err = RT_FAIL;
-    const char *propName = rtMessage_GetPropertyName(*msg);
         
-    auto itr = msg->FindMember(kFieldNameValue);
-    if (itr != msg->MemberEnd()) {
-        err = rtRemoteValueReader::read(m_env, value, itr->value, NULL);
-        
-        if(err == RT_OK) { 
-           /* Setting the value */
-            err = m_obj->Set(propName, &value); 
+    if(key != NULL && (strlen(key) != 0) &&
+        obj_id != NULL && (strlen(obj_id) != 0)) {
+        const char *propName = rtMessage_GetPropertyName(*msg);
+        auto itr = msg->FindMember(kFieldNameValue);
+        if (itr != msg->MemberEnd()) {
+            err = rtRemoteValueReader::read(m_env, value, itr->value, NULL);
             if(err == RT_OK) { 
-                setByNameResponse(payload, key, objId);
-                return err;
+                /* Setting the value */
+                err = m_obj->Set(propName, &value);
+                if(err == RT_OK) {
+                    createSetByNameResponse(payload, key, obj_id);
+                    return err;
+                }
             }
         }
     }
-    failureResponse(payload, kMessageTypeSetByNameResponse, key, objId);    
-    return err;    
+    createFailureResponse(payload, kMessageTypeSetByNameResponse, key, obj_id, err);
+    return err;
 }
 
 /** @description : process the rtRemote request.
@@ -214,33 +234,36 @@ rtError rtRemoteAdapter::processSetByNameRequest(char *payload,  rtRemoteMessage
  *  @return : rtError.
  */
 rtError rtRemoteAdapter::processRequest(wrp_msg_t *wrp_msg, char *payload) {
-    
-    rtError err = RT_FAIL; 
-    
-    const char *wrpPayload =  reinterpret_cast<const char*>(wrp_msg->u.req.payload);
+    rtError err = RT_FAIL;
+
+    const char *wrpPayload = reinterpret_cast<const char*>(wrp_msg->u.req.payload);
     rtRemoteMessagePtr msg(new rapidjson::Document());
     msg->Parse(wrpPayload);
 
-    const char *objId   = rtMessage_GetObjectId(*msg);
-    while ((err = rtRemoteLocateObject(m_env, objId, m_obj)) != RT_OK) {
-        rtLogDebug("still looking:%s", rtStrError(err));
+    const char *objId = rtMessage_GetObjectId(*msg);
+    const char *msgType = rtMessage_GetMessageType(*msg);
+    const char *key= strdup(rtMessage_GetCorrelationKey(*msg).toString().c_str());
+
+    if(objId != NULL && (strlen(objId) != 0)) {
+        while ((err = rtRemoteLocateObject(m_env, objId, m_obj)) != RT_OK) {
+            rtLogDebug("still looking:%s", rtStrError(err));
+        }
     }
 
-    const char *msgType = rtMessage_GetMessageType(*msg);
-    const char *key= rtMessage_GetCorrelationKey(*msg).toString().c_str();
-    if(msgType != NULL && key != NULL && objId != NULL) { 
-        if (strcmp(msgType,"set.byname.request") == RT_OK) {
+    if(msgType != NULL && (strlen(msgType) != 0)) {
+        if (strcmp(msgType, "set.byname.request") == RT_OK) {
             err = processSetByNameRequest(payload, msg, key, objId);
-        } else if (strcmp(msgType,"get.byname.request") == RT_OK) {
+        } else if (strcmp(msgType, "get.byname.request") == RT_OK) {
             err = processGetByNameRequest(payload, msg, key, objId);
         } else if (strcmp(msgType, "method.call.request") == RT_OK) {
             err = processMethodCallRequest(payload, msg, key, objId);
         }
-    } else {
-        rtLogError("Invalid data....");
+
+        return err;
     }
 
-    delete []key;
+    rtLogError("Invalid data....");
+    createFailureResponse(payload, msgType, key, objId, err);
     return err;
 }
 
@@ -248,14 +271,14 @@ rtError rtRemoteAdapter::processRequest(wrp_msg_t *wrp_msg, char *payload) {
  *  @param : response payload, correlation key, object id.
  *  @return : void.
  */
-void rtRemoteAdapter::failureResponse(char *payload, const char *msg_type, const char *key, const char *obj_id) {
+void rtRemoteAdapter::createFailureResponse(char *payload, const char *msg_type, const char *key, const char *obj_id, rtError err) {
     rtRemoteMessagePtr res(new rapidjson::Document());
     res->SetObject();
 
     res->AddMember(kFieldNameMessageType,  rapidjson::StringRef(msg_type, strlen(msg_type)), res->GetAllocator());
     res->AddMember(kFieldNameCorrelationKey, rapidjson::StringRef(key, strlen(key)), res->GetAllocator());
     res->AddMember(kFieldNameObjectId,  rapidjson::StringRef(obj_id, strlen(obj_id)), res->GetAllocator());
-    res->AddMember(kFieldNameStatusCode, 1, res->GetAllocator());
+    res->AddMember(kFieldNameStatusCode, static_cast<int32_t>(err), res->GetAllocator());
     
     rapidjson::StringBuffer buff;
     rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buff);
@@ -269,7 +292,7 @@ void rtRemoteAdapter::failureResponse(char *payload, const char *msg_type, const
  *  object id, method_name. result.
  *  @return : void.
  */
-void rtRemoteAdapter::methodCallResponse(char *payload, const char *key, const char *obj_id, const char* method_name, rtValue result) {
+void rtRemoteAdapter::createMethodCallResponse(char *payload, const char *key, const char *obj_id, const char* method_name, rtValue result) {
     rtRemoteMessagePtr res(new rapidjson::Document());
     res->SetObject();
     
@@ -293,8 +316,7 @@ void rtRemoteAdapter::methodCallResponse(char *payload, const char *key, const c
  *  @param : response payload, correlation key, object id.
  *  @return : void.
  */
-void rtRemoteAdapter::setByNameResponse(char *payload, const char *key, const char *obj_id) {
-    
+void rtRemoteAdapter::createSetByNameResponse(char *payload, const char *key, const char *obj_id) {
     rtRemoteMessagePtr res(new rapidjson::Document());
     res->SetObject();
     
@@ -314,7 +336,7 @@ void rtRemoteAdapter::setByNameResponse(char *payload, const char *key, const ch
  *  @param : response payload, correlation key, object id.
  *  @return : void.
  */
-void rtRemoteAdapter::getByNameResponse(char *payload, const char *key, const char *obj_id, rtValue value) {
+void rtRemoteAdapter::createGetByNameResponse(char *payload, const char *key, const char *obj_id, rtValue value) {
     rtRemoteMessagePtr res(new rapidjson::Document());
     res->SetObject();
 
@@ -338,30 +360,24 @@ void rtRemoteAdapter::getByNameResponse(char *payload, const char *key, const ch
  *  @return : void.
  */
 void rtRemoteAdapter::parodusSend(char *payload, char *source, char *destination, char *trans_uuid, wrp_msg_type msg_type) {
-    
-    wrp_msg_t *res_wrp_msg;
-    char *contentType = NULL;
     int res = RT_FAIL; 
     
-    res_wrp_msg = new wrp_msg_t();
-    res_wrp_msg->u.req.payload = (void *)payload;
-    res_wrp_msg->u.req.payload_size = strlen((const char*)res_wrp_msg->u.req.payload);
-    res_wrp_msg->msg_type = msg_type;
-    res_wrp_msg->u.req.source = destination;
-    res_wrp_msg->u.req.dest = source;
-    res_wrp_msg->u.req.transaction_uuid = trans_uuid;
-    contentType = new char[sizeof(char)*(strlen(CONTENT_TYPE_JSON)+1)];
-    strncpy(contentType,CONTENT_TYPE_JSON,strlen(CONTENT_TYPE_JSON)+1);
-    res_wrp_msg->u.req.content_type = contentType;
-    res = libparodus_send(m_current_instance, res_wrp_msg);
+    memset(&m_wrp_msg, 0, sizeof(m_wrp_msg));
+    m_wrp_msg.u.req.payload = (void *)payload;
+    m_wrp_msg.u.req.payload_size = strlen((const char*)m_wrp_msg.u.req.payload);
+    m_wrp_msg.msg_type = msg_type;
+    m_wrp_msg.u.req.source = destination;
+    m_wrp_msg.u.req.dest = source;
+    m_wrp_msg.u.req.transaction_uuid = trans_uuid;
+    memset(m_content_type, 0, PARAMS_SIZE);
+    strncpy(m_content_type,CONTENT_TYPE_JSON,strlen(CONTENT_TYPE_JSON)+1);
+    m_wrp_msg.u.req.content_type = m_content_type;
+    res = libparodus_send(m_current_instance, &m_wrp_msg);
     if(res == 0) {
-        rtLogInfo("Sent message successfully");
+        rtLogInfo("Message sent successfully");
     } else {
         rtLogError("Failed to send message: '%d'",res);   
     }
-
-    delete []contentType;
-    delete res_wrp_msg; 
 }
 
 /** @description : initializes the process.
@@ -373,16 +389,17 @@ rtError rtRemoteAdapter::init() {
 }
 
 int main(int argc, char** argv) {
-    
     rtError err = RT_FAIL;
     rtRemoteAdapter adapter;
     rtLogLevel logLevel = RT_LOG_INFO;
     rtLogSetLevel(logLevel);
     
     err = adapter.init();
-    if(err == RT_OK) { adapter.startProcess();}
-    else { rtLogError("Failed to initialized");}
+    if(err == RT_OK) {
+        adapter.startProcess();
+    } else {
+        rtLogError("Failed to initialized");
+    }
 
    return 0;
 }
-

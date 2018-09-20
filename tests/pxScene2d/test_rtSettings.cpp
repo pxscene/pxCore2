@@ -20,7 +20,7 @@ limitations under the License.
 
 #include "rtSettings.h"
 #include "rtPathUtils.h"
-
+#include <pxScene2d.h>
 #include "test_includes.h" // Needs to be included last
 
 class rtSettingsTest : public testing::Test
@@ -77,7 +77,7 @@ public:
     std::sort(k.begin(), k.end());
     std::vector<rtString> kVal;
     EXPECT_EQ((int)RT_OK, (int)s.keys(kVal));
-    EXPECT_EQ(true, k == kVal);
+    EXPECT_TRUE(k == kVal);
 
     // write
     rtString filePath;
@@ -102,11 +102,11 @@ public:
     EXPECT_EQ((int)RT_OK, (int)s.value("string", value));
     EXPECT_EQ((int)0, strcmp("abc", value.toString().cString()));
     EXPECT_EQ((int)RT_OK, (int)s.value("true", value));
-    EXPECT_EQ(true, value.toBool());
+    EXPECT_TRUE(value.toBool());
     EXPECT_EQ((int)RT_OK, (int)s.value("false", value));
-    EXPECT_EQ(false, value.toBool());
+    EXPECT_FALSE(value.toBool());
     EXPECT_EQ((int)RT_OK, (int)s.value("null", value));
-    EXPECT_EQ(true, value.isEmpty());
+    EXPECT_TRUE(value.isEmpty());
     EXPECT_EQ((int)RT_OK, (int)s.value("int8_t", value));
     EXPECT_EQ(int8_tVal, value.toInt8());
     EXPECT_EQ((int)RT_OK, (int)s.value("uint8_t", value));
@@ -142,7 +142,7 @@ public:
     std::sort(k.begin(), k.end());
     std::vector<rtString> kVal;
     EXPECT_EQ((int)RT_OK, (int)s.keys(kVal));
-    EXPECT_EQ(true, k == kVal);
+    EXPECT_TRUE(k == kVal);
 
     // verify values
     rtValue value;
@@ -174,7 +174,7 @@ public:
     std::sort(k.begin(), k.end());
     std::vector<rtString> kVal;
     EXPECT_EQ((int)RT_OK, (int)s.keys(kVal));
-    EXPECT_EQ(true, k == kVal);
+    EXPECT_TRUE(k == kVal);
   }
 
   void testOverwrite()
@@ -201,7 +201,7 @@ public:
     std::sort(k.begin(), k.end());
     std::vector<rtString> kVal;
     EXPECT_EQ((int)RT_OK, (int)s.keys(kVal));
-    EXPECT_EQ(true, k == kVal);
+    EXPECT_TRUE(k == kVal);
 
     // verify values
     rtValue value;
@@ -214,6 +214,26 @@ public:
     EXPECT_EQ((int)RT_OK, (int)s.value("d", value));
     EXPECT_EQ((int)0, strcmp("y", value.toString().cString()));
   }
+
+  void testPermissionPresentRead()
+   {
+     rtSettings::instance()->setValue("disableFilePermissionCheck",true);
+     pxScene2d* scene = new pxScene2d();
+     rtValue val;
+     EXPECT_TRUE(scene->sparkSetting("disableFilePermissionCheck",val) == RT_OK);
+     EXPECT_TRUE(val.toBool() == true);
+     delete scene;
+     rtSettings::instance()->remove("disableFilePermissionCheck");
+   }
+
+   void testPermissionAbsentRead()
+   {
+     pxScene2d* scene = new pxScene2d();
+     rtValue val;
+     EXPECT_TRUE(scene->sparkSetting("disableFilePermissionCheck",val) == RT_OK);
+     EXPECT_TRUE(true == val.isEmpty());
+     delete scene;
+   }
 };
 
 TEST_F(rtSettingsTest, rtSettingsTests)
@@ -222,4 +242,7 @@ TEST_F(rtSettingsTest, rtSettingsTests)
   testFromArgs();
   testNotFound();
   testOverwrite();
+  // read permission value from scene
+  testPermissionPresentRead();
+  testPermissionAbsentRead();
 }

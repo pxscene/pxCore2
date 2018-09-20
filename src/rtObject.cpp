@@ -54,6 +54,8 @@ rtError rtEmit::setListener(const char* eventName, rtIFunction* f)
     e.n = eventName;
     e.f = f;
     e.isProp = true;
+    e.markForDelete = false;
+    e.fnHash = f->hash();
     mEntries.push_back(e);      
   }
   
@@ -72,7 +74,7 @@ rtError rtEmit::addListener(const char* eventName, rtIFunction* f)
     _rtEmitEntry& e = (*it);
     // mHash check for javscript events callback 
     // markForDelete check is added to handle scenario where same handler is deleted and added immediately in same handler
-    if (e.n == eventName && ((e.f.getPtr() == f) || ((f->hash() != -1) && (e.fnHash == f->hash()) && (false == e.markForDelete))) && !e.isProp)
+    if (e.n == eventName && ((e.f.getPtr() == f) || ((f->hash() != (size_t)-1) && (e.fnHash == f->hash()) && (false == e.markForDelete))) && !e.isProp)
     {
       found = true;
       break;
@@ -109,7 +111,7 @@ rtError rtEmit::delListener(const char* eventName, rtIFunction* f)
        it != mEntries.end(); it++)
   {
     _rtEmitEntry& e = (*it);
-    if (e.n == eventName && ((e.f.getPtr() == f) || ((-1 != e.fnHash) && (e.fnHash == f->hash()))) && !e.isProp)
+    if (e.n == eventName && ((e.f.getPtr() == f) || (((size_t)-1 != e.fnHash) && (e.fnHash == f->hash()))) && !e.isProp)
     {
       // if no events is being processed currently, remove the event entries
       if (!mProcessingEvents)
@@ -129,6 +131,16 @@ rtError rtEmit::Send(int numArgs, const rtValue* args, rtValue* result)
   if (numArgs > 0)
   {
     rtString eventName = args[0].toString();
+    // check whether the js call need to be synchronous or not
+    bool sync = true;
+    if (numArgs > 1)
+    {
+      rtType type = args[1].getType();
+      if (RT_boolType == type)
+      {
+        sync = args[1].toBool();
+      }
+    }
     rtLogDebug("rtEmit::Send %s", eventName.cString());
 
     vector<_rtEmitEntry>::iterator it = mEntries.begin();
@@ -147,7 +159,15 @@ rtError rtEmit::Send(int numArgs, const rtValue* args, rtValue* result)
 #ifndef DISABLE_SYNC_EVENTS
         // SYNC EVENTS ... enables stopPropagation() ...
         //
-        err = e.f->Send(numArgs-1, args+1, &discard);
+        // pass NULL as final argument for indication of asynchronous call
+        if (sync)
+        {
+          err = e.f->Send(numArgs-1, args+1, &discard);
+        }
+        else
+        {
+          err = e.f->Send(numArgs-1, args+1, NULL);
+        }
 #else
 
 #warning "  >>>>>>  No SYNC EVENTS... stopPropagation() will be broken !!"

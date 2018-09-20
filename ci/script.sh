@@ -31,7 +31,7 @@ checkError()
 
 if [ "$TRAVIS_OS_NAME" = "linux" ]
 then
-  if  [ "$TRAVIS_EVENT_TYPE" = "api" ]
+  if  [ "$TRAVIS_EVENT_TYPE" = "api" ] || [ ! -z "${TRAVIS_TAG}" ]
     then
     echo "Ignoring script stage for $TRAVIS_EVENT_TYPE event";
     exit 0
@@ -48,7 +48,7 @@ then
 fi
 
 
-if [ "$TRAVIS_EVENT_TYPE" = "push" ] || [ "$TRAVIS_EVENT_TYPE" = "pull_request" ] ;
+if ( [ "$TRAVIS_EVENT_TYPE" = "push" ] || [ "$TRAVIS_EVENT_TYPE" = "pull_request" ] ) && [ -z "${TRAVIS_TAG}" ] 
 then
   if [ "$TRAVIS_OS_NAME" = "linux" ]; 
   then 
@@ -62,7 +62,7 @@ retval=0
 ulimit -c unlimited
 export DUMP_STACK_ON_EXCEPTION=1
 cd $TRAVIS_BUILD_DIR/ci
-if [ "$TRAVIS_EVENT_TYPE" = "push" ] || [ "$TRAVIS_EVENT_TYPE" = "pull_request" ] ;
+if ( [ "$TRAVIS_EVENT_TYPE" = "push" ] || [ "$TRAVIS_EVENT_TYPE" = "pull_request" ] ) && [ -z "${TRAVIS_TAG}" ] 
 then
   sh build_px.sh 
   checkError $? "#### Build/unittests/execution [build_px.sh] failed" "Either build problem/execution problem" "Analyze corresponding log file"
@@ -83,9 +83,17 @@ else
   sh build_px.sh "build_$TRAVIS_OS_NAME.sh"
 fi
 
-if [ "$TRAVIS_EVENT_TYPE" = "cron" ] || [ "$TRAVIS_EVENT_TYPE" = "api" ] ;
+if [ "$TRAVIS_EVENT_TYPE" = "api" ] || [ ! -z "${TRAVIS_TAG}" ] 
 then
   cp $TRAVIS_BUILD_DIR/examples/pxScene2d/src/deploy/mac/*.dmg $TRAVIS_BUILD_DIR/artifacts/.
+  checkError $? "Copying dmg file failed" "Could be build problem or file not generated" "Analyze build logs"
+  cp $TRAVIS_BUILD_DIR/examples/pxScene2d/src/deploy/mac/software_update.plist $TRAVIS_BUILD_DIR/artifacts/.
+  checkError $? "Copying software_update.plist failed" "Could be build problem or file not generated" "Analyze build logs"
+fi
+
+if [ "$TRAVIS_EVENT_TYPE" = "cron" ] ;
+then
+  cp $TRAVIS_BUILD_DIR/examples/pxScene2d/src/deploy/mac/SparkEdge.dmg $TRAVIS_BUILD_DIR/artifacts/SparkEdge.dmg
   checkError $? "Copying dmg file failed" "Could be build problem or file not generated" "Analyze build logs"
   cp $TRAVIS_BUILD_DIR/examples/pxScene2d/src/deploy/mac/software_update.plist $TRAVIS_BUILD_DIR/artifacts/.
   checkError $? "Copying software_update.plist failed" "Could be build problem or file not generated" "Analyze build logs"

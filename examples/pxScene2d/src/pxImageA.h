@@ -51,11 +51,16 @@ public:
   rtError setResource(rtObjectRef o);
   rtError removeResourceListener();
   virtual void resourceReady(rtString readyResolution);
+  virtual void resourceDirty();
   virtual void createNewPromise() { rtLogDebug("pxImageA ignoring createNewPromise\n"); }
 
   virtual void update(double t);
   virtual void draw();
   virtual void dispose(bool pumpJavascript);
+
+  virtual void releaseData(bool sceneSuspended);
+  virtual void reloadData(bool sceneSuspended);
+  virtual uint64_t textureMemoryUsage();
   
 protected:
   virtual void onInit();

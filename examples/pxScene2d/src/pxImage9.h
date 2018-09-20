@@ -63,11 +63,16 @@ public:
   virtual ~pxImage9();
   virtual void onInit();
   virtual void resourceReady(rtString readyResolution);
+  virtual void resourceDirty();
   //virtual bool onTextureReady(pxTextureCacheObject* textureCacheObject) {return true;}
   virtual void sendPromise();
   virtual void createNewPromise() { rtLogDebug("pxImage9 ignoring createNewPromise\n"); }
   virtual float getOnscreenWidth();
   virtual float getOnscreenHeight();
+
+  virtual void releaseData(bool sceneSuspended);
+  virtual void reloadData(bool sceneSuspended);
+  virtual uint64_t textureMemoryUsage();
   
 protected:
   virtual void draw();

@@ -124,6 +124,12 @@ void rtHttpCacheData::populateHeaderMap()
       {
         key = attribute.substr(0,name_end_pos);
       }
+
+      // Accomadate lowercase from NPM "http-server" - https://www.npmjs.com/package/http-server
+      //
+      if(key == "cache-control")
+          key = "Cache-Control";
+
       size_t cReturn_nwLnPos  = key.find_first_of("\r");
       if (string::npos != cReturn_nwLnPos)
         key.erase(cReturn_nwLnPos,1);
@@ -459,12 +465,20 @@ bool rtHttpCacheData::handleDownloadRequest(vector<rtString>& headers,bool downl
 
   if (false == rtFileDownloader::instance()->downloadFromNetwork(downloadRequest))
   {
+     rtLogWarn("download failed %s Error: %s HTTP Status Code: %ld",
+                downloadRequest->fileUrl().cString(),
+                downloadRequest->errorString().cString(),
+                downloadRequest->httpStatusCode());
      delete downloadRequest;
      return false;
   }
 
   if ((downloadRequest->httpStatusCode() == 404) || (downloadRequest->httpStatusCode() == 403))
   {
+    rtLogWarn("download failed %s Error: %s HTTP Status Code: %ld",
+               downloadRequest->fileUrl().cString(),
+               downloadRequest->errorString().cString(),
+               downloadRequest->httpStatusCode());
     delete downloadRequest;
     return false;
   }

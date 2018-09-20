@@ -1,7 +1,7 @@
-IDI_ICON1 ICON pxscene.ico
+IDI_ICON1 ICON Spark_installer.ico
 
 1 VERSIONINFO
-FILEVERSION 0,39,2,0
+FILEVERSION 1,1,0,0
 FILEOS 0x4
 FILETYPE 0x0
 BEGIN
@@ -15,7 +15,7 @@ BEGIN
       VALUE "LegalCopyright", "Copyright 2018"
       VALUE "OriginalFilename", "pxscene.exe"
       VALUE "ProductName", "pxscene"
-      VALUE "ProductVersion", "0,39,2,0"
+      VALUE "ProductVersion", "1,1,0,0"
     END
   END
   

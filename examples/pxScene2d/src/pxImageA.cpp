@@ -86,7 +86,7 @@ rtError pxImageA::setUrl(const char *s)
     }
   }
   removeResourceListener();
-  mResource = pxImageManager::getImageA(s);
+  mResource = pxImageManager::getImageA(s, NULL, mScene ? mScene->cors() : NULL, mScene ? mScene->getArchive(): NULL);
 
   if(getImageAResource() != NULL && getImageAResource()->getUrl().length() > 0 && !mImageLoaded) {
     mListenerAdded = true;
@@ -149,7 +149,7 @@ void pxImageA::update(double t)
 
 void pxImageA::draw()
 {
-  if (getImageAResource() != NULL && mImageLoaded)
+  if (getImageAResource() != NULL && mImageLoaded && !mSceneSuspended)
   {
     pxTimedOffscreenSequence &imageSequence = getImageAResource()->getTimedOffscreenSequence();
     if (imageSequence.numFrames() > 0)
@@ -299,6 +299,11 @@ void pxImageA::resourceReady(rtString readyResolution)
   }
 }
 
+void pxImageA::resourceDirty()
+{
+  pxObject::onTextureReady();
+}
+
 rtError pxImageA::removeResourceListener()
 {
   if (mListenerAdded)
@@ -310,6 +315,27 @@ rtError pxImageA::removeResourceListener()
     mListenerAdded = false;
   }
   return RT_OK;
+}
+
+void pxImageA::releaseData(bool sceneSuspended)
+{
+  pxObject::releaseData(sceneSuspended);
+}
+
+void pxImageA::reloadData(bool sceneSuspended)
+{
+  pxObject::reloadData(sceneSuspended);
+}
+
+uint64_t pxImageA::textureMemoryUsage()
+{
+  uint64_t textureMemory = 0;
+  if (mTexture.getPtr() != NULL)
+  {
+    textureMemory += (mTexture->width() * mTexture->height() * 4);
+  }
+  textureMemory += pxObject::textureMemoryUsage();
+  return textureMemory;
 }
 
 rtDefineObject(pxImageA, pxObject);
