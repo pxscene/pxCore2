@@ -231,10 +231,19 @@ AppSceneContext.prototype.loadPackage = function(packageUri) {
   {
     _this.codemap = map["details"];
   }
-  if ((undefined != _this.codemap)  && (packageUri in _this.codemap)) {
-    _this.runScriptInNewVMContextNonLoad(packageUri);
-    console.info("AppSceneContext#loadPackage from bundle done");
-    return;
+  if (undefined != _this.codemap) {
+    // remove "./" from the filenames before searching from codemap
+    var pathToCheck = packageUri;
+    if ((packageUri.charAt(0) == ".") && (packageUri.charAt(1) == "/"))
+    {
+      pathToCheck = packageUri.substr(2);
+    }
+    if (pathToCheck in _this.codemap)
+    {
+      _this.runScriptInNewVMContextNonLoad(pathToCheck);
+      console.info("AppSceneContext#loadPackage from bundle done");
+      return;
+    }
   }
   var moduleLoader = new SceneModuleLoader();
   // Fixed scene loading promise rejection
@@ -952,9 +961,18 @@ AppSceneContext.prototype.include = function(filePath, currentXModule) {
 
     filePath = _this.resolveModulePath(filePath, currentXModule).fileUri;
 
-    if ((undefined != _this.codemap) && (filePath in _this.codemap)) {
-      _this.processNonLoadCodeBuffer(origFilePath, filePath, currentXModule, onImportComplete, reject);
-      return;
+    if (undefined != _this.codemap) {
+       // remove "./" from the filenames before searching from codemap
+       var pathToCheck = filePath;
+       if ((filePath.charAt(0) == ".") && (filePath.charAt(1) == "/"))
+       {
+         pathToCheck = filePath.substr(2);
+       }
+       if (pathToCheck in _this.codemap)
+       {
+         _this.processNonLoadCodeBuffer(origFilePath, pathToCheck, currentXModule, onImportComplete, reject);
+         return;
+       }
     }
 
     log.message(4, "filePath=" + filePath);
