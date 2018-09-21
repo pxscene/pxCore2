@@ -18,10 +18,12 @@
 
 #ifdef RTSCRIPT_SUPPORT_V8
 
+#ifndef USE_SYSTEM_V8
 extern unsigned char natives_blob_bin_data[];
 extern int natives_blob_bin_size;
 extern unsigned char snapshot_blob_bin_data[];
 extern int snapshot_blob_bin_size;
+#endif /* USE_SYSTEM_V8 */
 
 #if defined WIN32
 #include <Windows.h>
@@ -48,6 +50,7 @@ extern int snapshot_blob_bin_size;
 #include <unicode/udata.h>
 #include <unicode/uidna.h>
 
+#ifndef USE_SYSTEM_V8
 /* if this is defined, we have a 'secondary' entry point.
 compare following to utypes.h defs for U_ICUDATA_ENTRY_POINT */
 #define SMALL_ICUDATA_ENTRY_POINT \
@@ -60,19 +63,9 @@ compare following to utypes.h defs for U_ICUDATA_ENTRY_POINT */
 #endif
 
 extern "C" const char U_DATA_API SMALL_ICUDATA_ENTRY_POINT[];
-
-#ifndef WIN32
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-#endif
+#endif /* USE_SYSTEM_V8 */
 
 #include "rtWrapperUtils.h"
-
-
-#ifndef WIN32
-#pragma GCC diagnostic pop
-#endif
-
 #include "rtScriptV8Node.h"
 
 #include "rtCore.h"
@@ -130,23 +123,8 @@ extern "C" const char U_DATA_API SMALL_ICUDATA_ENTRY_POINT[];
 #endif
 #endif
 
-#if !defined(WIN32) && !defined(ENABLE_DFB)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-
-#pragma GCC diagnostic ignored "-Wall"
-#endif
-
-#include  "headers.h"
+#include "headers.h"
 #include "libplatform/libplatform.h"
-
-#include "rtObjectWrapper.h"
-#include "rtFunctionWrapper.h"
-#include "rtWrapperUtils.h"
-
-#if !defined(WIN32) & !defined(ENABLE_DFB)
-#pragma GCC diagnostic pop
-#endif
 
 static rtAtomic sNextId = 100;
 
@@ -180,6 +158,9 @@ public:
     return malloc(size);
   }
   virtual void Free(void* data, size_t) { free(data); }
+  virtual void Free(void* data, size_t length, AllocationMode mode) {
+    free(data);
+  }
 };
 
 V8ArrayBufferAllocator* array_buffer_allocator = NULL;
@@ -323,7 +304,7 @@ private:
 using namespace v8;
 
 rtV8Context::rtV8Context(Isolate *isolate, Platform *platform, uv_loop_t *loop) :
-     mIsolate(isolate), mRefCount(0), mPlatform(platform), mUvLoop(loop), mDirname(rtString())
+     mIsolate(isolate), mPlatform(platform), mUvLoop(loop), mRefCount(0), mDirname(rtString())
 {
   rtLogInfo(__FUNCTION__);
   Locker                locker(mIsolate);
@@ -768,11 +749,8 @@ rtError rtV8Context::runFile(const char *file, rtValue* retVal /*= NULL*/, const
   return ret;
 }
 
-rtScriptV8::rtScriptV8():mRefCount(0), mV8Initialized(false)
+rtScriptV8::rtScriptV8():mIsolate(NULL), mPlatform(NULL), mUvLoop(NULL), mV8Initialized(false), mRefCount(0)
 {
-  mIsolate = NULL;
-  mPlatform = NULL;
-  mUvLoop = NULL;
   init();
 }
 
@@ -795,6 +773,7 @@ rtError rtScriptV8::init()
   rtLogInfo(__FUNCTION__);
 
   if (mV8Initialized == false) {
+#ifndef USE_SYSTEM_V8
     UErrorCode status = U_ZERO_ERROR;
     udata_setCommonData(&SMALL_ICUDATA_ENTRY_POINT, &status);
 
@@ -809,6 +788,7 @@ rtError rtScriptV8::init()
     snapshotBlob.data = (const char*)snapshot_blob_bin_data;
     snapshotBlob.raw_size = snapshot_blob_bin_size;
     v8::V8::SetSnapshotDataBlob(&snapshotBlob);
+#endif
 
     mUvLoop = uv_default_loop();
     Platform* platform = platform::CreateDefaultPlatform();
@@ -1185,7 +1165,7 @@ namespace rtScriptV8NodeUtils
     Local<v8::Function> func = PersistentToLocal(data->mIsolate, data->mFunc);
     Local<v8::Value> argv[1] = { func.As<Value>() };
 
-    (void)func->Call(ctx, argv[0], 1, argv);
+    std::ignore = func->Call(ctx, argv[0], 1, argv);
   }
 
   static void uvTimerStart(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -1193,7 +1173,7 @@ namespace rtScriptV8NodeUtils
     Isolate* isolate = args.GetIsolate();
     HandleScope scope(isolate);
 
-    uv_loop_t *loop = getEventLoopFromArgs(args);
+    std::ignore = getEventLoopFromArgs(args);
 
     args.GetReturnValue().Set(-1);
 
@@ -1229,7 +1209,7 @@ namespace rtScriptV8NodeUtils
     Isolate* isolate = args.GetIsolate();
     HandleScope scope(isolate);
 
-    uv_loop_t *loop = getEventLoopFromArgs(args);
+    std::ignore = getEventLoopFromArgs(args);
 
     args.GetReturnValue().Set(-1);
 
@@ -1265,7 +1245,7 @@ namespace rtScriptV8NodeUtils
     Isolate* isolate = args.GetIsolate();
     HandleScope scope(isolate);
 
-    uv_loop_t *loop = getEventLoopFromArgs(args);
+    std::ignore = getEventLoopFromArgs(args);
 
     args.GetReturnValue().SetNull();
 
