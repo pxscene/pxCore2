@@ -32,7 +32,7 @@ webpack -o "dist/$outputfile"
 #sed -i 's/function(module, exports, __webpack_require__) {/function(module, exports, __webpack_require__) {\n px.registerCode(__webpack_require__.m)\n/g' dist/$outputfile
 
 #remove all the lines where module.exports is provided, as spark have own module
-linenumbers=`grep -rn "^module.exports = __webpack_require__" dist/$outputfile|awk -F: '{print $1}'`
+linenumbers=`grep -rn "^module.exports = __webpack_require__" dist/$outputfile|grep -v "./pack/$entryfile" | awk -F: '{print $1}'`
 delcmd="sed -i '"
 for number in $linenumbers
 do
@@ -50,10 +50,12 @@ delcmd=$delcmd" $number d;"
 done
 delcmd=$delcmd"' dist/$outputfile"
 eval "$delcmd"
-#sed -i "$number"d dist/$outputfile
 
 #replace all the lines starting with format ./pack/filename to filename
 sed -i 's/\.\/pack\///g' dist/$outputfile
+
+#replace any module.exports line with index.js
+sed -i "s/^module.exports = __webpack_require__(\/\*! $entryfile \*\/\\\"$entryfile\\\");/__webpack_require__(\/\*! $entryfile \*\/\\\"$entryfile\\\");/g" dist/$outputfile
 
 #perform registration of source code on the start of first main file to px layer
 sed -i "s/__webpack_require__(\/\*! $entryfile \*\/\\\"$entryfile\\\");/px.registerCode(__webpack_require__.m)\n__webpack_require__(\/\*! $entryfile \*\/\\\"$entryfile\\\");/g" dist/$outputfile
