@@ -774,7 +774,7 @@ void pxObject::setParent(rtRef<pxObject>& parent)
       parent->mChildren.push_back(this);
 #ifdef PX_DIRTY_RECTANGLES
     mIsDirty = true;
-    mScreenCoordinates = getBoundingRectInScreenCoordinates();
+    //mScreenCoordinates = getBoundingRectInScreenCoordinates();
 #endif //PX_DIRTY_RECTANGLES
   }
 }
@@ -1200,28 +1200,28 @@ void pxObject::update(double t)
     ++it;
   }
 
-
-  #ifdef PX_DIRTY_RECTANGLES
-  pxMatrix4f m;
-  applyMatrix(m);
-  context.setMatrix(m);
-  if (mIsDirty)
-  {
-    mScreenCoordinates = getBoundingRectInScreenCoordinates();
-    mRenderMatrix = context.getMatrix();
-    mScene->invalidateRect(&mScreenCoordinates);
-    pxRect dirtyRect = getBoundingRectInScreenCoordinates();
-    if (!dirtyRect.isEqual(mScreenCoordinates))
+#ifdef PX_DIRTY_RECTANGLES
+    pxMatrix4f m;
+    applyMatrix(m);
+    context.setMatrix(m);
+    mRenderMatrix = m;
+    if (mIsDirty)
     {
-        mScene->invalidateRect(&dirtyRect);
-        dirtyRect.unionRect(mScreenCoordinates);
-        setDirtyRect(&dirtyRect);
+        mScene->invalidateRect(&mScreenCoordinates);
+        
+        pxRect dirtyRect = getBoundingRectInScreenCoordinates();
+        if (!dirtyRect.isEqual(mScreenCoordinates))
+        {
+            mScene->invalidateRect(&dirtyRect);
+            dirtyRect.unionRect(mScreenCoordinates);
+            setDirtyRect(&dirtyRect);
+        }
+        else
+            setDirtyRect(&mScreenCoordinates);
+        
+        mIsDirty = false;
     }
-    else
-        setDirtyRect(&mScreenCoordinates);
-    mIsDirty = false;
-  }
-  #endif //PX_DIRTY_RECTANGLES
+#endif
 
   // Recursively update children
   for(vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
@@ -1237,7 +1237,12 @@ EXITSCENELOCK()
     context.popState();
 #endif //PX_DIRTY_RECTANGLES
   }
-
+    
+#ifdef PX_DIRTY_RECTANGLES
+    context.setMatrix(m);
+    mRenderMatrix = m;
+#endif
+    
   // Send promise
   sendPromise();
 }
@@ -1284,6 +1289,7 @@ pxRect pxObject::getBoundingRectInScreenCoordinates()
   int w = getOnscreenWidth();
   int h = getOnscreenHeight();
   int x[4], y[4];
+  mRenderMatrix = context.getMatrix();
   context.mapToScreenCoordinates(mRenderMatrix, 0,0,x[0],y[0]);
   context.mapToScreenCoordinates(mRenderMatrix, w, h, x[1], y[1]);
   context.mapToScreenCoordinates(mRenderMatrix, 0, h, x[2], y[2]);
@@ -1404,14 +1410,7 @@ void pxObject::drawInternal(bool maskPass)
 #else
 
 #ifdef PX_DIRTY_RECTANGLES
-    if (!mIsDirty)
-        applyMatrix(m);
-    else if (!mRenderMatrix.isEqual(context.getMatrix()))
-    {
-        applyMatrix(m);
-        context.setMatrix(m);
-        mRenderMatrix = context.getMatrix(); // ANIMATE !!!
-    }
+    m = mRenderMatrix;
 #else
     applyMatrix(m); // ANIMATE !!!
 #endif
@@ -1454,12 +1453,7 @@ void pxObject::drawInternal(bool maskPass)
 
 #endif
 
-#ifdef PX_DIRTY_RECTANGLES
-    if (!mIsDirty)
-        context.setMatrix(m);
-#else
-    context.setMatrix(m);
-#endif
+  context.setMatrix(m);
   context.setAlpha(ma);
 
   if ((mClip && !context.isObjectOnScreen(0,0,w,h)) || mSceneSuspended)
@@ -1469,8 +1463,8 @@ void pxObject::drawInternal(bool maskPass)
   }
 
   #ifdef PX_DIRTY_RECTANGLES
-  mRenderMatrix = context.getMatrix();
-  //mScreenCoordinates = getBoundingRectInScreenCoordinates();
+  //mLastRenderMatrix = context.getMatrix();
+  mScreenCoordinates = getBoundingRectInScreenCoordinates();
   #endif //PX_DIRTY_RECTANGLES
 
   float c[4] = {1, 0, 0, 1};
@@ -1511,12 +1505,7 @@ void pxObject::drawInternal(bool maskPass)
         draw();
       }
       createSnapshotOfChildren();
-#ifdef PX_DIRTY_RECTANGLES
-        if (!mIsDirty)
-            context.setMatrix(m);
-#else
-        context.setMatrix(m);
-#endif
+      context.setMatrix(m);
       //rtLogInfo("context.drawImage\n");
       
       context.drawImageMasked(0, 0, w, h, maskOp, mDrawableSnapshotForMask->getTexture(), mMaskSnapshot->getTexture());
@@ -1528,12 +1517,7 @@ void pxObject::drawInternal(bool maskPass)
       if (mRepaint)
       {
         createSnapshot(mClipSnapshotRef);
-#ifdef PX_DIRTY_RECTANGLES
-          if (!mIsDirty)
-              context.setMatrix(m);
-#else
-          context.setMatrix(m);
-#endif
+        context.setMatrix(m);
         context.setAlpha(ma);
       }
 
