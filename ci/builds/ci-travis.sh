@@ -22,10 +22,6 @@ SCRIPT_DIR=$(cd `dirname $0` && pwd)
 
 pushd "${SCRIPT_DIR}"
 
-if [ -e /etc/init.d/xvfb ]; then
-    export DISPLAY=:99.0
-    /bin/bash -xe /etc/init.d/xvfb start
-    sleep 5 # give xvfb some time to start
-fi
+unset DISPLAY
 
 time ./dw.sh ./script-runall.sh "$@" $CI_EXTRA_ARG

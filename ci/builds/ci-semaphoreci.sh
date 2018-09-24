@@ -25,7 +25,7 @@
 #    (a) Leave "Setup" - leave empty
 #    (b) Add new command line: ./ci/builds/ci-semaphoreci.sh
 # (2) "Platform"
-#    (a) Select from "DOCKER (NATIVE)" "Ubuntu 14.04 LTS v1805.1"
+#    (a) Select from "DOCKER (NATIVE)" "Docker v1807"
 # (3) "Environment Variables"
 # (4) "Configuration files"
 # (5) "Repository"
@@ -65,6 +65,8 @@ if [ -n "${SEMAPHORE}" ]; then
     done
 
     free || true
+
+    unset DISPLAY
 fi
 
 

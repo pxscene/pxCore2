@@ -34,7 +34,7 @@ cleanup() {
 
     do_cleanup=""
     if [ -n "${weston_pid}" ]; then
-        kill -9 $weston_pid 2>/dev/null
+        kill -9 $weston_pid 2>/dev/null || true
         weston_pid=""
     fi
 
