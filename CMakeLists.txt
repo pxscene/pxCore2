@@ -14,7 +14,12 @@ option(PREFER_SYSTEM_LIBRARIES "Prefer to use system libraries over bundled." "O
 
 option(DISABLE_DEBUG_MODE "Disable debugging mode." "OFF") # OFF for backward compatibility
 
+if (WIN32)
+option(SUPPORT_DUKTAPE "SUPPORT_DUKTAPE" OFF)
+else ()
 option(SUPPORT_DUKTAPE "SUPPORT_DUKTAPE" ON)
+endif (WIN32)
+
 option(SUPPORT_NODE "SUPPORT_NODE" ON)
 option(SUPPORT_V8 "SUPPORT_V8" OFF)
 

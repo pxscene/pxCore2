@@ -244,7 +244,7 @@ elseif (WIN32)
     set(CMAKE_BUILD_TYPE Release)
     set(CMAKE_CONFIGURATION_TYPES ${CMAKE_BUILD_TYPE} CACHE STRING "" FORCE)
     add_definitions(-DWIN32 -D_LIB -DPX_PLATFORM_WIN -DRT_PLATFORM_WINDOWS)
-    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT /Zi /DEBUG")
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT ")
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /EHs-c-")
     set(PXCORE_LIB_LOCATION ${PXCOREDIR}/build/win/Release)
     set(PXSCENE_LINK_DIRECTORIES ${PXCORE_LIB_LOCATION})
@@ -291,7 +291,7 @@ elseif (WIN32)
     set(PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} ${COMM_DEPS_LIBRARIES} ${NODE_LIBRARIES} ${V8_LIBRARIES} ${DUKE_LIBRARIES})
     set(PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES}
         pthreadVC2.lib opengl32.lib Winmm.lib Shlwapi.lib
-        Ws2_32.lib Wldap32.lib msvcrt.lib psapi.lib
+        Ws2_32.lib Wldap32.lib psapi.lib
         iphlpapi.lib userenv.lib rtCore_s.lib common.lib
         crash_generation_client.lib exception_handler.lib)
 
