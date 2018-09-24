@@ -15,13 +15,26 @@
 # limitations under the License.
 #
 
-set -e
-set -x
-
+# Common part
 SCRIPT_DIR=$(cd `dirname $0` && pwd)
+source "${SCRIPT_DIR}/common.sh"
 
-pushd "${SCRIPT_DIR}"
+SPARK_BASEDIR=${SCRIPT_DIR}/../../
+pushd $SPARK_BASEDIR
 
-unset DISPLAY
+# Specific part
 
-time ./dw.sh ./script-runall.sh "$@" $CI_EXTRA_ARG
+mkdir -p build
+pushd build
+
+compile_rt_remote
+
+cmake \
+  ${RTREMOTE_GENERATOR_EXPORT} \
+  ${spark_common_opts[*]} \
+  ${spark_force_v8[*]} \
+  ${spark_wayland_opts[*]} \
+  -DCMAKE_CXX_FLAGS="${cxx_common_opts[*]} ${gcc_specific_opts[*]} ${gcc_tsan_opts[*]}" \
+  ..
+
+make_build "$@"
