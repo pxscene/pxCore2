@@ -216,6 +216,12 @@ rtError pxArchive::getFileAsString(const char* fileName, rtString& s)
 rtError pxArchive::getFileData(const char* fileName, rtData& d)
 {
   rtError e = RT_FAIL;
+  // convert the names coming as input as "./filename" to filename to perform search
+  char* name = (char *)fileName;
+  if ((NULL != name) && (name[0] == '.') && (name[1] == '/'))
+  {
+    name = name+2;
+  }
   if (mLoadStatus.get<int32_t>("statusCode") == 0)
   {
     if (mIsFile)
@@ -224,7 +230,7 @@ rtError pxArchive::getFileData(const char* fileName, rtData& d)
     }
     else
     {
-      if (mZip.getFileData(fileName,d)==RT_OK)
+      if (mZip.getFileData(name,d)==RT_OK)
       {
         e = RT_OK;
       }
