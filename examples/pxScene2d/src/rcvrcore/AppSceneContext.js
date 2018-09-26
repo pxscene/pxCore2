@@ -26,7 +26,8 @@ var path = require('path');
 var vm = require('vm');
 var Logger = require('rcvrcore/Logger').Logger;
 var SceneModuleLoader = require('rcvrcore/SceneModuleLoader');
-var XModule = require('rcvrcore/XModule');
+var XModule = require('rcvrcore/XModule').XModule;
+var xmodImportModule = require('rcvrcore/XModule').importModule;
 var loadFile = require('rcvrcore/utils/FileUtils').loadFile;
 var loadFileWithSparkPermissionsCheck = require('rcvrcore/utils/FileUtils').loadFileWithSparkPermissionsCheck;
 var SceneModuleManifest = require('rcvrcore/SceneModuleManifest');
@@ -35,6 +36,7 @@ var AsyncFileAcquisition = require('rcvrcore/utils/AsyncFileAcquisition');
 var AccessControl = require('rcvrcore/utils/AccessControl').AccessControl;
 var WrapObj = require('rcvrcore/utils/WrapObj');
 var http2_wrap = require('rcvrcore/http2_wrap');
+var ws_wrap = (isDuk)?"":require('rcvrcore/ws_wrap');
 
 var log = new Logger('AppSceneContext');
 //overriding original timeout and interval functions
@@ -221,7 +223,51 @@ this.innerscene.on('onClose', function() {
     this.isCloseEvtRcvd = true;
   }.bind(this));
 
+if (false) {
+if (false) {
+  // This no longer has access to the container
+  this.container.on('onKeyDown', function (e) {
+    log.message(2, "container(" + this.packageUrl + "): keydown:" + e.keyCode);
+  }.bind(this));
+
+}
+  this.innerscene.on('onKeyDown', function (e) {
+    log.message(2, "innerscene(" + this.packageUrl + "): keydown:" + e.keyCode);
+  }.bind(this));
+
+  this.innerscene.root.on('onKeyDown', function (e) {
+    log.message(2, "innerscene root(" + this.packageUrl + "): keydown:" + e.keyCode);
+  }.bind(this));
+}
+
+if (false) {
+  // JRJRJR No longer get this event...
+  this.innerscene.on('onComplete', function (e) {
+//    this.container = null;
+    this.innerscene = null;
+    this.sandbox = null;
+    for(var key in this.scriptMap) {
+      this.scriptMap[key].scriptObject = null;
+      this.scriptMap[key].readyListeners = null;
+/* JRJRJR
+      delete this.scriptMap[key].scriptObject;
+      delete this.scriptMap[key].readyListeners;
+*/
+    }
+    this.scriptMap = null;
+    for(var xmodule in this.xmoduleMap) {
+      this.xmoduleMap[xmodule].freeResources();
+    }
+    this.xmoduleMap = null;
+    this.topXModule = null;
+    this.jarFileMap = null;
+    this.sceneWrapper = null;
+    global.gc();
+  }.bind(this));
+}
+
   //log.info("loadScene() - ends    on ctx: " + getContextID() );
+
 };
 
 AppSceneContext.prototype.loadPackage = function(packageUri) {
@@ -280,8 +326,8 @@ function createModule_pxScope(xModule) {
     configImport: xModule.configImport.bind(xModule),
     resolveFilePath: xModule.resolveFilePath.bind(xModule),
     appQueryParams: this.queryParams,
-    getPackageBaseFilePath: this.getPackageBaseFilePath.bind(this),
-    getFile: this.getFile.bind(this),
+    getPackageBaseFilePath: getPackageBaseFilePath.bind(this),
+    getFile: getFile.bind(this),
     getModuleFile: xModule.getFile.bind(xModule)
   };
 }
@@ -506,20 +552,29 @@ if (false) {
 
       console.log("Main Module: readyPromise=" + xModule.moduleReadyPromise);
       if( !xModule.hasOwnProperty('moduleReadyPromise') || xModule.moduleReadyPromise === null ) {
-        console.log("Main module[" + self.packageUrl + "] about to notify. xModule.exports:"+(typeof xModule.exports));
-        self.innerscene.api = xModule.exports;
-        this.makeReady(true, xModule.exports);
-        console.log("Main module[" + self.packageUrl + "] about to notify done");
-      } else {
-        xModule.moduleReadyPromise.then( function() {
-          console.log("Main module[" + self.packageUrl + "] about to notify. xModule.exports:"+(typeof xModule.exports));
+        //        this.container.makeReady(true); // DEPRECATED ?
+
+        //        this.innerscene.api = {isReady:true};
+        this.makeReady(true,{});
+      }
+      else
+      {
+        var modulePromise = xModule.moduleReadyPromise;
+        var thisMakeReady = this.makeReady; // NB:  capture for async then() closure.
+
+        modulePromise.then( function(i)
+        {
           self.innerscene.api = xModule.exports;
-          self.makeReady(true, xModule.exports);
+
+          console.log("Main module[" + self.packageUrl + "] about to notify");
+          thisMakeReady(true, xModule.exports);
           console.log("Main module[" + self.packageUrl + "] about to notify done");
-        }).catch( function(err) {
+
+        }).catch( function(err)
+        {
           console.error("Main module[" + self.packageUrl + "]" + " load has failed - on failed imports: " + ", err=" + err);
-          self.makeReady(false, {});
-        });
+          thisMakeReady(false,{});
+        } );
       }
     }
     catch (err) {
@@ -572,6 +627,14 @@ AppSceneContext.prototype.getPackageBaseFilePath = function() {
 
   return fullPath;
 };
+
+function getPackageBaseFilePath() {
+  return this.getPackageBaseFilePath();
+}
+
+function getFile(filePath) {
+  return this.getFile(filePath);
+}
 
 AppSceneContext.prototype.getModuleFile = function(filePath, xModule) {
   var promise = this.jarFileMap.getArchiveFileAsync(xModule.getJarName(), filePath);
@@ -809,24 +872,27 @@ AppSceneContext.prototype.processCodeBuffer = function(origFilePath, filePath, c
   this.setXModule(filePath, xModule);
 
   // Set up a async wait until module indicates it's completly ready
-  if( !xModule.moduleReadyPromise ) {
+  var modReadyPromise = xModule.moduleReadyPromise;
+  if( modReadyPromise === null ) {
     // No use of px.import or it's possible that these exports have already been added
-    log.message(4, "["+xModule.name+"]: <" + filePath + "> MODULE INDICATES IT'S FULLY READY. xModule.exports:" + (typeof xModule.exports));
     _this.addScript(filePath, 'ready', xModule.exports);
-    log.message(4, "is about to notify [" + currentXModule.name + "] that <" + filePath + "> has been imported and is ready");
     onImportComplete([xModule.exports, origFilePath]);
-    log.message(4, "after notifying [:" + currentXModule.name + "] about import <" + filePath + ">");
+    log.message(4, "AppSceneContext after notifying[:" + currentXModule.name + "] about import<" + filePath + ">");
+    // notify 'ready' listeners
     _this.callModuleReadyListeners(filePath, xModule.exports);
+
   } else {
     // Now wait for module to indicate that it's fully ready to go
-    xModule.moduleReadyPromise.then(function () {
-      log.message(4, "["+xModule.name+"]: <" + filePath + "> MODULE INDICATES IT'S FULLY READY. xModule.exports:" + (typeof xModule.exports));
+    modReadyPromise.then(function () {
+      log.message(7, "AppSceneContext[xModule=" + xModule.name + "]: is notified that <" + filePath + "> MODULE INDICATES IT'S FULLY READY");
       _this.addScript(filePath, 'loaded', xModule.exports);
       _this.setScriptStatus(filePath, 'ready');
-      log.message(4, "is about to notify [" + currentXModule.name + "] that <" + filePath + "> has been imported and is ready");
+      log.message(7, "AppSceneContext: is about to notify [" + currentXModule.name + "] that <" + filePath + "> has been imported and is ready");
       onImportComplete([xModule.exports, origFilePath]);
-      log.message(4, "after notifying [:" + currentXModule.name + "] about import <" + filePath + ">");
+      log.message(8, "AppSceneContext after notifying[:" + currentXModule.name + "] about import<" + filePath + ">");
+      // notify 'ready' listeners
       _this.callModuleReadyListeners(filePath, xModule.exports);
+
     }).catch(function (error) {
       onImportRejected("include(2): failed while waiting for module <" + filePath + "> to be ready for [" + currentXModule.name + "] - error=" + error);
     });
