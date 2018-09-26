@@ -25,7 +25,8 @@
 #    (a) Leave "Setup" - leave empty
 #    (b) Add new command line: ./ci/builds/ci-semaphoreci.sh
 # (2) "Platform"
-#    (a) Select from "DOCKER (NATIVE)" "Docker v1807"
+#    (a) Select from "DOCKER (NATIVE)" "Docker v1809.1"
+#        (It is quite safe to try using the latest available version)
 # (3) "Environment Variables"
 # (4) "Configuration files"
 # (5) "Repository"
@@ -60,9 +61,11 @@ if [ -n "${SEMAPHORE}" ]; then
     free || true
 
     # Let's try to release some unused resources
-    for s in apache2 elasticsearch cassandra mongod sphinxsearch; do
+    for s in apache2 elasticsearch cassandra mongod mysql sphinxsearch memcached postgresql rabbitmq-server redis-server; do
         sudo service $s stop || true
     done
+
+    killall -9 Xvfb || true
 
     free || true
 

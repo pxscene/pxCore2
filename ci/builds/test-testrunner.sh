@@ -58,7 +58,11 @@ start_display() {
 
         local wayland_display=wayland-1
 
-        "${XV[@]}" weston --no-config --socket="${wayland_display}" &
+        if [ ! -e /dev/dri/card0 ]; then
+            USE_RDP_BACKEND=(--backend=rdp-backend.so --rdp-tls-cert=weston-rdp-keys/tls.crt --rdp-tls-key=weston-rdp-keys/tls.key)
+        fi
+
+        "${XV[@]}" weston ${USE_RDP_BACKEND[@]} --no-config --socket="${wayland_display}" &
         weston_pid=$!
         echo weston_pid=${weston_pid} || true # as on semaphoreci it sometimes generates "write error"
         sleep 5
