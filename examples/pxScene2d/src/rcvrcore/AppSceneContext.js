@@ -324,8 +324,8 @@ function getBaseFilePath()
   return this;
 }
 
-function createModule_pxScope(xModule) {
-  return {
+function createModule_pxScope(xModule, isImported) {
+  var params  = {
     log: xModule.log,
     import: xmodImportModule.bind(xModule),
     configImport: xModule.configImport.bind(xModule),
