@@ -42,6 +42,5 @@
       {"url":"../tests/test_animationOscillate.js", "title":"test_ANIM_oscillate","useBaseURI":"true"},
       {"url":"../tests/test_textBoxEllipsis_oneLine.js", "title":"test_textBoxEllipsis_oneLine","useBaseURI":"true"},
       {"url":"../tests/test_textBoxWrapBounds.js", "title":"test_textBoxWrapBounds","useBaseURI":"true"},
-      {"url":"../tests/test_textWithoutParent.js", "title":"textWithoutParent","useBaseURI":"true"},
-      {"url":"../tests/test_getFile.js", "title":"test_getFile","useBaseURI":"true"}
+      {"url":"../tests/test_textWithoutParent.js", "title":"textWithoutParent","useBaseURI":"true"}
 ]
