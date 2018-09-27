@@ -32,6 +32,10 @@
 
 #include "pxContext.h"
 
+#ifdef ENABLE_RT_NODE
+#include "rtScript.h"
+#endif //ENABLE_RT_NODE
+
 #include <map>
 using namespace std;
 
@@ -313,6 +317,10 @@ void pxWayland::onUpdate(double t)
 
   if(!mReadyEmitted && mEvents && mWCtx && (!mUseDispatchThread || !mWaitingForRemoteObject) )
   {
+#ifdef ENABLE_RT_NODE
+    rtWrapperSceneUnlocker unlocker;
+#endif //ENABLE_RT_NODE
+
     mReadyEmitted= true;
     mEvents->isReady(true);
   }
@@ -457,7 +465,8 @@ void pxWayland::handleHidePointer( bool hide )
 
 void pxWayland::handleClientStatus( int status, int pid, int detail )
 {
-   mClientPID = status == WstClient_stoppedAbnormal || status == WstClient_stoppedNormal ? -1 : pid;
+   if ( mClientPID <= 0 )
+      mClientPID = ( ( status == WstClient_stoppedAbnormal ) || ( status == WstClient_stoppedNormal ) ) ? -1 : pid;
    if ( mEvents )
    {
       switch ( status )

@@ -26,10 +26,15 @@
 #include <algorithm>
 
 const char* rtCORS::ENV_NAME_ENABLED = "SPARK_CORS_ENABLED";
+const char* rtCORS::HTTPHeaderName_Origin = "origin";
+const char* rtCORS::HTTPHeaderName_Authorization = "authorization";
+const char* rtCORS::HTTPHeaderName_Cookie = "cookie";
+const char* rtCORS::HTTPHeaderName_AccessControlRequestMethod = "access-control-request-method";
+const char* rtCORS::HTTPHeaderName_AccessControlRequestHeaders = "access-control-request-headers";
 const char* rtCORS::HTTPHeaderName_AccessControlAllowOrigin = "access-control-allow-origin";
 const char* rtCORS::HTTPHeaderName_AccessControlAllowCredentials = "access-control-allow-credentials";
 
-bool rtCORS::mEnable = true; // default
+bool rtCORS::mEnabled = false; // default
 
 rtCORS::rtCORS(const rtString& origin)
   : mOrigin(origin)
@@ -44,8 +49,8 @@ rtCORS::rtCORS(const rtString& origin)
     if (s != NULL)
     {
       rtString envVal(s);
-      mEnable = 0 == envVal.compare("true") || 0 == envVal.compare("1");
-      rtLogWarn("%s : %s", __FUNCTION__, mEnable ? "enabled" : "disabled");
+      mEnabled = 0 == envVal.compare("true") || 0 == envVal.compare("1");
+      rtLogWarn("%s : %s", __FUNCTION__, mEnabled ? "enabled" : "disabled");
     }
   }
 }
@@ -59,6 +64,9 @@ rtCORS::~rtCORS()
 
 rtError rtCORS::updateRequestForAccessControl(struct curl_slist** headerList) const
 {
+  if (!mEnabled)
+     return RT_OK;
+
   rtLogDebug("%s", __FUNCTION__);
 
   // Do not check is origin header already exists
@@ -82,6 +90,9 @@ rtError rtCORS::updateRequestForAccessControl(struct curl_slist** headerList) co
 
 rtError rtCORS::updateResponseForAccessControl(rtFileDownloadRequest* request) const
 {
+  if (!mEnabled)
+     return RT_OK;
+
   rtLogDebug("%s", __FUNCTION__);
 
   const rtString& url = request->fileUrl();
@@ -128,6 +139,12 @@ rtError rtCORS::updateResponseForAccessControl(rtFileDownloadRequest* request) c
 
 rtError rtCORS::passesAccessControlCheck(const rtString& rawHeaderData, bool withCredentials, const rtString& origin, bool& passes) const
 {
+  if (!mEnabled)
+  {
+    passes = true;
+    return RT_OK;
+  }
+
   rtLogDebug("%s", __FUNCTION__);
 
   // Cannot make requests to an empty URL
@@ -148,7 +165,8 @@ rtError rtCORS::passesAccessControlCheck(const rtString& rawHeaderData, bool wit
   rtString errorDescription;
   std::map<std::string, rtString> headerMap;
   parseHeaders(rawHeaderData, headerMap);
-  rtLogDebug("%s : check access to '%s' from origin '%s'", __FUNCTION__, origin.cString(), mOrigin.cString());
+  rtLogDebug("%s : check access to '%s' from origin '%s'. withCredentials: '%s'",
+    __FUNCTION__, origin.cString(), mOrigin.cString(), withCredentials ? "true" : "false");
   passes = passesAccessControlCheck(headerMap, withCredentials, origin, errorDescription);
   if (!passes)
     rtLogWarn("%s : block '%s' from origin '%s' because: %s",
@@ -161,6 +179,9 @@ rtError rtCORS::passesAccessControlCheck(const rtString& rawHeaderData, bool wit
 
 bool rtCORS::passesAccessControlCheck(const std::map<std::string, rtString>& headerMap, bool withCredentials, const rtString& origin, rtString& errorDescription) const
 {
+  if (!mEnabled)
+    return true;
+
   // A wildcard Access-Control-Allow-Origin can not be used if credentials are to be sent,
   // even with Access-Control-Allow-Credentials set to true.
   std::map<std::string, rtString>::const_iterator it = headerMap.find(HTTPHeaderName_AccessControlAllowOrigin);
@@ -261,5 +282,36 @@ std::string rtCORS::toLowercaseStr(const rtString& str)
   return s;
 }
 
+rtError rtCORS::isCORSRequestHeader(const rtString& headerName, bool& isCORSHeader) const
+{
+  bool result = false;
+  std::string str = toLowercaseStr(headerName);
+  if (str == HTTPHeaderName_Origin ||
+    str == HTTPHeaderName_AccessControlRequestMethod ||
+    str == HTTPHeaderName_AccessControlRequestHeaders)
+  {
+    result = true;
+  }
+  isCORSHeader = result;
+  return RT_OK;
+}
+
+rtError rtCORS::isCredentialsRequestHeader(const rtString& headerName, bool& isCredentialsHeader) const
+{
+  bool result = false;
+  std::string str = toLowercaseStr(headerName);
+  if (str == HTTPHeaderName_Authorization ||
+    str == HTTPHeaderName_Cookie)
+  {
+    result = true;
+  }
+  isCredentialsHeader = result;
+  return RT_OK;
+}
+
 rtDefineObject(rtCORS, rtObject);
 rtDefineMethod(rtCORS, passesAccessControlCheck);
+rtDefineMethod(rtCORS, isCORSRequestHeader);
+rtDefineMethod(rtCORS, isCredentialsRequestHeader);
+rtDefineProperty(rtCORS, isEnabled);
+rtDefineProperty(rtCORS, origin);

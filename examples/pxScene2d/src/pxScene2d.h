@@ -70,6 +70,7 @@
 #include "rtCORS.h"
 
 #include "rtServiceProvider.h"
+#include "rtSettings.h"
 
 #ifdef RUNINMAIN
 #define ENTERSCENELOCK()
@@ -99,9 +100,6 @@ extern rtThreadQueue* gUIThreadQueue;
 
 // Constants
 static pxConstants CONSTANTS;
-
-char *base64_encode(const unsigned char *data, size_t input_length, size_t *output_length);
-unsigned char *base64_decode(const unsigned char *data, size_t input_length, size_t *output_length);
 
 #if 0
 typedef rtError (*objectFactory)(void* context, const char* t, rtObjectRef& o);
@@ -447,6 +445,7 @@ public:
   virtual void update(double t);
   virtual void releaseData(bool sceneSuspended);
   virtual void reloadData(bool sceneSuspended);
+  virtual uint64_t textureMemoryUsage();
 
   // non-destructive applies transform on top of of provided matrix
   virtual void applyMatrix(pxMatrix4f& m)
@@ -509,8 +508,12 @@ public:
       float dy = -(mpy * mh);
       
       // translate based on xy rotate/scale based on cx, cy
-      m.translate(mx + mcx + dx, my + mcy + dy);
-      
+      bool doTransToOrig = msx != 1.0 || msy != 1.0 || mr;
+      if (doTransToOrig)
+        m.translate(mx + mcx + dx, my + mcy + dy);
+      else
+        m.translate(mx + dx, my + dy);
+        
       if (mr)
       {
         m.rotateInDegrees(mr
@@ -532,7 +535,8 @@ public:
         );
       }
       if (msx != 1.0 || msy != 1.0) m.scale(msx, msy);
-      m.translate(-mcx, -mcy);
+      if (doTransToOrig)
+        m.translate(-mcx, -mcy);
 #endif
     }
     else
@@ -752,7 +756,7 @@ protected:
   bool mRepaint;
   #ifdef PX_DIRTY_RECTANGLES
   bool mIsDirty;
-  pxMatrix4f mLastRenderMatrix;
+  pxMatrix4f mRenderMatrix;
   pxRect mScreenCoordinates;
   pxRect mDirtyRect;
   #endif //PX_DIRTY_RECTANGLES
@@ -1066,6 +1070,7 @@ public:
   virtual void* getInterface(const char* name);
   virtual void releaseData(bool sceneSuspended);
   virtual void reloadData(bool sceneSuspended);
+  virtual uint64_t textureMemoryUsage();
   
 private:
   rtRef<pxScriptView> mScriptView;
@@ -1082,7 +1087,7 @@ typedef rtRef<pxObject> pxObjectRef;
 class pxScriptView: public pxIView
 {
 public:
-  pxScriptView(const char* url, const char* /*lang*/);
+  pxScriptView(const char* url, const char* /*lang*/, pxIViewContainer* container=NULL);
 #ifndef RUNINMAIN
   void runScript(); // Run the script
 #endif
@@ -1176,8 +1181,11 @@ public:
 
   rtError suspend(const rtValue& v, bool& b);
   rtError resume(const rtValue& v, bool& b);
+  rtError textureMemoryUsage(rtValue& v);
   
 protected:
+
+  static rtError printFunc(int /*numArgs*/, const rtValue* /*args*/, rtValue* result, void* ctx);
 
   static rtError getScene(int /*numArgs*/, const rtValue* /*args*/, rtValue* result, void* ctx);
   static rtError makeReady(int /*numArgs*/, const rtValue* /*args*/, rtValue* result, void* ctx);
@@ -1295,6 +1303,7 @@ protected:
   rtObjectRef mReady;
   rtObjectRef mScene;
   rtRef<pxIView> mView;
+  rtRef<rtFunctionCallback> mPrintFunc;
   rtRef<rtFunctionCallback> mGetScene;
   rtRef<rtFunctionCallback> mMakeReady;
   rtRef<rtFunctionCallback> mGetContextID;
@@ -1327,9 +1336,11 @@ public:
   rtMethodNoArgAndNoReturn("logDebugMetrics", logDebugMetrics);
   rtMethodNoArgAndNoReturn("collectGarbage", collectGarbage);
   rtReadOnlyProperty(info, info, rtObjectRef);
+  rtReadOnlyProperty(capabilities, capabilities, rtObjectRef);
   rtMethod1ArgAndReturn("suspend", suspend, rtValue, bool);
   rtMethod1ArgAndReturn("resume", resume, rtValue, bool);
   rtMethodNoArgAndReturn("suspended", suspended, bool);
+  rtMethodNoArgAndReturn("textureMemoryUsage", textureMemoryUsage, rtValue);
 /*
   rtMethod1ArgAndReturn("createExternal", createExternal, rtObjectRef,
                         rtObjectRef);
@@ -1367,8 +1378,7 @@ public:
   rtReadOnlyProperty(alignVertical,alignVertical,rtObjectRef);
   rtReadOnlyProperty(alignHorizontal,alignHorizontal,rtObjectRef);
   rtReadOnlyProperty(truncation,truncation,rtObjectRef);
-
-  rtReadOnlyProperty(origin, origin, rtString);
+  rtMethod1ArgAndReturn("sparkSetting", sparkSetting, rtString, rtValue);
 
   rtMethodNoArgAndNoReturn("dispose",dispose);
 
@@ -1389,6 +1399,10 @@ public:
     {
        //delete mTestView; // HACK: Only used in testing... 'delete' causes unknown crash.
        mTestView = NULL;
+    }
+    if (mArchive != NULL)
+    {
+       mArchive = NULL;
     }
   }
   
@@ -1470,6 +1484,7 @@ public:
   rtError suspend(const rtValue& v, bool& b);
   rtError resume(const rtValue& v, bool& b);
   rtError suspended(bool &b);
+  rtError textureMemoryUsage(rtValue &v);
 
   rtError addListener(rtString eventName, const rtFunctionRef& f)
   {
@@ -1521,7 +1536,7 @@ public:
 #endif
   rtCORSRef cors() const { return mCORS; }
   rtError cors(rtObjectRef& v) const { v = mCORS; return RT_OK; }
-  rtError origin(rtString& v) const { v = mOrigin; return RT_OK; }
+  rtError sparkSetting(const rtString& setting, rtValue& value) const;
 
   void setMouseEntered(rtRef<pxObject> o);//setMouseEntered(pxObject* o);
 
@@ -1546,7 +1561,7 @@ public:
   virtual void onComplete();
 
   virtual void setViewContainer(pxIViewContainer* l);
-
+  pxIViewContainer* viewContainer();
   void invalidateRect(pxRect* r);
   
   void getMatrixFromObjectToScene(pxObject* o, pxMatrix4f& m);
@@ -1574,6 +1589,13 @@ public:
     return RT_OK;
   }
 
+  rtObjectRef  getCapabilities() const;
+  rtError capabilities(rtObjectRef& v) const
+  {
+    v = getCapabilities();
+    return RT_OK;
+  }
+
   rtError loadArchive(const rtString& url, rtObjectRef& archive)
   {
 #ifdef ENABLE_PERMISSIONS_CHECK
@@ -1583,11 +1605,41 @@ public:
 
     rtError e = RT_FAIL;
     rtRef<pxArchive> a = new pxArchive;
-    if (a->initFromUrl(url, mCORS) == RT_OK)
+    pxIViewContainer* view = viewContainer();
+    pxSceneContainer* sceneContainer = (pxSceneContainer*)view;
+    rtObjectRef parentArchive = NULL;
+    if (NULL != sceneContainer)
+    {
+      pxScene2d* scene = sceneContainer->getScene();
+      if (NULL != scene)
+      {
+        parentArchive = scene->getArchive();
+      }
+    }
+    if (a->initFromUrl(url, mCORS, parentArchive) == RT_OK)
     {
       archive = a;
       e = RT_OK;
     }
+
+    pxArchive* myArchive = (pxArchive*) a.getPtr();
+    /* decide whether further file access from this scene need to to taken from,
+       parent -> if this scene is created from archive
+       itself -> if this file itself is archive
+    */
+    if ((parentArchive != NULL ) && (((pxArchive*)parentArchive.getPtr())->isFile() == false))
+    {
+      if ((myArchive != NULL ) && (myArchive->isFile() == false))
+      {
+        mArchive = a;
+      }
+      else
+      {
+        mArchive = parentArchive;
+      }
+    }
+    else
+      mArchive = a;
     return e;
   }
 
@@ -1600,6 +1652,10 @@ public:
   rtError getService(rtString name, rtObjectRef& returnObject);
   rtError getService(const char* name, const rtObjectRef& ctx, rtObjectRef& service);
   rtError getAvailableApplications(rtString& availableApplications);
+  rtObjectRef getArchive()
+  {
+    return mArchive;
+  }
 
 private:
   bool bubbleEvent(rtObjectRef e, rtRef<pxObject> t, 
@@ -1615,6 +1671,7 @@ private:
 
   rtRef<pxObject> mRoot;
   rtObjectRef mInfo;
+  rtObjectRef mCapabilityVersions;
   rtObjectRef mFocusObj;
   double start, sigma_draw, sigma_update, end2;
 
@@ -1650,13 +1707,12 @@ private:
   bool mPointerHidden;
   std::vector<rtObjectRef> mInnerpxObjects;
   rtFunctionRef mCustomAnimator;
-  rtString mOrigin;
 #ifdef ENABLE_PERMISSIONS_CHECK
   rtPermissionsRef mPermissions;
 #endif
   bool mSuspended;
   rtCORSRef mCORS;
-
+  rtObjectRef mArchive;
 public:
   void hidePointer( bool hide )
   {

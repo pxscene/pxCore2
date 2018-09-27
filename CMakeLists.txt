@@ -5,6 +5,7 @@ option(BUILD_PXCORE "BUILD_PXCORE" ON)
 option(BUILD_PXSCENE "BUILD_PXSCENE" ON)
 option(BUILD_PX_TESTS "BUILD_PX_TESTS" OFF)
 option(BUILD_RTREMOTE_LIBS "BUILD_RTREMOTE_LIBS" OFF)
+option(BUILD_PXBENCHMARK "BUILD_PXBENCHMARK" OFF)
 
 option(PREFER_SYSTEM_LIBRARIES "Prefer to use system libraries over bundled." "OFF")
     # Fine selection of which external node package to pick-up, if multiple are installed on the system
@@ -15,6 +16,7 @@ option(DISABLE_DEBUG_MODE "Disable debugging mode." "OFF") # OFF for backward co
 
 option(SUPPORT_DUKTAPE "SUPPORT_DUKTAPE" ON)
 option(SUPPORT_NODE "SUPPORT_NODE" ON)
+option(SUPPORT_V8 "SUPPORT_V8" OFF)
 
 option(ENABLE_THREAD_SANITIZER "ENABLE_THREAD_SANITIZER" OFF)
 option(ENABLE_ADDRESS_SANITIZER "ENABLE_ADDRESS_SANITIZER" OFF)
@@ -55,3 +57,8 @@ if (BUILD_PX_TESTS)
     message("Including unit test support")
     add_subdirectory(tests/pxScene2d)
 endif (BUILD_PX_TESTS)
+
+if (BUILD_PXBENCHMARK)
+    message("Building pxbenchmark")
+    add_subdirectory(examples/pxBenchmark/src)
+endif (BUILD_PXBENCHMARK)

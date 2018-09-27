@@ -18,7 +18,8 @@ limitations under the License.
 
 //"use strict";
 
-var isDuk=(typeof timers != "undefined")?true:false;
+var isDuk=(typeof Duktape != "undefined")?true:false;
+var isV8=(typeof _isV8 != "undefined")?true:false;
 
 var url = require('url');
 var path = require('path');
@@ -28,23 +29,21 @@ var SceneModuleLoader = require('rcvrcore/SceneModuleLoader');
 var XModule = require('rcvrcore/XModule').XModule;
 var xmodImportModule = require('rcvrcore/XModule').importModule;
 var loadFile = require('rcvrcore/utils/FileUtils').loadFile;
+var loadFileWithSparkPermissionsCheck = require('rcvrcore/utils/FileUtils').loadFileWithSparkPermissionsCheck;
 var SceneModuleManifest = require('rcvrcore/SceneModuleManifest');
 var JarFileMap = require('rcvrcore/utils/JarFileMap');
 var AsyncFileAcquisition = require('rcvrcore/utils/AsyncFileAcquisition');
-var AccessControl = require('rcvrcore/utils/AccessControl');
+var AccessControl = require('rcvrcore/utils/AccessControl').AccessControl;
 var WrapObj = require('rcvrcore/utils/WrapObj');
+var http2_wrap = require('rcvrcore/http2_wrap');
+var ws_wrap = (isDuk)?"":require('rcvrcore/ws_wrap');
 
 var log = new Logger('AppSceneContext');
 //overriding original timeout and interval functions
-var SetTimeout = isDuk?timers.setTimeout:setTimeout;
-var ClearTimeout = isDuk?timers.clearTimeout:clearTimeout;
-var SetInterval = isDuk?timers.setInterval:setInterval;
-var ClearInterval = isDuk?timers.clearInterval:clearInterval;
-
-
-var http_wrap = require('rcvrcore/http_wrap');
-var https_wrap = require('rcvrcore/https_wrap');
-var ws_wrap = (isDuk)?"":require('rcvrcore/ws_wrap');
+var SetTimeout = (isDuk || isV8)?timers.setTimeout:setTimeout;
+var ClearTimeout = (isDuk || isV8)?timers.clearTimeout:clearTimeout;
+var SetInterval = (isDuk || isV8)?timers.setInterval:setInterval;
+var ClearInterval = (isDuk || isV8)?timers.clearInterval:clearInterval;
 
 function AppSceneContext(params) {
 
@@ -71,7 +70,7 @@ function AppSceneContext(params) {
   this.xmoduleMap = {};
   this.asyncFileAcquisition = new AsyncFileAcquisition(params.scene);
   this.accessControl = new AccessControl(params.scene);
-  this.lastHrTime = isDuk?uv.hrtime():process.hrtime();
+  this.lastHrTime = isDuk?uv.hrtime():(isV8?uv_hrtime():process.hrtime());
   this.resizeTimer = null;
   this.topXModule = null;
   this.jarFileMap = new JarFileMap();
@@ -80,6 +79,18 @@ function AppSceneContext(params) {
   this.timers = [];
   this.timerIntervals = [];
   this.webSocketManager = null;
+  // create objects for http1 and http2 to be used
+  this.http1wrap = new http2_wrap(this.accessControl, true);
+  this.http2wrap = new http2_wrap(this.accessControl, false);
+  this.disableFilePermissionCheck = this.innerscene.sparkSetting("disableFilePermissionCheck");
+  if (undefined == this.disableFilePermissionCheck)
+  {
+    this.disableFilePermissionCheck = false;
+  }
+  // event received indicators for close and terminate
+  this.isCloseEvtRcvd = false;
+  this.isTermEvtRcvd = false;
+  this.termEvent = null;
   log.message(4, "[[[NEW AppSceneContext]]]: " + this.packageUrl);
 }
 
@@ -88,7 +99,7 @@ AppSceneContext.prototype.loadScene = function() {
   //log.info("loadScene() - begins    on ctx: " + getContextID() );
   var urlParts = url.parse(this.packageUrl, true);
   var fullPath = this.packageUrl;
-  var platform = (isDuk)?uv.platform:process.platform;
+  var platform = (isDuk)?uv.platform:(isV8?uv_platform():process.platform);
   if (fullPath.substring(0, 4) !== "http") {
     if( fullPath.charAt(0) === '.' ) {
       // local file system
@@ -109,7 +120,8 @@ AppSceneContext.prototype.loadScene = function() {
 if( fullPath !== null)
   this.loadPackage(fullPath);
 
-this.innerscene.on('onSceneTerminate', function (e) {
+function terminateScene() {
+    var e = this.termEvent;
     if (null != this.webSocketManager)
     {
        this.webSocketManager.clearConnections();
@@ -186,6 +198,29 @@ this.innerscene.on('onSceneTerminate', function (e) {
       this.accessControl.destroy();
       this.accessControl = null;
     }
+    this.http1wrap = null;
+    this.http2wrap = null;
+    this.isCloseEvtRcvd = false;
+    this.isTermEvtRcvd = false;
+    this.termEvent = null;
+}
+
+this.innerscene.on('onSceneTerminate', function(e) { 
+     this.isTermEvtRcvd = true;
+     this.termEvent = e;
+     // make sure we are sending terminate event only after close event
+     if (true == this.isCloseEvtRcvd) {
+       terminateScene.bind(this)(); 
+     }
+  }.bind(this));
+
+this.innerscene.on('onClose', function() {
+    // make sure terminate event is sent after immediately if onClose comes after it
+    if (true == this.isTermEvtRcvd)
+    {
+      terminateScene.bind(this)();
+    }
+    this.isCloseEvtRcvd = true;
   }.bind(this));
 
 if (false) {
@@ -284,8 +319,13 @@ var setTimeoutCallback = function() {
   ClearTimeout(this);
 };
 
-function createModule_pxScope(xModule) {
-  return {
+function getBaseFilePath()
+{
+  return this;
+}
+
+function createModule_pxScope(xModule, isImported) {
+  var params  = {
     log: xModule.log,
     import: xmodImportModule.bind(xModule),
     configImport: xModule.configImport.bind(xModule),
@@ -295,6 +335,24 @@ function createModule_pxScope(xModule) {
     getFile: getFile.bind(this),
     getModuleFile: xModule.getFile.bind(xModule)
   };
+
+  //xModule.basePath is used for imported files, as xModule is per javascript file basis
+  if (true == isImported)
+  {
+    if (xModule.basePath == "")
+    {
+      params.getBaseFilePath = getBaseFilePath.bind("./");
+    }
+    else
+    {
+      params.getBaseFilePath = getBaseFilePath.bind(xModule.basePath+"/");
+    }
+  }
+  else
+  {
+    params.getBaseFilePath = params.getPackageBaseFilePath;
+  }
+  return params;
 }
 
 AppSceneContext.prototype.runScriptInNewVMContext = function (packageUri, moduleLoader, configImport) {
@@ -335,11 +393,16 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (packageUri, module
   var self = this;
   var newSandbox;
   try {
-    if (!isDuk) {
+    if (!isDuk && !isV8) {
       var requireMethod = function (pkg) {
-        log.message(3, "old use of require not supported: " + pkg);
-        // TODO: remove
-        return requireIt(pkg);
+        if (typeof requireIt === "function") { 
+          // TODO: remove
+          log.message(1, "old use of require not supported: " + pkg);
+          return requireIt(pkg);
+        }
+        else{
+          log.message(1, "old use of require not supported: " + pkg);
+        }
       };
 
       var requireFileOverridePath = process.env.PXSCENE_REQUIRE_ENABLE_FILE_PATH;
@@ -359,7 +422,7 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (packageUri, module
       }
     }
 
-    if (!isDuk) {
+    if (!isDuk && !isV8) {
       var processWrap = WrapObj(process, {"binding":function() { throw new Error("process.binding is not supported"); }});
       var globalWrap = WrapObj(global, {"process":processWrap});
 
@@ -405,6 +468,36 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (packageUri, module
         importTracking: {}
       };
     }
+    else if (isV8) 
+    {
+      newSandbox = {
+        sandboxName: "InitialSandbox",
+        xmodule: xModule,
+        console: console,
+        timers: timers,
+        global: global,
+        isV8: isV8,
+        setTimeout: setTimeout,
+        clearTimeout: clearTimeout,
+        setInterval: setInterval,
+        clearInterval: clearInterval,
+        runtime: apiForChild,
+        urlModule: require("url"),
+        require: require,
+        loadUrl: loadUrl,
+        queryStringModule: require("querystring"),
+        theNamedContext: "Sandbox: " + uri,
+        //Buffer: Buffer,
+        importTracking: {},
+        print: print,
+        getScene: getScene,
+        makeReady: makeReady,
+        getContextID: getContextID
+      }; // end sandbox
+
+      queryStringModule = require("querystring");
+      urlModule = require("url");
+    }
     else
     {
       newSandbox = {
@@ -415,7 +508,7 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (packageUri, module
         urlModule: require("url"),
         queryStringModule: require("querystring"),
         theNamedContext: "Sandbox: " + uri,
-        Buffer: Buffer,
+        //Buffer: Buffer,
         importTracking: {}
       }; // end sandbox
     }
@@ -440,6 +533,14 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (packageUri, module
           filename: path.normalize(fname),
           displayErrors: true
         }, px, xModule, fname, this.basePackageUri);
+      } else if (isV8) {
+        var moduleFunc = vm.runInNewContext(sourceCode, newSandbox, {
+          filename: path.normalize(fname),
+          displayErrors: true
+        }, px, xModule, fname, this.basePackageUri);
+
+        moduleFunc(px, xModule, fname, this.basePackageUri);
+
       } else {
         var moduleFunc = vm.runInNewContext(sourceCode, newSandbox, {
           filename: path.normalize(fname),
@@ -526,7 +627,7 @@ if (false) {
 AppSceneContext.prototype.getPackageBaseFilePath = function() {
   var fullPath;
   var pkgPart;
-  var platform = (isDuk)?uv.platform:process.platform;
+  var platform = (isDuk)?uv.platform:(isV8?uv_platform():process.platform);
   if (this.basePackageUri.substring(0, 4) !== "http") {
     if (this.basePackageUri.charAt(0) == '.') {
       pkgPart = this.basePackageUri.substring(1);
@@ -572,7 +673,14 @@ AppSceneContext.prototype.getModuleFile = function(filePath, xModule) {
 
 AppSceneContext.prototype.getFile = function(filePath) {
   log.message(4, "getFile: requestedFile=" + filePath);
-  return loadFile(filePath);
+  if ("true" == this.disableFilePermissionCheck || true == this.disableFilePermissionCheck)
+  {
+    return loadFile(filePath);
+  }
+  else
+  {
+    return loadFileWithSparkPermissionsCheck(this.accessControl, this.http1wrap, this.http2wrap, filePath);
+  }
 };
 
 AppSceneContext.prototype.resolveModulePath = function(filePath, currentXModule) {
@@ -607,14 +715,15 @@ AppSceneContext.prototype.include = function(filePath, currentXModule) {
   var origFilePath = filePath;
 
   return new Promise(function (onImportComplete, reject) {
-    if (/^(px|url|querystring|htmlparser|crypto|oauth|http2)$/.test(filePath)) {
+    var modData;
+    if (/^(px|url|querystring|htmlparser|crypto|oauth)$/.test(filePath)) {
       if (isDuk && filePath === 'htmlparser') {
         console.log("Not permitted to use the module " + filePath);
         reject("include failed due to module not permitted");
         return;
       }
       // built-ins
-      var modData = require(filePath);
+      modData = require(filePath);
       onImportComplete([modData, origFilePath]);
       return;
     } else if( filePath === 'fs' || filePath === 'os' || filePath === 'events') {
@@ -642,8 +751,18 @@ AppSceneContext.prototype.include = function(filePath, currentXModule) {
         onImportComplete([modData, origFilePath]);
         return;
       }
-    } else if( filePath === 'http' || filePath === 'https' ) {
-      modData = filePath === 'http' ? new http_wrap(_this.accessControl) : new https_wrap(_this.accessControl);
+    } else if (/^(http|https|http2)$/.test(filePath)) {
+      if (/^(http|https)$/.test(filePath)) {
+        console.warn("module '" + filePath + "' support is deprecated, use 'http2' instead");
+      }
+      if (filePath === 'http')
+      {
+        modData = _this.http1wrap;
+      }
+      else
+      {
+        modData = _this.http2wrap;
+      }
       onImportComplete([modData, origFilePath]);
       return;
     } else if( filePath.substring(0, 9) === "px:scene.") {
@@ -759,12 +878,16 @@ AppSceneContext.prototype.processCodeBuffer = function(origFilePath, filePath, c
 
   var sourceCode = AppSceneContext.wrap(codeBuffer);
   log.message(4, "RUN " + filePath);
-  var px = createModule_pxScope.call(this, xModule);
+  var px = createModule_pxScope.call(this, xModule, true);
   if (isDuk) {
     vm.runInNewContext(sourceCode, _this.sandbox, { filename: filePath, displayErrors: true },
                          px, xModule, filePath, filePath);
-  }
-  else {
+  } else if (isV8) {
+    var moduleFunc = vm.runInNewContext(sourceCode, _this.sandbox, { filename: filePath, displayErrors: true },
+                         px, xModule, filePath, filePath);
+
+    moduleFunc(px, xModule, filePath, filePath);
+  } else {
     var moduleFunc = vm.runInContext(sourceCode, _this.sandbox, {filename:filePath, displayErrors:true});
     moduleFunc(px, xModule, filePath, filePath);
   }
@@ -800,9 +923,9 @@ AppSceneContext.prototype.processCodeBuffer = function(origFilePath, filePath, c
 };
 
 AppSceneContext.prototype.onResize = function(resizeEvent) {
-  var hrTime = isDuk?uv.hrtime():process.hrtime(this.lastHrTime);
+  var hrTime = isDuk?uv.hrtime():(isV8?uv_hrtime():process.hrtime(this.lastHrTime));
   var deltaMillis = (hrTime[0] * 1000 + hrTime[1] / 1000000);
-  this.lastHrTime = isDuk?uv.hrtime():process.hrtime();
+  this.lastHrTime = isDuk?uv.hrtime():(isV8?uv_hrtime():process.hrtime());
   if( deltaMillis > 300 ) {
     if( this.resizeTimer !== null ) {
       clearTimeout(this.resizeTimer);

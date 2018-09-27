@@ -18,6 +18,7 @@
 
 // pxFont.cpp
 
+#include "rtPathUtils.h"
 #include "rtFileDownloader.h"
 #include "pxFont.h"
 #include "pxTimer.h"
@@ -185,6 +186,39 @@ uint32_t pxFont::loadResourceData(rtFileDownloadRequest* fileDownloadRequest)
       return PX_RESOURCE_LOAD_SUCCESS;
 }
 
+void pxFont::loadResourceFromArchive(rtObjectRef archiveRef)
+{
+  pxArchive* archive = (pxArchive*)archiveRef.getPtr();
+  pxOffscreen imageOffscreen;
+  rtData d;
+  if ((NULL != archive) && (archive->getFileData(mUrl, d) == RT_OK))
+  {
+    init( (FT_Byte*)d.data(),
+          (FT_Long)d.length(),
+          mUrl.cString());
+    setLoadStatus("statusCode", PX_RESOURCE_STATUS_OK);
+    AddRef();
+    if (gUIThreadQueue)
+    {
+      gUIThreadQueue->addTask(onDownloadCompleteUI, this, (void*)"resolve");
+    }
+    rtLogInfo("Resource [%s] loaded from archive successfully !!!",mUrl.cString());
+  }
+  else
+  {
+    rtLogWarn("Could not load font face from archive %s\n", mUrl.cString());
+    setLoadStatus("statusCode", PX_RESOURCE_STATUS_FILE_NOT_FOUND);
+    // Since this object can be released before we get a async completion
+    // We need to maintain this object's lifetime
+    // TODO review overall flow and organization
+    AddRef();
+    if (gUIThreadQueue)
+    {
+      gUIThreadQueue->addTask(onDownloadCompleteUI, this, (void*)"reject");
+    }
+  }
+}
+
 void pxFont::loadResourceFromFile()
 {
     rtError e = init(mUrl);
@@ -221,16 +255,38 @@ rtError pxFont::init(const char* n)
 {
   mFontMutex.lock();
   mUrl = n;
-   
-  if(FT_New_Face(ft, n, 0, &mFace)) {
-    mFontMutex.unlock();
-    return RT_FAIL;
+  rtError loadFontStatus = RT_FAIL;
+
+  do {
+    if (FT_New_Face(ft, n, 0, &mFace) == 0)
+    {
+      loadFontStatus = RT_OK;
+      break;
+    }
+
+    if (rtIsPathAbsolute(n))
+      break;
+
+    rtModuleDirs *dirs = rtModuleDirs::instance();
+
+    for (rtModuleDirs::iter it = dirs->iterator(); it.first != it.second; it.first++)
+    {
+      if (FT_New_Face(ft, rtConcatenatePath(*it.first, n).c_str(), 0, &mFace) == 0)
+      {
+        loadFontStatus = RT_OK;
+        break;
+      }
+    }
+  } while (0);
+
+  if(loadFontStatus == RT_OK)
+  {
+    mInitialized = true;
+    setPixelSize(defaultPixelSize);
   }
-  
-  mInitialized = true;
-  setPixelSize(defaultPixelSize);
+
   mFontMutex.unlock();
-  return RT_OK;
+  return loadFontStatus;
 }
 // This init is used by async callback to load downloaded font file data
 rtError pxFont::init(const FT_Byte*  fontData, FT_Long size, const char* n)
@@ -308,11 +364,11 @@ GlyphTextureEntry pxFont::getGlyphTexture(uint32_t codePoint, float sx, float sy
   GlyphTextureEntry result;
   // Select a glyph texture better suited for rendering the glyph
   // taking pixelSize and scale into account
-  uint32_t pixelSize=(uint32_t)ceil((sx>sy?sx:sy)*mPixelSize);
+  uint32_t pixelSize=((uint32_t)ceil((sy>sx?sy:sx)*mPixelSize));
   
   //  TODO:  FIXME: Disabled for now.   Sub-Pixel rounding making some Glyphs too "wide" at certain sizes.
   //
-#if 0
+//#if 0
   if (pixelSize < 8)
   {
     pixelSize = (pixelSize + 7) & 0xfffffff8;    // next multiple of 8
@@ -322,11 +378,11 @@ GlyphTextureEntry pxFont::getGlyphTexture(uint32_t codePoint, float sx, float sy
     //pixelSize = (pixelSize + 7) & 0xfffffff8;  // next multiple of 8
     pixelSize += (pixelSize % 2);
   }
-  else
+  /*else
     pixelSize = npot(pixelSize);  // else next power of two
 #else
   pixelSize = mPixelSize; // HACK
-#endif
+#endif*/
   
   
   GlyphKey key; 
@@ -706,7 +762,7 @@ void pxFontManager::initFT()
   }
   
 }
-rtRef<pxFont> pxFontManager::getFont(const char* url, const char* proxy, const rtCORSRef& cors)
+rtRef<pxFont> pxFontManager::getFont(const char* url, const char* proxy, const rtCORSRef& cors, rtObjectRef archive)
 {
   initFT();
 
@@ -716,8 +772,23 @@ rtRef<pxFont> pxFontManager::getFont(const char* url, const char* proxy, const r
   if (!url || !url[0])
     url = defaultFont;
 
+  rtString key = url;
+  if (false == ((key.beginsWith("http:")) || (key.beginsWith("https:"))))
+  {
+    pxArchive* arc = (pxArchive*)archive.getPtr();
+    if (NULL != arc)
+    {
+      if (false == arc->isFile())
+      {
+        rtString data = arc->getName();
+        data.append("_");
+        data.append(url);
+        key = data;
+      }
+    }
+  }
   // Assign font urls an id number if they don't have one
-   FontIdMap::iterator itId = mFontIdMap.find(url);
+  FontIdMap::iterator itId = mFontIdMap.find(key);
   if( itId != mFontIdMap.end()) 
   {
     fontId = itId->second;
@@ -725,7 +796,7 @@ rtRef<pxFont> pxFontManager::getFont(const char* url, const char* proxy, const r
   else 
   {
     fontId = gFontId++;
-    mFontIdMap.insert(make_pair(url, fontId));
+    mFontIdMap.insert(make_pair(key, fontId));
   }
 
   FontMap::iterator it = mFontMap.find(fontId);
@@ -742,7 +813,7 @@ rtRef<pxFont> pxFontManager::getFont(const char* url, const char* proxy, const r
     pFont = new pxFont(url, fontId, proxy);
     pFont->setCORS(cors);
     mFontMap.insert(make_pair(fontId, pFont));
-    pFont->loadResource();
+    pFont->loadResource(archive);
   }
   
   return pFont;

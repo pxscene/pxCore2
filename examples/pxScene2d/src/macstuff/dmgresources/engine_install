@@ -1,5 +1,5 @@
 #!/bin/bash
-# pxscene Copyright John Robinson 2005-2016
+# spark Copyright John Robinson 2005-2016
 
 anywait(){
     for pid in "$@"; do
@@ -9,28 +9,36 @@ anywait(){
     done
 }
 
-LOGFILE=/var/tmp/pxscene_update.log
+LOGFILE=/var/tmp/Spark_update.log
 
-echo "Enter pxscene .engine_install " `date` >> $LOGFILE
+echo "Enter spark .engine_install " `date` >> $LOGFILE
 echo disk image: $1 >> $LOGFILE
 echo pwd: `pwd` >> $LOGFILE
 
 if [ -e "./lastpid" ]; then
 
-echo "Info: Waiting for pxscene to shut down" >> $LOGFILE
+echo "Info: Waiting for spark to shut down" >> $LOGFILE
 anywait `cat ./lastpid`
-echo "Info: Proceeding now that pxscene has shut down" >> $LOGFILE
+echo "Info: Proceeding now that spark has shut down" >> $LOGFILE
 
 PKGNAME="$(dirname $(dirname `pwd`))"
 PKGBASE="$(basename $PKGNAME)"
 PKGEXT="${PKGBASE##*.}"
+PKGNAMEUPDT="${PKGNAME}"
 
 if [ $PKGEXT == "app" ]; then
     echo "Info: Running in app" >> $LOGFILE
     echo "Info: Copying software..." >> $LOGFILE
     rm -r $PKGNAME
-    cp -a $1/pxscene.app $PKGNAME
-    echo $PKGNAME >> $LOGFILE
+    
+    if [[ "$PKGNAME" == *pxscene.app ]] ;
+    then
+    echo "app name is pxscene"
+      PKGNAMEUPDT=`echo "${PKGNAME/pxscene.app/Spark.app}"`
+    fi
+  
+    cp -a $1/Spark.app $PKGNAMEUPDT
+    echo $PKGNAMEUPDT >> $LOGFILE
     echo "Info: Software Updated" >> $LOGFILE
 else
     echo "Warning: Not running in app bundle.  Skip." >> $LOGFILE
@@ -40,4 +48,6 @@ else
 echo "Warning: No file ./lastpid. Skip." >> $LOGFILE
 fi
 
-echo "Exit pxscene .engine_install" `date` >> $LOGFILE
+
+echo "Exit spark .engine_install" `date` >> $LOGFILE
+

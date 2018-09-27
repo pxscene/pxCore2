@@ -86,7 +86,7 @@ rtError pxImageA::setUrl(const char *s)
     }
   }
   removeResourceListener();
-  mResource = pxImageManager::getImageA(s, NULL, mScene ? mScene->cors() : NULL);
+  mResource = pxImageManager::getImageA(s, NULL, mScene ? mScene->cors() : NULL, mScene ? mScene->getArchive(): NULL);
 
   if(getImageAResource() != NULL && getImageAResource()->getUrl().length() > 0 && !mImageLoaded) {
     mListenerAdded = true;
@@ -325,6 +325,17 @@ void pxImageA::releaseData(bool sceneSuspended)
 void pxImageA::reloadData(bool sceneSuspended)
 {
   pxObject::reloadData(sceneSuspended);
+}
+
+uint64_t pxImageA::textureMemoryUsage()
+{
+  uint64_t textureMemory = 0;
+  if (mTexture.getPtr() != NULL)
+  {
+    textureMemory += (mTexture->width() * mTexture->height() * 4);
+  }
+  textureMemory += pxObject::textureMemoryUsage();
+  return textureMemory;
 }
 
 rtDefineObject(pxImageA, pxObject);

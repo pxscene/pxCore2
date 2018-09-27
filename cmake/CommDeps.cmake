@@ -98,11 +98,23 @@ if (NOT WIN32)
       pkg_search_module(X11 x11)
     endif (NOT DFB)
     pkg_search_module(CRYPTO libcrypto)
-    pkg_search_module(OPENSSL openssl)
+
+    if (PREFER_SYSTEM_LIBRARIES)
+        pkg_search_module(OPENSSL openssl)
+    endif (PREFER_SYSTEM_LIBRARIES)
+    if (NOT OPENSSL_FOUND)
+        set(OPENSSL_INCLUDE_DIRS "${EXTDIR}/libnode-v6.9.0/deps/openssl/openssl/include")
+    endif (NOT OPENSSL_FOUND)
+
     pkg_search_module(UV libuv)
 
     pkg_search_module(WAYLAND_EGL wayland-egl)
     pkg_search_module(WAYLAND_CLIENT wayland-client)
+
+    if (PREFER_SYSTEM_LIBRARIES AND SUPPORT_V8)
+        pkg_search_module(ICU_I18N icu-i18n)
+        pkg_search_module(ICU_UC icu-uc)
+    endif (PREFER_SYSTEM_LIBRARIES AND SUPPORT_V8)
 
 else (NOT WIN32)
 
@@ -124,9 +136,9 @@ else (NOT WIN32)
     set(PNG_LIBRARY_DIRS "${VCLIBS}")
     set(PNG_LIBRARIES "libpng16.lib")
 
-    set(FREETYPE_INCLUDE_DIRS "${EXTDIR}/freetype-2.5.2/include")
+    set(FREETYPE_INCLUDE_DIRS "${EXTDIR}/freetype-2.8.1/include")
     set(FREETYPE_LIBRARY_DIRS "${VCLIBS}")
-    set(FREETYPE_LIBRARIES "freetype253MT_D.lib")
+    set(FREETYPE_LIBRARIES "freetype281MT_D.lib")
 
     set(GLEW_INCLUDE_DIRS "${EXTDIR}/glew-2.0.0/include")
     set(GLEW_LIBRARY_DIRS "${VCLIBS}")
@@ -153,6 +165,8 @@ set(COMM_DEPS_INCLUDE_DIRS ${COMM_DEPS_INCLUDE_DIRS}
      ${OPENSSL_INCLUDE_DIRS}
          ${X11_INCLUDE_DIRS}
           ${UV_INCLUDE_DIRS}
+    ${ICU_I18N_INCLUDE_DIRS}
+      ${ICU_UC_INCLUDE_DIRS}
    )
 
 set(COMM_DEPS_LIBRARY_DIRS ${COMM_DEPS_LIBRARY_DIRS}
@@ -170,6 +184,8 @@ set(COMM_DEPS_LIBRARY_DIRS ${COMM_DEPS_LIBRARY_DIRS}
      ${OPENSSL_LIBRARY_DIRS}
          ${X11_LIBRARY_DIRS}
           ${UV_LIBRARY_DIRS}
+    ${ICU_I18N_LIBRARY_DIRS}
+      ${ICU_UC_LIBRARY_DIRS}
    )
 
 set(COMM_DEPS_LIBRARIES ${COMM_DEPS_LIBRARIES}
@@ -187,4 +203,6 @@ set(COMM_DEPS_LIBRARIES ${COMM_DEPS_LIBRARIES}
         ${OPENSSL_LIBRARIES}
             ${X11_LIBRARIES}
              ${UV_LIBRARIES}
+       ${ICU_I18N_LIBRARIES}
+         ${ICU_UC_LIBRARIES}
    )

@@ -61,7 +61,7 @@ public:
   long httpStatusCode();
   void setHttpStatusCode(long statusCode);
   bool executeCallback(int statusCode);
-  bool executeDownloadProgressCallback(void *ptr, size_t size, size_t nmemb);
+  size_t executeDownloadProgressCallback(void *ptr, size_t size, size_t nmemb);
   void setDownloadedData(char* data, size_t size);
   void downloadedData(char*& data, size_t& size);
   char* downloadedData();
@@ -84,20 +84,24 @@ public:
   bool cacheEnabled();
   void setDataIsCached(bool val);
   bool isDataCached();
+  size_t getCachedFileReadSize(void);
+  void setCachedFileReadSize(size_t cachedFileReadSize);
   void setDeferCacheRead(bool val);
   bool deferCacheRead();
   FILE* cacheFilePointer(void);
 #endif //ENABLE_HTTP_CACHE
   void setProgressMeter(bool val);
   bool isProgressMeterSwitchOff();
+  void setUseCallbackDataSize(bool val);
+  bool useCallbackDataSize();
   void setHTTPFailOnError(bool val);
   bool isHTTPFailOnError();
   void setHTTPError(const char* httpError);
   char* httpErrorBuffer(void);
   void setCurlDefaultTimeout(bool val);
   bool isCurlDefaultTimeoutSet();
-  void setCORS(const rtCORSRef& cors) { mCORS = cors; }
-  rtCORSRef cors() const { return mCORS; }
+  void setCORS(const rtCORSRef& cors);
+  rtCORSRef cors() const;
   void cancelRequest();
   bool isCanceled();
 
@@ -123,6 +127,7 @@ private:
   bool mCacheEnabled;
   bool mIsDataInCache;
   bool mDeferCacheRead;
+  size_t mCachedFileReadSize;
 #endif //ENABLE_HTTP_CACHE
   bool mIsProgressMeterSwitchOff;
   bool mHTTPFailOnError;
@@ -130,6 +135,7 @@ private:
   bool mDefaultTimeout;
   rtCORSRef mCORS;
   bool mCanceled;
+  bool mUseCallbackDataSize;
   rtMutex mCanceledMutex;
 };
 

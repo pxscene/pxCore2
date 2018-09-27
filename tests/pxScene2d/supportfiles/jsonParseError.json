@@ -1,0 +1,10 @@
+{"applications":
+  [
+    {
+      "displayName" : "Partner App",
+      "cmdName" : "partnerapp",
+      "uri" : "/usb/partnerapp",
+      "applicationType" : "native",
+      "version" : "1.0"
+    },
+}

@@ -33,6 +33,11 @@
 rtData::rtData(): mData(NULL), mLength(0) {}
 rtData::~rtData() { term(); }
 
+
+rtData::rtData(rtData &d) : mData(d.data()), mLength(d.length())                   {};
+rtData::rtData(const uint8_t* data, size_t length) : mData( (uint8_t* ) data), mLength( (uint32_t) length)  {};
+
+
 rtError rtData::init(size_t length) {
   term();
   mData = new uint8_t[length+1];

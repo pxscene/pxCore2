@@ -106,6 +106,7 @@ public:
   
   bool isEmpty() const { return (mLeft >= mRight) || (mTop >= mBottom); }
   
+  int isEqual(const pxRect& r) { return (mLeft != r.left() || mTop != r.top() || mRight != r.right() || mBottom != r.bottom()) ? false : true; }
 private:
     int32_t mLeft, mTop, mRight, mBottom;
 };
