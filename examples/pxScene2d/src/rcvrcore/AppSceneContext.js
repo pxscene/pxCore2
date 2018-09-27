@@ -29,7 +29,6 @@ var SceneModuleLoader = require('rcvrcore/SceneModuleLoader');
 var XModule = require('rcvrcore/XModule').XModule;
 var xmodImportModule = require('rcvrcore/XModule').importModule;
 var loadFile = require('rcvrcore/utils/FileUtils').loadFile;
-var loadFileWithSparkPermissionsCheck = require('rcvrcore/utils/FileUtils').loadFileWithSparkPermissionsCheck;
 var SceneModuleManifest = require('rcvrcore/SceneModuleManifest');
 var JarFileMap = require('rcvrcore/utils/JarFileMap');
 var AsyncFileAcquisition = require('rcvrcore/utils/AsyncFileAcquisition');
@@ -79,14 +78,6 @@ function AppSceneContext(params) {
   this.timers = [];
   this.timerIntervals = [];
   this.webSocketManager = null;
-  // create objects for http1 and http2 to be used
-  this.http1wrap = new http2_wrap(this.accessControl, true);
-  this.http2wrap = new http2_wrap(this.accessControl, false);
-  this.disableFilePermissionCheck = this.innerscene.sparkSetting("disableFilePermissionCheck");
-  if (undefined == this.disableFilePermissionCheck)
-  {
-    this.disableFilePermissionCheck = false;
-  }
   // event received indicators for close and terminate
   this.isCloseEvtRcvd = false;
   this.isTermEvtRcvd = false;
@@ -198,8 +189,6 @@ function terminateScene() {
       this.accessControl.destroy();
       this.accessControl = null;
     }
-    this.http1wrap = null;
-    this.http2wrap = null;
     this.isCloseEvtRcvd = false;
     this.isTermEvtRcvd = false;
     this.termEvent = null;
@@ -673,14 +662,7 @@ AppSceneContext.prototype.getModuleFile = function(filePath, xModule) {
 
 AppSceneContext.prototype.getFile = function(filePath) {
   log.message(4, "getFile: requestedFile=" + filePath);
-  if ("true" == this.disableFilePermissionCheck || true == this.disableFilePermissionCheck)
-  {
-    return loadFile(filePath);
-  }
-  else
-  {
-    return loadFileWithSparkPermissionsCheck(this.accessControl, this.http1wrap, this.http2wrap, filePath);
-  }
+  return loadFile(filePath);
 };
 
 AppSceneContext.prototype.resolveModulePath = function(filePath, currentXModule) {
@@ -755,14 +737,7 @@ AppSceneContext.prototype.include = function(filePath, currentXModule) {
       if (/^(http|https)$/.test(filePath)) {
         console.warn("module '" + filePath + "' support is deprecated, use 'http2' instead");
       }
-      if (filePath === 'http')
-      {
-        modData = _this.http1wrap;
-      }
-      else
-      {
-        modData = _this.http2wrap;
-      }
+      modData = new http2_wrap(_this.accessControl, filePath === 'http');
       onImportComplete([modData, origFilePath]);
       return;
     } else if( filePath.substring(0, 9) === "px:scene.") {
