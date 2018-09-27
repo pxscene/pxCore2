@@ -1872,13 +1872,17 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   mScriptView = scriptView;
   mTag = gTag++;
 
-  rtString origin = scriptView != NULL ? rtUrlGetOrigin(scriptView->getUrl().cString()) : rtString();
+  if (scriptView != NULL)
+  {
+    mOrigin = rtUrlGetOrigin(scriptView->getUrl().cString());
+  }
+
 #ifdef ENABLE_PERMISSIONS_CHECK
   // rtPermissions accounts parent scene permissions too
-  mPermissions = new rtPermissions(origin.cString());
+  mPermissions = new rtPermissions(mOrigin.cString());
 #endif
 #ifdef ENABLE_ACCESS_CONTROL_CHECK
-  mCORS = new rtCORS(origin.cString());
+  mCORS = new rtCORS(mOrigin.cString());
 #endif
 
   // make sure that initial onFocus is sent
@@ -3602,6 +3606,7 @@ rtDefineProperty(pxScene2d,alignHorizontal);
 rtDefineProperty(pxScene2d,truncation);
 rtDefineMethod(pxScene2d, dispose);
 
+rtDefineProperty(pxScene2d, origin);
 #ifdef ENABLE_PERMISSIONS_CHECK
 rtDefineProperty(pxScene2d, permissions);
 #endif
