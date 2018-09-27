@@ -1103,7 +1103,6 @@ void pxObject::update(double t)
     pxMatrix4f m;
     applyMatrix(m);
     context.setMatrix(m);
-    mRenderMatrix = m;
     if (mIsDirty)
     {
         mScene->invalidateRect(&mScreenCoordinates);
@@ -1138,7 +1137,6 @@ EXITSCENELOCK()
   }
     
 #ifdef PX_DIRTY_RECTANGLES
-    context.setMatrix(m);
     mRenderMatrix = m;
 #endif
     
@@ -1215,6 +1213,7 @@ pxRect pxObject::getBoundingRectInScreenCoordinates()
   int w = getOnscreenWidth();
   int h = getOnscreenHeight();
   int x[4], y[4];
+
   mRenderMatrix = context.getMatrix();
   context.mapToScreenCoordinates(mRenderMatrix, 0,0,x[0],y[0]);
   context.mapToScreenCoordinates(mRenderMatrix, w, h, x[1], y[1]);
@@ -1389,7 +1388,7 @@ void pxObject::drawInternal(bool maskPass)
   }
 
   #ifdef PX_DIRTY_RECTANGLES
-  //mLastRenderMatrix = context.getMatrix();
+  //mRenderMatrix = context.getMatrix();
   mScreenCoordinates = getBoundingRectInScreenCoordinates();
   #endif //PX_DIRTY_RECTANGLES
 
@@ -2430,14 +2429,14 @@ EXITSCENELOCK()
   {
     pxMatrix4f identity;
     identity.identity();
-    pxMatrix4f currentMatrix = context.getMatrix();
-    context.setMatrix(identity);
+    //pxMatrix4f currentMatrix = context.getMatrix();
+    //context.setMatrix(identity);
     float red[]= {1,0,0,1};
     bool showOutlines = context.showOutlines();
     context.setShowOutlines(true);
     context.drawDiagRect(x, y, w, h, red);
     context.setShowOutlines(showOutlines);
-    context.setMatrix(currentMatrix);
+    //context.setMatrix(currentMatrix);
     context.enableClipping(true);
   }
   previousShowDirtyRect = mShowDirtyRectangle;
