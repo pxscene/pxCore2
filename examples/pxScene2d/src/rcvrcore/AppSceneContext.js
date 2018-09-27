@@ -32,10 +32,8 @@ var loadFile = require('rcvrcore/utils/FileUtils').loadFile;
 var SceneModuleManifest = require('rcvrcore/SceneModuleManifest');
 var JarFileMap = require('rcvrcore/utils/JarFileMap');
 var AsyncFileAcquisition = require('rcvrcore/utils/AsyncFileAcquisition');
-var AccessControl = require('rcvrcore/utils/AccessControl').AccessControl;
+var AccessControl = require('rcvrcore/utils/AccessControl');
 var WrapObj = require('rcvrcore/utils/WrapObj');
-var http2_wrap = require('rcvrcore/http2_wrap');
-var ws_wrap = (isDuk)?"":require('rcvrcore/ws_wrap');
 
 var log = new Logger('AppSceneContext');
 //overriding original timeout and interval functions
@@ -43,6 +41,11 @@ var SetTimeout = (isDuk || isV8)?timers.setTimeout:setTimeout;
 var ClearTimeout = (isDuk || isV8)?timers.clearTimeout:clearTimeout;
 var SetInterval = (isDuk || isV8)?timers.setInterval:setInterval;
 var ClearInterval = (isDuk || isV8)?timers.clearInterval:clearInterval;
+
+
+var http_wrap = require('rcvrcore/http_wrap');
+var https_wrap = require('rcvrcore/https_wrap');
+var ws_wrap = (isDuk)?"":require('rcvrcore/ws_wrap');
 
 function AppSceneContext(params) {
 
@@ -674,7 +677,6 @@ AppSceneContext.prototype.include = function(filePath, currentXModule) {
   var origFilePath = filePath;
 
   return new Promise(function (onImportComplete, reject) {
-    var modData;
     if (/^(px|url|querystring|htmlparser|crypto|oauth)$/.test(filePath)) {
       if (isDuk && filePath === 'htmlparser') {
         console.log("Not permitted to use the module " + filePath);
@@ -682,7 +684,7 @@ AppSceneContext.prototype.include = function(filePath, currentXModule) {
         return;
       }
       // built-ins
-      modData = require(filePath);
+      var modData = require(filePath);
       onImportComplete([modData, origFilePath]);
       return;
     } else if( filePath === 'fs' || filePath === 'os' || filePath === 'events') {
@@ -710,11 +712,12 @@ AppSceneContext.prototype.include = function(filePath, currentXModule) {
         onImportComplete([modData, origFilePath]);
         return;
       }
-    } else if (/^(http|https|http2)$/.test(filePath)) {
-      if (/^(http|https)$/.test(filePath)) {
-        console.warn("module '" + filePath + "' support is deprecated, use 'http2' instead");
-      }
-      modData = new http2_wrap(_this.accessControl, filePath === 'http');
+    } else if( filePath === 'http' || filePath === 'https' ) {
+      modData = filePath === 'http' ? new http_wrap(_this.accessControl) : new https_wrap(_this.accessControl);
+      onImportComplete([modData, origFilePath]);
+      return;
+    } else if( filePath === 'http2' ) {
+      modData = require('rcvrcore/http2_wrap');
       onImportComplete([modData, origFilePath]);
       return;
     } else if( filePath.substring(0, 9) === "px:scene.") {
