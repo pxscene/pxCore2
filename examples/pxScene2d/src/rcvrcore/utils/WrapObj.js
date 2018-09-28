@@ -41,7 +41,7 @@ function wrap(from, to, thisArg, props, events, eventArgWrapper) {
     ret = {
       on: function (type, listener) {
         if (events.indexOf(type) !== -1) {
-          return from.on(type, function () {
+          from.on(type, function () {
             var args = Array.prototype.slice.call(arguments);
             if (eventArgWrapper) {
               args = args.map(eventArgWrapper);
@@ -49,9 +49,11 @@ function wrap(from, to, thisArg, props, events, eventArgWrapper) {
             listener.apply(this, args);
           });
         }
+        return this;
       },
       removeAllListeners: function () {
         from.removeAllListeners();
+        return this;
       }
     };
   } else if (to) {
