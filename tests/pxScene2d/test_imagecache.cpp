@@ -1320,7 +1320,8 @@ TEST_F(rtFileDownloaderTest, checkCacheTests)
   setCallbackFunctionNullInDownloadFileTest();
   setDefaultCallbackFunctionNullTest();
   startNextDownloadInBackgroundTest();
-  raiseDownloadPriorityTest();
+  // commenting out because it is difficult to maintain hold of download requests before raising priority
+  //raiseDownloadPriorityTest();
   nextDownloadRequestTest();
   removeDownloadRequestTest();
   setHTTPFailOnErrorTest();
