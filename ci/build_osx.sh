@@ -55,9 +55,9 @@ then
       cp ../examples/pxScene2d/src/macstuff/Resources/SparkEdge.icns ../examples/pxScene2d/src/macstuff/dmgresources/pxscene.icns
       cp ../examples/pxScene2d/src/browser/images/status_bg_edge.svg ../examples/pxScene2d/src/browser/images/status_bg.svg
        
-      cmake -DPXSCENE_VERSION=edge_`date +%Y-%m-%d` .. >>$BUILDLOGS 2>&1;
+      cmake -DSUPPORT_DUKTAPE=OFF -DPXSCENE_VERSION=edge_`date +%Y-%m-%d` .. >>$BUILDLOGS 2>&1;
     else
-      cmake .. >>$BUILDLOGS 2>&1;
+      cmake -DSUPPORT_DUKTAPE=OFF .. >>$BUILDLOGS 2>&1;
     fi
   fi
 
