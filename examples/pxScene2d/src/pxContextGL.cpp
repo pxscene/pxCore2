@@ -487,16 +487,17 @@ public:
       {
         if ((mWidth != 0) && (mHeight != 0))
         {
+          if (mAlphaOnly)
+          {
+            rtLogDebug("unable to create fbo that is alpha only.  trying to create a standard fbo");
+            deleteTexture();
+            mAlphaOnly = false;
+            //recreate the FBO with non-alpha only for platforms that don't support alpha only backings
+            createFboTexture(mWidth, mHeight);
+            return prepareForRendering();
+          }
           rtLogWarn("error setting the render surface");
           return PX_FAIL;
-        }
-        else if (mAlphaOnly)
-        {
-          deleteTexture();
-          mAlphaOnly = false;
-          //recreate the FBO with non-alpha only for platforms that don't support alpha only backings
-          createFboTexture(mWidth, mHeight);
-          return prepareForRendering();
         }
         return PX_FAIL;
       }
