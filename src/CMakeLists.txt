@@ -62,7 +62,7 @@ if (APPLE)
     endif ()
 elseif (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC -g")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated -fPIC -g")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -g")
     execute_process(COMMAND "hostname" OUTPUT_VARIABLE HOSTNAME)
     string(STRIP ${HOSTNAME} HOSTNAME)
 
@@ -183,7 +183,7 @@ else ()
 endif (APPLE)
 
 if (NOT PXCORE_DFB)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpermissive -std=c++11")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpermissive -std=c++14 -Wno-error=deprecated-declarations")
 endif (NOT PXCORE_DFB)
 
 if (PXCORE_COMPILE_WARNINGS_AS_ERRORS)
@@ -194,6 +194,7 @@ endif (PXCORE_COMPILE_WARNINGS_AS_ERRORS)
 include_directories(AFTER ${V8_INCLUDE_DIRS})
 include_directories(AFTER ${NODE_INCLUDE_DIRS})
 include_directories(AFTER ${CMAKE_CURRENT_SOURCE_DIR})
+include_directories(AFTER rtScriptV8 rtScriptV8/debugger ${NODEDIR}/src ${NODEDIR}/deps/http_parser)
 
 set(PXCORE_FILES ${PXCORE_FILES} pxOffscreen.cpp pxWindowUtil.cpp
 
@@ -221,7 +222,7 @@ if (SUPPORT_V8)
     message("Adding V8 scripting support")
     add_definitions(-DRTSCRIPT_SUPPORT_V8)
     set(PXCORE_FILES ${PXCORE_FILES} rtScriptV8/rtScriptV8.cpp rtScriptV8/jsCallback.cpp rtScriptV8/rtFunctionWrapper.cpp 
-        rtScriptV8/rtObjectWrapper.cpp rtScriptV8/rtWrapperUtils.cpp ${V8_SOURCES})
+        rtScriptV8/rtObjectWrapper.cpp rtScriptV8/rtWrapperUtils.cpp ${V8_SOURCES} rtScriptV8/debugger/inspector_socket.cc rtScriptV8/debugger/inspector_agent.cc rtScriptV8/debugger/v8_inspector.cc)
 endif()
 
 
