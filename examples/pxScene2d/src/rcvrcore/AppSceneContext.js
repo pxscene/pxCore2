@@ -45,7 +45,6 @@ var ClearInterval = (isDuk || isV8)?timers.clearInterval:clearInterval;
 
 var http_wrap = require('rcvrcore/http_wrap');
 var https_wrap = require('rcvrcore/https_wrap');
-var ws_wrap = (isDuk)?"":require('rcvrcore/ws_wrap');
 
 function AppSceneContext(params) {
 
