@@ -264,7 +264,6 @@ void pxImageA::loadImageSequence()
       mw = static_cast<float>(mImageWidth);
       mh = static_cast<float>(mImageHeight);
     }
-    mReady.send("resolve", this);
   }
   else
   {
