@@ -1,3 +1,21 @@
+/*
+
+pxCore Copyright 2005-2018 John Robinson
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+*/
+
 #include "inspector_agent.h"
 #include <strings.h>
 #include "inspector_socket.h"
@@ -14,7 +32,7 @@
 #include <vector>
 
 
-class V8NodeInspector;
+class V8SparkInspector;
 
 class AgentImpl {
  public:
@@ -22,7 +40,7 @@ class AgentImpl {
   ~AgentImpl();
 
   // Start the inspector agent thread
-  bool Start(const char* path, int port, bool wait);
+  bool Start(int port, bool wait);
   // Stop the inspector agent
   void Stop();
 
@@ -74,7 +92,7 @@ class AgentImpl {
   uv_async_t* data_written_;
   uv_async_t io_thread_req_;
   InspectorSocket* client_socket_;
-  V8NodeInspector* inspector_;
+  V8SparkInspector* inspector_;
   v8::Platform* platform_;
   MessageQueue incoming_message_queue_;
   MessageQueue outgoing_message_queue_;
@@ -85,12 +103,11 @@ class AgentImpl {
   std::string script_name_;
   std::string script_path_;
   const std::string id_;
-  bool ignoreResponse;
 
   friend class ChannelImpl;
   friend class DispatchOnInspectorBackendTask;
   friend class SetConnectedTask;
-  friend class V8NodeInspector;
+  friend class V8SparkInspector;
   friend void InterruptCallback(v8::Isolate*, void* agent);
   friend void DataCallback(uv_stream_t* stream, ssize_t read,
                            const uv_buf_t* buf);
@@ -126,15 +143,15 @@ class ChannelImpl final : public v8_inspector::V8Inspector::Channel {
   AgentImpl* const agent_;
 };
 
-// Used in V8NodeInspector::currentTimeMS() below.
+// Used in V8SparkInspector::currentTimeMS() below.
 #define NANOS_PER_MSEC 1000000
 
 using V8Inspector = v8_inspector::V8Inspector;
 
 /* class to handle messages back from front end to v8 inspector */
-class V8NodeInspector : public v8_inspector::V8InspectorClient {
+class V8SparkInspector : public v8_inspector::V8InspectorClient {
  public:
-  V8NodeInspector(AgentImpl* agent, Environment* env, v8::Platform* platform);
+  V8SparkInspector(AgentImpl* agent, Environment* env, v8::Platform* platform);
   void runMessageLoopOnPause(int context_group_id) override;
   double currentTimeMS() override;
   void quitMessageLoopOnPause() override;

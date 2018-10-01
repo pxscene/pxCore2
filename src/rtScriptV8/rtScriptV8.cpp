@@ -124,6 +124,7 @@ extern "C" const char U_DATA_API SMALL_ICUDATA_ENTRY_POINT[];
 #endif
 
 #include "headers.h"
+#include <debugger/inspector_agent.h>
 #include "libplatform/libplatform.h"
 
 #ifdef ENABLE_DEBUG_MODE
@@ -828,7 +829,7 @@ rtError rtScriptV8::init()
       }
       mEnv = new Environment(mIsolate, mUvLoop, mPlatform);
       mInspectorAgent = new Agent(mEnv);
-      mInspectorAgent->Start("", gInspectorPort, gWaitForDebugger);
+      mInspectorAgent->Start(gInspectorPort, gWaitForDebugger);
       isAgentStarted = true;
     }
     mV8Initialized = true;
