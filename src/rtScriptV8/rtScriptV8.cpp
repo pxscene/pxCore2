@@ -367,8 +367,6 @@ bool rtV8Context::resolveModulePath(const rtString &name, rtString &data)
   dirs.push_back(""); // this dir
   dirs.push_back("v8_modules/");
   dirs.push_back("node_modules/");
-  //dirs.push_back("../external/libnode-v6.9.0/lib/");
-  //dirs.push_back("../external/libnode-v6.9.0/lib/internal/");
 
   endings.push_back(".js");
   // not parsing package.json
@@ -485,7 +483,7 @@ Local<Value> rtV8Context::loadV8Module(const rtString &name)
 
   rtString contents1 = "(function(){var module=this; var exports=(this.exports = new Object());";
   contents1.append(contents.cString());
-  contents1.append(" return this.exports; })");
+  contents1.append("; return this.exports; })");
 
   v8::Local<v8::String> source =
     v8::String::NewFromUtf8(mIsolate, contents1.cString(), v8::NewStringType::kNormal).ToLocalChecked();
