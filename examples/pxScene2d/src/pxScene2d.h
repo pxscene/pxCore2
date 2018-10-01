@@ -70,7 +70,6 @@
 #include "rtCORS.h"
 
 #include "rtServiceProvider.h"
-#include "rtSettings.h"
 
 #ifdef RUNINMAIN
 #define ENTERSCENELOCK()
@@ -508,8 +507,12 @@ public:
       float dy = -(mpy * mh);
       
       // translate based on xy rotate/scale based on cx, cy
-      m.translate(mx + mcx + dx, my + mcy + dy);
-      
+      bool doTransToOrig = msx != 1.0 || msy != 1.0 || mr;
+      if (doTransToOrig)
+        m.translate(mx + mcx + dx, my + mcy + dy);
+      else
+        m.translate(mx + dx, my + dy);
+        
       if (mr)
       {
         m.rotateInDegrees(mr
@@ -531,7 +534,8 @@ public:
         );
       }
       if (msx != 1.0 || msy != 1.0) m.scale(msx, msy);
-      m.translate(-mcx, -mcy);
+      if (doTransToOrig)
+        m.translate(-mcx, -mcy);
 #endif
     }
     else
@@ -751,7 +755,7 @@ protected:
   bool mRepaint;
   #ifdef PX_DIRTY_RECTANGLES
   bool mIsDirty;
-  pxMatrix4f mLastRenderMatrix;
+  pxMatrix4f mRenderMatrix;
   pxRect mScreenCoordinates;
   pxRect mDirtyRect;
   #endif //PX_DIRTY_RECTANGLES
@@ -1373,7 +1377,8 @@ public:
   rtReadOnlyProperty(alignVertical,alignVertical,rtObjectRef);
   rtReadOnlyProperty(alignHorizontal,alignHorizontal,rtObjectRef);
   rtReadOnlyProperty(truncation,truncation,rtObjectRef);
-  rtMethod1ArgAndReturn("sparkSetting", sparkSetting, rtString, rtValue);
+
+  rtReadOnlyProperty(origin, origin, rtString);
 
   rtMethodNoArgAndNoReturn("dispose",dispose);
 
@@ -1531,7 +1536,7 @@ public:
 #endif
   rtCORSRef cors() const { return mCORS; }
   rtError cors(rtObjectRef& v) const { v = mCORS; return RT_OK; }
-  rtError sparkSetting(const rtString& setting, rtValue& value) const;
+  rtError origin(rtString& v) const { v = mOrigin; return RT_OK; }
 
   void setMouseEntered(rtRef<pxObject> o);//setMouseEntered(pxObject* o);
 
@@ -1702,6 +1707,7 @@ private:
   bool mPointerHidden;
   std::vector<rtObjectRef> mInnerpxObjects;
   rtFunctionRef mCustomAnimator;
+  rtString mOrigin;
 #ifdef ENABLE_PERMISSIONS_CHECK
   rtPermissionsRef mPermissions;
 #endif

@@ -495,7 +495,26 @@ void multiply(FloatT* m, FloatT* n)
       p +=4;
     }
   }
-
+  bool isEqual(const pxMatrix4T& m)
+  {
+    // translation euality check
+    if (mValues[3] != m.mValues[3] || mValues[7] != m.mValues[7] || mValues[11] != m.mValues[11])
+        return false;
+        
+    // scale equality check
+    if (mValues[12] != m.mValues[12] || mValues[13] != m.mValues[13] || mValues[14] != m.mValues[14])
+        return false;
+        
+    // rotation equality check
+    if (mValues[1] != m.mValues[1] || mValues[2] != m.mValues[2] || mValues[4] != m.mValues[4] || mValues[6] != m.mValues[6] || mValues[8] != m.mValues[8] || mValues[9] != m.mValues[9])
+        return false;
+        
+    /*for (int i = 14; i > 0 && i != 5; --i)
+        if (mValues[i] != m.mValues[i])
+        return false;*/
+    return true;
+    }
+    
 private:
   FloatT mValues[16];
 };

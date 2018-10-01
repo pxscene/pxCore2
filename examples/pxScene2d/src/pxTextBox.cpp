@@ -72,13 +72,6 @@ void pxTextBox::resourceReady(rtString readyResolution)
     if( mInitialized) {
       setNeedsRecalc(true);
       pxObject::onTextureReady();
-      if( !mParent)
-      {
-        // Send the promise here because the textbox will not get an 
-        // update call until it has parent
-        recalc();
-        sendPromise();
-      }
     }
   }
   else
@@ -121,10 +114,6 @@ void pxTextBox::onInit()
   {
     mFontLoaded = true;
     setNeedsRecalc(true);
-    if (!mParent)
-    {
-      resourceReady("resolve");
-    }
   }
 }
 

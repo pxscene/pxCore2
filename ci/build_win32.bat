@@ -45,7 +45,7 @@ if "%APPVEYOR_SCHEDULED_BUILD%"=="True" (
 
   set uploadArtifact=True
   call:replaceString "..\examples\pxScene2d\src\win\pxscene.rc" "Spark_installer.ico" "SparkEdge_installer.ico"
-  cmake -DCMAKE_VERBOSE_MAKEFILE=ON -DPXSCENE_VERSION=edge_%date:~-4%-%date:~4,2%-%date:~7,2% ..
+  cmake -DSUPPORT_DUKTAPE=OFF -DCMAKE_VERBOSE_MAKEFILE=ON -DPXSCENE_VERSION=edge_%date:~-4%-%date:~4,2%-%date:~7,2% ..
   call:replaceString "examples\pxScene2d\src\cmake_install.cmake" "Spark.exe" "SparkEdge.exe"
   call:replaceString "CPackConfig.cmake" "Spark.exe" "SparkEdge.exe"
   call:replaceString "CPackSourceConfig.cmake" "Spark.exe" "SparkEdge.exe"
@@ -70,7 +70,7 @@ for /f "tokens=1,* delims=]" %%a in ('find /n /v "" ^< "..\examples\pxScene2d\sr
 	if "%APPVEYOR_REPO_TAG%"=="true" set uploadArtifact=True
 	
 	if  "%APPVEYOR_SCHEDULED_BUILD%"=="" (
-		if "%uploadArtifact%"=="True" cmake -DCMAKE_VERBOSE_MAKEFILE=ON -DPXSCENE_VERSION=%verInfo% .. 
+		if "%uploadArtifact%"=="True" cmake -DSUPPORT_DUKTAPE=OFF -DCMAKE_VERBOSE_MAKEFILE=ON -DPXSCENE_VERSION=%verInfo% .. 
 		if "%uploadArtifact%"=="False"  cmake -DCMAKE_VERBOSE_MAKEFILE=ON .. 
 	)
 	

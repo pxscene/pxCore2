@@ -294,6 +294,11 @@ elseif (WIN32)
         Ws2_32.lib Wldap32.lib psapi.lib
         iphlpapi.lib userenv.lib rtCore_s.lib common.lib
         crash_generation_client.lib exception_handler.lib)
+  
+    if(SUPPORT_DUKTAPE)
+      set(PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} msvcrt.lib)
+    endif(SUPPORT_DUKTAPE)
+
 
     set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${EXTDIR}/breakpad-chrome_55/src/client/windows/Release/lib)
 
