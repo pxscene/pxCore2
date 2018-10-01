@@ -328,13 +328,18 @@ inline void premultiply(float* d, const float* s)
 class pxFBOTexture : public pxTexture
 {
 public:
-  pxFBOTexture(bool antiAliasing) : mWidth(0), mHeight(0), mFramebufferId(0), mTextureId(0), mBindTexture(true)
+  pxFBOTexture(bool antiAliasing, bool alphaOnly) : mWidth(0), mHeight(0), mFramebufferId(0), mTextureId(0), mBindTexture(true), mAlphaOnly(alphaOnly)
 
 #if (defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL)) && !defined(PXSCENE_DISABLE_PXCONTEXT_EXT)
         ,mAntiAliasing(antiAliasing)
 #endif        
   {
-    UNUSED_PARAM(antiAliasing);                             
+    UNUSED_PARAM(antiAliasing);
+
+#ifndef SPARK_ALPHA_FBO_SUPPORT
+    //disable alpha fbo support if the feature is disabled
+    mAlphaOnly = false;
+#endif //SPARK_ALPHA_FBO_SUPPORT
 
     mTextureType = PX_TEXTURE_FRAME_BUFFER;
   }
@@ -350,8 +355,8 @@ public:
 
     mWidth  = w;
     mHeight = h;
-
-    if (!context.isTextureSpaceAvailable(this))
+    int32_t bytesPerPixel = mAlphaOnly ? 1 : 4;
+    if (!context.isTextureSpaceAvailable(this, true, bytesPerPixel))
     {
       rtLogDebug("Not enough texture memory to create FBO");
       return;
@@ -361,15 +366,31 @@ public:
     glGenTextures(1, &mTextureId);
 
     glBindTexture(GL_TEXTURE_2D, mTextureId); TRACK_TEX_CALLS();
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
+    if (mAlphaOnly)
+    {
+      glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA,
+                 mWidth, mHeight, 0, GL_ALPHA,
+                 GL_UNSIGNED_BYTE, NULL);
+    }
+    else
+    {
+      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
                  mWidth, mHeight, 0, GL_RGBA,
                  GL_UNSIGNED_BYTE, NULL);
+    }
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, PX_TEXTURE_MIN_FILTER);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, PX_TEXTURE_MAG_FILTER);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    context.adjustCurrentTextureMemorySize(mWidth*mHeight*4);
+    if (mAlphaOnly)
+    {
+      context.adjustCurrentTextureMemorySize(mWidth*mHeight);
+    }
+    else
+    {
+      context.adjustCurrentTextureMemorySize(mWidth*mHeight*4);
+    }
     mBindTexture = true;
   }
 
@@ -425,7 +446,14 @@ public:
     {
       glDeleteTextures(1, &mTextureId);
       mTextureId = 0;
-      context.adjustCurrentTextureMemorySize(-1*mWidth*mHeight*4);
+      if (mAlphaOnly)
+      {
+        context.adjustCurrentTextureMemorySize(-1*mWidth*mHeight);
+      }
+      else
+      {
+        context.adjustCurrentTextureMemorySize(-1*mWidth*mHeight*4);
+      }
     }
 
     return PX_OK;
@@ -459,7 +487,17 @@ public:
       {
         if ((mWidth != 0) && (mHeight != 0))
         {
+          if (mAlphaOnly)
+          {
+            rtLogDebug("unable to create fbo that is alpha only.  trying to create a standard fbo");
+            deleteTexture();
+            mAlphaOnly = false;
+            //recreate the FBO with non-alpha only for platforms that don't support alpha only backings
+            createFboTexture(mWidth, mHeight);
+            return prepareForRendering();
+          }
           rtLogWarn("error setting the render surface");
+          return PX_FAIL;
         }
         return PX_FAIL;
       }
@@ -521,6 +559,7 @@ private:
   GLuint mFramebufferId;
   GLuint mTextureId;
   bool mBindTexture;
+  bool mAlphaOnly;
 
 #if (defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL)) && !defined(PXSCENE_DISABLE_PXCONTEXT_EXT)
   bool mAntiAliasing;
@@ -2335,10 +2374,10 @@ float pxContext::getAlpha()
   return gAlpha;
 }
 
-pxContextFramebufferRef pxContext::createFramebuffer(int width, int height, bool antiAliasing)
+pxContextFramebufferRef pxContext::createFramebuffer(int width, int height, bool antiAliasing, bool alphaOnly)
 {
   pxContextFramebuffer* fbo = new pxContextFramebuffer();
-  pxFBOTexture* fboTexture = new pxFBOTexture(antiAliasing);
+  pxFBOTexture* fboTexture = new pxFBOTexture(antiAliasing, alphaOnly);
   pxTextureRef texture = fboTexture;
 
   fboTexture->createFboTexture(width, height);
@@ -2830,12 +2869,12 @@ void pxContext::setTextureMemoryLimit(int64_t textureMemoryLimitInBytes)
   mTextureMemoryLimitInBytes = textureMemoryLimitInBytes;
 }
 
-bool pxContext::isTextureSpaceAvailable(pxTextureRef texture, bool allowGarbageCollect)
+bool pxContext::isTextureSpaceAvailable(pxTextureRef texture, bool allowGarbageCollect, int32_t bytesPerPixel)
 {
   if (!mEnableTextureMemoryMonitoring)
     return true;
 
-  int64_t textureSize = ((int64_t)(texture->width())*(int64_t)(texture->height())*(int64_t)4);
+  int64_t textureSize = ((int64_t)(texture->width())*(int64_t)(texture->height())*(int64_t)bytesPerPixel);
   lockContext();
   int64_t currentTextureMemorySize = mCurrentTextureMemorySizeInBytes;
   int64_t maxTextureMemoryInBytes = mTextureMemoryLimitInBytes;
