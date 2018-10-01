@@ -1105,26 +1105,42 @@ void pxObject::update(double t)
     context.setMatrix(m);
     if (mIsDirty)
     {
-        mScene->invalidateRect(&mScreenCoordinates);
-        
         pxRect dirtyRect = getBoundingRectInScreenCoordinates();
         if (!dirtyRect.isEqual(mScreenCoordinates))
         {
-            mScene->invalidateRect(&dirtyRect);
             dirtyRect.unionRect(mScreenCoordinates);
-            setDirtyRect(&dirtyRect);
         }
-        else
-            setDirtyRect(&mScreenCoordinates);
         
+        mScene->invalidateRect(&dirtyRect);
+        setDirtyRect(&dirtyRect);
         mIsDirty = false;
     }
 #endif
-
+    
   // Recursively update children
   for(vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
   {
 #ifdef PX_DIRTY_RECTANGLES
+      int left = (*it)->mScreenCoordinates.left();
+      int right = (*it)->mScreenCoordinates.right();
+      int top = (*it)->mScreenCoordinates.top();
+      int bottom = (*it)->mScreenCoordinates.bottom();
+      if (right > mScreenCoordinates.right())
+      {
+          mScreenCoordinates.setRight(right);
+      }
+      if (left < mScreenCoordinates.left())
+      {
+          mScreenCoordinates.setLeft(left);
+      }
+      if (top < mScreenCoordinates.top())
+      {
+          mScreenCoordinates.setTop(top);
+      }
+      if (bottom > mScreenCoordinates.bottom())
+      {
+          mScreenCoordinates.setBottom(bottom);
+      }
     context.pushState();
 #endif //PX_DIRTY_RECTANGLES
 // JR TODO  this lock looks suspicious... why do we need it?
@@ -1213,7 +1229,7 @@ pxRect pxObject::getBoundingRectInScreenCoordinates()
   int w = getOnscreenWidth();
   int h = getOnscreenHeight();
   int x[4], y[4];
-
+  
   mRenderMatrix = context.getMatrix();
   context.mapToScreenCoordinates(mRenderMatrix, 0,0,x[0],y[0]);
   context.mapToScreenCoordinates(mRenderMatrix, w, h, x[1], y[1]);
@@ -1473,28 +1489,6 @@ void pxObject::drawInternal(bool maskPass)
         context.pushState();
         //rtLogInfo("calling drawInternal() mw=%f mh=%f\n", (*it)->mw, (*it)->mh);
         (*it)->drawInternal();
-#ifdef PX_DIRTY_RECTANGLES
-        int left = (*it)->mScreenCoordinates.left();
-        int right = (*it)->mScreenCoordinates.right();
-        int top = (*it)->mScreenCoordinates.top();
-        int bottom = (*it)->mScreenCoordinates.bottom();
-        if (right > mScreenCoordinates.right())
-        {
-          mScreenCoordinates.setRight(right);
-        }
-        if (left < mScreenCoordinates.left())
-        {
-          mScreenCoordinates.setLeft(left);
-        }
-        if (top < mScreenCoordinates.top())
-        {
-          mScreenCoordinates.setTop(top);
-        }
-        if (bottom > mScreenCoordinates.bottom())
-        {
-          mScreenCoordinates.setBottom(bottom);
-        }
-#endif //PX_DIRTY_RECTANGLES
         context.popState();
       }
       // ---------------------------------------------------------------------------------------------------
