@@ -1142,14 +1142,14 @@ void pxObject::update(double t)
       {
           mScreenCoordinates.setBottom(bottom);
       }
-    context.pushState();
+    //context.pushState();
 #endif //PX_DIRTY_RECTANGLES
 // JR TODO  this lock looks suspicious... why do we need it?
 ENTERSCENELOCK()
     (*it)->update(t);
 EXITSCENELOCK()
 #ifdef PX_DIRTY_RECTANGLES
-    context.popState();
+    //context.popState();
 #endif //PX_DIRTY_RECTANGLES
   }
     
@@ -2643,7 +2643,7 @@ void pxScene2d::update(double t)
   if (mRoot)
   {
 #ifdef PX_DIRTY_RECTANGLES
-      context.pushState();
+      //context.pushState();
 #endif //PX_DIRTY_RECTANGLES
 
       if( mCustomAnimator != NULL ) {
@@ -2657,7 +2657,7 @@ void pxScene2d::update(double t)
 #endif
 
 #ifdef PX_DIRTY_RECTANGLES
-      context.popState();
+      //context.popState();
 #endif //PX_DIRTY_RECTANGLES
   }
 }
