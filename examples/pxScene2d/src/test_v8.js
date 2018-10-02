@@ -122,7 +122,7 @@ console.log('TEST http');
 const http = require('http');
 let read = 0;
 const onResponse = function (res) {
-  assert(res.statusCode === 0, 'http test #1 failed');
+  assert(res.statusCode === 200, 'http test #1 failed');
   res.on('data', function (c) {
     read += c.length;
   });
@@ -130,7 +130,14 @@ const onResponse = function (res) {
     assert(read > 100, 'http test #2 failed');
   });
 };
-http.get('https://example.com', onResponse);
+const req = http.request('https://nodejs.org', onResponse);
+req.on('error', (e) => {
+  assert(typeof e === 'string', 'http test #4 failed');
+  assert(e.length > 0, 'http test #5 failed');
+});
+req.end();
 setTimeout(() => {
   assert(read > 100, 'http test #3 failed');
 }, 5000);
+
+console.log('end of TESTS');
