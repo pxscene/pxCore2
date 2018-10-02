@@ -1102,58 +1102,43 @@ void pxObject::update(double t)
 #ifdef PX_DIRTY_RECTANGLES
     pxMatrix4f m;
     applyMatrix(m);
-    //context.setMatrix(m);
+    context.setMatrix(m);
+    mRenderMatrix = m;
     if (mIsDirty)
     {
+        mScene->invalidateRect(&mScreenCoordinates);
+        
         pxRect dirtyRect = getBoundingRectInScreenCoordinates();
         if (!dirtyRect.isEqual(mScreenCoordinates))
         {
+            mScene->invalidateRect(&dirtyRect);
             dirtyRect.unionRect(mScreenCoordinates);
+            setDirtyRect(&dirtyRect);
         }
+        else
+            setDirtyRect(&mScreenCoordinates);
         
-        mScene->invalidateRect(&dirtyRect);
-        mRenderMatrix = context.getMatrix();
-        setDirtyRect(&dirtyRect);
         mIsDirty = false;
     }
 #endif
-    
+
   // Recursively update children
   for(vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
   {
 #ifdef PX_DIRTY_RECTANGLES
-      int left = (*it)->mScreenCoordinates.left();
-      int right = (*it)->mScreenCoordinates.right();
-      int top = (*it)->mScreenCoordinates.top();
-      int bottom = (*it)->mScreenCoordinates.bottom();
-      if (right > mScreenCoordinates.right())
-      {
-          mScreenCoordinates.setRight(right);
-      }
-      if (left < mScreenCoordinates.left())
-      {
-          mScreenCoordinates.setLeft(left);
-      }
-      if (top < mScreenCoordinates.top())
-      {
-          mScreenCoordinates.setTop(top);
-      }
-      if (bottom > mScreenCoordinates.bottom())
-      {
-          mScreenCoordinates.setBottom(bottom);
-      }
-    //context.pushState();
+    context.pushState();
 #endif //PX_DIRTY_RECTANGLES
 // JR TODO  this lock looks suspicious... why do we need it?
 ENTERSCENELOCK()
     (*it)->update(t);
 EXITSCENELOCK()
 #ifdef PX_DIRTY_RECTANGLES
-    //context.popState();
+    context.popState();
 #endif //PX_DIRTY_RECTANGLES
   }
     
 #ifdef PX_DIRTY_RECTANGLES
+    context.setMatrix(m);
     mRenderMatrix = m;
 #endif
     
@@ -1230,8 +1215,7 @@ pxRect pxObject::getBoundingRectInScreenCoordinates()
   int w = getOnscreenWidth();
   int h = getOnscreenHeight();
   int x[4], y[4];
-  
-  //mRenderMatrix = context.getMatrix();
+  mRenderMatrix = context.getMatrix();
   context.mapToScreenCoordinates(mRenderMatrix, 0,0,x[0],y[0]);
   context.mapToScreenCoordinates(mRenderMatrix, w, h, x[1], y[1]);
   context.mapToScreenCoordinates(mRenderMatrix, 0, h, x[2], y[2]);
@@ -1405,7 +1389,7 @@ void pxObject::drawInternal(bool maskPass)
   }
 
   #ifdef PX_DIRTY_RECTANGLES
-  mRenderMatrix = context.getMatrix();
+  //mLastRenderMatrix = context.getMatrix();
   mScreenCoordinates = getBoundingRectInScreenCoordinates();
   #endif //PX_DIRTY_RECTANGLES
 
@@ -1490,6 +1474,28 @@ void pxObject::drawInternal(bool maskPass)
         context.pushState();
         //rtLogInfo("calling drawInternal() mw=%f mh=%f\n", (*it)->mw, (*it)->mh);
         (*it)->drawInternal();
+#ifdef PX_DIRTY_RECTANGLES
+        int left = (*it)->mScreenCoordinates.left();
+        int right = (*it)->mScreenCoordinates.right();
+        int top = (*it)->mScreenCoordinates.top();
+        int bottom = (*it)->mScreenCoordinates.bottom();
+        if (right > mScreenCoordinates.right())
+        {
+          mScreenCoordinates.setRight(right);
+        }
+        if (left < mScreenCoordinates.left())
+        {
+          mScreenCoordinates.setLeft(left);
+        }
+        if (top < mScreenCoordinates.top())
+        {
+          mScreenCoordinates.setTop(top);
+        }
+        if (bottom > mScreenCoordinates.bottom())
+        {
+          mScreenCoordinates.setBottom(bottom);
+        }
+#endif //PX_DIRTY_RECTANGLES
         context.popState();
       }
       // ---------------------------------------------------------------------------------------------------
@@ -1695,7 +1701,7 @@ void pxObject::createSnapshotOfChildren()
 
   if (mMaskSnapshot.getPtr() == NULL || mMaskSnapshot->width() != floor(w) || mMaskSnapshot->height() != floor(h))
   {
-    mMaskSnapshot = context.createFramebuffer(static_cast<int>(floor(w)), static_cast<int>(floor(h)));
+    mMaskSnapshot = context.createFramebuffer(static_cast<int>(floor(w)), static_cast<int>(floor(h)), false, true);
   }
   else
   {
@@ -1866,13 +1872,17 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   mScriptView = scriptView;
   mTag = gTag++;
 
-  rtString origin = scriptView != NULL ? rtUrlGetOrigin(scriptView->getUrl().cString()) : rtString();
+  if (scriptView != NULL)
+  {
+    mOrigin = rtUrlGetOrigin(scriptView->getUrl().cString());
+  }
+
 #ifdef ENABLE_PERMISSIONS_CHECK
   // rtPermissions accounts parent scene permissions too
-  mPermissions = new rtPermissions(origin.cString());
+  mPermissions = new rtPermissions(mOrigin.cString());
 #endif
 #ifdef ENABLE_ACCESS_CONTROL_CHECK
-  mCORS = new rtCORS(origin.cString());
+  mCORS = new rtCORS(mOrigin.cString());
 #endif
 
   // make sure that initial onFocus is sent
@@ -2424,14 +2434,14 @@ EXITSCENELOCK()
   {
     pxMatrix4f identity;
     identity.identity();
-    //pxMatrix4f currentMatrix = context.getMatrix();
-    //context.setMatrix(identity);
+    pxMatrix4f currentMatrix = context.getMatrix();
+    context.setMatrix(identity);
     float red[]= {1,0,0,1};
     bool showOutlines = context.showOutlines();
     context.setShowOutlines(true);
     context.drawDiagRect(x, y, w, h, red);
     context.setShowOutlines(showOutlines);
-    //context.setMatrix(currentMatrix);
+    context.setMatrix(currentMatrix);
     context.enableClipping(true);
   }
   previousShowDirtyRect = mShowDirtyRectangle;
@@ -2643,7 +2653,7 @@ void pxScene2d::update(double t)
   if (mRoot)
   {
 #ifdef PX_DIRTY_RECTANGLES
-      //context.pushState();
+      context.pushState();
 #endif //PX_DIRTY_RECTANGLES
 
       if( mCustomAnimator != NULL ) {
@@ -2657,7 +2667,7 @@ void pxScene2d::update(double t)
 #endif
 
 #ifdef PX_DIRTY_RECTANGLES
-      //context.popState();
+      context.popState();
 #endif //PX_DIRTY_RECTANGLES
   }
 }
@@ -3596,10 +3606,10 @@ rtDefineProperty(pxScene2d,alignHorizontal);
 rtDefineProperty(pxScene2d,truncation);
 rtDefineMethod(pxScene2d, dispose);
 
+rtDefineProperty(pxScene2d, origin);
 #ifdef ENABLE_PERMISSIONS_CHECK
 rtDefineProperty(pxScene2d, permissions);
 #endif
-rtDefineMethod(pxScene2d, sparkSetting);
 rtDefineProperty(pxScene2d, cors);
 rtDefineMethod(pxScene2d, addServiceProvider);
 rtDefineMethod(pxScene2d, removeServiceProvider);
@@ -3705,18 +3715,6 @@ void pxScene2d::innerpxObjectDisposed(rtObjectRef ref)
       mInnerpxObjects.erase(mInnerpxObjects.begin()+pos);
     }
   }
-}
-
-rtError pxScene2d::sparkSetting(const rtString& setting, rtValue& value) const
-{
-  rtValue val;
-  if (RT_OK != rtSettings::instance()->value(setting, val))
-  {
-    value = rtValue();
-    return RT_OK;
-  }
-  value = val;
-  return RT_OK;
 }
 
 void pxScene2d::setViewContainer(pxIViewContainer* l)
