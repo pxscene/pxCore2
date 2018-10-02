@@ -62,7 +62,7 @@ if (APPLE)
     endif ()
 elseif (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC -g")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -g")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated -fPIC -g")
     execute_process(COMMAND "hostname" OUTPUT_VARIABLE HOSTNAME)
     string(STRIP ${HOSTNAME} HOSTNAME)
 
@@ -183,7 +183,7 @@ else ()
 endif (APPLE)
 
 if (NOT PXCORE_DFB)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpermissive -std=c++14 -Wno-error=deprecated-declarations")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpermissive -std=c++11")
 endif (NOT PXCORE_DFB)
 
 if (PXCORE_COMPILE_WARNINGS_AS_ERRORS)
