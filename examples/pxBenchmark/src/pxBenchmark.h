@@ -44,16 +44,19 @@ class pxBenchmarkExperimentValue : public TestFixture::ExperimentValue
 {
 public:
     uint64_t         mTotalTime;
+    uint64_t         mFPS;
     //std::string      mName;
     
     pxBenchmarkExperimentValue()
     : mTotalTime (0)
     , ExperimentValue()
+    , mFPS (0)
     {
         
     }
     pxBenchmarkExperimentValue(int64_t v)
     : mTotalTime (0)
+    , mFPS (0)
     , ExperimentValue (v)
     {
     }
@@ -61,12 +64,14 @@ public:
     pxBenchmarkExperimentValue(int64_t v, uint64_t totTime)
     : ExperimentValue (v)
     , mTotalTime (totTime)
+    , mFPS (0)
     {
     }
     
     pxBenchmarkExperimentValue(int64_t v, int64_t i, uint64_t totTime)
     : ExperimentValue (v, i)
     , mTotalTime (totTime)
+    , mFPS (0)
     {
     };
     
