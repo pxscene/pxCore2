@@ -22,6 +22,8 @@
 #include "rtObject.h"
 #include "rtString.h"
 
+#include <map>
+
 class rtHttpResponse : public rtObject
 {
 public:
@@ -48,6 +50,10 @@ public:
 
   void onData();
   void onEnd();
+
+  static rtError parseHeaders(const rtString& data, std::map<rtString, rtString>& headerMap);
+  static rtError parseHeader(const rtString& data, rtString& key, rtString& value);
+  static rtString toLowercaseStr(const rtString& str);
 
 private:
   int32_t mStatusCode;

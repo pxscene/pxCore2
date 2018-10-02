@@ -123,21 +123,23 @@ const http = require('http');
 let read = 0;
 const onResponse = function (res) {
   assert(res.statusCode === 200, 'http test #1 failed');
+  assert(typeof res.headers === 'object', 'http test #2 failed');
+  assert(Object.keys(res.headers).length > 0, 'http test #3 failed');
   res.on('data', function (c) {
     read += c.length;
   });
   res.on('end', function () {
-    assert(read > 100, 'http test #2 failed');
+    assert(read > 100, 'http test #4 failed');
   });
 };
 const req = http.request('https://nodejs.org', onResponse);
 req.on('error', (e) => {
-  assert(typeof e === 'string', 'http test #4 failed');
-  assert(e.length > 0, 'http test #5 failed');
+  assert(typeof e === 'string', 'http test #5 failed');
+  assert(e.length > 0, 'http test #6 failed');
 });
 req.end();
 setTimeout(() => {
-  assert(read > 100, 'http test #3 failed');
+  assert(read > 100, 'http test #7 failed');
 }, 5000);
 
 console.log('end of TESTS');

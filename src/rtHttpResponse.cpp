@@ -18,6 +18,8 @@
 
 #include "rtHttpResponse.h"
 
+#include <algorithm>
+
 rtDefineObject(rtHttpResponse, rtObject);
 
 rtDefineProperty(rtHttpResponse, statusCode);
@@ -50,8 +52,13 @@ rtError rtHttpResponse::errorMessage(rtString& v) const
 
 rtError rtHttpResponse::headers(rtObjectRef& v) const
 {
-  // TODO
-  UNUSED_PARAM(v);
+  rtObjectRef i = new rtMapObject();
+  std::map<rtString, rtString> headerMap;
+  rtHttpResponse::parseHeaders(mHeaders, headerMap);
+  for (std::map<rtString,rtString>::const_iterator it=headerMap.begin(); it!=headerMap.end(); ++it) {
+    i.set(it->first, it->second);
+  }
+  v = i;
   return RT_OK;
 }
 
@@ -101,4 +108,60 @@ void rtHttpResponse::onEnd()
   } else {
     mEmit.send("error", mErrorMessage);
   }
+}
+
+rtError rtHttpResponse::parseHeaders(const rtString& data, std::map<rtString, rtString>& headerMap)
+{
+  headerMap.clear();
+
+  int32_t len = data.length();
+  int32_t attr1 = 0, attr2;
+  attr2 = data.find(attr1, '\n');
+  attr2 = -1 != attr2 ? attr2 : (attr1 < len ? len : -1);
+
+  while (-1 != attr2) {
+    rtString attribute = attr2 == attr1 ? "" : data.substring(attr1, attr2-attr1);
+    rtString key, value;
+    if (parseHeader(attribute, key, value) == RT_OK) {
+      headerMap.insert(std::pair<rtString, rtString>(key, value));
+    }
+    attr1 = attr2+1;
+    attr2 = data.find(attr1, '\n');
+    attr2 = -1 != attr2 ? attr2 : (attr1 < len ? len : -1);
+  }
+
+  return RT_OK;
+}
+
+rtError rtHttpResponse::parseHeader(const rtString& data, rtString& key, rtString& value)
+{
+  if (data.isEmpty())
+    return RT_FAIL;
+
+  int32_t key2 = data.find(0, ':');
+  if (key2 <= 0)
+    return RT_FAIL;
+
+  rtString k = data.substring(0, key2);
+  rtString v = data.substring(key2 + 1);
+  const char* bytePtr = v.cString();
+  for (; *bytePtr == ' ' || *bytePtr == '\t'; bytePtr++);
+  if (bytePtr != v.cString()) {
+    v = v.substring(bytePtr - v.cString());
+  }
+  int32_t value2 = v.find(0, '\r');
+  if (-1 != value2) {
+    v = value2 == 0 ? "" : v.substring(0, value2);
+  }
+  key = toLowercaseStr(k);
+  value = v;
+
+  return RT_OK;
+}
+
+rtString rtHttpResponse::toLowercaseStr(const rtString& str)
+{
+  std::string s(str.cString(), str.byteLength());
+  std::transform(s.begin(), s.end(), s.begin(), ::tolower);
+  return rtString(s.c_str());
 }
