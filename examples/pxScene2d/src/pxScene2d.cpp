@@ -1102,7 +1102,7 @@ void pxObject::update(double t)
 #ifdef PX_DIRTY_RECTANGLES
     pxMatrix4f m;
     applyMatrix(m);
-    context.setMatrix(m);
+    //context.setMatrix(m);
     if (mIsDirty)
     {
         pxRect dirtyRect = getBoundingRectInScreenCoordinates();
@@ -1112,6 +1112,7 @@ void pxObject::update(double t)
         }
         
         mScene->invalidateRect(&dirtyRect);
+        mRenderMatrix = context.getMatrix();
         setDirtyRect(&dirtyRect);
         mIsDirty = false;
     }
@@ -1230,7 +1231,7 @@ pxRect pxObject::getBoundingRectInScreenCoordinates()
   int h = getOnscreenHeight();
   int x[4], y[4];
   
-  mRenderMatrix = context.getMatrix();
+  //mRenderMatrix = context.getMatrix();
   context.mapToScreenCoordinates(mRenderMatrix, 0,0,x[0],y[0]);
   context.mapToScreenCoordinates(mRenderMatrix, w, h, x[1], y[1]);
   context.mapToScreenCoordinates(mRenderMatrix, 0, h, x[2], y[2]);
@@ -1404,7 +1405,7 @@ void pxObject::drawInternal(bool maskPass)
   }
 
   #ifdef PX_DIRTY_RECTANGLES
-  //mRenderMatrix = context.getMatrix();
+  mRenderMatrix = context.getMatrix();
   mScreenCoordinates = getBoundingRectInScreenCoordinates();
   #endif //PX_DIRTY_RECTANGLES
 
