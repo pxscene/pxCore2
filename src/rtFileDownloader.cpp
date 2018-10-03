@@ -56,6 +56,7 @@ struct MemoryStruct
         , contentsSize(0)
         , contentsBuffer(NULL)
         , downloadRequest(NULL)
+        , readSize(0)
     {
         headerBuffer = (char*)malloc(1);
         contentsBuffer = (char*)malloc(1);
@@ -80,6 +81,7 @@ struct MemoryStruct
   size_t contentsSize;
   char* contentsBuffer;
   rtFileDownloadRequest *downloadRequest;
+  size_t readSize;
 };
 
 static size_t HeaderCallback(void *contents, size_t size, size_t nmemb, void *userp)
@@ -130,6 +132,24 @@ static size_t WriteMemoryCallback(void *contents, size_t size, size_t nmemb, voi
   }
 }
 
+static size_t ReadMemoryCallback(void *contents, size_t size, size_t nmemb, void *userp)
+{
+  size_t bufferSize = size * nmemb;
+  struct MemoryStruct *mem = (struct MemoryStruct *)userp;
+
+  size_t sizeLeft = mem->downloadRequest->readData().byteLength() - mem->readSize;
+  if (sizeLeft > 0) {
+    size_t copyThisMuch = sizeLeft;
+    if (copyThisMuch > bufferSize)
+      copyThisMuch = bufferSize;
+    memcpy(contents, mem->downloadRequest->readData().cString() + mem->readSize, copyThisMuch);
+    mem->readSize += copyThisMuch;
+    return copyThisMuch;
+  }
+
+  return 0;
+}
+
 
 void startFileDownloadInBackground(void* data)
 {
@@ -166,6 +186,7 @@ rtFileDownloadRequest::rtFileDownloadRequest(const char* imageUrl, void* callbac
 #endif
     , mIsProgressMeterSwitchOff(false), mHTTPFailOnError(false), mDefaultTimeout(false)
     , mCORS(), mCanceled(false), mUseCallbackDataSize(false), mCanceledMutex()
+    , mMethod()
 {
   mAdditionalHttpHeaders.clear();
 #ifdef ENABLE_HTTP_CACHE
@@ -490,6 +511,26 @@ bool rtFileDownloadRequest::isCanceled()
   return requestCanceled;
 }
 
+void rtFileDownloadRequest::setMethod(const char* method)
+{
+  mMethod = method;
+}
+
+rtString rtFileDownloadRequest::method() const
+{
+  return mMethod;
+}
+
+void rtFileDownloadRequest::setReadData(const rtString& val)
+{
+  mReadData = val;
+}
+
+rtString rtFileDownloadRequest::readData() const
+{
+  return mReadData;
+}
+
 rtFileDownloader::rtFileDownloader()
     : mNumberOfCurrentDownloads(0), mDefaultCallbackFunction(NULL), mDownloadHandles(), mReuseDownloadHandles(false),
       mCaCertFile(CA_CERTIFICATE), mFileCacheMutex()
@@ -750,6 +791,9 @@ bool rtFileDownloader::downloadFromNetwork(rtFileDownloadRequest* downloadReques
     bool headerOnly = downloadRequest->headerOnly();
     MemoryStruct chunk;
 
+    rtString method = downloadRequest->method();
+    size_t readDataSize = downloadRequest->readData().byteLength();
+
     curl_handle = rtFileDownloader::instance()->retrieveDownloadHandle();
 
     /* specify URL to get */
@@ -796,6 +840,10 @@ bool rtFileDownloader::downloadFromNetwork(rtFileDownloadRequest* downloadReques
     }
     if (downloadRequest->cors() != NULL)
       downloadRequest->cors()->updateRequestForAccessControl(&list);
+    if (readDataSize > 0)
+    {
+      list = curl_slist_append(list, "Expect:");
+    }
     curl_easy_setopt(curl_handle, CURLOPT_HTTPHEADER, list);
     //CA certificates
     // !CLF: Use system CA Cert rather than CA_CERTIFICATE fo now.  Revisit!
@@ -822,6 +870,25 @@ bool rtFileDownloader::downloadFromNetwork(rtFileDownloadRequest* downloadReques
     {
       curl_easy_setopt(curl_handle, CURLOPT_NOBODY, 1);
     }
+
+    if (!method.isEmpty() && method.compare("GET") != 0)
+    {
+      if (method.compare("POST") == 0)
+        curl_easy_setopt(curl_handle, CURLOPT_POST, 1L);
+      else if (method.compare("PUT") == 0)
+        curl_easy_setopt(curl_handle, CURLOPT_UPLOAD, 1L);
+      else
+        curl_easy_setopt(curl_handle, CURLOPT_CUSTOMREQUEST, method.cString());
+    }
+
+    if (readDataSize > 0)
+    {
+      chunk.downloadRequest = downloadRequest;
+      curl_easy_setopt(curl_handle, CURLOPT_READFUNCTION, ReadMemoryCallback);
+      curl_easy_setopt(curl_handle, CURLOPT_READDATA, (void *)&chunk);
+      curl_easy_setopt(curl_handle, CURLOPT_POSTFIELDSIZE, readDataSize);
+    }
+
     /* get it! */
     res = curl_easy_perform(curl_handle);
     curl_slist_free_all(list);

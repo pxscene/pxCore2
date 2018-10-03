@@ -104,6 +104,10 @@ public:
   rtCORSRef cors() const;
   void cancelRequest();
   bool isCanceled();
+  void setMethod(const char* method);
+  rtString method() const;
+  void setReadData(const rtString& val);
+  rtString readData() const;
 
 private:
   rtString mFileUrl;
@@ -137,6 +141,8 @@ private:
   bool mCanceled;
   bool mUseCallbackDataSize;
   rtMutex mCanceledMutex;
+  rtString mMethod;
+  rtString mReadData;
 };
 
 struct rtFileDownloadHandle

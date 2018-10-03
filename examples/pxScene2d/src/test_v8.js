@@ -118,28 +118,64 @@ assert(q1.toString() === 'foo=bar&baz=qux&baz=quux&corge=', 'querystring test #1
 assert(q2.toString() === 'foo:bar;baz:qux', 'querystring test #2 failed');
 
 // rm /tmp/cache/*
-console.log('TEST http');
-const http = require('http');
-let read = 0;
-const onResponse = function (res) {
-  assert(res.statusCode === 200, 'http test #1 failed');
-  assert(typeof res.headers === 'object', 'http test #2 failed');
-  assert(Object.keys(res.headers).length > 0, 'http test #3 failed');
+console.log('TEST https get');
+const https = require('https');
+let read1 = 0;
+const onResponse1 = function (res) {
+  assert(res.statusCode === 200, 'https get test #1 failed');
+  assert(typeof res.headers === 'object', 'https get test #2 failed');
+  assert(Object.keys(res.headers).length > 0, 'https get test #3 failed');
   res.on('data', function (c) {
-    read += c.length;
+    read1 += c.length;
   });
   res.on('end', function () {
-    assert(read > 100, 'http test #4 failed');
+    assert(read1 > 100, 'https get test #4 failed');
   });
 };
-const req = http.request('https://nodejs.org', onResponse);
-req.on('error', (e) => {
-  assert(typeof e === 'string', 'http test #5 failed');
-  assert(e.length > 0, 'http test #6 failed');
+const req1 = https.get("https://example.com", onResponse1);
+req1.on('error', (e) => {
+  assert(typeof e === 'string', 'https get test #5 failed');
+  assert(e.length > 0, 'https get test #6 failed');
 });
-req.end();
 setTimeout(() => {
-  assert(read > 100, 'http test #7 failed');
+  assert(read1 > 100, 'https get test #7 failed');
+}, 5000);
+
+// rm /tmp/cache/*
+console.log('TEST http post');
+const http = require('http');
+let read2 = 0;
+const onResponse2 = function (res) {
+  assert(res.statusCode === 200, 'http post test #1 failed');
+  assert(typeof res.headers === 'object', 'http post test #2 failed');
+  assert(Object.keys(res.headers).length > 0, 'http post test #3 failed');
+  res.on('data', function (c) {
+    read2 += c.length;
+  });
+  res.on('end', function () {
+    assert(read2 > 100, 'http post test #4 failed');
+  });
+};
+let postData2 = "{\"postKey1\":\"postValue1\"}";
+const options2 = {
+  protocol: "http:",
+  hostname: "httpbin.org",
+  path: "/post",
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'Authorization': "token"
+  }
+};
+const req2 = http.request(options2, onResponse2);
+req2.on('error', (e) => {
+  assert(typeof e === 'string', 'http post test #5 failed');
+  assert(e.length > 0, 'http post test #6 failed');
+});
+req2.write(postData2);
+req2.end();
+setTimeout(() => {
+  assert(read2 > 100, 'http post test #7 failed');
 }, 5000);
 
 console.log('end of TESTS');

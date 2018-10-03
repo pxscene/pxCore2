@@ -52,6 +52,8 @@ private:
   rtEmitRef mEmit;
   rtString mUrl;
   std::vector<rtString> mHeaders;
+  rtString mMethod;
+  rtString mWriteData;
   bool mInQueue;
 };
 

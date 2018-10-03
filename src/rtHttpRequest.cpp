@@ -44,30 +44,42 @@ rtHttpRequest::rtHttpRequest(const rtObjectRef& options)
 
   rtString proto = options.get<rtString>("protocol");
   rtString host = options.get<rtString>("host");
+  rtString hostname = options.get<rtString>("hostname");
   rtString path = options.get<rtString>("path");
-  // TODO method, headers etc
+  rtString method = options.get<rtString>("method");
+  rtObjectRef headers = options.get<rtObjectRef>("headers");
+  uint32_t port = options.get<uint32_t>("port");
 
-  rtValue allKeys;
-  options->Get("allKeys", &allKeys);
-  rtArrayObject* arr = (rtArrayObject*) allKeys.toObject().getPtr();
-
-  for (uint32_t i = 0, l = arr->length(); i < l; ++i) {
-    rtValue key;
-    if (arr->Get(i, &key) == RT_OK && !key.isEmpty()) {
-      rtString s = key.toString();
-      if (!s.compare("protocol") && !s.compare("host") && !s.compare("path")) {
-        rtString val = options.get<rtString>(s);
-        rtLogWarn("%s: ignore: '%s'='%s'", __FUNCTION__, s.cString(), val.cString());
-      }
-    }
-  }
+  mMethod = method;
 
   url.append(proto.cString());
   url.append("//");
-  url.append(host.cString());
+  if (!host.isEmpty()) {
+    url.append(host.cString());
+  } else if (!hostname.isEmpty()) {
+    url.append(hostname.cString());
+  }
+  if (port > 0) {
+    rtValue portValue(port);
+    url.append(":" + portValue.toString());
+  }
   url.append(path.cString());
 
   mUrl = url;
+
+  if (headers) {
+    rtValue allKeys;
+    headers->Get("allKeys", &allKeys);
+    rtArrayObject* arr = (rtArrayObject*) allKeys.toObject().getPtr();
+    for (uint32_t i = 0, l = arr->length(); i < l; ++i) {
+      rtValue key;
+      if (arr->Get(i, &key) == RT_OK && !key.isEmpty()) {
+        rtString s = key.toString();
+        rtString val = headers.get<rtString>(s);
+        mHeaders.push_back(s + ": " + val);
+      }
+    }
+  }
 }
 
 rtHttpRequest::~rtHttpRequest()
@@ -95,6 +107,8 @@ rtError rtHttpRequest::end()
 
   rtFileDownloadRequest* req = new rtFileDownloadRequest(mUrl.cString(), this, rtHttpRequest::onDownloadComplete);
   req->setAdditionalHttpHeaders(mHeaders);
+  req->setMethod(mMethod);
+  req->setReadData(mWriteData);
   if (rtFileDownloader::instance()->addToDownloadQueue(req)) {
     mInQueue = true;
     return RT_OK;
@@ -111,8 +125,7 @@ rtError rtHttpRequest::write(const rtString& chunk)
     return RT_FAIL;
   }
 
-  // TODO
-  UNUSED_PARAM(chunk);
+  mWriteData = chunk;
   return RT_OK;
 }
 
