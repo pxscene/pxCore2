@@ -33,6 +33,7 @@
 #include <cmath>
 #include <fstream>
 #include <iostream>
+#include "pxTimer.h"
 
 
 //-----------------------------------------------------------------------------------
@@ -51,7 +52,8 @@ pxEventLoop* gLoop = &eventLoop;
 pxContext context;
 
 int MAX_IMAGES_CNT = 42;
-
+int gFPS = 60;
+const int gDuration = 2;
 
 #ifdef ENABLE_DEBUG_MODE
 extern int          g_argc;
@@ -297,6 +299,7 @@ void benchmarkWindow::reset()
 
 void benchmarkWindow::onDraw(pxSurfaceNative/*&*/ sn)
 {
+    
     if (mApiFixture->getIterationCounter() == 0)
     {
         context.setSize(win.GetWidth(), win.GetHeight());
@@ -436,7 +439,7 @@ uint64_t pxApiFixture::run(const uint64_t threads, const uint64_t iterations, co
         //  mIterationCounter = iterations;
         
         // Get the starting time.
-        const auto startTime = celero::timer::GetSystemTime();
+        const auto startTime = pxSeconds();//celero::timer::GetSystemTime();
         
         // Count down to zero
         // Iterations are used when the benchmarks are very fast.
@@ -451,11 +454,21 @@ uint64_t pxApiFixture::run(const uint64_t threads, const uint64_t iterations, co
             this->onExperimentEnd();
             
             
+            
             //  if (win.GetCurrentTimeElapsed() > 16000)
             //    return totalTime;
         }
         // See how long it took.
-        totalTime += celero::timer::GetSystemTime() - startTime;
+        totalTime += pxSeconds() - startTime;
+        
+        double secs = pxSeconds() - startTime;
+        mExperimentValue.mFPS = gFPS * (secs < 1 ? 1 : secs);
+        shared_ptr<Experiment> exp = win.popBaselineBm()->getBaseline();
+        string experimentName = to_string((int)mExperimentValue.mFPS) + "fps";
+        
+        exp->setName (experimentName);
+        win.popBaselineBm()->setBaseline(exp);
+        
         
         mExperimentValue.mTotalTime += totalTime;
         mExperimentValue.Iterations++;
@@ -725,6 +738,8 @@ void pxApiFixture::onExperimentStart(const celero::TestFixture::ExperimentValue&
 
 void pxApiFixture::onExperimentEnd()
 {
+    
+    
 }
 
 std::vector<celero::TestFixture::ExperimentValue> pxApiFixture::getExperimentValues() const
@@ -1124,8 +1139,7 @@ int pxMain(int argc, char* argv[])
     // JRJR TODO Why aren't these necessary for glut... pxCore bug
     win.setVisibility(true);
     
-    uint32_t animationFPS = 60;
-    win.setAnimationFPS(animationFPS);
+    win.setAnimationFPS(gFPS);
     
     context.init();
     
