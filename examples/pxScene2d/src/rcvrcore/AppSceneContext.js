@@ -828,7 +828,7 @@ AppSceneContext.prototype.getPackageBaseFilePath = function() {
   fullPath = fullPath.replace('%20', '\ '); // replace HTML escaped spaces with C/C++ escaping
   if (fullPath == "/")
   {
-    fullPath = ".";
+    fullPath = "./";
   }
   return fullPath;
 };
