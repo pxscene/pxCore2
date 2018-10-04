@@ -238,11 +238,14 @@ AppSceneContext.prototype.loadPackage = function(packageUri) {
     {
       pathToCheck = packageUri.substr(2);
     }
-    if (pathToCheck in _this.codemap)
+    for (var key in _this.codemap)
     {
-      _this.runScriptInNewVMContextNonLoad(pathToCheck);
-      console.info("AppSceneContext#loadPackage from bundle done");
-      return;
+      if (pathToCheck.includes(key))
+      {
+        _this.runScriptInNewVMContextNonLoad(key);
+        console.info("AppSceneContext#loadPackage from bundle done");
+        return;
+      }
     }
   }
   var moduleLoader = new SceneModuleLoader();
@@ -826,10 +829,6 @@ AppSceneContext.prototype.getPackageBaseFilePath = function() {
   }
 
   fullPath = fullPath.replace('%20', '\ '); // replace HTML escaped spaces with C/C++ escaping
-  if (fullPath == "/")
-  {
-    fullPath = ".";
-  }
   return fullPath;
 };
 
@@ -968,10 +967,13 @@ AppSceneContext.prototype.include = function(filePath, currentXModule) {
        {
          pathToCheck = filePath.substr(2);
        }
-       if (pathToCheck in _this.codemap)
+       for (var key in _this.codemap)
        {
-         _this.processNonLoadCodeBuffer(origFilePath, pathToCheck, currentXModule, onImportComplete, reject);
-         return;
+         if (pathToCheck.includes(key))
+         {
+           _this.processNonLoadCodeBuffer(origFilePath, key, currentXModule, onImportComplete, reject);
+           return;
+         }
        }
     }
 
