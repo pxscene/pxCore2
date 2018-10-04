@@ -499,11 +499,13 @@ rtFileDownloader::rtFileDownloader()
   }
 #ifdef PX_REUSE_DOWNLOAD_HANDLES
   rtLogWarn("enabling curl handle reuse");
+  downloadHandleMutex.lock();
   for (int i = 0; i < kMaxDownloadHandles; i++)
   {
     mDownloadHandles.push_back(rtFileDownloadHandle(curl_easy_init()));
   }
   mReuseDownloadHandles = true;
+  downloadHandleMutex.unlock();
 #endif
   char const* s = getenv("CA_CERTIFICATE_FILE");
   if (s)
