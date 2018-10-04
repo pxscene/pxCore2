@@ -22,11 +22,11 @@ var baseUrl = "http://www.pxscene.org/examples/px-reference/gallery/";
 px.configImport({"browser:" : /*px.getPackageBaseFilePath() + */ "browser/"});
 
 
-px.import({ scene:      'px:scene.1.js',
-             keys:      'px:tools.keys.js',
+px.import({ scene:    'px:scene.1.js',
+             keys:    'px:tools.keys.js',
              ListBox: 'browser:listbox.js',
              EditBox: 'browser:editbox.js',
-             mime:      'mime.js',
+             mime:    'mime.js'
 }).then( function importsAreReady(imports)
 {  
   var url   = "";
@@ -83,24 +83,7 @@ px.import({ scene:      'px:scene.1.js',
 
   function reload(u)
   {
-    if (!u)
-      u = inputBox.text;
-    else
-      inputBox.text = u;
-
     u = resolveSceneUrl(u);
-    // TODO Temporary hack
-    if(u == "about.js")
-    {
-        u = "about.js";
-    }
-    else        
-    if (u.indexOf(':') == -1)
-    {
-      u = baseUrl + u;
-      //  inputBox.text = u;
-    }
-
     console.log("RELOADING.... [ " + u + " ]");
 
     // Prime the Spinner !
