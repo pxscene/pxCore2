@@ -171,3 +171,28 @@ void rtHttpRequest::onDownloadComplete(rtFileDownloadRequest* downloadRequest)
 
   resp->onEnd();
 }
+
+rtString rtHttpRequest::url() const
+{
+  return mUrl;
+}
+
+std::vector<rtString> rtHttpRequest::headers() const
+{
+  return mHeaders;
+}
+
+rtString rtHttpRequest::method() const
+{
+  return mMethod;
+}
+
+rtString rtHttpRequest::writeData() const
+{
+  return mWriteData;
+}
+
+bool rtHttpRequest::inQueue() const
+{
+  return mInQueue;
+}

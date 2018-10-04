@@ -48,6 +48,12 @@ public:
 
   static void onDownloadComplete(rtFileDownloadRequest* downloadRequest);
 
+  rtString url() const;
+  std::vector<rtString> headers() const;
+  rtString method() const;
+  rtString writeData() const;
+  bool inQueue() const;
+
 private:
   rtEmitRef mEmit;
   rtString mUrl;
