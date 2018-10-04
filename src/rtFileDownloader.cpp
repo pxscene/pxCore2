@@ -33,13 +33,11 @@ using namespace std;
 
 #define CA_CERTIFICATE "cacert.pem"
 
-//#define PX_REUSE_DOWNLOAD_HANDLES
-
 const int kCurlTimeoutInSeconds = 30;
 #ifdef PX_REUSE_DOWNLOAD_HANDLES
 const int kMaxDownloadHandles = 6;
 #endif //PX_REUSE_DOWNLOAD_HANDLES
-const unsigned int kDefaultDownloadHandleExpiresTime = 5 * 60;
+const double kDefaultDownloadHandleExpiresTime = 5 * 60;
 const int kDownloadHandleTimerIntervalInMilliSeconds = 30 * 1000;
 
 std::thread* downloadHandleExpiresCheckThread = NULL;
@@ -343,12 +341,12 @@ bool rtFileDownloadRequest::headerOnly()
   return mHeaderOnly;
 }
 
-void rtFileDownloadRequest::setDownloadHandleExpiresTime(int timeInSeconds)
+void rtFileDownloadRequest::setDownloadHandleExpiresTime(double timeInSeconds)
 {
   mDownloadHandleExpiresTime = timeInSeconds;
 }
 
-int rtFileDownloadRequest::downloadHandleExpiresTime()
+double rtFileDownloadRequest::downloadHandleExpiresTime()
 {
   return mDownloadHandleExpiresTime;
 }
@@ -786,7 +784,7 @@ bool rtFileDownloader::downloadFromNetwork(rtFileDownloadRequest* downloadReques
     curl_easy_setopt(curl_handle, CURLOPT_TCP_KEEPINTVL, 30);
 #endif //!PX_PLATFORM_GENERIC_DFB && !PX_PLATFORM_DFB_NON_X11
 
-    int downloadHandleExpiresTime = downloadRequest->downloadHandleExpiresTime();
+    double downloadHandleExpiresTime = downloadRequest->downloadHandleExpiresTime();
 
     vector<rtString>& additionalHttpHeaders = downloadRequest->additionalHttpHeaders();
     struct curl_slist *list = NULL;
@@ -975,9 +973,9 @@ CURL* rtFileDownloader::retrieveDownloadHandle()
   return curlHandle;
 }
 
-void rtFileDownloader::releaseDownloadHandle(CURL* curlHandle, int expiresTime)
+void rtFileDownloader::releaseDownloadHandle(CURL* curlHandle, double expiresTime)
 {
-  rtLogDebug("expires time: %d", expiresTime);
+  rtLogDebug("expires time: %f", expiresTime);
 #ifdef PX_REUSE_DOWNLOAD_HANDLES
     downloadHandleMutex.lock();
     if(!mReuseDownloadHandles || mDownloadHandles.size() >= kMaxDownloadHandles || (expiresTime == 0))
@@ -988,7 +986,7 @@ void rtFileDownloader::releaseDownloadHandle(CURL* curlHandle, int expiresTime)
     {
         if (expiresTime > 0)
         {
-          expiresTime += (int)pxSeconds();
+          expiresTime += pxSeconds();
         }
     	mDownloadHandles.push_back(rtFileDownloadHandle(curlHandle, expiresTime));
     }
@@ -1091,7 +1089,7 @@ void rtFileDownloader::checkForExpiredHandles()
   for (vector<rtFileDownloadHandle>::iterator it = mDownloadHandles.begin(); it != mDownloadHandles.end();)
   {
     rtFileDownloadHandle fileDownloadHandle = (*it);
-    rtLogDebug("expires time: %d\n", fileDownloadHandle.expiresTime);
+    rtLogDebug("expires time: %f\n", fileDownloadHandle.expiresTime);
     if (fileDownloadHandle.expiresTime < 0)
     {
       ++it;
