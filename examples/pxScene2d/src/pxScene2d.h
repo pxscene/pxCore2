@@ -70,7 +70,7 @@
 #include "rtCORS.h"
 
 #include "rtServiceProvider.h"
-
+#include "rtSettings.h"
 #ifdef RUNINMAIN
 #define ENTERSCENELOCK()
 #define EXITSCENELOCK() 
@@ -1376,11 +1376,11 @@ public:
   rtReadOnlyProperty(alignVertical,alignVertical,rtObjectRef);
   rtReadOnlyProperty(alignHorizontal,alignHorizontal,rtObjectRef);
   rtReadOnlyProperty(truncation,truncation,rtObjectRef);
-
   rtReadOnlyProperty(origin, origin, rtString);
 
   rtMethodNoArgAndNoReturn("dispose",dispose);
 
+  rtMethod1ArgAndReturn("sparkSetting", sparkSetting, rtString, rtValue);
   rtMethod1ArgAndNoReturn("addServiceProvider", addServiceProvider, rtFunctionRef);
   rtMethod1ArgAndNoReturn("removeServiceProvider", removeServiceProvider, rtFunctionRef);
 
@@ -1535,6 +1535,7 @@ public:
 #endif
   rtCORSRef cors() const { return mCORS; }
   rtError cors(rtObjectRef& v) const { v = mCORS; return RT_OK; }
+  rtError sparkSetting(const rtString& setting, rtValue& value) const;
   rtError origin(rtString& v) const { v = mOrigin; return RT_OK; }
 
   void setMouseEntered(rtRef<pxObject> o);//setMouseEntered(pxObject* o);
