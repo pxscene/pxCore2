@@ -15,8 +15,22 @@
 # limitations under the License.
 #
 
-groupadd --gid $GID "$USER" || test $? = 9
-useradd --no-create-home -G wheel,video --uid $UID --gid $GID "$USER" || test $? = 9
+groupadd --non-unique --gid $GID "$USER" || test $? = 9
+useradd --no-create-home -G wheel --uid $UID --gid $GID "$USER" || test $? = 9
+
+gid=$(stat -c "%G" /dev/dri/card0 2>/dev/null || echo "")
+
+if [ x${gid} != "x" ]; then
+    usermod -a -G $gid $USER || true
+fi
+
+if [ -z ${XDG_RUNTIME_DIR} ]; then
+    XDG_RUNTIME_DIR=/run/user/$UID
+    mkdir -p ${XDG_RUNTIME_DIR}
+    chown $UID:$UID ${XDG_RUNTIME_DIR}
+    chmod 0700 ${XDG_RUNTIME_DIR}
+    export XDG_RUNTIME_DIR
+fi
 
 cd "$CWD"
 
@@ -39,4 +53,3 @@ if [ -f /etc/profile.d/ccache.sh ] ; then
 fi
 
 sudo -H -u "$USER" --preserve-env=$preserved_envs "$@"
-

@@ -78,4 +78,4 @@ fi
 
 test -t 1 && USE_TTY="-t"
 
-sudo docker run "${PX_DOCKER_RUN[@]}" --privileged -i ${USE_TTY} ${cache_dir} ${cc_opts} ${cxx_opts} ${wayland_display_opts} -e USER=$USER -e UID=$UID -e GID=$(id -g $USER) -e CWD="$CWD" ${display_opts} ${xdg_runtime_opts} -v /tmp/.X11-unix:/tmp/.X11-unix -v "${VDIR}":"${VDIR}" ${PX_DOCKER_IMG} "$@"
+sudo docker run "${PX_DOCKER_RUN[@]}" --privileged -p 3389:3389 -i ${USE_TTY} ${cache_dir} ${cc_opts} ${cxx_opts} ${wayland_display_opts} -e USER=$USER -e UID=$UID -e GID=$(id -g $USER) -e CWD="$CWD" ${display_opts} ${xdg_runtime_opts} -v /tmp/.X11-unix:/tmp/.X11-unix -v "${VDIR}":"${VDIR}" ${PX_DOCKER_IMG} "$@"
