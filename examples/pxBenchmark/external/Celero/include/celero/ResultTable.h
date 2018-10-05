@@ -56,6 +56,8 @@ namespace celero
 		///
 		void add(std::shared_ptr<celero::ExperimentResult> x);
 
+                void add(std::string& x);
+
 		///
 		///
 		///
