@@ -77,8 +77,8 @@ public:
   void setCallbackData(void* callbackData);
   void setHeaderOnly(bool val);
   bool headerOnly();
-  void setDownloadHandleExpiresTime(int timeInSeconds);
-  int downloadHandleExpiresTime();
+  void setDownloadHandleExpiresTime(double timeInSeconds);
+  double downloadHandleExpiresTime();
 #ifdef ENABLE_HTTP_CACHE
   void setCacheEnabled(bool val);
   bool cacheEnabled();
@@ -122,7 +122,7 @@ private:
   size_t mHeaderDataSize;
   std::vector<rtString> mAdditionalHttpHeaders;
   bool mHeaderOnly;
-  int mDownloadHandleExpiresTime;
+  double mDownloadHandleExpiresTime;
 #ifdef ENABLE_HTTP_CACHE
   bool mCacheEnabled;
   bool mIsDataInCache;
@@ -142,9 +142,9 @@ private:
 struct rtFileDownloadHandle
 {
   rtFileDownloadHandle(CURL* handle) : curlHandle(handle), expiresTime(-1) {}
-  rtFileDownloadHandle(CURL* handle, int time) : curlHandle(handle), expiresTime(time) {}
+  rtFileDownloadHandle(CURL* handle, double time) : curlHandle(handle), expiresTime(time) {}
   CURL* curlHandle;
-  int expiresTime;
+  double expiresTime;
 };
 
 class rtFileDownloader
@@ -178,7 +178,7 @@ private:
     bool checkAndDownloadFromCache(rtFileDownloadRequest* downloadRequest,rtHttpCacheData& cachedData);
 #endif
     CURL* retrieveDownloadHandle();
-    void releaseDownloadHandle(CURL* curlHandle, int expiresTime);
+    void releaseDownloadHandle(CURL* curlHandle, double expiresTime);
     static void addFileDownloadRequest(rtFileDownloadRequest* downloadRequest);
     static void clearFileDownloadRequest(rtFileDownloadRequest* downloadRequest);
     //todo: hash mPendingDownloadRequests;
