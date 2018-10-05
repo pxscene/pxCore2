@@ -29,6 +29,7 @@
 #include <sstream>
 #include <iostream>
 #include <thread>
+#include <signal.h>
 using namespace std;
 
 #define CA_CERTIFICATE "cacert.pem"
@@ -552,6 +553,7 @@ rtFileDownloader* rtFileDownloader::instance()
 {
     if (mInstance == NULL)
     {
+        signal(SIGPIPE, SIG_IGN);
         mInstance = new rtFileDownloader();
 #ifdef PX_REUSE_DOWNLOAD_HANDLES
       downloadHandleExpiresCheckThread = new std::thread(onDownloadHandleCheck);
