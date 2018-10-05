@@ -36,7 +36,6 @@ using namespace std;
 const int kCurlTimeoutInSeconds = 30;
 #ifdef PX_REUSE_DOWNLOAD_HANDLES
 const int kMaxDownloadHandles = 6;
-bool gEnableReuseCurlHandles = true;
 #endif //PX_REUSE_DOWNLOAD_HANDLES
 const double kDefaultDownloadHandleExpiresTime = 5 * 60;
 const int kDownloadHandleTimerIntervalInMilliSeconds = 30 * 1000;
@@ -499,17 +498,14 @@ rtFileDownloader::rtFileDownloader()
     rtLogError("curl global init failed (error code: %d)", rv);
   }
 #ifdef PX_REUSE_DOWNLOAD_HANDLES
-  if (gEnableReuseCurlHandles)
+  rtLogWarn("enabling curl handle reuse");
+  downloadHandleMutex.lock();
+  for (int i = 0; i < kMaxDownloadHandles; i++)
   {
-    rtLogWarn("enabling curl handle reuse");
-    downloadHandleMutex.lock();
-    for (int i = 0; i < kMaxDownloadHandles; i++)
-    {
-      mDownloadHandles.push_back(rtFileDownloadHandle(curl_easy_init()));
-    }
-    mReuseDownloadHandles = true;
-    downloadHandleMutex.unlock();
+    mDownloadHandles.push_back(rtFileDownloadHandle(curl_easy_init()));
   }
+  mReuseDownloadHandles = true;
+  downloadHandleMutex.unlock();
 #endif
   char const* s = getenv("CA_CERTIFICATE_FILE");
   if (s)
@@ -521,34 +517,31 @@ rtFileDownloader::rtFileDownloader()
 rtFileDownloader::~rtFileDownloader()
 {
 #ifdef PX_REUSE_DOWNLOAD_HANDLES
-  if (gEnableReuseCurlHandles)
+  downloadHandleMutex.lock();
+  for (vector<rtFileDownloadHandle>::iterator it = mDownloadHandles.begin(); it != mDownloadHandles.end(); ++it)
   {
-    downloadHandleMutex.lock();
-    for (vector<rtFileDownloadHandle>::iterator it = mDownloadHandles.begin(); it != mDownloadHandles.end(); ++it)
+    CURL *curlHandle = (*it).curlHandle;
+    if (curlHandle != NULL)
     {
-      CURL *curlHandle = (*it).curlHandle;
-      if (curlHandle != NULL)
-      {
-        curl_easy_cleanup(curlHandle);
-      }
-      it = mDownloadHandles.erase(it);
+      curl_easy_cleanup(curlHandle);
     }
-    mReuseDownloadHandles = false;
+    it = mDownloadHandles.erase(it);
+  }
+  mReuseDownloadHandles = false;
+  downloadHandleMutex.unlock();
+  if (rtFileDownloader::instance() == this)
+  {
+    //cleanup curl and shutdown the reuse handle thread if this is the singleton object
+    downloadHandleMutex.lock();
+    continueDownloadHandleCheck = false;
     downloadHandleMutex.unlock();
-    if (rtFileDownloader::instance() == this)
+    if (downloadHandleExpiresCheckThread)
     {
-      //cleanup curl and shutdown the reuse handle thread if this is the singleton object
-      downloadHandleMutex.lock();
-      continueDownloadHandleCheck = false;
-      downloadHandleMutex.unlock();
-      if (downloadHandleExpiresCheckThread)
-      {
-        rtLogDebug("close thread and wait");
-        downloadHandleExpiresCheckThread->join();
-        rtLogDebug("done with join");
-        delete downloadHandleExpiresCheckThread;
-        downloadHandleExpiresCheckThread = NULL;
-      }
+      rtLogDebug("close thread and wait");
+      downloadHandleExpiresCheckThread->join();
+      rtLogDebug("done with join");
+      delete downloadHandleExpiresCheckThread;
+      downloadHandleExpiresCheckThread = NULL;
     }
   }
 #endif
@@ -561,10 +554,7 @@ rtFileDownloader* rtFileDownloader::instance()
     {
         mInstance = new rtFileDownloader();
 #ifdef PX_REUSE_DOWNLOAD_HANDLES
-      if (gEnableReuseCurlHandles)
-      {
-        downloadHandleExpiresCheckThread = new std::thread(onDownloadHandleCheck);
-      }
+      downloadHandleExpiresCheckThread = new std::thread(onDownloadHandleCheck);
 #endif //PX_REUSE_DOWNLOAD_HANDLES
     }
     return mInstance;
@@ -761,6 +751,7 @@ bool rtFileDownloader::downloadFromNetwork(rtFileDownloadRequest* downloadReques
     MemoryStruct chunk;
 
     curl_handle = rtFileDownloader::instance()->retrieveDownloadHandle();
+    curl_easy_reset(curl_handle);
 
     /* specify URL to get */
     curl_easy_setopt(curl_handle, CURLOPT_URL, downloadRequest->fileUrl().cString());
