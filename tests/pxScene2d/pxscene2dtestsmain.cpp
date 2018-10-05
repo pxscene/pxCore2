@@ -37,6 +37,7 @@ extern char** g_argv;
 char *nodeInput = NULL;
 #endif
 extern rtScript script;
+extern bool gEnableReuseCurlHandles;
 
 void handleSegv(int)
 {
@@ -64,6 +65,7 @@ int main(int argc, char **argv) {
   }
   gargc = argc;
   gargv = argv;
+  gEnableReuseCurlHandles = false;
 #ifdef ENABLE_DEBUG_MODE
   bool isDebugging = false;
   g_argv = (char**)malloc((argc+2) * sizeof(char*));
