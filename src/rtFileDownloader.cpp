@@ -752,7 +752,6 @@ bool rtFileDownloader::downloadFromNetwork(rtFileDownloadRequest* downloadReques
 
     curl_handle = rtFileDownloader::instance()->retrieveDownloadHandle();
     curl_easy_reset(curl_handle);
-
     /* specify URL to get */
     curl_easy_setopt(curl_handle, CURLOPT_URL, downloadRequest->fileUrl().cString());
     curl_easy_setopt(curl_handle, CURLOPT_FOLLOWLOCATION, 1); //when redirected, follow the redirections
@@ -768,8 +767,8 @@ bool rtFileDownloader::downloadFromNetwork(rtFileDownloadRequest* downloadReques
     if(downloadRequest->isCurlDefaultTimeoutSet() == false)
     {
     curl_easy_setopt(curl_handle, CURLOPT_TIMEOUT, kCurlTimeoutInSeconds);
-    curl_easy_setopt(curl_handle, CURLOPT_NOSIGNAL, 1);
     }
+    curl_easy_setopt(curl_handle, CURLOPT_NOSIGNAL, 1L);
 
     if(downloadRequest->isProgressMeterSwitchOff())
         curl_easy_setopt(curl_handle, CURLOPT_NOPROGRESS, 1);
