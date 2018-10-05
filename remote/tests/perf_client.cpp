@@ -44,7 +44,7 @@ messageHandler(int /*argc*/, rtValue const* /*argv*/, rtValue* /*result*/, void*
 }
 
 static rtError
-rtRemoteRunUntil(rtRemoteEnvironment* env, uint32_t millisecondsFromNow)
+remoteRunUntil(rtRemoteEnvironment* env, uint32_t millisecondsFromNow, bool wait)
 {
   rtError e = RT_OK;
 
@@ -59,7 +59,7 @@ rtRemoteRunUntil(rtRemoteEnvironment* env, uint32_t millisecondsFromNow)
     auto endTime = std::chrono::milliseconds(millisecondsFromNow) + std::chrono::system_clock::now();
     while (endTime > std::chrono::system_clock::now())
     {
-      e = rtRemoteRun(env, 16);
+      e = rtRemoteRun(env, wait ? millisecondsFromNow : 16, wait);
       if (e != RT_OK && e != RT_ERROR_QUEUE_EMPTY)
         return e;
     }
@@ -165,7 +165,7 @@ int main(int argc, char* argv[])
   time_t startTime = time(nullptr);
   while (true)
   {
-    e = rtRemoteRunUntil(env, 1000);
+    e = remoteRunUntil(env, 1000, false);
     rtLogInfo("[%s] rtRemoteRun:%s", testId.c_str(), rtStrError(e));
 
     if (time(nullptr) - startTime > 10)

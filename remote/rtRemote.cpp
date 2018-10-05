@@ -161,7 +161,7 @@ rtRemoteProcessSingleItem(rtRemoteEnvironment* env)
 };
 
 rtError
-rtRemoteRun(rtRemoteEnvironment* env, uint32_t timeout)
+rtRemoteRun(rtRemoteEnvironment* env, uint32_t timeout, bool wait)
 {
 
   if (env->Config->server_use_dispatch_thread())
@@ -174,7 +174,7 @@ rtRemoteRun(rtRemoteEnvironment* env, uint32_t timeout)
   do
   {
     auto start = std::chrono::steady_clock::now();
-    e = env->processSingleWorkItem(time_remaining, false, nullptr);
+    e = env->processSingleWorkItem(time_remaining, wait, nullptr);
     if (e != RT_OK)
       return e;
     auto end = std::chrono::steady_clock::now();
@@ -257,7 +257,7 @@ rtRemoteProcessSingleItem()
 }
 
 rtError
-rtRemoteRunUntil(rtRemoteEnvironment* env, uint32_t millisecondsFromNow)
+rtRemoteRunUntil(rtRemoteEnvironment* env, uint32_t millisecondsFromNow, bool wait)
 {
   rtError e = RT_OK;
 
@@ -272,7 +272,7 @@ rtRemoteRunUntil(rtRemoteEnvironment* env, uint32_t millisecondsFromNow)
     auto endTime = std::chrono::milliseconds(millisecondsFromNow) + std::chrono::system_clock::now();
     while (endTime > std::chrono::system_clock::now())
     {
-      e = rtRemoteRun(env, 16);
+      e = rtRemoteRun(env, wait ? millisecondsFromNow : 16, wait);
       if (e != RT_OK && e != RT_ERROR_QUEUE_EMPTY)
         return e;
     }
