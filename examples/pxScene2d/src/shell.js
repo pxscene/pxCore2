@@ -20,7 +20,7 @@ var isDuk=(typeof Duktape != "undefined")?true:false;
 var isV8 = (typeof _isV8 != "undefined")?true:false;
 
 px.import({ scene: 'px:scene.1.js',
-             keys: 'px:tools.keys.js'
+             keys: 'px:tools.keys.js',
 }).then( function ready(imports)
 {
   var scene = imports.scene;
@@ -42,8 +42,31 @@ px.import({ scene: 'px:scene.1.js',
   }
 
 
-    // JRJR TODO had to add more modules
+  /**
+   * This is helper method which resolves resource URL for scene
+   * - it resolves various shortcuts using prepareUrl() method
+   * also
+   * - for .js files it returns URL as it is
+   * - for other files (MIME files) it returns the URL of wrapper scene which
+   *   will draw provided URL with the mimeRenderer
+   *
+   * @param {String} url url
+   *
+   * @returns {String} URL for a scene
+   */
+  function resolveSceneUrl(url) {
+    if (url && url.toLowerCase().indexOf('.js?') > 0) { // this is a js file with query params
+      return url;
+    }
+    if (url && !url.match(/\.js$/)) {
+      url = 'mimeScene.js?url=' + url;
+    }
+    return url;
+  }
+  
+  // JRJR TODO had to add more modules
   var url = queryStringModule.parse(urlModule.parse(module.appSceneContext.packageUrl).query).url;
+  url = resolveSceneUrl(url)
   var originalURL = (!url || url==="") ? "browser.js":url;
   console.log("url:",originalURL);
 
