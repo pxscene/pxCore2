@@ -29,8 +29,8 @@ rtDefineProperty(rtHttpResponse, headers);
 rtDefineMethod(rtHttpResponse, addListener);
 
 rtHttpResponse::rtHttpResponse()
-  : mEmit(new rtEmit())
-  , mStatusCode(0)
+  : mStatusCode(0),
+    mEmit(new rtEmit())
 {
 }
 
