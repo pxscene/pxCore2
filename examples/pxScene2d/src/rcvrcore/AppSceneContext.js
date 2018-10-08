@@ -240,7 +240,7 @@ AppSceneContext.prototype.loadPackage = function(packageUri) {
     }
     for (var key in _this.codemap)
     {
-      if (pathToCheck.includes(key))
+      if ((key != '0') && (pathToCheck.includes(key)))
       {
         _this.runScriptInNewVMContextNonLoad(key);
         console.info("AppSceneContext#loadPackage from bundle done");
@@ -969,7 +969,7 @@ AppSceneContext.prototype.include = function(filePath, currentXModule) {
        }
        for (var key in _this.codemap)
        {
-         if (pathToCheck.includes(key))
+         if ((key != '0') && (pathToCheck.includes(key)))
          {
            _this.processNonLoadCodeBuffer(origFilePath, key, currentXModule, onImportComplete, reject);
            return;
