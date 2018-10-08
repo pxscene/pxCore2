@@ -20,7 +20,7 @@ limitations under the License.
 
 #include "rtSettings.h"
 #include "rtPathUtils.h"
-
+#include <pxScene2d.h>
 #include "test_includes.h" // Needs to be included last
 
 class rtSettingsTest : public testing::Test
@@ -214,6 +214,26 @@ public:
     EXPECT_EQ((int)RT_OK, (int)s.value("d", value));
     EXPECT_EQ((int)0, strcmp("y", value.toString().cString()));
   }
+
+  void testPermissionPresentRead()
+   {
+     rtSettings::instance()->setValue("disableFilePermissionCheck",true);
+     pxScene2d* scene = new pxScene2d();
+     rtValue val;
+     EXPECT_TRUE(scene->sparkSetting("disableFilePermissionCheck",val) == RT_OK);
+     EXPECT_TRUE(val.toBool() == true);
+     delete scene;
+     rtSettings::instance()->remove("disableFilePermissionCheck");
+   }
+
+   void testPermissionAbsentRead()
+   {
+     pxScene2d* scene = new pxScene2d();
+     rtValue val;
+     EXPECT_TRUE(scene->sparkSetting("disableFilePermissionCheck",val) == RT_OK);
+     EXPECT_TRUE(true == val.isEmpty());
+     delete scene;
+   }
 };
 
 TEST_F(rtSettingsTest, rtSettingsTests)
@@ -222,4 +242,7 @@ TEST_F(rtSettingsTest, rtSettingsTests)
   testFromArgs();
   testNotFound();
   testOverwrite();
+  // read permission value from scene
+  testPermissionPresentRead();
+  testPermissionAbsentRead();
 }
