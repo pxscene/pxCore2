@@ -18,11 +18,13 @@ limitations under the License.
 
 "use strict";
 
-function get(url, cb) {
-    return httpGet(url, cb);
-}
-
 module.exports = {
-    'get': get,
-    'request': get,
-}
+  'get': function (url, cb) {
+    var req = httpGet(url, cb);
+    req.end();
+    return req;
+  },
+  'request': function (url, cb) {
+    return httpGet(url, cb);
+  },
+};

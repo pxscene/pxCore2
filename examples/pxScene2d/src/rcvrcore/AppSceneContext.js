@@ -32,7 +32,7 @@ var loadFile = require('rcvrcore/utils/FileUtils').loadFile;
 var SceneModuleManifest = require('rcvrcore/SceneModuleManifest');
 var JarFileMap = require('rcvrcore/utils/JarFileMap');
 var AsyncFileAcquisition = require('rcvrcore/utils/AsyncFileAcquisition');
-var AccessControl = require('rcvrcore/utils/AccessControl');
+var AccessControl = isV8?null:require('rcvrcore/utils/AccessControl');
 var WrapObj = require('rcvrcore/utils/WrapObj');
 
 var log = new Logger('AppSceneContext');
@@ -43,9 +43,8 @@ var SetInterval = (isDuk || isV8)?timers.setInterval:setInterval;
 var ClearInterval = (isDuk || isV8)?timers.clearInterval:clearInterval;
 
 
-var http_wrap = require('rcvrcore/http_wrap');
-var https_wrap = require('rcvrcore/https_wrap');
-var ws_wrap = (isDuk)?"":require('rcvrcore/ws_wrap');
+var http_wrap = isV8?null:require('rcvrcore/http_wrap');
+var https_wrap = isV8?null:require('rcvrcore/https_wrap');
 
 function AppSceneContext(params) {
 
@@ -71,7 +70,7 @@ function AppSceneContext(params) {
   this.scriptMap = {};
   this.xmoduleMap = {};
   this.asyncFileAcquisition = new AsyncFileAcquisition(params.scene);
-  this.accessControl = new AccessControl(params.scene);
+  this.accessControl = isV8?null:new AccessControl(params.scene);
   this.lastHrTime = isDuk?uv.hrtime():(isV8?uv_hrtime():process.hrtime());
   this.resizeTimer = null;
   this.topXModule = null;
@@ -736,10 +735,20 @@ AppSceneContext.prototype.include = function(filePath, currentXModule) {
         return;
       }
     } else if( filePath === 'http' || filePath === 'https' ) {
+      if (isV8) {
+        modData = require(filePath);
+        onImportComplete([modData, origFilePath]);
+        return;
+      }
       modData = filePath === 'http' ? new http_wrap(_this.accessControl) : new https_wrap(_this.accessControl);
       onImportComplete([modData, origFilePath]);
       return;
     } else if( filePath === 'http2' ) {
+      if (isV8) {
+        modData = require('https');
+        onImportComplete([modData, origFilePath]);
+        return;
+      }
       modData = require('rcvrcore/http2_wrap');
       onImportComplete([modData, origFilePath]);
       return;
