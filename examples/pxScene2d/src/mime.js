@@ -20,6 +20,8 @@ limitations under the License.
  */
 'use strict';
 
+var baseUrl = "http://www.pxscene.org/examples/px-reference/gallery/";
+
 px.import({
   mimeTypes: 'pxMimeTypes.js',
 })
@@ -78,6 +80,16 @@ px.import({
         // SHORTCUT:   'local:8081:filename.js' >> 'http://localhost:8081/filename.js'
         url = 'http://localhost:' + txt;
       }
+    }
+
+    if(url == "about.js")
+    {
+      url = "about.js";
+    }
+    else
+    if (url.indexOf(':') == -1)
+    {
+      url = baseUrl + url;
     }
 
     var ext = url.split('.').pop();
