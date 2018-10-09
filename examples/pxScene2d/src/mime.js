@@ -86,8 +86,7 @@ px.import({
     {
       url = "about.js";
     }
-    else
-    if (url.indexOf(':') == -1)
+    else if (url.indexOf(':') == -1)
     {
       url = baseUrl + url;
     }
