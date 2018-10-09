@@ -1105,13 +1105,9 @@ pxError pxWindow::init(int left, int top, int width, int height)
   
   
   NSApplication *app = [NSApplication sharedApplication];
-  
-  NSApplicationPresentationOptions options = [app currentSystemPresentationOptions];
-  [app setPresentationOptions: options | NSApplicationPresentationFullScreen];
 
   NSWindowCollectionBehavior behavior = [window collectionBehavior];
   [window setCollectionBehavior: behavior | NSWindowCollectionBehaviorFullScreenPrimary ];
-  
   
   mWindow = (void*)window;
   
