@@ -70,7 +70,7 @@
 #include "rtCORS.h"
 
 #include "rtServiceProvider.h"
-
+#include "rtSettings.h"
 #ifdef RUNINMAIN
 #define ENTERSCENELOCK()
 #define EXITSCENELOCK() 
@@ -509,10 +509,9 @@ public:
       // translate based on xy rotate/scale based on cx, cy
       bool doTransToOrig = msx != 1.0 || msy != 1.0 || mr;
       if (doTransToOrig)
-        m.translate(mx + mcx + dx, my + mcy + dy);
+          m.translate(mx + mcx + dx, my + mcy + dy);
       else
-        m.translate(mx + dx, my + dy);
-        
+          m.translate(mx + dx, my + dy);
       if (mr)
       {
         m.rotateInDegrees(mr
@@ -522,7 +521,8 @@ public:
         );
       }
       if (msx != 1.0 || msy != 1.0) m.scale(msx, msy);
-      m.translate(-mcx, -mcy);
+      if (doTransToOrig)
+          m.translate(-mcx, -mcy);
 #else
       // translate/rotate/scale based on cx, cy
       m.translate(mx, my);
@@ -534,8 +534,7 @@ public:
         );
       }
       if (msx != 1.0 || msy != 1.0) m.scale(msx, msy);
-      if (doTransToOrig)
-        m.translate(-mcx, -mcy);
+      m.translate(-mcx, -mcy);
 #endif
     }
     else
@@ -1382,6 +1381,7 @@ public:
 
   rtMethodNoArgAndNoReturn("dispose",dispose);
 
+  rtMethod1ArgAndReturn("sparkSetting", sparkSetting, rtString, rtValue);
   rtMethod1ArgAndNoReturn("addServiceProvider", addServiceProvider, rtFunctionRef);
   rtMethod1ArgAndNoReturn("removeServiceProvider", removeServiceProvider, rtFunctionRef);
 
@@ -1536,6 +1536,7 @@ public:
 #endif
   rtCORSRef cors() const { return mCORS; }
   rtError cors(rtObjectRef& v) const { v = mCORS; return RT_OK; }
+  rtError sparkSetting(const rtString& setting, rtValue& value) const;
   rtError origin(rtString& v) const { v = mOrigin; return RT_OK; }
 
   void setMouseEntered(rtRef<pxObject> o);//setMouseEntered(pxObject* o);

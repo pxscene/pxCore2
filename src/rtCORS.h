@@ -49,11 +49,8 @@ public:
   rtError updateRequestForAccessControl(struct curl_slist** headerList) const;
   rtError updateResponseForAccessControl(rtFileDownloadRequest* request) const;
 
-  static rtError parseHeaders(const rtString& rawHeaderData, std::map<std::string, rtString>& headerMap);
-  static std::string toLowercaseStr(const rtString& str);
-
 protected:
-  bool passesAccessControlCheck(const std::map<std::string, rtString>& headerMap, bool withCredentials, const rtString& origin, rtString& errorDescription) const;
+  bool passesAccessControlCheck(const std::map<rtString, rtString>& headerMap, bool withCredentials, const rtString& origin, rtString& errorDescription) const;
 
   static const char* ENV_NAME_ENABLED;
   static const char* HTTPHeaderName_AccessControlAllowOrigin;

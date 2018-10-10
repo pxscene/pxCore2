@@ -114,9 +114,10 @@ rtRemoteProcessSingleItem(rtRemoteEnvironment* env);
  * is expired. Timeout duration is in milliseconds.
  * @param timeout The amount of time to run this function. Use RT_REMOTE_TIMEOUT_INIFINITE
  * to run forever, or until another thread calls rtRemoteShutdown();
+ * @param wait If true will block the thread until an event comes or timeout reached
  */
 rtError
-rtRemoteRun(rtRemoteEnvironment* env, uint32_t timeout);
+rtRemoteRun(rtRemoteEnvironment* env, uint32_t timeout, bool wait);
 
 rtError rtRemoteInitNs(rtRemoteEnvironment* env);
 rtError rtRemoteShutdownNs(rtRemoteEnvironment* env);
@@ -145,7 +146,7 @@ rtError
 rtRemoteProcessSingleItem();
 
 rtError
-rtRemoteRunUntil(rtRemoteEnvironment* env, uint32_t millisecondsFromNow);
+rtRemoteRunUntil(rtRemoteEnvironment* env, uint32_t millisecondsFromNow, bool wait);
 
 #endif
 

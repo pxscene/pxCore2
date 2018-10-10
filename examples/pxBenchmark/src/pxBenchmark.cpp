@@ -33,6 +33,7 @@
 #include <cmath>
 #include <fstream>
 #include <iostream>
+#include "pxTimer.h"
 
 
 //-----------------------------------------------------------------------------------
@@ -51,7 +52,14 @@ pxEventLoop* gLoop = &eventLoop;
 pxContext context;
 
 int MAX_IMAGES_CNT = 42;
+int gFPS = 60;
+uint64_t gGPU = 0;
+uint64_t gCPU = 0;
+uint64_t gTotal = 0;
+uint64_t gOther = 0;
+uint64_t gOtherStart = 0;
 
+const int gDuration = 2;
 
 #ifdef ENABLE_DEBUG_MODE
 extern int          g_argc;
@@ -288,7 +296,7 @@ void benchmarkWindow::reset()
     RegisterTest(mGroupName, experimentName, mSamples, 1, mThreads);
     
     mApiFixture->popExperimentValue().Iterations = 0;
-    mApiFixture->popExperimentValue().mTotalTime = 0;
+    //mApiFixture->popExperimentValue().mTotalTime = 0;
     mApiFixture->mCurrentY = 0;
     mApiFixture->mCurrentX = 0;
     
@@ -297,6 +305,7 @@ void benchmarkWindow::reset()
 
 void benchmarkWindow::onDraw(pxSurfaceNative/*&*/ sn)
 {
+    
     if (mApiFixture->getIterationCounter() == 0)
     {
         context.setSize(win.GetWidth(), win.GetHeight());
@@ -306,6 +315,7 @@ void benchmarkWindow::onDraw(pxSurfaceNative/*&*/ sn)
         
         float fillColor[] = {0.0, 0.0, 0.0, 1.0};
         context.clear(0, 0, fillColor);
+        
     }
     
     if (mApiFixture->getIterationCounter() <= mIterations)
@@ -317,15 +327,28 @@ void benchmarkWindow::onDraw(pxSurfaceNative/*&*/ sn)
         if (mApiFixture->popExperimentValue().Value == pxApiFixture::type::xDrawAll)
         {
             mApiFixture->popExperimentValue().Value++;
+            gTotal = (celero::timer::GetSystemTime() - gTotal);
+            gOther += (celero::timer::GetSystemTime() - gOtherStart);
+            string res = "GPU(ms)=" + to_string((int)gGPU);
+            celero::ResultTable::Instance().add(res);
+            res = "CPU(ms)=" + to_string((int)gCPU);
+            celero::ResultTable::Instance().add(res);
+            res = "FPS =" + to_string((int)gFPS);
+            celero::ResultTable::Instance().add(res);
+            res = "OtherTime(ms)=" + to_string((int)gOther);
+            celero::ResultTable::Instance().add(res);
+            res = "TotalTime(ms)=" + to_string((int)gTotal);
+            celero::ResultTable::Instance().add(res);
+            
+            
             celero::ResultTable::Instance().closeFile();
 #if PX_PLATFORM_GENERIC_EGL
-            string cmnd = "libreoffice --calc " + mOutPath + mOutputTableCSV;
-            system(cmnd.c_str());
+            //string cmnd = "libreoffice --calc " + mOutPath + mOutputTableCSV;
+            //system(cmnd.c_str());
 #else
             string cmnd = "open " + mOutPath + mOutputTableCSV;
             system(cmnd.c_str());
 #endif
-            
         }
         std::cout << "Results logged to " << mOutPath + mOutputTableCSV << std::endl;
         exit(0);
@@ -435,6 +458,7 @@ uint64_t pxApiFixture::run(const uint64_t threads, const uint64_t iterations, co
         // if (!mIterationCounter)
         //  mIterationCounter = iterations;
         
+        gOther += (celero::timer::GetSystemTime() - gOtherStart);
         // Get the starting time.
         const auto startTime = celero::timer::GetSystemTime();
         
@@ -451,16 +475,38 @@ uint64_t pxApiFixture::run(const uint64_t threads, const uint64_t iterations, co
             this->onExperimentEnd();
             
             
+            
             //  if (win.GetCurrentTimeElapsed() > 16000)
             //    return totalTime;
         }
         // See how long it took.
-        totalTime += celero::timer::GetSystemTime() - startTime;
+        totalTime = (celero::timer::GetSystemTime() - startTime);
+        
+        gOtherStart = celero::timer::GetSystemTime();
+        
+        if (mExperimentValue.Value == xDrawImageJPG || mExperimentValue.Value == xDrawImagePNG)
+            gCPU += totalTime;
+        else
+            gGPU += totalTime;
+       
+        //std::chrono::microseconds ms(totalTime);
+        
+        //std::chrono::seconds secs = std::chrono::duration_cast<std::chrono::seconds>(ms);
+        
+        //mExperimentValue.mFPS = 60 * (secs.count() + 1);
+        
+        //gFPS += 60 / totalTime;
         
         mExperimentValue.mTotalTime += totalTime;
         mExperimentValue.Iterations++;
-        totalTime = mExperimentValue.mTotalTime;// / mExperimentValue[i].Iterations;
+        //totalTime = mExperimentValue.mTotalTime;// / mExperimentValue[i].Iterations;
         mIterationCounter++;
+        
+        shared_ptr<Experiment> exp = win.popBaselineBm()->getBaseline();
+        string experimentName = to_string((int)mExperimentValue.mTotalTime);
+        
+        exp->setName (experimentName);
+        win.popBaselineBm()->setBaseline(exp);
         
         // Tear down the testing fixture.
         this->tearDown();
@@ -725,6 +771,8 @@ void pxApiFixture::onExperimentStart(const celero::TestFixture::ExperimentValue&
 
 void pxApiFixture::onExperimentEnd()
 {
+    
+    
 }
 
 std::vector<celero::TestFixture::ExperimentValue> pxApiFixture::getExperimentValues() const
@@ -1075,6 +1123,10 @@ void pxApiFixture::UserBenchmark()
 
 int pxMain(int argc, char* argv[])
 {
+    gTotal = celero::timer::GetSystemTime();
+    
+    gOtherStart = celero::timer::GetSystemTime();
+    
 #ifdef ENABLE_DEBUG_MOD
     g_argv = (char**)malloc((argc+2) * sizeof(char*));
     g_origArgv = argv;
@@ -1124,8 +1176,7 @@ int pxMain(int argc, char* argv[])
     // JRJR TODO Why aren't these necessary for glut... pxCore bug
     win.setVisibility(true);
     
-    uint32_t animationFPS = 60;
-    win.setAnimationFPS(animationFPS);
+    win.setAnimationFPS(gFPS);
     
     context.init();
     
