@@ -41,7 +41,10 @@ AccessControl.prototype.destroy = function () {
 
 AccessControl.prototype.origin = function () {
   if (this.scene) {
-    return this.scene.origin;
+    var cors = this.scene.cors;
+    if (cors) {
+      return cors.origin;
+    }
   }
   return null;
 };
@@ -56,20 +59,31 @@ AccessControl.prototype.allows = function (url) {
   return true;
 };
 
-AccessControl.prototype.passesAccessControlCheck = function (rawHeaders, withCredentials, origin) {
+AccessControl.prototype.passesAccessControlCheck = function (rawHeaders, withCredentials, toOrigin) {
   if (this.scene) {
     var cors = this.scene.cors;
     if (cors) {
-      return cors.passesAccessControlCheck(rawHeaders, withCredentials, origin);
+      return cors.passesAccessControlCheck(rawHeaders, withCredentials, toOrigin);
     }
   }
   return true;
 };
 
-AccessControl.isCORSRequestHeader = function (name) {
-  if (name) {
-    if (name.match(/^(Origin|Access-Control-Request-Method|Access-Control-Request-Headers)$/ig)) {
-      return true;
+AccessControl.prototype.isCORSRequestHeader = function (headerName) {
+  if (this.scene) {
+    var cors = this.scene.cors;
+    if (cors) {
+      return cors.isCORSRequestHeader(headerName);
+    }
+  }
+  return false;
+};
+
+AccessControl.prototype.isCredentialsRequestHeader = function (headerName) {
+  if (this.scene) {
+    var cors = this.scene.cors;
+    if (cors) {
+      return cors.isCredentialsRequestHeader(headerName);
     }
   }
   return false;
@@ -207,6 +221,24 @@ function AccessControlClientRequest(options, callback, accessControl, protocol) 
   this.emit = createEmitWrapper(_emit);
   this.$emit = createEmitWrapper(_emit2);
 
+  this.setHeader = function (name) {
+    if (accessControl.isCORSRequestHeader(name)) {
+      var message = "not allowed to set header '" + name + "'";
+      log.warn(message);
+      throw new Error(message);
+    }
+    return http.ClientRequest.prototype.setHeader.apply(_this, arguments);
+  };
+
+  this.removeHeader = function (name) {
+    if (accessControl.isCORSRequestHeader(name)) {
+      var message = "not allowed to remove header '" + name + "'";
+      log.warn(message);
+      throw new Error(message);
+    }
+    return http.ClientRequest.prototype.removeHeader.apply(_this, arguments);
+  };
+
   log.message(4, "created a request to origin: '" + requestOrigin + "'");
 }
 
@@ -215,23 +247,5 @@ AccessControlClientRequest.prototype.constructor = AccessControlClientRequest;
 
 AccessControlClientRequest.prototype.blocked = undefined;
 AccessControlClientRequest.prototype._externalEvents = undefined;
-
-AccessControlClientRequest.prototype.setHeader = function (name) {
-  if (AccessControl.isCORSRequestHeader(name)) {
-    var message = "not allowed to set header '" + name + "'";
-    log.warn(message);
-    throw new Error(message);
-  }
-  return http.ClientRequest.prototype.setHeader.apply(this, arguments);
-};
-
-AccessControlClientRequest.prototype.removeHeader = function (name) {
-  if (AccessControl.isCORSRequestHeader(name)) {
-    var message = "not allowed to remove header '" + name + "'";
-    log.warn(message);
-    throw new Error(message);
-  }
-  return http.ClientRequest.prototype.removeHeader.apply(this, arguments);
-};
 
 module.exports = AccessControl;
