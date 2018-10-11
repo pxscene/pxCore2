@@ -278,7 +278,6 @@ rtError rtEmit::SendAsync(int numArgs, const rtValue* args)
   return RT_OK;
 }
 
-<<<<<<< HEAD
 // function to send events asynchronously
 // don't need code for handling cases in mid of events send,as it is asynchronous
 rtError rtEmit::SendAsync(int numArgs, const rtValue* args)
@@ -319,8 +318,6 @@ rtError rtEmit::SendAsync(int numArgs, const rtValue* args)
   return RT_OK;
 }
 
-=======
->>>>>>> 12dc7b15f5199456bd99698edd9227693ce25ac2
 // rtEmitRef
 rtError rtEmitRef::Send(int numArgs,const rtValue* args,rtValue* result) 
 {
