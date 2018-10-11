@@ -120,6 +120,52 @@ private:
       process();
       EXPECT_TRUE(mTestObj->mEmit->mPendingEntriesToAdd.size() == 0);
     }
+
+    void sendSyncEventTest()
+    {
+      rtObjectRef e = new rtMapObject;
+      mScene->mEmit.send("syncEvent",e);
+      bool present = false;
+      std::vector<rtEmit::_rtEmitEntry>::iterator it;
+      for (it = mTestObj->mEmit->mEntries.begin(); it != mTestObj->mEmit->mEntries.end(); it++)
+      {
+        if ((*it).n.compare("syncEventReceived") == 0)
+        {
+          present = true;
+          break;
+        }
+      }
+      EXPECT_TRUE(true == present);
+      process();
+    }
+
+    void sendAsyncEventTest()
+    {
+      rtObjectRef e = new rtMapObject;
+      bool present = false;
+      mScene->mEmit.sendAsync("asyncEvent",e);
+      std::vector<rtEmit::_rtEmitEntry>::iterator it;
+      for (it = mTestObj->mEmit->mEntries.begin(); it != mTestObj->mEmit->mEntries.end(); it++)
+      {
+        if ((*it).n.compare("asyncEventReceived") == 0)
+        {
+          present = true;
+          break;
+        }
+      }
+      EXPECT_TRUE(false == present);
+      present = false;
+      process();
+      for (it = mTestObj->mEmit->mEntries.begin(); it != mTestObj->mEmit->mEntries.end(); it++)
+      {
+        if ((*it).n.compare("asyncEventReceived") == 0)
+        {
+          present = true;
+          break;
+        }
+      }
+      EXPECT_TRUE(true == present);
+    }
 private:
     pxObject*     mRoot;
     pxScriptView* mView;
@@ -135,4 +181,6 @@ TEST_F(eventListenerTests, eventListenerTest)
     runDelListenerImproperTest();
     runDelListenerProperTest();
     runPendingListenerTest();
+    sendSyncEventTest();
+    sendAsyncEventTest();
 }
