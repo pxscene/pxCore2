@@ -173,9 +173,9 @@ private:
         }
       }
       EXPECT_TRUE(true == present);
-*/
       script.pump();
       EXPECT_TRUE(eventEntriesSizeBefore+1 == mTestObj->mEmit->mEntries.size());
+*/
     }
 
 private:
