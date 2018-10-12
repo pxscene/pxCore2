@@ -146,6 +146,7 @@ private:
       int eventEntriesSizeBefore = mTestObj->mEmit->mEntries.size();
       mScene->mEmit.sendAsync("asyncEvent",e);
       EXPECT_TRUE(eventEntriesSizeBefore == mTestObj->mEmit->mEntries.size());
+      process();
 /*
       EXPECT_TRUE(false == present);
 
@@ -173,9 +174,8 @@ private:
         }
       }
       EXPECT_TRUE(true == present);
-      script.pump();
-      EXPECT_TRUE(eventEntriesSizeBefore+1 == mTestObj->mEmit->mEntries.size());
 */
+      EXPECT_TRUE(eventEntriesSizeBefore+1 == mTestObj->mEmit->mEntries.size());
     }
 
 private:
