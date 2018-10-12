@@ -156,6 +156,7 @@ private:
         }
       }
       EXPECT_TRUE(false == present);
+/*
       present = false;
 
       script.pump();
@@ -169,8 +170,9 @@ private:
         }
       }
       EXPECT_TRUE(true == present);
-
+*/
     }
+
 private:
     pxObject*     mRoot;
     pxScriptView* mView;
