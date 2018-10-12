@@ -124,25 +124,14 @@ private:
     void sendSyncEventTest()
     {
       rtObjectRef e = new rtMapObject;
+      int eventEntriesSizeBefore = mTestObj->mEmit->mEntries.size();
       mScene->mEmit.send("syncEvent",e);
-      bool present = false;
-      std::vector<rtEmit::_rtEmitEntry>::iterator it;
-      for (it = mTestObj->mEmit->mEntries.begin(); it != mTestObj->mEmit->mEntries.end(); it++)
-      {
-        if ((*it).n.compare("syncEventReceived") == 0)
-        {
-          present = true;
-          break;
-        }
-      }
-      EXPECT_TRUE(true == present);
-      process();
+      EXPECT_TRUE(eventEntriesSizeBefore+1 == mTestObj->mEmit->mEntries.size());
     }
 
     void sendAsyncEventTest()
     {
       rtObjectRef e = new rtMapObject;
-      //bool present = false;
       int eventEntriesSizeBefore = mTestObj->mEmit->mEntries.size();
       mScene->mEmit.send("asyncEvent",e);
       EXPECT_TRUE(eventEntriesSizeBefore+1 == mTestObj->mEmit->mEntries.size());
