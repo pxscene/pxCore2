@@ -133,8 +133,8 @@ private:
     {
       rtObjectRef e = new rtMapObject;
       int eventEntriesSizeBefore = mTestObj->mEmit->mEntries.size();
-      mScene->mEmit.send("asyncEvent",e);
-      EXPECT_TRUE(eventEntriesSizeBefore+1 == mTestObj->mEmit->mEntries.size());
+      mScene->mEmit.sendAsync("asyncEvent",e);
+      EXPECT_TRUE(eventEntriesSizeBefore == mTestObj->mEmit->mEntries.size());
     }
 
 private:
