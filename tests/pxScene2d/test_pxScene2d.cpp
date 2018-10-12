@@ -394,6 +394,19 @@ class pxScene2dTest : public testing::Test
 
  }
 
+ void multipleArchiveTest()
+ {
+   pxScene2d* scene = new pxScene2d();
+   rtObjectRef archive;
+   EXPECT_TRUE(RT_OK == scene->loadArchive("supportfiles/test_arc_resources.jar", archive));
+   archive = scene->getArchive();
+   EXPECT_TRUE(true == scene->mArchiveSet);
+   rtObjectRef archive1;
+   EXPECT_TRUE(RT_OK == scene->loadArchive("supportfiles/test_arc_resources.jar", archive1));
+   EXPECT_TRUE(archive.getPtr() == scene->mArchive.getPtr());
+   delete scene;
+ }
+
   private:
     pxObject*     mRoot;
     pxScriptView* mView;
@@ -413,5 +426,5 @@ TEST_F(pxScene2dTest, pxScene2dTests)
     pxScene2dClassTest();
     //pxScene2dHdrTest();
     pxScriptViewTest();
-
+    multipleArchiveTest();
 }
