@@ -145,7 +145,7 @@ private:
       bool present = false;
       mScene->mEmit.sendAsync("asyncEvent",e);
       EXPECT_TRUE(false == present);
-/*
+
       std::vector<rtEmit::_rtEmitEntry>::iterator it;
       for (it = mTestObj->mEmit->mEntries.begin(); it != mTestObj->mEmit->mEntries.end(); it++)
       {
@@ -157,9 +157,9 @@ private:
       }
       EXPECT_TRUE(false == present);
       present = false;
-*/
-      process();
-/*
+
+      script.pump();
+
       for (it = mTestObj->mEmit->mEntries.begin(); it != mTestObj->mEmit->mEntries.end(); it++)
       {
         if ((*it).n.compare("asyncEventReceived") == 0)
@@ -169,7 +169,7 @@ private:
         }
       }
       EXPECT_TRUE(true == present);
-*/
+
     }
 private:
     pxObject*     mRoot;
