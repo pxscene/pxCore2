@@ -181,6 +181,6 @@ TEST_F(eventListenerTests, eventListenerTest)
     runDelListenerImproperTest();
     runDelListenerProperTest();
     runPendingListenerTest();
-    //sendSyncEventTest();
+    sendSyncEventTest();
     //sendAsyncEventTest();
 }
