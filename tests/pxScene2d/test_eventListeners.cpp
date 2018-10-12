@@ -143,7 +143,10 @@ private:
     {
       rtObjectRef e = new rtMapObject;
       bool present = false;
+      int eventEntriesSizeBefore = mTestObj->mEmit->mEntries.size();
       mScene->mEmit.sendAsync("asyncEvent",e);
+      EXPECT_TRUE(eventEntriesSizeBefore == mTestObj->mEmit->mEntries.size());
+/*
       EXPECT_TRUE(false == present);
 
       std::vector<rtEmit::_rtEmitEntry>::iterator it;
@@ -156,7 +159,7 @@ private:
         }
       }
       EXPECT_TRUE(false == present);
-/*
+
       present = false;
 
       script.pump();
@@ -171,6 +174,8 @@ private:
       }
       EXPECT_TRUE(true == present);
 */
+      script.pump();
+      EXPECT_TRUE(eventEntriesSizeBefore+1 == mTestObj->mEmit->mEntries.size());
     }
 
 private:
