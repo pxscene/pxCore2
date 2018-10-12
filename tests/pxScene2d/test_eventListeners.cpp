@@ -142,39 +142,9 @@ private:
     void sendAsyncEventTest()
     {
       rtObjectRef e = new rtMapObject;
-      bool present = false;
+      //bool present = false;
       int eventEntriesSizeBefore = mTestObj->mEmit->mEntries.size();
-      mScene->mEmit.sendAsync("asyncEvent",e);
-      EXPECT_TRUE(eventEntriesSizeBefore == mTestObj->mEmit->mEntries.size());
-      process();
-/*
-      EXPECT_TRUE(false == present);
-
-      std::vector<rtEmit::_rtEmitEntry>::iterator it;
-      for (it = mTestObj->mEmit->mEntries.begin(); it != mTestObj->mEmit->mEntries.end(); it++)
-      {
-        if ((*it).n.compare("asyncEventReceived") == 0)
-        {
-          present = true;
-          break;
-        }
-      }
-      EXPECT_TRUE(false == present);
-
-      present = false;
-
-      script.pump();
-
-      for (it = mTestObj->mEmit->mEntries.begin(); it != mTestObj->mEmit->mEntries.end(); it++)
-      {
-        if ((*it).n.compare("asyncEventReceived") == 0)
-        {
-          present = true;
-          break;
-        }
-      }
-      EXPECT_TRUE(true == present);
-*/
+      mScene->mEmit.send("asyncEvent",e);
       EXPECT_TRUE(eventEntriesSizeBefore+1 == mTestObj->mEmit->mEntries.size());
     }
 
