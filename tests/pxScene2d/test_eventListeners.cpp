@@ -120,6 +120,23 @@ private:
       process();
       EXPECT_TRUE(mTestObj->mEmit->mPendingEntriesToAdd.size() == 0);
     }
+
+    void sendSyncEventTest()
+    {
+      rtObjectRef e = new rtMapObject;
+      int eventEntriesSizeBefore = mTestObj->mEmit->mEntries.size();
+      mScene->mEmit.send("syncEvent",e);
+      EXPECT_TRUE(eventEntriesSizeBefore+1 == mTestObj->mEmit->mEntries.size());
+    }
+
+    void sendAsyncEventTest()
+    {
+      rtObjectRef e = new rtMapObject;
+      int eventEntriesSizeBefore = mTestObj->mEmit->mEntries.size();
+      mScene->mEmit.sendAsync("asyncEvent",e);
+      EXPECT_TRUE(eventEntriesSizeBefore == mTestObj->mEmit->mEntries.size());
+    }
+
 private:
     pxObject*     mRoot;
     pxScriptView* mView;
@@ -135,4 +152,6 @@ TEST_F(eventListenerTests, eventListenerTest)
     runDelListenerImproperTest();
     runDelListenerProperTest();
     runPendingListenerTest();
+    sendSyncEventTest();
+    sendAsyncEventTest();
 }
