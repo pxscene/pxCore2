@@ -1985,7 +1985,6 @@ rtError pxScene2d::dispose()
     mInfo     = NULL;
     mCapabilityVersions = NULL;
     mFocusObj = NULL;
-
     return RT_OK;
 }
 
