@@ -157,7 +157,9 @@ private:
       }
       EXPECT_TRUE(false == present);
       present = false;
+*/
       process();
+/*
       for (it = mTestObj->mEmit->mEntries.begin(); it != mTestObj->mEmit->mEntries.end(); it++)
       {
         if ((*it).n.compare("asyncEventReceived") == 0)
