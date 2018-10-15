@@ -177,34 +177,7 @@ rtError rtEmit::Send(int numArgs, const rtValue* args, rtValue* result)
       }
     }
     mProcessingEvents = false;
-    it = mEntries.begin();
-    while (it != mEntries.end())
-    {
-      if (true == it->markForDelete)
-      {
-        it = mEntries.erase(it);
-      }
-      else
-      {
-        ++it;
-      }
-    }
-
-    vector<_rtEmitEntry>::iterator pendingit = mPendingEntriesToAdd.begin();
-    while (pendingit != mPendingEntriesToAdd.end())
-    {
-      _rtEmitEntry& src = (*pendingit);
-      _rtEmitEntry dest;
-      dest.n = src.n;
-      dest.f = src.f;
-      dest.isProp = src.isProp;
-      dest.markForDelete = src.markForDelete;
-      dest.fnHash = src.fnHash;
-
-      mEntries.push_back(dest);
-      ++pendingit;
-    }
-    mPendingEntriesToAdd.clear();
+    processPendingEvents();
   }
   return RT_OK;
 }
@@ -245,8 +218,41 @@ rtError rtEmit::SendAsync(int numArgs, const rtValue* args)
         ++it;
       }
     }
+    processPendingEvents();
   }
   return RT_OK;
+}
+
+void rtEmit::processPendingEvents()
+{
+  vector<_rtEmitEntry>::iterator it = mEntries.begin();
+  while (it != mEntries.end())
+  {
+    if (true == it->markForDelete)
+    {
+      it = mEntries.erase(it);
+    }
+    else
+    {
+      ++it;
+    }
+  }
+
+  vector<_rtEmitEntry>::iterator pendingit = mPendingEntriesToAdd.begin();
+  while (pendingit != mPendingEntriesToAdd.end())
+  {
+    _rtEmitEntry& src = (*pendingit);
+    _rtEmitEntry dest;
+    dest.n = src.n;
+    dest.f = src.f;
+    dest.isProp = src.isProp;
+    dest.markForDelete = src.markForDelete;
+    dest.fnHash = src.fnHash;
+
+    mEntries.push_back(dest);
+    ++pendingit;
+  }
+  mPendingEntriesToAdd.clear();
 }
 
 // rtEmitRef
