@@ -263,7 +263,7 @@ public:
     {
     }
     
-    void init(const int32_t& x, const int32_t& y, const int32_t& w, const int32_t& h, const int32_t& mw, const int32_t& mh, const bool doCreateTexture = true);
+    void init(const int32_t& x, const int32_t& y, const int32_t& w, const int32_t& h, const int32_t& mw, const int32_t& mh, const bool doArchive = false, const bool doCreateTexture = true);
     
     void* getInterface(const char* /*name*/);
     

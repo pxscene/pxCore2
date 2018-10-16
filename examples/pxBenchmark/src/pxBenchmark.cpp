@@ -71,7 +71,7 @@ char** g_origArgv = NULL;
 // class pxbenchmarkWindow
 //-----------------------------------------------------------------------------------
 
-void benchmarkWindow::init(const int32_t& x, const int32_t& y, const int32_t& w, const int32_t& h, const int32_t& mw, const int32_t& mh, bool doCreateTexture /*= true*/)
+void benchmarkWindow::init(const int32_t& x, const int32_t& y, const int32_t& w, const int32_t& h, const int32_t& mw, const int32_t& mh, const bool doArchive/* = false*/, bool doCreateTexture /*= true*/)
 {
     mApiFixture = std::shared_ptr<pxApiFixture>(new pxApiFixture());
     
@@ -80,10 +80,13 @@ void benchmarkWindow::init(const int32_t& x, const int32_t& y, const int32_t& w,
     
     celero::AddExperimentResultCompleteFunction([](std::shared_ptr<celero::ExperimentResult> p) { celero::ResultTable::Instance().add(p); });
     
-    std::cout << "Archiving results to: " << GetOutPath() + mArchiveCSV << std::endl;
-    celero::Archive::Instance().setFileName(GetOutPath() + mArchiveCSV);
-    
-    celero::AddExperimentResultCompleteFunction([](std::shared_ptr<celero::ExperimentResult> p) { celero::Archive::Instance().add(p); });
+    if (doArchive)
+    {
+        std::cout << "Archiving results to: " << GetOutPath() + mArchiveCSV << std::endl;
+        celero::Archive::Instance().setFileName(GetOutPath() + mArchiveCSV);
+        
+        celero::AddExperimentResultCompleteFunction([](std::shared_ptr<celero::ExperimentResult> p) { celero::Archive::Instance().add(p); });
+    }
     
     print::TableBanner();
     
@@ -329,17 +332,23 @@ void benchmarkWindow::onDraw(pxSurfaceNative/*&*/ sn)
             mApiFixture->popExperimentValue().Value++;
             gTotal = (celero::timer::GetSystemTime() - gTotal);
             gOther += (celero::timer::GetSystemTime() - gOtherStart);
-            string res = "GPU(ms)=" + to_string((int)gGPU);
-            celero::ResultTable::Instance().add(res);
-            res = "CPU(ms)=" + to_string((int)gCPU);
-            celero::ResultTable::Instance().add(res);
-            res = "FPS =" + to_string((int)gFPS);
-            celero::ResultTable::Instance().add(res);
-            res = "OtherTime(ms)=" + to_string((int)gOther);
-            celero::ResultTable::Instance().add(res);
-            res = "TotalTime(ms)=" + to_string((int)gTotal);
-            celero::ResultTable::Instance().add(res);
+            vector<string> list(2);
             
+            list[0] = "FPS=";
+            list[1] = to_string((int)gFPS);
+            celero::ResultTable::Instance().add(list);
+            
+            list[0] = "GPU(ms)=";
+            list[1] = to_string((int)(gGPU*0.001));
+            celero::ResultTable::Instance().add(list);
+            
+            list[0] = "CPU(ms)=";
+            list[1] = to_string((int)((gCPU+gOther)*0.001));
+            celero::ResultTable::Instance().add(list);
+            
+            list[0] = "Total(ms)=";
+            list[1] = to_string((int)(gTotal*0.001));
+            celero::ResultTable::Instance().add(list);
             
             celero::ResultTable::Instance().closeFile();
 #if PX_PLATFORM_GENERIC_EGL
@@ -1161,15 +1170,19 @@ int pxMain(int argc, char* argv[])
         windowHeight = stoi(argv[6]);
     }
     
+    bool doArchive = false;
     if (argc > 6)
+        doArchive = stoi(argv[7]) == 1 ? true : false;
+    
+    if (argc > 7)
     {
-        std::string path(argv[7]);
+        std::string path(argv[8]);
         win.SetOutPath(path);
     }
     // OSX likes to pass us some weird parameter on first launch after internet install
     rtLogInfo("window width = %d height = %d", windowWidth, windowHeight);
     
-    win.init(0, 0, windowWidth, windowHeight, unitW, unitH, true);
+    win.init(0, 0, windowWidth, windowHeight, unitW, unitH, doArchive, true);
     
     win.setTitle(buffer);
     

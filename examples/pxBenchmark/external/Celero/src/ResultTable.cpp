@@ -124,10 +124,19 @@ void ResultTable::add(std::shared_ptr<celero::ExperimentResult> x)
 	}
 }
 
-void ResultTable::add(std::string& x)
+void ResultTable::add(const std::vector<std::string>& list)
 {
     if(this->pimpl->ofs.is_open() == true)
     {
-        this->pimpl->ofs << x << std::endl;
+        size_t n = list.size();
+        for (size_t i = 0; i < n; ++i)
+        {
+            this->pimpl->ofs << list[i];
+            if (i < n - 1)
+                this->pimpl->ofs << ",";
+        }
+        
+        if (n > 0)
+            this->pimpl->ofs << std::endl;
     }
 }
