@@ -104,8 +104,15 @@ void pxText::resourceReady(rtString readyResolution)
     mScene->mDirty = true;
     // !CLF: ToDo Use pxObject::onTextureReady() and rename it.
     if( mInitialized) 
+    {
+      if( !mParent)
+      {
+        // Send the promise here because the text will not get an
+        // update call until it has parent
+        sendPromise();
+      }
       pxObject::onTextureReady();
-    
+    }
   }
   else 
   {

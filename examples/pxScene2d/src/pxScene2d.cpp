@@ -1962,7 +1962,7 @@ rtError pxScene2d::dispose()
     mDisposed = true;
     rtObjectRef e = new rtMapObject;
     // pass false to make onClose asynchronous
-    mEmit.send("onClose", false, e);
+    mEmit.sendAsync("onClose", e);
     for (unsigned int i=0; i<mInnerpxObjects.size(); i++)
     {
       pxObject* temp = (pxObject *) (mInnerpxObjects[i].getPtr());
@@ -1978,7 +1978,7 @@ rtError pxScene2d::dispose()
     // send scene terminate after dispose to make sure, no cleanup can happen further on app side		
     // after clearing the sandbox
     // pass false to make onSceneTerminate asynchronous
-    mEmit.send("onSceneTerminate", false, e);
+    mEmit.sendAsync("onSceneTerminate", e);
     mEmit->clearListeners();
 
     mRoot     = NULL;
@@ -3610,6 +3610,7 @@ rtDefineProperty(pxScene2d, origin);
 #ifdef ENABLE_PERMISSIONS_CHECK
 rtDefineProperty(pxScene2d, permissions);
 #endif
+rtDefineMethod(pxScene2d, sparkSetting);
 rtDefineProperty(pxScene2d, cors);
 rtDefineMethod(pxScene2d, addServiceProvider);
 rtDefineMethod(pxScene2d, removeServiceProvider);
@@ -3715,6 +3716,18 @@ void pxScene2d::innerpxObjectDisposed(rtObjectRef ref)
       mInnerpxObjects.erase(mInnerpxObjects.begin()+pos);
     }
   }
+}
+
+rtError pxScene2d::sparkSetting(const rtString& setting, rtValue& value) const
+{
+  rtValue val;
+  if (RT_OK != rtSettings::instance()->value(setting, val))
+  {
+    value = rtValue();
+    return RT_OK;
+  }
+  value = val;
+  return RT_OK;
 }
 
 void pxScene2d::setViewContainer(pxIViewContainer* l)

@@ -134,7 +134,7 @@ int main(int /*argc*/, char* /*argv*/ [])
   while (true)
   {
     // process incoming messages
-    e = rtRemoteRunUntil(env, 1000);
+    e = rtRemoteRunUntil(env, 1000, true);
     // rtLogInfo("rtRemoteRunUntil: %s", rtStrError(e));
 
     // ((ContinuousVideoRecorder *)obj.getPtr())->fireOnUploadComplete();

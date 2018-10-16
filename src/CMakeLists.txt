@@ -12,6 +12,7 @@ option(PXCORE_PERMISSIONS_CHECK "PXCORE_PERMISSIONS_CHECK" ON)
 option(BUILD_RTCORE_LIBS "BUILD_RTCORE_LIBS" ON)
 option(BUILD_PXCORE_LIBS "BUILD_PXCORE_LIBS" ON)
 option(OUTPUT_LIBS_LOCAL "OUTPUT_LIBS_LOCAL" OFF)
+option(PXCORE_REUSE_CURL_HANDLES "PXCORE_REUSE_CURL_HANDLES" ON)
 option(PXCORE_WAYLAND_DISPLAY_READ_EVENTS "PXCORE_WAYLAND_DISPLAY_READ_EVENTS" ON)
 if(WIN32)
     option(PXCORE_COMPILE_WARNINGS_AS_ERRORS "PXCORE_COMPILE_WARNINGS_AS_ERRORS" OFF)
@@ -201,7 +202,8 @@ set(PXCORE_FILES ${PXCORE_FILES} pxOffscreen.cpp pxWindowUtil.cpp
         rtThreadQueue.cpp rtThreadTask.cpp rtUrlUtils.cpp
         rtZip.cpp pxInterpolators.cpp pxUtil.cpp
         rtFileDownloader.cpp unzip.c ioapi.c
-        rtScript.cpp rtSettings.cpp rtCORS.cpp)
+        rtScript.cpp rtSettings.cpp rtCORS.cpp
+        rtHttpRequest.cpp rtHttpResponse.cpp)
         
 if (SUPPORT_DUKTAPE)
     message("Adding Duktape scripting support")
@@ -233,6 +235,11 @@ if (PXCORE_PERMISSIONS_CHECK)
     add_definitions(-DENABLE_PERMISSIONS_CHECK)
     set(PXCORE_FILES ${PXCORE_FILES} rtPermissions.cpp)
 endif (PXCORE_PERMISSIONS_CHECK)
+
+if (PXCORE_REUSE_CURL_HANDLES)
+    message("Enabling curl handle reuse")
+    add_definitions(-DPX_REUSE_DOWNLOAD_HANDLES)
+endif (PXCORE_REUSE_CURL_HANDLES)
 
 set(RTCORE_FILES utf8.c rtString.cpp rtLog.cpp rtValue.cpp rtError.cpp ioapi_mem.c)
 
