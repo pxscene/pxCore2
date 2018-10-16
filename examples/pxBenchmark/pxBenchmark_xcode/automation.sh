@@ -53,8 +53,10 @@ EndIndex=-2
 #$VALUES=$(echo $VALUES | tr ";" "\n")
 Index=0
 declare -i dataIndex
-declare -p array
-declare -p cols
+declare -a array
+declare -a cols
+declare -i index
+
 for token in $VALUES
 do
 #echo -n $Index
@@ -76,49 +78,47 @@ then
     echo "HERE2" $CurrentIndex
     dataIndex=$CurrentIndex+2
     array[$dataIndex]=$DATE
-#export array[$dataIndex]=$DATE
-    declare -i index
+    #export array[$dataIndex]=$DATE
     index=1
     fieldsCount=-4
     CIFS="$IFS"
     VAL=""
     tail $fieldsCount /tmp/pxBenchmark_outputTable.csv | while IFS=, read -a line
     do
-#if [ $index = "2" ]
-# then
-#     dataIndex=$CurrentIndex+3
-#     array[$dataIndex]=${line[1]}
-#export array[$dataIndex]=${array[$dataIndex]}
-#     echo "GPU" ${array[$dataIndex]}
-#val=${array[$dataIndex]}
-#elif [ $index = "3" ]
-#then
-#    dataIndex=$CurrentIndex+4
-#    array[$dataIndex]=${line[1]}
-#      export array[$dataIndex]=${array[$dataIndex]}
-#    echo "CPU" ${array[$dataIndex]}
-#val=${array[$dataIndex]}
-# fi
-    val=${line[1]}
-    cols+=( "$val" )
-
-#if [ $dataIndex != "0" ]
-#then
-#echo "HERE3" $dataIndex $val
-# array[$dataIndex]=$val
-# export array[$dataIndex]=$val
-#fi
-    dataIndex=0
-    index=$index+1
+        #if [ $index = "2" ]
+        # then
+        #     dataIndex=$CurrentIndex+3
+        #     array[$dataIndex]=${line[1]}
+        #export array[$dataIndex]=${array[$dataIndex]}
+        #     echo "GPU" ${array[$dataIndex]}
+        #val=${array[$dataIndex]}
+        #elif [ $index = "3" ]
+        #then
+        #    dataIndex=$CurrentIndex+4
+        #    array[$dataIndex]=${line[1]}
+        #      export array[$dataIndex]=${array[$dataIndex]}
+        #    echo "CPU" ${array[$dataIndex]}
+        #val=${array[$dataIndex]}
+        # fi
+        cols+=( "${line[1]}" )
+        echo "${cols[@]}"
+        #if [ $dataIndex != "0" ]
+        #then
+        #echo "HERE3" $dataIndex $val
+        # array[$dataIndex]=$val
+        # export array[$dataIndex]=$val
+        #fi
+        dataIndex=0
+        index=$index+1
     done
 
-echo "${cols[@]}"
-dataIndex=$CurrentIndex+3
-#array[$dataIndex]=${cols[1]}
-echo "GPU" ${array[$dataIndex]}
-dataIndex=$CurrentIndex+4
-#array[$dataIndex]=${cols[2]}
-echo "CPU" ${array[$dataIndex]}
+    echo "Cols: ${cols[@]}"
+    dataIndex=$CurrentIndex+3
+    #array[$dataIndex]=${cols[1]}
+    echo "GPU" ${array[$dataIndex]}
+    dataIndex=$CurrentIndex+4
+    #array[$dataIndex]=${cols[2]}
+    echo "CPU" ${array[$dataIndex]}
     IFS="$CIFS"
 
     CurrentIndex=-1
@@ -258,7 +258,7 @@ echo "$RSP_DN $RSP_FIRMWARE $RSP_DATE $RSP_CPU $RSP_GPU $RSP_NOTES"
 
 echo "BASH : ${BASH_SOURCE[@]}"
 curl -u akalok815:FBnl*90q*90q -X PUT -H 'Content-Type: application/json' -d '{"id":"556737708","type":"page",
-"title":"GPU+and+CPU+Benchmark+Tests","body":{"storage":{"value": "<p>The goal below is to benchmark the GPU and CPU on X1 devices and Raspberry PI by using Spark*s APIs.&nbsp; We are not validating the feature sets but comparing performance across the devices.</p><p><br /></p> <h1>pxBenchmark</h1><p><a href=\"https://github.com/pxscene/pxCore/tree/master/examples/pxBenchmark\">https://github.com/pxscene/pxCore/tree/master/examples/pxBenchmark</a></p><p>These results were collected using pxBenchmark.&nbsp; pxBenchmark is an application that is used to benchmark the GPU and CPU performance on RDK devices.&nbsp; It uses Spark APIs to perform the GPU and CPU benchmark tests.&nbsp; The GPU results are the values of the total time spent inside pxContext APIs.&nbsp; Currently, the tests used for CPU collections are JPEG and PNG image decoding.</p><p><br /></p><h1>Benchmark Results</h1><p><br /></p><table class=\"wrapped\"><colgroup><col style=\"width: 124.0px;\" /><col style=\"width: 84.0px;\" /><col style=\"width: 83.0px;\" /><col style=\"width: 159.0px;\" /><col style=\"width: 158.0px;\" /><col style=\"width: 60.0px;\" /></colgroup><tbody><tr><th>Device Type</th><th>Firmware</th><th>Date Run</th><th><p>GPU Execution Time</p><p>Unit: ms</p></th><th> <p>CPU Execution Time</p><p>Unit: ms</p></th><th>Notes</th></tr><tr><td><span>$ARRISXI6_DN</span></td><td><span style=\"color: rgb(0,0,0);\"><span style=\"color: rgb(0,0,0);\">$ARRISXI6_FIRMWARE</span><br /></span></td><td>$ARRISXI6_DATE</td><td><span>$ARRISXI6_GPU</span></td><td>$ARRISXI6_CPU</td><td>$ARRISXI6_NOTES</td></tr><tr><td>$ARRISXG1V4_DN</td><td>$ARRISXG1V4_FIRMWARE</td><td>$ARRISXG1V4_DATE</td><td>$ARRISXG1V4_CPU</td><td><span>$ARRISXG1V4_GPU</span></td><td>$ARRISXG1V4_NOTES</td></tr><tr><td>$CISCOXID_DN</td><td><span style=\"color: rgb(0,0,0);\">$CISCOXID_FIRMWARE<br /></span></td><td><span>$CISCOXID_DATE</span></td><td>$CISCOXID_CPU</td><td><span>$CISCOXID_GPU</span></td><td>$CISCOXID_NOTES</td></tr><tr><td>$PACEXI5_DN</td><td><span style=\"color: rgb(0,0,0);\"><span style=\"color: rgb(0,0,0);\">$PACEXI5_FIRMWARE</span><br /></span></td><td><span>$PACEXI5_DATE</span></td><td>$PACEXI5_GPU</td><td><span>$PACEXI5_CPU</span></td><td>$PACEXI5_NOTES</td></tr><tr><td>$PACEXID_DN</td><td>$PACEXID_FIRMWARE</td><td><span>$PACEXID_DATE</span></td><td>$PACEXID_GPU</td><td><span>$PACEXID_CPU</span></td><td>$PACEXID_NOTES</td></tr><tr><td>$PACEXI3_DN</td><td><span style=\"color: rgb(0,0,0);\"><span style=\"color: rgb(0,0,0);\">$PACEXI3_FIRMWARE</span><br /></span></td><td><span>$PACEXI3_DATE</span></td><td>$PACEXI3_GPU</td><td><span>$PACEXI3_CPU</span></td><td>$PACEXI3_NOTES</td></tr><tr><td>$PACEXG2V2_DN</td><td>$PACEXG2V2_FIRMWARE</td><td><span>$PACEXG2V2_DATE</span></td><td>$PACEXG2V2_GPU</td><td><span>$PACEXG2V2_CPU</span></td><td>$PACEXG2V2_NOTES</td></tr><tr><td>$ARRISXG1V3_DN</td><td><span style=\"color: rgb(0,0,0);\">$ARRISXG1V3_FIRMWARE<br /></span></td><td><span>$ARRISXG1V3_DATE</span></td><td>$ARRISXG1V3_GPU</td><td><span>$ARRISXG1V3_CPU</span></td><td>$ARRISXG1V3_NOTES</td></tr><tr><td>$SAMXG2V2_DN</td><td><span style=\"color: rgb(0,0,0);\">$SAMXG2V2_FIRMWARE</span></td><td><span>$SAMXG2V2_DATE</span></td><td>$SAMXG2V2_GPU</td><td><span>$SAMXG2V2_CPU</span></td><td>$SAMXG2V2_NOTES</td></tr><tr><td>$PACEXG1V3_DN</td><td><span style=\"color: rgb(0,0,0);\"><span style=\"color: rgb(0,0,0);\">$PACEXG1V3_FIRMWARE</span><br /></span></td><td><span>$PACEXG1V3_DATE</span></td><td>$PACEXG1V3_GPU</td><td><span>$PACEXG1V3_CPU</span></td><td>$PACEXG1V3_NOTES</td></tr><tr><td>$CISCOG8_DN</td><td><span style=\"color: rgb(0,0,0);\">$CISCOG8_FIRMWARE</span></td><td><span>$CISCOG8_DATE</span></td><td>$CISCOG8_GPU</td><td><span>$CISCOG8_CPU</span></td><td>$CISCOG8_NOTES</td></tr><tr><td>$PACEXG1V1_DN</td><td><span style=\"color: rgb(0,0,0);\">$PACEXG1V1_FIRMWARE</span></td><td><span>$PACEXG1V1_DATE</span></td><td>$PACEXG1V1_GPU</td><td><span>$PACEXG1V1_CPU</span></td><td>$PACEXG1V1_NOTES</td></tr><tr><td>$ARRISXG1V1_DN</td><td>$ARRISXG1V1_FIRMWARE</td><td><span>$ARRISXG1V1_DATE</span></td><td>$ARRISXG1V1_GPU</td><td><span>$ARRISXG1V1_CPU</span></td><td>$ARRISXG1V1_NOTES</td></tr><tr><td>'$RSP_DN'</td><td>$RSP_FIRMWARE</td><td><span>'$RSP_DATE'</span></td><td><span>$RSP_GPU</span></td><td><span>$RSP_CPU</span></td><td><ac:task-list><ac:task><ac:task-id>1</ac:task-id><ac:task-status>incomplete</ac:task-status> <ac:task-body><span>&nbsp;</span></ac:task-body></ac:task></ac:task-list></td></tr></tbody></table>","representation":"storage"}}, "version":{"number":'$VERSION'}}' "https://etwiki.sys.comcast.net/rest/api/content/556737708"
+"title":"GPU+and+CPU+Benchmark+Tests","body":{"storage":{"value": "<p>The goal below is to benchmark the GPU and CPU on X1 devices and Raspberry PI by using Spark*s APIs.&nbsp; We are not validating the feature sets but comparing performance across the devices.</p><p><br /></p> <h1>pxBenchmark</h1><p><a href=\"https://github.com/pxscene/pxCore/tree/master/examples/pxBenchmark\">https://github.com/pxscene/pxCore/tree/master/examples/pxBenchmark</a></p><p>These results were collected using pxBenchmark.&nbsp; pxBenchmark is an application that is used to benchmark the GPU and CPU performance on RDK devices.&nbsp; It uses Spark APIs to perform the GPU and CPU benchmark tests.&nbsp; The GPU results are the values of the total time spent inside pxContext APIs.&nbsp; Currently, the tests used for CPU collections are JPEG and PNG image decoding.</p><p><br /></p><h1>Benchmark Results</h1><p><br /></p><table class=\"wrapped\"><colgroup><col style=\"width: 124.0px;\" /><col style=\"width: 84.0px;\" /><col style=\"width: 83.0px;\" /><col style=\"width: 159.0px;\" /><col style=\"width: 158.0px;\" /><col style=\"width: 60.0px;\" /></colgroup><tbody><tr><th>Device Type</th><th>Firmware</th><th>Date Run</th><th><p>GPU Execution Time</p><p>Unit: ms</p></th><th> <p>CPU Execution Time</p><p>Unit: ms</p></th><th>Notes</th></tr><tr><td><span>'$ARRISXI6_DN'</span></td><td><span style=\"color: rgb(0,0,0);\"><span style=\"color: rgb(0,0,0);\">'$ARRISXI6_FIRMWARE'</span><br /></span></td><td>'$ARRISXI6_DATE'</td><td><span>'$ARRISXI6_GPU'</span></td><td>'$ARRISXI6_CPU'</td><td>'$ARRISXI6_NOTES'</td></tr><tr><td>'$ARRISXG1V4_DN'</td><td>'$ARRISXG1V4_FIRMWARE'</td><td>'$ARRISXG1V4_DATE'</td><td>'$ARRISXG1V4_CPU'</td><td><span>'$ARRISXG1V4_GPU'</span></td><td>'$ARRISXG1V4_NOTES'</td></tr><tr><td>'$CISCOXID_DN'</td><td><span style=\"color: rgb(0,0,0);\">'$CISCOXID_FIRMWARE'<br /></span></td><td><span>'$CISCOXID_DATE'</span></td><td>'$CISCOXID_CPU'</td><td><span>'$CISCOXID_GPU'</span></td><td>'$CISCOXID_NOTES'</td></tr><tr><td>'$PACEXI5_DN'</td><td><span style=\"color: rgb(0,0,0);\"><span style=\"color: rgb(0,0,0);\">'$PACEXI5_FIRMWARE'</span><br /></span></td><td><span>'$PACEXI5_DATE'</span></td><td>'$PACEXI5_GPU'</td><td><span>'$PACEXI5_CPU'</span></td><td>'$PACEXI5_NOTES'</td></tr><tr><td>'$PACEXID_DN'</td><td>'$PACEXID_FIRMWARE'</td><td><span>'$PACEXID_DATE'</span></td><td>'$PACEXID_GPU'</td><td><span>'$PACEXID_CPU'</span></td><td>'$PACEXID_NOTES'</td></tr><tr><td>'$PACEXI3_DN'</td><td><span style=\"color: rgb(0,0,0);\"><span style=\"color: rgb(0,0,0);\">'$PACEXI3_FIRMWARE'</span><br /></span></td><td><span>'$PACEXI3_DATE'</span></td><td>'$PACEXI3_GPU'</td><td><span>'$PACEXI3_CPU'</span></td><td>'$PACEXI3_NOTES'</td></tr><tr><td>'$PACEXG2V2_DN'</td><td>'$PACEXG2V2_FIRMWARE'</td><td><span>'$PACEXG2V2_DATE'</span></td><td>'$PACEXG2V2_GPU'</td><td><span>'$PACEXG2V2_CPU'</span></td><td>'$PACEXG2V2_NOTES'</td></tr><tr><td>'$ARRISXG1V3_DN'</td><td><span style=\"color: rgb(0,0,0);\">'$ARRISXG1V3_FIRMWARE'<br /></span></td><td><span>'$ARRISXG1V3_DATE'</span></td><td>'$ARRISXG1V3_GPU'</td><td><span>'$ARRISXG1V3_CPU'</span></td><td>'$ARRISXG1V3_NOTES'</td></tr><tr><td>'$SAMXG2V2_DN'</td><td><span style=\"color: rgb(0,0,0);\">'$SAMXG2V2_FIRMWARE'</span></td><td><span>'$SAMXG2V2_DATE'</span></td><td>'$SAMXG2V2_GPU'</td><td><span>'$SAMXG2V2_CPU'</span></td><td>'$SAMXG2V2_NOTES'</td></tr><tr><td>'$PACEXG1V3_DN'</td><td><span style=\"color: rgb(0,0,0);\"><span style=\"color: rgb(0,0,0);\">'$PACEXG1V3_FIRMWARE'</span><br /></span></td><td><span>'$PACEXG1V3_DATE'</span></td><td>'$PACEXG1V3_GPU'</td><td><span>'$PACEXG1V3_CPU'</span></td><td>'$PACEXG1V3_NOTES'</td></tr><tr><td>'$CISCOG8_DN'</td><td><span style=\"color: rgb(0,0,0);\">'$CISCOG8_FIRMWARE'</span></td><td><span>'$CISCOG8_DATE'</span></td><td>'$CISCOG8_GPU'</td><td><span>'$CISCOG8_CPU'</span></td><td>'$CISCOG8_NOTES'</td></tr><tr><td>'$PACEXG1V1_DN'</td><td><span style=\"color: rgb(0,0,0);\">'$PACEXG1V1_FIRMWARE'</span></td><td><span>'$PACEXG1V1_DATE'</span></td><td>'$PACEXG1V1_GPU'</td><td><span>'$PACEXG1V1_CPU'</span></td><td>'$PACEXG1V1_NOTES'</td></tr><tr><td>'$ARRISXG1V1_DN'</td><td>'$ARRISXG1V1_FIRMWARE'</td><td><span>'$ARRISXG1V1_DATE'</span></td><td>'$ARRISXG1V1_GPU'</td><td><span>'$ARRISXG1V1_CPU'</span></td><td>'$ARRISXG1V1_NOTES'</td></tr><tr><td>'$RSP_DN'</td><td>'$RSP_FIRMWARE'</td><td><span>'$RSP_DATE'</span></td><td><span>'$RSP_GPU'</span></td><td><span>$RSP_CPU</span></td><td><ac:task-list><ac:task><ac:task-id>1</ac:task-id><ac:task-status>incomplete</ac:task-status> <ac:task-body><span>&nbsp;</span></ac:task-body></ac:task></ac:task-list></td></tr></tbody></table>","representation":"storage"}}, "version":{"number":'$VERSION'}}' "https://etwiki.sys.comcast.net/rest/api/content/556737708"
 
 
 #for token in "${array[@]}"
