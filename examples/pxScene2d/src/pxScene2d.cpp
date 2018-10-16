@@ -1863,7 +1863,7 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
 #ifdef PX_DIRTY_RECTANGLES
     mArchive(),mDirtyRect(), mLastFrameDirtyRect(),
 #endif //PX_DIRTY_RECTANGLES
-    mDirty(true), mTestView(NULL), mDisposed(false)
+    mDirty(true), mTestView(NULL), mDisposed(false), mArchiveSet(false)
 {
   mRoot = new pxRoot(this);
   mFocusObj = mRoot;
@@ -1962,7 +1962,7 @@ rtError pxScene2d::dispose()
     mDisposed = true;
     rtObjectRef e = new rtMapObject;
     // pass false to make onClose asynchronous
-    mEmit.send("onClose", false, e);
+    mEmit.sendAsync("onClose", e);
     for (unsigned int i=0; i<mInnerpxObjects.size(); i++)
     {
       pxObject* temp = (pxObject *) (mInnerpxObjects[i].getPtr());
@@ -1978,14 +1978,13 @@ rtError pxScene2d::dispose()
     // send scene terminate after dispose to make sure, no cleanup can happen further on app side		
     // after clearing the sandbox
     // pass false to make onSceneTerminate asynchronous
-    mEmit.send("onSceneTerminate", false, e);
+    mEmit.sendAsync("onSceneTerminate", e);
     mEmit->clearListeners();
 
     mRoot     = NULL;
     mInfo     = NULL;
     mCapabilityVersions = NULL;
     mFocusObj = NULL;
-
     return RT_OK;
 }
 

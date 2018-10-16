@@ -489,13 +489,13 @@ if (BUILD_PXSCENE_APP)
         if (SUPPORT_DUKTAPE)
             install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/rcvrcore/" DESTINATION rcvrcore COMPONENT pxscene)
             install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/duk_modules/" DESTINATION duk_modules COMPONENT pxscene)
-            file(GLOB PXSCENE_INSTALL_FILES_JS "${CMAKE_CURRENT_SOURCE_DIR}/*.js")
+            file(GLOB PXSCENE_INSTALL_FILES_JS "${CMAKE_CURRENT_SOURCE_DIR}/*.js"
+               "${CMAKE_CURRENT_SOURCE_DIR}/mime/pxMimeTypes.js")
             file(GLOB PXSCENE_INSTALL_FILES_JS2 "${CMAKE_CURRENT_SOURCE_DIR}/duktape/*.js")
-            file(GLOB PXSCENE_INSTALL_FILES_JS "${CMAKE_CURRENT_SOURCE_DIR}/mime/pxMimeTypes.js")
-        else (SUPPORT_DUKTAPE)
+        else ()
             install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/rcvrcore DESTINATION . COMPONENT pxscene)
-            file(GLOB PXSCENE_INSTALL_FILES_JS "${CMAKE_CURRENT_SOURCE_DIR}/*.js")
-            file(GLOB PXSCENE_INSTALL_FILES_JS "${CMAKE_CURRENT_SOURCE_DIR}/mime/pxMimeTypes.js")
+            file(GLOB PXSCENE_INSTALL_FILES_JS "${CMAKE_CURRENT_SOURCE_DIR}/*.js"
+               "${CMAKE_CURRENT_SOURCE_DIR}/mime/pxMimeTypes.js")
         endif (SUPPORT_DUKTAPE)
 
         file(GLOB PXSCENE_INSTALL_FILES "${CMAKE_CURRENT_SOURCE_DIR}/FreeSans.ttf"
