@@ -17,7 +17,6 @@ USER=""
 PASSWORD=""
 DEVICE_NAME=""
 #Download attachment to be edited
-curl -u akalok815:FBnl*90q*90q $STORAGE_URL -o $FORM_PATH
 
 #FORMAT=$(curl -u akalok815:FBnl*90q*90q $BASE_URL)
 
@@ -33,6 +32,8 @@ echo "Insert Device Name:"
 read DEVICE_NAME
 echo "Insert Version:"
 read VERSION
+
+curl -u $USER:$PASSWORD $STORAGE_URL -o $FORM_PATH
 
 #echo "Updating a page on confluence"
 
