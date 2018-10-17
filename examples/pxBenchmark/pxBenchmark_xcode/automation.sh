@@ -66,7 +66,7 @@ do
 #echo -n "$token"
 array+=( "$token" );
 
-if [[ $token =~ .*$DEVICE_NAME.* ]]
+if [[ $DEVICE_NAME =~ .*$token.* ]]
 then
     CurrentIndex=$Index
     export CurrentIndex=$CurrentIndex
