@@ -70,7 +70,7 @@
 #include "rtCORS.h"
 
 #include "rtServiceProvider.h"
-
+#include "rtSettings.h"
 #ifdef RUNINMAIN
 #define ENTERSCENELOCK()
 #define EXITSCENELOCK() 
@@ -1381,6 +1381,7 @@ public:
 
   rtMethodNoArgAndNoReturn("dispose",dispose);
 
+  rtMethod1ArgAndReturn("sparkSetting", sparkSetting, rtString, rtValue);
   rtMethod1ArgAndNoReturn("addServiceProvider", addServiceProvider, rtFunctionRef);
   rtMethod1ArgAndNoReturn("removeServiceProvider", removeServiceProvider, rtFunctionRef);
 
@@ -1403,6 +1404,7 @@ public:
     {
        mArchive = NULL;
     }
+    mArchiveSet = false;
   }
   
   virtual unsigned long AddRef() 
@@ -1535,6 +1537,7 @@ public:
 #endif
   rtCORSRef cors() const { return mCORS; }
   rtError cors(rtObjectRef& v) const { v = mCORS; return RT_OK; }
+  rtError sparkSetting(const rtString& setting, rtValue& value) const;
   rtError origin(rtString& v) const { v = mOrigin; return RT_OK; }
 
   void setMouseEntered(rtRef<pxObject> o);//setMouseEntered(pxObject* o);
@@ -1621,24 +1624,30 @@ public:
       e = RT_OK;
     }
 
-    pxArchive* myArchive = (pxArchive*) a.getPtr();
-    /* decide whether further file access from this scene need to to taken from,
-       parent -> if this scene is created from archive
-       itself -> if this file itself is archive
-    */
-    if ((parentArchive != NULL ) && (((pxArchive*)parentArchive.getPtr())->isFile() == false))
+    if (false == mArchiveSet)
     {
-      if ((myArchive != NULL ) && (myArchive->isFile() == false))
+      pxArchive* myArchive = (pxArchive*) a.getPtr();
+      /* decide whether further file access from this scene need to to taken from,
+      parent -> if this scene is created from archive
+      itself -> if this file itself is archive
+      */
+      if ((parentArchive != NULL ) && (((pxArchive*)parentArchive.getPtr())->isFile() == false))
       {
-        mArchive = a;
+        if ((myArchive != NULL ) && (myArchive->isFile() == false))
+        {
+          mArchive = a;
+        }
+        else
+        {
+          mArchive = parentArchive;
+        }
       }
       else
       {
-        mArchive = parentArchive;
+        mArchive = a;
       }
+      mArchiveSet = true;
     }
-    else
-      mArchive = a;
     return e;
   }
 
@@ -1726,6 +1735,7 @@ public:
   testView* mTestView;
   bool mDisposed;
   std::vector<rtFunctionRef> mServiceProviders;
+  bool mArchiveSet;
 };
 
 // TODO do we need this anymore?

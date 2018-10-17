@@ -80,7 +80,6 @@ extern "C" const char U_DATA_API SMALL_ICUDATA_ENTRY_POINT[];
 #include <string>
 #include <map>
 
-#include "rtFileDownloader.h"
 #include <rtMutex.h>
 
 #include <string>
@@ -125,6 +124,8 @@ extern "C" const char U_DATA_API SMALL_ICUDATA_ENTRY_POINT[];
 
 #include "headers.h"
 #include "libplatform/libplatform.h"
+
+#include "rtHttpRequest.h"
 
 static rtAtomic sNextId = 100;
 
@@ -367,8 +368,6 @@ bool rtV8Context::resolveModulePath(const rtString &name, rtString &data)
   dirs.push_back(""); // this dir
   dirs.push_back("v8_modules/");
   dirs.push_back("node_modules/");
-  //dirs.push_back("../external/libnode-v6.9.0/lib/");
-  //dirs.push_back("../external/libnode-v6.9.0/lib/internal/");
 
   endings.push_back(".js");
   // not parsing package.json
@@ -485,7 +484,7 @@ Local<Value> rtV8Context::loadV8Module(const rtString &name)
 
   rtString contents1 = "(function(){var module=this; var exports=(this.exports = new Object());";
   contents1.append(contents.cString());
-  contents1.append(" return this.exports; })");
+  contents1.append("; return this.exports; })");
 
   v8::Local<v8::String> source =
     v8::String::NewFromUtf8(mIsolate, contents1.cString(), v8::NewStringType::kNormal).ToLocalChecked();
@@ -1408,96 +1407,33 @@ namespace rtScriptV8NodeUtils
     { NULL, NULL },
   };
 
-  class rtHttpResponse : public rtObject
-  {
-  public:
-    rtDeclareObject(rtHttpResponse, rtObject);
-    rtReadOnlyProperty(statusCode, statusCode, int32_t);
-    rtReadOnlyProperty(message, errorMessage, rtString);
-    rtMethod2ArgAndNoReturn("on", addListener, rtString, rtFunctionRef);
-    rtMethodNoArgAndNoReturn("abort", abort);
-
-    rtHttpResponse() : mStatusCode(0) {
-      mEmit = new rtEmit();
-    }
-
-    rtError statusCode(int32_t& v) const { v = mStatusCode;  return RT_OK; }
-    rtError errorMessage(rtString& v) const { v = mErrorMessage;  return RT_OK; }
-    rtError addListener(rtString eventName, const rtFunctionRef& f) { mEmit->addListener(eventName, f); return RT_OK; }
-    rtError abort() const { return RT_OK; }
-
-    static void onDownloadComplete(rtFileDownloadRequest* downloadRequest);
-    static size_t onDownloadInProgress(void *ptr, size_t size, size_t nmemb, void *userData);
-
-  private:
-    int32_t mStatusCode;
-    rtString mErrorMessage;
-    rtEmitRef mEmit;
-  };
-
-  rtDefineObject(rtHttpResponse, rtObject);
-  rtDefineProperty(rtHttpResponse, statusCode);
-  rtDefineProperty(rtHttpResponse, message);
-  rtDefineMethod(rtHttpResponse, addListener);
-  rtDefineMethod(rtHttpResponse, abort);
-
-  void rtHttpResponse::onDownloadComplete(rtFileDownloadRequest* downloadRequest)
-  {
-    rtHttpResponse* resp = (rtHttpResponse*)downloadRequest->callbackData();
-
-    resp->mStatusCode = downloadRequest->httpStatusCode();
-    resp->mErrorMessage = downloadRequest->errorString();
-
-    resp->mEmit.send(resp->mErrorMessage.isEmpty() ? "end" : "error", (rtIObject *)resp);
-  }
-
-  size_t rtHttpResponse::onDownloadInProgress(void *ptr, size_t size, size_t nmemb, void *userData)
-  {
-    rtHttpResponse* resp = (rtHttpResponse*)userData;
-
-    if (size * nmemb > 0) {
-      resp->mEmit.send("data", rtString((const char *)ptr, size*nmemb));
-    }
-    return 0;
-  }
-
   rtError rtHttpGetBinding(int numArgs, const rtValue* args, rtValue* result, void* context)
   {
+    UNUSED_PARAM(context);
+
     if (numArgs < 1) {
+      rtLogError("%s: invalid args", __FUNCTION__);
       return RT_ERROR_INVALID_ARG;
     }
 
-    rtString resourceUrl;
+    rtHttpRequest* req;
     if (args[0].getType() == RT_stringType) {
-      resourceUrl = args[0].toString();
+      req = new rtHttpRequest(args[0].toString());
     }
     else {
       if (args[0].getType() != RT_objectType) {
+        rtLogError("%s: invalid arg type", __FUNCTION__);
         return RT_ERROR_INVALID_ARG;
       }
-      rtObjectRef obj = args[0].toObject();
-
-      rtString proto = obj.get<rtString>("protocol");
-      rtString host = obj.get<rtString>("host");
-      rtString path = obj.get<rtString>("path");
-
-      resourceUrl.append(proto.cString());
-      resourceUrl.append("//");
-      resourceUrl.append(host.cString());
-      resourceUrl.append(path.cString());
+      req = new rtHttpRequest(args[0].toObject());
     }
-
-    rtValue ret;
-    rtObjectRef resp(new rtHttpResponse());
 
     if (numArgs > 1 && args[1].getType() == RT_functionType) {
-      args[1].toFunction().sendReturns(resp, ret);
-      rtFileDownloadRequest *downloadRequest = new rtFileDownloadRequest(resourceUrl, resp.getPtr(), rtHttpResponse::onDownloadComplete);
-      downloadRequest->setDownloadProgressCallbackFunction(rtHttpResponse::onDownloadInProgress, resp.getPtr());
-      rtFileDownloader::instance()->addToDownloadQueue(downloadRequest);
+      req->addListener("response", args[1].toFunction());
     }
 
-    *result = resp;
+    rtObjectRef ref = req;
+    *result = ref;
 
     return RT_OK;
   }

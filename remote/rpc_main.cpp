@@ -198,7 +198,7 @@ void Test_Echo_Client()
     e = obj.set("message", buff);
     rtLogInfo("set:%s", rtStrError(e));
 
-    e = rtRemoteRunUntil(env, 1000);
+    e = rtRemoteRunUntil(env, 1000, false);
     rtLogInfo("rtRemoteRun:%s", rtStrError(e));
   }
 }
@@ -210,7 +210,7 @@ void Test_Echo_Server()
   RT_ASSERT(e == RT_OK);
   while (true)
   {
-    e = rtRemoteRunUntil(env, 1000);
+    e = rtRemoteRunUntil(env, 1000, false);
     rtLogInfo("rtRemoteRun:%s", rtStrError(e));
   }
 }
@@ -304,7 +304,7 @@ void Test_SetProperty_Basic_Server()
   // int n = 0;
   while (true)
   {
-    rtError e = rtRemoteRunUntil(env, 1000);
+    rtError e = rtRemoteRunUntil(env, 1000, false);
     rtLogInfo("rtRemoteRun:%s", rtStrError(e));
 #if 0
     if (n++ == 4)
@@ -328,7 +328,7 @@ void Test_FunctionReferences_Client()
 
   while (true)
   {
-    rtError e = rtRemoteRunUntil(env, 1000);
+    rtError e = rtRemoteRunUntil(env, 1000, false);
     rtLogInfo("rtRemoteRun:%s", rtStrError(e));
   }
 
@@ -368,7 +368,7 @@ void Test_FunctionReferences_Server()
       rtLogInfo("onTempChanged is null");
     }
 
-    rtError e = rtRemoteRunUntil(env, 1000);
+    rtError e = rtRemoteRunUntil(env, 1000, false);
     rtLogInfo("rtRemoteRun:%s", rtStrError(e));
   }
 }
@@ -401,7 +401,7 @@ Test_MethodCall_Server()
   RT_ASSERT(e == RT_OK);
   while (true)
   {
-    rtError e = rtRemoteRunUntil(env, 1000);
+    rtError e = rtRemoteRunUntil(env, 1000, false);
     rtLogInfo("rtRemoteRun:%s", rtStrError(e));
   }
 }
@@ -450,7 +450,7 @@ Test_SetProperty_Object_Server()
   RT_ASSERT(e == RT_OK);
   while (true)
   {
-    rtError e = rtRemoteRunUntil(env, 1000);
+    rtError e = rtRemoteRunUntil(env, 1000, false);
     rtLogInfo("rtRemoteRun:%s", rtStrError(e));
   }
 }

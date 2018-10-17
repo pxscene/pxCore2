@@ -18,15 +18,14 @@ limitations under the License.
 
 "use strict";
 
-var isDuk = (typeof timers != "undefined")?true:false;
-var isV8 = (typeof _isV8 != "undefined")?true:false;
+var isDuk = (typeof Duktape != "undefined")?true:false;
 
 var fs = require('fs');
 var url = require('url');
 var http = require('http');
 
 // FIXME !!!!!!!!!! duktape merge hack
-if (!isDuk && !isV8) {
+if (!isDuk) {
   var JSZip = require("jszip");
 }
 
