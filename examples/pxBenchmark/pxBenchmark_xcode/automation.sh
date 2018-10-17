@@ -18,7 +18,7 @@ PASSWORD=""
 DEVICE_NAME=""
 #Download attachment to be edited
 
-#FORMAT=$(curl -u akalok815:FBnl*90q*90q $BASE_URL)
+#FORMAT=$(curl -u $USER:$PASSWORD $BASE_URL)
 
 
 #DEVICE_LIST={"Samsung Xg2v2", "Arris XG1v1", "Pace Xi3", "Cisco G8", "Pace XG2v2", "Pace XG1v3", "Arris XG1v3", "Pace XG1v1", "Raspberry Pi", "Pace Xi5", "Pace XiD", "Cisco XiD", "Arris XG1v4", "Arris Xi6"}
@@ -150,7 +150,7 @@ done
 
 #DATA=$(cat $FORM_PATH)
 
-#curl -u akalok815:FBnl*90q*90q -X PUT -H 'Content-Type: application/json' -d '{"id":"556737708","type":"page",
+#curl -u $USER:$PASSWORD -X PUT -H 'Content-Type: application/json' -d '{"id":"556737708","type":"page",
 #"title":"GPU+and+CPU+Benchmark+Tests","body":{"storage":{"value": "'$DATA'","representation":"storage"}}, "version":{"number":'$VERSION'}}' "https://etwiki.sys.comcast.net/##rest/api/content/556737708"
 
 echo "DeviceName Firmware Date GPU(ms) CPU(ms) NOTES"
@@ -466,7 +466,7 @@ echo "==========================="
 echo $payload
 echo "==========================="
 
-curl -u akalok815:FBnl*90q*90q -X PUT -H 'Content-Type: application/json' "https://etwiki.sys.comcast.net/rest/api/content/556737708" --data "$payload"
+curl -u $USER:$PASSWORD -X PUT -H 'Content-Type: application/json' "https://etwiki.sys.comcast.net/rest/api/content/556737708" --data "$payload"
 
 
 
