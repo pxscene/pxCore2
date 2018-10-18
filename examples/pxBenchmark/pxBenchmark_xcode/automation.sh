@@ -12,36 +12,44 @@ STORAGE_URL="https://etwiki.sys.comcast.net/plugins/viewstorage/viewpagestorage.
 PAGE_URL="https://etwiki.sys.comcast.net/display/RDK/GPU+and+CPU+Benchmark+Tests"
 FORM_PATH="/tmp/form.txt"
 SPACE="YOUR_PERSONAL_SPACE"
-VERSION=0
 DATE=(`date +"%m\/%d\/%Y"`)
 USER=""
 PASSWORD=""
-DEVICE_NAME=""
-FIRMWARE=""
+FIRMWARE=$(cat $THIS_DIR/version.txt | grep ^imagename:$versionTag1 | cut -d ":" -f 2)
+echo "Firmware=$FIRMWARE"
 
+DEVICE_NAME=$(cat $THIS_DIR/version.txt | grep ^JENKINS_JOB=$versionTag1 | cut -d "=" -f 2)
+echo "Device Name=$DEVICE_NAME"
 
 echo "Insert your account name:"
 read USER
 echo "Insert your password:"
 read -s PASSWORD
-
 #Download attachment to be edited
 
 curl -u $USER:$PASSWORD $STORAGE_URL -o $FORM_PATH
-
+BASE_DATA=$(curl -u $USER:$PASSWORD $BASE_URL)
+BASE_DATA=$(echo $BASE_DATA | tr "\," "\n")
+#echo $BASE_DATA
+GIFS="$OIFS"
+IFS=''
+declare -i VERSION
+VERSION=0
+VERSION=$(echo $BASE_DATA | grep ^\"number\":$versionTag1 | cut -d ":" -f 2)
+VERSION=$VERSION+1
+echo "VERSION="$VERSION
 DATA=$(cat $FORM_PATH)
 
 #if [[ $DATA == '' ]]; then
 #    echo "Authentication failed: Please try again"
 #    exit
 #fi
-echo "Insert Device Name:"
-read DEVICE_NAME
-echo "Insert Firmware:"
-read FIRMWARE
-echo "Insert Version:"
-read VERSION
-
+#echo "Insert Device Name:"
+#read DEVICE_NAME
+#echo "Insert Firmware:"
+#read FIRMWARE
+#echo "Insert Version:"
+#read VERSION
 
 
 html_body=$(cat <<EOF
@@ -67,17 +75,22 @@ cols=($CVS_DATA)
 echo "DATE:${cols[2]} GPU:${cols[3]} CPU:${cols[4]} Notes:${cols[5]}"
 IFS="$CIFS"
 
-echo "==========================="
-#echo $html_body
-echo "==========================="
+echo "=============BeforeUpdate:html_body=============="
+echo $html_body
+echo "================================================="
 html_body1=${html_body//\"/\\\"}
 idx=0
 declare -i icx
-icx=0
+icx=-2
 html_body2=""
 while read -r line; do
     if [[ ${idx} -ne 0 ]]; then
         html_body2+="\n"
+    fi
+
+    if [[ ${icx} -eq -1 && $line == *"</tr>"* ]]; then
+        #html_body2+="$line"
+        icx=0
     fi
 
     if [[ ${icx} -eq 5 ]]; then
@@ -121,22 +134,40 @@ while read -r line; do
         html_body2+="$line"
     fi
 
+    declare -i isit
+    isit=0
     if [[ ${icx} -eq 0 ]]; then
         html_body2+="$line"
-       # echo $line
+        #echo $line
+        isit=1
     fi
 
-    if [[ ${icx} -eq -1 && $line == *"tr"* ]]; then
+    if [[ $line == *"</tbody>"* && ${icx} -eq -2 ]]; then
+        echo $line
+        echo "Adding New Device" 
+        echo "Device Type Firmware Date GPU CPU NOTES"
+        echo $DEVICE_NAME $FIRMWARE ${cols[2]} ${cols[3]} ${cols[4]} ${cols[5]}
+        html_body2+="<tr>\n"
+        html_body2+="<td>$DEVICE_NAME</td>\n"
+        html_body2+="<td>$FIRMWARE</td>\n"
+        html_body2+="<td>${cols[2]}</td>\n"
+        html_body2+="<td>${cols[3]}</td>\n"
+        html_body2+="<td>${cols[4]}</td>\n"
+        html_body2+="<td>${cols[5]}</td>\n"
+        html_body2+="</tr>\n\n\n\n\n\n"
         html_body2+="$line"
         icx=0
+    elif [[ $isit -eq 0 ]]; then
+        html_body2+="$line"
+        #echo "F" $line
     fi
-
+    
     idx+=1
 done <<< "$html_body1"
 
-echo "==========================="
-#echo $html_body2
-echo "==========================="
+echo "============AfterUpdate:html_body2==============="
+echo $html_body2
+echo "================================================="
 
 payload=$(cat <<EOF
 {
@@ -171,3 +202,4 @@ echo "=================================================================="
 #done
 
 IFS="$OIFS"
+IFS="$GIFS"
