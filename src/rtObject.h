@@ -684,6 +684,10 @@ public:
     UNUSED_PARAM(hash);
   }
 
+
+private:
+  void processPendingEvents();
+
 protected:
   struct _rtEmitEntry 
   {
