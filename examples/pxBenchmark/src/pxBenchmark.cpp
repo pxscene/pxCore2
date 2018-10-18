@@ -58,6 +58,8 @@ uint64_t gCPU = 0;
 uint64_t gTotal = 0;
 uint64_t gOther = 0;
 uint64_t gOtherStart = 0;
+string   gFirmware = "";
+string   gDeviceType = "";
 
 const int gDuration = 2;
 
@@ -332,22 +334,34 @@ void benchmarkWindow::onDraw(pxSurfaceNative/*&*/ sn)
             mApiFixture->popExperimentValue().Value++;
             gTotal = (celero::timer::GetSystemTime() - gTotal);
             gOther += (celero::timer::GetSystemTime() - gOtherStart);
-            vector<string> list(2);
+            vector<string> list(6);
             
-            list[0] = "FPS=";
-            list[1] = to_string((int)gFPS);
+            list[0] = "Device Type";
+            list[1] = "Firmware";
+            list[2] = "Date";
+            list[3] = "GPU(ms)";
+            list[4] = "CPU(ms)";
+            list[5] = "NOTES";
             celero::ResultTable::Instance().add(list);
             
-            list[0] = "GPU(ms)=";
-            list[1] = to_string((int)(gGPU*0.001));
-            celero::ResultTable::Instance().add(list);
+            list[0] = gDeviceType;
+            list[1] = gFirmware;
             
-            list[0] = "CPU(ms)=";
-            list[1] = to_string((int)((gCPU+gOther)*0.001));
-            celero::ResultTable::Instance().add(list);
+            time_t rawtime;
+            struct tm * timeinfo;
+            char buffer[80];
             
-            list[0] = "Total(ms)=";
-            list[1] = to_string((int)(gTotal*0.001));
+            time (&rawtime);
+            timeinfo = localtime(&rawtime);
+            
+            strftime(buffer,sizeof(buffer),"%m\/%d\/%Y",timeinfo);
+            std::string str(buffer);
+            
+            
+            list[2] = str;
+            list[3] = to_string((int)(gGPU*0.001));
+            list[4] = to_string((int)((gCPU+gOther)*0.001));
+            list[5] = "Total(ms)=" + to_string((int)(gTotal*0.001)) + "FPS:=" + to_string((int)(gFPS));
             celero::ResultTable::Instance().add(list);
             
             celero::ResultTable::Instance().closeFile();
@@ -547,7 +561,7 @@ void pxApiFixture::TestDrawDiagRect ()
 
 pxTextureRef pxApiFixture::GetImageTexture (const string& format)
 {
-    string url = "../Resources/" + to_string((mExperimentValue.Iterations % MAX_IMAGES_CNT) + 1) + format;
+    string url = "/tmp/Resources/" + to_string((mExperimentValue.Iterations % MAX_IMAGES_CNT) + 1) + format;
     
     //url = win.GetOutPath() + url;
     
@@ -1155,9 +1169,12 @@ int pxMain(int argc, char* argv[])
     if (RT_OK == rtSettings::instance()->value("screenHeight", screenHeight))
         windowHeight = screenHeight.toInt32();
     
-    
+    cout<<argv;
     int32_t unitW = 25;
     int32_t unitH = 25;
+    
+    for(int i = 0; i < argc; i++){
+        printf("Argument %i = %s\n", i, argv[i]);}
     if (argc > 3)
     {
         unitW = stoi(argv[3]);
@@ -1171,14 +1188,26 @@ int pxMain(int argc, char* argv[])
     }
     
     bool doArchive = false;
-    if (argc > 6)
-        doArchive = stoi(argv[7]) == 1 ? true : false;
+    /*if (argc > 6)
+    {
+        gDeviceType = std::string(argv[7]);
+        cout<<gDeviceType;
+    }
     
     if (argc > 7)
     {
-        std::string path(argv[8]);
+        gFirmware = std::string(argv[8]);
+    }
+    
+    if (argc > 8)
+        doArchive = stoi(argv[9]) == 1 ? true : false;
+    
+    if (argc > 9)
+    {
+        std::string path(argv[10]);
         win.SetOutPath(path);
     }
+     */
     // OSX likes to pass us some weird parameter on first launch after internet install
     rtLogInfo("window width = %d height = %d", windowWidth, windowHeight);
     
