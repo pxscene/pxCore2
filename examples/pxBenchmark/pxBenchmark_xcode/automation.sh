@@ -134,12 +134,9 @@ while read -r line; do
         html_body2+="$line"
     fi
 
-    declare -i isit
-    isit=0
     if [[ ${icx} -eq 0 ]]; then
         html_body2+="$line"
         #echo $line
-        isit=1
     fi
 
     if [[ $line == *"</tbody>"* && ${icx} -eq -2 ]]; then
