@@ -365,6 +365,7 @@ void benchmarkWindow::onDraw(pxSurfaceNative/*&*/ sn)
             celero::ResultTable::Instance().add(list);
             
             celero::ResultTable::Instance().closeFile();
+            system(".\automation.sh");
 #if PX_PLATFORM_GENERIC_EGL
             //string cmnd = "libreoffice --calc " + mOutPath + mOutputTableCSV;
             //system(cmnd.c_str());

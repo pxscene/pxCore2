@@ -157,7 +157,7 @@ while read -r line; do
         html_body2+="</tr>\n\n\n\n\n\n"
         html_body2+="$line"
         icx=0
-    elif [[ $isit -eq 0 ]]; then
+    elif [[ ${icx} -eq -2 ]]; then
         html_body2+="$line"
         #echo "F" $line
     fi
