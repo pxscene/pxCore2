@@ -371,8 +371,13 @@ rtError rtValue::getUInt8(uint8_t& v) const
     case RT_int64_tType:  v = (uint8_t)mValue.int64Value;    break;
     case RT_uint64_tType: v = (uint8_t)mValue.uint64Value;   break;
 // TODO look at faster float to fixed conversion
+#ifdef PX_RTVALUE_CAST_UINT_BASIC
     case RT_floatType:    v = (uint8_t)mValue.floatValue;    break;
     case RT_doubleType:   v = (uint8_t)mValue.doubleValue;   break;
+#else
+    case RT_floatType:    v = (uint8_t)((int8_t)(mValue.floatValue));    break;
+    case RT_doubleType:   v = (uint8_t)((int8_t)(mValue.doubleValue));   break;
+#endif //PX_RTVALUE_CAST_UINT_BASIC
     case RT_stringType:
     {
       if (mValue.stringValue)
@@ -445,8 +450,13 @@ rtError rtValue::getUInt32(uint32_t& v) const
     case RT_int64_tType:  v = (uint32_t)mValue.int32Value;    break;
     case RT_uint64_tType: v = (uint32_t)mValue.uint32Value;   break;
 // TODO look at faster float to fixed conversion
+#ifdef PX_RTVALUE_CAST_UINT_BASIC
     case RT_floatType:    v = (uint32_t)mValue.floatValue;    break;
     case RT_doubleType:   v = (uint32_t)mValue.doubleValue;   break;
+#else
+    case RT_floatType:    v = (uint32_t)((int32_t)(mValue.floatValue));    break;
+    case RT_doubleType:   v = (uint32_t)((int32_t)(mValue.doubleValue));   break;
+#endif //PX_RTVALUE_CAST_UINT_BASIC
     case RT_stringType:
     {
       if (mValue.stringValue)
@@ -519,8 +529,13 @@ rtError rtValue::getUInt64(uint64_t& v) const
     case RT_int64_tType:  v = (uint64_t)mValue.int64Value;    break;
     case RT_uint64_tType: v = (uint64_t)mValue.uint64Value;   break;
 // TODO look at faster float to fixed conversion
+#ifdef PX_RTVALUE_CAST_UINT_BASIC
     case RT_floatType:    v = (uint64_t)mValue.floatValue;    break;
     case RT_doubleType:   v = (uint64_t)mValue.doubleValue;   break;
+#else
+    case RT_floatType:    v = (uint64_t)((int64_t)(mValue.floatValue));    break;
+    case RT_doubleType:   v = (uint64_t)((int64_t)(mValue.doubleValue));   break;
+#endif
     case RT_stringType:
     {
       if (mValue.stringValue)
