@@ -107,6 +107,7 @@ px.import({scene:"px:scene.1.js",keys:'px:tools.keys.js'})
                                       });
 
     var cursor = scene.create({t:"rect", w:2, h:inputHeight-(inputHeight/2), fillColor:0xFF0000FF, parent:textinput,x:0,y:8,a:0,h:0});
+    /* selection rect for all the lines */
     for (var i=0; i<totlines; i++)
     {
       selection[i]   = scene.create({ t: "rect", w: 0, parent: textinput, fillColor: selectionColor, x: 0, y: 0, a: 0 });
@@ -219,6 +220,7 @@ px.import({scene:"px:scene.1.js",keys:'px:tools.keys.js'})
       lastactivepos = -1;
     }
          
+    /* function to select all the lines */
     var selectAll = function () {
         underSelection = true;
         lastactiveline = curline;
@@ -242,6 +244,7 @@ px.import({scene:"px:scene.1.js",keys:'px:tools.keys.js'})
         return;
     };
 
+    /* function to deselect any selected content */
     var unSelectAll = function() {
       if ((-1 != lastactiveline) && (-1 != lastactivepos))
       {
@@ -255,6 +258,7 @@ px.import({scene:"px:scene.1.js",keys:'px:tools.keys.js'})
       cursor.a = 1;
     };
 
+    /* function to move cursor to first line left */
     var moveToHome = function() {
         curline = 0;
         cursor_pos = 0;
@@ -262,13 +266,15 @@ px.import({scene:"px:scene.1.js",keys:'px:tools.keys.js'})
         cursor.x = 0;
     }
 
+    /* function to move cursor to last line right */
     var moveToEnd = function() {
         curline = nolines-1;
         cursor_pos = linemap[nolines-1].text.length;
         cursor.y = linemap[curline].y;
         cursor.x = linemap[curline].width;
     }
-
+    
+    /* function to select till the home */
     var selectToHome = function () {
         underSelection = true;
         lastactiveline = curline;
@@ -301,6 +307,7 @@ px.import({scene:"px:scene.1.js",keys:'px:tools.keys.js'})
         }
     }
 
+    /* function to select till the end */
     var selectToEnd = function () {
         underSelection = true;
         lastactiveline = curline;
@@ -375,6 +382,7 @@ px.import({scene:"px:scene.1.js",keys:'px:tools.keys.js'})
         return [lo, pos_x];
     }
 
+    /* function to find the line where the y value falls */
     function findRow(y)
     {
       var topy = -1, bottomy = -1;
