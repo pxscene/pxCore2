@@ -1962,7 +1962,7 @@ rtError pxScene2d::dispose()
     mDisposed = true;
     rtObjectRef e = new rtMapObject;
     // pass false to make onClose asynchronous
-    mEmit.sendAsync("onClose", e);
+    mEmit.send("onClose", e);
     for (unsigned int i=0; i<mInnerpxObjects.size(); i++)
     {
       pxObject* temp = (pxObject *) (mInnerpxObjects[i].getPtr());
@@ -1978,7 +1978,7 @@ rtError pxScene2d::dispose()
     // send scene terminate after dispose to make sure, no cleanup can happen further on app side		
     // after clearing the sandbox
     // pass false to make onSceneTerminate asynchronous
-    mEmit.sendAsync("onSceneTerminate", e);
+    mEmit.send("onSceneTerminate", e);
     mEmit->clearListeners();
 
     mRoot     = NULL;
