@@ -7,9 +7,9 @@ cd "$THIS_DIR"
 
 echo "${BASH_SOURCE[0]}"
 
-BASE_URL="https://etwiki.sys.comcast.net/rest/api/content/556737708"
-STORAGE_URL="https://etwiki.sys.comcast.net/plugins/viewstorage/viewpagestorage.action?pageId=556737708"
-PAGE_URL="https://etwiki.sys.comcast.net/display/RDK/GPU+and+CPU+Benchmark+Tests"
+BASE_URL="https://etwiki.sys.comcast.net/rest/api/content/558517563"
+STORAGE_URL="https://etwiki.sys.comcast.net/plugins/viewstorage/viewpagestorage.action?pageId=558517563"
+#PAGE_URL="https://etwiki.sys.comcast.net/display/RDK/GPU+and+CPU+Benchmark+Tests"
 FORM_PATH="/tmp/form.txt"
 SPACE="YOUR_PERSONAL_SPACE"
 DATE=(`date +"%m\/%d\/%Y"`)
@@ -76,7 +76,7 @@ echo "DATE:${cols[2]} GPU:${cols[3]} CPU:${cols[4]} Notes:${cols[5]}"
 IFS="$CIFS"
 
 echo "=============BeforeUpdate:html_body=============="
-echo $html_body
+#echo $html_body
 echo "================================================="
 html_body1=${html_body//\"/\\\"}
 idx=0
@@ -133,10 +133,14 @@ while read -r line; do
         icx=1
         html_body2+="$line"
     fi
-
+#echo $line $icx
     if [[ ${icx} -eq 0 ]]; then
         html_body2+="$line"
         #echo $line
+    fi
+
+    if [[ $line == *"</tbody>"* && ${icx} -eq -1 ]]; then
+        html_body2+="$line"
     fi
 
     if [[ $line == *"</tbody>"* && ${icx} -eq -2 ]]; then
@@ -168,9 +172,9 @@ echo "================================================="
 
 payload=$(cat <<EOF
 {
-    "id":"556737708",
+    "id":"558517563",
     "type":"page",
-    "title":"GPU+and+CPU+Benchmark+Tests",
+    "title":"GPU+and+CPU+Benchmark",
     "body": {
         "storage": {
         "value": "$html_body2",
@@ -188,7 +192,7 @@ echo "==========================="
 #echo $payload
 echo "=================================================================="
 
-curl -u $USER:$PASSWORD -X PUT -H 'Content-Type: application/json' "https://etwiki.sys.comcast.net/rest/api/content/556737708" --data "$payload"
+curl -u $USER:$PASSWORD -X PUT -H 'Content-Type: application/json' "https://etwiki.sys.comcast.net/rest/api/content/558517563" --data "$payload"
 
 echo "=================================================================="
 
