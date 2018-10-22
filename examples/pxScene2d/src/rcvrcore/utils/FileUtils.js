@@ -138,7 +138,7 @@ function loadFileWithSparkPermissionsCheck( accessControl, http1, http2, fileUri
       var isAllowed = accessControl.allows(fileUri);
       if (true == isAllowed)
       {
-        console.log("local file access allowed for current file !!!");
+        log.message(3, "local file access allowed for current file !!!");
 
         if( fileUri.substring(0,5) === 'file:' ) {
           fileUri = fileUri.substring(5);
