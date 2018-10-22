@@ -536,10 +536,10 @@ void pxWindowNative::runEventLoop()
         }
     }
 
-    rtLogInfo("pxcore framerate: %d", framerate);
+    rtLogDebug("pxcore framerate: %d", framerate);
 
     double maxSleepTime = (1000 / framerate) * 1000;
-    rtLogInfo("max sleep time in microseconds: %f", maxSleepTime);
+    rtLogDebug("max sleep time in microseconds: %f", maxSleepTime);
     while(!exitFlag)
     {
         double startMicroseconds = pxMicroseconds();
