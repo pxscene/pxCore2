@@ -2850,7 +2850,7 @@ void pxScene2d::setMouseEntered(rtRef<pxObject> o)//pxObject* o)
  **/
 rtError pxScene2d::setFocus(rtObjectRef o)
 {
-  rtLogDebug("pxScene2d::setFocus");
+  rtLogInfo("pxScene2d::setFocus");
   rtObjectRef focusObj;
   if (o)
   {
@@ -3816,7 +3816,7 @@ rtError pxSceneContainer::api(rtValue& v) const
 
 rtError pxSceneContainer::ready(rtObjectRef& o) const
 {
-  rtLogDebug("pxSceneContainer::ready\n");
+  rtLogInfo("pxSceneContainer::ready\n");
   if (mScriptView) {
     rtLogInfo("mScriptView is set!\n");
     return mScriptView->ready(o);
@@ -3947,6 +3947,7 @@ rtError createObject2(const char* t, rtObjectRef& o)
 pxScriptView::pxScriptView(const char* url, const char* /*lang*/, pxIViewContainer* container)
      : mWidth(-1), mHeight(-1), mViewContainer(container), mRefCount(0)
 {
+  rtLogInfo(__FUNCTION__);
   rtLogDebug("pxScriptView::pxScriptView()entering\n");
   mUrl = url;
 #ifndef RUNINMAIN // NOTE this ifndef ends after runScript decl, below
@@ -4081,7 +4082,7 @@ rtError pxScriptView::textureMemoryUsage(rtValue& v)
 
 rtError pxScriptView::getScene(int numArgs, const rtValue* args, rtValue* result, void* ctx)
 {
-  rtLogDebug(__FUNCTION__);
+  rtLogInfo(__FUNCTION__);
   if (ctx)
   {
     pxScriptView* v = (pxScriptView*)ctx;
@@ -4152,7 +4153,7 @@ rtError pxScriptView::getContextID(int /*numArgs*/, const rtValue* /*args*/, rtV
 
 rtError pxScriptView::makeReady(int numArgs, const rtValue* args, rtValue* /*result*/, void* ctx)
 {
-  rtLogDebug(__FUNCTION__);
+  rtLogInfo(__FUNCTION__);
   if (ctx)
   {
     pxScriptView* v = (pxScriptView*)ctx;

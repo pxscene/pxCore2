@@ -86,7 +86,7 @@ namespace OptimusClient
     fflush(stdout);
     if (gSceneContainer.getPtr())
     {
-      rtLogDebug("scene container set, attempting to get service");
+      rtLogInfo("scene container set, attempting to get service");
       gSceneContainer.sendReturns<rtObjectRef>("getService", name, returnObject);
       rtLogInfo("getService success");
       return RT_OK;

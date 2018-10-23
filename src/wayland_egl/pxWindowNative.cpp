@@ -582,7 +582,7 @@ void pxWindowNative::runEventLoop()
       }
     }
 
-    rtLogDebug("pxcore framerate: %d", framerate);
+    rtLogInfo("pxcore framerate: %d", framerate);
 
 #ifdef PXCORE_WL_DISPLAY_READ_EVENTS
     pollfd fileDescriptors[1];
@@ -591,7 +591,7 @@ void pxWindowNative::runEventLoop()
     int pollResult = 0;
 #endif //PXCORE_WL_DISPLAY_READ_EVENTS
     double maxSleepTime = (1000 / framerate) * 1000;
-    rtLogDebug("max sleep time in microseconds: %f", maxSleepTime);
+    rtLogInfo("max sleep time in microseconds: %f", maxSleepTime);
     while(!exitFlag)
     {
         double startMicroseconds = pxMicroseconds();

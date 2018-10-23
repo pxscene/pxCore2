@@ -238,9 +238,9 @@ AppSceneContext.prototype.loadPackage = function(packageUri) {
         _this.getFile("package.json").then( function(packageFileContents) {
           var manifest = new SceneModuleManifest();
           manifest.loadFromJSON(packageFileContents);
-          log.message(4, "AppSceneContext#loadScenePackage0");
+          console.info("AppSceneContext#loadScenePackage0");
           _this.runScriptInNewVMContext(packageUri, moduleLoader, manifest.getConfigImport());
-          log.message(4, "AppSceneContext#loadScenePackage0 done");
+          console.info("AppSceneContext#loadScenePackage0 done");
         }).catch(function (e) {
             console.info("AppSceneContext#loadScenePackage1");
             _this.runScriptInNewVMContext(packageUri, moduleLoader, null);
@@ -528,18 +528,18 @@ if (false) {
 }
 */
 
-      log.message(4, "Main Module: readyPromise=" + xModule.moduleReadyPromise);
+      console.log("Main Module: readyPromise=" + xModule.moduleReadyPromise);
       if( !xModule.hasOwnProperty('moduleReadyPromise') || xModule.moduleReadyPromise === null ) {
-        log.message(4, "Main module[" + self.packageUrl + "] about to notify. xModule.exports:"+(typeof xModule.exports));
+        console.log("Main module[" + self.packageUrl + "] about to notify. xModule.exports:"+(typeof xModule.exports));
         self.innerscene.api = xModule.exports;
         this.makeReady(true, xModule.exports);
-        log.message(4, "Main module[" + self.packageUrl + "] about to notify done");
+        console.log("Main module[" + self.packageUrl + "] about to notify done");
       } else {
         xModule.moduleReadyPromise.then( function() {
-          log.message(4, "Main module[" + self.packageUrl + "] about to notify. xModule.exports:"+(typeof xModule.exports));
+          console.log("Main module[" + self.packageUrl + "] about to notify. xModule.exports:"+(typeof xModule.exports));
           self.innerscene.api = xModule.exports;
           self.makeReady(true, xModule.exports);
-          log.message(4, "Main module[" + self.packageUrl + "] about to notify done");
+          console.log("Main module[" + self.packageUrl + "] about to notify done");
         }).catch( function(err) {
           console.error("Main module[" + self.packageUrl + "]" + " load has failed - on failed imports: " + ", err=" + err);
           self.makeReady(false, {});
