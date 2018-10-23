@@ -1091,7 +1091,6 @@ public:
 #endif
   virtual ~pxScriptView()
   {
-    rtLogInfo(__FUNCTION__);
     rtLogDebug("~pxScriptView for mUrl=%s\n",mUrl.cString());
     // Clear out these references since the script context
     // can outlive this view
@@ -1402,6 +1401,7 @@ public:
     {
        mArchive = NULL;
     }
+    mArchiveSet = false;
   }
   
   virtual unsigned long AddRef() 
@@ -1620,24 +1620,30 @@ public:
       e = RT_OK;
     }
 
-    pxArchive* myArchive = (pxArchive*) a.getPtr();
-    /* decide whether further file access from this scene need to to taken from,
-       parent -> if this scene is created from archive
-       itself -> if this file itself is archive
-    */
-    if ((parentArchive != NULL ) && (((pxArchive*)parentArchive.getPtr())->isFile() == false))
+    if (false == mArchiveSet)
     {
-      if ((myArchive != NULL ) && (myArchive->isFile() == false))
+      pxArchive* myArchive = (pxArchive*) a.getPtr();
+      /* decide whether further file access from this scene need to to taken from,
+      parent -> if this scene is created from archive
+      itself -> if this file itself is archive
+      */
+      if ((parentArchive != NULL ) && (((pxArchive*)parentArchive.getPtr())->isFile() == false))
       {
-        mArchive = a;
+        if ((myArchive != NULL ) && (myArchive->isFile() == false))
+        {
+          mArchive = a;
+        }
+        else
+        {
+          mArchive = parentArchive;
+        }
       }
       else
       {
-        mArchive = parentArchive;
+        mArchive = a;
       }
+      mArchiveSet = true;
     }
-    else
-      mArchive = a;
     return e;
   }
 
@@ -1724,6 +1730,7 @@ public:
   testView* mTestView;
   bool mDisposed;
   std::vector<rtFunctionRef> mServiceProviders;
+  bool mArchiveSet;
 };
 
 // TODO do we need this anymore?

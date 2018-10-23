@@ -1863,7 +1863,7 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
 #ifdef PX_DIRTY_RECTANGLES
     mArchive(),mDirtyRect(), mLastFrameDirtyRect(),
 #endif //PX_DIRTY_RECTANGLES
-    mDirty(true), mTestView(NULL), mDisposed(false)
+    mDirty(true), mTestView(NULL), mDisposed(false), mArchiveSet(false)
 {
   mRoot = new pxRoot(this);
   mFocusObj = mRoot;
@@ -1958,7 +1958,7 @@ rtError pxScene2d::dispose()
     mDisposed = true;
     rtObjectRef e = new rtMapObject;
     // pass false to make onClose asynchronous
-    mEmit.send("onClose", false, e);
+    mEmit.send("onClose", e);
     for (unsigned int i=0; i<mInnerpxObjects.size(); i++)
     {
       pxObject* temp = (pxObject *) (mInnerpxObjects[i].getPtr());
@@ -1974,14 +1974,13 @@ rtError pxScene2d::dispose()
     // send scene terminate after dispose to make sure, no cleanup can happen further on app side		
     // after clearing the sandbox
     // pass false to make onSceneTerminate asynchronous
-    mEmit.send("onSceneTerminate", false, e);
+    mEmit.send("onSceneTerminate", e);
     mEmit->clearListeners();
 
     mRoot     = NULL;
     mInfo     = NULL;
     mCapabilityVersions = NULL;
     mFocusObj = NULL;
-
     return RT_OK;
 }
 
@@ -2847,7 +2846,7 @@ void pxScene2d::setMouseEntered(rtRef<pxObject> o)//pxObject* o)
  **/
 rtError pxScene2d::setFocus(rtObjectRef o)
 {
-  rtLogInfo("pxScene2d::setFocus");
+  rtLogDebug("pxScene2d::setFocus");
   rtObjectRef focusObj;
   if (o)
   {
@@ -3812,7 +3811,7 @@ rtError pxSceneContainer::api(rtValue& v) const
 
 rtError pxSceneContainer::ready(rtObjectRef& o) const
 {
-  rtLogInfo("pxSceneContainer::ready\n");
+  rtLogDebug("pxSceneContainer::ready\n");
   if (mScriptView) {
     rtLogInfo("mScriptView is set!\n");
     return mScriptView->ready(o);
@@ -3943,7 +3942,6 @@ rtError createObject2(const char* t, rtObjectRef& o)
 pxScriptView::pxScriptView(const char* url, const char* /*lang*/, pxIViewContainer* container)
      : mWidth(-1), mHeight(-1), mViewContainer(container), mRefCount(0)
 {
-  rtLogInfo(__FUNCTION__);
   rtLogDebug("pxScriptView::pxScriptView()entering\n");
   mUrl = url;
 #ifndef RUNINMAIN // NOTE this ifndef ends after runScript decl, below
@@ -4078,7 +4076,7 @@ rtError pxScriptView::textureMemoryUsage(rtValue& v)
 
 rtError pxScriptView::getScene(int numArgs, const rtValue* args, rtValue* result, void* ctx)
 {
-  rtLogInfo(__FUNCTION__);
+  rtLogDebug(__FUNCTION__);
   if (ctx)
   {
     pxScriptView* v = (pxScriptView*)ctx;
