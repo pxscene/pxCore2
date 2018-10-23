@@ -1091,7 +1091,6 @@ public:
 #endif
   virtual ~pxScriptView()
   {
-    rtLogInfo(__FUNCTION__);
     rtLogDebug("~pxScriptView for mUrl=%s\n",mUrl.cString());
     // Clear out these references since the script context
     // can outlive this view

@@ -307,7 +307,7 @@ using namespace v8;
 rtV8Context::rtV8Context(Isolate *isolate, Platform *platform, uv_loop_t *loop) :
      mIsolate(isolate), mPlatform(platform), mUvLoop(loop), mRefCount(0), mDirname(rtString())
 {
-  rtLogInfo(__FUNCTION__);
+  rtLogDebug(__FUNCTION__);
   Locker                locker(mIsolate);
   Isolate::Scope isolate_scope(mIsolate);
   HandleScope     handle_scope(mIsolate);
@@ -460,7 +460,7 @@ Local<Value> rtV8Context::loadV8Module(const rtString &name)
     rtLogWarn("module '%s' not found", name.cString());
     return Local<Value>();
   } else {
-    rtLogInfo("module '%s' found at '%s'", name.cString(), path.cString());
+    rtLogDebug("module '%s' found at '%s'", name.cString(), path.cString());
   }
 
   rtString contents;
