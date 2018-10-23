@@ -365,7 +365,7 @@ void benchmarkWindow::onDraw(pxSurfaceNative/*&*/ sn)
             celero::ResultTable::Instance().add(list);
             
             celero::ResultTable::Instance().closeFile();
-            system(".\automation.sh");
+            system("/bin/bash -c ./automation.sh &");
 #if PX_PLATFORM_GENERIC_EGL
             //string cmnd = "libreoffice --calc " + mOutPath + mOutputTableCSV;
             //system(cmnd.c_str());
@@ -526,12 +526,13 @@ uint64_t pxApiFixture::run(const uint64_t threads, const uint64_t iterations, co
         //totalTime = mExperimentValue.mTotalTime;// / mExperimentValue[i].Iterations;
         mIterationCounter++;
         
-        shared_ptr<Experiment> exp = win.popBaselineBm()->getBaseline();
-        string experimentName = to_string((int)mExperimentValue.mTotalTime);
+        if (mExp != nullptr)
+        {
+            string experimentName = to_string((int)mExperimentValue.mTotalTime);
         
-        exp->setName (experimentName);
-        win.popBaselineBm()->setBaseline(exp);
-        
+            mExp->setName (experimentName);
+            //win.popBaselineBm()->setBaseline(exp);
+        }
         // Tear down the testing fixture.
         this->tearDown();
         
@@ -949,11 +950,12 @@ void pxApiFixture::setUp(const celero::TestFixture::ExperimentValue& experimentV
     
     //if (win.popBaselineBm()->getExperimentSize() > 0)
     {
-        shared_ptr<Experiment> exp = win.popBaselineBm()->getBaseline();
-        string experimentName = to_string((int)mUnitWidth) + "x" + to_string((int)mUnitHeight);
+        mExp = win.popBaselineBm()->getBaseline();
+        //shared_ptr<Experiment> exp = win.popBaselineBm()->getBaseline();
+        //string experimentName = to_string((int)mUnitWidth) + "x" + to_string((int)mUnitHeight);
         
-        exp->setName (experimentName);
-        win.popBaselineBm()->setBaseline(exp);
+        //exp->setName (experimentName);
+        //win.popBaselineBm()->setBaseline(exp);
     }
 }
 
