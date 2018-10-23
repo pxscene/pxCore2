@@ -65,11 +65,11 @@ function Request(moduleName, appSceneContext, options, callback) {
     appSceneContext.innerscene.permissions &&
     !appSceneContext.innerscene.permissions.allows(toOrigin)) {
     this.blocked = isBlocked = true;
+    var message = "Permissions block for request to '" + toOrigin + "' from '" + fromOrigin + "'";
+    log.warn(message);
     setTimeout(function () {
-      var message = "Permissions block for request to '" + toOrigin + "' from '" + fromOrigin + "'";
-      log.warn(message);
+      log.message(4, "emit 'blocked'");
       self.emit('blocked', new Error(message));
-      self.emit('error', new Error(message));
     });
   }
 
@@ -79,14 +79,16 @@ function Request(moduleName, appSceneContext, options, callback) {
     !isBlocked &&
     fromOrigin) {
     var h = options.headers ? options.headers : (options.headers = {});
-    Object.keys(h).forEach(function (k) {
+    var keys = Object.keys(h);
+    for (var i = 0; i < keys.length; i++) {
+      var k = keys[i];
       if (appSceneContext.innerscene.cors.isCORSRequestHeader(k)) {
         log.warn("removing header: '" + k + "'=" + h[k]);
         delete h[k];
       } else if (appSceneContext.innerscene.cors.isCredentialsRequestHeader(k)) {
         withCredentials = true;
       }
-    });
+    }
     log.message(4, "set header: 'Origin'=" + fromOrigin + "'");
     h.Origin = fromOrigin;
   }
@@ -167,10 +169,16 @@ function Response(httpResponse, appSceneContext, httpRequest, fromOrigin, toOrig
     var message = "CORS block for: '" + toOrigin + "' from '" + fromOrigin + "'";
     log.warn(message);
     httpRequest.blocked = isBlocked = true;
+    if (typeof httpResponse.end === 'function') {
+      httpResponse.end();
+    } else if (typeof httpResponse.destroy === 'function') {
+      httpResponse.destroy(new Error(message));
+    }
     httpRequest.abort();
-    log.message(4, "emit 'blocked'");
-    httpRequest.emit('blocked', new Error(message));
-    httpRequest.emit('error', new Error(message));
+    setTimeout(function () {
+      log.message(4, "emit 'blocked'");
+      httpRequest.emit('blocked', new Error(message));
+    });
   } else {
     log.message(4, "CORS passed for: '" + toOrigin + "' from '" + fromOrigin + "'");
   }
