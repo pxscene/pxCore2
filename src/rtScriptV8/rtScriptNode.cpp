@@ -526,7 +526,7 @@ void rtNodeContext::createEnvironment()
 
 void rtNodeContext::clonedEnvironment(rtNodeContextRef clone_me)
 {
-  rtLogInfo(__FUNCTION__);
+  rtLogDebug(__FUNCTION__);
   Locker                locker(mIsolate);
   Isolate::Scope isolate_scope(mIsolate);
   HandleScope     handle_scope(mIsolate);
@@ -615,7 +615,7 @@ void rtNodeContext::clonedEnvironment(rtNodeContextRef clone_me)
 
 rtNodeContext::~rtNodeContext()
 {
-  rtLogInfo(__FUNCTION__);
+  rtLogDebug(__FUNCTION__);
   //Make sure node is not destroyed abnormally
   if (true == node_is_initialized)
   {
