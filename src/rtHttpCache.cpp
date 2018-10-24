@@ -603,7 +603,6 @@ rtError rtHttpCacheData::performHeaderRevalidation()
 rtError rtHttpCacheData::handleEtag(rtData& data)
 {
   #ifdef PX_ETAG_AVOID_NONSTALE
-  rtLogInfo("performing etag request [%d]",isExpired());
   if (isExpired())
   {
   #endif
