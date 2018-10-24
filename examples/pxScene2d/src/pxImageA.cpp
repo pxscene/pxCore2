@@ -82,6 +82,8 @@ rtError pxImageA::setUrl(const char *s)
       mImageWidth = 0;
       mImageHeight = 0;
       mImageLoaded = false;
+      printf("Madana [%s] \n",resourceObj->getUrl().cString());
+      fflush(stdout);
       pxObject::createNewPromise();
     }
   }
@@ -264,7 +266,8 @@ void pxImageA::loadImageSequence()
       mw = static_cast<float>(mImageWidth);
       mh = static_cast<float>(mImageHeight);
     }
-    mReady.send("resolve", this);
+    if (!((rtPromise*)mReady.getPtr())->status())
+      mReady.send("resolve", this);
   }
   else
   {
