@@ -63,6 +63,8 @@ rtError pxImageA::url(rtString &s) const
   return RT_OK;
 }
 
+
+
 rtError pxImageA::setUrl(const char *s)
 {
 #ifdef ENABLE_PERMISSIONS_CHECK
