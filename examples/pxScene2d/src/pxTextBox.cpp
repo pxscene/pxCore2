@@ -417,7 +417,13 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
       {
         //rtLogDebug("Found NEWLINE; calling renderOneLine\n");
         // Render what we had so far in accString; since we are here, it will fit.
-        renderOneLine(accString.cString(), 0, tempY, sx, sy, size, lineWidth, render);
+        if( mTruncation != pxConstantsTruncation::NONE && !mWordWrap) {
+            renderTextRowWithTruncation(accString, mw, mx, tempY, sx, sy, size, render);
+            accString = "";
+            break;
+        }
+        else
+            renderOneLine(accString.cString(), 0, tempY, sx, sy, size, lineWidth, render);
 
         accString = "";
         tempY += (mLeading*sy) + charH;
