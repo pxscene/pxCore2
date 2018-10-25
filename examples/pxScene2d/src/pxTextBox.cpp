@@ -632,7 +632,7 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
       }
       else if( mAlignVertical == pxConstantsAlignVertical::CENTER)
       {
-        /*if(!mWordWrap )
+        if(!mWordWrap )
         {
           startY = my + (mh - textHeight)/2;
           if(!clip() && mTruncation == pxConstantsTruncation::NONE)
@@ -653,16 +653,6 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
               noClipH = textHeight;
             }
           }
-        }*/
-        startY = my + (mh - textHeight)/2;
-        if(!clip())
-        {
-            noClipY = my + (mh - textHeight)/2;
-            if(mTruncation == pxConstantsTruncation::NONE)
-            {
-                startY = 0;//my;
-                noClipH = textHeight;
-            }
         }
       }
       else if( mAlignVertical == pxConstantsAlignVertical::TOP)
