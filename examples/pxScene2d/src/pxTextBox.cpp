@@ -318,7 +318,10 @@ void pxTextBox::renderText(bool render)
      setMeasurementBounds(mx, 0, my, 0);
      return;
   }
-
+    
+  if (mWordWrap && mTruncation == pxConstantsTruncation::NONE)
+    mTruncation = pxConstantsTruncation::TRUNCATE;
+    
 
   if( !mWordWrap)
   {
