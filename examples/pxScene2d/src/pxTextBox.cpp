@@ -684,7 +684,7 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
       }
 
       // Now set the top and bottom Y bounds
-      if( !clip() && mTruncation == pxConstantsTruncation::NONE)
+      if( !clip()/* && mTruncation == pxConstantsTruncation::NONE*/)
       {
         setMeasurementBoundsY(true, noClipY);
         setMeasurementBoundsY(false, textHeight);
