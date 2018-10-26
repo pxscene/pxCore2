@@ -318,10 +318,6 @@ void pxTextBox::renderText(bool render)
      setMeasurementBounds(mx, 0, my, 0);
      return;
   }
-    
-  if (mWordWrap && mTruncation == pxConstantsTruncation::NONE)
-    mTruncation = pxConstantsTruncation::TRUNCATE;
-    
 
   if( !mWordWrap)
   {
@@ -420,12 +416,12 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
       {
         //rtLogDebug("Found NEWLINE; calling renderOneLine\n");
         // Render what we had so far in accString; since we are here, it will fit.
-        if( mTruncation != pxConstantsTruncation::NONE && !mWordWrap) {
+        /*if( mTruncation != pxConstantsTruncation::NONE && !mWordWrap) {
             renderTextRowWithTruncation(accString, mw, mx, tempY, sx, sy, size, render);
             accString = "";
             break;
         }
-        else
+        else*/
             renderOneLine(accString.cString(), 0, tempY, sx, sy, size, lineWidth, render);
 
         accString = "";
