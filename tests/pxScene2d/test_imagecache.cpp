@@ -623,7 +623,7 @@ class rtHttpCacheTest : public testing::Test, public commonTestFns
      rtHttpCacheData data("http://fileserver/test.jpeg");
      rtFileCache::instance()->httpCacheData("http://fileserver/test.jpeg",data);
      rtData contents;
-     EXPECT_TRUE (RT_ERROR == data.data(contents));
+     EXPECT_TRUE (RT_OK == data.data(contents));
    }
 
    void mustRevalidateTruenocacheUnExpiredTest()
@@ -726,7 +726,7 @@ class rtHttpCacheTest : public testing::Test, public commonTestFns
      rtHttpCacheData data("http://fileserver/testEtagFail");
      rtFileCache::instance()->httpCacheData("http://fileserver/testEtagFail",data);
      rtData contents;
-     EXPECT_TRUE (RT_ERROR == data.data(contents));
+     EXPECT_TRUE (RT_OK == data.data(contents));
     }
 
 #ifdef UNAVAILABLE_MEMORY_TEST_ENABLED // {
