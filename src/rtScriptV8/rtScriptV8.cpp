@@ -125,6 +125,11 @@ extern "C" const char U_DATA_API SMALL_ICUDATA_ENTRY_POINT[];
 #include "headers.h"
 #include "libplatform/libplatform.h"
 
+#ifdef ENABLE_DEBUG_MODE
+#include <debugger/inspector_agent.h>
+extern int gInspectorPort;
+extern bool gWaitForDebugger;
+#endif
 #include "rtHttpRequest.h"
 
 static rtAtomic sNextId = 100;
@@ -254,7 +259,12 @@ private:
 
 typedef std::map<uint32_t, rtV8ContextRef> rtV8Contexts;
 typedef std::map<uint32_t, rtV8ContextRef>::const_iterator rtV8Contexts_iterator;
-
+#ifdef ENABLE_DEBUG_MODE
+Environment* mEnv = nullptr;
+Agent* mInspectorAgent = nullptr;
+bool isAgentStarted = false;
+bool breakOnStart = false;
+#endif
 class rtScriptV8: public rtIScript
 {
 public:
@@ -685,7 +695,9 @@ rtError rtV8Context::runScript(const char *script, rtValue* retVal /*= NULL*/, c
 
     // Compile the source code.
     Local<Script> run_script = Script::Compile(source);
-
+#ifdef ENABLE_DEBUG_MODE
+    mInspectorAgent->addContext(local_context, 1);
+#endif
     // Run the script to get the result.
     Local<Value> result = run_script->Run();
     // !CLF TODO: TEST FOR MT
@@ -807,7 +819,22 @@ rtError rtScriptV8::init()
     Local<Context> ctx = Context::New(mIsolate);
     mContext.Reset(mIsolate, ctx);
 #endif
-
+#ifdef ENABLE_DEBUG_MODE
+    if (false == isAgentStarted)
+    {
+      const char* s = getenv("BREAK_ON_SCRIPTSTART");
+      if (s)
+      {
+        int tobreakonstart = atoi(s);
+        if (1 == tobreakonstart)
+          breakOnStart = true;
+      }
+      mEnv = new Environment(mIsolate, mUvLoop, mPlatform);
+      mInspectorAgent = new Agent(mEnv);
+      mInspectorAgent->Start(gInspectorPort, gWaitForDebugger);
+      isAgentStarted = true;
+    }
+#endif
     mV8Initialized = true;
   }
   
@@ -817,6 +844,9 @@ rtError rtScriptV8::init()
 rtError rtScriptV8::term()
 {
   if (mV8Initialized == true) {
+#ifdef ENABLE_DEBUG_MODE
+    mInspectorAgent->Stop();
+#endif
     V8::ShutdownPlatform();
     if (mPlatform) {
       delete mPlatform;
@@ -1266,7 +1296,33 @@ namespace rtScriptV8NodeUtils
 
     TryCatch tryCatch(isolate);
     Local<String> source = String::NewFromUtf8(isolate, sourceCode.cString());
-    Local<Script> run_script = Script::Compile(source);
+    
+    rtString filenamestr = toString(args[5]->ToString());
+    rtString origin = filenamestr;
+
+    bool setBreak = true;
+    if (origin.compare("shell.js") == 0)
+      setBreak = false;
+
+    if ((filenamestr.beginsWith("/") == false) && (filenamestr.beginsWith("file:") == false))
+    {
+      char cwd[1024] = {};
+      if (NULL != getcwd(cwd,sizeof(cwd)))
+      {
+        origin = cwd;
+        origin.append("/");
+        origin.append(filenamestr);
+      }
+    }
+
+    v8::Local<v8::String> originval = v8::String::NewFromUtf8(isolate, origin.cString(), v8::NewStringType::kNormal).ToLocalChecked();
+    ScriptOrigin origininfo(originval);
+    Local<Script> run_script = Script::Compile(source, &origininfo);
+#ifdef ENABLE_DEBUG_MODE
+    if ((true == setBreak) && (true == breakOnStart)) {
+      mInspectorAgent->breakOnStart(std::string(origin.cString()));
+    }
+#endif
     Local<Value> result = run_script->Run();
 
     if (tryCatch.HasCaught()) {

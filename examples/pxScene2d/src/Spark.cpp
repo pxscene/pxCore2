@@ -100,6 +100,10 @@ extern int g_argc;
 extern char** g_argv;
 char *nodeInput = NULL;
 char** g_origArgv = NULL;
+#ifdef ENABLE_DEBUG_MODE
+int gInspectorPort = 9229;
+bool gWaitForDebugger = false;
+#endif
 #endif
 bool gDumpMemUsage = false;
 extern bool gApplicationIsClosing;
@@ -524,6 +528,28 @@ if (s && (strcmp(s,"1") == 0))
   }
 
 #ifdef ENABLE_DEBUG_MODE
+  for (int i=1;i<argc;i++)
+  {
+    if (strstr(argv[i],"--"))
+    {
+      const char* argval = argv[i];
+      if (NULL != strstr(argval,"--inspect-brk="))
+      {
+        gWaitForDebugger = true;
+        const char* q = argval+14;
+        if (NULL != q)
+          gInspectorPort = atoi(q);
+      }
+      if (NULL != strstr(argval,"--inspect="))
+      {
+        const char* q = argval+10;
+        if (NULL != q)
+          gInspectorPort = atoi(q);
+      }
+      if (NULL != strstr(argval,"--inspect-brk"))
+        gWaitForDebugger = true;
+    }
+  }
 #ifdef RTSCRIPT_SUPPORT_NODE
   bool isDebugging = false;
 
