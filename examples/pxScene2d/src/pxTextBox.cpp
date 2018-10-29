@@ -607,52 +607,52 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
       // is when there are newline char(s) in the text being rendered.
       if( mAlignVertical == pxConstantsAlignVertical::BOTTOM )
       {
-        if(!mWordWrap )
-        {
-          startY = my + (mh - textHeight); // could be negative
-          if(!clip() && mTruncation == pxConstantsTruncation::NONE)
+          /*if(!mWordWrap )
+           {
+           startY = my + (mh - textHeight); // could be negative
+           if(!clip() && mTruncation == pxConstantsTruncation::NONE)
+           {
+           noClipY = my;
+           noClipH = textHeight;//mh;
+           }
+           }
+           else*/
           {
-            noClipY = my;
-            noClipH = textHeight;//mh;
+              startY = my + (mh - textHeight); // could be negative
+              if(!clip())
+              {
+                  noClipY = my-(textHeight-mh);
+                  if(mTruncation == pxConstantsTruncation::NONE) {
+                      noClipH = textHeight;
+                      startY = my;
+                  }
+              }
           }
-        }
-        else
-        {
-          startY = my + (mh - textHeight); // could be negative
-          if(!clip())
-          {
-            noClipY = my-(textHeight-mh);
-            if(mTruncation == pxConstantsTruncation::NONE) {
-              noClipH = textHeight;
-              startY = 0;//my;
-            }
-          }
-        }
       }
       else if( mAlignVertical == pxConstantsAlignVertical::CENTER)
       {
-        if(!mWordWrap )
-        {
-          startY = my + (mh - textHeight)/2;
-          if(!clip() && mTruncation == pxConstantsTruncation::NONE)
+          /*if(!mWordWrap )
+           {
+           startY = my + (mh - textHeight)/2;
+           if(!clip() && mTruncation == pxConstantsTruncation::NONE)
+           {
+           noClipY = my;
+           noClipH = textHeight;
+           }
+           }
+           else*/
           {
-            noClipY = my;
-            noClipH = textHeight;
+              startY = my + (mh - textHeight)/2;
+              if(!clip())
+              {
+                  noClipY = my + (mh - textHeight)/2;
+                  if(mTruncation == pxConstantsTruncation::NONE)
+                  {
+                      startY = my;
+                      noClipH = textHeight;
+                  }
+              }
           }
-        }
-        else
-        {
-          startY = my + (mh - textHeight)/2;
-          if(!clip())
-          {
-            noClipY = my + (mh - textHeight)/2;
-            if(mTruncation == pxConstantsTruncation::NONE)
-            {
-              startY = 0;//my;
-              noClipH = textHeight;
-            }
-          }
-        }
       }
       else if( mAlignVertical == pxConstantsAlignVertical::TOP)
       {
@@ -709,7 +709,7 @@ void pxTextBox::renderOneLine(const char * tempStr, float tempX, float tempY, fl
     getFontResource()->measureTextInternal(tempStr, size, sx, sy, charW, charH);
   }
 
-  if( !clip() && mTruncation == pxConstantsTruncation::NONE)
+  /*if( !clip() && mTruncation == pxConstantsTruncation::NONE)
   {
     //rtLogDebug("!CLF: Setting NoClip values in renderOneLine to noClipW=%f\n",noClipW);
     noClipW = (noClipW < charW) ? charW:noClipW;
@@ -811,7 +811,7 @@ void pxTextBox::renderOneLine(const char * tempStr, float tempX, float tempY, fl
       }
     }
   }
-  else
+  else*/
   {
     // If we're here, clip could be "ON" or "OFF"
     if( mAlignHorizontal == pxConstantsAlignHorizontal::CENTER)
@@ -836,7 +836,7 @@ void pxTextBox::renderOneLine(const char * tempStr, float tempX, float tempY, fl
    //when lineNumber==lastLineNumber.  Check now.
   if( lineNumber != 0)
   {
-    if( !clip() && mTruncation == pxConstantsTruncation::NONE)
+    /*if( !clip() && mTruncation == pxConstantsTruncation::NONE)
     {
       setMeasurementBoundsX(true, xPos);
       if( lineNumber == lastLineNumber || mTruncation == pxConstantsTruncation::NONE)
@@ -846,7 +846,7 @@ void pxTextBox::renderOneLine(const char * tempStr, float tempX, float tempY, fl
         setMeasurementBoundsX(false, charW );
       }
     }
-    else
+    else*/
     {
       setMeasurementBoundsX(true, xPos<mx?mx:xPos);
       if( mWordWrap) {
@@ -873,7 +873,7 @@ void pxTextBox::renderOneLine(const char * tempStr, float tempX, float tempY, fl
       // line of text there is...
       // !CLF:  TODO:  What if there are newlines within the text, and
       // that's how we got here with mWordWrap==false?
-      if(!clip() && mTruncation == pxConstantsTruncation::NONE) {
+      /*if(!clip() && mTruncation == pxConstantsTruncation::NONE) {
         //rtLogDebug("!CLF lineNumber == 0 !mWordWrap !clip() && mTruncation == NONE tempX=%f xPos=%f xStartPos=%f noClipX=%f noClipW=%f charW=%f\n", tempX, xPos,mXStartPos, noClipX, noClipW, charW);
         if( noClipX != tempX) {
           setMeasurementBounds(false, noClipX+charW, charH);
@@ -892,7 +892,7 @@ void pxTextBox::renderOneLine(const char * tempStr, float tempX, float tempY, fl
         }
         setLineMeasurements(false, noClipX+(charW+xPos), tempY);
       }
-      else {
+      else*/ {
        // If we're here, clip could be on or off
        //rtLogDebug("!CLF lineNumber == 0 !mWordWrap clip=%d mTruncation=%d tempX=%f xPos=%f xStartPos=%f noClipX=%f noClipW=%f charW=%f\n", clip(),mTruncation, tempX, xPos,mXStartPos, noClipX, noClipW, charW);
        float width = charW;
@@ -926,7 +926,7 @@ void pxTextBox::renderOneLine(const char * tempStr, float tempX, float tempY, fl
     else
     {
       // mWordWrap is true and lineNumber==0
-      if( !clip() && mTruncation == pxConstantsTruncation::NONE)
+      /*if( !clip() && mTruncation == pxConstantsTruncation::NONE)
       {
         //rtLogDebug("!CLF: No clip here we go: noClipY=%f my=%f, tempY=%f, noClipH=%f\n",noClipY,my, tempY,noClipH);
         //rtLogDebug("!CLF: No clip here we go: noClipX=%f mx=%f, tempX=%f, noClipW=%f\n",noClipX,mx, tempX,noClipW);
@@ -943,7 +943,7 @@ void pxTextBox::renderOneLine(const char * tempStr, float tempX, float tempY, fl
           //rtLogDebug("setMeasurementBounds charW of %f\n",charW);
           setMeasurementBoundsX(false, charW);//noClipW);//charW );  // Fix x2 bounds issue
       }
-      else
+      else*/
       {
         //rtLogDebug("!CLF: Here we go: xPos=%f mx=%f, tempX=%f, lineWidth=%f, charW=%f mw=%f\n",xPos,mx, tempX,lineWidth, charW, mw);
         setMeasurementBoundsX(true, xPos<mx?mx:xPos);
