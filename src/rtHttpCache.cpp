@@ -239,6 +239,17 @@ rtError rtHttpCacheData::data(rtData& data)
 
   populateExpirationDateFromCache();
 
+  if (mHeaderMap.end() != mHeaderMap.find("ETag"))
+  {
+    rtError res =  handleEtag(data);
+    if (RT_OK != res)
+      return RT_ERROR;
+    if (mUpdated)
+    {
+      return RT_OK;
+    }
+  }
+
   bool revalidate =  false;
   bool revalidateOnlyHeaders = false;
 
@@ -255,17 +266,6 @@ rtError rtHttpCacheData::data(rtData& data)
   {
     if (RT_OK != performHeaderRevalidation())
       return RT_ERROR;
-  }
-
-  if (mHeaderMap.end() != mHeaderMap.find("ETag"))
-  {
-    rtError res =  handleEtag(data);
-    if (RT_OK != res)
-      return RT_ERROR;
-    if (mUpdated)
-    {
-      return RT_OK;
-    }
   }
 
   if (false == readFileData())
@@ -292,6 +292,17 @@ rtError rtHttpCacheData::deferCacheRead(rtData& data)
 
   populateExpirationDateFromCache();
 
+  if (mHeaderMap.end() != mHeaderMap.find("ETag"))
+  {
+    rtError res =  handleEtag(data);
+    if (RT_OK != res)
+      return RT_ERROR;
+    if (mUpdated)
+    {
+      return RT_OK;
+    }
+  }
+
   bool revalidate =  false;
   bool revalidateOnlyHeaders = false;
 
@@ -308,17 +319,6 @@ rtError rtHttpCacheData::deferCacheRead(rtData& data)
   {
     if (RT_OK != performHeaderRevalidation())
       return RT_ERROR;
-  }
-
-  if (mHeaderMap.end() != mHeaderMap.find("ETag"))
-  {
-    rtError res =  handleEtag(data);
-    if (RT_OK != res)
-      return RT_ERROR;
-    if (mUpdated)
-    {
-      return RT_OK;
-    }
   }
 
   char invalidData[8] = "Invalid";
@@ -602,23 +602,31 @@ rtError rtHttpCacheData::performHeaderRevalidation()
 
 rtError rtHttpCacheData::handleEtag(rtData& data)
 {
-  rtString headerOption = "If-None-Match:";
-  headerOption.append(mHeaderMap["ETag"].cString());
-  vector<rtString> headers;
-  headers.push_back(headerOption);
-
-  if (!handleDownloadRequest(headers))
+  #ifdef PX_ETAG_AVOID_NONSTALE
+  if (isExpired())
   {
-    return RT_ERROR;
-  }
+  #endif
+    rtLogInfo("performing etag request");
+    rtString headerOption = "If-None-Match:";
+    headerOption.append(mHeaderMap["ETag"].cString());
+    vector<rtString> headers;
+    headers.push_back(headerOption);
 
-  if (mUpdated)
-  {
-    rtLogInfo("ETAG update found for url(%s) filename(%s)", mUrl.cString(), mFileName.cString());
-    populateHeaderMap();
-    setExpirationDate();
-    data.init(mData.data(),mData.length());
-    fclose(fp);
+    if (!handleDownloadRequest(headers))
+    {
+      return RT_ERROR;
+    }
+
+    if (mUpdated)
+    {
+      rtLogInfo("ETAG update found for url(%s) filename(%s)", mUrl.cString(), mFileName.cString());
+      populateHeaderMap();
+      setExpirationDate();
+      data.init(mData.data(),mData.length());
+      fclose(fp);
+    }
+  #ifdef PX_ETAG_AVOID_NONSTALE
   }
+  #endif
   return RT_OK;
 }
