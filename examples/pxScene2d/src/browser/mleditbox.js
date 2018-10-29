@@ -107,6 +107,7 @@ px.import({scene:"px:scene.1.js",keys:'px:tools.keys.js'})
                                       });
 
     var cursor = scene.create({t:"rect", w:2, h:inputHeight-(inputHeight/2), fillColor:0xFF0000FF, parent:textinput,x:0,y:8,a:0,h:0});
+    /* selection rect for all the lines */
     for (var i=0; i<totlines; i++)
     {
       selection[i]   = scene.create({ t: "rect", w: 0, parent: textinput, fillColor: selectionColor, x: 0, y: 0, a: 0 });
@@ -219,6 +220,7 @@ px.import({scene:"px:scene.1.js",keys:'px:tools.keys.js'})
       lastactivepos = -1;
     }
          
+    /* function to select all the lines */
     var selectAll = function () {
         underSelection = true;
         lastactiveline = curline;
@@ -242,6 +244,7 @@ px.import({scene:"px:scene.1.js",keys:'px:tools.keys.js'})
         return;
     };
 
+    /* function to deselect any selected content */
     var unSelectAll = function() {
       if ((-1 != lastactiveline) && (-1 != lastactivepos))
       {
@@ -255,6 +258,7 @@ px.import({scene:"px:scene.1.js",keys:'px:tools.keys.js'})
       cursor.a = 1;
     };
 
+    /* function to move cursor to first line left */
     var moveToHome = function() {
         curline = 0;
         cursor_pos = 0;
@@ -262,13 +266,15 @@ px.import({scene:"px:scene.1.js",keys:'px:tools.keys.js'})
         cursor.x = 0;
     }
 
+    /* function to move cursor to last line right */
     var moveToEnd = function() {
         curline = nolines-1;
         cursor_pos = linemap[nolines-1].text.length;
         cursor.y = linemap[curline].y;
         cursor.x = linemap[curline].width;
     }
-
+    
+    /* function to select till the home */
     var selectToHome = function () {
         underSelection = true;
         lastactiveline = curline;
@@ -301,6 +307,7 @@ px.import({scene:"px:scene.1.js",keys:'px:tools.keys.js'})
         }
     }
 
+    /* function to select till the end */
     var selectToEnd = function () {
         underSelection = true;
         lastactiveline = curline;
@@ -375,6 +382,7 @@ px.import({scene:"px:scene.1.js",keys:'px:tools.keys.js'})
         return [lo, pos_x];
     }
 
+    /* function to find the line where the y value falls */
     function findRow(y)
     {
       var topy = -1, bottomy = -1;
@@ -733,13 +741,22 @@ px.import({scene:"px:scene.1.js",keys:'px:tools.keys.js'})
               linemap[curline].length++;
               linemap[curline].width = newwidth;
             }
-            textinput.text = "";
-            for (var i=0; i<nolines; i++)
+            var finaltext = "";
+            //textinput.text = "";
+            for (var i=0; i<nolines-1; i++)
             {
-              textinput.text += linemap[i].text;
+              //console.log("i=" + i + "text=" + linemap[i].text);
+              //textinput.text += linemap[i].text;
+              finaltext += linemap[i].text;
+              //console.log(textinput.text);
               if (linemap[i].text.substring(linemap[i].text.length-1) != "\n")
-                textinput.text += "\n";
+              {
+                //textinput.text += "\n";
+                finaltext += "\n";
+              }
             }
+            textinput.text = finaltext;
+            textinput.text += linemap[nolines-1].text;
             cursor_pos++;
 
             var measure;
@@ -801,6 +818,16 @@ px.import({scene:"px:scene.1.js",keys:'px:tools.keys.js'})
                 {
                     console.log("Copying text ...... " );
                     scene.clipboardSet('PX_CLIP_STRING', getSelectedText());
+                }
+                break;
+            case keys.X:   // << CTRL + X
+                if ((keys.is_CTRL(e.flags) || keys.is_CMD(e.flags)))  // ctrl Pressed also
+                {
+                    scene.clipboardSet('PX_CLIP_STRING', getSelectedText());
+                    console.log("Cutting text ...... " );
+                    removeSelectedText();
+                    reArrangeText();
+                    clearSelection();
                 }
                 break;
             case keys.V:   // << CTRL + V
@@ -1013,78 +1040,90 @@ px.import({scene:"px:scene.1.js",keys:'px:tools.keys.js'})
                 }
                 else
                 {
-                  if ((curline >= 0)/* && (cursor_pos > 0)*/)
+                  if ((curline >= 0) /*&& (cursor_pos > 0)*/)
                   {
-                    var text = linemap[curline].text;
-                    if( text.length > 0) {
-                      var preString;
-                      var postString;
-                      var m ;
-                      if (cursor_pos == text.length)
-                      {
-                        preString = text.substring(0,cursor_pos-1);
-                        postString = "";
-                        m = fontRes.measureText(pts, text.substring(cursor_pos-1));
-                      }
-                      else
-                      {
-                        preString = text.substring(0,cursor_pos);
-                        postString = text.substring(cursor_pos+1);
-                        m = fontRes.measureText(pts, text.substring(cursor_pos, cursor_pos+1));
-                      }
-
-                      linemap[curline].text = preString + postString;
-                      linemap[curline].width -= m.w;
-                      linemap[curline].length--;
-                      cursor_pos -= 1; // removed 1 character
-                      if ((cursor_pos <= 0) && (curline != 0))
-                      {
-                        curline--;
-                        cursor_pos = linemap[curline].text.length;
-                        cursor.y -= linemap[curline+1].h;
-                      }
-                      for (var i=curline+1; i<nolines; i++)
-                      {
-                        var myText = linemap[i].text;
-                        if (myText.length > 0)
+                    if ((curline == 0) && (cursor_pos == 0))
+                    {
+			/* Avoid doing backspace operation on first line and zero'th position */
+                    }
+                    else
+                    {
+                      var text = linemap[curline].text;
+                      if( text.length > 0) {
+                        var preString;
+                        var postString;
+                        var m;
+                        if (cursor_pos == text.length)
                         {
-                          var moveUpTextFromCurrent = myText.substring(0,1);
-                          linemap[i-1].text += moveUpTextFromCurrent;
-                          linemap[i].text = myText.substring(1);
-                        }
-                      }
-                      var nodeletedlines = 0;
-                      for (var i=0; i<nolines; i++)
-                      {
-                        var myText = linemap[i].text;
-                        if (myText.length > 0)
-                        {
-                          var curmetrics = fontRes.measureText(pts, myText);
-                          linemap[i].length = myText.length;
-                          linemap[i].width = curmetrics.w;
-                          linemap[i].h = curmetrics.h;
+                          preString = text.substring(0,cursor_pos-1);
+                          postString = "";
+                          m = fontRes.measureText(pts, text.substring(cursor_pos-1));
                         }
                         else
                         {
-                          linemap[i].length = 0;
-                          linemap[i].width = 0;
-                          linemap[i].h = 0;
-                          nodeletedlines++;
+                          preString = text.substring(0,cursor_pos-1);
+                          postString = text.substring(cursor_pos);
+                          m = fontRes.measureText(pts, text.substring(cursor_pos, cursor_pos+1));
+                        }
+
+                        linemap[curline].text = preString + postString;
+                        //linemap[curline].width -= m.w;
+                        //linemap[curline].length--;
+                        cursor_pos -= 1; // removed 1 character
+                        if ((cursor_pos <= 0) && (curline != 0))
+                        {
+                          curline--;
+                          cursor_pos = linemap[curline].text.length;
+                          cursor.y -= linemap[curline+1].h;
+                        }
+                        for (var i=curline+1; i<nolines; i++)
+                        {
+                          var myText = linemap[i].text;
+                          if (myText.length > 0)
+                          {
+                            var moveUpTextFromCurrent = myText.substring(0,1);
+                            linemap[i-1].text += moveUpTextFromCurrent;
+                            linemap[i].text = myText.substring(1);
+                          }
+                        }
+                        var nodeletedlines = 0;
+                        for (var i=0; i<nolines; i++)
+                        {
+                          var myText = linemap[i].text;
+                          if (myText.length > 0)
+                          {
+                            var curmetrics = fontRes.measureText(pts, myText);
+                            linemap[i].length = myText.length;
+                            linemap[i].width = curmetrics.w;
+                            linemap[i].h = curmetrics.h;
+                          }
+                          else
+                          {
+                            linemap[i].length = 0;
+                            linemap[i].width = 0;
+                            linemap[i].h = 0;
+                            nodeletedlines++;
+                          }
+                        }
+                        //nolines -= nodeletedlines;
+                        if (nolines == 0)
+                          nolines = 1;
+                        textinput.text = "";
+                        for (var i=0; i<nolines-1; i++)
+                        {
+                          textinput.text += linemap[i].text;
+                          if (linemap[i].text.substring(linemap[i].text.length-1) != "\n")
+                            textinput.text += "\n";
+                        }
+                        if (nolines >= 1)
+                        {
+                          textinput.text += linemap[nolines-1].text;
+                          var data = linemap[curline].text;
+                          var curmetrics = fontRes.measureText(pts, data.substring(0, cursor_pos));
+                          cursor.x = curmetrics.w;
+                          cursor.y = linemap[curline].y;
                         }
                       }
-                      nolines -= nodeletedlines;
-                      textinput.text = "";
-                      for (var i=0; i<nolines-1; i++)
-                      {
-                        textinput.text += linemap[i].text;
-                        if (linemap[i].text.substring(linemap[i].text.length-1) != "\n")
-                          textinput.text += "\n";
-                      }
-                      textinput.text += linemap[nolines-1].text;
-                      var data = linemap[curline].text;
-                      var curmetrics = fontRes.measureText(pts, data.substring(0, cursor_pos));
-                      cursor.x = curmetrics.w;
-                      cursor.y = linemap[curline].y;
                     }
                   }
                 }
@@ -1212,10 +1251,10 @@ px.import({scene:"px:scene.1.js",keys:'px:tools.keys.js'})
                     var curlength = linemap[curline].length;
                     if ((cursor_pos < curlength) && (curlength > 0))
                     {
-                      cursor_pos++;
                       var data = linemap[curline].text;
-                      var measure  = fontRes.measureText(pts,data.substring(0, cursor_pos));
-                      cursor.x = measure.w;
+                      var measure  = fontRes.measureText(pts,data.substring(cursor_pos,cursor_pos+1));
+                      cursor.x += measure.w;
+                      cursor_pos++;
                     }
                   }
                 }
@@ -1334,11 +1373,15 @@ px.import({scene:"px:scene.1.js",keys:'px:tools.keys.js'})
                       var curlength = linemap[curline].length;
                       if ((cursor_pos > 0) && (curlength > 0))
                       {
+                        var data = linemap[curline].text;
+                        var measure  = fontRes.measureText(pts,data.substring(cursor_pos-1,cursor_pos));
+                        if ((cursor.x-measure.w) < 0)
+                          cursor.x = 0;
+                        else
+                          cursor.x -= /*linemap[curline].x +*/ measure.w;
+                        console.log(cursor.x);
                         cursor_pos--;
-                        updateCursor(cursor_pos);
-                        /*var data = linemap[curline].text;
-                        var measure  = fontRes.measureText(pts,data.substr(0, cursor_pos));
-                        cursor.x = measure.w;*/
+                        //updateCursor(cursor_pos);
                       }
                     }
                   }
@@ -1484,7 +1527,7 @@ px.import({scene:"px:scene.1.js",keys:'px:tools.keys.js'})
     {
       var s = linemap[curline].text;
       var metrics = fontRes.measureText(pts, s.substring(0, pos));
-      cursor.x = linemap[curline].x + metrics.w;
+      cursor.x = /*linemap[curline].x + */metrics.w;
     }
 
     function getWidth(text)
