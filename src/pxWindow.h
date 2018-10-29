@@ -77,6 +77,7 @@ public:
   virtual void onBlur() {}
 
   virtual void onMouseMove(int32_t /*x*/, int32_t /*y*/) {}
+  virtual void onScrollWheel(float /*x*/, float /*y*/) {}
   
   // See pxWindowNative.h for keycode constants
   // See constants used for flags below
