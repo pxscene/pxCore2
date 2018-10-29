@@ -1,4 +1,3 @@
-
 /*
  pxCore Copyright 2005-2018 John Robinson
 
@@ -15,6 +14,7 @@
    limitations under the License.
 
 */
+
 
 // pxText.h
 
