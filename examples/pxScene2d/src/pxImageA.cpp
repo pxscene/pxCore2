@@ -264,7 +264,7 @@ void pxImageA::loadImageSequence()
       mw = static_cast<float>(mImageWidth);
       mh = static_cast<float>(mImageHeight);
     }
-    if (!(((rtPromise*)mReady.getPtr())->status()))
+    if (!((rtPromise*)mReady.getPtr())->status())
       mReady.send("resolve", this);
   }
   else
