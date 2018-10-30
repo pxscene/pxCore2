@@ -863,7 +863,7 @@ void pxTextBox::renderOneLine(const char * tempStr, float tempX, float tempY, fl
           else {
               //setLineMeasurements(false, xPos+charW > mw ? lineWidth: xPos+charW, noClipY + noClipH - charH);
               setLineMeasurements(true, xPos, noClipY);
-              setLineMeasurements(false, xPos+charW, noClipY + noClipH - charW);
+              setLineMeasurements(false, xPos+charW, noClipY + (noClipH - charH));
               setMeasurementBoundsX(false, charW > mw ? lineWidth: charW );
               
           }
