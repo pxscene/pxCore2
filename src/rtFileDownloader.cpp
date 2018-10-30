@@ -906,20 +906,25 @@ bool rtFileDownloader::downloadFromNetwork(rtFileDownloadRequest* downloadReques
     /* check for errors */
     if (res != CURLE_OK)
     {
-        stringstream errorStringStream;
+        rtString errorString("Download error for: ");
+        errorString.append(downloadRequest->fileUrl().cString());
 
-        errorStringStream << "Download error for: " << downloadRequest->fileUrl().cString()
-                << ".  Error code : " << res << ".  Using proxy: ";
+        errorString.append(". Error code : ");
+        stringstream errorCode("");
+        errorCode << res;
+        errorString.append(errorCode.str().c_str());
+
+        errorString.append(". Using proxy : ");
         if (useProxy)
         {
-            errorStringStream << "true - " << proxyServer.cString();
+          errorString.append("true - ");
+          errorString.append(proxyServer.cString());
         }
         else
         {
-            errorStringStream << "false";
+          errorString.append(" false ");
         }
-
-        downloadRequest->setErrorString(errorStringStream.str().c_str());
+        downloadRequest->setErrorString(errorString.cString());
         rtFileDownloader::instance()->releaseDownloadHandle(curl_handle, downloadHandleExpiresTime);
 
         //clean up contents on error

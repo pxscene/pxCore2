@@ -290,9 +290,10 @@ void rtFileCache::clearCache()
 {
   if (! mDirectory.isEmpty())
   {
-    stringstream buff;
-    buff << "rm -rf " << mDirectory.cString() << "/*" ;
-    int retVal = system(buff.str().c_str());
+    rtString buff("rm -rf ");
+    buff.append(mDirectory.cString());
+    buff.append("/*");
+    int retVal = system(buff.cString());
 
     if(retVal == -1)
     {
