@@ -847,6 +847,22 @@ void pxTextBox::renderOneLine(const char * tempStr, float tempX, float tempY, fl
       }
     }
     else*/
+    if( !clip() && mTruncation == pxConstantsTruncation::NONE)
+      {
+          setMeasurementBoundsX(true, xPos<mx?mx:xPos);
+          if( mWordWrap) {
+              //rtLogDebug("!CLF: wordWrap true: tempY=%f, mh=%f, charH=%f\n",tempY, mh, charH);
+              /*if( noClipY + charH <= mh)*/{
+                  setLineMeasurements(false, xPos+charW, noClipY + noClipH - charH);
+              }
+              setMeasurementBoundsX(false, charW);
+          }
+          else {
+              setLineMeasurements(false, xPos+charW > mw ? lineWidth: xPos+charW, noClipY);
+              setMeasurementBoundsX(false, charW > mw? lineWidth: charW );
+          }
+      }
+    else
     {
       setMeasurementBoundsX(true, xPos<mx?mx:xPos);
       if( mWordWrap) {
@@ -944,6 +960,23 @@ void pxTextBox::renderOneLine(const char * tempStr, float tempX, float tempY, fl
           setMeasurementBoundsX(false, charW);//noClipW);//charW );  // Fix x2 bounds issue
       }
       else*/
+    if( !clip() && mTruncation == pxConstantsTruncation::NONE)
+        {
+            //rtLogDebug("!CLF: Here we go: xPos=%f mx=%f, tempX=%f, lineWidth=%f, charW=%f mw=%f\n",xPos,mx, tempX,lineWidth, charW, mw);
+            
+            setMeasurementBoundsX(true, xPos<mx?mx:xPos);
+            setLineMeasurements(true, xPos<mx?mx:xPos, noClipY);
+            if( charW > mw && (xPos+lineWidth) > mw) {
+                setMeasurementBoundsX(false, mw-xPos );
+            }
+            else {
+                setMeasurementBoundsX(false, charW > mw? mw:charW );
+            }
+            setLineMeasurements(false, xPos+charW, noClipY);
+            
+            //setMeasurementBounds(xPos, charW, noClipY, charH);
+        }
+    else
       {
         //rtLogDebug("!CLF: Here we go: xPos=%f mx=%f, tempX=%f, lineWidth=%f, charW=%f mw=%f\n",xPos,mx, tempX,lineWidth, charW, mw);
         setMeasurementBoundsX(true, xPos<mx?mx:xPos);
