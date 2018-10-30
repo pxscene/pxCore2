@@ -235,7 +235,7 @@ rtError rtPermissions::file2str(const char* file, rtString& s)
         if (!is)
           e = RT_FAIL;
         else
-          s = buffer;
+          s = rtString(buffer, length);
         is.close();
         delete[] buffer;
       }
@@ -243,6 +243,11 @@ rtError rtPermissions::file2str(const char* file, rtString& s)
       {
         s = rtString();
       }
+    }
+    else
+    {
+      rtLogError("error opening '%s'", file);
+      e = RT_FAIL;
     }
   }
 
