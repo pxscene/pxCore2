@@ -336,17 +336,25 @@ rtError rtPermissions::json2obj(const char* json, rtObjectRef& obj)
 
 rtError rtPermissions::find(const rtObjectRef& obj, const char* s, rtString& found)
 {
-  rtValue allKeys;
-  if (obj->Get("allKeys", &allKeys) != RT_PROP_NOT_FOUND)
+  rtValue length;
+  rtObjectRef arr;
+  if (obj->Get("length", &length) == RT_OK)
   {
-    rtObjectRef arr = allKeys.toObject();
-    return find(arr, s, found);
+    arr = obj;
+  }
+  else
+  {
+    rtValue allKeys;
+    if (obj->Get("allKeys", &allKeys) == RT_OK)
+    {
+      arr = allKeys.toObject();
+      arr->Get("length", &length);
+    }
   }
 
-  rtValue length;
-  if (obj->Get("length", &length) == RT_PROP_NOT_FOUND)
+  if (length.isEmpty())
   {
-    rtLogError("permissions list is not an array");
+    rtLogError("permissions list is not an array/map");
     return RT_FAIL;
   }
 
@@ -357,7 +365,7 @@ rtError rtPermissions::find(const rtObjectRef& obj, const char* s, rtString& fou
   for (int i = 0; i < n; ++i)
   {
     rtValue item;
-    if (obj->Get(i, &item) != RT_OK)
+    if (arr->Get(i, &item) != RT_OK)
       continue;
 
     rtString itemStr = item.toString();
