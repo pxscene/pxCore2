@@ -95,7 +95,7 @@ float pxTextBox::getFBOWidth()
      if( noClipW > MAX_TEXTURE_WIDTH) rtLogWarn("Text width is larger than maximum texture allowed: %lf.  Maximum texture size of %d will be used.",noClipW, MAX_TEXTURE_WIDTH);
      return noClipW > MAX_TEXTURE_WIDTH?MAX_TEXTURE_WIDTH:noClipW;
   }
-  else 
+  else
   {
     return pxText::getFBOWidth();
   }
@@ -861,10 +861,10 @@ void pxTextBox::renderOneLine(const char * tempStr, float tempX, float tempY, fl
               setMeasurementBoundsX(false, charW);
           }
           else {
-              //setLineMeasurements(false, xPos+charW > mw ? lineWidth: xPos+charW, noClipY + noClipH - charH);
               setLineMeasurements(true, xPos, noClipY);
+              setMeasurementBoundsX(true, xPos);
               setLineMeasurements(false, xPos+charW, noClipY + (noClipH - charH));
-              setMeasurementBoundsX(false, charW > mw ? lineWidth: charW );
+              setMeasurementBoundsX(false, charW );
               
           }
       }
@@ -1133,7 +1133,7 @@ void pxTextBox::renderTextNoWordWrap(float sx, float sy, float tempX, bool rende
   if( charH > metricHeight) // There's a newline in the text somewhere
   {
     lineNumber = 0;
-    noClipH = charH;
+    //noClipH = charH;
  //   noClipW = charW;
     float tempY = 0;
     measureTextWithWrapOrNewLine(mText, sx, sy, tempX, tempY, mPixelSize, render);
