@@ -95,7 +95,7 @@ float pxTextBox::getFBOWidth()
      if( noClipW > MAX_TEXTURE_WIDTH) rtLogWarn("Text width is larger than maximum texture allowed: %lf.  Maximum texture size of %d will be used.",noClipW, MAX_TEXTURE_WIDTH);
      return noClipW > MAX_TEXTURE_WIDTH?MAX_TEXTURE_WIDTH:noClipW;
   }
-  else
+  else 
   {
     return pxText::getFBOWidth();
   }
@@ -417,13 +417,7 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
       {
         //rtLogDebug("Found NEWLINE; calling renderOneLine\n");
         // Render what we had so far in accString; since we are here, it will fit.
-        if( mTruncation != pxConstantsTruncation::NONE && !mWordWrap) {
-            renderTextRowWithTruncation(accString, lineWidth, 0, tempY, sx, sy, size, render);
-            accString = "";
-            break;
-        }
-        else
-            renderOneLine(accString.cString(), 0, tempY, sx, sy, size, lineWidth, render);
+        renderOneLine(accString.cString(), 0, tempY, sx, sy, size, lineWidth, render);
 
         accString = "";
         tempY += (mLeading*sy) + charH;
@@ -839,36 +833,22 @@ void pxTextBox::renderOneLine(const char * tempStr, float tempX, float tempY, fl
    //when lineNumber==lastLineNumber.  Check now.
   if( lineNumber != 0)
   {
-      /*if( !clip() && mTruncation == pxConstantsTruncation::NONE)
-       {
-       setMeasurementBoundsX(true, xPos);
-       if( lineNumber == lastLineNumber || mTruncation == pxConstantsTruncation::NONE)
-       {
-       //rtLogDebug("!CLF: calculating lineMeasurement! charH=%f pixelSize=%d noClipH=%f noClipY=%f lineNumber=%d\n",charH,mPixelSize,noClipH, noClipY, lineNumber);
-       setLineMeasurements(false, xPos+charW, noClipY+noClipH-(noClipH/(lineNumber+1)));
-       setMeasurementBoundsX(false, charW );
-       }
-       }
-       else*/
-      if( !clip() && mTruncation == pxConstantsTruncation::NONE)
+    if( !clip() && mTruncation == pxConstantsTruncation::NONE)
+    {
+      setMeasurementBoundsX(true, xPos);
+      if( lineNumber == lastLineNumber || mTruncation == pxConstantsTruncation::NONE)
       {
-          setMeasurementBoundsX(true, xPos<mx?mx:xPos);
-          if( mWordWrap) {
-              //rtLogDebug("!CLF: wordWrap true: tempY=%f, mh=%f, charH=%f\n",tempY, mh, charH);
-              /*if( noClipY + charH <= mh)*/{
-                  setLineMeasurements(false, xPos+charW, noClipY + noClipH - charH);
-              }
-              setMeasurementBoundsX(false, charW);
-          }
-          else {
-              setLineMeasurements(true, xPos, noClipY);
-              setMeasurementBoundsX(true, xPos);
-              setLineMeasurements(false, xPos+charW, noClipY + (noClipH - charH));
-              setMeasurementBoundsX(false, charW );
-              
-          }
+        //rtLogDebug("!CLF: calculating lineMeasurement! charH=%f pixelSize=%d noClipH=%f noClipY=%f lineNumber=%d\n",charH,mPixelSize,noClipH, noClipY, lineNumber);
+
+        //setLineMeasurements(false, xPos+charW, noClipY+noClipH-(noClipH/(lineNumber+1)));
+        
+        setLineMeasurements(true, xPos, noClipY);
+		setLineMeasurements(false, xPos+charW, noClipY + (noClipH - charH));
+		
+		setMeasurementBoundsX(false, charW );
       }
-      else
+    }
+    else
     {
       setMeasurementBoundsX(true, xPos<mx?mx:xPos);
       if( mWordWrap) {
@@ -952,7 +932,7 @@ void pxTextBox::renderOneLine(const char * tempStr, float tempX, float tempY, fl
       {
         //rtLogDebug("!CLF: No clip here we go: noClipY=%f my=%f, tempY=%f, noClipH=%f\n",noClipY,my, tempY,noClipH);
         //rtLogDebug("!CLF: No clip here we go: noClipX=%f mx=%f, tempX=%f, noClipW=%f\n",noClipX,mx, tempX,noClipW);
-/*
+
           // Set last line and bounds measurements in case there's only one line
           setLineMeasurements(false,xPos+charW,noClipY);//tempY);
 
@@ -964,16 +944,6 @@ void pxTextBox::renderOneLine(const char * tempStr, float tempX, float tempY, fl
           //rtLogDebug("setMeasurementBounds is using noClipW of %f\n",noClipW);
           //rtLogDebug("setMeasurementBounds charW of %f\n",charW);
           setMeasurementBoundsX(false, charW);//noClipW);//charW );  // Fix x2 bounds issue
- */
-          setMeasurementBoundsX(true, xPos<mx?mx:xPos);
-          setLineMeasurements(true, xPos<mx?mx:xPos, noClipY);
-          if( charW > mw && (xPos+lineWidth) > mw) {
-              setMeasurementBoundsX(false, mw-xPos );
-          }
-          else {
-              setMeasurementBoundsX(false, charW > mw? mw:charW );
-          }
-          setLineMeasurements(false, xPos+charW, noClipY);
       }
       else
       {
@@ -1134,7 +1104,7 @@ void pxTextBox::renderTextNoWordWrap(float sx, float sy, float tempX, bool rende
   {
     lineNumber = 0;
     //noClipH = charH;
- //   noClipW = charW;
+    //   noClipW = charW;
     float tempY = 0;
     measureTextWithWrapOrNewLine(mText, sx, sy, tempX, tempY, mPixelSize, render);
   }
