@@ -1941,6 +1941,18 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   mCapabilityVersions = new rtMapObject;
   rtObjectRef graphicsCapabilities = new rtMapObject;
   graphicsCapabilities.set("svg", 1);
+#ifdef SPARK_CURSOR_SUPPORT
+  graphicsCapabilities.set("cursor", 1);
+#else
+  rtValue enableCursor;
+  if (RT_OK == rtSettings::instance()->value("enableCursor", enableCursor))
+  {
+    if (enableCursor.toString().compare("true") == 0)
+    {
+      graphicsCapabilities.set("cursor", 1);
+    }
+  }
+#endif //SPARK_CURSOR_SUPPORT
   mCapabilityVersions.set("graphics", graphicsCapabilities);
 
   rtObjectRef networkCapabilities = new rtMapObject;
@@ -1955,6 +1967,7 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   rtObjectRef metricsCapabilities = new rtMapObject;
   metricsCapabilities.set("textureMemory", 1);
   mCapabilityVersions.set("metrics", metricsCapabilities);
+
 }
 
 rtError pxScene2d::dispose()
