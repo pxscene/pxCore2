@@ -5,5 +5,8 @@
 
 PREBINDING = NO
 
+PX_PLATFORM_MAC_XCODE=YES
+
+
 DYLD_LIBRARY_PATH=@executable_path/lib/
 LD_LIBRARY_PATH=@executable_path/lib/
