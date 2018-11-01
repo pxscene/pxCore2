@@ -373,7 +373,7 @@ LRESULT __stdcall pxWindowNative::windowProc(HWND hWnd, UINT msg, WPARAM wParam,
             }
             break;
 
-	case WM_MOUSEWHEEL:
+        case WM_MOUSEWHEEL:
             {
                 //int dx = (GET_X_LPARAM(lParam) > 0 ? 1 : -1);
                 //int dy = (GET_Y_LPARAM(lParam) > 0 ? 1 : -1);
