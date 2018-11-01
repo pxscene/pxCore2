@@ -493,7 +493,17 @@ int pxMain(int argc, char* argv[])
 
 #endif
 
+  
+#ifdef PX_PLATFORM_MAC_XCODE
+
+#warning "PX_PLATFORM_MAC_XCODE build... Xcode DEBUG only !"
+
+  // NOTE: PX_PLATFORM_MAC_XCODE is only defined for DEBUG + XCODE IDE builds
+  //       via the  .xcconfig file ...
+
+#else
   rtModuleDirs::instance();
+#endif
 
   rtString settingsPath;
   if (RT_OK == rtGetHomeDirectory(settingsPath))
