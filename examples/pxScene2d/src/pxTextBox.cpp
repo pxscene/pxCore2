@@ -413,7 +413,7 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
       {
         getFontResource()->measureTextChar(charToMeasure, size, sx, sy, charW, charH);
       }
-      if( isNewline(charToMeasure) || tempX >= mw)
+      if( isNewline(charToMeasure)/* || tempX >= mw*/)
       {
         //rtLogDebug("Found NEWLINE; calling renderOneLine\n");
         // Render what we had so far in accString; since we are here, it will fit.
@@ -1099,8 +1099,35 @@ void pxTextBox::renderTextNoWordWrap(float sx, float sy, float tempX, bool rende
     getFontResource()->getHeight(mPixelSize, metricHeight);
   }
   //rtLogDebug(">>>>>>>>>>>>>> metric height is %f and charH is %f\n", metricHeight, charH);
-  
+  std::string str(mText);
   if( charH > metricHeight) // There's a newline in the text somewhere
+  {
+    if (!mWordWrap && mTruncation != pxConstantsTruncation::NONE)
+    {
+        for (size_t i = 0; i < sizeof(isNewline_chars); ++i)
+        {
+            std::size_t pos = str.find(isNewline_chars[i]);
+            if (pos != std::string::npos)
+            {
+                str = str.substr (0, pos);
+                if (getFontResource() != NULL)
+                {
+                    getFontResource()->measureTextInternal(str.c_str(), mPixelSize, sx, sy, charW, charH);
+                }
+                //rtLogDebug(">>>>>>>>>>>> pxTextBox::renderTextNoWordWrap charH=%f charW=%f\n", charH, charW);
+                
+                metricHeight = 0;
+                if (getFontResource() != NULL)
+                {
+                    getFontResource()->getHeight(mPixelSize, metricHeight);
+                }
+            }
+        }
+    }
+  }
+    
+  /*rtString text*/ mText = str.c_str();
+  if( charH > metricHeight)
   {
     lineNumber = 0;
     //noClipH = charH;
