@@ -413,7 +413,7 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
       {
         getFontResource()->measureTextChar(charToMeasure, size, sx, sy, charW, charH);
       }
-      if( isNewline(charToMeasure))
+      if( isNewline(charToMeasure) || tempX >= mw)
       {
         //rtLogDebug("Found NEWLINE; calling renderOneLine\n");
         // Render what we had so far in accString; since we are here, it will fit.
