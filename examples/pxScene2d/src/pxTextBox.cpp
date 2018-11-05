@@ -426,7 +426,7 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
         getFontResource()->measureTextChar(charToMeasure, size, sx, sy, charW, charH);
       }
     
-      bool isContinuousLine = !isDelimeter_charsPresent && mWordWrap && tempX > mw;
+      bool isContinuousLine = mWordWrap && !isDelimeter_charsPresent && tempX + charW > mw;
       if( isNewline(charToMeasure) || isContinuousLine)
       {
         //rtLogDebug("Found NEWLINE; calling renderOneLine\n");
