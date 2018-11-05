@@ -93,6 +93,8 @@ public:
     virtual void onKeyDown(uint32_t keycode, uint32_t flags) =0;
     virtual void onKeyUp(uint32_t keycode, uint32_t flags) =0;
     virtual void onChar(uint32_t c) =0;
+
+    void onSizeUpdated(int width, int height);
     
     //timer methods
     static int createAndStartEventLoopTimer(int timeoutInMilliseconds);
@@ -105,7 +107,6 @@ protected:
 
     virtual void onCloseRequest() = 0;
     virtual void onClose() = 0;
-
     virtual void onSize(int32_t w, int32_t h) = 0;
 
     virtual void onDraw(pxSurfaceNative surface) = 0;
