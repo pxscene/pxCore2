@@ -1430,6 +1430,27 @@ public:
     EXPECT_EQ ((int)RT_OK, (int)rtPermissions::find(obj, "http://localhost/", s));
     EXPECT_EQ (std::string(s), "http://localhost*");
   }
+
+  void test_find_6()
+  {
+    const char* example =
+      "{\n"
+      "  \"x\": \"\",\n"
+      "  \"*\": \"\",\n"
+      "  \"z\": \"\"\n"
+      "}";
+
+    rtObjectRef obj;
+    EXPECT_TRUE (RT_OK == rtPermissions::json2obj(example, obj));
+
+    rtString s;
+    EXPECT_EQ ((int)RT_OK, (int)rtPermissions::find(obj, "x", s));
+    EXPECT_EQ (std::string(s), "x");
+    EXPECT_EQ ((int)RT_OK, (int)rtPermissions::find(obj, "z", s));
+    EXPECT_EQ (std::string(s), "z");
+    EXPECT_EQ ((int)RT_OK, (int)rtPermissions::find(obj, "X", s));
+    EXPECT_EQ (std::string(s), "*");
+  }
 };
 
 TEST_F(rtPermissionsTest, rtPermissionsTests)
@@ -1446,4 +1467,5 @@ TEST_F(rtPermissionsTest, rtPermissionsTests)
   test_find_3();
   test_find_4();
   test_find_5();
+  test_find_6();
 }
