@@ -33,7 +33,7 @@ extern pxContext context;
 static const char      isNewline_chars[] = "\n\v\f\r";
 static const char isWordBoundary_chars[] = " \t/:&,;.";
 static const char    isSpaceChar_chars[] = " \t";
-
+static const char isDelimeter_chars[] = "\n\v\f\r \t/:&,;.";
 #define ELLIPSIS_STR u8"\u2026"
 
 #if 1
@@ -384,6 +384,18 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
       }
     }
     
+    std::string str(text);
+    bool isDelimeter_charsPresent = false;
+    for (size_t i = 0; i < sizeof(isDelimeter_chars); ++i)
+    {
+        std::size_t pos = str.find(isDelimeter_chars[i]);
+        if (pos != std::string::npos)
+        {
+            isDelimeter_charsPresent = true;
+            break;
+        }
+    }
+    
     // Read char by char to determine full line of text before rendering
     int i = 0;
     int lasti = 0;
@@ -413,22 +425,25 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
       {
         getFontResource()->measureTextChar(charToMeasure, size, sx, sy, charW, charH);
       }
-      if( isNewline(charToMeasure) || tempX > mw)
+    
+      bool isContinuousLine = !isDelimeter_charsPresent && mWordWrap && tempX > mw;
+      if( isNewline(charToMeasure) || isContinuousLine)
       {
         //rtLogDebug("Found NEWLINE; calling renderOneLine\n");
         // Render what we had so far in accString; since we are here, it will fit.
+        
         renderOneLine(accString.cString(), 0, tempY, sx, sy, size, lineWidth, render);
 
-        accString = "";
+        accString = isContinuousLine ? tempChar : "";
         tempY += (mLeading*sy) + charH;
 
         lineNumber++;
-        tempX = 0;
-        continue;
+        tempX = isContinuousLine ? charW : 0;
+       continue;
       }
 
       // Check if text still fits on this line, or if wrap needs to occur
-      if( (tempX + charW) <= lineWidth || (!mWordWrap && lineNumber == 0))
+      if( (tempX + charW) <= lineWidth || (!mWordWrap && lineNumber == 0) || mWordWrap && !isDelimeter_charsPresent)
       {
         accString.append(tempChar);
         tempX += charW;
