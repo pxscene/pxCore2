@@ -149,6 +149,23 @@ static EssKeyListener keyListener=
         keyReleased
     };
 
+
+static void displaySize( void */*userData*/, int width, int height )
+{
+  std::vector<pxWindowNative*> windowVector = pxWindow::getNativeWindows();
+  std::vector<pxWindowNative*>::iterator i;
+  for (i = windowVector.begin(); i < windowVector.end(); i++)
+  {
+    pxWindowNative* w = (*i);
+    w->onSizeUpdated(width,height);
+  }
+}
+
+static EssSettingsListener settingsListener =
+   {
+     displaySize
+   };
+
 static void pointerMotion( void */*userData*/, int x, int y )
 {
     std::vector<pxWindowNative*> windowVector = pxWindow::getNativeWindows();
@@ -356,6 +373,10 @@ pxError pxWindow::init(int left, int top, int width, int height)
                 error = true;
             }
             if ( !EssContextSetKeyRepeatPeriod(d->ctx, keyRepeatInterval))
+            {
+                error = true;
+            }
+            if (!EssContextSetSettingsListener(d->ctx, 0, &settingsListener))
             {
                 error = true;
             }
@@ -575,6 +596,11 @@ void pxWindowNative::cleanupEssos()
 
     EssContextDestroy( eDisplay->ctx );
     eDisplay->ctx = NULL;
+}
+
+void pxWindowNative::onSizeUpdated(int width, int height)
+{
+  onSize(width, height);
 }
 
 void pxWindowNative::animateAndRender()
