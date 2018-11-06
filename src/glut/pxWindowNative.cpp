@@ -356,7 +356,30 @@ void pxWindowNative::onGlutMouse(int button, int state, int x, int y)
       }
     }
   }
-  // else some GLUT impls uses button 3,4 etc for mouse wheel
+  else
+  // some GLUT impls uses button 3,4 etc for mouse wheel
+  if ((button == 3) || (button == 4)) // It's a wheel event
+  {
+    int dir = (button == 3) ? 1 : -1;
+
+    pxWindowNative* w = getWindowFromGlutID(glutGetWindow());
+    if (w)
+      w->onScrollWheel( dir * ((x > 0) ? 1 : -1),
+                        dir * ((y > 0) ? 1 : -1) );
+  }
+}
+
+
+// The second parameter gives the direction of the scroll. Values of +1 is forward, -1 is backward.
+
+void pxWindowNative::onGlutScrollWheel(int button, int dir, int x, int y)
+{
+  if ((button == 3) || (button == 4)) // It's a wheel event
+  {
+    pxWindowNative* w = getWindowFromGlutID(glutGetWindow());
+    if (w)
+      w->onScrollWheel(dir * x, dir * y);
+  }
 }
 
 void pxWindowNative::onGlutMouseMotion(int x, int y)
@@ -625,6 +648,7 @@ pxError pxWindow::init(int left, int top, int width, int height)
     glutReshapeFunc(onGlutReshape);
     glutMouseFunc(onGlutMouse);
     glutMotionFunc(onGlutMouseMotion);
+    glutMouseWheelFunc(onGlutScrollWheel);
     glutPassiveMotionFunc(onGlutMousePassiveMotion);
     glutKeyboardFunc(onGlutKeyboard);
 //#ifdef PX_USE_GLUT_ON_CLOSE

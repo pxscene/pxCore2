@@ -1941,6 +1941,18 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   mCapabilityVersions = new rtMapObject;
   rtObjectRef graphicsCapabilities = new rtMapObject;
   graphicsCapabilities.set("svg", 1);
+#ifdef SPARK_CURSOR_SUPPORT
+  graphicsCapabilities.set("cursor", 1);
+#else
+  rtValue enableCursor;
+  if (RT_OK == rtSettings::instance()->value("enableCursor", enableCursor))
+  {
+    if (enableCursor.toString().compare("true") == 0)
+    {
+      graphicsCapabilities.set("cursor", 1);
+    }
+  }
+#endif //SPARK_CURSOR_SUPPORT
   mCapabilityVersions.set("graphics", graphicsCapabilities);
 
   rtObjectRef networkCapabilities = new rtMapObject;
@@ -1955,6 +1967,7 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   rtObjectRef metricsCapabilities = new rtMapObject;
   metricsCapabilities.set("textureMemory", 1);
   mCapabilityVersions.set("metrics", metricsCapabilities);
+
 }
 
 rtError pxScene2d::dispose()
@@ -3192,6 +3205,22 @@ bool pxScene2d::onMouseMove(int32_t x, int32_t y)
   return false;
 }
 
+
+bool pxScene2d::onScrollWheel(float dx, float dy)
+{
+  if (mFocusObj)
+  {
+    rtObjectRef e = new rtMapObject;
+    e.set("name", "onScrollWheel");
+    e.set("dx", dx);
+    e.set("dy", dy);
+    rtRef<pxObject> t = (pxObject*)mFocusObj.get<voidPtr>("_pxObject");
+    return bubbleEvent(e, t, "onPreScrollWheel", "onScrollWheel");
+  }
+  return false;
+}
+
+
 bool pxScene2d::onKeyDown(uint32_t keyCode, uint32_t flags)
 {
   if (mFocusObj)
@@ -3753,6 +3782,7 @@ rtDefineProperty(pxViewContainer, h);
 rtDefineMethod(pxViewContainer, onMouseDown);
 rtDefineMethod(pxViewContainer, onMouseUp);
 rtDefineMethod(pxViewContainer, onMouseMove);
+rtDefineMethod(pxViewContainer, onScrollWheel);
 rtDefineMethod(pxViewContainer, onMouseEnter);
 rtDefineMethod(pxViewContainer, onMouseLeave);
 rtDefineMethod(pxViewContainer, onFocus);
