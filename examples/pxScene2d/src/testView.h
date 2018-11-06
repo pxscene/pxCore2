@@ -64,6 +64,14 @@ testView(): mContainer(NULL),mRefCount(0),mw(0),mh(0),mEntered(false),mMouseX(0)
     return false;
   }
 
+  virtual bool RT_STDCALL onScrollWheel(float dx, float dy)
+  {
+    rtLogInfo("testView::onScrollWheel(%f, %f)", dx, dy);
+    mScrollDX = dx;
+    mScrollDY = dy;
+    return false;
+  }
+
   virtual bool RT_STDCALL onMouseEnter()
   {
     rtLogInfo("testView::onMouseEnter()");
@@ -161,4 +169,5 @@ private:
   float mw, mh;
   bool mEntered;
   int32_t mMouseX, mMouseY;
+  float mScrollDX, mScrollDY;
 };
