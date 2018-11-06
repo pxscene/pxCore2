@@ -95,6 +95,11 @@ public:
     virtual void onChar(uint32_t c) =0;
 
     void onSizeUpdated(int width, int height);
+
+    void onTouchDown(int id, int x, int y);
+    void onTouchUp(int id);
+    void onTouchMotion(int id, int x, int y);
+    void onTouchFrame();
     
     //timer methods
     static int createAndStartEventLoopTimer(int timeoutInMilliseconds);
