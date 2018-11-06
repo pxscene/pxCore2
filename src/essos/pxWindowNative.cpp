@@ -398,6 +398,13 @@ pxError pxWindow::init(int left, int top, int width, int height)
             }
         }
 
+
+        mLastWidth = width;
+        mLastHeight = height;
+        mResizeFlag = true;
+
+        registerWindow(this);
+
         bool error = false;
         rtLogInfo("using wayland: %s\n", useWayland ? "true" : "false");
         rtLogInfo("initial key delay: %d repeat interval: %d", keyInitialDelay, keyRepeatInterval);
@@ -461,13 +468,8 @@ pxError pxWindow::init(int left, int top, int width, int height)
             }
         }
 
-        mLastWidth = width;
-        mLastHeight = height;
-        mResizeFlag = true;
-
         eglSurfaceAttrib(eglGetCurrentDisplay(), eglGetCurrentSurface(EGL_DRAW), EGL_SWAP_BEHAVIOR, EGL_BUFFER_PRESERVED);
 
-        registerWindow(this);
         this->onCreate();
     }
     return PX_OK;
@@ -663,6 +665,9 @@ void pxWindowNative::cleanupEssos()
 
 void pxWindowNative::onSizeUpdated(int width, int height)
 {
+  mLastWidth = width;
+  mLastHeight = height;
+  mResizeFlag = true;
   onSize(width, height);
 }
 
