@@ -388,7 +388,6 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
     int i = 0;
     int lasti = 0;
     int numbytes = 1;
-    //char* tempChar = NULL;
     while((charToMeasure = u8_nextchar((char*)text, &i)) != 0)
     {
       // Determine if the character is multibyte
@@ -516,9 +515,6 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
             
           }
 
-          /*delete [] tempChar;
-          tempChar = NULL;*/
-
           // Free tempStr
           free(tempStr);
           // Now skip to next line
@@ -546,11 +542,6 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
         }
       }
     }//WHILE
-    /*if (tempChar != NULL)
-    {
-      delete [] tempChar;
-      tempChar = NULL;
-    }*/
 
     if(accString.length() > 0) {
       lastLineNumber = lineNumber;
