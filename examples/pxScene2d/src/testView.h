@@ -22,7 +22,7 @@ class testView: public pxIView
 {
 public:
   
-testView(): mContainer(NULL),mRefCount(0),mw(0),mh(0),mEntered(false),mMouseX(0), mMouseY(0) {}
+testView(): mContainer(NULL),mRefCount(0),mw(0),mh(0),mEntered(false),mMouseX(0), mMouseY(0), mScrollDX(0.0), mScrollDY(0.0) {}
   virtual ~testView() {}
 
   virtual unsigned long AddRef() 
