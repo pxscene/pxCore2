@@ -800,6 +800,7 @@ public:
   rtMethod1ArgAndNoReturn("onMouseDown", onMouseDown, rtObjectRef);
   rtMethod1ArgAndNoReturn("onMouseUp", onMouseUp, rtObjectRef);
   rtMethod1ArgAndNoReturn("onMouseMove", onMouseMove, rtObjectRef);
+  rtMethod1ArgAndNoReturn("onScrollWheel", onScrollWheel, rtObjectRef);
   rtMethod1ArgAndNoReturn("onMouseEnter", onMouseEnter, rtObjectRef);
   rtMethod1ArgAndNoReturn("onMouseLeave", onMouseLeave, rtObjectRef);
   rtMethod1ArgAndNoReturn("onFocus", onFocus, rtObjectRef);
@@ -813,6 +814,7 @@ public:
     addListener("onMouseDown", get<rtFunctionRef>("onMouseDown"));
     addListener("onMouseUp", get<rtFunctionRef>("onMouseUp"));
     addListener("onMouseMove", get<rtFunctionRef>("onMouseMove"));
+    addListener("onScrollWheel", get<rtFunctionRef>("onScrollWheel"));
     addListener("onMouseEnter", get<rtFunctionRef>("onMouseEnter"));
     addListener("onMouseLeave", get<rtFunctionRef>("onMouseLeave"));
     addListener("onFocus", get<rtFunctionRef>("onFocus"));
@@ -903,6 +905,18 @@ public:
       float x = o.get<float>("x");
       float y = o.get<float>("y");
       mView->onMouseMove(static_cast<int32_t>(x),static_cast<int32_t>(y));
+    }
+    return RT_OK;
+  }
+
+  rtError onScrollWheel(rtObjectRef o)
+  {
+    rtLogDebug("pxViewContainer::onScrollWheel");
+    if (mView)
+    {
+      float dx = o.get<float>("dx");
+      float dy = o.get<float>("dy");
+      mView->onScrollWheel( dx, dy );
     }
     return RT_OK;
   }
@@ -1226,6 +1240,13 @@ protected:
     return false;
   }
 
+  virtual bool onScrollWheel(float dx, float dy)
+  {
+    if (mView)
+      return mView->onScrollWheel(dx,dy);
+    return false;
+  }
+  
   virtual bool onMouseEnter()
   {
     if (mView)
@@ -1546,6 +1567,7 @@ public:
   virtual bool onMouseEnter();
   virtual bool onMouseLeave();
   virtual bool onMouseMove(int32_t x, int32_t y);
+  virtual bool onScrollWheel(float dx, float dy);
 
   virtual bool onFocus();
   virtual bool onBlur();

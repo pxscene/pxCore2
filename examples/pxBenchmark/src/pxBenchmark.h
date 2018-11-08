@@ -95,6 +95,8 @@ class pxApiFixture : public celero::TestFixture
     pxTextureRef                              mTextureRef;
     pxTextureRef                              mTextureMaskRef;
     bool                                      mDoCreateTexture;
+    std::shared_ptr<Experiment>                    mExp;
+    
     void TestDrawRect ();
     void TestDrawDiagLine ();
     void TestDrawDiagRect ();
@@ -153,6 +155,7 @@ public:
     , mTextureRef (NULL)
     , mTextureMaskRef (NULL)
     , mDoCreateTexture (true)
+    , mExp (nullptr)
     {
     }
     
@@ -263,7 +266,7 @@ public:
     {
     }
     
-    void init(const int32_t& x, const int32_t& y, const int32_t& w, const int32_t& h, const int32_t& mw, const int32_t& mh, const bool doCreateTexture = true);
+    void init(const int32_t& x, const int32_t& y, const int32_t& w, const int32_t& h, const int32_t& mw, const int32_t& mh, const bool doArchive = false, const bool doCreateTexture = true);
     
     void* getInterface(const char* /*name*/);
     
@@ -290,6 +293,8 @@ public:
     void reset();
     
     pxOffscreen& GetTexture() { return mTexture; }
+    
+    uint64_t GetIterations () { return mIterations; }
     
     void SetIterations (uint64_t iterations) { mIterations = iterations; }
     
