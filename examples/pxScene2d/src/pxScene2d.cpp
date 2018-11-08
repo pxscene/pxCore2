@@ -1102,7 +1102,7 @@ void pxObject::update(double t)
 #ifdef PX_DIRTY_RECTANGLES
     pxMatrix4f m;
     applyMatrix(m);
-    //context.setMatrix(m);
+    context.setMatrix(m);
     if (mIsDirty)
     {
         pxRect dirtyRect = getBoundingRectInScreenCoordinates();
@@ -1142,14 +1142,14 @@ void pxObject::update(double t)
       {
           mScreenCoordinates.setBottom(bottom);
       }
-      //context.pushState();
+      context.pushState();
 #endif //PX_DIRTY_RECTANGLES
 // JR TODO  this lock looks suspicious... why do we need it?
 ENTERSCENELOCK()
     (*it)->update(t);
 EXITSCENELOCK()
 #ifdef PX_DIRTY_RECTANGLES
-      //context.popState();
+      context.popState();
 #endif //PX_DIRTY_RECTANGLES
   }
     
@@ -1231,7 +1231,7 @@ pxRect pxObject::getBoundingRectInScreenCoordinates()
   int w = getOnscreenWidth();
   int h = getOnscreenHeight();
   int x[4], y[4];
-  //mRenderMatrix = context.getMatrix();
+  mRenderMatrix = context.getMatrix();
   context.mapToScreenCoordinates(mRenderMatrix, 0,0,x[0],y[0]);
   context.mapToScreenCoordinates(mRenderMatrix, w, h, x[1], y[1]);
   context.mapToScreenCoordinates(mRenderMatrix, 0, h, x[2], y[2]);
@@ -1405,7 +1405,7 @@ void pxObject::drawInternal(bool maskPass)
   }
 
   #ifdef PX_DIRTY_RECTANGLES
-  mRenderMatrix = context.getMatrix();
+  //mRenderMatrix = context.getMatrix();
   mScreenCoordinates = getBoundingRectInScreenCoordinates();
   #endif //PX_DIRTY_RECTANGLES
 
@@ -2681,7 +2681,7 @@ void pxScene2d::update(double t)
   if (mRoot)
   {
 #ifdef PX_DIRTY_RECTANGLES
-      //context.pushState();
+      context.pushState();
 #endif //PX_DIRTY_RECTANGLES
 
       if( mCustomAnimator != NULL ) {
@@ -2695,7 +2695,7 @@ void pxScene2d::update(double t)
 #endif
 
 #ifdef PX_DIRTY_RECTANGLES
-      //context.popState();
+      context.popState();
 #endif //PX_DIRTY_RECTANGLES
   }
 }
