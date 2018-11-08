@@ -542,12 +542,14 @@ endif (PXSCENE_CORS_FOR_RESOURCES)
 if (PXSCENE_DIRTY_RECTANGLES)
     message("Enabling dirty rectangles support")
     add_definitions(-DPX_DIRTY_RECTANGLES)
+
+if (PXSCENE_DIRTY_RECTANGLES_DEFAULT_ON)
+    message("Enabling dirty rectangles default support")
+    add_definitions(-DPX_DIRTY_RECTANGLES_DEFAULT_ON)
+endif(PXSCENE_DIRTY_RECTANGLES_DEFAULT_ON)
+
 endif(PXSCENE_DIRTY_RECTANGLES)
 
-if (PXSCENE_DIRTY_RECTANGLES_DEFAULT_OFF)
-    message("Enabling dirty rectangles default support")
-    add_definitions(-DPX_DIRTY_RECTANGLES_DEFAULT_OFF)
-endif(PXSCENE_DIRTY_RECTANGLES_DEFAULT_OFF)
 
 if (PXSCENE_PERMISSIONS_CHECK)
     message("Enabling permissions")

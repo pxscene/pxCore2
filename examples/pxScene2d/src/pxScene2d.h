@@ -1726,7 +1726,7 @@ private:
   pxIViewContainer *mContainer;
   pxScriptView *mScriptView;
   bool mShowDirtyRectangle;
-  bool mEnableDirtyRectangle;
+  bool mEnableDirtyRectangles;
   #ifdef USE_SCENE_POINTER
   pxTextureRef mNullTexture;
   rtObjectRef mPointerResource;

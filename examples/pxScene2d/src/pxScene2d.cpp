@@ -562,7 +562,7 @@ rtError pxObject::Set(uint32_t i, const rtValue* value)
 
 rtError pxObject::Set(const char* name, const rtValue* value)
 {
-#ifdef PX_DIRTY_RECTANGLES
+  #ifdef PX_DIRTY_RECTANGLES
   mIsDirty = true;
   //mScreenCoordinates = getBoundingRectInScreenCoordinates();
 
@@ -667,10 +667,7 @@ void pxObject::setParent(rtRef<pxObject>& parent)
     if (parent)
       parent->mChildren.push_back(this);
 #ifdef PX_DIRTY_RECTANGLES
-    bool enableDirtyRect = false;
-    mScene->enableDirtyRect(enableDirtyRect);
-    if (enableDirtyRect)
-        mIsDirty = true;
+    mIsDirty = true;
     //mScreenCoordinates = getBoundingRectInScreenCoordinates();
 #endif //PX_DIRTY_RECTANGLES
   }
@@ -1103,11 +1100,7 @@ void pxObject::update(double t)
   }
 
 #ifdef PX_DIRTY_RECTANGLES
-    bool enableDirtyRect = false;
-    mScene->enableDirtyRect(enableDirtyRect);
     pxMatrix4f m;
-    if (enableDirtyRect)
-    {
     applyMatrix(m);
     context.setMatrix(m);
     mRenderMatrix = m;
@@ -1127,14 +1120,12 @@ void pxObject::update(double t)
         
         mIsDirty = false;
     }
-    }
 #endif
 
   // Recursively update children
   for(vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
   {
 #ifdef PX_DIRTY_RECTANGLES
-    if (enableDirtyRect)
     context.pushState();
 #endif //PX_DIRTY_RECTANGLES
 // JR TODO  this lock looks suspicious... why do we need it?
@@ -1142,17 +1133,13 @@ ENTERSCENELOCK()
     (*it)->update(t);
 EXITSCENELOCK()
 #ifdef PX_DIRTY_RECTANGLES
-    if (enableDirtyRect)
-        context.popState();
+    context.popState();
 #endif //PX_DIRTY_RECTANGLES
   }
     
 #ifdef PX_DIRTY_RECTANGLES
-    if (enableDirtyRect)
-    {
-        context.setMatrix(m);
-        mRenderMatrix = m;
-    }
+    context.setMatrix(m);
+    mRenderMatrix = m;
 #endif
     
   // Send promise
@@ -1213,11 +1200,6 @@ uint64_t pxObject::textureMemoryUsage()
 #ifdef PX_DIRTY_RECTANGLES
 void pxObject::setDirtyRect(pxRect *r)
 {
-  bool enableDirtyRect = false;
-  mScene->enableDirtyRect(enableDirtyRect);
-  if (!enableDirtyRect)
-        return;
-    
   if (r != NULL)
   {
     mDirtyRect.unionRect(*r);
@@ -1230,11 +1212,6 @@ void pxObject::setDirtyRect(pxRect *r)
 
 pxRect pxObject::getBoundingRectInScreenCoordinates()
 {
-  bool enableDirtyRect = false;
-  mScene->enableDirtyRect(enableDirtyRect);
-  if (!enableDirtyRect)
-    return pxRect(0, 0, 0, 0);
-    
   int w = getOnscreenWidth();
   int h = getOnscreenHeight();
   int x[4], y[4];
@@ -1274,11 +1251,6 @@ pxRect pxObject::getBoundingRectInScreenCoordinates()
 
 pxRect pxObject::convertToScreenCoordinates(pxRect* r)
 {
-  bool enableDirtyRect = false;
-  mScene->enableDirtyRect(enableDirtyRect);
-  if (!enableDirtyRect)
-    return pxRect(0, 0, 0, 0);
-    
   if (r == NULL)
   {
      return pxRect();
@@ -1332,8 +1304,6 @@ void pxObject::drawInternal(bool maskPass)
   {
     return;
   }
-  bool enableDirtyRect = false;
-  mScene->enableDirtyRect(enableDirtyRect);
   // TODO what to do about multiple vanishing points in a given scene
   // TODO consistent behavior between clipping and no clipping when z is in use
 
@@ -1366,8 +1336,7 @@ void pxObject::drawInternal(bool maskPass)
 #else
 
 #ifdef PX_DIRTY_RECTANGLES
-    if (enableDirtyRect)
-        m = mRenderMatrix;
+    m = mRenderMatrix;
 #else
     applyMatrix(m); // ANIMATE !!!
 #endif
@@ -1421,8 +1390,7 @@ void pxObject::drawInternal(bool maskPass)
 
   #ifdef PX_DIRTY_RECTANGLES
   //mLastRenderMatrix = context.getMatrix();
-  if (enableDirtyRect)
-      mScreenCoordinates = getBoundingRectInScreenCoordinates();
+  mScreenCoordinates = getBoundingRectInScreenCoordinates();
   #endif //PX_DIRTY_RECTANGLES
 
   float c[4] = {1, 0, 0, 1};
@@ -1507,7 +1475,6 @@ void pxObject::drawInternal(bool maskPass)
         //rtLogInfo("calling drawInternal() mw=%f mh=%f\n", (*it)->mw, (*it)->mh);
         (*it)->drawInternal();
 #ifdef PX_DIRTY_RECTANGLES
-        if (enableDirtyRect) {
         int left = (*it)->mScreenCoordinates.left();
         int right = (*it)->mScreenCoordinates.right();
         int top = (*it)->mScreenCoordinates.top();
@@ -1527,7 +1494,6 @@ void pxObject::drawInternal(bool maskPass)
         if (bottom > mScreenCoordinates.bottom())
         {
           mScreenCoordinates.setBottom(bottom);
-        }
         }
 #endif //PX_DIRTY_RECTANGLES
         context.popState();
@@ -1549,8 +1515,7 @@ void pxObject::drawInternal(bool maskPass)
   }
   // ---------------------------------------------------------------------------------------------------
 #ifdef PX_DIRTY_RECTANGLES
-  if (enableDirtyRect)
-      mDirtyRect.setEmpty();
+  mDirtyRect.setEmpty();
 #endif //PX_DIRTY_RECTANGLES
 }
 
@@ -1652,8 +1617,6 @@ void pxObject::createSnapshot(pxContextFramebufferRef& fbo, bool separateContext
   float h = getOnscreenHeight();
 
 #ifdef PX_DIRTY_RECTANGLES
-  bool enableDirtyRect = false;
-  mScene->enableDirtyRect(enableDirtyRect);
   bool fullFboRepaint = false;
 #endif //PX_DIRTY_RECTANGLES
 
@@ -1677,9 +1640,7 @@ void pxObject::createSnapshot(pxContextFramebufferRef& fbo, bool separateContext
   {
     //context.clear(static_cast<int>(w), static_cast<int>(h));
 #ifdef PX_DIRTY_RECTANGLES
-    if (enableDirtyRect)
-    {
-        int clearX = mDirtyRect.left();
+    int clearX = mDirtyRect.left();
     int clearY = mDirtyRect.top();
     int clearWidth = mDirtyRect.right() - clearX+1;
     int clearHeight = mDirtyRect.bottom() - clearY+1;
@@ -1695,9 +1656,6 @@ void pxObject::createSnapshot(pxContextFramebufferRef& fbo, bool separateContext
         clearHeight = h;
         context.clear(clearX, clearY, clearWidth, clearHeight);
     }
-    }
-    else
-        context.clear(static_cast<int>(w), static_cast<int>(h));
 #else
     context.clear(static_cast<int>(w), static_cast<int>(h));
 #endif //PX_DIRTY_RECTANGLES
@@ -1900,21 +1858,13 @@ rtDefineObject(pxRoot,pxObject);
 int gTag = 0;
 
 pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
-  : mRoot(), mInfo(), mCapabilityVersions(), start(0), sigma_draw(0), sigma_update(0), end2(0), frameCount(0), mWidth(0), mHeight(0), mStopPropagation(false), mContainer(NULL), mShowDirtyRectangle(false), mEnableDirtyRectangle(false),
+  : mRoot(), mInfo(), mCapabilityVersions(), start(0), sigma_draw(0), sigma_update(0), end2(0), frameCount(0), mWidth(0), mHeight(0), mStopPropagation(false), mContainer(NULL), mShowDirtyRectangle(false), mEnableDirtyRectangles(false),
     mInnerpxObjects(), mSuspended(false),
 #ifdef PX_DIRTY_RECTANGLES
     mArchive(),mDirtyRect(), mLastFrameDirtyRect(),
 #endif //PX_DIRTY_RECTANGLES
     mDirty(true), mTestView(NULL), mDisposed(false), mArchiveSet(false)
 {
-    
-#ifdef PX_DIRTY_RECTANGLES
-    mEnableDirtyRectangle = true;
-/*#ifdef PX_DIRTY_RECTANGLES_DEFAULT_OFF
-    mEnableDirtyRectangle = false;
-#endif*/
-#endif
-    
   mRoot = new pxRoot(this);
   mFocusObj = mRoot;
   mEmit = new rtEmit();
@@ -2453,8 +2403,6 @@ void pxScene2d::draw()
 
   //rtLogInfo("pxScene2d::draw()\n");
   #ifdef PX_DIRTY_RECTANGLES
-  if (mEnableDirtyRectangle)
-  {
   pxRect dirtyRectangle = mDirtyRect;
   dirtyRectangle.unionRect(mLastFrameDirtyRect);
   int x = dirtyRectangle.left();
@@ -2464,14 +2412,14 @@ void pxScene2d::draw()
 
   static bool previousShowDirtyRect = false;
 
-  if (mShowDirtyRectangle || previousShowDirtyRect)
+  if (mShowDirtyRectangle || previousShowDirtyRect || !mEnableDirtyRectangles)
   {
     context.enableDirtyRectangles(false);
   }
 
   if (mTop)
   {
-    if (mShowDirtyRectangle)
+    if (mShowDirtyRectangle || !mEnableDirtyRectangles)
     {
       context.enableClipping(false);
       context.clear(mWidth, mHeight);
@@ -2509,25 +2457,7 @@ EXITSCENELOCK()
     context.enableClipping(true);
   }
   previousShowDirtyRect = mShowDirtyRectangle;
-  }
-  else
-  {
-      if (mTop)
-      {
-          context.clear(mWidth, mHeight);
-      }
-      
-      if (mRoot)
-      {
-          pxMatrix4f m;
-          context.pushState();
-          ENTERSCENELOCK()
-          mRoot->drawInternal(true); // mask it !
-          EXITSCENELOCK()
-          context.popState();
-      }
 
-  }
 #else // Not ... PX_DIRTY_RECTANGLES
 
   if (mTop)
@@ -2735,8 +2665,7 @@ void pxScene2d::update(double t)
   if (mRoot)
   {
 #ifdef PX_DIRTY_RECTANGLES
-      if (mEnableDirtyRectangle)
-          context.pushState();
+      context.pushState();
 #endif //PX_DIRTY_RECTANGLES
 
       if( mCustomAnimator != NULL ) {
@@ -2750,8 +2679,7 @@ void pxScene2d::update(double t)
 #endif
 
 #ifdef PX_DIRTY_RECTANGLES
-      if (mEnableDirtyRectangle)
-          context.popState();
+      context.popState();
 #endif //PX_DIRTY_RECTANGLES
   }
 }
@@ -3360,16 +3288,14 @@ rtError pxScene2d::setShowDirtyRect(bool v)
 
 rtError pxScene2d::enableDirtyRect(bool& v) const
 {
-    v=mEnableDirtyRectangle;
+    v=mEnableDirtyRectangles;
     return RT_OK;
 }
 
 rtError pxScene2d::setEnableDirtyRect(bool v)
 {
-#if defined (PX_DIRTY_RECTANGLES) && defined(PX_DIRTY_RECTANGLES_DEFAULT_OFF)
-    mEnableDirtyRectangle = v;
-#else
-    mEnableDirtyRectangle = true;
+#ifdef PX_DIRTY_RECTANGLES_DEFAULT_ON
+    mEnableDirtyRectangles = v;
 #endif
     return RT_OK;
 }
@@ -3786,19 +3712,9 @@ void pxViewContainer::invalidateRect(pxRect* r)
   if (mScene)
   {
 #ifdef PX_DIRTY_RECTANGLES
-    bool v = false;
-    mScene->enableDirtyRect(v);
-    if (v)
-    {
     pxRect screenRect = convertToScreenCoordinates(r);
     mScene->invalidateRect(&screenRect);
     setDirtyRect(r);
-    }
-    else
-    {
-        mScene->invalidateRect(NULL);
-        UNUSED_PARAM(r);
-    }
 #else
     mScene->invalidateRect(NULL);
     UNUSED_PARAM(r);
@@ -3809,26 +3725,18 @@ void pxViewContainer::invalidateRect(pxRect* r)
 void pxScene2d::invalidateRect(pxRect* r)
 {
 #ifdef PX_DIRTY_RECTANGLES
-  if (mEnableDirtyRectangle)
+  if (r != NULL)
   {
-      if (r != NULL)
-      {
-        mDirtyRect.unionRect(*r);
-        mDirty = true;
-      }
+    mDirtyRect.unionRect(*r);
+    mDirty = true;
   }
-  else
-      UNUSED_PARAM(r);
 #else
   UNUSED_PARAM(r);
 #endif //PX_DIRTY_RECTANGLES
   if (mContainer && !mTop)
   {
 #ifdef PX_DIRTY_RECTANGLES
-    if (mEnableDirtyRectangle)
-        mContainer->invalidateRect(mDirty ? &mDirtyRect : NULL);
-    else
-      mContainer->invalidateRect(NULL);
+    mContainer->invalidateRect(mDirty ? &mDirtyRect : NULL);
 #else
     mContainer->invalidateRect(NULL);
 #endif //PX_DIRTY_RECTANGLES
