@@ -106,23 +106,25 @@ px.import({ scene: 'px:scene.1.js',
   });
 
 ////
-if (false)
-{
+if( scene.capabilities != undefined && scene.capabilities.graphics != undefined && scene.capabilities.graphics.cursor == 1) {
   // TODO Cursor emulation mostly for egl targets right now.
+    var fadeCursorTimer = undefined;
 
-  // TODO hacky raspberry pi detection
-  var os = require("os");
-  var hostname = os.hostname();
-
-  if (hostname == "raspberrypi") {
     var cursor = scene.create({t:"image", url:"cursor.png",parent:scene.root,
-                               interactive:false});
+                               interactive:false, a:0});
 
     scene.on("onMouseMove", function(e) {
+      if (fadeCursorTimer != undefined) {
+        clearTimeout(fadeCursorTimer);
+      }
+      fadeCursorTimer = setTimeout( function()
+      {
+        cursor.animate({a:0}, 2, scene.animation.TWEEN_LINEAR, scene.animation.LOOP,1);
+      }, 5000);
+      cursor.a = 1.0;
       cursor.x = e.x-23;
       cursor.y = e.y-10;
     });
-  }
 }
 ////
   scene.root.on("onPreKeyDown", function(e) {
