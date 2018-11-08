@@ -504,7 +504,13 @@ function Optimus() {
    * @returns {Application}
    */
   this.createApplication = function(props){
+    var timestamp = scene.clock();
     var app = new Application(props);
+    app.ready.then(function () {
+      var url = props.launchParams.uri ? props.launchParams.uri : props.launchParams.cmd;
+      var loadTime = scene.clock() - timestamp;
+      console.log("url : "+url+", "+app.type+", "+loadTime.toFixed(2)+"ms");
+    });
     applicationsArray.push(app);
     return app;
   };
