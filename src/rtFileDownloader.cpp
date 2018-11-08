@@ -35,7 +35,7 @@
 using namespace std;
 
 #define CA_CERTIFICATE "cacert.pem"
-
+#define MAX_URL_SIZE 8000
 const int kCurlTimeoutInSeconds = 30;
 #ifdef PX_REUSE_DOWNLOAD_HANDLES
 const int kMaxDownloadHandles = 6;
@@ -906,26 +906,20 @@ bool rtFileDownloader::downloadFromNetwork(rtFileDownloadRequest* downloadReques
     /* check for errors */
     if (res != CURLE_OK)
     {
-        rtString errorString("Download error for: ");
-        errorString.append(downloadRequest->fileUrl().cString());
-
-        errorString.append(". Error code : ");
-        // keep stringstream only for errorcode
-        stringstream errorCode("");
-        errorCode << res;
-        errorString.append(errorCode.str().c_str());
-
-        errorString.append(". Using proxy : ");
+        rtString proxyMessage("Using proxy:"); 
         if (useProxy)
         {
-          errorString.append("true - ");
-          errorString.append(proxyServer.cString());
+          proxyMessage.append("true - ");
+          proxyMessage.append(proxyServer.cString());
         }
         else
         {
-          errorString.append(" false ");
+          proxyMessage.append("false ");
         }
-        downloadRequest->setErrorString(errorString.cString());
+        char errorMessage[MAX_URL_SIZE+400];
+        memset(errorMessage, 0, sizeof(errorMessage));
+        sprintf(errorMessage, "Download error for:%s. Error code:%d. %s",downloadRequest->fileUrl().cString(), res, proxyMessage.cString());
+        downloadRequest->setErrorString(errorMessage);
         rtFileDownloader::instance()->releaseDownloadHandle(curl_handle, downloadHandleExpiresTime);
 
         //clean up contents on error
