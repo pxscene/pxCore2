@@ -45,6 +45,7 @@ global.constructPromise = function (obj) {
 else if (isV8) {
 console = require('console');
 timers = require('timers');
+Buffer = require('buffer').Buffer;
 
 setTimeout = timers.setTimeout;
 clearTimeout = timers.clearTimeout;

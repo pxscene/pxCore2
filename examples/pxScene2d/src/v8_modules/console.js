@@ -18,24 +18,41 @@ limitations under the License.
 
 "use strict";
 
-function trace(msg) {
-    print("[LOG TRACE] " + msg);
+/**
+ * convert multiple messages to single string
+ * @param  {...any} args the messages
+ */
+function stringify(...args) {
+    const ret = [];
+    args.forEach(arg => {
+        if (arg instanceof Error) {
+            ret.push(arg.toString());
+        } else {
+            ret.push(arg ? JSON.stringify(arg) : null);
+        }
+
+    });
+    return ret.join(' ');
 }
 
-function warn(msg) {
-    print("[LOG WARN] " + msg);
+function trace(...args) {
+    print("[LOG TRACE] " + stringify(...args));
 }
 
-function error(msg) {
-    print("[LOG ERROR] " + msg);
+function warn(...args) {
+    print("[LOG WARN] " + stringify(...args));
 }
 
-function log(msg) {
-    print("[LOG LOG] " + msg);
+function error(...args) {
+    print("[LOG ERROR] " + stringify(...args));
 }
 
-function info(msg) {
-    print("[LOG INFO] " + msg);
+function log(...args) {
+    print("[LOG LOG] " + stringify(...args));
+}
+
+function info(...args) {
+    print("[LOG INFO] " + stringify(...args));
 }
 
 module.exports = {
