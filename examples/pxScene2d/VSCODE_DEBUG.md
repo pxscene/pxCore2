@@ -37,12 +37,12 @@ NOTE:  From VSCode 1.25 and greater ... it is necessary to include `"protocol": 
       "type": "node",
       "request": "launch",
       "protocol": "legacy",
-      "cwd": "/Applications/spark.app/Contents/MacOS",
-      "runtimeExecutable": "/Applications/spark.app/Contents/MacOS/pxscene",
+      "cwd": "/Applications/Spark.app/Contents/MacOS",
+      "runtimeExecutable": "/Applications/Spark.app/Contents/MacOS/Spark",
       "args":["${file}"],
       "env" : {
-      "LD_LIBRARY_PATH":"/Applications/spark.app/Contents/MacOS/lib",
-      "DYLD_LIBRARY_PATH":"/Applications/spark.app/Contents/MacOS/lib"
+      "LD_LIBRARY_PATH":"/Applications/Spark.app/Contents/MacOS/lib",
+      "DYLD_LIBRARY_PATH":"/Applications/Spark.app/Contents/MacOS/lib"
       //,"BREAK_ON_SCRIPTSTART":1    
       }
     },
@@ -51,11 +51,11 @@ NOTE:  From VSCode 1.25 and greater ... it is necessary to include `"protocol": 
       "type": "node",
       "request": "launch",
       "protocol": "legacy",
-      "cwd": "/Applications/spark.app/Contents/MacOS",
-      "runtimeExecutable": "/Applications/spark.app/Contents/MacOS/pxscene",
+      "cwd": "/Applications/Spark.app/Contents/MacOS",
+      "runtimeExecutable": "/Applications/Spark.app/Contents/MacOS/Spark",
       "env" : {
-      "LD_LIBRARY_PATH":"/Applications/spark.app/Contents/MacOS/lib",
-      "DYLD_LIBRARY_PATH":"/Applications/spark.app/Contents/MacOS/lib"
+      "LD_LIBRARY_PATH":"/Applications/Spark.app/Contents/MacOS/lib",
+      "DYLD_LIBRARY_PATH":"/Applications/Spark.app/Contents/MacOS/lib"
       //,"BREAK_ON_SCRIPTSTART":1      
       }
     },   

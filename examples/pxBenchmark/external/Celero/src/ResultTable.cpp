@@ -63,9 +63,9 @@ public:
 		// Print the header for the table.
 		if(this->ofs.is_open() == true)
 		{
-			this->ofs << "Group,Experiment,Problem "
+			this->ofs << "Group,Problem "
 						 "Space,Samples,Iterations,Failure,Baseline,";
-			this->ofs << "us/Iteration,Iterations/sec,Min (us),Mean (us),Max "
+			this->ofs << "TotalTime(us),us/Iteration,Iterations/sec,Min (us),Mean (us),Max "
 						 "(us),Variance,Standard Deviation,Skewness,Kurtosis,Z Score"
 					  << std::endl;
 		}
@@ -113,13 +113,30 @@ void ResultTable::add(std::shared_ptr<celero::ExperimentResult> x)
 {
 	if(this->pimpl->ofs.is_open() == true)
 	{
-		this->pimpl->ofs << x->getExperiment()->getBenchmark()->getName() << "," << x->getExperiment()->getName() << "," << x->getProblemSpaceValue()
+		this->pimpl->ofs << x->getExperiment()->getBenchmark()->getName() << "," << x->getProblemSpaceValue()
 						 << "," << x->getExperiment()->getSamples() << "," << x->getProblemSpaceIterations() << "," << x->getFailure() << ",";
 
-		this->pimpl->ofs << x->getBaselineMeasurement() << "," << x->getUsPerCall() << "," << x->getCallsPerSecond() << ","
+		this->pimpl->ofs << x->getBaselineMeasurement() << "," << x->getExperiment()->getName() << "," << x->getUsPerCall() << "," << x->getCallsPerSecond() << ","
 						 << x->getTimeStatistics()->getMin() << "," << x->getTimeStatistics()->getMean() << "," << x->getTimeStatistics()->getMax()
 						 << "," << x->getTimeStatistics()->getVariance() << "," << x->getTimeStatistics()->getStandardDeviation() << ","
 						 << x->getTimeStatistics()->getSkewness() << "," << x->getTimeStatistics()->getKurtosis() << ","
 						 << x->getTimeStatistics()->getZScore() << std::endl;
 	}
+}
+
+void ResultTable::add(const std::vector<std::string>& list)
+{
+    if(this->pimpl->ofs.is_open() == true)
+    {
+        size_t n = list.size();
+        for (size_t i = 0; i < n; ++i)
+        {
+            this->pimpl->ofs << list[i];
+            if (i < n - 1)
+                this->pimpl->ofs << ",";
+        }
+        
+        if (n > 0)
+            this->pimpl->ofs << std::endl;
+    }
 }

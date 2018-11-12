@@ -107,7 +107,7 @@ void pxText::resourceReady(rtString readyResolution)
     {
       if( !mParent)
       {
-        // Send the promise here because the text will not get an 
+        // Send the promise here because the text will not get an
         // update call until it has parent
         sendPromise();
       }

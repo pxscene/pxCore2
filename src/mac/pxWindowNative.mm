@@ -641,6 +641,11 @@ void MyDisplayReconfigurationCallBack(CGDirectDisplayID display,
   pxWindowNative::_helper_onMouseMove(mWindow, p.x, p.y);
 }
 
+- (void)scrollWheel:(NSEvent *)event
+{
+  pxWindowNative::_helper_onScrollWheel(mWindow, event.deltaX, event.deltaY);
+}
+
 -(void)keyDown:(NSEvent*)event
 {
   uint32_t flags = 0;
@@ -1105,13 +1110,9 @@ pxError pxWindow::init(int left, int top, int width, int height)
   
   
   NSApplication *app = [NSApplication sharedApplication];
-  
-  NSApplicationPresentationOptions options = [app currentSystemPresentationOptions];
-  [app setPresentationOptions: options | NSApplicationPresentationFullScreen];
 
   NSWindowCollectionBehavior behavior = [window collectionBehavior];
   [window setCollectionBehavior: behavior | NSWindowCollectionBehaviorFullScreenPrimary ];
-  
   
   mWindow = (void*)window;
   

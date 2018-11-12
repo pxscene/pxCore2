@@ -56,6 +56,13 @@ namespace celero
 		///
 		void add(std::shared_ptr<celero::ExperimentResult> x);
 
+        ///
+        /// Add a new result to the result table.
+        ///
+        /// This should re-save on every new result so that the output can be monitored externally.
+        ///
+        
+        void add(const std::vector<std::string>& list);
 		///
 		///
 		///

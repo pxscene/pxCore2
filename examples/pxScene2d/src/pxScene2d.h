@@ -71,7 +71,6 @@
 
 #include "rtServiceProvider.h"
 #include "rtSettings.h"
-
 #ifdef RUNINMAIN
 #define ENTERSCENELOCK()
 #define EXITSCENELOCK() 
@@ -508,8 +507,11 @@ public:
       float dy = -(mpy * mh);
       
       // translate based on xy rotate/scale based on cx, cy
-      m.translate(mx + mcx + dx, my + mcy + dy);
-      
+      bool doTransToOrig = msx != 1.0 || msy != 1.0 || mr;
+      if (doTransToOrig)
+          m.translate(mx + mcx + dx, my + mcy + dy);
+      else
+          m.translate(mx + dx, my + dy);
       if (mr)
       {
         m.rotateInDegrees(mr
@@ -519,7 +521,8 @@ public:
         );
       }
       if (msx != 1.0 || msy != 1.0) m.scale(msx, msy);
-      m.translate(-mcx, -mcy);
+      if (doTransToOrig)
+          m.translate(-mcx, -mcy);
 #else
       // translate/rotate/scale based on cx, cy
       m.translate(mx, my);
@@ -751,7 +754,7 @@ protected:
   bool mRepaint;
   #ifdef PX_DIRTY_RECTANGLES
   bool mIsDirty;
-  pxMatrix4f mLastRenderMatrix;
+  pxMatrix4f mRenderMatrix;
   pxRect mScreenCoordinates;
   pxRect mDirtyRect;
   #endif //PX_DIRTY_RECTANGLES
@@ -797,6 +800,7 @@ public:
   rtMethod1ArgAndNoReturn("onMouseDown", onMouseDown, rtObjectRef);
   rtMethod1ArgAndNoReturn("onMouseUp", onMouseUp, rtObjectRef);
   rtMethod1ArgAndNoReturn("onMouseMove", onMouseMove, rtObjectRef);
+  rtMethod1ArgAndNoReturn("onScrollWheel", onScrollWheel, rtObjectRef);
   rtMethod1ArgAndNoReturn("onMouseEnter", onMouseEnter, rtObjectRef);
   rtMethod1ArgAndNoReturn("onMouseLeave", onMouseLeave, rtObjectRef);
   rtMethod1ArgAndNoReturn("onFocus", onFocus, rtObjectRef);
@@ -810,6 +814,7 @@ public:
     addListener("onMouseDown", get<rtFunctionRef>("onMouseDown"));
     addListener("onMouseUp", get<rtFunctionRef>("onMouseUp"));
     addListener("onMouseMove", get<rtFunctionRef>("onMouseMove"));
+    addListener("onScrollWheel", get<rtFunctionRef>("onScrollWheel"));
     addListener("onMouseEnter", get<rtFunctionRef>("onMouseEnter"));
     addListener("onMouseLeave", get<rtFunctionRef>("onMouseLeave"));
     addListener("onFocus", get<rtFunctionRef>("onFocus"));
@@ -900,6 +905,18 @@ public:
       float x = o.get<float>("x");
       float y = o.get<float>("y");
       mView->onMouseMove(static_cast<int32_t>(x),static_cast<int32_t>(y));
+    }
+    return RT_OK;
+  }
+
+  rtError onScrollWheel(rtObjectRef o)
+  {
+    rtLogDebug("pxViewContainer::onScrollWheel");
+    if (mView)
+    {
+      float dx = o.get<float>("dx");
+      float dy = o.get<float>("dy");
+      mView->onScrollWheel( dx, dy );
     }
     return RT_OK;
   }
@@ -1088,7 +1105,6 @@ public:
 #endif
   virtual ~pxScriptView()
   {
-    rtLogInfo(__FUNCTION__);
     rtLogDebug("~pxScriptView for mUrl=%s\n",mUrl.cString());
     // Clear out these references since the script context
     // can outlive this view
@@ -1224,6 +1240,13 @@ protected:
     return false;
   }
 
+  virtual bool onScrollWheel(float dx, float dy)
+  {
+    if (mView)
+      return mView->onScrollWheel(dx,dy);
+    return false;
+  }
+  
   virtual bool onMouseEnter()
   {
     if (mView)
@@ -1373,10 +1396,12 @@ public:
   rtReadOnlyProperty(alignVertical,alignVertical,rtObjectRef);
   rtReadOnlyProperty(alignHorizontal,alignHorizontal,rtObjectRef);
   rtReadOnlyProperty(truncation,truncation,rtObjectRef);
-  rtMethod1ArgAndReturn("sparkSetting", sparkSetting, rtString, rtValue);
+
+  rtReadOnlyProperty(origin, origin, rtString);
 
   rtMethodNoArgAndNoReturn("dispose",dispose);
 
+  rtMethod1ArgAndReturn("sparkSetting", sparkSetting, rtString, rtValue);
   rtMethod1ArgAndNoReturn("addServiceProvider", addServiceProvider, rtFunctionRef);
   rtMethod1ArgAndNoReturn("removeServiceProvider", removeServiceProvider, rtFunctionRef);
 
@@ -1399,6 +1424,7 @@ public:
     {
        mArchive = NULL;
     }
+    mArchiveSet = false;
   }
   
   virtual unsigned long AddRef() 
@@ -1532,6 +1558,7 @@ public:
   rtCORSRef cors() const { return mCORS; }
   rtError cors(rtObjectRef& v) const { v = mCORS; return RT_OK; }
   rtError sparkSetting(const rtString& setting, rtValue& value) const;
+  rtError origin(rtString& v) const { v = mOrigin; return RT_OK; }
 
   void setMouseEntered(rtRef<pxObject> o);//setMouseEntered(pxObject* o);
 
@@ -1543,6 +1570,7 @@ public:
   virtual bool onMouseEnter();
   virtual bool onMouseLeave();
   virtual bool onMouseMove(int32_t x, int32_t y);
+  virtual bool onScrollWheel(float dx, float dy);
 
   virtual bool onFocus();
   virtual bool onBlur();
@@ -1617,24 +1645,30 @@ public:
       e = RT_OK;
     }
 
-    pxArchive* myArchive = (pxArchive*) a.getPtr();
-    /* decide whether further file access from this scene need to to taken from,
-       parent -> if this scene is created from archive
-       itself -> if this file itself is archive
-    */
-    if ((parentArchive != NULL ) && (((pxArchive*)parentArchive.getPtr())->isFile() == false))
+    if (false == mArchiveSet)
     {
-      if ((myArchive != NULL ) && (myArchive->isFile() == false))
+      pxArchive* myArchive = (pxArchive*) a.getPtr();
+      /* decide whether further file access from this scene need to to taken from,
+      parent -> if this scene is created from archive
+      itself -> if this file itself is archive
+      */
+      if ((parentArchive != NULL ) && (((pxArchive*)parentArchive.getPtr())->isFile() == false))
       {
-        mArchive = a;
+        if ((myArchive != NULL ) && (myArchive->isFile() == false))
+        {
+          mArchive = a;
+        }
+        else
+        {
+          mArchive = parentArchive;
+        }
       }
       else
       {
-        mArchive = parentArchive;
+        mArchive = a;
       }
+      mArchiveSet = true;
     }
-    else
-      mArchive = a;
     return e;
   }
 
@@ -1702,6 +1736,7 @@ private:
   bool mPointerHidden;
   std::vector<rtObjectRef> mInnerpxObjects;
   rtFunctionRef mCustomAnimator;
+  rtString mOrigin;
 #ifdef ENABLE_PERMISSIONS_CHECK
   rtPermissionsRef mPermissions;
 #endif
@@ -1721,6 +1756,7 @@ public:
   testView* mTestView;
   bool mDisposed;
   std::vector<rtFunctionRef> mServiceProviders;
+  bool mArchiveSet;
 };
 
 // TODO do we need this anymore?

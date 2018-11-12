@@ -1,3 +1,40 @@
+# Helper function to parse '#define VARIABLE DIGITS' pattern
+function(parse_define file define)
+    file(STRINGS ${file} value REGEX "#define ${define} ")
+    string(REGEX REPLACE "(#define ${define}[ ]+)([0123456789]+).*" "\\2" value ${value})
+    set(${define} ${value} PARENT_SCOPE)
+endfunction(parse_define)
+
+# Function retrieves the 'v8' engine version string
+function(v8_get_version dest_variable file)
+        parse_define(${file} V8_MAJOR_VERSION)
+        parse_define(${file} V8_MINOR_VERSION)
+        parse_define(${file} V8_BUILD_NUMBER)
+        parse_define(${file} V8_PATCH_LEVEL)
+        parse_define(${file} V8_IS_CANDIDATE_VERSION)
+        set(${dest_variable} "${V8_MAJOR_VERSION}.${V8_MINOR_VERSION}.${V8_BUILD_NUMBER}.${V8_PATCH_LEVEL} [is candidate: ${V8_IS_CANDIDATE_VERSION}]" PARENT_SCOPE)
+endfunction(v8_get_version)
+
+
+if (PREFER_SYSTEM_LIBRARIES)
+    message(STATUS "Checking for one of the headers 'v8-version.h'")
+    find_path(V8_VERSION_DIR "v8-version.h" PATHS ${V8_INCLUDE_DIRS})
+
+    if (V8_VERSION_DIR)
+        v8_get_version(V8_VERSION_STRING ${V8_VERSION_DIR}/v8-version.h)
+
+        message(STATUS "Found v8-version.h header at: ${V8_VERSION_DIR} (found version: ${V8_VERSION_STRING})")
+
+        set(V8_FOUND 1)
+        add_definitions(-DUSE_SYSTEM_V8)
+        set(V8_LIBRARIES
+            v8
+            v8_libbase
+            v8_libplatform)
+    endif(V8_VERSION_DIR)
+endif (PREFER_SYSTEM_LIBRARIES)
+
+if (NOT V8_FOUND)
 set(NODEDIR "${EXTDIR}/libnode-v6.9.0/")
 set(V8DIR "${EXTDIR}/v8/")
 set(V8_INCLUDE_DIRS ${V8DIR}/include
@@ -6,6 +43,15 @@ set(V8_INCLUDE_DIRS ${V8DIR}/include
         ${NODEDIR}/deps/openssl/openssl/include
         ${NODEDIR}/deps/icu-small/source/common/unicode
         ${NODEDIR}/deps/icu-small/source/common)
+
+    message(STATUS "Checking for one of the headers 'v8-version.h'")
+    find_path(V8_VERSION_DIR "v8-version.h" PATHS ${V8_INCLUDE_DIRS} NO_DEFAULT_PATH)
+
+    if (V8_VERSION_DIR)
+        v8_get_version(V8_VERSION_STRING ${V8_VERSION_DIR}/v8-version.h)
+
+        message(STATUS "Found v8-version.h header at: ${V8_VERSION_DIR} (found version: ${V8_VERSION_STRING})")
+    endif (V8_VERSION_DIR)
 
 if (WIN32)
     set(V8_LIBDIR ${V8DIR}/out.gn/ia32.release)
@@ -76,3 +122,5 @@ else (SUPPORT_V8)
     unset(V8_LIBRARIES)
     unset(V8_SOURCES)
 endif (SUPPORT_V8)
+
+endif (NOT V8_FOUND)

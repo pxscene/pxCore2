@@ -32,9 +32,8 @@ var loadFileWithSparkPermissionsCheck = require('rcvrcore/utils/FileUtils').load
 var SceneModuleManifest = require('rcvrcore/SceneModuleManifest');
 var JarFileMap = require('rcvrcore/utils/JarFileMap');
 var AsyncFileAcquisition = require('rcvrcore/utils/AsyncFileAcquisition');
-var AccessControl = require('rcvrcore/utils/AccessControl').AccessControl;
+var AccessControl = isV8?null:require('rcvrcore/utils/AccessControl');
 var WrapObj = require('rcvrcore/utils/WrapObj');
-var http2_wrap = require('rcvrcore/http2_wrap');
 
 var log = new Logger('AppSceneContext');
 //overriding original timeout and interval functions
@@ -42,6 +41,10 @@ var SetTimeout = (isDuk || isV8)?timers.setTimeout:setTimeout;
 var ClearTimeout = (isDuk || isV8)?timers.clearTimeout:clearTimeout;
 var SetInterval = (isDuk || isV8)?timers.setInterval:setInterval;
 var ClearInterval = (isDuk || isV8)?timers.clearInterval:clearInterval;
+
+
+var http_wrap = isV8?null:require('rcvrcore/http_wrap');
+var https_wrap = isV8?null:require('rcvrcore/https_wrap');
 
 function AppSceneContext(params) {
 
@@ -67,7 +70,7 @@ function AppSceneContext(params) {
   this.scriptMap = {};
   this.xmoduleMap = {};
   this.asyncFileAcquisition = new AsyncFileAcquisition(params.scene);
-  this.accessControl = new AccessControl(params.scene);
+  this.accessControl = isV8?null:new AccessControl(params.scene);
   this.lastHrTime = isDuk?uv.hrtime():(isV8?uv_hrtime():process.hrtime());
   this.resizeTimer = null;
   this.topXModule = null;
@@ -77,10 +80,9 @@ function AppSceneContext(params) {
   this.timers = [];
   this.timerIntervals = [];
   this.webSocketManager = null;
-  // create objects for http1 and http2 to be used
-  this.http1wrap = new http2_wrap(this.accessControl, true);
-  this.http2wrap = new http2_wrap(this.accessControl, false);
-  this.disableFilePermissionCheck = this.innerscene.sparkSetting("disableFilePermissionCheck");
+  this.httpwrap = isV8?null:new http_wrap(this.accessControl);
+  this.httpswrap = isV8?null:new https_wrap(this.accessControl);
+  this.disableFilePermissionCheck = isV8?true:this.innerscene.sparkSetting("disableFilePermissionCheck");
   if (undefined == this.disableFilePermissionCheck)
   {
     this.disableFilePermissionCheck = false;
@@ -196,8 +198,8 @@ function terminateScene() {
       this.accessControl.destroy();
       this.accessControl = null;
     }
-    this.http1wrap = null;
-    this.http2wrap = null;
+    this.httpwrap = null;
+    this.httpswrap = null;
     this.isCloseEvtRcvd = false;
     this.isTermEvtRcvd = false;
     this.termEvent = null;
@@ -273,9 +275,13 @@ var setTimeoutCallback = function() {
   ClearTimeout(this);
 };
 
-function createModule_pxScope(xModule) {
-  return {
-    log: xModule.log,
+function getBaseFilePath()
+{
+  return this;
+}
+
+function createModule_pxScope(xModule, isImported) {
+  var params  = {     log: xModule.log,
     import: xModule.importModule.bind(xModule),
     configImport: xModule.configImport.bind(xModule),
     resolveFilePath: xModule.resolveFilePath.bind(xModule),
@@ -284,6 +290,24 @@ function createModule_pxScope(xModule) {
     getFile: this.getFile.bind(this),
     getModuleFile: xModule.getFile.bind(xModule)
   };
+
+  //xModule.basePath is used for imported files, as xModule is per javascript file basis
+  if (true == isImported)
+  {
+    if (xModule.basePath == "")
+    {
+      params.getBaseFilePath = getBaseFilePath.bind("./");
+    }
+    else
+    {
+      params.getBaseFilePath = getBaseFilePath.bind(xModule.basePath+"/");
+    }
+  }
+  else
+  {
+    params.getBaseFilePath = params.getPackageBaseFilePath;
+  }
+  return params;
 }
 
 AppSceneContext.prototype.runScriptInNewVMContext = function (packageUri, moduleLoader, configImport) {
@@ -587,13 +611,13 @@ AppSceneContext.prototype.getModuleFile = function(filePath, xModule) {
 
 AppSceneContext.prototype.getFile = function(filePath) {
   log.message(4, "getFile: requestedFile=" + filePath);
-  if ("true" == this.disableFilePermissionCheck || true == this.disableFilePermissionCheck)
+  if ((isV8) || ("true" == this.disableFilePermissionCheck || true == this.disableFilePermissionCheck))
   {
     return loadFile(filePath);
   }
   else
   {
-    return loadFileWithSparkPermissionsCheck(this.accessControl, this.http1wrap, this.http2wrap, filePath);
+    return loadFileWithSparkPermissionsCheck(this.accessControl, this.httpwrap, this.httpswrap, filePath);
   }
 };
 
@@ -629,7 +653,6 @@ AppSceneContext.prototype.include = function(filePath, currentXModule) {
   var origFilePath = filePath;
 
   return new Promise(function (onImportComplete, reject) {
-    var modData;
     if (/^(px|url|querystring|htmlparser|crypto|oauth)$/.test(filePath)) {
       if (isDuk && filePath === 'htmlparser') {
         console.log("Not permitted to use the module " + filePath);
@@ -637,7 +660,7 @@ AppSceneContext.prototype.include = function(filePath, currentXModule) {
         return;
       }
       // built-ins
-      modData = require(filePath);
+      var modData = require(filePath);
       onImportComplete([modData, origFilePath]);
       return;
     } else if( filePath === 'fs' || filePath === 'os' || filePath === 'events') {
@@ -665,18 +688,29 @@ AppSceneContext.prototype.include = function(filePath, currentXModule) {
         onImportComplete([modData, origFilePath]);
         return;
       }
-    } else if (/^(http|https|http2)$/.test(filePath)) {
-      if (/^(http|https)$/.test(filePath)) {
-        console.warn("module '" + filePath + "' support is deprecated, use 'http2' instead");
+    } else if( filePath === 'http' || filePath === 'https' ) {
+      if (isV8) {
+        modData = require(filePath);
+        onImportComplete([modData, origFilePath]);
+        return;
       }
-      if (filePath === 'http')
+     if (filePath === 'http')
       {
-        modData = _this.http1wrap;
+        modData = _this.httpwrap;
       }
       else
       {
-        modData = _this.http2wrap;
+        modData = _this.httpswrap;
       }
+      onImportComplete([modData, origFilePath]);
+      return;
+    } else if( filePath === 'http2' ) {
+      if (isV8) {
+        modData = require('https');
+        onImportComplete([modData, origFilePath]);
+        return;
+      }
+      modData = require('rcvrcore/http2_wrap');
       onImportComplete([modData, origFilePath]);
       return;
     } else if( filePath.substring(0, 9) === "px:scene.") {
@@ -792,7 +826,7 @@ AppSceneContext.prototype.processCodeBuffer = function(origFilePath, filePath, c
 
   var sourceCode = AppSceneContext.wrap(codeBuffer);
   log.message(4, "RUN " + filePath);
-  var px = createModule_pxScope.call(this, xModule);
+  var px = createModule_pxScope.call(this, xModule, true);
   if (isDuk) {
     vm.runInNewContext(sourceCode, _this.sandbox, { filename: filePath, displayErrors: true },
                          px, xModule, filePath, filePath);

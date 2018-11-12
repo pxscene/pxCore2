@@ -36,105 +36,6 @@ public:
   {
   }
 
-  void toLowercaseStr_test()
-  {
-    std::string s;
-    s = rtCORS::toLowercaseStr("Access-Control-Allow-Origin");
-    EXPECT_EQ ((int)0, (int)s.compare("access-control-allow-origin"));
-    s = rtCORS::toLowercaseStr("Access-Control-Allow-Credentials");
-    EXPECT_EQ ((int)0, (int)s.compare("access-control-allow-credentials"));
-  }
-
-  void parseHeaders_test()
-  {
-    std::map<std::string, rtString> headerMap;
-    rtString rawHeaderData;
-    rawHeaderData =
-      "content-type: application/json\r\n"
-      "set-cookie: cookie-from-server=noop\r\n"
-      "access-control-allow-origin: \r\n"
-      "x-cloud-trace-context: 209bc1a00c7409bf54f1642316d9fe6f;o=1\r\n"
-      "date: Tue, 10 Jul 2018 14:33:54 GMT\r\n"
-      "server: Google Frontend\r\n"
-      "content-length: 845\r\n"
-      "expires: Tue, 10 Jul 2018 14:33:54 GMT\r\n"
-      "connection: close"
-    ;
-
-    rtError e = rtCORS::parseHeaders(rawHeaderData, headerMap);
-    EXPECT_EQ ((int)RT_OK, (int)e);
-    EXPECT_EQ ((int)9, (int)headerMap.size());
-    EXPECT_EQ ((int)0, (int)headerMap["content-type"].compare("application/json"));
-    EXPECT_EQ ((int)0, (int)headerMap["set-cookie"].compare("cookie-from-server=noop"));
-    EXPECT_EQ ((int)0, (int)headerMap["access-control-allow-origin"].compare(""));
-    EXPECT_EQ ((int)0, (int)headerMap["x-cloud-trace-context"].compare("209bc1a00c7409bf54f1642316d9fe6f;o=1"));
-    EXPECT_EQ ((int)0, (int)headerMap["date"].compare("Tue, 10 Jul 2018 14:33:54 GMT"));
-    EXPECT_EQ ((int)0, (int)headerMap["server"].compare("Google Frontend"));
-    EXPECT_EQ ((int)0, (int)headerMap["content-length"].compare("845"));
-    EXPECT_EQ ((int)0, (int)headerMap["expires"].compare("Tue, 10 Jul 2018 14:33:54 GMT"));
-    EXPECT_EQ ((int)0, (int)headerMap["connection"].compare("close"));
-
-    rawHeaderData =
-      "Server:\t\t\tApache/2.4.6 (CentOS) OpenSSL/1.0.1e-fips\n"
-      "Location:\t\t\thttps://example.com \n"
-      "Content-Length:\t\t\t284\n"
-      "Connection:\n"
-      "Content-Type:\t\t\ttext/html; charset=iso-8859-1"
-    ;
-
-    e = rtCORS::parseHeaders(rawHeaderData, headerMap);
-    EXPECT_EQ ((int)RT_OK, (int)e);
-    EXPECT_EQ ((int)5, (int)headerMap.size());
-    EXPECT_EQ ((int)0, (int)headerMap["server"].compare("Apache/2.4.6 (CentOS) OpenSSL/1.0.1e-fips"));
-    EXPECT_EQ ((int)0, (int)headerMap["location"].compare("https://example.com "));
-    EXPECT_EQ ((int)0, (int)headerMap["content-length"].compare("284"));
-    EXPECT_EQ ((int)0, (int)headerMap["connection"].compare(""));
-    EXPECT_EQ ((int)0, (int)headerMap["content-type"].compare("text/html; charset=iso-8859-1"));
-
-    rawHeaderData =
-      "Server:Apache/2.4.6 (CentOS) OpenSSL/1.0.1e-fips\r\n"
-      "x-cloud-trace-context: 敷リオワニ内前ヲルホ\r\n"
-      "Access-Control-Allow-Origin:          \t\t   http://localhost:8888\r\n"
-      "CONNECTION: CLOSE\n"
-      "expires"
-    ;
-
-    e = rtCORS::parseHeaders(rawHeaderData, headerMap);
-    EXPECT_EQ ((int)RT_OK, (int)e);
-    EXPECT_EQ ((int)5, (int)headerMap.size());
-    EXPECT_EQ ((int)0, (int)headerMap["server"].compare("Apache/2.4.6 (CentOS) OpenSSL/1.0.1e-fips"));
-    EXPECT_EQ ((int)0, (int)headerMap["x-cloud-trace-context"].compare("敷リオワニ内前ヲルホ"));
-    EXPECT_EQ ((int)0, (int)headerMap["access-control-allow-origin"].compare("http://localhost:8888"));
-    EXPECT_EQ ((int)0, (int)headerMap["connection"].compare("CLOSE"));
-    EXPECT_EQ ((int)0, (int)headerMap["expires"].compare(""));
-
-    rawHeaderData =
-      "content-type: application/json"
-    ;
-
-    e = rtCORS::parseHeaders(rawHeaderData, headerMap);
-    EXPECT_EQ ((int)RT_OK, (int)e);
-    EXPECT_EQ ((int)1, (int)headerMap.size());
-    EXPECT_EQ ((int)0, (int)headerMap["content-type"].compare("application/json"));
-
-    rawHeaderData =
-      "x"
-    ;
-
-    e = rtCORS::parseHeaders(rawHeaderData, headerMap);
-    EXPECT_EQ ((int)RT_OK, (int)e);
-    EXPECT_EQ ((int)1, (int)headerMap.size());
-    EXPECT_EQ ((int)0, (int)headerMap["x"].compare(""));
-
-    rawHeaderData =
-      ""
-    ;
-
-    e = rtCORS::parseHeaders(rawHeaderData, headerMap);
-    EXPECT_EQ ((int)RT_OK, (int)e);
-    EXPECT_EQ ((int)0, (int)headerMap.size());
-  }
-
   void updateRequestForAccessControl_test()
   {
     rtCORS cors("https://example.com");
@@ -275,73 +176,11 @@ public:
     e = cors.passesAccessControlCheck("Access-Control-Allow-Origin: *", false, "", passes);
     EXPECT_EQ ((int)RT_ERROR, (int)e);
   }
-
-  void isCORSRequestHeader_test()
-  {
-    rtError e;
-    bool result;
-    rtCORS cors("http://example.com");
-
-    e = cors.isCORSRequestHeader("", result);
-    EXPECT_EQ ((int)RT_OK, (int)e);
-    EXPECT_FALSE (result);
-
-    e = cors.isCORSRequestHeader("Access-Control-Allow-Origin", result);
-    EXPECT_EQ ((int)RT_OK, (int)e);
-    EXPECT_FALSE (result);
-
-    e = cors.isCORSRequestHeader("Origin", result);
-    EXPECT_EQ ((int)RT_OK, (int)e);
-    EXPECT_TRUE (result);
-
-    e = cors.isCORSRequestHeader("access-control-request-headers", result);
-    EXPECT_EQ ((int)RT_OK, (int)e);
-    EXPECT_TRUE (result);
-  }
-
-  void isCredentialsRequestHeader_test()
-  {
-    rtError e;
-    bool result;
-    rtCORS cors("http://example.com");
-
-    e = cors.isCredentialsRequestHeader("", result);
-    EXPECT_EQ ((int)RT_OK, (int)e);
-    EXPECT_FALSE (result);
-
-    e = cors.isCredentialsRequestHeader("Access-Control-Allow-Origin", result);
-    EXPECT_EQ ((int)RT_OK, (int)e);
-    EXPECT_FALSE (result);
-
-    e = cors.isCredentialsRequestHeader("Cookie", result);
-    EXPECT_EQ ((int)RT_OK, (int)e);
-    EXPECT_TRUE (result);
-
-    e = cors.isCredentialsRequestHeader("authorization", result);
-    EXPECT_EQ ((int)RT_OK, (int)e);
-    EXPECT_TRUE (result);
-  }
-
-  void origin_test()
-  {
-    rtError e;
-    rtString result;
-    rtCORS cors("http://example.com");
-
-    e = cors.origin(result);
-    EXPECT_EQ ((int)RT_OK, (int)e);
-    EXPECT_EQ ((int)0, (int)result.compare("http://example.com"));
-  }
 };
 
 TEST_F(corsTest, corsTests)
 {
-  toLowercaseStr_test();
-  parseHeaders_test();
   updateRequestForAccessControl_test();
   updateResponseForAccessControl_test();
   passesAccessControlCheck_test();
-  isCORSRequestHeader_test();
-  isCredentialsRequestHeader_test();
-  origin_test();
 }

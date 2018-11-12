@@ -22,10 +22,11 @@ var baseUrl = "http://www.pxscene.org/examples/px-reference/gallery/";
 px.configImport({"browser:" : /*px.getPackageBaseFilePath() + */ "browser/"});
 
 
-px.import({ scene:      'px:scene.1.js',
-             keys:      'px:tools.keys.js',
+px.import({ scene:    'px:scene.1.js',
+             keys:    'px:tools.keys.js',
              ListBox: 'browser:listbox.js',
-             EditBox: 'browser:editbox.js'
+             EditBox: 'browser:editbox.js',
+             mime:    'mime.js'
 }).then( function importsAreReady(imports)
 {  
   var url   = "";
@@ -34,6 +35,7 @@ px.import({ scene:      'px:scene.1.js',
   var scene = imports.scene;
   var keys  = imports.keys;
   var root  = imports.scene.root;
+  var resolveSceneUrl = imports.mime.resolveSceneUrl;
  
   var urlFocusColor     = 0x303030ff;
   var urlSucceededColor = 0x0c8508ff;
@@ -81,43 +83,7 @@ px.import({ scene:      'px:scene.1.js',
 
   function reload(u)
   {
-    if (!u)
-      u = inputBox.text;
-    else
-      inputBox.text = u;
-
-    if (u.indexOf("local:") === 0) // LOCAL shorthand
-    {
-      var txt = u.slice(6, u.length);
-      var pos = txt.indexOf(':');
-      if ( pos == -1)
-      {
-        u = "http://localhost:8080/" + txt;   // SHORTCUT:   "local:filename.js""  >>  "http://localhost:8080/filename.js" (default to 8080)
-      }
-      else
-      {
-        var str = txt.split('');
-        str[pos] = "/"; // replace : with /
-        txt = str.join('');
-
-        u = "http://localhost:" + txt;       // SHORTCUT:   "local:8081:filename.js" >> "http://localhost:8081/filename.js""
-      }
-
-      url = u;
-    }
-
-    // TODO Temporary hack
-    if(u == "about.js")
-    {
-        u = "about.js";
-    }
-    else        
-    if (u.indexOf(':') == -1)
-    {
-      u = baseUrl + u;
-      //  inputBox.text = u;
-    }
-
+    u = resolveSceneUrl(u);
     console.log("RELOADING.... [ " + u + " ]");
 
     // Prime the Spinner !

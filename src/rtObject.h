@@ -31,6 +31,7 @@
 
 #include <string.h>
 #include <vector>
+#include <string>
 
 // rtIObject and rtIFunction are designed to be an
 // Abstract Binary Interface(ABI)
@@ -190,6 +191,8 @@ public:
 	       const rtValue& arg5, const rtValue& arg6,
 	       const rtValue& arg7);
   
+  rtError sendAsync(const rtValue& arg1, const rtValue& arg2);
+
   template <typename T> 
     rtError sendReturns(T& result);
   template <typename T> 
@@ -227,6 +230,7 @@ public:
 
  private:
   virtual rtError Send(int numArgs, const rtValue* args, rtValue* result) = 0;
+  virtual rtError SendAsync(int numArgs, const rtValue* args); 
 };
 
 class rtObjectRef: public rtRef<rtIObject>, public rtObjectBase
@@ -632,11 +636,21 @@ public:
     mContext = NULL;
   }
   
+  void setId(std::string id)
+  {
+    mId = id;
+  }
+
+  std::string getId()
+  {
+    return mId;
+  }
 
 private:  
   rtFunctionCB mCB;
   void* mContext;
   rtAtomic mRefCount;
+  std::string mId;
 };
 
 
@@ -658,6 +672,7 @@ public:
   rtError clearListeners() {mEntries.clear(); return RT_OK;}
 
   virtual rtError Send(int numArgs,const rtValue* args,rtValue* result);
+  virtual rtError SendAsync(int numArgs, const rtValue* args);
 
   virtual size_t hash()
   {
@@ -668,6 +683,10 @@ public:
   {
     UNUSED_PARAM(hash);
   }
+
+
+private:
+  void processPendingEvents();
 
 protected:
   struct _rtEmitEntry 
@@ -696,6 +715,7 @@ public:
 
 private:
   virtual rtError Send(int numArgs,const rtValue* args,rtValue* result);
+  virtual rtError SendAsync(int numArgs,const rtValue* args);
 };
 
 class rtArrayObject: public rtObject 

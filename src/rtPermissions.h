@@ -22,17 +22,13 @@
 #include "rtObject.h"
 #include "rtRef.h"
 
-#include <map>
-#include <string>
-#include <utility>
-
 class rtPermissions;
 typedef rtRef<rtPermissions> rtPermissionsRef;
 
 class rtPermissions : public rtObject
 {
 public:
-  rtPermissions(const char* origin = NULL, const char* filepath = NULL);
+  rtPermissions(const char* origin = NULL);
   virtual ~rtPermissions();
 
   rtDeclareObject(rtPermissions, rtObject);
@@ -43,44 +39,35 @@ public:
     DEFAULT = 0,
     SERVICE,
     FEATURE,
-    WAYLAND
+    WAYLAND,
+    TYPE_COUNT
   };
 
-  rtError set(const rtObjectRef& permissionsObject);
+  static rtError init(const char* filename = NULL);
+
+  rtError set(const char* json);
+  rtError set(const rtObjectRef& obj);
   rtError setParent(const rtPermissionsRef& parent);
   rtError allows(const char* s, rtPermissions::Type type) const;
   rtError allows(const rtString& url, bool& o) const;
 
-protected:
-  // Wildcard stuff
-  typedef std::pair<std::string, Type> wildcard_t;
-  typedef std::map<wildcard_t, bool> permissionsMap_t;
-  typedef std::map<wildcard_t, std::string> assignMap_t;
-  typedef std::map<std::string, permissionsMap_t> roleMap_t;
-  // Extends std::map::find by supporting wildcard_t as map keys.
-  // Key with the highest length w/o wildcards (*) is preferred
-  template<typename Map> typename Map::const_iterator
-  static findWildcard(Map const& map, typename Map::key_type const& key);
-
   // Parsing
-  static permissionsMap_t permissionsJsonToMap(const void* jsonValue);
-  static permissionsMap_t permissionsObjectToMap(const rtObjectRef& permissionsObject);
+  static rtError file2str(const char* file, rtString& s);
+  static rtError json2obj(const char* json, rtObjectRef& obj);
+  static rtError find(const rtObjectRef& obj, const char* s, rtString& found); // obj = map or array
+  static const char* type2str(Type t);
 
+protected:
   // Bootstrap
   static const char* DEFAULT_CONFIG_FILE;
-  static const int CONFIG_BUFFER_SIZE;
   static const char* ENABLED_ENV_NAME;
   static const char* CONFIG_ENV_NAME;
-  static rtError loadConfig(const char* filepath);
-  static assignMap_t mAssignMap;
-  static roleMap_t mRolesMap;
-  static std::string mConfigPath;
   static bool mEnabled;
+  static rtObjectRef mConfig;
 
-  permissionsMap_t mPermissionsMap;
+  rtString mOrigin;
   rtPermissionsRef mParent;
-
-  friend class rtPermissionsTest;
+  rtObjectRef mRole;
 };
 
 #endif

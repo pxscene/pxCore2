@@ -92,7 +92,7 @@ class pxContext {
   void pushState();
   void popState();
 
-  pxContextFramebufferRef createFramebuffer(int width, int height, bool antiAliasing=false);
+  pxContextFramebufferRef createFramebuffer(int width, int height, bool antiAliasing=false, bool alphaOnly=false);
   pxError updateFramebuffer(pxContextFramebufferRef fbo, int width, int height);
   pxError setFramebuffer(pxContextFramebufferRef fbo);
   pxContextFramebufferRef getCurrentFramebuffer();
@@ -151,7 +151,7 @@ class pxContext {
   void enableDirtyRectangles(bool enable);
   void adjustCurrentTextureMemorySize(int64_t changeInBytes, bool allowGarbageCollect=true);
   void setTextureMemoryLimit(int64_t textureMemoryLimitInBytes);
-  bool isTextureSpaceAvailable(pxTextureRef texture, bool allowGarbageCollect=true);
+  bool isTextureSpaceAvailable(pxTextureRef texture, bool allowGarbageCollect=true, int32_t bytesPerPixel=4);
   int64_t currentTextureMemoryUsageInBytes();
   int64_t textureMemoryOverflow(pxTextureRef texture);
   int64_t ejectTextureMemory(int64_t bytesRequested, bool forceEject=false);

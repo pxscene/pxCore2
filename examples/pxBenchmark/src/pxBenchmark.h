@@ -44,16 +44,19 @@ class pxBenchmarkExperimentValue : public TestFixture::ExperimentValue
 {
 public:
     uint64_t         mTotalTime;
+    uint64_t         mFPS;
     //std::string      mName;
     
     pxBenchmarkExperimentValue()
     : mTotalTime (0)
     , ExperimentValue()
+    , mFPS (0)
     {
         
     }
     pxBenchmarkExperimentValue(int64_t v)
     : mTotalTime (0)
+    , mFPS (0)
     , ExperimentValue (v)
     {
     }
@@ -61,12 +64,14 @@ public:
     pxBenchmarkExperimentValue(int64_t v, uint64_t totTime)
     : ExperimentValue (v)
     , mTotalTime (totTime)
+    , mFPS (0)
     {
     }
     
     pxBenchmarkExperimentValue(int64_t v, int64_t i, uint64_t totTime)
     : ExperimentValue (v, i)
     , mTotalTime (totTime)
+    , mFPS (0)
     {
     };
     
@@ -90,6 +95,8 @@ class pxApiFixture : public celero::TestFixture
     pxTextureRef                              mTextureRef;
     pxTextureRef                              mTextureMaskRef;
     bool                                      mDoCreateTexture;
+    std::shared_ptr<Experiment>                    mExp;
+    
     void TestDrawRect ();
     void TestDrawDiagLine ();
     void TestDrawDiagRect ();
@@ -148,6 +155,7 @@ public:
     , mTextureRef (NULL)
     , mTextureMaskRef (NULL)
     , mDoCreateTexture (true)
+    , mExp (nullptr)
     {
     }
     
@@ -258,7 +266,7 @@ public:
     {
     }
     
-    void init(const int32_t& x, const int32_t& y, const int32_t& w, const int32_t& h, const int32_t& mw, const int32_t& mh, const bool doCreateTexture = true);
+    void init(const int32_t& x, const int32_t& y, const int32_t& w, const int32_t& h, const int32_t& mw, const int32_t& mh, const bool doArchive = false, const bool doCreateTexture = true);
     
     void* getInterface(const char* /*name*/);
     
@@ -285,6 +293,8 @@ public:
     void reset();
     
     pxOffscreen& GetTexture() { return mTexture; }
+    
+    uint64_t GetIterations () { return mIterations; }
     
     void SetIterations (uint64_t iterations) { mIterations = iterations; }
     

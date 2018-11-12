@@ -74,7 +74,7 @@ void pxTextBox::resourceReady(rtString readyResolution)
       pxObject::onTextureReady();
       if( !mParent)
       {
-        // Send the promise here because the textbox will not get an 
+        // Send the promise here because the textbox will not get an
         // update call until it has parent
         recalc();
         sendPromise();

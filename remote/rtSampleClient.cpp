@@ -119,8 +119,8 @@ int main(int /*argc*/, char* /*argv*/ [])
     rtLogInfo("get  :%s", rtStrError(e));
     rtLogInfo("type :%s", val.getTypeStr());
     rtLogInfo("value:%d", val.toInt32());
-    rtRemoteRunUntil(env, 1000);
-    sleep(1);
+    rtRemoteRunUntil(env, 100, true);
+    //sleep(1);
 
     rtValue temp(n);
     obj->Set("prop", &temp);

@@ -86,6 +86,15 @@ spark_force_node8=(
 )
 
 
+spark_force_v8=(
+  '-DSUPPORT_V8=ON'
+  '-DSUPPORT_NODE=OFF'
+  '-DSUPPORT_DUKTAPE=OFF'
+  '-DPKG_CONFIG_DISABLE_NODE=ON'
+  '-DPKG_CONFIG_DISABLE_NODE8=ON'
+)
+
+
 # Preferably don't use any options starting with:
 # -Wno-<option-name>
 cxx_common_opts=(

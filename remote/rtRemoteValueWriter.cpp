@@ -18,6 +18,7 @@ limitations under the License.
 
 #include "rtRemoteValueWriter.h"
 #include "rtRemoteObject.h"
+#include "rtRemoteFunction.h"
 #include "rtRemoteObjectCache.h"
 #include "rtRemoteConfig.h"
 #include "rtRemoteMessage.h"
@@ -32,14 +33,26 @@ namespace
 {
 //  static std::atomic<int> sNextFunctionId;
 
-  std::string getId(rtFunctionRef const& /*ref*/)
+  std::string getId(rtFunctionRef const& ref)
   {
-    rtGuid id = rtGuid::newRandom();
+    rtFunctionCallback * obj = dynamic_cast<rtFunctionCallback *>(ref.ptr());
+    if(obj && !obj->getId().empty())
+    {
+      return obj->getId();
+    }
+    else
+    {
+      rtGuid id = rtGuid::newRandom();
 
-    std::stringstream ss;
-    ss << "func://";
-    ss << id.toString();
-    return ss.str();
+      std::stringstream ss;
+      ss << "func://";
+      ss << id.toString();
+
+      if(obj)
+        obj->setId(ss.str());
+
+      return ss.str();
+    }
   }
  
   std::string getId(rtObjectRef const& ref)

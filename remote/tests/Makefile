@@ -5,7 +5,7 @@ OBJDIR   = obj
 PERF_CXXFLAGS = -Wall -DRT_PLATFORM_LINUX -Wextra -std=c++11 -I. -I../ -I../../src
 
 # how are we supposed to know glut/gles? Why is libpxCore.so
-PERF_LDFLAGS  = -L. -L.. -L../../build/egl -lrtRemote -lrtCore -pthread
+PERF_LDFLAGS  = -L. -L.. -L../../build/glut -lrtRemote -lrtCore -pthread
 
 ifeq ($V, 1)
   CXX_PRETTY = $(CXX)

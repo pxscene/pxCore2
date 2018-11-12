@@ -138,7 +138,7 @@ XModule.prototype.importModule = function(requiredModuleSet) {
           }
         }
         // remove the array of modules added for tracking in sandbox
-        _this.appSandbox.importTracking[bPath] = {};
+        delete _this.appSandbox.importTracking[bPath];
         log.message(7, "XMODULE ABOUT TO NOTIFY [" + _this.name + "] that all its imports are Ready");
         readyCallBack(exportsMap);
         moduleBuildResolve();

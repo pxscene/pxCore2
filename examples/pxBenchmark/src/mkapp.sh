@@ -67,6 +67,8 @@ then
 sed -i -e 's/\.\/pxbenchmark/\.\/pxbenchmarkEdge/g' /../pxBenchmark_xcode/pxbenchmark.sh
 fi
 cp ../pxBenchmark_xcode/pxbenchmark.sh $bundleBin
+cp ../pxBenchmark_xcode/run.sh $bundleBin
+cp ../pxBenchmark_xcode/automation.sh $bundleBin
 #cp ../pxBenchmark_xcode/EngineRunner $bundleBin
 
 # Minify JS into Bundle...

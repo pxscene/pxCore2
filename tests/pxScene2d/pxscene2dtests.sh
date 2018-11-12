@@ -55,6 +55,9 @@ ln -s ../../examples/pxScene2d/src/rcvrcore/ rcvrcore
 ln -s ../../examples/pxScene2d/src/FreeSans.ttf FreeSans.ttf
 ln -s ../../examples/pxScene2d/src/package.json package.json
 ln -s ../../examples/pxScene2d/src/sparkpermissions.conf sparkpermissions.conf
+cd supportfiles
+ln -s ../../../examples/pxScene2d/src/browser/images/input2.png input2.png
+cd ..
 
 ${DBG} ./pxscene2dtests "$@"
 
@@ -66,6 +69,7 @@ rm -rf rcvrcore
 rm -rf FreeSans.ttf
 rm -rf package.json
 rm -rf sparkpermissions.conf
+rm supportfiles/input2.png
 
 #gdb ./pxscene2dtests core
 

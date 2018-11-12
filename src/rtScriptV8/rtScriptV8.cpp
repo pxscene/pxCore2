@@ -18,10 +18,12 @@
 
 #ifdef RTSCRIPT_SUPPORT_V8
 
+#ifndef USE_SYSTEM_V8
 extern unsigned char natives_blob_bin_data[];
 extern int natives_blob_bin_size;
 extern unsigned char snapshot_blob_bin_data[];
 extern int snapshot_blob_bin_size;
+#endif /* USE_SYSTEM_V8 */
 
 #if defined WIN32
 #include <Windows.h>
@@ -41,12 +43,14 @@ extern int snapshot_blob_bin_size;
 
 #include <iostream>
 #include <sstream>
+#include <list>
 
 #include <unicode/uvernum.h>
 #include <unicode/putil.h>
 #include <unicode/udata.h>
 #include <unicode/uidna.h>
 
+#ifndef USE_SYSTEM_V8
 /* if this is defined, we have a 'secondary' entry point.
 compare following to utypes.h defs for U_ICUDATA_ENTRY_POINT */
 #define SMALL_ICUDATA_ENTRY_POINT \
@@ -59,19 +63,9 @@ compare following to utypes.h defs for U_ICUDATA_ENTRY_POINT */
 #endif
 
 extern "C" const char U_DATA_API SMALL_ICUDATA_ENTRY_POINT[];
-
-#ifndef WIN32
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-#endif
+#endif /* USE_SYSTEM_V8 */
 
 #include "rtWrapperUtils.h"
-
-
-#ifndef WIN32
-#pragma GCC diagnostic pop
-#endif
-
 #include "rtScriptV8Node.h"
 
 #include "rtCore.h"
@@ -86,7 +80,6 @@ extern "C" const char U_DATA_API SMALL_ICUDATA_ENTRY_POINT[];
 #include <string>
 #include <map>
 
-#include "rtFileDownloader.h"
 #include <rtMutex.h>
 
 #include <string>
@@ -129,23 +122,10 @@ extern "C" const char U_DATA_API SMALL_ICUDATA_ENTRY_POINT[];
 #endif
 #endif
 
-#if !defined(WIN32) && !defined(ENABLE_DFB)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-
-#pragma GCC diagnostic ignored "-Wall"
-#endif
-
-#include  "headers.h"
+#include "headers.h"
 #include "libplatform/libplatform.h"
 
-#include "rtObjectWrapper.h"
-#include "rtFunctionWrapper.h"
-#include "rtWrapperUtils.h"
-
-#if !defined(WIN32) & !defined(ENABLE_DFB)
-#pragma GCC diagnostic pop
-#endif
+#include "rtHttpRequest.h"
 
 static rtAtomic sNextId = 100;
 
@@ -179,6 +159,9 @@ public:
     return malloc(size);
   }
   virtual void Free(void* data, size_t) { free(data); }
+  virtual void Free(void* data, size_t length, AllocationMode mode) {
+    free(data);
+  }
 };
 
 V8ArrayBufferAllocator* array_buffer_allocator = NULL;
@@ -246,6 +229,7 @@ private:
   void addMethod(const char *name, v8::FunctionCallback callback, void *data = NULL);
   void setupModuleLoading();
   void setupModuleBindings();
+  bool resolveModulePath(const rtString &name, rtString &data);
 
 private:
    v8::Isolate                   *mIsolate;
@@ -260,6 +244,7 @@ private:
    int mRefCount;
 
    rtAtomic mId;
+   rtString mDirname;
 
    const char   *js_file;
    std::string   js_script;
@@ -320,9 +305,9 @@ private:
 using namespace v8;
 
 rtV8Context::rtV8Context(Isolate *isolate, Platform *platform, uv_loop_t *loop) :
-     mIsolate(isolate), mRefCount(0), mPlatform(platform), mUvLoop(loop)
+     mIsolate(isolate), mPlatform(platform), mUvLoop(loop), mRefCount(0), mDirname(rtString())
 {
-  rtLogInfo(__FUNCTION__);
+  rtLogDebug(__FUNCTION__);
   Locker                locker(mIsolate);
   Isolate::Scope isolate_scope(mIsolate);
   HandleScope     handle_scope(mIsolate);
@@ -366,6 +351,50 @@ rtV8Context::~rtV8Context()
   }
 }
 
+bool rtV8Context::resolveModulePath(const rtString &name, rtString &data)
+{
+  uv_fs_t req;
+  std::list<rtString> dirs;
+  std::list<rtString> endings;
+  bool found = false;
+  rtString path;
+
+  if (name.beginsWith("./") || name.beginsWith("../")) {
+    if (!mDirname.isEmpty()) {
+      dirs.push_back(mDirname);
+    }
+  }
+
+  dirs.push_back(""); // this dir
+  dirs.push_back("v8_modules/");
+  dirs.push_back("node_modules/");
+
+  endings.push_back(".js");
+  // not parsing package.json
+  endings.push_back("/index.js");
+  endings.push_back("/lib/index.js");
+
+  std::list<rtString>::const_iterator it, jt;
+  for (it = dirs.begin(); !found && it != dirs.end(); ++it) {
+    rtString s = *it;
+    if (!s.isEmpty() && !s.endsWith("/")) {
+      s.append("/");
+    }
+    s.append(name.beginsWith("./") ? name.substring(2) : name);
+    for (jt = endings.begin(); !found && jt != endings.end(); ++jt) {
+      path = s;
+      if (!path.endsWith((*jt).cString())) {
+        path.append(*jt);
+      }
+      found = uv_fs_stat(mUvLoop, &req, path.cString(), NULL) == 0;
+      uv_fs_req_cleanup(&req);
+    }
+  }
+
+  if (found)
+    data = path;
+  return found;
+}
 
 static bool bloatFileFromPath(uv_loop_t *loop, const rtString &path, rtString &data)
 {
@@ -392,16 +421,21 @@ static bool bloatFileFromPath(uv_loop_t *loop, const rtString &path, rtString &d
     goto fail;
   }
   uv_fs_req_cleanup(&req);
+  if (fd) {
+    uv_fs_close(loop, &req, fd, NULL);
+    uv_fs_req_cleanup(&req);
+  }
   data = rtString(chunk, size);
   free(chunk);
   return true;
 
 fail:
+  rtLogError("%s errno: %d", __FUNCTION__, errno);
   uv_fs_req_cleanup(&req);
   if (fd) {
     uv_fs_close(loop, &req, fd, NULL);
+    uv_fs_req_cleanup(&req);
   }
-  uv_fs_req_cleanup(&req);
   return false;
 }
 
@@ -421,20 +455,18 @@ static rtString getTryCatchResult(Local<Context> context, const TryCatch &tryCat
 
 Local<Value> rtV8Context::loadV8Module(const rtString &name)
 {
-  rtString path = name;
-  if (!name.endsWith(".js")) {
-    path.append(".js");
+  rtString path;
+  if (!resolveModulePath(name, path)) {
+    rtLogWarn("module '%s' not found", name.cString());
+    return Local<Value>();
+  } else {
+    rtLogDebug("module '%s' found at '%s'", name.cString(), path.cString());
   }
 
   rtString contents;
   if (!bloatFileFromPath(mUvLoop, path, contents)) {
-    rtString path1("v8_modules/");
-    path1.append(path.cString());
-    path = path1;
-    if (!bloatFileFromPath(mUvLoop, path, contents)) {
-      rtLogWarn("module '%s' not found", name.cString());
-      return Local<Value>();
-    }
+    rtLogWarn("module '%s' not found", name.cString());
+    return Local<Value>();
   }
 
   Locker                locker(mIsolate);
@@ -452,13 +484,13 @@ Local<Value> rtV8Context::loadV8Module(const rtString &name)
 
   rtString contents1 = "(function(){var module=this; var exports=(this.exports = new Object());";
   contents1.append(contents.cString());
-  contents1.append(" return this.exports; })");
+  contents1.append("; return this.exports; })");
 
   v8::Local<v8::String> source =
     v8::String::NewFromUtf8(mIsolate, contents1.cString(), v8::NewStringType::kNormal).ToLocalChecked();
 
   TryCatch tryCatch(mIsolate);
- 
+
   v8::MaybeLocal<v8::Script> script = v8::Script::Compile(localContext, source);
 
   if (script.IsEmpty()) {
@@ -474,7 +506,14 @@ Local<Value> rtV8Context::loadV8Module(const rtString &name)
   }
 
   v8::Function *func = v8::Function::Cast(*result.ToLocalChecked());
+  rtString currentDirname = mDirname;
+  int32_t pos = -1, p = -1;
+  while ((p = path.find(p + 1, '/')) != -1) {
+    pos = p;
+  }
+  mDirname = pos != -1 ? path.substring(0, pos + 1) : "";
   MaybeLocal<v8::Value> ret =  func->Call(localContext, result.ToLocalChecked(), 0, NULL);
+  mDirname = currentDirname;
 
   if (ret.IsEmpty()) {
     rtLogWarn("module '%s' unexpected call result (%s)", name.cString(), getTryCatchResult(localContext, tryCatch).cString());
@@ -497,7 +536,7 @@ static void requireCallback(const v8::FunctionCallbackInfo<v8::Value>& args)
   v8::External *val = v8::External::Cast(*args.Data());
   assert(val != NULL);
   rtV8Context *ctx = (rtV8Context *)val->Value();
-  assert(args.Length() == 1);
+  assert(args.Length() >= 1);
   assert(args[0]->IsString());
 
   rtString moduleName = toString(args[0]->ToString());
@@ -709,11 +748,8 @@ rtError rtV8Context::runFile(const char *file, rtValue* retVal /*= NULL*/, const
   return ret;
 }
 
-rtScriptV8::rtScriptV8():mRefCount(0), mV8Initialized(false)
+rtScriptV8::rtScriptV8():mIsolate(NULL), mPlatform(NULL), mUvLoop(NULL), mV8Initialized(false), mRefCount(0)
 {
-  mIsolate = NULL;
-  mPlatform = NULL;
-  mUvLoop = NULL;
   init();
 }
 
@@ -736,6 +772,7 @@ rtError rtScriptV8::init()
   rtLogInfo(__FUNCTION__);
 
   if (mV8Initialized == false) {
+#ifndef USE_SYSTEM_V8
     UErrorCode status = U_ZERO_ERROR;
     udata_setCommonData(&SMALL_ICUDATA_ENTRY_POINT, &status);
 
@@ -750,6 +787,7 @@ rtError rtScriptV8::init()
     snapshotBlob.data = (const char*)snapshot_blob_bin_data;
     snapshotBlob.raw_size = snapshot_blob_bin_size;
     v8::V8::SetSnapshotDataBlob(&snapshotBlob);
+#endif
 
     mUvLoop = uv_default_loop();
     Platform* platform = platform::CreateDefaultPlatform();
@@ -1126,7 +1164,7 @@ namespace rtScriptV8NodeUtils
     Local<v8::Function> func = PersistentToLocal(data->mIsolate, data->mFunc);
     Local<v8::Value> argv[1] = { func.As<Value>() };
 
-    (void)func->Call(ctx, argv[0], 1, argv);
+    std::ignore = func->Call(ctx, argv[0], 1, argv);
   }
 
   static void uvTimerStart(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -1134,7 +1172,7 @@ namespace rtScriptV8NodeUtils
     Isolate* isolate = args.GetIsolate();
     HandleScope scope(isolate);
 
-    uv_loop_t *loop = getEventLoopFromArgs(args);
+    std::ignore = getEventLoopFromArgs(args);
 
     args.GetReturnValue().Set(-1);
 
@@ -1170,7 +1208,7 @@ namespace rtScriptV8NodeUtils
     Isolate* isolate = args.GetIsolate();
     HandleScope scope(isolate);
 
-    uv_loop_t *loop = getEventLoopFromArgs(args);
+    std::ignore = getEventLoopFromArgs(args);
 
     args.GetReturnValue().Set(-1);
 
@@ -1206,7 +1244,7 @@ namespace rtScriptV8NodeUtils
     Isolate* isolate = args.GetIsolate();
     HandleScope scope(isolate);
 
-    uv_loop_t *loop = getEventLoopFromArgs(args);
+    std::ignore = getEventLoopFromArgs(args);
 
     args.GetReturnValue().SetNull();
 
@@ -1369,96 +1407,33 @@ namespace rtScriptV8NodeUtils
     { NULL, NULL },
   };
 
-  class rtHttpResponse : public rtObject
-  {
-  public:
-    rtDeclareObject(rtHttpResponse, rtObject);
-    rtReadOnlyProperty(statusCode, statusCode, int32_t);
-    rtReadOnlyProperty(message, errorMessage, rtString);
-    rtMethod2ArgAndNoReturn("on", addListener, rtString, rtFunctionRef);
-    rtMethodNoArgAndNoReturn("abort", abort);
-
-    rtHttpResponse() : mStatusCode(0) {
-      mEmit = new rtEmit();
-    }
-
-    rtError statusCode(int32_t& v) const { v = mStatusCode;  return RT_OK; }
-    rtError errorMessage(rtString& v) const { v = mErrorMessage;  return RT_OK; }
-    rtError addListener(rtString eventName, const rtFunctionRef& f) { mEmit->addListener(eventName, f); return RT_OK; }
-    rtError abort() const { return RT_OK; }
-
-    static void onDownloadComplete(rtFileDownloadRequest* downloadRequest);
-    static size_t onDownloadInProgress(void *ptr, size_t size, size_t nmemb, void *userData);
-
-  private:
-    int32_t mStatusCode;
-    rtString mErrorMessage;
-    rtEmitRef mEmit;
-  };
-
-  rtDefineObject(rtHttpResponse, rtObject);
-  rtDefineProperty(rtHttpResponse, statusCode);
-  rtDefineProperty(rtHttpResponse, message);
-  rtDefineMethod(rtHttpResponse, addListener);
-  rtDefineMethod(rtHttpResponse, abort);
-
-  void rtHttpResponse::onDownloadComplete(rtFileDownloadRequest* downloadRequest)
-  {
-    rtHttpResponse* resp = (rtHttpResponse*)downloadRequest->callbackData();
-
-    resp->mStatusCode = downloadRequest->httpStatusCode();
-    resp->mErrorMessage = downloadRequest->errorString();
-
-    resp->mEmit.send(resp->mErrorMessage.isEmpty() ? "end" : "error", (rtIObject *)resp);
-  }
-
-  size_t rtHttpResponse::onDownloadInProgress(void *ptr, size_t size, size_t nmemb, void *userData)
-  {
-    rtHttpResponse* resp = (rtHttpResponse*)userData;
-
-    if (size * nmemb > 0) {
-      resp->mEmit.send("data", rtString((const char *)ptr, size*nmemb));
-    }
-    return 0;
-  }
-
   rtError rtHttpGetBinding(int numArgs, const rtValue* args, rtValue* result, void* context)
   {
+    UNUSED_PARAM(context);
+
     if (numArgs < 1) {
+      rtLogError("%s: invalid args", __FUNCTION__);
       return RT_ERROR_INVALID_ARG;
     }
 
-    rtString resourceUrl;
+    rtHttpRequest* req;
     if (args[0].getType() == RT_stringType) {
-      resourceUrl = args[0].toString();
+      req = new rtHttpRequest(args[0].toString());
     }
     else {
       if (args[0].getType() != RT_objectType) {
+        rtLogError("%s: invalid arg type", __FUNCTION__);
         return RT_ERROR_INVALID_ARG;
       }
-      rtObjectRef obj = args[0].toObject();
-
-      rtString proto = obj.get<rtString>("protocol");
-      rtString host = obj.get<rtString>("host");
-      rtString path = obj.get<rtString>("path");
-
-      resourceUrl.append(proto.cString());
-      resourceUrl.append("//");
-      resourceUrl.append(host.cString());
-      resourceUrl.append(path.cString());
+      req = new rtHttpRequest(args[0].toObject());
     }
-
-    rtValue ret;
-    rtObjectRef resp(new rtHttpResponse());
 
     if (numArgs > 1 && args[1].getType() == RT_functionType) {
-      args[1].toFunction().sendReturns(resp, ret);
-      rtFileDownloadRequest *downloadRequest = new rtFileDownloadRequest(resourceUrl, resp.getPtr(), rtHttpResponse::onDownloadComplete);
-      downloadRequest->setDownloadProgressCallbackFunction(rtHttpResponse::onDownloadInProgress, resp.getPtr());
-      rtFileDownloader::instance()->addToDownloadQueue(downloadRequest);
+      req->addListener("response", args[1].toFunction());
     }
 
-    *result = resp;
+    rtObjectRef ref = req;
+    *result = ref;
 
     return RT_OK;
   }

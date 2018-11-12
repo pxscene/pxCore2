@@ -16,47 +16,32 @@ limitations under the License.
 
 */
 
-'use strict';
-
-var http2 = require('http2');
 var http = require('http');
 var url = require('url');
+var events = require('events');
 var WrapObj = require('rcvrcore/utils/WrapObj');
 var Logger = require('rcvrcore/Logger').Logger;
-
-var LogLevel = Object.freeze({
-  info: 2, // Log always
-  debug: 4, // Debugging
-  trace: 100 // Log everything
-});
+var log = new Logger('AccessControl');
 
 /**
- * Exported class. Wraps scene, exposes access control functionality.
+ * Public wrapper around scene's access control functionality.
+ *
  * @param scene
  * @constructor
  */
 function AccessControl(scene) {
-  this.log = new Logger('AccessControl');
-  this.log.message(LogLevel.debug, "create");
+  log.message(4, "create");
   this.scene = scene;
-  this.wraps = [];
 }
 
 AccessControl.prototype.destroy = function () {
-  this.log.message(LogLevel.debug, "destroy");
+  log.message(4, "destroy");
   this.scene = null;
-  this.wraps.forEach(function (t) {
-    t.removeAllListeners();
-  });
-  this.wraps = null;
 };
 
 AccessControl.prototype.origin = function () {
   if (this.scene) {
-    var cors = this.scene.cors;
-    if (cors) {
-      return cors.origin;
-    }
+    return this.scene.origin;
   }
   return null;
 };
@@ -71,474 +56,36 @@ AccessControl.prototype.allows = function (url) {
   return true;
 };
 
-AccessControl.prototype.passesAccessControlCheck = function (rawHeaders, withCredentials, toOrigin) {
+AccessControl.prototype.passesAccessControlCheck = function (rawHeaders, withCredentials, origin) {
   if (this.scene) {
     var cors = this.scene.cors;
     if (cors) {
-      return cors.passesAccessControlCheck(rawHeaders, withCredentials, toOrigin);
+      return cors.passesAccessControlCheck(rawHeaders, withCredentials, origin);
     }
   }
   return true;
 };
 
-AccessControl.prototype.isCORSRequestHeader = function (headerName) {
-  if (this.scene) {
-    var cors = this.scene.cors;
-    if (cors) {
-      return cors.isCORSRequestHeader(headerName);
+AccessControl.isCORSRequestHeader = function (name) {
+  if (name) {
+    if (name.match(/^(Origin|Access-Control-Request-Method|Access-Control-Request-Headers)$/ig)) {
+      return true;
     }
   }
   return false;
 };
 
-AccessControl.prototype.isCredentialsRequestHeader = function (headerName) {
-  if (this.scene) {
-    var cors = this.scene.cors;
-    if (cors) {
-      return cors.isCredentialsRequestHeader(headerName);
-    }
-  }
-  return false;
+AccessControl.prototype.createClientRequest = function (options, callback, requestOrigin) {
+  var req = AccessControlClientRequest(options, callback, this, requestOrigin);
+
+  // In order to prevent hacks do not expose the AccessControlClientRequest.
+  // Exposed object is an external EventEmitter + selected APIs
+  return WrapObj(req, WrapObj(req._externalEvents), true, [
+    'blocked','abort','aborted','end','getHeader','maxHeadersCount','removeHeader','setHeader','setNoDelay','setSocketKeepAlive','setTimeout','write'
+  ]);
 };
 
-module.exports.AccessControl = AccessControl;
-
-/**
- * Exported function. Returns an http request object, similar to what http2.request or http.request return.
- * @param accessControl
- * @param options
- * @param callback
- * @param defaultToHttp1
- * @returns {*}
- */
-module.exports.request = function (accessControl, options, callback, defaultToHttp1) {
-  return new _RequestWrapper(accessControl, options, defaultToHttp1).request(callback);
-};
-
-/**
- * A context object which creates a request.
- * @param accessControl
- * @param options
- * @param defaultToHttp1
- * @constructor
- * @private
- */
-function _RequestWrapper(accessControl, options, defaultToHttp1) {
-  this.log = new Logger('RequestWrapper');
-  this.accessControl = accessControl;
-  this.defaultToHttp1 = defaultToHttp1;
-  this.fromOrigin = this.accessControl ? this.accessControl.origin() : null;
-  this.options = this.normalizeOptions(options);
-  this.toOrigin = Utils._getRequestOrigin(this.options, this.defaultToHttp1);
-  this.scheme = Utils._getRequestScheme(this.options, this.defaultToHttp1);
-  this.withCredentials = this.isWithCredentials();
-  this.block = this.accessControl ? !this.accessControl.allows(this.toOrigin) : false;
-  var message = "created. block: " + this.block;
-  message += ", to origin: '" + this.toOrigin + "', from origin '" + this.fromOrigin + "'";
-  message += ", withCredentials: " + this.withCredentials;
-  message += ", defaultToHttp1: " + this.defaultToHttp1;
-  message += ", scheme: " + this.scheme;
-  this.log.message(LogLevel.debug, message);
-}
-
-/**
- * Determines whether or not request options contain credentials.
- * @returns {boolean}
- */
-_RequestWrapper.prototype.isWithCredentials = function () {
-  var result = false;
-  if (this.options && this.options.headers && this.accessControl) {
-    var h = this.options.headers;
-    var _this = this;
-    Object.keys(h).forEach(function (k) {
-      if (_this.accessControl.isCredentialsRequestHeader(k)) {
-        _this.log.message(LogLevel.info, "is credentials header: '" + k + "'=" + h[k]);
-        result = true;
-      }
-    });
-  }
-  return result;
-};
-
-/**
- * Creates an options object from input, takes care of required headers (for example CORS).
- * @param options
- * @returns {*}
- */
-_RequestWrapper.prototype.normalizeOptions = function (options) {
-  if (typeof options === 'string') {
-    this.log.message(LogLevel.trace, "options is URL: " + options);
-    options = url.parse(options);
-  } else {
-    this.log.message(LogLevel.trace, "options is object");
-    options = Utils._extend({}, options);
-  }
-  if (this.fromOrigin && this.accessControl) {
-    var h = options.headers;
-    if (!h) {
-      h = options.headers = {};
-    }
-    var _this = this;
-    Object.keys(h).forEach(function (k) {
-      if (_this.accessControl.isCORSRequestHeader(k)) {
-        _this.log.message(LogLevel.info, "removing header: '" + k + "'=" + h[k]);
-        delete h[k];
-      }
-    });
-    this.log.message(LogLevel.info, "set header: 'Origin'=" + this.fromOrigin + "'");
-    h.Origin = this.fromOrigin;
-  }
-  return options;
-};
-
-/**
- * Creates a request. Depending on scheme request can be based either on http2 or http.
- * @param callback
- */
-_RequestWrapper.prototype.request = function (callback) {
-  var ret;
-  if (this.block) {
-    this.log.message(LogLevel.trace, "create blocked request");
-    this.req = new http2.ClientRequest();
-    this.block_Http2_OutgoingRequest(this.req);
-    ret = this.wrap(this.req);
-  } else if (this.scheme === 'http') {
-    if (this.accessControl) {
-      this.log.message(LogLevel.trace, "create wrapped http request");
-      this.req = http.request(this.options);
-      ret = this.wrap(this.req);
-      if (callback) {
-        ret.on('response', callback);
-      }
-    } else {
-      this.log.message(LogLevel.trace, "create http request");
-      this.req = http.request(this.options, callback);
-      ret = this.req;
-    }
-  } else {
-    if (this.accessControl) {
-      this.log.message(LogLevel.trace, "create wrapped http2 request");
-      this.req = http2.request(this.options);
-      ret = this.wrap(this.req);
-      if (callback) {
-        ret.on('response', callback);
-      }
-    } else {
-      this.log.message(LogLevel.trace, "create http2 request");
-      this.req = http2.request(this.options, callback);
-      ret = this.req;
-    }
-  }
-  return ret;
-};
-
-/**
- * Destroys http2.OutgoingRequest so that it cannot be used afterwards.
- */
-_RequestWrapper.prototype.block_Http2_OutgoingRequest = function (request) {
-  Utils._assert(request instanceof http2.OutgoingRequest, "wrong class");
-  var message = "Permissions block for request";
-  message += " to origin: '" + this.toOrigin + "' from origin '" + this.fromOrigin + "'";
-  this.log.warn(message);
-  request.blocked = true;
-  this.log.message(LogLevel.trace, "about to abort request");
-  request.abort();
-  var self = this;
-  setTimeout(function () {
-    self.log.message(LogLevel.trace, "about to emit 'blocked'");
-    request.emit('blocked', new Error(message));
-  });
-};
-
-/**
- * Updates http2.IncomingResponse according to AccessControl.
- * @param response
- */
-_RequestWrapper.prototype.update_Http2_IncomingResponse = function (response) {
-  Utils._assert(response instanceof http2.IncomingResponse, "wrong class");
-  var rawHeaders = Utils._packHeaders(response.headers);
-  this.log.message(LogLevel.debug, "response headers: " + rawHeaders);
-  if (this.accessControl) {
-    if (!this.accessControl.passesAccessControlCheck(rawHeaders, this.withCredentials, this.toOrigin)) {
-      this.block_Http2_IncomingResponse(response);
-    } else {
-      this.log.message(LogLevel.trace, "CORS passed: '" + this.toOrigin + "' from '" + this.fromOrigin);
-    }
-  }
-};
-
-/**
- * Destroys http2.IncomingResponse so that it cannot be used afterwards.
- * @param response
- */
-_RequestWrapper.prototype.block_Http2_IncomingResponse = function (response) {
-  Utils._assert(response instanceof http2.IncomingResponse, "wrong class");
-  var message = "CORS block for request";
-  message += " to origin: '" + this.toOrigin + "' from origin '" + this.fromOrigin + "'";
-  this.log.warn(message);
-  this.req.blocked = true;
-  this.log.message(LogLevel.trace, "about to end response");
-  response.end();
-  this.log.message(LogLevel.trace, "about to abort request");
-  this.req.abort();
-  var self = this;
-  setTimeout(function () {
-    self.log.message(LogLevel.trace, "about to emit 'blocked'");
-    self.req.emit('blocked', new Error(message));
-  });
-};
-
-/**
- * Updates http.IncomingMessage according to AccessControl.
- * @param response
- */
-_RequestWrapper.prototype.update_Http_IncomingMessage = function (response) {
-  Utils._assert(response instanceof http.IncomingMessage, "wrong class");
-  var rawHeaders = Utils._packHeaders(response.headers);
-  this.log.message(LogLevel.debug, "response headers: " + rawHeaders);
-  if (this.accessControl) {
-    if (!this.accessControl.passesAccessControlCheck(rawHeaders, this.withCredentials, this.toOrigin)) {
-      this.block_Http_IncomingMessage(response);
-    } else {
-      this.log.message(LogLevel.trace, "CORS passed: '" + this.toOrigin + "' from '" + this.fromOrigin);
-    }
-  }
-};
-
-/**
- * Destroys http.IncomingMessage so that it cannot be used afterwards.
- * @param response
- */
-_RequestWrapper.prototype.block_Http_IncomingMessage = function (response) {
-  Utils._assert(response instanceof http.IncomingMessage, "wrong class");
-  var message = "CORS block for request";
-  message += " to origin: '" + this.toOrigin + "' from origin '" + this.fromOrigin + "'";
-  this.log.warn(message);
-  this.req.blocked = true;
-  this.log.message(LogLevel.trace, "about to destroy response");
-  response.destroy(new Error(message));
-  this.log.message(LogLevel.trace, "about to abort request");
-  this.req.abort();
-  var self = this;
-  setTimeout(function () {
-    self.log.message(LogLevel.trace, "about to emit 'blocked'");
-    self.req.emit('blocked', new Error(message));
-  });
-};
-
-/**
- * Creates a wrapper around an object which is expected to be exposed to the app.
- * @param o - object to wrap
- * @returns {*} - wrapped {@see o}
- */
-_RequestWrapper.prototype.wrap = function (o) {
-  var cl = Utils._getClassName(o);
-  if (o instanceof http2.IncomingResponse) {
-    this.log.message(LogLevel.trace, "wrap '" + cl + "'");
-    o = this.wrap_http2_IncomingResponse(o);
-    this.accessControl.wraps.push(o);
-  } else if (cl === 'IncomingPromise') {
-    this.log.message(LogLevel.trace, "wrap '" + cl + "'");
-    o = this.wrap_http2_IncomingPromise(o);
-    this.accessControl.wraps.push(o);
-  } else if (o instanceof http2.OutgoingRequest) {
-    this.log.message(LogLevel.trace, "wrap '" + cl + "'");
-    o = this.wrap_http2_OutgoingRequest(o);
-    this.accessControl.wraps.push(o);
-  } else if (cl === 'Stream') {
-    this.log.message(LogLevel.trace, "wrap '" + cl + "'");
-    o = null;
-  } else if (o instanceof http.ClientRequest) {
-    this.log.message(LogLevel.trace, "wrap '" + cl + "'");
-    o = this.wrap_http_ClientRequest(o);
-    this.accessControl.wraps.push(o);
-  } else if (o instanceof http.IncomingMessage) {
-    this.log.message(LogLevel.trace, "wrap '" + cl + "'");
-    o = this.wrap_http_IncomingMessage(o);
-    this.accessControl.wraps.push(o);
-  } else {
-    this.log.message(LogLevel.trace, "skip wrap for '" + cl + "'");
-  }
-  return o;
-};
-
-_RequestWrapper.prototype.wrap_http2_IncomingResponse = function (o) {
-  Utils._assert(o instanceof http2.IncomingResponse, "wrong class");
-  // http2.IncomingResponse
-  // - props: statusCode
-  // - functions: _onHeaders
-  // - events: 'ready'
-  // http2.IncomingMessage
-  // - props: socket, stream, _log, httpVersion, httpVersionMajor, httpVersionMinor, headers, trailers, _lastHeadersSeen
-  // - functions: _onHeaders, _onEnd, setTimeout, _checkSpecialHeader, _validateHeaders 
-  // stream.PassThrough
-  // stream.Transform
-  // - functions: destroy
-  // - events: 'error', 'close'
-  // stream.Duplex
-  // stream.Writable
-  // - props: writableHighWaterMark, writableLength
-  // - functions: cork, destroy, end, setDefaultEncoding, uncork, write
-  // - events: 'close', 'drain', 'error', 'finish', 'pipe(stream.Readable)', 'unpipe(stream.Readable)'
-  // stream.Duplex
-  // stream.Readable
-  // - props: readableHighWaterMark, readableLength
-  // - functions: destroy, isPaused, pause, pipe, read, resume, setEncoding, unpipe, unshift, wrap
-  // - events: 'close', 'data', 'end', 'error', 'readable'
-  this.update_Http2_IncomingResponse(o);
-  return WrapObj(
-    o, null,
-    o, [
-      'statusCode',
-      'httpVersion', 'httpVersionMajor', 'httpVersionMinor', 'headers', 'trailers', 'setTimeout',
-      'destroy',
-      'writableHighWaterMark', 'writableLength', 'cork', 'end', 'setDefaultEncoding', 'uncork', 'write',
-      'readableHighWaterMark', 'readableLength', 'isPaused', 'pause', 'read', 'resume', 'setEncoding', 'unshift'
-    ], [
-      'ready',
-      'error', 'close',
-      'drain', 'finish',
-      'data', 'end'
-    ],
-    this.wrap.bind(this)
-  );
-};
-
-_RequestWrapper.prototype.wrap_http2_IncomingPromise = function (o) {
-  Utils._assert(o instanceof http2.IncomingPromise, "wrong class");
-  // http2.IncomingPromise
-  // - props: _responseStream, stream
-  // - functions: _onHeaders, cancel, setPriority, _onPromise
-  // - events: 'response(http2.IncomingResponse)'
-  // http2.IncomingRequest
-  // - props: method, scheme, host, url
-  // - functions: _onHeaders
-  // - events: 'ready'
-  // http2.IncomingMessage
-  // ...
-  return WrapObj(
-    o, null,
-    o, [
-      'cancel', 'setPriority',
-      'method', 'scheme', 'host', 'url',
-      'httpVersion', 'httpVersionMajor', 'httpVersionMinor', 'headers', 'trailers', 'setTimeout',
-      'destroy',
-      'writableHighWaterMark', 'writableLength', 'cork', 'end', 'setDefaultEncoding', 'uncork', 'write',
-      'readableHighWaterMark', 'readableLength', 'isPaused', 'pause', 'read', 'resume', 'setEncoding', 'unshift'
-    ], [
-      'response',
-      'ready',
-      'error', 'close',
-      'drain', 'finish',
-      'data', 'end'
-    ],
-    this.wrap.bind(this)
-  );
-};
-
-_RequestWrapper.prototype.wrap_http2_OutgoingRequest = function (o) {
-  Utils._assert(o instanceof http2.OutgoingRequest, "wrong class");
-  // http2.OutgoingRequest
-  // - props: _log, stream, options, headersSent
-  // - functions: _start, _fallback, setPriority, on, setNoDelay, setSocketKeepAlive, setTimeout, abort, _onPromise
-  // - events: 'socket(http2.Stream)', 'response(http2.IncomingResponse)', 'push(http2.IncomingPromise)'
-  // http2.OutgoingMessage
-  // - props: _headers, _trailers, headersSent, finished
-  // - functions: _write, _finish, setHeader, removeHeader, getHeader, addTrailers, setTimeout, _checkSpecialHeader
-  // - events: 'error'
-  // stream.Writable
-  // ...
-  return WrapObj(
-    o, null,
-    o, [
-      'blocked',
-      'headersSent', 'setPriority', 'setNoDelay', 'setSocketKeepAlive', 'setTimeout', 'abort',
-      'finished', 'getHeader', 'addTrailers',
-      'writableHighWaterMark', 'writableLength',
-      'cork', 'destroy', 'end', 'setDefaultEncoding', 'uncork', 'write'
-    ], [
-      'blocked',
-      'response', 'push',
-      'error',
-      'close', 'drain', 'finish'
-    ],
-    this.wrap.bind(this)
-  );
-};
-
-_RequestWrapper.prototype.wrap_http_ClientRequest = function (o) {
-  Utils._assert(o instanceof http.ClientRequest, "wrong class");
-  // http.ClientRequest
-  // - props: aborted, connection, maxHeadersCount, socket
-  // - functions: abort, end, flushHeaders, getHeader, removeHeader, setHeader, setNoDelay, setSocketKeepAlive, setTimeout, write
-  // - events: 'abort', 'connect', 'continue', 'information', 'response', 'socket', 'timeout', 'upgrade'
-  // stream.Writable
-  // ...
-  return WrapObj(
-    o, null,
-    o, [
-      'blocked',
-      'aborted', 'maxHeadersCount', 'abort', 'getHeader', 'setNoDelay', 'setSocketKeepAlive', 'setTimeout',
-      'writableHighWaterMark', 'writableLength',
-      'cork', 'destroy', 'end', 'setDefaultEncoding', 'uncork', 'write'
-    ], [
-      'blocked',
-      'abort', 'response', 'timeout',
-      'error',
-      'close', 'drain', 'finish'
-    ],
-    this.wrap.bind(this)
-  );
-};
-
-_RequestWrapper.prototype.wrap_http_IncomingMessage = function (o) {
-  Utils._assert(o instanceof http.IncomingMessage, "wrong class");
-  // http.IncomingMessage
-  // - props: aborted, headers, httpVersion, method, rawHeaders, rawTrailers, socket, statusCode, statusMessage, trailers, url
-  // - functions: destroy, setTimeout
-  // - events: 'aborted', 'close'
-  // stream.Readable
-  // ...
-  this.update_Http_IncomingMessage(o);
-  return WrapObj(
-    o, null,
-    o, [
-      'aborted', 'headers', 'httpVersion', 'method', 'rawHeaders', 'rawTrailers', 'statusCode', 'statusMessage', 'trailers', 'url',
-      'destroy', 'setTimeout',
-      'readableHighWaterMark', 'readableLength', 'isPaused', 'pause', 'read', 'resume', 'setEncoding', 'unshift'
-    ], [
-      'aborted', 'close',
-      'close', 'data', 'end', 'error'
-    ],
-    this.wrap.bind(this)
-  );
-};
-
-function Utils() {
-}
-
-Utils._packHeaders = function (headers) {
-  var rawHeaders = "";
-  Object.keys(headers).forEach(function (t) {
-    rawHeaders += "\r\n" + t + ": " + headers[t];
-  });
-  return rawHeaders.slice(2);
-};
-
-Utils._getRequestOrigin = function (options, defaultToHttp1) {
-  var protocol = Utils._getRequestScheme(options, defaultToHttp1);
-  var host = options.host || options.hostname || 'localhost';
-  var result = protocol + "://" + host;
-  if (options.port) {
-    var portPart = ':' + options.port;
-    if (result.substr(-portPart.length) !== portPart) {
-      result += portPart;
-    }
-  }
-  return result;
-};
-
-Utils._extend = function (target, source) {
+AccessControl._extend = function (target, source) {
   if (source === null || typeof source !== 'object') return target;
   var keys = Object.keys(source);
   var i = keys.length;
@@ -548,25 +95,143 @@ Utils._extend = function (target, source) {
   return target;
 };
 
-Utils._assert = function (condition, message) {
-  if (!condition) {
+AccessControl._getRequestOrigin = function (options, protocol) {
+  var optionsCopy = AccessControl._extend({}, typeof options === 'string' ? url.parse(options) : options);
+  delete optionsCopy.headers;
+  var testReq = new http.ClientRequest(optionsCopy);
+  var host = testReq.getHeader('host');
+  testReq.abort();
+  return host ? protocol + host : null;
+};
+
+/**
+ * Private class AccessControlClientRequest, inherits from http.ClientRequest.
+ * Applies CORS and permissions.
+ *
+ * @param options
+ * @param callback
+ * @param accessControl
+ * @param protocol
+ * @constructor
+ */
+function AccessControlClientRequest(options, callback, accessControl, protocol) {
+  if (!(this instanceof AccessControlClientRequest))
+    return new AccessControlClientRequest(options, callback, accessControl, protocol);
+
+  this._externalEvents = new events();
+  this._externalEvents.once('response', callback);
+
+  http.ClientRequest.call(this, options);
+
+  // Internal listener. If no 'error' handler is added, then 'uncaught exception' is thrown.
+  this.on('error', function (e) {
+    log.message(4, "internal error handler fired: " + e);
+  });
+
+  // Internal listener. If no 'response' handler is added, then the response will be entirely discarded.
+  this.on('response', function (r) {
+    log.message(4, "internal response handler fired: HTTP " + r.statusCode);
+  });
+
+  var _this = this;
+  var appOrigin = accessControl.origin();
+  var requestOrigin = AccessControl._getRequestOrigin(options, protocol);
+  if (!accessControl.allows(requestOrigin)) {
+    var message = "Permissions block for request to origin: '" + requestOrigin + "' from origin '" + appOrigin + "'";
+    log.warn(message);
+    this.blocked = true;
+    this.abort();
+    setTimeout(function () {
+      log.message(4, "about to emit error/blocked");
+      _this.emit('error', new Error(message));
+      _this.emit('blocked', new Error(message));
+    });
+  }
+
+  if (appOrigin) {
+    log.message(2, "for request to origin: '" + requestOrigin + "' set origin '" + appOrigin + "'");
+    http.ClientRequest.prototype.setHeader.call(this, "Origin", appOrigin);
+  }
+
+  function checkResponseHeaders(res) {
+    var rawHeaders = "";
+    for (var key in res.headers) {
+      if (res.headers.hasOwnProperty(key)) {
+        rawHeaders += (rawHeaders ? "\r\n" : "") + key + ": " + res.headers[key];
+      }
+    }
+    log.message(4, "check for request to origin: '" + requestOrigin + "' from origin '" + appOrigin + "' headers: " + rawHeaders);
+    if (!accessControl.passesAccessControlCheck(rawHeaders, false, requestOrigin)) {
+      var message = "CORS block for request to origin: '" + requestOrigin + "' from origin '" + appOrigin + "'";
+      log.warn(message);
+      _this.blocked = true;
+      res.destroy(new Error(message));
+      _this.emit('blocked', new Error(message));
+      return false;
+    }
+    return true;
+  }
+
+  // Events handled by _externalEvents event handler hide socket from argument lists
+  function wrapExternalArgs(type) {
+    var args = Array.prototype.slice.call(arguments);
+    if (type === 'socket') {
+      args[1] = null; // socket obj
+    } else if (type === 'connect' || type === 'upgrade') {
+      args[1] = WrapObj(args[1], {socket: undefined}, true); // response obj
+      args[2] = null; // socket obj
+    } else if (type === 'information' || type === 'response') {
+      args[1] = WrapObj(args[1], {socket: undefined}, true); // response obj
+    }
+    return args;
+  }
+
+  function createEmitWrapper(_emit) {
+    return function (type, arg2) {
+      log.message(4, "event is about to emit: "+type);
+      if (typeof type === 'string' && type.match(/^(connect|upgrade|information|response)$/ig)) {
+        if (checkResponseHeaders(arg2) === false) {
+          return false;
+        }
+      }
+      log.message(4, type+": external listeners count: "+_this._externalEvents.listenerCount(type));
+      var externalArgs = wrapExternalArgs.apply(null, arguments);
+      _this._externalEvents.emit.apply(_this._externalEvents, externalArgs);
+      log.message(4, type+": internal listeners count: "+_this.listenerCount(type));
+      return _emit.apply(_this, arguments);
+    };
+  }
+
+  var _emit = this.emit;
+  var _emit2 = this.$emit;
+  this.emit = createEmitWrapper(_emit);
+  this.$emit = createEmitWrapper(_emit2);
+
+  log.message(4, "created a request to origin: '" + requestOrigin + "'");
+}
+
+AccessControlClientRequest.prototype = Object.create(http.ClientRequest.prototype);
+AccessControlClientRequest.prototype.constructor = AccessControlClientRequest;
+
+AccessControlClientRequest.prototype.blocked = undefined;
+AccessControlClientRequest.prototype._externalEvents = undefined;
+
+AccessControlClientRequest.prototype.setHeader = function (name) {
+  if (AccessControl.isCORSRequestHeader(name)) {
+    var message = "not allowed to set header '" + name + "'";
     log.warn(message);
     throw new Error(message);
   }
+  return http.ClientRequest.prototype.setHeader.apply(this, arguments);
 };
 
-Utils._getRequestScheme = function (options, defaultToHttp1) {
-  var scheme = options.protocol;
-  if (!scheme) {
-    scheme = defaultToHttp1 ? 'http' : 'https';
+AccessControlClientRequest.prototype.removeHeader = function (name) {
+  if (AccessControl.isCORSRequestHeader(name)) {
+    var message = "not allowed to remove header '" + name + "'";
+    log.warn(message);
+    throw new Error(message);
   }
-  var pos = scheme.indexOf(':');
-  if (pos !== -1) {
-    scheme = scheme.substring(0, scheme.indexOf(':'));
-  }
-  return scheme.toLowerCase();
+  return http.ClientRequest.prototype.removeHeader.apply(this, arguments);
 };
 
-Utils._getClassName = function (o) {
-  return o && o.constructor ? o.constructor.name : typeof o;
-};
+module.exports = AccessControl;

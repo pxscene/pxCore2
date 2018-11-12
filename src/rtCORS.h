@@ -41,33 +41,18 @@ public:
 
   rtDeclareObject(rtCORS, rtObject);
   rtMethod3ArgAndReturn("passesAccessControlCheck", passesAccessControlCheck, rtString, bool, rtString, bool);
-  rtMethod1ArgAndReturn("isCORSRequestHeader", isCORSRequestHeader, rtString, bool);
-  rtMethod1ArgAndReturn("isCredentialsRequestHeader", isCredentialsRequestHeader, rtString, bool);
-
   rtReadOnlyProperty(isEnabled, isEnabled, bool);
-  rtReadOnlyProperty(origin, origin, rtString);
 
   rtError passesAccessControlCheck(const rtString& rawHeaderData, bool withCredentials, const rtString& origin, bool& passes) const;
   rtError isEnabled(bool& v) const { v = mEnabled; return RT_OK; }
-  rtError isCORSRequestHeader(const rtString& headerName, bool& isCORSHeader) const;
-  rtError isCredentialsRequestHeader(const rtString& headerName, bool& isCredentialsHeader) const;
-  rtError origin(rtString& v) const { v = mOrigin; return RT_OK; }
 
   rtError updateRequestForAccessControl(struct curl_slist** headerList) const;
   rtError updateResponseForAccessControl(rtFileDownloadRequest* request) const;
 
-  static rtError parseHeaders(const rtString& rawHeaderData, std::map<std::string, rtString>& headerMap);
-  static std::string toLowercaseStr(const rtString& str);
-
 protected:
-  bool passesAccessControlCheck(const std::map<std::string, rtString>& headerMap, bool withCredentials, const rtString& origin, rtString& errorDescription) const;
+  bool passesAccessControlCheck(const std::map<rtString, rtString>& headerMap, bool withCredentials, const rtString& origin, rtString& errorDescription) const;
 
   static const char* ENV_NAME_ENABLED;
-  static const char* HTTPHeaderName_Origin;
-  static const char* HTTPHeaderName_Authorization;
-  static const char* HTTPHeaderName_Cookie;
-  static const char* HTTPHeaderName_AccessControlRequestMethod;
-  static const char* HTTPHeaderName_AccessControlRequestHeaders;
   static const char* HTTPHeaderName_AccessControlAllowOrigin;
   static const char* HTTPHeaderName_AccessControlAllowCredentials;
 

@@ -40,5 +40,7 @@ px.import({
     scene.on("addEventsProper", function() { rect_one.on('onListener', listener); scene.on('onPendingEvents', listener); console.log("Received add events proper **************");  });
     scene.on("addPendingEvents", function() { scene.on('onPendingEvents', listener); console.log("Received add pending events proper **************");  });
     scene.on("removeEventsProper", function() { rect_one.delListener("onListener", listener); });
-    scene.on("removeEventsImProper", function() { rect_one.delListener("onListener", null); });
+    scene.on("removeEventsImProper", function() { try { rect_one.delListener("onListener", null); } catch(e) { console.log("Received exception ");} });
+    scene.on("syncEvent", function() { console.log("Sync event received"); rect_one.on("syncEventReceived", function() { console.log("syncEventReceived registered"); }); });
+    scene.on("asyncEvent", function() { console.log("Async event received"); rect_one.on("asyncEventReceived", function() { console.log("asyncEventReceived registered"); }); });
   });
