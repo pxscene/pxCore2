@@ -57,6 +57,7 @@ then
   brew update;
   #brew upgrade cmake;
   brew install quilt
+  brew install libuv
   sudo /usr/sbin/DevToolsSecurity --enable
   lldb --version
   lldb --help
