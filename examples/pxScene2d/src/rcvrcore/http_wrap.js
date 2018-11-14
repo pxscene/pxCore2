@@ -68,8 +68,11 @@ function Request(moduleName, appSceneContext, options, callback) {
     var message = "Permissions block for request to '" + toOrigin + "' from '" + fromOrigin + "'";
     log.warn(message);
     setTimeout(function () {
-      log.message(4, "emit 'blocked'");
+      log.message(4, "emit 'blocked' delayed after request creation");
       self.emit('blocked', new Error(message));
+
+      // clean up
+      self.removeAllListeners();
     });
   }
 
@@ -97,13 +100,33 @@ function Request(moduleName, appSceneContext, options, callback) {
     var module = moduleName === 'http' ? http : (moduleName === 'https' ? https : http2);
     var httpRequest = module.request.call(null, options);
     httpRequest.once('response', function (httpResponse) {
-      self.emit('response', new Response(httpResponse, appSceneContext, self, fromOrigin, toOrigin, withCredentials));
+      var response = new Response(httpResponse, appSceneContext, fromOrigin, toOrigin, withCredentials);
+      if (response.blocked) {
+        self.blocked = true;
+        self.abort();
+        log.message(4, "emit 'blocked'");
+        self.emit('blocked', new Error("CORS block for: '" + toOrigin + "' from '" + fromOrigin + "'"));
+      } else {
+        self.emit('response', response);
+      }
+
+      // clean up
+      self.removeAllListeners();
+      httpRequest.removeAllListeners();
     });
     httpRequest.once('error', function (e) {
       self.emit('error', e);
+
+      // clean up
+      self.removeAllListeners();
+      httpRequest.removeAllListeners();
     });
     httpRequest.once('timeout', function () {
       self.emit('timeout');
+
+      // clean up
+      self.removeAllListeners();
+      httpRequest.removeAllListeners();
     });
   }
 
@@ -156,7 +179,7 @@ Request.prototype = Object.create(EventEmitter.prototype);
 Request.prototype.constructor = Request;
 Request.prototype.blocked = false;
 
-function Response(httpResponse, appSceneContext, httpRequest, fromOrigin, toOrigin, withCredentials) {
+function Response(httpResponse, appSceneContext, fromOrigin, toOrigin, withCredentials) {
   EventEmitter.call(this);
 
   var isBlocked = false;
@@ -168,17 +191,14 @@ function Response(httpResponse, appSceneContext, httpRequest, fromOrigin, toOrig
     !appSceneContext.innerscene.cors.passesAccessControlCheck(rawHeaders, withCredentials, toOrigin)) {
     var message = "CORS block for: '" + toOrigin + "' from '" + fromOrigin + "'";
     log.warn(message);
-    httpRequest.blocked = isBlocked = true;
+    this.blocked = isBlocked = true;
+
+    // destroy the response
     if (typeof httpResponse.end === 'function') {
       httpResponse.end();
     } else if (typeof httpResponse.destroy === 'function') {
       httpResponse.destroy(new Error(message));
     }
-    httpRequest.abort();
-    setTimeout(function () {
-      log.message(4, "emit 'blocked'");
-      httpRequest.emit('blocked', new Error(message));
-    });
   } else {
     log.message(4, "CORS passed for: '" + toOrigin + "' from '" + fromOrigin + "'");
   }
@@ -190,9 +210,17 @@ function Response(httpResponse, appSceneContext, httpRequest, fromOrigin, toOrig
     });
     httpResponse.once('error', function (e) {
       self.emit('error', e);
+
+      // clean up
+      self.removeAllListeners();
+      httpResponse.removeAllListeners();
     });
     httpResponse.once('end', function () {
       self.emit('end');
+
+      // clean up
+      self.removeAllListeners();
+      httpResponse.removeAllListeners();
     });
   }
 
@@ -213,6 +241,7 @@ function Response(httpResponse, appSceneContext, httpRequest, fromOrigin, toOrig
 
 Response.prototype = Object.create(EventEmitter.prototype);
 Response.prototype.constructor = Response;
+Response.prototype.blocked = false;
 
 function Utils() {
 }
