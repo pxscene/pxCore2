@@ -122,8 +122,8 @@ if( scene.capabilities != undefined && scene.capabilities.graphics != undefined 
         cursor.animate({a:0}, 2, scene.animation.TWEEN_LINEAR, scene.animation.LOOP,1);
       }, 5000);
       cursor.a = 1.0;
-      cursor.x = e.x-23;
-      cursor.y = e.y-10;
+      cursor.x = e.x-40;
+      cursor.y = e.y-16;
     });
 }
 ////
