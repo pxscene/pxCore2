@@ -3267,6 +3267,9 @@ rtError pxScene2d::showOutlines(bool& v) const
 rtError pxScene2d::setShowOutlines(bool v)
 {
   context.setShowOutlines(v);
+    
+  onSize(mRoot->getOnscreenWidth(), mRoot->getOnscreenHeight());
+    
   return RT_OK;
 }
 
