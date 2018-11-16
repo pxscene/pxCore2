@@ -422,7 +422,7 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
         
         renderOneLine(accString.cString(), 0, tempY, sx, sy, size, lineWidth, render);
 
-        accString = isContinuousLine ? tempChar : "";
+        accString = isContinuousLine ? tempChar.c_str() : "";
         tempY += (mLeading*sy) + charH;
 
         lineNumber++;
