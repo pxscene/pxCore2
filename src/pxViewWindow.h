@@ -53,6 +53,8 @@ protected:
   virtual void onMouseLeave();
   virtual void onMouseMove(int32_t x, int32_t y);
 
+  virtual void onScrollWheel(float dx, float dy);
+
   virtual void onFocus();
   virtual void onBlur();
 

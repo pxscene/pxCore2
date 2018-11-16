@@ -43,13 +43,14 @@ global.constructPromise = function (obj) {
 }
 }
 else if (isV8) {
-console = require('console');
-timers = require('timers');
-
-setTimeout = timers.setTimeout;
-clearTimeout = timers.clearTimeout;
-setInterval = timers.setInterval;
-clearInterval = timers.clearInterval;
+global = global || {};
+global.console = console = require('console');
+global.timers = timers = require('timers');
+global.Buffer = Buffer = require('buffer').Buffer;
+global.setTimeout = setTimeout = timers.setTimeout;
+global.clearTimeout = clearTimeout = timers.clearTimeout;
+global.setInterval = setInterval = timers.setInterval;
+global.clearInterval = clearInterval = timers.clearInterval;
 }
 
 var AppSceneContext = require('rcvrcore/AppSceneContext');

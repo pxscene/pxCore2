@@ -142,6 +142,19 @@ then
 
 fi
 
+#--------- uWebSockets
+if [ ! -e ./uWebSockets/libuWS.dylib ] ||
+   [ "$(uname)" != "Darwin" ]
+then
+
+  cd uWebSockets
+  mv Makefile.build Makefile
+  make
+  cd ..
+
+fi
+#--------
+
 # v8
 # todo - uncomment - for now build v8 with buildV8.sh directly
 #bash buildV8.sh

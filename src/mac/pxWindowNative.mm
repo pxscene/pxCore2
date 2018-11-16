@@ -641,6 +641,11 @@ void MyDisplayReconfigurationCallBack(CGDirectDisplayID display,
   pxWindowNative::_helper_onMouseMove(mWindow, p.x, p.y);
 }
 
+- (void)scrollWheel:(NSEvent *)event
+{
+  pxWindowNative::_helper_onScrollWheel(mWindow, event.deltaX, event.deltaY);
+}
+
 -(void)keyDown:(NSEvent*)event
 {
   uint32_t flags = 0;

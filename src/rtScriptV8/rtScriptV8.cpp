@@ -125,6 +125,7 @@ extern "C" const char U_DATA_API SMALL_ICUDATA_ENTRY_POINT[];
 #include "headers.h"
 #include "libplatform/libplatform.h"
 
+#include "rtWebSocket.h"
 #include "rtHttpRequest.h"
 
 static rtAtomic sNextId = 100;
@@ -141,6 +142,7 @@ namespace rtScriptV8NodeUtils
   extern rtV8FunctionItem v8ModuleBindings[];
 
   rtError rtHttpGetBinding(int numArgs, const rtValue* args, rtValue* result, void* context);
+  rtError rtWebSocketBinding(int numArgs, const rtValue* args, rtValue* result, void* context);
 } 
 
 class V8ArrayBufferAllocator : public v8::ArrayBuffer::Allocator {
@@ -240,6 +242,7 @@ private:
    std::map<rtString, Persistent<Value> *> mLoadedModuleCache;
 
    rtRef<rtFunctionCallback>      mHttpGetBinding;
+   rtRef<rtFunctionCallback>      mWebScoketBinding;
 
    int mRefCount;
 
@@ -307,7 +310,7 @@ using namespace v8;
 rtV8Context::rtV8Context(Isolate *isolate, Platform *platform, uv_loop_t *loop) :
      mIsolate(isolate), mPlatform(platform), mUvLoop(loop), mRefCount(0), mDirname(rtString())
 {
-  rtLogInfo(__FUNCTION__);
+  rtLogDebug(__FUNCTION__);
   Locker                locker(mIsolate);
   Isolate::Scope isolate_scope(mIsolate);
   HandleScope     handle_scope(mIsolate);
@@ -338,8 +341,10 @@ rtV8Context::rtV8Context(Isolate *isolate, Platform *platform, uv_loop_t *loop) 
   v8::platform::PumpMessageLoop(mPlatform, mIsolate);
 
   mHttpGetBinding = new rtFunctionCallback(rtHttpGetBinding, loop);
+  mWebScoketBinding = new rtFunctionCallback(rtWebSocketBinding, loop);
 
   add("httpGet", mHttpGetBinding.getPtr());
+  add("webscoketGet", mWebScoketBinding.getPtr());
 }
 
 rtV8Context::~rtV8Context()
@@ -460,7 +465,7 @@ Local<Value> rtV8Context::loadV8Module(const rtString &name)
     rtLogWarn("module '%s' not found", name.cString());
     return Local<Value>();
   } else {
-    rtLogInfo("module '%s' found at '%s'", name.cString(), path.cString());
+    rtLogDebug("module '%s' found at '%s'", name.cString(), path.cString());
   }
 
   rtString contents;
@@ -1438,6 +1443,25 @@ namespace rtScriptV8NodeUtils
     return RT_OK;
   }
 
+  rtError rtWebSocketBinding(int numArgs, const rtValue* args, rtValue* result, void* context)
+  {
+    uv_loop_t* loop = (uv_loop_t*)context;
+    if (numArgs < 1) {
+      rtLogError("%s: invalid args", __FUNCTION__);
+      return RT_ERROR_INVALID_ARG;
+    }
+
+    rtWebSocket* ws;
+    if (args[0].getType() != RT_objectType) {
+      rtLogError("%s: invalid arg type", __FUNCTION__);
+      return RT_ERROR_INVALID_ARG;
+    }
+    ws = new rtWebSocket(args[0].toObject(), loop);
+
+    rtObjectRef ref = ws;
+    *result = ref;
+    return RT_OK;
+  }
 } // namespace
 
 #endif
