@@ -10,28 +10,16 @@
 		464BD7D8210F6ABD00C4EFB7 /* rtCORS.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 464BD7D6210F6ABD00C4EFB7 /* rtCORS.cpp */; };
 		464BD7D9210F6ABD00C4EFB7 /* rtCORS.h in Headers */ = {isa = PBXBuildFile; fileRef = 464BD7D7210F6ABD00C4EFB7 /* rtCORS.h */; };
 		4C2D53C92147463D001103BA /* rtScriptHeaders.h in Headers */ = {isa = PBXBuildFile; fileRef = 4C2D53C82147463D001103BA /* rtScriptHeaders.h */; };
-		4C2D53EE21474AEB001103BA /* rtFunctionWrapperDuk.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C2D53E421474AEB001103BA /* rtFunctionWrapperDuk.cpp */; };
-		4C2D53EF21474AEB001103BA /* rtFunctionWrapperDuk.h in Sources */ = {isa = PBXBuildFile; fileRef = 4C2D53E521474AEB001103BA /* rtFunctionWrapperDuk.h */; };
-		4C2D53F021474AEB001103BA /* rtJsModules.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C2D53E621474AEB001103BA /* rtJsModules.cpp */; };
-		4C2D53F121474AEB001103BA /* rtJsModules.h in Sources */ = {isa = PBXBuildFile; fileRef = 4C2D53E721474AEB001103BA /* rtJsModules.h */; };
-		4C2D53F221474AEB001103BA /* rtObjectWrapperDuk.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C2D53E821474AEB001103BA /* rtObjectWrapperDuk.cpp */; };
-		4C2D53F321474AEB001103BA /* rtObjectWrapperDuk.h in Sources */ = {isa = PBXBuildFile; fileRef = 4C2D53E921474AEB001103BA /* rtObjectWrapperDuk.h */; };
-		4C2D53F421474AEB001103BA /* rtScriptDuk.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C2D53EA21474AEB001103BA /* rtScriptDuk.cpp */; };
-		4C2D53F521474AEB001103BA /* rtScriptDuk.h in Sources */ = {isa = PBXBuildFile; fileRef = 4C2D53EB21474AEB001103BA /* rtScriptDuk.h */; };
-		4C2D53F621474AEB001103BA /* rtWrapperUtilsDuk.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C2D53EC21474AEB001103BA /* rtWrapperUtilsDuk.cpp */; };
-		4C2D53F721474AEB001103BA /* rtWrapperUtilsDuk.h in Sources */ = {isa = PBXBuildFile; fileRef = 4C2D53ED21474AEB001103BA /* rtWrapperUtilsDuk.h */; };
-		4C2D540421474AFA001103BA /* headers.h in Sources */ = {isa = PBXBuildFile; fileRef = 4C2D53F821474AFA001103BA /* headers.h */; };
-		4C2D540521474AFA001103BA /* jsCallback.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C2D53F921474AFA001103BA /* jsCallback.cpp */; };
-		4C2D540621474AFA001103BA /* jsCallback.h in Sources */ = {isa = PBXBuildFile; fileRef = 4C2D53FA21474AFA001103BA /* jsCallback.h */; };
-		4C2D540721474AFA001103BA /* rtFunctionWrapper.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C2D53FB21474AFA001103BA /* rtFunctionWrapper.cpp */; };
-		4C2D540821474AFA001103BA /* rtFunctionWrapper.h in Sources */ = {isa = PBXBuildFile; fileRef = 4C2D53FC21474AFA001103BA /* rtFunctionWrapper.h */; };
-		4C2D540921474AFA001103BA /* rtObjectWrapper.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C2D53FD21474AFA001103BA /* rtObjectWrapper.cpp */; };
-		4C2D540A21474AFA001103BA /* rtObjectWrapper.h in Sources */ = {isa = PBXBuildFile; fileRef = 4C2D53FE21474AFA001103BA /* rtObjectWrapper.h */; };
-		4C2D540B21474AFA001103BA /* rtScriptNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C2D53FF21474AFA001103BA /* rtScriptNode.cpp */; };
-		4C2D540C21474AFA001103BA /* rtScriptV8.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C2D540021474AFA001103BA /* rtScriptV8.cpp */; };
-		4C2D540D21474AFA001103BA /* rtScriptV8Node.h in Sources */ = {isa = PBXBuildFile; fileRef = 4C2D540121474AFA001103BA /* rtScriptV8Node.h */; };
-		4C2D540E21474AFA001103BA /* rtWrapperUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C2D540221474AFA001103BA /* rtWrapperUtils.cpp */; };
-		4C2D540F21474AFA001103BA /* rtWrapperUtils.h in Sources */ = {isa = PBXBuildFile; fileRef = 4C2D540321474AFA001103BA /* rtWrapperUtils.h */; };
+		4C2FF24B219C854D0010DA38 /* rtHttpRequest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C2FF247219C854D0010DA38 /* rtHttpRequest.cpp */; };
+		4C2FF24C219C854D0010DA38 /* rtHttpRequest.h in Headers */ = {isa = PBXBuildFile; fileRef = 4C2FF248219C854D0010DA38 /* rtHttpRequest.h */; };
+		4C2FF24D219C854D0010DA38 /* rtHttpResponse.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C2FF249219C854D0010DA38 /* rtHttpResponse.cpp */; };
+		4C2FF24E219C854D0010DA38 /* rtHttpResponse.h in Headers */ = {isa = PBXBuildFile; fileRef = 4C2FF24A219C854D0010DA38 /* rtHttpResponse.h */; };
+		4C2FF251219C9ADA0010DA38 /* rtScriptNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C2FF250219C9ADA0010DA38 /* rtScriptNode.cpp */; };
+		4C2FF257219C9AFA0010DA38 /* jsCallback.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C2FF252219C9AFA0010DA38 /* jsCallback.cpp */; };
+		4C2FF258219C9AFA0010DA38 /* rtFunctionWrapper.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C2FF253219C9AFA0010DA38 /* rtFunctionWrapper.cpp */; };
+		4C2FF259219C9AFA0010DA38 /* rtObjectWrapper.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C2FF254219C9AFA0010DA38 /* rtObjectWrapper.cpp */; };
+		4C2FF25A219C9AFA0010DA38 /* rtScriptV8.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C2FF255219C9AFA0010DA38 /* rtScriptV8.cpp */; };
+		4C2FF25B219C9AFA0010DA38 /* rtWrapperUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C2FF256219C9AFA0010DA38 /* rtWrapperUtils.cpp */; };
 		4C8440B520D82F7E00C24E45 /* rtSettings.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C8440B320D82F7E00C24E45 /* rtSettings.cpp */; };
 		4C8440B620D82F7E00C24E45 /* rtSettings.h in Headers */ = {isa = PBXBuildFile; fileRef = 4C8440B420D82F7E00C24E45 /* rtSettings.h */; };
 		4C8440B920D82FAD00C24E45 /* rtPermissions.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C8440B720D82FAD00C24E45 /* rtPermissions.cpp */; };
@@ -243,34 +231,16 @@
 		4C0086DE1E6C64C900DB42F4 /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = System/Library/Frameworks/CoreFoundation.framework; sourceTree = SDKROOT; };
 		4C2D53C7214745A3001103BA /* rtScriptV8 */ = {isa = PBXFileReference; lastKnownFileType = folder; name = rtScriptV8; path = src/rtScriptV8; sourceTree = SOURCE_ROOT; };
 		4C2D53C82147463D001103BA /* rtScriptHeaders.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = rtScriptHeaders.h; path = src/rtScriptHeaders.h; sourceTree = SOURCE_ROOT; };
-		4C2D53D7214747ED001103BA /* rtScriptNode.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = rtScriptNode.cpp; path = src/rtScriptV8/rtScriptNode.cpp; sourceTree = "<group>"; };
-		4C2D53D921474868001103BA /* rtScriptV8.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = rtScriptV8.cpp; path = src/rtScriptV8/rtScriptV8.cpp; sourceTree = "<group>"; };
-		4C2D53DB2147486D001103BA /* rtFunctionWrapper.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = rtFunctionWrapper.cpp; path = src/rtScriptV8/rtFunctionWrapper.cpp; sourceTree = "<group>"; };
-		4C2D53DD21474872001103BA /* rtObjectWrapper.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = rtObjectWrapper.cpp; path = src/rtScriptV8/rtObjectWrapper.cpp; sourceTree = "<group>"; };
-		4C2D53DF2147487F001103BA /* rtWrapperUtils.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = rtWrapperUtils.cpp; path = src/rtScriptV8/rtWrapperUtils.cpp; sourceTree = "<group>"; };
-		4C2D53E121474A86001103BA /* rtScriptDuk */ = {isa = PBXFileReference; lastKnownFileType = folder; name = rtScriptDuk; path = src/rtScriptDuk; sourceTree = SOURCE_ROOT; };
-		4C2D53E421474AEB001103BA /* rtFunctionWrapperDuk.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = rtFunctionWrapperDuk.cpp; path = src/rtScriptDuk/rtFunctionWrapperDuk.cpp; sourceTree = "<group>"; };
-		4C2D53E521474AEB001103BA /* rtFunctionWrapperDuk.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = rtFunctionWrapperDuk.h; path = src/rtScriptDuk/rtFunctionWrapperDuk.h; sourceTree = "<group>"; };
-		4C2D53E621474AEB001103BA /* rtJsModules.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = rtJsModules.cpp; path = src/rtScriptDuk/rtJsModules.cpp; sourceTree = "<group>"; };
-		4C2D53E721474AEB001103BA /* rtJsModules.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = rtJsModules.h; path = src/rtScriptDuk/rtJsModules.h; sourceTree = "<group>"; };
-		4C2D53E821474AEB001103BA /* rtObjectWrapperDuk.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = rtObjectWrapperDuk.cpp; path = src/rtScriptDuk/rtObjectWrapperDuk.cpp; sourceTree = "<group>"; };
-		4C2D53E921474AEB001103BA /* rtObjectWrapperDuk.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = rtObjectWrapperDuk.h; path = src/rtScriptDuk/rtObjectWrapperDuk.h; sourceTree = "<group>"; };
-		4C2D53EA21474AEB001103BA /* rtScriptDuk.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = rtScriptDuk.cpp; path = src/rtScriptDuk/rtScriptDuk.cpp; sourceTree = "<group>"; };
-		4C2D53EB21474AEB001103BA /* rtScriptDuk.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = rtScriptDuk.h; path = src/rtScriptDuk/rtScriptDuk.h; sourceTree = "<group>"; };
-		4C2D53EC21474AEB001103BA /* rtWrapperUtilsDuk.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = rtWrapperUtilsDuk.cpp; path = src/rtScriptDuk/rtWrapperUtilsDuk.cpp; sourceTree = "<group>"; };
-		4C2D53ED21474AEB001103BA /* rtWrapperUtilsDuk.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = rtWrapperUtilsDuk.h; path = src/rtScriptDuk/rtWrapperUtilsDuk.h; sourceTree = "<group>"; };
-		4C2D53F821474AFA001103BA /* headers.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = headers.h; path = src/rtScriptV8/headers.h; sourceTree = "<group>"; };
-		4C2D53F921474AFA001103BA /* jsCallback.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = jsCallback.cpp; path = src/rtScriptV8/jsCallback.cpp; sourceTree = "<group>"; };
-		4C2D53FA21474AFA001103BA /* jsCallback.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = jsCallback.h; path = src/rtScriptV8/jsCallback.h; sourceTree = "<group>"; };
-		4C2D53FB21474AFA001103BA /* rtFunctionWrapper.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = rtFunctionWrapper.cpp; path = src/rtScriptV8/rtFunctionWrapper.cpp; sourceTree = "<group>"; };
-		4C2D53FC21474AFA001103BA /* rtFunctionWrapper.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = rtFunctionWrapper.h; path = src/rtScriptV8/rtFunctionWrapper.h; sourceTree = "<group>"; };
-		4C2D53FD21474AFA001103BA /* rtObjectWrapper.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = rtObjectWrapper.cpp; path = src/rtScriptV8/rtObjectWrapper.cpp; sourceTree = "<group>"; };
-		4C2D53FE21474AFA001103BA /* rtObjectWrapper.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = rtObjectWrapper.h; path = src/rtScriptV8/rtObjectWrapper.h; sourceTree = "<group>"; };
-		4C2D53FF21474AFA001103BA /* rtScriptNode.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = rtScriptNode.cpp; path = src/rtScriptV8/rtScriptNode.cpp; sourceTree = "<group>"; };
-		4C2D540021474AFA001103BA /* rtScriptV8.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = rtScriptV8.cpp; path = src/rtScriptV8/rtScriptV8.cpp; sourceTree = "<group>"; };
-		4C2D540121474AFA001103BA /* rtScriptV8Node.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = rtScriptV8Node.h; path = src/rtScriptV8/rtScriptV8Node.h; sourceTree = "<group>"; };
-		4C2D540221474AFA001103BA /* rtWrapperUtils.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = rtWrapperUtils.cpp; path = src/rtScriptV8/rtWrapperUtils.cpp; sourceTree = "<group>"; };
-		4C2D540321474AFA001103BA /* rtWrapperUtils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = rtWrapperUtils.h; path = src/rtScriptV8/rtWrapperUtils.h; sourceTree = "<group>"; };
+		4C2FF247219C854D0010DA38 /* rtHttpRequest.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = rtHttpRequest.cpp; path = src/rtHttpRequest.cpp; sourceTree = SOURCE_ROOT; };
+		4C2FF248219C854D0010DA38 /* rtHttpRequest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = rtHttpRequest.h; path = src/rtHttpRequest.h; sourceTree = SOURCE_ROOT; };
+		4C2FF249219C854D0010DA38 /* rtHttpResponse.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = rtHttpResponse.cpp; path = src/rtHttpResponse.cpp; sourceTree = SOURCE_ROOT; };
+		4C2FF24A219C854D0010DA38 /* rtHttpResponse.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = rtHttpResponse.h; path = src/rtHttpResponse.h; sourceTree = SOURCE_ROOT; };
+		4C2FF250219C9ADA0010DA38 /* rtScriptNode.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = rtScriptNode.cpp; path = src/rtScriptV8/rtScriptNode.cpp; sourceTree = "<group>"; };
+		4C2FF252219C9AFA0010DA38 /* jsCallback.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = jsCallback.cpp; path = src/rtScriptV8/jsCallback.cpp; sourceTree = "<group>"; };
+		4C2FF253219C9AFA0010DA38 /* rtFunctionWrapper.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = rtFunctionWrapper.cpp; path = src/rtScriptV8/rtFunctionWrapper.cpp; sourceTree = "<group>"; };
+		4C2FF254219C9AFA0010DA38 /* rtObjectWrapper.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = rtObjectWrapper.cpp; path = src/rtScriptV8/rtObjectWrapper.cpp; sourceTree = "<group>"; };
+		4C2FF255219C9AFA0010DA38 /* rtScriptV8.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = rtScriptV8.cpp; path = src/rtScriptV8/rtScriptV8.cpp; sourceTree = "<group>"; };
+		4C2FF256219C9AFA0010DA38 /* rtWrapperUtils.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = rtWrapperUtils.cpp; path = src/rtScriptV8/rtWrapperUtils.cpp; sourceTree = "<group>"; };
 		4C7B860E1D10A45200C2489F /* pxClipboard.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pxClipboard.h; path = src/pxClipboard.h; sourceTree = SOURCE_ROOT; };
 		4C7B86111D10A47300C2489F /* pxClipboardNative.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = pxClipboardNative.mm; path = src/mac/pxClipboardNative.mm; sourceTree = SOURCE_ROOT; };
 		4C7B86121D10A47300C2489F /* pxClipboardNative.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pxClipboardNative.h; path = src/mac/pxClipboardNative.h; sourceTree = SOURCE_ROOT; };
@@ -437,7 +407,6 @@
 		4C12026B1E9683C900B0F89C /* rtCode */ = {
 			isa = PBXGroup;
 			children = (
-				4C2D53E121474A86001103BA /* rtScriptDuk */,
 				4C2D53C82147463D001103BA /* rtScriptHeaders.h */,
 				4C2D53C7214745A3001103BA /* rtScriptV8 */,
 				464BD7D6210F6ABD00C4EFB7 /* rtCORS.cpp */,
@@ -447,6 +416,10 @@
 				46D304721E673978000C5A5B /* rtFileDownloader.cpp */,
 				46D304731E673978000C5A5B /* rtFileDownloader.h */,
 				46D304741E673978000C5A5B /* rtHttpCache.cpp */,
+				4C2FF247219C854D0010DA38 /* rtHttpRequest.cpp */,
+				4C2FF248219C854D0010DA38 /* rtHttpRequest.h */,
+				4C2FF249219C854D0010DA38 /* rtHttpResponse.cpp */,
+				4C2FF24A219C854D0010DA38 /* rtHttpResponse.h */,
 				46D304751E673978000C5A5B /* rtHttpCache.h */,
 				46B077AD1E30FFED00BC6B9C /* rtConfigNative.h */,
 				46B077AE1E30FFED00BC6B9C /* rtMutexNative.cpp */,
@@ -632,33 +605,12 @@
 		AECBECA01B6796DC00851BFE = {
 			isa = PBXGroup;
 			children = (
-				4C2D53F821474AFA001103BA /* headers.h */,
-				4C2D53F921474AFA001103BA /* jsCallback.cpp */,
-				4C2D53FA21474AFA001103BA /* jsCallback.h */,
-				4C2D53FB21474AFA001103BA /* rtFunctionWrapper.cpp */,
-				4C2D53FC21474AFA001103BA /* rtFunctionWrapper.h */,
-				4C2D53FD21474AFA001103BA /* rtObjectWrapper.cpp */,
-				4C2D53FE21474AFA001103BA /* rtObjectWrapper.h */,
-				4C2D53FF21474AFA001103BA /* rtScriptNode.cpp */,
-				4C2D540021474AFA001103BA /* rtScriptV8.cpp */,
-				4C2D540121474AFA001103BA /* rtScriptV8Node.h */,
-				4C2D540221474AFA001103BA /* rtWrapperUtils.cpp */,
-				4C2D540321474AFA001103BA /* rtWrapperUtils.h */,
-				4C2D53E421474AEB001103BA /* rtFunctionWrapperDuk.cpp */,
-				4C2D53E521474AEB001103BA /* rtFunctionWrapperDuk.h */,
-				4C2D53E621474AEB001103BA /* rtJsModules.cpp */,
-				4C2D53E721474AEB001103BA /* rtJsModules.h */,
-				4C2D53E821474AEB001103BA /* rtObjectWrapperDuk.cpp */,
-				4C2D53E921474AEB001103BA /* rtObjectWrapperDuk.h */,
-				4C2D53EA21474AEB001103BA /* rtScriptDuk.cpp */,
-				4C2D53EB21474AEB001103BA /* rtScriptDuk.h */,
-				4C2D53EC21474AEB001103BA /* rtWrapperUtilsDuk.cpp */,
-				4C2D53ED21474AEB001103BA /* rtWrapperUtilsDuk.h */,
-				4C2D53DF2147487F001103BA /* rtWrapperUtils.cpp */,
-				4C2D53DD21474872001103BA /* rtObjectWrapper.cpp */,
-				4C2D53DB2147486D001103BA /* rtFunctionWrapper.cpp */,
-				4C2D53D921474868001103BA /* rtScriptV8.cpp */,
-				4C2D53D7214747ED001103BA /* rtScriptNode.cpp */,
+				4C2FF252219C9AFA0010DA38 /* jsCallback.cpp */,
+				4C2FF253219C9AFA0010DA38 /* rtFunctionWrapper.cpp */,
+				4C2FF254219C9AFA0010DA38 /* rtObjectWrapper.cpp */,
+				4C2FF255219C9AFA0010DA38 /* rtScriptV8.cpp */,
+				4C2FF256219C9AFA0010DA38 /* rtWrapperUtils.cpp */,
+				4C2FF250219C9ADA0010DA38 /* rtScriptNode.cpp */,
 				4C0086DE1E6C64C900DB42F4 /* CoreFoundation.framework */,
 				AE1D44361B809BA8002E7CAE /* OpenGL.framework */,
 				AECBEE0B1B685F2100851BFE /* Cocoa.framework */,
@@ -799,6 +751,7 @@
 				4CF5469820210AB600529907 /* rtPathUtils.h in Headers */,
 				4CF5469920210AB600529907 /* rtThreadTask.h in Headers */,
 				4CF5469A20210AB600529907 /* rtLog.h in Headers */,
+				4C2FF24E219C854D0010DA38 /* rtHttpResponse.h in Headers */,
 				4CF5469B20210AB600529907 /* rtThreadPoolNative.h in Headers */,
 				4CF5469C20210AB600529907 /* jsCallback.h in Headers */,
 				4CF5469D20210AB600529907 /* pxWindowUtil.h in Headers */,
@@ -813,6 +766,7 @@
 				4CF546A820210AB600529907 /* rtPromise.h in Headers */,
 				4CF546A920210AB600529907 /* pxClipboardNative.h in Headers */,
 				4CF546AA20210AB600529907 /* rtCore.h in Headers */,
+				4C2FF24C219C854D0010DA38 /* rtHttpRequest.h in Headers */,
 				464BD7D9210F6ABD00C4EFB7 /* rtCORS.h in Headers */,
 				4C8440BA20D82FAD00C24E45 /* rtPermissions.h in Headers */,
 				4CF546AB20210AB600529907 /* rtFileCache.h in Headers */,
@@ -1176,35 +1130,19 @@
 				464BD7D8210F6ABD00C4EFB7 /* rtCORS.cpp in Sources */,
 				4CF5464520210AB600529907 /* rtString.cpp in Sources */,
 				4CF5464620210AB600529907 /* pxWindowNative.mm in Sources */,
+				4C2FF257219C9AFA0010DA38 /* jsCallback.cpp in Sources */,
+				4C2FF258219C9AFA0010DA38 /* rtFunctionWrapper.cpp in Sources */,
+				4C2FF259219C9AFA0010DA38 /* rtObjectWrapper.cpp in Sources */,
+				4C2FF25A219C9AFA0010DA38 /* rtScriptV8.cpp in Sources */,
+				4C2FF25B219C9AFA0010DA38 /* rtWrapperUtils.cpp in Sources */,
 				4C8440B520D82F7E00C24E45 /* rtSettings.cpp in Sources */,
+				4C2FF251219C9ADA0010DA38 /* rtScriptNode.cpp in Sources */,
 				4CF5464720210AB600529907 /* Simple.cpp in Sources */,
 				4CF5464820210AB600529907 /* utf8.c in Sources */,
 				4CF5464920210AB600529907 /* pxViewWindow.cpp in Sources */,
 				4CF5464A20210AB600529907 /* pxOffscreen.cpp in Sources */,
 				4CF5464B20210AB600529907 /* rtValue.cpp in Sources */,
 				4CF5464C20210AB600529907 /* pxOffscreenNative.mm in Sources */,
-				4C2D53EE21474AEB001103BA /* rtFunctionWrapperDuk.cpp in Sources */,
-				4C2D53EF21474AEB001103BA /* rtFunctionWrapperDuk.h in Sources */,
-				4C2D53F021474AEB001103BA /* rtJsModules.cpp in Sources */,
-				4C2D53F121474AEB001103BA /* rtJsModules.h in Sources */,
-				4C2D53F221474AEB001103BA /* rtObjectWrapperDuk.cpp in Sources */,
-				4C2D53F321474AEB001103BA /* rtObjectWrapperDuk.h in Sources */,
-				4C2D53F421474AEB001103BA /* rtScriptDuk.cpp in Sources */,
-				4C2D53F521474AEB001103BA /* rtScriptDuk.h in Sources */,
-				4C2D53F621474AEB001103BA /* rtWrapperUtilsDuk.cpp in Sources */,
-				4C2D53F721474AEB001103BA /* rtWrapperUtilsDuk.h in Sources */,
-				4C2D540421474AFA001103BA /* headers.h in Sources */,
-				4C2D540521474AFA001103BA /* jsCallback.cpp in Sources */,
-				4C2D540621474AFA001103BA /* jsCallback.h in Sources */,
-				4C2D540721474AFA001103BA /* rtFunctionWrapper.cpp in Sources */,
-				4C2D540821474AFA001103BA /* rtFunctionWrapper.h in Sources */,
-				4C2D540921474AFA001103BA /* rtObjectWrapper.cpp in Sources */,
-				4C2D540A21474AFA001103BA /* rtObjectWrapper.h in Sources */,
-				4C2D540B21474AFA001103BA /* rtScriptNode.cpp in Sources */,
-				4C2D540C21474AFA001103BA /* rtScriptV8.cpp in Sources */,
-				4C2D540D21474AFA001103BA /* rtScriptV8Node.h in Sources */,
-				4C2D540E21474AFA001103BA /* rtWrapperUtils.cpp in Sources */,
-				4C2D540F21474AFA001103BA /* rtWrapperUtils.h in Sources */,
 				4CF5464D20210AB600529907 /* rtHttpCache.cpp in Sources */,
 				4CF5464E20210AB600529907 /* rtScript.cpp in Sources */,
 				4CF5465020210AB600529907 /* rtUrlUtils.cpp in Sources */,
@@ -1216,6 +1154,7 @@
 				4CF5465820210AB600529907 /* rtTest.cpp in Sources */,
 				4CF5465920210AB600529907 /* pxTimerNative.mm in Sources */,
 				4CF5465A20210AB600529907 /* ioapi_mem.c in Sources */,
+				4C2FF24B219C854D0010DA38 /* rtHttpRequest.cpp in Sources */,
 				4CF5465B20210AB600529907 /* rtThreadPool.cpp in Sources */,
 				4CF5465C20210AB600529907 /* rtZip.cpp in Sources */,
 				4CF5465D20210AB600529907 /* rtLibrary.cpp in Sources */,
@@ -1227,6 +1166,7 @@
 				4CF5466320210AB600529907 /* rtFileDownloader.cpp in Sources */,
 				4CF5466420210AB600529907 /* pxUtil.cpp in Sources */,
 				4CF5466520210AB600529907 /* rtThreadTask.cpp in Sources */,
+				4C2FF24D219C854D0010DA38 /* rtHttpResponse.cpp in Sources */,
 				4CF5466620210AB600529907 /* rtFile.cpp in Sources */,
 				4CF5466720210AB600529907 /* rtPromise.cpp in Sources */,
 				4CF5466920210AB600529907 /* ioapi.c in Sources */,

@@ -81,7 +81,7 @@ void rtHttpResponse::setErrorMessage(const rtString& v)
 void rtHttpResponse::setHeaders(const char* data, size_t size)
 {
   if (size > 0) {
-    mHeaders = rtString(data, size);
+    mHeaders = rtString(data, (uint32_t) size);
   } else {
     mHeaders = rtString();
   }
@@ -90,7 +90,7 @@ void rtHttpResponse::setHeaders(const char* data, size_t size)
 void rtHttpResponse::setDownloadedData(const char* data, size_t size)
 {
   if (size > 0) {
-    mDownloadedData = rtString(data, size);
+    mDownloadedData = rtString(data, (uint32_t) size);
   } else {
     mDownloadedData = rtString();
   }
