@@ -3294,9 +3294,7 @@ rtError pxScene2d::enableDirtyRect(bool& v) const
 
 rtError pxScene2d::setEnableDirtyRect(bool v)
 {
-#ifdef PX_DIRTY_RECTANGLES_DEFAULT_ON
     mEnableDirtyRectangles = v;
-#endif
     return RT_OK;
 }
 
