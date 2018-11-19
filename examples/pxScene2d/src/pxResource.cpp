@@ -359,7 +359,7 @@ uint64_t rtImageResource::textureMemoryUsage()
   uint64_t textureMemory = 0;
   if (mTexture.getPtr() != NULL)
   {
-    textureMemory = (mTexture->width() * mTexture->height() * 4);
+    textureMemory = ((uint64_t)(mTexture->width()) * (uint64_t)(mTexture->height()) * (uint64_t)4);
   }
   return textureMemory;
 }
