@@ -91,6 +91,8 @@ function Application(props) {
   this.id = undefined;
   this.priority = 1;
   this.name = "";
+  this.createTime = 0;
+  this.uri = "";
   this.type = ApplicationType.UNDEFINED;
   var _readyResolve = undefined;
   var _readyReject = undefined;
@@ -304,7 +306,7 @@ function Application(props) {
       cmd = launchParams.cmd;
     }
     if ("uri" in launchParams){
-      uri = launchParams.uri;
+      this.uri = uri = launchParams.uri;
     }
   }
   if ("w" in props){
@@ -451,11 +453,14 @@ Application.prototype.applicationManager = function() {
 
 Application.prototype.applicationCreated = function(){
   this.log("applicationCreated");
+  this.createTime = scene.clock();
   appManager.onCreate(this);
 };
 Application.prototype.applicationReady = function(){
   this.log("applicationReady");
   appManager.onReady(this);
+  var loadTime = scene.clock() - this.createTime;;
+  console.log("url : "+this.uri+", type : " +this.type+", "+"load time : "+loadTime.toFixed(2)+"ms");
 };
 Application.prototype.applicationClosed = function(){
   this.log("applicationClosed");

@@ -88,6 +88,14 @@ using namespace std;
 // #define DEBUG_SKIP_DRAW       // Skip DRAW   code - for testing.
 // #define DEBUG_SKIP_UPDATE     // Skip UPDATE code - for testing.
 
+#ifdef DEBUG_SKIP_DRAW
+#warning  DEBUG_SKIP_DRAW is ON !
+#endif
+
+#ifdef DEBUG_SKIP_UPDATE
+#warning  DEBUG_SKIP_UPDATE is ON !
+#endif
+
 extern rtThreadQueue* gUIThreadQueue;
 extern pxContext      context;
 
@@ -722,7 +730,7 @@ rtError pxObject::moveToFront()
 
   // If this pxObject is already at the front (last child),
   // make this a no-op
-  uint32_t size = parent->mChildren.size();
+  uint32_t size = (uint32_t) parent->mChildren.size();
   rtRef<pxObject> lastChild = parent->mChildren[size-1];
   if( lastChild.getPtr() == this) {
     return RT_OK;

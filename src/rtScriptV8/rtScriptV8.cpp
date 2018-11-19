@@ -378,6 +378,13 @@ bool rtV8Context::resolveModulePath(const rtString &name, rtString &data)
   // not parsing package.json
   endings.push_back("/index.js");
   endings.push_back("/lib/index.js");
+  if (name.find(0, "/") == -1) {
+    if (name.endsWith(".js")) {
+      endings.push_back("/lib/" + name);
+    } else {
+      endings.push_back("/lib/" + name + ".js");
+    }
+  }
 
   std::list<rtString>::const_iterator it, jt;
   for (it = dirs.begin(); !found && it != dirs.end(); ++it) {

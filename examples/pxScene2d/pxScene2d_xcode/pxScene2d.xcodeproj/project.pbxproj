@@ -209,6 +209,8 @@
 		4C20BEAD1E5B8638005ABBB7 /* pxscene.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = pxscene.sh; path = ../pxscene.sh; sourceTree = "<group>"; };
 		4C20BEB11E5CDE01005ABBB7 /* pxScene2d.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = pxScene2d.xcconfig; sourceTree = SOURCE_ROOT; };
 		4C2F20D31EEF1C250099DAE6 /* browser */ = {isa = PBXFileReference; lastKnownFileType = folder; name = browser; path = src/browser; sourceTree = "<group>"; };
+		4C2FF267219C9CCA0010DA38 /* mime */ = {isa = PBXFileReference; lastKnownFileType = folder; name = mime; path = src/mime; sourceTree = "<group>"; };
+		4C2FF268219C9CCA0010DA38 /* mime.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; name = mime.js; path = src/mime.js; sourceTree = "<group>"; };
 		4C38CDB31E538CF7003E4A35 /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
 		4C38CDBF1E538D19003E4A35 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		4C5137B21E5F81BE0052A99C /* pxImageA.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = pxImageA.cpp; path = src/pxImageA.cpp; sourceTree = "<group>"; };
@@ -254,6 +256,8 @@
 		4C04660D1E574CAE00D59925 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				4C2FF267219C9CCA0010DA38 /* mime */,
+				4C2FF268219C9CCA0010DA38 /* mime.js */,
 				4C8440CB20D8362E00C24E45 /* sparkpermissions.conf */,
 				4C0466191E574CEE00D59925 /* shell.js */,
 				4C04661A1E574CEE00D59925 /* init.js */,
@@ -646,7 +650,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "cd $PROJECT_DIR/../src\n\n# Copy\ncp package.json $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/MacOS\ncp -R macstuff/Resources $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents\ncp    macstuff/EngineRunner $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/MacOS\ncp    macstuff/spark.sh $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/MacOS\n\ncp FreeSans.ttf $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\ncp -R browser $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\ncp -R node_modules $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\n\nminifyJS=\"true\"\n\nif [ \"$minifyJS\" == \"true\" ]\nthen\n\n  # Minify JS to App Bundle\n  printf \"\\n ###  Minify JS code to App Bundle\\n\"\n\n  ./jsMinFolder.sh rcvrcore $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources/rcvrcore\n  cp -R browser $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\n\n  ./jsMin.sh init.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources/init.js\n  ./jsMin.sh shell.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources/shell.js\n  ./jsMin.sh about.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources/about.js\n  ./jsMin.sh browser.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources/browser.js\n  ./jsMin.sh browser/editbox.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources/browser/editbox.js\nelse\n\n  # Skip JS Minify - just copy\n  printf \"\\n ###  Skip JS Minify - just copy\\n\"\n\n  cp -R rcvrcore $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\n  cp -R browser $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\n\n  cp init.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\n  cp shell.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\n  cp about.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\n  cp browser.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\nfi\n\necho $PROJECT_DIR/../lib\n";
+			shellScript = "cd $PROJECT_DIR/../src\n\n# Copy\ncp package.json $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/MacOS\ncp -R macstuff/Resources $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents\ncp    macstuff/EngineRunner $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/MacOS\ncp    macstuff/spark.sh $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/MacOS\n\ncp FreeSans.ttf $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\ncp -R browser $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\ncp -R node_modules $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\n\nminifyJS=\"true\"\n\nif [ \"$minifyJS\" == \"true\" ]\nthen\n\n  # Minify JS to App Bundle\n  printf \"\\n ###  Minify JS code to App Bundle\\n\"\n\n  ./jsMinFolder.sh rcvrcore $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources/rcvrcore\n  cp -R browser $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\n\n  ./jsMin.sh init.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources/init.js\n  ./jsMin.sh shell.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources/shell.js\n  ./jsMin.sh about.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources/about.js\n  ./jsMin.sh mime.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources/mime.js\n  ./jsMin.sh mime/pxMimeTypes.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources/pxMimeTypes.js\n  ./jsMin.sh browser.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources/browser.js\n  ./jsMin.sh browser/editbox.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources/browser/editbox.js\nelse\n\n  # Skip JS Minify - just copy\n  printf \"\\n ###  Skip JS Minify - just copy\\n\"\n\n  cp -R rcvrcore $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\n  cp -R browser $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\n\n  cp init.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\n  cp shell.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\n  cp about.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\n  cp mime.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\n  cp mime/pxMimeTypes.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\n  cp browser.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\nfi\n\necho $PROJECT_DIR/../lib\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -813,7 +817,7 @@
 					ENABLE_DEBUG_MODE,
 					PXSCENE_DISABLE_WST_DECODER,
 					"SPARK_BUILD_GIT_REVISION=\"Xcode User\"",
-					"PX_PLATFORM_MAC_XCODE=NO",
+					PX_PLATFORM_MAC_XCODE,
 				);
 				HEADER_SEARCH_PATHS = (
 					"$(PROJECT_DIR)/../src",
@@ -896,6 +900,7 @@
 					ENABLE_DEBUG_MODE,
 					PXSCENE_DISABLE_WST_DECODER,
 					"SPARK_BUILD_GIT_REVISION=\"Xcode User\"",
+					PX_PLATFORM_MAC_XCODE,
 				);
 				HEADER_SEARCH_PATHS = (
 					"$(PROJECT_DIR)/../src",
