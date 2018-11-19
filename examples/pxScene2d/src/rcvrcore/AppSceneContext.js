@@ -295,6 +295,19 @@ var setTimeoutCallback = function() {
   ClearTimeout(this);
 };
 
+// have some entries for filenames with and without ./
+function cleanPathNames()
+{
+  var codemap = this.codemap;
+  for (var key in codemap)
+  {
+    if (key.charAt(0) == "." && key.charAt(1) == "/")
+    {
+      this.codemap[key.substring(2)] = this.codemap[key];
+    }
+  }
+}
+
 function createModule_pxScope(xModule) {
   return {
     log: xModule.log,
@@ -305,7 +318,7 @@ function createModule_pxScope(xModule) {
     getPackageBaseFilePath: this.getPackageBaseFilePath.bind(this),
     getFile: this.getFile.bind(this),
     getModuleFile: xModule.getFile.bind(xModule),
-    registerCode : function (map) { this.codemap = map; this.innerscene.addServiceProvider(function(name) { if (name == "getCode") { return {"details": this.codemap} } return "ALLOW"; }.bind(this)); }.bind(this),
+    registerCode : function (map) { this.codemap = map; cleanPathNames.bind(this)(); this.innerscene.addServiceProvider(function(name) { if (name == "getCode") { return {"details": this.codemap} } return "ALLOW"; }.bind(this)); }.bind(this),
     module: xModule,
     exports: xModule.exports
   };

@@ -1,48 +1,63 @@
 const webpack  = require('webpack');
 const path     = require('path');
-const glob = require("glob");
+const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
+const glob = require("glob")
+const process = require('process')
+const env = process.env
+const SparkPluginImports = require('spark-plugin-imports');
+const WebpackShellPlugin = require('webpack-shell-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 let config = {
-    mode: 'development',   // web-pack should default to 'development' build
-    devtool:false,
-    watch: false,           // web-pack watches for changes .. and re-builds
+    mode: 'development',
+    watch: false,
+    devtool: 'cheap-source-map',
+    optimization: {
+        runtimeChunk: false,
+    },
     entry:  glob.sync("./pack/**/*.js"),
     node: {
-      fs: 'empty',
-      global:false,
-      process:false,
-      Buffer:false
+        fs: 'empty',
+        global:false,
+        process:false,
+        Buffer:false
+      },
+
+    output: {
+        filename: 'output.js'
+    },
+    resolve: {
+        alias: {
+            images: path.resolve(__dirname, './images/'),
+            "px.getPackageBaseFilePath()": __dirname
+        }
     },
 
-        ////////////////////////////////////////////////////////////////////////////////
-        //
-        //  OUTPUT FILES
-        //
     devServer:
     {
-        ////////////////////////////////////////////////////////////////////////////////
-        //
-        //  DEV SEVER
-        //
         contentBase: path.join(__dirname, "./dist/"),
         publicPath:  path.join(__dirname, "./dist/"),
         inline: false,
-       // compress: true,
-        port: 80
+        port: 8080
     },
-    ////////////////////////////////////////////////////////////////////////////////
-    //
-    //  PLUG-IN: Google Closure Compiler
-    //
+
     plugins: 
     [
-      new CopyWebpackPlugin([
-        { from: './pack/**/*.png' },
-        { from: './pack/**/*.svg' },
-        { from: './pack/**/*.ttf' },
-        { from: './pack/**/*.jpg' }
-      ])
+        new CopyWebpackPlugin([
+            { from: './pack/**/*.png' },
+            { from: './pack/**/*.svg' },
+            { from: './pack/**/*.ttf' },
+            { from: './pack/**/*.jpg' }
+        ]),
+
+        new webpack.ProvidePlugin({
+            'components': 'components',
+            'images': 'images',
+        }),
+
+        new SparkPluginImports({'entryFile':env.ENTRY_FILE}),
+        new UglifyJsPlugin(),
+        new WebpackShellPlugin({onBuildStart:[], onBuildEnd:['./node_modules/spark-plugin-imports/utils/bundle.sh']})
     ]
     ////////////////////////////////////////////////////////////////////////////////
 };
