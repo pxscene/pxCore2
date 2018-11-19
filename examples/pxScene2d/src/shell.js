@@ -189,7 +189,6 @@ if( scene.capabilities != undefined && scene.capabilities.graphics != undefined 
       else
       if(code == keys.T)  // ctrl-alt-t
       {
-        // console.log("SHELL: onPreKeyDown: show dirty rect !!!  ############# ");
         scene.enableDirtyRect = !scene.enableDirtyRect;
         e.stopPropagation();
       }
