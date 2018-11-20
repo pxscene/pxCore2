@@ -88,6 +88,14 @@ using namespace std;
 // #define DEBUG_SKIP_DRAW       // Skip DRAW   code - for testing.
 // #define DEBUG_SKIP_UPDATE     // Skip UPDATE code - for testing.
 
+#ifdef DEBUG_SKIP_DRAW
+#warning  DEBUG_SKIP_DRAW is ON !
+#endif
+
+#ifdef DEBUG_SKIP_UPDATE
+#warning  DEBUG_SKIP_UPDATE is ON !
+#endif
+
 extern rtThreadQueue* gUIThreadQueue;
 extern pxContext      context;
 
@@ -429,7 +437,7 @@ rtDefineObject(pxObjectChildren, rtObject);
 
 
 // pxObject methods
-pxObject::pxObject(pxScene2d* scene): rtObject(), mParent(NULL), mpx(0), mpy(0), mcx(0), mcy(0), mx(0), my(0), ma(1.0), mr(0), 
+pxObject::pxObject(pxScene2d* scene): rtObject(), mParent(NULL), mpx(0), mpy(0), mcx(0), mcy(0), mx(0), my(0), ma(1.0), mr(0),
 #ifdef ANIMATION_ROTATE_XYZ
     mrx(0), mry(0), mrz(1.0),
 #endif //ANIMATION_ROTATE_XYZ
@@ -722,7 +730,7 @@ rtError pxObject::moveToFront()
 
   // If this pxObject is already at the front (last child),
   // make this a no-op
-  uint32_t size = parent->mChildren.size();
+  uint32_t size = (uint32_t) parent->mChildren.size();
   rtRef<pxObject> lastChild = parent->mChildren[size-1];
   if( lastChild.getPtr() == this) {
     return RT_OK;
@@ -1109,11 +1117,11 @@ void pxObject::update(double t)
         if (!dirtyRect.isEqual(mScreenCoordinates))
         {
             dirtyRect.unionRect(mScreenCoordinates);
-        }
-        
+        }  
         mScene->invalidateRect(&dirtyRect);
         mRenderMatrix = context.getMatrix();
         setDirtyRect(&dirtyRect);
+
         mIsDirty = false;
     }
 #endif
@@ -1152,12 +1160,12 @@ EXITSCENELOCK()
       context.popState();
 #endif //PX_DIRTY_RECTANGLES
   }
-    
+
 #ifdef PX_DIRTY_RECTANGLES
     //context.setMatrix(m);
     mRenderMatrix = m;
 #endif
-    
+
   // Send promise
   sendPromise();
 }
@@ -1416,7 +1424,7 @@ void pxObject::drawInternal(bool maskPass)
   if (mPainting)
   {
     pxConstantsMaskOperation::constants maskOp = pxConstantsMaskOperation::NORMAL; // default
-    
+
     // MASKING ? ---------------------------------------------------------------------------------------------------
     bool maskFound = false;
     for(vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
@@ -1425,16 +1433,16 @@ void pxObject::drawInternal(bool maskPass)
       {
         //rtLogInfo("pxObject::drawInternal mask is true mw=%f mh=%f\n", mw, mh);
         maskFound = true;
-        
+
         pxImage *img = dynamic_cast<pxImage *>( &*it->getPtr() ) ;
         if(img)
         {
           int32_t val;
           img->maskOp(val); // get mask operation
-          
+
           maskOp = (pxConstantsMaskOperation::constants) val;
         }
-        
+
         break;
       }
     }
@@ -1449,7 +1457,7 @@ void pxObject::drawInternal(bool maskPass)
       createSnapshotOfChildren();
       context.setMatrix(m);
       //rtLogInfo("context.drawImage\n");
-      
+
       context.drawImageMasked(0, 0, w, h, maskOp, mDrawableSnapshotForMask->getTexture(), mMaskSnapshot->getTexture());
     }
     // CLIPPING ? ---------------------------------------------------------------------------------------------------
@@ -1663,7 +1671,7 @@ void pxObject::createSnapshot(pxContextFramebufferRef& fbo, bool separateContext
 
     if (!mIsDirty)
         context.clear(static_cast<int>(w), static_cast<int>(h));
-      
+
     if (fullFboRepaint)
     {
         clearX = 0;
@@ -1952,11 +1960,26 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   mInfo.set("build", build);
   mInfo.set("gfxmemory", context.currentTextureMemoryUsageInBytes());
 
+  //////////////////////////////////////////////////////
+  //
+  //                 CAPABILITY VERSIONS
+  //
+  //////////////////////////////////////////////////////
+  //
+  // capabilities.graphics.svg          = 2
+  // capabilities.graphics.cursor       = 1
+  //
+  // capabilities.network.cors          = 1
+  // capabilities.network.corsResources = 1
+  //
+  // capabilities.metrics.textureMemory = 1
 
-  //capability versions
   mCapabilityVersions = new rtMapObject;
+
   rtObjectRef graphicsCapabilities = new rtMapObject;
-  graphicsCapabilities.set("svg", 1);
+
+  graphicsCapabilities.set("svg", 2);
+
 #ifdef SPARK_CURSOR_SUPPORT
   graphicsCapabilities.set("cursor", 1);
 #else
@@ -1968,22 +1991,29 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
       graphicsCapabilities.set("cursor", 1);
     }
   }
-#endif //SPARK_CURSOR_SUPPORT
+#endif // SPARK_CURSOR_SUPPORT
+
   mCapabilityVersions.set("graphics", graphicsCapabilities);
 
   rtObjectRef networkCapabilities = new rtMapObject;
+
 #ifdef ENABLE_ACCESS_CONTROL_CHECK
   networkCapabilities.set("cors", 1);
+
 #ifdef ENABLE_CORS_FOR_RESOURCES
   networkCapabilities.set("corsResources", 1);
-#endif
-#endif
+#endif // ENABLE_CORS_FOR_RESOURCES
+
+#endif // ENABLE_ACCESS_CONTROL_CHECK
+
   mCapabilityVersions.set("network", networkCapabilities);
 
   rtObjectRef metricsCapabilities = new rtMapObject;
+
   metricsCapabilities.set("textureMemory", 1);
   mCapabilityVersions.set("metrics", metricsCapabilities);
 
+  //////////////////////////////////////////////////////
 }
 
 rtError pxScene2d::dispose()
@@ -2004,7 +2034,7 @@ rtError pxScene2d::dispose()
 
     if (mRoot)
       mRoot->dispose(false);
-    // send scene terminate after dispose to make sure, no cleanup can happen further on app side		
+    // send scene terminate after dispose to make sure, no cleanup can happen further on app side
     // after clearing the sandbox
     // pass false to make onSceneTerminate asynchronous
     mEmit.send("onSceneTerminate", e);
@@ -2195,10 +2225,10 @@ rtError pxScene2d::createImageResource(rtObjectRef p, rtObjectRef& o)
 {
   rtString url     = p.get<rtString>("url");
   rtString proxy   = p.get<rtString>("proxy");
-  
+
   rtString param_w = p.get<rtString>("w");
   rtString param_h = p.get<rtString>("h");
-  
+
   rtString param_sx = p.get<rtString>("sx");
   rtString param_sy = p.get<rtString>("sy");
 
@@ -2206,7 +2236,7 @@ rtError pxScene2d::createImageResource(rtObjectRef p, rtObjectRef& o)
   int32_t ih = 0;
   float   sx = 1.0f;
   float   sy = 1.0f;
-  
+
   // W x H dimensions
   if(param_w.isEmpty() == false && param_w.length() > 0)
   {
@@ -2228,14 +2258,14 @@ rtError pxScene2d::createImageResource(rtObjectRef p, rtObjectRef& o)
   {
     sy = rtValue(param_sy).toFloat();
   }
-  
+
 #ifdef ENABLE_PERMISSIONS_CHECK
   if (RT_OK != mPermissions->allows(url, rtPermissions::DEFAULT))
     return RT_ERROR_NOT_ALLOWED;
 #endif
 
   o = pxImageManager::getImage(url, proxy, mCORS, iw, ih, sx, sy, mArchive);
-  
+
   o.send("init");
   return RT_OK;
 }
@@ -2264,7 +2294,7 @@ rtError pxScene2d::createFontResource(rtObjectRef p, rtObjectRef& o)
   if (RT_OK != mPermissions->allows(url, rtPermissions::DEFAULT))
     return RT_ERROR_NOT_ALLOWED;
 #endif
-  
+
   o = pxFontManager::getFont(url, proxy, mCORS, mArchive);
   return RT_OK;
 }
@@ -2902,7 +2932,7 @@ rtError pxScene2d::setFocus(rtObjectRef o)
   }
 
   mFocusObj = focusObj;
-  
+
   rtObjectRef e = new rtMapObject;
   ((pxObject*)mFocusObj.get<voidPtr>("_pxObject"))->setFocusInternal(true);
   e.set("target",mFocusObj);
@@ -3024,14 +3054,14 @@ bool pxScene2d::bubbleEventOnBlur(rtObjectRef e, rtRef<pxObject> t, rtRef<pxObje
   {
     AddRef();
     e.set("stopPropagation", new rtFunctionCallback(stopPropagation2, (void*)&mStopPropagation));
-    
+
     vector<rtRef<pxObject> > l;
     while(t)
     {
       l.push_back(t);
       t = t->parent();
     }
-    
+
     vector<rtRef<pxObject> > m;
     while(o)
     {
@@ -3052,7 +3082,7 @@ bool pxScene2d::bubbleEventOnBlur(rtObjectRef e, rtRef<pxObject> t, rtRef<pxObje
       it_l++;
       it_m++;
     }
-    
+
     //    rtLogDebug("before %s bubble\n", preEvent);
     e.set("name", "onPreBlur");
     vector<rtRef<pxObject> >::reverse_iterator it_reverseEnd = l.rend();
@@ -3063,7 +3093,7 @@ bool pxScene2d::bubbleEventOnBlur(rtObjectRef e, rtRef<pxObject> t, rtRef<pxObje
         emit.sendReturns("onPreBlur",e,stop);
     }
     //    rtLogDebug("after %s bubble\n", preEvent);
-    
+
     //    rtLogDebug("before %s bubble\n", event);
     e.set("name", "onBlur");
     for (unsigned long i = 0;!mStopPropagation && i < l.size();i++)
@@ -3073,15 +3103,15 @@ bool pxScene2d::bubbleEventOnBlur(rtObjectRef e, rtRef<pxObject> t, rtRef<pxObje
       {
         // For range [0,loseFocusChainIdx),loseFocusChain is true
         // For range [loseFocusChainIdx,l.size()),loseFocusChain is false
-        
+
         //if(!l[i]->id().isEmpty())
         //  rtLogDebug("\nSetting loseFocusChain for %s",l[i]->id().cString());
-        
+
         if(i < loseFocusChainIdx)
           e.set("loseFocusChain",rtValue(true));
         else
           e.set("loseFocusChain",rtValue(false));
-        
+
         emit.sendReturns("onBlur",e,stop);
       }
     }
@@ -3090,7 +3120,7 @@ bool pxScene2d::bubbleEventOnBlur(rtObjectRef e, rtRef<pxObject> t, rtRef<pxObje
     Release();
   }
   return consumed;
-  
+
 }
 
 
@@ -3287,6 +3317,9 @@ rtError pxScene2d::showOutlines(bool& v) const
 rtError pxScene2d::setShowOutlines(bool v)
 {
   context.setShowOutlines(v);
+
+  onSize(mRoot->getOnscreenWidth(), mRoot->getOnscreenHeight());
+
   return RT_OK;
 }
 
@@ -3383,39 +3416,39 @@ rtError pxScene2d::screenshot(rtString type, rtString& pngData)
 //HACK JUNK HACK JUNK HACK JUNK HACK JUNK HACK JUNK
 
   rtString base64coded;
-  
+
   if( base64_encode(pngData2, base64coded) == RT_OK )
   {
     // We return a data Url string containing the image data
     pngData = "data:image/png;base64,";
-    
+
     pngData += base64coded;
-    
+
 //        FILE *saveFile  = fopen("/var/tmp/snap.txt", "wt"); // base64
 //        fwrite( base64coded.cString(), base64coded.length(), sizeof(char), saveFile);
 //        fclose(saveFile);
-//     
+//
 //        FILE *inFile  = fopen("/var/tmp/snap.txt", "rt"); // base64
 //        if( inFile != NULL)
 //        {
 //          fseek(inFile, 0L, SEEK_END);
 //          size_t sz = ftell(inFile);
 //          fseek(inFile, 0L, SEEK_SET);
-//          
+//
 //          rtData base64in; base64in.init(sz);
 //          fread(base64in.data(), base64in.length(), 1, inFile);
 //          fclose(inFile);
-//          
+//
 //          rtString my64string( (const char* ) base64in.data(), base64in.length());
-//          
+//
 //          rtData pngData2;
-//          
+//
 //          rtError res = base64_decode(my64string, pngData2);
-//          
+//
 //          if(res == RT_OK)
 //          {
 //            FILE *outFile = fopen("/var/tmp/snap.png", "wb"); // PNG
-//            
+//
 //            if(outFile)
 //            {
 //              fwrite( pngData2.data(), pngData2.length(), sizeof(char), outFile);
@@ -3423,9 +3456,9 @@ rtError pxScene2d::screenshot(rtString type, rtString& pngData)
 //            }
 //          }
 //        }
-    
+
         return RT_OK;
-      
+
   }//ENDIF
 
   return RT_FAIL;
@@ -3464,7 +3497,7 @@ rtError pxScene2d::getService(rtString name, rtObjectRef& returnObject)
     container->serviceContext(o);
   }
   ctx.set("serviceContext", o);
-    
+
 #ifdef ENABLE_PERMISSIONS_CHECK
   rtValue permissionsValue = mPermissions.getPtr();
   ctx.set("permissions", permissionsValue);
@@ -3871,8 +3904,8 @@ rtError pxSceneContainer::ready(rtObjectRef& o) const
   return RT_FAIL;
 }
 
-rtError pxSceneContainer::setServiceContext(rtObjectRef o) 
-{ 
+rtError pxSceneContainer::setServiceContext(rtObjectRef o)
+{
   // Only allow serviceContext to be set at construction time
   if( !mInitialized)
     mServiceContext = o;

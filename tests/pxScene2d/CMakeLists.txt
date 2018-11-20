@@ -9,6 +9,8 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
 set(PXCOREDIR ${CMAKE_CURRENT_SOURCE_DIR}/../../)
 set(EXTDIR "${PXCOREDIR}/examples/pxScene2d/external")
+set(UWS ${EXTDIR}/uWebSockets)
+
 include(../../cmake/CommOpts.cmake)
 include(../../cmake/CommDeps.cmake)
 include(../../cmake/NodeDeps.cmake)
@@ -50,6 +52,7 @@ set(PXSCENETEST_LINK_DIRECTORIES ${PXSCENETEST_LINK_DIRECTORIES}
      ${WAYLAND_EGL_LIBRARY_DIRS}
   ${WAYLAND_CLIENT_LIBRARY_DIRS}
                 ${PXSCENELIBDIR}
+                          ${UWS}
 )
 
 set(PXSCENETEST_LINK_LIBRARIES ${PXSCENETEST_LINK_LIBRARIES}
@@ -57,6 +60,7 @@ set(PXSCENETEST_LINK_LIBRARIES ${PXSCENETEST_LINK_LIBRARIES}
                ${DUKE_LIBRARIES}
           ${COMM_DEPS_LIBRARIES}
         ${WAYLAND_EGL_LIBRARIES}
+                             uWS
 )
 
 message(STATUS "NODE_LIBRARY_DIRS: ${NODE_LIBRARY_DIRS}")

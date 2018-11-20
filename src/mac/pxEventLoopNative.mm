@@ -135,11 +135,15 @@
     [NSApp    setWindowsMenu: viewMenu];
     [viewMenuItem setSubmenu: viewMenu];
     
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wundeclared-selector"
+  
     [[viewMenu addItemWithTitle: @"Toggle Address Bar"
                          action: @selector(toggleAddressBar:)
                   keyEquivalent: @"f"]
      setKeyEquivalentModifierMask:NSControlKeyMask | NSAlternateKeyMask];
   
+#pragma clang diagnostic pop  
 
     [viewMenu addItem:[NSMenuItem separatorItem]]; // -----------
 

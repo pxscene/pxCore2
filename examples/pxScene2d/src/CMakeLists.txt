@@ -27,6 +27,7 @@ set(RTREMOTEINC ${PXCOREDIR}/remote)
 
 set(WINSPARKLEINC ${EXTDIR}/WinSparkle/include)
 
+set(UWS ${EXTDIR}/uWebSockets)
 set(PX_LIBRARY_SUPPORT 1)
 set(PXWAYLAND_LIBRARY_SUPPORT 0)
 set(PX_LIBRARY_LINK_PXCORE 1)
@@ -134,6 +135,7 @@ elseif (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
                ${V8_LIBRARY_DIRS}
                ${DUKE_LIBRARY_DIRS}
           ${COMM_DEPS_LIBRARY_DIRS}
+          ${UWS}
        )
     set(PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES}
                   ${NODE_LIBRARIES}
@@ -229,7 +231,7 @@ elseif (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
         set(PLATFORM_SOURCES glut/pxContextUtils.cpp)
         set(PXSCENE_DEFINITIONS ${PXSCENE_DEFINITIONS} -DHAS_LINUX_BREAKPAD)
         include_directories(AFTER ${GLUTINC})
-        set(PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} glut breakpad_client)
+        set(PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} glut breakpad_client uWS)
         set(PX_LIBRARY_LINK_PXCORE 0)
     endif (HOSTNAME STREQUAL "raspberrypi")
     if (NOT USE_NODE_0_12_7)
