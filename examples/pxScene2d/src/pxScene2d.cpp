@@ -3654,7 +3654,6 @@ rtDefineProperty(pxScene2d, h);
 rtDefineProperty(pxScene2d, showOutlines);
 rtDefineProperty(pxScene2d, showDirtyRect);
 rtDefineProperty(pxScene2d, getDirtyRect);
-rtDefineProperty(pxScene2d, enableDirtyRect);
 rtDefineProperty(pxScene2d, customAnimator);
 rtDefineMethod(pxScene2d, create);
 rtDefineMethod(pxScene2d, clock);
