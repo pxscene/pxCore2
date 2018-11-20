@@ -1882,7 +1882,12 @@ rtDefineObject(pxRoot,pxObject);
 int gTag = 0;
 
 pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
-  : mRoot(), mInfo(), mCapabilityVersions(), start(0), sigma_draw(0), sigma_update(0), end2(0), frameCount(0), mWidth(0), mHeight(0), mStopPropagation(false), mContainer(NULL), mShowDirtyRectangle(false), mEnableDirtyRectangles(false),
+  : mRoot(), mInfo(), mCapabilityVersions(), start(0), sigma_draw(0), sigma_update(0), end2(0), frameCount(0), mWidth(0), mHeight(0), mStopPropagation(false), mContainer(NULL), mShowDirtyRectangle(false),
+#ifdef PX_DIRTY_RECTANGLES_DEFAULT_ON
+    mEnableDirtyRectangles(true),
+#else
+    mEnableDirtyRectangles(false),
+#endif //PX_DIRTY_RECTANGLES_DEFAULT_ON
     mInnerpxObjects(), mSuspended(false),
 #ifdef PX_DIRTY_RECTANGLES
     mArchive(),mDirtyRect(), mLastFrameDirtyRect(),
