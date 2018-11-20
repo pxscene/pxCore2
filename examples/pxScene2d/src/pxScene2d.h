@@ -1347,6 +1347,7 @@ public:
   rtReadOnlyProperty(h, h, int32_t);
   rtProperty(showOutlines, showOutlines, setShowOutlines, bool);
   rtProperty(showDirtyRect, showDirtyRect, setShowDirtyRect, bool);
+  rtProperty(getDirtyRect, getDirtyRect, setDirtyRect, rtObjectRef);
   rtProperty(customAnimator, customAnimator, setCustomAnimator, rtFunctionRef);
   rtMethod1ArgAndReturn("loadArchive",loadArchive,rtString,rtObjectRef); 
   rtMethod1ArgAndReturn("create", create, rtObjectRef, rtObjectRef);
@@ -1359,6 +1360,7 @@ public:
   rtMethod1ArgAndReturn("resume", resume, rtValue, bool);
   rtMethodNoArgAndReturn("suspended", suspended, bool);
   rtMethodNoArgAndReturn("textureMemoryUsage", textureMemoryUsage, rtValue);
+
 /*
   rtMethod1ArgAndReturn("createExternal", createExternal, rtObjectRef,
                         rtObjectRef);
@@ -1478,6 +1480,8 @@ public:
   rtError showDirtyRect(bool& v) const;
   rtError setShowDirtyRect(bool v);
 
+  rtError getDirtyRect(rtObjectRef& v) const;
+  rtError setDirtyRect(rtObjectRef v);
   rtError customAnimator(rtFunctionRef& f) const;
   rtError setCustomAnimator(const rtFunctionRef& f);
 
