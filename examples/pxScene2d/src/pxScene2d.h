@@ -1360,7 +1360,6 @@ public:
   rtMethod1ArgAndReturn("resume", resume, rtValue, bool);
   rtMethodNoArgAndReturn("suspended", suspended, bool);
   rtMethodNoArgAndReturn("textureMemoryUsage", textureMemoryUsage, rtValue);
-
 /*
   rtMethod1ArgAndReturn("createExternal", createExternal, rtObjectRef,
                         rtObjectRef);
