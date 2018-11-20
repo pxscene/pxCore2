@@ -142,7 +142,7 @@ elseif (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
                   ${V8_LIBRARIES}
                   ${DUKE_LIBRARIES}
              ${COMM_DEPS_LIBRARIES}
-             pthread rt dl m uWS)
+             pthread rt dl m)
 
     set(PXSCENE_APP_LIBRARIES ${PXSCENE_APP_LIBRARIES} pxCore rtCore_s)
 
@@ -231,7 +231,7 @@ elseif (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
         set(PLATFORM_SOURCES glut/pxContextUtils.cpp)
         set(PXSCENE_DEFINITIONS ${PXSCENE_DEFINITIONS} -DHAS_LINUX_BREAKPAD)
         include_directories(AFTER ${GLUTINC})
-        set(PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} glut breakpad_client)
+        set(PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} glut breakpad_client uWS)
         set(PX_LIBRARY_LINK_PXCORE 0)
     endif (HOSTNAME STREQUAL "raspberrypi")
     if (NOT USE_NODE_0_12_7)
