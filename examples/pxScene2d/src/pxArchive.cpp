@@ -110,7 +110,15 @@ rtError pxArchive::initFromUrl(const rtString& url, const rtCORSRef& cors, rtObj
   mLoadStatus = new rtMapObject;
 
   mUrl = url;
-
+  if (url.beginsWith("http"))
+  {
+    std::string tempUrl(url.cString());  
+    std::size_t found = tempUrl.find_last_of("/");
+    if (found != std::string::npos)
+    {
+      mHttpUrlBase = (tempUrl.substr(0, found+1)).c_str();
+    }
+  }
   // Since this object can be released before we get a async completion
   // We need to maintain this object's lifetime
   // TODO review overall flow and organization
@@ -216,6 +224,18 @@ rtError pxArchive::getFileAsString(const char* fileName, rtString& s)
 rtError pxArchive::getFileData(const char* fileName, rtData& d)
 {
   rtError e = RT_FAIL;
+  rtString tmpFileName(fileName);
+  char* name = (char *)fileName;
+  if (isRelativeResource(tmpFileName))
+  {
+    tmpFileName = tmpFileName.substring(mHttpUrlBase.length()).cString();
+    name = (char *)tmpFileName.cString();
+  }
+  // convert the names coming as input as "./filename" to filename to perform search
+  if ((NULL != name) && (name[0] == '.') && (name[1] == '/'))
+  {
+    name = name+2;
+  }
   if (mLoadStatus.get<int32_t>("statusCode") == 0)
   {
     if (mIsFile)
@@ -224,7 +244,7 @@ rtError pxArchive::getFileData(const char* fileName, rtData& d)
     }
     else
     {
-      if (mZip.getFileData(fileName,d)==RT_OK)
+      if (mZip.getFileData(name,d)==RT_OK)
       {
         e = RT_OK;
       }
@@ -348,6 +368,15 @@ bool pxArchive::isFile()
 rtString pxArchive::getName()
 {
   return mUrl;
+}
+
+bool pxArchive::isRelativeResource(rtString url)
+{
+  if ((mHttpUrlBase.length() > 0)  && (url.beginsWith(mHttpUrlBase)))
+  {
+    return true;
+  }
+  return false;
 }
 
 rtDefineObject(pxArchive,rtObject);
