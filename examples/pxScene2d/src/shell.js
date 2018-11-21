@@ -129,7 +129,7 @@ if( scene.capabilities != undefined && scene.capabilities.graphics != undefined 
 ////
 
 ////
-if( scene.capabilities != undefined && scene.capabilities.graphics != undefined && scene.capabilities.graphics.jnujjjjjh             == 1) {
+if( scene.capabilities != undefined && scene.capabilities.graphics != undefined && scene.capabilities.graphics.dirtyRect == 1) {
     // TODO  emulation mostly for egl targets right now.
     var dirtyRectsTimer = undefined;
         
