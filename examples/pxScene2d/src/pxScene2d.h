@@ -1348,6 +1348,7 @@ public:
   rtProperty(showOutlines, showOutlines, setShowOutlines, bool);
   rtProperty(showDirtyRect, showDirtyRect, setShowDirtyRect, bool);
   rtProperty(getDirtyRect, getDirtyRect, setDirtyRect, rtObjectRef);
+  rtProperty(enableDirtyRect, enableDirtyRect, setEnableDirtyRect, bool);
   rtProperty(customAnimator, customAnimator, setCustomAnimator, rtFunctionRef);
   rtMethod1ArgAndReturn("loadArchive",loadArchive,rtString,rtObjectRef); 
   rtMethod1ArgAndReturn("create", create, rtObjectRef, rtObjectRef);
@@ -1481,6 +1482,10 @@ public:
 
   rtError getDirtyRect(rtObjectRef& v) const;
   rtError setDirtyRect(rtObjectRef v);
+    
+  rtError enableDirtyRect(bool& v) const;
+  rtError setEnableDirtyRect(bool v);
+    
   rtError customAnimator(rtFunctionRef& f) const;
   rtError setCustomAnimator(const rtFunctionRef& f);
 
@@ -1725,6 +1730,7 @@ private:
   pxIViewContainer *mContainer;
   pxScriptView *mScriptView;
   bool mShowDirtyRectangle;
+  bool mEnableDirtyRectangles;
   #ifdef USE_SCENE_POINTER
   pxTextureRef mNullTexture;
   rtObjectRef mPointerResource;
