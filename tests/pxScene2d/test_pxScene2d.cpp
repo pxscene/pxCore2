@@ -416,6 +416,8 @@ class pxScene2dTest : public testing::Test
 TEST_F(pxScene2dTest, pxScene2dTests)
 {
     getArchiveTest();
+    // TEMPORARY comment to see crash happening with scene delete after getService
+    /*
     viewContainerTest();
     initFromUrlFromParentTest();
     initFromUrlFromLocalTest();
@@ -427,5 +429,6 @@ TEST_F(pxScene2dTest, pxScene2dTests)
     //pxScene2dHdrTest();
     pxScriptViewTest();
     multipleArchiveTest();
+    */
   
 }
