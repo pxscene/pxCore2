@@ -1108,9 +1108,6 @@ pxError pxWindow::init(int left, int top, int width, int height)
                                                    backing: NSBackingStoreBuffered
                                                      defer: NO];
   
-  
-  NSApplication *app = [NSApplication sharedApplication];
-
   NSWindowCollectionBehavior behavior = [window collectionBehavior];
   [window setCollectionBehavior: behavior | NSWindowCollectionBehaviorFullScreenPrimary ];
   
