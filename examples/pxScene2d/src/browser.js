@@ -16,8 +16,6 @@ limitations under the License.
 
 */
 
-
-//var baseUrl = "https://www.pxscene.org/examples/px-reference/gallery/";
 var homeUrl = "https://www.pxscene.org/examples/px-reference/text/sample.md";
 
 px.configImport({"browser:" : /*px.getPackageBaseFilePath() + */ "browser/"});
