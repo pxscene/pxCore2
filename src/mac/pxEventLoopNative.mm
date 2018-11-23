@@ -82,6 +82,10 @@
     [NSApp          setWindowsMenu: fileMenu];
     [fileMenuItem setSubmenu: fileMenu];
     
+    [fileMenu addItemWithTitle: @"New Window"
+                        action: @selector(newWindow:)
+                 keyEquivalent: @"n"];
+    
     [fileMenu addItemWithTitle: @"Miniaturize"
                         action: @selector(performMiniaturize:)
                  keyEquivalent: @"m"];
