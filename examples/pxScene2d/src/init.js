@@ -71,17 +71,34 @@ global.loadUrl = function loadUrl(url) {
 }
 }
 else {
+    var baseViewerUrl = 'https://www.pxscene.org/'
+
     function loadUrl(url) {
+        var Url = require('url')
+        var Path = require('path')
+        var ext = Path.extname(Url.parse(url).pathname)
+
+        //console.log('Original Url: ', url)
+        if (ext=='.md' || ext=='.sd') {
+            url = baseViewerUrl+'/mime/viewMarkdown.js?url='+encodeURIComponent(url)
+        }
+        else if (ext=='.png' || ext == '.jpg' || ext=='.svg') {
+            url = baseViewerUrl+'/mime/viewImage.js?url='+encodeURIComponent(url)
+        }
+        else if (ext=='.txt') {
+            url = baseViewerUrl+'/mime/viewText.js?url='+encodeURIComponent(url)
+        }
+        //console.log('Rewritten Url: ', url)
 
         var ctx = new AppSceneContext({        scene: getScene("scene.1"),
-                                           makeReady: this.makeReady,
+                                            makeReady: this.makeReady,
                                         getContextID: this.getContextID,
-                                          packageUrl: url,
-                                       rpcController: new RPCController() } );
-      
+                                            packageUrl: url,
+                                        rpcController: new RPCController() } );
+
         // console.log("JS >>>> loadURL()  ctx: " + getContextID() );
-      
+
         ctx.loadScene();
-      }
+    }
 }
 

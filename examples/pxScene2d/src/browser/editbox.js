@@ -393,12 +393,15 @@ px.import({ scene: 'px:scene.1.js',
 
         //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-        container.on("onFocus", function (e) {
-
+        textInput.on("onFocus", function (e) {
             showCursor();
-
-// console.log(" OnFocus()    textInput.focus ");// = " + textInput.focus);
+            textInput.textColor = 0x000000ff
+            // console.log(" OnFocus()    textInput.focus ");// = " + textInput.focus);
         });
+
+        textInput.on("onBlur", function (e) {
+            hideCursor()
+        })
 
         //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
