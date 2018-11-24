@@ -153,12 +153,9 @@ px.import({ scene:    'px:scene.1.js',
         },
         function()
         {
-          contentBG.draw = false;
-
+          inputBox.focus = true
+          inputBox.selectAll()
           inputBox.textColor = urlFailedColor;
-
-          //content.focus = false;
-          inputBox.focus = true;
                          
           inputBox.showCursor();
           //inputBox.cancelLater( function() { spinner.a = 0;} );
@@ -169,9 +166,7 @@ px.import({ scene:    'px:scene.1.js',
   }//reload()
 
   function goBack() {
-    console.log('backUrls:', backUrls)
     if (backUrls.length) {
-      console.log('Calling reload')
       foreUrls.push(currUrl)
       reload(backUrls.pop(), true)
     }
