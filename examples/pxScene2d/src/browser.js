@@ -89,8 +89,11 @@ px.import({ scene:    'px:scene.1.js',
     scene = null;
   });
 
+  var currentGen = 0
   function reload(u, keepHistory)
   {
+    currentGen++
+    inputBox.textColor = urlFocusColor
     var originalUrl = u?u.trim():''
     u = resolveSceneUrl(originalUrl);
     console.log("RELOADING.... [ " + u + " ]");
@@ -120,44 +123,52 @@ px.import({ scene:    'px:scene.1.js',
     if (u == '')
       spinner.a = 0
 
-    if (true)
+    if (keepHistory)
+      currUrl = u
+
+     if (true)
     {
       content.ready.then(
-        function(o)
-        {
-          //inputBox.focus = false;
+        // Use closure to capture the current navigation gen
+        // so we can compare at completion
+        function(gen) {
+          return function(o) {
+            listBox.addItem(inputBox.text);
+            contentBG.draw = true;
+            content.focus = true;
 
-          listBox.addItem(inputBox.text);
-          contentBG.draw = true;
-          content.focus = true;
+            inputBox.textColor = urlSucceededColor;
 
-          inputBox.textColor = urlSucceededColor;
+            inputBox.hideCursor();
+            inputBox.clearSelection()
+            //inputBox.cancelLater( function() { spinner.a = 0;} );
+            spinner.a = 0
 
-          inputBox.hideCursor();
-          //inputBox.cancelLater( function() { spinner.a = 0;} );
-          spinner.a = 0
-
-          if (!keepHistory) {
-            if (u != '' && currUrl != '' && currUrl != u) {
-              backUrls.push(currUrl)
-              foreUrls = []
+            // Only truncate forward history if we're completing
+            // the current matching navigation to resolve
+            // a race condition
+            if (gen == currentGen) {
+              if (!keepHistory) {
+                if (u != '' && currUrl != '' && currUrl != u) {
+                  backUrls.push(currUrl)
+                  foreUrls = []
+                }
+                currUrl = u
+              }
             }
+
+            inputBox.text = originalUrl
+        
+            backButton.a = backUrls.length?0.65:0.2
+            foreButton.a = foreUrls.length?0.65:0.2
           }
-
-          inputBox.text = originalUrl
-
-          currUrl = u
-
-          backButton.a = backUrls.length?0.65:0.2
-          foreButton.a = foreUrls.length?0.65:0.2
-        },
+        }(currentGen),
         function()
         {
           inputBox.focus = true
           inputBox.selectAll()
           inputBox.textColor = urlFailedColor;
                          
-          inputBox.showCursor();
           //inputBox.cancelLater( function() { spinner.a = 0;} );
           spinner.a = 0
         }
@@ -373,13 +384,6 @@ px.import({ scene:    'px:scene.1.js',
 
       reload(url);
     }
-    /*
-    else
-    {
-      inputBox.textColor = urlFocusColor;
-      inputBox.showCursor();
-    }
-    */
   });
 
   scene.on("onResize", function(e) { updateSize(e.w,e.h); });
