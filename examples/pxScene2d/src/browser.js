@@ -123,6 +123,8 @@ px.import({ scene:    'px:scene.1.js',
     if (u == '')
       spinner.a = 0
 
+    inputBox.text = originalUrl
+
     if (keepHistory)
       currUrl = u
 
@@ -157,7 +159,6 @@ px.import({ scene:    'px:scene.1.js',
               }
             }
 
-            inputBox.text = originalUrl
         
             backButton.a = backUrls.length?0.65:0.2
             foreButton.a = foreUrls.length?0.65:0.2
