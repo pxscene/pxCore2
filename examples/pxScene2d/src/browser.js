@@ -325,6 +325,7 @@ px.import({ scene:    'px:scene.1.js',
       {
         showFullscreen = !showFullscreen;
 
+        /*
         if(showFullscreen)
         {
           content.moveToFront();
@@ -333,6 +334,7 @@ px.import({ scene:    'px:scene.1.js',
         {
           browser.moveToFront();
         }
+        */
 
         browser.draw = showFullscreen ? false : true;
         browser.a    = showFullscreen ?     0 : 1;
@@ -342,6 +344,7 @@ px.import({ scene:    'px:scene.1.js',
 
         content.w    = showFullscreen ?  bg.w : contentBG.w;
         content.h    = showFullscreen ?  bg.h : contentBG.h;
+        e.stopPropagation()
       }
       /*
       else if (code == keys.H)  //  CTRL-ALT-H
