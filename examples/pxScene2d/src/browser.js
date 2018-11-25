@@ -123,6 +123,8 @@ px.import({ scene:    'px:scene.1.js',
     if (u == '')
       spinner.a = 0
 
+    inputBox.text = originalUrl
+
     if (keepHistory)
       currUrl = u
 
@@ -157,7 +159,6 @@ px.import({ scene:    'px:scene.1.js',
               }
             }
 
-            inputBox.text = originalUrl
         
             backButton.a = backUrls.length?0.65:0.2
             foreButton.a = foreUrls.length?0.65:0.2
@@ -324,6 +325,7 @@ px.import({ scene:    'px:scene.1.js',
       {
         showFullscreen = !showFullscreen;
 
+        /*
         if(showFullscreen)
         {
           content.moveToFront();
@@ -332,6 +334,7 @@ px.import({ scene:    'px:scene.1.js',
         {
           browser.moveToFront();
         }
+        */
 
         browser.draw = showFullscreen ? false : true;
         browser.a    = showFullscreen ?     0 : 1;
@@ -341,6 +344,9 @@ px.import({ scene:    'px:scene.1.js',
 
         content.w    = showFullscreen ?  bg.w : contentBG.w;
         content.h    = showFullscreen ?  bg.h : contentBG.h;
+
+        updateSize(scene.w, scene.h)
+        e.stopPropagation()
       }
       /*
       else if (code == keys.H)  //  CTRL-ALT-H
