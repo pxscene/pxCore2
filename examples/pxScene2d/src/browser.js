@@ -344,6 +344,8 @@ px.import({ scene:    'px:scene.1.js',
 
         content.w    = showFullscreen ?  bg.w : contentBG.w;
         content.h    = showFullscreen ?  bg.h : contentBG.h;
+
+        updateSize(scene.w, scene.h)
         e.stopPropagation()
       }
       /*
