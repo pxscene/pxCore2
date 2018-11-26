@@ -125,6 +125,7 @@ extern "C" const char U_DATA_API SMALL_ICUDATA_ENTRY_POINT[];
 #include "headers.h"
 #include "libplatform/libplatform.h"
 
+#include "rtWebSocket.h"
 #include "rtHttpRequest.h"
 
 static rtAtomic sNextId = 100;
@@ -141,6 +142,7 @@ namespace rtScriptV8NodeUtils
   extern rtV8FunctionItem v8ModuleBindings[];
 
   rtError rtHttpGetBinding(int numArgs, const rtValue* args, rtValue* result, void* context);
+  rtError rtWebSocketBinding(int numArgs, const rtValue* args, rtValue* result, void* context);
 } 
 
 class V8ArrayBufferAllocator : public v8::ArrayBuffer::Allocator {
@@ -240,6 +242,7 @@ private:
    std::map<rtString, Persistent<Value> *> mLoadedModuleCache;
 
    rtRef<rtFunctionCallback>      mHttpGetBinding;
+   rtRef<rtFunctionCallback>      mWebScoketBinding;
 
    int mRefCount;
 
@@ -338,8 +341,10 @@ rtV8Context::rtV8Context(Isolate *isolate, Platform *platform, uv_loop_t *loop) 
   v8::platform::PumpMessageLoop(mPlatform, mIsolate);
 
   mHttpGetBinding = new rtFunctionCallback(rtHttpGetBinding, loop);
+  mWebScoketBinding = new rtFunctionCallback(rtWebSocketBinding, loop);
 
   add("httpGet", mHttpGetBinding.getPtr());
+  add("webscoketGet", mWebScoketBinding.getPtr());
 }
 
 rtV8Context::~rtV8Context()
@@ -373,6 +378,13 @@ bool rtV8Context::resolveModulePath(const rtString &name, rtString &data)
   // not parsing package.json
   endings.push_back("/index.js");
   endings.push_back("/lib/index.js");
+  if (name.find(0, "/") == -1) {
+    if (name.endsWith(".js")) {
+      endings.push_back("/lib/" + name);
+    } else {
+      endings.push_back("/lib/" + name + ".js");
+    }
+  }
 
   std::list<rtString>::const_iterator it, jt;
   for (it = dirs.begin(); !found && it != dirs.end(); ++it) {
@@ -1438,6 +1450,25 @@ namespace rtScriptV8NodeUtils
     return RT_OK;
   }
 
+  rtError rtWebSocketBinding(int numArgs, const rtValue* args, rtValue* result, void* context)
+  {
+    uv_loop_t* loop = (uv_loop_t*)context;
+    if (numArgs < 1) {
+      rtLogError("%s: invalid args", __FUNCTION__);
+      return RT_ERROR_INVALID_ARG;
+    }
+
+    rtWebSocket* ws;
+    if (args[0].getType() != RT_objectType) {
+      rtLogError("%s: invalid arg type", __FUNCTION__);
+      return RT_ERROR_INVALID_ARG;
+    }
+    ws = new rtWebSocket(args[0].toObject(), loop);
+
+    rtObjectRef ref = ws;
+    *result = ref;
+    return RT_OK;
+  }
 } // namespace
 
 #endif

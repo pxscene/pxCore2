@@ -546,6 +546,17 @@ void MyDisplayReconfigurationCallBack(CGDirectDisplayID display,
 #pragma mark - Cut and Paste Frist Responders
 
 
+- (IBAction)newWindow:sender
+{
+  NSString     *path = [[NSBundle mainBundle] bundlePath];
+  NSWorkspace*   ws  = [NSWorkspace sharedWorkspace];
+  NSURL*         url = [NSURL fileURLWithPath:path isDirectory:NO];
+
+  [ws launchApplicationAtURL: url
+                     options: NSWorkspaceLaunchNewInstance
+               configuration: @{}
+                       error: nil];
+}
 
 - (IBAction)toggleAddressBar:sender
 {
@@ -1108,9 +1119,6 @@ pxError pxWindow::init(int left, int top, int width, int height)
                                                    backing: NSBackingStoreBuffered
                                                      defer: NO];
   
-  
-  NSApplication *app = [NSApplication sharedApplication];
-
   NSWindowCollectionBehavior behavior = [window collectionBehavior];
   [window setCollectionBehavior: behavior | NSWindowCollectionBehaviorFullScreenPrimary ];
   

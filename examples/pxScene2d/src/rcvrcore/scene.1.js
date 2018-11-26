@@ -49,6 +49,8 @@ function Scene() {
         this.__defineGetter__("h", function() { return scene.h; });
         this.__defineGetter__("showOutlines", function() { return scene.showOutlines; });
         this.__defineSetter__("showOutlines", function(v) { scene.showOutlines = v; });
+        this.__defineGetter__("enableDirtyRect", function() { return scene.enableDirtyRect; });
+        this.__defineSetter__("enableDirtyRect", function(v) { scene.enableDirtyRect = v; });
         this.__defineGetter__("showDirtyRect", function() { return scene.showDirtyRect; });
         this.__defineSetter__("showDirtyRect", function(v) { scene.showDirtyRect = v; });
         this.__defineSetter__("customAnimator", function(v) { scene.customAnimator = v; });

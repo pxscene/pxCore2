@@ -17,7 +17,14 @@ limitations under the License.
 */
 
 'use strict';
-var WS = require('ws/lib/WebSocket');
+var isV8 = (typeof _isV8 != "undefined") ? true : false;
+
+var WS = null;
+if (isV8) {
+  WS = require('ws');
+} else {
+  WS = require('ws/lib/WebSocket');
+}
 
 function socketClosed()
 {
