@@ -149,7 +149,7 @@ static EssKeyListener keyListener=
         keyReleased
     };
 
-#ifdef ESSOS_SETTINGS_AND_TOUCH_SUPPORT
+#if 0
 
 static void displaySize( void */*userData*/, int width, int height )
 {
@@ -430,7 +430,7 @@ pxError pxWindow::init(int left, int top, int width, int height)
             {
                 error = true;
             }
-#ifdef ESSOS_SETTINGS_AND_TOUCH_SUPPORT
+#if 0
             if ( !EssContextSetTouchListener( d->ctx, 0, &touchListener ) )
             {
                 error= true;
@@ -444,7 +444,7 @@ pxError pxWindow::init(int left, int top, int width, int height)
             {
                 error = true;
             }
-#ifdef ESSOS_SETTINGS_AND_TOUCH_SUPPORT
+#if 0
             if (!EssContextSetSettingsListener(d->ctx, 0, &settingsListener))
             {
                 error = true;

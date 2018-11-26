@@ -18,12 +18,10 @@
 
 #ifdef RTSCRIPT_SUPPORT_V8
 
-#ifndef USE_SYSTEM_V8
 extern unsigned char natives_blob_bin_data[];
 extern int natives_blob_bin_size;
 extern unsigned char snapshot_blob_bin_data[];
 extern int snapshot_blob_bin_size;
-#endif /* USE_SYSTEM_V8 */
 
 #if defined WIN32
 #include <Windows.h>
@@ -50,9 +48,9 @@ extern int snapshot_blob_bin_size;
 #include <unicode/udata.h>
 #include <unicode/uidna.h>
 
-#ifndef USE_SYSTEM_V8
 /* if this is defined, we have a 'secondary' entry point.
 compare following to utypes.h defs for U_ICUDATA_ENTRY_POINT */
+#if 0
 #define SMALL_ICUDATA_ENTRY_POINT \
   SMALL_DEF2(U_ICU_VERSION_MAJOR_NUM, U_LIB_SUFFIX_C_NAME)
 #define SMALL_DEF2(major, suff) SMALL_DEF(major, suff)
@@ -63,8 +61,7 @@ compare following to utypes.h defs for U_ICUDATA_ENTRY_POINT */
 #endif
 
 extern "C" const char U_DATA_API SMALL_ICUDATA_ENTRY_POINT[];
-#endif /* USE_SYSTEM_V8 */
-
+#endif
 #include "rtWrapperUtils.h"
 #include "rtScriptV8Node.h"
 
@@ -125,7 +122,6 @@ extern "C" const char U_DATA_API SMALL_ICUDATA_ENTRY_POINT[];
 #include "headers.h"
 #include "libplatform/libplatform.h"
 
-#include "rtWebSocket.h"
 #include "rtHttpRequest.h"
 
 static rtAtomic sNextId = 100;
@@ -142,7 +138,6 @@ namespace rtScriptV8NodeUtils
   extern rtV8FunctionItem v8ModuleBindings[];
 
   rtError rtHttpGetBinding(int numArgs, const rtValue* args, rtValue* result, void* context);
-  rtError rtWebSocketBinding(int numArgs, const rtValue* args, rtValue* result, void* context);
 } 
 
 class V8ArrayBufferAllocator : public v8::ArrayBuffer::Allocator {
@@ -242,7 +237,6 @@ private:
    std::map<rtString, Persistent<Value> *> mLoadedModuleCache;
 
    rtRef<rtFunctionCallback>      mHttpGetBinding;
-   rtRef<rtFunctionCallback>      mWebScoketBinding;
 
    int mRefCount;
 
@@ -341,10 +335,8 @@ rtV8Context::rtV8Context(Isolate *isolate, Platform *platform, uv_loop_t *loop) 
   v8::platform::PumpMessageLoop(mPlatform, mIsolate);
 
   mHttpGetBinding = new rtFunctionCallback(rtHttpGetBinding, loop);
-  mWebScoketBinding = new rtFunctionCallback(rtWebSocketBinding, loop);
 
   add("httpGet", mHttpGetBinding.getPtr());
-  add("webscoketGet", mWebScoketBinding.getPtr());
 }
 
 rtV8Context::~rtV8Context()
@@ -784,10 +776,10 @@ rtError rtScriptV8::init()
   rtLogInfo(__FUNCTION__);
 
   if (mV8Initialized == false) {
-#ifndef USE_SYSTEM_V8
+#if 0
     UErrorCode status = U_ZERO_ERROR;
     udata_setCommonData(&SMALL_ICUDATA_ENTRY_POINT, &status);
-
+#endif
     v8::V8::InitializeICU();
 
     StartupData nativesBlob;
@@ -799,7 +791,6 @@ rtError rtScriptV8::init()
     snapshotBlob.data = (const char*)snapshot_blob_bin_data;
     snapshotBlob.raw_size = snapshot_blob_bin_size;
     v8::V8::SetSnapshotDataBlob(&snapshotBlob);
-#endif
 
     mUvLoop = uv_default_loop();
     Platform* platform = platform::CreateDefaultPlatform();
@@ -1450,25 +1441,5 @@ namespace rtScriptV8NodeUtils
     return RT_OK;
   }
 
-  rtError rtWebSocketBinding(int numArgs, const rtValue* args, rtValue* result, void* context)
-  {
-    uv_loop_t* loop = (uv_loop_t*)context;
-    if (numArgs < 1) {
-      rtLogError("%s: invalid args", __FUNCTION__);
-      return RT_ERROR_INVALID_ARG;
-    }
-
-    rtWebSocket* ws;
-    if (args[0].getType() != RT_objectType) {
-      rtLogError("%s: invalid arg type", __FUNCTION__);
-      return RT_ERROR_INVALID_ARG;
-    }
-    ws = new rtWebSocket(args[0].toObject(), loop);
-
-    rtObjectRef ref = ws;
-    *result = ref;
-    return RT_OK;
-  }
 } // namespace
-
 #endif

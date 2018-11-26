@@ -231,9 +231,8 @@ if (SUPPORT_V8)
     add_definitions(-DRTSCRIPT_SUPPORT_V8)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-error=deprecated-declarations")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-error=deprecated-declarations")
-    include_directories(AFTER ${EXTDIR}/uWebSockets/src)
     set(PXCORE_FILES ${PXCORE_FILES} rtScriptV8/rtScriptV8.cpp rtScriptV8/jsCallback.cpp rtScriptV8/rtFunctionWrapper.cpp 
-        rtScriptV8/rtObjectWrapper.cpp rtScriptV8/rtWrapperUtils.cpp rtScriptV8/rtWebSocket.cpp ${V8_SOURCES})
+        rtScriptV8/rtObjectWrapper.cpp rtScriptV8/rtWrapperUtils.cpp ${V8_SOURCES})
 endif()
 
 

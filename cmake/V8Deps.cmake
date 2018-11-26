@@ -26,11 +26,14 @@ if (PREFER_SYSTEM_LIBRARIES)
         message(STATUS "Found v8-version.h header at: ${V8_VERSION_DIR} (found version: ${V8_VERSION_STRING})")
 
         set(V8_FOUND 1)
-        add_definitions(-DUSE_SYSTEM_V8)
         set(V8_LIBRARIES
-            v8
-            v8_libbase
-            v8_libplatform)
+          atomic
+          v8_base
+          v8_external_snapshot
+          v8_libplatform
+          v8_libsampler
+          v8_libbase
+            )
     endif(V8_VERSION_DIR)
 endif (PREFER_SYSTEM_LIBRARIES)
 
