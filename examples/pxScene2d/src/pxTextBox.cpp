@@ -431,7 +431,7 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
       }
 
       // Check if text still fits on this line, or if wrap needs to occur
-      if( (tempX + charW) <= lineWidth || (!mWordWrap && lineNumber == 0) || mWordWrap && !isDelimeter_charsPresent)
+      if( (tempX + charW) <= lineWidth || (!mWordWrap && lineNumber == 0) || (mWordWrap && !isDelimeter_charsPresent))
       {
         accString.append(tempChar.c_str());
         tempX += charW;
