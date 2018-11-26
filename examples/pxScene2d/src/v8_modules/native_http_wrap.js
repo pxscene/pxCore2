@@ -53,14 +53,29 @@ NativeHttpManager.request = function(...args) {
  */
 function NativeHttp(url, cb) {
     this._httpInstance = httpGet(url, res => {
-        cb(res);
+        if (this.timeoutHandler) {
+            clearTimeout(this.timeoutHandler);
+        }
+        if (!this.isTimeout) {
+            cb(res);
+        } else {
+            console.log('request timeout and reponse reached, ignore this response.');
+        }
         NativeHttpManager.remove(this);
     });
     NativeHttpManager.add(this);
+    this.timeoutHandler = null;
+    this.errorHander = null;
+    this.isTimeout = false;
 }
 
-NativeHttp.prototype.on = function(...args) {
-    this._httpInstance.on(...args);
+NativeHttp.prototype.on = function(eventName, handler) {
+    this._httpInstance.on(eventName, handler);
+
+    if(eventName === 'error') {
+        this.errorHander = handler;
+    }
+
     return this;
 };
 
@@ -74,8 +89,16 @@ NativeHttp.prototype.end = function() {
 NativeHttp.prototype.write = function(...args) {
     this._httpInstance.write(...args);
 }
-NativeHttp.prototype.setTimeout = function(...args) {
-    this._httpInstance.setTimeout.apply(...args);
+NativeHttp.prototype.setTimeout = function(ms, timeoutCB) {
+    // c++ native didn't implement the setTimeout
+    // so i implement this in js side
+    this.timeoutHandler = setTimeout(()=>{
+        this.isTimeout = true;
+        timeoutCB();
+        if (this.errorHander) {
+            this.errorHander({message:'request timeout'});
+        }
+    }, ms);
 }
 NativeHttp.prototype.setHeader = function(...args) {
     this._httpInstance.setHeader(...args);
