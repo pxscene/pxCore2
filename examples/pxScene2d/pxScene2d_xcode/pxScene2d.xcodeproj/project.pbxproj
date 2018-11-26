@@ -226,7 +226,7 @@
 		4C8440CB20D8362E00C24E45 /* sparkpermissions.conf */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = sparkpermissions.conf; path = src/sparkpermissions.conf; sourceTree = "<group>"; };
 		4C9F22AA1E6A24D200979F4E /* westeros-compositor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "westeros-compositor.h"; path = "external/westeros-stub/westeros-compositor.h"; sourceTree = "<group>"; };
 		4C9F22AB1E6A24D200979F4E /* westeros-stub.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = "westeros-stub.cpp"; path = "external/westeros-stub/westeros-stub.cpp"; sourceTree = "<group>"; };
-		4CF546362020F5B600529907 /* pxScene2d.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = pxScene2d.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		4CF546362020F5B600529907 /* Spark.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Spark.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		4CF5463A2020F6E200529907 /* libz.1.2.11.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.1.2.11.dylib; path = lib/libz.1.2.11.dylib; sourceTree = "<group>"; };
 		783C7DAE1EBB6A440079FBE5 /* pxAnimate.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = pxAnimate.cpp; path = src/pxAnimate.cpp; sourceTree = "<group>"; };
 		783C7DAF1EBB6A440079FBE5 /* pxAnimate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pxAnimate.h; path = src/pxAnimate.h; sourceTree = "<group>"; };
@@ -284,7 +284,7 @@
 		4C0C6D2C1E52189500BD8932 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				4CF546362020F5B600529907 /* pxScene2d.app */,
+				4CF546362020F5B600529907 /* Spark.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -475,9 +475,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		4CF546012020F5B600529907 /* pxScene2d */ = {
+		4CF546012020F5B600529907 /* Spark */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 4CF546332020F5B600529907 /* Build configuration list for PBXNativeTarget "pxScene2d" */;
+			buildConfigurationList = 4CF546332020F5B600529907 /* Build configuration list for PBXNativeTarget "Spark" */;
 			buildPhases = (
 				4CF546042020F5B600529907 /* Run Library Script */,
 				4CF546052020F5B600529907 /* Sources */,
@@ -491,9 +491,9 @@
 			dependencies = (
 				4C4746B1214D2C1700E06357 /* PBXTargetDependency */,
 			);
-			name = pxScene2d;
+			name = Spark;
 			productName = pxScene2d;
-			productReference = 4CF546362020F5B600529907 /* pxScene2d.app */;
+			productReference = 4CF546362020F5B600529907 /* Spark.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -524,7 +524,7 @@
 			);
 			projectRoot = "";
 			targets = (
-				4CF546012020F5B600529907 /* pxScene2d */,
+				4CF546012020F5B600529907 /* Spark */,
 			);
 		};
 /* End PBXProject section */
@@ -950,7 +950,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		4CF546332020F5B600529907 /* Build configuration list for PBXNativeTarget "pxScene2d" */ = {
+		4CF546332020F5B600529907 /* Build configuration list for PBXNativeTarget "Spark" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				4CF546342020F5B600529907 /* Debug */,

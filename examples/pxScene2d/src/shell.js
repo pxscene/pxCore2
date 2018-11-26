@@ -186,6 +186,12 @@ if( scene.capabilities != undefined && scene.capabilities.graphics != undefined 
         scene.showDirtyRect = !scene.showDirtyRect;
         e.stopPropagation();
       }
+      else
+      if(code == keys.T)  // ctrl-alt-t
+      {
+        scene.enableDirtyRect = !scene.enableDirtyRect;
+        e.stopPropagation();
+      }
     }// ctrl-alt
     else
     if( keys.is_CTRL_ALT_SHIFT( flags ) )
@@ -238,6 +244,7 @@ if( scene.capabilities != undefined && scene.capabilities.graphics != undefined 
     else if (code == keys.O && keys.is_CTRL_ALT( flags ) )       e.stopPropagation(); // ctrl-alt-o
     else if (code == keys.S && keys.is_CTRL_ALT( flags ) )       e.stopPropagation(); // ctrl-alt-s
     else if (code == keys.D && keys.is_CTRL_ALT( flags ) )       e.stopPropagation(); // ctrl-alt-d
+    else if (code == keys.T && keys.is_CTRL_ALT( flags ) )       e.stopPropagation(); // ctrl-alt-t
     else if (code == keys.R && keys.is_CTRL_ALT_SHIFT( flags ) ) e.stopPropagation(); // ctrl-alt-shift-r
     else if (code == keys.H && keys.is_CTRL_ALT_SHIFT( flags ) ) e.stopPropagation(); // ctrl-alt-shift-h
   });
