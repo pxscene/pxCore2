@@ -79,7 +79,6 @@ else {
 
         var ext
         var urlParts = Url.parse(url,true)
-
         ext = urlParts.query['_ext']
         if (!ext) {
             ext = Path.extname(urlParts.pathname)
