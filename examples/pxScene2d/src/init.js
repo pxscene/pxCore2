@@ -71,6 +71,9 @@ global.loadUrl = function loadUrl(url) {
 }
 }
 else {
+  
+    // Sane?
+  
     var baseViewerUrl = 'https://www.pxscene.org'
  
     function loadUrl(url) {
