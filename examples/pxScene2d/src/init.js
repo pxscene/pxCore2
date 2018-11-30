@@ -78,8 +78,15 @@ else {
         var Path = require('path')
 
         var ext
-        var urlParts = Url.parse(url,true)
-        ext = urlParts.query['_ext']
+
+        if (false) {
+            var urlParts = Url.parse(url,true)
+            ext = urlParts.query['_ext']
+        }
+        else {
+            var urlParts = Url.parse(url)
+        }
+
         if (!ext) {
             ext = Path.extname(urlParts.pathname)
         }
