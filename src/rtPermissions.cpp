@@ -45,18 +45,21 @@ rtPermissions::rtPermissions(const char* origin)
     didInit = true;
   }
 
-  if (!mConfig)
+  if (!mConfig && mEnabled)
     rtLogWarn("no permissions config");
 
   rtString role;
-  rtObjectRef assign = mConfig.get<rtObjectRef>("assign");
-  if (origin && *origin && assign)
+  if (mConfig)
   {
-    rtString s;
-    if (find(assign, origin, s) == RT_OK)
+    rtObjectRef assign = mConfig.get<rtObjectRef>("assign");
+    if (origin && *origin && assign)
     {
-      role = assign.get<rtString>(s.cString());
-      rtLogInfo("permissions role '%s' for origin '%s", role.cString(), origin);
+      rtString s;
+      if (find(assign, origin, s) == RT_OK)
+      {
+        role = assign.get<rtString>(s.cString());
+        rtLogInfo("permissions role '%s' for origin '%s", role.cString(), origin);
+      }
     }
   }
 
