@@ -118,7 +118,7 @@ px.import({ scene:    'px:scene.1.js',
     }
 
 
-    // JRJR BUG BUG
+    // JRJR BUGBUG
     // Promise doesn't seem to fire if url is empty
     if (u == '')
       spinner.a = 0
@@ -159,7 +159,6 @@ px.import({ scene:    'px:scene.1.js',
               }
             }
 
-        
             backButton.a = backUrls.length?0.65:0.2
             foreButton.a = foreUrls.length?0.65:0.2
           }
@@ -208,12 +207,16 @@ px.import({ scene:    'px:scene.1.js',
     content.focus=true;
   });
 
+  // layout
   function updateSize(w,h)
   {
     // console.log("\n\n BROWSER:  Resizing... WxH: " + w + " x " + h + " \n\n");
 
     bg.w = w;
     bg.h = h;
+
+    // show/hide browser chrome
+    browser.a    = showFullscreen ?     0 : 1;
 
     // Anchor
     content.x   = showFullscreen ?  0 : 10;
@@ -324,27 +327,6 @@ px.import({ scene:    'px:scene.1.js',
       else if (code == keys.F)  //  CTRL-ALT-F
       {
         showFullscreen = !showFullscreen;
-
-        /*
-        if(showFullscreen)
-        {
-          content.moveToFront();
-        }
-        else
-        {
-          browser.moveToFront();
-        }
-        */
-
-        browser.draw = showFullscreen ? false : true;
-        browser.a    = showFullscreen ?     0 : 1;
-
-        content.x    = showFullscreen ?     0 : contentBG.x;
-        content.y    = showFullscreen ?     0 : contentBG.y;
-
-        content.w    = showFullscreen ?  bg.w : contentBG.w;
-        content.h    = showFullscreen ?  bg.h : contentBG.h;
-
         updateSize(scene.w, scene.h)
         e.stopPropagation()
       }
