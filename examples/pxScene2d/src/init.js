@@ -79,7 +79,7 @@ else {
 
         var ext
 
-        if (false) {
+        if (true) {
             var urlParts = Url.parse(url,true)
             ext = urlParts.query['_ext']
         }
