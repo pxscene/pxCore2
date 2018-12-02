@@ -20,4 +20,4 @@ limitations under the License.
 
 const nativeHttpWrap = require('native_http_wrap');
 
-module.exports = nativeHttpWrap;
+module.exports = nativeHttpWrap(null);
