@@ -79,7 +79,20 @@ else {
     function loadUrl(url) {
         var Url = require('url')
         var Path = require('path')
-        var ext = Path.extname(Url.parse(url).pathname)
+
+        var ext
+
+        if (true) {
+            var urlParts = Url.parse(url,true)
+            ext = urlParts.query['_ext']
+        }
+        else {
+            var urlParts = Url.parse(url)
+        }
+
+        if (!ext) {
+            ext = Path.extname(urlParts.pathname)
+        }
 
         //console.log('Original Url: ', url)
         if (ext=='.md' || ext=='.sd') {
@@ -88,10 +101,23 @@ else {
         else if (ext=='.png' || ext == '.jpg' || ext=='.svg') {
             url = baseViewerUrl+'/mime/viewImage.js?url='+encodeURIComponent(url)
         }
-        else if (ext=='.txt') {
+        else if (ext=='.txt' || ext=='.text') {
             url = baseViewerUrl+'/mime/viewText.js?url='+encodeURIComponent(url)
         }
+        /*
+        else if (ext=='.htm' || ext=='.html'){
+            url = baseViewerUrl+'/mime/viewHTML.js?url='+encodeURIComponent(url)
+        }
+        */
+        else if (ext=='.js' || ext=='.jar') {
+            // Do nothing and let the url fall through
+        }
+        else {
+            // TODO Do a HTTP head check to see if we can get a mimetype/contenttype for routing
+        }
+        
         //console.log('Rewritten Url: ', url)
+
 
         var ctx = new AppSceneContext({        scene: getScene("scene.1"),
                                             makeReady: this.makeReady,
