@@ -407,7 +407,7 @@ px.import({ scene:    'px:scene.1.js',
                                             "  CTRL-ALT-S        ...  Screenshot > screenshot.png \n" +
                                             "  CTRL-ALT-Y        ...  Toggle FPS \n" +
                                             "\n"+
-                                            "  CTRL-ALT-SHIFT-H  ...  Log Debug Metrics \n" +
+                                            "  CTRL-ALT-SHIFT-D  ...  Log Debug Metrics \n" +
                                             "  CTRL-ALT-SHIFT-H  ...  Reload HOME \n" +
                                             "  CTRL-ALT-SHIFT-R  ...  Reload BROWSER \n",
                                       alignHorizontal: scene.alignHorizontal.LEFT,
