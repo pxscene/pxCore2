@@ -124,7 +124,7 @@ NativeHttp.prototype.on = function(eventName, handler) {
         this.emit.$on('response', handler);
         return;
     }
-
+    
     this._httpInstance.on(eventName, handler);
     return this;
 };
