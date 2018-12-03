@@ -42,7 +42,7 @@ limitations under the License.
     if (url && url.toLowerCase().indexOf('.js?') > 0) { // this is a js file with query params
       return url;
     }
-    if (url && !url.match(/\.js$/)) {
+    if (url && !url.match(/\.js$/) && !url.match(/\.jar$/)) {
       url = 'mimeScene.js?url=' + url;
     }
     */
