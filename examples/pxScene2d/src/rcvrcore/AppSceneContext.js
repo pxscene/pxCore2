@@ -690,7 +690,7 @@ AppSceneContext.prototype.include = function(filePath, currentXModule) {
       }
     } else if( filePath === 'http' || filePath === 'https' ) {
       if (isV8) {
-        modData = require(filePath);
+        modData = require('native_http_wrap')(_this.innerscene);
         onImportComplete([modData, origFilePath]);
         return;
       }
@@ -706,7 +706,7 @@ AppSceneContext.prototype.include = function(filePath, currentXModule) {
       return;
     } else if( filePath === 'http2' ) {
       if (isV8) {
-        modData = require('https');
+        modData = require('native_http_wrap')(_this.innerscene);
         onImportComplete([modData, origFilePath]);
         return;
       }

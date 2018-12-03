@@ -25,6 +25,7 @@ rtDefineObject(rtHttpResponse, rtObject);
 rtDefineProperty(rtHttpResponse, statusCode);
 rtDefineProperty(rtHttpResponse, message);
 rtDefineProperty(rtHttpResponse, headers);
+rtDefineProperty(rtHttpResponse, rawHeaders);
 
 rtDefineMethod(rtHttpResponse, addListener);
 

@@ -276,7 +276,8 @@ win32 = {
         }
     },
     extname: function extname(path) {
-        return path.split('.').pop();
+        var parts = path.split('.');
+        return parts.length > 1 ? ('.' + parts[parts.length-1]) : '';
     },
 }
 
@@ -303,7 +304,8 @@ posix = {
         return path;
     },
     extname: function extname(path) {
-        return path.split('.').pop();
+        var parts = path.split('.');
+        return parts.length > 1 ? ('.' + parts[parts.length-1]) : '';
     },
 }
 

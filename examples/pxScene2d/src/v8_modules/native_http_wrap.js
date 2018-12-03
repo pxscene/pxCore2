@@ -16,6 +16,8 @@ limitations under the License.
 
 */
 
+const Emit = require('emit');
+const url = require('url');
 
 /**
  * Native http manager used to save http instance (prevent destroyed before response)
@@ -48,34 +50,82 @@ NativeHttpManager.request = function(...args) {
 
 /**
  * Wraper native http request to js http Object
- * @param {*} url the url/options
+ * @param {*} scene current scene
+ * @param {*} options the url or options
  * @param {*} cb the callback
  */
-function NativeHttp(url, cb) {
-    this._httpInstance = httpGet(url, res => {
-        if (this.timeoutHandler) {
-            clearTimeout(this.timeoutHandler);
-        }
-        if (!this.isTimeout) {
-            cb(res);
-        } else {
-            console.log('request timeout and reponse reached, ignore this response.');
+function NativeHttp(scene, options, cb) {
+
+    this.options = options;
+    this.timeoutHandler = null;
+    this.responseHandler = cb;
+    this.scene = scene;
+    this.errorHander = null;
+    this.blockedHandler = null;
+    this.isTimeout = false;
+    this.blocked = false;    
+    this.emit = new Emit();
+
+    if (cb) {
+        this.emit.$on('response', cb);
+    }
+
+    this._httpInstance = httpGet(options, (res)=>{
+        this.responseFunc(res);
+    });
+
+    NativeHttpManager.add(this);
+}
+
+
+NativeHttp.prototype.responseFunc = function(res) {
+    if (this.timeoutHandler) {
+        clearTimeout(this.timeoutHandler);
+    }
+    if (this.isTimeout) {
+        console.log('request timeout and reponse reached, ignore this response.');
+        NativeHttpManager.remove(this);
+        return;
+    }
+
+    // check CORS
+    var requestOrigin = this._getRequestOrigin();
+    var appOrigin = this.origin();
+    console.log(`appOrigin = ${appOrigin}`)
+    console.log(`requestOrigin = ${requestOrigin}`)
+    if ( !this.passesAccessControlCheck(res.rawHeaders, false, requestOrigin) )
+    {
+        this.blocked = true;
+        var message = "CORS block for request to origin: '" + requestOrigin + "' from origin '" + appOrigin + "'";
+        if (this.blockedHandler) {
+            this.blockedHandler({message});
+        } else if (this.errorHander) {
+            this.errorHander({message});
         }
         NativeHttpManager.remove(this);
-    });
-    NativeHttpManager.add(this);
-    this.timeoutHandler = null;
-    this.errorHander = null;
-    this.isTimeout = false;
+        return;
+    }
+    
+    this.emit.$emit('response', res);
+    NativeHttpManager.remove(this);
 }
 
 NativeHttp.prototype.on = function(eventName, handler) {
-    this._httpInstance.on(eventName, handler);
 
     if(eventName === 'error') {
         this.errorHander = handler;
     }
 
+    if(eventName === 'blocked') {
+        this.blockedHandler = handler;
+    }
+
+    if(eventName === 'response') {  // no need emit to native instance
+        this.emit.$on('response', handler);
+        return;
+    }
+    
+    this._httpInstance.on(eventName, handler);
     return this;
 };
 
@@ -84,11 +134,48 @@ NativeHttp.prototype.abort = function() {
 }
 
 NativeHttp.prototype.end = function() {
+
+    var requestOrigin = this._getRequestOrigin();
+    var permissions = this.scene ? this.scene.permissions : null;
+    // check permissions
+    if (permissions) {
+        // no permissions
+        if (!permissions.allows(requestOrigin)) {
+            // next tick
+            setTimeout(() => {
+                this.blocked = true;
+                if (this.blockedHandler) {
+                    this.blockedHandler({message: "Permissions block"});
+                } else if (this.errorHander) {
+                    this.errorHander({message: "Permissions block"});
+                }
+                NativeHttpManager.remove(this);
+            }, 1);
+            return;
+        }
+    }
+
+    var appOrigin = this.origin();
+    if (appOrigin) {
+        this.setHeader("Origin", appOrigin);
+    }
+
     this._httpInstance.end();
 }
 NativeHttp.prototype.write = function(...args) {
     this._httpInstance.write(...args);
 }
+
+NativeHttp.prototype.passesAccessControlCheck = function (rawHeaders, withCredentials, origin) {
+    if (this.scene) {
+      var cors = this.scene.cors;
+      if (cors) {
+        return cors.passesAccessControlCheck(rawHeaders, withCredentials, origin);
+      }
+    }
+    return true;
+};
+
 NativeHttp.prototype.setTimeout = function(ms, timeoutCB) {
     // c++ native didn't implement the setTimeout
     // so i implement this in js side
@@ -104,8 +191,41 @@ NativeHttp.prototype.setHeader = function(...args) {
     this._httpInstance.setHeader(...args);
 }
 
-
-module.exports = {
-    'get': NativeHttpManager.get,
-    'request': NativeHttpManager.request,
+NativeHttp.prototype.getHeader = function(...args) {
+    return this._httpInstance.getHeader(...args);
 }
+
+NativeHttp.prototype.removeHeader = function(...args) {
+    this._httpInstance.removeHeader(...args);
+}
+
+NativeHttp.prototype.origin = function () {
+    if (this.scene) {
+      return this.scene.origin;
+    }
+    return null;
+};
+
+NativeHttp.prototype._getRequestOrigin = function () {
+    if (typeof this.options === 'object') {
+        return `${this.options.protocol}://${this.options.host}`;
+    }
+    var parts = url.parse(this.options);
+    return `${parts.protocol}//${parts.host}`;
+}
+
+NativeHttp.isCORSRequestHeader = function (name) {
+    if (name) {
+      if (name.match(/^(Origin|Access-Control-Request-Method|Access-Control-Request-Headers)$/ig)) {
+        return true;
+      }
+    }
+    return false;
+};
+
+module.exports = (scene)=>{
+    return {
+        'get': (...args) => NativeHttpManager.get(scene, ...args),
+        'request': (...args) => NativeHttpManager.request(scene, ...args),
+    };
+};
