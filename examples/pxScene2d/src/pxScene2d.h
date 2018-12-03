@@ -916,7 +916,15 @@ public:
     {
       float dx = o.get<float>("dx");
       float dy = o.get<float>("dy");
-      mView->onScrollWheel( dx, dy );
+      bool consumed = mView->onScrollWheel( dx, dy );
+      if (consumed)
+      {
+        rtFunctionRef stopPropagation = o.get<rtFunctionRef>("stopPropagation");
+        if (stopPropagation)
+        {
+          stopPropagation.send();
+        }
+      }
     }
     return RT_OK;
   }
@@ -1576,6 +1584,8 @@ public:
   virtual bool onMouseMove(int32_t x, int32_t y);
   virtual bool onScrollWheel(float dx, float dy);
 
+  void updateMouseEntered();
+
   virtual bool onFocus();
   virtual bool onBlur();
 
@@ -1727,12 +1737,14 @@ private:
   pxScriptView *mScriptView;
   bool mShowDirtyRectangle;
   bool mEnableDirtyRectangles;
+  int32_t mPointerX;
+  int32_t mPointerY;
+  double mPointerLastUpdated;
+
   #ifdef USE_SCENE_POINTER
   pxTextureRef mNullTexture;
   rtObjectRef mPointerResource;
   pxTextureRef mPointerTexture;
-  int32_t mPointerX;
-  int32_t mPointerY;
   int32_t mPointerW;
   int32_t mPointerH;
   int32_t mPointerHotSpotX;
