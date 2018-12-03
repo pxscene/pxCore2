@@ -56,7 +56,7 @@ printExecLogs()
 printValgrindLogs()
 {
   printf "\n********************** PRINTING VALGRIND LOG **************************\n"
-  tail -150 $VALGRINDLOGS
+  cat $VALGRINDLOGS
   printf "\n**********************     LOG ENDS      **************************\n"
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -205,7 +205,7 @@ else
 	if [ "$TRAVIS_PULL_REQUEST" != "false" ]
 	then
 		errCause="$errCause . Check the above logs"
-		printValgrindLogs
+		#printValgrindLogs
 	else
 		errCause="$errCause . Check the file $VALGRINDLOGS "
 	fi
