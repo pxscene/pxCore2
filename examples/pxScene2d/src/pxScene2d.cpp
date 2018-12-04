@@ -1893,6 +1893,7 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   rtObjectRef graphicsCapabilities = new rtMapObject;
   graphicsCapabilities.set("svg", 1);
   mCapabilityVersions.set("graphics", graphicsCapabilities);
+  mCapabilityVersions.set("bundling", 1);
 }
 
 rtError pxScene2d::dispose()
