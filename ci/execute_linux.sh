@@ -56,10 +56,10 @@ printExecLogs()
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 printValgrindLogs()
 {
-  #grep -A 200 "definitely lost" $VALGRINDLOGS
+  grep -B 100 -A 400 "definitely lost" $VALGRINDLOGS
   
   printf "\n********************** PRINTING VALGRIND LOG **************************\n"
-  tail -150 $VALGRINDLOGS
+  #tail -150 $VALGRINDLOGS
   printf "\n**********************     LOG ENDS      **************************\n"
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
