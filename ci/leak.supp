@@ -99,3 +99,15 @@
    fun:_ZL16drawImageTextureffff5rtRefI9pxTextureES1_bPfN18pxConstantsStretch9constantsES4_
    fun:_ZN9pxContext9drawImageEffff5rtRefI9pxTextureES2_bPfN18pxConstantsStretch9constantsES5_b
 }
+{
+   downloadExpiresThreadLeaks
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:calloc
+   ...
+   fun:*std::thread::thread*
+   fun:*rtFileDownloader::instance*
+   fun:*initFromUrl*
+   fun:*loadArchive*
+   ...
+}
