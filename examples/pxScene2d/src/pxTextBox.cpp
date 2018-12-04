@@ -33,7 +33,7 @@ extern pxContext context;
 static const char      isNewline_chars[] = "\n\v\f\r";
 static const char isWordBoundary_chars[] = " \t/:&,;.";
 static const char    isSpaceChar_chars[] = " \t";
-static const char isDelimeter_chars[] = "\n\v\f\r \t/:&,;.";
+
 #define ELLIPSIS_STR u8"\u2026"
 
 #if 1
@@ -384,18 +384,6 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
       }
     }
     
-    std::string str(text);
-    bool isDelimeter_charsPresent = false;
-    for (size_t i = 0; i < sizeof(isDelimeter_chars); ++i)
-    {
-        std::size_t pos = str.find(isDelimeter_chars[i]);
-        if (pos != std::string::npos)
-        {
-            isDelimeter_charsPresent = true;
-            break;
-        }
-    }
-    
     // Read char by char to determine full line of text before rendering
     int i = 0;
     int lasti = 0;
@@ -413,25 +401,22 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
       {
         getFontResource()->measureTextChar(charToMeasure, size, sx, sy, charW, charH);
       }
-    
-      bool isContinuousLine = mWordWrap && !isDelimeter_charsPresent && tempX + charW > mw;
-      if( isNewline(charToMeasure) || isContinuousLine)
+      if( isNewline(charToMeasure))
       {
         //rtLogDebug("Found NEWLINE; calling renderOneLine\n");
         // Render what we had so far in accString; since we are here, it will fit.
-        
         renderOneLine(accString.cString(), 0, tempY, sx, sy, size, lineWidth, render);
 
-        accString = isContinuousLine ? tempChar.c_str() : "";
+        accString = "";
         tempY += (mLeading*sy) + charH;
 
         lineNumber++;
-        tempX = isContinuousLine ? charW : 0;
-       continue;
+        tempX = 0;
+        continue;
       }
 
       // Check if text still fits on this line, or if wrap needs to occur
-      if( (tempX + charW) <= lineWidth || (!mWordWrap && lineNumber == 0) || mWordWrap && !isDelimeter_charsPresent)
+      if( (tempX + charW) <= lineWidth || (!mWordWrap && lineNumber == 0))
       {
         accString.append(tempChar.c_str());
         tempX += charW;
@@ -602,8 +587,7 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
           startY = my + (mh - textHeight); // could be negative
           if(!clip() && mTruncation == pxConstantsTruncation::NONE)
           {
-            noClipY = my + (mh - textHeight);
-            startY = my;
+            noClipY = my;
             noClipH = textHeight;//mh;
           }
         }
@@ -627,8 +611,7 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
           startY = my + (mh - textHeight)/2;
           if(!clip() && mTruncation == pxConstantsTruncation::NONE)
           {
-            noClipY = my + (mh - textHeight)/2;
-            startY = my;
+            noClipY = my;
             noClipH = textHeight;
           }
         }
@@ -834,13 +817,8 @@ void pxTextBox::renderOneLine(const char * tempStr, float tempX, float tempY, fl
       if( lineNumber == lastLineNumber || mTruncation == pxConstantsTruncation::NONE)
       {
         //rtLogDebug("!CLF: calculating lineMeasurement! charH=%f pixelSize=%d noClipH=%f noClipY=%f lineNumber=%d\n",charH,mPixelSize,noClipH, noClipY, lineNumber);
-
-        //setLineMeasurements(false, xPos+charW, noClipY+noClipH-(noClipH/(lineNumber+1)));
-        
-        setLineMeasurements(true, xPos, noClipY);
-		setLineMeasurements(false, xPos+charW, noClipY + (noClipH - charH));
-		
-		setMeasurementBoundsX(false, charW );
+        setLineMeasurements(false, xPos+charW, noClipY+noClipH-(noClipH/(lineNumber+1)));
+        setMeasurementBoundsX(false, charW );
       }
     }
     else
@@ -1094,39 +1072,12 @@ void pxTextBox::renderTextNoWordWrap(float sx, float sy, float tempX, bool rende
     getFontResource()->getHeight(mPixelSize, metricHeight);
   }
   //rtLogDebug(">>>>>>>>>>>>>> metric height is %f and charH is %f\n", metricHeight, charH);
-  std::string str(mText);
+  
   if( charH > metricHeight) // There's a newline in the text somewhere
   {
-    if (!mWordWrap && mTruncation != pxConstantsTruncation::NONE)
-    {
-        for (size_t i = 0; i < sizeof(isNewline_chars); ++i)
-        {
-            std::size_t pos = str.find(isNewline_chars[i]);
-            if (pos != std::string::npos)
-            {
-                str = str.substr (0, pos);
-                if (getFontResource() != NULL)
-                {
-                    getFontResource()->measureTextInternal(str.c_str(), mPixelSize, sx, sy, charW, charH);
-                }
-                //rtLogDebug(">>>>>>>>>>>> pxTextBox::renderTextNoWordWrap charH=%f charW=%f\n", charH, charW);
-                
-                metricHeight = 0;
-                if (getFontResource() != NULL)
-                {
-                    getFontResource()->getHeight(mPixelSize, metricHeight);
-                }
-            }
-        }
-    }
-  }
-    
-  /*rtString text*/ mText = str.c_str();
-  if( charH > metricHeight)
-  {
     lineNumber = 0;
-    //noClipH = charH;
-    //   noClipW = charW;
+    noClipH = charH;
+ //   noClipW = charW;
     float tempY = 0;
     measureTextWithWrapOrNewLine(mText, sx, sy, tempX, tempY, mPixelSize, render);
   }

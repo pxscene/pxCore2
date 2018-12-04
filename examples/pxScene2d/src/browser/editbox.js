@@ -21,6 +21,8 @@ px.import({ scene: 'px:scene.1.js',
              keys: 'px:tools.keys'
 }).then(function importsAreReady(imports)
 {
+    var defaultTextColor = 0x303030ff
+
     var scene = imports.scene;
     var keys  = imports.keys;
 
@@ -393,17 +395,21 @@ px.import({ scene: 'px:scene.1.js',
 
         //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-        container.on("onFocus", function (e) {
-
+        textInput.on("onFocus", function (e) {
             showCursor();
-
-// console.log(" OnFocus()    textInput.focus ");// = " + textInput.focus);
+            textInput.textColor = defaultTextColor
+            // console.log(" OnFocus()    textInput.focus ");// = " + textInput.focus);
         });
+
+        textInput.on("onBlur", function (e) {
+            hideCursor()
+        })
 
         //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
         textInput.on("onChar", function (e) {
 //            console.log("#######  onChar ... char: "+e.charCode+" ... BEFORE  text: ["+textInput.text +"] cursor_pos = " + cursor_pos);
+            textInput.textColor = defaultTextColor
 
             if (e.charCode == keys.ENTER)  // <<<  ENTER KEY
                 return;

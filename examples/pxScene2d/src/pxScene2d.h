@@ -916,7 +916,15 @@ public:
     {
       float dx = o.get<float>("dx");
       float dy = o.get<float>("dy");
-      mView->onScrollWheel( dx, dy );
+      bool consumed = mView->onScrollWheel( dx, dy );
+      if (consumed)
+      {
+        rtFunctionRef stopPropagation = o.get<rtFunctionRef>("stopPropagation");
+        if (stopPropagation)
+        {
+          stopPropagation.send();
+        }
+      }
     }
     return RT_OK;
   }
@@ -1398,8 +1406,6 @@ public:
   rtReadOnlyProperty(alignHorizontal,alignHorizontal,rtObjectRef);
   rtReadOnlyProperty(truncation,truncation,rtObjectRef);
 
-  rtReadOnlyProperty(origin, origin, rtString);
-
   rtMethodNoArgAndNoReturn("dispose",dispose);
 
   rtMethod1ArgAndReturn("sparkSetting", sparkSetting, rtString, rtValue);
@@ -1562,7 +1568,6 @@ public:
   rtCORSRef cors() const { return mCORS; }
   rtError cors(rtObjectRef& v) const { v = mCORS; return RT_OK; }
   rtError sparkSetting(const rtString& setting, rtValue& value) const;
-  rtError origin(rtString& v) const { v = mOrigin; return RT_OK; }
 
   void setMouseEntered(rtRef<pxObject> o);//setMouseEntered(pxObject* o);
 
@@ -1575,6 +1580,8 @@ public:
   virtual bool onMouseLeave();
   virtual bool onMouseMove(int32_t x, int32_t y);
   virtual bool onScrollWheel(float dx, float dy);
+
+  void updateMouseEntered();
 
   virtual bool onFocus();
   virtual bool onBlur();
@@ -1727,12 +1734,14 @@ private:
   pxScriptView *mScriptView;
   bool mShowDirtyRectangle;
   bool mEnableDirtyRectangles;
+  int32_t mPointerX;
+  int32_t mPointerY;
+  double mPointerLastUpdated;
+
   #ifdef USE_SCENE_POINTER
   pxTextureRef mNullTexture;
   rtObjectRef mPointerResource;
   pxTextureRef mPointerTexture;
-  int32_t mPointerX;
-  int32_t mPointerY;
   int32_t mPointerW;
   int32_t mPointerH;
   int32_t mPointerHotSpotX;
@@ -1741,7 +1750,6 @@ private:
   bool mPointerHidden;
   std::vector<rtObjectRef> mInnerpxObjects;
   rtFunctionRef mCustomAnimator;
-  rtString mOrigin;
 #ifdef ENABLE_PERMISSIONS_CHECK
   rtPermissionsRef mPermissions;
 #endif
