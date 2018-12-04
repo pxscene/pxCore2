@@ -22,7 +22,7 @@ class testView: public pxIView
 {
 public:
   
-testView(): mContainer(NULL),mRefCount(0),mw(0),mh(0),mEntered(false),mMouseX(0), mMouseY(0) {}
+testView(): mContainer(NULL),mRefCount(0),mw(0),mh(0),mEntered(false),mMouseX(0), mMouseY(0), mScrollDX(0.0), mScrollDY(0.0) {}
   virtual ~testView() {}
 
   virtual unsigned long AddRef() 
@@ -61,6 +61,14 @@ testView(): mContainer(NULL),mRefCount(0),mw(0),mh(0),mEntered(false),mMouseX(0)
     rtLogInfo("testView::onMouseMove(%d, %d)", x, y);
     mMouseX = x;
     mMouseY = y;
+    return false;
+  }
+
+  virtual bool RT_STDCALL onScrollWheel(float dx, float dy)
+  {
+    rtLogInfo("testView::onScrollWheel(%f, %f)", dx, dy);
+    mScrollDX = dx;
+    mScrollDY = dy;
     return false;
   }
 
@@ -161,4 +169,5 @@ private:
   float mw, mh;
   bool mEntered;
   int32_t mMouseX, mMouseY;
+  float mScrollDX, mScrollDY;
 };

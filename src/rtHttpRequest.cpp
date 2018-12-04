@@ -159,7 +159,7 @@ void rtHttpRequest::onDownloadComplete(rtFileDownloadRequest* downloadRequest)
 
   rtHttpResponse* resp = new rtHttpResponse();
 
-  resp->setStatusCode(downloadRequest->httpStatusCode());
+  resp->setStatusCode((int32_t)downloadRequest->httpStatusCode());
   resp->setErrorMessage(downloadRequest->errorString());
   resp->setHeaders(downloadRequest->headerData(), downloadRequest->headerDataSize());
   resp->setDownloadedData(downloadRequest->downloadedData(), downloadRequest->downloadedDataSize());

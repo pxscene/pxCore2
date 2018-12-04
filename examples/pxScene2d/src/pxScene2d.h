@@ -800,6 +800,7 @@ public:
   rtMethod1ArgAndNoReturn("onMouseDown", onMouseDown, rtObjectRef);
   rtMethod1ArgAndNoReturn("onMouseUp", onMouseUp, rtObjectRef);
   rtMethod1ArgAndNoReturn("onMouseMove", onMouseMove, rtObjectRef);
+  rtMethod1ArgAndNoReturn("onScrollWheel", onScrollWheel, rtObjectRef);
   rtMethod1ArgAndNoReturn("onMouseEnter", onMouseEnter, rtObjectRef);
   rtMethod1ArgAndNoReturn("onMouseLeave", onMouseLeave, rtObjectRef);
   rtMethod1ArgAndNoReturn("onFocus", onFocus, rtObjectRef);
@@ -813,6 +814,7 @@ public:
     addListener("onMouseDown", get<rtFunctionRef>("onMouseDown"));
     addListener("onMouseUp", get<rtFunctionRef>("onMouseUp"));
     addListener("onMouseMove", get<rtFunctionRef>("onMouseMove"));
+    addListener("onScrollWheel", get<rtFunctionRef>("onScrollWheel"));
     addListener("onMouseEnter", get<rtFunctionRef>("onMouseEnter"));
     addListener("onMouseLeave", get<rtFunctionRef>("onMouseLeave"));
     addListener("onFocus", get<rtFunctionRef>("onFocus"));
@@ -903,6 +905,26 @@ public:
       float x = o.get<float>("x");
       float y = o.get<float>("y");
       mView->onMouseMove(static_cast<int32_t>(x),static_cast<int32_t>(y));
+    }
+    return RT_OK;
+  }
+
+  rtError onScrollWheel(rtObjectRef o)
+  {
+    rtLogDebug("pxViewContainer::onScrollWheel");
+    if (mView)
+    {
+      float dx = o.get<float>("dx");
+      float dy = o.get<float>("dy");
+      bool consumed = mView->onScrollWheel( dx, dy );
+      if (consumed)
+      {
+        rtFunctionRef stopPropagation = o.get<rtFunctionRef>("stopPropagation");
+        if (stopPropagation)
+        {
+          stopPropagation.send();
+        }
+      }
     }
     return RT_OK;
   }
@@ -1226,6 +1248,13 @@ protected:
     return false;
   }
 
+  virtual bool onScrollWheel(float dx, float dy)
+  {
+    if (mView)
+      return mView->onScrollWheel(dx,dy);
+    return false;
+  }
+  
   virtual bool onMouseEnter()
   {
     if (mView)
@@ -1326,6 +1355,7 @@ public:
   rtReadOnlyProperty(h, h, int32_t);
   rtProperty(showOutlines, showOutlines, setShowOutlines, bool);
   rtProperty(showDirtyRect, showDirtyRect, setShowDirtyRect, bool);
+  rtProperty(enableDirtyRect, enableDirtyRect, setEnableDirtyRect, bool);
   rtProperty(customAnimator, customAnimator, setCustomAnimator, rtFunctionRef);
   rtMethod1ArgAndReturn("loadArchive",loadArchive,rtString,rtObjectRef); 
   rtMethod1ArgAndReturn("create", create, rtObjectRef, rtObjectRef);
@@ -1457,6 +1487,9 @@ public:
   rtError showDirtyRect(bool& v) const;
   rtError setShowDirtyRect(bool v);
 
+  rtError enableDirtyRect(bool& v) const;
+  rtError setEnableDirtyRect(bool v);
+    
   rtError customAnimator(rtFunctionRef& f) const;
   rtError setCustomAnimator(const rtFunctionRef& f);
 
@@ -1549,6 +1582,9 @@ public:
   virtual bool onMouseEnter();
   virtual bool onMouseLeave();
   virtual bool onMouseMove(int32_t x, int32_t y);
+  virtual bool onScrollWheel(float dx, float dy);
+
+  void updateMouseEntered();
 
   virtual bool onFocus();
   virtual bool onBlur();
@@ -1700,12 +1736,15 @@ private:
   pxIViewContainer *mContainer;
   pxScriptView *mScriptView;
   bool mShowDirtyRectangle;
+  bool mEnableDirtyRectangles;
+  int32_t mPointerX;
+  int32_t mPointerY;
+  double mPointerLastUpdated;
+
   #ifdef USE_SCENE_POINTER
   pxTextureRef mNullTexture;
   rtObjectRef mPointerResource;
   pxTextureRef mPointerTexture;
-  int32_t mPointerX;
-  int32_t mPointerY;
   int32_t mPointerW;
   int32_t mPointerH;
   int32_t mPointerHotSpotX;

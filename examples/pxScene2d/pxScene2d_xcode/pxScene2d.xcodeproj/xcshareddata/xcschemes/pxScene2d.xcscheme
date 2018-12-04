@@ -15,8 +15,8 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "4CF546012020F5B600529907"
-               BuildableName = "pxScene2d.app"
-               BlueprintName = "pxScene2d"
+               BuildableName = "Spark.app"
+               BlueprintName = "Spark"
                ReferencedContainer = "container:pxScene2d.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -47,8 +47,8 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "4CF546012020F5B600529907"
-            BuildableName = "pxScene2d.app"
-            BlueprintName = "pxScene2d"
+            BuildableName = "Spark.app"
+            BlueprintName = "Spark"
             ReferencedContainer = "container:pxScene2d.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
@@ -65,8 +65,8 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "4CF546012020F5B600529907"
-            BuildableName = "pxScene2d.app"
-            BlueprintName = "pxScene2d"
+            BuildableName = "Spark.app"
+            BlueprintName = "Spark"
             ReferencedContainer = "container:pxScene2d.xcodeproj">
          </BuildableReference>
       </MacroExpansion>

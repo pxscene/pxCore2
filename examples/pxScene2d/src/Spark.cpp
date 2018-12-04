@@ -349,6 +349,14 @@ protected:
     EXITSCENELOCK()
   }
 
+  virtual void onScrollWheel(float dx, float dy)
+  {
+    ENTERSCENELOCK()
+    if (mView)
+    mView->onScrollWheel(dx, dy);
+    EXITSCENELOCK()
+  }
+
   virtual void onFocus()
   {
     ENTERSCENELOCK()

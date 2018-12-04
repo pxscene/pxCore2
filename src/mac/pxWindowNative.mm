@@ -546,6 +546,17 @@ void MyDisplayReconfigurationCallBack(CGDirectDisplayID display,
 #pragma mark - Cut and Paste Frist Responders
 
 
+- (IBAction)newWindow:sender
+{
+  NSString     *path = [[NSBundle mainBundle] bundlePath];
+  NSWorkspace*   ws  = [NSWorkspace sharedWorkspace];
+  NSURL*         url = [NSURL fileURLWithPath:path isDirectory:NO];
+
+  [ws launchApplicationAtURL: url
+                     options: NSWorkspaceLaunchNewInstance
+               configuration: @{}
+                       error: nil];
+}
 
 - (IBAction)toggleAddressBar:sender
 {
@@ -639,6 +650,11 @@ void MyDisplayReconfigurationCallBack(CGDirectDisplayID display,
   p = [self convertPoint:p fromView:nil];
   //NSLog(@"mouseMoved: %f, %f", p.x, p.y);
   pxWindowNative::_helper_onMouseMove(mWindow, p.x, p.y);
+}
+
+- (void)scrollWheel:(NSEvent *)event
+{
+  pxWindowNative::_helper_onScrollWheel(mWindow, event.deltaX, event.deltaY);
 }
 
 -(void)keyDown:(NSEvent*)event
@@ -1103,9 +1119,6 @@ pxError pxWindow::init(int left, int top, int width, int height)
                                                    backing: NSBackingStoreBuffered
                                                      defer: NO];
   
-  
-  NSApplication *app = [NSApplication sharedApplication];
-
   NSWindowCollectionBehavior behavior = [window collectionBehavior];
   [window setCollectionBehavior: behavior | NSWindowCollectionBehaviorFullScreenPrimary ];
   

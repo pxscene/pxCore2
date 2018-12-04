@@ -400,25 +400,13 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
     int i = 0;
     int lasti = 0;
     int numbytes = 1;
-    char* tempChar = NULL;
     while((charToMeasure = u8_nextchar((char*)text, &i)) != 0)
     {
       // Determine if the character is multibyte
       numbytes = i-lasti;
-      if (tempChar != NULL)
-      {
-        delete [] tempChar;
-      }
-      tempChar = new char[numbytes+1];
-      memset(tempChar, '\0', sizeof(char)*(numbytes+1));
-      if(numbytes == 1) {
-        tempChar[0] = charToMeasure;
-      } 
-      else {
-        for( int pos = 0; pos < numbytes ; pos++) {
-          tempChar[pos] = text[lasti+pos];
-        }
-      }
+        
+      std::string tempChar = std::string (&text[lasti], numbytes);
+        
       lasti = i;
 
       if (getFontResource() != NULL)
@@ -445,7 +433,7 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
       // Check if text still fits on this line, or if wrap needs to occur
       if( (tempX + charW) <= lineWidth || (!mWordWrap && lineNumber == 0) || mWordWrap && !isDelimeter_charsPresent)
       {
-        accString.append(tempChar);
+        accString.append(tempChar.c_str());
         tempX += charW;
       }
       else
@@ -484,7 +472,7 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
               }
               else
               {
-                accString.append(tempChar);
+                accString.append(tempChar.c_str());
                 tempX += charW;
                 continue;
               }
@@ -537,13 +525,10 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
             {
               //rtLogDebug("space char check to add to string: \"%s\"\n",accString.cString());
               //rtLogDebug("space char check: \"%s\"\n",tempChar);
-              accString.append(tempChar);
+              accString.append(tempChar.c_str());
             }
             
           }
-
-          delete [] tempChar;
-          tempChar = NULL;
 
           // Free tempStr
           free(tempStr);
@@ -572,11 +557,6 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
         }
       }
     }//WHILE
-    if (tempChar != NULL)
-    {
-      delete [] tempChar;
-      tempChar = NULL;
-    }
 
     if(accString.length() > 0) {
       lastLineNumber = lineNumber;
