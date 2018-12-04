@@ -105,7 +105,6 @@
    match-leak-kinds: definite
    fun:calloc
    ...
-   fun:*std::thread::thread*
    fun:*rtFileDownloader::instance*
    fun:*initFromUrl*
    fun:*loadArchive*
