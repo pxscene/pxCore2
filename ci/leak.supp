@@ -105,8 +105,8 @@
    match-leak-kinds: definite
    fun:calloc
    ...
-   fun:*rtFileDownloader::instance*
-   fun:*initFromUrl*
-   fun:*loadArchive*
+   fun:rtFileDownloader::instance
+   fun:pxArchive::initFromUrl
+   fun:pxScene2d::loadArchive
    ...
 }
