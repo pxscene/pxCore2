@@ -335,7 +335,6 @@ if( scene.capabilities != undefined && scene.capabilities.graphics != undefined 
         process.removeListener("uncaughtException", uncaughtException);
         process.removeListener("unhandledRejection", unhandledRejection);
     }
-    childScene = null;
   }
 
   scene.on("onClose",releaseResources);
