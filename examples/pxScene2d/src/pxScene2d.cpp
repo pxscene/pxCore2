@@ -2335,7 +2335,10 @@ unsigned long pxSceneContainer::Release()
   long l = rtAtomicDec(&mRefCount);
   //  rtLogDebug("pxScene2d release %ld\n",l);
   if (this == gPtr)
+  {
     printf(" Release [%d] \n",mRefCount);
+    fflush(stdout);
+  }
   if (l == 0)
     delete this;
   return l;
