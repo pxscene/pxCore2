@@ -32,7 +32,7 @@ var SceneModuleManifest = require('rcvrcore/SceneModuleManifest');
 var JarFileMap = require('rcvrcore/utils/JarFileMap');
 var AsyncFileAcquisition = require('rcvrcore/utils/AsyncFileAcquisition');
 var WrapObj = require('rcvrcore/utils/WrapObj');
-var http_wrap = isV8?null:require('rcvrcore/http_wrap');
+var http_wrap = require('rcvrcore/http_wrap');
 
 var log = new Logger('AppSceneContext');
 //overriding original timeout and interval functions
@@ -671,11 +671,6 @@ AppSceneContext.prototype.include = function(filePath, currentXModule) {
         return;
       }
     } else if(/^(http|https|http2)$/.test(filePath)) {
-      if (isV8) {
-        modData = require(filePath);
-        onImportComplete([modData, origFilePath]);
-        return;
-      }
       modData = new http_wrap(filePath, _this);
       onImportComplete([modData, origFilePath]);
       return;
