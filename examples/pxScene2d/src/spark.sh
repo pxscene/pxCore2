@@ -30,9 +30,9 @@ fi
 echo "valgrind --vgdb=yes --tool=memcheck --log-file=$VALGRINDLOGS --leak-check=yes --show-reachable=yes --num-callers=20 --track-fds=yes ./Spark $1 $2 $3 $4 $5 $6 $7"
 if [ -z $SUPPRESSIONS ]
 then
-valgrind --vgdb=yes --tool=memcheck --log-file=$VALGRINDLOGS --leak-check=yes  --gen-suppressions=all  --show-reachable=yes --num-callers=20 --track-fds=yes ./Spark $1 $2 $3 $4 $5 $6 $7
+valgrind --vgdb=yes --tool=memcheck --log-file=$VALGRINDLOGS --leak-check=yes  --show-reachable=yes --num-callers=20 --track-fds=yes ./Spark $1 $2 $3 $4 $5 $6 $7
 else
-valgrind --vgdb=yes --tool=memcheck --suppressions=$SUPPRESSIONS   --gen-suppressions=all --log-file=$VALGRINDLOGS --leak-check=yes --show-reachable=yes --num-callers=20 --track-fds=yes ./Spark $1 $2 $3 $4 $5 $6 $7
+valgrind --vgdb=yes --tool=memcheck --suppressions=$SUPPRESSIONS  --log-file=$VALGRINDLOGS --leak-check=yes --show-reachable=yes --num-callers=20 --track-fds=yes ./Spark $1 $2 $3 $4 $5 $6 $7
 fi
 else
 ./Spark $1 $2 $3 $4 $5 $6 $7
