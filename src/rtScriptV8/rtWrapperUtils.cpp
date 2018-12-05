@@ -100,6 +100,8 @@ rtWrapperSceneUpdateExit();
 #endif
   if (NULL != temp.getPtr())
   {
+    printf("Inside garbage collect [%p] \n",temp.getPtr());
+    fflush(stdout);
     rtObjectRef parentRef;
     rtError err = temp.get<rtObjectRef>("parent",parentRef);
     if (err == RT_OK)
