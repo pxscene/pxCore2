@@ -21,6 +21,7 @@ limitations under the License.
 'use strict';
 
 const QueryString = exports;
+const Buffer = require('buffer').Buffer;
 
 // This constructor is used to store parsed query string values. Instantiating
 // this is faster than explicitly calling `Object.create(null)` to get a
@@ -28,9 +29,81 @@ const QueryString = exports;
 function ParsedQueryString() {}
 ParsedQueryString.prototype = Object.create(null);
 
+
+// a safe fast alternative to decodeURIComponent
+QueryString.unescapeBuffer = function(s, decodeSpaces) {
+  var out = Buffer.allocUnsafe(s.length);
+  var state = 0;
+  var n, m, hexchar;
+  
+  for (var inIndex = 0, outIndex = 0; inIndex <= s.length; inIndex++) {
+    var c = inIndex < s.length ? s.charCodeAt(inIndex) : NaN;
+    switch (state) {
+      case 0: // Any character
+        switch (c) {
+          case 37: // '%'
+            n = 0;
+            m = 0;
+            state = 1;
+            break;
+          case 43: // '+'
+            if (decodeSpaces)
+              c = 32; // ' '
+          // falls through
+          default:
+            out[outIndex++] = c;
+            break;
+        }
+        break;
+      
+      case 1: // First hex digit
+        hexchar = c;
+        if (c >= 48/*0*/ && c <= 57/*9*/) {
+          n = c - 48/*0*/;
+        } else if (c >= 65/*A*/ && c <= 70/*F*/) {
+          n = c - 65/*A*/ + 10;
+        } else if (c >= 97/*a*/ && c <= 102/*f*/) {
+          n = c - 97/*a*/ + 10;
+        } else {
+          out[outIndex++] = 37/*%*/;
+          out[outIndex++] = c;
+          state = 0;
+          break;
+        }
+        state = 2;
+        break;
+      
+      case 2: // Second hex digit
+        state = 0;
+        if (c >= 48/*0*/ && c <= 57/*9*/) {
+          m = c - 48/*0*/;
+        } else if (c >= 65/*A*/ && c <= 70/*F*/) {
+          m = c - 65/*A*/ + 10;
+        } else if (c >= 97/*a*/ && c <= 102/*f*/) {
+          m = c - 97/*a*/ + 10;
+        } else {
+          out[outIndex++] = 37/*%*/;
+          out[outIndex++] = hexchar;
+          out[outIndex++] = c;
+          break;
+        }
+        out[outIndex++] = 16 * n + m;
+        break;
+    }
+  }
+  
+  // TODO support returning arbitrary buffers.
+  
+  return out.slice(0, outIndex - 1);
+};
+
+
 function qsUnescape(s, decodeSpaces) {
-    print(s);
+  try {
     return decodeURIComponent(s);
+  } catch (e) {
+    return QueryString.unescapeBuffer(s, decodeSpaces).toString();
+  }
 }
 QueryString.unescape = qsUnescape;
 
@@ -49,10 +122,10 @@ QueryString.escape = function(str) {
   }
   var out = '';
   var lastPos = 0;
-
+  
   for (var i = 0; i < str.length; ++i) {
     var c = str.charCodeAt(i);
-
+    
     // These characters do not need escaping (in order):
     // ! - . _ ~
     // ' ( ) *
@@ -60,23 +133,23 @@ QueryString.escape = function(str) {
     // alpha (uppercase)
     // alpha (lowercase)
     if (c === 0x21 || c === 0x2D || c === 0x2E || c === 0x5F || c === 0x7E ||
-        (c >= 0x27 && c <= 0x2A) ||
-        (c >= 0x30 && c <= 0x39) ||
-        (c >= 0x41 && c <= 0x5A) ||
-        (c >= 0x61 && c <= 0x7A)) {
+      (c >= 0x27 && c <= 0x2A) ||
+      (c >= 0x30 && c <= 0x39) ||
+      (c >= 0x41 && c <= 0x5A) ||
+      (c >= 0x61 && c <= 0x7A)) {
       continue;
     }
-
+    
     if (i - lastPos > 0)
       out += str.slice(lastPos, i);
-
+    
     // Other ASCII characters
     if (c < 0x80) {
       lastPos = i + 1;
       out += hexTable[c];
       continue;
     }
-
+    
     // Multi-byte characters ...
     if (c < 0x800) {
       lastPos = i + 1;
@@ -86,8 +159,8 @@ QueryString.escape = function(str) {
     if (c < 0xD800 || c >= 0xE000) {
       lastPos = i + 1;
       out += hexTable[0xE0 | (c >> 12)] +
-             hexTable[0x80 | ((c >> 6) & 0x3F)] +
-             hexTable[0x80 | (c & 0x3F)];
+        hexTable[0x80 | ((c >> 6) & 0x3F)] +
+        hexTable[0x80 | (c & 0x3F)];
       continue;
     }
     // Surrogate pair
@@ -100,9 +173,9 @@ QueryString.escape = function(str) {
     lastPos = i + 1;
     c = 0x10000 + (((c & 0x3FF) << 10) | c2);
     out += hexTable[0xF0 | (c >> 18)] +
-           hexTable[0x80 | ((c >> 12) & 0x3F)] +
-           hexTable[0x80 | ((c >> 6) & 0x3F)] +
-           hexTable[0x80 | (c & 0x3F)];
+      hexTable[0x80 | ((c >> 12) & 0x3F)] +
+      hexTable[0x80 | ((c >> 6) & 0x3F)] +
+      hexTable[0x80 | (c & 0x3F)];
   }
   if (lastPos === 0)
     return str;
@@ -125,12 +198,12 @@ var stringifyPrimitive = function(v) {
 QueryString.stringify = QueryString.encode = function(obj, sep, eq, options) {
   sep = sep || '&';
   eq = eq || '=';
-
+  
   var encode = QueryString.escape;
   if (options && typeof options.encodeURIComponent === 'function') {
     encode = options.encodeURIComponent;
   }
-
+  
   if (obj !== null && typeof obj === 'object') {
     var keys = Object.keys(obj);
     var len = keys.length;
@@ -140,7 +213,7 @@ QueryString.stringify = QueryString.encode = function(obj, sep, eq, options) {
       var k = keys[i];
       var v = obj[k];
       var ks = encode(stringifyPrimitive(k)) + eq;
-
+      
       if (Array.isArray(v)) {
         var vlen = v.length;
         var vlast = vlen - 1;
@@ -166,35 +239,34 @@ QueryString.stringify = QueryString.encode = function(obj, sep, eq, options) {
 QueryString.parse = QueryString.decode = function(qs, sep, eq, options) {
   sep = sep || '&';
   eq = eq || '=';
-
+  
   const obj = new ParsedQueryString();
-
+  
   if (typeof qs !== 'string' || qs.length === 0) {
     return obj;
   }
-
+  
   if (typeof sep !== 'string')
     sep += '';
-
+  
   const eqLen = eq.length;
   const sepLen = sep.length;
-
+  
   var maxKeys = 1000;
   if (options && typeof options.maxKeys === 'number') {
     maxKeys = options.maxKeys;
   }
-
+  
   var pairs = Infinity;
   if (maxKeys > 0)
     pairs = maxKeys;
-
+  
   var decode = QueryString.unescape;
   if (options && typeof options.decodeURIComponent === 'function') {
     decode = options.decodeURIComponent;
   }
   const customDecode = (decode !== qsUnescape);
-
-
+  
   const keys = [];
   var lastPos = 0;
   var sepIdx = 0;
@@ -206,7 +278,7 @@ QueryString.parse = QueryString.decode = function(qs, sep, eq, options) {
   var encodeCheck = 0;
   for (var i = 0; i < qs.length; ++i) {
     const code = qs.charCodeAt(i);
-
+    
     // Try matching key/value pair separator (e.g. '&')
     if (code === sep.charCodeAt(sepIdx)) {
       if (++sepIdx === sepLen) {
@@ -255,9 +327,9 @@ QueryString.parse = QueryString.decode = function(qs, sep, eq, options) {
         if (code === 37/*%*/) {
           encodeCheck = 1;
         } else if (encodeCheck > 0 &&
-                   ((code >= 48/*0*/ && code <= 57/*9*/) ||
-                    (code >= 65/*A*/ && code <= 70/*F*/) ||
-                    (code >= 97/*a*/ && code <= 102/*f*/))) {
+          ((code >= 48/*0*/ && code <= 57/*9*/) ||
+            (code >= 65/*A*/ && code <= 70/*F*/) ||
+            (code >= 97/*a*/ && code <= 102/*f*/))) {
           if (++encodeCheck === 3)
             valEncoded = true;
         } else {
@@ -265,7 +337,7 @@ QueryString.parse = QueryString.decode = function(qs, sep, eq, options) {
         }
       }
     }
-
+    
     // Try matching key/value separator (e.g. '=') if we haven't already
     if (eqIdx < eqLen) {
       if (code === eq.charCodeAt(eqIdx)) {
@@ -286,9 +358,9 @@ QueryString.parse = QueryString.decode = function(qs, sep, eq, options) {
           if (code === 37/*%*/) {
             encodeCheck = 1;
           } else if (encodeCheck > 0 &&
-                     ((code >= 48/*0*/ && code <= 57/*9*/) ||
-                      (code >= 65/*A*/ && code <= 70/*F*/) ||
-                      (code >= 97/*a*/ && code <= 102/*f*/))) {
+            ((code >= 48/*0*/ && code <= 57/*9*/) ||
+              (code >= 65/*A*/ && code <= 70/*F*/) ||
+              (code >= 97/*a*/ && code <= 102/*f*/))) {
             if (++encodeCheck === 3)
               keyEncoded = true;
           } else {
@@ -297,7 +369,7 @@ QueryString.parse = QueryString.decode = function(qs, sep, eq, options) {
         }
       }
     }
-
+    
     if (code === 43/*+*/) {
       if (eqIdx < eqLen) {
         if (i - lastPos > 0)
@@ -313,7 +385,7 @@ QueryString.parse = QueryString.decode = function(qs, sep, eq, options) {
       lastPos = i + 1;
     }
   }
-
+  
   // Check if we have leftover key or value data
   if (pairs > 0 && (lastPos < qs.length || eqIdx > 0)) {
     if (lastPos < qs.length) {
@@ -325,7 +397,7 @@ QueryString.parse = QueryString.decode = function(qs, sep, eq, options) {
     if (keyEncoded)
       key = decodeStr(key, decode);
     if (valEncoded)
-        value = decodeStr(value, decode);
+      value = decodeStr(value, decode);
     // Use a key array lookup instead of using hasOwnProperty(), which is
     // slower
     if (keys.indexOf(key) === -1) {
@@ -342,7 +414,7 @@ QueryString.parse = QueryString.decode = function(qs, sep, eq, options) {
         obj[key] = [curValue, value];
     }
   }
-
+  
   return obj;
 };
 
@@ -356,4 +428,3 @@ function decodeStr(s, decoder) {
     return QueryString.unescape(s, true);
   }
 }
-
