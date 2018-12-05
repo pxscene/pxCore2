@@ -2158,7 +2158,10 @@ rtError pxScene2d::create(rtObjectRef p, rtObjectRef& o)
   if (needpxObjectTracking)
   {
 #ifdef ENABLE_PXOBJECT_TRACKING
-    rtLogInfo("pxObjectTracking CREATION pxScene2d::create [%p] [%s] [%s]", o.getPtr(), t.cString(), mScriptView->getUrl().cString());
+    if (NULL != mScriptView)
+    {
+      rtLogInfo("pxObjectTracking CREATION pxScene2d::create [%p] [%s] [%s]", o.getPtr(), t.cString(), mScriptView->getUrl().cString());
+    }
 #endif
     mInnerpxObjects.push_back((pxObject*)o.getPtr());
   }
