@@ -79,6 +79,11 @@ rtWrapperSceneUpdateEnter();
   ObjectReferenceMap::iterator j = objectMap.find(data.GetParameter());
   if (j != objectMap.end())
   {
+   if (j->second->RTObject.getPtr() != NULL)
+   {
+    printf("Inside weak callback [%p] \n",j->second->RTObject.getPtr());
+    fflush(stdout);
+   }
     // TODO: Removing this temporarily until we understand how this callback works. I
     // would have assumed that this is a weak persistent since we called SetWeak() on it
     // before inserting it into the objectMap_rt2v8 map.
@@ -112,6 +117,8 @@ rtWrapperSceneUpdateExit();
         }
     }
   }
+  printf("End of wekacllback fn \n");
+  fflush(stdout);
 }
 #else
 void weakCallback_rt2v8(const WeakCallbackData<Object, rtIObject>& data)
