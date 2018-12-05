@@ -458,6 +458,9 @@ pxObject::pxObject(pxScene2d* scene): rtObject(), mParent(NULL), mpx(0), mpy(0),
 
 pxObject::~pxObject()
 {
+#ifdef ENABLE_PXOBJECT_TRACKING
+    rtLogInfo("pxObjectTracking DESTRUCTION [%p]",this);
+#endif
 //    rtString d;
     // TODO... why is this bad
 //    sendReturns<rtString>("description",d);
@@ -1895,6 +1898,9 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
     mDirty(true), mTestView(NULL), mDisposed(false), mArchiveSet(false)
 {
   mRoot = new pxRoot(this);
+#ifdef ENABLE_PXOBJECT_TRACKING
+    rtLogInfo("pxObjectTracking CREATION pxScene2d::pxScene2d  [%p]", mRoot.getPtr());
+#endif
   mFocusObj = mRoot;
   mEmit = new rtEmit();
   mTop = top;
@@ -2150,7 +2156,12 @@ rtError pxScene2d::create(rtObjectRef p, rtObjectRef& o)
   }
 
   if (needpxObjectTracking)
+  {
+#ifdef ENABLE_PXOBJECT_TRACKING
+    rtLogInfo("pxObjectTracking CREATION pxScene2d::create [%p] [%s] [%s]", o.getPtr(), t.cString(), mScriptView->getUrl().cString());
+#endif
     mInnerpxObjects.push_back((pxObject*)o.getPtr());
+  }
   return e;
 }
 
