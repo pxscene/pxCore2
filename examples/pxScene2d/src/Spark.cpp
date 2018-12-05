@@ -291,9 +291,11 @@ protected:
     rtLogInfo("cleared all the fonts during close");
     fflush(stdout);
     context.term();
+    /*
 #ifdef RUNINMAIN
     script.pump();
 #endif
+*/
     rtLogInfo("about to call garbage collect during close");
     fflush(stdout);
     script.collectGarbage();
@@ -302,7 +304,7 @@ protected:
 
     if (gDumpMemUsage)
     {
-      script.collectGarbage();
+      //script.collectGarbage();
       rtLogInfo("pxobjectcount is [%d]",pxObjectCount);
 #ifndef PX_PLATFORM_DFB_NON_X11
       rtLogInfo("texture memory usage is [%" PRId64 "]",context.currentTextureMemoryUsageInBytes());
