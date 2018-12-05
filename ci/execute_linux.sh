@@ -40,7 +40,6 @@ export SPARK_PERMISSIONS_ENABLED=true
 export SUPPRESSIONS=$TRAVIS_BUILD_DIR/ci/leak.supp
 export SPARK_ENABLE_COLLECT_GARBAGE=1
 
-
 touch $VALGRINDLOGS
 EXECLOGS=$TRAVIS_BUILD_DIR/logs/exec_logs
 TESTRUNNERURL="https://px-apps.sys.comcast.net/pxscene-samples/examples/px-reference/test-run/testRunner_v7.js"
