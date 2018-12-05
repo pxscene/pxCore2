@@ -430,6 +430,7 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
         {
           //rtLogDebug("LastLine: Calling renderTextRowWithTruncation with mx=%f for string \"%s\"\n",mx,accString.cString());
           renderTextRowWithTruncation(accString, lineWidth, 0, tempY, sx, sy, size, render);
+          tempY += (mLeading*sy) + charH;
           // Clear accString because we've rendered it
           accString = "";
           break; // break out of reading mText
@@ -444,6 +445,7 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
             //rtLogDebug("!!!!CLF: calling renderTextRowWithTruncation! %s\n",accString.cString());
             if( mTruncation != pxConstantsTruncation::NONE) {
               renderTextRowWithTruncation(accString, mw, mx, tempY, sx, sy, size, render);
+              tempY += (mLeading*sy) + charH;
               accString = "";
               break;
             }
@@ -452,6 +454,7 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
               if( clip() )
               {
                 renderOneLine(accString, 0, tempY, sx, sy, size, mw, render);
+                tempY += (mLeading*sy) + charH;
                 accString = "";
                 break;
               }
@@ -481,6 +484,7 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
             // Use horizonal positioning
             //rtLogDebug("Calling renderOneLine with lineNumber=%d\n",lineNumber);
             renderOneLine(tempStr, 0, tempY, sx, sy, size, lineWidth, render);
+            tempY += (mLeading*sy) + charH;
             free(tempStr);
 
             // Now reset accString to hold remaining text
@@ -518,7 +522,7 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
           // Free tempStr
           free(tempStr);
           // Now skip to next line
-          tempY += (mLeading*sy) + charH;
+          //tempY += (mLeading*sy) + charH;
           tempX = 0;
           lineNumber++;
 
@@ -562,6 +566,8 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
       }
 
     }
+    else if( !render)
+        tempY -= charH + mLeading*sy;
 
 
   if( !render) {
@@ -584,19 +590,20 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
       {
         if(!mWordWrap )
         {
-          startY = my + (mh - textHeight); // could be negative
+          startY = (mh - textHeight); // could be negative
           if(!clip() && mTruncation == pxConstantsTruncation::NONE)
           {
-            noClipY = my;
+            noClipY = (mh - textHeight);
+            startY = 0;
             noClipH = textHeight;//mh;
           }
         }
         else
         {
-          startY = my + (mh - textHeight); // could be negative
+          startY = (mh - textHeight); // could be negative
           if(!clip())
           {
-            noClipY = my-(textHeight-mh);
+            noClipY = (mh-textHeight);
             if(mTruncation == pxConstantsTruncation::NONE) {
               noClipH = textHeight;
               startY = 0;//my;
@@ -608,19 +615,20 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
       {
         if(!mWordWrap )
         {
-          startY = my + (mh - textHeight)/2;
+          startY = (mh - textHeight)/2;
           if(!clip() && mTruncation == pxConstantsTruncation::NONE)
           {
-            noClipY = my;
+            noClipY = (mh - textHeight)/2;
+            startY = 0;//my;
             noClipH = textHeight;
           }
         }
         else
         {
-          startY = my + (mh - textHeight)/2;
+          startY = (mh - textHeight)/2;
           if(!clip())
           {
-            noClipY = my + (mh - textHeight)/2;
+            noClipY = (mh - textHeight)/2;
             if(mTruncation == pxConstantsTruncation::NONE)
             {
               startY = 0;//my;
