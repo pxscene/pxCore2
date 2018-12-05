@@ -186,4 +186,5 @@ if [ "$leakcount" -ne 0 ]
 else
 	echo "Valgrind reports success !!!!!!!!!!!"
 fi
+printExecLogs
 exit 0;
