@@ -1052,10 +1052,14 @@ public:
 //  rtMethod1ArgAndNoReturn("makeReady", makeReady, bool);  // DEPRECATED ?
   
   pxSceneContainer(pxScene2d* scene):pxViewContainer(scene){  pxSceneContainerCount++;}
-  virtual ~pxSceneContainer();/* {rtLogDebug("###############~pxSceneContainer\n");pxSceneContainerCount--; if (this == gPtr) {printf("[%s]\n",(char*)0x96);} }
-*/
-  virtual unsigned long AddRef();
-  virtual unsigned long Release(); 
+  virtual ~pxSceneContainer() {rtLogDebug("###############~pxSceneContainer\n");pxSceneContainerCount--;}
+
+  virtual unsigned long Release()
+  {
+    unsigned long c = pxViewContainer::Release();
+//    rtLogDebug("pxSceneContainer::Release(): %ld\n", c);
+    return c;
+  }
 
   virtual void dispose(bool pumpJavascript);
   rtError url(rtString& v) const { v = mUrl; return RT_OK; }
