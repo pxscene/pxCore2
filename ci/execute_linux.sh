@@ -139,6 +139,7 @@ echo "Values are $pxRetVal and $texRetVal";
 
 printf "\n\n -------------------------------- \n\n"
 
+printExecLogs
 
 if [ "$pxRetVal" -eq 0 ]
 	then
