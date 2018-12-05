@@ -2319,9 +2319,39 @@ rtError pxScene2d::createFontResource(rtObjectRef p, rtObjectRef& o)
   return RT_OK;
 }
 
+pxSceneContainer* gPtr = NULL;
+
+unsigned long pxSceneContainer::AddRef()
+{
+  //rtLogInfo(__FUNCTION__);
+  long l = rtAtomicInc(&mRefCount);
+  if (this == gPtr)
+    printf("AddRef [%ld] \n",l);
+  return l;
+}
+
+unsigned long pxSceneContainer::Release()
+{
+  //rtLogInfo(__FUNCTION__);
+  long l = rtAtomicDec(&mRefCount);
+  //  rtLogDebug("pxScene2d release %ld\n",l);
+  if (this == gPtr)
+  {
+    printf(" Release [%d] \n",mRefCount);
+    fflush(stdout);
+  }
+  if (l == 0)
+    delete this;
+  return l;
+}
+
+pxSceneContainer::~pxSceneContainer() {rtLogDebug("###############~pxSceneContainer\n");pxSceneContainerCount--; /*if (this == gPtr) {printf("[%s]\n",(char*)0x96);}*/ }
+
 rtError pxScene2d::createScene(rtObjectRef p, rtObjectRef& o)
 {
   pxSceneContainer* sceneContainer = new pxSceneContainer(this);
+  if (NULL == gPtr)
+    gPtr = sceneContainer;  
   o = sceneContainer;
   o.set(p);
   o.send("init");
