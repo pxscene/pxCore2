@@ -77,12 +77,14 @@ rtWrapperSceneUpdateEnter();
   pthread_mutex_lock(&sObjectMapMutex);
 #endif
   ObjectReferenceMap::iterator j = objectMap.find(data.GetParameter());
+  void* p = NULL;
   if (j != objectMap.end())
   {
    if (j->second->RTObject.getPtr() != NULL)
    {
     printf("Inside weak callback [%p] \n",j->second->RTObject.getPtr());
     fflush(stdout);
+    p = (void*) (j->second->RTObject.getPtr());
    }
     // TODO: Removing this temporarily until we understand how this callback works. I
     // would have assumed that this is a weak persistent since we called SetWeak() on it
@@ -119,6 +121,11 @@ rtWrapperSceneUpdateExit();
   }
   printf("End of wekacllback fn \n");
   fflush(stdout);
+  if (NULL != p)
+  {
+    printf("[%p] \n",p);
+    fflush(stdout);
+  }
 }
 #else
 void weakCallback_rt2v8(const WeakCallbackData<Object, rtIObject>& data)
@@ -285,6 +292,8 @@ rtWrapperSceneUpdateEnter();
 #endif
     entry->RTObject = from;
     entry->CreationContextId = contextIdCreation;
+    printf("Insert map object [%p] \n",from.getPtr());
+    fflush(stdout);
     objectMap.insert(std::make_pair(from.getPtr(), entry));
   }
 rtWrapperSceneUpdateExit();
