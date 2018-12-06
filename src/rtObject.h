@@ -271,7 +271,7 @@ public:
     mObject = o;
     mThunk = t;
   }
-  virtual ~rtObjectFunction() {}
+  virtual ~rtObjectFunction() { printf("Deleting object function [%p] \n",this);fflush(stdout); }
   
   virtual unsigned long AddRef() { return rtAtomicInc(&mRefCount); }
   virtual unsigned long Release() 

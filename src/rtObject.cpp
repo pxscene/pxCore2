@@ -466,7 +466,10 @@ rtError rtObject::Get(const char* name, rtValue* value) const
         if (strcmp(name, e->mMethodName) == 0)
         {
           rtLogDebug("found method: %s", name);
-          value->setFunction(new rtObjectFunction(this, e->mThunk));
+          rtObjectFunction* p = new rtObjectFunction(this, e->mThunk);
+          printf("[%s] [%p]\n",name, p);
+          fflush(stdout);
+          value->setFunction(p);
           hr = RT_OK;
           return hr;
         }
