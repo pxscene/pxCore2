@@ -42,8 +42,6 @@ function Scene() {
       this.info = scene.info;
       this.capabilities = scene.capabilities;
       this.filePath = filePath;
-      this.addServiceProvider = scene.addServiceProvider;
-      this.removeServiceProvider = scene.removeServiceProvider;
       if (!isDuk) { 
         this.__defineGetter__("w", function() { return scene.w; });
         this.__defineGetter__("h", function() { return scene.h; });
@@ -100,6 +98,14 @@ function Scene() {
 
   this.customAnimator = function( f ) {
     return nativeScene.customAnimator( f );
+  }
+
+  this.addServiceProvider = function( f ) {
+    return nativeScene.addServiceProvider( f );
+  }
+
+  this.removeServiceProvider = function( f ) {
+    return nativeScene.removeServiceProvider( f );
   }
 
   this.getX = function() { return nativeScene.x; };
