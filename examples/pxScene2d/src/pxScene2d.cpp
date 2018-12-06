@@ -2045,7 +2045,7 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
        mArchive = NULL;
     }
     mArchiveSet = false;
-    printf("about to delete from ~pxScene2d \n");
+    printf("about to delete from ~pxScene2d [%p] \n",this);
     fflush(stdout);
   }
 
