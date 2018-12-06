@@ -280,6 +280,8 @@ function Scene() {
   this.close = function() {
     rpcContext._setRPCController(null);
     rpcContext = null;
+    nativeScene = null;
+    componentDefinitions = null;
   }
 
   return this;
