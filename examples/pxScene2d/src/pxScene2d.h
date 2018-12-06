@@ -1435,19 +1435,8 @@ public:
     fflush(stdout);
   }
   */
-  virtual unsigned long AddRef() 
-  {
-    return rtAtomicInc(&mRefCount);
-  }
-  
-  virtual unsigned long Release() 
-  {
-    long l = rtAtomicDec(&mRefCount);
-    //  rtLogDebug("pxScene2d release %ld\n",l);
-    if (l == 0)
-      delete this;
-    return l;
-  }
+  virtual unsigned long AddRef();
+  virtual unsigned long Release(); 
 
   rtError addServiceProvider(const rtFunctionRef& p)
   {

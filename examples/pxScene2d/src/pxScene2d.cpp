@@ -500,7 +500,8 @@ void pxObject::createNewPromise()
   }
 }
 
-pxSceneContainer* gPtr = NULL;
+//pxSceneContainer* gPtr = NULL;
+pxScene2d* gPtr = NULL;
 void pxObject::dispose(bool pumpJavascript)
 {
   if (!mIsDisposed)
@@ -1900,6 +1901,8 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
 #endif //PX_DIRTY_RECTANGLES
     mDirty(true), mTestView(NULL), mDisposed(false), mArchiveSet(false)
 {
+  printf("Madana inside pxScene2d::pxScene2d [%p] \n",this);
+  fflush(stdout);
   mRoot = new pxRoot(this);
 #ifdef ENABLE_PXOBJECT_TRACKING
     rtLogInfo("pxObjectTracking CREATION pxScene2d::pxScene2d  [%p]", mRoot.getPtr());
@@ -2062,11 +2065,6 @@ rtError pxScene2d::dispose()
       {
         temp->dispose(false);
       }
-      if (mInnerpxObjects[i].getPtr() == gPtr)
-      {
-        printf("about to clear one from [%p] \n",this);
-        fflush(stdout);
-      }
     }
     mInnerpxObjects.clear();
 
@@ -2081,14 +2079,7 @@ rtError pxScene2d::dispose()
     mRoot     = NULL;
     mInfo     = NULL;
     mCapabilityVersions = NULL;
-    if (mFocusObj.getPtr() == gPtr)
-    {
-      printf("Trying to set focus object to NULL \n");
-      fflush(stdout);
-      mFocusObj = NULL;
-      printf("done setting focus object to NULL \n");
-      fflush(stdout);
-    }
+    mFocusObj = NULL;
     return RT_OK;
 }
 
@@ -2353,16 +2344,19 @@ rtError pxScene2d::createFontResource(rtObjectRef p, rtObjectRef& o)
 }
 
 
-unsigned long pxSceneContainer::AddRef()
+unsigned long pxScene2d::AddRef()
 {
   //rtLogInfo(__FUNCTION__);
   long l = rtAtomicInc(&mRefCount);
   if (this == gPtr)
-    printf("AddRef [%ld] \n",l);
+  {
+    printf(" Release [%d] \n",mRefCount);
+    fflush(stdout);
+  }
   return l;
 }
 
-unsigned long pxSceneContainer::Release()
+unsigned long pxScene2d::Release()
 {
   //rtLogInfo(__FUNCTION__);
   long l = rtAtomicDec(&mRefCount);
@@ -2376,17 +2370,33 @@ unsigned long pxSceneContainer::Release()
     delete this;
   return l;
 }
+unsigned long pxSceneContainer::AddRef()
+{
+  //rtLogInfo(__FUNCTION__);
+  long l = rtAtomicInc(&mRefCount);
+  return l;
+}
+
+unsigned long pxSceneContainer::Release()
+{
+  //rtLogInfo(__FUNCTION__);
+  long l = rtAtomicDec(&mRefCount);
+  //  rtLogDebug("pxScene2d release %ld\n",l);
+  if (l == 0)
+    delete this;
+  return l;
+}
 
 pxSceneContainer::~pxSceneContainer() {rtLogDebug("###############~pxSceneContainer\n");pxSceneContainerCount--; /*if (this == gPtr) {printf("[%s]\n",(char*)0x96);}*/ }
 
 rtError pxScene2d::createScene(rtObjectRef p, rtObjectRef& o)
 {
   pxSceneContainer* sceneContainer = new pxSceneContainer(this);
-  if (NULL == gPtr)
-    gPtr = sceneContainer;  
   o = sceneContainer;
   o.set(p);
   o.send("init");
+  printf("pxScene2d::createScene [%p] [%p] \n",sceneContainer, this);
+  fflush(stdout);
   return RT_OK;
 }
 
@@ -4047,25 +4057,10 @@ void pxSceneContainer::dispose(bool pumpJavascript)
   {
     rtLogInfo(__FUNCTION__);
     //Adding ref to make sure, object not destroyed from event listeners
-    if (this == gPtr)
-    {
-      printf("About to call event listeners clear [%p] \n",this);
-      fflush(stdout);
-    }
     AddRef();
     setScriptView(NULL);
     pxObject::dispose(pumpJavascript);
-    if (this == gPtr)
-    {
-      printf("called event listeners clear and about to release me [%p] \n",this);
-      fflush(stdout);
-    }
     Release();
-    if (this == gPtr)
-    {
-      printf("called event listeners clear [%p] \n",this);
-      fflush(stdout);
-    }
   }
 }
 
@@ -4309,6 +4304,8 @@ rtError pxScriptView::getScene(int numArgs, const rtValue* args, rtValue* result
       {
         static bool top = true;
         pxScene2dRef scene = new pxScene2d(top, v);
+        if (NULL == gPtr)
+          gPtr = scene.getPtr();
         top = false;
         v->mView = scene;
         v->mScene = scene;
