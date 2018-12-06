@@ -1417,7 +1417,8 @@ public:
   rtReadOnlyProperty(cors, cors, rtObjectRef);
 
   pxScene2d(bool top = true, pxScriptView* scriptView = NULL);
-  virtual ~pxScene2d()
+  virtual ~pxScene2d();
+/*
   {
      rtLogDebug("***** deleting pxScene2d\n");
     if (mTestView != NULL)
@@ -1430,8 +1431,10 @@ public:
        mArchive = NULL;
     }
     mArchiveSet = false;
+    printf("about to delete from ~pxScene2d \n");
+    fflush(stdout);
   }
-  
+  */
   virtual unsigned long AddRef() 
   {
     return rtAtomicInc(&mRefCount);

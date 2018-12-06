@@ -269,7 +269,7 @@ protected:
   {
   }
 
-  virtual ~rtWrapper(){ }
+  virtual ~rtWrapper(){ printf("Releaseing from rtWrapper [%p] \n",mWrappedObject.getPtr()); fflush(stdout); }
 
   static TRef unwrap(const v8::FunctionCallbackInfo<v8::Value>& args)
   {

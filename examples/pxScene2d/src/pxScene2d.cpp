@@ -500,6 +500,7 @@ void pxObject::createNewPromise()
   }
 }
 
+pxSceneContainer* gPtr = NULL;
 void pxObject::dispose(bool pumpJavascript)
 {
   if (!mIsDisposed)
@@ -524,6 +525,11 @@ void pxObject::dispose(bool pumpJavascript)
     {
       (*it)->mParent = NULL;  // setParent mutates the mChildren collection
       (*it)->dispose(false);
+      if ((*it) == gPtr)
+      {
+        printf("Madana from clear children [%p]\n",gPtr);
+        fflush(stdout);
+      }
     }
     mChildren.clear();
     clearSnapshot(mSnapshotRef);
@@ -2028,6 +2034,24 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   //////////////////////////////////////////////////////
 }
 
+
+  pxScene2d::~pxScene2d()
+  {
+     rtLogDebug("***** deleting pxScene2d\n");
+    if (mTestView != NULL)
+    {
+       //delete mTestView; // HACK: Only used in testing... 'delete' causes unknown crash.
+       mTestView = NULL;
+    }
+    if (mArchive != NULL)
+    {
+       mArchive = NULL;
+    }
+    mArchiveSet = false;
+    printf("about to delete from ~pxScene2d \n");
+    fflush(stdout);
+  }
+
 rtError pxScene2d::dispose()
 {
     mDisposed = true;
@@ -2040,6 +2064,11 @@ rtError pxScene2d::dispose()
       if ((NULL != temp) && (NULL == temp->parent()))
       {
         temp->dispose(false);
+      }
+      if (mInnerpxObjects[i].getPtr() == gPtr)
+      {
+        printf("about to clear one from [%p] \n",this);
+        fflush(stdout);
       }
     }
     mInnerpxObjects.clear();
@@ -2055,7 +2084,14 @@ rtError pxScene2d::dispose()
     mRoot     = NULL;
     mInfo     = NULL;
     mCapabilityVersions = NULL;
-    mFocusObj = NULL;
+    if (mFocusObj.getPtr() == gPtr)
+    {
+      printf("Trying to set focus object to NULL \n");
+      fflush(stdout);
+      mFocusObj = NULL;
+      printf("done setting focus object to NULL \n");
+      fflush(stdout);
+    }
     return RT_OK;
 }
 
@@ -2319,7 +2355,6 @@ rtError pxScene2d::createFontResource(rtObjectRef p, rtObjectRef& o)
   return RT_OK;
 }
 
-pxSceneContainer* gPtr = NULL;
 
 unsigned long pxSceneContainer::AddRef()
 {
@@ -4015,10 +4050,25 @@ void pxSceneContainer::dispose(bool pumpJavascript)
   {
     rtLogInfo(__FUNCTION__);
     //Adding ref to make sure, object not destroyed from event listeners
+    if (this == gPtr)
+    {
+      printf("About to call event listeners clear [%p] \n",this);
+      fflush(stdout);
+    }
     AddRef();
     setScriptView(NULL);
     pxObject::dispose(pumpJavascript);
+    if (this == gPtr)
+    {
+      printf("called event listeners clear and about to release me [%p] \n",this);
+      fflush(stdout);
+    }
     Release();
+    if (this == gPtr)
+    {
+      printf("called event listeners clear [%p] \n",this);
+      fflush(stdout);
+    }
   }
 }
 
