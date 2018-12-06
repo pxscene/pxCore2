@@ -186,6 +186,10 @@ function Scene() {
     return nativeScene.getFocus(element);
   };
 
+  this.setFocus = function(element) {
+    nativeScene.setFocus(element);
+  };
+
   this.on = function(eventType, func) {
     return nativeScene.on(eventType, func);
   };
