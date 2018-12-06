@@ -38,7 +38,7 @@ export SPARK_PERMISSIONS_CONFIG=$TRAVIS_BUILD_DIR/examples/pxScene2d/src/sparkpe
 export SPARK_PERMISSIONS_ENABLED=true
 export HANDLE_SIGNALS=1
 export ENABLE_MEMLEAK_CHECK=1
-#export MallocStackLogging=1
+export MallocStackLogging=1
 export SPARK_ENABLE_COLLECT_GARBAGE=1
 
 EXECLOGS=$TRAVIS_BUILD_DIR/logs/exec_logs
