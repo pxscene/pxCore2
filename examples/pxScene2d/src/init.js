@@ -79,18 +79,19 @@ else {
 
         var ext;
 
-        if (false) {
-            var urlParts = Url.parse(url,true)
+        var urlParts;
+        if (true) {
+            urlParts = Url.parse(url,true)
             ext = urlParts.query['_ext']
         }
         else {
-            var urlParts = Url.parse(url)
+            urlParts = Url.parse(url)
         }
 
         if (!ext) {
             ext = Path.extname(urlParts.pathname)
         }
-
+        urlParts = null;
         //console.log('Original Url: ', url)
         if (ext=='.md' || ext=='.sd') {
             url = baseViewerUrl+'/mime/viewMarkdown.js?url='+encodeURIComponent(url)
