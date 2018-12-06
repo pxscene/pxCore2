@@ -71,10 +71,10 @@ global.loadUrl = function loadUrl(url) {
 }
 }
 else {
-    var baseViewerUrl = 'https://www.pxscene.org'
+//    var baseViewerUrl = 'https://www.pxscene.org'
  
     function loadUrl(url) {
-
+/*
         var Url = require('url')
         var Path = require('path')
 
@@ -103,13 +103,13 @@ else {
         else if (ext=='.txt' || ext=='.text') {
             url = baseViewerUrl+'/mime/viewText.js?url='+encodeURIComponent(url)
         }
-
+*/
         /*
         else if (ext=='.htm' || ext=='.html'){
             url = baseViewerUrl+'/mime/viewHTML.js?url='+encodeURIComponent(url)
         }
         */
-
+/*
         else if (ext=='.js' || ext=='.jar') {
             // Do nothing and let the url fall through
         }
@@ -118,7 +118,7 @@ else {
         }
         
         //console.log('Rewritten Url: ', url)
-
+*/
 
         var ctx = new AppSceneContext({        scene: getScene("scene.1"),
                                             makeReady: this.makeReady,
