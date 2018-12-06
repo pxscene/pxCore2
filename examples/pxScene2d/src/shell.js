@@ -54,7 +54,7 @@ px.import({ scene: 'px:scene.1.js',
    *
    * @returns {String} URL for a scene
    */
-  
+/*  
   function resolveSceneUrl(url) {
     if (url && url.toLowerCase().indexOf('.js?') > 0) { // this is a js file with query params
       return url;
@@ -64,10 +64,10 @@ px.import({ scene: 'px:scene.1.js',
     }
     return url;
   }
-  
+  */
   // JRJR TODO had to add more modules
   var url = queryStringModule.parse(urlModule.parse(module.appSceneContext.packageUrl).query).url;
-  url = resolveSceneUrl(url)
+  //url = resolveSceneUrl(url)
   
   var originalURL = (!url || url==="") ? "browser.js":url;
   console.log("url:",originalURL);
