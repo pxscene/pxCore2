@@ -331,6 +331,7 @@ if( scene.capabilities != undefined && scene.capabilities.graphics != undefined 
   */
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   function releaseResources() {
+    childScene.focus = false;
     if (!isDuk && !isV8) {
         process.removeListener("uncaughtException", uncaughtException);
         process.removeListener("unhandledRejection", unhandledRejection);
