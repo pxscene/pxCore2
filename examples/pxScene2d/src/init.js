@@ -1,4 +1,3 @@
-
 /*
 
 pxCore Copyright 2005-2018 John Robinson
@@ -72,10 +71,10 @@ global.loadUrl = function loadUrl(url) {
 }
 }
 else {
-    //var baseViewerUrl = 'https://www.pxscene.org'
+    var baseViewerUrl = 'https://www.pxscene.org'
  
     function loadUrl(url) {
-/*
+
         var Url = require('url')
         var Path = require('path')
 
@@ -104,20 +103,20 @@ else {
         else if (ext=='.txt' || ext=='.text') {
             url = baseViewerUrl+'/mime/viewText.js?url='+encodeURIComponent(url)
         }
-*/
+
         /*
         else if (ext=='.htm' || ext=='.html'){
             url = baseViewerUrl+'/mime/viewHTML.js?url='+encodeURIComponent(url)
         }
         */
-/*
+
         else if (ext=='.js' || ext=='.jar') {
             // Do nothing and let the url fall through
         }
         else {
             // TODO Do a HTTP head check to see if we can get a mimetype/contenttype for routing
         }
-  */      
+        
         //console.log('Rewritten Url: ', url)
 
 
