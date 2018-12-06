@@ -335,6 +335,7 @@ if( scene.capabilities != undefined && scene.capabilities.graphics != undefined 
         process.removeListener("uncaughtException", uncaughtException);
         process.removeListener("unhandledRejection", unhandledRejection);
     }
+    scene.focus = null;
   }
 
   scene.on("onClose",releaseResources);
