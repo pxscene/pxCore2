@@ -525,12 +525,9 @@ void pxObject::dispose(bool pumpJavascript)
     {
       (*it)->mParent = NULL;  // setParent mutates the mChildren collection
       (*it)->dispose(false);
-      if ((*it) == gPtr)
-      {
-        printf("Madana from clear children [%p]\n",gPtr);
-        fflush(stdout);
-      }
     }
+    printf("Madana from clear children [%p]\n",this);
+    fflush(stdout);
     mChildren.clear();
     clearSnapshot(mSnapshotRef);
     clearSnapshot(mClipSnapshotRef);
