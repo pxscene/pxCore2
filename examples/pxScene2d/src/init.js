@@ -77,9 +77,9 @@ else {
         var Url = require('url')
         var Path = require('path')
 
-        var ext
+        var ext;
 
-        if (true) {
+        if (false) {
             var urlParts = Url.parse(url,true)
             ext = urlParts.query['_ext']
         }

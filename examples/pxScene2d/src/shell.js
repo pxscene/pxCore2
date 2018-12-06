@@ -331,7 +331,6 @@ if( scene.capabilities != undefined && scene.capabilities.graphics != undefined 
   */
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   function releaseResources() {
-    childScene = null;
     if (!isDuk && !isV8) {
         process.removeListener("uncaughtException", uncaughtException);
         process.removeListener("unhandledRejection", unhandledRejection);
