@@ -35,6 +35,9 @@ public:
   rtReadOnlyProperty(headers, headers, rtObjectRef);
 
   rtMethod2ArgAndNoReturn("on", addListener, rtString, rtFunctionRef);
+  rtMethod2ArgAndNoReturn("once", once, rtString, rtFunctionRef);
+  rtMethodNoArgAndNoReturn("removeAllListeners", removeAllListeners);
+  rtMethod1ArgAndNoReturn("removeAllListeners", removeAllListenersByName, rtString);
 
   rtHttpResponse();
   ~rtHttpResponse();

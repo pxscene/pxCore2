@@ -23,6 +23,9 @@
 rtDefineObject(rtHttpRequest, rtObject);
 
 rtDefineMethod(rtHttpRequest, addListener);
+rtDefineMethod(rtHttpRequest, once);
+rtDefineMethod(rtHttpRequest, removeAllListeners);
+rtDefineMethod(rtHttpRequest, removeAllListenersByName);
 rtDefineMethod(rtHttpRequest, abort);
 rtDefineMethod(rtHttpRequest, end);
 rtDefineMethod(rtHttpRequest, write);
@@ -88,9 +91,28 @@ rtHttpRequest::~rtHttpRequest()
 {
 }
 
-rtError rtHttpRequest::addListener(rtString eventName, const rtFunctionRef& f)
+rtError rtHttpRequest::addListener(const rtString& eventName, const rtFunctionRef& f)
 {
   mEmit->addListener(eventName, f);
+  return RT_OK;
+}
+
+rtError rtHttpRequest::once(const rtString& eventName, const rtFunctionRef& f)
+{
+  mEmit->addListener(eventName, f);
+  // TODO
+  return RT_OK;
+}
+
+rtError rtHttpRequest::removeAllListeners()
+{
+  mEmit->clearListeners();
+  return RT_OK;
+}
+
+rtError rtHttpRequest::removeAllListenersByName(const rtString& eventName)
+{
+  mEmit->setListener(eventName.cString(), NULL);
   return RT_OK;
 }
 

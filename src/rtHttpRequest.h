@@ -29,6 +29,9 @@ public:
   rtDeclareObject(rtHttpRequest, rtObject);
 
   rtMethod2ArgAndNoReturn("on", addListener, rtString, rtFunctionRef);
+  rtMethod2ArgAndNoReturn("once", once, rtString, rtFunctionRef);
+  rtMethodNoArgAndNoReturn("removeAllListeners", removeAllListeners);
+  rtMethod1ArgAndNoReturn("removeAllListeners", removeAllListenersByName, rtString);
   rtMethodNoArgAndNoReturn("abort", abort);
   rtMethodNoArgAndNoReturn("end", end);
   rtMethod1ArgAndNoReturn("write", write, rtString);
@@ -41,7 +44,10 @@ public:
   rtHttpRequest(const rtObjectRef& options);
   ~rtHttpRequest();
 
-  rtError addListener(rtString eventName, const rtFunctionRef& f);
+  rtError addListener(const rtString& eventName, const rtFunctionRef& f);
+  rtError once(const rtString& eventName, const rtFunctionRef& f);
+  rtError removeAllListeners();
+  rtError removeAllListenersByName(const rtString& eventName);
   rtError abort() const;
   rtError end();
   rtError write(const rtString& chunk);

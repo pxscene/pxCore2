@@ -28,6 +28,9 @@ rtDefineProperty(rtHttpResponse, headers);
 rtDefineProperty(rtHttpResponse, rawHeaders);
 
 rtDefineMethod(rtHttpResponse, addListener);
+rtDefineMethod(rtHttpResponse, once);
+rtDefineMethod(rtHttpResponse, removeAllListeners);
+rtDefineMethod(rtHttpResponse, removeAllListenersByName);
 
 rtHttpResponse::rtHttpResponse()
   : mStatusCode(0),
@@ -63,9 +66,28 @@ rtError rtHttpResponse::headers(rtObjectRef& v) const
   return RT_OK;
 }
 
-rtError rtHttpResponse::addListener(rtString eventName, const rtFunctionRef& f)
+rtError rtHttpResponse::addListener(const rtString& eventName, const rtFunctionRef& f)
 {
   mEmit->addListener(eventName, f);
+  return RT_OK;
+}
+
+rtError rtHttpResponse::once(const rtString& eventName, const rtFunctionRef& f)
+{
+  mEmit->addListener(eventName, f);
+  // TODO
+  return RT_OK;
+}
+
+rtError rtHttpResponse::removeAllListeners()
+{
+  mEmit->clearListeners();
+  return RT_OK;
+}
+
+rtError rtHttpResponse::removeAllListenersByName(const rtString& eventName)
+{
+  mEmit->setListener(eventName.cString(), NULL);
   return RT_OK;
 }
 
@@ -114,6 +136,9 @@ void rtHttpResponse::onEnd()
 rtError rtHttpResponse::parseHeaders(const rtString& data, std::map<rtString, rtString>& headerMap)
 {
   headerMap.clear();
+
+  if (data.isEmpty())
+    return RT_OK;
 
   int32_t len = data.length();
   int32_t attr1 = 0, attr2;

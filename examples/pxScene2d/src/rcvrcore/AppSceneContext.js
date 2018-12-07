@@ -28,12 +28,11 @@ var Logger = require('rcvrcore/Logger').Logger;
 var SceneModuleLoader = require('rcvrcore/SceneModuleLoader');
 var XModule = require('rcvrcore/XModule');
 var loadFile = require('rcvrcore/utils/FileUtils').loadFile;
-var loadFileWithSparkPermissionsCheck = require('rcvrcore/utils/FileUtils').loadFileWithSparkPermissionsCheck;
 var SceneModuleManifest = require('rcvrcore/SceneModuleManifest');
 var JarFileMap = require('rcvrcore/utils/JarFileMap');
 var AsyncFileAcquisition = require('rcvrcore/utils/AsyncFileAcquisition');
-var AccessControl = isV8?null:require('rcvrcore/utils/AccessControl');
 var WrapObj = require('rcvrcore/utils/WrapObj');
+var http_wrap = isV8?null:require('rcvrcore/http_wrap');
 
 var log = new Logger('AppSceneContext');
 //overriding original timeout and interval functions
@@ -41,10 +40,6 @@ var SetTimeout = (isDuk || isV8)?timers.setTimeout:setTimeout;
 var ClearTimeout = (isDuk || isV8)?timers.clearTimeout:clearTimeout;
 var SetInterval = (isDuk || isV8)?timers.setInterval:setInterval;
 var ClearInterval = (isDuk || isV8)?timers.clearInterval:clearInterval;
-
-
-var http_wrap = isV8?null:require('rcvrcore/http_wrap');
-var https_wrap = isV8?null:require('rcvrcore/https_wrap');
 
 function AppSceneContext(params) {
 
@@ -70,7 +65,6 @@ function AppSceneContext(params) {
   this.scriptMap = {};
   this.xmoduleMap = {};
   this.asyncFileAcquisition = new AsyncFileAcquisition(params.scene);
-  this.accessControl = isV8?null:new AccessControl(params.scene);
   this.lastHrTime = isDuk?uv.hrtime():(isV8?uv_hrtime():process.hrtime());
   this.resizeTimer = null;
   this.topXModule = null;
@@ -80,8 +74,6 @@ function AppSceneContext(params) {
   this.timers = [];
   this.timerIntervals = [];
   this.webSocketManager = null;
-  this.httpwrap = isV8?null:new http_wrap(this.accessControl);
-  this.httpswrap = isV8?null:new https_wrap(this.accessControl);
   this.disableFilePermissionCheck = isV8?true:this.innerscene.sparkSetting("disableFilePermissionCheck");
   if (undefined == this.disableFilePermissionCheck)
   {
@@ -194,12 +186,6 @@ function terminateScene() {
       this.sceneWrapper.close();
     this.sceneWrapper = null;
     this.rpcController = null;
-    if (this.accessControl) {
-      this.accessControl.destroy();
-      this.accessControl = null;
-    }
-    this.httpwrap = null;
-    this.httpswrap = null;
     this.isCloseEvtRcvd = false;
     this.isTermEvtRcvd = false;
     this.termEvent = null;
@@ -611,14 +597,10 @@ AppSceneContext.prototype.getModuleFile = function(filePath, xModule) {
 
 AppSceneContext.prototype.getFile = function(filePath) {
   log.message(4, "getFile: requestedFile=" + filePath);
-  if ((isV8) || ("true" == this.disableFilePermissionCheck || true == this.disableFilePermissionCheck))
-  {
+  if ((isV8) || ("true" === this.disableFilePermissionCheck || true === this.disableFilePermissionCheck)) {
     return loadFile(filePath);
   }
-  else
-  {
-    return loadFileWithSparkPermissionsCheck(this.accessControl, this.httpwrap, this.httpswrap, filePath);
-  }
+  return loadFile(filePath, this);
 };
 
 AppSceneContext.prototype.resolveModulePath = function(filePath, currentXModule) {
@@ -688,7 +670,7 @@ AppSceneContext.prototype.include = function(filePath, currentXModule) {
         onImportComplete([modData, origFilePath]);
         return;
       }
-    } else if( filePath === 'http' || filePath === 'https' ) {
+    } else if(/^(http|https|http2)$/.test(filePath)) {
       if (isV8) {
         modData = require('native_http_wrap')(_this.innerscene);
         onImportComplete([modData, origFilePath]);
