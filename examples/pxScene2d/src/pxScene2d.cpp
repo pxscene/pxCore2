@@ -2674,12 +2674,13 @@ void pxScene2d::onUpdate(double t)
   // Periodically let's poke the onMouseMove handler with the current pointer position
   // to better handle objects that animate in or out from under the mouse cursor
   // eg. scrolling
+  /*
   if (t-mPointerLastUpdated > 1) // Once a second
   {
     updateMouseEntered();
     mPointerLastUpdated = t;
   }
-
+*/
   #ifdef ENABLE_RT_NODE
   if (mTop)
   {
