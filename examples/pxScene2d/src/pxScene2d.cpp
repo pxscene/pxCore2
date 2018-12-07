@@ -3270,7 +3270,6 @@ bool pxScene2d::onMouseMove(int32_t x, int32_t y)
 
 void pxScene2d::updateMouseEntered()
 {
-  #if 0
     pxMatrix4f m;
     pxPoint2f pt(static_cast<float>(mPointerX),static_cast<float>(mPointerY)), hitPt;
     rtRef<pxObject> hit;
@@ -3280,7 +3279,6 @@ void pxScene2d::updateMouseEntered()
     }
     else
       setMouseEntered(NULL);
-  #endif
 }
 
 bool pxScene2d::onScrollWheel(float dx, float dy)
@@ -3289,11 +3287,14 @@ bool pxScene2d::onScrollWheel(float dx, float dy)
   {
     rtObjectRef e = new rtMapObject;
     e.set("name", "onScrollWheel");
-    e.set("target", mMouseEntered.getPtr());
+    //e.set("target", mMouseEntered.getPtr());
     e.set("dx", dx);
     e.set("dy", dy);
+
+    rtRef<pxObject> t = (pxObject*)mFocusObj.get<voidPtr>("_pxObject");
     
-    return bubbleEvent(e, mMouseEntered, "onPreScrollWheel", "onScrollWheel");    
+    //return bubbleEvent(e, mMouseEntered, "onPreScrollWheel", "onScrollWheel");    
+    return bubbleEvent(e, t, "onPreScrollWheel", "onScrollWheel");
   }
   return false;
 }
