@@ -112,7 +112,6 @@ else {
         else {
             // TODO Do a HTTP head check to see if we can get a mimetype/contenttype for routing
         }
-
       
         //console.log('Rewritten Url: ', url)
 
