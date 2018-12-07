@@ -3287,14 +3287,10 @@ bool pxScene2d::onScrollWheel(float dx, float dy)
   {
     rtObjectRef e = new rtMapObject;
     e.set("name", "onScrollWheel");
-    //e.set("target", mMouseEntered.getPtr());
+    e.set("target", mMouseEntered.getPtr());
     e.set("dx", dx);
     e.set("dy", dy);
-
-    rtRef<pxObject> t = (pxObject*)mFocusObj.get<voidPtr>("_pxObject");
-    
-    //return bubbleEvent(e, mMouseEntered, "onPreScrollWheel", "onScrollWheel");    
-    return bubbleEvent(e, t, "onPreScrollWheel", "onScrollWheel");
+    return bubbleEvent(e, mMouseEntered, "onPreScrollWheel", "onScrollWheel");
   }
   return false;
 }
