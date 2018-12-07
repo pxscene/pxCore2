@@ -808,6 +808,11 @@ rtError rtScriptV8::init()
     V8::Initialize();
 
     Isolate::CreateParams params;
+#ifdef USE_SYSTEM_V8
+    const char* source1 = "function pxSceneFooFunction(){ return 0;}";
+    static v8::StartupData data = v8::V8::CreateSnapshotDataBlob(source1);
+    params.snapshot_blob = &data;
+#endif
     params.array_buffer_allocator = v8::ArrayBuffer::Allocator::NewDefaultAllocator();
     mIsolate = Isolate::New(params);
 
