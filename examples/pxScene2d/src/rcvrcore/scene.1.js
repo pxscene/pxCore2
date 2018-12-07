@@ -282,6 +282,7 @@ function Scene() {
     rpcContext = null;
     nativeScene = null;
     componentDefinitions = null;
+    stylePatterns = null;
   }
 
   return this;
