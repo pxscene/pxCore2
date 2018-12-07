@@ -3270,7 +3270,7 @@ bool pxScene2d::onMouseMove(int32_t x, int32_t y)
 
 void pxScene2d::updateMouseEntered()
 {
-  #if 1
+  #if 0
     pxMatrix4f m;
     pxPoint2f pt(static_cast<float>(mPointerX),static_cast<float>(mPointerY)), hitPt;
     rtRef<pxObject> hit;
