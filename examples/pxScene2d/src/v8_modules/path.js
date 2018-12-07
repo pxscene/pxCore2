@@ -275,6 +275,10 @@ win32 = {
             }
         }
     },
+    extname: function extname(path) {
+         var parts = path.split('.');
+         return parts.length > 1 ? ('.' + parts[parts.length-1]) : '';
+     },
 }
 
 posix = {
@@ -299,6 +303,10 @@ posix = {
             return '/' + path;
         return path;
     },
+    extname: function extname(path) {
+         var parts = path.split('.');
+         return parts.length > 1 ? ('.' + parts[parts.length-1]) : '';
+     },
 }
 
 if (uv_platform() === 'win32')
