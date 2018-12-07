@@ -2025,7 +2025,7 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
 rtError pxScene2d::dispose()
 {
     mDisposed = true;
-    mMouseEntered = null;
+    mMouseEntered = NULL;
     rtObjectRef e = new rtMapObject;
     // pass false to make onClose asynchronous
     mEmit.send("onClose", e);
