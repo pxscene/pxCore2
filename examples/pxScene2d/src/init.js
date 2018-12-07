@@ -79,17 +79,17 @@ else {
 
         var ext
 
-         if (true) {
-             var urlParts = Url.parse(url,true)
-             ext = urlParts.query['_ext']
-         }
-         else {
-             var urlParts = Url.parse(url)
-         }
+        if (true) {
+            var urlParts = Url.parse(url,true)
+            ext = urlParts.query['_ext']
+        }
+        else {
+            var urlParts = Url.parse(url)
+        }
 
-         if (!ext) {
-             ext = Path.extname(urlParts.pathname)
-         }
+        if (!ext) {
+            ext = Path.extname(urlParts.pathname)
+        }
 
         //console.log('Original Url: ', url)
         if (ext=='.md' || ext=='.sd') {
@@ -102,16 +102,16 @@ else {
             url = baseViewerUrl+'/mime/viewText.js?url='+encodeURIComponent(url)
         }
         /*
-         else if (ext=='.htm' || ext=='.html'){
-             url = baseViewerUrl+'/mime/viewHTML.js?url='+encodeURIComponent(url)
-         }
-         */
-         else if (ext=='.js' || ext=='.jar') {
-             // Do nothing and let the url fall through
-         }
-         else {
-             // TODO Do a HTTP head check to see if we can get a mimetype/contenttype for routing
-         }
+        else if (ext=='.htm' || ext=='.html'){
+            url = baseViewerUrl+'/mime/viewHTML.js?url='+encodeURIComponent(url)
+        }
+        */
+        else if (ext=='.js' || ext=='.jar') {
+            // Do nothing and let the url fall through
+        }
+        else {
+            // TODO Do a HTTP head check to see if we can get a mimetype/contenttype for routing
+        }
          
         //console.log('Rewritten Url: ', url)
 
