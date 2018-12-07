@@ -1940,10 +1940,9 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   }
 
   mPointerHidden= false;
+  #ifdef USE_SCENE_POINTER
   mPointerX= 0;
   mPointerY= 0;
-  mPointerLastUpdated= 0;
-  #ifdef USE_SCENE_POINTER
   mPointerW= 0;
   mPointerH= 0;
   mPointerHotSpotX= 40;
@@ -2664,22 +2663,12 @@ void pxScene2d::onUpdate(double t)
       mEmit.send("onFPS", e);
     }
 
-    start = end2; // start of frame
+      start = end2; // start of frame
     frameCount = 0;
   }
 
   frameCount++;
   }
-
-  // Periodically let's poke the onMouseMove handler with the current pointer position
-  // to better handle objects that animate in or out from under the mouse cursor
-  // eg. scrolling
-  if (t-mPointerLastUpdated > 1) // Once a second
-  {
-    updateMouseEntered();
-    mPointerLastUpdated = t;
-  }
-
   #ifdef ENABLE_RT_NODE
   if (mTop)
   {
@@ -3142,10 +3131,9 @@ bool pxScene2d::bubbleEventOnBlur(rtObjectRef e, rtRef<pxObject> t, rtRef<pxObje
 
 bool pxScene2d::onMouseMove(int32_t x, int32_t y)
 {
-  mPointerX= x;
-  mPointerY= y;  
   #ifdef USE_SCENE_POINTER
-  // JRJR this should be passing mouse cursor bounds in rather than dirty entire scene
+  mPointerX= x;
+  mPointerY= y;
   invalidateRect(NULL);
   mDirty= true;
   #endif
@@ -3268,29 +3256,17 @@ bool pxScene2d::onMouseMove(int32_t x, int32_t y)
   return false;
 }
 
-void pxScene2d::updateMouseEntered()
-{
-    pxMatrix4f m;
-    pxPoint2f pt(static_cast<float>(mPointerX),static_cast<float>(mPointerY)), hitPt;
-    rtRef<pxObject> hit;
-    if (mRoot->hitTestInternal(m, pt, hit, hitPt))
-    {
-      setMouseEntered(hit);
-    }
-    else
-      setMouseEntered(NULL);
-}
 
 bool pxScene2d::onScrollWheel(float dx, float dy)
 {
-  if (mMouseEntered)
+  if (mFocusObj)
   {
     rtObjectRef e = new rtMapObject;
     e.set("name", "onScrollWheel");
-    e.set("target", mMouseEntered.getPtr());
     e.set("dx", dx);
     e.set("dy", dy);
-    return bubbleEvent(e, mMouseEntered, "onPreScrollWheel", "onScrollWheel");
+    rtRef<pxObject> t = (pxObject*)mFocusObj.get<voidPtr>("_pxObject");
+    return bubbleEvent(e, t, "onPreScrollWheel", "onScrollWheel");
   }
   return false;
 }
