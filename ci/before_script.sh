@@ -1,5 +1,6 @@
 #!/bin/sh
 
+
 TESTS_DIR="${TRAVIS_BUILD_DIR}/tests/pxScene2d"
 TESTSDESKTOP_JSON="${TESTS_DIR}/testRunner/testsDesktop.json"
 cp "${TESTSDESKTOP_JSON}" "${TESTS_DIR}/testRunner/testsDesktop.json_orig"
