@@ -676,23 +676,7 @@ AppSceneContext.prototype.include = function(filePath, currentXModule) {
         onImportComplete([modData, origFilePath]);
         return;
       }
-     if (filePath === 'http')
-      {
-        modData = _this.httpwrap;
-      }
-      else
-      {
-        modData = _this.httpswrap;
-      }
-      onImportComplete([modData, origFilePath]);
-      return;
-    } else if( filePath === 'http2' ) {
-      if (isV8) {
-        modData = require('native_http_wrap')(_this.innerscene);
-        onImportComplete([modData, origFilePath]);
-        return;
-      }
-      modData = require('rcvrcore/http2_wrap');
+      modData = new http_wrap(filePath, _this);
       onImportComplete([modData, origFilePath]);
       return;
     } else if( filePath.substring(0, 9) === "px:scene.") {
