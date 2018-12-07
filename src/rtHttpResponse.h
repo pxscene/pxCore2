@@ -46,7 +46,10 @@ public:
   rtError errorMessage(rtString& v) const;
   rtError headers(rtObjectRef& v) const;
   rtError rawHeaders(rtString& v) const { v = mHeaders; return RT_OK; };
-  rtError addListener(rtString eventName, const rtFunctionRef& f);
+  rtError addListener(const rtString& eventName, const rtFunctionRef& f);
+  rtError once(const rtString& eventName, const rtFunctionRef& f);
+  rtError removeAllListeners();
+  rtError removeAllListenersByName(const rtString& eventName);
 
   void setStatusCode(int32_t v);
   void setErrorMessage(const rtString& v);
