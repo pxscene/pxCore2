@@ -597,7 +597,7 @@ AppSceneContext.prototype.getModuleFile = function(filePath, xModule) {
 
 AppSceneContext.prototype.getFile = function(filePath) {
   log.message(4, "getFile: requestedFile=" + filePath);
-  if ((isV8) || ("true" === this.disableFilePermissionCheck || true === this.disableFilePermissionCheck)) {
+  if ("true" === this.disableFilePermissionCheck || true === this.disableFilePermissionCheck) {
     return loadFile(filePath);
   }
   return loadFile(filePath, this);
