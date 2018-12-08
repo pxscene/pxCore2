@@ -21,8 +21,8 @@ limitations under the License.
 var isV8=(typeof _isV8 !== "undefined");
 
 var http2 = isV8?null:require('http2');
-var https = isV8?null:require('https');
-var http = isV8?null:require('http');
+var https = require('https');
+var http = require('http');
 var url = require('url');
 var EventEmitter = require('events');
 
@@ -100,15 +100,11 @@ function Request(moduleName, appSceneContext, options, callback) {
   }
 
   if (!isBlocked) {
-    if (isV8) {
-      if (!options.protocol) {
-        options.protocol = defaultProtocol;
-      }
-      httpRequest = httpGet(options, null);
-    } else {
-      var module = moduleName === 'http' ? http : (moduleName === 'https' ? https : http2);
-      httpRequest = module.request.call(null, options);
+    if (isV8 && !options.protocol) {
+      options.protocol = defaultProtocol;
     }
+    var module = moduleName === 'http' ? http : (moduleName === 'https' ? https : (isV8 ? https : http2));
+    httpRequest = module.request.call(null, options);
 
     httpRequest.once('response', function (httpResponse) {
       var response = new Response(httpResponse, appSceneContext, fromOrigin, toOrigin, withCredentials);
