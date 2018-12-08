@@ -74,7 +74,6 @@ else {
     var baseViewerUrl = 'https://www.pxscene.org'
  
     function loadUrl(url) {
-        if (!isV8) {
         var Url = require('url')
         var Path = require('path')
 
@@ -112,7 +111,6 @@ else {
         }
         else {
             // TODO Do a HTTP head check to see if we can get a mimetype/contenttype for routing
-        }
         }
         
         //console.log('Rewritten Url: ', url)
