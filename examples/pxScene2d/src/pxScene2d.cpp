@@ -15,7 +15,6 @@
 
 */
 
-
 // pxScene2d.cpp
 
 #include "pxScene2d.h"
