@@ -672,7 +672,7 @@ AppSceneContext.prototype.include = function(filePath, currentXModule) {
       }
     } else if(/^(http|https|http2)$/.test(filePath)) {
       if (isV8) {
-        modData = require('native_http_wrap')(_this.innerscene);
+        modData = require(filePath);
         onImportComplete([modData, origFilePath]);
         return;
       }
