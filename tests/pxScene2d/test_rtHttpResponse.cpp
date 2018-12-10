@@ -37,9 +37,9 @@ public:
   {
     rtString s;
     s = rtHttpResponse::toLowercaseStr("Access-Control-Allow-Origin");
-    EXPECT_EQ ((int)0, (int)s.compare("access-control-allow-origin"));
+    EXPECT_EQ (std::string(s.cString()), "access-control-allow-origin");
     s = rtHttpResponse::toLowercaseStr("Access-Control-Allow-Credentials");
-    EXPECT_EQ ((int)0, (int)s.compare("access-control-allow-credentials"));
+    EXPECT_EQ (std::string(s.cString()), "access-control-allow-credentials");
   }
 
   void parseHeaders_test()
@@ -61,15 +61,15 @@ public:
     rtError e = rtHttpResponse::parseHeaders(rawHeaderData, headerMap);
     EXPECT_EQ ((int)RT_OK, (int)e);
     EXPECT_EQ ((int)9, (int)headerMap.size());
-    EXPECT_EQ ((int)0, (int)headerMap["content-type"].compare("application/json"));
-    EXPECT_EQ ((int)0, (int)headerMap["set-cookie"].compare("cookie-from-server=noop"));
-    EXPECT_EQ ((int)0, (int)headerMap["access-control-allow-origin"].compare(""));
-    EXPECT_EQ ((int)0, (int)headerMap["x-cloud-trace-context"].compare("209bc1a00c7409bf54f1642316d9fe6f;o=1"));
-    EXPECT_EQ ((int)0, (int)headerMap["date"].compare("Tue, 10 Jul 2018 14:33:54 GMT"));
-    EXPECT_EQ ((int)0, (int)headerMap["server"].compare("Google Frontend"));
-    EXPECT_EQ ((int)0, (int)headerMap["content-length"].compare("845"));
-    EXPECT_EQ ((int)0, (int)headerMap["expires"].compare("Tue, 10 Jul 2018 14:33:54 GMT"));
-    EXPECT_EQ ((int)0, (int)headerMap["connection"].compare("close"));
+    EXPECT_EQ (std::string(headerMap["content-type"].cString()), "application/json");
+    EXPECT_EQ (std::string(headerMap["set-cookie"].cString()), "cookie-from-server=noop");
+    EXPECT_EQ (std::string(headerMap["access-control-allow-origin"].cString()), "");
+    EXPECT_EQ (std::string(headerMap["x-cloud-trace-context"].cString()), "209bc1a00c7409bf54f1642316d9fe6f;o=1");
+    EXPECT_EQ (std::string(headerMap["date"].cString()), "Tue, 10 Jul 2018 14:33:54 GMT");
+    EXPECT_EQ (std::string(headerMap["server"].cString()), "Google Frontend");
+    EXPECT_EQ (std::string(headerMap["content-length"].cString()), "845");
+    EXPECT_EQ (std::string(headerMap["expires"].cString()), "Tue, 10 Jul 2018 14:33:54 GMT");
+    EXPECT_EQ (std::string(headerMap["connection"].cString()), "close");
 
     rawHeaderData =
      "HTTP/1.1 200 OK\r\n"
@@ -90,18 +90,18 @@ public:
     e = rtHttpResponse::parseHeaders(rawHeaderData, headerMap);
     EXPECT_EQ ((int)RT_OK, (int)e);
     EXPECT_EQ ((int)12, (int)headerMap.size());
-    EXPECT_EQ ((int)0, (int)headerMap["date"].compare("Tue, 02 Oct 2018 13:24:44 GMT"));
-    EXPECT_EQ ((int)0, (int)headerMap["content-type"].compare("text/html"));
-    EXPECT_EQ ((int)0, (int)headerMap["transfer-encoding"].compare("chunked"));
-    EXPECT_EQ ((int)0, (int)headerMap["connection"].compare("keep-alive"));
-    EXPECT_EQ ((int)0, (int)headerMap["set-cookie"].compare("__cfduid=d17b30f71dcb858abe7f0067525cbb0721538486684; expires=Wed, 02-Oct-19 13:24:44 GMT; path=/; domain=.nodejs.org; HttpOnly"));
-    EXPECT_EQ ((int)0, (int)headerMap["last-modified"].compare("Sat, 29 Sep 2018 11:08:33 GMT"));
-    EXPECT_EQ ((int)0, (int)headerMap["cf-cache-status"].compare("HIT"));
-    EXPECT_EQ ((int)0, (int)headerMap["expires"].compare("Tue, 02 Oct 2018 17:24:44 GMT"));
-    EXPECT_EQ ((int)0, (int)headerMap["cache-control"].compare("public, max-age=14400"));
-    EXPECT_EQ ((int)0, (int)headerMap["expect-ct"].compare("max-age=604800, report-uri=\"https://report-uri.cloudflare.com/cdn-cgi/beacon/expect-ct\""));
-    EXPECT_EQ ((int)0, (int)headerMap["server"].compare("cloudflare"));
-    EXPECT_EQ ((int)0, (int)headerMap["cf-ray"].compare("46377db4dc4d8267-KBP"));
+    EXPECT_EQ (std::string(headerMap["date"].cString()), "Tue, 02 Oct 2018 13:24:44 GMT");
+    EXPECT_EQ (std::string(headerMap["content-type"].cString()), "text/html");
+    EXPECT_EQ (std::string(headerMap["transfer-encoding"].cString()), "chunked");
+    EXPECT_EQ (std::string(headerMap["connection"].cString()), "keep-alive");
+    EXPECT_EQ (std::string(headerMap["set-cookie"].cString()), "__cfduid=d17b30f71dcb858abe7f0067525cbb0721538486684; expires=Wed, 02-Oct-19 13:24:44 GMT; path=/; domain=.nodejs.org; HttpOnly");
+    EXPECT_EQ (std::string(headerMap["last-modified"].cString()), "Sat, 29 Sep 2018 11:08:33 GMT");
+    EXPECT_EQ (std::string(headerMap["cf-cache-status"].cString()), "HIT");
+    EXPECT_EQ (std::string(headerMap["expires"].cString()), "Tue, 02 Oct 2018 17:24:44 GMT");
+    EXPECT_EQ (std::string(headerMap["cache-control"].cString()), "public, max-age=14400");
+    EXPECT_EQ (std::string(headerMap["expect-ct"].cString()), "max-age=604800, report-uri=\"https://report-uri.cloudflare.com/cdn-cgi/beacon/expect-ct\"");
+    EXPECT_EQ (std::string(headerMap["server"].cString()), "cloudflare");
+    EXPECT_EQ (std::string(headerMap["cf-ray"].cString()), "46377db4dc4d8267-KBP");
 
     rawHeaderData =
       "Server:\t\t\tApache/2.4.6 (CentOS) OpenSSL/1.0.1e-fips\n"
@@ -114,11 +114,11 @@ public:
     e = rtHttpResponse::parseHeaders(rawHeaderData, headerMap);
     EXPECT_EQ ((int)RT_OK, (int)e);
     EXPECT_EQ ((int)5, (int)headerMap.size());
-    EXPECT_EQ ((int)0, (int)headerMap["server"].compare("Apache/2.4.6 (CentOS) OpenSSL/1.0.1e-fips"));
-    EXPECT_EQ ((int)0, (int)headerMap["location"].compare("https://example.com "));
-    EXPECT_EQ ((int)0, (int)headerMap["content-length"].compare("284"));
-    EXPECT_EQ ((int)0, (int)headerMap["connection"].compare(""));
-    EXPECT_EQ ((int)0, (int)headerMap["content-type"].compare("text/html; charset=iso-8859-1"));
+    EXPECT_EQ (std::string(headerMap["server"].cString()), "Apache/2.4.6 (CentOS) OpenSSL/1.0.1e-fips");
+    EXPECT_EQ (std::string(headerMap["location"].cString()), "https://example.com ");
+    EXPECT_EQ (std::string(headerMap["content-length"].cString()), "284");
+    EXPECT_EQ (std::string(headerMap["connection"].cString()), "");
+    EXPECT_EQ (std::string(headerMap["content-type"].cString()), "text/html; charset=iso-8859-1");
 
     rawHeaderData =
       "Server:Apache/2.4.6 (CentOS) OpenSSL/1.0.1e-fips\r\n"
@@ -131,10 +131,10 @@ public:
     e = rtHttpResponse::parseHeaders(rawHeaderData, headerMap);
     EXPECT_EQ ((int)RT_OK, (int)e);
     EXPECT_EQ ((int)4, (int)headerMap.size());
-    EXPECT_EQ ((int)0, (int)headerMap["server"].compare("Apache/2.4.6 (CentOS) OpenSSL/1.0.1e-fips"));
-    EXPECT_EQ ((int)0, (int)headerMap["x-cloud-trace-context"].compare("敷リオワニ内前ヲルホ"));
-    EXPECT_EQ ((int)0, (int)headerMap["access-control-allow-origin"].compare("http://localhost:8888"));
-    EXPECT_EQ ((int)0, (int)headerMap["connection"].compare("CLOSE"));
+    EXPECT_EQ (std::string(headerMap["server"].cString()), "Apache/2.4.6 (CentOS) OpenSSL/1.0.1e-fips");
+    EXPECT_EQ (std::string(headerMap["x-cloud-trace-context"].cString()), "敷リオワニ内前ヲルホ");
+    EXPECT_EQ (std::string(headerMap["access-control-allow-origin"].cString()), "http://localhost:8888");
+    EXPECT_EQ (std::string(headerMap["connection"].cString()), "CLOSE");
 
     rawHeaderData =
       "content-type: application/json"
@@ -143,7 +143,7 @@ public:
     e = rtHttpResponse::parseHeaders(rawHeaderData, headerMap);
     EXPECT_EQ ((int)RT_OK, (int)e);
     EXPECT_EQ ((int)1, (int)headerMap.size());
-    EXPECT_EQ ((int)0, (int)headerMap["content-type"].compare("application/json"));
+    EXPECT_EQ (std::string(headerMap["content-type"].cString()), "application/json");
 
     rawHeaderData =
       "x"
@@ -161,10 +161,76 @@ public:
     EXPECT_EQ ((int)RT_OK, (int)e);
     EXPECT_EQ ((int)0, (int)headerMap.size());
   }
+
+  static rtError addListener_test_callback(int numArgs, const rtValue* args, rtValue* result, void* context)
+  {
+    UNUSED_PARAM(numArgs);
+    UNUSED_PARAM(args);
+    UNUSED_PARAM(result);
+
+    int* times_fn_called = (int*)context;
+    (*times_fn_called)++;
+
+    return RT_OK;
+  }
+
+  void addListener_test()
+  {
+    rtObjectRef ref;
+    rtHttpResponse* resp;
+
+    int times_fn1_called = 0;
+    int times_fn2_called = 0;
+    int times_fn3_called = 0;
+    rtFunctionRef fn1 = new rtFunctionCallback(addListener_test_callback, &times_fn1_called);
+    rtFunctionRef fn2 = new rtFunctionCallback(addListener_test_callback, &times_fn2_called);
+    rtFunctionRef fn3 = new rtFunctionCallback(addListener_test_callback, &times_fn3_called);
+
+    resp = new rtHttpResponse();
+    EXPECT_EQ ((int)RT_OK, resp->addListener("data", fn1));
+    EXPECT_EQ ((int)RT_OK, resp->once("data", fn2));
+    EXPECT_EQ ((int)RT_OK, resp->addListener("end", fn3));
+    ref = resp;
+
+    resp->onData();
+    EXPECT_EQ (1, times_fn1_called);
+    EXPECT_EQ (1, times_fn2_called);
+    EXPECT_EQ (0, times_fn3_called);
+
+    resp->onData();
+    EXPECT_EQ (2, times_fn1_called);
+    EXPECT_EQ (1, times_fn2_called);
+    EXPECT_EQ (0, times_fn3_called);
+
+    EXPECT_EQ ((int)RT_OK, resp->removeAllListenersByName("data"));
+
+    resp->onData();
+    EXPECT_EQ (2, times_fn1_called);
+    EXPECT_EQ (1, times_fn2_called);
+    EXPECT_EQ (0, times_fn3_called);
+
+    resp->onEnd();
+    EXPECT_EQ (2, times_fn1_called);
+    EXPECT_EQ (1, times_fn2_called);
+    EXPECT_EQ (1, times_fn3_called);
+
+    resp->onEnd();
+    EXPECT_EQ (2, times_fn1_called);
+    EXPECT_EQ (1, times_fn2_called);
+    EXPECT_EQ (2, times_fn3_called);
+
+    EXPECT_EQ ((int)RT_OK, resp->removeAllListeners());
+
+    resp->onEnd();
+    EXPECT_EQ (2, times_fn1_called);
+    EXPECT_EQ (1, times_fn2_called);
+    EXPECT_EQ (2, times_fn3_called);
+  }
 };
 
 TEST_F(rtHttpResponseTest, rtHttpResponseTests)
 {
   toLowercaseStr_test();
   parseHeaders_test();
+  addListener_test();
 }

@@ -91,27 +91,22 @@ rtHttpRequest::~rtHttpRequest()
 
 rtError rtHttpRequest::addListener(const rtString& eventName, const rtFunctionRef& f)
 {
-  mEmit->addListener(eventName, f);
-  return RT_OK;
+  return mEmit->addListener(eventName, f);
 }
 
 rtError rtHttpRequest::once(const rtString& eventName, const rtFunctionRef& f)
 {
-  mEmit->addListener(eventName, f);
-  // TODO
-  return RT_OK;
+  return mEmit->addListener(eventName, f, true);
 }
 
 rtError rtHttpRequest::removeAllListeners()
 {
-  mEmit->clearListeners();
-  return RT_OK;
+  return mEmit->clearListeners();
 }
 
 rtError rtHttpRequest::removeAllListenersByName(const rtString& eventName)
 {
-  mEmit->setListener(eventName.cString(), NULL);
-  return RT_OK;
+  return mEmit->clearListeners(eventName.cString());
 }
 
 rtError rtHttpRequest::abort() const
@@ -187,11 +182,14 @@ void rtHttpRequest::onDownloadComplete(rtFileDownloadRequest* downloadRequest)
   resp->setDownloadedData(downloadRequest->downloadedData(), downloadRequest->downloadedDataSize());
 
   rtObjectRef ref = resp; 
-  req->mEmit.send("response", ref);
 
-  resp->onData();
-
-  resp->onEnd();
+  if (downloadRequest->errorString().isEmpty()) {
+    req->mEmit.send("response", ref);
+    resp->onData();
+    resp->onEnd();
+  } else {
+    req->mEmit.send("error", downloadRequest->errorString());
+  }
 }
 
 rtString rtHttpRequest::url() const

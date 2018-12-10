@@ -56,13 +56,14 @@ rtError rtEmit::setListener(const char* eventName, rtIFunction* f)
     e.isProp = true;
     e.markForDelete = false;
     e.fnHash = f->hash();
-    mEntries.push_back(e);      
+    e.emitOnce = false;
+    mEntries.push_back(e);
   }
   
   return RT_OK;
 }
 
-rtError rtEmit::addListener(const char* eventName, rtIFunction* f)
+rtError rtEmit::addListener(const char* eventName, rtIFunction* f, bool emitOnce)
 {
   if (!eventName || !f)
     return RT_ERROR;
@@ -88,6 +89,7 @@ rtError rtEmit::addListener(const char* eventName, rtIFunction* f)
     e.isProp = false;
     e.markForDelete = false;
     e.fnHash = f->hash();
+    e.emitOnce = emitOnce;
     if (!mProcessingEvents)
     {
       mEntries.push_back(e);
@@ -166,6 +168,10 @@ rtError rtEmit::Send(int numArgs, const rtValue* args, rtValue* result)
           rtLogInfo("removing entry from remote client");
           it = mEntries.erase(it);
         }
+        else if (e.emitOnce)
+        {
+          it = mEntries.erase(it);
+        }
         else
         {
           ++it;
@@ -206,6 +212,10 @@ rtError rtEmit::SendAsync(int numArgs, const rtValue* args)
         if (err == rtErrorFromErrno(EPIPE) || err == RT_ERROR_STREAM_CLOSED)
         {
           rtLogInfo("removing entry from remote client");
+          it = mEntries.erase(it);
+        }
+        else if (e.emitOnce)
+        {
           it = mEntries.erase(it);
         }
         else
@@ -249,11 +259,40 @@ void rtEmit::processPendingEvents()
     dest.isProp = src.isProp;
     dest.markForDelete = src.markForDelete;
     dest.fnHash = src.fnHash;
+    dest.emitOnce = src.emitOnce;
 
     mEntries.push_back(dest);
     ++pendingit;
   }
   mPendingEntriesToAdd.clear();
+}
+
+rtError rtEmit::clearListeners(const char* eventName)
+{
+  if (!eventName)
+    return RT_ERROR;
+
+  vector<_rtEmitEntry>::iterator it = mEntries.begin();
+  while (it != mEntries.end())
+  {
+    _rtEmitEntry& e = (*it);
+    if (e.n == eventName)
+    {
+      // if no events is being processed currently, remove the event entries
+      if (!mProcessingEvents)
+        it = mEntries.erase(it);
+      else
+      {
+        it->markForDelete = true;
+        ++it;
+      }
+    }
+    else
+    {
+      ++it;
+    }
+  }
+  return RT_OK;
 }
 
 // rtEmitRef

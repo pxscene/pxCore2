@@ -67,27 +67,22 @@ rtError rtHttpResponse::headers(rtObjectRef& v) const
 
 rtError rtHttpResponse::addListener(const rtString& eventName, const rtFunctionRef& f)
 {
-  mEmit->addListener(eventName, f);
-  return RT_OK;
+  return mEmit->addListener(eventName, f);
 }
 
 rtError rtHttpResponse::once(const rtString& eventName, const rtFunctionRef& f)
 {
-  mEmit->addListener(eventName, f);
-  // TODO
-  return RT_OK;
+  return mEmit->addListener(eventName, f, true);
 }
 
 rtError rtHttpResponse::removeAllListeners()
 {
-  mEmit->clearListeners();
-  return RT_OK;
+  return mEmit->clearListeners();
 }
 
 rtError rtHttpResponse::removeAllListenersByName(const rtString& eventName)
 {
-  mEmit->setListener(eventName.cString(), NULL);
-  return RT_OK;
+  return mEmit->clearListeners(eventName.cString());
 }
 
 void rtHttpResponse::setStatusCode(int32_t v)
