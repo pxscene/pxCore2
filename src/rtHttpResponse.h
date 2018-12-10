@@ -31,6 +31,7 @@ public:
 
   rtReadOnlyProperty(statusCode, statusCode, int32_t);
   rtReadOnlyProperty(message, errorMessage, rtString);
+  rtReadOnlyProperty(rawHeaders, rawHeaders, rtString);
   rtReadOnlyProperty(headers, headers, rtObjectRef);
 
   rtMethod2ArgAndNoReturn("on", addListener, rtString, rtFunctionRef);
@@ -44,6 +45,7 @@ public:
   rtError statusCode(int32_t& v) const;
   rtError errorMessage(rtString& v) const;
   rtError headers(rtObjectRef& v) const;
+  rtError rawHeaders(rtString& v) const { v = mHeaders; return RT_OK; };
   rtError addListener(const rtString& eventName, const rtFunctionRef& f);
   rtError once(const rtString& eventName, const rtFunctionRef& f);
   rtError removeAllListeners();
