@@ -107,15 +107,6 @@ function qsUnescape(s, decodeSpaces) {
 }
 QueryString.unescape = qsUnescape;
 
-/**
- * unescape from Buffer, code from here
- * https://github.com/nodejs/node/issues/10824
- * @param {*} buf the js Buffer
- */
-function unescapeBuffer (buf) {
-  return buf.toString('hex').replace(/../g, e => `%${e}`);
-}
-QueryString.unescapeBuffer = unescapeBuffer;
 
 var hexTable = new Array(256);
 for (var i = 0; i < 256; ++i)
