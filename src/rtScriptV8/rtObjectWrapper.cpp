@@ -473,7 +473,11 @@ rtError jsObjectWrapper::Get(const char* name, rtValue* value) const
   }
   else
   {
-    if (!self->Has(s))
+#if defined ENABLE_NODE_V_6_9 || defined RTSCRIPT_SUPPORT_V8
+   if (!(self->Has(ctx,s).FromMaybe(false)))
+#else
+   if (!self->Has(s))
+#endif
     {
       err = RT_PROPERTY_NOT_FOUND;
     }
