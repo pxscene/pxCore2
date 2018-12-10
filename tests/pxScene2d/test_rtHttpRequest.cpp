@@ -98,7 +98,7 @@ public:
     EXPECT_FALSE (req->inQueue());
   }
 
-  static rtError end_test_callback1(int numArgs, const rtValue* args, rtValue* result, void* context)
+  static rtError response_test_callback1(int numArgs, const rtValue* args, rtValue* result, void* context)
   {
     EXPECT_EQ ((int)1, (int)numArgs);
 
@@ -116,19 +116,19 @@ public:
     return RT_OK;
   }
 
-  static rtError end_test_callback2(int numArgs, const rtValue* args, rtValue* result, void* context)
+  static rtError response_test_callback2(int numArgs, const rtValue* args, rtValue* result, void* context)
   {
     UNUSED_PARAM(numArgs);
     UNUSED_PARAM(args);
     UNUSED_PARAM(result);
 
-    EXPECT_FALSE (true);
+    ADD_FAILURE();
 
     sem_post((sem_t*)context);
     return RT_OK;
   }
 
-  void end_test()
+  void response_test()
   {
     rtObjectRef ref;
     rtHttpRequest* req;
@@ -143,8 +143,8 @@ public:
     headers.set("Authorization", "token");
     options.set("headers", headers);
 
-    rtFunctionRef fn1 = new rtFunctionCallback(end_test_callback1, testSem);
-    rtFunctionRef fn2 = new rtFunctionCallback(end_test_callback2, testSem);
+    rtFunctionRef fn1 = new rtFunctionCallback(response_test_callback1, testSem);
+    rtFunctionRef fn2 = new rtFunctionCallback(response_test_callback2, testSem);
 
     req = new rtHttpRequest(options);
     EXPECT_EQ ((int)RT_OK, req->addListener("response", fn1));
@@ -164,6 +164,49 @@ public:
     EXPECT_EQ ((int)RT_FAIL, (int)req->end());
     EXPECT_EQ ((int)RT_FAIL, (int)req->write("123"));
     EXPECT_EQ ((int)RT_FAIL, (int)req->setHeader("Key", "Value"));
+
+    sem_wait(testSem);
+  }
+
+  static rtError error_test_callback1(int numArgs, const rtValue* args, rtValue* result, void* context)
+  {
+    UNUSED_PARAM(numArgs);
+    UNUSED_PARAM(args);
+    UNUSED_PARAM(result);
+
+    ADD_FAILURE();
+
+    sem_post((sem_t*)context);
+    return RT_OK;
+  }
+
+  static rtError error_test_callback2(int numArgs, const rtValue* args, rtValue* result, void* context)
+  {
+    EXPECT_EQ ((int)1, (int)numArgs);
+
+    rtString error = args[0].toString();
+    EXPECT_EQ (std::string(error.cString()), "Download error for:https://this.url.does.not.exist. Error code:6. Using proxy:false ");
+
+    UNUSED_PARAM(result);
+
+    sem_post((sem_t*)context);
+    return RT_OK;
+  }
+
+  void error_test()
+  {
+    rtObjectRef ref;
+    rtHttpRequest* req;
+
+    rtFunctionRef fn1 = new rtFunctionCallback(error_test_callback1, testSem);
+    rtFunctionRef fn2 = new rtFunctionCallback(error_test_callback2, testSem);
+
+    req = new rtHttpRequest("https://this.url.does.not.exist");
+    EXPECT_EQ ((int)RT_OK, req->addListener("response", fn1));
+    EXPECT_EQ ((int)RT_OK, req->addListener("error", fn2));
+    EXPECT_EQ ((int)RT_OK, req->end());
+    ref = req;
+    EXPECT_TRUE (req->inQueue());
 
     sem_wait(testSem);
   }
@@ -249,6 +292,7 @@ TEST_F(rtHttpRequestTest, rtHttpRequestTests)
   ctor_url_test();
   ctor_options_test();
   setHeader_test();
-  end_test();
+  response_test();
+  error_test();
   addListener_test();
 }
