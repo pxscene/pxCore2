@@ -511,18 +511,25 @@ void pxResource::loadResource(rtObjectRef archive)
   //rtLogDebug("rtImageResource::loadResource statusCode should be -1; is statusCode=%d\n",mLoadStatus.get<int32_t>("statusCode"));
   if (mUrl.beginsWith("http:") || mUrl.beginsWith("https:"))
   {
-      setLoadStatus("sourceType", "http");
-      mDownloadRequest = new rtFileDownloadRequest(mUrl, this, pxResource::onDownloadComplete);
-      mDownloadRequest->setProxy(mProxy);
-      mDownloadRequest->setCallbackFunctionThreadSafe(pxResource::onDownloadComplete);
-#ifdef ENABLE_CORS_FOR_RESOURCES
-      mDownloadRequest->setCORS(mCORS);
-#endif
-      mDownloadInProgressMutex.lock();
-      mDownloadInProgress = true;
-      mDownloadInProgressMutex.unlock();
-      AddRef(); //ensure this object is not deleted while downloading
-      rtFileDownloader::instance()->addToDownloadQueue(mDownloadRequest);
+      if ((arc != NULL ) && (arc->isFile() == false) && (arc->isRelativeResource(mUrl) == true))
+      {
+        loadResourceFromArchive(arc);
+      }
+      else
+      {
+        setLoadStatus("sourceType", "http");
+        mDownloadRequest = new rtFileDownloadRequest(mUrl, this, pxResource::onDownloadComplete);
+        mDownloadRequest->setProxy(mProxy);
+        mDownloadRequest->setCallbackFunctionThreadSafe(pxResource::onDownloadComplete);
+  #ifdef ENABLE_CORS_FOR_RESOURCES
+        mDownloadRequest->setCORS(mCORS);
+  #endif
+        mDownloadInProgressMutex.lock();
+        mDownloadInProgress = true;
+        mDownloadInProgressMutex.unlock();
+        AddRef(); //ensure this object is not deleted while downloading
+        rtFileDownloader::instance()->addToDownloadQueue(mDownloadRequest);
+      }
   }
   else if ((arc != NULL ) && (arc->isFile() == false))
   {
