@@ -18,7 +18,11 @@ limitations under the License.
 
 #include <sstream>
 
+#include "rtHttpRequest.h"
 #include "rtHttpResponse.h"
+
+#include <semaphore.h>
+#include <fcntl.h>
 
 #include "test_includes.h" // Needs to be included last
 
@@ -27,10 +31,14 @@ class rtHttpResponseTest : public testing::Test
 public:
   virtual void SetUp()
   {
+    testSem = sem_open("/semaphore", O_CREAT, 0644, 0);
   }
 
   virtual void TearDown()
   {
+    int ret = sem_close(testSem);
+    ret = sem_unlink("/semaphore");
+    UNUSED_PARAM(ret);
   }
 
   void toLowercaseStr_test()
@@ -162,6 +170,97 @@ public:
     EXPECT_EQ ((int)0, (int)headerMap.size());
   }
 
+  static rtError response_test_callback1(int numArgs, const rtValue* args, rtValue* result, void* context)
+  {
+    EXPECT_EQ ((int)1, (int)numArgs);
+
+    rtHttpResponse* resp = (rtHttpResponse*)args[0].toObject().getPtr();
+    int32_t statusCode;
+    EXPECT_EQ ((int)RT_OK, (int)resp->statusCode(statusCode));
+    EXPECT_EQ ((int)statusCode, (int)200);
+    rtString errorMessage;
+    EXPECT_EQ ((int)RT_OK, (int)resp->errorMessage(errorMessage));
+    EXPECT_TRUE (errorMessage.isEmpty());
+
+    rtObjectRef headers;
+    EXPECT_EQ ((int)RT_OK, (int)resp->headers(headers));
+    rtString h1 = headers.get<rtString>("access-control-allow-credentials");
+    rtString h2 = headers.get<rtString>("access-control-allow-origin");
+    EXPECT_EQ (std::string(h1.cString()), "true");
+    EXPECT_EQ (std::string(h2.cString()), "*");
+
+    rtFunctionRef fn1 = new rtFunctionCallback(response_test_callback3, (sem_t*)context);
+    rtFunctionRef fn2 = new rtFunctionCallback(response_test_callback4, (sem_t*)context);
+    EXPECT_EQ ((int)RT_OK, resp->addListener("data", fn1));
+    EXPECT_EQ ((int)RT_OK, resp->addListener("end", fn2));
+
+    UNUSED_PARAM(result);
+
+    return RT_OK;
+  }
+
+  static rtError response_test_callback2(int numArgs, const rtValue* args, rtValue* result, void* context)
+  {
+    UNUSED_PARAM(numArgs);
+    UNUSED_PARAM(args);
+    UNUSED_PARAM(result);
+
+    ADD_FAILURE();
+
+    sem_post((sem_t*)context);
+    return RT_OK;
+  }
+
+  static rtError response_test_callback3(int numArgs, const rtValue* args, rtValue* result, void* context)
+  {
+    EXPECT_EQ ((int)1, (int)numArgs);
+
+    responseData += args[0].toString();
+
+    UNUSED_PARAM(result);
+    UNUSED_PARAM(context);
+
+    return RT_OK;
+  }
+
+  static rtError response_test_callback4(int numArgs, const rtValue* args, rtValue* result, void* context)
+  {
+    UNUSED_PARAM(numArgs);
+    UNUSED_PARAM(args);
+    UNUSED_PARAM(result);
+
+    EXPECT_FALSE (responseData.isEmpty());
+    EXPECT_TRUE (responseData.beginsWith("{\n  \"args\": {}"));
+    EXPECT_TRUE (responseData.endsWith("\n}\n"));
+
+    sem_post((sem_t*)context);
+    return RT_OK;
+  }
+
+  void response_test()
+  {
+    rtObjectRef ref;
+    rtHttpRequest* req;
+
+    rtObjectRef options = new rtMapObject;
+    options.set("protocol", "https:");
+    options.set("hostname", "httpbin.org");
+    options.set("path", "/get");
+    options.set("method", "GET");
+
+    rtFunctionRef fn1 = new rtFunctionCallback(response_test_callback1, testSem);
+    rtFunctionRef fn2 = new rtFunctionCallback(response_test_callback2, testSem);
+
+    req = new rtHttpRequest(options);
+    EXPECT_EQ ((int)RT_OK, req->addListener("response", fn1));
+    EXPECT_EQ ((int)RT_OK, req->addListener("error", fn2));
+    EXPECT_EQ ((int)RT_OK, req->end());
+    ref = req;
+    EXPECT_TRUE (req->inQueue());
+
+    sem_wait(testSem);
+  }
+
   static rtError addListener_test_callback(int numArgs, const rtValue* args, rtValue* result, void* context)
   {
     UNUSED_PARAM(numArgs);
@@ -226,11 +325,17 @@ public:
     EXPECT_EQ (1, times_fn2_called);
     EXPECT_EQ (2, times_fn3_called);
   }
+
+  sem_t* testSem;
+  static rtString responseData;
 };
+
+rtString rtHttpResponseTest::responseData = rtString();
 
 TEST_F(rtHttpResponseTest, rtHttpResponseTests)
 {
   toLowercaseStr_test();
   parseHeaders_test();
+  response_test();
   addListener_test();
 }
