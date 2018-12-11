@@ -55,6 +55,7 @@ class pxScene2dTest : public testing::Test
     {
       rtObjectRef sceneRef =  new pxScene2d();
       pxScene2d* scene = (pxScene2d*) sceneRef.getPtr();
+      
       scene->AddRef();
       rtObjectRef archive;
       EXPECT_TRUE(RT_OK == scene->loadArchive("supportfiles/helloworld.js", archive));
