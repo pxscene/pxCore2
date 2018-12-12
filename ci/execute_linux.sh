@@ -97,7 +97,6 @@ if [ "$retVal" -eq 0 ]
 then
 gdb $TRAVIS_BUILD_DIR/examples/pxScene2d/src/Spark -batch -q -ex "target remote | vgdb" -ex "thread apply all bt" -ex "quit"
 fi
-   
 pkill -9 -f spark.sh
 chmod 444 $VALGRINDLOGS
 
