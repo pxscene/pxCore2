@@ -194,7 +194,7 @@ fi
 #check for crash before valgrind test, as we might have got scenario where pxscene might have crashed during term
 ls -lrt *valgrind*
 retVal=$?
-if [ "$retVal" -eq 0 ]
+if [ "$retVal" -eq 0 -a "$isValidCore" -eq 1 ]
   then
   if [ "$TRAVIS_PULL_REQUEST" != "false" ]
   then
