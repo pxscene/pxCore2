@@ -453,7 +453,7 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
         else  // If NOT lastLine
         {
           // Account for the case where wordWrap is off, but newline was found previously
-          if( !mWordWrap && lineNumber != 0 )
+         /* if( !mWordWrap && lineNumber != 0 )
           {
             lastLineNumber = lineNumber;
             //rtLogDebug("!!!!CLF: calling renderTextRowWithTruncation! %s\n",accString.cString());
@@ -479,7 +479,7 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
                 continue;
               }
             }
-          }
+          }*/
           // End special case when !wordWrap but newline found
 
           // Out of space on the current line; find and wrap at word boundary
