@@ -103,10 +103,22 @@ echo "Madana dumped core !!"
 pkill -9 -f spark.sh
 chmod 444 $VALGRINDLOGS
 
-#check for crash
-ls -l /tmp/pxscenecrash
+isValidCore=1
+grep "definitely lost: 0 bytes in 0 blocks" $VALGRINDLOGS
+valretVal=$?
+grep "pxobjectcount is \[0\]" $EXECLOGS
+pxRetVal=$?
+grep "texture memory usage is \[0\]" $EXECLOGS
+texRetVal=$?
+
+if [ "$pxRetVal" -eq 0 -a "$texRetVal" -eq 0 -a "$valretVal" -eq 0 ]
+then
+isValidCore=0
+fi
+
+ls -lrt /tmp/pxscenecrash
 retVal=$?
-if [ "$retVal" -eq 0 ]
+if [ "$retVal" -eq 0 -a "$isValidCore" -eq 1 ]
   then
   if [ "$TRAVIS_PULL_REQUEST" != "false" ]
   then
