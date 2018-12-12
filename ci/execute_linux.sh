@@ -56,7 +56,7 @@ printExecLogs()
 printValgrindLogs()
 {
   printf "\n********************** PRINTING VALGRIND LOG **************************\n"
-  tail -150 $VALGRINDLOGS
+  tail $VALGRINDLOGS
   printf "\n**********************     LOG ENDS      **************************\n"
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -90,8 +90,16 @@ kill -15 `ps -ef | grep Spark |grep -v grep|grep -v spark.sh|awk '{print $2}'`
 echo "Sleeping to make terminate complete ......";
 #wait for few seconds to get the application terminate completely, as it is attached with valgrind increasing the timeout
 sleep 60s;
-pkill -9 -f spark.sh
 
+ls -lrt /tmp/pxscenecrash
+retVal=$?
+if [ "$retVal" -eq 0 ]
+then
+gdb $TRAVIS_BUILD_DIR/examples/pxScene2d/src/Spark -batch -q -ex "target remote | vgdb" -ex "thread apply all bt" -ex "quit"
+fi
+   
+echo "Madana dumped core !!"
+pkill -9 -f spark.sh
 chmod 444 $VALGRINDLOGS
 
 #check for crash
