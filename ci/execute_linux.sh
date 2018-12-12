@@ -109,14 +109,23 @@ pxRetVal=$?
 grep "texture memory usage is \[0\]" $EXECLOGS
 texRetVal=$?
 
-if [ "$pxRetVal" -eq 0 -a "$texRetVal" -eq 0 -a "$valretVal" -eq 0 ]
+echo "$pxRetVal"."$texRetVal"."$valretVal"
+if [ "$pxRetVal" -eq 0 ]
 then
-isValidCore=0
+  if [ "$texRetVal" -eq 0 ]
+  then
+    if [ "$valretVal" -eq 0 ]
+    then
+      isValidCore=0
+    fi
+  fi
 fi
 
 ls -lrt /tmp/pxscenecrash
 retVal=$?
-if [ "$retVal" -eq 0 -a "$isValidCore" -eq 1 ]
+if [ "$retVal" -eq 0 ]
+  then
+  if [ "$isValidCore" -eq 1 ]
   then
   if [ "$TRAVIS_PULL_REQUEST" != "false" ]
   then
@@ -128,6 +137,7 @@ if [ "$retVal" -eq 0 -a "$isValidCore" -eq 1 ]
     checkError -1 "Execution failed" "Core dump" "Kindly refer $VALGRINDLOGS and test by running locally"
   fi
   exit 1;
+  fi
 fi
 
 
@@ -192,7 +202,9 @@ fi
 #check for crash before valgrind test, as we might have got scenario where pxscene might have crashed during term
 ls -lrt *valgrind*
 retVal=$?
-if [ "$retVal" -eq 0 -a "$isValidCore" -eq 1 ]
+if [ "$retVal" -eq 0 ]
+  then
+  if [ "$isValidCore" -eq 1 ]
   then
   if [ "$TRAVIS_PULL_REQUEST" != "false" ]
   then
@@ -204,6 +216,7 @@ if [ "$retVal" -eq 0 -a "$isValidCore" -eq 1 ]
     checkError -1 "Execution failed" "Core dump" "Kindly refer $VALGRINDLOGS and test by running locally"
   fi
   exit 1;
+  fi
 fi
 
 # Check for valgrind memory leaks
