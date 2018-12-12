@@ -404,6 +404,8 @@ protected:
 
   virtual void onAnimationTimer()
   {
+    printf("Madana inside onAnimationTimer \n");
+    fflush(stdout);
     ENTERSCENELOCK()
     if (mView && !mClosed)
       mView->onUpdate(pxSeconds());
@@ -414,6 +416,8 @@ protected:
 #ifdef RUNINMAIN
     script.pump();
 #endif
+    printf("Madana inside onAnimationTimer end \n");
+    fflush(stdout);
   }
 
   int mWidth;
