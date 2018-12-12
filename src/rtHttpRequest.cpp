@@ -31,6 +31,8 @@ rtDefineMethod(rtHttpRequest, end);
 rtDefineMethod(rtHttpRequest, write);
 rtDefineMethod(rtHttpRequest, setTimeout);
 rtDefineMethod(rtHttpRequest, setHeader);
+rtDefineMethod(rtHttpRequest, getHeader);
+rtDefineMethod(rtHttpRequest, removeHeader);
 
 rtHttpRequest::rtHttpRequest(const rtString& url)
   : mEmit(new rtEmit())
@@ -171,7 +173,49 @@ rtError rtHttpRequest::setHeader(const rtString& name, const rtString& value)
     return RT_FAIL;
   }
 
+  this->removeHeader(name);
   mHeaders.push_back(name + ": " + value);
+  return RT_OK;
+}
+
+rtError rtHttpRequest::getHeader(const rtString& name, rtString& s)
+{
+  size_t h_len = mHeaders.size();
+  for( size_t i = 0; i < h_len; i ++)
+  {
+    rtString header = mHeaders[i];
+    if (header.beginsWith(name.cString()))
+    {
+      s = header.substring(name.length() + 2, 0);
+      return RT_OK;
+    } 
+  }
+  return RT_OK;
+}
+
+rtError rtHttpRequest::removeHeader(const rtString& name)
+{
+  if (mInQueue) {
+    rtLogError("%s: already in queue", __FUNCTION__);
+    return RT_FAIL;
+  }
+  int need_remove_idx = -1;
+  size_t h_len = mHeaders.size();
+  for( size_t i = 0; i < h_len; i ++)
+  {
+    rtString header = mHeaders[i];
+    if (header.beginsWith(name.cString()))
+    {
+      need_remove_idx = i;
+      break;
+    } 
+  }
+  if ( need_remove_idx >= 0) 
+  {
+    std::vector<rtString>::iterator it = mHeaders.begin();
+    std::advance(it, need_remove_idx);
+    mHeaders.erase(it);
+  }
   return RT_OK;
 }
 
