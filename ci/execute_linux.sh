@@ -90,7 +90,6 @@ kill -15 `ps -ef | grep Spark |grep -v grep|grep -v spark.sh|awk '{print $2}'`
 echo "Sleeping to make terminate complete ......";
 #wait for few seconds to get the application terminate completely, as it is attached with valgrind increasing the timeout
 sleep 60s;
-
 ls -lrt /tmp/pxscenecrash
 retVal=$?
 if [ "$retVal" -eq 0 ]
