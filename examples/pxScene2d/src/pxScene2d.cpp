@@ -2145,9 +2145,16 @@ rtError pxScene2d::create(rtObjectRef p, rtObjectRef& o)
         break;
     }
   }
+    if (NULL != mScriptView)
+    {
+       printf("pxObjectTracking CREATION pxScene2d::create [%p] [%s] [%s] \n", o.getPtr(), t.cString(), mScriptView->getUrl().cString());
+      fflush(stdout);
+    }
 
   if (needpxObjectTracking)
+  {
     mInnerpxObjects.push_back((pxObject*)o.getPtr());
+  }
   return e;
 }
 
