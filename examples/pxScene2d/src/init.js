@@ -51,6 +51,9 @@ global.setTimeout = setTimeout = timers.setTimeout;
 global.clearTimeout = clearTimeout = timers.clearTimeout;
 global.setInterval = setInterval = timers.setInterval;
 global.clearInterval = clearInterval = timers.clearInterval;
+global.Promise = Promise = require('bluebird');
+global.process = process = require('process');
+global.pako = pako = require('pako');
 }
 
 var AppSceneContext = require('rcvrcore/AppSceneContext');

@@ -37,6 +37,8 @@ public:
   rtMethod1ArgAndNoReturn("write", write, rtString);
   rtMethod2ArgAndNoReturn("setTimeout", setTimeout, int32_t, rtFunctionRef);
   rtMethod2ArgAndNoReturn("setHeader", setHeader, rtString, rtString);
+  rtMethod1ArgAndReturn("getHeader", getHeader, rtString, rtString);
+  rtMethod1ArgAndNoReturn("removeHeader", removeHeader, rtString);
 
   rtHttpRequest(const rtString& url = rtString());
   rtHttpRequest(const rtObjectRef& options);
@@ -51,6 +53,8 @@ public:
   rtError write(const rtString& chunk);
   rtError setTimeout(int32_t msecs, const rtFunctionRef& f);
   rtError setHeader(const rtString& name, const rtString& value);
+  rtError getHeader(const rtString& name, rtString& s);
+  rtError removeHeader(const rtString& name);
 
   static void onDownloadComplete(rtFileDownloadRequest* downloadRequest);
 
