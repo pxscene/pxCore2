@@ -302,10 +302,10 @@ protected:
 
     if (gDumpMemUsage)
     {
-       #ifdef RUNINMAIN
+      #ifdef RUNINMAIN
        script.pump();
-       #endif
-       script.collectGarbage();
+      #endif
+      script.collectGarbage();
       rtLogInfo("pxobjectcount is [%d]",pxObjectCount);
 #ifndef PX_PLATFORM_DFB_NON_X11
       rtLogInfo("texture memory usage is [%" PRId64 "]",context.currentTextureMemoryUsageInBytes());
