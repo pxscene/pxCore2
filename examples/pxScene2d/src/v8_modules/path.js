@@ -275,6 +275,10 @@ win32 = {
             }
         }
     },
+    extname: function extname(path) {
+        var parts = path.split('.');
+        return parts.length > 1 ? ('.' + parts[parts.length-1]) : '';
+    },
 }
 
 posix = {
@@ -298,6 +302,10 @@ posix = {
         if (isAbsolute)
             return '/' + path;
         return path;
+    },
+    extname: function extname(path) {
+        var parts = path.split('.');
+        return parts.length > 1 ? ('.' + parts[parts.length-1]) : '';
     },
 }
 
