@@ -26,7 +26,7 @@ var fs = require("fs");
 var http_global = require("http");
 var https_global = require("https");
 var url = require("url");
-var http_wrap = isV8?null:require('rcvrcore/http_wrap');
+var http_wrap = require('rcvrcore/http_wrap');
 
 var Logger = require('rcvrcore/Logger').Logger;
 var log = new Logger('FileUtils');
@@ -63,7 +63,9 @@ function loadFile(fileUri, appSceneContext) {
       } else {
         req = (isHttps ? https_global : http_global).get(options, httpCallback);
       }
-      process._tickCallback();
+      if (!isV8) {
+        process._tickCallback();
+      }
       req.on('error', function (err) {
         log.error("Error: FAILED to read file[" + fileUri + "] from web service");
         reject(err);
