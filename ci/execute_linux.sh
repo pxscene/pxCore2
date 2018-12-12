@@ -1,6 +1,5 @@
 #!/bin/sh
 
-
 checkError()
 {
   if [ "$1" -ne 0 ]
@@ -57,7 +56,7 @@ printExecLogs()
 printValgrindLogs()
 {
   printf "\n********************** PRINTING VALGRIND LOG **************************\n"
-  tail $VALGRINDLOGS
+  tail -150 $VALGRINDLOGS
   printf "\n**********************     LOG ENDS      **************************\n"
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -99,7 +98,6 @@ then
 gdb $TRAVIS_BUILD_DIR/examples/pxScene2d/src/Spark -batch -q -ex "target remote | vgdb" -ex "thread apply all bt" -ex "quit"
 fi
    
-echo "Madana dumped core !!"
 pkill -9 -f spark.sh
 chmod 444 $VALGRINDLOGS
 
