@@ -18,10 +18,11 @@ limitations under the License.
 
 'use strict';
 
-var http2 = require('http2');
+var isV8=(typeof _isV8 !== "undefined");
+
+var http2 = isV8?null:require('http2');
 var https = require('https');
 var http = require('http');
-
 var url = require('url');
 var EventEmitter = require('events');
 
@@ -48,10 +49,12 @@ function Request(moduleName, appSceneContext, options, callback) {
 
   var self = this;
   options = Utils._normalizeOptions(options);
-  var toOrigin = Utils._getRequestOrigin(options, moduleName === 'http' ? 'http:' : 'https:');
+  var defaultProtocol = moduleName === 'http' ? 'http:' : 'https:';
+  var toOrigin = Utils._getRequestOrigin(options, defaultProtocol);
   var fromOrigin = null;
   var withCredentials = false;
   var isBlocked = false;
+  var httpRequest = null;
   Utils._assert(!!toOrigin, "no destination origin");
 
   if (appSceneContext &&
@@ -97,8 +100,12 @@ function Request(moduleName, appSceneContext, options, callback) {
   }
 
   if (!isBlocked) {
-    var module = moduleName === 'http' ? http : (moduleName === 'https' ? https : http2);
-    var httpRequest = module.request.call(null, options);
+    if (isV8 && !options.protocol) {
+      options.protocol = defaultProtocol;
+    }
+    var module = moduleName === 'http' ? http : (moduleName === 'https' ? https : (isV8 ? https : http2));
+    httpRequest = module.request.call(null, options);
+
     httpRequest.once('response', function (httpResponse) {
       var response = new Response(httpResponse, appSceneContext, fromOrigin, toOrigin, withCredentials);
       if (response.blocked) {
@@ -132,45 +139,77 @@ function Request(moduleName, appSceneContext, options, callback) {
 
   this.abort = function () {
     if (!isBlocked) {
-      httpRequest.abort.apply(httpRequest, arguments);
+      if (isV8) {
+        httpRequest.abort();
+      } else {
+        httpRequest.abort.apply(httpRequest, arguments);
+      }
     }
   };
   this.getHeader = function () {
     if (!isBlocked) {
-      return httpRequest.getHeader.apply(httpRequest, arguments);
+      if (isV8) {
+        return httpRequest.getHeader(arguments[0]);
+      } else {
+        return httpRequest.getHeader.apply(httpRequest, arguments);
+      }
     }
   };
   this.setNoDelay = function () {
     if (!isBlocked) {
-      httpRequest.setNoDelay.apply(httpRequest, arguments);
+      if (isV8) {
+        log.warn("setNoDelay not implemented for v8");
+      } else {
+        httpRequest.setNoDelay.apply(httpRequest, arguments);
+      }
     }
   };
   this.setSocketKeepAlive = function () {
     if (!isBlocked) {
-      httpRequest.setSocketKeepAlive.apply(httpRequest, arguments);
+      if (isV8) {
+        log.warn("setSocketKeepAlive not implemented for v8");
+      } else {
+        httpRequest.setSocketKeepAlive.apply(httpRequest, arguments);
+      }
     }
   };
   this.setDefaultEncoding = function () {
     if (!isBlocked) {
-      httpRequest.setDefaultEncoding.apply(httpRequest, arguments);
+      if (isV8) {
+        log.warn("setSocketKeepAlive not implemented for v8");
+      } else {
+        httpRequest.setDefaultEncoding.apply(httpRequest, arguments);
+      }
     }
     return self;
   };
   this.setTimeout = function () {
     if (!isBlocked) {
-      httpRequest.setTimeout.apply(httpRequest, arguments);
+      if (isV8) {
+        return httpRequest.setTimeout(arguments[0], arguments[1]);
+      } else {
+        httpRequest.setTimeout.apply(httpRequest, arguments);
+      }
     }
     return self;
   };
   this.end = function () {
     if (!isBlocked) {
-      httpRequest.end.apply(httpRequest, arguments);
+      if (isV8) {
+        return httpRequest.end();
+      } else {
+        httpRequest.end.apply(httpRequest, arguments);
+      }
     }
     return self;
   };
   this.write = function () {
     if (!isBlocked) {
-      return httpRequest.write.apply(httpRequest, arguments);
+      if (isV8) {
+        return httpRequest.write(arguments[0]);
+      } else {
+        return httpRequest.write.apply(httpRequest, arguments);
+      }
     }
   };
 }
@@ -235,7 +274,11 @@ function Response(httpResponse, appSceneContext, fromOrigin, toOrigin, withCrede
   this.url = httpResponse.url;
 
   this.setEncoding = function () {
-    httpResponse.setEncoding.apply(httpResponse, arguments);
+    if (isV8) {
+      log.warn("setEncoding not implemented for v8");
+    } else {
+      httpResponse.setEncoding.apply(httpResponse, arguments);
+    }
   };
 }
 

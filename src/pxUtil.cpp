@@ -1028,6 +1028,11 @@ rtError pxLoadSVGImage(const char* buf, size_t buflen, pxOffscreen& o, int  w /*
   //        Pass it a copy !
   //
   void *buf_copy = malloc(buflen);
+  if (NULL == buf_copy)
+  {
+    rtLogError("SVG:  Could not create memory for SVG data .\n");
+    return RT_FAIL;
+  }
   memcpy(buf_copy, buf, buflen);
   
   NSVGimage *image = nsvgParse( (char *) buf_copy, "px", 96.0f); // 96 dpi (suggested default)
