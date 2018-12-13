@@ -2682,7 +2682,11 @@ if (NULL != mScriptView)
 
   frameCount++;
   }
-
+  if (NULL != mScriptView)	
+  {	
+    printf("pxObjectTracking CREATION pxScene2d::onUpdate51 before mouse entered  [%s] \n",  mScriptView->getUrl().cString());	
+    fflush(stdout);	
+  }
   // Periodically let's poke the onMouseMove handler with the current pointer position
   // to better handle objects that animate in or out from under the mouse cursor
   // eg. scrolling
