@@ -107,8 +107,6 @@ if [ "$retVal" -eq 0 ]
 fi
 
 
-grep -A 100 -B 100 "definitely lost" $VALGRINDLOGS
-
 # Check for any testRunner failures
 grep "Failures: 0" $EXECLOGS
 testRunnerRetVal=$?   # Will return 1 if NOT found
