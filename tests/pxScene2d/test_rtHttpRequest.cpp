@@ -51,7 +51,7 @@ public:
     EXPECT_EQ ((int)0, (int)req->url().compare("https://example.com"));
     EXPECT_EQ ((int)0, (int)req->headers().size());
     EXPECT_TRUE (req->method().isEmpty());
-    EXPECT_TRUE (req->writeData().isEmpty());
+    EXPECT_EQ ((int)0, (int)req->writeDataSize());
     EXPECT_FALSE (req->inQueue());
   }
 
@@ -78,7 +78,7 @@ public:
     EXPECT_EQ ((int)0, (int)req->headers()[0].compare("Content-Type: application/json"));
     EXPECT_EQ ((int)0, (int)req->headers()[1].compare("Authorization: token"));
     EXPECT_EQ ((int)0, (int)req->method().compare("POST"));
-    EXPECT_EQ ((int)0, (int)req->writeData().compare("{\"postKey1\":\"postValue1\"}"));
+    EXPECT_EQ (std::string("{\"postKey1\":\"postValue1\"}"), std::string((const char*)req->writeData(), req->writeDataSize()));
     EXPECT_FALSE (req->inQueue());
   }
 
@@ -94,7 +94,7 @@ public:
     EXPECT_EQ ((int)1, (int)req->headers().size());
     EXPECT_EQ ((int)0, (int)req->headers()[0].compare("Authorization: token"));
     EXPECT_TRUE (req->method().isEmpty());
-    EXPECT_TRUE (req->writeData().isEmpty());
+    EXPECT_EQ ((int)0, (int)req->writeDataSize());
     EXPECT_FALSE (req->inQueue());
   }
 
@@ -143,7 +143,7 @@ public:
     EXPECT_EQ ((int)0, (int)req->headers()[0].compare("Content-Type: application/json"));
     EXPECT_EQ ((int)0, (int)req->headers()[1].compare("Authorization: token"));
     EXPECT_EQ ((int)0, (int)req->method().compare("POST"));
-    EXPECT_EQ ((int)0, (int)req->writeData().compare("{\"postKey1\":\"postValue1\"}"));
+    EXPECT_EQ (std::string("{\"postKey1\":\"postValue1\"}"), std::string((const char*)req->writeData(), req->writeDataSize()));
     EXPECT_TRUE (req->inQueue());
 
     // already in queue
