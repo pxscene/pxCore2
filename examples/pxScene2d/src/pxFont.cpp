@@ -368,7 +368,7 @@ GlyphTextureEntry pxFont::getGlyphTexture(uint32_t codePoint, float sx, float sy
   
   //  TODO:  FIXME: Disabled for now.   Sub-Pixel rounding making some Glyphs too "wide" at certain sizes.
   //
-#if 0
+//#if 0
   if (pixelSize < 8)
   {
     pixelSize = (pixelSize + 7) & 0xfffffff8;    // next multiple of 8
@@ -379,10 +379,10 @@ GlyphTextureEntry pxFont::getGlyphTexture(uint32_t codePoint, float sx, float sy
     pixelSize += (pixelSize % 2);
   }
   else
-    pixelSize = npot(pixelSize);  // else next power of two
-#else
-  pixelSize = mPixelSize; // HACK
-#endif
+    pixelSize = npot(pixelSize/2);  // else next power of two
+//#else
+    //pixelSize = mPixelSize; // HACK
+//#endif
   
   
   GlyphKey key; 
