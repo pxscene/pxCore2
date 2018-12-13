@@ -87,7 +87,7 @@ while [ "$retVal" -ne 0 ] &&  [ "$count" -ne "$max_seconds" ]; do
 done
 
 kill -15 `ps -ef | grep Spark |grep -v grep|grep -v spark.sh|awk '{print $2}'`
-sleep 60
+sleep 90
 chmod 444 $VALGRINDLOGS
 
 ls -lrt /tmp/pxscenecrash
@@ -106,6 +106,8 @@ if [ "$retVal" -eq 0 ]
   exit 1;
 fi
 
+
+grep -A 100 -B 100 "definitely lost" $VALGRINDLOGS
 
 # Check for any testRunner failures
 grep "Failures: 0" $EXECLOGS
