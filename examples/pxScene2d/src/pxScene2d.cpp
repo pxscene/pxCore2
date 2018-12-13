@@ -2583,6 +2583,11 @@ if (NULL != mScriptView)
   {
     gUIThreadQueue->process(0.01);
   }
+if (NULL != mScriptView)	
+  {	
+    printf("pxObjectTracking CREATION pxScene2d::onUpdate2  [%s] \n",  mScriptView->getUrl().cString());	
+    fflush(stdout);	
+  }
 
   if (start == 0)
   {
@@ -2590,7 +2595,13 @@ if (NULL != mScriptView)
   }
 
   double start_frame = pxSeconds(); //##
+  
     update(t);
+if (NULL != mScriptView)	
+  {	
+    printf("pxObjectTracking CREATION pxScene2d::onUpdate3  [%s][%d] \n",  mScriptView->getUrl().cString(),mDirty);	
+    fflush(stdout);	
+  }
 
   sigma_update += (pxSeconds() - start_frame); //##
 
@@ -2600,6 +2611,12 @@ if (NULL != mScriptView)
     if (mContainer)
       mContainer->invalidateRect(NULL);
   }
+  if (NULL != mScriptView)	
+  {	
+    printf("pxObjectTracking CREATION pxScene2d::onUpdate4  [%s] \n",  mScriptView->getUrl().cString());	
+    fflush(stdout);	
+  }
+
   // TODO get rid of mTop somehow
   if (mTop)
   {
@@ -2659,7 +2676,11 @@ if (NULL != mScriptView)
 #ifdef ENABLE_RT_NODE
       rtWrapperSceneUnlocker unlocker;
 #endif //ENABLE_RT_NODE
-
+  if (NULL != mScriptView)	
+  {	
+    printf("pxObjectTracking CREATION pxScene2d::onUpdate5 sending fps  [%s] \n",  mScriptView->getUrl().cString());	
+    fflush(stdout);	
+  }
       rtObjectRef e = new rtMapObject;
       e.set("fps", fps);
       mEmit.send("onFPS", e);
