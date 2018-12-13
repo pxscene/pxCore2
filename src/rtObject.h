@@ -666,10 +666,11 @@ public:
   virtual unsigned long Release();
 
   rtError setListener(const char* eventName, rtIFunction* f);
-  rtError addListener(const char* eventName, rtIFunction* f);
+  rtError addListener(const char* eventName, rtIFunction* f, bool emitOnce = false);
   rtError delListener(const char* eventName, rtIFunction* f);
 
   rtError clearListeners() {mEntries.clear(); return RT_OK;}
+  rtError clearListeners(const char* eventName);
 
   virtual rtError Send(int numArgs,const rtValue* args,rtValue* result);
   virtual rtError SendAsync(int numArgs, const rtValue* args);
@@ -689,13 +690,14 @@ private:
   void processPendingEvents();
 
 protected:
-  struct _rtEmitEntry 
+  struct _rtEmitEntry
   {
     rtString n;
     rtFunctionRef f;
     bool isProp;
     bool markForDelete;
     size_t fnHash;
+    bool emitOnce;
   };
   
   std::vector<_rtEmitEntry> mEntries;
