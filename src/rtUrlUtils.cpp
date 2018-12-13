@@ -106,21 +106,61 @@ rtString rtUrlGetOrigin(const char* url)
     }
 
     // See http://www.ietf.org/rfc/rfc3986.txt.
-    // URI = scheme ":" hier-part [ "?" query ] [ "#" fragment ]
-    // scheme = ALPHA *( ALPHA / DIGIT / "+" / "-" / "." )
+    // URI           = scheme ":" hier-part [ "?" query ] [ "#" fragment ]
+    // scheme        = ALPHA *( ALPHA / DIGIT / "+" / "-" / "." )
+    // hier-part     = "//" authority path-abempty / path-absolute / path-rootless / path-empty
+    // authority     = [ userinfo "@" ] host [ ":" port ]
+    // userinfo      = *( unreserved / pct-encoded / sub-delims / ":" )
+    // unreserved    = ALPHA / DIGIT / "-" / "." / "_" / "~"
+    // pct-encoded   = "%" HEXDIG HEXDIG
+    // sub-delims    = "!" / "$" / "&" / "'" / "(" / ")" / "*" / "+" / "," / ";" / "="
+    // host          = IP-literal / IPv4address / reg-name
+    // path-abempty  = *( "/" segment )
+    // path-absolute = "/" [ segment-nz *( "/" segment ) ]
+    // path-rootless = segment-nz *( "/" segment )
+    // path-empty    = 0<pchar>
+    // segment       = *pchar
+    // segment-nz    = 1*pchar
+    // pchar         = unreserved / pct-encoded / sub-delims / ":" / "@"
+    //
+    // See https://tools.ietf.org/html/rfc6454#section-7.
+    //    serialized-origin   = scheme "://" host [ ":" port ]
+    //                        ; <scheme>, <host>, <port> from RFC 3986
+
     u = url;
+
+    // scheme        = ALPHA *( ALPHA / DIGIT / "+" / "-" / "." )
     for (; *u && (*u == '+' || *u == '-' || *u == '.' || isalpha(*u) || isdigit(*u)); u++);
+    // URI           = scheme ":" ...
     if (*u == ':' && u != url)
     {
       u++;
+      // hier-part     = "//" ...
       if (*u == '/' && *(u + 1) == '/')
       {
+        const char* hier_part = u;
         u += 2;
+        rtString scheme(url, (uint32_t) (u - 3 - url));
+
+        // URI           = scheme ":" hier-part [ "?" query ] [ "#" fragment ]
         for (; *u && *u != '/' && *u != '?' && *u != '#'; u++);
-        uint32_t byteLen = (uint32_t) (u - url);
-        return rtString(url, byteLen);
+
+        // authority     = [ userinfo "@" ] host [ ":" port ]
+        const char* host = u - 1;
+        for (; host >= hier_part + 2 && *host != '@'; host--);
+        host++;
+
+        //    serialized-origin   = scheme "://" host [ ":" port ]
+        rtString host_port;
+        if (u > host)
+        {
+          host_port = rtString(host, (uint32_t) (u - host));
+        }
+
+        return scheme + rtString("://") + host_port;
       }
     }
   }
+
   return rtString();
 }
