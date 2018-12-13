@@ -2572,6 +2572,11 @@ void pxScene2d::onUpdate(double t)
   // TODO if (mTop) check??
  // pxTextureCacheObject::checkForCompletedDownloads();
   //pxFont::checkForCompletedDownloads();
+if (NULL != mScriptView)	
+  {	
+    printf("pxObjectTracking CREATION pxScene2d::onUpdate  [%s] \n",  mScriptView->getUrl().cString());	
+    fflush(stdout);	
+  }
 
   // Dispatch various tasks on the main UI thread
   if (gUIThreadQueue)
@@ -2585,12 +2590,7 @@ void pxScene2d::onUpdate(double t)
   }
 
   double start_frame = pxSeconds(); //##
-  if (NULL != mScriptView)	
-  {	
-    printf("pxObjectTracking CREATION pxScene2d::onUpdate  [%s] \n",  mScriptView->getUrl().cString());	
-    fflush(stdout);	
-  }
-  update(t);
+    update(t);
 
   sigma_update += (pxSeconds() - start_frame); //##
 
