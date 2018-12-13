@@ -186,7 +186,7 @@ function Request(moduleName, appSceneContext, options, callback) {
   this.setTimeout = function () {
     if (!isBlocked) {
       if (isV8) {
-        return httpRequest.setTimeout(arguments[0], arguments[1]);
+        httpRequest.setTimeout(arguments[0], arguments[1]);
       } else {
         httpRequest.setTimeout.apply(httpRequest, arguments);
       }
@@ -196,7 +196,7 @@ function Request(moduleName, appSceneContext, options, callback) {
   this.end = function () {
     if (!isBlocked) {
       if (isV8) {
-        return httpRequest.end();
+        httpRequest.end();
       } else {
         httpRequest.end.apply(httpRequest, arguments);
       }

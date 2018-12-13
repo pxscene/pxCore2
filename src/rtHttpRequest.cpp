@@ -66,7 +66,10 @@ rtHttpRequest::rtHttpRequest(const rtObjectRef& options)
   }
   if (port > 0) {
     rtValue portValue(port);
-    url.append(":" + portValue.toString());
+    rtString portStr = ":" + portValue.toString();
+    if (!url.endsWith(portStr.cString())) {
+      url.append(portStr);
+    }
   }
   url.append(path.cString());
 
