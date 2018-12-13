@@ -2572,12 +2572,6 @@ void pxScene2d::onUpdate(double t)
   // TODO if (mTop) check??
  // pxTextureCacheObject::checkForCompletedDownloads();
   //pxFont::checkForCompletedDownloads();
-if (NULL != mScriptView)	
-  {	
-    printf("pxObjectTracking CREATION pxScene2d::onUpdate  [%s] \n",  mScriptView->getUrl().cString());	
-    fflush(stdout);	
-  }
-
   // Dispatch various tasks on the main UI thread
   if (gUIThreadQueue)
   {
@@ -2610,11 +2604,6 @@ if (NULL != mScriptView)
     mDirty = false;
     if (mContainer)
       mContainer->invalidateRect(NULL);
-  }
-  if (NULL != mScriptView)	
-  {	
-    printf("pxObjectTracking CREATION pxScene2d::onUpdate4  [%s] \n",  mScriptView->getUrl().cString());	
-    fflush(stdout);	
   }
 
   // TODO get rid of mTop somehow
