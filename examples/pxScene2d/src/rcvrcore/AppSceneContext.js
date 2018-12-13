@@ -627,7 +627,7 @@ AppSceneContext.prototype.runScriptInNewVMContextNonLoad = function (packageUri)
   basePath = packageUri.substring(0, packageUri.lastIndexOf('/'));
 
   var thisAppSceneContext = this;
-  log.message(4, "runScriptInNewVMContext: create XModule(" + moduleName + ") basePath=" + basePath + " packageUri=" + packageUri);
+  log.message(4, "runScriptInNewVMContextNonLoad: create XModule(" + moduleName + ") basePath=" + basePath + " packageUri=" + packageUri);
   var xModule = new XModule(moduleName, this, basePath, jarName);
   this.topXModule = xModule;
 
