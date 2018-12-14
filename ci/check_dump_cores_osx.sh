@@ -7,7 +7,7 @@ logfile="$3"
 
 #take report from lldb
 cd $path
-#enable full traces to get insights of stack frames and scenarios
+#enable full traces to get insight of stack frames and scenarios
 echo "sudo lldb -o \"attach $process\" -o \"bt full\" -o \"quit\" 1>lldblogs 2>/dev/null"
 sudo lldb -o "attach $process" -o "bt full" -o "quit" 1>lldblogs 2>/dev/null
 
