@@ -86,6 +86,13 @@ while [ "$retVal" -ne 0 ] &&  [ "$count" -ne "$max_seconds" ]; do
 	fi
 done
 
+ls -lrt /tmp/pxscenecrash
+retVal=$?
+if [ "$retVal" -eq 0 ]
+then
+gdb $TRAVIS_BUILD_DIR/examples/pxScene2d/src/Spark -batch -q -ex "target remote | vgdb" -ex "thread apply all bt" -ex "quit"
+fi
+
 kill -15 `ps -ef | grep Spark |grep -v grep|grep -v spark.sh|awk '{print $2}'`
 sleep 90
 chmod 444 $VALGRINDLOGS
