@@ -147,7 +147,7 @@
     cd pxCore/
     mkdir temp
     cd temp
-    cmake DPXSCENE_COMPILE_WARNINGS_AS_ERRORS=OFF -DPXCORE_COMPILE_WARNINGS_AS_ERRORS=OFF ..  -G Xcode
+    cmake DPXSCENE_COMPILE_WARNINGS_AS_ERRORS=OFF -DPXCORE_COMPILE_WARNINGS_AS_ERRORS=OFF BUILD_STATIC_LIBS=ON  CMAKE_BUILD_TYPE=Release ..  -G Xcode
     ~~~~
     If you wish to build the unit tests then run
     ~~~~
