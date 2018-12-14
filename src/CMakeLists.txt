@@ -237,6 +237,15 @@ if (SUPPORT_V8)
 endif()
 
 
+set(QT_DIRECTORY $ENV{QT5_HOME})
+set(CMAKE_AUTOMOC ON)
+find_package(Qt5 REQUIRED PATHS ${QT_DIRECTORY}/lib/cmake COMPONENTS Core Gui WebEngineWidgets Widgets)
+link_libraries(Qt5::Core Qt5::Gui Qt5::WebEngineCore Qt5::WebEngineWidgets Qt5::Widgets)
+include_directories(AFTER $ENV{QT5_HOME}/include/QtGui/5.12.0/QtGui)
+if(WIN32)
+    set(PXCORE_FILES ${PXCORE_FILES} qtview/qtwinmigrate/qmfcapp.cpp qtview/qtwinmigrate/qwinhost.cpp qtview/qtwinmigrate/qwinwidget.cpp )
+endif()
+
 if (PXCORE_MATRIX_HELPERS)
   set(PXCORE_FILES ${PXCORE_FILES} pxMatrix4T.cpp)
 endif(PXCORE_MATRIX_HELPERS)

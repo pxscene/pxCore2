@@ -99,6 +99,7 @@ public: // Add accessors
     UINT_PTR mTimerId;
     long mAnimationFPS;
 	bool mTrackMouse;
+    void* qtRootView;
 };
 
 // Key Codes

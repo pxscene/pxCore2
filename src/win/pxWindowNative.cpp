@@ -25,6 +25,7 @@ limitations under the License.
 #include "../pxWindowUtil.h"
 
 #include "../pxKeycodes.h"
+#include "qtview/qtwinmigrate/qwinwidget.h"
 
 #ifndef WINCE
 #include <tchar.h>
@@ -101,12 +102,13 @@ pxError pxWindowNative::initNative(HWND parent, int left, int top, int width, in
 	wc.lpszMenuName  = 0;
 	wc.lpszClassName = className.c_str();
 
-	RegisterClass(&wc);
+    RegisterClass(&wc);
     }
 
 #ifndef MOBILE
     mWindow = ::CreateWindowEx(styleEx, "pxWindow", "", style, left, top, width, height, parent, NULL,
-        hInstance, (pxWindowNative*)this);
+      hInstance, (pxWindowNative*)this);
+    qtRootView = new QWinWidget(mWindow);
 #else
     mWindow = CreateWindow(className.c_str(), L"", style,
         CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, NULL, NULL, hInstance, (pxWindowNative*)this);

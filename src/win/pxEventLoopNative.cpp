@@ -20,8 +20,10 @@ limitations under the License.
 
 #define PX_NATIVE
 #include "../pxEventLoop.h"
-
+#include <QtWidgets/QApplication>
 #include <windows.h>
+
+static QApplication *globalQTApp = nullptr;
 
 void pxEventLoop::run()
 {
@@ -30,6 +32,9 @@ void pxEventLoop::run()
     // Main message loop:
     while (GetMessage(&msg, NULL, 0, 0)) 
     {
+        if (globalQTApp) {
+            globalQTApp->sendPostedEvents();
+        }
         TranslateMessage(&msg);
         DispatchMessage(&msg);
     }
@@ -59,6 +64,8 @@ int CALLBACK WinMain(
 	//extern int __argc;          /* count of cmd line args */
 	//extern char ** __argv;      /* pointer to table of cmd line args */
 	//pxMain(__argc,__argv);
+    int argc = 0;
+    globalQTApp = new QApplication(argc, 0);
 	pxMain(0, NULL);
 	return 0;
 }
@@ -75,6 +82,7 @@ int main(int argc, char** argv)
 			ShowWindow(GetConsoleWindow(), SW_HIDE);
 		}
 	}
+  globalQTApp = new QApplication(argc, argv);
   pxMain(argc,argv);
   return 0;
 }
