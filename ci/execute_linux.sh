@@ -94,7 +94,7 @@ gdb $TRAVIS_BUILD_DIR/examples/pxScene2d/src/Spark -batch -q -ex "target remote 
 fi
 
 kill -15 `ps -ef | grep Spark |grep -v grep|grep -v spark.sh|awk '{print $2}'`
-echo "Sleeping for 90s to make the logs dump completely"
+echo "Sleeping for 90 secomds to make the logs dump completely"
 sleep 90
 chmod 444 $VALGRINDLOGS
 
