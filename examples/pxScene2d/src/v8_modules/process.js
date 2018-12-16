@@ -16,15 +16,11 @@ limitations under the License.
 
 */
 
-"use strict";
+function _tickCallback() {}
 
 module.exports = {
-  'get': function (url, cb) {
-    var req = httpGet(url, cb);
-    req.end();
-    return req;
-  },
-  'request': function (url, cb) {
-    return httpGet(url, cb);
-  }
+    _tickCallback,
+
+    //TODO here should return system env values
+    env:{},
 };

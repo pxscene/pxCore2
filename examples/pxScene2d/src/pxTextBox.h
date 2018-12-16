@@ -315,7 +315,7 @@ public:
   void renderTextNoWordWrap(float sx, float sy, float tempX, bool render);
   void renderTextWithWordWrap(const char *text, float sx, float sy, float tempX, uint32_t pixelSize, bool render);
   void measureTextWithWrapOrNewLine(const char *text, float sx, float sy, float tempX, float &tempY, uint32_t size, bool render);
-  void renderOneLine(const char * tempStr, float tempX, float tempY, float sx, float sy,  uint32_t size, float lineWidth, bool render );
+  void renderOneLine(const char * tempStr, float tempX, float tempY, float sx, float sy,  uint32_t size, float lineWidth, bool render, bool isNewLineCase = false);
   
   void recalc();
   void clearMeasurements();

@@ -11,20 +11,28 @@ BASE_URL="https://etwiki.sys.comcast.net/rest/api/content/558517563"
 STORAGE_URL="https://etwiki.sys.comcast.net/plugins/viewstorage/viewpagestorage.action?pageId=558517563"
 #PAGE_URL="https://etwiki.sys.comcast.net/display/RDK/GPU+and+CPU+Benchmark+Tests"
 FORM_PATH="/tmp/form.txt"
+CONFIG_PATH="/opt/pxbenchmark.conf"
 SPACE="YOUR_PERSONAL_SPACE"
 DATE=(`date +"%m\/%d\/%Y"`)
-USER=""
-PASSWORD=""
+USER=$(cat $CONFIG_PATH | grep ^user:$versionTag1 | cut -d ":" -f 2)
+echo "USER=$USER"
+PASSWORD=$(cat $CONFIG_PATH | grep ^password:$versionTag1 | cut -d ":" -f 2)
+echo "PASSWORD=$PASSWORD"
 FIRMWARE=$(cat $THIS_DIR/version.txt | grep ^imagename:$versionTag1 | cut -d ":" -f 2)
 echo "Firmware=$FIRMWARE"
 
 DEVICE_NAME=$(cat $THIS_DIR/version.txt | grep ^JENKINS_JOB=$versionTag1 | cut -d "=" -f 2)
 echo "Device Name=$DEVICE_NAME"
 
+if [[ $USER == '' ]]; then
 echo "Insert your account name:"
 read USER
+fi
+
+if [[ $PASSWORD == '' ]]; then
 echo "Insert your password:"
 read -s PASSWORD
+fi
 #Download attachment to be edited
 
 curl -u $USER:$PASSWORD $STORAGE_URL -o $FORM_PATH

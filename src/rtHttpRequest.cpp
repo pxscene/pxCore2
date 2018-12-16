@@ -23,11 +23,16 @@
 rtDefineObject(rtHttpRequest, rtObject);
 
 rtDefineMethod(rtHttpRequest, addListener);
+rtDefineMethod(rtHttpRequest, once);
+rtDefineMethod(rtHttpRequest, removeAllListeners);
+rtDefineMethod(rtHttpRequest, removeAllListenersByName);
 rtDefineMethod(rtHttpRequest, abort);
 rtDefineMethod(rtHttpRequest, end);
 rtDefineMethod(rtHttpRequest, write);
 rtDefineMethod(rtHttpRequest, setTimeout);
 rtDefineMethod(rtHttpRequest, setHeader);
+rtDefineMethod(rtHttpRequest, getHeader);
+rtDefineMethod(rtHttpRequest, removeHeader);
 
 rtHttpRequest::rtHttpRequest(const rtString& url)
   : mEmit(new rtEmit())
@@ -61,7 +66,10 @@ rtHttpRequest::rtHttpRequest(const rtObjectRef& options)
   }
   if (port > 0) {
     rtValue portValue(port);
-    url.append(":" + portValue.toString());
+    rtString portStr = ":" + portValue.toString();
+    if (!url.endsWith(portStr.cString())) {
+      url.append(portStr);
+    }
   }
   url.append(path.cString());
 
@@ -86,10 +94,24 @@ rtHttpRequest::~rtHttpRequest()
 {
 }
 
-rtError rtHttpRequest::addListener(rtString eventName, const rtFunctionRef& f)
+rtError rtHttpRequest::addListener(const rtString& eventName, const rtFunctionRef& f)
 {
-  mEmit->addListener(eventName, f);
-  return RT_OK;
+  return mEmit->addListener(eventName, f);
+}
+
+rtError rtHttpRequest::once(const rtString& eventName, const rtFunctionRef& f)
+{
+  return mEmit->addListener(eventName, f, true);
+}
+
+rtError rtHttpRequest::removeAllListeners()
+{
+  return mEmit->clearListeners();
+}
+
+rtError rtHttpRequest::removeAllListenersByName(const rtString& eventName)
+{
+  return mEmit->clearListeners(eventName.cString());
 }
 
 rtError rtHttpRequest::abort() const
@@ -149,7 +171,49 @@ rtError rtHttpRequest::setHeader(const rtString& name, const rtString& value)
     return RT_FAIL;
   }
 
+  this->removeHeader(name);
   mHeaders.push_back(name + ": " + value);
+  return RT_OK;
+}
+
+rtError rtHttpRequest::getHeader(const rtString& name, rtString& s)
+{
+  size_t h_len = mHeaders.size();
+  for( size_t i = 0; i < h_len; i ++)
+  {
+    rtString header = mHeaders[i];
+    if (header.beginsWith(name.cString()))
+    {
+      s = header.substring(name.length() + 2, 0);
+      return RT_OK;
+    } 
+  }
+  return RT_OK;
+}
+
+rtError rtHttpRequest::removeHeader(const rtString& name)
+{
+  if (mInQueue) {
+    rtLogError("%s: already in queue", __FUNCTION__);
+    return RT_FAIL;
+  }
+  int need_remove_idx = -1;
+  size_t h_len = mHeaders.size();
+  for( size_t i = 0; i < h_len; i ++)
+  {
+    rtString header = mHeaders[i];
+    if (header.beginsWith(name.cString()))
+    {
+      need_remove_idx = i;
+      break;
+    } 
+  }
+  if ( need_remove_idx >= 0) 
+  {
+    std::vector<rtString>::iterator it = mHeaders.begin();
+    std::advance(it, need_remove_idx);
+    mHeaders.erase(it);
+  }
   return RT_OK;
 }
 
@@ -165,11 +229,14 @@ void rtHttpRequest::onDownloadComplete(rtFileDownloadRequest* downloadRequest)
   resp->setDownloadedData(downloadRequest->downloadedData(), downloadRequest->downloadedDataSize());
 
   rtObjectRef ref = resp; 
-  req->mEmit.send("response", ref);
 
-  resp->onData();
-
-  resp->onEnd();
+  if (downloadRequest->errorString().isEmpty()) {
+    req->mEmit.send("response", ref);
+    resp->onData();
+    resp->onEnd();
+  } else {
+    req->mEmit.send("error", downloadRequest->errorString());
+  }
 }
 
 rtString rtHttpRequest::url() const
