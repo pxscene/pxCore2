@@ -869,6 +869,7 @@ void pxTextBox::renderOneLine(const char * tempStr, float tempX, float tempY, fl
 
   if( lineNumber == 0)
   {
+    setMeasurementBoundsX(true, INT_MIN);
     if(!mWordWrap)
     {
       // Set start/stop line and bounds values because this is the only
@@ -997,7 +998,7 @@ void pxTextBox::setMeasurementBoundsX(bool start, float xVal)
   rtRefT<pxTextBounds> bounds = getMeasurements()->getBounds();
   //rtLogDebug("pxTextBox::setMeasurementBoundsX: start=%d xVal=%f already set to %f\n",start, xVal,bounds->x2());
   if( start) {
-    if( bounds->x1() == 0 || (bounds->x1() > xVal)) {
+    if( bounds->x1() == INT_MIN || (bounds->x1() > xVal)) {
       bounds->setX1(xVal);
     }
   }
@@ -1013,7 +1014,7 @@ void pxTextBox::setMeasurementBounds(bool start, float xVal, float yVal)
   rtRefT<pxTextBounds> bounds = getMeasurements()->getBounds();
   //rtLogDebug("pxTextBox::setMeasurementBounds: start=%d xVal=%f yVal%f\n",start, xVal,yVal);
   if( start) {
-    if( bounds->x1() == 0 || (bounds->x1() > xVal)) {
+    if( bounds->x1() == INT_MIN || (bounds->x1() > xVal)) {
       bounds->setX1(xVal);
     }
     if( bounds->y1()== 0 || bounds->y1() > yVal) {
@@ -1021,8 +1022,8 @@ void pxTextBox::setMeasurementBounds(bool start, float xVal, float yVal)
     }
   }
   else {
-    if( bounds->x2() < (bounds->x1() + xVal) ) {
-      bounds->setX2(bounds->x1() + xVal);
+      if( bounds->x2() < (bounds->x1() == INT_MIN ? xVal : (bounds->x1() + xVal)) ) {
+          bounds->setX2(bounds->x1() == INT_MIN ? xVal : bounds->x1() + xVal);
     }
     if( bounds->y2() < (bounds->y1() + yVal)) {
        bounds->setY2(bounds->y1() + yVal);
@@ -1038,7 +1039,7 @@ void pxTextBox::setMeasurementBounds(float xPos, float width, float yPos, float 
   if( bounds->x2() < (xPos + width) ) {
     bounds->setX2(xPos + width);
   }
-  if( bounds->x1() == 0 || (bounds->x1() > xPos)) {
+  if( bounds->x1() == INT_MIN || (bounds->x1() > xPos)) {
     bounds->setX1(xPos);
   }
   if( bounds->y2() < (yPos + height)) {

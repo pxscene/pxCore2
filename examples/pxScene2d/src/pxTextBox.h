@@ -100,7 +100,7 @@ public:
 	rtError setY2(float v)       { mY2 = v; return RT_OK; }
       
   void clear() {
-    mX1 = 0;
+    mX1 = INT_MIN;
     mY1 = 0;
     mX2 = 0;
     mY2 = 0;
