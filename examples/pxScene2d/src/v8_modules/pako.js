@@ -16,15 +16,4 @@ limitations under the License.
 
 */
 
-"use strict";
-
-module.exports = {
-  'get': function (url, cb) {
-    var req = httpGet(url, cb);
-    req.end();
-    return req;
-  },
-  'request': function (url, cb) {
-    return httpGet(url, cb);
-  }
-};
+module.exports = {};

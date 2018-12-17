@@ -71,7 +71,7 @@ public:
     EXPECT_EQ (0, (int)rtUrlGetOrigin("http://blahblah.com:100?x=http://blahblah.com").compare("http://blahblah.com:100"));
     EXPECT_EQ (0, (int)rtUrlGetOrigin("HTTPS://BLAHBLAH/INDEX.JS?SOME=SOME1&PARM=VALUE").compare("HTTPS://BLAHBLAH"));
     EXPECT_EQ (0, (int)rtUrlGetOrigin("http://[2001:db8:1f70::999:de8:7648:6e8]:100/").compare("http://[2001:db8:1f70::999:de8:7648:6e8]:100"));
-    EXPECT_EQ (0, (int)rtUrlGetOrigin("http://my_email%40gmail.com:password@www.my_site.com").compare("http://my_email%40gmail.com:password@www.my_site.com"));
+    EXPECT_EQ (0, (int)rtUrlGetOrigin("http://my_email%40gmail.com:password@www.my_site.com").compare("http://www.my_site.com"));
     EXPECT_EQ (0, (int)rtUrlGetOrigin("http://敷リオワニ内前ヲルホ/index.js").compare("http://敷リオワニ内前ヲルホ"));
   }
 
@@ -88,7 +88,7 @@ public:
     EXPECT_EQ (0, (int)rtUrlGetOrigin("http://example.com:/").compare("http://example.com:"));
     EXPECT_EQ (0, (int)rtUrlGetOrigin("http://example.com:80/").compare("http://example.com:80"));
     EXPECT_EQ (0, (int)rtUrlGetOrigin("http://example.com/data/").compare("http://example.com"));
-    EXPECT_EQ (0, (int)rtUrlGetOrigin("ftp://cnn.example.com&story=breaking_news@10.0.0.1/top_story.htm").compare("ftp://cnn.example.com&story=breaking_news@10.0.0.1"));
+    EXPECT_EQ (0, (int)rtUrlGetOrigin("ftp://cnn.example.com&story=breaking_news@10.0.0.1/top_story.htm").compare("ftp://10.0.0.1"));
     EXPECT_EQ (0, (int)rtUrlGetOrigin("http://www.ics.uci.edu/pub/ietf/uri/#Related").compare("http://www.ics.uci.edu"));
     EXPECT_EQ (0, (int)rtUrlGetOrigin("http://www.w3.org/Addressing/").compare("http://www.w3.org"));
     EXPECT_EQ (0, (int)rtUrlGetOrigin("ftp://foo.example.com/rfc/").compare("ftp://foo.example.com"));
@@ -98,6 +98,17 @@ public:
     EXPECT_EQ (0, (int)rtUrlGetOrigin("ldap://[2001:db8::7]/c=GB?objectClass?one").compare("ldap://[2001:db8::7]"));
     EXPECT_EQ (0, (int)rtUrlGetOrigin("telnet://192.0.2.16:80/").compare("telnet://192.0.2.16:80"));
   }
+
+  void testUrlGetOriginHack()
+  {
+    EXPECT_EQ (0, (int)rtUrlGetOrigin("http://foo.com/testing/://123.xreapps.net/securityHole.js").compare("http://foo.com"));
+    EXPECT_EQ (0, (int)rtUrlGetOrigin("http://foo.com?x=http://123.xreapps.net").compare("http://foo.com"));
+    EXPECT_EQ (0, (int)rtUrlGetOrigin("http://123.xreapps.net@foo.com").compare("http://foo.com"));
+    EXPECT_EQ (0, (int)rtUrlGetOrigin("http://123.xreapps.net:80@foo.com").compare("http://foo.com"));
+    EXPECT_EQ (0, (int)rtUrlGetOrigin("http://123.xreapps.net%40123.xreapps.net:123.xreapps.net@foo.com").compare("http://foo.com"));
+    EXPECT_EQ (0, (int)rtUrlGetOrigin("http://@foo.com").compare("http://foo.com"));
+    EXPECT_EQ (0, (int)rtUrlGetOrigin("http://:@[::1]:1/:@[::1]:1/:@[::1]:1").compare("http://[::1]:1"));
+  }
 };
 
 TEST_F(rtUrlUtilsTest, rtUrlUtilsTests)
@@ -105,4 +116,5 @@ TEST_F(rtUrlUtilsTest, rtUrlUtilsTests)
   testUrlGetOriginMalformed();
   testUrlGetOriginNormal();
   testUrlGetOriginRfc3986();
+  testUrlGetOriginHack();
 }
