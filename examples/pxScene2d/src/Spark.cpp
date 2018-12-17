@@ -100,6 +100,10 @@ extern int g_argc;
 extern char** g_argv;
 char *nodeInput = NULL;
 char** g_origArgv = NULL;
+#ifdef RTSCRIPT_SUPPORT_V8
+extern int gInspectorPort;
+extern bool gWaitForDebugger;
+#endif
 #endif
 bool gDumpMemUsage = false;
 extern bool gApplicationIsClosing;
@@ -595,6 +599,30 @@ if (s && (strcmp(s,"1") == 0))
       curpos = curpos + 35;
   }
   #endif
+#ifdef RTSCRIPT_SUPPORT_V8
+  for (int i=1;i<argc;i++)
+  {
+    if (strstr(argv[i],"--"))
+    {
+      const char* argval = argv[i];
+      if (NULL != strstr(argval,"--inspect-brk="))
+      {
+        gWaitForDebugger = true;
+        const char* q = argval+14;
+        if (NULL != q)
+          gInspectorPort = atoi(q);
+      }
+      if (NULL != strstr(argval,"--inspect="))
+      {
+        const char* q = argval+10;
+        if (NULL != q)
+          gInspectorPort = atoi(q);
+      }
+      if (NULL != strstr(argval,"--inspect-brk"))
+        gWaitForDebugger = true;
+    }
+  }
+#endif
 #endif
 
 #ifdef RUNINMAIN
