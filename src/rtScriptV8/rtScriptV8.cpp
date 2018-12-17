@@ -128,7 +128,8 @@ extern "C" const char U_DATA_API SMALL_ICUDATA_ENTRY_POINT[];
 #include "rtWebSocket.h"
 #ifdef ENABLE_DEBUG_MODE
 #include <debugger/inspector_agent.h>
-int gInspectorPort = 9229;
+#define INSPECTOR_PORT 9229
+int gInspectorPort = INSPECTOR_PORT;
 bool gWaitForDebugger = false;
 #endif
 #include "rtHttpRequest.h"
@@ -708,7 +709,8 @@ rtError rtV8Context::runScript(const char *script, rtValue* retVal /*= NULL*/, c
     // Compile the source code.
     Local<Script> run_script = Script::Compile(source);
 #ifdef ENABLE_DEBUG_MODE
-    mInspectorAgent->addContext(local_context, 1);
+    if (mInspectorAgent)
+      mInspectorAgent->addContext(local_context, 1);
 #endif
     // Run the script to get the result.
     Local<Value> result = run_script->Run();
@@ -832,19 +834,28 @@ rtError rtScriptV8::init()
     mContext.Reset(mIsolate, ctx);
 #endif
 #ifdef ENABLE_DEBUG_MODE
-    if (false == isAgentStarted)
+    const char* debugger = getenv("SPARK_INSPECTOR");
+    if (debugger && (1 == atoi(debugger)))
     {
-      const char* s = getenv("BREAK_ON_SCRIPTSTART");
-      if (s)
+      if (false == isAgentStarted)
       {
-        int tobreakonstart = atoi(s);
-        if (1 == tobreakonstart)
-          breakOnStart = true;
+        const char* s = getenv("BREAK_ON_SCRIPTSTART");
+        if (s)
+        {
+          int tobreakonstart = atoi(s);
+          if (1 == tobreakonstart)
+            breakOnStart = true;
+        }
+        mEnv = new Environment(mIsolate, mUvLoop, mPlatform);
+        mInspectorAgent = new Agent(mEnv);
+        const char* debuggerPort = getenv("SPARK_INSPECTOR_PORT");
+        if ((debuggerPort) && (INSPECTOR_PORT == gInspectorPort))
+        {
+          gInspectorPort = atoi(debuggerPort);
+        }
+        mInspectorAgent->Start(gInspectorPort, gWaitForDebugger);
+        isAgentStarted = true;
       }
-      mEnv = new Environment(mIsolate, mUvLoop, mPlatform);
-      mInspectorAgent = new Agent(mEnv);
-      mInspectorAgent->Start(gInspectorPort, gWaitForDebugger);
-      isAgentStarted = true;
     }
 #endif
     mV8Initialized = true;
@@ -857,7 +868,8 @@ rtError rtScriptV8::term()
 {
   if (mV8Initialized == true) {
 #ifdef ENABLE_DEBUG_MODE
-    mInspectorAgent->Stop();
+    if (mInspectorAgent)
+      mInspectorAgent->Stop();
 #endif
     V8::ShutdownPlatform();
     if (mPlatform) {
@@ -1331,7 +1343,7 @@ namespace rtScriptV8NodeUtils
     ScriptOrigin origininfo(originval);
     Local<Script> run_script = Script::Compile(source, &origininfo);
 #ifdef ENABLE_DEBUG_MODE
-    if ((true == setBreak) && (true == breakOnStart)) {
+    if (mInspectorAgent && (true == setBreak) && (true == breakOnStart)) {
       mInspectorAgent->breakOnStart(std::string(origin.cString()));
     }
 #endif
