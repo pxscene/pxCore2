@@ -415,7 +415,7 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
       }
     
       bool isContinuousLine = mWordWrap && !isDelimeter_charsPresent && tempX + charW > mw;
-      if( isNewline(charToMeasure) || isContinuousLine)
+      if( isNewline(charToMeasure) || isContinuousLine || (!mWordWrap && tempX + charW > mw))
       {
         //rtLogDebug("Found NEWLINE; calling renderOneLine\n");
         // Render what we had so far in accString; since we are here, it will fit.
@@ -883,8 +883,9 @@ void pxTextBox::renderOneLine(const char * tempStr, float tempX, float tempY, fl
           setLineMeasurements(true, noClipX, tempY);
         }
         else {
-          if (!isNewLineCase)
-            setMeasurementBounds(false, noClipX+(charW+xPos), charH);
+          if (!isNewLineCase || (isNewLineCase && getMeasurements()->getBounds()->x2() == 0)) {
+              setMeasurementBounds(false, noClipX+(charW+xPos), charH);
+          }
           if( charW < lineWidth) {
             setMeasurementBoundsX(true, xPos);
             setLineMeasurements(true, xPos, tempY);
