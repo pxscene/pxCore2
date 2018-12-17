@@ -1003,8 +1003,8 @@ void pxTextBox::setMeasurementBoundsX(bool start, float xVal)
     }
   }
   else {
-    if( bounds->x2() < (bounds->x1() + xVal) ) {
-      bounds->setX2(bounds->x1() + xVal);
+    if( bounds->x2() < (bounds->x1() == INT_MIN ? xVal : (bounds->x1() + xVal)) ) {
+      bounds->setX2(bounds->x1() == INT_MIN ? xVal : bounds->x1() + xVal);
     }
   }
 }
