@@ -202,6 +202,7 @@ endif (PXCORE_COMPILE_WARNINGS_AS_ERRORS)
 include_directories(AFTER ${V8_INCLUDE_DIRS})
 include_directories(AFTER ${NODE_INCLUDE_DIRS})
 include_directories(AFTER ${CMAKE_CURRENT_SOURCE_DIR})
+include_directories(AFTER rtScriptV8 rtScriptV8/debugger )
 
 set(PXCORE_FILES ${PXCORE_FILES} pxOffscreen.cpp pxWindowUtil.cpp
 
@@ -233,7 +234,7 @@ if (SUPPORT_V8)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-error=deprecated-declarations")
     include_directories(AFTER ${EXTDIR}/uWebSockets/src)
     set(PXCORE_FILES ${PXCORE_FILES} rtScriptV8/rtScriptV8.cpp rtScriptV8/jsCallback.cpp rtScriptV8/rtFunctionWrapper.cpp 
-        rtScriptV8/rtObjectWrapper.cpp rtScriptV8/rtWrapperUtils.cpp rtScriptV8/rtWebSocket.cpp ${V8_SOURCES})
+        rtScriptV8/rtObjectWrapper.cpp rtScriptV8/rtWrapperUtils.cpp rtScriptV8/rtWebSocket.cpp ${V8_SOURCES} ${V8_SOURCES} rtScriptV8/debugger/inspector_socket.cc rtScriptV8/debugger/inspector_agent.cc rtScriptV8/debugger/v8_inspector.cc rtScriptV8/debugger/http_parser.c)
 endif()
 
 
