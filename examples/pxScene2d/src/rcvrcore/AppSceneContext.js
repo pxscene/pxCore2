@@ -469,18 +469,30 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (packageUri, module
       log.message(4, "createModule_pxScope.call()");
       var px = createModule_pxScope.call(this, xModule);
       log.message(4, "createModule_pxScope.call() done");
+
+      var xModule_wrap = WrapObj(xModule, {
+        appSceneContext: WrapObj(xModule.appSceneContext, {
+          packageUrl: xModule.appSceneContext.packageUrl
+        }, true, [
+          'getPackageBaseFilePath',
+          'getFile'
+        ])
+      }, true, [
+        'exports'
+      ]);
+
       if (isDuk) {
         vm.runInNewContext(sourceCode, newSandbox, {
           filename: path.normalize(fname),
           displayErrors: true
-        }, px, xModule, fname, this.basePackageUri);
+        }, px, xModule_wrap, fname, this.basePackageUri);
       } else if (isV8) {
         var moduleFunc = vm.runInNewContext(sourceCode, newSandbox, {
           filename: path.normalize(fname),
           displayErrors: true
-        }, px, xModule, fname, this.basePackageUri);
+        }, px, xModule_wrap, fname, this.basePackageUri);
 
-        moduleFunc(px, xModule, fname, this.basePackageUri);
+        moduleFunc(px, xModule_wrap, fname, this.basePackageUri);
 
       } else {
         var moduleFunc = vm.runInNewContext(sourceCode, newSandbox, {
@@ -494,7 +506,7 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (packageUri, module
           const Debug = vm.runInDebugContext('Debug');
           Debug.setBreakPoint(moduleFunc, 0, 0);
         }
-        moduleFunc(px, xModule, fname, this.basePackageUri);
+        moduleFunc(px, xModule_wrap, fname, this.basePackageUri);
       }
       log.message(4, "vm.runInNewContext done");
 
@@ -788,17 +800,29 @@ AppSceneContext.prototype.processCodeBuffer = function(origFilePath, filePath, c
   var sourceCode = AppSceneContext.wrap(codeBuffer);
   log.message(4, "RUN " + filePath);
   var px = createModule_pxScope.call(this, xModule, true);
+
+  var xModule_wrap = WrapObj(xModule, {
+    appSceneContext: WrapObj(xModule.appSceneContext, {
+      packageUrl: xModule.appSceneContext.packageUrl
+    }, true, [
+      'getPackageBaseFilePath',
+      'getFile'
+    ])
+  }, true, [
+    'exports'
+  ]);
+
   if (isDuk) {
     vm.runInNewContext(sourceCode, _this.sandbox, { filename: filePath, displayErrors: true },
-                         px, xModule, filePath, filePath);
+                         px, xModule_wrap, filePath, filePath);
   } else if (isV8) {
     var moduleFunc = vm.runInNewContext(sourceCode, _this.sandbox, { filename: filePath, displayErrors: true },
-                         px, xModule, filePath, filePath);
+                         px, xModule_wrap, filePath, filePath);
 
-    moduleFunc(px, xModule, filePath, filePath);
+    moduleFunc(px, xModule_wrap, filePath, filePath);
   } else {
     var moduleFunc = vm.runInContext(sourceCode, _this.sandbox, {filename:filePath, displayErrors:true});
-    moduleFunc(px, xModule, filePath, filePath);
+    moduleFunc(px, xModule_wrap, filePath, filePath);
   }
   log.message(4, "RUN DONE: " + filePath);
   this.setXModule(filePath, xModule);
