@@ -31,7 +31,7 @@ extern pxContext context;
 #include <stdlib.h>
 
 static const char      isNewline_chars[] = "\n\v\f\r";
-static const char isWordBoundary_chars[] = " \t/:&,;.";
+static const char isWordBoundary_chars[] = " \t/:&,;.?!";
 static const char    isSpaceChar_chars[] = " \t";
 static const char isDelimeter_chars[] = "\n\v\f\r \t/:&,;.";
 #define ELLIPSIS_STR u8"\u2026"
