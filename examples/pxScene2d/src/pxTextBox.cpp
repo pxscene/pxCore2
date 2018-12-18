@@ -415,7 +415,8 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
       }
     
       bool isContinuousLine = mWordWrap && !isDelimeter_charsPresent && tempX + charW > mw;
-      if( isNewline(charToMeasure) || isContinuousLine)
+      bool isLast = ( lastLine || (mTruncation != pxConstantsTruncation::NONE && (tempY + ((mLeading*sy) + charH) >= this->h())) );
+      if( isNewline(charToMeasure) || (isContinuousLine && !isLast) || (!mWordWrap && tempX + charW > mw))
       {
         //rtLogDebug("Found NEWLINE; calling renderOneLine\n");
         // Render what we had so far in accString; since we are here, it will fit.
@@ -430,7 +431,7 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
       }
 
       // Check if text still fits on this line, or if wrap needs to occur
-      if( (tempX + charW) <= lineWidth || (!mWordWrap && lineNumber == 0) || (mWordWrap && !isDelimeter_charsPresent))
+      if( (tempX + charW) <= lineWidth || (!mWordWrap && lineNumber == 0) || (mWordWrap && !isDelimeter_charsPresent && !isLast))
       {
         accString.append(tempChar.c_str());
         tempX += charW;
