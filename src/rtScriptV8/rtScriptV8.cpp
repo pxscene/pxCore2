@@ -264,10 +264,10 @@ private:
 typedef std::map<uint32_t, rtV8ContextRef> rtV8Contexts;
 typedef std::map<uint32_t, rtV8ContextRef>::const_iterator rtV8Contexts_iterator;
 #ifdef ENABLE_DEBUG_MODE
-Environment* mEnv = nullptr;
-Agent* mInspectorAgent = nullptr;
-bool isAgentStarted = false;
-bool breakOnStart = false;
+Environment* gEnv = nullptr;
+Agent* gInspectorAgent = nullptr;
+bool gIsAgentStarted = false;
+bool gBreakOnStart = false;
 #endif
 class rtScriptV8: public rtIScript
 {
@@ -709,8 +709,8 @@ rtError rtV8Context::runScript(const char *script, rtValue* retVal /*= NULL*/, c
     // Compile the source code.
     Local<Script> run_script = Script::Compile(source);
 #ifdef ENABLE_DEBUG_MODE
-    if (mInspectorAgent)
-      mInspectorAgent->addContext(local_context, 1);
+    if (gInspectorAgent)
+      gInspectorAgent->addContext(local_context, 1);
 #endif
     // Run the script to get the result.
     Local<Value> result = run_script->Run();
@@ -837,24 +837,24 @@ rtError rtScriptV8::init()
     const char* debugger = getenv("SPARK_INSPECTOR");
     if (debugger && (1 == atoi(debugger)))
     {
-      if (false == isAgentStarted)
+      if (false == gIsAgentStarted)
       {
         const char* s = getenv("BREAK_ON_SCRIPTSTART");
         if (s)
         {
           int tobreakonstart = atoi(s);
           if (1 == tobreakonstart)
-            breakOnStart = true;
+            gBreakOnStart = true;
         }
-        mEnv = new Environment(mIsolate, mUvLoop, mPlatform);
-        mInspectorAgent = new Agent(mEnv);
+        gEnv = new Environment(mIsolate, mUvLoop, mPlatform);
+        gInspectorAgent = new Agent(gEnv);
         const char* debuggerPort = getenv("SPARK_INSPECTOR_PORT");
         if ((debuggerPort) && (INSPECTOR_PORT == gInspectorPort))
         {
           gInspectorPort = atoi(debuggerPort);
         }
-        mInspectorAgent->Start(gInspectorPort, gWaitForDebugger);
-        isAgentStarted = true;
+        gInspectorAgent->Start(gInspectorPort, gWaitForDebugger);
+        gIsAgentStarted = true;
       }
     }
 #endif
@@ -868,8 +868,8 @@ rtError rtScriptV8::term()
 {
   if (mV8Initialized == true) {
 #ifdef ENABLE_DEBUG_MODE
-    if (mInspectorAgent)
-      mInspectorAgent->Stop();
+    if (gInspectorAgent)
+      gInspectorAgent->Stop();
 #endif
     V8::ShutdownPlatform();
     if (mPlatform) {
@@ -1343,8 +1343,8 @@ namespace rtScriptV8NodeUtils
     ScriptOrigin origininfo(originval);
     Local<Script> run_script = Script::Compile(source, &origininfo);
 #ifdef ENABLE_DEBUG_MODE
-    if (mInspectorAgent && (true == setBreak) && (true == breakOnStart)) {
-      mInspectorAgent->breakOnStart(std::string(origin.cString()));
+    if (gInspectorAgent && (true == setBreak) && (true == gBreakOnStart)) {
+      gInspectorAgent->breakOnStart(std::string(origin.cString()));
     }
 #endif
     Local<Value> result = run_script->Run();
