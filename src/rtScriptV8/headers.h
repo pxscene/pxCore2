@@ -31,6 +31,7 @@ limitations under the License.
 
 #ifdef RTSCRIPT_SUPPORT_V8
 #ifdef ENABLE_DEBUG_MODE
+//manages v8 environment data used by debugger
 class Environment
 {
   public:
