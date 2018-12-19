@@ -34,7 +34,7 @@ const char* rtCORS::HTTPHeaderName_AccessControlRequestHeaders = "access-control
 const char* rtCORS::HTTPHeaderName_AccessControlAllowOrigin = "access-control-allow-origin";
 const char* rtCORS::HTTPHeaderName_AccessControlAllowCredentials = "access-control-allow-credentials";
 
-bool rtCORS::mEnabled = false; // default
+bool rtCORS::mEnabled = true; // default
 
 rtCORS::rtCORS(const rtString& origin)
   : mOrigin(origin)
