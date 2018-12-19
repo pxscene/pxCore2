@@ -86,44 +86,21 @@ while [ "$retVal" -ne 0 ] &&  [ "$count" -ne "$max_seconds" ]; do
 	fi
 done
 
-kill -15 `ps -ef | grep Spark |grep -v grep|grep -v spark.sh|awk '{print $2}'`
-echo "Sleeping to make terminate complete ......";
-#wait for few seconds to get the application terminate completely, as it is attached with valgrind increasing the timeout
-sleep 60s;
 ls -lrt /tmp/pxscenecrash
 retVal=$?
 if [ "$retVal" -eq 0 ]
 then
 gdb $TRAVIS_BUILD_DIR/examples/pxScene2d/src/Spark -batch -q -ex "target remote | vgdb" -ex "thread apply all bt" -ex "quit"
 fi
-pkill -9 -f spark.sh
+
+kill -15 `ps -ef | grep Spark |grep -v grep|grep -v spark.sh|awk '{print $2}'`
+echo "Sleeping for 90 secomds to make the logs dump completely"
+sleep 90
 chmod 444 $VALGRINDLOGS
-
-isValidCore=1
-grep "definitely lost: 0 bytes in 0 blocks" $VALGRINDLOGS
-valretVal=$?
-grep "pxobjectcount is \[0\]" $EXECLOGS
-pxRetVal=$?
-grep "texture memory usage is \[0\]" $EXECLOGS
-texRetVal=$?
-
-echo "$pxRetVal"."$texRetVal"."$valretVal"
-if [ "$pxRetVal" -eq 0 ]
-then
-  if [ "$texRetVal" -eq 0 ]
-  then
-    if [ "$valretVal" -eq 0 ]
-    then
-      isValidCore=0
-    fi
-  fi
-fi
 
 ls -lrt /tmp/pxscenecrash
 retVal=$?
 if [ "$retVal" -eq 0 ]
-  then
-  if [ "$isValidCore" -eq 1 ]
   then
   if [ "$TRAVIS_PULL_REQUEST" != "false" ]
   then
@@ -135,7 +112,6 @@ if [ "$retVal" -eq 0 ]
     checkError -1 "Execution failed" "Core dump" "Kindly refer $VALGRINDLOGS and test by running locally"
   fi
   exit 1;
-  fi
 fi
 
 
@@ -197,26 +173,6 @@ else
 	exit 1;
 fi
 
-#check for crash before valgrind test, as we might have got scenario where pxscene might have crashed during term
-ls -lrt *valgrind*
-retVal=$?
-if [ "$retVal" -eq 0 ]
-  then
-  if [ "$isValidCore" -eq 1 ]
-  then
-  if [ "$TRAVIS_PULL_REQUEST" != "false" ]
-  then
-    echo "****************************** CORE DUMP DETAILS ******************************"
-    cat $VALGRINDLOGS | head -150
-    echo "*******************************************************************************"
-    checkError -1 "Execution failed" "Core dump" "Kindly refer the above trace and test by running locally"
-  else
-    checkError -1 "Execution failed" "Core dump" "Kindly refer $VALGRINDLOGS and test by running locally"
-  fi
-  exit 1;
-  fi
-fi
-
 # Check for valgrind memory leaks
 grep "definitely lost: 0 bytes in 0 blocks" $VALGRINDLOGS
 retVal=$?
@@ -224,7 +180,7 @@ if [ "$retVal" -eq 0 ]
 	then
 	echo "************************* Valgrind reports success *************************";
 else
-	grep "definitely lost:" $VALGRINDLOGS
+	grep -A 100 -B 100 "definitely lost:" $VALGRINDLOGS
 	leakcheck=$?
 	if [ "$leakcheck" -eq 0 ]
 	then

@@ -433,6 +433,14 @@ void handleTerm(int)
 {
   rtLogInfo("Signal TERM received. closing the window");
   win.close();
+#ifndef PX_PLATFORM_MAC
+#ifdef WIN32
+  win_sparkle_cleanup();
+#endif
+  base64_cleanup();
+  signal(SIGTERM, SIG_DFL);
+  raise(SIGTERM);
+#endif
 }
 
 void handleSegv(int)
