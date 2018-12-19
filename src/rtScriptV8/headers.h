@@ -18,7 +18,6 @@ limitations under the License.
 
 #ifndef NODE_HEADERS_H
 #define NODE_HEADERS_H
-#define ENABLE_DEBUG_MODE
 #include <rtScriptHeaders.h>
 
 #ifdef RTSCRIPT_SUPPORT_NODE
