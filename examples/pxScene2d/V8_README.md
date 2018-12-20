@@ -34,7 +34,7 @@ Here's instructions for building pxScene with V8 instead of Node.  The biggest c
 
 * `sudo apt-get install git libglew-dev freeglut3 freeglut3-dev libgcrypt11-dev zlib1g-dev g++ libssl-dev nasm autoconf libtool cmake quilt gnutls-bin libgnutls-dev libuv-dev`
   * On Ubuntu 14.04, for building V8:
-  * `sudo add-apt-repository ppa:ubuntu-toolchain-r/test
+  * `sudo add-apt-repository ppa:ubuntu-toolchain-r/test`
   * `sudo apt-get update`
   * `sudo apt-get install libstdc++6`
 * `git clone git@github.com:topcoderinc/pxCore.git`
@@ -50,6 +50,6 @@ Here's instructions for building pxScene with V8 instead of Node.  The biggest c
 * `cmake -DSUPPORT_V8=ON -DSUPPORT_NODE=OFF ..`
 * `cmake --build . --config Release -- -j1`
 * `cd ../examples/pxScene2d/src`
-* `./pxscene about.js`
+* `./Spark about.js`
 
 At this point the `engine` field in about.js should say `V8`.
