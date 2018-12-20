@@ -172,6 +172,10 @@ function terminateScene() {
       delete this.xmoduleMap[xmodule];
     }
     this.xmoduleMap = null;
+    if (this.asyncFileAcquisition) {
+      this.asyncFileAcquisition.scene = null;
+      this.asyncFileAcquisition = null;
+    }
     if (null != this.topXModule)
       this.topXModule.freeResources();
     this.topXModule = null;
