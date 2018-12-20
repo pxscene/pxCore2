@@ -1130,26 +1130,6 @@ void pxObject::update(double t)
   for(vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
   {
 #ifdef PX_DIRTY_RECTANGLES
-      int left = (*it)->mScreenCoordinates.left();
-      int right = (*it)->mScreenCoordinates.right();
-      int top = (*it)->mScreenCoordinates.top();
-      int bottom = (*it)->mScreenCoordinates.bottom();
-      if (right > mScreenCoordinates.right())
-      {
-          mScreenCoordinates.setRight(right);
-      }
-      if (left < mScreenCoordinates.left())
-      {
-          mScreenCoordinates.setLeft(left);
-      }
-      if (top < mScreenCoordinates.top())
-      {
-          mScreenCoordinates.setTop(top);
-      }
-      if (bottom > mScreenCoordinates.bottom())
-      {
-          mScreenCoordinates.setBottom(bottom);
-      }
       context.pushState();
 #endif //PX_DIRTY_RECTANGLES
 // JR TODO  this lock looks suspicious... why do we need it?
@@ -1498,7 +1478,7 @@ void pxObject::drawInternal(bool maskPass)
         context.pushState();
         //rtLogInfo("calling drawInternal() mw=%f mh=%f\n", (*it)->mw, (*it)->mh);
         (*it)->drawInternal();
-/*#ifdef PX_DIRTY_RECTANGLES
+#ifdef PX_DIRTY_RECTANGLES
         int left = (*it)->mScreenCoordinates.left();
         int right = (*it)->mScreenCoordinates.right();
         int top = (*it)->mScreenCoordinates.top();
@@ -1519,7 +1499,7 @@ void pxObject::drawInternal(bool maskPass)
         {
           mScreenCoordinates.setBottom(bottom);
         }
-#endif //PX_DIRTY_RECTANGLES*/
+#endif //PX_DIRTY_RECTANGLES
         context.popState();
       }
       // ---------------------------------------------------------------------------------------------------
