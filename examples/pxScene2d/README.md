@@ -6,7 +6,7 @@
 
 ## Minimum requirements
 >macOS
->   * OS : Macbook Pro (macOS Sierra >=10.12)
+>   * OS : Macbook Pro (macOS Sierra >= 10.12)
 >   * RAM Size : 256 MB
 >   * Disk space : 24 MB
 >   * Processor speed : 1 GHz
@@ -32,7 +32,7 @@
 ## macOS Setup 
 
 >Install Xcode, CMake and quilt
->   * Download the latest version of Xcode (>=9.2) from https://developer.apple.com/xcode/download/
+>   * Download the latest version of Xcode ( >= 9.2 <= 10) from https://developer.apple.com/xcode/download/ (XCode 10+ will currently not work!)
 >   * Download and install the latest version of brew from https://brew.sh/
 >   * From terminal install dependencies: cmake, pkg-config, quilt, java.
 
@@ -147,7 +147,7 @@
     cd pxCore/
     mkdir temp
     cd temp
-    cmake ..
+    cmake DPXSCENE_COMPILE_WARNINGS_AS_ERRORS=OFF -DPXCORE_COMPILE_WARNINGS_AS_ERRORS=OFF BUILD_STATIC_LIBS=ON  CMAKE_BUILD_TYPE=Release ..  -G Xcode
     ~~~~
     If you wish to build the unit tests then run
     ~~~~
@@ -155,7 +155,7 @@
     ~~~~
     For Linux, Mac, and Raspberry Pi run: 
     ~~~~
-    cmake --build . --config Release -- -j1
+    cmake --build . --config Release
     ~~~~
     For Windows (**Run from inside a Visual Studio Command Prompt**):
     ~~~~
