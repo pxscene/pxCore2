@@ -35,7 +35,7 @@ bool rtPermissions::mEnabled = false;
 rtObjectRef rtPermissions::mConfig = NULL;
 
 rtPermissions::rtPermissions(const char* origin)
-  : mOrigin(origin)
+  : mOrigin(rtUrlGetOrigin(origin))
   , mParent(NULL)
 {
   static bool didInit = false;
@@ -52,19 +52,19 @@ rtPermissions::rtPermissions(const char* origin)
   if (mConfig)
   {
     rtObjectRef assign = mConfig.get<rtObjectRef>("assign");
-    if (origin && *origin && assign)
+    if (!mOrigin.isEmpty() && assign)
     {
       rtString s;
-      if (find(assign, origin, s) == RT_OK)
+      if (find(assign, mOrigin.cString(), s) == RT_OK)
       {
         role = assign.get<rtString>(s.cString());
-        rtLogInfo("permissions role '%s' for origin '%s", role.cString(), origin);
+        rtLogInfo("permissions role '%s' for origin '%s", role.cString(), mOrigin.cString());
       }
     }
   }
 
-  if (origin && *origin && role.isEmpty())
-    rtLogWarn("no permissions role for origin '%s'", origin);
+  if (!mOrigin.isEmpty() && role.isEmpty())
+    rtLogWarn("no permissions role for origin '%s'", mOrigin.cString());
 
   if (!role.isEmpty())
   {
