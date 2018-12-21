@@ -86,7 +86,8 @@ public:
   virtual rtError setFont(rtObjectRef o);
   
   virtual void onInit();
-  
+  virtual void update(double t) { pxObject::update(t);}
+    
   virtual rtError Set(uint32_t i, const rtValue* value) override
   {
     (void)i;
