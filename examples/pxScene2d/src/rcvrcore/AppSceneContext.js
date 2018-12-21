@@ -85,8 +85,9 @@ function AppSceneContext(params) {
 
 AppSceneContext.prototype.loadScene = function() {
   //log.info("loadScene() - begins    on ctx: " + getContextID() );
-  var urlParts = url.parse(this.packageUrl, true);
-  var fullPath = this.packageUrl;
+  var thisPackageUrl = this.packageUrl.split('?')[0];
+  var urlParts = url.parse(thisPackageUrl, true);
+  var fullPath = thisPackageUrl;
   var platform = (isDuk)?uv.platform:(isV8?uv_platform():process.platform);
   if (fullPath.substring(0, 4) !== "http") {
     if( fullPath.charAt(0) === '.' ) {
@@ -94,7 +95,7 @@ AppSceneContext.prototype.loadScene = function() {
       this.defaultBaseUri = ".";
     } else if( platform === 'win32' && fullPath.charAt(1) === ':' ) {
         // Windows OS, so take the url as the whole file path
-        urlParts.pathname = this.packageUrl;
+        urlParts.pathname = thisPackageUrl;
     }
     fullPath = urlParts.pathname;
     if( fullPath !== null) {
