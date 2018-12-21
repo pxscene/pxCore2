@@ -297,6 +297,34 @@ rtWrapperSceneUpdateExit();
 
 }
 
+void HandleMap::printAll()
+{
+  rtWrapperSceneUpdateEnter();
+#ifndef RUNINMAIN
+  pthread_mutex_lock(&sObjectMapMutex);
+#endif
+  unsigned num = static_cast<unsigned>(objectMap.size());
+  if (num > 0)
+  {
+    rtLogInfo("%u persistent handles", num);
+    for (ObjectReferenceMap::iterator it = objectMap.begin(), end = objectMap.end(); it != end; it++)
+    {
+      ObjectReference* ref = it->second;
+      if (ref->RTObject)
+      {
+        rtIObject* ptr = ref->RTObject.getPtr();
+        rtMethodMap* methodMap = ptr->getMap();
+        if (methodMap)
+          rtLogInfo("'%s' %p", methodMap->className, (void *)ptr);
+      }
+    }
+  }
+  rtWrapperSceneUpdateExit();
+#ifndef RUNINMAIN
+  pthread_mutex_unlock(&sObjectMapMutex);
+#endif
+}
+
 Local<Object> HandleMap::lookupSurrogate(v8::Local<v8::Context>& ctx, const rtObjectRef& from)
 {
   Isolate* isolate = ctx->GetIsolate();
