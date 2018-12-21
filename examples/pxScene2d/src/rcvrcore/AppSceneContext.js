@@ -47,14 +47,10 @@ function AppSceneContext(params) {
   this.makeReady = params.makeReady;
   this.innerscene = params.scene;
   this.rpcController = params.rpcController;
-  if( params.packageUrl.indexOf('?') != -1 ) {
+  if( params.packageUrl.indexOf('?') !== -1 ) {
     var urlParts = url.parse(params.packageUrl, true);
     this.queryParams = urlParts.query;
-    if (params.packageUrl.substring(0, 4) === "http") {
-      this.packageUrl = urlParts.protocol + "//" + urlParts.host + urlParts.pathname;
-    } else {
-      this.packageUrl = params.packageUrl;
-    }
+    this.packageUrl = params.packageUrl;
   } else {
     this.queryParams = {};
     this.packageUrl = params.packageUrl;
