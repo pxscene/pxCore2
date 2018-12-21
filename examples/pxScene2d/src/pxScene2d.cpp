@@ -96,6 +96,12 @@ using namespace std;
 #warning  DEBUG_SKIP_UPDATE is ON !
 #endif
 
+#ifdef PX_DIRTY_RECTANGLES
+bool gDirtyRectsEnabled = true;
+#else
+bool gDirtyRectsEnabled = false;
+#endif //PX_DIRTY_RECTANGLES
+
 extern rtThreadQueue* gUIThreadQueue;
 extern pxContext      context;
 
@@ -1107,64 +1113,64 @@ void pxObject::update(double t)
     ++it;
   }
 
-#ifdef PX_DIRTY_RECTANGLES
     pxMatrix4f m;
-    applyMatrix(m);
-    context.setMatrix(m);
-    if (mIsDirty)
-    {
-        pxRect dirtyRect = getBoundingRectInScreenCoordinates();
-        if (!dirtyRect.isEqual(mScreenCoordinates))
+    if (gDirtyRectsEnabled) {
+        applyMatrix(m);
+        context.setMatrix(m);
+        if (mIsDirty)
         {
-            dirtyRect.unionRect(mScreenCoordinates);
-        }  
-        mScene->invalidateRect(&dirtyRect);
-        mRenderMatrix = context.getMatrix();
-        setDirtyRect(&dirtyRect);
+            pxRect dirtyRect = getBoundingRectInScreenCoordinates();
+            if (!dirtyRect.isEqual(mScreenCoordinates))
+            {
+                dirtyRect.unionRect(mScreenCoordinates);
+            }
+            mScene->invalidateRect(&dirtyRect);
+            mRenderMatrix = context.getMatrix();
+            setDirtyRect(&dirtyRect);
 
-        mIsDirty = false;
+            mIsDirty = false;
+        }
     }
-#endif
 
   // Recursively update children
   for(vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
   {
-#ifdef PX_DIRTY_RECTANGLES
-      int left = (*it)->mScreenCoordinates.left();
-      int right = (*it)->mScreenCoordinates.right();
-      int top = (*it)->mScreenCoordinates.top();
-      int bottom = (*it)->mScreenCoordinates.bottom();
-      if (right > mScreenCoordinates.right())
-      {
-          mScreenCoordinates.setRight(right);
+      if (gDirtyRectsEnabled) {
+          int left = (*it)->mScreenCoordinates.left();
+          int right = (*it)->mScreenCoordinates.right();
+          int top = (*it)->mScreenCoordinates.top();
+          int bottom = (*it)->mScreenCoordinates.bottom();
+          if (right > mScreenCoordinates.right())
+          {
+              mScreenCoordinates.setRight(right);
+          }
+          if (left < mScreenCoordinates.left())
+          {
+              mScreenCoordinates.setLeft(left);
+          }
+          if (top < mScreenCoordinates.top())
+          {
+              mScreenCoordinates.setTop(top);
+          }
+          if (bottom > mScreenCoordinates.bottom())
+          {
+              mScreenCoordinates.setBottom(bottom);
+          }
+          context.pushState();
       }
-      if (left < mScreenCoordinates.left())
-      {
-          mScreenCoordinates.setLeft(left);
-      }
-      if (top < mScreenCoordinates.top())
-      {
-          mScreenCoordinates.setTop(top);
-      }
-      if (bottom > mScreenCoordinates.bottom())
-      {
-          mScreenCoordinates.setBottom(bottom);
-      }
-      context.pushState();
-#endif //PX_DIRTY_RECTANGLES
 // JR TODO  this lock looks suspicious... why do we need it?
 ENTERSCENELOCK()
     (*it)->update(t);
 EXITSCENELOCK()
-#ifdef PX_DIRTY_RECTANGLES
+      if (gDirtyRectsEnabled) {
       context.popState();
-#endif //PX_DIRTY_RECTANGLES
+      }
   }
 
-#ifdef PX_DIRTY_RECTANGLES
-    //context.setMatrix(m);
-    mRenderMatrix = m;
-#endif
+    if (gDirtyRectsEnabled) {
+        //context.setMatrix(m);
+        mRenderMatrix = m;
+    }
 
   // Send promise
   sendPromise();
@@ -1359,11 +1365,11 @@ void pxObject::drawInternal(bool maskPass)
   m.translate(-mcx, -mcy);
 #else
 
-#ifdef PX_DIRTY_RECTANGLES
-    m = mRenderMatrix;
-#else
-    applyMatrix(m); // ANIMATE !!!
-#endif
+    if (gDirtyRectsEnabled) {
+        m = mRenderMatrix;
+    } else {
+        applyMatrix(m); // ANIMATE !!!
+    }
 #endif
 #else
   // translate/rotate/scale based on cx, cy
@@ -1411,11 +1417,11 @@ void pxObject::drawInternal(bool maskPass)
     //rtLogInfo("pxObject::drawInternal returning because object is not on screen mw=%f mh=%f\n", mw, mh);
     return;
   }
-
-  #ifdef PX_DIRTY_RECTANGLES
-  //mRenderMatrix = context.getMatrix();
-  mScreenCoordinates = getBoundingRectInScreenCoordinates();
-  #endif //PX_DIRTY_RECTANGLES
+    
+  if (gDirtyRectsEnabled) {
+    //mRenderMatrix = context.getMatrix();
+    mScreenCoordinates = getBoundingRectInScreenCoordinates();
+  }
 
   float c[4] = {1, 0, 0, 1};
   context.drawDiagRect(0, 0, w, h, c);
@@ -1498,7 +1504,7 @@ void pxObject::drawInternal(bool maskPass)
         context.pushState();
         //rtLogInfo("calling drawInternal() mw=%f mh=%f\n", (*it)->mw, (*it)->mh);
         (*it)->drawInternal();
-/*#ifdef PX_DIRTY_RECTANGLES
+/*if (gDirtyRectsEnabled) {
         int left = (*it)->mScreenCoordinates.left();
         int right = (*it)->mScreenCoordinates.right();
         int top = (*it)->mScreenCoordinates.top();
@@ -1519,7 +1525,7 @@ void pxObject::drawInternal(bool maskPass)
         {
           mScreenCoordinates.setBottom(bottom);
         }
-#endif //PX_DIRTY_RECTANGLES*/
+ }*/
         context.popState();
       }
       // ---------------------------------------------------------------------------------------------------
@@ -1538,9 +1544,9 @@ void pxObject::drawInternal(bool maskPass)
     mRepaint = false;
   }
   // ---------------------------------------------------------------------------------------------------
-#ifdef PX_DIRTY_RECTANGLES
-  mDirtyRect.setEmpty();
-#endif //PX_DIRTY_RECTANGLES
+  if (gDirtyRectsEnabled) {
+    mDirtyRect.setEmpty();
+  }
 }
 
 
@@ -1650,9 +1656,9 @@ void pxObject::createSnapshot(pxContextFramebufferRef& fbo, bool separateContext
     clearSnapshot(fbo);
     //rtLogInfo("createFramebuffer  mw=%f mh=%f\n", w, h);
     fbo = context.createFramebuffer(static_cast<int>(floor(w)), static_cast<int>(floor(h)), antiAliasing);
-#ifdef PX_DIRTY_RECTANGLES
-    fullFboRepaint = true;
-#endif //PX_DIRTY_RECTANGLES
+    if (gDirtyRectsEnabled) {
+       fullFboRepaint = true;
+    }
   }
   else
   {
@@ -1663,7 +1669,7 @@ void pxObject::createSnapshot(pxContextFramebufferRef& fbo, bool separateContext
   if (mRepaint && context.setFramebuffer(fbo) == PX_OK)
   {
     //context.clear(static_cast<int>(w), static_cast<int>(h));
-#ifdef PX_DIRTY_RECTANGLES
+    if (gDirtyRectsEnabled) {
     int clearX = mDirtyRect.left();
     int clearY = mDirtyRect.top();
     int clearWidth = mDirtyRect.right() - clearX+1;
@@ -1680,9 +1686,9 @@ void pxObject::createSnapshot(pxContextFramebufferRef& fbo, bool separateContext
         clearHeight = h;
         context.clear(clearX, clearY, clearWidth, clearHeight);
     }
-#else
+   } else {
     context.clear(static_cast<int>(w), static_cast<int>(h));
-#endif //PX_DIRTY_RECTANGLES
+   }
     draw();
 
     for(vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
@@ -1784,9 +1790,9 @@ bool pxObject::onTextureReady()
   {
     mScene->invalidateRect(NULL);
   }
-  #ifdef PX_DIRTY_RECTANGLES
-  mIsDirty = true;
-  #endif //PX_DIRTY_RECTANGLES
+  if (gDirtyRectsEnabled) {
+    mIsDirty = true;
+  }
   return false;
 }
 
@@ -2451,79 +2457,79 @@ void pxScene2d::draw()
   double __frameStart = pxMilliseconds();
 
   //rtLogInfo("pxScene2d::draw()\n");
-  #ifdef PX_DIRTY_RECTANGLES
-  pxRect dirtyRectangle = mDirtyRect;
-  dirtyRectangle.unionRect(mLastFrameDirtyRect);
-  int x = dirtyRectangle.left();
-  int y = dirtyRectangle.top();
-  int w = dirtyRectangle.right() - x+1;
-  int h = dirtyRectangle.bottom() - y+1;
+  if (gDirtyRectsEnabled) {
+      pxRect dirtyRectangle = mDirtyRect;
+      dirtyRectangle.unionRect(mLastFrameDirtyRect);
+      int x = dirtyRectangle.left();
+      int y = dirtyRectangle.top();
+      int w = dirtyRectangle.right() - x+1;
+      int h = dirtyRectangle.bottom() - y+1;
 
-  static bool previousShowDirtyRect = false;
+      static bool previousShowDirtyRect = false;
 
-  if (mShowDirtyRectangle || previousShowDirtyRect || !mEnableDirtyRectangles)
-  {
-    context.enableDirtyRectangles(false);
+      if (mShowDirtyRectangle || previousShowDirtyRect || !mEnableDirtyRectangles)
+      {
+        context.enableDirtyRectangles(false);
+      }
+
+      if (mTop)
+      {
+        if (mShowDirtyRectangle || !mEnableDirtyRectangles)
+        {
+          context.enableClipping(false);
+          context.clear(mWidth, mHeight);
+        }
+        else
+        {
+          context.clear(x, y, w, h);
+        }
+      }
+
+      if (mRoot)
+      {
+        context.pushState();
+
+    ENTERSCENELOCK()
+        mRoot->drawInternal(true);
+    EXITSCENELOCK()
+        context.popState();
+        mLastFrameDirtyRect.setLTRB(mDirtyRect.left(), mDirtyRect.top(), mDirtyRect.right(), mDirtyRect.bottom());
+        mDirtyRect.setEmpty();
+      }
+
+      if (mTop && mShowDirtyRectangle)
+      {
+        /*pxMatrix4f identity;
+          identity.identity();
+          pxMatrix4f currentMatrix = context.getMatrix();
+          context.setMatrix(identity);*/
+          float red[]= {1,0,0,1};
+          bool showOutlines = context.showOutlines();
+          context.setShowOutlines(true);
+          context.drawDiagRect(x, y, w, h, red);
+          context.setShowOutlines(showOutlines);
+          //context.setMatrix(currentMatrix);
+          context.enableClipping(true);
+      }
+      previousShowDirtyRect = mShowDirtyRectangle;
+
+  } else {
+
+      if (mTop)
+      {
+        context.clear(mWidth, mHeight);
+      }
+
+      if (mRoot)
+      {
+        pxMatrix4f m;
+        context.pushState();
+    ENTERSCENELOCK()
+        mRoot->drawInternal(true); // mask it !
+    EXITSCENELOCK()
+        context.popState();
+      }
   }
-
-  if (mTop)
-  {
-    if (mShowDirtyRectangle || !mEnableDirtyRectangles)
-    {
-      context.enableClipping(false);
-      context.clear(mWidth, mHeight);
-    }
-    else
-    {
-      context.clear(x, y, w, h);
-    }
-  }
-
-  if (mRoot)
-  {
-    context.pushState();
-
-ENTERSCENELOCK()
-    mRoot->drawInternal(true);
-EXITSCENELOCK()
-    context.popState();
-    mLastFrameDirtyRect.setLTRB(mDirtyRect.left(), mDirtyRect.top(), mDirtyRect.right(), mDirtyRect.bottom());
-    mDirtyRect.setEmpty();
-  }
-
-  if (mTop && mShowDirtyRectangle)
-  {
-    /*pxMatrix4f identity;
-      identity.identity();
-      pxMatrix4f currentMatrix = context.getMatrix();
-      context.setMatrix(identity);*/
-      float red[]= {1,0,0,1};
-      bool showOutlines = context.showOutlines();
-      context.setShowOutlines(true);
-      context.drawDiagRect(x, y, w, h, red);
-      context.setShowOutlines(showOutlines);
-      //context.setMatrix(currentMatrix);
-      context.enableClipping(true);
-  }
-  previousShowDirtyRect = mShowDirtyRectangle;
-
-#else // Not ... PX_DIRTY_RECTANGLES
-
-  if (mTop)
-  {
-    context.clear(mWidth, mHeight);
-  }
-
-  if (mRoot)
-  {
-    pxMatrix4f m;
-    context.pushState();
-ENTERSCENELOCK()
-    mRoot->drawInternal(true); // mask it !
-EXITSCENELOCK()
-    context.popState();
-  }
-  #endif //PX_DIRTY_RECTANGLES
 
   #ifdef USE_SCENE_POINTER
   if (mPointerTexture.getPtr() == NULL)
@@ -2723,9 +2729,9 @@ void pxScene2d::update(double t)
 {
   if (mRoot)
   {
-#ifdef PX_DIRTY_RECTANGLES
+    if (gDirtyRectsEnabled) {
       context.pushState();
-#endif //PX_DIRTY_RECTANGLES
+      }
 
       if( mCustomAnimator != NULL ) {
           mCustomAnimator->Send( 0, NULL, NULL );
@@ -2737,9 +2743,9 @@ void pxScene2d::update(double t)
       UNUSED_PARAM(t);
 #endif
 
-#ifdef PX_DIRTY_RECTANGLES
+    if (gDirtyRectsEnabled) {
       context.popState();
-#endif //PX_DIRTY_RECTANGLES
+    }
   }
 }
 
@@ -3786,35 +3792,35 @@ void pxViewContainer::invalidateRect(pxRect* r)
   }
   if (mScene)
   {
-#ifdef PX_DIRTY_RECTANGLES
-    pxRect screenRect = convertToScreenCoordinates(r);
-    mScene->invalidateRect(&screenRect);
-    setDirtyRect(r);
-#else
-    mScene->invalidateRect(NULL);
-    UNUSED_PARAM(r);
-#endif //PX_DIRTY_RECTANGLES
+    if (gDirtyRectsEnabled) {
+        pxRect screenRect = convertToScreenCoordinates(r);
+        mScene->invalidateRect(&screenRect);
+        setDirtyRect(r);
+    } else {
+        mScene->invalidateRect(NULL);
+        UNUSED_PARAM(r);
+    }
   }
 }
 
 void pxScene2d::invalidateRect(pxRect* r)
 {
-#ifdef PX_DIRTY_RECTANGLES
-  if (r != NULL)
-  {
-    mDirtyRect.unionRect(*r);
-    mDirty = true;
+  if (gDirtyRectsEnabled) {
+      if (r != NULL)
+      {
+        mDirtyRect.unionRect(*r);
+        mDirty = true;
+      }
+  } else {
+    UNUSED_PARAM(r);
   }
-#else
-  UNUSED_PARAM(r);
-#endif //PX_DIRTY_RECTANGLES
   if (mContainer && !mTop)
   {
-#ifdef PX_DIRTY_RECTANGLES
-    mContainer->invalidateRect(mDirty ? &mDirtyRect : NULL);
-#else
-    mContainer->invalidateRect(NULL);
-#endif //PX_DIRTY_RECTANGLES
+    if (gDirtyRectsEnabled) {
+        mContainer->invalidateRect(mDirty ? &mDirtyRect : NULL);
+    } else {
+        mContainer->invalidateRect(NULL);
+    }
   }
 }
 
