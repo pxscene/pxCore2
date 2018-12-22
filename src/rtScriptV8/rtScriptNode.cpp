@@ -1279,7 +1279,7 @@ rtError rtScriptNode::term()
   //  }
   }
 
-  HandleMap::printAll();
+  //HandleMap::printAll();
 
   return RT_OK;
 }

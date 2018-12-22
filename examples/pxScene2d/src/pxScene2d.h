@@ -507,11 +507,8 @@ public:
       float dy = -(mpy * mh);
       
       // translate based on xy rotate/scale based on cx, cy
-      bool doTransToOrig = msx != 1.0 || msy != 1.0 || mr;
-      if (doTransToOrig)
-          m.translate(mx + mcx + dx, my + mcy + dy);
-      else
-          m.translate(mx + dx, my + dy);
+      m.translate(mx + mcx + dx, my + mcy + dy);
+      
       if (mr)
       {
         m.rotateInDegrees(mr
@@ -521,8 +518,7 @@ public:
         );
       }
       if (msx != 1.0 || msy != 1.0) m.scale(msx, msy);
-      if (doTransToOrig)
-          m.translate(-mcx, -mcy);
+      m.translate(-mcx, -mcy);
 #else
       // translate/rotate/scale based on cx, cy
       m.translate(mx, my);
