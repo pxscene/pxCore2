@@ -32,16 +32,20 @@ var outputFile = "output.js";
 var outputJar = "bundle.jar";
 var bundleType = "jar";
 var projectPath = "";
+var sparkBundlingMode = "legacy";
 
 module.exports = class SparkPluginImports {
 
   constructor() {
     // entry file provided by user
     projectPath = process.env.PWD;
+    if (undefined != process.env.BUNDLING_MODE)
+      sparkBundlingMode = process.env.BUNDLING_MODE;  
   }
 
   apply(compiler)
   {
+    if (sparkBundlingMode == "new") {
     /* add options for webpack */
     function addOptions(compiler)
     {
@@ -269,5 +273,6 @@ module.exports = class SparkPluginImports {
         }.bind(this));
       }.bind(this));
     }
+   }
   }
 };
