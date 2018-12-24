@@ -162,6 +162,16 @@ static bool gWaylandAppsConfigLoaded = false;
 #define DEFAULT_WAYLAND_APP_CONFIG_FILE "./waylandregistry.conf"
 #define DEFAULT_ALL_APPS_CONFIG_FILE "./pxsceneappregistry.conf"
 
+#if defined(PX_PLATFORM_WIN)
+const rtString gPlatform = "windows";
+#elif defined(PX_PLATFORM_MAC)
+const rtString gPlatform = "osx";
+#elif defined(PX_PLATFORM_GLUT)
+const rtString gPlatform = "glut";
+#else
+const rtString gPlatform = "linux";
+#endif
+
 void populateWaylandAppsConfig()
 {
   //populate from the wayland registry file
@@ -1958,6 +1968,7 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   build.set("date", xstr(__DATE__));
   build.set("time", xstr(__TIME__));
   build.set("revision", xstr(SPARK_BUILD_GIT_REVISION));
+  build.set("os", gPlatform);
 
   mInfo.set("build", build);
   mInfo.set("gfxmemory", context.currentTextureMemoryUsageInBytes());
