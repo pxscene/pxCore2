@@ -576,11 +576,11 @@ rtError pxObject::Set(uint32_t i, const rtValue* value)
 
 rtError pxObject::Set(const char* name, const rtValue* value)
 {
-  #ifdef PX_DIRTY_RECTANGLES
-  mIsDirty = true;
-  //mScreenCoordinates = getBoundingRectInScreenCoordinates();
-
-  #endif //PX_DIRTY_RECTANGLES
+  if (gDirtyRectsEnabled) {
+      mIsDirty = true;
+      //mScreenCoordinates = getBoundingRectInScreenCoordinates();
+  }
+    
   if (strcmp(name, "x") != 0 && strcmp(name, "y") != 0 &&  strcmp(name, "a") != 0)
   {
     repaint();
@@ -680,10 +680,10 @@ void pxObject::setParent(rtRef<pxObject>& parent)
     mParent = parent;
     if (parent)
       parent->mChildren.push_back(this);
-#ifdef PX_DIRTY_RECTANGLES
-    mIsDirty = true;
-    //mScreenCoordinates = getBoundingRectInScreenCoordinates();
-#endif //PX_DIRTY_RECTANGLES
+    if (gDirtyRectsEnabled) {
+        mIsDirty = true;
+        //mScreenCoordinates = getBoundingRectInScreenCoordinates();
+    }
   }
 }
 
