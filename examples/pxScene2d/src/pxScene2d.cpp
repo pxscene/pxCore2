@@ -1972,7 +1972,6 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
 
   mInfo.set("build", build);
   mInfo.set("gfxmemory", context.currentTextureMemoryUsageInBytes());
-  mInfo.set("os", gPlatform);
 
   //////////////////////////////////////////////////////
   //
