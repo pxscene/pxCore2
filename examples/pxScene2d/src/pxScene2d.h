@@ -1757,10 +1757,10 @@ public:
   {
      mPointerHidden= hide;
   }
-  #ifdef PX_DIRTY_RECTANGLES
+  //#ifdef PX_DIRTY_RECTANGLES
   pxRect mDirtyRect;
   pxRect mLastFrameDirtyRect;
-  #endif //PX_DIRTY_RECTANGLES
+  //#endif //PX_DIRTY_RECTANGLES
   bool mDirty;
   testView* mTestView;
   bool mDisposed;
