@@ -1227,7 +1227,7 @@ uint64_t pxObject::textureMemoryUsage()
   return textureMemory;
 }
 
-#ifdef PX_DIRTY_RECTANGLES
+//#ifdef PX_DIRTY_RECTANGLES
 void pxObject::setDirtyRect(pxRect *r)
 {
   if (r != NULL)
@@ -1322,7 +1322,7 @@ pxRect pxObject::convertToScreenCoordinates(pxRect* r)
   }
   return pxRect(left, top, right, bottom);
 }
-#endif //PX_DIRTY_RECTANGLES
+//#endif //PX_DIRTY_RECTANGLES
 
 const float alphaEpsilon = (1.0f/255.0f);
 
@@ -1646,9 +1646,9 @@ void pxObject::createSnapshot(pxContextFramebufferRef& fbo, bool separateContext
   float w = getOnscreenWidth();
   float h = getOnscreenHeight();
 
-#ifdef PX_DIRTY_RECTANGLES
+//#ifdef PX_DIRTY_RECTANGLES
   bool fullFboRepaint = false;
-#endif //PX_DIRTY_RECTANGLES
+//#endif //PX_DIRTY_RECTANGLES
 
   //rtLogInfo("createSnapshot  w=%f h=%f\n", w, h);
   if (fbo.getPtr() == NULL || fbo->width() != floor(w) || fbo->height() != floor(h))
