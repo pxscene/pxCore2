@@ -61,6 +61,7 @@ public:
 
   bool isFile();
   rtString getName();
+  bool isRelativeResource(rtString url);
 
 protected:
   static void onDownloadComplete(rtFileDownloadRequest* downloadRequest);
@@ -70,7 +71,8 @@ protected:
 
   bool mIsFile;
   rtString mUrl;
-
+  rtString mHttpUrlBase;
+  rtString mLocalUrlBase;
   rtObjectRef mLoadStatus;
   rtObjectRef mReady;
 

@@ -110,7 +110,17 @@ rtError pxArchive::initFromUrl(const rtString& url, const rtCORSRef& cors, rtObj
   mLoadStatus = new rtMapObject;
 
   mUrl = url;
-
+  std::string tempUrl(url.cString());  
+  std::size_t found = tempUrl.find_last_of("/");
+  if (found != std::string::npos)
+  {
+    if (url.beginsWith("http"))
+    {
+      mHttpUrlBase = (tempUrl.substr(0, found+1)).c_str();
+    } 
+    else
+      mLocalUrlBase = (tempUrl.substr(0, found+1)).c_str();
+  }
   // Since this object can be released before we get a async completion
   // We need to maintain this object's lifetime
   // TODO review overall flow and organization
@@ -216,8 +226,14 @@ rtError pxArchive::getFileAsString(const char* fileName, rtString& s)
 rtError pxArchive::getFileData(const char* fileName, rtData& d)
 {
   rtError e = RT_FAIL;
-  // convert the names coming as input as "./filename" to filename to perform search
+  rtString tmpFileName(fileName);
   char* name = (char *)fileName;
+  if (isRelativeResource(tmpFileName))
+  {
+    tmpFileName = tmpFileName.substring(mHttpUrlBase.length()>0?mHttpUrlBase.length():mLocalUrlBase.length()).cString();
+    name = (char *)tmpFileName.cString();
+  }
+  // convert the names coming as input as "./filename" to filename to perform search
   if ((NULL != name) && (name[0] == '.') && (name[1] == '/'))
   {
     name = name+2;
@@ -354,6 +370,20 @@ bool pxArchive::isFile()
 rtString pxArchive::getName()
 {
   return mUrl;
+}
+
+bool pxArchive::isRelativeResource(rtString url)
+{
+  bool isRelative = false;
+  if ((mHttpUrlBase.length() > 0)  && (url.beginsWith(mHttpUrlBase)))
+  {
+    isRelative = true;
+  }
+  else if ((mLocalUrlBase.length() > 0)  && (url.beginsWith(mLocalUrlBase)))
+  {
+    isRelative = true;
+  }
+  return isRelative;
 }
 
 rtDefineObject(pxArchive,rtObject);
