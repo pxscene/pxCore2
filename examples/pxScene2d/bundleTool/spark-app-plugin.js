@@ -32,6 +32,7 @@ var outputFile = "output.js";
 var outputJar = "bundle.jar";
 var bundleType = "jar";
 var projectPath = "";
+var ignoreFiles = [];
 var sparkBundlingMode = "legacy";
 
 module.exports = class SparkPluginImports {
@@ -69,13 +70,29 @@ module.exports = class SparkPluginImports {
         if (bundleType == "jar")
         {
           outputJar = compiler["options"].output["filename"];
+          if (outputJar.indexOf(".jar") == -1)
+          {
+            console.log("please provide output file with .jar extension");
+            process.exit(0);
+          }
           compiler["options"].output["filename"] = outputFile;
         }
         else if(bundleType == "file")
         {
           outputFile = compiler["options"].output["filename"];
+          if (outputJar.indexOf(".js") == -1)
+          {
+            console.log("please provide output file with .js extension");
+            process.exit(0);
+          }
         }
         outputDir = compiler["options"].output["path"];
+        // default output dir is dist if user mentioned output file with path
+        if (outputDir == projectPath)
+        {
+           compiler["options"].output["path"] = outputDir + "/dist";
+           outputDir = "dist";
+        }
       }
       else
       {
@@ -83,7 +100,6 @@ module.exports = class SparkPluginImports {
         compiler["options"].output["path"] = outputDir;
       }
       compiler["options"].optimization.namedModules = "true";
-      var ignoreFiles = [];
       ignoreFiles.push("node_modules/**/*");
       compiler["options"].plugins.push(new CopyWebpackPlugin([
               { from: projectPath + '/**/*.png', ignore: ignoreFiles },
@@ -105,7 +121,6 @@ module.exports = class SparkPluginImports {
           process:false,
           Buffer:false
         };
-      //console.log(compiler["options"]);
       compiler["options"].target = "node";
       entryFile = compiler["options"].entry[null];
       var lastSlash = entryFile.lastIndexOf("/");
@@ -128,6 +143,7 @@ module.exports = class SparkPluginImports {
         {
             for (var j=0; j<externalfiles.length; j++)
             {
+              ignoreFiles.push(externalfiles[j]);
               for (var i=0; i<files.length; i++)
               {
                 if (files[i].includes(externalfiles[j]))
