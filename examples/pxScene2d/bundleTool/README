@@ -1,0 +1,50 @@
+steps for running webpack:
+
+Environment variables:
+BUNDLE_TYPE : accepted values file (bundle to js file) and jar(bundle to jar file). Default value is jar
+BUNDLING_MODE : accepted values legacy (support webpack of apps as today. i.e apps written in webpack required format) and new (support webpack of spark format js files. i.e js files written without any require way of importing modules). Default value is legacy.
+
+command line options:
+
+--entry <filename> - mention the start js file to run
+--output <filename> - mention the name of output js or jar file
+
+webpack config options:
+
+module.exports = {
+  //...
+  externals : {
+      files: [file1, file2, file3]
+  }
+};
+
+If above externals config is given , files mentioned in list will be excluded for bundling.
+
+eg:
+module.exports = {
+  //...
+  externals : {
+      files: ['components/a.js']
+  }
+};
+
+Here components/a.js will be excluded in bundling process. any image files or ttf files mentioned in this list will be excluded in bundling
+
+example commands:
+
+BUNDLE_TYPE=jar webpack --plugin spark-app-plugin --entry showcaseApp.js --output /home/madan/op/y.jar
+This will generate y.jar in directory /home/madan/op
+
+BUNDLE_TYPE=jar webpack --plugin spark-app-plugin --entry showcaseApp.js --output /home/madan/op/y.js
+This will generate error due to mismatch of bundletype and output filename
+
+BUNDLE_TYPE=js webpack --plugin spark-app-plugin --entry showcaseApp.js --output /home/madan/op/y.jar
+This will generate error due to mismatch of bundletype and output filename
+
+webpack --plugin spark-app-plugin --entry showcaseApp.js --output /home/madan/op/y.jar
+This will generate y.jar in /home/madan/op/y.jar
+
+webpack --plugin spark-app-plugin --entry showcaseApp.js --output y.jar
+This will generate y.jar in dist relative of pwd
+
+

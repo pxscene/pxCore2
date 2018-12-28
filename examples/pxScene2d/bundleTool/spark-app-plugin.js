@@ -41,7 +41,14 @@ module.exports = class SparkPluginImports {
     // entry file provided by user
     projectPath = process.env.PWD;
     if (undefined != process.env.BUNDLING_MODE)
-      sparkBundlingMode = process.env.BUNDLING_MODE;  
+    {
+       sparkBundlingMode = process.env.BUNDLING_MODE;  
+       if ((sparkBundlingMode != "legacy") && (sparkBundlingMode != "new"))
+       {
+         console.log("please provide bundling mode be either legacy or new");
+         process.exit(0);
+       }
+    }
   }
 
   apply(compiler)
@@ -62,7 +69,10 @@ module.exports = class SparkPluginImports {
         if ((userInput == "file") || (userInput == "jar")) 
           bundleType = userInput;
         else
-          console.log("!! Warning : unsupported option for bundle type. only file and jar supported");
+        {
+          console.log("!! Error : unsupported option for bundle type. only file and jar supported");
+          process.exit(0);
+        }
       }
 
       if ((compiler["options"].output["filename"] != undefined) && (compiler["options"].output["filename"] != '[name].js'))
@@ -101,6 +111,7 @@ module.exports = class SparkPluginImports {
       }
       compiler["options"].optimization.namedModules = "true";
       ignoreFiles.push("node_modules/**/*");
+      ignoreFiles.push("node_modules");
       compiler["options"].plugins.push(new CopyWebpackPlugin([
               { from: projectPath + '/**/*.png', ignore: ignoreFiles },
               { from: projectPath + '/**/*.svg', ignore: ignoreFiles },
