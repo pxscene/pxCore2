@@ -122,7 +122,7 @@ leakcount=`leaks Spark|grep Leak|wc -l`
 echo "leakcount during termination $leakcount"
 kill -15 `ps -ef | grep Spark |grep -v grep|grep -v spark.sh|awk '{print $2}'`
 
-# Sleep for 40s as we have sleep for 30s inside code to capture memory of process
+#Sleep for 90s as we have sleep for 30s inside code to capture memory of process
 echo "Sleeping to make terminate complete ...";
 sleep 90s
 pkill -9 -f spark.sh	
