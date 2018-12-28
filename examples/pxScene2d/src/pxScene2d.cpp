@@ -162,6 +162,7 @@ static bool gWaylandAppsConfigLoaded = false;
 #define DEFAULT_WAYLAND_APP_CONFIG_FILE "./waylandregistry.conf"
 #define DEFAULT_ALL_APPS_CONFIG_FILE "./pxsceneappregistry.conf"
 
+// ubuntu is mapped with glut
 #if defined(PX_PLATFORM_WIN)
 const rtString gPlatform = "windows";
 #elif defined(PX_PLATFORM_MAC)
