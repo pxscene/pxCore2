@@ -16,7 +16,7 @@ PathR=$externalLibs:$externalDir/libnode-v6.9.0/out/Release/obj.target
 export LD_LIBRARY_PATH=$PathR
 
 export NODE_PATH=.
-
+export SPARK_INSPECTOR=1
 #export RT_LOG_LEVEL=info
 
 #valgrind integration

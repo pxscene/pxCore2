@@ -26,6 +26,7 @@ var fs = require("fs");
 var http_global = require("http");
 var https_global = require("https");
 var url = require("url");
+var http_wrap = require('rcvrcore/http_wrap');
 
 var Logger = require('rcvrcore/Logger').Logger;
 var log = new Logger('FileUtils');
@@ -33,12 +34,13 @@ var log = new Logger('FileUtils');
 /**
  * Load a file from either the filesystem or webservice
  * @param fileUri the full path of the file
+ * @param appSceneContext
  * @returns  a promise that will be fulfilled if the file is found, else it is rejected.
  */
-function loadFile(fileUri) {
+function loadFile(fileUri, appSceneContext) {
   return new Promise(function(resolve, reject) {
     var code = [];
-    if (fileUri.substring(0, 4) == "http") {
+    if (fileUri.substring(0, 4) === "http") {
       var options = url.parse(fileUri);
       var req = null;
       var httpCallback = function (res) {
@@ -46,7 +48,7 @@ function loadFile(fileUri) {
           code += data;
         });
         res.on('end', function () {
-          if( res.statusCode == 200 ) {
+          if( res.statusCode === 200 ) {
             log.message(3, "Got file[" + fileUri + "] from web service");
             resolve(code);
           } else {
@@ -55,12 +57,13 @@ function loadFile(fileUri) {
           }
         });
       };
-      if (fileUri.substring(0, 5) == "https") {
-        req = https_global.get(options, httpCallback);
-        process._tickCallback();
+      var isHttps = fileUri.substring(0, 5) === "https";
+      if (appSceneContext) {
+        req = new http_wrap(isHttps ? "https" : "http", appSceneContext).get(options, httpCallback);
+      } else {
+        req = (isHttps ? https_global : http_global).get(options, httpCallback);
       }
-      else {
-        req = http_global.get(options, httpCallback);
+      if (!isV8) {
         process._tickCallback();
       }
       req.on('error', function (err) {
@@ -70,6 +73,15 @@ function loadFile(fileUri) {
       
     }
     else {
+      if (appSceneContext &&
+        appSceneContext.innerscene &&
+        appSceneContext.innerscene.permissions &&
+        !appSceneContext.innerscene.permissions.allows(fileUri)) {
+        console.log("local file access not allowed !!!");
+        reject("Local file access not allowed");
+        return;
+      }
+
       if( fileUri.substring(0,5) === 'file:' ) {
         fileUri = fileUri.substring(5);
         if( fileUri.substring(0,2) === '//') {
@@ -90,83 +102,6 @@ function loadFile(fileUri) {
   });
 }
 
-// same as above , but do local file, spark permission and CORS check
-function loadFileWithSparkPermissionsCheck( accessControl, http1, http2, fileUri) {
-  return new Promise(function(resolve, reject) {
-    var code = [];
-    if (fileUri.substring(0, 4) == "http") {
-      var options = url.parse(fileUri);
-      var req = null;
-      var httpCallback = function (res) {
-        res.on('data', function (data) {
-          code += data;
-        });
-        res.on('end', function () {
-          if( res.statusCode == 200 ) {
-            log.message(3, "Got file[" + fileUri + "] from web service");
-            resolve(code);
-          } else {
-            log.error("StatusCode Bad: FAILED to read file[" + fileUri + "] from web service");
-            reject(res.statusCode);
-          }
-        });
-      };
-      if (fileUri.substring(0, 5) == "https") {
-        req = http2.get(options, httpCallback);
-        process._tickCallback();
-      }
-      else {
-        req = http1.get(options, httpCallback);
-        process._tickCallback();
-      }
-      // handling of request failed may be due to spark permissions check
-      // CORS denial case enters below error condition handler
-      if (null != req)
-      {
-        req.on('error', function (err) {
-          log.error("Error: FAILED to read file[" + fileUri + "] from web service");
-          reject(err);
-        });
-      }
-      else
-      {
-        reject("Access of file not allowed");
-      }
-    }
-    else {
-      // do check from access control module for file allowed or disallowed access
-      var isAllowed = accessControl.allows(fileUri);
-      if (true == isAllowed)
-      {
-        console.log("local file access allowed for current file !!!");
-
-        if( fileUri.substring(0,5) === 'file:' ) {
-          fileUri = fileUri.substring(5);
-          if( fileUri.substring(0,2) === '//') {
-            fileUri = fileUri.substring(1);
-          }
-        }
-
-        fs.readFile(fileUri, function (err, data) {
-            if (err) {
-                log.error("FAILED to read file[" + fileUri + "] from file system (error=" + err + ")");
-                reject(err);
-            } else {
-                log.message(3, "Got file[" + fileUri + "] from file system");
-                resolve(data);
-            }
-        });
-      }
-      else
-      {
-        //local file access not allowed
-        console.log("local file access not allowed !!!");
-        reject("Local file access not allowed");
-      }
-    }
-  });
-}
-
 function hasExtension(filePath, extension) {
   var idx = filePath.lastIndexOf(extension);
   return( (idx !== -1) && ((idx + extension.length) === filePath.length) );
@@ -174,6 +109,5 @@ function hasExtension(filePath, extension) {
 
 module.exports = {
   loadFile: loadFile,
-  loadFileWithSparkPermissionsCheck:loadFileWithSparkPermissionsCheck,
   hasExtension: hasExtension
 };

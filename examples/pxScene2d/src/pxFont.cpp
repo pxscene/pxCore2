@@ -364,7 +364,7 @@ GlyphTextureEntry pxFont::getGlyphTexture(uint32_t codePoint, float sx, float sy
   GlyphTextureEntry result;
   // Select a glyph texture better suited for rendering the glyph
   // taking pixelSize and scale into account
-  uint32_t pixelSize=((uint32_t)ceil((sy>sx?sy:sx)*mPixelSize));
+  uint32_t pixelSize=(uint32_t)ceil((sx>sy?sx:sy)*mPixelSize);
   
   //  TODO:  FIXME: Disabled for now.   Sub-Pixel rounding making some Glyphs too "wide" at certain sizes.
   //
@@ -378,11 +378,11 @@ GlyphTextureEntry pxFont::getGlyphTexture(uint32_t codePoint, float sx, float sy
     //pixelSize = (pixelSize + 7) & 0xfffffff8;  // next multiple of 8
     pixelSize += (pixelSize % 2);
   }
-  /*else
-    pixelSize = npot(pixelSize);  // else next power of two
-#else
-  pixelSize = mPixelSize; // HACK
-#endif*/
+  else
+    pixelSize = npot(pixelSize/2);  // else next power of two
+//#else
+    //pixelSize = mPixelSize; // HACK
+//#endif
   
   
   GlyphKey key; 

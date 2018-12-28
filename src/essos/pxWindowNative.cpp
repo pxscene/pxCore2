@@ -149,6 +149,78 @@ static EssKeyListener keyListener=
         keyReleased
     };
 
+#ifdef ESSOS_SETTINGS_AND_TOUCH_SUPPORT
+
+static void displaySize( void */*userData*/, int width, int height )
+{
+  std::vector<pxWindowNative*> windowVector = pxWindow::getNativeWindows();
+  std::vector<pxWindowNative*>::iterator i;
+  for (i = windowVector.begin(); i < windowVector.end(); i++)
+  {
+    pxWindowNative* w = (*i);
+    w->onSizeUpdated(width,height);
+  }
+}
+
+static EssSettingsListener settingsListener =
+   {
+     displaySize
+   };
+
+static void touchDown( void */*userData*/, int id, int x, int y )
+{
+  std::vector<pxWindowNative*> windowVector = pxWindow::getNativeWindows();
+  std::vector<pxWindowNative*>::iterator i;
+  for (i = windowVector.begin(); i < windowVector.end(); i++)
+  {
+    pxWindowNative* w = (*i);
+    w->onTouchDown(id, x, y);
+  }
+}
+
+static void touchUp( void */*userData*/, int id )
+{
+  std::vector<pxWindowNative*> windowVector = pxWindow::getNativeWindows();
+  std::vector<pxWindowNative*>::iterator i;
+  for (i = windowVector.begin(); i < windowVector.end(); i++)
+  {
+    pxWindowNative* w = (*i);
+    w->onTouchUp(id);
+  }
+}
+
+static void touchMotion( void */*userData*/, int id, int x, int y )
+{
+  std::vector<pxWindowNative*> windowVector = pxWindow::getNativeWindows();
+  std::vector<pxWindowNative*>::iterator i;
+  for (i = windowVector.begin(); i < windowVector.end(); i++)
+  {
+    pxWindowNative* w = (*i);
+    w->onTouchMotion(id, x, y);
+  }
+}
+
+static void touchFrame( void */*userData*/ )
+{
+  std::vector<pxWindowNative*> windowVector = pxWindow::getNativeWindows();
+  std::vector<pxWindowNative*>::iterator i;
+  for (i = windowVector.begin(); i < windowVector.end(); i++)
+  {
+    pxWindowNative* w = (*i);
+    w->onTouchFrame();
+  }
+}
+
+static EssTouchListener touchListener=
+{
+   touchDown,
+   touchUp,
+   touchMotion,
+   touchFrame
+};
+
+#endif //ESSOS_SETTINGS_AND_TOUCH_SUPPORT
+
 static void pointerMotion( void */*userData*/, int x, int y )
 {
     std::vector<pxWindowNative*> windowVector = pxWindow::getNativeWindows();
@@ -326,6 +398,13 @@ pxError pxWindow::init(int left, int top, int width, int height)
             }
         }
 
+
+        mLastWidth = width;
+        mLastHeight = height;
+        mResizeFlag = true;
+
+        registerWindow(this);
+
         bool error = false;
         rtLogInfo("using wayland: %s\n", useWayland ? "true" : "false");
         rtLogInfo("initial key delay: %d repeat interval: %d", keyInitialDelay, keyRepeatInterval);
@@ -351,6 +430,12 @@ pxError pxWindow::init(int left, int top, int width, int height)
             {
                 error = true;
             }
+#ifdef ESSOS_SETTINGS_AND_TOUCH_SUPPORT
+            if ( !EssContextSetTouchListener( d->ctx, 0, &touchListener ) )
+            {
+                error= true;
+            }
+#endif //ESSOS_SETTINGS_AND_TOUCH_SUPPORT
             if ( !EssContextSetKeyRepeatInitialDelay(d->ctx, keyInitialDelay))
             {
                 error = true;
@@ -359,6 +444,12 @@ pxError pxWindow::init(int left, int top, int width, int height)
             {
                 error = true;
             }
+#ifdef ESSOS_SETTINGS_AND_TOUCH_SUPPORT
+            if (!EssContextSetSettingsListener(d->ctx, 0, &settingsListener))
+            {
+                error = true;
+            }
+#endif //ESSOS_SETTINGS_AND_TOUCH_SUPPORT
             if ( !error )
             {
                 if ( !EssContextStart( d->ctx ) )
@@ -377,13 +468,8 @@ pxError pxWindow::init(int left, int top, int width, int height)
             }
         }
 
-        mLastWidth = width;
-        mLastHeight = height;
-        mResizeFlag = true;
-
         eglSurfaceAttrib(eglGetCurrentDisplay(), eglGetCurrentSurface(EGL_DRAW), EGL_SWAP_BEHAVIOR, EGL_BUFFER_PRESERVED);
 
-        registerWindow(this);
         this->onCreate();
     }
     return PX_OK;
@@ -575,6 +661,42 @@ void pxWindowNative::cleanupEssos()
 
     EssContextDestroy( eDisplay->ctx );
     eDisplay->ctx = NULL;
+}
+
+void pxWindowNative::onSizeUpdated(int width, int height)
+{
+  mLastWidth = width;
+  mLastHeight = height;
+  mResizeFlag = true;
+  onSize(width, height);
+}
+
+
+void pxWindowNative::onTouchDown(int id, int x, int y)
+{
+  (void)id;
+  (void)x;
+  (void)y;
+  //TODO
+}
+
+void pxWindowNative::onTouchUp(int id)
+{
+  (void)id;
+  //TODO
+}
+
+void pxWindowNative::onTouchMotion(int id, int x, int y)
+{
+  (void)id;
+  (void)x;
+  (void)y;
+  //TODO
+}
+
+void pxWindowNative::onTouchFrame()
+{
+  //TODO
 }
 
 void pxWindowNative::animateAndRender()

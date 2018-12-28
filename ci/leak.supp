@@ -99,3 +99,30 @@
    fun:_ZL16drawImageTextureffff5rtRefI9pxTextureES1_bPfN18pxConstantsStretch9constantsES4_
    fun:_ZN9pxContext9drawImageEffff5rtRefI9pxTextureES2_bPfN18pxConstantsStretch9constantsES5_b
 }
+{
+   downloadExpiresThreadLeaks
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:calloc
+   fun:allocate_dtv
+   fun:_dl_allocate_tls
+   fun:allocate_stack
+   fun:pthread_create@@GLIBC_2.2.5
+   fun:_ZNSt6thread15_M_start_threadESt10unique_ptrINS_6_StateESt14default_deleteIS1_EEPFvvE
+   fun:_ZNSt6threadC1IRFvvEJEEEOT_DpOT0_
+   fun:_ZN16rtFileDownloader8instanceEv
+   fun:_ZN9pxArchive11initFromUrlERK8rtStringRK5rtRefI6rtCORSE11rtObjectRef
+   fun:_ZN9pxScene2d11loadArchiveERK8rtStringR11rtObjectRef
+   fun:_ZN9pxScene2d17loadArchive_thunkEiPK7rtValueRS0_
+   fun:_ZN16rtObjectFunction4SendEiPK7rtValuePS0_
+   fun:_ZN19rtScriptV8NodeUtils17rtFunctionWrapper4callERKN2v820FunctionCallbackInfoINS1_5ValueEEE
+   fun:_ZN2v88internal25FunctionCallbackArguments4CallEPFvRKNS_20FunctionCallbackInfoINS_5ValueEEEE
+   fun:_ZN2v88internalL36HandleApiCallAsFunctionOrConstructorEPNS0_7IsolateEbNS0_12_GLOBAL__N_116BuiltinArgumentsILNS0_21BuiltinExtraArgumentsE0EEE
+   fun:_ZN2v88internalL31Builtin_HandleApiCallAsFunctionEiPPNS0_6ObjectEPNS0_7IsolateE
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}

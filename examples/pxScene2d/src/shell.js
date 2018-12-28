@@ -106,23 +106,25 @@ px.import({ scene: 'px:scene.1.js',
   });
 
 ////
-if (false)
-{
+if( scene.capabilities != undefined && scene.capabilities.graphics != undefined && scene.capabilities.graphics.cursor == 1) {
   // TODO Cursor emulation mostly for egl targets right now.
+    var fadeCursorTimer = undefined;
 
-  // TODO hacky raspberry pi detection
-  var os = require("os");
-  var hostname = os.hostname();
-
-  if (hostname == "raspberrypi") {
     var cursor = scene.create({t:"image", url:"cursor.png",parent:scene.root,
-                               interactive:false});
+                               interactive:false, a:0});
 
     scene.on("onMouseMove", function(e) {
-      cursor.x = e.x-23;
-      cursor.y = e.y-10;
+      if (fadeCursorTimer != undefined) {
+        clearTimeout(fadeCursorTimer);
+      }
+      fadeCursorTimer = setTimeout( function()
+      {
+        cursor.animate({a:0}, 2, scene.animation.TWEEN_LINEAR, scene.animation.LOOP,1);
+      }, 5000);
+      cursor.a = 1.0;
+      cursor.x = e.x-40;
+      cursor.y = e.y-16;
     });
-  }
 }
 ////
   scene.root.on("onPreKeyDown", function(e) {
@@ -184,6 +186,12 @@ if (false)
         scene.showDirtyRect = !scene.showDirtyRect;
         e.stopPropagation();
       }
+      else
+      if(code == keys.T)  // ctrl-alt-t
+      {
+        scene.enableDirtyRect = !scene.enableDirtyRect;
+        e.stopPropagation();
+      }
     }// ctrl-alt
     else
     if( keys.is_CTRL_ALT_SHIFT( flags ) )
@@ -236,6 +244,7 @@ if (false)
     else if (code == keys.O && keys.is_CTRL_ALT( flags ) )       e.stopPropagation(); // ctrl-alt-o
     else if (code == keys.S && keys.is_CTRL_ALT( flags ) )       e.stopPropagation(); // ctrl-alt-s
     else if (code == keys.D && keys.is_CTRL_ALT( flags ) )       e.stopPropagation(); // ctrl-alt-d
+    else if (code == keys.T && keys.is_CTRL_ALT( flags ) )       e.stopPropagation(); // ctrl-alt-t
     else if (code == keys.R && keys.is_CTRL_ALT_SHIFT( flags ) ) e.stopPropagation(); // ctrl-alt-shift-r
     else if (code == keys.H && keys.is_CTRL_ALT_SHIFT( flags ) ) e.stopPropagation(); // ctrl-alt-shift-h
   });

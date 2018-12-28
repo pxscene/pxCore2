@@ -262,13 +262,12 @@ rtError rtFileCache::addToCache(const rtHttpCacheData& data)
      return RT_ERROR;
   setFileSizeAndTime(filename);
 
-  rtLogInfo("addToCache url(%s) filename(%s) size(%ld) Cache expiration(%s)", url.cString(), filename.cString(), (long) mFileSizeMap[filename], data.expirationDate().cString());
 
   mCacheMutex.lock();
   mCurrentSize += mFileSizeMap[filename];
   int64_t size = cleanup();
   mCacheMutex.unlock();
-  rtLogInfo("current size after insertion and cleanup (%ld)",(long) size);
+  rtLogInfo("addToCache url(%s) filename(%s) size(%ld) Cache expiration(%s) total cache size (%ld)", url.cString(), filename.cString(), (long) mFileSizeMap[filename], data.expirationDate().cString(), (long) size);
   return RT_OK;
 }
 
@@ -290,9 +289,10 @@ void rtFileCache::clearCache()
 {
   if (! mDirectory.isEmpty())
   {
-    stringstream buff;
-    buff << "rm -rf " << mDirectory.cString() << "/*" ;
-    int retVal = system(buff.str().c_str());
+    rtString buff("rm -rf ");
+    buff.append(mDirectory.cString());
+    buff.append("/*");
+    int retVal = system(buff.cString());
 
     if(retVal == -1)
     {

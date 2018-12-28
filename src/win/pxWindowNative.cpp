@@ -373,7 +373,17 @@ LRESULT __stdcall pxWindowNative::windowProc(HWND hWnd, UINT msg, WPARAM wParam,
             }
             break;
 
+        case WM_MOUSEWHEEL:
+            {
+                //int dx = (GET_X_LPARAM(lParam) > 0 ? 1 : -1);
+                //int dy = (GET_Y_LPARAM(lParam) > 0 ? 1 : -1);
+                GET_WHEEL_DELTA_WPARAM(wParam);
+                int direction = (int(wParam) > 0) ? 1 : -1;
 
+                w->onScrollWheel((float)(GET_X_LPARAM(lParam) * direction),  (float)direction);
+	    }
+	    break;
+ 
         case WM_MOUSEMOVE:
 #if 1
 #ifndef WINCE

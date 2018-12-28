@@ -82,6 +82,10 @@
     [NSApp          setWindowsMenu: fileMenu];
     [fileMenuItem setSubmenu: fileMenu];
     
+    [fileMenu addItemWithTitle: @"New Window"
+                        action: @selector(newWindow:)
+                 keyEquivalent: @"n"];
+    
     [fileMenu addItemWithTitle: @"Miniaturize"
                         action: @selector(performMiniaturize:)
                  keyEquivalent: @"m"];
@@ -135,11 +139,15 @@
     [NSApp    setWindowsMenu: viewMenu];
     [viewMenuItem setSubmenu: viewMenu];
     
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wundeclared-selector"
+  
     [[viewMenu addItemWithTitle: @"Toggle Address Bar"
                          action: @selector(toggleAddressBar:)
                   keyEquivalent: @"f"]
      setKeyEquivalentModifierMask:NSControlKeyMask | NSAlternateKeyMask];
   
+#pragma clang diagnostic pop  
 
     [viewMenu addItem:[NSMenuItem separatorItem]]; // -----------
 

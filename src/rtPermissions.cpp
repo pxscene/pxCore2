@@ -26,33 +26,354 @@
 #include "../remote/rapidjson/error/en.h"
 
 #include <stdlib.h>
-#include <algorithm>
+#include <fstream>
 
-
-// Bootstrap
 const char* rtPermissions::DEFAULT_CONFIG_FILE = "./sparkpermissions.conf";
 const char* rtPermissions::CONFIG_ENV_NAME = "SPARK_PERMISSIONS_CONFIG";
 const char* rtPermissions::ENABLED_ENV_NAME = "SPARK_PERMISSIONS_ENABLED";
-const int rtPermissions::CONFIG_BUFFER_SIZE = 65536;
-rtPermissions::assignMap_t rtPermissions::mAssignMap;
-rtPermissions::roleMap_t rtPermissions::mRolesMap;
-std::string rtPermissions::mConfigPath;
-bool rtPermissions::mEnabled;
+bool rtPermissions::mEnabled = false;
+rtObjectRef rtPermissions::mConfig = NULL;
 
-
-template<typename Map> typename Map::const_iterator
-rtPermissions::findWildcard(Map const& map, typename Map::key_type const& key)
+rtPermissions::rtPermissions(const char* origin)
+  : mOrigin(rtUrlGetOrigin(origin))
+  , mParent(NULL)
 {
-  size_t bestMatchLength = 0;
-  typename Map::const_iterator best = map.end();
-  for (typename Map::const_iterator it = map.begin(); it != map.end(); ++it)
+  static bool didInit = false;
+  if (!didInit)
   {
-    if (it->first.second != key.second)
+    init();
+    didInit = true;
+  }
+
+  if (!mConfig && mEnabled)
+    rtLogWarn("no permissions config");
+
+  rtString role;
+  if (mConfig)
+  {
+    rtObjectRef assign = mConfig.get<rtObjectRef>("assign");
+    if (!mOrigin.isEmpty() && assign)
     {
-      continue;
+      rtString s;
+      if (find(assign, mOrigin.cString(), s) == RT_OK)
+      {
+        role = assign.get<rtString>(s.cString());
+        rtLogInfo("permissions role '%s' for origin '%s", role.cString(), mOrigin.cString());
+      }
     }
-    const char* url = key.first.c_str();
-    const char* w = it->first.first.c_str();
+  }
+
+  if (!mOrigin.isEmpty() && role.isEmpty())
+    rtLogWarn("no permissions role for origin '%s'", mOrigin.cString());
+
+  if (!role.isEmpty())
+  {
+    rtObjectRef roles = mConfig.get<rtObjectRef>("roles");
+    if (roles)
+      mRole = roles.get<rtObjectRef>(role.cString());
+  }
+
+  if (!role.isEmpty() && !mRole)
+    rtLogWarn("no config for permissions role '%s'", role.cString());
+}
+
+rtPermissions::~rtPermissions()
+{
+}
+
+rtDefineObject(rtPermissions, rtObject);
+rtDefineMethod(rtPermissions, allows);
+
+rtError rtPermissions::init(const char* filename)
+{
+  rtError e = RT_OK;
+
+  const char* s = getenv(ENABLED_ENV_NAME);
+  if (s != NULL)
+  {
+    rtString envVal(s);
+    mEnabled = 0 == envVal.compare("true") || 0 == envVal.compare("1");
+  }
+  else
+  {
+    mEnabled = true;
+  }
+
+  rtLogInfo("permissions %s", mEnabled ? "enabled" : "disabled");
+
+  if (mEnabled)
+  {
+    if (!filename)
+      filename = getenv(CONFIG_ENV_NAME);
+    if (!filename)
+      filename = DEFAULT_CONFIG_FILE;
+
+    rtString s;
+    e = file2str(filename, s);
+    if (e == RT_OK)
+    {
+      rtObjectRef obj;
+      const char* sStr = s.cString();
+      e = json2obj(sStr, obj);
+      if (e == RT_OK)
+      {
+        rtLogInfo("using permissions config '%s", filename);
+        mConfig = obj;
+      }
+    }
+  }
+
+  if (e != RT_OK)
+    rtLogError("cannot read permissions config '%s'", filename);
+
+  return e;
+}
+
+rtError rtPermissions::set(const char* json)
+{
+  rtError e = RT_OK;
+
+  rtObjectRef obj;
+  e = json2obj(json, obj);
+  if (e == RT_OK)
+    mRole = obj;
+  else
+    rtLogError("cannot set permissions json");
+
+  return e;
+}
+
+rtError rtPermissions::set(const rtObjectRef& obj)
+{
+  mRole = obj;
+  return RT_OK;
+}
+
+rtError rtPermissions::setParent(const rtPermissionsRef& parent)
+{
+  mParent = parent;
+  return RT_OK;
+}
+
+rtError rtPermissions::allows(const char* s, rtPermissions::Type type) const
+{
+  if (!mEnabled)
+    return RT_OK;
+
+  if (s == NULL || *s == 0)
+    return RT_OK; // allow empty
+
+  const char* t = type2str(type);
+  if (mRole == NULL)
+  {
+    if (mOrigin.isEmpty())
+      return RT_OK; // allow from file system
+    return RT_ERROR_NOT_ALLOWED;
+  }  
+
+  rtObjectRef o = mRole.get<rtObjectRef>(t);
+  if (o == NULL)
+  {
+    rtLogDebug("no type %s in permissions role", t);
+    return RT_ERROR_NOT_ALLOWED;
+  }
+
+  rtString str = s;
+  if (type == DEFAULT)
+  {
+    // need only origin part of URL
+    rtString origin = rtUrlGetOrigin(s);
+    if (!origin.isEmpty())
+      str = origin;
+  }
+
+  rtString allowFound;
+  rtObjectRef allow = o.get<rtObjectRef>("allow");
+  if (allow != NULL)
+    find(allow, str.cString(), allowFound);
+
+  rtString blockFound;
+  rtObjectRef block = o.get<rtObjectRef>("block");
+  if (block != NULL)
+    find(block, str.cString(), blockFound);
+
+  rtLogDebug("found '%s' (allow) and '%s' (block) for '%s' of type %s", allowFound.cString(), blockFound.cString(), s, t);
+  if ((blockFound.isEmpty() && allowFound.isEmpty()) || blockFound.byteLength() > allowFound.byteLength())
+    return RT_ERROR_NOT_ALLOWED;
+
+  if (!mParent)
+    return RT_OK;
+  return mParent->allows(s, type);
+}
+
+rtError rtPermissions::allows(const rtString& url, bool& o) const
+{
+  rtError e = allows(url.cString(), rtPermissions::DEFAULT);
+  if (RT_OK == e)
+    o = true;
+  else if (RT_ERROR_NOT_ALLOWED == e)
+    o = false;
+  else
+    return RT_FAIL;
+
+  return RT_OK;
+}
+
+rtError rtPermissions::file2str(const char* file, rtString& s)
+{
+  rtError e = RT_OK;
+
+  if (rtFileExists(file))
+  {
+    std::ifstream is(file, std::ifstream::binary);
+    if (is)
+    {
+      is.seekg(0, is.end);
+      int length = is.tellg();
+      is.seekg(0, is.beg);
+      if (length > 0)
+      {
+        char * buffer = new char[length];
+        is.read(buffer, length);
+        if (!is)
+          e = RT_FAIL;
+        else
+          s = rtString(buffer, length);
+        is.close();
+        delete[] buffer;
+      }
+      else
+      {
+        s = rtString();
+      }
+    }
+    else
+    {
+      rtLogError("error opening '%s'", file);
+      e = RT_FAIL;
+    }
+  }
+
+  return e;
+}
+
+namespace
+{
+  rtError jsonValue2rtValue(const rapidjson::Value& jsonValue, rtValue& v)
+  {
+    if (jsonValue.IsArray())
+    {
+      rtArrayObject* o = new rtArrayObject;
+      for (rapidjson::SizeType k = 0; k < jsonValue.Size(); k++)
+      {
+        const rapidjson::Value& val = jsonValue[k];
+        rtValue val2;
+        if (jsonValue2rtValue(val, val2) == RT_OK)
+          o->pushBack(val2);
+      }
+      v = o;
+    }
+    else if (jsonValue.IsObject())
+    {
+      rtMapObject* o = new rtMapObject;
+      for (rapidjson::Value::ConstMemberIterator itr = jsonValue.MemberBegin(); itr != jsonValue.MemberEnd(); ++itr)
+      {
+        const rapidjson::Value& key = itr->name;
+        const rapidjson::Value& val = itr->value;
+        if (!key.IsString())
+        {
+          rtLogError("%s : map key is not string", __FUNCTION__);
+          continue;
+        }
+        rtValue val2;
+        if (jsonValue2rtValue(val, val2) == RT_OK)
+          o->Set(key.GetString(), &val2);
+      }
+      v = o;
+    }
+    else if (jsonValue.IsString())
+    {
+      v = jsonValue.GetString();
+    }
+    else
+    {
+      rtLogError("%s : value is not string/array/object", __FUNCTION__);
+      return RT_FAIL;
+    }
+    return RT_OK;
+  }
+}
+
+rtError rtPermissions::json2obj(const char* json, rtObjectRef& obj)
+{
+  if (!json || *json == 0)
+  {
+    rtLogError("%s : empty", __FUNCTION__);
+    return RT_FAIL;
+  }
+
+  rapidjson::Document doc;
+  rapidjson::ParseResult result = doc.Parse(json);
+
+  if (!result)
+  {
+    rapidjson::ParseErrorCode e = doc.GetParseError();
+    rtLogError("%s : [JSON parse error : %s (%ld)]", __FUNCTION__, rapidjson::GetParseError_En(e), result.Offset());
+    return RT_FAIL;
+  }
+
+  if (!doc.IsObject())
+  {
+    rtLogError("%s : no root object", __FUNCTION__);
+    return RT_FAIL;
+  }
+
+  rtError e;
+  rtValue val2;
+  e = jsonValue2rtValue(doc, val2);
+  if (e == RT_OK)
+    obj = val2.toObject();
+
+  return e;
+}
+
+rtError rtPermissions::find(const rtObjectRef& obj, const char* s, rtString& found)
+{
+  rtValue length;
+  rtObjectRef arr;
+  if (obj->Get("length", &length) == RT_OK)
+  {
+    arr = obj;
+  }
+  else
+  {
+    rtValue allKeys;
+    if (obj->Get("allKeys", &allKeys) == RT_OK)
+    {
+      arr = allKeys.toObject();
+      arr->Get("length", &length);
+    }
+  }
+
+  if (length.isEmpty())
+  {
+    rtLogError("permissions list is not an array/map");
+    return RT_FAIL;
+  }
+
+  bool hasMatches = false;
+  rtString best;
+  size_t bestMatchLength = 0;
+  const int n = length.toInt32();
+  for (int i = 0; i < n; ++i)
+  {
+    rtValue item;
+    if (arr->Get(i, &item) != RT_OK)
+      continue;
+
+    rtString itemStr = item.toString();
+    const char* url = s;
+    const char* w = itemStr.cString();
     const char* wAlt = NULL;
     size_t len = 0;
     size_t lenAlt = 0;
@@ -69,280 +390,28 @@ rtPermissions::findWildcard(Map const& map, typename Map::key_type const& key)
       if (*w == 0 && len >= bestMatchLength)
       {
         bestMatchLength = len;
-        best = it;
+        best = itemStr;
+        hasMatches = true;
       }
     }
   }
-  if (best == map.end() && key.second != DEFAULT)
+
+  if (hasMatches)
   {
-    typename Map::key_type key2 = key;
-    key2.second = DEFAULT;
-    return findWildcard(map, key2);
-  }
-  return best;
-}
-
-rtPermissions::permissionsMap_t rtPermissions::permissionsJsonToMap(const void* jsonValue)
-{
-  const rapidjson::Value& json = *static_cast<const rapidjson::Value*>(jsonValue);
-  rtPermissions::permissionsMap_t ret;
-  for (int i = 0; i < 4; i++)
-  {
-    // first level... "url", "serviceManager", "features"
-    const char* sectionName = i == 1 ? "serviceManager" : (i == 2 ? "features" : (i == 3 ? "applications" : "url"));
-    if (json.HasMember(sectionName))
-    {
-      const rapidjson::Value& sec = json[sectionName];
-      if (!sec.IsObject())
-      {
-        rtLogWarn("%s : '%s' is not object", __FUNCTION__, sectionName);
-        continue;
-      }
-      for (int j = 0; j < 2; j++)
-      {
-        // second level... "allow", "block"
-        const char* allowBlockName = j == 0 ? "allow": "block";
-        if (sec.HasMember(allowBlockName))
-        {
-          const rapidjson::Value& arr = sec[allowBlockName];
-          if (!arr.IsArray())
-          {
-            rtLogWarn("%s : '%s' is not array", __FUNCTION__, allowBlockName);
-            continue;
-          }
-          for (rapidjson::SizeType k = 0; k < arr.Size(); k++)
-          {
-            const rapidjson::Value& str = arr[k];
-            if (!str.IsString())
-            {
-              rtLogWarn("%s : '%s' item is not string", __FUNCTION__, allowBlockName);
-              continue;
-            }
-            // third level... array of urls
-            rtPermissions::wildcard_t w;
-            w.first = arr[k].GetString();
-            w.second = rtPermissions::Type(i);
-            ret[w] = j == 0;
-          }
-        }
-      }
-    }
-  }
-  return ret;
-}
-
-rtPermissions::permissionsMap_t rtPermissions::permissionsObjectToMap(const rtObjectRef& permissionsObject)
-{
-  rtPermissions::permissionsMap_t ret;
-  for (int i = 0; i < 4; i++)
-  {
-    // first level... "url", "serviceManager", "features"
-    const char* sectionName = i == 1 ? "serviceManager" : (i == 2 ? "features" : (i == 3 ? "applications" : "url"));
-    const rtObjectRef& sec = permissionsObject.get<rtObjectRef>(sectionName);
-    if (sec)
-    {
-      for (int j = 0; j < 2; j++)
-      {
-        // second level... "allow", "block"
-        const char* allowBlockName = j == 0 ? "allow": "block";
-        const rtObjectRef& arr = sec.get<rtObjectRef>(allowBlockName);
-        if (arr)
-        {
-          uint32_t len = arr.get<uint32_t>("length");
-          for (uint32_t k = 0; k < len; k++)
-          {
-            // third level... array of urls
-            rtPermissions::wildcard_t w;
-            w.first = arr.get<rtString>(k).cString();
-            w.second = rtPermissions::Type(i);
-            ret[w] = j == 0;
-          }
-        }
-      }
-    }
-  }
-  return ret;
-}
-
-rtPermissions::rtPermissions(const char* origin, const char* filepath)
-  : mParent(NULL)
-{
-  static bool didCheck = false;
-  if (!didCheck)
-  {
-    didCheck = true;
-    const char* s = getenv(ENABLED_ENV_NAME);
-    if (s != NULL)
-    {
-      rtString envVal(s);
-      mEnabled = 0 == envVal.compare("true") || 0 == envVal.compare("1");
-    }
-    else
-    {
-      mEnabled = true;
-    }
-  }
-
-  if (mEnabled)
-  {
-    loadConfig(filepath);
-
-    if (origin && *origin && !mAssignMap.empty())
-    {
-      wildcard_t w;
-      w.first = origin;
-      w.second = DEFAULT;
-      assignMap_t::const_iterator it = findWildcard(mAssignMap, w);
-      if (it != mAssignMap.end())
-      {
-        roleMap_t::const_iterator jt = mRolesMap.find(it->second);
-        if (jt != mRolesMap.end())
-        {
-          mPermissionsMap = jt->second;
-          rtLogDebug("%s : permissions for '%s': '%s'", __FUNCTION__, origin, it->second.c_str());
-        }
-      }
-    }
-  }
-}
-
-rtPermissions::~rtPermissions()
-{
-}
-
-rtError rtPermissions::loadConfig(const char* filepath)
-{
-  if (!filepath)
-    filepath = getenv(CONFIG_ENV_NAME);
-
-  if (!filepath)
-    filepath = DEFAULT_CONFIG_FILE;
-
-  // do not reload
-  if (mConfigPath == filepath)
+    found = best;
     return RT_OK;
-
-  // try load... first clean up previous config
-  mAssignMap.clear();
-  mRolesMap.clear();
-  mConfigPath.clear();
-  mConfigPath = filepath;
-
-  rtString currentDir;
-  rtGetCurrentDirectory(currentDir);
-  rtLogDebug("%s : currentDir='%s'", __FUNCTION__, currentDir.cString());
-
-  FILE* fp = fopen(filepath, "rb");
-  if (NULL == fp)
-  {
-    rtLogWarn("%s : cannot open '%s'", __FUNCTION__, filepath);
-    return RT_FAIL;
   }
-
-  rapidjson::Document doc;
-  rapidjson::ParseResult result;
-  char readBuffer[CONFIG_BUFFER_SIZE];
-  memset(readBuffer, 0, sizeof(readBuffer));
-  rapidjson::FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-  result = doc.ParseStream(is);
-  fclose(fp);
-
-  if (!result)
-  {
-    rapidjson::ParseErrorCode e = doc.GetParseError();
-    rtLogWarn("%s : [JSON parse error : %s (%ld)]", __FUNCTION__, rapidjson::GetParseError_En(e), result.Offset());
-    return RT_FAIL;
-  }
-
-  if (!doc.IsObject() || !doc.HasMember("roles") || !doc.HasMember("assign"))
-  {
-    rtLogWarn("%s : no 'roles'/'assign' in json", __FUNCTION__);
-    return RT_FAIL;
-  }
-
-  const rapidjson::Value& assign = doc["assign"];
-  const rapidjson::Value& roles = doc["roles"];
-  if (!assign.IsObject() || !roles.IsObject())
-  {
-    rtLogWarn("%s : 'roles'/'assign' are not objects", __FUNCTION__);
-    return RT_FAIL;
-  }
-
-  for (rapidjson::Value::ConstMemberIterator itr = assign.MemberBegin(); itr != assign.MemberEnd(); ++itr)
-  {
-    const rapidjson::Value& key = itr->name;
-    const rapidjson::Value& val = itr->value;
-    if (!key.IsString() || !val.IsString())
-    {
-      rtLogWarn("%s : 'assign' key/value is not string", __FUNCTION__);
-      continue;
-    }
-    wildcard_t w;
-    w.first = key.GetString();
-    w.second = DEFAULT;
-    mAssignMap[w] = val.GetString();
-  }
-
-  for (rapidjson::Value::ConstMemberIterator itr = roles.MemberBegin(); itr != roles.MemberEnd(); ++itr)
-  {
-    const rapidjson::Value& key = itr->name;
-    const rapidjson::Value& val = itr->value;
-    if (!key.IsString() || !val.IsObject())
-    {
-      rtLogWarn("%s : 'roles' key/value is not string/object", __FUNCTION__);
-      continue;
-    }
-    mRolesMap[key.GetString()] = permissionsJsonToMap(&val);
-  }
-
-  rtLogInfo("%s : %ld roles, %ld assigned urls", __FUNCTION__, mRolesMap.size(), mAssignMap.size());
-  return RT_OK;
+  return RT_PROP_NOT_FOUND;
 }
 
-rtError rtPermissions::set(const rtObjectRef& permissionsObject)
+const char* rtPermissions::type2str(Type t)
 {
-  mPermissionsMap = permissionsObjectToMap(permissionsObject);
-
-  return RT_OK;
-}
-
-rtError rtPermissions::setParent(const rtPermissionsRef& parent)
-{
-  mParent = parent;
-
-  return RT_OK;
-}
-
-rtError rtPermissions::allows(const char* s, rtPermissions::Type type) const
-{
-  if (s && mEnabled && !mPermissionsMap.empty())
+  switch (t)
   {
-    wildcard_t w;
-    w.second = type;
-    if (type == DEFAULT)
-    {
-      w.first = rtUrlGetOrigin(s).cString();
-    }
-    if (type != DEFAULT || w.first.empty())
-    {
-      w.first = s;
-    }
-    permissionsMap_t::const_iterator it = findWildcard(mPermissionsMap, w);
-    if (it != mPermissionsMap.end() && false == it->second)
-    {
-      return RT_ERROR_NOT_ALLOWED;
-    }
+    case DEFAULT: return "url";
+    case SERVICE: return "serviceManager";
+    case FEATURE: return "features";
+    case WAYLAND: return "applications";
+    default: return NULL;
   }
-
-  return mParent ? mParent->allows(s, type) : RT_OK;
 }
-
-rtError rtPermissions::allows(const rtString& url, bool& o) const
-{
-  rtError e = allows(url.cString(), rtPermissions::DEFAULT);
-  o = RT_OK == e;
-  return RT_OK;
-}
-
-rtDefineObject(rtPermissions, rtObject);
-rtDefineMethod(rtPermissions, allows);

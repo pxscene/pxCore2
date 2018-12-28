@@ -58,6 +58,8 @@ uint64_t gCPU = 0;
 uint64_t gTotal = 0;
 uint64_t gOther = 0;
 uint64_t gOtherStart = 0;
+string   gFirmware = "";
+string   gDeviceType = "";
 
 const int gDuration = 2;
 
@@ -71,7 +73,7 @@ char** g_origArgv = NULL;
 // class pxbenchmarkWindow
 //-----------------------------------------------------------------------------------
 
-void benchmarkWindow::init(const int32_t& x, const int32_t& y, const int32_t& w, const int32_t& h, const int32_t& mw, const int32_t& mh, bool doCreateTexture /*= true*/)
+void benchmarkWindow::init(const int32_t& x, const int32_t& y, const int32_t& w, const int32_t& h, const int32_t& mw, const int32_t& mh, const bool doArchive/* = false*/, bool doCreateTexture /*= true*/)
 {
     mApiFixture = std::shared_ptr<pxApiFixture>(new pxApiFixture());
     
@@ -80,10 +82,13 @@ void benchmarkWindow::init(const int32_t& x, const int32_t& y, const int32_t& w,
     
     celero::AddExperimentResultCompleteFunction([](std::shared_ptr<celero::ExperimentResult> p) { celero::ResultTable::Instance().add(p); });
     
-    std::cout << "Archiving results to: " << GetOutPath() + mArchiveCSV << std::endl;
-    celero::Archive::Instance().setFileName(GetOutPath() + mArchiveCSV);
-    
-    celero::AddExperimentResultCompleteFunction([](std::shared_ptr<celero::ExperimentResult> p) { celero::Archive::Instance().add(p); });
+    if (doArchive)
+    {
+        std::cout << "Archiving results to: " << GetOutPath() + mArchiveCSV << std::endl;
+        celero::Archive::Instance().setFileName(GetOutPath() + mArchiveCSV);
+        
+        celero::AddExperimentResultCompleteFunction([](std::shared_ptr<celero::ExperimentResult> p) { celero::Archive::Instance().add(p); });
+    }
     
     print::TableBanner();
     
@@ -329,19 +334,38 @@ void benchmarkWindow::onDraw(pxSurfaceNative/*&*/ sn)
             mApiFixture->popExperimentValue().Value++;
             gTotal = (celero::timer::GetSystemTime() - gTotal);
             gOther += (celero::timer::GetSystemTime() - gOtherStart);
-            string res = "GPU(ms)=" + to_string((int)gGPU);
-            celero::ResultTable::Instance().add(res);
-            res = "CPU(ms)=" + to_string((int)gCPU);
-            celero::ResultTable::Instance().add(res);
-            res = "FPS =" + to_string((int)gFPS);
-            celero::ResultTable::Instance().add(res);
-            res = "OtherTime(ms)=" + to_string((int)gOther);
-            celero::ResultTable::Instance().add(res);
-            res = "TotalTime(ms)=" + to_string((int)gTotal);
-            celero::ResultTable::Instance().add(res);
+            vector<string> list(6);
             
+            list[0] = "Device Type";
+            list[1] = "Firmware";
+            list[2] = "Date";
+            list[3] = "GPU(ms)";
+            list[4] = "CPU(ms)";
+            list[5] = "NOTES";
+            celero::ResultTable::Instance().add(list);
+            
+            list[0] = gDeviceType;
+            list[1] = gFirmware;
+            
+            time_t rawtime;
+            struct tm * timeinfo;
+            char buffer[80];
+            
+            time (&rawtime);
+            timeinfo = localtime(&rawtime);
+            
+            strftime(buffer,sizeof(buffer),"%m\/%d\/%Y",timeinfo);
+            std::string str(buffer);
+            
+            
+            list[2] = str;
+            list[3] = to_string((int)(gGPU*0.001));
+            list[4] = to_string((int)((gCPU+gOther)*0.001));
+            list[5] = "Total(ms)=" + to_string((int)(gTotal*0.001)) + "FPS:=" + to_string((int)(gFPS));
+            celero::ResultTable::Instance().add(list);
             
             celero::ResultTable::Instance().closeFile();
+            system("/bin/bash -c ./automation.sh &");
 #if PX_PLATFORM_GENERIC_EGL
             //string cmnd = "libreoffice --calc " + mOutPath + mOutputTableCSV;
             //system(cmnd.c_str());
@@ -502,12 +526,13 @@ uint64_t pxApiFixture::run(const uint64_t threads, const uint64_t iterations, co
         //totalTime = mExperimentValue.mTotalTime;// / mExperimentValue[i].Iterations;
         mIterationCounter++;
         
-        shared_ptr<Experiment> exp = win.popBaselineBm()->getBaseline();
-        string experimentName = to_string((int)mExperimentValue.mTotalTime);
+        if (mExp != nullptr)
+        {
+            string experimentName = to_string((int)mExperimentValue.mTotalTime);
         
-        exp->setName (experimentName);
-        win.popBaselineBm()->setBaseline(exp);
-        
+            mExp->setName (experimentName);
+            //win.popBaselineBm()->setBaseline(exp);
+        }
         // Tear down the testing fixture.
         this->tearDown();
         
@@ -538,7 +563,7 @@ void pxApiFixture::TestDrawDiagRect ()
 
 pxTextureRef pxApiFixture::GetImageTexture (const string& format)
 {
-    string url = "../Resources/" + to_string((mExperimentValue.Iterations % MAX_IMAGES_CNT) + 1) + format;
+    string url = "/tmp/Resources/" + to_string((mExperimentValue.Iterations % MAX_IMAGES_CNT) + 1) + format;
     
     //url = win.GetOutPath() + url;
     
@@ -925,11 +950,12 @@ void pxApiFixture::setUp(const celero::TestFixture::ExperimentValue& experimentV
     
     //if (win.popBaselineBm()->getExperimentSize() > 0)
     {
-        shared_ptr<Experiment> exp = win.popBaselineBm()->getBaseline();
-        string experimentName = to_string((int)mUnitWidth) + "x" + to_string((int)mUnitHeight);
+        mExp = win.popBaselineBm()->getBaseline();
+        //shared_ptr<Experiment> exp = win.popBaselineBm()->getBaseline();
+        //string experimentName = to_string((int)mUnitWidth) + "x" + to_string((int)mUnitHeight);
         
-        exp->setName (experimentName);
-        win.popBaselineBm()->setBaseline(exp);
+        //exp->setName (experimentName);
+        //win.popBaselineBm()->setBaseline(exp);
     }
 }
 
@@ -1146,9 +1172,12 @@ int pxMain(int argc, char* argv[])
     if (RT_OK == rtSettings::instance()->value("screenHeight", screenHeight))
         windowHeight = screenHeight.toInt32();
     
-    
+    cout<<argv;
     int32_t unitW = 25;
     int32_t unitH = 25;
+    
+    for(int i = 0; i < argc; i++){
+        printf("Argument %i = %s\n", i, argv[i]);}
     if (argc > 3)
     {
         unitW = stoi(argv[3]);
@@ -1161,15 +1190,31 @@ int pxMain(int argc, char* argv[])
         windowHeight = stoi(argv[6]);
     }
     
-    if (argc > 6)
+    bool doArchive = false;
+    /*if (argc > 6)
     {
-        std::string path(argv[7]);
+        gDeviceType = std::string(argv[7]);
+        cout<<gDeviceType;
+    }
+    
+    if (argc > 7)
+    {
+        gFirmware = std::string(argv[8]);
+    }
+    
+    if (argc > 8)
+        doArchive = stoi(argv[9]) == 1 ? true : false;
+    
+    if (argc > 9)
+    {
+        std::string path(argv[10]);
         win.SetOutPath(path);
     }
+     */
     // OSX likes to pass us some weird parameter on first launch after internet install
     rtLogInfo("window width = %d height = %d", windowWidth, windowHeight);
     
-    win.init(0, 0, windowWidth, windowHeight, unitW, unitH, true);
+    win.init(0, 0, windowWidth, windowHeight, unitW, unitH, doArchive, true);
     
     win.setTitle(buffer);
     

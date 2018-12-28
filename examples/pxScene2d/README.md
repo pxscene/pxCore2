@@ -37,7 +37,7 @@
 >   * From terminal install dependencies: cmake, pkg-config, quilt, java.
 
 ```bash
-    brew install cmake pkg-config quilt caskroom/cask/java
+    brew install cmake pkg-config quilt caskroom/cask/java libuv
 ```
 
 ## Windows Setup
@@ -290,5 +290,21 @@ file:///home/username/directory/filename.js
       3. From menu, go to Product menu and select _"Build"_ or type  ⌘B
 
 
+Remote debugging with V8 engine:
 
+Set up VSCODE environment same as mentioned in VSCODE_DEBUG.md
 
+1,Enable inspector by setting the environment variable SPARK_INSPECTOR=1
+2,Provide the custom inspector port by adding command line argument --inspect=<port number>
+
+Eg:
+./spark.sh --inspect=9887 <js file>
+./Spark --inspect=9887 <js file>
+
+3,Provide the custom inspector port and break on start by adding command line argument --inspect-brk=<port number>
+
+Eg:
+./spark.sh --inspect-brk=9887 <js file>
+./Spark --inspect-brk=9887 <js file>
+
+Default remote inspector port is 9229

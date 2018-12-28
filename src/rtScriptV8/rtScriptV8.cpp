@@ -125,6 +125,13 @@ extern "C" const char U_DATA_API SMALL_ICUDATA_ENTRY_POINT[];
 #include "headers.h"
 #include "libplatform/libplatform.h"
 
+#include "rtWebSocket.h"
+#ifdef ENABLE_DEBUG_MODE
+#include <debugger/inspector_agent.h>
+#define INSPECTOR_PORT 9229
+int gInspectorPort = INSPECTOR_PORT;
+bool gWaitForDebugger = false;
+#endif
 #include "rtHttpRequest.h"
 
 static rtAtomic sNextId = 100;
@@ -141,6 +148,7 @@ namespace rtScriptV8NodeUtils
   extern rtV8FunctionItem v8ModuleBindings[];
 
   rtError rtHttpGetBinding(int numArgs, const rtValue* args, rtValue* result, void* context);
+  rtError rtWebSocketBinding(int numArgs, const rtValue* args, rtValue* result, void* context);
 } 
 
 class V8ArrayBufferAllocator : public v8::ArrayBuffer::Allocator {
@@ -240,6 +248,7 @@ private:
    std::map<rtString, Persistent<Value> *> mLoadedModuleCache;
 
    rtRef<rtFunctionCallback>      mHttpGetBinding;
+   rtRef<rtFunctionCallback>      mWebScoketBinding;
 
    int mRefCount;
 
@@ -254,7 +263,12 @@ private:
 
 typedef std::map<uint32_t, rtV8ContextRef> rtV8Contexts;
 typedef std::map<uint32_t, rtV8ContextRef>::const_iterator rtV8Contexts_iterator;
-
+#ifdef ENABLE_DEBUG_MODE
+Environment* gEnv = nullptr;
+Agent* gInspectorAgent = nullptr;
+bool gIsAgentStarted = false;
+bool gBreakOnStart = false;
+#endif
 class rtScriptV8: public rtIScript
 {
 public:
@@ -307,7 +321,7 @@ using namespace v8;
 rtV8Context::rtV8Context(Isolate *isolate, Platform *platform, uv_loop_t *loop) :
      mIsolate(isolate), mPlatform(platform), mUvLoop(loop), mRefCount(0), mDirname(rtString())
 {
-  rtLogInfo(__FUNCTION__);
+  rtLogDebug(__FUNCTION__);
   Locker                locker(mIsolate);
   Isolate::Scope isolate_scope(mIsolate);
   HandleScope     handle_scope(mIsolate);
@@ -338,8 +352,10 @@ rtV8Context::rtV8Context(Isolate *isolate, Platform *platform, uv_loop_t *loop) 
   v8::platform::PumpMessageLoop(mPlatform, mIsolate);
 
   mHttpGetBinding = new rtFunctionCallback(rtHttpGetBinding, loop);
+  mWebScoketBinding = new rtFunctionCallback(rtWebSocketBinding, loop);
 
   add("httpGet", mHttpGetBinding.getPtr());
+  add("webscoketGet", mWebScoketBinding.getPtr());
 }
 
 rtV8Context::~rtV8Context()
@@ -373,6 +389,13 @@ bool rtV8Context::resolveModulePath(const rtString &name, rtString &data)
   // not parsing package.json
   endings.push_back("/index.js");
   endings.push_back("/lib/index.js");
+  if (name.find(0, "/") == -1) {
+    if (name.endsWith(".js")) {
+      endings.push_back("/lib/" + name);
+    } else {
+      endings.push_back("/lib/" + name + ".js");
+    }
+  }
 
   std::list<rtString>::const_iterator it, jt;
   for (it = dirs.begin(); !found && it != dirs.end(); ++it) {
@@ -460,7 +483,7 @@ Local<Value> rtV8Context::loadV8Module(const rtString &name)
     rtLogWarn("module '%s' not found", name.cString());
     return Local<Value>();
   } else {
-    rtLogInfo("module '%s' found at '%s'", name.cString(), path.cString());
+    rtLogDebug("module '%s' found at '%s'", name.cString(), path.cString());
   }
 
   rtString contents;
@@ -685,7 +708,10 @@ rtError rtV8Context::runScript(const char *script, rtValue* retVal /*= NULL*/, c
 
     // Compile the source code.
     Local<Script> run_script = Script::Compile(source);
-
+#ifdef ENABLE_DEBUG_MODE
+    if (gInspectorAgent)
+      gInspectorAgent->addContext(local_context, 1);
+#endif
     // Run the script to get the result.
     Local<Value> result = run_script->Run();
     // !CLF TODO: TEST FOR MT
@@ -807,7 +833,31 @@ rtError rtScriptV8::init()
     Local<Context> ctx = Context::New(mIsolate);
     mContext.Reset(mIsolate, ctx);
 #endif
-
+#ifdef ENABLE_DEBUG_MODE
+    const char* debugger = getenv("SPARK_INSPECTOR");
+    if (debugger && (1 == atoi(debugger)))
+    {
+      if (false == gIsAgentStarted)
+      {
+        const char* s = getenv("BREAK_ON_SCRIPTSTART");
+        if (s)
+        {
+          int tobreakonstart = atoi(s);
+          if (1 == tobreakonstart)
+            gBreakOnStart = true;
+        }
+        gEnv = new Environment(mIsolate, mUvLoop, mPlatform);
+        gInspectorAgent = new Agent(gEnv);
+        const char* debuggerPort = getenv("SPARK_INSPECTOR_PORT");
+        if ((debuggerPort) && (INSPECTOR_PORT == gInspectorPort))
+        {
+          gInspectorPort = atoi(debuggerPort);
+        }
+        gInspectorAgent->Start(gInspectorPort, gWaitForDebugger);
+        gIsAgentStarted = true;
+      }
+    }
+#endif
     mV8Initialized = true;
   }
   
@@ -817,6 +867,10 @@ rtError rtScriptV8::init()
 rtError rtScriptV8::term()
 {
   if (mV8Initialized == true) {
+#ifdef ENABLE_DEBUG_MODE
+    if (gInspectorAgent)
+      gInspectorAgent->Stop();
+#endif
     V8::ShutdownPlatform();
     if (mPlatform) {
       delete mPlatform;
@@ -1266,7 +1320,33 @@ namespace rtScriptV8NodeUtils
 
     TryCatch tryCatch(isolate);
     Local<String> source = String::NewFromUtf8(isolate, sourceCode.cString());
-    Local<Script> run_script = Script::Compile(source);
+    
+    rtString filenamestr = toString(args[5]->ToString());
+    rtString origin = filenamestr;
+
+    bool setBreak = true;
+    if (origin.compare("shell.js") == 0)
+      setBreak = false;
+
+    if ((filenamestr.beginsWith("/") == false) && (filenamestr.beginsWith("file:") == false))
+    {
+      char cwd[1024] = {};
+      if (NULL != getcwd(cwd,sizeof(cwd)))
+      {
+        origin = cwd;
+        origin.append("/");
+        origin.append(filenamestr);
+      }
+    }
+
+    v8::Local<v8::String> originval = v8::String::NewFromUtf8(isolate, origin.cString(), v8::NewStringType::kNormal).ToLocalChecked();
+    ScriptOrigin origininfo(originval);
+    Local<Script> run_script = Script::Compile(source, &origininfo);
+#ifdef ENABLE_DEBUG_MODE
+    if (gInspectorAgent && (true == setBreak) && (true == gBreakOnStart)) {
+      gInspectorAgent->breakOnStart(std::string(origin.cString()));
+    }
+#endif
     Local<Value> result = run_script->Run();
 
     if (tryCatch.HasCaught()) {
@@ -1438,6 +1518,25 @@ namespace rtScriptV8NodeUtils
     return RT_OK;
   }
 
+  rtError rtWebSocketBinding(int numArgs, const rtValue* args, rtValue* result, void* context)
+  {
+    uv_loop_t* loop = (uv_loop_t*)context;
+    if (numArgs < 1) {
+      rtLogError("%s: invalid args", __FUNCTION__);
+      return RT_ERROR_INVALID_ARG;
+    }
+
+    rtWebSocket* ws;
+    if (args[0].getType() != RT_objectType) {
+      rtLogError("%s: invalid arg type", __FUNCTION__);
+      return RT_ERROR_INVALID_ARG;
+    }
+    ws = new rtWebSocket(args[0].toObject(), loop);
+
+    rtObjectRef ref = ws;
+    *result = ref;
+    return RT_OK;
+  }
 } // namespace
 
 #endif

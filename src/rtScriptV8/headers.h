@@ -18,7 +18,6 @@ limitations under the License.
 
 #ifndef NODE_HEADERS_H
 #define NODE_HEADERS_H
-
 #include <rtScriptHeaders.h>
 
 #ifdef RTSCRIPT_SUPPORT_NODE
@@ -29,6 +28,41 @@ limitations under the License.
 #include <v8.h>
 #include <v8-util.h>
 #include <uv.h>
+
+#ifdef RTSCRIPT_SUPPORT_V8
+#ifdef ENABLE_DEBUG_MODE
+//manages v8 environment data used by debugger
+class Environment
+{
+  public:
+    Environment(v8::Isolate* isolate, uv_loop_t* loop, v8::Platform* platform)
+    {
+       mIsolate = isolate;
+       mUvLoop = loop;
+       mPlatform = platform;
+    }
+
+    v8::Isolate* isolate()
+    {
+      return mIsolate;
+    }
+
+    v8::Platform* platform() {
+      return mPlatform;
+    }
+
+    uv_loop_t* event_loop() {
+      return mUvLoop;
+    }
+
+  private:
+    v8::Isolate* mIsolate;
+    v8::Platform                  *mPlatform;
+    uv_loop_t                     *mUvLoop;
+
+};
+#endif
+#endif
 
 #endif
 

@@ -29,22 +29,32 @@ public:
   rtDeclareObject(rtHttpRequest, rtObject);
 
   rtMethod2ArgAndNoReturn("on", addListener, rtString, rtFunctionRef);
+  rtMethod2ArgAndNoReturn("once", once, rtString, rtFunctionRef);
+  rtMethodNoArgAndNoReturn("removeAllListeners", removeAllListeners);
+  rtMethod1ArgAndNoReturn("removeAllListeners", removeAllListenersByName, rtString);
   rtMethodNoArgAndNoReturn("abort", abort);
   rtMethodNoArgAndNoReturn("end", end);
   rtMethod1ArgAndNoReturn("write", write, rtString);
   rtMethod2ArgAndNoReturn("setTimeout", setTimeout, int32_t, rtFunctionRef);
   rtMethod2ArgAndNoReturn("setHeader", setHeader, rtString, rtString);
+  rtMethod1ArgAndReturn("getHeader", getHeader, rtString, rtString);
+  rtMethod1ArgAndNoReturn("removeHeader", removeHeader, rtString);
 
   rtHttpRequest(const rtString& url = rtString());
   rtHttpRequest(const rtObjectRef& options);
   ~rtHttpRequest();
 
-  rtError addListener(rtString eventName, const rtFunctionRef& f);
+  rtError addListener(const rtString& eventName, const rtFunctionRef& f);
+  rtError once(const rtString& eventName, const rtFunctionRef& f);
+  rtError removeAllListeners();
+  rtError removeAllListenersByName(const rtString& eventName);
   rtError abort() const;
   rtError end();
   rtError write(const rtString& chunk);
   rtError setTimeout(int32_t msecs, const rtFunctionRef& f);
   rtError setHeader(const rtString& name, const rtString& value);
+  rtError getHeader(const rtString& name, rtString& s);
+  rtError removeHeader(const rtString& name);
 
   static void onDownloadComplete(rtFileDownloadRequest* downloadRequest);
 

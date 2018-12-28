@@ -7,81 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		46AA48BA1FE0289600AA28B7 /* pxImage9Border.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46AA48AD1FE0289600AA28B7 /* pxImage9Border.cpp */; };
-		4C0C6D701E5218BB00BD8932 /* pxArchive.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C0C6D3F1E5218BB00BD8932 /* pxArchive.cpp */; };
-		4C0C6D711E5218BC00BD8932 /* pxConstants.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C0C6D411E5218BB00BD8932 /* pxConstants.cpp */; };
-		4C0C6D761E5218BC00BD8932 /* pxFont.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C0C6D4D1E5218BB00BD8932 /* pxFont.cpp */; };
-		4C0C6D791E5218BC00BD8932 /* pxImage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C0C6D521E5218BB00BD8932 /* pxImage.cpp */; };
-		4C0C6D7A1E5218BC00BD8932 /* pxImage9.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C0C6D541E5218BB00BD8932 /* pxImage9.cpp */; };
-		4C0C6D7D1E5218BC00BD8932 /* pxRectangle.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C0C6D5A1E5218BB00BD8932 /* pxRectangle.cpp */; };
-		4C0C6D7E1E5218BC00BD8932 /* pxResource.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C0C6D5C1E5218BB00BD8932 /* pxResource.cpp */; };
-		4C0C6D7F1E5218BC00BD8932 /* pxScene.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C0C6D5E1E5218BB00BD8932 /* pxScene.cpp */; };
-		4C0C6D811E5218BC00BD8932 /* pxScene2d.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C0C6D601E5218BB00BD8932 /* pxScene2d.cpp */; };
-		4C0C6D821E5218BC00BD8932 /* pxText.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C0C6D621E5218BB00BD8932 /* pxText.cpp */; };
-		4C0C6D831E5218BC00BD8932 /* pxTextBox.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C0C6D641E5218BB00BD8932 /* pxTextBox.cpp */; };
-		4C0C6D841E5218BC00BD8932 /* pxTransform.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C0C6D671E5218BB00BD8932 /* pxTransform.cpp */; };
-		4C0C6D861E5218BC00BD8932 /* pxWayland.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C0C6D6B1E5218BB00BD8932 /* pxWayland.cpp */; };
-		4C0C6D871E5218BC00BD8932 /* pxWaylandContainer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C0C6D6D1E5218BB00BD8932 /* pxWaylandContainer.cpp */; };
-		4C1447A71E68A90600610575 /* libcurl.4.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C1447961E68A90600610575 /* libcurl.4.dylib */; };
-		4C1447AA1E68A90600610575 /* libfreetype.6.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C1447991E68A90600610575 /* libfreetype.6.dylib */; };
-		4C1447AD1E68A90600610575 /* libjpeg.9.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C14479C1E68A90600610575 /* libjpeg.9.dylib */; };
-		4C1447B01E68A90600610575 /* libnode.48.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C14479F1E68A90600610575 /* libnode.48.dylib */; };
-		4C1447B91E68AF0C00610575 /* libnode.48.dylib in Copy Dynamic Library Files */ = {isa = PBXBuildFile; fileRef = 4C14479F1E68A90600610575 /* libnode.48.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
-		4C1447BA1E68AF0E00610575 /* libfreetype.6.dylib in Copy Dynamic Library Files */ = {isa = PBXBuildFile; fileRef = 4C1447991E68A90600610575 /* libfreetype.6.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
-		4C1447BB1E68AF1000610575 /* libjpeg.9.dylib in Copy Dynamic Library Files */ = {isa = PBXBuildFile; fileRef = 4C14479C1E68A90600610575 /* libjpeg.9.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
-		4C1447BD1E68AF2C00610575 /* libcurl.4.dylib in Copy Dynamic Library Files */ = {isa = PBXBuildFile; fileRef = 4C1447961E68A90600610575 /* libcurl.4.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
-		4C1447F01E68BAD700610575 /* libpng16.16.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C1447A11E68A90600610575 /* libpng16.16.dylib */; };
-		4C1447F11E68BAE400610575 /* libpng16.16.dylib in Copy Dynamic Library Files */ = {isa = PBXBuildFile; fileRef = 4C1447A11E68A90600610575 /* libpng16.16.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
-		4C20BEE91E5DE5F1005ABBB7 /* pxContextGL.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C0C6D481E5218BB00BD8932 /* pxContextGL.cpp */; };
-		4C2F20D41EEF1C250099DAE6 /* browser in Resources */ = {isa = PBXBuildFile; fileRef = 4C2F20D31EEF1C250099DAE6 /* browser */; };
-		4C38CDB41E538CF7003E4A35 /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C38CDB31E538CF7003E4A35 /* OpenGL.framework */; };
-		4C38CDC01E538D19003E4A35 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C38CDBF1E538D19003E4A35 /* Cocoa.framework */; };
-		4C5137B41E5F81BE0052A99C /* pxImageA.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C5137B21E5F81BE0052A99C /* pxImageA.cpp */; };
-		4C5B75AC1F475F3E00664DC6 /* pxPath.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C5B75AB1F475F3E00664DC6 /* pxPath.cpp */; };
-		4C5B75C31F4FB51600664DC6 /* about.js in Resources */ = {isa = PBXBuildFile; fileRef = 4C5B75C21F4FB51600664DC6 /* about.js */; };
-		4C5D05F52020D06100D2B292 /* pxPath.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C5B75AB1F475F3E00664DC6 /* pxPath.cpp */; };
-		4C5D05F62020D06100D2B292 /* pxImage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C0C6D521E5218BB00BD8932 /* pxImage.cpp */; };
-		4C5D05F82020D06100D2B292 /* pxImage9.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C0C6D541E5218BB00BD8932 /* pxImage9.cpp */; };
-		4C5D05F92020D06100D2B292 /* pxImageA.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C5137B21E5F81BE0052A99C /* pxImageA.cpp */; };
-		4C5D05FA2020D06100D2B292 /* pxImage9Border.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46AA48AD1FE0289600AA28B7 /* pxImage9Border.cpp */; };
-		4C5D05FB2020D06100D2B292 /* pxConstants.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C0C6D411E5218BB00BD8932 /* pxConstants.cpp */; };
-		4C5D05FC2020D06100D2B292 /* pxContextGL.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C0C6D481E5218BB00BD8932 /* pxContextGL.cpp */; };
-		4C5D05FD2020D06100D2B292 /* pxArchive.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C0C6D3F1E5218BB00BD8932 /* pxArchive.cpp */; };
-		4C5D05FE2020D06100D2B292 /* pxScene2d.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C0C6D601E5218BB00BD8932 /* pxScene2d.cpp */; };
-		4C5D05FF2020D06100D2B292 /* pxAnimate.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 783C7DAE1EBB6A440079FBE5 /* pxAnimate.cpp */; };
-		4C5D06002020D06100D2B292 /* pxTransform.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C0C6D671E5218BB00BD8932 /* pxTransform.cpp */; };
-		4C5D06012020D06100D2B292 /* pxText.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C0C6D621E5218BB00BD8932 /* pxText.cpp */; };
-		4C5D06022020D06100D2B292 /* pxTextBox.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C0C6D641E5218BB00BD8932 /* pxTextBox.cpp */; };
-		4C5D06032020D06100D2B292 /* pxResource.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C0C6D5C1E5218BB00BD8932 /* pxResource.cpp */; };
-		4C5D06042020D06100D2B292 /* pxRectangle.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C0C6D5A1E5218BB00BD8932 /* pxRectangle.cpp */; };
-		4C5D06052020D06100D2B292 /* pxFont.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C0C6D4D1E5218BB00BD8932 /* pxFont.cpp */; };
-		4C5D06072020D06100D2B292 /* pxScene.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C0C6D5E1E5218BB00BD8932 /* pxScene.cpp */; };
-		4C5D06082020D06100D2B292 /* pxWayland.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C0C6D6B1E5218BB00BD8932 /* pxWayland.cpp */; };
-		4C5D06092020D06100D2B292 /* pxWaylandContainer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C0C6D6D1E5218BB00BD8932 /* pxWaylandContainer.cpp */; };
-		4C5D060B2020D06100D2B292 /* westeros-stub.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C9F22AB1E6A24D200979F4E /* westeros-stub.cpp */; };
-		4C5D060E2020D06100D2B292 /* libpxCore.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 4CF626461E661CC600D70FB3 /* libpxCore.a */; };
-		4C5D060F2020D06100D2B292 /* libfreetype.6.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C1447991E68A90600610575 /* libfreetype.6.dylib */; };
-		4C5D06102020D06100D2B292 /* libnode.48.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C14479F1E68A90600610575 /* libnode.48.dylib */; };
-		4C5D06112020D06100D2B292 /* libjpeg.9.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C14479C1E68A90600610575 /* libjpeg.9.dylib */; };
-		4C5D06122020D06100D2B292 /* libcurl.4.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C1447961E68A90600610575 /* libcurl.4.dylib */; };
-		4C5D06132020D06100D2B292 /* libpng16.16.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C1447A11E68A90600610575 /* libpng16.16.dylib */; };
-		4C5D06142020D06100D2B292 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C38CDBF1E538D19003E4A35 /* Cocoa.framework */; };
-		4C5D06152020D06100D2B292 /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C38CDB31E538CF7003E4A35 /* OpenGL.framework */; };
-		4C5D06172020D06100D2B292 /* package.json in Resources */ = {isa = PBXBuildFile; fileRef = 4C63A6821E7878AA00313D9C /* package.json */; };
-		4C5D06182020D06100D2B292 /* browser in Resources */ = {isa = PBXBuildFile; fileRef = 4C2F20D31EEF1C250099DAE6 /* browser */; };
-		4C5D06192020D06100D2B292 /* about.js in Resources */ = {isa = PBXBuildFile; fileRef = 4C5B75C21F4FB51600664DC6 /* about.js */; };
-		4C5D061B2020D06100D2B292 /* libcurl.4.dylib in Copy Dynamic Library Files */ = {isa = PBXBuildFile; fileRef = 4C1447961E68A90600610575 /* libcurl.4.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
-		4C5D061C2020D06100D2B292 /* libjpeg.9.dylib in Copy Dynamic Library Files */ = {isa = PBXBuildFile; fileRef = 4C14479C1E68A90600610575 /* libjpeg.9.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
-		4C5D061D2020D06100D2B292 /* libpng16.16.dylib in Copy Dynamic Library Files */ = {isa = PBXBuildFile; fileRef = 4C1447A11E68A90600610575 /* libpng16.16.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
-		4C5D061E2020D06100D2B292 /* libfreetype.6.dylib in Copy Dynamic Library Files */ = {isa = PBXBuildFile; fileRef = 4C1447991E68A90600610575 /* libfreetype.6.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
-		4C5D061F2020D06100D2B292 /* libnode.48.dylib in Copy Dynamic Library Files */ = {isa = PBXBuildFile; fileRef = 4C14479F1E68A90600610575 /* libnode.48.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
-		4C5D06292020D0A000D2B292 /* libz.1.2.11.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C5D05EA201FC5B500D2B292 /* libz.1.2.11.dylib */; };
-		4C5D062A2020D34200D2B292 /* libz.1.2.11.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C5D05EA201FC5B500D2B292 /* libz.1.2.11.dylib */; };
-		4C63A6831E7878AA00313D9C /* package.json in Resources */ = {isa = PBXBuildFile; fileRef = 4C63A6821E7878AA00313D9C /* package.json */; };
+		4C4746D7215046FC00E06357 /* libpxCore Static Library.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 4CF546B420210AE200529907 /* libpxCore Static Library.a */; };
 		4C8440CC20D8362E00C24E45 /* sparkpermissions.conf in Resources */ = {isa = PBXBuildFile; fileRef = 4C8440CB20D8362E00C24E45 /* sparkpermissions.conf */; };
-		4C93A1712021160D002278E5 /* libz.1.2.11.dylib in Copy Dynamic Library Files */ = {isa = PBXBuildFile; fileRef = 4CF5463A2020F6E200529907 /* libz.1.2.11.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		4C93A17D2021161E002278E5 /* libz.1.2.11.dylib in Copy Dynamic Library Files */ = {isa = PBXBuildFile; fileRef = 4CF5463A2020F6E200529907 /* libz.1.2.11.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
-		4C9F22AC1E6A24D200979F4E /* westeros-stub.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C9F22AB1E6A24D200979F4E /* westeros-stub.cpp */; };
 		4CF546062020F5B600529907 /* pxPath.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C5B75AB1F475F3E00664DC6 /* pxPath.cpp */; };
 		4CF546072020F5B600529907 /* pxImage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C0C6D521E5218BB00BD8932 /* pxImage.cpp */; };
 		4CF546092020F5B600529907 /* pxImage9.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C0C6D541E5218BB00BD8932 /* pxImage9.cpp */; };
@@ -98,12 +26,11 @@
 		4CF546142020F5B600529907 /* pxResource.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C0C6D5C1E5218BB00BD8932 /* pxResource.cpp */; };
 		4CF546152020F5B600529907 /* pxRectangle.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C0C6D5A1E5218BB00BD8932 /* pxRectangle.cpp */; };
 		4CF546162020F5B600529907 /* pxFont.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C0C6D4D1E5218BB00BD8932 /* pxFont.cpp */; };
-		4CF546182020F5B600529907 /* pxScene.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C0C6D5E1E5218BB00BD8932 /* pxScene.cpp */; };
+		4CF546182020F5B600529907 /* Spark.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C0C6D5E1E5218BB00BD8932 /* Spark.cpp */; };
 		4CF546192020F5B600529907 /* pxWayland.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C0C6D6B1E5218BB00BD8932 /* pxWayland.cpp */; };
 		4CF5461A2020F5B600529907 /* pxWaylandContainer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C0C6D6D1E5218BB00BD8932 /* pxWaylandContainer.cpp */; };
 		4CF5461C2020F5B600529907 /* westeros-stub.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C9F22AB1E6A24D200979F4E /* westeros-stub.cpp */; };
 		4CF5461F2020F5B600529907 /* libz.1.2.11.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C5D05EA201FC5B500D2B292 /* libz.1.2.11.dylib */; };
-		4CF546202020F5B600529907 /* libpxCore.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 4CF626461E661CC600D70FB3 /* libpxCore.a */; };
 		4CF546212020F5B600529907 /* libfreetype.6.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C1447991E68A90600610575 /* libfreetype.6.dylib */; };
 		4CF546222020F5B600529907 /* libnode.48.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C14479F1E68A90600610575 /* libnode.48.dylib */; };
 		4CF546232020F5B600529907 /* libjpeg.9.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C14479C1E68A90600610575 /* libjpeg.9.dylib */; };
@@ -119,54 +46,22 @@
 		4CF5462F2020F5B600529907 /* libpng16.16.dylib in Copy Dynamic Library Files */ = {isa = PBXBuildFile; fileRef = 4C1447A11E68A90600610575 /* libpng16.16.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		4CF546302020F5B600529907 /* libfreetype.6.dylib in Copy Dynamic Library Files */ = {isa = PBXBuildFile; fileRef = 4C1447991E68A90600610575 /* libfreetype.6.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		4CF546312020F5B600529907 /* libnode.48.dylib in Copy Dynamic Library Files */ = {isa = PBXBuildFile; fileRef = 4C14479F1E68A90600610575 /* libnode.48.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
-		4CF5463B2020F6E200529907 /* libz.1.2.11.dylib in Copy Dynamic Library Files */ = {isa = PBXBuildFile; fileRef = 4CF5463A2020F6E200529907 /* libz.1.2.11.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
-		4CF5463C2020F89D00529907 /* libz.1.2.11.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 4CF5463A2020F6E200529907 /* libz.1.2.11.dylib */; };
 		4CF5463D2020F89E00529907 /* libz.1.2.11.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 4CF5463A2020F6E200529907 /* libz.1.2.11.dylib */; };
-		4CF6265D1E661D5000D70FB3 /* libpxCore.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 4CF626461E661CC600D70FB3 /* libpxCore.a */; };
-		783C7DB01EBB6A440079FBE5 /* pxAnimate.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 783C7DAE1EBB6A440079FBE5 /* pxAnimate.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		4C1FDA461E68D1C700CFEA9F /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 4C0C6DB41E52336300BD8932 /* pxCore.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = AECBECCF1B67979F00851BFE;
-			remoteInfo = "pxCore Static Library";
-		};
-		4C5D05E6201FC4A800D2B292 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 4C0C6DB41E52336300BD8932 /* pxCore.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 4C5D05E4201FC48F00D2B292;
-			remoteInfo = "pxCore (Duk) Static Library copy";
-		};
-		4C5D06272020D07800D2B292 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 4C0C6DB41E52336300BD8932 /* pxCore.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = 4C5D0571201FC48F00D2B292;
-			remoteInfo = "pxCore (Duk) Static Library";
-		};
-		4CF546B320210AE200529907 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 4C0C6DB41E52336300BD8932 /* pxCore.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 4CF546B120210AB600529907;
-			remoteInfo = "pxCore Static Library";
-		};
-		4CF546B520210AE800529907 /* PBXContainerItemProxy */ = {
+		4C4746B0214D2C1700E06357 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 4C0C6DB41E52336300BD8932 /* pxCore.xcodeproj */;
 			proxyType = 1;
 			remoteGlobalIDString = 4CF5463E20210AB600529907;
 			remoteInfo = "pxCore Static Library";
 		};
-		4CF626451E661CC600D70FB3 /* PBXContainerItemProxy */ = {
+		4CF546B320210AE200529907 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 4C0C6DB41E52336300BD8932 /* pxCore.xcodeproj */;
 			proxyType = 2;
-			remoteGlobalIDString = AECBECD01B67979F00851BFE;
+			remoteGlobalIDString = 4CF546B120210AB600529907;
 			remoteInfo = "pxCore Static Library";
 		};
 		4CF626471E661CC600D70FB3 /* PBXContainerItemProxy */ = {
@@ -242,38 +137,6 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
-		4C5D061A2020D06100D2B292 /* Copy Dynamic Library Files */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = lib;
-			dstSubfolderSpec = 6;
-			files = (
-				4C93A1712021160D002278E5 /* libz.1.2.11.dylib in Copy Dynamic Library Files */,
-				4C5D061B2020D06100D2B292 /* libcurl.4.dylib in Copy Dynamic Library Files */,
-				4C5D061C2020D06100D2B292 /* libjpeg.9.dylib in Copy Dynamic Library Files */,
-				4C5D061D2020D06100D2B292 /* libpng16.16.dylib in Copy Dynamic Library Files */,
-				4C5D061E2020D06100D2B292 /* libfreetype.6.dylib in Copy Dynamic Library Files */,
-				4C5D061F2020D06100D2B292 /* libnode.48.dylib in Copy Dynamic Library Files */,
-			);
-			name = "Copy Dynamic Library Files";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		4CF04F691E523914003FE926 /* Copy Dynamic Library Files */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = lib;
-			dstSubfolderSpec = 6;
-			files = (
-				4CF5463B2020F6E200529907 /* libz.1.2.11.dylib in Copy Dynamic Library Files */,
-				4C1447BD1E68AF2C00610575 /* libcurl.4.dylib in Copy Dynamic Library Files */,
-				4C1447BB1E68AF1000610575 /* libjpeg.9.dylib in Copy Dynamic Library Files */,
-				4C1447F11E68BAE400610575 /* libpng16.16.dylib in Copy Dynamic Library Files */,
-				4C1447BA1E68AF0E00610575 /* libfreetype.6.dylib in Copy Dynamic Library Files */,
-				4C1447B91E68AF0C00610575 /* libnode.48.dylib in Copy Dynamic Library Files */,
-			);
-			name = "Copy Dynamic Library Files";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		4CF5462C2020F5B600529907 /* Copy Dynamic Library Files */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -298,7 +161,6 @@
 		4C0466191E574CEE00D59925 /* shell.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; name = shell.js; path = src/shell.js; sourceTree = "<group>"; };
 		4C04661A1E574CEE00D59925 /* init.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; name = init.js; path = src/init.js; sourceTree = "<group>"; };
 		4C04661B1E574CEE00D59925 /* browser.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; name = browser.js; path = src/browser.js; sourceTree = "<group>"; };
-		4C0C6D2B1E52189500BD8932 /* pxscene (node).app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "pxscene (node).app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		4C0C6D391E52189500BD8932 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		4C0C6D3F1E5218BB00BD8932 /* pxArchive.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = pxArchive.cpp; path = src/pxArchive.cpp; sourceTree = "<group>"; };
 		4C0C6D401E5218BB00BD8932 /* pxArchive.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pxArchive.h; path = src/pxArchive.h; sourceTree = "<group>"; };
@@ -318,8 +180,8 @@
 		4C0C6D5B1E5218BB00BD8932 /* pxRectangle.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pxRectangle.h; path = src/pxRectangle.h; sourceTree = "<group>"; };
 		4C0C6D5C1E5218BB00BD8932 /* pxResource.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = pxResource.cpp; path = src/pxResource.cpp; sourceTree = "<group>"; };
 		4C0C6D5D1E5218BB00BD8932 /* pxResource.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pxResource.h; path = src/pxResource.h; sourceTree = "<group>"; };
-		4C0C6D5E1E5218BB00BD8932 /* pxScene.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = pxScene.cpp; path = src/pxScene.cpp; sourceTree = "<group>"; };
-		4C0C6D5F1E5218BB00BD8932 /* pxscene.sh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.sh; name = pxscene.sh; path = src/pxscene.sh; sourceTree = "<group>"; };
+		4C0C6D5E1E5218BB00BD8932 /* Spark.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Spark.cpp; path = src/Spark.cpp; sourceTree = "<group>"; };
+		4C0C6D5F1E5218BB00BD8932 /* spark.sh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.sh; name = spark.sh; path = src/spark.sh; sourceTree = "<group>"; };
 		4C0C6D601E5218BB00BD8932 /* pxScene2d.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = pxScene2d.cpp; path = src/pxScene2d.cpp; sourceTree = "<group>"; };
 		4C0C6D611E5218BB00BD8932 /* pxScene2d.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pxScene2d.h; path = src/pxScene2d.h; sourceTree = "<group>"; };
 		4C0C6D621E5218BB00BD8932 /* pxText.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = pxText.cpp; path = src/pxText.cpp; sourceTree = "<group>"; };
@@ -347,6 +209,8 @@
 		4C20BEAD1E5B8638005ABBB7 /* pxscene.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = pxscene.sh; path = ../pxscene.sh; sourceTree = "<group>"; };
 		4C20BEB11E5CDE01005ABBB7 /* pxScene2d.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = pxScene2d.xcconfig; sourceTree = SOURCE_ROOT; };
 		4C2F20D31EEF1C250099DAE6 /* browser */ = {isa = PBXFileReference; lastKnownFileType = folder; name = browser; path = src/browser; sourceTree = "<group>"; };
+		4C2FF267219C9CCA0010DA38 /* mime */ = {isa = PBXFileReference; lastKnownFileType = folder; name = mime; path = src/mime; sourceTree = "<group>"; };
+		4C2FF268219C9CCA0010DA38 /* mime.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; name = mime.js; path = src/mime.js; sourceTree = "<group>"; };
 		4C38CDB31E538CF7003E4A35 /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
 		4C38CDBF1E538D19003E4A35 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		4C5137B21E5F81BE0052A99C /* pxImageA.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = pxImageA.cpp; path = src/pxImageA.cpp; sourceTree = "<group>"; };
@@ -356,59 +220,25 @@
 		4C5B75C21F4FB51600664DC6 /* about.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; name = about.js; path = src/about.js; sourceTree = "<group>"; };
 		4C5D05E8201FC58B00D2B292 /* libz.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libz.a; path = "../external/zlib-1.2.11/libz.a"; sourceTree = "<group>"; };
 		4C5D05EA201FC5B500D2B292 /* libz.1.2.11.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.1.2.11.dylib; path = "../external/zlib-1.2.11/libz.1.2.11.dylib"; sourceTree = "<group>"; };
-		4C5D06252020D06100D2B292 /* pxScene2d (duk).app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "pxScene2d (duk).app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		4C62369520B342CF00DAB86F /* nanosvg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = nanosvg.h; path = external/nanosvg/src/nanosvg.h; sourceTree = "<group>"; };
 		4C62369620B342CF00DAB86F /* nanosvgrast.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = nanosvgrast.h; path = external/nanosvg/src/nanosvgrast.h; sourceTree = "<group>"; };
 		4C63A6821E7878AA00313D9C /* package.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; name = package.json; path = ../../src/package.json; sourceTree = "<group>"; };
 		4C8440CB20D8362E00C24E45 /* sparkpermissions.conf */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = sparkpermissions.conf; path = src/sparkpermissions.conf; sourceTree = "<group>"; };
 		4C9F22AA1E6A24D200979F4E /* westeros-compositor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "westeros-compositor.h"; path = "external/westeros-stub/westeros-compositor.h"; sourceTree = "<group>"; };
 		4C9F22AB1E6A24D200979F4E /* westeros-stub.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = "westeros-stub.cpp"; path = "external/westeros-stub/westeros-stub.cpp"; sourceTree = "<group>"; };
-		4CF546362020F5B600529907 /* pxScene2d.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = pxScene2d.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		4CF546362020F5B600529907 /* Spark.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Spark.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		4CF5463A2020F6E200529907 /* libz.1.2.11.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.1.2.11.dylib; path = lib/libz.1.2.11.dylib; sourceTree = "<group>"; };
 		783C7DAE1EBB6A440079FBE5 /* pxAnimate.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = pxAnimate.cpp; path = src/pxAnimate.cpp; sourceTree = "<group>"; };
 		783C7DAF1EBB6A440079FBE5 /* pxAnimate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pxAnimate.h; path = src/pxAnimate.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		4C0C6D281E52189500BD8932 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				4C5D06292020D0A000D2B292 /* libz.1.2.11.dylib in Frameworks */,
-				4CF6265D1E661D5000D70FB3 /* libpxCore.a in Frameworks */,
-				4C1447AA1E68A90600610575 /* libfreetype.6.dylib in Frameworks */,
-				4C1447B01E68A90600610575 /* libnode.48.dylib in Frameworks */,
-				4C1447AD1E68A90600610575 /* libjpeg.9.dylib in Frameworks */,
-				4C1447A71E68A90600610575 /* libcurl.4.dylib in Frameworks */,
-				4C1447F01E68BAD700610575 /* libpng16.16.dylib in Frameworks */,
-				4C38CDC01E538D19003E4A35 /* Cocoa.framework in Frameworks */,
-				4C38CDB41E538CF7003E4A35 /* OpenGL.framework in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		4C5D060D2020D06100D2B292 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				4C5D062A2020D34200D2B292 /* libz.1.2.11.dylib in Frameworks */,
-				4C5D060E2020D06100D2B292 /* libpxCore.a in Frameworks */,
-				4C5D060F2020D06100D2B292 /* libfreetype.6.dylib in Frameworks */,
-				4C5D06102020D06100D2B292 /* libnode.48.dylib in Frameworks */,
-				4C5D06112020D06100D2B292 /* libjpeg.9.dylib in Frameworks */,
-				4C5D06122020D06100D2B292 /* libcurl.4.dylib in Frameworks */,
-				4C5D06132020D06100D2B292 /* libpng16.16.dylib in Frameworks */,
-				4C5D06142020D06100D2B292 /* Cocoa.framework in Frameworks */,
-				4C5D06152020D06100D2B292 /* OpenGL.framework in Frameworks */,
-				4CF5463C2020F89D00529907 /* libz.1.2.11.dylib in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		4CF5461E2020F5B600529907 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4C4746D7215046FC00E06357 /* libpxCore Static Library.a in Frameworks */,
 				4CF5461F2020F5B600529907 /* libz.1.2.11.dylib in Frameworks */,
-				4CF546202020F5B600529907 /* libpxCore.a in Frameworks */,
 				4CF546212020F5B600529907 /* libfreetype.6.dylib in Frameworks */,
 				4CF546222020F5B600529907 /* libnode.48.dylib in Frameworks */,
 				4CF546232020F5B600529907 /* libjpeg.9.dylib in Frameworks */,
@@ -426,6 +256,8 @@
 		4C04660D1E574CAE00D59925 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				4C2FF267219C9CCA0010DA38 /* mime */,
+				4C2FF268219C9CCA0010DA38 /* mime.js */,
 				4C8440CB20D8362E00C24E45 /* sparkpermissions.conf */,
 				4C0466191E574CEE00D59925 /* shell.js */,
 				4C04661A1E574CEE00D59925 /* init.js */,
@@ -452,9 +284,7 @@
 		4C0C6D2C1E52189500BD8932 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				4C0C6D2B1E52189500BD8932 /* pxscene (node).app */,
-				4C5D06252020D06100D2B292 /* pxScene2d (duk).app */,
-				4CF546362020F5B600529907 /* pxScene2d.app */,
+				4CF546362020F5B600529907 /* Spark.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -499,8 +329,8 @@
 				4C0C6D481E5218BB00BD8932 /* pxContextGL.cpp */,
 				4C0C6D5C1E5218BB00BD8932 /* pxResource.cpp */,
 				4C0C6D5D1E5218BB00BD8932 /* pxResource.h */,
-				4C0C6D5E1E5218BB00BD8932 /* pxScene.cpp */,
-				4C0C6D5F1E5218BB00BD8932 /* pxscene.sh */,
+				4C0C6D5E1E5218BB00BD8932 /* Spark.cpp */,
+				4C0C6D5F1E5218BB00BD8932 /* spark.sh */,
 				4C0C6D601E5218BB00BD8932 /* pxScene2d.cpp */,
 				4C0C6D611E5218BB00BD8932 /* pxScene2d.h */,
 				4C0C6D661E5218BB00BD8932 /* pxTexture.h */,
@@ -628,8 +458,6 @@
 			isa = PBXGroup;
 			children = (
 				4CF546B420210AE200529907 /* libpxCore Static Library.a */,
-				4CF626461E661CC600D70FB3 /* libpxCore.a */,
-				4C5D05E7201FC4A800D2B292 /* libpxCore (Duk) Static Library.a */,
 				4CF626581E661CC600D70FB3 /* Simple.app */,
 				4CF6264A1E661CC600D70FB3 /* Hover.app */,
 				4CF626541E661CC600D70FB3 /* Multi.app */,
@@ -647,51 +475,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		4C0C6D2A1E52189500BD8932 /* pxScene2d (node) */ = {
+		4CF546012020F5B600529907 /* Spark */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 4C0C6D3C1E52189500BD8932 /* Build configuration list for PBXNativeTarget "pxScene2d (node)" */;
-			buildPhases = (
-				4C1447631E687D1600610575 /* Run Library Script */,
-				4C0C6D271E52189500BD8932 /* Sources */,
-				4C0C6D281E52189500BD8932 /* Frameworks */,
-				4C0C6D291E52189500BD8932 /* Resources */,
-				4CF04F691E523914003FE926 /* Copy Dynamic Library Files */,
-				4CF04F951E524594003FE926 /* Run Script - Copy Resources to App Bundle */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				4C1FDA471E68D1C700CFEA9F /* PBXTargetDependency */,
-			);
-			name = "pxScene2d (node)";
-			productName = pxScene2d;
-			productReference = 4C0C6D2B1E52189500BD8932 /* pxscene (node).app */;
-			productType = "com.apple.product-type.application";
-		};
-		4C5D05F02020D06100D2B292 /* pxScene2d (duk) */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 4C5D06222020D06100D2B292 /* Build configuration list for PBXNativeTarget "pxScene2d (duk)" */;
-			buildPhases = (
-				4C5D05F32020D06100D2B292 /* Run Library Script */,
-				4C5D05F42020D06100D2B292 /* Sources */,
-				4C5D060D2020D06100D2B292 /* Frameworks */,
-				4C5D06162020D06100D2B292 /* Resources */,
-				4C5D061A2020D06100D2B292 /* Copy Dynamic Library Files */,
-				4C5D06212020D06100D2B292 /* Run Script - Copy Resources to App Bundle */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				4C5D06282020D07800D2B292 /* PBXTargetDependency */,
-			);
-			name = "pxScene2d (duk)";
-			productName = pxScene2d;
-			productReference = 4C5D06252020D06100D2B292 /* pxScene2d (duk).app */;
-			productType = "com.apple.product-type.application";
-		};
-		4CF546012020F5B600529907 /* pxScene2d */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 4CF546332020F5B600529907 /* Build configuration list for PBXNativeTarget "pxScene2d" */;
+			buildConfigurationList = 4CF546332020F5B600529907 /* Build configuration list for PBXNativeTarget "Spark" */;
 			buildPhases = (
 				4CF546042020F5B600529907 /* Run Library Script */,
 				4CF546052020F5B600529907 /* Sources */,
@@ -703,11 +489,11 @@
 			buildRules = (
 			);
 			dependencies = (
-				4CF546B620210AE800529907 /* PBXTargetDependency */,
+				4C4746B1214D2C1700E06357 /* PBXTargetDependency */,
 			);
-			name = pxScene2d;
+			name = Spark;
 			productName = pxScene2d;
-			productReference = 4CF546362020F5B600529907 /* pxScene2d.app */;
+			productReference = 4CF546362020F5B600529907 /* Spark.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -718,11 +504,6 @@
 			attributes = {
 				LastUpgradeCheck = 0720;
 				ORGANIZATIONNAME = Comcast;
-				TargetAttributes = {
-					4C0C6D2A1E52189500BD8932 = {
-						CreatedOnToolsVersion = 7.2.1;
-					};
-				};
 			};
 			buildConfigurationList = 4C0C6D261E52189500BD8932 /* Build configuration list for PBXProject "pxScene2d" */;
 			compatibilityVersion = "Xcode 3.2";
@@ -743,33 +524,17 @@
 			);
 			projectRoot = "";
 			targets = (
-				4C0C6D2A1E52189500BD8932 /* pxScene2d (node) */,
-				4C5D05F02020D06100D2B292 /* pxScene2d (duk) */,
-				4CF546012020F5B600529907 /* pxScene2d */,
+				4CF546012020F5B600529907 /* Spark */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXReferenceProxy section */
-		4C5D05E7201FC4A800D2B292 /* libpxCore (Duk) Static Library.a */ = {
-			isa = PBXReferenceProxy;
-			fileType = archive.ar;
-			path = "libpxCore (Duk) Static Library.a";
-			remoteRef = 4C5D05E6201FC4A800D2B292 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
 		4CF546B420210AE200529907 /* libpxCore Static Library.a */ = {
 			isa = PBXReferenceProxy;
 			fileType = archive.ar;
 			path = "libpxCore Static Library.a";
 			remoteRef = 4CF546B320210AE200529907 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		4CF626461E661CC600D70FB3 /* libpxCore.a */ = {
-			isa = PBXReferenceProxy;
-			fileType = archive.ar;
-			path = libpxCore.a;
-			remoteRef = 4CF626451E661CC600D70FB3 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 		4CF626481E661CC600D70FB3 /* Animation.app */ = {
@@ -845,26 +610,6 @@
 /* End PBXReferenceProxy section */
 
 /* Begin PBXResourcesBuildPhase section */
-		4C0C6D291E52189500BD8932 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				4C63A6831E7878AA00313D9C /* package.json in Resources */,
-				4C2F20D41EEF1C250099DAE6 /* browser in Resources */,
-				4C5B75C31F4FB51600664DC6 /* about.js in Resources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		4C5D06162020D06100D2B292 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				4C5D06172020D06100D2B292 /* package.json in Resources */,
-				4C5D06182020D06100D2B292 /* browser in Resources */,
-				4C5D06192020D06100D2B292 /* about.js in Resources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		4CF546282020F5B600529907 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -879,62 +624,6 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		4C1447631E687D1600610575 /* Run Library Script */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-			);
-			name = "Run Library Script";
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = $PROJECT_DIR/getLocalLibs.sh;
-		};
-		4C5D05F32020D06100D2B292 /* Run Library Script */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-			);
-			name = "Run Library Script";
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = $PROJECT_DIR/getLocalLibs.sh;
-		};
-		4C5D06212020D06100D2B292 /* Run Script - Copy Resources to App Bundle */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-			);
-			name = "Run Script - Copy Resources to App Bundle";
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "cd $PROJECT_DIR/../src\n\n# Copy\ncp package.json $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/MacOS\ncp -R macstuff/Resources $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents\ncp    macstuff/EngineRunner $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/MacOS\ncp    macstuff/pxscene.sh $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/MacOS\n\ncp FreeSans.ttf $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\ncp -R browser $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\ncp -R node_modules $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\n\nminifyJS=\"true\"\n\nif [ \"$minifyJS\" == \"true\" ]\nthen\n\n  # Minify JS to App Bundle\n  printf \"\\n ###  Minify JS code to App Bundle\\n\"\n\n  ./jsMinFolder.sh rcvrcore $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources/rcvrcore\n  cp -R browser $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\n\n  ./jsMin.sh init.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources/init.js\n  ./jsMin.sh shell.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources/shell.js\n  ./jsMin.sh about.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources/about.js\n  ./jsMin.sh browser.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources/browser.js\n  ./jsMin.sh browser/editbox.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources/browser/editbox.js\nelse\n\n  # Skip JS Minify - just copy\n  printf \"\\n ###  Skip JS Minify - just copy\\n\"\n\n  cp -R rcvrcore $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\n  cp -R browser $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\n\n  cp init.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\n  cp shell.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\n  cp about.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\n  cp browser.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\nfi\n\necho $PROJECT_DIR/../lib\n";
-		};
-		4CF04F951E524594003FE926 /* Run Script - Copy Resources to App Bundle */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-			);
-			name = "Run Script - Copy Resources to App Bundle";
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "cd $PROJECT_DIR/../src\n\n# Copy\ncp package.json $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/MacOS\ncp sparkpermissions.conf $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/MacOS\ncp -R macstuff/Resources $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents\ncp    macstuff/EngineRunner $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/MacOS\ncp    macstuff/pxscene.sh $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/MacOS\n\ncp FreeSans.ttf $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\ncp -R browser $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\ncp -R node_modules $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\n\nminifyJS=\"true\"\n\nif [ \"$minifyJS\" == \"true\" ]\nthen\n\n  # Minify JS to App Bundle\n  printf \"\\n ###  Minify JS code to App Bundle\\n\"\n\n  ./jsMinFolder.sh rcvrcore $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources/rcvrcore\n  cp -R browser $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\n\n  ./jsMin.sh init.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources/init.js\n  ./jsMin.sh shell.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources/shell.js\n  ./jsMin.sh about.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources/about.js\n  ./jsMin.sh browser.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources/browser.js\n  ./jsMin.sh browser/editbox.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources/browser/editbox.js\nelse\n\n  # Skip JS Minify - just copy\n  printf \"\\n ###  Skip JS Minify - just copy\\n\"\n\n  cp -R rcvrcore $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\n  cp -R browser $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\n\n  cp init.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\n  cp shell.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\n  cp about.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\n  cp browser.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\nfi\n\necho $PROJECT_DIR/../lib\n";
-		};
 		4CF546042020F5B600529907 /* Run Library Script */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -961,65 +650,11 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "cd $PROJECT_DIR/../src\n\n# Copy\ncp package.json $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/MacOS\ncp -R macstuff/Resources $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents\ncp    macstuff/EngineRunner $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/MacOS\ncp    macstuff/pxscene.sh $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/MacOS\n\ncp FreeSans.ttf $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\ncp -R browser $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\ncp -R node_modules $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\n\nminifyJS=\"true\"\n\nif [ \"$minifyJS\" == \"true\" ]\nthen\n\n  # Minify JS to App Bundle\n  printf \"\\n ###  Minify JS code to App Bundle\\n\"\n\n  ./jsMinFolder.sh rcvrcore $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources/rcvrcore\n  cp -R browser $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\n\n  ./jsMin.sh init.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources/init.js\n  ./jsMin.sh shell.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources/shell.js\n  ./jsMin.sh about.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources/about.js\n  ./jsMin.sh browser.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources/browser.js\n  ./jsMin.sh browser/editbox.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources/browser/editbox.js\nelse\n\n  # Skip JS Minify - just copy\n  printf \"\\n ###  Skip JS Minify - just copy\\n\"\n\n  cp -R rcvrcore $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\n  cp -R browser $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\n\n  cp init.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\n  cp shell.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\n  cp about.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\n  cp browser.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\nfi\n\necho $PROJECT_DIR/../lib\n";
+			shellScript = "cd $PROJECT_DIR/../src\n\n# Copy\ncp package.json $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/MacOS\ncp -R macstuff/Resources $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents\ncp    macstuff/EngineRunner $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/MacOS\ncp    macstuff/spark.sh $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/MacOS\n\ncp FreeSans.ttf $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\ncp -R browser $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\ncp -R node_modules $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\n\nminifyJS=\"true\"\n\nif [ \"$minifyJS\" == \"true\" ]\nthen\n\n  # Minify JS to App Bundle\n  printf \"\\n ###  Minify JS code to App Bundle\\n\"\n\n  ./jsMinFolder.sh rcvrcore $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources/rcvrcore\n  cp -R browser $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\n\n  ./jsMin.sh init.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources/init.js\n  ./jsMin.sh shell.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources/shell.js\n  ./jsMin.sh about.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources/about.js\n  ./jsMin.sh mime.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources/mime.js\n  ./jsMin.sh mime/pxMimeTypes.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources/pxMimeTypes.js\n  ./jsMin.sh browser.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources/browser.js\n  ./jsMin.sh browser/editbox.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources/browser/editbox.js\nelse\n\n  # Skip JS Minify - just copy\n  printf \"\\n ###  Skip JS Minify - just copy\\n\"\n\n  cp -R rcvrcore $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\n  cp -R browser $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\n\n  cp init.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\n  cp shell.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\n  cp about.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\n  cp mime.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\n  cp mime/pxMimeTypes.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\n  cp browser.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\nfi\n\necho $PROJECT_DIR/../lib\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		4C0C6D271E52189500BD8932 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				4C5B75AC1F475F3E00664DC6 /* pxPath.cpp in Sources */,
-				4C0C6D791E5218BC00BD8932 /* pxImage.cpp in Sources */,
-				4C0C6D7A1E5218BC00BD8932 /* pxImage9.cpp in Sources */,
-				4C5137B41E5F81BE0052A99C /* pxImageA.cpp in Sources */,
-				46AA48BA1FE0289600AA28B7 /* pxImage9Border.cpp in Sources */,
-				4C0C6D711E5218BC00BD8932 /* pxConstants.cpp in Sources */,
-				4C20BEE91E5DE5F1005ABBB7 /* pxContextGL.cpp in Sources */,
-				4C0C6D701E5218BB00BD8932 /* pxArchive.cpp in Sources */,
-				4C0C6D811E5218BC00BD8932 /* pxScene2d.cpp in Sources */,
-				783C7DB01EBB6A440079FBE5 /* pxAnimate.cpp in Sources */,
-				4C0C6D841E5218BC00BD8932 /* pxTransform.cpp in Sources */,
-				4C0C6D821E5218BC00BD8932 /* pxText.cpp in Sources */,
-				4C0C6D831E5218BC00BD8932 /* pxTextBox.cpp in Sources */,
-				4C0C6D7E1E5218BC00BD8932 /* pxResource.cpp in Sources */,
-				4C0C6D7D1E5218BC00BD8932 /* pxRectangle.cpp in Sources */,
-				4C0C6D761E5218BC00BD8932 /* pxFont.cpp in Sources */,
-				4C0C6D7F1E5218BC00BD8932 /* pxScene.cpp in Sources */,
-				4C0C6D861E5218BC00BD8932 /* pxWayland.cpp in Sources */,
-				4C0C6D871E5218BC00BD8932 /* pxWaylandContainer.cpp in Sources */,
-				4C9F22AC1E6A24D200979F4E /* westeros-stub.cpp in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		4C5D05F42020D06100D2B292 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				4C5D05F52020D06100D2B292 /* pxPath.cpp in Sources */,
-				4C5D05F62020D06100D2B292 /* pxImage.cpp in Sources */,
-				4C5D05F82020D06100D2B292 /* pxImage9.cpp in Sources */,
-				4C5D05F92020D06100D2B292 /* pxImageA.cpp in Sources */,
-				4C5D05FA2020D06100D2B292 /* pxImage9Border.cpp in Sources */,
-				4C5D05FB2020D06100D2B292 /* pxConstants.cpp in Sources */,
-				4C5D05FC2020D06100D2B292 /* pxContextGL.cpp in Sources */,
-				4C5D05FD2020D06100D2B292 /* pxArchive.cpp in Sources */,
-				4C5D05FE2020D06100D2B292 /* pxScene2d.cpp in Sources */,
-				4C5D05FF2020D06100D2B292 /* pxAnimate.cpp in Sources */,
-				4C5D06002020D06100D2B292 /* pxTransform.cpp in Sources */,
-				4C5D06012020D06100D2B292 /* pxText.cpp in Sources */,
-				4C5D06022020D06100D2B292 /* pxTextBox.cpp in Sources */,
-				4C5D06032020D06100D2B292 /* pxResource.cpp in Sources */,
-				4C5D06042020D06100D2B292 /* pxRectangle.cpp in Sources */,
-				4C5D06052020D06100D2B292 /* pxFont.cpp in Sources */,
-				4C5D06072020D06100D2B292 /* pxScene.cpp in Sources */,
-				4C5D06082020D06100D2B292 /* pxWayland.cpp in Sources */,
-				4C5D06092020D06100D2B292 /* pxWaylandContainer.cpp in Sources */,
-				4C5D060B2020D06100D2B292 /* westeros-stub.cpp in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		4CF546052020F5B600529907 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -1040,7 +675,7 @@
 				4CF546142020F5B600529907 /* pxResource.cpp in Sources */,
 				4CF546152020F5B600529907 /* pxRectangle.cpp in Sources */,
 				4CF546162020F5B600529907 /* pxFont.cpp in Sources */,
-				4CF546182020F5B600529907 /* pxScene.cpp in Sources */,
+				4CF546182020F5B600529907 /* Spark.cpp in Sources */,
 				4CF546192020F5B600529907 /* pxWayland.cpp in Sources */,
 				4CF5461A2020F5B600529907 /* pxWaylandContainer.cpp in Sources */,
 				4CF5461C2020F5B600529907 /* westeros-stub.cpp in Sources */,
@@ -1050,20 +685,10 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		4C1FDA471E68D1C700CFEA9F /* PBXTargetDependency */ = {
+		4C4746B1214D2C1700E06357 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = "pxCore Static Library";
-			targetProxy = 4C1FDA461E68D1C700CFEA9F /* PBXContainerItemProxy */;
-		};
-		4C5D06282020D07800D2B292 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = "pxCore (Duk) Static Library";
-			targetProxy = 4C5D06272020D07800D2B292 /* PBXContainerItemProxy */;
-		};
-		4CF546B620210AE800529907 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = "pxCore Static Library";
-			targetProxy = 4CF546B520210AE800529907 /* PBXContainerItemProxy */;
+			targetProxy = 4C4746B0214D2C1700E06357 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -1147,324 +772,6 @@
 			};
 			name = Release;
 		};
-		4C0C6D3D1E52189500BD8932 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			baseConfigurationReference = 4C20BEB11E5CDE01005ABBB7 /* pxScene2d.xcconfig */;
-			buildSettings = {
-				CODE_SIGN_IDENTITY = "";
-				COMBINE_HIDPI_IMAGES = YES;
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					RT_PLATFORM_LINUX,
-					PX_PLATFORM_MAC,
-					RTSCRIPT_SUPPORT_NODE,
-					ENABLE_RT_NODE,
-					RUNINMAIN,
-					ENABLE_HTTP_CACHE,
-					"_DARWIN_USE_64_BIT_INODE=1",
-					"NODE_ARCH=\"x64\"",
-					"NODE_WANT_INTERNALS=1",
-					"V8_DEPRECATION_WARNINGS=1",
-					NODE_SHARED_MODE,
-					"NODE_USE_V8_PLATFORM=1",
-					"NODE_HAVE_I18N_SUPPORT=1",
-					"NODE_HAVE_SMALL_ICU=1",
-					"HAVE_INSPECTOR=1",
-					"V8_INSPECTOR_USE_STL=1",
-					"V8_INSPECTOR_USE_OLD_STL=1",
-					"HAVE_OPENSSL=1",
-					"HAVE_DTRACE=1",
-					__POSIX__,
-					"NODE_PLATFORM=\"darwin\"",
-					"UCONFIG_NO_TRANSLITERATION=1",
-					"UCONFIG_NO_SERVICE=1",
-					"UCONFIG_NO_REGULAR_EXPRESSIONS=1",
-					"U_ENABLE_DYLOAD=0",
-					"U_STATIC_IMPLEMENTATION=1",
-					"U_HAVE_STD_STRING=0",
-					"UCONFIG_NO_BREAK_ITERATION=0",
-					"UCONFIG_NO_LEGACY_CONVERSION=1",
-					"UCONFIG_NO_CONVERSION=1",
-					"HTTP_PARSER_STRICT=0",
-					_LARGEFILE_SOURCE,
-					"_FILE_OFFSET_BITS=64",
-					AENABLE_DEBUG_MODE,
-					ENABLE_LIBJPEG_TURBO11111111,
-					ENABLE_DEBUG_MODE,
-					PXSCENE_DISABLE_WST_DECODER,
-					"SPARK_BUILD_GIT_REVISION=\"Xcode User\"",
-				);
-				HEADER_SEARCH_PATHS = (
-					"$(PROJECT_DIR)/../src",
-					"$(PROJECT_DIR)/../../../src",
-					"$(PROJECT_DIR)/../external/libnode-v6.9.0/src",
-					"$(PROJECT_DIR)/../external/libnode-v6.9.0/deps/v8",
-					"$(PROJECT_DIR)/../external/libnode-v6.9.0/deps/v8/include",
-					"$(PROJECT_DIR)/../external/libnode-v6.9.0/deps/uv/include",
-					"$(PROJECT_DIR)/../external/libnode-v6.9.0/deps/openssl/openssl/include",
-					"$(PROJECT_DIR)/../external/zlib",
-					"$(PROJECT_DIR)/../external/png",
-					"$(PROJECT_DIR)/../external/jpg",
-					"$(PROJECT_DIR)/../external/curl/include",
-					"$(PROJECT_DIR)/../external/ft/include",
-					"$(PROJECT_DIR)/../external/westeros-stub",
-					"$(PROJECT_DIR)/../../../remote",
-					"$(PROJECT_DIR)/../src/rasterizer/xs_code",
-				);
-				INFOPLIST_FILE = pxScene2d/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited)";
-				LIBRARY_SEARCH_PATHS = (
-					"$(PROJECT_DIR)/lib",
-					"$(PROJECT_DIR)/../external/png/.libs",
-					"$(PROJECT_DIR)/../external/libpng-1.6.28/.libs",
-					"$(PROJECT_DIR)/../external/zlib/",
-				);
-				MACOSX_DEPLOYMENT_TARGET = 10.9;
-				OTHER_LDFLAGS = (
-					"-rpath",
-					"@executable_path/lib",
-				);
-				PRODUCT_BUNDLE_IDENTIFIER = Comcast.pxScene2d;
-				PRODUCT_NAME = "pxscene (node)";
-			};
-			name = Debug;
-		};
-		4C0C6D3E1E52189500BD8932 /* Release */ = {
-			isa = XCBuildConfiguration;
-			baseConfigurationReference = 4C20BEB11E5CDE01005ABBB7 /* pxScene2d.xcconfig */;
-			buildSettings = {
-				CODE_SIGN_IDENTITY = "";
-				COMBINE_HIDPI_IMAGES = YES;
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					RT_PLATFORM_LINUX,
-					PX_PLATFORM_MAC,
-					RTSCRIPT_SUPPORT_NODE,
-					ENABLE_RT_NODE,
-					RUNINMAIN,
-					ENABLE_HTTP_CACHE,
-					"_DARWIN_USE_64_BIT_INODE=1",
-					"NODE_ARCH=\"x64\"",
-					"NODE_WANT_INTERNALS=1",
-					"V8_DEPRECATION_WARNINGS=1",
-					NODE_SHARED_MODE,
-					"NODE_USE_V8_PLATFORM=1",
-					"NODE_HAVE_I18N_SUPPORT=1",
-					"NODE_HAVE_SMALL_ICU=1",
-					"HAVE_INSPECTOR=1",
-					"V8_INSPECTOR_USE_STL=1",
-					"V8_INSPECTOR_USE_OLD_STL=1",
-					"HAVE_OPENSSL=1",
-					"HAVE_DTRACE=1",
-					__POSIX__,
-					"NODE_PLATFORM=\"darwin\"",
-					"UCONFIG_NO_TRANSLITERATION=1",
-					"UCONFIG_NO_SERVICE=1",
-					"UCONFIG_NO_REGULAR_EXPRESSIONS=1",
-					"U_ENABLE_DYLOAD=0",
-					"U_STATIC_IMPLEMENTATION=1",
-					"U_HAVE_STD_STRING=0",
-					"UCONFIG_NO_BREAK_ITERATION=0",
-					"UCONFIG_NO_LEGACY_CONVERSION=1",
-					"UCONFIG_NO_CONVERSION=1",
-					"HTTP_PARSER_STRICT=0",
-					_LARGEFILE_SOURCE,
-					"_FILE_OFFSET_BITS=64",
-					AENABLE_DEBUG_MODE,
-					ENABLE_LIBJPEG_TURBO11111111,
-					ENABLE_DEBUG_MODE,
-					PXSCENE_DISABLE_WST_DECODER,
-					"SPARK_BUILD_GIT_REVISION=\"Xcode User\"",
-				);
-				HEADER_SEARCH_PATHS = (
-					"$(PROJECT_DIR)/../src",
-					"$(PROJECT_DIR)/../../../src",
-					"$(PROJECT_DIR)/../external/libnode-v6.9.0/src",
-					"$(PROJECT_DIR)/../external/libnode-v6.9.0/deps/v8",
-					"$(PROJECT_DIR)/../external/libnode-v6.9.0/deps/v8/include",
-					"$(PROJECT_DIR)/../external/libnode-v6.9.0/deps/uv/include",
-					"$(PROJECT_DIR)/../external/libnode-v6.9.0/deps/openssl/openssl/include",
-					"$(PROJECT_DIR)/../external/zlib",
-					"$(PROJECT_DIR)/../external/png",
-					"$(PROJECT_DIR)/../external/jpg",
-					"$(PROJECT_DIR)/../external/curl/include",
-					"$(PROJECT_DIR)/../external/ft/include",
-					"$(PROJECT_DIR)/../external/westeros-stub",
-					"$(PROJECT_DIR)/../../../remote",
-					"$(PROJECT_DIR)/../src/rasterizer/xs_code",
-				);
-				INFOPLIST_FILE = pxScene2d/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited)";
-				LIBRARY_SEARCH_PATHS = (
-					"$(PROJECT_DIR)/lib",
-					"$(PROJECT_DIR)/../external/png/.libs",
-					"$(PROJECT_DIR)/../external/libpng-1.6.28/.libs",
-					"$(PROJECT_DIR)/../external/zlib/",
-				);
-				MACOSX_DEPLOYMENT_TARGET = 10.9;
-				OTHER_LDFLAGS = (
-					"-rpath",
-					"@executable_path/lib",
-				);
-				PRODUCT_BUNDLE_IDENTIFIER = Comcast.pxScene2d;
-				PRODUCT_NAME = "pxscene (node)";
-			};
-			name = Release;
-		};
-		4C5D06232020D06100D2B292 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			baseConfigurationReference = 4C20BEB11E5CDE01005ABBB7 /* pxScene2d.xcconfig */;
-			buildSettings = {
-				CODE_SIGN_IDENTITY = "";
-				COMBINE_HIDPI_IMAGES = YES;
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					RT_PLATFORM_LINUX,
-					PX_PLATFORM_MAC,
-					RTSCRIPT_SUPPORT_DUKTAPE,
-					ENABLE_RT_NODE,
-					RUNINMAIN,
-					ENABLE_HTTP_CACHE,
-					"_DARWIN_USE_64_BIT_INODE=1",
-					"NODE_ARCH=\"x64\"",
-					"NODE_WANT_INTERNALS=1",
-					"V8_DEPRECATION_WARNINGS=1",
-					NODE_SHARED_MODE,
-					"NODE_USE_V8_PLATFORM=1",
-					"NODE_HAVE_I18N_SUPPORT=1",
-					"NODE_HAVE_SMALL_ICU=1",
-					"HAVE_INSPECTOR=1",
-					"V8_INSPECTOR_USE_STL=1",
-					"V8_INSPECTOR_USE_OLD_STL=1",
-					"HAVE_OPENSSL=1",
-					"HAVE_DTRACE=1",
-					__POSIX__,
-					"NODE_PLATFORM=\"darwin\"",
-					"UCONFIG_NO_TRANSLITERATION=1",
-					"UCONFIG_NO_SERVICE=1",
-					"UCONFIG_NO_REGULAR_EXPRESSIONS=1",
-					"U_ENABLE_DYLOAD=0",
-					"U_STATIC_IMPLEMENTATION=1",
-					"U_HAVE_STD_STRING=0",
-					"UCONFIG_NO_BREAK_ITERATION=0",
-					"UCONFIG_NO_LEGACY_CONVERSION=1",
-					"UCONFIG_NO_CONVERSION=1",
-					"HTTP_PARSER_STRICT=0",
-					_LARGEFILE_SOURCE,
-					"_FILE_OFFSET_BITS=64",
-					AENABLE_DEBUG_MODE,
-					ENABLE_LIBJPEG_TURBO11111111,
-					ENABLE_DEBUG_MODE,
-					PXSCENE_DISABLE_WST_DECODER,
-					"SPARK_BUILD_GIT_REVISION=\"Xcode User\"",
-				);
-				HEADER_SEARCH_PATHS = (
-					"$(PROJECT_DIR)/../src",
-					"$(PROJECT_DIR)/../../../src",
-					"$(PROJECT_DIR)/../external/libnode-v6.9.0/src",
-					"$(PROJECT_DIR)/../external/libnode-v6.9.0/deps/v8",
-					"$(PROJECT_DIR)/../external/libnode-v6.9.0/deps/v8/include",
-					"$(PROJECT_DIR)/../external/libnode-v6.9.0/deps/uv/include",
-					"$(PROJECT_DIR)/../external/zlib",
-					"$(PROJECT_DIR)/../external/png",
-					"$(PROJECT_DIR)/../external/jpg",
-					"$(PROJECT_DIR)/../external/curl/include",
-					"$(PROJECT_DIR)/../external/ft/include",
-					"$(PROJECT_DIR)/../external/westeros-stub",
-					"$(PROJECT_DIR)/../../../remote",
-					"$(PROJECT_DIR)/../src/rasterizer/xs_code",
-				);
-				INFOPLIST_FILE = pxScene2d/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited)";
-				LIBRARY_SEARCH_PATHS = (
-					"$(PROJECT_DIR)/lib",
-					"$(PROJECT_DIR)/../external/png/.libs",
-				);
-				MACOSX_DEPLOYMENT_TARGET = 10.9;
-				OTHER_LDFLAGS = (
-					"-rpath",
-					"@executable_path/lib",
-				);
-				PRODUCT_BUNDLE_IDENTIFIER = Comcast.pxScene2d;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-			};
-			name = Debug;
-		};
-		4C5D06242020D06100D2B292 /* Release */ = {
-			isa = XCBuildConfiguration;
-			baseConfigurationReference = 4C20BEB11E5CDE01005ABBB7 /* pxScene2d.xcconfig */;
-			buildSettings = {
-				CODE_SIGN_IDENTITY = "";
-				COMBINE_HIDPI_IMAGES = YES;
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					RT_PLATFORM_LINUX,
-					PX_PLATFORM_MAC,
-					RTSCRIPT_SUPPORT_DUKTAPE,
-					ENABLE_RT_NODE,
-					RUNINMAIN,
-					ENABLE_HTTP_CACHE,
-					"_DARWIN_USE_64_BIT_INODE=1",
-					"NODE_ARCH=\"x64\"",
-					"NODE_WANT_INTERNALS=1",
-					"V8_DEPRECATION_WARNINGS=1",
-					NODE_SHARED_MODE,
-					"NODE_USE_V8_PLATFORM=1",
-					"NODE_HAVE_I18N_SUPPORT=1",
-					"NODE_HAVE_SMALL_ICU=1",
-					"HAVE_INSPECTOR=1",
-					"V8_INSPECTOR_USE_STL=1",
-					"V8_INSPECTOR_USE_OLD_STL=1",
-					"HAVE_OPENSSL=1",
-					"HAVE_DTRACE=1",
-					__POSIX__,
-					"NODE_PLATFORM=\"darwin\"",
-					"UCONFIG_NO_TRANSLITERATION=1",
-					"UCONFIG_NO_SERVICE=1",
-					"UCONFIG_NO_REGULAR_EXPRESSIONS=1",
-					"U_ENABLE_DYLOAD=0",
-					"U_STATIC_IMPLEMENTATION=1",
-					"U_HAVE_STD_STRING=0",
-					"UCONFIG_NO_BREAK_ITERATION=0",
-					"UCONFIG_NO_LEGACY_CONVERSION=1",
-					"UCONFIG_NO_CONVERSION=1",
-					"HTTP_PARSER_STRICT=0",
-					_LARGEFILE_SOURCE,
-					"_FILE_OFFSET_BITS=64",
-					AENABLE_DEBUG_MODE,
-					ENABLE_LIBJPEG_TURBO11111111,
-					ENABLE_DEBUG_MODE,
-					PXSCENE_DISABLE_WST_DECODER,
-					"SPARK_BUILD_GIT_REVISION=\"Xcode User\"",
-				);
-				HEADER_SEARCH_PATHS = (
-					"$(PROJECT_DIR)/../src",
-					"$(PROJECT_DIR)/../../../src",
-					"$(PROJECT_DIR)/../external/libnode-v6.9.0/src",
-					"$(PROJECT_DIR)/../external/libnode-v6.9.0/deps/v8",
-					"$(PROJECT_DIR)/../external/libnode-v6.9.0/deps/v8/include",
-					"$(PROJECT_DIR)/../external/libnode-v6.9.0/deps/uv/include",
-					"$(PROJECT_DIR)/../external/zlib",
-					"$(PROJECT_DIR)/../external/png",
-					"$(PROJECT_DIR)/../external/jpg",
-					"$(PROJECT_DIR)/../external/curl/include",
-					"$(PROJECT_DIR)/../external/ft/include",
-					"$(PROJECT_DIR)/../external/westeros-stub",
-					"$(PROJECT_DIR)/../../../remote",
-					"$(PROJECT_DIR)/../src/rasterizer/xs_code",
-				);
-				INFOPLIST_FILE = pxScene2d/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited)";
-				LIBRARY_SEARCH_PATHS = (
-					"$(PROJECT_DIR)/lib",
-					"$(PROJECT_DIR)/../external/png/.libs",
-				);
-				MACOSX_DEPLOYMENT_TARGET = 10.9;
-				OTHER_LDFLAGS = (
-					"-rpath",
-					"@executable_path/lib",
-				);
-				PRODUCT_BUNDLE_IDENTIFIER = Comcast.pxScene2d;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-			};
-			name = Release;
-		};
 		4CF546342020F5B600529907 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 4C20BEB11E5CDE01005ABBB7 /* pxScene2d.xcconfig */;
@@ -1507,11 +814,10 @@
 					"HTTP_PARSER_STRICT=0",
 					_LARGEFILE_SOURCE,
 					"_FILE_OFFSET_BITS=64",
-					AENABLE_DEBUG_MODE,
-					ENABLE_LIBJPEG_TURBO11111111,
 					ENABLE_DEBUG_MODE,
 					PXSCENE_DISABLE_WST_DECODER,
 					"SPARK_BUILD_GIT_REVISION=\"Xcode User\"",
+					PX_PLATFORM_MAC_XCODE,
 				);
 				HEADER_SEARCH_PATHS = (
 					"$(PROJECT_DIR)/../src",
@@ -1537,6 +843,7 @@
 					"$(PROJECT_DIR)/../external/png/.libs",
 					"$(PROJECT_DIR)/../external/libpng-1.6.28/.libs",
 					"$(PROJECT_DIR)/../external/zlib/",
+					"$(PROJECT_DIR)/../external/dukluv/build",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				OTHER_LDFLAGS = (
@@ -1590,11 +897,10 @@
 					"HTTP_PARSER_STRICT=0",
 					_LARGEFILE_SOURCE,
 					"_FILE_OFFSET_BITS=64",
-					AENABLE_DEBUG_MODE,
-					ENABLE_LIBJPEG_TURBO11111111,
 					ENABLE_DEBUG_MODE,
 					PXSCENE_DISABLE_WST_DECODER,
 					"SPARK_BUILD_GIT_REVISION=\"Xcode User\"",
+					PX_PLATFORM_MAC_XCODE,
 				);
 				HEADER_SEARCH_PATHS = (
 					"$(PROJECT_DIR)/../src",
@@ -1620,6 +926,7 @@
 					"$(PROJECT_DIR)/../external/png/.libs",
 					"$(PROJECT_DIR)/../external/libpng-1.6.28/.libs",
 					"$(PROJECT_DIR)/../external/zlib/",
+					"$(PROJECT_DIR)/../external/dukluv/build",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				OTHER_LDFLAGS = (
@@ -1643,25 +950,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		4C0C6D3C1E52189500BD8932 /* Build configuration list for PBXNativeTarget "pxScene2d (node)" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				4C0C6D3D1E52189500BD8932 /* Debug */,
-				4C0C6D3E1E52189500BD8932 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		4C5D06222020D06100D2B292 /* Build configuration list for PBXNativeTarget "pxScene2d (duk)" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				4C5D06232020D06100D2B292 /* Debug */,
-				4C5D06242020D06100D2B292 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		4CF546332020F5B600529907 /* Build configuration list for PBXNativeTarget "pxScene2d" */ = {
+		4CF546332020F5B600529907 /* Build configuration list for PBXNativeTarget "Spark" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				4CF546342020F5B600529907 /* Debug */,
