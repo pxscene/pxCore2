@@ -131,6 +131,7 @@ rtError rtHttpRequest::end()
   req->setAdditionalHttpHeaders(mHeaders);
   req->setMethod(mMethod);
   req->setReadData(mWriteData);
+  AddRef();
   if (rtFileDownloader::instance()->addToDownloadQueue(req)) {
     mInQueue = true;
     return RT_OK;
@@ -237,6 +238,7 @@ void rtHttpRequest::onDownloadComplete(rtFileDownloadRequest* downloadRequest)
   } else {
     req->mEmit.send("error", downloadRequest->errorString());
   }
+  req->Release();
 }
 
 rtString rtHttpRequest::url() const
