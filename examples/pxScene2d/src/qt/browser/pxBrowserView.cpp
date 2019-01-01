@@ -1,11 +1,19 @@
-
 #include <string>
 #include <map>
 #include "rtLog.h"
 
+#include <QApplication>
 #include "pxBrowserView.h"
-#include "qtview/qtwinmigrate/qwinwidget.h"
-#include "windows.h"
+
+
+#ifdef WIN32
+#include "qt/browser/win32/qtwinmigrate/qwinwidget.h"
+#elif __APPLE__
+#include "qt/browser/mac/qmacwidget.h"
+#endif
+
+int argc = 0;
+static QApplication *globalQTApp = new QApplication(argc, 0);
 
 //pxBrowserConsoleLog properties
 rtDefineObject(pxBrowserConsoleLog, rtObject);
@@ -43,28 +51,41 @@ rtDefineProperty(pxBrowserView, headers);
 // pxBrowserView function
 rtDefineMethod(pxBrowserView, addListener);
 
-
-pxBrowserView::pxBrowserView(void* rootWidget, int w, int h) :
-    mWidth(0), mHeight(0), mEmit(new rtEmit()), mNetworkManager(new QNetworkAccessManager()),
+pxBrowserView::pxBrowserView(void* root, int w, int h) :
+    mWidth(0), mHeight(0), mEmit(new rtEmit()), mNetworkManager(nullptr),
     webUrlRequestInterceptor(nullptr), mProxy(nullptr)
 {
-  this->mRootWidget = rootWidget;
+
+#ifdef WIN32
+  HWND* hwnd = (HWND*)root;
+  this->mRootWidget = new QWinWidget(*hwnd);
+#elif __APPLE__
+  QMacWidget* r = new QMacWidget(root);
+  r->init();
+  this->mRootWidget = (void*)r;
+#endif
+
   mHeaders.clear();
   mUrl.empty();
   mUserAgent.empty();
 
   this->mWidth = w;
   this->mHeight = h;
-
+  mNetworkManager = new QNetworkAccessManager();
   webUrlRequestInterceptor = new pxWebUrlRequestInterceptor();
 }
 
 
-void pxBrowserView::init()
+void pxBrowserView::initQT()
 {
 
+#ifdef WIN32
   QWinWidget* win = (QWinWidget*) mRootWidget;
   ::SetFocus((HWND) win->winId());
+#elif __APPLE__
+  QMacWidget* win = (QMacWidget*) mRootWidget;
+#endif
+
   win->setStyleSheet("background:#5f5f5f");
 
   rtLogInfo("pxBrowserView init w= %d, h=%d", mWidth, mHeight);
@@ -219,6 +240,10 @@ bool pxBrowserView::onChar(uint32_t codepoint)
 
 void pxBrowserView::onUpdate(double t)
 {
+  if (globalQTApp)
+  {
+    globalQTApp->sendPostedEvents();
+  }
 }
 
 void pxBrowserView::onDraw()
@@ -247,14 +272,24 @@ rtError pxBrowserView::updateUrl(rtString const& newUrl)
 
 rtError pxBrowserView::setVisible(bool const& visible)
 {
+#ifdef WIN32
   QWinWidget* win = (QWinWidget*) mRootWidget;
+#elif __APPLE__
+  QMacWidget* win = (QMacWidget*) mRootWidget;
+#endif
+
   win->setVisible(visible);
   return RT_OK;
 }
 
 bool pxBrowserView::isVisible() const
 {
+#ifdef WIN32
   QWinWidget* win = (QWinWidget*) mRootWidget;
+#elif __APPLE__
+  QMacWidget* win = (QMacWidget*) mRootWidget;
+#endif
+
   return win->isVisible();
 }
 
@@ -365,7 +400,7 @@ void pxBrowserView::dumpProperties()
     mProxy->Get("hostname", &hostname);
     mProxy->Get("port", &port);
 
-    sprintf_s(proxy_str, "type = %d, %s:%d", type.toInt32(), hostname.toString().cString(), port.toInt32());
+    sprintf(proxy_str, "type = %d, %s:%d", type.toInt32(), hostname.toString().cString(), port.toInt32());
   }
 
 
@@ -398,7 +433,7 @@ void pxBrowserView::dumpProperties()
   printf("pxBrowser %-25s= %s\n", "visible", isVisible() ? "true" : "false");
   printf("pxBrowser %-25s= %s\n", "localStorageEnabled", isLocalStorageEnabled() ? "true" : "false");
   printf("pxBrowser %-25s= %s\n", "consoleLogEnabled", isConsoleLogEnabled() ? "true" : "false");
-  printf("pxBrowser %-25s= %d\n", "headers.length", mHeaders.size());
+  printf("pxBrowser %-25s= %lu\n", "headers.length", mHeaders.size());
 
 
   std::map<std::string, std::string>::iterator headerIt;
@@ -420,10 +455,10 @@ rtError pxBrowserView::getCookieJar(rtObjectRef& v) const
   int index = 0;
   for (int i = 0; i < cookies.size(); ++i)
   {
-    QNetworkCookie c = cookies.at(i);
-    if (c.domain() == domain)
+    QNetworkCookie cookie = cookies.at(i);
+    if (cookie.domain() == domain)
     {
-      rtValue c(pxBrowserView::convertCookieToMap(c));
+      rtValue c(pxBrowserView::convertCookieToMap(cookie));
       cookArr->Set(index++, &c);
     }
 
