@@ -12,10 +12,6 @@
 #include <map>
 
 #include <QHBoxLayout>
-#include <QLabel>
-#include <QLineEdit>
-#include <QMessageBox>
-#include <QPushButton>
 #include <QWebengineView>
 #include <QWebEngineProfile>
 #include <QWebEngineSettings>
@@ -324,9 +320,9 @@ public:
   }
   virtual void RT_STDCALL setViewContainer(pxIViewContainer* l) {}
 
-	pxBrowserView(void *rootWidget, int w = 0, int h = 0);
+	pxBrowserView(void *root, int w = 0, int h = 0);
 
-	void init();
+	void initQT();
 
 	virtual void  onSize(int32_t w, int32_t h);
 

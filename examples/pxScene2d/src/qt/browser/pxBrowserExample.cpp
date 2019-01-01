@@ -27,10 +27,7 @@
 
 #include "pxContext.h"
 #include "pxScene2d.h"
-
-
-#include "qtview/pxBrowserView.h"
-#include "qtview/qtwinmigrate/qwinwidget.h"
+#include "pxBrowserView.h"
 
 
 static pxBrowserView* view = nullptr;
@@ -272,8 +269,14 @@ public:
     mHeight = h;
 
     mBrowserViewContainer = new pxBrowserViewContainer();
-    view = new pxBrowserView(qtRootView, w, h);
-    view->init();
+
+#ifdef WIN32
+    view = new pxBrowserView(&mWindow, w, h);
+#elif __APPLE__
+    view = new pxBrowserView(mWindow, w, h);
+#endif
+
+    view->initQT();
 
     view->setVisible(true);
     view->setTransparent(true);
