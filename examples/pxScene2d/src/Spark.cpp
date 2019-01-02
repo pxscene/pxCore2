@@ -620,6 +620,11 @@ if (s && (strcmp(s,"1") == 0))
   if (RT_OK == rtSettings::instance()->value("screenHeight", screenHeight))
     windowHeight = screenHeight.toInt32();
 
+  extern bool gDirtyRectsEnabled;
+  rtValue dirtyRectsSetting;
+  if (RT_OK == rtSettings::instance()->value("enableDirtyRects", dirtyRectsSetting))
+    gDirtyRectsEnabled = dirtyRectsSetting.toString().compare("true") == 0;
+    
   // OSX likes to pass us some weird parameter on first launch after internet install
   rtLogInfo("window width = %d height = %d", windowWidth, windowHeight);
   win.init(10, 10, windowWidth, windowHeight, url);

@@ -148,7 +148,12 @@ if [ ! -e ./uWebSockets/libuWS.dylib ] ||
 then
 
   cd uWebSockets
-  mv Makefile.build Makefile
+
+  if [ -e Makefile.build ]
+  then
+    mv Makefile.build Makefile
+  fi
+
   make
   cd ..
 
