@@ -47,11 +47,20 @@ public:
 private:
   static void create(const FunctionCallbackInfo<Value>& args);
 
+#if defined RTSCRIPT_SUPPORT_V8
+  static void getPropertyByName(Local<Name> prop, const PropertyCallbackInfo<Value>& info);
+  static void setPropertyByName(Local<Name> prop, Local<Value> val, const PropertyCallbackInfo<Value>& info);
+#else
   static void getPropertyByName(Local<String> prop, const PropertyCallbackInfo<Value>& info);
   static void setPropertyByName(Local<String> prop, Local<Value> val, const PropertyCallbackInfo<Value>& info);
+#endif
   static void getEnumerablePropertyNames(const PropertyCallbackInfo<Array>& info);
 #ifdef ENABLE_DEBUG_MODE
+#if defined RTSCRIPT_SUPPORT_V8
+  static void queryPropertyByName(Local<Name> prop, const PropertyCallbackInfo<Integer>& info);
+#else
   static void queryPropertyByName(Local<String> prop, const PropertyCallbackInfo<Integer>& info);
+#endif
 #endif
   static void getPropertyByIndex(uint32_t index, const PropertyCallbackInfo<Value>& info);
   static void setPropertyByIndex(uint32_t index, Local<Value> val, const PropertyCallbackInfo<Value>& info);

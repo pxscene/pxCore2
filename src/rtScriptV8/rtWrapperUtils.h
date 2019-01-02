@@ -133,7 +133,25 @@ public:
 private:
   std::string mMessage;
 };
+#if defined RTSCRIPT_SUPPORT_V8
+inline rtString toString(v8::Isolate* isolate, const v8::Handle<v8::Object>& obj)
+{
+  v8::String::Utf8Value utf(isolate, obj->ToString());
+  return rtString(*utf);
+}
 
+inline rtString toString(v8::Isolate* isolate, const v8::Handle<v8::Value>& val)
+{
+  v8::String::Utf8Value utf(isolate, val->ToString());
+  return rtString(*utf);
+}
+
+inline rtString toString(v8::Isolate* isolate, const v8::Local<v8::String>& s)
+{
+  v8::String::Utf8Value utf(isolate, s);
+  return rtString(*utf);
+}
+#else
 inline rtString toString(const v8::Handle<v8::Object>& obj)
 {
   v8::String::Utf8Value utf(obj->ToString());
@@ -151,7 +169,7 @@ inline rtString toString(const v8::Local<v8::String>& s)
   v8::String::Utf8Value utf(s);
   return rtString(*utf);
 }
-
+#endif
 inline int toInt32(const v8::FunctionCallbackInfo<v8::Value>& args, int which, int defaultValue = 0)
 {
   int i = defaultValue;
