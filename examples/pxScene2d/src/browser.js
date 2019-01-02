@@ -80,15 +80,6 @@ px.import({ scene:    'px:scene.1.js',
       return "allow"; // allow request to bubble to parent
   });  
 
-  scene.on('onClose', function(e) {
-    keys = null;
-    for (var key in inputBox) { delete inputBox[key]; }
-    listBox = null;
-    browser = null
-    inputBox = null;
-    scene = null;
-  });
-
   var currentGen = 0
   function reload(u, keepHistory)
   {
