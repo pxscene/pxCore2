@@ -164,13 +164,11 @@ static bool gWaylandAppsConfigLoaded = false;
 
 // ubuntu is mapped with glut
 #if defined(PX_PLATFORM_WIN)
-const rtString gPlatform = "windows";
+const rtString gPlatformOS = "Windows";
 #elif defined(PX_PLATFORM_MAC)
-const rtString gPlatform = "osx";
-#elif defined(PX_PLATFORM_GLUT)
-const rtString gPlatform = "glut";
+const rtString gPlatformOS = "macOS";
 #else
-const rtString gPlatform = "linux";
+const rtString gPlatformOS = "Linux";
 #endif
 
 void populateWaylandAppsConfig()
@@ -1969,7 +1967,7 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   build.set("date", xstr(__DATE__));
   build.set("time", xstr(__TIME__));
   build.set("revision", xstr(SPARK_BUILD_GIT_REVISION));
-  build.set("os", gPlatform);
+  build.set("os", gPlatformOS);
 
   mInfo.set("build", build);
   mInfo.set("gfxmemory", context.currentTextureMemoryUsageInBytes());
