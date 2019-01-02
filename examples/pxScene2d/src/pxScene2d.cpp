@@ -168,6 +168,15 @@ static bool gWaylandAppsConfigLoaded = false;
 #define DEFAULT_WAYLAND_APP_CONFIG_FILE "./waylandregistry.conf"
 #define DEFAULT_ALL_APPS_CONFIG_FILE "./pxsceneappregistry.conf"
 
+// ubuntu is mapped with glut
+#if defined(PX_PLATFORM_WIN)
+const rtString gPlatformOS = "Windows";
+#elif defined(PX_PLATFORM_MAC)
+const rtString gPlatformOS = "macOS";
+#else
+const rtString gPlatformOS = "Linux";
+#endif
+
 void populateWaylandAppsConfig()
 {
   //populate from the wayland registry file
@@ -1964,6 +1973,7 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   build.set("date", xstr(__DATE__));
   build.set("time", xstr(__TIME__));
   build.set("revision", xstr(SPARK_BUILD_GIT_REVISION));
+  build.set("os", gPlatformOS);
 
   mInfo.set("build", build);
   mInfo.set("gfxmemory", context.currentTextureMemoryUsageInBytes());
