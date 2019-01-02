@@ -114,19 +114,11 @@ void rtResolverFunction::afterWorkCallback(uv_work_t* req, int /* status */)
 #endif //ENABLE_NODE_V_6_9
   if (resolverFunc->mDisposition == DispositionResolve)
   {
-    #if defined RTSCRIPT_SUPPORT_V8
     resolver->Resolve(local_context, value);
-    #else
-    resolver->Resolve(value);
-    #endif
   }
   else
   {
-    #if defined RTSCRIPT_SUPPORT_V8
     resolver->Reject(local_context, value);
-    #else
-    resolver->Reject(value);
-    #endif
   }
 
   if (tryCatch.HasCaught())
@@ -134,7 +126,7 @@ void rtResolverFunction::afterWorkCallback(uv_work_t* req, int /* status */)
     #if defined RTSCRIPT_SUPPORT_V8
     String::Utf8Value trace(resolverFunc->mIsolate, (tryCatch.StackTrace(local_context)).ToLocalChecked());
     #else
-    String::Utf8Value trace(tryCatch.StackTrace());
+    String::Utf8Value trace((tryCatch.StackTrace(local_context)).ToLocalChecked());
     #endif
     rtLogWarn("Error resolving promise");
     rtLogWarn("%s", *trace);
@@ -271,11 +263,7 @@ void rtFunctionWrapper::call(const FunctionCallbackInfo<Value>& args)
 
   if (rtIsPromise(result))
   {
-    #if defined RTSCRIPT_SUPPORT_V8
     Local<Promise::Resolver> resolver = (Promise::Resolver::New(ctx)).ToLocalChecked();
-    #else
-    Local<Promise::Resolver> resolver = Promise::Resolver::New(isolate);
-    #endif
 
     rtFunctionRef resolve(new rtResolverFunction(rtResolverFunction::DispositionResolve, ctx, resolver));
     rtFunctionRef reject(new rtResolverFunction(rtResolverFunction::DispositionReject, ctx, resolver));

@@ -79,30 +79,11 @@ void rtObjectWrapper::exportPrototype(Isolate* isolate, Handle<Object> exports)
   Local<ObjectTemplate> inst = tmpl->InstanceTemplate();
   inst->SetInternalFieldCount(1);
 #ifdef ENABLE_DEBUG_MODE
-  #if defined RTSCRIPT_SUPPORT_V8
   NamedPropertyHandlerConfiguration config(&getPropertyByName,&setPropertyByName,&queryPropertyByName,NULL,&getEnumerablePropertyNames);
   inst->SetHandler(config);
-  #else
-  inst->SetNamedPropertyHandler(
-      &getPropertyByName,
-      &setPropertyByName,
-      &queryPropertyByName,
-      NULL,
-      &getEnumerablePropertyNames);
-   #endif  
 #else
-  #if defined RTSCRIPT_SUPPORT_V8
   NamedPropertyHandlerConfiguration config(&getPropertyByName,&setPropertyByName,NULL,NULL,&getEnumerablePropertyNames);
   inst->SetHandler(config);
-  #else
-  inst->SetNamedPropertyHandler(
-      &getPropertyByName,
-      &setPropertyByName,
-      NULL,
-      NULL,
-      &getEnumerablePropertyNames);
-  #endif
-
   inst->SetIndexedPropertyHandler(
       &getPropertyByIndex,
       &setPropertyByIndex,
@@ -186,11 +167,7 @@ Handle<Object> rtObjectWrapper::createFromObjectReference(v8::Local<v8::Context>
   // rtPromise
   if (err == RT_OK && desc.compare("rtPromise") == 0)
   {
-    #if defined RTSCRIPT_SUPPORT_V8
     Local<Promise::Resolver> resolver = Promise::Resolver::New(ctx).ToLocalChecked();
-    #else
-    Local<Promise::Resolver> resolver = Promise::Resolver::New(isolate);
-    #endif
 
     rtFunctionRef resolve(new rtResolverFunction(rtResolverFunction::DispositionResolve, ctx, resolver));
     rtFunctionRef reject(new rtResolverFunction(rtResolverFunction::DispositionReject, ctx, resolver));
@@ -326,17 +303,9 @@ void rtObjectWrapper::getEnumerablePropertyIndecies(const PropertyCallbackInfo<A
   getEnumerable(info, makeIntegerFromKey);
 }
 
-#if defined RTSCRIPT_SUPPORT_V8
 void rtObjectWrapper::getPropertyByName(Local<Name> prop, const PropertyCallbackInfo<Value>& info)
-#else
-void rtObjectWrapper::getPropertyByName(Local<String> prop, const PropertyCallbackInfo<Value>& info)
-#endif
 {
-#if defined RTSCRIPT_SUPPORT_V8
   rtString name = toString(info.GetIsolate(), Local<String>::Cast(prop));
-#else
-  rtString name = toString(prop);
-#endif
   getProperty(name.cString(), info);
 }
 
@@ -376,17 +345,9 @@ void rtObjectWrapper::queryProperty(const  T& prop, const PropertyCallbackInfo<I
   }
 }
 
-#if defined RTSCRIPT_SUPPORT_V8
 void rtObjectWrapper::queryPropertyByName(Local<Name> prop, const PropertyCallbackInfo<Integer>& info)
-#else
-void rtObjectWrapper::queryPropertyByName(Local<String> prop, const PropertyCallbackInfo<Integer>& info)
-#endif
 {
-#if defined RTSCRIPT_SUPPORT_V8
   rtString name = toString(info.GetIsolate(), Local<String>::Cast(prop));
-#else
-  rtString name = toString(prop);
-#endif
   queryProperty(name.cString(), info);
 }
 #endif
@@ -396,17 +357,9 @@ void rtObjectWrapper::getPropertyByIndex(uint32_t index, const PropertyCallbackI
   getProperty(index, info);
 }
 
-#if defined RTSCRIPT_SUPPORT_V8
 void rtObjectWrapper::setPropertyByName(Local<Name> prop, Local<Value> val, const PropertyCallbackInfo<Value>& info)
-#else
-void rtObjectWrapper::setPropertyByName(Local<String> prop, Local<Value> val, const PropertyCallbackInfo<Value>& info)
-#endif
 {
-#if defined RTSCRIPT_SUPPORT_V8
   rtString name = toString(info.GetIsolate(), Local<String>::Cast(prop));
-#else
-  rtString name = toString(prop);
-#endif
   setProperty(name.cString(), val, info);
 }
 
