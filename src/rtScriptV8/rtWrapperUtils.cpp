@@ -459,7 +459,7 @@ rtValue js2rt(v8::Local<v8::Context>& ctx, const Handle<Value>& val, rtWrapperEr
 
   if (val->IsUndefined()) { return rtValue((void *)0); }
   if (val->IsNull())      { return rtValue((char *)0); }
-  if (val->IsString())    { return toString(val); }
+  if (val->IsString())    { return toString(isolate, val); }
   if (val->IsFunction())  { return rtValue(rtFunctionRef(new jsFunctionWrapper(ctx, val))); }
   if (val->IsArray() || val->IsObject())
   {

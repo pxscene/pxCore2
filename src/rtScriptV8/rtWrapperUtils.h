@@ -134,21 +134,21 @@ private:
   std::string mMessage;
 };
 
-inline rtString toString(const v8::Handle<v8::Object>& obj)
+inline rtString toString(v8::Isolate* isolate, const v8::Handle<v8::Object>& obj)
 {
-  v8::String::Utf8Value utf(obj->ToString());
+  v8::String::Utf8Value utf(isolate, obj->ToString());
   return rtString(*utf);
 }
 
-inline rtString toString(const v8::Handle<v8::Value>& val)
+inline rtString toString(v8::Isolate* isolate, const v8::Handle<v8::Value>& val)
 {
-  v8::String::Utf8Value utf(val->ToString());
+  v8::String::Utf8Value utf(isolate, val->ToString());
   return rtString(*utf);
 }
 
-inline rtString toString(const v8::Local<v8::String>& s)
+inline rtString toString(v8::Isolate* isolate, const v8::Local<v8::String>& s)
 {
-  v8::String::Utf8Value utf(s);
+  v8::String::Utf8Value utf(isolate, s);
   return rtString(*utf);
 }
 

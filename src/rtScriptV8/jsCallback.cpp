@@ -145,7 +145,7 @@ rtValue jsCallback::run()
   rtValue returnValue;
   if (tryCatch.HasCaught())
   {
-    String::Utf8Value trace(tryCatch.StackTrace());
+    String::Utf8Value trace(mIsolate, (tryCatch.StackTrace(ctx)).ToLocalChecked());
     rtLogWarn("%s", *trace);
   }
   else
