@@ -20,7 +20,6 @@ var homeUrl = "https://www.pxscene.org/examples/px-reference/text/sample.md";
 
 px.configImport({"browser:" : /*px.getPackageBaseFilePath() + */ "browser/"});
 
-
 px.import({ scene:    'px:scene.1.js',
              keys:    'px:tools.keys.js',
              ListBox: 'browser:listbox.js',
