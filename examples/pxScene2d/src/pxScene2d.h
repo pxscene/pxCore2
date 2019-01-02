@@ -748,20 +748,20 @@ protected:
   pxMatrix4f mMatrix;
   bool mUseMatrix;
   bool mRepaint;
-  #ifdef PX_DIRTY_RECTANGLES
+  //#ifdef PX_DIRTY_RECTANGLES
   bool mIsDirty;
   pxMatrix4f mRenderMatrix;
   pxRect mScreenCoordinates;
   pxRect mDirtyRect;
-  #endif //PX_DIRTY_RECTANGLES
+  //#endif //PX_DIRTY_RECTANGLES
 
   void createSnapshotOfChildren();
   void clearSnapshot(pxContextFramebufferRef fbo);
-  #ifdef PX_DIRTY_RECTANGLES
+  //#ifdef PX_DIRTY_RECTANGLES
   void setDirtyRect(pxRect* r);
   pxRect getBoundingRectInScreenCoordinates();
   pxRect convertToScreenCoordinates(pxRect* r);
-  #endif //PX_DIRTY_RECTANGLES
+  //#endif //PX_DIRTY_RECTANGLES
 
   pxScene2d* mScene;
 
@@ -1757,10 +1757,10 @@ public:
   {
      mPointerHidden= hide;
   }
-  #ifdef PX_DIRTY_RECTANGLES
+  //#ifdef PX_DIRTY_RECTANGLES
   pxRect mDirtyRect;
   pxRect mLastFrameDirtyRect;
-  #endif //PX_DIRTY_RECTANGLES
+  //#endif //PX_DIRTY_RECTANGLES
   bool mDirty;
   testView* mTestView;
   bool mDisposed;

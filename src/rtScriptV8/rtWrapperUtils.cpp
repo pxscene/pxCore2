@@ -498,7 +498,7 @@ rtValue js2rt(v8::Local<v8::Context>& ctx, const Handle<Value>& val, rtWrapperEr
     // from some other native addon. Maybe that would actuall work and fail
     // at a lower level?
     Local<Object> obj = val->ToObject();
-    if (obj->InternalFieldCount() > 0)
+    if (obj->InternalFieldCount() > 0 && !val->IsArrayBufferView() /*Buffer*/)
     {
       return rtObjectWrapper::unwrapObject(obj);
     }
