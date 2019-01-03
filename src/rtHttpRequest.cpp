@@ -244,7 +244,10 @@ void rtHttpRequest::onDownloadCompleteAndRelease(rtFileDownloadRequest* download
 {
   onDownloadComplete(downloadRequest);
   rtHttpRequest* req = (rtHttpRequest*)downloadRequest->callbackData();
-  req->Release();
+  if (req != NULL)
+  {
+    req->Release();
+  }
 }
 
 rtString rtHttpRequest::url() const
