@@ -253,7 +253,6 @@ public:
     EXPECT_EQ (0, times_fn3_called);
 
     EXPECT_EQ ((int)RT_OK, req->removeAllListenersByName("response"));
-    
     rtHttpRequest::onDownloadComplete(dwnl_OK);
     EXPECT_EQ (2, times_fn1_called);
     EXPECT_EQ (1, times_fn2_called);
