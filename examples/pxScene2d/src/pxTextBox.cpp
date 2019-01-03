@@ -414,19 +414,22 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
         getFontResource()->measureTextChar(charToMeasure, size, sx, sy, charW, charH);
       }
     
-      bool isContinuousLine = mWordWrap && !isDelimeter_charsPresent && tempX + charW > mw;
+      bool isContinuousLine = mWordWrap && !isDelimeter_charsPresent;
+      bool isEnd = tempX + charW >= mw;
+      lastLine = isContinuousLine && isEnd ? ( mTruncation != pxConstantsTruncation::NONE && tempY + ((mLeading*sy) + (charH*2)) > this->h() && !lastLine) : lastLine;
+        
       bool isLast = ( lastLine || (mTruncation != pxConstantsTruncation::NONE && (tempY + ((mLeading*sy) + charH) >= this->h())) );
-      if( isNewline(charToMeasure) || (isContinuousLine && !isLast) || (!mWordWrap && tempX + charW > mw))
+      if( isNewline(charToMeasure) || (isContinuousLine && isEnd && !isLast) || (!mWordWrap && tempX + charW > mw))
       {
         //rtLogDebug("Found NEWLINE; calling renderOneLine\n");
         // Render what we had so far in accString; since we are here, it will fit.
         renderOneLine(accString.cString(), 0, tempY, sx, sy, size, lineWidth, render, std::strcmp(tempChar.c_str(), "\n") == 0 ? true : false);
 
-        accString = isContinuousLine ? tempChar.c_str() : "";
+        accString = (isContinuousLine && isEnd) ? tempChar.c_str() : "";
         tempY += (mLeading*sy) + charH;
 
         lineNumber++;
-        tempX = isContinuousLine ? charW : 0;
+        tempX = (isContinuousLine && isEnd)? charW : 0;
        continue;
       }
 
