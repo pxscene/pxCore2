@@ -51,7 +51,7 @@ public:
     EXPECT_EQ (std::string(req->url().cString()), "https://example.com");
     EXPECT_EQ ((int)0, (int)req->headers().size());
     EXPECT_TRUE (req->method().isEmpty());
-    EXPECT_EQ ((int)0, (int)req->writeDataSize());
+    EXPECT_TRUE (req->writeData().isEmpty());
     EXPECT_FALSE (req->inQueue());
   }
 
