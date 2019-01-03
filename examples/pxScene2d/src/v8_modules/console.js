@@ -52,4 +52,6 @@ module.exports = {
     error: error,
     log: log,
     info: info,
+    time:info,
+    timeEnd: info,
 };

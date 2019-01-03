@@ -133,11 +133,12 @@ rtError rtHttpRequest::end()
     return RT_FAIL;
   }
 
-  rtFileDownloadRequest* req = new rtFileDownloadRequest(mUrl.cString(), this, rtHttpRequest::onDownloadComplete);
+  rtFileDownloadRequest* req = new rtFileDownloadRequest(mUrl.cString(), this, rtHttpRequest::onDownloadCompleteAndRelease);
   req->setAdditionalHttpHeaders(mHeaders);
   req->setMethod(mMethod);
   req->setReadData(mWriteData, mWriteDataSize);
   if (rtFileDownloader::instance()->addToDownloadQueue(req)) {
+    AddRef();
     mInQueue = true;
     return RT_OK;
   }
@@ -275,6 +276,16 @@ void rtHttpRequest::onDownloadComplete(rtFileDownloadRequest* downloadRequest)
     resp->onEnd();
   } else {
     req->mEmit.send("error", downloadRequest->errorString());
+  }
+}
+
+void rtHttpRequest::onDownloadCompleteAndRelease(rtFileDownloadRequest* downloadRequest)
+{
+  onDownloadComplete(downloadRequest);
+  rtHttpRequest* req = (rtHttpRequest*)downloadRequest->callbackData();
+  if (req != NULL)
+  {
+    req->Release();
   }
 }
 
