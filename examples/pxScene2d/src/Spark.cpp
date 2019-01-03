@@ -475,24 +475,27 @@ namespace OptimusClient
 {
     class rtOptimusSpark : public rtOptimus
     {
-    public:
+      public:
         rtDeclareObject(rtOptimusSpark, rtOptimus);
 
-        rtOptimusSpark() {}
+        rtOptimusSpark() : mUrl() {}
         ~rtOptimusSpark() {}
 
         rtProperty(url, url, setUrl, rtString);
 
         rtError url(rtString& v) const
         {
-          const char* url = v.cString();
-          return win.setUrl(url);
+          v = mUrl;
+          return RT_OK;
         }
         rtError setUrl(rtString v)
         {
-          //code
-          return RT_OK;
+          mUrl = v;
+          const char* url = v.cString();
+          return win.setUrl(url);
         }
+      protected:
+        rtString mUrl;
     };
     rtDefineObject(rtOptimusSpark, rtOptimus);
 	  rtDefineProperty(rtOptimusSpark, url);

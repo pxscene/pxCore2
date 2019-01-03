@@ -30,6 +30,7 @@ module.exports = appManager;
 
 var ApplicationType = Object.freeze({
   SPARK:"SPARK",
+  SPARK_INSTANCE:"SPARK_INSTANCE",
   NATIVE:"NATIVE",
   WEB:"WEB",
   UNDEFINED:"UNDEFINED"
@@ -78,7 +79,13 @@ function Application(props) {
   Object.keys(_externalAppPropsReadWrite).forEach(function(key) {
     Object.defineProperty(_this, key, {
       get: function() { return _externalApp[_externalAppPropsReadWrite[key]]; },
-      set: function(v) { _externalApp[_externalAppPropsReadWrite[key]] = v; }
+      set: function(v) {
+           if (this.type === ApplicationType.SPARK_INSTANCE && _externalApp.api && key === "url") {
+             // set the api property for spark instance
+             _externalApp.api.url = v;
+           }
+           _externalApp[_externalAppPropsReadWrite[key]] = v;
+         }
     });
   });
   Object.keys(_externalAppPropsReadonly).forEach(function(key) {
@@ -363,6 +370,37 @@ function Application(props) {
       _this.applicationReady();
     }, function rejection() {
       _this.log("failed to launch Spark app: " + _this.id);
+      _readyReject(new Error("failed to create"));
+      _this.applicationClosed();
+    });
+    this.setProperties(props);
+    this.applicationCreated();
+  }
+  else if (cmd === "sparkInstance"){
+    this.type = ApplicationType.SPARK_INSTANCE;
+    _externalApp = scene.create( {t:"external", parent:root, cmd:"spark " + uri, w:w, h:h, hasApi:true} );
+    _externalApp.on("onReady", function () { _this.log("onReady"); }); // is never called
+    _externalApp.on("onClientStarted", function () { _this.log("onClientStarted"); });
+    _externalApp.on("onClientConnected", function () { _this.log("onClientConnected"); });
+    _externalApp.on("onClientDisconnected", function () { _this.log("onClientDisconnected"); }); // called on client crash
+    _externalApp.on("onClientStopped", function () { // called on client crash
+      _this.log("onClientStopped");
+      setTimeout(function () {
+        _this.destroy();
+      });
+    });
+    _externalApp.ready.then(function() {
+    }, function rejection() {
+      _this.log("failed to launch Spark instance app: " + _this.id);
+      _readyReject(new Error("failed to create"));
+      _this.applicationClosed();
+    });
+    _externalApp.remoteReady.then(function() {
+      _this.log("spark instance ready");
+      _readyResolve();
+      _this.applicationReady();
+    }, function rejection() {
+      _this.log("failed to create Spark instance");
       _readyReject(new Error("failed to create"));
       _this.applicationClosed();
     });
