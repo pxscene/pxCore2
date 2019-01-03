@@ -45,12 +45,13 @@ function loadFile(fileUri, appSceneContext) {
       var req = null;
       var httpCallback = function (res) {
         res.on('data', function (data) {
-          code += data;
+          code.push(data);
         });
         res.on('end', function () {
           if( res.statusCode === 200 ) {
             log.message(3, "Got file[" + fileUri + "] from web service");
-            resolve(code);
+            var binary = Buffer.concat(code);
+            resolve(binary);
           } else {
             log.error("StatusCode Bad: FAILED to read file[" + fileUri + "] from web service");
             reject(res.statusCode);
