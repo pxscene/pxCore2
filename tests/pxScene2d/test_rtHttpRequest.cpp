@@ -242,7 +242,6 @@ public:
     ref = req;
 
     rtFileDownloadRequest* dwnl_OK = new rtFileDownloadRequest("https://example.com", req, rtHttpRequest::onDownloadComplete);
-    
     rtHttpRequest::onDownloadComplete(dwnl_OK);
     EXPECT_EQ (1, times_fn1_called);
     EXPECT_EQ (1, times_fn2_called);
@@ -262,12 +261,10 @@ public:
 
     rtFileDownloadRequest* dwnl_ERR = new rtFileDownloadRequest("https://example.com", req, rtHttpRequest::onDownloadComplete);
     dwnl_ERR->setErrorString("ERR test");
- 
     rtHttpRequest::onDownloadComplete(dwnl_ERR);
     EXPECT_EQ (2, times_fn1_called);
     EXPECT_EQ (1, times_fn2_called);
     EXPECT_EQ (1, times_fn3_called);
-
     rtHttpRequest::onDownloadComplete(dwnl_ERR);
     EXPECT_EQ (2, times_fn1_called);
     EXPECT_EQ (1, times_fn2_called);
