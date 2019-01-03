@@ -51,7 +51,7 @@ public:
     EXPECT_EQ (std::string(req->url().cString()), "https://example.com");
     EXPECT_EQ ((int)0, (int)req->headers().size());
     EXPECT_TRUE (req->method().isEmpty());
-    EXPECT_TRUE (req->writeData().isEmpty());
+    EXPECT_EQ ((int)0, (int)req->writeDataSize());
     EXPECT_FALSE (req->inQueue());
   }
 
@@ -78,7 +78,7 @@ public:
     EXPECT_EQ (std::string(req->headers()[0].cString()), "Content-Type: application/json");
     EXPECT_EQ (std::string(req->headers()[1].cString()), "Authorization: token");
     EXPECT_EQ (std::string(req->method().cString()), "POST");
-    EXPECT_EQ (std::string(req->writeData().cString()), "{\"postKey1\":\"postValue1\"}");
+    EXPECT_EQ (std::string((const char*)req->writeData(), req->writeDataSize()), "{\"postKey1\":\"postValue1\"}");
     EXPECT_FALSE (req->inQueue());
   }
 
@@ -94,7 +94,7 @@ public:
     EXPECT_EQ ((int)1, (int)req->headers().size());
     EXPECT_EQ (std::string(req->headers()[0].cString()), "Authorization: token");
     EXPECT_TRUE (req->method().isEmpty());
-    EXPECT_TRUE (req->writeData().isEmpty());
+    EXPECT_EQ ((int)0, (int)req->writeDataSize());
     EXPECT_FALSE (req->inQueue());
   }
 
@@ -157,7 +157,7 @@ public:
     EXPECT_EQ (std::string(req->headers()[0].cString()), "Content-Type: application/json");
     EXPECT_EQ (std::string(req->headers()[1].cString()), "Authorization: token");
     EXPECT_EQ (std::string(req->method().cString()), "POST");
-    EXPECT_EQ (std::string(req->writeData().cString()), "{\"postKey1\":\"postValue1\"}");
+    EXPECT_EQ (std::string((const char*)req->writeData(), req->writeDataSize()), "{\"postKey1\":\"postValue1\"}");
     EXPECT_TRUE (req->inQueue());
 
     // already in queue
@@ -242,6 +242,7 @@ public:
     ref = req;
 
     rtFileDownloadRequest* dwnl_OK = new rtFileDownloadRequest("https://example.com", req, rtHttpRequest::onDownloadComplete);
+
     rtHttpRequest::onDownloadComplete(dwnl_OK);
     EXPECT_EQ (1, times_fn1_called);
     EXPECT_EQ (1, times_fn2_called);
@@ -253,6 +254,7 @@ public:
     EXPECT_EQ (0, times_fn3_called);
 
     EXPECT_EQ ((int)RT_OK, req->removeAllListenersByName("response"));
+
     rtHttpRequest::onDownloadComplete(dwnl_OK);
     EXPECT_EQ (2, times_fn1_called);
     EXPECT_EQ (1, times_fn2_called);
@@ -260,10 +262,12 @@ public:
 
     rtFileDownloadRequest* dwnl_ERR = new rtFileDownloadRequest("https://example.com", req, rtHttpRequest::onDownloadComplete);
     dwnl_ERR->setErrorString("ERR test");
+
     rtHttpRequest::onDownloadComplete(dwnl_ERR);
     EXPECT_EQ (2, times_fn1_called);
     EXPECT_EQ (1, times_fn2_called);
     EXPECT_EQ (1, times_fn3_called);
+
     rtHttpRequest::onDownloadComplete(dwnl_ERR);
     EXPECT_EQ (2, times_fn1_called);
     EXPECT_EQ (1, times_fn2_called);
