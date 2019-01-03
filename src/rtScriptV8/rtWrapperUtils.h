@@ -138,6 +138,7 @@ inline rtString toString(v8::Isolate* isolate, const v8::Handle<v8::Object>& obj
   #if defined RTSCRIPT_SUPPORT_V8
   v8::String::Utf8Value utf(isolate, obj->ToString());
   #else
+  UNUSED_PARAM(isolate);
   v8::String::Utf8Value utf(obj->ToString());
   #endif
   return rtString(*utf);
@@ -148,6 +149,7 @@ inline rtString toString(v8::Isolate* isolate, const v8::Handle<v8::Value>& val)
   #if defined RTSCRIPT_SUPPORT_V8
   v8::String::Utf8Value utf(isolate, val->ToString());
   #else
+  UNUSED_PARAM(isolate);
   v8::String::Utf8Value utf(val->ToString());
   #endif
   return rtString(*utf);
@@ -158,6 +160,7 @@ inline rtString toString(v8::Isolate* isolate, const v8::Local<v8::String>& s)
   #if defined RTSCRIPT_SUPPORT_V8
   v8::String::Utf8Value utf(isolate, s);
   #else
+  UNUSED_PARAM(isolate);
   v8::String::Utf8Value utf(s);
   #endif
   return rtString(*utf);
