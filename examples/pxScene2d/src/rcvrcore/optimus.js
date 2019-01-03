@@ -69,7 +69,7 @@ function Application(props) {
   // Getters/setters
   var _externalAppPropsReadWrite = {
     x:"x",y:"y",w:"w",h:"h",cx:"cx",cy:"cy",sx:"sx",sy:"sy",r:"r",a:"a",
-    interactive:"interactive",painting:"painting",clip:"clip",mask:"mask",draw:"draw",hasApi:"hasApi"
+    interactive:"interactive",painting:"painting",clip:"clip",mask:"mask",draw:"draw",hasApi:"hasApi", url:"url"
   };
   var _externalAppPropsReadonly = {
     pid:"clientPID" // integer process id associated with the application
@@ -125,7 +125,9 @@ function Application(props) {
       return false;
     }
     if (!_externalApp || !_externalApp.suspend){
-      this.log("suspend not supported");
+      this.log("suspend api not available on app");
+      _state = ApplicationState.SUSPENDED;
+      this.applicationSuspended();
       return false;
     }
     ret = _externalApp.suspend(o);
@@ -149,7 +151,9 @@ function Application(props) {
       return false;
     }
     if (!_externalApp || !_externalApp.resume){
-      this.log("resume not supported");
+      this.log("resume api not available on app");
+      _state = ApplicationState.RUNNING;
+      this.applicationResumed();
       return false;
     }
     ret = _externalApp.resume(o);

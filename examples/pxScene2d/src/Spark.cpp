@@ -150,6 +150,31 @@ public:
   {
     pxWindow::init(x,y,w,h);
 
+    setUrl(url);
+  }
+
+  void* getInterface(const char* /*name*/)
+  {
+     return NULL;
+  }
+  
+  rtError setView(pxIView* v)
+  {
+    mView = v;
+
+    if (v)
+    {
+      ENTERSCENELOCK()
+      v->setViewContainer(this);
+      v->onSize(mWidth, mHeight);
+      EXITSCENELOCK()
+    }
+
+    return RT_OK;
+  }
+
+  rtError setUrl(const char* url)
+  {
     // escape url begin
     std::string escapedUrl;
     std::string origUrl = url;
@@ -192,25 +217,6 @@ public:
     uv_async_send(&asyncNewScript);
     setView(scriptView);
 #endif
-  }
-
-  void* getInterface(const char* /*name*/)
-  {
-     return NULL;
-  }
-  
-  rtError setView(pxIView* v)
-  {
-    mView = v;
-
-    if (v)
-    {
-      ENTERSCENELOCK()
-      v->setViewContainer(this);
-      v->onSize(mWidth, mHeight);
-      EXITSCENELOCK()
-    }
-
     return RT_OK;
   }
 
@@ -463,6 +469,35 @@ void handleAbrt(int)
   sleep(1800);
 #endif //WIN32
 }
+
+#ifdef ENABLE_OPTIMUS_SUPPORT
+namespace OptimusClient
+{
+    class rtOptimusSpark : public rtOptimus
+    {
+    public:
+        rtDeclareObject(rtOptimusSpark, rtOptimus);
+
+        rtOptimusSpark() {}
+        ~rtOptimusSpark() {}
+
+        rtProperty(url, url, setUrl, rtString);
+
+        rtError url(rtString& v) const
+        {
+          const char* url = v.cString();
+          return win.setUrl(url);
+        }
+        rtError setUrl(rtString v)
+        {
+          //code
+          return RT_OK;
+        }
+    };
+    rtDefineObject(rtOptimusSpark, rtOptimus);
+	  rtDefineProperty(rtOptimusSpark, url);
+}// namespace OptimusClient
+#endif //ENABLE_OPTIMUS_SUPPORT
 
 int pxMain(int argc, char* argv[])
 {
@@ -718,8 +753,8 @@ if (s && (strcmp(s,"1") == 0))
 #endif
 
 #ifdef ENABLE_OPTIMUS_SUPPORT
-  rtObjectRef tempObject;
-  OptimusClient::registerApi(tempObject);
+  rtObjectRef optimusObject = new OptimusClient::rtOptimusSpark();
+  OptimusClient::registerApi(optimusObject);
 #endif //ENABLE_OPTIMUS_SUPPORT
 
 #ifdef PX_SERVICE_MANAGER_LINKED
