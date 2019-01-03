@@ -57,6 +57,7 @@ public:
   rtError removeHeader(const rtString& name);
 
   static void onDownloadComplete(rtFileDownloadRequest* downloadRequest);
+  static void onDownloadCompleteAndRelease(rtFileDownloadRequest* downloadRequest);
 
   rtString url() const;
   std::vector<rtString> headers() const;
