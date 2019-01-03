@@ -238,11 +238,12 @@ void rtHttpRequest::onDownloadComplete(rtFileDownloadRequest* downloadRequest)
   } else {
     req->mEmit.send("error", downloadRequest->errorString());
   }
+  req->Release();
 }
 
 void rtHttpRequest::onDownloadCompleteAndRelease(rtFileDownloadRequest* downloadRequest)
 {
-  rtHttpRequest::onDownloadComplete(downloadRequest);
+  onDownloadComplete(downloadRequest);
   rtHttpRequest* req = (rtHttpRequest*)downloadRequest->callbackData();
   req->Release();
 }
