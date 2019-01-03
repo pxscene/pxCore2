@@ -297,6 +297,34 @@ rtWrapperSceneUpdateExit();
 
 }
 
+void HandleMap::printAll()
+{
+  rtWrapperSceneUpdateEnter();
+#ifndef RUNINMAIN
+  pthread_mutex_lock(&sObjectMapMutex);
+#endif
+  unsigned num = static_cast<unsigned>(objectMap.size());
+  if (num > 0)
+  {
+    rtLogInfo("%u persistent handles", num);
+    for (ObjectReferenceMap::iterator it = objectMap.begin(), end = objectMap.end(); it != end; it++)
+    {
+      ObjectReference* ref = it->second;
+      if (ref->RTObject)
+      {
+        rtIObject* ptr = ref->RTObject.getPtr();
+        rtMethodMap* methodMap = ptr->getMap();
+        if (methodMap)
+          rtLogInfo("'%s' %p", methodMap->className, (void *)ptr);
+      }
+    }
+  }
+  rtWrapperSceneUpdateExit();
+#ifndef RUNINMAIN
+  pthread_mutex_unlock(&sObjectMapMutex);
+#endif
+}
+
 Local<Object> HandleMap::lookupSurrogate(v8::Local<v8::Context>& ctx, const rtObjectRef& from)
 {
   Isolate* isolate = ctx->GetIsolate();
@@ -470,7 +498,7 @@ rtValue js2rt(v8::Local<v8::Context>& ctx, const Handle<Value>& val, rtWrapperEr
     // from some other native addon. Maybe that would actuall work and fail
     // at a lower level?
     Local<Object> obj = val->ToObject();
-    if (obj->InternalFieldCount() > 0)
+    if (obj->InternalFieldCount() > 0 && !val->IsArrayBufferView() /*Buffer*/)
     {
       return rtObjectWrapper::unwrapObject(obj);
     }
