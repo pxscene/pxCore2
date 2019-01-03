@@ -238,7 +238,6 @@ void rtHttpRequest::onDownloadComplete(rtFileDownloadRequest* downloadRequest)
   } else {
     req->mEmit.send("error", downloadRequest->errorString());
   }
-  req->Release();
 }
 
 void rtHttpRequest::onDownloadCompleteAndRelease(rtFileDownloadRequest* downloadRequest)
