@@ -498,8 +498,8 @@ namespace OptimusClient
         rtString mUrl;
     };
     rtDefineObject(rtOptimusSpark, rtOptimus);
-	  rtDefineProperty(rtOptimusSpark, url);
-}// namespace OptimusClient
+    rtDefineProperty(rtOptimusSpark, url);
+}
 #endif //ENABLE_OPTIMUS_SUPPORT
 
 int pxMain(int argc, char* argv[])
