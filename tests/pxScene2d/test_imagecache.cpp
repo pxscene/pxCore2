@@ -77,6 +77,30 @@ void* realloc(void *ptr, size_t size)
 }
 #endif // } UNAVAILABLE_MEMORY_TEST_ENABLED
 
+class rtHttpCacheDataMock:public rtHttpCacheData
+{
+  public:
+    rtHttpCacheDataMock(rtString url):rtHttpCacheData(url) {}
+    void setHttpResponseHeaderData(rtString data)
+    {
+      mHeaderMetaData.init((const uint8_t*)data.cString(), data.length());
+    }
+
+    void setHttpResponseRealData(const char* data)
+    {
+      mData.init((const uint8_t*)data, strlen(data));
+    }
+
+  private:
+    bool handleDownloadRequest(vector<rtString>& headers,bool downloadBody) override
+    {
+      UNUSED_PARAM(headers);
+      UNUSED_PARAM(downloadBody);
+      mUpdated = true;
+      return true;
+    }
+};
+
 class commonTestFns
 {
   public:
@@ -652,7 +676,7 @@ class rtHttpCacheTest : public testing::Test, public commonTestFns
      EXPECT_TRUE (revalidateOnlyHeaders == true);
      EXPECT_TRUE (revalidate == false);
    }
-/*
+
    void dataPresentAfterHeadersRevalidationTest()
    {
      rtString cacheHeader("");
@@ -704,19 +728,20 @@ class rtHttpCacheTest : public testing::Test, public commonTestFns
     void dataUpdatedAfterEtagTest()
     {
      rtString cacheHeader("");
-     populateCacheHeader(cacheHeader, "public");
+     populateCacheHeader(cacheHeader, "max-age=0, public");
      const char* cacheData = "abcde";
      addDataToCache("http://fileserver/testEtag",cacheHeader.cString(),cacheData,strlen(cacheData));
+     const char* updatedData = "data updated";
      rtHttpCacheDataMock data("http://fileserver/testEtag");
      data.setHttpResponseHeaderData(cacheHeader);
-     data.setHttpResponseRealData(cacheData);
+     data.setHttpResponseRealData(updatedData);
      rtFileCache::instance()->httpCacheData("http://fileserver/testEtag",data);
      rtData contents;
      data.data(contents);
      rtData& storedData = data.contentsData();
      EXPECT_TRUE ( strcmp("data updated",(const char*)storedData.data()) == 0);
     }
-*/
+
     void dataUpdatedAfterEtagDownloadFailedTest()
     {
      rtString cacheHeader("");
@@ -805,12 +830,10 @@ TEST_F(rtHttpCacheTest, httpCacheCompleteTest)
   mustRevalidateFalseExpiredContentsInvalidTest();
   mustRevalidateTruenocacheUnExpiredTest();
   mustRevalidateTruenocacheExpiresFiledTest();
-/*
   dataPresentAfterHeadersRevalidationTest();
   dataPresentAfterFullRevalidationTest();
   dataUpdatedAfterFullRevalidationTest();
   dataUpdatedAfterEtagTest();
-*/
   dataUpdatedAfterEtagDownloadFailedTest();
 #ifdef UNAVAILABLE_MEMORY_TEST_ENABLED // {
   memoryUnAvailableTest();
