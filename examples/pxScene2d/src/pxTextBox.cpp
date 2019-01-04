@@ -416,7 +416,7 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
     
       bool isContinuousLine = mWordWrap && !isDelimeter_charsPresent && tempX + charW > mw;
       bool isLast = ( lastLine || (mTruncation != pxConstantsTruncation::NONE && (tempY + ((mLeading*sy) + charH) >= this->h())) );
-      if( isNewline(charToMeasure) || (isContinuousLine && !isLast) || (!mWordWrap && tempX + charW > mw))
+      if( isNewline(charToMeasure) || (isContinuousLine && !isLast) /*|| (!mWordWrap && tempX + charW > mw)*/)
       {
         //rtLogDebug("Found NEWLINE; calling renderOneLine\n");
         // Render what we had so far in accString; since we are here, it will fit.
@@ -454,7 +454,7 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
         else  // If NOT lastLine
         {
           // Account for the case where wordWrap is off, but newline was found previously
-         /* if( !mWordWrap && lineNumber != 0 )
+          if( !mWordWrap && lineNumber != 0 )
           {
             lastLineNumber = lineNumber;
             //rtLogDebug("!!!!CLF: calling renderTextRowWithTruncation! %s\n",accString.cString());
@@ -480,7 +480,7 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
                 continue;
               }
             }
-          }*/
+          }
           // End special case when !wordWrap but newline found
 
           // Out of space on the current line; find and wrap at word boundary
