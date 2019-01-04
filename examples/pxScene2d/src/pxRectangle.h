@@ -100,13 +100,13 @@ public:
     {
       rtString str = c.toString();
       
-      uint8_t r,g,b;
-      if( web2rgb( str, r, g, b) == RT_OK)
+      uint8_t r,g,b, a;
+      if( web2rgb( str, r, g, b, a) == RT_OK)
       {
         mFillColor[PX_RED  ] = (float) r / 255.0f;  // R
         mFillColor[PX_GREEN] = (float) g / 255.0f;  // G
         mFillColor[PX_BLUE ] = (float) b / 255.0f;  // B
-        mFillColor[PX_ALPHA] = 1.0f;                // A
+        mFillColor[PX_ALPHA] = (float) a / 255.0f;  // A
         
         return RT_OK;
       }
@@ -178,13 +178,13 @@ public:
     {
       rtString str = c.toString();
       
-      uint8_t r,g,b;
-      if( web2rgb( str, r, g, b) == RT_OK)
+      uint8_t r,g,b, a;
+      if( web2rgb( str, r, g, b, a) == RT_OK)
       {
         mLineColor[PX_RED  ] = (float) r / 255.0f;  // R
         mLineColor[PX_GREEN] = (float) g / 255.0f;  // G
         mLineColor[PX_BLUE ] = (float) b / 255.0f;  // B
-        mLineColor[PX_ALPHA] = 1.0f;                // A
+        mLineColor[PX_ALPHA] = (float) a / 255.0f;  // A
         
         return RT_OK;
       }

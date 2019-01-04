@@ -93,13 +93,13 @@ public:
     {
       rtString str = c.toString();
       
-      uint8_t r,g,b;
-      if( web2rgb( str, r, g, b) == RT_OK)
+      uint8_t r,g,b, a;
+      if( web2rgb( str, r, g, b, a) == RT_OK)
       {
         mTextColor[PX_RED  ] = (float) r / 255.0f;  // R
         mTextColor[PX_GREEN] = (float) g / 255.0f;  // G
         mTextColor[PX_BLUE ] = (float) b / 255.0f;  // B
-        mTextColor[PX_ALPHA] = 1.0f;                // A
+        mTextColor[PX_ALPHA] = (float) a / 255.0f;  // A
         
         return RT_OK;
       }

@@ -39,12 +39,14 @@ const pxColor pxBlue(0, 0, 255, 255);
 const pxColor pxGray(128, 128, 128, 255);
 
 
-static rtError web2rgb(rtString &input, uint8_t &r, uint8_t &g, uint8_t &b)
+extern unsigned int nsvg__parseColor(const char* str);
+
+static rtError web2rgb(rtString &input, uint8_t &r, uint8_t &g, uint8_t &b, uint8_t &a)
 {
   rtError retVal = RT_OK;
 
-  char clr6[7];
-  unsigned int rr, gg, bb;
+  char clr6[9] = {0};
+  unsigned int rr, gg, bb, aa;
   
   if (input.length() == 0)
   {
@@ -78,7 +80,7 @@ static rtError web2rgb(rtString &input, uint8_t &r, uint8_t &g, uint8_t &b)
     
 #endif
     
-    r = rr;   g = gg;  b = bb;
+    r = rr;   g = gg;  b = bb;  a = 0xFF;
 
     return RT_OK;
   }
@@ -95,21 +97,55 @@ static rtError web2rgb(rtString &input, uint8_t &r, uint8_t &g, uint8_t &b)
 
   clr++; // skip '#'
   
-  // Promote RGB to RRGGBB format
-  if(strlen(clr) == 3)
+  size_t len = strlen(clr);
+  
+  switch(len)
   {
-    clr6[0] = clr[0];  clr6[1] = clr[0];  // 01
-    clr6[2] = clr[1];  clr6[3] = clr[1];  // 23
-    clr6[4] = clr[2];  clr6[5] = clr[2];  // 45
-    clr6[6] = '\0';
-    
-    clr = clr6; // point here now !
+    case 3:   //#RGB  >> #RRGGBBAA
+    {
+      clr6[0] = clr[0];  clr6[1] = clr[0];  // 01  RR
+      clr6[2] = clr[1];  clr6[3] = clr[1];  // 23  GG
+      clr6[4] = clr[2];  clr6[5] = clr[2];  // 45  BB
+      clr6[6] = 'F';     clr6[7] = 'F';     // 67  AA
+
+      clr = clr6; // point here now !
+    }
+    break;
+      
+    case 4:   //#RGBA  >> #RRGGBBAA
+    {
+      clr6[6] = clr[3];  clr6[7] = clr[3];  // 67  AA (Do First... will overwrite)
+      clr6[0] = clr[0];  clr6[1] = clr[0];  // 01  RR
+      clr6[2] = clr[1];  clr6[3] = clr[1];  // 23  GG
+      clr6[4] = clr[2];  clr6[5] = clr[2];  // 45  BB
+      
+      clr = clr6; // point here now !
+    }
+    break;
+      
+    case 6:   //#RRGGBB  >> #RRGGBBAA
+    {
+      clr6[0] = clr[0];  clr6[1] = clr[0];  // 01  RR
+      clr6[2] = clr[1];  clr6[3] = clr[1];  // 23  GG
+      clr6[4] = clr[2];  clr6[5] = clr[2];  // 45  BB
+      clr6[6] = 'F';     clr6[7] = 'F';     // 67  AA
+      
+      clr = clr6; // point here now !
+    }
+    break;
+      
+    case 8:   //#RRGGBBAA ... perfect !
+    break;
+      
+    default:
+      
+      return RT_FAIL; // Unexpected.
   }
   
   // Read "RRGGBB" formatted string
-  if( sscanf(clr, "%02x%02x%02x", &rr, &gg, &bb) == 3)
+  if( sscanf(clr, "%02x%02x%02x%02x", &rr, &gg, &bb, &aa) == 4)
   {
-    r = rr;   g = gg;  b = bb;
+    r = rr;   g = gg;  b = bb;  a = aa;
   }
   else
   {
