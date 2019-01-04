@@ -22,13 +22,14 @@
 #define PX_RECTANGLE_H
 
 #include "pxScene2d.h"
+#include "pxPixel.h"
 
 class pxRectangle: public pxObject 
 {
 public:
   rtDeclareObject(pxRectangle, pxObject);
-  rtProperty(fillColor, fillColor, setFillColor, uint32_t);
-  rtProperty(lineColor, lineColor, setLineColor, uint32_t);
+  rtProperty(fillColor, fillColor, setFillColor, rtValue);
+  rtProperty(lineColor, lineColor, setLineColor, rtValue);
   rtProperty(lineWidth, lineWidth, setLineWidth, float);
 
   pxRectangle(pxScene2d* scene):pxObject(scene),mLineWidth(0) 
@@ -42,62 +43,161 @@ public:
 
   virtual void onInit() {mReady.send("resolve",this);}
 
-  rtError fillColor(uint32_t& c) const
+  rtError fillColor1(uint32_t& c) const
   {
 #ifdef PX_LITTLEENDIAN_PIXELS
 
-    c = ((uint8_t) (mFillColor[0] * 255.0f) << 24) |  // R
-        ((uint8_t) (mFillColor[1] * 255.0f) << 16) |  // G
-        ((uint8_t) (mFillColor[2] * 255.0f) <<  8) |  // B
-        ((uint8_t) (mFillColor[3] * 255.0f) <<  0);   // A
+    c = ((uint8_t) (mFillColor[PX_RED  ] * 255.0f) << 24) |  // R
+        ((uint8_t) (mFillColor[PX_GREEN] * 255.0f) << 16) |  // G
+        ((uint8_t) (mFillColor[PX_BLUE ] * 255.0f) <<  8) |  // B
+        ((uint8_t) (mFillColor[PX_ALPHA] * 255.0f) <<  0);   // A
 #else
 
-    c = ((uint8_t) (mFillColor[3] * 255.0f) << 24) |  // A
-        ((uint8_t) (mFillColor[2] * 255.0f) << 16) |  // B
-        ((uint8_t) (mFillColor[1] * 255.0f) <<  8) |  // G
-        ((uint8_t) (mFillColor[0] * 255.0f) <<  0);   // R
+    c = ((uint8_t) (mFillColor[PX_ALPHA] * 255.0f) << 24) |  // A
+        ((uint8_t) (mFillColor[PX_BLUE ] * 255.0f) << 16) |  // B
+        ((uint8_t) (mFillColor[PX_GREEN] * 255.0f) <<  8) |  // G
+        ((uint8_t) (mFillColor[PX_RED  ] * 255.0f) <<  0);   // R
 
 #endif
     return RT_OK;
   }
 
-  rtError setFillColor(uint32_t c) 
+  rtError setFillColor1(uint32_t c)
   {
-    mFillColor[0] = (float)((c>>24)&0xff)/255.0f;
-    mFillColor[1] = (float)((c>>16)&0xff)/255.0f;
-    mFillColor[2] = (float)((c>>8)&0xff)/255.0f;
-    mFillColor[3] = (float)((c>>0)&0xff)/255.0f;
+#ifdef PX_LITTLEENDIAN_PIXELS
+    
+    mFillColor[PX_RED  ] = (float)((c >>24) & 0xff) / 255.0f;  // R
+    mFillColor[PX_GREEN] = (float)((c >>16) & 0xff) / 255.0f;  // G
+    mFillColor[PX_BLUE ] = (float)((c >> 8) & 0xff) / 255.0f;  // B
+    mFillColor[PX_ALPHA] = (float)((c >> 0) & 0xff) / 255.0f;  // A
+#else
+    
+    mFillColor[PX_ALPHA] = (float)((c >>24) & 0xff) / 255.0f;  // A
+    mFillColor[PX_BLUE ] = (float)((c >>16) & 0xff) / 255.0f;  // B
+    mFillColor[PX_GREEN] = (float)((c >> 8) & 0xff) / 255.0f;  // G
+    mFillColor[PX_RED  ] = (float)((c >> 0) & 0xff) / 255.0f;  // R
+    
+#endif
+
     return RT_OK;
   }
 
-  rtError lineColor(uint32_t& c) const
+
+  rtError fillColor(rtValue &c) const
+  {
+    uint32_t cc = 0;
+    rtError err = fillColor1(cc);
+    
+    c = cc;
+    
+    return err;
+  }
+  
+  rtError setFillColor(rtValue c)
+  {
+    // Set via STRING...
+    if( c.getType() == 's')
+    {
+      rtString str = c.toString();
+      
+      uint8_t r,g,b;
+      if( web2rgb( str, r, g, b) == RT_OK)
+      {
+        mFillColor[PX_RED  ] = (float) r / 255.0f;  // R
+        mFillColor[PX_GREEN] = (float) g / 255.0f;  // G
+        mFillColor[PX_BLUE ] = (float) b / 255.0f;  // B
+        mFillColor[PX_ALPHA] = 1.0f;                // A
+        
+        return RT_OK;
+      }
+      
+      return RT_FAIL;
+    }
+    
+    // Set via UINT32...
+    uint32_t clr = c.toUInt32();
+    
+    return setFillColor1(clr);
+  }
+  
+  rtError lineColor1(uint32_t& c) const
   {
 #ifdef PX_LITTLEENDIAN_PIXELS
 
-    c = ((uint8_t) (mLineColor[0] * 255.0f) << 24) |  // R
-        ((uint8_t) (mLineColor[1] * 255.0f) << 16) |  // G
-        ((uint8_t) (mLineColor[2] * 255.0f) <<  8) |  // B
-        ((uint8_t) (mLineColor[3] * 255.0f) <<  0);   // A
+    c = ((uint8_t) (mLineColor[PX_RED  ] * 255.0f) << 24) |  // R
+        ((uint8_t) (mLineColor[PX_GREEN] * 255.0f) << 16) |  // G
+        ((uint8_t) (mLineColor[PX_BLUE ] * 255.0f) <<  8) |  // B
+        ((uint8_t) (mLineColor[PX_ALPHA] * 255.0f) <<  0);   // A
 #else
 
-    c = ((uint8_t) (mLineColor[3] * 255.0f) << 24) |  // A
-        ((uint8_t) (mLineColor[2] * 255.0f) << 16) |  // B
-        ((uint8_t) (mLineColor[1] * 255.0f) <<  8) |  // G
-        ((uint8_t) (mLineColor[0] * 255.0f) <<  0);   // R
+    c = ((uint8_t) (mLineColor[PX_ALPHA] * 255.0f) << 24) |  // A
+        ((uint8_t) (mLineColor[PX_BLUE ] * 255.0f) << 16) |  // B
+        ((uint8_t) (mLineColor[PX_GREEN] * 255.0f) <<  8) |  // G
+        ((uint8_t) (mLineColor[PX_RED  ] * 255.0f) <<  0);   // R
 
 #endif
 
     return RT_OK;
   }
 
-  rtError setLineColor(uint32_t c) 
+
+  rtError setLineColor1(uint32_t c)
   {
-    mLineColor[0] = (float)((c>>24)&0xff)/255.0f;
-    mLineColor[1] = (float)((c>>16)&0xff)/255.0f;
-    mLineColor[2] = (float)((c>>8)&0xff)/255.0f;
-    mLineColor[3] = (float)((c>>0)&0xff)/255.0f;
+#ifdef PX_LITTLEENDIAN_PIXELS
+    
+    mLineColor[PX_RED  ] = (float)((c >> 24) & 0xff) / 255.0f;  // R
+    mLineColor[PX_GREEN] = (float)((c >> 16) & 0xff) / 255.0f;  // G
+    mLineColor[PX_BLUE ] = (float)((c >>  8) & 0xff) / 255.0f;  // B
+    mLineColor[PX_ALPHA] = (float)((c >>  0) & 0xff) / 255.0f;  // A
+
+#else
+    
+    mLineColor[PX_ALPHA] = (float)((c >> 24) & 0xff) / 255.0f;  // A
+    mLineColor[PX_BLUE ] = (float)((c >> 16) & 0xff) / 255.0f;  // B
+    mLineColor[PX_GREEN] = (float)((c >>  8) & 0xff) / 255.0f;  // G
+    mLineColor[PX_RED  ] = (float)((c >>  0) & 0xff) / 255.0f;  // R
+
+#endif
     return RT_OK;
   }
+  
+  rtError lineColor(rtValue &c) const
+  {
+    uint32_t cc = 0;
+    rtError err = lineColor1(cc);
+    
+    c = cc;
+    
+    return err;
+  }
+
+  rtError setLineColor(rtValue c)
+  {
+    // Set via STRING...
+    if( c.getType() == 's')
+    {
+      rtString str = c.toString();
+      
+      uint8_t r,g,b;
+      if( web2rgb( str, r, g, b) == RT_OK)
+      {
+        mLineColor[PX_RED  ] = (float) r / 255.0f;  // R
+        mLineColor[PX_GREEN] = (float) g / 255.0f;  // G
+        mLineColor[PX_BLUE ] = (float) b / 255.0f;  // B
+        mLineColor[PX_ALPHA] = 1.0f;                // A
+        
+        return RT_OK;
+      }
+      
+      return RT_FAIL;
+    }
+
+    // Set via UINT32...
+    uint32_t clr = c.toUInt32();
+    
+    return setLineColor1(clr);
+  }
+  
 
   rtError lineWidth(float& w) const 
   {
@@ -114,19 +214,19 @@ public:
   // c is assumed to not be premultiplied
   void setFillColor(float* c) 
   {
-    mFillColor[0] = c[0];
-    mFillColor[1] = c[1];
-    mFillColor[2] = c[2];
-    mFillColor[3] = c[3];
+    mFillColor[PX_RED  ] = c[PX_RED  ];
+    mFillColor[PX_GREEN] = c[PX_GREEN];
+    mFillColor[PX_BLUE ] = c[PX_BLUE ];
+    mFillColor[PX_ALPHA] = c[PX_ALPHA];
   }
   
   // c is assumed to not be premultiplied
   void setLineColor(float* c) 
   {
-    mLineColor[0] = c[0];
-    mLineColor[1] = c[1];
-    mLineColor[2] = c[2];
-    mLineColor[3] = c[3];
+    mLineColor[PX_RED  ] = c[PX_RED  ];
+    mLineColor[PX_GREEN] = c[PX_GREEN];
+    mLineColor[PX_BLUE ] = c[PX_BLUE ];
+    mLineColor[PX_ALPHA] = c[PX_ALPHA];
   }
   
   virtual void draw();
@@ -137,4 +237,4 @@ private:
   float mLineWidth;
 };
 
-#endif
+#endif // PX_RECTANGLE_H

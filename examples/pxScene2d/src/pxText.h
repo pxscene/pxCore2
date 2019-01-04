@@ -36,7 +36,7 @@ class pxText: public pxObject, pxResourceListener
 public:
   rtDeclareObject(pxText, pxObject);
   rtProperty(text, text, setText, rtString);
-  rtProperty(textColor, textColor, setTextColor, uint32_t);
+  rtProperty(textColor, textColor, setTextColor, rtValue);
   rtProperty(pixelSize, pixelSize, setPixelSize, uint32_t);
   rtProperty(fontUrl, fontUrl, setFontUrl, rtString);  
   rtProperty(font, font, setFont, rtObjectRef);
@@ -47,7 +47,7 @@ public:
   virtual rtError setText(const char* text);
   rtError removeResourceListener();
 
-  rtError textColor(uint32_t& c) const
+  rtError textColor1(uint32_t& c) const
   {
 #ifdef PX_LITTLEENDIAN_PIXELS
 
@@ -67,13 +67,50 @@ public:
     return RT_OK;
   }
 
-  rtError setTextColor(uint32_t c)
+  rtError setTextColor1(uint32_t c)
   {
-    mTextColor[0] = (float)((c>>24)&0xff)/255.0f;
-    mTextColor[1] = (float)((c>>16)&0xff)/255.0f;
-    mTextColor[2] = (float)((c>>8)&0xff)/255.0f;
-    mTextColor[3] = (float)((c>>0)&0xff)/255.0f;
+    mTextColor[PX_RED  ] = (float)((c>>24) & 0xff) / 255.0f;
+    mTextColor[PX_GREEN] = (float)((c>>16) & 0xff) / 255.0f;
+    mTextColor[PX_BLUE ] = (float)((c>> 8) & 0xff) / 255.0f;
+    mTextColor[PX_ALPHA] = (float)((c>> 0) & 0xff) / 255.0f;
     return RT_OK;
+  }
+  
+  rtError textColor(rtValue &c) const
+  {
+    uint32_t cc = 0;
+    rtError err = textColor1(cc);
+    
+    c = cc;
+    
+    return err;
+  }
+  
+  rtError setTextColor(rtValue c)
+  {
+    // Set via STRING...
+    if( c.getType() == 's')
+    {
+      rtString str = c.toString();
+      
+      uint8_t r,g,b;
+      if( web2rgb( str, r, g, b) == RT_OK)
+      {
+        mTextColor[PX_RED  ] = (float) r / 255.0f;  // R
+        mTextColor[PX_GREEN] = (float) g / 255.0f;  // G
+        mTextColor[PX_BLUE ] = (float) b / 255.0f;  // B
+        mTextColor[PX_ALPHA] = 1.0f;                // A
+        
+        return RT_OK;
+      }
+      
+      return RT_FAIL;
+    }
+    
+    // Set via UINT32...
+    uint32_t clr = c.toUInt32();
+    
+    return setTextColor1(clr);
   }
 
   rtError fontUrl(rtString& v) const { getFontResource()->url(v); return RT_OK; }
@@ -153,4 +190,4 @@ public:
   #endif
 };
 
-#endif
+#endif // PX_TEXT_H
