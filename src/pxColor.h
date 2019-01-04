@@ -38,9 +38,6 @@ const pxColor pxGreen(0, 255, 0, 255);
 const pxColor pxBlue(0, 0, 255, 255);
 const pxColor pxGray(128, 128, 128, 255);
 
-
-extern unsigned int nsvg__parseColor(const char* str);
-
 static rtError web2rgb(rtString &input, uint8_t &r, uint8_t &g, uint8_t &b, uint8_t &a)
 {
   rtError retVal = RT_OK;
