@@ -24,6 +24,10 @@
 #include "pxScene2d.h"
 #include "pxPixel.h"
 
+
+#include "pxColorNames.h"
+
+
 class pxRectangle: public pxObject 
 {
 public:

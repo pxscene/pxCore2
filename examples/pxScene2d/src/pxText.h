@@ -31,6 +31,8 @@
 #include "pxFont.h"
 #include "pxResource.h"
 
+#include "pxColorNames.h"
+
 class pxText: public pxObject, pxResourceListener 
 {
 public:
