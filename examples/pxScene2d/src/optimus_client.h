@@ -49,9 +49,9 @@ namespace OptimusClient
 
   protected:
     rtError shutdown();
+    rtEmitRef mEmit;
 
   private:
-    rtEmitRef mEmit;
     rtObjectRef mRemoteObject;
     rtObjectRef mTestObj;
   };
