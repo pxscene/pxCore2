@@ -21,6 +21,7 @@
 #ifndef PX_COLOR_H
 #define PX_COLOR_H
 
+#include <string.h> // for strlen()
 
 #include "rtString.h"
 #include "rtError.h"
