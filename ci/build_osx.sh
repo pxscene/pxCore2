@@ -40,7 +40,8 @@ fi
 cd $TRAVIS_BUILD_DIR;
 mkdir -p temp
 cd  temp
-
+find / -name libclang_rt*
+error
 if [ "$TRAVIS_PULL_REQUEST" = "false" ]
 then
   echo "***************************** Generating config files ****" >> $BUILDLOGS
