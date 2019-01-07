@@ -119,6 +119,7 @@ int main(int argc, char **argv) {
   script.init();
   int retTests = RUN_ALL_TESTS();
   rtLogInfo("Tests executed with return code [%d]", retTests);
+  rtFileDownloader::deleteInstance();
   #ifdef ENABLE_CODE_COVERAGE
   __gcov_flush();
   #endif
