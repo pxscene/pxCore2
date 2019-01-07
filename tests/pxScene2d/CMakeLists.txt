@@ -143,7 +143,7 @@ elseif (APPLE)
         execute_process(COMMAND awk "{ printf \"%s\", $0 }" llvmoutput OUTPUT_VARIABLE LLVM_VERSION)
         execute_process(COMMAND rm llvmoutput)
 
-        set(TEST_APP_LINKER_OPTIONS ${TEST_APP_LINKER_OPTIONS} "-L/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/${LLVM_VERSION}/lib/darwin -lclang_rt.profile_osx")
+        set(TEST_APP_LINKER_OPTIONS ${TEST_APP_LINKER_OPTIONS} "-L/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/${LLVM_VERSION}/lib/darwin -L/Applications/Xcode-${LLVM_VERSION}.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/${LLVM_VERSION}/lib/darwin -lclang_rt.profile_osx")
     endif () # CODE_COVERAGE
 
 # NONE # NONE # NONE # NONE # NONE # NONE # NONE # NONE # NONE # NONE # NONE # NONE # NONE # NONE # NONE #
