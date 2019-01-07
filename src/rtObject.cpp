@@ -63,6 +63,11 @@ rtError rtEmit::setListener(const char* eventName, rtIFunction* f)
   return RT_OK;
 }
 
+rtError rtEmit::addListener(const char* eventName, rtIFunction* f)
+{
+  return addListener(eventName, f, false);
+}
+
 rtError rtEmit::addListener(const char* eventName, rtIFunction* f, bool emitOnce)
 {
   if (!eventName || !f)
