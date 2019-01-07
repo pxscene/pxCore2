@@ -120,7 +120,7 @@ class pxScene2dTest : public testing::Test
       EXPECT_TRUE ( 0 == gWaylandRegistryAppsMap.size());
       setenv("WAYLAND_APPS_CONFIG", "../../examples/pxScene2d/src/waylandregistry.conf", 1);
       populateWaylandAppsConfig();
-      EXPECT_TRUE ( 4 == gWaylandRegistryAppsMap.size());
+      EXPECT_TRUE ( 5 == gWaylandRegistryAppsMap.size());
       setenv("WAYLAND_APPS_CONFIG", "../../tests/pxScene2d/supportfiles/jsonParseError.json", 1);
       populateWaylandAppsConfig();
     }
