@@ -570,7 +570,7 @@ rtFileDownloader::~rtFileDownloader()
 {
 #ifdef PX_REUSE_DOWNLOAD_HANDLES
   downloadHandleMutex.lock();
-  for (vector<rtFileDownloadHandle>::iterator it = mDownloadHandles.begin(); it != mDownloadHandles.end(); ++it)
+  for (vector<rtFileDownloadHandle>::iterator it = mDownloadHandles.begin(); it != mDownloadHandles.end(); )
   {
     CURL *curlHandle = (*it).curlHandle;
     if (curlHandle != NULL)
@@ -613,6 +613,15 @@ rtFileDownloader* rtFileDownloader::instance()
 #endif //PX_REUSE_DOWNLOAD_HANDLES
     }
     return mInstance;
+}
+
+void rtFileDownloader::deleteInstance()
+{
+    if (mInstance != NULL)
+    {
+        delete mInstance;
+        mInstance = NULL;
+    }
 }
 
 bool rtFileDownloader::addToDownloadQueue(rtFileDownloadRequest* downloadRequest)
