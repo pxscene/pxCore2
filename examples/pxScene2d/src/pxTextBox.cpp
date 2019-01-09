@@ -933,7 +933,7 @@ void pxTextBox::renderOneLine(const char * tempStr, float tempX, float tempY, fl
           }
           else {
             //rtLogDebug("else not xPos+charW >mw lineWidth=%f\n",lineWidth);
-            //setLineMeasurements(true, xPos<mx?mx:xPos, tempY);
+            setLineMeasurements(true, xPos<mx?mx:xPos, tempY);
             setMeasurementBounds(false, (xPos+width) > mw? mw:xPos+width, charH);
           }
         }
