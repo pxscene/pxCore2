@@ -70,7 +70,6 @@ rtError pxText::setText(const char* s)
   mText = s; 
   if( getFontResource() != NULL && getFontResource()->isFontLoaded())
   {
-    createNewPromise();
     getFontResource()->measureTextInternal(s, mPixelSize, 1.0, 1.0, mw, mh);
   }
   return RT_OK; 
@@ -82,7 +81,6 @@ rtError pxText::setPixelSize(uint32_t v)
   mPixelSize = v; 
   if( getFontResource() != NULL && getFontResource()->isFontLoaded())
   {
-    createNewPromise();
     getFontResource()->measureTextInternal(mText, mPixelSize, 1.0, 1.0, mw, mh);
   }
   return RT_OK; 

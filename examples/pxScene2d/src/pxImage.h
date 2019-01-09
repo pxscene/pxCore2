@@ -52,7 +52,16 @@ public:
   virtual void update(double t) { pxObject::update(t);}
   virtual void onInit();
   virtual void sendPromise();
-  virtual void createNewPromise() { rtLogDebug("pxImage ignoring createNewPromise\n"); }
+
+  void createNewPromise() { 
+    // Only create a new promise if the existing one has been
+    // resolved or rejected already.
+    if(((rtPromise*)mReady.getPtr())->status())
+    {
+      rtLogDebug("CREATING NEW PROMISE\n");
+      mReady = new rtPromise();
+    }
+   }
   
   rtError url(rtString& s) const;
   rtError setUrl(const char* s);
