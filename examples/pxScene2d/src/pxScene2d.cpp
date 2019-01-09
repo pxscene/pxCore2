@@ -502,18 +502,6 @@ void pxObject::sendPromise()
   }
 }
 
-void pxObject::createNewPromise()
-{
-  rtLogDebug("pxObject ignoring createNewPromise\n");
-  /* // Only create a new promise if the existing one has been
-  // resolved or rejected already.
-  if(((rtPromise*)mReady.getPtr())->status())
-  {
-    rtLogDebug("CREATING NEW PROMISE\n");
-    mReady = new rtPromise();
-  }*/
-}
-
 void pxObject::dispose(bool pumpJavascript)
 {
   if (!mIsDisposed)

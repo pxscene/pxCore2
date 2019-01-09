@@ -53,7 +53,7 @@ public:
   virtual void resourceReady(rtString readyResolution);
   virtual void resourceDirty();
 
-  virtual void createNewPromise() { 
+  void createNewPromise() { 
     // Only create a new promise if the existing one has been
     // resolved or rejected already.
     if(((rtPromise*)mReady.getPtr())->status())

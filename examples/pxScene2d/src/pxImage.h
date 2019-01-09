@@ -52,8 +52,8 @@ public:
   virtual void update(double t) { pxObject::update(t);}
   virtual void onInit();
   virtual void sendPromise();
-  
-  virtual void createNewPromise() { 
+
+  void createNewPromise() { 
     // Only create a new promise if the existing one has been
     // resolved or rejected already.
     if(((rtPromise*)mReady.getPtr())->status())
