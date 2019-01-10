@@ -70,9 +70,7 @@ function getPNGForValidation(validateUrl)
         imports.fs.writeFile("images/" + validationUrl, buf.toString('base64'), 'base64', function(err) {
           console.log(err);
         });
-      if( consolePrint) {
         console.log("captured image is "+buf.toString('base64'))
-      }
 
       return buf;
 
