@@ -34,9 +34,9 @@ export PX_DUMP_MEMUSAGE=1
 export HANDLE_SIGNALS=1
 export ENABLE_VALGRIND=1
 export RT_LOG_LEVEL=info
-export SPARK_CORS_ENABLED=true
-export SPARK_PERMISSIONS_CONFIG=$TRAVIS_BUILD_DIR/examples/pxScene2d/src/sparkpermissions.conf
-export SPARK_PERMISSIONS_ENABLED=true
+#export SPARK_CORS_ENABLED=true
+#export SPARK_PERMISSIONS_CONFIG=$TRAVIS_BUILD_DIR/examples/pxScene2d/src/sparkpermissions.conf
+#export SPARK_PERMISSIONS_ENABLED=true
 export SUPPRESSIONS=$TRAVIS_BUILD_DIR/ci/leak.supp
 export SPARK_ENABLE_COLLECT_GARBAGE=1
 
