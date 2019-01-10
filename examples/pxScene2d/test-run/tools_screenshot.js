@@ -65,6 +65,8 @@ function getPNGForValidation(validateUrl)
   {
       var data = imports.scene.screenshot('image/png;base64');
       var buf = new Buffer(data.slice(data.indexOf(',')+1), 'base64');
+        console.log(validationUrl);
+        validationUrl = validationUrl.substring(validationUrl.lastIndexOf("/")+1);
         imports.fs.writeFile("images/" + validationUrl, buf.toString('base64'), 'base64', function(err) {
           console.log(err);
         });
