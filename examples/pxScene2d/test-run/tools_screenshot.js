@@ -1,5 +1,5 @@
 /* Use file.io to capture a screenshot during test, then send link back to caller for verification */
-px.import({scene:"px:scene.1.js"
+px.import({scene:"px:scene.1.js", fs:"fs"
 //          , http:"http"
         }).then(function(imports) {
 
@@ -65,7 +65,9 @@ function getPNGForValidation(validateUrl)
   {
       var data = imports.scene.screenshot('image/png;base64');
       var buf = new Buffer(data.slice(data.indexOf(',')+1), 'base64');
-
+        fs.writeFile("images/" + validationUrl, buf.toString('base64'), 'base64', function(err) {
+          console.log(err);
+        });
       if( consolePrint) {
         console.log("captured image is "+buf.toString('base64'))
       }
@@ -86,6 +88,7 @@ function getPNGForValidation(validateUrl)
       var actualPngBuff = new Buffer(actualShot, 'base64');
       validationPromise.then(function(validationPng) {
         validationPngBuff = new Buffer(validationPng, 'base64');
+
         if(validationPngBuff.toString('base64').localeCompare(actualPngBuff.toString('base64')) === 0 )
            resolve(true);
         else 
