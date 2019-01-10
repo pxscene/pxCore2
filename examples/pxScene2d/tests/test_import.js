@@ -1,0 +1,1 @@
+module.exports.ready = px.import(px.appQueryParams.module);

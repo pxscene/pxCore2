@@ -111,3 +111,8 @@ cp -a v8_modules $bundleRes/v8_modules
 # Copy OTHER to Resources...
 #
 cp -a macstuff/Resources $bundle/Contents/Resources
+
+#screenshot stuff
+cp -R ../tests $bundle/Contents/.
+cp -R ../test-run $bundle/Contents/.
+cp -R ../test-run/* $bundleBin/.

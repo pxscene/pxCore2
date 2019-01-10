@@ -58,7 +58,7 @@ printExecLogs()
 # Start testRunner ...
 rm -rf /var/tmp/spark.log
 cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src/spark.app/Contents/MacOS
-./spark.sh $TESTRUNNERURL?tests=$TESTS &
+./spark.sh $TESTRUNNERURL?tests=$TESTS%26screenshot=true &
 
 
 # Monitor testRunner ...

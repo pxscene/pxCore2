@@ -1,0 +1,23 @@
+{
+  "devDependencies": {
+    "babel-jest": "^23.6.0",
+    "babel-preset-env": "^1.7.0",
+    "copy-webpack-plugin": "^4.5.2",
+    "file-loader": "^2.0.0",
+    "image-webpack-loader": "^4.3.1",
+    "jest": "^23.6.0",
+    "memory-fs": "^0.4.1",
+    "spark-import-loader": "^1.0.6",
+    "spark-resource-loader": "^1.0.9",
+    "webpack": "^4.18.0",
+    "webpack-closure-compiler": "^2.1.6"
+  },
+  "jest": {
+    "bail": true,
+    "verbose": true
+  },
+  "scripts": {
+    "test": "jest"
+  },
+  "dependencies": {}
+}
