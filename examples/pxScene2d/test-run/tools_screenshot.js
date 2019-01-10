@@ -2,7 +2,7 @@
 px.import({scene:"px:scene.1.js", fs:"fs"
 //          , http:"http"
         }).then(function(imports) {
-
+var fs = imports.fs;
 /*
 // DON'T USE file.io because it will return HTTP 429 if uploading more than 5 
 // files in a short span of time.
@@ -65,7 +65,7 @@ function getPNGForValidation(validateUrl)
   {
       var data = imports.scene.screenshot('image/png;base64');
       var buf = new Buffer(data.slice(data.indexOf(',')+1), 'base64');
-        fs.writeFile("images/" + validationUrl, buf.toString('base64'), 'base64', function(err) {
+        imports.fs.writeFile("images/" + validationUrl, buf.toString('base64'), 'base64', function(err) {
           console.log(err);
         });
       if( consolePrint) {
