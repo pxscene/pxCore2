@@ -658,7 +658,11 @@ AppSceneContext.prototype.include = function(filePath, currentXModule) {
       var modData = require(filePath);
       onImportComplete([modData, origFilePath]);
       return;
-    } else if( filePath === 'fs' || filePath === 'os' || filePath === 'events') {
+    } else if( filePath === 'fs' ) {
+      var modData = require(filePath);
+      onImportComplete([modData, origFilePath]);
+      return;
+    } else if( filePath === 'fs1' || filePath === 'os' || filePath === 'events') {
       console.log("Not permitted to use the module " + filePath);
       reject("include failed due to module not permitted");
       return;
