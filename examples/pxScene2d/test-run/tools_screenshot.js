@@ -61,7 +61,7 @@ function getPNGForValidation(validateUrl)
     });
   }
 
-  function takeScreenshot(consolePrint) 
+  function takeScreenshot(validationUrl, consolePrint) 
   {
       var data = imports.scene.screenshot('image/png;base64');
       var buf = new Buffer(data.slice(data.indexOf(',')+1), 'base64');
@@ -76,7 +76,7 @@ function getPNGForValidation(validateUrl)
 
   }
   function validateScreenshot(validationUrl, consolePrint) { 
-    var actualShot = new Buffer(takeScreenshot(consolePrint));
+    var actualShot = new Buffer(takeScreenshot(validationUrl, consolePrint));
 
     console.log("validationUrl is "+validationUrl);
     return new Promise(function(resolve,reject) {
