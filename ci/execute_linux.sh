@@ -42,7 +42,7 @@ export SPARK_ENABLE_COLLECT_GARBAGE=1
 
 touch $VALGRINDLOGS
 EXECLOGS=$TRAVIS_BUILD_DIR/logs/exec_logs
-TESTRUNNERURL="https://px-apps.sys.comcast.net/pxscene-samples/examples/px-reference/test-run/testRunner_v8.js"
+TESTRUNNERURL="testRunner_v8.js"
 TESTS="file://$TRAVIS_BUILD_DIR/tests/pxScene2d/testRunner/tests.json"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
