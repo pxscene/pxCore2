@@ -23,7 +23,7 @@ travis_retry() {
 
 #start the monitor
 $TRAVIS_BUILD_DIR/ci/monitor.sh &
-
+find / -name gl.pc|xargs cat
 if [ "$TRAVIS_OS_NAME" = "linux" ]
 then
     if [ "$TRAVIS_EVENT_TYPE" = "cron" ] || [ "$TRAVIS_EVENT_TYPE" = "api" ] || [ ! -z "${TRAVIS_TAG}" ]
