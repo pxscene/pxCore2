@@ -58,6 +58,7 @@ printExecLogs()
 # Start testRunner ...
 rm -rf /var/tmp/spark.log
 cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src/spark.app/Contents/MacOS
+mkdir images
 ./spark.sh $TESTRUNNERURL?tests=$TESTS%26screenshot=true &
 
 
@@ -69,6 +70,9 @@ while [ "$count" -le "$max_seconds" ]; do
 	#leaks -nocontext Spark > $LEAKLOGS
 	printf "\n [execute_osx.sh] snoozing for 30 seconds (%d of %d) \n" $count $max_seconds
 	sleep 30; # seconds
+  tail /var/tmp/spark.log
+  echo "##########################################"
+  ls -lrt images
 	grep "TEST RESULTS: " /var/tmp/spark.log   # string in [results.js] must be "TEST RESULTS: "
 	retVal=$?
 
