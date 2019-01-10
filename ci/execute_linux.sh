@@ -43,7 +43,7 @@ export SPARK_ENABLE_COLLECT_GARBAGE=1
 touch $VALGRINDLOGS
 EXECLOGS=$TRAVIS_BUILD_DIR/logs/exec_logs
 TESTRUNNERURL="https://px-apps.sys.comcast.net/pxscene-samples/examples/px-reference/test-run/testRunner_v8.js"
-TESTS="file://$TRAVIS_BUILD_DIR/tests/pxScene2d/testRunner/tests.json,file://$TRAVIS_BUILD_DIR/tests/pxScene2d/testRunner/testsDesktop.json"
+TESTS="file://$TRAVIS_BUILD_DIR/tests/pxScene2d/testRunner/tests.json"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 printExecLogs()
@@ -63,7 +63,8 @@ printValgrindLogs()
 
 # Start testRunner ... 
 cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src
-./spark.sh $TESTRUNNERURL?tests=$TESTS%26screenshot=true > $EXECLOGS 2>&1 &
+#./spark.sh $TESTRUNNERURL?tests=$TESTS%26screenshot=true > $EXECLOGS 2>&1 &
+./spark.sh $TESTRUNNERURL?tests=$TESTS%26screenshot=true
 
 
 grep "TEST RESULTS: " $EXECLOGS
@@ -73,6 +74,7 @@ retVal=$?
 count=0
 max_seconds=1500
 while [ "$retVal" -ne 0 ] &&  [ "$count" -ne "$max_seconds" ]; do
+        cat $EXECLOGS
 	printf "\n [execute_linux.sh] snoozing for 30 seconds (%d of %d) \n" $count $max_seconds
 	sleep 30; # seconds
 	grep "TEST RESULTS: " $EXECLOGS
