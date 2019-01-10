@@ -984,7 +984,7 @@ void pxTextBox::renderOneLine(const char * tempStr, float tempX, float tempY, fl
   // Now, render the text
   if( render && getFontResource() != NULL)
   {
-      if (!clip())
+      if (!clip() && isNewLineCase)
           xPos += noClipX;
  #ifdef PXSCENE_FONT_ATLAS
      pxTexturedQuads quads;
@@ -1083,7 +1083,7 @@ void pxTextBox::setLineMeasurements(bool firstLine, float xPos, float yPos)
     getMeasurements()->getCharLast()->setX(xPos);
     getMeasurements()->getCharLast()->setY(yPos + ascent);
   } else {
-    getMeasurements()->getCharFirst()->setX(xPos);
+    if (lineNumber == 0) getMeasurements()->getCharFirst()->setX(xPos);
     getMeasurements()->getCharFirst()->setY(yPos + ascent);
   }
 }
