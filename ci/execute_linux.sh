@@ -63,6 +63,7 @@ printValgrindLogs()
 
 # Start testRunner ... 
 cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src
+mkdir images
 #./spark.sh $TESTRUNNERURL?tests=$TESTS%26screenshot=true > $EXECLOGS 2>&1 &
 ./spark.sh $TESTRUNNERURL?tests=$TESTS%26screenshot=true
 
