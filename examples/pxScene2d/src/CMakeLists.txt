@@ -482,10 +482,10 @@ if (BUILD_QT_APP)
         set(QT_APP_FILES ${QT_APP_FILES} qt/browser/win32/qtwinmigrate/qmfcapp.cpp
             qt/browser/win32/qtwinmigrate/qwinhost.cpp qt/browser/win32/qtwinmigrate/qwinwidget.cpp)
     elseif(APPLE)
-        set(QT_DIRECTORY ${EXTDIR}/qt-5.12.0/prebuild/mac)
+        set(QT_DIRECTORY ${EXTDIR}/qt-everywhere-src-5.12.0/qtbase)
         set(QT_APP_FILES ${QT_APP_FILES} qt/browser/mac/qmacwidget.mm)
     endif()
-
+    message("QT_DIRECTORY = ${QT_DIRECTORY}")
     set(CMAKE_AUTOMOC ON)
     find_package(Qt5 REQUIRED PATHS ${QT_DIRECTORY}/lib/cmake COMPONENTS Core Gui WebEngineWidgets Widgets)
     link_libraries(Qt5::Core Qt5::Gui Qt5::WebEngineCore Qt5::WebEngineWidgets Qt5::Widgets)
