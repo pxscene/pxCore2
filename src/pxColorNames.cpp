@@ -213,15 +213,15 @@ rtError web2rgb(rtString &input, uint8_t &r, uint8_t &g, uint8_t &b, uint8_t &a)
     
 #ifdef PX_LITTLEENDIAN_PIXELS
     
-    rr = (uint8_t)((c >> 24) & 0xff);  // R
-    gg = (uint8_t)((c >> 16) & 0xff);  // G
-    bb = (uint8_t)((c >>  8) & 0xff);  // B
-    
-#else
-    
     bb = (uint8_t)((c >> 16) & 0xff);  // B
     gg = (uint8_t)((c >>  8) & 0xff);  // G
     rr = (uint8_t)((c >>  0) & 0xff);  // R
+
+#else
+    
+    rr = (uint8_t)((c >> 24) & 0xff);  // R
+    gg = (uint8_t)((c >> 16) & 0xff);  // G
+    bb = (uint8_t)((c >>  8) & 0xff);  // B
     
 #endif
     
@@ -270,9 +270,9 @@ rtError web2rgb(rtString &input, uint8_t &r, uint8_t &g, uint8_t &b, uint8_t &a)
       
     case 6:   //#RRGGBB  >> #RRGGBBAA
     {
-      clr6[0] = clr[0];  clr6[1] = clr[0];  // 01  RR
-      clr6[2] = clr[1];  clr6[3] = clr[1];  // 23  GG
-      clr6[4] = clr[2];  clr6[5] = clr[2];  // 45  BB
+      clr6[0] = clr[0];  clr6[1] = clr[1];  // 01  RR
+      clr6[2] = clr[2];  clr6[3] = clr[3];  // 23  GG
+      clr6[4] = clr[4];  clr6[5] = clr[5];  // 45  BB
       clr6[6] = 'F';     clr6[7] = 'F';     // 67  AA
       
       clr = clr6; // point here now !
