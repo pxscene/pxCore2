@@ -1982,6 +1982,7 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   //
   // capabilities.network.cors          = 1
   // capabilities.network.corsResources = 1
+  // capabilities.network.http2         = 2
   //
   // capabilities.metrics.textureMemory = 1
 
@@ -2016,6 +2017,8 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
 #endif // ENABLE_CORS_FOR_RESOURCES
 
 #endif // ENABLE_ACCESS_CONTROL_CHECK
+
+  networkCapabilities.set("http2", 2);
 
   mCapabilityVersions.set("network", networkCapabilities);
 
