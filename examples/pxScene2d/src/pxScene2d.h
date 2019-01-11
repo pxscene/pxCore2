@@ -314,44 +314,44 @@ public:
   rtError setY(float v)       { cancelAnimation("y"); my = v; return RT_OK;   }
   float w()             const { return mw; }
   rtError w(float& v)   const { v = mw; return RT_OK;   }
-  virtual rtError setW(float v)       { cancelAnimation("w"); createNewPromise();mw = v; return RT_OK;   }
+  virtual rtError setW(float v)       { cancelAnimation("w"); mw = v; return RT_OK;   }
   float h()             const { return mh; }
   rtError h(float& v)   const { v = mh; return RT_OK;   }
-  virtual rtError setH(float v)       { cancelAnimation("h"); createNewPromise();mh = v; return RT_OK;   }
+  virtual rtError setH(float v)       { cancelAnimation("h"); mh = v; return RT_OK;   }
   float px()            const { return mpx;}
   rtError px(float& v)  const { v = mpx; return RT_OK;  }
-  rtError setPX(float v)      { cancelAnimation("px"); createNewPromise();mpx = (v > 1) ? 1 : (v < 0) ? 0 : v; return RT_OK;  }
+  rtError setPX(float v)      { cancelAnimation("px"); mpx = (v > 1) ? 1 : (v < 0) ? 0 : v; return RT_OK;  }
   float py()            const { return mpy;}
   rtError py(float& v)  const { v = mpy; return RT_OK;  }
-  rtError setPY(float v)      { cancelAnimation("py"); createNewPromise();mpy = (v > 1) ? 1 : (v < 0) ? 0 : v; return RT_OK;  }
+  rtError setPY(float v)      { cancelAnimation("py"); mpy = (v > 1) ? 1 : (v < 0) ? 0 : v; return RT_OK;  }
   float cx()            const { return mcx;}
   rtError cx(float& v)  const { v = mcx; return RT_OK;  }
-  rtError setCX(float v)      { cancelAnimation("cx"); createNewPromise();mcx = v; return RT_OK;  }
+  rtError setCX(float v)      { cancelAnimation("cx"); mcx = v; return RT_OK;  }
   float cy()            const { return mcy;}
   rtError cy(float& v)  const { v = mcy; return RT_OK;  }
-  rtError setCY(float v)      { cancelAnimation("cy"); createNewPromise();mcy = v; return RT_OK;  }
+  rtError setCY(float v)      { cancelAnimation("cy"); mcy = v; return RT_OK;  }
   float sx()            const { return msx;}
   rtError sx(float& v)  const { v = msx; return RT_OK;  }
-  rtError setSX(float v)      { cancelAnimation("sx"); createNewPromise();msx = v; return RT_OK;  }
+  virtual rtError setSX(float v)      { cancelAnimation("sx"); msx = v; return RT_OK;  }
   float sy()            const { return msy;}
   rtError sy(float& v)  const { v = msx; return RT_OK;  } 
-  rtError setSY(float v)      { cancelAnimation("sy");createNewPromise(); msy = v; return RT_OK;  }
+  virtual rtError setSY(float v)      { cancelAnimation("sy"); msy = v; return RT_OK;  }
   float a()             const { return ma; }
   rtError a(float& v)   const { v = ma; return RT_OK;   }
   rtError setA(float v)       { cancelAnimation("a"); ma = v; return RT_OK;   }
   float r()             const { return mr; }
   rtError r(float& v)   const { v = mr; return RT_OK;   }
-  rtError setR(float v)       { cancelAnimation("r"); createNewPromise();mr = v; return RT_OK;   }
+  rtError setR(float v)       { cancelAnimation("r"); mr = v; return RT_OK;   }
 #ifdef ANIMATION_ROTATE_XYZ
   float rx()            const { return mrx;}
   rtError rx(float& v)  const { v = mrx; return RT_OK;  }
-  rtError setRX(float v)      { cancelAnimation("rx"); createNewPromise(); mrx = v; return RT_OK;  }
+  rtError setRX(float v)      { cancelAnimation("rx"); mrx = v; return RT_OK;  }
   float ry()            const { return mry;}
   rtError ry(float& v)  const { v = mry; return RT_OK;  }
-  rtError setRY(float v)      { cancelAnimation("ry"); createNewPromise();mry = v; return RT_OK;  }
+  rtError setRY(float v)      { cancelAnimation("ry"); mry = v; return RT_OK;  }
   float rz()            const { return mrz;}
   rtError rz(float& v)  const { v = mrz; return RT_OK;  }
-  rtError setRZ(float v)      { cancelAnimation("rz"); createNewPromise();mrz = v; return RT_OK;  }
+  rtError setRZ(float v)      { cancelAnimation("rz"); mrz = v; return RT_OK;  }
 #endif // ANIMATION_ROTATE_XYZ
   bool painting()            const { return mPainting;}
   rtError painting(bool& v)  const { v = mPainting; return RT_OK;  }
@@ -393,8 +393,7 @@ public:
   void drawInternal(bool maskPass=false);
   virtual void draw() {}
   virtual void sendPromise();
-  virtual void createNewPromise();
-
+ 
   bool hitTestInternal(pxMatrix4f m, pxPoint2f& pt, rtRef<pxObject>& hit, pxPoint2f& hitPt);
   virtual bool hitTest(pxPoint2f& pt);
 
@@ -1078,10 +1077,9 @@ public:
 //  rtError makeReady(bool ready);  // DEPRECATED ?
 
   // in the case of pxSceneContainer, the makeReady should be the  
-  // catalyst for ready to fire, so override sendPromise and 
-  // createNewPromise to prevent firing from update() 
+  // catalyst for ready to fire, so override sendPromise  
+  // to prevent firing from update() 
   virtual void sendPromise() { /*rtLogDebug("pxSceneContainer ignoring sendPromise\n");*/ }
-  virtual void createNewPromise(){ rtLogDebug("pxSceneContainer ignoring createNewPromise\n"); }
 
   virtual void* getInterface(const char* name);
   virtual void releaseData(bool sceneSuspended);

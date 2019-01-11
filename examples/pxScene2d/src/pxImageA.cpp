@@ -82,7 +82,7 @@ rtError pxImageA::setUrl(const char *s)
       mImageWidth = 0;
       mImageHeight = 0;
       mImageLoaded = false;
-      pxObject::createNewPromise();
+      createNewPromise();
     }
   }
   removeResourceListener();
@@ -235,7 +235,7 @@ rtError pxImageA::setResource(rtObjectRef o)
       removeResourceListener();
       mResource = o;
       mImageLoaded = false;
-      pxObject::createNewPromise();
+      createNewPromise();
       mListenerAdded = true;
       getImageAResource()->addListener(this);
     }
