@@ -3460,7 +3460,7 @@ rtError pxScene2d::screenshot(rtString type, rtString& pngData)
 //HACK JUNK HACK JUNK HACK JUNK HACK JUNK HACK JUNK
 //HACK JUNK HACK JUNK HACK JUNK HACK JUNK HACK JUNK
 #if 0
-  FILE *myFile = fopen("/mnt/nfs/env/snap.png", "wb");
+  FILE *myFile = fopen("snap.png", "wb");
   if( myFile != NULL)
   {
     fwrite( pngData2.data(), sizeof(char), pngData2.length(),myFile);
