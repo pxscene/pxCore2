@@ -290,7 +290,8 @@ rtError pxStorePNGImage(pxOffscreen &b, rtData &pngData)
         png_byte color_type = (grayscale?PNG_COLOR_MASK_ALPHA:0) |
             (alpha?PNG_COLOR_MASK_ALPHA:0);
 #endif
-
+        printf("Madana png height[%d] width[%d] \n",b.height(), b.width());
+        fflush(stdout);
         png_set_IHDR(png_ptr, info_ptr, b.width(), b.height(),
                      8, PNG_COLOR_TYPE_RGB_ALPHA, PNG_INTERLACE_NONE,
                      PNG_COMPRESSION_TYPE_BASE, PNG_FILTER_TYPE_BASE);
