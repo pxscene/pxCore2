@@ -124,18 +124,24 @@ pxWindowNative::~pxWindowNative()
 - (void)windowDidEnterFullScreen:(NSNotification *)notification
 {
   NSSize s = [[[notification object] contentView] frame].size;
+    printf("Madana calling onsize with windowDidEnterFullScreen[%d] [%d] \n",s.width,s.height);
+  fflush(stdout);
   pxWindowNative::_helper_onSize(mWindow, s.width, s.height);  
 }
 
 - (void)windowDidExitFullScreen:(NSNotification *)notification
 {
   NSSize s = [[[notification object] contentView] frame].size;
+      printf("Madana calling onsize with windowDidExitFullScreen[%d] [%d] \n",s.width,s.height);
+  fflush(stdout);
   pxWindowNative::_helper_onSize(mWindow, s.width, s.height);
 }
 
 - (void)windowDidResize: (NSNotification*)notification
 {
   NSSize s = [[[notification object] contentView] frame].size;
+        printf("Madana calling onsize with windowDidResize[%d] [%d] \n",s.width,s.height);
+  fflush(stdout);
   pxWindowNative::_helper_onSize(mWindow, s.width, s.height);
 }
 
@@ -1139,7 +1145,8 @@ pxError pxWindow::init(int left, int top, int width, int height)
   // TODO We get a GL crash if we don't show the window here... 
   //[window makeKeyAndOrderFront:NSApp];
   //[window orderOut: NSApp];
-  
+  printf("Madana calling onsize with [%d] [%d] \n",width,height);
+  fflush(stdout);
   onSize(width,height);
   onCreate();
   
