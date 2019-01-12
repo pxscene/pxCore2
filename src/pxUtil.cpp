@@ -240,6 +240,8 @@ void my_png_write_data(png_structp png_ptr, png_bytep data, png_size_t length)
 
   /* copy new bytes to end of buffer */
   memcpy(p->buffer + p->size, data, length);
+  printf("Madana total size [%ld] [%ld] \n",length, p->size);
+  fflush(stdout);
   p->size += length;
 }
 
@@ -290,29 +292,33 @@ rtError pxStorePNGImage(pxOffscreen &b, rtData &pngData)
         png_byte color_type = (grayscale?PNG_COLOR_MASK_ALPHA:0) |
             (alpha?PNG_COLOR_MASK_ALPHA:0);
 #endif
-        printf("Madana png height[%d] width[%d] \n",b.height(), b.width());
-        fflush(stdout);
+
         png_set_IHDR(png_ptr, info_ptr, b.width(), b.height(),
                      8, PNG_COLOR_TYPE_RGB_ALPHA, PNG_INTERLACE_NONE,
                      PNG_COMPRESSION_TYPE_BASE, PNG_FILTER_TYPE_BASE);
 
         png_write_info(png_ptr, info_ptr);
-
+        printf("Madana written info \n");
+        fflush(stdout);
         // setjmp() ... needed for 'libpng' error handling...
 
         // write bytes
         if (!setjmp(png_jmpbuf(png_ptr)))
         {
           row_pointers = (png_bytep *)malloc(sizeof(png_bytep) * b.height());
-
+          printf("Madana row pointers size [%ld] [%d] [%ld] \n",sizeof(png_bytep), b.height(), sizeof(png_bytep) * b.height());
+          fflush(stdout);
           if (row_pointers)
           {
             for (int y = 0; y < b.height(); y++)
             {
               row_pointers[y] = (png_byte *)b.scanline(y);
             }
-
+            printf("before write image \n");
+            fflush(stdout);
             png_write_image(png_ptr, row_pointers);
+            printf("after write image \n");
+            fflush(stdout);
 
             // end write
             if (!setjmp(png_jmpbuf(png_ptr)))
@@ -1666,8 +1672,6 @@ rtError base64_encode(const unsigned char *data, size_t input_length, rtString& 
 
 rtError base64_encode(rtData& d, rtString& s)
 {
-  printf("Madana encoding data of length [%d] \n",d.length());
-  fflush(stdout);  
   return base64_encode( (const unsigned char *) d.data(), d.length(), s);
 }
 
