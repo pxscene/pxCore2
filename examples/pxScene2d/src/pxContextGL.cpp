@@ -508,7 +508,8 @@ public:
     glViewport ( 0, 0, mWidth, mHeight);
     gResW = mWidth;
     gResH = mHeight;
-
+    printf("Madana Gopal preparing for rendering [%d] [%d] \n",gResW, gResH);
+    fflush(stdout);
     return PX_OK;
   }
 
@@ -2278,6 +2279,8 @@ void pxContext::term()  // clean up statics
 void pxContext::setSize(int w, int h)
 {
   glViewport(0, 0, (GLint)w, (GLint)h);
+  printf("Madana Gopal pxContext::setSize [%d] [%d] \n", w, h);
+  fflush(stdout);
   gResW = w;
   gResH = h;
 
@@ -2287,6 +2290,8 @@ void pxContext::setSize(int w, int h)
     defaultContextSurface.height = h;
     gResW = w;
     gResH = h;
+  printf("Madana Gopal pxContext::setSize inside if [%d] [%d] \n", w, h);
+  fflush(stdout);
   }
 }
 
@@ -2411,6 +2416,8 @@ pxError pxContext::setFramebuffer(pxContextFramebufferRef fbo)
 
     gResW = defaultContextSurface.width;
     gResH = defaultContextSurface.height;
+  printf("Madana Gopal pxContext::setFrameBuffer inside default if [%d] [%d] \n", gResW, gResH);
+  fflush(stdout);
 
     // TODO probably need to save off the original FBO handle rather than assuming zero
     glBindFramebuffer(GL_FRAMEBUFFER, 0);  TRACK_FBO_CALLS();
@@ -2776,7 +2783,8 @@ void pxContext::snapshot(pxOffscreen& o)
 {
   o.init(gResW,gResH);
   glReadPixels(0,0,gResW,gResH,GL_RGBA,GL_UNSIGNED_BYTE,(void*)o.base());
-
+  printf("Madana Gopal pxContext::snapshot [%d] [%d] \n",gResW, gResH);
+  fflush(stdout);
   o.setUpsideDown(true);
 }
 
