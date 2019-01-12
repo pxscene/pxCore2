@@ -124,21 +124,21 @@ pxWindowNative::~pxWindowNative()
 - (void)windowDidEnterFullScreen:(NSNotification *)notification
 {
   NSSize s = [[[notification object] contentView] frame].size;
-  NSLog(@"Madana calling onsize with windowDidEnterFullScreen[%d] [%d]", s.width,s.height);
+  NSLog(@"Madana calling onsize with windowDidEnterFullScreen[%f] [%f]", s.width,s.height);
   pxWindowNative::_helper_onSize(mWindow, s.width, s.height);  
 }
 
 - (void)windowDidExitFullScreen:(NSNotification *)notification
 {
   NSSize s = [[[notification object] contentView] frame].size;
-  NSLog(@"Madana calling onsize with windowDidExitFullScreen[%d] [%d]", s.width,s.height);
+  NSLog(@"Madana calling onsize with windowDidExitFullScreen[%f] [%f]", s.width,s.height);
   pxWindowNative::_helper_onSize(mWindow, s.width, s.height);
 }
 
 - (void)windowDidResize: (NSNotification*)notification
 {
   NSSize s = [[[notification object] contentView] frame].size;
-  NSLog(@"Madana calling onsize with windowDidResize[%d] [%d]", s.width,s.height);
+  NSLog(@"Madana calling onsize with windowDidResize[%f] [%f]", s.width,s.height);
   pxWindowNative::_helper_onSize(mWindow, s.width, s.height);
 }
 
