@@ -53,9 +53,7 @@ then
   if [ "$TRAVIS_OS_NAME" = "linux" ]; 
   then 
     export DISPLAY=:99.0
-    /usr/bin/Xvfb :99 -ac -screen 0 1280x720x24 &
-    
-    #sh -e /etc/init.d/xvfb start
+    sh -e /etc/init.d/xvfb start
     sleep 3
   fi
 fi
