@@ -1665,7 +1665,7 @@ rtError base64_encode(const unsigned char *data, size_t input_length, rtString& 
 
 rtError base64_encode(rtData& d, rtString& s)
 {
-  printf("Madana encoding data of length [%ld] \n",d.length());
+  printf("Madana encoding data of length [%d] \n",d.length());
   fflush(stdout);  
   return base64_encode( (const unsigned char *) d.data(), d.length(), s);
 }
