@@ -166,6 +166,8 @@ public:
     {
       ENTERSCENELOCK()
       v->setViewContainer(this);
+          printf("Madana setView[%d] [%d] \n",mWidth, mHeight);
+  fflush(stdout);
       v->onSize(mWidth, mHeight);
       EXITSCENELOCK()
     }
@@ -237,6 +239,8 @@ protected:
     {
       mWidth  = w;
       mHeight = h;
+      printf("Madana onSize[%d] [%d] \n",w,h);
+      fflush(stdout);
       ENTERSCENELOCK()
       if (mView)
         mView->onSize(w, h);
