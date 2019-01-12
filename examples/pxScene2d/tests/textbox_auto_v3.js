@@ -108,12 +108,19 @@ px.import({scene:"px:scene.1.js",
     ["charLast", "y"]
     
   ];
-  var expectedScreenshotImages = [
+/*  var expectedScreenshotImages = [
     [basePackageUri+"/images/screenshot_results/"+testPlatform+"/textbox_auto_0_0.png",basePackageUri+"/images/screenshot_results/"+testPlatform+"/textbox_auto_0_1.png"],
     [basePackageUri+"/images/screenshot_results/"+testPlatform+"/textbox_auto_1_0.png",basePackageUri+"/images/screenshot_results/"+testPlatform+"/textbox_auto_1_1.png"],
     [basePackageUri+"/images/screenshot_results/"+testPlatform+"/textbox_auto_2_0.png",basePackageUri+"/images/screenshot_results/"+testPlatform+"/textbox_auto_2_1.png"],
     [basePackageUri+"/images/screenshot_results/"+testPlatform+"/textbox_auto_3_0.png",basePackageUri+"/images/screenshot_results/"+testPlatform+"/textbox_auto_3_1.png"]
+  ];*/
+  var expectedScreenshotImages = [
+    [basePackageUri+"/images/screenshot_results/textbox_auto_0_0.png",basePackageUri+"/images/screenshot_results/textbox_auto_0_1.png"],
+    [basePackageUri+"/images/screenshot_results/textbox_auto_1_0.png",basePackageUri+"/images/screenshot_results/textbox_auto_1_1.png"],
+    [basePackageUri+"/images/screenshot_results/textbox_auto_2_0.png",basePackageUri+"/images/screenshot_results/textbox_auto_2_1.png"],
+    [basePackageUri+"/images/screenshot_results/textbox_auto_3_0.png",basePackageUri+"/images/screenshot_results/textbox_auto_3_1.png"]
   ];
+
   var expectedValuesMeasure = [
     // bounds.x1, bounds.y1, bounds.x2, bounds.y2, charFirst.x, charFirst.y, charLast.x, charLast.y
     [[25,10,391,82,25,39,40,366,65,66],[25,10,389,94,25,44,45,364,76,77]], // test0
