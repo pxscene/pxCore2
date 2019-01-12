@@ -1,9 +1,3 @@
 [
-      {"url":"../tests/simpleTestApi.js", "title":"simpleTestApi","useBaseURI":"true"},
-      {"url":"../tests/textbox_auto_v3.js", "title":"textbox auto","useBaseURI":"true"},
-      {"url":"../tests/text2tests_v8.js", "title":"text2tests","useBaseURI":"true"},
-      {"url":"../tests/test_xre2-85.js", "title":"test_XRE2-85","useBaseURI":"true"},
-      {"url":"../tests/test_y_coords_v2.js", "title":"test_y_coords","useBaseURI":"true"},
-      {"url":"../tests/test_moveToBackFront.js", "title":"test_moveToBackFront","useBaseURI":"true"},
-      {"url":"../tests/test_getObjectById.js", "title":"test_getObjectById","useBaseURI":"true"}
+      {"url":"../tests/textbox_auto_v3.js", "title":"textbox auto","useBaseURI":"true"}
 ]
