@@ -131,8 +131,7 @@ pxWindowNative::~pxWindowNative()
 - (void)windowDidExitFullScreen:(NSNotification *)notification
 {
   NSSize s = [[[notification object] contentView] frame].size;
-      printf("Madana calling onsize with windowDidExitFullScreen[%d] [%d] \n",s.width,s.height);
-  fflush(stdout);
+  NSLog(@"Madana calling onsize with windowDidExitFullScreen[%d] [%d]", s.width,s.height);
   pxWindowNative::_helper_onSize(mWindow, s.width, s.height);
 }
 
