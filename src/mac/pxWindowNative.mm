@@ -124,7 +124,7 @@ pxWindowNative::~pxWindowNative()
 - (void)windowDidEnterFullScreen:(NSNotification *)notification
 {
   NSSize s = [[[notification object] contentView] frame].size;
-  NSLog(@"Madana calling onsize with windowDidEnterFullScreen[%d] [%d]  [ %s ]", s.width,s.height);
+  NSLog(@"Madana calling onsize with windowDidEnterFullScreen[%d] [%d]", s.width,s.height);
   pxWindowNative::_helper_onSize(mWindow, s.width, s.height);  
 }
 
@@ -139,7 +139,7 @@ pxWindowNative::~pxWindowNative()
 - (void)windowDidResize: (NSNotification*)notification
 {
   NSSize s = [[[notification object] contentView] frame].size;
-  NSLog(@"Madana calling onsize with windowDidResize[%d] [%d]  [ %s ]", s.width,s.height);
+  NSLog(@"Madana calling onsize with windowDidResize[%d] [%d]", s.width,s.height);
   pxWindowNative::_helper_onSize(mWindow, s.width, s.height);
 }
 
@@ -1143,7 +1143,7 @@ pxError pxWindow::init(int left, int top, int width, int height)
   // TODO We get a GL crash if we don't show the window here... 
   //[window makeKeyAndOrderFront:NSApp];
   //[window orderOut: NSApp];
-  NSLog(@"Madana calling onsize inside mac folder[%d] [%d]  [ %s ]", width,height);
+  NSLog(@"Madana calling onsize inside mac folder[%d] [%d] ", width,height);
   onSize(width,height);
   onCreate();
   
