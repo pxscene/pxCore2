@@ -57,14 +57,6 @@ then
     sh -e /etc/init.d/xvfb start
     sleep 3
   fi
-  if [ "$TRAVIS_OS_NAME" = "osx" ]; 
-  then 
-    mkdir /tmp/.X11-unix
-    sudo chmod 1777 /tmp/.X11-unix
-    sudo chown root /tmp/.X11-unix/
-    export DISPLAY=:99.0
-    sudo Xvfb :99 -ac -screen 0 1280x720x24 &
-  fi
 fi
 
 retval=0
