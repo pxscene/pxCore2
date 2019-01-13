@@ -50,6 +50,7 @@ then
   lldb --version
   lldb --help
   cmake --version
+  system_profiler SPDisplaysDataType | grep Resolution
   man lldb
 fi
 
