@@ -1,6 +1,5 @@
 #!/bin/sh
 
-
 checkError()
 {
   if [ "$1" -ne 0 ]
@@ -22,6 +21,30 @@ then
       echo "Ignoring after script stage for $TRAVIS_EVENT_TYPE event";
       exit 0;
     fi
+fi
+
+cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src
+tar -cvzf screenshots.tgz images/*
+checkError $? "Unable to compress logs folder" "Check for any previous tasks failed" "Retry"
+./ci/deploy_files.sh 96.116.56.119 screenshots.tgz;
+checkError $? "Unable to send log files to 96.116.56.119" "Possible reason - Server could be down" "Retry"
+cd $TRAVIS_BUILD_DIR
+
+if [ "$TRAVIS_EVENT_TYPE" = "cron" ] || [ "$TRAVIS_EVENT_TYPE" = "api" ] || [ ! -z "${TRAVIS_TAG}" ]
+then
+  mkdir release
+  checkError $? "unable to create release directory" "Could be permission issue?" "Retry"
+  mv logs release/.
+  checkError $? "unable to copy logs to release directory" "" "Retry"
+  mv artifacts release/.
+  checkError $? "unable to move artifacts folder to release directory" "artifacts directory created" "Retry"
+  tar -cvzf release.tgz release/*
+  checkError $? "unable to compress release folder" "release folder present?" "Retry"
+  if [ "$TRAVIS_REPO_SLUG" = "pxscene/pxCore" ] && ( [ "$TRAVIS_BRANCH" = "master" ] || [ "$TRAVIS_BRANCH" = "$TRAVIS_TAG" ] );
+  then
+    ./ci/release_osx.sh 96.116.56.119 release.tgz 
+    checkError $? "unable to send artifacts to 96.116.56.119" "96.116.56.119 down?" "Retry"
+  fi
 fi
 
 if ( [ "$TRAVIS_EVENT_TYPE" = "push" ] || [ "$TRAVIS_EVENT_TYPE" = "pull_request" ] ) && [ -z "${TRAVIS_TAG}" ] 
