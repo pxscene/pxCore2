@@ -240,8 +240,8 @@ void my_png_write_data(png_structp png_ptr, png_bytep data, png_size_t length)
 
   /* copy new bytes to end of buffer */
   memcpy(p->buffer + p->size, data, length);
-  printf("Madana total size [%ld] [%ld] \n",length, p->size);
-  fflush(stdout);
+  //printf("Madana total size [%ld] [%ld] \n",length, p->size);
+  //fflush(stdout);
   p->size += length;
 }
 
@@ -298,27 +298,27 @@ rtError pxStorePNGImage(pxOffscreen &b, rtData &pngData)
                      PNG_COMPRESSION_TYPE_BASE, PNG_FILTER_TYPE_BASE);
 
         png_write_info(png_ptr, info_ptr);
-        printf("Madana written info \n");
-        fflush(stdout);
+        //printf("Madana written info \n");
+        //fflush(stdout);
         // setjmp() ... needed for 'libpng' error handling...
 
         // write bytes
         if (!setjmp(png_jmpbuf(png_ptr)))
         {
           row_pointers = (png_bytep *)malloc(sizeof(png_bytep) * b.height());
-          printf("Madana row pointers size [%ld] [%d] [%ld] \n",sizeof(png_bytep), b.height(), sizeof(png_bytep) * b.height());
-          fflush(stdout);
+          //printf("Madana row pointers size [%ld] [%d] [%ld] \n",sizeof(png_bytep), b.height(), sizeof(png_bytep) * b.height());
+          //fflush(stdout);
           if (row_pointers)
           {
             for (int y = 0; y < b.height(); y++)
             {
               row_pointers[y] = (png_byte *)b.scanline(y);
             }
-            printf("before write image \n");
-            fflush(stdout);
+            //printf("before write image \n");
+            //fflush(stdout);
             png_write_image(png_ptr, row_pointers);
-            printf("after write image \n");
-            fflush(stdout);
+            //printf("after write image \n");
+            //fflush(stdout);
 
             // end write
             if (!setjmp(png_jmpbuf(png_ptr)))

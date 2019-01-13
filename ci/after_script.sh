@@ -23,12 +23,21 @@ then
     fi
 fi
 
+if [ "$TRAVIS_OS_NAME" = "linux" ]
+then
 cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src
 tar -cvzf screenshots.tgz images/*
-checkError $? "Unable to compress logs folder" "Check for any previous tasks failed" "Retry"
+mv screenshots.tgz $TRAVIS_BUILD_DIR/.
+fi
+if [ "$TRAVIS_OS_NAME" = "osx" ]
+then
+cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src/spark.app/Contents/MacOS
+tar -cvzf screenshots.tgz images/*
+mv screenshots.tgz $TRAVIS_BUILD_DIR/.
+fi
+cd $TRAVIS_BUILD_DIR
 ./ci/deploy_files.sh 96.116.56.119 screenshots.tgz;
 checkError $? "Unable to send log files to 96.116.56.119" "Possible reason - Server could be down" "Retry"
-cd $TRAVIS_BUILD_DIR
 
 if [ "$TRAVIS_EVENT_TYPE" = "cron" ] || [ "$TRAVIS_EVENT_TYPE" = "api" ] || [ ! -z "${TRAVIS_TAG}" ]
 then
