@@ -108,17 +108,11 @@ px.import({scene:"px:scene.1.js",
     ["charLast", "y"]
     
   ];
-/*  var expectedScreenshotImages = [
+  var expectedScreenshotImages = [
     [basePackageUri+"/images/screenshot_results/"+testPlatform+"/textbox_auto_0_0.png",basePackageUri+"/images/screenshot_results/"+testPlatform+"/textbox_auto_0_1.png"],
     [basePackageUri+"/images/screenshot_results/"+testPlatform+"/textbox_auto_1_0.png",basePackageUri+"/images/screenshot_results/"+testPlatform+"/textbox_auto_1_1.png"],
     [basePackageUri+"/images/screenshot_results/"+testPlatform+"/textbox_auto_2_0.png",basePackageUri+"/images/screenshot_results/"+testPlatform+"/textbox_auto_2_1.png"],
     [basePackageUri+"/images/screenshot_results/"+testPlatform+"/textbox_auto_3_0.png",basePackageUri+"/images/screenshot_results/"+testPlatform+"/textbox_auto_3_1.png"]
-  ];*/
-  var expectedScreenshotImages = [
-    [basePackageUri+"/images/screenshot_results/textbox_auto_0_0.png",basePackageUri+"/images/screenshot_results/textbox_auto_0_1.png"],
-    [basePackageUri+"/images/screenshot_results/textbox_auto_1_0.png",basePackageUri+"/images/screenshot_results/textbox_auto_1_1.png"],
-    [basePackageUri+"/images/screenshot_results/textbox_auto_2_0.png",basePackageUri+"/images/screenshot_results/textbox_auto_2_1.png"],
-    [basePackageUri+"/images/screenshot_results/textbox_auto_3_0.png",basePackageUri+"/images/screenshot_results/textbox_auto_3_1.png"]
   ];
 
   var expectedValuesMeasure = [
