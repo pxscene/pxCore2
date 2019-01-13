@@ -59,8 +59,8 @@ printExecLogs()
 rm -rf /var/tmp/spark.log
 cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src/spark.app/Contents/MacOS
 mkdir images
-export PXSCENE_WINDOW_WIDTH=1280
-export PXSCENE_WINDOW_HEIGHT=720
+export PXSCENE_WINDOW_WIDTH=1024
+export PXSCENE_WINDOW_HEIGHT=640
 ./spark.sh $TESTRUNNERURL?tests=$TESTS%26screenshot=true &
 
 

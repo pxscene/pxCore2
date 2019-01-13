@@ -59,8 +59,11 @@ then
   fi
   if [ "$TRAVIS_OS_NAME" = "osx" ]; 
   then 
+    mkdir /tmp/.X11-unix
+    sudo chmod 1777 /tmp/.X11-unix
+    sudo chown root /tmp/.X11-unix/
     export DISPLAY=:99.0
-    Xvfb :99 -ac -screen 0 1280x720x24 &
+    sudo Xvfb :99 -ac -screen 0 1280x720x24 &
   fi
 fi
 
