@@ -57,6 +57,11 @@ then
     sh -e /etc/init.d/xvfb start
     sleep 3
   fi
+  if [ "$TRAVIS_OS_NAME" = "osx" ]; 
+  then 
+    export DISPLAY=:99.0
+    xvfb-run -w 5 -d -s "-screen 0 1280x720x24 &
+  fi
 fi
 
 retval=0
