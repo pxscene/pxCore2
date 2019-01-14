@@ -849,7 +849,7 @@ rtError pxObject::animateTo(const char* prop, double to, double duration,
   if (parent() != NULL)
   {
      float aParentVal = parent()->get<float>("a");
-     if (!aParentVal)
+     if (0 == aParentVal)
          return RT_OK;
   }
     
