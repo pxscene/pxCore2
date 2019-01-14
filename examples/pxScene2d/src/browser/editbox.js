@@ -286,7 +286,7 @@ px.import({ scene: 'px:scene.1.js',
                 var now = new Date().getTime();
                 if( buttonDownTime !== undefined)
                 {
-                    if((now - buttonDownTime) < 200)
+                    if((now - buttonDownTime) < 400)
                     {
                         // DOUBLE CLICKED
                         selectAll();
@@ -921,7 +921,10 @@ px.import({ scene: 'px:scene.1.js',
         
         function showCursor()
         {
-            cursor.a = 1;
+            if(selection_text.length == 0)
+            {
+                cursor.a = 1;
+            }
             animateCursor();
         }
 

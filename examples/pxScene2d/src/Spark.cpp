@@ -150,6 +150,31 @@ public:
   {
     pxWindow::init(x,y,w,h);
 
+    setUrl(url);
+  }
+
+  void* getInterface(const char* /*name*/)
+  {
+     return NULL;
+  }
+  
+  rtError setView(pxIView* v)
+  {
+    mView = v;
+
+    if (v)
+    {
+      ENTERSCENELOCK()
+      v->setViewContainer(this);
+      v->onSize(mWidth, mHeight);
+      EXITSCENELOCK()
+    }
+
+    return RT_OK;
+  }
+
+  rtError setUrl(const char* url)
+  {
     // escape url begin
     std::string escapedUrl;
     std::string origUrl = url;
@@ -192,25 +217,6 @@ public:
     uv_async_send(&asyncNewScript);
     setView(scriptView);
 #endif
-  }
-
-  void* getInterface(const char* /*name*/)
-  {
-     return NULL;
-  }
-  
-  rtError setView(pxIView* v)
-  {
-    mView = v;
-
-    if (v)
-    {
-      ENTERSCENELOCK()
-      v->setViewContainer(this);
-      v->onSize(mWidth, mHeight);
-      EXITSCENELOCK()
-    }
-
     return RT_OK;
   }
 
@@ -464,6 +470,94 @@ void handleAbrt(int)
 #endif //WIN32
 }
 
+#ifdef ENABLE_OPTIMUS_SUPPORT
+namespace OptimusClient
+{
+    class rtOptimusSpark : public rtOptimus
+    {
+      public:
+
+        static rtError onSceneReadyCallback(int numArgs, const rtValue* args, rtValue* /*result*/, void* context)
+        {
+          rtError rc = RT_FAIL;
+          if (context == NULL)
+          {
+            return rc;
+          }
+          rtOptimusSpark* optimusSpark = (rtOptimusSpark*)context;
+          if (numArgs >= 3)
+          {
+            rtObjectRef scene = args[0].toObject();
+            rtString url = args[1].toString();
+            bool success = args[2].toBool();
+            rtString optimusUrl;
+            optimusSpark->url(optimusUrl);
+            if (url.compare(optimusUrl) == 0)
+            {
+	      optimusSpark->sceneReady(success);
+            }
+            rc = RT_OK;
+          }
+          return rc;
+        }
+
+        rtDeclareObject(rtOptimusSpark, rtOptimus);
+
+        rtOptimusSpark(rtString url) : mUrl(url), mSceneReadyCallback()
+        {
+          mSceneReadyCallback = new rtFunctionCallback(onSceneReadyCallback, this);
+          pxScriptView::addListener("onSceneReady", mSceneReadyCallback);
+        }
+
+        ~rtOptimusSpark()
+        {
+          if (mSceneReadyCallback.getPtr() != NULL)
+          {
+            pxScriptView::delListener("onSceneReady", mSceneReadyCallback);
+            mSceneReadyCallback = NULL;
+          }
+        }
+
+        rtProperty(url, url, setUrl, rtString);
+
+        rtError url(rtString& v) const
+        {
+          v = mUrl;
+          return RT_OK;
+        }
+        rtError setUrl(rtString v)
+        {
+          mUrl = v;
+          const char* url = v.cString();
+          if (mSceneReadyCallback.getPtr() != NULL)
+          {
+            pxScriptView::delListener("onSceneReady", mSceneReadyCallback);
+            mSceneReadyCallback = NULL;
+          }
+          mSceneReadyCallback = new rtFunctionCallback(onSceneReadyCallback, this);
+          pxScriptView::addListener("onSceneReady", mSceneReadyCallback);
+          return win.setUrl(url);
+        }
+
+        rtError sceneReady(bool success)
+        {
+           pxScriptView::delListener("onSceneReady", mSceneReadyCallback);
+           mSceneReadyCallback = NULL;
+           rtObjectRef e = new rtMapObject;
+           e.set("success", success);
+           mEmit.send("onApplicationLoaded", e);
+           return RT_OK;
+        }
+
+      protected:
+        rtString mUrl;
+        rtFunctionRef mSceneReadyCallback;
+    };
+    rtDefineObject(rtOptimusSpark, rtOptimus);
+    rtDefineProperty(rtOptimusSpark, url);
+}
+#endif //ENABLE_OPTIMUS_SUPPORT
+
 int pxMain(int argc, char* argv[])
 {
 #ifdef HAS_LINUX_BREAKPAD
@@ -620,6 +714,11 @@ if (s && (strcmp(s,"1") == 0))
   if (RT_OK == rtSettings::instance()->value("screenHeight", screenHeight))
     windowHeight = screenHeight.toInt32();
 
+  extern bool gDirtyRectsEnabled;
+  rtValue dirtyRectsSetting;
+  if (RT_OK == rtSettings::instance()->value("enableDirtyRects", dirtyRectsSetting))
+    gDirtyRectsEnabled = dirtyRectsSetting.toString().compare("true") == 0;
+    
   // OSX likes to pass us some weird parameter on first launch after internet install
   rtLogInfo("window width = %d height = %d", windowWidth, windowHeight);
   win.init(10, 10, windowWidth, windowHeight, url);
@@ -713,8 +812,8 @@ if (s && (strcmp(s,"1") == 0))
 #endif
 
 #ifdef ENABLE_OPTIMUS_SUPPORT
-  rtObjectRef tempObject;
-  OptimusClient::registerApi(tempObject);
+  rtObjectRef optimusObject = new OptimusClient::rtOptimusSpark(url);
+  OptimusClient::registerApi(optimusObject);
 #endif //ENABLE_OPTIMUS_SUPPORT
 
 #ifdef PX_SERVICE_MANAGER_LINKED

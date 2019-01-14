@@ -326,6 +326,7 @@ public:
   static void addWeakReference(v8::Isolate* isolate, const rtObjectRef& from, v8::Local<v8::Object>& to);
   static v8::Local<v8::Object> lookupSurrogate(v8::Local<v8::Context>& ctx, const rtObjectRef& from);
   static void clearAllForContext(uint32_t contextId);
+  static void printAll();
 };
 
 
