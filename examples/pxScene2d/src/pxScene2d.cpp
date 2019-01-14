@@ -1128,7 +1128,6 @@ void pxObject::update(double t)
             setDirtyRect(&dirtyRect);
 
             mIsDirty = false;
-            mScreenCoordinates = getBoundingRectInScreenCoordinates();
         }
     }
 
@@ -1136,7 +1135,7 @@ void pxObject::update(double t)
   for(vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
   {
       if (gDirtyRectsEnabled) {
-          int left = (*it)->mScreenCoordinates.left();
+          /*int left = (*it)->mScreenCoordinates.left();
           int right = (*it)->mScreenCoordinates.right();
           int top = (*it)->mScreenCoordinates.top();
           int bottom = (*it)->mScreenCoordinates.bottom();
@@ -1155,7 +1154,7 @@ void pxObject::update(double t)
           if (bottom > mScreenCoordinates.bottom())
           {
               mScreenCoordinates.setBottom(bottom);
-          }
+          }*/
           context.pushState();
       }
 // JR TODO  this lock looks suspicious... why do we need it?
@@ -1418,10 +1417,10 @@ void pxObject::drawInternal(bool maskPass)
     return;
   }
     
-  /*if (gDirtyRectsEnabled) {
+  if (gDirtyRectsEnabled) {
     //mRenderMatrix = context.getMatrix();
     mScreenCoordinates = getBoundingRectInScreenCoordinates();
-  }*/
+  }
 
   float c[4] = {1, 0, 0, 1};
   context.drawDiagRect(0, 0, w, h, c);
@@ -1504,7 +1503,7 @@ void pxObject::drawInternal(bool maskPass)
         context.pushState();
         //rtLogInfo("calling drawInternal() mw=%f mh=%f\n", (*it)->mw, (*it)->mh);
         (*it)->drawInternal();
-/*if (gDirtyRectsEnabled) {
+if (gDirtyRectsEnabled) {
         int left = (*it)->mScreenCoordinates.left();
         int right = (*it)->mScreenCoordinates.right();
         int top = (*it)->mScreenCoordinates.top();
@@ -1525,7 +1524,7 @@ void pxObject::drawInternal(bool maskPass)
         {
           mScreenCoordinates.setBottom(bottom);
         }
- }*/
+ }
         context.popState();
       }
       // ---------------------------------------------------------------------------------------------------
