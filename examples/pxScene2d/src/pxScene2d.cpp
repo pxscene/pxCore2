@@ -852,6 +852,11 @@ rtError pxObject::animateTo(const char* prop, double to, double duration,
      if (!aParentVal)
          return RT_OK;
   }
+    
+  if (mIsDisposed)
+  {
+    return RT_OK;
+  }
   animateToInternal(prop, to, duration, ((pxConstantsAnimation*)CONSTANTS.animationConstants.getPtr())->getInterpFunc(interp),
             (pxConstantsAnimation::animationOptions)options, count, promise, rtObjectRef());
   return RT_OK;
