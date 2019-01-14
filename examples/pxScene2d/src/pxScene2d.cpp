@@ -846,13 +846,6 @@ rtError pxObject::animateTo(const char* prop, double to, double duration,
                              uint32_t interp, uint32_t options,
                             int32_t count, rtObjectRef promise)
 {
-  if (parent() != NULL)
-  {
-     float aParentVal = parent()->get<float>("a");
-     if (0 == aParentVal)
-         return RT_OK;
-  }
-    
   if (mIsDisposed)
   {
     return RT_OK;
@@ -1135,6 +1128,7 @@ void pxObject::update(double t)
             setDirtyRect(&dirtyRect);
 
             mIsDirty = false;
+            mScreenCoordinates = getBoundingRectInScreenCoordinates();
         }
     }
 
@@ -1424,10 +1418,10 @@ void pxObject::drawInternal(bool maskPass)
     return;
   }
     
-  if (gDirtyRectsEnabled) {
+  /*if (gDirtyRectsEnabled) {
     //mRenderMatrix = context.getMatrix();
     mScreenCoordinates = getBoundingRectInScreenCoordinates();
-  }
+  }*/
 
   float c[4] = {1, 0, 0, 1};
   context.drawDiagRect(0, 0, w, h, c);
