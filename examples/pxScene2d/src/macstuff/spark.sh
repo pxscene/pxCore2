@@ -1,28 +1,38 @@
 #!/bin/bash
 
 #Get absolute path to this script
-THIS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+#Handle symlink /usr/local/bin/spark.sh -> /Applications/Spark.app/Contents/MacOS/spark.sh
+SPARK_BIN_PATH="$( dirname "$( realpath -e "$0" )" )"
 
-cd "$THIS_DIR"
+PARAMS_MODIFIED=()
+for i in $@; do
+  # Convert any relative paths to absolute paths
+  if [[ -e "$i" ]] ; then
+    PARAMS_MODIFIED+=("$( realpath -e "$i")")
+  else
+    PARAMS_MODIFIED+=("$i")
+  fi
+done
+
+cd "$SPARK_BIN_PATH"
 
 updateEdge=true
 cmdLineArgs=false
 export LD_LIBRARY_PATH=./lib/
 export DYLD_LIBRARY_PATH=./lib/
-for i in $*; do 
-   if [[ $i == "-autoUpdateEdge="* ]] ; 
-   then
-     IFS='=' tokens=( $i )
-     updateEdge=`echo ${tokens[1]} | tr '[:upper:]' '[:lower:]'`
-     cmdLineArgs=true
-     break 
-   fi 
- done
+
+for i in $PARAMS_MODIFIED; do
+  if [[ $i == "-autoUpdateEdge="* ]] ; then
+    IFS='=' tokens=( $i )
+    updateEdge=`echo ${tokens[1]} | tr '[:upper:]' '[:lower:]'`
+    cmdLineArgs=true
+    break
+  fi
+done
 
 if [[ $cmdLineArgs == false ]] ;
 then
-  if [[ -e $HOME/.sparkSettings.json ]]; 
-  then
+  if [[ -e $HOME/.sparkSettings.json ]] ; then
     KEY=autoUpdateEdge
     num=1
     updateEdge=`cat $HOME/.sparkSettings.json | awk -F"[,:}]" '{for(i=1;i<=NF;i++){if($i~/'$KEY'\042/){print $(i+1)}}}' | tr -d '"' | sed -n ${num}p| tr '[:upper:]' '[:lower:]'`
@@ -32,7 +42,7 @@ then
   fi
 fi
 
-./Spark $* < /dev/zero >> /var/tmp/Spark.log 2>&1 &
+./Spark $PARAMS_MODIFIED < /dev/zero >> /var/tmp/Spark.log 2>&1 &
 
 # Software update below
 
@@ -48,7 +58,7 @@ echo $PXPID > ./lastpid
 if [ -e ./version ] && [ -w . ]; then
   echo "Info: Checking for Software Update"
   VERSION=`cat ./version`
-  if [[ "$VERSION" != "edge"* ]]; then
+  if [[ "$VERSION" != "edge"* ]] ; then
     UPDATE_URL=http://www.pxscene.org/dist/osx/pxscene/software_update.plist
     ./EngineRunner run -productid org.pxscene.pxscene -version $VERSION -url ${UPDATE_URL} &
   else
