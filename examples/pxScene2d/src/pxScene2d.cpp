@@ -1162,26 +1162,6 @@ void pxObject::update(double t)
   for(vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
   {
       if (gDirtyRectsEnabled) {
-          /*int left = (*it)->mScreenCoordinates.left();
-          int right = (*it)->mScreenCoordinates.right();
-          int top = (*it)->mScreenCoordinates.top();
-          int bottom = (*it)->mScreenCoordinates.bottom();
-          if (right > mScreenCoordinates.right())
-          {
-              mScreenCoordinates.setRight(right);
-          }
-          if (left < mScreenCoordinates.left())
-          {
-              mScreenCoordinates.setLeft(left);
-          }
-          if (top < mScreenCoordinates.top())
-          {
-              mScreenCoordinates.setTop(top);
-          }
-          if (bottom > mScreenCoordinates.bottom())
-          {
-              mScreenCoordinates.setBottom(bottom);
-          }*/
           context.pushState();
       }
 // JR TODO  this lock looks suspicious... why do we need it?
