@@ -577,7 +577,8 @@ rtError pxObject::Set(const char* name, const rtValue* value)
 {
   if (gDirtyRectsEnabled) {
       mIsDirty = true;
-      //mScreenCoordinates = getBoundingRectInScreenCoordinates();
+      if (strcmp(name, "a") != 0)
+          mScreenCoordinates = getBoundingRectInScreenCoordinates();
   }
     
   if (strcmp(name, "x") != 0 && strcmp(name, "y") != 0 &&  strcmp(name, "a") != 0)
@@ -681,7 +682,7 @@ void pxObject::setParent(rtRef<pxObject>& parent)
       parent->mChildren.push_back(this);
     if (gDirtyRectsEnabled) {
         mIsDirty = true;
-        //mScreenCoordinates = getBoundingRectInScreenCoordinates();
+        mScreenCoordinates = getBoundingRectInScreenCoordinates();
     }
   }
 }
@@ -1118,6 +1119,7 @@ void pxObject::update(double t)
         context.setMatrix(m);
         if (mIsDirty)
         {
+            mRenderMatrix = context.getMatrix();
             pxRect dirtyRect = getBoundingRectInScreenCoordinates();
             if (!dirtyRect.isEqual(mScreenCoordinates))
             {
@@ -1128,14 +1130,16 @@ void pxObject::update(double t)
             setDirtyRect(&dirtyRect);
 
             mIsDirty = false;
+            
         }
+        mScreenCoordinates = getBoundingRectInScreenCoordinates();
     }
 
   // Recursively update children
   for(vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
   {
       if (gDirtyRectsEnabled) {
-          /*int left = (*it)->mScreenCoordinates.left();
+          int left = (*it)->mScreenCoordinates.left();
           int right = (*it)->mScreenCoordinates.right();
           int top = (*it)->mScreenCoordinates.top();
           int bottom = (*it)->mScreenCoordinates.bottom();
@@ -1154,7 +1158,7 @@ void pxObject::update(double t)
           if (bottom > mScreenCoordinates.bottom())
           {
               mScreenCoordinates.setBottom(bottom);
-          }*/
+          }
           context.pushState();
       }
 // JR TODO  this lock looks suspicious... why do we need it?
@@ -1244,7 +1248,7 @@ pxRect pxObject::getBoundingRectInScreenCoordinates()
   int w = getOnscreenWidth();
   int h = getOnscreenHeight();
   int x[4], y[4];
-  mRenderMatrix = context.getMatrix();
+  //mRenderMatrix = context.getMatrix();
   context.mapToScreenCoordinates(mRenderMatrix, 0,0,x[0],y[0]);
   context.mapToScreenCoordinates(mRenderMatrix, w, h, x[1], y[1]);
   context.mapToScreenCoordinates(mRenderMatrix, 0, h, x[2], y[2]);
@@ -1418,8 +1422,8 @@ void pxObject::drawInternal(bool maskPass)
   }
     
   if (gDirtyRectsEnabled) {
-    //mRenderMatrix = context.getMatrix();
-    mScreenCoordinates = getBoundingRectInScreenCoordinates();
+    mRenderMatrix = context.getMatrix();
+    //mScreenCoordinates = getBoundingRectInScreenCoordinates();
   }
 
   float c[4] = {1, 0, 0, 1};
@@ -1503,7 +1507,7 @@ void pxObject::drawInternal(bool maskPass)
         context.pushState();
         //rtLogInfo("calling drawInternal() mw=%f mh=%f\n", (*it)->mw, (*it)->mh);
         (*it)->drawInternal();
-if (gDirtyRectsEnabled) {
+/*if (gDirtyRectsEnabled) {
         int left = (*it)->mScreenCoordinates.left();
         int right = (*it)->mScreenCoordinates.right();
         int top = (*it)->mScreenCoordinates.top();
@@ -1524,7 +1528,7 @@ if (gDirtyRectsEnabled) {
         {
           mScreenCoordinates.setBottom(bottom);
         }
- }
+ }*/
         context.popState();
       }
       // ---------------------------------------------------------------------------------------------------
