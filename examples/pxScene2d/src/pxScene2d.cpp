@@ -3382,14 +3382,13 @@ rtError pxScene2d::setShowDirtyRect(bool v)
 }
 
 rtError pxScene2d::getDirtyRect(rtObjectRef& v) const {
-    
-if (gDirtyRectsEnabled) {
     v = new rtMapObject();
     v.set("id",0);
-    v.set("left", mDirtyRect->left());
-    v.set("top", mDirtyRect->top());
-    v.set("right", mDirtyRect->right());
-    v.set("bottom", mDirtyRect->bottom());
+if (gDirtyRectsEnabled) {
+    v.set("left", mDirtyRect.left());
+    v.set("top", mDirtyRect.top());
+    v.set("right", mDirtyRect.right());
+    v.set("bottom", mDirtyRect.bottom());
 }
     return RT_OK;
 }
