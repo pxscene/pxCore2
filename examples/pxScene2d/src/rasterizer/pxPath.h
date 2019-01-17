@@ -51,7 +51,6 @@ public:
   virtual void draw();
   virtual void onInit();
   virtual void sendPromise();
-  virtual void createNewPromise() { rtLogDebug("pxPath ignoring createNewPromise\n"); }
 
   virtual rtError setPath(const rtString d);
   virtual rtError path(rtString& v) const { v = mPath; return RT_OK; };

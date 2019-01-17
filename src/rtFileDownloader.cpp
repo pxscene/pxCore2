@@ -138,12 +138,12 @@ static size_t ReadMemoryCallback(void *contents, size_t size, size_t nmemb, void
   size_t bufferSize = size * nmemb;
   struct MemoryStruct *mem = (struct MemoryStruct *)userp;
 
-  size_t sizeLeft = mem->downloadRequest->readData().byteLength() - mem->readSize;
+  size_t sizeLeft = mem->downloadRequest->readDataSize() - mem->readSize;
   if (sizeLeft > 0) {
     size_t copyThisMuch = sizeLeft;
     if (copyThisMuch > bufferSize)
       copyThisMuch = bufferSize;
-    memcpy(contents, mem->downloadRequest->readData().cString() + mem->readSize, copyThisMuch);
+    memcpy(contents, mem->downloadRequest->readData() + mem->readSize, copyThisMuch);
     mem->readSize += copyThisMuch;
     return copyThisMuch;
   }
@@ -188,6 +188,8 @@ rtFileDownloadRequest::rtFileDownloadRequest(const char* imageUrl, void* callbac
     , mIsProgressMeterSwitchOff(false), mHTTPFailOnError(false), mDefaultTimeout(false)
     , mCORS(), mCanceled(false), mUseCallbackDataSize(false), mCanceledMutex()
     , mMethod()
+    , mReadData(NULL)
+    , mReadDataSize(0)
 {
   mAdditionalHttpHeaders.clear();
 #ifdef ENABLE_HTTP_CACHE
@@ -522,14 +524,20 @@ rtString rtFileDownloadRequest::method() const
   return mMethod;
 }
 
-void rtFileDownloadRequest::setReadData(const rtString& val)
+void rtFileDownloadRequest::setReadData(const uint8_t* data, size_t size)
 {
-  mReadData = val;
+  mReadData = data;
+  mReadDataSize = size;
 }
 
-rtString rtFileDownloadRequest::readData() const
+const uint8_t* rtFileDownloadRequest::readData() const
 {
   return mReadData;
+}
+
+size_t rtFileDownloadRequest::readDataSize() const
+{
+  return mReadDataSize;
 }
 
 rtFileDownloader::rtFileDownloader()
@@ -562,7 +570,7 @@ rtFileDownloader::~rtFileDownloader()
 {
 #ifdef PX_REUSE_DOWNLOAD_HANDLES
   downloadHandleMutex.lock();
-  for (vector<rtFileDownloadHandle>::iterator it = mDownloadHandles.begin(); it != mDownloadHandles.end(); ++it)
+  for (vector<rtFileDownloadHandle>::iterator it = mDownloadHandles.begin(); it != mDownloadHandles.end(); )
   {
     CURL *curlHandle = (*it).curlHandle;
     if (curlHandle != NULL)
@@ -605,6 +613,15 @@ rtFileDownloader* rtFileDownloader::instance()
 #endif //PX_REUSE_DOWNLOAD_HANDLES
     }
     return mInstance;
+}
+
+void rtFileDownloader::deleteInstance()
+{
+    if (mInstance != NULL)
+    {
+        delete mInstance;
+        mInstance = NULL;
+    }
 }
 
 bool rtFileDownloader::addToDownloadQueue(rtFileDownloadRequest* downloadRequest)
@@ -798,7 +815,7 @@ bool rtFileDownloader::downloadFromNetwork(rtFileDownloadRequest* downloadReques
     MemoryStruct chunk;
 
     rtString method = downloadRequest->method();
-    size_t readDataSize = downloadRequest->readData().byteLength();
+    size_t readDataSize = downloadRequest->readDataSize();
 
     curl_handle = rtFileDownloader::instance()->retrieveDownloadHandle();
     curl_easy_reset(curl_handle);

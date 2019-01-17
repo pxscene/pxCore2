@@ -18,6 +18,13 @@ limitations under the License.
 
 "use strict";
 
-const nativeHttpWrap = require('native_http_wrap');
-
-module.exports = nativeHttpWrap;
+module.exports = {
+  'get': function (url, cb) {
+    var req = httpGet(url, cb);
+    req.end();
+    return req;
+  },
+  'request': function (url, cb) {
+    return httpGet(url, cb);
+  }
+};

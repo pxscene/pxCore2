@@ -1278,6 +1278,9 @@ rtError rtScriptNode::term()
   //    mPxNodeExtension = NULL;
   //  }
   }
+
+  //HandleMap::printAll();
+
   return RT_OK;
 }
 

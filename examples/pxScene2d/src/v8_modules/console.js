@@ -23,16 +23,7 @@ limitations under the License.
  * @param  {...any} args the messages
  */
 function stringify(...args) {
-    const ret = [];
-    args.forEach(arg => {
-        if (arg instanceof Error) {
-            ret.push(arg.toString());
-        } else {
-            ret.push(arg ? JSON.stringify(arg) : null);
-        }
-
-    });
-    return ret.join(' ');
+    return Array.prototype.slice.apply(arguments).join(' ');
 }
 
 function trace(...args) {
@@ -61,4 +52,6 @@ module.exports = {
     error: error,
     log: log,
     info: info,
-}
+    time:info,
+    timeEnd: info,
+};
