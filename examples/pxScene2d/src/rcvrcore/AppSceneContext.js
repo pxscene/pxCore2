@@ -215,6 +215,31 @@ this.innerscene.on('onClose', function() {
 
 AppSceneContext.prototype.loadPackage = function(packageUri) {
   var _this = this;
+  if (_this.innerscene.bundledApp)
+  {
+    var map = _this.innerscene.getService("getCode");
+    if ((undefined != map)  && ("details" in map))
+    {
+      _this.codemap = map["details"];
+    }
+  }
+  if (undefined != _this.codemap) {
+    // remove "./" from the filenames before searching from codemap
+    var pathToCheck = packageUri;
+    if ((packageUri.charAt(0) == ".") && (packageUri.charAt(1) == "/"))
+    {
+      pathToCheck = packageUri.substr(2);
+    }
+    for (var key in _this.codemap)
+    {
+      if ((key != '0') && (pathToCheck.includes(key)))
+      {
+        _this.runScriptInNewVMContext(key, "", null, true);
+        console.info("AppSceneContext#loadPackage from bundle done");
+        return;
+      }
+    }
+  }
   var moduleLoader = new SceneModuleLoader();
   // Fixed scene loading promise rejection
   var thisMakeReady = this.makeReady;
@@ -226,17 +251,17 @@ AppSceneContext.prototype.loadPackage = function(packageUri) {
           var manifest = new SceneModuleManifest();
           manifest.loadFromJSON(packageFileContents);
           console.info("AppSceneContext#loadScenePackage0");
-          _this.runScriptInNewVMContext(packageUri, moduleLoader, manifest.getConfigImport());
+          _this.runScriptInNewVMContext(packageUri, moduleLoader, manifest.getConfigImport(), false);
           console.info("AppSceneContext#loadScenePackage0 done");
         }).catch(function (e) {
             console.info("AppSceneContext#loadScenePackage1");
-            _this.runScriptInNewVMContext(packageUri, moduleLoader, null);
+            _this.runScriptInNewVMContext(packageUri, moduleLoader, null, false);
             console.info("AppSceneContext#loadScenePackage1 done");
         });
       } else {
         var manifest = moduleLoader.getManifest();
         console.info("AppSceneContext#loadScenePackage2");
-        _this.runScriptInNewVMContext(packageUri, moduleLoader, manifest.getConfigImport());
+        _this.runScriptInNewVMContext(packageUri, moduleLoader, manifest.getConfigImport(), false);
         console.info("AppSceneContext#loadScenePackage2 done");
       }
     })
@@ -262,6 +287,19 @@ var setTimeoutCallback = function() {
   ClearTimeout(this);
 };
 
+// have some entries for filenames with and without ./
+function cleanPathNames()
+{
+  var codemap = this.codemap;
+  for (var key in codemap)
+  {
+    if (key.charAt(0) == "." && key.charAt(1) == "/")
+    {
+      this.codemap[key.substring(2)] = this.codemap[key];
+    }
+  }
+}
+
 function getBaseFilePath()
 {
   return this;
@@ -275,7 +313,10 @@ function createModule_pxScope(xModule, isImported) {
     appQueryParams: this.queryParams,
     getPackageBaseFilePath: this.getPackageBaseFilePath.bind(this),
     getFile: this.getFile.bind(this),
-    getModuleFile: xModule.getFile.bind(xModule)
+    getModuleFile: xModule.getFile.bind(xModule),
+    registerCode : function (map) { this.codemap = map; cleanPathNames.bind(this)(); this.innerscene.addServiceProvider(function(name) { if (name == "getCode") { return {"details": this.codemap} } return "ALLOW"; }.bind(this)); this.innerscene.bundledApp = true; }.bind(this),
+    module: xModule,
+    exports: xModule.exports
   };
 
   //xModule.basePath is used for imported files, as xModule is per javascript file basis
@@ -297,20 +338,36 @@ function createModule_pxScope(xModule, isImported) {
   return params;
 }
 
-AppSceneContext.prototype.runScriptInNewVMContext = function (packageUri, moduleLoader, configImport) {
+AppSceneContext.prototype.runScriptInNewVMContext = function (packageUri, moduleLoader, configImport, runFromBundle) {
   var apiForChild = this;
-  var isJar = moduleLoader.jarFileWasLoaded();
-  var currentFileArchive = moduleLoader.getFileArchive();
-  var currentFileManifest = moduleLoader.getManifest();
-  var main = currentFileManifest.getMain();
-  var code = currentFileArchive.getFileContents(main);
+  var isJar=false, currentFileArchive="", currentFileManifest="", main="";
+  var fname = "", urlParts = "", uri="";
+  if (false == runFromBundle)
+  {
+    isJar = moduleLoader.jarFileWasLoaded();
+    currentFileArchive = moduleLoader.getFileArchive();
+    currentFileManifest = moduleLoader.getManifest();
+    main = currentFileManifest.getMain();
+    fname = main;
+    urlParts = url.parse(main, true);
+    uri = main;
+  }
+  else
+  {
+    fname = packageUri;
+    urlParts = url.parse(packageUri, true);
+  }
+  var code = "";
+  if (false == runFromBundle)
+  {
+    code = currentFileArchive.getFileContents(main);
+  }
+  else
+  {
+    code = "(" + this.codemap[packageUri] + ".call())";
+  }
 
-  // TODO: This is the name that will show up in stack traces. We should
-  // resolve ./ to full paths (maybe).
-  var fname = main;
-  var urlParts = url.parse(main, true);
   var moduleName = urlParts.pathname;
-  var uri = main;
   var basePath, jarName;
   if (isJar) {
     basePath = main.substring(0, main.lastIndexOf('/'));
@@ -330,7 +387,6 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (packageUri, module
     this.jarFileMap.addArchive(xModule.name,currentFileArchive);
     log.message(4, "JAR added: " + xModule.name);
   }
-
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   var self = this;
   var newSandbox;
@@ -585,7 +641,10 @@ AppSceneContext.prototype.getPackageBaseFilePath = function() {
       // Windows OS and using drive name, take the pkg part as the file path
       fullPath = pkgPart;
     } else {
-      fullPath = this.defaultBaseUri + "/" + pkgPart;
+      if ((this.defaultBaseUri.length > 0) && (pkgPart.length > 0))
+        fullPath = this.defaultBaseUri + "/" + pkgPart;
+      else
+        fullPath = ".";
     }
   } else {
     fullPath = this.basePackageUri;
@@ -709,6 +768,23 @@ AppSceneContext.prototype.include = function(filePath, currentXModule) {
 
     filePath = _this.resolveModulePath(filePath, currentXModule).fileUri;
 
+    if (undefined != _this.codemap) {
+       // remove "./" from the filenames before searching from codemap
+       var pathToCheck = filePath;
+       if ((filePath.charAt(0) == ".") && (filePath.charAt(1) == "/"))
+       {
+         pathToCheck = filePath.substr(2);
+       }
+       for (var key in _this.codemap)
+       {
+         if ((key != '0') && (pathToCheck.includes(key)))
+         {
+           _this.processCodeBuffer(origFilePath, key, currentXModule, "", onImportComplete, reject, true);
+           return;
+         }
+       }
+    }
+
     log.message(4, "filePath=" + filePath);
     if( _this.isScriptDownloading(filePath) ) {
       log.message(4, "Script is downloading for " + filePath);
@@ -735,7 +811,7 @@ AppSceneContext.prototype.include = function(filePath, currentXModule) {
       moduleLoader.loadedJarFile = false;
       moduleLoader.manifest = new SceneModuleManifest();
       moduleLoader.manifest.loadFromJSON(moduleLoader.getFileArchive().getFileContents('package.json'));
-      _this.processCodeBuffer(origFilePath, filePath, currentXModule, moduleLoader, onImportComplete, reject);
+      _this.processCodeBuffer(origFilePath, filePath, currentXModule, moduleLoader, onImportComplete, reject, false);
       return;
     }
 
@@ -743,7 +819,7 @@ AppSceneContext.prototype.include = function(filePath, currentXModule) {
       .then(function(moduleLoader){
         log.message(4, "PROCESS RCVD MODULE: " + filePath);
         // file acquired
-        _this.processCodeBuffer(origFilePath, filePath, currentXModule, moduleLoader, onImportComplete, reject);
+        _this.processCodeBuffer(origFilePath, filePath, currentXModule, moduleLoader, onImportComplete, reject, false);
       }).catch(function(err){
         console.error("Error: could not load file ", filePath, ", err=", err);
         reject("include failed");
@@ -751,7 +827,7 @@ AppSceneContext.prototype.include = function(filePath, currentXModule) {
   });
 };
 
-AppSceneContext.prototype.processCodeBuffer = function(origFilePath, filePath, currentXModule, moduleLoader, onImportComplete, onImportRejected) {
+AppSceneContext.prototype.processCodeBuffer = function(origFilePath, filePath, currentXModule, moduleLoader, onImportComplete, onImportRejected, runFromBundle) {
   var _this = this;
   if( _this.isScriptReady(filePath) ) {
     var modExports = _this.getScriptContents(filePath);
@@ -775,11 +851,23 @@ AppSceneContext.prototype.processCodeBuffer = function(origFilePath, filePath, c
     return;
   }
 
-  var isJar = moduleLoader.jarFileWasLoaded();
-  var currentFileArchive = moduleLoader.getFileArchive();
-  var currentFileManifest = moduleLoader.getManifest();
-  var main = currentFileManifest.getMain();
-  var codeBuffer = currentFileArchive.getFileContents(main);
+  var isJar=false,currentFileArchive="",currentFileArchive="",currentFileManifest="",main="";
+  if (false == runFromBundle)
+  {
+    isJar = moduleLoader.jarFileWasLoaded();
+    currentFileArchive = moduleLoader.getFileArchive();
+    currentFileManifest = moduleLoader.getManifest();
+    main = currentFileManifest.getMain();
+  }
+  var codeBuffer = "";
+  if (false == runFromBundle)
+  {
+    codeBuffer = currentFileArchive.getFileContents(main);
+  }
+  else
+  {
+    codeBuffer = "(" + this.codemap[filePath] + ".call())";
+  }
   var basePath, jarName;
   if (isJar) {
     basePath = main.substring(0, main.lastIndexOf('/'));
@@ -800,7 +888,7 @@ AppSceneContext.prototype.processCodeBuffer = function(origFilePath, filePath, c
 
   var sourceCode = AppSceneContext.wrap(codeBuffer);
   log.message(4, "RUN " + filePath);
-  var px = createModule_pxScope.call(this, xModule, true);
+  var px = createModule_pxScope.call(this, xModule, (false == runFromBundle));
 
   var xModule_wrap = WrapObj(xModule, {
     appSceneContext: WrapObj(xModule.appSceneContext, {

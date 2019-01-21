@@ -2006,7 +2006,7 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
 #endif // SPARK_CURSOR_SUPPORT
 
   mCapabilityVersions.set("graphics", graphicsCapabilities);
-
+  mCapabilityVersions.set("bundling", 1);
   rtObjectRef networkCapabilities = new rtMapObject;
 
 #ifdef ENABLE_ACCESS_CONTROL_CHECK
@@ -3393,6 +3393,20 @@ rtError pxScene2d::setEnableDirtyRect(bool v)
     return RT_OK;
 }
 
+rtError pxScene2d::bundledApp(bool& v) const
+{
+    if (mScriptView)
+      v = mScriptView->bundledApp();
+    return RT_OK;
+}
+
+rtError pxScene2d::setBundledApp(bool v)
+{
+    if (mScriptView)
+      mScriptView->setBundledApp(v);
+    return RT_OK;
+}
+
 rtError pxScene2d::customAnimator(rtFunctionRef& v) const
 {
   v = mCustomAnimator;
@@ -3708,6 +3722,7 @@ rtDefineProperty(pxScene2d, h);
 rtDefineProperty(pxScene2d, showOutlines);
 rtDefineProperty(pxScene2d, showDirtyRect);
 rtDefineProperty(pxScene2d, enableDirtyRect);
+rtDefineProperty(pxScene2d, bundledApp);
 rtDefineProperty(pxScene2d, customAnimator);
 rtDefineMethod(pxScene2d, create);
 rtDefineMethod(pxScene2d, clock);
@@ -3925,10 +3940,13 @@ rtError pxSceneContainer::setUrl(rtString url)
   mReady = new rtPromise();
 
   mUrl = url;
+  bool bundledApp = false;
+  rtError err = mScene->bundledApp(bundledApp);
+  UNUSED_PARAM(err);
 #ifdef RUNINMAIN
-    setScriptView(new pxScriptView(url.cString(), "", this));
+    setScriptView(new pxScriptView(url.cString(), "", this, bundledApp));
 #else
-    pxScriptView * scriptView = new pxScriptView(url.cString(),"", this);
+    pxScriptView * scriptView = new pxScriptView(url.cString(),"", this, bundledApp);
     AsyncScriptInfo * info = new AsyncScriptInfo();
     info->m_pView = scriptView;
     //info->m_pWindow = this;
@@ -4081,8 +4099,8 @@ rtError createObject2(const char* t, rtObjectRef& o)
 }
 #endif
 
-pxScriptView::pxScriptView(const char* url, const char* /*lang*/, pxIViewContainer* container)
-     : mWidth(-1), mHeight(-1), mViewContainer(container), mRefCount(0)
+pxScriptView::pxScriptView(const char* url, const char* /*lang*/, pxIViewContainer* container, bool bundledApp)
+     : mWidth(-1), mHeight(-1), mViewContainer(container), mRefCount(0), mBundledApp(bundledApp)
 {
   rtLogDebug("pxScriptView::pxScriptView()entering\n");
   mUrl = url;

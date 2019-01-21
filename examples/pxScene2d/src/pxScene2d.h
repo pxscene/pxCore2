@@ -1101,7 +1101,7 @@ typedef rtRef<pxObject> pxObjectRef;
 class pxScriptView: public pxIView
 {
 public:
-  pxScriptView(const char* url, const char* /*lang*/, pxIViewContainer* container=NULL);
+  pxScriptView(const char* url, const char* /*lang*/, pxIViewContainer* container=NULL, bool bundledApp=false);
 #ifndef RUNINMAIN
   void runScript(); // Run the script
 #endif
@@ -1138,6 +1138,7 @@ public:
 
     mView = NULL;
     mScene = NULL;
+    mBundledApp = false;
   }
 
   virtual unsigned long AddRef() 
@@ -1195,7 +1196,9 @@ public:
   rtError suspend(const rtValue& v, bool& b);
   rtError resume(const rtValue& v, bool& b);
   rtError textureMemoryUsage(rtValue& v);
-  
+  void setBundledApp(bool val) { mBundledApp = val; } 
+  bool bundledApp() { return mBundledApp; } 
+
 protected:
 
   static rtError printFunc(int /*numArgs*/, const rtValue* /*args*/, rtValue* result, void* ctx);
@@ -1338,6 +1341,7 @@ protected:
   rtString mLang;
 #endif
   static rtEmitRef mEmit;
+  bool mBundledApp;
 };
 
 class pxScene2d: public rtObject, public pxIView, public rtIServiceProvider
@@ -1350,6 +1354,7 @@ public:
   rtProperty(showOutlines, showOutlines, setShowOutlines, bool);
   rtProperty(showDirtyRect, showDirtyRect, setShowDirtyRect, bool);
   rtProperty(enableDirtyRect, enableDirtyRect, setEnableDirtyRect, bool);
+  rtProperty(bundledApp, bundledApp, setBundledApp, bool);
   rtProperty(customAnimator, customAnimator, setCustomAnimator, rtFunctionRef);
   rtMethod1ArgAndReturn("loadArchive",loadArchive,rtString,rtObjectRef); 
   rtMethod1ArgAndReturn("create", create, rtObjectRef, rtObjectRef);
@@ -1482,6 +1487,9 @@ public:
   rtError enableDirtyRect(bool& v) const;
   rtError setEnableDirtyRect(bool v);
     
+  rtError bundledApp(bool& v) const;
+  rtError setBundledApp(bool v);
+
   rtError customAnimator(rtFunctionRef& f) const;
   rtError setCustomAnimator(const rtFunctionRef& f);
 
