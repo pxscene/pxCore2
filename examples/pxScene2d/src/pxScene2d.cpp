@@ -3395,6 +3395,7 @@ rtError pxScene2d::setEnableDirtyRect(bool v)
 
 rtError pxScene2d::bundledApp(bool& v) const
 {
+    v = false;
     if (mScriptView)
       v = mScriptView->bundledApp();
     return RT_OK;
