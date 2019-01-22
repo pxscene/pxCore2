@@ -20,6 +20,7 @@ limitations under the License.
 #define protected public
 #define private public
 #include "pxArchive.h"
+#include <rtThreadQueue.h>
 
 extern rtThreadQueue* gUIThreadQueue;
 
