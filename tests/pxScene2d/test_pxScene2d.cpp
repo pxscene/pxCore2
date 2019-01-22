@@ -476,5 +476,5 @@ TEST_F(pxScene2dTest, pxScene2dTests)
     pxScriptViewTest();
     multipleArchiveTest();
     bundleAppTrueTest();
-    //bundleAppFalseTest();
+    bundleAppFalseTest();
 }
