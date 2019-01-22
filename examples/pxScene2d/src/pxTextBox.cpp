@@ -414,24 +414,35 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
         getFontResource()->measureTextChar(charToMeasure, size, sx, sy, charW, charH);
       }
     
-      bool isContinuousLine = mWordWrap && !isDelimeter_charsPresent && tempX + charW > mw;
+      bool isContinuousLine = mWordWrap && !isDelimeter_charsPresent;
+      bool isEnd = tempX + charW >= mw;
+      lastLine = isContinuousLine && isEnd ? ( mTruncation != pxConstantsTruncation::NONE && tempY + ((mLeading*sy) + (charH*2)) > this->h() && !lastLine) : lastLine;
+        
       bool isLast = ( lastLine || (mTruncation != pxConstantsTruncation::NONE && (tempY + ((mLeading*sy) + charH) >= this->h())) );
-      if( isNewline(charToMeasure) || (isContinuousLine && !isLast) || (!mWordWrap && tempX + charW > mw))
+      if((isNewline(charToMeasure)) || (isContinuousLine && isEnd && !isLast) )
       {
         //rtLogDebug("Found NEWLINE; calling renderOneLine\n");
         // Render what we had so far in accString; since we are here, it will fit.
-        renderOneLine(accString.cString(), 0, tempY, sx, sy, size, lineWidth, render, std::strcmp(tempChar.c_str(), "\n") == 0 ? true : false);
+        if (mTruncation != pxConstantsTruncation::NONE  && !mWordWrap && tempX + charW > mw)
+        {
+            renderTextRowWithTruncation(accString, mw, 0, tempY, sx, sy, size, render);
+            accString = "";
+        }
+        else
+        {
+            renderOneLine(accString.cString(), 0, tempY, sx, sy, size, lineWidth, render, std::strcmp(tempChar.c_str(), "\n") == 0 ? true : false);
 
-        accString = isContinuousLine ? tempChar.c_str() : "";
+            accString = (isContinuousLine && isEnd && !isLast) ? tempChar.c_str() : "";
+        }
         tempY += (mLeading*sy) + charH;
 
         lineNumber++;
-        tempX = isContinuousLine ? charW : 0;
+        tempX = (isContinuousLine && isEnd && !isLast)? charW : 0;
        continue;
       }
 
       // Check if text still fits on this line, or if wrap needs to occur
-      if( (tempX + charW) <= lineWidth || (!mWordWrap && lineNumber == 0) || (mWordWrap && !isDelimeter_charsPresent && !isLast))
+      if( (tempX + charW) <= lineWidth || !mWordWrap || (mWordWrap && !isDelimeter_charsPresent && !isLast))
       {
         accString.append(tempChar.c_str());
         tempX += charW;
@@ -454,7 +465,7 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
         else  // If NOT lastLine
         {
           // Account for the case where wordWrap is off, but newline was found previously
-         /* if( !mWordWrap && lineNumber != 0 )
+          if( !mWordWrap && lineNumber != 0 )
           {
             lastLineNumber = lineNumber;
             //rtLogDebug("!!!!CLF: calling renderTextRowWithTruncation! %s\n",accString.cString());
@@ -462,7 +473,7 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
               renderTextRowWithTruncation(accString, mw, mx, tempY, sx, sy, size, render);
               tempY += (mLeading*sy) + charH;
               accString = "";
-              break;
+              //break;
             }
             else
             {
@@ -480,7 +491,7 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
                 continue;
               }
             }
-          }*/
+          }
           // End special case when !wordWrap but newline found
 
           // Out of space on the current line; find and wrap at word boundary
@@ -576,7 +587,11 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
         }
         else
         {
-          renderOneLine(accString.cString(), 0, tempY, sx, sy, size, this->w(), render);
+            if (mTruncation != pxConstantsTruncation::NONE  && !mWordWrap && tempX + charW > mw)
+            {
+                renderTextRowWithTruncation(accString, mw, 0, tempY, sx, sy, size, render);
+            }
+            else renderOneLine(accString.cString(), 0, tempY, sx, sy, size, this->w(), render);
         }
       }
 
@@ -836,7 +851,7 @@ void pxTextBox::renderOneLine(const char * tempStr, float tempX, float tempY, fl
   {
     if( !clip() && mTruncation == pxConstantsTruncation::NONE)
     {
-      setMeasurementBoundsX(true, xPos);
+      setMeasurementBoundsX(true, noClipX+xPos);
       if( lineNumber == lastLineNumber || mTruncation == pxConstantsTruncation::NONE)
       {
         //rtLogDebug("!CLF: calculating lineMeasurement! charH=%f pixelSize=%d noClipH=%f noClipY=%f lineNumber=%d\n",charH,mPixelSize,noClipH, noClipY, lineNumber);
@@ -844,7 +859,7 @@ void pxTextBox::renderOneLine(const char * tempStr, float tempX, float tempY, fl
         //setLineMeasurements(false, xPos+charW, noClipY+noClipH-(noClipH/(lineNumber+1)));
         
         setLineMeasurements(true, xPos, noClipY);
-		setLineMeasurements(false, xPos+charW, noClipY + (noClipH - charH));
+		setLineMeasurements(false, noClipX+(charW+xPos), noClipY + (noClipH - charH));
 		
 		setMeasurementBoundsX(false, charW );
       }
@@ -884,9 +899,10 @@ void pxTextBox::renderOneLine(const char * tempStr, float tempX, float tempY, fl
           setLineMeasurements(true, noClipX, tempY);
         }
         else {
-          if (!isNewLineCase || (isNewLineCase && getMeasurements()->getBounds()->x2() == 0)) {
+          if (!isNewLineCase) {
               setMeasurementBounds(false, noClipX+(charW+xPos), charH);
           }
+          else setMeasurementBounds(false, noClipX+charW, charH);
           if( charW < lineWidth) {
             setMeasurementBoundsX(true, xPos);
             setLineMeasurements(true, xPos, tempY);
@@ -968,6 +984,8 @@ void pxTextBox::renderOneLine(const char * tempStr, float tempX, float tempY, fl
   // Now, render the text
   if( render && getFontResource() != NULL)
   {
+      if (!clip() && isNewLineCase)
+          xPos += noClipX;
  #ifdef PXSCENE_FONT_ATLAS
      pxTexturedQuads quads;
      getFontResource()->renderTextToQuads(tempStr, size, sx, sy, quads, roundf(xPos), roundf(tempY));
@@ -1018,7 +1036,7 @@ void pxTextBox::setMeasurementBounds(bool start, float xVal, float yVal)
     if( (lineNumber == 0 && bounds->x1() == 0) || (bounds->x1() > xVal)) {
       bounds->setX1(xVal);
     }
-    if( bounds->y1()== 0 || bounds->y1() > yVal) {
+    if( (lineNumber == 0 && bounds->y1()== 0) || bounds->y1() > yVal) {
       bounds->setY1(yVal);
     }
   }
@@ -1046,7 +1064,7 @@ void pxTextBox::setMeasurementBounds(float xPos, float width, float yPos, float 
   if( bounds->y2() < (yPos + height)) {
      bounds->setY2(yPos + height);
   }
-  if( bounds->y1()== 0 || bounds->y1() > yPos) {
+  if( (lineNumber == 0 && bounds->y1()== 0) || bounds->y1() > yPos) {
     bounds->setY1(yPos);
   }
 
@@ -1065,7 +1083,7 @@ void pxTextBox::setLineMeasurements(bool firstLine, float xPos, float yPos)
     getMeasurements()->getCharLast()->setX(xPos);
     getMeasurements()->getCharLast()->setY(yPos + ascent);
   } else {
-    getMeasurements()->getCharFirst()->setX(xPos);
+    if (lineNumber == 0) getMeasurements()->getCharFirst()->setX(xPos);
     getMeasurements()->getCharFirst()->setY(yPos + ascent);
   }
 }
@@ -1103,7 +1121,7 @@ void pxTextBox::renderTextNoWordWrap(float sx, float sy, float tempX, bool rende
     getFontResource()->getHeight(mPixelSize, metricHeight);
   }
   //rtLogDebug(">>>>>>>>>>>>>> metric height is %f and charH is %f\n", metricHeight, charH);
-  std::string str(mText);
+ /* std::string str(mText);
   if( charH > metricHeight) // There's a newline in the text somewhere
   {
     if (!mWordWrap && mTruncation != pxConstantsTruncation::NONE)
@@ -1128,16 +1146,16 @@ void pxTextBox::renderTextNoWordWrap(float sx, float sy, float tempX, bool rende
             }
         }
     }
-  }
+  }*/
     
-  rtString text = str.c_str();
-  if( charH > metricHeight)
+  //  rtString text = str.c_str();
+  if( charH > metricHeight) // There's a newline in the text somewhere
   {
     lineNumber = 0;
     //noClipH = charH;
     //   noClipW = charW;
     float tempY = 0;
-    measureTextWithWrapOrNewLine(text, sx, sy, tempX, tempY, mPixelSize, render);
+    measureTextWithWrapOrNewLine(mText, sx, sy, tempX, tempY, mPixelSize, render);
   }
   else
   {
@@ -1167,7 +1185,7 @@ void pxTextBox::renderTextNoWordWrap(float sx, float sy, float tempX, bool rende
       setLineMeasurements(true, tempXStartPos, tempY);
       setMeasurementBounds(true, tempXStartPos, tempY);
 
-      renderOneLine(text, tempX, tempY, sx, sy, mPixelSize, lineWidth, render);
+      renderOneLine(mText, tempX, tempY, sx, sy, mPixelSize, lineWidth, render);
     }
     else
     {
@@ -1175,7 +1193,7 @@ void pxTextBox::renderTextNoWordWrap(float sx, float sy, float tempX, bool rende
       // since we checked for NONE above.
       if(mTruncation == pxConstantsTruncation::TRUNCATE || mTruncation == pxConstantsTruncation::TRUNCATE_AT_WORD)
       {
-          renderTextRowWithTruncation(text, lineWidth, tempX, tempY, sx, sy, mPixelSize, render);
+          renderTextRowWithTruncation(mText, lineWidth, tempX, tempY, sx, sy, mPixelSize, render);
       }
     }
   }

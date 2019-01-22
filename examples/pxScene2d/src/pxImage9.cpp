@@ -76,7 +76,7 @@ rtError pxImage9::setUrl(const char* s)
     if(imageLoaded || ((rtPromise*)mReady.getPtr())->status())
     {
       imageLoaded = false;
-      pxObject::createNewPromise();
+      createNewPromise();
     }
   }
 
@@ -116,7 +116,7 @@ rtError pxImage9::setResource(rtObjectRef o)
       removeResourceListener();
       mResource = o; 
       imageLoaded = false;
-      pxObject::createNewPromise();
+      createNewPromise();
       mListenerAdded = true;
       getImageResource()->addListener(this);
     }
@@ -127,7 +127,7 @@ rtError pxImage9::setResource(rtObjectRef o)
     rtLogError("Object passed as resource is not an imageResource!\n");
     pxObject::onTextureReady();
     // Call createNewPromise to ensure the old promise hadn't already been resolved
-    pxObject::createNewPromise();
+    createNewPromise();
     mReady.send("reject",this);
     return RT_ERROR; 
   }

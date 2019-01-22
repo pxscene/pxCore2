@@ -222,14 +222,18 @@ public:
   rtError leading(float& v)              const { v = mLeading; return RT_OK;   }
   rtError setLeading(float v)                  { mLeading = v;  setNeedsRecalc(true); return RT_OK; }
   
-  virtual rtError setW(float v)                { setNeedsRecalc(true); return pxObject::setW(v);    }
-  virtual rtError setH(float v)                { setNeedsRecalc(true); return pxObject::setH(v);    }
-  virtual rtError setClip(bool v)              { mClip = v; setNeedsRecalc(true); return RT_OK;     }
   virtual rtError setText(const char* s);
   virtual rtError setPixelSize(uint32_t v);
   virtual rtError setFontUrl(const char* s);
   virtual rtError setFont(rtObjectRef o);
-  
+  /* override virtuals from pxObject that must affect the readiness of pxTextBox due to text measurements */
+  virtual rtError setW(float v)                { setNeedsRecalc(true); return pxObject::setW(v);    }
+  virtual rtError setH(float v)                { setNeedsRecalc(true); return pxObject::setH(v);    }
+  virtual rtError setClip(bool v)              { setNeedsRecalc(true); return pxObject::setClip(v); }
+  virtual rtError setSX(float v)               { setNeedsRecalc(true); return pxObject::setSX(v);   }
+  virtual rtError setSY(float v)               { setNeedsRecalc(true); return pxObject::setSY(v);   }
+ 
+ 
   void renderText(bool render);
 
   virtual void resourceReady(rtString readyResolution);
