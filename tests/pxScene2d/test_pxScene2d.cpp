@@ -407,54 +407,6 @@ class pxScene2dTest : public testing::Test
    delete scene;
  }
 
-  void bundleAppTrueTest()
-  {
-    pxScene2d* parentscene = new pxScene2d();
-    pxSceneContainer* container = new pxSceneContainer(parentscene);
-    container->setUrl("supportfiles/bundleApp.jar");
-    pxScriptView* view = (pxScriptView*) container->mScriptView.getPtr();
-    double  secs = pxSeconds();
-    while ((pxSeconds() - secs) < 1.0)
-    {
-      view->onUpdate(pxSeconds());
-      script.pump();
-    }
-    rtValue scene;
-    rtValue args;
-    args.setString("scene");
-    EXPECT_TRUE(RT_OK == pxScriptView::getScene(1, &args, &scene, (void*)view));
-    pxScene2d* opscene = (pxScene2d*)(scene.toObject().getPtr());
-    EXPECT_TRUE (NULL != opscene);
-    bool isBundle = false;
-    rtError err = opscene->bundledApp(isBundle);
-    UNUSED_PARAM(err);
-    EXPECT_TRUE (isBundle == true);
-  }
-
-  void bundleAppFalseTest()
-  {
-    pxScene2d* parentscene = new pxScene2d();
-    pxSceneContainer* container = new pxSceneContainer(parentscene);
-    container->setUrl("supportfiles/simple.js");
-    pxScriptView* view = (pxScriptView*) container->mScriptView.getPtr();
-    double  secs = pxSeconds();
-    while ((pxSeconds() - secs) < 1.0)
-    {
-      view->onUpdate(pxSeconds());
-      script.pump();
-    }
-    rtValue scene;
-    rtValue args;
-    args.setString("scene");
-    EXPECT_TRUE(RT_OK == pxScriptView::getScene(1, &args, &scene, (void*)view));
-    pxScene2d* opscene = (pxScene2d*)(scene.toObject().getPtr());
-    EXPECT_TRUE (NULL != opscene);
-    bool isBundle = false;
-    rtError err = opscene->bundledApp(isBundle);
-    UNUSED_PARAM(err);
-    EXPECT_TRUE (isBundle == false);
-  }
-
   private:
     pxObject*     mRoot;
     pxScriptView* mView;
@@ -475,6 +427,4 @@ TEST_F(pxScene2dTest, pxScene2dTests)
     //pxScene2dHdrTest();
     pxScriptViewTest();
     multipleArchiveTest();
-    bundleAppTrueTest();
-    bundleAppFalseTest();
 }
