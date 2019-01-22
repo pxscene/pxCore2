@@ -234,7 +234,7 @@ class pxArchiveTest : public testing::Test
                     EXPECT_TRUE(d.length() == 0);
                 }
 
-                void pxArchiveisRelativeResourceTrueTest()
+                void pxArchiveisRelativeResourceTest()
                 {
                     pxArchivePtr = new pxArchive();
                     urlStr = "supportfiles/bundleApp.jar";
@@ -243,15 +243,6 @@ class pxArchiveTest : public testing::Test
                     rtData d;
                     EXPECT_TRUE(true == pxArchivePtr->isRelativeResource("supportfiles/output.js"));
                     EXPECT_TRUE(strcmp("supportfiles/", pxArchivePtr->mLocalUrlBase.cString()) == 0);
-                }
-
-                void pxArchiveisRelativeResourceFalseTest()
-                {
-                    pxArchivePtr = new pxArchive();
-                    urlStr = "supportfiles/bundleApp.jar";
-	                  EXPECT_EQ(RT_OK, pxArchivePtr->initFromUrl(urlStr));
-                    gUIThreadQueue->process(1.0);
-                    rtData d;
                     EXPECT_TRUE(false == pxArchivePtr->isRelativeResource("http://output.js"));
                 }
 	private:
@@ -284,7 +275,6 @@ TEST_F(pxArchiveTest, pxArchiveCompleteTest)
     pxArchivegetFileDataNonZipTest();
     pxArchivegetFileDataZipTest();
     pxArchivegetFileDataUnavailableTest();
-    pxArchiveisRelativeResourceTrueTest();
-    pxArchiveisRelativeResourceFalseTest();
+    pxArchiveisRelativeResourceTest();
 }
 
