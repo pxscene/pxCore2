@@ -21,7 +21,7 @@ limitations under the License.
 #define private public
 #include "pxArchive.h"
 
-
+extern rtThreadQueue* gUIThreadQueue;
 
 class pxArchiveTest : public testing::Test
 {
@@ -238,6 +238,7 @@ class pxArchiveTest : public testing::Test
                     pxArchivePtr = new pxArchive();
                     urlStr = "supportfiles/bundleApp.jar";
 	                EXPECT_EQ(RT_OK, pxArchivePtr->initFromUrl(urlStr));
+                    gUIThreadQueue->process(0.01);
                     rtData d;
                     EXPECT_TRUE(true == pxArchivePtr->isRelativeResource("supportfiles/output.js"));
                     EXPECT_TRUE(strcmp("supportfiles/", pxArchivePtr->mLocalUrlBase.cString()) == 0);
@@ -248,6 +249,7 @@ class pxArchiveTest : public testing::Test
                     pxArchivePtr = new pxArchive();
                     urlStr = "supportfiles/bundleApp.jar";
 	                EXPECT_EQ(RT_OK, pxArchivePtr->initFromUrl(urlStr));
+                    gUIThreadQueue->process(0.01);
                     rtData d;
                     EXPECT_TRUE(false == pxArchivePtr->isRelativeResource("http://output.js"));
                 }
