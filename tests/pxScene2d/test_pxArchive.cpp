@@ -274,6 +274,6 @@ TEST_F(pxArchiveTest, pxArchiveCompleteTest)
     pxArchivegetFileDataNonZipTest();
     pxArchivegetFileDataZipTest();
     pxArchivegetFileDataUnavailableTest();
-   // pxArchiveisRelativeResourceTest();
+    pxArchiveisRelativeResourceTest();
 }
 
