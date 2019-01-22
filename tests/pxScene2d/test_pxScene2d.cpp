@@ -407,6 +407,18 @@ class pxScene2dTest : public testing::Test
    delete scene;
  }
 
+  void bundleAppTest()
+  {
+    pxScriptView* view = new pxScriptView("","");
+    bool isBundle = false;
+    view->setBundledApp(true);
+    isBundle = view->bundledApp();
+    EXPECT_TRUE (isBundle == true);
+    view->setBundledApp(false);
+    isBundle = view->bundledApp();
+    EXPECT_TRUE (isBundle == false);
+  }
+
   private:
     pxObject*     mRoot;
     pxScriptView* mView;
@@ -427,4 +439,5 @@ TEST_F(pxScene2dTest, pxScene2dTests)
     //pxScene2dHdrTest();
     pxScriptViewTest();
     multipleArchiveTest();
+    bundleAppTest();
 }
