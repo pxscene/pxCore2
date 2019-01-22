@@ -437,6 +437,12 @@ class pxScene2dTest : public testing::Test
     pxSceneContainer* container = new pxSceneContainer(parentscene);
     container->setUrl("supportfiles/simple.js");
     pxScriptView* view = (pxScriptView*) container->mScriptView.getPtr();
+    double  secs = pxSeconds();
+    while ((pxSeconds() - secs) < 1.0)
+    {
+      view->onUpdate(pxSeconds());
+      script.pump();
+    }
     rtValue scene;
     rtValue args;
     args.setString("scene");
@@ -469,6 +475,6 @@ TEST_F(pxScene2dTest, pxScene2dTests)
     //pxScene2dHdrTest();
     pxScriptViewTest();
     multipleArchiveTest();
-    //bundleAppTrueTest();
+    bundleAppTrueTest();
     //bundleAppFalseTest();
 }
