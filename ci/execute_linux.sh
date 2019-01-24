@@ -71,6 +71,7 @@ retVal=$?
 
 # Monitor testRunner ...
 count=0
+#adding spark log a part of console.log increase execution time in linux in ci
 max_seconds=1800
 while [ "$retVal" -ne 0 ] &&  [ "$count" -ne "$max_seconds" ]; do
 	printf "\n [execute_linux.sh] snoozing for 30 seconds (%d of %d) \n" $count $max_seconds
