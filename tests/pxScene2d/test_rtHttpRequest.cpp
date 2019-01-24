@@ -48,10 +48,10 @@ public:
 
     req = new rtHttpRequest("https://example.com");
     ref = req;
-    EXPECT_EQ ((int)0, (int)req->url().compare("https://example.com"));
+    EXPECT_EQ (std::string(req->url().cString()), "https://example.com");
     EXPECT_EQ ((int)0, (int)req->headers().size());
     EXPECT_TRUE (req->method().isEmpty());
-    EXPECT_TRUE (req->writeData().isEmpty());
+    EXPECT_EQ ((int)0, (int)req->writeDataSize());
     EXPECT_FALSE (req->inQueue());
   }
 
@@ -73,12 +73,12 @@ public:
     req = new rtHttpRequest(options);
     req->write("{\"postKey1\":\"postValue1\"}");
     ref = req;
-    EXPECT_EQ ((int)0, (int)req->url().compare("http://httpbin.org/post"));
+    EXPECT_EQ (std::string(req->url().cString()), "http://httpbin.org/post");
     EXPECT_EQ ((int)2, (int)req->headers().size());
-    EXPECT_EQ ((int)0, (int)req->headers()[0].compare("Content-Type: application/json"));
-    EXPECT_EQ ((int)0, (int)req->headers()[1].compare("Authorization: token"));
-    EXPECT_EQ ((int)0, (int)req->method().compare("POST"));
-    EXPECT_EQ ((int)0, (int)req->writeData().compare("{\"postKey1\":\"postValue1\"}"));
+    EXPECT_EQ (std::string(req->headers()[0].cString()), "Content-Type: application/json");
+    EXPECT_EQ (std::string(req->headers()[1].cString()), "Authorization: token");
+    EXPECT_EQ (std::string(req->method().cString()), "POST");
+    EXPECT_EQ (std::string((const char*)req->writeData(), req->writeDataSize()), "{\"postKey1\":\"postValue1\"}");
     EXPECT_FALSE (req->inQueue());
   }
 
@@ -90,15 +90,15 @@ public:
     req = new rtHttpRequest("https://example.com");
     req->setHeader("Authorization", "token");
     ref = req;
-    EXPECT_EQ ((int)0, (int)req->url().compare("https://example.com"));
+    EXPECT_EQ (std::string(req->url().cString()), "https://example.com");
     EXPECT_EQ ((int)1, (int)req->headers().size());
-    EXPECT_EQ ((int)0, (int)req->headers()[0].compare("Authorization: token"));
+    EXPECT_EQ (std::string(req->headers()[0].cString()), "Authorization: token");
     EXPECT_TRUE (req->method().isEmpty());
-    EXPECT_TRUE (req->writeData().isEmpty());
+    EXPECT_EQ ((int)0, (int)req->writeDataSize());
     EXPECT_FALSE (req->inQueue());
   }
 
-  static rtError end_test_callback(int numArgs, const rtValue* args, rtValue* result, void* context)
+  static rtError response_test_callback1(int numArgs, const rtValue* args, rtValue* result, void* context)
   {
     EXPECT_EQ ((int)1, (int)numArgs);
 
@@ -116,7 +116,19 @@ public:
     return RT_OK;
   }
 
-  void end_test()
+  static rtError response_test_callback2(int numArgs, const rtValue* args, rtValue* result, void* context)
+  {
+    UNUSED_PARAM(numArgs);
+    UNUSED_PARAM(args);
+    UNUSED_PARAM(result);
+
+    ADD_FAILURE();
+
+    sem_post((sem_t*)context);
+    return RT_OK;
+  }
+
+  void response_test()
   {
     rtObjectRef ref;
     rtHttpRequest* req;
@@ -131,19 +143,21 @@ public:
     headers.set("Authorization", "token");
     options.set("headers", headers);
 
-    rtFunctionRef fn;
+    rtFunctionRef fn1 = new rtFunctionCallback(response_test_callback1, testSem);
+    rtFunctionRef fn2 = new rtFunctionCallback(response_test_callback2, testSem);
 
     req = new rtHttpRequest(options);
-    req->addListener("response", new rtFunctionCallback(end_test_callback, testSem));
-    req->write("{\"postKey1\":\"postValue1\"}");
-    req->end();
+    EXPECT_EQ ((int)RT_OK, req->addListener("response", fn1));
+    EXPECT_EQ ((int)RT_OK, req->addListener("error", fn2));
+    EXPECT_EQ ((int)RT_OK, req->write("{\"postKey1\":\"postValue1\"}"));
+    EXPECT_EQ ((int)RT_OK, req->end());
     ref = req;
-    EXPECT_EQ ((int)0, (int)req->url().compare("http://httpbin.org/post"));
+    EXPECT_EQ (std::string(req->url().cString()), "http://httpbin.org/post");
     EXPECT_EQ ((int)2, (int)req->headers().size());
-    EXPECT_EQ ((int)0, (int)req->headers()[0].compare("Content-Type: application/json"));
-    EXPECT_EQ ((int)0, (int)req->headers()[1].compare("Authorization: token"));
-    EXPECT_EQ ((int)0, (int)req->method().compare("POST"));
-    EXPECT_EQ ((int)0, (int)req->writeData().compare("{\"postKey1\":\"postValue1\"}"));
+    EXPECT_EQ (std::string(req->headers()[0].cString()), "Content-Type: application/json");
+    EXPECT_EQ (std::string(req->headers()[1].cString()), "Authorization: token");
+    EXPECT_EQ (std::string(req->method().cString()), "POST");
+    EXPECT_EQ (std::string((const char*)req->writeData(), req->writeDataSize()), "{\"postKey1\":\"postValue1\"}");
     EXPECT_TRUE (req->inQueue());
 
     // already in queue
@@ -154,6 +168,122 @@ public:
     sem_wait(testSem);
   }
 
+  static rtError error_test_callback1(int numArgs, const rtValue* args, rtValue* result, void* context)
+  {
+    UNUSED_PARAM(numArgs);
+    UNUSED_PARAM(args);
+    UNUSED_PARAM(result);
+
+    ADD_FAILURE();
+
+    sem_post((sem_t*)context);
+    return RT_OK;
+  }
+
+  static rtError error_test_callback2(int numArgs, const rtValue* args, rtValue* result, void* context)
+  {
+    EXPECT_EQ ((int)1, (int)numArgs);
+
+    rtString error = args[0].toString();
+    EXPECT_EQ (std::string(error.cString()), "Download error for:https://this.url.does.not.exist. Error code:6. Using proxy:false ");
+
+    UNUSED_PARAM(result);
+
+    sem_post((sem_t*)context);
+    return RT_OK;
+  }
+
+  void error_test()
+  {
+    rtObjectRef ref;
+    rtHttpRequest* req;
+
+    rtFunctionRef fn1 = new rtFunctionCallback(error_test_callback1, testSem);
+    rtFunctionRef fn2 = new rtFunctionCallback(error_test_callback2, testSem);
+
+    req = new rtHttpRequest("https://this.url.does.not.exist");
+    EXPECT_EQ ((int)RT_OK, req->addListener("response", fn1));
+    EXPECT_EQ ((int)RT_OK, req->addListener("error", fn2));
+    EXPECT_EQ ((int)RT_OK, req->end());
+    ref = req;
+    EXPECT_TRUE (req->inQueue());
+
+    sem_wait(testSem);
+  }
+
+  static rtError addListener_test_callback(int numArgs, const rtValue* args, rtValue* result, void* context)
+  {
+    UNUSED_PARAM(numArgs);
+    UNUSED_PARAM(args);
+    UNUSED_PARAM(result);
+
+    int* times_fn_called = (int*)context;
+    (*times_fn_called)++;
+
+    return RT_OK;
+  }
+
+  void addListener_test()
+  {
+    rtObjectRef ref;
+    rtHttpRequest* req;
+
+    int times_fn1_called = 0;
+    int times_fn2_called = 0;
+    int times_fn3_called = 0;
+    rtFunctionRef fn1 = new rtFunctionCallback(addListener_test_callback, &times_fn1_called);
+    rtFunctionRef fn2 = new rtFunctionCallback(addListener_test_callback, &times_fn2_called);
+    rtFunctionRef fn3 = new rtFunctionCallback(addListener_test_callback, &times_fn3_called);
+
+    req = new rtHttpRequest("https://example.com");
+    EXPECT_EQ ((int)RT_OK, req->addListener("response", fn1));
+    EXPECT_EQ ((int)RT_OK, req->once("response", fn2));
+    EXPECT_EQ ((int)RT_OK, req->addListener("error", fn3));
+    ref = req;
+
+    rtFileDownloadRequest* dwnl_OK = new rtFileDownloadRequest("https://example.com", req, rtHttpRequest::onDownloadComplete);
+
+    rtHttpRequest::onDownloadComplete(dwnl_OK);
+    EXPECT_EQ (1, times_fn1_called);
+    EXPECT_EQ (1, times_fn2_called);
+    EXPECT_EQ (0, times_fn3_called);
+
+    rtHttpRequest::onDownloadComplete(dwnl_OK);
+    EXPECT_EQ (2, times_fn1_called);
+    EXPECT_EQ (1, times_fn2_called);
+    EXPECT_EQ (0, times_fn3_called);
+
+    EXPECT_EQ ((int)RT_OK, req->removeAllListenersByName("response"));
+
+    rtHttpRequest::onDownloadComplete(dwnl_OK);
+    EXPECT_EQ (2, times_fn1_called);
+    EXPECT_EQ (1, times_fn2_called);
+    EXPECT_EQ (0, times_fn3_called);
+
+    rtFileDownloadRequest* dwnl_ERR = new rtFileDownloadRequest("https://example.com", req, rtHttpRequest::onDownloadComplete);
+    dwnl_ERR->setErrorString("ERR test");
+
+    rtHttpRequest::onDownloadComplete(dwnl_ERR);
+    EXPECT_EQ (2, times_fn1_called);
+    EXPECT_EQ (1, times_fn2_called);
+    EXPECT_EQ (1, times_fn3_called);
+
+    rtHttpRequest::onDownloadComplete(dwnl_ERR);
+    EXPECT_EQ (2, times_fn1_called);
+    EXPECT_EQ (1, times_fn2_called);
+    EXPECT_EQ (2, times_fn3_called);
+
+    EXPECT_EQ ((int)RT_OK, req->removeAllListeners());
+
+    rtHttpRequest::onDownloadComplete(dwnl_ERR);
+    EXPECT_EQ (2, times_fn1_called);
+    EXPECT_EQ (1, times_fn2_called);
+    EXPECT_EQ (2, times_fn3_called);
+
+    delete dwnl_OK;
+    delete dwnl_ERR;
+  }
+
   sem_t* testSem;
 };
 
@@ -162,5 +292,7 @@ TEST_F(rtHttpRequestTest, rtHttpRequestTests)
   ctor_url_test();
   ctor_options_test();
   setHeader_test();
-  end_test();
+  response_test();
+  error_test();
+  addListener_test();
 }

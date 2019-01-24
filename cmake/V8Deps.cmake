@@ -30,7 +30,9 @@ if (PREFER_SYSTEM_LIBRARIES)
         set(V8_LIBRARIES
             v8
             v8_libbase
-            v8_libplatform)
+            v8_libplatform
+            uv
+            uWS)
     endif(V8_VERSION_DIR)
 endif (PREFER_SYSTEM_LIBRARIES)
 

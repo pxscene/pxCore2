@@ -19,6 +19,7 @@ limitations under the License.
 
 #include "pxContext.h"
 #include <rtScript.h>
+#include <rtFileDownloader.h>
 #include <signal.h>
 #include <unistd.h>
 
@@ -121,4 +122,5 @@ int main(int argc, char **argv) {
   #ifdef ENABLE_CODE_COVERAGE
   __gcov_flush();
   #endif
+  rtFileDownloader::deleteInstance();
 }

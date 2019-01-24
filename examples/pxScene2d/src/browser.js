@@ -20,7 +20,6 @@ var homeUrl = "https://www.pxscene.org/examples/px-reference/text/sample.md";
 
 px.configImport({"browser:" : /*px.getPackageBaseFilePath() + */ "browser/"});
 
-
 px.import({ scene:    'px:scene.1.js',
              keys:    'px:tools.keys.js',
              ListBox: 'browser:listbox.js',
@@ -79,15 +78,6 @@ px.import({ scene:    'px:scene.1.js',
     else
       return "allow"; // allow request to bubble to parent
   });  
-
-  scene.on('onClose', function(e) {
-    keys = null;
-    for (var key in inputBox) { delete inputBox[key]; }
-    listBox = null;
-    browser = null
-    inputBox = null;
-    scene = null;
-  });
 
   var currentGen = 0
   function reload(u, keepHistory)
@@ -407,7 +397,7 @@ px.import({ scene:    'px:scene.1.js',
                                             "  CTRL-ALT-S        ...  Screenshot > screenshot.png \n" +
                                             "  CTRL-ALT-Y        ...  Toggle FPS \n" +
                                             "\n"+
-                                            "  CTRL-ALT-SHIFT-H  ...  Log Debug Metrics \n" +
+                                            "  CTRL-ALT-SHIFT-D  ...  Log Debug Metrics  \n" +
                                             "  CTRL-ALT-SHIFT-H  ...  Reload HOME \n" +
                                             "  CTRL-ALT-SHIFT-R  ...  Reload BROWSER \n",
                                       alignHorizontal: scene.alignHorizontal.LEFT,
