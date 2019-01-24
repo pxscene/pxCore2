@@ -91,7 +91,7 @@ rtError pxImage::setResource(rtObjectRef o)
       removeResourceListener();
       mResource = o; 
       imageLoaded = false;
-      pxObject::createNewPromise();
+      createNewPromise();
       mListenerAdded = true;
       getImageResource()->addListener(this);
     }
@@ -142,7 +142,7 @@ rtError pxImage::setUrl(const char* s)
     {
       imageLoaded = false;
       //rtLogDebug("pxImage calling pxObject::createPromise for %s\n",resourceObj->getUrl().cString());
-      pxObject::createNewPromise();
+      createNewPromise();
     }
     // ToDo Need to cancel the download if url is reassigned before its done
     /*else if(!imageLoaded)

@@ -133,22 +133,36 @@ public:
 private:
   std::string mMessage;
 };
-
-inline rtString toString(const v8::Handle<v8::Object>& obj)
+inline rtString toString(v8::Isolate* isolate, const v8::Handle<v8::Object>& obj)
 {
+  #if defined RTSCRIPT_SUPPORT_V8
+  v8::String::Utf8Value utf(isolate, obj->ToString());
+  #else
+  UNUSED_PARAM(isolate);
   v8::String::Utf8Value utf(obj->ToString());
+  #endif
   return rtString(*utf);
 }
 
-inline rtString toString(const v8::Handle<v8::Value>& val)
+inline rtString toString(v8::Isolate* isolate, const v8::Handle<v8::Value>& val)
 {
+  #if defined RTSCRIPT_SUPPORT_V8
+  v8::String::Utf8Value utf(isolate, val->ToString());
+  #else
+  UNUSED_PARAM(isolate);
   v8::String::Utf8Value utf(val->ToString());
+  #endif
   return rtString(*utf);
 }
 
-inline rtString toString(const v8::Local<v8::String>& s)
+inline rtString toString(v8::Isolate* isolate, const v8::Local<v8::String>& s)
 {
+  #if defined RTSCRIPT_SUPPORT_V8
+  v8::String::Utf8Value utf(isolate, s);
+  #else
+  UNUSED_PARAM(isolate);
   v8::String::Utf8Value utf(s);
+  #endif
   return rtString(*utf);
 }
 
@@ -326,6 +340,7 @@ public:
   static void addWeakReference(v8::Isolate* isolate, const rtObjectRef& from, v8::Local<v8::Object>& to);
   static v8::Local<v8::Object> lookupSurrogate(v8::Local<v8::Context>& ctx, const rtObjectRef& from);
   static void clearAllForContext(uint32_t contextId);
+  static void printAll();
 };
 
 

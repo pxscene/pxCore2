@@ -106,8 +106,9 @@ public:
   bool isCanceled();
   void setMethod(const char* method);
   rtString method() const;
-  void setReadData(const rtString& val);
-  rtString readData() const;
+  void setReadData(const uint8_t* data, size_t size);
+  const uint8_t* readData() const;
+  size_t readDataSize() const;
 
 private:
   rtString mFileUrl;
@@ -142,7 +143,8 @@ private:
   bool mUseCallbackDataSize;
   rtMutex mCanceledMutex;
   rtString mMethod;
-  rtString mReadData;
+  const uint8_t* mReadData;
+  size_t mReadDataSize;
 };
 
 struct rtFileDownloadHandle
@@ -158,6 +160,7 @@ class rtFileDownloader
 public:
 
     static rtFileDownloader* instance();
+    static void deleteInstance();
     static void setCallbackFunctionThreadSafe(rtFileDownloadRequest* downloadRequest, void (*callbackFunction)(rtFileDownloadRequest*), void* owner);
     static void cancelDownloadRequestThreadSafe(rtFileDownloadRequest* downloadRequest, void* owner);
     static bool isDownloadRequestCanceled(rtFileDownloadRequest* downloadRequest, void* owner);

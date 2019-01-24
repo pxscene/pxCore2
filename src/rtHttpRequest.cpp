@@ -23,6 +23,9 @@
 rtDefineObject(rtHttpRequest, rtObject);
 
 rtDefineMethod(rtHttpRequest, addListener);
+rtDefineMethod(rtHttpRequest, once);
+rtDefineMethod(rtHttpRequest, removeAllListeners);
+rtDefineMethod(rtHttpRequest, removeAllListenersByName);
 rtDefineMethod(rtHttpRequest, abort);
 rtDefineMethod(rtHttpRequest, end);
 rtDefineMethod(rtHttpRequest, write);
@@ -34,12 +37,16 @@ rtDefineMethod(rtHttpRequest, removeHeader);
 rtHttpRequest::rtHttpRequest(const rtString& url)
   : mEmit(new rtEmit())
   , mUrl(url)
+  , mWriteData(NULL)
+  , mWriteDataSize(0)
   , mInQueue(false)
 {
 }
 
 rtHttpRequest::rtHttpRequest(const rtObjectRef& options)
   : mEmit(new rtEmit())
+  , mWriteData(NULL)
+  , mWriteDataSize(0)
   , mInQueue(false)
 {
   rtString url;
@@ -63,7 +70,10 @@ rtHttpRequest::rtHttpRequest(const rtObjectRef& options)
   }
   if (port > 0) {
     rtValue portValue(port);
-    url.append(":" + portValue.toString());
+    rtString portStr = ":" + portValue.toString();
+    if (!url.endsWith(portStr.cString())) {
+      url.append(portStr);
+    }
   }
   url.append(path.cString());
 
@@ -86,12 +96,28 @@ rtHttpRequest::rtHttpRequest(const rtObjectRef& options)
 
 rtHttpRequest::~rtHttpRequest()
 {
+  if (mWriteData)
+    free(mWriteData);
 }
 
-rtError rtHttpRequest::addListener(rtString eventName, const rtFunctionRef& f)
+rtError rtHttpRequest::addListener(const rtString& eventName, const rtFunctionRef& f)
 {
-  mEmit->addListener(eventName, f);
-  return RT_OK;
+  return mEmit->addListener(eventName, f);
+}
+
+rtError rtHttpRequest::once(const rtString& eventName, const rtFunctionRef& f)
+{
+  return mEmit->addListener(eventName, f, true);
+}
+
+rtError rtHttpRequest::removeAllListeners()
+{
+  return mEmit->clearListeners();
+}
+
+rtError rtHttpRequest::removeAllListenersByName(const rtString& eventName)
+{
+  return mEmit->clearListeners(eventName.cString());
 }
 
 rtError rtHttpRequest::abort() const
@@ -107,11 +133,12 @@ rtError rtHttpRequest::end()
     return RT_FAIL;
   }
 
-  rtFileDownloadRequest* req = new rtFileDownloadRequest(mUrl.cString(), this, rtHttpRequest::onDownloadComplete);
+  rtFileDownloadRequest* req = new rtFileDownloadRequest(mUrl.cString(), this, rtHttpRequest::onDownloadCompleteAndRelease);
   req->setAdditionalHttpHeaders(mHeaders);
   req->setMethod(mMethod);
-  req->setReadData(mWriteData);
+  req->setReadData(mWriteData, mWriteDataSize);
   if (rtFileDownloader::instance()->addToDownloadQueue(req)) {
+    AddRef();
     mInQueue = true;
     return RT_OK;
   }
@@ -120,14 +147,47 @@ rtError rtHttpRequest::end()
   return RT_FAIL;
 }
 
-rtError rtHttpRequest::write(const rtString& chunk)
+rtError rtHttpRequest::write(const rtValue& chunk)
 {
   if (mInQueue) {
     rtLogError("%s: already in queue", __FUNCTION__);
     return RT_FAIL;
   }
 
-  mWriteData = chunk;
+  if (mWriteData)
+    free(mWriteData);
+
+  mWriteData = NULL;
+  mWriteDataSize = 0;
+
+  if (!chunk.isEmpty()) {
+    if (chunk.getType() == RT_objectType) {
+      rtObjectRef obj = chunk.toObject();
+
+      uint32_t len = obj.get<uint32_t>("length");
+      if (len > 0) {
+        rtLogInfo("write %u bytes (Buffer)", len);
+        mWriteData = (uint8_t*)malloc(len);
+        mWriteDataSize = len;
+      }
+      for (uint32_t i = 0; i < len; i++) {
+        mWriteData[i] = obj.get<uint8_t>(i);
+      }
+    } else if (chunk.getType() == RT_stringType) {
+      rtString str = chunk.toString();
+
+      uint32_t len = static_cast<uint32_t>(str.byteLength());
+      if (len > 0) {
+        rtLogInfo("write %u bytes (string)", len);
+        mWriteData = (uint8_t*)malloc(len);
+        mWriteDataSize = len;
+        memcpy(mWriteData, str.cString(), len);
+      }
+    } else {
+      rtLogInfo("unknown write data type");
+    }
+  }
+
   return RT_OK;
 }
 
@@ -209,11 +269,24 @@ void rtHttpRequest::onDownloadComplete(rtFileDownloadRequest* downloadRequest)
   resp->setDownloadedData(downloadRequest->downloadedData(), downloadRequest->downloadedDataSize());
 
   rtObjectRef ref = resp; 
-  req->mEmit.send("response", ref);
 
-  resp->onData();
+  if (downloadRequest->errorString().isEmpty()) {
+    req->mEmit.send("response", ref);
+    resp->onData();
+    resp->onEnd();
+  } else {
+    req->mEmit.send("error", downloadRequest->errorString());
+  }
+}
 
-  resp->onEnd();
+void rtHttpRequest::onDownloadCompleteAndRelease(rtFileDownloadRequest* downloadRequest)
+{
+  onDownloadComplete(downloadRequest);
+  rtHttpRequest* req = (rtHttpRequest*)downloadRequest->callbackData();
+  if (req != NULL)
+  {
+    req->Release();
+  }
 }
 
 rtString rtHttpRequest::url() const
@@ -231,9 +304,14 @@ rtString rtHttpRequest::method() const
   return mMethod;
 }
 
-rtString rtHttpRequest::writeData() const
+const uint8_t* rtHttpRequest::writeData() const
 {
   return mWriteData;
+}
+
+size_t rtHttpRequest::writeDataSize() const
+{
+  return mWriteDataSize;
 }
 
 bool rtHttpRequest::inQueue() const
