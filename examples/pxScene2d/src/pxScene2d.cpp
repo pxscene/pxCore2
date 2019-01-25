@@ -3703,6 +3703,7 @@ rtError pxScene2d::getService(const char* name, const rtObjectRef& ctx, rtObject
         }
         else
         {
+          rtLogInfo("rtRemote object %s found", name);
           service = rtRemoteObject;
         }
       }
