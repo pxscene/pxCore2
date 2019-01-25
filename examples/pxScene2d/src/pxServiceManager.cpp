@@ -41,3 +41,25 @@ rtError pxServiceManager::findServiceManager(rtObjectRef &result)
 
   return e;
 }
+
+rtError pxServiceManager::findRtRemoteObject(const char* name, rtObjectRef &result)
+{
+  if (mEnv == NULL)
+  {
+    mEnv = rtEnvironmentGetGlobal();
+    rtError e = rtRemoteInit(mEnv);
+
+    if (e != RT_OK)
+    {
+      rtLogInfo("rtRemoteInit e = %d", e);
+      return e;
+    }
+  }
+
+  rtError e = rtRemoteLocateObject(mEnv, name, result);
+
+  if (e != RT_OK)
+    rtLogInfo("rtRemoteLocateObject %s e = %d\n", name, e);
+
+  return e;
+}

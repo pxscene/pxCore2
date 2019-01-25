@@ -40,6 +40,7 @@ public:
     SERVICE,
     FEATURE,
     WAYLAND,
+    RTREMOTE,
     TYPE_COUNT
   };
 
