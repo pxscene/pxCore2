@@ -18,6 +18,8 @@ limitations under the License.
 
 #include "pxServiceManager.h"
 
+#define RT_REMOTE_SERVICE_TIMEOUT 250
+
 rtRemoteEnvironment* pxServiceManager::mEnv = NULL;
 
 rtError pxServiceManager::findServiceManager(rtObjectRef &result)
@@ -56,7 +58,7 @@ rtError pxServiceManager::findRtRemoteObject(const char* name, rtObjectRef &resu
     }
   }
 
-  rtError e = rtRemoteLocateObject(mEnv, name, result);
+  rtError e = rtRemoteLocateObject(mEnv, name, result, RT_REMOTE_SERVICE_TIMEOUT);
 
   if (e != RT_OK)
     rtLogInfo("rtRemoteLocateObject %s e = %d\n", name, e);
