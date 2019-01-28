@@ -750,6 +750,7 @@ protected:
   //#ifdef PX_DIRTY_RECTANGLES
   bool mIsDirty;
   pxMatrix4f mRenderMatrix;
+  pxMatrix4f mLastRenderMatrix;
   pxRect mScreenCoordinates;
   pxRect mDirtyRect;
   //#endif //PX_DIRTY_RECTANGLES

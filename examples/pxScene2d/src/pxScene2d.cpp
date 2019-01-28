@@ -460,7 +460,7 @@ pxObject::pxObject(pxScene2d* scene): rtObject(), mParent(NULL), mpx(0), mpy(0),
     mInteractive(true),
     mSnapshotRef(), mPainting(true), mClip(false), mMask(false), mDraw(true), mHitTest(true), mReady(),
     mFocus(false),mClipSnapshotRef(),mCancelInSet(true),mUseMatrix(false), mRepaint(true)
-    , mIsDirty(true), mRenderMatrix(), mScreenCoordinates(), mDirtyRect()
+    , mIsDirty(true), mRenderMatrix(), mLastRenderMatrix(), mScreenCoordinates(), mDirtyRect()
     ,mDrawableSnapshotForMask(), mMaskSnapshot(), mIsDisposed(false), mSceneSuspended(false)
   {
     pxObjectCount++;
@@ -577,7 +577,7 @@ rtError pxObject::Set(const char* name, const rtValue* value)
 {
   if (gDirtyRectsEnabled) {
       mIsDirty = true;
-      mScreenCoordinates = getBoundingRectInScreenCoordinates();
+      //mScreenCoordinates = getBoundingRectInScreenCoordinates();
   }
     
   if (strcmp(name, "x") != 0 && strcmp(name, "y") != 0 &&  strcmp(name, "a") != 0)
@@ -1251,11 +1251,16 @@ pxRect pxObject::getBoundingRectInScreenCoordinates()
   int w = getOnscreenWidth();
   int h = getOnscreenHeight();
   int x[4], y[4];
-  //mRenderMatrix = context.getMatrix();
-  context.mapToScreenCoordinates(mRenderMatrix, 0,0,x[0],y[0]);
-  context.mapToScreenCoordinates(mRenderMatrix, w, h, x[1], y[1]);
-  context.mapToScreenCoordinates(mRenderMatrix, 0, h, x[2], y[2]);
-  context.mapToScreenCoordinates(mRenderMatrix, w, 0, x[3], y[3]);
+    
+  //mLastRenderMatrix = context.getMatrix();
+    
+  pxMatrix4f renderMatrixTemp = mLastRenderMatrix;
+  context.mapToScreenCoordinates(mLastRenderMatrix, 0,0,x[0],y[0]);
+  context.mapToScreenCoordinates(mLastRenderMatrix, w, h, x[1], y[1]);
+  context.mapToScreenCoordinates(mLastRenderMatrix, 0, h, x[2], y[2]);
+  context.mapToScreenCoordinates(mLastRenderMatrix, w, 0, x[3], y[3]);
+  mLastRenderMatrix = renderMatrixTemp;
+    
   int left, right, top, bottom;
 
   left = x[0];
@@ -1296,10 +1301,14 @@ pxRect pxObject::convertToScreenCoordinates(pxRect* r)
   int rectTop = r->top();
   int rectBottom = r->bottom();
   int x[4], y[4];
-  context.mapToScreenCoordinates(mRenderMatrix, rectLeft,rectTop,x[0],y[0]);
-  context.mapToScreenCoordinates(mRenderMatrix, rectRight, rectBottom, x[1], y[1]);
-  context.mapToScreenCoordinates(mRenderMatrix, rectLeft, rectBottom, x[2], y[2]);
-  context.mapToScreenCoordinates(mRenderMatrix, rectRight, rectTop, x[3], y[3]);
+
+  pxMatrix4f renderMatrixTemp = mLastRenderMatrix;
+  context.mapToScreenCoordinates(mLastRenderMatrix, rectLeft,rectTop,x[0],y[0]);
+  context.mapToScreenCoordinates(mLastRenderMatrix, rectRight, rectBottom, x[1], y[1]);
+  context.mapToScreenCoordinates(mLastRenderMatrix, rectLeft, rectBottom, x[2], y[2]);
+  context.mapToScreenCoordinates(mLastRenderMatrix, rectRight, rectTop, x[3], y[3]);
+  mLastRenderMatrix = renderMatrixTemp;
+    
   int left, right, top, bottom;
 
   left = x[0];
@@ -1425,7 +1434,7 @@ void pxObject::drawInternal(bool maskPass)
   }
     
   if (gDirtyRectsEnabled) {
-    mRenderMatrix = context.getMatrix();
+    mLastRenderMatrix = context.getMatrix();
     //mScreenCoordinates = getBoundingRectInScreenCoordinates();
   }
 
