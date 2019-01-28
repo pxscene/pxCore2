@@ -352,11 +352,6 @@ include_directories(AFTER ${CMAKE_CURRENT_SOURCE_DIR}/rasterizer)
 set(PXSCENE_COMMON_FILES pxResource.cpp pxConstants.cpp pxRectangle.cpp pxFont.cpp pxText.cpp
         pxTextBox.cpp pxImage.cpp pxImage9.cpp pxImageA.cpp pxImage9Border.cpp pxArchive.cpp pxAnimate.cpp)
 
-if (BUILD_WITH_PXPATH)
-    message("Building with pxPath support")
-    set(PXSCENE_COMMON_FILES  rasterizer/pxPath.cpp)
-endif (BUILD_WITH_PXPATH)
-
 set(PXSCENE_COMMON_FILES ${PXSCENE_COMMON_FILES} pxScene2d.cpp)
 
 set(PXWAYLAND_LIB_FILES pxContextGL.cpp egl/pxContextUtils.cpp)
