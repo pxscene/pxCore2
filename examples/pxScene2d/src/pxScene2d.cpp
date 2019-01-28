@@ -681,7 +681,7 @@ void pxObject::setParent(rtRef<pxObject>& parent)
       parent->mChildren.push_back(this);
     if (gDirtyRectsEnabled) {
         mIsDirty = true;
-        mScreenCoordinates = getBoundingRectInScreenCoordinates();
+        //mScreenCoordinates = getBoundingRectInScreenCoordinates();
     }
   }
 }
@@ -1116,41 +1116,22 @@ void pxObject::update(double t)
     if (gDirtyRectsEnabled) {
         applyMatrix(m);
         context.setMatrix(m);
-        mScreenCoordinates = getBoundingRectInScreenCoordinates();
-        for(vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
-        {
-            int left = (*it)->mScreenCoordinates.left();
-            int right = (*it)->mScreenCoordinates.right();
-            int top = (*it)->mScreenCoordinates.top();
-            int bottom = (*it)->mScreenCoordinates.bottom();
-            if (right > mScreenCoordinates.right())
-            {
-                mScreenCoordinates.setRight(right);
-            }
-            if (left < mScreenCoordinates.left())
-            {
-                mScreenCoordinates.setLeft(left);
-            }
-            if (top < mScreenCoordinates.top())
-            {
-                mScreenCoordinates.setTop(top);
-            }
-            if (bottom > mScreenCoordinates.bottom())
-            {
-                mScreenCoordinates.setBottom(bottom);
-            }
-        }
-        
         if (mIsDirty)
         {
-            mRenderMatrix = context.getMatrix();
             pxRect dirtyRect = getBoundingRectInScreenCoordinates();
             if (!dirtyRect.isEqual(mScreenCoordinates))
             {
                 dirtyRect.unionRect(mScreenCoordinates);
             }
+            mLastRenderMatrix = context.getMatrix();
+            mScreenCoordinates = getBoundingRectInScreenCoordinates();
+            if (!dirtyRect.isEqual(mScreenCoordinates))
+            {
+                dirtyRect.unionRect(mScreenCoordinates);
+            }
+            
             mScene->invalidateRect(&dirtyRect);
-            mRenderMatrix = context.getMatrix();
+            mLastRenderMatrix = context.getMatrix();
             setDirtyRect(&dirtyRect);
 
             mIsDirty = false;
@@ -1162,6 +1143,26 @@ void pxObject::update(double t)
   for(vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
   {
       if (gDirtyRectsEnabled) {
+          int left = (*it)->mScreenCoordinates.left();
+          int right = (*it)->mScreenCoordinates.right();
+          int top = (*it)->mScreenCoordinates.top();
+          int bottom = (*it)->mScreenCoordinates.bottom();
+          if (right > mScreenCoordinates.right())
+          {
+              mScreenCoordinates.setRight(right);
+          }
+          if (left < mScreenCoordinates.left())
+          {
+              mScreenCoordinates.setLeft(left);
+          }
+          if (top < mScreenCoordinates.top())
+          {
+              mScreenCoordinates.setTop(top);
+          }
+          if (bottom > mScreenCoordinates.bottom())
+          {
+              mScreenCoordinates.setBottom(bottom);
+          }
           context.pushState();
       }
 // JR TODO  this lock looks suspicious... why do we need it?
@@ -1251,16 +1252,10 @@ pxRect pxObject::getBoundingRectInScreenCoordinates()
   int w = getOnscreenWidth();
   int h = getOnscreenHeight();
   int x[4], y[4];
-    
-  //mLastRenderMatrix = context.getMatrix();
-    
-  pxMatrix4f renderMatrixTemp = mLastRenderMatrix;
   context.mapToScreenCoordinates(mLastRenderMatrix, 0,0,x[0],y[0]);
   context.mapToScreenCoordinates(mLastRenderMatrix, w, h, x[1], y[1]);
   context.mapToScreenCoordinates(mLastRenderMatrix, 0, h, x[2], y[2]);
   context.mapToScreenCoordinates(mLastRenderMatrix, w, 0, x[3], y[3]);
-  mLastRenderMatrix = renderMatrixTemp;
-    
   int left, right, top, bottom;
 
   left = x[0];
@@ -1301,14 +1296,10 @@ pxRect pxObject::convertToScreenCoordinates(pxRect* r)
   int rectTop = r->top();
   int rectBottom = r->bottom();
   int x[4], y[4];
-
-  pxMatrix4f renderMatrixTemp = mLastRenderMatrix;
   context.mapToScreenCoordinates(mLastRenderMatrix, rectLeft,rectTop,x[0],y[0]);
   context.mapToScreenCoordinates(mLastRenderMatrix, rectRight, rectBottom, x[1], y[1]);
   context.mapToScreenCoordinates(mLastRenderMatrix, rectLeft, rectBottom, x[2], y[2]);
   context.mapToScreenCoordinates(mLastRenderMatrix, rectRight, rectTop, x[3], y[3]);
-  mLastRenderMatrix = renderMatrixTemp;
-    
   int left, right, top, bottom;
 
   left = x[0];
