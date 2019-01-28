@@ -47,11 +47,11 @@ public:
 private:
   static void create(const FunctionCallbackInfo<Value>& args);
 
-  static void getPropertyByName(Local<String> prop, const PropertyCallbackInfo<Value>& info);
-  static void setPropertyByName(Local<String> prop, Local<Value> val, const PropertyCallbackInfo<Value>& info);
+  static void getPropertyByName(Local<Name> prop, const PropertyCallbackInfo<Value>& info);
+  static void setPropertyByName(Local<Name> prop, Local<Value> val, const PropertyCallbackInfo<Value>& info);
   static void getEnumerablePropertyNames(const PropertyCallbackInfo<Array>& info);
 #ifdef ENABLE_DEBUG_MODE
-  static void queryPropertyByName(Local<String> prop, const PropertyCallbackInfo<Integer>& info);
+  static void queryPropertyByName(Local<Name> prop, const PropertyCallbackInfo<Integer>& info);
 #endif
   static void getPropertyByIndex(uint32_t index, const PropertyCallbackInfo<Value>& info);
   static void setPropertyByIndex(uint32_t index, Local<Value> val, const PropertyCallbackInfo<Value>& info);
