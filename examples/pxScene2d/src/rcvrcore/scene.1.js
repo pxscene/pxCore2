@@ -35,10 +35,16 @@ function Scene() {
       this.animation = scene.animation;
       this.stretch   = scene.stretch;
       this.maskOp    = scene.maskOp;
-      this.alignVertical = scene.alignVertical;
+      this.alignVertical   = scene.alignVertical;
       this.alignHorizontal = scene.alignHorizontal;
       this.truncation = scene.truncation;
       this.root = scene.root;
+      
+      this.pxObjectCount = scene.pxObjectCount;
+      this.pxObjectBytes = scene.pxObjectBytes;
+      this.rtValueCount  = scene.rtValueCount;
+      this.rtValueBytes  = scene.rtValueBytes;
+
       this.info = scene.info;
       this.capabilities = scene.capabilities;
       this.filePath = filePath;

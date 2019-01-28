@@ -93,6 +93,12 @@ class AsyncScriptInfo {
 // TODO Move this to pxEventLoop
 extern rtThreadQueue* gUIThreadQueue;
 
+extern uint32_t rtValueCount_;
+extern uint32_t rtValueSize;
+
+extern uint32_t pxObjectCount_;
+extern uint32_t pxObjectSize;
+
 // TODO Finish
 //#include "pxTransform.h"
 #include "pxConstants.h"
@@ -1344,6 +1350,35 @@ class pxScene2d: public rtObject, public pxIView, public rtIServiceProvider
 {
 public:
   rtDeclareObject(pxScene2d, rtObject);
+  
+  rtReadOnlyProperty(pxObjectBytes, pxObjectBytes, uint32_t);
+  rtError pxObjectBytes(uint32_t& v) const
+  {
+    v = pxObjectCount_ * pxObjectSize;
+    return RT_OK;
+  }
+  
+  rtReadOnlyProperty(pxObjectCount, pxObjectCount, uint32_t);
+  rtError pxObjectCount(uint32_t& v) const
+  {
+    v = pxObjectCount_;
+    return RT_OK;
+  }
+  
+  rtReadOnlyProperty(rtValueBytes, rtValueBytes, uint32_t);
+  rtError rtValueBytes(uint32_t& v) const
+  {
+    v = rtValueCount_ * rtValueSize;
+    return RT_OK;
+  }
+
+  rtReadOnlyProperty(rtValueCount, rtValueCount, uint32_t);
+  rtError rtValueCount(uint32_t& v) const
+  {
+    v = rtValueCount_;
+    return RT_OK;
+  }
+  
   rtReadOnlyProperty(root, root, rtObjectRef);
   rtReadOnlyProperty(w, w, int32_t);
   rtReadOnlyProperty(h, h, int32_t);

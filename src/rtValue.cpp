@@ -24,27 +24,31 @@
 #include "rtObject.h"
 #include "rtValue.h"
 
-rtValue::rtValue()                      :mType(0) { setEmpty();   }
-rtValue::rtValue(bool v)                :mType(0) { setBool(v);   }
-rtValue::rtValue(int8_t v)              :mType(0) { setInt8(v);   }
-rtValue::rtValue(uint8_t v)             :mType(0) { setUInt8(v);  }
-rtValue::rtValue(int32_t v)             :mType(0) { setInt32(v);  }
-rtValue::rtValue(uint32_t v)            :mType(0) { setUInt32(v); }
-rtValue::rtValue(int64_t v)             :mType(0) { setInt64(v);  }
-rtValue::rtValue(uint64_t v)            :mType(0) { setUInt64(v); }
-rtValue::rtValue(float v)               :mType(0) { setFloat(v);  }
-rtValue::rtValue(double v)              :mType(0) { setDouble(v); }
-rtValue::rtValue(const char* v)         :mType(0) { setString(v); }
-rtValue::rtValue(const rtString& v)     :mType(0) { setString(v); }
-rtValue::rtValue(const rtIObject* v)    :mType(0) { setObject(v); }
-rtValue::rtValue(const rtObjectRef& v)  :mType(0) { setObject(v); }
-rtValue::rtValue(const rtIFunction* v)  :mType(0) { setFunction(v); }
-rtValue::rtValue(const rtFunctionRef& v):mType(0) { setFunction(v); }
-rtValue::rtValue(const rtValue& v)      :mType(0) { setValue(v);  }
-rtValue::rtValue(voidPtr v)             :mType(0) { setVoidPtr(v); }
+uint32_t rtValueCount_ = 0;
+uint32_t rtValueSize  = sizeof(rtValue);
+
+rtValue::rtValue()                      :mType(0) { rtValueCount_++;  setEmpty();     }
+rtValue::rtValue(bool v)                :mType(0) { rtValueCount_++;  setBool(v);     }
+rtValue::rtValue(int8_t v)              :mType(0) { rtValueCount_++;  setInt8(v);     }
+rtValue::rtValue(uint8_t v)             :mType(0) { rtValueCount_++;  setUInt8(v);    }
+rtValue::rtValue(int32_t v)             :mType(0) { rtValueCount_++;  setInt32(v);    }
+rtValue::rtValue(uint32_t v)            :mType(0) { rtValueCount_++;  setUInt32(v);   }
+rtValue::rtValue(int64_t v)             :mType(0) { rtValueCount_++;  setInt64(v);    }
+rtValue::rtValue(uint64_t v)            :mType(0) { rtValueCount_++;  setUInt64(v);   }
+rtValue::rtValue(float v)               :mType(0) { rtValueCount_++;  setFloat(v);    }
+rtValue::rtValue(double v)              :mType(0) { rtValueCount_++;  setDouble(v);   }
+rtValue::rtValue(const char* v)         :mType(0) { rtValueCount_++;  setString(v);   }
+rtValue::rtValue(const rtString& v)     :mType(0) { rtValueCount_++;  setString(v);   }
+rtValue::rtValue(const rtIObject* v)    :mType(0) { rtValueCount_++;  setObject(v);   }
+rtValue::rtValue(const rtObjectRef& v)  :mType(0) { rtValueCount_++;  setObject(v);   }
+rtValue::rtValue(const rtIFunction* v)  :mType(0) { rtValueCount_++;  setFunction(v); }
+rtValue::rtValue(const rtFunctionRef& v):mType(0) { rtValueCount_++;  setFunction(v); }
+rtValue::rtValue(const rtValue& v)      :mType(0) { rtValueCount_++;  setValue(v);    }
+rtValue::rtValue(voidPtr v)             :mType(0) { rtValueCount_++;  setVoidPtr(v);  }
 
 rtValue::~rtValue()
 {
+  rtValueCount_--;
   term();
 }
 

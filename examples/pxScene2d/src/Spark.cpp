@@ -103,7 +103,7 @@ char** g_origArgv = NULL;
 #endif
 bool gDumpMemUsage = false;
 extern bool gApplicationIsClosing;
-extern int pxObjectCount;
+extern uint32_t pxObjectCount_;
 
 #include "pxFont.h"
 
@@ -313,7 +313,7 @@ protected:
       #endif
       script.collectGarbage();
       rtThreadPool::globalInstance()->destroy();
-      rtLogInfo("pxobjectcount is [%d]",pxObjectCount);
+      rtLogInfo("pxObjectCount is [%d]",pxObjectCount_);
 #ifndef PX_PLATFORM_DFB_NON_X11
       rtLogInfo("texture memory usage is [%" PRId64 "]",context.currentTextureMemoryUsageInBytes());
 #endif

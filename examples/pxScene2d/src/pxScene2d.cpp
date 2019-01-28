@@ -109,6 +109,8 @@ static int fpsWarningThreshold = 25;
 
 rtEmitRef pxScriptView::mEmit = new rtEmit();
 
+uint32_t pxObjectSize  = sizeof(pxObject);
+
 // Debug Statistics
 #ifdef USE_RENDER_STATS
 
@@ -151,7 +153,8 @@ void stopProfiling()
   CALLGRIND_STOP_INSTRUMENTATION;
 }
 #endif //ENABLE_VALGRIND
-int pxObjectCount = 0;
+
+uint32_t pxObjectCount_ = 0;
 bool gApplicationIsClosing = false;
 
 #include <rapidjson/document.h>
@@ -463,7 +466,7 @@ pxObject::pxObject(pxScene2d* scene): rtObject(), mParent(NULL), mpx(0), mpy(0),
     , mIsDirty(true), mRenderMatrix(), mScreenCoordinates(), mDirtyRect()
     ,mDrawableSnapshotForMask(), mMaskSnapshot(), mIsDisposed(false), mSceneSuspended(false)
   {
-    pxObjectCount++;
+    pxObjectCount_++;
     mScene = scene;
     mReady = new rtPromise;
     mEmit = new rtEmit;
@@ -483,7 +486,7 @@ pxObject::~pxObject()
       (*it)->mParent = NULL;  // setParent mutates the mChildren collection
     }
     mChildren.clear();
-    pxObjectCount--;
+    pxObjectCount_--;
     clearSnapshot(mSnapshotRef);
     clearSnapshot(mClipSnapshotRef);
     clearSnapshot(mDrawableSnapshotForMask);
@@ -2332,7 +2335,7 @@ rtError pxScene2d::logDebugMetrics()
 {
 #ifdef ENABLE_DEBUG_METRICS
     script.collectGarbage();
-    rtLogInfo("pxobjectcount is [%d]",pxObjectCount);
+    rtLogInfo("pxObjectCount_ is [%d]",pxObjectCount_);
 #ifdef PX_PLATFORM_MAC
       rtLogInfo("texture memory usage is [%lld]",context.currentTextureMemoryUsageInBytes());
 #else
@@ -2636,9 +2639,9 @@ void pxScene2d::onUpdate(double t)
       // double update_ms = ( (double) sigma_update   / (double) frameCount ) * 1000.0f; // Average update time
 
       // rtLogDebug("%g fps   pxObjects: %d   Draw: %g   Tex: %g   Fbo: %g     draw_ms: %0.04g   update_ms: %0.04g\n",
-      //     fps, pxObjectCount, dpf, bpf, fpf, draw_ms, update_ms );
+      //     fps, pxObjectCount_, dpf, bpf, fpf, draw_ms, update_ms );
 
-      rtLogDebug("%g fps   pxObjects: %d   Draw: %g   Tex: %g   Fbo: %g \n", fps, pxObjectCount, dpf, bpf, fpf);
+      rtLogDebug("%g fps   pxObjects: %d   Draw: %g   Tex: %g   Fbo: %g \n", fps, pxObjectCount_, dpf, bpf, fpf);
 
       gDrawCalls    = 0;
       gTexBindCalls = 0;
@@ -2665,7 +2668,7 @@ void pxScene2d::onUpdate(double t)
       }
     }
     previousFps = fps;
-    rtLogDebug("%d fps   pxObjects: %d\n", fps, pxObjectCount);
+    rtLogDebug("%d fps   pxObjects: %d\n", fps, pxObjectCount_);
 #endif //USE_RENDER_STATS
 
     {
