@@ -180,7 +180,7 @@ if [ "$retVal" -eq 0 ]
 	then
 	echo "************************* Valgrind reports success *************************";
 else
-	grep -A 100 -B 100 "definitely lost:" $VALGRINDLOGS
+	grep -A 100 -B 100 "definitely lost" $VALGRINDLOGS
 	leakcheck=$?
 	if [ "$leakcheck" -eq 0 ]
 	then
