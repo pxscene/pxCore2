@@ -44,7 +44,7 @@ using namespace std;
 extern rtScript script;
 extern int gargc;
 extern char** gargv;
-extern int pxObjectCount;
+extern int pxObjectCount_;
 
 void fgDeinitialize( void )
 {
@@ -133,7 +133,7 @@ class jsFilesTest : public testing::Test
     void test(const char* file, float timeout)
     {
       script.collectGarbage();
-      int oldpxCount = pxObjectCount;
+      int oldpxCount = pxObjectCount_;
       long oldtextMem = mContext.currentTextureMemoryUsageInBytes();
       startJsFile(file);
       process(timeout);
@@ -141,8 +141,8 @@ class jsFilesTest : public testing::Test
       script.collectGarbage();
       //currently we are getting the count +1 , due to which test is failing
       //suspecting this is due to scenecontainer without parent leak.
-      //EXPECT_TRUE (pxObjectCount == oldpxCount);
-      printf("old px count [%d] new px count [%d] \n",oldpxCount,pxObjectCount);
+      //EXPECT_TRUE (pxObjectCount_ == oldpxCount);
+      printf("old px count [%d] new px count [%d] \n",oldpxCount,pxObjectCount_);
       fflush(stdout);
       EXPECT_TRUE (mContext.currentTextureMemoryUsageInBytes() == oldtextMem);
     }
