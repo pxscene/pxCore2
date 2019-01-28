@@ -308,9 +308,9 @@ protected:
 
     if (gDumpMemUsage)
     {
-      #ifdef RUNINMAIN	
-          script.pump();	
-      #endif	
+      #ifdef RUNINMAIN
+          script.pump();
+      #endif
       script.collectGarbage();
       rtThreadPool::globalInstance()->destroy();
       rtLogInfo("pxobjectcount is [%d]",pxObjectCount);
