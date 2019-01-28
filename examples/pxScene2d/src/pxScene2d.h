@@ -197,7 +197,7 @@ public:
   rtMethodNoArgAndNoReturn("moveForward", moveForward);
   rtMethodNoArgAndNoReturn("moveBackward", moveBackward);
 
-  rtMethod5ArgAndReturn("animateTo", animateToP2, rtObjectRef, double,
+  rtMethod5ArgAndReturn("animateTo", animateToP2, rtObjectRef, rtValue,
                         uint32_t, uint32_t, int32_t, rtObjectRef);
 
   rtMethod5ArgAndReturn("animate", animateToObj, rtObjectRef, double,
@@ -403,7 +403,7 @@ public:
                      uint32_t interp, uint32_t options,
                      int32_t count, rtObjectRef promise);
 
-  rtError animateToP2(rtObjectRef props, double duration, 
+  rtError animateToP2(rtObjectRef props, rtValue duration,
                       uint32_t interp, uint32_t options,
                       int32_t count, rtObjectRef& promise);
 

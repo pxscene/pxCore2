@@ -589,8 +589,27 @@ rtError pxObject::Set(const char* name, const rtValue* value)
   return rtObject::Set(name, value);
 }
 
+static double getDurationSeconds(rtString str)
+{
+  const char* pStr = str.cString();
+  char*    p = (char*) pStr;
+  
+  while( *p++ != '\0') // find Units ... default to Seconds if not found
+  {
+    if(*p == 'm' || *p == 'M' || *p == 'S' || *p == 's') break;
+  };
+  
+  double d = 0;
+  if(sscanf(pStr,"%lf", &d) == 1)
+  {
+    if(*p == 'm' || *p == 'M') {  d /= 1000.0; } // 'sS' seconds, 'mM' milliseconds ... Convert 'ms' to 's'
+  }
+  
+  return d;
+}
+
 // TODO Cleanup animateTo methods... animateTo animateToP2 etc...
-rtError pxObject::animateToP2(rtObjectRef props, double duration,
+rtError pxObject::animateToP2(rtObjectRef props, rtValue duration,
                               uint32_t interp, uint32_t options,
                               int32_t count, rtObjectRef& promise)
 {
@@ -613,6 +632,21 @@ rtError pxObject::animateToP2(rtObjectRef props, double duration,
   if (!interp)  { interp = pxConstantsAnimation::TWEEN_LINEAR;}
   if (!options) {options = pxConstantsAnimation::OPTION_LOOP;}
   if (!count)   {  count = 1;}
+  
+  double duration2 = 0;
+
+  if(duration.getType() == RT_stringType)
+  {
+    rtString str;
+    if(duration.getString(str) == RT_OK)
+    {
+      duration2 = getDurationSeconds(str);
+    }
+  }
+  else
+  {
+    duration.getDouble(duration2);
+  }
 
   promise = new rtPromise();
 
@@ -623,7 +657,7 @@ rtError pxObject::animateToP2(rtObjectRef props, double duration,
     for (uint32_t i = 0; i < len; i++)
     {
       rtString key = keys.get<rtString>(i);
-      animateTo(key, props.get<float>(key), duration, interp, options, count,(i==0)?promise:rtObjectRef());
+      animateTo(key, props.get<float>(key), duration2, interp, options, count,(i==0)?promise:rtObjectRef());
     }
   }
 
@@ -850,6 +884,7 @@ rtError pxObject::animateTo(const char* prop, double to, double duration,
   {
     return RT_OK;
   }
+  
   animateToInternal(prop, to, duration, ((pxConstantsAnimation*)CONSTANTS.animationConstants.getPtr())->getInterpFunc(interp),
             (pxConstantsAnimation::animationOptions)options, count, promise, rtObjectRef());
   return RT_OK;
