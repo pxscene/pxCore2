@@ -1116,7 +1116,7 @@ void pxObject::update(double t)
     if (gDirtyRectsEnabled) {
         applyMatrix(m);
         context.setMatrix(m);
-        if (mIsDirty)
+        if (mIsDirty || mRepaint)
         {
             pxRect dirtyRect = getBoundingRectInScreenCoordinates();
             if (!dirtyRect.isEqual(mScreenCoordinates))

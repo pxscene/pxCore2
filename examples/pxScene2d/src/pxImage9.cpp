@@ -157,6 +157,12 @@ float pxImage9::getOnscreenHeight()
   return mh;
 }
 
+extern bool gDirtyRectsEnabled;
+void pxImage9::update(double t) {
+    if (gDirtyRectsEnabled)
+        mIsDirty = mScene->mDirty;
+    pxObject::update(t);
+}
 
 void pxImage9::draw() {
   if (getImageResource() != NULL && getImageResource()->isInitialized() && !mSceneSuspended)

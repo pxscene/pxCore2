@@ -274,12 +274,11 @@ void pxTextBox::update(double t)
   if( mNeedsRecalc ) {
 
      recalc();
-
-      mDirty=true;
+     mDirty = true;
    }
-   
-   pxText::update(t);
-   mDirty=false;
+
+    pxText::update(t);
+    mDirty = false;
 }
 /** This function needs to measure the text, taking into consideration
  *  wrapping, truncation and dimensions; but it should not render the
