@@ -67,7 +67,7 @@ private:
   int32_t mStatusCode;
   rtString mErrorMessage;
   rtString mHeaders;
-  rtString mDownloadedData;
+  rtValue mDownloadedData;
   rtEmitRef mEmit;
 };
 
