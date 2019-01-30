@@ -36,6 +36,7 @@ function Module(moduleName, appSceneContext) {
   this.get = function (options, callback) {
     return new Request(moduleName, appSceneContext, options, callback).end();
   };
+  this.Agent = Agent;
 }
 
 module.exports = Module;
@@ -100,10 +101,26 @@ function Request(moduleName, appSceneContext, options, callback) {
   }
 
   if (!isBlocked) {
+    var module = moduleName === 'http' ? http : (moduleName === 'https' ? https : (isV8 ? https : http2));
+
+    // for v8 http/https/http2 are the same, set protocol explicitly
     if (isV8 && !options.protocol) {
       options.protocol = defaultProtocol;
     }
-    var module = moduleName === 'http' ? http : (moduleName === 'https' ? https : (isV8 ? https : http2));
+
+    // convert a dummy Agent into a real one
+    if (options.agent instanceof Agent) {
+      var agentObj = options.agent;
+      var newAgent = isV8 ? null : (AgentCache[agentObj.uid] || new module.Agent(agentObj.options));
+      options.agent = AgentCache[agentObj.uid] = newAgent;
+      agentObj.once('destroy', function () {
+        if (newAgent) {
+          log.message(4, 'destroying the agent');
+          newAgent.destroy.apply(newAgent, arguments);
+        }
+      });
+    }
+
     httpRequest = module.request.call(null, options);
 
     httpRequest.once('response', function (httpResponse) {
@@ -285,6 +302,27 @@ function Response(httpResponse, appSceneContext, fromOrigin, toOrigin, withCrede
 Response.prototype = Object.create(EventEmitter.prototype);
 Response.prototype.constructor = Response;
 Response.prototype.blocked = false;
+
+function Agent(options) {
+  EventEmitter.call(this);
+
+  this.setMaxListeners(Infinity);
+
+  log.message(4, "creating a new agent");
+  this.options = options;
+  this.uid = Math.floor(100000 + Math.random() * 900000);
+
+  var self = this;
+  this.destroy = function () {
+    log.message(4, "emit agent 'destroy'");
+    self.emit('destroy');
+  };
+}
+
+Agent.prototype = Object.create(EventEmitter.prototype);
+Agent.prototype.constructor = Agent;
+
+var AgentCache = {};
 
 function Utils() {
 }

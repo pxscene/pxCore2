@@ -160,6 +160,7 @@ class rtFileDownloader
 public:
 
     static rtFileDownloader* instance();
+    static void deleteInstance();
     static void setCallbackFunctionThreadSafe(rtFileDownloadRequest* downloadRequest, void (*callbackFunction)(rtFileDownloadRequest*), void* owner);
     static void cancelDownloadRequestThreadSafe(rtFileDownloadRequest* downloadRequest, void* owner);
     static bool isDownloadRequestCanceled(rtFileDownloadRequest* downloadRequest, void* owner);

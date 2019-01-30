@@ -316,7 +316,7 @@ void pxWaylandContainer::isRemoteReady(bool ready)
 
 void pxWaylandContainer::sendPromise()
 {
-  if(mInitialized && !((rtPromise*)mReady.getPtr())->status())
+  if(mInitialized && !((rtPromise*)mReady.getPtr())->status() && !mBinary.isEmpty())
   {
     int32_t processNameIndex = mBinary.find(0, ' ');
     rtString processName;

@@ -460,9 +460,7 @@ pxObject::pxObject(pxScene2d* scene): rtObject(), mParent(NULL), mpx(0), mpy(0),
     mInteractive(true),
     mSnapshotRef(), mPainting(true), mClip(false), mMask(false), mDraw(true), mHitTest(true), mReady(),
     mFocus(false),mClipSnapshotRef(),mCancelInSet(true),mUseMatrix(false), mRepaint(true)
-#ifdef PX_DIRTY_RECTANGLES
     , mIsDirty(true), mRenderMatrix(), mScreenCoordinates(), mDirtyRect()
-#endif //PX_DIRTY_RECTANGLES
     ,mDrawableSnapshotForMask(), mMaskSnapshot(), mIsDisposed(false), mSceneSuspended(false)
   {
     pxObjectCount++;
@@ -501,17 +499,6 @@ void pxObject::sendPromise()
   if(mInitialized && !((rtPromise*)mReady.getPtr())->status())
   {
     mReady.send("resolve",this);
-  }
-}
-
-void pxObject::createNewPromise()
-{
-  // Only create a new promise if the existing one has been
-  // resolved or rejected already.
-  if(((rtPromise*)mReady.getPtr())->status())
-  {
-    rtLogDebug("CREATING NEW PROMISE\n");
-    mReady = new rtPromise();
   }
 }
 
@@ -1996,6 +1983,7 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   //
   // capabilities.network.cors          = 1
   // capabilities.network.corsResources = 1
+  // capabilities.network.http2         = 2
   //
   // capabilities.metrics.textureMemory = 1
 
@@ -2031,6 +2019,8 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
 #endif // ENABLE_CORS_FOR_RESOURCES
 
 #endif // ENABLE_ACCESS_CONTROL_CHECK
+
+  networkCapabilities.set("http2", 2);
 
   mCapabilityVersions.set("network", networkCapabilities);
 
