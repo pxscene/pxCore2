@@ -49,7 +49,7 @@ public:
   virtual rtError setText(const char* text);
   rtError removeResourceListener();
 
-  rtError textColor1(uint32_t& c) const
+  rtError textColorInternal(uint32_t& c) const
   {
 #ifdef PX_LITTLEENDIAN_PIXELS
 
@@ -69,7 +69,7 @@ public:
     return RT_OK;
   }
 
-  rtError setTextColor1(uint32_t c)
+  rtError setTextColorInternal(uint32_t c)
   {
     mTextColor[PX_RED  ] = (float)((c>>24) & 0xff) / 255.0f;
     mTextColor[PX_GREEN] = (float)((c>>16) & 0xff) / 255.0f;
@@ -81,7 +81,7 @@ public:
   rtError textColor(rtValue &c) const
   {
     uint32_t cc = 0;
-    rtError err = textColor1(cc);
+    rtError err = textColorInternal(cc);
     
     c = cc;
     
@@ -112,7 +112,7 @@ public:
     // Set via UINT32...
     uint32_t clr = c.toUInt32();
     
-    return setTextColor1(clr);
+    return setTextColorInternal(clr);
   }
 
   rtError fontUrl(rtString& v) const { getFontResource()->url(v); return RT_OK; }

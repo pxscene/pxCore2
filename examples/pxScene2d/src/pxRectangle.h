@@ -47,7 +47,7 @@ public:
 
   virtual void onInit() {mReady.send("resolve",this);}
 
-  rtError fillColor1(uint32_t& c) const
+  rtError fillColorInternal(uint32_t& c) const
   {
 #ifdef PX_LITTLEENDIAN_PIXELS
 
@@ -90,7 +90,7 @@ public:
   rtError fillColor(rtValue &c) const
   {
     uint32_t cc = 0;
-    rtError err = fillColor1(cc);
+    rtError err = fillColorInternal(cc);
     
     c = cc;
     
@@ -121,10 +121,10 @@ public:
     // Set via UINT32...
     uint32_t clr = c.toUInt32();
     
-    return setFillColorInternal(clr);
+    return setFillColorInternal(clr); 
   }
   
-  rtError lineColor1(uint32_t& c) const
+  rtError setLineColorInternal(uint32_t& c) const
   {
 #ifdef PX_LITTLEENDIAN_PIXELS
 
@@ -145,7 +145,7 @@ public:
   }
 
 
-  rtError setLineColor1(uint32_t c)
+  rtError setLineColorInternal(uint32_t c)
   {
 #ifdef PX_LITTLEENDIAN_PIXELS
     
@@ -168,7 +168,7 @@ public:
   rtError lineColor(rtValue &c) const
   {
     uint32_t cc = 0;
-    rtError err = lineColor1(cc);
+    rtError err = setLineColorInternal(cc);
     
     c = cc;
     
@@ -199,7 +199,7 @@ public:
     // Set via UINT32...
     uint32_t clr = c.toUInt32();
     
-    return setLineColor1(clr);
+    return setLineColorInternal(clr);
   }
   
 
