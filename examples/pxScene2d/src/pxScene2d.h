@@ -1350,6 +1350,7 @@ public:
   rtReadOnlyProperty(h, h, int32_t);
   rtProperty(showOutlines, showOutlines, setShowOutlines, bool);
   rtProperty(showDirtyRect, showDirtyRect, setShowDirtyRect, bool);
+  rtProperty(getDirtyRect, getDirtyRect, setDirtyRect, rtObjectRef);
   rtProperty(enableDirtyRect, enableDirtyRect, setEnableDirtyRect, bool);
   rtProperty(customAnimator, customAnimator, setCustomAnimator, rtFunctionRef);
   rtMethod1ArgAndReturn("loadArchive",loadArchive,rtString,rtObjectRef); 
@@ -1480,6 +1481,9 @@ public:
   rtError showDirtyRect(bool& v) const;
   rtError setShowDirtyRect(bool v);
 
+  rtError getDirtyRect(rtObjectRef& v) const;
+  rtError setDirtyRect(rtObjectRef v);
+    
   rtError enableDirtyRect(bool& v) const;
   rtError setEnableDirtyRect(bool v);
     

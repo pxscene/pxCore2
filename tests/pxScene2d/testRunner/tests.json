@@ -51,5 +51,6 @@
       {"url":"../tests/test_moduleApi.js", "title":"test_moduleApi","useBaseURI":"true"},
       {"url":"../tests/test_promiseNewCreation.js", "title":"test_promiseNewCreation","useBaseURI":"true"},
       {"url":"../tests/test_promiseNewCreationTextBox.js", "title":"test_promiseNewCreationTextBox","useBaseURI":"true"},
-      {"url":"../tests/test_screencapture_jar.js", "title":"test_screencapture_jar","useBaseURI":"true"}
+      {"url":"../tests/test_screencapture_jar.js", "title":"test_screencapture_jar","useBaseURI":"true"},
+      {"url":"../tests/dirty_rect_tests.js", "title":"dirty_rect_tests","useBaseURI":"true"}
 ]

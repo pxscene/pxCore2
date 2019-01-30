@@ -127,6 +127,30 @@ if( scene.capabilities != undefined && scene.capabilities.graphics != undefined 
     });
 }
 ////
+
+////
+if( scene.capabilities != undefined && scene.capabilities.graphics != undefined && scene.capabilities.graphics.dirtyRect == 1) {
+    // TODO  emulation mostly for egl targets right now.
+    var dirtyRectsTimer = undefined;
+        
+    var dirtyRects = scene.create({t:"image", url:"cursor.png",parent:scene.root,
+                                  interactive:false, a:0});
+        
+    scene.on("onMouseMove", function(e) {
+      if (dirtyRectsTimer != undefined) {
+        clearTimeout(dirtyRectsTimer);
+      }
+    dirtyRectsTimer = setTimeout( function()
+    {
+        dirtyRects.animate({a:0}, 2, scene.animation.TWEEN_LINEAR, scene.animation.LOOP,1);
+                                              }, 5000);
+                 dirtyRects.a = 1.0;
+                 dirtyRects.x = e.x-23;
+                 dirtyRects.y = e.y-10;
+                 });
+    }
+////
+        
   scene.root.on("onPreKeyDown", function(e) {
     var code  = e.keyCode;
     var flags = e.flags;
