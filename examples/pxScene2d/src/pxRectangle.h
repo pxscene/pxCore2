@@ -66,7 +66,7 @@ public:
     return RT_OK;
   }
 
-  rtError setFillColor1(uint32_t c)
+  rtError setFillColorInternal(uint32_t c)
   {
 #ifdef PX_LITTLEENDIAN_PIXELS
     
@@ -121,7 +121,7 @@ public:
     // Set via UINT32...
     uint32_t clr = c.toUInt32();
     
-    return setFillColor1(clr);
+    return setFillColorInternal(clr);
   }
   
   rtError lineColor1(uint32_t& c) const
