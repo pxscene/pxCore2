@@ -3392,10 +3392,12 @@ rtError pxScene2d::getDirtyRect(rtObjectRef& v) const {
     v = new rtMapObject();
     v.set("id",0);
 if (gDirtyRectsEnabled) {
-    v.set("left", mDirtyRect.left());
-    v.set("top", mDirtyRect.top());
-    v.set("right", mDirtyRect.right());
-    v.set("bottom", mDirtyRect.bottom());
+    //pxRect dirtyRectangle = mDirtyRect;
+   // dirtyRectangle.unionRect(mLastFrameDirtyRect);
+    v.set("x1", mDirtyRect.left());
+    v.set("y1", mDirtyRect.top());
+    v.set("x2", mDirtyRect.right());
+    v.set("y2", mDirtyRect.bottom());
 }
     return RT_OK;
 }
