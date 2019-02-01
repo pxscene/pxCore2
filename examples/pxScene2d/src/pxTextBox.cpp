@@ -270,6 +270,20 @@ void pxTextBox::draw()
 #endif
 }
 
+float pxTextBox::getOnscreenWidth()
+{
+    // TODO review max texture handling
+    rtRefT<pxTextBounds> bounds = getMeasurements()->getBounds();
+    return pxMax(mw, abs(bounds->x2()-bounds->x1()));
+}
+
+float pxTextBox::getOnscreenHeight()
+{
+    // TODO review max texture handling
+    rtRefT<pxTextBounds> bounds = getMeasurements()->getBounds();
+    return pxMax(mh, abs(bounds->y2()-bounds->y1()));
+}
+
 extern bool gDirtyRectsEnabled;
 void pxTextBox::update(double t)
 {
@@ -277,7 +291,7 @@ void pxTextBox::update(double t)
 
      recalc();
      if (gDirtyRectsEnabled)
-       mIsDirty = true;
+        mIsDirty = true;
    }
 
     pxText::update(t);
