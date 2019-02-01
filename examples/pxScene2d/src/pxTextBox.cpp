@@ -289,7 +289,7 @@ void pxTextBox::update(double t)
   if( mNeedsRecalc ) {
 
      recalc();
-     setIsDirtyRect(true);
+     setIsDirtyRectOn();
    }
 
     pxText::update(t);

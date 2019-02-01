@@ -142,7 +142,7 @@ void pxImageA::update(double t)
       mCachedFrame = mCurFrame;
       pxRect r(0, 0, mImageHeight, mImageWidth);
       mScene->invalidateRect(&r);
-      setIsDirtyRect(true);
+      setIsDirtyRectOn();
     }
   }
   pxObject::update(t);

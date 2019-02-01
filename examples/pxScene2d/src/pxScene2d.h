@@ -759,7 +759,7 @@ protected:
   void clearSnapshot(pxContextFramebufferRef fbo);
   //#ifdef PX_DIRTY_RECTANGLES
   void setDirtyRect(pxRect* r);
-  void setIsDirtyRect(bool v);
+  void setIsDirtyRectOn();
   pxRect getBoundingRectInScreenCoordinates();
   pxRect convertToScreenCoordinates(pxRect* r);
   //#endif //PX_DIRTY_RECTANGLES

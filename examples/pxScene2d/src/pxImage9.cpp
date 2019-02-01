@@ -159,7 +159,8 @@ float pxImage9::getOnscreenHeight()
 
 void pxImage9::update(double t) {
    
-    setIsDirtyRect(mScene->mDirty);
+    if (mScene->mDirty)
+        setIsDirtyRectOn();
     pxObject::update(t);
 }
 
