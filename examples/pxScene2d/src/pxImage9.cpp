@@ -157,10 +157,9 @@ float pxImage9::getOnscreenHeight()
   return mh;
 }
 
-extern bool gDirtyRectsEnabled;
 void pxImage9::update(double t) {
-    if (gDirtyRectsEnabled)
-        mIsDirty = mScene->mDirty;
+   
+    setIsDirtyRect(mScene->mDirty);
     pxObject::update(t);
 }
 

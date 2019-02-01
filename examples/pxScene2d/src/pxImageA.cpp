@@ -96,7 +96,6 @@ rtError pxImageA::setUrl(const char *s)
   return RT_OK;
 }
 
-extern bool gDirtyRectsEnabled;
 // animation happens here
 void pxImageA::update(double t)
 {
@@ -143,8 +142,7 @@ void pxImageA::update(double t)
       mCachedFrame = mCurFrame;
       pxRect r(0, 0, mImageHeight, mImageWidth);
       mScene->invalidateRect(&r);
-      if (gDirtyRectsEnabled)
-          mIsDirty = true;
+      setIsDirtyRect(true);
     }
   }
   pxObject::update(t);

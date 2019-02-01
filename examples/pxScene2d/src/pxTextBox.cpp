@@ -284,14 +284,12 @@ float pxTextBox::getOnscreenHeight()
     return pxMax(mh, abs(bounds->y2()-bounds->y1()));
 }
 
-extern bool gDirtyRectsEnabled;
 void pxTextBox::update(double t)
 {
   if( mNeedsRecalc ) {
 
      recalc();
-     if (gDirtyRectsEnabled)
-        mIsDirty = true;
+     setIsDirtyRect(true);
    }
 
     pxText::update(t);
