@@ -1265,6 +1265,8 @@ void pxObject::setIsDirtyRectOn()
     {
         mIsDirty = true;
     }
+    else
+        mIsDirty = false;
 }
 
 pxRect pxObject::getBoundingRectInScreenCoordinates()
@@ -3412,8 +3414,6 @@ rtError pxScene2d::getDirtyRect(rtObjectRef& v) const {
     v = new rtMapObject();
     v.set("id",0);
 if (gDirtyRectsEnabled) {
-    //pxRect dirtyRectangle = mDirtyRect;
-   // dirtyRectangle.unionRect(mLastFrameDirtyRect);
     v.set("x1", mDirtyRect.left());
     v.set("y1", mDirtyRect.top());
     v.set("x2", mDirtyRect.right());
