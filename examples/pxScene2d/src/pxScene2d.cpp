@@ -1261,7 +1261,7 @@ void pxObject::setDirtyRect(pxRect *r)
 
 void pxObject::setIsDirtyRectOn()
 {
-    //if (gDirtyRectsEnabled)
+    if (gDirtyRectsEnabled)
     {
         mIsDirty = true;
     }
