@@ -27,6 +27,7 @@ class pxServiceManager
 {
 public:
   static rtError findServiceManager(rtObjectRef &result);
+  static rtError findRtRemoteObject(const char* name, rtObjectRef &result);
 
 private:
   static rtRemoteEnvironment* mEnv;

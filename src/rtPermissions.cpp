@@ -412,6 +412,7 @@ const char* rtPermissions::type2str(Type t)
     case SERVICE: return "serviceManager";
     case FEATURE: return "features";
     case WAYLAND: return "applications";
+    case RTREMOTE: return "rtRemote";
     default: return NULL;
   }
 }
