@@ -1259,7 +1259,7 @@ void pxObject::setDirtyRect(pxRect *r)
   }
 }
 
-void pxObject::setIsDirtyRectOn()
+void pxObject::markDirty()
 {
     if (gDirtyRectsEnabled)
     {
@@ -3408,12 +3408,12 @@ rtError pxScene2d::setShowDirtyRect(bool v)
   return RT_OK;
 }
 
-rtError pxScene2d::getGDirtyRectsEnabled(bool& v) const {
+rtError pxScene2d::dirtyRectanglesEnabled(bool& v) const {
     v = gDirtyRectsEnabled;
     return RT_OK;
 }
 
-rtError pxScene2d::getDirtyRect(rtObjectRef& v) const {
+rtError pxScene2d::dirtyRectangle(rtObjectRef& v) const {
     v = new rtMapObject();
 if (gDirtyRectsEnabled) {
     v.set("x1", mDirtyRect.left());
@@ -3421,11 +3421,6 @@ if (gDirtyRectsEnabled) {
     v.set("x2", mDirtyRect.right());
     v.set("y2", mDirtyRect.bottom());
 }
-    return RT_OK;
-}
-
-rtError pxScene2d::setDirtyRect(rtObjectRef v)
-{
     return RT_OK;
 }
 
@@ -3755,8 +3750,8 @@ rtDefineProperty(pxScene2d, w);
 rtDefineProperty(pxScene2d, h);
 rtDefineProperty(pxScene2d, showOutlines);
 rtDefineProperty(pxScene2d, showDirtyRect);
-rtDefineProperty(pxScene2d, getDirtyRect);
-rtDefineProperty(pxScene2d, getGDirtyRectsEnabled);
+rtDefineProperty(pxScene2d, dirtyRectangle);
+rtDefineProperty(pxScene2d, dirtyRectanglesEnabled);
 rtDefineProperty(pxScene2d, enableDirtyRect);
 rtDefineProperty(pxScene2d, customAnimator);
 rtDefineMethod(pxScene2d, create);
