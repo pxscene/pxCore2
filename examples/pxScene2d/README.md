@@ -25,14 +25,17 @@
 1. Install required packages:
     
     ~~~~
-    sudo apt-get install git libglew-dev freeglut3 freeglut3-dev libgcrypt11-dev zlib1g-dev g++ libssl-dev nasm autoconf libtool cmake quilt
+    sudo apt-get install git libglew-dev freeglut3 freeglut3-dev libgcrypt11-dev zlib1g-dev g++ libssl-dev nasm autoconf libtool cmake quilt libuv-dev
     
     ~~~~
 
 ## macOS Setup 
 
 >Install Xcode, CMake and quilt
->   * Download the latest version of Xcode ( >= 9.2 <= 10) from https://developer.apple.com/xcode/download/ (XCode 10+ will currently not work!)
+>   * Download Xcode ( >= 9.2 <= 10) from https://developer.apple.com/xcode/download/
+>     * Xcode 10+ will currently not work, Xcode 9.4.1 will!
+>     * If you have Xcode 10+ installed, you can install a second version as follows:
+>     * Unpack the downloaded xip (e.g., `Xcode_9.4.1.xip`) and move the bundle to `/Applications/Xcode_9.4.1.app`. Then switch to Xcode 9: `sudo xcode-select --switch /Applications/Xcode_9.4.1.app`
 >   * Download and install the latest version of brew from https://brew.sh/
 >   * From terminal install dependencies: cmake, pkg-config, quilt, java.
 
