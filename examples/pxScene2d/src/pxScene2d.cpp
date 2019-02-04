@@ -575,10 +575,7 @@ rtError pxObject::Set(uint32_t i, const rtValue* value)
 
 rtError pxObject::Set(const char* name, const rtValue* value)
 {
-  if (gDirtyRectsEnabled) {
-      mIsDirty = true;
-      //mScreenCoordinates = getBoundingRectInScreenCoordinates();
-  }
+  markDirty();
     
   if (strcmp(name, "x") != 0 && strcmp(name, "y") != 0 &&  strcmp(name, "a") != 0)
   {
@@ -679,10 +676,8 @@ void pxObject::setParent(rtRef<pxObject>& parent)
     mParent = parent;
     if (parent)
       parent->mChildren.push_back(this);
-    if (gDirtyRectsEnabled) {
-        mIsDirty = true;
-        //mScreenCoordinates = getBoundingRectInScreenCoordinates();
-    }
+    
+      markDirty();
   }
 }
 
@@ -705,8 +700,7 @@ rtError pxObject::remove()
         mParent->mChildren.erase(it);
         mParent = NULL;
         
-        if (gDirtyRectsEnabled)
-            parent->mIsDirty = true;
+        parent->markDirty();
         parent->repaint();
         parent->repaintParents();
         mScene->mDirty = true;
@@ -725,8 +719,8 @@ rtError pxObject::removeAll()
   }
   mChildren.clear();
   
-  if (gDirtyRectsEnabled)
-    mIsDirty = true;
+  
+  markDirty();
   repaint();
   repaintParents();
   mScene->mDirty = true;
@@ -750,8 +744,8 @@ rtError pxObject::moveToFront()
   remove();
   setParent(parent);
   
-  if (gDirtyRectsEnabled)
-     mIsDirty = true;
+  
+  markDirty();
   parent->repaint();
   parent->repaintParents();
   mScene->mDirty = true;
@@ -777,8 +771,8 @@ rtError pxObject::moveToBack()
   std::vector<rtRef<pxObject> >::iterator it = parent->mChildren.begin();
   parent->mChildren.insert(it, this);
 
-  if (gDirtyRectsEnabled)
-      mIsDirty = true;
+  
+  markDirty();
   parent->repaint();
   parent->repaintParents();
   mScene->mDirty = true;
@@ -812,8 +806,8 @@ rtError pxObject::moveForward()
       return RT_OK;
 
   std::iter_swap(it_prev, it);
-  if (gDirtyRectsEnabled)
-      mIsDirty = true;
+  
+  markDirty();
   parent->repaint();
   parent->repaintParents();
   mScene->mDirty = true;
@@ -845,8 +839,8 @@ rtError pxObject::moveBackward()
       return RT_OK;
 
   std::iter_swap(it_prev, it);
-  if (gDirtyRectsEnabled)
-      mIsDirty = true;
+  
+  markDirty();
   parent->repaint();
   parent->repaintParents();
   mScene->mDirty = true;
@@ -1816,9 +1810,8 @@ bool pxObject::onTextureReady()
   {
     mScene->invalidateRect(NULL);
   }
-  if (gDirtyRectsEnabled) {
-    mIsDirty = true;
-  }
+  
+  markDirty();
   return false;
 }
 
