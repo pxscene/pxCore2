@@ -749,7 +749,7 @@ class rtHttpCacheTest : public testing::Test, public commonTestFns
 
     void handleDownloadRequest404Test()
     {
-      rtHttpCacheData data("http://www.pxscene.org/examples/px-reference/gallery/fancy1.js");
+      rtHttpCacheData data("http://www.sparkui.org/examples/gallery/fancy1.js");
       vector<rtString> headers;
       bool ret = data.handleDownloadRequest(headers,true);
       EXPECT_TRUE(false == ret); 
@@ -757,7 +757,7 @@ class rtHttpCacheTest : public testing::Test, public commonTestFns
   
     void handleDownloadRequestProperTest()
     {
-      rtHttpCacheData data("http://www.pxscene.org/examples/px-reference/gallery/fancy.js");
+      rtHttpCacheData data("http://www.sparkui.org/examples/gallery/fancy.js");
       vector<rtString> headers;
       bool ret = data.handleDownloadRequest(headers,true);
       EXPECT_TRUE(true == ret); 
@@ -765,14 +765,14 @@ class rtHttpCacheTest : public testing::Test, public commonTestFns
 
     void filePointerTest()
     {
-      rtHttpCacheData data("http://www.pxscene.org/examples/px-reference/gallery/fancy.js");
+      rtHttpCacheData data("http://www.sparkui.org/examples/gallery/fancy.js");
       EXPECT_TRUE(NULL == data.filePointer());
     }
 
     void deferCacheReadFailTest()
     {
       rtData d;
-      rtHttpCacheData data("http://www.pxscene.org/examples/px-reference/gallery/fancy.js");
+      rtHttpCacheData data("http://www.sparkui.org/examples/gallery/fancy.js");
       EXPECT_TRUE(RT_ERROR == data.deferCacheRead(d));
     }
 
