@@ -67,7 +67,7 @@ IntelliJ is an IDE to write and execute applications written in Java, Javascript
 
 ## Setting Breakpoints and Viewing Variables
 
-**NOTE:  Setting breakpoints via mouse clicks is only available when running local javascript files.  If running remote javascript files (e.g., from https://px-apps.sys.comcast.net, for instance), you must have inserted the keyword "debugger" within the javacript file for breakpoints to be active.**
+**NOTE:  Setting breakpoints via mouse clicks is only available when running local javascript files.  If running remote javascript files (e.g., from https://www.sparkui.org, for instance), you must have inserted the keyword "debugger" within the javacript file for breakpoints to be active.**
 
 **For running spark within IntelliJ and debugging local javascript files:**
 
