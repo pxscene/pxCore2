@@ -51,6 +51,7 @@ public:
   rtError isEnabled(bool& v) const { v = mEnabled; return RT_OK; }
   rtError isCORSRequestHeader(const rtString& headerName, bool& isCORSHeader) const;
   rtError isCredentialsRequestHeader(const rtString& headerName, bool& isCredentialsHeader) const;
+  rtError isSafeOrigin(const rtString& origin, bool& isSafe) const;
   rtError origin(rtString& v) const { v = mOrigin; return RT_OK; }
 
   rtError updateRequestForAccessControl(struct curl_slist** headerList) const;

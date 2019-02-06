@@ -345,16 +345,14 @@ Utils._packHeaders = function (headers) {
 };
 
 Utils._getRequestOrigin = function (options, defaultProtocol) {
+  // hostname: w/o port, nonempty if URL object, w/o auth, w/o [] if IPv6
+  // host: w/ port if URL object otherwise w/o port, nonempty if URL object, w/o auth, w/ [] if IPv6 and URL object
   var protocol = Utils._getRequestScheme(options, defaultProtocol);
-  var host = options.host || options.hostname || 'localhost';
-  var result = protocol + "://" + host;
-  if (options.port) {
-    var portPart = ':' + options.port;
-    if (result.substr(-portPart.length) !== portPart) {
-      result += portPart;
-    }
-  }
-  return result;
+  var host = options.hostname || options.host || 'localhost';
+  var v6 = (host.match(/:/g) || []).length > 1;
+  host = v6 ? '[' + host + ']' : host;
+  var port = options.port ? ':' + options.port : '';
+  return protocol + '//' + host + port;
 };
 
 Utils._extend = function (target, source) {
@@ -375,10 +373,7 @@ Utils._assert = function (condition, message) {
 };
 
 Utils._getRequestScheme = function (options, defaultProtocol) {
+  // valid scheme ends with ':'
   var scheme = options.protocol ? options.protocol : defaultProtocol;
-  var pos = scheme.indexOf(':');
-  if (pos !== -1) {
-    scheme = scheme.substring(0, scheme.indexOf(':'));
-  }
   return scheme.toLowerCase();
 };
