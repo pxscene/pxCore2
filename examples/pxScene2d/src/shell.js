@@ -26,14 +26,59 @@ px.import({ scene: 'px:scene.1.js',
   var scene = imports.scene;
   var keys  = imports.keys;
 
+  var Logger = function (logLevel) {
+      this.logLevels = [
+          'debug'  // 0
+          , 'info' // 1
+          , 'warn' // 2
+          , 'error'// 3
+          , 'fatal'// 4
+      ];
+      this.verbosity = this.logLevels.indexOf(logLevel) !== -1 ? this.logLevels.indexOf(logLevel) : this.logLevels.indexOf('warn');
+      
+      this.debug = function () {
+          if (this.verbosity <= this.logLevels.indexOf('debug'))
+          {
+              console.log.apply(this, arguments);
+          }
+      };
+      this.info = function () {
+          if (this.verbosity <= this.logLevels.indexOf('info'))
+          {
+              console.log.apply(this, arguments);
+          }
+      };
+      this.warn = function () {
+          if (this.verbosity <= this.logLevels.indexOf('warn'))
+          {
+              console.log.apply(this, arguments);
+          }
+      };
+      this.error = function () {
+          if (this.verbosity <= this.logLevels.indexOf('error'))
+          {
+              console.log.apply(this, arguments);
+          }
+      };
+      this.fatal = function () {
+          if (this.verbosity <= this.logLevels.indexOf('fatal'))
+          {
+              console.log.apply(this, arguments);
+          }
+      };
+  };
+  Logger.constructor = Logger;
+  var rtLogLevel = process.env.RT_LOG_LEVEL ?  process.env.RT_LOG_LEVEL : 'warn';
+  var logger = new Logger(rtLogLevel);
+
   function uncaughtException(err) {
     if (!isDuk && !isV8) {
-      console.log("Received uncaught exception " + err.stack);
+        logger.error("Received uncaught exception " + err.stack);
     }
   }
   function unhandledRejection(err) {
     if (!isDuk && !isV8) {
-      console.log("Received uncaught rejection.... " + err);
+        logger.error("Received uncaught rejection.... " + err);
     }
   }
   if (!isDuk && !isV8) {
@@ -68,7 +113,7 @@ px.import({ scene: 'px:scene.1.js',
   var url = queryStringModule.parse(urlModule.parse(module.appSceneContext.packageUrl).query).url;
   url = resolveSceneUrl(url)
   var originalURL = (!url || url==="") ? "browser.js":url;
-  console.log("url:",originalURL);
+  logger.info("url:",originalURL);
 
   var    blackBg = scene.create({t:"rect", fillColor:0x000000ff,x:0,y:0,w:1280,h:720,a:0,parent:scene.root});
   var childScene = scene.create({t:"scene", url: originalURL, parent:scene.root});
@@ -133,9 +178,9 @@ if( scene.capabilities != undefined && scene.capabilities.graphics != undefined 
 
     var loggingDisabled = process.env.PXSCENE_KEY_LOGGING_DISABLED;
     if (loggingDisabled && loggingDisabled === '1'){
-      console.log("onPreKeyDown value hidden");
+        logger.warn("onPreKeyDown value hidden");
     } else {
-      console.log("SHELL: onPreKeyDown:", code, " key: ", keys.name(code), ", ", flags);
+        logger.info("SHELL: onPreKeyDown:", code, " key: ", keys.name(code), ", ", flags);
     }
 
     if( keys.is_CTRL_ALT( flags ) )
@@ -171,9 +216,9 @@ if( scene.capabilities != undefined && scene.capabilities.graphics != undefined 
         fs.writeFile("screenshot.png", new Buffer(base64PNGData, 'base64'), function(err)
         {
           if (err)
-            console.log("Error creating screenshot.png");
+              logger.error("Error creating screenshot.png");
           else
-            console.log("Created screenshot.png");
+              logger.info("Created screenshot.png");
         });
       }
         e.stopPropagation();
@@ -200,7 +245,7 @@ if( scene.capabilities != undefined && scene.capabilities.graphics != undefined 
       {
         // console.log("SHELL: onPreKeyDown: Reloading url [ "+originalURL+" ] !!!  ############# ");
 
-        console.log("Reloading url: ", originalURL);
+        logger.warn("Reloading url: ", originalURL);
         childScene.url = originalURL;
         e.stopPropagation();
       }
@@ -210,7 +255,7 @@ if( scene.capabilities != undefined && scene.capabilities.graphics != undefined 
         // console.log("SHELL: onPreKeyDown: Loading HOME url [ "+"browser.js"+" ] !!!  ############# ");
 
         var homeURL = "browser.js";
-        console.log("Loading home url: ", homeURL);
+        logger.warn("Loading home url: ", homeURL);
         childScene.url = homeURL;
         e.stopPropagation();
       }
@@ -226,17 +271,17 @@ if( scene.capabilities != undefined && scene.capabilities.graphics != undefined 
   {
     var loggingDisabled = process.env.PXSCENE_KEY_LOGGING_DISABLED;
     if (loggingDisabled && loggingDisabled === '1'){
-      console.log("onPreKeyUp value hidden");
+        logger.warn("onPreKeyUp value hidden");
     } else {
-      console.log("in onPreKeyUp", e.keyCode, e.flags);
+        logger.info("in onPreKeyUp", e.keyCode, e.flags);
     }
     var code  = e.keyCode;
     var flags = e.flags;
 
     if (loggingDisabled && loggingDisabled === '1'){
-      console.log("onKeyUp value hidden");
+        logger.warn("onKeyUp value hidden");
     } else {
-      console.log("onKeyUp:", code, ", ", flags);
+        logger.info("onKeyUp:", code, ", ", flags);
     }
 
     // eat the ones we handle here
@@ -256,16 +301,16 @@ if( scene.capabilities != undefined && scene.capabilities.graphics != undefined 
       var code = e.keyCode; var flags = e.flags;
       var loggingDisabled = process.env.PXSCENE_KEY_LOGGING_DISABLED;
       if (loggingDisabled && loggingDisabled === '1'){
-        console.log("onKeyDown value hidden");
+          logger.warn("onKeyDown value hidden");
       } else {
-        console.log("onKeyDown shell:", code, ", ", flags);
+          logger.info("onKeyDown shell:", code, ", ", flags);
       }
 
       if( keys.is_CTRL_ALT( flags ) )
       {
         if(code == keys.R)   // ctrl-alt-r
         {
-          console.log("(shell.js) Reloading url: ", originalURL);
+          logger.warn("(shell.js) Reloading url: ", originalURL);
           childScene.url = originalURL;
           e.stopPropagation();
         }
@@ -273,7 +318,7 @@ if( scene.capabilities != undefined && scene.capabilities.graphics != undefined 
         if (code == keys.H)  // ctrl-alt-h
         {
           var homeURL = "browser.js";
-          console.log("Loading home url: ", homeURL);
+          logger.warn("Loading home url: ", homeURL);
           childScene.url = homeURL;
           e.stopPropagation();
         }
@@ -283,17 +328,17 @@ if( scene.capabilities != undefined && scene.capabilities.graphics != undefined 
 
   scene.root.on("onPreChar", function(e)
   {
-    console.log("in onchar");
+        logger.debug("in onchar");
     var c = e.charCode;
     var loggingDisabled = process.env.PXSCENE_KEY_LOGGING_DISABLED;
     if (loggingDisabled && loggingDisabled === '1'){
-      console.log("onChar value hidden");
+        logger.warn("onChar value hidden");
     } else {
-      console.log("onChar:", c);
+        logger.info("onChar:", c);
     }
     // TODO eating some "undesired" chars for now... need to redo this
     if (c<32) {
-      console.log("stop onChar");
+      logger.debug("stop onChar");
       e.stopPropagation();
     }
   });
