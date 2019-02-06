@@ -21,10 +21,14 @@ var isV8 = (typeof _isV8 != "undefined")?true:false;
 
 px.import({ scene: 'px:scene.1.js',
              keys: 'px:tools.keys.js',
+  url: 'url',
+  querystring: 'querystring'
 }).then( function ready(imports)
 {
   var scene = imports.scene;
   var keys  = imports.keys;
+  var queryStringModule = imports.querystring;
+  var urlModule = imports.url;
 
   function uncaughtException(err) {
     if (!isDuk && !isV8) {
