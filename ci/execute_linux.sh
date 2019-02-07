@@ -71,7 +71,8 @@ retVal=$?
 
 # Monitor testRunner ...
 count=0
-max_seconds=1500
+#in linux we have timeouts, so increasing the limit
+max_seconds=1800
 while [ "$retVal" -ne 0 ] &&  [ "$count" -ne "$max_seconds" ]; do
 	printf "\n [execute_linux.sh] snoozing for 30 seconds (%d of %d) \n" $count $max_seconds
 	sleep 30; # seconds
@@ -180,7 +181,8 @@ if [ "$retVal" -eq 0 ]
 	then
 	echo "************************* Valgrind reports success *************************";
 else
-	grep -A 100 -B 100 "definitely lost:" $VALGRINDLOGS
+  #search for leaked areas from valgrind logs
+	grep -A 100 -B 100 "definitely lost" $VALGRINDLOGS
 	leakcheck=$?
 	if [ "$leakcheck" -eq 0 ]
 	then
