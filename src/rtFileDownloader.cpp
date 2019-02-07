@@ -973,7 +973,7 @@ bool rtFileDownloader::downloadFromNetwork(rtFileDownloadRequest* downloadReques
       sslConnectTime = connectTime;
     }
 
-    rtLogWarn("download stats - connect time: %d ms, ssl time: %d ms, total time: %d ms, download speed: %d bytes/sec, url: %s",
+    rtLogInfo("download stats - connect time: %d ms, ssl time: %d ms, total time: %d ms, download speed: %d bytes/sec, url: %s",
               (int)(connectTime*1000), (int)((sslConnectTime - connectTime) * 1000),
               (int)(totalDownloadTime*1000), (int)downloadSpeed, downloadRequest->fileUrl().cString());
 
