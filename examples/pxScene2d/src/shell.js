@@ -35,7 +35,7 @@ px.import({ scene: 'px:scene.1.js',
           , 'fatal'// 4
       ];
       this.verbosity = this.logLevels.indexOf(logLevel) !== -1 ? this.logLevels.indexOf(logLevel) : this.logLevels.indexOf('warn');
-      
+
       this.debug = function () {
           if (this.verbosity <= this.logLevels.indexOf('debug'))
           {
@@ -73,12 +73,12 @@ px.import({ scene: 'px:scene.1.js',
 
   function uncaughtException(err) {
     if (!isDuk && !isV8) {
-        logger.error("Received uncaught exception " + err.stack);
+      logger.error("Received uncaught exception " + err.stack);
     }
   }
   function unhandledRejection(err) {
     if (!isDuk && !isV8) {
-        logger.error("Received uncaught rejection.... " + err);
+      logger.error("Received uncaught rejection.... " + err);
     }
   }
   if (!isDuk && !isV8) {
@@ -178,9 +178,9 @@ if( scene.capabilities != undefined && scene.capabilities.graphics != undefined 
 
     var loggingDisabled = process.env.PXSCENE_KEY_LOGGING_DISABLED;
     if (loggingDisabled && loggingDisabled === '1'){
-        logger.warn("onPreKeyDown value hidden");
+      logger.warn("onPreKeyDown value hidden");
     } else {
-        logger.info("SHELL: onPreKeyDown:", code, " key: ", keys.name(code), ", ", flags);
+      logger.info("SHELL: onPreKeyDown:", code, " key: ", keys.name(code), ", ", flags);
     }
 
     if( keys.is_CTRL_ALT( flags ) )
@@ -216,9 +216,9 @@ if( scene.capabilities != undefined && scene.capabilities.graphics != undefined 
         fs.writeFile("screenshot.png", new Buffer(base64PNGData, 'base64'), function(err)
         {
           if (err)
-              logger.error("Error creating screenshot.png");
+            logger.error("Error creating screenshot.png");
           else
-              logger.info("Created screenshot.png");
+            logger.info("Created screenshot.png");
         });
       }
         e.stopPropagation();
@@ -271,17 +271,17 @@ if( scene.capabilities != undefined && scene.capabilities.graphics != undefined 
   {
     var loggingDisabled = process.env.PXSCENE_KEY_LOGGING_DISABLED;
     if (loggingDisabled && loggingDisabled === '1'){
-        logger.warn("onPreKeyUp value hidden");
+      logger.warn("onPreKeyUp value hidden");
     } else {
-        logger.info("in onPreKeyUp", e.keyCode, e.flags);
+      logger.info("in onPreKeyUp", e.keyCode, e.flags);
     }
     var code  = e.keyCode;
     var flags = e.flags;
 
     if (loggingDisabled && loggingDisabled === '1'){
-        logger.warn("onKeyUp value hidden");
+      logger.warn("onKeyUp value hidden");
     } else {
-        logger.info("onKeyUp:", code, ", ", flags);
+      logger.info("onKeyUp:", code, ", ", flags);
     }
 
     // eat the ones we handle here
@@ -301,9 +301,9 @@ if( scene.capabilities != undefined && scene.capabilities.graphics != undefined 
       var code = e.keyCode; var flags = e.flags;
       var loggingDisabled = process.env.PXSCENE_KEY_LOGGING_DISABLED;
       if (loggingDisabled && loggingDisabled === '1'){
-          logger.warn("onKeyDown value hidden");
+        logger.warn("onKeyDown value hidden");
       } else {
-          logger.info("onKeyDown shell:", code, ", ", flags);
+        logger.info("onKeyDown shell:", code, ", ", flags);
       }
 
       if( keys.is_CTRL_ALT( flags ) )
@@ -328,13 +328,13 @@ if( scene.capabilities != undefined && scene.capabilities.graphics != undefined 
 
   scene.root.on("onPreChar", function(e)
   {
-        logger.debug("in onchar");
+    logger.debug("in onchar");
     var c = e.charCode;
     var loggingDisabled = process.env.PXSCENE_KEY_LOGGING_DISABLED;
     if (loggingDisabled && loggingDisabled === '1'){
-        logger.warn("onChar value hidden");
+      logger.warn("onChar value hidden");
     } else {
-        logger.info("onChar:", c);
+      logger.info("onChar:", c);
     }
     // TODO eating some "undesired" chars for now... need to redo this
     if (c<32) {
