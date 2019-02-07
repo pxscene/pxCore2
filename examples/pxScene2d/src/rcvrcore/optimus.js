@@ -369,7 +369,7 @@ function Application(props) {
       _readyResolve();
       _this.applicationReady();
     }, function rejection() {
-      var msg = "Looks like uri: '" + uri + "' is incorrect. Please check this link.";
+      var msg = "Failed to load uri: {" + uri + "}";
       _this.log("failed to launch Spark app: " + _this.id + ". " + msg);
       _readyReject(new Error("failed to create. " + msg));
       _this.applicationClosed();
