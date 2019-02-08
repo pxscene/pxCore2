@@ -3948,7 +3948,7 @@ rtDefineProperty(pxSceneContainer, serviceContext);
 
 rtError pxSceneContainer::setUrl(rtString url)
 {
-  rtLogInfo("pxSceneContainer::setUrl(%s)",url.cString());
+  rtLogDebug("pxSceneContainer::setUrl(%s)",url.cString());
 
 #ifdef ENABLE_PERMISSIONS_CHECK
   if (mScene != NULL && RT_OK != mScene->permissions()->allows(url, rtPermissions::DEFAULT))
@@ -3991,7 +3991,7 @@ rtError pxSceneContainer::ready(rtObjectRef& o) const
 {
   rtLogDebug("pxSceneContainer::ready\n");
   if (mScriptView) {
-    rtLogInfo("mScriptView is set!\n");
+    rtLogDebug("mScriptView is set!\n");
     return mScriptView->ready(o);
   }
   rtLogInfo("mScriptView is NOT set!\n");
@@ -4130,7 +4130,7 @@ pxScriptView::pxScriptView(const char* url, const char* /*lang*/, pxIViewContain
 
 void pxScriptView::runScript()
 {
-  rtLogInfo(__FUNCTION__);
+  rtLogDebug(__FUNCTION__);
 #endif // ifndef RUNINMAIN
 
 // escape url begin
@@ -4200,7 +4200,7 @@ void pxScriptView::runScript()
 		free(newBuffer);
 #endif
     mCtx->runScript(buffer);
-    rtLogInfo("pxScriptView::runScript() ending\n");
+    rtLogDebug("pxScriptView::runScript() ending\n");
 //#endif
   }
   #endif //ENABLE_RT_NODE
@@ -4325,7 +4325,7 @@ rtError pxScriptView::getContextID(int /*numArgs*/, const rtValue* /*args*/, rtV
 
 rtError pxScriptView::makeReady(int numArgs, const rtValue* args, rtValue* /*result*/, void* ctx)
 {
-  rtLogInfo(__FUNCTION__);
+  rtLogDebug(__FUNCTION__);
   if (ctx)
   {
     pxScriptView* v = (pxScriptView*)ctx;
