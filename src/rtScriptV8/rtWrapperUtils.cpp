@@ -205,7 +205,7 @@ rtWrapperSceneUpdateEnter();
 #ifndef RUNINMAIN
   pthread_mutex_lock(&sObjectMapMutex);
 #endif
-  rtLogInfo("clearing all persistent handles for: %u size:%u", contextId,
+  rtLogDebug("clearing all persistent handles for: %u size:%u", contextId,
     static_cast<unsigned>(objectMap.size()));
   vector<iterator> refs;
   for (iterator begin = objectMap.begin(), end = objectMap.end(); begin != end;)

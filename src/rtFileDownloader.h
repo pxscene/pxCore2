@@ -149,10 +149,11 @@ private:
 
 struct rtFileDownloadHandle
 {
-  rtFileDownloadHandle(CURL* handle) : curlHandle(handle), expiresTime(-1) {}
-  rtFileDownloadHandle(CURL* handle, double time) : curlHandle(handle), expiresTime(time) {}
+  rtFileDownloadHandle(CURL* handle) : curlHandle(handle), expiresTime(-1), origin() {}
+  rtFileDownloadHandle(CURL* handle, double time, rtString hostOrigin) : curlHandle(handle), expiresTime(time), origin(hostOrigin) {}
   CURL* curlHandle;
   double expiresTime;
+  rtString origin;
 };
 
 class rtFileDownloader
@@ -186,8 +187,8 @@ private:
 #ifdef ENABLE_HTTP_CACHE
     bool checkAndDownloadFromCache(rtFileDownloadRequest* downloadRequest,rtHttpCacheData& cachedData);
 #endif
-    CURL* retrieveDownloadHandle();
-    void releaseDownloadHandle(CURL* curlHandle, double expiresTime);
+    CURL* retrieveDownloadHandle(rtString& origin);
+    void releaseDownloadHandle(CURL* curlHandle, double expiresTime, rtString& origin );
     static void addFileDownloadRequest(rtFileDownloadRequest* downloadRequest);
     static void clearFileDownloadRequest(rtFileDownloadRequest* downloadRequest);
     //todo: hash mPendingDownloadRequests;
