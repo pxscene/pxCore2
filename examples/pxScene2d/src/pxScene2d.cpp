@@ -42,10 +42,6 @@
 #include "pxTextBox.h"
 #include "pxImage.h"
 
-#ifdef BUILD_WITH_PXPATH
-#include "pxPath.h"
-#endif
-
 #ifdef PX_SERVICE_MANAGER
 #include "pxServiceManager.h"
 #endif //PX_SERVICE_MANAGER
@@ -461,7 +457,7 @@ pxObject::pxObject(pxScene2d* scene): rtObject(), mParent(NULL), mpx(0), mpy(0),
     mSnapshotRef(), mPainting(true), mClip(false), mMask(false), mDraw(true), mHitTest(true), mReady(),
     mFocus(false),mClipSnapshotRef(),mCancelInSet(true),mUseMatrix(false), mRepaint(true)
     , mIsDirty(true), mRenderMatrix(), mScreenCoordinates(), mDirtyRect()
-    ,mDrawableSnapshotForMask(), mMaskSnapshot(), mIsDisposed(false), mSceneSuspended(false)
+    , mDrawableSnapshotForMask(), mMaskSnapshot(), mIsDisposed(false), mSceneSuspended(false)
   {
     pxObjectCount++;
     mScene = scene;
@@ -509,7 +505,7 @@ void pxObject::dispose(bool pumpJavascript)
     //rtLogInfo(__FUNCTION__);
     mIsDisposed = true;
     rtValue nullValue;
-    vector<animation>::iterator it = mAnimations.begin();
+    vector<pxAnimation>::iterator it = mAnimations.begin();
     for(;it != mAnimations.end();it++)
     {
       if ((*it).promise)
@@ -867,10 +863,10 @@ void pxObject::cancelAnimation(const char* prop, bool fastforward, bool rewind)
   mCancelInSet = false;
 
   // If an animation for this property is in progress we cancel it here
-  vector<animation>::iterator it = mAnimations.begin();
+  vector<pxAnimation>::iterator it = mAnimations.begin();
   while (it != mAnimations.end())
   {
-    animation& a = (*it);
+    pxAnimation& a = (*it);
     if (!a.cancelled && a.prop == prop)
     {
       pxAnimate* pAnimateObj = (pxAnimate*) a.animateObj.getPtr();
@@ -926,7 +922,7 @@ void pxObject::animateToInternal(const char* prop, double to, double duration,
                        (options & pxConstantsAnimation::OPTION_REWIND));
 
   // schedule animation
-  animation a;
+  pxAnimation a;
 
   a.cancelled = false;
   a.prop     = prop;
@@ -970,11 +966,11 @@ void pxObject::update(double t)
 #endif
 
   // Update animations
-  vector<animation>::iterator it = mAnimations.begin();
+  vector<pxAnimation>::iterator it = mAnimations.begin();
 
   while (it != mAnimations.end())
   {
-    animation& a = (*it);
+    pxAnimation& a = (*it);
 
     pxAnimate *animObj = (pxAnimate *)a.animateObj.getPtr();
 
@@ -2104,10 +2100,6 @@ rtError pxScene2d::create(rtObjectRef p, rtObjectRef& o)
     e = createTextBox(p,o);
   else if (!strcmp("image",t.cString()))
     e = createImage(p,o);
-#ifdef BUILD_WITH_PXPATH
-  else if (!strcmp("path",t.cString()))
-    e = createPath(p,o);
-#endif // BUILD_WITH_PXPATH
   else if (!strcmp("image9",t.cString()))
     e = createImage9(p,o);
   else if (!strcmp("imageA",t.cString()))
@@ -2207,15 +2199,6 @@ rtError pxScene2d::createImage(rtObjectRef p, rtObjectRef& o)
   o.send("init");
   return RT_OK;
 }
-#ifdef BUILD_WITH_PXPATH
-rtError pxScene2d::createPath(rtObjectRef p, rtObjectRef& o)
-{
-  o = new pxPath(this);
-  o.set(p);
-  o.send("init");
-  return RT_OK;
-}
-#endif // BUILD_WITH_PXPATH
 
 rtError pxScene2d::createImage9(rtObjectRef p, rtObjectRef& o)
 {
