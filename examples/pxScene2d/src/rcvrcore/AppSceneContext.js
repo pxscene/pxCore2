@@ -225,23 +225,23 @@ AppSceneContext.prototype.loadPackage = function(packageUri) {
         _this.getFile("package.json").then( function(packageFileContents) {
           var manifest = new SceneModuleManifest();
           manifest.loadFromJSON(packageFileContents);
-          console.info("AppSceneContext#loadScenePackage0");
+          //console.info("AppSceneContext#loadScenePackage0");
           _this.runScriptInNewVMContext(packageUri, moduleLoader, manifest.getConfigImport());
-          console.info("AppSceneContext#loadScenePackage0 done");
+          //console.info("AppSceneContext#loadScenePackage0 done");
         }).catch(function (e) {
-            console.info("AppSceneContext#loadScenePackage1");
+            //console.info("AppSceneContext#loadScenePackage1");
             _this.runScriptInNewVMContext(packageUri, moduleLoader, null);
-            console.info("AppSceneContext#loadScenePackage1 done");
+            //console.info("AppSceneContext#loadScenePackage1 done");
         });
       } else {
         var manifest = moduleLoader.getManifest();
-        console.info("AppSceneContext#loadScenePackage2");
+        //console.info("AppSceneContext#loadScenePackage2");
         _this.runScriptInNewVMContext(packageUri, moduleLoader, manifest.getConfigImport());
-        console.info("AppSceneContext#loadScenePackage2 done");
+        //console.info("AppSceneContext#loadScenePackage2 done");
       }
     })
     .catch(function (err) {
-      console.info("AppSceneContext#loadScenePackage3");
+      //console.info("AppSceneContext#loadScenePackage3");
       thisMakeReady(false, {});
       console.error("AppSceneContext#loadScenePackage: Error: Did not load fileArchive: Error=",err );
     });
@@ -527,18 +527,18 @@ if (false) {
 }
 */
 
-      console.log("Main Module: readyPromise=" + xModule.moduleReadyPromise);
+      //console.log("Main Module: readyPromise=" + xModule.moduleReadyPromise);
       if( !xModule.hasOwnProperty('moduleReadyPromise') || xModule.moduleReadyPromise === null ) {
-        console.log("Main module[" + self.packageUrl + "] about to notify. xModule.exports:"+(typeof xModule.exports));
+        //console.log("Main module[" + self.packageUrl + "] about to notify. xModule.exports:"+(typeof xModule.exports));
         self.innerscene.api = xModule.exports;
         this.makeReady(true, xModule.exports);
-        console.log("Main module[" + self.packageUrl + "] about to notify done");
+        //console.log("Main module[" + self.packageUrl + "] about to notify done");
       } else {
         xModule.moduleReadyPromise.then( function() {
-          console.log("Main module[" + self.packageUrl + "] about to notify. xModule.exports:"+(typeof xModule.exports));
+          //console.log("Main module[" + self.packageUrl + "] about to notify. xModule.exports:"+(typeof xModule.exports));
           self.innerscene.api = xModule.exports;
           self.makeReady(true, xModule.exports);
-          console.log("Main module[" + self.packageUrl + "] about to notify done");
+          //console.log("Main module[" + self.packageUrl + "] about to notify done");
         }).catch( function(err) {
           console.error("Main module[" + self.packageUrl + "]" + " load has failed - on failed imports: " + ", err=" + err);
           self.makeReady(false, {});

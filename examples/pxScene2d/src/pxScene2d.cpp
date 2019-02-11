@@ -3649,6 +3649,7 @@ rtError pxScene2d::getService(const char* name, const rtObjectRef& ctx, rtObject
 
     rtLogInfo("trying to get service for name: %s", name);
   #ifdef PX_SERVICE_MANAGER
+    rtError result = RT_OK;
     #ifdef ENABLE_PERMISSIONS_CHECK
     rtPermissionsRef serviceCheckPermissions = mPermissions;
     rtValue permissionsValue;
@@ -3661,17 +3662,52 @@ rtError pxScene2d::getService(const char* name, const rtObjectRef& ctx, rtObject
       }
     }
     if (serviceCheckPermissions != NULL && RT_OK != serviceCheckPermissions->allows(name, rtPermissions::SERVICE))
-      return RT_ERROR_NOT_ALLOWED;
-    #endif //ENABLE_PERMISSIONS_CHECK
-    rtObjectRef serviceManager;
-    rtError result = pxServiceManager::findServiceManager(serviceManager);
-    if (result != RT_OK)
     {
-      rtLogWarn("service manager not found");
-      return result;
+      rtLogWarn("does not have permissions to check the service manager for %s", name);
     }
-    result = serviceManager.sendReturns<rtObjectRef>("createService", mScriptView != NULL ? mScriptView->getUrl() : "", name, service);
-    rtLogInfo("create %s service result: %d", name, result);
+    else
+    #endif //ENABLE_PERMISSIONS_CHECK
+    {
+      rtObjectRef serviceManager;
+      result = pxServiceManager::findServiceManager(serviceManager);
+      if (result != RT_OK)
+      {
+        rtLogWarn("service manager not found");
+      }
+      else
+      {
+        result = serviceManager.sendReturns<rtObjectRef>("createService", mScriptView != NULL ? mScriptView->getUrl() : "", name, service);
+        rtLogInfo("create %s service result: %d", name, result);
+      }
+    }
+
+    if (result != RT_OK || service.getPtr() == NULL)
+    {
+      //if not found, search for a rtRemote object with the given name
+      rtLogInfo("searching rtRemote for %s", name);
+      #ifdef ENABLE_PERMISSIONS_CHECK
+      rtPermissionsRef rtRemoteCheckPermissions = serviceCheckPermissions;
+      if (rtRemoteCheckPermissions != NULL && RT_OK != rtRemoteCheckPermissions->allows(name, rtPermissions::RTREMOTE))
+      {
+        rtLogInfo("permission to access rtRemote for %s not allowed", name);
+        return RT_ERROR_NOT_ALLOWED;
+      }
+      else
+      #endif //ENABLE_PERMISSIONS_CHECK
+      {
+        rtObjectRef rtRemoteObject;
+        result = pxServiceManager::findRtRemoteObject(name, rtRemoteObject);
+        if (result != RT_OK)
+        {
+          rtLogWarn("rtRemote object %s not found", name);
+        }
+        else
+        {
+          rtLogInfo("rtRemote object %s found", name);
+          service = rtRemoteObject;
+        }
+      }
+    }
     return result;
   #else
     rtLogInfo("service manager not supported");
@@ -3912,7 +3948,7 @@ rtDefineProperty(pxSceneContainer, serviceContext);
 
 rtError pxSceneContainer::setUrl(rtString url)
 {
-  rtLogInfo("pxSceneContainer::setUrl(%s)",url.cString());
+  rtLogDebug("pxSceneContainer::setUrl(%s)",url.cString());
 
 #ifdef ENABLE_PERMISSIONS_CHECK
   if (mScene != NULL && RT_OK != mScene->permissions()->allows(url, rtPermissions::DEFAULT))
@@ -3955,7 +3991,7 @@ rtError pxSceneContainer::ready(rtObjectRef& o) const
 {
   rtLogDebug("pxSceneContainer::ready\n");
   if (mScriptView) {
-    rtLogInfo("mScriptView is set!\n");
+    rtLogDebug("mScriptView is set!\n");
     return mScriptView->ready(o);
   }
   rtLogInfo("mScriptView is NOT set!\n");
@@ -4094,7 +4130,7 @@ pxScriptView::pxScriptView(const char* url, const char* /*lang*/, pxIViewContain
 
 void pxScriptView::runScript()
 {
-  rtLogInfo(__FUNCTION__);
+  rtLogDebug(__FUNCTION__);
 #endif // ifndef RUNINMAIN
 
 // escape url begin
@@ -4164,7 +4200,7 @@ void pxScriptView::runScript()
 		free(newBuffer);
 #endif
     mCtx->runScript(buffer);
-    rtLogInfo("pxScriptView::runScript() ending\n");
+    rtLogDebug("pxScriptView::runScript() ending\n");
 //#endif
   }
   #endif //ENABLE_RT_NODE
@@ -4289,7 +4325,7 @@ rtError pxScriptView::getContextID(int /*numArgs*/, const rtValue* /*args*/, rtV
 
 rtError pxScriptView::makeReady(int numArgs, const rtValue* args, rtValue* /*result*/, void* ctx)
 {
-  rtLogInfo(__FUNCTION__);
+  rtLogDebug(__FUNCTION__);
   if (ctx)
   {
     pxScriptView* v = (pxScriptView*)ctx;
