@@ -22,6 +22,24 @@ limitations under the License.
 
 var loggingLevel = 1;
 
+function setLoggingLevel(level) {
+    loggingLevel = level;
+}
+//translate to logging level
+function rtl(mnemo) {
+    this.verbosity = [
+          'fatal' // 0
+        , 'error' // 1
+        , 'warn'  // 2
+        , 'info'  // 3
+        , 'debug' // 4
+    ];
+    var result = this.verbosity.indexOf(mnemo);
+    if (result === -1) {
+        result = this.verbosity.indexOf('warn');
+    }
+    return result;
+}
 function Logger(name) {
   this.name = name;
 }
@@ -53,8 +71,5 @@ Logger.prototype.message = function(levelNum, message) {
   console.log(this.fullMessage('MESSAGE:'+levelNum, message));
 };
 
-function setLoggingLevel(level) {
-  loggingLevel = level;
-}
 
-module.exports = {Logger:Logger, setLoggingLevel:setLoggingLevel};
+module.exports = {Logger:Logger, setLoggingLevel:setLoggingLevel, rtl:rtl};
