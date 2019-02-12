@@ -17,29 +17,34 @@ limitations under the License.
 */
 
 /**
- * Created by tcarro004 on 7/18/15.
+ * Created by tcarro004 on 7/18/15, updated by sgladk001c on 2/10/19.
  */
 
 var loggingLevel = 1;
 
-function setLoggingLevel(level) {
-    loggingLevel = level;
-}
-//translate to logging level
+var verbosity = [
+    'fatal'   // 0
+    , 'error' // 1
+    , 'warn'  // 2
+    , 'info'  // 3
+    , 'debug' // 4
+];
+
+//translates verbosity to logging level
 function rtl(mnemo) {
-    this.verbosity = [
-          'fatal' // 0
-        , 'error' // 1
-        , 'warn'  // 2
-        , 'info'  // 3
-        , 'debug' // 4
-    ];
-    var result = this.verbosity.indexOf(mnemo);
+
+    var result = verbosity.indexOf(mnemo);
+
     if (result === -1) {
-        result = this.verbosity.indexOf('warn');
+        result = verbosity.indexOf('warn');
     }
     return result;
 }
+
+function setLoggingLevel(level) {
+    loggingLevel = level;
+}
+
 function Logger(name) {
   this.name = name;
 }
