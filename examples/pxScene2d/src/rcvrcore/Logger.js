@@ -76,5 +76,4 @@ Logger.prototype.message = function(levelNum, message) {
   console.log(this.fullMessage('MESSAGE:'+levelNum, message));
 };
 
-
 module.exports = {Logger:Logger, setLoggingLevel:setLoggingLevel, rtl:rtl};
