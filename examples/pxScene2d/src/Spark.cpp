@@ -306,6 +306,7 @@ protected:
     rtLogInfo("called garbage collect during close");
     fflush(stdout);
 
+
     if (gDumpMemUsage)
     {
     rtLogInfo("before script pump 2");
