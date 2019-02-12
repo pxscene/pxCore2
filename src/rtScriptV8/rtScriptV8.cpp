@@ -451,7 +451,7 @@ fail:
   return false;
 }
 
-static rtString getTryCatchResult(Local<Context> context, const TryCatch &tryCatch)
+static rtString getTryCatchResult(Isolate* isolate, Local<Context> context, const TryCatch &tryCatch)
 {
   if (tryCatch.HasCaught()) {
     MaybeLocal<Value> val = tryCatch.StackTrace(context);
@@ -459,7 +459,7 @@ static rtString getTryCatchResult(Local<Context> context, const TryCatch &tryCat
       return rtString();
     }
     Local<Value> ret = val.ToLocalChecked();
-    String::Utf8Value trace(ret);
+    String::Utf8Value trace(isolate, ret);
     return rtString(*trace);
   }
   return rtString();
@@ -506,14 +506,14 @@ Local<Value> rtV8Context::loadV8Module(const rtString &name)
   v8::MaybeLocal<v8::Script> script = v8::Script::Compile(localContext, source);
 
   if (script.IsEmpty()) {
-    rtLogWarn("module '%s' compilation failed (%s)", name.cString(), getTryCatchResult(localContext, tryCatch).cString());
+    rtLogWarn("module '%s' compilation failed (%s)", name.cString(), getTryCatchResult(mIsolate, localContext, tryCatch).cString());
     return  Local<Value>();
   }
 
   v8::MaybeLocal<v8::Value> result = script.ToLocalChecked()->Run(localContext);
 
   if (result.IsEmpty() || !result.ToLocalChecked()->IsFunction()) {
-    rtLogWarn("module '%s' unexpected result (%s)", name.cString(), getTryCatchResult(localContext, tryCatch).cString());
+    rtLogWarn("module '%s' unexpected call result (%s)", name.cString(), getTryCatchResult(mIsolate, localContext, tryCatch).cString());
     return  Local<Value>();
   }
 
@@ -528,7 +528,7 @@ Local<Value> rtV8Context::loadV8Module(const rtString &name)
   mDirname = currentDirname;
 
   if (ret.IsEmpty()) {
-    rtLogWarn("module '%s' unexpected call result (%s)", name.cString(), getTryCatchResult(localContext, tryCatch).cString());
+    rtLogWarn("module '%s' unexpected call result (%s)", name.cString(), getTryCatchResult(mIsolate, localContext, tryCatch).cString());
     return  Local<Value>();
   }
 
@@ -551,7 +551,8 @@ static void requireCallback(const v8::FunctionCallbackInfo<v8::Value>& args)
   assert(args.Length() >= 1);
   assert(args[0]->IsString());
 
-  rtString moduleName = toString(args[0]->ToString());
+  v8::Isolate* isolate = args.GetIsolate();
+  rtString moduleName = toString(isolate, args[0]->ToString());
   args.GetReturnValue().Set(ctx->loadV8Module(moduleName));
 }
 
@@ -696,13 +697,13 @@ rtError rtV8Context::runScript(const char *script, rtValue* retVal /*= NULL*/, c
     Local<String> source = String::NewFromUtf8(mIsolate, script);
 
     // Compile the source code.
-    Local<Script> run_script = Script::Compile(source);
+    Local<Script> run_script = (Script::Compile(local_context, source)).ToLocalChecked();
 
     // Run the script to get the result.
-    Local<Value> result = run_script->Run();
+    Local<Value> result = (run_script->Run(local_context)).ToLocalChecked();
     // !CLF TODO: TEST FOR MT
     if (tryCatch.HasCaught()) {
-      String::Utf8Value trace(tryCatch.StackTrace());
+      String::Utf8Value trace(mIsolate, (tryCatch.StackTrace(local_context).ToLocalChecked()));
       rtLogWarn("%s", *trace);
 
       return RT_FAIL;
@@ -977,8 +978,8 @@ namespace rtScriptV8NodeUtils
     assert(args[0]->IsString());
     assert(args[1]->IsString());
 
-    rtString filePath = toString(args[0]->ToString());
-    rtString fileOpenMode = toString(args[1]->ToString());
+    rtString filePath = toString(isolate, args[0]->ToString());
+    rtString fileOpenMode = toString(isolate, args[1]->ToString());
 
     int mode = 0;
     size_t i, l;
@@ -1015,7 +1016,7 @@ namespace rtScriptV8NodeUtils
     assert(args.Length() == 1);
     assert(args[0]->IsString());
 
-    rtString filePath = toString(args[0]->ToString());
+    rtString filePath = toString(isolate, args[0]->ToString());
 
     uv_fs_t req;
     int ret = uv_fs_stat(loop, &req, filePath.cString(), NULL);
@@ -1071,8 +1072,8 @@ namespace rtScriptV8NodeUtils
     assert(args[0]->IsString());
     assert(args[1]->IsString());
 
-    rtString filePath = toString(args[0]->ToString());
-    rtString fileOpenMode = toString(args[1]->ToString());
+    rtString filePath = toString(isolate, args[0]->ToString());
+    rtString fileOpenMode = toString(isolate, args[1]->ToString());
 
     int flags = stringToFlags(fileOpenMode.cString());
     int mode = (int)args[2]->ToInteger()->Value();
@@ -1280,7 +1281,7 @@ namespace rtScriptV8NodeUtils
     assert(args.Length() >= 1);
     assert(args[0]->IsString());
 
-    rtString sourceCode = toString(args[0]->ToString());
+    rtString sourceCode = toString(isolate, args[0]->ToString());
 
     Locker                locker(isolate);
     Isolate::Scope isolate_scope(isolate);
@@ -1291,11 +1292,11 @@ namespace rtScriptV8NodeUtils
 
     TryCatch tryCatch(isolate);
     Local<String> source = String::NewFromUtf8(isolate, sourceCode.cString());
-    Local<Script> run_script = Script::Compile(source);
-    Local<Value> result = run_script->Run();
+    Local<Script> run_script = (Script::Compile(local_context, source)).ToLocalChecked();
+    Local<Value> result = (run_script->Run(local_context)).ToLocalChecked();
 
     if (tryCatch.HasCaught()) {
-      String::Utf8Value trace(tryCatch.StackTrace());
+      String::Utf8Value trace(isolate, (tryCatch.StackTrace(local_context)).ToLocalChecked());
       rtLogWarn("uvRunInContext: '%s'", *trace);
       return;
     }
@@ -1350,7 +1351,7 @@ namespace rtScriptV8NodeUtils
 
           Local<Script> script =
             Script::Compile(toContext, code).ToLocalChecked();
-          clone_property_method = Local<Function>::Cast(script->Run());
+          clone_property_method = Local<Function>::Cast((script->Run(toContext).ToLocalChecked()));
           assert(clone_property_method->IsFunction());
         }
         Local<Value> args[] = { global, key, sandboxObj };
@@ -1372,7 +1373,7 @@ namespace rtScriptV8NodeUtils
     assert(args[0]->IsString());
     assert(args[1]->IsObject());
 
-    rtString sourceCode = toString(args[0]->ToString());
+    rtString sourceCode = toString(isolate, args[0]->ToString());
     Local<Object> sandbox = args[1].As<Object>();
 
     Locker                locker(isolate);
@@ -1384,7 +1385,7 @@ namespace rtScriptV8NodeUtils
     v8::Persistent<v8::Context> pContext;
     pContext.Reset(isolate, toContext);
 
-    Local<Context> fromContext = isolate->GetCallingContext();
+    Local<Context> fromContext = isolate->GetCurrentContext();
 
     Context::Scope contextScope(toContext);
 
@@ -1408,7 +1409,8 @@ namespace rtScriptV8NodeUtils
     MaybeLocal<Value> result = run_script.ToLocalChecked()->Run(toContext);
 
     if (result.IsEmpty() || tryCatch.HasCaught()) {
-      String::Utf8Value trace(tryCatch.StackTrace());
+      MaybeLocal<Value> traceVal = tryCatch.StackTrace(toContext);
+      String::Utf8Value trace(isolate, traceVal.ToLocalChecked());
       rtLogWarn("uvRunInNewContext: '%s'", *trace);
       return;
     }
