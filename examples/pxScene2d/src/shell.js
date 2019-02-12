@@ -19,20 +19,20 @@ limitations under the License.
 var isDuk=(typeof Duktape != "undefined")?true:false;
 var isV8 = (typeof _isV8 != "undefined")?true:false;
 
-var Logger = require('rcvrcore/Logger').Logger;
-var setLoggingLevel = require('rcvrcore/Logger').setLoggingLevel;
-var rtl = require('rcvrcore/Logger').rtl;
 px.import({ scene: 'px:scene.1.js',
+    log: "px:tools.../Logger.js",
     keys: 'px:tools.keys.js'
 }).then( function ready(imports)
 {
   var scene = imports.scene;
   var keys  = imports.keys;
+  var rtl = imports.log.rtl;
+  var Logger = imports.log.Logger;
+  var setLoggingLevel = imports.log.setLoggingLevel;
 
-
-    var logger = new Logger('shell.js');
+  var logger = new Logger('shell.js');
   var rtLogLevel = process.env.RT_LOG_LEVEL ?  process.env.RT_LOG_LEVEL : 'warn';
-    setLoggingLevel(rtl(rtLogLevel));
+  setLoggingLevel(rtl(rtLogLevel));
 
   function uncaughtException(err) {
     if (!isDuk && !isV8) {
