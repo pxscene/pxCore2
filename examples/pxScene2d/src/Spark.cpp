@@ -308,9 +308,13 @@ protected:
 
     if (gDumpMemUsage)
     {
+    rtLogInfo("before script pump 2");
+    fflush(stdout);
       #ifdef RUNINMAIN
           script.pump();
       #endif
+    rtLogInfo("after script pump 2");
+    fflush(stdout);
       script.collectGarbage();
       rtLogInfo("pxobjectcount is [%d]",pxObjectCount);
 #ifndef PX_PLATFORM_DFB_NON_X11
