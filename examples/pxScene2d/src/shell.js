@@ -179,9 +179,9 @@ if( scene.capabilities != undefined && scene.capabilities.graphics != undefined 
         fs.writeFile("screenshot.png", new Buffer(base64PNGData, 'base64'), function(err)
         {
           if (err)
-              logger.message(rtl('error'),"Error creating screenshot.png");
+            logger.message(rtl('error'),"Error creating screenshot.png");
           else
-              logger.message(rtl('info'),"Created screenshot.png");
+            logger.message(rtl('info'),"Created screenshot.png");
         });
       }
         e.stopPropagation();
@@ -215,7 +215,7 @@ if( scene.capabilities != undefined && scene.capabilities.graphics != undefined 
       else
       if(code == keys.H)  // ctrl-alt-shft-h
       {
-                // logger.messageINFO("SHELL: onPreKeyDown: Loading HOME url [ "+"browser.js"+" ] !!!  ############# ");
+        // logger.message(rtl('info'), "SHELL: onPreKeyDown: Loading HOME url [ "+"browser.js"+" ] !!!  ############# ");
 
         var homeURL = "browser.js";
         logger.message(rtl('warn'),"Loading home url: ", homeURL);
@@ -301,7 +301,7 @@ if( scene.capabilities != undefined && scene.capabilities.graphics != undefined 
     }
     // TODO eating some "undesired" chars for now... need to redo this
     if (c<32) {
-        logger.message(rtl('debug'),"stop onChar");
+      logger.message(rtl('debug'),"stop onChar");
       e.stopPropagation();
     }
   });
