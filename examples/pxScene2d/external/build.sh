@@ -165,6 +165,26 @@ then
 
 fi
 
+if [ ! -e libnode-v8.11.2/libnode.dylib ] ||
+   [ "$(uname)" != "Darwin" ]
+then
+
+  banner "NODE 8"
+
+  wget https://nodejs.org/download/release/v8.11.2/node-v8.11.2.tar.gz
+  tar xzf node-v8.11.2.tar.gz
+  rm node-v8.11.2.tar.gz
+  mv node-v8.11.2 libnode-v8.11.2
+  cd libnode-v8.11.2
+  git apply ../node-v8.11.2_mods.patch
+  ./configure --shared
+  make "-j${make_parallel}"
+  ln -sf out/Release/obj.target/libnode.so.57 libnode.so.57
+  ln -sf libnode.so.57 libnode.so
+  cd ..
+
+fi
+
 #--------- uWebSockets
 if [ ! -e ./uWebSockets/libuWS.dylib ] ||
    [ "$(uname)" != "Darwin" ]

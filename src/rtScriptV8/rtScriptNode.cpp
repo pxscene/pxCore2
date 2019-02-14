@@ -409,8 +409,10 @@ void rtNodeContext::createEnvironment()
 #if !NODE_VERSION_AT_LEAST(8,9,4)
    array_buffer_allocator->set_env(mEnv);
 #endif
+#if !NODE_VERSION_AT_LEAST(8,11,2)
   mIsolate->SetAbortOnUncaughtExceptionCallback(
         ShouldAbortOnUncaughtException);
+#endif
 #ifdef ENABLE_DEBUG_MODE
 #if !NODE_VERSION_AT_LEAST(8,9,4)
   // Start debug agent when argv has --debug
