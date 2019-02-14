@@ -648,14 +648,17 @@ AppSceneContext.prototype.include = function(filePath, currentXModule) {
   var origFilePath = filePath;
 
   return new Promise(function (onImportComplete, reject) {
-    if (/^(px|url|querystring|htmlparser|crypto|oauth)$/.test(filePath)) {
+    if (/^(px|url|querystring|htmlparser|crypto|oauth|grpc|google-protobuf)$/.test(filePath)) {
       if (isDuk && filePath === 'htmlparser') {
         console.log("Not permitted to use the module " + filePath);
         reject("include failed due to module not permitted");
         return;
       }
       // built-ins
-      var modData = require(filePath);
+      var moduleName = filePath;
+      if (filePath === 'grpc')
+        moduleName = '@grpc/grpc-js';
+      var modData = require(moduleName);
       onImportComplete([modData, origFilePath]);
       return;
     } else if( filePath === 'fs' || filePath === 'os' || filePath === 'events') {
