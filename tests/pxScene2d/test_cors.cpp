@@ -233,6 +233,52 @@ public:
     EXPECT_EQ ((int)RT_OK, (int)e);
     EXPECT_EQ ((int)0, (int)result.compare("http://example.com"));
   }
+
+  void bypass_for_localhost_test()
+  {
+    rtError e;
+    bool passes;
+    rtString rawHeaderData;
+
+    rtCORS cors("http://example.com");
+
+    // local hosts handled by permissions
+    e = cors.passesAccessControlCheck("", false, "https://localhost", passes);
+    EXPECT_EQ ((int)RT_OK, (int)e);
+    EXPECT_TRUE (passes);
+    e = cors.passesAccessControlCheck("", false, "https://127.0.0.1", passes);
+    EXPECT_EQ ((int)RT_OK, (int)e);
+    EXPECT_TRUE (passes);
+    e = cors.passesAccessControlCheck("", false, "https://[::1]", passes);
+    EXPECT_EQ ((int)RT_OK, (int)e);
+    EXPECT_TRUE (passes);
+    e = cors.passesAccessControlCheck("", false, "https://localhost:50050", passes);
+    EXPECT_EQ ((int)RT_OK, (int)e);
+    EXPECT_TRUE (passes);
+    e = cors.passesAccessControlCheck("", false, "https://127.0.0.1:50050", passes);
+    EXPECT_EQ ((int)RT_OK, (int)e);
+    EXPECT_TRUE (passes);
+    e = cors.passesAccessControlCheck("", false, "https://[::1]:50050", passes);
+    EXPECT_EQ ((int)RT_OK, (int)e);
+    EXPECT_TRUE (passes);
+
+    // other loopback addresses
+    e = cors.passesAccessControlCheck("", false, "https://[0:0:0:0:0:0:0:1]", passes);
+    EXPECT_EQ ((int)RT_OK, (int)e);
+    EXPECT_FALSE (passes);
+    e = cors.passesAccessControlCheck("", false, "http://pacexi5:50050", passes);
+    EXPECT_EQ ((int)RT_OK, (int)e);
+    EXPECT_FALSE (passes);
+    e = cors.passesAccessControlCheck("", false, "http://ip6-localhost:50050", passes);
+    EXPECT_EQ ((int)RT_OK, (int)e);
+    EXPECT_FALSE (passes);
+    e = cors.passesAccessControlCheck("", false, "http://localhost4", passes);
+    EXPECT_EQ ((int)RT_OK, (int)e);
+    EXPECT_FALSE (passes);
+    e = cors.passesAccessControlCheck("", false, "http://::1", passes); // not valid IPv6 URL
+    EXPECT_EQ ((int)RT_OK, (int)e);
+    EXPECT_FALSE (passes);
+  }
 };
 
 TEST_F(corsTest, corsTests)
@@ -243,4 +289,5 @@ TEST_F(corsTest, corsTests)
   isCORSRequestHeader_test();
   isCredentialsRequestHeader_test();
   origin_test();
+  bypass_for_localhost_test();
 }
