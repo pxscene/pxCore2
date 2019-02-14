@@ -3,20 +3,14 @@
 #include <OpenGL/gl.h>
 #include <OpenGL/glu.h>
 #import <Cocoa/Cocoa.h>
+#include <map>
+#include "rtLog.h"
 
 bool glContextIsCurrent = false;
 
 extern NSOpenGLContext *openGLContext;
 
-NSOpenGLContext *internalGLContext = nil;
-NSOpenGLPixelFormat *internalPixelFormat = nil;
-
-
-pxError createGLContext()
-{
-    if (internalGLContext == nil)
-    {
-        NSOpenGLPixelFormatAttribute attribs[] =
+NSOpenGLPixelFormatAttribute attribs[] =
         {
             /*NSOpenGLPFADoubleBuffer,*/
             NSOpenGLPFAAllowOfflineRenderers, // lets OpenGL know this context is offline renderer aware
@@ -27,23 +21,50 @@ pxError createGLContext()
             NSOpenGLPFAOpenGLProfile,NSOpenGLProfileVersionLegacy/*, NSOpenGLProfileVersion3_2Core*/, // Core Profile is the future
             0
         };
-        
-        NSOpenGLPixelFormat *pf = [[NSOpenGLPixelFormat alloc] initWithAttributes:attribs];
-        internalPixelFormat   = [pf retain];
-        internalGLContext = [[NSOpenGLContext alloc] initWithFormat:internalPixelFormat shareContext:openGLContext];
+NSOpenGLPixelFormat *internalPixelFormat = [[[NSOpenGLPixelFormat alloc] initWithAttributes:attribs] retain];
+
+std::map<int, NSOpenGLContext *> internalContexts;
+
+
+pxError createGLContext(int id)
+{
+    NSOpenGLContext *context = nil;
+    if ( internalContexts.find(id) != internalContexts.end() )
+    {
+        context = internalContexts.at(id);
+    }
+    if (context == nil)
+    {
+        context = [[NSOpenGLContext alloc] initWithFormat:internalPixelFormat shareContext:openGLContext];
+        internalContexts[id] = context;
     }
     return PX_OK;
 }
 
-pxError makeInternalGLContextCurrent(bool current)
+pxError deleteInternalGLContext(int id)
+{
+  if ( internalContexts.find(id) != internalContexts.end() )
+  {
+    internalContexts.erase(id);
+  }
+  return PX_OK;
+}
+
+pxError makeInternalGLContextCurrent(bool current, int id)
 {
     if (current)
     {
-        if (internalGLContext == nil)
+        NSOpenGLContext *context = nil;
+        if ( internalContexts.find(id) != internalContexts.end() )
         {
-            createGLContext();
-            [internalGLContext makeCurrentContext];
-            
+            context = internalContexts.at(id);
+        }
+        if (context == nil)
+        {
+            createGLContext(id);
+            context = internalContexts[id];
+            [context makeCurrentContext];
+
             glEnable(GL_BLEND);
             glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
             glClearColor(0, 0, 0, 0);
@@ -51,7 +72,11 @@ pxError makeInternalGLContextCurrent(bool current)
         }
         else
         {
-            //TODO
+            [context makeCurrentContext];
+            glEnable(GL_BLEND);
+            glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+            glClearColor(0, 0, 0, 0);
+            glClear(GL_COLOR_BUFFER_BIT);
         }
         glContextIsCurrent = true;
     }
