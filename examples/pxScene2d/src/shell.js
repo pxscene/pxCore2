@@ -145,8 +145,6 @@ if (scene.dirtyRectanglesEnabled) {
         dirtyRects.animate({a:0}, 2, scene.animation.TWEEN_LINEAR, scene.animation.LOOP,1);
                                               }, 5000);
                  dirtyRects.a = 1.0;
-                 dirtyRects.x = e.x-23;
-                 dirtyRects.y = e.y-10;
                  });
     }
 ////
