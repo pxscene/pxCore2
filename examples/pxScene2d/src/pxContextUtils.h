@@ -21,6 +21,6 @@ limitations under the License.
 
 #include "pxCore.h"
 
-pxError makeInternalGLContextCurrent(bool current);
+pxError makeInternalGLContextCurrent(bool current, int id = 0);
 
 #endif //PX_CONTEXT_UTILS_H
