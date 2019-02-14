@@ -369,8 +369,9 @@ function Application(props) {
       _readyResolve();
       _this.applicationReady();
     }, function rejection() {
-      _this.log("failed to launch Spark app: " + _this.id);
-      _readyReject(new Error("failed to create"));
+      var msg = "Failed to load uri: " + uri;
+      _this.log("failed to launch Spark app: " + _this.id + ". " + msg);
+      _readyReject(new Error("failed to create. " + msg));
       _this.applicationClosed();
     });
     this.setProperties(props);
