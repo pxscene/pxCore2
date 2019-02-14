@@ -51,7 +51,7 @@ rtCORS::rtCORS(const rtString& origin)
     }
   }
 
-  rtLogInfo("%s : %s, origin '%s'", __FUNCTION__, mEnabled?"enabled":"disabled", mOrigin.cString());
+  rtLogDebug("%s : %s, origin '%s'", __FUNCTION__, mEnabled?"enabled":"disabled", mOrigin.cString());
 }
 
 rtCORS::~rtCORS()
