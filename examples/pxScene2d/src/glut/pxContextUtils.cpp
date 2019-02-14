@@ -18,6 +18,12 @@ limitations under the License.
 
 #include "pxContextUtils.h"
 
+pxError deleteInternalGLContext(int id)
+{
+  //TODO
+  return PX_OK;
+}
+
 pxError makeInternalGLContextCurrent(bool, int)
 {
   //TODO
