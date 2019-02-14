@@ -719,9 +719,7 @@ if (s && (strcmp(s,"1") == 0))
   rtValue dirtyRectsSetting;
   if (RT_OK == rtSettings::instance()->value("enableDirtyRects", dirtyRectsSetting))
   {
-#ifdef PX_DIRTY_RECTANGLES
       gDirtyRectsEnabled = dirtyRectsSetting.toString().compare("true") == 0;
-#endif
   }
   // OSX likes to pass us some weird parameter on first launch after internet install
   rtLogInfo("window width = %d height = %d", windowWidth, windowHeight);
