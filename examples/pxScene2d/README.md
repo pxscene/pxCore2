@@ -237,6 +237,7 @@ file:///home/username/directory/filename.js
 ## Developer CMake options
    ENABLE_THREAD_SANITIZER - Turn on this option to enable thread sanitizer support.  The default value is OFF
 
+
 ## On Mac OS X - Xcode Workspace 
 
 1. Get source code
