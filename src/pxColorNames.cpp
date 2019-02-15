@@ -207,7 +207,7 @@ rtError web2rgb(rtString &input, uint8_t &r, uint8_t &g, uint8_t &b, uint8_t &a)
   //
   if(clr[0] != '#')
   {
-    input.toLower(); // in-place;
+    input.toLowerAscii(); // in-place;
 
     uint32_t c = colorNames[ input ];
     
