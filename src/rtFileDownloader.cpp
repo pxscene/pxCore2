@@ -926,6 +926,8 @@ bool rtFileDownloader::downloadFromNetwork(rtFileDownloadRequest* downloadReques
     /* check for errors */
     if (res != CURLE_OK)
     {
+        printf("curl command failed !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! \n");
+        fflush(stdout);
         rtString proxyMessage("Using proxy:"); 
         if (useProxy)
         {
@@ -955,6 +957,8 @@ bool rtFileDownloader::downloadFromNetwork(rtFileDownloadRequest* downloadReques
             chunk.headerBuffer = NULL;
         }
         downloadRequest->setDownloadedData(NULL, 0);
+        printf("curl command failed 1 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! \n");
+        fflush(stdout);
         return false;
     }
 
