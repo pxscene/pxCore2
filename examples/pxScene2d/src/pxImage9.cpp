@@ -157,6 +157,7 @@ float pxImage9::getOnscreenHeight()
   return mh;
 }
 
+
 void pxImage9::draw() {
   if (getImageResource() != NULL && getImageResource()->isInitialized() && !mSceneSuspended)
   {
