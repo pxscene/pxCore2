@@ -61,7 +61,6 @@ public:
 
 
   virtual ~pxImage9();
-  virtual void update(double t);
   virtual void onInit();
   virtual void resourceReady(rtString readyResolution);
   virtual void resourceDirty();

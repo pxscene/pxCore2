@@ -157,13 +157,6 @@ float pxImage9::getOnscreenHeight()
   return mh;
 }
 
-void pxImage9::update(double t) {
-   
-    if (mScene->mDirty)
-        markDirty();
-    pxObject::update(t);
-}
-
 void pxImage9::draw() {
   if (getImageResource() != NULL && getImageResource()->isInitialized() && !mSceneSuspended)
   {
@@ -186,6 +179,7 @@ void pxImage9::resourceReady(rtString readyResolution)
     // Now that image is loaded, must force redraw;
     // dimensions could have changed.
     mScene->mDirty = true;
+    markDirty();
     pxObject* parent = mParent;
     if( !parent)
     {
