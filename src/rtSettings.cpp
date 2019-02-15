@@ -23,7 +23,6 @@
 #include <rapidjson/error/en.h>
 #include <rapidjson/filewritestream.h>
 #include <rapidjson/writer.h>
-
 #include <string.h>
 
 const int rtSettings::FILE_BUFFER_SIZE = 65536;
