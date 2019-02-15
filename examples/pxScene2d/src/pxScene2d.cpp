@@ -1140,7 +1140,6 @@ void pxObject::update(double t)
             mLastRenderMatrix = context.getMatrix();
             setDirtyRect(&dirtyRect);
 
-            mIsDirty = false;
             
         }
     }
@@ -1149,6 +1148,8 @@ void pxObject::update(double t)
   for(vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
   {
       if (gDirtyRectsEnabled) {
+          if (mIsDirty)
+          	(*it)->markDirty();
           int left = (*it)->mScreenCoordinates.left();
           int right = (*it)->mScreenCoordinates.right();
           int top = (*it)->mScreenCoordinates.top();
@@ -1183,6 +1184,7 @@ EXITSCENELOCK()
     if (gDirtyRectsEnabled) {
         //context.setMatrix(m);
         mRenderMatrix = m;
+        mIsDirty = false;
     }
 
   // Send promise
