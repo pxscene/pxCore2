@@ -138,7 +138,7 @@ extern uv_async_t asyncNewScript;
 extern uv_async_t gcTrigger;
 #endif // RUNINMAIN
 #endif //ENABLE_RT_NODE
-
+extern char *initScript;
 #ifdef ENABLE_VALGRIND
 #include <valgrind/callgrind.h>
 void startProfiling()
@@ -4174,11 +4174,9 @@ void pxScriptView::runScript()
     mReady = new rtPromise();
 #endif
 
-    mCtx->runFile("init.js");
-
-    char buffer[MAX_URL_SIZE + 50];
+    char buffer[MAX_URL_SIZE+strlen(initScript)+60];
     memset(buffer, 0, sizeof(buffer));
-    snprintf(buffer, sizeof(buffer), "loadUrl(\"%s\");", mUrl.cString());
+    snprintf(buffer, sizeof(buffer), "%s;loadUrl(\"%s\");", initScript,mUrl.cString());
     rtLogDebug("pxScriptView::runScript calling runScript with %s\n",mUrl.cString());
 #ifdef WIN32 // process \\ to /
 		unsigned int bufferLen = strlen(buffer);

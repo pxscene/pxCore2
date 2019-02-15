@@ -19,7 +19,8 @@
 // rtScript.cpp
 
 #include "rtScript.h"
-
+#include <rtFile.h>
+#include <string.h>
 #include "rtScriptHeaders.h"
 
 #include "rtPathUtils.h"
@@ -59,6 +60,7 @@ args_t *s_gArgs;
 #endif
 
 static int sLockCount;
+char* initScript = NULL;
 
 bool rtWrapperSceneUpdateHasLock()
 {
@@ -175,6 +177,14 @@ rtError rtScript::init()
 {
   if (false == mInitialized)
   {
+    rtData initData;
+    rtError e = rtLoadFile("init.js", initData);
+    if (RT_OK == e)
+    {
+      initScript = new char[initData.length()+1];
+      memset(initScript, 0, initData.length()+1);
+      memcpy(initScript, initData.data(), initData.length());
+    }
     #if defined(RTSCRIPT_SUPPORT_NODE) && defined(RTSCRIPT_SUPPORT_DUKTAPE) 
       static int useDuktape = -1;
     
@@ -210,6 +220,11 @@ rtError rtScript::init()
 
 rtError rtScript::term()
 {
+  if (NULL != initScript)
+  {
+    delete initScript;
+  }
+  initScript = NULL;
   return RT_OK;
 }
 
