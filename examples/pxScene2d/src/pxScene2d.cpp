@@ -4174,7 +4174,7 @@ void pxScriptView::runScript()
     mReady = new rtPromise();
 #endif
 
-    char buffer[MAX_URL_SIZE+strlen(initScript)+60];
+    char buffer[MAX_URL_SIZE+8060];
     memset(buffer, 0, sizeof(buffer));
     snprintf(buffer, sizeof(buffer), "%s;loadUrl(\"%s\");", initScript,mUrl.cString());
     rtLogDebug("pxScriptView::runScript calling runScript with %s\n",mUrl.cString());
