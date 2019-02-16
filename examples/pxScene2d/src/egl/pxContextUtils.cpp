@@ -212,7 +212,13 @@ void pxDeleteEglContext()
   }
 }
 
-pxError makeInternalGLContextCurrent(bool current)
+pxError deleteInternalGLContext(int)
+{
+  pxDeleteEglContext();
+  return PX_OK;
+}
+
+pxError makeInternalGLContextCurrent(bool current, int /*id*/)
 {
   if (current)
   {

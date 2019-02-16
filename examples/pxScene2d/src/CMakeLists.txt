@@ -258,7 +258,7 @@ elseif (WIN32)
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /EHs-c-")
     set(PXCORE_LIB_LOCATION ${PXCOREDIR}/build/win/Release)
     set(PXSCENE_LINK_DIRECTORIES ${PXCORE_LIB_LOCATION})
-    set(PLATFORM_SOURCES glut/pxContextUtils.cpp)
+    set(PLATFORM_SOURCES win/pxContextUtils.cpp)
     if (SUPPORT_NODE)
         set(PLATFORM_SOURCES ${PLATFORM_SOURCES}
     	    ${NODEDIR}/src/async-wrap.cc ${NODEDIR}/src/backtrace_win32.cc
