@@ -31,6 +31,8 @@ var loadFile = require('rcvrcore/utils/FileUtils').loadFile;
 var SceneModuleManifest = require('rcvrcore/SceneModuleManifest');
 var JarFileMap = require('rcvrcore/utils/JarFileMap');
 var AsyncFileAcquisition = require('rcvrcore/utils/AsyncFileAcquisition');
+var keys = require('rcvrcore/tools/keys');
+var shell = require('rcvrcore/Shell');
 var WrapObj = require('rcvrcore/utils/WrapObj');
 var http_wrap = require('rcvrcore/http_wrap');
 
@@ -106,7 +108,15 @@ AppSceneContext.prototype.loadScene = function() {
     this.basePackageUri = fullPath.substring(0, fullPath.lastIndexOf('/'));
   }
 
-if( fullPath !== null)
+if (fullPath.substring(0,8) == "shell.js")
+{
+  var Scene = require("rcvrcore/scene.1.js");
+  this.sceneWrapper = new Scene();
+  this.sceneWrapper._setNativeScene(this.innerscene, "");
+  this.sceneWrapper._setRPCController(this.rpcController);
+  this.shell = new shell(this.sceneWrapper,urlParts.query, this.packageUrl);
+}
+else if( fullPath !== null)
   this.loadPackage(fullPath);
 
 function terminateScene() {
@@ -190,6 +200,9 @@ function terminateScene() {
     this.isCloseEvtRcvd = false;
     this.isTermEvtRcvd = false;
     this.termEvent = null;
+    if (this.shell != null)
+      delete this.shell;
+    this.shell = null;
 }
 
 this.innerscene.on('onSceneTerminate', function(e) { 
