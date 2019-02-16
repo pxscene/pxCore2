@@ -862,7 +862,7 @@ class rtFileDownloaderTest : public testing::Test, public commonTestFns
 
     void downloadFileCacheDataUnAvailableTest()
     {
-      rtFileDownloadRequest* downloadRequest = new rtFileDownloadRequest("http://sparkui.org/examples/gallery/images/notfound",this);
+      rtFileDownloadRequest* downloadRequest = new rtFileDownloadRequest("http://www.sparkui.org/examples/gallery/images/notfound",this);
       downloadRequest->setHeaderData(NULL, 0);
       downloadRequest->setDownloadedData(NULL, 0);
       downloadRequest->setCallbackFunction(rtFileDownloaderTest::downloadCallback);
