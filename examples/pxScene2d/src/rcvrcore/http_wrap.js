@@ -128,10 +128,18 @@ function Request(moduleName, appSceneContext, options, callback) {
       if (response.blocked) {
         self.blocked = true;
         self.abort();
-        log.message(4, "emit 'blocked'");
-        self.emit('blocked', new Error("CORS block for: '" + toOrigin + "' from '" + fromOrigin + "'"));
+        try {
+          log.message(4, "emit 'blocked'");
+          self.emit('blocked', new Error("CORS block for: '" + toOrigin + "' from '" + fromOrigin + "'"));
+        } catch (e) {
+          log.message(1, e);
+        }
       } else {
-        self.emit('response', response);
+        try {
+          self.emit('response', response);
+        } catch (e) {
+          log.message(1, e);
+        }
       }
 
       // clean up
@@ -139,14 +147,22 @@ function Request(moduleName, appSceneContext, options, callback) {
       httpRequest.removeAllListeners();
     });
     httpRequest.once('error', function (e) {
-      self.emit('error', e);
+      try {
+        self.emit('error', e);
+      } catch (e) {
+        log.message(1, e);
+      }
 
       // clean up
       self.removeAllListeners();
       httpRequest.removeAllListeners();
     });
     httpRequest.once('timeout', function () {
-      self.emit('timeout');
+      try {
+        self.emit('timeout');
+      } catch (e) {
+        log.message(1, e);
+      }
 
       // clean up
       self.removeAllListeners();
@@ -262,17 +278,29 @@ function Response(httpResponse, appSceneContext, fromOrigin, toOrigin, withCrede
   if (!isBlocked) {
     var self = this;
     httpResponse.on('data', function (data) {
-      self.emit('data', data);
+      try {
+        self.emit('data', data);
+      } catch (e) {
+        log.message(1, e);
+      }
     });
     httpResponse.once('error', function (e) {
-      self.emit('error', e);
+      try {
+        self.emit('error', e);
+      } catch (e) {
+        log.message(1, e);
+      }
 
       // clean up
       self.removeAllListeners();
       httpResponse.removeAllListeners();
     });
     httpResponse.once('end', function () {
-      self.emit('end');
+      try {
+        self.emit('end');
+      } catch (e) {
+        log.message(1, e);
+      }
 
       // clean up
       self.removeAllListeners();
