@@ -389,10 +389,8 @@ px.import({
       user = 'world';
     }
     request.setName(user);
-    client.sayHello(request, function(err, response) {
-      console.log('Err:', err);
-      console.log('Greeting:', response.getMessage());
-    });
+    var arg1 = new Function("err", "response","console.log('Err:', err);console.log('Greeting:', response.getMessage());");
+    client.sayHello(request, arg1);
   }
 
   client_main();
