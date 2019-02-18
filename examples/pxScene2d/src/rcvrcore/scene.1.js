@@ -54,6 +54,8 @@ function Scene() {
         this.__defineGetter__("showDirtyRect", function() { return scene.showDirtyRect; });
         this.__defineSetter__("showDirtyRect", function(v) { scene.showDirtyRect = v; });
         this.__defineSetter__("customAnimator", function(v) { scene.customAnimator = v; });
+        this.__defineGetter__("dirtyRectangle", function() { return scene.dirtyRectangle; });
+        this.__defineGetter__("dirtyRectanglesEnabled", function() { return scene.dirtyRectanglesEnabled; });
       }
       else {
         this.w = scene.w;

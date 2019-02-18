@@ -269,16 +269,30 @@ void pxTextBox::draw()
     //getFontResource()->raiseDownloadPriority();
 #endif
 }
+
+float pxTextBox::getOnscreenWidth()
+{
+    // TODO review max texture handling
+    rtRefT<pxTextBounds> bounds = getMeasurements()->getBounds();
+    return pxMax(mw, abs(bounds->x2()-bounds->x1()));
+}
+
+float pxTextBox::getOnscreenHeight()
+{
+    // TODO review max texture handling
+    rtRefT<pxTextBounds> bounds = getMeasurements()->getBounds();
+    return pxMax(mh, abs(bounds->y2()-bounds->y1()));
+}
+
 void pxTextBox::update(double t)
 {
-  pxText::update(t);	 
-
   if( mNeedsRecalc ) {
 
      recalc();
-
+     markDirty();
    }
 
+    pxText::update(t);
 }
 /** This function needs to measure the text, taking into consideration
  *  wrapping, truncation and dimensions; but it should not render the

@@ -750,6 +750,7 @@ protected:
   //#ifdef PX_DIRTY_RECTANGLES
   bool mIsDirty;
   pxMatrix4f mRenderMatrix;
+  pxMatrix4f mLastRenderMatrix;
   pxRect mScreenCoordinates;
   pxRect mDirtyRect;
   //#endif //PX_DIRTY_RECTANGLES
@@ -758,6 +759,7 @@ protected:
   void clearSnapshot(pxContextFramebufferRef fbo);
   //#ifdef PX_DIRTY_RECTANGLES
   void setDirtyRect(pxRect* r);
+  void markDirty();
   pxRect getBoundingRectInScreenCoordinates();
   pxRect convertToScreenCoordinates(pxRect* r);
   //#endif //PX_DIRTY_RECTANGLES
@@ -1349,6 +1351,8 @@ public:
   rtReadOnlyProperty(h, h, int32_t);
   rtProperty(showOutlines, showOutlines, setShowOutlines, bool);
   rtProperty(showDirtyRect, showDirtyRect, setShowDirtyRect, bool);
+  rtReadOnlyProperty(dirtyRectangle, dirtyRectangle, rtObjectRef);
+  rtReadOnlyProperty(dirtyRectanglesEnabled, dirtyRectanglesEnabled, bool);
   rtProperty(enableDirtyRect, enableDirtyRect, setEnableDirtyRect, bool);
   rtProperty(customAnimator, customAnimator, setCustomAnimator, rtFunctionRef);
   rtMethod1ArgAndReturn("loadArchive",loadArchive,rtString,rtObjectRef); 
@@ -1479,6 +1483,10 @@ public:
   rtError showDirtyRect(bool& v) const;
   rtError setShowDirtyRect(bool v);
 
+  rtError dirtyRectangle(rtObjectRef& v) const;
+    
+  rtError dirtyRectanglesEnabled(bool& v) const;
+    
   rtError enableDirtyRect(bool& v) const;
   rtError setEnableDirtyRect(bool v);
     

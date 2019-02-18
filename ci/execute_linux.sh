@@ -71,6 +71,8 @@ retVal=$?
 
 # Monitor testRunner ...
 count=0
+
+#adding spark log a part of console.log increase execution time in linux in ci
 #in linux we have timeouts, so increasing the limit
 max_seconds=1800
 while [ "$retVal" -ne 0 ] &&  [ "$count" -ne "$max_seconds" ]; do
