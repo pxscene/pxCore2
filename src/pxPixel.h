@@ -21,6 +21,11 @@
 #ifndef PX_PIXELS_H
 #define PX_PIXELS_H
 
+#define PX_RED   0
+#define PX_GREEN 1
+#define PX_BLUE  2
+#define PX_ALPHA 3
+
 #include "pxCore.h"
 #include <inttypes.h>
 
@@ -59,9 +64,10 @@ struct pxPixel
   };//UNION
 };
 
+
 typedef pxPixel pxColor;
 
 #pragma pack(pop)
 
-#endif
+#endif // PX_PIXELS_H
 

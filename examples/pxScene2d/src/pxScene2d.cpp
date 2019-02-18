@@ -460,7 +460,7 @@ pxObject::pxObject(pxScene2d* scene): rtObject(), mParent(NULL), mpx(0), mpy(0),
     mInteractive(true),
     mSnapshotRef(), mPainting(true), mClip(false), mMask(false), mDraw(true), mHitTest(true), mReady(),
     mFocus(false),mClipSnapshotRef(),mCancelInSet(true),mUseMatrix(false), mRepaint(true)
-    , mIsDirty(true), mRenderMatrix(), mScreenCoordinates(), mDirtyRect()
+    , mIsDirty(true), mRenderMatrix(), mLastRenderMatrix(), mScreenCoordinates(), mDirtyRect()
     ,mDrawableSnapshotForMask(), mMaskSnapshot(), mIsDisposed(false), mSceneSuspended(false)
   {
     pxObjectCount++;
@@ -575,10 +575,7 @@ rtError pxObject::Set(uint32_t i, const rtValue* value)
 
 rtError pxObject::Set(const char* name, const rtValue* value)
 {
-  if (gDirtyRectsEnabled) {
-      mIsDirty = true;
-      //mScreenCoordinates = getBoundingRectInScreenCoordinates();
-  }
+  markDirty();
     
   if (strcmp(name, "x") != 0 && strcmp(name, "y") != 0 &&  strcmp(name, "a") != 0)
   {
@@ -679,10 +676,8 @@ void pxObject::setParent(rtRef<pxObject>& parent)
     mParent = parent;
     if (parent)
       parent->mChildren.push_back(this);
-    if (gDirtyRectsEnabled) {
-        mIsDirty = true;
-        //mScreenCoordinates = getBoundingRectInScreenCoordinates();
-    }
+    
+      markDirty();
   }
 }
 
@@ -704,6 +699,8 @@ rtError pxObject::remove()
         pxObject* parent = mParent;
         mParent->mChildren.erase(it);
         mParent = NULL;
+        
+        parent->markDirty();
         parent->repaint();
         parent->repaintParents();
         mScene->mDirty = true;
@@ -721,6 +718,9 @@ rtError pxObject::removeAll()
     (*it)->mParent = NULL;
   }
   mChildren.clear();
+  
+  
+  markDirty();
   repaint();
   repaintParents();
   mScene->mDirty = true;
@@ -743,7 +743,9 @@ rtError pxObject::moveToFront()
 
   remove();
   setParent(parent);
-
+  
+  
+  markDirty();
   parent->repaint();
   parent->repaintParents();
   mScene->mDirty = true;
@@ -769,6 +771,8 @@ rtError pxObject::moveToBack()
   std::vector<rtRef<pxObject> >::iterator it = parent->mChildren.begin();
   parent->mChildren.insert(it, this);
 
+  
+  markDirty();
   parent->repaint();
   parent->repaintParents();
   mScene->mDirty = true;
@@ -802,7 +806,8 @@ rtError pxObject::moveForward()
       return RT_OK;
 
   std::iter_swap(it_prev, it);
-
+  
+  markDirty();
   parent->repaint();
   parent->repaintParents();
   mScene->mDirty = true;
@@ -834,7 +839,8 @@ rtError pxObject::moveBackward()
       return RT_OK;
 
   std::iter_swap(it_prev, it);
-
+  
+  markDirty();
   parent->repaint();
   parent->repaintParents();
   mScene->mDirty = true;
@@ -1123,11 +1129,18 @@ void pxObject::update(double t)
             {
                 dirtyRect.unionRect(mScreenCoordinates);
             }
+            mLastRenderMatrix = context.getMatrix();
+            mScreenCoordinates = getBoundingRectInScreenCoordinates();
+            if (!dirtyRect.isEqual(mScreenCoordinates))
+            {
+                dirtyRect.unionRect(mScreenCoordinates);
+            }
+            
             mScene->invalidateRect(&dirtyRect);
-            mRenderMatrix = context.getMatrix();
+            mLastRenderMatrix = context.getMatrix();
             setDirtyRect(&dirtyRect);
 
-            mIsDirty = false;
+            
         }
     }
 
@@ -1135,6 +1148,8 @@ void pxObject::update(double t)
   for(vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
   {
       if (gDirtyRectsEnabled) {
+          if (mIsDirty)
+          	(*it)->markDirty();
           int left = (*it)->mScreenCoordinates.left();
           int right = (*it)->mScreenCoordinates.right();
           int top = (*it)->mScreenCoordinates.top();
@@ -1169,6 +1184,7 @@ EXITSCENELOCK()
     if (gDirtyRectsEnabled) {
         //context.setMatrix(m);
         mRenderMatrix = m;
+        mIsDirty = false;
     }
 
   // Send promise
@@ -1239,16 +1255,23 @@ void pxObject::setDirtyRect(pxRect *r)
   }
 }
 
+void pxObject::markDirty()
+{
+    if (gDirtyRectsEnabled)
+    {
+        mIsDirty = true;
+    }
+}
+
 pxRect pxObject::getBoundingRectInScreenCoordinates()
 {
   int w = getOnscreenWidth();
   int h = getOnscreenHeight();
   int x[4], y[4];
-  mRenderMatrix = context.getMatrix();
-  context.mapToScreenCoordinates(mRenderMatrix, 0,0,x[0],y[0]);
-  context.mapToScreenCoordinates(mRenderMatrix, w, h, x[1], y[1]);
-  context.mapToScreenCoordinates(mRenderMatrix, 0, h, x[2], y[2]);
-  context.mapToScreenCoordinates(mRenderMatrix, w, 0, x[3], y[3]);
+  context.mapToScreenCoordinates(mLastRenderMatrix, 0,0,x[0],y[0]);
+  context.mapToScreenCoordinates(mLastRenderMatrix, w, h, x[1], y[1]);
+  context.mapToScreenCoordinates(mLastRenderMatrix, 0, h, x[2], y[2]);
+  context.mapToScreenCoordinates(mLastRenderMatrix, w, 0, x[3], y[3]);
   int left, right, top, bottom;
 
   left = x[0];
@@ -1289,10 +1312,10 @@ pxRect pxObject::convertToScreenCoordinates(pxRect* r)
   int rectTop = r->top();
   int rectBottom = r->bottom();
   int x[4], y[4];
-  context.mapToScreenCoordinates(mRenderMatrix, rectLeft,rectTop,x[0],y[0]);
-  context.mapToScreenCoordinates(mRenderMatrix, rectRight, rectBottom, x[1], y[1]);
-  context.mapToScreenCoordinates(mRenderMatrix, rectLeft, rectBottom, x[2], y[2]);
-  context.mapToScreenCoordinates(mRenderMatrix, rectRight, rectTop, x[3], y[3]);
+  context.mapToScreenCoordinates(mLastRenderMatrix, rectLeft,rectTop,x[0],y[0]);
+  context.mapToScreenCoordinates(mLastRenderMatrix, rectRight, rectBottom, x[1], y[1]);
+  context.mapToScreenCoordinates(mLastRenderMatrix, rectLeft, rectBottom, x[2], y[2]);
+  context.mapToScreenCoordinates(mLastRenderMatrix, rectRight, rectTop, x[3], y[3]);
   int left, right, top, bottom;
 
   left = x[0];
@@ -1418,8 +1441,8 @@ void pxObject::drawInternal(bool maskPass)
   }
     
   if (gDirtyRectsEnabled) {
-    //mRenderMatrix = context.getMatrix();
-    mScreenCoordinates = getBoundingRectInScreenCoordinates();
+    mLastRenderMatrix = context.getMatrix();
+    //mScreenCoordinates = getBoundingRectInScreenCoordinates();
   }
 
   float c[4] = {1, 0, 0, 1};
@@ -1790,9 +1813,8 @@ bool pxObject::onTextureReady()
   {
     mScene->invalidateRect(NULL);
   }
-  if (gDirtyRectsEnabled) {
-    mIsDirty = true;
-  }
+  
+  markDirty();
   return false;
 }
 
@@ -1980,6 +2002,7 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   //
   // capabilities.graphics.svg          = 2
   // capabilities.graphics.cursor       = 1
+  // capabilities.graphics.colors       = 1
   //
   // capabilities.network.cors          = 1
   // capabilities.network.corsResources = 1
@@ -1992,6 +2015,7 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   rtObjectRef graphicsCapabilities = new rtMapObject;
 
   graphicsCapabilities.set("svg", 2);
+  graphicsCapabilities.set("colors", 1);
 
 #ifdef SPARK_CURSOR_SUPPORT
   graphicsCapabilities.set("cursor", 1);
@@ -3382,6 +3406,22 @@ rtError pxScene2d::setShowDirtyRect(bool v)
   return RT_OK;
 }
 
+rtError pxScene2d::dirtyRectanglesEnabled(bool& v) const {
+    v = gDirtyRectsEnabled;
+    return RT_OK;
+}
+
+rtError pxScene2d::dirtyRectangle(rtObjectRef& v) const {
+    v = new rtMapObject();
+if (gDirtyRectsEnabled) {
+    v.set("x1", mDirtyRect.left());
+    v.set("y1", mDirtyRect.top());
+    v.set("x2", mDirtyRect.right());
+    v.set("y2", mDirtyRect.bottom());
+}
+    return RT_OK;
+}
+
 rtError pxScene2d::enableDirtyRect(bool& v) const
 {
     v=mEnableDirtyRectangles;
@@ -3744,6 +3784,8 @@ rtDefineProperty(pxScene2d, w);
 rtDefineProperty(pxScene2d, h);
 rtDefineProperty(pxScene2d, showOutlines);
 rtDefineProperty(pxScene2d, showDirtyRect);
+rtDefineProperty(pxScene2d, dirtyRectangle);
+rtDefineProperty(pxScene2d, dirtyRectanglesEnabled);
 rtDefineProperty(pxScene2d, enableDirtyRect);
 rtDefineProperty(pxScene2d, customAnimator);
 rtDefineMethod(pxScene2d, create);

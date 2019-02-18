@@ -49,8 +49,10 @@
       {"url":"../tests/test_textWithoutParent.js", "title":"textWithoutParent","useBaseURI":"true"},
       {"url":"../tests/test_xre2-1658.js", "title":"test_xre2-1658","useBaseURI":"true"},
       {"url":"../tests/test_moduleApi.js", "title":"test_moduleApi","useBaseURI":"true"},
+      {"url":"../tests/test_pxWebColors_v1.js", "title":"test_pxWebColors_v1","useBaseURI":"true"},
       {"url":"../tests/test_promiseNewCreation.js", "title":"test_promiseNewCreation","useBaseURI":"true"},
       {"url":"../tests/test_promiseNewCreationTextBox.js", "title":"test_promiseNewCreationTextBox","useBaseURI":"true"},
       {"url":"../tests/test_screencapture_jar.js", "title":"test_screencapture_jar","useBaseURI":"true"},
-      {"url":"../tests/test_objects_alpha.js", "title":"test_objects_alpha","useBaseURI":"true"}
+      {"url":"../tests/test_objects_alpha.js", "title":"test_objects_alpha","useBaseURI":"true"},
+      {"url":"../tests/dirty_rect_tests.js", "title":"dirty_rect_tests","useBaseURI":"true"}
 ]
