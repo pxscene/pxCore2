@@ -16,16 +16,8 @@ limitations under the License.
 
 */
 
-#include "pxContextUtils.h"
-
-pxError deleteInternalGLContext(int id)
-{
-  //TODO
-  return PX_OK;
-}
-
-pxError makeInternalGLContextCurrent(bool, int)
-{
-  //TODO
-  return PX_OK;
-}
+px.import('http').then(http => {
+  http.get(`http://deelay.me/5000/http://example.com`, () => {
+    process.env.TEST_HTTP_5S_VAL = px.appQueryParams.val;
+  });
+});
