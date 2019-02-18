@@ -18,7 +18,6 @@ include(../../cmake/DukeDeps.cmake)
 
 set(WESTEROSINC ${EXTDIR}/westeros/external/install/include)
 set(WESTEROSSTUBINC ${EXTDIR}/westeros-stub)
-set(RTREMOTEINC ${PXCOREDIR}/remote)
 set(GOOGLETESTINC ${EXTDIR}/gtest/googletest/include ${EXTDIR}/gtest/googletest ${EXTDIR}/gtest/googlemock/include ${EXTDIR}/gtest/googlemock)
 set(PXCOREINC ${PXCOREDIR}/src)
 set(PXSCENEINC ${PXCOREDIR}/examples/pxScene2d/src)
@@ -69,7 +68,7 @@ message(STATUS "DUKE_LIBRARY_DIRS: ${DUKE_LIBRARY_DIRS}")
 # LINUX # LINUX # LINUX # LINUX # LINUX # LINUX # LINUX # LINUX # LINUX # LINUX # LINUX # LINUX # LINUX # 
 
 if (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
-    set(PXSCENETEST_LINK_DIRECTORIES ${PXSCENETEST_LINK_DIRECTORIES} ${PXCOREDIR}/remote)
+    set(PXSCENETEST_LINK_DIRECTORIES ${PXSCENETEST_LINK_DIRECTORIES} )
     set(PXSCENETEST_LINK_LIBRARIES Spark pxCore rtCore_s ${PXSCENETEST_LINK_LIBRARIES} rt dl pthread)
 
     if (HOSTNAME STREQUAL "raspberrypi")
