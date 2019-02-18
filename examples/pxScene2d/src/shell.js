@@ -127,6 +127,7 @@ if( scene.capabilities != undefined && scene.capabilities.graphics != undefined 
     });
 }
 ////
+
   scene.root.on("onPreKeyDown", function(e) {
     var code  = e.keyCode;
     var flags = e.flags;
