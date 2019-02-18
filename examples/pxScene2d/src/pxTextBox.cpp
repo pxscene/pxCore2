@@ -1000,6 +1000,7 @@ void pxTextBox::renderOneLine(const char * tempStr, float tempX, float tempY, fl
   {
       if (!clip() && noClipX < 0)
           std::swap(xPos, noClipX);
+		  
  #ifdef PXSCENE_FONT_ATLAS
      pxTexturedQuads quads;
      getFontResource()->renderTextToQuads(tempStr, size, sx, sy, quads, roundf(xPos), roundf(tempY));
