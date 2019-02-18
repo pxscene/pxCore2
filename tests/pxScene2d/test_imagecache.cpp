@@ -36,6 +36,7 @@ limitations under the License.
 #include <dlfcn.h>
 #include <fcntl.h>
 #include <semaphore.h>
+#include "rtLog.h"
 
 #include "test_includes.h" // Needs to be included last
 
@@ -1246,15 +1247,22 @@ class rtFileDownloaderTest : public testing::Test, public commonTestFns
 
     static void downloadCallback(rtFileDownloadRequest* fileDownloadRequest)
     {
+      rtLogInfo("Starting downloadCallback... ");
       rtHttpCacheData cachedData;
       if (fileDownloadRequest != NULL && fileDownloadRequest->callbackData() != NULL)
       {
+        rtLogInfo("::downloadCallback.  fileDownloadRequest not NULL and callback data not NULL. ");
         rtFileDownloaderTest* callbackData = (rtFileDownloaderTest*) fileDownloadRequest->callbackData();
         EXPECT_TRUE (callbackData->expectedHttpCode == fileDownloadRequest->httpStatusCode());
+        rtLogInfo( "fileDownloadRequest->httpStatusCode() is %ld", fileDownloadRequest->httpStatusCode());
         EXPECT_TRUE (callbackData->expectedStatusCode ==  fileDownloadRequest->downloadStatusCode());
+        rtLogInfo( "fileDownloadRequest->downloadStatusCode() is %d", fileDownloadRequest->downloadStatusCode());
         EXPECT_TRUE (callbackData->expectedCachePresence == rtFileDownloader::instance()->checkAndDownloadFromCache(fileDownloadRequest,cachedData));
+        rtLogInfo( "Finished checking for expected Cache Presence");
         sem_post(callbackData->testSem);
       }
+      rtLogInfo("Ending downloadCallback... ");
+      
     }
 
     static void defaultDownloadCallback(rtFileDownloadRequest* fileDownloadRequest)
