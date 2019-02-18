@@ -444,7 +444,7 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
         }
         else
         {
-            renderOneLine(accString.cString(), 0, tempY, sx, sy, size, lineWidth, render);
+            renderOneLine(accString.cString(), 0, tempY, sx, sy, size, lineWidth, render, std::strcmp(tempChar.c_str(), "\n") == 0 ? true : false);
 
             accString = (isContinuousLine && isEnd && !isLast) ? tempChar.c_str() : "";
         }
@@ -721,7 +721,7 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
 }
 
 
-void pxTextBox::renderOneLine(const char * tempStr, float tempX, float tempY, float sx, float sy, uint32_t size, float lineWidth, bool render)
+void pxTextBox::renderOneLine(const char * tempStr, float tempX, float tempY, float sx, float sy, uint32_t size, float lineWidth, bool render, bool isNewLineCase/* = false*/)
 {
   // TODO ignoring sx and sy now.
   sx = 1.0;
@@ -913,10 +913,10 @@ void pxTextBox::renderOneLine(const char * tempStr, float tempX, float tempY, fl
           setLineMeasurements(true, noClipX, tempY);
         }
         else {
-          //if (!isNewLineCase) {
+          if (!isNewLineCase) {
               setMeasurementBounds(false, noClipX+(charW+xPos), charH);
-          //}
-          //else setMeasurementBounds(false, noClipX+charW, charH);
+          }
+          else setMeasurementBounds(false, noClipX+charW, charH);
           if( charW < lineWidth) {
             setMeasurementBoundsX(true, xPos);
             setLineMeasurements(true, xPos, tempY);
@@ -998,10 +998,8 @@ void pxTextBox::renderOneLine(const char * tempStr, float tempX, float tempY, fl
   // Now, render the text
   if( render && getFontResource() != NULL)
   {
-      if (noClipX < 0)
-      std::swap(xPos, noClipX);
-     // if (!clip() && isNewLineCase)
-       //   xPos += noClipX;
+      if (!clip() && noClipX < 0)
+          std::swap(xPos, noClipX);
  #ifdef PXSCENE_FONT_ATLAS
      pxTexturedQuads quads;
      getFontResource()->renderTextToQuads(tempStr, size, sx, sy, quads, roundf(xPos), roundf(tempY));
