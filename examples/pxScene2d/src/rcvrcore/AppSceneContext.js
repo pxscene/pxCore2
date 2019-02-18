@@ -40,6 +40,7 @@ var SetTimeout = (isDuk || isV8)?timers.setTimeout:setTimeout;
 var ClearTimeout = (isDuk || isV8)?timers.clearTimeout:clearTimeout;
 var SetInterval = (isDuk || isV8)?timers.setInterval:setInterval;
 var ClearInterval = (isDuk || isV8)?timers.clearInterval:clearInterval;
+var console = (isDuk || isV8)?global.console:require('console_wrap');
 
 function AppSceneContext(params) {
 
