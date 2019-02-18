@@ -19,23 +19,23 @@ limitations under the License.
 "use strict";
 
 function trace(msg) {
-    print("[LOG TRACE] " + msg);
+    print("[SPARK TRACE] " + msg);
 }
 
 function warn(msg) {
-    print("[LOG WARN] " + msg);
+    print("[SPARK WARN] " + msg);
 }
 
 function error(msg) {
-    print("[LOG ERROR] " + msg);
+    print("[SPARK ERROR] " + msg);
 }
 
 function log(msg) {
-    print("[LOG LOG] " + msg);
+    print("[SPARK LOG] " + msg);
 }
 
 function info(msg) {
-    print("[LOG INFO] " + msg);
+    print("[SPARK INFO] " + msg);
 }
 
 module.exports = {

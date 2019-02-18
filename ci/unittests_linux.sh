@@ -27,7 +27,7 @@ grep "Global test environment tear-down" $TESTLOGS
 retVal=$?
 count=0
 corefile=1
-while [ "$retVal" -ne 0 ] &&  [ "$count" -ne 180 ] && [ "$corefile" -eq 1 ] ; do
+while [ "$retVal" -ne 0 ] &&  [ "$count" -ne 180 ] && [ "$corefile" -ne 0 ] ; do
 	sleep 60;
 	grep "Global test environment tear-down" $TESTLOGS
 	retVal=$?
