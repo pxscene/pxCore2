@@ -107,6 +107,16 @@ public:
   bool isEmpty() const { return (mLeft >= mRight) || (mTop >= mBottom); }
   
   int isEqual(const pxRect& r) { return (mLeft != r.left() || mTop != r.top() || mRight != r.right() || mBottom != r.bottom()) ? false : true; }
+
+  bool isOverlapping(const pxRect& r)
+    {
+        double x_overlap = pxMax(0, pxMin(right(), r.right()) - pxMax(left(), r.left()));
+        if (x_overlap != 0.0)
+            return true;
+        
+        double y_overlap = pxMax(0, pxMin(bottom(), r.bottom()) - pxMax(top(), r.top()));
+        return (y_overlap != 0.0);
+    }
 private:
     int32_t mLeft, mTop, mRight, mBottom;
 };
