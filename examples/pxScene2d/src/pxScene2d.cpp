@@ -1148,8 +1148,9 @@ void pxObject::update(double t)
   for(vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
   {
       if (gDirtyRectsEnabled) {
-          if (mIsDirty && mScreenCoordinates.isOverlapping((*it)->mScreenCoordinates))
-          (*it)->markDirty();
+          
+		  if (mIsDirty && mScreenCoordinates.isOverlapping((*it)->mScreenCoordinates))
+          	(*it)->markDirty();
           
           int left = (*it)->mScreenCoordinates.left();
           int right = (*it)->mScreenCoordinates.right();
