@@ -414,6 +414,7 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
     int i = 0;
     int lasti = 0;
     int numbytes = 1;
+    bool isNewLineDetected = false;
     while((charToMeasure = u8_nextchar((char*)text, &i)) != 0)
     {
       // Determine if the character is multibyte
@@ -444,7 +445,8 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
         }
         else
         {
-            renderOneLine(accString.cString(), 0, tempY, sx, sy, size, lineWidth, render, std::strcmp(tempChar.c_str(), "\n") == 0 ? true : false);
+            isNewLineDetected = std::strcmp(tempChar.c_str(), "\n") == 0 ? true : false;
+            renderOneLine(accString.cString(), 0, tempY, sx, sy, size, lineWidth, render, isNewLineDetected);
 
             accString = (isContinuousLine && isEnd && !isLast) ? tempChar.c_str() : "";
         }
@@ -591,7 +593,7 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
       lastLineNumber = lineNumber;
       if( mTruncation == pxConstantsTruncation::NONE && !mWordWrap ) {
         //rtLogDebug("CLF! Sending tempX instead of this->w(): %f\n", tempX);
-        renderOneLine(accString.cString(), 0, tempY, sx, sy, size, lineWidth, render);
+        renderOneLine(accString.cString(), 0, tempY, sx, sy, size, lineWidth, render, isNewLineDetected);
       } else {
         // check if we need to truncate this last line
         if( !lastLine && mXStopPos != 0 && mAlignHorizontal == pxConstantsAlignHorizontal::LEFT
@@ -998,7 +1000,7 @@ void pxTextBox::renderOneLine(const char * tempStr, float tempX, float tempY, fl
   // Now, render the text
   if( render && getFontResource() != NULL)
   {
-      if (!clip() && noClipX < 0)
+      if (!clip() && isNewLineCase && noClipX < 0)
           std::swap(xPos, noClipX);
 		  
  #ifdef PXSCENE_FONT_ATLAS
