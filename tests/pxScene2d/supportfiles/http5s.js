@@ -16,12 +16,8 @@ limitations under the License.
 
 */
 
-#ifndef __RT_TYPES_H__
-#define __RT_TYPES_H__
-
-enum class rtNetType      { NONE, IPV4, IPV6, ICMP };
-enum class rtCastType     { NONE, UNICAST, MULTICAST, BROADCAST };
-enum class rtConnType     { NONE, STREAM, DGRAM };
-// enum class rtResolverType { NONE, MULTICAST, FILE, UNICAST };
-
-#endif
+px.import('http').then(http => {
+  http.get(`http://deelay.me/5000/http://example.com`, () => {
+    process.env.TEST_HTTP_5S_VAL = px.appQueryParams.val;
+  });
+});

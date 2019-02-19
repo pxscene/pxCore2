@@ -268,6 +268,7 @@ set(RTCORE_FILES ${RTCORE_FILES} rtPromise.cpp)
 set(RTCORE_FILES ${RTCORE_FILES} rtObject.cpp)
 
 include_directories(AFTER ${EXTDIR}/nanosvg/src)
+include_directories(AFTER ${EXTDIR})
 
 if (OUTPUT_LIBS_LOCAL)
     message("Output pxCore and rtCore libs locally")
