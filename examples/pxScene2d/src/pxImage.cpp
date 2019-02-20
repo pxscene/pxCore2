@@ -229,6 +229,7 @@ void pxImage::resourceReady(rtString readyResolution)
     // Now that image is loaded, must force redraw;
     // dimensions could have changed.
     mScene->mDirty = true;
+    markDirty();
     pxObject* parent = mParent;
     if( !parent)
     {
