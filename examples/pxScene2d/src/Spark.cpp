@@ -318,8 +318,6 @@ protected:
       printf("Mem usage after script pump \n");
       fflush(stdout);
       script.collectGarbage();
-      printf("Mem usage after garbage collect \n");
-      fflush(stdout);
       rtThreadPool::globalInstance()->destroy();
       rtLogInfo("pxobjectcount is [%d]",pxObjectCount);
 #ifndef PX_PLATFORM_DFB_NON_X11
