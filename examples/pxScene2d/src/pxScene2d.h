@@ -51,6 +51,8 @@
 #include "pxCore.h"
 #include "pxIView.h"
 
+#include "pxObject.h"
+
 #include "pxMatrix4T.h"
 #include "pxInterpolators.h"
 #include "pxTexture.h"
@@ -114,7 +116,7 @@ struct pxAnimationTarget
   float to;
 };
 
-struct animation 
+struct pxAnimation
 {
   bool cancelled;
   bool flip;
@@ -153,6 +155,7 @@ class rtFileDownloadRequest;
 class pxScene2d;
 class pxScriptView;
 class pxFontManager;
+#if 0
 class pxObject: public rtObject
 {
 public:
@@ -749,8 +752,6 @@ protected:
   bool mRepaint;
   //#ifdef PX_DIRTY_RECTANGLES
   bool mIsDirty;
-  pxMatrix4f mRenderMatrix;
-  pxMatrix4f mLastRenderMatrix;
   pxRect mScreenCoordinates;
   pxRect mDirtyRect;
   //#endif //PX_DIRTY_RECTANGLES
@@ -779,6 +780,7 @@ protected:
   }
   void repaintParents();
 };
+#endif // 00
 
 class pxRoot: public pxObject
 {

@@ -23,7 +23,6 @@
 
 #include "pxConstants.h"
 class pxObject;
-struct animation;
 
 /**********************************************************************
  * 
@@ -69,7 +68,7 @@ class pxAnimate: public rtObject
     void setStatus(pxConstantsAnimation::animationStatus v);
     // update the animation details of every parameter
     // this is invoked on every parameter update during the process of animation
-    void update(const char* prop, struct animation* params, pxConstantsAnimation::animationStatus status);
+    void update(const char* prop, struct pxAnimation* params, pxConstantsAnimation::animationStatus status);
 
     class pxAnimationParams : public rtObject
     {
