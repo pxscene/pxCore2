@@ -76,6 +76,10 @@ function Scene() {
     return rpcContext;
   };
 
+  this.setBundledApp = function(value) {
+    return nativeScene.setBundledApp(value);
+  };
+
   this.logDebugMetrics = function() {
     return nativeScene.logDebugMetrics();
   };

@@ -16,12 +16,13 @@ limitations under the License.
 
 */
 
-#include "pxArchive.h"
-
 #include "test_includes.h" // Needs to be included last
-
 #define protected public
 #define private public
+#include "pxArchive.h"
+#include <rtThreadQueue.h>
+
+extern rtThreadQueue* gUIThreadQueue;
 
 class pxArchiveTest : public testing::Test
 {
@@ -233,6 +234,16 @@ class pxArchiveTest : public testing::Test
                     EXPECT_TRUE(d.length() == 0);
                 }
 
+                void pxArchiveisRelativeResourceTest()
+                {
+                    pxArchivePtr = new pxArchive();
+                    urlStr = "supportfiles/bundleApp.jar";
+	                  EXPECT_EQ(RT_OK, pxArchivePtr->initFromUrl(urlStr));
+                    rtData d;
+                    EXPECT_TRUE(true == pxArchivePtr->isRelativeResource("supportfiles/output.js"));
+                    EXPECT_TRUE(strcmp("supportfiles/", pxArchivePtr->mLocalUrlBase.cString()) == 0);
+                    EXPECT_TRUE(false == pxArchivePtr->isRelativeResource("http://output.js"));
+                }
 	private:
 		rtObjectRef obj;
 		int32_t sCode = 0;
@@ -263,5 +274,6 @@ TEST_F(pxArchiveTest, pxArchiveCompleteTest)
     pxArchivegetFileDataNonZipTest();
     pxArchivegetFileDataZipTest();
     pxArchivegetFileDataUnavailableTest();
+    pxArchiveisRelativeResourceTest();
 }
 
