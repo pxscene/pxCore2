@@ -311,12 +311,10 @@ protected:
 
     if (gDumpMemUsage)
     {
-      printf("Mem usage before script pump \n");
-      fflush(stdout);
       #ifdef RUNINMAIN
           script.pump();
       #endif
-      printf("Mem usage after script pump \n");
+      printf("Mem usage before garbage collect \n");
       fflush(stdout);
       script.collectGarbage();
       rtThreadPool::globalInstance()->destroy();
