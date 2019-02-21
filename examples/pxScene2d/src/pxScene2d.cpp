@@ -386,6 +386,7 @@ void populateAllAppDetails(rtString& appDetails)
 }
 
 
+rtDefineObject(pxRoot,pxObject);
 
 int gTag = 0;
 

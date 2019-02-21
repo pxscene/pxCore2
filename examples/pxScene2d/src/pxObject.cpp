@@ -1560,8 +1560,3 @@ rtDefineProperty(pxObject,m42);
 rtDefineProperty(pxObject,m43);
 rtDefineProperty(pxObject,m44);
 rtDefineProperty(pxObject,useMatrix);
-
-
-rtDefineObject(pxRoot,pxObject);
-
-
