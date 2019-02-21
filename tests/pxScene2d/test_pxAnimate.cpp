@@ -67,13 +67,15 @@ class pxAnimateTest : public testing::Test
          props.set("x",10.0);
          props.set("y",5.0);
          mAnimate = new pxAnimate(props, 0, pxConstantsAnimation::OPTION_OSCILLATE, 10, -1,  rtObjectRef(), (pxImage*)mImage.getPtr());
-         pxAnimation a;
+         
+         struct pxAnimation a;
          a.cancelled = false;
          a.prop = "x";
          a.from = 10.0;
          a.to = 2.0;
          a.actualCount = 1;
          a.duration = 1;
+         
          mAnimate->update(a.prop, &a, pxConstantsAnimation::STATUS_INPROGRESS);
          validateReadOnlyMembers(props, 0, pxConstantsAnimation::OPTION_OSCILLATE, 10, -1);
          EXPECT_TRUE (mAnimate->mCancelled == false);
