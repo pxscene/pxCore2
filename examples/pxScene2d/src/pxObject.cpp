@@ -333,7 +333,7 @@ void pxObject::setParent(rtRef<pxObject>& parent)
     if (parent)
       parent->mChildren.push_back(this);
 
-      markDirty();
+    markDirty();
   }
 }
 
@@ -375,10 +375,10 @@ rtError pxObject::removeAll()
   }
   mChildren.clear();
 
-
   markDirty();
   repaint();
   repaintParents();
+
   mScene->mDirty = true;
   return RT_OK;
 }
@@ -399,9 +399,8 @@ rtError pxObject::moveToFront()
 
   remove();
   setParent(parent);
-
-
   markDirty();
+
   parent->repaint();
   parent->repaintParents();
   mScene->mDirty = true;
@@ -427,8 +426,8 @@ rtError pxObject::moveToBack()
   std::vector<rtRef<pxObject> >::iterator it = parent->mChildren.begin();
   parent->mChildren.insert(it, this);
 
-
   markDirty();
+
   parent->repaint();
   parent->repaintParents();
   mScene->mDirty = true;
@@ -464,6 +463,7 @@ rtError pxObject::moveForward()
   std::iter_swap(it_prev, it);
 
   markDirty();
+
   parent->repaint();
   parent->repaintParents();
   mScene->mDirty = true;
@@ -497,6 +497,7 @@ rtError pxObject::moveBackward()
   std::iter_swap(it_prev, it);
 
   markDirty();
+
   parent->repaint();
   parent->repaintParents();
   mScene->mDirty = true;
