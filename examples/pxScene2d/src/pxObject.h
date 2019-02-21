@@ -241,10 +241,10 @@ public:
   rtError setCY(float v)      { cancelAnimation("cy"); mcy = v; return RT_OK;  }
   float sx()            const { return msx;}
   rtError sx(float& v)  const { v = msx; return RT_OK;  }
-  rtError setSX(float v)      { cancelAnimation("sx"); msx = v; return RT_OK;  }
+  virtual rtError setSX(float v) { cancelAnimation("sx"); msx = v; return RT_OK;  }
   float sy()            const { return msy;}
   rtError sy(float& v)  const { v = msx; return RT_OK;  }
-  rtError setSY(float v)      { cancelAnimation("sy"); msy = v; return RT_OK;  }
+  virtual rtError setSY(float v) { cancelAnimation("sy"); msy = v; return RT_OK;  }
   float a()             const { return ma; }
   rtError a(float& v)   const { v = ma; return RT_OK;   }
   rtError setA(float v)       { cancelAnimation("a"); ma = v; return RT_OK;   }
