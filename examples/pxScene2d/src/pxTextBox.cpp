@@ -1094,8 +1094,8 @@ void pxTextBox::setLineMeasurements(bool firstLine, float xPos, float yPos)
   }
   
   if(!firstLine) {
-    getMeasurements()->getCharLast()->setX(xPos);
-    getMeasurements()->getCharLast()->setY(yPos + ascent);
+    getMeasurements()->getCharLast()->setX(mx + xPos);
+    getMeasurements()->getCharLast()->setY(my + yPos + ascent);
   } else {
     if (lineNumber == 0) getMeasurements()->getCharFirst()->setX(xPos);
     getMeasurements()->getCharFirst()->setY(yPos + ascent);
