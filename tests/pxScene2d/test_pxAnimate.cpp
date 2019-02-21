@@ -68,7 +68,7 @@ class pxAnimateTest : public testing::Test
          props.set("y",5.0);
          mAnimate = new pxAnimate(props, 0, pxConstantsAnimation::OPTION_OSCILLATE, 10, -1,  rtObjectRef(), (pxImage*)mImage.getPtr());
          
-         struct pxAnimation a;
+         struct animation a;
          a.cancelled = false;
          a.prop = "x";
          a.from = 10.0;
