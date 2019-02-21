@@ -165,7 +165,7 @@ void pxObject::dispose(bool pumpJavascript)
     //rtLogInfo(__FUNCTION__);
     mIsDisposed = true;
     rtValue nullValue;
-    vector<pxAnimation>::iterator it = mAnimations.begin();
+    vector<animation>::iterator it = mAnimations.begin();
     for(;it != mAnimations.end();it++)
     {
       if ((*it).promise)
@@ -530,10 +530,10 @@ void pxObject::cancelAnimation(const char* prop, bool fastforward, bool rewind)
   mCancelInSet = false;
 
   // If an animation for this property is in progress we cancel it here
-  vector<pxAnimation>::iterator it = mAnimations.begin();
+  vector<animation>::iterator it = mAnimations.begin();
   while (it != mAnimations.end())
   {
-    pxAnimation& a = (*it);
+    animation& a = (*it);
     if (!a.cancelled && a.prop == prop)
     {
       pxAnimate* pAnimateObj = (pxAnimate*) a.animateObj.getPtr();
@@ -589,7 +589,7 @@ void pxObject::animateToInternal(const char* prop, double to, double duration,
                        (options & pxConstantsAnimation::OPTION_REWIND));
 
   // schedule animation
-  pxAnimation a;
+  animation a;
 
   a.cancelled = false;
   a.prop     = prop;
@@ -633,11 +633,11 @@ void pxObject::update(double t)
 #endif
 
   // Update animations
-  vector<pxAnimation>::iterator it = mAnimations.begin();
+  vector<animation>::iterator it = mAnimations.begin();
 
   while (it != mAnimations.end())
   {
-    pxAnimation& a = (*it);
+    animation& a = (*it);
 
     pxAnimate *animObj = (pxAnimate *)a.animateObj.getPtr();
 

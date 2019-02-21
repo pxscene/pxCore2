@@ -98,7 +98,7 @@ void pxAnimate::setStatus (pxConstantsAnimation::animationStatus status)
     mStatus = status;
 }
 
-void pxAnimate::update (const char* prop, struct pxAnimation* params, pxConstantsAnimation::animationStatus status)
+void pxAnimate::update (const char* prop, struct animation* params, pxConstantsAnimation::animationStatus status)
 {
   if (NULL != mCurrDetails.getPtr())
   {

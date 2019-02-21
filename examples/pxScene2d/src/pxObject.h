@@ -639,7 +639,7 @@ protected:
 //  rtRef<pxObject> mParent;
   pxObject* mParent;
   std::vector<rtRef<pxObject> > mChildren;
-//  vector<pxAnimation> mAnimations;
+//  vector<animation> mAnimations;
   float mpx, mpy, mcx, mcy, mx, my, ma, mr;
 #ifdef ANIMATION_ROTATE_XYZ
   float mrx, mry, mrz;
@@ -680,7 +680,7 @@ protected:
 
   pxScene2d* mScene;
 
-  std::vector<pxAnimation> mAnimations;
+  std::vector<animation> mAnimations;
   pxContextFramebufferRef mDrawableSnapshotForMask;
   pxContextFramebufferRef mMaskSnapshot;
   bool mIsDisposed;

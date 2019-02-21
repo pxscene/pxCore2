@@ -116,7 +116,7 @@ struct pxAnimationTarget
   float to;
 };
 
-struct pxAnimation
+struct animation
 {
   bool cancelled;
   bool flip;
