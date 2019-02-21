@@ -106,6 +106,10 @@ using namespace rtScriptV8NodeUtils;
 bool gIsPumpingJavaScript = false;
 #endif
 
+#if NODE_VERSION_AT_LEAST(8,11,2)
+#define USE_NODE_PLATFORM
+#endif
+
 namespace node
 {
 class Environment;
@@ -409,10 +413,8 @@ void rtNodeContext::createEnvironment()
 #if !NODE_VERSION_AT_LEAST(8,9,4)
    array_buffer_allocator->set_env(mEnv);
 #endif
-#if !NODE_VERSION_AT_LEAST(8,11,2)
   mIsolate->SetAbortOnUncaughtExceptionCallback(
         ShouldAbortOnUncaughtException);
-#endif
 #ifdef ENABLE_DEBUG_MODE
 #if !NODE_VERSION_AT_LEAST(8,9,4)
   // Start debug agent when argv has --debug
@@ -436,8 +438,14 @@ void rtNodeContext::createEnvironment()
   }
 #else
 #if HAVE_INSPECTOR
-//     if( !mEnv->inspector_agent()->IsStarted() )
-//         mEnv->inspector_agent()->Start(mPlatform, nullptr, debug_options);
+#ifdef USE_NODE_PLATFORM
+  if (debug_options.inspector_enabled())
+  {
+    rtString currentPath;
+    rtGetCurrentDirectory(currentPath);
+    node::InspectorStart(mEnv, currentPath.cString());
+  }
+#endif //USE_NODE_PLATFORM
 #endif
 #endif
 #endif
@@ -463,9 +471,14 @@ void rtNodeContext::createEnvironment()
 #else
       bool more;
 #ifdef ENABLE_NODE_V_6_9
+#ifndef USE_NODE_PLATFORM
       v8::platform::PumpMessageLoop(mPlatform, mIsolate);
+#endif //USE_NODE_PLATFORM
 #endif //ENABLE_NODE_V_6_9
       more = uv_run(mEnv->event_loop(), UV_RUN_ONCE);
+#ifdef USE_NODE_PLATFORM
+      node::DrainVMTasks();
+#endif //USE_NODE_PLATFORM
       if (more == false)
       {
         EmitBeforeExit(mEnv);
@@ -1081,10 +1094,15 @@ rtError rtScriptNode::pump()
     Isolate::Scope isolate_scope(mIsolate);
     HandleScope     handle_scope(mIsolate);    // Create a stack-allocated handle scope.
 #ifdef ENABLE_NODE_V_6_9
+#ifndef USE_NODE_PLATFORM
     v8::platform::PumpMessageLoop(mPlatform, mIsolate);
+#endif //USE_NODE_PLATFORM
 #endif //ENABLE_NODE_V_6_9
     mIsolate->RunMicrotasks();
     uv_run(uv_default_loop(), UV_RUN_NOWAIT);//UV_RUN_ONCE);
+#ifdef USE_NODE_PLATFORM
+    node::DrainVMTasks();
+#endif //USE_NODE_PLATFORM
     // Enable this to expedite garbage collection for testing... warning perf hit
     if (mTestGc)
     {
@@ -1197,9 +1215,6 @@ void rtScriptNode::init2(int argc, char** argv)
     Init(&argc, const_cast<const char**>(argv), &exec_argc, &exec_argv);
 #endif
 
-//    mPlatform = platform::CreateDefaultPlatform();
-//    V8::InitializePlatform(mPlatform);
-
 #ifdef ENABLE_NODE_V_6_9
    rtLogWarn("using node version %s\n", NODE_VERSION);
    V8::InitializeICU();
@@ -1208,6 +1223,11 @@ void rtScriptNode::init2(int argc, char** argv)
 #else
    V8::InitializeExternalStartupData(argv[0]);
 #endif
+
+#ifdef USE_NODE_PLATFORM
+   node::CreatePlatform();
+   mPlatform = nullptr;
+#else // USE_NODE_PLATFORM
    Platform* platform = platform::CreateDefaultPlatform();
    mPlatform = platform;
    V8::InitializePlatform(platform);
@@ -1216,6 +1236,8 @@ void rtScriptNode::init2(int argc, char** argv)
    tracing::TraceEventHelper::SetTracingController(new v8::TracingController());
 #endif
    V8::Initialize();
+#endif // else // USE_NODE_PLATFORM
+
    Isolate::CreateParams params;
    array_buffer_allocator = new ArrayBufferAllocator();
    const char* source1 = "function pxSceneFooFunction(){ return 0;}";
@@ -1273,6 +1295,9 @@ rtError rtScriptNode::term()
       delete mPlatform;
       mPlatform = NULL;
     }
+#ifdef USE_NODE_PLATFORM
+    node::FreePlatform();
+#endif // USE_NODE_PLATFORM
 
   //  if(mPxNodeExtension)
   //  {

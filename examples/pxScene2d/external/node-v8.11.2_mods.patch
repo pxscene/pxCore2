@@ -94,7 +94,7 @@ index 53c91a6..9abbb20 100644
    debug('connect: dns options', dnsopts);
    self._host = host;
 diff --git a/examples/pxScene2d/external/libnode-v8.11.2/src/node.cc b/examples/pxScene2d/external/libnode-v8.11.2/src/node.cc
-index 67c8a80..9d4b3dd 100644
+index 67c8a80..d7fc1ad 100644
 --- a/examples/pxScene2d/external/libnode-v8.11.2/src/node.cc
 +++ b/examples/pxScene2d/external/libnode-v8.11.2/src/node.cc
 @@ -184,7 +184,10 @@ static const int v8_default_thread_pool_size = 4;
@@ -151,7 +151,29 @@ index 67c8a80..9d4b3dd 100644
  static void PrintErrorString(const char* format, ...) {
    va_list ap;
    va_start(ap, format);
-@@ -1838,6 +1867,9 @@ void AppendExceptionLine(Environment* env,
+@@ -1142,6 +1171,10 @@ bool DomainsStackHasErrorHandler(const Environment* env) {
+ }
+ 
+ 
++/*MODIFIED CODE BEGIN*/
++} //anonymous namespace
++/*MODIFIED CODE END*/
++
+ bool ShouldAbortOnUncaughtException(Isolate* isolate) {
+   HandleScope scope(isolate);
+ 
+@@ -1155,6 +1188,10 @@ bool ShouldAbortOnUncaughtException(Isolate* isolate) {
+   return isEmittingTopLevelDomainError || !DomainsStackHasErrorHandler(env);
+ }
+ 
++/*MODIFIED CODE BEGIN*/
++namespace {
++/*MODIFIED CODE END*/
++
+ 
+ Local<Value> GetDomainProperty(Environment* env, Local<Object> object) {
+   Local<Value> domain_v =
+@@ -1838,6 +1875,9 @@ void AppendExceptionLine(Environment* env,
  
      uv_tty_reset_mode();
      PrintErrorString("\n%s", arrow);
@@ -161,7 +183,7 @@ index 67c8a80..9d4b3dd 100644
      return;
    }
  
-@@ -1877,9 +1909,15 @@ static void ReportException(Environment* env,
+@@ -1877,9 +1917,15 @@ static void ReportException(Environment* env,
    if (trace.length() > 0 && !trace_value->IsUndefined()) {
      if (arrow.IsEmpty() || !arrow->IsString() || decorated) {
        PrintErrorString("%s\n", *trace);
@@ -177,7 +199,7 @@ index 67c8a80..9d4b3dd 100644
      }
    } else {
      // this really only happens for RangeErrors, since they're the only
-@@ -1903,18 +1941,31 @@ static void ReportException(Environment* env,
+@@ -1903,18 +1949,31 @@ static void ReportException(Environment* env,
  
        PrintErrorString("%s\n", *message ? *message :
                                            "<toString() threw exception>");
@@ -209,7 +231,7 @@ index 67c8a80..9d4b3dd 100644
        }
      }
    }
-@@ -2722,14 +2773,20 @@ static void OnFatalError(const char* location, const char* message) {
+@@ -2722,14 +2781,20 @@ static void OnFatalError(const char* location, const char* message) {
      PrintErrorString("FATAL ERROR: %s\n", message);
    }
    fflush(stderr);
@@ -233,7 +255,7 @@ index 67c8a80..9d4b3dd 100644
  }
  
  
-@@ -2778,7 +2835,9 @@ void FatalException(Isolate* isolate,
+@@ -2778,7 +2843,9 @@ void FatalException(Isolate* isolate,
  #if HAVE_INSPECTOR
      env->inspector_agent()->FatalException(error, message);
  #endif
@@ -244,8 +266,54 @@ index 67c8a80..9d4b3dd 100644
    }
  }
  
+@@ -4938,6 +5005,45 @@ void RegisterBuiltinModules() {
+ #undef V
+ }
+ 
++/*MODIFIED CODE BEGIN*/
++void CreatePlatform() {
++  // From int Start(int argc, char** argv)
++  //
++  v8_platform.Initialize(v8_thread_pool_size, uv_default_loop());
++  // Enable tracing when argv has --trace-events-enabled.
++  if (trace_enabled) {
++    fprintf(stderr, "Warning: Trace event is an experimental feature "
++            "and could change at any time.\n");
++    v8_platform.StartTracingAgent();
++  }
++  V8::Initialize();
++  v8_initialized = true;
++}
++
++void DrainVMTasks() {
++  // From inline int Start(Isolate* isolate, ...
++  //
++  v8_platform.DrainVMTasks();
++}
++
++void FreePlatform() {
++  // From int Start(int argc, char** argv)
++  //
++  if (trace_enabled) {
++    v8_platform.StopTracingAgent();
++  }
++  v8_initialized = false;
++  V8::Dispose();
++  v8_platform.Dispose();
++}
++
++void InspectorStart(Environment* env, const char* path) {
++  // From inline int Start(Isolate* isolate, ...
++  //
++  StartInspector(env, path, debug_options);
++}
++/*MODIFIED CODE END*/
++
+ }  // namespace node
+ 
+ #if !HAVE_INSPECTOR
 diff --git a/examples/pxScene2d/external/libnode-v8.11.2/src/node.h b/examples/pxScene2d/external/libnode-v8.11.2/src/node.h
-index 78b2b2b..ebc5f80 100644
+index 78b2b2b..6b604d4 100644
 --- a/examples/pxScene2d/external/libnode-v8.11.2/src/node.h
 +++ b/examples/pxScene2d/external/libnode-v8.11.2/src/node.h
 @@ -191,6 +191,12 @@ typedef intptr_t ssize_t;
@@ -261,6 +329,21 @@ index 78b2b2b..ebc5f80 100644
  #if HAVE_OPENSSL
  NODE_EXTERN extern bool ssl_openssl_cert_store;
  # if NODE_FIPS_MODE
+@@ -208,6 +214,14 @@ NODE_EXTERN void Init(int* argc,
+ class IsolateData;
+ class Environment;
+ 
++/*MODIFIED CODE BEGIN*/
++NODE_EXTERN bool ShouldAbortOnUncaughtException(v8::Isolate* isolate);
++NODE_EXTERN void CreatePlatform();
++NODE_EXTERN void DrainVMTasks();
++NODE_EXTERN void FreePlatform();
++NODE_EXTERN void InspectorStart(Environment* env, const char* path);
++/*MODIFIED CODE END*/
++
+ NODE_EXTERN IsolateData* CreateIsolateData(v8::Isolate* isolate,
+                                            struct uv_loop_s* loop);
+ NODE_EXTERN void FreeIsolateData(IsolateData* isolate_data);
 diff --git a/examples/pxScene2d/external/libnode-v8.11.2/src/node_contextify.cc b/examples/pxScene2d/external/libnode-v8.11.2/src/node_contextify.cc
 index 47857e8..52e3a4b 100644
 --- a/examples/pxScene2d/external/libnode-v8.11.2/src/node_contextify.cc
@@ -405,6 +488,25 @@ index b2cef8c..0d3ff96 100644
  
  void ProcessEmitWarning(Environment* env, const char* fmt, ...);
  
+diff --git a/examples/pxScene2d/external/libnode-v8.11.2/src/node_platform.cc b/examples/pxScene2d/external/libnode-v8.11.2/src/node_platform.cc
+index 56b13b8..9c571d7 100644
+--- a/examples/pxScene2d/external/libnode-v8.11.2/src/node_platform.cc
++++ b/examples/pxScene2d/external/libnode-v8.11.2/src/node_platform.cc
+@@ -70,6 +70,14 @@ size_t NodePlatform::NumberOfAvailableBackgroundThreads() {
+ static void RunForegroundTask(Task* task) {
+   Isolate* isolate = Isolate::GetCurrent();
+   HandleScope scope(isolate);
++/*MODIFIED CODE BEGIN*/
++  if (isolate->GetCurrentContext().IsEmpty())
++  {
++    task->Run();
++    delete task;
++    return;
++  }
++/*MODIFIED CODE END*/
+   Environment* env = Environment::GetCurrent(isolate);
+   InternalCallbackScope cb_scope(env, Local<Object>(), { 0, 0 },
+                                  InternalCallbackScope::kAllowEmptyResource);
 diff --git a/examples/pxScene2d/external/libnode-v8.11.2/src/node_watchdog.cc b/examples/pxScene2d/external/libnode-v8.11.2/src/node_watchdog.cc
 index af4e9f6..20335ff 100644
 --- a/examples/pxScene2d/external/libnode-v8.11.2/src/node_watchdog.cc
