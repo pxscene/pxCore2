@@ -115,7 +115,7 @@ pxObject::pxObject(pxScene2d* scene):
     msx(1), msy(1), mw(0), mh(0),
     mInteractive(true),
     mSnapshotRef(), mPainting(true), mClip(false), mMask(false), mDraw(true), mHitTest(true), mReady(),
-    mFocus(false),mClipSnapshotRef(),mCancelInSet(true),mUseMatrix(false), mRepaint(true)
+    mFocus(false),mClipSnapshotRef(),mCancelInSet(true),mRepaint(true)
     , mIsDirty(true), mRenderMatrix(), mLastRenderMatrix(), mScreenCoordinates(), mDirtyRect()
     ,mDrawableSnapshotForMask(), mMaskSnapshot(), mIsDisposed(false), mSceneSuspended(false)
   {
@@ -1543,20 +1543,3 @@ rtDefineMethod(pxObject, delListener);
 //rtDefineProperty(pxObject, emit);
 //rtDefineProperty(pxObject, onReady);
 rtDefineMethod(pxObject, getObjectById);
-rtDefineProperty(pxObject,m11);
-rtDefineProperty(pxObject,m12);
-rtDefineProperty(pxObject,m13);
-rtDefineProperty(pxObject,m14);
-rtDefineProperty(pxObject,m21);
-rtDefineProperty(pxObject,m22);
-rtDefineProperty(pxObject,m23);
-rtDefineProperty(pxObject,m24);
-rtDefineProperty(pxObject,m31);
-rtDefineProperty(pxObject,m32);
-rtDefineProperty(pxObject,m33);
-rtDefineProperty(pxObject,m34);
-rtDefineProperty(pxObject,m41);
-rtDefineProperty(pxObject,m42);
-rtDefineProperty(pxObject,m43);
-rtDefineProperty(pxObject,m44);
-rtDefineProperty(pxObject,useMatrix);
