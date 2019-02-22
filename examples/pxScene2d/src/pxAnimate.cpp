@@ -18,6 +18,7 @@
 
 // pxAnimate.cpp
 
+#include "pxObject.h"
 #include "pxAnimate.h"
 #include "pxScene2d.h"
 

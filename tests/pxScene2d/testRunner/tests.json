@@ -53,6 +53,5 @@
       {"url":"../tests/test_promiseNewCreationTextBox.js", "title":"test_promiseNewCreationTextBox","useBaseURI":"true"},
       {"url":"../tests/test_screencapture_jar.js", "title":"test_screencapture_jar","useBaseURI":"true"},
       {"url":"../tests/test_pxWebColors.js", "title":"test_pxWebColors_v1","useBaseURI":"true"},
-      { "url": "https://px-apps.sys.comcast.net/pxscene-samples/examples/px-reference/tests/dirty_rect_tests.js", "title": "test_dirtyRects", "useBaseURI": "false" }
-
+      {"url":"../tests/test_dirty_rectangles.js", "title":"test_dirty_rectangles","useBaseURI":"true"}
 ]
