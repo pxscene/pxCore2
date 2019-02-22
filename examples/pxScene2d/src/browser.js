@@ -26,7 +26,7 @@ px.import({ scene:    'px:scene.1.js',
              EditBox: 'browser:editbox.js',
              mime:    'mime.js'
 }).then( function importsAreReady(imports)
-{  
+{
   var url   = "";
   var helpShown = false;
 
@@ -34,7 +34,7 @@ px.import({ scene:    'px:scene.1.js',
   var keys  = imports.keys;
   var root  = imports.scene.root;
   var resolveSceneUrl = imports.mime.resolveSceneUrl;
- 
+
   var urlFocusColor     = 0x303030ff;
   var urlSucceededColor = 0x0c8508ff;
   var urlFailedColor    = 0xde0700ff;
@@ -72,12 +72,12 @@ px.import({ scene:    'px:scene.1.js',
   scene.addServiceProvider(function(serviceName, serviceCtx){
     if (serviceName == ".navigate")
       // TODO JRJR have to set url in a timer to avoid reentrancy
-      // should move deferring to setUrl method... 
+      // should move deferring to setUrl method...
       return {setUrl:function(u){setTimeout(function(){
         /*content.url = u;*/ /*inputBox.text = u;*/ reload(u)},1);}}  // return a javascript object that represents the service
     else
       return "allow"; // allow request to bubble to parent
-  });  
+  });
 
   var currentGen = 0
   function reload(u, keepHistory)
@@ -158,7 +158,7 @@ px.import({ scene:    'px:scene.1.js',
           inputBox.focus = true
           inputBox.selectAll()
           inputBox.textColor = urlFailedColor;
-                         
+
           //inputBox.cancelLater( function() { spinner.a = 0;} );
           spinner.a = 0
         }
@@ -265,7 +265,7 @@ px.import({ scene:    'px:scene.1.js',
         console.log("browser.js Loading home");
         reload(homeUrl);
         e.stopPropagation();
-      }      
+      }
     }
   });
 
@@ -306,7 +306,7 @@ px.import({ scene:    'px:scene.1.js',
         e.stopPropagation();
         console.log("Browser.js reload done");
       }
-      else 
+      else
       */
       if (code == keys.A)  //  CTRL-ALT-A
       {
@@ -332,7 +332,7 @@ px.import({ scene:    'px:scene.1.js',
       if(e.keyCode == keys.K)  //  CTRL-ALT-K
       {
         helpShown ? hideHelp(0) : showHelp(4500); // Hide / Show
-      
+
         e.stopPropagation();
     }
     }
@@ -363,6 +363,29 @@ px.import({ scene:    'px:scene.1.js',
       reload(url);
     }
   });
+
+  content.on("onDragEnter", function (e)
+  {
+    // console.log(">>> Drag'n'Drop enter... ");
+  });
+
+  content.on("onDragLeave", function (e)
+  {
+    // console.log(">>> Drag'n'Drop leave... ");
+  });
+
+  // Load URL dropped in 'content' area
+  content.on("onDragDrop", function (e)
+  {
+    // console.log(">>> Drag'n'Drop drop... type: "+e.type + " ... url: " + e.dropped);
+
+    if(e.type == scene.dragType.URL || e.type == scene.dragType.TEXT)
+    {
+      // console.log(">>> Loading Dropped URL ... " + e.dropped);
+      reload(e.dropped);
+    }
+  });
+
 
   scene.on("onResize", function(e) { updateSize(e.w,e.h); });
 

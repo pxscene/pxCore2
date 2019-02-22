@@ -20,13 +20,14 @@
 
 #include "pxConstants.h"
 
-rtRef<pxConstantsAnimation> pxConstants::animationConstants = new pxConstantsAnimation();
-rtRef<pxConstantsStretch> pxConstants::stretchConstants = new pxConstantsStretch();
-rtRef<pxConstantsMaskOperation>          pxConstants::maskOpConstants          = new pxConstantsMaskOperation();
-rtRef<pxConstantsAlignVertical> pxConstants::alignVerticalConstants = new pxConstantsAlignVertical();
+rtRef<pxConstantsAnimation>       pxConstants::animationConstants       = new pxConstantsAnimation();
+rtRef<pxConstantsStretch>         pxConstants::stretchConstants         = new pxConstantsStretch();
+rtRef<pxConstantsMaskOperation>   pxConstants::maskOpConstants          = new pxConstantsMaskOperation();
+rtRef<pxConstantsDragType>        pxConstants::dragTypeConstants        = new pxConstantsDragType();
+rtRef<pxConstantsAlignVertical>   pxConstants::alignVerticalConstants   = new pxConstantsAlignVertical();
 rtRef<pxConstantsAlignHorizontal> pxConstants::alignHorizontalConstants = new pxConstantsAlignHorizontal();
-rtRef<pxConstantsTruncation> pxConstants::truncationConstants = new pxConstantsTruncation(); 
-  
+rtRef<pxConstantsTruncation>      pxConstants::truncationConstants      = new pxConstantsTruncation();  
+
 rtError pxConstantsAnimation::interpolators(rtObjectRef& v) const
 {
   rtRef<rtArrayObject> keys = new rtArrayObject;
@@ -82,6 +83,12 @@ rtDefineProperty(pxConstantsStretch,REPEAT);
 rtDefineObject(pxConstantsMaskOperation, rtObject);
 rtDefineProperty(pxConstantsMaskOperation,NORMAL);
 rtDefineProperty(pxConstantsMaskOperation,INVERT);
+
+// Constantes for Mask operation
+rtDefineObject(pxConstantsDragType, rtObject);
+rtDefineProperty(pxConstantsDragType,TEXT);
+rtDefineProperty(pxConstantsDragType,URL);
+
 // Constants for Vertical Alignment
 rtDefineObject(pxConstantsAlignVertical, rtObject);
 rtDefineProperty(pxConstantsAlignVertical, TOP);

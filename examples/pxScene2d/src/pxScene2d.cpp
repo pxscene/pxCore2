@@ -401,7 +401,7 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
 #ifdef PX_DIRTY_RECTANGLES
     mArchive(),mDirtyRect(), mLastFrameDirtyRect(),
 #endif //PX_DIRTY_RECTANGLES
-    mDirty(true), mTestView(NULL), mDisposed(false), mArchiveSet(false)
+    mDirty(true), mDragging(false), mDragTarget(NULL), mTestView(NULL), mDisposed(false), mArchiveSet(false)
 {
   mRoot = new pxRoot(this);
   #ifdef ENABLE_PXOBJECT_TRACKING
@@ -1368,8 +1368,6 @@ bool pxScene2d::onMouseUp(int32_t x, int32_t y, uint32_t flags)
     // TODO optimization... we really only need to check mMouseDown
     if (mRoot->hitTestInternal(m, pt, hit, hitPt))
     {
-
-
       // Only send onMouseUp if this object got an onMouseDown
       if (tMouseDown == hit)
       {
@@ -1394,6 +1392,29 @@ bool pxScene2d::onMouseUp(int32_t x, int32_t y, uint32_t flags)
   return false;
 }
 
+void pxScene2d::setMouseEnteredInternal(rtRef<pxObject> o, const char* preEvent, const char* onEvent)
+{
+  rtObjectRef e = new rtMapObject;
+  e.set("name", onEvent);
+  e.set("target", o.getPtr());
+#if 0
+  mMouseEntered->mEmit.send(onEvent, e);
+#else
+  bubbleEvent(e,o, preEvent, onEvent);
+#endif
+}
+
+void pxScene2d::setMouseLeaveInternal(rtRef<pxObject> o, const char* preEvent, const char* onEvent)
+{
+  rtObjectRef e = new rtMapObject;
+  e.set("name", onEvent);
+  e.set("target", o.getPtr());
+#if 0
+  mMouseEntered->mEmit.send(onEvent, e);
+#else
+  bubbleEvent(e, o, preEvent, onEvent);
+#endif
+}
 // TODO rtRef doesn't like non-const !=
 void pxScene2d::setMouseEntered(rtRef<pxObject> o)//pxObject* o)
 {
@@ -1402,28 +1423,33 @@ void pxScene2d::setMouseEntered(rtRef<pxObject> o)//pxObject* o)
     // Tell old object we've left
     if (mMouseEntered)
     {
-      rtObjectRef e = new rtMapObject;
-      e.set("name", "onMouseLeave");
-      e.set("target", mMouseEntered.getPtr());
-      #if 0
-      mMouseEntered->mEmit.send("onMouseLeave", e);
-      #else
-      bubbleEvent(e,mMouseEntered,"onPreMouseLeave","onMouseLeave");
-      #endif
+      setMouseEnteredInternal(mMouseEntered, "onPreMouseLeave", "onMouseLeave");
     }
     mMouseEntered = o;
 
     // Tell new object we've entered
     if (mMouseEntered)
     {
-      rtObjectRef e = new rtMapObject;
-      e.set("name", "onMouseEnter");
-      e.set("target", mMouseEntered.getPtr());
-      #if 0
-      mMouseEntered->mEmit.send("onMouseEnter", e);
-      #else
-      bubbleEvent(e,mMouseEntered,"onPreMouseEnter","onMouseEnter");
-      #endif
+      setMouseEnteredInternal(mMouseEntered, "onPreMouseEnter", "onMouseEnter");
+    }
+  }
+}
+
+void pxScene2d::setDragEntered(rtRef<pxObject> o)
+{
+  if (mDragTarget != o)
+  {
+    // Tell old object we've left
+    if (mDragTarget)
+    {
+      setMouseEnteredInternal(mDragTarget, "onPreDragLeave", "onDragLeave");
+    }
+    mDragTarget = o;
+    
+    // Tell new object we've entered
+    if (mDragTarget)
+    {
+      setMouseEnteredInternal(mDragTarget, "onPreDragEnter", "onDragEnter");
     }
   }
 }
@@ -1703,7 +1729,6 @@ bool pxScene2d::onMouseMove(int32_t x, int32_t y)
         }
       }
 
-
 #if 0
     rtObjectRef e = new rtMapObject;
     e.set("name", "onMouseMove");
@@ -1788,6 +1813,70 @@ void pxScene2d::updateMouseEntered()
     else
       setMouseEntered(NULL);
   #endif
+}
+
+bool pxScene2d::onDragMove(int32_t x, int32_t y, int32_t type)
+{
+  pxMatrix4f m;
+  rtRef<pxObject> hit;
+  pxPoint2f pt(static_cast<float>(x),static_cast<float>(y)), hitPt;
+  
+  if (mRoot->hitTestInternal(m, pt, hit, hitPt))
+  {
+    rtObjectRef e = new rtMapObject;
+    e.set("x", hitPt.x);
+    e.set("y", hitPt.y);
+
+    bubbleEvent(e, hit, "onPreDragMove", "onDragMove");
+
+    mDragType = (pxConstantsDragType::constants) type;
+    setDragEntered(hit);
+  }
+  else
+  {
+    setDragEntered(NULL);
+  }
+
+  return false;
+}
+
+bool pxScene2d::onDragEnter(int32_t x, int32_t y, int32_t type)
+{
+   UNUSED_PARAM(x); UNUSED_PARAM(y);
+
+   mDragType = (pxConstantsDragType::constants) type;
+   mDragging = true;
+   return false;
+}
+
+bool pxScene2d::onDragLeave(int32_t x, int32_t y, int32_t type)
+{
+  UNUSED_PARAM(x); UNUSED_PARAM(y); UNUSED_PARAM(type);
+
+  mDragging = false;
+  return false;
+}
+
+bool pxScene2d::onDragDrop(int32_t x, int32_t y, int32_t type, const char *dropped)
+{
+  pxConstantsDragType::constants dragType = (pxConstantsDragType::constants) type;
+  
+  if (mDragTarget)
+  {
+    mDragging = false;
+
+    rtObjectRef e = new rtMapObject;
+    e.set("name", "onDragDrop");
+    e.set("target",mDragTarget.getPtr());
+    e.set("x", x);
+    e.set("y", y);
+    e.set("type", dragType);
+    e.set("dropped", dropped);
+    
+    return bubbleEvent(e, mDragTarget, "onPreDragDrop", "onDragDrop");
+  }
+  
+  return false;
 }
 
 bool pxScene2d::onScrollWheel(float dx, float dy)
@@ -2284,6 +2373,7 @@ rtDefineProperty(pxScene2d, api);
 rtDefineProperty(pxScene2d,animation);
 rtDefineProperty(pxScene2d,stretch);
 rtDefineProperty(pxScene2d,maskOp);
+rtDefineProperty(pxScene2d,dragType);
 rtDefineProperty(pxScene2d,alignVertical);
 rtDefineProperty(pxScene2d,alignHorizontal);
 rtDefineProperty(pxScene2d,truncation);
@@ -2436,6 +2526,12 @@ rtDefineProperty(pxViewContainer, h);
 rtDefineMethod(pxViewContainer, onMouseDown);
 rtDefineMethod(pxViewContainer, onMouseUp);
 rtDefineMethod(pxViewContainer, onMouseMove);
+
+rtDefineMethod(pxViewContainer, onDragMove);
+rtDefineMethod(pxViewContainer, onDragEnter);
+rtDefineMethod(pxViewContainer, onDragLeave);
+rtDefineMethod(pxViewContainer, onDragDrop);
+
 rtDefineMethod(pxViewContainer, onScrollWheel);
 rtDefineMethod(pxViewContainer, onMouseEnter);
 rtDefineMethod(pxViewContainer, onMouseLeave);

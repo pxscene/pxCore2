@@ -64,6 +64,38 @@ testView(): mContainer(NULL),mRefCount(0),mw(0),mh(0),mEntered(false),mMouseX(0)
     return false;
   }
 
+  virtual bool RT_STDCALL onDragMove(int32_t x, int32_t y, int32_t /*type*/)
+  {
+    rtLogInfo("testView::onDragMove(%d, %d)", x, y);
+    //    mMouseX = x;
+    //    mMouseY = y;
+    return false;
+  }
+
+  virtual bool RT_STDCALL onDragEnter(int32_t x, int32_t y, int32_t /*type*/)
+  {
+    rtLogInfo("testView::onDragEnter(%d, %d)", x, y);
+    //    mMouseX = x;
+    //    mMouseY = y;
+    return false;
+  }
+
+  virtual bool RT_STDCALL onDragLeave(int32_t x, int32_t y, int32_t /*type*/)
+  {
+    rtLogInfo("testView::onDragLeave(%d, %d)", x, y);
+    //    mMouseX = x;
+    //    mMouseY = y;
+    return false;
+  }
+
+  virtual bool RT_STDCALL onDragDrop(int32_t x, int32_t y, int32_t /*type*/, const char *dropped)
+  {
+    rtLogInfo("testView::onDragDrop(%d, %d) >> %s", x, y, dropped);
+//    mMouseX = x;
+//    mMouseY = y;
+    return false;
+  }
+
   virtual bool RT_STDCALL onScrollWheel(float dx, float dy)
   {
     rtLogInfo("testView::onScrollWheel(%f, %f)", dx, dy);

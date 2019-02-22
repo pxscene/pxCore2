@@ -59,6 +59,11 @@ public:
   
   virtual bool RT_STDCALL onScrollWheel(float dx, float dy) { UNUSED_PARAM(dx); UNUSED_PARAM(dy); return false; };
 
+  virtual bool RT_STDCALL onDragMove(int32_t x, int32_t y, int32_t type) = 0;
+  virtual bool RT_STDCALL onDragEnter(int32_t x, int32_t y, int32_t type) = 0;
+  virtual bool RT_STDCALL onDragLeave(int32_t x, int32_t y, int32_t type) = 0;
+  virtual bool RT_STDCALL onDragDrop(int32_t x, int32_t y, int32_t type, const char *dropped) = 0;
+
   virtual bool RT_STDCALL onMouseEnter() = 0;
   virtual bool RT_STDCALL onMouseLeave() = 0;
 
