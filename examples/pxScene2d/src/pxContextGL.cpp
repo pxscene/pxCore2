@@ -1466,7 +1466,7 @@ public:
 
     glVertexAttribPointer(mPosLoc, 2, GL_FLOAT, GL_FALSE, 0, pos);
     glEnableVertexAttribArray(mPosLoc);
-    glDrawArrays(mode, 0, count);  ;
+    glDrawArrays(mode, 0, count);  TRACK_DRAW_CALLS();
     glDisableVertexAttribArray(mPosLoc);
 
     return PX_OK;
