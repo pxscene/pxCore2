@@ -241,6 +241,8 @@ public:
   virtual void draw();
   virtual void onInit();
   virtual void update(double t);
+  virtual float getOnscreenWidth();
+  virtual float getOnscreenHeight();
 
  
   //rtMethodNoArgAndReturn("getFontMetrics", getFontMetrics, rtObjectRef);

@@ -32,4 +32,4 @@ const pxColor pxGreen(0, 255, 0, 255);
 const pxColor pxBlue(0, 0, 255, 255);
 const pxColor pxGray(128, 128, 128, 255);
 
-#endif
+#endif // PX_COLOR_H
