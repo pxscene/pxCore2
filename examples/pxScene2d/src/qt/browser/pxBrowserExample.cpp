@@ -275,61 +275,6 @@ public:
 #elif __APPLE__
     view = new pxBrowserView(mWindow, w, h);
 #endif
-
-    view->initQT();
-
-    view->setVisible(true);
-    view->setTransparent(true);
-    view->setLocalStorageEnabled(true);
-    view->setConsoleLogEnabled(true);
-    view->setUserAgent("custom userAgent from qt view");
-
-
-    // headers
-    rtMapObject* headers = new rtMapObject();
-    rtValue headerValue("qt-web-value");
-    headers->Set("header-qt", &headerValue);
-    view->setHeaders(headers);
-
-
-    //proxy test
-    pxBrowserProxy* proxy = new pxBrowserProxy();
-    proxy->setType(QNetworkProxy::HttpProxy);
-    proxy->setHostname("127.0.0.1");
-    proxy->setPort(1087);
-    //view->setProxy(proxy);
-
-    // cookies
-    rtArrayObject* cookies = new rtArrayObject();
-    rtMapObject* cookie = new rtMapObject();
-
-    rtValue name("cookie-01");
-    cookie->Set("name", &name);
-
-    rtValue value("cookie-value");
-    cookie->Set("value", &value);
-
-    rtValue domain("127.0.0.1");
-    cookie->Set("domain", &domain);
-
-    rtValue c(cookie);
-    cookies->Set((uint32_t) 0, &c);
-    view->setCookieJar(cookies);
-
-    // events api
-    view->addListener("ConsoleLog", new rtFunctionCallback(onConsoleLog));
-    view->addListener("HTMLLinkClicked", new rtFunctionCallback(onHTMLLinkClicked));
-    view->addListener("HTMLDocumentLoaded", new rtFunctionCallback(onHTMLDocumentLoaded));
-    view->addListener("Error", new rtFunctionCallback(onError));
-    view->addListener("CookieJarChanged", new rtFunctionCallback(onCookieJarChanged));
-
-    rtValue url("http://127.0.0.1:3000");
-
-    view->Set("url", &url);
-
-    view->dumpProperties();
-
-
     mBrowserViewContainer->setView(view);
     mBrowserViewContainer->onSize(w, h);
   }
@@ -440,6 +385,7 @@ protected:
   {
     if (mBrowserViewContainer)
     {
+      invalidateRect(nullptr);
       mBrowserViewContainer->onUpdate(pxSeconds());
     }
   }
@@ -451,8 +397,65 @@ protected:
   pxBrowserViewContainerRef mBrowserViewContainer;
 };
 
+void initQT(){
+
+  view->initQT();
+
+  view->setVisible(true);
+  view->setTransparent(true);
+  view->setLocalStorageEnabled(true);
+  view->setConsoleLogEnabled(true);
+  view->setUserAgent("custom userAgent from qt view");
+
+
+  // headers
+  rtMapObject* headers = new rtMapObject();
+  rtValue headerValue("qt-web-value");
+  headers->Set("header-qt", &headerValue);
+  view->setHeaders(headers);
+
+
+  //proxy test
+  pxBrowserProxy* proxy = new pxBrowserProxy();
+  proxy->setType(QNetworkProxy::HttpProxy);
+  proxy->setHostname("127.0.0.1");
+  proxy->setPort(1087);
+  //view->setProxy(proxy);
+
+  // cookies
+  rtArrayObject* cookies = new rtArrayObject();
+  rtMapObject* cookie = new rtMapObject();
+
+  rtValue name("cookie-01");
+  cookie->Set("name", &name);
+
+  rtValue value("cookie-value");
+  cookie->Set("value", &value);
+
+  rtValue domain("127.0.0.1");
+  cookie->Set("domain", &domain);
+
+  rtValue c(cookie);
+  cookies->Set((uint32_t) 0, &c);
+  view->setCookieJar(cookies);
+
+  // events api
+  view->addListener("ConsoleLog", new rtFunctionCallback(onConsoleLog));
+  view->addListener("HTMLLinkClicked", new rtFunctionCallback(onHTMLLinkClicked));
+  view->addListener("HTMLDocumentLoaded", new rtFunctionCallback(onHTMLDocumentLoaded));
+  view->addListener("Error", new rtFunctionCallback(onError));
+  view->addListener("CookieJarChanged", new rtFunctionCallback(onCookieJarChanged));
+
+  rtValue url("http://127.0.0.1:3000");
+
+  view->Set("url", &url);
+
+  view->dumpProperties();
+}
+
 sceneWindow win;
 
+#define QT_GL_CONTEXT_INDEX 101
 
 int pxMain(int argc, char* argv[])
 {
@@ -462,6 +465,11 @@ int pxMain(int argc, char* argv[])
   win.setAnimationFPS(60);
   win.setVisibility(true);
 
+
+  context.init();
+  context.enableInternalContext(true, QT_GL_CONTEXT_INDEX);
+  initQT();
+  context.enableInternalContext(false, QT_GL_CONTEXT_INDEX);
   eventLoop.run();
 
   return 0;
