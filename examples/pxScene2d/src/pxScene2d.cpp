@@ -1125,13 +1125,13 @@ void pxScene2d::onUpdate(double t)
 
       // TODO:  update / render times need some work...
 
-      // double draw_ms   = ( (double) sigma_draw     / (double) frameCount ) * 1000.0f; // Average frame  time
-      // double update_ms = ( (double) sigma_update   / (double) frameCount ) * 1000.0f; // Average update time
+      double draw_ms   = ( (double) sigma_draw     / (double) frameCount ) * 1000.0f; // Average frame  time
+      double update_ms = ( (double) sigma_update   / (double) frameCount ) * 1000.0f; // Average update time
 
-      // rtLogDebug("%g fps   pxObjects: %d   Draw: %g   Tex: %g   Fbo: %g     draw_ms: %0.04g   update_ms: %0.04g\n",
-      //     fps, pxObjectCount, dpf, bpf, fpf, draw_ms, update_ms );
+      rtLogError("%d fps   pxObjects: %d   Draw: %g   Tex: %g   Fbo: %g     draw_ms: %0.04g   update_ms: %0.04g\n",
+           fps, pxObjectCount, dpf, bpf, fpf, draw_ms, update_ms );
 
-      rtLogDebug("%g fps   pxObjects: %d   Draw: %g   Tex: %g   Fbo: %g \n", fps, pxObjectCount, dpf, bpf, fpf);
+      rtLogError("%d fps   pxObjects: %d   Draw: %g   Tex: %g   Fbo: %g \n", fps, pxObjectCount, dpf, bpf, fpf);
 
       gDrawCalls    = 0;
       gTexBindCalls = 0;
@@ -1368,8 +1368,6 @@ bool pxScene2d::onMouseUp(int32_t x, int32_t y, uint32_t flags)
     // TODO optimization... we really only need to check mMouseDown
     if (mRoot->hitTestInternal(m, pt, hit, hitPt))
     {
-
-
       // Only send onMouseUp if this object got an onMouseDown
       if (tMouseDown == hit)
       {
@@ -1702,7 +1700,6 @@ bool pxScene2d::onMouseMove(int32_t x, int32_t y)
                  to.x(),to.y(),validate.x(),validate.y());
         }
       }
-
 
 #if 0
     rtObjectRef e = new rtMapObject;
