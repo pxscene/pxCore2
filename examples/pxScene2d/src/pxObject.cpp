@@ -36,9 +36,6 @@ extern bool gDirtyRectsEnabled;
 
 int pxObjectCount = 0;
 
-
-typedef vector<rtRef<pxObject> >::iterator  rtRefpxObjectIter_t;
-
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
 // Small helper class that vends the children of a pxObject as a collection
@@ -132,7 +129,7 @@ pxObject::~pxObject()
     // TODO... why is this bad
 //    sendReturns<rtString>("description",d);
     //rtLogDebug("**************** pxObject destroyed: %s\n",getMap()->className);
-    for(rtRefpxObjectIter_t it = mChildren.begin(); it != mChildren.end(); ++it)
+    for(std::vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
     {
       (*it)->mParent = NULL;  // setParent mutates the mChildren collection
     }
@@ -176,7 +173,7 @@ void pxObject::dispose(bool pumpJavascript)
 
     mAnimations.clear();
     mEmit->clearListeners();
-    for(rtRefpxObjectIter_t it = mChildren.begin(); it != mChildren.end(); ++it)
+    for(std::vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
     {
       (*it)->mParent = NULL;  // setParent mutates the mChildren collection
       (*it)->dispose(false);
@@ -345,7 +342,7 @@ rtError pxObject::remove()
 {
   if (mParent)
   {
-    for(rtRefpxObjectIter_t it = mParent->mChildren.begin(); it != mParent->mChildren.end(); ++it)
+    for(std::vector<rtRef<pxObject> >::iterator it = mParent->mChildren.begin(); it != mParent->mChildren.end(); ++it)
     {
       if ((it)->getPtr() == this)
       {
@@ -366,7 +363,7 @@ rtError pxObject::remove()
 
 rtError pxObject::removeAll()
 {
-  for(rtRefpxObjectIter_t it = mChildren.begin(); it != mChildren.end(); ++it)
+  for(std::vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
   {
     (*it)->mParent = NULL;
   }
@@ -420,7 +417,7 @@ rtError pxObject::moveToBack()
 
   remove();
   mParent = parent;
-  rtRefpxObjectIter_t it = parent->mChildren.begin();
+  std::vector<rtRef<pxObject> >::iterator it = parent->mChildren.begin();
   parent->mChildren.insert(it, this);
 
   markDirty();
@@ -443,7 +440,7 @@ rtError pxObject::moveForward()
   if(!parent)
       return RT_OK;
 
-  rtRefpxObjectIter_t it = parent->mChildren.begin(), it_prev;
+  std::vector<rtRef<pxObject> >::iterator it = parent->mChildren.begin(), it_prev;
   while( it != parent->mChildren.end() )
   {
       if( it->getPtr() == this )
@@ -479,7 +476,7 @@ rtError pxObject::moveBackward()
   if(!parent)
       return RT_OK;
 
-  rtRefpxObjectIter_t it = parent->mChildren.begin(), it_prev;
+  std::vector<rtRef<pxObject> >::iterator it = parent->mChildren.begin(), it_prev;
   while( it != parent->mChildren.end() )
   {
       if( it->getPtr() == this )
@@ -797,7 +794,7 @@ void pxObject::update(double t)
     }
 
   // Recursively update children
-  for(rtRefpxObjectIter_t it = mChildren.begin(); it != mChildren.end(); ++it)
+  for(std::vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
   {
       if (gDirtyRectsEnabled)
       {
@@ -859,7 +856,7 @@ void pxObject::releaseData(bool sceneSuspended)
   mSceneSuspended = sceneSuspended;
 
   // Recursively suspend the children
-  for(rtRefpxObjectIter_t it = mChildren.begin(); it != mChildren.end(); ++it)
+  for(std::vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
   {
     (*it)->releaseData(sceneSuspended);
   }
@@ -870,7 +867,7 @@ void pxObject::reloadData(bool sceneSuspended)
   mSceneSuspended = sceneSuspended;
   mRepaint = true;
   // Recursively resume the children
-  for(rtRefpxObjectIter_t it = mChildren.begin(); it != mChildren.end(); ++it)
+  for(std::vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
   {
     (*it)->reloadData(sceneSuspended);
   }
@@ -896,7 +893,7 @@ uint64_t pxObject::textureMemoryUsage()
     textureMemory += (mMaskSnapshot->width() * mMaskSnapshot->height() * 4);
   }
 
-  for(rtRefpxObjectIter_t it = mChildren.begin(); it != mChildren.end(); ++it)
+  for(std::vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
   {
     textureMemory += (*it)->textureMemoryUsage();
   }
@@ -1122,7 +1119,7 @@ void pxObject::drawInternal(bool maskPass)
 
     // MASKING ? ---------------------------------------------------------------------------------------------------
     bool maskFound = false;
-    for(rtRefpxObjectIter_t it = mChildren.begin(); it != mChildren.end(); ++it)
+    for(std::vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
     {
       if ((*it)->mask())
       {
@@ -1184,7 +1181,7 @@ void pxObject::drawInternal(bool maskPass)
       }
 
       // CHILDREN -------------------------------------------------------------------------------------
-      for(rtRefpxObjectIter_t it = mChildren.begin(); it != mChildren.end(); ++it)
+      for(std::vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
       {
         if((*it)->drawEnabled() == false)
         {
@@ -1384,7 +1381,7 @@ void pxObject::createSnapshot(pxContextFramebufferRef& fbo, bool separateContext
     }
     draw();
 
-    for(rtRefpxObjectIter_t it = mChildren.begin(); it != mChildren.end(); ++it)
+    for(std::vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
     {
       context.pushState();
       (*it)->drawInternal();
@@ -1443,7 +1440,7 @@ void pxObject::createSnapshotOfChildren()
   {
     context.clear(iw, ih);//static_cast<int>(w), static_cast<int>(h));
 
-    for(rtRefpxObjectIter_t it = mChildren.begin(); it != mChildren.end(); ++it)
+    for(std::vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
     {
       if ((*it)->mask())
       {
@@ -1458,7 +1455,7 @@ void pxObject::createSnapshotOfChildren()
   {
     context.clear(iw, ih);//static_cast<int>(w), static_cast<int>(h));
 
-    for(rtRefpxObjectIter_t it = mChildren.begin(); it != mChildren.end(); ++it)
+    for(std::vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
     {
       if ((*it)->drawEnabled())
       {
