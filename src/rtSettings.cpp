@@ -18,12 +18,11 @@
 
 #include "rtSettings.h"
 
-#include "../remote/rapidjson/document.h"
-#include "../remote/rapidjson/filereadstream.h"
-#include "../remote/rapidjson/error/en.h"
-#include "../remote/rapidjson/filewritestream.h"
-#include "../remote/rapidjson/writer.h"
-
+#include <rapidjson/document.h>
+#include <rapidjson/filereadstream.h>
+#include <rapidjson/error/en.h>
+#include <rapidjson/filewritestream.h>
+#include <rapidjson/writer.h>
 #include <string.h>
 
 const int rtSettings::FILE_BUFFER_SIZE = 65536;

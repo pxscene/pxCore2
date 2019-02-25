@@ -56,9 +56,7 @@
 #endif //PX_PLATFORM_WAYLAND_EGL
 #endif
 
-#if !defined(RUNINMAIN) || defined(ENABLE_BACKGROUND_TEXTURE_CREATION)
 #include "pxContextUtils.h"
-#endif //!RUNINMAIN || ENABLE_BACKGROUND_TEXTURE_CREATION
 
 #define PX_TEXTURE_MIN_FILTER GL_LINEAR
 #define PX_TEXTURE_MAG_FILTER GL_LINEAR
@@ -1468,7 +1466,7 @@ public:
 
     glVertexAttribPointer(mPosLoc, 2, GL_FLOAT, GL_FALSE, 0, pos);
     glEnableVertexAttribArray(mPosLoc);
-    glDrawArrays(mode, 0, count);  ;
+    glDrawArrays(mode, 0, count);  TRACK_DRAW_CALLS();
     glDisableVertexAttribArray(mPosLoc);
 
     return PX_OK;
@@ -2259,13 +2257,13 @@ void pxContext::init()
   }
   if (mEnableTextureMemoryMonitoring)
   {
-    rtLogInfo("texture memory limit set to %" PRId64 " bytes, threshold padding %" PRId64 " bytes",
+    rtLogDebug("texture memory limit set to %" PRId64 " bytes, threshold padding %" PRId64 " bytes",
       mTextureMemoryLimitInBytes, mTextureMemoryLimitThresholdPaddingInBytes);
   }
 
 #if defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL)
   defaultEglContext = eglGetCurrentContext();
-  rtLogInfo("current context in init: %p", defaultEglContext);
+  rtLogDebug("current context in init: %p", defaultEglContext);
 #endif //PX_PLATFORM_GENERIC_EGL || PX_PLATFORM_WAYLAND_EGL
 
   std::srand(unsigned (std::time(0)));
@@ -2958,6 +2956,12 @@ pxError pxContext::enableInternalContext(bool enable)
 #else
   (void)enable;
 #endif // !RUNINMAIN || ENABLE_BACKGROUND_TEXTURE_CREATION
+  return PX_OK;
+}
+
+pxError pxContext::enableInternalContext(bool enable, int id)
+{
+  makeInternalGLContextCurrent(enable, id);
   return PX_OK;
 }
 

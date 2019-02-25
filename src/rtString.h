@@ -24,6 +24,7 @@
 //#include "rtCore.h"
 #include <stdlib.h>
 #include <stdint.h>
+#include <ctype.h>
 
 #ifndef finline
 #define finline
@@ -114,6 +115,8 @@ public:
   bool endsWith(const char* s) const;
 
   rtString substring(size_t pos, size_t len = 0) const;
+
+  void toLowerAscii() { char *p = mData; while(*p) { *p = tolower(*p); p++; } };
 
 #if 0
   pos_t find(size_t pos, const char* s, size_t n) const;
