@@ -23,23 +23,21 @@
 
 #include "pxContext.h"
 #include "pxAnimate.h"
-#include "pxScene2d.h"
-
-#include "pxRectangle.h"
-#include "pxFont.h"
-#include "pxText.h"
-#include "pxTextBox.h"
 #include "pxImage.h"
+#include "pxScene2d.h"
 
 using namespace std;
 
-class pxObjectChildren; //fwd
+class pxObjectChildren; // fwd
 
 extern pxContext  context;
 extern rtScript   script;
 extern bool gDirtyRectsEnabled;
 
 int pxObjectCount = 0;
+
+
+typedef vector<rtRef<pxObject> >::iterator  rtRefpxObjectIter_t;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -105,7 +103,7 @@ rtDefineObject(pxObjectChildren, rtObject);
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
 // pxObject methods
-pxObject::pxObject(pxScene2d* scene): 
+pxObject::pxObject(pxScene2d* scene):
   rtObject(), mParent(NULL), mpx(0), mpy(0), mcx(0), mcy(0), mx(0), my(0), ma(1.0), mr(0),
 
 #ifdef ANIMATION_ROTATE_XYZ
@@ -134,7 +132,7 @@ pxObject::~pxObject()
     // TODO... why is this bad
 //    sendReturns<rtString>("description",d);
     //rtLogDebug("**************** pxObject destroyed: %s\n",getMap()->className);
-    for(vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
+    for(rtRefpxObjectIter_t it = mChildren.begin(); it != mChildren.end(); ++it)
     {
       (*it)->mParent = NULL;  // setParent mutates the mChildren collection
     }
@@ -178,7 +176,7 @@ void pxObject::dispose(bool pumpJavascript)
 
     mAnimations.clear();
     mEmit->clearListeners();
-    for(vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
+    for(rtRefpxObjectIter_t it = mChildren.begin(); it != mChildren.end(); ++it)
     {
       (*it)->mParent = NULL;  // setParent mutates the mChildren collection
       (*it)->dispose(false);
@@ -347,8 +345,7 @@ rtError pxObject::remove()
 {
   if (mParent)
   {
-    for(vector<rtRef<pxObject> >::iterator it = mParent->mChildren.begin();
-        it != mParent->mChildren.end(); ++it)
+    for(rtRefpxObjectIter_t it = mParent->mChildren.begin(); it != mParent->mChildren.end(); ++it)
     {
       if ((it)->getPtr() == this)
       {
@@ -369,7 +366,7 @@ rtError pxObject::remove()
 
 rtError pxObject::removeAll()
 {
-  for(vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
+  for(rtRefpxObjectIter_t it = mChildren.begin(); it != mChildren.end(); ++it)
   {
     (*it)->mParent = NULL;
   }
@@ -423,7 +420,7 @@ rtError pxObject::moveToBack()
 
   remove();
   mParent = parent;
-  std::vector<rtRef<pxObject> >::iterator it = parent->mChildren.begin();
+  rtRefpxObjectIter_t it = parent->mChildren.begin();
   parent->mChildren.insert(it, this);
 
   markDirty();
@@ -446,7 +443,7 @@ rtError pxObject::moveForward()
   if(!parent)
       return RT_OK;
 
-  std::vector<rtRef<pxObject> >::iterator it = parent->mChildren.begin(), it_prev;
+  rtRefpxObjectIter_t it = parent->mChildren.begin(), it_prev;
   while( it != parent->mChildren.end() )
   {
       if( it->getPtr() == this )
@@ -482,7 +479,7 @@ rtError pxObject::moveBackward()
   if(!parent)
       return RT_OK;
 
-  std::vector<rtRef<pxObject> >::iterator it = parent->mChildren.begin(), it_prev;
+  rtRefpxObjectIter_t it = parent->mChildren.begin(), it_prev;
   while( it != parent->mChildren.end() )
   {
       if( it->getPtr() == this )
@@ -760,8 +757,7 @@ void pxObject::update(double t)
         it = mAnimations.erase(it);
         continue;
       }
-
-    }
+    }//ENDIF - OPTION_OSCILLATE
 
     float v = static_cast<float> (from + (to - from) * d);
     assert(mCancelInSet);
@@ -773,10 +769,11 @@ void pxObject::update(double t)
       animObj->update(a.prop, &a, pxConstantsAnimation::STATUS_INPROGRESS);
     }
     ++it;
-  }
+  }// WHILE - animations
 
     pxMatrix4f m;
-    if (gDirtyRectsEnabled) {
+    if (gDirtyRectsEnabled)
+    {
         applyMatrix(m);
         context.setMatrix(m);
         if (mIsDirty)
@@ -786,7 +783,7 @@ void pxObject::update(double t)
             {
                 dirtyRect.unionRect(mScreenCoordinates);
             }
-            mLastRenderMatrix = context.getMatrix();
+            mLastRenderMatrix  = context.getMatrix();
             mScreenCoordinates = getBoundingRectInScreenCoordinates();
             if (!dirtyRect.isEqual(mScreenCoordinates))
             {
@@ -796,22 +793,24 @@ void pxObject::update(double t)
             mScene->invalidateRect(&dirtyRect);
             mLastRenderMatrix = context.getMatrix();
             setDirtyRect(&dirtyRect);
-
-
         }
     }
 
   // Recursively update children
-  for(vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
+  for(rtRefpxObjectIter_t it = mChildren.begin(); it != mChildren.end(); ++it)
   {
-      if (gDirtyRectsEnabled) {
+      if (gDirtyRectsEnabled)
+      {
           if (mIsDirty && mScreenCoordinates.isOverlapping((*it)->mScreenCoordinates))
-          (*it)->markDirty();
+          {
+            (*it)->markDirty();
+          }
 
-          int left = (*it)->mScreenCoordinates.left();
-          int right = (*it)->mScreenCoordinates.right();
-          int top = (*it)->mScreenCoordinates.top();
+          int left   = (*it)->mScreenCoordinates.left();
+          int right  = (*it)->mScreenCoordinates.right();
+          int top    = (*it)->mScreenCoordinates.top();
           int bottom = (*it)->mScreenCoordinates.bottom();
+
           if (right > mScreenCoordinates.right())
           {
               mScreenCoordinates.setRight(right);
@@ -834,15 +833,18 @@ void pxObject::update(double t)
 ENTERSCENELOCK()
     (*it)->update(t);
 EXITSCENELOCK()
-      if (gDirtyRectsEnabled) {
-      context.popState();
-      }
-  }
 
-    if (gDirtyRectsEnabled) {
-        //context.setMatrix(m);
-        mRenderMatrix = m;
-        mIsDirty = false;
+      if (gDirtyRectsEnabled)
+      {
+        context.popState();
+      }
+  }//FOR
+
+    if (gDirtyRectsEnabled)
+    {
+      //context.setMatrix(m);
+      mRenderMatrix = m;
+      mIsDirty = false;
     }
 
   // Send promise
@@ -855,8 +857,9 @@ void pxObject::releaseData(bool sceneSuspended)
   clearSnapshot(mDrawableSnapshotForMask);
   clearSnapshot(mMaskSnapshot);
   mSceneSuspended = sceneSuspended;
+
   // Recursively suspend the children
-  for(vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
+  for(rtRefpxObjectIter_t it = mChildren.begin(); it != mChildren.end(); ++it)
   {
     (*it)->releaseData(sceneSuspended);
   }
@@ -867,7 +870,7 @@ void pxObject::reloadData(bool sceneSuspended)
   mSceneSuspended = sceneSuspended;
   mRepaint = true;
   // Recursively resume the children
-  for(vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
+  for(rtRefpxObjectIter_t it = mChildren.begin(); it != mChildren.end(); ++it)
   {
     (*it)->reloadData(sceneSuspended);
   }
@@ -893,7 +896,7 @@ uint64_t pxObject::textureMemoryUsage()
     textureMemory += (mMaskSnapshot->width() * mMaskSnapshot->height() * 4);
   }
 
-  for(vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
+  for(rtRefpxObjectIter_t it = mChildren.begin(); it != mChildren.end(); ++it)
   {
     textureMemory += (*it)->textureMemoryUsage();
   }
@@ -926,16 +929,19 @@ pxRect pxObject::getBoundingRectInScreenCoordinates()
   int w = getOnscreenWidth();
   int h = getOnscreenHeight();
   int x[4], y[4];
-  context.mapToScreenCoordinates(mLastRenderMatrix, 0,0,x[0],y[0]);
+
+  context.mapToScreenCoordinates(mLastRenderMatrix, 0, 0, x[0], y[0]);
   context.mapToScreenCoordinates(mLastRenderMatrix, w, h, x[1], y[1]);
   context.mapToScreenCoordinates(mLastRenderMatrix, 0, h, x[2], y[2]);
   context.mapToScreenCoordinates(mLastRenderMatrix, w, 0, x[3], y[3]);
+
   int left, right, top, bottom;
 
-  left = x[0];
-  right = x[0];
-  top = y[0];
+  left   = x[0];
+  right  = x[0];
+  top    = y[0];
   bottom = y[0];
+
   for (int i = 0; i < 4; i ++)
   {
     if (x[i] < left)
@@ -963,23 +969,25 @@ pxRect pxObject::convertToScreenCoordinates(pxRect* r)
 {
   if (r == NULL)
   {
-     return pxRect();
+    return pxRect();
   }
-  int rectLeft = r->left();
-  int rectRight = r->right();
-  int rectTop = r->top();
+  int rectLeft   = r->left();
+  int rectRight  = r->right();
+  int rectTop    = r->top();
   int rectBottom = r->bottom();
+
   int x[4], y[4];
-  context.mapToScreenCoordinates(mLastRenderMatrix, rectLeft,rectTop,x[0],y[0]);
+  context.mapToScreenCoordinates(mLastRenderMatrix, rectLeft,  rectTop,    x[0], y[0]);
   context.mapToScreenCoordinates(mLastRenderMatrix, rectRight, rectBottom, x[1], y[1]);
-  context.mapToScreenCoordinates(mLastRenderMatrix, rectLeft, rectBottom, x[2], y[2]);
-  context.mapToScreenCoordinates(mLastRenderMatrix, rectRight, rectTop, x[3], y[3]);
+  context.mapToScreenCoordinates(mLastRenderMatrix, rectLeft,  rectBottom, x[2], y[2]);
+  context.mapToScreenCoordinates(mLastRenderMatrix, rectRight, rectTop,    x[3], y[3]);
   int left, right, top, bottom;
 
-  left = x[0];
-  right = x[0];
-  top = y[0];
+  left   = x[0];
+  right  = x[0];
+  top    = y[0];
   bottom = y[0];
+
   for (int i = 0; i < 4; i ++)
   {
     if (x[i] < left)
@@ -999,7 +1007,8 @@ pxRect pxObject::convertToScreenCoordinates(pxRect* r)
     {
       bottom = y[i];
     }
-  }
+  }///FOR
+
   return pxRect(left, top, right, bottom);
 }
 //#endif //PX_DIRTY_RECTANGLES
@@ -1113,7 +1122,7 @@ void pxObject::drawInternal(bool maskPass)
 
     // MASKING ? ---------------------------------------------------------------------------------------------------
     bool maskFound = false;
-    for(vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
+    for(rtRefpxObjectIter_t it = mChildren.begin(); it != mChildren.end(); ++it)
     {
       if ((*it)->mask())
       {
@@ -1131,7 +1140,7 @@ void pxObject::drawInternal(bool maskPass)
 
         break;
       }
-    }
+    }//FOR
 
     // MASKING ? ---------------------------------------------------------------------------------------------------
     if (maskFound)
@@ -1175,7 +1184,7 @@ void pxObject::drawInternal(bool maskPass)
       }
 
       // CHILDREN -------------------------------------------------------------------------------------
-      for(vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
+      for(rtRefpxObjectIter_t it = mChildren.begin(); it != mChildren.end(); ++it)
       {
         if((*it)->drawEnabled() == false)
         {
@@ -1231,11 +1240,11 @@ void pxObject::drawInternal(bool maskPass)
 
 
 bool pxObject::hitTestInternal(pxMatrix4f m, pxPoint2f& pt, rtRef<pxObject>& hit,
-                   pxPoint2f& hitPt)
+                    pxPoint2f& hitPt)
 {
-
   // setup matrix
   pxMatrix4f m2;
+
 #if 0
   m2.translate(mx+mcx, my+mcy);
 //  m.rotateInDegrees(mr, mrx, mry, mrz);
@@ -1336,8 +1345,9 @@ void pxObject::createSnapshot(pxContextFramebufferRef& fbo, bool separateContext
     clearSnapshot(fbo);
     //rtLogInfo("createFramebuffer  mw=%f mh=%f\n", w, h);
     fbo = context.createFramebuffer(static_cast<int>(floor(w)), static_cast<int>(floor(h)), antiAliasing);
-    if (gDirtyRectsEnabled) {
-       fullFboRepaint = true;
+    if (gDirtyRectsEnabled)
+    {
+        fullFboRepaint = true;
     }
   }
   else
@@ -1349,29 +1359,32 @@ void pxObject::createSnapshot(pxContextFramebufferRef& fbo, bool separateContext
   if (mRepaint && context.setFramebuffer(fbo) == PX_OK)
   {
     //context.clear(static_cast<int>(w), static_cast<int>(h));
-    if (gDirtyRectsEnabled) {
-    int clearX = mDirtyRect.left();
-    int clearY = mDirtyRect.top();
-    int clearWidth = mDirtyRect.right() - clearX+1;
-    int clearHeight = mDirtyRect.bottom() - clearY+1;
-
-    if (!mIsDirty)
-        context.clear(static_cast<int>(w), static_cast<int>(h));
-
-    if (fullFboRepaint)
+    if (gDirtyRectsEnabled)
     {
-        clearX = 0;
-        clearY = 0;
-        clearWidth = w;
-        clearHeight = h;
-        context.clear(clearX, clearY, clearWidth, clearHeight);
+      int clearX      = mDirtyRect.left();
+      int clearY      = mDirtyRect.top();
+      int clearWidth  = mDirtyRect.right() - clearX+1;
+      int clearHeight = mDirtyRect.bottom() - clearY+1;
+
+      if (!mIsDirty)
+          context.clear(static_cast<int>(w), static_cast<int>(h));
+
+      if (fullFboRepaint)
+      {
+          clearX = 0;
+          clearY = 0;
+          clearWidth = w;
+          clearHeight = h;
+          context.clear(clearX, clearY, clearWidth, clearHeight);
+      }
     }
-   } else {
-    context.clear(static_cast<int>(w), static_cast<int>(h));
-   }
+    else
+    {
+      context.clear(static_cast<int>(w), static_cast<int>(h));
+    }
     draw();
 
-    for(vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
+    for(rtRefpxObjectIter_t it = mChildren.begin(); it != mChildren.end(); ++it)
     {
       context.pushState();
       (*it)->drawInternal();
@@ -1398,37 +1411,44 @@ void pxObject::createSnapshotOfChildren()
   float w = getOnscreenWidth();
   float h = getOnscreenHeight();
 
+  int iw = static_cast<int>(floor(w));
+  int ih = static_cast<int>(floor(h));
+
   //rtLogInfo("createSnapshotOfChildren  w=%f h=%f\n", w, h);
 
-  if (mDrawableSnapshotForMask.getPtr() == NULL || mDrawableSnapshotForMask->width() != floor(w) || mDrawableSnapshotForMask->height() != floor(h))
+  if( mDrawableSnapshotForMask.getPtr()  == NULL ||
+      mDrawableSnapshotForMask->width()  != iw   ||
+      mDrawableSnapshotForMask->height() != ih)
   {
-    mDrawableSnapshotForMask = context.createFramebuffer(static_cast<int>(floor(w)), static_cast<int>(floor(h)));
+    mDrawableSnapshotForMask = context.createFramebuffer(iw, ih);
   }
   else
   {
-    context.updateFramebuffer(mDrawableSnapshotForMask, static_cast<int>(floor(w)), static_cast<int>(floor(h)));
+    context.updateFramebuffer(mDrawableSnapshotForMask, iw, ih);
   }
 
-  if (mMaskSnapshot.getPtr() == NULL || mMaskSnapshot->width() != floor(w) || mMaskSnapshot->height() != floor(h))
+  if( mMaskSnapshot.getPtr()   == NULL    ||
+      mMaskSnapshot->width()  != iw ||
+      mMaskSnapshot->height() != ih)
   {
-    mMaskSnapshot = context.createFramebuffer(static_cast<int>(floor(w)), static_cast<int>(floor(h)), false, true);
+    mMaskSnapshot = context.createFramebuffer(iw, ih, false, true);
   }
   else
   {
-    context.updateFramebuffer(mMaskSnapshot, static_cast<int>(floor(w)), static_cast<int>(floor(h)));
+    context.updateFramebuffer(mMaskSnapshot, iw, ih);
   }
 
   pxContextFramebufferRef previousRenderSurface = context.getCurrentFramebuffer();
   if (context.setFramebuffer(mMaskSnapshot) == PX_OK)
   {
-    context.clear(static_cast<int>(w), static_cast<int>(h));
+    context.clear(iw, ih);//static_cast<int>(w), static_cast<int>(h));
 
-    for(vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
+    for(rtRefpxObjectIter_t it = mChildren.begin(); it != mChildren.end(); ++it)
     {
       if ((*it)->mask())
       {
         context.pushState();
-        (*it)->drawInternal(true);
+          (*it)->drawInternal(true);
         context.popState();
       }
     }
@@ -1436,14 +1456,14 @@ void pxObject::createSnapshotOfChildren()
 
   if (context.setFramebuffer(mDrawableSnapshotForMask) == PX_OK)
   {
-    context.clear(static_cast<int>(w), static_cast<int>(h));
+    context.clear(iw, ih);//static_cast<int>(w), static_cast<int>(h));
 
-    for(vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
+    for(rtRefpxObjectIter_t it = mChildren.begin(); it != mChildren.end(); ++it)
     {
       if ((*it)->drawEnabled())
       {
         context.pushState();
-        (*it)->drawInternal();
+          (*it)->drawInternal();
         context.popState();
       }
     }
@@ -1459,8 +1479,6 @@ void pxObject::clearSnapshot(pxContextFramebufferRef fbo)
     fbo->resetFbo();
   }
 }
-
-
 
 bool pxObject::onTextureReady()
 {

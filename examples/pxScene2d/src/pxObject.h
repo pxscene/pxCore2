@@ -49,7 +49,6 @@
 #include "pxTexture.h"
 #include "pxContextFramebuffer.h"
 
-
 #define ANIMATION_ROTATE_XYZ
 
 #include "pxCore.h"
@@ -64,10 +63,10 @@ public:
   rtDeclareObject(pxObject, rtObject);
   rtReadOnlyProperty(_pxObject, _pxObject, voidPtr);
   rtProperty(parent, parent, setParent, rtObjectRef);
-  rtProperty(x, x, setX, float);
-  rtProperty(y, y, setY, float);
-  rtProperty(w, w, setW, float);
-  rtProperty(h, h, setH, float);
+  rtProperty(x,  x,  setX,  float);
+  rtProperty(y,  y,  setY,  float);
+  rtProperty(w,  w,  setW,  float);
+  rtProperty(h,  h,  setH,  float);
 
   rtProperty(px, px, setPX, float);
   rtProperty(py, py, setPY, float);
@@ -110,6 +109,7 @@ public:
 
   rtMethod5ArgAndReturn("animate", animateToObj, rtObjectRef, double,
                         uint32_t, uint32_t, int32_t, rtObjectRef);
+
   rtMethod2ArgAndNoReturn("on", addListener, rtString, rtFunctionRef);
   rtMethod2ArgAndNoReturn("delListener", delListener, rtString, rtFunctionRef);
   rtMethodNoArgAndNoReturn("dispose",releaseResources);
@@ -162,25 +162,19 @@ public:
   rtError children(rtObjectRef& v) const;
 
   // TODO clean this up
-  void setParent(rtRef<pxObject>& parent);
-  pxObject* parent() const
-  {
-    return mParent;
-  }
+  
+  pxObject* parent()             const { return mParent;            }
+  rtError parent(rtObjectRef& v) const { v = mParent; return RT_OK; }
 
-  rtError parent(rtObjectRef& v) const
-  {
-    v = mParent;
-    return RT_OK;
-  }
-
+  void    setParent(rtRef<pxObject>& parent);
   rtError setParent(rtObjectRef parent)
   {
     rtRef<pxObject> p;
 
     if (parent)
+    {
       p = (pxObject*)parent.get<voidPtr>("_pxObject");
-
+    }
     setParent(p);
 
     return RT_OK;
@@ -189,83 +183,97 @@ public:
   rtError remove();
   rtError removeAll();
 
-  rtString id() { return mId; }
-  rtError id(rtString& v) const { v = mId; return RT_OK; }
-  rtError setId(const rtString& v) { mId = v; return RT_OK; }
+  rtString id()                  const { return mId;            }
+  rtError id(rtString& v)        const { v = mId; return RT_OK; }
+  rtError setId(const rtString& v)     { mId = v; return RT_OK; }
 
-  rtError interactive(bool& v) const { v = mInteractive; return RT_OK; }
-  rtError setInteractive(bool v) { mInteractive = v; return RT_OK; }
+  rtError interactive(bool& v)   const { v = mInteractive; return RT_OK; }
+  rtError setInteractive(bool v)       { mInteractive = v; return RT_OK; }
 
-  float x()             const { return mx; }
-  rtError x(float& v)   const { v = mx; return RT_OK;   }
-  rtError setX(float v)       { cancelAnimation("x"); mx = v; return RT_OK;   }
-  float y()             const { return my; }
-  rtError y(float& v)   const { v = my; return RT_OK;   }
-  rtError setY(float v)       { cancelAnimation("y"); my = v; return RT_OK;   }
-  float w()             const { return mw; }
-  rtError w(float& v)   const { v = mw; return RT_OK;   }
-  virtual rtError setW(float v)       { cancelAnimation("w"); mw = v; return RT_OK;   }
-  float h()             const { return mh; }
-  rtError h(float& v)   const { v = mh; return RT_OK;   }
-  virtual rtError setH(float v)       { cancelAnimation("h"); mh = v; return RT_OK;   }
+  float x()                       const { return mx;              }
+  rtError x(float& v)             const { v = mx; return RT_OK;   }
+  rtError setX(float v)                 { cancelAnimation("x"); mx = v; return RT_OK;   }
 
-  float px()            const { return mpx;}
-  rtError px(float& v)  const { v = mpx; return RT_OK;  }
-  rtError setPX(float v)      { cancelAnimation("px"); mpx = (v > 1) ? 1 : (v < 0) ? 0 : v; return RT_OK;  }
-  float py()            const { return mpy;}
-  rtError py(float& v)  const { v = mpy; return RT_OK;  }
-  rtError setPY(float v)      { cancelAnimation("py"); mpy = (v > 1) ? 1 : (v < 0) ? 0 : v; return RT_OK;  }
-  float cx()            const { return mcx;}
-  rtError cx(float& v)  const { v = mcx; return RT_OK;  }
-  rtError setCX(float v)      { cancelAnimation("cx"); mcx = v; return RT_OK;  }
-  float cy()            const { return mcy;}
-  rtError cy(float& v)  const { v = mcy; return RT_OK;  }
-  rtError setCY(float v)      { cancelAnimation("cy"); mcy = v; return RT_OK;  }
-  float sx()            const { return msx;}
-  rtError sx(float& v)  const { v = msx; return RT_OK;  }
-  virtual rtError setSX(float v) { cancelAnimation("sx"); msx = v; return RT_OK;  }
-  float sy()            const { return msy;}
-  rtError sy(float& v)  const { v = msy; return RT_OK;  }
-  virtual rtError setSY(float v) { cancelAnimation("sy"); msy = v; return RT_OK;  }
-  float a()             const { return ma; }
-  rtError a(float& v)   const { v = ma; return RT_OK;   }
-  rtError setA(float v)       { cancelAnimation("a"); ma = v; return RT_OK;   }
-  float r()             const { return mr; }
-  rtError r(float& v)   const { v = mr; return RT_OK;   }
-  rtError setR(float v)       { cancelAnimation("r"); mr = v; return RT_OK;   }
+  float y()                       const { return my;              }
+  rtError y(float& v)             const { v = my; return RT_OK;   }
+  rtError setY(float v)                 { cancelAnimation("y"); my = v; return RT_OK;   }
+
+  float w()                       const { return mw;              }
+  rtError w(float& v)             const { v = mw; return RT_OK;   }
+  virtual rtError setW(float v)         { cancelAnimation("w"); mw = v; return RT_OK;   }
+
+  float h()                       const { return mh;              }
+  rtError h(float& v)             const { v = mh; return RT_OK;   }
+  virtual rtError setH(float v)         { cancelAnimation("h"); mh = v; return RT_OK;   }
+
+  float px()                      const { return mpx;             }
+  rtError px(float& v)            const { v = mpx; return RT_OK;  }
+  rtError setPX(float v)                { cancelAnimation("px"); mpx = (v > 1) ? 1 : (v < 0) ? 0 : v; return RT_OK;  }
+
+  float py()                      const { return mpy;             }
+  rtError py(float& v)            const { v = mpy; return RT_OK;  }
+  rtError setPY(float v)                { cancelAnimation("py"); mpy = (v > 1) ? 1 : (v < 0) ? 0 : v; return RT_OK;  }
+
+  float cx()                      const { return mcx;             }
+  rtError cx(float& v)            const { v = mcx; return RT_OK;  }
+  rtError setCX(float v)                { cancelAnimation("cx"); mcx = v; return RT_OK;  }
+
+  float cy()                      const { return mcy;             }
+  rtError cy(float& v)            const { v = mcy; return RT_OK;  }
+  rtError setCY(float v)                { cancelAnimation("cy"); mcy = v; return RT_OK;  }
+
+  float sx()                      const { return msx;             }
+  rtError sx(float& v)            const { v = msx; return RT_OK;  }
+  virtual rtError setSX(float v)        { cancelAnimation("sx"); msx = v; return RT_OK;  }
+
+  float sy()                      const { return msy;             }
+  rtError sy(float& v)            const { v = msy; return RT_OK;  }
+  virtual rtError setSY(float v)        { cancelAnimation("sy"); msy = v; return RT_OK;  }
+
+  float a()                       const { return ma;              }
+  rtError a(float& v)             const { v = ma; return RT_OK;   }
+  rtError setA(float v)                 { cancelAnimation("a"); ma = v; return RT_OK;   }
+
+  float r()                       const { return mr;              }
+  rtError r(float& v)             const { v = mr; return RT_OK;   }
+  rtError setR(float v)                 { cancelAnimation("r"); mr = v; return RT_OK;   }
+
 #ifdef ANIMATION_ROTATE_XYZ
-  float rx()            const { return mrx;}
-  rtError rx(float& v)  const { v = mrx; return RT_OK;  }
-  rtError setRX(float v)      { cancelAnimation("rx");  mrx = v; return RT_OK;  }
-  float ry()            const { return mry;}
-  rtError ry(float& v)  const { v = mry; return RT_OK;  }
-  rtError setRY(float v)      { cancelAnimation("ry"); mry = v; return RT_OK;  }
-  float rz()            const { return mrz;}
-  rtError rz(float& v)  const { v = mrz; return RT_OK;  }
-  rtError setRZ(float v)      { cancelAnimation("rz"); mrz = v; return RT_OK;  }
+  float rx()                      const { return mrx;             }
+  rtError rx(float& v)            const { v = mrx; return RT_OK;  }
+  rtError setRX(float v)                { cancelAnimation("rx");  mrx = v; return RT_OK;  }
+
+  float ry()                      const { return mry;             }
+  rtError ry(float& v)            const { v = mry; return RT_OK;  }
+  rtError setRY(float v)                { cancelAnimation("ry"); mry = v; return RT_OK;  }
+
+  float rz()                      const { return mrz;             }
+  rtError rz(float& v)            const { v = mrz; return RT_OK;  }
+  rtError setRZ(float v)                { cancelAnimation("rz"); mrz = v; return RT_OK;  }
+
 #endif // ANIMATION_ROTATE_XYZ
-  bool painting()            const { return mPainting;}
-  rtError painting(bool& v)  const { v = mPainting; return RT_OK;  }
+  bool painting()                 const { return mPainting;             }
+  rtError painting(bool& v)       const { v = mPainting; return RT_OK;  }
   rtError setPainting(bool v);
 
-  bool clip()            const { return mClip;}
-  rtError clip(bool& v)  const { v = mClip; return RT_OK;  }
-  virtual rtError setClip(bool v) { mClip = v; return RT_OK; }
+  bool clip()                     const { return mClip;            }
+  rtError clip(bool& v)           const { v = mClip; return RT_OK; }
+  virtual rtError setClip(bool v)       { mClip = v; return RT_OK; }
 
-  bool mask()            const { return mMask;}
-  rtError mask(bool& v)  const { v = mMask; return RT_OK;  }
-  rtError setMask(bool v) { mMask = v; return RT_OK; }
+  bool mask()                     const { return mMask;}
+  rtError mask(bool& v)           const { v = mMask; return RT_OK; }
+  rtError setMask(bool v)               { mMask = v; return RT_OK; }
 
-  bool drawEnabled()            const { return mDraw;}
-  rtError drawEnabled(bool& v)  const { v = mDraw; return RT_OK;  }
-  rtError setDrawEnabled(bool v) { mDraw = v; return RT_OK; }
+  bool drawEnabled()              const { return mDraw;            }
+  rtError drawEnabled(bool& v)    const { v = mDraw; return RT_OK; }
+  rtError setDrawEnabled(bool v)        { mDraw = v; return RT_OK; }
 
-  bool hitTest()            const { return mHitTest;}
-  rtError hitTest(bool& v)  const { v = mHitTest; return RT_OK;  }
-  rtError setHitTest(bool v) { mHitTest = v; return RT_OK; }
+  bool hitTest()                  const { return mHitTest;            }
+  rtError hitTest(bool& v)        const { v = mHitTest; return RT_OK; }
+  rtError setHitTest(bool v)            { mHitTest = v; return RT_OK; }
 
-  bool focus()            const { return mFocus;}
-  rtError focus(bool& v)  const { v = mFocus; return RT_OK;  }
+  bool focus()                    const { return mFocus;}
+  rtError focus(bool& v)          const { v = mFocus; return RT_OK;  }
   rtError setFocus(bool v);
 
   rtError ready(rtObjectRef& v) const
@@ -291,8 +299,8 @@ public:
   void setFocusInternal(bool focus) { mFocus = focus; }
 
   rtError animateTo(const char* prop, double to, double duration,
-                     uint32_t interp, uint32_t options,
-                     int32_t count, rtObjectRef promise);
+                      uint32_t interp, uint32_t options,
+                      int32_t count, rtObjectRef promise);
 
   rtError animateToP2(rtObjectRef props, double duration,
                       uint32_t interp, uint32_t options,
@@ -303,8 +311,8 @@ public:
                       int32_t count, rtObjectRef& promise);
 
   void animateToInternal(const char* prop, double to, double duration,
-                 pxInterp interp, pxConstantsAnimation::animationOptions options,
-                 int32_t count, rtObjectRef promise, rtObjectRef animateObj);
+                  pxInterp interp, pxConstantsAnimation::animationOptions options,
+                  int32_t count, rtObjectRef promise, rtObjectRef animateObj);
 
   void cancelAnimation(const char* prop, bool fastforward = false, bool rewind = false);
 
@@ -532,13 +540,17 @@ public:
 
     // TODO fix rtString empty check
     if (from->mId.cString() && !strcmp(id, from->mId.cString()))
+    {
       return from;
+    }
 
     for(std::vector<rtRef<pxObject> >::iterator it = from->mChildren.begin(); it != from->mChildren.end(); ++it)
     {
       pxObject* o = getObjectById(id, (*it).getPtr());
       if (o)
+      {
         return o;
+      }
     }
 
     return NULL;
