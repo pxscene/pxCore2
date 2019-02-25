@@ -18,7 +18,6 @@ include(../../cmake/DukeDeps.cmake)
 
 set(WESTEROSINC ${EXTDIR}/westeros/external/install/include)
 set(WESTEROSSTUBINC ${EXTDIR}/westeros-stub)
-set(RTREMOTEINC ${PXCOREDIR}/remote)
 set(GOOGLETESTINC ${EXTDIR}/gtest/googletest/include ${EXTDIR}/gtest/googletest ${EXTDIR}/gtest/googlemock/include ${EXTDIR}/gtest/googlemock)
 set(PXCOREINC ${PXCOREDIR}/src)
 set(PXSCENEINC ${PXCOREDIR}/examples/pxScene2d/src)
@@ -69,7 +68,7 @@ message(STATUS "DUKE_LIBRARY_DIRS: ${DUKE_LIBRARY_DIRS}")
 # LINUX # LINUX # LINUX # LINUX # LINUX # LINUX # LINUX # LINUX # LINUX # LINUX # LINUX # LINUX # LINUX # 
 
 if (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
-    set(PXSCENETEST_LINK_DIRECTORIES ${PXSCENETEST_LINK_DIRECTORIES} ${PXCOREDIR}/remote)
+    set(PXSCENETEST_LINK_DIRECTORIES ${PXSCENETEST_LINK_DIRECTORIES} )
     set(PXSCENETEST_LINK_LIBRARIES Spark pxCore rtCore_s ${PXSCENETEST_LINK_LIBRARIES} rt dl pthread)
 
     if (HOSTNAME STREQUAL "raspberrypi")
@@ -99,7 +98,7 @@ if (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
         set(BUILD_UNIT_TEST 1)
         set(TEST_WAYLAND_SOURCE_FILES "")
         #set(TEST_WAYLAND_SOURCE_FILES test_pxWayland.cpp test_pxWaylandContainer.cpp)
-        set(PLATFORM_TEST_FILES test_jsfiles.cpp test_pxUtil.cpp test_screenshot.cpp)
+        set(PLATFORM_TEST_FILES test_jsfiles.cpp test_pxUtil.cpp test_screenshot.cpp test_httpEndAfterClose.cpp)
 
         if (PXSCENE_TEST_HTTP_CACHE)
                 message("Enabling http cache tests")
@@ -162,7 +161,7 @@ set(TEST_SOURCE_FILES pxscene2dtestsmain.cpp  test_example.cpp test_api.cpp  tes
     test_pxWindowUtil.cpp test_pxTexture.cpp test_pxWindow.cpp test_ioapi.cpp test_rtLog.cpp test_pxTimerNative.cpp
     test_rtUrlUtils.cpp test_pxArchive.cpp test_pxPixel_h.cpp test_pxFont.cpp test_rtThreadPool.cpp test_utf8.cpp
     test_rtSettings.cpp test_cors.cpp  test_external.cpp test_pxScene2d.cpp test_oscillate.cpp test_rtPathUtils.cpp
-    test_rtError.cpp test_import_resources.cpp test_rtHttpRequest.cpp test_rtHttpResponse.cpp test_rtObjectWrapper.cpp 
+    test_rtError.cpp test_import_resources.cpp test_rtHttpRequest.cpp test_rtHttpResponse.cpp test_imagecacheSVG.cpp test_rtObjectWrapper.cpp 
     ${PLATFORM_TEST_FILES} ${TEST_WAYLAND_SOURCE_FILES})
 
 if (DEFINED ENV{USE_HTTP_CACHE})

@@ -23,7 +23,6 @@ set(WESTEROSINC ${EXTDIR}/westeros/external/install/include)
 set(WESTEROSSTUBINC ${EXTDIR}/westeros-stub)
 
 set(BREAKPADINC ${EXTDIR}/breakpad/src)
-set(RTREMOTEINC ${PXCOREDIR}/remote)
 
 set(WINSPARKLEINC ${EXTDIR}/WinSparkle/include)
 
@@ -33,7 +32,6 @@ set(PXWAYLAND_LIBRARY_SUPPORT 0)
 set(PX_LIBRARY_LINK_PXCORE 1)
 
 option(BUILD_WITH_GL "BUILD_WITH_GL" ON)
-option(BUILD_WITH_PXPATH "BUILD_WITH_PXPATH" OFF)
 option(BUILD_WITH_WAYLAND "BUILD_WITH_WAYLAND" OFF)
 option(BUILD_WITH_WESTEROS "BUILD_WITH_WESTEROS" OFF)
 option(BUILD_WITH_CXX_11 "BUILD_WITH_CXX_11" ON)
@@ -84,6 +82,10 @@ set(PXSCENE_DEFINITIONS )
 set(PXSCENE_ADDITIONAL_RESOURCES )
 set(PXSCENE_INSTALLER 0)
 
+##
+## APPLE BUILDS
+##
+
 if (APPLE)
     message("building pxscene for mac")
     set(PX_PLATFORM PX_PLATFORM_MAC)
@@ -121,7 +123,13 @@ if (APPLE)
         set(PXSCENE_LINK_LIBRARIES ${PXSCENE_LINK_LIBRARIES} clang_rt.profile_osx)
     endif ()
     #set(PX_LIBRARY_SUPPORT 0)
+
+##
+## LINUX BUILDS
+##
+
 elseif (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
+
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC -fpermissive -g -Wall -Wno-attributes -Wall -Wextra")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -fpermissive -g -Wall -Wno-attributes -Wall -Wextra")
     execute_process(COMMAND "hostname" OUTPUT_VARIABLE HOSTNAME)
@@ -250,6 +258,11 @@ elseif (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
         set(PXSCENE_DEFINITIONS ${PXSCENE_DEFINITIONS} -DENABLE_CODE_COVERAGE)
         set(PXSCENE_LINK_LIBRARIES ${PXSCENE_LINK_LIBRARIES} gcov)
     endif ()
+
+##
+## WINDOWS BUILDS
+##
+
 elseif (WIN32)
     set(CMAKE_BUILD_TYPE Release)
     set(CMAKE_CONFIGURATION_TYPES ${CMAKE_BUILD_TYPE} CACHE STRING "" FORCE)
@@ -258,7 +271,7 @@ elseif (WIN32)
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /EHs-c-")
     set(PXCORE_LIB_LOCATION ${PXCOREDIR}/build/win/Release)
     set(PXSCENE_LINK_DIRECTORIES ${PXCORE_LIB_LOCATION})
-    set(PLATFORM_SOURCES glut/pxContextUtils.cpp)
+    set(PLATFORM_SOURCES win/pxContextUtils.cpp)
     if (SUPPORT_NODE)
         set(PLATFORM_SOURCES ${PLATFORM_SOURCES}
     	    ${NODEDIR}/src/async-wrap.cc ${NODEDIR}/src/backtrace_win32.cc
@@ -321,6 +334,10 @@ else ()
     message(FATAL_ERROR "Cannot build pxscene. Unknown platform")
 endif (APPLE)
 
+##
+## END of PLATFORMS
+##
+
 if (DEFINED ENV{PX_BUILD_VERSION})
     set(PXSCENE_VERSION $ENV{PX_BUILD_VERSION})
 endif(DEFINED ENV{PX_BUILD_VERSION})
@@ -345,18 +362,14 @@ set(PXSCENE_DEFINITIONS ${PXSCENE_DEFINITIONS} -D${PX_PLATFORM} -DENABLE_RT_NODE
 #set(PXSCENE_LINKER_OPTIONS "${PXSCENE_LINKER_OPTIONS} -lgcov")
 
 include_directories(AFTER ${NODE_INCLUDE_DIRS} ${V8_INCLUDE_DIRS} ${DUKE_INCLUDE_DIRS})
-include_directories(AFTER ${WESTEROSINC} ${WESTEROSSTUBINC} ${TURBO_JPEG_INCLUDE_DIRS} ${BREAKPADINC} ${RTREMOTEINC} ${PXCOREDIR}/src)
+include_directories(AFTER ${WESTEROSINC} ${WESTEROSSTUBINC} ${TURBO_JPEG_INCLUDE_DIRS} ${BREAKPADINC} ${EXTDIR} ${PXCOREDIR}/src)
 include_directories(AFTER ${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(AFTER ${CMAKE_CURRENT_SOURCE_DIR}/rasterizer)
 
 set(PXSCENE_COMMON_FILES pxResource.cpp pxConstants.cpp pxRectangle.cpp pxFont.cpp pxText.cpp
         pxTextBox.cpp pxImage.cpp pxImage9.cpp pxImageA.cpp pxImage9Border.cpp pxArchive.cpp pxAnimate.cpp)
 
-if (BUILD_WITH_PXPATH)
-    message("Building with pxPath support")
-    set(PXSCENE_COMMON_FILES  rasterizer/pxPath.cpp)
-endif (BUILD_WITH_PXPATH)
-
+set(PXSCENE_COMMON_FILES ${PXSCENE_COMMON_FILES} pxObject.cpp)
 set(PXSCENE_COMMON_FILES ${PXSCENE_COMMON_FILES} pxScene2d.cpp)
 
 set(PXWAYLAND_LIB_FILES pxContextGL.cpp egl/pxContextUtils.cpp)
@@ -376,7 +389,7 @@ if (BUILD_WITH_WAYLAND)
     if (BUILD_RTREMOTE_LIBS)
         set(PXSCENE_DEFINITIONS ${PXSCENE_DEFINITIONS} -DENABLE_PX_WAYLAND_RPC)
         set(PXSCENE_APP_LIBRARIES ${PXSCENE_APP_LIBRARIES} rtremote_shared)
-        set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${RTREMOTEINC})
+        set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES})
     endif (BUILD_RTREMOTE_LIBS)
 else ()
     message("Not building with wayland support")
@@ -475,6 +488,10 @@ endif (BUILD_WITH_PXOBJECT_TRACKING)
 set(CMAKE_EXE_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS} ${PXSCENE_LINKER_OPTIONS})
 link_directories(${PXSCENE_LINK_DIRECTORIES})
 
+##
+## SPARK app
+##
+
 if (BUILD_PXSCENE_APP)
     message("Enabling build support for pxscene app")
     add_executable(pxscene_app ${PXSCENE_APP_FILES} ${PXSCENE_ADDITIONAL_RESOURCES})
@@ -536,6 +553,10 @@ if (BUILD_PXSCENE_APP)
       endif (WIN32)
     endif (PXSCENE_INSTALLER GREATER 0)
 endif (BUILD_PXSCENE_APP)
+
+##
+## END of SPARK app
+##
 
 if (PXSCENE_ACCESS_CONTROL_CHECK)
     message("Enabling CORS")

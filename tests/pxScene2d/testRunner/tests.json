@@ -19,7 +19,7 @@
       {"url":"../tests/test_capabilities.js", "title":"test_capabilities","useBaseURI":"true"},
       {"url":"../tests/test_pxAnimate.js", "title":"test_pxAnimate","useBaseURI":"true"},
       {"url":"../tests/test_pxResource.js", "title":"test_pxResource","useBaseURI":"true"},
-      {"url":"../tests/test_pxScene2d_v2.js", "title":"test_pxScene2d_v2","useBaseURI":"true"},
+      {"url":"https://www.sparkui.org/tests-ci/tests/test_pxScene2d_v2.js", "title":"test_pxScene2d","useBaseURI":"false"},
       {"url":"../tests/test_pxImage.js", "title":"test_pxImage","useBaseURI":"true"},
       {"url":"../tests/test_pxImageA_2.js", "title":"test_pxImageA_2","useBaseURI":"true"},
       {"url":"../tests/test_pxImage9.js", "title":"test_pxImage9","useBaseURI":"true"},
@@ -49,6 +49,9 @@
       {"url":"../tests/test_textWithoutParent.js", "title":"textWithoutParent","useBaseURI":"true"},
       {"url":"../tests/test_xre2-1658.js", "title":"test_xre2-1658","useBaseURI":"true"},
       {"url":"../tests/test_moduleApi.js", "title":"test_moduleApi","useBaseURI":"true"},
+      {"url":"../tests/test_pxWebColors_v1.js", "title":"test_pxWebColors_v1","useBaseURI":"true"},
       {"url":"../tests/test_promiseNewCreation.js", "title":"test_promiseNewCreation","useBaseURI":"true"},
-      {"url":"../tests/test_promiseNewCreationTextBox.js", "title":"test_promiseNewCreationTextBox","useBaseURI":"true"}   
+      {"url":"../tests/test_promiseNewCreationTextBox.js", "title":"test_promiseNewCreationTextBox","useBaseURI":"true"},
+      {"url":"https://www.sparkui.org/tests-ci/tests/test_screencapture_jar.js", "title":"test_screencapture_jar", "useBaseURI":"false"},
+      {"url":"../tests/dirty_rect_tests.js", "title":"dirty_rect_tests","useBaseURI":"true"}
 ]

@@ -2,6 +2,15 @@
 set -e
 # Any subsequent(*) commands which fail will cause the shell script to exit immediately
 
+banner() {
+  msg="# $* #"
+  edge=$(echo "$msg" | sed 's/./#/g')
+  echo " "
+  echo "$edge"
+  echo "$msg"
+  echo "$edge"
+  echo " "
+}
 
 #--------- CURL
 
@@ -16,6 +25,8 @@ fi
 if [ ! -e ./curl/lib/.libs/libcurl.4.dylib ] ||
    [ "$(uname)" != "Darwin" ]
 then
+
+  banner "CURL"
 
   cd curl
 
@@ -49,6 +60,8 @@ if [ ! -e ./libpng-1.6.28/.libs/libpng16.16.dylib ] ||
    [ "$(uname)" != "Darwin" ]
 then
 
+  banner "PNG"
+
   cd png
   ./configure
   make all "-j${make_parallel}"
@@ -61,6 +74,8 @@ fi
 if [ ! -e ./ft/objs/.libs/libfreetype.6.dylib ] ||
    [ "$(uname)" != "Darwin" ]
 then
+
+  banner "FT"
 
   cd ft
   export LIBPNG_LIBS="-L../png/.libs -lpng16"
@@ -76,6 +91,8 @@ if [ ! -e ./jpg/.libs/libjpeg.9.dylib ] ||
    [ "$(uname)" != "Darwin" ]
 then
 
+  banner "JPG"
+
   cd jpg
   ./configure
   make all "-j${make_parallel}"
@@ -89,6 +106,8 @@ if [ ! -e ./zlib/libz.1.2.11.dylib ] ||
    [ "$(uname)" != "Darwin" ]
 then
 
+  banner "ZLIB"
+
   cd zlib
   ./configure
   make all "-j${make_parallel}"
@@ -100,6 +119,8 @@ fi
 
 if [ "$(uname)" != "Darwin" ]
 then
+
+  banner "TURBO"
 
   cd libjpeg-turbo
   git update-index --assume-unchanged Makefile.in
@@ -131,6 +152,8 @@ if [ ! -e node/libnode.dylib ] ||
    [ "$(uname)" != "Darwin" ]
 then
 
+  banner "NODE"
+
   cd node
   ./configure --shared
   make "-j${make_parallel}"
@@ -146,6 +169,8 @@ fi
 if [ ! -e ./uWebSockets/libuWS.dylib ] ||
    [ "$(uname)" != "Darwin" ]
 then
+
+  banner "uWEBSOCKETS"
 
   cd uWebSockets
 
@@ -172,12 +197,16 @@ fi
 
 #-------- NANOSVG
 
+  banner "NANOSVG"
+
 ./nanosvg/build.sh
 
 #-------- DUKTAPE
 
 if [ ! -e dukluv/build/libduktape.a ]
 then
+  banner "DUCKTAPE"
+
   ./dukluv/build.sh
 fi
 

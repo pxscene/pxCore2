@@ -45,7 +45,11 @@ function loadFile(fileUri, appSceneContext) {
       var req = null;
       var httpCallback = function (res) {
         res.on('data', function (data) {
-          code.push(data);
+          if (Buffer.isBuffer(data)) {
+            code.push(data);
+          } else {
+            code.push(new Buffer(data));
+          }
         });
         res.on('end', function () {
           if( res.statusCode === 200 ) {
