@@ -544,11 +544,15 @@ rtError jsObjectWrapper::Set(const char* name, const rtValue* value)
     if (idx.IsEmpty())
       err = RT_ERROR_INVALID_ARG;
     else
-      err = Set(idx->Value(), value);
+    {
+      if (!Set(idx->Value(), value))
+        err = RT_FAIL;
+    }
   }
   else
   {
-    err = self->Set(s, rt2js(ctx, *value));
+    if (!self->Set(s, rt2js(ctx, *value)))
+      err = RT_FAIL;
   }
 
   return err;
