@@ -42,7 +42,7 @@ int pxCreateEglContext()
   {
     return PX_FAIL;
   }
-  rtLogInfo("creating new context\n");
+  rtLogDebug("creating new context\n");
   EGLDisplay egl_display      = 0;
   EGLSurface egl_surface      = 0;
   EGLContext egl_context      = 0;
@@ -110,7 +110,7 @@ int pxCreateEglContext()
 
     if ((red_size == 8) && (green_size == 8) && (blue_size == 8) && (alpha_size == 8))
     {
-      rtLogInfo("Selected config: R=%d G=%d B=%d A=%d Depth=%d\n", red_size, green_size, blue_size, alpha_size, depth_size);
+      rtLogDebug("Selected config: R=%d G=%d B=%d A=%d Depth=%d\n", red_size, green_size, blue_size, alpha_size, depth_size);
       break;
     }
   }
@@ -159,7 +159,7 @@ int pxCreateEglContext()
   eglDisplay = egl_display;
   eglSurface = egl_surface;
   eglContext = egl_context;
-  rtLogInfo("display: %p surface: %p context: %p created\n", eglDisplay, eglSurface, eglContext);
+  rtLogDebug("display: %p surface: %p context: %p created\n", eglDisplay, eglSurface, eglContext);
   eglContextCreated = true;
 
   return PX_OK;
@@ -198,7 +198,7 @@ void pxDeleteEglContext()
   pxDoneEglCurrent();
   if (eglContextCreated)
   {
-    rtLogInfo("deleting pxscene context\n");
+    rtLogDebug("deleting pxscene context\n");
     eglDestroySurface(eglDisplay, eglSurface);
     eglDestroyContext(eglDisplay, eglContext);
     eglDisplay = 0;
@@ -212,7 +212,13 @@ void pxDeleteEglContext()
   }
 }
 
-pxError makeInternalGLContextCurrent(bool current)
+pxError deleteInternalGLContext(int)
+{
+  pxDeleteEglContext();
+  return PX_OK;
+}
+
+pxError makeInternalGLContextCurrent(bool current, int /*id*/)
 {
   if (current)
   {

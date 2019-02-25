@@ -12,17 +12,21 @@
 #include <map>
 
 #include <QHBoxLayout>
-#include <QWebengineView>
+#include <QWebEngineView>
 #include <QWebEngineProfile>
 #include <QWebEngineSettings>
 #include <QWebEngineCookieStore>
 #include <QNetworkCookieJar>
 #include <QWebEngineUrlRequestInterceptor>
 #include <QNetworkProxy>
+#include <QImage>
+#include <QEvent>
 
 #include "rtObject.h"
 
 #include "pxIView.h"
+#include "pxOffscreen.h"
+#include "pxTexture.h"
 
 /**
  * pxBrowser class, used to save console log item from engine
@@ -278,7 +282,6 @@ public:
 		return mCookies;
 	}
 
-
 private:
 	bool mIsFirstLoad;
 	bool mConsoleLogEnabled;
@@ -287,6 +290,26 @@ private:
 	HTMLLinkClickedFunc mLinkClickedFunc;
 	CookieJarChangedFunc mCookieChangedFunc;
 	QList<QNetworkCookie> mCookies;
+};
+
+/**
+ * px qt web view
+ */
+class pxQTWebView : public QWebEngineView
+{
+public:
+	pxQTWebView(QWidget* parent) : QWebEngineView(parent)
+	{
+		installEventFilter(this);
+	}
+
+	bool eventFilter(QObject* pObject, QEvent* pEvent) override
+	{
+		if (pEvent->type() == QEvent::Type::UpdateRequest || pEvent->type() == QEvent::Type::LayoutRequest)
+		{
+		}
+		return QObject::eventFilter(pObject, pEvent);
+	}
 };
 
 /**
@@ -409,11 +432,16 @@ protected:
 
 	std::string mUserAgent;
 
-	QWebEngineView *mWebView;
+	pxQTWebView *mWebView;
 	QNetworkAccessManager* mNetworkManager;
 	pxWebUrlRequestInterceptor* webUrlRequestInterceptor;
 	rtObjectRef mProxy;
 	void* mRootWidget;
+
+	bool mDirty;
+	QImage * mRenderQImage;
+	pxOffscreen * mOffscreen;
+	pxTextureRef mTextureRef;
 };
 
 #endif

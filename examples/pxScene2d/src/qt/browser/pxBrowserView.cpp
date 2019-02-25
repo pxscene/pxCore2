@@ -3,8 +3,12 @@
 #include "rtLog.h"
 
 #include <QApplication>
-#include "pxBrowserView.h"
+#include <QImage>
+#include <QPainter>
+#include <QRgb>
 
+#include "pxBrowserView.h"
+#include "pxContext.h"
 
 #ifdef WIN32
 #include "qt/browser/win32/qtwinmigrate/qwinwidget.h"
@@ -14,6 +18,7 @@
 
 int argc = 0;
 static QApplication *globalQTApp = new QApplication(argc, 0);
+extern pxContext context;
 
 //pxBrowserConsoleLog properties
 rtDefineObject(pxBrowserConsoleLog, rtObject);
@@ -53,7 +58,8 @@ rtDefineMethod(pxBrowserView, addListener);
 
 pxBrowserView::pxBrowserView(void* root, int w, int h) :
     mWidth(0), mHeight(0), mEmit(new rtEmit()), mNetworkManager(nullptr),
-    webUrlRequestInterceptor(nullptr), mProxy(nullptr)
+    webUrlRequestInterceptor(nullptr), mProxy(nullptr), mDirty(false), mRenderQImage(nullptr)
+    , mOffscreen(nullptr), mTextureRef(nullptr)
 {
 
 #ifdef WIN32
@@ -73,6 +79,11 @@ pxBrowserView::pxBrowserView(void* root, int w, int h) :
   this->mHeight = h;
   mNetworkManager = new QNetworkAccessManager();
   webUrlRequestInterceptor = new pxWebUrlRequestInterceptor();
+  mRenderQImage = new QImage(mWidth, mHeight, QImage::Format_ARGB32);
+  mOffscreen = new pxOffscreen();
+  mOffscreen->init(mWidth,mHeight);
+  mRenderQImage->fill(qRgba(255, 0, 0, 0));
+  mTextureRef = context.createTexture(*mOffscreen);
 }
 
 
@@ -86,31 +97,19 @@ void pxBrowserView::initQT()
   QMacWidget* win = (QMacWidget*) mRootWidget;
 #endif
 
-  win->setStyleSheet("background:#5f5f5f");
-
   rtLogInfo("pxBrowserView init w= %d, h=%d", mWidth, mHeight);
   win->setGeometry(0, 0, mWidth, mHeight);
 
-  QVBoxLayout layout;
-  layout.setContentsMargins(0, 0, 16, 0);
-  win->setLayout(&layout);
-
   // create new QWebEngineView and attach to window
-  this->mWebView = new QWebEngineView(win);
+  this->mWebView = new pxQTWebView(win);
   pxQTWebPage* wPage = new pxQTWebPage();
 
   this->mWebView->setPage(wPage);
   this->mWebView->page()->profile()->setRequestInterceptor(webUrlRequestInterceptor);
-  layout.addWidget(this->mWebView);
   this->mWebView->show();
 
-  // set layout
-  QSizePolicy po;
-  po.setHorizontalPolicy(QSizePolicy::Preferred);
-  po.setVerticalPolicy(QSizePolicy::Preferred);
-  po.setVerticalStretch(1);
-  po.setHorizontalStretch(1);
-  this->mWebView->setSizePolicy(po);
+  this->mWebView->setGeometry(0, 0, mWidth, mHeight);
+
   win->move(0, 0);
   win->show();
 
@@ -244,11 +243,45 @@ void pxBrowserView::onUpdate(double t)
   {
     globalQTApp->sendPostedEvents();
   }
+
+  if (this->mWebView)
+  {
+    QPainter painter;
+    painter.begin(mRenderQImage);
+    mWebView->page()->view()->render(&painter, QPoint(), QRegion(0, 0, mWidth, mHeight));
+    painter.end();
+    mDirty = true;
+  }
 }
 
 void pxBrowserView::onDraw()
 {
+  // here is test background color
+  float bgColor[4] = {0.7, 0.7, 0.7, 1.0};
+  context.drawRect(mWidth, mHeight, 0, bgColor, bgColor);
 
+  // render mRenderQImage in spark gl
+  // TODO need looking for a more efficient way to convert QImage bits to offscreen
+  if(mDirty){
+    const unsigned char* bits = mRenderQImage->bits();
+    mOffscreen->fill(qRgba(0, 0, 0, 0));
+
+    for (int y = 0; y < mOffscreen->height(); y++)
+    {
+      pxPixel* d = mOffscreen->scanline(y);
+      for (int x = 0; x < mOffscreen->width(); x++)
+      {
+        int index = y * mOffscreen->width() + x;
+        *d = qRgba(bits[index * 4], bits[index * 4 + 1], bits[index * 4 + 2], bits[index * 4 + 3]);
+        d++;
+      }
+    }
+
+    // TODO maybe need update texture, there is always has create and delete texture on draw method, this may cause lower fps.
+    mTextureRef = context.createTexture(*mOffscreen);
+    context.drawImage(0, 0, mWidth, mHeight, mTextureRef, nullptr);
+    mDirty = false;
+  }
 }
 
 void pxBrowserView::onCloseRequest()

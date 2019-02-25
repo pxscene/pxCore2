@@ -164,3 +164,61 @@ rtString rtUrlGetOrigin(const char* url)
 
   return rtString();
 }
+
+rtString rtUrlGetHostname(const char* origin)
+{
+  if (origin != NULL)
+  {
+    // See http://www.ietf.org/rfc/rfc3986.txt.
+    // host          = IP-literal / IPv4address / reg-name
+    // IP-literal = "[" ( IPv6address / IPvFuture  ) "]"
+    //
+    //  IPv6address =                            6( h16 ":" ) ls32
+    //              /                       "::" 5( h16 ":" ) ls32
+    //              / [               h16 ] "::" 4( h16 ":" ) ls32
+    //              / [ *1( h16 ":" ) h16 ] "::" 3( h16 ":" ) ls32
+    //              / [ *2( h16 ":" ) h16 ] "::" 2( h16 ":" ) ls32
+    //              / [ *3( h16 ":" ) h16 ] "::"    h16 ":"   ls32
+    //              / [ *4( h16 ":" ) h16 ] "::"              ls32
+    //              / [ *5( h16 ":" ) h16 ] "::"              h16
+    //              / [ *6( h16 ":" ) h16 ] "::"
+    //  ls32        = ( h16 ":" h16 ) / IPv4address
+    //              ; least-significant 32 bits of address
+    //  h16         = 1*4HEXDIG
+    //              ; 16 bits of address represented in hexadecimal
+    //
+    //  IPv4address = dec-octet "." dec-octet "." dec-octet "." dec-octet
+    //  dec-octet   = DIGIT                 ; 0-9
+    //              / %x31-39 DIGIT         ; 10-99
+    //              / "1" 2DIGIT            ; 100-199
+    //              / "2" %x30-34 DIGIT     ; 200-249
+    //              / "25" %x30-35          ; 250-255
+    //
+    // reg-name    = *( unreserved / pct-encoded / sub-delims )
+    //
+    // unreserved    = ALPHA / DIGIT / "-" / "." / "_" / "~"
+    // pct-encoded   = "%" HEXDIG HEXDIG
+    // sub-delims    = "!" / "$" / "&" / "'" / "(" / ")" / "*" / "+" / "," / ";" / "="
+    //
+    // See https://tools.ietf.org/html/rfc6454#section-7.
+    //    serialized-origin   = scheme "://" host [ ":" port ]
+
+    const char* h = origin;
+    for (; *h && !(*h == ':' && *(h+1) == '/' && *(h+2) == '/'); h++);
+    if (*h)
+    {
+      h += 3;
+      bool v6 = *h == '[';
+      if (v6)
+        h++;
+      const char* host = h;
+      for (; *h && !(*h == (v6 ? ']' : ':')); h++);
+      if (h > host)
+      {
+        return rtString(host, (uint32_t) (h - host));
+      }
+    }
+  }
+
+  return rtString();
+}
