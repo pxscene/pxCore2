@@ -38,6 +38,8 @@ then
   make "-j${make_parallel}"
   ln -sf out/Release/obj.target/libnode.so.57 libnode.so.57
   ln -sf libnode.so.57 libnode.so
+  ln -sf out/Release/libnode.57.dylib libnode.57.dylib
+  ln -sf libnode.57.dylib libnode.dylib
   cd ..
 
 fi

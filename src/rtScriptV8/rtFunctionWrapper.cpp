@@ -114,11 +114,11 @@ void rtResolverFunction::afterWorkCallback(uv_work_t* req, int /* status */)
 #endif //ENABLE_NODE_V_6_9
   if (resolverFunc->mDisposition == DispositionResolve)
   {
-    resolver->Resolve(local_context, value);
+    (void)resolver->Resolve(local_context, value);
   }
   else
   {
-    resolver->Reject(local_context, value);
+    (void)resolver->Reject(local_context, value);
   }
 
   if (tryCatch.HasCaught())
