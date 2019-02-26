@@ -768,20 +768,6 @@ rtError rtObject::allKeys(rtObjectRef& v) const
     }
   }
       
-  {
-    rtMethodMap* m = getMap();
-    while(m)
-	  {
-	    rtMethodEntry* e = m->getFirstMethod();
-      while(e)
-      {
-        keys->pushBack(e->mMethodName);
-        e = e->mNext;
-      }
-      m = m->parentsMap;
-    }
-	}
-
   v = keys;
   return RT_OK;
 }
