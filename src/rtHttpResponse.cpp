@@ -107,7 +107,7 @@ void rtHttpResponse::setHeaders(const char* data, size_t size)
 
 void rtHttpResponse::setDownloadedData(const char* data, size_t size)
 {
-  if (size == 0) {
+  if ((size == 0) || (NULL == data)) {
     mDownloadedData = rtString();
   } else if (data && strlen(data) == size) {
     mDownloadedData = rtString(data, (uint32_t) size);
