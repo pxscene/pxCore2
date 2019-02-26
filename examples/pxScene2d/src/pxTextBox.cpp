@@ -274,14 +274,14 @@ float pxTextBox::getOnscreenWidth()
 {
     // TODO review max texture handling
     rtRefT<pxTextBounds> bounds = getMeasurements()->getBounds();
-    return pxMax(mw, abs(bounds->x2()-bounds->x1()));
+    return pxMax(mw, static_cast<float>(abs(bounds->x2()-bounds->x1())));
 }
 
 float pxTextBox::getOnscreenHeight()
 {
     // TODO review max texture handling
     rtRefT<pxTextBounds> bounds = getMeasurements()->getBounds();
-    return pxMax(mh, abs(bounds->y2()-bounds->y1()));
+    return pxMax(mh, static_cast<float>(abs(bounds->y2()-bounds->y1())));
 }
 
 void pxTextBox::update(double t)
