@@ -28,7 +28,7 @@ then
 
   banner "NODE 8"
 
-  wget https://nodejs.org/download/release/v8.11.2/node-v8.11.2.tar.gz
+  curl -O https://nodejs.org/download/release/v8.11.2/node-v8.11.2.tar.gz
   tar xzf node-v8.11.2.tar.gz
   rm node-v8.11.2.tar.gz
   mv node-v8.11.2 libnode-v8.11.2
