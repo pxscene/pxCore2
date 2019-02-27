@@ -288,7 +288,7 @@ The Animate object is returned from the animate() method. It can be used to chec
 `status` *string* - current status for this animation. See `status animation constants` for valid values. Note that this is the constant name returned as a string rather than as its numeric value. (Read only) ;
 
 ### `Animation Constants`
-http://www.pxscene.org/examples/px-reference/gallery/dynamics.js demonstrates the different animation interpolators available.
+http://www.sparkui.org/examples/gallery/dynamics.js demonstrates the different animation interpolators available.
 
 **Properties**
 
@@ -360,4 +360,4 @@ Returns a collection of valid status constants:
 `TRUNCATE` *num* - text is truncated at the bottom of the textBox. The last word may be partially truncated; constant value is 1;   
 `TRUNCATE_AT_WORD` *num* - text is truncated at the bottom of the textBox. Truncation occurs at the word boundary; constant value is 2;   
 
-Original document: http://www.pxscene.org/docs/apis/
+Original document: http://www.sparkui.org/docs/apis/
