@@ -1142,6 +1142,7 @@ void pxObject::drawInternal(bool maskPass)
       }
       createSnapshotOfChildren();
       context.setMatrix(m);
+      context.setAlpha(ma);
       //rtLogInfo("context.drawImage\n");
 
       context.drawImageMasked(0, 0, w, h, maskOp, mDrawableSnapshotForMask->getTexture(), mMaskSnapshot->getTexture());
