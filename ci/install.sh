@@ -46,8 +46,4 @@ echo "******************** Building externals ********************" > $BUILDLOGS
 cd $TRAVIS_BUILD_DIR/examples/pxScene2d/external
 ./build.sh>>$BUILDLOGS
 checkError $? "building externals failed" "compilation error" "Need to build the externals directory locally in $TRAVIS_OS_NAME"
-cd $TRAVIS_BUILD_DIR/examples/pxScene2d/external
-./buildNode8.sh>>$BUILDLOGS
-checkError $? "building node 8 failed" "compilation error" "Need to build the externals directory locally in $TRAVIS_OS_NAME"
-
 exit 0;

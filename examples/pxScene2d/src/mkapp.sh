@@ -4,6 +4,9 @@
 minJS=./jsMin.sh  #minify
 
 externalDir=../external
+nodeDir=${externalDir}/libnode-v6.9.0
+[[ -e ${externalDir}/.build_node_8.11.2 ]] && nodeDir=${externalDir}/libnode-v8.11.2
+
 APPNAME=Spark
 if [ "$TRAVIS_EVENT_TYPE" == "cron" ]
 then
@@ -31,8 +34,7 @@ rm -rf $bundle
 #
 cp $externalDir/png/.libs/libpng16.16.dylib $bundleLib
 cp $externalDir/curl/lib/.libs/libcurl.4.dylib $bundleLib
-cp $externalDir/libnode-v6.9.0/out/Release/libnode*.dylib $bundleLib
-cp $externalDir/libnode-v8.11.2/out/Release/libnode*.dylib $bundleLib
+cp $nodeDir/out/Release/libnode*.dylib $bundleLib
 cp $externalDir/ft/objs/.libs/libfreetype.6.dylib $bundleLib
 cp $externalDir/jpg/.libs/libjpeg.9.dylib $bundleLib
 #Avoid copying v8 artifacts if not generated
