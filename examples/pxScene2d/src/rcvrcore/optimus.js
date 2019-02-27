@@ -101,6 +101,8 @@ function Application(props) {
   this.createTime = 0;
   this.uri = "";
   this.type = ApplicationType.UNDEFINED;
+  this.expectedMemoryUsage = -1;
+  this.actualMemoryUsage = -1;
   var _readyResolve = undefined;
   var _readyReject = undefined;
   this.ready = new Promise(function (resolve, reject) {
@@ -332,6 +334,9 @@ function Application(props) {
   if("serviceContext" in props) { 
     serviceContext = props["serviceContext"]
   }
+  if ("expectedMemoryUsage" in props) {
+    this.expectedMemoryUsage = props.expectedMemoryUsage;
+  }
 
   this.log("cmd:",cmd,"uri:",uri,"w:",w,"h:",h);
 
@@ -369,8 +374,9 @@ function Application(props) {
       _readyResolve();
       _this.applicationReady();
     }, function rejection() {
-      _this.log("failed to launch Spark app: " + _this.id);
-      _readyReject(new Error("failed to create"));
+      var msg = "Failed to load uri: " + uri;
+      _this.log("failed to launch Spark app: " + _this.id + ". " + msg);
+      _readyReject(new Error("failed to create. " + msg));
       _this.applicationClosed();
     });
     this.setProperties(props);
@@ -526,7 +532,7 @@ function Optimus() {
   /**
    * @example
    * // create optimus app with one of the following launchParams:
-   * // { "cmd":"spark","uri":"http://www.pxscene.org/examples/px-reference/gallery/picturepile.js"}
+   * // { "cmd":"spark","uri":"http://www.sparkui.org/examples/gallery/picturepile.js"}
    * // { "cmd":"receiver"}
    * // { "cmd":"WebApp","uri":"https://google.com"}
    * var app = optimus.createApplication(...);
@@ -551,6 +557,9 @@ function Optimus() {
    * @returns {Application}
    */
   this.createApplication = function(props){
+    //set the expected memory usage
+    props.expectedMemoryUsage = this.getExpectedMemoryUsage(props);
+    
     var app = new Application(props);
     applicationsArray.push(app);
     return app;
@@ -631,5 +640,35 @@ function Optimus() {
     if (availableApps.length > 0) {
       availableApplicationsArray = JSON.parse(availableApps);
     }
+  };
+  this.getExpectedMemoryUsage = function(props){
+    
+    if(typeof(props) != "object")
+      return -1;
+     
+    if ("expectedMemoryUsage" in props)
+      return props.expectedMemoryUsage;
+
+    if ("launchParams" in props && "cmd" in props.launchParams){
+      if (props.launchParams.cmd === "WebApp")
+         return 130;
+      else if (props.launchParams.cmd === "spark")
+         return 90;
+      else if (props.launchParams.cmd === "sparkInstance")
+         return 90;
+      else
+         return 75;
+    }
+  };
+  this.getFreeID = function(starting_from){
+    var i=0;
+    
+    if(typeof(starting_from) == "number")
+      i = starting_from;
+    
+    while(this.getApplicationById(i.toString()) != null)
+      i++;
+    
+    return i.toString();
   };
 }

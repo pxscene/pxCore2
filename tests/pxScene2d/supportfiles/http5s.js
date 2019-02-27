@@ -16,32 +16,8 @@ limitations under the License.
 
 */
 
-"use strict";
-
-function trace(msg) {
-    print("[SPARK TRACE] " + msg);
-}
-
-function warn(msg) {
-    print("[SPARK WARN] " + msg);
-}
-
-function error(msg) {
-    print("[SPARK ERROR] " + msg);
-}
-
-function log(msg) {
-    print("[SPARK LOG] " + msg);
-}
-
-function info(msg) {
-    print("[SPARK INFO] " + msg);
-}
-
-module.exports = {
-    trace: trace,
-    warn: warn,
-    error: error,
-    log: log,
-    info: info,
-}
+px.import('http').then(http => {
+  http.get(`http://deelay.me/5000/http://example.com`, () => {
+    process.env.TEST_HTTP_5S_VAL = px.appQueryParams.val;
+  });
+});

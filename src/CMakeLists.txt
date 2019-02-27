@@ -203,7 +203,7 @@ include_directories(AFTER ${V8_INCLUDE_DIRS})
 include_directories(AFTER ${NODE_INCLUDE_DIRS})
 include_directories(AFTER ${CMAKE_CURRENT_SOURCE_DIR})
 
-set(PXCORE_FILES ${PXCORE_FILES} pxOffscreen.cpp pxWindowUtil.cpp
+set(PXCORE_FILES ${PXCORE_FILES} pxOffscreen.cpp pxWindowUtil.cpp pxColorNames.cpp
 
         rtFile.cpp rtLibrary.cpp rtPathUtils.cpp rtTest.cpp rtThreadPool.cpp
         rtThreadQueue.cpp rtThreadTask.cpp rtUrlUtils.cpp
@@ -268,6 +268,7 @@ set(RTCORE_FILES ${RTCORE_FILES} rtPromise.cpp)
 set(RTCORE_FILES ${RTCORE_FILES} rtObject.cpp)
 
 include_directories(AFTER ${EXTDIR}/nanosvg/src)
+include_directories(AFTER ${EXTDIR})
 
 if (OUTPUT_LIBS_LOCAL)
     message("Output pxCore and rtCore libs locally")

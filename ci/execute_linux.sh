@@ -42,7 +42,7 @@ export SPARK_ENABLE_COLLECT_GARBAGE=1
 
 touch $VALGRINDLOGS
 EXECLOGS=$TRAVIS_BUILD_DIR/logs/exec_logs
-TESTRUNNERURL="https://px-apps.sys.comcast.net/pxscene-samples/examples/px-reference/test-run/testRunner_v7.js"
+TESTRUNNERURL="https://www.sparkui.org/tests-ci/test-run/testRunner.js"
 TESTS="file://$TRAVIS_BUILD_DIR/tests/pxScene2d/testRunner/tests.json,file://$TRAVIS_BUILD_DIR/tests/pxScene2d/testRunner/testsDesktop.json"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -71,6 +71,8 @@ retVal=$?
 
 # Monitor testRunner ...
 count=0
+
+#adding spark log a part of console.log increase execution time in linux in ci
 #in linux we have timeouts, so increasing the limit
 max_seconds=1800
 while [ "$retVal" -ne 0 ] &&  [ "$count" -ne "$max_seconds" ]; do

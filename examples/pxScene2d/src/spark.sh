@@ -6,11 +6,10 @@ THIS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd $THIS_DIR
 
 externalDir=../external
-rtRemoteDir=../../../remote
 nodeDir=${externalDir}/libnode-v6.9.0
 [[ -e ${externalDir}/.build_node_8.11.2 ]] && nodeDir=${externalDir}/libnode-v8.11.2
 
-externalLibs=$externalDir/png/.libs/:$externalDir/jpg/.libs/:$externalDir/curl/lib/.libs/:$externalDir/ft/objs/.libs/:$externalDir/zlib:$externalDir/westeros/external/install/lib/:$externalDir/libjpeg-turbo/.libs/:rpc/:$rtRemoteDir/
+externalLibs=$externalDir/png/.libs/:$externalDir/jpg/.libs/:$externalDir/curl/lib/.libs/:$externalDir/ft/objs/.libs/:$externalDir/zlib:$externalDir/westeros/external/install/lib/:$externalDir/libjpeg-turbo/.libs/:rpc/
 
 PathD=$externalLibs:$nodeDir/out/Debug/obj.target
 PathR=$externalLibs:$nodeDir/out/Release/obj.target

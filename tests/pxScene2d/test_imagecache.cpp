@@ -749,7 +749,7 @@ class rtHttpCacheTest : public testing::Test, public commonTestFns
 
     void handleDownloadRequest404Test()
     {
-      rtHttpCacheData data("http://www.pxscene.org/examples/px-reference/gallery/fancy1.js");
+      rtHttpCacheData data("http://www.sparkui.org/examples/gallery/fancy1.js");
       vector<rtString> headers;
       bool ret = data.handleDownloadRequest(headers,true);
       EXPECT_TRUE(false == ret); 
@@ -757,7 +757,7 @@ class rtHttpCacheTest : public testing::Test, public commonTestFns
   
     void handleDownloadRequestProperTest()
     {
-      rtHttpCacheData data("http://www.pxscene.org/examples/px-reference/gallery/fancy.js");
+      rtHttpCacheData data("http://www.sparkui.org/examples/gallery/fancy.js");
       vector<rtString> headers;
       bool ret = data.handleDownloadRequest(headers,true);
       EXPECT_TRUE(true == ret); 
@@ -765,14 +765,14 @@ class rtHttpCacheTest : public testing::Test, public commonTestFns
 
     void filePointerTest()
     {
-      rtHttpCacheData data("http://www.pxscene.org/examples/px-reference/gallery/fancy.js");
+      rtHttpCacheData data("http://www.sparkui.org/examples/gallery/fancy.js");
       EXPECT_TRUE(NULL == data.filePointer());
     }
 
     void deferCacheReadFailTest()
     {
       rtData d;
-      rtHttpCacheData data("http://www.pxscene.org/examples/px-reference/gallery/fancy.js");
+      rtHttpCacheData data("http://www.sparkui.org/examples/gallery/fancy.js");
       EXPECT_TRUE(RT_ERROR == data.deferCacheRead(d));
     }
 
@@ -862,7 +862,7 @@ class rtFileDownloaderTest : public testing::Test, public commonTestFns
 
     void downloadFileCacheDataUnAvailableTest()
     {
-      rtFileDownloadRequest* downloadRequest = new rtFileDownloadRequest("http://px-apps.sys.comcast.net/pxscene-samples/images/tiles/notfound",this);
+      rtFileDownloadRequest* downloadRequest = new rtFileDownloadRequest("http://www.sparkui.org/examples/gallery/images/notfound",this);
       downloadRequest->setHeaderData(NULL, 0);
       downloadRequest->setDownloadedData(NULL, 0);
       downloadRequest->setCallbackFunction(rtFileDownloaderTest::downloadCallback);
@@ -903,15 +903,15 @@ class rtFileDownloaderTest : public testing::Test, public commonTestFns
     {
       // TODO TESTS images files downloaded from pxscene-samples need expiry date
       rtFileCache::instance()->clearCache();
-      rtFileDownloadRequest* request = new rtFileDownloadRequest("https://px-apps.sys.comcast.net/pxscene-samples/images/tiles/008.jpg",this);
+      rtFileDownloadRequest* request = new rtFileDownloadRequest("https://www.sparkui.org/tests-ci/tests/images/008.jpg",this);
       request->setCallbackFunction(rtFileDownloaderTest::downloadCallback);
       expectedStatusCode = 0;
       expectedHttpCode = 200;
       expectedCachePresence = false;
       rtFileDownloader::instance()->downloadFile(request);
       sem_wait(testSem);
-      rtHttpCacheData data("https://px-apps.sys.comcast.net/pxscene-samples/images/tiles/008.jpg");
-      //EXPECT_TRUE (RT_OK ==rtFileCache::instance()->httpCacheData("https://px-apps.sys.comcast.net/pxscene-samples/images/tiles/008.jpg",data));
+      rtHttpCacheData data("https://www.sparkui.org/tests-ci/tests/images/008.jpg");
+      //EXPECT_TRUE (RT_OK ==rtFileCache::instance()->httpCacheData("https://www.sparkui.org/tests-ci/tests/images/008.jpg",data));
     }
 
     #define DEFER_CACHE_BUFFER_SIZE 	 (16*1024) // 16 K Added similar to CURL_MAX_WRITE_SIZE (the usual default is 16K)
@@ -919,7 +919,7 @@ class rtFileDownloaderTest : public testing::Test, public commonTestFns
     {
       // TODO TESTS images files downloaded from pxscene-samples need expiry date
       rtFileCache::instance()->clearCache();
-      rtFileDownloadRequest* request = new rtFileDownloadRequest("https://px-apps.sys.comcast.net/pxscene-samples/images/tiles/008.jpg",this);
+      rtFileDownloadRequest* request = new rtFileDownloadRequest("https://www.sparkui.org/tests-ci/tests/images/008.jpg",this);
       request->setCallbackFunction(rtFileDownloaderTest::downloadCallbackForDeferCache);
       request->setDeferCacheRead(true);
       request->setCachedFileReadSize(DEFER_CACHE_BUFFER_SIZE);
@@ -934,7 +934,7 @@ class rtFileDownloaderTest : public testing::Test, public commonTestFns
     {
       // TODO TESTS images files downloaded from pxscene-samples need expiry date
       rtFileCache::instance()->clearCache();
-      rtFileDownloadRequest* request = new rtFileDownloadRequest("https://px-apps.sys.comcast.net/pxscene-samples/images/tiles/008.jpg",this);
+      rtFileDownloadRequest* request = new rtFileDownloadRequest("https://www.sparkui.org/tests-ci/tests/images/008.jpg",this);
       request->setCallbackFunction(rtFileDownloaderTest::downloadCallbackForUseCallbackDataSize);
       request->setDownloadProgressCallbackFunction(rtFileDownloaderTest::downloadProgressCallbackForUseCallbackDataSize, this);
       request->setUseCallbackDataSize(true);
@@ -945,7 +945,7 @@ class rtFileDownloaderTest : public testing::Test, public commonTestFns
     void checkAndDownloadFromNetworkSuccess()
     {
       rtFileCache::instance()->clearCache();
-      rtFileDownloadRequest* request = new rtFileDownloadRequest("https://px-apps.sys.comcast.net/pxscene-samples/images/tiles/008.jpg",this);
+      rtFileDownloadRequest* request = new rtFileDownloadRequest("https://www.sparkui.org/tests-ci/tests/images/008.jpg",this);
       bool ret = rtFileDownloader::instance()->downloadFromNetwork(request);
       EXPECT_TRUE (ret == true);
       EXPECT_TRUE (request->httpStatusCode() == 200);
@@ -1169,7 +1169,7 @@ class rtFileDownloaderTest : public testing::Test, public commonTestFns
     void setDownloadProgressCallbackFunctionTest()
     {
       rtFileCache::instance()->clearCache();
-      rtFileDownloadRequest request("https://px-apps.sys.comcast.net/pxscene-samples/images/tiles/008.jpg",this);
+      rtFileDownloadRequest request("https://www.sparkui.org/tests-ci/tests/images/008.jpg",this);
       request.setDownloadProgressCallbackFunction(rtFileDownloaderTest::downloadProgressCallback, this);
       EXPECT_TRUE (request.mDownloadProgressCallbackFunction == &rtFileDownloaderTest::downloadProgressCallback);
       EXPECT_TRUE (request.mDownloadProgressUserPtr == this);
@@ -1179,7 +1179,7 @@ class rtFileDownloaderTest : public testing::Test, public commonTestFns
     {
       size_t size = 0, nmemb = 0;
       rtFileCache::instance()->clearCache();
-      rtFileDownloadRequest request("https://px-apps.sys.comcast.net/pxscene-samples/images/tiles/008.jpg",this);
+      rtFileDownloadRequest request("https://www.sparkui.org/tests-ci/tests/images/008.jpg",this);
       request.setDownloadProgressCallbackFunction(rtFileDownloaderTest::downloadProgressCallback, this);
       EXPECT_TRUE ((size * nmemb) == request.executeDownloadProgressCallback(NULL, size, nmemb));
     }
@@ -1187,7 +1187,7 @@ class rtFileDownloaderTest : public testing::Test, public commonTestFns
     void executeDownloadProgressCallbackAbsentTest()
     {
       rtFileCache::instance()->clearCache();
-      rtFileDownloadRequest request("https://px-apps.sys.comcast.net/pxscene-samples/images/tiles/008.jpg",this);
+      rtFileDownloadRequest request("https://www.sparkui.org/tests-ci/tests/images/008.jpg",this);
       EXPECT_TRUE (false == request.executeDownloadProgressCallback(NULL, 0, 0));
     }
 

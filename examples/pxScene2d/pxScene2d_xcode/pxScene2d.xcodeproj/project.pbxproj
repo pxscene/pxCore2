@@ -10,7 +10,6 @@
 		4C4746D7215046FC00E06357 /* libpxCore Static Library.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 4CF546B420210AE200529907 /* libpxCore Static Library.a */; };
 		4C8440CC20D8362E00C24E45 /* sparkpermissions.conf in Resources */ = {isa = PBXBuildFile; fileRef = 4C8440CB20D8362E00C24E45 /* sparkpermissions.conf */; };
 		4C93A17D2021161E002278E5 /* libz.1.2.11.dylib in Copy Dynamic Library Files */ = {isa = PBXBuildFile; fileRef = 4CF5463A2020F6E200529907 /* libz.1.2.11.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
-		4CF546062020F5B600529907 /* pxPath.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C5B75AB1F475F3E00664DC6 /* pxPath.cpp */; };
 		4CF546072020F5B600529907 /* pxImage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C0C6D521E5218BB00BD8932 /* pxImage.cpp */; };
 		4CF546092020F5B600529907 /* pxImage9.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C0C6D541E5218BB00BD8932 /* pxImage9.cpp */; };
 		4CF5460A2020F5B600529907 /* pxImageA.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C5137B21E5F81BE0052A99C /* pxImageA.cpp */; };
@@ -215,8 +214,6 @@
 		4C38CDBF1E538D19003E4A35 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		4C5137B21E5F81BE0052A99C /* pxImageA.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = pxImageA.cpp; path = src/pxImageA.cpp; sourceTree = "<group>"; };
 		4C5137B31E5F81BE0052A99C /* pxImageA.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pxImageA.h; path = src/pxImageA.h; sourceTree = "<group>"; };
-		4C5B759F1F475F2600664DC6 /* pxPath.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pxPath.h; path = src/rasterizer/pxPath.h; sourceTree = "<group>"; };
-		4C5B75AB1F475F3E00664DC6 /* pxPath.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = pxPath.cpp; path = src/rasterizer/pxPath.cpp; sourceTree = "<group>"; };
 		4C5B75C21F4FB51600664DC6 /* about.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; name = about.js; path = src/about.js; sourceTree = "<group>"; };
 		4C5D05E8201FC58B00D2B292 /* libz.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libz.a; path = "../external/zlib-1.2.11/libz.a"; sourceTree = "<group>"; };
 		4C5D05EA201FC5B500D2B292 /* libz.1.2.11.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.1.2.11.dylib; path = "../external/zlib-1.2.11/libz.1.2.11.dylib"; sourceTree = "<group>"; };
@@ -434,8 +431,6 @@
 		4CE99F391F30B37900BA95C2 /* Rasterizer */ = {
 			isa = PBXGroup;
 			children = (
-				4C5B75AB1F475F3E00664DC6 /* pxPath.cpp */,
-				4C5B759F1F475F2600664DC6 /* pxPath.h */,
 				4C62369420B342A500DAB86F /* nanosvg */,
 			);
 			name = Rasterizer;
@@ -659,7 +654,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				4CF546062020F5B600529907 /* pxPath.cpp in Sources */,
 				4CF546072020F5B600529907 /* pxImage.cpp in Sources */,
 				4CF546092020F5B600529907 /* pxImage9.cpp in Sources */,
 				4CF5460A2020F5B600529907 /* pxImageA.cpp in Sources */,

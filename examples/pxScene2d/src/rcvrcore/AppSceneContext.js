@@ -40,6 +40,7 @@ var SetTimeout = (isDuk || isV8)?timers.setTimeout:setTimeout;
 var ClearTimeout = (isDuk || isV8)?timers.clearTimeout:clearTimeout;
 var SetInterval = (isDuk || isV8)?timers.setInterval:setInterval;
 var ClearInterval = (isDuk || isV8)?timers.clearInterval:clearInterval;
+var console = (isDuk || isV8)?global.console:require('console_wrap');
 
 function AppSceneContext(params) {
 
@@ -138,19 +139,11 @@ function terminateScene() {
       this.innerscene.api = null;
     }
     this.innerscene = null;
-    if ((undefined != this.sandbox) && (null != this.sandbox))
+    if (this.sandbox)
     {
       this.sandbox.sandboxName = null;
-      if ((undefined != this.sandbox.xmodule) && (null != this.sandbox.xmodule))
-      {
-        this.sandbox.xmodule.freeResources();
-      }
-      this.sandbox.xmodule = null;
       this.sandbox.console = null;
-      this.sandbox.runtime = null;
       this.sandbox.process = null;
-      this.sandbox.urlModule = null;
-      this.sandbox.queryStringModule = null;
       this.sandbox.theNamedContext = null;
       this.sandbox.Buffer = null;
       this.sandbox.require = null;
@@ -370,11 +363,7 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (packageUri, module
 
       newSandbox = {
         sandboxName: "InitialSandbox",
-        xmodule: xModule,
         console: console,
-        runtime: apiForChild,
-        urlModule: require("url"),
-        queryStringModule: require("querystring"),
         theNamedContext: "Sandbox: " + uri,
         Buffer: Buffer,
         process: processWrap,
@@ -416,7 +405,6 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (packageUri, module
     {
       newSandbox = {
         sandboxName: "InitialSandbox",
-        xmodule: xModule,
         console: console,
         timers: timers,
         global: global,
@@ -425,11 +413,8 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (packageUri, module
         clearTimeout: clearTimeout,
         setInterval: setInterval,
         clearInterval: clearInterval,
-        runtime: apiForChild,
-        urlModule: require("url"),
         require: require,
         loadUrl: loadUrl,
-        queryStringModule: require("querystring"),
         theNamedContext: "Sandbox: " + uri,
         //Buffer: Buffer,
         importTracking: {},
@@ -438,19 +423,12 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (packageUri, module
         makeReady: makeReady,
         getContextID: getContextID
       }; // end sandbox
-
-      queryStringModule = require("querystring");
-      urlModule = require("url");
     }
     else
     {
       newSandbox = {
         sandboxName: "InitialSandbox",
-        xmodule: xModule,
         console: console,
-        runtime: apiForChild,
-        urlModule: require("url"),
-        queryStringModule: require("querystring"),
         theNamedContext: "Sandbox: " + uri,
         //Buffer: Buffer,
         importTracking: {}
