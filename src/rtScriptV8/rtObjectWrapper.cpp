@@ -536,8 +536,7 @@ rtError jsObjectWrapper::Set(const char* name, const rtValue* value)
       err = RT_ERROR_INVALID_ARG;
     else
     {
-      if (!Set(idx->Value(), value))
-        err = RT_FAIL;
+      err = Set(idx->Value(), value);
     }
   }
   else
