@@ -535,9 +535,7 @@ rtError jsObjectWrapper::Set(const char* name, const rtValue* value)
     if (idx.IsEmpty())
       err = RT_ERROR_INVALID_ARG;
     else
-    {
       err = Set(idx->Value(), value);
-    }
   }
   else
   {
