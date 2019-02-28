@@ -330,7 +330,7 @@ void pxTextBox::renderText(bool render)
   float tempX = 0;//mx;
   lineNumber = 0;
   
-  if (!mText || !strcmp(mText.cString(),""))
+  if (!mText || !std::strncmp(mText.cString(),"", 1))
   {
      clearMeasurements();
      setMeasurementBounds(mx, 0, my, 0);
@@ -474,7 +474,7 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
         }
         else
         {
-            isNewLineDetected = std::strcmp(tempChar.c_str(), "\n") == 0 ? true : false;
+            isNewLineDetected = std::strncmp(tempChar.c_str(), "\n", 1) == 0 ? true : false;
             renderOneLine(accString.cString(), 0, tempY, sx, sy, size, lineWidth, render, isNewLineDetected);
 
             accString = (isContinuousLine && isEnd && !isLast) ? tempChar.c_str() : "";
