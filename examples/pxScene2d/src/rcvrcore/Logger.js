@@ -17,10 +17,33 @@ limitations under the License.
 */
 
 /**
- * Created by tcarro004 on 7/18/15.
+ * Created by tcarro004 on 7/18/15, updated by sgladk001c on 2/10/19.
  */
 
 var loggingLevel = 1;
+
+var rtLogLevels = [
+  'fatal'   // 0
+  , 'error' // 1
+  , 'warn'  // 2
+  , 'info'  // 3
+  , 'debug' // 4
+];
+
+//translates RT_LOG_LEVEL string to a numerical logging level
+function rtl(rtLogLevel) {
+
+  var result = rtLogLevels.indexOf(rtLogLevel);
+
+  if (result === -1) {
+    result = rtLogLevels.indexOf('warn');
+  }
+  return result;
+}
+
+function setLoggingLevel(level) {
+  loggingLevel = level;
+}
 
 function Logger(name) {
   this.name = name;
@@ -53,8 +76,4 @@ Logger.prototype.message = function(levelNum, message) {
   console.log(this.fullMessage('MESSAGE:'+levelNum, message));
 };
 
-function setLoggingLevel(level) {
-  loggingLevel = level;
-}
-
-module.exports = {Logger:Logger, setLoggingLevel:setLoggingLevel};
+module.exports = {Logger:Logger, setLoggingLevel:setLoggingLevel, rtl:rtl};
