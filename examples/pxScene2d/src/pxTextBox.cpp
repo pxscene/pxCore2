@@ -1125,23 +1125,23 @@ void pxTextBox::setLineMeasurements(bool firstLine, float xPos, float yPos)
   
   if(!firstLine) {
     bool isValidX = (clip() && mx + xPos < mw) || (!clip());
-    bool isValidY = (clip() && my + yPos + ascent < mh) || (!clip());
-    if (isValidX) getMeasurements()->getCharLast()->setX(mx + xPos);
+    bool isValidY = (clip() && my + yPos < mh) || (!clip());
+    if (isValidX && isValidY) getMeasurements()->getCharLast()->setX(mx + xPos);
     else if (isValidY) getMeasurements()->getCharLast()->setX(clip() && mx + xPos > mw ? mw : mx + xPos);
       
     if (isValidY) getMeasurements()->getCharLast()->setY(my + yPos + ascent);
-      else if (isValidX)  getMeasurements()->getCharLast()->setY(clip() &&my + yPos + ascent > mh ? mh : my + yPos + ascent);
+      else if (isValidX)  getMeasurements()->getCharLast()->setY(clip() &&my + yPos > mh ? mh : my + yPos + ascent);
   } else {
     
       bool isValidX = (clip() && mx + xPos >= 0) || (lineNumber == 0 && !clip());
-      bool isValidY = (clip() && my + yPos + ascent >= 0) || (lineNumber == 0 && !clip());
+      bool isValidY = (clip() && my + yPos >= 0) || (lineNumber == 0 && !clip());
       
       if (isValidX) getMeasurements()->getCharFirst()->setX(mx + xPos);
        else if (isValidY) getMeasurements()->getCharFirst()->setX((clip() && mx + xPos < 0) ? 0 : mx + xPos);
       isValidY = (clip() && my + yPos + ascent >= 0) || (!clip());
       
-      if (isValidY) getMeasurements()->getCharFirst()->setY((clip() && my + yPos + ascent < 0) ? 0 : my + yPos + ascent);
-     //  else if (isValidX) getMeasurements()->getCharFirst()->setY((clip() && my + yPos + ascent < 0) ? 0 : my + yPos + ascent);
+      if (isValidY) getMeasurements()->getCharFirst()->setY((clip() && my + yPos < 0) ? 0 : my + yPos + ascent);
+     //  else if (isValidX) getMeasurements()->getCharFirst()->setY((clip() && my + yPos < 0) ? 0 : my + yPos + ascent);
   }
 }
 
