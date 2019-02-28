@@ -29,6 +29,7 @@ limitations under the License.
 #include "rtFileDownloader.h"
 #include "rtString.h"
 #include "pxScene2d.h"
+#include <curl/curl.h>
 #include <string.h>
 
 #include <unistd.h>
@@ -54,6 +55,25 @@ extern bool continueDownloadHandleCheck;
 // also on linux even if the malloc/realloc returns non-null
 // it doesn't guarantee that the returned memory will be available.
 // #define UNAVAILABLE_MEMORY_TEST_ENABLED
+
+bool ignoreNetworkCall = false;
+typedef CURLcode (*curl_perform_t)(CURL*);
+CURLcode curl_easy_perform(CURL * easy_handle )
+{
+  static curl_perform_t curl_perform_p = (curl_perform_t) dlsym(RTLD_NEXT, "curl_easy_perform");
+  if (true == ignoreNetworkCall)
+  {
+    return CURLE_OK;
+  }
+  else
+  {
+    if (NULL != curl_perform_p)
+    {
+      return curl_perform_p(easy_handle);
+    }
+  }
+  return CURLE_OK;
+}
 
 #ifdef UNAVAILABLE_MEMORY_TEST_ENABLED // {
 bool failRealloc = false;
@@ -89,15 +109,6 @@ class rtHttpCacheDataMock:public rtHttpCacheData
     void setHttpResponseRealData(const char* data)
     {
       mData.init((const uint8_t*)data, strlen(data));
-    }
-
-  private:
-    bool handleDownloadRequest(vector<rtString>& headers,bool downloadBody) override
-    {
-      UNUSED_PARAM(headers);
-      UNUSED_PARAM(downloadBody);
-      mUpdated = true;
-      return true;
     }
 };
 
@@ -683,6 +694,7 @@ class rtHttpCacheTest : public testing::Test, public commonTestFns
      populateCacheHeader(cacheHeader, "public no-cache=Expires");
      const char* cacheData = "abcde";
      addDataToCache("http://fileserver/test.jpeg",cacheHeader.cString(),cacheData,strlen(cacheData));
+     ignoreNetworkCall = true;
      rtHttpCacheDataMock data("http://fileserver/test.jpeg");
      data.setHttpResponseHeaderData(cacheHeader);
      data.setHttpResponseRealData(cacheData);
@@ -690,21 +702,25 @@ class rtHttpCacheTest : public testing::Test, public commonTestFns
      rtData contents;
      data.data(contents);
      EXPECT_TRUE ( strcmp(cacheData,(const char*)contents.data()) == 0);
+     ignoreNetworkCall = false;
    }
 
    void dataPresentAfterFullRevalidationTest()
    {
      rtString cacheHeader("");
-     populateCacheHeader(cacheHeader, "no-cache");
+     populateCacheHeader(cacheHeader, "no-cache", false);
      const char* cacheData = "abcde";
      addDataToCache("http://fileserver/test1.jpeg",cacheHeader.cString(),cacheData,strlen(cacheData));
+     ignoreNetworkCall = true;
      rtHttpCacheDataMock data("http://fileserver/test1.jpeg");
      data.setHttpResponseHeaderData(cacheHeader);
      data.setHttpResponseRealData(cacheData);
      rtFileCache::instance()->httpCacheData("http://fileserver/test1.jpeg",data);
      rtData contents;
+     data.mUpdated = true;
      data.data(contents);
      EXPECT_TRUE ( strcmp(cacheData,(const char*)contents.data()) == 0);
+     ignoreNetworkCall = false;
    }
 
    void dataUpdatedAfterFullRevalidationTest()
@@ -714,6 +730,7 @@ class rtHttpCacheTest : public testing::Test, public commonTestFns
      const char* cacheData = "abcde";
      addDataToCache("http://fileserver/testRevalidationUpdate",cacheHeader.cString(),cacheData,strlen(cacheData));
      const char* updatedData = "data updated";
+     ignoreNetworkCall = true;
      rtHttpCacheDataMock data("http://fileserver/testRevalidationUpdate");
      data.setHttpResponseHeaderData(cacheHeader);
      data.setHttpResponseRealData(updatedData);
@@ -722,6 +739,7 @@ class rtHttpCacheTest : public testing::Test, public commonTestFns
      data.data(contents);
      rtData& storedData = data.contentsData();
      EXPECT_TRUE ( strcmp("data updated",(const char*)storedData.data()) == 0);
+     ignoreNetworkCall = false;
    }
 
 
@@ -732,6 +750,7 @@ class rtHttpCacheTest : public testing::Test, public commonTestFns
      const char* cacheData = "abcde";
      addDataToCache("http://fileserver/testEtag",cacheHeader.cString(),cacheData,strlen(cacheData));
      const char* updatedData = "data updated";
+     ignoreNetworkCall = true;
      rtHttpCacheDataMock data("http://fileserver/testEtag");
      data.setHttpResponseHeaderData(cacheHeader);
      data.setHttpResponseRealData(updatedData);
@@ -740,6 +759,7 @@ class rtHttpCacheTest : public testing::Test, public commonTestFns
      data.data(contents);
      rtData& storedData = data.contentsData();
      EXPECT_TRUE ( strcmp("data updated",(const char*)storedData.data()) == 0);
+     ignoreNetworkCall = false;
     }
 
     void dataUpdatedAfterEtagDownloadFailedTest()
