@@ -295,6 +295,7 @@ protected:
     fflush(stdout);
     pxFontManager::clearAllFonts();
     rtLogInfo("cleared all the fonts during close");
+    
     fflush(stdout);
     context.term();
 #ifdef RUNINMAIN
