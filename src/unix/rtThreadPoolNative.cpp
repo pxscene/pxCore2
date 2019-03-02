@@ -23,6 +23,8 @@ using namespace std;
 
 void* launchThread(void* threadPool)
 {
+    printf("Created thread [%p] \n",pthread_self());
+    fflush(stdout);
     rtThreadPoolNative* pool = (rtThreadPoolNative*) threadPool;
     pool->startThread();
     return NULL;
@@ -56,8 +58,6 @@ bool rtThreadPoolNative::initialize()
             cout << "Error creating thread.  The return value is " << returnValue << endl;
             return false;
         }
-        printf("Created thread [%d] \n",tid);
-        fflush(stdout);
         mThreads.push_back(tid);
     }
     return true;
@@ -72,9 +72,9 @@ void rtThreadPoolNative::destroy()
     mThreadTaskCondition.broadcast();
     for (int i = 0; i < mNumberOfThreads; i++)
     {
+    printf("Destroying thread [%d] \n",i);
+    fflush(stdout);
         void* result;
-        printf("rtThreadPoolNative::destroy [%d] \n",mThreads[i]);
-        fflush(stdout);
         int returnValue = pthread_join(mThreads[i], &result);
         if (returnValue != 0)
         {
@@ -98,8 +98,9 @@ void rtThreadPoolNative::startThread()
         if (!mRunning)
         {
             mThreadTaskMutex.unlock();
-            printf("Exiting thread [%d] \n",pthread_self());
-            fflush(stdout);
+
+    printf("Exited thread [%p] \n",pthread_self());
+    fflush(stdout);
             pthread_exit(NULL);
         }
         threadTask = mThreadTasks.front();
