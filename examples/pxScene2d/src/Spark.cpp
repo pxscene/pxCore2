@@ -294,7 +294,7 @@ protected:
     rtLogInfo("about to clear all the fonts during close");
     fflush(stdout);
     pxFontManager::clearAllFonts();
-    rtLogInfo("cleared all the fonts during close"); 
+    rtLogInfo("cleared all the fonts during close");
     fflush(stdout);
     context.term();
 #ifdef RUNINMAIN
@@ -313,7 +313,7 @@ protected:
       #endif
       script.collectGarbage();
 //#ifndef PX_PLATFORM_MAC
-//      rtThreadPool::globalInstance()->destroy();
+      rtThreadPool::globalInstance()->destroy();
 //#endif
       rtLogInfo("pxobjectcount is [%d]",pxObjectCount);
 #ifndef PX_PLATFORM_DFB_NON_X11
