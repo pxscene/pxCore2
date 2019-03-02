@@ -294,8 +294,7 @@ protected:
     rtLogInfo("about to clear all the fonts during close");
     fflush(stdout);
     pxFontManager::clearAllFonts();
-    rtLogInfo("cleared all the fonts during close");
-    
+    rtLogInfo("cleared all the fonts during close"); 
     fflush(stdout);
     context.term();
 #ifdef RUNINMAIN
