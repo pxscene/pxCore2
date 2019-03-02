@@ -312,6 +312,8 @@ protected:
           script.pump();
       #endif
       script.collectGarbage();
+      printf("before destroy \n");
+      fflush(stdout);
 //#ifndef PX_PLATFORM_MAC
       rtThreadPool::globalInstance()->destroy();
 //#endif
