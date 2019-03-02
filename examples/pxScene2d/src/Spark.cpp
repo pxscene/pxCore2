@@ -311,11 +311,7 @@ protected:
       #ifdef RUNINMAIN
           script.pump();
       #endif
-      printf("after script pump \n");
-      fflush(stdout);
       script.collectGarbage();
-      printf("after garbage collect \n");
-      fflush(stdout);
       rtThreadPool::globalInstance()->destroy();
       rtLogInfo("pxobjectcount is [%d]",pxObjectCount);
 #ifndef PX_PLATFORM_DFB_NON_X11
