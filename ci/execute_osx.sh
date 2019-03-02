@@ -122,7 +122,13 @@ leakcount=`leaks Spark|grep Leak|wc -l`
 echo "leakcount during termination $leakcount"
 kill -15 `ps -ef | grep Spark |grep -v grep|grep -v spark.sh|awk '{print $2}'`
 
-$TRAVIS_BUILD_DIR/ci/check_dump_cores_osx.sh `pwd` `ps -ef | grep Spark |grep -v grep|grep -v spark.sh|awk '{print $2}'` /var/tmp/spark.log
+ps -ef | grep Spark |grep -v grep
+sparkexited=$?
+echo "Spark presence status $sparkexited"
+if [ "$sparkexited" -eq 0 ]
+then
+    $TRAVIS_BUILD_DIR/ci/check_dump_cores_osx.sh `pwd` `ps -ef | grep Spark |grep -v grep|grep -v spark.sh|awk '{print $2}'` /var/tmp/spark.log
+fi
 
 #check for any cores happening during the time of exit
 if [ -f "/tmp/pxscenecrash" ]
