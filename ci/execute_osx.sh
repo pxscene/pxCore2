@@ -130,8 +130,8 @@ then
   $TRAVIS_BUILD_DIR/ci/check_dump_cores_osx.sh `pwd` `ps -ef | grep Spark |grep -v grep|grep -v spark.sh|awk '{print $2}'` /var/tmp/spark.log
   cp /var/tmp/spark.log $EXECLOGS
   printExecLogs
-  checkError $dumped_core "Execution failed" "Core dump" "Run execution locally"
   dumped_core=1
+  checkError $dumped_core "Execution failed" "Core dump" "Run execution locally"
 fi
 
 #Sleep for 90s as we have sleep for 30s inside code to capture memory of process
