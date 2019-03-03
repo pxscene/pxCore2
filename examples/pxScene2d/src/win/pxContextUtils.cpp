@@ -16,32 +16,16 @@ limitations under the License.
 
 */
 
-"use strict";
+#include "pxContextUtils.h"
 
-function trace(msg) {
-    print("[SPARK TRACE] " + msg);
+pxError deleteInternalGLContext(int id)
+{
+  //TODO
+  return PX_OK;
 }
 
-function warn(msg) {
-    print("[SPARK WARN] " + msg);
-}
-
-function error(msg) {
-    print("[SPARK ERROR] " + msg);
-}
-
-function log(msg) {
-    print("[SPARK LOG] " + msg);
-}
-
-function info(msg) {
-    print("[SPARK INFO] " + msg);
-}
-
-module.exports = {
-    trace: trace,
-    warn: warn,
-    error: error,
-    log: log,
-    info: info,
+pxError makeInternalGLContextCurrent(bool, int)
+{
+  //TODO
+  return PX_OK;
 }

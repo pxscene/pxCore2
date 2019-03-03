@@ -107,10 +107,21 @@ void rtHttpResponse::setHeaders(const char* data, size_t size)
 
 void rtHttpResponse::setDownloadedData(const char* data, size_t size)
 {
-  if (size > 0) {
+  if (size == 0) {
+    mDownloadedData = rtString();
+  } else if (data && strlen(data) == size) {
     mDownloadedData = rtString(data, (uint32_t) size);
   } else {
-    mDownloadedData = rtString();
+    rtArrayObject* o = new rtArrayObject;
+    if (data != NULL)
+    {
+      for (size_t i = 0; i < size; i++)
+      {
+        rtValue v((uint32_t)data[i]);
+        o->pushBack(v);
+      }
+    }
+    mDownloadedData = o;
   }
 }
 

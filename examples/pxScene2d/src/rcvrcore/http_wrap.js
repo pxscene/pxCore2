@@ -36,6 +36,7 @@ function Module(moduleName, appSceneContext) {
   this.get = function (options, callback) {
     return new Request(moduleName, appSceneContext, options, callback).end();
   };
+  this.Agent = Agent;
 }
 
 module.exports = Module;
@@ -100,10 +101,26 @@ function Request(moduleName, appSceneContext, options, callback) {
   }
 
   if (!isBlocked) {
+    var module = moduleName === 'http' ? http : (moduleName === 'https' ? https : (isV8 ? https : http2));
+
+    // for v8 http/https/http2 are the same, set protocol explicitly
     if (isV8 && !options.protocol) {
       options.protocol = defaultProtocol;
     }
-    var module = moduleName === 'http' ? http : (moduleName === 'https' ? https : (isV8 ? https : http2));
+
+    // convert a dummy Agent into a real one
+    if (options.agent instanceof Agent) {
+      var agentObj = options.agent;
+      var newAgent = isV8 ? null : (AgentCache[agentObj.uid] || new module.Agent(agentObj.options));
+      options.agent = AgentCache[agentObj.uid] = newAgent;
+      agentObj.once('destroy', function () {
+        if (newAgent) {
+          log.message(4, 'destroying the agent');
+          newAgent.destroy.apply(newAgent, arguments);
+        }
+      });
+    }
+
     httpRequest = module.request.call(null, options);
 
     httpRequest.once('response', function (httpResponse) {
@@ -111,10 +128,18 @@ function Request(moduleName, appSceneContext, options, callback) {
       if (response.blocked) {
         self.blocked = true;
         self.abort();
-        log.message(4, "emit 'blocked'");
-        self.emit('blocked', new Error("CORS block for: '" + toOrigin + "' from '" + fromOrigin + "'"));
+        try {
+          log.message(4, "emit 'blocked'");
+          self.emit('blocked', new Error("CORS block for: '" + toOrigin + "' from '" + fromOrigin + "'"));
+        } catch (e) {
+          log.message(1, e);
+        }
       } else {
-        self.emit('response', response);
+        try {
+          self.emit('response', response);
+        } catch (e) {
+          log.message(1, e);
+        }
       }
 
       // clean up
@@ -122,14 +147,22 @@ function Request(moduleName, appSceneContext, options, callback) {
       httpRequest.removeAllListeners();
     });
     httpRequest.once('error', function (e) {
-      self.emit('error', e);
+      try {
+        self.emit('error', e);
+      } catch (e) {
+        log.message(1, e);
+      }
 
       // clean up
       self.removeAllListeners();
       httpRequest.removeAllListeners();
     });
     httpRequest.once('timeout', function () {
-      self.emit('timeout');
+      try {
+        self.emit('timeout');
+      } catch (e) {
+        log.message(1, e);
+      }
 
       // clean up
       self.removeAllListeners();
@@ -245,17 +278,29 @@ function Response(httpResponse, appSceneContext, fromOrigin, toOrigin, withCrede
   if (!isBlocked) {
     var self = this;
     httpResponse.on('data', function (data) {
-      self.emit('data', data);
+      try {
+        self.emit('data', data);
+      } catch (e) {
+        log.message(1, e);
+      }
     });
     httpResponse.once('error', function (e) {
-      self.emit('error', e);
+      try {
+        self.emit('error', e);
+      } catch (e) {
+        log.message(1, e);
+      }
 
       // clean up
       self.removeAllListeners();
       httpResponse.removeAllListeners();
     });
     httpResponse.once('end', function () {
-      self.emit('end');
+      try {
+        self.emit('end');
+      } catch (e) {
+        log.message(1, e);
+      }
 
       // clean up
       self.removeAllListeners();
@@ -286,6 +331,27 @@ Response.prototype = Object.create(EventEmitter.prototype);
 Response.prototype.constructor = Response;
 Response.prototype.blocked = false;
 
+function Agent(options) {
+  EventEmitter.call(this);
+
+  this.setMaxListeners(Infinity);
+
+  log.message(4, "creating a new agent");
+  this.options = options;
+  this.uid = Math.floor(100000 + Math.random() * 900000);
+
+  var self = this;
+  this.destroy = function () {
+    log.message(4, "emit agent 'destroy'");
+    self.emit('destroy');
+  };
+}
+
+Agent.prototype = Object.create(EventEmitter.prototype);
+Agent.prototype.constructor = Agent;
+
+var AgentCache = {};
+
 function Utils() {
 }
 
@@ -307,16 +373,14 @@ Utils._packHeaders = function (headers) {
 };
 
 Utils._getRequestOrigin = function (options, defaultProtocol) {
+  // hostname: w/o port, nonempty if URL object, w/o auth, w/o [] if IPv6
+  // host: w/ port if URL object otherwise w/o port, nonempty if URL object, w/o auth, w/ [] if IPv6 and URL object
   var protocol = Utils._getRequestScheme(options, defaultProtocol);
-  var host = options.host || options.hostname || 'localhost';
-  var result = protocol + "://" + host;
-  if (options.port) {
-    var portPart = ':' + options.port;
-    if (result.substr(-portPart.length) !== portPart) {
-      result += portPart;
-    }
-  }
-  return result;
+  var host = options.hostname || options.host || 'localhost';
+  var v6 = (host.match(/:/g) || []).length > 1;
+  host = v6 ? '[' + host + ']' : host;
+  var port = options.port ? ':' + options.port : '';
+  return protocol + '//' + host + port;
 };
 
 Utils._extend = function (target, source) {
@@ -337,10 +401,7 @@ Utils._assert = function (condition, message) {
 };
 
 Utils._getRequestScheme = function (options, defaultProtocol) {
+  // valid scheme ends with ':'
   var scheme = options.protocol ? options.protocol : defaultProtocol;
-  var pos = scheme.indexOf(':');
-  if (pos !== -1) {
-    scheme = scheme.substring(0, scheme.indexOf(':'));
-  }
   return scheme.toLowerCase();
 };

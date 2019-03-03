@@ -40,6 +40,7 @@ var SetTimeout = (isDuk || isV8)?timers.setTimeout:setTimeout;
 var ClearTimeout = (isDuk || isV8)?timers.clearTimeout:clearTimeout;
 var SetInterval = (isDuk || isV8)?timers.setInterval:setInterval;
 var ClearInterval = (isDuk || isV8)?timers.clearInterval:clearInterval;
+var console = (isDuk || isV8)?global.console:require('console_wrap');
 
 function AppSceneContext(params) {
 
@@ -47,14 +48,10 @@ function AppSceneContext(params) {
   this.makeReady = params.makeReady;
   this.innerscene = params.scene;
   this.rpcController = params.rpcController;
-  if( params.packageUrl.indexOf('?') != -1 ) {
+  if( params.packageUrl.indexOf('?') !== -1 ) {
     var urlParts = url.parse(params.packageUrl, true);
     this.queryParams = urlParts.query;
-    if (params.packageUrl.substring(0, 4) === "http") {
-      this.packageUrl = urlParts.protocol + "//" + urlParts.host + urlParts.pathname;
-    } else {
-      this.packageUrl = params.packageUrl;
-    }
+    this.packageUrl = params.packageUrl;
   } else {
     this.queryParams = {};
     this.packageUrl = params.packageUrl;
@@ -89,8 +86,9 @@ function AppSceneContext(params) {
 
 AppSceneContext.prototype.loadScene = function() {
   //log.info("loadScene() - begins    on ctx: " + getContextID() );
-  var urlParts = url.parse(this.packageUrl, true);
-  var fullPath = this.packageUrl;
+  var thisPackageUrl = this.packageUrl.split('?')[0];
+  var urlParts = url.parse(thisPackageUrl, true);
+  var fullPath = thisPackageUrl;
   var platform = (isDuk)?uv.platform:(isV8?uv_platform():process.platform);
   if (fullPath.substring(0, 4) !== "http") {
     if( fullPath.charAt(0) === '.' ) {
@@ -98,7 +96,7 @@ AppSceneContext.prototype.loadScene = function() {
       this.defaultBaseUri = ".";
     } else if( platform === 'win32' && fullPath.charAt(1) === ':' ) {
         // Windows OS, so take the url as the whole file path
-        urlParts.pathname = this.packageUrl;
+        urlParts.pathname = thisPackageUrl;
     }
     fullPath = urlParts.pathname;
     if( fullPath !== null) {
@@ -141,19 +139,11 @@ function terminateScene() {
       this.innerscene.api = null;
     }
     this.innerscene = null;
-    if ((undefined != this.sandbox) && (null != this.sandbox))
+    if (this.sandbox)
     {
       this.sandbox.sandboxName = null;
-      if ((undefined != this.sandbox.xmodule) && (null != this.sandbox.xmodule))
-      {
-        this.sandbox.xmodule.freeResources();
-      }
-      this.sandbox.xmodule = null;
       this.sandbox.console = null;
-      this.sandbox.runtime = null;
       this.sandbox.process = null;
-      this.sandbox.urlModule = null;
-      this.sandbox.queryStringModule = null;
       this.sandbox.theNamedContext = null;
       this.sandbox.Buffer = null;
       this.sandbox.require = null;
@@ -172,6 +162,10 @@ function terminateScene() {
       delete this.xmoduleMap[xmodule];
     }
     this.xmoduleMap = null;
+    if (this.asyncFileAcquisition) {
+      this.asyncFileAcquisition.scene = null;
+      this.asyncFileAcquisition = null;
+    }
     if (null != this.topXModule)
       this.topXModule.freeResources();
     this.topXModule = null;
@@ -224,23 +218,23 @@ AppSceneContext.prototype.loadPackage = function(packageUri) {
         _this.getFile("package.json").then( function(packageFileContents) {
           var manifest = new SceneModuleManifest();
           manifest.loadFromJSON(packageFileContents);
-          console.info("AppSceneContext#loadScenePackage0");
+          //console.info("AppSceneContext#loadScenePackage0");
           _this.runScriptInNewVMContext(packageUri, moduleLoader, manifest.getConfigImport());
-          console.info("AppSceneContext#loadScenePackage0 done");
+          //console.info("AppSceneContext#loadScenePackage0 done");
         }).catch(function (e) {
-            console.info("AppSceneContext#loadScenePackage1");
+            //console.info("AppSceneContext#loadScenePackage1");
             _this.runScriptInNewVMContext(packageUri, moduleLoader, null);
-            console.info("AppSceneContext#loadScenePackage1 done");
+            //console.info("AppSceneContext#loadScenePackage1 done");
         });
       } else {
         var manifest = moduleLoader.getManifest();
-        console.info("AppSceneContext#loadScenePackage2");
+        //console.info("AppSceneContext#loadScenePackage2");
         _this.runScriptInNewVMContext(packageUri, moduleLoader, manifest.getConfigImport());
-        console.info("AppSceneContext#loadScenePackage2 done");
+        //console.info("AppSceneContext#loadScenePackage2 done");
       }
     })
     .catch(function (err) {
-      console.info("AppSceneContext#loadScenePackage3");
+      //console.info("AppSceneContext#loadScenePackage3");
       thisMakeReady(false, {});
       console.error("AppSceneContext#loadScenePackage: Error: Did not load fileArchive: Error=",err );
     });
@@ -369,11 +363,7 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (packageUri, module
 
       newSandbox = {
         sandboxName: "InitialSandbox",
-        xmodule: xModule,
         console: console,
-        runtime: apiForChild,
-        urlModule: require("url"),
-        queryStringModule: require("querystring"),
         theNamedContext: "Sandbox: " + uri,
         Buffer: Buffer,
         process: processWrap,
@@ -413,7 +403,6 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (packageUri, module
     {
       newSandbox = {
         sandboxName: "InitialSandbox",
-        xmodule: xModule,
         console: console,
         timers: timers,
         global: global,
@@ -422,11 +411,8 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (packageUri, module
         clearTimeout: clearTimeout,
         setInterval: setInterval,
         clearInterval: clearInterval,
-        runtime: apiForChild,
-        urlModule: require("url"),
         require: require,
         loadUrl: loadUrl,
-        queryStringModule: require("querystring"),
         theNamedContext: "Sandbox: " + uri,
         //Buffer: Buffer,
         importTracking: {},
@@ -435,19 +421,12 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (packageUri, module
         makeReady: makeReady,
         getContextID: getContextID
       }; // end sandbox
-
-      queryStringModule = require("querystring");
-      urlModule = require("url");
     }
     else
     {
       newSandbox = {
         sandboxName: "InitialSandbox",
-        xmodule: xModule,
         console: console,
-        runtime: apiForChild,
-        urlModule: require("url"),
-        queryStringModule: require("querystring"),
         theNamedContext: "Sandbox: " + uri,
         //Buffer: Buffer,
         importTracking: {}
@@ -469,18 +448,30 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (packageUri, module
       log.message(4, "createModule_pxScope.call()");
       var px = createModule_pxScope.call(this, xModule);
       log.message(4, "createModule_pxScope.call() done");
+
+      var xModule_wrap = WrapObj(xModule, {
+        appSceneContext: WrapObj(xModule.appSceneContext, {
+          packageUrl: xModule.appSceneContext.packageUrl
+        }, true, [
+          'getPackageBaseFilePath',
+          'getFile'
+        ])
+      }, true, [
+        'exports'
+      ]);
+
       if (isDuk) {
         vm.runInNewContext(sourceCode, newSandbox, {
           filename: path.normalize(fname),
           displayErrors: true
-        }, px, xModule, fname, this.basePackageUri);
+        }, px, xModule_wrap, fname, this.basePackageUri);
       } else if (isV8) {
         var moduleFunc = vm.runInNewContext(sourceCode, newSandbox, {
           filename: path.normalize(fname),
           displayErrors: true
-        }, px, xModule, fname, this.basePackageUri);
+        }, px, xModule_wrap, fname, this.basePackageUri);
 
-        moduleFunc(px, xModule, fname, this.basePackageUri);
+        moduleFunc(px, xModule_wrap, fname, this.basePackageUri);
 
       } else {
         var moduleFunc = vm.runInNewContext(sourceCode, newSandbox, {
@@ -494,7 +485,7 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (packageUri, module
           const Debug = vm.runInDebugContext('Debug');
           Debug.setBreakPoint(moduleFunc, 0, 0);
         }
-        moduleFunc(px, xModule, fname, this.basePackageUri);
+        moduleFunc(px, xModule_wrap, fname, this.basePackageUri);
       }
       log.message(4, "vm.runInNewContext done");
 
@@ -514,18 +505,18 @@ if (false) {
 }
 */
 
-      console.log("Main Module: readyPromise=" + xModule.moduleReadyPromise);
+      //console.log("Main Module: readyPromise=" + xModule.moduleReadyPromise);
       if( !xModule.hasOwnProperty('moduleReadyPromise') || xModule.moduleReadyPromise === null ) {
-        console.log("Main module[" + self.packageUrl + "] about to notify. xModule.exports:"+(typeof xModule.exports));
+        //console.log("Main module[" + self.packageUrl + "] about to notify. xModule.exports:"+(typeof xModule.exports));
         self.innerscene.api = xModule.exports;
         this.makeReady(true, xModule.exports);
-        console.log("Main module[" + self.packageUrl + "] about to notify done");
+        //console.log("Main module[" + self.packageUrl + "] about to notify done");
       } else {
         xModule.moduleReadyPromise.then( function() {
-          console.log("Main module[" + self.packageUrl + "] about to notify. xModule.exports:"+(typeof xModule.exports));
+          //console.log("Main module[" + self.packageUrl + "] about to notify. xModule.exports:"+(typeof xModule.exports));
           self.innerscene.api = xModule.exports;
           self.makeReady(true, xModule.exports);
-          console.log("Main module[" + self.packageUrl + "] about to notify done");
+          //console.log("Main module[" + self.packageUrl + "] about to notify done");
         }).catch( function(err) {
           console.error("Main module[" + self.packageUrl + "]" + " load has failed - on failed imports: " + ", err=" + err);
           self.makeReady(false, {});
@@ -788,17 +779,29 @@ AppSceneContext.prototype.processCodeBuffer = function(origFilePath, filePath, c
   var sourceCode = AppSceneContext.wrap(codeBuffer);
   log.message(4, "RUN " + filePath);
   var px = createModule_pxScope.call(this, xModule, true);
+
+  var xModule_wrap = WrapObj(xModule, {
+    appSceneContext: WrapObj(xModule.appSceneContext, {
+      packageUrl: xModule.appSceneContext.packageUrl
+    }, true, [
+      'getPackageBaseFilePath',
+      'getFile'
+    ])
+  }, true, [
+    'exports'
+  ]);
+
   if (isDuk) {
     vm.runInNewContext(sourceCode, _this.sandbox, { filename: filePath, displayErrors: true },
-                         px, xModule, filePath, filePath);
+                         px, xModule_wrap, filePath, filePath);
   } else if (isV8) {
     var moduleFunc = vm.runInNewContext(sourceCode, _this.sandbox, { filename: filePath, displayErrors: true },
-                         px, xModule, filePath, filePath);
+                         px, xModule_wrap, filePath, filePath);
 
-    moduleFunc(px, xModule, filePath, filePath);
+    moduleFunc(px, xModule_wrap, filePath, filePath);
   } else {
     var moduleFunc = vm.runInContext(sourceCode, _this.sandbox, {filename:filePath, displayErrors:true});
-    moduleFunc(px, xModule, filePath, filePath);
+    moduleFunc(px, xModule_wrap, filePath, filePath);
   }
   log.message(4, "RUN DONE: " + filePath);
   this.setXModule(filePath, xModule);

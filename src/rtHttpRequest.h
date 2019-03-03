@@ -34,7 +34,7 @@ public:
   rtMethod1ArgAndNoReturn("removeAllListeners", removeAllListenersByName, rtString);
   rtMethodNoArgAndNoReturn("abort", abort);
   rtMethodNoArgAndNoReturn("end", end);
-  rtMethod1ArgAndNoReturn("write", write, rtString);
+  rtMethod1ArgAndNoReturn("write", write, rtValue);
   rtMethod2ArgAndNoReturn("setTimeout", setTimeout, int32_t, rtFunctionRef);
   rtMethod2ArgAndNoReturn("setHeader", setHeader, rtString, rtString);
   rtMethod1ArgAndReturn("getHeader", getHeader, rtString, rtString);
@@ -50,18 +50,20 @@ public:
   rtError removeAllListenersByName(const rtString& eventName);
   rtError abort() const;
   rtError end();
-  rtError write(const rtString& chunk);
+  rtError write(const rtValue& chunk);
   rtError setTimeout(int32_t msecs, const rtFunctionRef& f);
   rtError setHeader(const rtString& name, const rtString& value);
   rtError getHeader(const rtString& name, rtString& s);
   rtError removeHeader(const rtString& name);
 
   static void onDownloadComplete(rtFileDownloadRequest* downloadRequest);
+  static void onDownloadCompleteAndRelease(rtFileDownloadRequest* downloadRequest);
 
   rtString url() const;
   std::vector<rtString> headers() const;
   rtString method() const;
-  rtString writeData() const;
+  const uint8_t* writeData() const;
+  size_t writeDataSize() const;
   bool inQueue() const;
 
 private:
@@ -69,7 +71,8 @@ private:
   rtString mUrl;
   std::vector<rtString> mHeaders;
   rtString mMethod;
-  rtString mWriteData;
+  uint8_t* mWriteData;
+  size_t mWriteDataSize;
   bool mInQueue;
 };
 

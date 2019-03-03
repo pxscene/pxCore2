@@ -477,6 +477,7 @@ private:
     }
     while (result != NULL);
 
+    closedir(dir);
     return paths;
   }
 

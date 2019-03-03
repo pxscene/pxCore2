@@ -109,6 +109,28 @@ public:
     EXPECT_EQ (0, (int)rtUrlGetOrigin("http://@foo.com").compare("http://foo.com"));
     EXPECT_EQ (0, (int)rtUrlGetOrigin("http://:@[::1]:1/:@[::1]:1/:@[::1]:1").compare("http://[::1]:1"));
   }
+
+  void testUrlGetHostname()
+  {
+    EXPECT_EQ (0, (int)rtUrlGetHostname("http://localhost").compare("localhost"));
+    EXPECT_EQ (0, (int)rtUrlGetHostname("http://127.0.0.1").compare("127.0.0.1"));
+    EXPECT_EQ (0, (int)rtUrlGetHostname("http://[::1]").compare("::1"));
+    EXPECT_EQ (0, (int)rtUrlGetHostname("http://[0:0:0:0:0:0:0:1]").compare("0:0:0:0:0:0:0:1"));
+    EXPECT_EQ (0, (int)rtUrlGetHostname("http://localhost:8080").compare("localhost"));
+    EXPECT_EQ (0, (int)rtUrlGetHostname("http://127.0.0.1:8080").compare("127.0.0.1"));
+    EXPECT_EQ (0, (int)rtUrlGetHostname("http://[::1]:8080").compare("::1"));
+    EXPECT_EQ (0, (int)rtUrlGetHostname("http://[0:0:0:0:0:0:0:1]:8080").compare("0:0:0:0:0:0:0:1"));
+    EXPECT_EQ (0, (int)rtUrlGetHostname("http://[fe80::95ef:2fd0:cc0d:e94b]").compare("fe80::95ef:2fd0:cc0d:e94b"));
+    EXPECT_EQ (0, (int)rtUrlGetHostname("http://[fe00::0]").compare("fe00::0"));
+    EXPECT_EQ (0, (int)rtUrlGetHostname("http://ip6-localnet").compare("ip6-localnet"));
+
+    EXPECT_TRUE (rtUrlGetHostname("http://::1").isEmpty());
+    EXPECT_TRUE (rtUrlGetHostname("http://").isEmpty());
+    EXPECT_TRUE (rtUrlGetHostname("").isEmpty());
+    EXPECT_TRUE (rtUrlGetHostname(NULL).isEmpty());
+    EXPECT_TRUE (rtUrlGetOrigin("://111").isEmpty());
+    EXPECT_TRUE (rtUrlGetOrigin("127.0.0.1").isEmpty());
+  }
 };
 
 TEST_F(rtUrlUtilsTest, rtUrlUtilsTests)
@@ -117,4 +139,5 @@ TEST_F(rtUrlUtilsTest, rtUrlUtilsTests)
   testUrlGetOriginNormal();
   testUrlGetOriginRfc3986();
   testUrlGetOriginHack();
+  testUrlGetHostname();
 }
