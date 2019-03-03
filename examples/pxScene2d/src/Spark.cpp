@@ -308,8 +308,12 @@ protected:
     if (gDumpMemUsage)
     {
       #ifdef RUNINMAIN
+          printf("before script pump \n");
+          fflush(stdout);
           script.pump();
       #endif
+      printf("before collect garbage \n");
+      fflush(stdout);
       script.collectGarbage();
       printf("before destroy \n");
       fflush(stdout);
