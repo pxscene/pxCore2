@@ -73,6 +73,7 @@ void rtThreadPoolNative::destroy()
     for (int i = 0; i < mNumberOfThreads; i++)
     {
     printf("Destroying thread [%d] [%p]\n",i, mThreads[i]);
+      fflush(stdout);
         void* result;
         int returnValue = pthread_join(mThreads[i], &result);
         if (returnValue != 0)
@@ -97,6 +98,8 @@ void rtThreadPoolNative::startThread()
         if (!mRunning)
         {
             mThreadTaskMutex.unlock();
+            printf("Exited thread [%p]\n", pthread_self());
+            fflush(stdout);
             pthread_exit(NULL);
         }
         threadTask = mThreadTasks.front();
