@@ -311,11 +311,9 @@ protected:
           script.pump();
       #endif
       script.collectGarbage();
-      printf("before destroy \n");
-      fflush(stdout);
-//#ifndef PX_PLATFORM_MAC
+#ifndef PX_PLATFORM_MAC
       rtThreadPool::globalInstance()->destroy();
-//#endif
+#endif
       rtLogInfo("pxobjectcount is [%d]",pxObjectCount);
 #ifndef PX_PLATFORM_DFB_NON_X11
       rtLogInfo("texture memory usage is [%" PRId64 "]",context.currentTextureMemoryUsageInBytes());
