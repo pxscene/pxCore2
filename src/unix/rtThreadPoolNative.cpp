@@ -1,5 +1,6 @@
 /*
 
+
 pxCore Copyright 2005-2018 John Robinson
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -97,8 +98,6 @@ void rtThreadPoolNative::startThread()
         if (!mRunning)
         {
             mThreadTaskMutex.unlock();
-
-    printf("Exited thread [%p] \n",pthread_self());
             pthread_exit(NULL);
         }
         threadTask = mThreadTasks.front();
