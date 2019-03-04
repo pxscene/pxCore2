@@ -213,6 +213,7 @@ rtFileDownloadRequest::~rtFileDownloadRequest()
   mHeaderData = NULL;
   mAdditionalHttpHeaders.clear();
   mHeaderOnly = false;
+  mDownloadMetrics = NULL;
 }
 
 void rtFileDownloadRequest::setFileUrl(const char* imageUrl) { mFileUrl = imageUrl; }

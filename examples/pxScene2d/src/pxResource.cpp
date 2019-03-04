@@ -852,19 +852,27 @@ void pxResource::processDownloadedResource(rtFileDownloadRequest* fileDownloadRe
        // mTexture = context.createTexture(imageOffscreen);
         setLoadStatus("statusCode", 0);
 
-        rtObjectRef metrics = fileDownloadRequest->downloadMetrics();
-        rtValue connectTimeMs;
-        rtValue sslConnectTimeMs;
-        rtValue totalDownloadTimeMs;
-        rtValue downloadSpeedBytesPerSecond;
-        metrics.get("connectTimeMs", connectTimeMs);
-        metrics.get("sslConnectTimeMs", sslConnectTimeMs);
-        metrics.get("totalDownloadTimeMs", totalDownloadTimeMs);
-        metrics.get("downloadSpeedBytesPerSecond", downloadSpeedBytesPerSecond);
-        setLoadStatus("connectTimeMs", connectTimeMs);
-        setLoadStatus("sslConnectTimeMs", sslConnectTimeMs);
-        setLoadStatus("totalDownloadTimeMs", totalDownloadTimeMs);
-        setLoadStatus("downloadSpeedBytesPerSecond", downloadSpeedBytesPerSecond);
+        if (fileDownloadRequest->isDataCached())
+        {
+          setLoadStatus("loadedFromCache", true);
+        }
+        else
+        {
+          rtObjectRef metrics = fileDownloadRequest->downloadMetrics();
+          rtValue connectTimeMs;
+          rtValue sslConnectTimeMs;
+          rtValue totalDownloadTimeMs;
+          rtValue downloadSpeedBytesPerSecond;
+          metrics.get("connectTimeMs", connectTimeMs);
+          metrics.get("sslConnectTimeMs", sslConnectTimeMs);
+          metrics.get("totalDownloadTimeMs", totalDownloadTimeMs);
+          metrics.get("downloadSpeedBytesPerSecond", downloadSpeedBytesPerSecond);
+          setLoadStatus("connectTimeMs", connectTimeMs);
+          setLoadStatus("sslConnectTimeMs", sslConnectTimeMs);
+          setLoadStatus("totalDownloadTimeMs", totalDownloadTimeMs);
+          setLoadStatus("downloadSpeedBytesPerSecond", downloadSpeedBytesPerSecond);
+          setLoadStatus("loadedFromCache", false);
+        }
         val = "resolve";
         // Since this object can be released before we get a async completion
         // We need to maintain this object's lifetime
