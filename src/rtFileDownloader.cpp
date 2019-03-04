@@ -184,8 +184,9 @@ rtFileDownloadRequest::rtFileDownloadRequest(const char* imageUrl, void* callbac
     mDownloadedData(0), mDownloadedDataSize(), mDownloadStatusCode(0) ,mCallbackData(callbackData),
     mCallbackFunctionMutex(), mHeaderData(0), mHeaderDataSize(0), mHeaderOnly(false), mDownloadHandleExpiresTime(-2)
 #ifdef ENABLE_HTTP_CACHE
-    , mCacheEnabled(true), mIsDataInCache(false), mDeferCacheRead(false), mCachedFileReadSize(0)
+    , mCacheEnabled(true), mDeferCacheRead(false), mCachedFileReadSize(0)
 #endif
+    , mIsDataInCache(false)
     , mIsProgressMeterSwitchOff(false), mHTTPFailOnError(false), mDefaultTimeout(false)
     , mCORS(), mCanceled(false), mUseCallbackDataSize(false), mCanceledMutex()
     , mMethod()
@@ -397,11 +398,6 @@ void rtFileDownloadRequest::setDataIsCached(bool val)
   mIsDataInCache = val;
 }
 
-bool rtFileDownloadRequest::isDataCached()
-{
-  return mIsDataInCache;
-}
-
 size_t rtFileDownloadRequest::getCachedFileReadSize(void )
 {
   return mCachedFileReadSize;
@@ -436,6 +432,11 @@ FILE* rtFileDownloadRequest::cacheFilePointer(void)
   return NULL;
 }
 #endif //ENABLE_HTTP_CACHE
+
+bool rtFileDownloadRequest::isDataCached()
+{
+  return mIsDataInCache;
+}
 
 void rtFileDownloadRequest::setProgressMeter(bool val)
 {

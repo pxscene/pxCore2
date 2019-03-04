@@ -83,13 +83,13 @@ public:
   void setCacheEnabled(bool val);
   bool cacheEnabled();
   void setDataIsCached(bool val);
-  bool isDataCached();
   size_t getCachedFileReadSize(void);
   void setCachedFileReadSize(size_t cachedFileReadSize);
   void setDeferCacheRead(bool val);
   bool deferCacheRead();
   FILE* cacheFilePointer(void);
 #endif //ENABLE_HTTP_CACHE
+  bool isDataCached();
   void setProgressMeter(bool val);
   bool isProgressMeterSwitchOff();
   void setUseCallbackDataSize(bool val);
@@ -132,10 +132,10 @@ private:
   double mDownloadHandleExpiresTime;
 #ifdef ENABLE_HTTP_CACHE
   bool mCacheEnabled;
-  bool mIsDataInCache;
   bool mDeferCacheRead;
   size_t mCachedFileReadSize;
 #endif //ENABLE_HTTP_CACHE
+  bool mIsDataInCache;
   bool mIsProgressMeterSwitchOff;
   bool mHTTPFailOnError;
   char mHttpErrorBuffer[CURL_ERROR_SIZE];
