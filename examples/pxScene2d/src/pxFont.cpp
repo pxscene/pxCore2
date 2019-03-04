@@ -178,20 +178,7 @@ void pxFont::setupResource()
 
 uint32_t pxFont::loadResourceData(rtFileDownloadRequest* fileDownloadRequest)
 {
-    // Load the font data
-    rtObjectRef metrics = fileDownloadRequest->downloadMetrics();
-    rtValue connectTimeMs;
-    rtValue sslConnectTimeMs;
-    rtValue totalDownloadTimeMs;
-    rtValue downloadSpeedBytesPerSecond;
-    metrics.get("connectTimeMs", connectTimeMs);
-    metrics.get("sslConnectTimeMs", sslConnectTimeMs);
-    metrics.get("totalDownloadTimeMs", totalDownloadTimeMs);
-    metrics.get("downloadSpeedBytesPerSecond", downloadSpeedBytesPerSecond);
-    setLoadStatus("connectTimeMs", connectTimeMs);
-    setLoadStatus("sslConnectTimeMs", sslConnectTimeMs);
-    setLoadStatus("totalDownloadTimeMs", totalDownloadTimeMs);
-    setLoadStatus("downloadSpeedBytesPerSecond", downloadSpeedBytesPerSecond);
+      // Load the font data
     setFontData( (FT_Byte*)fileDownloadRequest->downloadedData(),
             (FT_Long)fileDownloadRequest->downloadedDataSize(),
             fileDownloadRequest->fileUrl().cString());
@@ -305,6 +292,7 @@ rtError pxFont::init(const char* n)
 rtError pxFont::init(const FT_Byte*  fontData, FT_Long size, const char* n)
 {
   mFontMutex.lock();
+  double startResourceSetupTime = pxMilliseconds();
   // We need to keep a copy of fontData since the download will be deleted.
   mFontData = (char *)malloc(size);
   memcpy(mFontData, fontData, size);
@@ -318,6 +306,9 @@ rtError pxFont::init(const FT_Byte*  fontData, FT_Long size, const char* n)
 
   mInitialized = true;
   setPixelSize(defaultPixelSize);
+
+  double stopResourceSetupTime = pxMilliseconds();
+  setLoadStatus("setupTimeMs", static_cast<int>(stopResourceSetupTime-startResourceSetupTime));
 
   mFontMutex.unlock();
   

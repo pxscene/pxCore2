@@ -542,11 +542,17 @@ void pxResource::loadResource(rtObjectRef archive)
   }
   else if ((arc != NULL ) && (arc->isFile() == false))
   {
+    double startResourceSetupTime = pxMilliseconds();
     loadResourceFromArchive(arc);
+    double stopResourceSetupTime = pxMilliseconds();
+    setLoadStatus("setupTimeMs", static_cast<int>(stopResourceSetupTime-startResourceSetupTime));
   }
   else
   {
+    double startResourceSetupTime = pxMilliseconds();
     loadResourceFromFile();
+    double stopResourceSetupTime = pxMilliseconds();
+    setLoadStatus("setupTimeMs", static_cast<int>(stopResourceSetupTime-startResourceSetupTime));
   }
 
 }
@@ -822,7 +828,10 @@ void pxResource::processDownloadedResource(rtFileDownloadRequest* fileDownloadRe
         fileDownloadRequest->httpStatusCode() == 200 &&
         fileDownloadRequest->downloadedData() != NULL)
     {
+      double startResourceSetupTime = pxMilliseconds();
       int32_t result = loadResourceData(fileDownloadRequest);
+      double stopResourceSetupTime = pxMilliseconds();
+      setLoadStatus("setupTimeMs", static_cast<int>(stopResourceSetupTime-startResourceSetupTime));
       if(result == PX_RESOURCE_LOAD_FAIL)
       {
         rtLogError("Resource Decode Failed: %s with proxy: %s", fileDownloadRequest->fileUrl().cString(), fileDownloadRequest->proxy().cString());
