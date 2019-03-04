@@ -542,6 +542,7 @@ void pxResource::loadResource(rtObjectRef archive)
   }
   else if ((arc != NULL ) && (arc->isFile() == false))
   {
+    setLoadStatus("sourceType", "archive");
     double startResourceSetupTime = pxMilliseconds();
     loadResourceFromArchive(arc);
     double stopResourceSetupTime = pxMilliseconds();
@@ -549,6 +550,7 @@ void pxResource::loadResource(rtObjectRef archive)
   }
   else
   {
+    setLoadStatus("sourceType", "file");
     double startResourceSetupTime = pxMilliseconds();
     loadResourceFromFile();
     double stopResourceSetupTime = pxMilliseconds();
