@@ -178,7 +178,20 @@ void pxFont::setupResource()
 
 uint32_t pxFont::loadResourceData(rtFileDownloadRequest* fileDownloadRequest)
 {
-      // Load the font data
+    // Load the font data
+    rtObjectRef metrics = fileDownloadRequest->downloadMetrics();
+    rtValue connectTimeMs;
+    rtValue sslConnectTimeMs;
+    rtValue totalDownloadTimeMs;
+    rtValue downloadSpeedBytesPerSecond;
+    metrics.get("connectTimeMs", connectTimeMs);
+    metrics.get("sslConnectTimeMs", sslConnectTimeMs);
+    metrics.get("totalDownloadTimeMs", totalDownloadTimeMs);
+    metrics.get("downloadSpeedBytesPerSecond", downloadSpeedBytesPerSecond);
+    setLoadStatus("connectTimeMs", connectTimeMs);
+    setLoadStatus("sslConnectTimeMs", sslConnectTimeMs);
+    setLoadStatus("totalDownloadTimeMs", totalDownloadTimeMs);
+    setLoadStatus("downloadSpeedBytesPerSecond", downloadSpeedBytesPerSecond);
     setFontData( (FT_Byte*)fileDownloadRequest->downloadedData(),
             (FT_Long)fileDownloadRequest->downloadedDataSize(),
             fileDownloadRequest->fileUrl().cString());
