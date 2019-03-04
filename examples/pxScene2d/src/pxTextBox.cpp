@@ -1278,11 +1278,11 @@ void pxTextBox::renderTextRowWithTruncation(rtString & accString, float lineWidt
         // Ignore xStartPos and xStopPos if H align is not LEFT
         if( mAlignHorizontal == pxConstantsAlignHorizontal::CENTER )
         {
-          xPos = (lineWidth - (charW + ellipsisW))/2;
+          xPos = roundf((lineWidth - (charW + ellipsisW))/2);
         }
         else if( mAlignHorizontal == pxConstantsAlignHorizontal::RIGHT)
         {
-          xPos =  lineWidth - charW - ellipsisW;
+          xPos =  roundf(lineWidth - charW - ellipsisW);
         }
 
         if(!mWordWrap) {setMeasurementBounds(xPos, charW, tempY, charH); }
@@ -1293,7 +1293,7 @@ void pxTextBox::renderTextRowWithTruncation(rtString & accString, float lineWidt
         if( render && getFontResource() != NULL) {
 #ifdef PXSCENE_FONT_ATLAS
           pxTexturedQuads quads;
-          getFontResource()->renderTextToQuads(tempStr, pixelSize, sx, sy, quads, roundf(xPos), roundf(tempY));
+          getFontResource()->renderTextToQuads(tempStr, pixelSize, sx, sy, quads, xPos, roundf(tempY));
           mQuadsVector.push_back(quads);
 #else
           getFontResource()->renderText(tempStr, pixelSize, xPos, tempY, 1.0, 1.0, mTextColor,lineWidth);
@@ -1347,11 +1347,11 @@ void pxTextBox::renderTextRowWithTruncation(rtString & accString, float lineWidt
           // Ignore xStartPos and xStopPos if H align is not LEFT
           if( mAlignHorizontal == pxConstantsAlignHorizontal::CENTER)
           {
-            xPos = (lineWidth - (charW+ellipsisW))/2;
+            xPos = roundf((lineWidth - (charW+ellipsisW))/2);
           }
           else if( mAlignHorizontal == pxConstantsAlignHorizontal::RIGHT)
           {
-            xPos = lineWidth - charW - ellipsisW;
+            xPos = roundf(lineWidth - charW - ellipsisW);
           }
           if(!mWordWrap){ setMeasurementBounds(xPos, charW, tempY, charH); }
           else { setMeasurementBoundsX(false, charW);}
@@ -1361,7 +1361,7 @@ void pxTextBox::renderTextRowWithTruncation(rtString & accString, float lineWidt
           {
 #ifdef PXSCENE_FONT_ATLAS
             pxTexturedQuads quads;
-            getFontResource()->renderTextToQuads(tempStr, pixelSize, sx, sy, quads, roundf(xPos), roundf(tempY));
+            getFontResource()->renderTextToQuads(tempStr, pixelSize, sx, sy, quads, xPos, roundf(tempY));
             mQuadsVector.push_back(quads);
 #else
             getFontResource()->renderText(tempStr, pixelSize, xPos, tempY, 1.0, 1.0, mTextColor,lineWidth);
