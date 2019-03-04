@@ -991,8 +991,8 @@ bool rtFileDownloader::downloadFromNetwork(rtFileDownloadRequest* downloadReques
               (int)(connectTime*1000), (int)((sslConnectTime - connectTime) * 1000),
               (int)(totalDownloadTime*1000), (int)downloadSpeed, downloadRequest->fileUrl().cString());
 
-    downloadRequest->setDownloadMetrics((int)(connectTime*1000), (int)((sslConnectTime - connectTime) * 1000),
-                                      (int)(totalDownloadTime*1000), (int)downloadSpeed);
+    downloadRequest->setDownloadMetrics(static_cast<int32_t>(connectTime*1000), static_cast<int32_t>((sslConnectTime - connectTime) * 1000),
+                                        static_cast<int32_t>(totalDownloadTime*1000), static_cast<int32_t>(downloadSpeed));
 
     long httpCode = -1;
     if (curl_easy_getinfo(curl_handle, CURLINFO_RESPONSE_CODE, &httpCode) == CURLE_OK)

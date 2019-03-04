@@ -28,6 +28,7 @@
 #include "pxUtil.h"
 #include "rtThreadPool.h"
 #include "rtPathUtils.h"
+#include "pxTimer.h"
 
 
 using namespace std;
@@ -620,8 +621,11 @@ void rtImageResource::loadResourceFromFile()
 
   if (loadImageSuccess == RT_OK)
   {
+    double startDecodeTime = pxMilliseconds();
     loadImageSuccess = pxLoadImage((const char *) mData.data(), mData.length(), imageOffscreen,
                                       init_w, init_h, init_sx, init_sy);
+    double stopDecodeTime = pxMilliseconds();
+    setLoadStatus("decodeTimeMs", static_cast<int>(stopDecodeTime-startDecodeTime));
   }
   else
   {
@@ -703,8 +707,11 @@ void rtImageResource::loadResourceFromArchive(rtObjectRef archiveRef)
 
   if (loadImageSuccess == RT_OK)
   {
+    double startDecodeTime = pxMilliseconds();
     loadImageSuccess = pxLoadImage((const char *) mData.data(), mData.length(), imageOffscreen,
                                       init_w, init_h, init_sx, init_sy);
+    double stopDecodeTime = pxMilliseconds();
+    setLoadStatus("decodeTimeMs", static_cast<int>(stopDecodeTime-startDecodeTime));
   }
   else
   {
@@ -775,10 +782,14 @@ void pxResource::onDownloadComplete(rtFileDownloadRequest* fileDownloadRequest)
 uint32_t rtImageResource::loadResourceData(rtFileDownloadRequest* fileDownloadRequest)
 {
       pxOffscreen imageOffscreen;
-      if (pxLoadImage(fileDownloadRequest->downloadedData(),
-                      fileDownloadRequest->downloadedDataSize(),
-                      imageOffscreen, init_w, init_h, init_sx, init_sy) == RT_OK)
+      double startDecodeTime = pxMilliseconds();
+      rtError decodeResult = pxLoadImage(fileDownloadRequest->downloadedData(),
+              fileDownloadRequest->downloadedDataSize(),
+              imageOffscreen, init_w, init_h, init_sx, init_sy);
+      double stopDecodeTime = pxMilliseconds();
+      if (decodeResult == RT_OK)
       {
+        setLoadStatus("decodeTimeMs", static_cast<int>(stopDecodeTime-startDecodeTime));
         setTextureData(imageOffscreen, fileDownloadRequest->downloadedData(),
                                          fileDownloadRequest->downloadedDataSize());
 #ifdef ENABLE_BACKGROUND_TEXTURE_CREATION
@@ -831,6 +842,20 @@ void pxResource::processDownloadedResource(rtFileDownloadRequest* fileDownloadRe
         // ToDo: Could context.createTexture ever fail and return null here?
        // mTexture = context.createTexture(imageOffscreen);
         setLoadStatus("statusCode", 0);
+
+        rtObjectRef metrics = fileDownloadRequest->downloadMetrics();
+        rtValue connectTimeMs;
+        rtValue sslConnectTimeMs;
+        rtValue totalDownloadTimeMs;
+        rtValue downloadSpeedBytesPerSecond;
+        metrics.get("connectTimeMs", connectTimeMs);
+        metrics.get("sslConnectTimeMs", sslConnectTimeMs);
+        metrics.get("totalDownloadTimeMs", totalDownloadTimeMs);
+        metrics.get("downloadSpeedBytesPerSecond", downloadSpeedBytesPerSecond);
+        setLoadStatus("connectTimeMs", connectTimeMs);
+        setLoadStatus("sslConnectTimeMs", sslConnectTimeMs);
+        setLoadStatus("totalDownloadTimeMs", totalDownloadTimeMs);
+        setLoadStatus("downloadSpeedBytesPerSecond", downloadSpeedBytesPerSecond);
         val = "resolve";
         // Since this object can be released before we get a async completion
         // We need to maintain this object's lifetime
