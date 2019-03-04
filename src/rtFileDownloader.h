@@ -109,6 +109,8 @@ public:
   void setReadData(const uint8_t* data, size_t size);
   const uint8_t* readData() const;
   size_t readDataSize() const;
+  rtObjectRef downloadMetrics() const;
+  void setDownloadMetrics(int connectTimeMs, int sslConnectTimeMs, int totalTimeMs, int downloadSpeedBytesPerSecond);
 
 private:
   rtString mFileUrl;
@@ -145,6 +147,7 @@ private:
   rtString mMethod;
   const uint8_t* mReadData;
   size_t mReadDataSize;
+  rtObjectRef mDownloadMetrics;
 };
 
 struct rtFileDownloadHandle
@@ -163,6 +166,7 @@ public:
     static rtFileDownloader* instance();
     static void deleteInstance();
     static void setCallbackFunctionThreadSafe(rtFileDownloadRequest* downloadRequest, void (*callbackFunction)(rtFileDownloadRequest*), void* owner);
+    static void cancelAllDownloadRequestsThreadSafe();
     static void cancelDownloadRequestThreadSafe(rtFileDownloadRequest* downloadRequest, void* owner);
     static bool isDownloadRequestCanceled(rtFileDownloadRequest* downloadRequest, void* owner);
 

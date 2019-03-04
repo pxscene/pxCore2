@@ -191,6 +191,7 @@ rtFileDownloadRequest::rtFileDownloadRequest(const char* imageUrl, void* callbac
     , mMethod()
     , mReadData(NULL)
     , mReadDataSize(0)
+    , mDownloadMetrics(new rtMapObject())
 {
   mAdditionalHttpHeaders.clear();
 #ifdef ENABLE_HTTP_CACHE
@@ -539,6 +540,19 @@ const uint8_t* rtFileDownloadRequest::readData() const
 size_t rtFileDownloadRequest::readDataSize() const
 {
   return mReadDataSize;
+}
+
+rtObjectRef rtFileDownloadRequest::downloadMetrics() const
+{
+  return mDownloadMetrics;
+}
+
+void rtFileDownloadRequest::setDownloadMetrics(int connectTimeMs, int sslConnectTimeMs, int totalTimeMs, int downloadSpeedBytesPerSecond)
+{
+  mDownloadMetrics.set("connectTimeMs", connectTimeMs);
+  mDownloadMetrics.set("sslConnectTimeMs", sslConnectTimeMs);
+  mDownloadMetrics.set("totalDownloadTimeMs", totalTimeMs);
+  mDownloadMetrics.set("downloadSpeedBytesPerSecond", downloadSpeedBytesPerSecond);
 }
 
 rtFileDownloader::rtFileDownloader()
@@ -977,6 +991,9 @@ bool rtFileDownloader::downloadFromNetwork(rtFileDownloadRequest* downloadReques
               (int)(connectTime*1000), (int)((sslConnectTime - connectTime) * 1000),
               (int)(totalDownloadTime*1000), (int)downloadSpeed, downloadRequest->fileUrl().cString());
 
+    downloadRequest->setDownloadMetrics((int)(connectTime*1000), (int)((sslConnectTime - connectTime) * 1000),
+                                      (int)(totalDownloadTime*1000), (int)downloadSpeed);
+
     long httpCode = -1;
     if (curl_easy_getinfo(curl_handle, CURLINFO_RESPONSE_CODE, &httpCode) == CURLE_OK)
     {
@@ -1180,6 +1197,16 @@ void rtFileDownloader::setCallbackFunctionThreadSafe(rtFileDownloadRequest* down
       downloadRequest->setCallbackFunctionThreadSafe(callbackFunction);
       break;
     }
+  }
+  mDownloadRequestVectorMutex->unlock();
+}
+
+void rtFileDownloader::cancelAllDownloadRequestsThreadSafe()
+{
+  mDownloadRequestVectorMutex->lock();
+  for (std::vector<rtFileDownloadRequest*>::iterator it=mDownloadRequestVector->begin(); it!=mDownloadRequestVector->end(); ++it)
+  {
+    (*it)->cancelRequest();
   }
   mDownloadRequestVectorMutex->unlock();
 }
