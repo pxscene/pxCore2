@@ -547,7 +547,7 @@ rtObjectRef rtFileDownloadRequest::downloadMetrics() const
   return mDownloadMetrics;
 }
 
-void rtFileDownloadRequest::setDownloadMetrics(int connectTimeMs, int sslConnectTimeMs, int totalTimeMs, int downloadSpeedBytesPerSecond)
+void rtFileDownloadRequest::setDownloadMetrics(int32_t connectTimeMs, int32_t sslConnectTimeMs, int32_t totalTimeMs, int32_t downloadSpeedBytesPerSecond)
 {
   mDownloadMetrics.set("connectTimeMs", connectTimeMs);
   mDownloadMetrics.set("sslConnectTimeMs", sslConnectTimeMs);

@@ -110,7 +110,7 @@ public:
   const uint8_t* readData() const;
   size_t readDataSize() const;
   rtObjectRef downloadMetrics() const;
-  void setDownloadMetrics(int connectTimeMs, int sslConnectTimeMs, int totalTimeMs, int downloadSpeedBytesPerSecond);
+  void setDownloadMetrics(int32_t connectTimeMs, int32_t sslConnectTimeMs, int32_t totalTimeMs, int32_t downloadSpeedBytesPerSecond);
 
 private:
   rtString mFileUrl;
