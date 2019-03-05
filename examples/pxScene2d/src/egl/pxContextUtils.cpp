@@ -35,6 +35,7 @@ EGLContext prevEglContext = 0;
 
 bool eglContextCreated = false;
 bool eglContextIsCurrent = false;
+int nextInternalContextId = 1;
 
 int pxCreateEglContext()
 {
@@ -211,6 +212,14 @@ void pxDeleteEglContext()
     eglContextCreated = false;
   }
 }
+
+pxError createInternalContext(int &id)
+{
+  id = nextInternalContextId++;
+  //TODO
+  return PX_OK;
+}
+
 
 pxError deleteInternalGLContext(int)
 {

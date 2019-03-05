@@ -2762,6 +2762,12 @@ pxTextureRef pxContext::createTexture(float w, float h, float iw, float ih, void
   return alphaTexture;
 }
 
+pxSharedContextRef pxContext::createSharedContext()
+{
+  pxSharedContext* sharedContext = new pxSharedContext();
+  return sharedContext;
+}
+
 void pxContext::pushState()
 {
   pxContextState contextState;

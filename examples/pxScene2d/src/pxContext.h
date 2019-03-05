@@ -30,6 +30,7 @@
 #include "pxConstants.h"
 #include "pxTexture.h"
 #include "pxContextFramebuffer.h"
+#include "pxContextUtils.h"
 
 #ifdef ENABLE_DFB
 #include "pxContextDescDFB.h"
@@ -105,6 +106,7 @@ class pxContext {
   pxTextureRef createTexture(pxOffscreen& o);
   pxTextureRef createTexture(pxOffscreen& o, const char *compressedData, size_t compressedDataSize);
   pxTextureRef createTexture(float w, float h, float iw, float ih, void* buffer = NULL);
+  pxSharedContextRef createSharedContext();
 
   void snapshot(pxOffscreen& o);
 
