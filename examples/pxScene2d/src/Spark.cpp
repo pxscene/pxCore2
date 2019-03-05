@@ -1,5 +1,5 @@
 ﻿/*
- 
+
  pxCore Copyright 2005-2018 John Robinson
 
    Licensed under the Apache License, Version 2.0 (the "License");
@@ -312,6 +312,7 @@ protected:
           script.pump();
       #endif
       script.collectGarbage();
+      rtFileDownloader::cancelAllDownloadRequestsThreadSafe();
       rtLogInfo("pxobjectcount is [%d]",pxObjectCount);
 #ifndef PX_PLATFORM_DFB_NON_X11
       rtLogInfo("texture memory usage is [%" PRId64 "]",context.currentTextureMemoryUsageInBytes());
