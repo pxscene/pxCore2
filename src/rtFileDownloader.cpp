@@ -753,9 +753,7 @@ void rtFileDownloader::downloadFile(rtFileDownloadRequest* downloadRequest)
     else
 #endif
     {
-      rtLogInfo("downloadFromNetwork Start for %s\n", downloadRequest->fileUrl().cString());
       nwDownloadSuccess = downloadFromNetwork(downloadRequest);
-      rtLogInfo("downloadFromNetwork End for %s\n", downloadRequest->fileUrl().cString());
     }    
     
     if (!downloadRequest->executeCallback(downloadRequest->downloadStatusCode()))
