@@ -837,6 +837,7 @@ public:
         {
           rtLogError("not enough texture memory remaining to create texture");
           mInitialized = false;
+          //freeOffscreenDataInBackground();
           mOffscreen.term();
           return PX_FAIL;
         }
