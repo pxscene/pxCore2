@@ -115,6 +115,7 @@ pxError makeInternalGLContextCurrent(bool current, int id, bool depthBuffer)
     }
     else
     {
+        glFlush();
         [openGLContext makeCurrentContext];
         glContextIsCurrent = false;
     }
