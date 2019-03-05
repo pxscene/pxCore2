@@ -368,6 +368,11 @@ void rtHttpCacheData::setFileName(rtString& fileName)
   mFileName = fileName;
 }
 
+rtString rtHttpCacheData::fileName(void)
+{
+  return mFileName;
+}
+
 void rtHttpCacheData::setExpirationDate()
 {
   bool foundMaxAge = false;
