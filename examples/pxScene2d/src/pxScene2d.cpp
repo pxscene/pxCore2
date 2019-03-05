@@ -490,6 +490,7 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   // capabilities.network.http2         = 2
   //
   // capabilities.metrics.textureMemory = 1
+  // capabilities.metrics.resources = 1
 
   mCapabilityVersions = new rtMapObject;
 
@@ -531,6 +532,7 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   rtObjectRef metricsCapabilities = new rtMapObject;
 
   metricsCapabilities.set("textureMemory", 1);
+  metricsCapabilities.set("resources", 1);
   mCapabilityVersions.set("metrics", metricsCapabilities);
 
   //////////////////////////////////////////////////////
