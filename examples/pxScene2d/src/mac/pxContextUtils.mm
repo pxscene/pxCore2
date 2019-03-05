@@ -7,6 +7,7 @@
 #include "rtLog.h"
 
 bool glContextIsCurrent = false;
+int nextInternalContextId = 1;
 
 extern NSOpenGLContext *openGLContext;
 
@@ -41,11 +42,20 @@ pxError createGLContext(int id)
     return PX_OK;
 }
 
+pxError createInternalContext(int &id)
+{
+  id = nextInternalContextId++;
+  createGLContext(id);
+  return PX_OK;
+}
+
 pxError deleteInternalGLContext(int id)
 {
   if ( internalContexts.find(id) != internalContexts.end() )
   {
+    NSOpenGLContext *context = internalContexts[id];
     internalContexts.erase(id);
+    [context release];
   }
   return PX_OK;
 }
