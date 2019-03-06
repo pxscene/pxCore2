@@ -82,8 +82,7 @@ px.import({ scene: 'px:scene.1.js' }).then( function importsAreReady(imports)
     var valueTxtM = fontRes.measureText(textPts, value);
     var labelTxtM = fontRes.measureText(textPts, label);
     label_h = labelTxtM.h;
-    //label_w = labelTxtM.w > label_w ? labelTxtM.w : label_w;
-    //label_w = valueTxtM.w > label_w ? valueTxtM.w : label_w;
+    value_h = valueTxtM.h;
     var vx = (label_w + 4);  // value x
     var py = (label_h * i) + title.h + title.y + 5;
 
@@ -101,31 +100,28 @@ px.import({ scene: 'px:scene.1.js' }).then( function importsAreReady(imports)
                                     alignVertical:   scene.alignVertical.CENTER})
 
      var valueRect = scene.create({ t: "rect",    parent: row, fillColor: (i%2) ? DARK_GRAY : LIGHT_GRAY,
-                                    w: value_w, h: label_h + 4, x: vx, y: py });
+                                    w: value_w, h: value_h + 4, x: vx, y: py });
 
      var valueTxt  = scene.create({ t: "textBox", parent: valueRect, textColor: 0x000000ff,
-                                    w: value_w, h: label_h,     x: 0, y: 0,
+                                    w: value_w, h: value_h,     x: 0, y: 0,
                                     font: fontRes, pixelSize: textPts, wordWrap: true, truncation: scene.truncation.TRUNCATE,
                                     xStartPos: ix, xStopPos: ix,
                                     text: value, // ### VALUE
                                     alignHorizontal: scene.alignHorizontal.LEFT,
                                     alignVertical:   scene.alignVertical.CENTER})
+    textRows[key] = valueTxt;
 
+    max_h += (value_h + 4);
                                            
 
     return Promise.all([row.ready, labelRect.ready, labelTxt.ready, valueRect.ready, valueTxt.ready] )
       .catch( function (err)
     {
-             
        console.log(">>> Loading Assets ... err = " + err);
                                                                
     }).then( function ()
     {
        // resolve
-            
-            textRows[key] = valueTxt;
-            var measure = valueTxt.measureText();
-            max_h += measure.bounds.y2 - measure.bounds.y1;// (labelTxt.h > valueTxt.h ? labelTxt.h : valueTxt.h);
     });
   }
 
@@ -148,12 +144,6 @@ px.import({ scene: 'px:scene.1.js' }).then( function importsAreReady(imports)
               console.log(">>> Loading rows ... err = " + err);
            }).then( function ()
            {
-                   max_h += dismissTXT.h;
-                   dismissTXT.y = max_h - (dismissTXT.h + 4) - 10;
-                   panel.h    = max_h;
-                   panel_bg.h = max_h;
-                   
-                   updateSize(scene.w, scene.h);
               // resolve
            });
   }
@@ -204,8 +194,11 @@ px.import({ scene: 'px:scene.1.js' }).then( function importsAreReady(imports)
         scene.animation.OPTION_FASTFORWARD, 1);
   }
 
-  scene.on("onResize",  function(e) { updateSize(e.w,e.h); });
-                                                                                                            
+  scene.on("onResize",  function(e) {
+    updateSize(e.w,e.h);
+    panel.x = (e.w - panel.w)/2;
+    panel.y = (e.h - panel.h)/2;
+  });
   //panel.on("onMouseUp", function(e) { console.log("PANEL onMouseUp"); hidePanel() } );
   panel_bg.on("onFocus",   function(e) { /*showPanel(5000);*/ } );
   panel_bg.on("onKeyDown", function(e) { if(e.keyCode) { hidePanel();  }  });
