@@ -86,6 +86,8 @@ class rtHttpCacheData
 
     void setFileName(rtString& fileName);
 
+    rtString fileName(void);
+
   private:
     /* populates the map with header attribute and value */
     void populateHeaderMap();
