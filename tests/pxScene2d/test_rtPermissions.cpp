@@ -1122,6 +1122,25 @@ public:
     EXPECT_EQ ((int)RT_OK, (int)p1->allows("anything", rtPermissions::SERVICE));
     EXPECT_EQ ((int)RT_OK, (int)p1->allows("anything", rtPermissions::FEATURE));
     EXPECT_EQ ((int)RT_OK, (int)p1->allows("anything", rtPermissions::WAYLAND));
+
+    // "*://www.sparkui.org" : "sparkui.org",
+    // "*://www.sparkui.org:*" : "sparkui.org",
+    // "*://sparkui.org" : "sparkui.org",
+    // "*://sparkui.org:*" : "sparkui.org",
+    p1 = new rtPermissions("http://www.sparkui.org");
+    EXPECT_EQ ((int)RT_OK, (int)p1->allows("http://any.web.site", rtPermissions::DEFAULT));
+    EXPECT_EQ ((int)RT_OK, (int)p1->allows("http://localhost", rtPermissions::DEFAULT));
+    EXPECT_EQ ((int)RT_OK, (int)p1->allows("http://localhost:8080", rtPermissions::DEFAULT));
+    EXPECT_EQ ((int)RT_OK, (int)p1->allows("http://127.0.0.1", rtPermissions::DEFAULT));
+    EXPECT_EQ ((int)RT_OK, (int)p1->allows("http://127.0.0.1:8080", rtPermissions::DEFAULT));
+    EXPECT_EQ ((int)RT_OK, (int)p1->allows("http://[::1]", rtPermissions::DEFAULT));
+    EXPECT_EQ ((int)RT_OK, (int)p1->allows("http://[::1]:8080", rtPermissions::DEFAULT));
+    EXPECT_EQ ((int)RT_OK, (int)p1->allows("http://[0:0:0:0:0:0:0:1]", rtPermissions::DEFAULT));
+    EXPECT_EQ ((int)RT_OK, (int)p1->allows("http://[0:0:0:0:0:0:0:1]:8080", rtPermissions::DEFAULT));
+    EXPECT_EQ ((int)RT_OK, (int)p1->allows("file:///afile", rtPermissions::DEFAULT));
+    EXPECT_EQ ((int)RT_OK, (int)p1->allows("anything", rtPermissions::SERVICE));
+    EXPECT_EQ ((int)RT_OK, (int)p1->allows("anything", rtPermissions::FEATURE));
+    EXPECT_EQ ((int)RT_OK, (int)p1->allows("anything", rtPermissions::WAYLAND));
   }
 
   void test_find_1()

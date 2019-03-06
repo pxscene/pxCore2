@@ -113,9 +113,13 @@ void rtHttpResponse::setDownloadedData(const char* data, size_t size)
     mDownloadedData = rtString(data, (uint32_t) size);
   } else {
     rtArrayObject* o = new rtArrayObject;
-    for (size_t i = 0; i < size; i++) {
-       rtValue v((uint32_t)data[i]);
-       o->pushBack(v);
+    if (data != NULL)
+    {
+      for (size_t i = 0; i < size; i++)
+      {
+        rtValue v((uint32_t)data[i]);
+        o->pushBack(v);
+      }
     }
     mDownloadedData = o;
   }

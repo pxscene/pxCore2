@@ -30,7 +30,7 @@ limitations under the License.
 
 #include "test_includes.h" // Needs to be included last
 
-#define IMAGE_URL "https://px-apps.sys.comcast.net/pxscene-samples/images/tiles/008.jpg"
+#define IMAGE_URL "https://www.sparkui.org/tests-ci/tests/images/008.jpg"
 #define IMAGE_WIDTH 246
 #define IMAGE_HEIGHT 164
 

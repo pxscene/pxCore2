@@ -1466,7 +1466,7 @@ public:
 
     glVertexAttribPointer(mPosLoc, 2, GL_FLOAT, GL_FALSE, 0, pos);
     glEnableVertexAttribArray(mPosLoc);
-    glDrawArrays(mode, 0, count);  ;
+    glDrawArrays(mode, 0, count);  TRACK_DRAW_CALLS();
     glDisableVertexAttribArray(mPosLoc);
 
     return PX_OK;
@@ -2749,6 +2749,12 @@ pxTextureRef pxContext::createTexture(float w, float h, float iw, float ih, void
 {
   pxTextureAlpha* alphaTexture = new pxTextureAlpha(w,h,iw,ih,buffer);
   return alphaTexture;
+}
+
+pxSharedContextRef pxContext::createSharedContext()
+{
+  pxSharedContext* sharedContext = new pxSharedContext();
+  return sharedContext;
 }
 
 void pxContext::pushState()
