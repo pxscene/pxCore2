@@ -56,11 +56,7 @@ void pxImage::onInit()
 
   rtImageResource *pRes = getImageResource();
 
-  if (pRes != NULL)
-  {
-    setUrl(pRes->getUrl());
-  }
-  else
+  if (pRes == NULL)
   {
     setUrl("");
   }
