@@ -1279,12 +1279,13 @@ void pxTextBox::renderTextRowWithTruncation(rtString & accString, float lineWidt
         if( mAlignHorizontal == pxConstantsAlignHorizontal::CENTER )
         {
           xPos = (lineWidth - (charW + ellipsisW))/2;
+          setMeasurementBoundsX(true, xPos);
         }
         else if( mAlignHorizontal == pxConstantsAlignHorizontal::RIGHT)
         {
           xPos =  lineWidth - charW - ellipsisW;
+          setMeasurementBoundsX(true, xPos);
         }
-        setMeasurementBoundsX(true, xPos);
         if(!mWordWrap) {setMeasurementBounds(xPos, charW, tempY, charH); }
         else { setMeasurementBoundsX(false, charW);}
         setLineMeasurements(false, xPos+charW, tempY);
@@ -1348,11 +1349,14 @@ void pxTextBox::renderTextRowWithTruncation(rtString & accString, float lineWidt
           if( mAlignHorizontal == pxConstantsAlignHorizontal::CENTER)
           {
             xPos = (lineWidth - (charW+ellipsisW))/2;
+            setMeasurementBoundsX(true, xPos);
           }
           else if( mAlignHorizontal == pxConstantsAlignHorizontal::RIGHT)
           {
             xPos = lineWidth - charW - ellipsisW;
+            setMeasurementBoundsX(true, xPos);
           }
+            
           if(!mWordWrap){ setMeasurementBounds(xPos, charW, tempY, charH); }
           else { setMeasurementBoundsX(false, charW);}
           setLineMeasurements(false, xPos+charW, tempY);
