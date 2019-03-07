@@ -21,7 +21,7 @@
       },
       'Release': {
         'defines': [ 'NDEBUG' ],
-        'cflags': [ '-Wall', '-Wextra', '-O3' ],
+        'cflags': [ '-Wall', '-Wextra', '-Os' ],
         'msvs_settings': {
           'VCCLCompilerTool': {
             'RuntimeLibrary': 0, # static release

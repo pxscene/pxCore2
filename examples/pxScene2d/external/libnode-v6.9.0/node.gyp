@@ -329,7 +329,6 @@
             '<(SHARED_INTERMEDIATE_DIR)/blink', # for inspector
           ],
         }, {
-          'defines': [ 'HAVE_INSPECTOR=0' ]
         }],
         [ 'node_use_openssl=="true"', {
           'defines': [ 'HAVE_OPENSSL=1' ],

@@ -40,7 +40,7 @@
       'Release': {
         'defines': [ 'NDEBUG' ],
         'cflags': [
-          '-O3',
+          '-Os',
           '-fomit-frame-pointer',
           '-fdata-sections',
           '-ffunction-sections'
