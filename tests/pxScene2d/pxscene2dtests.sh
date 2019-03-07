@@ -15,8 +15,6 @@ pxCoreLibs=../../build/glut/
 fi
 
 externalDir=$pxScene2dDir/external
-nodeDir=${externalDir}/libnode-v6.9.0
-[[ -e ${externalDir}/.build_node_8.11.2 ]] && nodeDir=${externalDir}/libnode-v8.11.2
 
 # Path to externals Libs...
 pngLibs=$externalDir/png/.libs
@@ -33,12 +31,12 @@ externalLibs=$pngLibs/:$jpgLibs/:$curlLibs/:$ftLibs/:$zLibs:$westerosLibs/:$jpeg
 
 if [ $machine = "Darwin" ];
 then
-nodeLibs=$nodeDir/out/Release/
+nodeLibs=$externalDir/node/out/Release/
 export DYLD_LIBRARY_PATH=$nodeLibs:$curlLibs:$pngLibs:$ftLibs:$zLibs:$pxCoreLibs:$uWSLibs
 export LD_LIBRARY_PATH=$nodeLibs:$curlLibs:$pngLibs:$ftLibs:$zLibs:$pxCoreLibs:$uWSLibs
 else
-PathD=$externalLibs:$pxScene2dSrc:$nodeDir/out/Debug/obj.target
-PathR=$externalLibs:$pxScene2dSrc:$nodeDir/out/Release/obj.target
+PathD=$externalLibs:$pxScene2dSrc:$externalDir/node/out/Debug/obj.target
+PathR=$externalLibs:$pxScene2dSrc:$externalDir/node/out/Release/obj.target
 export LD_LIBRARY_PATH=$PathR:$pxCoreLibs
 fi
 export NODE_PATH=$pxScene2dSrc

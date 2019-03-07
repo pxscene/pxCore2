@@ -106,7 +106,7 @@ using namespace rtScriptV8NodeUtils;
 bool gIsPumpingJavaScript = false;
 #endif
 
-#if NODE_VERSION_AT_LEAST(8,11,2)
+#if NODE_VERSION_AT_LEAST(8,12,0)
 #define USE_NODE_PLATFORM
 #endif
 
@@ -392,7 +392,12 @@ void rtNodeContext::createEnvironment()
   // Create Environment.
 
 #if NODE_VERSION_AT_LEAST(8,9,4)
+#ifdef USE_NODE_PLATFORM
+  node::MultiIsolatePlatform* platform = static_cast<node::MultiIsolatePlatform*>(mPlatform);
+  IsolateData *isolateData = new IsolateData(mIsolate,uv_default_loop(),platform,array_buffer_allocator->zero_fill_field());
+#else
   IsolateData *isolateData = new IsolateData(mIsolate,uv_default_loop(),array_buffer_allocator->zero_fill_field());
+#endif //USE_NODE_PLATFORM
 
   mEnv = CreateEnvironment(isolateData,
 #else
@@ -443,7 +448,8 @@ void rtNodeContext::createEnvironment()
   {
     rtString currentPath;
     rtGetCurrentDirectory(currentPath);
-    node::InspectorStart(mEnv, currentPath.cString());
+    node::MultiIsolatePlatform* platform = static_cast<node::MultiIsolatePlatform*>(mPlatform);
+    node::InspectorStart(mEnv, currentPath.cString(), platform);
   }
 #endif //USE_NODE_PLATFORM
 #endif
@@ -477,7 +483,8 @@ void rtNodeContext::createEnvironment()
 #endif //ENABLE_NODE_V_6_9
       more = uv_run(mEnv->event_loop(), UV_RUN_ONCE);
 #ifdef USE_NODE_PLATFORM
-      node::DrainVMTasks();
+      node::MultiIsolatePlatform* platform = static_cast<node::MultiIsolatePlatform*>(mPlatform);
+      platform->DrainBackgroundTasks(mIsolate);
 #endif //USE_NODE_PLATFORM
       if (more == false)
       {
@@ -1101,7 +1108,8 @@ rtError rtScriptNode::pump()
     mIsolate->RunMicrotasks();
     uv_run(uv_default_loop(), UV_RUN_NOWAIT);//UV_RUN_ONCE);
 #ifdef USE_NODE_PLATFORM
-    node::DrainVMTasks();
+    node::MultiIsolatePlatform* platform = static_cast<node::MultiIsolatePlatform*>(mPlatform);
+    platform->DrainBackgroundTasks(mIsolate);
 #endif //USE_NODE_PLATFORM
     // Enable this to expedite garbage collection for testing... warning perf hit
     if (mTestGc)
@@ -1224,20 +1232,19 @@ void rtScriptNode::init2(int argc, char** argv)
    V8::InitializeExternalStartupData(argv[0]);
 #endif
 
+   v8::TracingController* tc = new v8::TracingController();
 #ifdef USE_NODE_PLATFORM
-   node::CreatePlatform();
-   mPlatform = nullptr;
-#else // USE_NODE_PLATFORM
+   Platform* platform = node::CreatePlatform(v8_thread_pool_size, tc);
+#else
    Platform* platform = platform::CreateDefaultPlatform();
+#endif // USE_NODE_PLATFORM
    mPlatform = platform;
    V8::InitializePlatform(platform);
 #if NODE_VERSION_AT_LEAST(8,9,0)
    // behaves as --trace-events-enabled command line option were not used
-   tracing::TraceEventHelper::SetTracingController(new v8::TracingController());
+   tracing::TraceEventHelper::SetTracingController(tc);
 #endif
    V8::Initialize();
-#endif // else // USE_NODE_PLATFORM
-
    Isolate::CreateParams params;
    array_buffer_allocator = new ArrayBufferAllocator();
    const char* source1 = "function pxSceneFooFunction(){ return 0;}";
@@ -1292,12 +1299,16 @@ rtError rtScriptNode::term()
     V8::ShutdownPlatform();
     if(mPlatform)
     {
+#ifdef USE_NODE_PLATFORM
+      node::MultiIsolatePlatform* platform = static_cast<node::MultiIsolatePlatform*>(mPlatform);
+      node::NodePlatform* platform_ = static_cast<node::NodePlatform*>(mPlatform);
+      platform_->Shutdown();
+      node::FreePlatform(platform);
+#else
       delete mPlatform;
+#endif // USE_NODE_PLATFORM
       mPlatform = NULL;
     }
-#ifdef USE_NODE_PLATFORM
-    node::FreePlatform();
-#endif // USE_NODE_PLATFORM
 
   //  if(mPxNodeExtension)
   //  {

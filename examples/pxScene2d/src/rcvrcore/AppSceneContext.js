@@ -361,6 +361,13 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (packageUri, module
       var processWrap = WrapObj(process, {"binding":function() { throw new Error("process.binding is not supported"); }});
       var globalWrap = WrapObj(global, {"process":processWrap});
 
+      // TODO: app runs in new context (vm.runInNewContext),
+      //  while px (px.imports) is in parent context.
+      //  Hence in imported module Function isn't the same object as Function in app,
+      //  'instanceof Function' won't work.
+      //  Propagating Function: Function here solves the problem only partially
+      //  (not for lowercase 'function').
+
       newSandbox = {
         sandboxName: "InitialSandbox",
         console: console,
