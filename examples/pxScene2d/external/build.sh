@@ -148,40 +148,19 @@ fi
 
 #--------- LIBNODE
 
-nodeDir=libnode-v6.9.0
-nodeVer=48
-
-[[ -e .build_node_8.11.2 ]] && nodeDir=libnode-v8.11.2 && nodeVer=57
-
-if [[ ${nodeVer} == 57 ]] && [[ ! -e "${nodeDir}/libnode.dylib" ]]
-then
-
-  banner "NODE 8 DOWNLOAD"
-
-  rm -rf node-v8.11.2 libnode-v8.11.2
-  curl -O https://nodejs.org/download/release/v8.11.2/node-v8.11.2.tar.gz
-  tar xzf node-v8.11.2.tar.gz
-  rm node-v8.11.2.tar.gz
-  mv node-v8.11.2 libnode-v8.11.2
-  cd libnode-v8.11.2
-  git apply ../node-v8.11.2_mods.patch
-  cd ..
-
-fi
-
-if [[ ! -e "${nodeDir}/libnode.dylib" ]] ||
-   [[ "$(uname)" != "Darwin" ]]
+if [ ! -e node/libnode.dylib ] ||
+   [ "$(uname)" != "Darwin" ]
 then
 
   banner "NODE"
 
-  cd "${nodeDir}"
+  cd node
   ./configure --shared
   make "-j${make_parallel}"
-  ln -sf "out/Release/obj.target/libnode.so.${nodeVer}" "libnode.so.${nodeVer}"
-  ln -sf "libnode.so.${nodeVer}" libnode.so
-  ln -sf "out/Release/libnode.${nodeVer}.dylib" "libnode.${nodeVer}.dylib"
-  ln -sf "libnode.${nodeVer}.dylib" libnode.dylib
+  ln -sf out/Release/obj.target/libnode.so.* ./
+  ln -sf libnode.so.* libnode.so
+  ln -sf out/Release/libnode.*.dylib ./
+  ln -sf libnode.*.dylib libnode.dylib
   cd ..
 
 fi
