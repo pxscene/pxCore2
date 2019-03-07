@@ -211,7 +211,9 @@
         perf.markMilestone(
           NODE_PERFORMANCE_MILESTONE_PRELOAD_MODULE_LOAD_END);
         // If -i or --interactive were passed, or stdin is a TTY.
-        if (process._forceRepl || NativeModule.require('tty').isatty(0)) {
+/* MODIFIED CODE BEGIN */
+//      if (process._forceRepl || NativeModule.require('tty').isatty(0)) {
+/* MODIFIED CODE END */
           // REPL
           const cliRepl = NativeModule.require('internal/repl');
           cliRepl.createInternalRepl(process.env, function(err, repl) {
@@ -233,6 +235,8 @@
             // User passed '-e' or '--eval'
             evalScript('[eval]');
           }
+/* MODIFIED CODE BEGIN */
+/*
         } else {
           // Read all of stdin - execute it.
           process.stdin.setEncoding('utf8');
@@ -250,7 +254,8 @@
               evalScript('[stdin]');
             }
           });
-        }
+        } */
+/* MODIFIED CODE END */
       }
     }
     perf.markMilestone(NODE_PERFORMANCE_MILESTONE_BOOTSTRAP_COMPLETE);
