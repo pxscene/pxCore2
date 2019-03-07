@@ -39,12 +39,12 @@ px.import({ scene: 'px:scene.1.js',
 
   function uncaughtException(err) {
     if (!isDuk && !isV8) {
-      logger.message('error',"Received uncaught exception " + err.stack);
+      logger.message('error', "Received uncaught exception " + err.stack);
     }
   }
   function unhandledRejection(err) {
     if (!isDuk && !isV8) {
-      logger.message('error',"Received uncaught rejection.... " + err);
+      logger.message('error', "Received uncaught rejection.... " + err);
     }
   }
   if (!isDuk && !isV8) {
@@ -79,7 +79,7 @@ px.import({ scene: 'px:scene.1.js',
   var url = queryStringModule.parse(urlModule.parse(module.appSceneContext.packageUrl).query).url;
   url = resolveSceneUrl(url);
   var originalURL = (!url || url==="") ? "browser.js":url;
-  logger.message('info',"url:" + originalURL);
+  logger.message('info', "url:" + originalURL);
 
   var    blackBg = scene.create({t:"rect", fillColor:0x000000ff,x:0,y:0,w:1280,h:720,a:0,parent:scene.root});
   var childScene = scene.create({t:"scene", url: originalURL, parent:scene.root});
@@ -145,16 +145,16 @@ if( scene.capabilities != undefined && scene.capabilities.graphics != undefined 
 
     var loggingDisabled = process.env.PXSCENE_KEY_LOGGING_DISABLED;
     if (loggingDisabled && loggingDisabled === '1'){
-      logger.message('warn',"onPreKeyDown value hidden");
+      logger.message('warn', "onPreKeyDown value hidden");
     } else {
-      logger.message('info',"SHELL: onPreKeyDown: " + code + " key: " + keys.name(code) + ", ", flags);
+      logger.message('info', "SHELL: onPreKeyDown: " + code + " key: " + keys.name(code) + ", ", flags);
     }
 
     if( keys.is_CTRL_ALT( flags ) )
     {
       if(code == keys.Y)  // ctrl-alt-y
       {
-//        logger.message('info',"SHELL: onPreKeyDown: FPS !!!  ############# ");
+//        logger.message('info', "SHELL: onPreKeyDown: FPS !!!  ############# ");
 
         showFPS = !showFPS;
         fpsBg.a = (showFPS)?1.0:0;
@@ -163,7 +163,7 @@ if( scene.capabilities != undefined && scene.capabilities.graphics != undefined 
       else
       if(code == keys.O)  // ctrl-alt-o
       {
-//        logger.message('info',"SHELL: onPreKeyDown: showOutlines !!!  ############# ");
+//        logger.message('info', "SHELL: onPreKeyDown: showOutlines !!!  ############# ");
 
         scene.showOutlines = !scene.showOutlines;
         e.stopPropagation();
@@ -193,7 +193,7 @@ if( scene.capabilities != undefined && scene.capabilities.graphics != undefined 
       else
       if(code == keys.D)  // ctrl-alt-d
       {
-        // logger.message('info',"SHELL: onPreKeyDown: show dirty rect !!!  ############# ");
+        // logger.message('info', "SHELL: onPreKeyDown: show dirty rect !!!  ############# ");
 
         scene.showDirtyRect = !scene.showDirtyRect;
         e.stopPropagation();
@@ -210,7 +210,7 @@ if( scene.capabilities != undefined && scene.capabilities.graphics != undefined 
     {
       if(code == keys.R)  // ctrl-alt-shft-r
       {
-        // logger.message('info',"SHELL: onPreKeyDown: Reloading url [ "+originalURL+" ] !!!  ############# ");
+        // logger.message('info', "SHELL: onPreKeyDown: Reloading url [ "+originalURL+" ] !!!  ############# ");
 
         logger.message('warn',"Reloading url: " + originalURL);
         childScene.url = originalURL;
@@ -238,17 +238,17 @@ if( scene.capabilities != undefined && scene.capabilities.graphics != undefined 
   {
     var loggingDisabled = process.env.PXSCENE_KEY_LOGGING_DISABLED;
     if (loggingDisabled && loggingDisabled === '1'){
-      logger.message('warn',"onPreKeyUp value hidden");
+      logger.message('warn', "onPreKeyUp value hidden");
     } else {
-      logger.message('info',"in onPreKeyUp " +  e.keyCode + ", " + e.flags);
+      logger.message('info', "in onPreKeyUp " +  e.keyCode + ", " + e.flags);
     }
     var code  = e.keyCode;
     var flags = e.flags;
 
     if (loggingDisabled && loggingDisabled === '1'){
-      logger.message('warn',"onKeyUp value hidden");
+      logger.message('warn', "onKeyUp value hidden");
     } else {
-      logger.message('info',"onKeyUp:" + code, ", " + flags);
+      logger.message('info', "onKeyUp:" + code, ", " + flags);
     }
 
     // eat the ones we handle here
@@ -268,16 +268,16 @@ if( scene.capabilities != undefined && scene.capabilities.graphics != undefined 
       var code = e.keyCode; var flags = e.flags;
       var loggingDisabled = process.env.PXSCENE_KEY_LOGGING_DISABLED;
       if (loggingDisabled && loggingDisabled === '1'){
-        logger.message('warn',"onKeyDown value hidden");
+        logger.message('warn', "onKeyDown value hidden");
       } else {
-        logger.message('info',"onKeyDown shell: " + code, ", " + flags);
+        logger.message('info', "onKeyDown shell: " + code, ", " + flags);
       }
 
       if( keys.is_CTRL_ALT( flags ) )
       {
         if(code == keys.R)   // ctrl-alt-r
         {
-          logger.message('warn',"(shell.js) Reloading url: " + originalURL);
+          logger.message('warn', "(shell.js) Reloading url: " + originalURL);
           childScene.url = originalURL;
           e.stopPropagation();
         }
@@ -285,7 +285,7 @@ if( scene.capabilities != undefined && scene.capabilities.graphics != undefined 
         if (code == keys.H)  // ctrl-alt-h
         {
           var homeURL = "browser.js";
-          logger.message('warn',"Loading home url: " + homeURL);
+          logger.message('warn', "Loading home url: " + homeURL);
           childScene.url = homeURL;
           e.stopPropagation();
         }
@@ -295,17 +295,17 @@ if( scene.capabilities != undefined && scene.capabilities.graphics != undefined 
 
   scene.root.on("onPreChar", function(e)
   {
-    logger.message('debug',"in onchar");
+    logger.message('debug', "in onchar");
     var c = e.charCode;
     var loggingDisabled = process.env.PXSCENE_KEY_LOGGING_DISABLED;
     if (loggingDisabled && loggingDisabled === '1'){
-      logger.message('warn',"onChar value hidden");
+      logger.message('warn', "onChar value hidden");
     } else {
-      logger.message('info',"onChar: " + c);
+      logger.message('info', "onChar: " + c);
     }
     // TODO eating some "undesired" chars for now... need to redo this
     if (c<32) {
-      logger.message('debug',"stop onChar");
+      logger.message('debug', "stop onChar");
       e.stopPropagation();
     }
   });
