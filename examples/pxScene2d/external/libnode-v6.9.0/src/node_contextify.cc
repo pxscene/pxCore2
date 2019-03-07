@@ -44,6 +44,7 @@ using v8::Value;
 using v8::WeakCallbackInfo;
 
 /* MODIFIED CODE BEGIN */
+  
 #ifdef HAVE_INSPECTOR
 extern bool use_inspector;
 #endif
