@@ -41,8 +41,19 @@ function rtl(rtLogLevel) {
   return result;
 }
 
+// accepts a numerical value or RT_LOG_LEVEL string
 function setLoggingLevel(level) {
-  loggingLevel = level;
+  var levelNum;
+
+  if (typeof(level) === 'string') {
+    levelNum = rtl(level);
+  } else if (typeof (level) === 'number') {
+    levelNum = level;
+  } else {
+    levelNum = rtl('warn');
+  }
+
+  loggingLevel = levelNum;
 }
 
 function Logger(name) {
@@ -69,11 +80,21 @@ Logger.prototype.info = function(message) {
   this.message(1, message);
 };
 
-Logger.prototype.message = function(levelNum, message) {
+Logger.prototype.message = function(level, message) {
+  var levelNum;
+
+  if (typeof(level) === 'string') {
+    levelNum = rtl(level);
+  } else if (typeof (level) === 'number') {
+    levelNum = level;
+  } else {
+    levelNum = rtl('warn');
+  }
+
   if( levelNum > loggingLevel ) {
    return;
   }
   console.log(this.fullMessage('MESSAGE:'+levelNum, message));
 };
 
-module.exports = {Logger:Logger, setLoggingLevel:setLoggingLevel, rtl:rtl};
+module.exports = {Logger:Logger, setLoggingLevel:setLoggingLevel};
