@@ -276,6 +276,7 @@ pxError makeInternalGLContextCurrent(bool current, int id)
   }
   else
   {
+    glFlush();
     pxDoneEglCurrent(id);
   }
   return PX_OK;
