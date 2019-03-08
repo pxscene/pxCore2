@@ -5,8 +5,10 @@
 #import <Cocoa/Cocoa.h>
 #include <map>
 #include "rtLog.h"
+#include "rtMutex.h"
 
 bool glContextIsCurrent = false;
+rtMutex eglContextMutex;
 int nextInternalContextId = 1;
 
 extern NSOpenGLContext *openGLContext;
@@ -45,6 +47,7 @@ std::map<int, NSOpenGLContext *> internalContexts;
 pxError createGLContext(int id, bool depthBuffer)
 {
     NSOpenGLContext *context = nil;
+    rtMutexLockGuard eglContextMutexGuard(eglContextMutex);
     if ( internalContexts.find(id) != internalContexts.end() )
     {
         context = internalContexts.at(id);
@@ -63,13 +66,17 @@ pxError createGLContext(int id, bool depthBuffer)
 
 pxError createInternalContext(int &id)
 {
-  id = nextInternalContextId++;
+  {
+    rtMutexLockGuard eglContextMutexGuard(eglContextMutex);
+    id = nextInternalContextId++;
+  }
   createGLContext(id);
   return PX_OK;
 }
 
 pxError deleteInternalGLContext(int id)
 {
+  rtMutexLockGuard eglContextMutexGuard(eglContextMutex);
   if ( internalContexts.find(id) != internalContexts.end() )
   {
     NSOpenGLContext *context = internalContexts[id];
@@ -84,14 +91,20 @@ pxError makeInternalGLContextCurrent(bool current, int id, bool depthBuffer)
     if (current)
     {
         NSOpenGLContext *context = nil;
-        if ( internalContexts.find(id) != internalContexts.end() )
         {
+          rtMutexLockGuard eglContextMutexGuard(eglContextMutex);
+          if (internalContexts.find(id) != internalContexts.end())
+          {
             context = internalContexts.at(id);
+          }
         }
         if (context == nil)
         {
             createGLContext(id,depthBuffer);
-            context = internalContexts[id];
+            {
+              rtMutexLockGuard eglContextMutexGuard(eglContextMutex);
+              context = internalContexts[id];
+            }
             [context makeCurrentContext];
             // JRJR TODO Review these with Mike
 #if 0
