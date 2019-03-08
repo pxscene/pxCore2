@@ -271,6 +271,7 @@ pxError makeInternalGLContextCurrent(bool current, int id)
   {
     pxMakeEglCurrent(id);
     glEnable(GL_BLEND);
+    glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
     glClearColor(0, 0, 0, 0);
     glClear(GL_COLOR_BUFFER_BIT);
   }
