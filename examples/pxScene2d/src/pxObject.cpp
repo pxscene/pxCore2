@@ -1316,9 +1316,14 @@ void pxObject::createSnapshot(pxContextFramebufferRef& fbo, bool separateContext
 //  float parentAlpha = ma;
 
   float parentAlpha = 1.0;
+  static pxSharedContextRef sharedContext;
   if (separateContext)
   {
-    context.enableInternalContext(true);
+    if (sharedContext.getPtr() == NULL)
+    {
+      sharedContext = context.createSharedContext();
+    }
+    sharedContext->makeCurrent(true);
   }
 
   context.setMatrix(m);
@@ -1382,7 +1387,7 @@ void pxObject::createSnapshot(pxContextFramebufferRef& fbo, bool separateContext
   context.setFramebuffer(previousRenderSurface);
   if (separateContext)
   {
-    context.enableInternalContext(false);
+    sharedContext->makeCurrent(false);
   }
 }
 

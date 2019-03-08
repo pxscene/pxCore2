@@ -124,11 +124,6 @@ class pxContextTest : public testing::Test
       EXPECT_TRUE (h == 720);
     }
 
-    void enableInternalContextTest()
-    {
-      EXPECT_TRUE ( RT_OK == mContext.enableInternalContext(false));
-    }
-
     void setEjectTextureAgeTest()
     {
       EXPECT_TRUE ( PX_OK == mContext.setEjectTextureAge(100));
@@ -369,7 +364,6 @@ TEST_F(pxContextTest, pxContextTests)
   showOutlinesTest();
   initTwiceTest();
   setSizeTest();
-  enableInternalContextTest();
   setEjectTextureAgeTest();
   enableDirtyRectanglesTest();
   clearColorTest();
