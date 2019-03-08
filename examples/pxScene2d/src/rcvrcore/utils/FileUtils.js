@@ -40,7 +40,7 @@ var log = new Logger('FileUtils');
 function loadFile(fileUri, appSceneContext) {
   return new Promise(function(resolve, reject) {
     var code = [];
-    if (fileUri.substring(0, 4) === "http") {
+    if (fileUri.substring(0, 4).toLowerCase() === "http") {
       var options = url.parse(fileUri);
       var req = null;
       var httpCallback = function (res) {
@@ -62,7 +62,7 @@ function loadFile(fileUri, appSceneContext) {
           }
         });
       };
-      var isHttps = fileUri.substring(0, 5) === "https";
+      var isHttps = fileUri.substring(0, 5).toLowerCase() === "https";
       if (appSceneContext) {
         req = new http_wrap(isHttps ? "https" : "http", appSceneContext).get(options, httpCallback);
       } else {
@@ -75,7 +75,7 @@ function loadFile(fileUri, appSceneContext) {
         log.error("Error: FAILED to read file[" + fileUri + "] from web service");
         reject(err);
       });
-      
+
     }
     else {
       if (appSceneContext &&
@@ -87,8 +87,8 @@ function loadFile(fileUri, appSceneContext) {
         return;
       }
 
-      if( fileUri.substring(0,5) === 'file:' ) {
-        fileUri = fileUri.substring(5);
+      if( fileUri.substring(0,5).toLowerCase() === 'file:' ) {
+        fileUri = fileUri.substring(5).toLowerCase();
         if( fileUri.substring(0,2) === '//') {
           fileUri = fileUri.substring(1);
         }
