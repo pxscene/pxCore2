@@ -1387,7 +1387,7 @@ void pxObject::createSnapshot(pxContextFramebufferRef& fbo, bool separateContext
   context.setFramebuffer(previousRenderSurface);
   if (separateContext)
   {
-    sharedContext->makeCurrent(true);
+    sharedContext->makeCurrent(false);
   }
 }
 
