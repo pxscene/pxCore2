@@ -18,6 +18,7 @@ limitations under the License.
 
 #include "pxContextUtils.h"
 #include "rtLog.h"
+#include "rtMutex.h"
 
 #include <GLES2/gl2.h>
 #include <GLES2/gl2ext.h>
@@ -26,6 +27,8 @@ limitations under the License.
 EGLContext defaultEglContext = 0;
 EGLDisplay defaultEglDisplay = 0;
 EGLSurface defaultEglSurface = 0;
+
+rtMutex eglContextMutex;
 
 
 int nextInternalContextId = 1;
@@ -55,10 +58,13 @@ std::map<int, eglContextInfo> internalContexts;
 
 int pxCreateEglContext(int id)
 {
-  if ( internalContexts.find(id) != internalContexts.end() )
   {
-    rtLogDebug("context with this id already exists");
-    return PX_FAIL;
+    rtMutexLockGuard eglContextMutexGuard(eglContextMutex);
+    if (internalContexts.find(id) != internalContexts.end())
+    {
+      rtLogDebug("context with this id already exists");
+      return PX_FAIL;
+    }
   }
   rtLogDebug("creating new context\n");
   EGLDisplay egl_display      = 0;
@@ -178,7 +184,10 @@ int pxCreateEglContext(int id)
   contextInfo.contextDetails.eglDrawSurface = egl_surface;
   contextInfo.contextDetails.eglReadSurface = egl_surface;
   contextInfo.contextDetails.eglContext = egl_context;
-  internalContexts[id] = contextInfo;
+  {
+    rtMutexLockGuard eglContextMutexGuard(eglContextMutex);
+    internalContexts[id] = contextInfo;
+  }
   rtLogDebug("display: %p surface: %p context: %p created\n", egl_display, egl_surface, egl_context);
 
   return PX_OK;
@@ -187,14 +196,17 @@ int pxCreateEglContext(int id)
 void pxMakeEglCurrent(int id)
 {
   eglContextInfo contextInfo;
-  if ( internalContexts.find(id) != internalContexts.end() )
   {
-    contextInfo = internalContexts.at(id);
-  }
-  else
-  {
-    pxCreateEglContext(id);
-    contextInfo = internalContexts[id];
+    rtMutexLockGuard eglContextMutexGuard(eglContextMutex);
+    if (internalContexts.find(id) != internalContexts.end())
+    {
+      contextInfo = internalContexts.at(id);
+    }
+    else
+    {
+      pxCreateEglContext(id);
+      contextInfo = internalContexts[id];
+    }
   }
 
   eglContextDetails previousContextDetails;
@@ -204,7 +216,10 @@ void pxMakeEglCurrent(int id)
   previousContextDetails.eglContext = eglGetCurrentContext();
   contextInfo.previousContextDetails = previousContextDetails;
   contextInfo.onDisplayStack = true;
-  internalContexts[id] = contextInfo;
+  {
+    rtMutexLockGuard eglContextMutexGuard(eglContextMutex);
+    internalContexts[id] = contextInfo;
+  }
   bool success = eglMakeCurrent(contextInfo.contextDetails.eglDisplay, contextInfo.contextDetails.eglDrawSurface,
                                 contextInfo.contextDetails.eglReadSurface, contextInfo.contextDetails.eglContext);
 
@@ -217,7 +232,7 @@ void pxMakeEglCurrent(int id)
 
 void pxDoneEglCurrent(int id)
 {
-
+  rtMutexLockGuard eglContextMutexGuard(eglContextMutex);
   if ( internalContexts.find(id) != internalContexts.end() )
   {
     eglContextInfo contextInfo;
@@ -242,6 +257,7 @@ void pxDoneEglCurrent(int id)
 void pxDeleteEglContext(int id)
 {
   eglContextInfo contextInfo;
+  rtMutexLockGuard eglContextMutexGuard(eglContextMutex);
   if ( internalContexts.find(id) != internalContexts.end() )
   {
     contextInfo = internalContexts[id];
@@ -253,7 +269,10 @@ void pxDeleteEglContext(int id)
 
 pxError createInternalContext(int &id)
 {
-  id = nextInternalContextId++;
+  {
+    rtMutexLockGuard eglContextMutexGuard(eglContextMutex);
+    id = nextInternalContextId++;
+  }
   pxCreateEglContext(id);
   return PX_OK;
 }
