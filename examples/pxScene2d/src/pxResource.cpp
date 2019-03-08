@@ -437,12 +437,13 @@ void prepareImageResource(void* data)
 void rtImageResource::prepare()
 {
 #ifdef ENABLE_BACKGROUND_TEXTURE_CREATION
-  static bool enableInternalContextOnce = true;
-  if (enableInternalContextOnce)
+  static bool setInternalContextCurrent = true;
+  static pxSharedContextRef sharedContext = context.createSharedContext();
+  if (setInternalContextCurrent)
   {
-    context.enableInternalContext(true);
+    sharedContext->makeCurrent(true);
   }
-  enableInternalContextOnce = false;
+  setInternalContextCurrent = false;
   mDownloadedTexture->prepareForRendering();
 #endif //ENABLE_BACKGROUND_TEXTURE_CREATION
   mTextureMutex.lock();

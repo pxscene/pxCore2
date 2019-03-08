@@ -21,26 +21,38 @@ limitations under the License.
 
 #include <GLES2/gl2.h>
 #include <GLES2/gl2ext.h>
+#include <map>
 
 EGLContext defaultEglContext = 0;
+EGLDisplay defaultEglDisplay = 0;
+EGLSurface defaultEglSurface = 0;
 
-EGLDisplay eglDisplay = 0;
-EGLSurface eglSurface = 0;
-EGLContext eglContext = 0;
 
-EGLDisplay prevEglDisplay = 0;
-EGLSurface prevEglDrawSurface = 0;
-EGLSurface prevEglReadSurface = 0;
-EGLContext prevEglContext = 0;
-
-bool eglContextCreated = false;
-bool eglContextIsCurrent = false;
 int nextInternalContextId = 1;
 
-int pxCreateEglContext()
+struct eglContextInfo
 {
-  if (eglContextCreated)
+  eglContextInfo(): eglDisplay(0), eglDrawSurface(0), eglReadSurface(0), eglContext(0),
+                    previousEglContextInfo(), onDisplayStack(false) {}
+  eglContextInfo(EGLDisplay display, EGLSurface drawSurface, EGLSurface readSurface, EGLContext context) :
+      eglDisplay(display), eglSurface(drawSurface), eglContext(readSurface), previousEglContextInfo(), onDisplayStack(false) {}
+
+  EGLDisplay eglDisplay;
+  EGLSurface eglDrawSurface;
+  EGLSurface eglReadSurface;
+  EGLContext eglContext;
+  eglContextInfo previousEglContextInfo;
+  bool onDisplayStack;
+};
+
+
+std::map<int, eglContextInfo> internalContexts;
+
+int pxCreateEglContext(int id)
+{
+  if ( internalContexts.find(id) != internalContexts.end() )
   {
+    rtLogDebug("context with this id already exists");
     return PX_FAIL;
   }
   rtLogDebug("creating new context\n");
@@ -99,6 +111,12 @@ int pxCreateEglContext()
     free(attr);
   }
 
+  EGLint attribList[] =
+  {
+      EGL_LARGEST_PBUFFER, EGL_TRUE,
+      EGL_NONE
+  };
+
   for (config_select = 0; config_select < configs; config_select++)
   {
     EGLint red_size, green_size, blue_size, alpha_size, depth_size;
@@ -122,13 +140,6 @@ int pxCreateEglContext()
     return PX_FAIL;
   }
 
-  EGLint attribList[] =
-  {
-    EGL_WIDTH, 1280,
-    EGL_HEIGHT, 720,
-    EGL_LARGEST_PBUFFER, EGL_TRUE,
-    EGL_NONE
-  };
   egl_surface = eglCreatePbufferSurface(egl_display, egl_config[config_select], attribList);
   if (egl_surface == EGL_NO_SURFACE)
   {
@@ -157,46 +168,82 @@ int pxCreateEglContext()
     }
   }
 
-  eglDisplay = egl_display;
-  eglSurface = egl_surface;
-  eglContext = egl_context;
-  rtLogDebug("display: %p surface: %p context: %p created\n", eglDisplay, eglSurface, eglContext);
-  eglContextCreated = true;
+  eglContextInfo contextInfo;
+  contextInfo.eglDisplay = egl_display;
+  contextInfo.eglDrawSurface = egl_surface;
+  contextInfo.eglReadSurface = egl_surface;
+  contextInfo.eglContext = egl_context;
+  internalContexts[id] = contextInfo;
+  rtLogDebug("display: %p surface: %p context: %p created\n", egl_display, egl_surface, egl_context);
 
   return PX_OK;
 }
   
-void pxMakeEglCurrent()
+void pxMakeEglCurrent(int id)
 {
-  if (!eglContextIsCurrent)
+  eglContextInfo contextInfo;
+  if ( internalContexts.find(id) != internalContexts.end() )
   {
-    prevEglDisplay = eglGetCurrentDisplay();
-    prevEglDrawSurface = eglGetCurrentSurface(EGL_DRAW);
-    prevEglReadSurface = eglGetCurrentSurface(EGL_READ);
-    prevEglContext = eglGetCurrentContext();
-    bool success = eglMakeCurrent(eglDisplay, eglSurface, eglSurface, eglContext);
-    if (!success)
+    contextInfo = internalContexts.at(id);
+  }
+  else
+  {
+    pxCreateEglContext();
+    contextInfo = internalContexts[id];
+  }
+
+  eglContextInfo previousContextInfo;
+  previousContextInfo.eglDisplay = eglGetCurrentDisplay();
+  previousContextInfo.eglDrawSurface = eglGetCurrentSurface(EGL_DRAW);
+  previousContextInfo.eglReadSurface = eglGetCurrentSurface(EGL_READ);
+  previousContextInfo.eglContext = eglGetCurrentContext();
+  contextInfo.previousEglContextInfo = previousContextInfo;
+  contextInfo.onDisplayStack = true;
+  internalContexts[id] = contextInfo;
+  bool success = eglMakeCurrent(contextInfo.eglDisplay, contextInfo.eglDrawSurface,
+                                contextInfo.eglReadSurface, contextInfo.eglContext);
+
+  if (!success)
+  {
+    int eglError = eglGetError();
+    rtLogWarn("make current error: %d\n", eglError);
+  }
+}
+
+void pxDoneEglCurrent(int id)
+{
+
+  if ( internalContexts.find(id) != internalContexts.end() )
+  {
+    eglContextInfo contextInfo;
+    eglContextInfo previousContextInfo;
+    contextInfo = internalContexts.at(id);
+    if (contextInfo.onDisplayStack)
     {
-      int eglError = eglGetError();
-      rtLogWarn("make current error: %d\n", eglError);
+      previousContextInfo = contextInfo.previousEglContextInfo;
+      eglMakeCurrent(previousContextInfo.eglDisplay, previousContextInfo.eglDrawSurface,
+                     previousContextInfo.eglReadSurface, previousContextInfo.eglContext);
+      contextInfo.previousEglContextInfo = contextInfo(0,0,0,0);
+      contextInfo.onDisplayStack = false;
+      internalContexts[id] = contextInfo;
     }
-
-    eglContextIsCurrent = true;
   }
-}
-
-void pxDoneEglCurrent()
-{
-  if (eglContextIsCurrent)
+  else
   {
-    eglMakeCurrent(prevEglDisplay, prevEglDrawSurface, prevEglReadSurface, prevEglContext);
-    eglContextIsCurrent = false;
+    eglMakeCurrent(defaultEglDisplay, defaultEglSurface, defaultEglSurface, defaultEglContext);
   }
 }
 
-void pxDeleteEglContext()
+void pxDeleteEglContext(int id)
 {
-  pxDoneEglCurrent();
+  eglContextInfo contextInfo;
+  if ( internalContexts.find(id) != internalContexts.end() )
+  {
+    contextInfo = internalContexts[id];
+    internalContexts.erase(id);
+    eglDestroySurface(contextInfo.eglDisplay, contextInfo.eglDrawSurface);
+    eglDestroyContext(contextInfo.eglDisplay, contextInfo.eglContext);
+  }
   if (eglContextCreated)
   {
     rtLogDebug("deleting pxscene context\n");
@@ -216,38 +263,29 @@ void pxDeleteEglContext()
 pxError createInternalContext(int &id)
 {
   id = nextInternalContextId++;
-  //TODO
+  pxCreateEglContext(id);
   return PX_OK;
 }
 
 
-pxError deleteInternalGLContext(int)
+pxError deleteInternalGLContext(int id)
 {
-  pxDeleteEglContext();
+  pxDeleteEglContext(id);
   return PX_OK;
 }
 
-pxError makeInternalGLContextCurrent(bool current, int /*id*/)
+pxError makeInternalGLContextCurrent(bool current, int id)
 {
   if (current)
   {
-    if (!eglContextCreated)
-    {
-      pxCreateEglContext();
-      pxMakeEglCurrent();
-
-      glEnable(GL_BLEND);
-      glClearColor(0, 0, 0, 0);
-      glClear(GL_COLOR_BUFFER_BIT);
-    }
-    else
-    {
-      pxMakeEglCurrent();
-    }
+    pxMakeEglCurrent(contextInfo);
+    glEnable(GL_BLEND);
+    glClearColor(0, 0, 0, 0);
+    glClear(GL_COLOR_BUFFER_BIT);
   }
   else
   {
-    pxDoneEglCurrent();
+    pxDoneEglCurrent(id);
   }
   return PX_OK;
 }
