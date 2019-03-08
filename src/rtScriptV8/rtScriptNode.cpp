@@ -1232,7 +1232,9 @@ void rtScriptNode::init2(int argc, char** argv)
    V8::InitializeExternalStartupData(argv[0]);
 #endif
 
+#if NODE_VERSION_AT_LEAST(8,9,0)
    v8::TracingController* tc = new v8::TracingController();
+#endif //NODE_VERSION_AT_LEAST(8,9,0)
 #ifdef USE_NODE_PLATFORM
    Platform* platform = node::CreatePlatform(v8_thread_pool_size, tc);
 #else
