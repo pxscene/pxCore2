@@ -69,6 +69,39 @@ px.import({ scene:    'px:scene.1.js',
 
   var showFullscreen = false;
 
+
+  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  //
+  //  CAPABILITIES:  Test for 'inline' SVG support
+  //
+  var hasSvg = true;
+
+  if( scene.capabilities              == undefined ||
+      scene.capabilities.graphics     == undefined ||
+      scene.capabilities.graphics.svg == undefined ||
+      scene.capabilities.graphics.svg != 2)
+  {
+    // If *inline* SVG is not supported...
+    hasSvg = false;
+  }
+
+  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  //
+  //  CAPABILITIES:  Test for 'events' DRAG'n'DROP enhanced support
+  //
+  var hasDragDrop2 = true;
+
+  if( scene.capabilities                    == undefined ||
+      scene.capabilities.events             == undefined ||
+      scene.capabilities.events.drag_n_drop == undefined ||
+      scene.capabilities.events.drag_n_drop != 2)
+  {
+    // If DRAG'n'DROP enhanced support NOT supported...
+    hasDragDrop2 = false;
+  }
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  
+
   scene.addServiceProvider(function(serviceName, serviceCtx){
     if (serviceName == ".navigate")
       // TODO JRJR have to set url in a timer to avoid reentrancy
@@ -364,27 +397,30 @@ px.import({ scene:    'px:scene.1.js',
     }
   });
 
-  content.on("onDragEnter", function (e)
+  if(hasDragDrop2)
   {
-    // console.log(">>> Drag'n'Drop enter... ");
-  });
-
-  content.on("onDragLeave", function (e)
-  {
-    // console.log(">>> Drag'n'Drop leave... ");
-  });
-
-  // Load URL dropped in 'content' area
-  content.on("onDragDrop", function (e)
-  {
-    // console.log(">>> Drag'n'Drop drop... type: "+e.type + " ... url: " + e.dropped);
-
-    if(e.type == scene.dragType.URL || e.type == scene.dragType.TEXT)
+    content.on("onDragEnter", function (e)
     {
-      // console.log(">>> Loading Dropped URL ... " + e.dropped);
-      reload(e.dropped);
-    }
-  });
+      // console.log(">>> Drag'n'Drop enter... ");
+    });
+
+    content.on("onDragLeave", function (e)
+    {
+      // console.log(">>> Drag'n'Drop leave... ");
+    });
+
+    // Load URL dropped in 'content' area
+    content.on("onDragDrop", function (e)
+    {
+      // console.log(">>> Drag'n'Drop drop... type: "+e.type + " ... url: " + e.dropped);
+
+      if(e.type == scene.dragType.URL || e.type == scene.dragType.TEXT)
+      {
+        // console.log(">>> Loading Dropped URL ... " + e.dropped);
+        reload(e.dropped);
+      }
+    });
+  }
 
 
   scene.on("onResize", function(e) { updateSize(e.w,e.h); });

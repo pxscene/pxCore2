@@ -490,6 +490,8 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   // capabilities.network.http2         = 2
   //
   // capabilities.metrics.textureMemory = 1
+  //
+  // capabilities.events.drag_n_drop    = 2   // additional Drag'n'Drop events 
 
   mCapabilityVersions = new rtMapObject;
 
@@ -532,6 +534,13 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
 
   metricsCapabilities.set("textureMemory", 1);
   mCapabilityVersions.set("metrics", metricsCapabilities);
+
+  //////////////////////////////////////////////////////
+
+  rtObjectRef userCapabilities = new rtMapObject;
+
+  mCapabilityVersions.set("events", userCapabilities);
+  userCapabilities.set("drag_n_drop", (gPlatformOS == "macOS") ? 2 : 1);
 
   //////////////////////////////////////////////////////
 }
