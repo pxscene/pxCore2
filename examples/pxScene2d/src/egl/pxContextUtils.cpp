@@ -197,16 +197,19 @@ void pxMakeEglCurrent(int id)
 {
   eglContextInfo contextInfo;
   {
-    rtMutexLockGuard eglContextMutexGuard(eglContextMutex);
+    eglContextMutex.lock();
     if (internalContexts.find(id) != internalContexts.end())
     {
       contextInfo = internalContexts.at(id);
     }
     else
     {
+      eglContextMutex.unlock();
       pxCreateEglContext(id);
+      eglContextMutex.lock();
       contextInfo = internalContexts[id];
     }
+    eglContextMutex.unlock();
   }
 
   eglContextDetails previousContextDetails;
