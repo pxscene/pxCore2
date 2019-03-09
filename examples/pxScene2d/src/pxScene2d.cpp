@@ -491,6 +491,8 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   //
   // capabilities.metrics.textureMemory = 1
   // capabilities.metrics.resources = 1
+  // 
+  // capabilities.animations.durations = 2
 
   mCapabilityVersions = new rtMapObject;
 
@@ -535,6 +537,10 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   metricsCapabilities.set("resources", 1);
   mCapabilityVersions.set("metrics", metricsCapabilities);
 
+  rtObjectRef animationCapabilities = new rtMapObject;
+
+  animationCapabilities.set("durations", 2);
+  mCapabilityVersions.set("animations", animationCapabilities);
   //////////////////////////////////////////////////////
 }
 
