@@ -62,6 +62,8 @@
 #include "pxAnimate.h"
 #include "testView.h"
 
+class pxConstantsDragType;
+
 #ifdef ENABLE_RT_NODE
 #include "rtScript.h"
 #endif //ENABLE_RT_NODE
@@ -173,6 +175,12 @@ public:
   rtMethod1ArgAndNoReturn("onMouseDown", onMouseDown, rtObjectRef);
   rtMethod1ArgAndNoReturn("onMouseUp", onMouseUp, rtObjectRef);
   rtMethod1ArgAndNoReturn("onMouseMove", onMouseMove, rtObjectRef);
+
+  rtMethod1ArgAndNoReturn("onDragMove",  onDragMove,  rtObjectRef);
+  rtMethod1ArgAndNoReturn("onDragEnter", onDragEnter, rtObjectRef);
+  rtMethod1ArgAndNoReturn("onDragLeave", onDragLeave, rtObjectRef);
+  rtMethod1ArgAndNoReturn("onDragDrop",  onDragDrop,  rtObjectRef);
+
   rtMethod1ArgAndNoReturn("onScrollWheel", onScrollWheel, rtObjectRef);
   rtMethod1ArgAndNoReturn("onMouseEnter", onMouseEnter, rtObjectRef);
   rtMethod1ArgAndNoReturn("onMouseLeave", onMouseLeave, rtObjectRef);
@@ -187,6 +195,12 @@ public:
     addListener("onMouseDown", get<rtFunctionRef>("onMouseDown"));
     addListener("onMouseUp", get<rtFunctionRef>("onMouseUp"));
     addListener("onMouseMove", get<rtFunctionRef>("onMouseMove"));
+
+    addListener("onDragMove",  get<rtFunctionRef>("onDragMove"));
+    addListener("onDragEnter", get<rtFunctionRef>("onDragEnter"));
+    addListener("onDragLeave", get<rtFunctionRef>("onDragLeave"));
+    addListener("onDragDrop",  get<rtFunctionRef>("onDragDrop"));
+
     addListener("onScrollWheel", get<rtFunctionRef>("onScrollWheel"));
     addListener("onMouseEnter", get<rtFunctionRef>("onMouseEnter"));
     addListener("onMouseLeave", get<rtFunctionRef>("onMouseLeave"));
@@ -278,6 +292,63 @@ public:
       float x = o.get<float>("x");
       float y = o.get<float>("y");
       mView->onMouseMove(static_cast<int32_t>(x),static_cast<int32_t>(y));
+    }
+    return RT_OK;
+  }
+
+  rtError onDragMove(rtObjectRef o)
+  {
+    rtLogDebug("pxViewContainer::onDragMove");
+    if (mView)
+    {
+      float          x = o.get<float>("x");
+      float          y = o.get<float>("y");
+      int32_t     type = o.get<int32_t>("type");
+
+      mView->onDragMove(static_cast<int32_t>(x), static_cast<int32_t>(y), type );
+    }
+    return RT_OK;
+  }
+
+  rtError onDragEnter(rtObjectRef o)
+  {
+    rtLogDebug("pxViewContainer::onDragEnter");
+    if (mView)
+    {
+      float          x = o.get<float>("x");
+      float          y = o.get<float>("y");
+      int32_t     type = o.get<int32_t>("type");
+
+      mView->onDragEnter(static_cast<int32_t>(x), static_cast<int32_t>(y), type );
+    }
+    return RT_OK;
+  }
+
+  rtError onDragLeave(rtObjectRef o)
+  {
+    rtLogDebug("pxViewContainer::onDragLeave");
+    if (mView)
+    {
+      float          x = o.get<float>("x");
+      float          y = o.get<float>("y");
+      int32_t     type = o.get<int32_t>("type");
+
+      mView->onDragLeave(static_cast<int32_t>(x), static_cast<int32_t>(y), type );
+    }
+    return RT_OK;
+  }
+
+  rtError onDragDrop(rtObjectRef o)
+  {
+    rtLogDebug("pxViewContainer::onDragDropped");
+    if (mView)
+    {
+      float          x = o.get<float>("x");
+      float          y = o.get<float>("y");
+      rtString dropped = o.get<rtString>("dropped");
+      int32_t     type = o.get<int32_t>("type");
+
+      mView->onDragDrop(static_cast<int32_t>(x), static_cast<int32_t>(y), type, dropped.cString() );
     }
     return RT_OK;
   }
@@ -620,6 +691,34 @@ protected:
     return false;
   }
 
+  virtual bool onDragMove(int32_t x, int32_t y, int32_t type)
+  {
+    if (mView)
+    return mView->onDragMove(x,y, type);
+    return false;
+  }
+
+  virtual bool onDragEnter(int32_t x, int32_t y, int32_t type)
+  {
+    if (mView)
+    return mView->onDragEnter(x,y, type);
+    return false;
+  }
+
+  virtual bool onDragLeave(int32_t x, int32_t y, int32_t type)
+  {
+    if (mView)
+    return mView->onDragLeave(x,y, type);
+    return false;
+  }
+
+  virtual bool onDragDrop(int32_t x, int32_t y, int32_t type, const char *dropped)
+  {
+    if (mView)
+    return mView->onDragDrop(x,y, type, dropped);
+    return false;
+  }
+
   virtual bool onScrollWheel(float dx, float dy)
   {
     if (mView)
@@ -776,6 +875,7 @@ public:
   rtReadOnlyProperty(animation,animation,rtObjectRef);
   rtReadOnlyProperty(stretch,stretch,rtObjectRef);
   rtReadOnlyProperty(maskOp,maskOp,rtObjectRef);
+  rtReadOnlyProperty(dragType,dragType,rtObjectRef);
   rtReadOnlyProperty(alignVertical,alignVertical,rtObjectRef);
   rtReadOnlyProperty(alignHorizontal,alignHorizontal,rtObjectRef);
   rtReadOnlyProperty(truncation,truncation,rtObjectRef);
@@ -859,8 +959,7 @@ public:
   rtError showDirtyRect(bool& v) const;
   rtError setShowDirtyRect(bool v);
 
-  rtError dirtyRectangle(rtObjectRef& v) const;
-    
+  rtError dirtyRectangle(rtObjectRef& v) const;   
   rtError dirtyRectanglesEnabled(bool& v) const;
     
   rtError enableDirtyRect(bool& v) const;
@@ -930,10 +1029,10 @@ public:
 
   rtError emit(rtFunctionRef& v) const { v = mEmit; return RT_OK; }
   
-  rtError animation(rtObjectRef& v) const {v = CONSTANTS.animationConstants; return RT_OK;}
-  rtError stretch(rtObjectRef& v)   const {v = CONSTANTS.stretchConstants;   return RT_OK;}
-  rtError maskOp(rtObjectRef& v)    const {v = CONSTANTS.maskOpConstants;    return RT_OK;}  
-  
+  rtError animation(rtObjectRef& v)       const {v = CONSTANTS.animationConstants;       return RT_OK;}
+  rtError stretch(rtObjectRef& v)         const {v = CONSTANTS.stretchConstants;         return RT_OK;}
+  rtError maskOp(rtObjectRef& v)          const {v = CONSTANTS.maskOpConstants;          return RT_OK;}
+  rtError dragType(rtObjectRef& v)        const {v = CONSTANTS.dragTypeConstants;        return RT_OK;}
   rtError alignVertical(rtObjectRef& v)   const {v = CONSTANTS.alignVerticalConstants;   return RT_OK;}
   rtError alignHorizontal(rtObjectRef& v) const {v = CONSTANTS.alignHorizontalConstants; return RT_OK;}
   rtError truncation(rtObjectRef& v)      const {v = CONSTANTS.truncationConstants;      return RT_OK;}
@@ -947,17 +1046,24 @@ public:
   rtError cors(rtObjectRef& v) const { v = mCORS; return RT_OK; }
   rtError sparkSetting(const rtString& setting, rtValue& value) const;
 
-  void setMouseEntered(rtRef<pxObject> o);//setMouseEntered(pxObject* o);
+   void setMouseEntered(rtRef<pxObject> o, int32_t x = 0, int32_t y = 0);
 
   // The following methods are delegated to the view
   virtual void onSize(int32_t w, int32_t h);
 
-  virtual bool onMouseDown(int32_t x, int32_t y, uint32_t flags);
-  virtual bool onMouseUp(int32_t x, int32_t y, uint32_t flags);
   virtual bool onMouseEnter();
   virtual bool onMouseLeave();
+
+  virtual bool onMouseDown(int32_t x, int32_t y, uint32_t flags);
+  virtual bool onMouseUp(  int32_t x, int32_t y, uint32_t flags);
   virtual bool onMouseMove(int32_t x, int32_t y);
+
   virtual bool onScrollWheel(float dx, float dy);
+
+  virtual bool onDragMove( int32_t x, int32_t y, int32_t type);
+  virtual bool onDragEnter(int32_t x, int32_t y, int32_t type);
+  virtual bool onDragLeave(int32_t x, int32_t y, int32_t type);
+  virtual bool onDragDrop( int32_t x, int32_t y, int32_t type, const char* dropped);
 
   void updateMouseEntered();
 
@@ -979,8 +1085,8 @@ public:
   void getMatrixFromObjectToScene(pxObject* o, pxMatrix4f& m);
   void getMatrixFromSceneToObject(pxObject* o, pxMatrix4f& m);
   void getMatrixFromObjectToObject(pxObject* from, pxObject* to, pxMatrix4f& m);
-  void transformPointFromObjectToScene(pxObject* o, const pxPoint2f& from, 
-				       pxPoint2f& to);
+
+  void transformPointFromObjectToScene(pxObject* o, const pxPoint2f& from, pxPoint2f& to);
   void transformPointFromSceneToObject(pxObject* o, const pxPoint2f& from, pxPoint2f& to);
   void transformPointFromObjectToObject(pxObject* fromObject, pxObject* toObject,
 					pxPoint2f& from, pxPoint2f& to);
@@ -1144,6 +1250,11 @@ public:
   pxRect mLastFrameDirtyRect;
   //#endif //PX_DIRTY_RECTANGLES
   bool mDirty;
+
+  bool mDragging;
+  pxConstantsDragType::constants mDragType;
+  rtRef<pxObject> mDragTarget;
+
   testView* mTestView;
   bool mDisposed;
   std::vector<rtFunctionRef> mServiceProviders;

@@ -120,8 +120,6 @@ public:
 
 };
 
-
-
 class pxConstantsMaskOperation : public rtObject
 {
 public:
@@ -133,6 +131,21 @@ public:
   
   rtConstantProperty(NORMAL, NORMAL, uint32_t);
   rtConstantProperty(INVERT, INVERT, uint32_t);
+};
+
+class pxConstantsDragType : public rtObject
+{
+public:
+  enum constants {
+    NONE = 0,
+    TEXT,
+    URL,
+  };
+  rtDeclareObject(pxConstantsDragType, rtObject);
+  
+  rtConstantProperty(NONE, NONE, uint32_t);
+  rtConstantProperty(TEXT, TEXT, uint32_t);
+  rtConstantProperty( URL,  URL, uint32_t);
 };
 
 
@@ -207,6 +220,7 @@ public:
   static rtRef<pxConstantsAnimation> animationConstants;
   static rtRef<pxConstantsStretch>   stretchConstants;
   static rtRef<pxConstantsMaskOperation>    maskOpConstants;
+  static rtRef<pxConstantsDragType>        dragTypeConstants;
   
   static rtRef<pxConstantsAlignVertical>   alignVerticalConstants;
   static rtRef<pxConstantsAlignHorizontal> alignHorizontalConstants;

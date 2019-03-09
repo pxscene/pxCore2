@@ -99,8 +99,8 @@ px.import({ scene: 'px:scene.1.js',
         // - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         Object.defineProperty(this, "interactive",
         {
-            set: function (val) {    textInput.interactive = val; 
-                                      textView.interactive = val; 
+            set: function (val) {   // textInput.interactive = val;
+                                    //  textView.interactive = val;
                                  
                                  console.log(">>> interactive = " + val);
 
@@ -216,7 +216,7 @@ px.import({ scene: 'px:scene.1.js',
         var inputBg = scene.create({
             t: "image9", resource: inputRes, a: 0.9, x: 0, y: 0, w: this._w, h: this._h,// insets: insets,
             insetLeft: insets.l, insetRight: insets.r, insetTop: insets.t, insetBottom: insets.b, 
-            parent: clipRect, stretchX: ss, stretchY: ss
+                                             parent: clipRect, stretchX: ss, stretchY: ss, ineractive: false
         });
 
         var textView  = scene.create({ t: "object", parent: clipRect, x: 0, y: 0, w: this._w, h: this._h});

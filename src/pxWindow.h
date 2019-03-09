@@ -78,6 +78,7 @@ public:
 
   virtual void onMouseMove(int32_t /*x*/, int32_t /*y*/) {}
   virtual void onScrollWheel(float /*x*/, float /*y*/) {}
+  virtual void onDragDrop(int32_t /*x*/, int32_t /*y*/, int /*type*/, const char * /*dropped*/) {}
   
   // See pxWindowNative.h for keycode constants
   // See constants used for flags below

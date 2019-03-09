@@ -779,32 +779,48 @@ void MyDisplayReconfigurationCallBack(CGDirectDisplayID display,
 
 #pragma mark - Dragging Operations
 
-- (NSDragOperation)draggingEntered:(id <NSDraggingInfo>)sender
+- (NSDragOperation)draggingUpdated:(id <NSDraggingInfo>)sender
 {
-    NSDragOperation sourceDragMask = [sender draggingSourceOperationMask];
-    NSPasteboard           *pboard = [sender draggingPasteboard];
-    
+  NSPoint  p = [sender draggingLocation];
+  NSPoint pt = [self convertPoint:p fromView:nil];
+  
+ // NSLog(@"DRAG UPDATE >> LOCATION: (%f, %f)", pt.x, pt.y);
+
+  NSURL *fileURL = [NSURL URLFromPasteboard: [sender draggingPasteboard]];
+  
+  uint32_t dragType = (fileURL) ? 2 : 1;  // 2 == URL, 1 == TEXT
+
+  pxWindowNative::_helper_onDragMove(mWindow, pt.x, pt.y, dragType); // drop point
+  
+  return NSDragOperationCopy;
+}
+
+- (NSDragOperation)draggingEntered:(id <NSDraggingInfo>)sender
+{    
     /*------------------------------------------------------
      method called whenever a drag enters our drop zone
      --------------------------------------------------------*/
     
+    NSPoint  p = [sender draggingLocation];
+    NSPoint pt = [self convertPoint:p fromView:nil];
+  
+   // NSLog(@"DROP ENTER >> LOCATION: (%f, %f)", pt.x, pt.y);
+  
+    NSURL *fileURL = [NSURL URLFromPasteboard: [sender draggingPasteboard]];
+  
+    uint32_t dragType = (fileURL) ? 2 : 1;  // 2 == URL, 1 == TEXT
+  
+    pxWindowNative::_helper_onDragEnter(mWindow, pt.x, pt.y, dragType); // drop point
+  
+    /* --------------------------------------------------------*/
+  
+    NSDragOperation sourceDragMask = [sender draggingSourceOperationMask];
+    NSPasteboard           *pboard = [sender draggingPasteboard];
+  
     if ( pboard )
     {
-      if( [[pboard types] containsObject:NSPasteboardTypeString] )
-      {
-        NSLog(@" Got STRING ");
-        
-        if (sourceDragMask & NSDragOperationLink)
-        {
-            return NSDragOperationLink;
-        }
-        else if (sourceDragMask & NSDragOperationCopy)
-        {
-            return NSDragOperationCopy;
-        }
-      }
-      else
-      if( [[pboard types] containsObject:NSFilenamesPboardType] )
+      if( [[pboard types] containsObject:NSPasteboardTypeString] ||  // STRING
+          [[pboard types] containsObject:NSFilenamesPboardType] )    // FILENAME
       {
           if (sourceDragMask & NSDragOperationLink)
           {
@@ -827,6 +843,17 @@ void MyDisplayReconfigurationCallBack(CGDirectDisplayID display,
     /*------------------------------------------------------
      method called whenever a drag exits our drop zone
      --------------------------------------------------------*/
+  
+    NSPoint  p = [sender draggingLocation];
+    NSPoint pt = [self convertPoint:p fromView:nil];
+  
+    // NSLog(@"DROP LEAVE >> LOCATION: (%f, %f)", pt.x, pt.y);
+  
+    NSURL *fileURL = [NSURL URLFromPasteboard: [sender draggingPasteboard]];
+  
+    //uint32_t dragType = (fileURL) ? 2 : 1;  // 2 == URL, 1 == TEXT
+  
+    pxWindowNative::_helper_onDragLeave(mWindow, pt.x, pt.y, 0); // drop point
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -857,38 +884,34 @@ void MyDisplayReconfigurationCallBack(CGDirectDisplayID display,
         return NO;
       }
 
+      NSPoint  p = [sender draggingLocation];
+      NSPoint pt = [self convertPoint:p fromView:nil];
+      
+    //  NSLog(@"DROP LOCATION: (%f, %f)", pt.x, pt.y);
+
       NSURL *fileURL = [NSURL URLFromPasteboard: [sender draggingPasteboard]];
 
+      NSString *dropped = NULL;
+      
+      uint32_t dragType = (fileURL) ? 2 : 1;  // 2 == URL, 1 == TEXT
+      
       if(fileURL)
       {
-        // Handle Drag'n'Dropped >> FILE
+        // Handle Drag'n'Drop >> URL
         //
-        NSString  *filePath = [fileURL path];
-        NSString  *dropURL  = [NSString stringWithFormat:@"file://%@", filePath ];
-
-        if(dropURL)
-        {
-            clip->setString("TEXT", [dropURL UTF8String]);
-
-            pxWindowNative::_helper_onKeyDown(mWindow, 65, 16);  // Fake a CTRL-A ... select ALL to replace current URL
-        }
+        dropped = [fileURL path];
       }
       else
       {
-        // Handle Drag'n'Dropped >> TEXT
+        // Handle Drag'n'Drop >> TEXT
         //
-        NSString *text = [[sender draggingPasteboard] stringForType:NSPasteboardTypeString];
-
-        if(text)
-        {
-            clip->setString("TEXT", [text UTF8String]);
-        }
+        dropped = [[sender draggingPasteboard] stringForType:NSPasteboardTypeString];
       }
 
-      pxWindowNative::_helper_onKeyDown(mWindow, 86, 16);  // Fake a CTRL-V
+      pxWindowNative::_helper_onDragDrop(mWindow,  pt.x, pt.y, dragType, [dropped UTF8String]); // drop point
 
       // Steal App Focus - become active App...
-      [[NSRunningApplication currentApplication] activateWithOptions:(NSApplicationActivateAllWindows | NSApplicationActivateIgnoringOtherApps)];
+  //    [[NSRunningApplication currentApplication] activateWithOptions:(NSApplicationActivateAllWindows | NSApplicationActivateIgnoringOtherApps)];
 
       return YES;
     }
