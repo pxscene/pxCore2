@@ -837,8 +837,8 @@ public:
         {
           rtLogError("not enough texture memory remaining to create texture");
           mInitialized = false;
-          //freeOffscreenDataInBackground();
-          mOffscreen.term();
+          freeOffscreenDataInBackground();
+          //mOffscreen.term();
           return PX_FAIL;
         }
         else if (!mInitialized)
@@ -879,8 +879,7 @@ public:
       }
       mTextureUploaded = true;
       //free up unneeded offscreen memory
-      mOffscreen.term();
-      //freeOffscreenDataInBackground();
+      freeOffscreenDataInBackground();
     }
     else
     {
@@ -918,8 +917,7 @@ public:
         {
           rtLogError("not enough texture memory remaining to create texture");
           mInitialized = false;
-          mOffscreen.term();
-          //freeOffscreenDataInBackground();
+          freeOffscreenDataInBackground();
           return PX_FAIL;
         }
         else if (!mInitialized)
@@ -941,8 +939,7 @@ public:
       context.adjustCurrentTextureMemorySize(mOffscreen.width()*mOffscreen.height()*4);
 
       //free up unneeded offscreen memory
-      mOffscreen.term();
-      //freeOffscreenDataInBackground();
+      freeOffscreenDataInBackground();
     }
     else
     {
