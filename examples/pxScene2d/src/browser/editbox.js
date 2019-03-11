@@ -161,6 +161,7 @@ px.import({ scene: 'px:scene.1.js',
         this.clearSelection = clearSelection;
         this.hideCursor     = hideCursor;
         this.showCursor     = showCursor;
+        this.insertText     = insertText;
 
         this.doLater        = doLater;
         this.cancelLater    = cancelLater;
@@ -641,11 +642,22 @@ px.import({ scene: 'px:scene.1.js',
                 case keys.V:   // << CTRL + V
                     if (self._enablePaste && (keys.is_CTRL(e.flags) || keys.is_CMD(e.flags)) )  // ctrl Pressed also
                     {
+                        //removeSelection();  // Delete selection (if any)
+
                         // On PASTE ... access the Native CLIPBOARD and GET the top!   fancy.js
                         //
                         var fromClip = scene.clipboardGet('PX_CLIP_STRING'); // TODO ... pass TYPE of clip to get.
 
                         insertText(fromClip);
+
+                        // textInput.text = textInput.text.slice(0, cursor_pos) + fromClip + textInput.text.slice(cursor_pos);
+
+                        // prompt.a = (textInput.text.length > 0) ? 0 : 1;
+                        // cursor.x = textInput.x + textInput.w;
+
+                        // cursor_pos += fromClip.length;
+
+                        // clearSelection();
                     }
                     break;
                 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -868,6 +880,7 @@ px.import({ scene: 'px:scene.1.js',
 
             updateCursor(cursor_pos);
             clearSelection();
+            showCursor();
 
             prompt.a = (textInput.text.length > 0) ? 0 : 1; // show/hide placeholder
         }
