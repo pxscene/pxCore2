@@ -88,7 +88,7 @@ function loadFile(fileUri, appSceneContext) {
       }
 
       if( fileUri.substring(0,5).toLowerCase() === 'file:' ) {
-        fileUri = fileUri.substring(5).toLowerCase();
+        fileUri = fileUri.substring(5);
         if( fileUri.substring(0,2) === '//') {
           fileUri = fileUri.substring(1);
         }
