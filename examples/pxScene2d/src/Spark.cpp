@@ -312,7 +312,6 @@ protected:
           script.pump();
       #endif
       script.collectGarbage();
-      rtFileDownloader::cancelAllDownloadRequestsThreadSafe();
       rtLogInfo("pxobjectcount is [%d]",pxObjectCount);
 #ifndef PX_PLATFORM_DFB_NON_X11
       rtLogInfo("texture memory usage is [%" PRId64 "]",context.currentTextureMemoryUsageInBytes());
@@ -439,7 +438,6 @@ sceneWindow win;
 void handleTerm(int)
 {
   rtLogInfo("Signal TERM received. closing the window");
-  fflush(stdout);
   win.close();
 #ifndef PX_PLATFORM_MAC
 #ifdef WIN32
@@ -457,7 +455,6 @@ void handleSegv(int)
   FILE* fp = fopen("/tmp/pxscenecrash","w");
   fclose(fp);
   rtLogInfo("Signal SEGV received. sleeping to collect data");
-  fflush(stdout);
 #ifndef WIN32
   sleep(1800);
 #endif //WIN32
@@ -468,7 +465,6 @@ void handleAbrt(int)
   FILE* fp = fopen("/tmp/pxscenecrash","w");
   fclose(fp);
   rtLogInfo("Signal ABRT received. sleeping to collect data");
-  fflush(stdout);
 #ifndef WIN32
   sleep(1800);
 #endif //WIN32
