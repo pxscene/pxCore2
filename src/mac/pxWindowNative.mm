@@ -899,7 +899,7 @@ void MyDisplayReconfigurationCallBack(CGDirectDisplayID display,
       {
         // Handle Drag'n'Drop >> URL
         //
-        dropped = [fileURL path];
+        dropped = [fileURL absoluteString];
       }
       else
       {

@@ -465,6 +465,14 @@ px.import({ scene:    'px:scene.1.js',
       highlightBG.animateTo({ a: 0 }, 0.25, LINEAR, FASTFORWARD, 1);
     });
 
+    content.on("onDragMove", function (e)
+    {
+      if(highlightBG.a <=0)
+      {
+        highlightBG.animateTo({ a: 1 }, 0.25, LINEAR, FASTFORWARD, 1); /// Hmmm 
+      }
+    });
+
     // Load URL dropped in 'content' area
     content.on("onDragDrop", function (e)
     {
