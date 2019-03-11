@@ -124,6 +124,8 @@ int pxCreateEglContext(int id)
 
   EGLint attribList[] =
   {
+      EGL_WIDTH, 2,
+      EGL_HEIGHT, 2,
       EGL_LARGEST_PBUFFER, EGL_TRUE,
       EGL_NONE
   };
