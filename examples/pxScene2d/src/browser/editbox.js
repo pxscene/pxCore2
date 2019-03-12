@@ -232,16 +232,16 @@ px.import({ scene: 'px:scene.1.js',
 
         var assets = [fontRes, inputRes, inputBg, clipRect, prompt, textInput, textView, cursor, selection];
 
-        container.on("onDragEnter", function (e)
-        {
-          console.log("EDIT >> onDragEnter")
-        });
+        // container.on("onDragEnter", function (e)
+        // {
+        //   console.log("EDIT >> onDragEnter")
+        // });
 
         container.on("onDragDrop", function (e)
         {
-          console.log("EDIT >> onDragDrop")
-          //if(e.type == scene.dragType.TEXT)
-          {
+//           console.log("EDIT >> onDragDrop")
+           //if(e.type == scene.dragType.TEXT)
+           {
             insertText(e.dropped);
             e.stopPropagation();
           }
@@ -898,13 +898,14 @@ px.import({ scene: 'px:scene.1.js',
 
             removeSelection();  // Delete selection (if any)
 
-            // if(textInput.focus == false)
-            // {
-            //   console.log("set focus !!( "+ txt +") ...");
-            //   textInput.focus = true;
-            // }
+            if(textInput.focus == false)
+            {
+              // If BLUR - then replace URL with this new one
+              selectAll();
+              removeSelection();
+            }
 
-            console.log("insertText( "+ txt +") ...  cursor.draw = " + cursor.draw  + " cursor_pos: " + cursor_pos + " textInput.text.length = " +textInput.text.length);
+            // console.log("insertText( "+ txt +") ...  cursor.draw = " + cursor.draw  + " cursor_pos: " + cursor_pos + " textInput.text.length = " +textInput.text.length);
 
             if(textInput.text.length > 0 && cursor.draw == false)
             {
