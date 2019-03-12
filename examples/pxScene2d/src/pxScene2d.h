@@ -1496,6 +1496,7 @@ public:
   rtError create(rtObjectRef p, rtObjectRef& o);
 
   rtError createObject(rtObjectRef p, rtObjectRef& o);
+  rtError createBrowser(rtObjectRef p, rtObjectRef& o);
   rtError createRectangle(rtObjectRef p, rtObjectRef& o);
   rtError createText(rtObjectRef p, rtObjectRef& o);
   rtError createTextBox(rtObjectRef p, rtObjectRef& o);

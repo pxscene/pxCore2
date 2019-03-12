@@ -1,6 +1,11 @@
 #include "qmacwidget.h"
 #include "rtLog.h"
+#include "pxKeycodes.h"
+#include "pxWindowUtil.h"
 #include <Cocoa/Cocoa.h>
+#include <QKeyEvent>
+#include <QApplication>
+
 
 QMacWidget::QMacWidget(void* window) : QMacNativeWidget(nullptr)
 {
@@ -32,6 +37,68 @@ bool QMacWidget::eventFilter(QObject* pObject, QEvent* pEvent)
     for (QObject* object: mWebViewList)
     {
       object->eventFilter(object, pEvent);
+    }
+  }
+  
+  if(pEvent->type() ==  QEvent::Type::MouseButtonPress
+     || pEvent->type() ==  QEvent::Type::MouseButtonRelease
+     || pEvent->type() ==  QEvent::Type::MouseMove
+     ){
+    const QMouseEvent* const me = static_cast<const QMouseEvent*>( pEvent );
+    if(!mView){
+      return false;
+    }
+    uint32_t flags = 0;
+    QPoint p = me->pos();
+    
+    if(me->button() == Qt::MouseButton::LeftButton){
+      flags = PX_LEFTBUTTON;
+    }
+    if(me->button() == Qt::MouseButton::RightButton){
+      flags = PX_RIGHTBUTTON;
+    }
+    if(me->button() == Qt::MouseButton::MidButton){
+      flags = PX_MIDDLEBUTTON;
+    }
+    
+    if(Qt::MetaModifier == QApplication::keyboardModifiers()) flags |= PX_MOD_CONTROL;
+    if(Qt::ShiftModifier == QApplication::keyboardModifiers()) flags |= PX_MOD_SHIFT;
+    if(Qt::AltModifier == QApplication::keyboardModifiers()) flags |= PX_MOD_ALT;
+    if(Qt::ControlModifier == QApplication::keyboardModifiers()) flags |= PX_MOD_COMMAND;
+    
+    if(pEvent->type() ==  QEvent::Type::MouseButtonPress){
+      mView->onMouseDown(p.x(), p.y(), flags);
+    }else if (pEvent->type() ==  QEvent::Type::MouseButtonRelease){
+      mView->onMouseUp(p.x(), p.y(), flags);
+    }else{
+      mView->onMouseMove(p.x(), p.y());
+    }
+    return false;
+  }
+  
+  
+  if(pEvent->type() ==  QEvent::Type::KeyPress
+     || pEvent->type() == QEvent::Type::KeyRelease
+     ){
+    const QKeyEvent* const ke = static_cast<const QKeyEvent*>( pEvent );
+    if(!mView){
+      return false;
+    }
+    uint32_t flags = 0;
+    
+    if(Qt::MetaModifier == QApplication::keyboardModifiers()) flags |= PX_MOD_CONTROL;
+    if(Qt::ShiftModifier == QApplication::keyboardModifiers()) flags |= PX_MOD_SHIFT;
+    if(Qt::AltModifier == QApplication::keyboardModifiers()) flags |= PX_MOD_ALT;
+    if(Qt::ControlModifier == QApplication::keyboardModifiers()) flags |= PX_MOD_COMMAND;
+    
+    if(ke->isAutoRepeat())
+      flags |= PX_KEYDOWN_REPEAT;
+   
+    rtLogInfo("key = %d", ke->key() );
+    if(pEvent->type() ==  QEvent::Type::KeyPress){
+      mView->onKeyDown(ke->key(), flags);
+    }else{
+      mView->onKeyUp(ke->key(), flags);
     }
   }
   return QObject::eventFilter(pObject, pEvent);

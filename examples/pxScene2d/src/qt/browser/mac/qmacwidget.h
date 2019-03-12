@@ -1,6 +1,7 @@
 #include <QMacNativeWidget>
 #include <list>
 #include <QEvent>
+#include "pxIView.h"
 
 /**
  * QMacWidget use attach qt view to root content NSView
@@ -28,10 +29,19 @@ public:
    */
   void removeWebview(QObject*);
 
+  /**
+   * set view
+   * @param v the view
+   */
+  void setView(pxIView* v) {
+    mView = v;
+  }
+
 protected:
   bool eventFilter(QObject* pObject, QEvent* pEvent) override;
   std::list<QObject*> mWebViewList;
 
 protected:
   void* mWindow;
+  pxIView* mView;
 };

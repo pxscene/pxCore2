@@ -1,4 +1,4 @@
-﻿/*
+/*
 
  pxCore Copyright 2005-2018 John Robinson
 
@@ -106,6 +106,9 @@ extern bool gApplicationIsClosing;
 extern int pxObjectCount;
 
 #include "pxFont.h"
+#include "QAdapter.h"
+
+QAdapter qAdapter;
 
 #ifdef PXSCENE_FONT_ATLAS
 extern pxFontAtlas gFontAtlas;
@@ -149,7 +152,6 @@ public:
   void init(int x, int y, int w, int h, const char* url = NULL)
   {
     pxWindow::init(x,y,w,h);
-
     setUrl(url);
   }
 
@@ -167,6 +169,7 @@ public:
       ENTERSCENELOCK()
       v->setViewContainer(this);
       v->onSize(mWidth, mHeight);
+      qAdapter.setView(v);
       EXITSCENELOCK()
     }
 
@@ -229,6 +232,11 @@ public:
   {
     onCloseRequest();
   }
+
+  void initQT()
+  {
+    qAdapter.init(mWindow, mWidth, mHeight);
+  }
 protected:
 
   virtual void onSize(int32_t w, int32_t h)
@@ -238,8 +246,10 @@ protected:
       mWidth  = w;
       mHeight = h;
       ENTERSCENELOCK()
-      if (mView)
+      if (mView){
+        qAdapter.resize(w, h);
         mView->onSize(w, h);
+      }
       EXITSCENELOCK()
     }
   }
@@ -416,8 +426,10 @@ protected:
   virtual void onAnimationTimer()
   {
     ENTERSCENELOCK()
-    if (mView && !mClosed)
+    if (mView && !mClosed){
       mView->onUpdate(pxSeconds());
+      qAdapter.update();
+    }
     EXITSCENELOCK()
 #ifdef ENABLE_OPTIMUS_SUPPORT
     OptimusClient::pumpRemoteObjectQueue();
@@ -802,6 +814,12 @@ if (s && (strcmp(s,"1") == 0))
 // Likely will move this to pxWindow...  as an option... a "context" type
 // would like to decouple it from pxScene2d specifically
   context.init();
+
+  int QT_GL_CONTEXT_INDEX = 101;
+  rtLogSetLevel(rtLogLevel::RT_LOG_INFO);
+  context.enableInternalContext(true, QT_GL_CONTEXT_INDEX);
+  win.initQT();
+  context.enableInternalContext(false, QT_GL_CONTEXT_INDEX);
 
 #ifdef WIN32
 

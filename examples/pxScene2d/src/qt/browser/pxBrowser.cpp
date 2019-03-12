@@ -1,14 +1,11 @@
-#include <string>
-#include <map>
-#include "rtLog.h"
+#include "pxBrowser.h"
 
-#include <QApplication>
+
 #include <QImage>
 #include <QPainter>
 #include <QRgb>
-
-#include "pxBrowserView.h"
 #include "pxContext.h"
+
 
 #ifdef WIN32
 #include "qt/browser/win32/qtwinmigrate/qwinwidget.h"
@@ -16,8 +13,9 @@
 #include "qt/browser/mac/qmacwidget.h"
 #endif
 
-int argc = 0;
-static QApplication *globalQTApp = new QApplication(argc, 0);
+#include "QAdapter.h"
+
+extern QAdapter qAdapter;
 extern pxContext context;
 
 //pxBrowserConsoleLog properties
@@ -42,23 +40,23 @@ rtDefineProperty(pxBrowserProxy, type);
 rtDefineProperty(pxBrowserProxy, hostname);
 rtDefineProperty(pxBrowserProxy, port);
 
-//pxBrowserView properties
-rtDefineObject(pxBrowserView, rtObject);
-rtDefineProperty(pxBrowserView, url);
-rtDefineProperty(pxBrowserView, cookieJar);
-rtDefineProperty(pxBrowserView, proxy);
-rtDefineProperty(pxBrowserView, userAgent);
-rtDefineProperty(pxBrowserView, transparentBackground);
-rtDefineProperty(pxBrowserView, visible);
-rtDefineProperty(pxBrowserView, localStorageEnabled);
-rtDefineProperty(pxBrowserView, consoleLogEnabled);
-rtDefineProperty(pxBrowserView, headers);
-// pxBrowserView function
-rtDefineMethod(pxBrowserView, addListener);
+//pxBrowser properties
+rtDefineObject(pxBrowser, pxObject);
+rtDefineProperty(pxBrowser, url);
+rtDefineProperty(pxBrowser, cookieJar);
+rtDefineProperty(pxBrowser, proxy);
+rtDefineProperty(pxBrowser, userAgent);
+rtDefineProperty(pxBrowser, transparentBackground);
+rtDefineProperty(pxBrowser, visible);
+rtDefineProperty(pxBrowser, localStorageEnabled);
+rtDefineProperty(pxBrowser, consoleLogEnabled);
+rtDefineProperty(pxBrowser, headers);
+// pxBrowser function
 
-pxBrowserView::pxBrowserView(void* root, int w, int h) :
-    mWidth(0), mHeight(0), mEmit(new rtEmit()), mNetworkManager(nullptr),
-    webUrlRequestInterceptor(nullptr), mProxy(nullptr), mDirty(false), mRenderQImage(nullptr)
+
+
+pxBrowser::pxBrowser(pxScene2d* scene) : pxObject(scene), mNetworkManager(nullptr),
+    webUrlRequestInterceptor(nullptr), mProxy(nullptr), mRenderQImage(nullptr)
     , mOffscreen(nullptr), mTextureRef(nullptr)
 {
 
@@ -66,29 +64,41 @@ pxBrowserView::pxBrowserView(void* root, int w, int h) :
   HWND* hwnd = (HWND*)root;
   this->mRootWidget = new QWinWidget(*hwnd);
 #elif __APPLE__
-  QMacWidget* r = new QMacWidget(root);
-  r->init();
-  this->mRootWidget = (void*)r;
+  this->mRootWidget = qAdapter.getRootWidget();
 #endif
 
   mHeaders.clear();
   mUrl.empty();
   mUserAgent.empty();
 
-  this->mWidth = w;
-  this->mHeight = h;
-  mNetworkManager = new QNetworkAccessManager();
-  webUrlRequestInterceptor = new pxWebUrlRequestInterceptor();
-  mRenderQImage = new QImage(mWidth, mHeight, QImage::Format_ARGB32);
-  mOffscreen = new pxOffscreen();
-  mOffscreen->init(mWidth,mHeight);
-  mRenderQImage->fill(qRgba(255, 0, 0, 0));
-  mTextureRef = context.createTexture(*mOffscreen);
+  rtLogInfo("new pxBrowser created ..");
+  initQT();
+  rtLogInfo("initQT qt done");
+  
+  mEmit->addListener("onMouseDown", new rtFunctionCallback(pxBrowser::onMouseDown,this));
+  mEmit->addListener("onMouseMove", new rtFunctionCallback(pxBrowser::onMouseMove,this));
+  mEmit->addListener("onMouseUp", new rtFunctionCallback(pxBrowser::onMouseUp,this));
 }
 
-
-void pxBrowserView::initQT()
+void pxBrowser::updateSize()
 {
+  this->mWebView->setGeometry(0, 0, mw, mh);
+//  this->mWebView->setEnabled(false);
+  if (mRenderQImage) delete mRenderQImage;
+  mRenderQImage = new QImage((int)mw, (int)mh, QImage::Format_ARGB32);
+  if (mOffscreen) delete mOffscreen;
+  mOffscreen = new pxOffscreen();
+  mOffscreen->init((int)mw, (int)mh);
+  mRenderQImage->fill(qRgba(255, 0, 0, 0));
+  rtLogInfo("resize RenderQImage and Offscreen w = %f, h = %f", mw, mh);
+}
+
+void pxBrowser::initQT()
+{
+
+  mNetworkManager = new QNetworkAccessManager();
+  webUrlRequestInterceptor = new pxWebUrlRequestInterceptor();
+
 
 #ifdef WIN32
   QWinWidget* win = (QWinWidget*) mRootWidget;
@@ -96,9 +106,6 @@ void pxBrowserView::initQT()
 #elif __APPLE__
   QMacWidget* win = (QMacWidget*) mRootWidget;
 #endif
-
-  rtLogInfo("pxBrowserView init w= %d, h=%d", mWidth, mHeight);
-  win->setGeometry(0, 0, mWidth, mHeight);
 
   // create new QWebEngineView and attach to window
   this->mWebView = new pxQTWebView(win);
@@ -108,7 +115,7 @@ void pxBrowserView::initQT()
   this->mWebView->page()->profile()->setRequestInterceptor(webUrlRequestInterceptor);
   this->mWebView->show();
 
-  this->mWebView->setGeometry(0, 0, mWidth, mHeight);
+  this->mWebView->setGeometry(0, 0, mw, mh);
 
   win->move(0, 0);
   win->show();
@@ -170,16 +177,14 @@ void pxBrowserView::initQT()
   // binding CookieJarChangedFunc
   wPage->setCookieJarChangedFunc([&](QNetworkCookie const& cookie)
                                  {
-                                   rtMapObject* cook = new rtMapObject();
-                                   rtObjectRef
-                                   ref = pxBrowserView::convertCookieToMap(cookie);
+                                   rtObjectRef ref = pxBrowser::convertCookieToMap(cookie);
                                    this->mEmit.send("CookieJarChanged", ref);
                                  });
 
   setVisible(true);
 }
 
-rtMapObject* pxBrowserView::convertCookieToMap(QNetworkCookie const& cookie)
+rtMapObject* pxBrowser::convertCookieToMap(QNetworkCookie const& cookie)
 {
   rtMapObject* cook = new rtMapObject();
 
@@ -195,102 +200,50 @@ rtMapObject* pxBrowserView::convertCookieToMap(QNetworkCookie const& cookie)
   return cook;
 }
 
-void pxBrowserView::onSize(int32_t w, int32_t h)
+void pxBrowser::update(double /*t*/)
 {
-  mWidth = w;
-  mHeight = h;
-}
-
-// events return true if the event was consumed by the view
-bool pxBrowserView::onMouseDown(int32_t x, int32_t y, uint32_t flags)
-{ return true; }
-
-bool pxBrowserView::onMouseUp(int32_t x, int32_t y, uint32_t flags)
-{ return true; }
-
-bool pxBrowserView::onMouseMove(int32_t x, int32_t y)
-{ return true; }
-
-bool pxBrowserView::onScrollWheel(float dx, float dy)
-{ return false; };
-
-bool pxBrowserView::onMouseEnter()
-{ return true; }
-
-bool pxBrowserView::onMouseLeave()
-{ return true; }
-
-bool pxBrowserView::onFocus()
-{ return true; }
-
-bool pxBrowserView::onBlur()
-{ return true; }
-
-bool pxBrowserView::onKeyDown(uint32_t keycode, uint32_t flags)
-{
-  return true;
-}
-
-bool pxBrowserView::onKeyUp(uint32_t keycode, uint32_t flags)
-{ return true; }
-
-bool pxBrowserView::onChar(uint32_t codepoint)
-{ return true; }
-
-void pxBrowserView::onUpdate(double t)
-{
-  if (globalQTApp)
-  {
-    globalQTApp->sendPostedEvents();
-  }
-
-  if (this->mWebView)
+  if (this->mWebView && mw > 0 && mh > 0)
   {
     QPainter painter;
     painter.begin(mRenderQImage);
-    mWebView->page()->view()->render(&painter, QPoint(), QRegion(0, 0, mWidth, mHeight));
+    mWebView->page()->view()->render(&painter, QPoint(), QRegion(0, 0, mw, mh));
     painter.end();
-    mDirty = true;
+    mScene->mDirty = true;
+    markDirty();
   }
 }
-
-void pxBrowserView::onDraw()
+void pxBrowser::draw()
 {
+
   // here is test background color
   float bgColor[4] = {0.7, 0.7, 0.7, 1.0};
-  context.drawRect(mWidth, mHeight, 0, bgColor, bgColor);
+  context.drawRect(mw, mh, 0, bgColor, bgColor);
 
   // render mRenderQImage in spark gl
   // TODO need looking for a more efficient way to convert QImage bits to offscreen
-  if(mDirty){
-    const unsigned char* bits = mRenderQImage->bits();
-    mOffscreen->fill(qRgba(0, 0, 0, 0));
 
-    for (int y = 0; y < mOffscreen->height(); y++)
+  const unsigned char* bits = mRenderQImage->bits();
+  mOffscreen->fill(qRgba(0, 0, 0, 0));
+
+  for (int y = 0; y < mOffscreen->height(); y++)
+  {
+    pxPixel* d = mOffscreen->scanline(y);
+    for (int x = 0; x < mOffscreen->width(); x++)
     {
-      pxPixel* d = mOffscreen->scanline(y);
-      for (int x = 0; x < mOffscreen->width(); x++)
-      {
-        int index = y * mOffscreen->width() + x;
-        *d = qRgba(bits[index * 4], bits[index * 4 + 1], bits[index * 4 + 2], bits[index * 4 + 3]);
-        d++;
-      }
+      int index = y * mOffscreen->width() + x;
+      *d = qRgba(bits[index * 4], bits[index * 4 + 1], bits[index * 4 + 2], bits[index * 4 + 3]);
+      d++;
     }
-
-    // TODO maybe need update texture, there is always has create and delete texture on draw method, this may cause lower fps.
-    mTextureRef = context.createTexture(*mOffscreen);
-    context.drawImage(0, 0, mWidth, mHeight, mTextureRef, nullptr);
-    mDirty = false;
   }
+
+  // TODO maybe need update texture, there is always has create and delete texture on draw method, this may cause lower fps.
+  mTextureRef = context.createTexture(*mOffscreen);
+  context.drawImage(0, 0, mw, mh, mTextureRef, nullptr);
 }
 
-void pxBrowserView::onCloseRequest()
+rtError pxBrowser::updateUrl(rtString const& newUrl)
 {
-
-};
-
-rtError pxBrowserView::updateUrl(rtString const& newUrl)
-{
+  rtLogInfo("updateUrl url = %s", newUrl.cString());
   this->mWebView->stop();
 
   this->mUrl = std::string(newUrl.cString());
@@ -303,7 +256,7 @@ rtError pxBrowserView::updateUrl(rtString const& newUrl)
   return RT_OK;
 }
 
-rtError pxBrowserView::setVisible(bool const& visible)
+rtError pxBrowser::setVisible(bool const& visible)
 {
 #ifdef WIN32
   QWinWidget* win = (QWinWidget*) mRootWidget;
@@ -315,7 +268,7 @@ rtError pxBrowserView::setVisible(bool const& visible)
   return RT_OK;
 }
 
-bool pxBrowserView::isVisible() const
+bool pxBrowser::isVisible() const
 {
 #ifdef WIN32
   QWinWidget* win = (QWinWidget*) mRootWidget;
@@ -326,55 +279,55 @@ bool pxBrowserView::isVisible() const
   return win->isVisible();
 }
 
-rtError pxBrowserView::setTransparent(bool const& transparent)
+rtError pxBrowser::setTransparent(bool const& transparent)
 {
   this->mWebView->page()->setBackgroundColor(transparent ? Qt::transparent : Qt::white);
   return RT_OK;
 }
 
-rtError pxBrowserView::getTransparentBackground(bool& v) const
+rtError pxBrowser::getTransparentBackground(bool& v) const
 {
   v = this->mWebView->page()->backgroundColor() == Qt::transparent;
   return RT_OK;
 }
 
-rtError pxBrowserView::setUserAgent(rtString const& userAgent)
+rtError pxBrowser::setUserAgent(rtString const& userAgent)
 {
   this->mUserAgent = std::string(userAgent.cString());
   mWebView->page()->profile()->setHttpUserAgent(QString(userAgent.cString()));
   return RT_OK;
 }
 
-rtError pxBrowserView::setLocalStorageEnabled(bool const& enabled)
+rtError pxBrowser::setLocalStorageEnabled(bool const& enabled)
 {
   mWebView->settings()->setAttribute(QWebEngineSettings::LocalStorageEnabled, enabled);
   return RT_OK;
 }
 
-bool pxBrowserView::isLocalStorageEnabled() const
+bool pxBrowser::isLocalStorageEnabled() const
 {
   return mWebView->settings()->testAttribute(QWebEngineSettings::LocalStorageEnabled);
 }
 
-rtError pxBrowserView::setConsoleLogEnabled(bool const& enabled)
+rtError pxBrowser::setConsoleLogEnabled(bool const& enabled)
 {
   pxQTWebPage* page = (pxQTWebPage*) mWebView->page();
   page->setConsoleLogEnabled(enabled);
   return RT_OK;
 }
 
-bool pxBrowserView::isConsoleLogEnabled() const
+bool pxBrowser::isConsoleLogEnabled() const
 {
   pxQTWebPage* page = (pxQTWebPage*) mWebView->page();
   return page->isConsoleLogEnabled();
 }
 
-void pxBrowserView::setHeaders(std::map<std::string, std::string> const& headers)
+void pxBrowser::setHeaders(std::map<std::string, std::string> const& headers)
 {
   mHeaders = headers;
 }
 
-rtError pxBrowserView::getHeaders(rtObjectRef& v) const
+rtError pxBrowser::getHeaders(rtObjectRef& v) const
 {
 
   rtMapObject* headers = new rtMapObject();
@@ -388,23 +341,21 @@ rtError pxBrowserView::getHeaders(rtObjectRef& v) const
   return RT_OK;
 }
 
-rtError pxBrowserView::setHeaders(rtObjectRef const& headers)
+rtError pxBrowser::setHeaders(rtObjectRef const& headers)
 {
+
   std::map<std::string, std::string> mapHeaders;
 
   rtValue allKeys;
   headers->Get("allKeys", &allKeys);
   rtArrayObject* arr = (rtArrayObject*) allKeys.toObject().getPtr();
-
   for (uint32_t i = 0, l = arr->length(); i < l; ++i)
   {
     rtValue key;
     if (arr->Get(i, &key) == RT_OK && !key.isEmpty())
     {
-      rtString
-      s = key.toString();
-      rtString
-      val = headers.get<rtString>(s);
+      rtString s = key.toString();
+      rtString val = headers.get<rtString>(s);
       mapHeaders[std::string(s.cString())] = std::string(val.cString());
     }
   }
@@ -412,12 +363,12 @@ rtError pxBrowserView::setHeaders(rtObjectRef const& headers)
   return RT_OK;
 }
 
-std::map<std::string, std::string> const& pxBrowserView::getHeaders()
+std::map<std::string, std::string> const& pxBrowser::getHeaders()
 {
   return mHeaders;
 }
 
-void pxBrowserView::dumpProperties()
+void pxBrowser::dumpProperties()
 {
   bool transparent;
   this->getTransparentBackground(transparent);
@@ -476,7 +427,7 @@ void pxBrowserView::dumpProperties()
   }
 }
 
-rtError pxBrowserView::getCookieJar(rtObjectRef& v) const
+rtError pxBrowser::getCookieJar(rtObjectRef& v) const
 {
   pxQTWebPage* page = (pxQTWebPage*) mWebView->page();
   QList<QNetworkCookie> cookies = page->getCookies();
@@ -491,7 +442,7 @@ rtError pxBrowserView::getCookieJar(rtObjectRef& v) const
     QNetworkCookie cookie = cookies.at(i);
     if (cookie.domain() == domain)
     {
-      rtValue c(pxBrowserView::convertCookieToMap(cookie));
+      rtValue c(pxBrowser::convertCookieToMap(cookie));
       cookArr->Set(index++, &c);
     }
 
@@ -500,17 +451,20 @@ rtError pxBrowserView::getCookieJar(rtObjectRef& v) const
   return RT_OK;
 }
 
-rtError pxBrowserView::setCookieJar(rtObjectRef const& v)
+rtError pxBrowser::setCookieJar(rtObjectRef const& v)
 {
-
+  rtValue rtLength;
+  int32_t length;
+  v->Get("length", &rtLength);
+  rtLength.getInt32(length);
+ 
   pxQTWebPage* page = (pxQTWebPage*) mWebView->page();
-  rtArrayObject* arr = static_cast<rtArrayObject*>(v.getPtr());
   QWebEngineCookieStore* store = page->profile()->cookieStore();
-
-  for (uint32_t i = 0, l = arr->length(); i < l; ++i)
+  
+  for (uint32_t i = 0, l = length; i < l; ++i)
   {
     rtValue cookObj;
-    arr->Get(i, &cookObj);
+    v->Get(i, &cookObj);
 
     rtValue v;
     QNetworkCookie cook;
@@ -529,7 +483,7 @@ rtError pxBrowserView::setCookieJar(rtObjectRef const& v)
   return RT_OK;
 }
 
-rtError pxBrowserView::setProxy(rtObjectRef const& proxy)
+rtError pxBrowser::setProxy(rtObjectRef const& proxy)
 {
   mProxy = proxy;
 
@@ -550,11 +504,5 @@ rtError pxBrowserView::setProxy(rtObjectRef const& proxy)
 
   QNetworkProxy::setApplicationProxy(qp);
 
-  return RT_OK;
-}
-
-rtError pxBrowserView::addListener(rtString eventName, const rtFunctionRef& f)
-{
-  mEmit->addListener(eventName, f);
   return RT_OK;
 }
