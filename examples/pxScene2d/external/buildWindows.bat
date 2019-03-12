@@ -78,7 +78,7 @@ cd ..
 
 REM --------- LIBNODE
 
-cd libnode-v6.9.0
+cd libnode-v8.15.1
 CALL vcbuild.bat x86 nosign
 cd ..
 

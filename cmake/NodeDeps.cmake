@@ -21,7 +21,7 @@ if (NOT NODE_FOUND)
       if (NOT WIN32)
           set(NODEDIR "${EXTDIR}/node/")
       else (NOT WIN32)
-          set(NODEDIR "${EXTDIR}/libnode-v6.9.0/")
+          set(NODEDIR "${EXTDIR}/libnode-v8.15.1/")
       endif (NOT WIN32)
     endif (USE_NODE_0_12_7)
 
