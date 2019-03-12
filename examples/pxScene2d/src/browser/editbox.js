@@ -215,14 +215,14 @@ px.import({ scene: 'px:scene.1.js',
         var inputRes  = scene.create({ t: "imageResource", url: params.url });
 
         var inputBg = scene.create({
-            t: "image9", resource: inputRes, a: 0.9, x: 0, y: 0, w: this._w, h: this._h,// insets: insets,
+            t: "image9", resource: inputRes, a: 0.9, x: 0, y: 0, w: this._w, h: this._h,
             insetLeft: insets.l, insetRight: insets.r, insetTop: insets.t, insetBottom: insets.b,
-                                             parent: clipRect, stretchX: ss, stretchY: ss, ineractive: false
+                                             parent: clipRect, stretchX: ss, stretchY: ss//, ineractive: false
         });
 
-        var textView  = scene.create({ t: "object", parent: clipRect, x: 0, y: 0, w: this._w, h: this._h});
+        var textView  = scene.create({ t: "rect", parent: clipRect, x: 0, y: 0, w: this._w, h: this._h});
 
-        var textInputBG = scene.create({ t: "rect", w: textView.w, h: textView.h,     parent: textView, fillColor: 0xFFFFFFf0,     x: 0, y: 0, a: show_focus ? 0.25 : 0.0 });
+        var textInputBG = scene.create({ t: "rect", w: textView.w, h: textView.h,     parent: textView, fillColor: 0xFFFFFFf0,      x: 0, y: 0, a: show_focus ? 0.25 : 0.0 });
         var prompt      = scene.create({ t: "text", text: prompt_text, font: fontRes, parent: textView, pixelSize: pts, textColor: prompt_color, x: 2, y: 0 });
         var selection   = scene.create({ t: "rect", w: 0, h: inputBg.h,               parent: textView, fillColor: selection_color, x: 0, y: 0, a: 0 });  // highlight rect
         var textInput   = scene.create({ t: "text", text: "", font: fontRes,          parent: textView, pixelSize: pts, textColor: text_color,   x: 2, y: 0 });
@@ -232,11 +232,18 @@ px.import({ scene: 'px:scene.1.js',
 
         var assets = [fontRes, inputRes, inputBg, clipRect, prompt, textInput, textView, cursor, selection];
 
-        textInput.on("onDragDrop", function (e)
+        container.on("onDragEnter", function (e)
         {
-          if(e.type == scene.dragType.TEXT)
+          console.log("EDIT >> onDragEnter")
+        });
+
+        container.on("onDragDrop", function (e)
+        {
+          console.log("EDIT >> onDragDrop")
+          //if(e.type == scene.dragType.TEXT)
           {
             insertText(e.dropped);
+            e.stopPropagation();
           }
         });
 
@@ -867,9 +874,11 @@ px.import({ scene: 'px:scene.1.js',
         }
 
         function removeSelection() {
-            if(selection_text.length <=0)
+          console.log("removeSelection( ) - selection_text.length: " + selection_text.length);
+          if(selection_text.length <= 0)
             {
-                return; // nothing to do.
+              console.log("removeSelection( ) - do nothing ... ");
+              return; // nothing to do.
             }
 
             textInput.text = textInput.text.replace(selection_text, '');
@@ -889,16 +898,40 @@ px.import({ scene: 'px:scene.1.js',
 
             removeSelection();  // Delete selection (if any)
 
-            textInput.text = textInput.text.slice(0, cursor_pos) + txt + textInput.text.slice(cursor_pos);
+            // if(textInput.focus == false)
+            // {
+            //   console.log("set focus !!( "+ txt +") ...");
+            //   textInput.focus = true;
+            // }
+
+            console.log("insertText( "+ txt +") ...  cursor.draw = " + cursor.draw  + " cursor_pos: " + cursor_pos + " textInput.text.length = " +textInput.text.length);
+
+            if(textInput.text.length > 0 && cursor.draw == false)
+            {
+              console.log(">> insertText( ) ...APPEND !!  ( "+ txt +") ...");
+
+              textInput.text += txt;
+              moveToEnd();
+            }
+            else
+            {
+              textInput.text = textInput.text.slice(0, cursor_pos) + txt + textInput.text.slice(cursor_pos);
+
+              console.log(">> insertText( ) ...INSERT !!  ( "+ txt +") ...");
+            }
 
             prompt.a = (textInput.text.length > 0) ? 0 : 1;
-            cursor.x = textInput.x + textInput.w;
+            // cursor.x = textInput.x + textInput.w;
 
             cursor_pos += txt.length;
+            updateCursor(cursor_pos);
+
             clearSelection();
         }
 
         function makeSelection(start, length) {
+
+          //console.log("ERROR: makeSelection(start, length) >>>  s: " + start + "  e: " + end + " selection_text = [" + selection_text + "]");
 
             var end = start + length;
 
@@ -920,9 +953,9 @@ px.import({ scene: 'px:scene.1.js',
             selection_text = s.slice(start, end); // measure characters up to cursor
             var metrics = fontRes.measureText(pts, selection_text);
 
-//            console.log("makeSelection(start, length) >>>  s: " + start + "  e: " + end + " selection_text = [" + selection_text + "]");
+            // console.log("makeSelection(start, length) >>>  s: " + start + "  e: " + end + " selection_text = [" + selection_text + "]");
 
-            selection.x = selection_x - cursorW2;
+            selection.x = selection_x + cursorW2 + cursorW2 + cursorW2 ;
             selection.w = metrics.w   + cursorW2;
 
             if (length < 0) // selecting towards LEFT
@@ -941,6 +974,7 @@ px.import({ scene: 'px:scene.1.js',
         function hideCursor()
         {
             cursor.a = 0;
+            cursor.draw = false;
         }
 
         function showCursor()
@@ -948,6 +982,7 @@ px.import({ scene: 'px:scene.1.js',
             if(selection_text.length == 0)
             {
                 cursor.a = 1;
+                cursor.draw = true;
             }
             animateCursor();
         }
@@ -965,6 +1000,8 @@ px.import({ scene: 'px:scene.1.js',
             updateCursor(cursor_pos);
             clearSelection();
 
+            showCursor();
+
 //            textInput.text += " "; // HACK - for text redraw
         }
 
@@ -972,6 +1009,11 @@ px.import({ scene: 'px:scene.1.js',
         {
             moveToHome();
             selectToEnd();
+
+            console.log( "SELECT ALL")
+            console.log( "SELECT ALL")
+            console.log( "SELECT ALL")
+            console.log( "SELECT ALL")
         }
 
         function selectToHome() {

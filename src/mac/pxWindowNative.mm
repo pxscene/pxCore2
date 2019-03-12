@@ -897,9 +897,16 @@ void MyDisplayReconfigurationCallBack(CGDirectDisplayID display,
       
       if(fileURL)
       {
-        // Handle Drag'n'Drop >> URL
-        //
-        dropped = [fileURL absoluteString];
+        if( [fileURL isFileURL] )
+        {
+          //NSLog(@"FILE path: %@", [fileURL path]);
+          dropped = [NSString stringWithFormat: @"file://%@", [fileURL path] ];
+        }
+        else
+        {
+          //NSLog(@"URL path: %@", [fileURL absoluteString]);
+          dropped = [fileURL absoluteString];
+        }
       }
       else
       {

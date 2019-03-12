@@ -407,7 +407,12 @@ px.import({ scene:    'px:scene.1.js',
           // console.log("Browser.js reload done");
         }
         break;
-
+      }//SWITCH
+    }
+    else
+    {
+      switch(code)
+      {
         // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
         case keys.PAGEDOWN:
         {
