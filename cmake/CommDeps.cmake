@@ -103,7 +103,7 @@ if (NOT WIN32)
         pkg_search_module(OPENSSL openssl)
     endif (PREFER_SYSTEM_LIBRARIES)
     if (NOT OPENSSL_FOUND)
-        set(OPENSSL_INCLUDE_DIRS "${EXTDIR}/libnode-v6.9.0/deps/openssl/openssl/include")
+        set(OPENSSL_INCLUDE_DIRS "${EXTDIR}/node/deps/openssl/openssl/include")
     endif (NOT OPENSSL_FOUND)
 
     pkg_search_module(UV libuv)
