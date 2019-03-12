@@ -128,7 +128,7 @@
       Build node
       ~~~~
       cd examples/pxScene2d/external/libnode-v8.15.1
-      CALL vcbuild.bat x86 nosign
+      CALL vcbuild.bat x86 nosign static
       cd ..
       ~~~~
       Build breakpad

@@ -79,7 +79,7 @@ cd ..
 REM --------- LIBNODE
 
 cd libnode-v8.15.1
-CALL vcbuild.bat x86 nosign
+CALL vcbuild.bat x86 nosign static
 cd ..
 
 REM --------- DUKLUV
