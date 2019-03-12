@@ -891,6 +891,7 @@ void MyDisplayReconfigurationCallBack(CGDirectDisplayID display,
 
       NSURL *fileURL = [NSURL URLFromPasteboard: [sender draggingPasteboard]];
 
+      NSString *fromUrl = NULL;
       NSString *dropped = NULL;
       
       uint32_t dragType = (fileURL) ? 2 : 1;  // 2 == URL, 1 == TEXT
@@ -900,13 +901,15 @@ void MyDisplayReconfigurationCallBack(CGDirectDisplayID display,
         if( [fileURL isFileURL] )
         {
           //NSLog(@"FILE path: %@", [fileURL path]);
-          dropped = [NSString stringWithFormat: @"file://%@", [fileURL path] ];
+          fromUrl = [NSString stringWithFormat: @"file://%@", [fileURL path] ];
         }
         else
         {
           //NSLog(@"URL path: %@", [fileURL absoluteString]);
-          dropped = [fileURL absoluteString];
+          fromUrl = [fileURL absoluteString];
         }
+
+        dropped = fromUrl;
       }
       else
       {
@@ -917,6 +920,7 @@ void MyDisplayReconfigurationCallBack(CGDirectDisplayID display,
 
       pxWindowNative::_helper_onDragDrop(mWindow,  pt.x, pt.y, dragType, [dropped UTF8String]); // drop point
 
+      [fromUrl release];
       // Steal App Focus - become active App...
   //    [[NSRunningApplication currentApplication] activateWithOptions:(NSApplicationActivateAllWindows | NSApplicationActivateIgnoringOtherApps)];
 
