@@ -876,10 +876,10 @@ void pxResource::processDownloadedResource(rtFileDownloadRequest* fileDownloadRe
         // ToDo: Could context.createTexture ever fail and return null here?
        // mTexture = context.createTexture(imageOffscreen);
         setLoadStatus("statusCode", 0);
+        val = "resolve";
         // Since this object can be released before we get a async completion
         // We need to maintain this object's lifetime
         // TODO review overall flow and organization
-        val = "resolve";
         if (gUIThreadQueue)
         {
           gUIThreadQueue->addTask(pxResource::onDownloadCompleteUI, this, (void*)"resolve");
