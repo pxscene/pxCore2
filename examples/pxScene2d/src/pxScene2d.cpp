@@ -1088,7 +1088,7 @@ void pxScene2d::onUpdate(double t)
   // Dispatch various tasks on the main UI thread
   if (gUIThreadQueue)
   {
-    gUIThreadQueue->process(0.01);
+    gUIThreadQueue->process(0.15);
   }
 
   if (start == 0)
