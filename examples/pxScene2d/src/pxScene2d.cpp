@@ -2628,8 +2628,10 @@ rtError createObject2(const char* t, rtObjectRef& o)
 }
 #endif
 
+int contextId = 1;
+
 pxScriptView::pxScriptView(const char* url, const char* /*lang*/, pxIViewContainer* container)
-     : mWidth(-1), mHeight(-1), mViewContainer(container), mRefCount(0)
+     : mWidth(-1), mHeight(-1), mDrawing(false), mViewContainer(container), mRefCount(0)
 {
   rtLogDebug("pxScriptView::pxScriptView()entering\n");
   mUrl = url;
@@ -2685,36 +2687,141 @@ void pxScriptView::runScript()
     mReady = new rtPromise();
 #endif
 
-    mCtx->runFile("init.js");
+    // JRJR Temporary webgl integration
+    if (mUrl.beginsWith("gl:"))
+    {
+      mContextId = contextId++;
+      mBeginDrawing = new rtFunctionCallback(beginDrawing2, this);
+      mEndDrawing = new rtFunctionCallback(endDrawing2, this);     
 
-    char buffer[MAX_URL_SIZE + 50];
-    memset(buffer, 0, sizeof(buffer));
-    snprintf(buffer, sizeof(buffer), "loadUrl(\"%s\");", mUrl.cString());
-    rtLogDebug("pxScriptView::runScript calling runScript with %s\n",mUrl.cString());
-#ifdef WIN32 // process \\ to /
-		unsigned int bufferLen = strlen(buffer);
-		char * newBuffer = (char*)malloc(sizeof(char)*(bufferLen + 1));
-		unsigned int newBufferLen = 0;
-		for (size_t i = 0; i < bufferLen - 1; i++) {
-			if (buffer[i] == '\\') {
-				newBuffer[newBufferLen++] = '/';
-				if (buffer[i + 1] == '\\') {
-					i = i + 1;
-				}
-			}
-			else {
-				newBuffer[newBufferLen++] = buffer[i];
-			}
-		}
-		newBuffer[newBufferLen++] = '\0';
-		strcpy(buffer, newBuffer);
-		free(newBuffer);
-#endif
-    mCtx->runScript(buffer);
-    rtLogDebug("pxScriptView::runScript() ending\n");
+      // JRJR TODO initially with zero mWidth/mHeight until onSize event
+      // defer to onSize once events have been ironed out
+      context.enableInternalContext(true,mContextId,true);
+      cached = context.createFramebuffer(1280,720,false,false,true);   
+      context.enableInternalContext(false,mContextId,true);
+
+      beginDrawing();
+      mCtx->runScript("var glInit = require('initGL.js'); var loadUrl = glInit.loadUrl; var onClose = glInit.onClose");
+      rtValue foo = mCtx->get("loadUrl");
+      rtFunctionRef f = foo.toFunction();
+      bool b = true;
+      // JRJR WARNING! must use sendReturns since wrappers will invoke asyncronously otherwise.
+      f.sendReturns<bool>(mUrl,mBeginDrawing.getPtr(),mEndDrawing.getPtr(), b);
+      endDrawing();
+
+      mReady.send(b?"resolve":"reject",mScene);
+    }
+    else
+    {
+      mCtx->runFile("init.js");
+
+      char buffer[MAX_URL_SIZE + 50];
+      memset(buffer, 0, sizeof(buffer));
+      snprintf(buffer, sizeof(buffer), "loadUrl(\"%s\");", mUrl.cString());
+      rtLogDebug("pxScriptView::runScript calling runScript with %s\n",mUrl.cString());
+  #ifdef WIN32 // process \\ to /
+      unsigned int bufferLen = strlen(buffer);
+      char * newBuffer = (char*)malloc(sizeof(char)*(bufferLen + 1));
+      unsigned int newBufferLen = 0;
+      for (size_t i = 0; i < bufferLen - 1; i++) {
+        if (buffer[i] == '\\') {
+          newBuffer[newBufferLen++] = '/';
+          if (buffer[i + 1] == '\\') {
+            i = i + 1;
+          }
+        }
+        else {
+          newBuffer[newBufferLen++] = buffer[i];
+        }
+      }
+      newBuffer[newBufferLen++] = '\0';
+      strcpy(buffer, newBuffer);
+      free(newBuffer);
+  #endif
+      mCtx->runScript(buffer);
+      rtLogDebug("pxScriptView::runScript() ending\n");
+    }
 //#endif
   }
   #endif //ENABLE_RT_NODE
+}
+
+pxScriptView::~pxScriptView()
+{
+  rtLogDebug("~pxScriptView for mUrl=%s\n",mUrl.cString());
+  // Clear out these references since the script context
+  // can outlive this view
+#ifdef ENABLE_RT_NODE
+  if(mCtx)
+  {
+    mGetScene->clearContext();
+    mMakeReady->clearContext();
+    mGetContextID->clearContext();
+
+    // TODO Given that the context is being cleared we likely don't need to zero these out
+    mCtx->add("getScene", 0);
+    mCtx->add("makeReady", 0);
+    mCtx->add("getContextID", 0);
+  }
+#endif //ENABLE_RT_NODE
+
+  if (mView)
+    mView->setViewContainer(NULL);
+
+  // TODO JRJR Do we have GC tests yet
+  // Hack to try and reduce leaks until garbage collection can
+  // be cleaned up
+
+  if (mUrl.beginsWith("gl:"))
+  {
+    mCtx->runScript("onClose()");
+  }
+
+  // JRJR TODO Not Releasing GL Context 
+
+  if(mScene)
+    mEmit.send("onSceneRemoved", mScene);
+
+  if (mScene)
+    mScene.send("dispose");
+
+  mView = NULL;
+  mScene = NULL;
+}
+
+void pxScriptView::onSize(int32_t w, int32_t h)
+{
+  mWidth = w;
+  mHeight = h;
+
+  #if 0  // JRJR TODO Leave out until we get the resizing events ironed out for gl content
+  if (mUrl == "triangle")
+  {
+    cached = context.createFramebuffer(mWidth,mHeight);
+  }
+  #endif
+
+  if (mView)
+    mView->onSize(w,h);
+}
+
+void pxScriptView::onDraw(/*pxBuffer& b, pxRect* r*/)
+{
+  static pxTextureRef nullMaskRef;
+  if (mUrl.beginsWith("gl:"))
+  {
+    /* code */
+    if (cached.getPtr() && cached->getTexture().getPtr())
+    {
+      context.drawImage(0, 0, cached->width(), cached->height(), cached->getTexture(), nullMaskRef);
+    }
+  }
+  else
+  {
+    if (mView)
+      mView->onDraw();
+  }
+  
 }
 
 rtError pxScriptView::printFunc(int numArgs, const rtValue* args, rtValue* result, void* ctx)
@@ -2833,6 +2940,53 @@ rtError pxScriptView::getContextID(int /*numArgs*/, const rtValue* /*args*/, rtV
   #endif
 }
 #endif
+
+void pxScriptView::beginDrawing()
+{
+  if (!mDrawing)
+  {
+    mDrawing = true;
+    context.enableInternalContext(true,mContextId,true);
+    previousSurface = context.getCurrentFramebuffer();
+    context.setFramebuffer(cached);
+    return;
+  }
+  rtLogWarn("pxScriptView::beginDrawing() already entered");
+}
+
+void pxScriptView::endDrawing()
+{
+  if (mDrawing)
+  {
+    glFlush();
+    context.setFramebuffer(previousSurface);
+    context.enableInternalContext(false,mContextId); 
+    mViewContainer->invalidateRect(NULL);
+    mDrawing = false;
+    return;
+  }
+  rtLogWarn("pxScriptView::endDrawing() not currently drawing");
+}
+
+rtError pxScriptView::beginDrawing2(int /*numArgs*/, const rtValue* /*args*/, rtValue* /*result*/, void* ctx)
+{
+  if (ctx)
+  {
+    pxScriptView* v = (pxScriptView*)ctx;
+    v->beginDrawing();   
+  }
+  return RT_OK;
+}
+
+rtError pxScriptView::endDrawing2(int /*numArgs*/, const rtValue* /*args*/, rtValue* /*result*/, void* ctx)
+{
+  if (ctx)
+  {
+    pxScriptView* v = (pxScriptView*)ctx;
+    v->endDrawing();
+  }
+  return RT_OK;
+}
 
 rtError pxScriptView::makeReady(int numArgs, const rtValue* args, rtValue* /*result*/, void* ctx)
 {

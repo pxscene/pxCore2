@@ -51,3 +51,10 @@ fi
 
 #--------- dukluv
 rm -rf dukluv/build
+
+#--------- spark-webgl
+cd spark-webgl
+node-gyp clean
+cd ..
+
+

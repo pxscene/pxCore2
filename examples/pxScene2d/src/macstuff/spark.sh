@@ -5,6 +5,9 @@ THIS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 cd "$THIS_DIR"
 
+# Needed to pickup the spark-webgl native module
+export NODE_PATH="$THIS_DIR":"$THIS_DIR/node_modules"
+
 updateEdge=true
 cmdLineArgs=false
 export LD_LIBRARY_PATH=./lib/
@@ -32,7 +35,14 @@ then
   fi
 fi
 
+if [ -z ${DS+x} ]
+then
+echo Logging to log files
 ./Spark $* < /dev/zero >> /var/tmp/Spark.log 2>&1 &
+else
+echo Logging to console
+./Spark $*
+fi
 
 # Software update below
 
