@@ -848,7 +848,7 @@ void pxResource::processDownloadedResource(rtFileDownloadRequest* fileDownloadRe
           gUIThreadQueue->addTask(pxResource::onDownloadCompleteUI, this, (void*)"reject");
         }
       }
-      else if (result == PX_RESOURCE_LOAD_SUCCESS)
+      else
       {
         //rtLogInfo("File download Successful: %s", fileDownloadRequest->fileUrl().cString());
         // ToDo: Could context.createTexture ever fail and return null here?
@@ -876,13 +876,16 @@ void pxResource::processDownloadedResource(rtFileDownloadRequest* fileDownloadRe
           setLoadStatus("downloadSpeedBytesPerSecond", downloadSpeedBytesPerSecond);
           setLoadStatus("loadedFromCache", false);
         }
-        val = "resolve";
         // Since this object can be released before we get a async completion
         // We need to maintain this object's lifetime
         // TODO review overall flow and organization
-        if (gUIThreadQueue)
+        if (result == PX_RESOURCE_LOAD_SUCCESS)
         {
-          gUIThreadQueue->addTask(pxResource::onDownloadCompleteUI, this, (void*)"resolve");
+          val = "resolve";
+          if (gUIThreadQueue)
+          {
+            gUIThreadQueue->addTask(pxResource::onDownloadCompleteUI, this, (void*)"resolve");
+          }
         }
       }
     }
