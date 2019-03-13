@@ -480,43 +480,11 @@ class pxScriptView: public pxIView
 {
 public:
   pxScriptView(const char* url, const char* /*lang*/, pxIViewContainer* container=NULL);
+  virtual ~pxScriptView();
+
 #ifndef RUNINMAIN
   void runScript(); // Run the script
 #endif
-  virtual ~pxScriptView()
-  {
-    rtLogDebug("~pxScriptView for mUrl=%s\n",mUrl.cString());
-    // Clear out these references since the script context
-    // can outlive this view
-#ifdef ENABLE_RT_NODE
-    if(mCtx)
-    {
-      mGetScene->clearContext();
-      mMakeReady->clearContext();
-      mGetContextID->clearContext();
-
-      // TODO Given that the context is being cleared we likely don't need to zero these out
-      mCtx->add("getScene", 0);
-      mCtx->add("makeReady", 0);
-      mCtx->add("getContextID", 0);
-    }
-#endif //ENABLE_RT_NODE
-
-    if (mView)
-      mView->setViewContainer(NULL);
-
-    // TODO JRJR Do we have GC tests yet
-    // Hack to try and reduce leaks until garbage collection can
-    // be cleaned up
-    if(mScene)
-      mEmit.send("onSceneRemoved", mScene);
-
-    if (mScene)
-      mScene.send("dispose");
-
-    mView = NULL;
-    mScene = NULL;
-  }
 
   virtual unsigned long AddRef() 
   {
@@ -583,18 +551,19 @@ protected:
 
   static rtError getContextID(int /*numArgs*/, const rtValue* /*args*/, rtValue* result, void* /*ctx*/);
 
-  virtual void onSize(int32_t w, int32_t h)
-  {
-    mWidth = w;
-    mHeight = h;
-    if (mView)
-      mView->onSize(w,h);
-  }
+  void beginDrawing();
+  void endDrawing();
+
+  static rtError beginDrawing2(int /*numArgs*/, const rtValue* /*args*/, rtValue* result, void* ctx);
+  static rtError endDrawing2(int /*numArgs*/, const rtValue* /*args*/, rtValue* result, void* ctx);
+
+  virtual void onSize(int32_t w, int32_t h);
 
   virtual void onCloseRequest()
   {
     rtLogDebug("pxScriptView::onCloseRequest()\n");
-    mScene.send("dispose");
+    if (mScene)
+      mScene.send("dispose");
     mScene = NULL;
     mView = NULL;
   }
@@ -682,11 +651,7 @@ protected:
       mView->onUpdate(t);
   }
 
-  virtual void onDraw(/*pxBuffer& b, pxRect* r*/)
-  {
-    if (mView)
-      mView->onDraw();
-  }
+  virtual void onDraw(/*pxBuffer& b, pxRect* r*/);
 
   virtual void setViewContainer(pxIViewContainer* l)
   {
@@ -705,6 +670,18 @@ protected:
   rtRef<rtFunctionCallback> mGetScene;
   rtRef<rtFunctionCallback> mMakeReady;
   rtRef<rtFunctionCallback> mGetContextID;
+
+  // webgl stuff
+
+  bool mDrawing;
+  rtRef<rtFunctionCallback> mBeginDrawing;
+  rtRef<rtFunctionCallback> mEndDrawing;
+
+  pxContextFramebufferRef cached;
+  pxContextFramebufferRef previousSurface;
+
+  // JRJR should go away
+  int mContextId;
 
 #ifdef ENABLE_RT_NODE
   rtScriptContextRef mCtx;

@@ -92,7 +92,7 @@ class pxContext {
   void pushState();
   void popState();
 
-  pxContextFramebufferRef createFramebuffer(int width, int height, bool antiAliasing=false, bool alphaOnly=false);
+  pxContextFramebufferRef createFramebuffer(int width, int height, bool antiAliasing=false, bool alphaOnly=false, bool depthBuffer=false);
   pxError updateFramebuffer(pxContextFramebufferRef fbo, int width, int height);
   pxError setFramebuffer(pxContextFramebufferRef fbo);
   pxContextFramebufferRef getCurrentFramebuffer();
@@ -158,7 +158,7 @@ class pxContext {
   
   pxError setEjectTextureAge(uint32_t age);
   pxError enableInternalContext(bool enable);
-  pxError enableInternalContext(bool enable, int id);
+  pxError enableInternalContext(bool enable, int id, bool depthBuffer=false);
 
 private:
   bool mShowOutlines;

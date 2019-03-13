@@ -95,6 +95,8 @@ ${minJS} browser.js $bundleRes/browser.js
 ${minJS} about.js $bundleRes/about.js
 ${minJS} mime.js $bundleRes/mime.js
 ${minJS} browser/editbox.js $bundleRes/browser/editbox.js
+cp initGL.js $bundleRes/initGL.js
+
 #./jsMinFolder.sh browser $bundleRes/browser
 
 # Copy MIME files...
@@ -104,6 +106,8 @@ ${minJS} mime.js $bundleRes/mime.js
 cp -a duk_modules $bundleRes/duk_modules
 # Copy node modules
 cp -a node_modules $bundleRes/node_modules
+cp -a ../external/spark-webgl $bundleRes/node_modules
+
 # Copy v8 modules
 cp -a v8_modules $bundleRes/v8_modules
 
