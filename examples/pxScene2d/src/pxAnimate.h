@@ -23,7 +23,6 @@
 
 #include "pxConstants.h"
 class pxObject;
-struct animation;
 
 /**********************************************************************
  * 

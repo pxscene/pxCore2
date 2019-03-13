@@ -18,7 +18,16 @@ limitations under the License.
 
 #include "pxContextUtils.h"
 
-pxError deleteInternalGLContext(int id)
+int nextInternalContextId = 1;
+
+pxError createInternalContext(int &id)
+{
+  id = nextInternalContextId++;
+  //TODO
+  return PX_OK;
+}
+
+pxError deleteInternalGLContext(int)
 {
   //TODO
   return PX_OK;

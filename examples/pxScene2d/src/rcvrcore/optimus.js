@@ -532,7 +532,7 @@ function Optimus() {
   /**
    * @example
    * // create optimus app with one of the following launchParams:
-   * // { "cmd":"spark","uri":"http://www.pxscene.org/examples/px-reference/gallery/picturepile.js"}
+   * // { "cmd":"spark","uri":"http://www.sparkui.org/examples/gallery/picturepile.js"}
    * // { "cmd":"receiver"}
    * // { "cmd":"WebApp","uri":"https://google.com"}
    * var app = optimus.createApplication(...);

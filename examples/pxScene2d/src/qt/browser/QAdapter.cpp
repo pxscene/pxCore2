@@ -11,33 +11,12 @@
 #include "qt/browser/mac/qmacwidget.h"
 
 #endif
-
-void test(int l, char** args){
-  rtLogSetLevel(rtLogLevel::RT_LOG_INFO);
-  rtLogInfo("??????? %d", l);
-  for (int i = 0; i< l; i++) {
-    rtLogInfo("arg %d = %s",i,args[i]);
-  }
-  
-}
-
 QApplication *qtApp = nullptr;
+int __argc = 0;
 
 QAdapter::QAdapter(): mView(nullptr), mRootWidget(nullptr)
 {
-  char *c1 = "-nokeyboard=true";
-  char *c2 = "-nomouse=true";
-  char *c3 = "-style=windows";
-  char* a[3];
-  a[0] = c1;
-  a[1] = c2;
-  a[2] = c3;
-  int __argc = 0;
-  test(__argc,a);
-  
-  QStringList strList = QCoreApplication::arguments();
-  
-  qtApp = new QApplication(__argc,a);
+  qtApp = new QApplication(__argc, nullptr);
 }
 
 void QAdapter::init(void *root, int w, int h)

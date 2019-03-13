@@ -815,11 +815,11 @@ if (s && (strcmp(s,"1") == 0))
 // would like to decouple it from pxScene2d specifically
   context.init();
 
-  int QT_GL_CONTEXT_INDEX = 101;
   rtLogSetLevel(rtLogLevel::RT_LOG_INFO);
-  context.enableInternalContext(true, QT_GL_CONTEXT_INDEX);
+  pxSharedContextRef sharedContext = context.createSharedContext();
+  sharedContext->makeCurrent(true);
   win.initQT();
-  context.enableInternalContext(false, QT_GL_CONTEXT_INDEX);
+  sharedContext->makeCurrent(false);
 
 #ifdef WIN32
 
