@@ -24,8 +24,8 @@ limitations under the License.
 #include "rtAtomic.h"
 
 pxError deleteInternalGLContext(int id);
-pxError makeInternalGLContextCurrent(bool current, int id = 0, bool depthBuffer = false);
-pxError createInternalContext(int &id);
+pxError makeInternalGLContextCurrent(bool current, int id = 0);
+pxError createInternalContext(int &id, bool depthBuffer = false);
 
 
 class pxSharedContext
@@ -39,7 +39,7 @@ public:
       {
         if (mIsCurrent)
         {
-          makeInternalGLContextCurrent(false, mContextId, mDepthBuffer);
+          makeInternalGLContextCurrent(false, mContextId);
         }
         deleteInternalGLContext(mContextId);
       }
@@ -63,7 +63,7 @@ public:
     {
       if (mContextId == 0)
       {
-        createInternalContext(mContextId);
+        createInternalContext(mContextId, mDepthBuffer);
       }
       mIsCurrent = current;
       return makeInternalGLContextCurrent(current, mContextId);

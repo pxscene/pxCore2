@@ -56,7 +56,7 @@ struct eglContextInfo
 
 std::map<int, eglContextInfo> internalContexts;
 
-int pxCreateEglContext(int id)
+int pxCreateEglContext(int id, bool /*depthBuffer*/)
 {
   {
     rtMutexLockGuard eglContextMutexGuard(eglContextMutex);
@@ -207,7 +207,7 @@ void pxMakeEglCurrent(int id)
     else
     {
       eglContextMutex.unlock();
-      pxCreateEglContext(id);
+      pxCreateEglContext(id, true);
       eglContextMutex.lock();
       contextInfo = internalContexts[id];
     }
@@ -272,13 +272,13 @@ void pxDeleteEglContext(int id)
   }
 }
 
-pxError createInternalContext(int &id)
+pxError createInternalContext(int &id, bool depthBuffer)
 {
   {
     rtMutexLockGuard eglContextMutexGuard(eglContextMutex);
     id = nextInternalContextId++;
   }
-  pxCreateEglContext(id);
+  pxCreateEglContext(id, depthBuffer);
   return PX_OK;
 }
 

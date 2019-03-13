@@ -64,13 +64,13 @@ pxError createGLContext(int id, bool depthBuffer)
     return PX_OK;
 }
 
-pxError createInternalContext(int &id)
+pxError createInternalContext(int &id, bool depthBuffer)
 {
   {
     rtMutexLockGuard eglContextMutexGuard(eglContextMutex);
     id = nextInternalContextId++;
   }
-  createGLContext(id);
+  createGLContext(id, depthBuffer);
   return PX_OK;
 }
 
@@ -86,7 +86,7 @@ pxError deleteInternalGLContext(int id)
   return PX_OK;
 }
 
-pxError makeInternalGLContextCurrent(bool current, int id, bool depthBuffer)
+pxError makeInternalGLContextCurrent(bool current, int id)
 {
     if (current)
     {
@@ -98,23 +98,7 @@ pxError makeInternalGLContextCurrent(bool current, int id, bool depthBuffer)
             context = internalContexts.at(id);
           }
         }
-        if (context == nil)
-        {
-            createGLContext(id,depthBuffer);
-            {
-              rtMutexLockGuard eglContextMutexGuard(eglContextMutex);
-              context = internalContexts[id];
-            }
-            [context makeCurrentContext];
-            // JRJR TODO Review these with Mike
-#if 0
-            glEnable(GL_BLEND);
-            glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-            glClearColor(0, 0, 0, 0);
-            glClear(GL_COLOR_BUFFER_BIT);
-#endif  
-        }
-        else
+        if (context != nil)
         {
             [context makeCurrentContext];
             #if 0
