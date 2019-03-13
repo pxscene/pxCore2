@@ -186,13 +186,13 @@
 
 Examples:
   ~~~~
-./spark.sh http://www.pxscene.org/examples/px-reference/gallery/picturepile.js
-./spark.sh http://www.pxscene.org/examples/px-reference/gallery/gallery.js
+./spark.sh http://www.sparkui.org/examples/gallery/picturepile.js
+./spark.sh http://www.sparkui.org/examples/gallery/gallery.js
   ~~~~
-Running ./spark.sh without a parameter will load the local browser.js that will take a .js pathname relative to http://www.pxscene.org/examples/px-reference/gallery to run.  Alternatively, a fully qualified url can be used, for example:
+Running ./spark.sh without a parameter will load the local browser.js that will take a .js pathname relative to http://www.sparkui.org/examples/gallery to run.  Alternatively, a fully qualified url can be used, for example:
   ~~~~
-http://www.pxscene.org/examples/px-reference/gallery/picturepile.js
-http://www.pxscene.org/examples/px-reference/gallery/gallery.js
+http://www.sparkui.org/examples/gallery/picturepile.js
+http://www.sparkui.org/examples/gallery/gallery.js
 file:///home/username/directory/filename.js
   ~~~~
 6. Write your own app!

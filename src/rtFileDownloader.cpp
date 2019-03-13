@@ -184,13 +184,15 @@ rtFileDownloadRequest::rtFileDownloadRequest(const char* imageUrl, void* callbac
     mDownloadedData(0), mDownloadedDataSize(), mDownloadStatusCode(0) ,mCallbackData(callbackData),
     mCallbackFunctionMutex(), mHeaderData(0), mHeaderDataSize(0), mHeaderOnly(false), mDownloadHandleExpiresTime(-2)
 #ifdef ENABLE_HTTP_CACHE
-    , mCacheEnabled(true), mIsDataInCache(false), mDeferCacheRead(false), mCachedFileReadSize(0)
+    , mCacheEnabled(true), mDeferCacheRead(false), mCachedFileReadSize(0)
 #endif
+    , mIsDataInCache(false)
     , mIsProgressMeterSwitchOff(false), mHTTPFailOnError(false), mDefaultTimeout(false)
     , mCORS(), mCanceled(false), mUseCallbackDataSize(false), mCanceledMutex()
     , mMethod()
     , mReadData(NULL)
     , mReadDataSize(0)
+    , mDownloadMetrics(new rtMapObject())
 {
   mAdditionalHttpHeaders.clear();
 #ifdef ENABLE_HTTP_CACHE
@@ -212,6 +214,7 @@ rtFileDownloadRequest::~rtFileDownloadRequest()
   mHeaderData = NULL;
   mAdditionalHttpHeaders.clear();
   mHeaderOnly = false;
+  mDownloadMetrics = NULL;
 }
 
 void rtFileDownloadRequest::setFileUrl(const char* imageUrl) { mFileUrl = imageUrl; }
@@ -395,11 +398,6 @@ void rtFileDownloadRequest::setDataIsCached(bool val)
   mIsDataInCache = val;
 }
 
-bool rtFileDownloadRequest::isDataCached()
-{
-  return mIsDataInCache;
-}
-
 size_t rtFileDownloadRequest::getCachedFileReadSize(void )
 {
   return mCachedFileReadSize;
@@ -428,12 +426,18 @@ FILE* rtFileDownloadRequest::cacheFilePointer(void)
   {
     if ((NULL != rtFileCache::instance()) && (RT_OK == rtFileCache::instance()->httpCacheData(this->fileUrl(), cachedData)))
     {
+      rtLogInfo("fileUrl[%s] fileName[%s] \n", this->fileUrl().cString(), cachedData.fileName().cString());
       return cachedData.filePointer();
     }
   }
   return NULL;
 }
 #endif //ENABLE_HTTP_CACHE
+
+bool rtFileDownloadRequest::isDataCached()
+{
+  return mIsDataInCache;
+}
 
 void rtFileDownloadRequest::setProgressMeter(bool val)
 {
@@ -539,6 +543,19 @@ const uint8_t* rtFileDownloadRequest::readData() const
 size_t rtFileDownloadRequest::readDataSize() const
 {
   return mReadDataSize;
+}
+
+rtObjectRef rtFileDownloadRequest::downloadMetrics() const
+{
+  return mDownloadMetrics;
+}
+
+void rtFileDownloadRequest::setDownloadMetrics(int32_t connectTimeMs, int32_t sslConnectTimeMs, int32_t totalTimeMs, int32_t downloadSpeedBytesPerSecond)
+{
+  mDownloadMetrics.set("connectTimeMs", connectTimeMs);
+  mDownloadMetrics.set("sslConnectTimeMs", sslConnectTimeMs);
+  mDownloadMetrics.set("totalDownloadTimeMs", totalTimeMs);
+  mDownloadMetrics.set("downloadSpeedBytesPerSecond", downloadSpeedBytesPerSecond);
 }
 
 rtFileDownloader::rtFileDownloader()
@@ -701,7 +718,7 @@ void rtFileDownloader::downloadFile(rtFileDownloadRequest* downloadRequest)
     {
         if(downloadRequest->deferCacheRead())
         {
-            mFileCacheMutex.lock();
+            rtLogInfo("Reading from cache Start for %s\n", downloadRequest->fileUrl().cString());
             FILE *fp = downloadRequest->cacheFilePointer();
 
             if(fp != NULL)
@@ -730,7 +747,7 @@ void rtFileDownloader::downloadFile(rtFileDownloadRequest* downloadRequest)
                 delete [] buffer;
                 fclose(fp);
             }
-            mFileCacheMutex.unlock();
+            rtLogInfo("Reading from cache End for %s\n", downloadRequest->fileUrl().cString());
         }
     }
     else
@@ -977,6 +994,9 @@ bool rtFileDownloader::downloadFromNetwork(rtFileDownloadRequest* downloadReques
               (int)(connectTime*1000), (int)((sslConnectTime - connectTime) * 1000),
               (int)(totalDownloadTime*1000), (int)downloadSpeed, downloadRequest->fileUrl().cString());
 
+    downloadRequest->setDownloadMetrics(static_cast<int32_t>(connectTime*1000), static_cast<int32_t>((sslConnectTime - connectTime) * 1000),
+                                        static_cast<int32_t>(totalDownloadTime*1000), static_cast<int32_t>(downloadSpeed));
+
     long httpCode = -1;
     if (curl_easy_getinfo(curl_handle, CURLINFO_RESPONSE_CODE, &httpCode) == CURLE_OK)
     {
@@ -1180,6 +1200,16 @@ void rtFileDownloader::setCallbackFunctionThreadSafe(rtFileDownloadRequest* down
       downloadRequest->setCallbackFunctionThreadSafe(callbackFunction);
       break;
     }
+  }
+  mDownloadRequestVectorMutex->unlock();
+}
+
+void rtFileDownloader::cancelAllDownloadRequestsThreadSafe()
+{
+  mDownloadRequestVectorMutex->lock();
+  for (std::vector<rtFileDownloadRequest*>::iterator it=mDownloadRequestVector->begin(); it!=mDownloadRequestVector->end(); ++it)
+  {
+    (*it)->cancelRequest();
   }
   mDownloadRequestVectorMutex->unlock();
 }
