@@ -835,6 +835,28 @@ void pxResource::processDownloadedResource(rtFileDownloadRequest* fileDownloadRe
       int32_t result = loadResourceData(fileDownloadRequest);
       double stopResourceSetupTime = pxMilliseconds();
       setLoadStatus("setupTimeMs", static_cast<int>(stopResourceSetupTime-startResourceSetupTime));
+      if (fileDownloadRequest->isDataCached())
+      {
+        setLoadStatus("loadedFromCache", true);
+      }
+      else
+      {
+        rtObjectRef metrics = fileDownloadRequest->downloadMetrics();
+        rtValue connectTimeMs;
+        rtValue sslConnectTimeMs;
+        rtValue totalDownloadTimeMs;
+        rtValue downloadSpeedBytesPerSecond;
+        metrics.get("connectTimeMs", connectTimeMs);
+        metrics.get("sslConnectTimeMs", sslConnectTimeMs);
+        metrics.get("totalDownloadTimeMs", totalDownloadTimeMs);
+        metrics.get("downloadSpeedBytesPerSecond", downloadSpeedBytesPerSecond);
+        setLoadStatus("connectTimeMs", connectTimeMs);
+        setLoadStatus("sslConnectTimeMs", sslConnectTimeMs);
+        setLoadStatus("totalDownloadTimeMs", totalDownloadTimeMs);
+        setLoadStatus("downloadSpeedBytesPerSecond", downloadSpeedBytesPerSecond);
+        setLoadStatus("loadedFromCache", false);
+      }
+      
       if(result == PX_RESOURCE_LOAD_FAIL)
       {
         rtLogError("Resource Decode Failed: %s with proxy: %s", fileDownloadRequest->fileUrl().cString(), fileDownloadRequest->proxy().cString());
@@ -848,44 +870,19 @@ void pxResource::processDownloadedResource(rtFileDownloadRequest* fileDownloadRe
           gUIThreadQueue->addTask(pxResource::onDownloadCompleteUI, this, (void*)"reject");
         }
       }
-      else
+      else if (result == PX_RESOURCE_LOAD_SUCCESS)
       {
         //rtLogInfo("File download Successful: %s", fileDownloadRequest->fileUrl().cString());
         // ToDo: Could context.createTexture ever fail and return null here?
        // mTexture = context.createTexture(imageOffscreen);
         setLoadStatus("statusCode", 0);
-
-        if (fileDownloadRequest->isDataCached())
-        {
-          setLoadStatus("loadedFromCache", true);
-        }
-        else
-        {
-          rtObjectRef metrics = fileDownloadRequest->downloadMetrics();
-          rtValue connectTimeMs;
-          rtValue sslConnectTimeMs;
-          rtValue totalDownloadTimeMs;
-          rtValue downloadSpeedBytesPerSecond;
-          metrics.get("connectTimeMs", connectTimeMs);
-          metrics.get("sslConnectTimeMs", sslConnectTimeMs);
-          metrics.get("totalDownloadTimeMs", totalDownloadTimeMs);
-          metrics.get("downloadSpeedBytesPerSecond", downloadSpeedBytesPerSecond);
-          setLoadStatus("connectTimeMs", connectTimeMs);
-          setLoadStatus("sslConnectTimeMs", sslConnectTimeMs);
-          setLoadStatus("totalDownloadTimeMs", totalDownloadTimeMs);
-          setLoadStatus("downloadSpeedBytesPerSecond", downloadSpeedBytesPerSecond);
-          setLoadStatus("loadedFromCache", false);
-        }
         // Since this object can be released before we get a async completion
         // We need to maintain this object's lifetime
         // TODO review overall flow and organization
-        if (result == PX_RESOURCE_LOAD_SUCCESS)
+        val = "resolve";
+        if (gUIThreadQueue)
         {
-          val = "resolve";
-          if (gUIThreadQueue)
-          {
-            gUIThreadQueue->addTask(pxResource::onDownloadCompleteUI, this, (void*)"resolve");
-          }
+          gUIThreadQueue->addTask(pxResource::onDownloadCompleteUI, this, (void*)"resolve");
         }
       }
     }
