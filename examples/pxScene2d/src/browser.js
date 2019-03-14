@@ -1,4 +1,4 @@
-/*  222
+/*
 
 pxCore Copyright 2005-2018 John Robinson
 
@@ -20,11 +20,11 @@ var homeUrl = "https://www.pxscene.org/examples/px-reference/text/sample.md";
 
 px.configImport({"browser:" : /*px.getPackageBaseFilePath() + */ "browser/"});
 
-px.import({ scene:    'px:scene.1.js',
-             keys:    'px:tools.keys.js',
-             ListBox: 'browser:listbox.js',
-             EditBox: 'browser:editbox.js',
-             mime:    'mime.js'
+px.import({ scene:   'px:scene.1.js',
+            keys:    'px:tools.keys.js',
+            ListBox: 'browser:listbox.js',
+            EditBox: 'browser:editbox.js',
+            mime:    'mime.js'
 }).then( function importsAreReady(imports)
 {
   var scene = imports.scene;
@@ -33,7 +33,7 @@ px.import({ scene:    'px:scene.1.js',
 
   var resolveSceneUrl = imports.mime.resolveSceneUrl;
 
-  var url   = "";
+  var url       = "";
   var helpShown = false;
 
   const LINEAR      = scene.animation.TWEEN_LINEAR;
@@ -41,9 +41,9 @@ px.import({ scene:    'px:scene.1.js',
   const LOOP        = scene.animation.OPTION_LOOP;
   const FOREVER     = scene.animation.COUNT_FOREVER;
 
-  var urlFocusColor     = 0x303030ff;
-  var urlSucceededColor = 0x0c8508ff;
-  var urlFailedColor    = 0xde0700ff;
+  var urlFocusColor     = 0x303030ff; // "#303030"
+  var urlSucceededColor = 0x0c8508ff; // "#0c8508"
+  var urlFailedColor    = 0xde0700ff; // "#de0700"
 
   var myStretch = scene.stretch.STRETCH;
 
@@ -65,17 +65,15 @@ px.import({ scene:    'px:scene.1.js',
   var foreButton    = scene.create({ t:'image',  parent: browser, x:10+34,  y:12, w:32, h:32, resource: foreButtonRes, a:0.2})
   var menu          = scene.create({ t:'image',  parent: browser, x:800-28, y:14, w:24, h:24, resource: menuButtonRes, a:0.2})
 
-  var helpBox   = null;
-
+  var helpBox  = null;
   var backUrls = []
-  var currUrl = ''
+  var currUrl  = ''
   var foreUrls = []
 
   var pageInsetL = 20;
   var pageInsetT = 70;
 
   var showFullscreen = false;
-
 
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   //
@@ -488,14 +486,13 @@ px.import({ scene:    'px:scene.1.js',
         var proto = (e.dropped.charAt(0) == '/') ? "file://" : "";
         var url   =  "" + proto + e.dropped;
 
-        console.log(">>> Loading Dropped URL ... " + e.dropped);
+        console.log(">>> Loading Dropped URL ... [ " + e.dropped + " ]");
         reload(url);
 
         e.stopPropagation();
       }
     });
   }
-
 
   scene.on("onResize", function(e) { updateSize(e.w,e.h); });
 

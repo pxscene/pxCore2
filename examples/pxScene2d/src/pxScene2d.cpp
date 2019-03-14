@@ -1415,11 +1415,8 @@ void pxScene2d::setMouseEntered(rtRef<pxObject> o, int32_t x /* = 0*/, int32_t y
       e.set("target", o.getPtr());
       e.set("x", x);
       e.set("y", y);
-      #if 0
-      mMouseEntered->mEmit.send(onEvent, e);
-      #else
+
       bubbleEvent(e,o, "onPreMouseLeave", "onMouseLeave");
-      #endif
     }
     mMouseEntered = o;
 
@@ -1431,11 +1428,8 @@ void pxScene2d::setMouseEntered(rtRef<pxObject> o, int32_t x /* = 0*/, int32_t y
       e.set("target", o.getPtr());
       e.set("x", x);
       e.set("y", y);
-      #if 0
-      mMouseEntered->mEmit.send(onEvent, e);
-      #else
+
       bubbleEvent(e,o, "onPreMouseEnter", "onMouseEnter");
-      #endif
     }
   }
 }

@@ -173,7 +173,7 @@ public:
   rtProperty(w, w, setW, float);
   rtProperty(h, h, setH, float);
   rtMethod1ArgAndNoReturn("onMouseDown", onMouseDown, rtObjectRef);
-  rtMethod1ArgAndNoReturn("onMouseUp", onMouseUp, rtObjectRef);
+  rtMethod1ArgAndNoReturn("onMouseUp",   onMouseUp,   rtObjectRef);
   rtMethod1ArgAndNoReturn("onMouseMove", onMouseMove, rtObjectRef);
 
   rtMethod1ArgAndNoReturn("onDragMove",  onDragMove,  rtObjectRef);
@@ -182,13 +182,14 @@ public:
   rtMethod1ArgAndNoReturn("onDragDrop",  onDragDrop,  rtObjectRef);
 
   rtMethod1ArgAndNoReturn("onScrollWheel", onScrollWheel, rtObjectRef);
-  rtMethod1ArgAndNoReturn("onMouseEnter", onMouseEnter, rtObjectRef);
-  rtMethod1ArgAndNoReturn("onMouseLeave", onMouseLeave, rtObjectRef);
-  rtMethod1ArgAndNoReturn("onFocus", onFocus, rtObjectRef);
-  rtMethod1ArgAndNoReturn("onBlur", onBlur, rtObjectRef);
+  rtMethod1ArgAndNoReturn("onMouseEnter",  onMouseEnter,  rtObjectRef);
+  rtMethod1ArgAndNoReturn("onMouseLeave",  onMouseLeave,  rtObjectRef);
+
+  rtMethod1ArgAndNoReturn("onFocus",   onFocus,   rtObjectRef);
+  rtMethod1ArgAndNoReturn("onBlur",    onBlur,    rtObjectRef);
   rtMethod1ArgAndNoReturn("onKeyDown", onKeyDown, rtObjectRef);
-  rtMethod1ArgAndNoReturn("onKeyUp", onKeyUp, rtObjectRef);
-  rtMethod1ArgAndNoReturn("onChar", onChar, rtObjectRef);
+  rtMethod1ArgAndNoReturn("onKeyUp",   onKeyUp,   rtObjectRef);
+  rtMethod1ArgAndNoReturn("onChar",    onChar,    rtObjectRef);
 
   pxViewContainer(pxScene2d* scene):pxObject(scene)
   {
@@ -202,13 +203,14 @@ public:
     addListener("onDragDrop",  get<rtFunctionRef>("onDragDrop"));
 
     addListener("onScrollWheel", get<rtFunctionRef>("onScrollWheel"));
-    addListener("onMouseEnter", get<rtFunctionRef>("onMouseEnter"));
-    addListener("onMouseLeave", get<rtFunctionRef>("onMouseLeave"));
-    addListener("onFocus", get<rtFunctionRef>("onFocus"));
-    addListener("onBlur", get<rtFunctionRef>("onBlur"));
+    addListener("onMouseEnter",  get<rtFunctionRef>("onMouseEnter"));
+    addListener("onMouseLeave",  get<rtFunctionRef>("onMouseLeave"));
+
+    addListener("onFocus",   get<rtFunctionRef>("onFocus"));
+    addListener("onBlur",    get<rtFunctionRef>("onBlur"));
     addListener("onKeyDown", get<rtFunctionRef>("onKeyDown"));
-    addListener("onKeyUp", get<rtFunctionRef>("onKeyUp"));
-    addListener("onChar", get<rtFunctionRef>("onChar"));
+    addListener("onKeyUp",   get<rtFunctionRef>("onKeyUp"));
+    addListener("onChar",    get<rtFunctionRef>("onChar"));
   }
 
   virtual ~pxViewContainer() { /*rtLogDebug("#################~pxViewContainer\n");*/}

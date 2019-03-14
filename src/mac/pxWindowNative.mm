@@ -891,7 +891,6 @@ void MyDisplayReconfigurationCallBack(CGDirectDisplayID display,
 
       NSURL *fileURL = [NSURL URLFromPasteboard: [sender draggingPasteboard]];
 
-      NSString *fromUrl = NULL;
       NSString *dropped = NULL;
 
       uint32_t dragType = (fileURL) ? 2 : 1;  // 2 == URL, 1 == TEXT
@@ -901,7 +900,7 @@ void MyDisplayReconfigurationCallBack(CGDirectDisplayID display,
         if( [fileURL isFileURL] )
         {
           //NSLog(@"FILE path: %@", [fileURL path]);
-          fromUrl = [NSString stringWithFormat: @"file://%@", [fileURL path] ];
+          dropped = [NSString stringWithFormat: @"file://%@", [fileURL path] ];
         }
         else
         {
