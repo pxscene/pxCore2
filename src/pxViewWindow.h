@@ -53,6 +53,11 @@ protected:
   virtual void onMouseLeave();
   virtual void onMouseMove(int32_t x, int32_t y);
 
+  virtual void onDragMove( int32_t x, int32_t y, int32_t type);
+  virtual void onDragEnter(int32_t x, int32_t y, int32_t type);
+  virtual void onDragLeave(int32_t x, int32_t y, int32_t type);
+  virtual void onDragDrop( int32_t x, int32_t y, int32_t type, const char *dropped);
+
   virtual void onScrollWheel(float dx, float dy);
 
   virtual void onFocus();
