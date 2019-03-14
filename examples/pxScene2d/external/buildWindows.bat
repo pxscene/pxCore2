@@ -81,3 +81,13 @@ REM --------- LIBNODE
 cd libnode-v8.15.1
 CALL vcbuild.bat x86 nosign
 cd ..
+
+REM --------- DUKLUV
+
+cd dukluv
+patch -p1 < patches/dukluv.git.patch
+mkdir build
+cd build
+cmake ..
+cmake --build . --config Release -- /m
+cd ..
