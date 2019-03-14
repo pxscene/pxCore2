@@ -5,8 +5,11 @@
 #import <Cocoa/Cocoa.h>
 #include <map>
 #include "rtLog.h"
+#include "rtMutex.h"
 
 bool glContextIsCurrent = false;
+rtMutex eglContextMutex;
+int nextInternalContextId = 1;
 
 extern NSOpenGLContext *openGLContext;
 
@@ -44,6 +47,7 @@ std::map<int, NSOpenGLContext *> internalContexts;
 pxError createGLContext(int id, bool depthBuffer)
 {
     NSOpenGLContext *context = nil;
+    rtMutexLockGuard eglContextMutexGuard(eglContextMutex);
     if ( internalContexts.find(id) != internalContexts.end() )
     {
         context = internalContexts.at(id);
@@ -60,38 +64,41 @@ pxError createGLContext(int id, bool depthBuffer)
     return PX_OK;
 }
 
+pxError createInternalContext(int &id, bool depthBuffer)
+{
+  {
+    rtMutexLockGuard eglContextMutexGuard(eglContextMutex);
+    id = nextInternalContextId++;
+  }
+  createGLContext(id, depthBuffer);
+  return PX_OK;
+}
+
 pxError deleteInternalGLContext(int id)
 {
+  rtMutexLockGuard eglContextMutexGuard(eglContextMutex);
   if ( internalContexts.find(id) != internalContexts.end() )
   {
+    NSOpenGLContext *context = internalContexts[id];
     internalContexts.erase(id);
+    [context release];
   }
   return PX_OK;
 }
 
-pxError makeInternalGLContextCurrent(bool current, int id, bool depthBuffer)
+pxError makeInternalGLContextCurrent(bool current, int id)
 {
     if (current)
     {
         NSOpenGLContext *context = nil;
-        if ( internalContexts.find(id) != internalContexts.end() )
         {
+          rtMutexLockGuard eglContextMutexGuard(eglContextMutex);
+          if (internalContexts.find(id) != internalContexts.end())
+          {
             context = internalContexts.at(id);
+          }
         }
-        if (context == nil)
-        {
-            createGLContext(id,depthBuffer);
-            context = internalContexts[id];
-            [context makeCurrentContext];
-            // JRJR TODO Review these with Mike
-#if 0
-            glEnable(GL_BLEND);
-            glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-            glClearColor(0, 0, 0, 0);
-            glClear(GL_COLOR_BUFFER_BIT);
-#endif  
-        }
-        else
+        if (context != nil)
         {
             [context makeCurrentContext];
             #if 0
@@ -105,6 +112,7 @@ pxError makeInternalGLContextCurrent(bool current, int id, bool depthBuffer)
     }
     else
     {
+        glFlush();
         [openGLContext makeCurrentContext];
         glContextIsCurrent = false;
     }

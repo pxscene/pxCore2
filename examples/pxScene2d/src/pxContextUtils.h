@@ -20,8 +20,62 @@ limitations under the License.
 #define PX_CONTEXT_UTILS_H
 
 #include "pxCore.h"
+#include "rtRef.h"
+#include "rtAtomic.h"
 
 pxError deleteInternalGLContext(int id);
-pxError makeInternalGLContextCurrent(bool current, int id = 0, bool depthBuffer = false);
+pxError makeInternalGLContextCurrent(bool current, int id = 0);
+pxError createInternalContext(int &id, bool depthBuffer = false);
+
+
+class pxSharedContext
+{
+public:
+    pxSharedContext(bool depthBuffer) : mRef(0), mContextId(0), mIsCurrent(false), mDepthBuffer(depthBuffer)
+    { }
+    virtual ~pxSharedContext()
+    {
+      if (mContextId != 0)
+      {
+        if (mIsCurrent)
+        {
+          makeInternalGLContextCurrent(false, mContextId);
+        }
+        deleteInternalGLContext(mContextId);
+      }
+      mContextId = 0;
+    }
+
+    virtual unsigned long AddRef()
+    {
+      return rtAtomicInc(&mRef);
+    }
+
+    virtual unsigned long Release()
+    {
+      unsigned long l = rtAtomicDec(&mRef);
+      if (l == 0)
+        delete this;
+      return l;
+    }
+
+    pxError makeCurrent(bool current)
+    {
+      if (mContextId == 0)
+      {
+        createInternalContext(mContextId, mDepthBuffer);
+      }
+      mIsCurrent = current;
+      return makeInternalGLContextCurrent(current, mContextId);
+    }
+
+protected:
+    rtAtomic mRef;
+    int32_t mContextId;
+    bool mIsCurrent;
+    bool mDepthBuffer;
+};
+
+typedef rtRef<pxSharedContext> pxSharedContextRef;
 
 #endif //PX_CONTEXT_UTILS_H
