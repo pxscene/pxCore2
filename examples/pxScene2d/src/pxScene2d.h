@@ -473,10 +473,42 @@ typedef rtRef<pxSceneContainer> pxSceneContainerRef;
 
 typedef rtRef<pxObject> pxObjectRef;
 
+class scriptViewShadow: public rtObject
+{
+  rtDeclareObject(scriptViewShadow, rtObject);
+  rtMethod2ArgAndNoReturn("on", addListener, rtString, rtFunctionRef);
+  rtMethod2ArgAndNoReturn("delListener", delListener, rtString, rtFunctionRef);
+
+public:
+  scriptViewShadow()
+  {
+    mEmit = new rtEmit();
+  }
+
+  rtEmitRef emit()
+  {
+    return mEmit;
+  }
+
+private:
+
+  rtError addListener(rtString  eventName, const rtFunctionRef& f)
+  {
+    return mEmit->addListener(eventName, f);
+  }
+
+  rtError delListener(rtString  eventName, const rtFunctionRef& f)
+  {
+    return mEmit->delListener(eventName, f);
+  }
+
+  rtEmitRef mEmit;
+};
+
 // Important that this have a separate lifetime from scene object
 // and to not hold direct references to this objects from the script context
 // Don't make this into an rtObject
-class pxScriptView: public pxIView
+class pxScriptView: public rtObject, public pxIView
 {
 public:
   pxScriptView(const char* url, const char* /*lang*/, pxIViewContainer* container=NULL);
@@ -568,82 +600,17 @@ protected:
     mView = NULL;
   }
 
-  virtual bool onMouseDown(int32_t x, int32_t y, uint32_t flags)
-  {
-    if (mView)
-      return mView->onMouseDown(x,y,flags);
-    return false;
-  }
-
-  virtual bool onMouseUp(int32_t x, int32_t y, uint32_t flags)
-  {
-    if (mView)
-      return mView->onMouseUp(x,y,flags);
-    return false;
-  }
-
-  virtual bool onMouseMove(int32_t x, int32_t y)
-  {
-    if (mView)
-      return mView->onMouseMove(x,y);
-    return false;
-  }
-
-  virtual bool onScrollWheel(float dx, float dy)
-  {
-    if (mView)
-      return mView->onScrollWheel(dx,dy);
-    return false;
-  }
-  
-  virtual bool onMouseEnter()
-  {
-    if (mView)
-      return mView->onMouseEnter();
-    return false;
-  }
-
-  virtual bool onMouseLeave()
-  {
-    if (mView)
-      return mView->onMouseLeave();
-    return false;
-  }
-
-  virtual bool onFocus()
-  {
-    if (mView)
-      return mView->onFocus();
-    return false;
-  }
-
-  virtual bool onBlur()
-  {
-    if (mView)
-      return mView->onBlur();
-    return false;
-  }
-
-  virtual bool onKeyDown(uint32_t keycode, uint32_t flags)
-  {
-    if (mView)
-      return mView->onKeyDown(keycode, flags);
-    return false;
-  }
-
-  virtual bool onKeyUp(uint32_t keycode, uint32_t flags)
-  {
-    if (mView)
-      return mView->onKeyUp(keycode,flags);
-    return false;
-  }
-
-  virtual bool onChar(uint32_t codepoint)
-  {
-    if (mView)
-      return mView->onChar(codepoint);
-    return false;
-  }
+  virtual bool onMouseDown(int32_t x, int32_t y, uint32_t flags);
+  virtual bool onMouseUp(int32_t x, int32_t y, uint32_t flags);
+  virtual bool onMouseMove(int32_t x, int32_t y);
+  virtual bool onScrollWheel(float dx, float dy);
+  virtual bool onMouseEnter();
+  virtual bool onMouseLeave();
+  virtual bool onFocus();
+  virtual bool onBlur();
+  virtual bool onKeyDown(uint32_t keycode, uint32_t flags);
+  virtual bool onKeyUp(uint32_t keycode, uint32_t flags);
+  virtual bool onChar(uint32_t codepoint);
 
   virtual void onUpdate(double t)
   {
@@ -692,7 +659,11 @@ protected:
 #ifndef RUNINMAIN
   rtString mLang;
 #endif
+  // JRJR WARNING why is this static?
   static rtEmitRef mEmit;
+
+  // For gl view events
+  rtRef<scriptViewShadow> shadow;
 };
 
 class pxScene2d: public rtObject, public pxIView, public rtIServiceProvider

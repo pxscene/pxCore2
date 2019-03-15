@@ -2244,6 +2244,10 @@ rtError pxScene2d::getAvailableApplications(rtString& availableApplications)
   return RT_OK;
 }
 
+rtDefineObject(scriptViewShadow, rtObject);
+rtDefineMethod(scriptViewShadow, addListener);
+rtDefineMethod(scriptViewShadow, delListener);
+
 rtDefineObject(pxScene2d, rtObject);
 rtDefineProperty(pxScene2d, root);
 rtDefineProperty(pxScene2d, info);
@@ -2635,7 +2639,10 @@ pxScriptView::pxScriptView(const char* url, const char* /*lang*/, pxIViewContain
 {
   rtLogDebug("pxScriptView::pxScriptView()entering\n");
   mUrl = url;
-#ifndef RUNINMAIN // NOTE this ifndef ends after runScript decl, below
+
+  shadow = new scriptViewShadow;
+  
+  #ifndef RUNINMAIN // NOTE this ifndef ends after runScript decl, below
   mReady = new rtPromise();
  // mLang = lang;
   rtLogDebug("pxScriptView::pxScriptView() exiting\n");
@@ -2692,7 +2699,8 @@ void pxScriptView::runScript()
     {
       mContextId = contextId++;
       mBeginDrawing = new rtFunctionCallback(beginDrawing2, this);
-      mEndDrawing = new rtFunctionCallback(endDrawing2, this);     
+      mEndDrawing = new rtFunctionCallback(endDrawing2, this);
+      //mCtx->add("view", this);     
 
       // JRJR TODO initially with zero mWidth/mHeight until onSize event
       // defer to onSize once events have been ironed out
@@ -2705,8 +2713,10 @@ void pxScriptView::runScript()
       rtValue foo = mCtx->get("loadUrl");
       rtFunctionRef f = foo.toFunction();
       bool b = true;
+      // JRJR Adding an AddRef to this... causes bad things to happen when reloading gl scenes
+      // investigate... 
       // JRJR WARNING! must use sendReturns since wrappers will invoke asyncronously otherwise.
-      f.sendReturns<bool>(mUrl,mBeginDrawing.getPtr(),mEndDrawing.getPtr(), b);
+      f.sendReturns<bool>(mUrl,mBeginDrawing.getPtr(),mEndDrawing.getPtr(), shadow.getPtr(), b);
       endDrawing();
 
       mReady.send(b?"resolve":"reject",mScene);
@@ -2772,6 +2782,8 @@ pxScriptView::~pxScriptView()
   // Hack to try and reduce leaks until garbage collection can
   // be cleaned up
 
+  shadow->emit()->clearListeners();
+
   if (mUrl.beginsWith("gl:"))
   {
     mCtx->runScript("onClose()");
@@ -2794,6 +2806,14 @@ void pxScriptView::onSize(int32_t w, int32_t h)
   mWidth = w;
   mHeight = h;
 
+  {
+    rtObjectRef e = new rtMapObject;
+    e.set("name", "onResize");
+    e.set("w", w);
+    e.set("h", h);
+    shadow->emit().send("onResize", e);
+  }
+
   #if 0  // JRJR TODO Leave out until we get the resizing events ironed out for gl content
   if (mUrl == "triangle")
   {
@@ -2803,6 +2823,149 @@ void pxScriptView::onSize(int32_t w, int32_t h)
 
   if (mView)
     mView->onSize(w,h);
+}
+
+bool pxScriptView::onMouseDown(int32_t x, int32_t y, uint32_t flags)
+{
+  {
+    // Send to root scene in global window coordinates
+    rtObjectRef e = new rtMapObject;
+    e.set("name", "onMouseDown");
+    e.set("x", x);
+    e.set("y", y);
+    e.set("flags", (uint32_t)flags);
+    shadow->emit().send("onMouseDown", e);
+  }
+
+  if (mView)
+    return mView->onMouseDown(x,y,flags);
+
+  return false;
+}
+
+bool pxScriptView::onMouseUp(int32_t x, int32_t y, uint32_t flags)
+{
+  {
+    // Send to root scene in global window coordinates
+    rtObjectRef e = new rtMapObject;
+    e.set("name", "onMouseUp");
+    e.set("x", x);
+    e.set("y", y);
+    e.set("flags", static_cast<uint32_t>(flags));
+    shadow->emit().send("onMouseUp", e);
+  }
+  if (mView)
+    return mView->onMouseUp(x,y,flags);
+  return false;
+}
+
+bool pxScriptView::onMouseMove(int32_t x, int32_t y)
+{
+  {
+    // Send to root scene in global window coordinates
+    rtObjectRef e = new rtMapObject;
+    e.set("name", "onMouseMove");
+    e.set("x", x);
+    e.set("y", y);
+    shadow->emit().send("onMouseMove", e);
+  }
+
+  if (mView)
+    return mView->onMouseMove(x,y);
+  return false;
+}
+
+bool pxScriptView::onScrollWheel(float dx, float dy)
+{
+  {
+    rtObjectRef e = new rtMapObject;
+    e.set("name", "onScrollWheel");
+    e.set("dx", dx);
+    e.set("dy", dy);
+    shadow->emit().send("onScrollWheel");
+  }
+
+  if (mView)
+    return mView->onScrollWheel(dx,dy);
+  return false;
+}
+
+bool pxScriptView::onMouseEnter()
+{
+  if (mView)
+    return mView->onMouseEnter();
+  return false;
+}
+
+bool pxScriptView::onMouseLeave()
+{
+  if (mView)
+    return mView->onMouseLeave();
+  return false;
+}
+
+bool pxScriptView::onFocus()
+{
+  // top level scene event
+  rtObjectRef e = new rtMapObject;
+  e.set("name", "onFocus");
+  shadow->emit().send("onFocus", e);
+
+  if (mView)
+    return mView->onFocus();
+  return false;
+}
+
+bool pxScriptView::onBlur()
+{
+  // top level scene event
+  rtObjectRef e = new rtMapObject;
+  e.set("name", "onBlur");
+  shadow->emit().send("onBlur", e);
+
+  if (mView)
+    return mView->onBlur();
+  return false;
+}
+
+bool pxScriptView::onKeyDown(uint32_t keycode, uint32_t flags)
+{  
+  {
+    rtObjectRef e = new rtMapObject;
+    e.set("keyCode", keycode);
+    e.set("flags", (uint32_t)flags);
+    shadow->emit().send("onKeyDown", e);
+  }
+
+  if (mView)
+    return mView->onKeyDown(keycode, flags);
+  return false;
+}
+
+bool pxScriptView::onKeyUp(uint32_t keycode, uint32_t flags)
+{
+  {
+    rtObjectRef e = new rtMapObject;
+    e.set("keyCode", keycode);
+    e.set("flags", (uint32_t)flags);
+    shadow->emit().send("onKeyUp", e);
+  }
+
+  if (mView)
+    return mView->onKeyUp(keycode,flags);
+  return false;
+}
+
+bool pxScriptView::onChar(uint32_t codepoint)
+{
+  {
+    rtObjectRef e = new rtMapObject;
+    e.set("charCode", codepoint);
+    shadow->emit().send("onChar", e);
+  }
+  if (mView)
+    return mView->onChar(codepoint);
+  return false;
 }
 
 void pxScriptView::onDraw(/*pxBuffer& b, pxRect* r*/)

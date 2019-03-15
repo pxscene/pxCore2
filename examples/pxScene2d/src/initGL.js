@@ -21,9 +21,11 @@ var path = require('path')
 
 var _intervals = []
 
-function loadUrl(url, beginDrawing,endDrawing) {
+function loadUrl(url, beginDrawing,endDrawing, _view) {
 
   var succeeded = false
+
+  view = _view
 
   setInterval = function(f,i){
     var interval = _timers.setInterval(function() {
