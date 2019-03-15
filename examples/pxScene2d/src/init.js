@@ -71,7 +71,22 @@ global.loadUrl = function loadUrl(url) {
 }
 }
 else {
-    var baseViewerUrl = 'https://www.pxscene.org'
+    var defaultViewerBaseUrl = getSetting('defaultViewerBaseUrl')
+    
+    var process = require('process')
+    if (!defaultViewerBaseUrl)
+        defaultViewerBaseUrl = process.cwd()+'/browser/' //'https://www.pxscene.org/mime'
+//        defaultViewerBaseUrl = '/Users/johnrobinson/code/spark3/examples/pxScene2d/src/browser/' //'https://www.pxscene.org/mime'
+
+    // ensure trailing /
+    function endsWith(str, suffix) {
+        return str.slice(-suffix.length) === suffix
+    }
+
+    if (!endsWith(defaultViewerBaseUrl,'/'))
+        defaultViewerBaseUrl += '/'
+
+    console.log('############ defaultAppUrl: ', defaultViewerBaseUrl)
  
     function loadUrl(url) {
         var Url = require('url')
@@ -93,17 +108,17 @@ else {
 
         //console.log('Original Url: ', url)
         if (ext=='.md' || ext=='.sd') {
-            url = baseViewerUrl+'/mime/viewMarkdown.js?url='+encodeURIComponent(url)
+            url = defaultViewerBaseUrl+'viewMarkdown.js?url='+encodeURIComponent(url)
         }
         else if (ext=='.png' || ext == '.jpg' || ext=='.svg') {
-            url = baseViewerUrl+'/mime/viewImage.js?url='+encodeURIComponent(url)
+            url = defaultViewerBaseUrl+'viewImage.js?url='+encodeURIComponent(url)
         }
         else if (ext=='.txt' || ext=='.text') {
-            url = baseViewerUrl+'/mime/viewText.js?url='+encodeURIComponent(url)
+            url = defaultViewerBaseUrl+'viewText.js?url='+encodeURIComponent(url)
         }
         /*
         else if (ext=='.htm' || ext=='.html'){
-            url = baseViewerUrl+'/mime/viewHTML.js?url='+encodeURIComponent(url)
+            url = baseViewerUrl+'viewHTML.js?url='+encodeURIComponent(url)
         }
         */
         else if (ext=='.js' || ext=='.jar') {
@@ -114,6 +129,7 @@ else {
         }
         
         //console.log('Rewritten Url: ', url)
+        setEffectiveUrl(url)
 
 
         var ctx = new AppSceneContext({        scene: getScene("scene.1"),
