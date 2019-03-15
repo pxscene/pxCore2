@@ -1,5 +1,31 @@
 // Example was taken from http://learningwebgl.com/lessons/lesson04/index.html.
 
+
+if (true) {
+view.on('onKeyDown', function(e) {
+    console.log('webgl onKeyDown keyCode:', e.keyCode)
+    rPyramid = 0
+    rCube = 0
+})
+
+view.on('onKeyUp', function(e) {
+    console.log('webgl onKeyUp keyCode:', e.keyCode)
+    rPyramid = 0
+    rCube = 0
+})
+
+view.on('onChar', function(e) {
+    console.log("webgl onChar charCode:", e.charCode)
+    rPyramid = 0
+    rCube = 0
+})
+
+view.on('onResize', function(e) {
+    console.log('webgl onResize','width:', e.w, 'height:', e.h)
+})
+}
+
+
 var gles2 = require('spark-webgl')
 
 var WebGLUtils = require('../WebGLUtils.js');
