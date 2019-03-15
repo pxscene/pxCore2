@@ -25,8 +25,12 @@ rtDefineObject(rtHttpResponse, rtObject);
 rtDefineProperty(rtHttpResponse, statusCode);
 rtDefineProperty(rtHttpResponse, message);
 rtDefineProperty(rtHttpResponse, headers);
+rtDefineProperty(rtHttpResponse, rawHeaders);
 
 rtDefineMethod(rtHttpResponse, addListener);
+rtDefineMethod(rtHttpResponse, once);
+rtDefineMethod(rtHttpResponse, removeAllListeners);
+rtDefineMethod(rtHttpResponse, removeAllListenersByName);
 
 rtHttpResponse::rtHttpResponse()
   : mStatusCode(0),
@@ -62,10 +66,24 @@ rtError rtHttpResponse::headers(rtObjectRef& v) const
   return RT_OK;
 }
 
-rtError rtHttpResponse::addListener(rtString eventName, const rtFunctionRef& f)
+rtError rtHttpResponse::addListener(const rtString& eventName, const rtFunctionRef& f)
 {
-  mEmit->addListener(eventName, f);
-  return RT_OK;
+  return mEmit->addListener(eventName, f);
+}
+
+rtError rtHttpResponse::once(const rtString& eventName, const rtFunctionRef& f)
+{
+  return mEmit->addListener(eventName, f, true);
+}
+
+rtError rtHttpResponse::removeAllListeners()
+{
+  return mEmit->clearListeners();
+}
+
+rtError rtHttpResponse::removeAllListenersByName(const rtString& eventName)
+{
+  return mEmit->clearListeners(eventName.cString());
 }
 
 void rtHttpResponse::setStatusCode(int32_t v)
@@ -89,10 +107,21 @@ void rtHttpResponse::setHeaders(const char* data, size_t size)
 
 void rtHttpResponse::setDownloadedData(const char* data, size_t size)
 {
-  if (size > 0) {
+  if (size == 0) {
+    mDownloadedData = rtString();
+  } else if (data && strlen(data) == size) {
     mDownloadedData = rtString(data, (uint32_t) size);
   } else {
-    mDownloadedData = rtString();
+    rtArrayObject* o = new rtArrayObject;
+    if (data != NULL)
+    {
+      for (size_t i = 0; i < size; i++)
+      {
+        rtValue v((uint32_t)data[i]);
+        o->pushBack(v);
+      }
+    }
+    mDownloadedData = o;
   }
 }
 
@@ -113,6 +142,9 @@ void rtHttpResponse::onEnd()
 rtError rtHttpResponse::parseHeaders(const rtString& data, std::map<rtString, rtString>& headerMap)
 {
   headerMap.clear();
+
+  if (data.isEmpty())
+    return RT_OK;
 
   int32_t len = data.length();
   int32_t attr1 = 0, attr2;

@@ -26,16 +26,19 @@
 #include <curl/curl.h>
 
 const char* rtCORS::ENV_NAME_ENABLED = "SPARK_CORS_ENABLED";
+const char* rtCORS::HTTPHeaderName_Origin = "origin";
+const char* rtCORS::HTTPHeaderName_Authorization = "authorization";
+const char* rtCORS::HTTPHeaderName_Cookie = "cookie";
+const char* rtCORS::HTTPHeaderName_AccessControlRequestMethod = "access-control-request-method";
+const char* rtCORS::HTTPHeaderName_AccessControlRequestHeaders = "access-control-request-headers";
 const char* rtCORS::HTTPHeaderName_AccessControlAllowOrigin = "access-control-allow-origin";
 const char* rtCORS::HTTPHeaderName_AccessControlAllowCredentials = "access-control-allow-credentials";
 
-bool rtCORS::mEnabled = false; // default
+bool rtCORS::mEnabled = true; // default
 
 rtCORS::rtCORS(const rtString& origin)
   : mOrigin(origin)
 {
-  rtLogDebug("%s : origin '%s'", __FUNCTION__, mOrigin.cString());
-
   static bool didCheck = false;
   if (!didCheck)
   {
@@ -45,17 +48,16 @@ rtCORS::rtCORS(const rtString& origin)
     {
       rtString envVal(s);
       mEnabled = 0 == envVal.compare("true") || 0 == envVal.compare("1");
-      rtLogWarn("%s : %s", __FUNCTION__, mEnabled ? "enabled" : "disabled");
     }
   }
+
+  rtLogInfo("%s : %s, origin '%s'", __FUNCTION__, mEnabled?"enabled":"disabled", mOrigin.cString());
 }
 
 rtCORS::~rtCORS()
 {
   rtLogDebug("%s : origin '%s'", __FUNCTION__, mOrigin.cString());
 }
-
-// TODO: preflight mode
 
 rtError rtCORS::updateRequestForAccessControl(struct curl_slist** headerList) const
 {
@@ -64,7 +66,8 @@ rtError rtCORS::updateRequestForAccessControl(struct curl_slist** headerList) co
 
   rtLogDebug("%s", __FUNCTION__);
 
-  // Do not check is origin header already exists
+  // Do not check if origin header already exists
+  // (apps don't set rtFileDownloadRequest headers)
 
   if (!mOrigin.isEmpty())
   {
@@ -104,6 +107,15 @@ rtError rtCORS::updateResponseForAccessControl(rtFileDownloadRequest* request) c
   if (0 == origin.compare(mOrigin.cString()))
   {
     rtLogDebug("%s : same-origin '%s'", __FUNCTION__, origin.cString());
+    return RT_OK;
+  }
+
+  // Exceptions
+  bool isSafe = false;
+  isSafeOrigin(origin, isSafe);
+  if (isSafe)
+  {
+    rtLogInfo("%s : skip CORS check for origin '%s'", __FUNCTION__, origin.cString());
     return RT_OK;
   }
 
@@ -157,10 +169,21 @@ rtError rtCORS::passesAccessControlCheck(const rtString& rawHeaderData, bool wit
     return RT_OK;
   }
 
+  // Exceptions
+  bool isSafe = false;
+  isSafeOrigin(origin, isSafe);
+  if (isSafe)
+  {
+    rtLogInfo("%s : skip CORS check for origin '%s'", __FUNCTION__, origin.cString());
+    passes = true;
+    return RT_OK;
+  }
+
   rtString errorDescription;
   std::map<rtString, rtString> headerMap;
   rtHttpResponse::parseHeaders(rawHeaderData, headerMap);
-  rtLogDebug("%s : check access to '%s' from origin '%s'", __FUNCTION__, origin.cString(), mOrigin.cString());
+  rtLogDebug("%s : check access to '%s' from origin '%s'. withCredentials: '%s'",
+    __FUNCTION__, origin.cString(), mOrigin.cString(), withCredentials ? "true" : "false");
   passes = passesAccessControlCheck(headerMap, withCredentials, origin, errorDescription);
   if (!passes)
     rtLogWarn("%s : block '%s' from origin '%s' because: %s",
@@ -217,6 +240,50 @@ bool rtCORS::passesAccessControlCheck(const std::map<rtString, rtString>& header
   return true;
 }
 
+rtError rtCORS::isCORSRequestHeader(const rtString& headerName, bool& isCORSHeader) const
+{
+  bool result = false;
+  rtString str = rtHttpResponse::toLowercaseStr(headerName);
+  if (str.compare(HTTPHeaderName_Origin) == 0 ||
+    str.compare(HTTPHeaderName_AccessControlRequestMethod) == 0 ||
+    str.compare(HTTPHeaderName_AccessControlRequestHeaders) == 0)
+  {
+    result = true;
+  }
+  isCORSHeader = result;
+  return RT_OK;
+}
+
+rtError rtCORS::isCredentialsRequestHeader(const rtString& headerName, bool& isCredentialsHeader) const
+{
+  bool result = false;
+  rtString str = rtHttpResponse::toLowercaseStr(headerName);
+  if (str.compare(HTTPHeaderName_Authorization) == 0 ||
+    str.compare(HTTPHeaderName_Cookie) == 0)
+  {
+    result = true;
+  }
+  isCredentialsHeader = result;
+  return RT_OK;
+}
+
+rtError rtCORS::isSafeOrigin(const rtString& origin, bool& isSafe) const
+{
+  bool result = false;
+  rtString str = rtUrlGetHostname(origin);
+  // bypass CORS if destination host is localhost, 127.0.0.1, or ::1.
+  // CORS being checked means URL is not blocked by permissions, and in permissions conf-s we have localhost, 127.0.0.1 and ::1 handled.
+  if (str.compare("localhost") == 0 || str.compare("127.0.0.1") == 0 || str.compare("::1") == 0)
+  {
+    result = true;
+  }
+  isSafe = result;
+  return RT_OK;
+}
+
 rtDefineObject(rtCORS, rtObject);
 rtDefineMethod(rtCORS, passesAccessControlCheck);
+rtDefineMethod(rtCORS, isCORSRequestHeader);
+rtDefineMethod(rtCORS, isCredentialsRequestHeader);
 rtDefineProperty(rtCORS, isEnabled);
+rtDefineProperty(rtCORS, origin);

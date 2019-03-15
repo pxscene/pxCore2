@@ -114,16 +114,20 @@ void rtResolverFunction::afterWorkCallback(uv_work_t* req, int /* status */)
 #endif //ENABLE_NODE_V_6_9
   if (resolverFunc->mDisposition == DispositionResolve)
   {
-    resolver->Resolve(value);
+    resolver->Resolve(local_context, value);
   }
   else
   {
-    resolver->Reject(value);
+    resolver->Reject(local_context, value);
   }
 
   if (tryCatch.HasCaught())
   {
-    String::Utf8Value trace(tryCatch.StackTrace());
+    #if defined RTSCRIPT_SUPPORT_V8
+    String::Utf8Value trace(resolverFunc->mIsolate, (tryCatch.StackTrace(local_context)).ToLocalChecked());
+    #else
+    String::Utf8Value trace((tryCatch.StackTrace(local_context)).ToLocalChecked());
+    #endif
     rtLogWarn("Error resolving promise");
     rtLogWarn("%s", *trace);
   }
@@ -259,7 +263,7 @@ void rtFunctionWrapper::call(const FunctionCallbackInfo<Value>& args)
 
   if (rtIsPromise(result))
   {
-    Local<Promise::Resolver> resolver = Promise::Resolver::New(isolate);
+    Local<Promise::Resolver> resolver = (Promise::Resolver::New(ctx)).ToLocalChecked();
 
     rtFunctionRef resolve(new rtResolverFunction(rtResolverFunction::DispositionResolve, ctx, resolver));
     rtFunctionRef reject(new rtResolverFunction(rtResolverFunction::DispositionReject, ctx, resolver));
@@ -295,7 +299,11 @@ jsFunctionWrapper::jsFunctionWrapper(Local<Context>& ctx, const Handle<Value>& v
   , mTeardownThreadingPrimitives(false)
   , mHash(-1)
 {
+  #if defined RTSCRIPT_SUPPORT_V8
+  v8::String::Utf8Value fn(ctx->GetIsolate(), Handle<Function>::Cast(val)->ToString());
+  #else
   v8::String::Utf8Value fn(Handle<Function>::Cast(val)->ToString());
+  #endif
   if (NULL != *fn) { 
     mHash = hashFn(*fn);
   }

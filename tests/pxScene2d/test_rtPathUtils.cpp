@@ -77,7 +77,7 @@ class rtPathUtilsTest : public testing::Test
       rtError rv1 = rtGetCurrentDirectory(cwd);
 
       EXPECT_EQ(0, rv1);
-      EXPECT_EQ(false, cwd.isEmpty());
+      EXPECT_FALSE(cwd.isEmpty());
 
       int num_entries = 0;
       rtModuleDirs *p = rtModuleDirs::instance(env_name); // creates new environment

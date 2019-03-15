@@ -43,7 +43,7 @@ export SPARK_ENABLE_COLLECT_GARBAGE=1
 
 EXECLOGS=$TRAVIS_BUILD_DIR/logs/exec_logs
 LEAKLOGS=$TRAVIS_BUILD_DIR/logs/leak_logs
-TESTRUNNERURL="https://px-apps.sys.comcast.net/pxscene-samples/examples/px-reference/test-run/testRunner_v7.js"
+TESTRUNNERURL="https://www.sparkui.org/tests-ci/test-run/testRunner.js"
 TESTS="file://$TRAVIS_BUILD_DIR/tests/pxScene2d/testRunner/tests.json,file://$TRAVIS_BUILD_DIR/tests/pxScene2d/testRunner/testsDesktop.json"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -63,7 +63,7 @@ cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src/spark.app/Contents/MacOS
 
 # Monitor testRunner ...
 count=0
-max_seconds=900
+max_seconds=1800
 
 while [ "$count" -le "$max_seconds" ]; do
 	#leaks -nocontext Spark > $LEAKLOGS
@@ -122,7 +122,7 @@ leakcount=`leaks Spark|grep Leak|wc -l`
 echo "leakcount during termination $leakcount"
 kill -15 `ps -ef | grep Spark |grep -v grep|grep -v spark.sh|awk '{print $2}'`
 
-# Sleep for 40s as we have sleep for 30s inside code to capture memory of process
+#Sleep for 90s as we have sleep for 30s inside code to capture memory of process
 echo "Sleeping to make terminate complete ...";
 sleep 90s
 pkill -9 -f spark.sh	
@@ -147,7 +147,7 @@ if [ "$retVal" -ne 0 ]
         else
 		errCause="Either one or more tests failed. Check the log file $EXECLOGS"
 	fi
-	checkError $retVal "Testrunner execution failed" "$errCause" "Run pxscene with testrunner.js locally as ./spark.sh https://px-apps.sys.comcast.net/pxscene-samples/examples/px-reference/test-run/testRunner.js?tests=<pxcore dir>tests/pxScene2d/testRunner/tests.json"
+	checkError $retVal "Testrunner execution failed" "$errCause" "Run pxscene with testrunner.js locally as ./spark.sh https://www.sparkui.org/tests-ci/test-run/testRunner.js?tests=<pxcore dir>tests/pxScene2d/testRunner/tests.json"
 	exit 1;
 fi
 

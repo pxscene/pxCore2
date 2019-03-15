@@ -19,6 +19,7 @@ limitations under the License.
 #include <sstream>
 
 #include "rtPermissions.h"
+#include "rtUrlUtils.h"
 
 #include "test_includes.h" // Needs to be included last
 
@@ -1002,6 +1003,62 @@ public:
     rtPermissions::init();
   }
 
+  void test_supportfilesSample2Conf()
+  {
+    rtPermissions::init("supportfiles/permissions.sample2.conf");
+    rtPermissionsRef p1;
+
+    // "*://*.xreapps.net": "xreapps.net",
+    // "*://*.xreapps.net:*": "xreapps.net"
+
+    p1 = new rtPermissions("http://foo.com/testing/://123.xreapps.net/securityHole.js");
+    EXPECT_EQ ((int)RT_ERROR_NOT_ALLOWED, (int)p1->allows("http://456.xreapps.net", rtPermissions::DEFAULT));
+    p1 = new rtPermissions("http://123.xreapps.net/testing/://foo.com/securityHole.js");
+    EXPECT_EQ ((int)RT_OK, (int)p1->allows("http://456.xreapps.net", rtPermissions::DEFAULT));
+
+    p1 = new rtPermissions("http://foo.com?x=http://123.xreapps.net/securityHole.js");
+    EXPECT_EQ ((int)RT_ERROR_NOT_ALLOWED, (int)p1->allows("http://456.xreapps.net", rtPermissions::DEFAULT));
+    p1 = new rtPermissions("http://123.xreapps.net?x=http://foo.com/securityHole.js");
+    EXPECT_EQ ((int)RT_OK, (int)p1->allows("http://456.xreapps.net", rtPermissions::DEFAULT));
+
+    p1 = new rtPermissions("http://123.xreapps.net@foo.com");
+    EXPECT_EQ ((int)RT_ERROR_NOT_ALLOWED, (int)p1->allows("http://456.xreapps.net", rtPermissions::DEFAULT));
+    p1 = new rtPermissions("http://foo.com@123.xreapps.net");
+    EXPECT_EQ ((int)RT_OK, (int)p1->allows("http://456.xreapps.net", rtPermissions::DEFAULT));
+
+    p1 = new rtPermissions("http://123.xreapps.net:80@foo.com:80");
+    EXPECT_EQ ((int)RT_ERROR_NOT_ALLOWED, (int)p1->allows("http://456.xreapps.net", rtPermissions::DEFAULT));
+    p1 = new rtPermissions("http://foo.com:80@123.xreapps.net:80");
+    EXPECT_EQ ((int)RT_OK, (int)p1->allows("http://456.xreapps.net", rtPermissions::DEFAULT));
+
+    p1 = new rtPermissions("http://123.xreapps.net%40123.xreapps.net:123.xreapps.net@foo.com");
+    EXPECT_EQ ((int)RT_ERROR_NOT_ALLOWED, (int)p1->allows("http://456.xreapps.net", rtPermissions::DEFAULT));
+    p1 = new rtPermissions("http://foo.com%40foo.com:foo.com@123.xreapps.net");
+    EXPECT_EQ ((int)RT_OK, (int)p1->allows("http://456.xreapps.net", rtPermissions::DEFAULT));
+
+    //    "allow": [
+    //      "*://*.xreapps.net",
+    //      "*://*.xreapps.net:*"
+    //    ],
+
+    p1 = new rtPermissions("http://123.xreapps.net");
+    EXPECT_EQ ((int)RT_OK, (int)p1->allows("http://123.xreapps.net", rtPermissions::DEFAULT));
+    EXPECT_EQ ((int)RT_ERROR_NOT_ALLOWED, (int)p1->allows("http://foo.com", rtPermissions::DEFAULT));
+    EXPECT_EQ ((int)RT_OK, (int)p1->allows("http://123.xreapps.net/://foo.com", rtPermissions::DEFAULT));
+    EXPECT_EQ ((int)RT_ERROR_NOT_ALLOWED, (int)p1->allows("http://foo.com/://123.xreapps.net", rtPermissions::DEFAULT));
+    EXPECT_EQ ((int)RT_OK, (int)p1->allows("http://123.xreapps.net?x=http://foo.com", rtPermissions::DEFAULT));
+    EXPECT_EQ ((int)RT_ERROR_NOT_ALLOWED, (int)p1->allows("http://foo.com?x=http://123.xreapps.net", rtPermissions::DEFAULT));
+    EXPECT_EQ ((int)RT_OK, (int)p1->allows("http://foo.com@123.xreapps.net", rtPermissions::DEFAULT));
+    EXPECT_EQ ((int)RT_ERROR_NOT_ALLOWED, (int)p1->allows("http://123.xreapps.net@foo.com", rtPermissions::DEFAULT));
+    EXPECT_EQ ((int)RT_OK, (int)p1->allows("http://foo.com:foo.com@123.xreapps.net", rtPermissions::DEFAULT));
+    EXPECT_EQ ((int)RT_ERROR_NOT_ALLOWED, (int)p1->allows("http://123.xreapps.net:123.xreapps.net@foo.com", rtPermissions::DEFAULT));
+    EXPECT_EQ ((int)RT_OK, (int)p1->allows("http://foo.com%40foo.com:foo.com@123.xreapps.net", rtPermissions::DEFAULT));
+    EXPECT_EQ ((int)RT_ERROR_NOT_ALLOWED, (int)p1->allows("http://123.xreapps.net%40123.xreapps.net:123.xreapps.net@foo.com", rtPermissions::DEFAULT));
+
+    // reset
+    rtPermissions::init();
+  }
+
   void test_defaultConf()
   {
     // This test uses default Bootstrap config
@@ -1052,6 +1109,25 @@ public:
     // "*://pxscene.org" : "pxscene.org",
     // "*://pxscene.org:*" : "pxscene.org",
     p1 = new rtPermissions("http://www.pxscene.org");
+    EXPECT_EQ ((int)RT_OK, (int)p1->allows("http://any.web.site", rtPermissions::DEFAULT));
+    EXPECT_EQ ((int)RT_OK, (int)p1->allows("http://localhost", rtPermissions::DEFAULT));
+    EXPECT_EQ ((int)RT_OK, (int)p1->allows("http://localhost:8080", rtPermissions::DEFAULT));
+    EXPECT_EQ ((int)RT_OK, (int)p1->allows("http://127.0.0.1", rtPermissions::DEFAULT));
+    EXPECT_EQ ((int)RT_OK, (int)p1->allows("http://127.0.0.1:8080", rtPermissions::DEFAULT));
+    EXPECT_EQ ((int)RT_OK, (int)p1->allows("http://[::1]", rtPermissions::DEFAULT));
+    EXPECT_EQ ((int)RT_OK, (int)p1->allows("http://[::1]:8080", rtPermissions::DEFAULT));
+    EXPECT_EQ ((int)RT_OK, (int)p1->allows("http://[0:0:0:0:0:0:0:1]", rtPermissions::DEFAULT));
+    EXPECT_EQ ((int)RT_OK, (int)p1->allows("http://[0:0:0:0:0:0:0:1]:8080", rtPermissions::DEFAULT));
+    EXPECT_EQ ((int)RT_OK, (int)p1->allows("file:///afile", rtPermissions::DEFAULT));
+    EXPECT_EQ ((int)RT_OK, (int)p1->allows("anything", rtPermissions::SERVICE));
+    EXPECT_EQ ((int)RT_OK, (int)p1->allows("anything", rtPermissions::FEATURE));
+    EXPECT_EQ ((int)RT_OK, (int)p1->allows("anything", rtPermissions::WAYLAND));
+
+    // "*://www.sparkui.org" : "sparkui.org",
+    // "*://www.sparkui.org:*" : "sparkui.org",
+    // "*://sparkui.org" : "sparkui.org",
+    // "*://sparkui.org:*" : "sparkui.org",
+    p1 = new rtPermissions("http://www.sparkui.org");
     EXPECT_EQ ((int)RT_OK, (int)p1->allows("http://any.web.site", rtPermissions::DEFAULT));
     EXPECT_EQ ((int)RT_OK, (int)p1->allows("http://localhost", rtPermissions::DEFAULT));
     EXPECT_EQ ((int)RT_OK, (int)p1->allows("http://localhost:8080", rtPermissions::DEFAULT));
@@ -1461,6 +1537,7 @@ TEST_F(rtPermissionsTest, rtPermissionsTests)
   test_parentChild_4();
   test_supportfilesBadConf();
   test_supportfilesSampleConf();
+  test_supportfilesSample2Conf();
   test_defaultConf();
   test_find_1();
   test_find_2();

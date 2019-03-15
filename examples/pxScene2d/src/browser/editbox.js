@@ -286,7 +286,7 @@ px.import({ scene: 'px:scene.1.js',
                 var now = new Date().getTime();
                 if( buttonDownTime !== undefined)
                 {
-                    if((now - buttonDownTime) < 200)
+                    if((now - buttonDownTime) < 400)
                     {
                         // DOUBLE CLICKED
                         selectAll();
@@ -296,6 +296,14 @@ px.import({ scene: 'px:scene.1.js',
                 }
 
                 buttonDownTime = now;
+
+                var metrics = fontRes.measureText(pts, textInput.text);
+
+                // Move cursor to END if clicked beyond end of the current 'text'
+                if(e.x > metrics.w)
+                {
+                    moveToEnd()
+                }
             }
         });
         
@@ -903,7 +911,7 @@ px.import({ scene: 'px:scene.1.js',
 
 // console.log(">>> makeSelection() ... selection.x = " + selection.x + "   selection.w = " + selection.w + "  selection.h = " + selection.h);
 
-            updateCursor(cursor_pos);
+            cursor.a = (length == 0) ? 1 : 0;
         }
 
         function hideCursor()
@@ -913,7 +921,10 @@ px.import({ scene: 'px:scene.1.js',
         
         function showCursor()
         {
-            cursor.a = 1;
+            if(selection_text.length == 0)
+            {
+                cursor.a = 1;
+            }
             animateCursor();
         }
 

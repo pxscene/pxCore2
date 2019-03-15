@@ -176,6 +176,109 @@ public:
     e = cors.passesAccessControlCheck("Access-Control-Allow-Origin: *", false, "", passes);
     EXPECT_EQ ((int)RT_ERROR, (int)e);
   }
+
+  void isCORSRequestHeader_test()
+  {
+    rtError e;
+    bool result;
+    rtCORS cors("http://example.com");
+
+    e = cors.isCORSRequestHeader("", result);
+    EXPECT_EQ ((int)RT_OK, (int)e);
+    EXPECT_FALSE (result);
+
+    e = cors.isCORSRequestHeader("Access-Control-Allow-Origin", result);
+    EXPECT_EQ ((int)RT_OK, (int)e);
+    EXPECT_FALSE (result);
+
+    e = cors.isCORSRequestHeader("Origin", result);
+    EXPECT_EQ ((int)RT_OK, (int)e);
+    EXPECT_TRUE (result);
+
+    e = cors.isCORSRequestHeader("access-control-request-headers", result);
+    EXPECT_EQ ((int)RT_OK, (int)e);
+    EXPECT_TRUE (result);
+  }
+
+  void isCredentialsRequestHeader_test()
+  {
+    rtError e;
+    bool result;
+    rtCORS cors("http://example.com");
+
+    e = cors.isCredentialsRequestHeader("", result);
+    EXPECT_EQ ((int)RT_OK, (int)e);
+    EXPECT_FALSE (result);
+
+    e = cors.isCredentialsRequestHeader("Access-Control-Allow-Origin", result);
+    EXPECT_EQ ((int)RT_OK, (int)e);
+    EXPECT_FALSE (result);
+
+    e = cors.isCredentialsRequestHeader("Cookie", result);
+    EXPECT_EQ ((int)RT_OK, (int)e);
+    EXPECT_TRUE (result);
+
+    e = cors.isCredentialsRequestHeader("authorization", result);
+    EXPECT_EQ ((int)RT_OK, (int)e);
+    EXPECT_TRUE (result);
+  }
+
+  void origin_test()
+  {
+    rtError e;
+    rtString result;
+    rtCORS cors("http://example.com");
+
+    e = cors.origin(result);
+    EXPECT_EQ ((int)RT_OK, (int)e);
+    EXPECT_EQ ((int)0, (int)result.compare("http://example.com"));
+  }
+
+  void bypass_for_localhost_test()
+  {
+    rtError e;
+    bool passes;
+    rtString rawHeaderData;
+
+    rtCORS cors("http://example.com");
+
+    // local hosts handled by permissions
+    e = cors.passesAccessControlCheck("", false, "https://localhost", passes);
+    EXPECT_EQ ((int)RT_OK, (int)e);
+    EXPECT_TRUE (passes);
+    e = cors.passesAccessControlCheck("", false, "https://127.0.0.1", passes);
+    EXPECT_EQ ((int)RT_OK, (int)e);
+    EXPECT_TRUE (passes);
+    e = cors.passesAccessControlCheck("", false, "https://[::1]", passes);
+    EXPECT_EQ ((int)RT_OK, (int)e);
+    EXPECT_TRUE (passes);
+    e = cors.passesAccessControlCheck("", false, "https://localhost:50050", passes);
+    EXPECT_EQ ((int)RT_OK, (int)e);
+    EXPECT_TRUE (passes);
+    e = cors.passesAccessControlCheck("", false, "https://127.0.0.1:50050", passes);
+    EXPECT_EQ ((int)RT_OK, (int)e);
+    EXPECT_TRUE (passes);
+    e = cors.passesAccessControlCheck("", false, "https://[::1]:50050", passes);
+    EXPECT_EQ ((int)RT_OK, (int)e);
+    EXPECT_TRUE (passes);
+
+    // other loopback addresses
+    e = cors.passesAccessControlCheck("", false, "https://[0:0:0:0:0:0:0:1]", passes);
+    EXPECT_EQ ((int)RT_OK, (int)e);
+    EXPECT_FALSE (passes);
+    e = cors.passesAccessControlCheck("", false, "http://pacexi5:50050", passes);
+    EXPECT_EQ ((int)RT_OK, (int)e);
+    EXPECT_FALSE (passes);
+    e = cors.passesAccessControlCheck("", false, "http://ip6-localhost:50050", passes);
+    EXPECT_EQ ((int)RT_OK, (int)e);
+    EXPECT_FALSE (passes);
+    e = cors.passesAccessControlCheck("", false, "http://localhost4", passes);
+    EXPECT_EQ ((int)RT_OK, (int)e);
+    EXPECT_FALSE (passes);
+    e = cors.passesAccessControlCheck("", false, "http://::1", passes); // not valid IPv6 URL
+    EXPECT_EQ ((int)RT_OK, (int)e);
+    EXPECT_FALSE (passes);
+  }
 };
 
 TEST_F(corsTest, corsTests)
@@ -183,4 +286,8 @@ TEST_F(corsTest, corsTests)
   updateRequestForAccessControl_test();
   updateResponseForAccessControl_test();
   passesAccessControlCheck_test();
+  isCORSRequestHeader_test();
+  isCredentialsRequestHeader_test();
+  origin_test();
+  bypass_for_localhost_test();
 }

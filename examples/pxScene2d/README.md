@@ -6,7 +6,7 @@
 
 ## Minimum requirements
 >macOS
->   * OS : Macbook Pro (macOS Sierra >=10.12)
+>   * OS : Macbook Pro (macOS Sierra >= 10.12)
 >   * RAM Size : 256 MB
 >   * Disk space : 24 MB
 >   * Processor speed : 1 GHz
@@ -32,7 +32,7 @@
 ## macOS Setup 
 
 >Install Xcode, CMake and quilt
->   * Download the latest version of Xcode (>=9.2) from https://developer.apple.com/xcode/download/
+>   * Download the latest version of Xcode ( >= 9.2 <= 10) from https://developer.apple.com/xcode/download/ (XCode 10+ will currently not work!)
 >   * Download and install the latest version of brew from https://brew.sh/
 >   * From terminal install dependencies: cmake, pkg-config, quilt, java.
 
@@ -44,9 +44,9 @@
 >Setup Windows 10
 >   * Windows 10 
 >   * Visual Studio 2017 community with `Desktop development with C++` workload
->   * [windows sdk 10.0.16299 and windows sdk 10.0.17134(aka 1803)] (https://developer.microsoft.com/en-us/windows/downloads/sdk-archive)
+>   * [windows sdk 10.0.15063.0, windows sdk 10.0.16299 and windows sdk 10.0.17134(aka 1803)] (https://developer.microsoft.com/en-us/windows/downloads/sdk-archive)
 >   * python 2.7.x , make sure python can work in cmd (setup environment variables depending on install location)
->   * git for windows , make sure git can work in cmd (setup environment variables depending on install location)
+>   * git for windows , make sure git can work in cmd (setup environment variables depending on install location). While installing git, make sure that **"Use Git and optional Unix tools from the Windows Command Prompt"** option is checked.
 >   * patch utility for windows (this comes with git. setup environment variables depending on install location of patch.exe)
 >   * Download and install cmake for windows from https://cmake.org/download/
 >   * Download and install NSIS installer from http://nsis.sourceforge.net/Download
@@ -147,7 +147,7 @@
     cd pxCore/
     mkdir temp
     cd temp
-    cmake ..
+    cmake DPXSCENE_COMPILE_WARNINGS_AS_ERRORS=OFF -DPXCORE_COMPILE_WARNINGS_AS_ERRORS=OFF BUILD_STATIC_LIBS=ON  CMAKE_BUILD_TYPE=Release ..  -G Xcode
     ~~~~
     If you wish to build the unit tests then run
     ~~~~
@@ -155,7 +155,7 @@
     ~~~~
     For Linux, Mac, and Raspberry Pi run: 
     ~~~~
-    cmake --build . --config Release -- -j1
+    cmake --build . --config Release
     ~~~~
     For Windows (**Run from inside a Visual Studio Command Prompt**):
     ~~~~
@@ -186,13 +186,13 @@
 
 Examples:
   ~~~~
-./spark.sh http://www.pxscene.org/examples/px-reference/gallery/picturepile.js
-./spark.sh http://www.pxscene.org/examples/px-reference/gallery/gallery.js
+./spark.sh http://www.sparkui.org/examples/gallery/picturepile.js
+./spark.sh http://www.sparkui.org/examples/gallery/gallery.js
   ~~~~
-Running ./spark.sh without a parameter will load the local browser.js that will take a .js pathname relative to http://www.pxscene.org/examples/px-reference/gallery to run.  Alternatively, a fully qualified url can be used, for example:
+Running ./spark.sh without a parameter will load the local browser.js that will take a .js pathname relative to http://www.sparkui.org/examples/gallery to run.  Alternatively, a fully qualified url can be used, for example:
   ~~~~
-http://www.pxscene.org/examples/px-reference/gallery/picturepile.js
-http://www.pxscene.org/examples/px-reference/gallery/gallery.js
+http://www.sparkui.org/examples/gallery/picturepile.js
+http://www.sparkui.org/examples/gallery/gallery.js
 file:///home/username/directory/filename.js
   ~~~~
 6. Write your own app!
@@ -237,38 +237,6 @@ file:///home/username/directory/filename.js
 ## Developer CMake options
    ENABLE_THREAD_SANITIZER - Turn on this option to enable thread sanitizer support.  The default value is OFF
 
-## Building with rtRemote support (Linux only)
-1. Get source code
-   ~~~~
-   git clone https://github.com/pxscene/pxCore
-   ~~~~
-
-2. Build
-   ~~~~
-   cd pxCore/remote
-   make
-   cd ..
-   mkdir temp
-   cd temp
-   cmake -DBUILD_RTREMOTE_LIBS=ON ..
-   cmake --build . --config Release
-   ~~~~
-
-   The rtRemote libs will be located in pxCore/remote
-
-   Additional build configurations for rtRemote are:
-   ~~~~
-   Build rpcSampleApp: -DBUILD_RTREMOTE_SAMPLE_APP_SHARED=ON
-   Build rpcSampleApp_s: -DBUILD_RTREMOTE_SAMPLE_APP_STATIC=ON
-   Build rtSampleClient and rtSampleServer: -DBUILD_RTREMOTE_SAMPLE_APP_SIMPLE=ON
-   Enable rtRemote debugging: -DENABLE_RTREMOTE_DEBUG=ON
-   Enable rtRemote profiling: -DENABLE_RTREMOTE_PROFILE=ON
-   Disable librtremote shared library building: -DBUILD_RTREMOTE_SHARED_LIB=OFF
-   Disable librtremote static library building: -DBUILD_RTREMOTE_STATIC_LIB=OFF
-   Output pxCore libs locallay: -DOUTPUT_LIBS_LOCAL=ON
-   Disable building pxCore libs: -DBUILD_PXCORE_LIBS=OFF
-   Disable building pxscene: -DBUILD_PXSCENE=OFF
-   ~~~~
 
 ## On Mac OS X - Xcode Workspace 
 

@@ -82,7 +82,7 @@ rtError pxImageA::setUrl(const char *s)
       mImageWidth = 0;
       mImageHeight = 0;
       mImageLoaded = false;
-      pxObject::createNewPromise();
+      createNewPromise();
     }
   }
   removeResourceListener();
@@ -99,7 +99,6 @@ rtError pxImageA::setUrl(const char *s)
 // animation happens here
 void pxImageA::update(double t)
 {
-  pxObject::update(t);
 
   if (getImageAResource() == NULL || !mImageLoaded)
   {
@@ -143,8 +142,10 @@ void pxImageA::update(double t)
       mCachedFrame = mCurFrame;
       pxRect r(0, 0, mImageHeight, mImageWidth);
       mScene->invalidateRect(&r);
+      markDirty();
     }
   }
+  pxObject::update(t);
 }
 
 void pxImageA::draw()
@@ -235,7 +236,7 @@ rtError pxImageA::setResource(rtObjectRef o)
       removeResourceListener();
       mResource = o;
       mImageLoaded = false;
-      pxObject::createNewPromise();
+      createNewPromise();
       mListenerAdded = true;
       getImageAResource()->addListener(this);
     }

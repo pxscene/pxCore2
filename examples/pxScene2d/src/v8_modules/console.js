@@ -23,36 +23,27 @@ limitations under the License.
  * @param  {...any} args the messages
  */
 function stringify(...args) {
-    const ret = [];
-    args.forEach(arg => {
-        if (arg instanceof Error) {
-            ret.push(arg.toString());
-        } else {
-            ret.push(arg ? JSON.stringify(arg) : null);
-        }
-
-    });
-    return ret.join(' ');
+    return Array.prototype.slice.apply(arguments).join(' ');
 }
 
 function trace(...args) {
-    print("[LOG TRACE] " + stringify(...args));
+    print("[SPARK TRACE] " + stringify(...args));
 }
 
 function warn(...args) {
-    print("[LOG WARN] " + stringify(...args));
+    print("[SPARK WARN] " + stringify(...args));
 }
 
 function error(...args) {
-    print("[LOG ERROR] " + stringify(...args));
+    print("[SPARK ERROR] " + stringify(...args));
 }
 
 function log(...args) {
-    print("[LOG LOG] " + stringify(...args));
+    print("[SPARK LOG] " + stringify(...args));
 }
 
 function info(...args) {
-    print("[LOG INFO] " + stringify(...args));
+    print("[SPARK INFO] " + stringify(...args));
 }
 
 module.exports = {
@@ -61,4 +52,6 @@ module.exports = {
     error: error,
     log: log,
     info: info,
-}
+    time:info,
+    timeEnd: info,
+};

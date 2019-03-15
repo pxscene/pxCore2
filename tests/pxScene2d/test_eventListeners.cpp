@@ -124,7 +124,7 @@ private:
     void sendSyncEventTest()
     {
       rtObjectRef e = new rtMapObject;
-      int eventEntriesSizeBefore = mTestObj->mEmit->mEntries.size();
+      size_t eventEntriesSizeBefore = mTestObj->mEmit->mEntries.size();
       mScene->mEmit.send("syncEvent",e);
       EXPECT_TRUE(eventEntriesSizeBefore+1 == mTestObj->mEmit->mEntries.size());
     }
@@ -132,7 +132,7 @@ private:
     void sendAsyncEventTest()
     {
       rtObjectRef e = new rtMapObject;
-      int eventEntriesSizeBefore = mTestObj->mEmit->mEntries.size();
+      size_t eventEntriesSizeBefore = mTestObj->mEmit->mEntries.size();
       mScene->mEmit.sendAsync("asyncEvent",e);
       EXPECT_TRUE(eventEntriesSizeBefore == mTestObj->mEmit->mEntries.size());
     }

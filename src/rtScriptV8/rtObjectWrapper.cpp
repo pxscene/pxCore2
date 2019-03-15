@@ -79,20 +79,11 @@ void rtObjectWrapper::exportPrototype(Isolate* isolate, Handle<Object> exports)
   Local<ObjectTemplate> inst = tmpl->InstanceTemplate();
   inst->SetInternalFieldCount(1);
 #ifdef ENABLE_DEBUG_MODE
-  inst->SetNamedPropertyHandler(
-      &getPropertyByName,
-      &setPropertyByName,
-      &queryPropertyByName,
-      NULL,
-      &getEnumerablePropertyNames);
+  NamedPropertyHandlerConfiguration config(&getPropertyByName,&setPropertyByName,&queryPropertyByName,NULL,&getEnumerablePropertyNames);
+  inst->SetHandler(config);
 #else
-  inst->SetNamedPropertyHandler(
-      &getPropertyByName,
-      &setPropertyByName,
-      NULL,
-      NULL,
-      &getEnumerablePropertyNames);
-
+  NamedPropertyHandlerConfiguration config(&getPropertyByName,&setPropertyByName,NULL,NULL,&getEnumerablePropertyNames);
+  inst->SetHandler(config);
   inst->SetIndexedPropertyHandler(
       &getPropertyByIndex,
       &setPropertyByIndex,
@@ -176,7 +167,7 @@ Handle<Object> rtObjectWrapper::createFromObjectReference(v8::Local<v8::Context>
   // rtPromise
   if (err == RT_OK && desc.compare("rtPromise") == 0)
   {
-    Local<Promise::Resolver> resolver = Promise::Resolver::New(isolate);
+    Local<Promise::Resolver> resolver = Promise::Resolver::New(ctx).ToLocalChecked();
 
     rtFunctionRef resolve(new rtResolverFunction(rtResolverFunction::DispositionResolve, ctx, resolver));
     rtFunctionRef reject(new rtResolverFunction(rtResolverFunction::DispositionReject, ctx, resolver));
@@ -312,9 +303,9 @@ void rtObjectWrapper::getEnumerablePropertyIndecies(const PropertyCallbackInfo<A
   getEnumerable(info, makeIntegerFromKey);
 }
 
-void rtObjectWrapper::getPropertyByName(Local<String> prop, const PropertyCallbackInfo<Value>& info)
+void rtObjectWrapper::getPropertyByName(Local<Name> prop, const PropertyCallbackInfo<Value>& info)
 {
-  rtString name = toString(prop);
+  rtString name = toString(info.GetIsolate(), Local<String>::Cast(prop));
   getProperty(name.cString(), info);
 }
 
@@ -354,9 +345,9 @@ void rtObjectWrapper::queryProperty(const  T& prop, const PropertyCallbackInfo<I
   }
 }
 
-void rtObjectWrapper::queryPropertyByName(Local<String> prop, const PropertyCallbackInfo<Integer>& info)
+void rtObjectWrapper::queryPropertyByName(Local<Name> prop, const PropertyCallbackInfo<Integer>& info)
 {
-  rtString name = toString(prop);
+  rtString name = toString(info.GetIsolate(), Local<String>::Cast(prop));
   queryProperty(name.cString(), info);
 }
 #endif
@@ -366,9 +357,9 @@ void rtObjectWrapper::getPropertyByIndex(uint32_t index, const PropertyCallbackI
   getProperty(index, info);
 }
 
-void rtObjectWrapper::setPropertyByName(Local<String> prop, Local<Value> val, const PropertyCallbackInfo<Value>& info)
+void rtObjectWrapper::setPropertyByName(Local<Name> prop, Local<Value> val, const PropertyCallbackInfo<Value>& info)
 {
-  rtString name = toString(prop);
+  rtString name = toString(info.GetIsolate(), Local<String>::Cast(prop));
   setProperty(name.cString(), val, info);
 }
 
@@ -473,7 +464,11 @@ rtError jsObjectWrapper::Get(const char* name, rtValue* value) const
   }
   else
   {
-    if (!self->Has(s))
+#if defined ENABLE_NODE_V_6_9 || defined RTSCRIPT_SUPPORT_V8
+   if (!(self->Has(ctx,s).FromMaybe(false)))
+#else
+   if (!self->Has(s))
+#endif
     {
       err = RT_PROPERTY_NOT_FOUND;
     }
