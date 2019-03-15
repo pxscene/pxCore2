@@ -2635,7 +2635,7 @@ rtError createObject2(const char* t, rtObjectRef& o)
 int contextId = 1;
 
 pxScriptView::pxScriptView(const char* url, const char* /*lang*/, pxIViewContainer* container)
-     : mWidth(-1), mHeight(-1), mDrawing(false), mViewContainer(container), mRefCount(0)
+     : mWidth(-1), mHeight(-1), mDrawing(false), mSharedContext(), mViewContainer(container), mRefCount(0)
 {
   rtLogDebug("pxScriptView::pxScriptView()entering\n");
   mUrl = url;
@@ -2697,16 +2697,16 @@ void pxScriptView::runScript()
     // JRJR Temporary webgl integration
     if (mUrl.beginsWith("gl:"))
     {
-      mContextId = contextId++;
+      mSharedContext = context.createSharedContext(true);
       mBeginDrawing = new rtFunctionCallback(beginDrawing2, this);
       mEndDrawing = new rtFunctionCallback(endDrawing2, this);
       //mCtx->add("view", this);     
 
       // JRJR TODO initially with zero mWidth/mHeight until onSize event
       // defer to onSize once events have been ironed out
-      context.enableInternalContext(true,mContextId,true);
-      cached = context.createFramebuffer(1280,720,false,false,true);   
-      context.enableInternalContext(false,mContextId,true);
+      mSharedContext->makeCurrent(true);
+      cached = context.createFramebuffer(1280,720,false,false,true);
+      mSharedContext->makeCurrent(false);
 
       beginDrawing();
       mCtx->runScript("var glInit = require('initGL.js'); var loadUrl = glInit.loadUrl; var onClose = glInit.onClose");
@@ -3109,7 +3109,7 @@ void pxScriptView::beginDrawing()
   if (!mDrawing)
   {
     mDrawing = true;
-    context.enableInternalContext(true,mContextId,true);
+    mSharedContext->makeCurrent(true);
     previousSurface = context.getCurrentFramebuffer();
     context.setFramebuffer(cached);
     return;
@@ -3123,7 +3123,7 @@ void pxScriptView::endDrawing()
   {
     glFlush();
     context.setFramebuffer(previousSurface);
-    context.enableInternalContext(false,mContextId); 
+    mSharedContext->makeCurrent(false);
     mViewContainer->invalidateRect(NULL);
     mDrawing = false;
     return;

@@ -98,6 +98,7 @@ extern rtThreadQueue* gUIThreadQueue;
 // TODO Finish
 //#include "pxTransform.h"
 #include "pxConstants.h"
+#include "pxContextUtils.h"
 
 // Constants
 static pxConstants CONSTANTS;
@@ -648,7 +649,7 @@ protected:
   pxContextFramebufferRef previousSurface;
 
   // JRJR should go away
-  int mContextId;
+  pxSharedContextRef mSharedContext;
 
 #ifdef ENABLE_RT_NODE
   rtScriptContextRef mCtx;
