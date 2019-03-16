@@ -212,3 +212,13 @@ fi
 
 #--------
 
+if [ ! -e sqlite/.libs/libsqlite3.a ]
+then
+  banner "SQLITE"
+
+  cd sqlite
+  ./configure
+  make -j3
+  cd ..
+
+fi
