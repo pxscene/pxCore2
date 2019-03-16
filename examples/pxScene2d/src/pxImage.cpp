@@ -151,9 +151,8 @@ rtError pxImage::setUrl(const char* s)
       pRes->removeListener(this);
       mReady.send("reject",this); // reject the original promise for old image
     } */
+    removeResourceListener();
   }
-
-  removeResourceListener();
 
   if(pRes && !imageLoaded)
   {

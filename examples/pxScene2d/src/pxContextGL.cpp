@@ -127,6 +127,8 @@ pxCurrentGLProgram currentGLProgram = PROGRAM_UNKNOWN;
 
 #if defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL)
 extern EGLContext defaultEglContext;
+extern EGLDisplay defaultEglDisplay;
+extern EGLSurface defaultEglSurface;
 #endif //PX_PLATFORM_GENERIC_EGL || PX_PLATFORM_WAYLAND_EGL
 
 // TODO get rid of this global crap
@@ -2263,6 +2265,8 @@ void pxContext::init()
 
 #if defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL)
   defaultEglContext = eglGetCurrentContext();
+  defaultEglDisplay = eglGetCurrentDisplay();
+  defaultEglSurface = eglGetCurrentSurface(EGL_DRAW);
   rtLogDebug("current context in init: %p", defaultEglContext);
 #endif //PX_PLATFORM_GENERIC_EGL || PX_PLATFORM_WAYLAND_EGL
 
@@ -2751,6 +2755,12 @@ pxTextureRef pxContext::createTexture(float w, float h, float iw, float ih, void
   return alphaTexture;
 }
 
+pxSharedContextRef pxContext::createSharedContext()
+{
+  pxSharedContext* sharedContext = new pxSharedContext();
+  return sharedContext;
+}
+
 void pxContext::pushState()
 {
   pxContextState contextState;
@@ -2946,22 +2956,6 @@ int64_t pxContext::ejectTextureMemory(int64_t bytesRequested, bool forceEject)
 pxError pxContext::setEjectTextureAge(uint32_t age)
 {
   mEjectTextureAge = age;
-  return PX_OK;
-}
-
-pxError pxContext::enableInternalContext(bool enable)
-{
-#if !defined(RUNINMAIN) || defined(ENABLE_BACKGROUND_TEXTURE_CREATION)
-    makeInternalGLContextCurrent(enable);
-#else
-  (void)enable;
-#endif // !RUNINMAIN || ENABLE_BACKGROUND_TEXTURE_CREATION
-  return PX_OK;
-}
-
-pxError pxContext::enableInternalContext(bool enable, int id)
-{
-  makeInternalGLContextCurrent(enable, id);
   return PX_OK;
 }
 

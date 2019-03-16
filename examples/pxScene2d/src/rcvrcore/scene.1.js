@@ -35,6 +35,7 @@ function Scene() {
       this.animation = scene.animation;
       this.stretch   = scene.stretch;
       this.maskOp    = scene.maskOp;
+      this.dragType  = scene.dragType;
       this.alignVertical = scene.alignVertical;
       this.alignHorizontal = scene.alignHorizontal;
       this.truncation = scene.truncation;
