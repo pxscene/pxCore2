@@ -1433,7 +1433,8 @@ bool pxScene2d::onMouseUp(int32_t x, int32_t y, uint32_t flags)
 }
 
 // TODO rtRef doesn't like non-const !=
-void pxScene2d::setMouseEntered(rtRef<pxObject> o, int32_t x, int32_t y)//pxObject* o)
+// JRJR what are the x and y for?
+void pxScene2d::setMouseEntered(rtRef<pxObject> o, int32_t /*x*/, int32_t /*y*/)//pxObject* o)
 {
   if (mMouseEntered != o)
   {
