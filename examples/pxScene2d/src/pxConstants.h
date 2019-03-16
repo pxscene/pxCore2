@@ -30,32 +30,32 @@
 
 
 
-class pxConstantsAnimation : public rtObject 
+class pxConstantsAnimation : public rtObject
 {
 
 public:
   enum animationInterpolators {
-    TWEEN_LINEAR = 0, 
+    TWEEN_LINEAR = 0,
     TWEEN_EXP1 = 1,
     TWEEN_EXP2,
     TWEEN_EXP3,
-    TWEEN_STOP, 
+    TWEEN_STOP,
     EASE_IN_QUAD,
     EASE_IN_CUBIC,
     EASE_IN_BACK,
     EASE_IN_ELASTIC,
     EASE_OUT_ELASTIC,
-    EASE_OUT_BOUNCE, 
-    EASE_INOUT_BOUNCE 
+    EASE_OUT_BOUNCE,
+    EASE_INOUT_BOUNCE
   };
   enum animationOptions {
-    // Options  
+    // Options
     OPTION_OSCILLATE = 1,
     OPTION_LOOP,
     OPTION_FASTFORWARD = 8,
-    OPTION_REWIND = 16  
+    OPTION_REWIND = 16
   };
-  enum animationCounts {  
+  enum animationCounts {
     // Count
     COUNT_FOREVER = -1
   };
@@ -68,7 +68,7 @@ public:
   };
 
   rtDeclareObject(pxConstantsAnimation, rtObject);
-  
+
   rtConstantProperty(TWEEN_LINEAR, TWEEN_LINEAR, uint32_t);
   rtConstantProperty(TWEEN_EXP1, TWEEN_EXP1, uint32_t);
   rtConstantProperty(TWEEN_EXP2, TWEEN_EXP2, uint32_t);
@@ -95,10 +95,10 @@ public:
   rtConstantProperty(STATUS_ENDED, STATUS_ENDED, uint32_t);
 
   rtReadOnlyProperty(interpolators, interpolators, rtObjectRef);
-  
+
   rtError interpolators(rtObjectRef& v) const;
-  
-  pxInterp getInterpFunc(uint32_t c) 
+
+  pxInterp getInterpFunc(uint32_t c)
   {
     switch((animationInterpolators)c)
     {
@@ -120,8 +120,6 @@ public:
 
 };
 
-
-
 class pxConstantsMaskOperation : public rtObject
 {
 public:
@@ -130,9 +128,24 @@ public:
     INVERT,
   };
   rtDeclareObject(pxConstantsMaskOperation, rtObject);
-  
+
   rtConstantProperty(NORMAL, NORMAL, uint32_t);
   rtConstantProperty(INVERT, INVERT, uint32_t);
+};
+
+class pxConstantsDragType : public rtObject
+{
+public:
+  enum constants {
+    NONE = 0,
+    TEXT,
+    URL,
+  };
+  rtDeclareObject(pxConstantsDragType, rtObject);
+
+  rtConstantProperty(NONE, NONE, uint32_t);
+  rtConstantProperty(TEXT, TEXT, uint32_t);
+  rtConstantProperty( URL,  URL, uint32_t);
 };
 
 
@@ -140,12 +153,12 @@ class pxConstantsStretch : public rtObject
 {
 public:
   enum constants {
-    NONE = 0, 
+    NONE = 0,
     STRETCH,
     REPEAT,
   };
   rtDeclareObject(pxConstantsStretch, rtObject);
-  
+
   rtConstantProperty(NONE,    NONE,    uint32_t);
   rtConstantProperty(STRETCH, STRETCH, uint32_t);
   rtConstantProperty(REPEAT,  REPEAT,  uint32_t);
@@ -156,12 +169,12 @@ class pxConstantsAlignVertical : public rtObject
 {
 public:
   enum constants {
-    TOP = 0, 
+    TOP = 0,
     CENTER,
     BOTTOM,
   };
   rtDeclareObject(pxConstantsAlignVertical, rtObject);
-  
+
   rtConstantProperty(TOP,    TOP,    uint32_t);
   rtConstantProperty(CENTER, CENTER, uint32_t);
   rtConstantProperty(BOTTOM, BOTTOM, uint32_t);
@@ -171,12 +184,12 @@ class pxConstantsAlignHorizontal : public rtObject
 {
 public:
   enum constants {
-    LEFT = 0, 
+    LEFT = 0,
     CENTER,
     RIGHT,
   };
   rtDeclareObject(pxConstantsAlignHorizontal, rtObject);
-  
+
   rtConstantProperty(LEFT, LEFT, uint32_t);
   rtConstantProperty(CENTER, CENTER, uint32_t);
   rtConstantProperty(RIGHT, RIGHT, uint32_t);
@@ -186,12 +199,12 @@ class pxConstantsTruncation : public rtObject
 {
 public:
   enum constants {
-    NONE = 0, 
+    NONE = 0,
     TRUNCATE,
     TRUNCATE_AT_WORD,
   };
   rtDeclareObject(pxConstantsTruncation, rtObject);
-  
+
   rtConstantProperty(NONE,             NONE,             uint32_t);
   rtConstantProperty(TRUNCATE,         TRUNCATE,         uint32_t);
   rtConstantProperty(TRUNCATE_AT_WORD, TRUNCATE_AT_WORD, uint32_t);
@@ -201,17 +214,18 @@ public:
 /* Class for access to constants */
 class pxConstants : public rtObject
 {
-  
-public: 
 
-  static rtRef<pxConstantsAnimation> animationConstants;
-  static rtRef<pxConstantsStretch>   stretchConstants;
-  static rtRef<pxConstantsMaskOperation>    maskOpConstants;
-  
+public:
+
+  static rtRef<pxConstantsAnimation>       animationConstants;
+  static rtRef<pxConstantsStretch>         stretchConstants;
+  static rtRef<pxConstantsMaskOperation>   maskOpConstants;
+  static rtRef<pxConstantsDragType>        dragTypeConstants;
+
   static rtRef<pxConstantsAlignVertical>   alignVerticalConstants;
   static rtRef<pxConstantsAlignHorizontal> alignHorizontalConstants;
-  static rtRef<pxConstantsTruncation>      truncationConstants;  
-  
+  static rtRef<pxConstantsTruncation>      truncationConstants;
+
 };
 
 #endif // PX_CONSTANTS
