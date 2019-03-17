@@ -60,13 +60,8 @@ pxBrowser::pxBrowser(pxScene2d* scene) : pxObject(scene), mNetworkManager(nullpt
     , mOffscreen(nullptr), mTextureRef(nullptr)
 {
 
-#ifdef WIN32
-  HWND* hwnd = (HWND*)root;
-  this->mRootWidget = new QWinWidget(*hwnd);
-#elif __APPLE__
-  this->mRootWidget = qAdapter.getRootWidget();
-#endif
 
+  this->mRootWidget = qAdapter.getRootWidget();
   mHeaders.clear();
   mUrl.empty();
   mUserAgent.empty();

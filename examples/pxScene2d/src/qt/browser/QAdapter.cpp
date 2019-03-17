@@ -12,10 +12,11 @@
 
 #endif
 QApplication *qtApp = nullptr;
-int __argc = 0;
+int __argc;
 
 QAdapter::QAdapter(): mView(nullptr), mRootWidget(nullptr)
 {
+  __argc = 0;
   qtApp = new QApplication(__argc, nullptr);
 }
 
@@ -30,11 +31,10 @@ void QAdapter::init(void *root, int w, int h)
   r->setStyleSheet("background-color:red;");
   r->setGeometry(0, 0, w, h);
   this->mRootWidget = (void *) r;
+  r->setView(mView);
 #endif
 
   rtLogInfo("finished QT init, w= %d, h = %d, root = %p", w, h, root);
-//  r->show(); // let it full
-  r->setView(mView);
 }
 
 void QAdapter::update()
@@ -63,11 +63,11 @@ void QAdapter::setView(pxIView *v)
   QWinWidget* r = (QWinWidget*) mRootWidget;
 #elif __APPLE__
   QMacWidget* r = (QMacWidget*) mRootWidget;
-#endif
   if (r)
   {
     r->setView(v);
   }
+#endif
 }
 
 
