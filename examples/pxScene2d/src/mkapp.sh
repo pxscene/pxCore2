@@ -89,6 +89,8 @@ cp -a rcvrcore/* $bundleRes/rcvrcore
 #
 ${minJS} init.js $bundleRes/init.js
 ${minJS} shell.js $bundleRes/shell.js
+# this browser.js deprecated just here to keep testrunner happy for now
+${minJS} browser.js $bundleRes/browser.js
 ${minJS} browser/browser.js $bundleRes/browser/browser.js
 ${minJS} about.js $bundleRes/about.js
 ${minJS} browser/mime.js $bundleRes/browser/mime.js
