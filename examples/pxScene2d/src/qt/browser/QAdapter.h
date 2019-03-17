@@ -45,6 +45,9 @@ public:
 private:
   pxIView* mView;
   void *mRootWidget;
+  QApplication *mQtApp;
+  int mQtArgc;
+  char** mQtArgv;
 };
 
 

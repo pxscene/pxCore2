@@ -11,20 +11,20 @@
 #include "qt/browser/mac/qmacwidget.h"
 
 #endif
-QApplication *qtApp = nullptr;
-int __argc;
 
-QAdapter::QAdapter(): mView(nullptr), mRootWidget(nullptr)
+QAdapter::QAdapter(): mView(nullptr), mRootWidget(nullptr), mQtArgv(nullptr), mQtArgc(0), mQtApp(nullptr)
 {
-  __argc = 0;
-  qtApp = new QApplication(__argc, nullptr);
 }
 
 void QAdapter::init(void *root, int w, int h)
 {
+  mQtApp = new QApplication(mQtArgc, mQtArgv);
 #ifdef WIN32
   HWND* hwnd = (HWND*)root;
-  this->mRootWidget = new QWinWidget(*hwnd);
+  QWinWidget * r = new QWinWidget(*hwnd);
+  r->setStyleSheet("background-color:transparent;");
+  r->setGeometry(0, 0, w, h);
+  this->mRootWidget = (void *)r;
 #elif __APPLE__
   QMacWidget *r = new QMacWidget(root);
   r->init();
@@ -39,7 +39,9 @@ void QAdapter::init(void *root, int w, int h)
 
 void QAdapter::update()
 {
-  qtApp->sendPostedEvents();
+  if (mQtApp) {
+    mQtApp->sendPostedEvents();
+  }
 }
 
 
@@ -50,9 +52,10 @@ void QAdapter::resize(int w, int h)
 #elif __APPLE__
   QMacWidget* r = (QMacWidget*) mRootWidget;
 #endif
-
-  rtLogInfo("QT resize w = %d, h = %d, %p =",w,h,r);
-  r->setGeometry(0, 0, w, h);
+  if (r) {
+    rtLogInfo("QT resize w = %d, h = %d, %p =", w, h, r);
+    r->setGeometry(0, 0, w, h);
+  }
 }
 
 void QAdapter::setView(pxIView *v)

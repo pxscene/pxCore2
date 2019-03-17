@@ -39,7 +39,9 @@
 #include "pxText.h"
 #include "pxTextBox.h"
 #include "pxImage.h"
+#ifdef BUILD_WITH_BROWSER
 #include "pxBrowser.h"
+#endif
 
 #ifdef PX_SERVICE_MANAGER
 #include "pxServiceManager.h"
@@ -685,10 +687,13 @@ rtError pxScene2d::createObject(rtObjectRef p, rtObjectRef& o)
 
 rtError pxScene2d::createBrowser(rtObjectRef p, rtObjectRef& o)
 {
+#ifdef BUILD_WITH_BROWSER
   o = new pxBrowser(this);
   o.set(p);
   o.send("init");
   return RT_OK;
+#endif // BUILD_WITH_BROWSER
+  return RT_PROP_NOT_FOUND;
 }
 
 rtError pxScene2d::createRectangle(rtObjectRef p, rtObjectRef& o)
