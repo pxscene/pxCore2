@@ -76,9 +76,9 @@ class pxConstantsDragType;
 #include "rtServiceProvider.h"
 #include "rtSettings.h"
 
-#ifdef PXSCENE_SUPPORT_STORAGE
+//#ifdef PXSCENE_SUPPORT_STORAGE
 #include "rtStorage.h"
-#endif
+//#endif
 
 
 #ifdef RUNINMAIN
@@ -1285,9 +1285,9 @@ public:
   bool mDisposed;
   std::vector<rtFunctionRef> mServiceProviders;
   bool mArchiveSet;
-#ifdef PXSCENE_SUPPORT_STORAGE
+//#ifdef PXSCENE_SUPPORT_STORAGE
   mutable rtStorageRef mStorage;
-#endif
+//#endif
 };
 
 // TODO do we need this anymore?
