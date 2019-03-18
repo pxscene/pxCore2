@@ -167,7 +167,7 @@ if [ "$retVal" -ne 0 ]
         else
 		errCause="Either one or more tests failed. Check the log file $EXECLOGS"
 	fi
-	checkError $retVal "Testrunner execution failed" "$errCause" "Run pxscene with testrunner.js locally as ./spark.sh https://px-apps.sys.comcast.net/pxscene-samples/examples/px-reference/test-run/testRunner.js?tests=<pxcore dir>tests/pxScene2d/testRunner/tests.json"
+	checkError $retVal "Testrunner execution failed" "$errCause" "Run pxscene with testrunner.js locally as ./spark.sh https://www.sparkui.org/tests-ci/test-run/testRunner.js?tests=<pxcore dir>tests/pxScene2d/testRunner/tests.json"
 	exit 1;
 fi
 

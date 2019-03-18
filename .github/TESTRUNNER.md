@@ -1,13 +1,13 @@
 # testRunner
 
-We use [testRunner](https://px-apps.sys.comcast.net/pxscene-samples/examples/px-reference/test-run/testRunner_v7.js) to run JavaScript tests that exercise pxObjects and the JavaScript wrappers. When no _tests_ parameter is passed to it, testRunner will run the tests located here: [tests.json](https://px-apps.sys.comcast.net/pxscene-samples/examples/px-reference/test-run/tests.json).  For our Travis CI builds, however, the tests to run will come from two test files in pxCore/tests/pxScene2d/tests/testRunner: tests.json and testsDesktop.json.  All new tests should be added to tests.json unless the test is a special case that would exceed the memory constraints of embedded devices.  For those special tests, they should be added to testsDesktop.json, instead.
+We use [testRunner](https://www.sparkui.org/tests-ci/test-run/testRunner.js) to run JavaScript tests that exercise pxObjects and the JavaScript wrappers. When no _tests_ parameter is passed to it, testRunner will run the tests located here: [tests.json](https://www.sparkui.org/tests-ci/test-run/tests.json).  For our Travis CI builds, however, the tests to run will come from two test files in pxCore/tests/pxScene2d/tests/testRunner: tests.json and testsDesktop.json.  All new tests should be added to tests.json unless the test is a special case that would exceed the memory constraints of embedded devices.  For those special tests, they should be added to testsDesktop.json, instead.
 
 *testRunner* will run all tests defined in the json files passed to it and will report success and failure from those tests.  When tests have completed, it will display a Results page indicating how many tests succeeded and how many failed. If there are failures, the details of those failures will be displayed as a list on screen.  These results will also be output to the console/log.
 
 ## Adding a testRunner Test:
-1. Create a test JavaScript file according to instructions in [Defining Tests](#defining-test-functions-to-be-run). We suggest creating a pull request to add the test to [pxscene](https://github.com/pxscene/pxscene/tree/gh-pages) for open source availability.
+1. Create a test JavaScript file according to instructions in [Defining Tests](#defining-test-functions-to-be-run). We suggest creating a pull request to add the test to [Spark](https://github.com/pxscene/Spark/tree/master) for open source availability. Travis CI tests are located at https://github.com/pxscene/Spark/tree/master/tests-ci/tests.
 2. Test your test:  Use the manual test mechanism described in [Defining Tests](#defining-test-functions-to-be-run) to run your test and verify the results.
-3. Add that test file name and other properties to pxCore/tests/pxScene2d/tests/testRunner/test.json according to the instructions in [Adding a Test Page in tests.json](#Adding-a-test-page-in-tests.json).  Note that the "timeToRun" mechanism should only be used to run pages that are not explicitly authored to be tests. Otherwise, any tests added should export the tests variable and run tests and return results, as described in [Defining Tests](#defining-test-functions-to-be-run).
+3. Once your test has been merged to the Spark repository, add that test file name and other properties to pxCore/tests/pxScene2d/tests/testRunner/test.json according to the instructions in [Adding a Test Page in tests.json](#Adding-a-test-page-in-tests.json).  Note that the "timeToRun" mechanism should only be used to run pages that are not explicitly authored to be tests. Otherwise, any tests added should export the tests variable and run tests and return results, as described in [Defining Tests](#defining-test-functions-to-be-run).
 
 ### Adding a Test Page in tests.json
 A test is defined in tests.json as an object with the following properties: 
@@ -17,7 +17,7 @@ A test is defined in tests.json as an object with the following properties:
   * if the test url is not relative to the testRunner.js, specify the full url to the js file to test, then set the "useBaseURI" property to false, eg, "useBaseURI":"false"
 * _title_: the title that you would like to appear when testRunner reports results for these tests
 Alternatively, you can add a js file to the test run without adding any tests or apis to the js page itself, for instance if you want to ensure that a particular page or app always successfully runs.  You can do this by specifying a different set of properties in the tests.json: 
-{"url":"https://www.pxscene.org/examples/px-reference/gallery/coverflowtest_v2.js", "title":"coverflow", "useBaseURI":"false", "timelimit":"60000"}
+{"url":"https://www.sparkui.org/examples/gallery/gallery.js", "title":"gallery", "useBaseURI":"false", "timelimit":"60000"}
 * _timeToRun_: number of milliseconds for this test scene to be left to run.  
 * _useBaseURI_: whether or not the url specified uses a path relative to testRunner.js; if value is "false", the url is expected to be the full path to the js file to load.  Defaults to "false".
 
@@ -176,20 +176,20 @@ Tests can be run using either the checked-in/auto-deployed version of *testRunne
 
 Run deployed versions of *testRunner* and *tests.json*:
 ``` 
-./pxscene.sh https://www.pxscene.org/examples/px-reference/test-run/testRunner.js
+./spark.sh https://www.sparkui.org/tests-ci/test-run/testRunner.js
 ```
 
 *or* 
 
 Run local versions of *testRunner* and *tests.json*:
 ``` 
-./pxscene.sh {local_path_to_pxscene-samples}/examples/px-reference/test-run/testRunner.js
+./spark.sh {local_path_to_sparkui}/tests-ci/test-run/testRunner.js
 ```
 
 *or*
 
 Run deployed *testRunner* with local *tests.json* file via queryParam "tests":
 ``` 
-./pxscene.sh https://www.pxscene.org/examples/px-reference/test-run/testRunner.js?tests=file://{local_path_to_a_tests.json_file}
+./soark.sh https://www.sparkui.org/tests-ci/test-run/testRunner.js?tests=file://{local_path_to_a_tests.json_file}
 ```
 

@@ -1,5 +1,5 @@
 [
       {"url": "http://sparkui.org/examples/gallery/gallery.js", "title": "gallery", "timeToRun": "5000", "useBaseURI": "false" },
       {"url":"../tests/test_pxWayland.js", "title":"test_pxWayland","useBaseURI":"true"},
-      {"url":"../gallery/coverflowtest_v2.js","title":"coverflow","useBaseURI":"true","timeToRun":"10000"}
+      {"url":"https://www.sparkui.org/examples/coverflow/coverflow_launch.js","title":"coverflow","useBaseURI":"false","timeToRun":"10000"}
 ]

@@ -44,7 +44,7 @@ public:
 class pxIView
 {
 public:
-  virtual unsigned long RT_STDCALL AddRef() = 0;
+  virtual unsigned long RT_STDCALL AddRef()  = 0;
   virtual unsigned long RT_STDCALL Release() = 0;
 
   // should make them RT_STDCALL if I want it to be a binary
@@ -54,20 +54,26 @@ public:
 
   // events return true if the event was consumed by the view
   virtual bool RT_STDCALL onMouseDown(int32_t x, int32_t y, uint32_t flags) = 0;
-  virtual bool RT_STDCALL onMouseUp(int32_t x, int32_t y, uint32_t flags) = 0;
-  virtual bool RT_STDCALL onMouseMove(int32_t x, int32_t y) = 0;
+  virtual bool RT_STDCALL onMouseUp(  int32_t x, int32_t y, uint32_t flags) = 0;
+  virtual bool RT_STDCALL onMouseMove(int32_t x, int32_t y)                 = 0;
   
   virtual bool RT_STDCALL onScrollWheel(float dx, float dy) { UNUSED_PARAM(dx); UNUSED_PARAM(dy); return false; };
+
+  virtual bool RT_STDCALL onDragDrop( int32_t x, int32_t y, int32_t type,
+                                                      const char *dropped) {  UNUSED_PARAM(x);  UNUSED_PARAM(y);  UNUSED_PARAM(type); UNUSED_PARAM(dropped); return false; };
+  virtual bool RT_STDCALL onDragMove( int32_t x, int32_t y, int32_t type)  {  UNUSED_PARAM(x);  UNUSED_PARAM(y);  UNUSED_PARAM(type); return false; };
+  virtual bool RT_STDCALL onDragEnter(int32_t x, int32_t y, int32_t type)  {  UNUSED_PARAM(x);  UNUSED_PARAM(y);  UNUSED_PARAM(type); return false; };
+  virtual bool RT_STDCALL onDragLeave(int32_t x, int32_t y, int32_t type)  {  UNUSED_PARAM(x);  UNUSED_PARAM(y);  UNUSED_PARAM(type); return false; };
 
   virtual bool RT_STDCALL onMouseEnter() = 0;
   virtual bool RT_STDCALL onMouseLeave() = 0;
 
   virtual bool RT_STDCALL onFocus() = 0;
-  virtual bool RT_STDCALL onBlur() = 0;
+  virtual bool RT_STDCALL onBlur()  = 0;
 
   virtual bool RT_STDCALL onKeyDown(uint32_t keycode, uint32_t flags) = 0;
-  virtual bool RT_STDCALL onKeyUp(uint32_t keycode, uint32_t flags) = 0;
-  virtual bool RT_STDCALL onChar(uint32_t codepoint) = 0;
+  virtual bool RT_STDCALL onKeyUp(  uint32_t keycode, uint32_t flags) = 0;
+  virtual bool RT_STDCALL onChar(   uint32_t codepoint) = 0;
 
   virtual void RT_STDCALL onUpdate(double t) = 0;
   virtual void RT_STDCALL onDraw(/*pxBuffer& b, pxRect* r*/) = 0;

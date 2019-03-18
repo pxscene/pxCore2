@@ -28,6 +28,7 @@
 #include "pxUtil.h"
 #include "rtThreadPool.h"
 #include "rtPathUtils.h"
+#include "pxTimer.h"
 
 
 using namespace std;
@@ -436,12 +437,13 @@ void prepareImageResource(void* data)
 void rtImageResource::prepare()
 {
 #ifdef ENABLE_BACKGROUND_TEXTURE_CREATION
-  static bool enableInternalContextOnce = true;
-  if (enableInternalContextOnce)
+  static bool setInternalContextCurrent = true;
+  static pxSharedContextRef sharedContext = context.createSharedContext();
+  if (setInternalContextCurrent)
   {
-    context.enableInternalContext(true);
+    sharedContext->makeCurrent(true);
   }
-  enableInternalContextOnce = false;
+  setInternalContextCurrent = false;
   mDownloadedTexture->prepareForRendering();
 #endif //ENABLE_BACKGROUND_TEXTURE_CREATION
   mTextureMutex.lock();
@@ -541,11 +543,19 @@ void pxResource::loadResource(rtObjectRef archive)
   }
   else if ((arc != NULL ) && (arc->isFile() == false))
   {
+    setLoadStatus("sourceType", "archive");
+    double startResourceSetupTime = pxMilliseconds();
     loadResourceFromArchive(arc);
+    double stopResourceSetupTime = pxMilliseconds();
+    setLoadStatus("setupTimeMs", static_cast<int>(stopResourceSetupTime-startResourceSetupTime));
   }
   else
   {
+    setLoadStatus("sourceType", "file");
+    double startResourceSetupTime = pxMilliseconds();
     loadResourceFromFile();
+    double stopResourceSetupTime = pxMilliseconds();
+    setLoadStatus("setupTimeMs", static_cast<int>(stopResourceSetupTime-startResourceSetupTime));
   }
 
 }
@@ -620,8 +630,11 @@ void rtImageResource::loadResourceFromFile()
 
   if (loadImageSuccess == RT_OK)
   {
+    double startDecodeTime = pxMilliseconds();
     loadImageSuccess = pxLoadImage((const char *) mData.data(), mData.length(), imageOffscreen,
                                       init_w, init_h, init_sx, init_sy);
+    double stopDecodeTime = pxMilliseconds();
+    setLoadStatus("decodeTimeMs", static_cast<int>(stopDecodeTime-startDecodeTime));
   }
   else
   {
@@ -703,8 +716,11 @@ void rtImageResource::loadResourceFromArchive(rtObjectRef archiveRef)
 
   if (loadImageSuccess == RT_OK)
   {
+    double startDecodeTime = pxMilliseconds();
     loadImageSuccess = pxLoadImage((const char *) mData.data(), mData.length(), imageOffscreen,
                                       init_w, init_h, init_sx, init_sy);
+    double stopDecodeTime = pxMilliseconds();
+    setLoadStatus("decodeTimeMs", static_cast<int>(stopDecodeTime-startDecodeTime));
   }
   else
   {
@@ -775,10 +791,14 @@ void pxResource::onDownloadComplete(rtFileDownloadRequest* fileDownloadRequest)
 uint32_t rtImageResource::loadResourceData(rtFileDownloadRequest* fileDownloadRequest)
 {
       pxOffscreen imageOffscreen;
-      if (pxLoadImage(fileDownloadRequest->downloadedData(),
-                      fileDownloadRequest->downloadedDataSize(),
-                      imageOffscreen, init_w, init_h, init_sx, init_sy) == RT_OK)
+      double startDecodeTime = pxMilliseconds();
+      rtError decodeResult = pxLoadImage(fileDownloadRequest->downloadedData(),
+              fileDownloadRequest->downloadedDataSize(),
+              imageOffscreen, init_w, init_h, init_sx, init_sy);
+      double stopDecodeTime = pxMilliseconds();
+      if (decodeResult == RT_OK)
       {
+        setLoadStatus("decodeTimeMs", static_cast<int>(stopDecodeTime-startDecodeTime));
         setTextureData(imageOffscreen, fileDownloadRequest->downloadedData(),
                                          fileDownloadRequest->downloadedDataSize());
 #ifdef ENABLE_BACKGROUND_TEXTURE_CREATION
@@ -811,7 +831,32 @@ void pxResource::processDownloadedResource(rtFileDownloadRequest* fileDownloadRe
         fileDownloadRequest->httpStatusCode() == 200 &&
         fileDownloadRequest->downloadedData() != NULL)
     {
+      double startResourceSetupTime = pxMilliseconds();
       int32_t result = loadResourceData(fileDownloadRequest);
+      double stopResourceSetupTime = pxMilliseconds();
+      setLoadStatus("setupTimeMs", static_cast<int>(stopResourceSetupTime-startResourceSetupTime));
+      if (fileDownloadRequest->isDataCached())
+      {
+        setLoadStatus("loadedFromCache", true);
+      }
+      else
+      {
+        rtObjectRef metrics = fileDownloadRequest->downloadMetrics();
+        rtValue connectTimeMs;
+        rtValue sslConnectTimeMs;
+        rtValue totalDownloadTimeMs;
+        rtValue downloadSpeedBytesPerSecond;
+        metrics.get("connectTimeMs", connectTimeMs);
+        metrics.get("sslConnectTimeMs", sslConnectTimeMs);
+        metrics.get("totalDownloadTimeMs", totalDownloadTimeMs);
+        metrics.get("downloadSpeedBytesPerSecond", downloadSpeedBytesPerSecond);
+        setLoadStatus("connectTimeMs", connectTimeMs);
+        setLoadStatus("sslConnectTimeMs", sslConnectTimeMs);
+        setLoadStatus("totalDownloadTimeMs", totalDownloadTimeMs);
+        setLoadStatus("downloadSpeedBytesPerSecond", downloadSpeedBytesPerSecond);
+        setLoadStatus("loadedFromCache", false);
+      }
+      
       if(result == PX_RESOURCE_LOAD_FAIL)
       {
         rtLogError("Resource Decode Failed: %s with proxy: %s", fileDownloadRequest->fileUrl().cString(), fileDownloadRequest->proxy().cString());
