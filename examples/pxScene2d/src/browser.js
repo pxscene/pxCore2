@@ -265,7 +265,7 @@ px.import({ scene:   'px:scene.1.js',
 
     highlightBG.x = content.x - 4;
     highlightBG.y = content.y - 4;
-    
+
     inputBox.w  = w - pageInsetL - 70 - 32;
 
     menu.x = w-36
@@ -273,8 +273,8 @@ px.import({ scene:   'px:scene.1.js',
     helpBox.x   = inputBox.x;
     helpBox.y   = inputBox.y + pageInsetL;
 
-    spinner.x   = inputBox.x+inputBox.w-70;
-    spinner.y   = inputBox.y - inputBox.h+2;
+    spinner.x   = inputBox.x + inputBox.w - 70;
+    spinner.y   = inputBox.y - inputBox.h +  2;
   }
 
   scene.root.on("onPreKeyDown", function(e)
@@ -293,7 +293,7 @@ px.import({ scene:   'px:scene.1.js',
     {
       switch(code)
       {
-        // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+        // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         case keys.LEFT:   //  CTRL-ALT-LEFT
         {
           console.log("goback")
@@ -301,14 +301,14 @@ px.import({ scene:   'px:scene.1.js',
           e.stopPropagation()
         }
         break;
-        // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+        // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         case keys.RIGHT:   //  CTRL-ALT-RIGHT
         {
           goForward()
           e.stopPropagation()
         }
         break;
-        // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+        // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         case keys.R:   //  CTRL-ALT-R
         {
           console.log("Browser.js Reloading");
@@ -317,7 +317,7 @@ px.import({ scene:   'px:scene.1.js',
           console.log("Browser.js reload done");
         }
         break;
-        // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+        // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         case keys.R:   //  CTRL-ALT-H
         {
           console.log("browser.js Loading home");
@@ -325,7 +325,7 @@ px.import({ scene:   'px:scene.1.js',
           e.stopPropagation();
         }
         break;
-        // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+        // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
       }//SWITCH
     }//ENDIF  CTRL-ALT
   });
@@ -361,7 +361,7 @@ px.import({ scene:   'px:scene.1.js',
     {
       switch(code)
       {
-        // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+        // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         case keys.A:  //  CTRL-ALT-A
         {
           console.log("about.js Loading about");
@@ -370,7 +370,7 @@ px.import({ scene:   'px:scene.1.js',
         }
         break;
 
-        // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+        // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         case keys.F:  //  CTRL-ALT-F
         {
           showFullscreen = !showFullscreen;
@@ -379,7 +379,7 @@ px.import({ scene:   'px:scene.1.js',
         }
         break;
 
-        // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+        // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         case keys.H:  //  CTRL-ALT-H
         {
           // console.log("browser.js Loading home");
@@ -388,7 +388,7 @@ px.import({ scene:   'px:scene.1.js',
         }
         break;
 
-        // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+        // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         case keys.K:  //  CTRL-ALT-K
         {
           helpShown ? hideHelp(0) : showHelp(4500); // Hide / Show
@@ -396,7 +396,7 @@ px.import({ scene:   'px:scene.1.js',
         }
         break;
 
-        // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+        // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         case keys.R:   //  CTRL-ALT-R
         {
           // console.log("Browser.js Reloading");
@@ -411,7 +411,7 @@ px.import({ scene:   'px:scene.1.js',
     {
       switch(code)
       {
-        // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+        // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         case keys.PAGEDOWN:
         {
           listBox.visible = !listBox.visible;
@@ -420,13 +420,13 @@ px.import({ scene:   'px:scene.1.js',
         }
         break;
 
-        // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+        // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         case keys.ENTER:
         if(inputBox.focus == true)
         {
           url = inputBox.text;
           inputBox.moveToEnd();
-    
+
           reload(url);
           //e.stopPropagation();
         }
@@ -446,7 +446,7 @@ px.import({ scene:   'px:scene.1.js',
           //e.stopPropagation();
         }
         break;
-        // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+        // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
       }//SWITCH
     }//ENDIF   CTRL-ALT
   });
@@ -472,7 +472,7 @@ px.import({ scene:   'px:scene.1.js',
     {
       if(highlightBG.a <=0)
       {
-        highlightBG.animateTo({ a: 1 }, 0.25, LINEAR, FASTFORWARD, 1); /// Hmmm 
+        highlightBG.animateTo({ a: 1 }, 0.25, LINEAR, FASTFORWARD, 1); /// Hmmm
       }
     });
 
