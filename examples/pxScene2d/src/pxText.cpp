@@ -51,12 +51,17 @@ void pxText::onInit()
 }
 rtError pxText::text(rtString& s) const { s = mText; return RT_OK; }
 
-void pxText::sendPromise() 
+void pxText::sendPromise()
 { 
-  if(mInitialized && mFontLoaded && !((rtPromise*)mReady.getPtr())->status()) 
+  if(mInitialized && !((rtPromise*)mReady.getPtr())->status())
   {
-    //rtLogDebug("pxText SENDPROMISE\n");
-    mReady.send("resolve",this); 
+    if (mFontLoaded) {
+      //rtLogDebug("pxText SENDPROMISE reslove\n");
+      mReady.send("resolve",this);
+    } else {
+      //rtLogDebug("pxText SENDPROMISE reject\n");
+      mReady.send("reject",this);
+    }
   }
 }
 
