@@ -781,11 +781,11 @@
     <TargetName Condition="'$(Configuration)|$(Platform)'=='LIB Debug - LIB OpenSSL - LIB LibSSH2|x64'">$(ProjectName)d</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='LIB Debug - DLL OpenSSL|Win32'">
-    <IncludePath>$(NodeSrcDir)\deps\openssl\openssl\include;$(IncludePath)</IncludePath>
+    <IncludePath>..\libnode-v6.9.0\deps\openssl\openssl\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='LIB Release - DLL OpenSSL|Win32'">
     <TargetName>$(ProjectName)d</TargetName>
-    <IncludePath>$(NodeSrcDir)\deps\openssl\openssl\include;$(IncludePath)</IncludePath>
+    <IncludePath>..\libnode-v6.9.0\deps\openssl\openssl\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='LIB Release - DLL Windows SSPI|Win32'">
     <TargetName>$(ProjectName)d</TargetName>

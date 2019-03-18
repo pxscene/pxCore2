@@ -37,11 +37,7 @@ if (PREFER_SYSTEM_LIBRARIES)
 endif (PREFER_SYSTEM_LIBRARIES)
 
 if (NOT V8_FOUND)
-if (NOT WIN32)
-    set(NODEDIR "${EXTDIR}/node/")
-else ()
-    set(NODEDIR "${EXTDIR}/libnode-v8.15.1/")
-endif ()
+set(NODEDIR "${EXTDIR}/libnode-v6.9.0/")
 set(V8DIR "${EXTDIR}/v8/")
 set(V8_INCLUDE_DIRS ${V8DIR}/include
         ${NODEDIR}/deps/uv/include 
