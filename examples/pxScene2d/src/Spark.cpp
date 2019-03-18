@@ -106,9 +106,12 @@ extern bool gApplicationIsClosing;
 extern int pxObjectCount;
 
 #include "pxFont.h"
+
+#ifdef BUILD_WITH_BROWSER
 #include "QAdapter.h"
 
 QAdapter qAdapter;
+#endif
 
 #ifdef PXSCENE_FONT_ATLAS
 extern pxFontAtlas gFontAtlas;
@@ -169,7 +172,9 @@ public:
       ENTERSCENELOCK()
       v->setViewContainer(this);
       v->onSize(mWidth, mHeight);
+#ifdef BUILD_WITH_BROWSER
       qAdapter.setView(v);
+#endif // BUILD_WITH_BROWSER
       EXITSCENELOCK()
     }
 
@@ -233,10 +238,18 @@ public:
     onCloseRequest();
   }
 
+#ifdef BUILD_WITH_BROWSER
   void initQT()
   {
+#ifdef WIN32
+    qAdapter.init(&mWindow, mWidth, mHeight);
+#elif __APPLE__
     qAdapter.init(mWindow, mWidth, mHeight);
+#endif
+
+    
   }
+#endif
 protected:
 
   virtual void onSize(int32_t w, int32_t h)
@@ -247,7 +260,9 @@ protected:
       mHeight = h;
       ENTERSCENELOCK()
       if (mView){
+#ifdef BUILD_WITH_BROWSER
         qAdapter.resize(w, h);
+#endif
         mView->onSize(w, h);
       }
       EXITSCENELOCK()
@@ -428,7 +443,9 @@ protected:
     ENTERSCENELOCK()
     if (mView && !mClosed){
       mView->onUpdate(pxSeconds());
+#ifdef BUILD_WITH_BROWSER
       qAdapter.update();
+#endif
     }
     EXITSCENELOCK()
 #ifdef ENABLE_OPTIMUS_SUPPORT
@@ -815,11 +832,13 @@ if (s && (strcmp(s,"1") == 0))
 // would like to decouple it from pxScene2d specifically
   context.init();
 
+#ifdef BUILD_WITH_BROWSER
   rtLogSetLevel(rtLogLevel::RT_LOG_INFO);
   pxSharedContextRef sharedContext = context.createSharedContext();
   sharedContext->makeCurrent(true);
   win.initQT();
   sharedContext->makeCurrent(false);
+#endif
 
 #ifdef WIN32
 
