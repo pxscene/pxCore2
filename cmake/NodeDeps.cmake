@@ -40,6 +40,7 @@ if (NOT NODE_FOUND)
       else (NOT WIN32)
           set(NODE_INCLUDE_DIRS ${NODE_INCLUDE_DIRS}
               ${NODEDIR}/deps/openssl/openssl/include ${NODEDIR}/deps/http_parser
+              ${NODEDIR}/deps/v8_inspector/third_party/v8_inspector/
               ${NODEDIR}/deps/icu-small/source/common/unicode
               ${NODEDIR}/Release/obj/global_intermediate/blink
               ${NODEDIR}/Release/obj/global_intermediate
@@ -53,13 +54,14 @@ if (NOT NODE_FOUND)
               v8_base_1.lib v8_base_2.lib v8_base_3.lib
               gtest.lib cares.lib http_parser.lib
               icutools.lib icustubdata.lib icudata.lib icuucx.lib icui18n.lib
-              libuv.lib openssl.lib
+              libuv.lib openssl.lib v8_inspector_stl.lib
               node.lib cctest.lib
              )
       endif (NOT WIN32)
   else (NOT BUILD_WITH_STATIC_NODE)
       set(NODE_LIBRARY_DIRS ${NODE_LIBRARY_DIRS}
           ${NODEDIR}/out/Release/obj.target
+          ${NODEDIR}/out/Release/obj.target/deps/v8_inspector/third_party/v8_inspector/platform/v8_inspector
           ${NODEDIR}/out/Release/obj.target/deps/uv
           ${NODEDIR}/out/Release/obj.target/deps/v8/tools/gyp
           ${NODEDIR}/out/Release/obj.target/deps/cares
@@ -70,6 +72,7 @@ if (NOT NODE_FOUND)
 
       set(NODE_LIBRARIES ${NODE_LIBRARIES}
           node
+          v8_inspector_stl
           uv
           v8_snapshot
           v8_base
