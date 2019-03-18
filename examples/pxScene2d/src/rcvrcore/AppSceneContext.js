@@ -674,7 +674,6 @@ AppSceneContext.prototype.include = function(filePath, currentXModule) {
         return;
       }
     } else if(/^(http|https|http2)$/.test(filePath)) {
-      if (filePath === 'http2') filePath = 'https'; // HACK, for grpc demo
       modData = new http_wrap(filePath, _this);
       onImportComplete([modData, origFilePath]);
       return;
