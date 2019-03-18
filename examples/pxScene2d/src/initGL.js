@@ -25,7 +25,7 @@ function loadUrl(url, beginDrawing,endDrawing, _view) {
 
   var succeeded = false
 
-  view = _view
+  sparkview = _view
 
   setInterval = function(f,i){
     var interval = _timers.setInterval(function() {

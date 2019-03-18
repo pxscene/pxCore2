@@ -2,25 +2,25 @@
 
 
 if (true) {
-view.on('onKeyDown', function(e) {
+sparkview.on('onKeyDown', function(e) {
     console.log('webgl onKeyDown keyCode:', e.keyCode)
     rPyramid = 0
     rCube = 0
 })
 
-view.on('onKeyUp', function(e) {
+sparkview.on('onKeyUp', function(e) {
     console.log('webgl onKeyUp keyCode:', e.keyCode)
     rPyramid = 0
     rCube = 0
 })
 
-view.on('onChar', function(e) {
+sparkview.on('onChar', function(e) {
     console.log("webgl onChar charCode:", e.charCode)
     rPyramid = 0
     rCube = 0
 })
 
-view.on('onResize', function(e) {
+sparkview.on('onResize', function(e) {
     console.log('webgl onResize','width:', e.w, 'height:', e.h)
 })
 }
