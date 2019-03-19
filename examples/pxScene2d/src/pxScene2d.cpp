@@ -401,7 +401,7 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
 #ifdef PX_DIRTY_RECTANGLES
     mArchive(),mDirtyRect(), mLastFrameDirtyRect(),
 #endif //PX_DIRTY_RECTANGLES
-    mDirty(true), mDragging(false), mDragTarget(NULL), mTestView(NULL), mDisposed(false), mArchiveSet(false)
+    mDirty(true), mDragging(false), mDragType(pxConstantsDragType::NONE), mDragTarget(NULL), mTestView(NULL), mDisposed(false), mArchiveSet(false)
 {
   mRoot = new pxRoot(this);
   #ifdef ENABLE_PXOBJECT_TRACKING
