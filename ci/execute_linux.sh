@@ -43,7 +43,7 @@ export SPARK_ENABLE_COLLECT_GARBAGE=1
 touch $VALGRINDLOGS
 EXECLOGS=$TRAVIS_BUILD_DIR/logs/exec_logs
 TESTRUNNERURL="https://www.sparkui.org/tests-ci/test-run/testRunner.js"
-TESTS="file://$TRAVIS_BUILD_DIR/tests/pxScene2d/testRunner/tests.json,file://$TRAVIS_BUILD_DIR/tests/pxScene2d/testRunner/testsDesktop.json"
+TESTS="file://$TRAVIS_BUILD_DIR/tests/pxScene2d/testRunner/testsDesktop.json,file://$TRAVIS_BUILD_DIR/tests/pxScene2d/testRunner/tests.json"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 printExecLogs()
