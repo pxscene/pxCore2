@@ -236,6 +236,7 @@
    fun:_ZN12pxScriptView8onUpdateEd
 }
 {
+   rtScriptNodeDtorNeverCalled
    Memcheck:Leak
    match-leak-kinds: definite
    fun:calloc
