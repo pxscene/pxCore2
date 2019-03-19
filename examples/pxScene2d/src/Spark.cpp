@@ -49,6 +49,8 @@ using namespace std;
 
 #ifdef WIN32
 #include <winsparkle.h>
+#include <win/WindowsGLContext.hpp>
+WindowsGLContext* WindowsGLContext::mContext = nullptr;
 //todo: is this resource file needed?  if so, uncomment
 //#include "../../../pxCore.vsbuild/pxScene2d/resource.h"
 #endif
@@ -774,10 +776,10 @@ if (s && (strcmp(s,"1") == 0))
   win.setAnimationFPS(animationFPS);
 
 #ifdef WIN32
-
   HDC hdc = ::GetDC(win.mWindow);
-  HGLRC hrc;
-
+  WindowsGLContext *windowsGLContext = WindowsGLContext::instance();
+  windowsGLContext->hdc = hdc;
+  
 	static PIXELFORMATDESCRIPTOR pfd =
 	{
 		sizeof(PIXELFORMATDESCRIPTOR),
@@ -803,23 +805,10 @@ if (s && (strcmp(s,"1") == 0))
 
 	int pixelFormat = ChoosePixelFormat(hdc, &pfd);
   if (::SetPixelFormat(hdc, pixelFormat, &pfd)) {
-	  hrc = wglCreateContext(hdc);
-	  if (::wglMakeCurrent(hdc, hrc)) {
-			glewExperimental = GL_TRUE;
-			if (glewInit() != GLEW_OK)
-				throw std::runtime_error("glewInit failed");
-
-			char *GL_version = (char *)glGetString(GL_VERSION);
-			char *GL_vendor = (char *)glGetString(GL_VENDOR);
-			char *GL_renderer = (char *)glGetString(GL_RENDERER);
-
-
-			rtLogInfo("GL_version = %s", GL_version);
-			rtLogInfo("GL_vendor = %s", GL_vendor);
-			rtLogInfo("GL_renderer = %s", GL_renderer);
-	  }
+    HGLRC hrc = windowsGLContext->createContext();
+    windowsGLContext->makeCurrent(hrc);
+    windowsGLContext->rootContext = hrc;
   }
-
 
 #endif
   #if 0

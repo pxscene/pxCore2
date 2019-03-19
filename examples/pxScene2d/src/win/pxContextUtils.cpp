@@ -17,24 +17,92 @@ limitations under the License.
 */
 
 #include "pxContextUtils.h"
+#include "win/WindowsGLContext.hpp"
+#include <map>
+#include "rtLog.h"
+#include "rtMutex.h"
 
-int nextInternalContextId = 0;
+bool glContextIsCurrent = false;
+rtMutex eglContextMutex;
+int nextInternalContextId = 1;
+
+
+std::map<int, HGLRC> internalContexts;
+
+
+pxError createGLContext(int id)
+{
+  HGLRC hrc = nullptr;
+  rtMutexLockGuard eglContextMutexGuard(eglContextMutex);
+  if (internalContexts.find(id) != internalContexts.end())
+  {
+    hrc = internalContexts.at(id);
+  }
+  if (!hrc)
+  {
+    hrc = WindowsGLContext::instance()->createContext();
+    internalContexts[id] = hrc;
+    rtLogInfo("createGLContext id = %d", id);
+  }
+  return PX_OK;
+}
 
 pxError createInternalContext(int &id)
 {
-  id = nextInternalContextId++;
-  //TODO
+  {
+    rtMutexLockGuard eglContextMutexGuard(eglContextMutex);
+    id = nextInternalContextId++;
+  }
+  createGLContext(id);
   return PX_OK;
 }
 
 pxError deleteInternalGLContext(int id)
 {
-  //TODO
+  rtMutexLockGuard eglContextMutexGuard(eglContextMutex);
+  if (internalContexts.find(id) != internalContexts.end())
+  {
+    HGLRC hrc = internalContexts[id];
+    internalContexts.erase(id);
+    WindowsGLContext::instance()->deleteContext(hrc);
+  }
   return PX_OK;
 }
 
-pxError makeInternalGLContextCurrent(bool, int)
+pxError makeInternalGLContextCurrent(bool current, int id)
 {
-  //TODO
+  if (current)
+  {
+    HGLRC context = nullptr;
+    {
+      rtMutexLockGuard eglContextMutexGuard(eglContextMutex);
+      if (internalContexts.find(id) != internalContexts.end())
+      {
+        context = internalContexts.at(id);
+      }
+    }
+    if (!context)
+    {
+      createGLContext(id);
+      {
+        rtMutexLockGuard eglContextMutexGuard(eglContextMutex);
+        context = internalContexts[id];
+      }
+      rtLogInfo("makeInternalGLContextCurrent id = %d", id);
+    }
+    WindowsGLContext::instance()->makeCurrent(context);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+    glClearColor(0, 0, 0, 0);
+    glClear(GL_COLOR_BUFFER_BIT);
+    glContextIsCurrent = true;
+  }
+  else
+  {
+    glFlush();
+    WindowsGLContext::instance()->makeCurrent(WindowsGLContext::instance()->rootContext);
+    glContextIsCurrent = false;
+    rtLogInfo("makeInternalGLContextCurrent -> switch to root gl context");
+  }
   return PX_OK;
 }
