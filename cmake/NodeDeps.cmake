@@ -21,7 +21,7 @@ if (NOT NODE_FOUND)
       if (NOT WIN32)
           set(NODEDIR "${EXTDIR}/node/")
       else (NOT WIN32)
-          set(NODEDIR "${EXTDIR}/libnode-v6.9.0/")
+          set(NODEDIR "${EXTDIR}/libnode-v8.15.1/")
       endif (NOT WIN32)
     endif (USE_NODE_0_12_7)
 
@@ -38,25 +38,37 @@ if (NOT NODE_FOUND)
           set(NODE_LIBRARY_DIRS ${NODE_LIBRARY_DIRS} ${NODEDIR})
           set(NODE_LIBRARIES ${NODE_LIBRARIES} node)
       else (NOT WIN32)
-          set(NODE_INCLUDE_DIRS ${NODE_INCLUDE_DIRS}
-              ${NODEDIR}/deps/openssl/openssl/include ${NODEDIR}/deps/http_parser
-              ${NODEDIR}/deps/v8_inspector/third_party/v8_inspector/
-              ${NODEDIR}/deps/icu-small/source/common/unicode
-              ${NODEDIR}/Release/obj/global_intermediate/blink
-              ${NODEDIR}/Release/obj/global_intermediate
-              ${NODEDIR}/Release/obj/gen/blink
-              ${NODEDIR}/deps/icu-small/source/common
-              ${NODEDIR}/tools/msvs/genfiles
-             )
-          set(NODE_LIBRARY_DIRS ${NODE_LIBRARY_DIRS} ${NODEDIR}build/Release/lib ${NODEDIR}Release/lib ${NODEDIR}Release)
-          set(NODE_LIBRARIES ${NODE_LIBRARIES}
-              v8_libplatform.lib v8_libbase.lib v8_nosnapshot.lib v8_snapshot.lib v8_base_0.lib
-              v8_base_1.lib v8_base_2.lib v8_base_3.lib
-              gtest.lib cares.lib http_parser.lib
-              icutools.lib icustubdata.lib icudata.lib icuucx.lib icui18n.lib
-              libuv.lib openssl.lib v8_inspector_stl.lib
-              node.lib cctest.lib
-             )
+          if (NODEDIR STREQUAL "${EXTDIR}/libnode-v8.15.1/" )
+              set(NODE_LIBRARY_DIRS ${NODE_LIBRARY_DIRS} ${NODEDIR}build/Release/lib ${NODEDIR}Release/lib ${NODEDIR}Release)
+              set(NODE_LIBRARIES ${NODE_LIBRARIES}
+                  v8_libplatform.lib v8_libbase.lib v8_nosnapshot.lib v8_snapshot.lib v8_base_0.lib
+                  v8_base_1.lib v8_base_2.lib v8_base_3.lib
+                  gtest.lib cares.lib http_parser.lib
+                  icutools.lib icustubdata.lib icudata.lib icuucx.lib icui18n.lib
+                  libuv.lib openssl.lib
+                  node.lib
+                 )
+          else ()
+              set(NODE_INCLUDE_DIRS ${NODE_INCLUDE_DIRS}
+                  ${NODEDIR}/deps/openssl/openssl/include ${NODEDIR}/deps/http_parser
+                  ${NODEDIR}/deps/v8_inspector/third_party/v8_inspector/
+                  ${NODEDIR}/deps/icu-small/source/common/unicode
+                  ${NODEDIR}/Release/obj/global_intermediate/blink
+                  ${NODEDIR}/Release/obj/global_intermediate
+                  ${NODEDIR}/Release/obj/gen/blink
+                  ${NODEDIR}/deps/icu-small/source/common
+                  ${NODEDIR}/tools/msvs/genfiles
+                 )
+              set(NODE_LIBRARY_DIRS ${NODE_LIBRARY_DIRS} ${NODEDIR}build/Release/lib ${NODEDIR}Release/lib ${NODEDIR}Release)
+              set(NODE_LIBRARIES ${NODE_LIBRARIES}
+                  v8_libplatform.lib v8_libbase.lib v8_nosnapshot.lib v8_snapshot.lib v8_base_0.lib
+                  v8_base_1.lib v8_base_2.lib v8_base_3.lib
+                  gtest.lib cares.lib http_parser.lib
+                  icutools.lib icustubdata.lib icudata.lib icuucx.lib icui18n.lib
+                  libuv.lib openssl.lib v8_inspector_stl.lib
+                  node.lib cctest.lib
+                 )
+          endif ()
       endif (NOT WIN32)
   else (NOT BUILD_WITH_STATIC_NODE)
       set(NODE_LIBRARY_DIRS ${NODE_LIBRARY_DIRS}
