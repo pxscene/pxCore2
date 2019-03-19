@@ -53,7 +53,7 @@ void QAdapter::resize(int w, int h)
   QMacWidget* r = (QMacWidget*) mRootWidget;
 #endif
   if (r) {
-    rtLogInfo("QT resize w = %d, h = %d, %p =", w, h, r);
+    rtLogInfo("QT resize w = %d, h = %d, root = %p", w, h, r);
     r->setGeometry(0, 0, w, h);
   }
 }
