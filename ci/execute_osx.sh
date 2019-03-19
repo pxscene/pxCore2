@@ -43,6 +43,7 @@ export SPARK_ENABLE_COLLECT_GARBAGE=1
 
 EXECLOGS=$TRAVIS_BUILD_DIR/logs/exec_logs
 LEAKLOGS=$TRAVIS_BUILD_DIR/logs/leak_logs
+#testrunner tests
 TESTRUNNERURL="https://www.sparkui.org/tests-ci/test-run/testRunner.js"
 TESTS="file://$TRAVIS_BUILD_DIR/tests/pxScene2d/testRunner/testsDesktop.json,file://$TRAVIS_BUILD_DIR/tests/pxScene2d/testRunner/tests.json"
 
