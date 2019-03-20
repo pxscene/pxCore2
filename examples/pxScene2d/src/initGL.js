@@ -20,6 +20,7 @@ var fs = require('fs')
 var path = require('path')
 
 var _intervals = []
+var _timeouts = []
 
 function loadUrl(url, beginDrawing,endDrawing, _view) {
 
@@ -43,6 +44,23 @@ function loadUrl(url, beginDrawing,endDrawing, _view) {
     }
     _timers.clearInterval(interval)
   }
+
+  setTimeout = function(f, t){
+    var timeout = _timers.setTimeout(function() {
+        return function() {
+          beginDrawing(); f(), endDrawing(); }
+        }(), t)
+    _timeouts.push(timeout)
+    return timeout
+  }
+
+  clearTimeout = function(timeout) {
+    var index = _timeouts.indexOf(timeout);
+    if (index > -1) {
+      _timeouts.splice(index, 1);
+    }
+    _timers.clearInterval(timeout)
+  }  
 
   var filename = ''
 
@@ -81,8 +99,16 @@ var _clearIntervals = function() {
   _intervals = []
 }
 
+var _clearTimeouts = function() {
+  for(var timeout of _timeouts) {
+    _timers.clearTimeout(timeout)
+  }
+  _timeouts = []
+}
+
 function onClose() {
   _clearIntervals()
+  _clearTimeouts()
 }
 
 exports.loadUrl = loadUrl;
