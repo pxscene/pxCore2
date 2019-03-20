@@ -426,6 +426,7 @@ FILE* rtFileDownloadRequest::cacheFilePointer(void)
   {
     if ((NULL != rtFileCache::instance()) && (RT_OK == rtFileCache::instance()->httpCacheData(this->fileUrl(), cachedData)))
     {
+      rtLogInfo("fileUrl[%s] fileName[%s] \n", this->fileUrl().cString(), cachedData.fileName().cString());
       return cachedData.filePointer();
     }
   }
@@ -717,7 +718,7 @@ void rtFileDownloader::downloadFile(rtFileDownloadRequest* downloadRequest)
     {
         if(downloadRequest->deferCacheRead())
         {
-            mFileCacheMutex.lock();
+            rtLogInfo("Reading from cache Start for %s\n", downloadRequest->fileUrl().cString());
             FILE *fp = downloadRequest->cacheFilePointer();
 
             if(fp != NULL)
@@ -746,7 +747,7 @@ void rtFileDownloader::downloadFile(rtFileDownloadRequest* downloadRequest)
                 delete [] buffer;
                 fclose(fp);
             }
-            mFileCacheMutex.unlock();
+            rtLogInfo("Reading from cache End for %s\n", downloadRequest->fileUrl().cString());
         }
     }
     else

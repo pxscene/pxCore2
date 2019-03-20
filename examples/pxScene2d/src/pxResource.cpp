@@ -437,12 +437,13 @@ void prepareImageResource(void* data)
 void rtImageResource::prepare()
 {
 #ifdef ENABLE_BACKGROUND_TEXTURE_CREATION
-  static bool enableInternalContextOnce = true;
-  if (enableInternalContextOnce)
+  static bool setInternalContextCurrent = true;
+  static pxSharedContextRef sharedContext = context.createSharedContext();
+  if (setInternalContextCurrent)
   {
-    context.enableInternalContext(true);
+    sharedContext->makeCurrent(true);
   }
-  enableInternalContextOnce = false;
+  setInternalContextCurrent = false;
   mDownloadedTexture->prepareForRendering();
 #endif //ENABLE_BACKGROUND_TEXTURE_CREATION
   mTextureMutex.lock();
@@ -834,6 +835,28 @@ void pxResource::processDownloadedResource(rtFileDownloadRequest* fileDownloadRe
       int32_t result = loadResourceData(fileDownloadRequest);
       double stopResourceSetupTime = pxMilliseconds();
       setLoadStatus("setupTimeMs", static_cast<int>(stopResourceSetupTime-startResourceSetupTime));
+      if (fileDownloadRequest->isDataCached())
+      {
+        setLoadStatus("loadedFromCache", true);
+      }
+      else
+      {
+        rtObjectRef metrics = fileDownloadRequest->downloadMetrics();
+        rtValue connectTimeMs;
+        rtValue sslConnectTimeMs;
+        rtValue totalDownloadTimeMs;
+        rtValue downloadSpeedBytesPerSecond;
+        metrics.get("connectTimeMs", connectTimeMs);
+        metrics.get("sslConnectTimeMs", sslConnectTimeMs);
+        metrics.get("totalDownloadTimeMs", totalDownloadTimeMs);
+        metrics.get("downloadSpeedBytesPerSecond", downloadSpeedBytesPerSecond);
+        setLoadStatus("connectTimeMs", connectTimeMs);
+        setLoadStatus("sslConnectTimeMs", sslConnectTimeMs);
+        setLoadStatus("totalDownloadTimeMs", totalDownloadTimeMs);
+        setLoadStatus("downloadSpeedBytesPerSecond", downloadSpeedBytesPerSecond);
+        setLoadStatus("loadedFromCache", false);
+      }
+      
       if(result == PX_RESOURCE_LOAD_FAIL)
       {
         rtLogError("Resource Decode Failed: %s with proxy: %s", fileDownloadRequest->fileUrl().cString(), fileDownloadRequest->proxy().cString());
@@ -853,28 +876,6 @@ void pxResource::processDownloadedResource(rtFileDownloadRequest* fileDownloadRe
         // ToDo: Could context.createTexture ever fail and return null here?
        // mTexture = context.createTexture(imageOffscreen);
         setLoadStatus("statusCode", 0);
-
-        if (fileDownloadRequest->isDataCached())
-        {
-          setLoadStatus("loadedFromCache", true);
-        }
-        else
-        {
-          rtObjectRef metrics = fileDownloadRequest->downloadMetrics();
-          rtValue connectTimeMs;
-          rtValue sslConnectTimeMs;
-          rtValue totalDownloadTimeMs;
-          rtValue downloadSpeedBytesPerSecond;
-          metrics.get("connectTimeMs", connectTimeMs);
-          metrics.get("sslConnectTimeMs", sslConnectTimeMs);
-          metrics.get("totalDownloadTimeMs", totalDownloadTimeMs);
-          metrics.get("downloadSpeedBytesPerSecond", downloadSpeedBytesPerSecond);
-          setLoadStatus("connectTimeMs", connectTimeMs);
-          setLoadStatus("sslConnectTimeMs", sslConnectTimeMs);
-          setLoadStatus("totalDownloadTimeMs", totalDownloadTimeMs);
-          setLoadStatus("downloadSpeedBytesPerSecond", downloadSpeedBytesPerSecond);
-          setLoadStatus("loadedFromCache", false);
-        }
         val = "resolve";
         // Since this object can be released before we get a async completion
         // We need to maintain this object's lifetime
