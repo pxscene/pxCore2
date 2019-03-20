@@ -60,7 +60,6 @@ px.import({ scene: 'px:scene.1.js' }).then( function importsAreReady(imports)
                             alignHorizontal: scene.alignHorizontal.CENTER,
                             alignVertical:   scene.alignVertical.CENTER})
 
-
   logo.ready.then(
                     function(o) { },
                     function(o) { max_h -= 170; title_dy = 10; }

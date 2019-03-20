@@ -114,7 +114,9 @@
         'variables': {
           'v8_enable_handle_zapping': 0,
         },
-        'cflags': [ '-O3' ],
+        # MODIFIED CODE BEGIN
+        'cflags': [ '-Os' ],
+        # MODIFIED CODE END
         'conditions': [
           ['target_arch=="x64"', {
             'msvs_configuration_platform': 'x64',
@@ -381,7 +383,12 @@
           ['clang==1', {
             'xcode_settings': {
               'GCC_VERSION': 'com.apple.compilers.llvm.clang.1_0',
-              'CLANG_CXX_LANGUAGE_STANDARD': 'gnu++0x',  # -std=gnu++0x
+              # MODIFIED CODE BEGIN
+              #'CLANG_CXX_LANGUAGE_STANDARD': 'gnu++0x',  # -std=gnu++0x
+              'CLANG_CXX_LANGUAGE_STANDARD': 'c++11',
+              'CLANG_CXX_LIBRARY': 'libc++',
+              'MACOSX_DEPLOYMENT_TARGET': '10.9',
+              # MODIFIED CODE END
             },
           }],
         ],
