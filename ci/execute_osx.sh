@@ -64,7 +64,7 @@ cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src/spark.app/Contents/MacOS
 
 # Monitor testRunner ...
 count=0
-max_seconds=1800
+max_seconds=2100
 
 while [ "$count" -le "$max_seconds" ]; do
 	#leaks -nocontext Spark > $LEAKLOGS
