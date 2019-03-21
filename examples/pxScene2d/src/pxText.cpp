@@ -203,9 +203,9 @@ rtError pxText::setFont(rtObjectRef o)
   removeResourceListener();
 
   if (o){
-    rtString desc;
+    rtString descr;
     rtError err = o.sendReturns<rtString>("description", desc);
-    if (err == RT_OK && desc.compare("pxFont") == 0) {
+    if (err == RT_OK && descr.compare("pxFont") == 0) {
         mFont = o;
      }
    }
