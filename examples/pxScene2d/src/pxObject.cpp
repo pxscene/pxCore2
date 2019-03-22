@@ -116,7 +116,7 @@ pxObject::pxObject(pxScene2d* scene):
     mInteractive(true),
     mSnapshotRef(), mPainting(true), mClip(false), mMask(false), mDraw(true), mHitTest(true), mReady(),
     mFocus(false),mClipSnapshotRef(),mCancelInSet(true),mRepaint(true)
-    , mIsDirty(true), mRenderMatrix(), mLastRenderMatrix(), mScreenCoordinates(), mDirtyRect()
+    , mIsDirty(true), mRenderMatrix(), mLastRenderMatrix(), mScreenCoordinates(), mDirtyRect(), mScene(NULL)
     ,mDrawableSnapshotForMask(), mMaskSnapshot(), mIsDisposed(false), mSceneSuspended(false)
   {
     pxObjectCount++;
