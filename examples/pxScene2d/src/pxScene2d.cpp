@@ -2585,6 +2585,8 @@ rtDefineProperty(pxSceneContainer, cors);
 rtDefineProperty(pxSceneContainer, api);
 rtDefineProperty(pxSceneContainer, ready);
 rtDefineProperty(pxSceneContainer, serviceContext);
+rtDefineMethod(pxSceneContainer, suspend);
+rtDefineMethod(pxSceneContainer, resume);
 //rtDefineMethod(pxSceneContainer, makeReady);   // DEPRECATED ?
 
 
@@ -2646,6 +2648,26 @@ rtError pxSceneContainer::setServiceContext(rtObjectRef o)
   if( !mInitialized)
     mServiceContext = o;
 
+  return RT_OK;
+}
+
+rtError pxSceneContainer::suspend(const rtValue& v, bool& b)
+{
+  b = false;
+  if (mScene)
+  {
+    mScene->suspend(v, b);
+  }
+  return RT_OK;
+}
+
+rtError pxSceneContainer::resume(const rtValue& v, bool& b)
+{
+  b = false;
+  if (mScene)
+  {
+    mScene->resume(v,b);
+  }
   return RT_OK;
 }
 
