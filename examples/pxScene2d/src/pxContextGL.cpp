@@ -489,11 +489,17 @@ public:
         GLuint depthrenderbuffer;
         glGenRenderbuffers(1, &depthrenderbuffer);
         glBindRenderbuffer(GL_RENDERBUFFER, depthrenderbuffer);
+#if (defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL))
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, mWidth, mHeight);
+#else
         glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, mWidth, mHeight);
+#endif //(defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL))
         glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthrenderbuffer);
       }
 
-      if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+      GLenum result = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+
+      if (result != GL_FRAMEBUFFER_COMPLETE)
       {
         if ((mWidth != 0) && (mHeight != 0))
         {
@@ -506,7 +512,7 @@ public:
             createFboTexture(mWidth, mHeight);
             return prepareForRendering();
           }
-          rtLogWarn("error setting the render surface");
+          rtLogWarn("error setting the render surface: %d", result);
           return PX_FAIL;
         }
         return PX_FAIL;
