@@ -1,6 +1,7 @@
 matrix:
   include:
   - os: linux
+    name: linux_regular
     dist: trusty
     sudo: required
     addons:
@@ -14,6 +15,12 @@ matrix:
       - MATRIX_EVAL="CC=gcc-6 && CXX=g++-6"
   - os: osx
     osx_image: xcode9.4
+    name: osx_regular
+  - if: branch = travis
+    os: osx
+    osx_image: xcode9.4
+    name: osx_validation
+
 language: c++
 before_install:
 - eval "${MATRIX_EVAL}"
