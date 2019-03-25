@@ -53,6 +53,7 @@
       {"url":"../tests/test_promiseNewCreationTextBox.js", "title":"test_promiseNewCreationTextBox","useBaseURI":"true"},
       {"url":"../tests/test_screencapture_jar.js", "title":"test_screencapture_jar","useBaseURI":"true"},
       {"url":"../tests/test_pxWebColors.js", "title":"test_pxWebColors_v1","useBaseURI":"true"},
+      {"url":"../tests/test_pxColorNames.js", "title":"test_pxColorNames","useBaseURI":"true"},
       {"url":"../tests/test_objects_alpha.js", "title":"test_objects_alpha","useBaseURI":"true"},
       {"url":"../tests/test_dirty_rectangles.js", "title":"test_dirty_rectangles","useBaseURI":"true"}
 ]
