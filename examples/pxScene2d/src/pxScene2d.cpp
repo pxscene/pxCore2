@@ -490,6 +490,8 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   // capabilities.network.http2         = 2
   //
   // capabilities.metrics.textureMemory = 1
+  // 
+  // capabilities.animations.durations = 2
   //
   // capabilities.events.drag_n_drop    = 2   // additional Drag'n'Drop events 
 
@@ -536,6 +538,10 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   metricsCapabilities.set("resources", 1);
   mCapabilityVersions.set("metrics", metricsCapabilities);
 
+  rtObjectRef animationCapabilities = new rtMapObject;
+
+  animationCapabilities.set("durations", 2);
+  mCapabilityVersions.set("animations", animationCapabilities);
   //////////////////////////////////////////////////////
 
   rtObjectRef userCapabilities = new rtMapObject;
