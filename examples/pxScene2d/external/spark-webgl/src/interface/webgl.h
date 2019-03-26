@@ -33,6 +33,9 @@ protected:
   int pixelStorei_UNPACK_FLIP_Y_WEBGL;
   int pixelStorei_UNPACK_PREMULTIPLY_ALPHA_WEBGL;
   int pixelStorei_UNPACK_FLIP_BLUE_RED;
+
+  GLint mInitialFrameBuffer;
+
   void preprocessTexImageData(void * pixels, int width, int height, int format, int type);
 
   static NAN_METHOD(New);

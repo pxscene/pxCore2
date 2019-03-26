@@ -21,6 +21,7 @@ var path = require('path')
 
 var _intervals = []
 var _timeouts = []
+var _immediates = []
 
 function loadUrl(url, beginDrawing,endDrawing, _view) {
 
@@ -48,7 +49,16 @@ function loadUrl(url, beginDrawing,endDrawing, _view) {
   setTimeout = function(f, t){
     var timeout = _timers.setTimeout(function() {
         return function() {
-          beginDrawing(); f(), endDrawing(); }
+          console.log('before beginDrawing')
+          beginDrawing(); 
+          f(), 
+          endDrawing();
+          console.log('after end Drawing')
+          var index = _timeouts.indexOf(timeout)
+          if (index > -1) {
+            _timeouts.splice(index,1)
+          }
+        }
         }(), t)
     _timeouts.push(timeout)
     return timeout
@@ -59,8 +69,35 @@ function loadUrl(url, beginDrawing,endDrawing, _view) {
     if (index > -1) {
       _timeouts.splice(index, 1);
     }
-    _timers.clearInterval(timeout)
+    _timers.clearTimeout(timeout)
   }  
+
+  setImmediate = function(f){
+    var timeout = _timers.setTimeout(function() {
+        return function() {
+          console.log('before beginDrawing')
+          beginDrawing(); 
+          f(), 
+          endDrawing();
+          console.log('after end Drawing')
+          var index = _immediates.indexOf(timeout)
+          if (index > -1) {
+            _immediates.splice(index,1)
+          }
+        }
+        }(), 0)
+    _immediates.push(timeout)
+    return timeout
+  }
+
+  clearImmediate = function(immediate) {
+    var index = _timeouts.indexOf(immediate);
+    if (index > -1) {
+      _immediates.splice(index, 1);
+    }
+    _timers.clearTimeout(immediate)
+  }  
+
 
   var filename = ''
 
@@ -106,9 +143,19 @@ var _clearTimeouts = function() {
   _timeouts = []
 }
 
+var _clearImmediates = function() {
+  for(var timeout of _immediates) {
+    _timers.clearTimeout(timeout)
+  }
+  _immediates = []
+}
+
+
+
 function onClose() {
   _clearIntervals()
   _clearTimeouts()
+  _clearImmediates()
 }
 
 exports.loadUrl = loadUrl;
