@@ -85,13 +85,13 @@ function loadUrl(url, beginDrawing,endDrawing, _view) {
             _immediates.splice(index,1)
           }
         }
-        }(), 0)
+        }(), 16)
     _immediates.push(timeout)
     return timeout
   }
 
   clearImmediate = function(immediate) {
-    var index = _timeouts.indexOf(immediate);
+    var index = _immediates.indexOf(immediate);
     if (index > -1) {
       _immediates.splice(index, 1);
     }
