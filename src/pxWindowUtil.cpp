@@ -346,6 +346,7 @@ uint32_t keycodeFromNative(uint32_t nativeKeycode)
   case PX_KEY_NATIVE_QUOTE:
     commonKeycode = PX_KEY_SINGLEQUOTE;
     break;
+#if defined(PX_PLATFORM_ESSOS) || defined(PX_PLATFORM_WAYLAND) || defined(PX_PLATFORM_WAYLAND_EGL)
   case PX_KEY_NATIVE_PLAYPAUSE:
     commonKeycode = PX_KEY_PLAYPAUSE;
     break;
@@ -370,6 +371,7 @@ uint32_t keycodeFromNative(uint32_t nativeKeycode)
   case PX_KEY_NATIVE_HOMEPAGE:
     commonKeycode = PX_KEY_HOMEPAGE;
     break;
+#endif /* PX_PLATFORM_ESSOS || PX_PLATFORM_WAYLAND || PX_PLATFORM_WAYLAND_EGL */
   default:
     //TODO move rtLog support to pxCore so we can use here
     printf("pxWindowUtils: Unhandled keycode %d\n", nativeKeycode);
