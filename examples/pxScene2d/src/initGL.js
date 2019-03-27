@@ -26,13 +26,17 @@ var _immediates = []
 function loadUrl(url, beginDrawing,endDrawing, _view) {
 
   var succeeded = false
+  active = true
 
   sparkview = _view
 
   setInterval = function(f,i){
+    var rest = Array.from(arguments).slice(2)
     var interval = _timers.setInterval(function() {
       return function() { 
-        beginDrawing(); f(); endDrawing(); }
+        beginDrawing(); 
+        f.apply(null,rest); 
+        endDrawing(); }
       }(),i)
     _intervals.push(interval)
     return interval
@@ -46,14 +50,15 @@ function loadUrl(url, beginDrawing,endDrawing, _view) {
     _timers.clearInterval(interval)
   }
 
-  setTimeout = function(f, t){
+  setTimeout = function(f,t){
+    var rest = Array.from(arguments).slice(2)
     var timeout = _timers.setTimeout(function() {
         return function() {
-          console.log('before beginDrawing')
+          console.log('before beginDrawing2')
           beginDrawing(); 
-          f(), 
+          f.apply(null,rest)
           endDrawing();
-          console.log('after end Drawing')
+          console.log('after end Drawing2')
           var index = _timeouts.indexOf(timeout)
           if (index > -1) {
             _timeouts.splice(index,1)
@@ -72,14 +77,15 @@ function loadUrl(url, beginDrawing,endDrawing, _view) {
     _timers.clearTimeout(timeout)
   }  
 
-  setImmediate = function(f){
+  setImmediate = function(f){ 
+    var rest = Array.from(arguments).slice(1)
     var timeout = _timers.setTimeout(function() {
         return function() {
-          console.log('before beginDrawing')
-          beginDrawing(); 
-          f(), 
-          endDrawing();
-          console.log('after end Drawing')
+          console.log('before beginDrawing3')
+          if (active) beginDrawing(); 
+          f.apply(null,rest) 
+          if (active) endDrawing();
+          console.log('after end Drawing3')
           var index = _immediates.indexOf(timeout)
           if (index > -1) {
             _immediates.splice(index,1)
@@ -88,7 +94,10 @@ function loadUrl(url, beginDrawing,endDrawing, _view) {
         }(), 16)
     _immediates.push(timeout)
     return timeout
+    
+   console.log('setImmediate called')
   }
+
 
   clearImmediate = function(immediate) {
     var index = _immediates.indexOf(immediate);
@@ -156,6 +165,8 @@ function onClose() {
   _clearIntervals()
   _clearTimeouts()
   _clearImmediates()
+  // JRJR something is invoking setImmediate after this and causing problems
+  active = false
 }
 
 exports.loadUrl = loadUrl;
