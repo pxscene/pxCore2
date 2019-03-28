@@ -21,11 +21,38 @@
 #include "rtThreadPool.h"
 
 #include <iostream>
+#include <string.h>
+#include <stdlib.h>
 using namespace std;
 
 #define RT_THREAD_POOL_DEFAULT_THREAD_COUNT 6
 
-rtThreadPool* rtThreadPool::mGlobalInstance = new rtThreadPool(RT_THREAD_POOL_DEFAULT_THREAD_COUNT);
+int numberOfDefaultThreads()
+{
+  static int numberOfThreads = RT_THREAD_POOL_DEFAULT_THREAD_COUNT;
+  static bool once = true;
+  if (once)
+  {
+    char const *s = getenv("RT_THREAD_POOL_SIZE");
+    if (s)
+    {
+      if (strlen(s) > 0)
+      {
+        numberOfThreads = atoi(s);
+      }
+    }
+    if (numberOfThreads <= 0)
+    {
+      printf("The number of threads in the rt thread pool is too small: %d.  Defaulting to %d\n", numberOfThreads,
+                RT_THREAD_POOL_DEFAULT_THREAD_COUNT);
+      numberOfThreads = RT_THREAD_POOL_DEFAULT_THREAD_COUNT;
+    }
+  }
+  printf("The default number of threads in the rt thread pool is %d\n", numberOfThreads);
+  return numberOfThreads;
+}
+
+rtThreadPool* rtThreadPool::mGlobalInstance = new rtThreadPool(numberOfDefaultThreads());
 
 
 rtThreadPool::rtThreadPool(int numberOfThreads) : rtThreadPoolNative(numberOfThreads)
@@ -44,7 +71,12 @@ rtThreadPool* rtThreadPool::globalInstance()
 {
     if (mGlobalInstance == NULL)
     {
-        mGlobalInstance = new rtThreadPool(RT_THREAD_POOL_DEFAULT_THREAD_COUNT);
+        mGlobalInstance = new rtThreadPool(numberOfDefaultThreads());
     }
     return mGlobalInstance;
+}
+
+int rtThreadPool::numberOfThreadsInPool()
+{
+  return mNumberOfThreads;
 }
