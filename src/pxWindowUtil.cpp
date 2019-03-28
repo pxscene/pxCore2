@@ -346,6 +346,55 @@ uint32_t keycodeFromNative(uint32_t nativeKeycode)
   case PX_KEY_NATIVE_QUOTE:
     commonKeycode = PX_KEY_SINGLEQUOTE;
     break;
+/* Handling Keys that are common in Multimedia Remote/Keyboard */
+#ifdef PX_KEY_NATIVE_PLAYPAUSE
+  case PX_KEY_NATIVE_PLAYPAUSE:
+    commonKeycode = PX_KEY_PLAYPAUSE;
+    break;
+#endif /* PX_KEY_NATIVE_PLAYPAUSE */
+
+#ifdef PX_KEY_NATIVE_PLAY
+  case PX_KEY_NATIVE_PLAY:
+    commonKeycode = PX_KEY_PLAY;
+    break;
+#endif /* PX_KEY_NATIVE_PLAY */
+
+#ifdef PX_KEY_NATIVE_FASTFORWARD
+  case PX_KEY_NATIVE_FASTFORWARD:
+    commonKeycode = PX_KEY_FASTFORWARD;
+    break;
+#endif /* PX_KEY_FASTFORWARD  */
+
+#ifdef PX_KEY_NATIVE_REWIND
+  case PX_KEY_NATIVE_REWIND:
+    commonKeycode = PX_KEY_REWIND;
+    break;
+#endif /* PX_KEY_NATIVE_REWIND */
+
+#ifdef PX_KEY_NATIVE_KPENTER
+  case PX_KEY_NATIVE_KPENTER:
+    commonKeycode = PX_KEY_ENTER;
+    break;
+#endif /* PX_KEY_NATIVE_KPENTER */
+
+#ifdef PX_KEY_NATIVE_BACK
+  case PX_KEY_NATIVE_BACK:
+    commonKeycode = PX_KEY_BACK;
+    break;
+#endif /* PX_KEY_NATIVE_BACK */
+
+#ifdef PX_KEY_NATIVE_MENU
+  case PX_KEY_NATIVE_MENU:
+    commonKeycode = PX_KEY_MENU;
+    break;
+#endif /* PX_KEY_NATIVE_MENU */
+
+#ifdef PX_KEY_NATIVE_HOMEPAGE
+  case PX_KEY_NATIVE_HOMEPAGE:
+    commonKeycode = PX_KEY_HOMEPAGE;
+    break;
+#endif /* PX_KEY_NATIVE_HOMEPAGE */
+
   default:
     //TODO move rtLog support to pxCore so we can use here
     printf("pxWindowUtils: Unhandled keycode %d\n", nativeKeycode);
