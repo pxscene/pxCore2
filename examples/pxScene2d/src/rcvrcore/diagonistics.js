@@ -17,6 +17,7 @@ limitations under the License.
 */
 
 /* collect the complete tree of pxObjects for given scene and report the same */
+
 function Diagonistics(){
   var scene = null;
   this.collect = collect;
