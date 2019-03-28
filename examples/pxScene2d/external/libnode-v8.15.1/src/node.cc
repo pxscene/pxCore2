@@ -178,16 +178,10 @@ static bool track_heap_objects = false;
 static const char* eval_string = nullptr;
 static std::vector<std::string> preload_modules;
 static const int v8_default_thread_pool_size = 4;
-/*MODIFIED CODE BEGIN*/
-//static int v8_thread_pool_size = v8_default_thread_pool_size;
-int v8_thread_pool_size = v8_default_thread_pool_size;
-/*MODIFIED CODE END*/
+static int v8_thread_pool_size = v8_default_thread_pool_size;
 static bool prof_process = false;
 static bool v8_is_profiling = false;
-/*MODIFIED CODE BEGIN*/
-//static bool node_is_initialized = false;
-bool node_is_initialized = false;
-/*MODIFIED CODE END*/
+static bool node_is_initialized = false;
 static node_module* modpending;
 static node_module* modlist_builtin;
 static node_module* modlist_internal;
@@ -272,11 +266,7 @@ bool linux_at_secure = false;
 double prog_start_time;
 
 static Mutex node_isolate_mutex;
-/*MODIFIED CODE BEGIN*/
-//static v8::Isolate* node_isolate;
-v8::Isolate* node_isolate;
-FILE* errorFile = NULL;
-/*MODIFIED CODE END*/
+static v8::Isolate* node_isolate;
 
 DebugOptions debug_options;
 
@@ -375,28 +365,6 @@ static struct {
 #ifdef __POSIX__
 static const unsigned kMaxSignal = 32;
 #endif
-
-/* MODIFIED CODE BEGIN */
-void PrintErrorStringToFile(const char* format, ...) {
-  va_list filelog;
-  va_start(filelog, format);
-  const char* val = getenv("NODE_ERROR_FILE");
-  if (val) {
-    errorFile = fopen(val,"w");
-  }
-  else
-  {
-    errorFile = fopen("/tmp/nodeerror.log","w");
-  }
-  if (NULL != errorFile)
-  {
-    vfprintf(errorFile, format, filelog);
-    fclose(errorFile);
-    errorFile = NULL;
-  }
-  va_end(filelog);
-}
-/* MODIFIED CODE END */
 
 void PrintErrorString(const char* format, ...) {
   va_list ap;
@@ -1189,11 +1157,6 @@ bool DomainsStackHasErrorHandler(const Environment* env) {
 }
 
 
-/*MODIFIED CODE BEGIN*/
-} //anonymous namespace
-/*MODIFIED CODE END*/
-
-
 bool ShouldAbortOnUncaughtException(Isolate* isolate) {
   HandleScope scope(isolate);
 
@@ -1206,11 +1169,6 @@ bool ShouldAbortOnUncaughtException(Isolate* isolate) {
 
   return isEmittingTopLevelDomainError || !DomainsStackHasErrorHandler(env);
 }
-
-
-/*MODIFIED CODE BEGIN*/
-namespace {
-/*MODIFIED CODE END*/
 
 
 Local<Value> GetDomainProperty(Environment* env, Local<Object> object) {
@@ -1715,9 +1673,6 @@ void AppendExceptionLine(Environment* env,
 
     uv_tty_reset_mode();
     PrintErrorString("\n%s", arrow);
-    /* MODIFIED CODE BEGIN */
-    PrintErrorStringToFile("\n%s", arrow);
-    /* MODIFIED CODE END */
     return;
   }
 
@@ -1757,15 +1712,9 @@ static void ReportException(Environment* env,
   if (trace.length() > 0 && !trace_value->IsUndefined()) {
     if (arrow.IsEmpty() || !arrow->IsString() || decorated) {
       PrintErrorString("%s\n", *trace);
-      /* MODIFIED CODE BEGIN */
-      PrintErrorStringToFile("%s\n", *trace);
-      /* MODIFIED CODE END */
     } else {
       node::Utf8Value arrow_string(env->isolate(), arrow);
       PrintErrorString("%s\n%s\n", *arrow_string, *trace);
-      /* MODIFIED CODE BEGIN */
-      PrintErrorStringToFile("%s\n%s\n", *arrow_string, *trace);
-      /* MODIFIED CODE END */
     }
   } else {
     // this really only happens for RangeErrors, since they're the only
@@ -1789,31 +1738,18 @@ static void ReportException(Environment* env,
 
       PrintErrorString("%s\n", *message ? *message :
                                           "<toString() threw exception>");
-      /* MODIFIED CODE BEGIN */
-      PrintErrorStringToFile("%s\n", *message ? *message :
-                                          "<toString() threw exception>");
-      /* MODIFIED CODE END */
     } else {
       node::Utf8Value name_string(env->isolate(), name);
       node::Utf8Value message_string(env->isolate(), message);
 
       if (arrow.IsEmpty() || !arrow->IsString() || decorated) {
         PrintErrorString("%s: %s\n", *name_string, *message_string);
-        /* MODIFIED CODE BEGIN */
-        PrintErrorStringToFile("%s: %s\n", *name_string, *message_string);
-        /* MODIFIED CODE END */
       } else {
         node::Utf8Value arrow_string(env->isolate(), arrow);
         PrintErrorString("%s\n%s: %s\n",
                          *arrow_string,
                          *name_string,
                          *message_string);
-        /* MODIFIED CODE BEGIN */
-        PrintErrorStringToFile("%s\n%s: %s\n",
-                         *arrow_string,
-                         *name_string,
-                         *message_string);
-        /* MODIFIED CODE END */
       }
     }
   }
@@ -2111,19 +2047,14 @@ static void OnFatalError(const char* location, const char* message) {
     PrintErrorString("FATAL ERROR: %s\n", message);
   }
   fflush(stderr);
-  /* MODIFIED CODE BEGIN */
-  //ABORT();
-  /* MODIFIED CODE END */
+  ABORT();
 }
 
 
-/* MODIFIED CODE BEGIN */
-/*NO_RETURN*/ void FatalError(const char* location, const char* message) {
+NO_RETURN void FatalError(const char* location, const char* message) {
   OnFatalError(location, message);
   // to suppress compiler warning
-  /* MODIFIED CODE BEGIN */
-  //ABORT();
-  /* MODIFIED CODE END */
+  ABORT();
 }
 
 
@@ -2172,9 +2103,7 @@ void FatalException(Isolate* isolate,
 #if HAVE_INSPECTOR
     env->inspector_agent()->FatalException(error, message);
 #endif
-    /* MODIFIED CODE BEGIN */
-    //exit(exit_code);
-    /* MODIFIED CODE END */
+    exit(exit_code);
   }
 }
 
@@ -4346,12 +4275,6 @@ void RegisterBuiltinModules() {
   NODE_BUILTIN_MODULES(V)
 #undef V
 }
-
-/*MODIFIED CODE BEGIN*/
-void InspectorStart(Environment* env, const char* path, MultiIsolatePlatform* platform) {
-  env->inspector_agent()->Start(static_cast<node::NodePlatform*>(platform), path, debug_options);
-}
-/*MODIFIED CODE END*/
 
 }  // namespace node
 

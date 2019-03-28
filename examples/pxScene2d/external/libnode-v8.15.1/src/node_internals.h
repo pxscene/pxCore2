@@ -259,9 +259,7 @@ void AppendExceptionLine(Environment* env,
                          v8::Local<v8::Message> message,
                          enum ErrorHandlingMode mode);
 
-/* MODIFIED CODE BEGIN */
-/*NO_RETURN*/ void FatalError(const char* location, const char* message);
-/* MODIFIED CODE END */
+NO_RETURN void FatalError(const char* location, const char* message);
 
 void ProcessEmitWarning(Environment* env, const char* fmt, ...);
 

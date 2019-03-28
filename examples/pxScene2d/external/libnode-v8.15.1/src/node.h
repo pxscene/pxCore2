@@ -197,13 +197,6 @@ typedef intptr_t ssize_t;
 namespace node {
 
 NODE_EXTERN extern bool no_deprecation;
-
-/*MODIFIED CODE BEGIN*/
-NODE_EXTERN extern int v8_thread_pool_size;
-NODE_EXTERN extern v8::Isolate* node_isolate;
-NODE_EXTERN extern bool node_is_initialized;
-/*MODIFIED CODE END*/
-
 #if HAVE_OPENSSL
 NODE_EXTERN extern bool ssl_openssl_cert_store;
 # if NODE_FIPS_MODE
@@ -221,10 +214,6 @@ NODE_EXTERN void Init(int* argc,
 class IsolateData;
 class Environment;
 
-/*MODIFIED CODE BEGIN*/
-NODE_EXTERN bool ShouldAbortOnUncaughtException(v8::Isolate* isolate);
-/*MODIFIED CODE END*/
-
 class MultiIsolatePlatform : public v8::Platform {
  public:
   virtual ~MultiIsolatePlatform() { }
@@ -236,10 +225,6 @@ class MultiIsolatePlatform : public v8::Platform {
                                struct uv_loop_s* loop) = 0;
   virtual void UnregisterIsolate(IsolateData* isolate_data) = 0;
 };
-
-/*MODIFIED CODE BEGIN*/
-NODE_EXTERN void InspectorStart(Environment* env, const char* path, MultiIsolatePlatform* platform);
-/*MODIFIED CODE END*/
 
 // If `platform` is passed, it will be used to register new Worker instances.
 // It can be `nullptr`, in which case creating new Workers inside of

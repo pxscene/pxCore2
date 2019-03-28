@@ -87,7 +87,6 @@ class ContextifyContext {
 
 
   ~ContextifyContext() {
-    context_.ClearWeak();
     context_.Reset();
   }
 
@@ -1085,75 +1084,5 @@ void InitContextify(Local<Object> target,
 
 }  // anonymous namespace
 }  // namespace node
-
-/*MODIFIED CODE BEGIN*/
-namespace node
-{
-
-void deleteContextifyContext(void *ctx)
-{
-  ContextifyContext* context =  (ContextifyContext*)ctx;
-  if (nullptr != context)
-    delete context;
-}
-
-v8::Handle<Context> makeContext(v8::Isolate *isolate, v8::Handle<Object> sandbox)  // basically MakeContext()  circa line 268
-{
-  if (!isolate)
-  {
-    printf("\nERROR: bad isolate pointer.");
-    return Local<Context>(); // NULL;
-  }
-
-    Environment* env = Environment::GetCurrent(isolate);
-//  HandleScope scope(env->isolate());
-
-  if (!sandbox->IsObject())
-  {
-    env->ThrowTypeError("sandbox argument must be an object.");
-    return Local<Context>(); // NULL;
-  }
-
-  EscapableHandleScope  scope( isolate );
-
-  // Local<Object> sandbox = args[0].As<Object>();
-
-  Local<String> symbol_name =
-      FIXED_ONE_BYTE_STRING(isolate, "_contextifyPrivate");
-
-  // Don't allow contextifying a sandbox multiple times.
-  Local<v8::Private> private_symbol_name = v8::Private::ForApi(isolate, symbol_name);
-  CHECK(
-      !sandbox->HasPrivate(
-          env->context(),
-          private_symbol_name).FromJust());
-
-  TryCatch try_catch(isolate);
-  ContextifyContext* context = new ContextifyContext(env, sandbox);
-
-  if (try_catch.HasCaught())
-  {
-    try_catch.ReThrow();
-    return Local<Context>(); // NULL;
-  }
-
-  if (context->context().IsEmpty())
-  {
-    return Local<Context>(); // NULL;
-  }
-
-  Local<External> hidden_context = External::New(isolate, context);
-  sandbox->SetPrivate(
-      env->context(),
-      private_symbol_name,
-      hidden_context);
-
-  Local<Context>  local_context = context->context(); // returns a local context
-
-  return scope.Escape( local_context );
-}
-
-} // namespace node
-/*MODIFIED CODE END*/
 
 NODE_BUILTIN_MODULE_CONTEXT_AWARE(contextify, node::InitContextify)
