@@ -689,7 +689,7 @@ void pxWindowNative::cleanupEssos()
 
 void pxWindowNative::onSizeUpdated(int width, int height)
 {
-  if ( (mLastWidth != width) || (gDisplayHeight != mLastHeight) )
+  if ( (mLastWidth != width) || (mLastHeight != height) )
   {
       displayRef dRef;
       essosDisplay* eDisplay = dRef.getDisplay();
