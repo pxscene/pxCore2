@@ -1,3 +1,104 @@
+diff --git a/examples/pxScene2d/external/libnode-v8.15.1/common.gypi b/examples/pxScene2d/external/libnode-v8.15.1/common.gypi
+index fd42f27..feab650 100644
+--- a/examples/pxScene2d/external/libnode-v8.15.1/common.gypi
++++ b/examples/pxScene2d/external/libnode-v8.15.1/common.gypi
+@@ -131,7 +131,9 @@
+         'variables': {
+           'v8_enable_handle_zapping': 0,
+         },
+-        'cflags': [ '-O3' ],
++        # MODIFIED CODE BEGIN
++        'cflags': [ '-Os' ],
++        # MODIFIED CODE END
+         'conditions': [
+           ['target_arch=="x64"', {
+             'msvs_configuration_platform': 'x64',
+@@ -404,8 +406,13 @@
+           ['clang==1', {
+             'xcode_settings': {
+               'GCC_VERSION': 'com.apple.compilers.llvm.clang.1_0',
+-              'CLANG_CXX_LANGUAGE_STANDARD': 'gnu++0x',  # -std=gnu++0x
++              # MODIFIED CODE BEGIN
++              #'CLANG_CXX_LANGUAGE_STANDARD': 'gnu++0x',  # -std=gnu++0x
++              #'CLANG_CXX_LIBRARY': 'libc++',
++              'CLANG_CXX_LANGUAGE_STANDARD': 'c++11',
+               'CLANG_CXX_LIBRARY': 'libc++',
++              'MACOSX_DEPLOYMENT_TARGET': '10.9',
++              # MODIFIED CODE END
+             },
+           }],
+         ],
+diff --git a/examples/pxScene2d/external/libnode-v8.15.1/deps/cares/common.gypi b/examples/pxScene2d/external/libnode-v8.15.1/deps/cares/common.gypi
+index 609ad62..d6999a0 100644
+--- a/examples/pxScene2d/external/libnode-v8.15.1/deps/cares/common.gypi
++++ b/examples/pxScene2d/external/libnode-v8.15.1/deps/cares/common.gypi
+@@ -40,7 +40,9 @@
+       'Release': {
+         'defines': [ 'NDEBUG' ],
+         'cflags': [
+-          '-O3',
++          # MODIFIED CODE BEGIN
++          '-Os',
++          # MODIFIED CODE END
+           '-fomit-frame-pointer',
+           '-fdata-sections',
+           '-ffunction-sections'
+diff --git a/examples/pxScene2d/external/libnode-v8.15.1/deps/http_parser/http_parser.gyp b/examples/pxScene2d/external/libnode-v8.15.1/deps/http_parser/http_parser.gyp
+index 4364f73..39d7466 100644
+--- a/examples/pxScene2d/external/libnode-v8.15.1/deps/http_parser/http_parser.gyp
++++ b/examples/pxScene2d/external/libnode-v8.15.1/deps/http_parser/http_parser.gyp
+@@ -21,7 +21,9 @@
+       },
+       'Release': {
+         'defines': [ 'NDEBUG' ],
+-        'cflags': [ '-Wall', '-Wextra', '-O3' ],
++        # MODIFIED CODE BEGIN
++        'cflags': [ '-Wall', '-Wextra', '-Os' ],
++        # MODIFIED CODE END
+         'msvs_settings': {
+           'VCCLCompilerTool': {
+             'RuntimeLibrary': 0, # static release
+diff --git a/examples/pxScene2d/external/libnode-v8.15.1/deps/uv/common.gypi b/examples/pxScene2d/external/libnode-v8.15.1/deps/uv/common.gypi
+index 2297bdf..15bdfb3 100644
+--- a/examples/pxScene2d/external/libnode-v8.15.1/deps/uv/common.gypi
++++ b/examples/pxScene2d/external/libnode-v8.15.1/deps/uv/common.gypi
+@@ -46,7 +46,9 @@
+       'Release': {
+         'defines': [ 'NDEBUG' ],
+         'cflags': [
+-          '-O3',
++          # MODIFIED CODE BEGIN
++          '-Os',
++          # MODIFIED CODE END
+         ],
+         'msvs_settings': {
+           'VCCLCompilerTool': {
+diff --git a/examples/pxScene2d/external/libnode-v8.15.1/deps/v8/gypfiles/toolchain.gypi b/examples/pxScene2d/external/libnode-v8.15.1/deps/v8/gypfiles/toolchain.gypi
+index 80844ce..d755cce 100644
+--- a/examples/pxScene2d/external/libnode-v8.15.1/deps/v8/gypfiles/toolchain.gypi
++++ b/examples/pxScene2d/external/libnode-v8.15.1/deps/v8/gypfiles/toolchain.gypi
+@@ -1195,7 +1195,9 @@
+               # Don't use -O3 with sanitizers.
+               ['asan==0 and msan==0 and lsan==0 \
+                 and tsan==0 and ubsan==0 and ubsan_vptr==0', {
+-                'cflags': ['-O3'],
++                # MODIFIED CODE BEGIN
++                'cflags': ['-Os'],
++                # MODIFIED CODE END
+                 'cflags!': ['-O2'],
+                 }, {
+                 'cflags': ['-O2'],
+@@ -1311,7 +1313,9 @@
+               # Don't use -O3 with sanitizers.
+               ['asan==0 and msan==0 and lsan==0 \
+                 and tsan==0 and ubsan==0 and ubsan_vptr==0', {
+-                'cflags': ['-O3'],
++                # MODIFIED CODE BEGIN
++                'cflags': ['-Os'],
++                # MODIFIED CODE END
+                 'cflags!': ['-O2'],
+               }, {
+                 'cflags': ['-O2'],
 diff --git a/examples/pxScene2d/external/libnode-v8.15.1/deps/v8/src/isolate.cc b/examples/pxScene2d/external/libnode-v8.15.1/deps/v8/src/isolate.cc
 index bccd0cb..fdc9877 100644
 --- a/examples/pxScene2d/external/libnode-v8.15.1/deps/v8/src/isolate.cc
@@ -94,7 +195,7 @@ index 98bcbc3..70b6414 100644
    debug('connect: dns options', dnsopts);
    self._host = host;
 diff --git a/examples/pxScene2d/external/libnode-v8.15.1/src/node.cc b/examples/pxScene2d/external/libnode-v8.15.1/src/node.cc
-index 3d791f0..478515b 100644
+index 3d791f0..d572a6d 100644
 --- a/examples/pxScene2d/external/libnode-v8.15.1/src/node.cc
 +++ b/examples/pxScene2d/external/libnode-v8.15.1/src/node.cc
 @@ -178,10 +178,16 @@ static bool track_heap_objects = false;
@@ -274,21 +375,23 @@ index 3d791f0..478515b 100644
    }
  }
  
-@@ -4276,6 +4347,12 @@ void RegisterBuiltinModules() {
+@@ -4276,6 +4347,14 @@ void RegisterBuiltinModules() {
  #undef V
  }
  
 +/*MODIFIED CODE BEGIN*/
++#if HAVE_INSPECTOR
 +void InspectorStart(Environment* env, const char* path, MultiIsolatePlatform* platform) {
 +  env->inspector_agent()->Start(static_cast<node::NodePlatform*>(platform), path, debug_options);
 +}
++#endif
 +/*MODIFIED CODE END*/
 +
  }  // namespace node
  
  #if !HAVE_INSPECTOR
 diff --git a/examples/pxScene2d/external/libnode-v8.15.1/src/node.h b/examples/pxScene2d/external/libnode-v8.15.1/src/node.h
-index 266744e..f5aaafc 100644
+index 266744e..968568e 100644
 --- a/examples/pxScene2d/external/libnode-v8.15.1/src/node.h
 +++ b/examples/pxScene2d/external/libnode-v8.15.1/src/node.h
 @@ -197,6 +197,13 @@ typedef intptr_t ssize_t;
@@ -316,12 +419,14 @@ index 266744e..f5aaafc 100644
  class MultiIsolatePlatform : public v8::Platform {
   public:
    virtual ~MultiIsolatePlatform() { }
-@@ -226,6 +237,10 @@ class MultiIsolatePlatform : public v8::Platform {
+@@ -226,6 +237,12 @@ class MultiIsolatePlatform : public v8::Platform {
    virtual void UnregisterIsolate(IsolateData* isolate_data) = 0;
  };
  
 +/*MODIFIED CODE BEGIN*/
++#if HAVE_INSPECTOR
 +NODE_EXTERN void InspectorStart(Environment* env, const char* path, MultiIsolatePlatform* platform);
++#endif
 +/*MODIFIED CODE END*/
 +
  // If `platform` is passed, it will be used to register new Worker instances.
