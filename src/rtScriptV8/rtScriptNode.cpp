@@ -291,7 +291,7 @@ namespace node
 extern DebugOptions debug_options;
 #else
 extern bool use_debug_agent;
-#ifdef HAVE_INSPECTOR
+#if HAVE_INSPECTOR
 extern bool use_inspector;
 #endif
 extern bool debug_wait_connect;
@@ -426,7 +426,7 @@ void rtNodeContext::createEnvironment()
   if (use_debug_agent)
   {
     rtLogWarn("use_debug_agent\n");
-#ifdef HAVE_INSPECTOR
+#if HAVE_INSPECTOR
     if (use_inspector)
     {
       char currentPath[100];

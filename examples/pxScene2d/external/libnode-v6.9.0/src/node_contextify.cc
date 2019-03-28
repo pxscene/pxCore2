@@ -45,7 +45,7 @@ using v8::WeakCallbackInfo;
 
 /* MODIFIED CODE BEGIN */
   
-#ifdef HAVE_INSPECTOR
+#if HAVE_INSPECTOR
 extern bool use_inspector;
 #endif
 /* MODIFIED CODE END */
@@ -232,7 +232,7 @@ class ContextifyContext {
     // object instead (which then has a reference to the context).
     ctx->SetEmbedderData(kSandboxObjectIndex, sandbox_obj);
 /*MODIFIED CODE BEGIN */
-#ifdef HAVE_INSPECTOR
+#if HAVE_INSPECTOR
     if (use_inspector)
     {
       ctx->SetEmbedderData(0, String::NewFromUtf8(env->isolate(), "1,1,Inspector"));
