@@ -75,3 +75,8 @@ rtThreadPool* rtThreadPool::globalInstance()
     }
     return mGlobalInstance;
 }
+
+int rtThreadPool::numberOfThreadsInPool()
+{
+  return mNumberOfThreads;
+}
