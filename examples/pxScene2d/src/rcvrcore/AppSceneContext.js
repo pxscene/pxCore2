@@ -41,6 +41,8 @@ var ClearTimeout = (isDuk || isV8)?timers.clearTimeout:clearTimeout;
 var SetInterval = (isDuk || isV8)?timers.setInterval:setInterval;
 var ClearInterval = (isDuk || isV8)?timers.clearInterval:clearInterval;
 var console = (isDuk || isV8)?global.console:require('console_wrap');
+var Diagonistics = require('rcvrcore/diagonistics');
+var diagonistics = new Diagonistics();
 
 function AppSceneContext(params) {
 
@@ -681,6 +683,11 @@ AppSceneContext.prototype.include = function(filePath, currentXModule) {
     }
     else if( filePath.substring(0,7) === "optimus") {
       modData = require('rcvrcore/optimus.js');
+      onImportComplete([modData, origFilePath]);
+      return;
+    }
+    else if( filePath.substring(0,12) === "diagonistics") {
+      modData = diagonistics;
       onImportComplete([modData, origFilePath]);
       return;
     }
