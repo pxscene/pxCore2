@@ -133,7 +133,7 @@ function Diagonistics(){
         var timedata = JSON.stringify(resultnode["timestamp"]);
         resultnode["estbMAC"] = mac;
         var diagService = scene.getService("org.rdk.diagonistics");    
-        if (undefined != diagService) {
+        if ((undefined != diagService) && (null != diagService)) {
           diagService.saveData(JSON.stringify(resultnode), timedata.substring(1, timedata.length-1));
         }
         else
