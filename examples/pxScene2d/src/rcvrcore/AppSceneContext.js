@@ -82,6 +82,7 @@ function AppSceneContext(params) {
   this.isTermEvtRcvd = false;
   this.termEvent = null;
   this.diagonistics = null;
+  
   log.message(4, "[[[NEW AppSceneContext]]]: " + this.packageUrl);
 }
 
