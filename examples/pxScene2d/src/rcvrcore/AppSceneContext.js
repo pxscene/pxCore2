@@ -42,7 +42,6 @@ var SetInterval = (isDuk || isV8)?timers.setInterval:setInterval;
 var ClearInterval = (isDuk || isV8)?timers.clearInterval:clearInterval;
 var console = (isDuk || isV8)?global.console:require('console_wrap');
 var Diagonistics = require('rcvrcore/diagonistics');
-var diagonistics = new Diagonistics();
 
 function AppSceneContext(params) {
 
@@ -82,6 +81,7 @@ function AppSceneContext(params) {
   this.isCloseEvtRcvd = false;
   this.isTermEvtRcvd = false;
   this.termEvent = null;
+  this.diagonistics = null;
   log.message(4, "[[[NEW AppSceneContext]]]: " + this.packageUrl);
 }
 
@@ -185,6 +185,7 @@ function terminateScene() {
     this.isCloseEvtRcvd = false;
     this.isTermEvtRcvd = false;
     this.termEvent = null;
+    this.diagonistics = null;
 }
 
 this.innerscene.on('onSceneTerminate', function(e) { 
@@ -687,7 +688,8 @@ AppSceneContext.prototype.include = function(filePath, currentXModule) {
       return;
     }
     else if( filePath.substring(0,12) === "diagonistics") {
-      modData = diagonistics;
+      _this.diagonistics = new Diagonistics();
+      modData = _this.diagonistics;
       onImportComplete([modData, origFilePath]);
       return;
     }
