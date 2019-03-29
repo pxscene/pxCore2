@@ -124,6 +124,15 @@ pxWayland::~pxWayland()
   {
      terminateClient();
      WstCompositorDestroy(mWCtx);
+     if ((mClientPID > 0) && (0 == kill(mClientPID, 0)))
+     {
+       rtLogWarn("Sending SIGKILL to client %d", mClientPID);
+#if defined(RT_PLATFORM_LINUX) || defined(PX_PLATFORM_MAC)
+       sleep(1);
+#endif //RT_PLATFORM_LINUX || PX_PLATFORM_MAC
+       kill(mClientPID, SIGKILL);
+     }
+     mClientPID= -1;
      mWCtx = NULL;
   }
 }
@@ -594,9 +603,8 @@ void pxWayland::terminateClient()
       if ( mClientPID >= 0 )
       {
           rtLogInfo("pxWayland::terminateClient: client pid %d still alive - killing...", mClientPID);
-          kill( mClientPID, SIGKILL);
+          kill( mClientPID, SIGTERM);
           rtLogInfo("pxWayland::terminateClient: client pid %d killed", mClientPID);
-          mClientPID= -1;
       }
       pthread_join( mClientMonitorThreadId, NULL );
    }
