@@ -763,17 +763,21 @@ rtError pxWayland::useDispatchThread(bool use)
   return RT_OK;
 }
 
-rtError pxWayland::resume(const rtValue& v)
+rtError pxWayland::resume(const rtValue& v, bool& b)
 {
-  mSuspended = false;
-  callMethod("resume", 1, &v);
+  rtValue result;
+  callMethodReturns("resume", 1, &v, result);
+  b = result.toBool();
+  mSuspended = !b;
   return RT_OK;
 }
 
-rtError pxWayland::suspend(const rtValue& v)
+rtError pxWayland::suspend(const rtValue& v, bool& b)
 {
-  mSuspended = true;
-  callMethod("suspend", 1, &v);
+  rtValue result;
+  callMethodReturns("suspend", 1, &v, result);
+  b = result.toBool();
+  mSuspended = b;
   return RT_OK;
 }
 
@@ -790,16 +794,17 @@ rtError pxWayland::setProperty(const rtString &prop, const rtValue &val)
   return errorCode;
 }
 
-rtError pxWayland::callMethod(const char* messageName, int numArgs, const rtValue* args)
+rtError pxWayland::callMethodReturns(const char* messageName, int numArgs, const rtValue* args, rtValue& result)
 {
   rtError errorCode = RT_FAIL;
 #ifdef ENABLE_PX_WAYLAND_RPC
   if(mRemoteObject)
-      errorCode = mRemoteObject.Send(messageName, numArgs, args);
+      errorCode = mRemoteObject.SendReturns(messageName, numArgs, args, result);
 #else
   UNUSED_PARAM(messageName);
   UNUSED_PARAM(numArgs);
   UNUSED_PARAM(args);
+  UNUSED_PARAM(result);
 #endif //ENABLE_PX_WAYLAND_RPC
   return errorCode;
 }

@@ -358,8 +358,7 @@ rtError pxWaylandContainer::suspend(const rtValue &v, bool& b)
   b = false;
   if ( mWayland )
   {
-    mWayland->suspend(v);
-    b = true;
+    mWayland->suspend(v, b);
   }
   return RT_OK;
 }
@@ -369,8 +368,7 @@ rtError pxWaylandContainer::resume(const rtValue& v, bool& b)
   b = false;
   if ( mWayland )
   {
-    mWayland->resume(v);
-    b = true;
+    mWayland->resume(v, b);
   }
   return RT_OK;
 }
