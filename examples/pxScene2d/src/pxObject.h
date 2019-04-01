@@ -198,10 +198,10 @@ public:
 
   float x()             const { return mx; }
   rtError x(float& v)   const { v = mx; return RT_OK;   }
-  rtError setX(float v)       { cancelAnimation("x"); mx = v; return RT_OK;   }
+  virtual rtError setX(float v)       { cancelAnimation("x"); mx = v; return RT_OK;   }
   float y()             const { return my; }
   rtError y(float& v)   const { v = my; return RT_OK;   }
-  rtError setY(float v)       { cancelAnimation("y"); my = v; return RT_OK;   }
+  virtual rtError setY(float v)       { cancelAnimation("y"); my = v; return RT_OK;   }
   float w()             const { return mw; }
   rtError w(float& v)   const { v = mw; return RT_OK;   }
   virtual rtError setW(float v)       { cancelAnimation("w"); mw = v; return RT_OK;   }
