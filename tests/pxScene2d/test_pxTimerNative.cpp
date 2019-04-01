@@ -52,7 +52,7 @@ class pxTimerNativeTest : public testing::Test
         startTime = pxSeconds();
         pxSleepMS(TEST_TIME * 1000);
         endTime = pxSeconds();
-        EXPECT_TRUE((int)(endTime - startTime) == TEST_TIME);
+        EXPECT_TRUE((int)((endTime - startTime)+0.001) == TEST_TIME);
     }
 
 };
