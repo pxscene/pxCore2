@@ -140,10 +140,11 @@ extern "C" void __gcov_flush();
 class sceneWindow : public pxWindow, public pxIViewContainer
 {
 public:
-  sceneWindow(): mWidth(-1),mHeight(-1),mClosed(false) {}
+  sceneWindow(): mWidth(-1),mHeight(-1),mClosed(false), mTerminated(false) {}
   virtual ~sceneWindow()
   {
     mView = NULL;
+    mTerminated = false;
   }
 
   void init(int x, int y, int w, int h, const char* url = NULL)
@@ -229,6 +230,11 @@ public:
   {
     onCloseRequest();
   }
+
+  void setTerminated() {
+    mTerminated = true;
+  }
+
 protected:
 
   virtual void onSize(int32_t w, int32_t h)
@@ -326,9 +332,11 @@ protected:
     #ifdef ENABLE_CODE_COVERAGE
     __gcov_flush();
     #endif
-  ENTERSCENELOCK()
-      eventLoop.exit();
-  EXITSCENELOCK()
+    if (false == mTerminated) {
+      ENTERSCENELOCK()
+          eventLoop.exit();
+      EXITSCENELOCK()
+    }
   }
 
   virtual void onMouseUp(int32_t x, int32_t y, uint32_t flags)
@@ -462,6 +470,7 @@ protected:
   int mHeight;
   rtRef<pxIView> mView;
   bool mClosed;
+  bool mTerminated;
 };
 sceneWindow win;
 #define xstr(s) str(s)
@@ -470,6 +479,7 @@ sceneWindow win;
 void handleTerm(int)
 {
   rtLogInfo("Signal TERM received. closing the window");
+  win.setTerminated();
   win.close();
 #ifndef PX_PLATFORM_MAC
 #ifdef WIN32
