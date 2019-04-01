@@ -490,6 +490,8 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   // capabilities.network.http2         = 2
   //
   // capabilities.metrics.textureMemory = 1
+  // 
+  // capabilities.animations.durations = 2
   //
   // capabilities.events.drag_n_drop    = 2   // additional Drag'n'Drop events 
 
@@ -536,6 +538,10 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   metricsCapabilities.set("resources", 1);
   mCapabilityVersions.set("metrics", metricsCapabilities);
 
+  rtObjectRef animationCapabilities = new rtMapObject;
+
+  animationCapabilities.set("durations", 2);
+  mCapabilityVersions.set("animations", animationCapabilities);
   //////////////////////////////////////////////////////
 
   rtObjectRef userCapabilities = new rtMapObject;
@@ -2585,6 +2591,8 @@ rtDefineProperty(pxSceneContainer, cors);
 rtDefineProperty(pxSceneContainer, api);
 rtDefineProperty(pxSceneContainer, ready);
 rtDefineProperty(pxSceneContainer, serviceContext);
+rtDefineMethod(pxSceneContainer, suspend);
+rtDefineMethod(pxSceneContainer, resume);
 //rtDefineMethod(pxSceneContainer, makeReady);   // DEPRECATED ?
 
 
@@ -2646,6 +2654,26 @@ rtError pxSceneContainer::setServiceContext(rtObjectRef o)
   if( !mInitialized)
     mServiceContext = o;
 
+  return RT_OK;
+}
+
+rtError pxSceneContainer::suspend(const rtValue& v, bool& b)
+{
+  b = false;
+  if (mScene)
+  {
+    mScene->suspend(v, b);
+  }
+  return RT_OK;
+}
+
+rtError pxSceneContainer::resume(const rtValue& v, bool& b)
+{
+  b = false;
+  if (mScene)
+  {
+    mScene->resume(v,b);
+  }
   return RT_OK;
 }
 

@@ -22,6 +22,7 @@
 #include <unistd.h>
 #include "rtString.h"
 #include "rtRef.h"
+#include "rtPathUtils.h"
 #include "pxCore.h"
 #include "pxKeycodes.h"
 
@@ -188,6 +189,11 @@ rtError pxWaylandContainer::setCmd(const char* s)
       {
          binary = rtString(regcmd, (uint32_t) regcmdlen);
       }
+      if (!rtFileExists(binary))
+      {
+        rtLogError("Application %s does not exist", binary.cString());
+        return RT_ERROR;
+      }
     }
   }
   else
@@ -211,6 +217,11 @@ rtError pxWaylandContainer::setCmd(const char* s)
           {
              binary = rtString(regcmd, (uint32_t) (regcmdlen-1) );
              binary.append( args );
+          }
+          if (!rtFileExists(cmd))
+          {
+            rtLogError("Application %s does not exist", cmd);
+            return RT_ERROR;
           }
        }
        free( (void*)cmd );
