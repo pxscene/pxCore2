@@ -68,8 +68,11 @@ void pxArchive::setupArchive()
     mLoadStatus.set("errorString", mErrorString);
 
     if (mDownloadStatusCode == 0) {
-      mData.init((uint8_t *) mArchiveData, mArchiveDataSize);
-      process(mData.data(), mData.length());
+      if ((NULL != mArchiveData) && (mArchiveDataSize > 0))
+      {
+        mData.init((uint8_t *) mArchiveData, mArchiveDataSize);
+        process(mData.data(), mData.length());
+      }
     }
     if (mArchiveData != NULL) {
       delete[] mArchiveData;
