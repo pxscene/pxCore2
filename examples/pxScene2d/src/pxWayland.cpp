@@ -797,6 +797,7 @@ rtError pxWayland::setProperty(const rtString &prop, const rtValue &val)
 rtError pxWayland::callMethodReturns(const char* messageName, int numArgs, const rtValue* args, rtValue& result)
 {
   rtError errorCode = RT_FAIL;
+  result = rtValue(false);
 #ifdef ENABLE_PX_WAYLAND_RPC
   if(mRemoteObject)
       errorCode = mRemoteObject.SendReturns(messageName, numArgs, args, result);
