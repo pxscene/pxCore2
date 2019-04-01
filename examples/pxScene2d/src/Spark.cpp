@@ -144,7 +144,6 @@ public:
   virtual ~sceneWindow()
   {
     mView = NULL;
-    mTerminated = false;
   }
 
   void init(int x, int y, int w, int h, const char* url = NULL)
