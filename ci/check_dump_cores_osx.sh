@@ -7,8 +7,9 @@ logfile="$3"
 
 #take report from lldb
 cd $path
-echo "sudo lldb -o \"attach $process\" -o \"bt all\" -o \"quit\" 1>lldblogs 2>/dev/null"
-sudo lldb -o "attach $process" -o "bt all" -o "quit" 1>lldblogs 2>/dev/null
+#enable full traces to get insight of stack frames and scenarios
+echo "sudo lldb -o \"attach $process\" -o \"bt full\" -o \"quit\" 1>lldblogs 2>/dev/null"
+sudo lldb -o "attach $process" -o "bt full" -o "quit" 1>lldblogs 2>/dev/null
 
 if [ "$TRAVIS_PULL_REQUEST" != "false" ]
 	then
