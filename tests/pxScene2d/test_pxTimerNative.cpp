@@ -53,7 +53,8 @@ class pxTimerNativeTest : public testing::Test
         pxSleepMS(TEST_TIME * 1000);
         endTime = pxSeconds();
         // add epsilon to avoid int conversion to go wrong on 1.99
-        EXPECT_TRUE((int)((endTime - startTime)+0.001) == TEST_TIME);
+        bool result = (((int)((endTime - startTime)+0.001) == TEST_TIME)) || (((int)((endTime - startTime)-0.001) == TEST_TIME));
+        EXPECT_TRUE(result == true);
     }
 
 };
