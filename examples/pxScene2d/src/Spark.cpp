@@ -470,6 +470,7 @@ protected:
   int mHeight;
   rtRef<pxIView> mView;
   bool mClosed;
+  // indicator for if app is exited because of signal
   bool mTerminated;
 };
 sceneWindow win;
