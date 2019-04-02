@@ -488,6 +488,8 @@ void handleTerm(int)
   base64_cleanup();
   signal(SIGTERM, SIG_DFL);
   raise(SIGTERM);
+#else
+  exit(0);
 #endif
 }
 
