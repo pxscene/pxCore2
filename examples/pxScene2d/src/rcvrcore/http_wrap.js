@@ -54,7 +54,7 @@ function Request(moduleName, appSceneContext, options, callback) {
   var toOrigin = Utils._getRequestOrigin(options, defaultProtocol);
   var fromOrigin = null;
   var withCredentials = false;
-  var isBlocked = false;
+  var isBlocked = appSceneContext.isTerminated;
   var httpRequest = null;
   Utils._assert(!!toOrigin, "no destination origin");
 
@@ -124,6 +124,10 @@ function Request(moduleName, appSceneContext, options, callback) {
     httpRequest = module.request.call(null, options);
 
     httpRequest.once('response', function (httpResponse) {
+      if (appSceneContext.isTerminated) {
+        return;
+      }
+
       var response = new Response(httpResponse, appSceneContext, fromOrigin, toOrigin, withCredentials);
       if (response.blocked) {
         self.blocked = true;
@@ -147,6 +151,10 @@ function Request(moduleName, appSceneContext, options, callback) {
       httpRequest.removeAllListeners();
     });
     httpRequest.once('error', function (e) {
+      if (appSceneContext.isTerminated) {
+        return;
+      }
+
       try {
         self.emit('error', e);
       } catch (e) {
@@ -158,6 +166,10 @@ function Request(moduleName, appSceneContext, options, callback) {
       httpRequest.removeAllListeners();
     });
     httpRequest.once('timeout', function () {
+      if (appSceneContext.isTerminated) {
+        return;
+      }
+
       try {
         self.emit('timeout');
       } catch (e) {
@@ -278,6 +290,10 @@ function Response(httpResponse, appSceneContext, fromOrigin, toOrigin, withCrede
   if (!isBlocked) {
     var self = this;
     httpResponse.on('data', function (data) {
+      if (appSceneContext.isTerminated) {
+        return;
+      }
+
       try {
         self.emit('data', data);
       } catch (e) {
@@ -285,6 +301,10 @@ function Response(httpResponse, appSceneContext, fromOrigin, toOrigin, withCrede
       }
     });
     httpResponse.once('error', function (e) {
+      if (appSceneContext.isTerminated) {
+        return;
+      }
+
       try {
         self.emit('error', e);
       } catch (e) {
@@ -296,6 +316,10 @@ function Response(httpResponse, appSceneContext, fromOrigin, toOrigin, withCrede
       httpResponse.removeAllListeners();
     });
     httpResponse.once('end', function () {
+      if (appSceneContext.isTerminated) {
+        return;
+      }
+
       try {
         self.emit('end');
       } catch (e) {
