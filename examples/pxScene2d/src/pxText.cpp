@@ -194,21 +194,31 @@ rtError pxText::setFontUrl(const char* s)
   return RT_OK;
 }
 
-rtError pxText::setFont(rtObjectRef o) 
-{ 
+rtError pxText::setFont(rtObjectRef o)
+{
+  mFont = NULL;
   mFontLoaded = false;
   mFontFailed = false;
   createNewPromise();
-
-  // !CLF: TODO: Need validation/verification of o
   removeResourceListener();
-  mFont = o; 
+
+  if (o){
+    rtString desc;
+    rtError err = o.sendReturns<rtString>("description", desc);
+    if (err == RT_OK && desc.compare("pxFont") == 0) {
+        mFont = o;
+     }
+   }
+
+  if(getFontResource() == NULL) {
+    resourceReady("reject");
+  }
+
   mListenerAdded = true;
   if (getFontResource() != NULL) {
     getFontResource()->addListener(this);
   }
-    
-  return RT_OK; 
+  return RT_OK;
 }
 
 float pxText::getOnscreenWidth()

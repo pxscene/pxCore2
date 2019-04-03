@@ -132,15 +132,22 @@ then
 fi
 
 #check for any cores happening during the time of exit
+isCGLCrash=0
 if [ -f "/tmp/pxscenecrash" ]
 then
   ps -ef | grep Spark |grep -v grep >> /var/tmp/spark.log
   ps -ef |grep /bin/sh |grep -v grep >> /var/tmp/spark.log
   $TRAVIS_BUILD_DIR/ci/check_dump_cores_osx.sh `pwd` `ps -ef | grep Spark |grep -v grep|grep -v spark.sh|awk '{print $2}'` /var/tmp/spark.log
+  grep "SkyLight\`CGSWindowUnlockBackingWriter" /var/tmp/spark.log|grep frame
+  isCGLCrash=$?
   cp /var/tmp/spark.log $EXECLOGS
-  printExecLogs
-  dumped_core=1
-  checkError $dumped_core "Execution failed" "Core dump" "Run execution locally"
+  #avoid false crash during the time sigterm is sent
+  if [ "$isCGLCrash" -eq 1 ]
+  then
+    printExecLogs
+    dumped_core=1
+    checkError $dumped_core "Execution failed" "Core dump" "Run execution locally"
+  fi
 fi
 
 #Sleep for 90s as we have sleep for 30s inside code to capture memory of process

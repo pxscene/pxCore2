@@ -144,4 +144,8 @@
 #define PX_KEY_BLUE         404
 #define PX_KEY_RED          405
 #define PX_KEY_GREEN        406
+
+#define PX_KEY_BACK         407
+#define PX_KEY_MENU         408
+#define PX_KEY_HOMEPAGE     409
 #endif //PX_KEYCODES_H

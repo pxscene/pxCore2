@@ -29,6 +29,8 @@ public:
     
     static rtThreadPool* globalInstance();
 
+	  int numberOfThreadsInPool();
+
 	void raisePriority(const rtString & /*url*/) {
 		//TODO
 	};
