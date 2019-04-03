@@ -18,19 +18,28 @@
 var _timers = require('timers')
 var fs = require('fs')
 var path = require('path')
+var vm = require('vm')
+var _module = require('module')
+
+// JRJR not sure why Buffer is not already defined.
+// Could look at adding to sandbox.js but this works for now
+Buffer = require('buffer').Buffer
+
+// Define global within the global namespace
+var global = this
 
 var _intervals = []
 var _timeouts = []
 var _immediates = []
 
-function loadUrl(url, beginDrawing,endDrawing, _view) {
+var __dirname = process.cwd()
+
+var loadUrl = function(url, beginDrawing, endDrawing, _view) {
 
   var succeeded = false
   active = true
 
-  sparkview = _view
-
-  setInterval = function(f,i){
+  var xxsetInterval = function(f,i){
     var rest = Array.from(arguments).slice(2)
     var interval = _timers.setInterval(function() {
       return function() { 
@@ -42,7 +51,7 @@ function loadUrl(url, beginDrawing,endDrawing, _view) {
     return interval
   }
 
-  clearInterval = function(interval) {
+  var xxclearInterval = function(interval) {
     var index = _intervals.indexOf(interval);
     if (index > -1) {
       _intervals.splice(index, 1);
@@ -50,7 +59,7 @@ function loadUrl(url, beginDrawing,endDrawing, _view) {
     _timers.clearInterval(interval)
   }
 
-  setTimeout = function(f,t){
+  var xxsetTimeout = function(f,t){
     var rest = Array.from(arguments).slice(2)
     var timeout = _timers.setTimeout(function() {
         return function() {
@@ -69,7 +78,7 @@ function loadUrl(url, beginDrawing,endDrawing, _view) {
     return timeout
   }
 
-  clearTimeout = function(timeout) {
+  var xxclearTimeout = function(timeout) {
     var index = _timeouts.indexOf(timeout);
     if (index > -1) {
       _timeouts.splice(index, 1);
@@ -77,7 +86,7 @@ function loadUrl(url, beginDrawing,endDrawing, _view) {
     _timers.clearTimeout(timeout)
   }  
 
-  setImmediate = function(f){ 
+  var xxsetImmediate = function(f){ 
     var rest = Array.from(arguments).slice(1)
     var timeout = _timers.setTimeout(function() {
         return function() {
@@ -99,14 +108,100 @@ function loadUrl(url, beginDrawing,endDrawing, _view) {
   }
 
 
-  clearImmediate = function(immediate) {
+  var xxclearImmediate = function(immediate) {
     var index = _immediates.indexOf(immediate);
     if (index > -1) {
       _immediates.splice(index, 1);
     }
     _timers.clearTimeout(immediate)
-  }  
+  }
+  
+  // (Re)define a few globals for our wrappers
+  global.setTimeout = xxsetTimeout
+  global.clearTimeout = xxclearTimeout
+  global.setInterval = xxsetInterval
+  global.clearInterval = xxclearInterval
+  global.setImmediate = xxsetImmediate
+  global.clearImmediate = xxclearImmediate
+  global.sparkview = _view        
+  
+// JRJR todo make into a map
+var bootStrapCache = {}
 
+// Spark node-like module loader
+const bootStrap = (moduleName, from, request) => {
+  const makeRequire = pathToParent => {
+    return moduleName => {
+      const parentDir = path.dirname(pathToParent);
+      // use Node's built-in module resolver here, but we could easily pass in our own
+      var resolvedModule = _module._resolveLookupPaths(moduleName, {paths:[parentDir],id:pathToParent,filename:pathToParent});
+      var id = resolvedModule[0];
+      var paths = resolvedModule[1];
+
+      const filename = _module._resolveFilename(moduleName, {paths:[parentDir].concat(_module._nodeModulePaths(parentDir)),id:pathToParent,filename:pathToParent});
+
+      // Spark Modules should be loaded a "singleton" per scene
+      // If we've already loaded a module then return it's cached exports
+      if (filename in bootStrapCache) {
+        console.log('Using cached module:', filename)
+        return bootStrapCache[filename]
+      }
+
+      // JRJR Hack to handle native modules give we don't have
+      // access to NativeModule.require here.
+      if (filename.indexOf('.node') != -1 || paths.length == 0 || filename.indexOf('package.json') != -1) {
+        console.log('Loading native module: ', filename)
+        var m = _module._load(filename, {paths:[parentDir],id:pathToParent,filename:pathToParent})
+        
+        // Cache the module exports
+        bootStrapCache[filename] = m
+        return m
+      }
+
+      console.log('Loading source module:', filename)
+      const source = fs.readFileSync(filename, 'utf-8');
+
+      const wrapped = `(function(exports,require,module,__filename,__dirname) {${source}})`;
+
+      let compiled
+      if (false) {
+          var sandbox = {}
+          for (var k of Object.getOwnPropertyNames(global)) { sandbox[k] = global[k]}
+          sandbox.setTimeout = xxsetTimeout
+          sandbox.clearTimeout = xxclearTimeout
+          sandbox.setInterval = xxsetInterval
+          sandbox.clearInterval = xxclearInterval
+          sandbox.setImmediate = xxsetImmediate
+          sandbox.clearImmediate = xxclearImmediate
+          sandbox.sparkview = _view
+
+          beginDrawing = _beginDrawing
+          endDrawing = _endDrawing
+
+          compiled = vm.runInNewContext(wrapped, sandbox, {filename:filename});
+      }
+      else {
+        compiled = vm.runInThisContext(wrapped, {filename:filename,displayErrors:true})
+      }
+      
+      const exports = {};
+      // OUR own require, independent of node require
+      const require = makeRequire(filename);
+      const module = {exports};
+
+      try {
+          compiled.call(exports, exports, require, module, filename, path.dirname(filename));
+      }
+      catch(e) {
+        console.log(e)
+      }
+
+      bootStrapCache[filename] = module.exports
+      return module.exports;
+    };
+  };
+  return makeRequire(from)(moduleName);
+};  
 
   var filename = ''
 
@@ -116,10 +211,13 @@ function loadUrl(url, beginDrawing,endDrawing, _view) {
   var initGLPath = __dirname+'/initGL.js'
 
   try {
-    require(filename)
+    // bootStrap into the spark module system
+    bootStrap(filename,initGLPath,'blah')
     succeeded = true
   }
-  catch(e) {}
+  catch(e) {
+    console.log(e)
+  }
 
   try {
     var module = require.resolve(initGLPath)
@@ -161,7 +259,7 @@ var _clearImmediates = function() {
 
 
 
-function onClose() {
+var onClose = function() {
   _clearIntervals()
   _clearTimeouts()
   _clearImmediates()
@@ -169,5 +267,3 @@ function onClose() {
   active = false
 }
 
-exports.loadUrl = loadUrl;
-exports.onClose = onClose;

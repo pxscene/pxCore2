@@ -2709,7 +2709,7 @@ void pxScriptView::runScript()
       mSharedContext->makeCurrent(false);
 
       beginDrawing();
-      mCtx->runScript("var glInit = require('initGL.js'); var loadUrl = glInit.loadUrl; var onClose = glInit.onClose");
+      mCtx->runFile("initGL.js");
       rtValue foo = mCtx->get("loadUrl");
       rtFunctionRef f = foo.toFunction();
       bool b = true;
