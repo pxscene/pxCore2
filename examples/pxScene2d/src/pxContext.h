@@ -68,6 +68,8 @@ class pxContext {
   , mEnableTextureMemoryMonitoring(false)
 #endif
   , mEjectTextureAge(DEFAULT_EJECT_TEXTURE_AGE)
+  , mTargetTextureMemoryAfterCleanupInBytes(0)
+  , mFreeAllOffscreenTextureMemoryOnCleanup(false)
   {}
   ~pxContext();
 
@@ -167,6 +169,8 @@ private:
   int64_t mTextureMemoryLimitThresholdPaddingInBytes;
   bool mEnableTextureMemoryMonitoring;
   uint32_t mEjectTextureAge;
+  int64_t mTargetTextureMemoryAfterCleanupInBytes;
+  bool mFreeAllOffscreenTextureMemoryOnCleanup;
 };
 
 

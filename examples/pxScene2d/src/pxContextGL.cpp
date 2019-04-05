@@ -183,7 +183,8 @@ pxError removeFromTextureList(pxTexture* texture)
   return PX_OK;
 }
 
-pxError ejectNotRecentlyUsedTextureMemory(int64_t bytesNeeded, uint32_t maxAge=5)
+pxError ejectNotRecentlyUsedTextureMemory(int64_t bytesNeeded, int64_t targetMemoryAmount,
+                                          bool clearAllOffscreen, uint32_t maxAge=5)
 {
   //rtLogDebug("attempting to eject %" PRId64 " bytes of texture memory with max age %u", bytesNeeded, maxAge);
 #if !defined(DISABLE_TEXTURE_EJECTION)
@@ -201,7 +202,8 @@ pxError ejectNotRecentlyUsedTextureMemory(int64_t bytesNeeded, uint32_t maxAge=5
       numberEjected++;
       texture->unloadTextureData();
       int64_t currentTextureMemory = context.currentTextureMemoryUsageInBytes();
-      if ((beforeTextureMemoryUsage - currentTextureMemory) > bytesNeeded)
+      if (!clearAllOffscreen && (currentTextureMemory <= targetMemoryAmount) &&
+          (beforeTextureMemoryUsage - currentTextureMemory) > bytesNeeded)
       {
         break;
       }
@@ -217,6 +219,8 @@ pxError ejectNotRecentlyUsedTextureMemory(int64_t bytesNeeded, uint32_t maxAge=5
   }
 #else
   (void)bytesNeeded;
+  (void)targetMemoryAmount;
+  (void)clearAllOffscreen;
   (void)maxAge;
 #endif //!DISABLE_TEXTURE_EJECTION
   return PX_OK;
@@ -2235,7 +2239,7 @@ void pxContext::init()
 
   gTextureMaskedShader = new textureMaskedShaderProgram();
   gTextureMaskedShader->init(vShaderText,fTextureMaskedShaderText);
-  
+
   glEnable(GL_BLEND);
 
   // assume non-premultiplied for now...
@@ -2257,11 +2261,70 @@ void pxContext::init()
   {
     setTextureMemoryLimit((int64_t)val.toInt32() * (int64_t)1024 * (int64_t)1024);
   }
+  if (RT_OK == rtSettings::instance()->value("ejectTextureAge", val))
+  {
+    mEjectTextureAge = val.toUInt32();
+  }
   if (mEnableTextureMemoryMonitoring)
   {
     rtLogDebug("texture memory limit set to %" PRId64 " bytes, threshold padding %" PRId64 " bytes",
       mTextureMemoryLimitInBytes, mTextureMemoryLimitThresholdPaddingInBytes);
   }
+
+  if (RT_OK == rtSettings::instance()->value("targetTextureMemoryAfterCleanupInMb", val))
+  {
+    mTargetTextureMemoryAfterCleanupInBytes = (int64_t)val.toInt32() * (int64_t)1024 * (int64_t)1024;
+  }
+  else
+  {
+    mTargetTextureMemoryAfterCleanupInBytes = mTextureMemoryLimitInBytes - (mTextureMemoryLimitInBytes / (int64_t)3);
+  }
+
+  if (mTargetTextureMemoryAfterCleanupInBytes < 0)
+  {
+    mTargetTextureMemoryAfterCleanupInBytes = 0;
+  }
+
+  if (RT_OK == rtSettings::instance()->value("freeAllOffscreenTextureMemoryOnCleanup", val))
+  {
+    mFreeAllOffscreenTextureMemoryOnCleanup = val.toString().compare("true") == 0;
+  }
+
+  char const* ejectTextureAgeSetting = getenv("SPARK_EJECT_TEXTURE_AGE");
+  if (ejectTextureAgeSetting)
+  {
+    int ejectTextureAge = atoi(ejectTextureAgeSetting);
+    if (ejectTextureAge >= 0)
+    {
+      mEjectTextureAge = (uint32_t)ejectTextureAge;
+    }
+  }
+  char const* ejectTargetSetting = getenv("SPARK_EJECT_TEXTURE_MEMORY_TARGET_MB");
+  if (ejectTargetSetting)
+  {
+    int targetTextureMemoryAfterCleanupInMb = atoi(ejectTargetSetting);
+    if (targetTextureMemoryAfterCleanupInMb >= 0)
+    {
+      mTargetTextureMemoryAfterCleanupInBytes = (int64_t)targetTextureMemoryAfterCleanupInMb * (int64_t)1024 * (int64_t)1024;
+    }
+  }
+  char const* ejectAllSetting = getenv("SPARK_EJECT_ALL_OFFSCREEN_TEXTURES");
+  if (ejectAllSetting)
+  {
+    int ejectAll = atoi(ejectAllSetting);
+    if (ejectAll > 0)
+    {
+      mFreeAllOffscreenTextureMemoryOnCleanup = true;
+    }
+    else
+    {
+      mFreeAllOffscreenTextureMemoryOnCleanup = false;
+    }
+  }
+
+  rtLogInfo("texture memory target after cleanup: %" PRId64 " bytes.  Free all offscreen memory on cleanup: %s.  Eject texture age: %u",
+            mTargetTextureMemoryAfterCleanupInBytes,
+            mFreeAllOffscreenTextureMemoryOnCleanup ? "true":"false", mEjectTextureAge);
 
 #if defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL)
   defaultEglContext = eglGetCurrentContext();
@@ -2938,11 +3001,13 @@ int64_t pxContext::ejectTextureMemory(int64_t bytesRequested, bool forceEject)
   int64_t beforeTextureMemoryUsage = context.currentTextureMemoryUsageInBytes();
   if (!forceEject)
   {
-    ejectNotRecentlyUsedTextureMemory(bytesRequested, mEjectTextureAge);
+    ejectNotRecentlyUsedTextureMemory(bytesRequested, mTargetTextureMemoryAfterCleanupInBytes,
+                                      mFreeAllOffscreenTextureMemoryOnCleanup, mEjectTextureAge);
   }
   else
   {
-    ejectNotRecentlyUsedTextureMemory(bytesRequested, 0);
+    ejectNotRecentlyUsedTextureMemory(bytesRequested, mTargetTextureMemoryAfterCleanupInBytes,
+                                      mFreeAllOffscreenTextureMemoryOnCleanup, 0);
   }
   int64_t afterTextureMemoryUsage = context.currentTextureMemoryUsageInBytes();
   return (beforeTextureMemoryUsage-afterTextureMemoryUsage);
