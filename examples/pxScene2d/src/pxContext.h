@@ -106,7 +106,6 @@ class pxContext {
 
   pxTextureRef createTexture(); // default to use before image load is complete
   pxTextureRef createTexture(pxOffscreen& o);
-  pxTextureRef createTexture(pxOffscreen& o, const char *compressedData, size_t compressedDataSize);
   pxTextureRef createTexture(float w, float h, float iw, float ih, void* buffer = NULL);
   pxSharedContextRef createSharedContext();
 

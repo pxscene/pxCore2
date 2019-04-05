@@ -204,11 +204,18 @@ void pxImage::draw() {
   static pxTextureRef nullMaskRef;
   if (getImageResource() != NULL && getImageResource()->isInitialized() && !mSceneSuspended)
   {
-    context.drawImage(0, 0,
-                      getOnscreenWidth(),
-                      getOnscreenHeight(),
-                      getImageResource()->getTexture(), nullMaskRef,
-                      false, NULL, mStretchX, mStretchY, mDownscaleSmooth, mMaskOp);
+    if (getImageResource()->getTexture().getPtr() && !getImageResource()->getTexture()->readyForRendering())
+    {
+      getImageResource()->reloadData();
+    }
+    else
+    {
+      context.drawImage(0, 0,
+                        getOnscreenWidth(),
+                        getOnscreenHeight(),
+                        getImageResource()->getTexture(), nullMaskRef,
+                        false, NULL, mStretchX, mStretchY, mDownscaleSmooth, mMaskOp);
+    }
   }
   // Raise the priority if we're still waiting on the image download    
 #if 0

@@ -602,8 +602,6 @@ struct DecodeImageData
 
 };
 
-void onDecodeComplete(void* context, void* data);
-void decodeTextureData(void* data);
 void onOffscreenCleanupComplete(void* context, void*);
 void cleanupOffscreen(void* data);
 
@@ -611,24 +609,23 @@ class pxTextureOffscreen : public pxTexture
 {
 public:
   pxTextureOffscreen() : mOffscreen(), mInitialized(false), mTextureName(0),
-                         mTextureUploaded(false), mTextureDataAvailable(false),
+                         mTextureUploaded(false),
                          mLoadTextureRequested(false), mWidth(0), mHeight(0), mOffscreenMutex(),
-                         mFreeOffscreenDataRequested(false), mCompressedData(NULL), mCompressedDataSize(0),
+                         mFreeOffscreenDataRequested(false),
                          mMipmapCreated(false), mTextureListener(NULL), mTextureListenerMutex()
   {
     mTextureType = PX_TEXTURE_OFFSCREEN;
     addToTextureList(this);
   }
 
-  pxTextureOffscreen(pxOffscreen& o, const char *compressedData = NULL, size_t compressedDataSize = 0)
+  pxTextureOffscreen(pxOffscreen& o)
                                      : mOffscreen(), mInitialized(false), mTextureName(0),
-                                       mTextureUploaded(false), mTextureDataAvailable(false),
+                                       mTextureUploaded(false),
                                        mLoadTextureRequested(false), mWidth(0), mHeight(0), mOffscreenMutex(),
-                                       mFreeOffscreenDataRequested(false), mCompressedData(NULL), mCompressedDataSize(0),
+                                       mFreeOffscreenDataRequested(false),
                                        mMipmapCreated(false), mTextureListener(NULL), mTextureListenerMutex()
   {
     mTextureType = PX_TEXTURE_OFFSCREEN;
-    setCompressedData(compressedData, compressedDataSize);
     createTexture(o);
     addToTextureList(this);
   }
@@ -752,28 +749,18 @@ public:
     return (mTextureName != 0);
   }
 
+  virtual bool readyForRendering()
+  {
+    return mInitialized;
+  }
+
   virtual pxError deleteTexture()
   {
     rtLogDebug("pxTextureOffscreen::deleteTexture()");
 
     unloadTextureData();
 
-    freeCompressedData();
     mInitialized = false;
-    return PX_OK;
-  }
-
-  virtual pxError loadTextureData()
-  {
-    if (!mLoadTextureRequested && mTextureDataAvailable)
-    {
-      rtThreadPool *mainThreadPool = rtThreadPool::globalInstance();
-      DecodeImageData *decodeImageData = new DecodeImageData(this);
-      rtThreadTask *task = new rtThreadTask(decodeTextureData, decodeImageData, "");
-      mainThreadPool->executeTask(task);
-      mLoadTextureRequested = true;
-    }
-
     return PX_OK;
   }
 
@@ -823,7 +810,6 @@ public:
   {
     if (!mInitialized)
     {
-      loadTextureData();
       return PX_NOTINITIALIZED;
     }
 
@@ -834,7 +820,7 @@ public:
 // TODO would be nice to do the upload in createTexture but right now it's getting called on wrong thread
     if (!mTextureUploaded)
     {
-      if (!context.isTextureSpaceAvailable(this))
+      if (mTextureName != 0 && !context.isTextureSpaceAvailable(this))
       {
         //attempt to free texture memory
         int64_t textureMemoryNeeded = context.textureMemoryOverflow(this);
@@ -905,7 +891,6 @@ public:
   {
     if (!mInitialized)
     {
-      loadTextureData();
       return PX_NOTINITIALIZED;
     }
 
@@ -956,30 +941,13 @@ public:
     return PX_OK;
   }
 
-  virtual pxError getOffscreen(pxOffscreen& o)
+  virtual pxError getOffscreen(pxOffscreen& /*o*/)
   {
-    if (!mInitialized)
-    {
-      return PX_NOTINITIALIZED;
-    }
-
-    if (mCompressedData != NULL)
-    {
-      pxLoadImage(mCompressedData, mCompressedDataSize, o);
-    }
-
     return PX_OK;
   }
 
   virtual int width()  { return mWidth;  }
   virtual int height() { return mHeight; }
-
-  pxError compressedDataWeakReference(char*& data, size_t& dataSize)
-  {
-    data = mCompressedData;
-    dataSize = mCompressedDataSize;
-    return PX_OK;
-  }
 
 private:
 
@@ -995,107 +963,21 @@ private:
     mainThreadPool->executeTask(task);
   }
 
-  void setCompressedData(const char* data, const size_t dataSize)
-  {
-    freeCompressedData();
-    if (data == NULL)
-    {
-      mCompressedData = NULL;
-      mCompressedDataSize = 0;
-    }
-    else
-    {
-      mCompressedData = new char[dataSize];
-      mCompressedDataSize = dataSize;
-      memcpy(mCompressedData, data, mCompressedDataSize);
-      mTextureDataAvailable = true;
-    }
-  }
-
-  pxError freeCompressedData()
-  {
-    if (mCompressedData != NULL)
-    {
-      delete [] mCompressedData;
-      mCompressedData = NULL;
-    }
-    mCompressedDataSize = 0;
-    mTextureDataAvailable = false;
-    return PX_OK;
-  }
-
   pxOffscreen mOffscreen;
 
   bool mInitialized;
   GLuint mTextureName;
   bool mTextureUploaded;
-  bool mTextureDataAvailable;
   bool mLoadTextureRequested;
   int mWidth;
   int mHeight;
   rtMutex mOffscreenMutex;
   bool mFreeOffscreenDataRequested;
-  char* mCompressedData;
-  size_t mCompressedDataSize;
   bool mMipmapCreated;
   pxTextureListener* mTextureListener;
   rtMutex mTextureListenerMutex;
 
 }; // CLASS - pxTextureOffscreen
-
-void onDecodeComplete(void* context, void* data)
-{
-  DecodeImageData* imageData = (DecodeImageData*)context;
-  pxOffscreen* decodedOffscreen = (pxOffscreen*)data;
-  if (imageData != NULL && decodedOffscreen != NULL)
-  {
-    pxTextureOffscreenRef texture = imageData->textureOffscreen;
-    if (texture.getPtr() != NULL)
-    {
-      texture->createTexture(*decodedOffscreen);
-    }
-  }
-
-  if (decodedOffscreen != NULL)
-  {
-    delete decodedOffscreen;
-    decodedOffscreen = NULL;
-    data = NULL;
-  }
-
-  if (imageData != NULL)
-  {
-    delete imageData;
-    imageData = NULL;
-  }
-}
-
-void decodeTextureData(void* data)
-{
-  if (data != NULL)
-  {
-    DecodeImageData* imageData = (DecodeImageData*)data;
-    char *compressedImageData = NULL;
-    size_t compressedImageDataSize = 0;
-    imageData->textureOffscreen->compressedDataWeakReference(compressedImageData, compressedImageDataSize);
-    if (compressedImageData != NULL)
-    {
-      pxOffscreen *decodedOffscreen = new pxOffscreen();
-      pxLoadImage(compressedImageData, compressedImageDataSize, *decodedOffscreen);
-      if (gUIThreadQueue)
-      {
-        gUIThreadQueue->addTask(onDecodeComplete, data, decodedOffscreen);
-      }
-    }
-    else
-    {
-      if (gUIThreadQueue)
-      {
-        gUIThreadQueue->addTask(onDecodeComplete, data, NULL);
-      }
-    }
-  }
-}
 
 void onOffscreenCleanupComplete(void* context, void*)
 {
@@ -2803,12 +2685,6 @@ pxTextureRef pxContext::createTexture()
 pxTextureRef pxContext::createTexture(pxOffscreen& o)
 {
   pxTextureOffscreen* offscreenTexture = new pxTextureOffscreen(o);
-  return offscreenTexture;
-}
-
-pxTextureRef pxContext::createTexture(pxOffscreen& o, const char *compressedData, size_t compressedDataSize)
-{
-  pxTextureOffscreen* offscreenTexture = new pxTextureOffscreen(o, compressedData, compressedDataSize);
   return offscreenTexture;
 }
 
