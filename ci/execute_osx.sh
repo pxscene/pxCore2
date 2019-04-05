@@ -126,10 +126,11 @@ kill -15 `ps -ef | grep Spark |grep -v grep|grep -v spark.sh|awk '{print $2}'`
 ps -ef | grep Spark |grep -v grep
 sparkexited=$?
 echo "Spark presence status $sparkexited"
-if [ "$sparkexited" -eq 0 ]
-then
-    $TRAVIS_BUILD_DIR/ci/check_dump_cores_osx.sh `pwd` `ps -ef | grep Spark |grep -v grep|grep -v spark.sh|awk '{print $2}'` /var/tmp/spark.log
-fi
+#enable it only for debugging on any hang on exit
+#if [ "$sparkexited" -eq 0 ]
+#then
+#    $TRAVIS_BUILD_DIR/ci/check_dump_cores_osx.sh `pwd` `ps -ef | grep Spark |grep -v grep|grep -v spark.sh|awk '{print $2}'` /var/tmp/spark.log
+#fi
 
 #check for any cores happening during the time of exit
 isCGLCrash=0

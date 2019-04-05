@@ -68,8 +68,12 @@ void pxArchive::setupArchive()
     mLoadStatus.set("errorString", mErrorString);
 
     if (mDownloadStatusCode == 0) {
-      mData.init((uint8_t *) mArchiveData, mArchiveDataSize);
-      process(mData.data(), mData.length());
+      // this scenario of mismatch is very rare and can happen only if heap object is destroyed before we access
+      if ((NULL != mArchiveData) && (mArchiveDataSize > 0))
+      {
+        mData.init((uint8_t *) mArchiveData, mArchiveDataSize);
+        process(mData.data(), mData.length());
+      }
     }
     if (mArchiveData != NULL) {
       delete[] mArchiveData;
