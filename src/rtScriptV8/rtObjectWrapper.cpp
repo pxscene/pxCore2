@@ -522,6 +522,7 @@ rtError jsObjectWrapper::Set(const char* name, const rtValue* value)
   Local<String> s = String::NewFromUtf8(mIsolate, name);
   Local<Object> self = PersistentToLocal(mIsolate, mObject);
   Local<Context> ctx = self->CreationContext();
+  Context::Scope contextScope(ctx);
 
   rtError err = RT_OK;
 
