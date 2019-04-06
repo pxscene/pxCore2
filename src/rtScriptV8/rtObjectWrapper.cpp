@@ -557,6 +557,7 @@ rtError jsObjectWrapper::Set(uint32_t i, const rtValue* value)
   HandleScope handleScope(mIsolate);
   Local<Object> self = PersistentToLocal(mIsolate, mObject);
   Local<Context> ctx = self->CreationContext();
+  Context::Scope contextScope(ctx);
 
   if (!self->Set(i, rt2js(ctx, *value)))
     return RT_FAIL;
