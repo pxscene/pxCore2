@@ -16,6 +16,7 @@ limitations under the License.
 
 */
 
+#include <math.h>
 #include "pxTimer.h"
 #include "test_includes.h" // Needs to be included last
 
@@ -52,7 +53,7 @@ class pxTimerNativeTest : public testing::Test
         startTime = pxSeconds();
         pxSleepMS(TEST_TIME * 1000);
         endTime = pxSeconds();
-        EXPECT_TRUE(abs(TEST_TIME - (endTime-startTime)) <= 0.001);
+        EXPECT_TRUE(fabs(TEST_TIME - (endTime-startTime)) <= 0.001);
     }
 
 };
