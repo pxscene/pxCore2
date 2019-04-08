@@ -36,7 +36,7 @@ while [ "$retVal" -ne 0 ] &&  [ "$count" -ne 180 ] && [ "$corefile" -ne 0 ] ; do
 	count=$((count+60))
 	echo "unittests running for $count seconds"
 done
-
+cat $TESTLOGS
 #check for corefile presence
 processId=`ps -ef | grep pxscene2dtests |grep -v grep|grep -v pxscene2dtests.sh|awk '{print $2}'`
 ls -l /tmp/pxscenecrash
