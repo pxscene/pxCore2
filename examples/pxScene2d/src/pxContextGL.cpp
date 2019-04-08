@@ -2172,6 +2172,16 @@ void pxContext::init()
     mFreeAllOffscreenTextureMemoryOnCleanup = val.toString().compare("true") == 0;
   }
 
+  char const* textureLimitSetting = getenv("SPARK_TEXTURE_LIMIT_MB");
+  if (textureLimitSetting)
+  {
+    int textureLimitInMb = atoi(textureLimitSetting);
+    if (textureLimitInMb >= 0)
+    {
+      setTextureMemoryLimit((int64_t)textureLimitInMb * (int64_t)1024 * (int64_t)1024);
+    }
+  }
+
   char const* ejectTextureAgeSetting = getenv("SPARK_EJECT_TEXTURE_AGE");
   if (ejectTextureAgeSetting)
   {
