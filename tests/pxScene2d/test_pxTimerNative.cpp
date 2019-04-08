@@ -53,6 +53,8 @@ class pxTimerNativeTest : public testing::Test
         startTime = pxSeconds();
         pxSleepMS(TEST_TIME * 1000);
         endTime = pxSeconds();
+        printf("[%lf] [%lf] \n",TEST_TIME - (endTime-startTime), fabs(TEST_TIME - (endTime-startTime)));
+        fflush(stdout);
         EXPECT_TRUE(fabs(TEST_TIME - (endTime-startTime)) <= 0.001);
     }
 
