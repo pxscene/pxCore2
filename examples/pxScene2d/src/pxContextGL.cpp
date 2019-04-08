@@ -189,10 +189,12 @@ pxError ejectNotRecentlyUsedTextureMemory(int64_t bytesNeeded, int64_t targetMem
   //rtLogDebug("attempting to eject %" PRId64 " bytes of texture memory with max age %u", bytesNeeded, maxAge);
 #if !defined(DISABLE_TEXTURE_EJECTION)
   int numberEjected = 0;
-  int64_t beforeTextureMemoryUsage = context.currentTextureMemoryUsageInBytes();
+  int64_t beforeTextureMemoryUsage = 0;
+  lockContext();
+  beforeTextureMemoryUsage = context.currentTextureMemoryUsageInBytes();
+  unlockContext();
 
   textureListMutex.lock();
-  std::random_shuffle(textureList.begin(), textureList.end());
   for(std::vector<pxTexture*>::iterator it = textureList.begin(); it != textureList.end(); ++it)
   {
     pxTexture* texture = (*it);
@@ -201,7 +203,10 @@ pxError ejectNotRecentlyUsedTextureMemory(int64_t bytesNeeded, int64_t targetMem
     {
       numberEjected++;
       texture->unloadTextureData();
-      int64_t currentTextureMemory = context.currentTextureMemoryUsageInBytes();
+      int64_t currentTextureMemory = 0;
+      lockContext();
+      currentTextureMemory = context.currentTextureMemoryUsageInBytes();
+      unlockContext();
       if (!clearAllOffscreen && (currentTextureMemory <= targetMemoryAmount) &&
           (beforeTextureMemoryUsage - currentTextureMemory) > bytesNeeded)
       {
@@ -213,7 +218,10 @@ pxError ejectNotRecentlyUsedTextureMemory(int64_t bytesNeeded, int64_t targetMem
 
   if (numberEjected > 0)
   {
-    int64_t afterTextureMemoryUsage = context.currentTextureMemoryUsageInBytes();
+    int64_t afterTextureMemoryUsage = 0;
+    lockContext();
+    afterTextureMemoryUsage = context.currentTextureMemoryUsageInBytes();
+    unlockContext();
     rtLogWarn("%d textures have been ejected and %" PRId64 " bytes of texture memory has been freed",
         numberEjected, (beforeTextureMemoryUsage - afterTextureMemoryUsage));
   }
@@ -2847,6 +2855,11 @@ bool pxContext::isTextureSpaceAvailable(pxTextureRef texture, bool allowGarbageC
       #else
         uv_async_send(&gcTrigger);
       #endif
+      lockContext();
+      currentTextureMemorySize = mCurrentTextureMemorySizeInBytes;
+      unlockContext();
+      return ((textureSize + currentTextureMemorySize) <=
+              (maxTextureMemoryInBytes  + mTextureMemoryLimitThresholdPaddingInBytes));
     }
     return false;
   }
@@ -2870,7 +2883,10 @@ int64_t pxContext::currentTextureMemoryUsageInBytes()
 int64_t pxContext::textureMemoryOverflow(pxTextureRef texture)
 {
   int64_t textureSize = (((int64_t)texture->width())*((int64_t)texture->height())*4);
-  int64_t currentTextureMemorySize = mCurrentTextureMemorySizeInBytes;
+  int64_t currentTextureMemorySize = 0;
+  lockContext();
+  currentTextureMemorySize = mCurrentTextureMemorySizeInBytes;
+  unlockContext();
   int64_t availableBytes = mTextureMemoryLimitInBytes - currentTextureMemorySize;
   if (textureSize > availableBytes)
   {
