@@ -464,7 +464,7 @@ void rtImageResource::setTextureData(pxOffscreen& imageOffscreen)
 {
   mTextureMutex.lock();
 #ifdef ENABLE_BACKGROUND_TEXTURE_CREATION
-  if (mDownloadedTexture.getPtr() != NULL)
+  if (mDownloadedTexture.getPtr() == NULL)
   {
     mDownloadedTexture = context.createTexture(imageOffscreen);
   }
