@@ -197,7 +197,7 @@ pxError ejectNotRecentlyUsedTextureMemory(int64_t bytesNeeded, int64_t targetMem
   {
     pxTexture* texture = (*it);
     uint32_t lastRenderTickAge = gRenderTick - texture->lastRenderTick();
-    if (lastRenderTickAge >= maxAge)
+    if (lastRenderTickAge > maxAge)
     {
       numberEjected++;
       texture->unloadTextureData();
@@ -820,7 +820,7 @@ public:
 // TODO would be nice to do the upload in createTexture but right now it's getting called on wrong thread
     if (!mTextureUploaded)
     {
-      if (mTextureName != 0 && !context.isTextureSpaceAvailable(this))
+      if (mTextureName == 0 && !context.isTextureSpaceAvailable(this))
       {
         //attempt to free texture memory
         int64_t textureMemoryNeeded = context.textureMemoryOverflow(this);
@@ -2825,6 +2825,7 @@ bool pxContext::isTextureSpaceAvailable(pxTextureRef texture, bool allowGarbageC
   lockContext();
   int64_t currentTextureMemorySize = mCurrentTextureMemorySizeInBytes;
   int64_t maxTextureMemoryInBytes = mTextureMemoryLimitInBytes;
+  //rtLogDebug("current size %" PRId64 " limit %" PRId64 ".", currentTextureMemorySize, maxTextureMemoryInBytes);
   unlockContext();
   if ((textureSize + currentTextureMemorySize) >
              (maxTextureMemoryInBytes  + mTextureMemoryLimitThresholdPaddingInBytes))
