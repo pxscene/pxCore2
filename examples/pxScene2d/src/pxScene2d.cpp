@@ -39,6 +39,9 @@
 #include "pxText.h"
 #include "pxTextBox.h"
 #include "pxImage.h"
+#ifdef BUILD_WITH_BROWSER
+#include "pxBrowser.h"
+#endif
 
 #ifdef PX_SERVICE_MANAGER
 #include "pxServiceManager.h"
@@ -655,6 +658,8 @@ rtError pxScene2d::create(rtObjectRef p, rtObjectRef& o)
     e = createWayland(p,o);
   else if (!strcmp("object",t.cString()))
     e = createObject(p,o);
+  else if (!strcmp("browser", t.cString()))
+    e = createBrowser(p,o);
   else
   {
     rtLogError("Unknown object type, %s in scene.create.", t.cString());
@@ -692,6 +697,17 @@ rtError pxScene2d::createObject(rtObjectRef p, rtObjectRef& o)
   o.set(p);
   o.send("init");
   return RT_OK;
+}
+
+rtError pxScene2d::createBrowser(rtObjectRef p, rtObjectRef& o)
+{
+#ifdef BUILD_WITH_BROWSER
+  o = new pxBrowser(this);
+  o.set(p);
+  o.send("init");
+  return RT_OK;
+#endif // BUILD_WITH_BROWSER
+  return RT_PROP_NOT_FOUND;
 }
 
 rtError pxScene2d::createRectangle(rtObjectRef p, rtObjectRef& o)
@@ -1547,9 +1563,9 @@ bool pxScene2d::bubbleEvent(rtObjectRef e, rtRef<pxObject> t,
     for (vector<rtRef<pxObject> >::reverse_iterator it = l.rbegin();!mStopPropagation && it != itReverseEnd;++it)
     {
       // TODO a bit messy
-      rtFunctionRef emit = (*it)->mEmit.getPtr();
-      if (emit)
-        emit.sendReturns(preEvent,e,stop);
+      rtFunctionRef emitFunc = (*it)->mEmit.getPtr();
+      if (emitFunc)
+        emitFunc.sendReturns(preEvent,e,stop);
       if (mStopPropagation)
         break;
     }
@@ -1561,12 +1577,12 @@ bool pxScene2d::bubbleEvent(rtObjectRef e, rtRef<pxObject> t,
     for (vector<rtRef<pxObject> >::iterator it = l.begin();!mStopPropagation && it != itEnd;++it)
     {
       // TODO a bit messy
-      rtFunctionRef emit = (*it)->mEmit.getPtr();
+      rtFunctionRef emitFunc = (*it)->mEmit.getPtr();
       // TODO: As we bubble onMouseMove we need to keep adjusting the coordinates into the
       // coordinate space of the successive parents object ??
       // JRJR... not convinced on this comment please discus with me first.
-      if (emit)
-        emit.sendReturns(event,e,stop);
+      if (emitFunc)
+        emitFunc.sendReturns(event,e,stop);
 //      rtLogDebug("mStopPropagation %d\n", mStopPropagation);
       if (mStopPropagation)
       {
@@ -1624,9 +1640,9 @@ bool pxScene2d::bubbleEventOnBlur(rtObjectRef e, rtRef<pxObject> t, rtRef<pxObje
     vector<rtRef<pxObject> >::reverse_iterator it_reverseEnd = l.rend();
     for (vector<rtRef<pxObject> >::reverse_iterator it = l.rbegin();!mStopPropagation && it != it_reverseEnd;++it)
     {
-      rtFunctionRef emit = (*it)->mEmit.getPtr();
-      if (emit)
-        emit.sendReturns("onPreBlur",e,stop);
+      rtFunctionRef emitFunc = (*it)->mEmit.getPtr();
+      if (emitFunc)
+        emitFunc.sendReturns("onPreBlur",e,stop);
     }
     //    rtLogDebug("after %s bubble\n", preEvent);
 
@@ -1634,8 +1650,8 @@ bool pxScene2d::bubbleEventOnBlur(rtObjectRef e, rtRef<pxObject> t, rtRef<pxObje
     e.set("name", "onBlur");
     for (unsigned long i = 0;!mStopPropagation && i < l.size();i++)
     {
-      rtFunctionRef emit = l[i]->mEmit.getPtr();
-      if (emit)
+      rtFunctionRef emitFunc = l[i]->mEmit.getPtr();
+      if (emitFunc)
       {
         // For range [0,loseFocusChainIdx),loseFocusChain is true
         // For range [loseFocusChainIdx,l.size()),loseFocusChain is false
@@ -1648,7 +1664,7 @@ bool pxScene2d::bubbleEventOnBlur(rtObjectRef e, rtRef<pxObject> t, rtRef<pxObje
         else
           e.set("loseFocusChain",rtValue(false));
 
-        emit.sendReturns("onBlur",e,stop);
+        emitFunc.sendReturns("onBlur",e,stop);
       }
     }
     //    rtLogDebug("after %s bubble\n", event);

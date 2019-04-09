@@ -1,4 +1,4 @@
-﻿/*
+/*
 
  pxCore Copyright 2005-2018 John Robinson
 
@@ -49,6 +49,8 @@ using namespace std;
 
 #ifdef WIN32
 #include <winsparkle.h>
+#include <win/WindowsGLContext.hpp>
+WindowsGLContext* WindowsGLContext::mContext = nullptr;
 //todo: is this resource file needed?  if so, uncomment
 //#include "../../../pxCore.vsbuild/pxScene2d/resource.h"
 #endif
@@ -107,6 +109,12 @@ extern int pxObjectCount;
 
 #include "pxFont.h"
 
+#ifdef BUILD_WITH_BROWSER
+#include "QAdapter.h"
+
+QAdapter qAdapter;
+#endif
+
 #ifdef PXSCENE_FONT_ATLAS
 extern pxFontAtlas gFontAtlas;
 #endif
@@ -149,7 +157,6 @@ public:
   void init(int x, int y, int w, int h, const char* url = NULL)
   {
     pxWindow::init(x,y,w,h);
-
     setUrl(url);
   }
 
@@ -167,6 +174,9 @@ public:
       ENTERSCENELOCK()
       v->setViewContainer(this);
       v->onSize(mWidth, mHeight);
+#ifdef BUILD_WITH_BROWSER
+      qAdapter.setView(v);
+#endif // BUILD_WITH_BROWSER
       EXITSCENELOCK()
     }
 
@@ -229,6 +239,19 @@ public:
   {
     onCloseRequest();
   }
+
+#ifdef BUILD_WITH_BROWSER
+  void initQT()
+  {
+#ifdef WIN32
+    qAdapter.init(&mWindow, mWidth, mHeight);
+#elif __APPLE__
+    qAdapter.init(mWindow, mWidth, mHeight);
+#endif
+
+    
+  }
+#endif
 protected:
 
   virtual void onSize(int32_t w, int32_t h)
@@ -238,8 +261,12 @@ protected:
       mWidth  = w;
       mHeight = h;
       ENTERSCENELOCK()
-      if (mView)
+      if (mView){
+#ifdef BUILD_WITH_BROWSER
+        qAdapter.resize(w, h);
+#endif
         mView->onSize(w, h);
+      }
       EXITSCENELOCK()
     }
   }
@@ -447,8 +474,12 @@ protected:
   virtual void onAnimationTimer()
   {
     ENTERSCENELOCK()
-    if (mView && !mClosed)
+    if (mView && !mClosed){
       mView->onUpdate(pxSeconds());
+#ifdef BUILD_WITH_BROWSER
+      qAdapter.update();
+#endif
+    }
     EXITSCENELOCK()
 #ifdef ENABLE_OPTIMUS_SUPPORT
     OptimusClient::pumpRemoteObjectQueue();
@@ -776,10 +807,10 @@ if (s && (strcmp(s,"1") == 0))
   win.setAnimationFPS(animationFPS);
 
 #ifdef WIN32
-
   HDC hdc = ::GetDC(win.mWindow);
-  HGLRC hrc;
-
+  WindowsGLContext *windowsGLContext = WindowsGLContext::instance();
+  windowsGLContext->hdc = hdc;
+  
 	static PIXELFORMATDESCRIPTOR pfd =
 	{
 		sizeof(PIXELFORMATDESCRIPTOR),
@@ -805,23 +836,10 @@ if (s && (strcmp(s,"1") == 0))
 
 	int pixelFormat = ChoosePixelFormat(hdc, &pfd);
   if (::SetPixelFormat(hdc, pixelFormat, &pfd)) {
-	  hrc = wglCreateContext(hdc);
-	  if (::wglMakeCurrent(hdc, hrc)) {
-			glewExperimental = GL_TRUE;
-			if (glewInit() != GLEW_OK)
-				throw std::runtime_error("glewInit failed");
-
-			char *GL_version = (char *)glGetString(GL_VERSION);
-			char *GL_vendor = (char *)glGetString(GL_VENDOR);
-			char *GL_renderer = (char *)glGetString(GL_RENDERER);
-
-
-			rtLogInfo("GL_version = %s", GL_version);
-			rtLogInfo("GL_vendor = %s", GL_vendor);
-			rtLogInfo("GL_renderer = %s", GL_renderer);
-	  }
+    HGLRC hrc = windowsGLContext->createContext();
+    windowsGLContext->makeCurrent(hrc);
+    windowsGLContext->rootContext = hrc;
   }
-
 
 #endif
   #if 0
@@ -833,6 +851,14 @@ if (s && (strcmp(s,"1") == 0))
 // Likely will move this to pxWindow...  as an option... a "context" type
 // would like to decouple it from pxScene2d specifically
   context.init();
+
+#ifdef BUILD_WITH_BROWSER
+  rtLogSetLevel(rtLogLevel::RT_LOG_INFO);
+  pxSharedContextRef sharedContext = context.createSharedContext();
+  sharedContext->makeCurrent(true);
+  win.initQT();
+  sharedContext->makeCurrent(false);
+#endif
 
 #ifdef WIN32
 
