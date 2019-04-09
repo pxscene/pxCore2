@@ -7,6 +7,7 @@
       {"url":"../tests/text2tests.js", "title":"text2tests","useBaseURI":"true"},
       {"url":"../tests/text2tests_more.js", "title":"text2tests_more","useBaseURI":"true"},
       {"url":"../tests/test_xre2-85.js", "title":"test_XRE2-85","useBaseURI":"true"},
+      {"url":"../tests/test_xre2_1555.js", "title":"test_XRE2-1555","useBaseURI":"true"},
       {"url":"../tests/test_y_coords.js", "title":"test_y_coords","useBaseURI":"true"},
       {"url":"../tests/test_moveToBackFront.js", "title":"test_moveToBackFront","useBaseURI":"true"},
       {"url":"../tests/test_getObjectById.js", "title":"test_getObjectById","useBaseURI":"true"},
@@ -18,6 +19,7 @@
       {"url":"../tests/test_promiseCreationImageA.js", "title":"test_promiseCreationImageA","useBaseURI":"true"},
       {"url":"../tests/test_capabilities.js", "title":"test_capabilities","useBaseURI":"true"},
       {"url":"../tests/test_pxAnimate.js", "title":"test_pxAnimate","useBaseURI":"true"},
+      {"url":"../tests/test_pxAnimateTimeUnits.js", "title":"test_pxAnimateTimeUnits","useBaseURI":"true"},
       {"url":"../tests/test_pxResource.js", "title":"test_pxResource","useBaseURI":"true"},
       {"url":"../tests/test_pxScene2d_v2.js", "title":"test_pxScene2d_v2","useBaseURI":"true"},
       {"url":"../tests/test_pxImage.js", "title":"test_pxImage","useBaseURI":"true"},
@@ -53,6 +55,7 @@
       {"url":"../tests/test_promiseNewCreationTextBox.js", "title":"test_promiseNewCreationTextBox","useBaseURI":"true"},
       {"url":"../tests/test_screencapture_jar.js", "title":"test_screencapture_jar","useBaseURI":"true"},
       {"url":"../tests/test_pxWebColors.js", "title":"test_pxWebColors_v1","useBaseURI":"true"},
+      {"url":"../tests/test_pxColorNames.js", "title":"test_pxColorNames","useBaseURI":"true"},
       {"url":"../tests/test_objects_alpha.js", "title":"test_objects_alpha","useBaseURI":"true"},
       {"url":"../tests/test_dirty_rectangles.js", "title":"test_dirty_rectangles","useBaseURI":"true"}
 ]

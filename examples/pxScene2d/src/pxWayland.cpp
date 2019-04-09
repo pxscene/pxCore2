@@ -124,6 +124,15 @@ pxWayland::~pxWayland()
   {
      terminateClient();
      WstCompositorDestroy(mWCtx);
+     if ((mClientPID > 0) && (0 == kill(mClientPID, 0)))
+     {
+       rtLogWarn("Sending SIGKILL to client %d", mClientPID);
+#if defined(RT_PLATFORM_LINUX) || defined(PX_PLATFORM_MAC)
+       sleep(1);
+#endif //RT_PLATFORM_LINUX || PX_PLATFORM_MAC
+       kill(mClientPID, SIGKILL);
+     }
+     mClientPID= -1;
      mWCtx = NULL;
   }
 }
@@ -594,9 +603,8 @@ void pxWayland::terminateClient()
       if ( mClientPID >= 0 )
       {
           rtLogInfo("pxWayland::terminateClient: client pid %d still alive - killing...", mClientPID);
-          kill( mClientPID, SIGKILL);
+          kill( mClientPID, SIGTERM);
           rtLogInfo("pxWayland::terminateClient: client pid %d killed", mClientPID);
-          mClientPID= -1;
       }
       pthread_join( mClientMonitorThreadId, NULL );
    }
@@ -990,6 +998,9 @@ rtError pxWayland::connectToRemoteObject(unsigned int timeout_ms)
 #define KEY_PLAY                207
 #define KEY_FASTFORWARD         208
 #define KEY_PRINT               210     /* AC Print */
+#define KEY_BACK                158
+#define KEY_MENU                139
+#define KEY_HOMEPAGE            172
 
 uint32_t pxWayland::linuxFromPX( uint32_t keyCode )
 {
@@ -1311,6 +1322,15 @@ uint32_t pxWayland::linuxFromPX( uint32_t keyCode )
          break;
       case PX_KEY_GREEN:
          linuxKeyCode = KEY_GREEN;
+         break;
+      case PX_KEY_BACK:
+         linuxKeyCode = KEY_BACK;
+         break;
+      case PX_KEY_MENU:
+         linuxKeyCode = KEY_MENU;
+         break;
+      case PX_KEY_HOMEPAGE:
+         linuxKeyCode = KEY_HOMEPAGE;
          break;
       default:
          linuxKeyCode= -1;

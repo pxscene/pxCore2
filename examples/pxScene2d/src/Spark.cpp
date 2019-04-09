@@ -339,7 +339,6 @@ protected:
           script.pump();
       #endif
       script.collectGarbage();
-      rtThreadPool::globalInstance()->destroy();
       rtLogInfo("pxobjectcount is [%d]",pxObjectCount);
 #ifndef PX_PLATFORM_DFB_NON_X11
       rtLogInfo("texture memory usage is [%" PRId64 "]",context.currentTextureMemoryUsageInBytes());
@@ -380,6 +379,38 @@ protected:
     ENTERSCENELOCK()
     if (mView)
       mView->onMouseMove(x, y);
+    EXITSCENELOCK()
+  }
+
+  virtual void onDragMove(int32_t x, int32_t y, int32_t type)
+  {
+    ENTERSCENELOCK()
+    if (mView)
+    mView->onDragMove(x, y, type);
+    EXITSCENELOCK()
+  }
+
+  virtual void onDragEnter(int32_t x, int32_t y, int32_t type)
+  {
+    ENTERSCENELOCK()
+    if (mView)
+    mView->onDragEnter(x, y, type);
+    EXITSCENELOCK()
+  }
+
+  virtual void onDragLeave(int32_t x, int32_t y, int32_t type)
+  {
+    ENTERSCENELOCK()
+    if (mView)
+    mView->onDragLeave(x, y, type);
+    EXITSCENELOCK()
+  }
+
+  virtual void onDragDrop(int32_t x, int32_t y, int32_t type, const char* dropped)
+  {
+    ENTERSCENELOCK()
+    if (mView)
+    mView->onDragDrop(x, y, type, dropped);
     EXITSCENELOCK()
   }
 
