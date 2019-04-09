@@ -91,6 +91,7 @@ public:
   bool downscaleSmooth() { return mDownscaleSmooth; }
   virtual bool initialized() { return true; }
   virtual bool readyForRendering() { return true; }
+  virtual bool setupForRendering() { return true; }
 protected:
   rtAtomic mRef;
   pxTextureType mTextureType;
