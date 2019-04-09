@@ -162,7 +162,14 @@ float pxImage9::getOnscreenHeight()
 void pxImage9::draw() {
   if (getImageResource() != NULL && getImageResource()->isInitialized() && !mSceneSuspended)
   {
-    context.drawImage9(mw, mh, mInsetLeft, mInsetTop, mInsetRight, mInsetBottom, getImageResource()->getTexture());
+    if (getImageResource()->getTexture().getPtr() && !getImageResource()->getTexture()->readyForRendering())
+    {
+      getImageResource()->reloadData();
+    }
+    else
+    {
+      context.drawImage9(mw, mh, mInsetLeft, mInsetTop, mInsetRight, mInsetBottom, getImageResource()->getTexture());
+    }
   }
 }
 
