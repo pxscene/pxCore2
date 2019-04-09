@@ -618,8 +618,7 @@ class pxTextureOffscreen : public pxTexture
 {
 public:
   pxTextureOffscreen() : mOffscreen(), mInitialized(false), mTextureName(0),
-                         mTextureUploaded(false),
-                         mLoadTextureRequested(false), mWidth(0), mHeight(0), mOffscreenMutex(),
+                         mTextureUploaded(false), mWidth(0), mHeight(0), mOffscreenMutex(),
                          mFreeOffscreenDataRequested(false),
                          mMipmapCreated(false), mTextureListener(NULL), mTextureListenerMutex(),
                          mReadyForRendering(false), mRenderingMutex(), mSetupForRendering(false)
@@ -630,8 +629,7 @@ public:
 
   pxTextureOffscreen(pxOffscreen& o)
                                      : mOffscreen(), mInitialized(false), mTextureName(0),
-                                       mTextureUploaded(false),
-                                       mLoadTextureRequested(false), mWidth(0), mHeight(0), mOffscreenMutex(),
+                                       mTextureUploaded(false), mWidth(0), mHeight(0), mOffscreenMutex(),
                                        mFreeOffscreenDataRequested(false),
                                        mMipmapCreated(false), mTextureListener(NULL), mTextureListenerMutex(),
                                        mReadyForRendering(false), mRenderingMutex(), mSetupForRendering(false)
@@ -715,7 +713,6 @@ public:
     mFreeOffscreenDataRequested = false;
     mOffscreenMutex.unlock();
 
-    mLoadTextureRequested = false;
     mInitialized = true;
 
     mTextureListenerMutex.lock();
@@ -1014,7 +1011,6 @@ private:
   bool mInitialized;
   GLuint mTextureName;
   bool mTextureUploaded;
-  bool mLoadTextureRequested;
   int mWidth;
   int mHeight;
   rtMutex mOffscreenMutex;
