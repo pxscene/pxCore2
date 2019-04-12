@@ -28,6 +28,10 @@
     sudo apt-get install git libglew-dev freeglut3 freeglut3-dev libgcrypt11-dev zlib1g-dev g++ libssl-dev nasm autoconf libtool cmake quilt libpng-dev
     
     ~~~~
+> For Ubuntu 18.04+ also install gnutls-dev:
+    ~~~~
+    sudo apt-get install gnutls-dev
+    ~~~~
 
 ## macOS Setup 
 
