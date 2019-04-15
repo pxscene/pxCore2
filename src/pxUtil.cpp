@@ -27,7 +27,7 @@
 #include <string.h>
 #include <stdarg.h>
 #include <png.h>
-
+#include <gif_lib.h>
 #include "rtLog.h"
 #include "pxCore.h"
 #include "pxOffscreen.h"
@@ -139,7 +139,9 @@ rtError pxLoadAImage(const char* imageData, size_t imageDataSize,
 {
   // Load as PNG...
   rtError retVal = pxLoadAPNGImage(imageData, imageDataSize, s);
-
+  if (retVal != RT_OK)
+    retVal = pxLoadGIFImage(imageData, imageDataSize, s);
+  
   if (retVal != RT_OK) // Failed ... trying as JPG (why?)
   {
 #if 0
@@ -1278,6 +1280,7 @@ void pxTimedOffscreenSequence::addBuffer(pxBuffer &b, double d)
 #include <stdlib.h>
 #include <string.h>
 #include "png.h"
+#include "../examples/pxScene2d/external/gif/gif_lib.h"
 
 //#define PNG_APNG_SUPPORTED
 
@@ -1789,5 +1792,183 @@ rtString md5sum(rtString &d)
   }
 
   return rtString(  (char *) str_result);
+}
+
+struct GifStruct
+{
+    GifStruct(char *data, size_t dataSize)
+    : imageData(data), imageDataSize(dataSize), readPosition(0)
+    {
+    }
+    
+    char *imageData;
+    size_t imageDataSize;
+    int readPosition;
+};
+
+static int readGifData(GifFileType* file, GifByteType* data, int length)
+{
+    GifStruct* gifStruct = reinterpret_cast<GifStruct*>(file->UserData);
+    memcpy((char *)data, gifStruct->imageData + gifStruct->readPosition, length);
+    gifStruct->readPosition += length;
+    return -1;
+}
+
+void readLine(GifFileType* fp, unsigned char* data)
+{
+    if ( DGifGetLine(fp, data, fp->Image.Width) == GIF_ERROR) {
+#if defined GIFLIB_MAJOR && GIFLIB_MINOR && ((GIFLIB_MAJOR == 5 && GIFLIB_MINOR >= 1) || (GIFLIB_MAJOR > 5))
+        DGifCloseFile(fp, NULL);
+#else
+        DGifCloseFile(fp);
+#endif
+        rtLogError("FATAL: error reading file");
+    }
+}
+
+void unpackData(GifFileType* fp,
+                               const unsigned char* from_data,
+                               unsigned char* to_data)
+{
+    struct ColorMapObject* cmap =
+    (fp->Image.ColorMap ? fp->Image.ColorMap : fp->SColorMap);
+    
+    for (int i = 0;  i < fp->Image.Width;  ++i) {
+        *to_data++ = cmap->Colors[ from_data[i] ].Red;
+        *to_data++ = cmap->Colors[ from_data[i] ].Green;
+        *to_data++ = cmap->Colors[ from_data[i] ].Blue;
+    }
+}
+        
+rtError pxLoadGIFImage(const char *imageData, size_t imageDataSize,
+                       pxTimedOffscreenSequence &s)
+{
+    if (!imageData)
+    {
+        rtLogError("FATAL: Invalid arguments - imageData = NULL");
+        return RT_FAIL;
+    }
+    
+    if (imageDataSize < 8)
+    {
+        rtLogError("FATAL: Invalid arguments - imageDataSize < 8");
+        return RT_FAIL;
+    }
+    
+    s.init();
+    GifFileType* fp = DGifOpen((void *)imageData, readGifData, NULL);
+    return -1;
+    if ( !fp ) {
+    }
+    /*pxImageA image;
+    // allocate an image
+    image.Reset(new CImage(fp->SWidth, fp->SHeight, 3));
+    memset(image->SetData(), fp->SBackGroundColor,
+           image->GetWidth() * image->GetHeight() * image->GetDepth());*/
+    
+    // we also allocate a single row
+    // this row is a color indexed row, and will be decoded row-by-row into the
+    // image
+    std::vector<unsigned char> row_data(fp->SWidth);//image->GetWidth());
+    unsigned char* row_ptr = &row_data[0];
+    
+    bool done = false;
+    while ( !done ) {
+        // determine what sort of record type we have
+        // these can be image, extension, or termination
+        GifRecordType type;
+        if (DGifGetRecordType(fp, &type) == GIF_ERROR) {
+            rtLogError("FATAL: error reading file");
+        }
+        
+        switch (type) {
+            case IMAGE_DESC_RECORD_TYPE:
+                //
+                // we only support the first image in a gif
+                //
+                if (DGifGetImageDesc(fp) == GIF_ERROR) {
+                    rtLogError("FATAL: error reading file");
+                }
+                
+                if (fp->Image.Interlace) {
+                    // interlaced images are a bit more complex
+                    size_t row = fp->Image.Top;
+                    size_t col = fp->Image.Left;
+                    size_t wid = fp->Image.Width;
+                    size_t ht  = fp->Image.Height;
+                    
+                    static int interlaced_offs[4] = { 0, 4, 2, 1 };
+                    static int interlaced_jump[4] = { 8, 8, 4, 2 };
+                    for (size_t i = 0;  i < 4;  ++i) {
+                        for (size_t j = row + interlaced_offs[i];
+                             j < row + ht;  j += interlaced_jump[i]) {
+                            readLine(fp, row_ptr);
+                            pxOffscreen o;
+                            o.init(fp->SWidth, fp->SHeight);
+                            for (uint32_t i = 0; i < ht; i++)
+                            {
+                                memcpy(o.scanline(i), &row_ptr[i], wid * 4);
+                            }
+                            unsigned short delay_num = 1;
+                            unsigned short delay_den = 10;
+                            s.addBuffer(o, (double)delay_num / (double)delay_den);
+                            
+                          //  unpackData(fp, row_ptr,
+                          //               image->SetData() +
+                          //               (j * wid + col) * image->GetDepth());
+                        }
+                    }
+                } else {
+                    size_t col = fp->Image.Left;
+                    size_t wid = fp->Image.Width;
+                    size_t ht  = fp->Image.Height;
+                    
+                    for (size_t i = 0;  i < ht;  ++i) {
+                        readLine(fp, row_ptr);
+                        pxOffscreen o;
+                        o.init(fp->SWidth, fp->SHeight);
+                        for (uint32_t i = 0; i < ht; i++)
+                        {
+                            memcpy(o.scanline(i), &row_ptr[i], wid * 4);
+                        }
+                        unsigned short delay_num = 1;
+                        unsigned short delay_den = 10;
+                        s.addBuffer(o, (double)delay_num / (double)delay_den);
+                        
+                      //  unpackData(fp, row_ptr,
+                       //              image->SetData() +
+                         //            (i * wid + col) * image->GetDepth());
+                    }
+                }
+                break;
+                
+            case EXTENSION_RECORD_TYPE:
+            {{
+                int ext_code;
+                GifByteType* extension;
+                
+                // we ignore extension blocks
+                if (DGifGetExtension(fp, &ext_code, &extension) == GIF_ERROR) {
+                    rtLogError("FATAL: "
+                               "error reading file");
+                }
+                while (extension != NULL) {
+                    if (DGifGetExtensionNext(fp, &extension) == GIF_OK) {
+                        continue;
+                    }
+                    
+                    rtLogError("FATAL: "
+                               "error reading file");
+                }
+            }}
+                break;
+                
+            default:
+                // terminate record - break our of our while()
+                done = true;
+                break;
+        }
+    }
+    return RT_OK;
 }
 

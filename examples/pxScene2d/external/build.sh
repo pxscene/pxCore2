@@ -69,6 +69,26 @@ then
 
 fi
 
+#--------- GIF
+
+if [ ! -e ./gif/.libs/libgif.5.1.8.dylib ] ||
+[ "$(uname)" != "Darwin" ]
+then
+
+banner "GIF"
+cd gif
+cmake .
+cmake --build . --config Release --clean-first
+
+[ -d .libs ] || mkdir -p .libs
+
+cp libgif.5.1.8.dylib .libs/libgif.5.1.8.dylib
+cp libgif.5.dylib .libs/libgif.5.dylib
+cp libgif.dylib .libs/libgif.dylib
+
+cd ..
+fi
+
 #--------- FT
 
 if [ ! -e ./ft/objs/.libs/libfreetype.6.dylib ] ||
