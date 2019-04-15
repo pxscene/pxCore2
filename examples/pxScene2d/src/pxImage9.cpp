@@ -78,9 +78,10 @@ rtError pxImage9::setUrl(const char* s)
       imageLoaded = false;
       createNewPromise();
     }
+    removeResourceListener();
   }
-
-  removeResourceListener();
+  
+  
   mResource = pxImageManager::getImage(s, NULL, mScene ? mScene->cors() : NULL, 0, 0, 1.0f, 1.0f, mScene ? mScene->getArchive(): NULL);
   if(getImageResource() != NULL && (getImageResource()->getUrl().length() > 0) && mInitialized && !imageLoaded)
   {
@@ -161,7 +162,14 @@ float pxImage9::getOnscreenHeight()
 void pxImage9::draw() {
   if (getImageResource() != NULL && getImageResource()->isInitialized() && !mSceneSuspended)
   {
-    context.drawImage9(mw, mh, mInsetLeft, mInsetTop, mInsetRight, mInsetBottom, getImageResource()->getTexture());
+    if (getImageResource()->getTexture().getPtr() && !getImageResource()->getTexture()->readyForRendering())
+    {
+      getImageResource()->reloadData();
+    }
+    else
+    {
+      context.drawImage9(mw, mh, mInsetLeft, mInsetTop, mInsetRight, mInsetBottom, getImageResource()->getTexture());
+    }
   }
 }
 

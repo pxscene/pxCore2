@@ -187,3 +187,51 @@
    fun:_Z6pxMainiPPc
    fun:main
 }
+{
+   getHostByNameLeak
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:malloc
+   fun:__libc_res_nsend
+   fun:__libc_res_nquery
+   fun:__libc_res_nquerydomain
+   fun:__libc_res_nsearch
+   obj:*
+   obj:*
+   fun:gethostbyname2_r@@GLIBC_2.2.5
+   fun:gaih_inet
+   fun:getaddrinfo
+   fun:uv__getaddrinfo_work
+   fun:worker
+   fun:uv__thread_start
+   fun:start_thread
+   fun:clone
+}
+{
+   rtResolverFunctionLeak
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:calloc
+   fun:allocate_dtv
+   fun:_dl_allocate_tls
+   fun:allocate_stack
+   fun:pthread_create@@GLIBC_2.2.5
+   fun:uv_thread_create
+   fun:init_once
+   fun:pthread_once
+   fun:uv_once
+   fun:uv__work_submit
+   fun:uv_queue_work
+   fun:_ZN19rtScriptV8NodeUtils18rtResolverFunction4SendEiPK7rtValuePS1_
+   fun:_ZN13rtFunctionRef4SendEiPK7rtValuePS0_
+   fun:_ZN14rtFunctionBase4sendERK7rtValue
+   fun:_ZN9rtPromise7resolveERK7rtValue
+   fun:_ZN9rtPromise13resolve_thunkEiPK7rtValueRS0_
+   fun:_ZN16rtObjectFunction4SendEiPK7rtValuePS0_
+   fun:_ZN12rtObjectBase4SendEPKciPK7rtValue
+   fun:_ZN12rtObjectBase4sendEPKcRK7rtValue
+   fun:_ZN9pxArchive20onDownloadCompleteUIEPvS0_
+   fun:_ZN13rtThreadQueue7processEd
+   fun:_ZN9pxScene2d8onUpdateEd
+   fun:_ZN12pxScriptView8onUpdateEd
+}

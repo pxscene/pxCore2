@@ -43,8 +43,9 @@ export SPARK_ENABLE_COLLECT_GARBAGE=1
 
 EXECLOGS=$TRAVIS_BUILD_DIR/logs/exec_logs
 LEAKLOGS=$TRAVIS_BUILD_DIR/logs/leak_logs
+#testrunner tests
 TESTRUNNERURL="https://www.sparkui.org/tests-ci/test-run/testRunner.js"
-TESTS="file://$TRAVIS_BUILD_DIR/tests/pxScene2d/testRunner/tests.json,file://$TRAVIS_BUILD_DIR/tests/pxScene2d/testRunner/testsDesktop.json"
+TESTS="file://$TRAVIS_BUILD_DIR/tests/pxScene2d/testRunner/testsDesktop.json,file://$TRAVIS_BUILD_DIR/tests/pxScene2d/testRunner/tests.json"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 printExecLogs()
@@ -63,7 +64,7 @@ cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src/spark.app/Contents/MacOS
 
 # Monitor testRunner ...
 count=0
-max_seconds=1800
+max_seconds=2100
 
 while [ "$count" -le "$max_seconds" ]; do
 	#leaks -nocontext Spark > $LEAKLOGS
@@ -91,10 +92,10 @@ while [ "$count" -le "$max_seconds" ]; do
 	count=$((count+30)) # add 30 seconds
 done #LOOP
 
-grep -n "WARNING: ThreadSanitizer:" /var/tmp/pxscene.log
+grep -n "WARNING: ThreadSanitizer:" /var/tmp/spark.log
 if [ "$?" -eq 0 ]
     then
-    cp /var/tmp/pxscene.log $EXECLOGS
+    cp /var/tmp/spark.log $EXECLOGS
     if [ "$TRAVIS_PULL_REQUEST" != "false" ]
     then
       errCause="Race Condition detected. Check the above logs"
@@ -112,7 +113,7 @@ if [ "$dumped_core" -eq 1 ]
 	ps -ef | grep Spark |grep -v grep >> /var/tmp/spark.log
   ps -ef |grep /bin/sh |grep -v grep >> /var/tmp/spark.log
 	$TRAVIS_BUILD_DIR/ci/check_dump_cores_osx.sh `pwd` `ps -ef | grep Spark |grep -v grep|grep -v spark.sh|awk '{print $2}'` /var/tmp/spark.log
-  cp /var/tmp/pxscene.log $EXECLOGS
+  cp /var/tmp/spark.log $EXECLOGS
   printExecLogs
 	checkError $dumped_core "Execution failed" "Core dump" "Run execution locally"
 fi
@@ -121,6 +122,34 @@ fi
 leakcount=`leaks Spark|grep Leak|wc -l`
 echo "leakcount during termination $leakcount"
 kill -15 `ps -ef | grep Spark |grep -v grep|grep -v spark.sh|awk '{print $2}'`
+
+ps -ef | grep Spark |grep -v grep
+sparkexited=$?
+echo "Spark presence status $sparkexited"
+#enable it only for debugging on any hang on exit
+#if [ "$sparkexited" -eq 0 ]
+#then
+#    $TRAVIS_BUILD_DIR/ci/check_dump_cores_osx.sh `pwd` `ps -ef | grep Spark |grep -v grep|grep -v spark.sh|awk '{print $2}'` /var/tmp/spark.log
+#fi
+
+#check for any cores happening during the time of exit
+isCGLCrash=0
+if [ -f "/tmp/pxscenecrash" ]
+then
+  ps -ef | grep Spark |grep -v grep >> /var/tmp/spark.log
+  ps -ef |grep /bin/sh |grep -v grep >> /var/tmp/spark.log
+  $TRAVIS_BUILD_DIR/ci/check_dump_cores_osx.sh `pwd` `ps -ef | grep Spark |grep -v grep|grep -v spark.sh|awk '{print $2}'` /var/tmp/spark.log
+  grep "SkyLight\`CGSWindowUnlockBackingWriter" /var/tmp/spark.log|grep frame
+  isCGLCrash=$?
+  cp /var/tmp/spark.log $EXECLOGS
+  #avoid false crash during the time sigterm is sent
+  if [ "$isCGLCrash" -eq 1 ]
+  then
+    printExecLogs
+    dumped_core=1
+    checkError $dumped_core "Execution failed" "Core dump" "Run execution locally"
+  fi
+fi
 
 #Sleep for 90s as we have sleep for 30s inside code to capture memory of process
 echo "Sleeping to make terminate complete ...";

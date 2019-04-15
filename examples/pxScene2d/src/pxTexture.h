@@ -79,7 +79,6 @@ public:
   virtual unsigned int getNativeId() { return 0; }
   pxTextureType getType() { return mTextureType; }
   virtual pxError prepareForRendering() { return PX_OK; }
-  virtual pxError loadTextureData() { return PX_OK; }
   virtual pxError unloadTextureData() { return PX_OK; }
   virtual pxError freeOffscreenData() { return PX_OK; }
   virtual pxError setTextureListener(pxTextureListener* /*textureListener*/) { return PX_OK; }
@@ -90,7 +89,9 @@ public:
   void setLastRenderTick(uint32_t renderTick) { mLastRenderTick = renderTick; }
   void setDownscaleSmooth(bool downscaleSmooth) { mDownscaleSmooth = downscaleSmooth; }
   bool downscaleSmooth() { return mDownscaleSmooth; }
-  bool initialized() { return true; }
+  virtual bool initialized() { return true; }
+  virtual bool readyForRendering() { return true; }
+  virtual bool setupForRendering() { return true; }
 protected:
   rtAtomic mRef;
   pxTextureType mTextureType;

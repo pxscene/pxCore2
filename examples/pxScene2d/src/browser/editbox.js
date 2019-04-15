@@ -33,13 +33,13 @@ px.import({ scene: 'px:scene.1.js',
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
-// EXAMPLE:  
+// EXAMPLE:
 //
 //   var inputBox  = new EditBox( {    url:"images/input2.png",    <<<<< 9 slice Image for Background frame
-//                                  insets: {l: 10, r: 10, t: 10, b: 10}, 
-//                                  parent: bg, 
-//                                       x: 10, 
-//                                       y: 10, 
+//                                  insets: {l: 10, r: 10, t: 10, b: 10},
+//                                  parent: bg,
+//                                       x: 10,
+//                                       y: 10,
 //                                       w: 800,
 //                                       h: 35,
 //                                     pts: 24 });
@@ -90,32 +90,32 @@ px.import({ scene: 'px:scene.1.js',
             get: function () { return this._keepFocus;    },
         });
         // - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-        this._showFocus = false; // Highlight focus 
+        this._showFocus = false; // Highlight focus
         Object.defineProperty(this, "showFocus",
         {
             set: function (val) { this._showFocus = val; },
             get: function () { return this._showFocus;   },
-        });    
+        });
         // - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         Object.defineProperty(this, "interactive",
         {
-            set: function (val) {    textInput.interactive = val; 
-                                      textView.interactive = val; 
-                                 
+            set: function (val) {   // textInput.interactive = val;
+                                    //  textView.interactive = val;
+
                                  console.log(">>> interactive = " + val);
 
                                  },
 
             get: function () { return textInput.interactive ;      },
-        });        
+        });
         // - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         Object.defineProperty(this, "text",
         {
-            set: function (val) { 
-                textInput.text = val;                                   
+            set: function (val) {
+                textInput.text = val;
                 prompt.a = (textInput.text.length > 0) ? 0 : 1; // show/hide placeholder
             },
-            get: function () { 
+            get: function () {
                   // Remove Leading/Trailing whitespace...
                   var txt = textInput.text.trim();
                   return txt; },
@@ -123,20 +123,20 @@ px.import({ scene: 'px:scene.1.js',
         // - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         Object.defineProperty(this, "prompt",
         {
-            set: function (val) { 
-                prompt.text = val;                                                   
+            set: function (val) {
+                prompt.text = val;
             },
-            get: function () { 
+            get: function () {
                   // Remove Leading/Trailing whitespace...
                   var txt = prompt.text.trim();
                   return txt; },
-        });        
+        });
         // - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         Object.defineProperty(this, "textColor",
         {
             set: function (val) { textInput.textColor = val;  },
             get: function ()    { return textInput.textColor; },
-        });        
+        });
         // - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         this._enableCopy = true;
         Object.defineProperty(this, "enableCopy",
@@ -156,11 +156,12 @@ px.import({ scene: 'px:scene.1.js',
         // PUBLIC methods
         //
         this.moveToHome     = moveToHome;
-        this.moveToEnd      = moveToEnd;        
+        this.moveToEnd      = moveToEnd;
         this.selectAll      = selectAll;
         this.clearSelection = clearSelection;
         this.hideCursor     = hideCursor;
         this.showCursor     = showCursor;
+        this.insertText     = insertText;
 
         this.doLater        = doLater;
         this.cancelLater    = cancelLater;
@@ -190,7 +191,7 @@ px.import({ scene: 'px:scene.1.js',
 
         var default_insets = {l: 10, r: 10, t: 10, b: 10};
 
-                                                 // set -OR- (default)   
+                                                 // set -OR- (default)
                     this._x =               "x" in params ? params.x               : 0;
                     this._y =               "y" in params ? params.y               : 0;
                     this._w =               "w" in params ? params.w               : 200;
@@ -214,22 +215,53 @@ px.import({ scene: 'px:scene.1.js',
         var inputRes  = scene.create({ t: "imageResource", url: params.url });
 
         var inputBg = scene.create({
-            t: "image9", resource: inputRes, a: 0.9, x: 0, y: 0, w: this._w, h: this._h,// insets: insets,
-            insetLeft: insets.l, insetRight: insets.r, insetTop: insets.t, insetBottom: insets.b, 
-            parent: clipRect, stretchX: ss, stretchY: ss
+            t: "image9", resource: inputRes, a: 0.9, x: 0, y: 0, w: this._w, h: this._h,
+            insetLeft: insets.l, insetRight: insets.r, insetTop: insets.t, insetBottom: insets.b,
+                                             parent: clipRect, stretchX: ss, stretchY: ss//, ineractive: false
         });
 
-        var textView  = scene.create({ t: "object", parent: clipRect, x: 0, y: 0, w: this._w, h: this._h});
+        var textView  = scene.create({ t: "rect", parent: clipRect, x: 0, y: 0, w: this._w, h: this._h});
 
-        var textInputBG = scene.create({ t: "rect", w: textView.w, h: textView.h,     parent: textView, fillColor: 0xFFFFFFf0,     x: 0, y: 0, a: show_focus ? 0.25 : 0.0 });
+        var textInputBG = scene.create({ t: "rect", w: textView.w, h: textView.h,     parent: textView, fillColor: 0xFFFFFFf0,      x: 0, y: 0, a: show_focus ? 0.25 : 0.0 });
         var prompt      = scene.create({ t: "text", text: prompt_text, font: fontRes, parent: textView, pixelSize: pts, textColor: prompt_color, x: 2, y: 0 });
         var selection   = scene.create({ t: "rect", w: 0, h: inputBg.h,               parent: textView, fillColor: selection_color, x: 0, y: 0, a: 0 });  // highlight rect
         var textInput   = scene.create({ t: "text", text: "", font: fontRes,          parent: textView, pixelSize: pts, textColor: text_color,   x: 2, y: 0 });
+        var textFrame   = scene.create({ t: "rect", w: 0, h: inputBg.h,               parent: textView, fillColor: "#0000",  lineColor: "#0808", lineWidth: 3, x: 0, y: 0, a: 0 });
+
         var cursor      = scene.create({ t: "rect", w: 2, h: inputBg.h,               parent: textInput, x: 0, y: 0 });
 
         var cursorW2   = (cursor.w / 2);
 
         var assets = [fontRes, inputRes, inputBg, clipRect, prompt, textInput, textView, cursor, selection];
+
+        // container.on("onDragEnter", function (e)
+        // {
+        //   console.log("EDIT >> onDragEnter")
+        // });
+
+        container.on("onDragDrop", function (e)
+        {
+            textFrame.animateTo({ a: 0 }, 0.25, LINEAR, FASTFORWARD, 1);
+
+            insertText(e.dropped);
+            e.stopPropagation();
+        });
+
+        const LINEAR      = scene.animation.TWEEN_LINEAR;
+        const FASTFORWARD = scene.animation.OPTION_FASTFORWARD;
+
+        container.on("onDragLeave", function (e)
+        {
+            textFrame.animateTo({ a: 0 }, 0.25, LINEAR, FASTFORWARD, 1);
+        });
+
+        container.on("onDragMove", function (e)
+        {
+            if(textFrame.a <= 0)
+            {
+                textFrame.animateTo({ a: 1 }, 0.25, LINEAR, FASTFORWARD, 1); /// Hmmm
+            }
+        });
 
         Promise.all(assets)
             .catch(function (err) {
@@ -241,7 +273,7 @@ px.import({ scene: 'px:scene.1.js',
                 prompt.interactive    = false;
                 selection.interactive = false;
                 cursor.interactive    = false;
-                
+
                 textInputBG.interactive = false;
 
                 onSize(self.w, self.h);
@@ -273,14 +305,14 @@ px.import({ scene: 'px:scene.1.js',
         //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
         container.on("onMouseDown", function (e) {
-     
+
             textInput.focus = true;
         });
 
         //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
         clipRect.on("onMouseDown", function (e) {
-                    
+
             if(textInput.text.length > 0)
             {
                 var now = new Date().getTime();
@@ -306,11 +338,11 @@ px.import({ scene: 'px:scene.1.js',
                 }
             }
         });
-        
+
         //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        
+
         textView.on("onMouseDown", function (e) {
-     
+
             textInput.focus = true;
 
             buttonDown = true;
@@ -329,7 +361,7 @@ px.import({ scene: 'px:scene.1.js',
             {
                 selection_chars = cursor_pos - selection_start;
                 makeSelection(selection_start, selection_chars);
-            }           
+            }
             else
             {
                 selection.w = 0;
@@ -342,7 +374,7 @@ px.import({ scene: 'px:scene.1.js',
                 selection_start = cursor_pos;
             }
         });
- 
+
         //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
         textInput.on("onMouseUp", function (e) {
@@ -496,7 +528,7 @@ px.import({ scene: 'px:scene.1.js',
                         prompt.a = (textInput.text.length > 0) ? 0 : 1; // show/hide placeholder
                     }
                     break;
-                    
+
                 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 case keys.ENTER:   // bubble up !!
                     break;
@@ -512,7 +544,7 @@ px.import({ scene: 'px:scene.1.js',
                     break;
                 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 case keys.END:
-                    if (self._enableCopy && keys.is_SHIFT(e.flags)) 
+                    if (self._enableCopy && keys.is_SHIFT(e.flags))
                     {
                         selectToEnd(); // <<  SHIFT KEY + END
                     }
@@ -570,12 +602,12 @@ px.import({ scene: 'px:scene.1.js',
                         break;
                     }
 
-                    if (keys.is_CTRL(e.flags) || keys.is_CMD(e.flags)) 
+                    if (keys.is_CTRL(e.flags) || keys.is_CMD(e.flags))
                     {
                         moveToEnd(); // <<  CTRL KEY + RIGHT
                     }
                     else
-                    if (self._enableCopy && (keys.is_CTRL_SHIFT(e.flags) || keys.is_CMD_SHIFT(e.flags)) ) 
+                    if (self._enableCopy && (keys.is_CTRL_SHIFT(e.flags) || keys.is_CMD_SHIFT(e.flags)) )
                     {
                         selectToEnd(); // <<  CTRL + SHIFT KEY + RIGHT
                     }
@@ -598,19 +630,19 @@ px.import({ scene: 'px:scene.1.js',
                         {
                             clearSelection();
                         }
-                        cursor_pos++; 
+                        cursor_pos++;
                     }
                     break;
                 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-                case keys.A:   // << CTRL + A 
+                case keys.A:   // << CTRL + A
                     if (self._enableCopy && (keys.is_CTRL(e.flags) || keys.is_CMD(e.flags)) )  // ctrl Pressed also
                     {
-                        // Select All                        
+                        // Select All
                         cursor_pos = 0;
                         selection_x = textInput.x;
-                         
+
                         selection_start = 0;
-                     
+
                         if(textInput.text.length > 0)
                         {
                           selection_chars = textInput.text.length + 1;
@@ -633,20 +665,22 @@ px.import({ scene: 'px:scene.1.js',
                 case keys.V:   // << CTRL + V
                     if (self._enablePaste && (keys.is_CTRL(e.flags) || keys.is_CMD(e.flags)) )  // ctrl Pressed also
                     {
-                        removeSelection();  // Delete selection (if any)
+                        //removeSelection();  // Delete selection (if any)
 
                         // On PASTE ... access the Native CLIPBOARD and GET the top!   fancy.js
                         //
                         var fromClip = scene.clipboardGet('PX_CLIP_STRING'); // TODO ... pass TYPE of clip to get.
 
-                        textInput.text = textInput.text.slice(0, cursor_pos) + fromClip + textInput.text.slice(cursor_pos);
+                        insertText(fromClip);
 
-                        prompt.a = (textInput.text.length > 0) ? 0 : 1;
-                        cursor.x = textInput.x + textInput.w;
+                        // textInput.text = textInput.text.slice(0, cursor_pos) + fromClip + textInput.text.slice(cursor_pos);
 
-                        cursor_pos += fromClip.length;
+                        // prompt.a = (textInput.text.length > 0) ? 0 : 1;
+                        // cursor.x = textInput.x + textInput.w;
 
-                        clearSelection();
+                        // cursor_pos += fromClip.length;
+
+                        // clearSelection();
                     }
                     break;
                 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -688,6 +722,11 @@ px.import({ scene: 'px:scene.1.js',
             inputBg.h = h;
 
             textInput.w = w;
+            textInput.w = h;
+
+            textFrame.w = w;
+            textFrame.h = h;
+
             clipRect.w  = w - 2;
         }
 
@@ -705,10 +744,10 @@ px.import({ scene: 'px:scene.1.js',
             {
                 var mi = lo + ((hi - lo) >> 1);
 
-                snip    = array.slice(0, mi ); 
+                snip    = array.slice(0, mi );
                 metrics = fontRes.measureText(pts, snip);
 
-                if (metrics.w > x) // Test 
+                if (metrics.w > x) // Test
                 {
                     hi = mi;
                 }
@@ -734,7 +773,7 @@ px.import({ scene: 'px:scene.1.js',
             if (x <= full_w)
             {
                if(textInput.text.length > 0)
-                { 
+                {
                     var ans   = binarySearch(textInput.text, x);
 
                     var index = ans[0]; // position index
@@ -761,13 +800,13 @@ px.import({ scene: 'px:scene.1.js',
 //                        console.log(" Choose LHS");
                         index--;
                         return_x = lhs_w;
-                    }            
+                    }
                     else
                     {
 //                        console.log(" Choose RHS");
-                        return_x = rhs_w;                    
+                        return_x = rhs_w;
                     }
-                    
+
                     return [index, return_x];  // return tuple [pos,x]
                 }
             }
@@ -785,7 +824,7 @@ px.import({ scene: 'px:scene.1.js',
             var return_y = textInput.y;
 
             console.log("cursorToPoint() >>> xy: (" + return_x + "," + return_y + ")");
-        
+
             return [return_x, return_y]; // return tuple [x,y]
         }
 
@@ -799,30 +838,30 @@ px.import({ scene: 'px:scene.1.js',
 
             var clip_w    = clipRect.w - cw; // allow a little room for cursor
             var scrollBit = Math.abs(scrollBy - lastScroll);
-            
+
             lastScroll = scrollBy;
 
             // Cursor beyond 'clipRect' bounds... slide `textInput` into view
             //
-            if( cursor.x > clip_w ) // Need to Scroll ? 
+            if( cursor.x > clip_w ) // Need to Scroll ?
             {
                 if (scrollLeft)
-                {              
+                {
                     if( scrollOffset < (clip_w - cw - 20) )
-                    {  
-                        scrollOffset += scrollBit;  // Move Cursor Offset to the RIGHT 
+                    {
+                        scrollOffset += scrollBit;  // Move Cursor Offset to the RIGHT
                     }
                 }
                 else
                 if (scrollRight)
-                {                
-                    if( scrollOffset > cw) 
-                    {  
-                        scrollOffset -= scrollBit;  // Move Cursor Offset to the LEFT 
+                {
+                    if( scrollOffset > cw)
+                    {
+                        scrollOffset -= scrollBit;  // Move Cursor Offset to the LEFT
                     }
-                }   
+                }
                 textView.x = scrollBy - scrollOffset;
-            }       
+            }
             else
             {
                 textView.x  = 0;
@@ -830,13 +869,12 @@ px.import({ scene: 'px:scene.1.js',
             }
         }
 
-
         function updateCursor(pos) {
 
             var s       = textInput.text.slice();
             var snip    = s.slice(0, pos); // measure characters to the left of cursor
             var metrics = fontRes.measureText(pts, snip);
-          
+
             cursor.x = metrics.w - cursorW2; // offset to cursor
 
             if(cursor.x < 0)
@@ -856,10 +894,12 @@ px.import({ scene: 'px:scene.1.js',
             selection.w = 0;
         }
 
-        function removeSelection(){
-            if(selection_text.length <=0)
+        function removeSelection() {
+          console.log("removeSelection( ) - selection_text.length: " + selection_text.length);
+          if(selection_text.length <= 0)
             {
-                return; // nothing to do.
+              console.log("removeSelection( ) - do nothing ... ");
+              return; // nothing to do.
             }
 
             textInput.text = textInput.text.replace(selection_text, '');
@@ -870,11 +910,50 @@ px.import({ scene: 'px:scene.1.js',
 
             updateCursor(cursor_pos);
             clearSelection();
+            showCursor();
 
             prompt.a = (textInput.text.length > 0) ? 0 : 1; // show/hide placeholder
         }
 
+        function insertText(txt) {
+
+            removeSelection();  // Delete selection (if any)
+
+            if(textInput.focus == false)
+            {
+              // If BLUR - then replace URL with this new one
+              selectAll();
+              removeSelection();
+            }
+
+            // console.log("insertText( "+ txt +") ...  cursor.draw = " + cursor.draw  + " cursor_pos: " + cursor_pos + " textInput.text.length = " +textInput.text.length);
+
+            if(textInput.text.length > 0 && cursor.draw == false)
+            {
+              console.log(">> insertText( ) ...APPEND !!  ( "+ txt +") ...");
+
+              textInput.text += txt;
+              moveToEnd();
+            }
+            else
+            {
+              textInput.text = textInput.text.slice(0, cursor_pos) + txt + textInput.text.slice(cursor_pos);
+
+              console.log(">> insertText( ) ...INSERT !!  ( "+ txt +") ...");
+            }
+
+            prompt.a = (textInput.text.length > 0) ? 0 : 1;
+            // cursor.x = textInput.x + textInput.w;
+
+            cursor_pos += txt.length;
+            updateCursor(cursor_pos);
+
+            clearSelection();
+        }
+
         function makeSelection(start, length) {
+
+          //console.log("ERROR: makeSelection(start, length) >>>  s: " + start + "  e: " + end + " selection_text = [" + selection_text + "]");
 
             var end = start + length;
 
@@ -896,10 +975,10 @@ px.import({ scene: 'px:scene.1.js',
             selection_text = s.slice(start, end); // measure characters up to cursor
             var metrics = fontRes.measureText(pts, selection_text);
 
-//            console.log("makeSelection(start, length) >>>  s: " + start + "  e: " + end + " selection_text = [" + selection_text + "]");
+            // console.log("makeSelection(start, length) >>>  s: " + start + "  e: " + end + " selection_text = [" + selection_text + "]");
 
-            selection.x = selection_x - cursorW2;
-            selection.w = metrics.w   + cursorW2; 
+            selection.x = selection_x + cursorW2 + cursorW2 + cursorW2 ;
+            selection.w = metrics.w   + cursorW2;
 
             if (length < 0) // selecting towards LEFT
             {
@@ -917,20 +996,22 @@ px.import({ scene: 'px:scene.1.js',
         function hideCursor()
         {
             cursor.a = 0;
+            cursor.draw = false;
         }
-        
+
         function showCursor()
         {
             if(selection_text.length == 0)
             {
                 cursor.a = 1;
+                cursor.draw = true;
             }
             animateCursor();
         }
 
         function moveToHome() {
             cursor_pos = 0;
-            
+
             updateCursor(cursor_pos);
             clearSelection();
         }
@@ -941,13 +1022,20 @@ px.import({ scene: 'px:scene.1.js',
             updateCursor(cursor_pos);
             clearSelection();
 
+            showCursor();
+
 //            textInput.text += " "; // HACK - for text redraw
         }
 
-        function selectAll() 
+        function selectAll()
         {
             moveToHome();
             selectToEnd();
+
+            console.log( "SELECT ALL")
+            console.log( "SELECT ALL")
+            console.log( "SELECT ALL")
+            console.log( "SELECT ALL")
         }
 
         function selectToHome() {
@@ -1054,7 +1142,7 @@ px.import({ scene: 'px:scene.1.js',
         });
         // - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-    }//class 
+    }//class
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

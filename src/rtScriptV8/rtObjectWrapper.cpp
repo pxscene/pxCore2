@@ -539,7 +539,8 @@ rtError jsObjectWrapper::Set(const char* name, const rtValue* value)
   }
   else
   {
-    err = self->Set(s, rt2js(ctx, *value));
+    if (!self->Set(s, rt2js(ctx, *value)))
+      err = RT_FAIL;
   }
 
   return err;

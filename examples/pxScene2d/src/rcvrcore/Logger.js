@@ -17,10 +17,44 @@ limitations under the License.
 */
 
 /**
- * Created by tcarro004 on 7/18/15.
+ * Created by tcarro004 on 7/18/15, updated by sgladk001c on 3/07/19.
  */
 
 var loggingLevel = 1;
+
+var rtLogLevels = [
+  'fatal'   // 0
+  , 'error' // 1
+  , 'warn'  // 2
+  , 'info'  // 3
+  , 'debug' // 4
+];
+
+//translates RT_LOG_LEVEL string to a numerical logging level
+function rtl(rtLogLevel) {
+
+  var result = rtLogLevels.indexOf(rtLogLevel);
+
+  if (result === -1) {
+    result = rtLogLevels.indexOf('warn');
+  }
+  return result;
+}
+
+// accepts a numerical value or RT_LOG_LEVEL string
+function setLoggingLevel(level) {
+  var levelNum;
+
+  if (typeof(level) === 'string') {
+    levelNum = rtl(level);
+  } else if (typeof (level) === 'number') {
+    levelNum = level;
+  } else {
+    levelNum = rtl('warn');
+  }
+
+  loggingLevel = levelNum;
+}
 
 function Logger(name) {
   this.name = name;
@@ -46,15 +80,21 @@ Logger.prototype.info = function(message) {
   this.message(1, message);
 };
 
-Logger.prototype.message = function(levelNum, message) {
+Logger.prototype.message = function(level, message) {
+  var levelNum;
+
+  if (typeof(level) === 'string') {
+    levelNum = rtl(level);
+  } else if (typeof (level) === 'number') {
+    levelNum = level;
+  } else {
+    levelNum = rtl('warn');
+  }
+
   if( levelNum > loggingLevel ) {
    return;
   }
   console.log(this.fullMessage('MESSAGE:'+levelNum, message));
 };
-
-function setLoggingLevel(level) {
-  loggingLevel = level;
-}
 
 module.exports = {Logger:Logger, setLoggingLevel:setLoggingLevel};
