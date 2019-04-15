@@ -31,6 +31,8 @@
 #include "pxTextBox.h"
 #include "pxImage.h"
 
+#include <algorithm>
+
 using namespace std;
 
 class pxObjectChildren; //fwd
@@ -921,29 +923,32 @@ void pxObject::reloadData(bool sceneSuspended)
   }
 }
 
-uint64_t pxObject::textureMemoryUsage()
+uint64_t pxObject::textureMemoryUsage(std::vector<rtObject*> &objectsCounted)
 {
   uint64_t textureMemory = 0;
-  if (mClipSnapshotRef.getPtr() != NULL)
+  if (std::find(objectsCounted.begin(), objectsCounted.end(), this) == objectsCounted.end() )
   {
-    textureMemory += (mClipSnapshotRef->width() * mClipSnapshotRef->height() * 4);
-  }
-  if (mDrawableSnapshotForMask.getPtr() != NULL)
-  {
-    textureMemory += (mDrawableSnapshotForMask->width() * mDrawableSnapshotForMask->height() * 4);
-  }
-  if (mSnapshotRef.getPtr() != NULL)
-  {
-    textureMemory += (mSnapshotRef->width() * mSnapshotRef->height() * 4);
-  }
-  if (mMaskSnapshot.getPtr() != NULL)
-  {
-    textureMemory += (mMaskSnapshot->width() * mMaskSnapshot->height() * 4);
+    if (mClipSnapshotRef.getPtr() != NULL)
+    {
+      textureMemory += (mClipSnapshotRef->width() * mClipSnapshotRef->height() * 4);
+    }
+    if (mDrawableSnapshotForMask.getPtr() != NULL)
+    {
+      textureMemory += (mDrawableSnapshotForMask->width() * mDrawableSnapshotForMask->height() * 4);
+    }
+    if (mSnapshotRef.getPtr() != NULL)
+    {
+      textureMemory += (mSnapshotRef->width() * mSnapshotRef->height() * 4);
+    }
+    if (mMaskSnapshot.getPtr() != NULL)
+    {
+      textureMemory += (mMaskSnapshot->width() * mMaskSnapshot->height() * 4);
+    }
   }
 
   for(vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
   {
-    textureMemory += (*it)->textureMemoryUsage();
+    textureMemory += (*it)->textureMemoryUsage(objectsCounted);
   }
   return textureMemory;
 }

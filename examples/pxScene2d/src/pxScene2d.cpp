@@ -912,7 +912,8 @@ rtError pxScene2d::suspended(bool &b)
 rtError pxScene2d::textureMemoryUsage(rtValue &v)
 {
   uint64_t textureMemory = 0;
-  textureMemory += mRoot->textureMemoryUsage();
+  std::vector<rtObject*> objectsCounted;
+  textureMemory += mRoot->textureMemoryUsage(objectsCounted);
   v.setUInt64(textureMemory);
   return RT_OK;
 }
@@ -2728,7 +2729,7 @@ void pxSceneContainer::reloadData(bool sceneSuspended)
   pxObject::reloadData(sceneSuspended);
 }
 
-uint64_t pxSceneContainer::textureMemoryUsage()
+uint64_t pxSceneContainer::textureMemoryUsage(std::vector<rtObject*> &objectsCounted)
 {
   uint64_t textureMemory = 0;
   if (mScriptView.getPtr())
@@ -2737,7 +2738,7 @@ uint64_t pxSceneContainer::textureMemoryUsage()
     mScriptView->textureMemoryUsage(v);
     textureMemory += v.toUInt64();
   }
-  textureMemory += pxObject::textureMemoryUsage();
+  textureMemory += pxObject::textureMemoryUsage(objectsCounted);
   return textureMemory;
 }
 

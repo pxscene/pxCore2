@@ -540,7 +540,7 @@ public:
   virtual void* getInterface(const char* name);
   virtual void releaseData(bool sceneSuspended);
   virtual void reloadData(bool sceneSuspended);
-  virtual uint64_t textureMemoryUsage();
+  virtual uint64_t textureMemoryUsage(std::vector<rtObject*> &objectsCounted);
   
 private:
   rtRef<pxScriptView> mScriptView;
