@@ -5,8 +5,8 @@ THIS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 cd "$THIS_DIR"
 
-export DYLD_LIBRARY_PATH=../MacOS/lib/
-export LD_LIBRARY_PATH=../MacOS/lib/
+export DYLD_LIBRARY_PATH=../MacOS/lib/;/usr/local/lib64/
+export LD_LIBRARY_PATH=../MacOS/lib/;/usr/local/lib64/
 
 #../MacOS/pxscene $* < /dev/zero >> /var/tmp/pxscene.log 2>&1 &
 ../MacOS/pxScene2d $* < /dev/zero >> /var/tmp/spark.log 2>&1 &
