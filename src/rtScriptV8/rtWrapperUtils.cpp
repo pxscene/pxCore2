@@ -100,15 +100,7 @@ rtWrapperSceneUpdateExit();
 #endif
   if (NULL != temp.getPtr())
   {
-    rtObjectRef parentRef;
-    rtError err = temp.get<rtObjectRef>("parent",parentRef);
-    if (err == RT_OK)
-    {
-        if (NULL == parentRef)
-        {
-          temp.send("dispose");
-        }
-    }
+    temp.send("dispose");
   }
 }
 #else
@@ -182,15 +174,7 @@ rtWrapperSceneUpdateExit();
 #endif
   if (NULL != temp.getPtr())
   {
-    rtObjectRef parentRef;
-    rtError err = temp.get<rtObjectRef>("parent",parentRef);
-    if (err == RT_OK)
-    {
-        if (NULL == parentRef)
-        {
-          temp.send("dispose");
-        }
-    }
+    temp.send("dispose");
   }
 }
 #endif
