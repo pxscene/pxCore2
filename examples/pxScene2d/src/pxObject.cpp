@@ -944,6 +944,7 @@ uint64_t pxObject::textureMemoryUsage(std::vector<rtObject*> &objectsCounted)
     {
       textureMemory += (mMaskSnapshot->width() * mMaskSnapshot->height() * 4);
     }
+    objectsCounted.push_back(this);
   }
 
   for(vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)

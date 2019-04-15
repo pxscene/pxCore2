@@ -62,6 +62,7 @@
 #include <rapidjson/filereadstream.h>
 #include <rapidjson/stringbuffer.h>
 #include <rapidjson/writer.h>
+#include <algorithm>
 
 #ifdef ENABLE_RT_NODE
 #include "rtScript.h"
@@ -2732,13 +2733,16 @@ void pxSceneContainer::reloadData(bool sceneSuspended)
 uint64_t pxSceneContainer::textureMemoryUsage(std::vector<rtObject*> &objectsCounted)
 {
   uint64_t textureMemory = 0;
-  if (mScriptView.getPtr())
+  if (std::find(objectsCounted.begin(), objectsCounted.end(), this) == objectsCounted.end() )
   {
-    rtValue v;
-    mScriptView->textureMemoryUsage(v);
-    textureMemory += v.toUInt64();
+    if (mScriptView.getPtr())
+    {
+      rtValue v;
+      mScriptView->textureMemoryUsage(v);
+      textureMemory += v.toUInt64();
+    }
+    textureMemory += pxObject::textureMemoryUsage(objectsCounted);
   }
-  textureMemory += pxObject::textureMemoryUsage(objectsCounted);
   return textureMemory;
 }
 
