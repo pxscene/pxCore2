@@ -833,6 +833,7 @@ public:
   rtReadOnlyProperty(h, h, int32_t);
   rtProperty(showOutlines, showOutlines, setShowOutlines, bool);
   rtProperty(showDirtyRect, showDirtyRect, setShowDirtyRect, bool);
+  rtProperty(reportFps, reportFps, setReportFps, bool);
   rtReadOnlyProperty(dirtyRectangle, dirtyRectangle, rtObjectRef);
   rtReadOnlyProperty(dirtyRectanglesEnabled, dirtyRectanglesEnabled, bool);
   rtProperty(enableDirtyRect, enableDirtyRect, setEnableDirtyRect, bool);
@@ -962,6 +963,9 @@ public:
 
   rtError showOutlines(bool& v) const;
   rtError setShowOutlines(bool v);
+
+  rtError reportFps(bool& v) const;
+  rtError setReportFps(bool v);
 
   rtError showDirtyRect(bool& v) const;
   rtError setShowDirtyRect(bool v);
@@ -1223,6 +1227,7 @@ private:
   int mTag;
   pxIViewContainer *mContainer;
   pxScriptView *mScriptView;
+  bool mReportFps;
   bool mShowDirtyRectangle;
   bool mEnableDirtyRectangles;
   int32_t mPointerX;
