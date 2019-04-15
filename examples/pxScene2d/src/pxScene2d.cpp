@@ -392,11 +392,7 @@ int gTag = 0;
 
 pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   : mRoot(), mInfo(), mCapabilityVersions(), start(0), sigma_draw(0), sigma_update(0), end2(0), frameCount(0), mWidth(0), mHeight(0), mStopPropagation(false), mContainer(NULL), mReportFps(false), mShowDirtyRectangle(false),
-#ifdef PX_DIRTY_RECTANGLES_DEFAULT_ON
-    mEnableDirtyRectangles(true),
-#else
-    mEnableDirtyRectangles(false),
-#endif //PX_DIRTY_RECTANGLES_DEFAULT_ON
+    mEnableDirtyRectangles(gDirtyRectsEnabled),
     mInnerpxObjects(), mSuspended(false),
 #ifdef PX_DIRTY_RECTANGLES
     mArchive(),mDirtyRect(), mLastFrameDirtyRect(),
@@ -2041,6 +2037,7 @@ rtError pxScene2d::enableDirtyRect(bool& v) const
 rtError pxScene2d::setEnableDirtyRect(bool v)
 {
     mEnableDirtyRectangles = v;
+    rtLogInfo("enable dirty rectangles: %s", mEnableDirtyRectangles ? "true":"false");
     return RT_OK;
 }
 
