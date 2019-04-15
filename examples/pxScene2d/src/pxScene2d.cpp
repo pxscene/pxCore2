@@ -62,6 +62,7 @@
 #include <rapidjson/filereadstream.h>
 #include <rapidjson/stringbuffer.h>
 #include <rapidjson/writer.h>
+#include <algorithm>
 
 #ifdef ENABLE_RT_NODE
 #include "rtScript.h"
@@ -391,7 +392,7 @@ rtDefineObject(pxRoot,pxObject);
 int gTag = 0;
 
 pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
-  : mRoot(), mInfo(), mCapabilityVersions(), start(0), sigma_draw(0), sigma_update(0), end2(0), frameCount(0), mWidth(0), mHeight(0), mStopPropagation(false), mContainer(NULL), mShowDirtyRectangle(false),
+  : mRoot(), mInfo(), mCapabilityVersions(), start(0), sigma_draw(0), sigma_update(0), end2(0), frameCount(0), mWidth(0), mHeight(0), mStopPropagation(false), mContainer(NULL), mReportFps(false), mShowDirtyRectangle(false),
     mEnableDirtyRectangles(gDirtyRectsEnabled),
     mInnerpxObjects(), mSuspended(false),
 #ifdef PX_DIRTY_RECTANGLES
@@ -530,7 +531,7 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
 
   rtObjectRef metricsCapabilities = new rtMapObject;
 
-  metricsCapabilities.set("textureMemory", 1);
+  metricsCapabilities.set("textureMemory", 2);
   metricsCapabilities.set("resources", 1);
   mCapabilityVersions.set("metrics", metricsCapabilities);
 
@@ -908,7 +909,8 @@ rtError pxScene2d::suspended(bool &b)
 rtError pxScene2d::textureMemoryUsage(rtValue &v)
 {
   uint64_t textureMemory = 0;
-  textureMemory += mRoot->textureMemoryUsage();
+  std::vector<rtObject*> objectsCounted;
+  textureMemory += mRoot->textureMemoryUsage(objectsCounted);
   v.setUInt64(textureMemory);
   return RT_OK;
 }
@@ -1172,7 +1174,7 @@ void pxScene2d::onUpdate(double t)
     previousFps = fps;
     rtLogDebug("%d fps   pxObjects: %d\n", fps, pxObjectCount);
 #endif //USE_RENDER_STATS
-
+    if (mReportFps)
     {
 #ifdef ENABLE_RT_NODE
       rtWrapperSceneUnlocker unlocker;
@@ -2000,6 +2002,18 @@ rtError pxScene2d::setShowDirtyRect(bool v)
   return RT_OK;
 }
 
+rtError pxScene2d::reportFps(bool& v) const
+{
+  v=mReportFps;
+  return RT_OK;
+}
+
+rtError pxScene2d::setReportFps(bool v)
+{
+  mReportFps = v;
+  return RT_OK;
+}
+
 rtError pxScene2d::dirtyRectanglesEnabled(bool& v) const {
     v = gDirtyRectsEnabled;
     return RT_OK;
@@ -2379,6 +2393,7 @@ rtDefineProperty(pxScene2d, w);
 rtDefineProperty(pxScene2d, h);
 rtDefineProperty(pxScene2d, showOutlines);
 rtDefineProperty(pxScene2d, showDirtyRect);
+rtDefineProperty(pxScene2d, reportFps);
 rtDefineProperty(pxScene2d, dirtyRectangle);
 rtDefineProperty(pxScene2d, dirtyRectanglesEnabled);
 rtDefineProperty(pxScene2d, enableDirtyRect);
@@ -2725,16 +2740,19 @@ void pxSceneContainer::reloadData(bool sceneSuspended)
   pxObject::reloadData(sceneSuspended);
 }
 
-uint64_t pxSceneContainer::textureMemoryUsage()
+uint64_t pxSceneContainer::textureMemoryUsage(std::vector<rtObject*> &objectsCounted)
 {
   uint64_t textureMemory = 0;
-  if (mScriptView.getPtr())
+  if (std::find(objectsCounted.begin(), objectsCounted.end(), this) == objectsCounted.end() )
   {
-    rtValue v;
-    mScriptView->textureMemoryUsage(v);
-    textureMemory += v.toUInt64();
+    if (mScriptView.getPtr())
+    {
+      rtValue v;
+      mScriptView->textureMemoryUsage(v);
+      textureMemory += v.toUInt64();
+    }
+    textureMemory += pxObject::textureMemoryUsage(objectsCounted);
   }
-  textureMemory += pxObject::textureMemoryUsage();
   return textureMemory;
 }
 
