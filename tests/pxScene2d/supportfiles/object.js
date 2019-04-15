@@ -16,28 +16,4 @@ limitations under the License.
 
 */
 
-#ifndef RT_THREAD_POOL_H
-#define RT_THREAD_POOL_H
-
-#include "rtCore.h"
-
-class rtThreadPool : public rtThreadPoolNative
-{
-public:
-    rtThreadPool(int numberOfThreads);
-    ~rtThreadPool();
-    
-    static rtThreadPool* globalInstance();
-
-	  int numberOfThreadsInPool();
-
-	void raisePriority(const rtString & /*url*/) {
-		//TODO
-	};
-    
-private:
-    
-    static rtThreadPool* mGlobalInstance;
-};
-
-#endif //RT_THREAD_POOL_H
+console.log("Inside object !!!!!");

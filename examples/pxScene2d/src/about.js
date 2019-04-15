@@ -58,7 +58,8 @@ px.import({ scene: 'px:scene.1.js' }).then( function importsAreReady(imports)
                             font: fontRes, pixelSize: 12, wordWrap: true,
                             text: "Press SPACE to dismiss",
                             alignHorizontal: scene.alignHorizontal.CENTER,
-                            alignVertical:   scene.alignVertical.CENTER})
+                            alignVertical:   scene.alignVertical.CENTER});
+
   var dismissM = fontRes.measureText(12, dismissTXT.text);
   dismissTXT.h = dismissM.h;
   dismissTXT.w = dismissM.w;

@@ -121,7 +121,14 @@ var keys =
 //    HELP         : 10038 //TODO
     DECIMAL      : 190,
     BACKQUOTE    : 192,
-    QUOTE        : 222
+    QUOTE        : 222,
+    FAST_FORWARD : 223,
+    REWIND       : 224,
+    PLAY         : 226,
+    PLAYPAUSE    : 227,
+    BACK         : 407,
+    MENU         : 408,
+    HOMEPAGE     : 409
 };
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

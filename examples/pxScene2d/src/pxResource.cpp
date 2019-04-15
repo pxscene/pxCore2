@@ -343,14 +343,16 @@ void rtImageResource::releaseData()
 
 void rtImageResource::reloadData()
 {
-  if (!mTexture.getPtr())
+  if (mTexture.getPtr() != NULL)
   {
-    mTextureMutex.lock();
-    if (mDownloadComplete)
+    bool reloadData = false;
+    mDownloadInProgressMutex.lock();
+    reloadData = !mDownloadInProgress && !mTexture->readyForRendering();
+    mDownloadInProgressMutex.unlock();
+    if (reloadData)
     {
-      mTexture->loadTextureData();
+      loadResource(mArchive, true);
     }
-    mTextureMutex.unlock();
   }
   pxResource::reloadData();
 }
@@ -417,7 +419,6 @@ pxTextureRef rtImageResource::getTexture(bool initializing)
     if (mDownloadComplete)
     {
       mTexture = mDownloadedTexture;
-      mDownloadedTexture = NULL;
       if (mTexture.getPtr())
       {
         mTexture->setTextureListener(this);
@@ -437,12 +438,13 @@ void prepareImageResource(void* data)
 void rtImageResource::prepare()
 {
 #ifdef ENABLE_BACKGROUND_TEXTURE_CREATION
-  static bool enableInternalContextOnce = true;
-  if (enableInternalContextOnce)
+  static bool setInternalContextCurrent = true;
+  static pxSharedContextRef sharedContext = context.createSharedContext();
+  if (setInternalContextCurrent)
   {
-    context.enableInternalContext(true);
+    sharedContext->makeCurrent(true);
   }
-  enableInternalContextOnce = false;
+  setInternalContextCurrent = false;
   mDownloadedTexture->prepareForRendering();
 #endif //ENABLE_BACKGROUND_TEXTURE_CREATION
   mTextureMutex.lock();
@@ -458,16 +460,30 @@ void rtImageResource::prepare()
   }
 }
 
-void rtImageResource::setTextureData(pxOffscreen& imageOffscreen, const char* data, const size_t dataSize)
+void rtImageResource::setTextureData(pxOffscreen& imageOffscreen)
 {
   mTextureMutex.lock();
 #ifdef ENABLE_BACKGROUND_TEXTURE_CREATION
-  mDownloadedTexture = context.createTexture(imageOffscreen, data, dataSize);
+  if (mDownloadedTexture.getPtr() == NULL)
+  {
+    mDownloadedTexture = context.createTexture(imageOffscreen);
+  }
+  else
+  {
+    mDownloadedTexture->createTexture(imageOffscreen);
+  }
   mTextureMutex.unlock();
   rtThreadTask* task = new rtThreadTask(prepareImageResource, (void*)this, "");
   textureCreateThreadPool.executeTask(task);
 #else
-  mDownloadedTexture = context.createTexture(imageOffscreen, data, dataSize);
+  if (mDownloadedTexture.getPtr() == NULL)
+  {
+    mDownloadedTexture = context.createTexture(imageOffscreen);
+  }
+  else
+  {
+    mDownloadedTexture->createTexture(imageOffscreen);
+  }
   mDownloadComplete = true;
   mTextureMutex.unlock();
 #endif //ENABLE_BACKGROUND_TEXTURE_CREATION
@@ -515,15 +531,19 @@ uint64_t pxResource::textureMemoryUsage()
  * in the cache map.
  *
  * */
-void pxResource::loadResource(rtObjectRef archive)
+void pxResource::loadResource(rtObjectRef archive, bool reloading)
 {
-  if(((rtPromise*)mReady.getPtr())->status())
+  if(!reloading && ((rtPromise*)mReady.getPtr())->status())
   {
     //create a new promise if the old one is complete
     mReady = new rtPromise();
   }
   setLoadStatus("statusCode", -1);
   pxArchive* arc = (pxArchive*)archive.getPtr();
+  if (mArchive != arc)
+  {
+    mArchive = arc;
+  }
   //rtLogDebug("rtImageResource::loadResource statusCode should be -1; is statusCode=%d\n",mLoadStatus.get<int32_t>("statusCode"));
   if (mUrl.beginsWith("http:") || mUrl.beginsWith("https:"))
   {
@@ -666,7 +686,7 @@ void rtImageResource::loadResourceFromFile()
   else
   {
     // create offscreen texture for local image
-    mTexture = context.createTexture(imageOffscreen, (const char *) mData.data(), mData.length());
+    mTexture = context.createTexture(imageOffscreen);
     mTexture->setTextureListener(this);
 
     mData.term(); // Dump the source data...
@@ -752,7 +772,7 @@ void rtImageResource::loadResourceFromArchive(rtObjectRef archiveRef)
   else
   {
     // create offscreen texture for local image
-    mTexture = context.createTexture(imageOffscreen, (const char *) mData.data(), mData.length());
+    mTexture = context.createTexture(imageOffscreen);
     mTexture->setTextureListener(this);
 
     mData.term(); // Dump the source data...
@@ -798,8 +818,7 @@ uint32_t rtImageResource::loadResourceData(rtFileDownloadRequest* fileDownloadRe
       if (decodeResult == RT_OK)
       {
         setLoadStatus("decodeTimeMs", static_cast<int>(stopDecodeTime-startDecodeTime));
-        setTextureData(imageOffscreen, fileDownloadRequest->downloadedData(),
-                                         fileDownloadRequest->downloadedDataSize());
+        setTextureData(imageOffscreen);
 #ifdef ENABLE_BACKGROUND_TEXTURE_CREATION
         return PX_RESOURCE_LOAD_WAIT;
 #else
@@ -834,6 +853,28 @@ void pxResource::processDownloadedResource(rtFileDownloadRequest* fileDownloadRe
       int32_t result = loadResourceData(fileDownloadRequest);
       double stopResourceSetupTime = pxMilliseconds();
       setLoadStatus("setupTimeMs", static_cast<int>(stopResourceSetupTime-startResourceSetupTime));
+      if (fileDownloadRequest->isDataCached())
+      {
+        setLoadStatus("loadedFromCache", true);
+      }
+      else
+      {
+        rtObjectRef metrics = fileDownloadRequest->downloadMetrics();
+        rtValue connectTimeMs;
+        rtValue sslConnectTimeMs;
+        rtValue totalDownloadTimeMs;
+        rtValue downloadSpeedBytesPerSecond;
+        metrics.get("connectTimeMs", connectTimeMs);
+        metrics.get("sslConnectTimeMs", sslConnectTimeMs);
+        metrics.get("totalDownloadTimeMs", totalDownloadTimeMs);
+        metrics.get("downloadSpeedBytesPerSecond", downloadSpeedBytesPerSecond);
+        setLoadStatus("connectTimeMs", connectTimeMs);
+        setLoadStatus("sslConnectTimeMs", sslConnectTimeMs);
+        setLoadStatus("totalDownloadTimeMs", totalDownloadTimeMs);
+        setLoadStatus("downloadSpeedBytesPerSecond", downloadSpeedBytesPerSecond);
+        setLoadStatus("loadedFromCache", false);
+      }
+      
       if(result == PX_RESOURCE_LOAD_FAIL)
       {
         rtLogError("Resource Decode Failed: %s with proxy: %s", fileDownloadRequest->fileUrl().cString(), fileDownloadRequest->proxy().cString());
@@ -853,28 +894,6 @@ void pxResource::processDownloadedResource(rtFileDownloadRequest* fileDownloadRe
         // ToDo: Could context.createTexture ever fail and return null here?
        // mTexture = context.createTexture(imageOffscreen);
         setLoadStatus("statusCode", 0);
-
-        if (fileDownloadRequest->isDataCached())
-        {
-          setLoadStatus("loadedFromCache", true);
-        }
-        else
-        {
-          rtObjectRef metrics = fileDownloadRequest->downloadMetrics();
-          rtValue connectTimeMs;
-          rtValue sslConnectTimeMs;
-          rtValue totalDownloadTimeMs;
-          rtValue downloadSpeedBytesPerSecond;
-          metrics.get("connectTimeMs", connectTimeMs);
-          metrics.get("sslConnectTimeMs", sslConnectTimeMs);
-          metrics.get("totalDownloadTimeMs", totalDownloadTimeMs);
-          metrics.get("downloadSpeedBytesPerSecond", downloadSpeedBytesPerSecond);
-          setLoadStatus("connectTimeMs", connectTimeMs);
-          setLoadStatus("sslConnectTimeMs", sslConnectTimeMs);
-          setLoadStatus("totalDownloadTimeMs", totalDownloadTimeMs);
-          setLoadStatus("downloadSpeedBytesPerSecond", downloadSpeedBytesPerSecond);
-          setLoadStatus("loadedFromCache", false);
-        }
         val = "resolve";
         // Since this object can be released before we get a async completion
         // We need to maintain this object's lifetime
