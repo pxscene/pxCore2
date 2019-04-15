@@ -23,6 +23,7 @@
 #include "pxTimer.h"
 #include "pxFont.h"
 #include "pxContext.h"
+#include <algorithm>
 
 extern pxContext context;
 
@@ -284,12 +285,16 @@ void pxText::dispose(bool pumpJavascript)
   pxObject::dispose(pumpJavascript);
 }
 
-uint64_t pxText::textureMemoryUsage()
+uint64_t pxText::textureMemoryUsage(std::vector<rtObject*> &objectsCounted)
 {
   uint64_t textureMemory = 0;
-  if (mCached.getPtr() != NULL)
+  if (std::find(objectsCounted.begin(), objectsCounted.end(), this) == objectsCounted.end() )
   {
-    textureMemory += (mCached->width() * mCached->height() * 4);
+    if (mCached.getPtr() != NULL)
+    {
+      textureMemory += (mCached->width() * mCached->height() * 4);
+    }
+    objectsCounted.push_back(this);
   }
 
   return textureMemory;

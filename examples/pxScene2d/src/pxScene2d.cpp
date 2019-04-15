@@ -62,6 +62,7 @@
 #include <rapidjson/filereadstream.h>
 #include <rapidjson/stringbuffer.h>
 #include <rapidjson/writer.h>
+#include <algorithm>
 
 #ifdef ENABLE_RT_NODE
 #include "rtScript.h"
@@ -530,7 +531,7 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
 
   rtObjectRef metricsCapabilities = new rtMapObject;
 
-  metricsCapabilities.set("textureMemory", 1);
+  metricsCapabilities.set("textureMemory", 2);
   metricsCapabilities.set("resources", 1);
   mCapabilityVersions.set("metrics", metricsCapabilities);
 
@@ -908,7 +909,8 @@ rtError pxScene2d::suspended(bool &b)
 rtError pxScene2d::textureMemoryUsage(rtValue &v)
 {
   uint64_t textureMemory = 0;
-  textureMemory += mRoot->textureMemoryUsage();
+  std::vector<rtObject*> objectsCounted;
+  textureMemory += mRoot->textureMemoryUsage(objectsCounted);
   v.setUInt64(textureMemory);
   return RT_OK;
 }
@@ -2725,16 +2727,19 @@ void pxSceneContainer::reloadData(bool sceneSuspended)
   pxObject::reloadData(sceneSuspended);
 }
 
-uint64_t pxSceneContainer::textureMemoryUsage()
+uint64_t pxSceneContainer::textureMemoryUsage(std::vector<rtObject*> &objectsCounted)
 {
   uint64_t textureMemory = 0;
-  if (mScriptView.getPtr())
+  if (std::find(objectsCounted.begin(), objectsCounted.end(), this) == objectsCounted.end() )
   {
-    rtValue v;
-    mScriptView->textureMemoryUsage(v);
-    textureMemory += v.toUInt64();
+    if (mScriptView.getPtr())
+    {
+      rtValue v;
+      mScriptView->textureMemoryUsage(v);
+      textureMemory += v.toUInt64();
+    }
+    textureMemory += pxObject::textureMemoryUsage(objectsCounted);
   }
-  textureMemory += pxObject::textureMemoryUsage();
   return textureMemory;
 }
 
