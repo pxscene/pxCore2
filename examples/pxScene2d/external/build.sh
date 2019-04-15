@@ -81,10 +81,19 @@ cmake .
 cmake --build . --config Release --clean-first
 
 [ -d .libs ] || mkdir -p .libs
-
+if [ -e libgif.5.1.8.dylib ]
+then
 cp libgif.5.1.8.dylib .libs/libgif.5.1.8.dylib
 cp libgif.5.dylib .libs/libgif.5.dylib
 cp libgif.dylib .libs/libgif.dylib
+fi
+
+elif [ -e libgif.so.5.1.8 ]
+then
+cp libgif.so.5.1.8 .libs/libgif.5.1.8.dylib
+cp libgif.so.5 .libs/libgif.5.dylib
+cp libgif.so .libs/libgif.dylib
+fi
 
 cd ..
 fi
