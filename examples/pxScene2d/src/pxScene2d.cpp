@@ -392,7 +392,7 @@ rtDefineObject(pxRoot,pxObject);
 int gTag = 0;
 
 pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
-  : mRoot(), mInfo(), mCapabilityVersions(), start(0), sigma_draw(0), sigma_update(0), end2(0), frameCount(0), mWidth(0), mHeight(0), mStopPropagation(false), mContainer(NULL), mShowDirtyRectangle(false),
+  : mRoot(), mInfo(), mCapabilityVersions(), start(0), sigma_draw(0), sigma_update(0), end2(0), frameCount(0), mWidth(0), mHeight(0), mStopPropagation(false), mContainer(NULL), mReportFps(false), mShowDirtyRectangle(false),
     mEnableDirtyRectangles(gDirtyRectsEnabled),
     mInnerpxObjects(), mSuspended(false),
 #ifdef PX_DIRTY_RECTANGLES
@@ -1174,7 +1174,7 @@ void pxScene2d::onUpdate(double t)
     previousFps = fps;
     rtLogDebug("%d fps   pxObjects: %d\n", fps, pxObjectCount);
 #endif //USE_RENDER_STATS
-
+    if (mReportFps)
     {
 #ifdef ENABLE_RT_NODE
       rtWrapperSceneUnlocker unlocker;
@@ -2002,6 +2002,18 @@ rtError pxScene2d::setShowDirtyRect(bool v)
   return RT_OK;
 }
 
+rtError pxScene2d::reportFps(bool& v) const
+{
+  v=mReportFps;
+  return RT_OK;
+}
+
+rtError pxScene2d::setReportFps(bool v)
+{
+  mReportFps = v;
+  return RT_OK;
+}
+
 rtError pxScene2d::dirtyRectanglesEnabled(bool& v) const {
     v = gDirtyRectsEnabled;
     return RT_OK;
@@ -2381,6 +2393,7 @@ rtDefineProperty(pxScene2d, w);
 rtDefineProperty(pxScene2d, h);
 rtDefineProperty(pxScene2d, showOutlines);
 rtDefineProperty(pxScene2d, showDirtyRect);
+rtDefineProperty(pxScene2d, reportFps);
 rtDefineProperty(pxScene2d, dirtyRectangle);
 rtDefineProperty(pxScene2d, dirtyRectanglesEnabled);
 rtDefineProperty(pxScene2d, enableDirtyRect);
