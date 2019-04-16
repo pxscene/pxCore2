@@ -158,6 +158,14 @@ void pxObject::sendPromise()
   }
 }
 
+void pxObject::onGarbageCollected()
+{
+    if (mScene)
+    {
+      mScene->innerpxObjectDisposed(this);
+    }
+}
+
 void pxObject::dispose(bool pumpJavascript)
 {
   if (!mIsDisposed)
