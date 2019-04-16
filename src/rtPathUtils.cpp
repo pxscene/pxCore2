@@ -20,6 +20,7 @@
 
 #include "rtPathUtils.h"
 #include <stdlib.h>
+#include <sys/stat.h>
 #if defined WIN32
 #include <direct.h>
 #include <shlwapi.h>
@@ -27,7 +28,7 @@
 #include <unistd.h>
 #endif
 
-#include <sys/stat.h>
+#include "rtLog.h"
 
 rtError rtGetCurrentDirectory(rtString& d)
 {
@@ -117,6 +118,59 @@ bool rtIsPathAbsolute(const rtString &path)
  const char *str = path.cString();
 
  return rtIsPathAbsolute(str);
+}
+
+/** Create a directory and iteratively create subdirectories, as necessary **/
+bool rtMakeDirectory(const rtString &dir)
+{
+  int32_t retVal = 0;
+  std::string path = dir.cString();
+
+#ifdef RT_PLATFORM_WINDOWS
+  const std::string sep = "\\";
+#else
+  const std::string sep = "/";  
+#endif
+  size_t index = 0;
+  while (path.size() && index != std::string::npos)
+  {
+    index = path.find(sep, ++index);
+    if( index != std::string::npos)
+    {
+      if( !rtFileExists(path.substr(0, index).c_str()))
+      {
+        #ifdef RT_PLATFORM_WINDOWS
+          retVal  = mkdir((path.substr(0, index)).c_str());
+        #else
+          retVal = mkdir((path.substr(0, index)).c_str(), 0777);
+        #endif
+      }
+    }
+    else
+    {
+      if( !rtFileExists(path.c_str()))
+      {
+        #ifdef RT_PLATFORM_WINDOWS
+          retVal  = mkdir(path.c_str());
+        #else
+          retVal = mkdir(path.c_str(), 0777);
+        #endif
+      }
+      
+    }
+
+    if( retVal != 0) {
+      rtLogError("creation of storage directory %s failed: %d", dir.cString(), retVal);
+      break;
+    }
+
+  }
+  if( retVal == 0) { 
+    return true;
+  } 
+  else {
+    return false;
+  }
 }
 
 const char *rtModuleDirSeparator()

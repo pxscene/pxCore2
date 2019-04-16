@@ -41,6 +41,7 @@ public:
     FEATURE,
     WAYLAND,
     RTREMOTE,
+    STORAGE,
     TYPE_COUNT
   };
 
@@ -51,6 +52,8 @@ public:
   rtError setParent(const rtPermissionsRef& parent);
   rtError allows(const char* s, rtPermissions::Type type) const;
   rtError allows(const rtString& url, bool& o) const;
+
+  uint32_t getStorageQuota(const rtString& origin) const;
 
   // Parsing
   static rtError file2str(const char* file, rtString& s);

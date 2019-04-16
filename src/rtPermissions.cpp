@@ -219,6 +219,11 @@ rtError rtPermissions::allows(const rtString& url, bool& o) const
   return RT_OK;
 }
 
+uint32_t rtPermissions::getStorageQuota(const rtString& origin) const
+{
+  return 500000;
+}
+
 rtError rtPermissions::file2str(const char* file, rtString& s)
 {
   rtError e = RT_OK;

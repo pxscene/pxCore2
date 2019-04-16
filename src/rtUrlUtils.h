@@ -21,6 +21,10 @@
 
 #include "rtString.h"
 
+// Apply url encoding to the provided string.
+rtString rtUrlEscape(const char* s);
+
+// JRJR todo refactor urlencodeparameters to use urlescape
 rtString rtUrlEncodeParameters(const char* url);
 rtString rtUrlGetOrigin(const char* url);
 rtString rtUrlGetHostname(const char* origin);
