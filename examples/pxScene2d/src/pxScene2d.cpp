@@ -404,7 +404,7 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
 #ifdef PX_DIRTY_RECTANGLES
     mArchive(),mDirtyRect(), mLastFrameDirtyRect(),
 #endif //PX_DIRTY_RECTANGLES
-    mDirty(true), mDragging(false), mDragTarget(NULL), mTestView(NULL), mDisposed(false), mArchiveSet(false)
+    mDirty(true), mDragging(false), mDragType(pxConstantsDragType::NONE), mDragTarget(NULL), mTestView(NULL), mDisposed(false), mArchiveSet(false)
 #ifdef PXSCENE_SUPPORT_STORAGE
 , mStorage(NULL)
 #endif
@@ -501,6 +501,8 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   // capabilities.network.http2         = 2
   //
   // capabilities.metrics.textureMemory = 1
+  // 
+  // capabilities.animations.durations = 2
   //
   // capabilities.events.drag_n_drop    = 2   // additional Drag'n'Drop events 
 
@@ -550,6 +552,10 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   metricsCapabilities.set("resources", 1);
   mCapabilityVersions.set("metrics", metricsCapabilities);
 
+  rtObjectRef animationCapabilities = new rtMapObject;
+
+  animationCapabilities.set("durations", 2);
+  mCapabilityVersions.set("animations", animationCapabilities);
   //////////////////////////////////////////////////////
 
   rtObjectRef userCapabilities = new rtMapObject;
@@ -593,7 +599,7 @@ rtError pxScene2d::dispose()
 #ifdef PXSCENE_SUPPORT_STORAGE
     if (mStorage)
       mStorage->term(); // Close database file now
-    mStorage = NULL; 
+    mStorage = NULL;
 #endif
 
     return RT_OK;
@@ -1213,7 +1219,7 @@ void pxScene2d::onUpdate(double t)
   // Periodically let's poke the onMouseMove handler with the current pointer position
   // to better handle objects that animate in or out from under the mouse cursor
   // eg. scrolling
-  if (t-mPointerLastUpdated > 0.2) // every 0.2 seconds
+  if (t-mPointerLastUpdated > 1) // Once a second
   {
     updateMouseEntered();
     mPointerLastUpdated = t;
@@ -1337,10 +1343,9 @@ bool pxScene2d::onMouseDown(int32_t x, int32_t y, uint32_t flags)
 #if 1
   {
     // Send to root scene in global window coordinates
-    // Used for transmitting event to child scenes for propogation
     rtObjectRef e = new rtMapObject;
     e.set("name", "onMouseDown");
-    e.set("x", x);  // In global scene coordinates
+    e.set("x", x);
     e.set("y", y);
     e.set("flags", (uint32_t)flags);
     mEmit.send("onMouseDown", e);
@@ -1362,7 +1367,7 @@ bool pxScene2d::onMouseDown(int32_t x, int32_t y, uint32_t flags)
 
       rtObjectRef e = new rtMapObject;
       e.set("name", "onMouseDown");
-      e.set("target", hit.getPtr());
+      e.set("target", (rtObject*)hit.getPtr());
       e.set("x", hitPt.x);
       e.set("y", hitPt.y);
       e.set("flags", flags);
@@ -1371,11 +1376,7 @@ bool pxScene2d::onMouseDown(int32_t x, int32_t y, uint32_t flags)
       #else
       bubbleEvent(e,hit,"onPreMouseDown","onMouseDown");
       #endif
-
-      setMouseEntered(hit);
     }
-    else
-      setMouseEntered(NULL);
   }
   return false;
 }
@@ -1389,7 +1390,7 @@ bool pxScene2d::onMouseUp(int32_t x, int32_t y, uint32_t flags)
     e.set("name", "onMouseUp");
     e.set("x", x);
     e.set("y", y);
-    e.set("flags", (uint32_t)flags);
+    e.set("flags", static_cast<uint32_t>(flags));
     mEmit.send("onMouseUp", e);
   }
 #endif
@@ -1398,43 +1399,30 @@ bool pxScene2d::onMouseUp(int32_t x, int32_t y, uint32_t flags)
     pxMatrix4f m;
     pxPoint2f pt(static_cast<float>(x),static_cast<float>(y)), hitPt;
     rtRef<pxObject> hit;
-    //rtRef<pxObject> tMouseDown = mMouseDown;
+    rtRef<pxObject> tMouseDown = mMouseDown;
 
-    if (mMouseDown)
+    mMouseDown = NULL;
+
+    // TODO optimization... we really only need to check mMouseDown
+    if (mRoot->hitTestInternal(m, pt, hit, hitPt))
     {
-      // Since onClick is a proper subset of onMouseUp fire first so
-      // that appropriate action can be taken in this case.
-      
-      // TODO optimization... we really only need to check mMouseDown
-      if (mRoot->hitTestInternal(m, pt, hit, hitPt))
+      // Only send onMouseUp if this object got an onMouseDown
+      if (tMouseDown == hit)
       {
-        // Send onClick if this object got an onMouseDown
-        if (mMouseDown == hit)
-        {
-          rtObjectRef e = new rtMapObject;
-          e.set("name", "onClick");
-          e.set("target",hit.getPtr());
-          e.set("x", hitPt.x); // In object local coordinates
-          e.set("y", hitPt.y);
-          e.set("flags", flags);
-          bubbleEvent(e,hit,"onPreClick","onClick");
-        }
-        setMouseEntered(hit);        
+        rtObjectRef e = new rtMapObject;
+        e.set("name", "onMouseUp");
+        e.set("target",hit.getPtr());
+        e.set("x", hitPt.x);
+        e.set("y", hitPt.y);
+        e.set("flags", flags);
+        #if 0
+        hit->mEmit.send("onMouseUp", e);
+        #else
+        bubbleEvent(e,hit,"onPreMouseUp","onMouseUp");
+        #endif
       }
 
-      pxVector4f from(static_cast<float>(x),static_cast<float>(y),0,1);
-      pxVector4f to;
-      pxObject::transformPointFromSceneToObject(mMouseDown, from, to);
-
-      rtObjectRef e = new rtMapObject;
-      e.set("name", "onMouseUp");
-      e.set("target",mMouseDown.getPtr());
-      e.set("x", to.x()); // In object local coordinates
-      e.set("y", to.y());
-      e.set("flags", flags);     
-      bubbleEvent(e,mMouseDown,"onPreMouseUp","onMouseUp");      
-
-      mMouseDown = NULL;
+      setMouseEntered(hit);
     }
     else
       setMouseEntered(NULL);
@@ -1443,8 +1431,7 @@ bool pxScene2d::onMouseUp(int32_t x, int32_t y, uint32_t flags)
 }
 
 // TODO rtRef doesn't like non-const !=
-// JRJR what are the x and y for?
-void pxScene2d::setMouseEntered(rtRef<pxObject> o, int32_t /*x*/, int32_t /*y*/)//pxObject* o)
+void pxScene2d::setMouseEntered(rtRef<pxObject> o, int32_t x /* = 0*/, int32_t y /* = 0*/)
 {
   if (mMouseEntered != o)
   {
@@ -1453,12 +1440,11 @@ void pxScene2d::setMouseEntered(rtRef<pxObject> o, int32_t /*x*/, int32_t /*y*/)
     {
       rtObjectRef e = new rtMapObject;
       e.set("name", "onMouseLeave");
-      e.set("target", mMouseEntered.getPtr());
-      #if 0
-      mMouseEntered->mEmit.send("onMouseLeave", e);
-      #else
-      bubbleEvent(e,mMouseEntered,"onPreMouseLeave","onMouseLeave");
-      #endif
+      e.set("target", o.getPtr());
+      e.set("x", x);
+      e.set("y", y);
+
+      bubbleEvent(e,o, "onPreMouseLeave", "onMouseLeave");
     }
     mMouseEntered = o;
 
@@ -1467,15 +1453,15 @@ void pxScene2d::setMouseEntered(rtRef<pxObject> o, int32_t /*x*/, int32_t /*y*/)
     {
       rtObjectRef e = new rtMapObject;
       e.set("name", "onMouseEnter");
-      e.set("target", mMouseEntered.getPtr());
-      #if 0
-      mMouseEntered->mEmit.send("onMouseEnter", e);
-      #else
-      bubbleEvent(e,mMouseEntered,"onPreMouseEnter","onMouseEnter");
-      #endif
+      e.set("target", o.getPtr());
+      e.set("x", x);
+      e.set("y", y);
+
+      bubbleEvent(e,o, "onPreMouseEnter", "onMouseEnter");
     }
   }
 }
+
 /** This function is not exposed to javascript; it is called when
  * mFocus = true is set for a pxObject whose parent scene is this scene
  **/
@@ -1523,19 +1509,12 @@ bool pxScene2d::onMouseEnter()
 bool pxScene2d::onMouseLeave()
 {
   // top level scene event
-  #if 0
   rtObjectRef e = new rtMapObject;
   e.set("name", "onMouseLeave");
   mEmit.send("onMouseLeave", e);
-  #endif
 
-  // Don't change here if dragging
-  if (!mMouseDown.getPtr())
-  {
-    mMouseDown = NULL;
-  }
+  mMouseDown = NULL;
   setMouseEntered(NULL);
-
   return false;
 }
 
@@ -1715,11 +1694,9 @@ bool pxScene2d::onMouseMove(int32_t x, int32_t y)
 #if 1
   {
     // Send to root scene in global window coordinates
-    // Used to send to child scenes for event propogation
-    // Always non translated events
     rtObjectRef e = new rtMapObject;
     e.set("name", "onMouseMove");
-    e.set("x", x);  // Sent in global scene
+    e.set("x", x);
     e.set("y", y);
     mEmit.send("onMouseMove", e);
   }
@@ -1739,8 +1716,6 @@ bool pxScene2d::onMouseMove(int32_t x, int32_t y)
       pxObject::transformPointFromSceneToObject(mMouseDown, from, to);
 
 //      to.dump();
-      // JRJR just sanity checks transformations up and down the hierarchy
-      #if 0
       {
         pxVector4f validate;
         pxObject::transformPointFromObjectToScene(mMouseDown, to, validate);
@@ -1762,13 +1737,21 @@ bool pxScene2d::onMouseMove(int32_t x, int32_t y)
                  to.x(),to.y(),validate.x(),validate.y());
         }
       }
-      #endif
 
+#if 0
+    rtObjectRef e = new rtMapObject;
+    e.set("name", "onMouseMove");
+    e.set("target", mMouseDown.getPtr());
+    e.set("x", to.mX);
+    e.set("y", to.mY);
+    mMouseDown->mEmit.send("onMouseMove", e);
+#else
     rtObjectRef e = new rtMapObject;
     e.set("target", mMouseDown.getPtr());
     e.set("x", to.x());
     e.set("y", to.y());
     bubbleEvent(e, mMouseDown, "onPreMouseMove", "onMouseMove");
+#endif
     }
     {
     rtObjectRef e = new rtMapObject;
@@ -1794,17 +1777,22 @@ bool pxScene2d::onMouseMove(int32_t x, int32_t y)
       // and we can send drag events to objects that are being drug...
 #if 1
       rtObjectRef e = new rtMapObject;
-      e.set("name", "onMouseMove");
+//      e.set("name", "onMouseMove");
       e.set("x", hitPt.x);
       e.set("y", hitPt.y);
-      e.set("target",hit.getPtr());
+#if 0
+      hit->mEmit.send("onMouseMove",e);
+#else
       bubbleEvent(e, hit, "onPreMouseMove", "onMouseMove");
+#endif
 #endif
 
       setMouseEntered(hit);
     }
     else
+    {
       setMouseEntered(NULL);
+    }
   }
 #endif
 #if 0
@@ -1825,132 +1813,133 @@ bool pxScene2d::onMouseMove(int32_t x, int32_t y)
 
 void pxScene2d::updateMouseEntered()
 {
+  #if 1
     pxMatrix4f m;
     pxPoint2f pt(static_cast<float>(mPointerX),static_cast<float>(mPointerY)), hitPt;
     rtRef<pxObject> hit;
-
     if (mRoot->hitTestInternal(m, pt, hit, hitPt))
     {
       setMouseEntered(hit);
     }
+    else
+      setMouseEntered(NULL);
+  #endif
 }
-
-
 
 bool pxScene2d::onDragMove(int32_t x, int32_t y, int32_t type)
 {
-    pxMatrix4f m;
-    rtRef<pxObject> hit;
-    pxPoint2f pt(static_cast<float>(x),static_cast<float>(y)), hitPt;
-    
-    if (mRoot->hitTestInternal(m, pt, hit, hitPt))
+  pxMatrix4f m;
+  rtRef<pxObject> hit;
+  pxPoint2f pt(static_cast<float>(x),static_cast<float>(y)), hitPt;
+  
+  if (mRoot->hitTestInternal(m, pt, hit, hitPt))
+  {
+    mDragType = (pxConstantsDragType::constants) type;
+
     {
-        mDragType = (pxConstantsDragType::constants) type;
-        
-        {
-            rtObjectRef e = new rtMapObject;
-            
-            e.set("name", "onDragMove");
-            e.set("target", hit.getPtr());
-            
-            e.set("x",       hitPt.x); // TODO - should really be the local coordinates of the point of "leave"-ing drop target
-            e.set("y",       hitPt.y); // TODO - should really be the local coordinates of the point of "leave"-ing drop target
-            
-            e.set("screenX", x);
-            e.set("screenY", y);
-            
-            e.set("type",    mDragType);  // TODO:  Change to "dataTransfer" object + MIME types
-            
-            bubbleEvent(e, hit, "onPreDragMove", "onDragMove");
-        }
-        
-        if(mDragTarget != hit) // a new Drag Target...
-        {
-            // LEAVE old target
-            if(mDragTarget)
-            {
-                rtObjectRef e = new rtMapObject;
-                
-                e.set("name", "onDragLeave");
-                e.set("target", hit.getPtr());
-                
-                e.set("x",       x );
-                e.set("y",       y );
-                
-                e.set("screenX", x);
-                e.set("screenY", y);
-                
-                bubbleEvent(e, mDragTarget, "onPreDragLeave", "onDragLeave");
-            }
-            {
-                mDragTarget = hit;  // ENTER new target
-                
-                rtObjectRef e = new rtMapObject;
-                
-                e.set("name", "onDragEnter");
-                e.set("target", hit.getPtr());
-                
-                e.set("x",       hitPt.x);
-                e.set("y",       hitPt.y);
-                
-                e.set("screenX", x);
-                e.set("screenY", y);
-                
-                bubbleEvent(e, hit, "onPreDragEnter", "onDragEnter");
-            }
-        }
+      rtObjectRef e = new rtMapObject;
+
+      e.set("name", "onDragMove");
+      e.set("target", hit.getPtr());
+
+      e.set("x",       hitPt.x); // TODO - should really be the local coordinates of the point of "leave"-ing drop target
+      e.set("y",       hitPt.y); // TODO - should really be the local coordinates of the point of "leave"-ing drop target
+
+      e.set("screenX", x);
+      e.set("screenY", y);
+
+      e.set("type",    mDragType);  // TODO:  Change to "dataTransfer" object + MIME types
+
+      bubbleEvent(e, hit, "onPreDragMove", "onDragMove");
     }
-    else
+
+    if(mDragTarget != hit) // a new Drag Target...
     {
-        mDragTarget = NULL;
+      // LEAVE old target
+      if(mDragTarget)
+      {
+        rtObjectRef e = new rtMapObject;
+
+        e.set("name", "onDragLeave");
+        e.set("target", hit.getPtr());
+
+        e.set("x",       x );
+        e.set("y",       y );
+
+        e.set("screenX", x);
+        e.set("screenY", y);
+
+        bubbleEvent(e, mDragTarget, "onPreDragLeave", "onDragLeave");
+      }
+      {
+        mDragTarget = hit;  // ENTER new target
+
+        rtObjectRef e = new rtMapObject;
+
+        e.set("name", "onDragEnter");
+        e.set("target", hit.getPtr());
+
+        e.set("x",       hitPt.x);
+        e.set("y",       hitPt.y);
+
+        e.set("screenX", x);
+        e.set("screenY", y);
+
+        bubbleEvent(e, hit, "onPreDragEnter", "onDragEnter");
+      }
     }
-    
-    return false;
+  }
+  else
+  {
+    mDragTarget = NULL;
+  }
+
+  return false;
 }
 
 bool pxScene2d::onDragEnter(int32_t x, int32_t y, int32_t type)
 {
-    UNUSED_PARAM(x); UNUSED_PARAM(y);
-    
-    mDragType = (pxConstantsDragType::constants) type;
-    mDragging = true;
-    return false;
+  UNUSED_PARAM(x); UNUSED_PARAM(y);
+
+  mDragType = (pxConstantsDragType::constants) type;
+  mDragging = true;
+  return false;
 }
 
 bool pxScene2d::onDragLeave(int32_t x, int32_t y, int32_t type)
 {
-    UNUSED_PARAM(x); UNUSED_PARAM(y); UNUSED_PARAM(type);
-    
-    mDragging = false;
-    return false;
+  UNUSED_PARAM(x); UNUSED_PARAM(y); UNUSED_PARAM(type);
+
+  mDragging = false;
+  return false;
 }
 
 bool pxScene2d::onDragDrop(int32_t x, int32_t y, int32_t type, const char *dropped)
 {
-    pxConstantsDragType::constants dragType = (pxConstantsDragType::constants) type;
-    
-    if (mDragTarget)
-    {
-        mDragging = false;
-        
-        pxVector4f from(static_cast<float>(x),static_cast<float>(y),0,1);
-        pxVector4f to;
-        pxObject::transformPointFromSceneToObject(mDragTarget, from, to);
-        
-        rtObjectRef e = new rtMapObject;
-        e.set("name",    "onDragDrop");
-        e.set("target",  mDragTarget.getPtr());
-        e.set("x",       to.x());
-        e.set("y",       to.y());
-        e.set("screenX", x);
-        e.set("screenY", y);
-        e.set("type",    dragType);  // TODO:  Change to "dataTransfer" object + MIME types
-        e.set("dropped", dropped);
-        
-        return bubbleEvent(e, mDragTarget, "onPreDragDrop", "onDragDrop");
-    }
-    
-    return false;
+  pxConstantsDragType::constants dragType = (pxConstantsDragType::constants) type;
+  
+  if (mDragTarget)
+  {
+    mDragging = false;
+
+    pxVector4f from(static_cast<float>(x),static_cast<float>(y),0,1);
+    pxVector4f to;
+    pxObject::transformPointFromSceneToObject(mDragTarget, from, to);
+
+    rtObjectRef e = new rtMapObject;
+    e.set("name",    "onDragDrop");
+    e.set("target",  mDragTarget.getPtr());
+    e.set("x",       to.x());
+    e.set("y",       to.y());
+    e.set("screenX", x);
+    e.set("screenY", y);
+    e.set("type",    dragType);  // TODO:  Change to "dataTransfer" object + MIME types
+    e.set("dropped", dropped);
+
+    return bubbleEvent(e, mDragTarget, "onPreDragDrop", "onDragDrop");
+  }
+  
+  return false;
 }
 
 bool pxScene2d::onScrollWheel(float dx, float dy)
@@ -2435,7 +2424,7 @@ rtError pxScene2d::storage(rtObjectRef& v) const
     // Check permissions for the origin
 #ifdef ENABLE_PERMISSIONS_CHECK
     storageQuota = mPermissions->getStorageQuota(origin);
-#endif    
+#endif
     if( storageQuota == 0) {
       rtLogWarn("Origin %s has no local storage quota", origin.cString());
       return RT_OK;
@@ -2468,8 +2457,8 @@ rtError pxScene2d::storage(rtObjectRef& v) const
     if (!retVal)
       rtLogWarn("creation of cache directory %s failed: %d", storagePath.cString(), retVal);
 
-    
-    storagePath.append(origin);    
+
+    storagePath.append(origin);
     rtLogError("&&============= scope escaped: %s", storagePath.cString());
     mStorage = new rtStorage(storagePath, storageQuota);
   }
@@ -2519,6 +2508,7 @@ rtDefineProperty(pxScene2d, api);
 rtDefineProperty(pxScene2d,animation);
 rtDefineProperty(pxScene2d,stretch);
 rtDefineProperty(pxScene2d,maskOp);
+rtDefineProperty(pxScene2d,dragType);
 rtDefineProperty(pxScene2d,alignVertical);
 rtDefineProperty(pxScene2d,alignHorizontal);
 rtDefineProperty(pxScene2d,truncation);
@@ -2699,6 +2689,8 @@ rtDefineProperty(pxSceneContainer, cors);
 rtDefineProperty(pxSceneContainer, api);
 rtDefineProperty(pxSceneContainer, ready);
 rtDefineProperty(pxSceneContainer, serviceContext);
+rtDefineMethod(pxSceneContainer, suspend);
+rtDefineMethod(pxSceneContainer, resume);
 //rtDefineMethod(pxSceneContainer, makeReady);   // DEPRECATED ?
 
 
@@ -2760,6 +2752,26 @@ rtError pxSceneContainer::setServiceContext(rtObjectRef o)
   if( !mInitialized)
     mServiceContext = o;
 
+  return RT_OK;
+}
+
+rtError pxSceneContainer::suspend(const rtValue& v, bool& b)
+{
+  b = false;
+  if (mScene)
+  {
+    mScene->suspend(v, b);
+  }
+  return RT_OK;
+}
+
+rtError pxSceneContainer::resume(const rtValue& v, bool& b)
+{
+  b = false;
+  if (mScene)
+  {
+    mScene->resume(v,b);
+  }
   return RT_OK;
 }
 
@@ -3086,7 +3098,7 @@ rtError pxScriptView::getContextID(int /*numArgs*/, const rtValue* /*args*/, rtV
 }
 #endif
 
-// JRJR could be made much simpler... 
+// JRJR could be made much simpler...
 rtError pxScriptView::getSetting(int numArgs, const rtValue* args, rtValue* result, void* /*ctx*/)
 {
   if (numArgs >= 1)
@@ -3108,7 +3120,7 @@ rtError pxScriptView::setEffectiveUrl(int numArgs, const rtValue* args, rtValue*
 {
   if (numArgs >= 1 && ctx)
   {
-    pxScriptView* v = (pxScriptView*)ctx;    
+    pxScriptView* v = (pxScriptView*)ctx;
     (*result).setEmpty();
     v->mEffectiveUrl = args[0].toString();
     return RT_OK;

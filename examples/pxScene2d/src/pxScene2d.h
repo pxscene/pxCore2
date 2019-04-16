@@ -500,6 +500,8 @@ public:
   rtReadOnlyProperty(api, api, rtValue);
   rtReadOnlyProperty(ready, ready, rtObjectRef);
   rtProperty(serviceContext, serviceContext, setServiceContext, rtObjectRef);
+  rtMethod1ArgAndReturn("suspend", suspend, rtValue, bool);
+  rtMethod1ArgAndReturn("resume", resume, rtValue, bool);
 
 //  rtMethod1ArgAndNoReturn("makeReady", makeReady, bool);  // DEPRECATED ?
   
@@ -524,6 +526,9 @@ public:
   
   rtError serviceContext(rtObjectRef& o) const { o = mServiceContext; return RT_OK;}
   rtError setServiceContext(rtObjectRef o);
+
+  rtError suspend(const rtValue& v, bool& b);
+  rtError resume(const rtValue& v, bool& b);
 
 #ifdef ENABLE_PERMISSIONS_CHECK
   rtError permissions(rtObjectRef& v) const;
