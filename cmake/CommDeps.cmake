@@ -116,6 +116,15 @@ if (NOT WIN32)
         pkg_search_module(ICU_UC icu-uc)
     endif (PREFER_SYSTEM_LIBRARIES AND SUPPORT_V8)
 
+    if (SUPPORT_STORAGE)
+        if (NOT SQLITE3_FOUND)
+            message(STATUS "Using built-in sqlite3 library")
+            set(SQLITE_INCLUDE_DIRS "${EXTDIR}/sqlite-autoconf-3260000")
+            set(SQLITE_LIBRARY_DIRS "${EXTDIR}/sqlite-autoconf-3260000/.libs")
+            set(SQLITE_LIBRARIES "sqlite3")
+        endif (NOT SQLITE3_FOUND)
+    endif (SUPPORT_STORAGE)
+
 else (NOT WIN32)
 
     set (VCLIBS ${EXTDIR}/vc.build/builds)
@@ -167,6 +176,7 @@ set(COMM_DEPS_INCLUDE_DIRS ${COMM_DEPS_INCLUDE_DIRS}
           ${UV_INCLUDE_DIRS}
     ${ICU_I18N_INCLUDE_DIRS}
       ${ICU_UC_INCLUDE_DIRS}
+      ${SQLITE_INCLUDE_DIRS}
    )
 
 set(COMM_DEPS_LIBRARY_DIRS ${COMM_DEPS_LIBRARY_DIRS}
@@ -186,6 +196,7 @@ set(COMM_DEPS_LIBRARY_DIRS ${COMM_DEPS_LIBRARY_DIRS}
           ${UV_LIBRARY_DIRS}
     ${ICU_I18N_LIBRARY_DIRS}
       ${ICU_UC_LIBRARY_DIRS}
+      ${SQLITE_LIBRARY_DIRS}
    )
 
 set(COMM_DEPS_LIBRARIES ${COMM_DEPS_LIBRARIES}
@@ -205,4 +216,5 @@ set(COMM_DEPS_LIBRARIES ${COMM_DEPS_LIBRARIES}
              ${UV_LIBRARIES}
        ${ICU_I18N_LIBRARIES}
          ${ICU_UC_LIBRARIES}
+         ${SQLITE_LIBRARIES}
    )
