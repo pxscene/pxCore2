@@ -86,7 +86,6 @@ then
 cp libgif.5.1.8.dylib .libs/libgif.5.1.8.dylib
 cp libgif.5.dylib .libs/libgif.5.dylib
 cp libgif.dylib .libs/libgif.dylib
-fi
 
 elif [ -e libgif.so.5.1.8 ]
 then
