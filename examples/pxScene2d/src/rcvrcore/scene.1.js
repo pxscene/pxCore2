@@ -45,6 +45,12 @@ function Scene() {
       this.filePath = filePath;
       this.addServiceProvider = scene.addServiceProvider;
       this.removeServiceProvider = scene.removeServiceProvider;
+      this.sparkSetting = scene.sparkSetting
+      
+      // defer touching scene.storage since it attempts to create a db file for the current
+      // scene URL
+      this.__defineGetter__('storage', function() { return scene.storage; }) 
+
       if (!isDuk) { 
         this.__defineGetter__("w", function() { return scene.w; });
         this.__defineGetter__("h", function() { return scene.h; });
