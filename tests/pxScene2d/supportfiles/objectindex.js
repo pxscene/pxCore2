@@ -16,28 +16,14 @@ limitations under the License.
 
 */
 
-#ifndef RT_THREAD_POOL_H
-#define RT_THREAD_POOL_H
-
-#include "rtCore.h"
-
-class rtThreadPool : public rtThreadPoolNative
+px.import({ scene: 'px:scene.1.js' }).then( function importsAreReady(imports)
 {
-public:
-    rtThreadPool(int numberOfThreads);
-    ~rtThreadPool();
-    
-    static rtThreadPool* globalInstance();
-
-	  int numberOfThreadsInPool();
-
-	void raisePriority(const rtString & /*url*/) {
-		//TODO
-	};
-    
-private:
-    
-    static rtThreadPool* mGlobalInstance;
-};
-
-#endif //RT_THREAD_POOL_H
+  var scene = imports.scene;
+  var temp = scene.create({t:"scene", url:"supportfiles/object.js", parent:scene.root});
+  temp.ready.then(function(s) {
+    var data = [1 ,2, 3, 4];
+    s.api = data;
+  });
+}).catch( function importFailed(err){
+  console.error("Import failed for objectindex.js: " + err);
+});

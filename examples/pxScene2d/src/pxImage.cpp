@@ -30,6 +30,7 @@
 // TODO why does pxfont refer to pxImage.h
 #include "pxImage.h"
 #include "pxContext.h"
+#include <algorithm>
 
 using namespace std;
 
@@ -204,11 +205,18 @@ void pxImage::draw() {
   static pxTextureRef nullMaskRef;
   if (getImageResource() != NULL && getImageResource()->isInitialized() && !mSceneSuspended)
   {
-    context.drawImage(0, 0,
-                      getOnscreenWidth(),
-                      getOnscreenHeight(),
-                      getImageResource()->getTexture(), nullMaskRef,
-                      false, NULL, mStretchX, mStretchY, mDownscaleSmooth, mMaskOp);
+    if (getImageResource()->getTexture().getPtr() && !getImageResource()->getTexture()->readyForRendering())
+    {
+      getImageResource()->reloadData();
+    }
+    else
+    {
+      context.drawImage(0, 0,
+                        getOnscreenWidth(),
+                        getOnscreenHeight(),
+                        getImageResource()->getTexture(), nullMaskRef,
+                        false, NULL, mStretchX, mStretchY, mDownscaleSmooth, mMaskOp);
+    }
   }
   // Raise the priority if we're still waiting on the image download    
 #if 0
@@ -357,14 +365,17 @@ void pxImage::reloadData(bool sceneSuspended)
   pxObject::reloadData(sceneSuspended);
 }
 
-uint64_t pxImage::textureMemoryUsage()
+uint64_t pxImage::textureMemoryUsage(std::vector<rtObject*> &objectsCounted)
 {
   uint64_t textureMemory = 0;
-  if (getImageResource())
+  if (std::find(objectsCounted.begin(), objectsCounted.end(), this) == objectsCounted.end() )
   {
-    textureMemory += getImageResource()->textureMemoryUsage();
+    if (getImageResource())
+    {
+      textureMemory += getImageResource()->textureMemoryUsage(objectsCounted);
+    }
+    textureMemory += pxObject::textureMemoryUsage(objectsCounted);
   }
-  textureMemory += pxObject::textureMemoryUsage();
   return textureMemory;
 }
 

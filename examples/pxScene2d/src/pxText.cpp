@@ -23,6 +23,7 @@
 #include "pxTimer.h"
 #include "pxFont.h"
 #include "pxContext.h"
+#include <algorithm>
 
 extern pxContext context;
 
@@ -194,21 +195,31 @@ rtError pxText::setFontUrl(const char* s)
   return RT_OK;
 }
 
-rtError pxText::setFont(rtObjectRef o) 
-{ 
+rtError pxText::setFont(rtObjectRef o)
+{
+  mFont = NULL;
   mFontLoaded = false;
   mFontFailed = false;
   createNewPromise();
-
-  // !CLF: TODO: Need validation/verification of o
   removeResourceListener();
-  mFont = o; 
+
+  if (o){
+    rtString desc;
+    rtError err = o.sendReturns<rtString>("description", desc);
+    if (err == RT_OK && desc.compare("pxFont") == 0) {
+        mFont = o;
+     }
+   }
+
+  if(getFontResource() == NULL) {
+    resourceReady("reject");
+  }
+
   mListenerAdded = true;
   if (getFontResource() != NULL) {
     getFontResource()->addListener(this);
   }
-    
-  return RT_OK; 
+  return RT_OK;
 }
 
 float pxText::getOnscreenWidth()
@@ -274,12 +285,16 @@ void pxText::dispose(bool pumpJavascript)
   pxObject::dispose(pumpJavascript);
 }
 
-uint64_t pxText::textureMemoryUsage()
+uint64_t pxText::textureMemoryUsage(std::vector<rtObject*> &objectsCounted)
 {
   uint64_t textureMemory = 0;
-  if (mCached.getPtr() != NULL)
+  if (std::find(objectsCounted.begin(), objectsCounted.end(), this) == objectsCounted.end() )
   {
-    textureMemory += (mCached->width() * mCached->height() * 4);
+    if (mCached.getPtr() != NULL)
+    {
+      textureMemory += (mCached->width() * mCached->height() * 4);
+    }
+    objectsCounted.push_back(this);
   }
 
   return textureMemory;

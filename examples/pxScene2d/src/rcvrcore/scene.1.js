@@ -50,6 +50,8 @@ function Scene() {
         this.__defineGetter__("h", function() { return scene.h; });
         this.__defineGetter__("showOutlines", function() { return scene.showOutlines; });
         this.__defineSetter__("showOutlines", function(v) { scene.showOutlines = v; });
+        this.__defineGetter__("reportFps", function() { return scene.reportFps; });
+        this.__defineSetter__("reportFps", function(v) { scene.reportFps = v; });
         this.__defineGetter__("enableDirtyRect", function() { return scene.enableDirtyRect; });
         this.__defineSetter__("enableDirtyRect", function(v) { scene.enableDirtyRect = v; });
         this.__defineGetter__("showDirtyRect", function() { return scene.showDirtyRect; });
@@ -62,6 +64,7 @@ function Scene() {
         this.w = scene.w;
         this.h = scene.h;
         this.showOutlines = false;
+        this.reportFps = false;
         this.showDirtyRect = false;       
       }
       //this.w = scene.w;

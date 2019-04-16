@@ -157,6 +157,7 @@ if( scene.capabilities != undefined && scene.capabilities.graphics != undefined 
 //        logger.message('info', "SHELL: onPreKeyDown: FPS !!!  ############# ");
 
         showFPS = !showFPS;
+        scene.reportFps = showFPS;
         fpsBg.a = (showFPS)?1.0:0;
         e.stopPropagation();
       }
