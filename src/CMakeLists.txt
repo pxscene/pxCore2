@@ -53,8 +53,7 @@ if (APPLE)
     set(PXCORE_FILES mac/pxBufferNative.mm mac/pxOffscreenNative.mm mac/pxWindowNative.mm
             mac/pxEventLoopNative.mm mac/pxTimerNative.mm mac/pxTimerNative.mm
             mac/pxClipboardNative.mm mac/window.mm
-            unix/rtMutexNative.cpp unix/rtThreadPoolNative.cpp
-            rtFileCache.cpp rtHttpCache.cpp)
+            unix/rtMutexNative.cpp unix/rtThreadPoolNative.cpp)
     set(PLATFORM_LINKER_FLAGS "-framework Cocoa -framework Foundation")
     add_definitions(${COMM_DEPS_DEFINITIONS})
     include_directories(AFTER ${COMM_DEPS_INCLUDE_DIRS})
@@ -87,8 +86,7 @@ elseif (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
         set(PXCORE_FILES gles/pxBufferNative.cpp gles/pxOffscreenNative.cpp gles/pxWindowNative.cpp
                 gles/pxEventLoopNative.cpp gles/pxTimerNative.cpp
                 gles/pxClipboardNative.cpp gles/pxEGLProviderRPi.cpp gles/LinuxInputEventDispatcher.cpp pxViewWindow.cpp
-                unix/rtMutexNative.cpp unix/rtThreadPoolNative.cpp
-                rtFileCache.cpp rtHttpCache.cpp)
+                unix/rtMutexNative.cpp unix/rtThreadPoolNative.cpp)
         set(PLATFORM_LINKER_FLAGS)
         include_directories(AFTER /opt/vc/include /opt/vc/include/interface/vcos/pthreads
                 /opt/vc/include/interface/vmcs_host/linux /opt/vc/include)
@@ -99,8 +97,7 @@ elseif (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
         set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../build/egl)
         add_definitions(-DENABLE_NODE_V_6_9 -DNODE_PLATFORM=linux -DNODE_WANT_INTERNALS=1 -DV8_DEPRECATION_WARNINGS=1 -DNODE_SHARED_MODE -DNODE_USE_V8_PLATFORM=1 -DNODE_HAVE_I18N_SUPPORT=1 -DNODE_HAVE_SMALL_ICU=1 )
         add_definitions(-DRT_PLATFORM_LINUX -DPX_NO_WINDOW -DENABLE_RT_NODE -DENABLE_HTTP_CACHE -DRUNINMAIN -DRAPIDJSON_HAS_STDSTRING)
-        set(PXCORE_FILES unix/rtMutexNative.cpp unix/rtThreadPoolNative.cpp
-                rtFileCache.cpp rtHttpCache.cpp)
+        set(PXCORE_FILES unix/rtMutexNative.cpp unix/rtThreadPoolNative.cpp)
 
         if (PXCORE_ESSOS)
             message("Building pxcore for essos windows")
@@ -138,7 +135,7 @@ elseif (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
         separate_arguments(PXCORE_INCLUDES)
 	include_directories(BEFORE ${PXCORE_INCLUDES})
         add_definitions(-DRT_PLATFORM_LINUX -DPX_NO_WINDOW -DENABLE_RT_NODE -DENABLE_HTTP_CACHE -DRUNINMAIN -DRAPIDJSON_HAS_STDSTRING -DENABLE_DFB -DENABLE_DFB_GENERIC -DBSTD_CPU_ENDIAN=BSTD_ENDIAN_LITTLE -DPX_PLATFORM_GENERIC_DFB)
-        set(PXCORE_FILES x11/pxBufferNativeDfb.cpp x11/pxOffscreenNativeDfb.cpp x11/pxEventLoopNative.cpp x11/pxTimerNative.cpp x11/pxClipboardNative.cpp unix/rtMutexNative.cpp unix/rtThreadPoolNative.cpp rtFileCache.cpp rtHttpCache.cpp)
+        set(PXCORE_FILES x11/pxBufferNativeDfb.cpp x11/pxOffscreenNativeDfb.cpp x11/pxEventLoopNative.cpp x11/pxTimerNative.cpp x11/pxClipboardNative.cpp unix/rtMutexNative.cpp unix/rtThreadPoolNative.cpp)
     else ()
         message("Building pxcore for glut")
         set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../build/glut)
@@ -149,8 +146,7 @@ elseif (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
         set(PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} glut)
         set(PXCORE_FILES glut/pxBufferNative.cpp glut/pxOffscreenNative.cpp glut/pxWindowNative.cpp
                 glut/pxEventLoopNative.cpp glut/pxTimerNative.cpp glut/pxClipboardNative.cpp pxViewWindow.cpp
-                unix/rtMutexNative.cpp unix/rtThreadPoolNative.cpp
-                rtFileCache.cpp rtHttpCache.cpp)
+                unix/rtMutexNative.cpp unix/rtThreadPoolNative.cpp)
         set(PLATFORM_LINKER_FLAGS)
         if (DEFINED ENV{CODE_COVERAGE})
             message("enabling code coverage support")
@@ -210,8 +206,15 @@ set(PXCORE_FILES ${PXCORE_FILES} pxOffscreen.cpp pxWindowUtil.cpp pxColorNames.c
         rtZip.cpp pxInterpolators.cpp pxUtil.cpp
         rtFileDownloader.cpp unzip.c ioapi.c
         rtScript.cpp rtSettings.cpp rtCORS.cpp
-        rtHttpRequest.cpp rtHttpResponse.cpp)
+        rtHttpRequest.cpp rtHttpResponse.cpp
+        rtFileCache.cpp rtHttpCache.cpp)
         
+if (SUPPORT_STORAGE)
+    message("Adding local storage support")
+    add_definitions(-DPXSCENE_SUPPORT_STORAGE)
+    set(PXCORE_FILES ${PXCORE_FILES} rtStorage.cpp)
+endif()
+
 if (SUPPORT_DUKTAPE)
     message("Adding Duktape scripting support")
     add_definitions(-DRTSCRIPT_SUPPORT_DUKTAPE)
