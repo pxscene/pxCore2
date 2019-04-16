@@ -52,6 +52,7 @@ class rtIObject
     virtual rtError Get(uint32_t i, rtValue* value) const = 0;
     virtual rtError Set(const char* name, const rtValue* value) = 0;
     virtual rtError Set(uint32_t i, const rtValue* value) = 0;
+    virtual void onGarbageCollected() {  }
 };
 
 // Pure Virtual

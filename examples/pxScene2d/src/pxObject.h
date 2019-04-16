@@ -568,7 +568,8 @@ public:
 
   pxScene2d* getScene() { return mScene; }
   void createSnapshot(pxContextFramebufferRef& fbo, bool separateContext=false, bool antiAliasing=false);
-
+  void onGarbageCollected(); 
+  virtual void clearGarbageCollectedObjs();
 public:
   rtEmitRef mEmit;
 

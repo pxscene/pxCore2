@@ -401,7 +401,7 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
 #ifdef PX_DIRTY_RECTANGLES
     mArchive(),mDirtyRect(), mLastFrameDirtyRect(),
 #endif //PX_DIRTY_RECTANGLES
-    mDirty(true), mDragging(false), mDragType(pxConstantsDragType::NONE), mDragTarget(NULL), mTestView(NULL), mDisposed(false), mArchiveSet(false)
+    mDirty(true), mDragging(false), mDragType(pxConstantsDragType::NONE), mDragTarget(NULL), mTestView(NULL), mDisposed(false), mArchiveSet(false), mClearingGCObjs(false)
 {
   mRoot = new pxRoot(this);
   #ifdef ENABLE_PXOBJECT_TRACKING
@@ -675,7 +675,7 @@ rtError pxScene2d::create(rtObjectRef p, rtObjectRef& o)
     #ifdef ENABLE_PXOBJECT_TRACKING
     rtLogInfo("pxObjectTracking CREATION pxScene2d::create [%p] [%s] [%s]", o.getPtr(), t.cString(), mScriptView->getUrl().cString());
     #endif
-    mInnerpxObjects.push_back((pxObject*)o.getPtr());
+    //mInnerpxObjects.push_back((pxObject*)o.getPtr());
   }
   return e;
 }
@@ -1083,6 +1083,8 @@ if (__frameCount > 60*5)
 
 void pxScene2d::onUpdate(double t)
 {
+  clearGarbageCollectedObjs();
+  mRoot->clearGarbageCollectedObjs();
   #ifdef ENABLE_RT_NODE
   if (mTop)
   {
@@ -2510,7 +2512,7 @@ void pxScene2d::invalidateRect(pxRect* r)
 void pxScene2d::innerpxObjectDisposed(rtObjectRef ref)
 {
   // this is to make sure, we are not clearing the rtobject references, while it is under process from scene dispose
-  if (!mDisposed)
+  if (!mDisposed && !mClearingGCObjs)
   {
     unsigned int pos = 0;
     for (; pos<mInnerpxObjects.size(); pos++)
@@ -2523,6 +2525,13 @@ void pxScene2d::innerpxObjectDisposed(rtObjectRef ref)
       mInnerpxObjects.erase(mInnerpxObjects.begin()+pos);
     }
   }
+}
+
+void pxScene2d::innerpxObjectGarbageCollected(rtObjectRef ref)
+{
+    if (false == mDisposed) {
+      mInnerpxObjects.push_back((pxObject*)ref.getPtr());
+    }
 }
 
 rtError pxScene2d::sparkSetting(const rtString& setting, rtValue& value) const
@@ -2553,6 +2562,21 @@ void pxScene2d::setViewContainer(pxIViewContainer* l)
 pxIViewContainer* pxScene2d::viewContainer()
 {
   return mContainer;
+}
+
+void pxScene2d::clearGarbageCollectedObjs()
+{
+  mClearingGCObjs = true;
+  for (unsigned int i=0; i<mInnerpxObjects.size(); i++)
+  {
+    pxObject* temp = (pxObject *) (mInnerpxObjects[i].getPtr());
+    if (NULL != temp)
+    {
+      temp->dispose(false);
+    }
+  }
+  mInnerpxObjects.clear();
+  mClearingGCObjs = false;
 }
 
 rtDefineObject(pxViewContainer, pxObject);
@@ -2764,6 +2788,14 @@ rtError pxSceneContainer::cors(rtObjectRef& v) const
   }
   v = NULL;
   return RT_OK;
+}
+
+void pxSceneContainer::clearGarbageCollectedObjs()
+{
+  if (mScene)
+  {
+    mScene->clearGarbageCollectedObjs();
+  }
 }
 
 #if 0

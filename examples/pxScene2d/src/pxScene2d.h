@@ -541,7 +541,7 @@ public:
   virtual void releaseData(bool sceneSuspended);
   virtual void reloadData(bool sceneSuspended);
   virtual uint64_t textureMemoryUsage();
-  
+  void clearGarbageCollectedObjs(); 
 private:
   rtRef<pxScriptView> mScriptView;
   rtString mUrl;
@@ -1175,6 +1175,7 @@ public:
   }
 
   void innerpxObjectDisposed(rtObjectRef ref);
+  void innerpxObjectGarbageCollected(rtObjectRef ref);
 
   // Note: Only type currently supported is "image/png;base64"
   rtError screenshot(rtString type, rtString& pngData);
@@ -1187,7 +1188,7 @@ public:
   {
     return mArchive;
   }
-
+  void clearGarbageCollectedObjs();
 private:
   bool bubbleEvent(rtObjectRef e, rtRef<pxObject> t, 
                    const char* preEvent, const char* event) ;
@@ -1266,6 +1267,7 @@ public:
   bool mDisposed;
   std::vector<rtFunctionRef> mServiceProviders;
   bool mArchiveSet;
+  bool mClearingGCObjs;
 };
 
 // TODO do we need this anymore?
