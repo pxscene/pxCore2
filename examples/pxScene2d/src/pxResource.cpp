@@ -29,6 +29,7 @@
 #include "rtThreadPool.h"
 #include "rtPathUtils.h"
 #include "pxTimer.h"
+#include <algorithm>
 
 
 using namespace std;
@@ -357,12 +358,16 @@ void rtImageResource::reloadData()
   pxResource::reloadData();
 }
 
-uint64_t rtImageResource::textureMemoryUsage()
+uint64_t rtImageResource::textureMemoryUsage(std::vector<rtObject*> &objectsCounted)
 {
   uint64_t textureMemory = 0;
-  if (mTexture.getPtr() != NULL)
+  if (std::find(objectsCounted.begin(), objectsCounted.end(), this) == objectsCounted.end() )
   {
-    textureMemory = ((uint64_t)(mTexture->width()) * (uint64_t)(mTexture->height()) * (uint64_t)4);
+    if (mTexture.getPtr() != NULL)
+    {
+      textureMemory = ((uint64_t) (mTexture->width()) * (uint64_t) (mTexture->height()) * (uint64_t) 4);
+    }
+    objectsCounted.push_back(this);
   }
   return textureMemory;
 }
@@ -517,7 +522,7 @@ void pxResource::reloadData()
 {
 }
 
-uint64_t pxResource::textureMemoryUsage()
+uint64_t pxResource::textureMemoryUsage(std::vector<rtObject*> &objectsCounted)
 {
   return 0;
 }

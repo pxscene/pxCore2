@@ -161,7 +161,7 @@ public:
   virtual float getOnscreenHeight();
   virtual void createNewPromise();
   virtual void dispose(bool pumpJavascript);
-  virtual uint64_t textureMemoryUsage();
+  virtual uint64_t textureMemoryUsage(std::vector<rtObject*> &objectsCounted);
   
  protected:
   virtual void draw();

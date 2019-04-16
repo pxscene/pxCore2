@@ -110,7 +110,7 @@ public:
   void setLoadStatus(const char* name, rtValue value);
   virtual void releaseData();
   virtual void reloadData();
-  virtual uint64_t textureMemoryUsage();
+  virtual uint64_t textureMemoryUsage(std::vector<rtObject*> &objectsCounted);
   void setCORS(const rtCORSRef& cors) { mCORS = cors; }
   void setName(rtString name) { mName = name; }
 protected:   
@@ -186,7 +186,7 @@ public:
 
   virtual void releaseData();
   virtual void reloadData();
-  virtual uint64_t textureMemoryUsage();
+  virtual uint64_t textureMemoryUsage(std::vector<rtObject*> &objectsCounted);
   virtual void textureReady();
   
 protected:

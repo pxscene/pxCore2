@@ -27,6 +27,7 @@
 #include "pxImage9.h"
 #include "pxContext.h"
 #include "rtFileDownloader.h"
+#include <algorithm>
 
 extern pxContext context;
 
@@ -241,14 +242,17 @@ void pxImage9::reloadData(bool sceneSuspended)
   pxObject::reloadData(sceneSuspended);
 }
 
-uint64_t pxImage9::textureMemoryUsage()
+uint64_t pxImage9::textureMemoryUsage(std::vector<rtObject*> &objectsCounted)
 {
   uint64_t textureMemory = 0;
-  if (getImageResource())
+  if (std::find(objectsCounted.begin(), objectsCounted.end(), this) == objectsCounted.end() )
   {
-    textureMemory += getImageResource()->textureMemoryUsage();
+    if (getImageResource())
+    {
+      textureMemory += getImageResource()->textureMemoryUsage(objectsCounted);
+    }
+    textureMemory += pxObject::textureMemoryUsage(objectsCounted);
   }
-  textureMemory += pxObject::textureMemoryUsage();
   return textureMemory;
 }
 
