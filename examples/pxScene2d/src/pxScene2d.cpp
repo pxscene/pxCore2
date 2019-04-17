@@ -2418,7 +2418,7 @@ rtError pxScene2d::storage(rtObjectRef& v) const
     uint32_t storageQuota = 0;
     // Check permissions for the origin
 #ifdef ENABLE_PERMISSIONS_CHECK
-    storageQuota = mPermissions->getStorageQuota(origin);
+    mPermissions->getStorageQuota(storageQuota);
 #endif
     if( storageQuota == 0) {
       rtLogWarn("Origin %s has no local storage quota", origin.cString());
