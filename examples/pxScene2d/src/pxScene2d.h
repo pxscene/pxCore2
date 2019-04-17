@@ -1054,7 +1054,7 @@ public:
   rtError sparkSetting(const rtString& setting, rtValue& value) const;
 
    void setMouseEntered(rtRef<pxObject> o, int32_t x = 0, int32_t y = 0);
-   rtRef<pxObject> getMouseEntered();
+   void clearMouseObject(rtRef<pxObject>);
 
   // The following methods are delegated to the view
   virtual void onSize(int32_t w, int32_t h);
@@ -1176,7 +1176,7 @@ public:
   }
 
   void innerpxObjectDisposed(rtObjectRef ref);
-  bool ispxObjectTracked(rtObjectRef ref);
+  bool isObjectTracked(rtObjectRef ref);
   // Note: Only type currently supported is "image/png;base64"
   rtError screenshot(rtString type, rtString& pngData);
   rtError clipboardGet(rtString type, rtString& retString);

@@ -1434,9 +1434,12 @@ void pxScene2d::setMouseEntered(rtRef<pxObject> o, int32_t x /* = 0*/, int32_t y
   }
 }
 
-rtRef<pxObject> pxScene2d::getMouseEntered()
+void pxScene2d::clearMouseObject(rtRef<pxObject> obj)
 {
-  return mMouseEntered;
+  if (mMouseEntered == obj)
+  {
+    mMouseEntered = NULL;
+  }
 }
 
 /** This function is not exposed to javascript; it is called when
@@ -2512,7 +2515,7 @@ void pxScene2d::invalidateRect(pxRect* r)
   }
 }
 
-bool pxScene2d::ispxObjectTracked(rtObjectRef ref)
+bool pxScene2d::isObjectTracked(rtObjectRef ref)
 {
     bool isTracked = false;
     unsigned int pos = 0;
