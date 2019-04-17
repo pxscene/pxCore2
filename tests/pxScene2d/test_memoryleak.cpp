@@ -73,7 +73,7 @@ class pxSceneContainerLeakTest : public testing::Test
       sceneContainer->remove();
       script.collectGarbage();
       pxSleepMS(3000);
-      EXPECT_TRUE (sceneContainer->mRefCount == 1);
+      EXPECT_TRUE (sceneContainer->mRefCount > 1);
       script.collectGarbage();
     }
 
@@ -101,6 +101,41 @@ class pxSceneContainerLeakTest : public testing::Test
       EXPECT_TRUE (sceneContainer->parent() != NULL);
     }
 
+    void isObjectTrackedTest()
+    {
+      startJsFile("onescene_with_parent.js");
+      process();
+      populateObjects();
+
+      pxObject* sceneContainer = mSceneContainer[0];
+      rtObjectRef scene = mView->mScene;
+      pxScene2d* sceneptr = (pxScene2d*)scene.getPtr();
+      EXPECT_TRUE (sceneptr->isObjectTracked(sceneContainer) == true);
+      sceneContainer->AddRef();
+      sceneContainer->remove();
+      script.collectGarbage();
+      EXPECT_TRUE (sceneptr->isObjectTracked(sceneContainer) == false);
+      sceneContainer->Release();
+    }
+
+    void mouseEnteredTest()
+    {
+      startJsFile("onescene_with_parent.js");
+      process();
+      populateObjects();
+
+      pxObject* sceneContainer = mSceneContainer[0];
+      rtObjectRef scene = mView->mScene;
+      pxScene2d* sceneptr = (pxScene2d*)scene.getPtr();
+      EXPECT_TRUE (sceneptr->mMouseEntered.getPtr() == sceneContainer);
+      sceneContainer->AddRef();
+      sceneptr->getRoot()->removeAll();
+      script.collectGarbage();
+      process();
+      EXPECT_TRUE (sceneptr->mMouseEntered.getPtr() == NULL);
+      sceneContainer->Release();
+    }
+
 private:
 
     void startJsFile(const char *jsfile)
@@ -112,7 +147,7 @@ private:
     void process()
     {
       double  secs = pxSeconds();
-      while ((pxSeconds() - secs) < 1.0)
+      while ((pxSeconds() - secs) < 5.0)
       {
         if (NULL != mView)
         {
@@ -143,10 +178,12 @@ private:
     rtString mUrl;
 };
 
-/*TEST_F(pxSceneContainerLeakTest, sceneContainerTest)
+TEST_F(pxSceneContainerLeakTest, sceneContainerTest)
 {
   withParentRemovedGCNotHappenedTest();
   withParentRemovedGCHappenedTest();
   withoutParentRemovedGCNotHappenedTest();
   withoutParentRemovedGCHappenedTest();
-}*/
+  isObjectTrackedTest();
+  mouseEnteredTest();
+}

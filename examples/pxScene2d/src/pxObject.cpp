@@ -421,7 +421,16 @@ rtError pxObject::removeAll()
 {
   for(vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
   {
+    mScene->clearMouseObject(*it);
     (*it)->mParent = NULL;
+    bool isTracked = mScene->isObjectTracked((*it).getPtr());
+    int refCount = (*it)->mRefCount;
+    // reference count will be 2 here only if the remaining reference is in mInnerObjects.  clearing here will fix a leak
+    // TODO - revisit when removing the need for mInnerObjects
+    if ((isTracked == true) && (refCount == 2))
+    {
+      (*it)->dispose(false);
+    }
   }
   mChildren.clear();
 
