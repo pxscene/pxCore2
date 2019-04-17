@@ -20,6 +20,7 @@
 
 #include "pxImageA.h"
 #include "pxContext.h"
+#include <algorithm>
 
 extern pxContext context;
 
@@ -329,14 +330,17 @@ void pxImageA::reloadData(bool sceneSuspended)
   pxObject::reloadData(sceneSuspended);
 }
 
-uint64_t pxImageA::textureMemoryUsage()
+uint64_t pxImageA::textureMemoryUsage(std::vector<rtObject*> &objectsCounted)
 {
   uint64_t textureMemory = 0;
-  if (mTexture.getPtr() != NULL)
+  if (std::find(objectsCounted.begin(), objectsCounted.end(), this) == objectsCounted.end() )
   {
-    textureMemory += (mTexture->width() * mTexture->height() * 4);
+    if (mTexture.getPtr() != NULL)
+    {
+      textureMemory += (mTexture->width() * mTexture->height() * 4);
+    }
+    textureMemory += pxObject::textureMemoryUsage(objectsCounted);
   }
-  textureMemory += pxObject::textureMemoryUsage();
   return textureMemory;
 }
 
