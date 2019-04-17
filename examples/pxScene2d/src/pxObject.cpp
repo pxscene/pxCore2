@@ -371,6 +371,7 @@ rtError pxObject::removeAll()
 {
   bool needMouseEnteredUpdate = false;
   rtRef<pxObject> mouseEnteredObj = mScene->getMouseEntered();
+  // check if any of child objects are referrred in mouseEntered variable of scene
   if (NULL != mouseEnteredObj.getPtr())
   {
     for(vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
@@ -382,6 +383,7 @@ rtError pxObject::removeAll()
       }
     }
   }
+  // set to NULL, else reference count will be 3
   mouseEnteredObj = NULL;
   if (needMouseEnteredUpdate) 
     mScene->setMouseEntered(NULL);
@@ -390,6 +392,8 @@ rtError pxObject::removeAll()
     (*it)->mParent = NULL;
     bool isTracked = mScene->ispxObjectTracked((*it).getPtr());
     int refCount = (*it)->mRefCount;
+    // reference count will be 2 here only if the remaining reference is in mInnerObjects.  clearing here will fix a leak
+    // TODO - revisit when removing the need for mInnerObjects
     if ((isTracked == true) && (refCount == 2))
     {
       (*it)->dispose(false);
