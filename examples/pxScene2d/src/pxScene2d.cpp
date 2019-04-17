@@ -2409,54 +2409,42 @@ rtError pxScene2d::storage(rtObjectRef& v) const
 {
   if (!mStorage)
   {
-    // Get origin to use for database name
     rtString origin = mScriptView != NULL ? rtUrlGetOrigin(mScriptView->getUrl().cString()) : rtString();
-    if( origin == NULL || origin.length() == 0) {
-      origin = rtUrlEscape("file://");
-    }
 
     uint32_t storageQuota = 0;
-    // Check permissions for the origin
 #ifdef ENABLE_PERMISSIONS_CHECK
     mPermissions->getStorageQuota(storageQuota);
 #endif
-    if( storageQuota == 0) {
+    if( storageQuota == 0)
+    {
       rtLogWarn("Origin %s has no local storage quota", origin.cString());
       return RT_OK;
     }
-     // rtString effectiveUrl = mScriptView->getUrl();
-    // int32_t search = effectiveUrl.find(0, '?');
-    // rtString scope;
-    // if (search > -1)
-    //   scope = effectiveUrl.substring(0, search);
-    // else
-    //   scope = effectiveUrl;
-    // scope = rtUrlEscape(scope);
+
+    rtString storageName = rtUrlEscape(origin);
+    if (storageName.isEmpty())
+      storageName = rtUrlEscape("file://");
+
     rtString storagePath;
     rtValue storagePathVal;
-    rtValue val;
-    // JRJR why not just return a string... or just be an rtObject
-    if (RT_OK == rtSettings::instance()->value("defaultStoragePath", storagePathVal))
-    {
+    if (RT_OK == rtSettings::instance()->value("defaultStoragePath", storagePathVal)) {
       storagePath = storagePathVal.toString();
-      rtEnsureTrailingPathSeparator(storagePath);
+    } else if (RT_OK == rtGetHomeDirectory(storagePath)) {
+      storagePath.append(DEFAULT_LOCALSTORAGE_DIR);
     }
-    else if (RT_OK == rtGetHomeDirectory(storagePath))
-    {
-      storagePath.append(DEFAULT_LOCALSTORAGE_DIR);//".spark/storage/");
-    }
+    rtEnsureTrailingPathSeparator(storagePath);
 
     // Create the path if it doesn't yet exist
     int32_t retVal = rtMakeDirectory(storagePath);
-
     if (!retVal)
-      rtLogWarn("creation of cache directory %s failed: %d", storagePath.cString(), retVal);
+      rtLogWarn("creation of storage directory %s failed: %d", storagePath.cString(), retVal);
 
+    storagePath.append(storageName);
+    rtLogInfo("storage path: %s", storagePath.cString());
 
-    storagePath.append(origin);
-    rtLogError("&&============= scope escaped: %s", storagePath.cString());
     mStorage = new rtStorage(storagePath, storageQuota);
   }
+
   v = mStorage;
   return RT_OK;
 }
