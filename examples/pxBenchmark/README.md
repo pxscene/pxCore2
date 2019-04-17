@@ -97,7 +97,7 @@
     cd pxCore/examples/pxBenchmark/src
     ./pxBenchmark.sh window_width windowHeight unit_widht unit_height
     ~~~~
-
+    
     On macOS
     ~~~~
     cd pxCore/examples/pxBenchmark/src/pxBenchmark.app/Contents/MacOS
@@ -185,7 +185,6 @@ Examples:
       1. Open project **_pxCore/examples/pxBenchmark/pxBenchmark.xcworkspace_** in Xcode
       2. Select _"pxBenchmark"_ as the target in the pulldown on the toolbar
       3. From menu, go to Product menu and select _"Build"_ or type  ⌘B
-
 
 
 
