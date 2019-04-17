@@ -420,11 +420,6 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   mTag = gTag++;
 
   rtString origin = scriptView != NULL ? rtUrlGetOrigin(scriptView->getUrl().cString()) : rtString();
-/*  if (scriptView != NULL)
-  {
-    mEffectiveUrl = scriptView->getEffectiveUrl();
-  }*/
-
 #ifdef ENABLE_PERMISSIONS_CHECK
   // rtPermissions accounts parent scene permissions too
   mPermissions = new rtPermissions(origin.cString());
@@ -2935,15 +2930,11 @@ void pxScriptView::runScript()
     mGetScene = new rtFunctionCallback(getScene,  this);
     mMakeReady = new rtFunctionCallback(makeReady, this);
     mGetContextID = new rtFunctionCallback(getContextID, this);
-    mGetSetting = new rtFunctionCallback(getSetting, this);
-    mSetEffectiveUrl = new rtFunctionCallback(setEffectiveUrl, this);
 
     mCtx->add("print", mPrintFunc.getPtr());
     mCtx->add("getScene", mGetScene.getPtr());
     mCtx->add("makeReady", mMakeReady.getPtr());
     mCtx->add("getContextID", mGetContextID.getPtr());
-    mCtx->add("getSetting", mGetSetting.getPtr());
-    mCtx->add("setEffectiveUrl", mSetEffectiveUrl.getPtr());
 
 #ifdef RUNINMAIN
     mReady = new rtPromise();
@@ -3097,38 +3088,6 @@ rtError pxScriptView::getContextID(int /*numArgs*/, const rtValue* /*args*/, rtV
   #endif
 }
 #endif
-
-// JRJR could be made much simpler...
-rtError pxScriptView::getSetting(int numArgs, const rtValue* args, rtValue* result, void* /*ctx*/)
-{
-  if (numArgs >= 1)
-  {
-    rtValue val;
-    if (RT_OK != rtSettings::instance()->value(args[0].toString(), val))
-    {
-      *result = rtValue();
-      return RT_OK;
-    }
-    *result = val;
-    return RT_OK;
-  }
-  else
-    return RT_ERROR_NOT_ENOUGH_ARGS;
-}
-
-rtError pxScriptView::setEffectiveUrl(int numArgs, const rtValue* args, rtValue* result, void* ctx)
-{
-  if (numArgs >= 1 && ctx)
-  {
-    pxScriptView* v = (pxScriptView*)ctx;
-    (*result).setEmpty();
-    v->mEffectiveUrl = args[0].toString();
-    return RT_OK;
-  }
-  else
-    return RT_ERROR_NOT_ENOUGH_ARGS;
-}
-//#endif
 
 rtError pxScriptView::makeReady(int numArgs, const rtValue* args, rtValue* /*result*/, void* ctx)
 {
