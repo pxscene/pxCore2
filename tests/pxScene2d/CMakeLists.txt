@@ -175,6 +175,12 @@ if (PXSCENE_TEST_PERMISSIONS_CHECK)
     set(TEST_SOURCE_FILES ${TEST_SOURCE_FILES} test_rtPermissions.cpp)
 endif (PXSCENE_TEST_PERMISSIONS_CHECK)
 
+if (SUPPORT_STORAGE)
+    message("Include storage tests")
+    add_definitions(-DPXSCENE_SUPPORT_STORAGE)
+    set(TEST_SOURCE_FILES ${TEST_SOURCE_FILES} test_rtStorage.cpp)
+endif()
+
 set(TEST_SOURCE_FILES ${TEST_SOURCE_FILES} ${EXTDIR}/gtest/googletest/src/gtest-all.cc ${EXTDIR}/gtest/googlemock/src/gmock-all.cc)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -fpermissive -Wall -Wno-attributes -Wall -Wextra -Wno-format-security -Werror -std=c++11 -O3")
