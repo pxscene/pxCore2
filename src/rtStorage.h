@@ -59,10 +59,14 @@ public:
 private:
   void* mPrivateData;
   uint32_t mQuota;
-  
+
   // Methods for managing current size and quota
-  //rtError rtStorage::setCurrentSize(const uint32_t size);
-  //uint32_t rtStorage::getCurrentSize() const;
+  rtError calculateCurrentSize(uint32_t &size) const;
+  rtError setCurrentSize(const uint32_t size);
+  rtError getCurrentSize(uint32_t &size) const;
+
+  rtError updateSize();
+  rtError verifyQuota(const char* key, const rtValue& value) const;
 };
 
 typedef rtRef<rtStorage> rtStorageRef;
