@@ -101,7 +101,7 @@ class pxSceneContainerLeakTest : public testing::Test
       EXPECT_TRUE (sceneContainer->parent() != NULL);
     }
 
-    void ispxObjectTrackedTest()
+    void isObjectTrackedTest()
     {
       startJsFile("onescene_with_parent.js");
       process();
@@ -110,11 +110,11 @@ class pxSceneContainerLeakTest : public testing::Test
       pxObject* sceneContainer = mSceneContainer[0];
       rtObjectRef scene = mView->mScene;
       pxScene2d* sceneptr = (pxScene2d*)scene.getPtr();
-      EXPECT_TRUE (sceneptr->ispxObjectTracked(sceneContainer) == true);
+      EXPECT_TRUE (sceneptr->isObjectTracked(sceneContainer) == true);
       sceneContainer->AddRef();
       sceneContainer->remove();
       script.collectGarbage();
-      EXPECT_TRUE (sceneptr->ispxObjectTracked(sceneContainer) == false);
+      EXPECT_TRUE (sceneptr->isObjectTracked(sceneContainer) == false);
       sceneContainer->Release();
     }
 
@@ -127,12 +127,12 @@ class pxSceneContainerLeakTest : public testing::Test
       pxObject* sceneContainer = mSceneContainer[0];
       rtObjectRef scene = mView->mScene;
       pxScene2d* sceneptr = (pxScene2d*)scene.getPtr();
-      EXPECT_TRUE (sceneptr->getMouseEntered().getPtr() == sceneContainer);
+      EXPECT_TRUE (sceneptr->mMouseEntered.getPtr() == sceneContainer);
       sceneContainer->AddRef();
       sceneptr->getRoot()->removeAll();
       script.collectGarbage();
       process();
-      EXPECT_TRUE (sceneptr->getMouseEntered().getPtr() == NULL);
+      EXPECT_TRUE (sceneptr->mMouseEntered.getPtr() == NULL);
       sceneContainer->Release();
     }
 
@@ -184,6 +184,6 @@ TEST_F(pxSceneContainerLeakTest, sceneContainerTest)
   withParentRemovedGCHappenedTest();
   withoutParentRemovedGCNotHappenedTest();
   withoutParentRemovedGCHappenedTest();
-  ispxObjectTrackedTest();
+  isObjectTrackedTest();
   mouseEnteredTest();
 }
