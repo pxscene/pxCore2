@@ -1434,6 +1434,11 @@ void pxScene2d::setMouseEntered(rtRef<pxObject> o, int32_t x /* = 0*/, int32_t y
   }
 }
 
+rtRef<pxObject> pxScene2d::getMouseEntered()
+{
+  return mMouseEntered;
+}
+
 /** This function is not exposed to javascript; it is called when
  * mFocus = true is set for a pxObject whose parent scene is this scene
  **/
@@ -2505,6 +2510,21 @@ void pxScene2d::invalidateRect(pxRect* r)
         mContainer->invalidateRect(NULL);
     }
   }
+}
+
+bool pxScene2d::ispxObjectTracked(rtObjectRef ref)
+{
+    bool isTracked = false;
+    unsigned int pos = 0;
+    for (; pos<mInnerpxObjects.size(); pos++)
+    {
+      if (mInnerpxObjects[pos] == ref)
+      {
+        isTracked = true;
+        break;
+      }
+    }
+    return isTracked;
 }
 
 void pxScene2d::innerpxObjectDisposed(rtObjectRef ref)

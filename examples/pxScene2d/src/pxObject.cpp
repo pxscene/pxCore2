@@ -369,11 +369,35 @@ rtError pxObject::remove()
 
 rtError pxObject::removeAll()
 {
+  bool needMouseEnteredUpdate = false;
+  rtRef<pxObject> mouseEnteredObj = mScene->getMouseEntered();
+  if (NULL != mouseEnteredObj.getPtr())
+  {
+    for(vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
+    {
+      if (*it == mouseEnteredObj)
+      {
+        needMouseEnteredUpdate = true;
+        break;
+      }
+    }
+  }
+  mouseEnteredObj = NULL;
+  if (needMouseEnteredUpdate) 
+    mScene->setMouseEntered(NULL);
   for(vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
   {
     (*it)->mParent = NULL;
+    bool isTracked = mScene->ispxObjectTracked((*it).getPtr());
+    int refCount = (*it)->mRefCount;
+    if ((isTracked == true) && (refCount == 2))
+    {
+      (*it)->dispose(false);
+    }
   }
   mChildren.clear();
+  if (needMouseEnteredUpdate) 
+    mScene->updateMouseEntered();
 
   markDirty();
   repaint();
