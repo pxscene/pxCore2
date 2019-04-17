@@ -115,6 +115,7 @@ if [ "$dumped_core" -eq 1 ]
 	$TRAVIS_BUILD_DIR/ci/check_dump_cores_osx.sh `pwd` `ps -ef | grep Spark |grep -v grep|grep -v spark.sh|awk '{print $2}'` /var/tmp/spark.log
   cp /var/tmp/spark.log $EXECLOGS
   printExecLogs
+  
 	checkError $dumped_core "Execution failed" "Core dump" "Run execution locally"
 fi
 
