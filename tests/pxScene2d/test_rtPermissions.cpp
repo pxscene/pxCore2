@@ -1117,7 +1117,7 @@ public:
     EXPECT_EQ ((int)RT_OK, (int)p1->allows("anything", rtPermissions::FEATURE));
     EXPECT_EQ ((int)RT_OK, (int)p1->allows("anything", rtPermissions::WAYLAND));
     EXPECT_EQ ((int)RT_OK, (int)p1->getStorageQuota(quota));
-    EXPECT_EQ ((unsigned int)quota, (unsigned int)1000000);
+    EXPECT_EQ ((unsigned int)quota, (unsigned int)5000000);
 
     // "*://www.pxscene.org" : "pxscene.org",
     // "*://www.pxscene.org:*" : "pxscene.org",
