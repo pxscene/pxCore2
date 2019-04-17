@@ -17,7 +17,10 @@
 */
 
 #include "rtStorage.h"
+
 #include "sqlite3.h"
+
+#include "rtLog.h"
 
 #define SQLITE *(sqlite3**)&mPrivateData
 
@@ -30,7 +33,6 @@ rtStorage::~rtStorage()
 {
   term();
 }
-
 
 rtError rtStorage::init(const char* fileName, uint32_t storageQuota)
 {
@@ -48,8 +50,8 @@ rtError rtStorage::init(const char* fileName, uint32_t storageQuota)
   sqlite3_stmt *stmt;
 
   char *errmsg;
-  sqlite3_exec(db, "CREATE TABLE SizeTable (currentSize MEDIUMINT_UNSIGNED UNIQUE ON CONFLICT REPLACE);", 0, 0, &errmsg);
-  sqlite3_exec(db, "CREATE TABLE ItemTable (key TEXT UNIQUE ON CONFLICT REPLACE, value TEXT);", 0, 0, &errmsg);
+  sqlite3_exec(db, "CREATE TABLE if not exists SizeTable (currentSize MEDIUMINT_UNSIGNED UNIQUE ON CONFLICT REPLACE);", 0, 0, &errmsg);
+  sqlite3_exec(db, "CREATE TABLE if not exists ItemTable (key TEXT UNIQUE ON CONFLICT REPLACE, value TEXT);", 0, 0, &errmsg);
 
   mQuota = storageQuota;
   return RT_OK;
@@ -83,7 +85,7 @@ rtError rtStorage::setItem(const char* key, const rtValue& value)
     int rc = sqlite3_step(stmt);
     if (rc != SQLITE_DONE) 
     {
-      printf("ERROR inserting data: %s\n", sqlite3_errmsg(db));
+      rtLogError("ERROR inserting data: %s", sqlite3_errmsg(db));
     }
 
     sqlite3_finalize(stmt);
@@ -170,7 +172,7 @@ rtError rtStorage::removeItem(const char* key)
     int rc = sqlite3_step(stmt);
     if (rc != SQLITE_DONE) 
     {
-      printf("ERROR inserting data: %s\n", sqlite3_errmsg(db));
+      rtLogError("ERROR removing data: %s", sqlite3_errmsg(db));
     }
 
     sqlite3_finalize(stmt);
@@ -194,7 +196,7 @@ rtError rtStorage::setCurrentSize(const uint32_t size)
     int rc = sqlite3_step(stmt);
     if (rc != SQLITE_DONE) 
     {
-      printf("ERROR inserting data: %s\n", sqlite3_errmsg(db));
+      rtLogError("ERROR inserting data: %s", sqlite3_errmsg(db));
     }
 
     sqlite3_finalize(stmt);
@@ -241,7 +243,7 @@ rtError rtStorage::clear()
     int rc = sqlite3_step(stmt);
     if (rc != SQLITE_DONE) 
     {
-      printf("ERROR inserting data: %s\n", sqlite3_errmsg(db));
+      rtLogError("ERROR inserting data: %s", sqlite3_errmsg(db));
     }
 
     sqlite3_finalize(stmt);
