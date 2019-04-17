@@ -369,7 +369,6 @@ rtError pxObject::remove()
 
 rtError pxObject::removeAll()
 {
-  // check if any of child objects are referrred in mouseEntered variable of scene
   for(vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
   {
     mScene->clearMouseObject(*it);
