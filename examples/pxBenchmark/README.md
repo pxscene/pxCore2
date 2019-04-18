@@ -200,13 +200,16 @@ Examples:
  
  At the end of executing pxBenchmark app, output is collected in excel sheet named tmp/pxBenchmark_Output_table.xls.
  This sheet has a table with following structure.
+ 
+ Group    Problem Space    Samples    Iterations    Failure    Baseline    TotalTime(us)    us/Iteration    Iterations/sec    Min (us)    Mean (us)    Max (us)    Variance    Standard Deviation    Skewness    Kurtosis    Z Score
+ 
+ 
  Group = Name of pxCore API
- Experiment = Size of unit which we pass as argument
  Problem Space    
  Samples    
  Iterations  = current number of iteration. 
- Failure  = 0/1  
  Baseline = 1 as we dont have any as of now
+ TotalTime(us) = total time till now.
  us/Iteration  = time per iteration
  Iterations/sec  = number of iterations per seconds 
  Min (us)  = Min time for running specified iterations 
