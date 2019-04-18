@@ -36,6 +36,8 @@ rtStorage::~rtStorage()
 
 rtError rtStorage::init(const char* fileName, uint32_t storageQuota)
 {
+  rtLogDebug("%s: %d @ '%s'", __FUNCTION__, storageQuota, fileName);
+
   sqlite3* &db = SQLITE;
 
   term();

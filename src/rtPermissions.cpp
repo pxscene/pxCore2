@@ -71,19 +71,8 @@ rtPermissions::rtPermissions(const char* origin)
   {
     rtObjectRef roles = mConfig.get<rtObjectRef>("roles");
     if (roles)
-      mRole = roles.get<rtObjectRef>(role.cString());
+      set(roles.get<rtObjectRef>(role.cString()));
   }
-
-  //
-  // find storage quota
-  uint32_t quota = 0;
-  if (mRole)
-  {
-    rtObjectRef o = mRole.get<rtObjectRef>(type2str(STORAGE));
-    if (o)
-      quota = o.get<uint32_t>("allow");
-  }
-  mStorageQuota = quota;
 
   //
   // logging
@@ -165,6 +154,16 @@ rtError rtPermissions::set(const char* json)
 rtError rtPermissions::set(const rtObjectRef& obj)
 {
   mRole = obj;
+
+  uint32_t quota = 0;
+  if (mRole)
+  {
+    rtObjectRef o = mRole.get<rtObjectRef>(type2str(STORAGE));
+    if (o)
+      quota = o.get<uint32_t>("allow");
+  }
+  mStorageQuota = quota;
+
   return RT_OK;
 }
 
