@@ -150,6 +150,34 @@ void stopProfiling()
 extern int pxObjectCount;
 bool gApplicationIsClosing = false;
 
+bool enableOptimizedUpdateOnStartup()
+{
+#ifdef ENABLE_SPARK_OPTIMIZED_UPDATE
+  bool enableSparkOptimizedUpdate = true;
+#else
+  bool enableSparkOptimizedUpdate = false;
+#endif //ENABLE_SPARK_OPTIMIZED_UPDATE
+  char const *s = getenv("SPARK_OPTIMIZED_UPDATE");
+  if (s)
+  {
+    if (strlen(s) > 0)
+    {
+      int value = atoi(s);
+      if (value > 0)
+      {
+        enableSparkOptimizedUpdate = true;
+      }
+    }
+  }
+  if (enableSparkOptimizedUpdate)
+  {
+    printf("enabling optimized update on startup\n");
+  }
+  return enableSparkOptimizedUpdate;
+}
+
+bool pxScene2d::mOptimizedUpdateEnabled = enableOptimizedUpdateOnStartup();
+
 #include <rapidjson/document.h>
 #include <rapidjson/filereadstream.h>
 #include <rapidjson/error/en.h>
@@ -384,6 +412,15 @@ void populateAllAppDetails(rtString& appDetails)
     }
   }
   appDetails.append("]");
+}
+
+
+void pxRoot::sendPromise()
+{
+  if(!((rtPromise*)mReady.getPtr())->status())
+  {
+    mReady.send("resolve",this);
+  }
 }
 
 
@@ -1083,6 +1120,54 @@ if (__frameCount > 60*5)
   __frameCount = 0;
 }
 
+
+}
+
+std::map<pxObject*, pxObject*> gUpdateObjects;
+
+void pxScene2d::updateObject(pxObject* o, bool update)
+{
+  if (!mOptimizedUpdateEnabled)
+  {
+    return;
+  }
+  if (update)
+  {
+    gUpdateObjects[o] = o;
+  }
+  else
+  {
+    gUpdateObjects.erase(o);
+  }
+}
+
+void pxScene2d::updateObjects(double t)
+{
+  std::map<pxObject*, pxObject*>::const_iterator it;
+  for (it=gUpdateObjects.begin(); it!=gUpdateObjects.end();)
+  {
+    pxObject* obj = (*it).second;
+    obj->update(t, false);
+    if (!obj->needsUpdate())
+    {
+      it = gUpdateObjects.erase(it);
+    }
+    else
+    {
+      it++;
+    }
+
+  }
+}
+
+void pxScene2d::enableOptimizedUpdate(bool enable)
+{
+  if (!enable)
+  {
+    gUpdateObjects.clear();
+  }
+  mOptimizedUpdateEnabled = enable;
+  rtLogInfo("Optimized update enabled: %s", enable ? "true":"false");
 }
 
 void pxScene2d::onUpdate(double t)
@@ -1109,8 +1194,19 @@ void pxScene2d::onUpdate(double t)
   }
 
   double start_frame = pxSeconds(); //##
-
-  update(t);
+  if (mOptimizedUpdateEnabled)
+  {
+    static double lastTime = 0;
+    if (mTop || lastTime != t)
+    {
+      lastTime = t;
+      updateObjects(t);
+    }
+  }
+  else
+  {
+    update(t);
+  }
 
   sigma_update += (pxSeconds() - start_frame); //##
 
@@ -2644,6 +2740,7 @@ rtError pxSceneContainer::setUrl(rtString url)
   // and create a new promise for the context of this Url
   mReady.send("resolve", this);
   mReady = new rtPromise();
+  triggerUpdate();
 
   mUrl = url;
 #ifdef RUNINMAIN
@@ -2832,6 +2929,7 @@ pxScriptView::pxScriptView(const char* url, const char* /*lang*/, pxIViewContain
   mUrl = url;
 #ifndef RUNINMAIN // NOTE this ifndef ends after runScript decl, below
   mReady = new rtPromise();
+  triggerUpdate();
  // mLang = lang;
   rtLogDebug("pxScriptView::pxScriptView() exiting\n");
 }

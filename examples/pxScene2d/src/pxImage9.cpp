@@ -139,14 +139,35 @@ rtError pxImage9::setResource(rtObjectRef o)
 void pxImage9::sendPromise() 
 { 
   //rtLogDebug("image9 init=%d imageLoaded=%d\n",mInitialized,imageLoaded);
-  if(mInitialized && imageLoaded && !((rtPromise*)mReady.getPtr())->status()) 
+  if(mInitialized && imageLoaded && !((rtPromise*)mReady.getPtr())->status())
   {
     if (getImageResource() != NULL)
     {
       rtLogDebug("pxImage9 SENDPROMISE for %s\n", getImageResource()->getUrl().cString());
     }
     mReady.send("resolve",this);
-  } 
+
+  }
+}
+
+void pxImage9::createNewPromise()
+{
+  // Only create a new promise if the existing one has been
+  // resolved or rejected already.
+  if(((rtPromise*)mReady.getPtr())->status())
+  {
+    rtLogDebug("CREATING NEW PROMISE\n");
+    mReady = new rtPromise();
+  }
+}
+
+bool pxImage9::needsUpdate()
+{
+  if ((mParent != NULL && mAnimations.size() > 0) || (imageLoaded && !((rtPromise*)mReady.getPtr())->status()))
+  {
+    return true;
+  }
+  return false;
 }
 
 float pxImage9::getOnscreenWidth() 
@@ -179,7 +200,8 @@ void pxImage9::resourceReady(rtString readyResolution)
   //rtLogDebug("pxImage9::resourceReady()\n");
   if( !readyResolution.compare("resolve"))
   {
-    imageLoaded = true; 
+    imageLoaded = true;
+    triggerUpdate();
     // nineslice gets its w and h from the image only if
     // not set for the pxImage9
     if( mw == -1 && getImageResource() != NULL) { mw = static_cast<float>(getImageResource()->w()); }

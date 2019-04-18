@@ -172,12 +172,32 @@ rtError pxImage::setUrl(const char* s)
 }
 
 void pxImage::sendPromise()
-{ 
-  if(mInitialized && imageLoaded && !((rtPromise*)mReady.getPtr())->status()) 
+{
+  if(mInitialized && imageLoaded && !((rtPromise*)mReady.getPtr())->status())
   {
       //rtLogDebug("pxImage SENDPROMISE for %s\n", mUrl.cString());
       mReady.send("resolve",this); 
   }
+}
+
+void pxImage::createNewPromise()
+{
+  // Only create a new promise if the existing one has been
+  // resolved or rejected already.
+  if(((rtPromise*)mReady.getPtr())->status())
+  {
+    rtLogDebug("CREATING NEW PROMISE\n");
+    mReady = new rtPromise();
+  }
+}
+
+bool pxImage::needsUpdate()
+{
+  if ((mParent != NULL && mAnimations.size() > 0) || (imageLoaded && !((rtPromise*)mReady.getPtr())->status()))
+  {
+    return true;
+  }
+  return false;
 }
 
 float pxImage::getOnscreenWidth()
@@ -229,7 +249,8 @@ void pxImage::resourceReady(rtString readyResolution)
   //rtLogDebug("pxImage::resourceReady(%s) mInitialized=%d for \"%s\"\n",readyResolution.cString(),mInitialized,getImageResource()->getUrl().cString());
   if( !readyResolution.compare("resolve"))
   {
-    imageLoaded = true; 
+    imageLoaded = true;
+    triggerUpdate();
     pxObject::onTextureReady();
     checkStretchX();
     checkStretchY();
