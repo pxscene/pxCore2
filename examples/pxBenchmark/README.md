@@ -67,7 +67,84 @@
     git checkout master
     ~~~~
 
-3. Build **pxBenchmark**
+3. Build **externals**:
+    a. Build all externals for use during the pxscene build.
+    ~~~~
+    cd examples/pxScene2d/external
+    ~~~~
+    For Linux and Mac run:
+    ~~~~
+    ./build.sh
+    ~~~~
+    For Raspberry Pi run:
+    ~~~~
+    ./build_rpi.sh
+    ~~~~
+    For Windows (**Run from inside a Visual Studio Command Prompt**):
+    ~~~~
+    buildWindows.bat
+    ~~~~
+
+    b. To use system libraries for external libs during pxscene build, install libs on the system. To build just node, duktape and breakpad with the patches necessary for pxscene, do the following.
+
+    For Mac and Linux OS.
+
+    Build duktape
+    ~~~~ 
+    cd examples/pxScene2d/external/dukluv/
+    mkdir build
+    cd build
+    cmake ..
+    cmake --build . --config Release
+    ~~~~
+    Build Node
+    ~~~~
+    cd examples/pxScene2d/external/node
+    ./configure --shared
+    make -j1
+    ln -sf out/Release/obj.target/libnode.so.48 libnode.so.48
+    ln -sf libnode.so.48 libnode.so
+    ln -sf out/Release/libnode.48.dylib libnode.48.dylib
+    ln -sf libnode.48.dylib libnode.dylib
+    ~~~~
+    Build breakpad
+    ~~~~
+    cd examples/pxScene2d/external/breakpad-chrome_55
+    ./configure
+    make      
+    ~~~~    
+
+    For Windows
+
+    Build Duktape
+    ~~~~
+    cd examples/pxScene2d/external/dukluv/
+    patch -p1 -i patches/dukluv.git.patch
+    mkdir build
+    cd build
+    cmake ..
+    cmake --build . --config Release -- /m
+    ~~~~
+    Build node
+    ~~~~
+    cd examples/pxScene2d/external/libnode-v6.9.0
+    CALL vcbuild.bat x86 nosign
+    cd ..
+    ~~~~
+    Build breakpad
+    ~~~~    
+    cd examples/pxScene2d/external/breakpad-chrome_55
+    CALL gyp\gyp.bat src\client\windows\breakpad_client.gyp --no-circular-check
+    cd src\client\windows
+    msbuild breakpad_client.sln /p:Configuration=Release /p:Platform=Win32 /m
+    ~~~~
+4. Turn On pxBenchmark 
+    ~~~~    
+     set following pxBenchmark flag on in pxCore/CMakelists.txt
+     option(BUILD_PXBENCHMARK "BUILD_PXBENCHMARK" ON)
+    ~~~~
+     
+5. Build **pxScene**
 
     On following step 3b, Specify -DPREFER_SYSTEM_LIBRARIES=ON to use system libraries rather than libraries from externals directory.
     Note :  If a dependent library is not found installed on the system, then the version in externals will be used.
@@ -90,7 +167,7 @@
     cmake --build . --config Release -- /m
     ~~~~
 
-4. Run a sample javascript file:
+6. Run a sample javascript file:
 
     On Linux
     ~~~~
@@ -116,17 +193,51 @@ Examples:
   ~~~~
   ./pxbenchmark.sh 1028 720 572 572
   ./pxbenchmark.sh 1920 1080 50 50 
-  ~~~~
+ 
   Running ./pxbenchmark.sh without a parameter will load application with default window size and unit size
 
-5. Using Automation script to publish results on confluence page
+ Output data interpretation
+ 
+ At the end of executing pxBenchmark app, output is collected in excel sheet named tmp/pxBenchmark_Output_table.xls.
+ This sheet has a table with following structure.
+ Group = Name of pxCore API
+ Experiment = Size of unit which we pass as argument
+ Problem Space    
+ Samples    
+ Iterations  = current number of iteration. 
+ Failure  = 0/1  
+ Baseline = 1 as we dont have any as of now
+ us/Iteration  = time per iteration
+ Iterations/sec  = number of iterations per seconds 
+ Min (us)  = Min time for running specified iterations 
+ Mean (us)  = Mean of time required to run specified iteration 
+ Max (us)  = Max of time required to run specified iteration 
+ Variance
+ Standard Deviation    
+ Skewness    
+ Kurtosis    
+ Z Score
+ 
+ There is another table in the bottom of sheet which has following data
+ Device Type    Firmware    Date    GPU(ms)    CPU(ms)    NOTES                                            
+ Raspberry Pi 3 B+    RPIMC_VBN_default_20181107195904sdy_RAD_3BP    11/19/18    7261    N/A    
+ 
+ Device Type (Type of device in use)    Firmware(Device firmware)    Date (Current date)   GPU(ms) (GPU execution time required to run all pxCore apis with given number of iterations)   CPU(ms) (CPU execution time required to run all pxCore apis with given number of iterations)   NOTES (Total Time required to run all experiments and Frame per second rate FPS with other details) 
+ 
+ Data publishes on a confluence page using automation.sh script
+ https://etwiki.sys.comcast.net/pages/viewpage.action?pageId=556737708
+  ~~~~
+ 
+  
+  
+7. Using Automation script to publish results on confluence page
 ~~~~
     1. Confirm version.txt in current/root folder
     2. Add /opt/pxbenchmark.conf with user:User_Name password:User_Password
     3. Run ./automation.sh 
 ~~~~
     
-5. Run the unit tests (if they were built using the configuration in step 4)
+8. Run the unit tests (if they were built using the configuration in step 4)
    
     ~~~~
     cd pxCore/tests/pxBenchmark
