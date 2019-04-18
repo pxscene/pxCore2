@@ -754,6 +754,13 @@ if (s && (strcmp(s,"1") == 0))
     gDirtyRectsEnabled = dirtyRectsSetting.toString().compare("true") == 0;
 
   rtLogInfo("dirty rectangles enabled: %s", gDirtyRectsEnabled ? "true":"false");
+
+  rtValue optimizedUpdateSetting;
+  if (RT_OK == rtSettings::instance()->value("enableOptimizedUpdate", optimizedUpdateSetting))
+  {
+    bool enable = optimizedUpdateSetting.toString().compare("true") == 0;
+    pxScene2d::enableOptimizedUpdate(enable);
+  }
     
   // OSX likes to pass us some weird parameter on first launch after internet install
   rtLogInfo("window width = %d height = %d", windowWidth, windowHeight);

@@ -45,7 +45,7 @@ public:
     //mReady.send("resolve",this);
   }
 
-  virtual void onInit() {mReady.send("resolve",this);}
+  virtual void onInit();
 
   rtError fillColorInternal(uint32_t& c) const
   {
