@@ -114,6 +114,7 @@ float pxTextBox::getFBOHeight()
 
 void pxTextBox::onInit()
 {
+  pxObject::onInit();
   //rtLogDebug("pxTextBox::onInit. mFontLoaded=%d\n",mFontLoaded);
   mInitialized = true;
   // If this is using the default font, we would not get a callback
@@ -174,7 +175,7 @@ void pxTextBox::setNeedsRecalc(bool recalc)
 void pxTextBox::sendPromise()
 {
   //rtLogDebug("pxTextBox::sendPromise mInitialized=%d mFontLoaded=%d mNeedsRecalc=%d\n",mInitialized,mFontLoaded,mNeedsRecalc);
-if(mInitialized && mFontLoaded && !mNeedsRecalc && !mDirty && !((rtPromise*)mReady.getPtr())->status())
+  if(mInitialized && mFontLoaded && !mNeedsRecalc && !mDirty && !((rtPromise*)mReady.getPtr())->status())
   {
     //rtLogDebug("pxTextBox SENDPROMISE\n");
     mReady.send("resolve",this);
@@ -284,15 +285,14 @@ float pxTextBox::getOnscreenHeight()
     return pxMax(mh, fabsf(bounds->y2()-bounds->y1()));
 }
 
-void pxTextBox::update(double t)
+void pxTextBox::update(double t, bool updateChildren)
 {
   if( mNeedsRecalc ) {
 
      recalc();
      markDirty();
    }
-
-    pxText::update(t);
+  pxText::update(t, updateChildren);
 }
 /** This function needs to measure the text, taking into consideration
  *  wrapping, truncation and dimensions; but it should not render the
