@@ -1111,6 +1111,8 @@ void pxObject::drawInternal(bool maskPass)
   // TODO what to do about multiple vanishing points in a given scene
   // TODO consistent behavior between clipping and no clipping when z is in use
 
+  context.setAlpha(ma);
+
   if (context.getAlpha() < alphaEpsilon)
   {
     return;  // trivial reject for objects that are transparent
@@ -1184,7 +1186,6 @@ void pxObject::drawInternal(bool maskPass)
 #endif
 
   context.setMatrix(m);
-  context.setAlpha(ma);
 
   if ((mClip && !context.isObjectOnScreen(0,0,w,h)) || mSceneSuspended)
   {
