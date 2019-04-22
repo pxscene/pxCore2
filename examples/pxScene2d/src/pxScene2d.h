@@ -169,6 +169,7 @@ class pxRoot: public pxObject
   rtDeclareObject(pxRoot, pxObject);
 public:
   pxRoot(pxScene2d* scene): pxObject(scene) {}
+  virtual void sendPromise();
 };
 
 class pxViewContainer: public pxObject, public pxIViewContainer
@@ -466,11 +467,11 @@ public:
     return RT_OK;
   }
 
-  virtual void update(double t)
+  virtual void update(double t, bool updateChildren=true)
   {
     if (mView)
       mView->onUpdate(t);
-    pxObject::update(t);
+    pxObject::update(t,updateChildren);
   }
 
   virtual void draw() 
@@ -1207,7 +1208,11 @@ public:
   rtError storage(rtObjectRef& v) const;
 #endif
 
+  static void enableOptimizedUpdate(bool enable);
+  static void updateObject(pxObject* o, bool update);
+
 private:
+  static void updateObjects(double t);
   bool bubbleEvent(rtObjectRef e, rtRef<pxObject> t, 
                    const char* preEvent, const char* event) ;
   
@@ -1289,6 +1294,7 @@ public:
 #ifdef PXSCENE_SUPPORT_STORAGE
   mutable rtStorageRef mStorage;
 #endif
+  static bool mOptimizedUpdateEnabled;
 };
 
 // TODO do we need this anymore?
