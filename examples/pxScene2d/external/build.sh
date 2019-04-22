@@ -81,17 +81,15 @@ cd gif
 #cmake --build . --config Release --clean-first
 make all "-j${make_parallel}"
 [ -d .libs ] || mkdir -p .libs
-if [ -e libgif.5.1.9.dylib ]
+if [ -e libgif.dylib ]
 then
-cp libgif.5.1.9.dylib .libs/libgif.5.1.9.dylib
-cp libgif.5.dylib .libs/libgif.5.dylib
 cp libgif.dylib .libs/libgif.dylib
+cp libutil.dylib .libs/libgifutil.dylib
 
-elif [ -e libgif.so.5.1.9 ]
+elif [ -e libgif.so ]
 then
-cp libgif.so.5.1.9 .libs/libgif.5.1.9.dylib
-cp libgif.so.5 .libs/libgif.5.dylib
 cp libgif.so .libs/libgif.dylib
+cp libutil.so .libs/libgifutil.dylib
 fi
 
 cd ..

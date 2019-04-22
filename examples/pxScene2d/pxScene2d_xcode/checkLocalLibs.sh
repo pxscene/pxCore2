@@ -19,7 +19,7 @@ otool -L ./lib/libz.1.dylib
 otool -L ./lib/libz.1.2.11.dylib
 
 otool -L ./lib/libgif.dylib
-otool -L ./lib/libutil.dylib
+otool -L ./lib/libgifutil.dylib
 
 
 
