@@ -70,17 +70,17 @@ fi
 #--------- PNG
 
 if [ ! -e ./libpng-1.6.28/.libs/libpng16.16.dylib ] ||
-  [ "$(uname)" != "Darwin" ]
+   [ "$(uname)" != "Darwin" ]
 then
 
- banner "PNG"
+  banner "PNG"
 
- cd png
- ./configure
- make all "-j${make_parallel}"
- patchValidator libpng-config ../patchValidator/libpng_png-config.change
- patchValidator config.h ../patchValidator/libpng_config.change
- cd ..
+  cd png
+  ./configure
+  make all "-j${make_parallel}"
+  patchValidator libpng-config ../patchValidator/libpng_png-config.change
+  patchValidator config.h ../patchValidator/libpng_config.change
+  cd ..
 fi
 
 #--------- FT
@@ -117,17 +117,17 @@ fi
 #--------- ZLIB
 
 if [ ! -e ./zlib/libz.1.2.11.dylib ] ||
-  [ "$(uname)" != "Darwin" ]
+   [ "$(uname)" != "Darwin" ]
 then
 
- banner "ZLIB"
+  banner "ZLIB"
 
- cd zlib
- ./configure
- make all "-j${make_parallel}"
- cd ..
- patchValidator zlib-1.2.11/Makefile patchValidator/zlib_Makefile.patch
- patchValidator zlib-1.2.11/zconf.h patchValidator/zlib_zconf_h.patch
+  cd zlib
+  ./configure
+  make all "-j${make_parallel}"
+  cd ..
+  patchValidator zlib-1.2.11/Makefile patchValidator/zlib_Makefile.patch
+  patchValidator zlib-1.2.11/zconf.h patchValidator/zlib_zconf_h.patch
 
 fi
 
@@ -209,13 +209,13 @@ fi
 #-------- BREAKPAD (Non -macOS)
 
 if [ "$(uname)" != "Darwin" ]; then
- ./breakpad/build.sh
-  patchValidator breakpad-chrome_55/src/client/linux/dump_writer_common/ucontext_reader.cc patchValidator/breakpad_ucontext_reader_cc.patch
-  patchValidator breakpad-chrome_55/src/client/linux/dump_writer_common/ucontext_reader.h patchValidator/breakpad_ucontext_reader_h.patch
-  patchValidator breakpad-chrome_55/src/client/linux/handler/exception_handler.cc patchValidator/breakpad_exception_handler_cc.patch
-  patchValidator breakpad-chrome_55/src/client/linux/handler/exception_handler.h patchValidator/breakpad_exception_handler_h.patch
-  patchValidator breakpad-chrome_55/src/client/linux/microdump_writer/microdump_writer.cc patchValidator/breakpad_microdump_writer_cc.patch
-  patchValidator breakpad-chrome_55/src/client/linux/minidump_writer/minidump_writer.cc patchValidator/breakpad_minidump_writer_cc.patch
+  ./breakpad/build.sh
+   patchValidator breakpad-chrome_55/src/client/linux/dump_writer_common/ucontext_reader.cc patchValidator/breakpad_ucontext_reader_cc.patch
+   patchValidator breakpad-chrome_55/src/client/linux/dump_writer_common/ucontext_reader.h patchValidator/breakpad_ucontext_reader_h.patch
+   patchValidator breakpad-chrome_55/src/client/linux/handler/exception_handler.cc patchValidator/breakpad_exception_handler_cc.patch
+   patchValidator breakpad-chrome_55/src/client/linux/handler/exception_handler.h patchValidator/breakpad_exception_handler_h.patch
+   patchValidator breakpad-chrome_55/src/client/linux/microdump_writer/microdump_writer.cc patchValidator/breakpad_microdump_writer_cc.patch
+   patchValidator breakpad-chrome_55/src/client/linux/minidump_writer/minidump_writer.cc patchValidator/breakpad_minidump_writer_cc.patch
 fi
 
 #-------- NANOSVG
@@ -235,5 +235,5 @@ then
   ./dukluv/build.sh
 fi
 
---------
+#--------
 
