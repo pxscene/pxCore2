@@ -153,6 +153,13 @@ else (NOT WIN32)
     set(GLEW_LIBRARY_DIRS "${VCLIBS}")
     set(GLEW_LIBRARIES "glew32s.lib")
 
+    if (SUPPORT_STORAGE)
+        message(STATUS "Using built-in sqlite3 library")
+        set(SQLITE_INCLUDE_DIRS "${EXTDIR}/sqlite-autoconf-3280000")
+        set(SQLITE_LIBRARY_DIRS "${EXTDIR}/sqlite-autoconf-3280000")
+        set(SQLITE_LIBRARIES "sqlite3.lib")
+    endif (SUPPORT_STORAGE)
+
 endif (NOT WIN32)
 
 

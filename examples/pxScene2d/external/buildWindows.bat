@@ -91,3 +91,9 @@ cd build
 cmake ..
 cmake --build . --config Release -- /m
 cd ..
+
+REM --------- SQLITE
+
+cd sqlite-autoconf-3280000
+nmake /f Makefile.msc
+cd ..
