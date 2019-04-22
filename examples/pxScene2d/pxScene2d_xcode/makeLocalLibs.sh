@@ -15,4 +15,4 @@ install_name_tool -id @executable_path/lib/libpng16.16.dylib ./lib/libpng16.16.d
 
 install_name_tool -id @executable_path/lib/libz.1.2.11.dylib ./lib/libz.1.2.11.dylib
 
-install_name_tool -id @executable_path/lib/libgif.5.1.8.dylib ./lib/libgif.5.1.8.dylib
+install_name_tool -id @executable_path/lib/libgif.5.1.9.dylib ./lib/libgif.5.1.9.dylib

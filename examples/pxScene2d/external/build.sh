@@ -71,25 +71,25 @@ fi
 
 #--------- GIF
 
-if [ ! -e ./gif/.libs/libgif.5.1.8.dylib ] ||
+if [ ! -e ./gif/.libs/libgif.5.1.9.dylib ] ||
 [ "$(uname)" != "Darwin" ]
 then
 
 banner "GIF"
 cd gif
-cmake .
-cmake --build . --config Release --clean-first
-
+#cmake .
+#cmake --build . --config Release --clean-first
+make all "-j${make_parallel}"
 [ -d .libs ] || mkdir -p .libs
-if [ -e libgif.5.1.8.dylib ]
+if [ -e libgif.5.1.9.dylib ]
 then
-cp libgif.5.1.8.dylib .libs/libgif.5.1.8.dylib
+cp libgif.5.1.9.dylib .libs/libgif.5.1.9.dylib
 cp libgif.5.dylib .libs/libgif.5.dylib
 cp libgif.dylib .libs/libgif.dylib
 
-elif [ -e libgif.so.5.1.8 ]
+elif [ -e libgif.so.5.1.9 ]
 then
-cp libgif.so.5.1.8 .libs/libgif.5.1.8.dylib
+cp libgif.so.5.1.9 .libs/libgif.5.1.9.dylib
 cp libgif.so.5 .libs/libgif.5.dylib
 cp libgif.so .libs/libgif.dylib
 fi
