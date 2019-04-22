@@ -1,0 +1,13 @@
+diff --git a/examples/pxScene2d/external/libpng-1.6.28/libpng-config b/examples/pxScene2d/external/libpng-1.6.28/libpng-config
+index 1262835..c69f067 100755
+--- a/examples/pxScene2d/external/libpng-1.6.28/libpng-config
++++ b/examples/pxScene2d/external/libpng-1.6.28/libpng-config
+@@ -17,7 +17,7 @@ exec_prefix="${prefix}"
+ libdir="${exec_prefix}/lib"
+ includedir="${prefix}/include/libpng16"
+ libs="-lpng16"
+-all_libs="-lpng16 -lz "
++all_libs="-lpng16 -lm -lz -lm "
+ I_opts="-I${includedir}"
+ L_opts="-L${libdir}"
+ R_opts=""
