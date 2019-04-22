@@ -211,13 +211,11 @@ set(PXCORE_FILES ${PXCORE_FILES} pxOffscreen.cpp pxWindowUtil.cpp pxColorNames.c
         rtFileDownloader.cpp unzip.c ioapi.c
         rtScript.cpp rtSettings.cpp rtCORS.cpp
         rtHttpRequest.cpp rtHttpResponse.cpp)
-
-if (NOT WIN32)
-    if (SUPPORT_STORAGE)
-        message("Adding local storage support")
-        add_definitions(-DPXSCENE_SUPPORT_STORAGE)
-        set(PXCORE_FILES ${PXCORE_FILES} rtStorage.cpp)
-    endif()
+        
+if (SUPPORT_STORAGE)
+    message("Adding local storage support")
+    add_definitions(-DPXSCENE_SUPPORT_STORAGE)
+    set(PXCORE_FILES ${PXCORE_FILES} rtStorage.cpp)
 endif()
 
 if (SUPPORT_DUKTAPE)
