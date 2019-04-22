@@ -1856,7 +1856,12 @@ rtError pxLoadGIFImage(const char *imageData, size_t imageDataSize,
     }
     
     s.init();
-    GifFileType* fp = DGifOpen((void *)imageData, readGifData, NULL);
+    GifFileType* fp = NULL;
+#if defined GIFLIB_MAJOR && GIFLIB_MINOR && ((GIFLIB_MAJOR == 5 && GIFLIB_MINOR >= 1) || (GIFLIB_MAJOR > 5))
+    fp = DGifOpen((void *)imageData, readGifData, NULL);
+#else
+    fp = DGifOpen((void *)imageData, readGifData);
+#endif
     return -1;
     if ( !fp ) {
     }
