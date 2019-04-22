@@ -53,17 +53,10 @@ public:
   virtual void resourceReady(rtString readyResolution);
   virtual void resourceDirty();
 
-  void createNewPromise() { 
-    // Only create a new promise if the existing one has been
-    // resolved or rejected already.
-    if(((rtPromise*)mReady.getPtr())->status())
-    {
-      rtLogDebug("CREATING NEW PROMISE\n");
-      mReady = new rtPromise();
-    }
-  }
+  void createNewPromise();
+  virtual bool needsUpdate();
 
-  virtual void update(double t);
+  virtual void update(double t, bool updateChildren=true);
   virtual void draw();
   virtual void dispose(bool pumpJavascript);
 

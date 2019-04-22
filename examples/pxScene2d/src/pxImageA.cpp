@@ -49,6 +49,7 @@ void pxImageA::onInit()
 {
   mw = static_cast<float>(mImageWidth);
   mh = static_cast<float>(mImageHeight);
+  pxObject::onInit();
 }
 
 rtError pxImageA::url(rtString &s) const
@@ -98,7 +99,7 @@ rtError pxImageA::setUrl(const char *s)
 }
 
 // animation happens here
-void pxImageA::update(double t)
+void pxImageA::update(double t, bool updateChildren)
 {
 
   if (getImageAResource() == NULL || !mImageLoaded)
@@ -146,7 +147,7 @@ void pxImageA::update(double t)
       markDirty();
     }
   }
-  pxObject::update(t);
+  pxObject::update(t, updateChildren);
 }
 
 void pxImageA::draw()
@@ -305,6 +306,27 @@ void pxImageA::resourceReady(rtString readyResolution)
 void pxImageA::resourceDirty()
 {
   pxObject::onTextureReady();
+}
+
+void pxImageA::createNewPromise()
+{
+  // Only create a new promise if the existing one has been
+  // resolved or rejected already.
+  if(((rtPromise*)mReady.getPtr())->status())
+  {
+    rtLogDebug("CREATING NEW PROMISE\n");
+    mReady = new rtPromise();
+    triggerUpdate();
+  }
+}
+
+bool pxImageA::needsUpdate()
+{
+  if (mParent != NULL)
+  {
+    return true;
+  }
+  return false;
 }
 
 rtError pxImageA::removeResourceListener()

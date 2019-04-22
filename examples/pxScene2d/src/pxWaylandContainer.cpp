@@ -401,6 +401,7 @@ void pxWaylandContainer::onInit()
        mDisplayName = name;
     }
   }
+  pxObject::onInit();
 }
 
 rtDefineObject(pxWaylandContainer,pxViewContainer);
