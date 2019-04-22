@@ -91,3 +91,4 @@ cd build
 cmake ..
 cmake --build . --config Release -- /m
 cd ..
+cd ..
