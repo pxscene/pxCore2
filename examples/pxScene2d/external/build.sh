@@ -79,17 +79,17 @@ banner "GIF"
 cd gif
 #cmake .
 #cmake --build . --config Release --clean-first
-make .
+make
 [ -d .libs ] || mkdir -p .libs
 if [ -e libgif.dylib ]
 then
 cp libgif.dylib .libs/libgif.dylib
-cp libgifutil.dylib .libs/libgifutil.dylib
+cp libutil.dylib .libs/libgifutil.dylib
 
 elif [ -e libgif.so ]
 then
 cp libgif.so .libs/libgif.dylib
-cp libgifutil.so .libs/libgifutil.dylib
+cp libutil.so .libs/libgifutil.dylib
 fi
 
 cd ..
