@@ -71,7 +71,7 @@ fi
 
 #--------- GIF
 
-if [ ! -e ./gif/.libs/libgif.5.1.9.dylib ] ||
+if [ ! -e ./gif/.libs/libgif.dylib ] ||
 [ "$(uname)" != "Darwin" ]
 then
 
