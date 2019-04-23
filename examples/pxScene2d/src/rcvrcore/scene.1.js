@@ -77,8 +77,8 @@ function Scene() {
     return rpcContext;
   };
 
-  this.logDebugMetrics = function() {
-    return nativeScene.logDebugMetrics();
+  this.debugMetrics = function() {
+    return nativeScene.debugMetrics();
   };
 
   this.textureMemoryUsage = function() {
