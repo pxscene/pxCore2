@@ -82,6 +82,7 @@ then
   ./configure
   make all "-j${make_parallel}"
   echo "before call to patch validator"
+  pwd
   patchValidator libpng-config ../patchValidator/libpng_png-config.change
   patchValidator config.h ../patchValidator/libpng_config.change
   echo "after call to patch validator"
