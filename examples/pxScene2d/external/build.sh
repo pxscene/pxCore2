@@ -19,7 +19,11 @@ patchValidator () {
   git update-index --no-assume-unchanged $1
   echo "patchvalidator after update-index"
   git diff $1 > currdiff
-  diff currdiff $2
+  git diff currdiff $2
+  echo "=============================================="
+  cat currdiff
+  echo "=============================================="
+  cat $2 
   if [ $? -eq 0 ]
   then
     git update-index --assume-unchanged $1
