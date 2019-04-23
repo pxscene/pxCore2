@@ -39,6 +39,7 @@ cp $externalDir/jpg/.libs/libjpeg.9.dylib $bundleLib
 if [ -e $externalDir/v8/out.gn ]; then
  cp $externalDir/v8/out.gn/x64.release/*.bin $bundleBin
 fi
+cp $externalDir/sqlite/.libs/libsqlite3.dylib $bundleLib
 
 # Copy OTHER to Bundle...
 #
