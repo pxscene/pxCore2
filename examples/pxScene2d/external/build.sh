@@ -13,23 +13,16 @@ banner() {
 }
 
 patchValidator () {
-  echo "start of patchvalidator $1"
   file1=$1
   file2=$2
   git update-index --no-assume-unchanged $1
-  echo "patchvalidator after update-index"
   git diff $1 > currdiff
   git diff currdiff $2
-  echo "=============================================="
-  cat currdiff
-  echo "=============================================="
-  cat $2 
   if [ $? -eq 0 ]
   then
     git update-index --assume-unchanged $1
   fi
   rm currdiff
-  echo "end of patchvalidator $1"
 }
 
 #--------- CURL
@@ -244,6 +237,8 @@ then
 
   ./dukluv/build.sh
 fi
-
+echo "before displaying status ====="
+git status .
+echo "after displaying status ====="
 #--------
 
