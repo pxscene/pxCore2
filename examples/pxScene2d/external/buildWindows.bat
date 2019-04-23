@@ -97,7 +97,20 @@ REM --------- SQLITE
 
 cd sqlite-autoconf-3280000
 nmake /f Makefile.msc
-dumpbin /exports sqlite3.dll
-lib /def:sqlite3.def
-dir /s
 cd ..
+
+REM --------- TROUBLESHOOTING -- REMOVE THIS
+
+type sqlite-autoconf-3280000\sqlite3.def
+lib /list sqlite-autoconf-3280000\sqlite3.lib
+dumpbin /all sqlite-autoconf-3280000\sqlite3.lib
+dumpbin /exports sqlite-autoconf-3280000\sqlite3.lib
+dumpbin /all sqlite-autoconf-3280000\sqlite3.dll
+dumpbin /exports sqlite-autoconf-3280000\sqlite3.dll
+dumpbin /exports vc.build\builds\libpng16.lib
+dumpbin /exports vc.build\builds\libcurld.lib
+dumpbin /exports vc.build\builds\libjpeg.lib
+dir sqlite-autoconf-3280000
+lib /def:sqlite-autoconf-3280000\sqlite3.def /out:sqlite-autoconf-3280000\sqlite3.mod.lib /machine:x86
+dumpbin /exports sqlite-autoconf-3280000\sqlite3.mod.lib
+dir sqlite-autoconf-3280000
