@@ -13,9 +13,11 @@ banner() {
 }
 
 patchValidator () {
+  echo "start of patchvalidator $1"
   file1=$1
   file2=$2
   git update-index --no-assume-unchanged $1
+  echo "patchvalidator after update-index"
   git diff $1 > currdiff
   diff currdiff $2
   if [ $? -eq 0 ]
@@ -23,6 +25,7 @@ patchValidator () {
     git update-index --assume-unchanged $1
   fi
   rm currdiff
+  echo "end of patchvalidator $1"
 }
 
 #--------- CURL
