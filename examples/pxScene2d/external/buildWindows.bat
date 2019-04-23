@@ -97,4 +97,7 @@ REM --------- SQLITE
 
 cd sqlite-autoconf-3280000
 nmake /f Makefile.msc
+dumpbin /exports sqlite3.dll
+lib /def:sqlite3.def
+dir /s
 cd ..
