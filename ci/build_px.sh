@@ -1,5 +1,6 @@
 #This script is changed to accomodate running multiple scripts
 #!/bin/sh
+exit 0
 export CCACHE_DISABLE=true
 retval=0
 for var in "$@"
