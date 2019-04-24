@@ -91,3 +91,8 @@ cd build
 cmake ..
 cmake --build . --config Release -- /m
 cd ..
+git update-index --assume-unchanged dukluv/CMakeLists.txt
+git update-index --assume-unchanged dukluv/src/duv.c
+git update-index --assume-unchanged dukluv/src/main.c
+git update-index --assume-unchanged dukluv/uv.cmake
+git update-index --assume-unchanged nanosvg/src/nanosvgrast.h
