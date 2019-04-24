@@ -19,12 +19,6 @@ if (SUPPORT_V8)
   include(${PXCOREDIR}/cmake/V8Deps.cmake)
 endif(SUPPORT_V8)
 
-if (SUPPORT_STORAGE)
-    message("Adding local storage support")
-    add_definitions(-DPXSCENE_SUPPORT_STORAGE)
-endif()
-
-
 set(WESTEROSINC ${EXTDIR}/westeros/external/install/include)
 set(WESTEROSSTUBINC ${EXTDIR}/westeros-stub)
 
