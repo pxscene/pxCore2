@@ -89,6 +89,8 @@ rtError rtStorage::setItem(const char* key, const rtValue& value)
     return RT_ERROR;
   }
 
+  rtLogDebug("%s: '%s'", __FUNCTION__, key);
+
   sqlite3* &db = SQLITE;
 
   if (db)
@@ -118,6 +120,8 @@ rtError rtStorage::getItem(const char* key, rtValue& retValue) const
   if (!key || *key == 0)
     return RT_ERROR_INVALID_ARG;
 
+  rtLogDebug("%s: '%s'", __FUNCTION__, key);
+
   sqlite3* &db = SQLITE;
 
   retValue = "";
@@ -145,6 +149,8 @@ rtError rtStorage::getItems(const char* key, rtObjectRef& retValue) const
 {
   if (!key)
     return RT_ERROR_INVALID_ARG;
+
+  rtLogDebug("%s: '%s'", __FUNCTION__, key);
 
   sqlite3* &db = SQLITE;
 
@@ -187,6 +193,8 @@ rtError rtStorage::removeItem(const char* key)
 {
   if (!key || *key == 0)
     return RT_ERROR_INVALID_ARG;
+
+  rtLogDebug("%s: '%s'", __FUNCTION__, key);
 
   sqlite3* &db = SQLITE;
 
