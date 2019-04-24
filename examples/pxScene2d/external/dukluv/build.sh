@@ -26,9 +26,4 @@ pushd $DIRECTORY
             make -j$(getconf _NPROCESSORS_ONLN)
         popd
     fi
-    git update-index --assume-unchanged CMakeLists.txt
-    git update-index --assume-unchanged src/duv.c
-    git update-index --assume-unchanged src/main.c
-    git update-index --assume-unchanged uv.cmake
-
 popd

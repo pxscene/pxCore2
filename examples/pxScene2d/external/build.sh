@@ -70,6 +70,7 @@ then
   ./configure
   make all "-j${make_parallel}"
   cd ..
+
 fi
 
 #--------- FT
@@ -115,6 +116,7 @@ then
   ./configure
   make all "-j${make_parallel}"
   cd ..
+
 fi
 
 #--------- LIBJPEG TURBO (Non -macOS)
@@ -227,6 +229,10 @@ ignoreFile zlib-1.2.11/Makefile
 ignoreFile zlib-1.2.11/zconf.h
 ignoreFile png/libpng-config
 ignoreFile png/config.h
+ignoreFile dukluv/CMakeLists.txt
+ignoreFile dukluv/src/duv.c
+ignoreFile dukluv/src/main.c
+ignoreFile dukluv/uv.cmake
 echo "before displaying status ====="
 git status .
 echo "after displaying status ====="
