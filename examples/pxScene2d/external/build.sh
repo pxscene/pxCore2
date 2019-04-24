@@ -227,8 +227,6 @@ ignoreFile breakpad-chrome_55/src/client/linux/microdump_writer/microdump_writer
 ignoreFile breakpad-chrome_55/src/client/linux/minidump_writer/minidump_writer.cc
 ignoreFile zlib-1.2.11/Makefile
 ignoreFile zlib-1.2.11/zconf.h
-ignoreFile png/libpng-config
-ignoreFile png/config.h
 ignoreFile dukluv/CMakeLists.txt
 ignoreFile dukluv/src/duv.c
 ignoreFile dukluv/src/main.c
