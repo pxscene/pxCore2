@@ -246,6 +246,84 @@ public:
     // CLOSE
     EXPECT_EQ ((int)RT_OK, (int)s->term());
   }
+
+  void badInput_test()
+  {
+    rtStorageRef s;
+    rtObjectRef items;
+    rtValue item;
+    rtObjectRef obj;
+    rtString str;
+    int32_t len;
+
+    s = new rtStorage("/tmp/sparkTestStorage", 100);
+    // SET
+    EXPECT_EQ ((int)RT_ERROR_INVALID_ARG, (int)s->init(NULL, 0));
+    EXPECT_EQ ((int)RT_ERROR_INVALID_ARG, (int)s->init("", 0));
+    EXPECT_EQ ((int)RT_OK,                (int)s->clear());
+    EXPECT_EQ ((int)RT_ERROR_INVALID_ARG, (int)s->setItem("", ""));
+    EXPECT_EQ ((int)RT_ERROR_INVALID_ARG, (int)s->setItem("", "valueB"));
+    EXPECT_EQ ((int)RT_OK,                (int)s->setItem("c", ""));
+    item.term();
+    EXPECT_EQ ((int)RT_ERROR_INVALID_ARG, (int)s->setItem(NULL, item));
+    EXPECT_EQ ((int)RT_ERROR_INVALID_ARG, (int)s->setItem(NULL, "valueE"));
+    item.term();
+    EXPECT_EQ ((int)RT_OK,                (int)s->setItem("f", item));
+    EXPECT_EQ ((int)RT_OK,                (int)s->setItem("g", (bool) true));
+    EXPECT_EQ ((int)RT_OK,                (int)s->setItem("h", (bool) false));
+    EXPECT_EQ ((int)RT_OK,                (int)s->setItem("i", (double) 3.14159265359));
+    obj = new rtMapObject();
+    EXPECT_EQ ((int)RT_OK,                (int)s->setItem("j", obj));
+    obj = new rtArrayObject();
+    EXPECT_EQ ((int)RT_OK,                (int)s->setItem("k", obj));
+    EXPECT_EQ ((int)RT_OK,                (int)s->setItem("l", "valueL"));
+    // REMOVE
+    EXPECT_EQ ((int)RT_ERROR_INVALID_ARG, (int)s->removeItem(""));
+    EXPECT_EQ ((int)RT_ERROR_INVALID_ARG, (int)s->removeItem(NULL));
+    // GET
+    EXPECT_EQ ((int)RT_ERROR_INVALID_ARG, (int)s->getItem("", item));
+    EXPECT_EQ ((int)RT_ERROR_INVALID_ARG, (int)s->getItem(NULL, item));
+    EXPECT_EQ ((int)RT_ERROR_INVALID_ARG, (int)s->getItems(NULL, items));
+    EXPECT_EQ ((int)RT_OK,                (int)s->getItems("", items));
+    // VERIFY LENGTH
+    EXPECT_EQ ((int)RT_OK, (int)items->Get("length", &item));
+    len = item.toInt32();
+    EXPECT_EQ ((int)8, (int)len);
+    // VERIFY
+    const char* const keys[] = {
+          "c",
+          "f",
+          "g",
+          "h",
+          "i",
+          "j",
+          "k",
+          "l"
+      };
+    const char* const values[] = {
+          "",
+          "",
+          "true",
+          "false",
+          "3.14159",
+          "",
+          "",
+          "valueL"
+      };
+    for (int i = 0; i < len; i++)
+    {
+      EXPECT_EQ ((int)RT_OK, (int)items->Get((uint32_t)i, &item));
+      obj = item.toObject();
+      EXPECT_EQ ((int)RT_OK, (int)obj->Get("key", &item));
+      str = item.toString();
+      EXPECT_EQ (std::string(keys[i]), str.cString());
+      EXPECT_EQ ((int)RT_OK, (int)obj->Get("value", &item));
+      str = item.toString();
+      EXPECT_EQ (std::string(values[i]), str.cString());
+    }
+    // CLOSE
+    EXPECT_EQ ((int)RT_OK, (int)s->term());
+  }
 };
 
 TEST_F(rtStorageTest, rtStorageTests)
@@ -258,4 +336,5 @@ TEST_F(rtStorageTest, rtStorageTests)
   clear_test();
   persistence_test();
   quota_test();
+  badInput_test();
 }

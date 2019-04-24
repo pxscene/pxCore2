@@ -36,6 +36,9 @@ rtStorage::~rtStorage()
 
 rtError rtStorage::init(const char* fileName, uint32_t storageQuota)
 {
+  if (!fileName || *fileName == 0)
+    return RT_ERROR_INVALID_ARG;
+
   rtLogDebug("%s: %d @ '%s'", __FUNCTION__, storageQuota, fileName);
 
   sqlite3* &db = SQLITE;
@@ -65,18 +68,21 @@ rtError rtStorage::init(const char* fileName, uint32_t storageQuota)
 // closes file
 rtError rtStorage::term()
 {
-    sqlite3* &db = SQLITE;
+  sqlite3* &db = SQLITE;
 
-    if (db)
-      sqlite3_close(db);
+  if (db)
+    sqlite3_close(db);
 
-    db = NULL;
+  db = NULL;
 
-    return RT_OK;
+  return RT_OK;
 }
 
 rtError rtStorage::setItem(const char* key, const rtValue& value)
 {
+  if (!key || *key == 0)
+    return RT_ERROR_INVALID_ARG;
+
   if (RT_OK != verifyQuota(key, value))
   {
     rtLogError("quota exceeded");
@@ -109,6 +115,9 @@ rtError rtStorage::setItem(const char* key, const rtValue& value)
 
 rtError rtStorage::getItem(const char* key, rtValue& retValue) const
 {
+  if (!key || *key == 0)
+    return RT_ERROR_INVALID_ARG;
+
   sqlite3* &db = SQLITE;
 
   retValue = "";
@@ -134,6 +143,9 @@ rtError rtStorage::getItem(const char* key, rtValue& retValue) const
 
 rtError rtStorage::getItems(const char* key, rtObjectRef& retValue) const
 {
+  if (!key)
+    return RT_ERROR_INVALID_ARG;
+
   sqlite3* &db = SQLITE;
 
   rtRef<rtArrayObject> a = new rtArrayObject();
@@ -173,6 +185,9 @@ rtError rtStorage::getItems(const char* key, rtObjectRef& retValue) const
 
 rtError rtStorage::removeItem(const char* key)
 {
+  if (!key || *key == 0)
+    return RT_ERROR_INVALID_ARG;
+
   sqlite3* &db = SQLITE;
 
   if (db)
@@ -291,6 +306,9 @@ rtError rtStorage::updateSize()
 
 rtError rtStorage::verifyQuota(const char* key, const rtValue& value) const
 {
+  if (!key || *key == 0)
+    return RT_ERROR_INVALID_ARG;
+
   uint32_t size = 0;
   rtError retStat = getCurrentSize(size);
 
