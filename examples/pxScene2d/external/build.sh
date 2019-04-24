@@ -12,21 +12,9 @@ banner() {
   echo " "
 }
 
-#ignoreFile () {
-#    git update-index --assume-unchanged $1
-#}
-#patchValidator () {
-#  file1=$1
-#  file2=$2
-#  git update-index --no-assume-unchanged $1
-#  git diff $1 > currdiff
-#  git diff currdiff $2
-#  if [ $? -eq 0 ]
-#  then
-#    git update-index --assume-unchanged $1
-#  fi
-#  rm currdiff
-#}
+ignoreFile () {
+    git update-index --assume-unchanged $1
+}
 
 #--------- CURL
 
@@ -81,11 +69,6 @@ then
   cd png
   ./configure
   make all "-j${make_parallel}"
-  echo "before call to patch validator"
-  pwd
-  #patchValidator libpng-config ../patchValidator/libpng_png-config.change
-  #patchValidator config.h ../patchValidator/libpng_config.change
-  echo "after call to patch validator"
   cd ..
 fi
 
@@ -132,9 +115,6 @@ then
   ./configure
   make all "-j${make_parallel}"
   cd ..
-  #patchValidator zlib-1.2.11/Makefile patchValidator/zlib_Makefile.patch
-  #patchValidator zlib-1.2.11/zconf.h patchValidator/zlib_zconf_h.patch
-
 fi
 
 #--------- LIBJPEG TURBO (Non -macOS)
@@ -216,12 +196,6 @@ fi
 
 if [ "$(uname)" != "Darwin" ]; then
   ./breakpad/build.sh
-   #patchValidator breakpad-chrome_55/src/client/linux/dump_writer_common/ucontext_reader.cc patchValidator/breakpad_ucontext_reader_cc.patch
-   #patchValidator breakpad-chrome_55/src/client/linux/dump_writer_common/ucontext_reader.h patchValidator/breakpad_ucontext_reader_h.patch
-   #patchValidator breakpad-chrome_55/src/client/linux/handler/exception_handler.cc patchValidator/breakpad_exception_handler_cc.patch
-   #patchValidator breakpad-chrome_55/src/client/linux/handler/exception_handler.h patchValidator/breakpad_exception_handler_h.patch
-   #patchValidator breakpad-chrome_55/src/client/linux/microdump_writer/microdump_writer.cc patchValidator/breakpad_microdump_writer_cc.patch
-   #patchValidator breakpad-chrome_55/src/client/linux/minidump_writer/minidump_writer.cc patchValidator/breakpad_minidump_writer_cc.patch
 fi
 
 #-------- NANOSVG
@@ -229,8 +203,6 @@ fi
   banner "NANOSVG"
 
 ./nanosvg/build.sh
-#patchValidator nanosvg/src/nanosvg.h patchValidator/nanosvg_h.patch
-#patchValidator nanosvg/src/nanosvgrast.h patchValidator/nanosvgrast_h.patch
 
 #-------- DUKTAPE
 
@@ -242,19 +214,19 @@ then
 fi
 
 #ignoring patched files
-git ls-files -m --exclude-standard|xargs git update-index --assume-unchanged
-#nanosvg/src/nanosvg.h
-#nanosvg/src/nanosvgrast.h
-#breakpad-chrome_55/src/client/linux/dump_writer_common/ucontext_reader.cc
-#breakpad-chrome_55/src/client/linux/dump_writer_common/ucontext_reader.h
-#breakpad-chrome_55/src/client/linux/handler/exception_handler.cc
-#breakpad-chrome_55/src/client/linux/handler/exception_handler.h
-#breakpad-chrome_55/src/client/linux/microdump_writer/microdump_writer.cc
-#breakpad-chrome_55/src/client/linux/minidump_writer/minidump_writer.cc
-#zlib-1.2.11/Makefile
-#zlib-1.2.11/zconf.h
-#png/libpng-config
-#png/config.h
+#git ls-files -m --exclude-standard|xargs git update-index --assume-unchanged
+ignoreFile nanosvg/src/nanosvg.h
+ignoreFile nanosvg/src/nanosvgrast.h
+ignoreFile breakpad-chrome_55/src/client/linux/dump_writer_common/ucontext_reader.cc
+ignoreFile breakpad-chrome_55/src/client/linux/dump_writer_common/ucontext_reader.h
+ignoreFile breakpad-chrome_55/src/client/linux/handler/exception_handler.cc
+ignoreFile breakpad-chrome_55/src/client/linux/handler/exception_handler.h
+ignoreFile breakpad-chrome_55/src/client/linux/microdump_writer/microdump_writer.cc
+ignoreFile breakpad-chrome_55/src/client/linux/minidump_writer/minidump_writer.cc
+ignoreFile zlib-1.2.11/Makefile
+ignoreFile zlib-1.2.11/zconf.h
+ignoreFile png/libpng-config
+ignoreFile png/config.h
 echo "before displaying status ====="
 git status .
 echo "after displaying status ====="
