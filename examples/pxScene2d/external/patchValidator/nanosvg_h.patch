@@ -1,9 +1,0 @@
-diff --git a/examples/pxScene2d/external/nanosvg/src/nanosvg.h b/examples/pxScene2d/external/nanosvg/src/nanosvg.h
-index 65ba2a7..bafe39c 100755
---- a/examples/pxScene2d/external/nanosvg/src/nanosvg.h
-+++ b/examples/pxScene2d/external/nanosvg/src/nanosvg.h
-@@ -1,3 +1,4 @@
-+loosu
- /*
-  * Copyright (c) 2013-14 Mikko Mononen memon@inside.org
-  *
