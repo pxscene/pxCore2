@@ -92,3 +92,12 @@ cmake ..
 cmake --build . --config Release -- /m
 cd ..
 cd ..
+
+REM --------- SQLITE
+
+cd sqlite-autoconf-3280000
+cl /c /EHsc sqlite3.c
+lib sqlite3.obj
+dir
+dumpbin sqlite3.lib /symbols
+cd ..

@@ -212,7 +212,7 @@ set(PXCORE_FILES ${PXCORE_FILES} pxOffscreen.cpp pxWindowUtil.cpp pxColorNames.c
         rtScript.cpp rtSettings.cpp rtCORS.cpp
         rtHttpRequest.cpp rtHttpResponse.cpp)
         
-if (SUPPORT_STORAGE AND NOT WIN32)
+if (SUPPORT_STORAGE)
     message("Adding local storage support")
     add_definitions(-DPXSCENE_SUPPORT_STORAGE)
     set(PXCORE_FILES ${PXCORE_FILES} rtStorage.cpp)
