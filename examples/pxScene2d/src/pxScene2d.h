@@ -163,6 +163,7 @@ class pxRoot: public pxObject
   rtDeclareObject(pxRoot, pxObject);
 public:
   pxRoot(pxScene2d* scene): pxObject(scene) {}
+  virtual void sendPromise();
 };
 
 class pxViewContainer: public pxObject, public pxIViewContainer
@@ -460,11 +461,11 @@ public:
     return RT_OK;
   }
 
-  virtual void update(double t)
+  virtual void update(double t, bool updateChildren=true)
   {
     if (mView)
       mView->onUpdate(t);
-    pxObject::update(t);
+    pxObject::update(t,updateChildren);
   }
 
   virtual void draw() 
@@ -540,7 +541,7 @@ public:
   virtual void* getInterface(const char* name);
   virtual void releaseData(bool sceneSuspended);
   virtual void reloadData(bool sceneSuspended);
-  virtual uint64_t textureMemoryUsage();
+  virtual uint64_t textureMemoryUsage(std::vector<rtObject*> &objectsCounted);
   
 private:
   rtRef<pxScriptView> mScriptView;
@@ -833,6 +834,7 @@ public:
   rtReadOnlyProperty(h, h, int32_t);
   rtProperty(showOutlines, showOutlines, setShowOutlines, bool);
   rtProperty(showDirtyRect, showDirtyRect, setShowDirtyRect, bool);
+  rtProperty(reportFps, reportFps, setReportFps, bool);
   rtReadOnlyProperty(dirtyRectangle, dirtyRectangle, rtObjectRef);
   rtReadOnlyProperty(dirtyRectanglesEnabled, dirtyRectanglesEnabled, bool);
   rtProperty(enableDirtyRect, enableDirtyRect, setEnableDirtyRect, bool);
@@ -963,6 +965,9 @@ public:
   rtError showOutlines(bool& v) const;
   rtError setShowOutlines(bool v);
 
+  rtError reportFps(bool& v) const;
+  rtError setReportFps(bool v);
+
   rtError showDirtyRect(bool& v) const;
   rtError setShowDirtyRect(bool v);
 
@@ -1054,6 +1059,7 @@ public:
   rtError sparkSetting(const rtString& setting, rtValue& value) const;
 
    void setMouseEntered(rtRef<pxObject> o, int32_t x = 0, int32_t y = 0);
+   void clearMouseObject(rtRef<pxObject>);
 
   // The following methods are delegated to the view
   virtual void onSize(int32_t w, int32_t h);
@@ -1175,7 +1181,7 @@ public:
   }
 
   void innerpxObjectDisposed(rtObjectRef ref);
-
+  bool isObjectTracked(rtObjectRef ref);
   // Note: Only type currently supported is "image/png;base64"
   rtError screenshot(rtString type, rtString& pngData);
   rtError clipboardGet(rtString type, rtString& retString);
@@ -1188,7 +1194,11 @@ public:
     return mArchive;
   }
 
+  static void enableOptimizedUpdate(bool enable);
+  static void updateObject(pxObject* o, bool update);
+
 private:
+  static void updateObjects(double t);
   bool bubbleEvent(rtObjectRef e, rtRef<pxObject> t, 
                    const char* preEvent, const char* event) ;
   
@@ -1223,6 +1233,7 @@ private:
   int mTag;
   pxIViewContainer *mContainer;
   pxScriptView *mScriptView;
+  bool mReportFps;
   bool mShowDirtyRectangle;
   bool mEnableDirtyRectangles;
   int32_t mPointerX;
@@ -1266,6 +1277,7 @@ public:
   bool mDisposed;
   std::vector<rtFunctionRef> mServiceProviders;
   bool mArchiveSet;
+  static bool mOptimizedUpdateEnabled;
 };
 
 // TODO do we need this anymore?

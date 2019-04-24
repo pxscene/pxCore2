@@ -23,6 +23,12 @@
 
 extern pxContext context;
 
+void pxRectangle::onInit()
+{
+  mReady.send("resolve",this);
+  pxObject::onInit();
+}
+
 void pxRectangle::draw()
 {
   context.drawRect(mw, mh, mLineWidth, mFillColor, mLineColor);

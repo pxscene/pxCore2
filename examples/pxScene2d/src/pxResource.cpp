@@ -29,6 +29,7 @@
 #include "rtThreadPool.h"
 #include "rtPathUtils.h"
 #include "pxTimer.h"
+#include <algorithm>
 
 
 using namespace std;
@@ -343,24 +344,30 @@ void rtImageResource::releaseData()
 
 void rtImageResource::reloadData()
 {
-  if (!mTexture.getPtr())
+  if (mTexture.getPtr() != NULL)
   {
-    mTextureMutex.lock();
-    if (mDownloadComplete)
+    bool reloadData = false;
+    mDownloadInProgressMutex.lock();
+    reloadData = !mDownloadInProgress && !mTexture->readyForRendering();
+    mDownloadInProgressMutex.unlock();
+    if (reloadData)
     {
-      mTexture->loadTextureData();
+      loadResource(mArchive, true);
     }
-    mTextureMutex.unlock();
   }
   pxResource::reloadData();
 }
 
-uint64_t rtImageResource::textureMemoryUsage()
+uint64_t rtImageResource::textureMemoryUsage(std::vector<rtObject*> &objectsCounted)
 {
   uint64_t textureMemory = 0;
-  if (mTexture.getPtr() != NULL)
+  if (std::find(objectsCounted.begin(), objectsCounted.end(), this) == objectsCounted.end() )
   {
-    textureMemory = ((uint64_t)(mTexture->width()) * (uint64_t)(mTexture->height()) * (uint64_t)4);
+    if (mTexture.getPtr() != NULL)
+    {
+      textureMemory = ((uint64_t) (mTexture->width()) * (uint64_t) (mTexture->height()) * (uint64_t) 4);
+    }
+    objectsCounted.push_back(this);
   }
   return textureMemory;
 }
@@ -417,7 +424,6 @@ pxTextureRef rtImageResource::getTexture(bool initializing)
     if (mDownloadComplete)
     {
       mTexture = mDownloadedTexture;
-      mDownloadedTexture = NULL;
       if (mTexture.getPtr())
       {
         mTexture->setTextureListener(this);
@@ -459,16 +465,30 @@ void rtImageResource::prepare()
   }
 }
 
-void rtImageResource::setTextureData(pxOffscreen& imageOffscreen, const char* data, const size_t dataSize)
+void rtImageResource::setTextureData(pxOffscreen& imageOffscreen)
 {
   mTextureMutex.lock();
 #ifdef ENABLE_BACKGROUND_TEXTURE_CREATION
-  mDownloadedTexture = context.createTexture(imageOffscreen, data, dataSize);
+  if (mDownloadedTexture.getPtr() == NULL)
+  {
+    mDownloadedTexture = context.createTexture(imageOffscreen);
+  }
+  else
+  {
+    mDownloadedTexture->createTexture(imageOffscreen);
+  }
   mTextureMutex.unlock();
   rtThreadTask* task = new rtThreadTask(prepareImageResource, (void*)this, "");
   textureCreateThreadPool.executeTask(task);
 #else
-  mDownloadedTexture = context.createTexture(imageOffscreen, data, dataSize);
+  if (mDownloadedTexture.getPtr() == NULL)
+  {
+    mDownloadedTexture = context.createTexture(imageOffscreen);
+  }
+  else
+  {
+    mDownloadedTexture->createTexture(imageOffscreen);
+  }
   mDownloadComplete = true;
   mTextureMutex.unlock();
 #endif //ENABLE_BACKGROUND_TEXTURE_CREATION
@@ -502,7 +522,7 @@ void pxResource::reloadData()
 {
 }
 
-uint64_t pxResource::textureMemoryUsage()
+uint64_t pxResource::textureMemoryUsage(std::vector<rtObject*> &objectsCounted)
 {
   return 0;
 }
@@ -516,15 +536,19 @@ uint64_t pxResource::textureMemoryUsage()
  * in the cache map.
  *
  * */
-void pxResource::loadResource(rtObjectRef archive)
+void pxResource::loadResource(rtObjectRef archive, bool reloading)
 {
-  if(((rtPromise*)mReady.getPtr())->status())
+  if(!reloading && ((rtPromise*)mReady.getPtr())->status())
   {
     //create a new promise if the old one is complete
     mReady = new rtPromise();
   }
   setLoadStatus("statusCode", -1);
   pxArchive* arc = (pxArchive*)archive.getPtr();
+  if (mArchive != arc)
+  {
+    mArchive = arc;
+  }
   //rtLogDebug("rtImageResource::loadResource statusCode should be -1; is statusCode=%d\n",mLoadStatus.get<int32_t>("statusCode"));
   if (mUrl.beginsWith("http:") || mUrl.beginsWith("https:"))
   {
@@ -667,7 +691,7 @@ void rtImageResource::loadResourceFromFile()
   else
   {
     // create offscreen texture for local image
-    mTexture = context.createTexture(imageOffscreen, (const char *) mData.data(), mData.length());
+    mTexture = context.createTexture(imageOffscreen);
     mTexture->setTextureListener(this);
 
     mData.term(); // Dump the source data...
@@ -753,7 +777,7 @@ void rtImageResource::loadResourceFromArchive(rtObjectRef archiveRef)
   else
   {
     // create offscreen texture for local image
-    mTexture = context.createTexture(imageOffscreen, (const char *) mData.data(), mData.length());
+    mTexture = context.createTexture(imageOffscreen);
     mTexture->setTextureListener(this);
 
     mData.term(); // Dump the source data...
@@ -799,8 +823,7 @@ uint32_t rtImageResource::loadResourceData(rtFileDownloadRequest* fileDownloadRe
       if (decodeResult == RT_OK)
       {
         setLoadStatus("decodeTimeMs", static_cast<int>(stopDecodeTime-startDecodeTime));
-        setTextureData(imageOffscreen, fileDownloadRequest->downloadedData(),
-                                         fileDownloadRequest->downloadedDataSize());
+        setTextureData(imageOffscreen);
 #ifdef ENABLE_BACKGROUND_TEXTURE_CREATION
         return PX_RESOURCE_LOAD_WAIT;
 #else

@@ -136,6 +136,8 @@ public:
 
   virtual ~pxObject() ;
 
+  virtual void onInit();
+
 
   // TODO missing conversions in rtValue between uint32_t and int32_t
   size_t numChildren() const { return mChildren.size(); }
@@ -331,10 +333,10 @@ public:
     //return RT_OK;
   //}
 
-  virtual void update(double t);
+  virtual void update(double t, bool updateChildren=true);
   virtual void releaseData(bool sceneSuspended);
   virtual void reloadData(bool sceneSuspended);
-  virtual uint64_t textureMemoryUsage();
+  virtual uint64_t textureMemoryUsage(std::vector<rtObject*> &objectsCounted);
 
   // non-destructive applies transform on top of of provided matrix
   virtual void applyMatrix(pxMatrix4f& m)
@@ -566,6 +568,8 @@ public:
      return RT_OK;
   }
 
+  virtual bool needsUpdate();
+
   pxScene2d* getScene() { return mScene; }
   void createSnapshot(pxContextFramebufferRef& fbo, bool separateContext=false, bool antiAliasing=false);
 
@@ -573,6 +577,7 @@ public:
   rtEmitRef mEmit;
 
 protected:
+  void triggerUpdate();
   // TODO getting freaking huge...
 //  rtRef<pxObject> mParent;
   pxObject* mParent;
