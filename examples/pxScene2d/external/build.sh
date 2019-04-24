@@ -233,7 +233,6 @@ ignoreFile dukluv/CMakeLists.txt
 ignoreFile dukluv/src/duv.c
 ignoreFile dukluv/src/main.c
 ignoreFile dukluv/uv.cmake
-echo "before displaying status ====="
-git status .
-echo "after displaying status ====="
+ignoreFile libpng-1.6.28/config.h
+ignoreFile libpng-1.6.28/libpng-config
 #--------
