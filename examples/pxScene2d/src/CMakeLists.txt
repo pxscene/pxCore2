@@ -591,6 +591,11 @@ if (PXSCENE_PERMISSIONS_CHECK)
     add_definitions(-DENABLE_PERMISSIONS_CHECK)
 endif (PXSCENE_PERMISSIONS_CHECK)
 
+if (SUPPORT_STORAGE)
+    message("Enabling storage")
+    add_definitions(-DPXSCENE_SUPPORT_STORAGE)
+endif()
+
 if (PX_LIBRARY_SUPPORT GREATER 0)
     message("Enabling build support for libraries")
     if (PX_LIBRARY_LINK_PXCORE GREATER 0)
