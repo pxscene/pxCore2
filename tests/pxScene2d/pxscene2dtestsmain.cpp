@@ -55,7 +55,7 @@ void handleAbrt(int)
   sleep(1800);
 }
 
-int main(int argc, char **argv) {
+int pxMain(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
   char const* handle_signals = getenv("HANDLE_SIGNALS");
   if (handle_signals && (strcmp(handle_signals,"1") == 0))
@@ -123,4 +123,5 @@ int main(int argc, char **argv) {
   __gcov_flush();
   #endif
   rtFileDownloader::deleteInstance();
+  return 0;
 }
