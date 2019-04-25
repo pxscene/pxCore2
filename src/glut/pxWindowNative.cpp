@@ -94,7 +94,7 @@ static const char *vShaderText =
   " gl_Position =  clipSpace * vec4(1, -1, 1, 1);\n"
   "v_uv = uv;\n"
   "}\n"; 
-
+#if 0
 GLuint createShaderProgram(const char* vShaderTxt, const char* fShaderTxt)
 {
   GLuint fragShader, vertShader, program = 0;
@@ -150,15 +150,12 @@ GLuint createShaderProgram(const char* vShaderTxt, const char* fShaderTxt)
     exit(1);
   }
   
-  /* test setting attrib locations */
   glBindAttribLocation(program, attr_pos, "pos");
   glBindAttribLocation(program, attr_uv, "uv");
-  glLinkProgram(program);  /* needed to put attribs into effect */
+  glLinkProgram(program); 
   
   return program;
 }
-
-#if 0
 static void drawImageTexture(float x, float y, float w, float h/*, pxBuffer& b*/)
 {
   const float verts[4][2] = 
@@ -191,7 +188,6 @@ static void drawImageTexture(float x, float y, float w, float h/*, pxBuffer& b*/
     //glDisableVertexAttribArray(attr_uv);
   }
 }
-#endif
 
 void doinit()
 {
@@ -248,6 +244,7 @@ void doinit()
 }
 
 
+#endif
 #endif
 
 glutDisplay* displayRef::mDisplay  = NULL;
