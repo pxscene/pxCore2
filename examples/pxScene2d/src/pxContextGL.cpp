@@ -57,9 +57,12 @@
 #endif
 
 #include "pxContextUtils.h"
+#include "pxTimer.h"
 
 #define PX_TEXTURE_MIN_FILTER GL_LINEAR
 #define PX_TEXTURE_MAG_FILTER GL_LINEAR
+
+#define CONTEXT_GC_THROTTLE_SECS_DEFAULT 5
 
 // Values must match pxCanvas.h // TODO FIX 
 #define  CANVAS_W   1280
@@ -119,6 +122,8 @@ extern uv_async_t gcTrigger;
 #endif
 extern pxContext context;
 rtThreadQueue* gUIThreadQueue = new rtThreadQueue();
+double lastContextGarbageCollectTime = 0;
+double garbageCollectThrottleInSeconds = CONTEXT_GC_THROTTLE_SECS_DEFAULT;
 
 enum pxCurrentGLProgram { PROGRAM_UNKNOWN = 0, PROGRAM_SOLID_SHADER,  PROGRAM_A_TEXTURE_SHADER, PROGRAM_TEXTURE_SHADER,
     PROGRAM_TEXTURE_MASKED_SHADER, PROGRAM_TEXTURE_BORDER_SHADER};
@@ -137,6 +142,7 @@ static int gResW, gResH;
 static pxMatrix4f gMatrix;
 static float gAlpha = 1.0;
 uint32_t gRenderTick = 0;
+rtMutex gRenderTickMutex;
 std::vector<pxTexture*> textureList;
 rtMutex textureListMutex;
 #ifdef ENABLE_BACKGROUND_TEXTURE_CREATION
@@ -194,11 +200,17 @@ pxError ejectNotRecentlyUsedTextureMemory(int64_t bytesNeeded, int64_t targetMem
   beforeTextureMemoryUsage = context.currentTextureMemoryUsageInBytes();
   unlockContext();
 
+  uint32_t currentRenderTick = 0;
+  {
+    rtMutexLockGuard renderTickMutexGuard(gRenderTickMutex);
+    currentRenderTick = gRenderTick;
+  }
+
   textureListMutex.lock();
   for(std::vector<pxTexture*>::iterator it = textureList.begin(); it != textureList.end(); ++it)
   {
     pxTexture* texture = (*it);
-    uint32_t lastRenderTickAge = gRenderTick - texture->lastRenderTick();
+    uint32_t lastRenderTickAge = currentRenderTick - texture->lastRenderTick();
     bool textureIsSetupForRendering = texture->setupForRendering();
     if (lastRenderTickAge > maxAge && textureIsSetupForRendering)
     {
@@ -624,6 +636,10 @@ public:
                          mReadyForRendering(false), mRenderingMutex(), mSetupForRendering(false)
   {
     mTextureType = PX_TEXTURE_OFFSCREEN;
+    {
+      rtMutexLockGuard renderTickMutexGuard(gRenderTickMutex);
+      mLastRenderTick = gRenderTick;
+    }
     addToTextureList(this);
   }
 
@@ -636,6 +652,10 @@ public:
   {
     mTextureType = PX_TEXTURE_OFFSCREEN;
     createTexture(o);
+    {
+      rtMutexLockGuard renderTickMutexGuard(gRenderTickMutex);
+      mLastRenderTick = gRenderTick;
+    }
     addToTextureList(this);
   }
 
@@ -2263,6 +2283,18 @@ void pxContext::init()
             mTargetTextureMemoryAfterCleanupInBytes,
             mFreeAllOffscreenTextureMemoryOnCleanup ? "true":"false", mEjectTextureAge);
 
+  char const* gcThrottleSetting = getenv("SPARK_GC_THROTTLE_SECS");
+  if (gcThrottleSetting)
+  {
+    int gcThrottle = atoi(gcThrottleSetting);
+    if (gcThrottle >= 0)
+    {
+      garbageCollectThrottleInSeconds = static_cast<double>(gcThrottle);
+    }
+  }
+
+  rtLogInfo("context garbage collect throttle set to %f seconds", garbageCollectThrottleInSeconds);
+
 #if defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL)
   defaultEglContext = eglGetCurrentContext();
   defaultEglDisplay = eglGetCurrentDisplay();
@@ -2857,12 +2889,17 @@ void pxContext::adjustCurrentTextureMemorySize(int64_t changeInBytes, bool allow
   //rtLogDebug("the current texture size: %" PRId64 ".", currentTextureMemorySize);
   if (mEnableTextureMemoryMonitoring && allowGarbageCollect && changeInBytes > 0 && currentTextureMemorySize > maxTextureMemoryInBytes)
   {
-    rtLogDebug("the texture size is too large: %" PRId64 ".  doing a garbage collect!!!\n", currentTextureMemorySize);
+    double timeSinceGc = pxSeconds() - lastContextGarbageCollectTime;
+    if (timeSinceGc >= garbageCollectThrottleInSeconds)
+    {
+      rtLogDebug("the texture size is too large: %" PRId64 ".  doing a garbage collect!!!\n", currentTextureMemorySize);
 #ifdef RUNINMAIN
-	script.collectGarbage();
+      script.collectGarbage();
 #else
-  uv_async_send(&gcTrigger);
+      uv_async_send(&gcTrigger);
 #endif
+      lastContextGarbageCollectTime = pxSeconds();
+    }
   }
 }
 
@@ -2887,16 +2924,21 @@ bool pxContext::isTextureSpaceAvailable(pxTextureRef texture, bool allowGarbageC
   {
     if (allowGarbageCollect)
     {
-      #ifdef RUNINMAIN
+      double timeSinceGc = pxSeconds() - lastContextGarbageCollectTime;
+      if (timeSinceGc >= garbageCollectThrottleInSeconds)
+      {
+#ifdef RUNINMAIN
         script.collectGarbage();
-      #else
+#else
         uv_async_send(&gcTrigger);
-      #endif
-      lockContext();
-      currentTextureMemorySize = mCurrentTextureMemorySizeInBytes;
-      unlockContext();
-      return ((textureSize + currentTextureMemorySize) <=
-              (maxTextureMemoryInBytes  + mTextureMemoryLimitThresholdPaddingInBytes));
+#endif
+        lastContextGarbageCollectTime = pxSeconds();
+        lockContext();
+        currentTextureMemorySize = mCurrentTextureMemorySizeInBytes;
+        unlockContext();
+        return ((textureSize + currentTextureMemorySize) <=
+                (maxTextureMemoryInBytes + mTextureMemoryLimitThresholdPaddingInBytes));
+      }
     }
     return false;
   }
@@ -2909,12 +2951,17 @@ bool pxContext::isTextureSpaceAvailable(pxTextureRef texture, bool allowGarbageC
     unlockContext();
     if ((textureSize + currentTextureMemorySize) > maxTextureMemoryInBytes)
     {
+      double timeSinceGc = pxSeconds() - lastContextGarbageCollectTime;
+      if (timeSinceGc >= garbageCollectThrottleInSeconds)
+      {
 #ifdef RUNINMAIN
-      rtLogInfo("gc for texture memory");
-      script.collectGarbage();
+        rtLogInfo("gc for texture memory");
+        script.collectGarbage();
 #else
-      uv_async_send(&gcTrigger);
+        uv_async_send(&gcTrigger);
 #endif
+        lastContextGarbageCollectTime = pxSeconds();
+      }
     }
     else
     {
