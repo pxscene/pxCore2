@@ -105,6 +105,7 @@ bool gDumpMemUsage = false;
 extern bool gApplicationIsClosing;
 extern int pxObjectCount;
 extern uint32_t gRenderTick;
+extern rtMutex gRenderTickMutex;
 
 #include "pxFont.h"
 
@@ -440,7 +441,10 @@ protected:
   virtual void onDraw(pxSurfaceNative )
   {
     ENTERSCENELOCK()
-    gRenderTick++;
+    {
+      rtMutexLockGuard renderTickMutexGuard(gRenderTickMutex);
+      gRenderTick++;
+    }
     if (mView)
       mView->onDraw();
     EXITSCENELOCK()

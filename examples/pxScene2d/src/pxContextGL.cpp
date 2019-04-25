@@ -142,6 +142,7 @@ static int gResW, gResH;
 static pxMatrix4f gMatrix;
 static float gAlpha = 1.0;
 uint32_t gRenderTick = 0;
+rtMutex gRenderTickMutex;
 std::vector<pxTexture*> textureList;
 rtMutex textureListMutex;
 #ifdef ENABLE_BACKGROUND_TEXTURE_CREATION
@@ -199,11 +200,17 @@ pxError ejectNotRecentlyUsedTextureMemory(int64_t bytesNeeded, int64_t targetMem
   beforeTextureMemoryUsage = context.currentTextureMemoryUsageInBytes();
   unlockContext();
 
+  uint32_t currentRenderTick = 0;
+  {
+    rtMutexLockGuard renderTickMutexGuard(gRenderTickMutex);
+    currentRenderTick = gRenderTick;
+  }
+
   textureListMutex.lock();
   for(std::vector<pxTexture*>::iterator it = textureList.begin(); it != textureList.end(); ++it)
   {
     pxTexture* texture = (*it);
-    uint32_t lastRenderTickAge = gRenderTick - texture->lastRenderTick();
+    uint32_t lastRenderTickAge = currentRenderTick - texture->lastRenderTick();
     bool textureIsSetupForRendering = texture->setupForRendering();
     if (lastRenderTickAge > maxAge && textureIsSetupForRendering)
     {
@@ -629,7 +636,10 @@ public:
                          mReadyForRendering(false), mRenderingMutex(), mSetupForRendering(false)
   {
     mTextureType = PX_TEXTURE_OFFSCREEN;
-    mLastRenderTick = gRenderTick;
+    {
+      rtMutexLockGuard renderTickMutexGuard(gRenderTickMutex);
+      mLastRenderTick = gRenderTick;
+    }
     addToTextureList(this);
   }
 
@@ -642,7 +652,10 @@ public:
   {
     mTextureType = PX_TEXTURE_OFFSCREEN;
     createTexture(o);
-    mLastRenderTick = gRenderTick;
+    {
+      rtMutexLockGuard renderTickMutexGuard(gRenderTickMutex);
+      mLastRenderTick = gRenderTick;
+    }
     addToTextureList(this);
   }
 
