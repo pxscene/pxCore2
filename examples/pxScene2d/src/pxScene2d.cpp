@@ -844,6 +844,7 @@ rtError pxScene2d::debugMetrics(rtObjectRef& o)
     o = new rtMapObject;
     o.set("numObjects", pxObjectCount);
 #else
+    UNUSED_PARAM(o);
     rtLogWarn("debugMetrics is disabled");
 #endif
   return RT_OK;
