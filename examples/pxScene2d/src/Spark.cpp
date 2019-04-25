@@ -323,12 +323,12 @@ protected:
 //       rtLogInfo("texture memory usage is [%ld]",context.currentTextureMemoryUsageInBytes());
 // #endif
     }
-    ENTERSCENELOCK()
-      eventLoop.exit();
-    EXITSCENELOCK()
     #ifdef ENABLE_CODE_COVERAGE
     __gcov_flush();
     #endif
+    ENTERSCENELOCK()
+      eventLoop.exit();
+    EXITSCENELOCK()
   }
 
   virtual void onMouseUp(int32_t x, int32_t y, uint32_t flags)

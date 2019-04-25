@@ -25,6 +25,7 @@ limitations under the License.
 #define private public
 #define protected public
 #include <pxCore.h>
+#include <pxWindowUtil.h>
 #include <pxWindow.h>
 //#include <GL/glew.h>
 //#include <GL/freeglut.h>
@@ -36,11 +37,15 @@ limitations under the License.
 #include <pxContext.h>
 #include <rtRef.h>
 #include <stdlib.h>
-
+#ifdef __linux__
+#include <unistd.h>
+#include <time.h>
+#include <dlfcn.h>
+#include <fcntl.h>
+#endif
 #include "test_includes.h" // Needs to be included last
 
 using namespace std;
-
 extern rtScript script;
 extern int gargc;
 extern char** gargv;
@@ -53,6 +58,30 @@ void fgDeinitialize( void )
   _exit(2);
 }
 
+#ifdef __linux__
+extern uint32_t getRawNativeKeycodeFromGlut(uint32_t, uint32_t);
+bool shiftPressed = false;
+bool ctrlPressed = false;
+bool keyupreceived = false;
+bool keydownreceived = false;
+bool keyspecialreceived = false;
+uint32_t expectedkey = 0;
+typedef int (*glutGetModifiers_t)();
+
+int glutGetModifiers()
+{
+  static glutGetModifiers_t glutGetModifiersp = (glutGetModifiers_t) dlsym(RTLD_NEXT, "glutGetModifiers");
+  if (true == shiftPressed)
+  {
+    return GLUT_ACTIVE_SHIFT;
+  }
+  else if (true == ctrlPressed)
+  {
+    return GLUT_ACTIVE_CTRL;
+  }
+  return glutGetModifiersp();
+}
+#endif
 class sceneWindow : public pxWindow, public pxIViewContainer
 {
   public:
@@ -92,12 +121,27 @@ class sceneWindow : public pxWindow, public pxIViewContainer
       script.pump();
     }
 
+    virtual void onKeyUp(uint32_t keycode, uint32_t flags)
+    {
+      keyupreceived = true;
+      pxWindow::onKeyUp(keycode, flags);
+    }
+
+    virtual void onKeyDown(uint32_t keycode, uint32_t flags)
+    {
+      keydownreceived = true;
+      if (keycode == expectedkey)
+        keyspecialreceived = true;
+      pxWindow::onKeyDown(keycode, flags);
+    }
+
   private:
     pxIView* mView;
     int mWidth;
     int mHeight;
 };
 
+sceneWindow* win = NULL;
 class jsFilesTest : public testing::Test
 {
   public:
@@ -105,23 +149,7 @@ class jsFilesTest : public testing::Test
     {
       mSceneWin = new sceneWindow();
       mSceneWin->init(0,0,1280,720);
-/*
-      glutInit(&gargc,gargv);
-      glutInitDisplayMode (GLUT_DOUBLE | GLUT_RGBA);
-      glutInitWindowPosition (0, 0);
-      glutInitWindowSize (1024, 768);
-      mGlutWindowId = glutCreateWindow ("pxWindow");
-      glutSetOption(GLUT_RENDERING_CONTEXT ,GLUT_USE_CURRENT_CONTEXT );
-      glClearColor(0, 0, 0, 1);
-
-      GLenum err = glewInit();
-
-      if (err != GLEW_OK)
-      {
-        printf("error with glewInit() [%s] [%d] \n",glewGetErrorString(err), err);
-        fflush(stdout);
-      }
-*/
+      win = mSceneWin;
       atexit(fgDeinitialize);
       mContext.init();
     }
@@ -188,3 +216,128 @@ TEST_F(jsFilesTest, jsTests)
   test("shell.js?url=http://www.sparkui.org/examples/gallery/picturepile.js",5.0);
   test("shell.js?url=http://www.sparkui.org/examples/gallery/gallery.js",20.0);
 }
+#ifdef __linux__
+class pxWindowDetailedTest : public testing::Test
+{
+	public:
+		virtual void SetUp()
+		{
+		}
+
+		virtual void TearDown()
+		{
+		}
+
+		void getRawNativeKeycodeFromGlutShiftTest()
+		{
+                  shiftPressed = true;
+                  int code = getRawNativeKeycodeFromGlut(43, 0);
+                  EXPECT_TRUE(code == 61);
+                  shiftPressed = false;
+		}
+		
+		void getRawNativeKeycodeFromGlutCtrlTest()
+                {
+                  ctrlPressed = true;
+                  int code = getRawNativeKeycodeFromGlut(26, 0);
+                  EXPECT_TRUE(code == 122);
+                  ctrlPressed = false;
+                }
+
+                void unregisterWindowTest()
+                {
+                  bool present = false;
+                  std::vector<pxWindowNative*> windowsbefore = pxWindowNative::getNativeWindows();
+                  for(std::vector<pxWindowNative*>::iterator it = windowsbefore.begin(); it<windowsbefore.end(); it++) {
+                    if (*it == win)
+                    {
+                      present = true;
+                      break;
+                    }
+                  }
+                  EXPECT_TRUE(present == true);
+                  present = false;
+                  pxWindowNative::unregisterWindow(win);
+                  std::vector<pxWindowNative*> windowsafter = pxWindowNative::getNativeWindows();
+                  for(std::vector<pxWindowNative*>::iterator it = windowsafter.begin(); it<windowsafter.end(); it++) {
+                    if (*it == win)
+                    {
+                      present = true;
+                      break;
+                    }
+                  }
+                  EXPECT_TRUE(present == false);
+                  pxWindowNative::registerWindow(win);
+                }
+
+                void beginNativeDrawingTest()
+                {
+                  void* b = win;
+                  win->beginNativeDrawing(b);
+                }
+
+                void endNativeDrawingTest()
+                {
+                  void* b = win;
+                  win->endNativeDrawing(b);
+                }
+
+                void visibilityTest()
+                {
+                  EXPECT_TRUE(false == win->visibility());
+                }
+
+                void onGlutMouseTest()
+                {
+                  win->onGlutMouse(GLUT_LEFT_BUTTON, GLUT_DOWN, 100, 100);
+                  EXPECT_TRUE(true == win->mMouseDown);
+                  win->onGlutMouse(GLUT_LEFT_BUTTON, GLUT_UP, 100, 100);
+                  EXPECT_TRUE(false == win->mMouseDown);
+                }
+ 
+                void onGlutKeyTest()
+                {
+                  shiftPressed = true;
+                  win->onGlutKeyboard('k', 100, 200);
+                  EXPECT_TRUE(false == keydownreceived);
+                  EXPECT_TRUE(false == keyupreceived);
+                }
+
+                void onGlutKeyboardSpecialTest()
+                {
+                  shiftPressed = true;
+                  expectedkey = keycodeFromNative(PX_KEY_NATIVE_ALT);
+                  win->onGlutKeyboardSpecial(116, 100, 200);
+                  EXPECT_TRUE(keyspecialreceived == false);
+                }
+
+                void onGlutCloseTest()
+                {
+                  win->onGlutClose();
+                  std::vector<pxWindowNative*> windowsafter = pxWindowNative::getNativeWindows();
+                  bool present = false;
+                  for(std::vector<pxWindowNative*>::iterator it = windowsafter.begin(); it<windowsafter.end(); it++) {
+                    if (*it == win)
+                    {
+                      present = true;
+                      break;
+                    }
+                  }
+                  EXPECT_TRUE(present == false);
+                }
+};
+
+TEST_F(pxWindowDetailedTest, pxWindowDetailedTests)
+{
+  getRawNativeKeycodeFromGlutShiftTest();
+  getRawNativeKeycodeFromGlutCtrlTest();
+  unregisterWindowTest();
+  beginNativeDrawingTest();
+  endNativeDrawingTest();
+  visibilityTest();
+  onGlutKeyboardSpecialTest();
+  onGlutKeyTest();
+  onGlutMouseTest();
+  onGlutCloseTest();
+}
+#endif
