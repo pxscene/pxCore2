@@ -229,7 +229,7 @@ if( scene.capabilities != undefined && scene.capabilities.graphics != undefined 
       else
       if(code == keys.D)  // ctrl-alt-shft-d
       {
-        scene.debugMetrics();
+        scene.logDebugMetrics();
       }
     }// ctrl-alt-shift
   });

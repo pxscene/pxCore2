@@ -831,7 +831,7 @@ rtError pxScene2d::createScene(rtObjectRef p, rtObjectRef& o)
   return RT_OK;
 }
 
-rtError pxScene2d::debugMetrics(rtObjectRef& o)
+rtError pxScene2d::logDebugMetrics(rtObjectRef& o)
 {
 #ifdef ENABLE_DEBUG_METRICS
     script.collectGarbage();
@@ -845,7 +845,7 @@ rtError pxScene2d::debugMetrics(rtObjectRef& o)
     o.set("numObjects", pxObjectCount);
 #else
     UNUSED_PARAM(o);
-    rtLogWarn("debugMetrics is disabled");
+    rtLogWarn("logDebugMetrics is disabled");
 #endif
   return RT_OK;
 }
@@ -2385,7 +2385,7 @@ rtDefineProperty(pxScene2d, enableDirtyRect);
 rtDefineProperty(pxScene2d, customAnimator);
 rtDefineMethod(pxScene2d, create);
 rtDefineMethod(pxScene2d, clock);
-rtDefineMethod(pxScene2d, debugMetrics);
+rtDefineMethod(pxScene2d, logDebugMetrics);
 rtDefineMethod(pxScene2d, collectGarbage);
 rtDefineMethod(pxScene2d, suspend);
 rtDefineMethod(pxScene2d, resume);
