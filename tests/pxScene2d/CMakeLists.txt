@@ -178,6 +178,7 @@ endif (PXSCENE_TEST_PERMISSIONS_CHECK)
 if (SUPPORT_STORAGE)
     message("Include storage tests")
     add_definitions(-DPXSCENE_SUPPORT_STORAGE)
+    add_definitions(-DENABLE_STORAGE_PERF_TEST)
     set(TEST_SOURCE_FILES ${TEST_SOURCE_FILES} test_rtStorage.cpp)
 endif()
 

@@ -18,7 +18,23 @@ limitations under the License.
 
 #include "rtStorage.h"
 
+#include "pxTimer.h"
+
 #include "test_includes.h" // Needs to be included last
+
+namespace
+{
+  const char* testStorageLocation = "/tmp/sparkTestStorage";
+
+#ifdef ENABLE_STORAGE_PERF_TEST
+  const int perfItems = 50;
+  const int perfOperations = 100;
+  const double setTime = 0.05;
+  const double getTime = 0.05;
+  const double getAllTime = 0.05;
+  const double removeTime = 0.05;
+#endif
+}
 
 class rtStorageTest : public testing::Test
 {
@@ -37,7 +53,7 @@ public:
     rtValue item;
     rtString str;
 
-    s = new rtStorage("/tmp/sparkTestStorage", 100);
+    s = new rtStorage(testStorageLocation, 100);
     // SET
     EXPECT_EQ ((int)RT_OK, (int)s->clear());
     EXPECT_EQ ((int)RT_OK, (int)s->setItem("key1", "value1"));
@@ -55,7 +71,7 @@ public:
     rtValue item;
     rtString str;
 
-    s = new rtStorage("/tmp/sparkTestStorage", 100);
+    s = new rtStorage(testStorageLocation, 100);
     // SET
     EXPECT_EQ ((int)RT_OK, (int)s->clear());
     EXPECT_EQ ((int)RT_OK, (int)s->setItem("key1", "value1"));
@@ -81,7 +97,7 @@ public:
     rtObjectRef obj;
     rtString str;
 
-    s = new rtStorage("/tmp/sparkTestStorage", 100);
+    s = new rtStorage(testStorageLocation, 100);
     // SET
     EXPECT_EQ ((int)RT_OK, (int)s->clear());
     EXPECT_EQ ((int)RT_OK, (int)s->setItem("key1", "value1"));
@@ -131,7 +147,7 @@ public:
     rtObjectRef obj;
     rtString str;
 
-    s = new rtStorage("/tmp/sparkTestStorage", 100);
+    s = new rtStorage(testStorageLocation, 100);
     // SET
     EXPECT_EQ ((int)RT_OK, (int)s->clear());
     EXPECT_EQ ((int)RT_OK, (int)s->setItem("prefix1_key1", "value1"));
@@ -171,7 +187,7 @@ public:
     rtValue item;
     rtString str;
 
-    s = new rtStorage("/tmp/sparkTestStorage", 100);
+    s = new rtStorage(testStorageLocation, 100);
     // SET
     EXPECT_EQ ((int)RT_OK, (int)s->clear());
     EXPECT_EQ ((int)RT_OK, (int)s->setItem("key1", "value1"));
@@ -192,7 +208,7 @@ public:
     rtObjectRef obj;
     rtString str;
 
-    s = new rtStorage("/tmp/sparkTestStorage", 100);
+    s = new rtStorage(testStorageLocation, 100);
     // SET
     EXPECT_EQ ((int)RT_OK, (int)s->clear());
     EXPECT_EQ ((int)RT_OK, (int)s->setItem("key1", "value1"));
@@ -218,13 +234,13 @@ public:
     rtValue item;
     rtString str;
 
-    s = new rtStorage("/tmp/sparkTestStorage", 100);
+    s = new rtStorage(testStorageLocation, 100);
     // SET
     EXPECT_EQ ((int)RT_OK, (int)s->clear());
     EXPECT_EQ ((int)RT_OK, (int)s->setItem("key1", "persistent"));
     // REOPEN
     EXPECT_EQ ((int)RT_OK, (int)s->term());
-    s = new rtStorage("/tmp/sparkTestStorage", 100);
+    s = new rtStorage(testStorageLocation, 100);
     // GET
     EXPECT_EQ ((int)RT_OK, (int)s->getItem("key1", item));
     str = item.toString();
@@ -237,7 +253,7 @@ public:
   {
     rtStorageRef s;
 
-    s = new rtStorage("/tmp/sparkTestStorage", 20);
+    s = new rtStorage(testStorageLocation, 20);
     // SET
     EXPECT_EQ ((int)RT_OK, (int)s->clear());
     EXPECT_EQ ((int)RT_OK, (int)s->setItem("key1", "value1"));
@@ -256,7 +272,7 @@ public:
     rtString str;
     int32_t len;
 
-    s = new rtStorage("/tmp/sparkTestStorage", 100);
+    s = new rtStorage(testStorageLocation, 100);
     // SET
     EXPECT_EQ ((int)RT_ERROR_INVALID_ARG, (int)s->init(NULL, 0));
     EXPECT_EQ ((int)RT_ERROR_INVALID_ARG, (int)s->init("", 0));
@@ -324,6 +340,57 @@ public:
     // CLOSE
     EXPECT_EQ ((int)RT_OK, (int)s->term());
   }
+
+#ifdef ENABLE_STORAGE_PERF_TEST
+  void performance_test()
+  {
+    rtStorageRef s;
+    rtObjectRef items;
+    rtValue item;
+    double secs;
+
+    rtString keys[perfItems];
+    rtString values[perfItems];
+    for (int i = 0; i < perfItems; i++)
+    {
+      rtString i_str = rtValue(i).toString();
+      keys[i] = "key" + i_str;
+      values[i] = "value" + i_str;
+    }
+
+    s = new rtStorage(testStorageLocation, 1000000);
+
+    // SET or REPLACE, ~0.023262
+    secs = pxSeconds();
+    for (int i = 0; i < perfOperations; i++)
+      s->setItem(keys[i % perfItems], values[i % perfItems]);
+    secs = (pxSeconds() - secs) / perfOperations;
+    EXPECT_LE (secs, setTime);
+
+    // GET, ~0.000016
+    secs = pxSeconds();
+    for (int i = 0; i < perfOperations; i++)
+      s->getItem(keys[i % perfItems], item);
+    secs = (pxSeconds() - secs) / perfOperations;
+    EXPECT_LE (secs, getTime);
+
+    // GET ALL, ~0.000357
+    secs = pxSeconds();
+    s->getItems("", items);
+    secs = pxSeconds() - secs;
+    EXPECT_LE (secs, getAllTime);
+
+    // REMOVE, ~0.023571
+    secs = pxSeconds();
+    for (int i = 0; i < perfItems; i++)
+      s->removeItem(keys[i]);
+    secs = (pxSeconds() - secs) / perfItems;
+    EXPECT_LE (secs, removeTime);
+
+    // CLOSE
+    EXPECT_EQ ((int)RT_OK, (int)s->term());
+  }
+#endif
 };
 
 TEST_F(rtStorageTest, rtStorageTests)
@@ -337,4 +404,7 @@ TEST_F(rtStorageTest, rtStorageTests)
   persistence_test();
   quota_test();
   badInput_test();
+#ifdef ENABLE_STORAGE_PERF_TEST
+  performance_test();
+#endif
 }
