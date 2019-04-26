@@ -49,19 +49,11 @@ public:
 
   virtual ~pxImage();
 
-  virtual void update(double t) { pxObject::update(t);}
   virtual void onInit();
   virtual void sendPromise();
 
-  void createNewPromise() { 
-    // Only create a new promise if the existing one has been
-    // resolved or rejected already.
-    if(((rtPromise*)mReady.getPtr())->status())
-    {
-      rtLogDebug("CREATING NEW PROMISE\n");
-      mReady = new rtPromise();
-    }
-   }
+  void createNewPromise();
+  virtual bool needsUpdate();
   
   rtError url(rtString& s) const;
   rtError setUrl(const char* s);
@@ -94,7 +86,7 @@ public:
 
   virtual void releaseData(bool sceneSuspended);
   virtual void reloadData(bool sceneSuspended);
-  virtual uint64_t textureMemoryUsage();
+  virtual uint64_t textureMemoryUsage(std::vector<rtObject*> &objectsCounted);
   
 protected:
   virtual void draw();

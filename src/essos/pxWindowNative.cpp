@@ -376,6 +376,17 @@ pxError pxWindow::init(int left, int top, int width, int height)
             }
         }
 
+        bool overrideResoution = false;
+        char const *resolutionSetting = getenv("PXCORE_OVERRIDE_RESOLUTION");
+        if (resolutionSetting)
+        {
+            int value = atoi(resolutionSetting);
+            if (value > 0)
+            {
+                overrideResoution = true;
+            }
+        }
+
         int keyInitialDelay = 500;
         char const *keyDelay = getenv("SPARK_KEY_INITIAL_DELAY");
         if (keyDelay)
@@ -445,11 +456,16 @@ pxError pxWindow::init(int left, int top, int width, int height)
                 error = true;
             }
 #ifdef ESSOS_SETTINGS_AND_TOUCH_SUPPORT
-            if (!EssContextSetSettingsListener(d->ctx, 0, &settingsListener))
+            if (!overrideResoution)
             {
-                error = true;
+                rtLogInfo("setting up essos settings listener");
+                if (!EssContextSetSettingsListener(d->ctx, 0, &settingsListener))
+                {
+                    error = true;
+                }
             }
 #endif //ESSOS_SETTINGS_AND_TOUCH_SUPPORT
+
             if ( !error )
             {
                 if ( !EssContextStart( d->ctx ) )
@@ -457,6 +473,14 @@ pxError pxWindow::init(int left, int top, int width, int height)
                     error = true;
                 }
                 else if ( !EssContextGetDisplaySize( d->ctx, &gDisplayWidth, &gDisplayHeight ) )
+                {
+                    error= true;
+                }
+            }
+            if (overrideResoution)
+            {
+                rtLogWarn("setting resolution to: %d x %d", width, height);
+                if ( !EssContextSetInitialWindowSize( d->ctx, width, height) )
                 {
                     error= true;
                 }
@@ -665,6 +689,12 @@ void pxWindowNative::cleanupEssos()
 
 void pxWindowNative::onSizeUpdated(int width, int height)
 {
+  if ( (mLastWidth != width) || (mLastHeight != height) )
+  {
+      displayRef dRef;
+      essosDisplay* eDisplay = dRef.getDisplay();
+      EssContextResizeWindow( eDisplay->ctx, width, height );
+  }
   mLastWidth = width;
   mLastHeight = height;
   mResizeFlag = true;

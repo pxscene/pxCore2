@@ -22,6 +22,7 @@
 #include <unistd.h>
 #include "rtString.h"
 #include "rtRef.h"
+#include "rtPathUtils.h"
 #include "pxCore.h"
 #include "pxKeycodes.h"
 
@@ -188,6 +189,11 @@ rtError pxWaylandContainer::setCmd(const char* s)
       {
          binary = rtString(regcmd, (uint32_t) regcmdlen);
       }
+      if (!rtFileExists(binary))
+      {
+        rtLogError("Application %s does not exist", binary.cString());
+        return RT_ERROR;
+      }
     }
   }
   else
@@ -211,6 +217,11 @@ rtError pxWaylandContainer::setCmd(const char* s)
           {
              binary = rtString(regcmd, (uint32_t) (regcmdlen-1) );
              binary.append( args );
+          }
+          if (!rtFileExists(cmd))
+          {
+            rtLogError("Application %s does not exist", cmd);
+            return RT_ERROR;
           }
        }
        free( (void*)cmd );
@@ -347,8 +358,7 @@ rtError pxWaylandContainer::suspend(const rtValue &v, bool& b)
   b = false;
   if ( mWayland )
   {
-    mWayland->suspend(v);
-    b = true;
+    mWayland->suspend(v, b);
   }
   return RT_OK;
 }
@@ -358,8 +368,7 @@ rtError pxWaylandContainer::resume(const rtValue& v, bool& b)
   b = false;
   if ( mWayland )
   {
-    mWayland->resume(v);
-    b = true;
+    mWayland->resume(v, b);
   }
   return RT_OK;
 }
@@ -392,6 +401,7 @@ void pxWaylandContainer::onInit()
        mDisplayName = name;
     }
   }
+  pxObject::onInit();
 }
 
 rtDefineObject(pxWaylandContainer,pxViewContainer);
