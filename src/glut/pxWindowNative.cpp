@@ -149,10 +149,11 @@ GLuint createShaderProgram(const char* vShaderTxt, const char* fShaderTxt)
     rtLogError("faild to link:%s", log);
     exit(1);
   }
-  
+
+  /* test setting attrib locations */
   glBindAttribLocation(program, attr_pos, "pos");
   glBindAttribLocation(program, attr_uv, "uv");
-  glLinkProgram(program); 
+  glLinkProgram(program);  /* needed to put attribs into effect */
   
   return program;
 }
