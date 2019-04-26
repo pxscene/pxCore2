@@ -149,7 +149,7 @@ GLuint createShaderProgram(const char* vShaderTxt, const char* fShaderTxt)
     rtLogError("faild to link:%s", log);
     exit(1);
   }
-
+ 
   /* test setting attrib locations */
   glBindAttribLocation(program, attr_pos, "pos");
   glBindAttribLocation(program, attr_uv, "uv");
@@ -157,6 +157,7 @@ GLuint createShaderProgram(const char* vShaderTxt, const char* fShaderTxt)
   
   return program;
 }
+
 static void drawImageTexture(float x, float y, float w, float h/*, pxBuffer& b*/)
 {
   const float verts[4][2] = 
