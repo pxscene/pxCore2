@@ -16,7 +16,6 @@ limitations under the License.
 
 */
 
-
 var homeUrl = "https://www.sparkui.org/examples/px-reference/text/sample.md";
 
 px.configImport({"browser:" : /*px.getPackageBaseFilePath() + */ "browser/"});
