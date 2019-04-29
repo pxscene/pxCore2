@@ -63,8 +63,6 @@ if [ ! -d ${xLIBS} ]; then
   #install_name_tool -id @executable_path/lib/libz.1.dylib ./lib/libz.1.dylib
   #install_name_tool -id @executable_path/lib/libz.1.2.8.dylib ./lib/libz.1.2.8.dylib
 
-  cp ${xEXT}/gif/.libs/libgif.dylib ${xLIBS}
-  cp ${xEXT}/gif/.libs/libgifutil.dylib ${xLIBS}
   source makeLocalLibs.sh
 
 fi

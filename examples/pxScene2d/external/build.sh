@@ -71,7 +71,7 @@ fi
 
 #--------- GIF
 
-if [ ! -e ./gif/.libs/libgif.dylib ] ||
+if [ ! -e ./gif/.libs/libgif.dylib ] &&
 [ "$(uname)" != "Darwin" ]
 then
 
@@ -79,7 +79,7 @@ banner "GIF"
 cd gif
 #cmake .
 #cmake --build . --config Release --clean-first
-make
+sudo make install
 [ -d .libs ] || mkdir -p .libs
 if [ -e libgif.dylib ]
 then
