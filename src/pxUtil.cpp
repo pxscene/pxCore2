@@ -1827,7 +1827,7 @@ int readGifData (GifFileType *gif, GifByteType *dst, int size){
 static int InterlacedOffset[] =  { 0, 4, 2, 1 },
 InterlacedJumps[] =  { 8, 8, 4, 2 };
 
-void DrawGifImage(pxOffscreen& obj, pxTimedOffscreenSequence &s, GifRowType *rows, ColorMapObject *map, int transparent){
+void drawGifImage(pxOffscreen& obj, pxTimedOffscreenSequence &s, GifRowType *rows, ColorMapObject *map, int transparent){
     size_t x, y, w, h;
     w = obj.width();
     h = obj.height();
@@ -2008,7 +2008,7 @@ rtError pxLoadGIFImage(const char *imageData, size_t imageDataSize,
                     break;
                 }
                 obj.init(w, h);
-                DrawGifImage(obj, s, rows, map, transparent);
+                drawGifImage(obj, s, rows, map, transparent);
                 break;
                 
             case EXTENSION_RECORD_TYPE:
