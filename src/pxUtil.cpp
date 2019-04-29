@@ -1866,7 +1866,6 @@ rtError pxLoadGIFImage(const char *imageData, size_t imageDataSize,
     rtLogDebug("GIF support is not enabled");
     return RT_FAIL;
 #else
-    rtLogWarn("pxLoadGIFImage!");
     if (!imageData)
     {
         rtLogError("FATAL: Invalid arguments - imageData = NULL");
