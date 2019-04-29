@@ -160,6 +160,7 @@ class pxContext {
   int64_t ejectTextureMemory(int64_t bytesRequested, bool forceEject=false);
   
   pxError setEjectTextureAge(uint32_t age);
+  void updateRenderTick();
 
 private:
   bool mShowOutlines;
