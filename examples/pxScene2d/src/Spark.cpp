@@ -104,7 +104,6 @@ char** g_origArgv = NULL;
 bool gDumpMemUsage = false;
 extern bool gApplicationIsClosing;
 extern int pxObjectCount;
-extern uint32_t gRenderTick;
 
 #include "pxFont.h"
 
@@ -439,8 +438,8 @@ protected:
 
   virtual void onDraw(pxSurfaceNative )
   {
+    context.updateRenderTick();
     ENTERSCENELOCK()
-    gRenderTick++;
     if (mView)
       mView->onDraw();
     EXITSCENELOCK()
