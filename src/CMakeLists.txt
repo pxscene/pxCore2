@@ -3,9 +3,6 @@ project(pxcore)
 find_package(PkgConfig)
 
 set(CMAKE_CXX_STANDARD 11)
-set(EXTDIR "${CMAKE_CURRENT_SOURCE_DIR}/examples/pxScene2d/external")
-set(GIF ${EXTDIR}/gif)
-set(GIF_LIBRARY_DIRS ${EXTDIR}/gif/.libs)
 
 option(WINDOWLESS_EGL "WINDOWLESS_EGL" OFF)
 option(PXCORE_WAYLAND_EGL "PXCORE_WAYLAND_EGL" OFF)
@@ -40,14 +37,10 @@ set(BUILD_RTCORE_SHARED_LIBRARY 1)
 
 if (BUILD_WITH_GIF)
 message("Building with GIF support")
-    include_directories(AFTER ${GIF} ${GIF_LIBRARY_DIRS})
-set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${GIF_LIBRARY_DIRS})
-set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${GIF})
 set(PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} gif)
-
 add_definitions(-DSUPPORT_GIF)
-
 endif (BUILD_WITH_GIF)
+
 
 
 if (APPLE)
