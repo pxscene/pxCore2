@@ -1857,18 +1857,6 @@ void drawGifImage(pxOffscreen& obj, pxTimedOffscreenSequence &s, GifRowType *row
     unsigned short delay_num = 1;
     unsigned short delay_den = 10;
     s.addBuffer(obj, (double)delay_num / (double)delay_den);
-    //s.DetectTransparent();
-    /*pxOffscreen o;
-     o.init(w, h);
-     for (uint32_t i = 0; i < h; i++)
-     {
-     memcpy(o.scanline(i), rows[i], w * 4);
-     }
-     unsigned short delay_num = 1;
-     unsigned short delay_den = 10;
-     dst.addBuffer(o, (double)delay_num / (double)delay_den);
-     */
-    
 }
 #endif
 
@@ -1913,28 +1901,24 @@ rtError pxLoadGIFImage(const char *imageData, size_t imageDataSize,
 #endif
     
     if ( NULL == gif ) {
-        rtLogWarn("Failed to open GIF");
+        rtLogError("FATAL: "
+                   "error reading file");
         return RT_FAIL;
     }
     
-    rtLogWarn("SUCCESS to open GIF");
-    
-    
-    rtLogWarn("ImageInfo=%d:W,%d:H,%d:IM_CNT", gif->SWidth, gif->SHeight, gif->ImageCount);
     width = gif->SWidth;
     height = gif->SHeight;
-    //printf("width:%d,height:%d\n", width, height);
     
     size = height * sizeof(GifRowType *);
     if((rows = (GifRowType *) malloc(size)) == NULL) {
-        rtLogError("FATAL3: "
+        rtLogError("FATAL: "
                    "error reading file");
     }
     memset(rows, 0x00, size);
     
     size = width * sizeof(GifPixelType);
     if ((row = (GifRowType) malloc(size)) == NULL) {
-        rtLogError("FATAL3: "
+        rtLogError("FATAL1: "
                    "error reading file");
     }
     
@@ -1950,14 +1934,12 @@ rtError pxLoadGIFImage(const char *imageData, size_t imageDataSize,
     
     for(i = 1; i < height; i++){
         if((rows[i] = (GifRowType) malloc(size)) == NULL) {
-            rtLogError("FATAL3: "
+            rtLogError("FATAL2: "
                        "error reading file");
             break;
         }
         memcpy(rows[i], row, size);
     }
-    
-    //if(s->Malloc(width, height) != SUCCESS) goto FREE_ROWS;
     transparent = -1;
     pxOffscreen obj;
     
@@ -1966,14 +1948,13 @@ rtError pxLoadGIFImage(const char *imageData, size_t imageDataSize,
         // these can be image, extension, or termination
         
         if (DGifGetRecordType(gif, &type) == GIF_ERROR) {
-            rtLogError("FATAL1: error reading file");
+            rtLogError("FATAL3: error reading file");
             break;
         }
         switch (type) {
             case IMAGE_DESC_RECORD_TYPE:
-            //rtLogWarn("Type=IMAGE_DESC_RECORD_TYPE");
             if (DGifGetImageDesc(gif) == GIF_ERROR) {
-                rtLogError("FATAL3: "
+                rtLogError("FATAL4: "
                            "error reading file");
                 break;
             }
@@ -1986,7 +1967,7 @@ rtError pxLoadGIFImage(const char *imageData, size_t imageDataSize,
             printf("(%d,%d,%d,%d)\n", x, y, w, h);
             
             if(x < 0 || y < 0 || x + w > width || y + h > height) {
-                rtLogError("FATAL3: "
+                rtLogError("FATAL5: "
                            "error reading file");
                 break;
             }
@@ -1995,7 +1976,7 @@ rtError pxLoadGIFImage(const char *imageData, size_t imageDataSize,
                 for(count = 0; count < 4; count++)
                 for(i = InterlacedOffset[count]; i < h; i += InterlacedJumps[count]){
                     if(DGifGetLine(gif, &rows[y+i][x], w) == GIF_ERROR) {
-                        rtLogError("FATAL3: "
+                        rtLogError("FATAL6: "
                                    "error reading file");
                         break;
                     }
@@ -2003,14 +1984,14 @@ rtError pxLoadGIFImage(const char *imageData, size_t imageDataSize,
             }else{
                 for(i = 0; i < h; i++)
                 if(DGifGetLine(gif, &rows[y+i][x], w) == GIF_ERROR) {
-                    rtLogError("FATAL3: "
+                    rtLogError("FATAL7: "
                                "error reading file");
                     break;
                 }
             }
             
             if((map = img->ColorMap ? img->ColorMap : gif->SColorMap) == NULL) {
-                rtLogError("FATAL3: "
+                rtLogError("FATAL8: "
                            "error reading file");
                 break;
             }
@@ -2019,17 +2000,15 @@ rtError pxLoadGIFImage(const char *imageData, size_t imageDataSize,
             break;
             
             case EXTENSION_RECORD_TYPE:
-            //rtLogWarn("Type=EXTENSION_RECORD_TYPE");
             {
                 int ext_code;
                 GifByteType* extension;
                 
                 if (DGifGetExtension(gif, &extcode, &extension) == GIF_ERROR) {
-                    rtLogError("FATAL3: "
+                    rtLogError("FATAL9: "
                                "error reading file");
                     break;
                 }
-                //printf("extcode:%X\n", extcode);
                 switch(extcode) {
                     case COMMENT_EXT_FUNC_CODE:
                     break;
@@ -2051,7 +2030,7 @@ rtError pxLoadGIFImage(const char *imageData, size_t imageDataSize,
                         continue;
                     }
                     
-                    rtLogError("FATAL4: "
+                    rtLogError("FATAL10: "
                                "error reading file");
                     break;
                 }
@@ -2060,19 +2039,13 @@ rtError pxLoadGIFImage(const char *imageData, size_t imageDataSize,
             break;
             
             case TERMINATE_RECORD_TYPE:
-            //rtLogWarn("Type=TERMINATE_RECORD_TYPE");
             break;
             case SCREEN_DESC_RECORD_TYPE:
-            //rtLogWarn("Type=SCREEN_DESC_RECORD_TYPE:Should not happen");
             case UNDEFINED_RECORD_TYPE:
-            //rtLogWarn("Type=UNDEFINED_RECORD_TYPE");
             default: /* Should be traps by DGifGetRecordType. */
             break;
         }
     }while (type != TERMINATE_RECORD_TYPE);
-    
-    
-    //output->Free();
     
     for(i = 0; i < height; i++){
         if(rows[i] != NULL)

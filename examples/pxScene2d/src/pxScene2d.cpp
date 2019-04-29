@@ -535,7 +535,10 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
 
   graphicsCapabilities.set("svg", 2);
   graphicsCapabilities.set("colors", 1);
-
+#ifdef SUPPORT_GIF
+    graphicsCapabilities.set("gif", 1);
+#endif //SUPPORT_GIF
+    
 #ifdef SPARK_CURSOR_SUPPORT
   graphicsCapabilities.set("cursor", 1);
 #else

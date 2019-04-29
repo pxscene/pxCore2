@@ -37,10 +37,10 @@ set(BUILD_RTCORE_SHARED_LIBRARY 1)
 
 if (BUILD_WITH_GIF)
 message("Building with GIF support")
-set(PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} gif)
-add_definitions(-DSUPPORT_GIF)
-endif (BUILD_WITH_GIF)
 
+add_definitions(-DSUPPORT_GIF)
+
+endif (BUILD_WITH_GIF)
 
 
 if (APPLE)
