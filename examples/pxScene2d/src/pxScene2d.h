@@ -840,7 +840,8 @@ public:
   rtMethod1ArgAndReturn("loadArchive",loadArchive,rtString,rtObjectRef); 
   rtMethod1ArgAndReturn("create", create, rtObjectRef, rtObjectRef);
   rtMethodNoArgAndReturn("clock", clock, double);
-  rtMethodNoArgAndReturn("logDebugMetrics", logDebugMetrics, rtObjectRef);
+  rtMethodNoArgAndNoReturn("logDebugMetrics", logDebugMetrics);
+  rtMethodNoArgAndReturn("debugMetrics", debugMetrics, rtObjectRef);
   rtMethodNoArgAndNoReturn("collectGarbage", collectGarbage);
   rtReadOnlyProperty(info, info, rtObjectRef);
   rtReadOnlyProperty(capabilities, capabilities, rtObjectRef);
@@ -994,7 +995,8 @@ public:
   rtError createWayland(rtObjectRef p, rtObjectRef& o);
 
   rtError clock(double & time);
-  rtError logDebugMetrics(rtObjectRef& o);
+  rtError logDebugMetrics();
+  rtError debugMetrics(rtObjectRef& o);
   rtError collectGarbage();
   rtError suspend(const rtValue& v, bool& b);
   rtError resume(const rtValue& v, bool& b);
