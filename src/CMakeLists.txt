@@ -3,6 +3,7 @@ project(pxcore)
 find_package(PkgConfig)
 
 set(CMAKE_CXX_STANDARD 11)
+set(EXTDIR "${CMAKE_CURRENT_SOURCE_DIR}/examples/pxScene2d/external")
 set(GIF ${EXTDIR}/gif)
 set(GIF_LIBRARY_DIRS ${EXTDIR}/gif/.libs)
 
