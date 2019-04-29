@@ -27,7 +27,9 @@
 #include <string.h>
 #include <stdarg.h>
 #include <png.h>
+#ifdef SUPPORT_GIF
 #include <gif_lib.h>
+#endif
 #include "rtLog.h"
 #include "pxCore.h"
 #include "pxOffscreen.h"
@@ -1793,6 +1795,7 @@ rtString md5sum(rtString &d)
 
   return rtString(  (char *) str_result);
 }
+#ifdef SUPPORT_GIF
 
 typedef struct gifData {
     char *imageData;
@@ -1826,7 +1829,6 @@ int readGifData (GifFileType *gif, GifByteType *dst, int size){
 
 static int InterlacedOffset[] =  { 0, 4, 2, 1 },
 InterlacedJumps[] =  { 8, 8, 4, 2 };
-
 void drawGifImage(pxOffscreen& obj, pxTimedOffscreenSequence &s, GifRowType *rows, ColorMapObject *map, int transparent){
     size_t x, y, w, h;
     w = obj.width();
@@ -1841,7 +1843,7 @@ void drawGifImage(pxOffscreen& obj, pxTimedOffscreenSequence &s, GifRowType *row
     for(y = 0; y < h; y++){
         for(x = 0; x < w; x++){
             id = rows[y][x];
-            pixel = obj.pixel(x, y);//&(dst.data[y][x]);
+            pixel = obj.pixel(x, y);
             if(transparent != -1 && transparent == id){
                 continue;
             }
@@ -1868,10 +1870,15 @@ void drawGifImage(pxOffscreen& obj, pxTimedOffscreenSequence &s, GifRowType *row
      */
     
 }
+#endif
 
 rtError pxLoadGIFImage(const char *imageData, size_t imageDataSize,
                        pxTimedOffscreenSequence &s)
 {
+#ifndef SUPPORT_GIF
+    rtLogDebug("GIF support is not enabled");
+    return RT_FAIL;
+#else
     rtLogWarn("pxLoadGIFImage!");
     if (!imageData)
     {
@@ -1964,55 +1971,55 @@ rtError pxLoadGIFImage(const char *imageData, size_t imageDataSize,
         }
         switch (type) {
             case IMAGE_DESC_RECORD_TYPE:
-                rtLogWarn("Type=IMAGE_DESC_RECORD_TYPE");
-                if (DGifGetImageDesc(gif) == GIF_ERROR) {
-                    rtLogError("FATAL3: "
-                               "error reading file");
-                    break;
-                }
-                
-                img = &(gif->Image);
-                x = img->Left;
-                y = img->Top;
-                w = img->Width;
-                h = img->Height;
-                printf("(%d,%d,%d,%d)\n", x, y, w, h);
-                
-                if(x < 0 || y < 0 || x + w > width || y + h > height) {
-                    rtLogError("FATAL3: "
-                               "error reading file");
-                    break;
-                }
-                
-                if(img->Interlace){
-                    for(count = 0; count < 4; count++)
-                        for(i = InterlacedOffset[count]; i < h; i += InterlacedJumps[count]){
-                            if(DGifGetLine(gif, &rows[y+i][x], w) == GIF_ERROR) {
-                                rtLogError("FATAL3: "
-                                           "error reading file");
-                                break;
-                            }
-                        }
-                }else{
-                    for(i = 0; i < h; i++)
-                        if(DGifGetLine(gif, &rows[y+i][x], w) == GIF_ERROR) {
-                            rtLogError("FATAL3: "
-                                       "error reading file");
-                            break;
-                        }
-                }
-                
-                if((map = img->ColorMap ? img->ColorMap : gif->SColorMap) == NULL) {
-                    rtLogError("FATAL3: "
-                               "error reading file");
-                    break;
-                }
-                obj.init(w, h);
-                drawGifImage(obj, s, rows, map, transparent);
+            //rtLogWarn("Type=IMAGE_DESC_RECORD_TYPE");
+            if (DGifGetImageDesc(gif) == GIF_ERROR) {
+                rtLogError("FATAL3: "
+                           "error reading file");
                 break;
-                
+            }
+            
+            img = &(gif->Image);
+            x = img->Left;
+            y = img->Top;
+            w = img->Width;
+            h = img->Height;
+            printf("(%d,%d,%d,%d)\n", x, y, w, h);
+            
+            if(x < 0 || y < 0 || x + w > width || y + h > height) {
+                rtLogError("FATAL3: "
+                           "error reading file");
+                break;
+            }
+            
+            if(img->Interlace){
+                for(count = 0; count < 4; count++)
+                for(i = InterlacedOffset[count]; i < h; i += InterlacedJumps[count]){
+                    if(DGifGetLine(gif, &rows[y+i][x], w) == GIF_ERROR) {
+                        rtLogError("FATAL3: "
+                                   "error reading file");
+                        break;
+                    }
+                }
+            }else{
+                for(i = 0; i < h; i++)
+                if(DGifGetLine(gif, &rows[y+i][x], w) == GIF_ERROR) {
+                    rtLogError("FATAL3: "
+                               "error reading file");
+                    break;
+                }
+            }
+            
+            if((map = img->ColorMap ? img->ColorMap : gif->SColorMap) == NULL) {
+                rtLogError("FATAL3: "
+                           "error reading file");
+                break;
+            }
+            obj.init(w, h);
+            drawGifImage(obj, s, rows, map, transparent);
+            break;
+            
             case EXTENSION_RECORD_TYPE:
-                rtLogWarn("Type=EXTENSION_RECORD_TYPE");
+            //rtLogWarn("Type=EXTENSION_RECORD_TYPE");
             {
                 int ext_code;
                 GifByteType* extension;
@@ -2025,19 +2032,19 @@ rtError pxLoadGIFImage(const char *imageData, size_t imageDataSize,
                 //printf("extcode:%X\n", extcode);
                 switch(extcode) {
                     case COMMENT_EXT_FUNC_CODE:
-                        break;
+                    break;
                     case GRAPHICS_EXT_FUNC_CODE:
-                        if(extension != NULL){
-                            if((extension[1] & 0x01) == 0x01)
-                                transparent = extension[4];
-                            else
-                                transparent = -1;
-                        }
-                        break;
+                    if(extension != NULL){
+                        if((extension[1] & 0x01) == 0x01)
+                        transparent = extension[4];
+                        else
+                        transparent = -1;
+                    }
+                    break;
                     case PLAINTEXT_EXT_FUNC_CODE:
-                        break;
+                    break;
                     case APPLICATION_EXT_FUNC_CODE:
-                        break;
+                    break;
                 }
                 while (extension != NULL) {
                     if (DGifGetExtensionNext(gif, &extension) == GIF_OK) {
@@ -2050,17 +2057,17 @@ rtError pxLoadGIFImage(const char *imageData, size_t imageDataSize,
                 }
                 
             }
-                break;
-                
+            break;
+            
             case TERMINATE_RECORD_TYPE:
-                rtLogWarn("Type=TERMINATE_RECORD_TYPE");
-                break;
+            //rtLogWarn("Type=TERMINATE_RECORD_TYPE");
+            break;
             case SCREEN_DESC_RECORD_TYPE:
-                rtLogWarn("Type=SCREEN_DESC_RECORD_TYPE:Should not happen");
+            //rtLogWarn("Type=SCREEN_DESC_RECORD_TYPE:Should not happen");
             case UNDEFINED_RECORD_TYPE:
-                rtLogWarn("Type=UNDEFINED_RECORD_TYPE");
+            //rtLogWarn("Type=UNDEFINED_RECORD_TYPE");
             default: /* Should be traps by DGifGetRecordType. */
-                break;
+            break;
         }
     }while (type != TERMINATE_RECORD_TYPE);
     
@@ -2069,7 +2076,7 @@ rtError pxLoadGIFImage(const char *imageData, size_t imageDataSize,
     
     for(i = 0; i < height; i++){
         if(rows[i] != NULL)
-            free(rows[i]);
+        free(rows[i]);
     }
     free(rows);
     
@@ -2078,9 +2085,8 @@ rtError pxLoadGIFImage(const char *imageData, size_t imageDataSize,
 #else
     DGifCloseFile(gif);
 #endif
-RETURN:
-    //if(ret!=SUCCESS)
-    //    PrintGifError();
+#endif //SUPPORT_GIF
+    
     return RT_OK;
 }
 
