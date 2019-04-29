@@ -161,7 +161,6 @@
     ~~~~
     cmake --build . --config Release -- /m
     ~~~~
-    
 5. Run a sample javascript file:
 
     On Linux
