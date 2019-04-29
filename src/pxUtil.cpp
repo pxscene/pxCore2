@@ -1282,7 +1282,6 @@ void pxTimedOffscreenSequence::addBuffer(pxBuffer &b, double d)
 #include <stdlib.h>
 #include <string.h>
 #include "png.h"
-#include "../examples/pxScene2d/external/gif/gif_lib.h"
 
 //#define PNG_APNG_SUPPORTED
 
