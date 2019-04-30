@@ -26,13 +26,12 @@ before_install:
 - env
 - eval "${MATRIX_EVAL}"
 - ./ci/before_install.sh
-- if ( [ "$TRAVIS_EVENT_TYPE" = "push" ] || [ "$TRAVIS_EVENT_TYPE" = "pull_request" ] ) && [ -z "${TRAVIS_TAG}" ] && [ "$TRAVIS_OS_NAME" = "osx" ] ; then export PATH=/usr/local/opt/ccache/libexec:$PATH ; fi
-- if ( [ "$TRAVIS_EVENT_TYPE" = "push" ] || [ "$TRAVIS_EVENT_TYPE" = "pull_request" ] ) && [ -z "${TRAVIS_TAG}" ] && [ "$TRAVIS_OS_NAME" = "linux" ] ; then export PATH=/usr/lib/ccache:$PATH ; fi
+- export PATH=/usr/lib/ccache:/usr/local/opt/ccache/libexec:$PATH ; fi
 - gcc -v && g++ -v 
 install:
 - ./ci/install.sh
 before_script:
-- if ( [ "$TRAVIS_EVENT_TYPE" = "push" ] || [ "$TRAVIS_EVENT_TYPE" = "pull_request" ] ) && [ -z "${TRAVIS_TAG}" ] ; then ccache -s; fi
+- ccache -s
 - ./ci/before_script.sh
 - if [ "$TRAVIS_EVENT_TYPE" = "api" ] || [ ! -z "${TRAVIS_TAG}" ] ;  then export linenumber=`awk '/CFBundleShortVersionString/{ print NR; exit }' $TRAVIS_BUILD_DIR/examples/pxScene2d/src/macstuff/Info.plist`;export PX_VERSION=`sed -n "\`echo $((linenumber+1))\`p" $TRAVIS_BUILD_DIR/examples/pxScene2d/src/macstuff/Info.plist|awk -F '<string>' '{print $2}'|awk -F'</string>' '{print $1}'`; fi
 - if ( [ "$TRAVIS_EVENT_TYPE" = "cron" ] ) && [ "$TRAVIS_JOB_NAME" != "osx_asan_validation" ] ; then export PX_VERSION=edge_`date +%Y-%m-%d` ; fi
