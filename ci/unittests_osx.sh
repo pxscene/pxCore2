@@ -24,7 +24,8 @@ cd $TRAVIS_BUILD_DIR/tests/pxScene2d;
 touch $TRAVIS_BUILD_DIR/logs/test_logs;
 TESTLOGS=$TRAVIS_BUILD_DIR/logs/test_logs;
 #sudo -E ./pxscene2dtests.sh>$TESTLOGS 2>&1 &
-./pxscene2dtests.sh>$TESTLOGS 2>&1 &
+#./pxscene2dtests.sh>$TESTLOGS 2>&1 &
+./pxscene2dtests.sh
 
 grep "Global test environment tear-down" $TESTLOGS
 retVal=$?
@@ -75,7 +76,7 @@ grep "Global test environment tear-down" $TESTLOGS
 retVal=$?
 if [ "$retVal" -eq 1 ]
 then
-	if [ "$TRAVIS_PULL_REQUEST" != "false" ]
+	if [ "$TRAVIS_PULL_REQUEST" != "false" ] 
 	then
 		errCause="Either one or more tests failed. Check the above logs"
 		echo "********************** PRINTING TEST LOG **************************"
