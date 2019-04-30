@@ -50,12 +50,16 @@ then
   else
     if [ "$TRAVIS_EVENT_TYPE" == "cron" ] ; 
     then
-      cp ../examples/pxScene2d/src/macstuff/Resources/SparkEdge.icns ../examples/pxScene2d/src/macstuff/Resources/pxscene.icns
-      cp ../examples/pxScene2d/src/macstuff/Resources/SparkEdge.icns ../examples/pxScene2d/src/macstuff/Resources/AppIcon.icns
-      cp ../examples/pxScene2d/src/macstuff/Resources/SparkEdge.icns ../examples/pxScene2d/src/macstuff/dmgresources/pxscene.icns
-      cp ../examples/pxScene2d/src/browser/images/status_bg_edge.svg ../examples/pxScene2d/src/browser/images/status_bg.svg
-       
-      cmake -DSUPPORT_DUKTAPE=OFF -DPXSCENE_VERSION=edge_`date +%Y-%m-%d` .. >>$BUILDLOGS 2>&1;
+      if [ "$TRAVIS_JOB_NAME" != "osx_asan_validation" ] ;
+      then
+        cp ../examples/pxScene2d/src/macstuff/Resources/SparkEdge.icns ../examples/pxScene2d/src/macstuff/Resources/pxscene.icns
+        cp ../examples/pxScene2d/src/macstuff/Resources/SparkEdge.icns ../examples/pxScene2d/src/macstuff/Resources/AppIcon.icns
+        cp ../examples/pxScene2d/src/macstuff/Resources/SparkEdge.icns ../examples/pxScene2d/src/macstuff/dmgresources/pxscene.icns
+        cp ../examples/pxScene2d/src/browser/images/status_bg_edge.svg ../examples/pxScene2d/src/browser/images/status_bg.svg
+        cmake -DSUPPORT_DUKTAPE=OFF -DPXSCENE_VERSION=edge_`date +%Y-%m-%d` .. >>$BUILDLOGS 2>&1;
+      else
+        cmake -DENABLE_ADDRESS_SANITIZER=ON -DADDRESS_SANITIZER_SUPPRESS_FILE=$TRAVIS_BUILD_DIR/ci/asan.supp ..
+      fi
     else
       cmake -DSUPPORT_DUKTAPE=OFF .. >>$BUILDLOGS 2>&1;
     fi
@@ -85,9 +89,11 @@ if [ "$TRAVIS_PULL_REQUEST" = "false" ]
 
   if [ "$TRAVIS_EVENT_TYPE" = "cron" ]  ;
   then
-    cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src/
-    ./mkdeploy.sh edge_`date +%Y-%m-%d` >>$BUILDLOGS 2>&1
-        
+    if [ "$TRAVIS_JOB_NAME" != "osx_asan_validation" ] ;
+    then
+      cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src/
+      ./mkdeploy.sh edge_`date +%Y-%m-%d` >>$BUILDLOGS 2>&1
+    fi
   elif [ "$TRAVIS_EVENT_TYPE" = "api" ] || [ ! -z "${TRAVIS_TAG}" ] 
   then
     cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src/

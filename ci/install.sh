@@ -36,7 +36,7 @@ then
   checkError $? "unable to create exec logs file" "could be permission issue" "Retry trigerring travis build"
 fi
 
-if [ "$TRAVIS_EVENT_TYPE" = "cron" ] || [ "$TRAVIS_EVENT_TYPE" = "api" ] || [ ! -z "${TRAVIS_TAG}" ] 
+if ( [ "$TRAVIS_EVENT_TYPE" = "cron" ] || [ "$TRAVIS_EVENT_TYPE" = "api" ] || [ ! -z "${TRAVIS_TAG}" ] ) && [ "$TRAVIS_JOB_NAME" != "osx_asan_validation" ]
 then
   mkdir $TRAVIS_BUILD_DIR/artifacts
   checkError $? "unable to create directory artifacts" "could be permission issue" "Retry triggering travis build"
