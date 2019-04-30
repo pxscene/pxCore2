@@ -16,7 +16,7 @@ matrix:
   - os: osx
     osx_image: xcode9.4
     name: osx_regular
-  - if: type = pull
+  - if: type = push
     os: osx
     osx_image: xcode9.4
     name: osx_validation
