@@ -58,7 +58,7 @@ then
         cp ../examples/pxScene2d/src/browser/images/status_bg_edge.svg ../examples/pxScene2d/src/browser/images/status_bg.svg
         cmake -DSUPPORT_DUKTAPE=OFF -DPXSCENE_VERSION=edge_`date +%Y-%m-%d` .. >>$BUILDLOGS 2>&1;
       else
-        cmake -DENABLE_ADDRESS_SANITIZER=ON -DADDRESS_SANITIZER_SUPPRESS_FILE=$TRAVIS_BUILD_DIR/ci/asan.supp ..
+        cmake -DBUILD_PX_TESTS=ON -DBUILD_PXSCENE_STATIC_LIB=ON -DBUILD_DEBUG_METRICS=ON -DPXSCENE_TEST_HTTP_CACHE=ON -DENABLE_ADDRESS_SANITIZER=ON -DADDRESS_SANITIZER_SUPPRESS_FILE=$TRAVIS_BUILD_DIR/ci/asan.supp ..
       fi
     else
       cmake -DSUPPORT_DUKTAPE=OFF .. >>$BUILDLOGS 2>&1;
