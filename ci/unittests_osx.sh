@@ -88,9 +88,9 @@ then
 	checkError $retVal "unittests execution failed" "$errCause" "Rrun unittests locally"
 fi
 
-if [ "$TRAVIS_EVENT_TYPE" = "cron" ] && [ "$TRAVIS_JOB_NAME" = "osx_asan_validation" ]
-then
-exit 0;
+#if [ "$TRAVIS_EVENT_TYPE" = "cron" ] && [ "$TRAVIS_JOB_NAME" = "osx_asan_validation" ]
+#then
+#exit 0;
 else
 #check for failed test
 grep "FAILED TEST" $TESTLOGS
