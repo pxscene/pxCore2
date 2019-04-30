@@ -32,6 +32,17 @@ then
   checkError $? "Unable to send log files to 96.116.56.119" "Possible reason - Server could be down" "Retry"
 fi
 
+#if [ "$TRAVIS_EVENT_TYPE" = "cron" ] && [ "$TRAVIS_JOB_NAME" = "osx_asan_validation" ]
+#then
+#  if [ -f /tmp/error ]
+#  then
+#    tar -cvzf logs.tgz logs/*
+#    checkError $? "Unable to compress logs folder" "Check for any previous tasks failed" "Retry"
+#    ./ci/deploy_files.sh 96.116.56.119 logs.tgz;
+#    checkError $? "Unable to send log files to 96.116.56.119" "Possible reason - Server could be down" "Retry"
+#  fi
+#fi
+
 if [ "$TRAVIS_EVENT_TYPE" = "cron" ] || [ "$TRAVIS_EVENT_TYPE" = "api" ] || [ ! -z "${TRAVIS_TAG}" ]
 then
   if [ "$TRAVIS_JOB_NAME" != "osx_asan_validation" ] ;

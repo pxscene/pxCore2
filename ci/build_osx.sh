@@ -27,6 +27,7 @@ then
         cat $BUILDLOGS
         printf "\n**********************************************************************\n\n";
     fi
+    touch /tmp/error
 exit 1;
 fi
 }

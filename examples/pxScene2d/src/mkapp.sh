@@ -5,7 +5,7 @@ minJS=./jsMin.sh  #minify
 
 externalDir=../external
 APPNAME=Spark
-if [ "$TRAVIS_EVENT_TYPE" == "cron" ]
+if [ "$TRAVIS_EVENT_TYPE" == "cron" && "$TRAVIS_JOB_NAME" != "osx_asan_validation" ]
 then
 APPNAME=SparkEdge
 fi

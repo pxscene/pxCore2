@@ -21,6 +21,7 @@ checkError()
         printf "\nReproduction/How to fix: $4"
         printf "\n*********************************************************************";
         printf "\n*********************************************************************\n\n";
+        touch /tmp/error
         exit 1;
   fi
 }
@@ -105,6 +106,7 @@ if [ "$?" -eq 0 ]
       errCause="Race Condition detected. Check the log file $EXECLOGS"
     fi
     checkError -1 "Testcase Failure" "$errCause" "Compile spark with -DENABLE_THREAD_SANITIZER=ON option and test with tests.json file."
+    touch /tmp/error
     exit 1
 fi
 
@@ -153,6 +155,7 @@ cp /var/tmp/spark.log $EXECLOGS
 if [ "$dumped_core" -eq 1 ]
 	then
 	echo "ERROR:  Core Dump - exiting ...";
+        touch /tmp/error
 	exit 1;
 fi
 
@@ -170,6 +173,7 @@ if [ "$retVal" -ne 0 ]
 		errCause="Either one or more tests failed. Check the log file $EXECLOGS"
 	fi
 	checkError $retVal "Testrunner execution failed" "$errCause" "Run pxscene with testrunner.js locally as ./spark.sh https://www.sparkui.org/tests-ci/test-run/testRunner.js?tests=<pxcore dir>tests/pxScene2d/testRunner/tests.json"
+        touch /tmp/error
 	exit 1;
 fi
 
@@ -190,6 +194,7 @@ else
 		errCause="Check the $EXECLOGS file"
 	fi 
 	checkError -1 "Texture leak or pxobject leak" "$errCause" "Follow steps locally: export PX_DUMP_MEMUSAGE=1;export RT_LOG_LEVEL=info;./spark.sh $TESTRUNNERURL?tests=$TESTS locally and check for 'texture memory usage is' and 'pxobjectcount is' in logs and see which is non-zero" 
+        touch /tmp/error
 	exit 1;
 fi
 
@@ -204,6 +209,7 @@ if [ "$leakcount" -ne 0 ]
 		errCause="Check the file $LEAKLOGS and $EXECLOGS"
 	fi
 	checkError $leakcount "Execution reported memory leaks" "$errCause" "Run locally with these steps: export ENABLE_MEMLEAK_CHECK=1;export MallocStackLogging=1;export PX_DUMP_MEMUSAGE=1;./spark.sh $TESTRUNNERURL?tests=$TESTS &; run leaks -nocontext Spark >logfile continuously until the testrunner execution completes; Analyse the logfile" 
+        touch /tmp/error
 	exit 1;
 else
 	echo "Valgrind reports success !!!!!!!!!!!"
