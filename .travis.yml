@@ -26,7 +26,7 @@ before_install:
 - env
 - eval "${MATRIX_EVAL}"
 - ./ci/before_install.sh
-- export PATH=/usr/lib/ccache:/usr/local/opt/ccache/libexec:$PATH ; fi
+- export PATH=/usr/lib/ccache:/usr/local/opt/ccache/libexec:$PATH
 - gcc -v && g++ -v 
 install:
 - ./ci/install.sh
