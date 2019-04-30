@@ -21,7 +21,6 @@ travis_retry() {
   return $result
 }
 
-echo "Loosu................... $TRAVIS_JOB_NAME"
 #start the monitor
 $TRAVIS_BUILD_DIR/ci/monitor.sh &
 
