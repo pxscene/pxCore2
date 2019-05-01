@@ -83,7 +83,13 @@ then
                 cat $TESTLOGS
                 echo "************************** LOG ENDS *******************************"
         else
-		errCause="Either one or more tests failed. Check the log file $TESTLOGS"
+                if [ "$TRAVIS_EVENT_TYPE" = "cron" ] && [ "$TRAVIS_JOB_NAME" = "osx_asan_validation" ];
+                then
+		  errCause="Either one or more tests failed. Check the below logs and log file $TESTLOGS"
+                  cat $TESTLOGS
+                else
+		  errCause="Either one or more tests failed. Check the log file $TESTLOGS"
+                fi
 	fi 
 	checkError $retVal "unittests execution failed" "$errCause" "Rrun unittests locally"
 fi
@@ -101,7 +107,13 @@ then
                 cat $TESTLOGS
                 echo "************************** LOG ENDS *******************************"
         else
-		errCause="Either one or more tests failed. Check the log file $TESTLOGS"
+                if [ "$TRAVIS_EVENT_TYPE" = "cron" ] && [ "$TRAVIS_JOB_NAME" = "osx_asan_validation" ];
+                then
+		  errCause="Either one or more tests failed. Check the above logs and $TESTLOGS"
+                  cat $TESTLOGS
+                else
+		  errCause="Either one or more tests failed. Check the log file $TESTLOGS"
+                fi
 	fi 
 	checkError -1 "unittests execution failed" "$errCause" "Run unittests locally"
 else

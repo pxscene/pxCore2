@@ -84,7 +84,7 @@ else
   sh build_px.sh "build_$TRAVIS_OS_NAME.sh"
   if [ "$TRAVIS_EVENT_TYPE" = "cron" ] && [ "$TRAVIS_JOB_NAME" = "osx_asan_validation" ]
   then
-    sh "unittests_$TRAVIS_OS_NAME.sh" 
+    sh "unittests_$TRAVIS_OS_NAME.sh"
     checkError $? "#### Build/unittests/execution [unittests_$TRAVIS_OS_NAME.sh] failed" "Either build problem/execution problem" "Analyze corresponding log file"
 
     sh "execute_$TRAVIS_OS_NAME.sh" 
