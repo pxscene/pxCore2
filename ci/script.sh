@@ -93,7 +93,7 @@ else
   fi
 fi
 
-if [ "$TRAVIS_EVENT_TYPE" = "api" ] || [ ! -z "${TRAVIS_TAG}" ]
+if [ "$TRAVIS_EVENT_TYPE" = "api" ] || [ ! -z "${TRAVIS_TAG}" ] 
 then
   cp $TRAVIS_BUILD_DIR/examples/pxScene2d/src/deploy/mac/*.dmg $TRAVIS_BUILD_DIR/artifacts/.
   checkError $? "Copying dmg file failed" "Could be build problem or file not generated" "Analyze build logs"
