@@ -68,10 +68,10 @@ fi
 #install lighttpd, code coverage binaries for mac
 if [ "$TRAVIS_OS_NAME" = "osx" ] ; 
 then
-  if ( [ "$TRAVIS_EVENT_TYPE" = "push" ] || [ "$TRAVIS_EVENT_TYPE" = "pull_request" ] ) && [ -z "${TRAVIS_TAG}" ]	
-  then	
+  if ( [ "$TRAVIS_EVENT_TYPE" = "push" ] || [ "$TRAVIS_EVENT_TYPE" = "pull_request" ] ) && [ -z "${TRAVIS_TAG}" ]
+  then
 #    brew install lighttpd
-    brew install gcovr	
+    brew install gcovr
     brew install lcov
     brew install ccache
     ls -al $HOME/.ccache
