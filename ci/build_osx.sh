@@ -69,13 +69,14 @@ then
       cmake -DSUPPORT_DUKTAPE=OFF .. >>$BUILDLOGS 2>&1;
     fi
   fi
-
+  cmakeRetVal=$?
   if [ "$TRAVIS_EVENT_TYPE" = "cron" ] && [ "$TRAVIS_JOB_NAME" = "osx_asan_validation" ];
   then
-    checkError $? 1 "cmake config failed" "Config error" "Check the error in $BUILDLOGS also"
+    checkError $cmakeRetVal 1 "cmake config failed" "Config error" "Check the error in $BUILDLOGS also"
   else
-    echo "loosu ...................... $?"
-    checkError $? 0 "cmake config failed" "Config error" "Check the error in $BUILDLOGS"
+    echo $cmakeRetVal
+    echo "loosu ...................... "
+    checkError $cmakeRetVal 0 "cmake config failed" "Config error" "Check the error in $BUILDLOGS"
   fi
 
   echo "***************************** Building pxcore,rtcore,pxscene app,libpxscene,unitttests ****" >> $BUILDLOGS
