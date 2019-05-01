@@ -63,7 +63,8 @@ printValgrindLogs()
 
 # Start testRunner ... 
 cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src
-./spark.sh $TESTRUNNERURL?tests=$TESTS > $EXECLOGS 2>&1 &
+#./spark.sh $TESTRUNNERURL?tests=$TESTS > $EXECLOGS 2>&1 &
+./spark.sh $TESTRUNNERURL?tests=$TESTS
 
 
 grep "TEST RESULTS: " $EXECLOGS
@@ -86,7 +87,6 @@ while [ "$retVal" -ne 0 ] &&  [ "$count" -ne "$max_seconds" ]; do
 		ls -lrt /tmp/pxscenecrash
 		retVal=$?
 	fi
-        tail $EXECLOGS	
 done
 
 ls -lrt /tmp/pxscenecrash
