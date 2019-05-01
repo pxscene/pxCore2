@@ -24,7 +24,7 @@ then
 fi
 
 cd $TRAVIS_BUILD_DIR
-if [ "$TRAVIS_EVENT_TYPE" = "push" ] && [ -z "${TRAVIS_TAG}" ]
+if [ "$TRAVIS_EVENT_TYPE" = "push" ] && [ -z "${TRAVIS_TAG}" ] 
 then
   tar -cvzf logs.tgz logs/*
   checkError $? "Unable to compress logs folder" "Check for any previous tasks failed" "Retry"
@@ -63,7 +63,10 @@ then
   fi
 fi
 
-ccache -s
+if ( [ "$TRAVIS_EVENT_TYPE" = "push" ] || [ "$TRAVIS_EVENT_TYPE" = "pull_request" ] ) && [ -z "${TRAVIS_TAG}" ] 
+then
+  ccache -s
+fi
 
 #update release  notes and info.plist in github
 if ( [ "$TRAVIS_EVENT_TYPE" = "api" ] || [ ! -z "${TRAVIS_TAG}" ] ) && [ "$UPDATE_VERSION" = "true" ] 

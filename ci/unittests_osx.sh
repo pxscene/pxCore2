@@ -76,7 +76,7 @@ grep "Global test environment tear-down" $TESTLOGS
 retVal=$?
 if [ "$retVal" -eq 1 ]
 then
-	if [ "$TRAVIS_PULL_REQUEST" != "false" ] 
+	if [ "$TRAVIS_PULL_REQUEST" != "false" ]
 	then
 		errCause="Either one or more tests failed. Check the above logs"
 		echo "********************** PRINTING TEST LOG **************************"
@@ -88,9 +88,6 @@ then
 	checkError $retVal "unittests execution failed" "$errCause" "Rrun unittests locally"
 fi
 
-#if [ "$TRAVIS_EVENT_TYPE" = "cron" ] && [ "$TRAVIS_JOB_NAME" = "osx_asan_validation" ]
-#then
-#exit 0;
 #check for failed test
 grep "FAILED TEST" $TESTLOGS
 retVal=$?
