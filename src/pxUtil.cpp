@@ -1879,13 +1879,14 @@ rtError pxLoadGIFImage(const char *imageData, size_t imageDataSize,
     }
     s.init();
     
-    GifFileType *gif;
-    GifRowType  *rows, row;
+    GifFileType *gif = NULL;
+    GifRowType  *rows = NULL;
+    GifRowType row;
     GifRecordType type;
-    GifImageDesc *img;
-    ColorMapObject *map;
+    GifImageDesc *img = NULL;
+    ColorMapObject *map = NULL;
     int extcode, transparent;
-    GifByteType *extension;
+    GifByteType *extension = NULL;
     GifWord width, height, i, x, y, w, h;
     size_t size, count;
     
@@ -1913,15 +1914,18 @@ rtError pxLoadGIFImage(const char *imageData, size_t imageDataSize,
                    "error reading file");
         status = RT_FAIL;
     }
-    memset(rows, 0x00, size);
-    
-    size = width * sizeof(GifPixelType);
-    if (status == RT_OK && (row = (GifRowType) malloc(size)) == NULL) {
-        rtLogDebug("FATAL1: "
-                   "error reading file");
-        status = RT_FAIL;
+    if (status == RT_OK) {
+        memset(rows, 0x00, size);
+        
+        size = width * sizeof(GifPixelType);
+        if ((row = (GifRowType) malloc(size)) == NULL) {
+            rtLogDebug("FATAL1: "
+                       "error reading file");
+            status = RT_FAIL;
+        }
     }
     
+    if (status == RT_OK) {
     if(sizeof(GifPixelType) == 1){
         memset(row, gif->SBackGroundColor, size);
     }else{
@@ -1931,8 +1935,9 @@ rtError pxLoadGIFImage(const char *imageData, size_t imageDataSize,
     }
     
     rows[0] = row;
+    }
     
-    for(i = 1; i < height && status == RT_OK; i++){
+    for(i = 1; status == RT_OK && i < height; i++){
         if((rows[i] = (GifRowType) malloc(size)) == NULL) {
             rtLogDebug("FATAL2: "
                        "error reading file");
@@ -2056,11 +2061,13 @@ rtError pxLoadGIFImage(const char *imageData, size_t imageDataSize,
         }
     }while (type != TERMINATE_RECORD_TYPE);
     
+    if (NULL != rows) {
     for(i = 0; i < height; i++){
         if(rows[i] != NULL)
         free(rows[i]);
     }
     free(rows);
+    }
     
 #if defined GIFLIB_MAJOR && GIFLIB_MINOR && ((GIFLIB_MAJOR == 5 && GIFLIB_MINOR >= 1) || (GIFLIB_MAJOR > 5))
     DGifCloseFile(gif, NULL);
