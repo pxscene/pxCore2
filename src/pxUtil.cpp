@@ -1868,13 +1868,13 @@ rtError pxLoadGIFImage(const char *imageData, size_t imageDataSize,
 #else
     if (!imageData)
     {
-        rtLogError("FATAL: Invalid arguments - imageData = NULL");
+        rtLogDebug("FATAL: Invalid arguments - imageData = NULL");
         return RT_FAIL;
     }
     
     if (imageDataSize < 8)
     {
-        rtLogError("FATAL: Invalid arguments - imageDataSize < 8");
+        rtLogDebug("FATAL: Invalid arguments - imageDataSize < 8");
         return RT_FAIL;
     }
     s.init();
@@ -1899,7 +1899,7 @@ rtError pxLoadGIFImage(const char *imageData, size_t imageDataSize,
 #endif
     
     if ( NULL == gif ) {
-        rtLogError("FATAL: "
+        rtLogDebug("FATAL: "
                    "error reading file");
         return RT_FAIL;
     }
@@ -1909,14 +1909,14 @@ rtError pxLoadGIFImage(const char *imageData, size_t imageDataSize,
     
     size = height * sizeof(GifRowType *);
     if((rows = (GifRowType *) malloc(size)) == NULL) {
-        rtLogError("FATAL: "
+        rtLogDebug("FATAL: "
                    "error reading file");
     }
     memset(rows, 0x00, size);
     
     size = width * sizeof(GifPixelType);
     if ((row = (GifRowType) malloc(size)) == NULL) {
-        rtLogError("FATAL1: "
+        rtLogDebug("FATAL1: "
                    "error reading file");
     }
     
@@ -1932,7 +1932,7 @@ rtError pxLoadGIFImage(const char *imageData, size_t imageDataSize,
     
     for(i = 1; i < height; i++){
         if((rows[i] = (GifRowType) malloc(size)) == NULL) {
-            rtLogError("FATAL2: "
+            rtLogDebug("FATAL2: "
                        "error reading file");
             break;
         }
@@ -1946,13 +1946,13 @@ rtError pxLoadGIFImage(const char *imageData, size_t imageDataSize,
         // these can be image, extension, or termination
         
         if (DGifGetRecordType(gif, &type) == GIF_ERROR) {
-            rtLogError("FATAL3: error reading file");
+            rtLogDebug("FATAL3: error reading file");
             break;
         }
         switch (type) {
             case IMAGE_DESC_RECORD_TYPE:
             if (DGifGetImageDesc(gif) == GIF_ERROR) {
-                rtLogError("FATAL4: "
+                rtLogDebug("FATAL4: "
                            "error reading file");
                 break;
             }
@@ -1962,10 +1962,9 @@ rtError pxLoadGIFImage(const char *imageData, size_t imageDataSize,
             y = img->Top;
             w = img->Width;
             h = img->Height;
-            printf("(%d,%d,%d,%d)\n", x, y, w, h);
             
             if(x < 0 || y < 0 || x + w > width || y + h > height) {
-                rtLogError("FATAL5: "
+                rtLogDebug("FATAL5: "
                            "error reading file");
                 break;
             }
@@ -1974,7 +1973,7 @@ rtError pxLoadGIFImage(const char *imageData, size_t imageDataSize,
                 for(count = 0; count < 4; count++)
                 for(i = InterlacedOffset[count]; i < h; i += InterlacedJumps[count]){
                     if(DGifGetLine(gif, &rows[y+i][x], w) == GIF_ERROR) {
-                        rtLogError("FATAL6: "
+                        rtLogDebug("FATAL6: "
                                    "error reading file");
                         break;
                     }
@@ -1982,14 +1981,14 @@ rtError pxLoadGIFImage(const char *imageData, size_t imageDataSize,
             }else{
                 for(i = 0; i < h; i++)
                 if(DGifGetLine(gif, &rows[y+i][x], w) == GIF_ERROR) {
-                    rtLogError("FATAL7: "
+                    rtLogDebug("FATAL7: "
                                "error reading file");
                     break;
                 }
             }
             
             if((map = img->ColorMap ? img->ColorMap : gif->SColorMap) == NULL) {
-                rtLogError("FATAL8: "
+                rtLogDebug("FATAL8: "
                            "error reading file");
                 break;
             }
@@ -2003,7 +2002,7 @@ rtError pxLoadGIFImage(const char *imageData, size_t imageDataSize,
                 GifByteType* extension;
                 
                 if (DGifGetExtension(gif, &extcode, &extension) == GIF_ERROR) {
-                    rtLogError("FATAL9: "
+                    rtLogDebug("FATAL9: "
                                "error reading file");
                     break;
                 }
@@ -2028,7 +2027,7 @@ rtError pxLoadGIFImage(const char *imageData, size_t imageDataSize,
                         continue;
                     }
                     
-                    rtLogError("FATAL10: "
+                    rtLogDebug("FATAL10: "
                                "error reading file");
                     break;
                 }
