@@ -82,13 +82,14 @@ then
 
 else
   sh build_px.sh "build_$TRAVIS_OS_NAME.sh"
+  checkError $? "#### Build [build_px.sh] failed" "build problem" "Analyze corresponding log file"
   if [ "$TRAVIS_EVENT_TYPE" = "cron" ] && [ "$TRAVIS_JOB_NAME" = "osx_asan_validation" ]
   then
     sh "unittests_$TRAVIS_OS_NAME.sh"
-    checkError $? "#### Build/unittests/execution [unittests_$TRAVIS_OS_NAME.sh] failed" "Either build problem/execution problem" "Analyze corresponding log file"
+    checkError $? "#### unittests [unittests_$TRAVIS_OS_NAME.sh] failed" "execution problem" "Analyze corresponding log file"
 
     sh "execute_$TRAVIS_OS_NAME.sh" 
-    checkError $? "#### Build/unittests/execution [execute_$TRAVIS_OS_NAME.sh] failed" "Either build problem/execution problem" "Analyze corresponding log file"
+    checkError $? "#### execution [execute_$TRAVIS_OS_NAME.sh] failed" "execution problem" "Analyze corresponding log file"
   fi
 fi
 
