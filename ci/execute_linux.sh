@@ -80,13 +80,13 @@ while [ "$retVal" -ne 0 ] &&  [ "$count" -ne "$max_seconds" ]; do
 	sleep 30; # seconds
 	grep "TEST RESULTS: " $EXECLOGS
 	retVal=$?
-	
 	count=$((count+30))
 	if [ "$retVal" -ne 0 ]
 		then
 		ls -lrt /tmp/pxscenecrash
 		retVal=$?
 	fi
+        tail $EXECLOGS	
 done
 
 ls -lrt /tmp/pxscenecrash
