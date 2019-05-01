@@ -74,18 +74,17 @@ then
   then
     checkError $cmakeRetVal 1 "cmake config failed" "Config error" "Check the error in $BUILDLOGS also"
   else
-    echo $cmakeRetVal
-    echo "loosu ...................... "
     checkError $cmakeRetVal 0 "cmake config failed" "Config error" "Check the error in $BUILDLOGS"
   fi
 
   echo "***************************** Building pxcore,rtcore,pxscene app,libpxscene,unitttests ****" >> $BUILDLOGS
   cmake --build . -- -j$(getconf _NPROCESSORS_ONLN) >>$BUILDLOGS 2>&1;
+  cmakeRetVal=$?
   if [ "$TRAVIS_EVENT_TYPE" = "cron" ] && [ "$TRAVIS_JOB_NAME" = "osx_asan_validation" ];
   then
-    checkError $? 1 "Building either pxcore,rtcore,pxscene app,libpxscene,unitttest failed" "Compilation error" "check the $BUILDLOGS file also"
+    checkError $cmakeRetVal 1 "Building either pxcore,rtcore,pxscene app,libpxscene,unitttest failed" "Compilation error" "check the $BUILDLOGS file also"
   else
-    checkError $? 0 "Building either pxcore,rtcore,pxscene app,libpxscene,unitttest failed" "Compilation error" "check the $BUILDLOGS file"
+    checkError $cmakeRetVal 0 "Building either pxcore,rtcore,pxscene app,libpxscene,unitttest failed" "Compilation error" "check the $BUILDLOGS file"
   fi
 else
 
