@@ -74,6 +74,7 @@ then
   then
     checkError $? 1 "cmake config failed" "Config error" "Check the error in $BUILDLOGS also"
   else
+    echo "loosu ...................... $?"
     checkError $? 0 "cmake config failed" "Config error" "Check the error in $BUILDLOGS"
   fi
 
