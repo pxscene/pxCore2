@@ -12,7 +12,7 @@ filename=$2
 scp -P 2220 ${filename} ${DEPLOY_USER}@${REMOTE_HOST}:${REMOTE_TEMPDIR}
 SSH="ssh -tt -o StrictHostKeyChecking=no -p 2220 -l ${DEPLOY_USER} ${REMOTE_HOST}"
 $SSH "set -e;
-sudo mkdir $REMOTE_DIR
+sudo mkdir -p $REMOTE_DIR
 cd $REMOTE_TEMPDIR
 sudo tar -C $REMOTE_DIR -xvzf ${filename};
 sudo mv $REMOTE_DIR/logs/* $REMOTE_DIR/.
