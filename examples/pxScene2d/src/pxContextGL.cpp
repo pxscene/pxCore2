@@ -3023,5 +3023,13 @@ pxError pxContext::setEjectTextureAge(uint32_t age)
   return PX_OK;
 }
 
+void pxContext::updateRenderTick()
+{
+  {
+    rtMutexLockGuard renderTickMutexGuard(gRenderTickMutex);
+    gRenderTick++;
+  }
+}
+
 
 
