@@ -1,4 +1,5 @@
 #!/bin/sh
+#made destination directory as option
 export DEPLOY_DESTINATION=${DEPLOY_DESTINATION:-$3}
 export DEPLOY_USER="${DEPLOY_USER:-ubuntu}"
 REMOTE_HOST="$1"
