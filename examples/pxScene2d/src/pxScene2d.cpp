@@ -2514,6 +2514,8 @@ rtError pxScene2d::storage(rtObjectRef& v) const
   if (!mStorage)
   {
     rtString origin = mScriptView != NULL ? rtUrlGetOrigin(mScriptView->getUrl().cString()) : rtString();
+    if (origin.isEmpty())
+      origin = "file://";
 
     uint32_t storageQuota = 0;
 #ifdef ENABLE_PERMISSIONS_CHECK
@@ -2525,17 +2527,12 @@ rtError pxScene2d::storage(rtObjectRef& v) const
       return RT_OK;
     }
 
-    rtString storageName = rtUrlEscape(origin);
-    if (storageName.isEmpty())
-      storageName = rtUrlEscape("file://");
-
     rtString storagePath;
     rtValue storagePathVal;
-    if (RT_OK == rtSettings::instance()->value("defaultStoragePath", storagePathVal)) {
+    if (RT_OK == rtSettings::instance()->value("defaultStoragePath", storagePathVal))
       storagePath = storagePathVal.toString();
-    } else if (RT_OK == rtGetHomeDirectory(storagePath)) {
+    else if (RT_OK == rtGetHomeDirectory(storagePath))
       storagePath.append(DEFAULT_LOCALSTORAGE_DIR);
-    }
     rtEnsureTrailingPathSeparator(storagePath);
 
     // Create the path if it doesn't yet exist
@@ -2543,10 +2540,11 @@ rtError pxScene2d::storage(rtObjectRef& v) const
     if (!retVal)
       rtLogWarn("creation of storage directory %s failed: %d", storagePath.cString(), retVal);
 
+    rtString storageName = rtUrlEscape(origin);
     storagePath.append(storageName);
     rtLogInfo("storage path: %s", storagePath.cString());
 
-    mStorage = new rtStorage(storagePath, storageQuota);
+    mStorage = new rtStorage(storagePath, storageQuota, origin);
   }
 
   v = mStorage;

@@ -18,6 +18,7 @@ limitations under the License.
 
 #include "rtStorage.h"
 
+#include "rtPathUtils.h"
 #include "pxTimer.h"
 
 #include "test_includes.h" // Needs to be included last
@@ -25,6 +26,10 @@ limitations under the License.
 namespace
 {
   const char* testStorageLocation = "/tmp/sparkTestStorage";
+#if defined(SQLITE_HAS_CODEC)
+  const char* encryptedTestStorageLocation = "/tmp/sparkEncryptedTestStorage";
+  const char* encryptedStorageKey = "PDTuvnsuTuDnQQyB";
+#endif
 
 #ifdef ENABLE_STORAGE_PERF_TEST
   const int perfItems = 50;
@@ -391,6 +396,78 @@ public:
     EXPECT_EQ ((int)RT_OK, (int)s->term());
   }
 #endif
+
+#if defined(SQLITE_HAS_CODEC)
+  void encryption_test()
+  {
+    rtStorageRef s;
+    rtValue item;
+    rtString str;
+
+    auto cmd = rtString("rm -f ").append(encryptedTestStorageLocation);
+    EXPECT_EQ ((int)0, (int)system(cmd.cString()));
+    EXPECT_FALSE (rtFileExists(encryptedTestStorageLocation));
+
+    // NO KEY
+    s = new rtStorage(encryptedTestStorageLocation, 100);
+    EXPECT_TRUE (rtFileExists(encryptedTestStorageLocation));
+    EXPECT_FALSE (rtStorage::isEncryped(encryptedTestStorageLocation));
+    // SET
+    EXPECT_EQ ((int)RT_OK, (int)s->setItem("k1", "v1"));
+    // GET
+    EXPECT_EQ ((int)RT_OK, (int)s->getItem("k1", item));
+    str = item.toString();
+    EXPECT_EQ (std::string("v1"), str.cString());
+
+    // REKEY
+    s = new rtStorage(encryptedTestStorageLocation, 100, encryptedStorageKey);
+    EXPECT_TRUE (rtStorage::isEncryped(encryptedTestStorageLocation));
+    // SET
+    EXPECT_EQ ((int)RT_OK, (int)s->setItem("encrypted_k1", "encrypted_v1"));
+    // GET
+    EXPECT_EQ ((int)RT_OK, (int)s->getItem("k1", item));
+    str = item.toString();
+    EXPECT_EQ (std::string("v1"), str.cString());
+    EXPECT_EQ ((int)RT_OK, (int)s->getItem("encrypted_k1", item));
+    str = item.toString();
+    EXPECT_EQ (std::string("encrypted_v1"), str.cString());
+
+    // WRONG KEY
+    EXPECT_EQ ((int)RT_OK, (int)s->init(encryptedTestStorageLocation, 100, "LrAmyMguFVJbQMLJ"));
+    EXPECT_TRUE (rtStorage::isEncryped(encryptedTestStorageLocation));
+    // GET FAILS, DB ENCRYPTED
+    EXPECT_EQ ((int)RT_OK, (int)s->getItem("key1", item));
+    str = item.toString();
+    EXPECT_EQ (std::string(""), str.cString());
+
+    // NO KEY
+    EXPECT_EQ ((int)RT_OK, (int)s->init(encryptedTestStorageLocation, 100));
+    EXPECT_TRUE (rtStorage::isEncryped(encryptedTestStorageLocation));
+    // GET FAILS, DB ENCRYPTED
+    EXPECT_EQ ((int)RT_OK, (int)s->getItem("key1", item));
+    str = item.toString();
+    EXPECT_EQ (std::string(""), str.cString());
+
+    // KEY
+    s = new rtStorage(encryptedTestStorageLocation, 100, encryptedStorageKey);
+    EXPECT_TRUE (rtStorage::isEncryped(encryptedTestStorageLocation));
+    // SET
+    EXPECT_EQ ((int)RT_OK, (int)s->setItem("encrypted_k2", "encrypted_v2"));
+    // GET
+    EXPECT_EQ ((int)RT_OK, (int)s->getItem("k1", item));
+    str = item.toString();
+    EXPECT_EQ (std::string("v1"), str.cString());
+    EXPECT_EQ ((int)RT_OK, (int)s->getItem("encrypted_k1", item));
+    str = item.toString();
+    EXPECT_EQ (std::string("encrypted_v1"), str.cString());
+    EXPECT_EQ ((int)RT_OK, (int)s->getItem("encrypted_k2", item));
+    str = item.toString();
+    EXPECT_EQ (std::string("encrypted_v2"), str.cString());
+
+    // CLOSE
+    EXPECT_EQ ((int)RT_OK, (int)s->term());
+  }
+#endif
 };
 
 TEST_F(rtStorageTest, rtStorageTests)
@@ -406,5 +483,8 @@ TEST_F(rtStorageTest, rtStorageTests)
   badInput_test();
 #ifdef ENABLE_STORAGE_PERF_TEST
   performance_test();
+#endif
+#if defined(SQLITE_HAS_CODEC)
+  encryption_test();
 #endif
 }

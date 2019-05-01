@@ -20,13 +20,23 @@
 
 #include "sqlite3.h"
 
+#include "rtPathUtils.h"
 #include "rtLog.h"
+
+#if defined(USE_PLABELS)
+#include "pbnj_utils.hpp"
+#endif
+
+#ifndef SQLITE_FILE_HEADER
+#define SQLITE_FILE_HEADER "SQLite format 3"
+#endif
 
 #define SQLITE *(sqlite3**)&mPrivateData
 
-rtStorage::rtStorage(const char* fileName, const uint32_t storageQuota): mPrivateData(NULL)
+rtStorage::rtStorage(const char* filename, const uint32_t storageQuota, const char* key)
+  : mPrivateData(NULL)
 {
-  init(fileName, storageQuota);
+  init(filename, storageQuota, key);
 }
 
 rtStorage::~rtStorage()
@@ -34,22 +44,66 @@ rtStorage::~rtStorage()
   term();
 }
 
-rtError rtStorage::init(const char* fileName, uint32_t storageQuota)
+rtError rtStorage::init(const char* filename, uint32_t storageQuota, const char* key)
 {
-  if (!fileName || *fileName == 0)
+  if (!filename || *filename == 0)
     return RT_ERROR_INVALID_ARG;
 
-  rtLogDebug("%s: %d @ '%s'", __FUNCTION__, storageQuota, fileName);
+  rtLogDebug("%s: %d @ '%s'", __FUNCTION__, storageQuota, filename);
 
   sqlite3* &db = SQLITE;
 
   term();
 
-  int rc = sqlite3_open(fileName, &db);
+#if defined(SQLITE_HAS_CODEC)
+  bool shouldReKey = false;
+  if (key && *key)
+    shouldReKey = rtFileExists(filename) && !isEncryped(filename);
+#endif
+
+  int rc = sqlite3_open(filename, &db);
   if(rc)
   {
     term();
     return RT_FAIL;
+  }
+
+  if (key && *key)
+  {
+#if defined(SQLITE_HAS_CODEC)
+    std::vector<uint8_t> pKey;
+
+#if defined(USE_PLABELS)
+    bool result = pbnj_utils::prepareBufferForOrigin(origin, [&returnData](const std::vector<uint8_t>& buffer) {
+      pKey = buffer;
+    });
+    if (!result)
+      return RT_FAIL;
+#else
+    rtLogWarn("SQLite encryption key is not secure, path=%s", filename);
+    pKey = std::vector<uint8_t>(key, key + strlen(key));
+#endif
+
+    if (!shouldReKey)
+      rc = sqlite3_key_v2(db, nullptr, pKey.data(), pKey.size());
+    else
+    {
+      rc = sqlite3_rekey_v2(db, nullptr, pKey.data(), pKey.size());
+      if (rc == SQLITE_OK)
+        runVacuumCommand();
+    }
+
+    if (rc != SQLITE_OK)
+    {
+      rtLogError("Failed to attach encryption key to SQLite database %s\nCause - %s",
+        filename, sqlite3_errmsg(db));
+      term();
+      return RT_FAIL;
+    }
+
+    if (shouldReKey && !isEncryped(filename))
+      rtLogError("SQLite database file is clear after re-key, path=%s", filename);
+#endif
   }
 
   sqlite3_stmt *stmt;
@@ -366,6 +420,36 @@ rtError rtStorage::clear()
   updateSize();
 
   return RT_OK;
+}
+
+rtError rtStorage::runVacuumCommand()
+{
+  sqlite3* &db = SQLITE;
+
+  if (db)
+  {
+    sqlite3_exec(db, "VACUUM", 0, 0, 0);
+  }
+
+  return RT_OK;
+}
+
+bool rtStorage::isEncryped(const char* fileName)
+{
+  FILE* fd = fopen(fileName, "rb");
+  if (NULL == fd)
+    return false;
+
+  int magicSize = strlen(SQLITE_FILE_HEADER);
+  char* fileHeader = (char*)malloc(magicSize);
+
+  int readSize = fread(fileHeader, 1, magicSize, fd);
+  fclose(fd);
+
+  bool eq = magicSize == readSize && ::memcmp(fileHeader, SQLITE_FILE_HEADER, magicSize) == 0;
+  free(fileHeader);
+
+  return !eq;
 }
 
 rtDefineObject(rtStorage,rtObject);

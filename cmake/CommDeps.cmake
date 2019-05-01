@@ -117,12 +117,19 @@ if (NOT WIN32)
     endif (PREFER_SYSTEM_LIBRARIES AND SUPPORT_V8)
 
     if (SUPPORT_STORAGE)
-        if (NOT SQLITE3_FOUND)
+        if (PREFER_SYSTEM_LIBRARIES)
+            if (ENABLE_SQLITE_ENCRYPTION_EXTENSION)
+                pkg_search_module(SQLITE REQUIRED sqlite3see)
+            else ()
+                pkg_search_module(SQLITE sqlite3)
+            endif ()
+        endif (PREFER_SYSTEM_LIBRARIES)
+        if (NOT SQLITE_FOUND)
             message(STATUS "Using built-in sqlite3 library")
             set(SQLITE_INCLUDE_DIRS "${EXTDIR}/sqlite-autoconf-3280000")
             set(SQLITE_LIBRARY_DIRS "${EXTDIR}/sqlite-autoconf-3280000/.libs")
             set(SQLITE_LIBRARIES "sqlite3")
-        endif (NOT SQLITE3_FOUND)
+        endif (NOT SQLITE_FOUND)
     endif (SUPPORT_STORAGE)
 
 else (NOT WIN32)
@@ -164,7 +171,10 @@ endif (NOT WIN32)
 
 
 
-set(COMM_DEPS_DEFINITIONS ${COMM_DEPS_DEFINITIONS} ${TURBO_DEFINITIONS})
+set(COMM_DEPS_DEFINITIONS ${COMM_DEPS_DEFINITIONS}
+        ${TURBO_DEFINITIONS}
+      ${SQLITE_CFLAGS_OTHER}
+   )
 
 set(COMM_DEPS_INCLUDE_DIRS ${COMM_DEPS_INCLUDE_DIRS}
         ${ZLIB_INCLUDE_DIRS}

@@ -27,7 +27,7 @@
 class rtStorage: public rtObject
 {
 public:
-  rtStorage(const char* fileName, const uint32_t storageQuota = 0);
+  rtStorage(const char* filename, const uint32_t storageQuota = 0, const char* key = NULL);
   virtual ~rtStorage();
 
   rtDeclareObject(rtStorage, rtObject);
@@ -39,7 +39,7 @@ public:
   rtMethod1ArgAndNoReturn("removeItem",removeItem,rtString);
   rtMethodNoArgAndNoReturn("clear",clear);
 
-  rtError init(const char* fileName, uint32_t storageQuota = 0);
+  rtError init(const char* filename, uint32_t storageQuota = 0, const char* key = NULL);
 
   // closes file
   rtError term();
@@ -55,6 +55,10 @@ public:
 
   // Clear all data
   rtError clear();
+
+  rtError runVacuumCommand();
+
+  static bool isEncryped(const char* fileName);
 
 private:
   void* mPrivateData;
