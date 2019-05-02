@@ -40,6 +40,10 @@
 #include "pxTextBox.h"
 #include "pxImage.h"
 
+#ifdef ENABLE_SPARK_VIDEO
+#include "pxVideo.h"
+#endif //ENABLE_SPARK_VIDEO
+
 #ifdef PX_SERVICE_MANAGER
 #include "pxServiceManager.h"
 #endif //PX_SERVICE_MANAGER
@@ -527,7 +531,9 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   // 
   // capabilities.animations.durations = 2
   //
-  // capabilities.events.drag_n_drop    = 2   // additional Drag'n'Drop events 
+  // capabilities.events.drag_n_drop    = 2   // additional Drag'n'Drop events
+  //
+  // capabilities.video.player         = 1
 
   mCapabilityVersions = new rtMapObject;
 
@@ -582,6 +588,12 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
 
   mCapabilityVersions.set("events", userCapabilities);
   userCapabilities.set("drag_n_drop", (gPlatformOS == "macOS") ? 2 : 1);
+
+#ifdef ENABLE_SPARK_VIDEO
+  rtObjectRef videoCapabilities = new rtMapObject;
+  videoCapabilities.set("player", 1);
+  mCapabilityVersions.set("video", videoCapabilities);
+#endif //ENABLE_SPARK_VIDEO
 
   //////////////////////////////////////////////////////
 }
@@ -687,6 +699,8 @@ rtError pxScene2d::create(rtObjectRef p, rtObjectRef& o)
     e = createExternal(p,o);
   else if (!strcmp("wayland",t.cString()))
     e = createWayland(p,o);
+  else if (!strcmp("video",t.cString()))
+    e = createVideo(p,o);
   else if (!strcmp("object",t.cString()))
     e = createObject(p,o);
   else
@@ -1000,6 +1014,19 @@ rtError pxScene2d::createWayland(rtObjectRef p, rtObjectRef& o)
   rtLogWarn("Type 'wayland' is deprecated; use 'external' instead.\n");
   UNUSED_PARAM(p);
   return this->createExternal(p, o);
+}
+
+rtError pxScene2d::createVideo(rtObjectRef p, rtObjectRef& o)
+{
+#ifdef ENABLE_SPARK_VIDEO
+  o = new pxVideo(this);
+  o.set(p);
+  o.send("init");
+  return RT_OK;
+#else
+  rtLogError("Type 'video' is not supported");
+  return RT_FAIL;
+#endif //ENABLE_SPARK_VIDEO
 }
 
 void pxScene2d::draw()
