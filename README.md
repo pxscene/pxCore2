@@ -1,4 +1,5 @@
 [![codecov](https://codecov.io/gh/pxscene/pxCore/branch/master/graph/badge.svg)](https://codecov.io/gh/pxscene/pxCore)
+[![coverity](https://scan.coverity.com/projects/13125/badge.svg)](https://scan.coverity.com/projects/pxcore)
 
 # pxCore
 
