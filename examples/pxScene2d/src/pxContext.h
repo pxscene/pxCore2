@@ -86,6 +86,7 @@ class pxContext {
   void clear(int w, int h);
   void clear(int w, int h, float *fillColor );
   void clear(int left, int top, int width, int height);
+  void punchThrough(int left, int top, int width, int height);
   void enableClipping(bool enable);
 
   void setMatrix(pxMatrix4f& m);

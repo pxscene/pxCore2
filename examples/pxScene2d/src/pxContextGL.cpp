@@ -2288,6 +2288,53 @@ void pxContext::clear(int left, int top, int width, int height)
   glClear(GL_COLOR_BUFFER_BIT);
 }
 
+void pxContext::punchThrough(int left, int top, int width, int height)
+{
+  GLfloat priorColor[4];
+  GLint priorBox[4];
+  bool wasEnabled= glIsEnabled(GL_SCISSOR_TEST);
+  glGetIntegerv( GL_SCISSOR_BOX, priorBox );
+  glGetFloatv( GL_COLOR_CLEAR_VALUE, priorColor );
+
+  glEnable( GL_SCISSOR_TEST );
+  glClearColor( 0.0f, 0.0f, 0.0f, 0.0f );
+
+
+  if (left < 0)
+  {
+    left = 0;
+  }
+  if (top < 0)
+  {
+    top = 0;
+  }
+  if ((left+width) > gResW)
+  {
+    width = gResW - left;
+  }
+  if ((top+height) > gResH)
+  {
+    height = gResH - top;
+  }
+  int clearTop = gResH-top-height;
+
+  glEnable(GL_SCISSOR_TEST);
+
+  //map form screen to window coordinates
+  glScissor(left, clearTop, width, height);
+  glClear(GL_COLOR_BUFFER_BIT);
+
+  glClearColor( priorColor[0], priorColor[1], priorColor[2], priorColor[3] );
+  if ( wasEnabled )
+  {
+    glScissor( priorBox[0], priorBox[1], priorBox[2], priorBox[3] );
+  }
+  else
+  {
+    glDisable( GL_SCISSOR_TEST );
+  }
+}
+
 void pxContext::enableClipping(bool enable)
 {
   if (enable)
