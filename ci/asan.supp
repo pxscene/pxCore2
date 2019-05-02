@@ -3,4 +3,3 @@ fun:*measureTextWithWrapOrNewLine*
 fun:*readEscapeSequenceTest*
 fun:*u8_dec*
 fun:*u8_toucsTest*
-fun:*nsvg__parseContent*
