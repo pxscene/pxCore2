@@ -997,6 +997,7 @@ public:
   rtError createScene(rtObjectRef p,rtObjectRef& o);
   rtError createExternal(rtObjectRef p, rtObjectRef& o);
   rtError createWayland(rtObjectRef p, rtObjectRef& o);
+  rtError createVideo(rtObjectRef p, rtObjectRef& o);
 
   rtError clock(double & time);
   rtError logDebugMetrics();
