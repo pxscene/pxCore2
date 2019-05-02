@@ -67,15 +67,8 @@ public:
   //virtual bool onTextureReady(pxTextureCacheObject* textureCacheObject) {return true;}
   virtual void sendPromise();
 
-  void createNewPromise() { 
-    // Only create a new promise if the existing one has been
-    // resolved or rejected already.
-    if(((rtPromise*)mReady.getPtr())->status())
-    {
-      rtLogDebug("CREATING NEW PROMISE\n");
-      mReady = new rtPromise();
-    }
-   }
+  void createNewPromise();
+  virtual bool needsUpdate();
   virtual float getOnscreenWidth();
   virtual float getOnscreenHeight();
 

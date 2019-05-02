@@ -150,6 +150,12 @@ pxObject::~pxObject()
     mClipSnapshotRef = NULL;
     mDrawableSnapshotForMask = NULL;
     mMaskSnapshot = NULL;
+    pxScene2d::updateObject(this, false);
+}
+
+void pxObject::onInit()
+{
+  triggerUpdate();
 }
 
 void pxObject::sendPromise()
@@ -384,6 +390,11 @@ void pxObject::setParent(rtRef<pxObject>& parent)
       parent->mChildren.push_back(this);
 
     markDirty();
+    if (mScene != NULL)
+    {
+      mScene->invalidateRect(NULL);
+    }
+    triggerUpdate();
   }
 }
 
@@ -421,7 +432,16 @@ rtError pxObject::removeAll()
 {
   for(vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
   {
+    mScene->clearMouseObject(*it);
     (*it)->mParent = NULL;
+    bool isTracked = mScene->isObjectTracked((*it).getPtr());
+    int refCount = (*it)->mRefCount;
+    // reference count will be 2 here only if the remaining reference is in mInnerObjects.  clearing here will fix a leak
+    // TODO - revisit when removing the need for mInnerObjects
+    if ((isTracked == true) && (refCount == 2))
+    {
+      (*it)->dispose(false);
+    }
   }
   mChildren.clear();
 
@@ -657,6 +677,7 @@ void pxObject::animateToInternal(const char* prop, double to, double duration,
   a.animateObj = animateObj;
 
   mAnimations.push_back(a);
+  triggerUpdate();
 
   pxAnimate *animObj = (pxAnimate *)a.animateObj.getPtr();
 
@@ -675,7 +696,7 @@ void pxObject::animateToInternal(const char* prop, double to, double duration,
   }
 }
 
-void pxObject::update(double t)
+void pxObject::update(double t, bool updateChildren)
 {
 #ifdef DEBUG_SKIP_UPDATE
 #warning " 'DEBUG_SKIP_UPDATE' is Enabled"
@@ -851,42 +872,47 @@ void pxObject::update(double t)
         }
     }
 
-  // Recursively update children
-  for(vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
+  if (updateChildren)
   {
-      if (gDirtyRectsEnabled) {
-          if (mIsDirty && mScreenCoordinates.isOverlapping((*it)->mScreenCoordinates))
+    // Recursively update children
+    for (vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
+    {
+      if (gDirtyRectsEnabled)
+      {
+        if (mIsDirty && mScreenCoordinates.isOverlapping((*it)->mScreenCoordinates))
           (*it)->markDirty();
 
-          int left = (*it)->mScreenCoordinates.left();
-          int right = (*it)->mScreenCoordinates.right();
-          int top = (*it)->mScreenCoordinates.top();
-          int bottom = (*it)->mScreenCoordinates.bottom();
-          if (right > mScreenCoordinates.right())
-          {
-              mScreenCoordinates.setRight(right);
-          }
-          if (left < mScreenCoordinates.left())
-          {
-              mScreenCoordinates.setLeft(left);
-          }
-          if (top < mScreenCoordinates.top())
-          {
-              mScreenCoordinates.setTop(top);
-          }
-          if (bottom > mScreenCoordinates.bottom())
-          {
-              mScreenCoordinates.setBottom(bottom);
-          }
-          context.pushState();
+        int left = (*it)->mScreenCoordinates.left();
+        int right = (*it)->mScreenCoordinates.right();
+        int top = (*it)->mScreenCoordinates.top();
+        int bottom = (*it)->mScreenCoordinates.bottom();
+        if (right > mScreenCoordinates.right())
+        {
+          mScreenCoordinates.setRight(right);
+        }
+        if (left < mScreenCoordinates.left())
+        {
+          mScreenCoordinates.setLeft(left);
+        }
+        if (top < mScreenCoordinates.top())
+        {
+          mScreenCoordinates.setTop(top);
+        }
+        if (bottom > mScreenCoordinates.bottom())
+        {
+          mScreenCoordinates.setBottom(bottom);
+        }
+        context.pushState();
       }
-// JR TODO  this lock looks suspicious... why do we need it?
-ENTERSCENELOCK()
-    (*it)->update(t);
-EXITSCENELOCK()
-      if (gDirtyRectsEnabled) {
-      context.popState();
+      // JR TODO  this lock looks suspicious... why do we need it?
+      ENTERSCENELOCK()
+      (*it)->update(t);
+      EXITSCENELOCK()
+      if (gDirtyRectsEnabled)
+      {
+        context.popState();
       }
+    }
   }
 
     if (gDirtyRectsEnabled) {
@@ -952,6 +978,20 @@ uint64_t pxObject::textureMemoryUsage(std::vector<rtObject*> &objectsCounted)
     textureMemory += (*it)->textureMemoryUsage(objectsCounted);
   }
   return textureMemory;
+}
+
+bool pxObject::needsUpdate()
+{
+  if ((mParent != NULL && mAnimations.size() > 0) || !((rtPromise*)mReady.getPtr())->status())
+  {
+    return true;
+  }
+  return false;
+}
+
+void pxObject::triggerUpdate()
+{
+  pxScene2d::updateObject(this, true);
 }
 
 //#ifdef PX_DIRTY_RECTANGLES
@@ -1071,6 +1111,8 @@ void pxObject::drawInternal(bool maskPass)
   // TODO what to do about multiple vanishing points in a given scene
   // TODO consistent behavior between clipping and no clipping when z is in use
 
+  context.setAlpha(ma);
+
   if (context.getAlpha() < alphaEpsilon)
   {
     return;  // trivial reject for objects that are transparent
@@ -1144,7 +1186,6 @@ void pxObject::drawInternal(bool maskPass)
 #endif
 
   context.setMatrix(m);
-  context.setAlpha(ma);
 
   if ((mClip && !context.isObjectOnScreen(0,0,w,h)) || mSceneSuspended)
   {

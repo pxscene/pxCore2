@@ -163,6 +163,7 @@ class pxRoot: public pxObject
   rtDeclareObject(pxRoot, pxObject);
 public:
   pxRoot(pxScene2d* scene): pxObject(scene) {}
+  virtual void sendPromise();
 };
 
 class pxViewContainer: public pxObject, public pxIViewContainer
@@ -460,11 +461,11 @@ public:
     return RT_OK;
   }
 
-  virtual void update(double t)
+  virtual void update(double t, bool updateChildren=true)
   {
     if (mView)
       mView->onUpdate(t);
-    pxObject::update(t);
+    pxObject::update(t,updateChildren);
   }
 
   virtual void draw() 
@@ -1058,6 +1059,7 @@ public:
   rtError sparkSetting(const rtString& setting, rtValue& value) const;
 
    void setMouseEntered(rtRef<pxObject> o, int32_t x = 0, int32_t y = 0);
+   void clearMouseObject(rtRef<pxObject>);
 
   // The following methods are delegated to the view
   virtual void onSize(int32_t w, int32_t h);
@@ -1179,7 +1181,7 @@ public:
   }
 
   void innerpxObjectDisposed(rtObjectRef ref);
-
+  bool isObjectTracked(rtObjectRef ref);
   // Note: Only type currently supported is "image/png;base64"
   rtError screenshot(rtString type, rtString& pngData);
   rtError clipboardGet(rtString type, rtString& retString);
@@ -1192,7 +1194,11 @@ public:
     return mArchive;
   }
 
+  static void enableOptimizedUpdate(bool enable);
+  static void updateObject(pxObject* o, bool update);
+
 private:
+  static void updateObjects(double t);
   bool bubbleEvent(rtObjectRef e, rtRef<pxObject> t, 
                    const char* preEvent, const char* event) ;
   
@@ -1271,6 +1277,7 @@ public:
   bool mDisposed;
   std::vector<rtFunctionRef> mServiceProviders;
   bool mArchiveSet;
+  static bool mOptimizedUpdateEnabled;
 };
 
 // TODO do we need this anymore?

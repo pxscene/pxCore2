@@ -104,7 +104,6 @@ char** g_origArgv = NULL;
 bool gDumpMemUsage = false;
 extern bool gApplicationIsClosing;
 extern int pxObjectCount;
-extern uint32_t gRenderTick;
 
 #include "pxFont.h"
 
@@ -439,8 +438,8 @@ protected:
 
   virtual void onDraw(pxSurfaceNative )
   {
+    context.updateRenderTick();
     ENTERSCENELOCK()
-    gRenderTick++;
     if (mView)
       mView->onDraw();
     EXITSCENELOCK()
@@ -754,6 +753,13 @@ if (s && (strcmp(s,"1") == 0))
     gDirtyRectsEnabled = dirtyRectsSetting.toString().compare("true") == 0;
 
   rtLogInfo("dirty rectangles enabled: %s", gDirtyRectsEnabled ? "true":"false");
+
+  rtValue optimizedUpdateSetting;
+  if (RT_OK == rtSettings::instance()->value("enableOptimizedUpdate", optimizedUpdateSetting))
+  {
+    bool enable = optimizedUpdateSetting.toString().compare("true") == 0;
+    pxScene2d::enableOptimizedUpdate(enable);
+  }
     
   // OSX likes to pass us some weird parameter on first launch after internet install
   rtLogInfo("window width = %d height = %d", windowWidth, windowHeight);
