@@ -277,11 +277,11 @@ if (OUTPUT_LIBS_LOCAL)
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 endif (OUTPUT_LIBS_LOCAL)
 
-#if (USE_DUKTAPE)
+if (USE_DUKTAPE)
     include_directories(AFTER ${EXTDIR}/dukluv/lib/duktape/src)
     include_directories(AFTER ${EXTDIR}/dukluv/lib/uv/include)
     include_directories(AFTER ${EXTDIR}/dukluv/src)
-#endif(USE_DUKTAPE)
+endif(USE_DUKTAPE)
 
 if (BUILD_PXCORE_LIBS)
     message("Building pxcore libs")

@@ -84,10 +84,10 @@ cd ..
 
 REM --------- DUKLUV
 
-cd dukluv
-patch -p1 < patches/dukluv.git.patch
-mkdir build
-cd build
-cmake ..
-cmake --build . --config Release -- /m
-cd ..
+REM cd dukluv
+REM patch -p1 < patches/dukluv.git.patch
+REM mkdir build
+REM cd build
+REM cmake ..
+REM cmake --build . --config Release -- /m
+REM cd ..
