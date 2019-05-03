@@ -74,7 +74,7 @@ rtError rtStorage::init(const char* filename, uint32_t storageQuota, const char*
     std::vector<uint8_t> pKey;
 
 #if defined(USE_PLABELS)
-    bool result = pbnj_utils::prepareBufferForOrigin(origin, [&returnData](const std::vector<uint8_t>& buffer) {
+    bool result = pbnj_utils::prepareBufferForOrigin(key, [&pKey](const std::vector<uint8_t>& buffer) {
       pKey = buffer;
     });
     if (!result)
