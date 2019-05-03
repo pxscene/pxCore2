@@ -49,7 +49,7 @@ rtError rtStorage::init(const char* filename, uint32_t storageQuota, const char*
   if (!filename || *filename == 0)
     return RT_ERROR_INVALID_ARG;
 
-  rtLogDebug("%s: %d @ '%s'", __FUNCTION__, storageQuota, filename);
+  rtLogInfo("%s: %db @ '%s'", __FUNCTION__, storageQuota, filename);
 
   sqlite3* &db = SQLITE;
 
@@ -138,12 +138,9 @@ rtError rtStorage::setItem(const char* key, const rtValue& value)
     return RT_ERROR_INVALID_ARG;
 
   if (RT_OK != verifyQuota(key, value))
-  {
-    rtLogError("quota exceeded");
     return RT_ERROR;
-  }
 
-  rtLogDebug("%s: '%s'", __FUNCTION__, key);
+  rtLogInfo("%s: '%s'", __FUNCTION__, key);
 
   sqlite3* &db = SQLITE;
 
@@ -174,7 +171,7 @@ rtError rtStorage::getItem(const char* key, rtValue& retValue) const
   if (!key || *key == 0)
     return RT_ERROR_INVALID_ARG;
 
-  rtLogDebug("%s: '%s'", __FUNCTION__, key);
+  rtLogInfo("%s: '%s'", __FUNCTION__, key);
 
   sqlite3* &db = SQLITE;
 
@@ -204,7 +201,7 @@ rtError rtStorage::getItems(const char* key, rtObjectRef& retValue) const
   if (!key)
     return RT_ERROR_INVALID_ARG;
 
-  rtLogDebug("%s: '%s'", __FUNCTION__, key);
+  rtLogInfo("%s: '%s'", __FUNCTION__, key);
 
   sqlite3* &db = SQLITE;
 
@@ -233,6 +230,8 @@ rtError rtStorage::getItems(const char* key, rtObjectRef& retValue) const
 
       a->pushBack(row);
       rc = sqlite3_step(stmt);
+
+      rtLogInfo("%s: key '%s'", __FUNCTION__, row.get<rtString>("key").cString());
     }
 
     retValue = a;
@@ -248,7 +247,7 @@ rtError rtStorage::removeItem(const char* key)
   if (!key || *key == 0)
     return RT_ERROR_INVALID_ARG;
 
-  rtLogDebug("%s: '%s'", __FUNCTION__, key);
+  rtLogInfo("%s: '%s'", __FUNCTION__, key);
 
   sqlite3* &db = SQLITE;
 
@@ -401,6 +400,8 @@ rtError rtStorage::verifyQuota(const char* key, const rtValue& value) const
 // Clear all data
 rtError rtStorage::clear()
 {
+  rtLogInfo("%s", __FUNCTION__);
+
   sqlite3* &db = SQLITE;
 
   if (db)
