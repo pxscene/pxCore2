@@ -203,12 +203,12 @@ fi
 
 #-------- DUKTAPE
 
-if [ ! -e dukluv/build/libduktape.a ]
-then
-  banner "DUCKTAPE"
-
-  ./dukluv/build.sh
-fi
+#if [ ! -e dukluv/build/libduktape.a ]
+#then
+#  banner "DUCKTAPE"
+#
+#  ./dukluv/build.sh
+#fi
 
 #--------
 
