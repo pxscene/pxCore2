@@ -2126,6 +2126,15 @@ rtError pxScene2d::dirtyRectanglesEnabled(bool& v) const {
     return RT_OK;
 }
 
+rtError pxScene2d::gifSupportEnabled(bool& v) const {
+#ifdef SUPPORT_GIF
+    v = true;
+#else
+    v = false;
+#endif //SUPPORT_GIF
+    return RT_OK;
+}
+
 rtError pxScene2d::dirtyRectangle(rtObjectRef& v) const {
     v = new rtMapObject();
 if (gDirtyRectsEnabled) {
@@ -2503,6 +2512,7 @@ rtDefineProperty(pxScene2d, showDirtyRect);
 rtDefineProperty(pxScene2d, reportFps);
 rtDefineProperty(pxScene2d, dirtyRectangle);
 rtDefineProperty(pxScene2d, dirtyRectanglesEnabled);
+rtDefineProperty(pxScene2d, gifSupportEnabled);
 rtDefineProperty(pxScene2d, enableDirtyRect);
 rtDefineProperty(pxScene2d, customAnimator);
 rtDefineMethod(pxScene2d, create);
