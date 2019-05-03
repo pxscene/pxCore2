@@ -879,6 +879,67 @@ rtError pxWayland::connectToRemoteObject(unsigned int timeout_ms)
   return errorCode;
 }
 
+rtError pxWayland::drawToFbo(pxContextFramebufferRef& fbo)
+{
+  unsigned int outputWidth, outputHeight;
+
+  WstCompositorGetOutputSize( mWCtx, &outputWidth, &outputHeight );
+
+  if ( (mWidth != (int)outputWidth) ||
+       (mHeight != (int)outputHeight) )
+  {
+    WstCompositorSetOutputSize( mWCtx, mWidth, mHeight );
+  }
+
+  bool rotated= isRotated();
+  if (fbo.getPtr() == NULL || fbo->width() != floor(mWidth) || fbo->height() != floor(mHeight))
+  {
+    clearSnapshot(fbo);
+    fbo = context.createFramebuffer(static_cast<int>(floor(mWidth)), static_cast<int>(floor(mHeight)), antiAliasing);
+  }
+  else
+  {
+    context.updateFramebuffer(fbo, static_cast<int>(floor(mWidth)), static_cast<int>(floor(mHeight)));
+  }
+
+  int hints= WstHints_none;
+
+  bool needHolePunch;
+  std::vector<WstRect> rects;
+  pxContextFramebufferRef previousFrameBuffer;
+  pxMatrix4f m= context.getMatrix();
+
+  hints |= WstHints_fboTarget;
+
+  if ( !rotated ) hints |= WstHints_noRotation;
+  if ( memcmp( mLastMatrix.data(), m.data(), 16*sizeof(float) ) != 0 ) hints |= WstHints_animating;
+  mLastMatrix= m;
+
+  if ( mFillColor[3] != 0.0 )
+  {
+    context.drawRect(mWidth, mHeight, 0, mFillColor, NULL );
+  }
+
+  context.pushState();
+  previousFrameBuffer= context.getCurrentFramebuffer();
+  context.setFramebuffer( fbo );
+  context.clear( mWidth, mHeight, mClearColor );
+
+  WstCompositorComposeEmbedded( mWCtx,
+                                mX,
+                                mY,
+                                mWidth,
+                                mHeight,
+                                m.data(),
+                                context.getAlpha(),
+                                hints,
+                                &needHolePunch,
+                                rects );
+
+  context.setFramebuffer( previousFrameBuffer );
+  context.popState();
+}
+
 // These key codes are from linux/input.h which may not be available depending on what platform we are building for
 #define KEY_RESERVED            0
 #define KEY_ESC                 1
