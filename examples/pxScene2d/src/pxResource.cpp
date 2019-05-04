@@ -496,14 +496,7 @@ void rtImageResource::setTextureData(pxOffscreen& imageOffscreen)
 
 void rtImageResource::createWithOffscreen(pxOffscreen& imageOffscreen)
 {
-  if (mDownloadedTexture.getPtr() == NULL)
-  {
-    mDownloadedTexture = context.createTexture(imageOffscreen);
-  }
-  else
-  {
-    mDownloadedTexture->createTexture(imageOffscreen);
-  }
+  mDownloadedTexture = context.createTexture(imageOffscreen);
   mDownloadComplete = true;
   setupResource();
 }
