@@ -520,6 +520,8 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   // capabilities.graphics.colors       = 1
   // capabilities.graphics.screenshots  = 2
   //
+  // capabilities.scene.external  = 1
+  //
   // capabilities.network.cors          = 1
   // capabilities.network.corsResources = 1
   // capabilities.network.http2         = 2
@@ -552,6 +554,14 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
 #endif // SPARK_CURSOR_SUPPORT
 
   mCapabilityVersions.set("graphics", graphicsCapabilities);
+
+  rtObjectRef sceneCapabilities = new rtMapObject;
+#if defined(DISABLE_WAYLAND)
+  sceneCapabilities.set("external", 0);
+#else
+  sceneCapabilities.set("external", 1);
+#endif //DISABLE_WAYLAND
+  mCapabilityVersions.set("scene", sceneCapabilities);
 
   rtObjectRef networkCapabilities = new rtMapObject;
 
