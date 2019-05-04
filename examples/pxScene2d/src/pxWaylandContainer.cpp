@@ -31,9 +31,12 @@
 #include "pxContext.h"
 #include "pxImage.h"
 #include "pxUtil.h"
+#include "rtPermissions.h"
 
 #include <map>
 using namespace std;
+
+extern pxContext context;
 
 extern map<string, string> gWaylandAppsMap;
 // // TODO: move this to pxOffscreenNative.{cpp,mm} files
@@ -393,22 +396,24 @@ rtError pxWaylandContainer::screenshot(rtString type, rtValue& returnValue)
 {
   returnValue = "";
 #ifdef ENABLE_PERMISSIONS_CHECK
-  if (RT_OK != mPermissions->allows("screenshot", rtPermissions::FEATURE))
+  if (mScene != NULL && RT_OK != mScene->permissions()->allows("screenshot", rtPermissions::FEATURE))
+  {
     return RT_ERROR_NOT_ALLOWED;
+  }
 #endif
 
   // Is this a type we support?
-  if (type != "image/png;base64" && type != "image/pxImage" && mWayland.getPtr() != NULL)
+  if (type != "image/png;base64" && type != "image/imageResource" && mWayland.getPtr() != NULL)
   {
     return RT_FAIL;
   }
 
-  pxContextFramebufferRef previousRenderSurface = context.getCurrentFramebuffer();
   pxContextFramebufferRef newFBO;
   mWayland->drawToFbo(newFBO);
+  pxContextFramebufferRef previousRenderSurface = context.getCurrentFramebuffer();
   context.setFramebuffer(newFBO);
   pxOffscreen o;
-  context.snapshot(o);
+  newFBO->getTexture()->getOffscreen(o);
   context.setFramebuffer(previousRenderSurface);
 
   if (type == "image/png;base64")
@@ -431,7 +436,7 @@ rtError pxWaylandContainer::screenshot(rtString type, rtValue& returnValue)
       return RT_OK;
     }
   }
-  else if (type == "image/pxImage")
+  else if (type == "image/imageResource")
   {
     pxImage* image = new pxImage(mScene);
     image->createWithOffscreen(o);

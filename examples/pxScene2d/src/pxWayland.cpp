@@ -892,15 +892,7 @@ rtError pxWayland::drawToFbo(pxContextFramebufferRef& fbo)
   }
 
   bool rotated= isRotated();
-  if (fbo.getPtr() == NULL || fbo->width() != floor(mWidth) || fbo->height() != floor(mHeight))
-  {
-    clearSnapshot(fbo);
-    fbo = context.createFramebuffer(static_cast<int>(floor(mWidth)), static_cast<int>(floor(mHeight)), antiAliasing);
-  }
-  else
-  {
-    context.updateFramebuffer(fbo, static_cast<int>(floor(mWidth)), static_cast<int>(floor(mHeight)));
-  }
+  fbo = context.createFramebuffer(static_cast<int>(floor(mWidth)), static_cast<int>(floor(mHeight)));
 
   int hints= WstHints_none;
 
@@ -913,7 +905,6 @@ rtError pxWayland::drawToFbo(pxContextFramebufferRef& fbo)
 
   if ( !rotated ) hints |= WstHints_noRotation;
   if ( memcmp( mLastMatrix.data(), m.data(), 16*sizeof(float) ) != 0 ) hints |= WstHints_animating;
-  mLastMatrix= m;
 
   if ( mFillColor[3] != 0.0 )
   {
@@ -926,8 +917,8 @@ rtError pxWayland::drawToFbo(pxContextFramebufferRef& fbo)
   context.clear( mWidth, mHeight, mClearColor );
 
   WstCompositorComposeEmbedded( mWCtx,
-                                mX,
-                                mY,
+                                0,
+                                0,
                                 mWidth,
                                 mHeight,
                                 m.data(),

@@ -36,7 +36,7 @@ class pxWaylandContainer: public pxViewContainer, pxWaylandEvents {
   rtMethod1ArgAndReturn("suspend", suspend, rtValue, bool);
   rtMethod1ArgAndReturn("resume", resume, rtValue, bool);
   rtMethodNoArgAndReturn("destroy", destroy, bool);
-  rtMethodNoArgAndReturn("screenshot", screenshot, rtValue);
+  rtMethod1ArgAndReturn("screenshot", screenshot, rtString, rtValue);
 public:
   pxWaylandContainer(pxScene2d* scene);
   ~pxWaylandContainer();

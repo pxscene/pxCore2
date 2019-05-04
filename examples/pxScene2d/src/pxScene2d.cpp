@@ -2194,7 +2194,7 @@ rtError pxScene2d::screenshot(rtString type, rtValue& returnValue)
 #endif
 
   // Is this a type we support?
-  if (type != "image/png;base64" && type != "image/pxImage")
+  if (type != "image/png;base64" && type != "image/imageResource")
   {
     return RT_FAIL;
   }
@@ -2277,7 +2277,7 @@ rtError pxScene2d::screenshot(rtString type, rtValue& returnValue)
 
     }//ENDIF
   }
-  else if (type == "image/pxImage")
+  else if (type == "image/imageResource")
   {
     pxImage* image = new pxImage(this);
     image->createWithOffscreen(o);
