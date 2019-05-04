@@ -403,7 +403,7 @@ rtError pxWaylandContainer::screenshot(rtString type, rtValue& returnValue)
 #endif
 
   // Is this a type we support?
-  if (type != "image/png;base64" && type != "image/imageResource" && mWayland.getPtr() != NULL)
+  if (type != "image/png;base64" && type != "image/image" && mWayland.getPtr() != NULL)
   {
     return RT_FAIL;
   }
@@ -436,7 +436,7 @@ rtError pxWaylandContainer::screenshot(rtString type, rtValue& returnValue)
       return RT_OK;
     }
   }
-  else if (type == "image/imageResource")
+  else if (type == "image/image")
   {
     pxImage* image = new pxImage(mScene);
     image->createWithOffscreen(o);
