@@ -518,6 +518,7 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   // capabilities.graphics.svg          = 2
   // capabilities.graphics.cursor       = 1
   // capabilities.graphics.colors       = 1
+  // capabilities.graphics.screenshots  = 2
   //
   // capabilities.network.cors          = 1
   // capabilities.network.corsResources = 1
@@ -535,6 +536,7 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
 
   graphicsCapabilities.set("svg", 2);
   graphicsCapabilities.set("colors", 1);
+  graphicsCapabilities.set("screenshots", 2);
 
 #ifdef SPARK_CURSOR_SUPPORT
   graphicsCapabilities.set("cursor", 1);
