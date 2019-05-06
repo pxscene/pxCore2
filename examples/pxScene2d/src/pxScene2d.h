@@ -841,7 +841,6 @@ public:
   rtProperty(reportFps, reportFps, setReportFps, bool);
   rtReadOnlyProperty(dirtyRectangle, dirtyRectangle, rtObjectRef);
   rtReadOnlyProperty(dirtyRectanglesEnabled, dirtyRectanglesEnabled, bool);
-  rtReadOnlyProperty(gifSupportEnabled, gifSupportEnabled, bool);
   rtProperty(enableDirtyRect, enableDirtyRect, setEnableDirtyRect, bool);
   rtProperty(customAnimator, customAnimator, setCustomAnimator, rtFunctionRef);
   rtMethod1ArgAndReturn("loadArchive",loadArchive,rtString,rtObjectRef); 
@@ -978,7 +977,6 @@ public:
 
   rtError dirtyRectangle(rtObjectRef& v) const;   
   rtError dirtyRectanglesEnabled(bool& v) const;
-  rtError gifSupportEnabled(bool& v) const;
     
   rtError enableDirtyRect(bool& v) const;
   rtError setEnableDirtyRect(bool v);

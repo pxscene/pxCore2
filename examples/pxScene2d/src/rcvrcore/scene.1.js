@@ -59,7 +59,6 @@ function Scene() {
         this.__defineSetter__("customAnimator", function(v) { scene.customAnimator = v; });
         this.__defineGetter__("dirtyRectangle", function() { return scene.dirtyRectangle; });
         this.__defineGetter__("dirtyRectanglesEnabled", function() { return scene.dirtyRectanglesEnabled; });
-        this.__defineGetter__("gifSupportEnabled", function() { return scene.gifSupportEnabled; });
       }
       else {
         this.w = scene.w;
