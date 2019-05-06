@@ -227,6 +227,8 @@ public:
   virtual rtError setFontUrl(const char* s);
   virtual rtError setFont(rtObjectRef o);
   /* override virtuals from pxObject that must affect the readiness of pxTextBox due to text measurements */
+  virtual rtError setX(float v)                { if(v != mx) {setNeedsRecalc(true);} return pxObject::setX(v);   }
+  virtual rtError setY(float v)                { if(v != my) {setNeedsRecalc(true);} return pxObject::setY(v);   }
   virtual rtError setW(float v)                { setNeedsRecalc(true); return pxObject::setW(v);    }
   virtual rtError setH(float v)                { setNeedsRecalc(true); return pxObject::setH(v);    }
   virtual rtError setClip(bool v)              { setNeedsRecalc(true); return pxObject::setClip(v); }
