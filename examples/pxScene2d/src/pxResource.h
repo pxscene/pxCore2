@@ -188,6 +188,8 @@ public:
   virtual void reloadData();
   virtual uint64_t textureMemoryUsage(std::vector<rtObject*> &objectsCounted);
   virtual void textureReady();
+
+  void createWithOffscreen(pxOffscreen& imageOffscreen);
   
 protected:
   virtual uint32_t loadResourceData(rtFileDownloadRequest* fileDownloadRequest);
