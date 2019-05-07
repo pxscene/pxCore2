@@ -582,13 +582,11 @@ public:
       mMakeReady->clearContext();
       mGetContextID->clearContext();
       mGetSetting->clearContext();
-      mSetEffectiveUrl->clearContext();
 
       // TODO Given that the context is being cleared we likely don't need to zero these out
       mCtx->add("getScene", 0);
       mCtx->add("makeReady", 0);
       mCtx->add("getSetting", 0);
-      mCtx->add("setEffectiveUrl", 0);
     }
 #endif //ENABLE_RT_NODE
 
@@ -643,7 +641,6 @@ public:
   }
 
   rtString getUrl() const { return mUrl; }
-  rtString getEffectiveUrl() const { return mEffectiveUrl; }
 
 #ifdef ENABLE_PERMISSIONS_CHECK
   rtError permissions(rtObjectRef& v) const { return mScene.get("permissions", v); }
@@ -676,7 +673,6 @@ protected:
 
   static rtError getContextID(int /*numArgs*/, const rtValue* /*args*/, rtValue* result, void* /*ctx*/);
   static rtError getSetting(int numArgs, const rtValue* args, rtValue* result, void* /*ctx*/);
-  static rtError setEffectiveUrl(int numArgs, const rtValue* args, rtValue* result, void* ctx);
 
   virtual void onSize(int32_t w, int32_t h)
   {
@@ -829,7 +825,6 @@ protected:
   rtRef<rtFunctionCallback> mMakeReady;
   rtRef<rtFunctionCallback> mGetContextID;
   rtRef<rtFunctionCallback> mGetSetting;
-  rtRef<rtFunctionCallback> mSetEffectiveUrl;
 
 #ifdef ENABLE_RT_NODE
   rtScriptContextRef mCtx;
@@ -837,7 +832,6 @@ protected:
   pxIViewContainer* mViewContainer;
   unsigned long mRefCount;
   rtString mUrl;
-  rtString mEffectiveUrl;
 #ifndef RUNINMAIN
   rtString mLang;
 #endif
@@ -1279,7 +1273,6 @@ private:
   bool mPointerHidden;
   std::vector<rtObjectRef> mInnerpxObjects;
   rtFunctionRef mCustomAnimator;
-  rtString mEffectiveUrl;
 #ifdef ENABLE_PERMISSIONS_CHECK
   rtPermissionsRef mPermissions;
 #endif

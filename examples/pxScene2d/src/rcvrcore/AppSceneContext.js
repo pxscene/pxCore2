@@ -102,8 +102,6 @@ AppSceneContext.prototype.loadScene = function() {
     fullPath = urlParts.pathname;
     if( fullPath !== null) {
       this.basePackageUri = fullPath.substring(0, fullPath.lastIndexOf('/'));
-      if (!this.basePackageUri.startsWith('/')) // Warning Windows
-        this.basePackageUri = process.cwd() + this.basePackageUri + '/'
       //var fileName = this.packageUrl.substring(fullPath.lastIndexOf('/'));
     }
   } else {

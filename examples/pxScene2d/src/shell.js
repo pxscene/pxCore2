@@ -39,14 +39,8 @@ px.import({ scene: 'px:scene.1.js',
   var rtLogLevel = process.env.RT_LOG_LEVEL ?  process.env.RT_LOG_LEVEL : 'warn';
   setLoggingLevel(rtLogLevel);
 
-  var base = px.getPackageBaseFilePath()
-  defaultAppUrl = base + defaultAppUrl
-  console.log('<<**** shell base', base)
-
   var appUrl = scene.sparkSetting('defaultAppUrl')
-  console.log("***** appUrl", appUrl)
   defaultAppUrl = appUrl?appUrl:defaultAppUrl
-  console.log("***** defaultAppUrl", defaultAppUrl)
 
   function uncaughtException(err) {
     if (!isDuk && !isV8) {
@@ -62,6 +56,7 @@ px.import({ scene: 'px:scene.1.js',
     process.on('uncaughtException', uncaughtException);
     process.on('unhandledRejection', unhandledRejection);
   }
+
 
   /**
    * This is helper method which resolves resource URL for scene
@@ -86,14 +81,12 @@ px.import({ scene: 'px:scene.1.js',
     return url;
   }
   */
-  
+
   // JRJR TODO had to add more modules
   var url = queryStringModule.parse(urlModule.parse(module.appSceneContext.packageUrl).query).url;
   //url = resolveSceneUrl(url)
-  console.log('query url: ', url)
   var originalURL = (!url || url==="") ? defaultAppUrl:url;
   logger.message('info', "url:" + originalURL);
-
 
   var    blackBg = scene.create({t:"rect", fillColor:0x000000ff,x:0,y:0,w:1280,h:720,a:0,parent:scene.root});
   var childScene = scene.create({t:"scene", url: originalURL, parent:scene.root});
@@ -108,16 +101,6 @@ px.import({ scene: 'px:scene.1.js',
   // Prevent interaction with scenes...
   fpsBg.interactive      = false;
   fpsCounter.interactive = false;
-
-  scene.addServiceProvider(function(serviceName, serviceCtx){
-    if (serviceName == ".navigate")
-      // TODO JRJR have to set url in a timer to avoid reentrancy
-      // should move deferring to setUrl method... 
-      return {setUrl:function(u){setTimeout(function(){
-        childScene.url = u},1);}}  // return a javascript object that represents the service
-    else
-      return "allow"; // allow request to bubble to parent
-  });    
 
   function updateSize(w, h)
   {
@@ -248,7 +231,6 @@ if( scene.capabilities != undefined && scene.capabilities.graphics != undefined 
 
         var homeURL = defaultAppUrl;
         logger.message('warn',"Loading home url: " + homeURL);
-
         childScene.url = homeURL;
         e.stopPropagation();
       }

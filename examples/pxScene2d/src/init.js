@@ -76,10 +76,8 @@ global.loadUrl = function loadUrl(url) {
 else {
     var defaultViewerBaseUrl = getSetting('defaultViewerBaseUrl')
     
-    var process = require('process')
     if (!defaultViewerBaseUrl)
-        defaultViewerBaseUrl = process.cwd()+'/browser/' //'https://www.pxscene.org/mime'
-//        defaultViewerBaseUrl = '/Users/johnrobinson/code/spark3/examples/pxScene2d/src/browser/' //'https://www.pxscene.org/mime'
+        defaultViewerBaseUrl = 'browser/'
 
     // ensure trailing /
     function endsWith(str, suffix) {
@@ -89,8 +87,6 @@ else {
     if (!endsWith(defaultViewerBaseUrl,'/'))
         defaultViewerBaseUrl += '/'
 
-    console.log('############ defaultAppUrl: ', defaultViewerBaseUrl)
- 
     function loadUrl(url) {
         var Url = require('url')
         var Path = require('path')
@@ -132,7 +128,6 @@ else {
         }
         
         //console.log('Rewritten Url: ', url)
-        setEffectiveUrl(url)
 
 
         var ctx = new AppSceneContext({        scene: getScene("scene.1"),

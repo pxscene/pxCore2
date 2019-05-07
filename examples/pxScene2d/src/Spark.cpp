@@ -350,7 +350,6 @@ protected:
   virtual void onMouseMove(int32_t x, int32_t y)
   {
     ENTERSCENELOCK()
-    rtLogError("scene window onMouseMove %d %d", x, y);
     if (mView)
       mView->onMouseMove(x, y);
     EXITSCENELOCK()
