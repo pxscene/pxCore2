@@ -29,6 +29,11 @@ rm -rf $bundle
 
 # Copy LIBS to Bundle...
 #
+if [ -d ./gif/.libs/ ]
+then
+cp $externalDir/gif/.libs/libgif.dylib $bundleLib
+fi
+
 cp $externalDir/png/.libs/libpng16.16.dylib $bundleLib
 cp $externalDir/curl/lib/.libs/libcurl.4.dylib $bundleLib
 #cp $externalDir/libnode/out/Release/libnode.dylib $bundleLib
