@@ -58,29 +58,27 @@ fi
 
 #--------- GIF
 
-if [ ! -e ./gif/.libs/libgif.dylib ] &&
-[ "$(uname)" != "Darwin" ]
-then
+#if [ ! -e ./gif/.libs/libgif.dylib ] &&
+#[ "$(uname)" != "Darwin" ]
+#then
 
-banner "GIF"
-cd gif
-#cmake .
-#cmake --build . --config Release --clean-first
-sudo make install
-[ -d .libs ] || mkdir -p .libs
-if [ -e libgif.dylib ]
-then
-cp libgif.dylib .libs/libgif.dylib
-cp libutil.dylib .libs/libgifutil.dylib
+#banner "GIF"
+#cd gif
+#sudo make install
+#[ -d .libs ] || mkdir -p .libs
+#if [ -e libgif.dylib ]
+#then
+#cp libgif.dylib .libs/libgif.dylib
+#cp libutil.dylib .libs/libgifutil.dylib
 
-elif [ -e libgif.so ]
-then
-cp libgif.so .libs/libgif.dylib
-cp libutil.so .libs/libgifutil.dylib
-fi
+#elif [ -e libgif.so ]
+#then
+#cp libgif.so .libs/libgif.dylib
+#cp libutil.so .libs/libgifutil.dylib
+#fi
 
-cd ..
-fi
+#cd ..
+#fi
 
 #--------- FT
 
