@@ -209,7 +209,7 @@ px.import({ scene: 'px:scene.1.js',
 
         var ss = scene.stretch.STRETCH;
 
-        var container = scene.create({ t: "rect",   parent: parent,    x: this._x, y: this._y, w: this._w, h: this._h });
+        var container = scene.create({ t: "object", parent: parent,    x: this._x, y: this._y, w: this._w, h: this._h });
         var clipRect  = scene.create({ t: "object", parent: container, x: 0,       y: 0,       w: this._w, h: this._h, clip: true} );
         var fontRes   = scene.create({ t: "fontResource",  url: font       });
         var inputRes  = scene.create({ t: "imageResource", url: params.url });
@@ -227,7 +227,7 @@ px.import({ scene: 'px:scene.1.js',
         var selection   = scene.create({ t: "rect", w: 0, h: inputBg.h,               parent: textView, fillColor: selection_color, x: 0, y: 0, a: 0 });  // highlight rect
         var textInput   = scene.create({ t: "text", text: "", font: fontRes,          parent: textView, pixelSize: pts, textColor: text_color,   x: 2, y: 0 });
         var textFrame   = scene.create({ t: "rect", w: 0, h: inputBg.h,               parent: textView, fillColor: "#0000",  lineColor: "#0808", lineWidth: 3, x: 0, y: 0, a: 0 });
-        
+
         var cursor      = scene.create({ t: "rect", w: 2, h: inputBg.h,               parent: textInput, x: 0, y: 0 });
 
         var cursorW2   = (cursor.w / 2);
@@ -249,7 +249,7 @@ px.import({ scene: 'px:scene.1.js',
 
         const LINEAR      = scene.animation.TWEEN_LINEAR;
         const FASTFORWARD = scene.animation.OPTION_FASTFORWARD;
-        
+
         container.on("onDragLeave", function (e)
         {
             textFrame.animateTo({ a: 0 }, 0.25, LINEAR, FASTFORWARD, 1);
@@ -259,7 +259,7 @@ px.import({ scene: 'px:scene.1.js',
         {
             if(textFrame.a <= 0)
             {
-                textFrame.animateTo({ a: 1 }, 0.25, LINEAR, FASTFORWARD, 1); /// Hmmm 
+                textFrame.animateTo({ a: 1 }, 0.25, LINEAR, FASTFORWARD, 1); /// Hmmm
             }
         });
 

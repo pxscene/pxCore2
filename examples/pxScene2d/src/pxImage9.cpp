@@ -27,6 +27,7 @@
 #include "pxImage9.h"
 #include "pxContext.h"
 #include "rtFileDownloader.h"
+#include <algorithm>
 
 extern pxContext context;
 
@@ -138,14 +139,35 @@ rtError pxImage9::setResource(rtObjectRef o)
 void pxImage9::sendPromise() 
 { 
   //rtLogDebug("image9 init=%d imageLoaded=%d\n",mInitialized,imageLoaded);
-  if(mInitialized && imageLoaded && !((rtPromise*)mReady.getPtr())->status()) 
+  if(mInitialized && imageLoaded && !((rtPromise*)mReady.getPtr())->status())
   {
     if (getImageResource() != NULL)
     {
       rtLogDebug("pxImage9 SENDPROMISE for %s\n", getImageResource()->getUrl().cString());
     }
     mReady.send("resolve",this);
-  } 
+
+  }
+}
+
+void pxImage9::createNewPromise()
+{
+  // Only create a new promise if the existing one has been
+  // resolved or rejected already.
+  if(((rtPromise*)mReady.getPtr())->status())
+  {
+    rtLogDebug("CREATING NEW PROMISE\n");
+    mReady = new rtPromise();
+  }
+}
+
+bool pxImage9::needsUpdate()
+{
+  if ((mParent != NULL && mAnimations.size() > 0) || (imageLoaded && !((rtPromise*)mReady.getPtr())->status()))
+  {
+    return true;
+  }
+  return false;
 }
 
 float pxImage9::getOnscreenWidth() 
@@ -162,7 +184,14 @@ float pxImage9::getOnscreenHeight()
 void pxImage9::draw() {
   if (getImageResource() != NULL && getImageResource()->isInitialized() && !mSceneSuspended)
   {
-    context.drawImage9(mw, mh, mInsetLeft, mInsetTop, mInsetRight, mInsetBottom, getImageResource()->getTexture());
+    if (getImageResource()->getTexture().getPtr() && !getImageResource()->getTexture()->readyForRendering())
+    {
+      getImageResource()->reloadData();
+    }
+    else
+    {
+      context.drawImage9(mw, mh, mInsetLeft, mInsetTop, mInsetRight, mInsetBottom, getImageResource()->getTexture());
+    }
   }
 }
 
@@ -171,7 +200,8 @@ void pxImage9::resourceReady(rtString readyResolution)
   //rtLogDebug("pxImage9::resourceReady()\n");
   if( !readyResolution.compare("resolve"))
   {
-    imageLoaded = true; 
+    imageLoaded = true;
+    triggerUpdate();
     // nineslice gets its w and h from the image only if
     // not set for the pxImage9
     if( mw == -1 && getImageResource() != NULL) { mw = static_cast<float>(getImageResource()->w()); }
@@ -234,14 +264,17 @@ void pxImage9::reloadData(bool sceneSuspended)
   pxObject::reloadData(sceneSuspended);
 }
 
-uint64_t pxImage9::textureMemoryUsage()
+uint64_t pxImage9::textureMemoryUsage(std::vector<rtObject*> &objectsCounted)
 {
   uint64_t textureMemory = 0;
-  if (getImageResource())
+  if (std::find(objectsCounted.begin(), objectsCounted.end(), this) == objectsCounted.end() )
   {
-    textureMemory += getImageResource()->textureMemoryUsage();
+    if (getImageResource())
+    {
+      textureMemory += getImageResource()->textureMemoryUsage(objectsCounted);
+    }
+    textureMemory += pxObject::textureMemoryUsage(objectsCounted);
   }
-  textureMemory += pxObject::textureMemoryUsage();
   return textureMemory;
 }
 

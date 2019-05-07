@@ -80,6 +80,7 @@ function AppSceneContext(params) {
   this.isCloseEvtRcvd = false;
   this.isTermEvtRcvd = false;
   this.termEvent = null;
+  this.isTerminated = false;
   log.message(4, "[[[NEW AppSceneContext]]]: " + this.packageUrl);
 }
 
@@ -185,6 +186,7 @@ function terminateScene() {
     this.isCloseEvtRcvd = false;
     this.isTermEvtRcvd = false;
     this.termEvent = null;
+    this.isTerminated = true;
 }
 
 this.innerscene.on('onSceneTerminate', function(e) { 

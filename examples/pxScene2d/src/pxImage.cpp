@@ -30,6 +30,7 @@
 // TODO why does pxfont refer to pxImage.h
 #include "pxImage.h"
 #include "pxContext.h"
+#include <algorithm>
 
 using namespace std;
 
@@ -107,6 +108,16 @@ rtError pxImage::setResource(rtObjectRef o)
 
 }
 
+void pxImage::createWithOffscreen(pxOffscreen &o)
+{
+  removeResourceListener();
+  mResource = new rtImageResource();
+  rtImageResource* imageResource = getImageResource();
+  imageResource->createWithOffscreen(o);
+  createNewPromise();
+  resourceReady("resolve");
+}
+
 rtError pxImage::url(rtString& s) const
 {
   if (getImageResource() != NULL)
@@ -171,12 +182,32 @@ rtError pxImage::setUrl(const char* s)
 }
 
 void pxImage::sendPromise()
-{ 
-  if(mInitialized && imageLoaded && !((rtPromise*)mReady.getPtr())->status()) 
+{
+  if(mInitialized && imageLoaded && !((rtPromise*)mReady.getPtr())->status())
   {
       //rtLogDebug("pxImage SENDPROMISE for %s\n", mUrl.cString());
       mReady.send("resolve",this); 
   }
+}
+
+void pxImage::createNewPromise()
+{
+  // Only create a new promise if the existing one has been
+  // resolved or rejected already.
+  if(((rtPromise*)mReady.getPtr())->status())
+  {
+    rtLogDebug("CREATING NEW PROMISE\n");
+    mReady = new rtPromise();
+  }
+}
+
+bool pxImage::needsUpdate()
+{
+  if ((mParent != NULL && mAnimations.size() > 0) || (imageLoaded && !((rtPromise*)mReady.getPtr())->status()))
+  {
+    return true;
+  }
+  return false;
 }
 
 float pxImage::getOnscreenWidth()
@@ -204,11 +235,18 @@ void pxImage::draw() {
   static pxTextureRef nullMaskRef;
   if (getImageResource() != NULL && getImageResource()->isInitialized() && !mSceneSuspended)
   {
-    context.drawImage(0, 0,
-                      getOnscreenWidth(),
-                      getOnscreenHeight(),
-                      getImageResource()->getTexture(), nullMaskRef,
-                      false, NULL, mStretchX, mStretchY, mDownscaleSmooth, mMaskOp);
+    if (getImageResource()->getTexture().getPtr() && !getImageResource()->getTexture()->readyForRendering())
+    {
+      getImageResource()->reloadData();
+    }
+    else
+    {
+      context.drawImage(0, 0,
+                        getOnscreenWidth(),
+                        getOnscreenHeight(),
+                        getImageResource()->getTexture(), nullMaskRef,
+                        false, NULL, mStretchX, mStretchY, mDownscaleSmooth, mMaskOp);
+    }
   }
   // Raise the priority if we're still waiting on the image download    
 #if 0
@@ -221,7 +259,8 @@ void pxImage::resourceReady(rtString readyResolution)
   //rtLogDebug("pxImage::resourceReady(%s) mInitialized=%d for \"%s\"\n",readyResolution.cString(),mInitialized,getImageResource()->getUrl().cString());
   if( !readyResolution.compare("resolve"))
   {
-    imageLoaded = true; 
+    imageLoaded = true;
+    triggerUpdate();
     pxObject::onTextureReady();
     checkStretchX();
     checkStretchY();
@@ -357,14 +396,17 @@ void pxImage::reloadData(bool sceneSuspended)
   pxObject::reloadData(sceneSuspended);
 }
 
-uint64_t pxImage::textureMemoryUsage()
+uint64_t pxImage::textureMemoryUsage(std::vector<rtObject*> &objectsCounted)
 {
   uint64_t textureMemory = 0;
-  if (getImageResource())
+  if (std::find(objectsCounted.begin(), objectsCounted.end(), this) == objectsCounted.end() )
   {
-    textureMemory += getImageResource()->textureMemoryUsage();
+    if (getImageResource())
+    {
+      textureMemory += getImageResource()->textureMemoryUsage(objectsCounted);
+    }
+    textureMemory += pxObject::textureMemoryUsage(objectsCounted);
   }
-  textureMemory += pxObject::textureMemoryUsage();
   return textureMemory;
 }
 
