@@ -34,6 +34,22 @@ cd jpg
 make all -j3
 cd ..
 
+#--------- GIF
+cd gif
+sudo make install
+[ -d .libs ] || mkdir -p .libs
+if [ -e libgif.dylib ]
+then
+cp libgif.dylib .libs/libgif.dylib
+cp libutil.dylib .libs/libutil.dylib
+
+elif [ -e libgif.so ]
+then
+cp libgif.so .libs/libgif.dylib
+cp libutil.so .libs/libutil.dylib
+fi
+cd ..
+
 #--------- ZLIB 
 cd zlib
 ./configure

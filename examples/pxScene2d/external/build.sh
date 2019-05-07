@@ -71,27 +71,25 @@ fi
 
 #--------- GIF
 
-if [ ! -e ./gif/.libs/libgif.dylib ] &&
+if [ ! -e ./gif/.libs/libgif.dylib ] ||
 [ "$(uname)" != "Darwin" ]
 then
 
 banner "GIF"
+git apply giflib-5.1.9.patch
 cd gif
-#cmake .
-#cmake --build . --config Release --clean-first
 sudo make install
 [ -d .libs ] || mkdir -p .libs
 if [ -e libgif.dylib ]
 then
 cp libgif.dylib .libs/libgif.dylib
-cp libutil.dylib .libs/libgifutil.dylib
+cp libutil.dylib .libs/libutil.dylib
 
 elif [ -e libgif.so ]
 then
 cp libgif.so .libs/libgif.dylib
-cp libutil.so .libs/libgifutil.dylib
+cp libutil.so .libs/libutil.dylib
 fi
-
 cd ..
 fi
 
