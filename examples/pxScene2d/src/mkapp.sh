@@ -29,7 +29,7 @@ rm -rf $bundle
 
 # Copy LIBS to Bundle...
 #
-if [ -d ./gif/.libs/ ]
+if [ -e $externalDir/gif/.libs/libgif.dylib ]
 then
 cp $externalDir/gif/.libs/libgif.dylib $bundleLib
 fi
