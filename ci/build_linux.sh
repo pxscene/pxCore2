@@ -2,6 +2,8 @@
 BUILDLOGS=$TRAVIS_BUILD_DIR/logs/build_logs
 mkdir -p $TRAVIS_BUILD_DIR/logs   # make 'logs' if necessary
 
+-DBUILD_WITH_GIF=ON
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 checkError()
 {

@@ -83,6 +83,13 @@ set(PXSCENE_DEFINITIONS )
 set(PXSCENE_ADDITIONAL_RESOURCES )
 set(PXSCENE_INSTALLER 0)
 
+if (BUILD_WITH_GIF)
+message("Building with GIF support")
+set(PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} gif)
+add_definitions(-DSUPPORT_GIF)
+endif (BUILD_WITH_GIF)
+
+
 ##
 ## APPLE BUILDS
 ##
