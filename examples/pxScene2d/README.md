@@ -257,6 +257,17 @@ file:///home/username/directory/filename.js
       2. Select _"pxScene2d"_ as the target in the pulldown on the toolbar
       3. From menu, go to Product menu and select _"Build"_ or type  ⌘B
 
+## Information on externals and patches
 
-
-
+1. externals folder changes are done as patch files and are not shown as part of git status command. If developer wants to see the files that are edited as part of patch, then run below command:
+    ~~~~
+    git ls-files -v|grep "^h"
+    ~~~~
+2. If developer wants to add changes as part of externals as part of task, changes need to be provided as patch and modified filenames are to be added as part of build.sh and buildWindows.bat as below as part of commit:
+    ~~~~
+    build.sh:
+    ignoreFile <filename>
+    
+    buildWindows.bat:
+    git update-index --assume-unchanged <filename>
+    ~~~~

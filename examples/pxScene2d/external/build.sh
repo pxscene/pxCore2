@@ -12,6 +12,10 @@ banner() {
   echo " "
 }
 
+ignoreFile () {
+    git update-index --assume-unchanged $1
+}
+
 #--------- CURL
 
 make_parallel=3
@@ -202,6 +206,7 @@ then
 
   if [ -e Makefile.build ]
   then
+    git update-index --assume-unchanged Makefile.build
     mv Makefile.build Makefile
   fi
 
@@ -236,5 +241,22 @@ then
   ./dukluv/build.sh
 fi
 
+#ignoring patched files
+#git ls-files -m --exclude-standard|xargs git update-index --assume-unchanged
+ignoreFile nanosvg/src/nanosvg.h
+ignoreFile nanosvg/src/nanosvgrast.h
+ignoreFile breakpad-chrome_55/src/client/linux/dump_writer_common/ucontext_reader.cc
+ignoreFile breakpad-chrome_55/src/client/linux/dump_writer_common/ucontext_reader.h
+ignoreFile breakpad-chrome_55/src/client/linux/handler/exception_handler.cc
+ignoreFile breakpad-chrome_55/src/client/linux/handler/exception_handler.h
+ignoreFile breakpad-chrome_55/src/client/linux/microdump_writer/microdump_writer.cc
+ignoreFile breakpad-chrome_55/src/client/linux/minidump_writer/minidump_writer.cc
+ignoreFile zlib-1.2.11/Makefile
+ignoreFile zlib-1.2.11/zconf.h
+ignoreFile dukluv/CMakeLists.txt
+ignoreFile dukluv/src/duv.c
+ignoreFile dukluv/src/main.c
+ignoreFile dukluv/uv.cmake
+ignoreFile libpng-1.6.28/config.h
+ignoreFile libpng-1.6.28/libpng-config
 #--------
-
