@@ -45,5 +45,6 @@
       {"url":"../tests/test_textBoxWrapBounds.js", "title":"test_textBoxWrapBounds","useBaseURI":"true"},
       {"url":"../tests/test_getFile.js", "title":"test_getFile","useBaseURI":"true"},
       {"url":"../tests/test_textWithoutParent.js", "title":"textWithoutParent","useBaseURI":"true"},
-      {"url":"../tests/test_xre2-1658.js", "title":"test_xre2-1658","useBaseURI":"true"}
+      {"url":"../tests/test_xre2-1658.js", "title":"test_xre2-1658","useBaseURI":"true"},
+      {"url":"../tests/test_gifLoader.js", "title":"test_gifLoader","useBaseURI":"true"}
 ]

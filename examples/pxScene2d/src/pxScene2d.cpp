@@ -1941,6 +1941,11 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   mCapabilityVersions = new rtMapObject;
   rtObjectRef graphicsCapabilities = new rtMapObject;
   graphicsCapabilities.set("svg", 1);
+
+#ifdef SUPPORT_GIF
+    graphicsCapabilities.set("gif", 1);
+#endif //SUPPORT_GIF
+      
   mCapabilityVersions.set("graphics", graphicsCapabilities);
 
   rtObjectRef networkCapabilities = new rtMapObject;
