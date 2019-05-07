@@ -18,6 +18,7 @@ limitations under the License.
 
 var isDuk = (typeof Duktape != "undefined")?true:false;
 var isV8 = (typeof _isV8 != "undefined")?true:false;
+var isJSC = (typeof _isJSC != "undefined")?true:false;
 
 if (isDuk) {
 global.console = require('console');
@@ -55,6 +56,13 @@ global.Promise = Promise = require('bluebird');
 global.process = process = require('process');
 global.pako = pako = require('pako');
 } // end isV8
+else if (isJSC) {
+global = global || {};
+// global.console = console = require('console');
+global.Buffer = Buffer = require('buffer').Buffer;
+global.process = process = require('process');
+global.pako = pako = require('pako');
+}
 else {
   // not isDuk and not isV8
 

@@ -18,7 +18,8 @@ limitations under the License.
 
 'use strict';
 
-var isV8=(typeof _isV8 !== "undefined");
+var isJSC=(typeof _isJSC != "undefined")?true:false;
+var isV8=(typeof _isV8 !== "undefined") || isJSC;
 
 try {
   var http2 = isV8?null:require('http2');

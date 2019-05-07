@@ -56,7 +56,7 @@ public:
   rtError getHeader(const rtString& name, rtString& s);
   rtError removeHeader(const rtString& name);
 
-  static void onDownloadComplete(rtFileDownloadRequest* downloadRequest);
+  virtual void onDownloadComplete(rtFileDownloadRequest* downloadRequest);
   static void onDownloadCompleteAndRelease(rtFileDownloadRequest* downloadRequest);
   static void onDownloadComplete(void* context, void* data);
 
@@ -68,7 +68,7 @@ public:
   bool inQueue() const;
   bool delayReply() const;
 
-private:
+protected:
   rtEmitRef mEmit;
   rtString mUrl;
   std::vector<rtString> mHeaders;

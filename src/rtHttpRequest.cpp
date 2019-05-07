@@ -343,7 +343,7 @@ void rtHttpRequest::onDownloadCompleteAndRelease(rtFileDownloadRequest* download
   }
   else if (req != NULL)
   {
-    onDownloadComplete(downloadRequest);
+    req->onDownloadComplete(downloadRequest);
     req->Release();
   }
 }

@@ -20,6 +20,7 @@ limitations under the License.
 
 var isDuk=(typeof Duktape != "undefined")?true:false;
 var isV8=(typeof _isV8 != "undefined")?true:false;
+var isJSC = (typeof _isJSC != "undefined")?true:false;
 
 var fs = require("fs");
 // keep different name for http and https from js engine
@@ -87,7 +88,7 @@ function loadFile(fileUri, appSceneContext) {
       } else {
         req = (isHttps ? https_global : http_global).get(options, httpCallback);
       }
-      if (!isV8) {
+      if (!isV8 && !isJSC) {
         process._tickCallback();
       }
       req.on('error', function (err) {
