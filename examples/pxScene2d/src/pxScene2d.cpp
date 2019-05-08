@@ -1497,8 +1497,8 @@ bool pxScene2d::onMouseUp(int32_t x, int32_t y, uint32_t flags)
     // TODO optimization... we really only need to check mMouseDown
     if (mRoot->hitTestInternal(m, pt, hit, hitPt))
     {
-      // Only send onMouseUp if this object got an onMouseDown
-      if (tMouseDown == hit)
+      // Only send onMouseUp if this object got an onMouseDown -- WHY???
+//      if (tMouseDown == hit)
       {
         rtObjectRef e = new rtMapObject;
         e.set("name", "onMouseUp");
