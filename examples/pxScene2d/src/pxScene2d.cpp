@@ -1310,7 +1310,7 @@ void pxScene2d::onUpdate(double t)
   // Periodically let's poke the onMouseMove handler with the current pointer position
   // to better handle objects that animate in or out from under the mouse cursor
   // eg. scrolling
-  if (t-mPointerLastUpdated > 1) // Once a second
+  if (t-mPointerLastUpdated > 0.2) // every 0.2 seconds
   {
     updateMouseEntered();
     mPointerLastUpdated = t;
@@ -1531,11 +1531,11 @@ void pxScene2d::setMouseEntered(rtRef<pxObject> o, int32_t x /* = 0*/, int32_t y
     {
       rtObjectRef e = new rtMapObject;
       e.set("name", "onMouseLeave");
-      e.set("target", o.getPtr());
+      e.set("target", mMouseEntered.getPtr());
       e.set("x", x);
       e.set("y", y);
 
-      bubbleEvent(e,o, "onPreMouseLeave", "onMouseLeave");
+      bubbleEvent(e,mMouseEntered,"onPreMouseLeave","onMouseLeave");
     }
     mMouseEntered = o;
 
