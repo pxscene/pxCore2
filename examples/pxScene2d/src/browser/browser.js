@@ -363,15 +363,15 @@ px.import({ scene:    'px:scene.1.js',
     }
   }
 
-  backButton.on('onClick', function(e){
+  backButton.on('onMouseUp', function(e){
     goBack()
   })
 
-  foreButton.on('onClick', function(e){
+  foreButton.on('onMouseUp', function(e){
     goForward()
   })
 
-  starContainer.on('onClick', function(e) {
+  starContainer.on('onMouseUp', function(e) {
     var starState = !(starFill.a != 0)
     
     var urlKey = '.fav.'+currUrl
@@ -406,7 +406,7 @@ px.import({ scene:    'px:scene.1.js',
     //menuItem.fillColor=0x00ff00ff
   })  
 
-  menuButton.on('onClick', function(e){
+  menuButton.on('onMouseUp', function(e){
     menuClicked = true;
   })
 
