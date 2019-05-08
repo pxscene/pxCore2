@@ -40,6 +40,10 @@
 #include "pxTextBox.h"
 #include "pxImage.h"
 
+#ifdef ENABLE_SPARK_WEBGL
+#include "pxWebGL.h"
+#endif //ENABLE_SPARK_WEBGL
+
 #ifdef PX_SERVICE_MANAGER
 #include "pxServiceManager.h"
 #endif //PX_SERVICE_MANAGER
@@ -637,6 +641,8 @@ rtError pxScene2d::create(rtObjectRef p, rtObjectRef& o)
     e = createExternal(p,o);
   else if (!strcmp("wayland",t.cString()))
     e = createWayland(p,o);
+  else if (!strcmp("webgl",t.cString()))
+    e = createWebGL(p,o);
   else if (!strcmp("object",t.cString()))
     e = createObject(p,o);
   else
@@ -949,6 +955,19 @@ rtError pxScene2d::createWayland(rtObjectRef p, rtObjectRef& o)
   rtLogWarn("Type 'wayland' is deprecated; use 'external' instead.\n");
   UNUSED_PARAM(p);
   return this->createExternal(p, o);
+}
+
+rtError pxScene2d::createWebGL(rtObjectRef p, rtObjectRef& o)
+{
+#ifdef ENABLE_SPARK_WEBGL
+  o = new pxWebgl(this);
+  o.set(p);
+  o.send("init");
+  return RT_OK;
+#else
+  rtLogError("Type 'webgl' is not supported");
+  return RT_FAIL;
+#endif //ENABLE_SPARK_WEBGL
 }
 
 void pxScene2d::draw()

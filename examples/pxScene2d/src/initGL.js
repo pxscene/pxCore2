@@ -131,8 +131,10 @@ var loadUrl = function(url, _beginDrawing, _endDrawing, _view) {
   global.clearInterval = xxclearInterval
   global.setImmediate = xxsetImmediate
   global.clearImmediate = xxclearImmediate
-  global.sparkview = _view        
-  
+  global.sparkview = _view
+  global.sparkscene = getScene("scene.1")
+  global.sparkgles2 = require('gles2.js');
+
 // JRJR todo make into a map
 var bootStrapCache = {}
 

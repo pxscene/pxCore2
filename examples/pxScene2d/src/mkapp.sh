@@ -96,6 +96,8 @@ ${minJS} about.js $bundleRes/about.js
 ${minJS} mime.js $bundleRes/mime.js
 ${minJS} browser/editbox.js $bundleRes/browser/editbox.js
 cp initGL.js $bundleRes/initGL.js
+cp webgl.js $bundleRes/webgl.js
+cp gles2.js $bundleRes/gles2.js
 
 #./jsMinFolder.sh browser $bundleRes/browser
 
