@@ -175,6 +175,7 @@ rtError pxWaylandContainer::setCmd(const char* s)
   const char *p= strpbrk( s, " ");
   std::map<string, string>::iterator it= gWaylandAppsMap.end();
   rtString binary;
+  rtString binaryPath;
   mCmd = s;
   if ( !p )
   {
@@ -221,11 +222,12 @@ rtError pxWaylandContainer::setCmd(const char* s)
                (regcmd[regcmdlen-1] == '%'))
           {
              binary = rtString(regcmd, (uint32_t) (regcmdlen-1) );
+             binaryPath = binary;
              binary.append( args );
           }
-          if (!rtFileExists(cmd))
+          if (!rtFileExists(binaryPath))
           {
-            rtLogError("Application %s does not exist", cmd);
+            rtLogError("Application %s does not exist", binaryPath.cString());
             return RT_ERROR;
           }
        }
