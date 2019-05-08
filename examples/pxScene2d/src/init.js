@@ -77,7 +77,7 @@ else {
     var defaultViewerBaseUrl = getSetting('defaultViewerBaseUrl')
     
     if (!defaultViewerBaseUrl)
-        defaultViewerBaseUrl = 'browser/'
+        defaultViewerBaseUrl = './browser/'
 
     // ensure trailing /
     function endsWith(str, suffix) {
