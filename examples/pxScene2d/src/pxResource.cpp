@@ -494,6 +494,13 @@ void rtImageResource::setTextureData(pxOffscreen& imageOffscreen)
 #endif //ENABLE_BACKGROUND_TEXTURE_CREATION
 }
 
+void rtImageResource::createWithOffscreen(pxOffscreen& imageOffscreen)
+{
+  mDownloadedTexture = context.createTexture(imageOffscreen);
+  mDownloadComplete = true;
+  setupResource();
+}
+
 void rtImageResource::setupResource()
 {
   getTexture(true);
