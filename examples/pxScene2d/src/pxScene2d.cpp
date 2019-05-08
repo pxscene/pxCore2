@@ -2822,9 +2822,10 @@ rtError pxSceneContainer::setServiceContext(rtObjectRef o)
 rtError pxSceneContainer::suspend(const rtValue& v, bool& b)
 {
   b = false;
-  if (mScene)
+  pxScriptView* scriptView = dynamic_cast<pxScriptView*>(mView.getPtr());
+  if (scriptView != NULL)
   {
-    mScene->suspend(v, b);
+    return scriptView->suspend(v, b);
   }
   return RT_OK;
 }
@@ -2832,9 +2833,10 @@ rtError pxSceneContainer::suspend(const rtValue& v, bool& b)
 rtError pxSceneContainer::resume(const rtValue& v, bool& b)
 {
   b = false;
-  if (mScene)
+  pxScriptView* scriptView = dynamic_cast<pxScriptView*>(mView.getPtr());
+  if (scriptView != NULL)
   {
-    mScene->resume(v,b);
+    return scriptView->resume(v, b);
   }
   return RT_OK;
 }
