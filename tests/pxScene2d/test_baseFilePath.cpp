@@ -112,6 +112,17 @@ public:
     EXPECT_EQ (std::string(env.cString()), d.cString());
   }
 
+  void test_urlInQuery()
+  {
+    pxScriptView* view = new pxScriptView("supportfiles/baseFilePath.js?tests=file:///home/tests.json", "");
+    process(view, .5f);
+    view->onCloseRequest();
+    delete view;
+
+    rtString env = rtGetEnvAsString(envTestBaseFilePathVal);
+    EXPECT_EQ (std::string(env.cString()), "supportfiles");
+  }
+
 private:
   void process(pxScriptView* view, float timeout)
   {
@@ -131,4 +142,5 @@ TEST_F(baseFilePathTest, baseFilePathTests)
   test_relativePathDoubleDot();
   test_absolutePath();
   test_fileURL();
+  test_urlInQuery();
 }
