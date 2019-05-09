@@ -86,9 +86,10 @@ function AppSceneContext(params) {
 
 AppSceneContext.prototype.loadScene = function() {
 
-  this.basePackageUri = path.dirname(this.packageUrl);
+  const thisPackageUrl = this.packageUrl.split('?')[0];
+  this.basePackageUri = path.dirname(thisPackageUrl);
 
-  this.loadPackage(this.packageUrl.split('?')[0]);
+  this.loadPackage(thisPackageUrl);
 
 function terminateScene() {
     var e = this.termEvent;
