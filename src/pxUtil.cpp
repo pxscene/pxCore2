@@ -1959,6 +1959,7 @@ rtError pxLoadGIFImage(const char *imageData, size_t imageDataSize,
         
         transparent = -1;
         pxOffscreen obj;
+        obj.init(width, height);
         
         do {
             // determine what sort of record type we have
@@ -2017,7 +2018,6 @@ rtError pxLoadGIFImage(const char *imageData, size_t imageDataSize,
                     status = RT_FAIL;
                     break;
                 }
-                obj.init(w, h);
                 drawGifImage(obj, s, rows, map, transparent);
                 break;
                 
