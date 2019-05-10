@@ -2709,6 +2709,8 @@ void pxScriptView::runScript()
       mSharedContext->makeCurrent(false);
 
       beginDrawing();
+      glClearColor(0, 0, 0, 0);
+      glClear(GL_COLOR_BUFFER_BIT);      
       mCtx->runFile("initGL.js");
       rtValue foo = mCtx->get("loadUrl");
       rtFunctionRef f = foo.toFunction();
