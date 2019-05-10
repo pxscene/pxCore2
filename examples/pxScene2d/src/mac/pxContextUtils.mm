@@ -101,12 +101,13 @@ pxError makeInternalGLContextCurrent(bool current, int id)
         if (context != nil)
         {
             [context makeCurrentContext];
+
             #if 0
             glEnable(GL_BLEND);
             glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+            #endif
             glClearColor(0, 0, 0, 0);
             glClear(GL_COLOR_BUFFER_BIT);
-            #endif
         }
         glContextIsCurrent = true;
     }
