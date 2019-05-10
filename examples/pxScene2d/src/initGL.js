@@ -34,7 +34,15 @@ var _immediates = []
 
 var __dirname = process.cwd()
 
-var loadUrl = function(url, beginDrawing, endDrawing, _view) {
+var loadUrl = function(url, _beginDrawing, _endDrawing, _view) {
+
+  // JRJR review this... if we don't draw outside of the timers
+  // then no need for this... 
+  // general todo... in terms of sandboxing webgl operations.
+  // webgl operations outside of the timer callbacks are unsafe
+  // since the gl context will not be set up correctly
+  global.beginDrawing = _beginDrawing
+  global.endDrawing = _endDrawing
 
   var succeeded = false
   active = true
@@ -63,11 +71,11 @@ var loadUrl = function(url, beginDrawing, endDrawing, _view) {
     var rest = Array.from(arguments).slice(2)
     var timeout = _timers.setTimeout(function() {
         return function() {
-          console.log('before beginDrawing2')
+          //console.log('before beginDrawing2')
           beginDrawing(); 
           f.apply(null,rest)
           endDrawing();
-          console.log('after end Drawing2')
+          //console.log('after end Drawing2')
           var index = _timeouts.indexOf(timeout)
           if (index > -1) {
             _timeouts.splice(index,1)
@@ -90,11 +98,11 @@ var loadUrl = function(url, beginDrawing, endDrawing, _view) {
     var rest = Array.from(arguments).slice(1)
     var timeout = _timers.setTimeout(function() {
         return function() {
-          console.log('before beginDrawing3')
+          //console.log('before beginDrawing3')
           if (active) beginDrawing(); 
           f.apply(null,rest) 
           if (active) endDrawing();
-          console.log('after end Drawing3')
+          //console.log('after end Drawing3')
           var index = _immediates.indexOf(timeout)
           if (index > -1) {
             _immediates.splice(index,1)
@@ -256,8 +264,6 @@ var _clearImmediates = function() {
   }
   _immediates = []
 }
-
-
 
 var onClose = function() {
   _clearIntervals()
