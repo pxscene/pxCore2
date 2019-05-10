@@ -1,5 +1,5 @@
 diff --git a/examples/pxScene2d/external/libnode-v8.15.1/common.gypi b/examples/pxScene2d/external/libnode-v8.15.1/common.gypi
-index fd42f27..feab650 100644
+index fd42f27..41e6722 100644
 --- a/examples/pxScene2d/external/libnode-v8.15.1/common.gypi
 +++ b/examples/pxScene2d/external/libnode-v8.15.1/common.gypi
 @@ -131,7 +131,9 @@
@@ -13,6 +13,15 @@ index fd42f27..feab650 100644
          'conditions': [
            ['target_arch=="x64"', {
              'msvs_configuration_platform': 'x64',
+@@ -205,7 +207,7 @@
+         # Disable "warning C4267: conversion from 'size_t' to 'int',
+         # possible loss of data".  Many originate from our dependencies
+         # and their sheer number drowns out other, more legitimate warnings.
+-        'DisableSpecificWarnings': ['4267'],
++        'DisableSpecificWarnings': ['4267', '4251', '4275'],
+         'WarnAsError': 'false',
+       },
+       'VCLinkerTool': {
 @@ -404,8 +406,13 @@
            ['clang==1', {
              'xcode_settings': {
