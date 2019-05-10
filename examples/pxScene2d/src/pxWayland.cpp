@@ -929,6 +929,8 @@ rtError pxWayland::drawToFbo(pxContextFramebufferRef& fbo)
 
   context.setFramebuffer( previousFrameBuffer );
   context.popState();
+  
+  return RT_OK;
 }
 
 // These key codes are from linux/input.h which may not be available depending on what platform we are building for
