@@ -70,7 +70,6 @@ then
 fi
 
 #--------- GIF
-
 if [ ! -e ./gif/.libs/libgif.dylib ] ||
 [ "$(uname)" != "Darwin" ]
 then
