@@ -1853,8 +1853,8 @@ void drawGifImage(pxOffscreen& obj, int &delayTime, pxTimedOffscreenSequence &s,
             pixel->a = 0xFF;
         }
     }
-    unsigned short delay_num = 1;
-    unsigned short delay_den = delayTime;
+    unsigned short delay_num = delayTime;
+    unsigned short delay_den = 100; /* pre-display delay in 0.01sec units */
     s.addBuffer(obj, (double)delay_num / (double)delay_den);
 }
 #endif
