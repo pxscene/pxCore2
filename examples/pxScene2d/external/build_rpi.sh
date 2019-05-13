@@ -37,23 +37,7 @@ cd ..
 #--------- GIF
 cd gif
 
-if [[ "$#" -eq "1" && "$1" == "--clean" ]]; then
-quilt pop -afq || test $? = 2
-rm -rf .libs/*
-elif [[ "$#" -eq "1" && "$1" == "--force-clean" ]]; then
-git clean -fdx .
-git checkout .
-rm -rf .libs/*
-else
-quilt push -aq || test $? = 2
-fi
-
-[ -d patches ] || mkdir -p patches
-[ -d patches/series ] || echo 'giflib-5.1.9.patch' >patches/series
-cp ../giflib-5.1.9.patch patches/
-
-
-if [ ! -e ./gif/.libs/libgif.dylib ] ||
+if [ ! -e ./.libs/libgif.dylib ] ||
 [ "$(uname)" != "Darwin" ]
 then
 sudo make install

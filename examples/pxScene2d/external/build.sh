@@ -92,7 +92,7 @@ fi
 cp ../giflib-5.1.9.patch patches/
 fi
 
-if [ ! -e ./gif/.libs/libgif.dylib ] ||
+if [ ! -e ./.libs/libgif.dylib ] ||
 [ "$(uname)" != "Darwin" ]
 then
 sudo make install
