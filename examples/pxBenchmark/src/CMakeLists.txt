@@ -290,7 +290,7 @@ set(PXSCENE_DEFINITIONS ${PXSCENE_DEFINITIONS} -D${PX_PLATFORM} -DENABLE_RT_NODE
 #set(PXSCENE_LINKER_OPTIONS "${PXSCENE_LINKER_OPTIONS} -lgcov")
 
 include_directories(AFTER ${NODE_INCLUDE_DIRS} ${DUKE_INCLUDE_DIRS})
-include_directories(AFTER ${WESTEROSINC} ${WESTEROSSTUBINC} ${TURBO_JPEG_INCLUDE_DIRS} ${BREAKPADINC} ${RTREMOTEINC} ${PXCOREDIR}/src)
+include_directories(AFTER ${WESTEROSINC} ${WESTEROSSTUBINC} ${TURBO_JPEG_INCLUDE_DIRS} ${BREAKPADINC} ${EXTDIR} ${PXCOREDIR}/src)
 include_directories(AFTER ${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(AFTER ${CMAKE_CURRENT_SOURCE_DIR}/rasterizer)
 include_directories(AFTER ${CMAKE_CURRENT_SOURCE_DIR}/../external/Celero/include/)
@@ -313,7 +313,7 @@ set(PXWAYLAND_LIB_FILES ${CMAKE_CURRENT_SOURCE_DIR}/../../pxScene2d/src/pxContex
 
 if (BUILD_WITH_GL)
 message("Building with GL support")
-set(PXSCENE_COMMON_FILES ${PXSCENE_COMMON_FILES} ${CMAKE_CURRENT_SOURCE_DIR}/../../pxScene2d/src/pxContextGL.cpp)
+set(PXSCENE_COMMON_FILES ${PXSCENE_COMMON_FILES} ${CMAKE_CURRENT_SOURCE_DIR}/../../pxScene2d/src/pxObject.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../../pxScene2d/src/pxContextGL.cpp)
 else ()
 message("Building with DirectFB support")
 set(PXSCENE_COMMON_FILES ${PXSCENE_COMMON_FILES} ${CMAKE_CURRENT_SOURCE_DIR}/../../pxScene2d/src/pxContextDFB.cpp)

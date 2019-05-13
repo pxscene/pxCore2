@@ -518,6 +518,9 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   // capabilities.graphics.svg          = 2
   // capabilities.graphics.cursor       = 1
   // capabilities.graphics.colors       = 1
+  // capabilities.graphics.screenshots  = 2
+  //
+  // capabilities.scene.external  = 1
   //
   // capabilities.network.cors          = 1
   // capabilities.network.corsResources = 1
@@ -535,7 +538,13 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
 
   graphicsCapabilities.set("svg", 2);
   graphicsCapabilities.set("colors", 1);
-
+      
+#ifdef SUPPORT_GIF
+    graphicsCapabilities.set("gif", 1);
+#endif //SUPPORT_GIF
+      
+  graphicsCapabilities.set("screenshots", 2);
+      
 #ifdef SPARK_CURSOR_SUPPORT
   graphicsCapabilities.set("cursor", 1);
 #else
@@ -550,6 +559,14 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
 #endif // SPARK_CURSOR_SUPPORT
 
   mCapabilityVersions.set("graphics", graphicsCapabilities);
+
+  rtObjectRef sceneCapabilities = new rtMapObject;
+#if defined(DISABLE_WAYLAND)
+  sceneCapabilities.set("external", 0);
+#else
+  sceneCapabilities.set("external", 1);
+#endif //DISABLE_WAYLAND
+  mCapabilityVersions.set("scene", sceneCapabilities);
 
   rtObjectRef networkCapabilities = new rtMapObject;
 
@@ -2185,15 +2202,16 @@ rtError pxScene2d::setCustomAnimator(const rtFunctionRef& v)
   }
 }
 
-rtError pxScene2d::screenshot(rtString type, rtString& pngData)
+rtError pxScene2d::screenshot(rtString type, rtValue& returnValue)
 {
+  returnValue = "";
 #ifdef ENABLE_PERMISSIONS_CHECK
   if (RT_OK != mPermissions->allows("screenshot", rtPermissions::FEATURE))
     return RT_ERROR_NOT_ALLOWED;
 #endif
 
   // Is this a type we support?
-  if (type != "image/png;base64")
+  if (type != "image/png;base64" && type != "image/image")
   {
     return RT_FAIL;
   }
@@ -2208,12 +2226,6 @@ rtError pxScene2d::screenshot(rtString type, rtString& pngData)
   context.snapshot(o);
   context.setFramebuffer(previousRenderSurface);
 
-  rtData pngData2;
-  if (pxStorePNGImage(o, pngData2) != RT_OK)
-  {
-    return RT_FAIL;
-  }
-
 //HACK JUNK HACK JUNK HACK JUNK HACK JUNK HACK JUNK
 //HACK JUNK HACK JUNK HACK JUNK HACK JUNK HACK JUNK
 #if 0
@@ -2227,14 +2239,22 @@ rtError pxScene2d::screenshot(rtString type, rtString& pngData)
 //HACK JUNK HACK JUNK HACK JUNK HACK JUNK HACK JUNK
 //HACK JUNK HACK JUNK HACK JUNK HACK JUNK HACK JUNK
 
-  rtString base64coded;
-
-  if( base64_encode(pngData2, base64coded) == RT_OK )
+  if (type == "image/png;base64")
   {
-    // We return a data Url string containing the image data
-    pngData = "data:image/png;base64,";
+    rtData pngData2;
+    if (pxStorePNGImage(o, pngData2) != RT_OK)
+    {
+      return RT_FAIL;
+    }
 
-    pngData += base64coded;
+    rtString base64coded;
+
+    if (base64_encode(pngData2, base64coded) == RT_OK)
+    {
+      // We return a data Url string containing the image data
+      rtString pngData = "data:image/png;base64,";
+
+      pngData += base64coded;
 
 //        FILE *saveFile  = fopen("/var/tmp/snap.txt", "wt"); // base64
 //        fwrite( base64coded.cString(), base64coded.length(), sizeof(char), saveFile);
@@ -2268,10 +2288,19 @@ rtError pxScene2d::screenshot(rtString type, rtString& pngData)
 //            }
 //          }
 //        }
+      returnValue = pngData;
 
-        return RT_OK;
+      return RT_OK;
 
-  }//ENDIF
+    }//ENDIF
+  }
+  else if (type == "image/image")
+  {
+    pxImage* image = new pxImage(this);
+    image->createWithOffscreen(o);
+    returnValue = image;
+    return RT_OK;
+  }
 
   return RT_FAIL;
 }
@@ -2724,6 +2753,7 @@ rtDefineProperty(pxSceneContainer, ready);
 rtDefineProperty(pxSceneContainer, serviceContext);
 rtDefineMethod(pxSceneContainer, suspend);
 rtDefineMethod(pxSceneContainer, resume);
+rtDefineMethod(pxSceneContainer, screenshot);
 //rtDefineMethod(pxSceneContainer, makeReady);   // DEPRECATED ?
 
 
@@ -2792,9 +2822,10 @@ rtError pxSceneContainer::setServiceContext(rtObjectRef o)
 rtError pxSceneContainer::suspend(const rtValue& v, bool& b)
 {
   b = false;
-  if (mScene)
+  pxScriptView* scriptView = dynamic_cast<pxScriptView*>(mView.getPtr());
+  if (scriptView != NULL)
   {
-    mScene->suspend(v, b);
+    return scriptView->suspend(v, b);
   }
   return RT_OK;
 }
@@ -2802,11 +2833,22 @@ rtError pxSceneContainer::suspend(const rtValue& v, bool& b)
 rtError pxSceneContainer::resume(const rtValue& v, bool& b)
 {
   b = false;
-  if (mScene)
+  pxScriptView* scriptView = dynamic_cast<pxScriptView*>(mView.getPtr());
+  if (scriptView != NULL)
   {
-    mScene->resume(v,b);
+    return scriptView->resume(v, b);
   }
   return RT_OK;
+}
+
+rtError pxSceneContainer::screenshot(rtString type, rtValue& returnValue)
+{
+  pxScriptView* scriptView = dynamic_cast<pxScriptView*>(mView.getPtr());
+  if (scriptView != NULL)
+  {
+    return scriptView->screenshot(type, returnValue);
+  }
+  return RT_FAIL;
 }
 
 rtError pxSceneContainer::setScriptView(pxScriptView* scriptView)
@@ -3056,6 +3098,15 @@ rtError pxScriptView::textureMemoryUsage(rtValue& v)
     mScene.sendReturns("textureMemoryUsage",v);
   }
   return RT_OK;
+}
+
+rtError pxScriptView::screenshot(rtString type, rtValue& returnValue)
+{
+  if (mScene)
+  {
+    return mScene.sendReturns("screenshot",type, returnValue);
+  }
+  return RT_FAIL;
 }
 
 rtError pxScriptView::getScene(int numArgs, const rtValue* args, rtValue* result, void* ctx)
