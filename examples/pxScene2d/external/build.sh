@@ -76,6 +76,10 @@ banner "GIF"
 cd gif
 if [ "$(uname)" == "Darwin" ]; then
 
+[ -d patches ] || mkdir -p patches
+[ -d patches/series ] || echo 'giflib-5.1.9.patch' >patches/series
+cp ../giflib-5.1.9.patch patches/
+
 if [[ "$#" -eq "1" && "$1" == "--clean" ]]; then
 quilt pop -afq || test $? = 2
 rm -rf .libs/*
@@ -84,10 +88,6 @@ git clean -fdx .
 git checkout .
 rm -rf .libs/*
 else
-
-[ -d patches ] || mkdir -p patches
-[ -d patches/series ] || echo 'giflib-5.1.9.patch' >patches/series
-cp ../giflib-5.1.9.patch patches/
 quilt push -aq || test $? = 2
 fi
 
