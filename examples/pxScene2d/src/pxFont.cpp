@@ -114,7 +114,7 @@ pxFont::~pxFont()
   mFace = 0;
   
   if(mFontData) {
-    delete []mFontData;
+    delete []mFontData; 
     mFontData = 0;
     mFontDataSize = 0;
   }
