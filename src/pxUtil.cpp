@@ -1823,7 +1823,7 @@ int readGifData (GifFileType *gif, GifByteType *dst, int size){
 
 static int InterlacedOffset[] =  { 0, 4, 2, 1 },
 InterlacedJumps[] =  { 8, 8, 4, 2 };
-void drawGifImage(pxOffscreen& obj, pxTimedOffscreenSequence &s, GifRowType *rows, ColorMapObject *map, int transparent){
+void drawGifImage(pxOffscreen& obj, int &delayTime, pxTimedOffscreenSequence &s, GifRowType *rows, ColorMapObject *map, int transparent){
     size_t x, y, w, h;
     w = obj.width();
     h = obj.height();
@@ -1848,8 +1848,8 @@ void drawGifImage(pxOffscreen& obj, pxTimedOffscreenSequence &s, GifRowType *row
             pixel->a = 0xFF;
         }
     }
-    unsigned short delay_num = 1;
-    unsigned short delay_den = 10;
+    unsigned short delay_num = delayTime;
+    unsigned short delay_den = 100; /* pre-display delay in 0.01sec units */
     s.addBuffer(obj, (double)delay_num / (double)delay_den);
 }
 #endif
@@ -1954,7 +1954,8 @@ rtError pxLoadGIFImage(const char *imageData, size_t imageDataSize,
         
         transparent = -1;
         pxOffscreen obj;
-        
+        obj.init(width, height);
+        GraphicsControlBlock gcb;
         do {
             // determine what sort of record type we have
             // these can be image, extension, or termination
@@ -2012,8 +2013,10 @@ rtError pxLoadGIFImage(const char *imageData, size_t imageDataSize,
                     status = RT_FAIL;
                     break;
                 }
-                obj.init(w, h);
-                drawGifImage(obj, s, rows, map, transparent);
+                drawGifImage(obj, gcb.DelayTime, s, rows, map, transparent);
+                    
+                // Clear the GCB so it doesn't apply to the next frame.
+                gcb = GraphicsControlBlock();
                 break;
                 
                 case EXTENSION_RECORD_TYPE:
@@ -2036,6 +2039,9 @@ rtError pxLoadGIFImage(const char *imageData, size_t imageDataSize,
                             transparent = extension[4];
                             else
                             transparent = -1;
+                            if (GIF_ERROR == DGifExtensionToGCB(extension[0], extension+1, &gcb))
+                            	status = RT_FAIL;
+
                         }
                         break;
                         case PLAINTEXT_EXT_FUNC_CODE:
