@@ -36,10 +36,6 @@ cd ..
 
 #--------- GIF
 cd gif
-
-if [ ! -e ./.libs/libgif.dylib ] ||
-[ "$(uname)" != "Darwin" ]
-then
 sudo make install
 [ -d .libs ] || mkdir -p .libs
 if [ -e libgif.dylib ]
@@ -52,10 +48,10 @@ then
 cp libgif.so .libs/libgif.dylib
 cp libutil.so .libs/libutil.dylib
 fi
-fi
 
 cd ..
-#--------- ZLIB 
+
+#--------- ZLIB
 cd zlib
 ./configure
 make all -j3
