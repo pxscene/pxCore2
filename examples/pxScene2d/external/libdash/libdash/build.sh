@@ -49,6 +49,7 @@ pushd $DIRECTORY
 			install ../libdash/source/helpers/*.h  $EXT_INSTALL_PATH/include/libdash/helpers
 			install ../libdash/source/metrics/*.h  $EXT_INSTALL_PATH/include/libdash/metrics
 			install ../libdash/source/manager/*.h  $EXT_INSTALL_PATH/include/libdash/manager
+			echo -e 'prefix='$EXT_INSTALL_PATH' \nexec_prefix=${prefix} \nlibdir=${exec_prefix}/lib \nincludedir=${prefix}/include/libdash \n \nName: libdash \nDescription: ISO/IEC MPEG-DASH library \nVersion: 3.0 \nRequires: libxml-2.0 \nLibs: -L${libdir} -ldash \nLibs.private: -lxml2 \nCflags: -I${includedir}'  > $EXT_INSTALL_PATH/lib/pkgconfig/libdash.pc
         popd
     fi
 popd

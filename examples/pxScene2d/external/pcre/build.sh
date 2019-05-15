@@ -14,7 +14,7 @@ pushd $DIRECTORY
         git clean -fdx .
         git checkout .
     else
-        tar --strip-components=1 -xjvf pcre-8.39.tar.bz2
+        tar --strip-components=1 -xjf pcre-8.39.tar.bz2
         PKG_CONFIG_PATH=$EXT_INSTALL_PATH/lib/pkgconfig:$PKG_CONFIG_PATH ./configure --prefix=$EXT_INSTALL_PATH --enable-newline-is-lf \
         --enable-rebuild-chartables --enable-utf8 --with-link-size=2 \
         --with-match-limit=10000000 --enable-pcre16 \

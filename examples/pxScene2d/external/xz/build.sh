@@ -14,7 +14,7 @@ pushd $DIRECTORY
         git clean -fdx .
         git checkout .
     else
-        tar --strip-components=1 -xzvf xz-5.2.2.tar.gz
+        tar --strip-components=1 -xzf xz-5.2.2.tar.gz
         PKG_CONFIG_PATH=$EXT_INSTALL_PATH/lib/pkgconfig:$PKG_CONFIG_PATH ./configure --prefix=$EXT_INSTALL_PATH
         make -j$(getconf _NPROCESSORS_ONLN)
         make install

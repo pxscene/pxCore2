@@ -23,7 +23,7 @@ pushd $DIRECTORY
         mkdir -p build
 
         pushd build
-            cmake -DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_INSTALL_PREFIX=$EXT_INSTALL_PATH -DCMAKE_INSTALL_LIBDIR=$EXT_INSTALL_PATH/lib ..
+            cmake -DCMAKE_INSTALL_PREFIX=$EXT_INSTALL_PATH -DCMAKE_INSTALL_LIBDIR=$EXT_INSTALL_PATH/lib ..
             make -j$(getconf _NPROCESSORS_ONLN)
             make install
         popd

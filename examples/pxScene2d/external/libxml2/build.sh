@@ -14,7 +14,7 @@ pushd $DIRECTORY
         git clean -fdx .
         git checkout .
     else
-        tar --strip-components=1 -xzvf libxml2-2.9.4.tar.gz
+        tar --strip-components=1 -xzf libxml2-2.9.4.tar.gz
         ./configure --prefix=$EXT_INSTALL_PATH --with-python-install-dir=$EXT_INSTALL_PATH/lib
         make -j$(getconf _NPROCESSORS_ONLN)
         make install

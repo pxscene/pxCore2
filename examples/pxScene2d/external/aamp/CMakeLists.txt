@@ -167,9 +167,6 @@ if(CMAKE_DASH_DRM)
 endif()
 
 add_library(aamp SHARED ${LIBAAMP_SOURCES})
-add_executable(aamp-cli ${AAMP_CLI_SOURCES})
-add_executable(playbintest test/playbintest.cpp)
-target_link_libraries(playbintest ${PLAYBINTEST_DEPENDS})
 
 if(CMAKE_DASH_DRM)
 	set(LIBAAMP_DEPENDS "${LIBAAMP_DEPENDS} -lIARMBus -lds -ldshalcli")
@@ -250,16 +247,21 @@ if(CMAKE_WPEWEBKIT_JSBINDINGS)
 endif()
 
 target_link_libraries(aamp ${LIBAAMP_DEPENDS})
-target_link_libraries(aamp-cli aamp ${AAMP_CLI_LD_FLAGS})
 
 set_target_properties(aamp PROPERTIES COMPILE_FLAGS "${LIBAAMP_DEFINES} ${OS_CXX_FLAGS}")
-#aamp-cli is not an ideal standalone app. It uses private aamp instance for debugging purposes
-set_target_properties(aamp-cli PROPERTIES COMPILE_FLAGS "${LIBAAMP_DEFINES} ${AAMP_CLI_EXTRA_DEFINES} ${OS_CXX_FLAGS}")
 set_target_properties(aamp PROPERTIES PUBLIC_HEADER "main_aamp.h")
 set_target_properties(aamp PROPERTIES PRIVATE_HEADER "priv_aamp.h")
 
-install(TARGETS aamp-cli DESTINATION bin)
-install(TARGETS playbintest DESTINATION bin)
+if(NOT CMAKE_DISABLE_TESTS)
+	add_executable(aamp-cli ${AAMP_CLI_SOURCES})
+	add_executable(playbintest test/playbintest.cpp)
+	target_link_libraries(playbintest ${PLAYBINTEST_DEPENDS})
+	#aamp-cli is not an ideal standalone app. It uses private aamp instance for debugging purposes
+	target_link_libraries(aamp-cli aamp ${AAMP_CLI_LD_FLAGS})
+	set_target_properties(aamp-cli PROPERTIES COMPILE_FLAGS "${LIBAAMP_DEFINES} ${AAMP_CLI_EXTRA_DEFINES} ${OS_CXX_FLAGS}")
+	install(TARGETS aamp-cli DESTINATION bin)
+	install(TARGETS playbintest DESTINATION bin)
+endif()
 
 install(TARGETS aamp DESTINATION lib PUBLIC_HEADER DESTINATION include PRIVATE_HEADER DESTINATION include)
 install(FILES drm/AampDRMSessionManager.h drm/AampDrmSession.h drm/AampDRMutils.h drm/aampdrmsessionfactory.h metrics/VideoStat.h metrics/HTTPStatistics.h metrics/FragmentStatistics.h metrics/LicnStatistics.h metrics/ProfileInfo.h DESTINATION include)

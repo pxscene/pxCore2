@@ -25,14 +25,13 @@
 1. Install required packages:
     
     ~~~~
-    sudo apt-get install git libglew-dev freeglut3 freeglut3-dev libgcrypt11-dev zlib1g-dev g++ libssl-dev nasm autoconf libtool cmake quilt xmlto
+    sudo apt-get install git libglew-dev freeglut3 freeglut3-dev libgcrypt11-dev zlib1g-dev g++ libssl-dev nasm autoconf libtool cmake quilt xmlto yasm bison flex  python-dev python3-dev
     ~~~~
 
 2. For Ubuntu 18.04+ also install:
 
     ~~~~
     sudo apt-get install gnutls-dev
-    ~~~~
 
 ## macOS Setup 
 
@@ -42,7 +41,7 @@
 >   * From terminal install dependencies: cmake, pkg-config, quilt, java.
 
 ```bash
-    brew install cmake pkg-config quilt caskroom/cask/java libuv xmlto
+    brew install cmake pkg-config quilt caskroom/cask/java libuv xmlto yasm bison flex python
 ```
 
 ## Windows Setup
@@ -148,7 +147,8 @@
 4. Build **pxScene**
 
     On following step 3b, Specify -DPREFER_SYSTEM_LIBRARIES=ON to use system libraries rather than libraries from externals directory.
-    Note :  If a dependent library is not found installed on the system, then the version in externals will be used.
+    Note 1:  To enable VIDEO support, specify -DSPARK_ENABLE_VIDEO=ON in cmake command
+    Note 2:  If a dependent library is not found installed on the system, then the version in externals will be used.
     ~~~~
     cd pxCore/
     mkdir temp

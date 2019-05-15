@@ -14,7 +14,7 @@ pushd $DIRECTORY
         git clean -fdx .
         git checkout .
     else
-        tar --strip-components=1 -xzvf fontconfig-2.12.1.tar.gz
+        tar --strip-components=1 -xzf fontconfig-2.12.1.tar.gz
         PKG_CONFIG_PATH=$EXT_INSTALL_PATH/lib/pkgconfig:$PKG_CONFIG_PATH ./configure --prefix=$EXT_INSTALL_PATH --disable-docs -disable-dependency-tracking
         patch -p0 < 0001-Avoid-conflicts-with-integer-width-macros-from-TS-18.patch
         make -j$(getconf _NPROCESSORS_ONLN)

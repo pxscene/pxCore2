@@ -31,6 +31,7 @@ fi
 if [ "$TRAVIS_OS_NAME" = "osx" ] ;
 then
   brew update;
+  brew install yasm bison flex python
   brew upgrade cmake;
   brew install quilt libuv xmlto;
   sudo /usr/sbin/DevToolsSecurity --enable

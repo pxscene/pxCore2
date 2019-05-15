@@ -19,12 +19,12 @@ pushd $DIRECTORY
         git clean -fdx .
         git checkout .
     else
-        tar --strip-components=1 -xzvf graphite-1.3.6.tgz
+        tar --strip-components=1 -xzf graphite-1.3.6.tgz
         quilt push -aq || test $? = 2
         mkdir -p build
 
         pushd build
-            PKG_CONFIG_PATH=$EXT_INSTALL_PATH/lib/pkgconfig:$PKG_CONFIG_PATH cmake -DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_INSTALL_PREFIX=$EXT_INSTALL_PATH -DCMAKE_INSTALL_SO_NO_EXE=0 -DCMAKE_NO_SYSTEM_FROM_IMPORTED=1 -Wno-dev ..
+            PKG_CONFIG_PATH=$EXT_INSTALL_PATH/lib/pkgconfig:$PKG_CONFIG_PATH cmake -DCMAKE_INSTALL_PREFIX=$EXT_INSTALL_PATH -DCMAKE_INSTALL_SO_NO_EXE=0 -DCMAKE_NO_SYSTEM_FROM_IMPORTED=1 -Wno-dev ..
             make -j$(getconf _NPROCESSORS_ONLN)
             make install
         popd

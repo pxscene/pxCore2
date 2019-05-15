@@ -14,9 +14,9 @@ pushd $DIRECTORY
         git clean -fdx .
         git checkout .
     else
-        tar --strip-components=1 -xvf gettext-0.19.8.1.tar.gz
-        PKG_CONFIG_PATH=$EXT_INSTALL_PATH/lib/pkgconfig:$PKG_CONFIG_PATH ./configure --prefix=$EXT_INSTALL_PATH \
-        --disable-silent-rules --disable-dependency-tracking --without-lispdir --disable-csharp \
+        tar --strip-components=1 -xf gettext-0.19.8.1.tar.gz
+        PKG_CONFIG_PATH=$EXT_INSTALL_PATH/lib/pkgconfig ./configure --prefix=$EXT_INSTALL_PATH \
+        --disable-dependency-tracking --without-lispdir --disable-csharp \
         --disable-libasprintf --disable-java --disable-native-java --disable-openmp --without-emacs
         make -j$(getconf _NPROCESSORS_ONLN)
         make install

@@ -14,12 +14,12 @@ pushd $DIRECTORY
         git clean -fdx .
         git checkout .
     else
-        tar --strip-components=1 -xvf glib-2.48.2.tar.xz
-        LD_LIBRARY_PATH=$EXT_INSTALL_PATH/lib:$LD_LIBRARY_PATH PKG_CONFIG_PATH=$EXT_INSTALL_PATH/lib/pkgconfig:$PKG_CONFIG_PATH ./configure \
-        --prefix=$EXT_INSTALL_PATH --disable-silent-rules --disable-dependency-tracking \
+        tar --strip-components=1 -xf glib-2.48.2.tar.xz
+        PATH=$EXT_INSTALL_PATH/bin:$PATH LD_LIBRARY_PATH=$EXT_INSTALL_PATH/lib:$LD_LIBRARY_PATH PKG_CONFIG_PATH=$EXT_INSTALL_PATH/lib/pkgconfig:$PKG_CONFIG_PATH CFLAGS="-I$EXT_INSTALL_PATH/include" LDFLAGS="-L$EXT_INSTALL_PATH/lib" ./configure \
+        --prefix=$EXT_INSTALL_PATH --disable-dependency-tracking \
         --disable-gtk-doc --enable-included-printf=no --disable-dtrace --disable-fam --disable-libelf \
         --disable-systemtap --disable-man  --with-pcre=system --enable-nls --disable-installed-tests
-        make -j$(getconf _NPROCESSORS_ONLN)
+        PATH=$EXT_INSTALL_PATH/bin:$PATH make -j$(getconf _NPROCESSORS_ONLN)
         make install
     fi
 popd

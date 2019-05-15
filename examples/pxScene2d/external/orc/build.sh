@@ -14,7 +14,7 @@ pushd $DIRECTORY
         git clean -fdx .
         git checkout .
     else
-        tar --strip-components=1 -xvf orc-0.4.26.tar.xz
+        tar --strip-components=1 -xf orc-0.4.26.tar.xz
         PKG_CONFIG_PATH=$EXT_INSTALL_PATH/lib/pkgconfig:$PKG_CONFIG_PATH ./configure --prefix=$EXT_INSTALL_PATH
         make -j$(getconf _NPROCESSORS_ONLN)
         make install

@@ -99,15 +99,27 @@ fi
 
 #--------
 
-#--------harfbuzz
+#--------gettext
 
-if [ ! -e $EXT_INSTALL_PATH/lib/libharfbuzz.la ]
+if [ ! -e $EXT_INSTALL_PATH/lib/libintl.la ]
 then
-  banner "harfbuzz"
+  banner "gettext"
 
-  ./harfbuzz/build.sh
+  ./gettext/build.sh
 fi
-#---------
+
+#--------
+
+#--------glib
+
+if [ ! -e $EXT_INSTALL_PATH/lib/libglib-2.0.la ]
+then
+  banner "glib"
+
+  ./glib/build.sh
+fi
+
+#--------
 
 #--------- GIF
 
@@ -170,11 +182,7 @@ then
   banner "FT"
 
   cd ft
-if [[ $# -eq 1 ]] && [[ $1 == "SPARK_ENABLE_VIDEO" ]]; then
   LIBPNG_LIBS="-L../png/.libs -lpng16" PKG_CONFIG_PATH=$EXT_INSTALL_PATH/lib/pkgconfig:$PKG_CONFIG_PATH ./configure --with-png=no --prefix=$EXT_INSTALL_PATH
-else
-  LIBPNG_LIBS="-L../png/.libs -lpng16" PKG_CONFIG_PATH=$EXT_INSTALL_PATH/lib/pkgconfig:$PKG_CONFIG_PATH ./configure --with-png=no --with-harfbuzz=no --prefix=$EXT_INSTALL_PATH
-fi
   make all "-j${make_parallel}"
   make install
   cd ..
@@ -192,6 +200,16 @@ then
 fi
 
 #--------
+
+#--------harfbuzz
+
+if [ ! -e $EXT_INSTALL_PATH/lib/libharfbuzz.la ]
+then
+  banner "harfbuzz"
+
+  ./harfbuzz/build.sh
+fi
+#---------
 
 #-------- openssl
 
@@ -399,17 +417,6 @@ fi
 
 #--------
 
-#--------gettext
-
-if [ ! -e $EXT_INSTALL_PATH/lib/libintl.la ]
-then
-  banner "gettext"
-
-  ./gettext/build.sh
-fi
-
-#--------
-
 #--------libxml2
 
 if [ ! -e $EXT_INSTALL_PATH/lib/libxml2.la ]
@@ -439,17 +446,6 @@ then
   banner "xz"
 
   ./xz/build.sh
-fi
-
-#--------
-
-#--------glib
-
-if [ ! -e $EXT_INSTALL_PATH/lib/libglib-2.0.la ]
-then
-  banner "glib"
-
-  ./glib/build.sh
 fi
 
 #--------

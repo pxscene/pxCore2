@@ -4,6 +4,8 @@
 minJS=./jsMin.sh  #minify
 
 externalDir=../external
+EXT_INSTALL_PATH=$externalDir/extlibs
+
 APPNAME=Spark
 if [ "$TRAVIS_EVENT_TYPE" == "cron" ]
 then
@@ -44,6 +46,13 @@ if [ -e $externalDir/v8/out.gn ]; then
  cp $externalDir/v8/out.gn/x64.release/*.bin $bundleBin
 fi
 cp $externalDir/sqlite/.libs/libsqlite3.dylib $bundleLib
+
+if [[ $# -eq 1 ]] && [[ $1 == "ENABLE-AAMP" ]]; then
+ find $EXT_INSTALL_PATH -name *.dylib -exec cp -PR {} $bundleLib \;
+ find $EXT_INSTALL_PATH -name *.so -exec cp -PR {} $bundleLib \;
+ cp $EXT_INSTALL_PATH/libexec/gstreamer-1.0/gst-plugin-scanner $bundleLib
+ rm $bundleLib/libpng.dylib $bundleLib/libjpeg.dylib  #to avoid circular dependency
+fi
 
 # Copy OTHER to Bundle...
 #
