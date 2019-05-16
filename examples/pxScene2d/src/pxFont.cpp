@@ -883,6 +883,7 @@ bool pxFontAtlas::addGlyph(uint32_t w, uint32_t h, void* buffer, GlyphTextureEnt
   {
     mTexture = context.createTexture(PXSCENE_FONT_ATLAS_DIM,PXSCENE_FONT_ATLAS_DIM,PXSCENE_FONT_ATLAS_DIM,PXSCENE_FONT_ATLAS_DIM, NULL);
   }
+  rtLogDebug("pxFontAtlas is adding a texture of size [%d]", (int)sizeof(buffer));
   //return false;
   // bail on biggish glyphs
   if (h < 128)
