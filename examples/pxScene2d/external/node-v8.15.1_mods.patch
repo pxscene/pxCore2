@@ -734,7 +734,7 @@ index af4e9f6..20335ff 100644
    watchdog_disabled_ = true;
  #endif
 diff --git a/examples/pxScene2d/external/libnode-v8.15.1/vcbuild.bat b/examples/pxScene2d/external/libnode-v8.15.1/vcbuild.bat
-index d3014a0..27756aa 100644
+index d3014a0..fd75030 100644
 --- a/examples/pxScene2d/external/libnode-v8.15.1/vcbuild.bat
 +++ b/examples/pxScene2d/external/libnode-v8.15.1/vcbuild.bat
 @@ -51,6 +51,9 @@ set "common_test_suites=%js_test_suites% doctool addons addons-napi&set build_ad
@@ -742,7 +742,7 @@ index d3014a0..27756aa 100644
  set nghttp2_debug=
  set link_module=
 +@rem MODIFIED CODE BEGIN
-+set no-optimization=
++set no_optimization=
 +@rem MODIFIED CODE END
  
  :next-arg
@@ -752,7 +752,7 @@ index d3014a0..27756aa 100644
  if /i "%1"=="debug-nghttp2" set debug_nghttp2=1&goto arg-ok
  if /i "%1"=="link-module"   set "link_module= --link-module=%2%link_module%"&goto arg-ok-2
 +@rem MODIFIED CODE BEGIN
-+if /i "%1"=="no-optimization" set no-optimization=1&goto arg-ok
++if /i "%1"=="no-optimization" set no_optimization=1&goto arg-ok
 +@rem MODIFIED CODE END
  
  echo Error: invalid command line option `%1`.
@@ -762,7 +762,7 @@ index d3014a0..27756aa 100644
  if defined config_flags     set configure_flags=%configure_flags% %config_flags%
  if defined target_arch      set configure_flags=%configure_flags% --dest-cpu=%target_arch%
 +@rem MODIFIED CODE BEGIN
-+if defined no-optimization  set configure_flags=%configure_flags% --no-optimization
++if defined no_optimization  set configure_flags=%configure_flags% --no-optimization
 +@rem MODIFIED CODE END
  
  if not exist "%~dp0deps\icu" goto no-depsicu
