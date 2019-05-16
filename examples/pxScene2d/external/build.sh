@@ -80,16 +80,15 @@ if [ "$(uname)" == "Darwin" ]; then
 [ -d patches/series ] || echo 'giflib-5.1.9.patch' >patches/series
 cp ../giflib-5.1.9.patch patches/
 
-quilt pop -afq
-quilt push -aq
-
 if [[ "$#" -eq "1" && "$1" == "--clean" ]]; then
-quilt pop -afq || test $? = 2
-rm -rf .libs/*
+	quilt pop -afq || test $? = 2
+	rm -rf .libs/*
 elif [[ "$#" -eq "1" && "$1" == "--force-clean" ]]; then
-git clean -fdx .
-git checkout .
-rm -rf .libs/*
+	git clean -fdx .
+	git checkout .
+	rm -rf .libs/*
+else
+	quilt push -aq || test $? = 2
 fi
 
 fi
