@@ -1,5 +1,5 @@
 diff --git a/examples/pxScene2d/external/libnode-v8.15.1/common.gypi b/examples/pxScene2d/external/libnode-v8.15.1/common.gypi
-index fd42f27..f69532e 100644
+index fd42f27..764d1b9 100644
 --- a/examples/pxScene2d/external/libnode-v8.15.1/common.gypi
 +++ b/examples/pxScene2d/external/libnode-v8.15.1/common.gypi
 @@ -131,7 +131,9 @@
@@ -8,12 +8,74 @@ index fd42f27..f69532e 100644
          },
 -        'cflags': [ '-O3' ],
 +        # MODIFIED CODE BEGIN
-+        'cflags': [ '-Os' ],
++        #'cflags': [ '-O3' ],
 +        # MODIFIED CODE END
          'conditions': [
            ['target_arch=="x64"', {
              'msvs_configuration_platform': 'x64',
-@@ -205,7 +207,10 @@
+@@ -143,6 +145,14 @@
+           ['OS!="mac" and OS!="win"', {
+             'cflags': [ '-fno-omit-frame-pointer' ],
+           }],
++          # MODIFIED CODE BEGIN
++          ['OS!="win"', {
++            'cflags': [ '-Os' ],
++          }],
++          ['OS=="win"', {
++            'cflags': [ '-O0' ],
++          }],
++          # MODIFIED CODE END
+           ['OS == "android"', {
+             'cflags': [ '-fPIE' ],
+             'ldflags': [ '-fPIE', '-pie' ]
+@@ -164,10 +174,14 @@
+         ],
+         'msvs_settings': {
+           'VCCLCompilerTool': {
+-            'Optimization': 3, # /Ox, full optimization
+-            'FavorSizeOrSpeed': 1, # /Ot, favour speed over size
+-            'InlineFunctionExpansion': 2, # /Ob2, inline anything eligible
+-            'WholeProgramOptimization': 'true', # /GL, whole program optimization, needed for LTCG
++            # MODIFIED CODE BEGIN
++            #'Optimization': 3, # /Ox, full optimization
++            'Optimization': 0, # /Od, no optimization
++            # MODIFIED CODE END
++            #'FavorSizeOrSpeed': 1, # /Ot, favour speed over size
++            #'InlineFunctionExpansion': 2, # /Ob2, inline anything eligible
++            #'WholeProgramOptimization': 'true', # /GL, whole program optimization, needed for LTCG
++            # MODIFIED CODE END
+             'OmitFramePointers': 'true',
+             'EnableFunctionLevelLinking': 'true',
+             'EnableIntrinsicFunctions': 'true',
+@@ -176,15 +190,19 @@
+               '/MP', # compile across multiple CPUs
+             ],
+           },
+-          'VCLibrarianTool': {
+-            'AdditionalOptions': [
+-              '/LTCG', # link time code generation
+-            ],
+-          },
++          # MODIFIED CODE BEGIN
++          #'VCLibrarianTool': {
++          #  'AdditionalOptions': [
++          #    '/LTCG', # link time code generation
++          #  ],
++          #},
++          # MODIFIED CODE END
+           'VCLinkerTool': {
+-            'LinkTimeCodeGeneration': 1, # link-time code generation
+-            'OptimizeReferences': 2, # /OPT:REF
+-            'EnableCOMDATFolding': 2, # /OPT:ICF
++            # MODIFIED CODE BEGIN
++            #'LinkTimeCodeGeneration': 1, # link-time code generation
++            #'OptimizeReferences': 2, # /OPT:REF
++            #'EnableCOMDATFolding': 2, # /OPT:ICF
++            # MODIFIED CODE END
+             'LinkIncremental': 1, # disable incremental linking
+           },
+         },
+@@ -205,7 +223,10 @@
          # Disable "warning C4267: conversion from 'size_t' to 'int',
          # possible loss of data".  Many originate from our dependencies
          # and their sheer number drowns out other, more legitimate warnings.
@@ -25,7 +87,7 @@ index fd42f27..f69532e 100644
          'WarnAsError': 'false',
        },
        'VCLinkerTool': {
-@@ -404,8 +409,13 @@
+@@ -404,8 +425,13 @@
            ['clang==1', {
              'xcode_settings': {
                'GCC_VERSION': 'com.apple.compilers.llvm.clang.1_0',
