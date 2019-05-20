@@ -55,6 +55,8 @@ public:
 
   void createNewPromise();
   virtual bool needsUpdate();
+  virtual float getOnscreenWidth();
+  virtual float getOnscreenHeight();
 
   virtual void update(double t, bool updateChildren=true);
   virtual void draw();

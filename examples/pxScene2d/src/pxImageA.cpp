@@ -47,8 +47,8 @@ pxImageA::~pxImageA()
 
 void pxImageA::onInit() 
 {
-  mw = static_cast<float>(mImageWidth);
-  mh = static_cast<float>(mImageHeight);
+  //mw = static_cast<float>(mImageWidth);
+  //mh = static_cast<float>(mImageHeight);
   pxObject::onInit();
 }
 
@@ -150,6 +150,26 @@ void pxImageA::update(double t, bool updateChildren)
   pxObject::update(t, updateChildren);
 }
 
+float pxImageA::getOnscreenWidth()
+{
+    if(mw == 0 || mStretchX == pxConstantsStretch::NONE)
+    {
+        mw = mImageWidth;
+    }
+    
+    return mw;
+    
+}
+float pxImageA::getOnscreenHeight()
+{
+    if(mh == 0 || mStretchY == pxConstantsStretch::NONE)
+    {
+        mh = mImageHeight;
+    }
+    
+    return mh;
+}
+
 void pxImageA::draw()
 {
   if (getImageAResource() != NULL && mImageLoaded && !mSceneSuspended)
@@ -157,7 +177,7 @@ void pxImageA::draw()
     pxTimedOffscreenSequence &imageSequence = getImageAResource()->getTimedOffscreenSequence();
     if (imageSequence.numFrames() > 0)
     {
-      context.drawImage(0, 0, mw, mh, mTexture, nullMaskRef, false, NULL, mStretchX, mStretchY);
+      context.drawImage(0, 0, getOnscreenWidth(), getOnscreenHeight(), mTexture, nullMaskRef, false, NULL, mStretchX, mStretchY);
     }
   }
 }
@@ -264,8 +284,8 @@ void pxImageA::loadImageSequence()
       pxOffscreen &o = imageSequence.getFrameBuffer(0);
       mImageWidth = o.width();
       mImageHeight = o.height();
-      mw = static_cast<float>(mImageWidth);
-      mh = static_cast<float>(mImageHeight);
+      //mw = static_cast<float>(mImageWidth);
+      //mh = static_cast<float>(mImageHeight);
     }
     if (!((rtPromise*)mReady.getPtr())->status())
       mReady.send("resolve", this);
