@@ -2572,6 +2572,7 @@ rtDefineMethod(pxScene2d, sparkSetting);
 rtDefineProperty(pxScene2d, cors);
 rtDefineMethod(pxScene2d, addServiceProvider);
 rtDefineMethod(pxScene2d, removeServiceProvider);
+rtDefineMethod(pxScene2d, enableDebugger);
 
 rtError pxScene2dRef::Get(const char* name, rtValue* value) const
 {
@@ -2719,6 +2720,16 @@ void pxScene2d::setViewContainer(pxIViewContainer* l)
 pxIViewContainer* pxScene2d::viewContainer()
 {
   return mContainer;
+}
+
+rtError pxScene2d::enableDebugger(bool enable)
+{
+#ifdef ENABLE_DEBUG_MODE
+  return script.enableDebugger(enable);
+#else
+  rtLogWarn("Debugger not enabled as part of build");
+#endif
+  return RT_OK;
 }
 
 rtDefineObject(pxViewContainer, pxObject);

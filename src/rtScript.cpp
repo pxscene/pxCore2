@@ -34,6 +34,8 @@
 #include "rtScriptDuk/rtScriptDuk.h"
 #endif
 
+#include "rtSettings.h"
+#include <string.h>
 
 #ifdef __APPLE__
 static pthread_mutex_t sSceneLock = PTHREAD_RECURSIVE_MUTEX_INITIALIZER; //PTHREAD_MUTEX_INITIALIZER;
@@ -168,7 +170,12 @@ void rtWrapperSceneUpdateExit()
 #endif // RUNINMAIN
 }
 
-rtScript::rtScript():mInitialized(false)  {}
+rtScript::rtScript():mInitialized(false)
+#ifdef ENABLE_DEBUG_MODE
+, mEnableDebugger(false), mDebuggerHost(SPARK_DEBUGGER_HOST), mDebuggerPort(SPARK_DEBUGGER_PORT) 
+#endif 
+{}
+
 rtScript::~rtScript() {}
 
 rtError rtScript::init()
@@ -203,6 +210,9 @@ rtError rtScript::init()
     #endif
     
     mScript->init();
+#ifdef ENABLE_DEBUG_MODE
+    populateDebuggerInfo();
+#endif
     mInitialized = true;
   }
   return RT_OK;
@@ -230,6 +240,20 @@ rtError rtScript::collectGarbage()
   return RT_OK;
 }
 
+#ifdef ENABLE_DEBUG_MODE
+rtError rtScript::enableDebugger(bool enable) 
+{
+  if (mEnableDebugger) { 
+    mScript->enableDebugger(enable, mDebuggerHost, mDebuggerPort);
+  }
+  else
+  {
+    rtLogWarn("Javascript debugger is not enabled");
+  }
+  return RT_OK;
+}
+#endif
+
 rtError rtScript::createContext(const char *lang, rtScriptContextRef& ctx)
 {
   return mScript->createContext(lang, ctx);
@@ -240,3 +264,51 @@ void* rtScript::getParameter(rtString param)
 {
   return mScript->getParameter(param);
 }
+
+#ifdef ENABLE_DEBUG_MODE
+void rtScript::populateDebuggerInfo()
+{
+ rtValue enableDebugger;
+ if (RT_OK == rtSettings::instance()->value("enableSparkDebugger",enableDebugger))
+ {
+   mEnableDebugger = enableDebugger.toBool();
+ }
+
+ char const *enabledebug = getenv("ENABLE_SPARK_DEBUGGER");
+ if (enabledebug && (strcmp(enabledebug, "1") == 0))
+ {
+   mEnableDebugger = true;
+ }
+ else if(enabledebug && (strcmp(enabledebug, "1") != 0))
+ {
+   mEnableDebugger = false;
+ }
+
+ if (true == mEnableDebugger)
+ {
+   rtValue debuggerPort;
+   if (RT_OK == rtSettings::instance()->value("sparkDebuggerPort", debuggerPort))
+   {
+     mDebuggerPort = debuggerPort.toInt64();
+   }
+
+   char const *debugport = getenv("SPARK_DEBUGGER_PORT");
+   if (debugport)
+   {
+     mDebuggerPort = atoi(debugport);
+   }
+
+   rtValue debuggerHost;
+   if (RT_OK == rtSettings::instance()->value("sparkDebuggerHost", debuggerHost))
+   {
+     mDebuggerHost = debuggerHost.toString();
+   }
+
+   char const *debughost = getenv("SPARK_DEBUGGER_HOST");
+   if (debughost)
+   {
+     mDebuggerHost = debughost;
+   }
+ }
+}
+#endif
