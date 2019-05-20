@@ -37,6 +37,7 @@ pxImageA::pxImageA(pxScene2d *scene) : pxObject(scene),
   mFrameTime = -1;
   mPlays = 0;
   mResource = pxImageManager::getImageA("");
+  mw = mh = -1;
 }
 
 pxImageA::~pxImageA()
@@ -152,9 +153,9 @@ void pxImageA::update(double t, bool updateChildren)
 
 float pxImageA::getOnscreenWidth()
 {
-    if(mw == 0 || mStretchX == pxConstantsStretch::NONE)
+    if(mw == -1 || mStretchX == pxConstantsStretch::NONE)
     {
-        mw = mImageWidth;
+        mw = static_cast<float>(mImageWidth);
     }
     
     return mw;
@@ -162,9 +163,9 @@ float pxImageA::getOnscreenWidth()
 }
 float pxImageA::getOnscreenHeight()
 {
-    if(mh == 0 || mStretchY == pxConstantsStretch::NONE)
+    if(mh == -1 || mStretchY == pxConstantsStretch::NONE)
     {
-        mh = mImageHeight;
+        mh = static_cast<float>(mImageHeight);
     }
     
     return mh;
