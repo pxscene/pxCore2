@@ -172,7 +172,7 @@ void rtWrapperSceneUpdateExit()
 
 rtScript::rtScript():mInitialized(false)
 #ifdef ENABLE_DEBUG_MODE
-, mEnableDebugger(false), mDebuggerHost(SPARK_DEBUGGER_HOST), mDebuggerPort(SPARK_DEBUGGER_PORT) 
+, mEnableDebugger(true), mDebuggerHost(SPARK_DEBUGGER_HOST), mDebuggerPort(SPARK_DEBUGGER_PORT) 
 #endif 
 {}
 
@@ -248,7 +248,7 @@ rtError rtScript::enableDebugger(bool enable)
   }
   else
   {
-    rtLogWarn("Javascript debugger is not enabled");
+    rtLogWarn("Javascript debugger is not enabled by env variable or settings");
   }
   return RT_OK;
 }

@@ -210,7 +210,8 @@ if( scene.capabilities != undefined && scene.capabilities.graphics != undefined 
       else
       if(code == keys.M)  // ctrl-alt-m
       {
-        scene.enableDebugger(!debuggerEnabled);
+        debuggerEnabled = !debuggerEnabled;
+        scene.enableDebugger(debuggerEnabled);
       }
     }// ctrl-alt
     else

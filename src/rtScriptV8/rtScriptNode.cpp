@@ -220,7 +220,7 @@ public:
 
   rtError collectGarbage();
   void* getParameter(rtString param);
-#if HAVE_INSPECTOR
+#if ENABLE_DEBUG_MODE
   rtError enableDebugger(bool enable, rtString host, int port);
 #endif
 private:
@@ -256,7 +256,7 @@ private:
 #endif
 
   int mRefCount;
-#ifdef HAVE_INSPECTOR
+#ifdef ENABLE_DEBUG_MODE
   bool mDebuggerRunning;
 #endif
 };
@@ -952,7 +952,7 @@ rtError rtNodeContext::runFile(const char *file, rtValue* retVal /*= NULL*/, con
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 rtScriptNode::rtScriptNode():mRefCount(0)
-#ifdef HAVE_INSPECTOR
+#ifdef ENABLE_DEBUG_MODE
 ,mDebuggerRunning(false)
 #endif
 #ifndef RUNINMAIN
@@ -971,7 +971,7 @@ rtScriptNode::rtScriptNode():mRefCount(0)
 }
 
 rtScriptNode::rtScriptNode(bool initialize):mRefCount(0)
-#ifdef HAVE_INSPECTOR
+#ifdef ENABLE_DEBUG_MODE
 ,mDebuggerRunning(false)
 #endif
 #ifndef RUNINMAIN
@@ -1080,7 +1080,7 @@ rtError rtScriptNode::init()
 
 rtScriptNode::~rtScriptNode()
 {
-#ifdef HAVE_INSPECTOR
+#ifdef ENABLE_DEBUG_MODE
   mDebuggerRunning = false;
 #endif
   // rtLogInfo(__FUNCTION__);
@@ -1390,24 +1390,35 @@ rtError rtScriptNode::createContext(const char *lang, rtScriptContextRef& ctx)
   return RT_OK;
 }
 
-#ifdef HAVE_INSPECTOR
+#ifdef ENABLE_DEBUG_MODE
 rtError rtScriptNode::enableDebugger(bool enable, rtString host_name, int port)
 {
-  if (true == enable)
+#ifdef HAVE_INSPECTOR
+  if (debug_options.inspector_enabled())
   {
-    if (false == mDebuggerRunning) {
-      mDebuggerRunning = true;
-      rtString currentPath;
-      rtGetCurrentDirectory(currentPath);
-      node::MultiIsolatePlatform* platform = static_cast<node::MultiIsolatePlatform*>(mPlatform);
-      node::InspectorStart(mRefContext->getEnvironment(), currentPath.cString(), platform, host_name.cString(), port);
+    if (true == enable)
+    {
+      if (false == mDebuggerRunning) {
+        mDebuggerRunning = true;
+        rtString currentPath;
+        rtGetCurrentDirectory(currentPath);
+        node::MultiIsolatePlatform* platform = static_cast<node::MultiIsolatePlatform*>(mPlatform);
+        node::InspectorStart(mRefContext->getEnvironment(), currentPath.cString(), platform, host_name.cString(), port);
+      }
+    }
+    else
+    {
+      mDebuggerRunning = false;
+      node::InspectorStop(mRefContext->getEnvironment());
     }
   }
   else
   {
-    mDebuggerRunning = false;
-    node::InspectorStop(mRefContext->getEnvironment());
+    rtLogWarn("Node inspector is not enabled runtime, please pass --inspect");
   }
+#else
+  rtLogWarn("Node inspector is not enabled as part of build");
+#endif
   return RT_OK;
 }
 #endif
