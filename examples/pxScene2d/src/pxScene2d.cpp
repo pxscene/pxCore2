@@ -519,6 +519,7 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   // capabilities.graphics.cursor       = 1
   // capabilities.graphics.colors       = 1
   // capabilities.graphics.screenshots  = 2
+  // capabilities.graphics.text         = 3
   //
   // capabilities.scene.external  = 1
   //
@@ -544,6 +545,7 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
 #endif //SUPPORT_GIF
       
   graphicsCapabilities.set("screenshots", 2);
+  graphicsCapabilities.set("text", 3);
       
 #ifdef SPARK_CURSOR_SUPPORT
   graphicsCapabilities.set("cursor", 1);
