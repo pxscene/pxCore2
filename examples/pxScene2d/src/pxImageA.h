@@ -61,6 +61,8 @@ public:
   virtual void releaseData(bool sceneSuspended);
   virtual void reloadData(bool sceneSuspended);
   virtual uint64_t textureMemoryUsage();
+  virtual float getOnscreenWidth();
+  virtual float getOnscreenHeight();
   
 protected:
   virtual void onInit();
