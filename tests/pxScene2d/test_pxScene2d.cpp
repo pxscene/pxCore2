@@ -240,8 +240,12 @@ class pxScene2dTest : public testing::Test
       EXPECT_TRUE ( RT_OK == scenePtr->customAnimator(cAnimator));
 
       rtString type = "image/png;base64";
-      rtString pngData;
+      rtValue pngData;
       EXPECT_TRUE ( RT_OK == scenePtr->screenshot(type, pngData));
+
+      rtString typeImage = "image/image";
+      rtValue imageValue;
+      EXPECT_TRUE ( RT_OK == scenePtr->screenshot(typeImage, imageValue));
 
       rtObjectRef imageA = new rtMapObject();
       rtObjectRef cImageA = new rtMapObject();

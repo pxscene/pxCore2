@@ -503,6 +503,7 @@ public:
   rtProperty(serviceContext, serviceContext, setServiceContext, rtObjectRef);
   rtMethod1ArgAndReturn("suspend", suspend, rtValue, bool);
   rtMethod1ArgAndReturn("resume", resume, rtValue, bool);
+  rtMethod1ArgAndReturn("screenshot", screenshot, rtString, rtValue);
 
 //  rtMethod1ArgAndNoReturn("makeReady", makeReady, bool);  // DEPRECATED ?
   
@@ -530,6 +531,7 @@ public:
 
   rtError suspend(const rtValue& v, bool& b);
   rtError resume(const rtValue& v, bool& b);
+  rtError screenshot(rtString type, rtValue& returnValue);
 
 #ifdef ENABLE_PERMISSIONS_CHECK
   rtError permissions(rtObjectRef& v) const;
@@ -658,6 +660,8 @@ public:
   rtError suspend(const rtValue& v, bool& b);
   rtError resume(const rtValue& v, bool& b);
   rtError textureMemoryUsage(rtValue& v);
+
+  rtError screenshot(rtString type, rtValue& returnValue);
   
 protected:
 
@@ -873,7 +877,7 @@ public:
   
 //  rtMethodNoArgAndNoReturn("stopPropagation",stopPropagation);
   
-  rtMethod1ArgAndReturn("screenshot", screenshot, rtString, rtString);
+  rtMethod1ArgAndReturn("screenshot", screenshot, rtString, rtValue);
 
   rtMethod1ArgAndReturn("clipboardGet", clipboardGet, rtString, rtString);
   rtMethod2ArgAndNoReturn("clipboardSet", clipboardSet, rtString, rtString);
@@ -1193,7 +1197,7 @@ public:
   void innerpxObjectDisposed(rtObjectRef ref);
   bool isObjectTracked(rtObjectRef ref);
   // Note: Only type currently supported is "image/png;base64"
-  rtError screenshot(rtString type, rtString& pngData);
+  rtError screenshot(rtString type, rtValue& returnValue);
   rtError clipboardGet(rtString type, rtString& retString);
   rtError clipboardSet(rtString type, rtString clipString);
   rtError getService(rtString name, rtObjectRef& returnObject);

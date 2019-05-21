@@ -108,6 +108,16 @@ rtError pxImage::setResource(rtObjectRef o)
 
 }
 
+void pxImage::createWithOffscreen(pxOffscreen &o)
+{
+  removeResourceListener();
+  mResource = new rtImageResource();
+  rtImageResource* imageResource = getImageResource();
+  imageResource->createWithOffscreen(o);
+  createNewPromise();
+  resourceReady("resolve");
+}
+
 rtError pxImage::url(rtString& s) const
 {
   if (getImageResource() != NULL)

@@ -87,6 +87,8 @@ public:
   virtual void releaseData(bool sceneSuspended);
   virtual void reloadData(bool sceneSuspended);
   virtual uint64_t textureMemoryUsage(std::vector<rtObject*> &objectsCounted);
+
+  void createWithOffscreen(pxOffscreen& o);
   
 protected:
   virtual void draw();
