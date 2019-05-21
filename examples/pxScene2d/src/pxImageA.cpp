@@ -37,6 +37,9 @@ pxImageA::pxImageA(pxScene2d *scene) : pxObject(scene),
   mFrameTime = -1;
   mPlays = 0;
   mResource = pxImageManager::getImageA("");
+
+  mw = -1;
+  mh = -1;
 }
 
 pxImageA::~pxImageA()
@@ -47,8 +50,6 @@ pxImageA::~pxImageA()
 
 void pxImageA::onInit() 
 {
-  mw = static_cast<float>(mImageWidth);
-  mh = static_cast<float>(mImageHeight);
   pxObject::onInit();
 }
 
@@ -157,7 +158,7 @@ void pxImageA::draw()
     pxTimedOffscreenSequence &imageSequence = getImageAResource()->getTimedOffscreenSequence();
     if (imageSequence.numFrames() > 0)
     {
-      context.drawImage(0, 0, mw, mh, mTexture, nullMaskRef, false, NULL, mStretchX, mStretchY);
+      context.drawImage(0, 0, getOnscreenWidth(), getOnscreenHeight(), mTexture, nullMaskRef, false, NULL, mStretchX, mStretchY);
     }
   }
 }
@@ -264,8 +265,6 @@ void pxImageA::loadImageSequence()
       pxOffscreen &o = imageSequence.getFrameBuffer(0);
       mImageWidth = o.width();
       mImageHeight = o.height();
-      mw = static_cast<float>(mImageWidth);
-      mh = static_cast<float>(mImageHeight);
     }
     if (!((rtPromise*)mReady.getPtr())->status())
       mReady.send("resolve", this);
@@ -364,6 +363,26 @@ uint64_t pxImageA::textureMemoryUsage(std::vector<rtObject*> &objectsCounted)
     textureMemory += pxObject::textureMemoryUsage(objectsCounted);
   }
   return textureMemory;
+}
+
+float pxImageA::getOnscreenWidth()
+{
+  if(mw == -1 || mStretchX == pxConstantsStretch::NONE)
+  {
+    return static_cast<float>(mImageWidth);
+  }
+  else
+    return mw;
+
+}
+float pxImageA::getOnscreenHeight()
+{
+  if(mh == -1 || mStretchY == pxConstantsStretch::NONE)
+  {
+    return static_cast<float>(mImageHeight);
+  }
+  else
+    return mh;
 }
 
 rtDefineObject(pxImageA, pxObject);
