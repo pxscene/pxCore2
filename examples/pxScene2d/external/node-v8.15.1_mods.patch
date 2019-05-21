@@ -1,5 +1,5 @@
 diff --git a/examples/pxScene2d/external/libnode-v8.15.1/src/node.cc b/examples/pxScene2d/external/libnode-v8.15.1/src/node.cc
-index 3d791f0..6f50233 100644
+index 3d791f0..0d810a9 100644
 --- a/examples/pxScene2d/external/libnode-v8.15.1/src/node.cc
 +++ b/examples/pxScene2d/external/libnode-v8.15.1/src/node.cc
 @@ -178,10 +178,16 @@ static bool track_heap_objects = false;
@@ -179,7 +179,7 @@ index 3d791f0..6f50233 100644
    }
  }
  
-@@ -4276,6 +4347,20 @@ void RegisterBuiltinModules() {
+@@ -4276,6 +4347,19 @@ void RegisterBuiltinModules() {
  #undef V
  }
  
@@ -192,7 +192,6 @@ index 3d791f0..6f50233 100644
 +}
 +void InspectorStop(Environment* env) {
 +  env->inspector_agent()->Stop();
-+  //env->inspector_agent()->WaitForDisconnect();
 +}
 +#endif
 +/*MODIFIED CODE END*/
