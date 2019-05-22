@@ -1,5 +1,5 @@
 diff --git a/examples/pxScene2d/external/libnode-v8.15.1/src/node.cc b/examples/pxScene2d/external/libnode-v8.15.1/src/node.cc
-index 3d791f0..0d810a9 100644
+index 3d791f0..dcac866 100644
 --- a/examples/pxScene2d/external/libnode-v8.15.1/src/node.cc
 +++ b/examples/pxScene2d/external/libnode-v8.15.1/src/node.cc
 @@ -178,10 +178,16 @@ static bool track_heap_objects = false;
@@ -179,12 +179,15 @@ index 3d791f0..0d810a9 100644
    }
  }
  
-@@ -4276,6 +4347,19 @@ void RegisterBuiltinModules() {
+@@ -4276,6 +4347,22 @@ void RegisterBuiltinModules() {
  #undef V
  }
  
 +/*MODIFIED CODE BEGIN*/
 +#if HAVE_INSPECTOR
++void InspectorInit(Environment* env, const char* path, MultiIsolatePlatform* platform) {
++  env->inspector_agent()->Init(static_cast<node::NodePlatform*>(platform), path, debug_options);
++}
 +void InspectorStart(Environment* env, const char* path, MultiIsolatePlatform* platform, std::string host, int port) {
 +  debug_options.set_host_name(host);
 +  debug_options.set_port(port);
@@ -200,7 +203,7 @@ index 3d791f0..0d810a9 100644
  
  #if !HAVE_INSPECTOR
 diff --git a/examples/pxScene2d/external/libnode-v8.15.1/src/node.h b/examples/pxScene2d/external/libnode-v8.15.1/src/node.h
-index 266744e..1dcdceb 100644
+index 266744e..c81cbb4 100644
 --- a/examples/pxScene2d/external/libnode-v8.15.1/src/node.h
 +++ b/examples/pxScene2d/external/libnode-v8.15.1/src/node.h
 @@ -197,6 +197,13 @@ typedef intptr_t ssize_t;
@@ -228,12 +231,13 @@ index 266744e..1dcdceb 100644
  class MultiIsolatePlatform : public v8::Platform {
   public:
    virtual ~MultiIsolatePlatform() { }
-@@ -226,6 +237,13 @@ class MultiIsolatePlatform : public v8::Platform {
+@@ -226,6 +237,14 @@ class MultiIsolatePlatform : public v8::Platform {
    virtual void UnregisterIsolate(IsolateData* isolate_data) = 0;
  };
  
 +/*MODIFIED CODE BEGIN*/
 +#if HAVE_INSPECTOR
++NODE_EXTERN void InspectorInit(Environment* env, const char* path, MultiIsolatePlatform* platform);
 +NODE_EXTERN void InspectorStart(Environment* env, const char* path, MultiIsolatePlatform* platform, std::string host, int port);
 +NODE_EXTERN void InspectorStop(Environment* env);
 +#endif

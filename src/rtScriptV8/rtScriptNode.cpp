@@ -448,6 +448,13 @@ void rtNodeContext::createEnvironment()
       StartDebug(mEnv, NULL, debug_wait_connect);
     }
   }
+#else
+  if (debug_options.inspector_enabled())
+  {
+     rtString currentPath;
+     rtGetCurrentDirectory(currentPath);
+     node::InspectorInit(mEnv, currentPath.cString(), platform);
+  }
 #endif
 #endif
 // Load Environment.
@@ -478,8 +485,8 @@ void rtNodeContext::createEnvironment()
 #endif //ENABLE_NODE_V_6_9
       more = uv_run(mEnv->event_loop(), UV_RUN_ONCE);
 #ifdef USE_NODE_PLATFORM
-      node::MultiIsolatePlatform* platform = static_cast<node::MultiIsolatePlatform*>(mPlatform);
-      platform->DrainBackgroundTasks(mIsolate);
+      node::MultiIsolatePlatform* platform1 = static_cast<node::MultiIsolatePlatform*>(mPlatform);
+      platform1->DrainBackgroundTasks(mIsolate);
 #endif //USE_NODE_PLATFORM
       if (more == false)
       {
