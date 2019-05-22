@@ -939,7 +939,7 @@ void pxResource::processDownloadedResource(rtFileDownloadRequest* fileDownloadRe
  * rtImageResource
  */
 
-rtImageAResource::rtImageAResource(const char* url, const char* proxy) : pxResource(), mTimedOffscreenSequence(), mWidth(-1), mHeight(-1), mDimensionsMutex()
+rtImageAResource::rtImageAResource(const char* url, const char* proxy) : pxResource(), mTimedOffscreenSequence(), mWidth(0), mHeight(0), mDimensionsMutex()
 {
   mTimedOffscreenSequence.init();
   setUrl(url, proxy);
