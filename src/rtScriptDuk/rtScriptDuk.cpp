@@ -221,6 +221,9 @@ public:
   //std::string name() const;
 
   rtError collectGarbage();
+#ifdef ENABLE_DEBUG_MODE
+  rtError enableDebugger(bool, rtString, int);
+#endif
   void* getParameter(rtString param);
 private:
 #ifdef ENABLE_DEBUG_MODE
@@ -1157,6 +1160,13 @@ rtError rtScriptDuk::collectGarbage()
 {
   return RT_OK;
 }
+
+#ifdef ENABLE_DEBUG_MODE
+rtError rtScriptDuk::enableDebugger(bool, rtString, int)
+{
+  return RT_OK;
+}
+#endif
 
 void* rtScriptDuk::getParameter(rtString param)
 {

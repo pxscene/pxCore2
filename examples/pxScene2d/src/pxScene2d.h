@@ -677,7 +677,8 @@ protected:
   virtual void onCloseRequest()
   {
     rtLogDebug("pxScriptView::onCloseRequest()\n");
-    mScene.send("dispose");
+    if (mScene)
+      mScene.send("dispose");
     mScene = NULL;
     mView = NULL;
   }
@@ -898,6 +899,7 @@ public:
   rtMethod1ArgAndReturn("sparkSetting", sparkSetting, rtString, rtValue);
   rtMethod1ArgAndNoReturn("addServiceProvider", addServiceProvider, rtFunctionRef);
   rtMethod1ArgAndNoReturn("removeServiceProvider", removeServiceProvider, rtFunctionRef);
+  rtMethod1ArgAndNoReturn("enableDebugger", enableDebugger, bool);
 
 #ifdef ENABLE_PERMISSIONS_CHECK
   // permissions can be set to either scene or to its container
@@ -1109,7 +1111,8 @@ public:
 					pxPoint2f& from, pxPoint2f& to);
   
   void hitTest(pxPoint2f p, std::vector<rtRef<pxObject> > hitList);
-  
+  rtError enableDebugger(bool);
+ 
   pxObject* getRoot() const;
   rtError root(rtObjectRef& v) const 
   {
