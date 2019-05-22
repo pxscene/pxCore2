@@ -1936,7 +1936,6 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   mInfo.set("build", build);
   mInfo.set("gfxmemory", context.currentTextureMemoryUsageInBytes());
 
-
   //capability versions
   mCapabilityVersions = new rtMapObject;
   rtObjectRef graphicsCapabilities = new rtMapObject;
@@ -1945,6 +1944,7 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
 #ifdef SUPPORT_GIF
     graphicsCapabilities.set("gif", 1);
 #endif //SUPPORT_GIF
+  graphicsCapabilities.set("imageAResource", 2);
       
   mCapabilityVersions.set("graphics", graphicsCapabilities);
 

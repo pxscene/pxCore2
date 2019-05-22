@@ -864,7 +864,7 @@ void pxResource::processDownloadedResource(rtFileDownloadRequest* fileDownloadRe
  * rtImageResource
  */
 
-rtImageAResource::rtImageAResource(const char* url, const char* proxy) : pxResource(), mTimedOffscreenSequence()
+rtImageAResource::rtImageAResource(const char* url, const char* proxy) : pxResource(), mTimedOffscreenSequence(), mWidth(0), mHeight(0), mDimensionsMutex()
 {
   mTimedOffscreenSequence.init();
   setUrl(url, proxy);
@@ -904,6 +904,13 @@ uint32_t rtImageAResource::loadResourceData(rtFileDownloadRequest* fileDownloadR
 
     if (pxLoadAImage(data, dataSize, mTimedOffscreenSequence) == RT_OK)
     {
+      if (mTimedOffscreenSequence.numFrames() > 0)
+      {
+        pxOffscreen &o = mTimedOffscreenSequence.getFrameBuffer(0);
+        rtMutexLockGuard dimensionsMutexLock(mDimensionsMutex);
+        mWidth = o.width();
+        mHeight = o.height();
+      }
       return PX_RESOURCE_LOAD_SUCCESS;
     }
   }
@@ -921,6 +928,41 @@ void rtImageAResource::loadResourceFromArchive(rtObjectRef archiveRef)
   UNUSED_PARAM(archiveRef);
   //TODO
   setLoadStatus("statusCode",PX_RESOURCE_STATUS_UNKNOWN_ERROR);
+}
+
+int32_t rtImageAResource::w() const
+{
+  int32_t returnValue = 0;
+  {
+    rtMutexLockGuard dimensionsMutexLock(mDimensionsMutex);
+    returnValue = mWidth;
+  }
+  return returnValue;
+}
+rtError rtImageAResource::w(int32_t& v) const
+{
+  {
+    rtMutexLockGuard dimensionsMutexLock(mDimensionsMutex);
+    v = mWidth;
+  }
+  return RT_OK;
+}
+int32_t rtImageAResource::h() const
+{
+  int32_t returnValue = 0;
+  {
+    rtMutexLockGuard dimensionsMutexLock(mDimensionsMutex);
+    returnValue = mHeight;
+  }
+  return returnValue;
+}
+rtError rtImageAResource::h(int32_t& v) const
+{
+  {
+    rtMutexLockGuard dimensionsMutexLock(mDimensionsMutex);
+    v = mHeight;
+  }
+  return RT_OK;
 }
 
 ImageMap pxImageManager::mImageMap;
@@ -1148,3 +1190,5 @@ rtDefineProperty(rtImageResource, w);
 rtDefineProperty(rtImageResource, h);
 
 rtDefineObject(rtImageAResource, pxResource);
+rtDefineProperty(rtImageAResource, w);
+rtDefineProperty(rtImageAResource, h);
