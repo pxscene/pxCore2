@@ -24,14 +24,15 @@ sparkview.on('onResize', function(e) {
 })
 }
 
-var gles2 = require('spark-webgl')
+//var gles2 = require('spark-webgl')
 
 var WebGLUtils = require('../WebGLUtils.js');
 var glMatrix = require('../gl-matrix.js');
 var mat4 = glMatrix.mat4;
 
 var options = {width: 1280, height: 720, title: "Triangle", fullscreen: false};
-var gl = gles2.init(options);
+//var gl = gles2.init(options);
+var gl = sparkgles2.init(options);
 
 function webGLStart() {
     initShaders()
