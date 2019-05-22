@@ -65,8 +65,9 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{1C6653D7-910C-4CC9-B95D-30D7B65EEA8E}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>libgif</RootNamespace>
+    <RootNamespace>gif</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
+    <ProjectName>gif</ProjectName>
   </PropertyGroup>
   <Import Project="$(SolutionDir)\config.props" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -114,7 +115,7 @@
     </CustomBuildBeforeTargets>
     <TargetName>$(ProjectName)16</TargetName>
     <OutDir>$(SolutionDir)\builds\</OutDir>
-    <IntDir>$(SolutionDir)\objs\libgif\</IntDir>
+    <IntDir>$(SolutionDir)\objs\gif\</IntDir>
     <IncludePath>..\giflib-5.1.9;$(IncludePath);$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug Library|Win32'">
@@ -128,7 +129,7 @@
     </CustomBuildBeforeTargets>
     <TargetName>$(ProjectName)16</TargetName>
     <OutDir>$(SolutionDir)\builds\</OutDir>
-    <IntDir>$(SolutionDir)\objs\libgif\</IntDir>
+    <IntDir>$(SolutionDir)\objs\gif\</IntDir>
     <IncludePath>..\giflib-5.1.9;$(IncludePath);$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release Library|Win32'">
