@@ -677,7 +677,7 @@ protected:
   virtual void onCloseRequest()
   {
     rtLogDebug("pxScriptView::onCloseRequest()\n");
-    printf("Madana Gopal [%d] \n", (NULL == mScene.getPtr()));
+    printf("Madana Gopal [%d] [%s]\n", (NULL == mScene.getPtr()), mUrl.cString());
     fflush(stdout);
     if (mScene)
       mScene.send("dispose");
