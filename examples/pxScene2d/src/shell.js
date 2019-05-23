@@ -208,7 +208,7 @@ if( scene.capabilities != undefined && scene.capabilities.graphics != undefined 
         e.stopPropagation();
       }
       else
-      if(code == keys.M)  // ctrl-alt-m
+      if(code == keys.W)  // ctrl-alt-w
       {
         debuggerEnabled = !debuggerEnabled;
         scene.enableDebugger(debuggerEnabled);
