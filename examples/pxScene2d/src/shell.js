@@ -87,7 +87,6 @@ px.import({ scene: 'px:scene.1.js',
 
   var showFPS = false;
   var debuggerEnabled = false;
-
   var fpsBg      = scene.create({t:"rect",     fillColor:0x00000080,lineColor:0xffff0080,lineWidth:3,x:10,y:10,a:showFPS?1:0,parent:scene.root});
   var fpsCounter = scene.create({t:"text", x:5,textColor:0xffffffff,pixelSize:24,text:"0fps",parent:fpsBg});
   fpsBg.w = fpsCounter.w+16;
