@@ -777,22 +777,20 @@ index d3014a0..fd75030 100644
  
  if not exist "%~dp0deps\icu" goto no-depsicu
  if "%target%"=="Clean" echo deleting %~dp0deps\icu
-diff --git a/examples/pxScene2d/external/libnode-v8.15.1/src/inspector_agent.cc b/examples/pxScene2d/external/libnode-v8.15.1/src/inspector_agent.cc
-index ff15b4f..37412b1 100644
+diff --git a/examples/pxScene2d/external/libnode-v8.15.1/src/inspector_agent.cc b/examples/pxScene2d/external/li
+index ff15b4f..684c503 100644
 --- a/examples/pxScene2d/external/libnode-v8.15.1/src/inspector_agent.cc
 +++ b/examples/pxScene2d/external/libnode-v8.15.1/src/inspector_agent.cc
-@@ -472,8 +472,8 @@ Agent::Agent(Environment* env) : parent_env_(env),
- // does not have full definition of some classes.
+@@ -473,14 +473,19 @@ Agent::Agent(Environment* env) : parent_env_(env),
  Agent::~Agent() {
  }
--
+ 
 -bool Agent::Start(node::NodePlatform* platform, const char* path,
-+/* MODIFIED CODE BEGIN */
 +bool Agent::Init(node::NodePlatform* platform, const char* path,
                    const DebugOptions& options) {
    path_ = path == nullptr ? "" : path;
-   debug_options_ = options;
-@@ -481,6 +481,11 @@ bool Agent::Start(node::NodePlatform* platform, const char* path,
+-  debug_options_ = options;
+   client_ =
        std::unique_ptr<NodeInspectorClient>(
            new NodeInspectorClient(parent_env_, platform));
    platform_ = platform;
@@ -801,17 +799,10 @@ index ff15b4f..37412b1 100644
 +
 +bool Agent::Start(node::NodePlatform* platform, const char* path,
 +                  const DebugOptions& options) {
++  debug_options_ = options;
    CHECK_EQ(0, uv_async_init(uv_default_loop(),
                              &start_io_thread_async,
                              StartIoThreadAsyncCallback));
-@@ -495,6 +500,7 @@ bool Agent::Start(node::NodePlatform* platform, const char* path,
-   }
-   return true;
- }
-+/* MODIFIED CODE END */
- 
- bool Agent::StartIoThread(bool wait_for_connect) {
-   if (io_ != nullptr)
 diff --git a/examples/pxScene2d/external/libnode-v8.15.1/src/inspector_agent.h b/examples/pxScene2d/external/libnode-v8.15.1/src/inspector_agent.h
 index 3890c87..f361f4f 100644
 --- a/examples/pxScene2d/external/libnode-v8.15.1/src/inspector_agent.h

@@ -293,6 +293,7 @@ void rtScript::populateDebuggerInfo()
    }
    printf("Madana port after settings [%d] \n",mDebuggerPort);
    fflush(stdout);
+
    char const *debugport = getenv("SPARK_DEBUGGER_PORT");
    if (debugport)
    {
