@@ -1414,15 +1414,11 @@ rtError rtScriptNode::enableDebugger(bool enable, rtString host_name, int port)
         rtString currentPath;
         rtGetCurrentDirectory(currentPath);
         node::MultiIsolatePlatform* platform = static_cast<node::MultiIsolatePlatform*>(mPlatform);
-        printf("Madana rtScriptNode::enableDebugger [%s] [%d] \n",host_name.cString(), port);
-        fflush(stdout);
         node::InspectorStart(mRefContext->getEnvironment(), currentPath.cString(), platform, host_name.cString(), port);
       }
     }
     else
     {
-      printf("Madana rtScriptNode::enableDebugger disabling [%s] [%d] \n",host_name.cString(), port);
-      fflush(stdout);
       mDebuggerRunning = false;
       node::InspectorStop(mRefContext->getEnvironment());
     }

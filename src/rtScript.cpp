@@ -284,6 +284,7 @@ void rtScript::populateDebuggerInfo()
    mEnableDebugger = false;
  }
 
+ rtLogInfo("Spark debugger enabled  - [%d]",mEnableDebugger);
  if (true == mEnableDebugger)
  {
    rtValue debuggerPort;
@@ -291,8 +292,6 @@ void rtScript::populateDebuggerInfo()
    {
      mDebuggerPort = debuggerPort.toInt64();
    }
-   printf("Madana port after settings [%d] \n",mDebuggerPort);
-   fflush(stdout);
 
    char const *debugport = getenv("SPARK_DEBUGGER_PORT");
    if (debugport)
@@ -300,23 +299,18 @@ void rtScript::populateDebuggerInfo()
      mDebuggerPort = atoi(debugport);
    }
 
-   printf("Madana port after env [%d] \n",mDebuggerPort);
-   fflush(stdout);
    rtValue debuggerHost;
    if (RT_OK == rtSettings::instance()->value("sparkDebuggerHost", debuggerHost))
    {
      mDebuggerHost = debuggerHost.toString();
    }
 
-   printf("Madana IP after settings [%s] \n",mDebuggerHost.cString());
-   fflush(stdout);
    char const *debughost = getenv("SPARK_DEBUGGER_HOST");
    if (debughost)
    {
      mDebuggerHost = debughost;
    }
-   printf("Madana IP after env [%s] \n",mDebuggerHost.cString());
-   fflush(stdout);
+   rtLogInfo("Spark debugger host[%s] port[%d]",mDebuggerHost.cString(), mDebuggerPort);
  }
 }
 #endif
