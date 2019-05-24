@@ -457,7 +457,7 @@ void rtNodeContext::createEnvironment()
     rtGetCurrentDirectory(currentPath);
     node::InspectorInit(mEnv, currentPath.cString(), platform);
   }
-#endif
+#endif //USE_NODE_PLATFORM
 #endif
 #endif
 #endif
