@@ -26,6 +26,9 @@ limitations under the License.
 #include <string.h>
 #include <unistd.h>
 #include "pxTimer.h"
+#ifdef ENABLE_DEBUG_MODE
+#include <node_debug_options.h>
+#endif
 
 #include "test_includes.h" // Needs to be included last
 
@@ -38,7 +41,12 @@ extern map<string, string> gWaylandAppsMap;
 extern map<string, string> gWaylandRegistryAppsMap;
 extern map<string, string> gPxsceneWaylandAppsMap;
 extern rtScript script;
-
+#ifdef ENABLE_DEBUG_MODE
+namespace node
+{
+  extern DebugOptions debug_options;
+}
+#endif
 class pxScene2dTest : public testing::Test
 {
   public:
@@ -348,6 +356,39 @@ class pxScene2dTest : public testing::Test
 
  }
 
+  #ifdef ENABLE_DEBUG_MODE
+  void debuggerEnvTest()
+  {
+   EXPECT_TRUE(script.mEnableDebugger = true);
+   EXPECT_TRUE(script.mDebuggerPort = SPARK_DEBUGGER_PORT);
+   EXPECT_TRUE(script.mDebuggerHost = SPARK_DEBUGGER_HOST);
+  }
+
+  void enableDebuggerTrueDebugOptionsFalseTest()
+  {
+   pxScene2d* scene = new pxScene2d(NULL);
+   EXPECT_TRUE(RT_OK == scene->enableDebugger(true));
+   delete scene;
+  }
+    
+  void enableDebuggerTrueDebugOptionsTrueTest()
+  {
+   node::debug_options.inspector_enabled_ = true;
+   pxScene2d* scene = new pxScene2d(NULL);
+   EXPECT_TRUE(RT_OK == scene->enableDebugger(true));
+   EXPECT_TRUE(RT_OK == scene->enableDebugger(false));
+   node::debug_options.inspector_enabled_ = false;
+   delete scene;
+  }
+    
+  void enableDebuggerFalseTest()
+  {
+   pxScene2d* scene = new pxScene2d(NULL);
+   EXPECT_TRUE(RT_OK == scene->enableDebugger(false));
+   delete scene;
+  }
+  #endif 
+ 
   private:
     pxObject*     mRoot;
     pxScriptView* mView;
@@ -367,4 +408,10 @@ TEST_F(pxScene2dTest, pxScene2dTests)
     pxScene2dClassTest();
     //pxScene2dHdrTest();
     pxScriptViewTest();
+  #ifdef ENABLE_DEBUG_MODE
+    debuggerEnvTest();
+    enableDebuggerTrueDebugOptionsFalseTest();
+    enableDebuggerTrueDebugOptionsTrueTest();
+    enableDebuggerFalseTest();
+  #endif
 }
