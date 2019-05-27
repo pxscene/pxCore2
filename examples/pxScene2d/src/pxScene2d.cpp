@@ -3064,7 +3064,7 @@ rtError pxScriptView::rtHttpGetBinding(int numArgs, const rtValue* args, rtValue
     return RT_ERROR_INVALID_ARG;
   }
 
-   rtHttpRequest* req;
+  rtHttpRequest* req;
   if (args[0].getType() == RT_stringType) {
     req = new rtHttpRequest(args[0].toString());
   }
