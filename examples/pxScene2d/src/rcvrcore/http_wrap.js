@@ -19,9 +19,11 @@ limitations under the License.
 'use strict';
 
 var isV8=(typeof _isV8 !== "undefined");
+var isNode8 = false;
 
 try {
   var http2 = isV8?null:require('http2');
+  isNode8 = (null != http2);
 } catch (ignored) {
 }
 var https = require('https');
@@ -203,7 +205,7 @@ function Request(moduleName, appSceneContext, options, callback) {
 
   this.abort = function () {
     if (!isBlocked) {
-      if (isV8) {
+      if (isV8 || (isNode8 && !is_v2)) {
         httpRequest.abort();
       } else if (is_v2) {
         httpRequest.destroy();
@@ -214,7 +216,7 @@ function Request(moduleName, appSceneContext, options, callback) {
   };
   this.getHeader = function () {
     if (!isBlocked) {
-      if (isV8) {
+      if (isV8 || (isNode8 && !is_v2)) {
         return httpRequest.getHeader(arguments[0]);
       } else if (is_v2) {
         return httpRequest.sentHeaders[arguments[0]];
@@ -225,7 +227,7 @@ function Request(moduleName, appSceneContext, options, callback) {
   };
   this.setNoDelay = function () {
     if (!isBlocked) {
-      if (isV8) {
+      if (isV8 || (isNode8 && !is_v2)) {
         log.warn("setNoDelay not implemented for v8");
       } else if (is_v2) {
         log.warn("setNoDelay not implemented for HTTP/2");
@@ -236,7 +238,7 @@ function Request(moduleName, appSceneContext, options, callback) {
   };
   this.setSocketKeepAlive = function () {
     if (!isBlocked) {
-      if (isV8) {
+      if (isV8 || (isNode8 && !is_v2)) {
         log.warn("setSocketKeepAlive not implemented for v8");
       } else if (is_v2) {
         log.warn("setSocketKeepAlive not implemented for HTTP/2");
@@ -247,7 +249,7 @@ function Request(moduleName, appSceneContext, options, callback) {
   };
   this.setDefaultEncoding = function () {
     if (!isBlocked) {
-      if (isV8) {
+      if (isV8 || (isNode8 && !is_v2)) {
         log.warn("setSocketKeepAlive not implemented for v8");
       } else {
         httpRequest.setDefaultEncoding.apply(httpRequest, arguments);
@@ -257,7 +259,7 @@ function Request(moduleName, appSceneContext, options, callback) {
   };
   this.setTimeout = function () {
     if (!isBlocked) {
-      if (isV8) {
+      if (isV8 || (isNode8 && !is_v2)) {
         httpRequest.setTimeout(arguments[0], arguments[1]);
       } else {
         httpRequest.setTimeout.apply(httpRequest, arguments);
@@ -267,7 +269,7 @@ function Request(moduleName, appSceneContext, options, callback) {
   };
   this.end = function () {
     if (!isBlocked) {
-      if (isV8) {
+      if (isV8 || (isNode8 && !is_v2)) {
         httpRequest.end();
       } else {
         httpRequest.end.apply(httpRequest, arguments);
@@ -277,7 +279,7 @@ function Request(moduleName, appSceneContext, options, callback) {
   };
   this.write = function () {
     if (!isBlocked) {
-      if (isV8) {
+      if (isV8 || (isNode8 && !is_v2)) {
         return httpRequest.write(arguments[0]);
       } else {
         return httpRequest.write.apply(httpRequest, arguments);
@@ -370,7 +372,7 @@ function Response(httpResponse, appSceneContext, fromOrigin, toOrigin, withCrede
   this.url = httpResponse.url;
 
   this.setEncoding = function () {
-    if (isV8) {
+    if (isV8 || (isNode8 && !is_v2)) {
       log.warn("setEncoding not implemented for v8");
     } else {
       httpResponse.setEncoding.apply(httpResponse, arguments);

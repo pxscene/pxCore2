@@ -52,6 +52,7 @@
 #endif //ENABLE_DFB
 
 #include "pxContext.h"
+#include <rtHttpRequest.h>
 #include "rtFileDownloader.h"
 #include "rtMutex.h"
 
@@ -3008,12 +3009,12 @@ void pxScriptView::runScript()
 
   if (mCtx)
   {
-    mPrintFunc = new rtFunctionCallback(printFunc, this);
+    mHttpGetBinding = new rtFunctionCallback(rtHttpGetBinding, this);
     mGetScene = new rtFunctionCallback(getScene,  this);
     mMakeReady = new rtFunctionCallback(makeReady, this);
     mGetContextID = new rtFunctionCallback(getContextID, this);
 
-    mCtx->add("print", mPrintFunc.getPtr());
+    mCtx->add("httpGet", mHttpGetBinding.getPtr());
     mCtx->add("getScene", mGetScene.getPtr());
     mCtx->add("makeReady", mMakeReady.getPtr());
     mCtx->add("getContextID", mGetContextID.getPtr());
@@ -3054,20 +3055,35 @@ void pxScriptView::runScript()
   #endif //ENABLE_RT_NODE
 }
 
-rtError pxScriptView::printFunc(int numArgs, const rtValue* args, rtValue* result, void* ctx)
+rtError pxScriptView::rtHttpGetBinding(int numArgs, const rtValue* args, rtValue* result, void* context)
 {
-  UNUSED_PARAM(result);
-  //rtLogInfo(__FUNCTION__);
+  UNUSED_PARAM(context);
 
-  if (ctx)
-  {
-    if (numArgs > 0 && !args[0].isEmpty())
-    {
-      rtString toPrint = args[0].toString();
-      rtLogWarn("%s", toPrint.cString());
-    }
+   if (numArgs < 1) {
+    rtLogError("%s: invalid args", __FUNCTION__);
+    return RT_ERROR_INVALID_ARG;
   }
-  return RT_OK;
+
+   rtHttpRequest* req;
+  if (args[0].getType() == RT_stringType) {
+    req = new rtHttpRequest(args[0].toString());
+  }
+  else {
+    if (args[0].getType() != RT_objectType) {
+      rtLogError("%s: invalid arg type", __FUNCTION__);
+      return RT_ERROR_INVALID_ARG;
+    }
+    req = new rtHttpRequest(args[0].toObject());
+  }
+
+   if (numArgs > 1 && args[1].getType() == RT_functionType) {
+    req->addListener("response", args[1].toFunction());
+  }
+
+   rtObjectRef ref = req;
+  *result = ref;
+
+   return RT_OK;
 }
 
 rtError pxScriptView::suspend(const rtValue& v, bool& b)
