@@ -411,7 +411,7 @@ TEST_F(pxScene2dTest, pxScene2dTests)
   #ifdef ENABLE_DEBUG_MODE
     debuggerEnvTest();
     enableDebuggerTrueDebugOptionsFalseTest();
-    enableDebuggerTrueDebugOptionsTrueTest();
+    //enableDebuggerTrueDebugOptionsTrueTest();
     enableDebuggerFalseTest();
   #endif
 }
