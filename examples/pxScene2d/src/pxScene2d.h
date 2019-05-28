@@ -1111,8 +1111,7 @@ public:
 					pxPoint2f& from, pxPoint2f& to);
   
   void hitTest(pxPoint2f p, std::vector<rtRef<pxObject> > hitList);
-  rtError enableDebugger(bool);
- 
+  rtError enableDebugger(bool); 
   pxObject* getRoot() const;
   rtError root(rtObjectRef& v) const 
   {
