@@ -1,5 +1,32 @@
+From 7d50fdff3b68565c3f86bb644b914c99321c61b9 Mon Sep 17 00:00:00 2001
+From: Madana Gopal <madanagopal_thirumalai@comcast.com>
+Date: Tue, 28 May 2019 10:23:46 +0530
+Subject: [PATCH] patches
+
+---
+ .../pxScene2d/external/libnode-v8.15.1/common.gypi | 77 ++++++++++++++----
+ .../pxScene2d/external/libnode-v8.15.1/configure   | 10 +++
+ .../libnode-v8.15.1/deps/cares/common.gypi         |  4 +-
+ .../deps/http_parser/http_parser.gyp               |  4 +-
+ .../external/libnode-v8.15.1/deps/uv/common.gypi   |  4 +-
+ .../deps/v8/gypfiles/toolchain.gypi                |  8 +-
+ .../libnode-v8.15.1/deps/v8/src/isolate.cc         |  8 ++
+ .../libnode-v8.15.1/lib/internal/bootstrap_node.js | 16 ++--
+ .../pxScene2d/external/libnode-v8.15.1/lib/net.js  | 24 ++++++
+ .../pxScene2d/external/libnode-v8.15.1/src/node.cc | 93 ++++++++++++++++++++--
+ .../pxScene2d/external/libnode-v8.15.1/src/node.h  | 17 ++++
+ .../libnode-v8.15.1/src/node_contextify.cc         | 71 +++++++++++++++++
+ .../libnode-v8.15.1/src/node_contextify_mods.h     | 16 ++++
+ .../libnode-v8.15.1/src/node_http_parser.cc        |  9 ++-
+ .../external/libnode-v8.15.1/src/node_internals.h  |  4 +-
+ .../external/libnode-v8.15.1/src/node_platform.cc  |  7 ++
+ .../external/libnode-v8.15.1/src/node_watchdog.cc  |  5 +-
+ .../pxScene2d/external/libnode-v8.15.1/vcbuild.bat |  9 +++
+ 18 files changed, 351 insertions(+), 35 deletions(-)
+ create mode 100644 examples/pxScene2d/external/libnode-v8.15.1/src/node_contextify_mods.h
+
 diff --git a/examples/pxScene2d/external/libnode-v8.15.1/common.gypi b/examples/pxScene2d/external/libnode-v8.15.1/common.gypi
-index fd42f27..b810221 100644
+index fd42f27..2571a3f 100644
 --- a/examples/pxScene2d/external/libnode-v8.15.1/common.gypi
 +++ b/examples/pxScene2d/external/libnode-v8.15.1/common.gypi
 @@ -131,7 +131,9 @@
@@ -8,7 +35,7 @@ index fd42f27..b810221 100644
          },
 -        'cflags': [ '-O3' ],
 +        # MODIFIED CODE BEGIN
-+        'cflags': [ '-Os' ],
++        #'cflags': [ '-O3' ],
 +        # MODIFIED CODE END
          'conditions': [
            ['target_arch=="x64"', {
@@ -196,24 +223,6 @@ index 2297bdf..15bdfb3 100644
          ],
          'msvs_settings': {
            'VCCLCompilerTool': {
-diff --git a/examples/pxScene2d/external/libnode-v8.15.1/deps/v8/BUILD.gn b/examples/pxScene2d/external/libnode-v8.15.1/deps/v8/BUILD.gn
-index 9d95036..1e4f7a7 100644
---- a/examples/pxScene2d/external/libnode-v8.15.1/deps/v8/BUILD.gn
-+++ b/examples/pxScene2d/external/libnode-v8.15.1/deps/v8/BUILD.gn
-@@ -2363,9 +2363,12 @@ v8_source_set("v8_base") {
-     ":v8_headers",
-     ":v8_libbase",
-     ":v8_libsampler",
--    "src/inspector:inspector",
-   ]
- 
-+  if (v8_enable_inspector) {
-+    deps += ["src/inspector:inspector",]
-+  }
-+
-   if (v8_enable_i18n_support) {
-     public_deps = [
-       "//third_party/icu",
 diff --git a/examples/pxScene2d/external/libnode-v8.15.1/deps/v8/gypfiles/toolchain.gypi b/examples/pxScene2d/external/libnode-v8.15.1/deps/v8/gypfiles/toolchain.gypi
 index 80844ce..d755cce 100644
 --- a/examples/pxScene2d/external/libnode-v8.15.1/deps/v8/gypfiles/toolchain.gypi
@@ -259,45 +268,8 @@ index bccd0cb..fdc9877 100644
    if (FLAG_print_all_exceptions) {
      printf("=========================================================\n");
      printf("Exception thrown:\n");
-diff --git a/examples/pxScene2d/external/libnode-v8.15.1/deps/v8/src/v8.gyp b/examples/pxScene2d/external/libnode-v8.15.1/deps/v8/src/v8.gyp
-index 1c56842..d16102e 100644
---- a/examples/pxScene2d/external/libnode-v8.15.1/deps/v8/src/v8.gyp
-+++ b/examples/pxScene2d/external/libnode-v8.15.1/deps/v8/src/v8.gyp
-@@ -527,8 +527,6 @@
-       'dependencies': [
-         'v8_libbase',
-         'v8_libsampler',
--        'inspector/inspector.gyp:protocol_generated_sources#target',
--        'inspector/inspector.gyp:inspector_injected_script#target',
-       ],
-       'objs': ['foo.o'],
-       'variables': {
-@@ -540,7 +538,6 @@
-         '<(SHARED_INTERMEDIATE_DIR)'
-       ],
-       'sources': [  ### gcmole(all) ###
--        '<@(inspector_all_sources)',
-         '../include/v8-debug.h',
-         '../include/v8-platform.h',
-         '../include/v8-profiler.h',
-@@ -1476,6 +1473,15 @@
-         'zone/zone-handle-set.h',
-       ],
-       'conditions': [
-+        ['v8_enable_inspector==1', {
-+          'sources': [  
-+            '<@(inspector_all_sources)',
-+          ],
-+          'dependencies': [  
-+            'inspector/inspector.gyp:protocol_generated_sources#target',
-+            'inspector/inspector.gyp:inspector_injected_script#target',
-+          ],
-+        }],
-         ['want_separate_host_toolset==1', {
-           'toolsets': ['host', 'target'],
-         }, {
 diff --git a/examples/pxScene2d/external/libnode-v8.15.1/lib/internal/bootstrap_node.js b/examples/pxScene2d/external/libnode-v8.15.1/lib/internal/bootstrap_node.js
-index 0e9c36c..343bb58 100644
+index 0e9c36c..5305caa 100644
 --- a/examples/pxScene2d/external/libnode-v8.15.1/lib/internal/bootstrap_node.js
 +++ b/examples/pxScene2d/external/libnode-v8.15.1/lib/internal/bootstrap_node.js
 @@ -174,9 +174,10 @@
@@ -305,9 +277,11 @@ index 0e9c36c..343bb58 100644
          preloadModules();
          perf.markMilestone(NODE_PERFORMANCE_MILESTONE_PRELOAD_MODULE_LOAD_END);
 -
+-        const internalModule = NativeModule.require('internal/module');
+-        internalModule.addBuiltinLibsToObject(global);
 +        /* MODIFIED CODE BEGIN */
-         const internalModule = NativeModule.require('internal/module');
-         internalModule.addBuiltinLibsToObject(global);
++        //const internalModule = NativeModule.require('internal/module');
++        //internalModule.addBuiltinLibsToObject(global);
 +        /* MODIFIED CODE END */
          evalScript('[eval]');
        } else if (process.argv[1] && process.argv[1] !== '-') {
@@ -384,60 +358,6 @@ index 98bcbc3..70b6414 100644
    debug('connect: find host', host);
    debug('connect: dns options', dnsopts);
    self._host = host;
-diff --git a/examples/pxScene2d/external/libnode-v8.15.1/node.gyp b/examples/pxScene2d/external/libnode-v8.15.1/node.gyp
-index ed20a49..39747ba 100644
---- a/examples/pxScene2d/external/libnode-v8.15.1/node.gyp
-+++ b/examples/pxScene2d/external/libnode-v8.15.1/node.gyp
-@@ -29,11 +29,9 @@
-       'lib/async_hooks.js',
-       'lib/assert.js',
-       'lib/buffer.js',
--      'lib/child_process.js',
-       'lib/console.js',
-       'lib/constants.js',
-       'lib/crypto.js',
--      'lib/cluster.js',
-       'lib/dgram.js',
-       'lib/dns.js',
-       'lib/domain.js',
-@@ -81,13 +79,6 @@
-       'lib/zlib.js',
-       'lib/internal/async_hooks.js',
-       'lib/internal/buffer.js',
--      'lib/internal/child_process.js',
--      'lib/internal/cluster/child.js',
--      'lib/internal/cluster/master.js',
--      'lib/internal/cluster/round_robin_handle.js',
--      'lib/internal/cluster/shared_handle.js',
--      'lib/internal/cluster/utils.js',
--      'lib/internal/cluster/worker.js',
-       'lib/internal/encoding.js',
-       'lib/internal/errors.js',
-       'lib/internal/freelist.js',
-@@ -123,23 +114,11 @@
-       'lib/internal/http2/core.js',
-       'lib/internal/http2/compat.js',
-       'lib/internal/http2/util.js',
--      'lib/internal/v8_prof_polyfill.js',
--      'lib/internal/v8_prof_processor.js',
-       'lib/internal/streams/lazy_transform.js',
-       'lib/internal/streams/BufferList.js',
-       'lib/internal/streams/legacy.js',
-       'lib/internal/streams/destroy.js',
-       'lib/internal/wrap_js_stream.js',
--      'deps/v8/tools/splaytree.js',
--      'deps/v8/tools/codemap.js',
--      'deps/v8/tools/consarray.js',
--      'deps/v8/tools/csvparser.js',
--      'deps/v8/tools/profile.js',
--      'deps/v8/tools/profile_view.js',
--      'deps/v8/tools/logreader.js',
--      'deps/v8/tools/tickprocessor.js',
--      'deps/v8/tools/SourceMap.js',
--      'deps/v8/tools/tickprocessor-driver.js',
-       'deps/node-inspect/lib/_inspect.js',
-       'deps/node-inspect/lib/internal/inspect_client.js',
-       'deps/node-inspect/lib/internal/inspect_repl.js',
 diff --git a/examples/pxScene2d/external/libnode-v8.15.1/src/node.cc b/examples/pxScene2d/external/libnode-v8.15.1/src/node.cc
 index 3d791f0..d572a6d 100644
 --- a/examples/pxScene2d/external/libnode-v8.15.1/src/node.cc
