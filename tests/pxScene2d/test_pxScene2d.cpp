@@ -366,7 +366,7 @@ class pxScene2dTest : public testing::Test
 
   void enableDebuggerTrueDebugOptionsFalseTest()
   {
-   pxScene2d* scene = new pxScene2d(NULL);
+   pxScene2d* scene = new pxScene2d(false);
    EXPECT_TRUE(RT_OK == scene->enableDebugger(true));
    delete scene;
   }
@@ -374,7 +374,7 @@ class pxScene2dTest : public testing::Test
   void enableDebuggerTrueDebugOptionsTrueTest()
   {
    node::debug_options.inspector_enabled_ = true;
-   pxScene2d* scene = new pxScene2d(NULL);
+   pxScene2d* scene = new pxScene2d(false);
    EXPECT_TRUE(RT_OK == scene->enableDebugger(true));
    EXPECT_TRUE(RT_OK == scene->enableDebugger(false));
    node::debug_options.inspector_enabled_ = false;
@@ -383,7 +383,7 @@ class pxScene2dTest : public testing::Test
     
   void enableDebuggerFalseTest()
   {
-   pxScene2d* scene = new pxScene2d(NULL);
+   pxScene2d* scene = new pxScene2d(false);
    EXPECT_TRUE(RT_OK == scene->enableDebugger(false));
    delete scene;
   }
