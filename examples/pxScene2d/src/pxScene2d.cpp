@@ -3052,6 +3052,7 @@ void pxScriptView::runScript()
   #endif //ENABLE_RT_NODE
 }
 
+
 rtError pxScriptView::suspend(const rtValue& v, bool& b)
 {
   b = false;
