@@ -36,7 +36,7 @@ cd ..
 
 #--------- GIF
 cd gif
-sudo make install
+make
 [ -d .libs ] || mkdir -p .libs
 if [ -e libgif.dylib ]
 then

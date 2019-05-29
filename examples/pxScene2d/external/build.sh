@@ -117,7 +117,7 @@ fi
 if [ ! -e ./.libs/libgif.dylib ] ||
 [ "$(uname)" != "Darwin" ]
 then
-sudo make install
+make
 [ -d .libs ] || mkdir -p .libs
 if [ -e libgif.dylib ]
 then
