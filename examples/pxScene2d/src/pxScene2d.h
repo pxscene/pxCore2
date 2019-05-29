@@ -847,6 +847,7 @@ public:
   rtMethod1ArgAndReturn("create", create, rtObjectRef, rtObjectRef);
   rtMethodNoArgAndReturn("clock", clock, double);
   rtMethodNoArgAndNoReturn("logDebugMetrics", logDebugMetrics);
+  rtMethodNoArgAndReturn("debugMetrics", debugMetrics, rtObjectRef);
   rtMethodNoArgAndNoReturn("collectGarbage", collectGarbage);
   rtReadOnlyProperty(info, info, rtObjectRef);
   rtReadOnlyProperty(capabilities, capabilities, rtObjectRef);
@@ -1004,6 +1005,7 @@ public:
 
   rtError clock(double & time);
   rtError logDebugMetrics();
+  rtError debugMetrics(rtObjectRef& o);
   rtError collectGarbage();
   rtError suspend(const rtValue& v, bool& b);
   rtError resume(const rtValue& v, bool& b);

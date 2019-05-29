@@ -84,6 +84,10 @@ function Scene() {
     return nativeScene.logDebugMetrics();
   };
 
+  this.debugMetrics = function() {
+    return nativeScene.debugMetrics();
+  };
+
   this.textureMemoryUsage = function() {
     return nativeScene.textureMemoryUsage();
   };
