@@ -58,7 +58,7 @@ rtError rtStorage::init(const char* filename, uint32_t storageQuota, const char*
 #if defined(SQLITE_HAS_CODEC)
   bool shouldReKey = false;
   if (key && *key)
-    shouldReKey = rtFileExists(filename) && !isEncryped(filename);
+    shouldReKey = rtFileExists(filename) && !isEncrypted(filename);
 #endif
 
   int rc = sqlite3_open(filename, &db);
@@ -101,7 +101,7 @@ rtError rtStorage::init(const char* filename, uint32_t storageQuota, const char*
       return RT_FAIL;
     }
 
-    if (shouldReKey && !isEncryped(filename))
+    if (shouldReKey && !isEncrypted(filename))
       rtLogError("SQLite database file is clear after re-key, path=%s", filename);
 #endif
   }
@@ -318,11 +318,15 @@ rtError rtStorage::setCurrentSize(const uint32_t size)
   return RT_OK;
 }
 
-rtError rtStorage::getCurrentSize(uint32_t &size) const
+rtError rtStorage::getCurrentSize(const char* key, uint32_t& sizeForKey, uint32_t& sizeTotal) const
 {
+  if (!key || *key == 0)
+    return RT_ERROR_INVALID_ARG;
+
   sqlite3* &db = SQLITE;
 
-  size = 0;
+  sizeForKey = 0;
+  sizeTotal = 0;
 
   if (db)
   {
@@ -332,7 +336,22 @@ rtError rtStorage::getCurrentSize(uint32_t &size) const
     int rc = sqlite3_step(stmt);
     if (rc == SQLITE_ROW)
     {
-      size = sqlite3_column_int(stmt, 0);
+      sizeTotal = sqlite3_column_int(stmt, 0);
+    }
+    sqlite3_finalize(stmt);
+  }
+
+  if (db)
+  {
+    sqlite3_stmt *stmt;
+    sqlite3_prepare_v2(db, "SELECT length(value) FROM ItemTable WHERE key = ?;", -1, &stmt, NULL);
+
+    sqlite3_bind_text(stmt, 1, key, -1, SQLITE_TRANSIENT);
+
+    int rc = sqlite3_step(stmt);
+    if (rc == SQLITE_ROW)
+    {
+      sizeForKey = sqlite3_column_int(stmt, 0);
     }
     sqlite3_finalize(stmt);
   }
@@ -370,14 +389,17 @@ rtError rtStorage::verifyQuota(const char* key, const rtValue& value) const
   if (!key || *key == 0)
     return RT_ERROR_INVALID_ARG;
 
-  uint32_t size = 0;
-  rtError retStat = getCurrentSize(size);
+  uint32_t sizeForKey = 0;
+  uint32_t sizeTotal = 0;
+  rtError retStat = getCurrentSize(key, sizeForKey, sizeTotal);
 
   if (RT_OK == retStat)
   {
     rtString keyStr = key;
     rtString valueStr = value.toString();
-    uint32_t newSize = size + keyStr.byteLength() + valueStr.byteLength();
+    uint32_t newSize = sizeTotal - sizeForKey + valueStr.byteLength();
+    if (sizeForKey == 0)
+      newSize += keyStr.byteLength();
 
     if (newSize > mQuota)
     {
@@ -435,7 +457,7 @@ rtError rtStorage::runVacuumCommand()
   return RT_OK;
 }
 
-bool rtStorage::isEncryped(const char* fileName)
+bool rtStorage::isEncrypted(const char* fileName)
 {
   FILE* fd = fopen(fileName, "rb");
   if (NULL == fd)

@@ -58,7 +58,7 @@ public:
 
   rtError runVacuumCommand();
 
-  static bool isEncryped(const char* fileName);
+  static bool isEncrypted(const char* fileName);
 
 private:
   void* mPrivateData;
@@ -67,7 +67,7 @@ private:
   // Methods for managing current size and quota
   rtError calculateCurrentSize(uint32_t &size) const;
   rtError setCurrentSize(const uint32_t size);
-  rtError getCurrentSize(uint32_t &size) const;
+  rtError getCurrentSize(const char* key, uint32_t& sizeForKey, uint32_t& sizeTotal) const;
 
   rtError updateSize();
   rtError verifyQuota(const char* key, const rtValue& value) const;

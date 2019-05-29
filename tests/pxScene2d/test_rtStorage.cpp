@@ -259,11 +259,26 @@ public:
     rtStorageRef s;
 
     s = new rtStorage(testStorageLocation, 20);
-    // SET
+
     EXPECT_EQ ((int)RT_OK, (int)s->clear());
-    EXPECT_EQ ((int)RT_OK, (int)s->setItem("key1", "value1"));
-    EXPECT_EQ ((int)RT_OK, (int)s->setItem("key2", "value2"));
-    EXPECT_EQ ((int)RT_ERROR, (int)s->setItem("key3", "value3"));
+    // size 0
+    EXPECT_EQ ((int)RT_OK, (int)s->setItem("key1", "value1")); // +10
+    // size 10
+    EXPECT_EQ ((int)RT_OK, (int)s->setItem("k2", "v2")); // +4
+    // size 14
+    EXPECT_EQ ((int)RT_ERROR, (int)s->setItem("key3", "value3")); // +10
+    // size 14
+    EXPECT_EQ ((int)RT_OK, (int)s->setItem("k3", "v3")); // +4
+    // size 18
+    EXPECT_EQ ((int)RT_ERROR, (int)s->setItem("k4", "v4")); // +4
+    // size 18
+    EXPECT_EQ ((int)RT_OK, (int)s->setItem("4", "4")); // +2
+    // size 20
+    EXPECT_EQ ((int)RT_OK, (int)s->setItem("4", "5")); // +2 -2
+    // size 20
+    EXPECT_EQ ((int)RT_ERROR, (int)s->setItem("4", "66")); // +3 -2
+    // size 20
+
     // CLOSE
     EXPECT_EQ ((int)RT_OK, (int)s->term());
   }
@@ -411,7 +426,7 @@ public:
     // NO KEY
     s = new rtStorage(encryptedTestStorageLocation, 100);
     EXPECT_TRUE (rtFileExists(encryptedTestStorageLocation));
-    EXPECT_FALSE (rtStorage::isEncryped(encryptedTestStorageLocation));
+    EXPECT_FALSE (rtStorage::isEncrypted(encryptedTestStorageLocation));
     // SET
     EXPECT_EQ ((int)RT_OK, (int)s->setItem("k1", "v1"));
     // GET
@@ -421,7 +436,7 @@ public:
 
     // REKEY
     s = new rtStorage(encryptedTestStorageLocation, 100, encryptedStorageKey);
-    EXPECT_TRUE (rtStorage::isEncryped(encryptedTestStorageLocation));
+    EXPECT_TRUE (rtStorage::isEncrypted(encryptedTestStorageLocation));
     // SET
     EXPECT_EQ ((int)RT_OK, (int)s->setItem("encrypted_k1", "encrypted_v1"));
     // GET
@@ -434,7 +449,7 @@ public:
 
     // WRONG KEY
     EXPECT_EQ ((int)RT_OK, (int)s->init(encryptedTestStorageLocation, 100, "LrAmyMguFVJbQMLJ"));
-    EXPECT_TRUE (rtStorage::isEncryped(encryptedTestStorageLocation));
+    EXPECT_TRUE (rtStorage::isEncrypted(encryptedTestStorageLocation));
     // GET FAILS, DB ENCRYPTED
     EXPECT_EQ ((int)RT_OK, (int)s->getItem("key1", item));
     str = item.toString();
@@ -442,7 +457,7 @@ public:
 
     // NO KEY
     EXPECT_EQ ((int)RT_OK, (int)s->init(encryptedTestStorageLocation, 100));
-    EXPECT_TRUE (rtStorage::isEncryped(encryptedTestStorageLocation));
+    EXPECT_TRUE (rtStorage::isEncrypted(encryptedTestStorageLocation));
     // GET FAILS, DB ENCRYPTED
     EXPECT_EQ ((int)RT_OK, (int)s->getItem("key1", item));
     str = item.toString();
@@ -450,7 +465,7 @@ public:
 
     // KEY
     s = new rtStorage(encryptedTestStorageLocation, 100, encryptedStorageKey);
-    EXPECT_TRUE (rtStorage::isEncryped(encryptedTestStorageLocation));
+    EXPECT_TRUE (rtStorage::isEncrypted(encryptedTestStorageLocation));
     // SET
     EXPECT_EQ ((int)RT_OK, (int)s->setItem("encrypted_k2", "encrypted_v2"));
     // GET
