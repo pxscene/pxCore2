@@ -520,6 +520,7 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   // capabilities.graphics.colors       = 1
   // capabilities.graphics.screenshots  = 2
   // capabilities.graphics.text         = 3
+  // capabilities.graphics.imageAResource  = 2
   //
   // capabilities.scene.external  = 1
   //
@@ -543,6 +544,7 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
 #ifdef SUPPORT_GIF
     graphicsCapabilities.set("gif", 1);
 #endif //SUPPORT_GIF
+  graphicsCapabilities.set("imageAResource", 2);
       
   graphicsCapabilities.set("screenshots", 2);
   graphicsCapabilities.set("text", 3);
