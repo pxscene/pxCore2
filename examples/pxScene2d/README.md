@@ -186,13 +186,13 @@
 
 Examples:
   ~~~~
-./spark.sh http://www.pxscene.org/examples/px-reference/gallery/picturepile.js
-./spark.sh http://www.pxscene.org/examples/px-reference/gallery/gallery.js
+./spark.sh http://www.sparkui.org/examples/gallery/picturepile.js
+./spark.sh http://www.sparkui.org/examples/gallery/gallery.js
   ~~~~
-Running ./spark.sh without a parameter will load the local browser.js that will take a .js pathname relative to http://www.pxscene.org/examples/px-reference/gallery to run.  Alternatively, a fully qualified url can be used, for example:
+Running ./spark.sh without a parameter will load the local browser.js that will take a .js pathname relative to http://www.sparkui.org/examples/gallery to run.  Alternatively, a fully qualified url can be used, for example:
   ~~~~
-http://www.pxscene.org/examples/px-reference/gallery/picturepile.js
-http://www.pxscene.org/examples/px-reference/gallery/gallery.js
+http://www.sparkui.org/examples/gallery/picturepile.js
+http://www.sparkui.org/examples/gallery/gallery.js
 file:///home/username/directory/filename.js
   ~~~~
 6. Write your own app!
@@ -237,38 +237,6 @@ file:///home/username/directory/filename.js
 ## Developer CMake options
    ENABLE_THREAD_SANITIZER - Turn on this option to enable thread sanitizer support.  The default value is OFF
 
-## Building with rtRemote support (Linux only)
-1. Get source code
-   ~~~~
-   git clone https://github.com/pxscene/pxCore
-   ~~~~
-
-2. Build
-   ~~~~
-   cd pxCore/remote
-   make
-   cd ..
-   mkdir temp
-   cd temp
-   cmake -DBUILD_RTREMOTE_LIBS=ON ..
-   cmake --build . --config Release
-   ~~~~
-
-   The rtRemote libs will be located in pxCore/remote
-
-   Additional build configurations for rtRemote are:
-   ~~~~
-   Build rpcSampleApp: -DBUILD_RTREMOTE_SAMPLE_APP_SHARED=ON
-   Build rpcSampleApp_s: -DBUILD_RTREMOTE_SAMPLE_APP_STATIC=ON
-   Build rtSampleClient and rtSampleServer: -DBUILD_RTREMOTE_SAMPLE_APP_SIMPLE=ON
-   Enable rtRemote debugging: -DENABLE_RTREMOTE_DEBUG=ON
-   Enable rtRemote profiling: -DENABLE_RTREMOTE_PROFILE=ON
-   Disable librtremote shared library building: -DBUILD_RTREMOTE_SHARED_LIB=OFF
-   Disable librtremote static library building: -DBUILD_RTREMOTE_STATIC_LIB=OFF
-   Output pxCore libs locallay: -DOUTPUT_LIBS_LOCAL=ON
-   Disable building pxCore libs: -DBUILD_PXCORE_LIBS=OFF
-   Disable building pxscene: -DBUILD_PXSCENE=OFF
-   ~~~~
 
 ## On Mac OS X - Xcode Workspace 
 

@@ -42,8 +42,8 @@ export SPARK_ENABLE_COLLECT_GARBAGE=1
 
 touch $VALGRINDLOGS
 EXECLOGS=$TRAVIS_BUILD_DIR/logs/exec_logs
-TESTRUNNERURL="https://px-apps.sys.comcast.net/pxscene-samples/examples/px-reference/test-run/testRunner_v7.js"
-TESTS="file://$TRAVIS_BUILD_DIR/tests/pxScene2d/testRunner/tests.json,file://$TRAVIS_BUILD_DIR/tests/pxScene2d/testRunner/testsDesktop.json"
+TESTRUNNERURL="https://www.sparkui.org/tests-ci/test-run/testRunner.js"
+TESTS="file://$TRAVIS_BUILD_DIR/tests/pxScene2d/testRunner/testsDesktop.json,file://$TRAVIS_BUILD_DIR/tests/pxScene2d/testRunner/tests.json"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 printExecLogs()
@@ -71,7 +71,10 @@ retVal=$?
 
 # Monitor testRunner ...
 count=0
-max_seconds=1500
+
+#adding spark log a part of console.log increase execution time in linux in ci
+#in linux we have timeouts, so increasing the limit
+max_seconds=2100
 while [ "$retVal" -ne 0 ] &&  [ "$count" -ne "$max_seconds" ]; do
 	printf "\n [execute_linux.sh] snoozing for 30 seconds (%d of %d) \n" $count $max_seconds
 	sleep 30; # seconds
@@ -180,7 +183,8 @@ if [ "$retVal" -eq 0 ]
 	then
 	echo "************************* Valgrind reports success *************************";
 else
-	grep -A 100 -B 100 "definitely lost:" $VALGRINDLOGS
+  #search for leaked areas from valgrind logs
+	grep -A 100 -B 100 "definitely lost" $VALGRINDLOGS
 	leakcheck=$?
 	if [ "$leakcheck" -eq 0 ]
 	then

@@ -83,13 +83,13 @@ public:
   void setCacheEnabled(bool val);
   bool cacheEnabled();
   void setDataIsCached(bool val);
-  bool isDataCached();
   size_t getCachedFileReadSize(void);
   void setCachedFileReadSize(size_t cachedFileReadSize);
   void setDeferCacheRead(bool val);
   bool deferCacheRead();
   FILE* cacheFilePointer(void);
 #endif //ENABLE_HTTP_CACHE
+  bool isDataCached();
   void setProgressMeter(bool val);
   bool isProgressMeterSwitchOff();
   void setUseCallbackDataSize(bool val);
@@ -109,6 +109,8 @@ public:
   void setReadData(const uint8_t* data, size_t size);
   const uint8_t* readData() const;
   size_t readDataSize() const;
+  rtObjectRef downloadMetrics() const;
+  void setDownloadMetrics(int32_t connectTimeMs, int32_t sslConnectTimeMs, int32_t totalTimeMs, int32_t downloadSpeedBytesPerSecond);
 
 private:
   rtString mFileUrl;
@@ -130,10 +132,10 @@ private:
   double mDownloadHandleExpiresTime;
 #ifdef ENABLE_HTTP_CACHE
   bool mCacheEnabled;
-  bool mIsDataInCache;
   bool mDeferCacheRead;
   size_t mCachedFileReadSize;
 #endif //ENABLE_HTTP_CACHE
+  bool mIsDataInCache;
   bool mIsProgressMeterSwitchOff;
   bool mHTTPFailOnError;
   char mHttpErrorBuffer[CURL_ERROR_SIZE];
@@ -145,14 +147,16 @@ private:
   rtString mMethod;
   const uint8_t* mReadData;
   size_t mReadDataSize;
+  rtObjectRef mDownloadMetrics;
 };
 
 struct rtFileDownloadHandle
 {
-  rtFileDownloadHandle(CURL* handle) : curlHandle(handle), expiresTime(-1) {}
-  rtFileDownloadHandle(CURL* handle, double time) : curlHandle(handle), expiresTime(time) {}
+  rtFileDownloadHandle(CURL* handle) : curlHandle(handle), expiresTime(-1), origin() {}
+  rtFileDownloadHandle(CURL* handle, double time, rtString hostOrigin) : curlHandle(handle), expiresTime(time), origin(hostOrigin) {}
   CURL* curlHandle;
   double expiresTime;
+  rtString origin;
 };
 
 class rtFileDownloader
@@ -162,6 +166,7 @@ public:
     static rtFileDownloader* instance();
     static void deleteInstance();
     static void setCallbackFunctionThreadSafe(rtFileDownloadRequest* downloadRequest, void (*callbackFunction)(rtFileDownloadRequest*), void* owner);
+    static void cancelAllDownloadRequestsThreadSafe();
     static void cancelDownloadRequestThreadSafe(rtFileDownloadRequest* downloadRequest, void* owner);
     static bool isDownloadRequestCanceled(rtFileDownloadRequest* downloadRequest, void* owner);
 
@@ -186,8 +191,8 @@ private:
 #ifdef ENABLE_HTTP_CACHE
     bool checkAndDownloadFromCache(rtFileDownloadRequest* downloadRequest,rtHttpCacheData& cachedData);
 #endif
-    CURL* retrieveDownloadHandle();
-    void releaseDownloadHandle(CURL* curlHandle, double expiresTime);
+    CURL* retrieveDownloadHandle(rtString& origin);
+    void releaseDownloadHandle(CURL* curlHandle, double expiresTime, rtString& origin );
     static void addFileDownloadRequest(rtFileDownloadRequest* downloadRequest);
     static void clearFileDownloadRequest(rtFileDownloadRequest* downloadRequest);
     //todo: hash mPendingDownloadRequests;

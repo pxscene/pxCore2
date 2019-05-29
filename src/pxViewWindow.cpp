@@ -64,6 +64,30 @@ void pxViewWindow::onSize(int32_t w, int32_t h)
     mView->onSize(w, h);
 }
 
+void pxViewWindow::onDragMove(int32_t x, int32_t y, int32_t type)
+{
+  if (mView)
+  mView->onDragMove(x, y, type);
+}
+
+void pxViewWindow::onDragEnter(int32_t x, int32_t y, int32_t type)
+{
+  if (mView)
+  mView->onDragEnter(x, y, type);
+}
+
+void pxViewWindow::onDragLeave(int32_t x, int32_t y, int32_t type)
+{
+  if (mView)
+  mView->onDragLeave(x, y, type);
+}
+
+void pxViewWindow::onDragDrop(int32_t x, int32_t y, int32_t type, const char *dropped)
+{
+  if (mView)
+    mView->onDragDrop(x, y, type, dropped);
+}
+
 void pxViewWindow::onScrollWheel(float dx, float dy)
 {
   if (mView)

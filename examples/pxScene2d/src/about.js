@@ -54,11 +54,16 @@ px.import({ scene: 'px:scene.1.js' }).then( function importsAreReady(imports)
   var logo = scene.create({ t: "image",  parent: panel, resource: logoRes, x: 0, y: 5});
 
   var dismissTXT = scene.create({ t: "textBox", parent: panel, textColor: "#000",
-                            w: max_w, h: 20, x: 8, y: 0,
+                            x: 8, y: 0,
                             font: fontRes, pixelSize: 12, wordWrap: true,
                             text: "Press SPACE to dismiss",
                             alignHorizontal: scene.alignHorizontal.CENTER,
-                            alignVertical:   scene.alignVertical.CENTER})
+                            alignVertical:   scene.alignVertical.CENTER});
+
+  var dismissM = fontRes.measureText(12, dismissTXT.text);
+  dismissTXT.h = dismissM.h;
+  dismissTXT.w = dismissM.w;
+
   logo.ready.then(
                     function(o) { },
                     function(o) { max_h -= 170; title_dy = 10; }
@@ -188,7 +193,11 @@ px.import({ scene: 'px:scene.1.js' }).then( function importsAreReady(imports)
         scene.animation.OPTION_FASTFORWARD, 1);
   }
 
-  scene.on("onResize",  function(e) { updateSize(e.w,e.h); });
+  scene.on("onResize",  function(e) {
+    updateSize(e.w,e.h);
+    panel.x = (e.w - panel.w)/2;
+    panel.y = (e.h - panel.h)/2;
+  });
   //panel.on("onMouseUp", function(e) { console.log("PANEL onMouseUp"); hidePanel() } );
   panel_bg.on("onFocus",   function(e) { /*showPanel(5000);*/ } );
   panel_bg.on("onKeyDown", function(e) { if(e.keyCode) { hidePanel();  }  });

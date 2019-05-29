@@ -151,9 +151,8 @@ rtError pxImage::setUrl(const char* s)
       pRes->removeListener(this);
       mReady.send("reject",this); // reject the original promise for old image
     } */
+    removeResourceListener();
   }
-
-  removeResourceListener();
 
   if(pRes && !imageLoaded)
   {
@@ -229,6 +228,7 @@ void pxImage::resourceReady(rtString readyResolution)
     // Now that image is loaded, must force redraw;
     // dimensions could have changed.
     mScene->mDirty = true;
+    markDirty();
     pxObject* parent = mParent;
     if( !parent)
     {

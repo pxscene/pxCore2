@@ -21,7 +21,9 @@
       },
       'Release': {
         'defines': [ 'NDEBUG' ],
-        'cflags': [ '-Wall', '-Wextra', '-O3' ],
+        # MODIFIED CODE BEGIN
+        'cflags': [ '-Wall', '-Wextra', '-Os' ],
+        # MODIFIED CODE END
         'msvs_settings': {
           'VCCLCompilerTool': {
             'RuntimeLibrary': 0, # static release

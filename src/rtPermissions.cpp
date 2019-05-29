@@ -21,9 +21,9 @@
 #include "rtUrlUtils.h"
 #include "rtPathUtils.h"
 
-#include "../remote/rapidjson/document.h"
-#include "../remote/rapidjson/filereadstream.h"
-#include "../remote/rapidjson/error/en.h"
+#include <rapidjson/document.h>
+#include <rapidjson/filereadstream.h>
+#include <rapidjson/error/en.h>
 
 #include <stdlib.h>
 #include <fstream>
@@ -58,7 +58,7 @@ rtPermissions::rtPermissions(const char* origin)
       if (find(assign, mOrigin.cString(), s) == RT_OK)
       {
         role = assign.get<rtString>(s.cString());
-        rtLogInfo("permissions role '%s' for origin '%s", role.cString(), mOrigin.cString());
+        rtLogDebug("permissions role '%s' for origin '%s", role.cString(), mOrigin.cString());
       }
     }
   }
@@ -412,6 +412,7 @@ const char* rtPermissions::type2str(Type t)
     case SERVICE: return "serviceManager";
     case FEATURE: return "features";
     case WAYLAND: return "applications";
+    case RTREMOTE: return "rtRemote";
     default: return NULL;
   }
 }

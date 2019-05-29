@@ -292,6 +292,7 @@ rtError pxFont::init(const char* n)
 rtError pxFont::init(const FT_Byte*  fontData, FT_Long size, const char* n)
 {
   mFontMutex.lock();
+  double startResourceSetupTime = pxMilliseconds();
   // We need to keep a copy of fontData since the download will be deleted.
   mFontData = (char *)malloc(size);
   memcpy(mFontData, fontData, size);
@@ -305,6 +306,9 @@ rtError pxFont::init(const FT_Byte*  fontData, FT_Long size, const char* n)
 
   mInitialized = true;
   setPixelSize(defaultPixelSize);
+
+  double stopResourceSetupTime = pxMilliseconds();
+  setLoadStatus("setupTimeMs", static_cast<int>(stopResourceSetupTime-startResourceSetupTime));
 
   mFontMutex.unlock();
   
@@ -368,7 +372,7 @@ GlyphTextureEntry pxFont::getGlyphTexture(uint32_t codePoint, float sx, float sy
   
   //  TODO:  FIXME: Disabled for now.   Sub-Pixel rounding making some Glyphs too "wide" at certain sizes.
   //
-//#if 0
+#if 0
   if (pixelSize < 8)
   {
     pixelSize = (pixelSize + 7) & 0xfffffff8;    // next multiple of 8
@@ -379,10 +383,10 @@ GlyphTextureEntry pxFont::getGlyphTexture(uint32_t codePoint, float sx, float sy
     pixelSize += (pixelSize % 2);
   }
   else
-    pixelSize = npot(pixelSize/2);  // else next power of two
-//#else
-    //pixelSize = mPixelSize; // HACK
-//#endif
+    pixelSize = npot(pixelSize);  // else next power of two
+#else
+  pixelSize = mPixelSize; // HACK
+#endif
   
   
   GlyphKey key; 
@@ -540,7 +544,7 @@ void pxFont::renderText(const char *text, uint32_t size, float x, float y,
     if (!entry) 
       continue;
 
-    float x2 = x + entry->bitmap_left;
+    float x2 = x + entry->bitmap_left < x ? x : x + entry->bitmap_left;
     //float y2 = y - g->bitmap_top;
     float y2 = (y - entry->bitmap_top) + (metrics->ascender>>6);
     float w = static_cast<float>(entry->bitmapdotwidth);
@@ -621,7 +625,7 @@ void pxFont::renderTextToQuads(const char *text, uint32_t size,
     if (!entry) 
       continue;
 
-    float x2 = x + entry->bitmap_left;
+      float x2 = x + entry->bitmap_left < x ? x : x + entry->bitmap_left;
 //    float y2 = y - g->bitmap_top;
     float y2 = (y - entry->bitmap_top) + (metrics->ascender>>6);
     float w = static_cast<float>(entry->bitmapdotwidth);

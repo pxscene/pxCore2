@@ -54,7 +54,7 @@ function Request(moduleName, appSceneContext, options, callback) {
   var toOrigin = Utils._getRequestOrigin(options, defaultProtocol);
   var fromOrigin = null;
   var withCredentials = false;
-  var isBlocked = false;
+  var isBlocked = appSceneContext.isTerminated;
   var httpRequest = null;
   Utils._assert(!!toOrigin, "no destination origin");
 
@@ -124,14 +124,26 @@ function Request(moduleName, appSceneContext, options, callback) {
     httpRequest = module.request.call(null, options);
 
     httpRequest.once('response', function (httpResponse) {
+      if (appSceneContext.isTerminated) {
+        return;
+      }
+
       var response = new Response(httpResponse, appSceneContext, fromOrigin, toOrigin, withCredentials);
       if (response.blocked) {
         self.blocked = true;
         self.abort();
-        log.message(4, "emit 'blocked'");
-        self.emit('blocked', new Error("CORS block for: '" + toOrigin + "' from '" + fromOrigin + "'"));
+        try {
+          log.message(4, "emit 'blocked'");
+          self.emit('blocked', new Error("CORS block for: '" + toOrigin + "' from '" + fromOrigin + "'"));
+        } catch (e) {
+          log.message(1, e);
+        }
       } else {
-        self.emit('response', response);
+        try {
+          self.emit('response', response);
+        } catch (e) {
+          log.message(1, e);
+        }
       }
 
       // clean up
@@ -139,14 +151,30 @@ function Request(moduleName, appSceneContext, options, callback) {
       httpRequest.removeAllListeners();
     });
     httpRequest.once('error', function (e) {
-      self.emit('error', e);
+      if (appSceneContext.isTerminated) {
+        return;
+      }
+
+      try {
+        self.emit('error', e);
+      } catch (e) {
+        log.message(1, e);
+      }
 
       // clean up
       self.removeAllListeners();
       httpRequest.removeAllListeners();
     });
     httpRequest.once('timeout', function () {
-      self.emit('timeout');
+      if (appSceneContext.isTerminated) {
+        return;
+      }
+
+      try {
+        self.emit('timeout');
+      } catch (e) {
+        log.message(1, e);
+      }
 
       // clean up
       self.removeAllListeners();
@@ -262,17 +290,41 @@ function Response(httpResponse, appSceneContext, fromOrigin, toOrigin, withCrede
   if (!isBlocked) {
     var self = this;
     httpResponse.on('data', function (data) {
-      self.emit('data', data);
+      if (appSceneContext.isTerminated) {
+        return;
+      }
+
+      try {
+        self.emit('data', data);
+      } catch (e) {
+        log.message(1, e);
+      }
     });
     httpResponse.once('error', function (e) {
-      self.emit('error', e);
+      if (appSceneContext.isTerminated) {
+        return;
+      }
+
+      try {
+        self.emit('error', e);
+      } catch (e) {
+        log.message(1, e);
+      }
 
       // clean up
       self.removeAllListeners();
       httpResponse.removeAllListeners();
     });
     httpResponse.once('end', function () {
-      self.emit('end');
+      if (appSceneContext.isTerminated) {
+        return;
+      }
+
+      try {
+        self.emit('end');
+      } catch (e) {
+        log.message(1, e);
+      }
 
       // clean up
       self.removeAllListeners();
@@ -345,16 +397,14 @@ Utils._packHeaders = function (headers) {
 };
 
 Utils._getRequestOrigin = function (options, defaultProtocol) {
+  // hostname: w/o port, nonempty if URL object, w/o auth, w/o [] if IPv6
+  // host: w/ port if URL object otherwise w/o port, nonempty if URL object, w/o auth, w/ [] if IPv6 and URL object
   var protocol = Utils._getRequestScheme(options, defaultProtocol);
-  var host = options.host || options.hostname || 'localhost';
-  var result = protocol + "://" + host;
-  if (options.port) {
-    var portPart = ':' + options.port;
-    if (result.substr(-portPart.length) !== portPart) {
-      result += portPart;
-    }
-  }
-  return result;
+  var host = options.hostname || options.host || 'localhost';
+  var v6 = (host.match(/:/g) || []).length > 1;
+  host = v6 ? '[' + host + ']' : host;
+  var port = options.port ? ':' + options.port : '';
+  return protocol + '//' + host + port;
 };
 
 Utils._extend = function (target, source) {
@@ -375,10 +425,7 @@ Utils._assert = function (condition, message) {
 };
 
 Utils._getRequestScheme = function (options, defaultProtocol) {
+  // valid scheme ends with ':'
   var scheme = options.protocol ? options.protocol : defaultProtocol;
-  var pos = scheme.indexOf(':');
-  if (pos !== -1) {
-    scheme = scheme.substring(0, scheme.indexOf(':'));
-  }
   return scheme.toLowerCase();
 };
