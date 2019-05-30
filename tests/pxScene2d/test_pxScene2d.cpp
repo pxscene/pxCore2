@@ -411,6 +411,7 @@ TEST_F(pxScene2dTest, pxScene2dTests)
   #ifdef ENABLE_DEBUG_MODE
     debuggerEnvTest();
     enableDebuggerTrueDebugOptionsFalseTest();
+    // commenting out as below will work if unt's are started with --inspect option
     //enableDebuggerTrueDebugOptionsTrueTest();
     enableDebuggerFalseTest();
   #endif
