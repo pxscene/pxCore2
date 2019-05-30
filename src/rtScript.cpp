@@ -240,19 +240,21 @@ rtError rtScript::collectGarbage()
   return RT_OK;
 }
 
-#ifdef ENABLE_DEBUG_MODE
 rtError rtScript::enableDebugger(bool enable) 
 {
+#ifdef ENABLE_DEBUG_MODE
   if (mEnableDebugger) { 
     mScript->enableDebugger(enable, mDebuggerHost, mDebuggerPort);
   }
   else
   {
-    rtLogWarn("Javascript debugger is not enabled by env variable or settings");
+    rtLogInfo("Javascript debugger is not enabled by env variable or settings");
   }
+#else
+    rtLogInfo("Javascript debugger is disabled");
+#endif
   return RT_OK;
 }
-#endif
 
 rtError rtScript::createContext(const char *lang, rtScriptContextRef& ctx)
 {
@@ -265,9 +267,9 @@ void* rtScript::getParameter(rtString param)
   return mScript->getParameter(param);
 }
 
-#ifdef ENABLE_DEBUG_MODE
 void rtScript::populateDebuggerInfo()
 {
+#ifdef ENABLE_DEBUG_MODE
  rtValue enableDebugger;
  if (RT_OK == rtSettings::instance()->value("enableSparkDebugger",enableDebugger))
  {
@@ -312,5 +314,5 @@ void rtScript::populateDebuggerInfo()
    }
    rtLogInfo("Spark debugger host[%s] port[%d]",mDebuggerHost.cString(), mDebuggerPort);
  }
-}
 #endif
+}

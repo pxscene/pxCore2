@@ -220,9 +220,7 @@ public:
 
   rtError collectGarbage();
   void* getParameter(rtString param);
-#if ENABLE_DEBUG_MODE
   rtError enableDebugger(bool enable, rtString host, int port);
-#endif
 private:
 #if 0
 #ifdef ENABLE_DEBUG_MODE
@@ -1401,9 +1399,9 @@ rtError rtScriptNode::createContext(const char *lang, rtScriptContextRef& ctx)
   return RT_OK;
 }
 
-#ifdef ENABLE_DEBUG_MODE
 rtError rtScriptNode::enableDebugger(bool enable, rtString host_name, int port)
 {
+#ifdef ENABLE_DEBUG_MODE
 #ifdef HAVE_INSPECTOR
   if (debug_options.inspector_enabled())
   {
@@ -1428,11 +1426,11 @@ rtError rtScriptNode::enableDebugger(bool enable, rtString host_name, int port)
     rtLogWarn("Node inspector is not enabled runtime, please pass --inspect");
   }
 #else
-  rtLogWarn("Node inspector is not enabled as part of build");
+  rtLogInfo("Node inspector is not enabled as part of build");
+#endif
 #endif
   return RT_OK;
 }
-#endif
 
 unsigned long rtNodeContext::Release()
 {

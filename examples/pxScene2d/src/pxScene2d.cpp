@@ -2724,12 +2724,7 @@ pxIViewContainer* pxScene2d::viewContainer()
 
 rtError pxScene2d::enableDebugger(bool enable)
 {
-#ifdef ENABLE_DEBUG_MODE
   return script.enableDebugger(enable);
-#else
-  rtLogWarn("Debugger not enabled as part of build");
-#endif
-  return RT_OK;
 }
 
 rtDefineObject(pxViewContainer, pxObject);

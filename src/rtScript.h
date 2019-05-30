@@ -79,9 +79,7 @@ public:
   virtual rtError pump() = 0;
 
   virtual rtError collectGarbage() = 0;
-#ifdef ENABLE_DEBUG_MODE
   virtual rtError enableDebugger(bool, rtString, int) = 0;
-#endif
   virtual void* getParameter(rtString param) = 0;
 };
 
@@ -106,14 +104,10 @@ public:
 
   void* getParameter(rtString param);
 
-#ifdef ENABLE_DEBUG_MODE
   rtError enableDebugger(bool);
-#endif
 
 private:
-#ifdef ENABLE_DEBUG_MODE
   void populateDebuggerInfo();
-#endif
   bool mInitialized;
   rtScriptRef mScript;
 #ifdef ENABLE_DEBUG_MODE
