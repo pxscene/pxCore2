@@ -41,6 +41,11 @@ typedef struct args_
 args_t;
 #endif
 
+#ifdef ENABLE_DEBUG_MODE
+#define SPARK_DEBUGGER_HOST "0.0.0.0"
+#define SPARK_DEBUGGER_PORT 9299
+#endif
+
 class rtIScriptContext
 {
 public:
@@ -74,6 +79,7 @@ public:
   virtual rtError pump() = 0;
 
   virtual rtError collectGarbage() = 0;
+  virtual rtError enableDebugger(bool, rtString, int) = 0;
   virtual void* getParameter(rtString param) = 0;
 };
 
@@ -98,9 +104,17 @@ public:
 
   void* getParameter(rtString param);
 
+  rtError enableDebugger(bool);
+
 private:
+  void populateDebuggerInfo();
   bool mInitialized;
   rtScriptRef mScript;
+#ifdef ENABLE_DEBUG_MODE
+  bool mEnableDebugger;
+  rtString mDebuggerHost;
+  int mDebuggerPort;
+#endif
 };
 
 class rtWrapperSceneUnlocker

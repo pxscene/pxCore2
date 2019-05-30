@@ -157,6 +157,7 @@ public:
   v8::Local<v8::Context>    getLocalContext() const { return PersistentToLocal<v8::Context>(mIsolate, mContext); };
 
   uint32_t                  getContextId()    const { return mContextId; };
+  node::Environment* getEnvironment() { return mEnv; }
 
 private:
   v8::Isolate                   *mIsolate;
@@ -219,6 +220,7 @@ public:
 
   rtError collectGarbage();
   void* getParameter(rtString param);
+  rtError enableDebugger(bool enable, rtString host, int port);
 private:
 #if 0
 #ifdef ENABLE_DEBUG_MODE
@@ -252,6 +254,9 @@ private:
 #endif
 
   int mRefCount;
+#ifdef ENABLE_DEBUG_MODE
+  bool mDebuggerRunning;
+#endif
 };
 
 
@@ -448,8 +453,7 @@ void rtNodeContext::createEnvironment()
   {
     rtString currentPath;
     rtGetCurrentDirectory(currentPath);
-    node::MultiIsolatePlatform* platform = static_cast<node::MultiIsolatePlatform*>(mPlatform);
-    node::InspectorStart(mEnv, currentPath.cString(), platform);
+    node::InspectorInit(mEnv, currentPath.cString(), platform);
   }
 #endif //USE_NODE_PLATFORM
 #endif
@@ -957,6 +961,9 @@ rtError rtNodeContext::runFile(const char *file, rtValue* retVal /*= NULL*/, con
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 rtScriptNode::rtScriptNode():mRefCount(0)
+#ifdef ENABLE_DEBUG_MODE
+,mDebuggerRunning(false)
+#endif
 #ifndef RUNINMAIN
 #ifdef USE_CONTEXTIFY_CLONES
 : mRefContext(), mNeedsToEnd(false)
@@ -973,6 +980,9 @@ rtScriptNode::rtScriptNode():mRefCount(0)
 }
 
 rtScriptNode::rtScriptNode(bool initialize):mRefCount(0)
+#ifdef ENABLE_DEBUG_MODE
+,mDebuggerRunning(false)
+#endif
 #ifndef RUNINMAIN
 #ifdef USE_CONTEXTIFY_CLONES
 : mRefContext(), mNeedsToEnd(false)
@@ -1079,6 +1089,9 @@ rtError rtScriptNode::init()
 
 rtScriptNode::~rtScriptNode()
 {
+#ifdef ENABLE_DEBUG_MODE
+  mDebuggerRunning = false;
+#endif
   // rtLogInfo(__FUNCTION__);
   term();
 }
@@ -1383,6 +1396,39 @@ rtError rtScriptNode::createContext(const char *lang, rtScriptContextRef& ctx)
   rtNodeContextRef nodeCtx = createContext();
 
   ctx = (rtIScriptContext*)nodeCtx.getPtr();
+  return RT_OK;
+}
+
+rtError rtScriptNode::enableDebugger(bool enable, rtString host_name, int port)
+{
+#ifdef ENABLE_DEBUG_MODE
+#ifdef HAVE_INSPECTOR
+  if (debug_options.inspector_enabled())
+  {
+    if (true == enable)
+    {
+      if (false == mDebuggerRunning) {
+        mDebuggerRunning = true;
+        rtString currentPath;
+        rtGetCurrentDirectory(currentPath);
+        node::MultiIsolatePlatform* platform = static_cast<node::MultiIsolatePlatform*>(mPlatform);
+        node::InspectorStart(mRefContext->getEnvironment(), currentPath.cString(), platform, host_name.cString(), port);
+      }
+    }
+    else
+    {
+      mDebuggerRunning = false;
+      node::InspectorStop(mRefContext->getEnvironment());
+    }
+  }
+  else
+  {
+    rtLogWarn("Node inspector is not enabled runtime, please pass --inspect");
+  }
+#else
+  rtLogInfo("Node inspector is not enabled as part of build");
+#endif
+#endif
   return RT_OK;
 }
 

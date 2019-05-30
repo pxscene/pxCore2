@@ -2576,6 +2576,7 @@ rtDefineMethod(pxScene2d, sparkSetting);
 rtDefineProperty(pxScene2d, cors);
 rtDefineMethod(pxScene2d, addServiceProvider);
 rtDefineMethod(pxScene2d, removeServiceProvider);
+rtDefineMethod(pxScene2d, enableDebugger);
 
 rtError pxScene2dRef::Get(const char* name, rtValue* value) const
 {
@@ -2723,6 +2724,11 @@ void pxScene2d::setViewContainer(pxIViewContainer* l)
 pxIViewContainer* pxScene2d::viewContainer()
 {
   return mContainer;
+}
+
+rtError pxScene2d::enableDebugger(bool enable)
+{
+  return script.enableDebugger(enable);
 }
 
 rtDefineObject(pxViewContainer, pxObject);

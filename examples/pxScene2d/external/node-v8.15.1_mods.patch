@@ -318,7 +318,7 @@ index 98bcbc3..70b6414 100644
    debug('connect: dns options', dnsopts);
    self._host = host;
 diff --git a/examples/pxScene2d/external/libnode-v8.15.1/src/node.cc b/examples/pxScene2d/external/libnode-v8.15.1/src/node.cc
-index 3d791f0..d572a6d 100644
+index 3d791f0..dcac866 100644
 --- a/examples/pxScene2d/external/libnode-v8.15.1/src/node.cc
 +++ b/examples/pxScene2d/external/libnode-v8.15.1/src/node.cc
 @@ -178,10 +178,16 @@ static bool track_heap_objects = false;
@@ -498,14 +498,22 @@ index 3d791f0..d572a6d 100644
    }
  }
  
-@@ -4276,6 +4347,14 @@ void RegisterBuiltinModules() {
+@@ -4276,6 +4347,22 @@ void RegisterBuiltinModules() {
  #undef V
  }
  
 +/*MODIFIED CODE BEGIN*/
 +#if HAVE_INSPECTOR
-+void InspectorStart(Environment* env, const char* path, MultiIsolatePlatform* platform) {
++void InspectorInit(Environment* env, const char* path, MultiIsolatePlatform* platform) {
++  env->inspector_agent()->Init(static_cast<node::NodePlatform*>(platform), path, debug_options);
++}
++void InspectorStart(Environment* env, const char* path, MultiIsolatePlatform* platform, std::string host, int port) {
++  debug_options.set_host_name(host);
++  debug_options.set_port(port);
 +  env->inspector_agent()->Start(static_cast<node::NodePlatform*>(platform), path, debug_options);
++}
++void InspectorStop(Environment* env) {
++  env->inspector_agent()->Stop();
 +}
 +#endif
 +/*MODIFIED CODE END*/
@@ -514,7 +522,7 @@ index 3d791f0..d572a6d 100644
  
  #if !HAVE_INSPECTOR
 diff --git a/examples/pxScene2d/external/libnode-v8.15.1/src/node.h b/examples/pxScene2d/external/libnode-v8.15.1/src/node.h
-index 266744e..968568e 100644
+index 266744e..c81cbb4 100644
 --- a/examples/pxScene2d/external/libnode-v8.15.1/src/node.h
 +++ b/examples/pxScene2d/external/libnode-v8.15.1/src/node.h
 @@ -197,6 +197,13 @@ typedef intptr_t ssize_t;
@@ -542,13 +550,15 @@ index 266744e..968568e 100644
  class MultiIsolatePlatform : public v8::Platform {
   public:
    virtual ~MultiIsolatePlatform() { }
-@@ -226,6 +237,12 @@ class MultiIsolatePlatform : public v8::Platform {
+@@ -226,6 +237,14 @@ class MultiIsolatePlatform : public v8::Platform {
    virtual void UnregisterIsolate(IsolateData* isolate_data) = 0;
  };
  
 +/*MODIFIED CODE BEGIN*/
 +#if HAVE_INSPECTOR
-+NODE_EXTERN void InspectorStart(Environment* env, const char* path, MultiIsolatePlatform* platform);
++NODE_EXTERN void InspectorInit(Environment* env, const char* path, MultiIsolatePlatform* platform);
++NODE_EXTERN void InspectorStart(Environment* env, const char* path, MultiIsolatePlatform* platform, std::string host, int port);
++NODE_EXTERN void InspectorStop(Environment* env);
 +#endif
 +/*MODIFIED CODE END*/
 +
@@ -767,3 +777,49 @@ index d3014a0..fd75030 100644
  
  if not exist "%~dp0deps\icu" goto no-depsicu
  if "%target%"=="Clean" echo deleting %~dp0deps\icu
+diff --git a/examples/pxScene2d/external/libnode-v8.15.1/src/inspector_agent.cc b/examples/pxScene2d/external/li
+index ff15b4f..684c503 100644
+--- a/examples/pxScene2d/external/libnode-v8.15.1/src/inspector_agent.cc
++++ b/examples/pxScene2d/external/libnode-v8.15.1/src/inspector_agent.cc
+@@ -473,14 +473,19 @@ Agent::Agent(Environment* env) : parent_env_(env),
+ Agent::~Agent() {
+ }
+ 
+-bool Agent::Start(node::NodePlatform* platform, const char* path,
++bool Agent::Init(node::NodePlatform* platform, const char* path,
+                   const DebugOptions& options) {
+   path_ = path == nullptr ? "" : path;
+-  debug_options_ = options;
+   client_ =
+       std::unique_ptr<NodeInspectorClient>(
+           new NodeInspectorClient(parent_env_, platform));
+   platform_ = platform;
++  return true;
++}
++
++bool Agent::Start(node::NodePlatform* platform, const char* path,
++                  const DebugOptions& options) {
++  debug_options_ = options;
+   CHECK_EQ(0, uv_async_init(uv_default_loop(),
+                             &start_io_thread_async,
+                             StartIoThreadAsyncCallback));
+diff --git a/examples/pxScene2d/external/libnode-v8.15.1/src/inspector_agent.h b/examples/pxScene2d/external/libnode-v8.15.1/src/inspector_agent.h
+index 3890c87..f361f4f 100644
+--- a/examples/pxScene2d/external/libnode-v8.15.1/src/inspector_agent.h
++++ b/examples/pxScene2d/external/libnode-v8.15.1/src/inspector_agent.h
+@@ -39,9 +39,14 @@ class Agent {
+   explicit Agent(node::Environment* env);
+   ~Agent();
+ 
+-  // Create client_, may create io_ if option enabled
++  /* MODIFIED CODE BEGIN */
++  // Create client_
++  bool Init(node::NodePlatform* platform, const char* path,
++             const DebugOptions& options);
++  // start io
+   bool Start(node::NodePlatform* platform, const char* path,
+              const DebugOptions& options);
++  /* MODIFIED CODE END */
+   // Stop and destroy io_
+   void Stop();
+ 
