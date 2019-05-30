@@ -107,6 +107,7 @@ rtEmitRef pxScriptView::mEmit = new rtEmit();
 
 #ifdef PXSCENE_SUPPORT_STORAGE
 #define DEFAULT_LOCALSTORAGE_DIR ".spark/storage/"
+#define DEFAULT_LOCALSTORAGE_DIR_ENV_NAME "SPARK_STORAGE"
 #endif
 
 
@@ -2546,7 +2547,7 @@ rtError pxScene2d::storage(rtObjectRef& v) const
 {
   if (!mStorage)
   {
-    rtString origin = mScriptView != NULL ? rtUrlGetOrigin(mScriptView->getUrl().cString()) : rtString();
+    rtString origin(mScriptView != NULL ? rtUrlGetOrigin(mScriptView->getUrl().cString()) : NULL);
     if (origin.isEmpty())
       origin = "file://";
 
@@ -2563,15 +2564,31 @@ rtError pxScene2d::storage(rtObjectRef& v) const
     rtString storagePath;
     rtValue storagePathVal;
     if (RT_OK == rtSettings::instance()->value("defaultStoragePath", storagePathVal))
+    {
       storagePath = storagePathVal.toString();
-    else if (RT_OK == rtGetHomeDirectory(storagePath))
-      storagePath.append(DEFAULT_LOCALSTORAGE_DIR);
+    }
+    else
+    {
+      // runtime location, if available
+      const char* env = getenv(DEFAULT_LOCALSTORAGE_DIR_ENV_NAME);
+      if (env)
+        storagePath = env;
+    }
+    if (storagePath.isEmpty())
+    {
+      // default location
+      if (RT_OK == rtGetHomeDirectory(storagePath))
+        storagePath.append(DEFAULT_LOCALSTORAGE_DIR);
+    }
+
     rtEnsureTrailingPathSeparator(storagePath);
 
     // Create the path if it doesn't yet exist
-    int32_t retVal = rtMakeDirectory(storagePath);
-    if (!retVal)
-      rtLogWarn("creation of storage directory %s failed: %d", storagePath.cString(), retVal);
+    if (!rtMakeDirectory(storagePath))
+    {
+      rtLogWarn("creation of storage directory %s failed", storagePath.cString());
+      return RT_OK;
+    }
 
     rtString storageName = rtUrlEscape(origin);
     storagePath.append(storageName);
