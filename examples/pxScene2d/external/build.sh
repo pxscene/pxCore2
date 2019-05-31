@@ -124,17 +124,11 @@ then
     cp libgif.dylib .libs/libgif.dylib
     cp libutil.dylib .libs/libutil.dylib
 
-    ln -sf out/Release/libgif.*.dylib ./
-    ln -sf libgif.*.dylib libgif.dylib
-
 
 elif [ -e libgif.so ]
 then
-    cp libgif.so .libs/libgif.dylib
-    cp libutil.so .libs/libutil.dylib
-
-    ln -sf out/Release/obj.target/libgif.so.* ./
-    ln -sf libgif.so.* libgif.so
+    cp libgif.so .libs/libgif.so
+    cp libutil.so .libs/libutil.so
 fi
 fi
 

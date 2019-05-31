@@ -85,7 +85,7 @@ set(PXSCENE_INSTALLER 0)
 
 if (BUILD_WITH_GIF)
 message("Building with GIF support")
-set(GIF ${EXTDIR}/gif)
+set(GIF ${EXTDIR}/gif/)
 set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${GIF})
 set(PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} gif)
 add_definitions(-DSUPPORT_GIF)
