@@ -116,7 +116,6 @@ extern "C" {
 #endif
 
 #include "uv.h"
-#include "libplatform/libplatform.h"
 
 #include "rtObjectWrapperDuk.h"
 #include "rtFunctionWrapperDuk.h"
@@ -184,7 +183,8 @@ private:
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
+std::vector<uv_loop_t *>       uvLoops;
+using namespace rtScriptDukUtils;
 typedef std::map<uint32_t, rtDukContextRef> rtDukContexts;
 //typedef std::map<uint32_t, rtDukContextRef>::const_iterator rtNodeContexts_iterator;
 
@@ -233,7 +233,6 @@ private:
   void nodePath();
 
   duk_context                   *dukCtx;
-  std::vector<uv_loop_t *>       uvLoops;
   //uv_thread_t                    dukTid;
   bool                           duk_is_initialized;
 
@@ -380,6 +379,17 @@ void rtDukContext::clonedEnvironment(rtDukContextRef clone_me)
 rtDukContext::~rtDukContext()
 {
   rtLogInfo(__FUNCTION__);
+  size_t i = 0;
+  for (i = 0; i < uvLoops.size(); ++i) {
+    if (uvLoops[i] == uvLoop)
+    {
+      uvLoops.erase(uvLoops.begin() + i);
+      break;
+    }
+  }
+  uv_loop_close(uvLoop);
+  delete uvLoop;
+  rtScriptDukUtils::clearAllPendingrtFns(dukCtx);
   //Make sure node is not destroyed abnormally
   Release();
   // NOTE: 'mIsolate' is owned by rtNode.  Don't destroy here !
@@ -1128,7 +1138,6 @@ return RT_OK;
 rtScriptDuk::~rtScriptDuk()
 {
   // rtLogInfo(__FUNCTION__);
-  term();
 }
 
 unsigned long rtScriptDuk::Release()
@@ -1140,7 +1149,6 @@ unsigned long rtScriptDuk::Release()
     }
     return l;
 }
-
 rtError rtScriptDuk::pump()
 {
 #ifndef RUNINMAIN
@@ -1155,6 +1163,17 @@ rtError rtScriptDuk::pump()
 
 rtError rtScriptDuk::collectGarbage()
 {
+  for (int i = 0; i < uvLoops.size(); ++i) {
+    duk_context *ctx = (duk_context *)uvLoops[i]->data;
+    if (i == 0) {
+      rtScriptDukUtils::rtClearAllGlobalIdents(ctx);
+    }
+    rtScriptDukUtils::rtClearAllGlobalIdents(ctx);
+    rtScriptDukUtils::clearAllPendingrtFns(ctx);
+    // there need to be 2 calls here (see function documentation)
+    duk_gc(ctx, 0);
+    duk_gc(ctx, 0);
+  }
   return RT_OK;
 }
 
@@ -1256,6 +1275,7 @@ rtError rtScriptDuk::term()
   //nodeTerminated = true;
 
   //uv_loop_close(dukLoop);
+  clearMethodCache();
   duk_destroy_heap(dukCtx);
 #if 0
 #ifdef USE_CONTEXTIFY_CLONES
@@ -1321,7 +1341,7 @@ rtDukContextRef rtScriptDuk::createContext(bool ownThread)
     // rtLogInfo("\n createContext()  >>  CLONE CREATED !!!!!!");
     ctxref = new rtDukContext(mRefContext); // CLONE !!!
     assert(ctxref->uvLoop != NULL);
-    uvLoops.push_back(mRefContext->uvLoop);
+    uvLoops.push_back(ctxref->uvLoop);
   }
 #else
     ctxref = new rtDukContext(mIsolate,mPlatform);

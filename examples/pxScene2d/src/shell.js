@@ -34,7 +34,7 @@ px.import({ scene: 'px:scene.1.js',
   var setLoggingLevel = imports.log.setLoggingLevel;
 
   var logger = new Logger('shell.js');
-  var rtLogLevel = process.env.RT_LOG_LEVEL ?  process.env.RT_LOG_LEVEL : 'warn';
+  var rtLogLevel = isDuk?'warn':(process.env.RT_LOG_LEVEL ?  process.env.RT_LOG_LEVEL : 'warn');
   setLoggingLevel(rtLogLevel);
 
   function uncaughtException(err) {
@@ -143,7 +143,7 @@ if( scene.capabilities != undefined && scene.capabilities.graphics != undefined 
     var code  = e.keyCode;
     var flags = e.flags;
 
-    var loggingDisabled = process.env.PXSCENE_KEY_LOGGING_DISABLED;
+    var loggingDisabled = isDuk?true:process.env.PXSCENE_KEY_LOGGING_DISABLED;
     if (loggingDisabled && loggingDisabled === '1'){
       logger.message('warn', "onPreKeyDown value hidden");
     } else {
@@ -237,7 +237,7 @@ if( scene.capabilities != undefined && scene.capabilities.graphics != undefined 
 
   scene.root.on("onPreKeyUp", function(e)
   {
-    var loggingDisabled = process.env.PXSCENE_KEY_LOGGING_DISABLED;
+    var loggingDisabled = isDuk?true:process.env.PXSCENE_KEY_LOGGING_DISABLED;
     if (loggingDisabled && loggingDisabled === '1'){
       logger.message('warn', "onPreKeyUp value hidden");
     } else {
@@ -267,7 +267,7 @@ if( scene.capabilities != undefined && scene.capabilities.graphics != undefined 
     scene.root.on("onKeyDown", function(e)
     {
       var code = e.keyCode; var flags = e.flags;
-      var loggingDisabled = process.env.PXSCENE_KEY_LOGGING_DISABLED;
+      var loggingDisabled = isDuk?true:process.env.PXSCENE_KEY_LOGGING_DISABLED;
       if (loggingDisabled && loggingDisabled === '1'){
         logger.message('warn', "onKeyDown value hidden");
       } else {
@@ -298,7 +298,7 @@ if( scene.capabilities != undefined && scene.capabilities.graphics != undefined 
   {
     logger.message('debug', "in onchar");
     var c = e.charCode;
-    var loggingDisabled = process.env.PXSCENE_KEY_LOGGING_DISABLED;
+    var loggingDisabled = isDuk?true:process.env.PXSCENE_KEY_LOGGING_DISABLED;
     if (loggingDisabled && loggingDisabled === '1'){
       logger.message('warn', "onChar value hidden");
     } else {

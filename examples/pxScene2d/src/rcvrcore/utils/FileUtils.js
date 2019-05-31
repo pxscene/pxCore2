@@ -26,7 +26,7 @@ var fs = require("fs");
 var http_global = require("http");
 var https_global = require("https");
 var url = require("url");
-var http_wrap = require('rcvrcore/http_wrap');
+var http_wrap = (isDuk)?require('http'):require('rcvrcore/http_wrap');
 
 var Logger = require('rcvrcore/Logger').Logger;
 var log = new Logger('FileUtils');

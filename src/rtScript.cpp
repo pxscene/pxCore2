@@ -210,6 +210,9 @@ rtError rtScript::init()
 
 rtError rtScript::term()
 {
+#ifdef RTSCRIPT_SUPPORT_DUKTAPE
+  mScript->term();
+#endif
   return RT_OK;
 }
 
