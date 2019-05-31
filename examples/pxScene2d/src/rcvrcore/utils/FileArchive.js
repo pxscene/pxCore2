@@ -21,9 +21,7 @@ limitations under the License.
 var isDuk = (typeof Duktape != "undefined")?true:false;
 
 // FIXME !!!!!!!!!! duktape merge hack
-if (!isDuk) {
-  var JSZip = require("jszip");
-}
+var JSZip = null;
 
 var Logger = require('rcvrcore/Logger').Logger;
 var log = new Logger('FileUtils');
@@ -81,6 +79,9 @@ FileArchive.prototype.addFile = function(filename, contents) {
 };
 
 FileArchive.prototype.loadFromJarData = function(dataBuf) {
+  if (null == JSZip) {
+    JSZip = require("jszip");
+  }
   var jar = new JSZip(dataBuf);
   this.processJar(jar);
   this.loadedJarFile = true;

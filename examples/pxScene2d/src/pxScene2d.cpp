@@ -3097,12 +3097,10 @@ void pxScriptView::runScript()
 
   if (mCtx)
   {
-    mPrintFunc = new rtFunctionCallback(printFunc, this);
     mGetScene = new rtFunctionCallback(getScene,  this);
     mMakeReady = new rtFunctionCallback(makeReady, this);
     mGetContextID = new rtFunctionCallback(getContextID, this);
 
-    mCtx->add("print", mPrintFunc.getPtr());
     mCtx->add("getScene", mGetScene.getPtr());
     mCtx->add("makeReady", mMakeReady.getPtr());
     mCtx->add("getContextID", mGetContextID.getPtr());
@@ -3143,21 +3141,6 @@ void pxScriptView::runScript()
   #endif //ENABLE_RT_NODE
 }
 
-rtError pxScriptView::printFunc(int numArgs, const rtValue* args, rtValue* result, void* ctx)
-{
-  UNUSED_PARAM(result);
-  //rtLogInfo(__FUNCTION__);
-
-  if (ctx)
-  {
-    if (numArgs > 0 && !args[0].isEmpty())
-    {
-      rtString toPrint = args[0].toString();
-      rtLogWarn("%s", toPrint.cString());
-    }
-  }
-  return RT_OK;
-}
 
 rtError pxScriptView::suspend(const rtValue& v, bool& b)
 {
