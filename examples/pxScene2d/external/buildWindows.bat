@@ -108,4 +108,5 @@ REM --------- SQLITE
 cd sqlite-autoconf-3280000
 cl /c /EHsc sqlite3.c
 lib sqlite3.obj
+>>>>>>> e7dde3eec4ddba958123a11a9c3071b265e96b50
 cd ..
