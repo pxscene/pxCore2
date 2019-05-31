@@ -48,7 +48,7 @@ public:
   rtError clear();
 
   // loads the settings from a file and returns RT_OK on success or RT_ERROR on failure
-  rtError loadFromFile(const rtString& filePath);
+  rtError loadFromFile(const rtString& filePath = rtString());
 
   // there are two ways settings can specified via the command line
   //   Method 1: -settingName <value>
@@ -63,6 +63,8 @@ private:
   rtSettings();
 
   static const int FILE_BUFFER_SIZE;
+  static const char* FILE_NAME;
+  static const char* FILE_ENV_NAME;
 
   std::map<rtString, rtValue> mValues;
 

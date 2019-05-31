@@ -120,7 +120,7 @@ rtError pxArchive::initFromUrl(const rtString& url, const rtCORSRef& cors, rtObj
   // TODO review overall flow and organization
   AddRef();
 
-  if (url.beginsWith("http:") || url.beginsWith("https:"))
+  if (url.beginsWith("http:") || url.beginsWith("https:") || url.beginsWith("file:"))
   {
     mLoadStatus.set("sourceType", "http");
     mLoadStatus.set("statusCode", -1);
