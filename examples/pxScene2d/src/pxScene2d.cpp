@@ -104,6 +104,13 @@ static int fpsWarningThreshold = 25;
 
 rtEmitRef pxScriptView::mEmit = new rtEmit();
 
+
+#ifdef PXSCENE_SUPPORT_STORAGE
+#define DEFAULT_LOCALSTORAGE_DIR ".spark/storage/"
+#define DEFAULT_LOCALSTORAGE_DIR_ENV_NAME "SPARK_STORAGE"
+#endif
+
+
 // Debug Statistics
 #ifdef USE_RENDER_STATS
 
@@ -436,6 +443,9 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
     mArchive(),mDirtyRect(), mLastFrameDirtyRect(),
 #endif //PX_DIRTY_RECTANGLES
     mDirty(true), mDragging(false), mDragType(pxConstantsDragType::NONE), mDragTarget(NULL), mTestView(NULL), mDisposed(false), mArchiveSet(false)
+#ifdef PXSCENE_SUPPORT_STORAGE
+, mStorage(NULL)
+#endif
 {
   mRoot = new pxRoot(this);
   #ifdef ENABLE_PXOBJECT_TRACKING
@@ -586,6 +596,9 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   networkCapabilities.set("http2", 2);
 
   mCapabilityVersions.set("network", networkCapabilities);
+#ifdef PXSCENE_SUPPORT_STORAGE
+  mCapabilityVersions.set("storage", 1);
+#endif
 
   rtObjectRef metricsCapabilities = new rtMapObject;
 
@@ -636,6 +649,13 @@ rtError pxScene2d::dispose()
     mInfo     = NULL;
     mCapabilityVersions = NULL;
     mFocusObj = NULL;
+
+#ifdef PXSCENE_SUPPORT_STORAGE
+    if (mStorage)
+      mStorage->term(); // Close database file now
+    mStorage = NULL;
+#endif
+
     return RT_OK;
 }
 
@@ -2522,6 +2542,70 @@ rtError pxScene2d::getAvailableApplications(rtString& availableApplications)
   return RT_OK;
 }
 
+rtError pxScene2d::storage(rtObjectRef& v) const
+{
+#ifdef PXSCENE_SUPPORT_STORAGE
+  if (!mStorage)
+  {
+    rtString origin(mScriptView != NULL ? rtUrlGetOrigin(mScriptView->getUrl().cString()) : NULL);
+    if (origin.isEmpty())
+      origin = "file://";
+
+    uint32_t storageQuota = 0;
+#ifdef ENABLE_PERMISSIONS_CHECK
+    mPermissions->getStorageQuota(storageQuota);
+#endif
+    if( storageQuota == 0)
+    {
+      rtLogWarn("Origin %s has no local storage quota", origin.cString());
+      return RT_OK;
+    }
+
+    rtString storagePath;
+    rtValue storagePathVal;
+    if (RT_OK == rtSettings::instance()->value("defaultStoragePath", storagePathVal))
+    {
+      storagePath = storagePathVal.toString();
+    }
+    else
+    {
+      // runtime location, if available
+      const char* env = getenv(DEFAULT_LOCALSTORAGE_DIR_ENV_NAME);
+      if (env)
+        storagePath = env;
+    }
+    if (storagePath.isEmpty())
+    {
+      // default location
+      if (RT_OK == rtGetHomeDirectory(storagePath))
+        storagePath.append(DEFAULT_LOCALSTORAGE_DIR);
+    }
+
+    rtEnsureTrailingPathSeparator(storagePath);
+
+    // Create the path if it doesn't yet exist
+    if (!rtMakeDirectory(storagePath))
+    {
+      rtLogWarn("creation of storage directory %s failed", storagePath.cString());
+      return RT_OK;
+    }
+
+    rtString storageName = rtUrlEscape(origin);
+    storagePath.append(storageName);
+    rtLogInfo("storage path: %s", storagePath.cString());
+
+    mStorage = new rtStorage(storagePath, storageQuota, origin);
+  }
+
+  v = mStorage;
+  return RT_OK;
+#else
+  UNUSED_PARAM(v);
+  rtLogInfo("storage not supported");
+  return RT_FAIL;
+#endif
+}
+
 rtDefineObject(pxScene2d, rtObject);
 rtDefineProperty(pxScene2d, root);
 rtDefineProperty(pxScene2d, info);
@@ -2576,6 +2660,7 @@ rtDefineMethod(pxScene2d, sparkSetting);
 rtDefineProperty(pxScene2d, cors);
 rtDefineMethod(pxScene2d, addServiceProvider);
 rtDefineMethod(pxScene2d, removeServiceProvider);
+rtDefineProperty(pxScene2d, storage);
 
 rtError pxScene2dRef::Get(const char* name, rtValue* value) const
 {
