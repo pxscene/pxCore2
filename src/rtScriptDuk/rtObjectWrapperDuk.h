@@ -75,6 +75,8 @@ private:
   std::string  mDukName;
 };
 
+void clearMethodCache();
+
 } //namespace rtScriptDukUtils
 
 #endif

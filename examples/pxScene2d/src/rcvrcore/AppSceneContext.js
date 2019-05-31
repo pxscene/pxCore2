@@ -32,7 +32,7 @@ var SceneModuleManifest = require('rcvrcore/SceneModuleManifest');
 var JarFileMap = require('rcvrcore/utils/JarFileMap');
 var AsyncFileAcquisition = require('rcvrcore/utils/AsyncFileAcquisition');
 var WrapObj = require('rcvrcore/utils/WrapObj');
-var http_wrap = require('rcvrcore/http_wrap');
+var http_wrap = (isDuk)?require('http'):require('rcvrcore/http_wrap');
 
 var log = new Logger('AppSceneContext');
 //overriding original timeout and interval functions
@@ -87,6 +87,7 @@ function AppSceneContext(params) {
 
 AppSceneContext.prototype.loadScene = function() {
   //log.info("loadScene() - begins    on ctx: " + getContextID() );
+  var ctx = this;
   var thisPackageUrl = this.packageUrl.split('?')[0];
   var urlParts = url.parse(thisPackageUrl, true);
   var fullPath = thisPackageUrl;
@@ -187,24 +188,30 @@ function terminateScene() {
     this.isTerminated = true;
 }
 
-this.innerscene.on('onSceneTerminate', function(e) { 
-     this.isTermEvtRcvd = true;
-     this.termEvent = e;
-     // make sure we are sending terminate event only after close event
-     if (true == this.isCloseEvtRcvd) {
-       terminateScene.bind(this)(); 
-     }
-  }.bind(this));
-
-this.innerscene.on('onClose', function() {
-    // make sure terminate event is sent after immediately if onClose comes after it
-    if (true == this.isTermEvtRcvd)
-    {
-      terminateScene.bind(this)();
-    }
-    this.isCloseEvtRcvd = true;
-  }.bind(this));
-
+if (!isDuk)
+{
+  this.innerscene.on('onSceneTerminate', function(e) { 
+       this.isTermEvtRcvd = true;
+       this.termEvent = e;
+       // make sure we are sending terminate event only after close event
+       if (true == this.isCloseEvtRcvd) {
+         terminateScene.bind(this)(); 
+       }
+    }.bind(this));
+  
+  this.innerscene.on('onClose', function() {
+      // make sure terminate event is sent after immediately if onClose comes after it
+      if (true == this.isTermEvtRcvd)
+      {
+        terminateScene.bind(this)();
+      }
+      this.isCloseEvtRcvd = true;
+    }.bind(this));
+}
+else
+{
+  this.innerscene.on('onSceneTerminate', function(e) { terminateScene.call(ctx) });
+}
   //log.info("loadScene() - ends    on ctx: " + getContextID() );
 };
 
@@ -255,6 +262,20 @@ var setTimeoutCallback = function() {
     contextTimers.splice(index,1);
   }
   ClearTimeout(this);
+};
+
+var setTimeoutCallback_duk = function ()
+{
+  var callback = arguments[1];
+  var testvar = arguments[2];
+  var tid = arguments[3];
+  callback();
+  callback = null;
+  var index = this.timers.indexOf(tid);
+  if (index != -1)
+  {
+    this.timers.splice(index,1);
+  }
 };
 
 function getBaseFilePath()
@@ -440,7 +461,21 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (packageUri, module
         console: console,
         theNamedContext: "Sandbox: " + uri,
         //Buffer: Buffer,
-        importTracking: {}
+        importTracking: {},
+        setTimeout: function (callback, after, arg1, arg2, arg3) {
+          //pass the timers list to callback function on timeout
+          var timerId = SetTimeout(setTimeoutCallback_duk, after, this.timers, function() { callback(arg1, arg2, arg3)});
+          this.timers.push(timerId);
+          return timerId;
+        }.bind(this),
+        clearTimeout: function (timer) {
+          var index = this.timers.indexOf(timer);
+          if (index != -1)
+          {
+            this.timers.splice(index,1);
+          }
+          ClearTimeout(timer);
+        }.bind(this),
       }; // end sandbox
     }
 

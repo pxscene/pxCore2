@@ -23,6 +23,7 @@ limitations under the License.
 
 namespace rtScriptDukUtils
 {
+std::map<duk_context *,std::vector<rtIFunction*>> gDukrtFnMap;
 
 rtFunctionWrapper::rtFunctionWrapper(const rtFunctionRef& ref)
   : rtWrapper(ref)
@@ -66,6 +67,39 @@ static duk_ret_t dukFunctionStub(duk_context *ctx)
   return 0;
 }
 
+// clear all the references for rtObjectFunctions which are not garage collected
+void clearAllPendingrtFns(duk_context *ctx)
+{
+  for (std::vector<rtIFunction*>::iterator it=gDukrtFnMap[ctx].begin(); 
+                              it!=gDukrtFnMap[ctx].end(); )
+      {
+        rtIFunction* func = *it;
+        func->Release();
+        it = gDukrtFnMap[ctx].erase(it);  
+      }
+      gDukrtFnMap[ctx].clear();
+}
+
+static duk_ret_t dukFunctionFinalizer(duk_context *ctx) 
+{
+   bool res = duk_get_prop_string(ctx, 0, "\xff""\xff""data");
+   if (res) {
+      rtIFunction* func = (rtIFunction*)duk_require_pointer(ctx, -1);
+      size_t i = 0;
+      for(i=0; i<gDukrtFnMap[ctx].size(); i++)
+      {
+        if (func == gDukrtFnMap[ctx][i])
+        {
+          break;
+        }
+      }
+      if ((i != gDukrtFnMap[ctx].size()) && (gDukrtFnMap[ctx].size()>0))
+      {
+        gDukrtFnMap[ctx].erase(gDukrtFnMap[ctx].begin() + i);
+        func->Release();
+      }
+   }
+}
 
 void rtFunctionWrapper::createFromFunctionReference(duk_context *ctx, const rtFunctionRef& func)
 {
@@ -75,8 +109,10 @@ void rtFunctionWrapper::createFromFunctionReference(duk_context *ctx, const rtFu
   assert(res);
 
   func->AddRef();
-
+  gDukrtFnMap[ctx].push_back(func);
   // [func]
+  duk_push_c_function(ctx, dukFunctionFinalizer, 1);
+  duk_set_finalizer(ctx, objidx);
 }
 
 jsFunctionWrapper::~jsFunctionWrapper()
