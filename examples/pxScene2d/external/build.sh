@@ -117,17 +117,24 @@ fi
 if [ ! -e ./.libs/libgif.dylib ] ||
 [ "$(uname)" != "Darwin" ]
 then
-make
+    make
 [ -d .libs ] || mkdir -p .libs
 if [ -e libgif.dylib ]
 then
-cp libgif.dylib .libs/libgif.dylib
-cp libutil.dylib .libs/libutil.dylib
+    cp libgif.dylib .libs/libgif.dylib
+    cp libutil.dylib .libs/libutil.dylib
+
+    ln -sf out/Release/libgif.*.dylib ./
+    ln -sf libgif.*.dylib libgif.dylib
+
 
 elif [ -e libgif.so ]
 then
-cp libgif.so .libs/libgif.dylib
-cp libutil.so .libs/libutil.dylib
+    cp libgif.so .libs/libgif.dylib
+    cp libutil.so .libs/libutil.dylib
+
+    ln -sf out/Release/obj.target/libgif.so.* ./
+    ln -sf libgif.so.* libgif.so
 fi
 fi
 
