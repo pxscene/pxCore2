@@ -2974,11 +2974,6 @@ pxError pxContext::setEjectTextureAge(uint32_t age)
   return PX_OK;
 }
 
-pxError pxContext::enableInternalContext(bool)
-{
-  return PX_OK;
-}
-
 //====================================================================================================================================================================================
 
 #ifdef DEBUG

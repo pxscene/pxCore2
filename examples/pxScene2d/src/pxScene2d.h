@@ -62,6 +62,8 @@
 #include "pxAnimate.h"
 #include "testView.h"
 
+class pxConstantsDragType;
+
 #ifdef ENABLE_RT_NODE
 #include "rtScript.h"
 #endif //ENABLE_RT_NODE
@@ -73,6 +75,12 @@
 
 #include "rtServiceProvider.h"
 #include "rtSettings.h"
+
+#ifdef PXSCENE_SUPPORT_STORAGE
+#include "rtStorage.h"
+#endif
+
+
 #ifdef RUNINMAIN
 #define ENTERSCENELOCK()
 #define EXITSCENELOCK() 
@@ -161,6 +169,7 @@ class pxRoot: public pxObject
   rtDeclareObject(pxRoot, pxObject);
 public:
   pxRoot(pxScene2d* scene): pxObject(scene) {}
+  virtual void sendPromise();
 };
 
 class pxViewContainer: public pxObject, public pxIViewContainer
@@ -171,30 +180,44 @@ public:
   rtProperty(w, w, setW, float);
   rtProperty(h, h, setH, float);
   rtMethod1ArgAndNoReturn("onMouseDown", onMouseDown, rtObjectRef);
-  rtMethod1ArgAndNoReturn("onMouseUp", onMouseUp, rtObjectRef);
+  rtMethod1ArgAndNoReturn("onMouseUp",   onMouseUp,   rtObjectRef);
   rtMethod1ArgAndNoReturn("onMouseMove", onMouseMove, rtObjectRef);
+
+  rtMethod1ArgAndNoReturn("onDragMove",  onDragMove,  rtObjectRef);
+  rtMethod1ArgAndNoReturn("onDragEnter", onDragEnter, rtObjectRef);
+  rtMethod1ArgAndNoReturn("onDragLeave", onDragLeave, rtObjectRef);
+  rtMethod1ArgAndNoReturn("onDragDrop",  onDragDrop,  rtObjectRef);
+
   rtMethod1ArgAndNoReturn("onScrollWheel", onScrollWheel, rtObjectRef);
-  rtMethod1ArgAndNoReturn("onMouseEnter", onMouseEnter, rtObjectRef);
-  rtMethod1ArgAndNoReturn("onMouseLeave", onMouseLeave, rtObjectRef);
-  rtMethod1ArgAndNoReturn("onFocus", onFocus, rtObjectRef);
-  rtMethod1ArgAndNoReturn("onBlur", onBlur, rtObjectRef);
+  rtMethod1ArgAndNoReturn("onMouseEnter",  onMouseEnter,  rtObjectRef);
+  rtMethod1ArgAndNoReturn("onMouseLeave",  onMouseLeave,  rtObjectRef);
+
+  rtMethod1ArgAndNoReturn("onFocus",   onFocus,   rtObjectRef);
+  rtMethod1ArgAndNoReturn("onBlur",    onBlur,    rtObjectRef);
   rtMethod1ArgAndNoReturn("onKeyDown", onKeyDown, rtObjectRef);
-  rtMethod1ArgAndNoReturn("onKeyUp", onKeyUp, rtObjectRef);
-  rtMethod1ArgAndNoReturn("onChar", onChar, rtObjectRef);
+  rtMethod1ArgAndNoReturn("onKeyUp",   onKeyUp,   rtObjectRef);
+  rtMethod1ArgAndNoReturn("onChar",    onChar,    rtObjectRef);
 
   pxViewContainer(pxScene2d* scene):pxObject(scene)
   {
     addListener("onMouseDown", get<rtFunctionRef>("onMouseDown"));
     addListener("onMouseUp", get<rtFunctionRef>("onMouseUp"));
     addListener("onMouseMove", get<rtFunctionRef>("onMouseMove"));
+
+    addListener("onDragMove",  get<rtFunctionRef>("onDragMove"));
+    addListener("onDragEnter", get<rtFunctionRef>("onDragEnter"));
+    addListener("onDragLeave", get<rtFunctionRef>("onDragLeave"));
+    addListener("onDragDrop",  get<rtFunctionRef>("onDragDrop"));
+
     addListener("onScrollWheel", get<rtFunctionRef>("onScrollWheel"));
-    addListener("onMouseEnter", get<rtFunctionRef>("onMouseEnter"));
-    addListener("onMouseLeave", get<rtFunctionRef>("onMouseLeave"));
-    addListener("onFocus", get<rtFunctionRef>("onFocus"));
-    addListener("onBlur", get<rtFunctionRef>("onBlur"));
+    addListener("onMouseEnter",  get<rtFunctionRef>("onMouseEnter"));
+    addListener("onMouseLeave",  get<rtFunctionRef>("onMouseLeave"));
+
+    addListener("onFocus",   get<rtFunctionRef>("onFocus"));
+    addListener("onBlur",    get<rtFunctionRef>("onBlur"));
     addListener("onKeyDown", get<rtFunctionRef>("onKeyDown"));
-    addListener("onKeyUp", get<rtFunctionRef>("onKeyUp"));
-    addListener("onChar", get<rtFunctionRef>("onChar"));
+    addListener("onKeyUp",   get<rtFunctionRef>("onKeyUp"));
+    addListener("onChar",    get<rtFunctionRef>("onChar"));
   }
 
   virtual ~pxViewContainer() { /*rtLogDebug("#################~pxViewContainer\n");*/}
@@ -278,6 +301,63 @@ public:
       float x = o.get<float>("x");
       float y = o.get<float>("y");
       mView->onMouseMove(static_cast<int32_t>(x),static_cast<int32_t>(y));
+    }
+    return RT_OK;
+  }
+
+  rtError onDragMove(rtObjectRef o)
+  {
+    rtLogDebug("pxViewContainer::onDragMove");
+    if (mView)
+    {
+      float          x = o.get<float>("x");
+      float          y = o.get<float>("y");
+      int32_t     type = o.get<int32_t>("type");
+
+      mView->onDragMove(static_cast<int32_t>(x), static_cast<int32_t>(y), type );
+    }
+    return RT_OK;
+  }
+
+  rtError onDragEnter(rtObjectRef o)
+  {
+    rtLogDebug("pxViewContainer::onDragEnter");
+    if (mView)
+    {
+      float          x = o.get<float>("x");
+      float          y = o.get<float>("y");
+      int32_t     type = o.get<int32_t>("type");
+
+      mView->onDragEnter(static_cast<int32_t>(x), static_cast<int32_t>(y), type );
+    }
+    return RT_OK;
+  }
+
+  rtError onDragLeave(rtObjectRef o)
+  {
+    rtLogDebug("pxViewContainer::onDragLeave");
+    if (mView)
+    {
+      float          x = o.get<float>("x");
+      float          y = o.get<float>("y");
+      int32_t     type = o.get<int32_t>("type");
+
+      mView->onDragLeave(static_cast<int32_t>(x), static_cast<int32_t>(y), type );
+    }
+    return RT_OK;
+  }
+
+  rtError onDragDrop(rtObjectRef o)
+  {
+    rtLogDebug("pxViewContainer::onDragDropped");
+    if (mView)
+    {
+      float          x = o.get<float>("x");
+      float          y = o.get<float>("y");
+      rtString dropped = o.get<rtString>("dropped");
+      int32_t     type = o.get<int32_t>("type");
+
+      mView->onDragDrop(static_cast<int32_t>(x), static_cast<int32_t>(y), type, dropped.cString() );
     }
     return RT_OK;
   }
@@ -387,11 +467,11 @@ public:
     return RT_OK;
   }
 
-  virtual void update(double t)
+  virtual void update(double t, bool updateChildren=true)
   {
     if (mView)
       mView->onUpdate(t);
-    pxObject::update(t);
+    pxObject::update(t,updateChildren);
   }
 
   virtual void draw() 
@@ -421,6 +501,9 @@ public:
   rtReadOnlyProperty(api, api, rtValue);
   rtReadOnlyProperty(ready, ready, rtObjectRef);
   rtProperty(serviceContext, serviceContext, setServiceContext, rtObjectRef);
+  rtMethod1ArgAndReturn("suspend", suspend, rtValue, bool);
+  rtMethod1ArgAndReturn("resume", resume, rtValue, bool);
+  rtMethod1ArgAndReturn("screenshot", screenshot, rtString, rtValue);
 
 //  rtMethod1ArgAndNoReturn("makeReady", makeReady, bool);  // DEPRECATED ?
   
@@ -446,6 +529,10 @@ public:
   rtError serviceContext(rtObjectRef& o) const { o = mServiceContext; return RT_OK;}
   rtError setServiceContext(rtObjectRef o);
 
+  rtError suspend(const rtValue& v, bool& b);
+  rtError resume(const rtValue& v, bool& b);
+  rtError screenshot(rtString type, rtValue& returnValue);
+
 #ifdef ENABLE_PERMISSIONS_CHECK
   rtError permissions(rtObjectRef& v) const;
   rtError setPermissions(const rtObjectRef& v);
@@ -462,7 +549,7 @@ public:
   virtual void* getInterface(const char* name);
   virtual void releaseData(bool sceneSuspended);
   virtual void reloadData(bool sceneSuspended);
-  virtual uint64_t textureMemoryUsage();
+  virtual uint64_t textureMemoryUsage(std::vector<rtObject*> &objectsCounted);
   
 private:
   rtRef<pxScriptView> mScriptView;
@@ -573,10 +660,11 @@ public:
   rtError suspend(const rtValue& v, bool& b);
   rtError resume(const rtValue& v, bool& b);
   rtError textureMemoryUsage(rtValue& v);
+
+  rtError screenshot(rtString type, rtValue& returnValue);
   
 protected:
 
-  static rtError printFunc(int /*numArgs*/, const rtValue* /*args*/, rtValue* result, void* ctx);
 
   static rtError getScene(int /*numArgs*/, const rtValue* /*args*/, rtValue* result, void* ctx);
   static rtError makeReady(int /*numArgs*/, const rtValue* /*args*/, rtValue* result, void* ctx);
@@ -617,6 +705,34 @@ protected:
   {
     if (mView)
       return mView->onMouseMove(x,y);
+    return false;
+  }
+
+  virtual bool onDragMove(int32_t x, int32_t y, int32_t type)
+  {
+    if (mView)
+    return mView->onDragMove(x,y, type);
+    return false;
+  }
+
+  virtual bool onDragEnter(int32_t x, int32_t y, int32_t type)
+  {
+    if (mView)
+    return mView->onDragEnter(x,y, type);
+    return false;
+  }
+
+  virtual bool onDragLeave(int32_t x, int32_t y, int32_t type)
+  {
+    if (mView)
+    return mView->onDragLeave(x,y, type);
+    return false;
+  }
+
+  virtual bool onDragDrop(int32_t x, int32_t y, int32_t type, const char *dropped)
+  {
+    if (mView)
+    return mView->onDragDrop(x,y, type, dropped);
     return false;
   }
 
@@ -701,7 +817,6 @@ protected:
   rtObjectRef mReady;
   rtObjectRef mScene;
   rtRef<pxIView> mView;
-  rtRef<rtFunctionCallback> mPrintFunc;
   rtRef<rtFunctionCallback> mGetScene;
   rtRef<rtFunctionCallback> mMakeReady;
   rtRef<rtFunctionCallback> mGetContextID;
@@ -727,6 +842,7 @@ public:
   rtReadOnlyProperty(h, h, int32_t);
   rtProperty(showOutlines, showOutlines, setShowOutlines, bool);
   rtProperty(showDirtyRect, showDirtyRect, setShowDirtyRect, bool);
+  rtProperty(reportFps, reportFps, setReportFps, bool);
   rtReadOnlyProperty(dirtyRectangle, dirtyRectangle, rtObjectRef);
   rtReadOnlyProperty(dirtyRectanglesEnabled, dirtyRectanglesEnabled, bool);
   rtProperty(enableDirtyRect, enableDirtyRect, setEnableDirtyRect, bool);
@@ -759,7 +875,7 @@ public:
   
 //  rtMethodNoArgAndNoReturn("stopPropagation",stopPropagation);
   
-  rtMethod1ArgAndReturn("screenshot", screenshot, rtString, rtString);
+  rtMethod1ArgAndReturn("screenshot", screenshot, rtString, rtValue);
 
   rtMethod1ArgAndReturn("clipboardGet", clipboardGet, rtString, rtString);
   rtMethod2ArgAndNoReturn("clipboardSet", clipboardSet, rtString, rtString);
@@ -776,6 +892,7 @@ public:
   rtReadOnlyProperty(animation,animation,rtObjectRef);
   rtReadOnlyProperty(stretch,stretch,rtObjectRef);
   rtReadOnlyProperty(maskOp,maskOp,rtObjectRef);
+  rtReadOnlyProperty(dragType,dragType,rtObjectRef);
   rtReadOnlyProperty(alignVertical,alignVertical,rtObjectRef);
   rtReadOnlyProperty(alignHorizontal,alignHorizontal,rtObjectRef);
   rtReadOnlyProperty(truncation,truncation,rtObjectRef);
@@ -785,6 +902,8 @@ public:
   rtMethod1ArgAndReturn("sparkSetting", sparkSetting, rtString, rtValue);
   rtMethod1ArgAndNoReturn("addServiceProvider", addServiceProvider, rtFunctionRef);
   rtMethod1ArgAndNoReturn("removeServiceProvider", removeServiceProvider, rtFunctionRef);
+
+  rtReadOnlyProperty(storage,storage,rtObjectRef);
 
 #ifdef ENABLE_PERMISSIONS_CHECK
   // permissions can be set to either scene or to its container
@@ -807,13 +926,13 @@ public:
     }
     mArchiveSet = false;
   }
-  
-  virtual unsigned long AddRef() 
+
+  virtual unsigned long AddRef()
   {
     return rtAtomicInc(&mRefCount);
   }
-  
-  virtual unsigned long Release() 
+
+  virtual unsigned long Release()
   {
     long l = rtAtomicDec(&mRefCount);
     //  rtLogDebug("pxScene2d release %ld\n",l);
@@ -856,16 +975,18 @@ public:
   rtError showOutlines(bool& v) const;
   rtError setShowOutlines(bool v);
 
+  rtError reportFps(bool& v) const;
+  rtError setReportFps(bool v);
+
   rtError showDirtyRect(bool& v) const;
   rtError setShowDirtyRect(bool v);
 
   rtError dirtyRectangle(rtObjectRef& v) const;
-    
   rtError dirtyRectanglesEnabled(bool& v) const;
-    
+
   rtError enableDirtyRect(bool& v) const;
   rtError setEnableDirtyRect(bool v);
-    
+
   rtError customAnimator(rtFunctionRef& f) const;
   rtError setCustomAnimator(const rtFunctionRef& f);
 
@@ -882,7 +1003,7 @@ public:
   rtError createImage9Border(rtObjectRef p, rtObjectRef& o);
   rtError createImageResource(rtObjectRef p, rtObjectRef& o);
   rtError createImageAResource(rtObjectRef p, rtObjectRef& o);
-  rtError createFontResource(rtObjectRef p, rtObjectRef& o);  
+  rtError createFontResource(rtObjectRef p, rtObjectRef& o);
   rtError createScene(rtObjectRef p,rtObjectRef& o);
   rtError createExternal(rtObjectRef p, rtObjectRef& o);
   rtError createWayland(rtObjectRef p, rtObjectRef& o);
@@ -912,7 +1033,7 @@ public:
   }
 
   rtError setFocus(rtObjectRef o);
- 
+
 #if 0
   rtError stopPropagation()
   {
@@ -929,11 +1050,11 @@ public:
   rtError setAPI(const rtValue& v) { mAPI = v; return RT_OK; }
 
   rtError emit(rtFunctionRef& v) const { v = mEmit; return RT_OK; }
-  
-  rtError animation(rtObjectRef& v) const {v = CONSTANTS.animationConstants; return RT_OK;}
-  rtError stretch(rtObjectRef& v)   const {v = CONSTANTS.stretchConstants;   return RT_OK;}
-  rtError maskOp(rtObjectRef& v)    const {v = CONSTANTS.maskOpConstants;    return RT_OK;}  
-  
+
+  rtError animation(rtObjectRef& v)       const {v = CONSTANTS.animationConstants;       return RT_OK;}
+  rtError stretch(rtObjectRef& v)         const {v = CONSTANTS.stretchConstants;         return RT_OK;}
+  rtError maskOp(rtObjectRef& v)          const {v = CONSTANTS.maskOpConstants;          return RT_OK;}
+  rtError dragType(rtObjectRef& v)        const {v = CONSTANTS.dragTypeConstants;        return RT_OK;}
   rtError alignVertical(rtObjectRef& v)   const {v = CONSTANTS.alignVerticalConstants;   return RT_OK;}
   rtError alignHorizontal(rtObjectRef& v) const {v = CONSTANTS.alignHorizontalConstants; return RT_OK;}
   rtError truncation(rtObjectRef& v)      const {v = CONSTANTS.truncationConstants;      return RT_OK;}
@@ -947,17 +1068,25 @@ public:
   rtError cors(rtObjectRef& v) const { v = mCORS; return RT_OK; }
   rtError sparkSetting(const rtString& setting, rtValue& value) const;
 
-  void setMouseEntered(rtRef<pxObject> o);//setMouseEntered(pxObject* o);
+   void setMouseEntered(rtRef<pxObject> o, int32_t x = 0, int32_t y = 0);
+   void clearMouseObject(rtRef<pxObject>);
 
   // The following methods are delegated to the view
   virtual void onSize(int32_t w, int32_t h);
 
-  virtual bool onMouseDown(int32_t x, int32_t y, uint32_t flags);
-  virtual bool onMouseUp(int32_t x, int32_t y, uint32_t flags);
   virtual bool onMouseEnter();
   virtual bool onMouseLeave();
+
+  virtual bool onMouseDown(int32_t x, int32_t y, uint32_t flags);
+  virtual bool onMouseUp(  int32_t x, int32_t y, uint32_t flags);
   virtual bool onMouseMove(int32_t x, int32_t y);
+
   virtual bool onScrollWheel(float dx, float dy);
+
+  virtual bool onDragMove( int32_t x, int32_t y, int32_t type);
+  virtual bool onDragEnter(int32_t x, int32_t y, int32_t type);
+  virtual bool onDragLeave(int32_t x, int32_t y, int32_t type);
+  virtual bool onDragDrop( int32_t x, int32_t y, int32_t type, const char* dropped);
 
   void updateMouseEntered();
 
@@ -967,7 +1096,7 @@ public:
   virtual bool onKeyDown(uint32_t keycode, uint32_t flags);
   virtual bool onKeyUp(uint32_t keycode, uint32_t flags);
   virtual bool onChar(uint32_t codepoint);
-  
+
   virtual void onUpdate(double t);
   virtual void onDraw();
   virtual void onComplete();
@@ -975,25 +1104,25 @@ public:
   virtual void setViewContainer(pxIViewContainer* l);
   pxIViewContainer* viewContainer();
   void invalidateRect(pxRect* r);
-  
+
   void getMatrixFromObjectToScene(pxObject* o, pxMatrix4f& m);
   void getMatrixFromSceneToObject(pxObject* o, pxMatrix4f& m);
   void getMatrixFromObjectToObject(pxObject* from, pxObject* to, pxMatrix4f& m);
-  void transformPointFromObjectToScene(pxObject* o, const pxPoint2f& from, 
-				       pxPoint2f& to);
+
+  void transformPointFromObjectToScene(pxObject* o, const pxPoint2f& from, pxPoint2f& to);
   void transformPointFromSceneToObject(pxObject* o, const pxPoint2f& from, pxPoint2f& to);
   void transformPointFromObjectToObject(pxObject* fromObject, pxObject* toObject,
 					pxPoint2f& from, pxPoint2f& to);
-  
+
   void hitTest(pxPoint2f p, std::vector<rtRef<pxObject> > hitList);
-  
+
   pxObject* getRoot() const;
-  rtError root(rtObjectRef& v) const 
+  rtError root(rtObjectRef& v) const
   {
     v = getRoot();
     return RT_OK;
   }
- 
+
   rtObjectRef  getInfo() const;
   rtError info(rtObjectRef& v) const
   {
@@ -1062,9 +1191,9 @@ public:
   }
 
   void innerpxObjectDisposed(rtObjectRef ref);
-
+  bool isObjectTracked(rtObjectRef ref);
   // Note: Only type currently supported is "image/png;base64"
-  rtError screenshot(rtString type, rtString& pngData);
+  rtError screenshot(rtString type, rtValue& returnValue);
   rtError clipboardGet(rtString type, rtString& retString);
   rtError clipboardSet(rtString type, rtString clipString);
   rtError getService(rtString name, rtObjectRef& returnObject);
@@ -1075,7 +1204,13 @@ public:
     return mArchive;
   }
 
+  rtError storage(rtObjectRef& v) const;
+
+  static void enableOptimizedUpdate(bool enable);
+  static void updateObject(pxObject* o, bool update);
+
 private:
+  static void updateObjects(double t);
   bool bubbleEvent(rtObjectRef e, rtRef<pxObject> t, 
                    const char* preEvent, const char* event) ;
   
@@ -1110,6 +1245,7 @@ private:
   int mTag;
   pxIViewContainer *mContainer;
   pxScriptView *mScriptView;
+  bool mReportFps;
   bool mShowDirtyRectangle;
   bool mEnableDirtyRectangles;
   int32_t mPointerX;
@@ -1144,10 +1280,19 @@ public:
   pxRect mLastFrameDirtyRect;
   //#endif //PX_DIRTY_RECTANGLES
   bool mDirty;
+
+  bool mDragging;
+  pxConstantsDragType::constants mDragType;
+  rtRef<pxObject> mDragTarget;
+
   testView* mTestView;
   bool mDisposed;
   std::vector<rtFunctionRef> mServiceProviders;
   bool mArchiveSet;
+#ifdef PXSCENE_SUPPORT_STORAGE
+  mutable rtStorageRef mStorage;
+#endif
+  static bool mOptimizedUpdateEnabled;
 };
 
 // TODO do we need this anymore?

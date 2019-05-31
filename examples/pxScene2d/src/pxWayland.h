@@ -155,14 +155,17 @@ public:
   virtual void onDraw();
 
   rtError setProperty(const rtString &prop, const rtValue &val);
-  rtError callMethod(const char* messageName, int numArgs, const rtValue* args);
+  rtError callMethodReturns(const char* messageName, int numArgs, const rtValue* args, rtValue& result);
   rtError addListener(const rtString& eventName, const rtFunctionRef& f);
   rtError delListener(const rtString& eventName, const rtFunctionRef& f);
   rtError startRemoteObjectLocator();
   rtError connectToRemoteObject(unsigned int timeout_ms);
   rtError useDispatchThread(bool use);
-  rtError resume(const rtValue& v);
-  rtError suspend(const rtValue& v);
+  rtError resume(const rtValue& v, bool& b);
+  rtError suspend(const rtValue& v, bool& b);
+
+  rtError drawToFbo(pxContextFramebufferRef& fbo);
+
 private:
   rtAtomic mRefCount;
   pthread_t mClientMonitorThreadId;
@@ -172,6 +175,7 @@ private:
   bool mClientMonitorStarted;
   std::atomic<bool> mWaitingForRemoteObject;
   bool mUseDispatchThread;
+  bool mClientTerminated;
   int mX;
   int mY;
   int mWidth;

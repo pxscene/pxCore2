@@ -39,7 +39,8 @@ extern std::vector<pxTexture*> textureList;
 extern rtMutex textureListMutex;
 pxError addToTextureList(pxTexture* texture);
 pxError removeFromTextureList(pxTexture* texture);
-pxError ejectNotRecentlyUsedTextureMemory(int64_t bytesNeeded, uint32_t maxAge=5);
+pxError ejectNotRecentlyUsedTextureMemory(int64_t bytesNeeded, int64_t targetMemoryAmount,
+                                          bool clearAllOffscreen, uint32_t maxAge=5);
 
 using namespace std;
 
@@ -122,11 +123,6 @@ class pxContextTest : public testing::Test
       mContext.getSize(w,h);
       EXPECT_TRUE (w == 1280);
       EXPECT_TRUE (h == 720);
-    }
-
-    void enableInternalContextTest()
-    {
-      EXPECT_TRUE ( RT_OK == mContext.enableInternalContext(false));
     }
 
     void setEjectTextureAgeTest()
@@ -369,7 +365,6 @@ TEST_F(pxContextTest, pxContextTests)
   showOutlinesTest();
   initTwiceTest();
   setSizeTest();
-  enableInternalContextTest();
   setEjectTextureAgeTest();
   enableDirtyRectanglesTest();
   clearColorTest();
@@ -418,7 +413,7 @@ void removeFromTextureListTest()
 void ejectNotRecentlyUsedTextureMemoryTest()
 {
   int64_t bytesNeeded = 4;
-  EXPECT_TRUE (ejectNotRecentlyUsedTextureMemory(bytesNeeded) == PX_OK);
+  EXPECT_TRUE (ejectNotRecentlyUsedTextureMemory(bytesNeeded, 0, false) == PX_OK);
 }
 
 
@@ -460,7 +455,6 @@ class pxFBOTextureTest : public testing::Test
     {
       mFramebuffer->getTexture()->unloadTextureData();
       EXPECT_TRUE(mFramebuffer->getTexture()->bindGLTexture(0) == PX_OK);
-      mFramebuffer->getTexture()->loadTextureData();
     }
  
 
@@ -520,7 +514,6 @@ class pxTextureOffscreenTest : public testing::Test
       pxOffscreen mOffscreen;
       pxTextureRef mOffscreenTexture = mContext.createTexture(mOffscreen);
       EXPECT_TRUE (PX_OK == mOffscreenTexture->deleteTexture());
-      EXPECT_TRUE (PX_OK == mOffscreenTexture->loadTextureData());
     }
 
     private:

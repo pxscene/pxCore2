@@ -312,7 +312,6 @@ protected:
           script.pump();
       #endif
       script.collectGarbage();
-      rtThreadPool::globalInstance()->destroy();
       rtLogInfo("pxobjectcount is [%d]",pxObjectCount);
 #ifndef PX_PLATFORM_DFB_NON_X11
       rtLogInfo("texture memory usage is [%" PRId64 "]",context.currentTextureMemoryUsageInBytes());
@@ -353,6 +352,38 @@ protected:
     ENTERSCENELOCK()
     if (mView)
       mView->onMouseMove(x, y);
+    EXITSCENELOCK()
+  }
+
+  virtual void onDragMove(int32_t x, int32_t y, int32_t type)
+  {
+    ENTERSCENELOCK()
+    if (mView)
+    mView->onDragMove(x, y, type);
+    EXITSCENELOCK()
+  }
+
+  virtual void onDragEnter(int32_t x, int32_t y, int32_t type)
+  {
+    ENTERSCENELOCK()
+    if (mView)
+    mView->onDragEnter(x, y, type);
+    EXITSCENELOCK()
+  }
+
+  virtual void onDragLeave(int32_t x, int32_t y, int32_t type)
+  {
+    ENTERSCENELOCK()
+    if (mView)
+    mView->onDragLeave(x, y, type);
+    EXITSCENELOCK()
+  }
+
+  virtual void onDragDrop(int32_t x, int32_t y, int32_t type, const char* dropped)
+  {
+    ENTERSCENELOCK()
+    if (mView)
+    mView->onDragDrop(x, y, type, dropped);
     EXITSCENELOCK()
   }
 
@@ -407,6 +438,7 @@ protected:
 
   virtual void onDraw(pxSurfaceNative )
   {
+    context.updateRenderTick();
     ENTERSCENELOCK()
     if (mView)
       mView->onDraw();
@@ -616,13 +648,7 @@ int pxMain(int argc, char* argv[])
   rtModuleDirs::instance();
 #endif
 
-  rtString settingsPath;
-  if (RT_OK == rtGetHomeDirectory(settingsPath))
-  {
-    settingsPath.append(".sparkSettings.json");
-    if (rtFileExists(settingsPath))
-      rtSettings::instance()->loadFromFile(settingsPath);
-  }
+  rtSettings::instance()->loadFromFile();
 
   // overwrite file settings with settings from the command line
   rtSettings::instance()->loadFromArgs(argc, argv);
@@ -719,6 +745,15 @@ if (s && (strcmp(s,"1") == 0))
   rtValue dirtyRectsSetting;
   if (RT_OK == rtSettings::instance()->value("enableDirtyRects", dirtyRectsSetting))
     gDirtyRectsEnabled = dirtyRectsSetting.toString().compare("true") == 0;
+
+  rtLogInfo("dirty rectangles enabled: %s", gDirtyRectsEnabled ? "true":"false");
+
+  rtValue optimizedUpdateSetting;
+  if (RT_OK == rtSettings::instance()->value("enableOptimizedUpdate", optimizedUpdateSetting))
+  {
+    bool enable = optimizedUpdateSetting.toString().compare("true") == 0;
+    pxScene2d::enableOptimizedUpdate(enable);
+  }
     
   // OSX likes to pass us some weird parameter on first launch after internet install
   rtLogInfo("window width = %d height = %d", windowWidth, windowHeight);

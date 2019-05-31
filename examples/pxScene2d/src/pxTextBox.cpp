@@ -114,6 +114,7 @@ float pxTextBox::getFBOHeight()
 
 void pxTextBox::onInit()
 {
+  pxObject::onInit();
   //rtLogDebug("pxTextBox::onInit. mFontLoaded=%d\n",mFontLoaded);
   mInitialized = true;
   // If this is using the default font, we would not get a callback
@@ -174,7 +175,7 @@ void pxTextBox::setNeedsRecalc(bool recalc)
 void pxTextBox::sendPromise()
 {
   //rtLogDebug("pxTextBox::sendPromise mInitialized=%d mFontLoaded=%d mNeedsRecalc=%d\n",mInitialized,mFontLoaded,mNeedsRecalc);
-if(mInitialized && mFontLoaded && !mNeedsRecalc && !mDirty && !((rtPromise*)mReady.getPtr())->status())
+  if(mInitialized && mFontLoaded && !mNeedsRecalc && !mDirty && !((rtPromise*)mReady.getPtr())->status())
   {
     //rtLogDebug("pxTextBox SENDPROMISE\n");
     mReady.send("resolve",this);
@@ -284,15 +285,14 @@ float pxTextBox::getOnscreenHeight()
     return pxMax(mh, fabsf(bounds->y2()-bounds->y1()));
 }
 
-void pxTextBox::update(double t)
+void pxTextBox::update(double t, bool updateChildren)
 {
   if( mNeedsRecalc ) {
 
      recalc();
      markDirty();
    }
-
-    pxText::update(t);
+  pxText::update(t, updateChildren);
 }
 /** This function needs to measure the text, taking into consideration
  *  wrapping, truncation and dimensions; but it should not render the
@@ -309,6 +309,10 @@ void pxTextBox::clearMeasurements()
  //   startX = mx;
     startY = 0;
     getMeasurements()->clear();
+    getMeasurements()->getBounds()->setX1(mx);
+    getMeasurements()->getBounds()->setY1(my);
+    getMeasurements()->getBounds()->setX2(mx);
+    getMeasurements()->getBounds()->setY2(my);
 }
 
 void pxTextBox::renderText(bool render)
@@ -326,7 +330,7 @@ void pxTextBox::renderText(bool render)
   float tempX = 0;//mx;
   lineNumber = 0;
   
-  if (!mText || !strcmp(mText.cString(),""))
+  if (!mText || !std::strncmp(mText.cString(),"", 1))
   {
      clearMeasurements();
      setMeasurementBounds(mx, 0, my, 0);
@@ -414,6 +418,7 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
     int i = 0;
     int lasti = 0;
     int numbytes = 1;
+    bool isNewLineDetected = false;
     while((charToMeasure = u8_nextchar((char*)text, &i)) != 0)
     {
       // Determine if the character is multibyte
@@ -444,7 +449,8 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
         }
         else
         {
-            renderOneLine(accString.cString(), 0, tempY, sx, sy, size, lineWidth, render, std::strcmp(tempChar.c_str(), "\n") == 0 ? true : false);
+            isNewLineDetected = std::strncmp(tempChar.c_str(), "\n", 1) == 0 ? true : false;
+            renderOneLine(accString.cString(), 0, tempY, sx, sy, size, lineWidth, render, isNewLineDetected);
 
             accString = (isContinuousLine && isEnd && !isLast) ? tempChar.c_str() : "";
         }
@@ -591,7 +597,7 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
       lastLineNumber = lineNumber;
       if( mTruncation == pxConstantsTruncation::NONE && !mWordWrap ) {
         //rtLogDebug("CLF! Sending tempX instead of this->w(): %f\n", tempX);
-        renderOneLine(accString.cString(), 0, tempY, sx, sy, size, lineWidth, render);
+        renderOneLine(accString.cString(), 0, tempY, sx, sy, size, lineWidth, render, isNewLineDetected);
       } else {
         // check if we need to truncate this last line
         if( !lastLine && mXStopPos != 0 && mAlignHorizontal == pxConstantsAlignHorizontal::LEFT
@@ -708,8 +714,8 @@ void pxTextBox::measureTextWithWrapOrNewLine(const char *text, float sx, float s
       else
       {
         //rtLogDebug("!CLF: Setting bounds: startY=%f, my=%f, textHeight=%f\n",startY, my, textHeight);
-        if(startY < my) {
-          setMeasurementBoundsY(true, my);
+        if(startY < 0) {
+          setMeasurementBoundsY(true, 0);
           setMeasurementBoundsY(false, textHeight>mh?mh:textHeight);
         }
         else {
@@ -880,7 +886,7 @@ void pxTextBox::renderOneLine(const char * tempStr, float tempX, float tempY, fl
     }
     else
     {
-      setMeasurementBoundsX(true, xPos<mx?mx:xPos);
+      setMeasurementBoundsX(true, xPos<0?0:xPos);
       if( mWordWrap) {
         //rtLogDebug("!CLF: wordWrap true: tempY=%f, mh=%f, charH=%f\n",tempY, mh, charH);
         if( tempY + charH <= mh) {
@@ -936,8 +942,8 @@ void pxTextBox::renderOneLine(const char * tempStr, float tempX, float tempY, fl
        }
 
         if( xPos != tempX) {
-          setLineMeasurements(true, xPos<mx?mx:xPos, tempY);
-          setMeasurementBoundsX(true, xPos<mx?mx:xPos);
+          setLineMeasurements(true, xPos<0?0:xPos, tempY);
+          setMeasurementBoundsX(true, xPos<0?0:xPos);
           setMeasurementBounds(false, (xPos+width) > mw? mw:width, charH);
         }
         else {
@@ -947,14 +953,14 @@ void pxTextBox::renderOneLine(const char * tempStr, float tempX, float tempY, fl
           }
           else {
             //rtLogDebug("else not xPos+charW >mw lineWidth=%f\n",lineWidth);
-            setLineMeasurements(true, xPos<mx?mx:xPos, tempY);
+            setLineMeasurements(true, xPos<0?0:xPos, tempY);
             setMeasurementBounds(false, (xPos+width) > mw? mw:xPos+width, charH);
           }
         }
         if( !clip())
           setLineMeasurements(false, width > mw? mw:width, tempY);
         else {
-          float tmpX = xPos<mx?mx:xPos;
+            float tmpX = xPos<0?0:xPos;
           setLineMeasurements(false, (tmpX+width) > mw? mw:tmpX+width, tempY);
         }
       }
@@ -982,8 +988,8 @@ void pxTextBox::renderOneLine(const char * tempStr, float tempX, float tempY, fl
       else
       {
         //rtLogDebug("!CLF: Here we go: xPos=%f mx=%f, tempX=%f, lineWidth=%f, charW=%f mw=%f\n",xPos,mx, tempX,lineWidth, charW, mw);
-        setMeasurementBoundsX(true, xPos<mx?mx:xPos);
-        setLineMeasurements(true, xPos<mx?mx:xPos, tempY< my?my:tempY);
+        setMeasurementBoundsX(true, xPos<0?0:xPos);
+        setLineMeasurements(true, xPos<0?0:xPos, tempY< 0?0:tempY);
         if( charW > mw && (xPos+lineWidth) > mw) {
           setMeasurementBoundsX(false, mw-xPos );
         }
@@ -998,8 +1004,8 @@ void pxTextBox::renderOneLine(const char * tempStr, float tempX, float tempY, fl
   // Now, render the text
   if( render && getFontResource() != NULL)
   {
-      if (!clip() && isNewLineCase)
-          xPos += noClipX;
+      if (!clip() && isNewLineCase && noClipX < 0)
+          std::swap(xPos, noClipX);
  #ifdef PXSCENE_FONT_ATLAS
      pxTexturedQuads quads;
      getFontResource()->renderTextToQuads(tempStr, size, sx, sy, quads, xPos, tempY);
@@ -1015,8 +1021,8 @@ void pxTextBox::setMeasurementBoundsY(bool start, float yVal) {
   rtRefT<pxTextBounds> bounds = getMeasurements()->getBounds();
   //rtLogDebug("pxTextBox::setMeasurementBoundsY: start=%d yVal=%f and current vals y1=%f y2=%f\n",start, yVal,bounds->y1(),bounds->y2());
   if( start) {
-    if( bounds->y1()== 0 || bounds->y1() > yVal) {
-        bounds->setY1(yVal);
+    if( bounds->y1() <= my || bounds->y1() > my + yVal) {
+        bounds->setY1(my + yVal);
     }
   }
   else {
@@ -1027,12 +1033,11 @@ void pxTextBox::setMeasurementBoundsY(bool start, float yVal) {
 }
 void pxTextBox::setMeasurementBoundsX(bool start, float xVal)
 {
-
   rtRefT<pxTextBounds> bounds = getMeasurements()->getBounds();
   //rtLogDebug("pxTextBox::setMeasurementBoundsX: start=%d xVal=%f already set to %f\n",start, xVal,bounds->x2());
   if( start) {
-    if( (lineNumber == 0 && bounds->x1() == 0) || (bounds->x1() > xVal)) {
-      bounds->setX1(xVal);
+    if( (lineNumber == 0 && bounds->x1() <= mx) || (bounds->x1() > mx + xVal)) {
+      bounds->setX1(mx + xVal);
     }
   }
   else {
@@ -1047,11 +1052,11 @@ void pxTextBox::setMeasurementBounds(bool start, float xVal, float yVal)
   rtRefT<pxTextBounds> bounds = getMeasurements()->getBounds();
   //rtLogDebug("pxTextBox::setMeasurementBounds: start=%d xVal=%f yVal%f\n",start, xVal,yVal);
   if( start) {
-    if( (lineNumber == 0 && bounds->x1() == 0) || (bounds->x1() > xVal)) {
-      bounds->setX1(xVal);
+    if( (lineNumber == 0 && bounds->x1() <= mx) || (bounds->x1() > mx + xVal)) {
+      bounds->setX1(mx + xVal);
     }
-    if( (lineNumber == 0 && bounds->y1()== 0) || bounds->y1() > yVal) {
-      bounds->setY1(yVal);
+    if( (lineNumber == 0 && bounds->y1() <= my) || bounds->y1() > my + yVal) {
+      bounds->setY1(my + yVal);
     }
   }
   else {
@@ -1069,17 +1074,17 @@ void pxTextBox::setMeasurementBounds(float xPos, float width, float yPos, float 
   //rtLogDebug("pxTextBox::setMeasurementBounds\n");
   // Set the bounds for the text
   rtRefT<pxTextBounds> bounds = getMeasurements()->getBounds();
-  if( bounds->x2() < (xPos + width) ) {
-    bounds->setX2(xPos + width);
+  if( bounds->x2() < (mx + xPos + width) ) {
+    bounds->setX2(mx + xPos + width);
   }
-  if( (lineNumber == 0 && bounds->x1() == 0) || (bounds->x1() > xPos)) {
-    bounds->setX1(xPos);
+  if( (lineNumber == 0 && bounds->x1() <= mx) || (bounds->x1() > mx + xPos)) {
+    bounds->setX1(mx + xPos);
   }
-  if( bounds->y2() < (yPos + height)) {
-     bounds->setY2(yPos + height);
+  if( bounds->y2() < (my + yPos + height)) {
+     bounds->setY2(my + yPos + height);
   }
-  if( (lineNumber == 0 && bounds->y1()== 0) || bounds->y1() > yPos) {
-    bounds->setY1(yPos);
+  if( (lineNumber == 0 && bounds->y1() <= my) || bounds->y1() > my + yPos) {
+    bounds->setY1(my + yPos);
   }
 
 }
@@ -1094,11 +1099,11 @@ void pxTextBox::setLineMeasurements(bool firstLine, float xPos, float yPos)
   }
   
   if(!firstLine) {
-    getMeasurements()->getCharLast()->setX(xPos);
-    getMeasurements()->getCharLast()->setY(yPos + ascent);
+    getMeasurements()->getCharLast()->setX(mx + xPos);
+    getMeasurements()->getCharLast()->setY(my + yPos + ascent);
   } else {
-    if (lineNumber == 0) getMeasurements()->getCharFirst()->setX(xPos);
-    getMeasurements()->getCharFirst()->setY(yPos + ascent);
+    if (lineNumber == 0) getMeasurements()->getCharFirst()->setX(mx + xPos);
+    getMeasurements()->getCharFirst()->setY(my + yPos + ascent);
   }
 }
 

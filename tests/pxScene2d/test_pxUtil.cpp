@@ -111,7 +111,8 @@ class pxUtilTest : public testing::Test
 
     virtual void SetUp()
     {
-      bool sysRet = system("wget http://apng.onevcat.com/assets/elephant.png");
+      //bool sysRet = system("wget http://apng.onevcat.com/assets/elephant.png"); // I don't have wget on osx! Also http (not https) URL gives HTML!
+      bool sysRet = system("curl -O https://apng.onevcat.com/assets/elephant.png");
       mDownloadImageFailed = sysRet;
       if (false == mDownloadImageFailed)
       {

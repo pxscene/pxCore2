@@ -20,6 +20,7 @@
 
 #include "pxImageA.h"
 #include "pxContext.h"
+#include <algorithm>
 
 extern pxContext context;
 
@@ -36,6 +37,9 @@ pxImageA::pxImageA(pxScene2d *scene) : pxObject(scene),
   mFrameTime = -1;
   mPlays = 0;
   mResource = pxImageManager::getImageA("");
+
+  mw = -1;
+  mh = -1;
 }
 
 pxImageA::~pxImageA()
@@ -46,8 +50,7 @@ pxImageA::~pxImageA()
 
 void pxImageA::onInit() 
 {
-  mw = static_cast<float>(mImageWidth);
-  mh = static_cast<float>(mImageHeight);
+  pxObject::onInit();
 }
 
 rtError pxImageA::url(rtString &s) const
@@ -97,7 +100,7 @@ rtError pxImageA::setUrl(const char *s)
 }
 
 // animation happens here
-void pxImageA::update(double t)
+void pxImageA::update(double t, bool updateChildren)
 {
 
   if (getImageAResource() == NULL || !mImageLoaded)
@@ -145,7 +148,7 @@ void pxImageA::update(double t)
       markDirty();
     }
   }
-  pxObject::update(t);
+  pxObject::update(t, updateChildren);
 }
 
 void pxImageA::draw()
@@ -155,7 +158,7 @@ void pxImageA::draw()
     pxTimedOffscreenSequence &imageSequence = getImageAResource()->getTimedOffscreenSequence();
     if (imageSequence.numFrames() > 0)
     {
-      context.drawImage(0, 0, mw, mh, mTexture, nullMaskRef, false, NULL, mStretchX, mStretchY);
+      context.drawImage(0, 0, getOnscreenWidth(), getOnscreenHeight(), mTexture, nullMaskRef, false, NULL, mStretchX, mStretchY);
     }
   }
 }
@@ -262,8 +265,6 @@ void pxImageA::loadImageSequence()
       pxOffscreen &o = imageSequence.getFrameBuffer(0);
       mImageWidth = o.width();
       mImageHeight = o.height();
-      mw = static_cast<float>(mImageWidth);
-      mh = static_cast<float>(mImageHeight);
     }
     if (!((rtPromise*)mReady.getPtr())->status())
       mReady.send("resolve", this);
@@ -306,6 +307,27 @@ void pxImageA::resourceDirty()
   pxObject::onTextureReady();
 }
 
+void pxImageA::createNewPromise()
+{
+  // Only create a new promise if the existing one has been
+  // resolved or rejected already.
+  if(((rtPromise*)mReady.getPtr())->status())
+  {
+    rtLogDebug("CREATING NEW PROMISE\n");
+    mReady = new rtPromise();
+    triggerUpdate();
+  }
+}
+
+bool pxImageA::needsUpdate()
+{
+  if (mParent != NULL)
+  {
+    return true;
+  }
+  return false;
+}
+
 rtError pxImageA::removeResourceListener()
 {
   if (mListenerAdded)
@@ -329,15 +351,38 @@ void pxImageA::reloadData(bool sceneSuspended)
   pxObject::reloadData(sceneSuspended);
 }
 
-uint64_t pxImageA::textureMemoryUsage()
+uint64_t pxImageA::textureMemoryUsage(std::vector<rtObject*> &objectsCounted)
 {
   uint64_t textureMemory = 0;
-  if (mTexture.getPtr() != NULL)
+  if (std::find(objectsCounted.begin(), objectsCounted.end(), this) == objectsCounted.end() )
   {
-    textureMemory += (mTexture->width() * mTexture->height() * 4);
+    if (mTexture.getPtr() != NULL)
+    {
+      textureMemory += (mTexture->width() * mTexture->height() * 4);
+    }
+    textureMemory += pxObject::textureMemoryUsage(objectsCounted);
   }
-  textureMemory += pxObject::textureMemoryUsage();
   return textureMemory;
+}
+
+float pxImageA::getOnscreenWidth()
+{
+  if(mw == -1 || mStretchX == pxConstantsStretch::NONE)
+  {
+    return static_cast<float>(mImageWidth);
+  }
+  else
+    return mw;
+
+}
+float pxImageA::getOnscreenHeight()
+{
+  if(mh == -1 || mStretchY == pxConstantsStretch::NONE)
+  {
+    return static_cast<float>(mImageHeight);
+  }
+  else
+    return mh;
 }
 
 rtDefineObject(pxImageA, pxObject);

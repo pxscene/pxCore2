@@ -38,6 +38,7 @@
 #include "rtCORS.h"
 #include <map>
 class rtFileDownloadRequest;
+class pxArchive;
 
 #define PX_RESOURCE_STATUS_OK             0
 #define PX_RESOURCE_STATUS_DOWNLOADING    1
@@ -52,7 +53,6 @@ class rtFileDownloadRequest;
 #define PX_RESOURCE_LOAD_SUCCESS 0
 #define PX_RESOURCE_LOAD_FAIL 1
 #define PX_RESOURCE_LOAD_WAIT 2
-
 
 class pxResourceListener 
 {
@@ -72,7 +72,7 @@ public:
   rtReadOnlyProperty(loadStatus,loadStatus,rtObjectRef);
     
   pxResource():mUrl(0),mDownloadRequest(NULL),mDownloadInProgress(false), priorityRaised(false),mReady(), mListeners(),
-               mListenersMutex(), mDownloadInProgressMutex(), mLoadStatusMutex(), mName("")
+               mListenersMutex(), mDownloadInProgressMutex(), mLoadStatusMutex(), mName(""), mArchive(NULL)
   {
     mReady = new rtPromise;
     mLoadStatus = new rtMapObject; 
@@ -103,14 +103,14 @@ public:
   virtual void raiseDownloadPriority(); 
   void addListener(pxResourceListener* pListener);
   void removeListener(pxResourceListener* pListener);
-  virtual void loadResource(rtObjectRef archive = NULL);
+  virtual void loadResource(rtObjectRef archive = NULL, bool reloading=false);
   void clearDownloadRequest();
   virtual void setupResource() {}
   virtual void prepare() {}
   void setLoadStatus(const char* name, rtValue value);
   virtual void releaseData();
   virtual void reloadData();
-  virtual uint64_t textureMemoryUsage();
+  virtual uint64_t textureMemoryUsage(std::vector<rtObject*> &objectsCounted);
   void setCORS(const rtCORSRef& cors) { mCORS = cors; }
   void setName(rtString name) { mName = name; }
 protected:   
@@ -142,6 +142,7 @@ protected:
   mutable rtMutex mLoadStatusMutex;
   rtCORSRef mCORS;
   rtString mName;
+  pxArchive* mArchive;
 };
 
 class rtImageResource : public pxResource, public pxTextureListener
@@ -167,7 +168,7 @@ public:
   virtual rtError h(int32_t& v) const; 
 
   pxTextureRef getTexture(bool initializing = false);
-  void setTextureData(pxOffscreen& imageOffscreen, const char* data, const size_t dataSize);
+  void setTextureData(pxOffscreen& imageOffscreen);
   virtual void setupResource();
   virtual void prepare();
 
@@ -185,8 +186,10 @@ public:
 
   virtual void releaseData();
   virtual void reloadData();
-  virtual uint64_t textureMemoryUsage();
+  virtual uint64_t textureMemoryUsage(std::vector<rtObject*> &objectsCounted);
   virtual void textureReady();
+
+  void createWithOffscreen(pxOffscreen& imageOffscreen);
   
 protected:
   virtual uint32_t loadResourceData(rtFileDownloadRequest* fileDownloadRequest);
@@ -216,6 +219,14 @@ public:
 
   rtDeclareObject(rtImageAResource, pxResource);
 
+  rtReadOnlyProperty(w, w, int32_t);
+  rtReadOnlyProperty(h, h, int32_t);
+
+  virtual int32_t w() const;
+  virtual rtError w(int32_t& v) const;
+  virtual int32_t h() const;
+  virtual rtError h(int32_t& v) const;
+
   virtual unsigned long Release() ;
 
   virtual void init();
@@ -231,6 +242,9 @@ private:
   void loadResourceFromArchive(rtObjectRef archiveRef);
   pxTimedOffscreenSequence mTimedOffscreenSequence;
 
+  int32_t mWidth;
+  int32_t mHeight;
+  mutable rtMutex mDimensionsMutex;
 };
 
 // Weak Map

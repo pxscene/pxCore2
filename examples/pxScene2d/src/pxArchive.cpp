@@ -68,8 +68,12 @@ void pxArchive::setupArchive()
     mLoadStatus.set("errorString", mErrorString);
 
     if (mDownloadStatusCode == 0) {
-      mData.init((uint8_t *) mArchiveData, mArchiveDataSize);
-      process(mData.data(), mData.length());
+      // this scenario of mismatch is very rare and can happen only if heap object is destroyed before we access
+      if ((NULL != mArchiveData) && (mArchiveDataSize > 0))
+      {
+        mData.init((uint8_t *) mArchiveData, mArchiveDataSize);
+        process(mData.data(), mData.length());
+      }
     }
     if (mArchiveData != NULL) {
       delete[] mArchiveData;
@@ -116,7 +120,7 @@ rtError pxArchive::initFromUrl(const rtString& url, const rtCORSRef& cors, rtObj
   // TODO review overall flow and organization
   AddRef();
 
-  if (url.beginsWith("http:") || url.beginsWith("https:"))
+  if (url.beginsWith("http:") || url.beginsWith("https:") || url.beginsWith("file:"))
   {
     mLoadStatus.set("sourceType", "http");
     mLoadStatus.set("statusCode", -1);

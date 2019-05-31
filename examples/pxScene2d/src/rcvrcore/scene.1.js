@@ -35,6 +35,7 @@ function Scene() {
       this.animation = scene.animation;
       this.stretch   = scene.stretch;
       this.maskOp    = scene.maskOp;
+      this.dragType  = scene.dragType;
       this.alignVertical = scene.alignVertical;
       this.alignHorizontal = scene.alignHorizontal;
       this.truncation = scene.truncation;
@@ -44,11 +45,14 @@ function Scene() {
       this.filePath = filePath;
       this.addServiceProvider = scene.addServiceProvider;
       this.removeServiceProvider = scene.removeServiceProvider;
+
       if (!isDuk) { 
         this.__defineGetter__("w", function() { return scene.w; });
         this.__defineGetter__("h", function() { return scene.h; });
         this.__defineGetter__("showOutlines", function() { return scene.showOutlines; });
         this.__defineSetter__("showOutlines", function(v) { scene.showOutlines = v; });
+        this.__defineGetter__("reportFps", function() { return scene.reportFps; });
+        this.__defineSetter__("reportFps", function(v) { scene.reportFps = v; });
         this.__defineGetter__("enableDirtyRect", function() { return scene.enableDirtyRect; });
         this.__defineSetter__("enableDirtyRect", function(v) { scene.enableDirtyRect = v; });
         this.__defineGetter__("showDirtyRect", function() { return scene.showDirtyRect; });
@@ -56,11 +60,13 @@ function Scene() {
         this.__defineSetter__("customAnimator", function(v) { scene.customAnimator = v; });
         this.__defineGetter__("dirtyRectangle", function() { return scene.dirtyRectangle; });
         this.__defineGetter__("dirtyRectanglesEnabled", function() { return scene.dirtyRectanglesEnabled; });
+        this.__defineGetter__('storage', function() { return scene.storage; });
       }
       else {
         this.w = scene.w;
         this.h = scene.h;
         this.showOutlines = false;
+        this.reportFps = false;
         this.showDirtyRect = false;       
       }
       //this.w = scene.w;
