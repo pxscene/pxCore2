@@ -54,15 +54,11 @@ px.import({ scene: 'px:scene.1.js' }).then( function importsAreReady(imports)
   var logo = scene.create({ t: "image",  parent: panel, resource: logoRes, x: 0, y: 5});
 
   var dismissTXT = scene.create({ t: "textBox", parent: panel, textColor: "#000",
-                            x: 8, y: 0,
+                            w: max_w, h: value_h, x: 8, y: 0,
                             font: fontRes, pixelSize: 12, wordWrap: true,
                             text: "Press SPACE to dismiss",
                             alignHorizontal: scene.alignHorizontal.CENTER,
-                            alignVertical:   scene.alignVertical.CENTER});
-
-  var dismissM = fontRes.measureText(12, dismissTXT.text);
-  dismissTXT.h = dismissM.h;
-  dismissTXT.w = dismissM.w;
+                            alignVertical:   scene.alignVertical.CENTER})
 
   logo.ready.then(
                     function(o) { },
@@ -82,6 +78,10 @@ px.import({ scene: 'px:scene.1.js' }).then( function importsAreReady(imports)
     var  i = rows.children.length;
     var ix = 10;             // text insets for textbox
     var lx = 0;              // label x
+    var valueTxtM = fontRes.measureText(textPts, value);
+    var labelTxtM = fontRes.measureText(textPts, label);
+    label_h = labelTxtM.h;
+    value_h = valueTxtM.h;
     var vx = (label_w + 4);  // value x
     var py = (label_h * i) + title.h + title.y + 5;
 
