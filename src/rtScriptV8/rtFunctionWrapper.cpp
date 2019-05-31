@@ -29,7 +29,7 @@ using namespace v8;
 namespace rtScriptV8NodeUtils
 {
 
-static const char* kClassName = "Function";
+static const char* kClassName = "__rtFunctionWrapper";
 static Persistent<v8::Function> ctor;
 std::hash<std::string> hashFn;
 

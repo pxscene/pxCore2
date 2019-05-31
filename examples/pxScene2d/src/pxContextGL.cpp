@@ -353,7 +353,7 @@ inline void premultiply(float* d, const float* s)
 class pxFBOTexture : public pxTexture
 {
 public:
-  pxFBOTexture(bool antiAliasing, bool alphaOnly) : mWidth(0), mHeight(0), mFramebufferId(0), mTextureId(0), mBindTexture(true), mAlphaOnly(alphaOnly)
+  pxFBOTexture(bool antiAliasing, bool alphaOnly, bool depthBuffer) : mWidth(0), mHeight(0), mFramebufferId(0), mTextureId(0), mBindTexture(true), mAlphaOnly(alphaOnly), mDepthBuffer(depthBuffer)
 
 #if (defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL)) && !defined(PXSCENE_DISABLE_PXCONTEXT_EXT)
         ,mAntiAliasing(antiAliasing)
@@ -508,7 +508,23 @@ public:
       }
 #endif
 
-      if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+      if (mDepthBuffer)
+      {
+        // The depth buffer
+        GLuint depthrenderbuffer;
+        glGenRenderbuffers(1, &depthrenderbuffer);
+        glBindRenderbuffer(GL_RENDERBUFFER, depthrenderbuffer);
+#if (defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL))
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, mWidth, mHeight);
+#else
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, mWidth, mHeight);
+#endif //(defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL))
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthrenderbuffer);
+      }
+
+      GLenum result = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+
+      if (result != GL_FRAMEBUFFER_COMPLETE)
       {
         if ((mWidth != 0) && (mHeight != 0))
         {
@@ -521,7 +537,7 @@ public:
             createFboTexture(mWidth, mHeight);
             return prepareForRendering();
           }
-          rtLogWarn("error setting the render surface");
+          rtLogWarn("error setting the render surface: %d", result);
           return PX_FAIL;
         }
         return PX_FAIL;
@@ -585,6 +601,7 @@ private:
   GLuint mTextureId;
   bool mBindTexture;
   bool mAlphaOnly;
+  bool mDepthBuffer;
 
 #if (defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL)) && !defined(PXSCENE_DISABLE_PXCONTEXT_EXT)
   bool mAntiAliasing;
@@ -2408,10 +2425,10 @@ float pxContext::getAlpha()
   return gAlpha;
 }
 
-pxContextFramebufferRef pxContext::createFramebuffer(int width, int height, bool antiAliasing, bool alphaOnly)
+pxContextFramebufferRef pxContext::createFramebuffer(int width, int height, bool antiAliasing, bool alphaOnly, bool depthBuffer)
 {
   pxContextFramebuffer* fbo = new pxContextFramebuffer();
-  pxFBOTexture* fboTexture = new pxFBOTexture(antiAliasing, alphaOnly);
+  pxFBOTexture* fboTexture = new pxFBOTexture(antiAliasing, alphaOnly, depthBuffer);
   pxTextureRef texture = fboTexture;
 
   fboTexture->createFboTexture(width, height);
@@ -2781,9 +2798,9 @@ pxTextureRef pxContext::createTexture(float w, float h, float iw, float ih, void
   return alphaTexture;
 }
 
-pxSharedContextRef pxContext::createSharedContext()
+pxSharedContextRef pxContext::createSharedContext(bool depthBuffer)
 {
-  pxSharedContext* sharedContext = new pxSharedContext();
+  pxSharedContext* sharedContext = new pxSharedContext(depthBuffer);
   return sharedContext;
 }
 
@@ -3030,6 +3047,4 @@ void pxContext::updateRenderTick()
     gRenderTick++;
   }
 }
-
-
 

@@ -40,6 +40,10 @@
 #include "pxTextBox.h"
 #include "pxImage.h"
 
+#ifdef ENABLE_SPARK_WEBGL
+#include "pxWebGL.h"
+#endif //ENABLE_SPARK_WEBGL
+
 #ifdef PX_SERVICE_MANAGER
 #include "pxServiceManager.h"
 #endif //PX_SERVICE_MANAGER
@@ -728,6 +732,8 @@ rtError pxScene2d::create(rtObjectRef p, rtObjectRef& o)
     e = createExternal(p,o);
   else if (!strcmp("wayland",t.cString()))
     e = createWayland(p,o);
+  else if (!strcmp("webgl",t.cString()))
+    e = createWebGL(p,o);
   else if (!strcmp("object",t.cString()))
     e = createObject(p,o);
   else
@@ -1041,6 +1047,19 @@ rtError pxScene2d::createWayland(rtObjectRef p, rtObjectRef& o)
   rtLogWarn("Type 'wayland' is deprecated; use 'external' instead.\n");
   UNUSED_PARAM(p);
   return this->createExternal(p, o);
+}
+
+rtError pxScene2d::createWebGL(rtObjectRef p, rtObjectRef& o)
+{
+#ifdef ENABLE_SPARK_WEBGL
+  o = new pxWebgl(this);
+  o.set(p);
+  o.send("init");
+  return RT_OK;
+#else
+  rtLogError("Type 'webgl' is not supported");
+  return RT_FAIL;
+#endif //ENABLE_SPARK_WEBGL
 }
 
 void pxScene2d::draw()
@@ -2606,6 +2625,10 @@ rtError pxScene2d::storage(rtObjectRef& v) const
 #endif
 }
 
+rtDefineObject(scriptViewShadow, rtObject);
+rtDefineMethod(scriptViewShadow, addListener);
+rtDefineMethod(scriptViewShadow, delListener);
+
 rtDefineObject(pxScene2d, rtObject);
 rtDefineProperty(pxScene2d, root);
 rtDefineProperty(pxScene2d, info);
@@ -3053,12 +3076,17 @@ rtError createObject2(const char* t, rtObjectRef& o)
 }
 #endif
 
+int contextId = 1;
+
 pxScriptView::pxScriptView(const char* url, const char* /*lang*/, pxIViewContainer* container)
-     : mWidth(-1), mHeight(-1), mViewContainer(container), mRefCount(0)
+     : mWidth(-1), mHeight(-1), mDrawing(false), mSharedContext(), mViewContainer(container), mRefCount(0)
 {
   rtLogDebug("pxScriptView::pxScriptView()entering\n");
   mUrl = url;
-#ifndef RUNINMAIN // NOTE this ifndef ends after runScript decl, below
+
+  shadow = new scriptViewShadow;
+  
+  #ifndef RUNINMAIN // NOTE this ifndef ends after runScript decl, below
   mReady = new rtPromise();
   triggerUpdate();
  // mLang = lang;
@@ -3109,38 +3137,300 @@ void pxScriptView::runScript()
     mReady = new rtPromise();
 #endif
 
-    mCtx->runFile("init.js");
+    // JRJR Temporary webgl integration
+    if (mUrl.beginsWith("gl:"))
+    {
+      mSharedContext = context.createSharedContext(true);
+      mBeginDrawing = new rtFunctionCallback(beginDrawing2, this);
+      mEndDrawing = new rtFunctionCallback(endDrawing2, this);
+      //mCtx->add("view", this);     
 
-    char buffer[MAX_URL_SIZE + 50];
-    memset(buffer, 0, sizeof(buffer));
-    snprintf(buffer, sizeof(buffer), "loadUrl(\"%s\");", mUrl.cString());
-    rtLogDebug("pxScriptView::runScript calling runScript with %s\n",mUrl.cString());
-#ifdef WIN32 // process \\ to /
-		unsigned int bufferLen = strlen(buffer);
-		char * newBuffer = (char*)malloc(sizeof(char)*(bufferLen + 1));
-		unsigned int newBufferLen = 0;
-		for (size_t i = 0; i < bufferLen - 1; i++) {
-			if (buffer[i] == '\\') {
-				newBuffer[newBufferLen++] = '/';
-				if (buffer[i + 1] == '\\') {
-					i = i + 1;
-				}
-			}
-			else {
-				newBuffer[newBufferLen++] = buffer[i];
-			}
-		}
-		newBuffer[newBufferLen++] = '\0';
-		strcpy(buffer, newBuffer);
-		free(newBuffer);
-#endif
-    mCtx->runScript(buffer);
-    rtLogDebug("pxScriptView::runScript() ending\n");
+      // JRJR TODO initially with zero mWidth/mHeight until onSize event
+      // defer to onSize once events have been ironed out
+      mSharedContext->makeCurrent(true);
+      cached = context.createFramebuffer(1280,720,false,false,true);
+      mSharedContext->makeCurrent(false);
+
+      beginDrawing();
+      glClearColor(0, 0, 0, 0);
+      glClear(GL_COLOR_BUFFER_BIT);      
+      mCtx->runFile("initGL.js");
+      rtValue foo = mCtx->get("loadUrl");
+      rtFunctionRef f = foo.toFunction();
+      bool b = true;
+      // JRJR Adding an AddRef to this... causes bad things to happen when reloading gl scenes
+      // investigate... 
+      // JRJR WARNING! must use sendReturns since wrappers will invoke asyncronously otherwise.
+      f.sendReturns<bool>(mUrl,mBeginDrawing.getPtr(),mEndDrawing.getPtr(), shadow.getPtr(), b);
+      endDrawing();
+
+      mReady.send(b?"resolve":"reject",mScene);
+    }
+    else
+    {
+      mCtx->runFile("init.js");
+
+      char buffer[MAX_URL_SIZE + 50];
+      memset(buffer, 0, sizeof(buffer));
+      snprintf(buffer, sizeof(buffer), "loadUrl(\"%s\");", mUrl.cString());
+      rtLogDebug("pxScriptView::runScript calling runScript with %s\n",mUrl.cString());
+  #ifdef WIN32 // process \\ to /
+      unsigned int bufferLen = strlen(buffer);
+      char * newBuffer = (char*)malloc(sizeof(char)*(bufferLen + 1));
+      unsigned int newBufferLen = 0;
+      for (size_t i = 0; i < bufferLen - 1; i++) {
+        if (buffer[i] == '\\') {
+          newBuffer[newBufferLen++] = '/';
+          if (buffer[i + 1] == '\\') {
+            i = i + 1;
+          }
+        }
+        else {
+          newBuffer[newBufferLen++] = buffer[i];
+        }
+      }
+      newBuffer[newBufferLen++] = '\0';
+      strcpy(buffer, newBuffer);
+      free(newBuffer);
+  #endif
+      mCtx->runScript(buffer);
+      rtLogDebug("pxScriptView::runScript() ending\n");
+    }
 //#endif
   }
   #endif //ENABLE_RT_NODE
 }
 
+pxScriptView::~pxScriptView()
+{
+  rtLogDebug("~pxScriptView for mUrl=%s\n",mUrl.cString());
+  // Clear out these references since the script context
+  // can outlive this view
+#ifdef ENABLE_RT_NODE
+  if(mCtx)
+  {
+    mGetScene->clearContext();
+    mMakeReady->clearContext();
+    mGetContextID->clearContext();
+
+    // TODO Given that the context is being cleared we likely don't need to zero these out
+    mCtx->add("getScene", 0);
+    mCtx->add("makeReady", 0);
+    mCtx->add("getContextID", 0);
+  }
+#endif //ENABLE_RT_NODE
+
+  if (mView)
+    mView->setViewContainer(NULL);
+
+  // TODO JRJR Do we have GC tests yet
+  // Hack to try and reduce leaks until garbage collection can
+  // be cleaned up
+
+  shadow->emit()->clearListeners();
+
+  if (mUrl.beginsWith("gl:"))
+  {
+    mCtx->runScript("onClose()");
+  }
+
+  // JRJR TODO Not Releasing GL Context 
+
+  if(mScene)
+    mEmit.send("onSceneRemoved", mScene);
+
+  if (mScene)
+    mScene.send("dispose");
+
+  mView = NULL;
+  mScene = NULL;
+}
+
+void pxScriptView::onSize(int32_t w, int32_t h)
+{
+  mWidth = w;
+  mHeight = h;
+
+  {
+    rtObjectRef e = new rtMapObject;
+    e.set("name", "onResize");
+    e.set("w", w);
+    e.set("h", h);
+    shadow->emit().send("onResize", e);
+  }
+
+  #if 0  // JRJR TODO Leave out until we get the resizing events ironed out for gl content
+  if (mUrl == "triangle")
+  {
+    cached = context.createFramebuffer(mWidth,mHeight);
+  }
+  #endif
+
+  if (mView)
+    mView->onSize(w,h);
+}
+
+bool pxScriptView::onMouseDown(int32_t x, int32_t y, uint32_t flags)
+{
+  {
+    // Send to root scene in global window coordinates
+    rtObjectRef e = new rtMapObject;
+    e.set("name", "onMouseDown");
+    e.set("x", x);
+    e.set("y", y);
+    e.set("flags", (uint32_t)flags);
+    shadow->emit().send("onMouseDown", e);
+  }
+
+  if (mView)
+    return mView->onMouseDown(x,y,flags);
+
+  return false;
+}
+
+bool pxScriptView::onMouseUp(int32_t x, int32_t y, uint32_t flags)
+{
+  {
+    // Send to root scene in global window coordinates
+    rtObjectRef e = new rtMapObject;
+    e.set("name", "onMouseUp");
+    e.set("x", x);
+    e.set("y", y);
+    e.set("flags", static_cast<uint32_t>(flags));
+    shadow->emit().send("onMouseUp", e);
+  }
+  if (mView)
+    return mView->onMouseUp(x,y,flags);
+  return false;
+}
+
+bool pxScriptView::onMouseMove(int32_t x, int32_t y)
+{
+  {
+    // Send to root scene in global window coordinates
+    rtObjectRef e = new rtMapObject;
+    e.set("name", "onMouseMove");
+    e.set("x", x);
+    e.set("y", y);
+    shadow->emit().send("onMouseMove", e);
+  }
+
+  if (mView)
+    return mView->onMouseMove(x,y);
+  return false;
+}
+
+bool pxScriptView::onScrollWheel(float dx, float dy)
+{
+  {
+    rtObjectRef e = new rtMapObject;
+    e.set("name", "onScrollWheel");
+    e.set("dx", dx);
+    e.set("dy", dy);
+    shadow->emit().send("onScrollWheel");
+  }
+
+  if (mView)
+    return mView->onScrollWheel(dx,dy);
+  return false;
+}
+
+bool pxScriptView::onMouseEnter()
+{
+  if (mView)
+    return mView->onMouseEnter();
+  return false;
+}
+
+bool pxScriptView::onMouseLeave()
+{
+  if (mView)
+    return mView->onMouseLeave();
+  return false;
+}
+
+bool pxScriptView::onFocus()
+{
+  // top level scene event
+  rtObjectRef e = new rtMapObject;
+  e.set("name", "onFocus");
+  shadow->emit().send("onFocus", e);
+
+  if (mView)
+    return mView->onFocus();
+  return false;
+}
+
+bool pxScriptView::onBlur()
+{
+  // top level scene event
+  rtObjectRef e = new rtMapObject;
+  e.set("name", "onBlur");
+  shadow->emit().send("onBlur", e);
+
+  if (mView)
+    return mView->onBlur();
+  return false;
+}
+
+bool pxScriptView::onKeyDown(uint32_t keycode, uint32_t flags)
+{  
+  {
+    rtObjectRef e = new rtMapObject;
+    e.set("keyCode", keycode);
+    e.set("flags", (uint32_t)flags);
+    shadow->emit().send("onKeyDown", e);
+  }
+
+  if (mView)
+    return mView->onKeyDown(keycode, flags);
+  return false;
+}
+
+bool pxScriptView::onKeyUp(uint32_t keycode, uint32_t flags)
+{
+  {
+    rtObjectRef e = new rtMapObject;
+    e.set("keyCode", keycode);
+    e.set("flags", (uint32_t)flags);
+    shadow->emit().send("onKeyUp", e);
+  }
+
+  if (mView)
+    return mView->onKeyUp(keycode,flags);
+  return false;
+}
+
+bool pxScriptView::onChar(uint32_t codepoint)
+{
+  {
+    rtObjectRef e = new rtMapObject;
+    e.set("charCode", codepoint);
+    shadow->emit().send("onChar", e);
+  }
+  if (mView)
+    return mView->onChar(codepoint);
+  return false;
+}
+
+void pxScriptView::onDraw(/*pxBuffer& b, pxRect* r*/)
+{
+  static pxTextureRef nullMaskRef;
+  if (mUrl.beginsWith("gl:"))
+  {
+    /* code */
+    if (cached.getPtr() && cached->getTexture().getPtr())
+    {
+      context.drawImage(0, 0, cached->width(), cached->height(), cached->getTexture(), nullMaskRef);
+    }
+  }
+  else
+  {
+    if (mView)
+      mView->onDraw();
+  }
+  
+}
 
 rtError pxScriptView::suspend(const rtValue& v, bool& b)
 {
@@ -3251,6 +3541,53 @@ rtError pxScriptView::getContextID(int /*numArgs*/, const rtValue* /*args*/, rtV
   #endif
 }
 #endif
+
+void pxScriptView::beginDrawing()
+{
+  if (!mDrawing)
+  {
+    mDrawing = true;
+    mSharedContext->makeCurrent(true);
+    previousSurface = context.getCurrentFramebuffer();
+    context.setFramebuffer(cached);
+    return;
+  }
+  rtLogWarn("pxScriptView::beginDrawing() already entered");
+}
+
+void pxScriptView::endDrawing()
+{
+  if (mDrawing)
+  {
+    glFlush();
+    context.setFramebuffer(previousSurface);
+    mSharedContext->makeCurrent(false);
+    mViewContainer->invalidateRect(NULL);
+    mDrawing = false;
+    return;
+  }
+  rtLogWarn("pxScriptView::endDrawing() not currently drawing");
+}
+
+rtError pxScriptView::beginDrawing2(int /*numArgs*/, const rtValue* /*args*/, rtValue* /*result*/, void* ctx)
+{
+  if (ctx)
+  {
+    pxScriptView* v = (pxScriptView*)ctx;
+    v->beginDrawing();   
+  }
+  return RT_OK;
+}
+
+rtError pxScriptView::endDrawing2(int /*numArgs*/, const rtValue* /*args*/, rtValue* /*result*/, void* ctx)
+{
+  if (ctx)
+  {
+    pxScriptView* v = (pxScriptView*)ctx;
+    v->endDrawing();
+  }
+  return RT_OK;
+}
 
 rtError pxScriptView::makeReady(int numArgs, const rtValue* args, rtValue* /*result*/, void* ctx)
 {

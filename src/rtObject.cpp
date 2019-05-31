@@ -68,6 +68,7 @@ rtError rtEmit::addListener(const char* eventName, rtIFunction* f)
   return addListener(eventName, f, false);
 }
 
+// JRJR gotten to be a bit complicated review... 
 rtError rtEmit::addListener(const char* eventName, rtIFunction* f, bool emitOnce)
 {
   if (!eventName || !f)
@@ -105,7 +106,7 @@ rtError rtEmit::addListener(const char* eventName, rtIFunction* f, bool emitOnce
       mPendingEntriesToAdd.push_back(e);
     }
   }
-  
+
   return RT_OK;
 }
 

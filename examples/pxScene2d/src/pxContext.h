@@ -95,7 +95,7 @@ class pxContext {
   void pushState();
   void popState();
 
-  pxContextFramebufferRef createFramebuffer(int width, int height, bool antiAliasing=false, bool alphaOnly=false);
+  pxContextFramebufferRef createFramebuffer(int width, int height, bool antiAliasing=false, bool alphaOnly=false, bool depthBuffer=false);
   pxError updateFramebuffer(pxContextFramebufferRef fbo, int width, int height);
   pxError setFramebuffer(pxContextFramebufferRef fbo);
   pxContextFramebufferRef getCurrentFramebuffer();
@@ -107,7 +107,7 @@ class pxContext {
   pxTextureRef createTexture(); // default to use before image load is complete
   pxTextureRef createTexture(pxOffscreen& o);
   pxTextureRef createTexture(float w, float h, float iw, float ih, void* buffer = NULL);
-  pxSharedContextRef createSharedContext();
+  pxSharedContextRef createSharedContext(bool depthBuffer = false);
 
   void snapshot(pxOffscreen& o);
 

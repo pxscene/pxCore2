@@ -272,7 +272,7 @@ void pxDeleteEglContext(int id)
   }
 }
 
-pxError createInternalContext(int &id)
+pxError createInternalContext(int &id, bool /*depthBuffer*/)
 {
   {
     rtMutexLockGuard eglContextMutexGuard(eglContextMutex);

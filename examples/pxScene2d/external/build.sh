@@ -287,7 +287,13 @@ then
   ./dukluv/build.sh
 fi
 
-#--------
+#-------- spark-webgl
+
+cd spark-webgl
+node-gyp rebuild
+cd ..
+
+#-------- 
 
 if [ ! -e sqlite/.libs/libsqlite3.a ]
 then

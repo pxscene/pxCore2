@@ -672,7 +672,9 @@ rtNodeContext::~rtNodeContext()
     // clear out persistent javascript handles
       HandleMap::clearAllForContext(mId);
 #if defined(ENABLE_NODE_V_6_9) && defined(USE_CONTEXTIFY_CLONES)
-      node::deleteContextifyContext(mContextifyContext);
+      // JRJR  This was causing HTTPS to crash in gl content reloads
+      // what does this do exactly... am I leaking now  why is this only a 6.9 thing?
+      //node::deleteContextifyContext(mContextifyContext);
 #endif
       mContextifyContext = NULL;
     }
