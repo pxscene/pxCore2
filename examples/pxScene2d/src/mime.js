@@ -33,7 +33,7 @@ limitations under the License.
    * @returns {String} URL for a scene
    */
 
-  var baseUrl = "https://www.pxscene.org/examples/px-reference/gallery/";
+  var baseUrl = "https://www.sparkui.org/examples/gallery/";
 
   function resolveSceneUrl(url) {
     url = prepareUrl(url);

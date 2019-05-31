@@ -22,15 +22,21 @@
 #include <unistd.h>
 #include "rtString.h"
 #include "rtRef.h"
+#include "rtPathUtils.h"
 #include "pxCore.h"
 #include "pxKeycodes.h"
 
 #include "pxWaylandContainer.h"
 
 #include "pxContext.h"
+#include "pxImage.h"
+#include "pxUtil.h"
+#include "rtPermissions.h"
 
 #include <map>
 using namespace std;
+
+extern pxContext context;
 
 extern map<string, string> gWaylandAppsMap;
 // // TODO: move this to pxOffscreenNative.{cpp,mm} files
@@ -169,6 +175,7 @@ rtError pxWaylandContainer::setCmd(const char* s)
   const char *p= strpbrk( s, " ");
   std::map<string, string>::iterator it= gWaylandAppsMap.end();
   rtString binary;
+  rtString binaryPath;
   mCmd = s;
   if ( !p )
   {
@@ -187,6 +194,11 @@ rtError pxWaylandContainer::setCmd(const char* s)
       if ( regcmdlen > 0 )
       {
          binary = rtString(regcmd, (uint32_t) regcmdlen);
+      }
+      if (!rtFileExists(binary))
+      {
+        rtLogError("Application %s does not exist", binary.cString());
+        return RT_ERROR;
       }
     }
   }
@@ -210,7 +222,13 @@ rtError pxWaylandContainer::setCmd(const char* s)
                (regcmd[regcmdlen-1] == '%'))
           {
              binary = rtString(regcmd, (uint32_t) (regcmdlen-1) );
+             binaryPath = binary;
              binary.append( args );
+          }
+          if (!rtFileExists(binaryPath))
+          {
+            rtLogError("Application %s does not exist", binaryPath.cString());
+            return RT_ERROR;
           }
        }
        free( (void*)cmd );
@@ -347,8 +365,7 @@ rtError pxWaylandContainer::suspend(const rtValue &v, bool& b)
   b = false;
   if ( mWayland )
   {
-    mWayland->suspend(v);
-    b = true;
+    mWayland->suspend(v, b);
   }
   return RT_OK;
 }
@@ -358,8 +375,7 @@ rtError pxWaylandContainer::resume(const rtValue& v, bool& b)
   b = false;
   if ( mWayland )
   {
-    mWayland->resume(v);
-    b = true;
+    mWayland->resume(v, b);
   }
   return RT_OK;
 }
@@ -378,6 +394,60 @@ rtError pxWaylandContainer::destroy(bool& b)
   return RT_OK;
 }
 
+rtError pxWaylandContainer::screenshot(rtString type, rtValue& returnValue)
+{
+  returnValue = "";
+#ifdef ENABLE_PERMISSIONS_CHECK
+  if (mScene != NULL && RT_OK != mScene->permissions()->allows("screenshot", rtPermissions::FEATURE))
+  {
+    return RT_ERROR_NOT_ALLOWED;
+  }
+#endif
+
+  // Is this a type we support?
+  if (type != "image/png;base64" && type != "image/image" && mWayland.getPtr() != NULL)
+  {
+    return RT_FAIL;
+  }
+
+  pxContextFramebufferRef newFBO;
+  mWayland->drawToFbo(newFBO);
+  pxContextFramebufferRef previousRenderSurface = context.getCurrentFramebuffer();
+  context.setFramebuffer(newFBO);
+  pxOffscreen o;
+  newFBO->getTexture()->getOffscreen(o);
+  context.setFramebuffer(previousRenderSurface);
+
+  if (type == "image/png;base64")
+  {
+    rtData pngData2;
+    if (pxStorePNGImage(o, pngData2) != RT_OK)
+    {
+      return RT_FAIL;
+    }
+
+    rtString base64coded;
+
+    if (base64_encode(pngData2, base64coded) == RT_OK)
+    {
+      rtString pngData = "data:image/png;base64,";
+
+      pngData += base64coded;
+      returnValue = pngData;
+
+      return RT_OK;
+    }
+  }
+  else if (type == "image/image")
+  {
+    pxImage* image = new pxImage(mScene);
+    image->createWithOffscreen(o);
+    returnValue = image;
+    return RT_OK;
+  }
+  return RT_FAIL;
+}
+
 void pxWaylandContainer::onInit()
 {
   if ( mWayland )
@@ -392,6 +462,7 @@ void pxWaylandContainer::onInit()
        mDisplayName = name;
     }
   }
+  pxObject::onInit();
 }
 
 rtDefineObject(pxWaylandContainer,pxViewContainer);
@@ -406,3 +477,4 @@ rtDefineProperty(pxWaylandContainer,hasApi);
 rtDefineMethod(pxWaylandContainer, suspend);
 rtDefineMethod(pxWaylandContainer, resume);
 rtDefineMethod(pxWaylandContainer, destroy);
+rtDefineMethod(pxWaylandContainer, screenshot);

@@ -80,11 +80,21 @@ function Application(props) {
     Object.defineProperty(_this, key, {
       get: function() { return _externalApp[_externalAppPropsReadWrite[key]]; },
       set: function(v) {
-           if (this.type === ApplicationType.SPARK_INSTANCE && _externalApp.api && key === "url") {
-             // set the api property for spark instance
-             _externalApp.api.url = v;
+           if (key === "url") {
+             if (this.type === ApplicationType.SPARK_INSTANCE && _externalApp.api) {
+               // set the api property for spark instance
+               _externalApp.api.url = v;
+             }
+             else if (this.type === ApplicationType.SPARK) {
+               console.log("setting url on spark app is not permitted");
+             }
+             else {
+               _externalApp[_externalAppPropsReadWrite[key]] = v;
+             }
            }
-           _externalApp[_externalAppPropsReadWrite[key]] = v;
+           else {
+             _externalApp[_externalAppPropsReadWrite[key]] = v;
+           }
          }
     });
   });

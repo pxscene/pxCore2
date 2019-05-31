@@ -34,7 +34,24 @@ cd jpg
 make all -j3
 cd ..
 
-#--------- ZLIB 
+#--------- GIF
+cd gif
+make
+[ -d .libs ] || mkdir -p .libs
+if [ -e libgif.7.dylib ]
+then
+cp libgif.7.dylib .libs/libgif.7.dylib
+cp libutil.7.dylib .libs/libutil.7.dylib
+
+elif [ -e libgif.so ]
+then
+cp libgif.so .libs/libgif.dylib
+cp libutil.so .libs/libutil.dylib
+fi
+
+cd ..
+
+#--------- ZLIB
 cd zlib
 ./configure
 make all -j3

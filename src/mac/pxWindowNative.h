@@ -63,6 +63,27 @@ public:
     if (w)
       w->onMouseMove(x, y);
   }
+  static void _helper_onDragMove(pxWindowNative* w, int32_t x, int32_t y, int32_t type)
+  {
+    if (w)
+    w->onDragMove(x, y, type);
+  }
+  static void _helper_onDragEnter(pxWindowNative* w, int32_t x, int32_t y, int32_t type)
+  {
+    if (w)
+    w->onDragEnter(x, y, type);
+  }
+  static void _helper_onDragLeave(pxWindowNative* w, int32_t x, int32_t y, int32_t type)
+  {
+    if (w)
+    w->onDragLeave(x, y, type);
+  }
+  static void _helper_onDragDrop(pxWindowNative* w, int32_t x, int32_t y, int32_t type, const char *dropped)
+  {
+    if (w)
+    w->onDragDrop(x, y, type, dropped);
+  }
+
   static void _helper_onScrollWheel(pxWindowNative* w, float dx, float dy)
   {
     if (w)
@@ -125,6 +146,11 @@ protected:
   
   virtual void onMouseEnter() = 0;
   virtual void onMouseLeave() = 0;
+  
+  virtual void onDragMove(int32_t  /*x*/, int32_t /*y*/, int32_t /*type*/) { /*empty*/ };
+  virtual void onDragEnter(int32_t /*x*/, int32_t /*y*/, int32_t /*type*/) { /*empty*/ };
+  virtual void onDragLeave(int32_t /*x*/, int32_t /*y*/, int32_t /*type*/) { /*empty*/ };
+  virtual void onDragDrop(int32_t  /*x*/, int32_t /*y*/, int32_t /*type*/, const char* /*dropped*/) { /*empty*/ };
   
   virtual void onKeyDown(uint32_t keycode, uint32_t flags) = 0;
   virtual void onKeyUp(uint32_t keycode, uint32_t flags) = 0;

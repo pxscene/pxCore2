@@ -62,6 +62,7 @@
 #include <rapidjson/filereadstream.h>
 #include <rapidjson/stringbuffer.h>
 #include <rapidjson/writer.h>
+#include <algorithm>
 
 #ifdef ENABLE_RT_NODE
 #include "rtScript.h"
@@ -102,6 +103,13 @@ extern pxContext      context;
 static int fpsWarningThreshold = 25;
 
 rtEmitRef pxScriptView::mEmit = new rtEmit();
+
+
+#ifdef PXSCENE_SUPPORT_STORAGE
+#define DEFAULT_LOCALSTORAGE_DIR ".spark/storage/"
+#define DEFAULT_LOCALSTORAGE_DIR_ENV_NAME "SPARK_STORAGE"
+#endif
+
 
 // Debug Statistics
 #ifdef USE_RENDER_STATS
@@ -148,6 +156,34 @@ void stopProfiling()
 
 extern int pxObjectCount;
 bool gApplicationIsClosing = false;
+
+bool enableOptimizedUpdateOnStartup()
+{
+#ifdef ENABLE_SPARK_OPTIMIZED_UPDATE
+  bool enableSparkOptimizedUpdate = true;
+#else
+  bool enableSparkOptimizedUpdate = false;
+#endif //ENABLE_SPARK_OPTIMIZED_UPDATE
+  char const *s = getenv("SPARK_OPTIMIZED_UPDATE");
+  if (s)
+  {
+    if (strlen(s) > 0)
+    {
+      int value = atoi(s);
+      if (value > 0)
+      {
+        enableSparkOptimizedUpdate = true;
+      }
+    }
+  }
+  if (enableSparkOptimizedUpdate)
+  {
+    printf("enabling optimized update on startup\n");
+  }
+  return enableSparkOptimizedUpdate;
+}
+
+bool pxScene2d::mOptimizedUpdateEnabled = enableOptimizedUpdateOnStartup();
 
 #include <rapidjson/document.h>
 #include <rapidjson/filereadstream.h>
@@ -386,22 +422,30 @@ void populateAllAppDetails(rtString& appDetails)
 }
 
 
+void pxRoot::sendPromise()
+{
+  if(!((rtPromise*)mReady.getPtr())->status())
+  {
+    mReady.send("resolve",this);
+  }
+}
+
+
 rtDefineObject(pxRoot,pxObject);
 
 int gTag = 0;
 
 pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
-  : mRoot(), mInfo(), mCapabilityVersions(), start(0), sigma_draw(0), sigma_update(0), end2(0), frameCount(0), mWidth(0), mHeight(0), mStopPropagation(false), mContainer(NULL), mShowDirtyRectangle(false),
-#ifdef PX_DIRTY_RECTANGLES_DEFAULT_ON
-    mEnableDirtyRectangles(true),
-#else
-    mEnableDirtyRectangles(false),
-#endif //PX_DIRTY_RECTANGLES_DEFAULT_ON
+  : mRoot(), mInfo(), mCapabilityVersions(), start(0), sigma_draw(0), sigma_update(0), end2(0), frameCount(0), mWidth(0), mHeight(0), mStopPropagation(false), mContainer(NULL), mReportFps(false), mShowDirtyRectangle(false),
+    mEnableDirtyRectangles(gDirtyRectsEnabled),
     mInnerpxObjects(), mSuspended(false),
 #ifdef PX_DIRTY_RECTANGLES
     mArchive(),mDirtyRect(), mLastFrameDirtyRect(),
 #endif //PX_DIRTY_RECTANGLES
-    mDirty(true), mTestView(NULL), mDisposed(false), mArchiveSet(false)
+    mDirty(true), mDragging(false), mDragType(pxConstantsDragType::NONE), mDragTarget(NULL), mTestView(NULL), mDisposed(false), mArchiveSet(false)
+#ifdef PXSCENE_SUPPORT_STORAGE
+, mStorage(NULL)
+#endif
 {
   mRoot = new pxRoot(this);
   #ifdef ENABLE_PXOBJECT_TRACKING
@@ -484,13 +528,21 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   // capabilities.graphics.svg          = 2
   // capabilities.graphics.cursor       = 1
   // capabilities.graphics.colors       = 1
+  // capabilities.graphics.screenshots  = 2
+  // capabilities.graphics.text         = 3
+  // capabilities.graphics.imageAResource  = 2
+  //
+  // capabilities.scene.external  = 1
   //
   // capabilities.network.cors          = 1
   // capabilities.network.corsResources = 1
   // capabilities.network.http2         = 2
   //
   // capabilities.metrics.textureMemory = 1
-  // capabilities.metrics.resources = 1
+  // 
+  // capabilities.animations.durations = 2
+  //
+  // capabilities.events.drag_n_drop    = 2   // additional Drag'n'Drop events 
 
   mCapabilityVersions = new rtMapObject;
 
@@ -498,7 +550,15 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
 
   graphicsCapabilities.set("svg", 2);
   graphicsCapabilities.set("colors", 1);
-
+      
+#ifdef SUPPORT_GIF
+    graphicsCapabilities.set("gif", 1);
+#endif //SUPPORT_GIF
+  graphicsCapabilities.set("imageAResource", 2);
+      
+  graphicsCapabilities.set("screenshots", 2);
+  graphicsCapabilities.set("text", 3);
+      
 #ifdef SPARK_CURSOR_SUPPORT
   graphicsCapabilities.set("cursor", 1);
 #else
@@ -514,6 +574,14 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
 
   mCapabilityVersions.set("graphics", graphicsCapabilities);
 
+  rtObjectRef sceneCapabilities = new rtMapObject;
+#if defined(DISABLE_WAYLAND)
+  sceneCapabilities.set("external", 0);
+#else
+  sceneCapabilities.set("external", 1);
+#endif //DISABLE_WAYLAND
+  mCapabilityVersions.set("scene", sceneCapabilities);
+
   rtObjectRef networkCapabilities = new rtMapObject;
 
 #ifdef ENABLE_ACCESS_CONTROL_CHECK
@@ -528,12 +596,26 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   networkCapabilities.set("http2", 2);
 
   mCapabilityVersions.set("network", networkCapabilities);
+#ifdef PXSCENE_SUPPORT_STORAGE
+  mCapabilityVersions.set("storage", 1);
+#endif
 
   rtObjectRef metricsCapabilities = new rtMapObject;
 
-  metricsCapabilities.set("textureMemory", 1);
+  metricsCapabilities.set("textureMemory", 2);
   metricsCapabilities.set("resources", 1);
   mCapabilityVersions.set("metrics", metricsCapabilities);
+
+  rtObjectRef animationCapabilities = new rtMapObject;
+
+  animationCapabilities.set("durations", 2);
+  mCapabilityVersions.set("animations", animationCapabilities);
+  //////////////////////////////////////////////////////
+
+  rtObjectRef userCapabilities = new rtMapObject;
+
+  mCapabilityVersions.set("events", userCapabilities);
+  userCapabilities.set("drag_n_drop", (gPlatformOS == "macOS") ? 2 : 1);
 
   //////////////////////////////////////////////////////
 }
@@ -567,6 +649,13 @@ rtError pxScene2d::dispose()
     mInfo     = NULL;
     mCapabilityVersions = NULL;
     mFocusObj = NULL;
+
+#ifdef PXSCENE_SUPPORT_STORAGE
+    if (mStorage)
+      mStorage->term(); // Close database file now
+    mStorage = NULL;
+#endif
+
     return RT_OK;
 }
 
@@ -898,7 +987,8 @@ rtError pxScene2d::suspended(bool &b)
 rtError pxScene2d::textureMemoryUsage(rtValue &v)
 {
   uint64_t textureMemory = 0;
-  textureMemory += mRoot->textureMemoryUsage();
+  std::vector<rtObject*> objectsCounted;
+  textureMemory += mRoot->textureMemoryUsage(objectsCounted);
   v.setUInt64(textureMemory);
   return RT_OK;
 }
@@ -1071,6 +1161,54 @@ if (__frameCount > 60*5)
   __frameCount = 0;
 }
 
+
+}
+
+std::map<pxObject*, pxObject*> gUpdateObjects;
+
+void pxScene2d::updateObject(pxObject* o, bool update)
+{
+  if (!mOptimizedUpdateEnabled)
+  {
+    return;
+  }
+  if (update)
+  {
+    gUpdateObjects[o] = o;
+  }
+  else
+  {
+    gUpdateObjects.erase(o);
+  }
+}
+
+void pxScene2d::updateObjects(double t)
+{
+  std::map<pxObject*, pxObject*>::const_iterator it;
+  for (it=gUpdateObjects.begin(); it!=gUpdateObjects.end();)
+  {
+    pxObject* obj = (*it).second;
+    obj->update(t, false);
+    if (!obj->needsUpdate())
+    {
+      it = gUpdateObjects.erase(it);
+    }
+    else
+    {
+      it++;
+    }
+
+  }
+}
+
+void pxScene2d::enableOptimizedUpdate(bool enable)
+{
+  if (!enable)
+  {
+    gUpdateObjects.clear();
+  }
+  mOptimizedUpdateEnabled = enable;
+  rtLogInfo("Optimized update enabled: %s", enable ? "true":"false");
 }
 
 void pxScene2d::onUpdate(double t)
@@ -1097,8 +1235,19 @@ void pxScene2d::onUpdate(double t)
   }
 
   double start_frame = pxSeconds(); //##
-
-  update(t);
+  if (mOptimizedUpdateEnabled)
+  {
+    static double lastTime = 0;
+    if (mTop || lastTime != t)
+    {
+      lastTime = t;
+      updateObjects(t);
+    }
+  }
+  else
+  {
+    update(t);
+  }
 
   sigma_update += (pxSeconds() - start_frame); //##
 
@@ -1162,7 +1311,7 @@ void pxScene2d::onUpdate(double t)
     previousFps = fps;
     rtLogDebug("%d fps   pxObjects: %d\n", fps, pxObjectCount);
 #endif //USE_RENDER_STATS
-
+    if (mReportFps)
     {
 #ifdef ENABLE_RT_NODE
       rtWrapperSceneUnlocker unlocker;
@@ -1370,8 +1519,6 @@ bool pxScene2d::onMouseUp(int32_t x, int32_t y, uint32_t flags)
     // TODO optimization... we really only need to check mMouseDown
     if (mRoot->hitTestInternal(m, pt, hit, hitPt))
     {
-
-
       // Only send onMouseUp if this object got an onMouseDown
       if (tMouseDown == hit)
       {
@@ -1397,7 +1544,7 @@ bool pxScene2d::onMouseUp(int32_t x, int32_t y, uint32_t flags)
 }
 
 // TODO rtRef doesn't like non-const !=
-void pxScene2d::setMouseEntered(rtRef<pxObject> o)//pxObject* o)
+void pxScene2d::setMouseEntered(rtRef<pxObject> o, int32_t x /* = 0*/, int32_t y /* = 0*/)
 {
   if (mMouseEntered != o)
   {
@@ -1406,12 +1553,11 @@ void pxScene2d::setMouseEntered(rtRef<pxObject> o)//pxObject* o)
     {
       rtObjectRef e = new rtMapObject;
       e.set("name", "onMouseLeave");
-      e.set("target", mMouseEntered.getPtr());
-      #if 0
-      mMouseEntered->mEmit.send("onMouseLeave", e);
-      #else
-      bubbleEvent(e,mMouseEntered,"onPreMouseLeave","onMouseLeave");
-      #endif
+      e.set("target", o.getPtr());
+      e.set("x", x);
+      e.set("y", y);
+
+      bubbleEvent(e,o, "onPreMouseLeave", "onMouseLeave");
     }
     mMouseEntered = o;
 
@@ -1420,15 +1566,23 @@ void pxScene2d::setMouseEntered(rtRef<pxObject> o)//pxObject* o)
     {
       rtObjectRef e = new rtMapObject;
       e.set("name", "onMouseEnter");
-      e.set("target", mMouseEntered.getPtr());
-      #if 0
-      mMouseEntered->mEmit.send("onMouseEnter", e);
-      #else
-      bubbleEvent(e,mMouseEntered,"onPreMouseEnter","onMouseEnter");
-      #endif
+      e.set("target", o.getPtr());
+      e.set("x", x);
+      e.set("y", y);
+
+      bubbleEvent(e,o, "onPreMouseEnter", "onMouseEnter");
     }
   }
 }
+
+void pxScene2d::clearMouseObject(rtRef<pxObject> obj)
+{
+  if (mMouseEntered == obj)
+  {
+    mMouseEntered = NULL;
+  }
+}
+
 /** This function is not exposed to javascript; it is called when
  * mFocus = true is set for a pxObject whose parent scene is this scene
  **/
@@ -1705,7 +1859,6 @@ bool pxScene2d::onMouseMove(int32_t x, int32_t y)
         }
       }
 
-
 #if 0
     rtObjectRef e = new rtMapObject;
     e.set("name", "onMouseMove");
@@ -1758,7 +1911,9 @@ bool pxScene2d::onMouseMove(int32_t x, int32_t y)
       setMouseEntered(hit);
     }
     else
+    {
       setMouseEntered(NULL);
+    }
   }
 #endif
 #if 0
@@ -1790,6 +1945,122 @@ void pxScene2d::updateMouseEntered()
     else
       setMouseEntered(NULL);
   #endif
+}
+
+bool pxScene2d::onDragMove(int32_t x, int32_t y, int32_t type)
+{
+  pxMatrix4f m;
+  rtRef<pxObject> hit;
+  pxPoint2f pt(static_cast<float>(x),static_cast<float>(y)), hitPt;
+  
+  if (mRoot->hitTestInternal(m, pt, hit, hitPt))
+  {
+    mDragType = (pxConstantsDragType::constants) type;
+
+    {
+      rtObjectRef e = new rtMapObject;
+
+      e.set("name", "onDragMove");
+      e.set("target", hit.getPtr());
+
+      e.set("x",       hitPt.x); // TODO - should really be the local coordinates of the point of "leave"-ing drop target
+      e.set("y",       hitPt.y); // TODO - should really be the local coordinates of the point of "leave"-ing drop target
+
+      e.set("screenX", x);
+      e.set("screenY", y);
+
+      e.set("type",    mDragType);  // TODO:  Change to "dataTransfer" object + MIME types
+
+      bubbleEvent(e, hit, "onPreDragMove", "onDragMove");
+    }
+
+    if(mDragTarget != hit) // a new Drag Target...
+    {
+      // LEAVE old target
+      if(mDragTarget)
+      {
+        rtObjectRef e = new rtMapObject;
+
+        e.set("name", "onDragLeave");
+        e.set("target", hit.getPtr());
+
+        e.set("x",       x );
+        e.set("y",       y );
+
+        e.set("screenX", x);
+        e.set("screenY", y);
+
+        bubbleEvent(e, mDragTarget, "onPreDragLeave", "onDragLeave");
+      }
+      {
+        mDragTarget = hit;  // ENTER new target
+
+        rtObjectRef e = new rtMapObject;
+
+        e.set("name", "onDragEnter");
+        e.set("target", hit.getPtr());
+
+        e.set("x",       hitPt.x);
+        e.set("y",       hitPt.y);
+
+        e.set("screenX", x);
+        e.set("screenY", y);
+
+        bubbleEvent(e, hit, "onPreDragEnter", "onDragEnter");
+      }
+    }
+  }
+  else
+  {
+    mDragTarget = NULL;
+  }
+
+  return false;
+}
+
+bool pxScene2d::onDragEnter(int32_t x, int32_t y, int32_t type)
+{
+  UNUSED_PARAM(x); UNUSED_PARAM(y);
+
+  mDragType = (pxConstantsDragType::constants) type;
+  mDragging = true;
+  return false;
+}
+
+bool pxScene2d::onDragLeave(int32_t x, int32_t y, int32_t type)
+{
+  UNUSED_PARAM(x); UNUSED_PARAM(y); UNUSED_PARAM(type);
+
+  mDragging = false;
+  return false;
+}
+
+bool pxScene2d::onDragDrop(int32_t x, int32_t y, int32_t type, const char *dropped)
+{
+  pxConstantsDragType::constants dragType = (pxConstantsDragType::constants) type;
+  
+  if (mDragTarget)
+  {
+    mDragging = false;
+
+    pxVector4f from(static_cast<float>(x),static_cast<float>(y),0,1);
+    pxVector4f to;
+    pxObject::transformPointFromSceneToObject(mDragTarget, from, to);
+
+    rtObjectRef e = new rtMapObject;
+    e.set("name",    "onDragDrop");
+    e.set("target",  mDragTarget.getPtr());
+    e.set("x",       to.x());
+    e.set("y",       to.y());
+    e.set("screenX", x);
+    e.set("screenY", y);
+    e.set("type",    dragType);  // TODO:  Change to "dataTransfer" object + MIME types
+    e.set("dropped", dropped);
+
+    return bubbleEvent(e, mDragTarget, "onPreDragDrop", "onDragDrop");
+  }
+  
+  return false;
 }
 
 bool pxScene2d::onScrollWheel(float dx, float dy)
@@ -1876,6 +2147,18 @@ rtError pxScene2d::setShowDirtyRect(bool v)
   return RT_OK;
 }
 
+rtError pxScene2d::reportFps(bool& v) const
+{
+  v=mReportFps;
+  return RT_OK;
+}
+
+rtError pxScene2d::setReportFps(bool v)
+{
+  mReportFps = v;
+  return RT_OK;
+}
+
 rtError pxScene2d::dirtyRectanglesEnabled(bool& v) const {
     v = gDirtyRectsEnabled;
     return RT_OK;
@@ -1901,6 +2184,7 @@ rtError pxScene2d::enableDirtyRect(bool& v) const
 rtError pxScene2d::setEnableDirtyRect(bool v)
 {
     mEnableDirtyRectangles = v;
+    rtLogInfo("enable dirty rectangles: %s", mEnableDirtyRectangles ? "true":"false");
     return RT_OK;
 }
 
@@ -1942,15 +2226,16 @@ rtError pxScene2d::setCustomAnimator(const rtFunctionRef& v)
   }
 }
 
-rtError pxScene2d::screenshot(rtString type, rtString& pngData)
+rtError pxScene2d::screenshot(rtString type, rtValue& returnValue)
 {
+  returnValue = "";
 #ifdef ENABLE_PERMISSIONS_CHECK
   if (RT_OK != mPermissions->allows("screenshot", rtPermissions::FEATURE))
     return RT_ERROR_NOT_ALLOWED;
 #endif
 
   // Is this a type we support?
-  if (type != "image/png;base64")
+  if (type != "image/png;base64" && type != "image/image")
   {
     return RT_FAIL;
   }
@@ -1965,12 +2250,6 @@ rtError pxScene2d::screenshot(rtString type, rtString& pngData)
   context.snapshot(o);
   context.setFramebuffer(previousRenderSurface);
 
-  rtData pngData2;
-  if (pxStorePNGImage(o, pngData2) != RT_OK)
-  {
-    return RT_FAIL;
-  }
-
 //HACK JUNK HACK JUNK HACK JUNK HACK JUNK HACK JUNK
 //HACK JUNK HACK JUNK HACK JUNK HACK JUNK HACK JUNK
 #if 0
@@ -1984,14 +2263,22 @@ rtError pxScene2d::screenshot(rtString type, rtString& pngData)
 //HACK JUNK HACK JUNK HACK JUNK HACK JUNK HACK JUNK
 //HACK JUNK HACK JUNK HACK JUNK HACK JUNK HACK JUNK
 
-  rtString base64coded;
-
-  if( base64_encode(pngData2, base64coded) == RT_OK )
+  if (type == "image/png;base64")
   {
-    // We return a data Url string containing the image data
-    pngData = "data:image/png;base64,";
+    rtData pngData2;
+    if (pxStorePNGImage(o, pngData2) != RT_OK)
+    {
+      return RT_FAIL;
+    }
 
-    pngData += base64coded;
+    rtString base64coded;
+
+    if (base64_encode(pngData2, base64coded) == RT_OK)
+    {
+      // We return a data Url string containing the image data
+      rtString pngData = "data:image/png;base64,";
+
+      pngData += base64coded;
 
 //        FILE *saveFile  = fopen("/var/tmp/snap.txt", "wt"); // base64
 //        fwrite( base64coded.cString(), base64coded.length(), sizeof(char), saveFile);
@@ -2025,10 +2312,19 @@ rtError pxScene2d::screenshot(rtString type, rtString& pngData)
 //            }
 //          }
 //        }
+      returnValue = pngData;
 
-        return RT_OK;
+      return RT_OK;
 
-  }//ENDIF
+    }//ENDIF
+  }
+  else if (type == "image/image")
+  {
+    pxImage* image = new pxImage(this);
+    image->createWithOffscreen(o);
+    returnValue = image;
+    return RT_OK;
+  }
 
   return RT_FAIL;
 }
@@ -2246,6 +2542,70 @@ rtError pxScene2d::getAvailableApplications(rtString& availableApplications)
   return RT_OK;
 }
 
+rtError pxScene2d::storage(rtObjectRef& v) const
+{
+#ifdef PXSCENE_SUPPORT_STORAGE
+  if (!mStorage)
+  {
+    rtString origin(mScriptView != NULL ? rtUrlGetOrigin(mScriptView->getUrl().cString()) : NULL);
+    if (origin.isEmpty())
+      origin = "file://";
+
+    uint32_t storageQuota = 0;
+#ifdef ENABLE_PERMISSIONS_CHECK
+    mPermissions->getStorageQuota(storageQuota);
+#endif
+    if( storageQuota == 0)
+    {
+      rtLogWarn("Origin %s has no local storage quota", origin.cString());
+      return RT_OK;
+    }
+
+    rtString storagePath;
+    rtValue storagePathVal;
+    if (RT_OK == rtSettings::instance()->value("defaultStoragePath", storagePathVal))
+    {
+      storagePath = storagePathVal.toString();
+    }
+    else
+    {
+      // runtime location, if available
+      const char* env = getenv(DEFAULT_LOCALSTORAGE_DIR_ENV_NAME);
+      if (env)
+        storagePath = env;
+    }
+    if (storagePath.isEmpty())
+    {
+      // default location
+      if (RT_OK == rtGetHomeDirectory(storagePath))
+        storagePath.append(DEFAULT_LOCALSTORAGE_DIR);
+    }
+
+    rtEnsureTrailingPathSeparator(storagePath);
+
+    // Create the path if it doesn't yet exist
+    if (!rtMakeDirectory(storagePath))
+    {
+      rtLogWarn("creation of storage directory %s failed", storagePath.cString());
+      return RT_OK;
+    }
+
+    rtString storageName = rtUrlEscape(origin);
+    storagePath.append(storageName);
+    rtLogInfo("storage path: %s", storagePath.cString());
+
+    mStorage = new rtStorage(storagePath, storageQuota, origin);
+  }
+
+  v = mStorage;
+  return RT_OK;
+#else
+  UNUSED_PARAM(v);
+  rtLogInfo("storage not supported");
+  return RT_FAIL;
+#endif
+}
+
 rtDefineObject(pxScene2d, rtObject);
 rtDefineProperty(pxScene2d, root);
 rtDefineProperty(pxScene2d, info);
@@ -2254,6 +2614,7 @@ rtDefineProperty(pxScene2d, w);
 rtDefineProperty(pxScene2d, h);
 rtDefineProperty(pxScene2d, showOutlines);
 rtDefineProperty(pxScene2d, showDirtyRect);
+rtDefineProperty(pxScene2d, reportFps);
 rtDefineProperty(pxScene2d, dirtyRectangle);
 rtDefineProperty(pxScene2d, dirtyRectanglesEnabled);
 rtDefineProperty(pxScene2d, enableDirtyRect);
@@ -2286,6 +2647,7 @@ rtDefineProperty(pxScene2d, api);
 rtDefineProperty(pxScene2d,animation);
 rtDefineProperty(pxScene2d,stretch);
 rtDefineProperty(pxScene2d,maskOp);
+rtDefineProperty(pxScene2d,dragType);
 rtDefineProperty(pxScene2d,alignVertical);
 rtDefineProperty(pxScene2d,alignHorizontal);
 rtDefineProperty(pxScene2d,truncation);
@@ -2298,6 +2660,7 @@ rtDefineMethod(pxScene2d, sparkSetting);
 rtDefineProperty(pxScene2d, cors);
 rtDefineMethod(pxScene2d, addServiceProvider);
 rtDefineMethod(pxScene2d, removeServiceProvider);
+rtDefineProperty(pxScene2d, storage);
 
 rtError pxScene2dRef::Get(const char* name, rtValue* value) const
 {
@@ -2384,6 +2747,21 @@ void pxScene2d::invalidateRect(pxRect* r)
   }
 }
 
+bool pxScene2d::isObjectTracked(rtObjectRef ref)
+{
+    bool isTracked = false;
+    unsigned int pos = 0;
+    for (; pos<mInnerpxObjects.size(); pos++)
+    {
+      if (mInnerpxObjects[pos] == ref)
+      {
+        isTracked = true;
+        break;
+      }
+    }
+    return isTracked;
+}
+
 void pxScene2d::innerpxObjectDisposed(rtObjectRef ref)
 {
   // this is to make sure, we are not clearing the rtobject references, while it is under process from scene dispose
@@ -2438,6 +2816,12 @@ rtDefineProperty(pxViewContainer, h);
 rtDefineMethod(pxViewContainer, onMouseDown);
 rtDefineMethod(pxViewContainer, onMouseUp);
 rtDefineMethod(pxViewContainer, onMouseMove);
+
+rtDefineMethod(pxViewContainer, onDragMove);
+rtDefineMethod(pxViewContainer, onDragEnter);
+rtDefineMethod(pxViewContainer, onDragLeave);
+rtDefineMethod(pxViewContainer, onDragDrop);
+
 rtDefineMethod(pxViewContainer, onScrollWheel);
 rtDefineMethod(pxViewContainer, onMouseEnter);
 rtDefineMethod(pxViewContainer, onMouseLeave);
@@ -2456,6 +2840,9 @@ rtDefineProperty(pxSceneContainer, cors);
 rtDefineProperty(pxSceneContainer, api);
 rtDefineProperty(pxSceneContainer, ready);
 rtDefineProperty(pxSceneContainer, serviceContext);
+rtDefineMethod(pxSceneContainer, suspend);
+rtDefineMethod(pxSceneContainer, resume);
+rtDefineMethod(pxSceneContainer, screenshot);
 //rtDefineMethod(pxSceneContainer, makeReady);   // DEPRECATED ?
 
 
@@ -2472,6 +2859,7 @@ rtError pxSceneContainer::setUrl(rtString url)
   // and create a new promise for the context of this Url
   mReady.send("resolve", this);
   mReady = new rtPromise();
+  triggerUpdate();
 
   mUrl = url;
 #ifdef RUNINMAIN
@@ -2518,6 +2906,38 @@ rtError pxSceneContainer::setServiceContext(rtObjectRef o)
     mServiceContext = o;
 
   return RT_OK;
+}
+
+rtError pxSceneContainer::suspend(const rtValue& v, bool& b)
+{
+  b = false;
+  pxScriptView* scriptView = dynamic_cast<pxScriptView*>(mView.getPtr());
+  if (scriptView != NULL)
+  {
+    return scriptView->suspend(v, b);
+  }
+  return RT_OK;
+}
+
+rtError pxSceneContainer::resume(const rtValue& v, bool& b)
+{
+  b = false;
+  pxScriptView* scriptView = dynamic_cast<pxScriptView*>(mView.getPtr());
+  if (scriptView != NULL)
+  {
+    return scriptView->resume(v, b);
+  }
+  return RT_OK;
+}
+
+rtError pxSceneContainer::screenshot(rtString type, rtValue& returnValue)
+{
+  pxScriptView* scriptView = dynamic_cast<pxScriptView*>(mView.getPtr());
+  if (scriptView != NULL)
+  {
+    return scriptView->screenshot(type, returnValue);
+  }
+  return RT_FAIL;
 }
 
 rtError pxSceneContainer::setScriptView(pxScriptView* scriptView)
@@ -2571,16 +2991,19 @@ void pxSceneContainer::reloadData(bool sceneSuspended)
   pxObject::reloadData(sceneSuspended);
 }
 
-uint64_t pxSceneContainer::textureMemoryUsage()
+uint64_t pxSceneContainer::textureMemoryUsage(std::vector<rtObject*> &objectsCounted)
 {
   uint64_t textureMemory = 0;
-  if (mScriptView.getPtr())
+  if (std::find(objectsCounted.begin(), objectsCounted.end(), this) == objectsCounted.end() )
   {
-    rtValue v;
-    mScriptView->textureMemoryUsage(v);
-    textureMemory += v.toUInt64();
+    if (mScriptView.getPtr())
+    {
+      rtValue v;
+      mScriptView->textureMemoryUsage(v);
+      textureMemory += v.toUInt64();
+    }
+    textureMemory += pxObject::textureMemoryUsage(objectsCounted);
   }
-  textureMemory += pxObject::textureMemoryUsage();
   return textureMemory;
 }
 
@@ -2637,6 +3060,7 @@ pxScriptView::pxScriptView(const char* url, const char* /*lang*/, pxIViewContain
   mUrl = url;
 #ifndef RUNINMAIN // NOTE this ifndef ends after runScript decl, below
   mReady = new rtPromise();
+  triggerUpdate();
  // mLang = lang;
   rtLogDebug("pxScriptView::pxScriptView() exiting\n");
 }
@@ -2673,12 +3097,10 @@ void pxScriptView::runScript()
 
   if (mCtx)
   {
-    mPrintFunc = new rtFunctionCallback(printFunc, this);
     mGetScene = new rtFunctionCallback(getScene,  this);
     mMakeReady = new rtFunctionCallback(makeReady, this);
     mGetContextID = new rtFunctionCallback(getContextID, this);
 
-    mCtx->add("print", mPrintFunc.getPtr());
     mCtx->add("getScene", mGetScene.getPtr());
     mCtx->add("makeReady", mMakeReady.getPtr());
     mCtx->add("getContextID", mGetContextID.getPtr());
@@ -2719,21 +3141,6 @@ void pxScriptView::runScript()
   #endif //ENABLE_RT_NODE
 }
 
-rtError pxScriptView::printFunc(int numArgs, const rtValue* args, rtValue* result, void* ctx)
-{
-  UNUSED_PARAM(result);
-  //rtLogInfo(__FUNCTION__);
-
-  if (ctx)
-  {
-    if (numArgs > 0 && !args[0].isEmpty())
-    {
-      rtString toPrint = args[0].toString();
-      rtLogWarn("%s", toPrint.cString());
-    }
-  }
-  return RT_OK;
-}
 
 rtError pxScriptView::suspend(const rtValue& v, bool& b)
 {
@@ -2763,6 +3170,15 @@ rtError pxScriptView::textureMemoryUsage(rtValue& v)
     mScene.sendReturns("textureMemoryUsage",v);
   }
   return RT_OK;
+}
+
+rtError pxScriptView::screenshot(rtString type, rtValue& returnValue)
+{
+  if (mScene)
+  {
+    return mScene.sendReturns("screenshot",type, returnValue);
+  }
+  return RT_FAIL;
 }
 
 rtError pxScriptView::getScene(int numArgs, const rtValue* args, rtValue* result, void* ctx)

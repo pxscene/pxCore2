@@ -105,10 +105,10 @@ public:
   rtMethodNoArgAndNoReturn("moveForward", moveForward);
   rtMethodNoArgAndNoReturn("moveBackward", moveBackward);
 
-  rtMethod5ArgAndReturn("animateTo", animateToP2, rtObjectRef, double,
+  rtMethod5ArgAndReturn("animateTo", animateToP2, rtObjectRef, rtValue,
                         uint32_t, uint32_t, int32_t, rtObjectRef);
 
-  rtMethod5ArgAndReturn("animate", animateToObj, rtObjectRef, double,
+  rtMethod5ArgAndReturn("animate", animateToObj, rtObjectRef, rtValue,
                         uint32_t, uint32_t, int32_t, rtObjectRef);
   rtMethod2ArgAndNoReturn("on", addListener, rtString, rtFunctionRef);
   rtMethod2ArgAndNoReturn("delListener", delListener, rtString, rtFunctionRef);
@@ -135,6 +135,8 @@ public:
   }
 
   virtual ~pxObject() ;
+
+  virtual void onInit();
 
 
   // TODO missing conversions in rtValue between uint32_t and int32_t
@@ -294,11 +296,11 @@ public:
                      uint32_t interp, uint32_t options,
                      int32_t count, rtObjectRef promise);
 
-  rtError animateToP2(rtObjectRef props, double duration,
+  rtError animateToP2(rtObjectRef props, rtValue duration,
                       uint32_t interp, uint32_t options,
                       int32_t count, rtObjectRef& promise);
 
-  rtError animateToObj(rtObjectRef props, double duration,
+  rtError animateToObj(rtObjectRef props, rtValue duration,
                       uint32_t interp, uint32_t options,
                       int32_t count, rtObjectRef& promise);
 
@@ -331,10 +333,10 @@ public:
     //return RT_OK;
   //}
 
-  virtual void update(double t);
+  virtual void update(double t, bool updateChildren=true);
   virtual void releaseData(bool sceneSuspended);
   virtual void reloadData(bool sceneSuspended);
-  virtual uint64_t textureMemoryUsage();
+  virtual uint64_t textureMemoryUsage(std::vector<rtObject*> &objectsCounted);
 
   // non-destructive applies transform on top of of provided matrix
   virtual void applyMatrix(pxMatrix4f& m)
@@ -566,6 +568,8 @@ public:
      return RT_OK;
   }
 
+  virtual bool needsUpdate();
+
   pxScene2d* getScene() { return mScene; }
   void createSnapshot(pxContextFramebufferRef& fbo, bool separateContext=false, bool antiAliasing=false);
 
@@ -573,6 +577,7 @@ public:
   rtEmitRef mEmit;
 
 protected:
+  void triggerUpdate();
   // TODO getting freaking huge...
 //  rtRef<pxObject> mParent;
   pxObject* mParent;

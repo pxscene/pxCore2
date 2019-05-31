@@ -57,9 +57,12 @@
 #endif
 
 #include "pxContextUtils.h"
+#include "pxTimer.h"
 
 #define PX_TEXTURE_MIN_FILTER GL_LINEAR
 #define PX_TEXTURE_MAG_FILTER GL_LINEAR
+
+#define CONTEXT_GC_THROTTLE_SECS_DEFAULT 5
 
 // Values must match pxCanvas.h // TODO FIX 
 #define  CANVAS_W   1280
@@ -119,6 +122,8 @@ extern uv_async_t gcTrigger;
 #endif
 extern pxContext context;
 rtThreadQueue* gUIThreadQueue = new rtThreadQueue();
+double lastContextGarbageCollectTime = 0;
+double garbageCollectThrottleInSeconds = CONTEXT_GC_THROTTLE_SECS_DEFAULT;
 
 enum pxCurrentGLProgram { PROGRAM_UNKNOWN = 0, PROGRAM_SOLID_SHADER,  PROGRAM_A_TEXTURE_SHADER, PROGRAM_TEXTURE_SHADER,
     PROGRAM_TEXTURE_MASKED_SHADER, PROGRAM_TEXTURE_BORDER_SHADER};
@@ -127,6 +132,8 @@ pxCurrentGLProgram currentGLProgram = PROGRAM_UNKNOWN;
 
 #if defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL)
 extern EGLContext defaultEglContext;
+extern EGLDisplay defaultEglDisplay;
+extern EGLSurface defaultEglSurface;
 #endif //PX_PLATFORM_GENERIC_EGL || PX_PLATFORM_WAYLAND_EGL
 
 // TODO get rid of this global crap
@@ -135,6 +142,7 @@ static int gResW, gResH;
 static pxMatrix4f gMatrix;
 static float gAlpha = 1.0;
 uint32_t gRenderTick = 0;
+rtMutex gRenderTickMutex;
 std::vector<pxTexture*> textureList;
 rtMutex textureListMutex;
 #ifdef ENABLE_BACKGROUND_TEXTURE_CREATION
@@ -181,25 +189,39 @@ pxError removeFromTextureList(pxTexture* texture)
   return PX_OK;
 }
 
-pxError ejectNotRecentlyUsedTextureMemory(int64_t bytesNeeded, uint32_t maxAge=5)
+pxError ejectNotRecentlyUsedTextureMemory(int64_t bytesNeeded, int64_t targetMemoryAmount,
+                                          bool clearAllOffscreen, uint32_t maxAge=5)
 {
   //rtLogDebug("attempting to eject %" PRId64 " bytes of texture memory with max age %u", bytesNeeded, maxAge);
 #if !defined(DISABLE_TEXTURE_EJECTION)
   int numberEjected = 0;
-  int64_t beforeTextureMemoryUsage = context.currentTextureMemoryUsageInBytes();
+  int64_t beforeTextureMemoryUsage = 0;
+  lockContext();
+  beforeTextureMemoryUsage = context.currentTextureMemoryUsageInBytes();
+  unlockContext();
+
+  uint32_t currentRenderTick = 0;
+  {
+    rtMutexLockGuard renderTickMutexGuard(gRenderTickMutex);
+    currentRenderTick = gRenderTick;
+  }
 
   textureListMutex.lock();
-  std::random_shuffle(textureList.begin(), textureList.end());
   for(std::vector<pxTexture*>::iterator it = textureList.begin(); it != textureList.end(); ++it)
   {
     pxTexture* texture = (*it);
-    uint32_t lastRenderTickAge = gRenderTick - texture->lastRenderTick();
-    if (lastRenderTickAge >= maxAge)
+    uint32_t lastRenderTickAge = currentRenderTick - texture->lastRenderTick();
+    bool textureIsSetupForRendering = texture->setupForRendering();
+    if (lastRenderTickAge > maxAge && textureIsSetupForRendering)
     {
       numberEjected++;
       texture->unloadTextureData();
-      int64_t currentTextureMemory = context.currentTextureMemoryUsageInBytes();
-      if ((beforeTextureMemoryUsage - currentTextureMemory) > bytesNeeded)
+      int64_t currentTextureMemory = 0;
+      lockContext();
+      currentTextureMemory = context.currentTextureMemoryUsageInBytes();
+      unlockContext();
+      if (!clearAllOffscreen && (currentTextureMemory <= targetMemoryAmount) &&
+          (beforeTextureMemoryUsage - currentTextureMemory) > bytesNeeded)
       {
         break;
       }
@@ -209,12 +231,17 @@ pxError ejectNotRecentlyUsedTextureMemory(int64_t bytesNeeded, uint32_t maxAge=5
 
   if (numberEjected > 0)
   {
-    int64_t afterTextureMemoryUsage = context.currentTextureMemoryUsageInBytes();
+    int64_t afterTextureMemoryUsage = 0;
+    lockContext();
+    afterTextureMemoryUsage = context.currentTextureMemoryUsageInBytes();
+    unlockContext();
     rtLogWarn("%d textures have been ejected and %" PRId64 " bytes of texture memory has been freed",
         numberEjected, (beforeTextureMemoryUsage - afterTextureMemoryUsage));
   }
 #else
   (void)bytesNeeded;
+  (void)targetMemoryAmount;
+  (void)clearAllOffscreen;
   (void)maxAge;
 #endif //!DISABLE_TEXTURE_EJECTION
   return PX_OK;
@@ -539,14 +566,14 @@ public:
     return PX_OK;
   }
 
-#if 1 // Do we need this?  maybe for some debugging use case??
   virtual pxError getOffscreen(pxOffscreen& o)
   {
-    (void)o;
-    // TODO
-    return PX_FAIL;
+    o.init(mWidth,mHeight);
+    glReadPixels(0,0,mWidth,mHeight,GL_RGBA,GL_UNSIGNED_BYTE,(void*)o.base());
+    o.setUpsideDown(true);
+
+    return PX_OK;
   }
-#endif
 
   virtual int width() { return mWidth; }
   virtual int height() { return mHeight; }
@@ -596,8 +623,6 @@ struct DecodeImageData
 
 };
 
-void onDecodeComplete(void* context, void* data);
-void decodeTextureData(void* data);
 void onOffscreenCleanupComplete(void* context, void*);
 void cleanupOffscreen(void* data);
 
@@ -605,25 +630,32 @@ class pxTextureOffscreen : public pxTexture
 {
 public:
   pxTextureOffscreen() : mOffscreen(), mInitialized(false), mTextureName(0),
-                         mTextureUploaded(false), mTextureDataAvailable(false),
-                         mLoadTextureRequested(false), mWidth(0), mHeight(0), mOffscreenMutex(),
-                         mFreeOffscreenDataRequested(false), mCompressedData(NULL), mCompressedDataSize(0),
-                         mMipmapCreated(false), mTextureListener(NULL), mTextureListenerMutex()
+                         mTextureUploaded(false), mWidth(0), mHeight(0), mOffscreenMutex(),
+                         mFreeOffscreenDataRequested(false),
+                         mMipmapCreated(false), mTextureListener(NULL), mTextureListenerMutex(),
+                         mReadyForRendering(false), mRenderingMutex(), mSetupForRendering(false)
   {
     mTextureType = PX_TEXTURE_OFFSCREEN;
+    {
+      rtMutexLockGuard renderTickMutexGuard(gRenderTickMutex);
+      mLastRenderTick = gRenderTick;
+    }
     addToTextureList(this);
   }
 
-  pxTextureOffscreen(pxOffscreen& o, const char *compressedData = NULL, size_t compressedDataSize = 0)
+  pxTextureOffscreen(pxOffscreen& o)
                                      : mOffscreen(), mInitialized(false), mTextureName(0),
-                                       mTextureUploaded(false), mTextureDataAvailable(false),
-                                       mLoadTextureRequested(false), mWidth(0), mHeight(0), mOffscreenMutex(),
-                                       mFreeOffscreenDataRequested(false), mCompressedData(NULL), mCompressedDataSize(0),
-                                       mMipmapCreated(false), mTextureListener(NULL), mTextureListenerMutex()
+                                       mTextureUploaded(false), mWidth(0), mHeight(0), mOffscreenMutex(),
+                                       mFreeOffscreenDataRequested(false),
+                                       mMipmapCreated(false), mTextureListener(NULL), mTextureListenerMutex(),
+                                       mReadyForRendering(false), mRenderingMutex(), mSetupForRendering(false)
   {
     mTextureType = PX_TEXTURE_OFFSCREEN;
-    setCompressedData(compressedData, compressedDataSize);
     createTexture(o);
+    {
+      rtMutexLockGuard renderTickMutexGuard(gRenderTickMutex);
+      mLastRenderTick = gRenderTick;
+    }
     addToTextureList(this);
   }
 
@@ -701,10 +733,12 @@ public:
     mFreeOffscreenDataRequested = false;
     mOffscreenMutex.unlock();
 
-    mLoadTextureRequested = false;
     mInitialized = true;
 
     mTextureListenerMutex.lock();
+    mRenderingMutex.lock();
+    mReadyForRendering = true;
+    mRenderingMutex.unlock();
     if (mTextureListener != NULL)
     {
       mTextureListener->textureReady();
@@ -746,28 +780,34 @@ public:
     return (mTextureName != 0);
   }
 
+  virtual bool readyForRendering()
+  {
+    bool result = false;
+    mRenderingMutex.lock();
+    result = mReadyForRendering;
+    mRenderingMutex.unlock();
+    return result;
+  }
+
+  virtual bool setupForRendering()
+  {
+    bool result = false;
+    mRenderingMutex.lock();
+    result = mSetupForRendering;
+    mRenderingMutex.unlock();
+    return result;
+  }
+
   virtual pxError deleteTexture()
   {
     rtLogDebug("pxTextureOffscreen::deleteTexture()");
 
     unloadTextureData();
 
-    freeCompressedData();
     mInitialized = false;
-    return PX_OK;
-  }
-
-  virtual pxError loadTextureData()
-  {
-    if (!mLoadTextureRequested && mTextureDataAvailable)
-    {
-      rtThreadPool *mainThreadPool = rtThreadPool::globalInstance();
-      DecodeImageData *decodeImageData = new DecodeImageData(this);
-      rtThreadTask *task = new rtThreadTask(decodeTextureData, decodeImageData, "");
-      mainThreadPool->executeTask(task);
-      mLoadTextureRequested = true;
-    }
-
+    mRenderingMutex.lock();
+    mReadyForRendering = false;
+    mRenderingMutex.unlock();
     return PX_OK;
   }
 
@@ -783,6 +823,10 @@ public:
 
       mTextureName = 0;
       mInitialized = false;
+      mRenderingMutex.lock();
+      mReadyForRendering = false;
+      mSetupForRendering = false;
+      mRenderingMutex.unlock();
       mTextureUploaded = false;
       mOffscreenMutex.lock();
       mOffscreen.term();
@@ -817,7 +861,6 @@ public:
   {
     if (!mInitialized)
     {
-      loadTextureData();
       return PX_NOTINITIALIZED;
     }
 
@@ -828,7 +871,7 @@ public:
 // TODO would be nice to do the upload in createTexture but right now it's getting called on wrong thread
     if (!mTextureUploaded)
     {
-      if (!context.isTextureSpaceAvailable(this))
+      if (mTextureName == 0 && !context.isTextureSpaceAvailable(this))
       {
         //attempt to free texture memory
         int64_t textureMemoryNeeded = context.textureMemoryOverflow(this);
@@ -837,6 +880,9 @@ public:
         {
           rtLogError("not enough texture memory remaining to create texture");
           mInitialized = false;
+          mRenderingMutex.lock();
+          mReadyForRendering = false;
+          mRenderingMutex.unlock();
           freeOffscreenDataInBackground();
           return PX_FAIL;
         }
@@ -879,6 +925,9 @@ public:
       mTextureUploaded = true;
       //free up unneeded offscreen memory
       freeOffscreenDataInBackground();
+      mRenderingMutex.lock();
+      mSetupForRendering = true;
+      mRenderingMutex.unlock();
     }
     else
     {
@@ -899,7 +948,6 @@ public:
   {
     if (!mInitialized)
     {
-      loadTextureData();
       return PX_NOTINITIALIZED;
     }
 
@@ -916,6 +964,9 @@ public:
         {
           rtLogError("not enough texture memory remaining to create texture");
           mInitialized = false;
+          mRenderingMutex.lock();
+          mReadyForRendering = false;
+          mRenderingMutex.unlock();
           freeOffscreenDataInBackground();
           return PX_FAIL;
         }
@@ -939,6 +990,9 @@ public:
 
       //free up unneeded offscreen memory
       freeOffscreenDataInBackground();
+      mRenderingMutex.lock();
+      mSetupForRendering = true;
+      mRenderingMutex.unlock();
     }
     else
     {
@@ -950,30 +1004,13 @@ public:
     return PX_OK;
   }
 
-  virtual pxError getOffscreen(pxOffscreen& o)
+  virtual pxError getOffscreen(pxOffscreen& /*o*/)
   {
-    if (!mInitialized)
-    {
-      return PX_NOTINITIALIZED;
-    }
-
-    if (mCompressedData != NULL)
-    {
-      pxLoadImage(mCompressedData, mCompressedDataSize, o);
-    }
-
     return PX_OK;
   }
 
   virtual int width()  { return mWidth;  }
   virtual int height() { return mHeight; }
-
-  pxError compressedDataWeakReference(char*& data, size_t& dataSize)
-  {
-    data = mCompressedData;
-    dataSize = mCompressedDataSize;
-    return PX_OK;
-  }
 
 private:
 
@@ -989,107 +1026,23 @@ private:
     mainThreadPool->executeTask(task);
   }
 
-  void setCompressedData(const char* data, const size_t dataSize)
-  {
-    freeCompressedData();
-    if (data == NULL)
-    {
-      mCompressedData = NULL;
-      mCompressedDataSize = 0;
-    }
-    else
-    {
-      mCompressedData = new char[dataSize];
-      mCompressedDataSize = dataSize;
-      memcpy(mCompressedData, data, mCompressedDataSize);
-      mTextureDataAvailable = true;
-    }
-  }
-
-  pxError freeCompressedData()
-  {
-    if (mCompressedData != NULL)
-    {
-      delete [] mCompressedData;
-      mCompressedData = NULL;
-    }
-    mCompressedDataSize = 0;
-    mTextureDataAvailable = false;
-    return PX_OK;
-  }
-
   pxOffscreen mOffscreen;
 
   bool mInitialized;
   GLuint mTextureName;
   bool mTextureUploaded;
-  bool mTextureDataAvailable;
-  bool mLoadTextureRequested;
   int mWidth;
   int mHeight;
   rtMutex mOffscreenMutex;
   bool mFreeOffscreenDataRequested;
-  char* mCompressedData;
-  size_t mCompressedDataSize;
   bool mMipmapCreated;
   pxTextureListener* mTextureListener;
   rtMutex mTextureListenerMutex;
+  bool mReadyForRendering;
+  rtMutex mRenderingMutex;
+  bool mSetupForRendering;
 
 }; // CLASS - pxTextureOffscreen
-
-void onDecodeComplete(void* context, void* data)
-{
-  DecodeImageData* imageData = (DecodeImageData*)context;
-  pxOffscreen* decodedOffscreen = (pxOffscreen*)data;
-  if (imageData != NULL && decodedOffscreen != NULL)
-  {
-    pxTextureOffscreenRef texture = imageData->textureOffscreen;
-    if (texture.getPtr() != NULL)
-    {
-      texture->createTexture(*decodedOffscreen);
-    }
-  }
-
-  if (decodedOffscreen != NULL)
-  {
-    delete decodedOffscreen;
-    decodedOffscreen = NULL;
-    data = NULL;
-  }
-
-  if (imageData != NULL)
-  {
-    delete imageData;
-    imageData = NULL;
-  }
-}
-
-void decodeTextureData(void* data)
-{
-  if (data != NULL)
-  {
-    DecodeImageData* imageData = (DecodeImageData*)data;
-    char *compressedImageData = NULL;
-    size_t compressedImageDataSize = 0;
-    imageData->textureOffscreen->compressedDataWeakReference(compressedImageData, compressedImageDataSize);
-    if (compressedImageData != NULL)
-    {
-      pxOffscreen *decodedOffscreen = new pxOffscreen();
-      pxLoadImage(compressedImageData, compressedImageDataSize, *decodedOffscreen);
-      if (gUIThreadQueue)
-      {
-        gUIThreadQueue->addTask(onDecodeComplete, data, decodedOffscreen);
-      }
-    }
-    else
-    {
-      if (gUIThreadQueue)
-      {
-        gUIThreadQueue->addTask(onDecodeComplete, data, NULL);
-      }
-    }
-  }
-}
 
 void onOffscreenCleanupComplete(void* context, void*)
 {
@@ -2233,7 +2186,7 @@ void pxContext::init()
 
   gTextureMaskedShader = new textureMaskedShaderProgram();
   gTextureMaskedShader->init(vShaderText,fTextureMaskedShaderText);
-  
+
   glEnable(GL_BLEND);
 
   // assume non-premultiplied for now...
@@ -2255,14 +2208,97 @@ void pxContext::init()
   {
     setTextureMemoryLimit((int64_t)val.toInt32() * (int64_t)1024 * (int64_t)1024);
   }
+  if (RT_OK == rtSettings::instance()->value("ejectTextureAge", val))
+  {
+    mEjectTextureAge = val.toUInt32();
+  }
   if (mEnableTextureMemoryMonitoring)
   {
     rtLogDebug("texture memory limit set to %" PRId64 " bytes, threshold padding %" PRId64 " bytes",
       mTextureMemoryLimitInBytes, mTextureMemoryLimitThresholdPaddingInBytes);
   }
 
+  if (RT_OK == rtSettings::instance()->value("targetTextureMemoryAfterCleanupInMb", val))
+  {
+    mTargetTextureMemoryAfterCleanupInBytes = (int64_t)val.toInt32() * (int64_t)1024 * (int64_t)1024;
+  }
+  else
+  {
+    mTargetTextureMemoryAfterCleanupInBytes = mTextureMemoryLimitInBytes - (mTextureMemoryLimitInBytes / (int64_t)3);
+  }
+
+  if (mTargetTextureMemoryAfterCleanupInBytes < 0)
+  {
+    mTargetTextureMemoryAfterCleanupInBytes = 0;
+  }
+
+  if (RT_OK == rtSettings::instance()->value("freeAllOffscreenTextureMemoryOnCleanup", val))
+  {
+    mFreeAllOffscreenTextureMemoryOnCleanup = val.toString().compare("true") == 0;
+  }
+
+  char const* textureLimitSetting = getenv("SPARK_TEXTURE_LIMIT_MB");
+  if (textureLimitSetting)
+  {
+    int textureLimitInMb = atoi(textureLimitSetting);
+    if (textureLimitInMb >= 0)
+    {
+      setTextureMemoryLimit((int64_t)textureLimitInMb * (int64_t)1024 * (int64_t)1024);
+    }
+  }
+
+  char const* ejectTextureAgeSetting = getenv("SPARK_EJECT_TEXTURE_AGE");
+  if (ejectTextureAgeSetting)
+  {
+    int ejectTextureAge = atoi(ejectTextureAgeSetting);
+    if (ejectTextureAge >= 0)
+    {
+      mEjectTextureAge = (uint32_t)ejectTextureAge;
+    }
+  }
+  char const* ejectTargetSetting = getenv("SPARK_EJECT_TEXTURE_MEMORY_TARGET_MB");
+  if (ejectTargetSetting)
+  {
+    int targetTextureMemoryAfterCleanupInMb = atoi(ejectTargetSetting);
+    if (targetTextureMemoryAfterCleanupInMb >= 0)
+    {
+      mTargetTextureMemoryAfterCleanupInBytes = (int64_t)targetTextureMemoryAfterCleanupInMb * (int64_t)1024 * (int64_t)1024;
+    }
+  }
+  char const* ejectAllSetting = getenv("SPARK_EJECT_ALL_OFFSCREEN_TEXTURES");
+  if (ejectAllSetting)
+  {
+    int ejectAll = atoi(ejectAllSetting);
+    if (ejectAll > 0)
+    {
+      mFreeAllOffscreenTextureMemoryOnCleanup = true;
+    }
+    else
+    {
+      mFreeAllOffscreenTextureMemoryOnCleanup = false;
+    }
+  }
+
+  rtLogInfo("texture memory target after cleanup: %" PRId64 " bytes.  Free all offscreen memory on cleanup: %s.  Eject texture age: %u",
+            mTargetTextureMemoryAfterCleanupInBytes,
+            mFreeAllOffscreenTextureMemoryOnCleanup ? "true":"false", mEjectTextureAge);
+
+  char const* gcThrottleSetting = getenv("SPARK_GC_THROTTLE_SECS");
+  if (gcThrottleSetting)
+  {
+    int gcThrottle = atoi(gcThrottleSetting);
+    if (gcThrottle >= 0)
+    {
+      garbageCollectThrottleInSeconds = static_cast<double>(gcThrottle);
+    }
+  }
+
+  rtLogInfo("context garbage collect throttle set to %f seconds", garbageCollectThrottleInSeconds);
+
 #if defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL)
   defaultEglContext = eglGetCurrentContext();
+  defaultEglDisplay = eglGetCurrentDisplay();
+  defaultEglSurface = eglGetCurrentSurface(EGL_DRAW);
   rtLogDebug("current context in init: %p", defaultEglContext);
 #endif //PX_PLATFORM_GENERIC_EGL || PX_PLATFORM_WAYLAND_EGL
 
@@ -2739,12 +2775,6 @@ pxTextureRef pxContext::createTexture(pxOffscreen& o)
   return offscreenTexture;
 }
 
-pxTextureRef pxContext::createTexture(pxOffscreen& o, const char *compressedData, size_t compressedDataSize)
-{
-  pxTextureOffscreen* offscreenTexture = new pxTextureOffscreen(o, compressedData, compressedDataSize);
-  return offscreenTexture;
-}
-
 pxTextureRef pxContext::createTexture(float w, float h, float iw, float ih, void* buffer)
 {
   pxTextureAlpha* alphaTexture = new pxTextureAlpha(w,h,iw,ih,buffer);
@@ -2859,12 +2889,17 @@ void pxContext::adjustCurrentTextureMemorySize(int64_t changeInBytes, bool allow
   //rtLogDebug("the current texture size: %" PRId64 ".", currentTextureMemorySize);
   if (mEnableTextureMemoryMonitoring && allowGarbageCollect && changeInBytes > 0 && currentTextureMemorySize > maxTextureMemoryInBytes)
   {
-    rtLogDebug("the texture size is too large: %" PRId64 ".  doing a garbage collect!!!\n", currentTextureMemorySize);
+    double timeSinceGc = pxSeconds() - lastContextGarbageCollectTime;
+    if (timeSinceGc >= garbageCollectThrottleInSeconds)
+    {
+      rtLogDebug("the texture size is too large: %" PRId64 ".  doing a garbage collect!!!\n", currentTextureMemorySize);
 #ifdef RUNINMAIN
-	script.collectGarbage();
+      script.collectGarbage();
 #else
-  uv_async_send(&gcTrigger);
+      uv_async_send(&gcTrigger);
 #endif
+      lastContextGarbageCollectTime = pxSeconds();
+    }
   }
 }
 
@@ -2882,28 +2917,56 @@ bool pxContext::isTextureSpaceAvailable(pxTextureRef texture, bool allowGarbageC
   lockContext();
   int64_t currentTextureMemorySize = mCurrentTextureMemorySizeInBytes;
   int64_t maxTextureMemoryInBytes = mTextureMemoryLimitInBytes;
+  //rtLogDebug("current size %" PRId64 " limit %" PRId64 ".", currentTextureMemorySize, maxTextureMemoryInBytes);
   unlockContext();
   if ((textureSize + currentTextureMemorySize) >
              (maxTextureMemoryInBytes  + mTextureMemoryLimitThresholdPaddingInBytes))
   {
     if (allowGarbageCollect)
     {
-      #ifdef RUNINMAIN
+      double timeSinceGc = pxSeconds() - lastContextGarbageCollectTime;
+      if (timeSinceGc >= garbageCollectThrottleInSeconds)
+      {
+#ifdef RUNINMAIN
         script.collectGarbage();
-      #else
+#else
         uv_async_send(&gcTrigger);
-      #endif
+#endif
+        lastContextGarbageCollectTime = pxSeconds();
+        lockContext();
+        currentTextureMemorySize = mCurrentTextureMemorySizeInBytes;
+        unlockContext();
+        return ((textureSize + currentTextureMemorySize) <=
+                (maxTextureMemoryInBytes + mTextureMemoryLimitThresholdPaddingInBytes));
+      }
     }
     return false;
   }
   else if (allowGarbageCollect && (textureSize + currentTextureMemorySize) > maxTextureMemoryInBytes)
   {
+    int64_t textureMemoryNeeded = textureMemoryOverflow(texture);
+    context.ejectTextureMemory(textureMemoryNeeded);
+    lockContext();
+    currentTextureMemorySize = mCurrentTextureMemorySizeInBytes;
+    unlockContext();
+    if ((textureSize + currentTextureMemorySize) > maxTextureMemoryInBytes)
+    {
+      double timeSinceGc = pxSeconds() - lastContextGarbageCollectTime;
+      if (timeSinceGc >= garbageCollectThrottleInSeconds)
+      {
 #ifdef RUNINMAIN
-    rtLogInfo("gc for texture memory");
-    script.collectGarbage();
+        rtLogInfo("gc for texture memory");
+        script.collectGarbage();
 #else
-    uv_async_send(&gcTrigger);
+        uv_async_send(&gcTrigger);
 #endif
+        lastContextGarbageCollectTime = pxSeconds();
+      }
+    }
+    else
+    {
+      rtLogInfo("texture memory freed by clearing offscreen");
+    }
   }
   return true;
 }
@@ -2916,7 +2979,10 @@ int64_t pxContext::currentTextureMemoryUsageInBytes()
 int64_t pxContext::textureMemoryOverflow(pxTextureRef texture)
 {
   int64_t textureSize = (((int64_t)texture->width())*((int64_t)texture->height())*4);
-  int64_t currentTextureMemorySize = mCurrentTextureMemorySizeInBytes;
+  int64_t currentTextureMemorySize = 0;
+  lockContext();
+  currentTextureMemorySize = mCurrentTextureMemorySizeInBytes;
+  unlockContext();
   int64_t availableBytes = mTextureMemoryLimitInBytes - currentTextureMemorySize;
   if (textureSize > availableBytes)
   {
@@ -2934,11 +3000,13 @@ int64_t pxContext::ejectTextureMemory(int64_t bytesRequested, bool forceEject)
   int64_t beforeTextureMemoryUsage = context.currentTextureMemoryUsageInBytes();
   if (!forceEject)
   {
-    ejectNotRecentlyUsedTextureMemory(bytesRequested, mEjectTextureAge);
+    ejectNotRecentlyUsedTextureMemory(bytesRequested, mTargetTextureMemoryAfterCleanupInBytes,
+                                      mFreeAllOffscreenTextureMemoryOnCleanup, mEjectTextureAge);
   }
   else
   {
-    ejectNotRecentlyUsedTextureMemory(bytesRequested, 0);
+    ejectNotRecentlyUsedTextureMemory(bytesRequested, mTargetTextureMemoryAfterCleanupInBytes,
+                                      mFreeAllOffscreenTextureMemoryOnCleanup, 0);
   }
   int64_t afterTextureMemoryUsage = context.currentTextureMemoryUsageInBytes();
   return (beforeTextureMemoryUsage-afterTextureMemoryUsage);
@@ -2955,20 +3023,12 @@ pxError pxContext::setEjectTextureAge(uint32_t age)
   return PX_OK;
 }
 
-pxError pxContext::enableInternalContext(bool enable)
+void pxContext::updateRenderTick()
 {
-#if !defined(RUNINMAIN) || defined(ENABLE_BACKGROUND_TEXTURE_CREATION)
-    makeInternalGLContextCurrent(enable);
-#else
-  (void)enable;
-#endif // !RUNINMAIN || ENABLE_BACKGROUND_TEXTURE_CREATION
-  return PX_OK;
-}
-
-pxError pxContext::enableInternalContext(bool enable, int id)
-{
-  makeInternalGLContextCurrent(enable, id);
-  return PX_OK;
+  {
+    rtMutexLockGuard renderTickMutexGuard(gRenderTickMutex);
+    gRenderTick++;
+  }
 }
 
 

@@ -53,19 +53,18 @@ class pxScene2dTest : public testing::Test
 
     void getArchiveTest()
     {
-      pxScene2d* scene = new pxScene2d();
+      rtObjectRef sceneRef =  new pxScene2d();
+      pxScene2d* scene = (pxScene2d*) sceneRef.getPtr();
+
+      scene->AddRef();
       rtObjectRef archive;
-      EXPECT_TRUE(RT_OK == scene->loadArchive("supportfiles/test_arc_resources.jar", archive));
-      EXPECT_TRUE(archive == scene->getArchive());
-      delete scene;
+      EXPECT_TRUE(RT_OK == scene->loadArchive("supportfiles/helloworld.js", archive));
+      EXPECT_TRUE(archive.getPtr() == scene->getArchive().getPtr());
     }
 
     void viewContainerTest()
     {
-      pxScene2d* parentscene = new pxScene2d();
-      rtObjectRef archive;
-      EXPECT_TRUE(RT_OK == parentscene->loadArchive("supportfiles/test_arc_resources.jar", archive));
-      pxSceneContainer* container = new pxSceneContainer(parentscene);
+      pxSceneContainer* container = new pxSceneContainer(NULL);
       container->setUrl("supportfiles/helloworld.js");
       pxScriptView* view = (pxScriptView*) container->mScriptView.getPtr();
       EXPECT_TRUE (NULL != view);
@@ -75,13 +74,14 @@ class pxScene2dTest : public testing::Test
       EXPECT_TRUE(RT_OK == pxScriptView::getScene(1, &args, &scene, (void*)view));
       pxScene2d* opscene = (pxScene2d*)(scene.toObject().getPtr());
       EXPECT_TRUE (NULL != opscene);
-      EXPECT_TRUE (opscene->viewContainer() == view->mViewContainer);
-      delete parentscene;
+      EXPECT_TRUE (opscene->viewContainer() == container);
     }
 
     void initFromUrlFromParentTest()
     {
-      pxScene2d* parentscene = new pxScene2d();
+      rtObjectRef sceneRef =  new pxScene2d();
+      pxScene2d* parentscene = (pxScene2d*) sceneRef.getPtr();
+      parentscene->AddRef();
       rtObjectRef archive;
       EXPECT_TRUE(RT_OK == parentscene->loadArchive("supportfiles/test_arc_resources.jar", archive));
       pxSceneContainer* container = new pxSceneContainer(parentscene);
@@ -93,17 +93,20 @@ class pxScene2dTest : public testing::Test
       args.setString("scene");
       EXPECT_TRUE(RT_OK == pxScriptView::getScene(1, &args, &scene, (void*)view));
       pxScene2d* opscene = (pxScene2d*)(scene.toObject().getPtr());
+      opscene->AddRef();
       EXPECT_TRUE (NULL != opscene);
-      EXPECT_TRUE (opscene->getArchive() == parentscene->getArchive());
+      EXPECT_TRUE (opscene->mArchive.getPtr() == parentscene->mArchive.getPtr());
     }
 
     void initFromUrlFromLocalTest()
     {
-      pxScene2d* parentscene = new pxScene2d();
+      rtObjectRef sceneRef =  new pxScene2d();
+      pxScene2d* parentscene = (pxScene2d*) sceneRef.getPtr();
+      parentscene->AddRef();
       rtObjectRef archive;
       EXPECT_TRUE(RT_OK == parentscene->loadArchive("supportfiles/helloworld.js", archive));
       pxSceneContainer* container = new pxSceneContainer(parentscene);
-      container->setUrl("helloworld.js");
+      container->setUrl("supportfiles/simple.js");
       pxScriptView* view = (pxScriptView*) container->mScriptView.getPtr();
       EXPECT_TRUE (NULL != view);
       rtValue scene;
@@ -111,8 +114,9 @@ class pxScene2dTest : public testing::Test
       args.setString("scene");
       EXPECT_TRUE(RT_OK == pxScriptView::getScene(1, &args, &scene, (void*)view));
       pxScene2d* opscene = (pxScene2d*)(scene.toObject().getPtr());
+      opscene->AddRef();
       EXPECT_TRUE (NULL != opscene);
-      EXPECT_TRUE (opscene->getArchive() != parentscene->getArchive());
+      EXPECT_TRUE (opscene->mArchive.getPtr() != parentscene->mArchive.getPtr());
     }
     void populateWaylandAppsConfigTest()
     { 
@@ -236,8 +240,12 @@ class pxScene2dTest : public testing::Test
       EXPECT_TRUE ( RT_OK == scenePtr->customAnimator(cAnimator));
 
       rtString type = "image/png;base64";
-      rtString pngData;
+      rtValue pngData;
       EXPECT_TRUE ( RT_OK == scenePtr->screenshot(type, pngData));
+
+      rtString typeImage = "image/image";
+      rtValue imageValue;
+      EXPECT_TRUE ( RT_OK == scenePtr->screenshot(typeImage, imageValue));
 
       rtObjectRef imageA = new rtMapObject();
       rtObjectRef cImageA = new rtMapObject();
@@ -340,18 +348,54 @@ class pxScene2dTest : public testing::Test
 
  }
 
- void multipleArchiveTest()
- {
-   pxScene2d* scene = new pxScene2d();
-   rtObjectRef archive;
-   EXPECT_TRUE(RT_OK == scene->loadArchive("supportfiles/test_arc_resources.jar", archive));
-   archive = scene->getArchive();
-   EXPECT_TRUE(true == scene->mArchiveSet);
-   rtObjectRef archive1;
-   EXPECT_TRUE(RT_OK == scene->loadArchive("supportfiles/test_arc_resources.jar", archive1));
-   EXPECT_TRUE(archive.getPtr() == scene->mArchive.getPtr());
-   delete scene;
- }
+#ifdef PXSCENE_SUPPORT_STORAGE
+  void storageTest()
+  {
+    rtObjectRef sceneRef = new pxScene2d();
+    pxScene2d* scene = (pxScene2d*) sceneRef.getPtr();
+
+    // storage init
+    rtObjectRef storageRef;
+    EXPECT_EQ ((int)RT_OK, (int)scene->storage(storageRef));
+    EXPECT_TRUE (storageRef != NULL);
+
+    // storage works
+    const char* fnName;
+    rtValue key, val, ret;
+    fnName = "setItem";
+    key = "testKey";
+    val = "testValue";
+    EXPECT_EQ ((int)RT_OK, (int)storageRef.send(fnName, key, val));
+    fnName = "getItem";
+    key = "testKey";
+    ret.term();
+    EXPECT_EQ ((int)RT_OK, (int)storageRef.sendReturns(fnName, key, ret));
+    EXPECT_TRUE (ret == val);
+    fnName = "removeItem";
+    key = "testKey";
+    EXPECT_EQ ((int)RT_OK, (int)storageRef.send(fnName, key));
+    fnName = "getItem";
+    key = "testKey";
+    ret.term();
+    EXPECT_EQ ((int)RT_OK, (int)storageRef.sendReturns(fnName, key, ret));
+    EXPECT_TRUE (ret == rtValue(""));
+
+    // storage destroy
+    scene->dispose();
+    sceneRef = NULL;
+
+    // storage does nothing after destroy
+    fnName = "setItem";
+    key = "testKey";
+    val = "testValue";
+    EXPECT_EQ ((int)RT_OK, (int)storageRef.send(fnName, key, val));
+    fnName = "getItem";
+    key = "testKey";
+    ret.term();
+    EXPECT_EQ ((int)RT_OK, (int)storageRef.sendReturns(fnName, key, ret));
+    EXPECT_TRUE (ret == rtValue(""));
+  }
+#endif
 
   private:
     pxObject*     mRoot;
@@ -372,6 +416,7 @@ TEST_F(pxScene2dTest, pxScene2dTests)
     pxScene2dClassTest();
     //pxScene2dHdrTest();
     pxScriptViewTest();
-    multipleArchiveTest();
-  
+#ifdef PXSCENE_SUPPORT_STORAGE
+    storageTest();
+#endif
 }

@@ -43,7 +43,6 @@ public:
     virtual unsigned int getNativeId() { return pxTexture::getNativeId(); }
     pxTextureType getType() { return mTextureType; }
     virtual pxError prepareForRendering() { return pxTexture::prepareForRendering(); }
-    virtual pxError loadTextureData() { return pxTexture::loadTextureData(); }
     virtual pxError unloadTextureData() { return pxTexture::unloadTextureData(); }
     virtual pxError freeOffscreenData() { return pxTexture::freeOffscreenData(); }
 
@@ -131,12 +130,6 @@ public:
     EXPECT_TRUE (result == PX_OK);
   }
 
-  void loadTextureDataTest()
-  {
-    pxError result = texture->loadTextureData();
-    EXPECT_TRUE (result == PX_OK);
-  }
-
   void unloadTextureDataTest()
   {
     pxError result = texture->unloadTextureData();
@@ -191,7 +184,6 @@ TEST_F(pxTextureTest, pxTextureTests)
   getNativeIdTest();
   getTypeTest();
   prepareForRenderingTest();
-  loadTextureDataTest();
   unloadTextureDataTest();
   freeOffscreenDataTest();
   premultipliedAlphaTest();

@@ -68,6 +68,8 @@ class pxContext {
   , mEnableTextureMemoryMonitoring(false)
 #endif
   , mEjectTextureAge(DEFAULT_EJECT_TEXTURE_AGE)
+  , mTargetTextureMemoryAfterCleanupInBytes(0)
+  , mFreeAllOffscreenTextureMemoryOnCleanup(false)
   {}
   ~pxContext();
 
@@ -104,7 +106,6 @@ class pxContext {
 
   pxTextureRef createTexture(); // default to use before image load is complete
   pxTextureRef createTexture(pxOffscreen& o);
-  pxTextureRef createTexture(pxOffscreen& o, const char *compressedData, size_t compressedDataSize);
   pxTextureRef createTexture(float w, float h, float iw, float ih, void* buffer = NULL);
   pxSharedContextRef createSharedContext();
 
@@ -159,8 +160,7 @@ class pxContext {
   int64_t ejectTextureMemory(int64_t bytesRequested, bool forceEject=false);
   
   pxError setEjectTextureAge(uint32_t age);
-  pxError enableInternalContext(bool enable);
-  pxError enableInternalContext(bool enable, int id);
+  void updateRenderTick();
 
 private:
   bool mShowOutlines;
@@ -169,6 +169,8 @@ private:
   int64_t mTextureMemoryLimitThresholdPaddingInBytes;
   bool mEnableTextureMemoryMonitoring;
   uint32_t mEjectTextureAge;
+  int64_t mTargetTextureMemoryAfterCleanupInBytes;
+  bool mFreeAllOffscreenTextureMemoryOnCleanup;
 };
 
 
