@@ -21,7 +21,7 @@ if [ "$TRAVIS_EVENT_TYPE" == "cron" ]
 then
 IMGURL="http://96.116.56.119/edge/osx/artifacts/SparkEdge.dmg"
 else
-IMGURL="http://www.pxscene.org/dist/osx/pxscene/Spark.dmg"
+IMGURL="http://www.sparkui.org/dist/osx/spark/Spark.dmg"
 fi
 
 printf "Updating ${FILE} for ${1}\n"

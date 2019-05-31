@@ -27,7 +27,7 @@ if [ -e ./version ] && [ -w . ]; then
 echo "Info: Checking for Software Update"
 
 VERSION=`cat ./version`
-UPDATE_URL=http://www.pxscene.org/dist/osx/pxscene/software_update.plist
+UPDATE_URL=http://www.sparkui.org/dist/osx/spark/software_update.plist
 
 ../MacOS/EngineRunner run -productid org.pxscene.pxscene -version $VERSION -url ${UPDATE_URL} &
 
