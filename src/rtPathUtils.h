@@ -41,6 +41,8 @@ bool rtFileExists(const char* f);
 bool rtIsPathAbsolute(const char *path);
 bool rtIsPathAbsolute(const rtString &path);
 
+bool rtMakeDirectory( const rtString &dir);
+
 const char *rtModuleDirSeparator();
 
 rtError rtPathUtilPutEnv(const char *name, const char * value);
