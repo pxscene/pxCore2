@@ -2542,9 +2542,9 @@ rtError pxScene2d::getAvailableApplications(rtString& availableApplications)
   return RT_OK;
 }
 
-#ifdef PXSCENE_SUPPORT_STORAGE
 rtError pxScene2d::storage(rtObjectRef& v) const
 {
+#ifdef PXSCENE_SUPPORT_STORAGE
   if (!mStorage)
   {
     rtString origin(mScriptView != NULL ? rtUrlGetOrigin(mScriptView->getUrl().cString()) : NULL);
@@ -2599,8 +2599,12 @@ rtError pxScene2d::storage(rtObjectRef& v) const
 
   v = mStorage;
   return RT_OK;
-}
+#else
+  UNUSED_PARAM(v);
+  rtLogInfo("storage not supported");
+  return RT_FAIL;
 #endif
+}
 
 rtDefineObject(pxScene2d, rtObject);
 rtDefineProperty(pxScene2d, root);
@@ -2656,10 +2660,7 @@ rtDefineMethod(pxScene2d, sparkSetting);
 rtDefineProperty(pxScene2d, cors);
 rtDefineMethod(pxScene2d, addServiceProvider);
 rtDefineMethod(pxScene2d, removeServiceProvider);
-
-#ifdef PXSCENE_SUPPORT_STORAGE
 rtDefineProperty(pxScene2d, storage);
-#endif
 
 rtError pxScene2dRef::Get(const char* name, rtValue* value) const
 {
