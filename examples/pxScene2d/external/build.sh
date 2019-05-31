@@ -114,15 +114,15 @@ fi
 
 fi
 
-if [ ! -e ./.libs/libgif.dylib ] ||
+if [ ! -e ./.libs/libgif.7.dylib ] ||
 [ "$(uname)" != "Darwin" ]
 then
     make
 [ -d .libs ] || mkdir -p .libs
-if [ -e libgif.dylib ]
+if [ -e libgif.7.dylib ]
 then
-    cp libgif.dylib .libs/libgif.dylib
-    cp libutil.dylib .libs/libutil.dylib
+    cp libgif.7.dylib .libs/libgif.7.dylib
+    cp libutil.7.dylib .libs/libutil.7.dylib
 
 
 elif [ -e libgif.so ]
