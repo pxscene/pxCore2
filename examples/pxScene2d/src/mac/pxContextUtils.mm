@@ -100,7 +100,7 @@ pxError makeInternalGLContextCurrent(bool current, int id)
         }
         if (context != nil)
         {
-            createGLContext(id);
+            createGLContext(id, false);
             {
               rtMutexLockGuard eglContextMutexGuard(eglContextMutex);
               context = internalContexts[id];
