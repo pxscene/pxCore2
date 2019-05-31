@@ -42,6 +42,7 @@ export SPARK_ENABLE_COLLECT_GARBAGE=1
 
 touch $VALGRINDLOGS
 EXECLOGS=$TRAVIS_BUILD_DIR/logs/exec_logs
+EXEC_DUKTAPE_LOGS=$TRAVIS_BUILD_DIR/logs/exec_duktape_logs
 TESTRUNNERURL="https://www.sparkui.org/tests-ci/test-run/testRunner.js"
 TESTS="file://$TRAVIS_BUILD_DIR/tests/pxScene2d/testRunner/testsDesktop.json,file://$TRAVIS_BUILD_DIR/tests/pxScene2d/testRunner/tests.json"
 
@@ -60,6 +61,12 @@ printValgrindLogs()
   printf "\n**********************     LOG ENDS      **************************\n"
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+if [ "$TRAVIS_JOB_NAME" = "duktape_validation" ] && [ "$TRAVIS_EVENT_TYPE" = "cron" ] ;
+then
+  touch ~/.sparkUseDuktape
+  TESTS="file://$TRAVIS_BUILD_DIR/tests/pxScene2d/testRunner/tests.json"
+fi
 
 # Start testRunner ... 
 cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src
@@ -202,4 +209,26 @@ else
 	checkError $retVal "Valgrind execution reported problem" "$errCause" "Follow the steps locally : export ENABLE_VALGRIND=1;export SUPPRESSIONS=<pxcore dir>/ci/leak.supp;./spark.sh $TESTRUNNERURL?tests=<pxcore dir>/tests/pxScene2d/testRunner/tests.json and fix it"
 	exit 1;
 fi
+
+if [ "$TRAVIS_JOB_NAME" = "duktape_validation" ] && [ "$TRAVIS_EVENT_TYPE" = "cron" ] ;
+then
+  TESTS="file://$TRAVIS_BUILD_DIR/tests/pxScene2d/testRunner/tests_duktape.json"
+  cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src
+  ./spark.sh $TESTRUNNERURL?tests=$TESTS > $EXEC_DUKTAPE_LOGS 2>&1 &
+  grep "TEST RESULTS: " $EXEC_DUKTAPE_LOGS
+  retVal=$?
+
+  # Monitor testRunner ...
+  count=0
+  #adding spark log a part of console.log increase execution time in linux in ci
+  #in linux we have timeouts, so increasing the limit
+  max_seconds=2100
+  while [ "$retVal" -ne 0 ] &&  [ "$count" -ne "$max_seconds" ]; do
+          printf "\n [execute_linux.sh] snoozing for 30 seconds (%d of %d) \n" $count $max_seconds
+          sleep 30; # seconds
+          grep "TEST RESULTS: " $EXEC_DUKTAPE_LOGS
+          retVal=$?
+  done
+fi
+
 exit 0;

@@ -48,7 +48,7 @@ then
   then
     cmake -DBUILD_PX_TESTS=ON -DBUILD_PXSCENE_STATIC_LIB=ON -DBUILD_DEBUG_METRICS=ON -DPXSCENE_TEST_HTTP_CACHE=ON -DENABLE_THREAD_SANITIZER=ON .. >>$BUILDLOGS 2>&1;
   else
-    if [ "$TRAVIS_EVENT_TYPE" == "cron" ] ; 
+    if [ "$TRAVIS_EVENT_TYPE" == "cron" ] && [ "$TRAVIS_JOB_NAME" != "duktape_validation" ]; 
     then
       cp ../examples/pxScene2d/src/macstuff/Resources/SparkEdge.icns ../examples/pxScene2d/src/macstuff/Resources/pxscene.icns
       cp ../examples/pxScene2d/src/macstuff/Resources/SparkEdge.icns ../examples/pxScene2d/src/macstuff/Resources/AppIcon.icns
@@ -56,6 +56,8 @@ then
       cp ../examples/pxScene2d/src/browser/images/status_bg_edge.svg ../examples/pxScene2d/src/browser/images/status_bg.svg
        
       cmake -DSUPPORT_DUKTAPE=OFF -DPXSCENE_VERSION=edge_`date +%Y-%m-%d` .. >>$BUILDLOGS 2>&1;
+    elif [ "$TRAVIS_EVENT_TYPE" == "cron" ] && [ "$TRAVIS_JOB_NAME" != "duktape_validation" ];
+      cmake -DSUPPORT_NODE=OFF .. >>$BUILDLOGS 2>&1;
     else
       cmake -DSUPPORT_DUKTAPE=OFF .. >>$BUILDLOGS 2>&1;
     fi
@@ -83,7 +85,7 @@ if [ "$TRAVIS_PULL_REQUEST" = "false" ]
   then
   echo "*********************** Building pxscene deploy app ***********************" >> $BUILDLOGS
 
-  if [ "$TRAVIS_EVENT_TYPE" = "cron" ]  ;
+  if [ "$TRAVIS_EVENT_TYPE" = "cron" ] && [ "$TRAVIS_JOB_NAME" != "duktape_validation" ];
   then
     cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src/
     ./mkdeploy.sh edge_`date +%Y-%m-%d` >>$BUILDLOGS 2>&1
