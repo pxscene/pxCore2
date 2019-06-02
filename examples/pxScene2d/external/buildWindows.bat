@@ -103,6 +103,8 @@ cmake ..
 cmake --build . --config Release -- /m
 cd ..
 
+REM ---------- GIF
+copy /y vc.build\builds\libgif.* giflib-5.1.9\
 
 REM --------- SQLITE
 
