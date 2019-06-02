@@ -14,6 +14,12 @@ copy /y curl-7.40.0\include\curl\curlbuild-win.h curl-7.40.0\include\curl\curlbu
 copy /y libpng-1.6.28\scripts\pnglibconf.h.prebuilt libpng-1.6.28\pnglibconf.h
 copy /y jpeg-9a\jconfig.vc jpeg-9a\jconfig.h
 
+REM --------- GIF
+cd giflib-5.1.9
+patch -p1 < ../giflib-5.1.9-windows.diff
+
+cd ..
+
 set buildExternal=0
 if NOT [%APPVEYOR_REPO_COMMIT%] == [] (
     FOR /F "tokens=* USEBACKQ" %%F IN (`git diff --name-only %APPVEYOR_REPO_COMMIT% %APPVEYOR_REPO_COMMIT%~`) DO (
@@ -97,11 +103,6 @@ cmake ..
 cmake --build . --config Release -- /m
 cd ..
 
-REM --------- GIF
-cd giflib-5.1.9
-patch -p1 < ../giflib-5.1.9-windows.diff
-
-cd ..
 
 REM --------- SQLITE
 
