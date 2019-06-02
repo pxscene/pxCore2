@@ -1291,6 +1291,7 @@ void pxTextBox::renderTextRowWithTruncation(rtString & accString, float lineWidt
           xPos =  lineWidth - charW - ellipsisW;
           setMeasurementBoundsX(true, xPos);
         }
+          
         if(!mWordWrap) {setMeasurementBounds(xPos, charW, tempY, charH); }
         else { setMeasurementBoundsX(false, charW);}
         setLineMeasurements(false, xPos+charW, tempY);
