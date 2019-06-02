@@ -57,3 +57,8 @@ rm -rf dukluv/build
 cd sqlite
 make clean -j3
 cd ..
+
+#--------- GIF
+cd gif
+make clean -j3
+cd ..
