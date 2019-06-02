@@ -17,7 +17,7 @@ copy /y jpeg-9a\jconfig.vc jpeg-9a\jconfig.h
 set buildExternal=0
 if NOT [%APPVEYOR_REPO_COMMIT%] == [] (
     FOR /F "tokens=* USEBACKQ" %%F IN (`git diff --name-only %APPVEYOR_REPO_COMMIT% %APPVEYOR_REPO_COMMIT%~`) DO (
-    echo.%%F|findstr "zlib WinSparkle pthread libpng libjpeg-turbo glew freetype curl jpeg-9a"
+    echo.%%F|findstr "libgif zlib WinSparkle pthread libpng libjpeg-turbo glew freetype curl jpeg-9a"
     if !errorlevel! == 0 (
       set buildExternal=1
       echo. External library files are modified. Need to build external : !buildExternal! .
@@ -99,7 +99,7 @@ cd ..
 
 REM --------- GIF
 cd giflib-5.1.9
-git apply -p1 < ../giflib-5.1.9-windows.diff
+patch -p1 < ../giflib-5.1.9-windows.diff
 
 cd ..
 
@@ -108,5 +108,4 @@ REM --------- SQLITE
 cd sqlite-autoconf-3280000
 cl /c /EHsc sqlite3.c
 lib sqlite3.obj
->>>>>>> e7dde3eec4ddba958123a11a9c3071b265e96b50
 cd ..
