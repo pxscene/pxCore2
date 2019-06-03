@@ -21,9 +21,12 @@
 // Silence "macOS 10.14 - OpenGL API deprecated" warnings
 #define GL_SILENCE_DEPRECATION
 
-#include <GLUT/glut.h>
-#include <OpenGL/gl.h>
-#include <OpenGL/glu.h>
+//#include <GLUT/glut.h>
+//#include <OpenGL/gl.h>
+//#include <OpenGL/glu.h>
+#include <glut.h>
+#include <gl.h>
+#include <glu.h>
 #include "pxContextUtils.h"
 
 void _CheckGLError(const char* file, int line);
