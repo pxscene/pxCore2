@@ -2259,7 +2259,7 @@ rtError pxLoadGIFImage(const char *imageData, size_t imageDataSize,
                         break;
                     }
                     drawGifImage(obj, rows, map, transparent);
-                    //isFirstImageRendered = true;
+                    isFirstImageRendered = true;
                     // Clear the GCB so it doesn't apply to the next frame.
                     gcb = GraphicsControlBlock();
                     break;
