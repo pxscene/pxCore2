@@ -387,14 +387,10 @@ index 98bcbc3..70b6414 100644
    debug('connect: dns options', dnsopts);
    self._host = host;
 diff --git a/examples/pxScene2d/external/libnode-v8.15.1/node.gyp b/examples/pxScene2d/external/libnode-v8.15.1/node.gyp
-index ed20a49..39747ba 100644
+index ed20a49..5a0ec99 100644
 --- a/examples/pxScene2d/external/libnode-v8.15.1/node.gyp
 +++ b/examples/pxScene2d/external/libnode-v8.15.1/node.gyp
-@@ -29,11 +29,9 @@
-       'lib/async_hooks.js',
-       'lib/assert.js',
-       'lib/buffer.js',
--      'lib/child_process.js',
+@@ -33,7 +33,6 @@
        'lib/console.js',
        'lib/constants.js',
        'lib/crypto.js',
@@ -402,11 +398,10 @@ index ed20a49..39747ba 100644
        'lib/dgram.js',
        'lib/dns.js',
        'lib/domain.js',
-@@ -81,13 +79,6 @@
-       'lib/zlib.js',
+@@ -82,12 +81,6 @@
        'lib/internal/async_hooks.js',
        'lib/internal/buffer.js',
--      'lib/internal/child_process.js',
+       'lib/internal/child_process.js',
 -      'lib/internal/cluster/child.js',
 -      'lib/internal/cluster/master.js',
 -      'lib/internal/cluster/round_robin_handle.js',
@@ -416,7 +411,7 @@ index ed20a49..39747ba 100644
        'lib/internal/encoding.js',
        'lib/internal/errors.js',
        'lib/internal/freelist.js',
-@@ -123,23 +114,11 @@
+@@ -123,23 +116,11 @@
        'lib/internal/http2/core.js',
        'lib/internal/http2/compat.js',
        'lib/internal/http2/util.js',
