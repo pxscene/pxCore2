@@ -2336,4 +2336,20 @@ rtError pxLoadGIFImage(const char *imageData, size_t imageDataSize,
 #endif //SUPPORT_GIF
 }
 
+rtError pxLoadGIFImage(const char *filename, pxOffscreen &o)
+{
+    rtData d;
+    rtError e = rtLoadFile(filename, d);
+    if (e == RT_OK)
+    {
+        // TODO get rid of the cast
+        e = pxLoadGIFImage((const char *)d.data(), d.length(), o);
+    }
+    else
+    {
+        rtLogError("Failed to load image file, %s.", filename);
+    }
+    
+    return e;
+}
 
