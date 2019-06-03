@@ -1,0 +1,26 @@
+diff --git a/examples/pxScene2d/external/giflib-5.1.9/gif_hash.h b/examples/pxScene2d/external/giflib-5.1.9/gif_hash.h
+index ac20a43cb..a236bb56d 100644
+--- a/examples/pxScene2d/external/giflib-5.1.9/gif_hash.h
++++ b/examples/pxScene2d/external/giflib-5.1.9/gif_hash.h
+@@ -7,7 +7,7 @@ gif_hash.h - magfic constants and declarations for GIF LZW
+ #ifndef _GIF_HASH_H_
+ #define _GIF_HASH_H_
+ 
+-#include <unistd.h>
++//#include <unistd.h>
+ #include <stdint.h>
+ 
+ #define HT_SIZE			8192	   /* 12bits = 4096 or twice as big! */
+diff --git a/examples/pxScene2d/external/giflib-5.1.9/giftool.c b/examples/pxScene2d/external/giflib-5.1.9/giftool.c
+index 21b9c486b..afdce4567 100644
+--- a/examples/pxScene2d/external/giflib-5.1.9/giftool.c
++++ b/examples/pxScene2d/external/giflib-5.1.9/giftool.c
+@@ -10,7 +10,7 @@ giftool.c - GIF transformation tool.
+ #include <fcntl.h>
+ #include <stdbool.h>
+ 
+-#include "getopt.h"
++//#include "getopt.h"
+ #include "getarg.h"
+ #include "gif_lib.h"
+ 

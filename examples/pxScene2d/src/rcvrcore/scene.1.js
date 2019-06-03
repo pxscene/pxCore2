@@ -45,6 +45,7 @@ function Scene() {
       this.filePath = filePath;
       this.addServiceProvider = scene.addServiceProvider;
       this.removeServiceProvider = scene.removeServiceProvider;
+
       if (!isDuk) { 
         this.__defineGetter__("w", function() { return scene.w; });
         this.__defineGetter__("h", function() { return scene.h; });
@@ -59,6 +60,7 @@ function Scene() {
         this.__defineSetter__("customAnimator", function(v) { scene.customAnimator = v; });
         this.__defineGetter__("dirtyRectangle", function() { return scene.dirtyRectangle; });
         this.__defineGetter__("dirtyRectanglesEnabled", function() { return scene.dirtyRectanglesEnabled; });
+        this.__defineGetter__('storage', function() { return scene.storage; });
       }
       else {
         this.w = scene.w;

@@ -18,6 +18,8 @@
 
 #include "rtSettings.h"
 
+#include "rtPathUtils.h"
+
 #include <rapidjson/document.h>
 #include <rapidjson/filereadstream.h>
 #include <rapidjson/error/en.h>
@@ -26,6 +28,8 @@
 #include <string.h>
 
 const int rtSettings::FILE_BUFFER_SIZE = 65536;
+const char* rtSettings::FILE_NAME = ".sparkSettings.json";
+const char* rtSettings::FILE_ENV_NAME = "SPARK_SETTINGS";
 
 rtSettings::rtSettings()
 {
@@ -85,10 +89,36 @@ rtError rtSettings::clear()
 
 rtError rtSettings::loadFromFile(const rtString& filePath)
 {
-  FILE* fp = fopen(filePath.cString(), "rb");
+  rtString settingsPath = filePath;
+
+  if (settingsPath.isEmpty())
+  {
+    // runtime location, if available
+    const char* env = getenv(FILE_ENV_NAME);
+    if (env && rtFileExists(env))
+      settingsPath = env;
+  }
+
+  if (settingsPath.isEmpty())
+  {
+    // default location, if available
+    rtString homePath;
+    if (RT_OK == rtGetHomeDirectory(homePath))
+    {
+      homePath.append(FILE_NAME);
+      if (rtFileExists(homePath))
+        settingsPath = homePath;
+    }
+  }
+
+  // no file at default locations
+  if (settingsPath.isEmpty())
+    return RT_RESOURCE_NOT_FOUND;
+
+  FILE* fp = fopen(settingsPath.cString(), "rb");
   if (NULL == fp)
   {
-    rtLogError("%s : cannot open '%s'", __FUNCTION__, filePath.cString());
+    rtLogError("%s : cannot open '%s'", __FUNCTION__, settingsPath.cString());
     return RT_ERROR;
   }
 

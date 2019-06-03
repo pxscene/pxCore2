@@ -348,6 +348,55 @@ class pxScene2dTest : public testing::Test
 
  }
 
+#ifdef PXSCENE_SUPPORT_STORAGE
+  void storageTest()
+  {
+    rtObjectRef sceneRef = new pxScene2d();
+    pxScene2d* scene = (pxScene2d*) sceneRef.getPtr();
+
+    // storage init
+    rtObjectRef storageRef;
+    EXPECT_EQ ((int)RT_OK, (int)scene->storage(storageRef));
+    EXPECT_TRUE (storageRef != NULL);
+
+    // storage works
+    const char* fnName;
+    rtValue key, val, ret;
+    fnName = "setItem";
+    key = "testKey";
+    val = "testValue";
+    EXPECT_EQ ((int)RT_OK, (int)storageRef.send(fnName, key, val));
+    fnName = "getItem";
+    key = "testKey";
+    ret.term();
+    EXPECT_EQ ((int)RT_OK, (int)storageRef.sendReturns(fnName, key, ret));
+    EXPECT_TRUE (ret == val);
+    fnName = "removeItem";
+    key = "testKey";
+    EXPECT_EQ ((int)RT_OK, (int)storageRef.send(fnName, key));
+    fnName = "getItem";
+    key = "testKey";
+    ret.term();
+    EXPECT_EQ ((int)RT_OK, (int)storageRef.sendReturns(fnName, key, ret));
+    EXPECT_TRUE (ret == rtValue(""));
+
+    // storage destroy
+    scene->dispose();
+    sceneRef = NULL;
+
+    // storage does nothing after destroy
+    fnName = "setItem";
+    key = "testKey";
+    val = "testValue";
+    EXPECT_EQ ((int)RT_OK, (int)storageRef.send(fnName, key, val));
+    fnName = "getItem";
+    key = "testKey";
+    ret.term();
+    EXPECT_EQ ((int)RT_OK, (int)storageRef.sendReturns(fnName, key, ret));
+    EXPECT_TRUE (ret == rtValue(""));
+  }
+#endif
+
   private:
     pxObject*     mRoot;
     pxScriptView* mView;
@@ -367,4 +416,7 @@ TEST_F(pxScene2dTest, pxScene2dTests)
     pxScene2dClassTest();
     //pxScene2dHdrTest();
     pxScriptViewTest();
+#ifdef PXSCENE_SUPPORT_STORAGE
+    storageTest();
+#endif
 }

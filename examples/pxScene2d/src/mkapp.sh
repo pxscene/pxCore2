@@ -28,7 +28,11 @@ rm -rf $bundle
 [ -d $bundleLib ] || mkdir -p $bundleLib
 
 # Copy LIBS to Bundle...
-#
+if [ -e $externalDir/gif/.libs/libgif.7.dylib ]
+then
+cp $externalDir/gif/.libs/libgif.7.dylib $bundleLib
+fi
+
 cp $externalDir/png/.libs/libpng16.16.dylib $bundleLib
 cp $externalDir/curl/lib/.libs/libcurl.4.dylib $bundleLib
 cp $externalDir/node/out/Release/libnode*.dylib $bundleLib
@@ -38,6 +42,7 @@ cp $externalDir/jpg/.libs/libjpeg.9.dylib $bundleLib
 if [ -e $externalDir/v8/out.gn ]; then
  cp $externalDir/v8/out.gn/x64.release/*.bin $bundleBin
 fi
+cp $externalDir/sqlite/.libs/libsqlite3.dylib $bundleLib
 
 # Copy OTHER to Bundle...
 #
