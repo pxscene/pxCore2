@@ -175,6 +175,7 @@ private:
   bool mClientMonitorStarted;
   std::atomic<bool> mWaitingForRemoteObject;
   bool mUseDispatchThread;
+  bool mClientTerminated;
   int mX;
   int mY;
   int mWidth;
