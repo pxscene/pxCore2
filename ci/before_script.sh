@@ -28,7 +28,8 @@ drop_json_lines()
     sed -i "/${MATCH}/d" "${FILE}"
   fi
   #delete last comma in json file, if any
-  sed -i -e x -e '$ {s/,$//;p;x;}' -e 1d "${FILE}"}
+  sed -i -e x -e '$ {s/,$//;p;x;}' -e 1d "${FILE}"
+}
 
 #make arrangements for ignoring some tests
 drop_json_lines "pxWayland" "${TESTSDESKTOP_JSON}"
