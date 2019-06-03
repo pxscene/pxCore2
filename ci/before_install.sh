@@ -59,6 +59,7 @@ then
   brew install quilt
   brew install libuv
   brew install xmlto
+  brew install pkg-config glfw3 glew
   sudo /usr/sbin/DevToolsSecurity --enable
   lldb --version
   lldb --help
