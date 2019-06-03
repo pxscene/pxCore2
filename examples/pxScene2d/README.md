@@ -37,7 +37,7 @@
 >   * From terminal install dependencies: cmake, pkg-config, quilt, java.
 
 ```bash
-    brew install cmake pkg-config quilt caskroom/cask/java libuv xmlto
+    brew install cmake pkg-config quilt caskroom/cask/java libuv xmlto glfw3 glew
 ```
 
 ## Windows Setup
