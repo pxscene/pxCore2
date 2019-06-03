@@ -56,7 +56,6 @@ function AppSceneContext(params) {
     this.queryParams = {};
     this.packageUrl = params.packageUrl;
   }
-  this.defaultBaseUri = "";
   this.basePackageUri = "";
   this.sandbox = {};
   this.scriptMap = {};
@@ -86,31 +85,10 @@ function AppSceneContext(params) {
 
 
 AppSceneContext.prototype.loadScene = function() {
-  //log.info("loadScene() - begins    on ctx: " + getContextID() );
-  var ctx = this;
-  var thisPackageUrl = this.packageUrl.split('?')[0];
-  var urlParts = url.parse(thisPackageUrl, true);
-  var fullPath = thisPackageUrl;
-  var platform = (isDuk)?uv.platform:(isV8?uv_platform():process.platform);
-  if (fullPath.substring(0, 4) !== "http") {
-    if( fullPath.charAt(0) === '.' ) {
-      // local file system
-      this.defaultBaseUri = ".";
-    } else if( platform === 'win32' && fullPath.charAt(1) === ':' ) {
-        // Windows OS, so take the url as the whole file path
-        urlParts.pathname = thisPackageUrl;
-    }
-    fullPath = urlParts.pathname;
-    if( fullPath !== null) {
-      this.basePackageUri = fullPath.substring(0, fullPath.lastIndexOf('/'));
-      //var fileName = this.packageUrl.substring(fullPath.lastIndexOf('/'));
-    }
-  } else {
-    this.basePackageUri = fullPath.substring(0, fullPath.lastIndexOf('/'));
-  }
+  const thisPackageUrl = this.packageUrl.split('?')[0];
+  this.basePackageUri = path.dirname(thisPackageUrl);
 
-if( fullPath !== null)
-  this.loadPackage(fullPath);
+  this.loadPackage(thisPackageUrl);
 
 function terminateScene() {
     var e = this.termEvent;
@@ -594,30 +572,7 @@ if (false) {
 };
 
 AppSceneContext.prototype.getPackageBaseFilePath = function() {
-  var fullPath;
-  var pkgPart;
-  var platform = (isDuk)?uv.platform:(isV8?uv_platform():process.platform);
-  if (this.basePackageUri.substring(0, 4) !== "http") {
-    if (this.basePackageUri.charAt(0) == '.') {
-      pkgPart = this.basePackageUri.substring(1);
-    } else {
-      pkgPart = this.basePackageUri;
-    }
-    if (pkgPart.charAt(0) == '/') {
-      fullPath = this.defaultBaseUri + pkgPart;
-    } else if(platform === 'win32' && pkgPart.charAt(1) === ':' ) {
-      // Windows OS and using drive name, take the pkg part as the file path
-      fullPath = pkgPart;
-    } else {
-      fullPath = this.defaultBaseUri + "/" + pkgPart;
-    }
-  } else {
-    fullPath = this.basePackageUri;
-  }
-
-  fullPath = fullPath.replace('%20', '\ '); // replace HTML escaped spaces with C/C++ escaping
-
-  return fullPath;
+  return this.basePackageUri.replace('%20', '\ '); // replace HTML escaped spaces with C/C++ escaping
 };
 
 AppSceneContext.prototype.getModuleFile = function(filePath, xModule) {

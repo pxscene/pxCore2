@@ -800,6 +800,7 @@ public:
   {
     // This bootstrap is valid json but has no correct items in roles
     // Should default to block everything
+
     rtPermissions::init("supportfiles/permissions.bad.conf");
 
     rtPermissionsRef p1 = new rtPermissions("http://1.com");
@@ -826,6 +827,11 @@ public:
     EXPECT_EQ ((int)RT_ERROR_NOT_ALLOWED, (int)p1->allows("https://localhost", rtPermissions::DEFAULT));
     EXPECT_EQ ((int)RT_ERROR_NOT_ALLOWED, (int)p1->allows("unknown", rtPermissions::FEATURE));
     EXPECT_EQ ((int)RT_ERROR_NOT_ALLOWED, (int)p1->allows("unknown", rtPermissions::WAYLAND));
+
+    // quota should be 0 if not specified
+    uint32_t quota = 0;
+    EXPECT_EQ ((int)RT_OK, (int)p1->getStorageQuota(quota));
+    EXPECT_EQ ((unsigned int)quota, (unsigned int)0);
 
     // reset
     rtPermissions::init();
@@ -1005,6 +1011,8 @@ public:
 
   void test_supportfilesSample2Conf()
   {
+    // This test verifies origin is set correctly for both scene URL and target URL
+
     rtPermissions::init("supportfiles/permissions.sample2.conf");
     rtPermissionsRef p1;
 
@@ -1062,7 +1070,10 @@ public:
   void test_defaultConf()
   {
     // This test uses default Bootstrap config
+
     rtPermissions::init();
+
+    uint32_t quota = 0;
 
     // "*" : "default"
     rtPermissionsRef p1 = new rtPermissions("http://default.web.site");
@@ -1079,6 +1090,8 @@ public:
     EXPECT_EQ ((int)RT_ERROR_NOT_ALLOWED, (int)p1->allows("anything", rtPermissions::SERVICE));
     EXPECT_EQ ((int)RT_OK, (int)p1->allows("anything", rtPermissions::FEATURE));
     EXPECT_EQ ((int)RT_OK, (int)p1->allows("anything", rtPermissions::WAYLAND));
+    EXPECT_EQ ((int)RT_OK, (int)p1->getStorageQuota(quota));
+    EXPECT_EQ ((unsigned int)quota, (unsigned int)0);
 
     // "*://localhost" : "local",
     // "*://localhost:*" : "local",
@@ -1103,6 +1116,8 @@ public:
     EXPECT_EQ ((int)RT_OK, (int)p1->allows("anything", rtPermissions::SERVICE));
     EXPECT_EQ ((int)RT_OK, (int)p1->allows("anything", rtPermissions::FEATURE));
     EXPECT_EQ ((int)RT_OK, (int)p1->allows("anything", rtPermissions::WAYLAND));
+    EXPECT_EQ ((int)RT_OK, (int)p1->getStorageQuota(quota));
+    EXPECT_EQ ((unsigned int)quota, (unsigned int)5000000);
 
     // "*://www.pxscene.org" : "pxscene.org",
     // "*://www.pxscene.org:*" : "pxscene.org",
@@ -1122,6 +1137,8 @@ public:
     EXPECT_EQ ((int)RT_OK, (int)p1->allows("anything", rtPermissions::SERVICE));
     EXPECT_EQ ((int)RT_OK, (int)p1->allows("anything", rtPermissions::FEATURE));
     EXPECT_EQ ((int)RT_OK, (int)p1->allows("anything", rtPermissions::WAYLAND));
+    EXPECT_EQ ((int)RT_OK, (int)p1->getStorageQuota(quota));
+    EXPECT_EQ ((unsigned int)quota, (unsigned int)1000000);
 
     // "*://www.sparkui.org" : "sparkui.org",
     // "*://www.sparkui.org:*" : "sparkui.org",
@@ -1141,6 +1158,8 @@ public:
     EXPECT_EQ ((int)RT_OK, (int)p1->allows("anything", rtPermissions::SERVICE));
     EXPECT_EQ ((int)RT_OK, (int)p1->allows("anything", rtPermissions::FEATURE));
     EXPECT_EQ ((int)RT_OK, (int)p1->allows("anything", rtPermissions::WAYLAND));
+    EXPECT_EQ ((int)RT_OK, (int)p1->getStorageQuota(quota));
+    EXPECT_EQ ((unsigned int)quota, (unsigned int)1000000);
   }
 
   void test_find_1()

@@ -131,6 +131,42 @@ public:
     EXPECT_TRUE (rtUrlGetOrigin("://111").isEmpty());
     EXPECT_TRUE (rtUrlGetOrigin("127.0.0.1").isEmpty());
   }
+
+  void testUrlEscape()
+  {
+    EXPECT_EQ (std::string(""), rtUrlEscape(NULL).cString());
+    EXPECT_EQ (std::string(""), rtUrlEscape("").cString());
+    EXPECT_EQ (
+      std::string("file%3A%2F%2F"),
+      rtUrlEscape("file://").cString());
+    EXPECT_EQ (
+      std::string("This%20isn%27t%20a%20URL."),
+      rtUrlEscape("This isn't a URL.").cString());
+    EXPECT_EQ (
+      std::string("http%3A%2F%2FMVSXX.COMPANY.COM%3A04445%2FCICSPLEXSM%2F%2FJSMITH%2FVIEW%2FOURLOCTRAN%3FA_TRANID%3DP%2A%26O_TRANID%3DNE"),
+      rtUrlEscape("http://MVSXX.COMPANY.COM:04445/CICSPLEXSM//JSMITH/VIEW/OURLOCTRAN?A_TRANID=P*&O_TRANID=NE").cString());
+    EXPECT_EQ (
+      std::string("https%3A%2F%2Fapi.fullcontact.com%2Fv2%2Fperson.json%3Femail%3Dbart%40fullcontact.com%26apiKey%3Dyour_api_key_here"),
+      rtUrlEscape("https://api.fullcontact.com/v2/person.json?email=bart@fullcontact.com&apiKey=your_api_key_here").cString());
+    EXPECT_EQ (
+      std::string("http%3A%2F%2Fsite%2Fgwturl%23user%3A45%2Fcomments"),
+      rtUrlEscape("http://site/gwturl#user:45/comments").cString());
+    EXPECT_EQ (
+      std::string("http%3A%2F%2Fmy_email%2540gmail.com%3Apassword%40www.my_site.com"),
+      rtUrlEscape("http://my_email%40gmail.com:password@www.my_site.com").cString());
+    EXPECT_EQ (
+      std::string("http%3A%2F%2F%5B2001%3Adb8%3A85a3%3A%3A8a2e%3A370%3A7334%5D%2Ffoo%2Fbar"),
+      rtUrlEscape("http://[2001:db8:85a3::8a2e:370:7334]/foo/bar").cString());
+    EXPECT_EQ (
+      std::string("ftp%3A%2F%2Fuser%3Apass%2521word%40example.com%2Fpath%2Fto%2Finput.mp3"),
+      rtUrlEscape("ftp://user:pass%21word@example.com/path/to/input.mp3").cString());
+    EXPECT_EQ (
+      std::string("sftp%3A%2F%2Fuser%2540example.com%3Apass%2521word%40example.com%2Fpath%2Fto%2Finput.3gp"),
+      rtUrlEscape("sftp://user%40example.com:pass%21word@example.com/path/to/input.3gp").cString());
+    EXPECT_EQ (
+      std::string("http%3A%2F%2Fexample.com%2Ffile%5B%2F%5D.html"),
+      rtUrlEscape("http://example.com/file[/].html").cString());
+  }
 };
 
 TEST_F(rtUrlUtilsTest, rtUrlUtilsTests)
@@ -140,4 +176,5 @@ TEST_F(rtUrlUtilsTest, rtUrlUtilsTests)
   testUrlGetOriginRfc3986();
   testUrlGetOriginHack();
   testUrlGetHostname();
+  testUrlEscape();
 }

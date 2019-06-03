@@ -33,6 +33,7 @@ public:
 
   rtDeclareObject(rtPermissions, rtObject);
   rtMethod1ArgAndReturn("allows", allows, rtString, bool);
+  rtReadOnlyProperty(storageQuota, getStorageQuota, uint32_t);
 
   enum Type
   {
@@ -41,6 +42,7 @@ public:
     FEATURE,
     WAYLAND,
     RTREMOTE,
+    STORAGE,
     TYPE_COUNT
   };
 
@@ -51,6 +53,9 @@ public:
   rtError setParent(const rtPermissionsRef& parent);
   rtError allows(const char* s, rtPermissions::Type type) const;
   rtError allows(const rtString& url, bool& o) const;
+  rtError getStorageQuota(uint32_t& o) const;
+
+  uint32_t getStorageQuota(const rtString& origin) const;
 
   // Parsing
   static rtError file2str(const char* file, rtString& s);
@@ -63,12 +68,14 @@ protected:
   static const char* DEFAULT_CONFIG_FILE;
   static const char* ENABLED_ENV_NAME;
   static const char* CONFIG_ENV_NAME;
+  static const char* LOCAL_FILE_ORIGIN;
   static bool mEnabled;
   static rtObjectRef mConfig;
 
   rtString mOrigin;
   rtPermissionsRef mParent;
   rtObjectRef mRole;
+  long mStorageQuota;
 };
 
 #endif
