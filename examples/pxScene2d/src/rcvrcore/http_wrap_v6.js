@@ -54,9 +54,8 @@ function Request(moduleName, appSceneContext, options, callback) {
   }
 
   var self = this;
-  var is_v2 = isHttp2Supported && !isV8 && moduleName === 'http2' && http2;
-  var defaultProtocol = moduleName === 'http' ? 'http:' : 'https:';
   options = Utils._normalizeOptions(options);
+  var defaultProtocol = moduleName === 'http' ? 'http:' : 'https:';
   var toOrigin = Utils._getRequestOrigin(options, defaultProtocol);
   var fromOrigin = null;
   var withCredentials = false;
@@ -91,7 +90,7 @@ function Request(moduleName, appSceneContext, options, callback) {
     appSceneContext.innerscene.cors &&
     !isBlocked &&
     fromOrigin) {
-    var h = options.headers;
+    var h = options.headers ? options.headers : (options.headers = {});
     var keys = Object.keys(h);
     for (var i = 0; i < keys.length; i++) {
       var k = keys[i];
@@ -107,12 +106,17 @@ function Request(moduleName, appSceneContext, options, callback) {
   }
 
   if (!isBlocked) {
-    var module = moduleName === 'http' ? http : (is_v2 ? http2 : https);
+    var module = moduleName === 'http' ? http : (isHttp2Supported ? http2 : https);
+
+    // for v8 http/https/http2 are the same, set protocol explicitly
+    if (isV8 && !options.protocol) {
+      options.protocol = defaultProtocol;
+    }
 
     // convert a dummy Agent into a real one
     if (options.agent instanceof Agent) {
       var agentObj = options.agent;
-      var newAgent = (isV8 || is_v2) ? null : (AgentCache[agentObj.uid] || new module.Agent(agentObj.options));
+      var newAgent = isV8 ? null : (AgentCache[agentObj.uid] || new module.Agent(agentObj.options));
       options.agent = AgentCache[agentObj.uid] = newAgent;
       agentObj.once('destroy', function () {
         if (newAgent) {
@@ -122,31 +126,11 @@ function Request(moduleName, appSceneContext, options, callback) {
       });
     }
 
-    if (!is_v2) {
-      var legacy = url.parse(options.toString());
-      options = Utils._extend(legacy, {
-        method: options.method, agent: options.agent, headers: options.headers
-      });
-      httpRequest = module.request.call(null, options);
-    } else {
-      // HTTP/2
-      var clientHttp2Session = module.connect(options);
-      clientHttp2Session.on('error', function (err) {
-        httpRequest.emit('error', err);
-      });
-      httpRequest = clientHttp2Session.request(options.headers);
-    }
+    httpRequest = module.request.call(null, options);
 
     httpRequest.once('response', function (httpResponse) {
       if (appSceneContext.isTerminated) {
         return;
-      }
-
-      if (is_v2) {
-        // HTTP/2
-        httpRequest.headers = httpResponse;
-        httpRequest.statisCode = httpResponse[':status'];
-        httpResponse = httpRequest;
       }
 
       var response = new Response(httpResponse, appSceneContext, fromOrigin, toOrigin, withCredentials);
@@ -207,8 +191,6 @@ function Request(moduleName, appSceneContext, options, callback) {
     if (!isBlocked) {
       if (isV8) {
         httpRequest.abort();
-      } else if (is_v2) {
-        httpRequest.destroy();
       } else {
         httpRequest.abort.apply(httpRequest, arguments);
       }
@@ -218,8 +200,6 @@ function Request(moduleName, appSceneContext, options, callback) {
     if (!isBlocked) {
       if (isV8) {
         return httpRequest.getHeader(arguments[0]);
-      } else if (is_v2) {
-        return httpRequest.sentHeaders[arguments[0]];
       } else {
         return httpRequest.getHeader.apply(httpRequest, arguments);
       }
@@ -229,8 +209,6 @@ function Request(moduleName, appSceneContext, options, callback) {
     if (!isBlocked) {
       if (isV8) {
         log.warn("setNoDelay not implemented for v8");
-      } else if (is_v2) {
-        log.warn("setNoDelay not implemented for HTTP/2");
       } else {
         httpRequest.setNoDelay.apply(httpRequest, arguments);
       }
@@ -240,8 +218,6 @@ function Request(moduleName, appSceneContext, options, callback) {
     if (!isBlocked) {
       if (isV8) {
         log.warn("setSocketKeepAlive not implemented for v8");
-      } else if (is_v2) {
-        log.warn("setSocketKeepAlive not implemented for HTTP/2");
       } else {
         httpRequest.setSocketKeepAlive.apply(httpRequest, arguments);
       }
