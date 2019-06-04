@@ -126,7 +126,20 @@ function Request(moduleName, appSceneContext, options, callback) {
       });
     }
 
-    httpRequest = module.request.call(null, options);
+    if (!isHttp2Supported) {
+      var legacy = url.parse(options.toString());
+      options = Utils._extend(legacy, {
+        method: options.method, agent: options.agent, headers: options.headers
+      });
+      httpRequest = module.request.call(null, options);
+    } else {
+      // HTTP/2
+      var clientHttp2Session = module.connect(options);
+      clientHttp2Session.on('error', function (err) {
+        httpRequest.emit('error', err);
+      });
+      httpRequest = clientHttp2Session.request(options.headers);
+    }
 
     httpRequest.once('response', function (httpResponse) {
       if (appSceneContext.isTerminated) {
