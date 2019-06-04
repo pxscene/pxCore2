@@ -26,7 +26,12 @@
     
     ~~~~
     sudo apt-get install git libglew-dev freeglut3 freeglut3-dev libgcrypt11-dev zlib1g-dev g++ libssl-dev nasm autoconf libtool cmake quilt xmlto
-    
+    ~~~~
+
+2. For Ubuntu 18.04+ also install:
+
+    ~~~~
+    sudo apt-get install gnutls-dev
     ~~~~
 
 ## macOS Setup 
