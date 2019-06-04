@@ -20,10 +20,10 @@ limitations under the License.
 
 var isHttp2Present = false;
 try {
-var http2 = require('http2');
-isHttp2Present = true;
+  var http2 = require('http2');
+  isHttp2Present = true;
 } catch (ignored) {
-isHttp2Present = false;
+  isHttp2Present = false;
 }
 
 module.exports = (isHttp2Present == true)?require('rcvrcore/http_wrap_v8'):require('rcvrcore/http_wrap_v6');
