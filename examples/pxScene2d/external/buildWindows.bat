@@ -85,6 +85,7 @@ if %buildExternal% == 1 (
 ) else (
   CALL vcbuild.bat x86 nosign
 )
+dir *.lib /s
 cd ..
 
 REM --------- DUKLUV
