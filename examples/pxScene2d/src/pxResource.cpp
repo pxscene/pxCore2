@@ -627,7 +627,7 @@ void pxResource::onResourceDirtyUI(void* context, void* /*data*/)
 
 void rtImageResource::loadResourceFromFile()
 {
-    rtString url = mUrl;//.beginsWith("file:") ? mUrl.substring(5, mUrl.length()-5) : mUrl;
+  rtString url = mUrl.beginsWith("file:") ? mUrl.substring(5, mUrl.length()-5) : mUrl;
     
   pxOffscreen imageOffscreen;
   rtString status = "resolve";
