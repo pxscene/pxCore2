@@ -464,7 +464,7 @@ bool rtStorage::isEncrypted(const char* fileName)
     return false;
 
   int magicSize = strlen(SQLITE_FILE_HEADER);
-  char* fileHeader = (char*)malloc(magicSize);
+  char* fileHeader = (char*)malloc(magicSize + 1/*for Coverity*/);
 
   int readSize = fread(fileHeader, 1, magicSize, fd);
   fclose(fd);
