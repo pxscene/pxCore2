@@ -60,5 +60,5 @@
       {"url":"../tests/test_objects_alpha.js", "title":"test_objects_alpha","useBaseURI":"true"},
       {"url":"../tests/test_dirty_rectangles.js", "title":"test_dirty_rectangles","useBaseURI":"true"},
       {"url":"../tests/test_gifLoader.js", "title":"test_gifLoader","useBaseURI":"true"},
-      {"url":"../tests/test_agifLoader.js", "title":"test_agifLoader","useBaseURI":"true"}
+      {"url":"../tests/test_gifLoader_pxImage.js", "title":"test_gifLoader_pxImage","useBaseURI":"true"}
 ]
