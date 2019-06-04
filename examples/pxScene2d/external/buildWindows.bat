@@ -79,7 +79,7 @@ cd ..
 REM --------- LIBNODE
 
 git apply node-v8.15.1_mods.patch
-cd libnode-v8.15.1
+cd libnode-v6.9.0
 if %buildExternal% == 1 (
   CALL vcbuild.bat x86 nosign no-optimization static
 ) else (
