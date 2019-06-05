@@ -1,4 +1,5 @@
 #!/bin/sh
+#using custom deploy folder for different cron jobs
 if [ "$TRAVIS_EVENT_TYPE" != "cron" ]
 then
 export DEPLOY_DESTINATION=${DEPLOY_DESTINATION:-/var/www/html/releases}
