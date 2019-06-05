@@ -1,5 +1,5 @@
 diff --git a/examples/pxScene2d/external/libnode-v8.15.1/common.gypi b/examples/pxScene2d/external/libnode-v8.15.1/common.gypi
-index fd42f27..b810221 100644
+index fd42f27d3..b810221f8 100644
 --- a/examples/pxScene2d/external/libnode-v8.15.1/common.gypi
 +++ b/examples/pxScene2d/external/libnode-v8.15.1/common.gypi
 @@ -131,7 +131,9 @@
@@ -124,7 +124,7 @@ index fd42f27..b810221 100644
            }],
          ],
 diff --git a/examples/pxScene2d/external/libnode-v8.15.1/configure b/examples/pxScene2d/external/libnode-v8.15.1/configure
-index ceb04f7..4a42b1a 100755
+index ceb04f799..4a42b1a77 100755
 --- a/examples/pxScene2d/external/libnode-v8.15.1/configure
 +++ b/examples/pxScene2d/external/libnode-v8.15.1/configure
 @@ -548,6 +548,13 @@ parser.add_option('--without-bundled-v8',
@@ -152,7 +152,7 @@ index ceb04f7..4a42b1a 100755
  # variables should be a root level element,
  # move everything else to target_defaults
 diff --git a/examples/pxScene2d/external/libnode-v8.15.1/deps/cares/common.gypi b/examples/pxScene2d/external/libnode-v8.15.1/deps/cares/common.gypi
-index 609ad62..d6999a0 100644
+index 609ad62a3..d6999a047 100644
 --- a/examples/pxScene2d/external/libnode-v8.15.1/deps/cares/common.gypi
 +++ b/examples/pxScene2d/external/libnode-v8.15.1/deps/cares/common.gypi
 @@ -40,7 +40,9 @@
@@ -167,7 +167,7 @@ index 609ad62..d6999a0 100644
            '-fdata-sections',
            '-ffunction-sections'
 diff --git a/examples/pxScene2d/external/libnode-v8.15.1/deps/http_parser/http_parser.gyp b/examples/pxScene2d/external/libnode-v8.15.1/deps/http_parser/http_parser.gyp
-index 4364f73..39d7466 100644
+index 4364f73d1..39d746633 100644
 --- a/examples/pxScene2d/external/libnode-v8.15.1/deps/http_parser/http_parser.gyp
 +++ b/examples/pxScene2d/external/libnode-v8.15.1/deps/http_parser/http_parser.gyp
 @@ -21,7 +21,9 @@
@@ -182,7 +182,7 @@ index 4364f73..39d7466 100644
            'VCCLCompilerTool': {
              'RuntimeLibrary': 0, # static release
 diff --git a/examples/pxScene2d/external/libnode-v8.15.1/deps/uv/common.gypi b/examples/pxScene2d/external/libnode-v8.15.1/deps/uv/common.gypi
-index 2297bdf..15bdfb3 100644
+index 2297bdf0f..15bdfb3b8 100644
 --- a/examples/pxScene2d/external/libnode-v8.15.1/deps/uv/common.gypi
 +++ b/examples/pxScene2d/external/libnode-v8.15.1/deps/uv/common.gypi
 @@ -46,7 +46,9 @@
@@ -197,7 +197,7 @@ index 2297bdf..15bdfb3 100644
          'msvs_settings': {
            'VCCLCompilerTool': {
 diff --git a/examples/pxScene2d/external/libnode-v8.15.1/deps/v8/BUILD.gn b/examples/pxScene2d/external/libnode-v8.15.1/deps/v8/BUILD.gn
-index 9d95036..1e4f7a7 100644
+index 9d95036a9..1e4f7a790 100644
 --- a/examples/pxScene2d/external/libnode-v8.15.1/deps/v8/BUILD.gn
 +++ b/examples/pxScene2d/external/libnode-v8.15.1/deps/v8/BUILD.gn
 @@ -2363,9 +2363,12 @@ v8_source_set("v8_base") {
@@ -215,7 +215,7 @@ index 9d95036..1e4f7a7 100644
      public_deps = [
        "//third_party/icu",
 diff --git a/examples/pxScene2d/external/libnode-v8.15.1/deps/v8/gypfiles/toolchain.gypi b/examples/pxScene2d/external/libnode-v8.15.1/deps/v8/gypfiles/toolchain.gypi
-index 80844ce..d755cce 100644
+index 80844cecc..d755cce94 100644
 --- a/examples/pxScene2d/external/libnode-v8.15.1/deps/v8/gypfiles/toolchain.gypi
 +++ b/examples/pxScene2d/external/libnode-v8.15.1/deps/v8/gypfiles/toolchain.gypi
 @@ -1195,7 +1195,9 @@
@@ -241,7 +241,7 @@ index 80844ce..d755cce 100644
                }, {
                  'cflags': ['-O2'],
 diff --git a/examples/pxScene2d/external/libnode-v8.15.1/deps/v8/src/isolate.cc b/examples/pxScene2d/external/libnode-v8.15.1/deps/v8/src/isolate.cc
-index bccd0cb..fdc9877 100644
+index bccd0cb0b..fdc9877f6 100644
 --- a/examples/pxScene2d/external/libnode-v8.15.1/deps/v8/src/isolate.cc
 +++ b/examples/pxScene2d/external/libnode-v8.15.1/deps/v8/src/isolate.cc
 @@ -1062,6 +1062,14 @@ Object* Isolate::Throw(Object* exception, MessageLocation* location) {
@@ -260,7 +260,7 @@ index bccd0cb..fdc9877 100644
      printf("=========================================================\n");
      printf("Exception thrown:\n");
 diff --git a/examples/pxScene2d/external/libnode-v8.15.1/deps/v8/src/v8.gyp b/examples/pxScene2d/external/libnode-v8.15.1/deps/v8/src/v8.gyp
-index 1c56842..d16102e 100644
+index 1c56842f8..d16102ea1 100644
 --- a/examples/pxScene2d/external/libnode-v8.15.1/deps/v8/src/v8.gyp
 +++ b/examples/pxScene2d/external/libnode-v8.15.1/deps/v8/src/v8.gyp
 @@ -527,8 +527,6 @@
@@ -297,7 +297,7 @@ index 1c56842..d16102e 100644
            'toolsets': ['host', 'target'],
          }, {
 diff --git a/examples/pxScene2d/external/libnode-v8.15.1/lib/internal/bootstrap_node.js b/examples/pxScene2d/external/libnode-v8.15.1/lib/internal/bootstrap_node.js
-index 0e9c36c..5305caa 100644
+index 0e9c36c4f..5305caa96 100644
 --- a/examples/pxScene2d/external/libnode-v8.15.1/lib/internal/bootstrap_node.js
 +++ b/examples/pxScene2d/external/libnode-v8.15.1/lib/internal/bootstrap_node.js
 @@ -174,9 +174,10 @@
@@ -345,7 +345,7 @@ index 0e9c36c..5305caa 100644
      }
      perf.markMilestone(NODE_PERFORMANCE_MILESTONE_BOOTSTRAP_COMPLETE);
 diff --git a/examples/pxScene2d/external/libnode-v8.15.1/lib/net.js b/examples/pxScene2d/external/libnode-v8.15.1/lib/net.js
-index 98bcbc3..70b6414 100644
+index 98bcbc3b7..70b6414a3 100644
 --- a/examples/pxScene2d/external/libnode-v8.15.1/lib/net.js
 +++ b/examples/pxScene2d/external/libnode-v8.15.1/lib/net.js
 @@ -34,6 +34,9 @@ const {
@@ -387,7 +387,7 @@ index 98bcbc3..70b6414 100644
    debug('connect: dns options', dnsopts);
    self._host = host;
 diff --git a/examples/pxScene2d/external/libnode-v8.15.1/node.gyp b/examples/pxScene2d/external/libnode-v8.15.1/node.gyp
-index ed20a49..5a0ec99 100644
+index ed20a490d..5a0ec999e 100644
 --- a/examples/pxScene2d/external/libnode-v8.15.1/node.gyp
 +++ b/examples/pxScene2d/external/libnode-v8.15.1/node.gyp
 @@ -33,7 +33,6 @@
@@ -436,7 +436,7 @@ index ed20a49..5a0ec99 100644
        'deps/node-inspect/lib/internal/inspect_client.js',
        'deps/node-inspect/lib/internal/inspect_repl.js',
 diff --git a/examples/pxScene2d/external/libnode-v8.15.1/src/node.cc b/examples/pxScene2d/external/libnode-v8.15.1/src/node.cc
-index 3d791f0..d572a6d 100644
+index 3d791f04a..d572a6d4a 100644
 --- a/examples/pxScene2d/external/libnode-v8.15.1/src/node.cc
 +++ b/examples/pxScene2d/external/libnode-v8.15.1/src/node.cc
 @@ -178,10 +178,16 @@ static bool track_heap_objects = false;
@@ -632,7 +632,7 @@ index 3d791f0..d572a6d 100644
  
  #if !HAVE_INSPECTOR
 diff --git a/examples/pxScene2d/external/libnode-v8.15.1/src/node.h b/examples/pxScene2d/external/libnode-v8.15.1/src/node.h
-index 266744e..968568e 100644
+index 266744e44..968568e44 100644
 --- a/examples/pxScene2d/external/libnode-v8.15.1/src/node.h
 +++ b/examples/pxScene2d/external/libnode-v8.15.1/src/node.h
 @@ -197,6 +197,13 @@ typedef intptr_t ssize_t;
@@ -674,7 +674,7 @@ index 266744e..968568e 100644
  // It can be `nullptr`, in which case creating new Workers inside of
  // Environments that use this `IsolateData` will not work.
 diff --git a/examples/pxScene2d/external/libnode-v8.15.1/src/node_contextify.cc b/examples/pxScene2d/external/libnode-v8.15.1/src/node_contextify.cc
-index 47857e8..52e3a4b 100644
+index 47857e8ca..f4f499669 100644
 --- a/examples/pxScene2d/external/libnode-v8.15.1/src/node_contextify.cc
 +++ b/examples/pxScene2d/external/libnode-v8.15.1/src/node_contextify.cc
 @@ -87,6 +87,7 @@ class ContextifyContext {
@@ -685,7 +685,21 @@ index 47857e8..52e3a4b 100644
      context_.Reset();
    }
  
-@@ -1085,4 +1086,74 @@ void InitContextify(Local<Object> target,
+@@ -666,6 +667,13 @@ class ContextifyScript : public BaseObject {
+     bool display_errors = maybe_display_errors.ToChecked();
+     bool break_on_sigint = maybe_break_on_sigint.ToChecked();
+ 
++    // https://github.com/nodejs/node/issues/14757
++    // without this doesn't run in the current context but rather the top level context
++    // We need to be careful about merging this in and side effects
++    auto context = args.GetIsolate()->GetEnteredContext();
++    if (context.IsEmpty()) context = env->context();
++    Context::Scope context_scope(context);
++
+     // Do the eval within this context
+     EvalMachine(env, timeout, display_errors, break_on_sigint, args,
+                 &try_catch);
+@@ -1085,4 +1093,74 @@ void InitContextify(Local<Object> target,
  }  // anonymous namespace
  }  // namespace node
  
@@ -761,9 +775,8 @@ index 47857e8..52e3a4b 100644
 +
  NODE_BUILTIN_MODULE_CONTEXT_AWARE(contextify, node::InitContextify)
 diff --git a/examples/pxScene2d/external/libnode-v8.15.1/src/node_contextify_mods.h b/examples/pxScene2d/external/libnode-v8.15.1/src/node_contextify_mods.h
-new file mode 100644
-index 0000000..1d4ff20
---- /dev/null
+index e69de29bb..1d4ff2039 100644
+--- a/examples/pxScene2d/external/libnode-v8.15.1/src/node_contextify_mods.h
 +++ b/examples/pxScene2d/external/libnode-v8.15.1/src/node_contextify_mods.h
 @@ -0,0 +1,16 @@
 +// This is not part of Node... added to expose needed methods.
@@ -783,7 +796,7 @@ index 0000000..1d4ff20
 +/*MODIFIED CODE END*/
 +
 diff --git a/examples/pxScene2d/external/libnode-v8.15.1/src/node_http_parser.cc b/examples/pxScene2d/external/libnode-v8.15.1/src/node_http_parser.cc
-index 504130e..d361f98 100644
+index 504130e5d..d361f987b 100644
 --- a/examples/pxScene2d/external/libnode-v8.15.1/src/node_http_parser.cc
 +++ b/examples/pxScene2d/external/libnode-v8.15.1/src/node_http_parser.cc
 @@ -439,7 +439,14 @@ class Parser : public AsyncWrap {
@@ -803,7 +816,7 @@ index 504130e..d361f98 100644
  
      int rv = http_parser_execute(&(parser->parser_), &settings, nullptr, 0);
 diff --git a/examples/pxScene2d/external/libnode-v8.15.1/src/node_internals.h b/examples/pxScene2d/external/libnode-v8.15.1/src/node_internals.h
-index a27ac6f..21e1025 100644
+index a27ac6f23..21e102578 100644
 --- a/examples/pxScene2d/external/libnode-v8.15.1/src/node_internals.h
 +++ b/examples/pxScene2d/external/libnode-v8.15.1/src/node_internals.h
 @@ -259,7 +259,9 @@ void AppendExceptionLine(Environment* env,
@@ -818,7 +831,7 @@ index a27ac6f..21e1025 100644
  void ProcessEmitWarning(Environment* env, const char* fmt, ...);
  
 diff --git a/examples/pxScene2d/external/libnode-v8.15.1/src/node_platform.cc b/examples/pxScene2d/external/libnode-v8.15.1/src/node_platform.cc
-index 0c50e84..f7c21bc 100644
+index 0c50e8468..f7c21bc31 100644
 --- a/examples/pxScene2d/external/libnode-v8.15.1/src/node_platform.cc
 +++ b/examples/pxScene2d/external/libnode-v8.15.1/src/node_platform.cc
 @@ -128,6 +128,13 @@ size_t NodePlatform::NumberOfAvailableBackgroundThreads() {
@@ -836,7 +849,7 @@ index 0c50e84..f7c21bc 100644
    InternalCallbackScope cb_scope(env, Local<Object>(), { 0, 0 },
                                   InternalCallbackScope::kAllowEmptyResource);
 diff --git a/examples/pxScene2d/external/libnode-v8.15.1/src/node_watchdog.cc b/examples/pxScene2d/external/libnode-v8.15.1/src/node_watchdog.cc
-index af4e9f6..20335ff 100644
+index af4e9f6fc..20335ff43 100644
 --- a/examples/pxScene2d/external/libnode-v8.15.1/src/node_watchdog.cc
 +++ b/examples/pxScene2d/external/libnode-v8.15.1/src/node_watchdog.cc
 @@ -242,7 +242,10 @@ bool SigintWatchdogHelper::Stop() {
@@ -852,7 +865,7 @@ index af4e9f6..20335ff 100644
    watchdog_disabled_ = true;
  #endif
 diff --git a/examples/pxScene2d/external/libnode-v8.15.1/vcbuild.bat b/examples/pxScene2d/external/libnode-v8.15.1/vcbuild.bat
-index d3014a0..fd75030 100644
+index d3014a00f..fd750303e 100644
 --- a/examples/pxScene2d/external/libnode-v8.15.1/vcbuild.bat
 +++ b/examples/pxScene2d/external/libnode-v8.15.1/vcbuild.bat
 @@ -51,6 +51,9 @@ set "common_test_suites=%js_test_suites% doctool addons addons-napi&set build_ad
@@ -885,6 +898,3 @@ index d3014a0..fd75030 100644
  
  if not exist "%~dp0deps\icu" goto no-depsicu
  if "%target%"=="Clean" echo deleting %~dp0deps\icu
--- 
-1.9.1
-
