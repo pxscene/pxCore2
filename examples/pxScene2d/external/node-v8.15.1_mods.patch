@@ -775,8 +775,9 @@ index 47857e8ca..f4f499669 100644
 +
  NODE_BUILTIN_MODULE_CONTEXT_AWARE(contextify, node::InitContextify)
 diff --git a/examples/pxScene2d/external/libnode-v8.15.1/src/node_contextify_mods.h b/examples/pxScene2d/external/libnode-v8.15.1/src/node_contextify_mods.h
+new file mode 100644
 index e69de29bb..1d4ff2039 100644
---- a/examples/pxScene2d/external/libnode-v8.15.1/src/node_contextify_mods.h
+--- /dev/null
 +++ b/examples/pxScene2d/external/libnode-v8.15.1/src/node_contextify_mods.h
 @@ -0,0 +1,16 @@
 +// This is not part of Node... added to expose needed methods.
