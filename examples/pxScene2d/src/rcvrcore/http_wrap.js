@@ -19,14 +19,12 @@ limitations under the License.
 'use strict';
 
 var isV8=(typeof _isV8 !== "undefined");
-var isHttp2Supported = false;
 
 try {
   var http2 = isV8?null:require('http2');
-  isHttp2Supported = true;
 } catch (ignored) {
-  isHttp2Supported = false;
 }
+
 var https = require('https');
 var http = require('http');
 var url = require('url');
@@ -54,7 +52,7 @@ function Request(moduleName, appSceneContext, options, callback) {
   }
 
   var self = this;
-  var is_v2 = isHttp2Supported && !isV8 && moduleName === 'http2' && http2;
+  var is_v2 = !isV8 && moduleName === 'http2' && http2;
   var defaultProtocol = moduleName === 'http' ? 'http:' : 'https:';
   options = Utils._normalizeOptions(options, defaultProtocol, is_v2);
   var toOrigin = options.origin;
