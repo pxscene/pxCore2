@@ -627,6 +627,8 @@ void pxResource::onResourceDirtyUI(void* context, void* /*data*/)
 
 void rtImageResource::loadResourceFromFile()
 {
+  rtString url = mUrl.beginsWith("file:") ? mUrl.substring(5, mUrl.length()-5) : mUrl;
+    
   pxOffscreen imageOffscreen;
   rtString status = "resolve";
 
@@ -640,19 +642,18 @@ void rtImageResource::loadResourceFromFile()
       loadImageSuccess = RT_OK;
       break;
     }
-
-    loadImageSuccess = rtLoadFile(mUrl, mData);
+    loadImageSuccess = rtLoadFile(url, mData);
     if (loadImageSuccess == RT_OK)
       break;
 
-    if (rtIsPathAbsolute(mUrl))
+    if (rtIsPathAbsolute(url))
       break;
 
     rtModuleDirs *dirs = rtModuleDirs::instance();
 
     for (rtModuleDirs::iter it = dirs->iterator(); it.first != it.second; it.first++)
     {
-      if (rtLoadFile(rtConcatenatePath(*it.first, mUrl.cString()).c_str(), mData) == RT_OK)
+      if (rtLoadFile(rtConcatenatePath(*it.first, url.cString()).c_str(), mData) == RT_OK)
       {
         loadImageSuccess = RT_OK;
         break;
@@ -671,7 +672,7 @@ void rtImageResource::loadResourceFromFile()
   else
   {
     loadImageSuccess = RT_RESOURCE_NOT_FOUND;
-    rtLogError("Could not load image file %s.", mUrl.cString());
+    rtLogError("Could not load image file %s.", url.cString());
   }
   if ( loadImageSuccess != RT_OK)
   {
