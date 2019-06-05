@@ -86,6 +86,10 @@ if %buildExternal% == 1 (
   CALL vcbuild.bat x86 nosign
 )
 dir *.lib /s
+dumpbin /HEADERS Release\node.lib
+dumpbin /EXPORTS Release\node.lib
+dumpbin /SYMBOLS Release\node.lib
+dumpbin /ARCHIVEMEMBERS Release\node.lib
 cd ..
 
 REM --------- DUKLUV
