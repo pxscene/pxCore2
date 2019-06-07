@@ -156,7 +156,7 @@ endif (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
 
 add_definitions(-D${PX_PLATFORM} -DENABLE_RT_NODE -DRUNINMAIN -DENABLE_HTTP_CACHE)
 
-set(TEST_SOURCE_FILES pxscene2dtestsmain.cpp  test_rtThreadPool.cpp tesy_rtnode.cpp test_api.cpp
+set(TEST_SOURCE_FILES pxscene2dtestsmain.cpp  test_rtThreadPool.cpp test_rtnode.cpp test_api.cpp
     ${PLATFORM_TEST_FILES} ${TEST_WAYLAND_SOURCE_FILES})
 
 if (DEFINED ENV{USE_HTTP_CACHE})
