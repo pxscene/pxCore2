@@ -25,14 +25,14 @@ travis_retry() {
 if [ "$TRAVIS_OS_NAME" = "linux" ] ; 
 then 
   travis_retry sudo apt-get update
-  travis_retry sudo apt-get install git libglew-dev freeglut3 freeglut3-dev libgcrypt11-dev zlib1g-dev g++ libssl-dev nasm autoconf libyaml-dev cmake gdb quilt
+  travis_retry sudo apt-get install git libglew-dev freeglut3 freeglut3-dev libgcrypt11-dev zlib1g-dev g++ libssl-dev nasm autoconf libyaml-dev cmake gdb quilt libuv-dev xmlto
 fi
 
 if [ "$TRAVIS_OS_NAME" = "osx" ] ;
 then
   brew update;
   brew upgrade cmake;
-  brew install quilt;
+  brew install quilt libuv xmlto;
   sudo /usr/sbin/DevToolsSecurity --enable
 fi
 

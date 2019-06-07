@@ -156,12 +156,13 @@ endif (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
 
 add_definitions(-D${PX_PLATFORM} -DENABLE_RT_NODE -DRUNINMAIN -DENABLE_HTTP_CACHE)
 
-set(TEST_SOURCE_FILES pxscene2dtestsmain.cpp  test_example.cpp test_api.cpp  test_pxcontext.cpp test_memoryleak.cpp test_rtnode.cpp test_rtMutex.cpp test_pxImage9Border.cpp test_eventListeners.cpp
+set(TEST_SOURCE_FILES pxscene2dtestsmain.cpp  test_rtThreadPool.cpp test_example.cpp test_api.cpp  test_pxcontext.cpp test_memoryleak.cpp test_rtnode.cpp test_rtMutex.cpp test_pxImage9Border.cpp test_eventListeners.cpp
     test_pxAnimate.cpp test_rtFile.cpp test_rtZip.cpp test_rtString.cpp test_rtValue.cpp test_pxImage.cpp test_pxOffscreen.cpp test_pxMatrix4T.cpp test_rtObject.cpp
     test_pxWindowUtil.cpp test_pxTexture.cpp test_pxWindow.cpp test_ioapi.cpp test_rtLog.cpp test_pxTimerNative.cpp
-    test_rtUrlUtils.cpp test_pxArchive.cpp test_pxPixel_h.cpp test_pxFont.cpp test_rtThreadPool.cpp test_utf8.cpp
+    test_rtUrlUtils.cpp test_pxArchive.cpp test_pxPixel_h.cpp test_pxFont.cpp test_utf8.cpp
     test_rtSettings.cpp test_cors.cpp  test_external.cpp test_pxScene2d.cpp test_oscillate.cpp test_rtPathUtils.cpp
-    test_rtError.cpp test_import_resources.cpp test_rtHttpRequest.cpp test_rtHttpResponse.cpp test_imagecacheSVG.cpp test_rtObjectWrapper.cpp 
+    test_rtError.cpp test_import_resources.cpp test_rtHttpRequest.cpp test_rtHttpResponse.cpp test_imagecacheSVG.cpp test_rtObjectWrapper.cpp
+    test_baseFilePath.cpp
     ${PLATFORM_TEST_FILES} ${TEST_WAYLAND_SOURCE_FILES})
 
 if (DEFINED ENV{USE_HTTP_CACHE})
@@ -174,6 +175,13 @@ if (PXSCENE_TEST_PERMISSIONS_CHECK)
     add_definitions(-DENABLE_PERMISSIONS_CHECK)
     set(TEST_SOURCE_FILES ${TEST_SOURCE_FILES} test_rtPermissions.cpp)
 endif (PXSCENE_TEST_PERMISSIONS_CHECK)
+
+if (SUPPORT_STORAGE)
+    message("Include storage tests")
+    add_definitions(-DPXSCENE_SUPPORT_STORAGE)
+    add_definitions(-DENABLE_STORAGE_PERF_TEST)
+    set(TEST_SOURCE_FILES ${TEST_SOURCE_FILES} test_rtStorage.cpp)
+endif()
 
 set(TEST_SOURCE_FILES ${TEST_SOURCE_FILES} ${EXTDIR}/gtest/googletest/src/gtest-all.cc ${EXTDIR}/gtest/googlemock/src/gmock-all.cc)
 

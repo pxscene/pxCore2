@@ -25,8 +25,13 @@
 1. Install required packages:
     
     ~~~~
-    sudo apt-get install git libglew-dev freeglut3 freeglut3-dev libgcrypt11-dev zlib1g-dev g++ libssl-dev nasm autoconf libtool cmake quilt
-    
+    sudo apt-get install git libglew-dev freeglut3 freeglut3-dev libgcrypt11-dev zlib1g-dev g++ libssl-dev nasm autoconf libtool cmake quilt xmlto
+    ~~~~
+
+2. For Ubuntu 18.04+ also install:
+
+    ~~~~
+    sudo apt-get install gnutls-dev
     ~~~~
 
 ## macOS Setup 
@@ -37,7 +42,7 @@
 >   * From terminal install dependencies: cmake, pkg-config, quilt, java.
 
 ```bash
-    brew install cmake pkg-config quilt caskroom/cask/java libuv
+    brew install cmake pkg-config quilt caskroom/cask/java libuv xmlto
 ```
 
 ## Windows Setup
@@ -102,10 +107,10 @@
       cd examples/pxScene2d/external/node
       ./configure --shared
       make -j1
-      ln -sf out/Release/obj.target/libnode.so.48 libnode.so.48
-      ln -sf libnode.so.48 libnode.so
-      ln -sf out/Release/libnode.48.dylib libnode.48.dylib
-      ln -sf libnode.48.dylib libnode.dylib
+      ln -sf out/Release/obj.target/libnode.so.* ./
+      ln -sf libnode.so.* libnode.so
+      ln -sf out/Release/libnode.*.dylib ./
+      ln -sf libnode.*.dylib libnode.dylib
       ~~~~
       Build breakpad
       ~~~~
@@ -127,7 +132,7 @@
       ~~~~
       Build node
       ~~~~
-      cd examples/pxScene2d/external/libnode-v6.9.0
+      cd examples/pxScene2d/external/libnode-v8.15.1
       CALL vcbuild.bat x86 nosign
       cd ..
       ~~~~

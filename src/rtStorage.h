@@ -27,7 +27,7 @@
 class rtStorage: public rtObject
 {
 public:
-  rtStorage(const char* fileName, const char* key = NULL);
+  rtStorage(const char* filename, const uint32_t storageQuota = 0, const char* key = NULL);
   virtual ~rtStorage();
 
   rtDeclareObject(rtStorage, rtObject);
@@ -39,7 +39,7 @@ public:
   rtMethod1ArgAndNoReturn("removeItem",removeItem,rtString);
   rtMethodNoArgAndNoReturn("clear",clear);
 
-  rtError init(const char* fileName, const char* key = NULL);
+  rtError init(const char* filename, uint32_t storageQuota = 0, const char* key = NULL);
 
   // closes file
   rtError term();
@@ -56,9 +56,21 @@ public:
   // Clear all data
   rtError clear();
 
+  rtError runVacuumCommand();
+
+  static bool isEncrypted(const char* fileName);
+
 private:
   void* mPrivateData;
+  uint32_t mQuota;
 
+  // Methods for managing current size and quota
+  rtError calculateCurrentSize(uint32_t &size) const;
+  rtError setCurrentSize(const uint32_t size);
+  rtError getCurrentSize(const char* key, uint32_t& sizeForKey, uint32_t& sizeTotal) const;
+
+  rtError updateSize();
+  rtError verifyQuota(const char* key, const rtValue& value) const;
 };
 
 typedef rtRef<rtStorage> rtStorageRef;

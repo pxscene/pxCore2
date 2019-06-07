@@ -36,16 +36,19 @@
 rtString rtUrlEscape(const char* s)
 {
   rtString t;
-  CURL* curl = curl_easy_init();
-  if (curl)
+  if (s)
   {
-    char* escaped = curl_easy_escape(curl, s, 0);
-    if (escaped)
+    CURL* curl = curl_easy_init();
+    if (curl)
     {
-      t = escaped;
-      curl_free(escaped);
+      char* escaped = curl_easy_escape(curl, s, 0);
+      if (escaped)
+      {
+        t = escaped;
+        curl_free(escaped);
+      }
+      curl_easy_cleanup(curl);
     }
-    curl_easy_cleanup(curl);
   }
   return t;
 }

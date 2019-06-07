@@ -56,7 +56,6 @@ function AppSceneContext(params) {
     this.queryParams = {};
     this.packageUrl = params.packageUrl;
   }
-  this.defaultBaseUri = "";
   this.basePackageUri = "";
   this.sandbox = {};
   this.scriptMap = {};
@@ -86,30 +85,11 @@ function AppSceneContext(params) {
 
 
 AppSceneContext.prototype.loadScene = function() {
-  //log.info("loadScene() - begins    on ctx: " + getContextID() );
-  var thisPackageUrl = this.packageUrl.split('?')[0];
-  var urlParts = url.parse(thisPackageUrl, true);
-  var fullPath = thisPackageUrl;
-  var platform = (isDuk)?uv.platform:(isV8?uv_platform():process.platform);
-  if (fullPath.substring(0, 4) !== "http") {
-    if( fullPath.charAt(0) === '.' ) {
-      // local file system
-      this.defaultBaseUri = ".";
-    } else if( platform === 'win32' && fullPath.charAt(1) === ':' ) {
-        // Windows OS, so take the url as the whole file path
-        urlParts.pathname = thisPackageUrl;
-    }
-    fullPath = urlParts.pathname;
-    if( fullPath !== null) {
-      this.basePackageUri = fullPath.substring(0, fullPath.lastIndexOf('/'));
-      //var fileName = this.packageUrl.substring(fullPath.lastIndexOf('/'));
-    }
-  } else {
-    this.basePackageUri = fullPath.substring(0, fullPath.lastIndexOf('/'));
-  }
 
-if( fullPath !== null)
-  this.loadPackage(fullPath);
+  const thisPackageUrl = this.packageUrl.split('?')[0];
+  this.basePackageUri = path.dirname(thisPackageUrl);
+
+  this.loadPackage(thisPackageUrl);
 
 function terminateScene() {
     var e = this.termEvent;
@@ -363,6 +343,13 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (packageUri, module
       var processWrap = WrapObj(process, {"binding":function() { throw new Error("process.binding is not supported"); }});
       var globalWrap = WrapObj(global, {"process":processWrap});
 
+      // TODO: app runs in new context (vm.runInNewContext),
+      //  while px (px.imports) is in parent context.
+      //  Hence in imported module Function isn't the same object as Function in app,
+      //  'instanceof Function' won't work.
+      //  Propagating Function: Function here solves the problem only partially
+      //  (not for lowercase 'function').
+
       newSandbox = {
         sandboxName: "InitialSandbox",
         console: console,
@@ -371,6 +358,8 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (packageUri, module
         process: processWrap,
         require: requireMethod,
         global: globalWrap,
+        Function: Function,
+        Uint8Array: Uint8Array,
         setTimeout: function (callback, after, arg1, arg2, arg3) {
           //pass the timers list to callback function on timeout
           var timerId = SetTimeout(setTimeoutCallback, after, this.timers, function() { callback(arg1, arg2, arg3)});
@@ -550,30 +539,7 @@ if (false) {
 };
 
 AppSceneContext.prototype.getPackageBaseFilePath = function() {
-  var fullPath;
-  var pkgPart;
-  var platform = (isDuk)?uv.platform:(isV8?uv_platform():process.platform);
-  if (this.basePackageUri.substring(0, 4) !== "http") {
-    if (this.basePackageUri.charAt(0) == '.') {
-      pkgPart = this.basePackageUri.substring(1);
-    } else {
-      pkgPart = this.basePackageUri;
-    }
-    if (pkgPart.charAt(0) == '/') {
-      fullPath = this.defaultBaseUri + pkgPart;
-    } else if(platform === 'win32' && pkgPart.charAt(1) === ':' ) {
-      // Windows OS and using drive name, take the pkg part as the file path
-      fullPath = pkgPart;
-    } else {
-      fullPath = this.defaultBaseUri + "/" + pkgPart;
-    }
-  } else {
-    fullPath = this.basePackageUri;
-  }
-
-  fullPath = fullPath.replace('%20', '\ '); // replace HTML escaped spaces with C/C++ escaping
-
-  return fullPath;
+  return this.basePackageUri.replace('%20', '\ '); // replace HTML escaped spaces with C/C++ escaping
 };
 
 AppSceneContext.prototype.getModuleFile = function(filePath, xModule) {
@@ -628,14 +594,17 @@ AppSceneContext.prototype.include = function(filePath, currentXModule) {
   var origFilePath = filePath;
 
   return new Promise(function (onImportComplete, reject) {
-    if (/^(px|url|querystring|htmlparser|crypto|oauth)$/.test(filePath)) {
+    if (/^(px|url|querystring|htmlparser|crypto|oauth|grpc|google-protobuf)$/.test(filePath)) {
       if (isDuk && filePath === 'htmlparser') {
         console.log("Not permitted to use the module " + filePath);
         reject("include failed due to module not permitted");
         return;
       }
       // built-ins
-      var modData = require(filePath);
+      var moduleName = filePath;
+      if (filePath === 'grpc')
+        moduleName = '@grpc/grpc-js';
+      var modData = require(moduleName);
       onImportComplete([modData, origFilePath]);
       return;
     } else if( filePath === 'fs' || filePath === 'os' || filePath === 'events') {

@@ -62,6 +62,7 @@ pxWayland::pxWayland(bool useFbo, pxScene2d* sceneContainer)
 #else
     mUseDispatchThread(true),
 #endif //ENABLE_PX_WAYLAND_RPC
+    mClientTerminated(false),
     mX(0),
     mY(0),
     mWidth(0),
@@ -124,13 +125,16 @@ pxWayland::~pxWayland()
   {
      terminateClient();
      WstCompositorDestroy(mWCtx);
-     if ((mClientPID > 0) && (0 == kill(mClientPID, 0)))
+     //Adding mClientTerminated flag check because SIGKILL has to be sent to
+     //the Process only when it got SIGTERM from terminateClient().
+     if (mClientTerminated && (mClientPID > 0) && (0 == kill(mClientPID, 0)))
      {
        rtLogWarn("Sending SIGKILL to client %d", mClientPID);
 #if defined(RT_PLATFORM_LINUX) || defined(PX_PLATFORM_MAC)
        sleep(1);
 #endif //RT_PLATFORM_LINUX || PX_PLATFORM_MAC
        kill(mClientPID, SIGKILL);
+       mClientTerminated = false;
      }
      mClientPID= -1;
      mWCtx = NULL;
@@ -605,6 +609,7 @@ void pxWayland::terminateClient()
           rtLogInfo("pxWayland::terminateClient: client pid %d still alive - killing...", mClientPID);
           kill( mClientPID, SIGTERM);
           rtLogInfo("pxWayland::terminateClient: client pid %d killed", mClientPID);
+          mClientTerminated = true;
       }
       pthread_join( mClientMonitorThreadId, NULL );
    }
@@ -929,6 +934,8 @@ rtError pxWayland::drawToFbo(pxContextFramebufferRef& fbo)
 
   context.setFramebuffer( previousFrameBuffer );
   context.popState();
+  
+  return RT_OK;
 }
 
 // These key codes are from linux/input.h which may not be available depending on what platform we are building for

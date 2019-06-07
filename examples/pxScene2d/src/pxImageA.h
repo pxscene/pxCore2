@@ -63,6 +63,9 @@ public:
   virtual void releaseData(bool sceneSuspended);
   virtual void reloadData(bool sceneSuspended);
   virtual uint64_t textureMemoryUsage(std::vector<rtObject*> &objectsCounted);
+
+  virtual float getOnscreenWidth();
+  virtual float getOnscreenHeight();
   
 protected:
   virtual void onInit();

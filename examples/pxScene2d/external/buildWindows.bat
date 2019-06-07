@@ -78,8 +78,13 @@ cd ..
 
 REM --------- LIBNODE
 
-cd libnode-v6.9.0
-CALL vcbuild.bat x86 nosign
+git apply node-v8.15.1_mods.patch
+cd libnode-v8.15.1
+if %buildExternal% == 1 (
+  CALL vcbuild.bat x86 nosign no-optimization static
+) else (
+  CALL vcbuild.bat x86 nosign
+)
 cd ..
 
 REM --------- DUKLUV
@@ -90,4 +95,16 @@ mkdir build
 cd build
 cmake ..
 cmake --build . --config Release -- /m
+cd ..
+
+REM --------- GIF
+cd giflib-5.1.9
+git apply -p1 < ../giflib-5.1.9-windows.diff
+cd ..
+
+REM --------- SQLITE
+
+cd sqlite-autoconf-3280000
+cl /c /EHsc sqlite3.c
+lib sqlite3.obj
 cd ..

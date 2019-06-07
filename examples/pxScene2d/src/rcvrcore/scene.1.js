@@ -45,11 +45,7 @@ function Scene() {
       this.filePath = filePath;
       this.addServiceProvider = scene.addServiceProvider;
       this.removeServiceProvider = scene.removeServiceProvider;
-      this.sparkSetting = scene.sparkSetting
-      
-      // defer touching scene.storage since it attempts to create a db file for the current
-      // scene URL
-      this.__defineGetter__('storage', function() { return scene.storage; }) 
+      this.sparkSetting = scene.sparkSetting;
 
       if (!isDuk) { 
         this.__defineGetter__("w", function() { return scene.w; });
@@ -65,6 +61,7 @@ function Scene() {
         this.__defineSetter__("customAnimator", function(v) { scene.customAnimator = v; });
         this.__defineGetter__("dirtyRectangle", function() { return scene.dirtyRectangle; });
         this.__defineGetter__("dirtyRectanglesEnabled", function() { return scene.dirtyRectanglesEnabled; });
+        this.__defineGetter__('storage', function() { return scene.storage; });
       }
       else {
         this.w = scene.w;
