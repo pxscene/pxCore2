@@ -103,12 +103,13 @@ cmake ..
 cmake --build . --config Release -- /m
 cd ..
 
-REM ---------- GIF
-copy /y vc.build\builds\libgif.* giflib-5.1.9\
-
 REM --------- SQLITE
 
 cd sqlite-autoconf-3280000
 cl /c /EHsc sqlite3.c
 lib sqlite3.obj
 cd ..
+
+REM ---------- GIF
+copy /y vc.build\builds\libgif.* giflib-5.1.9\
+
