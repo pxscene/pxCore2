@@ -24,6 +24,17 @@ echo "Firmware=$FIRMWARE"
 DEVICE_NAME=$(cat $THIS_DIR/version.txt | grep ^JENKINS_JOB=$versionTag1 | cut -d "=" -f 2)
 echo "Device Name=$DEVICE_NAME"
 
+BRANCH=$(cat $THIS_DIR/version.txt | grep ^BRANCH=$versionTag1 | cut -d "=" -f 2)
+echo "BRANCH=$BRANCH"
+SPIN=$(cat $THIS_DIR/version.txt | grep ^SPIN=$versionTag1 | cut -d "=" -f 2)
+echo "SPIN=$SPIN"
+JENKINS_BUILD_NUMBER=$(cat $THIS_DIR/version.txt | grep ^JENKINS_BUILD_NUMBER=$versionTag1 | cut -d "=" -f 2)
+echo "JENKINS_BUILD_NUMBER=$JENKINS_BUILD_NUMBER"
+BUILD_TIME=$(cat $THIS_DIR/version.txt | grep ^BUILD_TIME=$versionTag1 | cut -d "=" -f 2)
+echo "BUILD_TIME=$BUILD_TIME"
+Generated=$(cat $THIS_DIR/version.txt | grep ^Generated=$versionTag1 | cut -d " on " -f 2)
+echo "Generated=$Generated"
+
 if [[ $USER == '' ]]; then
 echo "Insert your account name:"
 read USER
@@ -154,14 +165,21 @@ while read -r line; do
     if [[ $line == *"</tbody>"* && ${icx} -eq -2 ]]; then
         echo $line
         echo "Adding New Device" 
-        echo "Device Type Firmware Date GPU CPU NOTES"
-        echo $DEVICE_NAME $FIRMWARE ${cols[2]} ${cols[3]} ${cols[4]} ${cols[5]}
+        echo "Device Type Firmware Date GPU CPU Branch Version Spin Jenkins_Job Jenkins_Build_Number Build_Time NOTES"
+        echo $DEVICE_NAME $FIRMWARE ${cols[2]} ${cols[3]} ${cols[4]} $BRANCH $VERSION $SPIN $JENKINS_JOB $JENKINS_BUILD_NUMBER $BUILD_TIME $Generate ${cols[5]}
         html_body2+="<tr>\n"
         html_body2+="<td>$DEVICE_NAME</td>\n"
         html_body2+="<td>$FIRMWARE</td>\n"
         html_body2+="<td>${cols[2]}</td>\n"
         html_body2+="<td>${cols[3]}</td>\n"
         html_body2+="<td>${cols[4]}</td>\n"
+        html_body2+="<td>$BRANCH</td>\n"
+        html_body2+="<td>$VERSION</td>\n"
+        html_body2+="<td>$SPIN</td>\n"
+        html_body2+="<td>$JENKINS_JOB</td>\n"
+        html_body2+="<td>$JENKINS_BUILD_NUMBER</td>\n"
+        html_body2+="<td>$BUILD_TIME</td>\n"
+        html_body2+="<td>$Generate</td>\n"
         html_body2+="<td>${cols[5]}</td>\n"
         html_body2+="</tr>\n\n\n\n\n\n"
         html_body2+="$line"
