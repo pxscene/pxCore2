@@ -20,7 +20,7 @@ travis_retry() {
 
   return $result
 }
-
+git log
 #start the monitor
 $TRAVIS_BUILD_DIR/ci/monitor.sh &
 
