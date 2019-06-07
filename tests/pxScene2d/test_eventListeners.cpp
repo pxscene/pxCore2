@@ -79,7 +79,7 @@ private:
     void process()
     {
       double  secs = pxSeconds();
-      while ((pxSeconds() - secs) < 1.0)
+      while ((pxSeconds() - secs) < 5.0)
       {
         if (NULL != mView)
         {
