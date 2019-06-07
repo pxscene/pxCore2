@@ -55,7 +55,6 @@ global.Promise = Promise = require('bluebird');
 global.process = process = require('process');
 global.pako = pako = require('pako');
 }
-console.log(global);
 console.log(setTimeout);
 var AppSceneContext = require('rcvrcore/AppSceneContext');
 var RPCController = require('rcvrcore/rpcController');
