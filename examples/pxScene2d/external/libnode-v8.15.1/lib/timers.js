@@ -21,7 +21,7 @@
 
 'use strict';
 
-const async_wrap = process.binding('async_wrap1');
+const async_wrap = process.binding('async_wrap');
 const TimerWrap = process.binding('timer_wrap').Timer;
 const L = require('internal/linkedlist');
 const internalUtil = require('internal/util');
