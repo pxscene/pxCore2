@@ -118,8 +118,8 @@ fi
 #    sudo netstat -a
 #  fi
 #fi
-
-
+cd $TRAVIS_BUILD_DIR
+git branch
 #install codecov
 if ( [ "$TRAVIS_EVENT_TYPE" = "push" ] || [ "$TRAVIS_EVENT_TYPE" = "pull_request" ] ) && [ -z "${TRAVIS_TAG}" ]
 then
