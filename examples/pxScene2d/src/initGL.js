@@ -42,7 +42,6 @@ var _module = require('module')
 // JRJR not sure why Buffer is not already defined.
 // Could look at adding to sandbox.js but this works for now
 Buffer = require('buffer').Buffer
-
 // Define global within the global namespace
 var global = this
 
@@ -53,7 +52,6 @@ var _immediates = []
 var __dirname = process.cwd()
 
 var loadUrl = function(url, _beginDrawing, _endDrawing, _view) {
-
   // JRJR review this... if we don't draw outside of the timers
   // then no need for this... 
   // general todo... in terms of sandboxing webgl operations.
@@ -165,8 +163,15 @@ const bootStrap = (moduleName, from, request) => {
       var resolvedModule = _module._resolveLookupPaths(moduleName, {paths:[parentDir],id:pathToParent,filename:pathToParent});
       var id = resolvedModule[0];
       var paths = resolvedModule[1];
+     
+      var filename = moduleName;
+      var filecolonindex = moduleName.indexOf("file:");
+      if (0 == filecolonindex)
+      {
+        filename = filename.substring(7);
+      }
 
-      const filename = _module._resolveFilename(moduleName, {paths:[parentDir].concat(_module._nodeModulePaths(parentDir)),id:pathToParent,filename:pathToParent});
+      filename = _module._resolveFilename(filename, {paths:[parentDir].concat(_module._nodeModulePaths(parentDir)),id:pathToParent,filename:pathToParent});
 
       // Spark Modules should be loaded a "singleton" per scene
       // If we've already loaded a module then return it's cached exports

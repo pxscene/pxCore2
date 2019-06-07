@@ -3163,8 +3163,8 @@ void pxScriptView::runScript()
       // JRJR WARNING! must use sendReturns since wrappers will invoke asyncronously otherwise.
       f.sendReturns<bool>(mUrl,mBeginDrawing.getPtr(),mEndDrawing.getPtr(), shadow.getPtr(), b);
       endDrawing();
-
-      mReady.send(b?"resolve":"reject",mScene);
+      // do we need this?
+      //mReady.send(b?"resolve":"reject", NULL);
     }
     else
     {
