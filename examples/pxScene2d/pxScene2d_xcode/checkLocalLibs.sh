@@ -18,6 +18,7 @@ otool -L ./lib/libpng16.16.dylib
 otool -L ./lib/libz.1.dylib
 otool -L ./lib/libz.1.2.11.dylib
 
+otool -L ./lib/libgif.7.dylib
 
 
 

@@ -32,7 +32,7 @@ if [ "$TRAVIS_OS_NAME" = "osx" ] ;
 then
   brew update;
   brew upgrade cmake;
-  brew install quilt libuv;
+  brew install quilt libuv xmlto;
   sudo /usr/sbin/DevToolsSecurity --enable
 fi
 
