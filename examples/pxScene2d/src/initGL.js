@@ -186,6 +186,12 @@ const bootStrap = (moduleName, from, request) => {
         return m
       }
 
+      if (filename.indexOf('.mjs') != -1) {
+        console.log('Loading mjs module: ', filename)
+        _module._load(filename, parentDir, true);
+        return;
+      }
+
       console.log('Loading source module:', filename)
       const source = fs.readFileSync(filename, 'utf-8');
 
