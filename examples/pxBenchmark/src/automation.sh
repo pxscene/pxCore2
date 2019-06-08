@@ -18,22 +18,29 @@ USER=$(cat $CONFIG_PATH | grep ^user:$versionTag1 | cut -d ":" -f 2)
 echo "USER=$USER"
 PASSWORD=$(cat $CONFIG_PATH | grep ^password:$versionTag1 | cut -d ":" -f 2)
 echo "PASSWORD=$PASSWORD"
+
+
+DEVICE_NAME=$(cat $THIS_DIR/version.txt | grep ^JENKINS_JOB=$versionTag1 | cut -d "=" -f 2)
+echo "DeviceType=$DEVICE_NAME"
+
 FIRMWARE=$(cat $THIS_DIR/version.txt | grep ^imagename:$versionTag1 | cut -d ":" -f 2)
 echo "Firmware=$FIRMWARE"
 
-DEVICE_NAME=$(cat $THIS_DIR/version.txt | grep ^JENKINS_JOB=$versionTag1 | cut -d "=" -f 2)
-echo "Device Name=$DEVICE_NAME"
-
 BRANCH=$(cat $THIS_DIR/version.txt | grep ^BRANCH=$versionTag1 | cut -d "=" -f 2)
 echo "BRANCH=$BRANCH"
+VERSION_BUILD=$(cat $THIS_DIR/version.txt | grep ^VERSION=$versionTag1 | cut -d "=" -f 2)
+echo "VERSION_BUILD=$VERSION_BUILD"
+
 SPIN=$(cat $THIS_DIR/version.txt | grep ^SPIN=$versionTag1 | cut -d "=" -f 2)
 echo "SPIN=$SPIN"
+
 JENKINS_BUILD_NUMBER=$(cat $THIS_DIR/version.txt | grep ^JENKINS_BUILD_NUMBER=$versionTag1 | cut -d "=" -f 2)
 echo "JENKINS_BUILD_NUMBER=$JENKINS_BUILD_NUMBER"
 BUILD_TIME=$(cat $THIS_DIR/version.txt | grep ^BUILD_TIME=$versionTag1 | cut -d "=" -f 2)
+#BUILD_TIME=$(echo "${BUILD_TIME//-/$'\\-'}")
+#BUILD_TIME=$(echo "${BUILD_TIME//:/$'\\:'}")
+BUILD_TIME=${BUILD_TIME//\"/\\\"}
 echo "BUILD_TIME=$BUILD_TIME"
-Generated=$(cat $THIS_DIR/version.txt | grep ^Generated=$versionTag1 | cut -d " on " -f 2)
-echo "Generated=$Generated"
 
 if [[ $USER == '' ]]; then
 echo "Insert your account name:"
@@ -91,7 +98,7 @@ done)
 IFS=','
 echo "CVS_DATA:${CVS_DATA[@]}"
 cols=($CVS_DATA)
-echo "DATE:${cols[2]} GPU:${cols[3]} CPU:${cols[4]} Notes:${cols[5]}"
+echo "DATE:${cols[2]} GPU:${cols[3]} CPU:${cols[4]} Size:${cols[5]} Notes:${cols[6]}"
 IFS="$CIFS"
 
 echo "=============BeforeUpdate:html_body=============="
@@ -103,6 +110,8 @@ declare -i icx
 icx=-2
 html_body2=""
 while read -r line; do
+#line=$(echo "${line//>/$'>\n'}");
+#echo $line;
     if [[ ${idx} -ne 0 ]]; then
         html_body2+="\n"
     fi
@@ -112,11 +121,53 @@ while read -r line; do
         icx=0
     fi
 
+    if [[ ${icx} -eq 11 ]]; then
+    echo "*** updating Notes"
+    html_body2+="<td>${cols[6]}</td>\n"
+    echo "<td>${cols[6]}</td>\n"
+    icx=-1
+    fi
+
+    if [[ ${icx} -eq 10 ]]; then
+    echo "*** updating Build time"
+    html_body2+="<td>$BUILD_TIME</td>\n"
+    echo "<td>$BUILD_TIME</td>\n"
+    icx+=1
+    fi
+
+    if [[ ${icx} -eq 9 ]]; then
+    echo "*** updating Jenkins Build Number"
+    html_body2+="<td>$JENKINS_BUILD_NUMBER</td>\n"
+    echo "<td>$JENKINS_BUILD_NUMBER</td>\n"
+    icx+=1
+    fi
+
+    if [[ ${icx} -eq 8 ]]; then
+    echo "*** updating Spin"
+    html_body2+="<td>$SPIN</td>\n"
+    echo "<td>$SPIN</td>\n"
+    icx+=1
+    fi
+
+    if [[ ${icx} -eq 7 ]]; then
+    echo "*** updating Version"
+    html_body2+="<td>$VERSION_BUILD</td>\n"
+    echo "<td>$VERSION_BUILD</td>\n"
+    icx+=1
+    fi
+
+    if [[ ${icx} -eq 6 ]]; then
+    echo "*** updating Branch"
+    html_body2+="<td>$BRANCH</td>\n"
+    echo "<td>$BRANCH</td>\n"
+    icx+=1
+    fi
+
     if [[ ${icx} -eq 5 ]]; then
-        echo "*** updating Notes"
+        echo "*** updating Size"
         html_body2+="<td>${cols[5]}</td>\n"
         echo "<td>${cols[5]}</td>\n"
-        icx=-1
+        icx+=1
     fi
 
     if [[ ${icx} -eq 4 ]]; then
@@ -165,22 +216,21 @@ while read -r line; do
     if [[ $line == *"</tbody>"* && ${icx} -eq -2 ]]; then
         echo $line
         echo "Adding New Device" 
-        echo "Device Type Firmware Date GPU CPU Branch Version Spin Jenkins_Job Jenkins_Build_Number Build_Time NOTES"
-        echo $DEVICE_NAME $FIRMWARE ${cols[2]} ${cols[3]} ${cols[4]} $BRANCH $VERSION $SPIN $JENKINS_JOB $JENKINS_BUILD_NUMBER $BUILD_TIME $Generate ${cols[5]}
+        echo "Device Type Firmware Date GPU CPU Branch Version Spin Jenkins_Build_Number Build_Time NOTES"
+        echo $DEVICE_NAME $FIRMWARE ${cols[2]} ${cols[3]} ${cols[4]} ${cols[5]} $BRANCH $VERSION $SPIN $JENKINS_BUILD_NUMBER $BUILD_TIME ${cols[6]}
         html_body2+="<tr>\n"
         html_body2+="<td>$DEVICE_NAME</td>\n"
         html_body2+="<td>$FIRMWARE</td>\n"
         html_body2+="<td>${cols[2]}</td>\n"
         html_body2+="<td>${cols[3]}</td>\n"
         html_body2+="<td>${cols[4]}</td>\n"
+        html_body2+="<td>${cols[5]}</td>\n"
         html_body2+="<td>$BRANCH</td>\n"
-        html_body2+="<td>$VERSION</td>\n"
+        html_body2+="<td>$VERSION_BUILD</td>\n"
         html_body2+="<td>$SPIN</td>\n"
-        html_body2+="<td>$JENKINS_JOB</td>\n"
         html_body2+="<td>$JENKINS_BUILD_NUMBER</td>\n"
         html_body2+="<td>$BUILD_TIME</td>\n"
-        html_body2+="<td>$Generate</td>\n"
-        html_body2+="<td>${cols[5]}</td>\n"
+        html_body2+="<td>${cols[6]}</td>\n"
         html_body2+="</tr>\n\n\n\n\n\n"
         html_body2+="$line"
         icx=0
