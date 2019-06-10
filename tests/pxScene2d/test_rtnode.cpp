@@ -44,8 +44,6 @@ TEST(pxScene2dTests, rtNodeTests)
     // Create rtNodeContextRef
     rtScriptContextRef ctx;
     script.createContext("javascript", ctx);
-    // without init.js invoked, AppSceneContext.js not loaded on first load.
-    // setTimeout if not referred by a module on first context load is not able to get seen on next load
     double e1 = pxMilliseconds();
 
     EXPECT_TRUE( ctx.getPtr()      != NULL ); // Should exist
