@@ -120,4 +120,6 @@ cmake --build . --config Release -- /m
 cd ..
 
 REM ---------- GIF
-copy /y vc.build\builds\libgif.lib giflib-5.1.9\libgif.lib
+if EXIST vc.build\builds (
+  copy /y vc.build\builds\libgif.lib giflib-5.1.9\libgif.lib
+)
