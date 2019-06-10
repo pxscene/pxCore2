@@ -19,7 +19,7 @@ limitations under the License.
 var isDuk=(typeof Duktape != "undefined")?true:false;
 var isV8 = (typeof _isV8 != "undefined")?true:false;
 
-var defaultAppUrl = './browser/browser.js'
+var defaultAppUrl = 'browser.js'
 
 px.import({ scene: 'px:scene.1.js',
   log: "px:tools.../Logger.js",

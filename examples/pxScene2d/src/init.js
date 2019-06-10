@@ -74,18 +74,18 @@ global.loadUrl = function loadUrl(url) {
 }
 }
 else {
-    var defaultViewerBaseUrl = getSetting('defaultViewerBaseUrl')
+    var baseViewerUrl = getSetting('defaultViewerBaseUrl')
     
-    if (!defaultViewerBaseUrl)
-        defaultViewerBaseUrl = './browser/'
+    if (!baseViewerUrl)
+      baseViewerUrl = 'https://www.sparkui.org'
 
     // ensure trailing /
     function endsWith(str, suffix) {
         return str.slice(-suffix.length) === suffix
     }
 
-    if (!endsWith(defaultViewerBaseUrl,'/'))
-        defaultViewerBaseUrl += '/'
+    if (!endsWith(baseViewerUrl,'/'))
+      baseViewerUrl += '/'
 
     function loadUrl(url) {
         var Url = require('url')
@@ -107,17 +107,17 @@ else {
 
         //console.log('Original Url: ', url)
         if (ext=='.md' || ext=='.sd') {
-            url = defaultViewerBaseUrl+'viewMarkdown.js?url='+encodeURIComponent(url)
+            url = baseViewerUrl+'/mime/viewMarkdown.js?url='+encodeURIComponent(url)
         }
         else if (ext=='.png' || ext == '.jpg' || ext=='.svg') {
-            url = defaultViewerBaseUrl+'viewImage.js?url='+encodeURIComponent(url)
+            url = baseViewerUrl+'/mime/viewImage.js?url='+encodeURIComponent(url)
         }
         else if (ext=='.txt' || ext=='.text') {
-            url = defaultViewerBaseUrl+'viewText.js?url='+encodeURIComponent(url)
+            url = baseViewerUrl+'/mime/viewText.js?url='+encodeURIComponent(url)
         }
         /*
         else if (ext=='.htm' || ext=='.html'){
-            url = baseViewerUrl+'viewHTML.js?url='+encodeURIComponent(url)
+            url = baseViewerUrl+'/mime/viewHTML.js?url='+encodeURIComponent(url)
         }
         */
         else if (ext=='.js' || ext=='.jar') {

@@ -586,6 +586,7 @@ public:
       // TODO Given that the context is being cleared we likely don't need to zero these out
       mCtx->add("getScene", 0);
       mCtx->add("makeReady", 0);
+      mCtx->add("getContextID", 0);
       mCtx->add("getSetting", 0);
     }
 #endif //ENABLE_RT_NODE

@@ -2662,10 +2662,6 @@ rtDefineMethod(pxScene2d, addServiceProvider);
 rtDefineMethod(pxScene2d, removeServiceProvider);
 rtDefineProperty(pxScene2d, storage);
 
-#ifdef PXSCENE_SUPPORT_STORAGE
-rtDefineProperty(pxScene2d, storage);
-#endif
-
 rtError pxScene2dRef::Get(const char* name, rtValue* value) const
 {
   return (*this)->Get(name, value);
