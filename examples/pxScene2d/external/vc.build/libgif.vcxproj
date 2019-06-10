@@ -56,7 +56,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{1C6653D7-910C-4CC9-B95D-30D7B65EEA8E}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>giflib</RootNamespace>
+    <RootNamespace>libgif</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(SolutionDir)\config.props" />
@@ -102,7 +102,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
     <OutDir>$(SolutionDir)\builds\</OutDir>
-    <IntDir>$(SolutionDir)\objs\giflib\</IntDir>
+    <IntDir>$(SolutionDir)\objs\libgif\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release Library|Win32'">
     <LinkIncremental>true</LinkIncremental>
@@ -113,7 +113,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>true</LinkIncremental>
     <OutDir>$(SolutionDir)\builds\</OutDir>
-    <IntDir>$(SolutionDir)\objs\giflib\</IntDir>
+    <IntDir>$(SolutionDir)\objs\libgif\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug Library|Win32'">
     <ClCompile>

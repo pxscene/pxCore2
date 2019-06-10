@@ -14,11 +14,24 @@ copy /y curl-7.40.0\include\curl\curlbuild-win.h curl-7.40.0\include\curl\curlbu
 copy /y libpng-1.6.28\scripts\pnglibconf.h.prebuilt libpng-1.6.28\pnglibconf.h
 copy /y jpeg-9a\jconfig.vc jpeg-9a\jconfig.h
 
+REM --------- SQLITE
+
+cd sqlite-autoconf-3280000
+cl /c /EHsc sqlite3.c
+lib sqlite3.obj
+cd ..
+
+REM --------- GIF
+cd giflib-5.1.9
+patch -p1 < ../giflib-5.1.9-windows.diff
+
+cd ..
+
 set buildExternal=0
 set nodeVer="6.9.0"
 if NOT [%APPVEYOR_REPO_COMMIT%] == [] (
     FOR /F "tokens=* USEBACKQ" %%F IN (`git diff --name-only %APPVEYOR_REPO_COMMIT% %APPVEYOR_REPO_COMMIT%~`) DO (
-    echo.%%F|findstr "zlib WinSparkle pthread libpng libjpeg-turbo glew freetype curl jpeg-9a"
+    echo.%%F|findstr "libgif zlib WinSparkle pthread libpng libjpeg-turbo glew freetype curl jpeg-9a"
     if !errorlevel! == 0 (
       set buildExternal=1
       echo. External library files are modified. Need to build external : !buildExternal! .
@@ -106,15 +119,5 @@ cmake ..
 cmake --build . --config Release -- /m
 cd ..
 
-REM --------- GIF
-cd giflib-5.1.9
-git apply -p1 < ../giflib-5.1.9-windows.diff
-cd ..
-
-REM --------- SQLITE
-
-cd sqlite-autoconf-3280000
-cl /c /EHsc sqlite3.c
-lib sqlite3.obj
-cd ..
-
+REM ---------- GIF
+#copy /y vc.build\builds\libgif.* giflib-5.1.9\
