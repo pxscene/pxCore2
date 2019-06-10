@@ -16,9 +16,17 @@ limitations under the License.
 
 */
 
-var homeUrl = "https://www.sparkui.org/examples/px-reference/text/sample.md";
+var homeUrl = "https://www.sparkui.org/examples/text/sample.md";
 
 px.configImport({"browser:" : /*px.getPackageBaseFilePath() + */ "browser/"});
+
+var uiReadyResolve = null;
+var uiReadyReject = null;
+module.exports.uiReady = new Promise(function(resolve, reject) 
+{
+  uiReadyResolve = resolve;
+  uiReadyReject = reject;
+});
 
 px.import({ scene:   'px:scene.1.js',
             keys:    'px:tools.keys.js',
@@ -500,6 +508,8 @@ px.import({ scene:   'px:scene.1.js',
       .catch( function (err)
       {
           console.log(">>> Loading Assets ... err = " + err);
+          
+          uiReadyReject();
       })
       .then( function (success, failure)
       {
@@ -533,6 +543,8 @@ px.import({ scene:   'px:scene.1.js',
 
         updateSize(scene.w, scene.h);
         reload(homeUrl)
+        
+        uiReadyResolve();
       });
 
 
