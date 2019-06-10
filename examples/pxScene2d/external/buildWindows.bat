@@ -22,10 +22,10 @@ lib sqlite3.obj
 cd ..
 
 REM --------- GIF
-REM cd giflib-5.1.9
-REM patch -p1 < ../giflib-5.1.9-windows.diff
+cd giflib-5.1.9
+patch -p1 < ../giflib-5.1.9-windows.diff
 
-REM cd ..
+cd ..
 
 set buildExternal=0
 set nodeVer="6.9.0"
@@ -120,4 +120,4 @@ cmake --build . --config Release -- /m
 cd ..
 
 REM ---------- GIF
-REM copy /y vc.build\builds\libgif.* giflib-5.1.9\
+REM copy /y vc.build\builds\libgif.lib giflib-5.1.9\
