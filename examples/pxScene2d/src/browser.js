@@ -596,7 +596,7 @@ px.import({ scene:   'px:scene.1.js',
         case keys.R:   //  CTRL-ALT-H
         {
           console.log("browser.js Loading home");
-          reload(getHomeUrl());
+          reload('browser:home');
           e.stopPropagation();
         }
         break;
