@@ -27,4 +27,4 @@ var require       = this.require;
 
 // JRJR warning... adding process global object to sandbox...
 // Do we need to wrap... Some node apps are using hrtime
-var _sandboxStuff = [ "console", "vm", "require", "process", "setTimeout", "clearTimeout", "setInterval", "clearInterval", "setImmediate", "clearImmediate" ];
+var _sandboxStuff = [ "console", "vm", "require", "process", "setTimeout", "clearTimeout", "setInterval", "clearInterval", "setImmediate", "clearImmediate", "global", "Buffer" ];
