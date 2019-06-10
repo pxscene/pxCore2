@@ -120,4 +120,4 @@ cmake --build . --config Release -- /m
 cd ..
 
 REM ---------- GIF
-REM copy /y vc.build\builds\libgif.lib giflib-5.1.9\
+copy /y vc.build\builds\libgif.lib giflib-5.1.9\libgif.lib
