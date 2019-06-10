@@ -92,7 +92,7 @@ px.import({ scene:   'px:scene.1.js',
   var content   = scene.create({t:"scene",  parent: bg,      x:10, y:60, clip:true });
   var browser   = scene.create({t:"object", parent: bg} );
 
-  var highlightBG   = scene.create({ t:"rect",   parent: browser, x:10, y:60, fillColor: "#0000", lineColor: "#080", lineWidth: 8, a: 0.0 });
+  var highlightBG   = scene.create({ t:"rect",   parent: browser, x:10, y:60, fillColor: "#0000", lineColor: "#080", lineWidth: 8, a: 0.0, interactive:false });
   var inputBox = new imports.EditBox( { parent: browser, url: base+'/browser/images/input2.png', x: 70+10, y: 10, w: 800-70-32, h: 35, pts: 24 });
   var listBox = new imports.ListBox( { parent: browser, x: 950, y: 0, w: 0, h: 100, visible:false, numItems:3 });
   var starContainer = scene.create({t:'object', parent: browser, w:28, h:28, cx:14, cy:14})
