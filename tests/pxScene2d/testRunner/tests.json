@@ -59,5 +59,6 @@
       {"url":"../tests/test_pxColorNames.js", "title":"test_pxColorNames","useBaseURI":"true"},
       {"url":"../tests/test_objects_alpha.js", "title":"test_objects_alpha","useBaseURI":"true"},
       {"url":"../tests/test_dirty_rectangles.js", "title":"test_dirty_rectangles","useBaseURI":"true"},
-      {"url":"../tests/test_gifLoader.js", "title":"test_gifLoader","useBaseURI":"true"}
+      {"url":"../tests/test_gifLoader.js", "title":"test_gifLoader","useBaseURI":"true"},
+      {"url":"../tests/test_pxRectangleWithAlpha0-1.js.js", "title":"test_pxRectangleWithAlpha0-1","useBaseURI":"true"}
 ]
