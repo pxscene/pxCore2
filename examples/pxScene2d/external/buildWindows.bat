@@ -119,5 +119,13 @@ cmake ..
 cmake --build . --config Release -- /m
 cd ..
 
-REM ---------- GIF
-copy /y vc.build\builds\libgif.* giflib-5.1.9\
+REM --------- GIF
+cd giflib-5.1.9
+patch -p1 < ../giflib-5.1.9-windows.diff
+
+cl /c /EHsc dgif_lib.c egif_lib.c getarg.c gif2rgb.c gif_err.c gif_font.c gif_hash.c gifalloc.c gifbg.c gifbuild.c gifclrmp.c gifcolor.c gifecho.c giffilter.c giffix.c gifhisto.c gifinto.c gifsponge.c giftext.c giftool.c gifwedge.c openbsd-reallocarray.c qprintf.c quantize.c
+
+lib *.obj
+
+copy /y dgif_lib.lib libgif.7.lib
+cd ..
