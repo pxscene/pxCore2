@@ -14,18 +14,6 @@ copy /y curl-7.40.0\include\curl\curlbuild-win.h curl-7.40.0\include\curl\curlbu
 copy /y libpng-1.6.28\scripts\pnglibconf.h.prebuilt libpng-1.6.28\pnglibconf.h
 copy /y jpeg-9a\jconfig.vc jpeg-9a\jconfig.h
 
-REM --------- SQLITE
-
-cd sqlite-autoconf-3280000
-cl /c /EHsc sqlite3.c
-lib sqlite3.obj
-cd ..
-
-REM --------- GIF
-cd giflib-5.1.9
-patch -p1 < ../giflib-5.1.9-windows.diff
-
-cd ..
 
 set buildExternal=0
 set nodeVer="6.9.0"
@@ -117,6 +105,13 @@ mkdir build
 cd build
 cmake ..
 cmake --build . --config Release -- /m
+cd ..
+
+REM --------- SQLITE
+
+cd sqlite-autoconf-3280000
+cl /c /EHsc sqlite3.c
+lib sqlite3.obj
 cd ..
 
 REM --------- GIF
