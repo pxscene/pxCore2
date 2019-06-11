@@ -17,6 +17,7 @@ pxError pxOffscreen::init(int width, int height)
     setHeight(height);
     setStride(width*4);
     setUpsideDown(false);
+    fill(pxClear);
   }
   
   return data?PX_OK:PX_FAIL;
