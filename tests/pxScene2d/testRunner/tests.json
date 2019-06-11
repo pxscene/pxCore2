@@ -4,7 +4,7 @@
       {"url": "https://www.sparkui.org/examples/gallery/gallery3.js", "title": "gallery3", "timeToRun": "5000", "useBaseURI": "false" },
       {"url":"../tests/test_simpleApiParent.js", "title":"test_simpleApiParent","useBaseURI":"true"},
       {"url":"../tests/textbox_auto_v2.js", "title":"textbox auto","useBaseURI":"true"},
-      {"url":"../tests/text2tests.js", "title":"text2tests","useBaseURI":"true"},
+      {"url":"../tests/text2tests_v2.js", "title":"text2tests","useBaseURI":"true"},
       {"url":"../tests/text2tests_more_v2.js", "title":"text2tests_more","useBaseURI":"true"},
       {"url":"../tests/test_xre2-85_v2.js", "title":"test_XRE2-85","useBaseURI":"true"},
       {"url":"../tests/test_y_coords_v2.js", "title":"test_y_coords","useBaseURI":"true"},
