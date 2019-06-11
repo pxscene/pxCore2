@@ -445,7 +445,7 @@ Module._resolveLookupPaths = function(request, parent, newReturn) {
 // 3. Otherwise, create a new module for the file and save it to the cache.
 //    Then have it load  the file contents before returning its exports
 //    object.
-Module._load = function(request, parent, isMain) {
+Module._load = function(request, parent, isMain=false, cache=true) {
   if (parent) {
     debug('Module._load REQUEST %s parent: %s', request, parent.id);
   }
@@ -455,6 +455,8 @@ Module._load = function(request, parent, isMain) {
       // loader setup
       if (!ESMLoader) {
         ESMLoader = new Loader();
+        ESMLoader.setCache(false);
+        ESMLoader.runJSAsESM(true);
         const userLoader = process.binding('config').userLoader;
         if (userLoader) {
           const hooks = await ESMLoader.import(userLoader);

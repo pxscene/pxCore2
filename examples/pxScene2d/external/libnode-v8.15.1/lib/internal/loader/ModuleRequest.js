@@ -89,7 +89,7 @@ loaders.set('json', async (url) => {
   });
 });
 
-exports.resolve = (specifier, parentURL) => {
+exports.resolve = (specifier, parentURL, resolver, treatjsasesm=false) => {
   if (NativeModule.nonInternalExists(specifier)) {
     return {
       url: specifier,
@@ -130,7 +130,14 @@ exports.resolve = (specifier, parentURL) => {
     case '.node':
       return { url: `${url}`, format: 'addon' };
     case '.js':
-      return { url: `${url}`, format: 'cjs' };
+      if (true == treatjsasesm)
+      {
+        return { url: `${url}`, format: 'esm' };
+      }
+      else
+      {
+        return { url: `${url}`, format: 'cjs' };
+      }
     default:
       throw new errors.Error('ERR_UNKNOWN_FILE_EXTENSION',
                              internalURLModule.getPathFromURL(url));

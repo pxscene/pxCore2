@@ -46,6 +46,9 @@ class Loader {
 
     this.moduleMap = new ModuleMap();
     this.base = base;
+    this.cache = true;
+    this.treatjsasesm = false;
+
     // The resolver has the signature
     //   (specifier : string, parentURL : string, defaultResolve)
     //       -> Promise<{ url : string,
@@ -65,6 +68,14 @@ class Loader {
     this.dynamicInstantiate = undefined;
   }
 
+  setCache(val) {
+    this.cache = val;
+  }
+
+  runJSAsESM(val) {
+    this.treatjsasesm = val;
+  }
+
   hook({ resolve = ModuleRequest.resolve, dynamicInstantiate }) {
     // Use .bind() to avoid giving access to the Loader instance when it is
     // called as this.resolver(...);
@@ -73,14 +84,14 @@ class Loader {
   }
 
   // Typechecking wrapper around .resolver().
-  async resolve(specifier, parentURL = this.base) {
+  async resolve(specifier, parentURL = this.base, treatjsasesm=false) {
     if (typeof parentURL !== 'string') {
       throw new errors.TypeError('ERR_INVALID_ARG_TYPE',
                                  'parentURL', 'string');
     }
 
     const { url, format } = await this.resolver(specifier, parentURL,
-                                                ModuleRequest.resolve);
+                                                ModuleRequest.resolve, treatjsasesm);
 
     if (!Loader.validFormats.includes(format)) {
       throw new errors.TypeError('ERR_INVALID_ARG_TYPE', 'format',
@@ -108,8 +119,8 @@ class Loader {
   }
 
   // May create a new ModuleJob instance if one did not already exist.
-  async getModuleJob(specifier, parentURL = this.base) {
-    const { url, format } = await this.resolve(specifier, parentURL);
+  async getModuleJob(specifier, parentURL = this.base, cache = true, treatjsasesm = false) {
+    const { url, format } = await this.resolve(specifier, parentURL, treatjsasesm);
     let job = this.moduleMap.get(url);
     if (job === undefined) {
       let loaderInstance;
@@ -130,13 +141,15 @@ class Loader {
         loaderInstance = ModuleRequest.loaders.get(format);
       }
       job = new ModuleJob(this, url, loaderInstance);
-      this.moduleMap.set(url, job);
+      if (true == cache) {
+        this.moduleMap.set(url, job);
+      }
     }
     return job;
   }
 
   async import(specifier, parentURL = this.base) {
-    const job = await this.getModuleJob(specifier, parentURL);
+    const job = await this.getModuleJob(specifier, parentURL, this.cache, this.treatjsasesm);
     const module = await job.run();
     return module.namespace();
   }

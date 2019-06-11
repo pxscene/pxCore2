@@ -18,7 +18,7 @@ class ModuleJob {
     this.loader = loader;
     this.error = null;
     this.hadError = false;
-
+    this.url = url;
     // This is a Promise<{ module, reflect }>, whose fields will be copied
     // onto `this` by `link()` below once it has been resolved.
     this.modulePromise = moduleProvider(url);

@@ -191,7 +191,8 @@ const bootStrap = (moduleName, from, request) => {
         return m
       }
 
-      if (filename.indexOf('.mjs') != -1) {
+      //it will be good if we have some way to tell, we are loading esm module in js file
+      if ((filename.indexOf('.mjs') != -1) || (filename.indexOf('.js'))) {
         console.log('Loading mjs module: ', filename)
         _module._load(filename, parentDir, true);
         return;
