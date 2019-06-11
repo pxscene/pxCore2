@@ -44,6 +44,7 @@ TEST(pxScene2dTests, rtNodeTests)
     // Create rtNodeContextRef
     rtScriptContextRef ctx;
     script.createContext("javascript", ctx);
+  
     double e1 = pxMilliseconds();
 
     EXPECT_TRUE( ctx.getPtr()      != NULL ); // Should exist
