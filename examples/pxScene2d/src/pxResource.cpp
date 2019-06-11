@@ -531,6 +531,7 @@ void pxResource::reloadData()
 
 uint64_t pxResource::textureMemoryUsage(std::vector<rtObject*> &objectsCounted)
 {
+  UNUSED_PARAM(objectsCounted);
   return 0;
 }
 

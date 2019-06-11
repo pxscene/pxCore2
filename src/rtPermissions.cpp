@@ -39,6 +39,7 @@ rtObjectRef rtPermissions::mConfig = NULL;
 rtPermissions::rtPermissions(const char* origin)
   : mOrigin(rtUrlGetOrigin(origin))
   , mParent(NULL)
+  , mStorageQuota(0)
 {
   if (mOrigin.isEmpty())
     mOrigin = LOCAL_FILE_ORIGIN;

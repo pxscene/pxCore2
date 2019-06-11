@@ -24,11 +24,11 @@ try {
   var http2 = isV8?null:require('http2');
 } catch (ignored) {
 }
+
 var https = require('https');
 var http = require('http');
 var url = require('url');
 var EventEmitter = require('events');
-
 var Logger = require('rcvrcore/Logger').Logger;
 var log = new Logger('http_wrap');
 
@@ -411,6 +411,7 @@ Utils._normalizeOptions = function (o, defaultProtocol, is_v2) {
   var headers = o.headers;
   var method = o.method;
 
+  var urlString;
   if (typeof o === 'object' && o.toString().indexOf('http') !== 0) {
     // hand made 'options'...
     o = Utils._extend({}, o);
@@ -422,13 +423,22 @@ Utils._normalizeOptions = function (o, defaultProtocol, is_v2) {
     var auth = o.auth ? o.auth + '@' : '';
     var port = o.port ? ':' + o.port : '';
     var path = o.path ? o.path : '';
-
-    o = new url.URL(protocol + '//' + auth + host + port + path);
+    urlString = protocol + '//' + auth + host + port + path;
   } else if (typeof o === 'string') {
     // <string>
-    o = new url.URL(o);
+    urlString = o;
   } else {
     // <URL>
+  }
+
+  if (urlString) {
+    if (is_v2) {
+      o = new url.URL(urlString);
+    } else {
+      o = url.parse(urlString);
+      o.origin = Utils._getRequestOrigin(o, defaultProtocol);
+      o.toString = () => urlString;
+    }
   }
 
   if (agent) {
@@ -484,4 +494,21 @@ Utils._assert = function (condition, message) {
     log.warn(message);
     throw new Error(message);
   }
+};
+
+Utils._getRequestOrigin = function (options, defaultProtocol) {
+  // hostname: w/o port, nonempty if URL object, w/o auth, w/o [] if IPv6
+  // host: w/ port if URL object otherwise w/o port, nonempty if URL object, w/o auth, w/ [] if IPv6 and URL object
+  var protocol = Utils._getRequestScheme(options, defaultProtocol);
+  var host = options.hostname || options.host || 'localhost';
+  var v6 = (host.match(/:/g) || []).length > 1;
+  host = v6 ? '[' + host + ']' : host;
+  var port = options.port ? ':' + options.port : '';
+  return protocol + '//' + host + port;
+};
+
+Utils._getRequestScheme = function (options, defaultProtocol) {
+  // valid scheme ends with ':'
+  var scheme = options.protocol ? options.protocol : defaultProtocol;
+  return scheme.toLowerCase();
 };
