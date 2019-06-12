@@ -987,8 +987,8 @@ uint32_t rtImageAResource::loadResourceData(rtFileDownloadRequest* fileDownloadR
         rtMutexLockGuard dimensionsMutexLock(mDimensionsMutex);
         mWidth = o.width();
         mHeight = o.height();
+        return PX_RESOURCE_LOAD_SUCCESS;
       }
-      return PX_RESOURCE_LOAD_SUCCESS;
     }
   }
   return PX_RESOURCE_LOAD_FAIL;
@@ -1080,7 +1080,7 @@ void rtImageAResource::loadResourceFromFile()
         
         data.term(); // Dump the source data...
         
-        setLoadStatus("statusCode",0);
+        setLoadStatus("statusCode",PX_RESOURCE_LOAD_SUCCESS);
         // Since this object can be released before we get a async completion
         // We need to maintain this object's lifetime
         // TODO review overall flow and organization
@@ -1092,7 +1092,6 @@ void rtImageAResource::loadResourceFromFile()
     }
     
   mDimensionsMutex.unlock();
-  setLoadStatus("statusCode",PX_RESOURCE_LOAD_SUCCESS);
 }
 
 void rtImageAResource::loadResourceFromArchive(rtObjectRef archiveRef)
@@ -1168,7 +1167,7 @@ void rtImageAResource::loadResourceFromArchive(rtObjectRef archiveRef)
         // TODO
         data.term(); // Dump the source data...
         
-        setLoadStatus("statusCode",0);
+        setLoadStatus("statusCode",PX_RESOURCE_LOAD_SUCCESS);
         // Since this object can be released before we get a async completion
         // We need to maintain this object's lifetime
         // TODO review overall flow and organization
@@ -1181,7 +1180,6 @@ void rtImageAResource::loadResourceFromArchive(rtObjectRef archiveRef)
     
   mDimensionsMutex.unlock();
   //UNUSED_PARAM(archiveRef);
-  setLoadStatus("statusCode",PX_RESOURCE_LOAD_SUCCESS);
 }
 
 int32_t rtImageAResource::w() const
