@@ -2338,6 +2338,10 @@ rtError pxLoadGIFImage(const char *imageData, size_t imageDataSize,
 
 rtError pxLoadGIFImage(const char *filename, pxOffscreen &o)
 {
+#ifndef SUPPORT_GIF
+    rtLogDebug("GIF support is not enabled");
+    return RT_FAIL;
+#else
     rtData d;
     rtError e = rtLoadFile(filename, d);
     if (e == RT_OK)
@@ -2351,5 +2355,6 @@ rtError pxLoadGIFImage(const char *filename, pxOffscreen &o)
     }
     
     return e;
+#endif
 }
 
