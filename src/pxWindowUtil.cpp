@@ -398,6 +398,7 @@ uint32_t keycodeFromNative(uint32_t nativeKeycode)
   default:
     //TODO move rtLog support to pxCore so we can use here
     printf("pxWindowUtils: Unhandled keycode %d\n", nativeKeycode);
+    commonKeycode = nativeKeycode;
     break;
   }
   return commonKeycode;
