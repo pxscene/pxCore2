@@ -171,7 +171,7 @@ elseif (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
                   ${NODE_LIBRARIES}
                   ${V8_LIBRARIES}
                   ${DUKE_LIBRARIES}
-             ${COMM_DEPS_LIBRARIES}
+                  ${COMM_DEPS_LIBRARIES}
              pthread rt dl m)
 
     set(PXSCENE_APP_LIBRARIES ${PXSCENE_APP_LIBRARIES} pxCore rtCore_s)
@@ -197,6 +197,7 @@ elseif (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
             message("Building pxscene with essos windows")
             set(PX_PLATFORM PX_PLATFORM_WAYLAND_EGL)
             set(PXSCENE_APP_LIBRARIES ${PXSCENE_APP_LIBRARIES} essos)
+            set(PXSCENE_LINK_LIBRARIES ${PXSCENE_LINK_LIBRARIES} essos)
         elseif (BUILD_PXSCENE_WAYLAND_EGL)
             message("Building pxscene with wayland windows")
             set(PX_PLATFORM PX_PLATFORM_WAYLAND_EGL)
@@ -251,6 +252,13 @@ elseif (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
         set(PXCORE_INCLUDES $ENV{PXCORE_INCLUDES})
         separate_arguments(PXCORE_INCLUDES)
         include_directories(BEFORE ${PXCORE_INCLUDES})
+    elseif (BUILD_WITH_WPEFRAMEWORK)
+        message("building pxscene for wpeframework compositor")
+        set(PX_PLATFORM PX_PLATFORM_WPEFRAMEWORK)
+        set(PXCORE_LIB_LOCATION ${PXCOREDIR}/build/wpe)
+        set(PLATFORM_SOURCES egl/pxContextUtils.cpp)
+
+        set(PXSCENE_LINK_LIBRARIES ${PXSCENE_LINK_LIBRARIES} compositorclient)
     else ()
         message("building pxscene for glut")
         set(PX_PLATFORM PX_PLATFORM_GLUT)

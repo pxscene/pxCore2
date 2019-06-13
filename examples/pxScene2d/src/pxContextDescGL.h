@@ -23,7 +23,7 @@
 
 //#include <stddef.h>
 
-#if defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL)
+#if defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL) || defined(PX_PLATFORM_WPEFRAMEWORK)
 
 #include <GLES2/gl2.h>
 
@@ -34,7 +34,7 @@
 #include <OpenGL/gl.h>
 #include <OpenGL/glu.h>
 #else
-#if defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL)
+#if defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL) || defined(PX_PLATFORM_WPEFRAMEWORK)
 #include <GLES2/gl2.h>
 #include <GLES2/gl2ext.h>
 #else

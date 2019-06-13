@@ -640,6 +640,7 @@ public:
   }
 
   rtString getUrl() const { return mUrl; }
+  void setUrl(rtString url);
 
 #ifdef ENABLE_PERMISSIONS_CHECK
   rtError permissions(rtObjectRef& v) const { return mScene.get("permissions", v); }
@@ -662,10 +663,8 @@ public:
   rtError textureMemoryUsage(rtValue& v);
 
   rtError screenshot(rtString type, rtValue& returnValue);
-  
+
 protected:
-
-
   static rtError getScene(int /*numArgs*/, const rtValue* /*args*/, rtValue* result, void* ctx);
   static rtError makeReady(int /*numArgs*/, const rtValue* /*args*/, rtValue* result, void* ctx);
 
@@ -925,6 +924,7 @@ public:
        mArchive = NULL;
     }
     mArchiveSet = false;
+    mSceneContainer = NULL;
   }
 
   virtual unsigned long AddRef()
@@ -1103,6 +1103,7 @@ public:
 
   virtual void setViewContainer(pxIViewContainer* l);
   pxIViewContainer* viewContainer();
+  pxSceneContainer* sceneContainer();
   void invalidateRect(pxRect* r);
 
   void getMatrixFromObjectToScene(pxObject* o, pxMatrix4f& m);
@@ -1289,6 +1290,7 @@ public:
   bool mDisposed;
   std::vector<rtFunctionRef> mServiceProviders;
   bool mArchiveSet;
+  pxSceneContainer* mSceneContainer;
 #ifdef PXSCENE_SUPPORT_STORAGE
   mutable rtStorageRef mStorage;
 #endif

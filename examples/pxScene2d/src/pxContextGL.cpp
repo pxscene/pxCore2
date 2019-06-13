@@ -38,7 +38,7 @@
 #include <OpenGL/gl.h>
 #include <OpenGL/glu.h>
 #else
-#if defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL)
+#if defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL) || defined(PX_PLATFORM_WPEFRAMEWORK)
 #include <GLES2/gl2.h>
 #ifndef GL_GLEXT_PROTOTYPES
 #define GL_GLEXT_PROTOTYPES
@@ -53,7 +53,7 @@
 #include <GL/glut.h>
 #endif
 #include <GL/gl.h>
-#endif //PX_PLATFORM_WAYLAND_EGL
+#endif //PX_PLATFORM_WAYLAND_EGL || PX_PLATFORM_GENERIC_EGL || PX_PLATFORM_WPEFRAMEWORK
 #endif
 
 #include "pxContextUtils.h"
@@ -121,6 +121,7 @@ extern rtScript script;
 extern uv_async_t gcTrigger;
 #endif
 extern pxContext context;
+rtMutex glContextLock;
 rtThreadQueue* gUIThreadQueue = new rtThreadQueue();
 double lastContextGarbageCollectTime = 0;
 double garbageCollectThrottleInSeconds = CONTEXT_GC_THROTTLE_SECS_DEFAULT;
@@ -130,11 +131,11 @@ enum pxCurrentGLProgram { PROGRAM_UNKNOWN = 0, PROGRAM_SOLID_SHADER,  PROGRAM_A_
 
 pxCurrentGLProgram currentGLProgram = PROGRAM_UNKNOWN;
 
-#if defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL)
+#if defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL) || defined(PX_PLATFORM_WPEFRAMEWORK)
 extern EGLContext defaultEglContext;
 extern EGLDisplay defaultEglDisplay;
 extern EGLSurface defaultEglSurface;
-#endif //PX_PLATFORM_GENERIC_EGL || PX_PLATFORM_WAYLAND_EGL
+#endif //PX_PLATFORM_GENERIC_EGL || PX_PLATFORM_WAYLAND_EGL || PX_PLATFORM_WPEFRAMEWORK
 
 // TODO get rid of this global crap
 
@@ -451,7 +452,7 @@ public:
   {
     if (mFramebufferId!= 0)
     {
-#if (defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL)) && !defined(PXSCENE_DISABLE_PXCONTEXT_EXT)
+#if (defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL) || defined(PX_PLATFORM_WPEFRAMEWORK)) && !defined(PXSCENE_DISABLE_PXCONTEXT_EXT)
       if (mAntiAliasing)
       {
         GLint currentFBO = 0;
@@ -501,7 +502,7 @@ public:
       glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
                              GL_TEXTURE_2D, mTextureId, 0);
 
-#if (defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL)) && !defined(PXSCENE_DISABLE_PXCONTEXT_EXT)
+#if (defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL) || defined(PX_PLATFORM_WPEFRAMEWORK)) && !defined(PXSCENE_DISABLE_PXCONTEXT_EXT)
       if (mAntiAliasing)
       {
         glFramebufferTexture2DMultisampleEXT(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mTextureId, 0, 2);
@@ -586,7 +587,7 @@ private:
   bool mBindTexture;
   bool mAlphaOnly;
 
-#if (defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL)) && !defined(PXSCENE_DISABLE_PXCONTEXT_EXT)
+#if (defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL) || defined(PX_PLATFORM_WPEFRAMEWORK)) && !defined(PXSCENE_DISABLE_PXCONTEXT_EXT)
   bool mAntiAliasing;
 #endif
 
@@ -1485,11 +1486,14 @@ public:
     glUniform1f(mAlphaLoc, alpha);
     glUniform4fv(mColorLoc, 1, color);
 
+    glContextLock.lock();
     if (texture->bindGLTexture(mTextureLoc) != PX_OK)
     {
+    glContextLock.unlock();
       return PX_FAIL;
     }
 
+    glContextLock.unlock();
     glVertexAttribPointer(mPosLoc, 2, GL_FLOAT, GL_FALSE, 0, pos);
     glVertexAttribPointer(mUVLoc, 2, GL_FLOAT, GL_FALSE, 0, uv);
     glEnableVertexAttribArray(mPosLoc);
@@ -1554,11 +1558,14 @@ public:
     glUniformMatrix4fv(mMatrixLoc, 1, GL_FALSE, matrix);
     glUniform1f(mAlphaLoc, alpha);
 
+    glContextLock.lock();
     if (texture->bindGLTexture(mTextureLoc) != PX_OK)
     {
+    glContextLock.unlock();
       return PX_FAIL;
     }
 
+    glContextLock.unlock();
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,
 		    (stretchX==pxConstantsStretch::REPEAT)?GL_REPEAT:GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,
@@ -1635,10 +1642,13 @@ public:
       glUniform4fv(mColorLoc, 1, defaultColor);
     }
 
+    glContextLock.lock();
     if (texture->bindGLTexture(mTextureLoc) != PX_OK)
     {
+    glContextLock.unlock();
       return PX_FAIL;
     }
+    glContextLock.unlock();
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,
                     (stretchX==pxConstantsStretch::REPEAT)?GL_REPEAT:GL_CLAMP_TO_EDGE);
@@ -1715,10 +1725,13 @@ public:
     glUniform1f(mInvertedLoc, static_cast<GLfloat>((maskOp == pxConstantsMaskOperation::NORMAL) ? 0.0 : 1.0));
     
 
+    glContextLock.lock();
     if (texture->bindGLTexture(mTextureLoc) != PX_OK)
     {
+    glContextLock.unlock();
       return PX_FAIL;
     }
+    glContextLock.unlock();
 
     if (mask.getPtr() != NULL)
     {
@@ -2300,12 +2313,12 @@ void pxContext::init()
 
   rtLogInfo("context garbage collect throttle set to %f seconds", garbageCollectThrottleInSeconds);
 
-#if defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL)
+#if defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL) || defined(PX_PLATFORM_WPEFRAMEWORK)
   defaultEglContext = eglGetCurrentContext();
   defaultEglDisplay = eglGetCurrentDisplay();
   defaultEglSurface = eglGetCurrentSurface(EGL_DRAW);
   rtLogDebug("current context in init: %p", defaultEglContext);
-#endif //PX_PLATFORM_GENERIC_EGL || PX_PLATFORM_WAYLAND_EGL
+#endif //PX_PLATFORM_GENERIC_EGL || PX_PLATFORM_WAYLAND_EGL || PX_PLATFORM_WPEFRAMEWORK
 
   std::srand(unsigned (std::time(0)));
 }
