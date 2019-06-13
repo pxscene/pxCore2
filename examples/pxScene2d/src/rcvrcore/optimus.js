@@ -468,6 +468,10 @@ function Application(props) {
   }
   else if (cmd === "sparkInstance"){
     this.type = ApplicationType.SPARK_INSTANCE;
+    process.env.PXCORE_ESSOS_WAYLAND=1;
+    if (uri === ""){
+      uri = "preloadSparkInstance.js";
+    }
     _externalApp = scene.create( {t:"external", parent:root, cmd:"spark " + uri, w:w, h:h, hasApi:true} );
     _externalApp.on("onReady", function () { _this.log("onReady"); }); // is never called
     _externalApp.on("onClientStarted", function () { _this.log("onClientStarted"); });

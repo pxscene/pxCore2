@@ -358,8 +358,8 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (packageUri, module
         process: processWrap,
         require: requireMethod,
         global: globalWrap,
-        Function: Function,
-        Uint8Array: Uint8Array,
+        //Function: Function,
+        //Uint8Array: Uint8Array,
         setTimeout: function (callback, after, arg1, arg2, arg3) {
           //pass the timers list to callback function on timeout
           var timerId = SetTimeout(setTimeoutCallback, after, this.timers, function() { callback(arg1, arg2, arg3)});
