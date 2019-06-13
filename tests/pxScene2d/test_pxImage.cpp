@@ -222,7 +222,7 @@ class rtImageAResourceTest : public testing::Test
       res.loadStatus(loadStatus);
       rtValue status;
       loadStatus.Get("statusCode",&status);
-      EXPECT_TRUE(status == PX_RESOURCE_STATUS_UNKNOWN_ERROR);
+      EXPECT_TRUE(status == PX_RESOURCE_LOAD_SUCCESS);
       delete scene;
     }
 };
