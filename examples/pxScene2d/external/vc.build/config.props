@@ -32,6 +32,7 @@
 	 versions do not match.  The zlib version used in this build is recorded
 	 below:
      -->
+    <gifLibSrcDir>..\giflib-5.1.9</gifLibSrcDir>
     <ZLibSrcDir>..\zlib-1.2.11</ZLibSrcDir>
     <PngSrcDir>..\libpng-1.6.28</PngSrcDir>
     <CurlSrcDir>..\curl-7.40.0</CurlSrcDir>

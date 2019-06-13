@@ -27,7 +27,9 @@
 #include <string.h>
 #include <stdarg.h>
 #include <png.h>
-
+#ifdef SUPPORT_GIF
+#include <gif_lib.h>
+#endif
 #include "rtLog.h"
 #include "pxCore.h"
 #include "pxOffscreen.h"
@@ -139,7 +141,9 @@ rtError pxLoadAImage(const char* imageData, size_t imageDataSize,
 {
   // Load as PNG...
   rtError retVal = pxLoadAPNGImage(imageData, imageDataSize, s);
-
+  if (retVal != RT_OK)
+    retVal = pxLoadGIFImage(imageData, imageDataSize, s);
+  
   if (retVal != RT_OK) // Failed ... trying as JPG (why?)
   {
 #if 0
@@ -1790,4 +1794,308 @@ rtString md5sum(rtString &d)
 
   return rtString(  (char *) str_result);
 }
+#ifdef SUPPORT_GIF
+
+typedef struct gifData {
+    char *imageData;
+    size_t imageDataSize;
+    int readPosition;
+    gifData(char *data, size_t dataSize)
+    : imageData(data)
+    , imageDataSize(dataSize)
+    , readPosition (0L)
+    {
+    }
+} GifData;
+
+int readGifData (GifFileType *gif, GifByteType *dst, int size){
+    
+    GifData *data;
+    int len;
+    
+    if(!gif->UserData) return -1;
+    
+    data = (GifData *) gif->UserData;
+    len = data->imageDataSize - data->readPosition;
+    
+    if(size > len) size = len;
+    
+    memcpy(dst, data->imageData + data->readPosition, size);
+    
+    data->readPosition += size;
+    return size;
+}
+
+static int InterlacedOffset[] =  { 0, 4, 2, 1 },
+InterlacedJumps[] =  { 8, 8, 4, 2 };
+void drawGifImage(pxOffscreen& obj, int &delayTime, pxTimedOffscreenSequence &s, GifRowType *rows, ColorMapObject *map, int transparent){
+    size_t x, y, w, h;
+    w = obj.width();
+    h = obj.height();
+    
+    pxPixel *pixel;
+    GifColorType *colors, *entry;
+    GifPixelType id;
+    
+    colors = map->Colors;
+    
+    for(y = 0; y < h; y++){
+        for(x = 0; x < w; x++){
+            id = rows[y][x];
+            pixel = obj.pixel(x, y);
+            if(transparent != -1 && transparent == id){
+                continue;
+            }
+            entry = &(colors[id]);
+            pixel->r = entry->Red;
+            pixel->g = entry->Green;
+            pixel->b = entry->Blue;
+            pixel->a = 0xFF;
+        }
+    }
+    unsigned short delay_num = delayTime;
+    unsigned short delay_den = 100; /* pre-display delay in 0.01sec units */
+    s.addBuffer(obj, (double)delay_num / (double)delay_den);
+}
+#endif
+
+rtError pxLoadGIFImage(const char *imageData, size_t imageDataSize,
+                       pxTimedOffscreenSequence &s)
+{
+#ifndef SUPPORT_GIF
+    rtLogDebug("GIF support is not enabled");
+    return RT_FAIL;
+#else
+    if (!imageData)
+    {
+        rtLogDebug("FATAL: Invalid arguments - imageData = NULL");
+        return RT_FAIL;
+    }
+    
+    if (imageDataSize < 8)
+    {
+        rtLogDebug("FATAL: Invalid arguments - imageDataSize < 8");
+        return RT_FAIL;
+    }
+    s.init();
+    
+    GifFileType *gif = NULL;
+    GifRowType  *rows = NULL;
+    GifRowType row;
+    GifRecordType type;
+    GifImageDesc *img = NULL;
+    ColorMapObject *map = NULL;
+    int extcode, transparent;
+    GifByteType *extension = NULL;
+    GifWord width, height, i, x, y, w, h;
+    size_t size, count;
+    
+    
+    GifData gifData((char *)imageData, imageDataSize);
+    
+#if defined GIFLIB_MAJOR && GIFLIB_MINOR && ((GIFLIB_MAJOR == 5 && GIFLIB_MINOR >= 1) || (GIFLIB_MAJOR > 5))
+    gif = DGifOpen((void *) &gifData, readGifData, NULL);
+#else
+    gif = DGifOpen((void *) &gifData, readGifData);
+#endif
+    
+    if ( NULL == gif ) {
+	
+        rtLogDebug("FATAL: "
+                   "error reading file");
+        return RT_FAIL;
+    }
+    
+    rtError status = RT_OK;
+    
+    width = gif->SWidth;
+    height = gif->SHeight;
+    
+    size = height * sizeof(GifRowType *);
+    
+    if(status == RT_OK && (rows = (GifRowType *) malloc(size)) == NULL) {
+        rtLogDebug("FATAL: "
+                   "error reading file");
+        status = RT_FAIL;
+    }
+    
+    if (status == RT_OK) {
+        
+        memset(rows, 0x00, size);
+        
+        size = width * sizeof(GifPixelType);
+        if ((row = (GifRowType) malloc(size)) == NULL) {
+            rtLogDebug("FATAL1: "
+                       "error reading file");
+            status = RT_FAIL;
+        }
+    }
+    
+    if (status == RT_OK) {
+	
+	    if(sizeof(GifPixelType) == 1){
+	        memset(row, gif->SBackGroundColor, size);
+	    }else{
+	        for(i = 0; i < width; i++){
+	            row[i] = gif->SBackGroundColor;
+	        }
+	    }
+    
+    rows[0] = row;
+    }
+    
+    for(i = 1; status == RT_OK && i < height; i++){
+        
+        if((rows[i] = (GifRowType) malloc(size)) == NULL) {
+            rtLogDebug("FATAL2: "
+                       "error reading file");
+            status = RT_FAIL;
+            break;
+        }
+        memcpy(rows[i], row, size);
+    }
+    
+    if (status == RT_OK) {
+        
+        transparent = -1;
+        pxOffscreen obj;
+        obj.init(width, height);
+        GraphicsControlBlock gcb;
+        do {
+            // determine what sort of record type we have
+            // these can be image, extension, or termination
+            
+            if (DGifGetRecordType(gif, &type) == GIF_ERROR) {
+                rtLogDebug("FATAL3: error reading file");
+                status = RT_FAIL;
+                break;
+            }
+            switch (type) {
+                case IMAGE_DESC_RECORD_TYPE:
+                if (DGifGetImageDesc(gif) == GIF_ERROR) {
+                    rtLogDebug("FATAL4: "
+                               "error reading file");
+                    status = RT_FAIL;
+                    break;
+                }
+                
+                img = &(gif->Image);
+                x = img->Left;
+                y = img->Top;
+                w = img->Width;
+                h = img->Height;
+                
+                if(x < 0 || y < 0 || x + w > width || y + h > height) {
+                    rtLogDebug("FATAL5: "
+                               "error reading file");
+                    status = RT_FAIL;
+                    break;
+                }
+                
+                if(img->Interlace){
+                    for(count = 0; count < 4; count++)
+                    for(i = InterlacedOffset[count]; i < h; i += InterlacedJumps[count]){
+                        if(DGifGetLine(gif, &rows[y+i][x], w) == GIF_ERROR) {
+                            rtLogDebug("FATAL6: "
+                                       "error reading file");
+                            status = RT_FAIL;
+                            break;
+                        }
+                    }
+                }else{
+                    for(i = 0; i < h; i++)
+                    if(DGifGetLine(gif, &rows[y+i][x], w) == GIF_ERROR) {
+                        rtLogDebug("FATAL7: "
+                                   "error reading file");
+                        status = RT_FAIL;
+                        break;
+                    }
+                }
+                
+                if((map = img->ColorMap ? img->ColorMap : gif->SColorMap) == NULL) {
+                    rtLogDebug("FATAL8: "
+                               "error reading file");
+                    status = RT_FAIL;
+                    break;
+                }
+                drawGifImage(obj, gcb.DelayTime, s, rows, map, transparent);
+                    
+                // Clear the GCB so it doesn't apply to the next frame.
+                gcb = GraphicsControlBlock();
+                break;
+                
+                case EXTENSION_RECORD_TYPE:
+                {
+                    int ext_code;
+                    GifByteType* extension;
+                    
+                    if (DGifGetExtension(gif, &extcode, &extension) == GIF_ERROR) {
+                        rtLogDebug("FATAL9: "
+                                   "error reading file");
+                        status = RT_FAIL;
+                        break;
+                    }
+                    switch(extcode) {
+                        case COMMENT_EXT_FUNC_CODE:
+                        break;
+                        case GRAPHICS_EXT_FUNC_CODE:
+                        if(extension != NULL){
+                            if((extension[1] & 0x01) == 0x01)
+                            transparent = extension[4];
+                            else
+                            transparent = -1;
+                            if (GIF_ERROR == DGifExtensionToGCB(extension[0], extension+1, &gcb))
+                            	status = RT_FAIL;
+
+                        }
+                        break;
+                        case PLAINTEXT_EXT_FUNC_CODE:
+                        break;
+                        case APPLICATION_EXT_FUNC_CODE:
+                        break;
+                    }
+                    while (extension != NULL) {
+                        if (DGifGetExtensionNext(gif, &extension) == GIF_OK) {
+                            continue;
+                        }
+                        
+                        rtLogDebug("FATAL10: "
+                                   "error reading file");
+                        status = RT_FAIL;
+                        break;
+                    }
+                    
+                }
+                break;
+                
+                case TERMINATE_RECORD_TYPE:
+                break;
+                case SCREEN_DESC_RECORD_TYPE:
+                case UNDEFINED_RECORD_TYPE:
+                default: /* Should be traps by DGifGetRecordType. */
+                break;
+            }
+        }while (type != TERMINATE_RECORD_TYPE);
+    }
+    
+    if (NULL != rows) {
+        
+        for(i = 0; i < height; i++){
+            if(rows[i] != NULL)
+            free(rows[i]);
+        }
+        free(rows);
+    }
+    
+#if defined GIFLIB_MAJOR && GIFLIB_MINOR && ((GIFLIB_MAJOR == 5 && GIFLIB_MINOR >= 1) || (GIFLIB_MAJOR > 5))
+    DGifCloseFile(gif, NULL);
+#else
+    DGifCloseFile(gif);
+#endif
+    
+    return status;
+#endif //SUPPORT_GIF
+}
+
+
 

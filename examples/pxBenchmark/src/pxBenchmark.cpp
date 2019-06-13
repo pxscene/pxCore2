@@ -334,14 +334,15 @@ void benchmarkWindow::onDraw(pxSurfaceNative/*&*/ sn)
             mApiFixture->popExperimentValue().Value++;
             gTotal = (celero::timer::GetSystemTime() - gTotal);
             gOther += (celero::timer::GetSystemTime() - gOtherStart);
-            vector<string> list(6);
+            vector<string> list;
             
-            list[0] = "Device Type";
-            list[1] = "Firmware";
-            list[2] = "Date";
-            list[3] = "GPU(ms)";
-            list[4] = "CPU(ms)";
-            list[5] = "NOTES";
+            list.push_back("Device Type");
+            list.push_back("Firmware");
+            list.push_back("Date");
+            list.push_back("GPU(ms)");
+            list.push_back("CPU(ms)");
+            list.push_back("Size");
+            list.push_back("NOTES");
             celero::ResultTable::Instance().add(list);
             
             list[0] = gDeviceType;
@@ -361,7 +362,8 @@ void benchmarkWindow::onDraw(pxSurfaceNative/*&*/ sn)
             list[2] = str;
             list[3] = to_string((int)(gGPU*0.001));
             list[4] = to_string((int)((gCPU+gOther)*0.001));
-            list[5] = "Total(ms)=" + to_string((int)(gTotal*0.001)) + "FPS:=" + to_string((int)(gFPS));
+            list[5] = to_string((int)mApiFixture->mUnitWidth) + "x" + to_string((int)mApiFixture->mUnitHeight);
+            list[6] = "Total(ms)=" + to_string((int)(gTotal*0.001)) + "FPS:=" + to_string((int)(gFPS));
             celero::ResultTable::Instance().add(list);
             
             celero::ResultTable::Instance().closeFile();

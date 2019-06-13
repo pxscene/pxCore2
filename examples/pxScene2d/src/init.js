@@ -74,7 +74,7 @@ global.loadUrl = function loadUrl(url) {
 }
 }
 else {
-    var baseViewerUrl = 'https://www.pxscene.org'
+    var baseViewerUrl = 'https://www.sparkui.org'
  
     function loadUrl(url) {
         var Url = require('url')

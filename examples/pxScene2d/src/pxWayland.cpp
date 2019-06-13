@@ -62,6 +62,7 @@ pxWayland::pxWayland(bool useFbo, pxScene2d* sceneContainer)
 #else
     mUseDispatchThread(true),
 #endif //ENABLE_PX_WAYLAND_RPC
+    mClientTerminated(false),
     mX(0),
     mY(0),
     mWidth(0),
@@ -124,13 +125,16 @@ pxWayland::~pxWayland()
   {
      terminateClient();
      WstCompositorDestroy(mWCtx);
-     if ((mClientPID > 0) && (0 == kill(mClientPID, 0)))
+     //Adding mClientTerminated flag check because SIGKILL has to be sent to
+     //the Process only when it got SIGTERM from terminateClient().
+     if (mClientTerminated && (mClientPID > 0) && (0 == kill(mClientPID, 0)))
      {
        rtLogWarn("Sending SIGKILL to client %d", mClientPID);
 #if defined(RT_PLATFORM_LINUX) || defined(PX_PLATFORM_MAC)
        sleep(1);
 #endif //RT_PLATFORM_LINUX || PX_PLATFORM_MAC
        kill(mClientPID, SIGKILL);
+       mClientTerminated = false;
      }
      mClientPID= -1;
      mWCtx = NULL;
@@ -605,6 +609,7 @@ void pxWayland::terminateClient()
           rtLogInfo("pxWayland::terminateClient: client pid %d still alive - killing...", mClientPID);
           kill( mClientPID, SIGTERM);
           rtLogInfo("pxWayland::terminateClient: client pid %d killed", mClientPID);
+          mClientTerminated = true;
       }
       pthread_join( mClientMonitorThreadId, NULL );
    }
@@ -877,6 +882,60 @@ rtError pxWayland::connectToRemoteObject(unsigned int timeout_ms)
   (void)timeout_ms;
 #endif //ENABLE_PX_WAYLAND_RPC
   return errorCode;
+}
+
+rtError pxWayland::drawToFbo(pxContextFramebufferRef& fbo)
+{
+  unsigned int outputWidth, outputHeight;
+
+  WstCompositorGetOutputSize( mWCtx, &outputWidth, &outputHeight );
+
+  if ( (mWidth != (int)outputWidth) ||
+       (mHeight != (int)outputHeight) )
+  {
+    WstCompositorSetOutputSize( mWCtx, mWidth, mHeight );
+  }
+
+  bool rotated= isRotated();
+  fbo = context.createFramebuffer(static_cast<int>(floor(mWidth)), static_cast<int>(floor(mHeight)));
+
+  int hints= WstHints_none;
+
+  bool needHolePunch;
+  std::vector<WstRect> rects;
+  pxContextFramebufferRef previousFrameBuffer;
+  pxMatrix4f m= context.getMatrix();
+
+  hints |= WstHints_fboTarget;
+
+  if ( !rotated ) hints |= WstHints_noRotation;
+  if ( memcmp( mLastMatrix.data(), m.data(), 16*sizeof(float) ) != 0 ) hints |= WstHints_animating;
+
+  if ( mFillColor[3] != 0.0 )
+  {
+    context.drawRect(mWidth, mHeight, 0, mFillColor, NULL );
+  }
+
+  context.pushState();
+  previousFrameBuffer= context.getCurrentFramebuffer();
+  context.setFramebuffer( fbo );
+  context.clear( mWidth, mHeight, mClearColor );
+
+  WstCompositorComposeEmbedded( mWCtx,
+                                0,
+                                0,
+                                mWidth,
+                                mHeight,
+                                m.data(),
+                                context.getAlpha(),
+                                hints,
+                                &needHolePunch,
+                                rects );
+
+  context.setFramebuffer( previousFrameBuffer );
+  context.popState();
+  
+  return RT_OK;
 }
 
 // These key codes are from linux/input.h which may not be available depending on what platform we are building for

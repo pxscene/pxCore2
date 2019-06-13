@@ -648,13 +648,7 @@ int pxMain(int argc, char* argv[])
   rtModuleDirs::instance();
 #endif
 
-  rtString settingsPath;
-  if (RT_OK == rtGetHomeDirectory(settingsPath))
-  {
-    settingsPath.append(".sparkSettings.json");
-    if (rtFileExists(settingsPath))
-      rtSettings::instance()->loadFromFile(settingsPath);
-  }
+  rtSettings::instance()->loadFromFile();
 
   // overwrite file settings with settings from the command line
   rtSettings::instance()->loadFromArgs(argc, argv);

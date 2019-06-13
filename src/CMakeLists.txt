@@ -17,6 +17,7 @@ option(PXCORE_WAYLAND_DISPLAY_READ_EVENTS "PXCORE_WAYLAND_DISPLAY_READ_EVENTS" O
 option(PXCORE_RTVALUE_CAST_UINT_BASIC "PXCORE_RTVALUE_CAST_UINT_BASIC" ON)
 option(PXCORE_ETAG_AVOID_NONSTALE "PXCORE_ETAG_AVOID_NONSTALE" ON)
 option(PXCORE_ESSOS_SETTINGS_SUPPORT "PXCORE_ESSOS_SETTINGS_SUPPORT" ON)
+
 if(WIN32)
     option(PXCORE_COMPILE_WARNINGS_AS_ERRORS "PXCORE_COMPILE_WARNINGS_AS_ERRORS" OFF)
 elseif (APPLE)
@@ -26,13 +27,21 @@ else()
 endif(WIN32)
 
 set(EXTDIR "${CMAKE_CURRENT_SOURCE_DIR}/../examples/pxScene2d/external")
-set(NODEDIR "${EXTDIR}/node/")
+
 include(../cmake/CommOpts.cmake)
 include(../cmake/CommDeps.cmake)
 include(../cmake/NodeDeps.cmake)
 include(../cmake/V8Deps.cmake)
 
 set(BUILD_RTCORE_SHARED_LIBRARY 1)
+
+if (BUILD_WITH_GIF)
+message("Building with GIF support")
+
+add_definitions(-DSUPPORT_GIF)
+
+endif (BUILD_WITH_GIF)
+
 
 if (APPLE)
     message("Building pxcore for mac")
@@ -211,7 +220,12 @@ set(PXCORE_FILES ${PXCORE_FILES} pxOffscreen.cpp pxWindowUtil.cpp pxColorNames.c
         rtFileDownloader.cpp unzip.c ioapi.c
         rtScript.cpp rtSettings.cpp rtCORS.cpp
         rtHttpRequest.cpp rtHttpResponse.cpp)
-        
+
+if (SUPPORT_STORAGE)
+    message("Adding local storage support")
+    set(PXCORE_FILES ${PXCORE_FILES} rtStorage.cpp)
+endif()
+
 if (SUPPORT_DUKTAPE)
     message("Adding Duktape scripting support")
     add_definitions(-DRTSCRIPT_SUPPORT_DUKTAPE)

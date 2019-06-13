@@ -33,6 +33,26 @@
 #pragma GCC diagnostic pop
 #endif
 
+rtString rtUrlEscape(const char* s)
+{
+  rtString t;
+  if (s)
+  {
+    CURL* curl = curl_easy_init();
+    if (curl)
+    {
+      char* escaped = curl_easy_escape(curl, s, 0);
+      if (escaped)
+      {
+        t = escaped;
+        curl_free(escaped);
+      }
+      curl_easy_cleanup(curl);
+    }
+  }
+  return t;
+}
+
 /*
  * rtUrlEncodeParameters: Takes an url in the form of
  *  "http://blahblah/index.js?some=some1&parm=value" and

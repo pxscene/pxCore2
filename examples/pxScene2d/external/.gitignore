@@ -9,6 +9,11 @@ libnode-v6.9.0/config.gypi
 libnode-v6.9.0/config.mk
 libnode-v6.9.0/icu_config.gypi
 libnode-v6.9.0/node
+libnode-v8.15.1/out
+libnode-v8.15.1/config.gypi
+libnode-v8.15.1/config.mk
+libnode-v8.15.1/icu_config.gypi
+libnode-v8.15.1/node
 libpng-1.6.28/config.log
 libpng-1.6.28/Makefile
 libpng-1.6.28/config.status

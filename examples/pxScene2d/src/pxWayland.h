@@ -163,6 +163,9 @@ public:
   rtError useDispatchThread(bool use);
   rtError resume(const rtValue& v, bool& b);
   rtError suspend(const rtValue& v, bool& b);
+
+  rtError drawToFbo(pxContextFramebufferRef& fbo);
+
 private:
   rtAtomic mRefCount;
   pthread_t mClientMonitorThreadId;
@@ -172,6 +175,7 @@ private:
   bool mClientMonitorStarted;
   std::atomic<bool> mWaitingForRemoteObject;
   bool mUseDispatchThread;
+  bool mClientTerminated;
   int mX;
   int mY;
   int mWidth;

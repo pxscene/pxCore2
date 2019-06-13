@@ -67,6 +67,24 @@ var ApplicationState = Object.freeze({
  */
 function Application(props) {
 
+  // Public variables
+  this.id = undefined;
+  this.priority = 1;
+  this.name = "";
+  this.createTime = 0;
+  this.uri = "";
+  this.type = ApplicationType.UNDEFINED;
+  this.expectedMemoryUsage = -1;
+  this.actualMemoryUsage = -1;
+  var _readyBaseResolve = function(){};
+  var _readyBaseReject = function(){};
+  var _readyResolve = function(){};
+  var _readyReject = function(){};
+  var _uiReadyResolve = function(){};
+  var _uiReadyReject = function(){};
+  var _urlChangeResolve = function(){};
+  var _urlChangeReject = function(){};
+  
   // Getters/setters
   var _externalAppPropsReadWrite = {
     x:"x",y:"y",w:"w",h:"h",cx:"cx",cy:"cy",sx:"sx",sy:"sy",r:"r",a:"a",
@@ -80,11 +98,27 @@ function Application(props) {
     Object.defineProperty(_this, key, {
       get: function() { return _externalApp[_externalAppPropsReadWrite[key]]; },
       set: function(v) {
-           if (this.type === ApplicationType.SPARK_INSTANCE && _externalApp.api && key === "url") {
-             // set the api property for spark instance
-             _externalApp.api.url = v;
+           if (key === "url") {
+             if ((this.type === ApplicationType.SPARK_INSTANCE || this.type === ApplicationType.WEB) && typeof(this.api()) != "undefined") {
+               
+               this.api().url = v;
+               
+               this.urlChangeUiReady = new Promise(function (resolve, reject) 
+               {
+                 _urlChangeResolve = resolve;
+                 _urlChangeReject = reject;
+               });
+             }
+             else if (this.type === ApplicationType.SPARK) {
+               console.log("setting url on spark app is not permitted");
+             }
+             else {
+               _externalApp[_externalAppPropsReadWrite[key]] = v;
+             }
            }
-           _externalApp[_externalAppPropsReadWrite[key]] = v;
+           else {
+             _externalApp[_externalAppPropsReadWrite[key]] = v;
+           }
          }
     });
   });
@@ -94,21 +128,53 @@ function Application(props) {
     });
   });
 
-  // Public variables
-  this.id = undefined;
-  this.priority = 1;
-  this.name = "";
-  this.createTime = 0;
-  this.uri = "";
-  this.type = ApplicationType.UNDEFINED;
-  this.expectedMemoryUsage = -1;
-  this.actualMemoryUsage = -1;
-  var _readyResolve = undefined;
-  var _readyReject = undefined;
+  this.readyBase = new Promise(function (resolve, reject) {
+    _readyBaseResolve = resolve;
+    _readyBaseReject = reject;
+  });
   this.ready = new Promise(function (resolve, reject) {
     _readyResolve = resolve;
     _readyReject = reject;
   });
+  this.uiReady = new Promise(function (resolve, reject) 
+  {
+    _uiReadyResolve = resolve;
+    _uiReadyReject = reject;
+  });
+  this.urlChangeUiReady = null;
+  
+  //only fire newReady and ready and uiReady have succeeded
+  Promise.all([this.readyBase, this.uiReady]).then(function() 
+  {
+    _readyResolve();
+  }, function() 
+  {
+    _readyReject();
+  });
+  
+  this.logTelemetry = function(log_id, is_success)
+  {
+    var timestamp = "timestamp unknown";
+      
+    if(typeof(scene) != "undefined")
+      timestamp = scene.clock().toFixed(2);
+    
+    if(is_success)
+      console.log(timestamp + " " + log_id + " " + _this.id + " success");
+    else
+      console.log(timestamp + " " + log_id + " " + _this.id + " failure");
+  }
+  
+  this.uiReady.then( 
+    function() { _this.logTelemetry("uiReady", true); },
+    function() { _this.logTelemetry("uiReady", false); }
+    );
+  
+  this.readyBase.then( 
+    function() { _this.logTelemetry("readyBase", true); },
+    function() { _this.logTelemetry("readyBase", false); }
+    );
+
 
   // Private variables
   var cmd = "";
@@ -143,8 +209,10 @@ function Application(props) {
     if (ret === true) {
       _state = ApplicationState.SUSPENDED;
       this.applicationSuspended();
+      this.logTelemetry("suspend", true);
     } else {
       this.log("suspend returned:", ret);
+      this.logTelemetry("suspend", false);
     }
     return ret;
   };
@@ -169,8 +237,10 @@ function Application(props) {
     if (ret === true) {
       _state = ApplicationState.RUNNING;
       this.applicationResumed();
+      this.logTelemetry("resume", true);
     } else {
       this.log("resume returned:", ret);
+      this.logTelemetry("resume", false);
     }
     return ret;
   };
@@ -210,8 +280,10 @@ function Application(props) {
       _externalApp = null;
       _state = ApplicationState.DESTROYED;
       this.applicationDestroyed();
+      this.logTelemetry("destroy", true);
     } else {
       this.log("destroy returned:", ret);
+      this.logTelemetry("destroy", false);
     }
     return ret;
   };
@@ -342,21 +414,24 @@ function Application(props) {
 
   if (!cmd) {
     this.log('cannot create app because cmd is not set');
-    _readyReject(new Error('cmd is not set'));
+    _readyBaseReject(new Error('cmd is not set'));
+    _uiReadyReject();
     setTimeout(function () { // app not created yet
       _this.applicationClosed();
     });
   }
   else if (!scene) {
     this.log('cannot create app because the scene is not set');
-    _readyReject(new Error('scene is not set'));
+    _readyBaseReject(new Error('scene is not set'));
+    _uiReadyReject();
     setTimeout(function () { // app not created yet
       _this.applicationClosed();
     });
   }
   else if (appManager.getApplicationById(props.id)) {
     this.log('cannot create app with duplicate ID: ' + props.id);
-    _readyReject(new Error('duplicate ID: ' + props.id));
+    _readyBaseReject(new Error('duplicate ID: ' + props.id));
+    _uiReadyReject();
     setTimeout(function () { // app not created yet
       _this.applicationClosed();
     });
@@ -371,12 +446,21 @@ function Application(props) {
     _externalApp.on("onClientStopped", function () { _this.log( "onClientStopped"); }); // is never called
     _externalApp.ready.then(function() {
       _this.log("successfully created Spark app: " + _this.id);
-      _readyResolve();
+      _readyBaseResolve();
       _this.applicationReady();
+
+      if(typeof(_externalApp.api.uiReady) == "object")
+      {
+        _externalApp.api.uiReady.then(
+          function(result) { _uiReadyResolve(result); }, 
+          function(err) { _uiReadyReject(err); }
+        );
+      }
     }, function rejection() {
       var msg = "Failed to load uri: " + uri;
       _this.log("failed to launch Spark app: " + _this.id + ". " + msg);
-      _readyReject(new Error("failed to create. " + msg));
+      _readyBaseReject(new Error("failed to create. " + msg));
+      _uiReadyReject();
       _this.applicationClosed();
     });
     this.setProperties(props);
@@ -398,16 +482,28 @@ function Application(props) {
     _externalApp.ready.then(function() {
     }, function rejection() {
       _this.log("failed to launch Spark instance app: " + _this.id);
-      _readyReject(new Error("failed to create"));
+      _readyBaseReject(new Error("failed to create"));
+      _uiReadyReject();
       _this.applicationClosed();
     });
     _externalApp.remoteReady.then(function() {
       _this.log("spark instance ready");
-      _readyResolve();
+      
+      _externalApp.api.on("onApplicationLoaded", function(e)
+      {
+        if(e.success)
+          _urlChangeResolve();
+        else
+          _urlChangeReject();
+      });
+      
+      _readyBaseResolve();
+      _uiReadyResolve();
       _this.applicationReady();
     }, function rejection() {
       _this.log("failed to create Spark instance");
-      _readyReject(new Error("failed to create"));
+      _readyBaseReject(new Error("failed to create"));
+      _uiReadyReject();
       _this.applicationClosed();
     });
     this.setProperties(props);
@@ -427,24 +523,48 @@ function Application(props) {
         _this.log("about to create browser window");
         _browser = _externalApp.api.createWindow(_externalApp.displayName, false);
         if (_browser) {
+          
+          function handleOnHTMLDocumentLoadedEvent(e)
+          {
+            if(e.success)
+            {
+              _uiReadyResolve();
+              
+              if(typeof(_urlChangeResolve) != "undefined")
+                _urlChangeResolve();
+            }
+            else
+            {
+              _uiReadyReject();
+              
+              if(typeof(_urlChangeReject) != "undefined")
+                _urlChangeReject();
+            }
+          }
+          
+          _browser.on("onHTMLDocumentLoaded",handleOnHTMLDocumentLoadedEvent);
+          
           _browser.url = uri;
           _this.log("launched WebApp uri:" + uri);
           _this.applicationCreated();
-          _readyResolve();
+          _readyBaseResolve();
           _this.applicationReady();
         } else {
           _this.log("failed to create window for WebApp");
-          _readyReject(new Error("failed to create"));
+          _readyBaseReject(new Error("failed to create"));
+          _uiReadyReject();
           _this.applicationClosed();
         }
       } else {
         _this.log("failed to create WebApp invalid waylandObj");
-        _readyReject(new Error("failed to create"));
+        _readyBaseReject(new Error("failed to create"));
+        _uiReadyReject();
         _this.applicationClosed();
       }
     }, function rejection() {
       _this.log("failed to create WebApp");
-      _readyReject(new Error("failed to create"));
+      _readyBaseReject(new Error("failed to create"));
+      _uiReadyReject();
       _this.applicationClosed();
     });
     this.setProperties(props);
@@ -462,15 +582,48 @@ function Application(props) {
         _this.destroy();
       });
     });
+
     _externalApp.ready.then(function() {
       _this.log("successfully created: " + _this.id);
-      _readyResolve();
+      _readyBaseResolve();
       _this.applicationReady();
     }, function rejection() {
       _this.log("failed to launch app: " + _this.id);
-      _readyReject(new Error("failed to create"));
+      _readyBaseReject(new Error("failed to create"));
+      _uiReadyReject();
       _this.applicationClosed();
     });
+    
+    if(_externalApp.hasApi === true)
+    {
+      _externalApp.remoteReady.then(function(wayland)
+      {
+        if(typeof(wayland.api.hasUiReady) == "boolean" && wayland.api.hasUiReady === true)
+        {
+          wayland.api.on("onUiReady",function(response) 
+          {
+            if(response)
+              _uiReadyResolve("uiReady succeeded");
+            else
+              _uiReadyReject("uiReady failed");
+          });
+        }
+        else
+        {
+          _uiReadyResolve("no uiReady event");
+        }
+      },
+      function()
+      {
+        console.log("native remoteReady error");
+      }
+      );
+    }
+    else
+    {
+      _uiReadyResolve("no api");
+    }
+    
     this.setProperties(props);
     this.applicationCreated();
   }

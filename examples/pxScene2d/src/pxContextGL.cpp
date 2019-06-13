@@ -566,14 +566,14 @@ public:
     return PX_OK;
   }
 
-#if 1 // Do we need this?  maybe for some debugging use case??
   virtual pxError getOffscreen(pxOffscreen& o)
   {
-    (void)o;
-    // TODO
-    return PX_FAIL;
+    o.init(mWidth,mHeight);
+    glReadPixels(0,0,mWidth,mHeight,GL_RGBA,GL_UNSIGNED_BYTE,(void*)o.base());
+    o.setUpsideDown(true);
+
+    return PX_OK;
   }
-#endif
 
   virtual int width() { return mWidth; }
   virtual int height() { return mHeight; }
@@ -660,6 +660,11 @@ public:
   }
 
   ~pxTextureOffscreen() { deleteTexture(); removeFromTextureList(this);};
+
+  virtual unsigned int getNativeId()
+  {
+    return mTextureName;
+  }
 
   virtual pxError createTexture(pxOffscreen& o)
   {

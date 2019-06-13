@@ -188,6 +188,8 @@ public:
   virtual void reloadData();
   virtual uint64_t textureMemoryUsage(std::vector<rtObject*> &objectsCounted);
   virtual void textureReady();
+
+  void createWithOffscreen(pxOffscreen& imageOffscreen);
   
 protected:
   virtual uint32_t loadResourceData(rtFileDownloadRequest* fileDownloadRequest);
@@ -217,6 +219,14 @@ public:
 
   rtDeclareObject(rtImageAResource, pxResource);
 
+  rtReadOnlyProperty(w, w, int32_t);
+  rtReadOnlyProperty(h, h, int32_t);
+
+  virtual int32_t w() const;
+  virtual rtError w(int32_t& v) const;
+  virtual int32_t h() const;
+  virtual rtError h(int32_t& v) const;
+
   virtual unsigned long Release() ;
 
   virtual void init();
@@ -232,6 +242,9 @@ private:
   void loadResourceFromArchive(rtObjectRef archiveRef);
   pxTimedOffscreenSequence mTimedOffscreenSequence;
 
+  int32_t mWidth;
+  int32_t mHeight;
+  mutable rtMutex mDimensionsMutex;
 };
 
 // Weak Map

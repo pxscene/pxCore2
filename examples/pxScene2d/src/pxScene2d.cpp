@@ -104,6 +104,13 @@ static int fpsWarningThreshold = 25;
 
 rtEmitRef pxScriptView::mEmit = new rtEmit();
 
+
+#ifdef PXSCENE_SUPPORT_STORAGE
+#define DEFAULT_LOCALSTORAGE_DIR ".spark/storage/"
+#define DEFAULT_LOCALSTORAGE_DIR_ENV_NAME "SPARK_STORAGE"
+#endif
+
+
 // Debug Statistics
 #ifdef USE_RENDER_STATS
 
@@ -436,6 +443,9 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
     mArchive(),mDirtyRect(), mLastFrameDirtyRect(),
 #endif //PX_DIRTY_RECTANGLES
     mDirty(true), mDragging(false), mDragType(pxConstantsDragType::NONE), mDragTarget(NULL), mTestView(NULL), mDisposed(false), mArchiveSet(false)
+#ifdef PXSCENE_SUPPORT_STORAGE
+, mStorage(NULL)
+#endif
 {
   mRoot = new pxRoot(this);
   #ifdef ENABLE_PXOBJECT_TRACKING
@@ -518,6 +528,11 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   // capabilities.graphics.svg          = 2
   // capabilities.graphics.cursor       = 1
   // capabilities.graphics.colors       = 1
+  // capabilities.graphics.screenshots  = 2
+  // capabilities.graphics.text         = 3
+  // capabilities.graphics.imageAResource  = 2
+  //
+  // capabilities.scene.external  = 1
   //
   // capabilities.network.cors          = 1
   // capabilities.network.corsResources = 1
@@ -535,7 +550,15 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
 
   graphicsCapabilities.set("svg", 2);
   graphicsCapabilities.set("colors", 1);
-
+      
+#ifdef SUPPORT_GIF
+    graphicsCapabilities.set("gif", 1);
+#endif //SUPPORT_GIF
+  graphicsCapabilities.set("imageAResource", 2);
+      
+  graphicsCapabilities.set("screenshots", 2);
+  graphicsCapabilities.set("text", 3);
+      
 #ifdef SPARK_CURSOR_SUPPORT
   graphicsCapabilities.set("cursor", 1);
 #else
@@ -551,6 +574,14 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
 
   mCapabilityVersions.set("graphics", graphicsCapabilities);
 
+  rtObjectRef sceneCapabilities = new rtMapObject;
+#if defined(DISABLE_WAYLAND)
+  sceneCapabilities.set("external", 0);
+#else
+  sceneCapabilities.set("external", 1);
+#endif //DISABLE_WAYLAND
+  mCapabilityVersions.set("scene", sceneCapabilities);
+
   rtObjectRef networkCapabilities = new rtMapObject;
 
 #ifdef ENABLE_ACCESS_CONTROL_CHECK
@@ -565,6 +596,9 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   networkCapabilities.set("http2", 2);
 
   mCapabilityVersions.set("network", networkCapabilities);
+#ifdef PXSCENE_SUPPORT_STORAGE
+  mCapabilityVersions.set("storage", 1);
+#endif
 
   rtObjectRef metricsCapabilities = new rtMapObject;
 
@@ -615,6 +649,13 @@ rtError pxScene2d::dispose()
     mInfo     = NULL;
     mCapabilityVersions = NULL;
     mFocusObj = NULL;
+
+#ifdef PXSCENE_SUPPORT_STORAGE
+    if (mStorage)
+      mStorage->term(); // Close database file now
+    mStorage = NULL;
+#endif
+
     return RT_OK;
 }
 
@@ -2185,15 +2226,16 @@ rtError pxScene2d::setCustomAnimator(const rtFunctionRef& v)
   }
 }
 
-rtError pxScene2d::screenshot(rtString type, rtString& pngData)
+rtError pxScene2d::screenshot(rtString type, rtValue& returnValue)
 {
+  returnValue = "";
 #ifdef ENABLE_PERMISSIONS_CHECK
   if (RT_OK != mPermissions->allows("screenshot", rtPermissions::FEATURE))
     return RT_ERROR_NOT_ALLOWED;
 #endif
 
   // Is this a type we support?
-  if (type != "image/png;base64")
+  if (type != "image/png;base64" && type != "image/image")
   {
     return RT_FAIL;
   }
@@ -2208,12 +2250,6 @@ rtError pxScene2d::screenshot(rtString type, rtString& pngData)
   context.snapshot(o);
   context.setFramebuffer(previousRenderSurface);
 
-  rtData pngData2;
-  if (pxStorePNGImage(o, pngData2) != RT_OK)
-  {
-    return RT_FAIL;
-  }
-
 //HACK JUNK HACK JUNK HACK JUNK HACK JUNK HACK JUNK
 //HACK JUNK HACK JUNK HACK JUNK HACK JUNK HACK JUNK
 #if 0
@@ -2227,14 +2263,22 @@ rtError pxScene2d::screenshot(rtString type, rtString& pngData)
 //HACK JUNK HACK JUNK HACK JUNK HACK JUNK HACK JUNK
 //HACK JUNK HACK JUNK HACK JUNK HACK JUNK HACK JUNK
 
-  rtString base64coded;
-
-  if( base64_encode(pngData2, base64coded) == RT_OK )
+  if (type == "image/png;base64")
   {
-    // We return a data Url string containing the image data
-    pngData = "data:image/png;base64,";
+    rtData pngData2;
+    if (pxStorePNGImage(o, pngData2) != RT_OK)
+    {
+      return RT_FAIL;
+    }
 
-    pngData += base64coded;
+    rtString base64coded;
+
+    if (base64_encode(pngData2, base64coded) == RT_OK)
+    {
+      // We return a data Url string containing the image data
+      rtString pngData = "data:image/png;base64,";
+
+      pngData += base64coded;
 
 //        FILE *saveFile  = fopen("/var/tmp/snap.txt", "wt"); // base64
 //        fwrite( base64coded.cString(), base64coded.length(), sizeof(char), saveFile);
@@ -2268,10 +2312,19 @@ rtError pxScene2d::screenshot(rtString type, rtString& pngData)
 //            }
 //          }
 //        }
+      returnValue = pngData;
 
-        return RT_OK;
+      return RT_OK;
 
-  }//ENDIF
+    }//ENDIF
+  }
+  else if (type == "image/image")
+  {
+    pxImage* image = new pxImage(this);
+    image->createWithOffscreen(o);
+    returnValue = image;
+    return RT_OK;
+  }
 
   return RT_FAIL;
 }
@@ -2489,6 +2542,70 @@ rtError pxScene2d::getAvailableApplications(rtString& availableApplications)
   return RT_OK;
 }
 
+rtError pxScene2d::storage(rtObjectRef& v) const
+{
+#ifdef PXSCENE_SUPPORT_STORAGE
+  if (!mStorage)
+  {
+    rtString origin(mScriptView != NULL ? rtUrlGetOrigin(mScriptView->getUrl().cString()) : NULL);
+    if (origin.isEmpty())
+      origin = "file://";
+
+    uint32_t storageQuota = 0;
+#ifdef ENABLE_PERMISSIONS_CHECK
+    mPermissions->getStorageQuota(storageQuota);
+#endif
+    if( storageQuota == 0)
+    {
+      rtLogWarn("Origin %s has no local storage quota", origin.cString());
+      return RT_OK;
+    }
+
+    rtString storagePath;
+    rtValue storagePathVal;
+    if (RT_OK == rtSettings::instance()->value("defaultStoragePath", storagePathVal))
+    {
+      storagePath = storagePathVal.toString();
+    }
+    else
+    {
+      // runtime location, if available
+      const char* env = getenv(DEFAULT_LOCALSTORAGE_DIR_ENV_NAME);
+      if (env)
+        storagePath = env;
+    }
+    if (storagePath.isEmpty())
+    {
+      // default location
+      if (RT_OK == rtGetHomeDirectory(storagePath))
+        storagePath.append(DEFAULT_LOCALSTORAGE_DIR);
+    }
+
+    rtEnsureTrailingPathSeparator(storagePath);
+
+    // Create the path if it doesn't yet exist
+    if (!rtMakeDirectory(storagePath))
+    {
+      rtLogWarn("creation of storage directory %s failed", storagePath.cString());
+      return RT_OK;
+    }
+
+    rtString storageName = rtUrlEscape(origin);
+    storagePath.append(storageName);
+    rtLogInfo("storage path: %s", storagePath.cString());
+
+    mStorage = new rtStorage(storagePath, storageQuota, origin);
+  }
+
+  v = mStorage;
+  return RT_OK;
+#else
+  UNUSED_PARAM(v);
+  rtLogInfo("storage not supported");
+  return RT_FAIL;
+#endif
+}
+
 rtDefineObject(pxScene2d, rtObject);
 rtDefineProperty(pxScene2d, root);
 rtDefineProperty(pxScene2d, info);
@@ -2543,6 +2660,7 @@ rtDefineMethod(pxScene2d, sparkSetting);
 rtDefineProperty(pxScene2d, cors);
 rtDefineMethod(pxScene2d, addServiceProvider);
 rtDefineMethod(pxScene2d, removeServiceProvider);
+rtDefineProperty(pxScene2d, storage);
 
 rtError pxScene2dRef::Get(const char* name, rtValue* value) const
 {
@@ -2724,6 +2842,7 @@ rtDefineProperty(pxSceneContainer, ready);
 rtDefineProperty(pxSceneContainer, serviceContext);
 rtDefineMethod(pxSceneContainer, suspend);
 rtDefineMethod(pxSceneContainer, resume);
+rtDefineMethod(pxSceneContainer, screenshot);
 //rtDefineMethod(pxSceneContainer, makeReady);   // DEPRECATED ?
 
 
@@ -2792,9 +2911,10 @@ rtError pxSceneContainer::setServiceContext(rtObjectRef o)
 rtError pxSceneContainer::suspend(const rtValue& v, bool& b)
 {
   b = false;
-  if (mScene)
+  pxScriptView* scriptView = dynamic_cast<pxScriptView*>(mView.getPtr());
+  if (scriptView != NULL)
   {
-    mScene->suspend(v, b);
+    return scriptView->suspend(v, b);
   }
   return RT_OK;
 }
@@ -2802,11 +2922,22 @@ rtError pxSceneContainer::suspend(const rtValue& v, bool& b)
 rtError pxSceneContainer::resume(const rtValue& v, bool& b)
 {
   b = false;
-  if (mScene)
+  pxScriptView* scriptView = dynamic_cast<pxScriptView*>(mView.getPtr());
+  if (scriptView != NULL)
   {
-    mScene->resume(v,b);
+    return scriptView->resume(v, b);
   }
   return RT_OK;
+}
+
+rtError pxSceneContainer::screenshot(rtString type, rtValue& returnValue)
+{
+  pxScriptView* scriptView = dynamic_cast<pxScriptView*>(mView.getPtr());
+  if (scriptView != NULL)
+  {
+    return scriptView->screenshot(type, returnValue);
+  }
+  return RT_FAIL;
 }
 
 rtError pxSceneContainer::setScriptView(pxScriptView* scriptView)
@@ -2966,12 +3097,10 @@ void pxScriptView::runScript()
 
   if (mCtx)
   {
-    mPrintFunc = new rtFunctionCallback(printFunc, this);
     mGetScene = new rtFunctionCallback(getScene,  this);
     mMakeReady = new rtFunctionCallback(makeReady, this);
     mGetContextID = new rtFunctionCallback(getContextID, this);
 
-    mCtx->add("print", mPrintFunc.getPtr());
     mCtx->add("getScene", mGetScene.getPtr());
     mCtx->add("makeReady", mMakeReady.getPtr());
     mCtx->add("getContextID", mGetContextID.getPtr());
@@ -3012,21 +3141,6 @@ void pxScriptView::runScript()
   #endif //ENABLE_RT_NODE
 }
 
-rtError pxScriptView::printFunc(int numArgs, const rtValue* args, rtValue* result, void* ctx)
-{
-  UNUSED_PARAM(result);
-  //rtLogInfo(__FUNCTION__);
-
-  if (ctx)
-  {
-    if (numArgs > 0 && !args[0].isEmpty())
-    {
-      rtString toPrint = args[0].toString();
-      rtLogWarn("%s", toPrint.cString());
-    }
-  }
-  return RT_OK;
-}
 
 rtError pxScriptView::suspend(const rtValue& v, bool& b)
 {
@@ -3056,6 +3170,15 @@ rtError pxScriptView::textureMemoryUsage(rtValue& v)
     mScene.sendReturns("textureMemoryUsage",v);
   }
   return RT_OK;
+}
+
+rtError pxScriptView::screenshot(rtString type, rtValue& returnValue)
+{
+  if (mScene)
+  {
+    return mScene.sendReturns("screenshot",type, returnValue);
+  }
+  return RT_FAIL;
 }
 
 rtError pxScriptView::getScene(int numArgs, const rtValue* args, rtValue* result, void* ctx)
