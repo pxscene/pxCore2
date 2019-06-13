@@ -27,17 +27,25 @@ rm -rf $bundle
 [ -d $bundleLib ] || mkdir -p $bundleLib
 
 # Copy LIBS to Bundle...
-#
+if [ -e $externalDir/gif/.libs/libgif.7.dylib ]
+then
+cp $externalDir/gif/.libs/libgif.7.dylib $bundleLib
+fi
+
 cp $externalDir/png/.libs/libpng16.16.dylib $bundleLib
 cp $externalDir/curl/lib/.libs/libcurl.4.dylib $bundleLib
-#cp $externalDir/libnode/out/Release/libnode.dylib $bundleLib
-cp $externalDir/libnode-v6.9.0/out/Release/libnode*.dylib $bundleLib
+cp $externalDir/node/out/Release/libnode*.dylib $bundleLib
 cp $externalDir/ft/objs/.libs/libfreetype.6.dylib $bundleLib
 cp $externalDir/jpg/.libs/libjpeg.9.dylib $bundleLib
+#Avoid copying v8 artifacts if not generated
+if [ -e $externalDir/v8/out.gn ]; then
+ cp $externalDir/v8/out.gn/x64.release/*.bin $bundleBin
+fi
+cp $externalDir/sqlite/.libs/libsqlite3.dylib $bundleLib
 
 # Copy OTHER to Bundle...
 #
-cp ../pxBenchmark_xcode/pxBenchmark/pxBenchmark/Info.plist $bundle/Contents
+#cp macstuff/Info.plist $bundle/Contents
 
 # Make the RES folders...
 #
@@ -95,4 +103,6 @@ cp automation.sh $bundleBin
 
 # Copy OTHER to Resources...
 #
+
+[ -d ../resources ] || mkdir -p ../resources
 cp -a ../resources $bundle/Contents/Resources
