@@ -1097,91 +1097,9 @@ void rtImageAResource::loadResourceFromFile()
 
 void rtImageAResource::loadResourceFromArchive(rtObjectRef archiveRef)
 {
-    pxArchive* archive = (pxArchive*)archiveRef.getPtr();
-    rtString status = "resolve";
-    
-    rtError loadImageSuccess = RT_FAIL;
-    rtData data;
-    if(data.length() == 0)
-    {
-        if ((NULL != archive) && (RT_OK == archive->getFileData(mUrl, data)))
-        {
-            loadImageSuccess = RT_OK;
-        }
-        else
-        {
-            loadImageSuccess = RT_RESOURCE_NOT_FOUND;
-            rtLogError("Could not load image file from archive %s.", mUrl.cString());
-        }
-    }
-    else
-    {
-        // We have BASE64 or SVG string already...
-        loadImageSuccess = RT_OK;
-    }
-    
-    if (loadImageSuccess == RT_OK)
-    {
-        double startDecodeTime = pxMilliseconds();
-        loadImageSuccess = pxLoadAImage((const char *) data.data(), data.length(), mTimedOffscreenSequence);
-        if (loadImageSuccess == RT_OK && mTimedOffscreenSequence.numFrames() > 0)
-        {
-            pxOffscreen &o = mTimedOffscreenSequence.getFrameBuffer(0);
-            rtMutexLockGuard dimensionsMutexLock(mDimensionsMutex);
-            mWidth = o.width();
-            mHeight = o.height();
-        }
-        
-        double stopDecodeTime = pxMilliseconds();
-        setLoadStatus("decodeTimeMs", static_cast<int>(stopDecodeTime-startDecodeTime));
-    }
-    else
-    {
-        loadImageSuccess = RT_RESOURCE_NOT_FOUND;
-        rtLogError("Could not load image file %s.", mUrl.cString());
-    }
-    if ( loadImageSuccess != RT_OK)
-    {
-        rtLogWarn("image load failed"); // TODO: why?
-        if (loadImageSuccess == RT_RESOURCE_NOT_FOUND)
-        {
-            setLoadStatus("statusCode",PX_RESOURCE_STATUS_FILE_NOT_FOUND);
-        }
-        else
-        {
-            setLoadStatus("statusCode", PX_RESOURCE_STATUS_DECODE_FAILURE);
-        }
-        
-        // Since this object can be released before we get a async completion
-        // We need to maintain this object's lifetime
-        // TODO review overall flow and organization
-        AddRef();
-        
-        if (gUIThreadQueue)
-        {
-            gUIThreadQueue->addTask(onDownloadCompleteUI, this, (void*)"reject");
-        }
-        //mTexture->notifyListeners( mTexture, RT_FAIL, errorCode);
-    }
-    else
-    {
-        // create offscreen texture for local image
-        // TODO
-        data.term(); // Dump the source data...
-        
-        setLoadStatus("statusCode",PX_RESOURCE_LOAD_SUCCESS);
-        // Since this object can be released before we get a async completion
-        // We need to maintain this object's lifetime
-        // TODO review overall flow and organization
-        AddRef();
-        if (gUIThreadQueue)
-        {
-            gUIThreadQueue->addTask(onDownloadCompleteUI, this, (void *) "resolve");
-        }
-    }
-    
-  mDimensionsMutex.unlock();
-  //UNUSED_PARAM(archiveRef);
+  UNUSED_PARAM(archiveRef);
+  //TODO
+  setLoadStatus("statusCode",PX_RESOURCE_STATUS_UNKNOWN_ERROR);
 }
 
 int32_t rtImageAResource::w() const

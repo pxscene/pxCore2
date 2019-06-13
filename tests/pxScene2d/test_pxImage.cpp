@@ -213,7 +213,7 @@ class rtImageAResourceTest : public testing::Test
 
     void rtImageAResourceLoadFromArchiveTest()
     {
-      rtImageAResource res("supportfiles/status_bg.png");
+      rtImageAResource res("images/status_bg.svg");
       pxScene2d* scene = new pxScene2d();
       rtObjectRef archive;
       EXPECT_TRUE(RT_OK == scene->loadArchive("supportfiles/test_arc_resources.jar", archive));
@@ -222,7 +222,7 @@ class rtImageAResourceTest : public testing::Test
       res.loadStatus(loadStatus);
       rtValue status;
       loadStatus.Get("statusCode",&status);
-      EXPECT_TRUE(status == PX_RESOURCE_LOAD_SUCCESS);
+      EXPECT_TRUE(status == PX_RESOURCE_STATUS_UNKNOWN_ERROR);
       delete scene;
     }
 };
