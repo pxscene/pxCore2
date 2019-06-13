@@ -646,14 +646,14 @@ void rtImageResource::loadResourceFromFile()
     if (loadImageSuccess == RT_OK)
       break;
 
-    if (rtIsPathAbsolute(url))
+    if (rtIsPathAbsolute(mUrl))
       break;
 
     rtModuleDirs *dirs = rtModuleDirs::instance();
 
     for (rtModuleDirs::iter it = dirs->iterator(); it.first != it.second; it.first++)
     {
-      if (rtLoadFile(rtConcatenatePath(*it.first, url.cString()).c_str(), mData) == RT_OK)
+      if (rtLoadFile(rtConcatenatePath(*it.first, mUrl.cString()).c_str(), mData) == RT_OK)
       {
         loadImageSuccess = RT_OK;
         break;
@@ -672,7 +672,7 @@ void rtImageResource::loadResourceFromFile()
   else
   {
     loadImageSuccess = RT_RESOURCE_NOT_FOUND;
-    rtLogError("Could not load image file %s.", url.cString());
+    rtLogError("Could not load image file %s.", mUrl.cString());
   }
   if ( loadImageSuccess != RT_OK)
   {
@@ -1014,14 +1014,14 @@ void rtImageAResource::loadResourceFromFile()
         if (loadImageSuccess == RT_OK)
         break;
         
-        if (rtIsPathAbsolute(url))
+        if (rtIsPathAbsolute(mUrl))
         break;
         
         rtModuleDirs *dirs = rtModuleDirs::instance();
         
         for (rtModuleDirs::iter it = dirs->iterator(); it.first != it.second; it.first++)
         {
-            if (rtLoadFile(rtConcatenatePath(*it.first, url.cString()).c_str(), data) == RT_OK)
+            if (rtLoadFile(rtConcatenatePath(*it.first, mUrl.cString()).c_str(), data) == RT_OK)
             {
                 loadImageSuccess = RT_OK;
                 break;
@@ -1048,7 +1048,7 @@ void rtImageAResource::loadResourceFromFile()
     else
     {
         loadImageSuccess = RT_RESOURCE_NOT_FOUND;
-        rtLogError("Could not load image file %s.", url.cString());
+        rtLogError("Could not load image file %s.", mUrl.cString());
     }
     if ( loadImageSuccess != RT_OK)
     {
