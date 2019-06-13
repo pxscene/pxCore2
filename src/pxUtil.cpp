@@ -2019,7 +2019,8 @@ rtError pxLoadGIFImage(const char *imageData, size_t imageDataSize,
                     break;
                 }
                 drawGifImage(obj, gcb.DelayTime, s, rows, map, transparent);
-                    
+
+                s.setNumPlays(s.numPlays() + 1);
                 // Clear the GCB so it doesn't apply to the next frame.
                 gcb = GraphicsControlBlock();
                 break;
