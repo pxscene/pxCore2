@@ -213,7 +213,7 @@ class rtImageAResourceTest : public testing::Test
 
     void rtImageAResourceLoadFromArchiveTest()
     {
-      rtImageAResource res("images/status_bg.svg");
+      rtImageAResource res("supportfiles/status_bg.png");
       pxScene2d* scene = new pxScene2d();
       rtObjectRef archive;
       EXPECT_TRUE(RT_OK == scene->loadArchive("supportfiles/test_arc_resources.jar", archive));
