@@ -3109,7 +3109,9 @@ void pxScriptView::runScript()
     mReady = new rtPromise();
 #endif
 
-    mCtx->runFile("init.js");
+    string s = getenv("PXSCENE_PATH");
+    s.append("init.js");
+    mCtx->runFile(s.c_str());
 
     char buffer[MAX_URL_SIZE + 50];
     memset(buffer, 0, sizeof(buffer));
