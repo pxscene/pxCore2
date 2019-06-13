@@ -987,8 +987,16 @@ uint32_t rtImageAResource::loadResourceData(rtFileDownloadRequest* fileDownloadR
         rtMutexLockGuard dimensionsMutexLock(mDimensionsMutex);
         mWidth = o.width();
         mHeight = o.height();
+        setLoadStatus("statusCode", PX_RESOURCE_LOAD_SUCCESS);
+          
         return PX_RESOURCE_LOAD_SUCCESS;
       }
+      else
+      {
+          setLoadStatus("statusCode", PX_RESOURCE_STATUS_DECODE_FAILURE);
+          
+          return PX_RESOURCE_STATUS_DECODE_FAILURE;
+       }
     }
   }
   return PX_RESOURCE_LOAD_FAIL;
@@ -1041,6 +1049,8 @@ void rtImageAResource::loadResourceFromFile()
             mWidth = o.width();
             mHeight = o.height();
         }
+        else
+            loadImageSuccess = RT_ERROR;
         
         double stopDecodeTime = pxMilliseconds();
         setLoadStatus("decodeTimeMs", static_cast<int>(stopDecodeTime-startDecodeTime));
@@ -1130,6 +1140,9 @@ void rtImageAResource::loadResourceFromArchive(rtObjectRef archiveRef)
             mWidth = o.width();
             mHeight = o.height();
         }
+        else
+            loadImageSuccess = RT_ERROR;
+        
         double stopDecodeTime = pxMilliseconds();
         setLoadStatus("decodeTimeMs", static_cast<int>(stopDecodeTime-startDecodeTime));
     }
