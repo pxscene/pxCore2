@@ -37,7 +37,6 @@ set(BUILD_RTCORE_SHARED_LIBRARY 1)
 
 if (BUILD_WITH_GIF)
 message("Building with GIF support")
-include_directories(AFTER ${EXTDIR}/giflib-5.1.9/)
 add_definitions(-DSUPPORT_GIF)
 
 endif (BUILD_WITH_GIF)
