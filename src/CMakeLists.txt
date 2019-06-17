@@ -39,7 +39,7 @@ if (BUILD_WITH_GIF)
 message("Building with GIF support")
 if(NOT PREFER_SYSTEM_LIBRARIES)
 include_directories(AFTER ${EXTDIR}/giflib-5.1.9/)
-endif(PREFER_SYSTEM_LIBRARIES)
+endif(NOT PREFER_SYSTEM_LIBRARIES)
 add_definitions(-DSUPPORT_GIF)
 
 endif (BUILD_WITH_GIF)
