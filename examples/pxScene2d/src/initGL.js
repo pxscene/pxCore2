@@ -18,7 +18,6 @@ limitations under the License.
 
 // TODO... 
 // * Xuse passed in url/file
-// * Xfix onClose
 // * Xfix xsetInterval and xclearInterval
 // * Xbug when having a working gl scene and load non-existent gl scene
 // * load nonexistent gl scene blue context??
@@ -68,9 +67,9 @@ var loadUrl = function(url, _beginDrawing, _endDrawing, _view) {
   var xxsetInterval = function(f,i){
     var rest = Array.from(arguments).slice(2)
     var interval = _timers.setInterval(function() {
-      return function() { 
-        beginDrawing(); 
-        f.apply(null,rest); 
+      return function() {
+        beginDrawing();
+        f.apply(null,rest);
         endDrawing(); }
       }(),i)
     _intervals.push(interval)
@@ -90,7 +89,7 @@ var loadUrl = function(url, _beginDrawing, _endDrawing, _view) {
     var timeout = _timers.setTimeout(function() {
         return function() {
           //console.log('before beginDrawing2')
-          beginDrawing(); 
+          beginDrawing();
           f.apply(null,rest)
           endDrawing();
           //console.log('after end Drawing2')
@@ -110,15 +109,15 @@ var loadUrl = function(url, _beginDrawing, _endDrawing, _view) {
       _timeouts.splice(index, 1);
     }
     _timers.clearTimeout(timeout)
-  }  
+  }
 
-  var xxsetImmediate = function(f){ 
+  var xxsetImmediate = function(f){
     var rest = Array.from(arguments).slice(1)
-    var timeout = _timers.setTimeout(function() {
+    var timeout = _timers.setImmediate(function() {
         return function() {
           //console.log('before beginDrawing3')
-          if (active) beginDrawing(); 
-          f.apply(null,rest) 
+          if (active) beginDrawing();
+          f.apply(null,rest)
           if (active) endDrawing();
           //console.log('after end Drawing3')
           var index = _immediates.indexOf(timeout)
@@ -126,10 +125,10 @@ var loadUrl = function(url, _beginDrawing, _endDrawing, _view) {
             _immediates.splice(index,1)
           }
         }
-        }(), 16)
+        }())
     _immediates.push(timeout)
     return timeout
-    
+
    console.log('setImmediate called')
   }
 
@@ -152,6 +151,8 @@ var loadUrl = function(url, _beginDrawing, _endDrawing, _view) {
   global.sparkview = _view
   global.sparkscene = getScene("scene.1")
   global.sparkgles2 = require('gles2.js');
+
+  global.sparkscene.on('onClose', onClose);
 
 // JRJR todo make into a map
 var bootStrapCache = {}
@@ -286,6 +287,8 @@ var _clearImmediates = function() {
 }
 
 var onClose = function() {
+  console.log(`onClose`);
+
   _clearIntervals()
   _clearTimeouts()
   _clearImmediates()
