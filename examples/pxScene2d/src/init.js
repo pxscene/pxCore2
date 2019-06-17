@@ -74,8 +74,19 @@ global.loadUrl = function loadUrl(url) {
 }
 }
 else {
-    var baseViewerUrl = 'https://www.sparkui.org'
- 
+    var baseViewerUrl = getSetting('defaultViewerBaseUrl')
+    
+    if (!baseViewerUrl)
+      baseViewerUrl = 'https://www.sparkui.org'
+
+    // ensure trailing /
+    function endsWith(str, suffix) {
+        return str.slice(-suffix.length) === suffix
+    }
+
+    if (!endsWith(baseViewerUrl,'/'))
+      baseViewerUrl += '/'
+
     function loadUrl(url) {
         var Url = require('url')
         var Path = require('path')

@@ -189,8 +189,8 @@ public:
     }
     if (escapedUrl.length() > MAX_URL_SIZE)
     {
-      rtLogWarn("url size greater than 8000 bytes, so restting url to browser.js");
-      escapedUrl = "browser.js";
+      rtLogWarn("url size greater than MAX_URL_SIZE, reset to empty url to get default behavior");
+      escapedUrl = "";
     }
     // escape url end
     char buffer[MAX_URL_SIZE + 50];
@@ -659,7 +659,7 @@ if (s && (strcmp(s,"1") == 0))
   gDumpMemUsage = true;
 }
 
-  const char* url = "browser.js";
+  const char* url = "";
   for (int i=1;i<argc;i++)
   {
     const char* arg = argv[i];

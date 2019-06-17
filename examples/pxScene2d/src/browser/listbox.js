@@ -16,7 +16,6 @@ limitations under the License.
 
 */
 
-
 px.import({ scene: 'px:scene.1.js',
              keys: 'px:tools.keys'
 }).then(function importsAreReady(imports)
@@ -96,7 +95,7 @@ px.import({ scene: 'px:scene.1.js',
         var      text_color =      "text_color" in params ? params.text_color      : 0x303030ff;
         var selection_color = "selection_color" in params ? params.selection_color : 0xCC000088;
 
-        var container = scene.create({ t: "object", parent: parent,    x: x, y: y, w: w, h: h, draw:false, focus:true });
+        var container = scene.create({ t: "object", parent: parent,    x: x, y: y, w: w, h: h, draw:false, focus:true , interactive:false});
         var clipRect  = scene.create({ t: "rect", parent: container, x: 0,       y: 0,       w: w, h: h, clip: true, fillColor: 0xFFFFFFF0, focus:true} );
         var scrollBar  = scene.create({ t: "rect", parent: clipRect, x: w-20,       y: 0,       w: 20, h: h, fillColor: 0xFFFFFFF0
 } );
@@ -111,7 +110,7 @@ px.import({ scene: 'px:scene.1.js',
 
         Object.defineProperty(this, "visible",
         {
-            set: function (val) { this._visible = val; if(this._visible) { container.draw = true; } else { container.draw=false;} },
+            set: function (val) { container.draw = this._visible = val },
             get: function () { return this._visible; },
         });
 
