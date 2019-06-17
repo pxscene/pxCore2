@@ -345,7 +345,7 @@ rtError pxObject::applyConfig(rtObjectRef v)
 
     if(name.isEmpty() == false)
     {
-      /*rtLogDebug*/rtLogError("APPLY name:  %s \n", name.toString().cString());
+      rtLogDebug("APPLY name:  %s \n", name.toString().cString());
     }
     
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
