@@ -1010,7 +1010,6 @@ void rtImageAResource::loadResourceFromFile()
             break;
         }
         rtString url = mUrl.beginsWith("file:") ? mUrl.substring(5, mUrl.length()-5) : mUrl;
-    
     	loadImageSuccess = rtLoadFile(url, data);
         if (loadImageSuccess == RT_OK)
         break;
