@@ -90,6 +90,9 @@ public:
   rtProperty(clip, clip, setClip, bool);
   rtProperty(mask, mask, setMask, bool);
   rtProperty(draw, drawEnabled, setDrawEnabled, bool);
+
+  rtProperty(effect, effect, setEffect, rtObjectRef);
+
   rtProperty(hitTest, hitTest, setHitTest, bool);
   rtProperty(focus, focus, setFocus, bool);
   rtReadOnlyProperty(ready, ready, rtObjectRef);
@@ -262,6 +265,13 @@ public:
   rtError drawEnabled(bool& v)  const { v = mDraw; return RT_OK;  }
   rtError setDrawEnabled(bool v) { mDraw = v; return RT_OK; }
 
+  rtObjectRef effect()            const { return mEffectRef;}
+  rtError effect(rtObjectRef& v)  const { v = mEffectRef; return RT_OK; }
+  rtError setEffect(rtObjectRef v);
+  
+  rtError setShaderConfig(rtObjectRef v);
+
+  
   bool hitTest()            const { return mHitTest;}
   rtError hitTest(bool& v)  const { v = mHitTest; return RT_OK;  }
   rtError setHitTest(bool v) { mHitTest = v; return RT_OK; }
@@ -283,7 +293,7 @@ public:
 
   virtual void dispose(bool pumpJavascript);
 
-  void drawInternal(bool maskPass=false);
+  void drawInternal(bool maskPass=false, bool skipTransform = false);
   virtual void draw() {}
   virtual void sendPromise();
 
@@ -573,6 +583,13 @@ public:
   pxScene2d* getScene() { return mScene; }
   void createSnapshot(pxContextFramebufferRef& fbo, bool separateContext=false, bool antiAliasing=false);
 
+
+  rtError copyConfigArray(rtObjectRef &v);
+
+  rtError applyConfig(rtObjectRef v);
+  rtError applyConfigArray(rtObjectRef v);
+
+
 public:
   rtEmitRef mEmit;
 
@@ -595,6 +612,10 @@ protected:
   bool mClip;
   bool mMask;
   bool mDraw;
+
+  rtObjectRef mEffectRef;
+  rtObjectRef mEffects;
+
   bool mHitTest;
   rtObjectRef mReady;
   bool mFocus;

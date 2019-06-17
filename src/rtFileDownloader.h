@@ -49,8 +49,12 @@ public:
    rtFileDownloadRequest(const char* imageUrl, void* callbackData, void (*callbackFunction)(rtFileDownloadRequest*) = NULL);
   ~rtFileDownloadRequest();
 
-  void setFileUrl(const char* imageUrl);
+  void setTag(const char* name);
+  rtString tag() const;
+
+  void setFileUrl(const char* tag);
   rtString fileUrl() const;
+  
   void setProxy(const char* proxyServer);
   rtString proxy() const;
   void setErrorString(const char* errorString);
@@ -113,6 +117,7 @@ public:
   void setDownloadMetrics(int32_t connectTimeMs, int32_t sslConnectTimeMs, int32_t totalTimeMs, int32_t downloadSpeedBytesPerSecond);
 
 private:
+  rtString mTag;
   rtString mFileUrl;
   rtString mProxyServer;
   rtString mErrorString;

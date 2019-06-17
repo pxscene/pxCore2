@@ -176,7 +176,7 @@ void onDownloadHandleCheck()
 }
 
 rtFileDownloadRequest::rtFileDownloadRequest(const char* imageUrl, void* callbackData, void (*callbackFunction)(rtFileDownloadRequest*))
-      : mFileUrl(imageUrl), mProxyServer(),
+      : mTag(), mFileUrl(imageUrl), mProxyServer(),
     mErrorString(), mHttpStatusCode(0), mCallbackFunction(callbackFunction), mDownloadProgressCallbackFunction(NULL), mDownloadProgressUserPtr(NULL),
     mDownloadedData(0), mDownloadedDataSize(), mDownloadStatusCode(0) ,mCallbackData(callbackData),
     mCallbackFunctionMutex(), mHeaderData(0), mHeaderDataSize(0), mHeaderOnly(false), mDownloadHandleExpiresTime(-2)
@@ -213,6 +213,9 @@ rtFileDownloadRequest::~rtFileDownloadRequest()
   mHeaderOnly = false;
   mDownloadMetrics = NULL;
 }
+
+void rtFileDownloadRequest::setTag(const char* tag) { mTag = tag; }
+rtString rtFileDownloadRequest::tag() const { return mTag; }
 
 void rtFileDownloadRequest::setFileUrl(const char* imageUrl) { mFileUrl = imageUrl; }
 rtString rtFileDownloadRequest::fileUrl() const { return mFileUrl; }

@@ -386,6 +386,8 @@ set(PXSCENE_COMMON_FILES pxResource.cpp pxConstants.cpp pxRectangle.cpp pxFont.c
         pxTextBox.cpp pxImage.cpp pxImage9.cpp pxImageA.cpp pxImage9Border.cpp pxArchive.cpp pxAnimate.cpp)
 
 set(PXSCENE_COMMON_FILES ${PXSCENE_COMMON_FILES} pxObject.cpp)
+set(PXSCENE_COMMON_FILES ${PXSCENE_COMMON_FILES} pxShaderEffect.cpp)
+set(PXSCENE_COMMON_FILES ${PXSCENE_COMMON_FILES} pxShaderResource.cpp)
 set(PXSCENE_COMMON_FILES ${PXSCENE_COMMON_FILES} pxScene2d.cpp)
 
 set(PXWAYLAND_LIB_FILES pxContextGL.cpp egl/pxContextUtils.cpp)

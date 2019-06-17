@@ -47,6 +47,10 @@
 #include "pxImageA.h"
 #include "pxImage9Border.h"
 
+#include "pxShaderEffect.h"
+#include "pxShaderResource.h"
+
+
 #if !defined(ENABLE_DFB) && !defined(DISABLE_WAYLAND)
 #include "pxWaylandContainer.h"
 #endif //ENABLE_DFB
@@ -529,6 +533,7 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   // capabilities.graphics.cursor       = 1
   // capabilities.graphics.colors       = 1
   // capabilities.graphics.screenshots  = 2
+  // capabilities.graphics.shaders      = 1
   // capabilities.graphics.text         = 3
   // capabilities.graphics.imageAResource  = 2
   //
@@ -557,10 +562,12 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   graphicsCapabilities.set("imageAResource", 2);
       
   graphicsCapabilities.set("screenshots", 2);
+  graphicsCapabilities.set("shaders", 1);
   graphicsCapabilities.set("text", 3);
       
 #ifdef SPARK_CURSOR_SUPPORT
   graphicsCapabilities.set("cursor", 1);
+
 #else
   rtValue enableCursor;
   if (RT_OK == rtSettings::instance()->value("enableCursor", enableCursor))
@@ -705,6 +712,8 @@ rtError pxScene2d::create(rtObjectRef p, rtObjectRef& o)
     e = createImage9(p,o);
   else if (!strcmp("imageA",t.cString()))
     e = createImageA(p,o);
+  else if (!strcmp("effect",t.cString()))
+    e = createShaderEffect(p,o);
   else if (!strcmp("image9Border",t.cString()))
     e = createImage9Border(p,o);
   else if (!strcmp("imageResource",t.cString()))
@@ -720,6 +729,11 @@ rtError pxScene2d::create(rtObjectRef p, rtObjectRef& o)
   else if (!strcmp("fontResource",t.cString()))
   {
     e = createFontResource(p,o);
+    needpxObjectTracking = false;
+  }
+  else if (!strcmp("shaderResource",t.cString()))
+  {
+    e = createShaderResource(p,o);
     needpxObjectTracking = false;
   }
   else if (!strcmp("scene",t.cString()))
@@ -817,6 +831,17 @@ rtError pxScene2d::createImageA(rtObjectRef p, rtObjectRef& o)
   return RT_OK;
 }
 
+rtError pxScene2d::createShaderEffect(rtObjectRef p, rtObjectRef& o)
+{
+  rtString fragmentUrl = p.get<rtString>("fragment");
+  rtString vertexUrl   = p.get<rtString>("vertex");
+
+  o = pxShaderManager::getShader(fragmentUrl, vertexUrl, mCORS, mArchive);
+  o.set(p);
+  o.send("init");
+  return RT_OK;
+}
+
 rtError pxScene2d::createImage9Border(rtObjectRef p, rtObjectRef& o)
 {
   o = new pxImage9Border(this);
@@ -900,6 +925,18 @@ rtError pxScene2d::createFontResource(rtObjectRef p, rtObjectRef& o)
 #endif
 
   o = pxFontManager::getFont(url, proxy, mCORS, mArchive);
+  return RT_OK;
+}
+
+rtError pxScene2d::createShaderResource(rtObjectRef p, rtObjectRef& o)
+{
+  rtString fragmentUrl = p.get<rtString>("fragment");
+  rtString vertexUrl   = p.get<rtString>("vertex");
+  
+  o = pxShaderManager::getShader(fragmentUrl, vertexUrl, mCORS, mArchive);
+  o.set(p);
+  o.send("init");
+
   return RT_OK;
 }
 
