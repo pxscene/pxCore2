@@ -18,6 +18,8 @@
 
 // pxMatrix4T.h
 
+#define ANIMATION_ROTATE_XYZ
+
 #ifndef PX_MATRIX4T_H
 #define PX_MATRIX4T_H
 
