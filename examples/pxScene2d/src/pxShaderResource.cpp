@@ -756,7 +756,7 @@ void rtShaderResource::loadResourceFromArchive(rtObjectRef archiveRef)
  * in the cache map.
  *
  * */
-void rtShaderResource::loadResource(rtObjectRef archive, bool /* reloading */)
+void rtShaderResource::loadResource(rtObjectRef archive, bool  reloading)
 {
   if(!reloading && ((rtPromise*)mReady.getPtr())->status())
   {
@@ -774,7 +774,7 @@ void rtShaderResource::loadResource(rtObjectRef archive, bool /* reloading */)
   bool isVtxURL = (  mVertexUrl.beginsWith("http:") ||   mVertexUrl.beginsWith("https:") );
 
   bool isFrgDataURL = mFragmentUrl.beginsWith("data:text/plain,");
-  bool isVtxDataURL =   mVertexUrl.beginsWith("data:text/plain,");
+  //bool isVtxDataURL =   mVertexUrl.beginsWith("data:text/plain,");
 
   // FRAGMENT SHADER
   if( isFrgURL && mFragmentSrc.length() == 0)

@@ -394,7 +394,8 @@ rtError pxShaderObject::setUniforms(rtObjectRef o)
         mIsRealTime = true;
       }
 
-      mUniform_map[key] = { key, type, UniformType_Unknown, (GLint) -1, 0, false }; // name, typeStr, type, loc, value, needsUpdate
+      // INITIALIZERS  >>  name, typeStr, type, loc, value, needsUpdate, setFunc
+      mUniform_map[key] = { key, type, UniformType_Unknown, (GLint) -1, 0, false, NULL };
     }
   }//FOR
 
