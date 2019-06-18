@@ -45,8 +45,10 @@ cp libutil.7.dylib .libs/libutil.7.dylib
 
 elif [ -e libgif.so ]
 then
-cp libgif.so .libs/libgif.dylib
-cp libutil.so .libs/libutil.dylib
+cp libgif.so .libs/libgif.so
+cp libutil.so .libs/libutil.so
+cp libgif.so .libs/libgif.so.7
+cp libutil.so .libs/libutil.so.7
 fi
 
 cd ..

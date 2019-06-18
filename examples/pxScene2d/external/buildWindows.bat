@@ -122,4 +122,5 @@ cd ..
 REM ---------- GIF
 if EXIST vc.build\builds (
   copy /y vc.build\builds\libgif.lib giflib-5.1.9\libgif.lib
+  copy /y vc.build\builds\libgif.lib giflib-5.1.9\libgif.7.lib
 )
