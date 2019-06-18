@@ -14,7 +14,7 @@ banner() {
 
 #--------- Args
 
-NODE_VER="6.9.0"
+NODE_VER="8.15.1"
 
 while (( "$#" )); do
   case "$1" in

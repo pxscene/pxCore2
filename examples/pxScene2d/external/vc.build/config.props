@@ -38,7 +38,7 @@
     <CurlSrcDir>..\curl-7.40.0</CurlSrcDir>
     <TurboJpegSrcDir>..\libjpeg-turbo-1.5.1</TurboJpegSrcDir>
     <FreeType2SrcDir>..\freetype-2.8.1</FreeType2SrcDir>
-    <NodeSrcDir>..\libnode-v6.9.0</NodeSrcDir>
+    <NodeSrcDir>..\libnode-v8.15.1</NodeSrcDir>
 
     <!-- The following line allows compilation for an ARM target with Visual
          Studio 2012.  Notice that this is not supported by the Visual Studio
