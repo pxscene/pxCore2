@@ -37,6 +37,9 @@ var fs = require('fs')
 var path = require('path')
 var vm = require('vm')
 var _module = require('module')
+var _ws = require('ws')
+var _http = require('http')
+var _https = require('http')
 
 // JRJR not sure why Buffer is not already defined.
 // Could look at adding to sandbox.js but this works for now
@@ -48,6 +51,7 @@ var global = this
 var _intervals = []
 var _timeouts = []
 var _immediates = []
+var _websockets = []
 
 var __dirname = process.cwd()
 
@@ -156,6 +160,20 @@ var loadUrl = function(url, _beginDrawing, _endDrawing, _view) {
 
 // JRJR todo make into a map
 var bootStrapCache = {}
+
+  // Add wrapped standard modules here...
+  bootStrapCache[_module._resolveFilename('ws')] = function WebSocket(address, protocols, options) {
+    let client = new _ws(address, protocols, options);
+    _websockets.push(client);
+    client.on('close', () => {
+      console.log(`websocket ${address} closed`);
+      let index = _websockets.indexOf(client);
+      if (index !== -1) {
+        _websockets.splice(index, 1);
+      }
+    });
+    return client;
+  };
 
 // Spark node-like module loader
 const bootStrap = (moduleName, from, request) => {
@@ -286,12 +304,40 @@ var _clearImmediates = function() {
   _immediates = []
 }
 
+var _clearWebsockets = function() {
+  if (_websockets.length) {
+    console.log(`closing ${_websockets.length} websockets`);
+
+    for (let w of _websockets) {
+      w.close();
+      w.closeimmediate();
+      w.removeAllListeners();
+    }
+
+    console.log(`after close having ${_websockets.length} websockets`);
+  }
+  _websockets = []
+}
+
+var _clearSockets = function() {
+  const httpSockets = [].concat.apply([], Object.values(_http.globalAgent.sockets));
+  const httpsSockets = [].concat.apply([], Object.values(_https.globalAgent.sockets));
+
+  for (let s of new Set(httpSockets.concat(httpsSockets))) {
+    console.log(`ending socket ${s.remoteAddress}`);
+    s.end();
+  }
+}
+
 var onClose = function() {
   console.log(`onClose`);
 
   _clearIntervals()
   _clearTimeouts()
   _clearImmediates()
+  _clearWebsockets()
+  _clearSockets()
+
   // JRJR something is invoking setImmediate after this and causing problems
   active = false
 }
