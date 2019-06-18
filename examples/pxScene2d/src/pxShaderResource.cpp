@@ -47,9 +47,6 @@
 
 ////////////////////////////////////////////////////////////////
 
-
-extern pxContext context;
-
 extern const char* vShaderText;
 
 pxCurrentGLProgram currentGLProgram = PROGRAM_UNKNOWN;
@@ -779,42 +776,46 @@ void rtShaderResource::loadResource(rtObjectRef archive, bool  reloading)
   // FRAGMENT SHADER
   if( isFrgURL && mFragmentSrc.length() == 0)
   {
-    setLoadStatus("sourceType", "http");
-    mDownloadRequest = new rtFileDownloadRequest(mFragmentUrl, this, pxResource::onDownloadComplete);
-    mDownloadRequest->setProxy(mProxy);
-    mDownloadRequest->setTag("frg");
+    rtFileDownloadRequest* fragRequest;
 
-    mDownloadRequest->setCallbackFunctionThreadSafe(pxResource::onDownloadComplete);
+    setLoadStatus("sourceType", "http");
+    fragRequest = new rtFileDownloadRequest(mFragmentUrl, this, pxResource::onDownloadComplete);
+    fragRequest->setProxy(mProxy);
+    fragRequest->setTag("frg");
+    
+    fragRequest->setCallbackFunctionThreadSafe(pxResource::onDownloadComplete);
 #ifdef ENABLE_CORS_FOR_RESOURCES
-    mDownloadRequest->setCORS(mCORS);
+    fragRequest->setCORS(mCORS);
 #endif
     mDownloadInProgressMutex.lock();
     mDownloadInProgress = true;
     mDownloadInProgressMutex.unlock();
     AddRef(); //ensure this object is not deleted while downloading
-    rtFileDownloader::instance()->addToDownloadQueue(mDownloadRequest);
-
+    rtFileDownloader::instance()->addToDownloadQueue(fragRequest);
+    
     return;
   }
 
   // VERTEX SHADER
   if (isVtxURL && mVertexSrc.length() == 0)
   {
-    setLoadStatus("sourceType", "http");
-    mDownloadRequest = new rtFileDownloadRequest(mVertexUrl, this, pxResource::onDownloadComplete);
-    mDownloadRequest->setProxy(mProxy);
-    mDownloadRequest->setTag("vtx");
+    rtFileDownloadRequest* vtxRequest;
 
-    mDownloadRequest->setCallbackFunctionThreadSafe(pxResource::onDownloadComplete);
+    setLoadStatus("sourceType", "http");
+    vtxRequest = new rtFileDownloadRequest(mVertexUrl, this, pxResource::onDownloadComplete);
+    vtxRequest->setProxy(mProxy);
+    vtxRequest->setTag("vtx");
+
+    vtxRequest->setCallbackFunctionThreadSafe(pxResource::onDownloadComplete);
 #ifdef ENABLE_CORS_FOR_RESOURCES
-    mDownloadRequest->setCORS(mCORS);
+    fragRequest->setCORS(mCORS);
 #endif
     mDownloadInProgressMutex.lock();
     mDownloadInProgress = true;
     mDownloadInProgressMutex.unlock();
     AddRef(); //ensure this object is not deleted while downloading
-    rtFileDownloader::instance()->addToDownloadQueue(mDownloadRequest);
-
+    rtFileDownloader::instance()->addToDownloadQueue(vtxRequest);
+    
     return;
   }
   else if (isFrgDataURL)

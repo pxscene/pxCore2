@@ -294,6 +294,8 @@ public:
   virtual void dispose(bool pumpJavascript);
 
   void drawInternal(bool maskPass=false, bool skipTransform = false);
+  void drawShader(pxObject *px, pxContextFramebufferRef &flattenFbo);
+  
   virtual void draw() {}
   virtual void sendPromise();
 
