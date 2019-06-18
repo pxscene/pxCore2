@@ -127,6 +127,8 @@ then
 
 elif [ -e libgif.so ]
 then
+    cp libgif.so libgif.so.7
+    cp libutil.so libutil.so.7
     cp libgif.so .libs/libgif.so
     cp libutil.so .libs/libutil.so
     cp libgif.so .libs/libgif.so.7
