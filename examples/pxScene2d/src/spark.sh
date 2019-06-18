@@ -7,9 +7,9 @@ cd $THIS_DIR
 
 externalDir=../external
 
-externalLibs=$externalDir/png/.libs/:$externalDir/jpg/.libs/:$externalDir/curl/lib/.libs/:$externalDir/ft/objs/.libs/:$externalDir/zlib:$externalDir/westeros/external/install/lib/:$externalDir/libjpeg-turbo/.libs/:rpc/:$externalDir/gif/.libs/
-PathD=$externalLibs:$externalDir/node/out/Debug/obj.target
-PathR=$externalLibs:$externalDir/node/out/Release/obj.target
+externalLibs=$externalDir/png/.libs/:$externalDir/jpg/.libs/:$externalDir/curl/lib/.libs/:$externalDir/ft/objs/.libs/:$externalDir/zlib:$externalDir/westeros/external/install/lib/:$externalDir/libjpeg-turbo/.libs/:rpc/:$externalDir/gif/:$externalDir/gif/.libs/
+PathD=$externalLibs:$externalDir/libnode-v6.9.0/out/Debug/obj.target
+PathR=$externalLibs:$externalDir/libnode-v6.9.0/out/Release/obj.target
 
 export LD_LIBRARY_PATH=$PathR
 

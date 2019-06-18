@@ -3932,7 +3932,7 @@ static void ParseArgs(int* argc,
 
 /* MODIFIED CODE BEGIN */ void StartDebug(Environment* env, const char* path, bool wait, v8::Platform* platform) {
   CHECK(!debugger_running);
-#if HAVE_INSPECTOR
+#ifdef HAVE_INSPECTOR
   if (use_inspector) {
     debugger_running = env->inspector_agent()->Start(platform, path, inspector_port, wait);
   } else
