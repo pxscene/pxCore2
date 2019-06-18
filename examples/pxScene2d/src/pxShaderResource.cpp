@@ -227,7 +227,7 @@ pxError pxShaderEffect::draw(int resW, int resH, float* matrix, float alpha,
     {
       uniformLoc_t &p = (*it).second;
 
-      if(p.setFunc && p.needsUpdate)
+      if(p.setFunc && (p.needsUpdate || p.type == UniformType_Sampler2D ) )
       {
         p.setFunc(p); // SET UNIFORM ... set p.value .. calls glUnifornXXX() ... etc.
 
@@ -911,8 +911,6 @@ void rtShaderResource::postlink()
       (*it).second.loc = getUniformLocation( (*it).second.name );
     }
   }//ENDIF
-
-  printf("rtShaderResource::postlink() >>>  mUniform_map.size =  %d \n\n", (int) mUniform_map.size());
 }
 
 //=====================================================================================================================================
