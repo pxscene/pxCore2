@@ -75,12 +75,12 @@ class glException: public exception
     {
       mErr = err;
     }
-  
+
     virtual const char* desc() const throw()
     {
       return mErr.cString();
     }
-  
+
   private:
     rtString mErr;
 };
@@ -110,13 +110,13 @@ void pxShaderEffect::init(const char* v, const char* f)
   {
     rtString vtxStr(v);
     rtString frgStr(f);
-    
+
     glShaderProgDetails details = createShaderProgram(v, f);
-    
+
     mProgram    = details.program;
     mFragShader = details.fragShader;
     mVertShader = details.vertShader;
-    
+
     prelink();
     linkShaderProgram(mProgram);
     postlink();
@@ -130,10 +130,10 @@ void pxShaderEffect::init(const char* v, const char* f)
 int pxShaderEffect::getUniformLocation(const char* name)
 {
   int l = glGetUniformLocation(mProgram, name);
-  
+
   if (l == -1)
     rtLogError("Shader does not define uniform %s.\n", name);
-  
+
   return l;
 }
 
@@ -154,12 +154,12 @@ pxError pxShaderEffect::draw(int resW, int resH, float* matrix, float alpha,
 {
   if(mResolutionLoc == -1)
     return RT_OK;
-  
+
   use();
-  
+
   glUniform2f(mResolutionLoc, static_cast<GLfloat>(resW), static_cast<GLfloat>(resH));
   glUniformMatrix4fv(mMatrixLoc, 1, GL_FALSE, matrix);
-  
+
   //
   // Update UNIFORMS ...
   //
@@ -167,16 +167,16 @@ pxError pxShaderEffect::draw(int resW, int resH, float* matrix, float alpha,
        it != mUniform_map.end(); ++it)
   {
     uniformLoc_t &p = (*it).second;
-    
+
     // TODO:  String matching ... yuk ... move to 'char' based switch() for types
     if(p.name == "u_time")
     {
       double time = pxMilliseconds();
       if(dt == 0)
         dt = time;
-      
+
       double tt = (time - dt) / 1000.0;
-      
+
       glUniform1f(p.loc, (float) tt );
       p.needsUpdate = false;
     }
@@ -205,7 +205,7 @@ pxError pxShaderEffect::draw(int resW, int resH, float* matrix, float alpha,
       p.needsUpdate = false;
     }
     else
-      
+
 // TODO  ... is this "s_texture" needed given BIND setFunc's
 //
     if(p.name == "s_texture")
@@ -218,7 +218,7 @@ pxError pxShaderEffect::draw(int resW, int resH, float* matrix, float alpha,
       p.needsUpdate = false;
     }
   }//FOR
-  
+
   // Apply UNIFORM values to GPU...
   if(mUniform_map.size() > 0)
   {
@@ -226,11 +226,11 @@ pxError pxShaderEffect::draw(int resW, int resH, float* matrix, float alpha,
          it != mUniform_map.end(); ++it)
     {
       uniformLoc_t &p = (*it).second;
-      
+
       if(p.setFunc)// && p.needsUpdate)
       {
         p.setFunc(p); // SET UNIFORM ... set p.value .. calls glUnifornXXX() ... etc.
-        
+
     //    p.needsUpdate = false;
       }
     }
@@ -258,14 +258,14 @@ pxError pxShaderEffect::draw(int resW, int resH, float* matrix, float alpha,
     glDrawArrays(mode, 0, count);  TRACK_DRAW_CALLS();
     glDisableVertexAttribArray(mPosLoc);
   }
-  
+
   return RT_OK;
 }
 
 //=====================================================================================================================================
 
 rtShaderResource::rtShaderResource(const char* fragmentUrl, const char* vertexUrl /*= NULL*/,
-                                   const rtCORSRef& cors /*= NULL*/, rtObjectRef archive /*= NULL*/)
+                                   const rtCORSRef& /*cors = NULL*/, rtObjectRef /*archive = NULL*/)
 
   : pxResource(), mIsRealTime(false), mNeedsFbo(false), mPasses(1), mSamplerCount(3)
 {
@@ -281,10 +281,10 @@ rtShaderResource::~rtShaderResource()
 void rtShaderResource::onInit()
 {
   postlink();
-  
+
   if( mInitialized)
     return;
-  
+
   mInitialized = true;
 }
 
@@ -292,29 +292,29 @@ void rtShaderResource::init()
 {
   if( mInitialized)
     return;
-  
+
   mInitialized = true;
 }
 
 void rtShaderResource::setupResource()
 {
   rtShaderResource::init();
-  
+
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
   // CREATE SHADER PROGRAMS
-  
+
   if(mFragmentSrc.length() > 0)
   {
     // Setup shader
     double startDecodeTime = pxMilliseconds();
-    
+
     const char* vtxCode = mVertexSrc.length() > 0 ? (const char*) mVertexSrc.data() : vShaderText;
-    
+
     // TODO:  TRY
     pxShaderEffect::init( vtxCode, (const char*) mFragmentSrc.data() );
     // TODO:  CATCH
-    
+
     double stopDecodeTime = pxMilliseconds();
     setLoadStatus("decodeTimeMs", static_cast<int>(stopDecodeTime-startDecodeTime));
   }
@@ -338,7 +338,7 @@ unsigned long rtShaderResource::Release()
     //TODO
     //TODO
     delete this;
-    
+
   }
   return l;
 }
@@ -352,7 +352,7 @@ UniformType_t rtShaderResource::getUniformType(rtString &name)
 
     return p.type;
   }
-  
+
   return UniformType_Unknown;
 }
 
@@ -362,18 +362,18 @@ UniformType_t rtShaderResource::getUniformType(rtString &name)
 rtError rtShaderResource::setUniformVal(const rtString& name, const rtValue& v)
 {
   use();
-  
+
   UniformMapIter_t it = mUniform_map.find(name);
   if(it != mUniform_map.end())
   {
     uniformLoc_t &p = (*it).second;
-    
+
     p.value = v;        // update the VALUE
     p.needsUpdate = true;
-    
+
     return RT_OK;
   }
-  
+
   return RT_FAIL; // not found
 }
 
@@ -381,7 +381,7 @@ rtError rtShaderResource::setUniformVals(const rtValue& v)
 {
   rtObjectRef uniforms = v.toObject();
   rtArrayObject   *arr = (rtArrayObject *) uniforms.getPtr();
-  
+
   if(arr == NULL)
   {
     return RT_FAIL;
@@ -389,10 +389,10 @@ rtError rtShaderResource::setUniformVals(const rtValue& v)
 
   rtValue     keysVal;
   uniforms->Get("allKeys", &keysVal);
-  
+
   rtObjectRef keys = keysVal.toObject();
   uint32_t     len = keys.get<uint32_t>("length");
-  
+
   // Iterate UNIFORMS map
   for (uint32_t i = 0; i < len; i++)
   {
@@ -437,12 +437,12 @@ rtError rtShaderResource::Set(const char* name, const rtValue* value)
 //
 // Stores the UNIFORMS parsed from JS code/config; to be located in Shader when compiled
 //
-rtError rtShaderResource::uniforms(rtObjectRef& o) const { return RT_OK; }
+rtError rtShaderResource::uniforms(rtObjectRef& /* o */) const { return RT_OK; }
 rtError rtShaderResource::setUniforms(rtObjectRef o)
 {
   rtValue allKeys;
   o->Get("allKeys", &allKeys);
-  
+
   rtArrayObject* keys = (rtArrayObject*) allKeys.toObject().getPtr();
   for (uint32_t i = 0, l = keys->length(); i < l; ++i)
   {
@@ -454,7 +454,7 @@ rtError rtShaderResource::setUniforms(rtObjectRef o)
 
       rtString name = keyVal.toString();
       rtString type = o.get<rtString>(name);
-      
+
       printf("\n Key:  %s   Value: %s", name.cString(), type.cString() );
 
       if(name == "u_time")
@@ -501,12 +501,12 @@ rtError rtShaderResource::setUniforms(rtObjectRef o)
         setFunc = (mSamplerCount == 3) ? rtShaderResource::bindTexture3 :
                   (mSamplerCount == 4) ? rtShaderResource::bindTexture4 :
                   (mSamplerCount == 5) ? rtShaderResource::bindTexture5 : NULL;
-        
+
         typeEnum = UniformType_Sampler2D;
-        
+
         mSamplerCount++;
       }
-      
+
 
       mUniform_map[name] = { name, type, typeEnum, (GLint) -1, rtValue(), false, setFunc };  // ADD TO MAP
     }
@@ -519,9 +519,9 @@ rtError rtShaderResource::setUniforms(rtObjectRef o)
 void rtShaderResource::loadResourceFromFile()
 {
   init();
-  
+
   rtString status = "resolve";
-  
+
   rtError loadFrgShader = RT_FAIL;
 
   if(mVertexUrl.beginsWith("data:text/plain,"))
@@ -532,7 +532,7 @@ void rtShaderResource::loadResourceFromFile()
   {
     mFragmentSrc.init( (const uint8_t* ) mFragmentUrl.substring(16).cString(), mFragmentUrl.length() - 16);
   }
-  
+
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   do
   {
@@ -542,16 +542,16 @@ void rtShaderResource::loadResourceFromFile()
       loadFrgShader = RT_OK;
       break;
     }
-    
+
     loadFrgShader = rtLoadFile( mFragmentUrl, mFragmentSrc);
     if (loadFrgShader == RT_OK)
       break;
-    
+
     if (rtIsPathAbsolute(mFragmentUrl))
       break;
-    
+
     rtModuleDirs *dirs = rtModuleDirs::instance();
-    
+
     for (rtModuleDirs::iter it = dirs->iterator(); it.first != it.second; it.first++)
     {
       if (rtLoadFile(rtConcatenatePath(*it.first, mFragmentUrl.cString()).c_str(), mFragmentSrc) == RT_OK)
@@ -561,11 +561,11 @@ void rtShaderResource::loadResourceFromFile()
       }
     }
   } while(0);
-  
+
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
   rtError loadVtxShader = RT_FAIL;
-  
+
   do
   {
     if (mVertexSrc.length() != 0)
@@ -574,23 +574,23 @@ void rtShaderResource::loadResourceFromFile()
       loadVtxShader = RT_OK;
       break;
     }
-    
+
     if (mVertexSrc.length() == 0)
     {
       //Use the Default VERTEX SHADER source...
       loadVtxShader = RT_OK;
       break;
     }
-    
+
     loadVtxShader = rtLoadFile(mVertexUrl, mVertexSrc);
     if (loadVtxShader == RT_OK)
       break;
-    
+
     if (rtIsPathAbsolute(mVertexUrl))
       break;
-    
+
     rtModuleDirs *dirs = rtModuleDirs::instance();
-    
+
     for (rtModuleDirs::iter it = dirs->iterator(); it.first != it.second; it.first++)
     {
       if (rtLoadFile(rtConcatenatePath(*it.first, mVertexUrl.cString()).c_str(), mVertexSrc) == RT_OK)
@@ -604,7 +604,7 @@ void rtShaderResource::loadResourceFromFile()
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
   // CREATE SHADER PROGRAMS
-  
+
   if (loadFrgShader == RT_OK && loadVtxShader == RT_OK)
   {
     setupResource();
@@ -625,12 +625,12 @@ void rtShaderResource::loadResourceFromFile()
     {
       setLoadStatus("statusCode", PX_RESOURCE_STATUS_DECODE_FAILURE);
     }
-    
+
     // Since this object can be released before we get a async completion
     // We need to maintain this object's lifetime
     // TODO review overall flow and organization
     AddRef();
-    
+
     if (gUIThreadQueue)
     {
       gUIThreadQueue->addTask(onDownloadCompleteUI, this, (void*)"reject");
@@ -658,9 +658,9 @@ void rtShaderResource::loadResourceFromArchive(rtObjectRef archiveRef)
 {
   pxArchive* archive = (pxArchive*)archiveRef.getPtr();
   rtString status = "resolve";
-  
+
   rtError loadShaderSuccess = RT_FAIL;
-  
+
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
   if(mFragmentSrc.length() == 0)
@@ -688,13 +688,13 @@ void rtShaderResource::loadResourceFromArchive(rtObjectRef archiveRef)
   {
     double startDecodeTime = pxMilliseconds();
     loadShaderSuccess = RT_OK;
-    
+
     const char* vtxCode = mVertexSrc.length() > 0 ? (const char*) mVertexSrc.data() : vShaderText;
-    
+
     // TODO:  TRY
     pxShaderEffect::init( vtxCode, (const char*) mFragmentSrc.data() );
     // TODO:  CATCH
-    
+
     double stopDecodeTime = pxMilliseconds();
     setLoadStatus("decodeTimeMs", static_cast<int>(stopDecodeTime-startDecodeTime));
   }
@@ -717,12 +717,12 @@ void rtShaderResource::loadResourceFromArchive(rtObjectRef archiveRef)
     {
       setLoadStatus("statusCode", PX_RESOURCE_STATUS_DECODE_FAILURE);
     }
-    
+
     // Since this object can be released before we get a async completion
     // We need to maintain this object's lifetime
     // TODO review overall flow and organization
     AddRef();
-    
+
     if (gUIThreadQueue)
     {
       gUIThreadQueue->addTask(onDownloadCompleteUI, this, (void*)"reject");
@@ -733,7 +733,7 @@ void rtShaderResource::loadResourceFromArchive(rtObjectRef archiveRef)
   {
     mFragmentSrc.term(); // Dump the source data...
     mVertexSrc.term();   // Dump the source data...
-    
+
     setLoadStatus("statusCode",0);
     // Since this object can be released before we get a async completion
     // We need to maintain this object's lifetime
@@ -756,7 +756,7 @@ void rtShaderResource::loadResourceFromArchive(rtObjectRef archiveRef)
  * in the cache map.
  *
  * */
-void rtShaderResource::loadResource(rtObjectRef archive, bool reloading)
+void rtShaderResource::loadResource(rtObjectRef archive, bool /* reloading */)
 {
   if(!reloading && ((rtPromise*)mReady.getPtr())->status())
   {
@@ -769,7 +769,7 @@ void rtShaderResource::loadResource(rtObjectRef archive, bool reloading)
   {
     mArchive = arc;
   }
-  
+
   bool isFrgURL = (mFragmentUrl.beginsWith("http:") || mFragmentUrl.beginsWith("https:") );
   bool isVtxURL = (  mVertexUrl.beginsWith("http:") ||   mVertexUrl.beginsWith("https:") );
 
@@ -783,7 +783,7 @@ void rtShaderResource::loadResource(rtObjectRef archive, bool reloading)
     mDownloadRequest = new rtFileDownloadRequest(mFragmentUrl, this, pxResource::onDownloadComplete);
     mDownloadRequest->setProxy(mProxy);
     mDownloadRequest->setTag("frg");
-    
+
     mDownloadRequest->setCallbackFunctionThreadSafe(pxResource::onDownloadComplete);
 #ifdef ENABLE_CORS_FOR_RESOURCES
     mDownloadRequest->setCORS(mCORS);
@@ -793,7 +793,7 @@ void rtShaderResource::loadResource(rtObjectRef archive, bool reloading)
     mDownloadInProgressMutex.unlock();
     AddRef(); //ensure this object is not deleted while downloading
     rtFileDownloader::instance()->addToDownloadQueue(mDownloadRequest);
-    
+
     return;
   }
 
@@ -814,7 +814,7 @@ void rtShaderResource::loadResource(rtObjectRef archive, bool reloading)
     mDownloadInProgressMutex.unlock();
     AddRef(); //ensure this object is not deleted while downloading
     rtFileDownloader::instance()->addToDownloadQueue(mDownloadRequest);
-    
+
     return;
   }
   else if (isFrgDataURL)
@@ -849,7 +849,7 @@ uint32_t rtShaderResource::loadResourceData(rtFileDownloadRequest* fileDownloadR
   rtError decodeResult = RT_OK; // TODO: create pxShaderEffect   //pxLoadImage(fileDownloadRequest->downloadedData(),
                                                                   //            fileDownloadRequest->downloadedDataSize(),
                                                                   //            imageOffscreen, init_w, init_h, init_sx, init_sy);
-  
+
   if(fileDownloadRequest->tag() == "frg")
   {
     mFragmentSrc.init( (const uint8_t*) fileDownloadRequest->downloadedData(),
@@ -873,7 +873,7 @@ uint32_t rtShaderResource::loadResourceData(rtFileDownloadRequest* fileDownloadR
 //    pxShaderEffect::init( vertexCode, (const char*) mFragmentSrc.data() );
 //    // TODO:  CATCH
 //  }
-  
+
   double stopDecodeTime = pxMilliseconds();
   if (decodeResult == RT_OK)
   {
@@ -885,7 +885,7 @@ uint32_t rtShaderResource::loadResourceData(rtFileDownloadRequest* fileDownloadR
     return PX_RESOURCE_LOAD_SUCCESS;
 #endif  //ENABLE_BACKGROUND_TEXTURE_CREATION
   }
-  
+
   return PX_RESOURCE_LOAD_FAIL;
 }
 
@@ -902,7 +902,7 @@ void rtShaderResource::postlink()
   mTimeLoc       = getUniformLocation("u_time");
   mResolutionLoc = getUniformLocation("u_resolution");
   mMatrixLoc     = getUniformLocation("amymatrix");
-  
+
   if(mUniform_map.size() > 0)
   {
     for (std::map< rtString, uniformLoc_t>::iterator it  = mUniform_map.begin();
@@ -911,7 +911,7 @@ void rtShaderResource::postlink()
       (*it).second.loc = getUniformLocation( (*it).second.name );
     }
   }//ENDIF
-  
+
   printf("rtShaderResource::postlink() >>>  mUniform_map.size =  %d \n\n", (int) mUniform_map.size());
 }
 
@@ -925,10 +925,10 @@ void rtShaderResource::postlink()
   {
     rtValue count;                  // HACK - WORKAROUND
     vals->Get("length", &count);    // HACK - WORKAROUND
-    
+
     int len = count.toUInt32();
     int  ii = 0;
-    
+
     for (uint32_t i = 0, l = len; i < l; ++i)
     {
       rtValue vv;
@@ -937,10 +937,10 @@ void rtShaderResource::postlink()
         vec[ii++] = vv.toInt32();
       }
     }//FOR
-    
+
     return RT_OK;
   }
-  
+
   return RT_FAIL;
 }
 
@@ -950,10 +950,10 @@ void rtShaderResource::postlink()
   {
     rtValue count;                  // HACK - WORKAROUND
     vals->Get("length", &count);    // HACK - WORKAROUND
-    
+
     int len = count.toUInt32();
     int ii  = 0;
-    
+
     for (uint32_t i = 0, l = len; i < l; ++i)
     {
       rtValue vv;
@@ -962,10 +962,10 @@ void rtShaderResource::postlink()
         vec[ii++] = vv.toFloat();
       }
     }//FOR
-    
+
     return RT_OK;
   }
-  
+
   return RT_FAIL;
 }
 
@@ -973,12 +973,12 @@ void rtShaderResource::postlink()
 /*static*/ void rtShaderResource::bindTexture3(const uniformLoc_t &p)
 {
   rtImageResource *img = (rtImageResource *) p.value.toObject().getPtr();
-  
+
   if(img)
   {
     pxTextureRef tex = img->getTexture();
     GLuint       tid = tex->getNativeId();
-    
+
     glActiveTexture(GL_TEXTURE3);
     glBindTexture(GL_TEXTURE_2D,     tid);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
@@ -990,14 +990,14 @@ void rtShaderResource::postlink()
 /*static*/ void rtShaderResource::bindTexture4(const uniformLoc_t &p)
 {
   rtImageResource *img = (rtImageResource *) p.value.toObject().getPtr();
-  
+
   if(img)
   {
     pxTextureRef tex = img->getTexture();
     GLuint       tid = tex->getNativeId();
-    
+
     tex->bindTexture();
-    
+
     glActiveTexture(GL_TEXTURE4);
     glBindTexture(GL_TEXTURE_2D,     tid);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
@@ -1009,12 +1009,12 @@ void rtShaderResource::postlink()
 /*static*/ void rtShaderResource::bindTexture5(const uniformLoc_t &p)
 {
   rtImageResource *img = (rtImageResource *) p.value.toObject().getPtr();
-  
+
   if(img)
   {
     pxTextureRef tex = img->getTexture();
     GLuint       tid = tex->getNativeId();
-    
+
     glActiveTexture(GL_TEXTURE5);
     glBindTexture(GL_TEXTURE_2D,     tid);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
@@ -1025,7 +1025,7 @@ void rtShaderResource::postlink()
 /*static*/ void rtShaderResource::setUniformNiv(int N, const uniformLoc_t &p)
 {
   const rtArrayObject* vals = (const rtArrayObject*)  p.value.toObject().getPtr();
-  
+
   if(vals)
   {
     static int32_t vec[4] = {0}; // up to vec4
@@ -1042,13 +1042,13 @@ void rtShaderResource::postlink()
 /*static*/ void rtShaderResource::setUniformNfv(int N, const uniformLoc_t &p)
 {
   const rtArrayObject* vals = (const rtArrayObject*)  p.value.toObject().getPtr();
-  
+
   if(vals)
   {
     static float vec[4] = {0.0}; // up to vec4
 
     fillFloatVec(&vec[0], vals);
-    
+
     switch(N)
     {
       case 2: glUniform2fv(p.loc, 1, vec ); break;
@@ -1068,47 +1068,47 @@ static glShaderProgDetails  createShaderProgram(const char* vShaderTxt, const ch
 {
   struct glShaderProgDetails details = { 0,0,0 };
   GLint stat;
-  
+
   details.fragShader = glCreateShader(GL_FRAGMENT_SHADER);
   glShaderSource(details.fragShader, 1, (const char **) &fShaderTxt, NULL);
   glCompileShader(details.fragShader);
   glGetShaderiv(details.fragShader, GL_COMPILE_STATUS, &stat);
-  
+
   if (!stat)
   {
     rtLogError("FRAGMENT SHADER - Error: Shader did not compile: %d", glGetError());
-    
+
     GLint maxLength = 0;
     glGetShaderiv(details.fragShader, GL_INFO_LOG_LENGTH, &maxLength);
-    
+
     //The maxLength includes the NULL character
     std::vector<char> errorLog(maxLength);
     glGetShaderInfoLog(details.fragShader, maxLength, &maxLength, &errorLog[0]);
-    
+
     rtLogError("%s", &errorLog[0]);
-    
+
     //Exit with failure.
     glDeleteShader(details.fragShader); //Don't leak the shader.
-    
+
     throw glException( rtString("FRAGMENT SHADER - Compile Error: ") + &errorLog[0] );
     //TODO get rid of exit
     //exit(1);
   }
-  
+
   details.vertShader = glCreateShader(GL_VERTEX_SHADER);
   glShaderSource(details.vertShader, 1, (const char **) &vShaderTxt, NULL);
   glCompileShader(details.vertShader);
   glGetShaderiv(details.vertShader, GL_COMPILE_STATUS, &stat);
-  
+
   if (!stat)
   {
     GLenum err = glGetError();
-    
+
     rtLogError("vertex shader did not compile: %d",err);
     throw glException( rtString("VERTEX SHADER - Compile Error: ") );
     //exit(1);
   }
-  
+
   details.program = glCreateProgram();
   glAttachShader(details.program, details.fragShader);
   glAttachShader(details.program, details.vertShader);
@@ -1118,7 +1118,7 @@ static glShaderProgDetails  createShaderProgram(const char* vShaderTxt, const ch
 void linkShaderProgram(GLuint program)
 {
   GLint stat;
-  
+
   glLinkProgram(program);  /* needed to put attribs into effect */
   glGetProgramiv(program, GL_LINK_STATUS, &stat);
   if (!stat)
@@ -1127,7 +1127,7 @@ void linkShaderProgram(GLuint program)
     GLsizei len;
     glGetProgramInfoLog(program, 1000, &len, log);
     rtLogError("VERTEX SHADER - Failed to link: %s", log);
-    
+
     throw glException( rtString("VERTEX SHADER - Link Error: ") + log );
     // TODO purge all exit calls
    // exit(1);
@@ -1150,7 +1150,7 @@ rtRef<rtShaderResource> pxShaderManager::getShader(const char* fragmentUrl,
 {
   rtRef<rtShaderResource> pShader;
   uint32_t shaderId;
-  
+
   rtString key = fragmentUrl;
   if (false == ((key.beginsWith("http:")) || (key.beginsWith("https:"))))
   {
@@ -1178,7 +1178,7 @@ rtRef<rtShaderResource> pxShaderManager::getShader(const char* fragmentUrl,
     shaderId = gShaderId++;
     mShaderUrlMap.insert(make_pair(key, shaderId));
   }
-  
+
   ShaderMap::iterator it = mShaderMap.find(shaderId);
   if (it != mShaderMap.end())
   {
@@ -1194,7 +1194,7 @@ rtRef<rtShaderResource> pxShaderManager::getShader(const char* fragmentUrl,
     mShaderMap.insert(make_pair(shaderId, pShader));
     pShader->loadResource(archive);
   }
-  
+
   return pShader;
 }
 

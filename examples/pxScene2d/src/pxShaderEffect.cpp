@@ -59,19 +59,19 @@ public:
   {
     mErr = err;
   }
-  
+
   virtual const char* desc() const throw()
   {
     return mErr.cString();
   }
-  
+
 private:
   rtString mErr;
 };
 
 /*
  pxCurrentGLProgram currentGLProgram = PROGRAM_UNKNOWN;
- 
+
 
 static glShaderProgDetails  createShaderProgram(const char* vShaderTxt, const char* fShaderTxt);
 void linkShaderProgram(GLuint program);
@@ -102,11 +102,11 @@ pxShaderEffect::~pxShaderEffect()
 void pxShaderEffect::init(const char* v, const char* f)
 {
   glShaderProgDetails details = createShaderProgram(v, f);
-  
+
   mProgram    = details.program;
   mFragShader = details.fragShader;
   mVertShader = details.vertShader;
-  
+
   prelink();
   linkShaderProgram(mProgram);
   postlink();
@@ -115,10 +115,10 @@ void pxShaderEffect::init(const char* v, const char* f)
 int pxShaderEffect::getUniformLocation(const char* name)
 {
   int l = glGetUniformLocation(mProgram, name);
-  
+
   if (l == -1)
     rtLogError("Shader does not define uniform %s.\n", name);
-  
+
   return l;
 }
 
@@ -142,11 +142,11 @@ pxError pxShaderEffect::draw(int resW, int resH, float* matrix, float alpha,
     use();
  //   currentGLProgram = PROGRAM_SOLID_SHADER;
   }
-  
+
   glUniform2f(mResolutionLoc, static_cast<GLfloat>(resW), static_cast<GLfloat>(resH));
   glUniformMatrix4fv(mMatrixLoc, 1, GL_FALSE, matrix);
-  
-  
+
+
   //
   // Update UNIFORMS ...
   //
@@ -154,16 +154,16 @@ pxError pxShaderEffect::draw(int resW, int resH, float* matrix, float alpha,
        it != mUniform_map.end(); ++it)
   {
     uniformLoc_t &p = (*it).second;
-    
+
     // TODO:  String matching ... yuk ... move to 'char' based switch() for types
     if(p.name == "u_time")
     {
       double time = pxMilliseconds();
       if(dt == 0)
         dt = time;
-      
+
       double tt = (time - dt) / 1000.0;
-      
+
       glUniform1f(p.loc, (float) tt );
     }
     else
@@ -191,11 +191,11 @@ pxError pxShaderEffect::draw(int resW, int resH, float* matrix, float alpha,
         }
     }
   }//FOR
-  
+
   //
   // DRAW
   //
-  
+
   if(uv)
   {
     glVertexAttribPointer(mPosLoc, 2, GL_FLOAT, GL_FALSE, 0, pos);
@@ -215,7 +215,7 @@ pxError pxShaderEffect::draw(int resW, int resH, float* matrix, float alpha,
     glDrawArrays(mode, 0, count);  TRACK_DRAW_CALLS();
     glDisableVertexAttribArray(mPosLoc);
   }
-  
+
   return RT_OK;
 }
 
@@ -234,14 +234,14 @@ void pxShaderObject::onInit()
   try
   {
     const char* vtxCode = mVertexSrc.length() > 0 ? mVertexSrc.cString() : vShaderText;
-    
+
     pxShaderEffect::init( vtxCode, (const char*) mFragmentSrc.cString() );
   }
   catch(glException e)
   {
     rtLogError("Failed to compile Shader - e: %s", e.desc() );
   }
- 
+
   mInitialized = true;
 
   //TODO add mechanism for Unifroms from passed params
@@ -257,14 +257,14 @@ void pxShaderObject::sendPromise()
   }
 }
 
-void pxShaderObject::resourceReady(rtString readyResolution)
+void pxShaderObject::resourceReady(rtString /* readyResolution */)
 {
-  
+
 }
 
 void pxShaderObject::resourceDirty()
 {
-  
+
 }
 
 //
@@ -273,14 +273,14 @@ void pxShaderObject::resourceDirty()
 rtError pxShaderObject::setUniformVal(const rtString& name, const rtValue& v)
 {
   use();
-  
+
   UniformMapIter_t it = mUniform_map.find(name);
   if(it != mUniform_map.end())
   {
     uniformLoc_t &p = (*it).second;
-    
+
     p.needsUpdate = true;
-    
+
     // TODO:  String matching ... yuk ... move to 'char' based switch() for types
     if(p.type == UniformType_Int)
     {
@@ -300,33 +300,33 @@ rtError pxShaderObject::setUniformVal(const rtString& name, const rtValue& v)
       {
         rtValue count;                  // HACK - WORKAROUND
         vals->Get("length", &count);    // HACK - WORKAROUND
-        
+
         static float vec2[2];
         int ii = 0;
-        
+
         for (uint32_t i = 0, l = count.toUInt32(); i < l; ++i)
         {
           rtValue vv;
           if(vals->Get(i, &vv) == RT_OK && !vv.isEmpty())
           {
             float val = vv.toFloat();
-            
+
             vec2[ii++] = val;
           }
         }//FOR
-        
+
         printf("\n DEBUG: setUniformVal() ... vec2:   [%f, %f]", vec2[0], vec2[1]);
 
         glUniform2fv(p.loc, 1, vec2 );
       }
-      
+
      // glUniform1f(mAlphaLoc, v.toFloat() );
     }
     //TODO add more types...
-    
+
     return RT_OK;
   }
-  
+
   return RT_FAIL; // not found
 }
 
@@ -353,31 +353,31 @@ rtError pxShaderObject::Set(const char* name, const rtValue* value)
 }
 
 pxError pxShaderObject::draw(int resW, int resH, float* matrix, float alpha,
-                        pxTextureRef t, 
+                        pxTextureRef t,
                         GLenum mode,
                         const void* pos,
                         int count)
 {
   draw(resW, resH,  matrix, alpha, t, mode, pos, count);
-  
+
   return RT_OK;
 }
 
-rtError pxShaderObject::url(rtString& s) const          { return RT_OK; }
-rtError pxShaderObject::setUrl(const char* s)           { return RT_OK; }
+rtError pxShaderObject::url(rtString& /* s */) const          { return RT_OK; }
+rtError pxShaderObject::setUrl(const char* /* s */)           { return RT_OK; }
 
-rtError pxShaderObject::vtxShader(rtString& s) const    { return RT_OK; }
-rtError pxShaderObject::setVtxShader(const char* s)     { mVertexSrc = s; return RT_OK; }
+rtError pxShaderObject::vtxShader(rtString& /* s */) const    { return RT_OK; }
+rtError pxShaderObject::setVtxShader(const char* s)           { mVertexSrc = s;   return RT_OK; }
 
-rtError pxShaderObject::frgShader(rtString& s) const    { return RT_OK; }
-rtError pxShaderObject::setFrgShader(const char* s)     { mFragmentSrc = s; return RT_OK; }
+rtError pxShaderObject::frgShader(rtString& /* s */) const    { return RT_OK; }
+rtError pxShaderObject::setFrgShader(const char* s)           { mFragmentSrc = s; return RT_OK; }
 
-rtError pxShaderObject::uniforms(rtObjectRef& o) const  { return RT_OK; }
+rtError pxShaderObject::uniforms(rtObjectRef& /* o */) const  { return RT_OK; }
 rtError pxShaderObject::setUniforms(rtObjectRef o)
 {
   rtValue allKeys;
   o->Get("allKeys", &allKeys);
-  
+
   rtArrayObject* keys = (rtArrayObject*) allKeys.toObject().getPtr();
   for (uint32_t i = 0, l = keys->length(); i < l; ++i)
   {
@@ -386,7 +386,7 @@ rtError pxShaderObject::setUniforms(rtObjectRef o)
     {
       rtString key  = keyVal.toString();
       rtString type = o.get<rtString>(key);
-      
+
       printf("\n Key:  %s   Type: %s", key.cString(), type.cString() );
 
       if(key == "u_time")
@@ -418,7 +418,7 @@ void pxShaderObject::postlink()
   mMatrixLoc     = getUniformLocation("amymatrix");
 //  mColorLoc      = getUniformLocation("a_color");
 //  mAlphaLoc      = getUniformLocation("u_alpha");
-  
+
   for (std::map< rtString, uniformLoc_t>::iterator it  = mUniform_map.begin();
                                                    it != mUniform_map.end(); ++it)
   {
