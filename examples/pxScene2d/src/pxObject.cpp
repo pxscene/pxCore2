@@ -1841,7 +1841,6 @@ rtError pxObject::copyConfigArray(rtObjectRef &v)
   
   rtArrayObject *dstConfigs = new rtArrayObject();
   
-  
   rtShaderResource *pShader = NULL;
   
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1850,7 +1849,6 @@ rtError pxObject::copyConfigArray(rtObjectRef &v)
   
   // Iterate CONFIG objects in Array
   for (uint32_t i = 0; i < numKeys; i++)
-    //  for (int i = numKeys - 1; i >= 0; i--)
   {
     rtString            key = keys.get<rtString>(i);
     rtValue          config = v.get<rtValue>(key);
@@ -1882,7 +1880,6 @@ rtError pxObject::copyConfigArray(rtObjectRef &v)
     if(shader.isEmpty() == false)
     {
       rtShaderResource *ptr = dynamic_cast<rtShaderResource *>( shader.toObject().getPtr() );
-      //      printf("GOT shader:  %p \n", ptr);
       
       pShader = ptr;
       
@@ -2096,10 +2093,8 @@ void pxObject::drawShader(pxObject *px, pxContextFramebufferRef &flattenFbo)
   
   rtObjectRef               fx = px->effect();
   rtShaderResource  *shaderRes = dynamic_cast<rtShaderResource *> ( fx.getPtr() ); // DIRECT OBJECT ??
-
   
   float ww = px->w(), hh = px->h();
-
   
   if (flattenFbo.getPtr() == NULL)
   {

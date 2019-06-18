@@ -452,7 +452,7 @@ rtError rtShaderResource::setUniforms(rtObjectRef o)
       rtString name = keyVal.toString();
       rtString type = o.get<rtString>(name);
 
-      printf("\n Key:  %s   Value: %s", name.cString(), type.cString() );
+      // printf("\n Key:  %s   Value: %s", name.cString(), type.cString() );
 
       if(name == "u_time")
       {
