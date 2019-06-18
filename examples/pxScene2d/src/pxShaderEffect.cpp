@@ -19,17 +19,21 @@
 //
 // Debug Statistics
 #ifdef USE_RENDER_STATS
-extern uint32_t gDrawCalls;
-extern uint32_t gTexBindCalls;
-extern uint32_t gFboBindCalls;
 
-#define TRACK_DRAW_CALLS()   { gDrawCalls++;    }
-#define TRACK_TEX_CALLS()    { gTexBindCalls++; }
-#define TRACK_FBO_CALLS()    { gFboBindCalls++; }
+  extern uint32_t gDrawCalls;
+  extern uint32_t gTexBindCalls;
+  extern uint32_t gFboBindCalls;
+
+  #define TRACK_DRAW_CALLS()   { gDrawCalls++;    }
+  #define TRACK_TEX_CALLS()    { gTexBindCalls++; }
+  #define TRACK_FBO_CALLS()    { gFboBindCalls++; }
+
 #else
-#define TRACK_DRAW_CALLS()
-#define TRACK_TEX_CALLS()
-#define TRACK_FBO_CALLS()
+
+  #define TRACK_DRAW_CALLS()
+  #define TRACK_TEX_CALLS()
+  #define TRACK_FBO_CALLS()
+
 #endif
 
 #define SAFE_DELETE(p)  if(p) { delete p; p = NULL; };
@@ -68,158 +72,6 @@ public:
 private:
   rtString mErr;
 };
-
-/*
- pxCurrentGLProgram currentGLProgram = PROGRAM_UNKNOWN;
-
-
-static glShaderProgDetails  createShaderProgram(const char* vShaderTxt, const char* fShaderTxt);
-void linkShaderProgram(GLuint program);
-
-//====================================================================================================================================================================================
-
-
-//====================================================================================================================================================================================
-
-
-
-pxShaderEffect::pxShaderEffect() : mProgram(-1), mFragShader(-1), mVertShader(-1),
-                                   mTimeLoc(-1),
-                                   mResolutionLoc(-1), mMatrixLoc(-1), mPosLoc(-1),
-                                   mUVLoc(-1), mAlphaLoc(-1), mColorLoc(-1)
-{
-}
-
-pxShaderEffect::~pxShaderEffect()
-{
-  glDetachShader(mProgram, mFragShader);
-  glDetachShader(mProgram, mVertShader);
-  glDeleteShader(mFragShader);
-  glDeleteShader(mVertShader);
-  glDeleteProgram(mProgram);
-}
-
-void pxShaderEffect::init(const char* v, const char* f)
-{
-  glShaderProgDetails details = createShaderProgram(v, f);
-
-  mProgram    = details.program;
-  mFragShader = details.fragShader;
-  mVertShader = details.vertShader;
-
-  prelink();
-  linkShaderProgram(mProgram);
-  postlink();
-}
-
-int pxShaderEffect::getUniformLocation(const char* name)
-{
-  int l = glGetUniformLocation(mProgram, name);
-
-  if (l == -1)
-    rtLogError("Shader does not define uniform %s.\n", name);
-
-  return l;
-}
-
-void pxShaderEffect::use()
-{
-  currentGLProgram = PROGRAM_UNKNOWN;
-  glUseProgram(mProgram);
-}
-
-static double dt = 0;
-
-pxError pxShaderEffect::draw(int resW, int resH, float* matrix, float alpha,
-                             pxTextureRef t,
-                             GLenum mode,
-                             const void* pos,
-                             const void* uv,
-                             int count)
-{
- // if (currentGLProgram != PROGRAM_SOLID_SHADER)
-  {
-    use();
- //   currentGLProgram = PROGRAM_SOLID_SHADER;
-  }
-
-  glUniform2f(mResolutionLoc, static_cast<GLfloat>(resW), static_cast<GLfloat>(resH));
-  glUniformMatrix4fv(mMatrixLoc, 1, GL_FALSE, matrix);
-
-
-  //
-  // Update UNIFORMS ...
-  //
-  for (std::map< rtString, uniformLoc_t>::iterator it  = mUniform_map.begin();
-       it != mUniform_map.end(); ++it)
-  {
-    uniformLoc_t &p = (*it).second;
-
-    // TODO:  String matching ... yuk ... move to 'char' based switch() for types
-    if(p.name == "u_time")
-    {
-      double time = pxMilliseconds();
-      if(dt == 0)
-        dt = time;
-
-      double tt = (time - dt) / 1000.0;
-
-      glUniform1f(p.loc, (float) tt );
-    }
-    else
-    if(p.name == "u_color")
-    {
-      float color[4] = {1,0,0,1};
-      glUniform4fv(p.loc, 1, color);
-    }
-    else
-    if(p.name == "u_alpha")
-    {
-     glUniform1f(p.loc, alpha);
-    }
-    else
-    if(p.name == "u_resolution")
-    {
-      glUniform2f(p.loc, static_cast<GLfloat>(resW), static_cast<GLfloat>(resH));
-    }
-    else
-    if(p.name == "s_texture")
-    {
-        if (t && t->bindGLTexture(p.loc) != PX_OK)
-        {
-        //  return PX_FAIL;
-        }
-    }
-  }//FOR
-
-  //
-  // DRAW
-  //
-
-  if(uv)
-  {
-    glVertexAttribPointer(mPosLoc, 2, GL_FLOAT, GL_FALSE, 0, pos);
-    glVertexAttribPointer(mUVLoc,  2, GL_FLOAT, GL_FALSE, 0, uv);
-
-    glEnableVertexAttribArray(mPosLoc);
-    glEnableVertexAttribArray(mUVLoc);
-    glDrawArrays(mode, 0, count);  TRACK_DRAW_CALLS();
-    glDisableVertexAttribArray(mPosLoc);
-    glDisableVertexAttribArray(mUVLoc);
-  }
-  else
-  {
-    glVertexAttribPointer(mPosLoc, 2, GL_FLOAT, GL_FALSE, 0, pos);
-
-    glEnableVertexAttribArray(mPosLoc);
-    glDrawArrays(mode, 0, count);  TRACK_DRAW_CALLS();
-    glDisableVertexAttribArray(mPosLoc);
-  }
-
-  return RT_OK;
-}
-
- */
 
 //====================================================================================================================================================================================
 
@@ -281,7 +133,6 @@ rtError pxShaderObject::setUniformVal(const rtString& name, const rtValue& v)
 
     p.needsUpdate = true;
 
-    // TODO:  String matching ... yuk ... move to 'char' based switch() for types
     if(p.type == UniformType_Int)
     {
       glUniform1i(p.loc, v.toInt32() );
@@ -387,8 +238,6 @@ rtError pxShaderObject::setUniforms(rtObjectRef o)
       rtString key  = keyVal.toString();
       rtString type = o.get<rtString>(key);
 
-      printf("\n Key:  %s   Type: %s", key.cString(), type.cString() );
-
       if(key == "u_time")
       {
         mIsRealTime = true;
@@ -420,8 +269,8 @@ void pxShaderObject::postlink()
 //  mColorLoc      = getUniformLocation("a_color");
 //  mAlphaLoc      = getUniformLocation("u_alpha");
 
-  for (std::map< rtString, uniformLoc_t>::iterator it  = mUniform_map.begin();
-                                                   it != mUniform_map.end(); ++it)
+  for (UniformMapIter_t it  = mUniform_map.begin();
+                        it != mUniform_map.end(); ++it)
   {
     (*it).second.loc = getUniformLocation( (*it).second.name );
   }

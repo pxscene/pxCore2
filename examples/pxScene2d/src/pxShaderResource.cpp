@@ -163,8 +163,8 @@ pxError pxShaderEffect::draw(int resW, int resH, float* matrix, float alpha,
   //
   // Update UNIFORMS ...
   //
-  for (std::map< rtString, uniformLoc_t>::iterator it  = mUniform_map.begin();
-       it != mUniform_map.end(); ++it)
+  for (UniformMapIter_t it  = mUniform_map.begin();
+                        it != mUniform_map.end(); ++it)
   {
     uniformLoc_t &p = (*it).second;
 
@@ -222,16 +222,16 @@ pxError pxShaderEffect::draw(int resW, int resH, float* matrix, float alpha,
   // Apply UNIFORM values to GPU...
   if(mUniform_map.size() > 0)
   {
-    for (std::map< rtString, uniformLoc_t>::iterator it  = mUniform_map.begin();
-         it != mUniform_map.end(); ++it)
+    for(UniformMapIter_t  it = mUniform_map.begin();
+                         it != mUniform_map.end(); ++it)
     {
       uniformLoc_t &p = (*it).second;
 
-      if(p.setFunc)// && p.needsUpdate)
+      if(p.setFunc && p.needsUpdate)
       {
         p.setFunc(p); // SET UNIFORM ... set p.value .. calls glUnifornXXX() ... etc.
 
-    //    p.needsUpdate = false;
+        p.needsUpdate = false;
       }
     }
   }//ENDIF
@@ -905,8 +905,8 @@ void rtShaderResource::postlink()
 
   if(mUniform_map.size() > 0)
   {
-    for (std::map< rtString, uniformLoc_t>::iterator it  = mUniform_map.begin();
-                                                     it != mUniform_map.end(); ++it)
+    for (UniformMapIter_t it  = mUniform_map.begin();
+                          it != mUniform_map.end(); ++it)
     {
       (*it).second.loc = getUniformLocation( (*it).second.name );
     }

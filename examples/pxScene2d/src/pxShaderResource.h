@@ -104,7 +104,6 @@ struct uniformLoc
 
 typedef uniformLoc uniformLoc_t;
 
-
 typedef std::map<rtString, uniformLoc_t> UniformMap_t;
 typedef std::map<rtString, uniformLoc_t>::iterator UniformMapIter_t;
 
