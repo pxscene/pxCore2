@@ -262,6 +262,9 @@ void benchmarkWindow::reset()
         case pxApiFixture::type::xDrawImagePNG:
             mGroupName = "DrawImagePNG";
             break;
+        case pxApiFixture::type::xDrawImageGIF:
+            mGroupName = "DrawImageGIF";
+        break;
         case pxApiFixture::type::xDrawImageBorder9:
             mGroupName = "DrawImageBorder9";
             break;
@@ -510,7 +513,7 @@ uint64_t pxApiFixture::run(const uint64_t threads, const uint64_t iterations, co
         
         gOtherStart = celero::timer::GetSystemTime();
         
-        if (mExperimentValue.Value == xDrawImageJPG || mExperimentValue.Value == xDrawImagePNG)
+        if (mExperimentValue.Value == xDrawImageJPG || mExperimentValue.Value == xDrawImagePNG || mExperimentValue.Value == xDrawImageGIF)
             gCPU += totalTime;
         else
             gGPU += totalTime;
@@ -561,6 +564,22 @@ void pxApiFixture::TestDrawDiagRect ()
 {
     static float color[4] = {0., 1.0, 0.0, 1.0};
     context.drawDiagRect(mCurrentX, mCurrentY, mUnitWidth, mUnitHeight, color);
+}
+
+pxOffscreen& pxApiFixture::GetImageATexture (const string& format)
+{
+    string url = "/tmp/Resources/" + to_string((mExperimentValue.Iterations % MAX_IMAGES_CNT) + 1) + format;
+    
+    //url = win.GetOutPath() + url;
+    pxOffscreen o;
+    if (!rtFileExists((char*)url.c_str()))
+        return o;
+    
+    rtRef<rtImageAResource> resource = pxImageManager::getImageA((char*)url.c_str());
+    pxTimedOffscreenSequence s = resource->getTimedOffscreenSequence();
+    o = s.getFrameBuffer(0);
+    resource->clearDownloadRequest();
+    return o;
 }
 
 pxTextureRef pxApiFixture::GetImageTexture (const string& format)
@@ -657,6 +676,18 @@ void pxApiFixture::TestDrawImagePNG ()
         mTextureRef->deleteTexture();
     
     mTextureRef = GetImageTexture (".png");
+    
+    mTextureMaskRef = NULL;
+    
+    context.drawImage(mCurrentX, mCurrentY, mUnitWidth, mUnitHeight, mTextureRef, mTextureMaskRef, false, NULL, ((int)mCurrentX) % 2 == 0 ? pxConstantsStretch::STRETCH : pxConstantsStretch::REPEAT, ((int)mCurrentX) % 2 == 0 ? pxConstantsStretch::STRETCH : ((int)mCurrentY) % 2 == 0 ? pxConstantsStretch::REPEAT : pxConstantsStretch::NONE, true, ((int)mCurrentX) % 2 == 0 ? pxConstantsMaskOperation::NORMAL : pxConstantsMaskOperation::INVERT);
+}
+
+void pxApiFixture::TestDrawImageGIF ()
+{
+    if (mTextureRef != NULL)
+    mTextureRef->deleteTexture();
+    
+    mTextureRef = GetImageTexture (".gif");
     
     mTextureMaskRef = NULL;
     
@@ -761,6 +792,9 @@ void pxApiFixture::onExperimentStart(const celero::TestFixture::ExperimentValue&
         case xDrawImagePNG:
             TestDrawImagePNG();
             break;
+        case xDrawImageGIF:
+            TestDrawImageGIF();
+        break;
         case xDrawImageBorder9:
             TestDrawImage9Border();
             break;
@@ -944,7 +978,7 @@ void pxApiFixture::setUp(const celero::TestFixture::ExperimentValue& experimentV
         mTextureRef = NULL;
     }
     
-    if (mExperimentValue.Value != xDrawImagePNG && mExperimentValue.Value != xDrawImageJPG)
+    if (mExperimentValue.Value != xDrawImagePNG && mExperimentValue.Value != xDrawImageJPG && mExperimentValue.Value != xDrawImageGIF)
         mTextureRef = mDoCreateTexture ? CreateTexture() : GetImageTexture ("jpg");
     
     //mTextureRef = context.createTexture(win.GetTexture());
