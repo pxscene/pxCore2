@@ -31,7 +31,7 @@
 #include "pxTextBox.h"
 #include "pxImage.h"
 
-#include "pxShaderEffect.h"
+#include "pxShaderResource.h"
 
 #include <algorithm>
 

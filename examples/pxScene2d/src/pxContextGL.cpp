@@ -27,7 +27,7 @@
 #include "rtScript.h"
 #include "rtSettings.h"
 
-#include "pxShaderEffect.h"
+#include "pxShaderResource.h"
 
 #include "pxContext.h"
 #include "pxUtil.h"

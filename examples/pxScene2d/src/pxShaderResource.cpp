@@ -504,7 +504,6 @@ rtError rtShaderResource::setUniforms(rtObjectRef o)
         mSamplerCount++;
       }
 
-
       mUniform_map[name] = { name, type, typeEnum, (GLint) -1, rtValue(), false, setFunc };  // ADD TO MAP
     }
   }//FOR
