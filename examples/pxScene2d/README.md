@@ -48,6 +48,7 @@
 ## Windows Setup
 >Setup Windows 10
 >   * Windows 10 
+>   * VMware Fusion + VMware Tools
 >   * Visual Studio 2017 community with `Desktop development with C++` workload
 >   * [windows sdk 10.0.15063.0, windows sdk 10.0.16299 and windows sdk 10.0.17134(aka 1803)] (https://developer.microsoft.com/en-us/windows/downloads/sdk-archive)
 >   * python 2.7.x , make sure python can work in cmd (setup environment variables depending on install location)
