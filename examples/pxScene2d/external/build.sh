@@ -95,11 +95,17 @@ fi
 banner "GIF"
 
 cd gif
-if [ "$(uname)" == "Darwin" ]; then
 
 [ -d patches ] || mkdir -p patches
+
+if [ "$(uname)" == "Darwin" ]; then
+[ -d patches/series ] || echo 'giflib-5.1.9-mac.patch' >patches/series
+cp ../giflib-5.1.9-mac.patch patches/
+else
 [ -d patches/series ] || echo 'giflib-5.1.9.patch' >patches/series
 cp ../giflib-5.1.9.patch patches/
+fi
+
 
 if [[ "$#" -eq "1" && "$1" == "--clean" ]]; then
 	quilt pop -afq || test $? = 2
@@ -110,8 +116,6 @@ elif [[ "$#" -eq "1" && "$1" == "--force-clean" ]]; then
 	rm -rf .libs/*
 else
 	quilt push -aq || test $? = 2
-fi
-
 fi
 
 if [ ! -e ./.libs/libgif.7.dylib ] ||
