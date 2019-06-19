@@ -47,7 +47,6 @@
 #include "pxImageA.h"
 #include "pxImage9Border.h"
 
-#include "pxShaderEffect.h"
 #include "pxShaderResource.h"
 
 
