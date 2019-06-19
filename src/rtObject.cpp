@@ -158,8 +158,6 @@ rtError rtEmit::Send(int numArgs, const rtValue* args, rtValue* result)
         //
         // pass NULL as final argument for indication of asynchronous call
         err = e.f->Send(numArgs-1, args+1, &discard);
-        if (result)
-          *result = discard;
 #else
 
 #warning "  >>>>>>  No SYNC EVENTS... stopPropagation() will be broken !!"
