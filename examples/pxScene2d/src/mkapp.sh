@@ -97,12 +97,9 @@ ${minJS} init.js $bundleRes/init.js
 ${minJS} shell.js $bundleRes/shell.js
 ${minJS} browser.js $bundleRes/browser.js
 ${minJS} about.js $bundleRes/about.js
-${minJS} mime.js $bundleRes/mime.js
+${minJS} browser/mime.js $bundleRes/browser/mime.js
 ${minJS} browser/editbox.js $bundleRes/browser/editbox.js
 #./jsMinFolder.sh browser $bundleRes/browser
-
-# Copy MIME files...
-${minJS} mime.js $bundleRes/mime.js
 
 # Copy duktape modules
 cp -a duk_modules $bundleRes/duk_modules
