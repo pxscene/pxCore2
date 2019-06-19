@@ -2102,7 +2102,7 @@ void pxObject::drawShader(pxObject *px, pxContextFramebufferRef &flattenFbo)
     
     // Render with EFFECT shader... DIRECTLY to render buffer
     context.drawEffect( 0,0, ww, hh, NULL,
-                       (pxShaderEffect*) shaderRes);
+                       (shaderProgram*) shaderRes);
     
     context.popState();
   }
@@ -2132,7 +2132,7 @@ void pxObject::drawShader(pxObject *px, pxContextFramebufferRef &flattenFbo)
       // Render with EFFECT shader...
       context.drawEffect( 0,0, ww, hh,
                          (flattenFbo ? flattenFbo->getTexture() : 0),
-                         (pxShaderEffect*) shaderRes);
+                         (shaderProgram*) shaderRes);
     }
     else
     {
@@ -2149,7 +2149,7 @@ void pxObject::drawShader(pxObject *px, pxContextFramebufferRef &flattenFbo)
           
           // Render with EFFECT shader...
           context.drawEffect( 0,0, ww, hh, sourceFbo->getTexture(),
-                             (pxShaderEffect*) shaderRes);
+                             (shaderProgram*) shaderRes);
           
           if(i < l-1)
           {

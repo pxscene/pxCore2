@@ -1271,7 +1271,7 @@ private:
 
 //====================================================================================================================================================================================
 
-class solidShaderEffect: public pxShaderEffect
+class solidShaderEffect: public shaderProgram
 {
 protected:
   virtual void prelink()
@@ -1331,7 +1331,7 @@ solidShaderEffect *gSolidShader = NULL;
 
 //====================================================================================================================================================================================
 
-class aTextureShaderEffect: public pxShaderEffect
+class aTextureShaderEffect: public shaderProgram
 {
 protected:
   virtual void prelink()
@@ -1404,7 +1404,7 @@ aTextureShaderEffect *gATextureShader = NULL;
 
 //====================================================================================================================================================================================
 
-class textureShaderEffect: public pxShaderEffect
+class textureShaderEffect: public shaderProgram
 {
 protected:
   virtual void prelink()
@@ -1475,7 +1475,7 @@ private:
 
 textureShaderEffect *gTextureShader = NULL;
 
-class textureBorderShaderEffect: public pxShaderEffect
+class textureBorderShaderEffect: public shaderProgram
 {
 protected:
   virtual void prelink()
@@ -1559,7 +1559,7 @@ textureBorderShaderEffect *gTextureBorderShader = NULL;
 
 //====================================================================================================================================================================================
 
-class textureMaskedShaderEffect: public pxShaderEffect
+class textureMaskedShaderEffect: public shaderProgram
 {
 protected:
   virtual void prelink()
@@ -1663,7 +1663,7 @@ static void drawRect2(GLfloat x, GLfloat y, GLfloat w, GLfloat h, const float* c
 }
 
 
-static void drawEffect(GLfloat x, GLfloat y, GLfloat w, GLfloat h, pxTextureRef t, pxShaderEffect *shader)
+static void drawEffect(GLfloat x, GLfloat y, GLfloat w, GLfloat h, pxTextureRef t, shaderProgram *shader)
 {
   if(shader == NULL)
   {
@@ -2692,7 +2692,7 @@ void pxContext::drawDiagLine(float x1, float y1, float x2, float y2, float* colo
 }
 
 // convenience method
-void pxContext::drawEffect(float x, float y, float w, float h, pxTextureRef t, pxShaderEffect *shader)
+void pxContext::drawEffect(float x, float y, float w, float h, pxTextureRef t, shaderProgram *shader)
 {
   ::drawEffect(x, y, w, h, t, shader);
 };

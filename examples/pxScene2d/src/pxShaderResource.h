@@ -115,13 +115,13 @@ typedef std::vector<uniformLoc_t>::iterator UniformListIter_t;
 enum pxCurrentGLProgram { PROGRAM_UNKNOWN = 0, PROGRAM_SOLID_SHADER,  PROGRAM_A_TEXTURE_SHADER, PROGRAM_TEXTURE_SHADER,
   PROGRAM_TEXTURE_MASKED_SHADER, PROGRAM_TEXTURE_BORDER_SHADER};
 
-class pxShaderEffect
+class shaderProgram
 {
 public:
 
-  pxShaderEffect();
+  shaderProgram();
 
-  virtual ~pxShaderEffect();
+  virtual ~shaderProgram();
   virtual void init(const char* v, const char* f);
   
   int getUniformLocation(const char* name);
@@ -160,7 +160,7 @@ protected:
 
 //=====================================================================================================================================
 
-class rtShaderResource: public pxResource, pxShaderEffect
+class rtShaderResource: public pxResource, shaderProgram
 {
 public:
   

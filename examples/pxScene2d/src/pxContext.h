@@ -38,7 +38,7 @@
 #include "pxContextDescGL.h"
 #endif //ENABLE_DFB
 
-class pxShaderEffect; //fwd
+class shaderProgram; //fwd
 
 #define MAX_TEXTURE_WIDTH  2048
 #define MAX_TEXTURE_HEIGHT 2048
@@ -126,7 +126,7 @@ class pxContext {
                  bool downscaleSmooth = false,
                  pxConstantsMaskOperation::constants maskOp= pxConstantsMaskOperation::NORMAL);
 
-  void drawEffect(float x, float y, float w, float h, pxTextureRef t, pxShaderEffect *shader);
+  void drawEffect(float x, float y, float w, float h, pxTextureRef t, shaderProgram *shader);
 
 #ifdef PXSCENE_FONT_ATLAS
   // This is intended to draw numQuads from the same texture.

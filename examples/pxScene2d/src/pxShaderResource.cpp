@@ -1,5 +1,5 @@
 //
-//  pxShaderEffect.cpp
+//  pxShaderResource.cpp
 //  Spark
 //
 //  Created by Fitzpatrick, Hugh on 5/10/19.
@@ -84,7 +84,7 @@ class glException: public exception
 
 //=====================================================================================================================================
 
-pxShaderEffect::pxShaderEffect() : mProgram(-1), mFragShader(-1), mVertShader(-1),
+shaderProgram::shaderProgram() : mProgram(-1), mFragShader(-1), mVertShader(-1),
                                    mTimeLoc(-1),
                                    mResolutionLoc(-1), mMatrixLoc(-1), mPosLoc(-1),
                                    mUVLoc(-1), mAlphaLoc(-1), mColorLoc(-1)
@@ -92,7 +92,7 @@ pxShaderEffect::pxShaderEffect() : mProgram(-1), mFragShader(-1), mVertShader(-1
   mUniform_map.clear();
 }
 
-pxShaderEffect::~pxShaderEffect()
+shaderProgram::~shaderProgram()
 {
   glDetachShader(mProgram, mFragShader);
   glDetachShader(mProgram, mVertShader);
@@ -101,7 +101,7 @@ pxShaderEffect::~pxShaderEffect()
   glDeleteProgram(mProgram);
 }
 
-void pxShaderEffect::init(const char* v, const char* f)
+void shaderProgram::init(const char* v, const char* f)
 {
   if(f)
   {
@@ -124,7 +124,7 @@ void pxShaderEffect::init(const char* v, const char* f)
   }
 }
 
-int pxShaderEffect::getUniformLocation(const char* name)
+int shaderProgram::getUniformLocation(const char* name)
 {
   int l = glGetUniformLocation(mProgram, name);
 
@@ -134,7 +134,7 @@ int pxShaderEffect::getUniformLocation(const char* name)
   return l;
 }
 
-void pxShaderEffect::use()
+void shaderProgram::use()
 {
   currentGLProgram = PROGRAM_UNKNOWN;
   glUseProgram(mProgram);
@@ -142,7 +142,7 @@ void pxShaderEffect::use()
 
 static double dt = 0;
 
-pxError pxShaderEffect::draw(int resW, int resH, float* matrix, float alpha,
+pxError shaderProgram::draw(int resW, int resH, float* matrix, float alpha,
                              pxTextureRef t,
                              GLenum mode,
                              const void* pos,
@@ -309,7 +309,7 @@ void rtShaderResource::setupResource()
     const char* vtxCode = mVertexSrc.length() > 0 ? (const char*) mVertexSrc.data() : vShaderText;
 
     // TODO:  TRY
-    pxShaderEffect::init( vtxCode, (const char*) mFragmentSrc.data() );
+    shaderProgram::init( vtxCode, (const char*) mFragmentSrc.data() );
     // TODO:  CATCH
 
     double stopDecodeTime = pxMilliseconds();
@@ -354,7 +354,7 @@ UniformType_t rtShaderResource::getUniformType(rtString &name)
 }
 
 //
-//  Set() >> setUniformVal() ... called when setting Uniforms directly on a [pxShaderEffect].
+//  Set() >> setUniformVal() ... called when setting Uniforms directly on a [shaderProgram].
 //
 rtError rtShaderResource::setUniformVal(const rtString& name, const rtValue& v)
 {
@@ -688,7 +688,7 @@ void rtShaderResource::loadResourceFromArchive(rtObjectRef archiveRef)
     const char* vtxCode = mVertexSrc.length() > 0 ? (const char*) mVertexSrc.data() : vShaderText;
 
     // TODO:  TRY
-    pxShaderEffect::init( vtxCode, (const char*) mFragmentSrc.data() );
+    shaderProgram::init( vtxCode, (const char*) mFragmentSrc.data() );
     // TODO:  CATCH
 
     double stopDecodeTime = pxMilliseconds();
@@ -846,10 +846,9 @@ void rtShaderResource::loadResource(rtObjectRef archive, bool  reloading)
 uint32_t rtShaderResource::loadResourceData(rtFileDownloadRequest* fileDownloadRequest)
 {
   double startDecodeTime = pxMilliseconds();
-  rtError decodeResult = RT_OK; // TODO: create pxShaderEffect   //pxLoadImage(fileDownloadRequest->downloadedData(),
-                                                                  //            fileDownloadRequest->downloadedDataSize(),
-                                                                  //            imageOffscreen, init_w, init_h, init_sx, init_sy);
-
+  rtError decodeResult = RT_OK; // TODO: create shaderProgram   //pxLoadImage(fileDownloadRequest->downloadedData(),
+                                                                //            fileDownloadRequest->downloadedDataSize(),
+                                                                //            imageOffscreen, init_w, init_h, init_sx, init_sy)
   if(fileDownloadRequest->tag() == "frg")
   {
     mFragmentSrc.init( (const uint8_t*) fileDownloadRequest->downloadedData(),
@@ -870,7 +869,7 @@ uint32_t rtShaderResource::loadResourceData(rtFileDownloadRequest* fileDownloadR
 //    const char* vertexCode = mVertexSrc.length() > 0 ? (const char*) mVertexSrc.data() : vShaderText;
 //
 //    // TODO:  TRY
-//    pxShaderEffect::init( vertexCode, (const char*) mFragmentSrc.data() );
+//    shaderProgram::init( vertexCode, (const char*) mFragmentSrc.data() );
 //    // TODO:  CATCH
 //  }
 
