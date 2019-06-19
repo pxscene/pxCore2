@@ -39,7 +39,7 @@ var vm = require('vm')
 var _module = require('module')
 var _ws = require('ws')
 var _http = require('http')
-var _https = require('http')
+var _https = require('https')
 
 // JRJR not sure why Buffer is not already defined.
 // Could look at adding to sandbox.js but this works for now
@@ -284,22 +284,34 @@ const bootStrap = (moduleName, from, request) => {
 }
 
 var _clearIntervals = function() {
-  for(var interval of _intervals) {
-    _timers.clearInterval(interval)
+  if (_intervals.length) {
+    console.log(`clear ${_intervals.length} intervals`);
+
+    for (var interval of _intervals) {
+      _timers.clearInterval(interval)
+    }
   }
   _intervals = []
 }
 
 var _clearTimeouts = function() {
-  for(var timeout of _timeouts) {
-    _timers.clearTimeout(timeout)
+  if (_timeouts.length) {
+    console.log(`clear ${_timeouts.length} timeouts`);
+
+    for (var timeout of _timeouts) {
+      _timers.clearTimeout(timeout)
+    }
   }
   _timeouts = []
 }
 
 var _clearImmediates = function() {
-  for(var timeout of _immediates) {
-    _timers.clearTimeout(timeout)
+  if (_immediates.length) {
+    console.log(`clear ${_immediates.length} immediates`);
+
+    for (var timeout of _immediates) {
+      _timers.clearImmediate(timeout)
+    }
   }
   _immediates = []
 }
@@ -324,7 +336,7 @@ var _clearSockets = function() {
   const httpsSockets = [].concat.apply([], Object.values(_https.globalAgent.sockets));
 
   for (let s of new Set(httpSockets.concat(httpsSockets))) {
-    console.log(`ending socket ${s.remoteAddress}`);
+    console.log(`ending socket ${s.remoteAddress||'<destroyed>'}`);
     s.end();
   }
 }
