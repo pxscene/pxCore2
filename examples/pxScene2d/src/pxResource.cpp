@@ -1074,10 +1074,7 @@ void rtImageAResource::loadResourceFromFile()
         //mTexture->notifyListeners( mTexture, RT_FAIL, errorCode);
     }
     else
-    {
-        // create offscreen texture for local image
-        // TODO
-        
+    {   
         data.term(); // Dump the source data...
         
         setLoadStatus("statusCode",PX_RESOURCE_LOAD_SUCCESS);
@@ -1090,8 +1087,6 @@ void rtImageAResource::loadResourceFromFile()
             gUIThreadQueue->addTask(onDownloadCompleteUI, this, (void *) "resolve");
         }
     }
-    
-  mDimensionsMutex.unlock();
 }
 
 void rtImageAResource::loadResourceFromArchive(rtObjectRef archiveRef)
