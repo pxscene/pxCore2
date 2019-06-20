@@ -2095,7 +2095,9 @@ rtError pxLoadAGIFImage(const char *imageData, size_t imageDataSize,
 #else
     DGifCloseFile(gif);
 #endif
-    
+    if (status == RT_OK)
+		s.setNumPlays(s.numFrames() / s.totalTime());
+	
     return status;
 #endif //SUPPORT_GIF
 }
