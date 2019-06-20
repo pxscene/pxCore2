@@ -113,7 +113,7 @@ void pxImageA::update(double t, bool updateChildren)
 
   if (numFrames > 0)
   {
-    if (mFrameTime < 0)
+    if (mFrameTime < 0 && mPlays <= imageSequence.numPlays())
     {
       mCurFrame = 0;
       mFrameTime = t;
