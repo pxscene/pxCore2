@@ -1529,9 +1529,6 @@ void pxObject::createSnapshot(pxContextFramebufferRef& fbo, bool separateContext
 void pxObject::renderEffect(pxContextFramebufferRef& fbo)
 {
   pxMatrix4f m;
-  
-  //  float parentAlpha = ma;
-  
   float parentAlpha = 1.0;
 
   context.setMatrix(m);
@@ -1561,9 +1558,8 @@ void pxObject::renderEffect(pxContextFramebufferRef& fbo)
   }
 
   pxContextFramebufferRef previousRenderSurface = context.getCurrentFramebuffer();
-  if (/*mRepaint && */context.setFramebuffer(fbo) == PX_OK)
+  if (context.setFramebuffer(fbo) == PX_OK)
   {
-    //context.clear(static_cast<int>(w), static_cast<int>(h));
     if (gDirtyRectsEnabled)
     {
       int clearX      = mDirtyRect.left();
@@ -1585,7 +1581,8 @@ void pxObject::renderEffect(pxContextFramebufferRef& fbo)
     } else {
       context.clear(static_cast<int>(w), static_cast<int>(h));
     }
-    draw();
+
+    draw(); // DRAW self...
     
     for(vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
     {
@@ -1596,9 +1593,6 @@ void pxObject::renderEffect(pxContextFramebufferRef& fbo)
     
     if (fbo.getPtr() != NULL)
     {
-      //rtLogInfo("context.drawImage\n");
-      static pxTextureRef nullMaskRef;
-      
       drawShader(this, fbo);
     }
   }
@@ -1880,10 +1874,7 @@ rtError pxObject::applyConfig(rtObjectRef v)
           }
         }//FOR
       }
-    }
-    
-    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    
+    }//ENDIF
   }
   
   return RT_OK;
