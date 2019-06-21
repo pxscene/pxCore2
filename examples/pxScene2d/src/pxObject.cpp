@@ -45,7 +45,7 @@ extern bool gDirtyRectsEnabled;
 
 int pxObjectCount = 0;
 
-rtValue  copyUniform(UniformType_t type, rtValue &val); //fwd
+static rtValue copyUniform(UniformType_t type, rtValue &val); //fwd
 
 static rtShaderResource *gShaderPtr = NULL; // HACK FIXME YUCK
 
@@ -2002,7 +2002,7 @@ rtError pxObject::copyConfigArray(rtObjectRef &v)
   return RT_OK;
 }
 
-rtValue  copyUniform(UniformType_t type, rtValue &val)
+static rtValue copyUniform(UniformType_t type, rtValue &val)
 {
   rtValue ans;
   
