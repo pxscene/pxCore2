@@ -1271,7 +1271,7 @@ private:
 
 //====================================================================================================================================================================================
 
-class solidShaderEffect: public shaderProgram
+class solidShaderProgram: public shaderProgram
 {
 protected:
   virtual void prelink()
@@ -1325,13 +1325,13 @@ private:
   GLint mColorLoc;
   GLint mAlphaLoc;
 
-}; //CLASS - solidShaderEffect
+}; //CLASS - solidShaderProgram
 
-solidShaderEffect *gSolidShader = NULL;
+solidShaderProgram *gSolidShader = NULL;
 
 //====================================================================================================================================================================================
 
-class aTextureShaderEffect: public shaderProgram
+class aTextureShaderProgram: public shaderProgram
 {
 protected:
   virtual void prelink()
@@ -1398,13 +1398,13 @@ private:
 
   GLint mTextureLoc;
 
-}; //CLASS - aTextureShaderEffect
+}; //CLASS - aTextureShaderProgram
 
-aTextureShaderEffect *gATextureShader = NULL;
+aTextureShaderProgram *gATextureShader = NULL;
 
 //====================================================================================================================================================================================
 
-class textureShaderEffect: public shaderProgram
+class textureShaderProgram: public shaderProgram
 {
 protected:
   virtual void prelink()
@@ -1471,11 +1471,11 @@ private:
 
   GLint mTextureLoc;
 
-}; //CLASS - textureShaderEffect
+}; //CLASS - textureShaderProgram
 
-textureShaderEffect *gTextureShader = NULL;
+textureShaderProgram *gTextureShader = NULL;
 
-class textureBorderShaderEffect: public shaderProgram
+class textureBorderShaderProgram: public shaderProgram
 {
 protected:
   virtual void prelink()
@@ -1553,13 +1553,13 @@ private:
 
   GLint mTextureLoc;
 
-}; //CLASS - textureBorderShaderEffect
+}; //CLASS - textureBorderShaderProgram
 
-textureBorderShaderEffect *gTextureBorderShader = NULL;
+textureBorderShaderProgram *gTextureBorderShader = NULL;
 
 //====================================================================================================================================================================================
 
-class textureMaskedShaderEffect: public shaderProgram
+class textureMaskedShaderProgram: public shaderProgram
 {
 protected:
   virtual void prelink()
@@ -1638,9 +1638,9 @@ private:
   GLint mTextureLoc;
   GLint mMaskLoc;
 
-}; //CLASS - textureMaskedShaderEffect
+}; //CLASS - textureMaskedShaderProgram
 
-textureMaskedShaderEffect *gTextureMaskedShader = NULL;
+textureMaskedShaderProgram *gTextureMaskedShader = NULL;
 
 //====================================================================================================================================================================================
 
@@ -2100,19 +2100,19 @@ void pxContext::init()
   SAFE_DELETE(gTextureBorderShader);
   SAFE_DELETE(gTextureMaskedShader);
 
-  gSolidShader = new solidShaderEffect();
+  gSolidShader = new solidShaderProgram();
   gSolidShader->init(vShaderText,fSolidShaderText);
 
-  gATextureShader = new aTextureShaderEffect();
+  gATextureShader = new aTextureShaderProgram();
   gATextureShader->init(vShaderText,fATextureShaderText);
 
-  gTextureShader = new textureShaderEffect();
+  gTextureShader = new textureShaderProgram();
   gTextureShader->init(vShaderText,fTextureShaderText);
 
-  gTextureBorderShader = new textureBorderShaderEffect();
+  gTextureBorderShader = new textureBorderShaderProgram();
   gTextureBorderShader->init(vShaderText,fTextureBorderShaderText);
 
-  gTextureMaskedShader = new textureMaskedShaderEffect();
+  gTextureMaskedShader = new textureMaskedShaderProgram();
   gTextureMaskedShader->init(vShaderText,fTextureMaskedShaderText);
 
   glEnable(GL_BLEND);
