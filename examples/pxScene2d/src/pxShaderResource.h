@@ -265,6 +265,7 @@ class pxShaderManager
 public:
 
   static rtRef<rtShaderResource> getShader(const char* fragmentUrl, const char* vertexUrl = NULL, const rtCORSRef& cors = NULL, rtObjectRef archive = NULL);
+  static void removeShader(rtString shaderUrl);
   static void removeShader(uint32_t shaderId);
   static void clearAllShaders();
   

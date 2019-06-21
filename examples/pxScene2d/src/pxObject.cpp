@@ -1998,6 +1998,7 @@ rtError pxObject::copyConfigArray(rtObjectRef &v)
   }//FOR - config objects
   
   mEffects = rtObjectRef(dstConfigs);
+
   return RT_OK;
 }
 

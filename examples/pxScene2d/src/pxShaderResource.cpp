@@ -84,10 +84,9 @@ class glException: public exception
 
 //=====================================================================================================================================
 
-shaderProgram::shaderProgram() : mProgram(-1), mFragShader(-1), mVertShader(-1),
-                                   mTimeLoc(-1),
-                                   mResolutionLoc(-1), mMatrixLoc(-1), mPosLoc(-1),
-                                   mUVLoc(-1), mAlphaLoc(-1), mColorLoc(-1)
+shaderProgram::shaderProgram() : mProgram(-1), mFragShader(-1), mVertShader(-1), mTimeLoc(-1),
+                                 mResolutionLoc(-1), mMatrixLoc(-1), mPosLoc(-1),
+                                 mUVLoc(-1), mAlphaLoc(-1), mColorLoc(-1)
 {
   mUniform_map.clear();
 }
@@ -328,14 +327,13 @@ unsigned long rtShaderResource::Release()
     //TODO
     //TODO
     //TODO
-//    pxShaderManager::removeShader( mVertexUrl );
-//    pxShaderManager::removeShader( mFragmentUrl );
+    pxShaderManager::removeShader( mVertexUrl   );
+    pxShaderManager::removeShader( mFragmentUrl );
     //TODO
     //TODO
     //TODO
     //TODO
     delete this;
-
   }
   return l;
 }
@@ -1195,12 +1193,36 @@ rtRef<rtShaderResource> pxShaderManager::getShader(const char* fragmentUrl,
   return pShader;
 }
 
+void pxShaderManager::removeShader(rtString shaderUrl)
+{
+  if(shaderUrl.isEmpty())
+  {
+    rtLogDebug("removeShader( <empty> ) - NOT found ! \n");
+    return;
+  }
+  
+  ShaderUrlMap::iterator itId = mShaderUrlMap.find(shaderUrl);
+  
+  if( itId != mShaderUrlMap.end())
+  {
+    removeShader( (uint32_t) itId->second);
+  }
+  else
+  {
+     rtLogDebug("removeShader(%s) - NOT found ! \n",shaderUrl.cString());
+  }
+}
+
 void pxShaderManager::removeShader(uint32_t shaderId)
 {
   ShaderMap::iterator it = mShaderMap.find(shaderId);
   if (it != mShaderMap.end())
   {
     mShaderMap.erase(it);
+  }
+  else
+  {
+    rtLogDebug("removeShader(id: %d) - NOT found ! \n",shaderId);
   }
 }
 
