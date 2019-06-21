@@ -621,7 +621,7 @@ protected:
   rtObjectRef mEffectRef;
   rtObjectRef mEffects;
 
-  bool hasEffect()   { return ( mEffectRef || mEffects ); }
+  finline bool hasEffect()   { return ( mEffectRef || mEffects ); }
 
   bool mHitTest;
   rtObjectRef mReady;
