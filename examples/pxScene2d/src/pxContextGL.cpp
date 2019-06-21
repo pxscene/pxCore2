@@ -694,7 +694,9 @@ public:
     if ( (horizontalScale > 1) || (verticalScale > 1 ) )
     {
        mOffscreen.init(newTextureWidth, newTextureHeight);
-       mOffscreen.setUpsideDown(true);
+#ifndef WIN32
+        mOffscreen.setUpsideDown(true);
+#endif // WIN32
        int y = 0;
        for (int j = 0; j < srcTextureHeight-1; j += verticalScale, y++ )
        {
@@ -709,7 +711,9 @@ public:
     {
       mOffscreen.init(o.width(), o.height());
       // Flip the image data here so we match GL FBO layout
-      mOffscreen.setUpsideDown(true);
+#ifndef WIN32
+        mOffscreen.setUpsideDown(true);
+#endif // WIN32
       o.blit(mOffscreen);
     }
 #else
