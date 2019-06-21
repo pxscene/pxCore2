@@ -123,7 +123,7 @@ pxObject::pxObject(pxScene2d* scene):
     msx(1), msy(1), mw(0), mh(0),
     mInteractive(true),
     mSnapshotRef(), mPainting(true), mClip(false), mMask(false), mDraw(true), mEffectRef(NULL), mHitTest(true), mReady(),
-    mFocus(false),mClipSnapshotRef(), mCancelInSet(true), mRepaint(true),
+    mFocus(false), mClipSnapshotRef(), mEffectSnapshotRef(), mCancelInSet(true), mRepaint(true),
     mIsDirty(true), mRenderMatrix(), mLastRenderMatrix(), mScreenCoordinates(), mDirtyRect(), mScene(NULL),
     mDrawableSnapshotForMask(), mMaskSnapshot(), mIsDisposed(false), mSceneSuspended(false)
   {
@@ -150,10 +150,12 @@ pxObject::~pxObject()
     pxObjectCount--;
     clearSnapshot(mSnapshotRef);
     clearSnapshot(mClipSnapshotRef);
+    clearSnapshot(mEffectSnapshotRef);
     clearSnapshot(mDrawableSnapshotForMask);
     clearSnapshot(mMaskSnapshot);
     mSnapshotRef = NULL;
     mClipSnapshotRef = NULL;
+    mEffectSnapshotRef = NULL;
     mDrawableSnapshotForMask = NULL;
     mMaskSnapshot = NULL;
     pxScene2d::updateObject(this, false);
@@ -200,10 +202,12 @@ void pxObject::dispose(bool pumpJavascript)
     mChildren.clear();
     clearSnapshot(mSnapshotRef);
     clearSnapshot(mClipSnapshotRef);
+    clearSnapshot(mEffectSnapshotRef);
     clearSnapshot(mDrawableSnapshotForMask);
     clearSnapshot(mMaskSnapshot);
     mSnapshotRef = NULL;
     mClipSnapshotRef = NULL;
+    mEffectSnapshotRef = NULL;
     mDrawableSnapshotForMask = NULL;
     mMaskSnapshot = NULL;
     if (mScene)
@@ -934,6 +938,7 @@ void pxObject::update(double t, bool updateChildren)
 void pxObject::releaseData(bool sceneSuspended)
 {
   clearSnapshot(mClipSnapshotRef);
+  clearSnapshot(mEffectSnapshotRef);
   clearSnapshot(mDrawableSnapshotForMask);
   clearSnapshot(mMaskSnapshot);
   mSceneSuspended = sceneSuspended;
@@ -963,6 +968,10 @@ uint64_t pxObject::textureMemoryUsage(std::vector<rtObject*> &objectsCounted)
     if (mClipSnapshotRef.getPtr() != NULL)
     {
       textureMemory += (mClipSnapshotRef->width() * mClipSnapshotRef->height() * 4);
+    }
+    if (mEffectSnapshotRef.getPtr() != NULL)
+    {
+      textureMemory += (mEffectSnapshotRef->width() * mEffectSnapshotRef->height() * 4);
     }
     if (mDrawableSnapshotForMask.getPtr() != NULL)
     {
@@ -1212,12 +1221,12 @@ void pxObject::drawInternal(bool maskPass /* = false */)
   {
     context.pushState();
 
-    renderEffect(mFlattenRef);
+    renderEffect(mEffectSnapshotRef);
 
     context.popState();
 
     static pxTextureRef nullMaskRef;
-    context.drawImage(0,0,w,h, mFlattenRef->getTexture(), nullMaskRef);
+    context.drawImage(0,0,w,h, mEffectSnapshotRef->getTexture(), nullMaskRef);
   }
   else
   if (mPainting)

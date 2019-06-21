@@ -627,7 +627,7 @@ protected:
   rtObjectRef mReady;
   bool mFocus;
   pxContextFramebufferRef mClipSnapshotRef;
-  pxContextFramebufferRef mFlattenRef;
+  pxContextFramebufferRef mEffectSnapshotRef;
 
   bool mCancelInSet;
   rtString mId;
