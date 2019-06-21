@@ -265,6 +265,8 @@ public:
   rtError drawEnabled(bool& v)  const { v = mDraw; return RT_OK;  }
   rtError setDrawEnabled(bool v) { mDraw = v; return RT_OK; }
 
+  rtObjectRef effects()            const { return mEffects; }
+
   rtObjectRef effect()            const { return mEffectRef;}
   rtError effect(rtObjectRef& v)  const { v = mEffectRef; return RT_OK; }
   rtError setEffect(rtObjectRef v);
@@ -584,6 +586,7 @@ public:
 
   pxScene2d* getScene() { return mScene; }
   void createSnapshot(pxContextFramebufferRef& fbo, bool separateContext=false, bool antiAliasing=false);
+  void renderEffect(pxContextFramebufferRef& fbo);
 
 
   rtError copyConfigArray(rtObjectRef &v);
@@ -618,10 +621,14 @@ protected:
   rtObjectRef mEffectRef;
   rtObjectRef mEffects;
 
+  bool hasEffect()   { return ( mEffectRef || mEffects ); }
+
   bool mHitTest;
   rtObjectRef mReady;
   bool mFocus;
   pxContextFramebufferRef mClipSnapshotRef;
+  pxContextFramebufferRef mFlattenRef;
+
   bool mCancelInSet;
   rtString mId;
   bool mRepaint;

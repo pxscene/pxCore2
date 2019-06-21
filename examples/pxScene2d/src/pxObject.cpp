@@ -47,7 +47,7 @@ int pxObjectCount = 0;
 
 rtValue  copyUniform(UniformType_t type, rtValue &val); //fwd
 
-static rtShaderResource *pShader = NULL; // HACK FIXME YUCK
+static rtShaderResource *gShaderPtr = NULL; // HACK FIXME YUCK
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -1211,7 +1211,19 @@ void pxObject::drawInternal(bool maskPass /* = false */, bool skipTransform /* =
   float c[4] = {1, 0, 0, 1};
   context.drawDiagRect(0, 0, w, h, c);
 
-  //rtLogInfo("pxObject::drawInternal mPainting=%d mw=%f mh=%f\n", mPainting, mw, mh);
+  // SHADER RESOURCE ? ---------------------------------------------------------------------------------------------------
+  if(hasEffect())
+  {
+    context.pushState();
+
+    renderEffect(mFlattenRef);
+
+    context.popState();
+
+    static pxTextureRef nullMaskRef;
+    context.drawImage(0,0,w,h, mFlattenRef->getTexture(), nullMaskRef);
+  }
+  else
   if (mPainting)
   {
     pxConstantsMaskOperation::constants maskOp = pxConstantsMaskOperation::NORMAL; // default
@@ -1288,31 +1300,8 @@ void pxObject::drawInternal(bool maskPass /* = false */, bool skipTransform /* =
           continue;
         }
 
-        pxObject                 *px = (*it); // pxObject of node where to apply effect.
-        rtObjectRef               fx = (*it)->effect();
-        rtShaderResource  *shaderRes = dynamic_cast<rtShaderResource *> ( fx.getPtr() ); // DIRECT OBJECT ??
-
-        float ww = px ? px->w() : 0.0f;
-        float hh = px ? px->h() : 0.0f;
-
         context.pushState(); // DRAW
-
-        pxContextFramebufferRef flattenFbo;
-        if( fx || (shaderRes != NULL && shaderRes->needsFbo() && skipTransform == false) ) // node has EFFECT applied
-        {
-          // Flatten to texture...
-          pxContextFramebufferRef prev;
-          prev = context.getCurrentFramebuffer();
-
-          flattenFbo = context.createFramebuffer(ww, hh);
-
-          context.setFramebuffer(flattenFbo);
-
-          px->drawInternal(false,true);
-
-          context.setFramebuffer(prev);
-        }//ENDIF
-
+       
         // DRAW DRAW DRAW DRAW DRAW DRAW DRAW DRAW DRAW DRAW DRAW DRAW DRAW DRAW DRAW DRAW
         // DRAW DRAW DRAW DRAW DRAW DRAW DRAW DRAW DRAW DRAW DRAW DRAW DRAW DRAW DRAW DRAW
 
@@ -1344,14 +1333,6 @@ void pxObject::drawInternal(bool maskPass /* = false */, bool skipTransform /* =
           mScreenCoordinates.setBottom(bottom);
         }
  }*/
-
-        //////////////////////////////////////////////////////////////////////////////////////////////
-        //
-        if( fx || (shaderRes != NULL && skipTransform == false)) // THIS OBJECT has a SHADER RESOURCE !
-        {
-          drawShader(px, flattenFbo);
-        }     
-        //////////////////////////////////////////////////////////////////////////////////////////////
 
         context.popState(); // DRAW
 
@@ -1536,6 +1517,87 @@ void pxObject::createSnapshot(pxContextFramebufferRef& fbo, bool separateContext
   {
     sharedContext->makeCurrent(false);
   }
+}
+
+
+
+void pxObject::renderEffect(pxContextFramebufferRef& fbo)
+{
+  pxMatrix4f m;
+  
+  //  float parentAlpha = ma;
+  
+  float parentAlpha = 1.0;
+
+  context.setMatrix(m);
+  context.setAlpha(parentAlpha);
+  
+  float w = getOnscreenWidth();
+  float h = getOnscreenHeight();
+  
+  //#ifdef PX_DIRTY_RECTANGLES
+  bool fullFboRepaint = false;
+  //#endif //PX_DIRTY_RECTANGLES
+  
+  //rtLogInfo("renderEffect  w=%f h=%f\n", w, h);
+  if (fbo.getPtr() == NULL || fbo->width() != floor(w) || fbo->height() != floor(h))
+  {
+    clearSnapshot(fbo);
+    //rtLogInfo("createFramebuffer  mw=%f mh=%f\n", w, h);
+    fbo = context.createFramebuffer(static_cast<int>(floor(w)), static_cast<int>(floor(h)), false);
+    if (gDirtyRectsEnabled) {
+      fullFboRepaint = true;
+    }
+  }
+  else
+  {
+    //rtLogInfo("updateFramebuffer  mw=%f mh=%f\n", w, h);
+    context.updateFramebuffer(fbo, static_cast<int>(floor(w)), static_cast<int>(floor(h)));
+  }
+
+  pxContextFramebufferRef previousRenderSurface = context.getCurrentFramebuffer();
+  if (/*mRepaint && */context.setFramebuffer(fbo) == PX_OK)
+  {
+    //context.clear(static_cast<int>(w), static_cast<int>(h));
+    if (gDirtyRectsEnabled)
+    {
+      int clearX      = mDirtyRect.left();
+      int clearY      = mDirtyRect.top();
+      int clearWidth  = mDirtyRect.right()  - clearX+1;
+      int clearHeight = mDirtyRect.bottom() - clearY+1;
+      
+      if (!mIsDirty)
+        context.clear(static_cast<int>(w), static_cast<int>(h));
+      
+      if (fullFboRepaint)
+      {
+        clearX = 0;
+        clearY = 0;
+        clearWidth = w;
+        clearHeight = h;
+        context.clear(clearX, clearY, clearWidth, clearHeight);
+      }
+    } else {
+      context.clear(static_cast<int>(w), static_cast<int>(h));
+    }
+    draw();
+    
+    for(vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
+    {
+      context.pushState();
+      (*it)->drawInternal();
+      context.popState();
+    }
+    
+    if (fbo.getPtr() != NULL)
+    {
+      //rtLogInfo("context.drawImage\n");
+      static pxTextureRef nullMaskRef;
+      
+      drawShader(this, fbo);
+    }
+  }
+  context.setFramebuffer(previousRenderSurface);
 }
 
 void pxObject::createSnapshotOfChildren()
@@ -1755,8 +1817,6 @@ rtError pxObject::applyConfig(rtObjectRef v)
   
   rtObjectRef keys;
   
-  //  rtShaderResource *pShader = NULL;
-  
   if(mapp)
   {
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1780,10 +1840,7 @@ rtError pxObject::applyConfig(rtObjectRef v)
     
     if(shaderVal.isEmpty() == false)
     {
-      rtShaderResource *ptr = (rtShaderResource *) ( shaderVal.toVoidPtr() ) ;
-      //      printf("APPLY shader:  %p \n", ptr);
-      
-      pShader = ptr;
+      gShaderPtr = (rtShaderResource *) ( shaderVal.toVoidPtr() ) ;
     }
     else
     {
@@ -1812,12 +1869,11 @@ rtError pxObject::applyConfig(rtObjectRef v)
           rtString key = keys.get<rtString>(i);
           rtValue  val = uniforms->get<rtValue>(key);
           
-          if(pShader)
+          if(gShaderPtr)
           {
-            //             printf("APPLY uniform:  %s = %s\n", key.cString(), val.getTypeStr() );
-            pShader->setUniformVal(key, val);
+            gShaderPtr->setUniformVal(key, val);
           }
-        }
+        }//FOR
       }
     }
     
@@ -2096,16 +2152,14 @@ void pxObject::drawShader(pxObject *px, pxContextFramebufferRef &flattenFbo)
   
   float ww = px->w(), hh = px->h();
   
+  // DIRECT ? ---------------------------------------------------------------------------------------------------
   if (flattenFbo.getPtr() == NULL)
   {
-    context.pushState();
-    
     // Render with EFFECT shader... DIRECTLY to render buffer
     context.drawEffect( 0,0, ww, hh, NULL,
                        (shaderProgram*) shaderRes);
-    
-    context.popState();
   }
+  // CONFIG OBJECT ? ---------------------------------------------------------------------------------------------------
   else
   {
     // Render EFFECT... using FBO/textures
@@ -2121,12 +2175,12 @@ void pxObject::drawShader(pxObject *px, pxContextFramebufferRef &flattenFbo)
     
     pxContextFramebufferRef sourceFbo = flattenFbo;
     pxContextFramebufferRef targetFbo = effectFbo;
-    
-    context.pushState();
+        
     
     if(multiPass == NULL)
     {
       context.setFramebuffer(effectFbo);
+      context.clear(static_cast<int>(ww), static_cast<int>(hh));
       
       // Uniforms are SET in Setter ...
       // Render with EFFECT shader...
@@ -2134,6 +2188,7 @@ void pxObject::drawShader(pxObject *px, pxContextFramebufferRef &flattenFbo)
                          (flattenFbo ? flattenFbo->getTexture() : 0),
                          (shaderProgram*) shaderRes);
     }
+    // CONFIGS ARRAY ? ---------------------------------------------------------------------------------------------------
     else
     {
       for (uint32_t i = 0, l = multiPass->length(); i < l; i++)
@@ -2143,9 +2198,10 @@ void pxObject::drawShader(pxObject *px, pxContextFramebufferRef &flattenFbo)
         {
           // Set Uniforms here ...
           applyConfig(config.toObject());
-          shaderRes = pShader; // HACK
+          shaderRes = gShaderPtr; // HACK
           
           context.setFramebuffer(targetFbo);
+          context.clear(static_cast<int>(ww), static_cast<int>(hh));
           
           // Render with EFFECT shader...
           context.drawEffect( 0,0, ww, hh, sourceFbo->getTexture(),
@@ -2159,29 +2215,25 @@ void pxObject::drawShader(pxObject *px, pxContextFramebufferRef &flattenFbo)
           }
         }
       }//FOR
-      
-      // targetFbo = flattenFbo;
     }
+    // -------------------------------------------------------------------------------------------------------------------
     
     context.setFramebuffer(previousSurface);
     
     // Draw result of effect
     context.drawImage(0,0, ww, hh, targetFbo->getTexture(), NULL);
     
-    context.popState();
   }//FBO
   
-  if( shaderRes->isRealTime() )
+  if( shaderRes && shaderRes->isRealTime() )
   {
-    px->markDirty();
+    this->markDirty();
     mScene->mDirty = true;
   }
 }
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-
 
 
 
