@@ -715,7 +715,9 @@ public:
 #else
     mOffscreen.init(o.width(), o.height());
     // Flip the image data here so we match GL FBO layout
-    mOffscreen.setUpsideDown(true);
+#ifndef WIN32
+mOffscreen.setUpsideDown(true);
+#endif // WIN32
     o.blit(mOffscreen);
     mWidth = mOffscreen.width();
     mHeight = mOffscreen.height();
