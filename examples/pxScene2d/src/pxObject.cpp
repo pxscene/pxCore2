@@ -1106,7 +1106,7 @@ pxRect pxObject::convertToScreenCoordinates(pxRect* r)
 
 const float alphaEpsilon = (1.0f/255.0f);
 
-void pxObject::drawInternal(bool maskPass /* = false */, bool skipTransform /* = false */)
+void pxObject::drawInternal(bool maskPass /* = false */)
 {
   //rtLogInfo("pxObject::drawInternal mw=%f mh=%f\n", mw, mh);
 
@@ -1129,73 +1129,69 @@ void pxObject::drawInternal(bool maskPass /* = false */, bool skipTransform /* =
 
   pxMatrix4f m;
 
-  if(skipTransform == false)
-  {
-  #if 1
-  #if 1
-  #if 0
-    // translate based on xy rotate/scale based on cx, cy
-    m.translate(mx+mcx, my+mcy);
-    //  Only allow z rotation until we can reconcile multiple vanishing point thoughts
-    if (mr) {
-      m.rotateInDegrees(mr
-  #ifdef ANIMATION_ROTATE_XYZ
-      , mrx, mry, mrz
-  #endif //ANIMATION_ROTATE_XYZ
-      );
-    }
-    //if (mr) m.rotateInDegrees(mr, 0, 0, 1);
-    if (msx != 1.0f || msy != 1.0f) m.scale(msx, msy);
-    m.translate(-mcx, -mcy);
-  #else
-
-      if (gDirtyRectsEnabled) {
-          m = mRenderMatrix;
-      } else {
-          applyMatrix(m); // ANIMATE !!!
-      }
-  #endif
-  #else
-    // translate/rotate/scale based on cx, cy
-    m.translate(mx, my);
-    //  Only allow z rotation until we can reconcile multiple vanishing point thoughts
-    //  m.rotateInDegrees(mr, mrx, mry, mrz);
+#if 1
+#if 1
+#if 0
+  // translate based on xy rotate/scale based on cx, cy
+  m.translate(mx+mcx, my+mcy);
+  //  Only allow z rotation until we can reconcile multiple vanishing point thoughts
+  if (mr) {
     m.rotateInDegrees(mr
-  #ifdef ANIMATION_ROTATE_XYZ
-    , 0, 0, 1
-  #endif // ANIMATION_ROTATE_XYZ
+#ifdef ANIMATION_ROTATE_XYZ
+    , mrx, mry, mrz
+#endif //ANIMATION_ROTATE_XYZ
     );
-    m.scale(msx, msy);
-    m.translate(-mcx, -mcy);
-  #endif
-  #endif
+  }
+  //if (mr) m.rotateInDegrees(mr, 0, 0, 1);
+  if (msx != 1.0f || msy != 1.0f) m.scale(msx, msy);
+  m.translate(-mcx, -mcy);
+#else
 
-  #if 0
+    if (gDirtyRectsEnabled) {
+        m = mRenderMatrix;
+    } else {
+        applyMatrix(m); // ANIMATE !!!
+    }
+#endif
+#else
+  // translate/rotate/scale based on cx, cy
+  m.translate(mx, my);
+  //  Only allow z rotation until we can reconcile multiple vanishing point thoughts
+  //  m.rotateInDegrees(mr, mrx, mry, mrz);
+  m.rotateInDegrees(mr
+#ifdef ANIMATION_ROTATE_XYZ
+  , 0, 0, 1
+#endif // ANIMATION_ROTATE_XYZ
+  );
+  m.scale(msx, msy);
+  m.translate(-mcx, -mcy);
+#endif
+#endif
 
-    rtLogDebug("drawInternal: %s\n", mId.cString());
-    m.dump();
+#if 0
 
-    pxVector4f v1(mx+w, my, 0, 1);
-    rtLogDebug("Print vector top\n");
-    v1.dump();
+  rtLogDebug("drawInternal: %s\n", mId.cString());
+  m.dump();
 
-    pxVector4f result1 = m.multiply(v1);
-    rtLogDebug("Print vector top after\n");
-    result1.dump();
+  pxVector4f v1(mx+w, my, 0, 1);
+  rtLogDebug("Print vector top\n");
+  v1.dump();
 
-    pxVector4f v2(mx+w, my+mh, 0, 1);
-    rtLogDebug("Print vector bottom\n");
-    v2.dump();
+  pxVector4f result1 = m.multiply(v1);
+  rtLogDebug("Print vector top after\n");
+  result1.dump();
 
-    pxVector4f result2 = m.multiply(v2);
-    rtLogDebug("Print vector bottom after\n");
-    result2.dump();
+  pxVector4f v2(mx+w, my+mh, 0, 1);
+  rtLogDebug("Print vector bottom\n");
+  v2.dump();
 
-  #endif
+  pxVector4f result2 = m.multiply(v2);
+  rtLogDebug("Print vector bottom after\n");
+  result2.dump();
 
-    context.setMatrix(m);
+#endif
 
-  } // ENDIF - skipTransform
+  context.setMatrix(m);
 
   if ((mClip && !context.isObjectOnScreen(0,0,w,h)) || mSceneSuspended)
   {
