@@ -1593,6 +1593,8 @@ void pxObject::renderEffect(pxContextFramebufferRef& fbo)
     
     if (fbo.getPtr() != NULL)
     {
+      // Flattened pxObject (+ any children) now passed to Shader magic !
+
       drawShader(this, fbo);
     }
   }
@@ -2170,8 +2172,7 @@ void pxObject::drawShader(pxObject *px, pxContextFramebufferRef &flattenFbo)
     effectFbo = context.createFramebuffer(ww, hh);
     
     pxContextFramebufferRef sourceFbo = flattenFbo;
-    pxContextFramebufferRef targetFbo = effectFbo;
-        
+    pxContextFramebufferRef targetFbo = effectFbo;        
     
     if(multiPass == NULL)
     {
