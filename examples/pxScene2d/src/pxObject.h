@@ -265,8 +265,6 @@ public:
   rtError drawEnabled(bool& v)  const { v = mDraw; return RT_OK;  }
   rtError setDrawEnabled(bool v) { mDraw = v; return RT_OK; }
 
-  rtObjectRef effects()            const { return mEffects; }
-
   rtObjectRef effect()            const { return mEffectRef;}
   rtError effect(rtObjectRef& v)  const { v = mEffectRef; return RT_OK; }
   rtError setEffect(rtObjectRef v);
