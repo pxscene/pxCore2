@@ -34,8 +34,10 @@ string init(int width, int height, bool fullscreen, std::string title) {
   glfwMakeContextCurrent(window);
 
 #endif
-  glewInit();
-
+  GLenum err = glewInit();
+  if (GLEW_OK != err) {
+    return string("Can't init GLEW: ") + std::to_string((int)err);
+  }
 
   return string("");
 }

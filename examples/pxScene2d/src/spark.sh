@@ -13,7 +13,7 @@ PathR=$externalLibs:$externalDir/node/out/Release/obj.target
 
 export LD_LIBRARY_PATH=$PathR
 
-export NODE_PATH=.
+export NODE_PATH=.:./node_modules
 
 #export RT_LOG_LEVEL=info
 

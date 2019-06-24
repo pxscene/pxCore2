@@ -61,6 +61,16 @@
           'libraries': ['<!@(PKG_CONFIG_PATH=/opt/vc/lib/pkgconfig pkg-config --libs brcmegl brcmglesv2)'],
           'include_dirs': [ '<!@(PKG_CONFIG_PATH=/opt/vc/lib/pkgconfig pkg-config brcmegl brcmglesv2 --cflags-only-I | sed s/-I//g)']
         }],
+        ['OS=="linux" and has_glfw=="" and has_nexus=="" and has_raspbian==""', {
+          'sources': [
+            'src/glew/gles2glewimpl.cc',
+            'src/bindings.cc',
+            'src/gles2platform.cc',
+            'src/interface/webgl.cc'
+          ],
+          'libraries': ['<!@(pkg-config --libs glew)'],
+          'defines': ['IS_GLEW']
+        }],
         ['OS=="mac"', {
           'sources': [
             'src/glew/gles2glewimpl.cc',

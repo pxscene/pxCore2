@@ -137,6 +137,7 @@ function mvPopMatrix() {
 
 
 function setMatrixUniforms() {
+    gl.useProgram(shaderProgram);
     gl.uniformMatrix4fv(shaderProgram.pMatrixUniform, false, pMatrix);
     gl.uniformMatrix4fv(shaderProgram.mvMatrixUniform, false, mvMatrix);
 }
