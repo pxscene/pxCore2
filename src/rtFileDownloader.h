@@ -111,6 +111,14 @@ public:
   size_t readDataSize() const;
   rtObjectRef downloadMetrics() const;
   void setDownloadMetrics(int32_t connectTimeMs, int32_t sslConnectTimeMs, int32_t totalTimeMs, int32_t downloadSpeedBytesPerSecond);
+  void setDownloadOnly(bool downloadOnly);
+  bool isDownloadOnly(void);
+  void setActualFileSize(size_t actualFileSize);
+  size_t actualFileSize(void);
+  void setByteRangeEnable(bool bByteRangeFlag);
+  bool isByteRangeEnabled(void);
+  void setByteRangeIntervals(const char* byteRangeIntervals);
+  char* byteRangeIntervals(void);
 
 private:
   rtString mFileUrl;
@@ -148,6 +156,10 @@ private:
   const uint8_t* mReadData;
   size_t mReadDataSize;
   rtObjectRef mDownloadMetrics;
+  bool mDownloadOnly;
+  size_t mActualFileSize;
+  bool mIsByteRangeEnabled;
+  rtString mByteRangeIntervals;
 };
 
 struct rtFileDownloadHandle

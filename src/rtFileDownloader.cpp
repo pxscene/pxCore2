@@ -190,6 +190,10 @@ rtFileDownloadRequest::rtFileDownloadRequest(const char* imageUrl, void* callbac
     , mReadData(NULL)
     , mReadDataSize(0)
     , mDownloadMetrics(new rtMapObject())
+    , mDownloadOnly(false)
+    , mActualFileSize(0)
+    , mIsByteRangeEnabled(false)
+    , mByteRangeIntervals()
 {
   mAdditionalHttpHeaders.clear();
 #ifdef ENABLE_HTTP_CACHE
@@ -555,6 +559,46 @@ void rtFileDownloadRequest::setDownloadMetrics(int32_t connectTimeMs, int32_t ss
   mDownloadMetrics.set("downloadSpeedBytesPerSecond", downloadSpeedBytesPerSecond);
 }
 
+void rtFileDownloadRequest::setActualFileSize(size_t actualFileSize)
+{
+  mActualFileSize = actualFileSize;
+}
+
+size_t rtFileDownloadRequest::actualFileSize(void)
+{
+  return mActualFileSize;
+}
+
+void rtFileDownloadRequest::setByteRangeEnable(bool bByteRangeFlag)
+{
+  mIsByteRangeEnabled = bByteRangeFlag;
+}
+
+bool rtFileDownloadRequest::isByteRangeEnabled(void)
+{
+  return mIsByteRangeEnabled;
+}
+
+void rtFileDownloadRequest::setByteRangeIntervals(const char* byteRangeIntervals )
+{
+  mByteRangeIntervals = rtString(byteRangeIntervals);
+}
+
+char* rtFileDownloadRequest::byteRangeIntervals(void)
+{
+  return mByteRangeIntervals.cString();
+}
+
+void rtFileDownloadRequest::setDownloadOnly(bool downloadOnly)
+{
+  mDownloadOnly = downloadOnly;
+}
+
+bool rtFileDownloadRequest::isDownloadOnly(void)
+{
+  return mDownloadOnly;
+}
+
 rtFileDownloader::rtFileDownloader()
     : mNumberOfCurrentDownloads(0), mDefaultCallbackFunction(NULL), mDownloadHandles(), mReuseDownloadHandles(false),
       mCaCertFile(CA_CERTIFICATE), mFileCacheMutex()
@@ -714,9 +758,12 @@ void rtFileDownloader::downloadFile(rtFileDownloadRequest* downloadRequest)
 
     if (isDataInCache)
     {
+      if(downloadRequest->isDownloadOnly() == false)
+      {
         if(downloadRequest->deferCacheRead())
         {
             rtLogInfo("Reading from cache Start for %s\n", downloadRequest->fileUrl().cString());
+            mFileCacheMutex.lock();
             FILE *fp = downloadRequest->cacheFilePointer();
 
             if(fp != NULL)
@@ -745,8 +792,10 @@ void rtFileDownloader::downloadFile(rtFileDownloadRequest* downloadRequest)
                 delete [] buffer;
                 fclose(fp);
             }
+            mFileCacheMutex.unlock();
             rtLogInfo("Reading from cache End for %s\n", downloadRequest->fileUrl().cString());
         }
+      }
     }
     else
 #endif
@@ -766,7 +815,8 @@ void rtFileDownloader::downloadFile(rtFileDownloadRequest* downloadRequest)
     // Store the network data in cache
     if ((true == nwDownloadSuccess) &&
         (true == downloadRequest->cacheEnabled())  &&
-        (downloadRequest->httpStatusCode() != 206) &&
+        ((downloadRequest->isByteRangeEnabled() && (downloadRequest->actualFileSize() == downloadRequest->downloadedDataSize())) ||
+          ((downloadRequest->isByteRangeEnabled()==false) && (downloadRequest->httpStatusCode() != 206))) &&
         (downloadRequest->httpStatusCode() != 302) &&
         (downloadRequest->httpStatusCode() != 307))
     {
@@ -789,7 +839,7 @@ void rtFileDownloader::downloadFile(rtFileDownloadRequest* downloadRequest)
     }
 
     // Store the updated data in cache
-    if ((true == isDataInCache) && (cachedData.isUpdated()))
+    if ((true == isDataInCache) && (cachedData.isUpdated()) && (downloadRequest->isDownloadOnly() == false))
     {
       rtString url;
       cachedData.url(url);
@@ -930,6 +980,11 @@ bool rtFileDownloader::downloadFromNetwork(rtFileDownloadRequest* downloadReques
       curl_easy_setopt(curl_handle, CURLOPT_POSTFIELDSIZE, readDataSize);
     }
 
+    if(downloadRequest->isByteRangeEnabled())
+    {
+      curl_easy_setopt(curl_handle, CURLOPT_RANGE, (char*)downloadRequest->byteRangeIntervals());
+    }
+
     /* get it! */
     res = curl_easy_perform(curl_handle);
     curl_slist_free_all(list);
@@ -1033,18 +1088,21 @@ bool rtFileDownloader::checkAndDownloadFromCache(rtFileDownloadRequest* download
   mFileCacheMutex.lock();
   if ((NULL != rtFileCache::instance()) && (RT_OK == rtFileCache::instance()->httpCacheData(downloadRequest->fileUrl(),cachedData)))
   {
-    if(downloadRequest->deferCacheRead())
-      err = cachedData.deferCacheRead(data);
-    else
-      err = cachedData.data(data);
-    if (RT_OK !=  err)
+    if(downloadRequest->isDownloadOnly() == false)
     {
-      mFileCacheMutex.unlock();
-      return false;
-    }
+      if(downloadRequest->deferCacheRead())
+        err = cachedData.deferCacheRead(data);
+      else
+        err = cachedData.data(data);
+      if (RT_OK !=  err)
+      {
+        mFileCacheMutex.unlock();
+        return false;
+      }
 
-    downloadRequest->setHeaderData((char *)cachedData.headerData().data(),cachedData.headerData().length());
-    downloadRequest->setDownloadedData((char *)cachedData.contentsData().data(),cachedData.contentsData().length());
+      downloadRequest->setHeaderData((char *)cachedData.headerData().data(),cachedData.headerData().length());
+      downloadRequest->setDownloadedData((char *)cachedData.contentsData().data(),cachedData.contentsData().length());
+    }
     downloadRequest->setDownloadStatusCode(0);
     downloadRequest->setHttpStatusCode(200);
     mFileCacheMutex.unlock();
