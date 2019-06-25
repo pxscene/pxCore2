@@ -108,6 +108,11 @@ function Application(props) {
                  _urlChangeResolve = resolve;
                  _urlChangeReject = reject;
                });
+               
+               this.urlChangeUiReady.then( 
+                 function() { _this.logTelemetry("urlChangeUiReady", true); },
+                 function() { _this.logTelemetry("urlChangeUiReady", false); }
+                 );
              }
              else if (this.type === ApplicationType.SPARK) {
                console.log("setting url on spark app is not permitted");
@@ -160,9 +165,9 @@ function Application(props) {
       timestamp = scene.clock().toFixed(2);
     
     if(is_success)
-      console.log(timestamp + " " + log_id + " " + _this.id + " success");
+      console.log("TELEMETRY_MESSAGE_APP_MANAGER:" + timestamp + "," + log_id + "," + _this.id + ",success");
     else
-      console.log(timestamp + " " + log_id + " " + _this.id + " failure");
+      console.log("TELEMETRY_MESSAGE_APP_MANAGER:" + timestamp + "," + log_id + "," + _this.id + ",failure");
   }
   
   this.uiReady.then( 
