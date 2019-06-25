@@ -1201,11 +1201,12 @@ void pxShaderManager::removeShader(rtString shaderUrl)
     return;
   }
   
-  ShaderUrlMap::iterator itId = mShaderUrlMap.find(shaderUrl);
+  ShaderUrlMap::iterator it = mShaderUrlMap.find(shaderUrl);
   
-  if( itId != mShaderUrlMap.end())
+  if( it != mShaderUrlMap.end())
   {
-    removeShader( (uint32_t) itId->second);
+    removeShader( (uint32_t) it->second);
+    mShaderUrlMap.erase(it);
   }
   else
   {

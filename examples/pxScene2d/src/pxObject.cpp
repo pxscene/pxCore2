@@ -1892,7 +1892,7 @@ rtError pxObject::copyConfigArray(rtObjectRef &v)
     return RT_FAIL;
   }
   
-  rtArrayObject *dstConfigs = new rtArrayObject();
+  rtObjectRef dstConfigs = new rtArrayObject();
   
   rtShaderResource *pShader = NULL;
   
@@ -1907,7 +1907,7 @@ rtError pxObject::copyConfigArray(rtObjectRef &v)
     rtValue          config = v.get<rtValue>(key);
     rtObjectRef   configRef = config.toObject(); // Unwrap the Config object
     
-    rtMapObject *thisConfig = new rtMapObject();
+    rtObjectRef thisConfig = new rtMapObject();
     
     //    printf("\n\nGOT >> CONFIG[%d]  >>  %s\n",i, thisConfig.getTypeStr());
     
@@ -1959,7 +1959,7 @@ rtError pxObject::copyConfigArray(rtObjectRef &v)
     }
     else
     {
-      rtMapObject *dstUniforms = new rtMapObject();
+      rtObjectRef dstUniforms = new rtMapObject();
       
       rtValue uniforms;
       uniforms.setObject(dstUniforms);
@@ -1991,7 +1991,7 @@ rtError pxObject::copyConfigArray(rtObjectRef &v)
       rtValue val;
       val.setObject(thisConfig);
       
-      dstConfigs->pushBack(val);
+      ((rtArrayObject*) dstConfigs.getPtr())->pushBack(val);
       
       // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     }
@@ -2052,8 +2052,7 @@ static rtValue copyUniform(UniformType_t type, rtValue &val)
     {
       //printf(" \nCOPY UNIFORM >>> vector (vec2/vec3/vec4)");
       
-      rtArrayObject *array = new rtArrayObject;
-      
+      rtObjectRef    array = new rtArrayObject();
       rtObjectRef   valObj = val.toObject();
       rtObjectRef   keys   = valObj.get<rtObjectRef>("allKeys");
       
@@ -2071,7 +2070,8 @@ static rtValue copyUniform(UniformType_t type, rtValue &val)
             
             val.setFloat( (float) val.toDouble() );
           }
-          array->pushBack(val);
+          
+          ((rtArrayObject*) array.getPtr())->pushBack(val);
         }
       }
       
@@ -2222,6 +2222,7 @@ void pxObject::drawShader(pxContextFramebufferRef &flattenFbo)
     mScene->mDirty = true;
   }
 }
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
