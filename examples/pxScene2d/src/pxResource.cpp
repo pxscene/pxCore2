@@ -558,7 +558,7 @@ void pxResource::loadResource(rtObjectRef archive, bool reloading)
     mArchive = arc;
   }
   //rtLogDebug("rtImageResource::loadResource statusCode should be -1; is statusCode=%d\n",mLoadStatus.get<int32_t>("statusCode"));
-  if (mUrl.beginsWith("http:") || mUrl.beginsWith("https:"))
+  if (mUrl.beginsWith("http:") || mUrl.beginsWith("https:") || mUrl.beginsWith("file:"))
   {
       setLoadStatus("sourceType", "http");
       mDownloadRequest = new rtFileDownloadRequest(mUrl, this, pxResource::onDownloadComplete);
@@ -859,7 +859,8 @@ void pxResource::processDownloadedResource(rtFileDownloadRequest* fileDownloadRe
       }
     }
     else if (fileDownloadRequest->downloadStatusCode() == 0 &&
-        fileDownloadRequest->httpStatusCode() == 200 &&
+        (fileDownloadRequest->httpStatusCode() == 200 ||
+         (fileDownloadRequest->httpStatusCode() == 0 && fileDownloadRequest->fileUrl().beginsWith("file:"))) &&
         fileDownloadRequest->downloadedData() != NULL)
     {
       double startResourceSetupTime = pxMilliseconds();
@@ -1085,7 +1086,7 @@ rtRef<rtImageResource> pxImageManager::getImage(const char* url, const char* pro
     svgUrl = md5uri;
   }
 
-  if (false == ((key.beginsWith("http:")) || (key.beginsWith("https:"))))
+  if (!key.beginsWith("http:") && !key.beginsWith("https:") && !key.beginsWith("file:"))
   {
     // if running from archived app, we need to search the different url for relative paths
     // url format is <appname_resource path> eg: football.zip, images/ball.png <football.zip_images/ball.png>
@@ -1213,7 +1214,7 @@ rtRef<rtImageAResource> pxImageManager::getImageA(const char* url, const char* p
 
   rtRef<rtImageAResource> pResImageA;
   rtString key = url;
-  if (false == ((key.beginsWith("http:")) || (key.beginsWith("https:"))))
+  if (!key.beginsWith("http:") && !key.beginsWith("https:") && !key.beginsWith("file:"))
   {
     // if running from archived app, we need to search the different url for relative paths
     // url format is <appname_resource path> eg: football.zip, images/ball.png <football.zip_images/ball.png>

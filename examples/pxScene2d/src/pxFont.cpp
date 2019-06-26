@@ -777,7 +777,7 @@ rtRef<pxFont> pxFontManager::getFont(const char* url, const char* proxy, const r
     url = defaultFont;
 
   rtString key = url;
-  if (false == ((key.beginsWith("http:")) || (key.beginsWith("https:"))))
+  if (!key.beginsWith("http:") && !key.beginsWith("https:") && !key.beginsWith("file:"))
   {
     pxArchive* arc = (pxArchive*)archive.getPtr();
     if (NULL != arc)
