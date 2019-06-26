@@ -2057,6 +2057,13 @@ rtError pxLoadAGIFImage(const char *imageData, size_t imageDataSize,
                         case PLAINTEXT_EXT_FUNC_CODE:
                         break;
                         case APPLICATION_EXT_FUNC_CODE:
+                            if(extension != NULL && strstr((char*)extension, "NETSCAPE2.0") != 0){
+                                if (DGifGetExtensionNext(gif, &extension) == GIF_OK) {
+                                    unsigned int loopcount = extension[2];
+                                    s.setNumPlays(loopcount);
+                                }
+                                
+                            }
                         break;
                     }
                     while (extension != NULL) {
@@ -2097,8 +2104,6 @@ rtError pxLoadAGIFImage(const char *imageData, size_t imageDataSize,
 #else
     DGifCloseFile(gif);
 #endif
-    if (status == RT_OK)
-        s.setNumPlays(s.numFrames() / s.totalTime());
     
     return status;
 #endif //SUPPORT_GIF
