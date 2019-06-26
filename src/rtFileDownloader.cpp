@@ -584,9 +584,9 @@ void rtFileDownloadRequest::setByteRangeIntervals(const char* byteRangeIntervals
   mByteRangeIntervals = rtString(byteRangeIntervals);
 }
 
-char* rtFileDownloadRequest::byteRangeIntervals(void)
+rtString rtFileDownloadRequest::byteRangeIntervals(void)
 {
-  return mByteRangeIntervals.cString();
+  return mByteRangeIntervals;
 }
 
 void rtFileDownloadRequest::setDownloadOnly(bool downloadOnly)
@@ -982,7 +982,8 @@ bool rtFileDownloader::downloadFromNetwork(rtFileDownloadRequest* downloadReques
 
     if(downloadRequest->isByteRangeEnabled())
     {
-      curl_easy_setopt(curl_handle, CURLOPT_RANGE, (char*)downloadRequest->byteRangeIntervals());
+      rtString byteRangeIntervals = downloadRequest->byteRangeIntervals();
+      curl_easy_setopt(curl_handle, CURLOPT_RANGE, byteRangeIntervals.cString());
     }
 
     /* get it! */

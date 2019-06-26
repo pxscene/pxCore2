@@ -118,7 +118,7 @@ public:
   void setByteRangeEnable(bool bByteRangeFlag);
   bool isByteRangeEnabled(void);
   void setByteRangeIntervals(const char* byteRangeIntervals);
-  char* byteRangeIntervals(void);
+  rtString byteRangeIntervals(void);
 
 private:
   rtString mFileUrl;
