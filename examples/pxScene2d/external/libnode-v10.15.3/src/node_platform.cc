@@ -328,13 +328,6 @@ size_t NodePlatform::NumberOfAvailableBackgroundThreads() {
 void PerIsolatePlatformData::RunForegroundTask(std::unique_ptr<Task> task) {
   Isolate* isolate = Isolate::GetCurrent();
   HandleScope scope(isolate);
-/*MODIFIED CODE BEGIN*/
-  if (isolate->GetCurrentContext().IsEmpty())
-  {
-    task->Run();
-    return;
-  }
-/*MODIFIED CODE END*/
   Environment* env = Environment::GetCurrent(isolate);
   InternalCallbackScope cb_scope(env, Local<Object>(), { 0, 0 },
                                  InternalCallbackScope::kAllowEmptyResource);

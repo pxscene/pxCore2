@@ -55,9 +55,6 @@ set "common_test_suites=%js_test_suites% doctool addons addons-napi&set build_ad
 set http2_debug=
 set nghttp2_debug=
 set link_module=
-@rem MODIFIED CODE BEGIN
-set no_optimization=
-@rem MODIFIED CODE END
 set no_cctest=
 set cctest=
 set openssl_no_asm=
@@ -130,9 +127,6 @@ if /i "%1"=="static"           set enable_static=1&goto arg-ok
 if /i "%1"=="no-NODE-OPTIONS"	set no_NODE_OPTIONS=1&goto arg-ok
 if /i "%1"=="debug-nghttp2" set debug_nghttp2=1&goto arg-ok
 if /i "%1"=="link-module"   set "link_module= --link-module=%2%link_module%"&goto arg-ok-2
-@rem MODIFIED CODE BEGIN
-if /i "%1"=="no-optimization" set no_optimization=1&goto arg-ok
-@rem MODIFIED CODE END
 if /i "%1"=="no-cctest"     set no_cctest=1&goto arg-ok
 if /i "%1"=="cctest"        set cctest=1&goto arg-ok
 if /i "%1"=="openssl-no-asm"   set openssl_no_asm=1&goto arg-ok
@@ -188,9 +182,6 @@ if defined link_module      set configure_flags=%configure_flags% %link_module%
 if defined i18n_arg         set configure_flags=%configure_flags% --with-intl=%i18n_arg%
 if defined config_flags     set configure_flags=%configure_flags% %config_flags%
 if defined target_arch      set configure_flags=%configure_flags% --dest-cpu=%target_arch%
-@rem MODIFIED CODE BEGIN
-if defined no_optimization  set configure_flags=%configure_flags% --no-optimization
-@rem MODIFIED CODE END
 if defined openssl_no_asm   set configure_flags=%configure_flags% --openssl-no-asm
 if defined DEBUG_HELPER     set configure_flags=%configure_flags% --verbose
 

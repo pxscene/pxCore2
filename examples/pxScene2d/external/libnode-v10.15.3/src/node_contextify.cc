@@ -796,14 +796,6 @@ void ContextifyScript::RunInThisContext(
 
   CHECK(args[2]->IsBoolean());
   bool break_on_sigint = args[2]->IsTrue();
-  /* MODIFIED CODE BEGIN */
-  // https://github.com/nodejs/node/issues/14757
-  // without this doesn't run in the current context but rather the top level context
-  // We need to be careful about merging this in and side effects
-  auto context = args.GetIsolate()->GetEnteredContext();
-  if (context.IsEmpty()) context = env->context();
-  Context::Scope context_scope(context);
-  /* MODIFIED CODE END */
 
   // Do the eval within this context
   EvalMachine(env, timeout, display_errors, break_on_sigint, args);
@@ -1126,76 +1118,5 @@ void Initialize(Local<Object> target,
 
 }  // namespace contextify
 }  // namespace node
-
-/*MODIFIED CODE BEGIN*/
-namespace node
-{
-namespace contextify
-{
-void deleteContextifyContext(void *ctx)
-{
-  ContextifyContext* context =  (ContextifyContext*)ctx;
-  if (nullptr != context)
-    delete context;
-}
-
-v8::Handle<Context> makeContext(v8::Isolate *isolate, v8::Handle<Object> sandbox, const ContextOptions& options)  // basically MakeContext()  circa line 268
-{
-  if (!isolate)
-  {
-    printf("\nERROR: bad isolate pointer.");
-    return Local<Context>(); // NULL;
-  }
-
-    Environment* env = Environment::GetCurrent(isolate);
-//  HandleScope scope(env->isolate());
-
-  if (!sandbox->IsObject())
-  {
-    env->ThrowTypeError("sandbox argument must be an object.");
-    return Local<Context>(); // NULL;
-  }
-
-  EscapableHandleScope  scope( isolate );
-
-  // Local<Object> sandbox = args[0].As<Object>();
-
-  Local<String> symbol_name =
-      FIXED_ONE_BYTE_STRING(isolate, "_contextifyPrivate");
-
-  // Don't allow contextifying a sandbox multiple times.
-  Local<v8::Private> private_symbol_name = v8::Private::ForApi(isolate, symbol_name);
-  CHECK(
-      !sandbox->HasPrivate(
-          env->context(),
-          private_symbol_name).FromJust());
-
-  TryCatch try_catch(isolate);
-  ContextifyContext* context = new ContextifyContext(env, sandbox, options);
-
-  if (try_catch.HasCaught())
-  {
-    try_catch.ReThrow();
-    return Local<Context>(); // NULL;
-  }
-
-  if (context->context().IsEmpty())
-  {
-    return Local<Context>(); // NULL;
-  }
-
-  Local<External> hidden_context = External::New(isolate, context);
-  sandbox->SetPrivate(
-      env->context(),
-      private_symbol_name,
-      hidden_context);
-
-  Local<Context>  local_context = context->context(); // returns a local context
-
-  return scope.Escape( local_context );
-}
-}
-} // namespace node
-/*MODIFIED CODE END*/
 
 NODE_BUILTIN_MODULE_CONTEXT_AWARE(contextify, node::contextify::Initialize)
