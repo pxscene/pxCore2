@@ -678,6 +678,11 @@ public:
 
   ~pxTextureOffscreen() { deleteTexture(); removeFromTextureList(this);};
 
+  virtual unsigned int getNativeId()
+  {
+    return mTextureName;
+  }
+
   virtual pxError createTexture(pxOffscreen& o)
   {
     mOffscreenMutex.lock();
