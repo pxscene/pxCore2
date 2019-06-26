@@ -3229,11 +3229,6 @@ pxScriptView::~pxScriptView()
 
   shadow->emit()->clearListeners();
 
-  if (mUrl.beginsWith("gl:"))
-  {
-    mCtx->runScript("onClose()");
-  }
-
   // JRJR TODO Not Releasing GL Context 
 
   if(mScene)

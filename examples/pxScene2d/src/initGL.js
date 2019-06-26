@@ -18,7 +18,6 @@ limitations under the License.
 
 // TODO... 
 // * Xuse passed in url/file
-// * Xfix onClose
 // * Xfix xsetInterval and xclearInterval
 // * Xbug when having a working gl scene and load non-existent gl scene
 // * load nonexistent gl scene blue context??
@@ -40,6 +39,9 @@ var vm = require('vm')
 var _module = require('module')
 const {promisify} = require('util')
 const readFileAsync = promisify(fs.readFile)
+var _ws = require('ws')
+var _http = require('http')
+var _https = require('https')
 
 // JRJR not sure why Buffer is not already defined.
 // Could look at adding to sandbox.js but this works for now
@@ -51,6 +53,7 @@ var global = this
 var _intervals = []
 var _timeouts = []
 var _immediates = []
+var _websockets = []
 
 var __dirname = process.cwd()
 
@@ -70,9 +73,9 @@ var loadUrl = function(url, _beginDrawing, _endDrawing, _view) {
   var xxsetInterval = function(f,i){
     var rest = Array.from(arguments).slice(2)
     var interval = _timers.setInterval(function() {
-      return function() { 
-        beginDrawing(); 
-        f.apply(null,rest); 
+      return function() {
+        beginDrawing();
+        f.apply(null,rest);
         endDrawing(); }
       }(),i)
     _intervals.push(interval)
@@ -92,7 +95,7 @@ var loadUrl = function(url, _beginDrawing, _endDrawing, _view) {
     var timeout = _timers.setTimeout(function() {
         return function() {
           //console.log('before beginDrawing2')
-          beginDrawing(); 
+          beginDrawing();
           f.apply(null,rest)
           endDrawing();
           //console.log('after end Drawing2')
@@ -112,15 +115,15 @@ var loadUrl = function(url, _beginDrawing, _endDrawing, _view) {
       _timeouts.splice(index, 1);
     }
     _timers.clearTimeout(timeout)
-  }  
+  }
 
-  var xxsetImmediate = function(f){ 
+  var xxsetImmediate = function(f){
     var rest = Array.from(arguments).slice(1)
-    var timeout = _timers.setTimeout(function() {
+    var timeout = _timers.setImmediate(function() {
         return function() {
           //console.log('before beginDrawing3')
-          if (active) beginDrawing(); 
-          f.apply(null,rest) 
+          if (active) beginDrawing();
+          f.apply(null,rest)
           if (active) endDrawing();
           //console.log('after end Drawing3')
           var index = _immediates.indexOf(timeout)
@@ -128,10 +131,10 @@ var loadUrl = function(url, _beginDrawing, _endDrawing, _view) {
             _immediates.splice(index,1)
           }
         }
-        }(), 16)
+        }())
     _immediates.push(timeout)
     return timeout
-    
+
    console.log('setImmediate called')
   }
 
@@ -155,8 +158,24 @@ var loadUrl = function(url, _beginDrawing, _endDrawing, _view) {
   global.sparkscene = getScene("scene.1")
   global.sparkgles2 = require('gles2.js');
 
+  global.sparkscene.on('onClose', onClose);
+
 // JRJR todo make into a map
 var bootStrapCache = {}
+
+  // Add wrapped standard modules here...
+  bootStrapCache[_module._resolveFilename('ws')] = function WebSocket(address, protocols, options) {
+    let client = new _ws(address, protocols, options);
+    _websockets.push(client);
+    client.on('close', () => {
+      console.log(`websocket ${address} closed`);
+      let index = _websockets.indexOf(client);
+      if (index !== -1) {
+        _websockets.splice(index, 1);
+      }
+    });
+    return client;
+  };
 
 // Spark node-like module loader
 const bootStrap = (moduleName, from, request) => {
@@ -301,30 +320,72 @@ const bootStrap = (moduleName, from, request) => {
 }
 
 var _clearIntervals = function() {
-  for(var interval of _intervals) {
-    _timers.clearInterval(interval)
+  if (_intervals.length) {
+    console.log(`clear ${_intervals.length} intervals`);
+
+    for (var interval of _intervals) {
+      _timers.clearInterval(interval)
+    }
   }
   _intervals = []
 }
 
 var _clearTimeouts = function() {
-  for(var timeout of _timeouts) {
-    _timers.clearTimeout(timeout)
+  if (_timeouts.length) {
+    console.log(`clear ${_timeouts.length} timeouts`);
+
+    for (var timeout of _timeouts) {
+      _timers.clearTimeout(timeout)
+    }
   }
   _timeouts = []
 }
 
 var _clearImmediates = function() {
-  for(var timeout of _immediates) {
-    _timers.clearTimeout(timeout)
+  if (_immediates.length) {
+    console.log(`clear ${_immediates.length} immediates`);
+
+    for (var timeout of _immediates) {
+      _timers.clearImmediate(timeout)
+    }
   }
   _immediates = []
 }
 
+var _clearWebsockets = function() {
+  if (_websockets.length) {
+    console.log(`closing ${_websockets.length} websockets`);
+
+    for (let w of _websockets) {
+      w.close();
+      w.closeimmediate();
+      w.removeAllListeners();
+    }
+
+    console.log(`after close having ${_websockets.length} websockets`);
+  }
+  _websockets = []
+}
+
+var _clearSockets = function() {
+  const httpSockets = [].concat.apply([], Object.values(_http.globalAgent.sockets));
+  const httpsSockets = [].concat.apply([], Object.values(_https.globalAgent.sockets));
+
+  for (let s of new Set(httpSockets.concat(httpsSockets))) {
+    console.log(`ending socket ${s.remoteAddress||'<destroyed>'}`);
+    s.end();
+  }
+}
+
 var onClose = function() {
+  console.log(`onClose`);
+
   _clearIntervals()
   _clearTimeouts()
   _clearImmediates()
+  _clearWebsockets()
+  _clearSockets()
+
   // JRJR something is invoking setImmediate after this and causing problems
   active = false
 }
