@@ -1225,10 +1225,14 @@
               # Don't use -O3 with sanitizers.
               ['asan==0 and msan==0 and lsan==0 \
                 and tsan==0 and ubsan==0 and ubsan_vptr==0', {
-                'cflags': ['-O3'],
+                # MODIFIED CODE BEGIN
+                'cflags': ['-Os'],
+                # MODIFIED CODE END
                 'cflags!': ['-O2'],
                 }, {
-                'cflags': ['-O2'],
+                # MODIFIED CODE BEGIN 
+                'cflags': ['-Os'],
+                # MODIFIED CODE END
                 'cflags!': ['-O3'],
               }],
             ],
@@ -1347,10 +1351,14 @@
               # Don't use -O3 with sanitizers.
               ['asan==0 and msan==0 and lsan==0 \
                 and tsan==0 and ubsan==0 and ubsan_vptr==0', {
-                'cflags': ['-O3'],
+                # MODIFIED CODE BEGIN
+                'cflags': ['-Os'],
+                # MODIFIED CODE END  
                 'cflags!': ['-O2'],
               }, {
-                'cflags': ['-O2'],
+                # MODIFIED CODE BEGIN  
+                'cflags': ['-Os'],
+                # MODIFIED CODE end
                 'cflags!': ['-O3'],
               }],
             ],

@@ -173,7 +173,9 @@ using v8::V8;
 using v8::Value;
 
 static bool v8_is_profiling = false;
-static bool node_is_initialized = false;
+/* MODIFIED CODE BEGIN */
+bool node_is_initialized = false;
+/* MODIFIED CODE END */
 static uv_once_t init_modpending_once = UV_ONCE_INIT;
 static uv_key_t thread_local_modpending;
 static node_module* modlist_builtin;
@@ -196,8 +198,10 @@ std::shared_ptr<PerProcessOptions> per_process_opts {
     new PerProcessOptions() };
 
 static Mutex node_isolate_mutex;
-static Isolate* node_isolate;
-
+/* MODIFIED CODE BEGIN */
+Isolate* node_isolate;
+FILE* errorFile = NULL;
+/* MODIFIED CODE END */
 // Ensures that __metadata trace events are only emitted
 // when tracing is enabled.
 class NodeTraceStateObserver :
@@ -386,6 +390,29 @@ static struct {
 #ifdef __POSIX__
 static const unsigned kMaxSignal = 32;
 #endif
+
+/* MODIFIED CODE BEGIN */
+void PrintErrorStringToFile(const char* format, ...) {
+  va_list filelog;
+  va_start(filelog, format);
+  const char* val = getenv("NODE_ERROR_FILE");
+  if (val) {
+    errorFile = fopen(val,"w");
+  }
+  else
+  {
+    errorFile = fopen("/tmp/nodeerror.log","w");
+  }
+  if (NULL != errorFile)
+  {
+    vfprintf(errorFile, format, filelog);
+    fclose(errorFile);
+    errorFile = NULL;
+  }
+  va_end(filelog);
+}
+/* MODIFIED CODE END */
+
 
 void PrintErrorString(const char* format, ...) {
   va_list ap;
@@ -610,8 +637,9 @@ void* ArrayBufferAllocator::Allocate(size_t size) {
     return UncheckedMalloc(size);
 }
 
-namespace {
-
+/* MODIFIED CODE BEGIN */
+//namespace {
+/* MODIFIED CODE END */
 bool ShouldAbortOnUncaughtException(Isolate* isolate) {
   HandleScope scope(isolate);
   Environment* env = Environment::GetCurrent(isolate);
@@ -619,9 +647,9 @@ bool ShouldAbortOnUncaughtException(Isolate* isolate) {
          env->should_abort_on_uncaught_toggle()[0] &&
          !env->inside_should_not_abort_on_uncaught_scope();
 }
-
-}  // anonymous namespace
-
+/* MODIFIED CODE BEGIN */
+//}  // anonymous namespace
+/* MODIFIED CODE END */
 
 void AddPromiseHook(Isolate* isolate, promise_hook_func fn, void* arg) {
   Environment* env = Environment::GetCurrent(isolate);
@@ -896,6 +924,9 @@ void AppendExceptionLine(Environment* env,
 
     uv_tty_reset_mode();
     PrintErrorString("\n%s", arrow);
+    /* MODIFIED CODE BEGIN */
+    PrintErrorStringToFile("\n%s", arrow);
+    /* MODIFIED CODE END */
     return;
   }
 
@@ -939,9 +970,15 @@ void ReportException(Environment* env,
   if (trace.length() > 0 && !trace_value->IsUndefined()) {
     if (arrow.IsEmpty() || !arrow->IsString() || decorated) {
       PrintErrorString("%s\n", *trace);
+      /* MODIFIED CODE BEGIN */
+      PrintErrorStringToFile("%s\n", *trace);
+      /* MODIFIED CODE END */
     } else {
       node::Utf8Value arrow_string(env->isolate(), arrow);
       PrintErrorString("%s\n%s\n", *arrow_string, *trace);
+      /* MODIFIED CODE BEGIN */
+      PrintErrorStringToFile("%s\n%s\n", *arrow_string, *trace);
+      /* MODIFIED CODE END */
     }
   } else {
     // this really only happens for RangeErrors, since they're the only
@@ -965,18 +1002,34 @@ void ReportException(Environment* env,
 
       PrintErrorString("%s\n", *message ? *message :
                                           "<toString() threw exception>");
+      /* MODIFIED CODE BEGIN */
+      PrintErrorStringToFile("%s\n", *message ? *message :
+                                          "<toString() threw exception>");
+      /* MODIFIED CODE END */
+
     } else {
       node::Utf8Value name_string(env->isolate(), name);
       node::Utf8Value message_string(env->isolate(), message);
 
       if (arrow.IsEmpty() || !arrow->IsString() || decorated) {
         PrintErrorString("%s: %s\n", *name_string, *message_string);
+        /* MODIFIED CODE BEGIN */
+        PrintErrorStringToFile("%s: %s\n", *name_string, *message_string);
+        /* MODIFIED CODE END */
+
       } else {
         node::Utf8Value arrow_string(env->isolate(), arrow);
         PrintErrorString("%s\n%s: %s\n",
                          *arrow_string,
                          *name_string,
                          *message_string);
+        /* MODIFIED CODE BEGIN */
+        PrintErrorStringToFile("%s\n%s: %s\n",
+                         *arrow_string,
+                         *name_string,
+                         *message_string);
+        /* MODIFIED CODE END */
+
       }
     }
   }
@@ -1340,14 +1393,20 @@ static void OnFatalError(const char* location, const char* message) {
     PrintErrorString("FATAL ERROR: %s\n", message);
   }
   fflush(stderr);
-  ABORT();
+  /* MODIFIED CODE BEGIN */
+  //ABORT();
+  /* MODIFIED CODE END */
 }
 
 
-[[noreturn]] void FatalError(const char* location, const char* message) {
+/* MODIFIED CODE BEGIN */
+/*[[noreturn]]*/ void FatalError(const char* location, const char* message) {
+/* MODIFIED CODE END */
   OnFatalError(location, message);
   // to suppress compiler warning
-  ABORT();
+/* MODIFIED CODE BEGIN */
+  //ABORT();
+/* MODIFIED CODE END */
 }
 
 
@@ -1355,7 +1414,9 @@ FatalTryCatch::~FatalTryCatch() {
   if (HasCaught()) {
     HandleScope scope(env_->isolate());
     ReportException(env_, *this);
-    exit(7);
+    /* MODIFIED CODE BEGIN */
+    //exit(7);
+    /* MODIFIED CODE END */
   }
 }
 
@@ -1376,7 +1437,9 @@ void FatalException(Isolate* isolate,
     // Failed before the process._fatalException function was added!
     // this is probably pretty bad.  Nothing to do but report and exit.
     ReportException(env, error, message);
-    exit(6);
+    /* MODIFIED CODE BEGIN */
+    //exit(6);
+    /* MODIFIED CODE END */
   } else {
     TryCatch fatal_try_catch(isolate);
 
@@ -1393,7 +1456,9 @@ void FatalException(Isolate* isolate,
     if (fatal_try_catch.HasCaught()) {
       // The fatal exception function threw, so we must exit
       ReportException(env, fatal_try_catch);
-      exit(7);
+      /* MODIFIED CODE BEGIN */
+      //exit(7);
+      /* MODIFIED CODE END */
     } else if (caught.ToLocalChecked()->IsFalse()) {
       ReportException(env, error, message);
 
@@ -1403,9 +1468,13 @@ void FatalException(Isolate* isolate,
       Local<Value> code;
       if (!process_object->Get(env->context(), exit_code).ToLocal(&code) ||
           !code->IsInt32()) {
-        exit(1);
+        /* MODIFIED CODE BEGIN */
+        //exit(1);
+        /* MODIFIED CODE END */  
       }
-      exit(code.As<Int32>()->Value());
+      /* MODIFIED CODE BEGIN */
+      //exit(code.As<Int32>()->Value());
+      /* MODIFIED CODE END */
     }
   }
 }
@@ -2805,6 +2874,14 @@ MultiIsolatePlatform* GetMainThreadMultiIsolatePlatform() {
 MultiIsolatePlatform* CreatePlatform(
     int thread_pool_size,
     node::tracing::TracingController* tracing_controller) {
+  /* MODIFIED CODE BEGIN */ 
+  if (0 == thread_pool_size)
+  {
+    v8_platform.Initialize(
+        per_process_opts->v8_thread_pool_size);
+    return v8_platform.Platform();
+  }
+  /* MODIFIED CODE END */
   return new NodePlatform(thread_pool_size, tracing_controller);
 }
 
@@ -3049,6 +3126,15 @@ void RegisterBuiltinModules() {
   NODE_BUILTIN_MODULES(V)
 #undef V
 }
+
+/*MODIFIED CODE BEGIN*/
+#if HAVE_INSPECTOR
+void InspectorStart(Environment* env, const char* path, MultiIsolatePlatform* platform) {
+  env->inspector_agent()->Start(path, env->options()->debug_options, true);
+}
+#endif
+/*MODIFIED CODE END*/
+
 
 }  // namespace node
 
