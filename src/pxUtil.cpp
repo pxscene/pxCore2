@@ -1077,7 +1077,9 @@ rtError pxLoadSVGImage(const char* buf, size_t buflen, pxOffscreen& o, int  w /*
                     (unsigned char*) o.base(), o.width(), o.height(), o.width() *4);
 
   nsvgDelete(image);
-
+#ifdef WIN32
+    o.setUpsideDown(false);
+#endif // WIN32
   return RT_OK;
 }
 
