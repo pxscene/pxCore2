@@ -41,6 +41,7 @@ else
 
 	echo "************************* Building pxcore,rtcore,pxscene app,libpxscene, unitttests ********"
 	cmake --build . --clean-first -- -j$(getconf _NPROCESSORS_ONLN) 1>>$BUILDLOGS;
+        cat $BUILDLOGS
 	checkError $? "cmake build failed for pxcore,rtcore,pxscene app,libpxscene or unitttests" "Compilation error" "Check the errors displayed in this window"
 
 fi
