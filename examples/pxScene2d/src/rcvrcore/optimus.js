@@ -108,6 +108,11 @@ function Application(props) {
                  _urlChangeResolve = resolve;
                  _urlChangeReject = reject;
                });
+               
+               this.urlChangeUiReady.then( 
+                 function() { _this.logTelemetry("urlChangeUiReady", true); },
+                 function() { _this.logTelemetry("urlChangeUiReady", false); }
+                 );
              }
              else if (this.type === ApplicationType.SPARK) {
                console.log("setting url on spark app is not permitted");
@@ -160,9 +165,9 @@ function Application(props) {
       timestamp = scene.clock().toFixed(2);
     
     if(is_success)
-      console.log(timestamp + " " + log_id + " " + _this.id + " success");
+      console.log("APP_MANAGER_uiReady:" + timestamp + "," + log_id + "," + _this.id + ",success");
     else
-      console.log(timestamp + " " + log_id + " " + _this.id + " failure");
+      console.log("APP_MANAGER_uiReady:" + timestamp + "," + log_id + "," + _this.id + ",failure");
   }
   
   this.uiReady.then( 
@@ -174,7 +179,11 @@ function Application(props) {
     function() { _this.logTelemetry("readyBase", true); },
     function() { _this.logTelemetry("readyBase", false); }
     );
-
+  
+  this.ready.then( 
+    function() { _this.logTelemetry("ready", true); },
+    function() { _this.logTelemetry("ready", false); }
+    );
 
   // Private variables
   var cmd = "";
@@ -620,6 +629,8 @@ function Application(props) {
       function()
       {
         console.log("native remoteReady error");
+        console.log("uiReady state or existance unknown because of remoteReady error. Defaulting to succeeded.");
+        _uiReadyResolve("native remoteReady error");
       }
       );
     }
