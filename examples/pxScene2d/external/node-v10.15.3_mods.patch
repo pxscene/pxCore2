@@ -1,36 +1,36 @@
-From 82148ad078eb1e673099fcff2995b43f39ead0e8 Mon Sep 17 00:00:00 2001
+From 932d15f840cfecc86ab691d74b4216c2530262a2 Mon Sep 17 00:00:00 2001
 From: Madana Gopal <madanagopal_thirumalai@comcast.com>
-Date: Tue, 25 Jun 2019 22:51:35 +0530
-Subject: [PATCH] node-v10.15.3_mods
+Date: Wed, 26 Jun 2019 13:05:20 +0530
+Subject: [PATCH] node-v10_15.3-mods
 
 ---
- common.gypi                      |  72 +++++++++++++++++++-----
- configure.py                     |  10 ++++
- deps/http_parser/http_parser.gyp |   8 ++-
- deps/uv/common.gypi              |   4 +-
- deps/v8/BUILD.gn                 |  10 +++-
- deps/v8/gypfiles/toolchain.gypi  |  16 ++++--
- deps/v8/gypfiles/v8.gyp          |  14 +++--
- deps/v8/src/isolate.cc           |   8 +++
- lib/internal/bootstrap/node.js   |  19 +++++--
- lib/net.js                       |  24 ++++++++
- node.gyp                         |  20 -------
- src/node.cc                      | 118 +++++++++++++++++++++++++++++++++------
- src/node.h                       |  21 ++++++-
- src/node_contextify.cc           |  81 ++++++++++++++++++++++++++-
- src/node_contextify_mods.h       |  19 +++++++
- src/node_http_parser.cc          |  10 +++-
- src/node_internals.h             |   4 +-
- src/node_platform.cc             |   7 +++
- src/node_watchdog.cc             |   5 +-
- vcbuild.bat                      |   9 +++
- 20 files changed, 401 insertions(+), 78 deletions(-)
- create mode 100644 src/node_contextify_mods.h
+ .../external/libnode-v10.15.3/common.gypi          |  72 ++++++++++---
+ .../external/libnode-v10.15.3/configure.py         |  10 ++
+ .../deps/http_parser/http_parser.gyp               |   8 +-
+ .../external/libnode-v10.15.3/deps/uv/common.gypi  |   4 +-
+ .../external/libnode-v10.15.3/deps/v8/BUILD.gn     |  10 +-
+ .../deps/v8/gypfiles/toolchain.gypi                |  16 ++-
+ .../libnode-v10.15.3/deps/v8/gypfiles/v8.gyp       |  14 ++-
+ .../libnode-v10.15.3/deps/v8/src/isolate.cc        |   8 ++
+ .../lib/internal/bootstrap/node.js                 |  19 ++--
+ .../pxScene2d/external/libnode-v10.15.3/lib/net.js |  24 +++++
+ .../pxScene2d/external/libnode-v10.15.3/node.gyp   |  20 ----
+ .../external/libnode-v10.15.3/src/node.cc          | 118 ++++++++++++++++++---
+ .../pxScene2d/external/libnode-v10.15.3/src/node.h |  21 +++-
+ .../libnode-v10.15.3/src/node_contextify.cc        |  79 ++++++++++++++
+ .../libnode-v10.15.3/src/node_contextify_mods.h    |  19 ++++
+ .../libnode-v10.15.3/src/node_http_parser.cc       |  10 +-
+ .../external/libnode-v10.15.3/src/node_internals.h |   4 +-
+ .../external/libnode-v10.15.3/src/node_platform.cc |   7 ++
+ .../external/libnode-v10.15.3/src/node_watchdog.cc |   5 +-
+ .../external/libnode-v10.15.3/vcbuild.bat          |   9 ++
+ 20 files changed, 401 insertions(+), 76 deletions(-)
+ create mode 100644 examples/pxScene2d/external/libnode-v10.15.3/src/node_contextify_mods.h
 
-diff --git a/common.gypi b/common.gypi
+diff --git a/examples/pxScene2d/external/libnode-v10.15.3/common.gypi b/examples/pxScene2d/external/libnode-v10.15.3/common.gypi
 index 4c64339..6b40aec 100755
---- a/common.gypi
-+++ b/common.gypi
+--- a/examples/pxScene2d/external/libnode-v10.15.3/common.gypi
++++ b/examples/pxScene2d/external/libnode-v10.15.3/common.gypi
 @@ -107,7 +107,9 @@
            'v8_enable_handle_zapping': 1,
          },
@@ -146,10 +146,10 @@ index 4c64339..6b40aec 100755
              },
            }],
          ],
-diff --git a/configure.py b/configure.py
+diff --git a/examples/pxScene2d/external/libnode-v10.15.3/configure.py b/examples/pxScene2d/external/libnode-v10.15.3/configure.py
 index 0ad986a..c58ccb8 100755
---- a/configure.py
-+++ b/configure.py
+--- a/examples/pxScene2d/external/libnode-v10.15.3/configure.py
++++ b/examples/pxScene2d/external/libnode-v10.15.3/configure.py
 @@ -566,6 +566,13 @@ parser.add_option('--without-bundled-v8',
      help='do not use V8 includes from the bundled deps folder. ' +
           '(This mode is not officially supported for regular applications)')
@@ -174,10 +174,10 @@ index 0ad986a..c58ccb8 100755
  
  # variables should be a root level element,
  # move everything else to target_defaults
-diff --git a/deps/http_parser/http_parser.gyp b/deps/http_parser/http_parser.gyp
+diff --git a/examples/pxScene2d/external/libnode-v10.15.3/deps/http_parser/http_parser.gyp b/examples/pxScene2d/external/libnode-v10.15.3/deps/http_parser/http_parser.gyp
 index 4364f73..7137f82 100755
---- a/deps/http_parser/http_parser.gyp
-+++ b/deps/http_parser/http_parser.gyp
+--- a/examples/pxScene2d/external/libnode-v10.15.3/deps/http_parser/http_parser.gyp
++++ b/examples/pxScene2d/external/libnode-v10.15.3/deps/http_parser/http_parser.gyp
 @@ -12,7 +12,9 @@
        #       RuntimeLibrary MUST MATCH across the entire project
        'Debug': {
@@ -200,10 +200,10 @@ index 4364f73..7137f82 100755
          'msvs_settings': {
            'VCCLCompilerTool': {
              'RuntimeLibrary': 0, # static release
-diff --git a/deps/uv/common.gypi b/deps/uv/common.gypi
+diff --git a/examples/pxScene2d/external/libnode-v10.15.3/deps/uv/common.gypi b/examples/pxScene2d/external/libnode-v10.15.3/deps/uv/common.gypi
 index 2297bdf..8298bea 100755
---- a/deps/uv/common.gypi
-+++ b/deps/uv/common.gypi
+--- a/examples/pxScene2d/external/libnode-v10.15.3/deps/uv/common.gypi
++++ b/examples/pxScene2d/external/libnode-v10.15.3/deps/uv/common.gypi
 @@ -46,7 +46,9 @@
        'Release': {
          'defines': [ 'NDEBUG' ],
@@ -215,10 +215,10 @@ index 2297bdf..8298bea 100755
          ],
          'msvs_settings': {
            'VCCLCompilerTool': {
-diff --git a/deps/v8/BUILD.gn b/deps/v8/BUILD.gn
+diff --git a/examples/pxScene2d/external/libnode-v10.15.3/deps/v8/BUILD.gn b/examples/pxScene2d/external/libnode-v10.15.3/deps/v8/BUILD.gn
 index 19ffdb3..ff82ac0 100755
---- a/deps/v8/BUILD.gn
-+++ b/deps/v8/BUILD.gn
+--- a/examples/pxScene2d/external/libnode-v10.15.3/deps/v8/BUILD.gn
++++ b/examples/pxScene2d/external/libnode-v10.15.3/deps/v8/BUILD.gn
 @@ -1437,8 +1437,6 @@ v8_source_set("v8_base") {
      "//base/trace_event/common/trace_event_common.h",
  
@@ -244,10 +244,10 @@ index 19ffdb3..ff82ac0 100755
  
    if (v8_enable_i18n_support) {
      public_deps = [
-diff --git a/deps/v8/gypfiles/toolchain.gypi b/deps/v8/gypfiles/toolchain.gypi
+diff --git a/examples/pxScene2d/external/libnode-v10.15.3/deps/v8/gypfiles/toolchain.gypi b/examples/pxScene2d/external/libnode-v10.15.3/deps/v8/gypfiles/toolchain.gypi
 index ea8f1c2..60cd77a 100755
---- a/deps/v8/gypfiles/toolchain.gypi
-+++ b/deps/v8/gypfiles/toolchain.gypi
+--- a/examples/pxScene2d/external/libnode-v10.15.3/deps/v8/gypfiles/toolchain.gypi
++++ b/examples/pxScene2d/external/libnode-v10.15.3/deps/v8/gypfiles/toolchain.gypi
 @@ -1225,10 +1225,14 @@
                # Don't use -O3 with sanitizers.
                ['asan==0 and msan==0 and lsan==0 \
@@ -282,10 +282,10 @@ index ea8f1c2..60cd77a 100755
                  'cflags!': ['-O3'],
                }],
              ],
-diff --git a/deps/v8/gypfiles/v8.gyp b/deps/v8/gypfiles/v8.gyp
+diff --git a/examples/pxScene2d/external/libnode-v10.15.3/deps/v8/gypfiles/v8.gyp b/examples/pxScene2d/external/libnode-v10.15.3/deps/v8/gypfiles/v8.gyp
 index 8c78f02..9367ca6 100755
---- a/deps/v8/gypfiles/v8.gyp
-+++ b/deps/v8/gypfiles/v8.gyp
+--- a/examples/pxScene2d/external/libnode-v10.15.3/deps/v8/gypfiles/v8.gyp
++++ b/examples/pxScene2d/external/libnode-v10.15.3/deps/v8/gypfiles/v8.gyp
 @@ -434,7 +434,6 @@
        # Since this target is a static-library, but as a side effect it generates
        # header files, it needs to be a hard dependency.
@@ -321,10 +321,10 @@ index 8c78f02..9367ca6 100755
          ['want_separate_host_toolset==1', {
            'toolsets': ['host', 'target'],
          }, {
-diff --git a/deps/v8/src/isolate.cc b/deps/v8/src/isolate.cc
+diff --git a/examples/pxScene2d/external/libnode-v10.15.3/deps/v8/src/isolate.cc b/examples/pxScene2d/external/libnode-v10.15.3/deps/v8/src/isolate.cc
 index 0bdfef5..e79edfb 100755
---- a/deps/v8/src/isolate.cc
-+++ b/deps/v8/src/isolate.cc
+--- a/examples/pxScene2d/external/libnode-v10.15.3/deps/v8/src/isolate.cc
++++ b/examples/pxScene2d/external/libnode-v10.15.3/deps/v8/src/isolate.cc
 @@ -1160,6 +1160,14 @@ Object* Isolate::Throw(Object* exception, MessageLocation* location) {
    HandleScope scope(this);
    Handle<Object> exception_handle(exception, this);
@@ -340,10 +340,10 @@ index 0bdfef5..e79edfb 100755
    if (FLAG_print_all_exceptions) {
      printf("=========================================================\n");
      printf("Exception thrown:\n");
-diff --git a/lib/internal/bootstrap/node.js b/lib/internal/bootstrap/node.js
+diff --git a/examples/pxScene2d/external/libnode-v10.15.3/lib/internal/bootstrap/node.js b/examples/pxScene2d/external/libnode-v10.15.3/lib/internal/bootstrap/node.js
 index b168eb0..82cdec8 100755
---- a/lib/internal/bootstrap/node.js
-+++ b/lib/internal/bootstrap/node.js
+--- a/examples/pxScene2d/external/libnode-v10.15.3/lib/internal/bootstrap/node.js
++++ b/examples/pxScene2d/external/libnode-v10.15.3/lib/internal/bootstrap/node.js
 @@ -257,11 +257,12 @@
          // User passed '-e' or '--eval' arguments to Node without '-i' or
          // '--interactive'.
@@ -391,10 +391,10 @@ index b168eb0..82cdec8 100755
        }
      }
    }
-diff --git a/lib/net.js b/lib/net.js
+diff --git a/examples/pxScene2d/external/libnode-v10.15.3/lib/net.js b/examples/pxScene2d/external/libnode-v10.15.3/lib/net.js
 index e40aaa8..1c6ad2a 100755
---- a/lib/net.js
-+++ b/lib/net.js
+--- a/examples/pxScene2d/external/libnode-v10.15.3/lib/net.js
++++ b/examples/pxScene2d/external/libnode-v10.15.3/lib/net.js
 @@ -25,6 +25,9 @@ const EventEmitter = require('events');
  const stream = require('stream');
  const util = require('util');
@@ -433,10 +433,10 @@ index e40aaa8..1c6ad2a 100755
  
    debug('connect: find host', host);
    debug('connect: dns options', dnsopts);
-diff --git a/node.gyp b/node.gyp
+diff --git a/examples/pxScene2d/external/libnode-v10.15.3/node.gyp b/examples/pxScene2d/external/libnode-v10.15.3/node.gyp
 index a8de196..607a7db 100755
---- a/node.gyp
-+++ b/node.gyp
+--- a/examples/pxScene2d/external/libnode-v10.15.3/node.gyp
++++ b/examples/pxScene2d/external/libnode-v10.15.3/node.gyp
 @@ -36,7 +36,6 @@
        'lib/console.js',
        'lib/constants.js',
@@ -485,10 +485,10 @@ index a8de196..607a7db 100755
        'deps/node-inspect/lib/_inspect.js',
        'deps/node-inspect/lib/internal/inspect_client.js',
        'deps/node-inspect/lib/internal/inspect_repl.js',
-diff --git a/src/node.cc b/src/node.cc
+diff --git a/examples/pxScene2d/external/libnode-v10.15.3/src/node.cc b/examples/pxScene2d/external/libnode-v10.15.3/src/node.cc
 index 9fb5ab3..7c3c865 100755
---- a/src/node.cc
-+++ b/src/node.cc
+--- a/examples/pxScene2d/external/libnode-v10.15.3/src/node.cc
++++ b/examples/pxScene2d/external/libnode-v10.15.3/src/node.cc
 @@ -173,7 +173,9 @@ using v8::V8;
  using v8::Value;
  
@@ -733,10 +733,10 @@ index 9fb5ab3..7c3c865 100755
  }  // namespace node
  
  #if !HAVE_INSPECTOR
-diff --git a/src/node.h b/src/node.h
+diff --git a/examples/pxScene2d/external/libnode-v10.15.3/src/node.h b/examples/pxScene2d/external/libnode-v10.15.3/src/node.h
 index 2a6f5b5..6bf2b29 100755
---- a/src/node.h
-+++ b/src/node.h
+--- a/examples/pxScene2d/external/libnode-v10.15.3/src/node.h
++++ b/examples/pxScene2d/external/libnode-v10.15.3/src/node.h
 @@ -204,6 +204,12 @@ typedef intptr_t ssize_t;
  
  namespace node {
@@ -788,26 +788,11 @@ index 2a6f5b5..6bf2b29 100755
  MultiIsolatePlatform* InitializeV8Platform(int thread_pool_size);
  NODE_EXTERN void FreePlatform(MultiIsolatePlatform* platform);
  
-diff --git a/src/node_contextify.cc b/src/node_contextify.cc
-index a1903d9..0576172 100755
---- a/src/node_contextify.cc
-+++ b/src/node_contextify.cc
-@@ -182,14 +182,12 @@ Local<Context> ContextifyContext::CreateV8Context(
-   sandbox_obj->SetPrivate(env->context(),
-                           env->contextify_global_private_symbol(),
-                           ctx->Global());
--
-   Utf8Value name_val(env->isolate(), options.name);
-   ctx->AllowCodeGenerationFromStrings(options.allow_code_gen_strings->IsTrue());
-   ctx->SetEmbedderData(ContextEmbedderIndex::kAllowWasmCodeGeneration,
-                        options.allow_code_gen_wasm);
- 
-   ContextInfo info(*name_val);
--
-   if (!options.origin.IsEmpty()) {
-     Utf8Value origin_val(env->isolate(), options.origin);
-     info.origin = *origin_val;
-@@ -796,6 +794,14 @@ void ContextifyScript::RunInThisContext(
+diff --git a/examples/pxScene2d/external/libnode-v10.15.3/src/node_contextify.cc b/examples/pxScene2d/external/libnode-v10.15.3/src/node_contextify.cc
+index a1903d9..70fd8ca 100755
+--- a/examples/pxScene2d/external/libnode-v10.15.3/src/node_contextify.cc
++++ b/examples/pxScene2d/external/libnode-v10.15.3/src/node_contextify.cc
+@@ -796,6 +796,14 @@ void ContextifyScript::RunInThisContext(
  
    CHECK(args[2]->IsBoolean());
    bool break_on_sigint = args[2]->IsTrue();
@@ -822,7 +807,7 @@ index a1903d9..0576172 100755
  
    // Do the eval within this context
    EvalMachine(env, timeout, display_errors, break_on_sigint, args);
-@@ -1119,4 +1125,75 @@ void Initialize(Local<Object> target,
+@@ -1119,4 +1127,75 @@ void Initialize(Local<Object> target,
  }  // namespace contextify
  }  // namespace node
  
@@ -898,11 +883,11 @@ index a1903d9..0576172 100755
 +/*MODIFIED CODE END*/
 +
  NODE_BUILTIN_MODULE_CONTEXT_AWARE(contextify, node::contextify::Initialize)
-diff --git a/src/node_contextify_mods.h b/src/node_contextify_mods.h
+diff --git a/examples/pxScene2d/external/libnode-v10.15.3/src/node_contextify_mods.h b/examples/pxScene2d/external/libnode-v10.15.3/src/node_contextify_mods.h
 new file mode 100644
 index 0000000..aa9979a
 --- /dev/null
-+++ b/src/node_contextify_mods.h
++++ b/examples/pxScene2d/external/libnode-v10.15.3/src/node_contextify_mods.h
 @@ -0,0 +1,19 @@
 +// This is not part of Node... added to expose needed methods.
 +
@@ -923,10 +908,10 @@ index 0000000..aa9979a
 +/*MODIFIED CODE END*/
 +
 +
-diff --git a/src/node_http_parser.cc b/src/node_http_parser.cc
+diff --git a/examples/pxScene2d/external/libnode-v10.15.3/src/node_http_parser.cc b/examples/pxScene2d/external/libnode-v10.15.3/src/node_http_parser.cc
 index b29cdf4..fbc49d8 100755
---- a/src/node_http_parser.cc
-+++ b/src/node_http_parser.cc
+--- a/examples/pxScene2d/external/libnode-v10.15.3/src/node_http_parser.cc
++++ b/examples/pxScene2d/external/libnode-v10.15.3/src/node_http_parser.cc
 @@ -439,7 +439,15 @@ class Parser : public AsyncWrap, public StreamListener {
      Parser* parser;
      ASSIGN_OR_RETURN_UNWRAP(&parser, args.Holder());
@@ -944,10 +929,10 @@ index b29cdf4..fbc49d8 100755
      parser->got_exception_ = false;
  
      int rv = http_parser_execute(&(parser->parser_), &settings, nullptr, 0);
-diff --git a/src/node_internals.h b/src/node_internals.h
+diff --git a/examples/pxScene2d/external/libnode-v10.15.3/src/node_internals.h b/examples/pxScene2d/external/libnode-v10.15.3/src/node_internals.h
 index 12089bc..7e8bf86 100755
---- a/src/node_internals.h
-+++ b/src/node_internals.h
+--- a/examples/pxScene2d/external/libnode-v10.15.3/src/node_internals.h
++++ b/examples/pxScene2d/external/libnode-v10.15.3/src/node_internals.h
 @@ -253,7 +253,9 @@ void AppendExceptionLine(Environment* env,
                           v8::Local<v8::Message> message,
                           enum ErrorHandlingMode mode);
@@ -959,10 +944,10 @@ index 12089bc..7e8bf86 100755
  
  // Like a `TryCatch` but exits the process if an exception was caught.
  class FatalTryCatch : public v8::TryCatch {
-diff --git a/src/node_platform.cc b/src/node_platform.cc
+diff --git a/examples/pxScene2d/external/libnode-v10.15.3/src/node_platform.cc b/examples/pxScene2d/external/libnode-v10.15.3/src/node_platform.cc
 index fd8d045..6d2088d 100755
---- a/src/node_platform.cc
-+++ b/src/node_platform.cc
+--- a/examples/pxScene2d/external/libnode-v10.15.3/src/node_platform.cc
++++ b/examples/pxScene2d/external/libnode-v10.15.3/src/node_platform.cc
 @@ -328,6 +328,13 @@ size_t NodePlatform::NumberOfAvailableBackgroundThreads() {
  void PerIsolatePlatformData::RunForegroundTask(std::unique_ptr<Task> task) {
    Isolate* isolate = Isolate::GetCurrent();
@@ -977,10 +962,10 @@ index fd8d045..6d2088d 100755
    Environment* env = Environment::GetCurrent(isolate);
    InternalCallbackScope cb_scope(env, Local<Object>(), { 0, 0 },
                                   InternalCallbackScope::kAllowEmptyResource);
-diff --git a/src/node_watchdog.cc b/src/node_watchdog.cc
+diff --git a/examples/pxScene2d/external/libnode-v10.15.3/src/node_watchdog.cc b/examples/pxScene2d/external/libnode-v10.15.3/src/node_watchdog.cc
 index 4b902aa..382bf7b 100755
---- a/src/node_watchdog.cc
-+++ b/src/node_watchdog.cc
+--- a/examples/pxScene2d/external/libnode-v10.15.3/src/node_watchdog.cc
++++ b/examples/pxScene2d/external/libnode-v10.15.3/src/node_watchdog.cc
 @@ -244,7 +244,10 @@ bool SigintWatchdogHelper::Stop() {
    CHECK_EQ(0, pthread_join(thread_, nullptr));
    has_running_thread_ = false;
@@ -993,10 +978,10 @@ index 4b902aa..382bf7b 100755
  #else
    watchdog_disabled_ = true;
  #endif
-diff --git a/vcbuild.bat b/vcbuild.bat
+diff --git a/examples/pxScene2d/external/libnode-v10.15.3/vcbuild.bat b/examples/pxScene2d/external/libnode-v10.15.3/vcbuild.bat
 index 834db64..4e60b7b 100755
---- a/vcbuild.bat
-+++ b/vcbuild.bat
+--- a/examples/pxScene2d/external/libnode-v10.15.3/vcbuild.bat
++++ b/examples/pxScene2d/external/libnode-v10.15.3/vcbuild.bat
 @@ -55,6 +55,9 @@ set "common_test_suites=%js_test_suites% doctool addons addons-napi&set build_ad
  set http2_debug=
  set nghttp2_debug=
