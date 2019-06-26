@@ -38,6 +38,8 @@ var fs = require('fs')
 var path = require('path')
 var vm = require('vm')
 var _module = require('module')
+const {promisify} = require('util')
+const readFileAsync = promisify(fs.readFile)
 
 // JRJR not sure why Buffer is not already defined.
 // Could look at adding to sandbox.js but this works for now
@@ -184,6 +186,40 @@ const bootStrap = (moduleName, from, request) => {
         // Cache the module exports
         bootStrapCache[filename] = m
         return m
+      }
+      const contextifiedSandbox = vm.createContext({ secret: 42, global:global, setTimeout:global.setTimeout, console:console});
+
+      function initializeImportMeta(meta, { url }) {
+        meta.url = url;
+      }
+      
+      async function linker(specifier, referencingModule) {
+          const source = await readFileAsync(specifier, {'encoding' : 'utf-8'})
+          var mod = new vm.SourceTextModule(source ,{ context: contextifiedSandbox, initializeImportMeta:initializeImportMeta, importModuleDynamically:importModuleDynamically });
+          return mod;
+      }
+
+      async function importModuleDynamically(specifier, { url }) {
+        console.log("Inside importModuleDynamically" +specifier);
+        const source = await readFileAsync(specifier, {'encoding' : 'utf-8'})
+        var mod = new vm.SourceTextModule(source ,{ context: contextifiedSandbox, initializeImportMeta:initializeImportMeta, importModuleDynamically:importModuleDynamically });
+        var result = await mod.link(linker);
+        mod.instantiate();
+        await mod.evaluate();
+        return mod;
+      }
+
+      //it will be good if we have some way to tell, we are loading esm module in js file
+      if ((filename.indexOf('.mjs') != -1)) {
+        //console.log('Loading mjs module: ', filename)
+        (async () => {
+          const source = await readFileAsync(filename, {'encoding' : 'utf-8'})
+          const bar = new vm.SourceTextModule(source , { context: contextifiedSandbox, initializeImportMeta:initializeImportMeta, importModuleDynamically:importModuleDynamically });
+          var result = await bar.link(linker);
+          bar.instantiate();
+          await bar.evaluate();
+        })();
+        return;
       }
 
       console.log('Loading source module:', filename)

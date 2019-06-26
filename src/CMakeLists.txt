@@ -238,6 +238,9 @@ if (SUPPORT_NODE)
     add_definitions(-DRTSCRIPT_SUPPORT_NODE)
     set(PXCORE_FILES ${PXCORE_FILES} rtScriptV8/rtScriptNode.cpp rtScriptV8/jsCallback.cpp rtScriptV8/rtFunctionWrapper.cpp 
         rtScriptV8/rtObjectWrapper.cpp rtScriptV8/rtWrapperUtils.cpp)
+    if (USE_NODE_10)
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++1y")
+    endif (USE_NODE_10)
 endif()
 
 if (SUPPORT_V8)

@@ -148,7 +148,7 @@ rtValue jsCallback::run()
     #if defined RTSCRIPT_SUPPORT_V8
     String::Utf8Value trace(mIsolate, (tryCatch.StackTrace(ctx)).ToLocalChecked());
     #else
-    String::Utf8Value trace((tryCatch.StackTrace(ctx)).ToLocalChecked());
+    String::Utf8Value trace(mIsolate, (tryCatch.StackTrace(ctx)).ToLocalChecked());
     #endif
     rtLogWarn("%s", *trace);
   }

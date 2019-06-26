@@ -64,7 +64,7 @@ GetContextId(Local<Context>& ctx)
   HandleScope handleScope(ctx->GetIsolate());
   Local<Value> val = ctx->GetEmbedderData(HandleMap::kContextIdIndex);
   assert(!val.IsEmpty());
-  return val->Uint32Value();
+  return val->Uint32Value(ctx).FromJust();
 }
 #if defined ENABLE_NODE_V_6_9 || defined RTSCRIPT_SUPPORT_V8
 static void WeakCallback(const WeakCallbackInfo<rtIObject>& data) {
@@ -497,7 +497,7 @@ rtValue js2rt(v8::Local<v8::Context>& ctx, const Handle<Value>& val, rtWrapperEr
     // It's very possible that someone is trying to use another wrapped object
     // from some other native addon. Maybe that would actuall work and fail
     // at a lower level?
-    Local<Object> obj = val->ToObject();
+    Local<Object> obj = val->ToObject(ctx).ToLocalChecked();
     if (obj->InternalFieldCount() > 0 && !val->IsArrayBufferView() /*Buffer*/)
     {
       return rtObjectWrapper::unwrapObject(obj);
@@ -506,14 +506,14 @@ rtValue js2rt(v8::Local<v8::Context>& ctx, const Handle<Value>& val, rtWrapperEr
     {
       // this is a regular JS object. i.e. one that does not wrap an rtObject.
       // in this case, we'll provide the necessary adapter.
-      return rtValue(new jsObjectWrapper(isolate, obj->ToObject(), val->IsArray()));
+      return rtValue(new jsObjectWrapper(isolate, obj->ToObject(ctx).ToLocalChecked(), val->IsArray()));
     }
   }
 
   if (val->IsBoolean())   { return rtValue(val->BooleanValue()); }
-  if (val->IsNumber())    { return rtValue(val->NumberValue()); }
-  if (val->IsInt32())     { return rtValue(val->Int32Value()); }
-  if (val->IsUint32())    { return rtValue(val->Uint32Value()); }
+  if (val->IsNumber())    { return rtValue(val->NumberValue(ctx).FromJust()); }
+  if (val->IsInt32())     { return rtValue(val->Int32Value(ctx).FromJust()); }
+  if (val->IsUint32())    { return rtValue(val->Uint32Value(ctx).FromJust()); }
 
   rtLogFatal("unsupported javascript -> rtValue type conversion");
   return rtValue(0);
