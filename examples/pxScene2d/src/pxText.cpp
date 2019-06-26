@@ -108,7 +108,6 @@ void pxText::resourceReady(rtString readyResolution)
 	
     mDirty=true;  
     mScene->mDirty = true;
-    mTextFbo = NULL;
     // !CLF: ToDo Use pxObject::onTextureReady() and rename it.
     if( mInitialized) 
     {
@@ -233,7 +232,7 @@ rtError pxText::setFont(rtObjectRef o)
 rtError pxText::texture(uint32_t &v)
 {
   v = 0;
-  if (mTextFbo.getPtr() != NULL && mTextFbo->getTexture() != NULL)
+  if (mTextFbo.getPtr() != NULL && mTextFbo->getTexture() != NULL && !mDirty)
   {
     v = mTextFbo->getTexture()->getNativeId();
   }
