@@ -69,11 +69,6 @@ then
   #        echo "Failed to configure libcurl with SSL support" && exit 1
   #    fi
   #fi
-<<<<<<< HEAD
-=======
-
->>>>>>> 7f5d5f948f86eb9b672c009f0b4d055b24496707
-
   make all "-j${make_parallel}"
   cd ..
 
