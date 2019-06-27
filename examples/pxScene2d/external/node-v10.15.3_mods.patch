@@ -944,24 +944,24 @@ index 12089bc..7e8bf86 100755
  
  // Like a `TryCatch` but exits the process if an exception was caught.
  class FatalTryCatch : public v8::TryCatch {
-diff --git a/examples/pxScene2d/external/libnode-v10.15.3/src/node_platform.cc b/examples/pxScene2d/external/libnode-v10.15.3/src/node_platform.cc
-index fd8d045..6d2088d 100755
+diff --git a/examples/pxScene2d/external/libnode-v10.15.3/src/node_platform.cc b/examples/pxScene2d/external/lib
+index fd8d045..0d99005 100755
 --- a/examples/pxScene2d/external/libnode-v10.15.3/src/node_platform.cc
 +++ b/examples/pxScene2d/external/libnode-v10.15.3/src/node_platform.cc
-@@ -328,6 +328,13 @@ size_t NodePlatform::NumberOfAvailableBackgroundThreads() {
- void PerIsolatePlatformData::RunForegroundTask(std::unique_ptr<Task> task) {
+@@ -329,6 +329,13 @@ void PerIsolatePlatformData::RunForegroundTask(std::unique_ptr<Task> task) {
    Isolate* isolate = Isolate::GetCurrent();
    HandleScope scope(isolate);
+   Environment* env = Environment::GetCurrent(isolate);
 +/*MODIFIED CODE BEGIN*/
-+  if (isolate->GetCurrentContext().IsEmpty())
++  if (isolate->GetCurrentContext().IsEmpty() || (NULL == env))
 +  {
 +    task->Run();
 +    return;
 +  }
 +/*MODIFIED CODE END*/
-   Environment* env = Environment::GetCurrent(isolate);
    InternalCallbackScope cb_scope(env, Local<Object>(), { 0, 0 },
                                   InternalCallbackScope::kAllowEmptyResource);
+   task->Run();
 diff --git a/examples/pxScene2d/external/libnode-v10.15.3/src/node_watchdog.cc b/examples/pxScene2d/external/libnode-v10.15.3/src/node_watchdog.cc
 index 4b902aa..382bf7b 100755
 --- a/examples/pxScene2d/external/libnode-v10.15.3/src/node_watchdog.cc
