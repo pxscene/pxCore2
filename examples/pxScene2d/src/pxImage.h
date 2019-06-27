@@ -38,6 +38,7 @@ public:
   
   rtProperty(resource, resource, setResource, rtObjectRef);
   rtProperty(downscaleSmooth, downscaleSmooth, setDownscaleSmooth, bool);
+  rtMethodNoArgAndReturn("texture", texture, uint32_t);
   
   pxImage(pxScene2d* scene) : pxObject(scene),mStretchX(pxConstantsStretch::NONE),mStretchY(pxConstantsStretch::NONE), 
           mMaskOp(pxConstantsMaskOperation::NORMAL), imageLoaded(false), mListenerAdded(false), mDownscaleSmooth(false)
@@ -72,6 +73,8 @@ public:
 
   rtError downscaleSmooth(bool& v) const;
   rtError setDownscaleSmooth(bool v);
+
+  rtError texture(uint32_t & v) const;
 
   virtual void resourceReady(rtString readyResolution);
   virtual void resourceDirty();

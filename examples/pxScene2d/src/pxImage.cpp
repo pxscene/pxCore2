@@ -365,6 +365,16 @@ rtError pxImage::setDownscaleSmooth(bool v)
     return RT_OK;
 }
 
+rtError pxImage::texture(uint32_t &v) const
+{
+  v = 0;
+  if (getImageResource() != NULL && getImageResource()->isInitialized() && getImageResource()->getTexture().getPtr())
+  {
+    v = getImageResource()->getTexture()->getNativeId();
+  }
+  return RT_OK;
+}
+
 rtError pxImage::removeResourceListener()
 {
   if (mListenerAdded)
@@ -417,3 +427,4 @@ rtDefineProperty(pxImage, stretchX);
 rtDefineProperty(pxImage, stretchY);
 rtDefineProperty(pxImage, maskOp);
 rtDefineProperty(pxImage, downscaleSmooth);
+rtDefineMethod(pxImage, texture);
