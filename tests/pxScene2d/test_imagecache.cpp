@@ -1287,6 +1287,26 @@ class rtFileDownloaderTest : public testing::Test, public commonTestFns
       return 0;
     }
 
+    void byteRangeTest()
+    {
+      rtString byteRange("NULL");
+      size_t m_fileSize = 19991; // Actual file size of https://www.sparkui.org/tests-ci/tests/images/008.jpg
+
+      rtFileCache::instance()->clearCache();
+      rtFileDownloadRequest* request = new rtFileDownloadRequest("https://www.sparkui.org/tests-ci/tests/images/008.jpg",this);
+
+      request->setByteRangeEnable(true);
+      request->setActualFileSize(m_fileSize);
+      // Set the intervals as 1K range.
+      request->setByteRangeIntervals("0-1024, 1025-2048, 2049-3072, 3073-4096, 4097-5120, 5121-6144, 6145-7168, 7169-8192, 8193-9216, 9217-10240, 10241-11264, 11265-12288, 12289-13312, 13313-14336, 14337-15360, 15361-16384, 16385-17408, 17409-18432, 18433-19456, 19457-19991");
+
+      bool ret = rtFileDownloader::instance()->downloadFromNetwork(request);
+      EXPECT_TRUE (ret == true);
+      EXPECT_TRUE (request->httpStatusCode() == 206);
+      EXPECT_TRUE (request->downloadedDataSize() == m_fileSize);
+      EXPECT_TRUE (request->downloadStatusCode() == 0);
+    }
+
   private:
     int expectedStatusCode;
     int expectedHttpCode;
