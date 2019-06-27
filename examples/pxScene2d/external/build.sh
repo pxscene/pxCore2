@@ -15,6 +15,7 @@ banner() {
 #--------- Args
 
 NODE_VER="10.15.3"
+OPENSSL_DIR="`pwd`/openssl-1.0.2o"
 
 while (( "$#" )); do
   case "$1" in
@@ -43,6 +44,14 @@ elif [ "$(uname)" = "Linux" ]; then
     make_parallel="$(cat /proc/cpuinfo | grep '^processor' | wc --lines)"
 fi
 
+cd ${OPENSSL_DIR}
+./config --shared
+make
+cd ..
+	examples/pxScene2d/external/node-v10.15.3_mods.patch
+	examples/pxScene2d/external/openssl-1.0.2o/
+	examples/pxScene2d/external/openssl_1.0.2_compatibility.patch
+
 if [ ! -e ./curl/lib/.libs/libcurl.4.dylib ] ||
    [ "$(uname)" != "Darwin" ]
 then
@@ -51,23 +60,17 @@ then
 
   cd curl
 
-  if [ "$(uname)" = "Darwin" ]; then
-    ./configure --with-darwinssl
-    #Removing api definition for Yosemite compatibility.
-    sed -i '' '/#define HAVE_CLOCK_GETTIME_MONOTONIC 1/d' lib/curl_config.h
-  else
-      if [ $(echo "$(openssl version | cut -d' ' -f 2 | cut -d. -f1-2)>1.0" | bc) ]; then
-          echo "Openssl is too new for this version of libcurl.  Opting for gnutls instead..."
-          ./configure --with-gnutls
-      else
-          echo "Using openssl < 1.1.*"
-          ./configure --with-ssl
-      fi
-
-      if [ "$(cat config.log | grep '^SSL_ENABLED' | cut -d= -f 2)" != "'1'" ]; then
-          echo "Failed to configure libcurl with SSL support" && exit 1
-      fi
-  fi
+  CPPFLAGS="-I${OPENSSL_DIR} -I${OPENSSL_DIR}/include" LDFLAGS="-L${OPENSSL_DIR} -Wl,-rpath,${OPENSSL_DIR}" LIBS="-ldl -lpthread"  ./configure --with-ssl=${OPENSSL_DIR}
+  #if [ "$(uname)" = "Darwin" ]; then
+  #  #./configure --with-darwinssl
+  #  #Removing api definition for Yosemite compatibility.
+  #  sed -i '' '/#define HAVE_CLOCK_GETTIME_MONOTONIC 1/d' lib/curl_config.h
+  #else
+  #    CPPFLAGS="-I${OPENSSL_DIR} -I${OPENSSL_DIR}/include" LDFLAGS="-L${OPENSSL_DIR} -Wl,-rpath,${OPENSSL_DIR}" LIBS="-ldl -lpthread"  ./configure --with-ssl=${OPENSSL_DIR}
+  #    if [ "$(cat config.log | grep '^SSL_ENABLED' | cut -d= -f 2)" != "'1'" ]; then
+  #        echo "Failed to configure libcurl with SSL support" && exit 1
+  #    fi
+  #fi
 
 
   make all "-j${make_parallel}"
@@ -222,10 +225,11 @@ then
   if [ -e "node-v${NODE_VER}_mods.patch" ]
   then
     git apply "node-v${NODE_VER}_mods.patch"
+    git apply "openssl_1.0.2_compatibility.patch"
   fi
 
   cd "libnode-v${NODE_VER}"
-  ./configure --shared
+  ./configure --shared --shared-openssl --shared-openssl-includes=${OPENSSL_DIR}/include/ --shared-openssl-libpath=${OPENSSL_DIR}
   make "-j${make_parallel}"
 
   if [ "$(uname)" != "Darwin" ]

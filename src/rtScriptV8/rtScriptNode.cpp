@@ -445,7 +445,7 @@ void rtNodeContext::createEnvironment()
 #else
 #if HAVE_INSPECTOR
 #ifdef USE_NODE_PLATFORM
-/*
+  #ifndef USE_NODE_10
   if (mEnv->options().get()->debug_options.get()->inspector_enabled)
   {
     rtString currentPath;
@@ -453,7 +453,7 @@ void rtNodeContext::createEnvironment()
     node::MultiIsolatePlatform* platform = static_cast<node::MultiIsolatePlatform*>(mPlatform);
     node::InspectorStart(mEnv, currentPath.cString(), platform);
   }
-*/
+  #endif
 #endif //USE_NODE_PLATFORM
 #endif
 #endif
@@ -1263,9 +1263,11 @@ void rtScriptNode::init2(int argc, char** argv)
    V8::Initialize();
    Isolate::CreateParams params;
    array_buffer_allocator = new ArrayBufferAllocator();
-   //const char* source1 = "function pxSceneFooFunction(){ return 0;}";
-   //static v8::StartupData data = v8::V8::CreateSnapshotDataBlob(source1);
-   //params.snapshot_blob = &data;
+   #ifndef USE_NODE_10
+   const char* source1 = "function pxSceneFooFunction(){ return 0;}";
+   static v8::StartupData data = v8::V8::CreateSnapshotDataBlob(source1);
+   params.snapshot_blob = &data;
+   #endif
    params.array_buffer_allocator = array_buffer_allocator;
    mIsolate     = Isolate::New(params);
    node_isolate = mIsolate; // Must come first !!
@@ -1316,10 +1318,11 @@ rtError rtScriptNode::term()
     if(mPlatform)
     {
 #ifdef USE_NODE_PLATFORM
-      //node::MultiIsolatePlatform* platform = static_cast<node::MultiIsolatePlatform*>(mPlatform);
-      //node::NodePlatform* platform_ = static_cast<node::NodePlatform*>(mPlatform);
-      //platform_->Shutdown();
-      //node::FreePlatform(platform);
+      #ifndef USE_NODE_10
+      node::NodePlatform* platform_ = static_cast<node::NodePlatform*>(mPlatform);
+      platform_->Shutdown();
+      node::FreePlatform(platform);
+      #endif
 #else
       delete mPlatform;
 #endif // USE_NODE_PLATFORM
