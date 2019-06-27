@@ -217,9 +217,11 @@ if [ ! -e "libnode-v${NODE_VER}/libnode.dylib" ] ||
 then
 
   banner "NODE"
-
+  echo "node-v${NODE_VER}_mods.patch"
+  ls -lrt node-v${NODE_VER}_mods.patch
   if [ -e "node-v${NODE_VER}_mods.patch" ]
   then
+    echo "Applying patch"
     git apply "node-v${NODE_VER}_mods.patch"
     git apply "openssl_1.0.2_compatibility.patch"
   fi
