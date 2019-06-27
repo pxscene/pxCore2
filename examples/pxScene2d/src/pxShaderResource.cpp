@@ -100,7 +100,7 @@ shaderProgram::~shaderProgram()
   glDeleteProgram(mProgram);
 }
 
-void shaderProgram::init(const char* v, const char* f)
+void shaderProgram::initShader(const char* v, const char* f)
 {
   if(f)
   {
@@ -128,7 +128,7 @@ int shaderProgram::getUniformLocation(const char* name)
   int l = glGetUniformLocation(mProgram, name);
 
   if (l == -1)
-    rtLogError("Shader does not define uniform %s.\n", name);
+    rtLogWarn("Shader does not define uniform '%s'.\n", name);
 
   return l;
 }
@@ -308,7 +308,7 @@ void rtShaderResource::setupResource()
     const char* vtxCode = mVertexSrc.length() > 0 ? (const char*) mVertexSrc.data() : vShaderText;
 
     // TODO:  TRY
-    shaderProgram::init( vtxCode, (const char*) mFragmentSrc.data() );
+    shaderProgram::initShader( vtxCode, (const char*) mFragmentSrc.data() );
     // TODO:  CATCH
 
     double stopDecodeTime = pxMilliseconds();
@@ -686,7 +686,7 @@ void rtShaderResource::loadResourceFromArchive(rtObjectRef archiveRef)
     const char* vtxCode = mVertexSrc.length() > 0 ? (const char*) mVertexSrc.data() : vShaderText;
 
     // TODO:  TRY
-    shaderProgram::init( vtxCode, (const char*) mFragmentSrc.data() );
+    shaderProgram::initShader( vtxCode, (const char*) mFragmentSrc.data() );
     // TODO:  CATCH
 
     double stopDecodeTime = pxMilliseconds();

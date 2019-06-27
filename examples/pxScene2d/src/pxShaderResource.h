@@ -122,7 +122,8 @@ public:
   shaderProgram();
 
   virtual ~shaderProgram();
-  virtual void init(const char* v, const char* f);
+  
+  void initShader(const char* v, const char* f);
   
   int getUniformLocation(const char* name);
   
