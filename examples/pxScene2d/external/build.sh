@@ -46,7 +46,7 @@ fi
 
 cd ${OPENSSL_DIR}
 pwd
-./config shared
+./Configure darwin64-x86_64-cc -shared
 make
 ln -s libssl.so libssl_custom.so
 ln -s libcrypto.so libcrypto_custom.so
