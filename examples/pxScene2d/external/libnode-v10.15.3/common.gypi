@@ -107,9 +107,7 @@
           'v8_enable_handle_zapping': 1,
         },
         'defines': [ 'DEBUG', '_DEBUG', 'V8_ENABLE_CHECKS' ],
-        # MODIFIED CODE BEGIN
-        'cflags': [ '-Os' ],
-        # MODIFIED CODE END
+        'cflags': [ '-g', '-O0' ],
         'conditions': [
           ['target_arch=="x64"', {
             'msvs_configuration_platform': 'x64',
@@ -180,9 +178,7 @@
         'variables': {
           'v8_enable_handle_zapping': 0,
         },
-        # MODIFIED CODE BEGIN
-        'cflags': [ '-Os' ],
-        # MODIFIED CODE END 
+        'cflags': [ '-O3' ],
         'conditions': [
           ['target_arch=="x64"', {
             'msvs_configuration_platform': 'x64',
@@ -219,35 +215,6 @@
             'cflags': [ '-fPIE' ],
             'ldflags': [ '-fPIE', '-pie' ]
           }],
-          # MODIFIED CODE BEGIN
-          [ 'no_optimization==1', {
-            'cflags': [ '-O0' ],
-            'msvs_settings': {
-              'VCCLCompilerTool': {
-                'Optimization': 0, # /Od, no optimization
-              }
-            }
-          }],
-          [ 'no_optimization!=1', {
-            'cflags': [ '-Os' ],
-            'msvs_settings': {
-              'VCCLCompilerTool': {
-                'Optimization': 3, # /Ox, full optimization
-                'FavorSizeOrSpeed': 1, # /Ot, favour speed over size
-                'InlineFunctionExpansion': 2, # /Ob2, inline anything eligible
-                'WholeProgramOptimization': 'true', # /GL, whole program optimization, needed for LTCG
-              },
-              'VCLibrarianTool': {
-                'AdditionalOptions': [
-                  '/LTCG', # link time code generation
-                ],
-              },
-              'VCLinkerTool': {
-                'OptimizeReferences': 2, # /OPT:REF
-                'EnableCOMDATFolding': 2, # /OPT:ICF
-              }
-            }
-          }],
           ['node_shared=="true"', {
             'msvs_settings': {
              'VCCLCompilerTool': {
@@ -264,21 +231,17 @@
           }],
           ['node_with_ltcg=="true"', {
             'msvs_settings': {
-              # MODIFIED CODE BEGIN
-              #'VCCLCompilerTool': {
-              #  'WholeProgramOptimization': 'true' # /GL, whole program optimization, needed for LTCG
-              #},
-              #'VCLibrarianTool': {
-              #  'AdditionalOptions': [
-              #    '/LTCG:INCREMENTAL', # link time code generation
-              #  ]
-              #},
-              # MODIFIED CODE END
+              'VCCLCompilerTool': {
+                'WholeProgramOptimization': 'true' # /GL, whole program optimization, needed for LTCG
+              },
+              'VCLibrarianTool': {
+                'AdditionalOptions': [
+                  '/LTCG:INCREMENTAL', # link time code generation
+                ]
+              },
               'VCLinkerTool': {
-                # MODIFIED CODE BEGIN
-                #'OptimizeReferences': 2, # /OPT:REF
-                #'EnableCOMDATFolding': 2, # /OPT:ICF
-                # MODIFIED CODE END
+                'OptimizeReferences': 2, # /OPT:REF
+                'EnableCOMDATFolding': 2, # /OPT:ICF
                 'LinkIncremental': 1, # disable incremental linking
                 'AdditionalOptions': [
                   '/LTCG:INCREMENTAL', # incremental link-time code generation
@@ -298,11 +261,9 @@
         ],
         'msvs_settings': {
           'VCCLCompilerTool': {
-            # MODIFIED CODE BEGIN
-            #'Optimization': 3, # /Ox, full optimization
-            #'FavorSizeOrSpeed': 1, # /Ot, favor speed over size
-            #'InlineFunctionExpansion': 2, # /Ob2, inline anything eligible
-            # MODIFIED CODE END
+            'Optimization': 3, # /Ox, full optimization
+            'FavorSizeOrSpeed': 1, # /Ot, favor speed over size
+            'InlineFunctionExpansion': 2, # /Ob2, inline anything eligible
             'OmitFramePointers': 'true',
             'EnableFunctionLevelLinking': 'true',
             'EnableIntrinsicFunctions': 'true',
@@ -552,9 +513,6 @@
               'GCC_VERSION': 'com.apple.compilers.llvm.clang.1_0',
               'CLANG_CXX_LANGUAGE_STANDARD': 'gnu++1y',  # -std=gnu++1y
               'CLANG_CXX_LIBRARY': 'libc++',
-              # MODIFIED CODE BEGIN
-              'MACOSX_DEPLOYMENT_TARGET': '10.9',
-              # MODIFIED CODE END
             },
           }],
         ],

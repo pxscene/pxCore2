@@ -566,13 +566,6 @@ parser.add_option('--without-bundled-v8',
     help='do not use V8 includes from the bundled deps folder. ' +
          '(This mode is not officially supported for regular applications)')
 
-# MODIFIED CODE BEGIN
-parser.add_option('--no-optimization',
-    action='store_true',
-    dest='no_optimization',
-    help='build without optimization')
-# MODIFIED CODE END
-
 parser.add_option('--build-v8-with-gn',
     action='store_true',
     dest='build_v8_with_gn',
@@ -1615,9 +1608,6 @@ configure_openssl(output)
 configure_intl(output)
 configure_static(output)
 configure_inspector(output)
-# MODIFIED CODE BEGIN
-output['variables']['no_optimization'] = 1 if options.no_optimization else 0
-# MODIFIED CODE END
 
 # variables should be a root level element,
 # move everything else to target_defaults

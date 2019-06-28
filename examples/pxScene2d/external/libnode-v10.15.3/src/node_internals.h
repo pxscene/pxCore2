@@ -253,9 +253,7 @@ void AppendExceptionLine(Environment* env,
                          v8::Local<v8::Message> message,
                          enum ErrorHandlingMode mode);
 
-/* MODIFIED CODE BEGIN */
-/*[[noreturn]]*/ void FatalError(const char* location, const char* message);
-/* MODIFIED CODE END */
+[[noreturn]] void FatalError(const char* location, const char* message);
 
 // Like a `TryCatch` but exits the process if an exception was caught.
 class FatalTryCatch : public v8::TryCatch {

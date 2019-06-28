@@ -329,13 +329,6 @@ void PerIsolatePlatformData::RunForegroundTask(std::unique_ptr<Task> task) {
   Isolate* isolate = Isolate::GetCurrent();
   HandleScope scope(isolate);
   Environment* env = Environment::GetCurrent(isolate);
-/*MODIFIED CODE BEGIN*/
-  if (isolate->GetCurrentContext().IsEmpty() || (NULL == env))
-  {
-    task->Run();
-    return;
-  }
-/*MODIFIED CODE END*/
   InternalCallbackScope cb_scope(env, Local<Object>(), { 0, 0 },
                                  InternalCallbackScope::kAllowEmptyResource);
   task->Run();
