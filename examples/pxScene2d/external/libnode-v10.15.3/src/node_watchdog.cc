@@ -244,10 +244,7 @@ bool SigintWatchdogHelper::Stop() {
   CHECK_EQ(0, pthread_join(thread_, nullptr));
   has_running_thread_ = false;
 
-  /* MODIFIED CODE BEGIN */
-  // To make sure SIGINT signal is not caught by libnode
-  //RegisterSignalHandler(SIGINT, SignalExit, true);
-  /* MODIFIED CODE END */
+  RegisterSignalHandler(SIGINT, SignalExit, true);
 #else
   watchdog_disabled_ = true;
 #endif
