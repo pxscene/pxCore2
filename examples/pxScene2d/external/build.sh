@@ -48,6 +48,8 @@ cd ${OPENSSL_DIR}
 pwd
 ./config shared
 make
+ln -s libssl.so libssl_custom.so
+ln -s libcrypto.so libcrypto_custom.so
 cd ..
 
 if [ ! -e ./curl/lib/.libs/libcurl.4.dylib ] ||
@@ -227,7 +229,7 @@ then
   fi
 
   cd "libnode-v${NODE_VER}"
-  ./configure --shared --shared-openssl --shared-openssl-includes=${OPENSSL_DIR}/include/ --shared-openssl-libpath=${OPENSSL_DIR}
+  ./configure --shared --shared-openssl --shared-openssl-includes=${OPENSSL_DIR}/include/ --shared-openssl-libpath=${OPENSSL_DIR} --shared-openssl-libname=ssl_custom,crypto_custom
   make "-j${make_parallel}"
 
   if [ "$(uname)" != "Darwin" ]
