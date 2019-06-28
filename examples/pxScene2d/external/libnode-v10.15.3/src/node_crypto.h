@@ -79,7 +79,13 @@ using SSLSessionPointer = DeleteFnPtr<SSL_SESSION, SSL_SESSION_free>;
 using SSLPointer = DeleteFnPtr<SSL, SSL_free>;
 using EVPKeyPointer = DeleteFnPtr<EVP_PKEY, EVP_PKEY_free>;
 using EVPKeyCtxPointer = DeleteFnPtr<EVP_PKEY_CTX, EVP_PKEY_CTX_free>;
+/* MODIFIED CODE BEGIN */
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+using EVPMDPointer = DeleteFnPtr<EVP_MD_CTX, EVP_MD_CTX_destroy>;
+#else
 using EVPMDPointer = DeleteFnPtr<EVP_MD_CTX, EVP_MD_CTX_free>;
+#endif
+/* MODIFIED CODE END */
 using RSAPointer = DeleteFnPtr<RSA, RSA_free>;
 using BignumPointer = DeleteFnPtr<BIGNUM, BN_free>;
 using NetscapeSPKIPointer = DeleteFnPtr<NETSCAPE_SPKI, NETSCAPE_SPKI_free>;
@@ -452,7 +458,13 @@ class Hmac : public BaseObject {
   }
 
  private:
+/* MODIFIED CODE BEGIN */
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+DeleteFnPtr<HMAC_CTX, HMAC_CTX_cleanup> ctx_;
+#else
   DeleteFnPtr<HMAC_CTX, HMAC_CTX_free> ctx_;
+#endif
+/* MODIFIED CODE END */
 };
 
 class Hash : public BaseObject {
