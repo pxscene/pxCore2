@@ -2,10 +2,10 @@
 
 checkError()
 {
+  tail -n 100 $TRAVIS_BUILD_DIR/logs/build_logs
   cd $TRAVIS_BUILD_DIR/examples/pxScene2d/external/libnode-v10.15.3
   ls -rlt $TRAVIS_BUILD_DIR/examples/pxScene2d/external/openssl-1.0.2o
   grep -rn openssl-1.0.2o out/node_lib.target.mk
-  cat out/node_lib.target.mk
   if [ "$1" -ne 0 ]
   then
     printf "\n\n*********************************************************************";
