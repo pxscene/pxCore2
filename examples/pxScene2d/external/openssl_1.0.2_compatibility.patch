@@ -1,7 +1,7 @@
-From 1c223a06e4b79fbdf2d20fe1b86d67b76446a615 Mon Sep 17 00:00:00 2001
+From 573d884a94cc0f182d9e812b3915a8e2d1fcd671 Mon Sep 17 00:00:00 2001
 From: Madana Gopal <madanagopal_thirumalai@comcast.com>
-Date: Fri, 28 Jun 2019 06:57:53 +0530
-Subject: [PATCH] openssl_1.0.2_compatibility
+Date: Fri, 28 Jun 2019 07:01:01 +0530
+Subject: [PATCH] openssl_1.0.2_compatability
 
 ---
  .../external/libnode-v10.15.3/src/node_crypto.cc   | 298 ++++++++++++++++++---
@@ -9,7 +9,7 @@ Subject: [PATCH] openssl_1.0.2_compatibility
  2 files changed, 279 insertions(+), 31 deletions(-)
 
 diff --git a/examples/pxScene2d/external/libnode-v10.15.3/src/node_crypto.cc b/examples/pxScene2d/external/libnode-v10.15.3/src/node_crypto.cc
-index 31dee99..61dd1cf 100755
+index 31dee99..28118b5 100755
 --- a/examples/pxScene2d/external/libnode-v10.15.3/src/node_crypto.cc
 +++ b/examples/pxScene2d/external/libnode-v10.15.3/src/node_crypto.cc
 @@ -84,7 +84,9 @@ using v8::String;
@@ -543,7 +543,7 @@ index 31dee99..61dd1cf 100755
 +#if OPENSSL_VERSION_NUMBER >= 0x10100000L
 +         || param_encoding == OPENSSL_EC_EXPLICIT_CURVE
 +#endif
-+  )
++  );
 +// MODIFIED CODE END
    std::unique_ptr<KeyPairGenerationConfig> config(
        new ECKeyPairGenerationConfig(curve_nid, param_encoding));
