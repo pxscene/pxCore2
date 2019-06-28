@@ -619,6 +619,13 @@ WebGLRenderingContext.prototype.createTexture = function createTexture() {
     return new WebGLTexture(this.gl.createTexture());
 };
 
+WebGLRenderingContext.prototype.createWebGLTexture = function createWebGLTexture(id) {
+    if (!(arguments.length === 1)) {
+        throw new TypeError('Expected createWebGLTexture(id)');
+    }
+    return new WebGLTexture(id);
+};
+
 WebGLRenderingContext.prototype.cullFace = function cullFace(mode) {
     if (!(arguments.length === 1 && typeof mode === "number")) {
         throw new TypeError('Expected cullFace(number mode)');
