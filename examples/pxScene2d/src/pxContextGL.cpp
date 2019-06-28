@@ -2101,19 +2101,19 @@ void pxContext::init()
   SAFE_DELETE(gTextureMaskedShader);
 
   gSolidShader = new solidShaderProgram();
-  gSolidShader->init(vShaderText,fSolidShaderText);
+  gSolidShader->initShader(vShaderText,fSolidShaderText);
 
   gATextureShader = new aTextureShaderProgram();
-  gATextureShader->init(vShaderText,fATextureShaderText);
+  gATextureShader->initShader(vShaderText,fATextureShaderText);
 
   gTextureShader = new textureShaderProgram();
-  gTextureShader->init(vShaderText,fTextureShaderText);
+  gTextureShader->initShader(vShaderText,fTextureShaderText);
 
   gTextureBorderShader = new textureBorderShaderProgram();
-  gTextureBorderShader->init(vShaderText,fTextureBorderShaderText);
+  gTextureBorderShader->initShader(vShaderText,fTextureBorderShaderText);
 
   gTextureMaskedShader = new textureMaskedShaderProgram();
-  gTextureMaskedShader->init(vShaderText,fTextureMaskedShaderText);
+  gTextureMaskedShader->initShader(vShaderText,fTextureMaskedShaderText);
 
   glEnable(GL_BLEND);
 
