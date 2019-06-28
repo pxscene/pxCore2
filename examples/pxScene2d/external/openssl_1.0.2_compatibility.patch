@@ -1,15 +1,15 @@
-From 766ff4b45cef568fb724177acc677e783595ea25 Mon Sep 17 00:00:00 2001
+From 1c223a06e4b79fbdf2d20fe1b86d67b76446a615 Mon Sep 17 00:00:00 2001
 From: Madana Gopal <madanagopal_thirumalai@comcast.com>
-Date: Fri, 28 Jun 2019 06:31:06 +0530
+Date: Fri, 28 Jun 2019 06:57:53 +0530
 Subject: [PATCH] openssl_1.0.2_compatibility
 
 ---
- .../external/libnode-v10.15.3/src/node_crypto.cc   | 297 ++++++++++++++++++---
+ .../external/libnode-v10.15.3/src/node_crypto.cc   | 298 ++++++++++++++++++---
  .../external/libnode-v10.15.3/src/node_crypto.h    |  12 +
- 2 files changed, 278 insertions(+), 31 deletions(-)
+ 2 files changed, 279 insertions(+), 31 deletions(-)
 
 diff --git a/examples/pxScene2d/external/libnode-v10.15.3/src/node_crypto.cc b/examples/pxScene2d/external/libnode-v10.15.3/src/node_crypto.cc
-index 31dee99..fbe9d27 100755
+index 31dee99..61dd1cf 100755
 --- a/examples/pxScene2d/external/libnode-v10.15.3/src/node_crypto.cc
 +++ b/examples/pxScene2d/external/libnode-v10.15.3/src/node_crypto.cc
 @@ -84,7 +84,9 @@ using v8::String;
@@ -532,7 +532,7 @@ index 31dee99..fbe9d27 100755
    }
  
    inline void DoThreadPoolWork() override {
-@@ -5277,8 +5504,12 @@ void GenerateKeyPairEC(const FunctionCallbackInfo<Value>& args) {
+@@ -5277,8 +5504,13 @@ void GenerateKeyPairEC(const FunctionCallbackInfo<Value>& args) {
    }
    CHECK(args[1]->IsUint32());
    const uint32_t param_encoding = args[1].As<Int32>()->Value();
@@ -543,11 +543,12 @@ index 31dee99..fbe9d27 100755
 +#if OPENSSL_VERSION_NUMBER >= 0x10100000L
 +         || param_encoding == OPENSSL_EC_EXPLICIT_CURVE
 +#endif
++  )
 +// MODIFIED CODE END
    std::unique_ptr<KeyPairGenerationConfig> config(
        new ECKeyPairGenerationConfig(curve_nid, param_encoding));
    GenerateKeyPair(args, 2, std::move(config));
-@@ -5699,7 +5930,11 @@ void Initialize(Local<Object> target,
+@@ -5699,7 +5931,11 @@ void Initialize(Local<Object> target,
    env->SetMethod(target, "generateKeyPairDSA", GenerateKeyPairDSA);
    env->SetMethod(target, "generateKeyPairEC", GenerateKeyPairEC);
    NODE_DEFINE_CONSTANT(target, OPENSSL_EC_NAMED_CURVE);
