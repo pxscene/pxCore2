@@ -46,7 +46,12 @@ fi
 
 cd ${OPENSSL_DIR}
 pwd
+if [ "$(uname)" != "Darwin" ]
+then
+./config -shared
+else
 ./Configure darwin64-x86_64-cc -shared
+fi
 make
 ln -s libssl.so libssl_custom.so
 ln -s libcrypto.so libcrypto_custom.so
