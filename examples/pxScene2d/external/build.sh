@@ -71,6 +71,7 @@ then
   if [ "$(uname)" = "Darwin" ]; then
     #Removing api definition for Yosemite compatibility.
     sed -i '' '/#define HAVE_CLOCK_GETTIME_MONOTONIC 1/d' lib/curl_config.h
+  fi
   make all "-j${make_parallel}"
   cd ..
 
