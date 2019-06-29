@@ -7,7 +7,7 @@ cd $THIS_DIR
 
 externalDir=../external
 
-externalLibs=$externalDir/png/.libs/:$externalDir/jpg/.libs/:$externalDir/curl/lib/.libs/:$externalDir/ft/objs/.libs/:$externalDir/zlib:$externalDir/westeros/external/install/lib/:$externalDir/libjpeg-turbo/.libs/:rpc/:$externalDir/gif/.libs/
+externalLibs=$externalDir/openssl-1.0.2o/:$externalDir/png/.libs/:$externalDir/jpg/.libs/:$externalDir/curl/lib/.libs/:$externalDir/ft/objs/.libs/:$externalDir/zlib:$externalDir/westeros/external/install/lib/:$externalDir/libjpeg-turbo/.libs/:rpc/:$externalDir/gif/.libs/
 PathD=$externalLibs:$externalDir/node/out/Debug/obj.target
 PathR=$externalLibs:$externalDir/node/out/Release/obj.target
 

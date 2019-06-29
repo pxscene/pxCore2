@@ -300,6 +300,8 @@ fi
 #-------- spark-webgl
 export NODE_PATH=$NODE_PATH:`pwd`/../src/node_modules
 export PATH=`pwd`/node/deps/npm/bin/node-gyp-bin/:`pwd`/node/out/Release:$PATH
+export LD_LIBRARY_PATH="${OPENSSL_DIR}/:$LD_LIBRARY_PATH"
+export DYLD_LIBRARY_PATH="${OPENSSL_DIR}/:$DYLD_LIBRARY_PATH"
 cd spark-webgl
 node-gyp rebuild
 cd ..
