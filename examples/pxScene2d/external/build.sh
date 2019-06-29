@@ -55,7 +55,6 @@ fi
 make
 ln -s libssl.so libssl_custom.so
 ln -s libcrypto.so libcrypto_custom.so
-sudo make install
 cd ..
 
 if [ ! -e ./curl/lib/.libs/libcurl.4.dylib ] ||
@@ -234,6 +233,8 @@ then
     git apply "openssl_1.0.2_compatibility.patch"
   fi
 
+  export LD_LIBRARY_PATH="${OPENSSL_DIR}/:$LD_LIBRARY_PATH"
+  export DYLD_LIBRARY_PATH="${OPENSSL_DIR}/:$DYLD_LIBRARY_PATH"
   cd "libnode-v${NODE_VER}"
   ./configure --shared --shared-openssl --shared-openssl-includes=${OPENSSL_DIR}/include/ --shared-openssl-libpath=${OPENSSL_DIR} --shared-openssl-libname=ssl_custom,crypto_custom
   make "-j${make_parallel}"
