@@ -148,6 +148,7 @@ rtMutex textureListMutex;
 #ifdef ENABLE_BACKGROUND_TEXTURE_CREATION
 rtMutex contextLock;
 #endif //ENABLE_BACKGROUND_TEXTURE_CREATION
+bool gFlipRendering = false;
 
 
 pxError lockContext()
@@ -322,6 +323,7 @@ static const char *fATextureShaderText =
 static const char *vShaderText =
   "uniform vec2 u_resolution;"
   "uniform mat4 amymatrix;"
+  "uniform bool u_flipY;"
   "attribute vec2 pos;"
   "attribute vec2 uv;"
   "varying vec2 v_uv;"
@@ -333,10 +335,11 @@ static const char *vShaderText =
   "  vec4 zeroToTwo = zeroToOne * vec4(2.0, 2.0, 1, 1);"
   "  vec4 clipSpace = zeroToTwo - vec4(1.0, 1.0, 0, 0);"
   "  clipSpace.w = 1.0+clipSpace.z;"
-  "  gl_Position =  clipSpace * vec4(1, -1, 1, 1);"
+  "  int yScale = -1;"
+  "  if (u_flipY) { yScale = 1; }"
+  "  gl_Position =  clipSpace * vec4(1, yScale, 1, 1);"
   "  v_uv = uv;"
   "}";
-
 
 //====================================================================================================================================================================================
 
@@ -768,6 +771,16 @@ public:
     mTextureListenerMutex.unlock();
 
     return PX_OK;
+  }
+
+  virtual void setUpsideDown(bool upsideDown)
+  {
+    // TODO - revisit
+    pxOffscreen tempOffscreen;
+    tempOffscreen.init(mOffscreen.width(), mOffscreen.height());
+    tempOffscreen.setUpsideDown(upsideDown);
+    mOffscreen.blit(tempOffscreen);
+    mOffscreen = tempOffscreen;
   }
 
   virtual pxError prepareForRendering()
@@ -1418,6 +1431,7 @@ protected:
   {
     mResolutionLoc = getUniformLocation("u_resolution");
     mMatrixLoc     = getUniformLocation("amymatrix");
+    mFlipYLoc      = getUniformLocation("u_flipY");
     mColorLoc      = getUniformLocation("a_color");
     mAlphaLoc      = getUniformLocation("u_alpha");
   }
@@ -1436,6 +1450,7 @@ public:
     }
     glUniform2f(mResolutionLoc, static_cast<GLfloat>(resW), static_cast<GLfloat>(resH));
     glUniformMatrix4fv(mMatrixLoc, 1, GL_FALSE, matrix);
+    glUniform1i(mFlipYLoc, gFlipRendering);
     glUniform1f(mAlphaLoc, alpha);
     glUniform4fv(mColorLoc, 1, color);
 
@@ -1450,6 +1465,7 @@ public:
 private:
   GLint mResolutionLoc;
   GLint mMatrixLoc;
+  GLint mFlipYLoc;
 
   GLint mPosLoc;
   GLint mUVLoc;
@@ -1478,6 +1494,7 @@ protected:
   {
     mResolutionLoc = getUniformLocation("u_resolution");
     mMatrixLoc     = getUniformLocation("amymatrix");
+    mFlipYLoc      = getUniformLocation("u_flipY");
     mColorLoc      = getUniformLocation("a_color");
     mAlphaLoc      = getUniformLocation("u_alpha");
     mTextureLoc    = getUniformLocation("s_texture");
@@ -1500,6 +1517,7 @@ public:
     glUniform2f(mResolutionLoc, static_cast<GLfloat>(resW), static_cast<GLfloat>(resH));
     glUniformMatrix4fv(mMatrixLoc, 1, GL_FALSE, matrix);
     glUniform1f(mAlphaLoc, alpha);
+    glUniform1i(mFlipYLoc, gFlipRendering);
     glUniform4fv(mColorLoc, 1, color);
 
     if (texture->bindGLTexture(mTextureLoc) != PX_OK)
@@ -1521,6 +1539,7 @@ public:
 private:
   GLint mResolutionLoc;
   GLint mMatrixLoc;
+  GLint mFlipYLoc;
 
   GLint mPosLoc;
   GLint mUVLoc;
@@ -1551,6 +1570,7 @@ protected:
   {
     mResolutionLoc = getUniformLocation("u_resolution");
     mMatrixLoc     = getUniformLocation("amymatrix");
+    mFlipYLoc      = getUniformLocation("u_flipY");
     mAlphaLoc      = getUniformLocation("u_alpha");
     mTextureLoc    = getUniformLocation("s_texture");
   }
@@ -1569,6 +1589,7 @@ public:
     }
     glUniform2f(mResolutionLoc, static_cast<GLfloat>(resW), static_cast<GLfloat>(resH));
     glUniformMatrix4fv(mMatrixLoc, 1, GL_FALSE, matrix);
+    glUniform1i(mFlipYLoc, gFlipRendering);
     glUniform1f(mAlphaLoc, alpha);
 
     if (texture->bindGLTexture(mTextureLoc) != PX_OK)
@@ -1595,6 +1616,7 @@ public:
 private:
   GLint mResolutionLoc;
   GLint mMatrixLoc;
+  GLint mFlipYLoc;
 
   GLint mPosLoc;
   GLint mUVLoc;
@@ -1622,6 +1644,7 @@ protected:
   {
     mResolutionLoc = getUniformLocation("u_resolution");
     mMatrixLoc     = getUniformLocation("amymatrix");
+    mFlipYLoc      = getUniformLocation("u_flipY");
     mAlphaLoc      = getUniformLocation("u_alpha");
     mColorLoc      = getUniformLocation("u_color");
     mTextureLoc    = getUniformLocation("s_texture");
@@ -1641,6 +1664,7 @@ public:
     }
     glUniform2f(mResolutionLoc, static_cast<GLfloat>(resW), static_cast<GLfloat>(resH));
     glUniformMatrix4fv(mMatrixLoc, 1, GL_FALSE, matrix);
+    glUniform1i(mFlipYLoc, gFlipRendering);
     glUniform1f(mAlphaLoc, alpha);
     if (color != NULL)
     {
@@ -1676,6 +1700,7 @@ public:
 private:
   GLint mResolutionLoc;
   GLint mMatrixLoc;
+  GLint mFlipYLoc;
 
   GLint mPosLoc;
   GLint mUVLoc;
@@ -1706,6 +1731,7 @@ protected:
   {
     mResolutionLoc = getUniformLocation("u_resolution");
     mMatrixLoc     = getUniformLocation("amymatrix");
+    mFlipYLoc      = getUniformLocation("u_flipY");
     mAlphaLoc      = getUniformLocation("u_alpha");
     mInvertedLoc   = getUniformLocation("u_doInverted");
     mTextureLoc    = getUniformLocation("s_texture");
@@ -1728,6 +1754,7 @@ public:
     }
     glUniform2f(mResolutionLoc, static_cast<GLfloat>(resW), static_cast<GLfloat>(resH));
     glUniformMatrix4fv(mMatrixLoc, 1, GL_FALSE, matrix);
+    glUniform1i(mFlipYLoc, gFlipRendering);
     glUniform1f(mAlphaLoc, alpha);
     glUniform1f(mInvertedLoc, static_cast<GLfloat>((maskOp == pxConstantsMaskOperation::NORMAL) ? 0.0 : 1.0));
     
@@ -1760,6 +1787,7 @@ public:
 private:
   GLint mResolutionLoc;
   GLint mMatrixLoc;
+  GLint mFlipYLoc;
 
   GLint mPosLoc;
   GLint mUVLoc;
@@ -2477,6 +2505,7 @@ pxError pxContext::setFramebuffer(pxContextFramebufferRef fbo)
 
     gAlpha = contextState.alpha;
     gMatrix = contextState.matrix;
+    gFlipRendering = currentFramebuffer->flipRenderingEnabled();
 
 #ifdef PX_DIRTY_RECTANGLES
     if (currentFramebuffer->isDirtyRectanglesEnabled())
@@ -2498,6 +2527,7 @@ pxError pxContext::setFramebuffer(pxContextFramebufferRef fbo)
   currentFramebuffer->currentState(contextState);
   gAlpha = contextState.alpha;
   gMatrix = contextState.matrix;
+  gFlipRendering = currentFramebuffer->flipRenderingEnabled();
 
 #ifdef PX_DIRTY_RECTANGLES
   if (currentFramebuffer->isDirtyRectanglesEnabled())

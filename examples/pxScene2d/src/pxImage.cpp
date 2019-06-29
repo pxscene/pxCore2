@@ -365,11 +365,16 @@ rtError pxImage::setDownscaleSmooth(bool v)
     return RT_OK;
 }
 
-rtError pxImage::texture(uint32_t &v) const
+rtError pxImage::texture(uint32_t &v)
 {
   v = 0;
   if (getImageResource() != NULL && getImageResource()->isInitialized() && getImageResource()->getTexture().getPtr())
   {
+    if (getImageResource()->getTexture()->getNativeId() == 0)
+    {
+      getImageResource()->getTexture()->setUpsideDown(false);
+      getImageResource()->getTexture()->prepareForRendering();
+    }
     v = getImageResource()->getTexture()->getNativeId();
   }
   return RT_OK;
