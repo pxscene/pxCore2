@@ -244,6 +244,7 @@ rtError pxText::texture(uint32_t &v)
     mTextFbo = context.createFramebuffer(getFBOWidth(), getFBOHeight());
     if (mTextFbo.getPtr())
     {
+      mTextFbo->enableFlipRendering(true);
       if (context.setFramebuffer(mTextFbo) == PX_OK)
       {
         pxMatrix4f m;

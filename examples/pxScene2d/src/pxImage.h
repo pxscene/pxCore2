@@ -74,7 +74,7 @@ public:
   rtError downscaleSmooth(bool& v) const;
   rtError setDownscaleSmooth(bool v);
 
-  rtError texture(uint32_t & v) const;
+  rtError texture(uint32_t & v);
 
   virtual void resourceReady(rtString readyResolution);
   virtual void resourceDirty();
