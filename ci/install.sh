@@ -2,11 +2,6 @@
 
 checkError()
 {
-  find / -name "libssl*.so*"
-  tail -n 100 $TRAVIS_BUILD_DIR/logs/build_logs
-  cd $TRAVIS_BUILD_DIR/examples/pxScene2d/external/libnode-v10.15.3
-  ls -rlt $TRAVIS_BUILD_DIR/examples/pxScene2d/external/openssl-1.0.2o
-  
   if [ "$1" -ne 0 ]
   then
     printf "\n\n*********************************************************************";
@@ -48,10 +43,6 @@ then
 fi
 
 echo "******************** Building externals ********************" > $BUILDLOGS
-rm -rf /usr/lib/x86_64-linux-gnu/libssl.so*
-rm -rf /usr/lib/x86_64-linux-gnu/libcurl.so*
-#mv /usr/lib/x86_64-linux-gnu/libssl.so /usr/lib/x86_64-linux-gnu/libssl.so_temp
-#mv /usr/lib/x86_64-linux-gnu/libcurl.so /usr/lib/x86_64-linux-gnu/libcurl.so_temp
 cd $TRAVIS_BUILD_DIR/examples/pxScene2d/external
 ./build.sh>>$BUILDLOGS
 #mv /usr/lib/x86_64-linux-gnu/libcurl.so_temp /usr/lib/x86_64-linux-gnu/libcurl.so
