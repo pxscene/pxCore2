@@ -48,12 +48,16 @@ cd ${OPENSSL_DIR}
 pwd
 if [ "$(uname)" != "Darwin" ]
 then
-./config -shared
+./config -shared  --prefix=`pwd`
 else
-./Configure darwin64-x86_64-cc -shared
+./Configure darwin64-x86_64-cc -shared --prefix=`pwd`
 fi
 make
+make install -i
 cd ..
+
+export LD_LIBRARY_PATH="${OPENSSL_DIR}/:$LD_LIBRARY_PATH"
+export DYLD_LIBRARY_PATH="${OPENSSL_DIR}/:$DYLD_LIBRARY_PATH"
 
 if [ ! -e ./curl/lib/.libs/libcurl.4.dylib ] ||
    [ "$(uname)" != "Darwin" ]
@@ -63,17 +67,10 @@ then
 
   cd curl
 
-  CPPFLAGS="-I${OPENSSL_DIR} -I${OPENSSL_DIR}/include" LDFLAGS="-L${OPENSSL_DIR} -Wl,-rpath,${OPENSSL_DIR}" LIBS="-ldl -lpthread"  ./configure --with-ssl=${OPENSSL_DIR}
-  #if [ "$(uname)" = "Darwin" ]; then
-  #  #./configure --with-darwinssl
-  #  #Removing api definition for Yosemite compatibility.
-  #  sed -i '' '/#define HAVE_CLOCK_GETTIME_MONOTONIC 1/d' lib/curl_config.h
-  #else
-  #    CPPFLAGS="-I${OPENSSL_DIR} -I${OPENSSL_DIR}/include" LDFLAGS="-L${OPENSSL_DIR} -Wl,-rpath,${OPENSSL_DIR}" LIBS="-ldl -lpthread"  ./configure --with-ssl=${OPENSSL_DIR}
-  #    if [ "$(cat config.log | grep '^SSL_ENABLED' | cut -d= -f 2)" != "'1'" ]; then
-  #        echo "Failed to configure libcurl with SSL support" && exit 1
-  #    fi
-  #fi
+  CPPFLAGS="-I${OPENSSL_DIR} -I${OPENSSL_DIR}/include" LDFLAGS="-L${OPENSSL_DIR}/lib -Wl,-rpath,${OPENSSL_DIR}/lib " LIBS="-ldl -lpthread"  ./configure --with-ssl="${OPENSSL_DIR}"
+  if [ "$(uname)" = "Darwin" ]; then
+    #Removing api definition for Yosemite compatibility.
+    sed -i '' '/#define HAVE_CLOCK_GETTIME_MONOTONIC 1/d' lib/curl_config.h
   make all "-j${make_parallel}"
   cd ..
 
@@ -231,10 +228,8 @@ then
     git apply "openssl_1.0.2_compatibility.patch"
   fi
 
-  export LD_LIBRARY_PATH="${OPENSSL_DIR}/:$LD_LIBRARY_PATH"
-  export DYLD_LIBRARY_PATH="${OPENSSL_DIR}/:$DYLD_LIBRARY_PATH"
   cd "libnode-v${NODE_VER}"
-  ./configure --shared --shared-openssl --shared-openssl-includes=${OPENSSL_DIR}/include/ --shared-openssl-libpath=${OPENSSL_DIR}
+  ./configure --shared --shared-openssl --shared-openssl-includes="${OPENSSL_DIR}/include/" --shared-openssl-libpath="${OPENSSL_DIR}/lib"
   make "-j${make_parallel}"
 
   if [ "$(uname)" != "Darwin" ]
@@ -299,8 +294,6 @@ fi
 #-------- spark-webgl
 export NODE_PATH=$NODE_PATH:`pwd`/../src/node_modules
 export PATH=`pwd`/node/deps/npm/bin/node-gyp-bin/:`pwd`/node/out/Release:$PATH
-export LD_LIBRARY_PATH="${OPENSSL_DIR}/:$LD_LIBRARY_PATH"
-export DYLD_LIBRARY_PATH="${OPENSSL_DIR}/:$DYLD_LIBRARY_PATH"
 cd spark-webgl
 node-gyp rebuild
 cd ..

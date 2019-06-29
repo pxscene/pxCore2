@@ -32,8 +32,8 @@ externalLibs=$openssllibs:$pngLibs/:$jpgLibs/:$curlLibs/:$ftLibs/:$zLibs:$wester
 if [ $machine = "Darwin" ];
 then
 nodeLibs=$externalDir/node/out/Release/
-export DYLD_LIBRARY_PATH=$nodeLibs:$curlLibs:$pngLibs:$ftLibs:$zLibs:$pxCoreLibs:$uWSLibs
-export LD_LIBRARY_PATH=$nodeLibs:$curlLibs:$pngLibs:$ftLibs:$zLibs:$pxCoreLibs:$uWSLibs
+export DYLD_LIBRARY_PATH=$openssllibs:$nodeLibs:$curlLibs:$pngLibs:$ftLibs:$zLibs:$pxCoreLibs:$uWSLibs
+export LD_LIBRARY_PATH=$openssllibs:$nodeLibs:$curlLibs:$pngLibs:$ftLibs:$zLibs:$pxCoreLibs:$uWSLibs
 else
 PathD=$externalLibs:$pxScene2dSrc:$externalDir/node/out/Debug/obj.target
 PathR=$externalLibs:$pxScene2dSrc:$externalDir/node/out/Release/obj.target

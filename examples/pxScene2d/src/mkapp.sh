@@ -38,6 +38,8 @@ cp $externalDir/curl/lib/.libs/libcurl.4.dylib $bundleLib
 cp $externalDir/node/out/Release/libnode*.dylib $bundleLib
 cp $externalDir/ft/objs/.libs/libfreetype.6.dylib $bundleLib
 cp $externalDir/jpg/.libs/libjpeg.9.dylib $bundleLib
+cp $externalDir/openssl-1.0.2o/lib/libssl*.dylib $bundleLib
+cp $externalDir/openssl-1.0.2o/lib/libcrypto*.dylib $bundleLib
 #Avoid copying v8 artifacts if not generated
 if [ -e $externalDir/v8/out.gn ]; then
  cp $externalDir/v8/out.gn/x64.release/*.bin $bundleBin
