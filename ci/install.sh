@@ -45,7 +45,5 @@ fi
 echo "******************** Building externals ********************" > $BUILDLOGS
 cd $TRAVIS_BUILD_DIR/examples/pxScene2d/external
 ./build.sh>>$BUILDLOGS
-#mv /usr/lib/x86_64-linux-gnu/libcurl.so_temp /usr/lib/x86_64-linux-gnu/libcurl.so
-#mv /usr/lib/x86_64-linux-gnu/libssl.so_temp /usr/lib/x86_64-linux-gnu/libssl.so
 checkError $? "building externals failed" "compilation error" "Need to build the externals directory locally in $TRAVIS_OS_NAME"
 exit 0;

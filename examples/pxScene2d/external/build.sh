@@ -221,7 +221,6 @@ then
 
   banner "NODE"
   echo "node-v${NODE_VER}_mods.patch"
-  ls -lrt node-v${NODE_VER}_mods.patch
   if [ -e "node-v${NODE_VER}_mods.patch" ]
   then
     echo "Applying patch"
