@@ -55,6 +55,7 @@ fi
 make
 ln -s libssl.so libssl_custom.so
 ln -s libcrypto.so libcrypto_custom.so
+sudo make install
 cd ..
 
 if [ ! -e ./curl/lib/.libs/libcurl.4.dylib ] ||
