@@ -53,8 +53,6 @@ else
 ./Configure darwin64-x86_64-cc -shared
 fi
 make
-ln -s libssl.so libssl_custom.so
-ln -s libcrypto.so libcrypto_custom.so
 cd ..
 
 if [ ! -e ./curl/lib/.libs/libcurl.4.dylib ] ||
@@ -236,7 +234,7 @@ then
   export LD_LIBRARY_PATH="${OPENSSL_DIR}/:$LD_LIBRARY_PATH"
   export DYLD_LIBRARY_PATH="${OPENSSL_DIR}/:$DYLD_LIBRARY_PATH"
   cd "libnode-v${NODE_VER}"
-  ./configure --shared --shared-openssl --shared-openssl-includes=${OPENSSL_DIR}/include/ --shared-openssl-libpath=${OPENSSL_DIR} --shared-openssl-libname=ssl_custom,crypto_custom
+  ./configure --shared --shared-openssl --shared-openssl-includes=${OPENSSL_DIR}/include/ --shared-openssl-libpath=${OPENSSL_DIR}
   make "-j${make_parallel}"
 
   if [ "$(uname)" != "Darwin" ]
