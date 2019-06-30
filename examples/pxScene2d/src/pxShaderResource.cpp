@@ -6,6 +6,9 @@
 //  Copyright © 2019 Comcast. All rights reserved.
 //
 
+
+#define ANIMATION_ROTATE_XYZ /// TODO FIXME HACK JUNK YUCK ... this is everywhere
+
 #include "rtLog.h"
 
 #include "rtThreadQueue.h"
@@ -17,8 +20,6 @@
 #include "pxTimer.h"
 
 #include "pxContext.h"
-
-#define ANIMATION_ROTATE_XYZ /// TODO FIXME HACK JUNK YUCK ... this is everywhere
 
 #include "pxScene2d.h"
 #include "pxShaderResource.h"
