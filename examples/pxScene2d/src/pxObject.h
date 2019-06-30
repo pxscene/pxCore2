@@ -49,6 +49,8 @@
 #include "pxTexture.h"
 #include "pxContextFramebuffer.h"
 
+#define ANIMATION_ROTATE_XYZ
+
 #include "pxCore.h"
 #include "pxAnimate.h"
 
