@@ -127,8 +127,7 @@ rtThreadQueue* gUIThreadQueue = new rtThreadQueue();
 double lastContextGarbageCollectTime = 0;
 double garbageCollectThrottleInSeconds = CONTEXT_GC_THROTTLE_SECS_DEFAULT;
 
-
-extern pxCurrentGLProgram currentGLProgram;
+pxCurrentGLProgram currentGLProgram = PROGRAM_UNKNOWN;
 
 #if defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL)
 extern EGLContext defaultEglContext;
