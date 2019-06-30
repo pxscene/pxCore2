@@ -18,6 +18,8 @@
 
 #include "pxContext.h"
 
+#define ANIMATION_ROTATE_XYZ /// TODO FIXME HACK JUNK YUCK ... this is everywhere
+
 #include "pxScene2d.h"
 #include "pxShaderResource.h"
 
