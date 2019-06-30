@@ -44,8 +44,6 @@
 #include "rtPromise.h"
 #include "rtThreadQueue.h"
 
-#define ANIMATION_ROTATE_XYZ
-
 #include "pxResource.h"
 
 #include "pxCore.h"

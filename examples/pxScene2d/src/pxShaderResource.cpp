@@ -6,9 +6,6 @@
 //  Copyright © 2019 Comcast. All rights reserved.
 //
 
-
-#define ANIMATION_ROTATE_XYZ /// TODO FIXME HACK JUNK YUCK ... this is everywhere
-
 #include "rtLog.h"
 
 #include "rtThreadQueue.h"

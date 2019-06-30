@@ -18,8 +18,6 @@
 
 // pxObject.h
 
-#define ANIMATION_ROTATE_XYZ
-
 #ifndef PX_OBJECT_H
 #define PX_OBJECT_H
 
@@ -48,8 +46,6 @@
 #include "pxInterpolators.h"
 #include "pxTexture.h"
 #include "pxContextFramebuffer.h"
-
-#define ANIMATION_ROTATE_XYZ
 
 #include "pxCore.h"
 #include "pxAnimate.h"
