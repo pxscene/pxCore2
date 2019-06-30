@@ -45,10 +45,6 @@ extern bool gDirtyRectsEnabled;
 
 int pxObjectCount = 0;
 
-static rtValue copyUniform(UniformType_t type, rtValue &val); //fwd
-
-static rtShaderResource *gShaderPtr = NULL; // HACK FIXME YUCK
-
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
 // Small helper class that vends the children of a pxObject as a collection
@@ -122,8 +118,10 @@ pxObject::pxObject(pxScene2d* scene):
 
     msx(1), msy(1), mw(0), mh(0),
     mInteractive(true),
-    mSnapshotRef(), mPainting(true), mClip(false), mMask(false), mDraw(true), mEffectRef(NULL), mHitTest(true), mReady(),
-    mFocus(false), mClipSnapshotRef(), mEffectSnapshotRef(), mCancelInSet(true), mRepaint(true),
+    mSnapshotRef(), mPainting(true), mClip(false), mMask(false), mDraw(true),
+    mEffectRef(NULL), mEffects(NULL), mEffectPtr(NULL), mEffectSnapshotRef(),
+    mHitTest(true), mReady(),
+    mFocus(false), mClipSnapshotRef(),mCancelInSet(true), mRepaint(true),
     mIsDirty(true), mRenderMatrix(), mLastRenderMatrix(), mScreenCoordinates(), mDirtyRect(), mScene(NULL),
     mDrawableSnapshotForMask(), mMaskSnapshot(), mIsDisposed(false), mSceneSuspended(false)
   {
@@ -1253,7 +1251,7 @@ void pxObject::drawInternal(bool maskPass /* = false */)
 
         break;
       }
-    }//FOR
+    }
 
     // MASKING ? ---------------------------------------------------------------------------------------------------
     if (maskFound)
@@ -1524,83 +1522,6 @@ void pxObject::createSnapshot(pxContextFramebufferRef& fbo, bool separateContext
   }
 }
 
-
-
-void pxObject::renderEffect(pxContextFramebufferRef& fbo)
-{
-  pxMatrix4f m;
-  float parentAlpha = 1.0;
-
-  context.setMatrix(m);
-  context.setAlpha(parentAlpha);
-  
-  float w = getOnscreenWidth();
-  float h = getOnscreenHeight();
-  
-  //#ifdef PX_DIRTY_RECTANGLES
-  bool fullFboRepaint = false;
-  //#endif //PX_DIRTY_RECTANGLES
-  
-  //rtLogInfo("renderEffect  w=%f h=%f\n", w, h);
-  if (fbo.getPtr() == NULL || fbo->width() != floor(w) || fbo->height() != floor(h))
-  {
-    clearSnapshot(fbo);
-    //rtLogInfo("createFramebuffer  mw=%f mh=%f\n", w, h);
-    fbo = context.createFramebuffer(static_cast<int>(floor(w)), static_cast<int>(floor(h)), false);
-    if (gDirtyRectsEnabled) {
-      fullFboRepaint = true;
-    }
-  }
-  else
-  {
-    //rtLogInfo("updateFramebuffer  mw=%f mh=%f\n", w, h);
-    context.updateFramebuffer(fbo, static_cast<int>(floor(w)), static_cast<int>(floor(h)));
-  }
-
-  pxContextFramebufferRef previousRenderSurface = context.getCurrentFramebuffer();
-  if (context.setFramebuffer(fbo) == PX_OK)
-  {
-    if (gDirtyRectsEnabled)
-    {
-      int clearX      = mDirtyRect.left();
-      int clearY      = mDirtyRect.top();
-      int clearWidth  = mDirtyRect.right()  - clearX+1;
-      int clearHeight = mDirtyRect.bottom() - clearY+1;
-      
-      if (!mIsDirty)
-        context.clear(static_cast<int>(w), static_cast<int>(h));
-      
-      if (fullFboRepaint)
-      {
-        clearX = 0;
-        clearY = 0;
-        clearWidth = w;
-        clearHeight = h;
-        context.clear(clearX, clearY, clearWidth, clearHeight);
-      }
-    } else {
-      context.clear(static_cast<int>(w), static_cast<int>(h));
-    }
-
-    draw(); // DRAW self...
-    
-    for(vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
-    {
-      context.pushState();
-      (*it)->drawInternal();
-      context.popState();
-    }
-    
-    if (fbo.getPtr() != NULL)
-    {
-      // Flattened pxObject (+ any children) now passed to Shader magic !
-
-      drawShader(fbo);
-    }
-  }
-  context.setFramebuffer(previousRenderSurface);
-}
-
 void pxObject::createSnapshotOfChildren()
 {
   //rtLogInfo("pxObject::createSnapshotOfChildren\n");
@@ -1704,391 +1625,6 @@ void pxObject::repaintParents()
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-rtError findKey(rtArrayObject* array, rtString k)
-{
-  if(array)
-  {
-    uint32_t len = array->get<uint32_t>("length");
-    rtValue element;
-    
-    for (uint32_t i = 0, l = len; i < l; ++i)
-    {
-      if (array->Get(i, &element) == RT_OK && !element.isEmpty() )
-      {
-        if(k == element.toString())
-        {
-          return RT_OK;
-        }
-      }
-    }//FOR
-  }
-  
-  return RT_FAIL;
-}
-
-rtError pxObject::setShaderConfig(rtObjectRef v)
-{
-  if(v)
-  {
-    //
-    // >>> GET >> "name"
-    //
-    rtValue nameVal;
-    v->Get("name", &nameVal);
-    
-    //
-    // >>> GET >> "shader"
-    //
-    rtValue shaderVal;
-    v->Get("shader", &shaderVal);
-    
-    if( shaderVal.isEmpty() )
-    {
-      rtLogError("ERROR:  Unable to parse 'shader' for shaderResource.");
-      return RT_FAIL;
-    }
-    
-    rtObjectRef      shaderRef = shaderVal.toObject();
-    rtShaderResource *shader   = (shaderRef) ? (rtShaderResource *) shaderRef.getPtr() : NULL;
-    
-    //
-    // >>> GET >> "uniforms"
-    //
-    rtValue uniformsVal;
-    v->Get("uniforms", &uniformsVal);
-    
-    if(uniformsVal.isEmpty() != true)
-    {
-      rtObjectRef uniforms = uniformsVal.toObject();
-      rtValue count;                          // HACK - WORKAROUND
-      uniforms->Get("length", &count);        // HACK - WORKAROUND
-      
-      if(!shader)
-      {
-        rtLogError("ERROR:  Unable to parse 'uniforms' for shaderResource.");
-        return RT_FAIL;
-      }
-      else
-      {
-        mEffectRef = shaderRef;
-        shader->setUniformVals(uniformsVal); // WAS uniforms ????? FIXME
-      }
-    }
-    
-    return RT_OK;
-  }
-  
-  rtLogError("ERROR:  Unable to set Config for shaderResource.");
-  return RT_FAIL;
-}
-
-rtError pxObject::applyConfigArray(rtObjectRef v)
-{
-  rtArrayObject *array = dynamic_cast<rtArrayObject *>(v.getPtr());
-  
-  if(array)
-  {
-    uint32_t len = array->length();
-    
-    // Iterate CONFIG objects in Array
-    for (uint32_t i = 0; i < len; i++)
-    {
-      rtValue  config = array->get<rtValue>(i);
-      
-      // Unwrap the Config object
-      rtObjectRef configRef = config.toObject();
-      
-      applyConfig(configRef);
-      
-    }//FOR
-    
-    return RT_OK;
-  }//ENDIF
-  
-  return RT_FAIL;
-}
-
-rtError pxObject::applyConfig(rtObjectRef v)
-{
-  rtMapObject *mapp = dynamic_cast<rtMapObject *>(v.getPtr());
-  
-  rtObjectRef keys;
-  
-  if(mapp)
-  {
-    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    // NAME
-    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    
-    rtValue name;
-    mapp->Get("name", &name);
-    
-    if(name.isEmpty() == false)
-    {
-      rtLogDebug("APPLY name:  %s \n", name.toString().cString());
-    }
-    
-    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    // SHADER
-    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    
-    rtValue shaderVal;
-    mapp->Get("shader", &shaderVal);
-    
-    if(shaderVal.isEmpty() == false)
-    {
-      gShaderPtr = (rtShaderResource *) ( shaderVal.toVoidPtr() ) ;
-    }
-    else
-    {
-      rtLogError("ERROR:  No 'shader' specified. ");
-      return RT_FAIL;
-    }
-    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    // UNIFORMS
-    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    
-    rtValue uniformsVal;
-    mapp->Get("uniforms", &uniformsVal);
-    
-    if(uniformsVal.isEmpty() == false)
-    {
-      rtMapObject *uniforms = dynamic_cast<rtMapObject *>(uniformsVal.toObject().getPtr());
-      
-      if(uniforms)
-      {
-        rtObjectRef keys = uniforms->get<rtObjectRef>("allKeys");
-        uint32_t     len = keys.get<uint32_t>("length");
-        
-        // Iterate UNIFORMS map
-        for (uint32_t i = 0; i < len; i++)
-        {
-          rtString key = keys.get<rtString>(i);
-          rtValue  val = uniforms->get<rtValue>(key);
-          
-          if(gShaderPtr)
-          {
-            gShaderPtr->setUniformVal(key, val);
-          }
-        }//FOR
-      }
-    }//ENDIF
-  }
-  
-  return RT_OK;
-}
-
-rtError pxObject::copyConfigArray(rtObjectRef &v)
-{
-  rtObjectRef keys = v.get<rtObjectRef>("allKeys");
-  uint32_t numKeys = keys.get<uint32_t>("length");
-  
-  if(numKeys < 1)
-  {
-    rtLogError("ERROR:  Not an array object");
-    return RT_FAIL;
-  }
-  
-  rtObjectRef dstConfigs = new rtArrayObject();
-  
-  rtShaderResource *pShader = NULL;
-  
-  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  // CONFIG
-  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  
-  // Iterate CONFIG objects in Array
-  for (uint32_t i = 0; i < numKeys; i++)
-  {
-    rtString            key = keys.get<rtString>(i);
-    rtValue          config = v.get<rtValue>(key);
-    rtObjectRef   configRef = config.toObject(); // Unwrap the Config object
-    
-    rtObjectRef thisConfig = new rtMapObject();
-    
-    //    printf("\n\nGOT >> CONFIG[%d]  >>  %s\n",i, thisConfig.getTypeStr());
-    
-    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    // NAME
-    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    
-    rtValue name = configRef.get<rtValue>("name");
-    if(name.isEmpty() == false)
-    {
-      rtLogDebug("GOT name:  %s \n", name.toString().cString());
-      
-      //printf("COPY NAME >>> %s\n",  name.toString().cString());
-      
-      thisConfig->Set("name", &name);
-    }
-    
-    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    // SHADER
-    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    rtValue  shader = configRef.get<rtValue>("shader");
-    
-    if(shader.isEmpty() == false)
-    {
-      rtShaderResource *ptr = dynamic_cast<rtShaderResource *>( shader.toObject().getPtr() );
-      
-      pShader = ptr;
-      
-      rtValue ptrVal;
-      
-      ptrVal.setVoidPtr(ptr);
-      thisConfig->Set("shader", &ptrVal);
-    }
-    else
-    {
-      rtLogError("ERROR:  No 'shader' specified. ");
-      return RT_FAIL;
-    }
-    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    // UNIFORMS ARRAY
-    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    
-    rtValue uniformsValue = configRef.get<rtValue>("uniforms");
-    
-    if(uniformsValue.isEmpty())
-    {
-      rtLogError("ERROR:  No 'uniforms' specified. ");
-      return RT_FAIL;
-    }
-    else
-    {
-      rtObjectRef dstUniforms = new rtMapObject();
-      
-      rtValue uniforms;
-      uniforms.setObject(dstUniforms);
-      
-      thisConfig->Set("uniforms", &uniforms);
-      
-      // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-      // Iterate UNIFORMS maps in Array
-      //
-      rtObjectRef  uniformsObject = uniformsValue.toObject();
-      rtObjectRef            keys = uniformsObject.get<rtObjectRef>("allKeys");
-      uint32_t            numKeys = keys.get<uint32_t>("length");
-      
-      for (uint32_t i = 0; i < numKeys; i++)
-      {
-        rtString key = keys.get<rtString>(i);
-        rtValue  val = uniformsObject.get<rtValue>(key);
-        
-        UniformType_t type = pShader->getUniformType(key);
-        
-        rtValue uniform = copyUniform(type, val);
-        
-        dstUniforms->Set(key.cString(), &uniform); // add UNIFORM to 'uniforms' map
-        
-        //printf("\nCOPY UNIFORM >>> key:%15s  val: %15s", key.cString(), uniform.getTypeStr());
-      }//FOR - uniforms
-      // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-      
-      rtValue val;
-      val.setObject(thisConfig);
-      
-      ((rtArrayObject*) dstConfigs.getPtr())->pushBack(val);
-      
-      // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    }
-  }//FOR - config objects
-  
-  mEffects = rtObjectRef(dstConfigs);
-
-  return RT_OK;
-}
-
-static rtValue copyUniform(UniformType_t type, rtValue &val)
-{
-  rtValue ans;
-  
-  switch(type)
-  {
-    case UniformType_Unknown:
-      ans.setEmpty();
-      break;
-      
-    case UniformType_Bool:
-    case UniformType_Int:
-    case UniformType_UInt:
-    case UniformType_Float:
-    case UniformType_Double:
-      //printf("\nCOPY UNIFORM >>> scalar (float/int/bool) ");
-      ans.setValue(val);
-      return ans;
-      break;
-      
-      // Vectors:  int
-    case UniformType_iVec2:
-    case UniformType_iVec3:
-    case UniformType_iVec4:
-      
-      // TODO: Possibly not in ES 2.0
-      //
-      //      // Vectors:  bool
-      //    case UniformType_bVec2:
-      //    case UniformType_bVec3:
-      //    case UniformType_bVec4:
-      //
-      //      // Vectors:  uint
-      //    case UniformType_uVec2:
-      //    case UniformType_uVec3:
-      //    case UniformType_uVec4:
-      //
-      //
-      //      // Vectors:  double
-      //    case UniformType_dVec2:
-      //    case UniformType_dVec3:
-      //    case UniformType_dVec4:
-      
-      // Vectors:  float
-    case UniformType_Vec2:
-    case UniformType_Vec3:
-    case UniformType_Vec4:
-    {
-      //printf(" \nCOPY UNIFORM >>> vector (vec2/vec3/vec4)");
-      
-      rtObjectRef    array = new rtArrayObject();
-      rtObjectRef   valObj = val.toObject();
-      rtObjectRef   keys   = valObj.get<rtObjectRef>("allKeys");
-      
-      if (keys)
-      {
-        uint32_t len = keys.get<uint32_t>("length");
-        for (uint32_t i = 0; i < len; i++)
-        {
-          rtValue  val = valObj.get<rtValue>(i);
-          
-          // JS only has Doubles.  Convert to Floats.
-          if(val.getType() == RT_doubleType)
-          {
-            //printf("\n  COPY UNIFORM >>> vec%d  i: %d   val: %f", len, i, (float) val.toDouble());
-            
-            val.setFloat( (float) val.toDouble() );
-          }
-          
-          ((rtArrayObject*) array.getPtr())->pushBack(val);
-        }
-      }
-      
-      ans.setObject(array);
-      
-      return ans;
-    }
-      break;
-      
-    case UniformType_Sampler2D:
-    case UniformType_Struct:
-      break;
-  }//SWITCH
-  
-  return ans;
-}
-
 
 rtError pxObject::setEffect(rtObjectRef v)
 {
@@ -2108,7 +1644,7 @@ rtError pxObject::setEffect(rtObjectRef v)
     {
       rtValue allKeys;
       v->Get("allKeys", &allKeys);
-
+      
       rtArrayObject* keys = static_cast<rtArrayObject*>( (allKeys.toObject().getPtr()) );
       
       // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -2117,7 +1653,7 @@ rtError pxObject::setEffect(rtObjectRef v)
       //
       if(findKey(keys, "shader") == RT_OK) // Look for the key "shader" ... a Shader Config OBJECT
       {
-        setShaderConfig(v);
+        setShaderConfig(v, *this);
       }
       else
       // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -2126,8 +1662,7 @@ rtError pxObject::setEffect(rtObjectRef v)
       //
       {
         mEffectRef = v;
-        
-        copyConfigArray(v);
+        mEffects   = copyShaderConfigs(v);
       }
       // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     }
@@ -2137,6 +1672,81 @@ rtError pxObject::setEffect(rtObjectRef v)
   
   rtLogError("setEffect() ... passed NULL");
   return RT_FAIL;
+}
+
+
+void pxObject::renderEffect(pxContextFramebufferRef& fbo)
+{
+  pxMatrix4f m;
+  float parentAlpha = 1.0;
+  
+  context.setMatrix(m);
+  context.setAlpha(parentAlpha);
+  
+  float w = getOnscreenWidth();
+  float h = getOnscreenHeight();
+  
+  //#ifdef PX_DIRTY_RECTANGLES
+  bool fullFboRepaint = false;
+  //#endif //PX_DIRTY_RECTANGLES
+  
+  if (fbo.getPtr() == NULL || fbo->width() != floor(w) || fbo->height() != floor(h))
+  {
+    clearSnapshot(fbo);
+
+    fbo = context.createFramebuffer(static_cast<int>(floor(w)), static_cast<int>(floor(h)), false);
+    if (gDirtyRectsEnabled)
+    {
+      fullFboRepaint = true;
+    }
+  }
+  else
+  {
+    context.updateFramebuffer(fbo, static_cast<int>(floor(w)), static_cast<int>(floor(h)));
+  }
+  
+  pxContextFramebufferRef previousRenderSurface = context.getCurrentFramebuffer();
+  if (context.setFramebuffer(fbo) == PX_OK)
+  {
+    if (gDirtyRectsEnabled)
+    {
+      int clearX      = mDirtyRect.left();
+      int clearY      = mDirtyRect.top();
+      int clearWidth  = mDirtyRect.right()  - clearX+1;
+      int clearHeight = mDirtyRect.bottom() - clearY+1;
+      
+      if (!mIsDirty)
+      context.clear(static_cast<int>(w), static_cast<int>(h));
+      
+      if (fullFboRepaint)
+      {
+        clearX = 0;
+        clearY = 0;
+        clearWidth = w;
+        clearHeight = h;
+        context.clear(clearX, clearY, clearWidth, clearHeight);
+      }
+    } else {
+      context.clear(static_cast<int>(w), static_cast<int>(h));
+    }
+    
+    draw(); // DRAW self...
+    
+    for(vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
+    {
+      context.pushState();
+      (*it)->drawInternal();
+      context.popState();
+    }
+    
+    if (fbo.getPtr() != NULL)
+    {
+      // Flattened pxObject (+ any children) now passed to Shader magic !
+      
+      drawShader(fbo);
+    }
+  }
+  context.setFramebuffer(previousRenderSurface);
 }
 
 void pxObject::drawShader(pxContextFramebufferRef &flattenFbo)
@@ -2188,8 +1798,8 @@ void pxObject::drawShader(pxContextFramebufferRef &flattenFbo)
         if (multiPass->Get(i, &config) == RT_OK && !config.isEmpty())
         {
           // Set Uniforms here ...
-          applyConfig(config.toObject());
-          shaderRes = gShaderPtr; // HACK
+          applyConfig(config.toObject(), *this);
+          shaderRes = this->mEffectPtr;
           
           context.setFramebuffer(targetFbo);
           context.clear(static_cast<int>(mw), static_cast<int>(mh));

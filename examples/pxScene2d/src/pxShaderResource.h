@@ -10,6 +10,8 @@
 #define PXSHADERRESOURCE_HPP
 
 #include "pxContext.h"
+#include "pxObject.h"
+#include "pxShaderUtils.h"
 #include "pxResource.h"
 
 #include <map>
@@ -39,125 +41,16 @@
 #endif
 
 
-struct uniformLoc; //fwd
-
-typedef  void (*setFunc_t)(const uniformLoc &);
-
-typedef enum UniformType
-{
-  UniformType_Unknown,
-  UniformType_Bool,
-  UniformType_Int,
-  UniformType_UInt,
-  UniformType_Float,
-  UniformType_Double,
-  
-// TODO: Possibly not in GL ES 2.0
-//
-//  // Vectors:  bool
-//  UniformType_bVec2,
-//  UniformType_bVec3,
-//  UniformType_bVec4,
-  
-  // Vectors:  int
-  UniformType_iVec2,
-  UniformType_iVec3,
-  UniformType_iVec4,
-
-// TODO: Possibly not in GL ES 2.0
-//
-//  // Vectors:  uint
-//  UniformType_uVec2,
-//  UniformType_uVec3,
-//  UniformType_uVec4,
-  
-  // Vectors:  float
-  UniformType_Vec2,
-  UniformType_Vec3,
-  UniformType_Vec4,
-  
-// TODO: Possibly not in GL ES 2.0
-//
-//  // Vectors:  double
-//  UniformType_dVec2,
-//  UniformType_dVec3,
-//  UniformType_dVec4,
-  
-  UniformType_Sampler2D,
-  UniformType_Struct
-  
-} UniformType_t;
-
-
-struct uniformLoc
-{  
-  rtString       name;         // uniform NAME
-  rtString       typeStr;      // GLSL type name
-  UniformType_t  type;
-  GLint          loc;          // uniform location in Shader
-  
-  rtValue        value;        // rtValue to be applied per draw.
-  bool           needsUpdate;  // flag to set in shader only whence changed.
-  
-  setFunc_t      setFunc;      // static pointer to *setter* function to unwrap and apply rtValue into Shader
-};
-
-typedef uniformLoc uniformLoc_t;
-
-typedef std::map<rtString, uniformLoc_t> UniformMap_t;
-typedef std::map<rtString, uniformLoc_t>::iterator UniformMapIter_t;
-
-typedef std::vector<uniformLoc_t> UniformList_t;
-typedef std::vector<uniformLoc_t>::iterator UniformListIter_t;
-
 //=====================================================================================================================================
 
-enum pxCurrentGLProgram { PROGRAM_UNKNOWN = 0, PROGRAM_SOLID_SHADER,  PROGRAM_A_TEXTURE_SHADER, PROGRAM_TEXTURE_SHADER,
-  PROGRAM_TEXTURE_MASKED_SHADER, PROGRAM_TEXTURE_BORDER_SHADER};
+rtError applyConfigArray(rtObjectRef v, pxObject &obj);       // Set an ARRAY of (RT) CONFIG objects of UNIFORMS to Shader
+rtError applyConfig     (rtObjectRef v, pxObject &obj);       // Set an (RT) CONFIG object of UNIFORMS to Shader
 
-class shaderProgram
-{
-public:
+rtError       setShaderConfig(rtObjectRef v, pxObject &obj);  // Set a (JS) CONFIG object directly
+rtObjectRef  copyShaderConfigs(rtObjectRef &v);               // Copy  (JS) CONFIG objects to (RT) Config objects ... array
 
-  shaderProgram();
-
-  virtual ~shaderProgram();
-  
-  void initShader(const char* v, const char* f);
-  
-  int getUniformLocation(const char* name);
-  
-  void use();
-  
-  pxError draw(int resW, int resH, float* matrix, float alpha,
-               pxTextureRef t, 
-               GLenum mode,
-               const void* pos,
-               const void* uv,
-               int count);
-
-protected:
-  // Override to do uniform lookups
-  virtual void prelink()  {}
-  virtual void postlink() {}
-
-  GLint mProgram, mFragShader, mVertShader;
-  
-  GLint mTimeLoc;
-  
-  GLint mResolutionLoc;
-  GLint mMatrixLoc;
-  
-  GLint mPosLoc;
-  GLint mUVLoc;
-  
-  GLint mAlphaLoc;
-  GLint mColorLoc;
-  
-  UniformMap_t  mUniform_map;
-  UniformList_t mUniform_list;
-
-}; // CLASS
+rtError findKey(rtArrayObject* array, rtString k);            // helper to find key in array
+rtValue copyUniform(UniformType_t type, rtValue &val);        // helper to copy "variant" like UNIFORM types
 
 //=====================================================================================================================================
 

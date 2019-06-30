@@ -49,14 +49,12 @@
 #include "pxTexture.h"
 #include "pxContextFramebuffer.h"
 
-
-#define ANIMATION_ROTATE_XYZ
-
 #include "pxCore.h"
 #include "pxAnimate.h"
 
-struct pxPoint2f; //fwd
-class pxScene2d;  //fwd
+struct pxPoint2f;        // fwd
+class  pxScene2d;        // fwd
+class  rtShaderResource; // fwd
 
 class pxObject: public rtObject
 {
@@ -268,10 +266,7 @@ public:
   rtObjectRef effect()            const { return mEffectRef;}
   rtError effect(rtObjectRef& v)  const { v = mEffectRef; return RT_OK; }
   rtError setEffect(rtObjectRef v);
-  
-  rtError setShaderConfig(rtObjectRef v);
 
-  
   bool hitTest()            const { return mHitTest;}
   rtError hitTest(bool& v)  const { v = mHitTest; return RT_OK;  }
   rtError setHitTest(bool v) { mHitTest = v; return RT_OK; }
@@ -587,11 +582,11 @@ public:
   void renderEffect(pxContextFramebufferRef& fbo);
 
 
-  rtError copyConfigArray(rtObjectRef &v);
-
-  rtError applyConfig(rtObjectRef v);
-  rtError applyConfigArray(rtObjectRef v);
-
+  void setEffectConfig(rtObjectRef v)    { mEffectRef = v; };
+  void setEffectArray(rtObjectRef v)     { mEffects   = v; };
+  
+  void setEffectPtr(rtShaderResource *p) { mEffectPtr = p;    };
+  rtShaderResource *effectPtr()          { return mEffectPtr; };
 
 public:
   rtEmitRef mEmit;
@@ -616,8 +611,10 @@ protected:
   bool mMask;
   bool mDraw;
 
-  rtObjectRef mEffectRef;
-  rtObjectRef mEffects;
+  rtObjectRef             mEffectRef;         // Shader Config objects
+  rtObjectRef             mEffects;           // rtArray of Shader Config objects
+  rtShaderResource       *mEffectPtr;         // Shader Effect used by this pxObject
+  pxContextFramebufferRef mEffectSnapshotRef; // FBO
 
   finline bool hasEffect()   { return ( mEffectRef || mEffects ); }
 
@@ -625,7 +622,6 @@ protected:
   rtObjectRef mReady;
   bool mFocus;
   pxContextFramebufferRef mClipSnapshotRef;
-  pxContextFramebufferRef mEffectSnapshotRef;
 
   bool mCancelInSet;
   rtString mId;
