@@ -1,7 +1,5 @@
 #!/bin/sh
-exit 0;
 #This script executes necessary javascript files and mesaures pxleak checks and memory leaks checks
-
 
 if [ -z "${TRAVIS_BUILD_DIR}" ]
 then
