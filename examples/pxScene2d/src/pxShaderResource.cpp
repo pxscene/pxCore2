@@ -50,7 +50,7 @@
 using namespace std;
 
 extern const char* vShaderText;
-extern pxCurrentGLProgram currentGLProgram;
+extern int currentGLProgram;
 
 //=====================================================================================================================================
 
@@ -107,8 +107,11 @@ int shaderProgram::getUniformLocation(const char* name)
 
 void shaderProgram::use()
 {
-  currentGLProgram = pxCurrentGLProgram::PROGRAM_UNKNOWN;
-  glUseProgram(mProgram);
+  if(currentGLProgram != (int) mProgram)
+  {
+    currentGLProgram = (int) mProgram;
+    glUseProgram(mProgram);
+  }
 }
 
 static double dt = 0;
@@ -295,16 +298,9 @@ unsigned long rtShaderResource::Release()
   long l = rtAtomicDec(&mRefCount);
   if (l == 0)
   {
-    //TODO
-    //TODO
-    //TODO
-    //TODO
     pxShaderManager::removeShader( mVertexUrl   );
     pxShaderManager::removeShader( mFragmentUrl );
-    //TODO
-    //TODO
-    //TODO
-    //TODO
+
     delete this;
   }
   return l;
@@ -421,8 +417,6 @@ rtError rtShaderResource::setUniforms(rtObjectRef o)
 
       rtString name = keyVal.toString();
       rtString type = o.get<rtString>(name);
-      
-      // printf("\n Key:  %s   Value: %s", name.cString(), type.cString() );
 
       if(name == "u_time")
       {
@@ -712,7 +706,6 @@ void rtShaderResource::loadResourceFromArchive(rtObjectRef archiveRef)
   }
 }
 
-
 /**
  * rtShaderResource::loadResource()
  *
@@ -830,24 +823,12 @@ uint32_t rtShaderResource::loadResourceData(rtFileDownloadRequest* fileDownloadR
     mVertexSrc.init( (const uint8_t*) fileDownloadRequest->downloadedData(),
                                       fileDownloadRequest->downloadedDataSize());
   }
-
-//  bool frgReady = (mFragmentUrl.length() > 0 && mFragmentSrc.length() > 0); // Ready ?
-//  bool vtxReady = (  mVertexUrl.length() > 0 &&   mVertexSrc.length() > 0) || (mVertexUrl.length() == 0); // Ready ? ... if present
-//
-//  if(frgReady && vtxReady)
-//  {
-//    const char* vertexCode = mVertexSrc.length() > 0 ? (const char*) mVertexSrc.data() : vShaderText;
-//
-//    // TODO:  TRY
-//    shaderProgram::init( vertexCode, (const char*) mFragmentSrc.data() );
-//    // TODO:  CATCH
-//  }
   
   double stopDecodeTime = pxMilliseconds();
   if (decodeResult == RT_OK)
   {
     setLoadStatus("decodeTimeMs", static_cast<int>(stopDecodeTime-startDecodeTime));
-    //setTextureData(imageOffscreen);
+
 #ifdef ENABLE_BACKGROUND_TEXTURE_CREATION
     return PX_RESOURCE_LOAD_WAIT;
 #else
@@ -953,7 +934,7 @@ void rtShaderResource::postlink()
   }
 }
 
-// sampler¯
+// sampler
 /*static*/ void rtShaderResource::bindTexture4(const uniformLoc_t &p)
 {
   rtImageResource *img = (rtImageResource *) p.value.toObject().getPtr();

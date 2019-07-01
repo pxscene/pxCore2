@@ -53,19 +53,6 @@ class shaderProgram; //fwd
 
 //=====================================================================================================================================
 
-typedef enum pxCurrentGLProgram_
-{
-  PROGRAM_UNKNOWN = 0,
-  PROGRAM_SOLID_SHADER,
-  PROGRAM_A_TEXTURE_SHADER,
-  PROGRAM_TEXTURE_SHADER,
-  PROGRAM_TEXTURE_MASKED_SHADER,
-  PROGRAM_TEXTURE_BORDER_SHADER
-  
-} pxCurrentGLProgram;
-
-//=====================================================================================================================================
-
 class glException: public std::exception
 {
 public:

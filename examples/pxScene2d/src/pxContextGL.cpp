@@ -127,7 +127,7 @@ rtThreadQueue* gUIThreadQueue = new rtThreadQueue();
 double lastContextGarbageCollectTime = 0;
 double garbageCollectThrottleInSeconds = CONTEXT_GC_THROTTLE_SECS_DEFAULT;
 
-pxCurrentGLProgram currentGLProgram = PROGRAM_UNKNOWN;
+int currentGLProgram = -1;
 
 #if defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL)
 extern EGLContext defaultEglContext;
@@ -1296,11 +1296,8 @@ public:
             int count,
             const float* color)
   {
-    if (currentGLProgram != PROGRAM_SOLID_SHADER)
-    {
-      use();
-      currentGLProgram = PROGRAM_SOLID_SHADER;
-    }
+    use(); // change program... if needed
+
     glUniform2f(mResolutionLoc, static_cast<GLfloat>(resW), static_cast<GLfloat>(resH));
     glUniformMatrix4fv(mMatrixLoc, 1, GL_FALSE, matrix);
     glUniform1f(mAlphaLoc, alpha);
@@ -1359,11 +1356,8 @@ public:
             pxTextureRef texture,
             const float* color)
   {
-    if (currentGLProgram != PROGRAM_A_TEXTURE_SHADER)
-    {
-      use();
-      currentGLProgram = PROGRAM_A_TEXTURE_SHADER;
-    }
+    use(); // change program... if needed
+
     glUniform2f(mResolutionLoc, static_cast<GLfloat>(resW), static_cast<GLfloat>(resH));
     glUniformMatrix4fv(mMatrixLoc, 1, GL_FALSE, matrix);
     glUniform1f(mAlphaLoc, alpha);
@@ -1429,11 +1423,8 @@ public:
             pxTextureRef texture,
             int32_t stretchX, int32_t stretchY)
   {
-    if (currentGLProgram != PROGRAM_TEXTURE_SHADER)
-    {
-      use();
-      currentGLProgram = PROGRAM_TEXTURE_SHADER;
-    }
+    use(); // change program... if needed
+
     glUniform2f(mResolutionLoc, static_cast<GLfloat>(resW), static_cast<GLfloat>(resH));
     glUniformMatrix4fv(mMatrixLoc, 1, GL_FALSE, matrix);
     glUniform1f(mAlphaLoc, alpha);
@@ -1501,11 +1492,8 @@ public:
                pxTextureRef texture,
                int32_t stretchX, int32_t stretchY, const float* color = NULL)
   {
-    if (currentGLProgram != PROGRAM_TEXTURE_BORDER_SHADER)
-    {
-      use();
-      currentGLProgram = PROGRAM_TEXTURE_BORDER_SHADER;
-    }
+    use(); // change program... if needed
+
     glUniform2f(mResolutionLoc, static_cast<GLfloat>(resW), static_cast<GLfloat>(resH));
     glUniformMatrix4fv(mMatrixLoc, 1, GL_FALSE, matrix);
     glUniform1f(mAlphaLoc, alpha);
@@ -1588,11 +1576,8 @@ public:
             pxTextureRef mask,
             pxConstantsMaskOperation::constants maskOp = pxConstantsMaskOperation::NORMAL)
   {
-    if (currentGLProgram != PROGRAM_TEXTURE_MASKED_SHADER)
-    {
-      use();
-      currentGLProgram = PROGRAM_TEXTURE_MASKED_SHADER;
-    }
+    use(); // change program... if needed
+
     glUniform2f(mResolutionLoc, static_cast<GLfloat>(resW), static_cast<GLfloat>(resH));
     glUniformMatrix4fv(mMatrixLoc, 1, GL_FALSE, matrix);
     glUniform1f(mAlphaLoc, alpha);
@@ -2365,7 +2350,7 @@ pxContextFramebufferRef pxContext::getCurrentFramebuffer()
 
 pxError pxContext::setFramebuffer(pxContextFramebufferRef fbo)
 {
-  currentGLProgram = PROGRAM_UNKNOWN;
+  currentGLProgram = -1;
   if (fbo.getPtr() == NULL || fbo->getTexture().getPtr() == NULL)
   {
     glViewport ( 0, 0, defaultContextSurface.width, defaultContextSurface.height);
