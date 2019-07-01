@@ -90,7 +90,7 @@ px.import({ scene: 'px:scene.1.js' }).then( function importsAreReady(imports)
       while (value_w <  w) {
         value_h += value_h_d + 4;
         label_h += label_h_d;
-        w -= value_w; 
+        w -= value_w;
         alignV = scene.alignVertical.TOP;
         }
     }
