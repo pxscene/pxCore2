@@ -25,9 +25,6 @@ const EventEmitter = require('events');
 const stream = require('stream');
 const util = require('util');
 const internalUtil = require('internal/util');
-/*MODIFIED CODE BEGIN*/
-const fileSystem = require('fs');
-/*MODIFIED CODE END*/
 const {
   isIP,
   isIPv4,
@@ -988,27 +985,6 @@ function lookupAndConnect(self, options) {
       dnsopts.hints === 0) {
     dnsopts.hints = dns.ADDRCONFIG;
   }
-/*MODIFIED CODE BEGIN*/
-  var ipMode = 0;
-  try {
-    fileSystem.accessSync('/tmp/ipmode_v4');
-    ipMode = 4;
-  } catch(e) {
-    debug('/tmp/ipmode_v4 does not exist');
-  }
-
-  try {
-    fileSystem.accessSync('/tmp/ipmode_v6');
-    ipMode = 6;
-  } catch(e) {
-    debug('/tmp/ipmode_v6 does not exist');
-  }
-
-  if (ipMode == 4 || ipMode == 6) {
-    dnsopts.family = ipMode;
-  }
-/*MODIFIED CODE END*/
-
 
   debug('connect: find host', host);
   debug('connect: dns options', dnsopts);

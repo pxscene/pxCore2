@@ -12,9 +12,7 @@
       #       RuntimeLibrary MUST MATCH across the entire project
       'Debug': {
         'defines': [ 'DEBUG', '_DEBUG' ],
-        # MODIFIED CODE BEGIN 
-        'cflags': [ '-Wall', '-Wextra', '-Os', '-g', '-ftrapv' ],
-        # MODIFIED CODE END
+        'cflags': [ '-Wall', '-Wextra', '-O0', '-g', '-ftrapv' ],
         'msvs_settings': {
           'VCCLCompilerTool': {
             'RuntimeLibrary': 1, # static debug
@@ -23,9 +21,7 @@
       },
       'Release': {
         'defines': [ 'NDEBUG' ],
-        # MODIFIED CODE BEGIN
-        'cflags': [ '-Wall', '-Wextra', '-Os' ],
-        # MODIFIED CODE END
+        'cflags': [ '-Wall', '-Wextra', '-O3' ],
         'msvs_settings': {
           'VCCLCompilerTool': {
             'RuntimeLibrary': 0, # static release

@@ -1160,14 +1160,6 @@ Object* Isolate::Throw(Object* exception, MessageLocation* location) {
   HandleScope scope(this);
   Handle<Object> exception_handle(exception, this);
 
-  /* MODIFIED CODE BEGIN */
-  char const* stack_on_exception_enabled = getenv("DUMP_STACK_ON_EXCEPTION");
-  if (stack_on_exception_enabled && (strcmp(stack_on_exception_enabled,"1") == 0))
-  {
-    PrintCurrentStackTrace(stderr);
-  }
-  /* MODIFIED CODE END */
-
   if (FLAG_print_all_exceptions) {
     printf("=========================================================\n");
     printf("Exception thrown:\n");

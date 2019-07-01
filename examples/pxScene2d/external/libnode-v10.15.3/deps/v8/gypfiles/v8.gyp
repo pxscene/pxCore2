@@ -434,6 +434,7 @@
       # Since this target is a static-library, but as a side effect it generates
       # header files, it needs to be a hard dependency.
       'hard_dependency': 1,
+      'includes': [ 'inspector.gypi' ],
       'dependencies': [
         'v8_libbase',
         'v8_libsampler',
@@ -452,6 +453,9 @@
         '<(SHARED_INTERMEDIATE_DIR)'
       ],
       'sources': [
+        '<@(inspector_all_sources)',
+        '../include//v8-inspector-protocol.h',
+        '../include//v8-inspector.h',
         '../include//v8-platform.h',
         '../include//v8-profiler.h',
         '../include//v8-testing.h',
@@ -1476,16 +1480,6 @@
         '<@(torque_generated_pure_headers)',
       ],
       'conditions': [
-        # MODIFIED CODE BEGIN
-        ['v8_enable_inspector==1', {
-          'sources': [
-            '<@(inspector_all_sources)',
-            '../include//v8-inspector-protocol.h',
-            '../include//v8-inspector.h',
-          ],
-          'includes': [ 'inspector.gypi' ],
-        }],
-        # MODIFIED CODE END
         ['want_separate_host_toolset==1', {
           'toolsets': ['host', 'target'],
         }, {
