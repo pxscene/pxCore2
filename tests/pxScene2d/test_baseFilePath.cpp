@@ -22,6 +22,8 @@ limitations under the License.
 #define protected public
 
 #include "pxScene2d.h"
+#include "pxArchive.h"
+#include "pxResource.h"
 #include "pxTimer.h"
 #include "rtPathUtils.h"
 
@@ -123,6 +125,49 @@ public:
     EXPECT_EQ (std::string(env.cString()), "supportfiles");
   }
 
+  void test_pxArchiveFileURL()
+  {
+    rtString file;
+    rtObjectRef obj;
+    rtString val;
+    rtData d;
+    pxArchive* a;
+
+    EXPECT_EQ (RT_OK, rtGetCurrentDirectory(file));
+    file = "file://" + file + "/supportfiles/simple.js";
+    a = new pxArchive();
+    EXPECT_EQ (RT_OK, a->initFromUrl(file));
+    EXPECT_EQ (RT_OK, a->loadStatus(obj));
+    EXPECT_EQ (RT_OK, obj.get("sourceType", val));
+    EXPECT_EQ (std::string(val.cString()), std::string("file"));
+    EXPECT_EQ (RT_OK, a->getFileData("", d));
+    EXPECT_EQ ((int)d.length(), (int)590);
+    delete a;
+  }
+
+  void test_rtImageResourceFileURL()
+  {
+    rtString file;
+    rtObjectRef obj;
+    rtString val;
+    rtData d;
+    rtValue status;
+    rtImageResource* res;
+
+    EXPECT_EQ (RT_OK, rtGetCurrentDirectory(file));
+    file = "file://" + file + "/sampleimage.jpeg";
+    res = new rtImageResource(file);
+    res->loadResource();
+    EXPECT_EQ (RT_OK, res->loadStatus(obj));
+    EXPECT_EQ (RT_OK, obj.get("sourceType", val));
+    EXPECT_EQ (std::string(val.cString()), std::string("file"));
+    EXPECT_EQ (RT_OK, obj.get("statusCode", status));
+    EXPECT_EQ (status, PX_RESOURCE_STATUS_OK);
+    EXPECT_EQ (262, res->w());
+    EXPECT_EQ (192, res->h());
+    delete res;
+  }
+
 private:
   void process(pxScriptView* view, float timeout)
   {
@@ -143,4 +188,6 @@ TEST_F(baseFilePathTest, baseFilePathTests)
   test_absolutePath();
   test_fileURL();
   test_urlInQuery();
+  test_pxArchiveFileURL();
+  test_rtImageResourceFileURL();
 }

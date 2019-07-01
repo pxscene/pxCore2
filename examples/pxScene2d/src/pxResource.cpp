@@ -558,7 +558,7 @@ void pxResource::loadResource(rtObjectRef archive, bool reloading)
     mArchive = arc;
   }
   //rtLogDebug("rtImageResource::loadResource statusCode should be -1; is statusCode=%d\n",mLoadStatus.get<int32_t>("statusCode"));
-  if (mUrl.beginsWith("http:") || mUrl.beginsWith("https:") || mUrl.beginsWith("file:"))
+  if (mUrl.beginsWith("http:") || mUrl.beginsWith("https:"))
   {
       setLoadStatus("sourceType", "http");
       mDownloadRequest = new rtFileDownloadRequest(mUrl, this, pxResource::onDownloadComplete);
@@ -632,6 +632,8 @@ void rtImageResource::loadResourceFromFile()
 
   rtError loadImageSuccess = RT_FAIL;
 
+  rtString urlStr = mUrl.beginsWith("file://") ? mUrl.substring(7) : mUrl;
+
   do
   {
     if (mData.length() != 0)
@@ -641,18 +643,18 @@ void rtImageResource::loadResourceFromFile()
       break;
     }
 
-    loadImageSuccess = rtLoadFile(mUrl, mData);
+    loadImageSuccess = rtLoadFile(urlStr, mData);
     if (loadImageSuccess == RT_OK)
       break;
 
-    if (rtIsPathAbsolute(mUrl))
+    if (rtIsPathAbsolute(urlStr))
       break;
 
     rtModuleDirs *dirs = rtModuleDirs::instance();
 
     for (rtModuleDirs::iter it = dirs->iterator(); it.first != it.second; it.first++)
     {
-      if (rtLoadFile(rtConcatenatePath(*it.first, mUrl.cString()).c_str(), mData) == RT_OK)
+      if (rtLoadFile(rtConcatenatePath(*it.first, urlStr.cString()).c_str(), mData) == RT_OK)
       {
         loadImageSuccess = RT_OK;
         break;
@@ -671,7 +673,7 @@ void rtImageResource::loadResourceFromFile()
   else
   {
     loadImageSuccess = RT_RESOURCE_NOT_FOUND;
-    rtLogError("Could not load image file %s.", mUrl.cString());
+    rtLogError("Could not load image file %s.", urlStr.cString());
   }
   if ( loadImageSuccess != RT_OK)
   {
@@ -859,8 +861,7 @@ void pxResource::processDownloadedResource(rtFileDownloadRequest* fileDownloadRe
       }
     }
     else if (fileDownloadRequest->downloadStatusCode() == 0 &&
-        (fileDownloadRequest->httpStatusCode() == 200 ||
-         (fileDownloadRequest->httpStatusCode() == 0 && fileDownloadRequest->fileUrl().beginsWith("file:"))) &&
+        fileDownloadRequest->httpStatusCode() == 200 &&
         fileDownloadRequest->downloadedData() != NULL)
     {
       double startResourceSetupTime = pxMilliseconds();
@@ -1086,7 +1087,7 @@ rtRef<rtImageResource> pxImageManager::getImage(const char* url, const char* pro
     svgUrl = md5uri;
   }
 
-  if (!key.beginsWith("http:") && !key.beginsWith("https:") && !key.beginsWith("file:"))
+  if (false == ((key.beginsWith("http:")) || (key.beginsWith("https:"))))
   {
     // if running from archived app, we need to search the different url for relative paths
     // url format is <appname_resource path> eg: football.zip, images/ball.png <football.zip_images/ball.png>
@@ -1214,7 +1215,7 @@ rtRef<rtImageAResource> pxImageManager::getImageA(const char* url, const char* p
 
   rtRef<rtImageAResource> pResImageA;
   rtString key = url;
-  if (!key.beginsWith("http:") && !key.beginsWith("https:") && !key.beginsWith("file:"))
+  if (false == ((key.beginsWith("http:")) || (key.beginsWith("https:"))))
   {
     // if running from archived app, we need to search the different url for relative paths
     // url format is <appname_resource path> eg: football.zip, images/ball.png <football.zip_images/ball.png>
