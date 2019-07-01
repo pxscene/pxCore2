@@ -52,6 +52,7 @@ then
 else
 ./Configure darwin64-x86_64-cc -shared --prefix=`pwd`
 fi
+make clean
 make "-j${make_parallel}"
 make install -i
 cd ..
