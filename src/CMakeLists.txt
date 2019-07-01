@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8)
 project(pxcore)
 find_package(PkgConfig)
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 14)
 
 option(WINDOWLESS_EGL "WINDOWLESS_EGL" OFF)
 option(PXCORE_WAYLAND_EGL "PXCORE_WAYLAND_EGL" OFF)
@@ -238,6 +238,9 @@ if (SUPPORT_NODE)
     add_definitions(-DRTSCRIPT_SUPPORT_NODE)
     set(PXCORE_FILES ${PXCORE_FILES} rtScriptV8/rtScriptNode.cpp rtScriptV8/jsCallback.cpp rtScriptV8/rtFunctionWrapper.cpp 
         rtScriptV8/rtObjectWrapper.cpp rtScriptV8/rtWrapperUtils.cpp)
+    if (USE_NODE_10)
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++1y")
+    endif (USE_NODE_10)
 endif()
 
 if (SUPPORT_V8)
