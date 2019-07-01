@@ -38,9 +38,7 @@ px.import({ scene: 'px:scene.1.js' }).then( function importsAreReady(imports)
   var titlePts  = 28;
   var value_w = 355;
   var fontRes   = scene.create({ t: "fontResource",  url: "FreeSans.ttf" });
-  var buildRevision =  scene.info.build.revision.replace(/"\s*/g, '');
-  var valueTxtM = fontRes.measureText(textPts, buildRevision);
-  value_w = value_w < valueTxtM.w + 10 ? valueTxtM.w + 10 : value_w;
+
   var value_h   = 26;
 
   var max_w     = label_w + value_w;
@@ -72,7 +70,7 @@ px.import({ scene: 'px:scene.1.js' }).then( function importsAreReady(imports)
 
   var title     = null;
   var title_bg  = scene.create({ t: "rect", parent: panel, fillColor: LIGHT_BLUE, w: panel.w, h: 26, x: 0, y: 0});
-
+ var py = 0;
   //##################################################################################################################################
 
   function addRow(pp, key, label, value)
@@ -82,11 +80,23 @@ px.import({ scene: 'px:scene.1.js' }).then( function importsAreReady(imports)
     var lx = 0;              // label x
     var valueTxtM = fontRes.measureText(textPts, value);
     var labelTxtM = fontRes.measureText(textPts, label);
-    label_h = labelTxtM.h;
-    value_h = valueTxtM.h;
-    var vx = (label_w + 4);  // value x
-    var py = (label_h * i) + title.h + title.y + 5;
 
+    var alignV = scene.alignVertical.CENTER;
+    var w = valueTxtM.w + 10;
+    if (value_w < w)
+    {
+      while (value_w <  w) {
+        value_h += 26 + 4;
+        label_h += 26;
+        w -= value_w;
+        alignV = scene.alignVertical.TOP;
+        }
+    }
+    else{
+        label_h = labelTxtM.h;
+        value_h = valueTxtM.h;
+    }
+    var vx = (label_w + 4);  // value x
     var row = scene.create({ t: "object",  parent: pp, x: 8});
 
     var labelRect  = scene.create({ t: "rect",    parent: row, fillColor: (i%2) ? DARK_GRAY : LIGHT_GRAY,
@@ -98,7 +108,7 @@ px.import({ scene: 'px:scene.1.js' }).then( function importsAreReady(imports)
                                     xStartPos: ix, xStopPos: ix,
                                     text: label, // ### LABEL
                                     alignHorizontal: scene.alignHorizontal.LEFT,
-                                    alignVertical:   scene.alignVertical.CENTER})
+                                    alignVertical:   alignV})
 
      var valueRect = scene.create({ t: "rect",    parent: row, fillColor: (i%2) ? DARK_GRAY : LIGHT_GRAY,
                                     w: value_w, h: value_h + 4, x: vx, y: py });
@@ -109,17 +119,18 @@ px.import({ scene: 'px:scene.1.js' }).then( function importsAreReady(imports)
                                     xStartPos: ix, xStopPos: ix,
                                     text: value, // ### VALUE
                                     alignHorizontal: scene.alignHorizontal.LEFT,
-                                    alignVertical:   scene.alignVertical.CENTER})
+                                    alignVertical:   alignV})
     textRows[key] = valueTxt;
 
     max_h += (value_h + 4);
-                                           
+    py += label_h;
+
 
     return Promise.all([row.ready, labelRect.ready, labelTxt.ready, valueRect.ready, valueTxt.ready] )
       .catch( function (err)
     {
        console.log(">>> Loading Assets ... err = " + err);
-                                                               
+
     }).then( function ()
     {
        // resolve
@@ -131,12 +142,13 @@ px.import({ scene: 'px:scene.1.js' }).then( function importsAreReady(imports)
     var gfx = parseInt( parseInt( scene.info.gfxmemory ) / 1024);
 
     var promises = [];
-                        
+
+    py = title.h + title.y + 5;
     promises.push( addRow(rows, "InfoBuildVersion",  "Version: ",         scene.info.version) );
     promises.push( addRow(rows, "InfoBuildEngine",   "Engine: ",          scene.info.engine) );
     promises.push( addRow(rows, "InfoBuildDate",     "Build Date: ",      scene.info.build.date.replace(/"/g, '') )); // global RegEx
     promises.push( addRow(rows, "InfoBuildTime",     "Build Time: ",      scene.info.build.time.replace(/"/g, '') )); // global RegEx
-    promises.push( addRow(rows, "InfoBuildRevision", "Build Revision: ",  buildRevision)); // global RegEx
+    promises.push( addRow(rows, "InfoBuildRevision", "Build Revision: ",  scene.info.build.revision.replace(/"\s*/g, ''))); // global RegEx
     promises.push( addRow(rows, "InfoGfxMemory",     "Base GFX memory: ", gfx.toLocaleString()  + " KB") );
 
     return Promise.all( promises )
@@ -173,7 +185,7 @@ px.import({ scene: 'px:scene.1.js' }).then( function importsAreReady(imports)
       panel.animateTo({ y: cy }, 1.25, scene.animation.EASE_OUT_ELASTIC,
                                        scene.animation.OPTION_FASTFORWARD, 1)
       .then(
-		function() 
+		function()
 		{
 		  panel_bg.focus = true;
 		});
@@ -227,7 +239,7 @@ px.import({ scene: 'px:scene.1.js' }).then( function importsAreReady(imports)
 
         var ready = createPanel();
 
-        ready.then(function () 
+        ready.then(function ()
         {
           dismissTXT.y = max_h - dismissTXT.h - 10;
 
