@@ -162,7 +162,7 @@ set(TEST_SOURCE_FILES pxscene2dtestsmain.cpp  test_rtThreadPool.cpp test_example
     test_rtUrlUtils.cpp test_pxArchive.cpp test_pxPixel_h.cpp test_pxFont.cpp test_utf8.cpp
     test_rtSettings.cpp test_cors.cpp  test_external.cpp test_pxScene2d.cpp test_oscillate.cpp test_rtPathUtils.cpp
     test_rtError.cpp test_import_resources.cpp test_rtHttpRequest.cpp test_rtHttpResponse.cpp test_imagecacheSVG.cpp test_rtObjectWrapper.cpp
-    test_baseFilePath.cpp test_js2rt.cpp ${TEST_WAYLAND_SOURCE_FILES})
+    test_baseFilePath.cpp test_js2rt.cpp test_pxShaderCode.cpp ${TEST_WAYLAND_SOURCE_FILES})
 
 if (DEFINED ENV{USE_HTTP_CACHE})
     message("Include http cache tests")

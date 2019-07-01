@@ -1,18 +1,30 @@
-//
-//  pxShaderResource.hpp
-//  Spark
-//
-//  Created by Fitzpatrick, Hugh on 5/10/19.
-//  Copyright © 2019 Comcast. All rights reserved.
-//
+/*
+
+pxCore Copyright 2005-2018 John Robinson
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+
+  Created by Fitzpatrick, Hugh on 5/10/19.
+*/
 
 #ifndef PXSHADERRESOURCE_HPP
 #define PXSHADERRESOURCE_HPP
 
 #include "pxContext.h"
 #include "pxObject.h"
-#include "pxShaderUtils.h"
 #include "pxResource.h"
+
+#include "pxShaderUtils.h"
 
 #include <map>
 #include <vector>
@@ -40,31 +52,28 @@
 #endif //PX_PLATFORM_WAYLAND_EGL
 #endif
 
-
 //=====================================================================================================================================
 
-rtError applyConfigArray(rtObjectRef v, pxObject &obj);       // Set an ARRAY of (RT) CONFIG objects of UNIFORMS to Shader
-rtError applyConfig     (rtObjectRef v, pxObject &obj);       // Set an (RT) CONFIG object of UNIFORMS to Shader
-
-rtError       setShaderConfig(rtObjectRef v, pxObject &obj);  // Set a (JS) CONFIG object directly
-rtObjectRef  copyShaderConfigs(rtObjectRef &v);               // Copy  (JS) CONFIG objects to (RT) Config objects ... array
+rtError            applyConfig(rtObjectRef v, pxObject &obj);  // Set an (RT) CONFIG object of UNIFORMS to Shader
+rtError        setShaderConfig(rtObjectRef v, pxObject &obj);  // Set a (JS) CONFIG object directly
+rtObjectRef  copyShaderConfigs(rtObjectRef &v);                // Copy  (JS) CONFIG objects to (RT) Config objects ... array
 
 rtError findKey(rtArrayObject* array, rtString k);            // helper to find key in array
 rtValue copyUniform(UniformType_t type, rtValue &val);        // helper to copy "variant" like UNIFORM types
 
 //=====================================================================================================================================
 
-class rtShaderResource: public pxResource, shaderProgram
+class rtShaderResource: public pxResource, public shaderProgram
 {
 public:
-  
+
   rtShaderResource();
   rtShaderResource(const char* fragmentUrl, const char* vertexUrl = NULL, const rtCORSRef& cors = NULL, rtObjectRef archive = NULL);
 
   virtual ~rtShaderResource();
 
   rtDeclareObject(rtShaderResource, pxResource);
-  
+
   virtual unsigned long Release();
 
   rtProperty(uniforms, uniforms, setUniforms, rtObjectRef);
@@ -76,18 +85,18 @@ public:
   virtual void setupResource();
   virtual void init();
   virtual void onInit();
-  
+
   rtError uniforms(rtObjectRef& o) const;
   rtError setUniforms(rtObjectRef o);
 
   virtual rtError Set(const char* name, const rtValue* value);
-  
+
   UniformType_t getUniformType(rtString &name);
-  
+
   rtError setUniformVal(const rtString& name, const rtValue& v);
 
   rtError setUniformVals(const rtValue& v);
-  
+
   // Loading
   //
   virtual void     loadResource(rtObjectRef archive = NULL, bool reloading=false);
@@ -105,7 +114,7 @@ public:
   static void bindTexture3(const uniformLoc_t &p);
   static void bindTexture4(const uniformLoc_t &p);
   static void bindTexture5(const uniformLoc_t &p);
-  
+
   // Scalars
   static void setUniform1i (const uniformLoc_t &p)  { glUniform1i(p.loc, p.value.toInt32() ); };
   static void setUniform1f (const uniformLoc_t &p)  { glUniform1f(p.loc, p.value.toFloat() ); };
@@ -114,7 +123,7 @@ public:
   static void setUniform2iv(const uniformLoc_t &p)  { setUniformNiv(2, p); }
   static void setUniform3iv(const uniformLoc_t &p)  { setUniformNiv(3, p); }
   static void setUniform4iv(const uniformLoc_t &p)  { setUniformNiv(4, p); }
-  
+
   static void setUniformNiv(int N, const uniformLoc_t &p);
 
   // FLOAT vectors
@@ -143,13 +152,15 @@ private:
 
   rtString    mVertexUrl;
   rtData      mVertexSrc;
-  
+
   rtString    mFragmentUrl;
   rtData      mFragmentSrc;
 
 }; // CLASS - pxShaderResource
 
 //=====================================================================================================================================
+
+typedef rtRef<rtShaderResource> pxShaderResourceRef;
 
 typedef std::map<uint32_t, rtShaderResource*> ShaderMap;
 typedef std::map<rtString, uint32_t> ShaderUrlMap;
@@ -158,11 +169,11 @@ class pxShaderManager
 {
 public:
 
-  static rtRef<rtShaderResource> getShader(const char* fragmentUrl, const char* vertexUrl = NULL, const rtCORSRef& cors = NULL, rtObjectRef archive = NULL);
+  static pxShaderResourceRef getShader(const char* fragmentUrl, const char* vertexUrl = NULL, const rtCORSRef& cors = NULL, rtObjectRef archive = NULL);
   static void removeShader(rtString shaderUrl);
   static void removeShader(uint32_t shaderId);
   static void clearAllShaders();
-  
+
 protected:
   static ShaderMap    mShaderMap;
   static ShaderUrlMap mShaderUrlMap;
