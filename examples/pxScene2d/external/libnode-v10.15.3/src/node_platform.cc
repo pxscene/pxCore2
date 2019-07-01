@@ -329,6 +329,13 @@ void PerIsolatePlatformData::RunForegroundTask(std::unique_ptr<Task> task) {
   Isolate* isolate = Isolate::GetCurrent();
   HandleScope scope(isolate);
   Environment* env = Environment::GetCurrent(isolate);
+/*MODIFIED CODE BEGIN*/
+  if (isolate->GetCurrentContext().IsEmpty() || (NULL == env))
+  {
+    task->Run();
+    return;
+  }
+/*MODIFIED CODE END*/
   InternalCallbackScope cb_scope(env, Local<Object>(), { 0, 0 },
                                  InternalCallbackScope::kAllowEmptyResource);
   task->Run();
@@ -411,12 +418,19 @@ std::shared_ptr<PerIsolatePlatformData>
 NodePlatform::ForIsolate(Isolate* isolate) {
   Mutex::ScopedLock lock(per_isolate_mutex_);
   std::shared_ptr<PerIsolatePlatformData> data = per_isolate_[isolate];
-  CHECK(data);
+  //  MODIFIED CODE BEGIN
+  // CHECK(data);
+  // MODIFIED CODE END
   return data;
 }
 
 void NodePlatform::CallOnForegroundThread(Isolate* isolate, Task* task) {
-  ForIsolate(isolate)->PostTask(std::unique_ptr<Task>(task));
+  /* MODIFIED CODE BEGIN */
+  std::shared_ptr<PerIsolatePlatformData> data = ForIsolate(isolate);
+  if (nullptr != data.get()) {
+    data->PostTask(std::unique_ptr<Task>(task));
+  }
+  /* MODIFIED CODE END */
 }
 
 void NodePlatform::CallDelayedOnForegroundThread(Isolate* isolate,

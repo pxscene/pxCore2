@@ -204,6 +204,12 @@ typedef intptr_t ssize_t;
 
 namespace node {
 
+
+/*MODIFIED CODE BEGIN*/
+NODE_EXTERN extern v8::Isolate* node_isolate;
+NODE_EXTERN extern bool node_is_initialized;
+/*MODIFIED CODE END*/
+
 // TODO(addaleax): Remove all of these.
 NODE_DEPRECATED("use command-line flags",
                 NODE_EXTERN extern bool no_deprecation);
@@ -237,6 +243,10 @@ NODE_EXTERN void FreeArrayBufferAllocator(ArrayBufferAllocator* allocator);
 class IsolateData;
 class Environment;
 
+/*MODIFIED CODE BEGIN*/
+NODE_EXTERN bool ShouldAbortOnUncaughtException(v8::Isolate* isolate);
+/*MODIFIED CODE END*/
+
 class NODE_EXTERN MultiIsolatePlatform : public v8::Platform {
  public:
   virtual ~MultiIsolatePlatform() { }
@@ -252,6 +262,12 @@ class NODE_EXTERN MultiIsolatePlatform : public v8::Platform {
                                struct uv_loop_s* loop) = 0;
   virtual void UnregisterIsolate(IsolateData* isolate_data) = 0;
 };
+
+/*MODIFIED CODE BEGIN*/
+#if HAVE_INSPECTOR
+NODE_EXTERN void InspectorStart(Environment* env, const char* path, MultiIsolatePlatform* platform);
+#endif
+/*MODIFIED CODE END*/
 
 // Creates a new isolate with Node.js-specific settings.
 NODE_EXTERN v8::Isolate* NewIsolate(ArrayBufferAllocator* allocator);
@@ -296,10 +312,11 @@ NODE_EXTERN void FreeEnvironment(Environment* env);
 // If NODE_USE_V8_PLATFORM haven't been defined when Node.js was built,
 // it returns nullptr.
 NODE_EXTERN MultiIsolatePlatform* GetMainThreadMultiIsolatePlatform();
-
+/* MODIFIED CODE BEGIN */
 NODE_EXTERN MultiIsolatePlatform* CreatePlatform(
     int thread_pool_size,
-    node::tracing::TracingController* tracing_controller);
+    node::tracing::TracingController* tracing_controller=NULL);
+/* MODIFIED CODE END */
 MultiIsolatePlatform* InitializeV8Platform(int thread_pool_size);
 NODE_EXTERN void FreePlatform(MultiIsolatePlatform* platform);
 

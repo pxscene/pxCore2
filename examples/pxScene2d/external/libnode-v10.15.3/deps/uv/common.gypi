@@ -46,7 +46,9 @@
       'Release': {
         'defines': [ 'NDEBUG' ],
         'cflags': [
-          '-O3',
+         # MODIFIED CODE BEGIN
+         '-Os',
+         # MODIFIED CODE END
         ],
         'msvs_settings': {
           'VCCLCompilerTool': {

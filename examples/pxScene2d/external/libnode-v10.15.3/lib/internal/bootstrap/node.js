@@ -257,11 +257,12 @@
         // User passed '-e' or '--eval' arguments to Node without '-i' or
         // '--interactive'.
         preloadModules();
-
-        const {
-          addBuiltinLibsToObject
-        } = NativeModule.require('internal/modules/cjs/helpers');
-        addBuiltinLibsToObject(global);
+        /* MODIFIED CODE BEGIN */
+        //const {
+        //  addBuiltinLibsToObject
+        //} = NativeModule.require('internal/modules/cjs/helpers');
+        //addBuiltinLibsToObject(global);
+        /* MODIFIED CODE END */
         evalScript('[eval]');
       } else if (process.argv[1] && process.argv[1] !== '-') {
         // Make process.argv[1] into a full path.
@@ -284,7 +285,9 @@
       } else {
         preloadModules();
         // If -i or --interactive were passed, or stdin is a TTY.
-        if (process._forceRepl || NativeModule.require('tty').isatty(0)) {
+        /* MODIFIED CODE BEGIN */
+        //if (process._forceRepl || NativeModule.require('tty').isatty(0)) {
+        /* MODIFIED CODE END */
           // REPL
           const cliRepl = NativeModule.require('internal/repl');
           cliRepl.createInternalRepl(process.env, (err, repl) => {
@@ -306,6 +309,8 @@
             // User passed '-e' or '--eval'
             evalScript('[eval]');
           }
+/* MODIFIED CODE BEGIN */
+/*
         } else {
           // Read all of stdin - execute it.
           process.stdin.setEncoding('utf8');
@@ -324,6 +329,8 @@
             }
           });
         }
+*/
+/* MODIFIED CODE END */
       }
     }
   }
