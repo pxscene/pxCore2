@@ -1266,9 +1266,6 @@ rtError applyConfig(rtObjectRef v, pxObject &obj)
     else
     {
       obj.setEffectPtr(  (rtShaderResource *) ( shaderVal.toVoidPtr() ) );
-
-    //  obj.mEffectPtr = (rtShaderResource *) ( shaderVal.toVoidPtr() );
-    //  gShaderPtr =  (rtShaderResource *) ( shaderVal.toVoidPtr() );
     }
 
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

@@ -2350,7 +2350,8 @@ pxContextFramebufferRef pxContext::getCurrentFramebuffer()
 
 pxError pxContext::setFramebuffer(pxContextFramebufferRef fbo)
 {
-  currentGLProgram = -1;
+  currentGLProgram = -1; //NB: Force a re-bind of GL program
+
   if (fbo.getPtr() == NULL || fbo->getTexture().getPtr() == NULL)
   {
     glViewport ( 0, 0, defaultContextSurface.width, defaultContextSurface.height);
