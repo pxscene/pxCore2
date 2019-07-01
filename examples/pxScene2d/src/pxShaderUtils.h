@@ -73,7 +73,7 @@ private:
 
 struct uniformLoc; //fwd
 
-typedef  void (*setFunc_t)(const uniformLoc &);
+typedef  rtError (*setFunc_t)(const uniformLoc &);
 
 typedef enum UniformType
 {
@@ -182,6 +182,7 @@ public:
                 int count);
 
 protected:
+
   // Override to do uniform lookups
   virtual void prelink()  {}
   virtual void postlink() {}
@@ -191,7 +192,7 @@ protected:
   GLint mPosLoc,  mUVLoc,         mAlphaLoc,   mColorLoc;
 
   UniformMap_t  mUniform_map;
-  UniformList_t mUniform_list;
+ // UniformList_t mUniform_list;
 
 }; // CLASS
 

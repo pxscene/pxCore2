@@ -111,27 +111,27 @@ public:
   static rtError fillFloatVec(float   *vec, const rtArrayObject* vals);
 
   // samplers
-  static void bindTexture3(const uniformLoc_t &p);
-  static void bindTexture4(const uniformLoc_t &p);
-  static void bindTexture5(const uniformLoc_t &p);
+  static rtError bindTexture3(const uniformLoc_t &p);
+  static rtError bindTexture4(const uniformLoc_t &p);
+  static rtError bindTexture5(const uniformLoc_t &p);
 
   // Scalars
-  static void setUniform1i (const uniformLoc_t &p)  { glUniform1i(p.loc, p.value.toInt32() ); };
-  static void setUniform1f (const uniformLoc_t &p)  { glUniform1f(p.loc, p.value.toFloat() ); };
+  static rtError setUniform1i (const uniformLoc_t &p)  { glUniform1i(p.loc, p.value.toInt32() ); return RT_OK; };
+  static rtError setUniform1f (const uniformLoc_t &p)  { glUniform1f(p.loc, p.value.toFloat() ); return RT_OK; };
 
   // INT vectors
-  static void setUniform2iv(const uniformLoc_t &p)  { setUniformNiv(2, p); }
-  static void setUniform3iv(const uniformLoc_t &p)  { setUniformNiv(3, p); }
-  static void setUniform4iv(const uniformLoc_t &p)  { setUniformNiv(4, p); }
+  static rtError setUniform2iv(const uniformLoc_t &p)  { return setUniformNiv(2, p); }
+  static rtError setUniform3iv(const uniformLoc_t &p)  { return setUniformNiv(3, p); }
+  static rtError setUniform4iv(const uniformLoc_t &p)  { return setUniformNiv(4, p); }
 
-  static void setUniformNiv(int N, const uniformLoc_t &p);
+  static rtError setUniformNiv(int N, const uniformLoc_t &p);
 
   // FLOAT vectors
-  static void setUniform2fv(const uniformLoc_t &p)  { setUniformNfv(2, p); }
-  static void setUniform3fv(const uniformLoc_t &p)  { setUniformNfv(3, p); }
-  static void setUniform4fv(const uniformLoc_t &p)  { setUniformNfv(4, p); }
+  static rtError setUniform2fv(const uniformLoc_t &p)  { return setUniformNfv(2, p); }
+  static rtError setUniform3fv(const uniformLoc_t &p)  { return setUniformNfv(3, p); }
+  static rtError setUniform4fv(const uniformLoc_t &p)  { return setUniformNfv(4, p); }
 
-  static void setUniformNfv(int N, const uniformLoc_t &p);
+  static rtError setUniformNfv(int N, const uniformLoc_t &p);
 
 protected:
   // Override to do uniform lookups

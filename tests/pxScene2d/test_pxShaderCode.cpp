@@ -38,24 +38,24 @@ class pxShaderTest : public testing::Test
 public:
     virtual void SetUp()
     {
-      shader = new pxShaderExample();
+      shaderEx = new pxShaderExample();
     }
 
     virtual void TearDown()
     {
-      shader = NULL;
+      shaderEx = NULL;
     }
 
     void testInit()
     {
-      pxError res = shader->initShader(NULL, NULL);
+      pxError res = shaderEx->initShader(NULL, NULL);
       EXPECT_TRUE (res == PX_FAIL);
     }
 
 
     void testUniformLocation()
     {
-      int res = shader->getUniformLocation("NonExistant");
+      int res = shaderEx->getUniformLocation("NonExistant");
       EXPECT_TRUE (res == -1);
     }
 
@@ -104,45 +104,178 @@ public:
     {
       rtObjectRef myObj( new pxObject(NULL) );
 
-      pxError res = shader->uniforms(myObj); // returns PX_OK - always
+      pxError res = shaderEx->uniforms(myObj); // returns PX_OK - always
       EXPECT_TRUE (res == PX_OK);
     }
 
     void testDefaults()
     {
-      EXPECT_TRUE ( shader->isRealTime() == false );
-      EXPECT_TRUE ( shader->needsFbo()   == false );
-      EXPECT_TRUE ( shader->passes()     == 1);
+      EXPECT_TRUE ( shaderEx->isRealTime() == false );
+      EXPECT_TRUE ( shaderEx->needsFbo()   == false );
+      EXPECT_TRUE ( shaderEx->passes()     == 1);
     }
 
     void testUniformType()
     {
       rtString willFail("foo");
-      EXPECT_TRUE ( shader->getUniformType( willFail ) == UniformType_Unknown );
+      EXPECT_TRUE ( shaderEx->getUniformType( willFail ) == UniformType_Unknown );
     }
 
     void testSetUniformVal()
     {
       rtString willFail("foo");
-      EXPECT_TRUE ( shader->setUniformVal( willFail , 0) == PX_FAIL );
+      EXPECT_TRUE ( shaderEx->setUniformVal( willFail , 0) == PX_FAIL );
     }
 
     void testSetUniformVals()
     {
       rtString junk("foo");
-      EXPECT_TRUE ( shader->setUniformVals( junk ) == PX_FAIL );
+      EXPECT_TRUE ( shaderEx->setUniformVals( junk ) == PX_FAIL );
+    }
+
+    void testGLexception()
+    {
+      glException foo("test message");
+
+      EXPECT_TRUE ( foo.desc() != NULL );
+    }
+
+    void testInit2() // trivial NULL
+    {
+      shaderProgram shader;
+      pxError res = shader.initShader(NULL, NULL);
+
+      EXPECT_TRUE (res == PX_FAIL);
+    }
+
+    void testDraw() // trivial NULL
+    {
+      shaderProgram shader;
+      pxError res = shader.draw( 1, 1, NULL, 0.0, NULL, 0, NULL, NULL, 0);
+
+      EXPECT_TRUE (res == PX_FAIL);
+    }
+
+    void testFillVectors() // trivial NULL
+    {
+      rtShaderResource shaderRes;
+
+      pxError res1 = shaderRes.fillInt32Vec( NULL, NULL);
+      EXPECT_TRUE (res1 == PX_FAIL);
+
+      pxError res2 = shaderRes.fillFloatVec( NULL, NULL);
+      EXPECT_TRUE (res2 == PX_FAIL);
+    }
+
+    void testBindTextures() // trivial NULL
+    {
+      rtShaderResource shaderRes;
+      uniformLoc_t p;
+
+      p.value = rtValue( (void *) NULL);
+
+      pxError res1 = shaderRes.bindTexture3( p );
+      EXPECT_TRUE (res1 == PX_FAIL);
+
+      pxError res2 = shaderRes.bindTexture4( p );
+      EXPECT_TRUE (res2 == PX_FAIL);
+
+      pxError res3 = shaderRes.bindTexture5( p );
+      EXPECT_TRUE (res3 == PX_FAIL);
+    }
+
+    void testSetScalars() // trivial NULL
+    {
+      rtShaderResource shaderRes;
+      uniformLoc_t p;
+
+      p.value = rtValue( (int) 0);
+
+      pxError resINT = shaderRes.setUniform1i( p );
+      EXPECT_TRUE (resINT == PX_OK);
+
+      p.value = rtValue( (float) 0.0f);
+
+      pxError resFLOAT = shaderRes.setUniform1i( p );
+      EXPECT_TRUE (resFLOAT == PX_OK);
     }
 
 
+    void testSetVectors()
+    {
+      rtShaderResource shaderRes;
+      uniformLoc_t p;
+
+      p.value = rtValue( (void *) NULL );
+
+      pxError resINT2 = shaderRes.setUniform2iv( p );
+      EXPECT_TRUE (resINT2 == PX_FAIL);
+
+      pxError resFLOAT2 = shaderRes.setUniform2fv( p );
+      EXPECT_TRUE (resFLOAT2 == PX_FAIL);
+
+
+      pxError resINT3 = shaderRes.setUniform3iv( p );
+      EXPECT_TRUE (resINT3 == PX_FAIL);
+
+      pxError resFLOAT3 = shaderRes.setUniform3fv( p );
+      EXPECT_TRUE (resFLOAT3 == PX_FAIL);
+
+
+      pxError resINT4 = shaderRes.setUniform4iv( p );
+      EXPECT_TRUE (resINT4 == PX_FAIL);
+
+      pxError resFLOAT4 = shaderRes.setUniform4fv( p );
+      EXPECT_TRUE (resFLOAT4 == PX_FAIL);
+    }
+
+
+    void testSetVectors2()
+    {
+      rtShaderResource shaderRes;
+      uniformLoc_t p;
+
+      rtObjectRef       ao = new rtArrayObject;
+      rtArrayObject *array = (rtArrayObject *) ao.getPtr();
+
+      array->pushBack((int) 1 );
+      array->pushBack((int) 2 );
+      array->pushBack((int) 3 );
+      array->pushBack((int) 4 );
+
+      p.value = rtValue( array );
+
+      pxError resINT2 = shaderRes.setUniform2iv( p );
+      EXPECT_TRUE (resINT2 == PX_OK);
+
+      pxError resFLOAT2 = shaderRes.setUniform2fv( p );
+      EXPECT_TRUE (resFLOAT2 == PX_OK);
+
+
+      pxError resINT3 = shaderRes.setUniform3iv( p );
+      EXPECT_TRUE (resINT3 == PX_OK);
+
+      pxError resFLOAT3 = shaderRes.setUniform3fv( p );
+      EXPECT_TRUE (resFLOAT3 == PX_OK);
+
+
+      pxError resINT4 = shaderRes.setUniform4iv( p );
+      EXPECT_TRUE (resINT4 == PX_OK);
+
+      pxError resFLOAT4 = shaderRes.setUniform4fv( p );
+      EXPECT_TRUE (resFLOAT4 == PX_OK);
+    }
 
   private:
-    pxShaderResourceRef  shader;
+    pxShaderResourceRef  shaderEx;
 };
 
 
 TEST_F(pxShaderTest, pxShaderTests)
 {
   testInit();
+  testInit2();
+
   testUniformLocation();
   testFindKey();
   testApplyConfig();
@@ -152,6 +285,13 @@ TEST_F(pxShaderTest, pxShaderTests)
   testUniformType();
   testSetUniformVal();
   testSetUniformVals();
+  testGLexception();
+  testDraw();
+  testFillVectors();
+  testBindTextures();
+  testSetScalars();
+  testSetVectors();
+  testSetVectors2();
 }
 
 /*

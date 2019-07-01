@@ -141,8 +141,15 @@ pxError shaderProgram::draw(int resW, int resH, float* matrix, float alpha,
                             const void* uv,
                             int count)
 {
+  if(!resW || !resH || !matrix || !pos)
+  {
+    return RT_FAIL;
+  }
+
   if(mResolutionLoc == -1)
-  return RT_OK;
+  {
+    return RT_FAIL;
+  }
 
   use();
 
@@ -153,7 +160,7 @@ pxError shaderProgram::draw(int resW, int resH, float* matrix, float alpha,
   // Update UNIFORMS ...
   //
   for (UniformMapIter_t it  = mUniform_map.begin();
-       it != mUniform_map.end(); ++it)
+                        it != mUniform_map.end(); ++it)
   {
     uniformLoc_t &p = (*it).second;
 
@@ -174,13 +181,13 @@ pxError shaderProgram::draw(int resW, int resH, float* matrix, float alpha,
     //    {
     //      continue; // SKIP
     //    }
-    else
-    if(p.name == "u_color")
-    {
-      float color[4] = {1,0,0,1};
-      glUniform4fv(p.loc, 1, color);
-      p.needsUpdate = false;
-    }
+    //    else
+    //    if(p.name == "u_color")
+    //    {
+    //      float color[4] = {1,0,0,1};
+    //      glUniform4fv(p.loc, 1, color);
+    //      p.needsUpdate = false;
+    //    }
     else
     if(p.name == "u_alpha")
     {
@@ -194,7 +201,6 @@ pxError shaderProgram::draw(int resW, int resH, float* matrix, float alpha,
       p.needsUpdate = false;
     }
     else
-
     // TODO  ... is this "s_texture" needed given BIND setFunc's
     //
     if(p.name == "s_texture")
@@ -208,11 +214,11 @@ pxError shaderProgram::draw(int resW, int resH, float* matrix, float alpha,
     }
   }//FOR
 
-  // Apply UNIFORM values to GPU...
+  // Apply updated UNIFORM values to GPU...
   if(mUniform_map.size() > 0)
   {
     for(UniformMapIter_t  it = mUniform_map.begin();
-        it != mUniform_map.end(); ++it)
+                         it != mUniform_map.end(); ++it)
     {
       uniformLoc_t &p = (*it).second;
 
@@ -222,7 +228,7 @@ pxError shaderProgram::draw(int resW, int resH, float* matrix, float alpha,
 
         p.needsUpdate = false;
       }
-    }
+    }//FOR
   }//ENDIF
 
   //

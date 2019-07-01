@@ -681,7 +681,7 @@ void rtShaderResource::postlink()
 //
 /*static*/ rtError rtShaderResource::fillInt32Vec(int32_t *vec, const rtArrayObject* vals)
 {
-  if(vals)
+  if(vals && vec)
   {
     rtValue count;                  // HACK - WORKAROUND
     vals->Get("length", &count);    // HACK - WORKAROUND
@@ -730,7 +730,7 @@ void rtShaderResource::postlink()
 }
 
 // sampler
-/*static*/ void rtShaderResource::bindTexture3(const uniformLoc_t &p)
+/*static*/ rtError rtShaderResource::bindTexture3(const uniformLoc_t &p)
 {
   rtImageResource *img = (rtImageResource *) p.value.toObject().getPtr();
 
@@ -743,11 +743,15 @@ void rtShaderResource::postlink()
     glBindTexture(GL_TEXTURE_2D,     tid);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     glUniform1i(p.loc, 3);
+
+    return RT_OK;
   }
+
+  return RT_FAIL;
 }
 
 // sampler
-/*static*/ void rtShaderResource::bindTexture4(const uniformLoc_t &p)
+/*static*/ rtError rtShaderResource::bindTexture4(const uniformLoc_t &p)
 {
   rtImageResource *img = (rtImageResource *) p.value.toObject().getPtr();
 
@@ -762,11 +766,15 @@ void rtShaderResource::postlink()
     glBindTexture(GL_TEXTURE_2D,     tid);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     glUniform1i(p.loc, 4);
+
+    return RT_OK;
   }
+
+  return RT_FAIL;
 }
 
 // sampler
-/*static*/ void rtShaderResource::bindTexture5(const uniformLoc_t &p)
+/*static*/ rtError rtShaderResource::bindTexture5(const uniformLoc_t &p)
 {
   rtImageResource *img = (rtImageResource *) p.value.toObject().getPtr();
 
@@ -779,10 +787,14 @@ void rtShaderResource::postlink()
     glBindTexture(GL_TEXTURE_2D,     tid);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     glUniform1i(p.loc, 5);
+
+    return RT_OK;
   }
+
+  return RT_FAIL;
 }
 
-/*static*/ void rtShaderResource::setUniformNiv(int N, const uniformLoc_t &p)
+/*static*/ rtError rtShaderResource::setUniformNiv(int N, const uniformLoc_t &p)
 {
   const rtArrayObject* vals = (const rtArrayObject*)  p.value.toObject().getPtr();
 
@@ -796,10 +808,14 @@ void rtShaderResource::postlink()
       case 3: glUniform3iv(p.loc, 1, vec ); break;
       case 4: glUniform4iv(p.loc, 1, vec ); break;
     }
+
+    return RT_OK;
   }
+
+  return RT_FAIL;
 }
 
-/*static*/ void rtShaderResource::setUniformNfv(int N, const uniformLoc_t &p)
+/*static*/ rtError rtShaderResource::setUniformNfv(int N, const uniformLoc_t &p)
 {
   const rtArrayObject* vals = (const rtArrayObject*)  p.value.toObject().getPtr();
 
@@ -815,7 +831,11 @@ void rtShaderResource::postlink()
       case 3: glUniform3fv(p.loc, 1, vec ); break;
       case 4: glUniform4fv(p.loc, 1, vec ); break;
     }
+
+    return RT_OK;
   }
+
+  return RT_FAIL;
 }
 
 rtDefineObject(  rtShaderResource, pxResource);
