@@ -1,7 +1,7 @@
-From 96703c21230cbad8cdd67d11f0efea1b7a7cf8d9 Mon Sep 17 00:00:00 2001
+From 932d15f840cfecc86ab691d74b4216c2530262a2 Mon Sep 17 00:00:00 2001
 From: Madana Gopal <madanagopal_thirumalai@comcast.com>
-Date: Mon, 1 Jul 2019 16:17:02 +0530
-Subject: [PATCH] node-v10.5.3
+Date: Wed, 26 Jun 2019 13:05:20 +0530
+Subject: [PATCH] node-v10_15.3-mods
 
 ---
  .../external/libnode-v10.15.3/common.gypi          |  72 ++++++++++---
@@ -21,10 +21,10 @@ Subject: [PATCH] node-v10.5.3
  .../libnode-v10.15.3/src/node_contextify_mods.h    |  19 ++++
  .../libnode-v10.15.3/src/node_http_parser.cc       |  10 +-
  .../external/libnode-v10.15.3/src/node_internals.h |   4 +-
- .../external/libnode-v10.15.3/src/node_platform.cc |  18 +++-
+ .../external/libnode-v10.15.3/src/node_platform.cc |   7 ++
  .../external/libnode-v10.15.3/src/node_watchdog.cc |   5 +-
  .../external/libnode-v10.15.3/vcbuild.bat          |   9 ++
- 20 files changed, 410 insertions(+), 78 deletions(-)
+ 20 files changed, 401 insertions(+), 76 deletions(-)
  create mode 100644 examples/pxScene2d/external/libnode-v10.15.3/src/node_contextify_mods.h
 
 diff --git a/examples/pxScene2d/external/libnode-v10.15.3/common.gypi b/examples/pxScene2d/external/libnode-v10.15.3/common.gypi
@@ -944,8 +944,8 @@ index 12089bc..7e8bf86 100755
  
  // Like a `TryCatch` but exits the process if an exception was caught.
  class FatalTryCatch : public v8::TryCatch {
-diff --git a/examples/pxScene2d/external/libnode-v10.15.3/src/node_platform.cc b/examples/pxScene2d/external/libnode-v10.15.3/src/node_platform.cc
-index fd8d045..c70036e 100755
+diff --git a/examples/pxScene2d/external/libnode-v10.15.3/src/node_platform.cc b/examples/pxScene2d/external/lib
+index fd8d045..0d99005 100755
 --- a/examples/pxScene2d/external/libnode-v10.15.3/src/node_platform.cc
 +++ b/examples/pxScene2d/external/libnode-v10.15.3/src/node_platform.cc
 @@ -329,6 +329,13 @@ void PerIsolatePlatformData::RunForegroundTask(std::unique_ptr<Task> task) {
@@ -962,28 +962,6 @@ index fd8d045..c70036e 100755
    InternalCallbackScope cb_scope(env, Local<Object>(), { 0, 0 },
                                   InternalCallbackScope::kAllowEmptyResource);
    task->Run();
-@@ -411,12 +418,19 @@ std::shared_ptr<PerIsolatePlatformData>
- NodePlatform::ForIsolate(Isolate* isolate) {
-   Mutex::ScopedLock lock(per_isolate_mutex_);
-   std::shared_ptr<PerIsolatePlatformData> data = per_isolate_[isolate];
--  CHECK(data);
-+  //  MODIFIED CODE BEGIN
-+  // CHECK(data);
-+  // MODIFIED CODE END
-   return data;
- }
- 
- void NodePlatform::CallOnForegroundThread(Isolate* isolate, Task* task) {
--  ForIsolate(isolate)->PostTask(std::unique_ptr<Task>(task));
-+  /* MODIFIED CODE BEGIN */
-+  std::shared_ptr<PerIsolatePlatformData> data = ForIsolate(isolate);
-+  if (nullptr != data.get()) {
-+    data->PostTask(std::unique_ptr<Task>(task));
-+  }
-+  /* MODIFIED CODE END */
- }
- 
- void NodePlatform::CallDelayedOnForegroundThread(Isolate* isolate,
 diff --git a/examples/pxScene2d/external/libnode-v10.15.3/src/node_watchdog.cc b/examples/pxScene2d/external/libnode-v10.15.3/src/node_watchdog.cc
 index 4b902aa..382bf7b 100755
 --- a/examples/pxScene2d/external/libnode-v10.15.3/src/node_watchdog.cc
