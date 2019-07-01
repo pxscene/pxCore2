@@ -85,9 +85,11 @@ px.import({ scene: 'px:scene.1.js' }).then( function importsAreReady(imports)
     var w = valueTxtM.w + 10;
     if (value_w < w)
     {
+     var value_h_d = value_h;
+     var label_h_d = label_h;
       while (value_w <  w) {
-        value_h += 26 + 4;
-        label_h += 26;
+        value_h += value_h_d + 4;
+        label_h += label_h_d;
         w -= value_w;
         alignV = scene.alignVertical.TOP;
         }
