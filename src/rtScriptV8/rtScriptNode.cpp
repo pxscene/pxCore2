@@ -692,6 +692,14 @@ rtNodeContext::~rtNodeContext()
     }
     if(exec_argv)
     {
+      #ifdef USE_NODE_10
+        for (int i=0; i<exec_argc; i++) {
+          if (NULL != exec_argv[i]) {
+            free((void*)exec_argv[i]);
+            exec_argv[i] = NULL;
+          }
+        }
+      #endif
       delete[] exec_argv;
       exec_argv = NULL;
       exec_argc = 0;
