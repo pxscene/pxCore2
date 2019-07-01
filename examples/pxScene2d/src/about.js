@@ -34,14 +34,19 @@ px.import({ scene: 'px:scene.1.js' }).then( function importsAreReady(imports)
 
   var label_w   = 175;
   var label_h   = 26;
-  var value_w   = 355;
+  var textPts   = 16;
+  var titlePts  = 28;
+  var value_w = 355;
+  var fontRes   = scene.create({ t: "fontResource",  url: "FreeSans.ttf" });
+  var buildRevision =  scene.info.build.revision.replace(/"\s*/g, '');
+  var valueTxtM = fontRes.measureText(textPts, buildRevision);
+  value_w = value_w < valueTxtM.w + 10 ? valueTxtM.w + 10 : value_w;
   var value_h   = 26;
 
   var max_w     = label_w + value_w;
   var max_h     = 175;
   var title_dy  = 30;
 
-  var fontRes   = scene.create({ t: "fontResource",  url: "FreeSans.ttf" });
   var panel     = scene.create({ t: "object",  parent: root, x: 40, y: -720, w: (max_w + 4), h: max_h, a: 0.0 });
   var panel_bg  = scene.create({ t: "rect",    parent: panel, fillColor: LIGHT_GRAY2, w: panel.w + 16, h: panel.h + 8, x: -8, y: -8});
   var rows      = scene.create({ t: "object",  parent: panel_bg, a: 1.0 });
@@ -64,9 +69,6 @@ px.import({ scene: 'px:scene.1.js' }).then( function importsAreReady(imports)
                     function(o) { },
                     function(o) { max_h -= 170; title_dy = 10; }
                   );
-
-  var textPts   = 16;
-  var titlePts  = 28;
 
   var title     = null;
   var title_bg  = scene.create({ t: "rect", parent: panel, fillColor: LIGHT_BLUE, w: panel.w, h: 26, x: 0, y: 0});
@@ -134,7 +136,7 @@ px.import({ scene: 'px:scene.1.js' }).then( function importsAreReady(imports)
     promises.push( addRow(rows, "InfoBuildEngine",   "Engine: ",          scene.info.engine) );
     promises.push( addRow(rows, "InfoBuildDate",     "Build Date: ",      scene.info.build.date.replace(/"/g, '') )); // global RegEx
     promises.push( addRow(rows, "InfoBuildTime",     "Build Time: ",      scene.info.build.time.replace(/"/g, '') )); // global RegEx
-    promises.push( addRow(rows, "InfoBuildRevision", "Build Revision: ",  scene.info.build.revision.replace(/"\s*/g, '') )); // global RegEx
+    promises.push( addRow(rows, "InfoBuildRevision", "Build Revision: ",  buildRevision)); // global RegEx
     promises.push( addRow(rows, "InfoGfxMemory",     "Base GFX memory: ", gfx.toLocaleString()  + " KB") );
 
     return Promise.all( promises )
