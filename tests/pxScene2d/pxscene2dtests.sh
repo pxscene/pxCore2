@@ -25,15 +25,15 @@ zLibs=$externalDir/zlib
 uWSLibs=$externalDir/uWebSockets
 jpegturboLibs=$externalDir/libjpeg-turbo/.libs/
 westerosLibs=$externalDir/westeros/external/install/lib
-
+openssllibs=$externalDir/openssl-1.0.2o
 # Aggregated Libs path
-externalLibs=$pngLibs/:$jpgLibs/:$curlLibs/:$ftLibs/:$zLibs:$westerosLibs/:$jpegturboLibs/:rpc/:$uWSLibs
+externalLibs=$openssllibs:$pngLibs/:$jpgLibs/:$curlLibs/:$ftLibs/:$zLibs:$westerosLibs/:$jpegturboLibs/:rpc/:$uWSLibs
 
 if [ $machine = "Darwin" ];
 then
 nodeLibs=$externalDir/node/out/Release/
-export DYLD_LIBRARY_PATH=$nodeLibs:$curlLibs:$pngLibs:$ftLibs:$zLibs:$pxCoreLibs:$uWSLibs
-export LD_LIBRARY_PATH=$nodeLibs:$curlLibs:$pngLibs:$ftLibs:$zLibs:$pxCoreLibs:$uWSLibs
+export DYLD_LIBRARY_PATH=$openssllibs:$nodeLibs:$curlLibs:$pngLibs:$ftLibs:$zLibs:$pxCoreLibs:$uWSLibs
+export LD_LIBRARY_PATH=$openssllibs:$nodeLibs:$curlLibs:$pngLibs:$ftLibs:$zLibs:$pxCoreLibs:$uWSLibs
 else
 PathD=$externalLibs:$pxScene2dSrc:$externalDir/node/out/Debug/obj.target
 PathR=$externalLibs:$pxScene2dSrc:$externalDir/node/out/Release/obj.target

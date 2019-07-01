@@ -49,7 +49,7 @@ fi
 if [ "$TRAVIS_OS_NAME" = "linux" ] ; 
 then 
   travis_retry sudo apt-get update
-  travis_retry sudo apt-get install git libglew-dev freeglut3 freeglut3-dev libgcrypt11-dev zlib1g-dev g++ libssl-dev nasm autoconf valgrind libyaml-dev lcov cmake gdb quilt libuv-dev xmlto
+  travis_retry sudo apt-get install git libglew-dev freeglut3 freeglut3-dev zlib1g-dev g++ nasm autoconf valgrind libyaml-dev lcov cmake gdb quilt libuv-dev xmlto
 fi
 
 if [ "$TRAVIS_OS_NAME" = "osx" ] ;
