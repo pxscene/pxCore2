@@ -34,17 +34,14 @@ px.import({ scene: 'px:scene.1.js' }).then( function importsAreReady(imports)
 
   var label_w   = 175;
   var label_h   = 26;
-  var textPts   = 16;
-  var titlePts  = 28;
-  var value_w = 355;
-  var fontRes   = scene.create({ t: "fontResource",  url: "FreeSans.ttf" });
-
+  var value_w   = 355;
   var value_h   = 26;
 
   var max_w     = label_w + value_w;
   var max_h     = 175;
   var title_dy  = 30;
 
+  var fontRes   = scene.create({ t: "fontResource",  url: "FreeSans.ttf" });
   var panel     = scene.create({ t: "object",  parent: root, x: 40, y: -720, w: (max_w + 4), h: max_h, a: 0.0 });
   var panel_bg  = scene.create({ t: "rect",    parent: panel, fillColor: LIGHT_GRAY2, w: panel.w + 16, h: panel.h + 8, x: -8, y: -8});
   var rows      = scene.create({ t: "object",  parent: panel_bg, a: 1.0 });
@@ -67,6 +64,9 @@ px.import({ scene: 'px:scene.1.js' }).then( function importsAreReady(imports)
                     function(o) { },
                     function(o) { max_h -= 170; title_dy = 10; }
                   );
+
+  var textPts   = 16;
+  var titlePts  = 28;
 
   var title     = null;
   var title_bg  = scene.create({ t: "rect", parent: panel, fillColor: LIGHT_BLUE, w: panel.w, h: 26, x: 0, y: 0});
@@ -130,7 +130,7 @@ px.import({ scene: 'px:scene.1.js' }).then( function importsAreReady(imports)
       .catch( function (err)
     {
        console.log(">>> Loading Assets ... err = " + err);
-
+                                                               
     }).then( function ()
     {
        // resolve
@@ -148,7 +148,7 @@ px.import({ scene: 'px:scene.1.js' }).then( function importsAreReady(imports)
     promises.push( addRow(rows, "InfoBuildEngine",   "Engine: ",          scene.info.engine) );
     promises.push( addRow(rows, "InfoBuildDate",     "Build Date: ",      scene.info.build.date.replace(/"/g, '') )); // global RegEx
     promises.push( addRow(rows, "InfoBuildTime",     "Build Time: ",      scene.info.build.time.replace(/"/g, '') )); // global RegEx
-    promises.push( addRow(rows, "InfoBuildRevision", "Build Revision: ",  scene.info.build.revision.replace(/"\s*/g, ''))); // global RegEx
+    promises.push( addRow(rows, "InfoBuildRevision", "Build Revision: ",  scene.info.build.revision.replace(/"\s*/g, '') )); // global RegEx
     promises.push( addRow(rows, "InfoGfxMemory",     "Base GFX memory: ", gfx.toLocaleString()  + " KB") );
 
     return Promise.all( promises )
@@ -185,7 +185,7 @@ px.import({ scene: 'px:scene.1.js' }).then( function importsAreReady(imports)
       panel.animateTo({ y: cy }, 1.25, scene.animation.EASE_OUT_ELASTIC,
                                        scene.animation.OPTION_FASTFORWARD, 1)
       .then(
-		function()
+		function() 
 		{
 		  panel_bg.focus = true;
 		});
@@ -239,7 +239,7 @@ px.import({ scene: 'px:scene.1.js' }).then( function importsAreReady(imports)
 
         var ready = createPanel();
 
-        ready.then(function ()
+        ready.then(function () 
         {
           dismissTXT.y = max_h - dismissTXT.h - 10;
 
