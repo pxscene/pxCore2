@@ -88,9 +88,10 @@ cd ..
 REM --------- LIBNODE
 
 git apply node-v10.15.3_mods.patch
+git apply openssl_1.0.2_compatibility.patch
 cd libnode-v10.15.3
 if %buildExternal% == 1 (
-  CALL vcbuild.bat x86 nosign no-optimization static openssl-no-asm shared-openssl
+  CALL vcbuild.bat x86 nosign static openssl-no-asm shared-openssl
 ) else (
   CALL vcbuild.bat x86 nosign openssl-no-asm shared-openssl
 )
