@@ -174,11 +174,12 @@ else (NOT WIN32)
         set(SQLITE_LIBRARIES "sqlite3.lib")
     endif (SUPPORT_STORAGE)
 
-    #set(OPENSSL_INCLUDE_DIRS "${EXTDIR}/openssl-1.0.2o/include")
-    #set(OPENSSL_LIBRARY_DIRS "${EXTDIR}/openssl-1.0.2o/")
-    #set(OPENSSL_LIBRARIES "ssl.lib")
-    #set(CRYPTO_LIBRARIES "crypto.lib")
-
+    if (USE_NODE_10)
+      set(OPENSSL_INCLUDE_DIRS "${EXTDIR}/openssl-1.0.2o/include")
+      set(OPENSSL_LIBRARY_DIRS "${EXTDIR}/openssl-1.0.2o/lib")
+      set(OPENSSL_LIBRARIES "ssleay32")
+      set(CRYPTO_LIBRARIES "libeay32")
+    endif ()
 endif (NOT WIN32)
 
 

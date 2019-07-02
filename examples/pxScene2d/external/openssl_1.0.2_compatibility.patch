@@ -1,15 +1,5 @@
-From 573d884a94cc0f182d9e812b3915a8e2d1fcd671 Mon Sep 17 00:00:00 2001
-From: Madana Gopal <madanagopal_thirumalai@comcast.com>
-Date: Fri, 28 Jun 2019 07:01:01 +0530
-Subject: [PATCH] openssl_1.0.2_compatability
-
----
- .../external/libnode-v10.15.3/src/node_crypto.cc   | 298 ++++++++++++++++++---
- .../external/libnode-v10.15.3/src/node_crypto.h    |  12 +
- 2 files changed, 279 insertions(+), 31 deletions(-)
-
 diff --git a/examples/pxScene2d/external/libnode-v10.15.3/src/node_crypto.cc b/examples/pxScene2d/external/libnode-v10.15.3/src/node_crypto.cc
-index 31dee99..28118b5 100755
+index 31dee9947..071fa4d25 100755
 --- a/examples/pxScene2d/external/libnode-v10.15.3/src/node_crypto.cc
 +++ b/examples/pxScene2d/external/libnode-v10.15.3/src/node_crypto.cc
 @@ -84,7 +84,9 @@ using v8::String;
@@ -539,11 +529,11 @@ index 31dee99..28118b5 100755
 -  CHECK(param_encoding == OPENSSL_EC_NAMED_CURVE ||
 -        param_encoding == OPENSSL_EC_EXPLICIT_CURVE);
 +// MODIFIED CODE BEGIN
-+  CHECK(param_encoding == OPENSSL_EC_NAMED_CURVE
 +#if OPENSSL_VERSION_NUMBER >= 0x10100000L
-+         || param_encoding == OPENSSL_EC_EXPLICIT_CURVE
++  CHECK(param_encoding == OPENSSL_EC_NAMED_CURVE || param_encoding == OPENSSL_EC_EXPLICIT_CURVE);
++#else
++  CHECK(param_encoding == OPENSSL_EC_NAMED_CURVE);
 +#endif
-+  );
 +// MODIFIED CODE END
    std::unique_ptr<KeyPairGenerationConfig> config(
        new ECKeyPairGenerationConfig(curve_nid, param_encoding));
@@ -592,6 +582,3 @@ index ec784ff..cdd5f13 100755
  };
  
  class Hash : public BaseObject {
--- 
-1.9.1
-

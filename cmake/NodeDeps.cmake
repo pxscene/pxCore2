@@ -36,23 +36,20 @@ if (NOT NODE_FOUND)
           set(NODE_LIBRARY_DIRS ${NODE_LIBRARY_DIRS} ${NODEDIR})
           set(NODE_LIBRARIES ${NODE_LIBRARIES} node)
       else (NOT WIN32)
-          if (USE_NODE_8)
+          if (USE_NODE_10)
               set(NODE_INCLUDE_DIRS ${NODE_INCLUDE_DIRS}
-                  ${NODEDIR}/deps/openssl/openssl/include
                   ${NODEDIR}/deps/http_parser
                   ${NODEDIR}/deps/icu-small/source/common/unicode
                   ${NODEDIR}/deps/icu-small/source/common
                  )
               set(NODE_LIBRARY_DIRS ${NODE_LIBRARY_DIRS} ${NODEDIR}build/Release/lib ${NODEDIR}Release/lib ${NODEDIR}Release)
               set(NODE_LIBRARIES ${NODE_LIBRARIES}
-                  http_parser.lib cares.lib nghttp2.lib gtest.lib libuv.lib
-                  v8_builtins_setup.lib v8_libbase.lib v8_libplatform.lib v8_libsampler.lib
-                  v8_builtins_generators.lib v8_nosnapshot.lib v8_snapshot.lib
-                  v8_base_1.lib v8_base_2.lib v8_base_3.lib v8_base_0.lib
-                  icuucx.lib icui18n.lib icustubdata.lib icutools.lib icudata.lib
-                  openssl.lib node.lib
-                  dbghelp.lib
-                 )
+                  http_parser.lib cares.lib nghttp2.lib libuv.lib
+                  v8_init.lib v8_initializers.lib v8_libbase.lib v8_libplatform.lib v8_libsampler.lib
+                  v8_nosnapshot.lib v8_snapshot.lib
+                  v8_base.lib icuucx.lib icui18n.lib icustubdata.lib icutools.lib icudata.lib
+                  node.lib dbghelp.lib
+               )
           else ()
               set(NODE_INCLUDE_DIRS ${NODE_INCLUDE_DIRS}
                   ${NODEDIR}/deps/http_parser
