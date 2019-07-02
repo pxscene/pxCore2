@@ -611,15 +611,12 @@ function Application(props) {
     {
       _externalApp.remoteReady.then(function(wayland)
       {
-        if(typeof(wayland.api.hasUiReady) == "boolean" && wayland.api.hasUiReady === true)
+        if(typeof(wayland.api.uiReady) == "object")
         {
-          wayland.api.on("onUiReady",function(response) 
-          {
-            if(response)
-              _uiReadyResolve("uiReady succeeded");
-            else
-              _uiReadyReject("uiReady failed");
-          });
+          wayland.api.uiReady.then( 
+            function() { _uiReadyResolve("uiReady succeeded"); },
+            function() { _uiReadyReject("uiReady failed"); }
+            );
         }
         else
         {
@@ -629,7 +626,7 @@ function Application(props) {
       function()
       {
         console.log("native remoteReady error");
-        console.log("uiReady state or existance unknown because of remoteReady error. Defaulting  to succeeded.");
+        console.log("uiReady state or existance unknown because of remoteReady error. Defaulting to resolved.");
         _uiReadyResolve("native remoteReady error");
       }
       );
