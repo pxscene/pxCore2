@@ -1003,7 +1003,13 @@ rtError setShaderConfig(rtObjectRef v, pxObject &obj)
     }
 
     rtObjectRef      shaderRef = shaderVal.toObject();
-    rtShaderResource *shader   = (shaderRef) ? (rtShaderResource *) shaderRef.getPtr() : NULL;
+    rtShaderResource *shader   = static_cast<rtShaderResource *>( (shaderRef) ? shaderRef.getPtr() : NULL);
+
+    if( shader == NULL )
+    {
+      rtLogError("ERROR:  Bad shader object");
+      return RT_FAIL;
+    }
 
     //
     // >>> GET >> "uniforms"
@@ -1011,23 +1017,19 @@ rtError setShaderConfig(rtObjectRef v, pxObject &obj)
     rtValue uniformsVal;
     v->Get("uniforms", &uniformsVal);
 
-    if(uniformsVal.isEmpty() != true)
+    if(uniformsVal.isEmpty())
     {
-      rtObjectRef uniforms = uniformsVal.toObject();
-      rtValue count;                          // HACK - WORKAROUND
-      uniforms->Get("length", &count);        // HACK - WORKAROUND
-
-      if(!shader)
-      {
-        rtLogError("ERROR:  Unable to parse 'uniforms' for shaderResource.");
-        return RT_FAIL;
-      }
-      else
-      {
-        obj.setEffectConfig(shaderRef);
-        shader->setUniformVals(uniformsVal); // WAS uniforms ????? FIXME
-      }
+      rtLogError("ERROR:  Unable to parse 'uniforms' for shaderResource.");
+      return RT_FAIL;
     }
+
+    rtObjectRef uniforms = uniformsVal.toObject();
+
+    rtValue count;                          // HACK - WORKAROUND
+    uniforms->Get("length", &count);        // HACK - WORKAROUND
+
+    obj.setEffectConfig(shaderRef);
+    shader->setUniformVals(uniformsVal); // WAS uniforms ????? FIXME
 
     return RT_OK;
   }

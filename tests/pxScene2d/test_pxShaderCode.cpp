@@ -88,18 +88,6 @@ public:
       EXPECT_TRUE (res1 == PX_FAIL);
     }
 
-
-    void testSetShaderConfig() // JS object to Shader
-    {
-      rtObjectRef       ao = new rtArrayObject;
-      rtArrayObject *array = (rtArrayObject *) ao.getPtr();
-
-      pxObject myObj(NULL);
-
-      pxError res1 = setShaderConfig(array, myObj);
-      EXPECT_TRUE (res1 == PX_FAIL);
-    }
-
     void testUniforms()
     {
       rtObjectRef myObj( new pxObject(NULL) );
@@ -197,7 +185,9 @@ public:
       rtShaderResource shaderRes;
       uniformLoc_t p;
 
-      p.value = rtValue( (void *) NULL);
+      rtImageResource img;
+
+      p.value = rtValue( (void *) &img );
 
       pxError res1 = shaderRes.bindTexture3( p );
       EXPECT_TRUE (res1 == PX_FAIL);
@@ -289,6 +279,36 @@ public:
 
       pxError resFLOAT4 = shaderRes.setUniform4fv( p );
       EXPECT_TRUE (resFLOAT4 == PX_OK);
+    }
+
+
+    void testSetShaderConfig() // JS object to Shader
+    {
+      rtObjectRef       ao = new rtArrayObject;
+      rtArrayObject *array = (rtArrayObject *) ao.getPtr();
+
+      pxObject myObj(NULL);
+
+      pxError res1 = setShaderConfig(array, myObj);
+      EXPECT_TRUE (res1 == PX_FAIL);
+
+      rtString junk("foo");
+      EXPECT_TRUE ( shaderEx->setUniformVals( junk ) == PX_FAIL );
+
+      // - - - - - - - - - - - - - - - - - - - -
+
+      rtObjectRef     mo = new rtMapObject;
+      rtMapObject  *config = (rtMapObject *) mo.getPtr();
+
+      // - - - - - - - - - - - - - - - - - - - -
+
+      config->set("name",   rtString("shaderName"));
+      config->set("shader", rtString("NotReally"));
+
+      // - - - - - - - - - - - - - - - - - - - -
+
+      rtValue array_val( mo.getPtr() );
+      EXPECT_TRUE ( setShaderConfig(config, myObj) == PX_FAIL );
     }
 
   private:
