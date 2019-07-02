@@ -10,9 +10,9 @@
 		4C4746D7215046FC00E06357 /* libpxCore Static Library.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 4CF546B420210AE200529907 /* libpxCore Static Library.a */; };
 		4C62A28D228485660015B7D1 /* pxObject.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C62A28B228485660015B7D1 /* pxObject.cpp */; };
 		4C62A296228587FA0015B7D1 /* pxContextUtils.mm in Sources */ = {isa = PBXBuildFile; fileRef = 4C62A295228587FA0015B7D1 /* pxContextUtils.mm */; };
-		4C62A2992285912C0015B7D1 /* pxShaderEffect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C62A2972285912C0015B7D1 /* pxShaderEffect.cpp */; };
 		4C8440CC20D8362E00C24E45 /* sparkpermissions.conf in Resources */ = {isa = PBXBuildFile; fileRef = 4C8440CB20D8362E00C24E45 /* sparkpermissions.conf */; };
 		4C93A17D2021161E002278E5 /* libz.1.2.11.dylib in Copy Dynamic Library Files */ = {isa = PBXBuildFile; fileRef = 4CF5463A2020F6E200529907 /* libz.1.2.11.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		4CAA277E22C6637400993F81 /* pxShaderUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4CAA277D22C6637400993F81 /* pxShaderUtils.cpp */; };
 		4CF3A06A228F3E800068DD31 /* pxShaderResource.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4CF3A05E228F3E7F0068DD31 /* pxShaderResource.cpp */; };
 		4CF546072020F5B600529907 /* pxImage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C0C6D521E5218BB00BD8932 /* pxImage.cpp */; };
 		4CF546092020F5B600529907 /* pxImage9.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C0C6D541E5218BB00BD8932 /* pxImage9.cpp */; };
@@ -226,12 +226,12 @@
 		4C62A28B228485660015B7D1 /* pxObject.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = pxObject.cpp; path = src/pxObject.cpp; sourceTree = "<group>"; };
 		4C62A28C228485660015B7D1 /* pxObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pxObject.h; path = src/pxObject.h; sourceTree = "<group>"; };
 		4C62A295228587FA0015B7D1 /* pxContextUtils.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = pxContextUtils.mm; path = src/mac/pxContextUtils.mm; sourceTree = "<group>"; };
-		4C62A2972285912C0015B7D1 /* pxShaderEffect.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = pxShaderEffect.cpp; path = src/pxShaderEffect.cpp; sourceTree = "<group>"; };
-		4C62A2982285912C0015B7D1 /* pxShaderEffect.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = pxShaderEffect.h; path = src/pxShaderEffect.h; sourceTree = "<group>"; };
 		4C63A6821E7878AA00313D9C /* package.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; name = package.json; path = ../../src/package.json; sourceTree = "<group>"; };
 		4C8440CB20D8362E00C24E45 /* sparkpermissions.conf */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = sparkpermissions.conf; path = src/sparkpermissions.conf; sourceTree = "<group>"; };
 		4C9F22AA1E6A24D200979F4E /* westeros-compositor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "westeros-compositor.h"; path = "external/westeros-stub/westeros-compositor.h"; sourceTree = "<group>"; };
 		4C9F22AB1E6A24D200979F4E /* westeros-stub.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = "westeros-stub.cpp"; path = "external/westeros-stub/westeros-stub.cpp"; sourceTree = "<group>"; };
+		4CAA277222C65DD500993F81 /* pxShaderUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pxShaderUtils.h; path = src/pxShaderUtils.h; sourceTree = "<group>"; };
+		4CAA277D22C6637400993F81 /* pxShaderUtils.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = pxShaderUtils.cpp; path = src/pxShaderUtils.cpp; sourceTree = "<group>"; };
 		4CF3A05E228F3E7F0068DD31 /* pxShaderResource.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = pxShaderResource.cpp; path = src/pxShaderResource.cpp; sourceTree = "<group>"; };
 		4CF3A069228F3E800068DD31 /* pxShaderResource.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pxShaderResource.h; path = src/pxShaderResource.h; sourceTree = "<group>"; };
 		4CF546362020F5B600529907 /* Spark.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Spark.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -328,8 +328,8 @@
 				4C62A28C228485660015B7D1 /* pxObject.h */,
 				4CF3A05E228F3E7F0068DD31 /* pxShaderResource.cpp */,
 				4CF3A069228F3E800068DD31 /* pxShaderResource.h */,
-				4C62A2972285912C0015B7D1 /* pxShaderEffect.cpp */,
-				4C62A2982285912C0015B7D1 /* pxShaderEffect.h */,
+				4CAA277D22C6637400993F81 /* pxShaderUtils.cpp */,
+				4CAA277222C65DD500993F81 /* pxShaderUtils.h */,
 				4C04660D1E574CAE00D59925 /* Resources */,
 				783C7DAE1EBB6A440079FBE5 /* pxAnimate.cpp */,
 				783C7DAF1EBB6A440079FBE5 /* pxAnimate.h */,
@@ -674,7 +674,7 @@
 				4C62A28D228485660015B7D1 /* pxObject.cpp in Sources */,
 				4CF546072020F5B600529907 /* pxImage.cpp in Sources */,
 				4CF546092020F5B600529907 /* pxImage9.cpp in Sources */,
-				4C62A2992285912C0015B7D1 /* pxShaderEffect.cpp in Sources */,
+				4CAA277E22C6637400993F81 /* pxShaderUtils.cpp in Sources */,
 				4CF3A06A228F3E800068DD31 /* pxShaderResource.cpp in Sources */,
 				4CF5460A2020F5B600529907 /* pxImageA.cpp in Sources */,
 				4CF5460B2020F5B600529907 /* pxImage9Border.cpp in Sources */,
@@ -833,6 +833,7 @@
 					PXSCENE_DISABLE_WST_DECODER,
 					"SPARK_BUILD_GIT_REVISION=\"Xcode User\"",
 					PX_PLATFORM_MAC_XCODE,
+					ANIMATION_ROTATE_XYZ,
 				);
 				HEADER_SEARCH_PATHS = (
 					"$(PROJECT_DIR)/../src",
@@ -850,7 +851,7 @@
 					"$(PROJECT_DIR)/../external/westeros-stub",
 					"$(PROJECT_DIR)/../../../remote",
 					"$(PROJECT_DIR)/../src/rasterizer/xs_code",
-					"$(PROJECT_DIR)/../external",
+					/usr/local/Cellar/rapidjson/1.1.0/include,
 				);
 				INFOPLIST_FILE = pxScene2d/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited)";
@@ -860,6 +861,7 @@
 					"$(PROJECT_DIR)/../external/libpng-1.6.28/.libs",
 					"$(PROJECT_DIR)/../external/zlib/",
 					"$(PROJECT_DIR)/../external/dukluv/build",
+					/usr/local/Cellar/rapidjson/1.1.0/lib,
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				OTHER_LDFLAGS = (
@@ -917,6 +919,7 @@
 					PXSCENE_DISABLE_WST_DECODER,
 					"SPARK_BUILD_GIT_REVISION=\"Xcode User\"",
 					PX_PLATFORM_MAC_XCODE,
+					ANIMATION_ROTATE_XYZ,
 				);
 				HEADER_SEARCH_PATHS = (
 					"$(PROJECT_DIR)/../src",
@@ -934,7 +937,7 @@
 					"$(PROJECT_DIR)/../external/westeros-stub",
 					"$(PROJECT_DIR)/../../../remote",
 					"$(PROJECT_DIR)/../src/rasterizer/xs_code",
-					"$(PROJECT_DIR)/../external",
+					/usr/local/Cellar/rapidjson/1.1.0/include,
 				);
 				INFOPLIST_FILE = pxScene2d/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited)";
@@ -944,6 +947,7 @@
 					"$(PROJECT_DIR)/../external/libpng-1.6.28/.libs",
 					"$(PROJECT_DIR)/../external/zlib/",
 					"$(PROJECT_DIR)/../external/dukluv/build",
+					/usr/local/Cellar/rapidjson/1.1.0/lib,
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				OTHER_LDFLAGS = (

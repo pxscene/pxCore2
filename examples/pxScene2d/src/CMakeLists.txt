@@ -83,6 +83,8 @@ set(PXSCENE_DEFINITIONS )
 set(PXSCENE_ADDITIONAL_RESOURCES )
 set(PXSCENE_INSTALLER 0)
 
+set(ANIMATION_ROTATE_XYZ )
+
 if (BUILD_WITH_GIF)
 message("Building with GIF support")
 set(GIF ${EXTDIR}/giflib-5.1.9/)

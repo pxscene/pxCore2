@@ -809,6 +809,8 @@ void rtShaderResource::postlink()
   {
     static int32_t vec[4] = {0}; // up to vec4
 
+    fillInt32Vec(&vec[0], vals);
+    
     switch(N)
     {
       case 2: glUniform2iv(p.loc, 1, vec ); break;
