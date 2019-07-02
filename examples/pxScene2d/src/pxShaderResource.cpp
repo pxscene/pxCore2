@@ -136,11 +136,11 @@ UniformType_t rtShaderResource::getUniformType(rtString &name)
 //
 rtError rtShaderResource::setUniformVal(const rtString& name, const rtValue& v)
 {
-  use();
-
   UniformMapIter_t it = mUniform_map.find(name);
   if(it != mUniform_map.end())
   {
+    use();
+    
     uniformLoc_t &p = (*it).second;
 
     p.value = v;        // update the VALUE
@@ -157,14 +157,21 @@ rtError rtShaderResource::setUniformVals(const rtValue& v)
   rtObjectRef uniforms = v.toObject();
   rtArrayObject   *arr = (rtArrayObject *) uniforms.getPtr();
 
-  if(arr == NULL)
+  if(arr == NULL || uniforms == NULL)
   {
+    rtLogError(" Empty/Bad Uniforms array.");
     return RT_FAIL;
   }
 
   rtValue     keysVal;
   uniforms->Get("allKeys", &keysVal);
 
+  if( keysVal.isEmpty() )
+  {
+    rtLogError(" Empty Uniforms array.");
+    return RT_FAIL;
+  }
+  
   rtObjectRef keys = keysVal.toObject();
   uint32_t     len = keys.get<uint32_t>("length");
 

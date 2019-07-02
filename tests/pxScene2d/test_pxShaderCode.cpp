@@ -115,13 +115,13 @@ public:
       EXPECT_TRUE ( shaderEx->passes()     == 1);
     }
 
-    void testUniformType()
+    void testUniformType() // trivial NULL
     {
       rtString willFail("foo");
       EXPECT_TRUE ( shaderEx->getUniformType( willFail ) == UniformType_Unknown );
     }
 
-    void testSetUniformVal()
+    void testSetUniformVal() // trivial NULL
     {
       rtString willFail("foo");
       EXPECT_TRUE ( shaderEx->setUniformVal( willFail , 0) == PX_FAIL );
@@ -131,6 +131,31 @@ public:
     {
       rtString junk("foo");
       EXPECT_TRUE ( shaderEx->setUniformVals( junk ) == PX_FAIL );
+
+      // - - - - - - - - - - - - - - - - - - - -
+
+      rtObjectRef       ao = new rtArrayObject;
+      rtArrayObject *array = (rtArrayObject *) ao.getPtr();
+
+      // - - - - - - - - - - - - - - - - - - - -
+      rtObjectRef map1 = new rtMapObject;
+
+      map1.set("u_foo1", 1);
+      rtValue foo1( map1.getPtr() );
+
+      array->pushBack( foo1 );
+
+      // - - - - - - - - - - - - - - - - - - - -
+      rtObjectRef map2 = new rtMapObject;
+
+      map2.set("u_foo2", 2);
+      rtValue foo2(rtValue( map2.getPtr() ));
+
+      array->pushBack( foo2 );
+      // - - - - - - - - - - - - - - - - - - - -
+
+      rtValue array_val( ao.getPtr() );
+      EXPECT_TRUE ( shaderEx->setUniformVals( array ) == PX_FAIL );
     }
 
     void testGLexception()
