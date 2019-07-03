@@ -34,8 +34,6 @@ while (( "$#" )); do
   esac
 done
 
-#--------- CURL
-
 make_parallel=3
 
 if [ "$(uname)" = "Darwin" ]; then
@@ -44,8 +42,9 @@ elif [ "$(uname)" = "Linux" ]; then
     make_parallel="$(cat /proc/cpuinfo | grep '^processor' | wc --lines)"
 fi
 
+#--------- OPENSSL
+
 cd ${OPENSSL_DIR}
-pwd
 if [ "$(uname)" != "Darwin" ]
 then
 ./config -shared  --prefix=`pwd`
@@ -55,10 +54,16 @@ fi
 make clean
 make "-j${make_parallel}"
 make install -i
+rm -rf libcrypto.a
+rm -rf libssl.a
+rm -rf lib/ibcrypto.a
+rm -rf lib/libssl.a
 cd ..
 
 export LD_LIBRARY_PATH="${OPENSSL_DIR}/:$LD_LIBRARY_PATH"
 export DYLD_LIBRARY_PATH="${OPENSSL_DIR}/:$DYLD_LIBRARY_PATH"
+
+#--------- CURL
 
 if [ ! -e ./curl/lib/.libs/libcurl.4.dylib ] ||
    [ "$(uname)" != "Darwin" ]
