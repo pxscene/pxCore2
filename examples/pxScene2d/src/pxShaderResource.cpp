@@ -603,7 +603,9 @@ void rtShaderResource::loadResource(rtObjectRef archive, bool reloading)
   {
     setLoadStatus("sourceType", "dataurl");
     double startResourceSetupTime = pxMilliseconds();
-    loadResourceFromArchive(arc);
+    
+    loadResourceFromFile(); // Detect and Load shaders from URL directly
+    
     double stopResourceSetupTime = pxMilliseconds();
     setLoadStatus("setupTimeMs", static_cast<int>(stopResourceSetupTime-startResourceSetupTime));
   }
@@ -891,8 +893,6 @@ pxShaderResourceRef pxShaderManager::getShader(const char* fragmentUrl,
   {
     shaderId = gShaderId++;
     mShaderUrlMap.insert(make_pair(key, shaderId));
-    size_t count = mShaderUrlMap.size(); // JUNK
-    count += 0;
   }
 
   ShaderMap::iterator it = mShaderMap.find(shaderId);
