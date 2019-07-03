@@ -944,54 +944,80 @@ index 4b902aa..382bf7b 100755
    watchdog_disabled_ = true;
  #endif
 diff --git a/examples/pxScene2d/external/libnode-v10.15.3/vcbuild.bat b/examples/pxScene2d/external/libnode-v10.15.3/vcbuild.bat
-index 834db64..7279436 100755
+index 834db64..0c108bd 100755
 --- a/examples/pxScene2d/external/libnode-v10.15.3/vcbuild.bat
 +++ b/examples/pxScene2d/external/libnode-v10.15.3/vcbuild.bat
-@@ -55,6 +55,9 @@ set "common_test_suites=%js_test_suites% doctool addons addons-napi&set build_ad
+@@ -55,6 +55,10 @@ set "common_test_suites=%js_test_suites% doctool addons addons-napi&set build_ad
  set http2_debug=
  set nghttp2_debug=
  set link_module=
 +@rem MODIFIED CODE BEGIN
++set no_optimization=
 +set shared_openssl=
 +@rem MODIFIED CODE END
  set no_cctest=
  set cctest=
  set openssl_no_asm=
-@@ -127,6 +130,9 @@ if /i "%1"=="static"           set enable_static=1&goto arg-ok
+@@ -127,6 +131,10 @@ if /i "%1"=="static"           set enable_static=1&goto arg-ok
  if /i "%1"=="no-NODE-OPTIONS"	set no_NODE_OPTIONS=1&goto arg-ok
  if /i "%1"=="debug-nghttp2" set debug_nghttp2=1&goto arg-ok
  if /i "%1"=="link-module"   set "link_module= --link-module=%2%link_module%"&goto arg-ok-2
 +@rem MODIFIED CODE BEGIN
++if /i "%1"=="no-optimization" set no_optimization=1&goto arg-ok
 +if /i "%1"=="shared-openssl" set shared_openssl=1&goto arg-ok
 +@rem MODIFIED CODE END
  if /i "%1"=="no-cctest"     set no_cctest=1&goto arg-ok
  if /i "%1"=="cctest"        set cctest=1&goto arg-ok
  if /i "%1"=="openssl-no-asm"   set openssl_no_asm=1&goto arg-ok
-@@ -182,6 +188,9 @@ if defined link_module      set configure_flags=%configure_flags% %link_module%
+@@ -182,6 +190,10 @@ if defined link_module      set configure_flags=%configure_flags% %link_module%
  if defined i18n_arg         set configure_flags=%configure_flags% --with-intl=%i18n_arg%
  if defined config_flags     set configure_flags=%configure_flags% %config_flags%
  if defined target_arch      set configure_flags=%configure_flags% --dest-cpu=%target_arch%
 +@rem MODIFIED CODE BEGIN
++if defined no_optimization  set configure_flags=%configure_flags% --no-optimization
 +if defined shared_openssl   set configure_flags=%configure_flags% --shared-openssl --shared-openssl-libpath=%CD%\..\openssl-1.0.2o\lib\ --shared-openssl-libname=libeay32,ssleay32 --shared-openssl-includes=%CD%\..\openssl-1.0.2o\include
 +@rem MODIFIED CODE END
  if defined openssl_no_asm   set configure_flags=%configure_flags% --openssl-no-asm
  if defined DEBUG_HELPER     set configure_flags=%configure_flags% --verbose
  
 diff --git a/examples/pxScene2d/external/libnode-v10.15.3/configure.py b/examples/pxScene2d/external/libnode-v10.15.3/configure.py
-index 0ad986ab8..44b2f9f4c 100755
+index 0ad986a..c215ee6 100755
 --- a/examples/pxScene2d/external/libnode-v10.15.3/configure.py
 +++ b/examples/pxScene2d/external/libnode-v10.15.3/configure.py
-@@ -1237,8 +1237,10 @@ def configure_openssl(o):
+@@ -566,6 +566,13 @@ parser.add_option('--without-bundled-v8',
+     help='do not use V8 includes from the bundled deps folder. ' +
+          '(This mode is not officially supported for regular applications)')
+ 
++# MODIFIED CODE BEGIN
++parser.add_option('--no-optimization',
++    action='store_true',
++    dest='no_optimization',
++    help='build without optimization')
++# MODIFIED CODE END
++
+ parser.add_option('--build-v8-with-gn',
+     action='store_true',
+     dest='build_v8_with_gn',
+@@ -1237,8 +1244,10 @@ def configure_openssl(o):
           of modern CPU cryptographic instructions and will therefore be slower.
           Please refer to BUILDING.md''')
-
+ 
 -  if options.openssl_no_asm and options.shared_openssl:
 -    error('--openssl-no-asm is incompatible with --shared-openssl')
 +  #MODIFIED CODE BEGIN
 +  #if options.openssl_no_asm and options.shared_openssl:
 +  #  warn('--openssl-no-asm is incompatible with --shared-openssl')
 +  #MODIFIED CODE END
-
+ 
    if options.openssl_fips:
       error('FIPS is not supported in this version of Node.js')
-
+@@ -1608,6 +1617,9 @@ configure_openssl(output)
+ configure_intl(output)
+ configure_static(output)
+ configure_inspector(output)
++# MODIFIED CODE BEGIN
++output['variables']['no_optimization'] = 1 if options.no_optimization else 0
++# MODIFIED CODE END
+ 
+ # variables should be a root level element,
+ # move everything else to target_defaults
