@@ -2021,6 +2021,10 @@ rtError pxLoadAGIFImage(const char *imageData, size_t imageDataSize,
                     status = RT_FAIL;
                     break;
                 }
+                    
+                if (gcb.DisposalMode == DISPOSE_BACKGROUND)
+                    obj.initWithColor(w, h, pxClear);
+                //
                 drawGifImage(obj, rows, map, transparent);
 
                 /* pre-display delay in 0.01sec units */
