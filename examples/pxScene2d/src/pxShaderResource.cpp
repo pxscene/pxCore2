@@ -435,6 +435,7 @@ void rtShaderResource::loadResourceFromFile()
 
 void rtShaderResource::loadResourceFromArchive(rtObjectRef archiveRef)
 {
+#if 0
   pxArchive* archive = (pxArchive*)archiveRef.getPtr();
   rtString status = "resolve";
 
@@ -523,17 +524,9 @@ void rtShaderResource::loadResourceFromArchive(rtObjectRef archiveRef)
       gUIThreadQueue->addTask(onDownloadCompleteUI, this, (void *) "resolve");
     }
   }
+#endif // 0
 }
 
-/**
- * rtShaderResource::loadResource()
- *
- * This method will actually start the download of the image for mUrl.
- *
- * ImageManager calls this method when the url is not already present
- * in the cache map.
- *
- * */
 void rtShaderResource::loadResource(rtObjectRef archive, bool reloading)
 {
   if(!reloading && ((rtPromise*)mReady.getPtr())->status())
