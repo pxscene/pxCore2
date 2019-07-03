@@ -311,6 +311,91 @@ public:
       EXPECT_TRUE ( setShaderConfig(config, myObj) == PX_FAIL );
     }
 
+    void testLoadFromDataURL()
+    {
+      // printf("\n\n testLoadFromDataURL() - ENTER\n");
+
+      // SHADER:  Invert Colors
+      //
+      static char fragUrl[] = "data:text/plain,"
+                              "varying vec2       v_uv;"
+                              "uniform vec2       u_resolution;"
+                              "uniform sampler2D  s_texture;  "
+                              "void main()"
+                              "{"
+                              "  vec4 pix = texture2D(s_texture, v_uv);  "
+                              "  vec3 inv = vec3(1.0) - pix.rgb; // INVERT color"
+                              "  inv *= pix.a;"
+                              "  gl_FragColor = vec4(inv, pix.a);"
+                              "}";
+
+      static char vertUrl[] = "data:text/plain,"
+                              "uniform vec2 u_resolution;"
+                              "uniform mat4 amymatrix;"
+                              "attribute vec2 pos;"
+                              "attribute vec2 uv;"
+                              "varying vec2 v_uv;"
+                              "void main()"
+                              "{"
+                              // map from "pixel coordinates"
+                              "  vec4 p = amymatrix * vec4(pos, 0, 1);"
+                              "  vec4 zeroToOne = p / vec4(u_resolution, u_resolution.x, 1);"
+                              "  vec4 zeroToTwo = zeroToOne * vec4(2.0, 2.0, 1, 1);"
+                              "  vec4 clipSpace = zeroToTwo - vec4(1.0, 1.0, 0, 0);"
+                              "  clipSpace.w = 1.0+clipSpace.z;"
+                              "  gl_Position =  clipSpace * vec4(1, -1, 1, 1);"
+                              "  v_uv = uv;"
+                              "}";
+
+      pxShaderResourceRef shader = pxShaderManager::getShader(fragUrl, vertUrl);
+
+      EXPECT_TRUE (shader != NULL);
+
+      // rtObjectRef pp;
+      // if(shader->ready(pp))
+      // {
+      //   rtPromise   *promise = (rtPromise *) pp.getPtr();
+
+        // printf("\n PROMISES PROMISES...  PROMISES PROMISES...  PROMISES PROMISES...  PROMISES PROMISES...  PROMISES PROMISES... ");
+
+        // if(promise->status())
+        //   printf("\n READY  READY  READY  READY  READY  READY  READY  READY  READY ");
+
+        //EXPECT_TRUE (res == PX_OK);
+      // }
+      // else
+      // {
+      //    printf("\n NOT READY  NOT READY  NOT READY  NOT READY  NOT READY  NOT READY  ");
+      // }
+    }
+
+    void testLoadFromFile()
+    {
+      // printf("\n\n testLoadFromFile() - ENTER\n");
+
+      pxShaderResourceRef shader = pxShaderManager::getShader("supportfiles/shader.frg",
+                                                              "supportfiles/shader.vrt");
+
+      EXPECT_TRUE (shader != NULL);
+
+      // rtObjectRef pp;
+      // if(shader->ready(pp))
+      // {
+      //   rtPromise   *promise = (rtPromise *) pp.getPtr();
+
+      //   // printf("\n PROMISES PROMISES...  PROMISES PROMISES...  PROMISES PROMISES...  PROMISES PROMISES...  PROMISES PROMISES... ");
+
+      //   if(promise->status())
+      //     printf("\n READY  READY  READY  READY  READY  READY  READY  READY  READY ");
+
+      //   //EXPECT_TRUE (res == PX_OK);
+      // }
+      // else
+      // {
+      //    printf("\n NOT READY  NOT READY  NOT READY  NOT READY  NOT READY  NOT READY  ");
+      // }
+    }
+
   private:
     pxShaderResourceRef  shaderEx;
 };
@@ -337,4 +422,7 @@ TEST_F(pxShaderTest, pxShaderTests)
   testSetScalars();
   testSetVectors();
   testSetVectors2();
+  testSetShaderConfig();
+  testLoadFromDataURL();
+  testLoadFromFile();
 }
