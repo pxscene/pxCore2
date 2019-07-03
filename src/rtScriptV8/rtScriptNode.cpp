@@ -44,12 +44,10 @@
 
 #include "node.h"
 #include "node_javascript.h"
+#if NODE_VERSION_AT_LEAST(9,6,0)
 #include "node_contextify.h"
-#include "node_contextify_mods.h"
-
-#if NODE_VERSION_AT_LEAST(8,9,0)
-#include "tracing/agent.h"
 #endif
+#include "node_contextify_mods.h"
 
 #include "env.h"
 #include "env-inl.h"
@@ -161,11 +159,19 @@ public:
 
 private:
   v8::Isolate                   *mIsolate;
+  #if NODE_VERSION_AT_LEAST(9,8,0)
   node::Persistent<v8::Context>    mContext;
+  #else
+  v8::Persistent<v8::Context>    mContext;
+  #endif
   uint32_t                       mContextId;
 
   node::Environment*             mEnv;
+  #if NODE_VERSION_AT_LEAST(9,8,0)
   node::Persistent<v8::Object>     mRtWrappers;
+  #else
+  v8::Persistent<v8::Object>     mRtWrappers;
+  #endif
 
   void createEnvironment();
 
@@ -235,7 +241,11 @@ private:
 
   v8::Isolate                   *mIsolate;
   v8::Platform                  *mPlatform;
+  #if NODE_VERSION_AT_LEAST(9,8,0)
   node::Persistent<v8::Context>    mContext;
+  #else
+  v8::Persistent<v8::Context>    mContext;
+  #endif
 
 
 #ifdef USE_CONTEXTIFY_CLONES
@@ -598,6 +608,7 @@ void rtNodeContext::clonedEnvironment(rtNodeContextRef clone_me)
   //
   // Clone a new context.
   {
+  #if NODE_VERSION_AT_LEAST(10,0,0)
     contextify::ContextOptions options;
     std::stringstream   ctxname;
     ctxname << "SparkContext:" << mId;
@@ -608,6 +619,9 @@ void rtNodeContext::clonedEnvironment(rtNodeContextRef clone_me)
     options.allow_code_gen_strings = Boolean::New(mIsolate, true);
     options.allow_code_gen_wasm = Boolean::New(mIsolate, true);
     Local<Context>  clone_local = node::contextify::makeContext(mIsolate, sandbox, options); // contextify context with 'sandbox'
+#else
+    Local<Context>  clone_local = node::makeContext(mIsolate, sandbox); // contextify context with 'sandbox'
+#endif
 
     clone_local->SetEmbedderData(HandleMap::kContextIdIndex, Integer::New(mIsolate, mId));
 #ifdef ENABLE_NODE_V_6_9
@@ -686,7 +700,9 @@ rtNodeContext::~rtNodeContext()
 #if defined(ENABLE_NODE_V_6_9) && defined(USE_CONTEXTIFY_CLONES)
       // JRJR  This was causing HTTPS to crash in gl content reloads
       // what does this do exactly... am I leaking now  why is this only a 6.9 thing?
-      //node::deleteContextifyContext(mContextifyContext);
+      #ifndef USE_NODE_10
+      node::deleteContextifyContext(mContextifyContext);
+      #endif
 #endif
       mContextifyContext = NULL;
     }
@@ -913,7 +929,11 @@ rtError rtNodeContext::runScript(const char* script, rtValue* retVal /*= NULL*/,
 #ifdef RUNINMAIN
    if (tryCatch.HasCaught())
     {
+      #if NODE_VERSION_AT_LEAST(8,10,0)
       String::Utf8Value trace(mIsolate, tryCatch.StackTrace(local_context).ToLocalChecked());
+      #else
+      String::Utf8Value trace(tryCatch.StackTrace(local_context).ToLocalChecked());
+      #endif
       rtLogWarn("%s", *trace);
 
       return RT_FAIL;
@@ -1254,20 +1274,15 @@ void rtScriptNode::init2(int argc, char** argv)
    V8::InitializeExternalStartupData(argv[0]);
 #endif
 
-#if NODE_VERSION_AT_LEAST(8,9,0)
-   //v8::TracingController* tc = new v8::TracingController();
-#endif //NODE_VERSION_AT_LEAST(8,9,0)
 #ifdef USE_NODE_PLATFORM
    Platform* platform = node::CreatePlatform(0, NULL);
 #else
    Platform* platform = platform::CreateDefaultPlatform();
 #endif // USE_NODE_PLATFORM
    mPlatform = platform;
-   //V8::InitializePlatform(platform);
-#if NODE_VERSION_AT_LEAST(8,9,0)
-   // behaves as --trace-events-enabled command line option were not used
-   //tracing::TraceEventHelper::SetTracingController(tc);
-#endif
+  #ifndef USE_NODE_10
+    v8::V8::InitializePlatform(platform);
+  #endif
    V8::Initialize();
    Isolate::CreateParams params;
    array_buffer_allocator = new ArrayBufferAllocator();
