@@ -2062,8 +2062,8 @@ rtError pxLoadAGIFImage(const char *imageData, size_t imageDataSize,
                         break;
                         case APPLICATION_EXT_FUNC_CODE:
                             if(extension != NULL && strstr((char*)extension, "NETSCAPE2.0") != 0){
-                                if (DGifGetExtensionNext(gif, &extension) == GIF_OK) {
-                                    unsigned int loopcount = extension[2];
+                                if (DGifGetExtensionNext(gif, &extension) == GIF_OK && extension[0] == 3 && extension[1] == 1) {
+                                    unsigned int loopcount = extension[2] | (extension[3] << 8);
                                     s.setNumPlays(loopcount);
                                 }
                                 
