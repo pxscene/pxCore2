@@ -266,6 +266,7 @@ WebGLRenderingContext::WebGLRenderingContext() {
   pixelStorei_UNPACK_FLIP_BLUE_RED = 0;
   
   glGetIntegerv(GL_FRAMEBUFFER_BINDING, &mInitialFrameBuffer);
+  CheckGLError();
 }
 
 NAN_METHOD(WebGLRenderingContext::New) {
@@ -597,7 +598,10 @@ NAN_METHOD(WebGLRenderingContext::GetAttribLocation) {
   int program = info[0]->Int32Value();
   String::Utf8Value name(info[1]);
 
-  info.GetReturnValue().Set(Nan::New<Number>(glGetAttribLocation(program, *name)));
+  GLint location = glGetAttribLocation(program, *name);
+  CheckGLError();
+
+  info.GetReturnValue().Set(Nan::New<Number>(location));
 }
 
 
@@ -777,7 +781,10 @@ NAN_METHOD(WebGLRenderingContext::GetUniformLocation) {
   int program = info[0]->Int32Value();
   v8::String::Utf8Value name(info[1]);
 
-  info.GetReturnValue().Set(JS_INT(glGetUniformLocation(program, *name)));
+  GLint location = glGetUniformLocation(program, *name);
+  CheckGLError();
+
+  info.GetReturnValue().Set(JS_INT(location));
 }
 
 
@@ -1012,6 +1019,7 @@ NAN_METHOD(WebGLRenderingContext::BufferData) {
     GLsizeiptr size = info[1]->Uint32Value();
     GLenum usage = info[2]->Int32Value();
     glBufferData(target, size, NULL, usage);
+    CheckGLError();
   }
   info.GetReturnValue().Set(Nan::Undefined());
 }
@@ -1664,6 +1672,7 @@ NAN_METHOD(WebGLRenderingContext::GetShaderSource) {
 
   GLint len;
   glGetShaderiv(shader, GL_SHADER_SOURCE_LENGTH, &len);
+  CheckGLError();
   GLchar *source=new GLchar[len];
   glGetShaderSource(shader, len, NULL, source);
 CheckGLError();
@@ -1938,6 +1947,7 @@ NAN_METHOD(WebGLRenderingContext::GetParameter) {
   }
   }
 
+  CheckGLError();
   //info.GetReturnValue().Set(Nan::Undefined());
 }
 
@@ -2045,6 +2055,7 @@ NAN_METHOD(WebGLRenderingContext::GetExtension) {
   String::Utf8Value name(info[0]);
   char *sname=*name;
   char *extensions=(char*) glGetString(GL_EXTENSIONS);
+  CheckGLError();
   char *ext=strcasestr(extensions, sname);
 
   if(ext==NULL){
@@ -2059,7 +2070,10 @@ NAN_METHOD(WebGLRenderingContext::CheckFramebufferStatus) {
 
   GLenum target=info[0]->Int32Value();
 
-  info.GetReturnValue().Set(JS_INT((int)glCheckFramebufferStatus(target)));
+  int status = (int)glCheckFramebufferStatus(target);
+  CheckGLError();
+
+  info.GetReturnValue().Set(JS_INT(status));
 }
 
 void WebGLRenderingContext::preprocessTexImageData(void * pixels, int width, int height, int format, int type) {

@@ -79,6 +79,7 @@ void pxWebgl::onInit()
   pixelStorei_UNPACK_FLIP_BLUE_RED = 0;  
 
   glGetIntegerv(GL_FRAMEBUFFER_BINDING, &mInitialFrameBuffer);
+  CheckGLError();
 }
 
 rtError pxWebgl::DrawElements(uint32_t mode, uint32_t count, uint32_t type, uint32_t offset)
