@@ -138,7 +138,11 @@ inline rtString toString(v8::Isolate* isolate, const v8::Handle<v8::Object>& obj
   #if defined RTSCRIPT_SUPPORT_V8
   v8::String::Utf8Value utf(isolate, obj->ToString());
   #else
+  #if NODE_VERSION_AT_LEAST(8,10,0)
   v8::String::Utf8Value utf(isolate, obj->ToString());
+  #else
+  v8::String::Utf8Value utf(obj->ToString());
+  #endif
   #endif
   return rtString(*utf);
 }
@@ -148,7 +152,11 @@ inline rtString toString(v8::Isolate* isolate, const v8::Handle<v8::Value>& val)
   #if defined RTSCRIPT_SUPPORT_V8
   v8::String::Utf8Value utf(isolate, val->ToString());
   #else
+  #if NODE_VERSION_AT_LEAST(8,10,0)
   v8::String::Utf8Value utf(isolate, val->ToString());
+  #else
+  v8::String::Utf8Value utf(val->ToString());
+  #endif
   #endif
   return rtString(*utf);
 }
@@ -158,7 +166,11 @@ inline rtString toString(v8::Isolate* isolate, const v8::Local<v8::String>& s)
   #if defined RTSCRIPT_SUPPORT_V8
   v8::String::Utf8Value utf(isolate, s);
   #else
+  #if NODE_VERSION_AT_LEAST(8,10,0)
   v8::String::Utf8Value utf(isolate, s);
+  #else
+  v8::String::Utf8Value utf(s);
+  #endif
   #endif
   return rtString(*utf);
 }

@@ -4,6 +4,9 @@ checkError()
 {
   if [ "$1" -ne 0 ]
   then
+    cd $TRAVIS_BUILD_DIR/examples/pxScene2d/external/openssl-1.0.2o
+    find . -name *.o|xargs ls -lrt
+    cd -
     printf "\n\n*********************************************************************";
     printf "\n********************* SCRIPT FAIL DETAILS *****************************";
     printf "\nCI failure reason: $2"
