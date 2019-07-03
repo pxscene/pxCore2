@@ -13,6 +13,7 @@ PathR=$externalLibs:$externalDir/node/out/Release/obj.target
 
 export LD_LIBRARY_PATH=$PathR
 
+# TODO - come back and remove node_modules and externalDir before merging to master (once we don't need node_modules for webgl)
 export NODE_PATH=.:./node_modules:$externalDir
 
 #export RT_LOG_LEVEL=info
