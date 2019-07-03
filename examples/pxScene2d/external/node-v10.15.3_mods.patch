@@ -977,3 +977,21 @@ index 834db64..7279436 100755
  if defined openssl_no_asm   set configure_flags=%configure_flags% --openssl-no-asm
  if defined DEBUG_HELPER     set configure_flags=%configure_flags% --verbose
  
+diff --git a/examples/pxScene2d/external/libnode-v10.15.3/configure.py b/examples/pxScene2d/external/libnode-v10.15.3/configure.py
+index 0ad986ab8..44b2f9f4c 100755
+--- a/examples/pxScene2d/external/libnode-v10.15.3/configure.py
++++ b/examples/pxScene2d/external/libnode-v10.15.3/configure.py
+@@ -1237,8 +1237,10 @@ def configure_openssl(o):
+          of modern CPU cryptographic instructions and will therefore be slower.
+          Please refer to BUILDING.md''')
+
+-  if options.openssl_no_asm and options.shared_openssl:
+-    error('--openssl-no-asm is incompatible with --shared-openssl')
++  #MODIFIED CODE BEGIN
++  #if options.openssl_no_asm and options.shared_openssl:
++  #  warn('--openssl-no-asm is incompatible with --shared-openssl')
++  #MODIFIED CODE END
+
+   if options.openssl_fips:
+      error('FIPS is not supported in this version of Node.js')
+
