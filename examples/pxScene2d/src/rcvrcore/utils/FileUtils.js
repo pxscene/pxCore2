@@ -94,7 +94,7 @@ function loadFile(fileUri, appSceneContext) {
         }
       }
 
-      fs.readFile(fileUri, 'utf8', function (err, data) {
+      fs.readFile(fileUri, function (err, data) {
           if (err) {
               log.error("FAILED to read file[" + fileUri + "] from file system (error=" + err + ")");
               reject(err);

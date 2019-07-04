@@ -922,6 +922,15 @@ rtError rtNodeContext::runScript(const char* script, rtValue* retVal /*= NULL*/,
 
     // Compile the source code.
     MaybeLocal<Script> run_script = Script::Compile(local_context, source);
+    if (run_script.IsEmpty()) {
+      #if NODE_VERSION_AT_LEAST(8,10,0)
+      String::Utf8Value trace(mIsolate, tryCatch.StackTrace(local_context).ToLocalChecked());
+      #else
+      String::Utf8Value trace(tryCatch.StackTrace(local_context).ToLocalChecked());
+      #endif
+      rtLogWarn("%s", *trace);
+      return RT_FAIL;
+    }
 
     // Run the script to get the result.
     MaybeLocal<Value> result = (run_script.ToLocalChecked())->Run(local_context);
