@@ -40,6 +40,8 @@ var _module = require('module')
 var _ws = require('ws')
 var _http = require('http')
 var _https = require('https')
+const {promisify} = require('util')
+const readFileAsync = promisify(fs.readFile)
 
 // JRJR not sure why Buffer is not already defined.
 // Could look at adding to sandbox.js but this works for now
@@ -52,7 +54,11 @@ var _intervals = []
 var _timeouts = []
 var _immediates = []
 var _websockets = []
-
+var sandboxKeys = ["setTimeout", "console", "clearTimeout", "setInterval", "clearInterval", "setImmediate", "clearImmediate", "sparkview", "sparkscene", "sparkgles2", "beginDrawing", "endDrawing"]
+var sandbox = {}
+/* holds loaded main mjs module reference */
+var app = null;
+var contextifiedSandbox = null;
 var __dirname = process.cwd()
 
 var loadUrl = function(url, _beginDrawing, _endDrawing, _view) {
@@ -132,8 +138,6 @@ var loadUrl = function(url, _beginDrawing, _endDrawing, _view) {
         }())
     _immediates.push(timeout)
     return timeout
-
-   console.log('setImmediate called')
   }
 
 
@@ -157,7 +161,12 @@ var loadUrl = function(url, _beginDrawing, _endDrawing, _view) {
   global.sparkgles2 = require('gles2.js');
 
   global.sparkscene.on('onClose', onClose);
-
+  sandbox.global = global
+  for (var i=0; i<sandboxKeys.length; i++)
+  {
+    sandbox[sandboxKeys[i]] = global[sandboxKeys[i]];
+  }
+  contextifiedSandbox = vm.createContext(sandbox);
 // JRJR todo make into a map
 var bootStrapCache = {}
 
@@ -203,6 +212,39 @@ const bootStrap = (moduleName, from, request) => {
         // Cache the module exports
         bootStrapCache[filename] = m
         return m
+      }
+
+      function initializeImportMeta(meta, { url }) {
+        meta.url = url;
+      }
+      
+      async function linker(specifier, referencingModule) {
+          const source = await readFileAsync(specifier, {'encoding' : 'utf-8'})
+          var mod = new vm.SourceTextModule(source ,{ context: contextifiedSandbox, initializeImportMeta:initializeImportMeta, importModuleDynamically:importModuleDynamically });
+          return mod;
+      }
+
+      async function importModuleDynamically(specifier, { url }) {
+        console.log("Inside importModuleDynamically" +specifier);
+        const source = await readFileAsync(specifier, {'encoding' : 'utf-8'})
+        var mod = new vm.SourceTextModule(source ,{ context: contextifiedSandbox, initializeImportMeta:initializeImportMeta, importModuleDynamically:importModuleDynamically });
+        var result = await mod.link(linker);
+        mod.instantiate();
+        await mod.evaluate();
+        return mod;
+      }
+
+      //it will be good if we have some way to tell, we are loading esm module in js file
+      if ((filename.indexOf('.mjs') != -1)) {
+        //console.log('Loading mjs module: ', filename)
+        (async () => {
+          const source = await readFileAsync(filename, {'encoding' : 'utf-8'})
+          app = new vm.SourceTextModule(source , { context: contextifiedSandbox, initializeImportMeta:initializeImportMeta, importModuleDynamically:importModuleDynamically });
+          var result = await app.link(linker);
+          app.instantiate();
+          await app.evaluate();
+        })();
+        return;
       }
 
       console.log('Loading source module:', filename)
@@ -349,7 +391,16 @@ var onClose = function() {
   _clearImmediates()
   _clearWebsockets()
   _clearSockets()
-
+  for (var i=0; i<sandboxKeys.length; i++)
+  {
+    sandbox[sandboxKeys[i]] = null;
+  }
+  sandbox['global'] = null;
+  contextifiedSandbox = null;
+  if (null != app)
+    delete app;
+  app = null;
+  sandbox = {};
   // JRJR something is invoking setImmediate after this and causing problems
   active = false
 }

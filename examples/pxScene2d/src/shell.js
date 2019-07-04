@@ -69,7 +69,7 @@ px.import({ scene: 'px:scene.1.js',
     if (url && url.toLowerCase().indexOf('.js?') > 0) { // this is a js file with query params
       return url;
     }
-    if (url && !url.match(/\.js$/)) {
+    if (url && !url.match(/\.js$/) && !url.match(/\.mjs$/)) {
       url = 'mimeScene.js?url=' + url;
     }
     return url;
