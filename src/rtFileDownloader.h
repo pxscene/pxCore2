@@ -111,6 +111,14 @@ public:
   size_t readDataSize() const;
   rtObjectRef downloadMetrics() const;
   void setDownloadMetrics(int32_t connectTimeMs, int32_t sslConnectTimeMs, int32_t totalTimeMs, int32_t downloadSpeedBytesPerSecond);
+  void setDownloadOnly(bool downloadOnly);
+  bool isDownloadOnly(void);
+  void setActualFileSize(size_t actualFileSize);
+  size_t actualFileSize(void);
+  void setByteRangeEnable(bool bByteRangeFlag);
+  bool isByteRangeEnabled(void);
+  void setByteRangeIntervals(size_t byteRangeIntervals);
+  size_t byteRangeIntervals(void);
 
 private:
   rtString mFileUrl;
@@ -148,6 +156,10 @@ private:
   const uint8_t* mReadData;
   size_t mReadDataSize;
   rtObjectRef mDownloadMetrics;
+  bool mDownloadOnly;
+  size_t mActualFileSize;
+  bool mIsByteRangeEnabled;
+  size_t mByteRangeIntervals;
 };
 
 struct rtFileDownloadHandle
@@ -176,8 +188,10 @@ public:
 
     void clearFileCache();
     void downloadFile(rtFileDownloadRequest* downloadRequest);
+    void downloadFileAsByteRange(rtFileDownloadRequest* downloadRequest);
     void setDefaultCallbackFunction(void (*callbackFunction)(rtFileDownloadRequest*));
     bool downloadFromNetwork(rtFileDownloadRequest* downloadRequest);
+    bool downloadByteRangeFromNetwork(rtFileDownloadRequest* downloadRequest);
     void checkForExpiredHandles();
 
 private:

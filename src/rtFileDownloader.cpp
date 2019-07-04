@@ -153,7 +153,11 @@ static size_t ReadMemoryCallback(void *contents, size_t size, size_t nmemb, void
 void startFileDownloadInBackground(void* data)
 {
     rtFileDownloadRequest* downloadRequest = (rtFileDownloadRequest*)data;
-    rtFileDownloader::instance()->downloadFile(downloadRequest);
+
+    if(downloadRequest->isByteRangeEnabled() == false)
+       rtFileDownloader::instance()->downloadFile(downloadRequest);
+    else
+       rtFileDownloader::instance()->downloadFileAsByteRange(downloadRequest);
 }
 
 rtFileDownloader* rtFileDownloader::mInstance = NULL;
@@ -190,6 +194,10 @@ rtFileDownloadRequest::rtFileDownloadRequest(const char* imageUrl, void* callbac
     , mReadData(NULL)
     , mReadDataSize(0)
     , mDownloadMetrics(new rtMapObject())
+    , mDownloadOnly(false)
+    , mActualFileSize(0)
+    , mIsByteRangeEnabled(false)
+    , mByteRangeIntervals()
 {
   mAdditionalHttpHeaders.clear();
 #ifdef ENABLE_HTTP_CACHE
@@ -555,6 +563,46 @@ void rtFileDownloadRequest::setDownloadMetrics(int32_t connectTimeMs, int32_t ss
   mDownloadMetrics.set("downloadSpeedBytesPerSecond", downloadSpeedBytesPerSecond);
 }
 
+void rtFileDownloadRequest::setActualFileSize(size_t actualFileSize)
+{
+  mActualFileSize = actualFileSize;
+}
+
+size_t rtFileDownloadRequest::actualFileSize(void)
+{
+  return mActualFileSize;
+}
+
+void rtFileDownloadRequest::setByteRangeEnable(bool bByteRangeFlag)
+{
+  mIsByteRangeEnabled = bByteRangeFlag;
+}
+
+bool rtFileDownloadRequest::isByteRangeEnabled(void)
+{
+  return mIsByteRangeEnabled;
+}
+
+void rtFileDownloadRequest::setByteRangeIntervals(size_t byteRangeIntervals )
+{
+  mByteRangeIntervals = byteRangeIntervals;
+}
+
+size_t rtFileDownloadRequest::byteRangeIntervals(void)
+{
+  return mByteRangeIntervals;
+}
+
+void rtFileDownloadRequest::setDownloadOnly(bool downloadOnly)
+{
+  mDownloadOnly = downloadOnly;
+}
+
+bool rtFileDownloadRequest::isDownloadOnly(void)
+{
+  return mDownloadOnly;
+}
+
 rtFileDownloader::rtFileDownloader()
     : mNumberOfCurrentDownloads(0), mDefaultCallbackFunction(NULL), mDownloadHandles(), mReuseDownloadHandles(false),
       mCaCertFile(CA_CERTIFICATE), mFileCacheMutex()
@@ -676,6 +724,412 @@ void rtFileDownloader::clearFileCache()
     //todo
 }
 
+void rtFileDownloader::downloadFileAsByteRange(rtFileDownloadRequest* downloadRequest)
+{
+  bool isRequestCanceled = downloadRequest->isCanceled();
+  if (isRequestCanceled)
+  {
+    downloadRequest->setDownloadStatusCode(HTTP_DOWNLOAD_CANCELED);
+    downloadRequest->setDownloadedData(NULL, 0);
+    downloadRequest->setDownloadStatusCode(-1);
+    downloadRequest->setErrorString("canceled request");
+    if (!downloadRequest->executeCallback(downloadRequest->downloadStatusCode()))
+    {
+      if (mDefaultCallbackFunction != NULL)
+      {
+        (*mDefaultCallbackFunction)(downloadRequest);
+      }
+    }
+    clearFileDownloadRequest(downloadRequest);
+    return;
+  }
+
+#ifdef ENABLE_HTTP_CACHE
+    bool isDataInCache = false;
+#endif
+    bool nwDownloadSuccess = false;
+
+#ifdef ENABLE_HTTP_CACHE
+    rtHttpCacheData cachedData(downloadRequest->fileUrl().cString());
+    if (true == downloadRequest->cacheEnabled())
+    {
+      if (true == checkAndDownloadFromCache(downloadRequest,cachedData))
+      {
+        isDataInCache = true;
+        downloadRequest->setDataIsCached(true);
+      }
+    }
+
+    if (isDataInCache)
+    {
+      if(downloadRequest->isDownloadOnly() == false)
+      {
+        if(downloadRequest->deferCacheRead())
+        {
+            rtLogInfo("Reading from cache Start for %s\n", downloadRequest->fileUrl().cString());
+            mFileCacheMutex.lock();
+            FILE *fp = downloadRequest->cacheFilePointer();
+
+            if(fp != NULL)
+            {
+                char* buffer = new char[downloadRequest->getCachedFileReadSize()];
+                size_t bytesCount = 0;
+                size_t dataSize = 0;
+                char invalidData[8] = "Invalid";
+
+                // The cahced file has expiration value ends with | delimeter.
+                while ( !feof(fp) )
+                {
+                    dataSize++;
+                    if (fgetc(fp) == '|')
+                        break;
+                }
+                while (!feof(fp))
+                {
+                    memset(buffer, 0, downloadRequest->getCachedFileReadSize());
+                    bytesCount = fread(buffer, 1, downloadRequest->getCachedFileReadSize(), fp);
+                    dataSize += bytesCount;
+                    downloadRequest->executeDownloadProgressCallback((unsigned char*)buffer, bytesCount, 1 );
+                }
+                // For deferCacheRead, the user requires the downloadedDataSize but not the data.
+                downloadRequest->setDownloadedData( invalidData, dataSize);
+                delete [] buffer;
+                fclose(fp);
+            }
+            mFileCacheMutex.unlock();
+            rtLogInfo("Reading from cache End for %s\n", downloadRequest->fileUrl().cString());
+        }
+      }
+    }
+    else
+#endif
+    {
+      nwDownloadSuccess = downloadByteRangeFromNetwork(downloadRequest);
+    }
+
+    if (!downloadRequest->executeCallback(downloadRequest->downloadStatusCode()))
+    {
+      if (mDefaultCallbackFunction != NULL)
+      {
+        (*mDefaultCallbackFunction)(downloadRequest);
+      }
+    }
+
+#ifdef ENABLE_HTTP_CACHE
+    // Store the network data in cache
+    if ((true == nwDownloadSuccess) &&
+        (true == downloadRequest->cacheEnabled())  &&
+        (downloadRequest->actualFileSize() == downloadRequest->downloadedDataSize()) &&
+        (downloadRequest->httpStatusCode() != 302) &&
+        (downloadRequest->httpStatusCode() != 307))
+    {
+      rtHttpCacheData downloadedData(downloadRequest->fileUrl(),
+                                     downloadRequest->headerData(),
+                                     downloadRequest->downloadedData(),
+                                     downloadRequest->downloadedDataSize());
+
+      if (downloadedData.isWritableToCache())
+      {
+        mFileCacheMutex.lock();
+        if (NULL == rtFileCache::instance())
+          rtLogWarn("cache data not added");
+        else
+        {
+          rtFileCache::instance()->addToCache(downloadedData);
+        }
+        mFileCacheMutex.unlock();
+      }
+    }
+
+    // Store the updated data in cache
+    if ((true == isDataInCache) && (cachedData.isUpdated()) && (downloadRequest->isDownloadOnly() == false))
+    {
+      rtString url;
+      cachedData.url(url);
+
+      mFileCacheMutex.lock();
+      if (NULL == rtFileCache::instance())
+          rtLogWarn("Adding url to cache failed (%s) due to in-process memory issues", url.cString());
+      rtFileCache::instance()->removeData(url);
+      mFileCacheMutex.unlock();
+      if (cachedData.isWritableToCache())
+      {
+        mFileCacheMutex.lock();
+        rtError err = rtFileCache::instance()->addToCache(cachedData);
+        if (RT_OK != err)
+          rtLogWarn("Adding url to cache failed (%s)", url.cString());
+
+        mFileCacheMutex.unlock();
+      }
+    }
+
+    if (true == isDataInCache)
+    {
+      downloadRequest->setHeaderData(NULL,0);
+      downloadRequest->setDownloadedData(NULL,0);
+    }
+#endif
+    clearFileDownloadRequest(downloadRequest);
+}
+
+bool rtFileDownloader::downloadByteRangeFromNetwork(rtFileDownloadRequest* downloadRequest)
+{
+    CURL *curl_handle = NULL;
+    CURLcode res = CURLE_OK;
+    char errorBuffer[CURL_ERROR_SIZE];
+    int multipleIntervals = 1;
+    size_t startRange = 0;
+    std::string byteRange("NULL");
+    size_t fileSize = 0;
+
+    bool useProxy = !downloadRequest->proxy().isEmpty();
+    rtString proxyServer = downloadRequest->proxy();
+    bool headerOnly = downloadRequest->headerOnly();
+    MemoryStruct chunk;
+
+    rtString method = downloadRequest->method();
+    size_t readDataSize = downloadRequest->readDataSize();
+
+    rtString origin = rtUrlGetOrigin(downloadRequest->fileUrl());
+
+    curl_handle = rtFileDownloader::instance()->retrieveDownloadHandle(origin);
+    curl_easy_reset(curl_handle);
+    /* specify URL to get */
+    curl_easy_setopt(curl_handle, CURLOPT_URL, downloadRequest->fileUrl().cString());
+    curl_easy_setopt(curl_handle, CURLOPT_FOLLOWLOCATION, 1); //when redirected, follow the redirections
+    curl_easy_setopt(curl_handle, CURLOPT_HEADERFUNCTION, HeaderCallback);
+    curl_easy_setopt(curl_handle, CURLOPT_HEADERDATA, (void *)&chunk);
+    if (false == headerOnly)
+    {
+      chunk.downloadRequest = downloadRequest;
+      curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, WriteMemoryCallback);
+      curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, (void *)&chunk);
+    }
+
+    if(downloadRequest->isCurlDefaultTimeoutSet() == false)
+    {
+      curl_easy_setopt(curl_handle, CURLOPT_TIMEOUT, kCurlTimeoutInSeconds);
+    }
+    curl_easy_setopt(curl_handle, CURLOPT_NOSIGNAL, 1L);
+
+    if(downloadRequest->isProgressMeterSwitchOff())
+        curl_easy_setopt(curl_handle, CURLOPT_NOPROGRESS, 1);
+
+    if(downloadRequest->isHTTPFailOnError())
+    {
+        memset(errorBuffer, 0, sizeof(errorBuffer));
+        curl_easy_setopt(curl_handle, CURLOPT_FAILONERROR, 1);
+        curl_easy_setopt(curl_handle, CURLOPT_VERBOSE, 1);
+        curl_easy_setopt(curl_handle, CURLOPT_ERRORBUFFER, errorBuffer);
+    }
+#if !defined(PX_PLATFORM_GENERIC_DFB) && !defined(PX_PLATFORM_DFB_NON_X11)
+    curl_easy_setopt(curl_handle, CURLOPT_TCP_KEEPALIVE, 1);
+    curl_easy_setopt(curl_handle, CURLOPT_TCP_KEEPIDLE, 60);
+    curl_easy_setopt(curl_handle, CURLOPT_TCP_KEEPINTVL, 30);
+#endif //!PX_PLATFORM_GENERIC_DFB && !PX_PLATFORM_DFB_NON_X11
+
+    double downloadHandleExpiresTime = downloadRequest->downloadHandleExpiresTime();
+
+    vector<rtString>& additionalHttpHeaders = downloadRequest->additionalHttpHeaders();
+    struct curl_slist *list = NULL;
+    for (unsigned int headerOption = 0;headerOption < additionalHttpHeaders.size();headerOption++)
+    {
+      list = curl_slist_append(list, additionalHttpHeaders[headerOption].cString());
+    }
+    if (downloadRequest->cors() != NULL)
+      downloadRequest->cors()->updateRequestForAccessControl(&list);
+    if (readDataSize > 0)
+    {
+      list = curl_slist_append(list, "Expect:");
+    }
+    curl_easy_setopt(curl_handle, CURLOPT_HTTPHEADER, list);
+    //CA certificates
+    // !CLF: Use system CA Cert rather than CA_CERTIFICATE fo now.  Revisit!
+    //curl_easy_setopt(curl_handle,CURLOPT_CAINFO,mCaCertFile.cString());
+    curl_easy_setopt(curl_handle, CURLOPT_SSL_VERIFYHOST, 2);
+    curl_easy_setopt(curl_handle, CURLOPT_SSL_VERIFYPEER, true);
+
+    /* some servers don't like requests that are made without a user-agent
+     field, so we provide one */
+    curl_easy_setopt(curl_handle, CURLOPT_USERAGENT, "libcurl-agent/1.0");
+
+    if (useProxy)
+
+    {
+        curl_easy_setopt(curl_handle, CURLOPT_PROXY, proxyServer.cString());
+        curl_easy_setopt(curl_handle, CURLOPT_PROXYTYPE, CURLPROXY_HTTP);
+    }
+    else
+    {
+      curl_easy_setopt(curl_handle, CURLOPT_PROXY, "");
+    }
+
+    if (true == headerOnly)
+    {
+      curl_easy_setopt(curl_handle, CURLOPT_NOBODY, 1);
+    }
+
+    if (!method.isEmpty() && method.compare("GET") != 0)
+    {
+      if (method.compare("POST") == 0)
+        curl_easy_setopt(curl_handle, CURLOPT_POST, 1L);
+      else if (method.compare("PUT") == 0)
+        curl_easy_setopt(curl_handle, CURLOPT_UPLOAD, 1L);
+      else
+        curl_easy_setopt(curl_handle, CURLOPT_CUSTOMREQUEST, method.cString());
+    }
+
+    if (readDataSize > 0)
+    {
+      chunk.downloadRequest = downloadRequest;
+      curl_easy_setopt(curl_handle, CURLOPT_READFUNCTION, ReadMemoryCallback);
+      curl_easy_setopt(curl_handle, CURLOPT_READDATA, (void *)&chunk);
+      curl_easy_setopt(curl_handle, CURLOPT_POSTFIELDSIZE, readDataSize);
+    }
+
+    for(int iLoop=0; iLoop<= multipleIntervals; iLoop++)
+    {
+      if(iLoop < multipleIntervals)
+      {
+        byteRange = std::to_string(startRange) + "-" + std::to_string(startRange + downloadRequest->byteRangeIntervals() -1);
+      }
+      else if(iLoop == multipleIntervals)
+      {
+        if(fileSize % downloadRequest->byteRangeIntervals())
+          byteRange = std::to_string(startRange) + "-" + std::to_string(fileSize-1);
+      }
+      curl_easy_setopt(curl_handle, CURLOPT_RANGE, byteRange.c_str());
+
+      res = curl_easy_perform(curl_handle);
+      if(res != CURLE_OK)
+        break;
+
+      if(iLoop == 0)
+      {
+        curl_easy_setopt(curl_handle, CURLOPT_HEADERFUNCTION, NULL);
+        curl_easy_setopt(curl_handle, CURLOPT_HEADERDATA, NULL);
+
+        // Parsing total filesize from Content-Range.
+        std::string httpHeaderStr(reinterpret_cast< char const* >((char *)chunk.headerBuffer));
+        size_t findContentRange = httpHeaderStr.find("Content-Range:");
+        if(findContentRange != std::string::npos)
+        {
+          std::string strContentRange = httpHeaderStr.substr(findContentRange+1);
+          size_t findRange = strContentRange.find("/");
+
+          if(findRange != std::string::npos)
+          {
+            std::string substrRange = strContentRange.substr(findRange+1);
+            std::string strRange = substrRange.substr(0, substrRange.find("\n")-1);
+            fileSize = atoi(strRange.c_str());
+            downloadRequest->setActualFileSize(fileSize);
+            rtLogInfo("File[%s] fileSize [%ld] from http header(Content-Range)\n", downloadRequest->fileUrl().cString(), fileSize);
+          }
+          else
+            rtLogError("File[%s] http header Content-Range is not in xxx/yyy format\n", downloadRequest->fileUrl().cString());
+        }
+        else
+          rtLogError("File[%s] http header doesn't have Content-Range\n", downloadRequest->fileUrl().cString());
+
+        multipleIntervals = (fileSize >= downloadRequest->byteRangeIntervals()) ? (fileSize / downloadRequest->byteRangeIntervals()) : 0;
+        rtLogInfo("File[%s] multipleIntervals [%d] fileSize[%ld]\n", downloadRequest->fileUrl().cString(), multipleIntervals, fileSize);
+      }
+      startRange += downloadRequest->byteRangeIntervals();
+    }
+
+    curl_slist_free_all(list);
+
+    downloadRequest->setDownloadStatusCode(res);
+    if(downloadRequest->isHTTPFailOnError())
+        downloadRequest->setHTTPError(errorBuffer);
+
+    /* check for errors */
+    if (res != CURLE_OK)
+    {
+        rtString proxyMessage("Using proxy:");
+        if (useProxy)
+        {
+          proxyMessage.append("true - ");
+          proxyMessage.append(proxyServer.cString());
+        }
+        else
+        {
+          proxyMessage.append("false ");
+        }
+        char errorMessage[MAX_URL_SIZE+400];
+        memset(errorMessage, 0, sizeof(errorMessage));
+        sprintf(errorMessage, "Download error for:%s. Error code:%d. %s",downloadRequest->fileUrl().cString(), res, proxyMessage.cString());
+        downloadRequest->setErrorString(errorMessage);
+        rtFileDownloader::instance()->releaseDownloadHandle(curl_handle, downloadHandleExpiresTime, origin);
+
+        //clean up contents on error
+        if (chunk.contentsBuffer != NULL)
+        {
+            free(chunk.contentsBuffer);
+            chunk.contentsBuffer = NULL;
+        }
+
+        if (chunk.headerBuffer != NULL)
+        {
+            free(chunk.headerBuffer);
+            chunk.headerBuffer = NULL;
+        }
+        downloadRequest->setDownloadedData(NULL, 0);
+        return false;
+    }
+
+    // record download stats
+    double connectTime = 0;
+    curl_easy_getinfo(curl_handle, CURLINFO_CONNECT_TIME, &connectTime);
+    double sslConnectTime = 0;
+    curl_easy_getinfo(curl_handle, CURLINFO_APPCONNECT_TIME, &sslConnectTime);
+    double downloadSpeed = 0;
+    curl_easy_getinfo(curl_handle, CURLINFO_SPEED_DOWNLOAD, &downloadSpeed);
+    double totalDownloadTime = 0;
+    curl_easy_getinfo(curl_handle, CURLINFO_TOTAL_TIME, &totalDownloadTime);
+
+    if (sslConnectTime < connectTime)
+    {
+      sslConnectTime = connectTime;
+    }
+
+    rtLogInfo("download stats - connect time: %d ms, ssl time: %d ms, total time: %d ms, download speed: %d bytes/sec, url: %s",
+              (int)(connectTime*1000), (int)((sslConnectTime - connectTime) * 1000),
+              (int)(totalDownloadTime*1000), (int)downloadSpeed, downloadRequest->fileUrl().cString());
+
+    downloadRequest->setDownloadMetrics(static_cast<int32_t>(connectTime*1000), static_cast<int32_t>((sslConnectTime - connectTime) * 1000),
+                                        static_cast<int32_t>(totalDownloadTime*1000), static_cast<int32_t>(downloadSpeed));
+
+    long httpCode = -1;
+    if (curl_easy_getinfo(curl_handle, CURLINFO_RESPONSE_CODE, &httpCode) == CURLE_OK)
+    {
+        downloadRequest->setHttpStatusCode(httpCode);
+    }
+    rtFileDownloader::instance()->releaseDownloadHandle(curl_handle, downloadHandleExpiresTime, origin);
+
+    //todo read the header information before closing
+    if (chunk.headerBuffer != NULL)
+    {
+        downloadRequest->setHeaderData(chunk.headerBuffer, chunk.headerSize);
+    }
+
+    //don't free the downloaded data (contentsBuffer) because it will be used later
+    if (false == headerOnly)
+    {
+      downloadRequest->setDownloadedData(chunk.contentsBuffer, chunk.contentsSize);
+    }
+    else if (chunk.contentsBuffer != NULL)
+    {
+        free(chunk.contentsBuffer);
+        chunk.contentsBuffer = NULL;
+    }
+    chunk.headerBuffer = NULL;
+    chunk.contentsBuffer = NULL;
+    if (downloadRequest->cors() != NULL)
+      downloadRequest->cors()->updateResponseForAccessControl(downloadRequest);
+    return true;
+}
+
 void rtFileDownloader::downloadFile(rtFileDownloadRequest* downloadRequest)
 {
   bool isRequestCanceled = downloadRequest->isCanceled();
@@ -717,6 +1171,7 @@ void rtFileDownloader::downloadFile(rtFileDownloadRequest* downloadRequest)
         if(downloadRequest->deferCacheRead())
         {
             rtLogInfo("Reading from cache Start for %s\n", downloadRequest->fileUrl().cString());
+            mFileCacheMutex.lock();
             FILE *fp = downloadRequest->cacheFilePointer();
 
             if(fp != NULL)
@@ -745,6 +1200,7 @@ void rtFileDownloader::downloadFile(rtFileDownloadRequest* downloadRequest)
                 delete [] buffer;
                 fclose(fp);
             }
+            mFileCacheMutex.unlock();
             rtLogInfo("Reading from cache End for %s\n", downloadRequest->fileUrl().cString());
         }
     }
@@ -851,7 +1307,7 @@ bool rtFileDownloader::downloadFromNetwork(rtFileDownloadRequest* downloadReques
 
     if(downloadRequest->isCurlDefaultTimeoutSet() == false)
     {
-    curl_easy_setopt(curl_handle, CURLOPT_TIMEOUT, kCurlTimeoutInSeconds);
+      curl_easy_setopt(curl_handle, CURLOPT_TIMEOUT, kCurlTimeoutInSeconds);
     }
     curl_easy_setopt(curl_handle, CURLOPT_NOSIGNAL, 1L);
 
@@ -941,7 +1397,7 @@ bool rtFileDownloader::downloadFromNetwork(rtFileDownloadRequest* downloadReques
     /* check for errors */
     if (res != CURLE_OK)
     {
-        rtString proxyMessage("Using proxy:"); 
+        rtString proxyMessage("Using proxy:");
         if (useProxy)
         {
           proxyMessage.append("true - ");
