@@ -178,9 +178,7 @@ void rtFunctionWrapper::exportPrototype(Isolate* isolate, Handle<Object> exports
   inst->SetCallAsFunctionHandler(call);
 
   ctor.Reset(isolate, tmpl->GetFunction());
-
-  // TODO this breaks js 'Function' (https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function)
-  //exports->Set(String::NewFromUtf8(isolate, kClassName), tmpl->GetFunction());
+  exports->Set(String::NewFromUtf8(isolate, kClassName), tmpl->GetFunction());
 }
 
 void rtFunctionWrapper::create(const FunctionCallbackInfo<Value>& args)
