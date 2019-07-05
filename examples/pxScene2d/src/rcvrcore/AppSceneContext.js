@@ -24,8 +24,6 @@ var isV8=(typeof _isV8 != "undefined")?true:false;
 var url = require('url');
 var path = require('path');
 var vm = require('vm');
-var events = require('events');
-var ws = require('ws');
 var Logger = require('rcvrcore/Logger').Logger;
 var SceneModuleLoader = require('rcvrcore/SceneModuleLoader');
 var XModule = require('rcvrcore/XModule');
@@ -71,6 +69,7 @@ function AppSceneContext(params) {
   //array to store the list of pending timers
   this.timers = [];
   this.timerIntervals = [];
+  this.webSocketManager = null;
   this.disableFilePermissionCheck = isV8?true:this.innerscene.sparkSetting("disableFilePermissionCheck");
   if (undefined == this.disableFilePermissionCheck)
   {
@@ -81,7 +80,6 @@ function AppSceneContext(params) {
   this.isTermEvtRcvd = false;
   this.termEvent = null;
   this.isTerminated = false;
-  this.eventEmitter = new events();
   log.message(4, "[[[NEW AppSceneContext]]]: " + this.packageUrl);
 }
 
@@ -95,10 +93,12 @@ AppSceneContext.prototype.loadScene = function() {
 
 function terminateScene() {
     var e = this.termEvent;
-    if (this.eventEmitter) {
-      this.eventEmitter.emit('close');
-      this.eventEmitter = null;
+    if (null != this.webSocketManager)
+    {
+       this.webSocketManager.clearConnections();
+       delete this.webSocketManager;
     }
+    this.webSocketManager = null;
     //clear the timers and intervals on close
     var ntimers = this.timers.length;
     for (var i=0; i<ntimers; i++)
@@ -618,20 +618,17 @@ AppSceneContext.prototype.include = function(filePath, currentXModule) {
         onImportComplete([modData, origFilePath]);
         return;
       } else {
-        modData = class WebSocket extends ws {
-          constructor(address, protocols, options) {
-            super(address, protocols, options);
-            let _listener = this.forceClose.bind(this);
-            this.on('close', () => _this.eventEmitter.removeListener('close', _listener));
-            _this.eventEmitter.on('close', _listener);
+        var wsdata = require('rcvrcore/ws_wrap');
+        _this.webSocketManager = new wsdata();
+        var WebSocket = (function() {
+          var context = this;
+          function WebSocket(address, protocol, options) {
+            var client = context.webSocketManager.WebSocket(address, protocol, options);
+            return client;
           }
-          forceClose() {
-            console.log(`force websocket close`);
-            this.close();
-            this.closeimmediate();
-            //this.removeAllListeners(); // do not uncomment
-          }
-        };
+          return WebSocket;
+         }.bind(_this))();
+        modData = WebSocket;
         onImportComplete([modData, origFilePath]);
         return;
       }
