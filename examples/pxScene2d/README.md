@@ -25,7 +25,7 @@
 1. Install required packages:
     
     ~~~~
-    sudo apt-get install git libglew-dev freeglut3 freeglut3-dev libgcrypt11-dev zlib1g-dev g++ libssl-dev nasm autoconf libtool cmake quilt xmlto
+    sudo apt-get install git libglew-dev freeglut3 freeglut3-dev zlib1g-dev g++ nasm autoconf libtool cmake quilt xmlto
     
     ~~~~
 
@@ -50,6 +50,7 @@
 >   * patch utility for windows (this comes with git. setup environment variables depending on install location of patch.exe)
 >   * Download and install cmake for windows from https://cmake.org/download/
 >   * Download and install NSIS installer from http://nsis.sourceforge.net/Download
+>   * Download ans install active state perl 5.28 https://www.activestate.com/products/activeperl/downloads/
 >   * **Run all these commands from a Visual Studio Command Prompt**
 
 

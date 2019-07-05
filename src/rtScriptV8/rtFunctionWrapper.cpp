@@ -123,7 +123,7 @@ void rtResolverFunction::afterWorkCallback(uv_work_t* req, int /* status */)
 
   if (tryCatch.HasCaught())
   {
-    #if defined RTSCRIPT_SUPPORT_V8
+    #if ((defined RTSCRIPT_SUPPORT_V8) || (NODE_VERSION_AT_LEAST(8,10,0)))
     String::Utf8Value trace(resolverFunc->mIsolate, (tryCatch.StackTrace(local_context)).ToLocalChecked());
     #else
     String::Utf8Value trace((tryCatch.StackTrace(local_context)).ToLocalChecked());
@@ -301,7 +301,7 @@ jsFunctionWrapper::jsFunctionWrapper(Local<Context>& ctx, const Handle<Value>& v
   , mTeardownThreadingPrimitives(false)
   , mHash(-1)
 {
-  #if defined RTSCRIPT_SUPPORT_V8
+  #if ((defined RTSCRIPT_SUPPORT_V8) || (NODE_VERSION_AT_LEAST(8,10,0)))
   v8::String::Utf8Value fn(ctx->GetIsolate(), Handle<Function>::Cast(val)->ToString());
   #else
   v8::String::Utf8Value fn(Handle<Function>::Cast(val)->ToString());
