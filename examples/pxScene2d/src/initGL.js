@@ -237,13 +237,24 @@ const bootStrap = (moduleName, from, request) => {
       //it will be good if we have some way to tell, we are loading esm module in js file
       if ((filename.indexOf('.mjs') != -1)) {
         //console.log('Loading mjs module: ', filename)
-        (async () => {
-          const source = await readFileAsync(filename, {'encoding' : 'utf-8'})
-          app = new vm.SourceTextModule(source , { context: contextifiedSandbox, initializeImportMeta:initializeImportMeta, importModuleDynamically:importModuleDynamically });
-          var result = await app.link(linker);
-          app.instantiate();
-          await app.evaluate();
-        })();
+        try {
+          (async () => {
+            try
+            {
+              const source = await readFileAsync(filename, {'encoding' : 'utf-8'})
+              app = new vm.SourceTextModule(source , { context: contextifiedSandbox, initializeImportMeta:initializeImportMeta, importModuleDynamically:importModuleDynamically });
+              var result = await app.link(linker);
+              app.instantiate();
+              await app.evaluate();
+            }
+            catch(err) {
+              console.log("Error in loading mjs " + filename + " : " + err);
+            }
+          })();
+        }
+        catch(err) {
+          console.log("Error in loading mjs " + filename + " : " + err);
+        }
         return;
       }
 
