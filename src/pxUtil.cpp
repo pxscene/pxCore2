@@ -2023,7 +2023,7 @@ rtError pxLoadAGIFImage(const char *imageData, size_t imageDataSize,
                 }
                     
                 if (gcb.DisposalMode == DISPOSE_BACKGROUND)
-                    obj.initWithColor(w, h, pxClear);
+                    obj.initWithColor(width, height, pxClear);
                 
                 drawGifImage(obj, rows, map, transparent);
 
