@@ -137,6 +137,7 @@ rtError pxArchive::initFromUrl(const rtString& url, const rtCORSRef& cors, rtObj
     mLoadStatus.set("sourceType", "file");
     // TODO align statusCodes for loadStatus
     rtError loadStatus = RT_ERROR;
+
     rtString urlStr = mUrl.beginsWith("file://") ? mUrl.substring(7) : mUrl;
 
     do

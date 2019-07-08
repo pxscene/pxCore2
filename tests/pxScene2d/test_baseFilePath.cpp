@@ -24,6 +24,7 @@ limitations under the License.
 #include "pxScene2d.h"
 #include "pxArchive.h"
 #include "pxResource.h"
+#include "pxFont.h"
 #include "pxTimer.h"
 #include "rtPathUtils.h"
 
@@ -168,6 +169,24 @@ public:
     delete res;
   }
 
+  void test_pxFontFileURL()
+  {
+    rtString file;
+    rtObjectRef obj;
+    rtString val;
+    rtData d;
+    rtValue status;
+    rtRef<pxFont> font;
+
+    EXPECT_EQ (RT_OK, rtGetCurrentDirectory(file));
+    file = "file://" + file + "/../../examples/pxScene2d/src/FreeSans.ttf";
+    font = pxFontManager::getFont(file.cString());
+    EXPECT_TRUE (font != NULL);
+    EXPECT_EQ (RT_OK, font->loadStatus(obj));
+    EXPECT_EQ (RT_OK, obj.Get("statusCode", &status));
+    EXPECT_TRUE (status == PX_RESOURCE_STATUS_OK);
+  }
+
 private:
   void process(pxScriptView* view, float timeout)
   {
@@ -190,4 +209,5 @@ TEST_F(baseFilePathTest, baseFilePathTests)
   test_urlInQuery();
   test_pxArchiveFileURL();
   test_rtImageResourceFileURL();
+  test_pxFontFileURL();
 }
