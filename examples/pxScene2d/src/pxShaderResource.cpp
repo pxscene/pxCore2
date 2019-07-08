@@ -305,11 +305,11 @@ void rtShaderResource::loadResourceFromFile()
 
   if(mVertexUrl.beginsWith("data:text/plain,"))
   {
-    mVertexSrc.init( (const uint8_t* ) mVertexUrl.substring(16).cString(), mVertexUrl.length() - 16);
+    mVertexSrc.init( (const uint8_t* ) mVertexUrl.substring(16).cString(), mVertexUrl.length() - 16 + 1);  // copy null character too
   }
   if(mFragmentUrl.beginsWith("data:text/plain,"))
   {
-    mFragmentSrc.init( (const uint8_t* ) mFragmentUrl.substring(16).cString(), mFragmentUrl.length() - 16);
+    mFragmentSrc.init( (const uint8_t* ) mFragmentUrl.substring(16).cString(), mFragmentUrl.length() - 16 + 1);  // copy null character too
   }
 
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
