@@ -288,24 +288,24 @@ elseif (WIN32)
     set(PXCORE_LIB_LOCATION ${PXCOREDIR}/build/win/Release)
     set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${PXCORE_LIB_LOCATION})
     set(PLATFORM_SOURCES win/pxContextUtils.cpp)
-	if ((SUPPORT_NODE) AND (NOT USE_NODE_8))
+    if (SUPPORT_NODE)
         set(PLATFORM_SOURCES ${PLATFORM_SOURCES}
-           ${NODEDIR}/src/async-wrap.cc ${NODEDIR}/src/backtrace_win32.cc
-           ${NODEDIR}/src/cares_wrap.cc ${NODEDIR}/src/connection_wrap.cc ${NODEDIR}/src/connect_wrap.cc
-           ${NODEDIR}/src/debug-agent.cc ${NODEDIR}/src/env.cc ${NODEDIR}/src/fs_event_wrap.cc ${NODEDIR}/src/handle_wrap.cc
-           ${NODEDIR}/src/inspector_agent.cc ${NODEDIR}/src/inspector_socket.cc ${NODEDIR}/src/js_stream.cc ${NODEDIR}/src/node.cc
-           ${NODEDIR}/src/node_buffer.cc ${NODEDIR}/src/node_config.cc ${NODEDIR}/src/node_constants.cc
-           ${NODEDIR}/src/node_contextify.cc ${NODEDIR}/src/node_counters.cc ${NODEDIR}/src/node_crypto.cc
-           ${NODEDIR}/src/node_crypto_bio.cc ${NODEDIR}/src/node_crypto_clienthello.cc ${NODEDIR}/src/node_dtrace.cc
-           ${NODEDIR}/src/node_file.cc ${NODEDIR}/src/node_http_parser.cc ${NODEDIR}/src/node_i18n.cc
-           ${NODEDIR}/src/node_javascript.cc ${NODEDIR}/src/node_os.cc ${NODEDIR}/src/node_revert.cc
-           ${NODEDIR}/src/node_stat_watcher.cc ${NODEDIR}/src/node_util.cc ${NODEDIR}/src/node_v8.cc ${NODEDIR}/src/node_watchdog.cc
-           ${NODEDIR}/src/node_win32_etw_provider.cc ${NODEDIR}/src/node_win32_perfctr_provider.cc ${NODEDIR}/src/node_zlib.cc
-           ${NODEDIR}/src/pipe_wrap.cc ${NODEDIR}/src/process_wrap.cc ${NODEDIR}/src/signal_wrap.cc ${NODEDIR}/src/spawn_sync.cc
-           ${NODEDIR}/src/stream_base.cc ${NODEDIR}/src/stream_wrap.cc ${NODEDIR}/src/string_bytes.cc ${NODEDIR}/src/string_search.cc
-           ${NODEDIR}/src/tcp_wrap.cc ${NODEDIR}/src/timer_wrap.cc ${NODEDIR}/src/tls_wrap.cc ${NODEDIR}/src/tty_wrap.cc
-           ${NODEDIR}/src/udp_wrap.cc ${NODEDIR}/src/util.cc ${NODEDIR}/src/uv.cc)
-    endif ()
+    	    ${NODEDIR}/src/async-wrap.cc ${NODEDIR}/src/backtrace_win32.cc
+    	    ${NODEDIR}/src/cares_wrap.cc ${NODEDIR}/src/connection_wrap.cc ${NODEDIR}/src/connect_wrap.cc
+    	    ${NODEDIR}/src/debug-agent.cc ${NODEDIR}/src/env.cc ${NODEDIR}/src/fs_event_wrap.cc ${NODEDIR}/src/handle_wrap.cc
+    	    ${NODEDIR}/src/inspector_agent.cc ${NODEDIR}/src/inspector_socket.cc ${NODEDIR}/src/js_stream.cc ${NODEDIR}/src/node.cc
+    	    ${NODEDIR}/src/node_buffer.cc ${NODEDIR}/src/node_config.cc ${NODEDIR}/src/node_constants.cc
+    	    ${NODEDIR}/src/node_contextify.cc ${NODEDIR}/src/node_counters.cc ${NODEDIR}/src/node_crypto.cc
+    	    ${NODEDIR}/src/node_crypto_bio.cc ${NODEDIR}/src/node_crypto_clienthello.cc ${NODEDIR}/src/node_dtrace.cc
+    	    ${NODEDIR}/src/node_file.cc ${NODEDIR}/src/node_http_parser.cc ${NODEDIR}/src/node_i18n.cc
+    	    ${NODEDIR}/src/node_javascript.cc ${NODEDIR}/src/node_os.cc ${NODEDIR}/src/node_revert.cc
+    	    ${NODEDIR}/src/node_stat_watcher.cc ${NODEDIR}/src/node_util.cc ${NODEDIR}/src/node_v8.cc ${NODEDIR}/src/node_watchdog.cc
+    	    ${NODEDIR}/src/node_win32_etw_provider.cc ${NODEDIR}/src/node_win32_perfctr_provider.cc ${NODEDIR}/src/node_zlib.cc
+    	    ${NODEDIR}/src/pipe_wrap.cc ${NODEDIR}/src/process_wrap.cc ${NODEDIR}/src/signal_wrap.cc ${NODEDIR}/src/spawn_sync.cc
+    	    ${NODEDIR}/src/stream_base.cc ${NODEDIR}/src/stream_wrap.cc ${NODEDIR}/src/string_bytes.cc ${NODEDIR}/src/string_search.cc
+    	    ${NODEDIR}/src/tcp_wrap.cc ${NODEDIR}/src/timer_wrap.cc ${NODEDIR}/src/tls_wrap.cc ${NODEDIR}/src/tty_wrap.cc
+    	    ${NODEDIR}/src/udp_wrap.cc ${NODEDIR}/src/util.cc ${NODEDIR}/src/uv.cc)
+    endif (SUPPORT_NODE)
     set(PLATFORM_SOURCES ${PLATFORM_SOURCES} ${PXCOREDIR}/src/utf8.c)
     set_source_files_properties(utf8.c PROPERTIES LANGUAGE CXX)
     set(PXSCENE_DEFINITIONS ${PXSCENE_DEFINITIONS} -DHAS_WINDOWS_BREAKPAD)
@@ -533,10 +533,6 @@ if (BUILD_PXSCENE_APP)
     if (BUILD_OPTIMUS_STATIC_LIB)
       add_dependencies(pxscene_app optimus)
     endif (BUILD_OPTIMUS_STATIC_LIB)
-
-    if (WIN32)
-      add_dependencies(pxscene_app pxCore)
-    endif (WIN32)
 
     if (PXSCENE_INSTALLER GREATER 0)
       if (WIN32)

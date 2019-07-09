@@ -33,7 +33,6 @@ copy /y dgif_lib.lib libgif.7.lib
 cd ..
 
 set buildExternal=0
-set nodeVer="6.9.0"
 if NOT [%APPVEYOR_REPO_COMMIT%] == [] (
     FOR /F "tokens=* USEBACKQ" %%F IN (`git diff --name-only %APPVEYOR_REPO_COMMIT% %APPVEYOR_REPO_COMMIT%~`) DO (
     echo.%%F|findstr "zlib WinSparkle pthread libpng libjpeg-turbo glew freetype curl jpeg-9a"
@@ -97,21 +96,8 @@ cd ..
 
 REM --------- LIBNODE
 
-if %nodeVer% == "6.9.0" (
-  cd libnode-v6.9.0
-  CALL vcbuild.bat x86 nosign
-)
-
-if %nodeVer% == "8.15.1" (
-  git apply node-v8.15.1_mods.patch
-  cd libnode-v8.15.1
-  if %buildExternal% == 1 (
-    CALL vcbuild.bat x86 nosign no-optimization static
-  ) else (
-    CALL vcbuild.bat x86 nosign
-  )
-)
-
+cd libnode-v6.9.0
+CALL vcbuild.bat x86 nosign
 cd ..
 
 REM --------- DUKLUV
