@@ -455,15 +455,9 @@ void rtNodeContext::createEnvironment()
 #else
 #if HAVE_INSPECTOR
 #ifdef USE_NODE_PLATFORM
-  #ifndef USE_NODE_10
-  if (mEnv->options().get()->debug_options.get()->inspector_enabled)
-  {
     rtString currentPath;
     rtGetCurrentDirectory(currentPath);
-    node::MultiIsolatePlatform* platform = static_cast<node::MultiIsolatePlatform*>(mPlatform);
     node::InspectorStart(mEnv, currentPath.cString(), platform);
-  }
-  #endif
 #endif //USE_NODE_PLATFORM
 #endif
 #endif
