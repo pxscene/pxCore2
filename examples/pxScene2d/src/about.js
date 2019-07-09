@@ -80,7 +80,7 @@ px.import({ scene: 'px:scene.1.js' }).then( function importsAreReady(imports)
     var lx = 0;              // label x
     var valueTxtM = fontRes.measureText(textPts, value);
     var labelTxtM = fontRes.measureText(textPts, label);
-
+    var x_pos = 0;
     var alignV = scene.alignVertical.CENTER;
     var w = valueTxtM.w + 10;
     if (value_w < w)
@@ -92,6 +92,8 @@ px.import({ scene: 'px:scene.1.js' }).then( function importsAreReady(imports)
         label_h += label_h_d;
         w -= value_w;
         alignV = scene.alignVertical.TOP;
+        ix = 0;
+        x_pos = 10;
         }
     }
     else{
@@ -116,7 +118,7 @@ px.import({ scene: 'px:scene.1.js' }).then( function importsAreReady(imports)
                                     w: value_w, h: value_h + 4, x: vx, y: py });
 
      var valueTxt  = scene.create({ t: "textBox", parent: valueRect, textColor: 0x000000ff,
-                                    w: value_w, h: value_h,     x: 0, y: 0,
+                                    w: value_w-x_pos, h: value_h,     x: x_pos, y: 0,
                                     font: fontRes, pixelSize: textPts, wordWrap: true, truncation: scene.truncation.TRUNCATE,
                                     xStartPos: ix, xStopPos: ix,
                                     text: value, // ### VALUE
