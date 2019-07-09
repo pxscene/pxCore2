@@ -12,27 +12,6 @@ banner() {
   echo " "
 }
 
-#--------- Args
-
-NODE_VER="6.9.0"
-
-while (( "$#" )); do
-  case "$1" in
-    --node-version)
-      NODE_VER=$2
-      shift 2
-      ;;
-    --) # end argument parsing
-      shift
-      break
-      ;;
-    -*|--*=) # unsupported flags
-      echo "Error: Unsupported flag $1" >&2
-      exit 1
-      ;;
-  esac
-done
-
 #--------- CURL
 
 make_parallel=3
@@ -69,7 +48,7 @@ then
       fi
   fi
 
-
+  
   make all "-j${make_parallel}"
   cd ..
 
@@ -213,33 +192,21 @@ fi
 
 #--------- LIBNODE
 
-if [ ! -e "libnode-v${NODE_VER}/libnode.dylib" ] ||
+if [ ! -e node/libnode.dylib ] ||
    [ "$(uname)" != "Darwin" ]
 then
 
   banner "NODE"
 
-  if [ -e "node-v${NODE_VER}_mods.patch" ]
-  then
-    git apply "node-v${NODE_VER}_mods.patch"
-  fi
-
-  cd "libnode-v${NODE_VER}"
+  cd node
   ./configure --shared
   make "-j${make_parallel}"
-
-  if [ "$(uname)" != "Darwin" ]
-  then
-    ln -sf out/Release/obj.target/libnode.so.* ./
-    ln -sf libnode.so.* libnode.so
-  else
-    ln -sf out/Release/libnode.*.dylib ./
-    ln -sf libnode.*.dylib libnode.dylib
-  fi
-
+  ln -sf out/Release/obj.target/libnode.so.48 libnode.so.48
+  ln -sf libnode.so.48 libnode.so
+  ln -sf out/Release/libnode.48.dylib libnode.48.dylib
+  ln -sf libnode.48.dylib libnode.dylib
   cd ..
-  rm node
-  ln -sf "libnode-v${NODE_VER}" node
+
 fi
 
 #--------- uWebSockets
