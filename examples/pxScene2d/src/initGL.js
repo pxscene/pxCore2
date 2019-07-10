@@ -155,6 +155,7 @@ var loadUrl = function(url, _beginDrawing, _endDrawing, _view) {
   global.sparkview = _view
   global.sparkscene = getScene("scene.1")
   global.sparkgles2 = require('gles2.js');
+  global.storage = global.sparkscene.storage;
 
   global.sparkscene.on('onClose', onClose);
 
