@@ -7,7 +7,6 @@ option(BUILD_PX_TESTS "BUILD_PX_TESTS" OFF)
 option(BUILD_PXBENCHMARK "BUILD_PXBENCHMARK" OFF)
 option(BUILD_WITH_GIF "BUILD_WITH_GIF" ON)
 
-
 option(PREFER_SYSTEM_LIBRARIES "Prefer to use system libraries over bundled." "OFF")
     # Fine selection of which external node package to pick-up, if multiple are installed on the system
     option(PKG_CONFIG_DISABLE_NODE  "When PREFER_SYSTEM_LIBRARIES=ON, it disables searching for 'node' pkg-config"   OFF)
