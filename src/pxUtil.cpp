@@ -1834,26 +1834,18 @@ int readGifData (GifFileType *gif, GifByteType *dst, int size){
 
 static int InterlacedOffset[] =  { 0, 4, 2, 1 },
 InterlacedJumps[] =  { 8, 8, 4, 2 };
-void drawGifImage(pxOffscreen& obj, GifRowType *rows, ColorMapObject *map, int transparent, GifFileType *gif){
-    size_t x, y, w, h;
-    w = obj.width();
-    h = obj.height();
-    
+void drawGifImage(pxOffscreen& obj, size_t imgX, size_t imgY, size_t imgW, size_t imgH, GifRowType *rows, ColorMapObject *map, int transparent){
     pxPixel *pixel;
     GifColorType *colors, *entry;
     GifPixelType id;
     
     colors = map->Colors;
     
-    for(y = 0; y < h; y++){
-        for(x = 0; x < w; x++){
+    for(size_t y = imgY; y < imgH; y++){
+        for(size_t x = imgX; x < imgW; x++){
             id = rows[y][x];
             pixel = obj.pixel(x, y);
             if(transparent != -1 && transparent == id){
-                continue;
-            }
-            if (x < gif->Image.Left || y < gif->Image.Top || x >= (gif->Image.Left + gif->Image.Width) || y >= (gif->Image.Top + gif->Image.Height))
-            {
                 continue;
             }
             entry = &(colors[id]);
@@ -2029,11 +2021,11 @@ rtError pxLoadAGIFImage(const char *imageData, size_t imageDataSize,
                 if (gcb.DisposalMode == DISPOSE_BACKGROUND)
                     obj.initWithColor(width, height, pxClear);
                 
-                drawGifImage(obj, rows, map, transparent, gif);
+                drawGifImage(obj, x, y, x + w, y + h, rows, map, transparent);
 
                 /* pre-display delay in 0.01sec units */
                 s.addBuffer(obj, (double)(gcb.DelayTime / (double)100));
-				
+            
                 // Clear the GCB so it doesn't apply to the next frame.
                 gcb = GraphicsControlBlock();
 				
@@ -2276,7 +2268,7 @@ rtError pxLoadGIFImage(const char *imageData, size_t imageDataSize,
                         status = RT_FAIL;
                         break;
                     }
-                    drawGifImage(obj, rows, map, transparent, gif);
+                    drawGifImage(obj, x, y, x + w, y + h, rows, map, transparent);
                     isFirstImageRendered = true;
                     // Clear the GCB so it doesn't apply to the next frame.
                     gcb = GraphicsControlBlock();
