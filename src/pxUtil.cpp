@@ -1834,7 +1834,7 @@ int readGifData (GifFileType *gif, GifByteType *dst, int size){
 
 static int InterlacedOffset[] =  { 0, 4, 2, 1 },
 InterlacedJumps[] =  { 8, 8, 4, 2 };
-void drawGifImage(pxOffscreen& obj, size_t imgX, size_t imgY, size_t imgW, size_t imgH, GifRowType *rows, ColorMapObject *map, int transparent){
+void drawGifImage(pxOffscreen& obj, const size_t& imgX, const size_t& imgY, const size_t& imgW, const size_t& imgH, const GifRowType *rows, const ColorMapObject *map, const int& transparent){
     pxPixel *pixel;
     GifColorType *colors, *entry;
     GifPixelType id;
