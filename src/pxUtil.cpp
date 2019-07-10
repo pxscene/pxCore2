@@ -2033,6 +2033,7 @@ rtError pxLoadAGIFImage(const char *imageData, size_t imageDataSize,
 
                 /* pre-display delay in 0.01sec units */
                 s.addBuffer(obj, (double)(gcb.DelayTime / (double)100));
+				
                 // Clear the GCB so it doesn't apply to the next frame.
                 gcb = GraphicsControlBlock();
                 break;
