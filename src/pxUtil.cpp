@@ -2036,6 +2036,7 @@ rtError pxLoadAGIFImage(const char *imageData, size_t imageDataSize,
 				
                 // Clear the GCB so it doesn't apply to the next frame.
                 gcb = GraphicsControlBlock();
+				
                 break;
                 
                 case EXTENSION_RECORD_TYPE:
