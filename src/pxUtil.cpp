@@ -1968,7 +1968,6 @@ rtError pxLoadAGIFImage(const char *imageData, size_t imageDataSize,
         pxOffscreen obj;
         obj.initWithColor(width, height, pxClear);
         GraphicsControlBlock gcb;
-        double duration = 0;
         do {
             // determine what sort of record type we have
             // these can be image, extension, or termination
@@ -2033,8 +2032,7 @@ rtError pxLoadAGIFImage(const char *imageData, size_t imageDataSize,
                 drawGifImage(obj, rows, map, transparent, gif);
 
                 /* pre-display delay in 0.01sec units */
-                duration = (double)(gcb.DelayTime / (double)100);
-                s.addBuffer(obj, duration == 0 ? 0.1 : duration);
+                s.addBuffer(obj, (double)(gcb.DelayTime / (double)100));
                 // Clear the GCB so it doesn't apply to the next frame.
                 gcb = GraphicsControlBlock();
                 break;
