@@ -2024,6 +2024,7 @@ rtError pxLoadAGIFImage(const char *imageData, size_t imageDataSize,
                 drawGifImage(obj, x, y, x + w, y + h, rows, map, transparent);
 
                 /* pre-display delay in 0.01sec units */
+				// TODO what if gcb.DelayTime is 0 for animated GIFS
                 s.addBuffer(obj, (double)(gcb.DelayTime / (double)100));
             
                 // Clear the GCB so it doesn't apply to the next frame.
