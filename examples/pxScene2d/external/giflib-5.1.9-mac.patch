@@ -1,0 +1,43 @@
+Index: giflib-5.1.9/Makefile
+
+index e4ded6949..de8005240 100644
+===================================================================
+--- giflib-5.1.9.orig/Makefile
++++ giflib-5.1.9/Makefile
+@@ -68,13 +68,16 @@ all: libgif.so libgif.a libutil.so libutil.a $(UTILS)
+ $(UTILS):: libgif.a libutil.a
+ 
+ libgif.so: $(OBJECTS) $(HEADERS)
+-	$(CC) $(CFLAGS) -shared $(LDFLAGS) -Wl,-soname -Wl,libgif.so.$(LIBMAJOR) -o libgif.so $(OBJECTS)
++	#$(CC) $(CFLAGS) -shared $(LDFLAGS) -Wl,-soname -Wl,libgif.so.$(LIBMAJOR) -o libgif.so $(OBJECTS)
+ 
++	$(CC) $(CFLAGS) -dynamiclib -current_version $(LIBVER) $(OBJECTS) -o libgif.$(LIBMAJOR).dylib
+ libgif.a: $(OBJECTS) $(HEADERS)
+ 	$(AR) rcs libgif.a $(OBJECTS)
+ 
+ libutil.so: $(UOBJECTS) $(UHEADERS)
+-	$(CC) $(CFLAGS) -shared $(LDFLAGS) -Wl,-soname -Wl,libutil.so.$(LIBMAJOR) -o libutil.so $(UOBJECTS)
++	#$(CC) $(CFLAGS) -shared $(LDFLAGS) -Wl,-soname -Wl,libutil.so.$(LIBMAJOR) -o libutil.so $(UOBJECTS)
++
++	$(CC) $(CFLAGS) -dynamiclib -current_version $(LIBVER) $(OBJECTS) -o libutil.$(LIBMAJOR).dylib
+ 
+ libutil.a: $(UOBJECTS) $(UHEADERS)
+ 	$(AR) rcs libutil.a $(UOBJECTS)
+ 	
+ 	
+ diff --git giflib-5.1.9/dgif_lib.c giflib-5.1.9/dgif_lib.c
+index 21b9c486b..afdce4567 100644
+--- giflib-5.1.9/dgif_lib.c
++++ giflib-5.1.9/dgif_lib.c
+
+@@ -941,7 +941,7 @@ DGifDecompressLine(GifFileType *GifFile, GifPixelType *Line, int LineLen)
+                 while (StackPtr != 0 && i < LineLen)
+                     Line[i++] = Stack[--StackPtr];
+             }
+-            if (LastCode != NO_SUCH_CODE && Private->RunningCode - 2 < LZ_MAX_CODE && Prefix[Private->RunningCode - 2] == NO_SUCH_CODE) {
++            if (LastCode != NO_SUCH_CODE && Prefix[Private->RunningCode - 2] == NO_SUCH_CODE) {
+                 Prefix[Private->RunningCode - 2] = LastCode;
+ 
+                 if (CrntCode == Private->RunningCode - 2) {
+  
+ 
