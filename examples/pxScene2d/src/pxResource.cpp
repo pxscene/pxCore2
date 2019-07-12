@@ -632,6 +632,8 @@ void rtImageResource::loadResourceFromFile()
 
   rtError loadImageSuccess = RT_FAIL;
 
+  rtString urlStr = mUrl.beginsWith("file://") ? mUrl.substring(7) : mUrl;
+
   do
   {
     if (mData.length() != 0)
@@ -641,18 +643,18 @@ void rtImageResource::loadResourceFromFile()
       break;
     }
 
-    loadImageSuccess = rtLoadFile(mUrl, mData);
+    loadImageSuccess = rtLoadFile(urlStr, mData);
     if (loadImageSuccess == RT_OK)
       break;
 
-    if (rtIsPathAbsolute(mUrl))
+    if (rtIsPathAbsolute(urlStr))
       break;
 
     rtModuleDirs *dirs = rtModuleDirs::instance();
 
     for (rtModuleDirs::iter it = dirs->iterator(); it.first != it.second; it.first++)
     {
-      if (rtLoadFile(rtConcatenatePath(*it.first, mUrl.cString()).c_str(), mData) == RT_OK)
+      if (rtLoadFile(rtConcatenatePath(*it.first, urlStr.cString()).c_str(), mData) == RT_OK)
       {
         loadImageSuccess = RT_OK;
         break;
@@ -671,7 +673,7 @@ void rtImageResource::loadResourceFromFile()
   else
   {
     loadImageSuccess = RT_RESOURCE_NOT_FOUND;
-    rtLogError("Could not load image file %s.", mUrl.cString());
+    rtLogError("Could not load image file %s.", urlStr.cString());
   }
   if ( loadImageSuccess != RT_OK)
   {
