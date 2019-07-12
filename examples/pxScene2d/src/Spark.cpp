@@ -679,9 +679,9 @@ if (s && (strcmp(s,"1") == 0))
   int size  = 0;
   for (int i=1;i<argc;i++)
   {
-    if (strstr(argv[i],"--"))
+    if (strncmp(argv[i], "--", 2) == 0)
     {
-      if (strstr(argv[i],"--debug"))
+      if (strncmp(argv[i], "--debug", 7) == 0)
       {
         isDebugging = true;
       }
@@ -706,7 +706,7 @@ if (s && (strcmp(s,"1") == 0))
 
   for (int i=1;i<argc;i++)
   {
-    if (strstr(argv[i],"--"))
+    if (strncmp(argv[i], "--", 2) == 0)
     {
         strcpy(nodeInput+curpos,argv[i]);
         *(nodeInput+curpos+strlen(argv[i])) = '\0';
