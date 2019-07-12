@@ -120,7 +120,7 @@ rtError pxArchive::initFromUrl(const rtString& url, const rtCORSRef& cors, rtObj
   // TODO review overall flow and organization
   AddRef();
 
-  if (url.beginsWith("http:") || url.beginsWith("https:") || url.beginsWith("file:"))
+  if (url.beginsWith("http:") || url.beginsWith("https:"))
   {
     mLoadStatus.set("sourceType", "http");
     mLoadStatus.set("statusCode", -1);
@@ -138,28 +138,30 @@ rtError pxArchive::initFromUrl(const rtString& url, const rtCORSRef& cors, rtObj
     // TODO align statusCodes for loadStatus
     rtError loadStatus = RT_ERROR;
 
+    rtString urlStr = mUrl.beginsWith("file://") ? mUrl.substring(7) : mUrl;
+
     do
     {
       pxArchive* arc = (pxArchive*) archive.getPtr();
       if ((arc != NULL ) && (arc->isFile() == false))
       {
-        loadStatus = arc->getFileData(mUrl, mData);
+        loadStatus = arc->getFileData(urlStr, mData);
         if (loadStatus == RT_OK)
           break;
       }
 
-      loadStatus = rtLoadFile(url, mData);
+      loadStatus = rtLoadFile(urlStr, mData);
       if (loadStatus == RT_OK)
         break;
 
-      if (rtIsPathAbsolute(url))
+      if (rtIsPathAbsolute(urlStr))
         break;
 
       rtModuleDirs *dirs = rtModuleDirs::instance();
 
       for (rtModuleDirs::iter it = dirs->iterator(); it.first != it.second; it.first++)
       {
-        loadStatus = rtLoadFile(rtConcatenatePath(*it.first, url.cString()).c_str(), mData);
+        loadStatus = rtLoadFile(rtConcatenatePath(*it.first, urlStr.cString()).c_str(), mData);
         if (loadStatus == RT_OK)
           break;
       }

@@ -35,7 +35,11 @@ if [ ! -d ${xLIBS} ]; then
   #install_name_tool -id @executable_path/lib/libjpeg.dylib ./lib/libjpeg.dylib
   #install_name_tool -id @executable_path/lib/libjpeg.9.dylib ./lib/libjpeg.9.dylib
 
-  cp ${xEXT}/node/libnode.dylib ${xLIBS}
+  #cp ${xEXT}/libnode-v6.9.0/out/Release/libnode.dylib ${xLIBS}
+  cp ${xEXT}/libnode-v6.9.0/out/Release/libnode.48.dylib ${xLIBS}  #      <<<<< MISSING ???
+
+  #install_name_tool -id @executable_path/lib/libnode.dylib ./lib/libnode.dylib
+  #install_name_tool -id @executable_path/lib/libnode.48.dylib ./lib/libnode.48.dylib
 
   ### OLDER PNG
   ##
