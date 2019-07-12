@@ -269,7 +269,7 @@ then
   banner "SQLITE"
 
   cd sqlite
-  autoreconf -f -i
+  #autoreconf -f -i
   ./configure
   make -j3
   cd ..
