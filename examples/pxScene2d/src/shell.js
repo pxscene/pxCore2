@@ -42,22 +42,6 @@ px.import({ scene: 'px:scene.1.js',
   var appUrl = scene.sparkSetting('defaultAppUrl')
   defaultAppUrl = appUrl?appUrl:defaultAppUrl
 
-  function uncaughtException(err) {
-    if (!isDuk && !isV8) {
-      logger.message('error', "Received uncaught exception " + err.stack);
-    }
-  }
-  function unhandledRejection(err) {
-    if (!isDuk && !isV8) {
-      logger.message('error', "Received uncaught rejection.... " + err);
-    }
-  }
-  if (!isDuk && !isV8) {
-    process.on('uncaughtException', uncaughtException);
-    process.on('unhandledRejection', unhandledRejection);
-  }
-
-
   /**
    * This is helper method which resolves resource URL for scene
    * - it resolves various shortcuts using prepareUrl() method
@@ -351,10 +335,7 @@ if( scene.capabilities != undefined && scene.capabilities.graphics != undefined 
   */
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   function releaseResources() {
-    if (!isDuk && !isV8) {
-        process.removeListener("uncaughtException", uncaughtException);
-        process.removeListener("unhandledRejection", unhandledRejection);
-    }
+
   }
 
   scene.on("onClose",releaseResources);

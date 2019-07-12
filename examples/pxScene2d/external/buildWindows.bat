@@ -25,13 +25,17 @@ REM --------- GIF
 cd giflib-5.1.9
 patch -p1 < ../giflib-5.1.9-windows.diff
 
+cl /c /EHsc dgif_lib.c egif_lib.c getarg.c gif2rgb.c gif_err.c gif_font.c gif_hash.c gifalloc.c gifbg.c gifbuild.c gifclrmp.c gifcolor.c gifecho.c giffilter.c giffix.c gifhisto.c gifinto.c gifsponge.c giftext.c giftool.c gifwedge.c openbsd-reallocarray.c qprintf.c quantize.c
+
+lib *.obj
+
+copy /y dgif_lib.lib libgif.7.lib
 cd ..
 
 set buildExternal=0
-set nodeVer="6.9.0"
 if NOT [%APPVEYOR_REPO_COMMIT%] == [] (
     FOR /F "tokens=* USEBACKQ" %%F IN (`git diff --name-only %APPVEYOR_REPO_COMMIT% %APPVEYOR_REPO_COMMIT%~`) DO (
-    echo.%%F|findstr "libgif zlib WinSparkle pthread libpng libjpeg-turbo glew freetype curl jpeg-9a"
+    echo.%%F|findstr "zlib WinSparkle pthread libpng libjpeg-turbo glew freetype curl jpeg-9a"
     if !errorlevel! == 0 (
       set buildExternal=1
       echo. External library files are modified. Need to build external : !buildExternal! .
@@ -92,21 +96,8 @@ cd ..
 
 REM --------- LIBNODE
 
-if %nodeVer% == "6.9.0" (
-  cd libnode-v6.9.0
-  CALL vcbuild.bat x86 nosign
-)
-
-if %nodeVer% == "8.15.1" (
-  git apply node-v8.15.1_mods.patch
-  cd libnode-v8.15.1
-  if %buildExternal% == 1 (
-    CALL vcbuild.bat x86 nosign no-optimization static
-  ) else (
-    CALL vcbuild.bat x86 nosign
-  )
-)
-
+cd libnode-v6.9.0
+CALL vcbuild.bat x86 nosign
 cd ..
 
 REM --------- DUKLUV
@@ -119,7 +110,3 @@ cmake ..
 cmake --build . --config Release -- /m
 cd ..
 
-REM ---------- GIF
-if EXIST vc.build\builds (
-  copy /y vc.build\builds\libgif.lib giflib-5.1.9\libgif.lib
-)

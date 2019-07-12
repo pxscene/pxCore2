@@ -122,8 +122,12 @@ rtError pxLoadAImage(const char* imageData, size_t imageDataSize,
   pxTimedOffscreenSequence &s);
 rtError pxLoadAPNGImage(const char *imageData, size_t imageDataSize,
   pxTimedOffscreenSequence &s);
-rtError pxLoadGIFImage(const char *imageData, size_t imageDataSize,
+rtError pxLoadAGIFImage(const char *imageData, size_t imageDataSize,
                        pxTimedOffscreenSequence &s);
+
+rtError pxLoadGIFImage(const char *imageData, size_t imageDataSize,
+                       pxOffscreen &o);
+rtError pxLoadGIFImage(const char* filename, pxOffscreen& o);
 
 rtError pxLoadPNGImage(const char* imageData, size_t imageDataSize, 
                        pxOffscreen& o);

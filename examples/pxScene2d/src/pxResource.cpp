@@ -632,6 +632,8 @@ void rtImageResource::loadResourceFromFile()
 
   rtError loadImageSuccess = RT_FAIL;
 
+  rtString urlStr = mUrl.beginsWith("file://") ? mUrl.substring(7) : mUrl;
+
   do
   {
     if (mData.length() != 0)
@@ -641,18 +643,19 @@ void rtImageResource::loadResourceFromFile()
       break;
     }
 
-    loadImageSuccess = rtLoadFile(mUrl, mData);
+    loadImageSuccess = rtLoadFile(urlStr, mData);
+
     if (loadImageSuccess == RT_OK)
       break;
 
-    if (rtIsPathAbsolute(mUrl))
+    if (rtIsPathAbsolute(urlStr))
       break;
 
     rtModuleDirs *dirs = rtModuleDirs::instance();
 
     for (rtModuleDirs::iter it = dirs->iterator(); it.first != it.second; it.first++)
     {
-      if (rtLoadFile(rtConcatenatePath(*it.first, mUrl.cString()).c_str(), mData) == RT_OK)
+      if (rtLoadFile(rtConcatenatePath(*it.first, urlStr.cString()).c_str(), mData) == RT_OK)
       {
         loadImageSuccess = RT_OK;
         break;
@@ -671,7 +674,7 @@ void rtImageResource::loadResourceFromFile()
   else
   {
     loadImageSuccess = RT_RESOURCE_NOT_FOUND;
-    rtLogError("Could not load image file %s.", mUrl.cString());
+    rtLogError("Could not load image file %s.", urlStr.cString());
   }
   if ( loadImageSuccess != RT_OK)
   {
@@ -887,7 +890,7 @@ void pxResource::processDownloadedResource(rtFileDownloadRequest* fileDownloadRe
         setLoadStatus("downloadSpeedBytesPerSecond", downloadSpeedBytesPerSecond);
         setLoadStatus("loadedFromCache", false);
       }
-      
+
       if(result == PX_RESOURCE_LOAD_FAIL)
       {
         rtLogError("Resource Decode Failed: %s with proxy: %s", fileDownloadRequest->fileUrl().cString(), fileDownloadRequest->proxy().cString());
@@ -987,6 +990,7 @@ uint32_t rtImageAResource::loadResourceData(rtFileDownloadRequest* fileDownloadR
         mWidth = o.width();
         mHeight = o.height();
       }
+      setLoadStatus("statusCode", PX_RESOURCE_LOAD_SUCCESS);
       return PX_RESOURCE_LOAD_SUCCESS;
     }
   }
@@ -995,8 +999,96 @@ uint32_t rtImageAResource::loadResourceData(rtFileDownloadRequest* fileDownloadR
 
 void rtImageAResource::loadResourceFromFile()
 {
-  //TODO
-  setLoadStatus("statusCode",PX_RESOURCE_STATUS_UNKNOWN_ERROR);
+    rtString status = "resolve";
+
+    rtError loadImageSuccess = RT_FAIL;
+    rtData data;
+    do
+    {
+        if (data.length() != 0)
+        {
+            // We have BASE64 or SVG string already...
+            loadImageSuccess = RT_OK;
+            break;
+        }
+        rtString url = mUrl.beginsWith("file:") ? mUrl.substring(5, mUrl.length()-5) : mUrl;
+    	loadImageSuccess = rtLoadFile(url, data);
+        if (loadImageSuccess == RT_OK)
+        break;
+
+        if (rtIsPathAbsolute(mUrl))
+        break;
+
+        rtModuleDirs *dirs = rtModuleDirs::instance();
+
+        for (rtModuleDirs::iter it = dirs->iterator(); it.first != it.second; it.first++)
+        {
+            if (rtLoadFile(rtConcatenatePath(*it.first, mUrl.cString()).c_str(), data) == RT_OK)
+            {
+                loadImageSuccess = RT_OK;
+                break;
+            }
+        }
+    } while(0);
+
+    if (loadImageSuccess == RT_OK)
+    {
+        double startDecodeTime = pxMilliseconds();
+        loadImageSuccess = pxLoadAImage((const char *) data.data(), data.length(), mTimedOffscreenSequence);
+
+        if (loadImageSuccess == RT_OK && mTimedOffscreenSequence.numFrames() > 0)
+        {
+            pxOffscreen &o = mTimedOffscreenSequence.getFrameBuffer(0);
+            rtMutexLockGuard dimensionsMutexLock(mDimensionsMutex);
+            mWidth = o.width();
+            mHeight = o.height();
+        }
+
+        double stopDecodeTime = pxMilliseconds();
+        setLoadStatus("decodeTimeMs", static_cast<int>(stopDecodeTime-startDecodeTime));
+    }
+    else
+    {
+        loadImageSuccess = RT_RESOURCE_NOT_FOUND;
+        rtLogError("Could not load image file %s.", mUrl.cString());
+    }
+    if ( loadImageSuccess != RT_OK)
+    {
+        rtLogWarn("image load failed"); // TODO: why?
+        if (loadImageSuccess == RT_RESOURCE_NOT_FOUND)
+        {
+            setLoadStatus("statusCode",PX_RESOURCE_STATUS_FILE_NOT_FOUND);
+        }
+        else
+        {
+            setLoadStatus("statusCode", PX_RESOURCE_STATUS_DECODE_FAILURE);
+        }
+
+        // Since this object can be released before we get a async completion
+        // We need to maintain this object's lifetime
+        // TODO review overall flow and organization
+        AddRef();
+
+        if (gUIThreadQueue)
+        {
+            gUIThreadQueue->addTask(onDownloadCompleteUI, this, (void*)"reject");
+        }
+        //mTexture->notifyListeners( mTexture, RT_FAIL, errorCode);
+    }
+    else
+    {
+        data.term(); // Dump the source data...
+
+        setLoadStatus("statusCode",PX_RESOURCE_LOAD_SUCCESS);
+        // Since this object can be released before we get a async completion
+        // We need to maintain this object's lifetime
+        // TODO review overall flow and organization
+        AddRef();
+        if (gUIThreadQueue)
+        {
+            gUIThreadQueue->addTask(onDownloadCompleteUI, this, (void *) "resolve");
+        }
+    }
 }
 
 void rtImageAResource::loadResourceFromArchive(rtObjectRef archiveRef)
@@ -1072,8 +1164,8 @@ rtRef<rtImageResource> pxImageManager::getImage(const char* url, const char* pro
   rtString svgUrl = url;
 
   // Correctly formed URI string ?
-  if(index_of_comma >= 0 && 
-     index_of_slash >= 0 && 
+  if(index_of_comma >= 0 &&
+     index_of_slash >= 0 &&
      uri_string.beginsWith("data:image/"))
   {
     rtString md5     = md5sum(uri_string);
@@ -1107,7 +1199,7 @@ rtRef<rtImageResource> pxImageManager::getImage(const char* url, const char* pro
       }
     }
   }
-  
+
   // For SVG  (and scaled PNG/JPG in the future) at a given SxSy SCALE ... append to key
   if(sx != 1.0 || sy != 1.0)
   {
@@ -1153,7 +1245,7 @@ rtRef<rtImageResource> pxImageManager::getImage(const char* url, const char* pro
     mImageMap.insert(make_pair(key.cString(), pResImage));
 
     // Is this a Data URI ?
-    if(index_of_comma >= 0 && 
+    if(index_of_comma >= 0 &&
        index_of_slash >= 0)
     {
       // data: [<mediatype>][;base64],<data>
