@@ -75,6 +75,12 @@ class pxConstantsDragType;
 
 #include "rtServiceProvider.h"
 #include "rtSettings.h"
+
+#ifdef PXSCENE_SUPPORT_STORAGE
+#include "rtStorage.h"
+#endif
+
+
 #ifdef RUNINMAIN
 #define ENTERSCENELOCK()
 #define EXITSCENELOCK() 
@@ -575,11 +581,13 @@ public:
       mGetScene->clearContext();
       mMakeReady->clearContext();
       mGetContextID->clearContext();
+      mGetSetting->clearContext();
 
       // TODO Given that the context is being cleared we likely don't need to zero these out
       mCtx->add("getScene", 0);
       mCtx->add("makeReady", 0);
       mCtx->add("getContextID", 0);
+      mCtx->add("getSetting", 0);
     }
 #endif //ENABLE_RT_NODE
 
@@ -659,12 +667,12 @@ public:
   
 protected:
 
-  static rtError printFunc(int /*numArgs*/, const rtValue* /*args*/, rtValue* result, void* ctx);
 
   static rtError getScene(int /*numArgs*/, const rtValue* /*args*/, rtValue* result, void* ctx);
   static rtError makeReady(int /*numArgs*/, const rtValue* /*args*/, rtValue* result, void* ctx);
 
   static rtError getContextID(int /*numArgs*/, const rtValue* /*args*/, rtValue* result, void* /*ctx*/);
+  static rtError getSetting(int numArgs, const rtValue* args, rtValue* result, void* /*ctx*/);
 
   virtual void onSize(int32_t w, int32_t h)
   {
@@ -812,10 +820,10 @@ protected:
   rtObjectRef mReady;
   rtObjectRef mScene;
   rtRef<pxIView> mView;
-  rtRef<rtFunctionCallback> mPrintFunc;
   rtRef<rtFunctionCallback> mGetScene;
   rtRef<rtFunctionCallback> mMakeReady;
   rtRef<rtFunctionCallback> mGetContextID;
+  rtRef<rtFunctionCallback> mGetSetting;
 
 #ifdef ENABLE_RT_NODE
   rtScriptContextRef mCtx;
@@ -899,6 +907,8 @@ public:
   rtMethod1ArgAndNoReturn("addServiceProvider", addServiceProvider, rtFunctionRef);
   rtMethod1ArgAndNoReturn("removeServiceProvider", removeServiceProvider, rtFunctionRef);
 
+  rtReadOnlyProperty(storage,storage,rtObjectRef);
+
 #ifdef ENABLE_PERMISSIONS_CHECK
   // permissions can be set to either scene or to its container
   rtProperty(permissions, permissions, setPermissions, rtObjectRef);
@@ -920,13 +930,13 @@ public:
     }
     mArchiveSet = false;
   }
-  
-  virtual unsigned long AddRef() 
+
+  virtual unsigned long AddRef()
   {
     return rtAtomicInc(&mRefCount);
   }
-  
-  virtual unsigned long Release() 
+
+  virtual unsigned long Release()
   {
     long l = rtAtomicDec(&mRefCount);
     //  rtLogDebug("pxScene2d release %ld\n",l);
@@ -975,12 +985,12 @@ public:
   rtError showDirtyRect(bool& v) const;
   rtError setShowDirtyRect(bool v);
 
-  rtError dirtyRectangle(rtObjectRef& v) const;   
+  rtError dirtyRectangle(rtObjectRef& v) const;
   rtError dirtyRectanglesEnabled(bool& v) const;
-    
+
   rtError enableDirtyRect(bool& v) const;
   rtError setEnableDirtyRect(bool v);
-    
+
   rtError customAnimator(rtFunctionRef& f) const;
   rtError setCustomAnimator(const rtFunctionRef& f);
 
@@ -997,7 +1007,7 @@ public:
   rtError createImage9Border(rtObjectRef p, rtObjectRef& o);
   rtError createImageResource(rtObjectRef p, rtObjectRef& o);
   rtError createImageAResource(rtObjectRef p, rtObjectRef& o);
-  rtError createFontResource(rtObjectRef p, rtObjectRef& o);  
+  rtError createFontResource(rtObjectRef p, rtObjectRef& o);
   rtError createScene(rtObjectRef p,rtObjectRef& o);
   rtError createExternal(rtObjectRef p, rtObjectRef& o);
   rtError createWayland(rtObjectRef p, rtObjectRef& o);
@@ -1027,7 +1037,7 @@ public:
   }
 
   rtError setFocus(rtObjectRef o);
- 
+
 #if 0
   rtError stopPropagation()
   {
@@ -1044,7 +1054,7 @@ public:
   rtError setAPI(const rtValue& v) { mAPI = v; return RT_OK; }
 
   rtError emit(rtFunctionRef& v) const { v = mEmit; return RT_OK; }
-  
+
   rtError animation(rtObjectRef& v)       const {v = CONSTANTS.animationConstants;       return RT_OK;}
   rtError stretch(rtObjectRef& v)         const {v = CONSTANTS.stretchConstants;         return RT_OK;}
   rtError maskOp(rtObjectRef& v)          const {v = CONSTANTS.maskOpConstants;          return RT_OK;}
@@ -1090,7 +1100,7 @@ public:
   virtual bool onKeyDown(uint32_t keycode, uint32_t flags);
   virtual bool onKeyUp(uint32_t keycode, uint32_t flags);
   virtual bool onChar(uint32_t codepoint);
-  
+
   virtual void onUpdate(double t);
   virtual void onDraw();
   virtual void onComplete();
@@ -1098,7 +1108,7 @@ public:
   virtual void setViewContainer(pxIViewContainer* l);
   pxIViewContainer* viewContainer();
   void invalidateRect(pxRect* r);
-  
+
   void getMatrixFromObjectToScene(pxObject* o, pxMatrix4f& m);
   void getMatrixFromSceneToObject(pxObject* o, pxMatrix4f& m);
   void getMatrixFromObjectToObject(pxObject* from, pxObject* to, pxMatrix4f& m);
@@ -1107,16 +1117,16 @@ public:
   void transformPointFromSceneToObject(pxObject* o, const pxPoint2f& from, pxPoint2f& to);
   void transformPointFromObjectToObject(pxObject* fromObject, pxObject* toObject,
 					pxPoint2f& from, pxPoint2f& to);
-  
+
   void hitTest(pxPoint2f p, std::vector<rtRef<pxObject> > hitList);
-  
+
   pxObject* getRoot() const;
-  rtError root(rtObjectRef& v) const 
+  rtError root(rtObjectRef& v) const
   {
     v = getRoot();
     return RT_OK;
   }
- 
+
   rtObjectRef  getInfo() const;
   rtError info(rtObjectRef& v) const
   {
@@ -1197,6 +1207,8 @@ public:
   {
     return mArchive;
   }
+
+  rtError storage(rtObjectRef& v) const;
 
   static void enableOptimizedUpdate(bool enable);
   static void updateObject(pxObject* o, bool update);
@@ -1281,6 +1293,9 @@ public:
   bool mDisposed;
   std::vector<rtFunctionRef> mServiceProviders;
   bool mArchiveSet;
+#ifdef PXSCENE_SUPPORT_STORAGE
+  mutable rtStorageRef mStorage;
+#endif
   static bool mOptimizedUpdateEnabled;
 };
 

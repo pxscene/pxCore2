@@ -51,3 +51,14 @@ fi
 
 #--------- dukluv
 rm -rf dukluv/build
+
+
+#--------- sqlite
+cd sqlite
+make clean -j3
+cd ..
+
+#--------- GIF
+cd gif
+make clean -j3
+cd ..

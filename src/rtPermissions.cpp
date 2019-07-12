@@ -31,50 +31,58 @@
 const char* rtPermissions::DEFAULT_CONFIG_FILE = "./sparkpermissions.conf";
 const char* rtPermissions::CONFIG_ENV_NAME = "SPARK_PERMISSIONS_CONFIG";
 const char* rtPermissions::ENABLED_ENV_NAME = "SPARK_PERMISSIONS_ENABLED";
+const char* rtPermissions::LOCAL_FILE_ORIGIN = "file://";
+
 bool rtPermissions::mEnabled = false;
 rtObjectRef rtPermissions::mConfig = NULL;
 
 rtPermissions::rtPermissions(const char* origin)
   : mOrigin(rtUrlGetOrigin(origin))
   , mParent(NULL)
+  , mStorageQuota(0)
 {
+  if (mOrigin.isEmpty())
+    mOrigin = LOCAL_FILE_ORIGIN;
+
+  //
+  // read env. variables and config
   static bool didInit = false;
   if (!didInit)
   {
     init();
     didInit = true;
   }
-
   if (!mConfig && mEnabled)
     rtLogWarn("no permissions config");
 
+  //
+  // find role in conf
   rtString role;
   if (mConfig)
   {
     rtObjectRef assign = mConfig.get<rtObjectRef>("assign");
-    if (!mOrigin.isEmpty() && assign)
+    if (assign)
     {
       rtString s;
       if (find(assign, mOrigin.cString(), s) == RT_OK)
-      {
         role = assign.get<rtString>(s.cString());
-        rtLogDebug("permissions role '%s' for origin '%s", role.cString(), mOrigin.cString());
-      }
     }
   }
-
-  if (!mOrigin.isEmpty() && role.isEmpty())
-    rtLogWarn("no permissions role for origin '%s'", mOrigin.cString());
-
   if (!role.isEmpty())
   {
     rtObjectRef roles = mConfig.get<rtObjectRef>("roles");
     if (roles)
-      mRole = roles.get<rtObjectRef>(role.cString());
+      set(roles.get<rtObjectRef>(role.cString()));
   }
 
-  if (!role.isEmpty() && !mRole)
+  //
+  // logging
+  if (role.isEmpty())
+    rtLogWarn("no permissions role for '%s'", mOrigin.cString());
+  else if (!mRole)
     rtLogWarn("no config for permissions role '%s'", role.cString());
+  else
+    rtLogDebug("permissions role '%s' for '%s'", role.cString(), mOrigin.cString());
 }
 
 rtPermissions::~rtPermissions()
@@ -83,6 +91,7 @@ rtPermissions::~rtPermissions()
 
 rtDefineObject(rtPermissions, rtObject);
 rtDefineMethod(rtPermissions, allows);
+rtDefineProperty(rtPermissions, storageQuota);
 
 rtError rtPermissions::init(const char* filename)
 {
@@ -146,6 +155,16 @@ rtError rtPermissions::set(const char* json)
 rtError rtPermissions::set(const rtObjectRef& obj)
 {
   mRole = obj;
+
+  uint32_t quota = 0;
+  if (mRole)
+  {
+    rtObjectRef o = mRole.get<rtObjectRef>(type2str(STORAGE));
+    if (o)
+      quota = o.get<uint32_t>("allow");
+  }
+  mStorageQuota = quota;
+
   return RT_OK;
 }
 
@@ -166,7 +185,7 @@ rtError rtPermissions::allows(const char* s, rtPermissions::Type type) const
   const char* t = type2str(type);
   if (mRole == NULL)
   {
-    if (mOrigin.isEmpty())
+    if (mOrigin == LOCAL_FILE_ORIGIN)
       return RT_OK; // allow from file system
     return RT_ERROR_NOT_ALLOWED;
   }  
@@ -216,6 +235,12 @@ rtError rtPermissions::allows(const rtString& url, bool& o) const
   else
     return RT_FAIL;
 
+  return RT_OK;
+}
+
+rtError rtPermissions::getStorageQuota(uint32_t& o) const
+{
+  o = mStorageQuota;
   return RT_OK;
 }
 
@@ -291,10 +316,27 @@ namespace
       }
       v = o;
     }
+
+    // string
     else if (jsonValue.IsString())
-    {
       v = jsonValue.GetString();
-    }
+
+    // number
+    else if (jsonValue.IsUint())
+      v = jsonValue.GetUint();
+    else if (jsonValue.IsInt())
+      v = jsonValue.GetInt();
+    else if (jsonValue.IsInt64())
+      v = jsonValue.GetInt64();
+    else if (jsonValue.IsUint64())
+      v = jsonValue.GetUint64();
+    else if (jsonValue.IsDouble())
+      v = jsonValue.GetDouble();
+
+    // other types
+    else if (jsonValue.IsBool())
+      v = jsonValue.GetBool();
+
     else
     {
       rtLogError("%s : value is not string/array/object", __FUNCTION__);
@@ -413,6 +455,7 @@ const char* rtPermissions::type2str(Type t)
     case FEATURE: return "features";
     case WAYLAND: return "applications";
     case RTREMOTE: return "rtRemote";
+    case STORAGE: return "storage";
     default: return NULL;
   }
 }

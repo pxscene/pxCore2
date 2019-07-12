@@ -1,0 +1,15 @@
+
+ diff --git giflib-5.1.9/dgif_lib.c giflib-5.1.9/dgif_lib.c
+index 21b9c486b..afdce4567 100644
+--- giflib-5.1.9/dgif_lib.c
++++ giflib-5.1.9/dgif_lib.c
+
+@@ -941,7 +941,7 @@ DGifDecompressLine(GifFileType *GifFile, GifPixelType *Line, int LineLen)
+                 while (StackPtr != 0 && i < LineLen)
+                     Line[i++] = Stack[--StackPtr];
+             }
+-            if (LastCode != NO_SUCH_CODE && Private->RunningCode - 2 < LZ_MAX_CODE && Prefix[Private->RunningCode - 2] == NO_SUCH_CODE) {
++            if (LastCode != NO_SUCH_CODE && Prefix[Private->RunningCode - 2] == NO_SUCH_CODE) {
+                 Prefix[Private->RunningCode - 2] = LastCode;
+ 
+                 if (CrntCode == Private->RunningCode - 2) {

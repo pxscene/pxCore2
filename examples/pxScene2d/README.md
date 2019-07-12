@@ -26,7 +26,12 @@
     
     ~~~~
     sudo apt-get install git libglew-dev freeglut3 freeglut3-dev libgcrypt11-dev zlib1g-dev g++ libssl-dev nasm autoconf libtool cmake quilt xmlto
-    
+    ~~~~
+
+2. For Ubuntu 18.04+ also install:
+
+    ~~~~
+    sudo apt-get install gnutls-dev
     ~~~~
 
 ## macOS Setup 
@@ -37,12 +42,13 @@
 >   * From terminal install dependencies: cmake, pkg-config, quilt, java.
 
 ```bash
-    brew install cmake pkg-config quilt caskroom/cask/java libuv
+    brew install cmake pkg-config quilt caskroom/cask/java libuv xmlto
 ```
 
 ## Windows Setup
 >Setup Windows 10
 >   * Windows 10 
+>   * VMware Fusion + VMware Tools
 >   * Visual Studio 2017 community with `Desktop development with C++` workload
 >   * [windows sdk 10.0.15063.0, windows sdk 10.0.16299 and windows sdk 10.0.17134(aka 1803)] (https://developer.microsoft.com/en-us/windows/downloads/sdk-archive)
 >   * python 2.7.x , make sure python can work in cmd (setup environment variables depending on install location)
@@ -102,10 +108,10 @@
       cd examples/pxScene2d/external/node
       ./configure --shared
       make -j1
-      ln -sf out/Release/obj.target/libnode.so.* ./
-      ln -sf libnode.so.* libnode.so
-      ln -sf out/Release/libnode.*.dylib ./
-      ln -sf libnode.*.dylib libnode.dylib
+      ln -sf out/Release/obj.target/libnode.so.48 libnode.so.48
+      ln -sf libnode.so.48 libnode.so
+      ln -sf out/Release/libnode.48.dylib libnode.48.dylib
+      ln -sf libnode.48.dylib libnode.dylib
       ~~~~
       Build breakpad
       ~~~~
@@ -127,7 +133,7 @@
       ~~~~
       Build node
       ~~~~
-      cd examples/pxScene2d/external/libnode-v8.15.1
+      cd examples/pxScene2d/external/libnode-v6.9.0
       CALL vcbuild.bat x86 nosign
       cd ..
       ~~~~

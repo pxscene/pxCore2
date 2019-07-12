@@ -151,6 +151,13 @@ px.import({ scene: 'px:scene.1.js',
             set: function (val) { this._enablePaste = val; },
             get: function () { return this._enablePaste;   },
         });
+        // - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        this.onFocusCallback;
+        Object.defineProperty(this, "setOnFocusCallback",
+          {
+              set: function (val) { this.onFocusCallback = val; },
+              get: function () { return this.onFocusCallback;   },
+          });
         // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         //
         // PUBLIC methods
@@ -439,6 +446,10 @@ px.import({ scene: 'px:scene.1.js',
             showCursor();
             textInput.textColor = defaultTextColor
             // console.log(" OnFocus()    textInput.focus ");// = " + textInput.focus);
+
+            if (self.onFocusCallback !== undefined) {
+                self.onFocusCallback();
+            }
         });
 
         textInput.on("onBlur", function (e) {

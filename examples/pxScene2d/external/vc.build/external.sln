@@ -1469,7 +1469,7 @@ Global
 		{47B228CB-24FE-5250-B1FC-DFC81D3E69DF}.RelWithDebInfo|Win32.ActiveCfg = Release|Win32
 		{47B228CB-24FE-5250-B1FC-DFC81D3E69DF}.RelWithDebInfo|Win32.Build.0 = Release|Win32
 		{47B228CB-24FE-5250-B1FC-DFC81D3E69DF}.RelWithDebInfo|x64.ActiveCfg = Release|x64
-		{47B228CB-24FE-5250-B1FC-DFC81D3E69DF}.RelWithDebInfo|x64.Build.0 = Release|x64
+		{47B228CB-24FE-5250-B1FC-DFC81D3E69DF}.RelWithDebInfo|x64.Build.0 = Release|x64		
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

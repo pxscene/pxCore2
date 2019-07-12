@@ -103,11 +103,7 @@ if (NOT WIN32)
         pkg_search_module(OPENSSL openssl)
     endif (PREFER_SYSTEM_LIBRARIES)
     if (NOT OPENSSL_FOUND)
-      if (USE_NODE_8)
-        set(OPENSSL_INCLUDE_DIRS "${EXTDIR}/libnode-v8.15.1/deps/openssl/openssl/include")
-      else ()
         set(OPENSSL_INCLUDE_DIRS "${EXTDIR}/libnode-v6.9.0/deps/openssl/openssl/include")
-      endif ()
     endif (NOT OPENSSL_FOUND)
 
     pkg_search_module(UV libuv)
@@ -119,6 +115,22 @@ if (NOT WIN32)
         pkg_search_module(ICU_I18N icu-i18n)
         pkg_search_module(ICU_UC icu-uc)
     endif (PREFER_SYSTEM_LIBRARIES AND SUPPORT_V8)
+
+    if (SUPPORT_STORAGE)
+        if (PREFER_SYSTEM_LIBRARIES)
+            if (ENABLE_SQLITE_ENCRYPTION_EXTENSION)
+                pkg_search_module(SQLITE REQUIRED sqlite3see)
+            else ()
+                pkg_search_module(SQLITE sqlite3)
+            endif ()
+        endif (PREFER_SYSTEM_LIBRARIES)
+        if (NOT SQLITE_FOUND)
+            message(STATUS "Using built-in sqlite3 library")
+            set(SQLITE_INCLUDE_DIRS "${EXTDIR}/sqlite-autoconf-3280000")
+            set(SQLITE_LIBRARY_DIRS "${EXTDIR}/sqlite-autoconf-3280000/.libs")
+            set(SQLITE_LIBRARIES "sqlite3")
+        endif (NOT SQLITE_FOUND)
+    endif (SUPPORT_STORAGE)
 
 else (NOT WIN32)
 
@@ -148,11 +160,21 @@ else (NOT WIN32)
     set(GLEW_LIBRARY_DIRS "${VCLIBS}")
     set(GLEW_LIBRARIES "glew32s.lib")
 
+    if (SUPPORT_STORAGE)
+        message(STATUS "Using built-in sqlite3 library")
+        set(SQLITE_INCLUDE_DIRS "${EXTDIR}/sqlite-autoconf-3280000")
+        set(SQLITE_LIBRARY_DIRS "${EXTDIR}/sqlite-autoconf-3280000")
+        set(SQLITE_LIBRARIES "sqlite3.lib")
+    endif (SUPPORT_STORAGE)
+
 endif (NOT WIN32)
 
 
 
-set(COMM_DEPS_DEFINITIONS ${COMM_DEPS_DEFINITIONS} ${TURBO_DEFINITIONS})
+set(COMM_DEPS_DEFINITIONS ${COMM_DEPS_DEFINITIONS}
+        ${TURBO_DEFINITIONS}
+      ${SQLITE_CFLAGS_OTHER}
+   )
 
 set(COMM_DEPS_INCLUDE_DIRS ${COMM_DEPS_INCLUDE_DIRS}
         ${ZLIB_INCLUDE_DIRS}
@@ -171,6 +193,7 @@ set(COMM_DEPS_INCLUDE_DIRS ${COMM_DEPS_INCLUDE_DIRS}
           ${UV_INCLUDE_DIRS}
     ${ICU_I18N_INCLUDE_DIRS}
       ${ICU_UC_INCLUDE_DIRS}
+      ${SQLITE_INCLUDE_DIRS}
    )
 
 set(COMM_DEPS_LIBRARY_DIRS ${COMM_DEPS_LIBRARY_DIRS}
@@ -190,6 +213,7 @@ set(COMM_DEPS_LIBRARY_DIRS ${COMM_DEPS_LIBRARY_DIRS}
           ${UV_LIBRARY_DIRS}
     ${ICU_I18N_LIBRARY_DIRS}
       ${ICU_UC_LIBRARY_DIRS}
+      ${SQLITE_LIBRARY_DIRS}
    )
 
 set(COMM_DEPS_LIBRARIES ${COMM_DEPS_LIBRARIES}
@@ -209,4 +233,5 @@ set(COMM_DEPS_LIBRARIES ${COMM_DEPS_LIBRARIES}
              ${UV_LIBRARIES}
        ${ICU_I18N_LIBRARIES}
          ${ICU_UC_LIBRARIES}
+         ${SQLITE_LIBRARIES}
    )

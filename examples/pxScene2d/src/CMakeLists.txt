@@ -85,7 +85,14 @@ set(PXSCENE_INSTALLER 0)
 
 if (BUILD_WITH_GIF)
 message("Building with GIF support")
-set(PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} gif)
+set(GIF ${EXTDIR}/giflib-5.1.9/)
+set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${GIF})
+	
+if(WIN32)
+	set(PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} libgif.7.lib)
+else()
+	set(PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} gif)
+endif(WIN32)
 add_definitions(-DSUPPORT_GIF)
 endif (BUILD_WITH_GIF)
 
@@ -101,7 +108,7 @@ if (APPLE)
     set(PXCORE_LIB_LOCATION ${PXCOREDIR}/build/mac)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC -fpermissive -g -Wall -Wno-attributes -Wall -Wextra")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -fpermissive -g -Wall -Wno-attributes -Wall -Wextra")
-    set(PXSCENE_LINK_DIRECTORIES ${PXCORE_LIB_LOCATION})
+    set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${PXCORE_LIB_LOCATION})
     set(PXSCENE_DEFINITIONS ${PXSCENE_DEFINITIONS} -DENABLE_NODE_V_6_9 -D_DARWIN_USE_64_BIT_INODE=1 -DNODE_ARCH="x64" -DNODE_WANT_INTERNALS=1 -DV8_DEPRECATION_WARNINGS= -DNODE_SHARED_MODE -DNODE_USE_V8_PLATFORM=1 -DNODE_HAVE_I18N_SUPPORT=1 -DNODE_HAVE_SMALL_ICU=1 -DHAVE_OPENSSL=1 -DHAVE_DTRACE=1 -D__POSIX__ -DNODE_PLATFORM=darwin -DDUCONFIG_NO_TRANSLITERATION=1 -DUCONFIG_NO_SERVICE=1 -DUCONFIG_NO_REGULAR_EXPRESSIONS=1 -DU_ENABLE_DYLOAD=0 -DU_STATIC_IMPLEMENTATION=1 -DU_HAVE_STD_STRING=0 -DUCONFIG_NO_BREAK_ITERATION=0 -DUCONFIG_NO_LEGACY_CONVERSION=1 -DUCONFIG_NO_CONVERSION=1 -DHTTP_PARSER_STRICT=0 -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64)
     set(PLATFORM_SOURCES mac/pxContextUtils.mm)
     set(PXSCENE_LINKER_OPTIONS "-framework OpenGL -framework Cocoa -framework Foundation")
@@ -113,11 +120,12 @@ if (APPLE)
     endif (ENABLE_ADDRESS_SANITIZER)
     set(PXSCENE_LINK_LIBRARIES)
     set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${NODE_LIBRARY_DIRS} ${V8_LIBRARY_DIRS} ${DUKE_LIBRARY_DIRS} ${COMM_DEPS_LIBRARY_DIRS})
-    set(PLATFORM_LIBRARIES pxCore rtCore_s pthread ${NODE_LIBRARIES} ${V8_LIBRARIES} ${DUKE_LIBRARIES} ${COMM_DEPS_LIBRARIES})
+    set(PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} pxCore rtCore_s pthread ${NODE_LIBRARIES} ${V8_LIBRARIES} ${DUKE_LIBRARIES} ${COMM_DEPS_LIBRARIES})
     if (SUPPORT_V8)
         set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${UWS})
         set(PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} uWS) 
     endif ()
+
     include_directories(AFTER ${NODE_INCLUDE_DIRS} ${DUKE_INCLUDE_DIRS} ${COMM_DEPS_INCLUDE_DIRS})
     if (DEFINED ENV{CODE_COVERAGE})
         message("enabling code coverage support")
@@ -278,8 +286,26 @@ elseif (WIN32)
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT ")
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /EHs-c-")
     set(PXCORE_LIB_LOCATION ${PXCOREDIR}/build/win/Release)
-    set(PXSCENE_LINK_DIRECTORIES ${PXCORE_LIB_LOCATION})
+    set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${PXCORE_LIB_LOCATION})
     set(PLATFORM_SOURCES win/pxContextUtils.cpp)
+    if (SUPPORT_NODE)
+        set(PLATFORM_SOURCES ${PLATFORM_SOURCES}
+    	    ${NODEDIR}/src/async-wrap.cc ${NODEDIR}/src/backtrace_win32.cc
+    	    ${NODEDIR}/src/cares_wrap.cc ${NODEDIR}/src/connection_wrap.cc ${NODEDIR}/src/connect_wrap.cc
+    	    ${NODEDIR}/src/debug-agent.cc ${NODEDIR}/src/env.cc ${NODEDIR}/src/fs_event_wrap.cc ${NODEDIR}/src/handle_wrap.cc
+    	    ${NODEDIR}/src/inspector_agent.cc ${NODEDIR}/src/inspector_socket.cc ${NODEDIR}/src/js_stream.cc ${NODEDIR}/src/node.cc
+    	    ${NODEDIR}/src/node_buffer.cc ${NODEDIR}/src/node_config.cc ${NODEDIR}/src/node_constants.cc
+    	    ${NODEDIR}/src/node_contextify.cc ${NODEDIR}/src/node_counters.cc ${NODEDIR}/src/node_crypto.cc
+    	    ${NODEDIR}/src/node_crypto_bio.cc ${NODEDIR}/src/node_crypto_clienthello.cc ${NODEDIR}/src/node_dtrace.cc
+    	    ${NODEDIR}/src/node_file.cc ${NODEDIR}/src/node_http_parser.cc ${NODEDIR}/src/node_i18n.cc
+    	    ${NODEDIR}/src/node_javascript.cc ${NODEDIR}/src/node_os.cc ${NODEDIR}/src/node_revert.cc
+    	    ${NODEDIR}/src/node_stat_watcher.cc ${NODEDIR}/src/node_util.cc ${NODEDIR}/src/node_v8.cc ${NODEDIR}/src/node_watchdog.cc
+    	    ${NODEDIR}/src/node_win32_etw_provider.cc ${NODEDIR}/src/node_win32_perfctr_provider.cc ${NODEDIR}/src/node_zlib.cc
+    	    ${NODEDIR}/src/pipe_wrap.cc ${NODEDIR}/src/process_wrap.cc ${NODEDIR}/src/signal_wrap.cc ${NODEDIR}/src/spawn_sync.cc
+    	    ${NODEDIR}/src/stream_base.cc ${NODEDIR}/src/stream_wrap.cc ${NODEDIR}/src/string_bytes.cc ${NODEDIR}/src/string_search.cc
+    	    ${NODEDIR}/src/tcp_wrap.cc ${NODEDIR}/src/timer_wrap.cc ${NODEDIR}/src/tls_wrap.cc ${NODEDIR}/src/tty_wrap.cc
+    	    ${NODEDIR}/src/udp_wrap.cc ${NODEDIR}/src/util.cc ${NODEDIR}/src/uv.cc)
+    endif (SUPPORT_NODE)
     set(PLATFORM_SOURCES ${PLATFORM_SOURCES} ${PXCOREDIR}/src/utf8.c)
     set_source_files_properties(utf8.c PROPERTIES LANGUAGE CXX)
     set(PXSCENE_DEFINITIONS ${PXSCENE_DEFINITIONS} -DHAS_WINDOWS_BREAKPAD)
@@ -300,7 +326,7 @@ elseif (WIN32)
     set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${COMM_DEPS_LIBRARY_DIRS} ${NODE_LIBRARY_DIRS}
         ${V8_LIBRARY_DIRS} ${DUKE_LIBRARY_DIRS})
 
-    set(PLATFORM_LIBRARIES pxCore.lib)
+    set(PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} pxCore.lib)
     set(PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} ${COMM_DEPS_LIBRARIES} ${NODE_LIBRARIES} ${V8_LIBRARIES} ${DUKE_LIBRARIES})
     set(PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES}
         pthreadVC2.lib opengl32.lib Winmm.lib Shlwapi.lib
@@ -508,10 +534,6 @@ if (BUILD_PXSCENE_APP)
       add_dependencies(pxscene_app optimus)
     endif (BUILD_OPTIMUS_STATIC_LIB)
 
-    if (WIN32)
-      add_dependencies(pxscene_app pxCore)
-    endif (WIN32)
-
     if (PXSCENE_INSTALLER GREATER 0)
       if (WIN32)
         message("enabling installer support")
@@ -583,6 +605,11 @@ if (PXSCENE_PERMISSIONS_CHECK)
     message("Enabling permissions")
     add_definitions(-DENABLE_PERMISSIONS_CHECK)
 endif (PXSCENE_PERMISSIONS_CHECK)
+
+if (SUPPORT_STORAGE)
+    message("Enabling storage")
+    add_definitions(-DPXSCENE_SUPPORT_STORAGE)
+endif()
 
 if (PX_LIBRARY_SUPPORT GREATER 0)
     message("Enabling build support for libraries")

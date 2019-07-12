@@ -104,6 +104,13 @@ static int fpsWarningThreshold = 25;
 
 rtEmitRef pxScriptView::mEmit = new rtEmit();
 
+
+#ifdef PXSCENE_SUPPORT_STORAGE
+#define DEFAULT_LOCALSTORAGE_DIR ".spark/storage/"
+#define DEFAULT_LOCALSTORAGE_DIR_ENV_NAME "SPARK_STORAGE"
+#endif
+
+
 // Debug Statistics
 #ifdef USE_RENDER_STATS
 
@@ -436,6 +443,9 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
     mArchive(),mDirtyRect(), mLastFrameDirtyRect(),
 #endif //PX_DIRTY_RECTANGLES
     mDirty(true), mDragging(false), mDragType(pxConstantsDragType::NONE), mDragTarget(NULL), mTestView(NULL), mDisposed(false), mArchiveSet(false)
+#ifdef PXSCENE_SUPPORT_STORAGE
+, mStorage(NULL)
+#endif
 {
   mRoot = new pxRoot(this);
   #ifdef ENABLE_PXOBJECT_TRACKING
@@ -542,7 +552,7 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   graphicsCapabilities.set("colors", 1);
       
 #ifdef SUPPORT_GIF
-    graphicsCapabilities.set("gif", 1);
+    graphicsCapabilities.set("gif", 2);
 #endif //SUPPORT_GIF
   graphicsCapabilities.set("imageAResource", 2);
       
@@ -586,6 +596,9 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   networkCapabilities.set("http2", 2);
 
   mCapabilityVersions.set("network", networkCapabilities);
+#ifdef PXSCENE_SUPPORT_STORAGE
+  mCapabilityVersions.set("storage", 1);
+#endif
 
   rtObjectRef metricsCapabilities = new rtMapObject;
 
@@ -636,6 +649,13 @@ rtError pxScene2d::dispose()
     mInfo     = NULL;
     mCapabilityVersions = NULL;
     mFocusObj = NULL;
+
+#ifdef PXSCENE_SUPPORT_STORAGE
+    if (mStorage)
+      mStorage->term(); // Close database file now
+    mStorage = NULL;
+#endif
+
     return RT_OK;
 }
 
@@ -1312,7 +1332,7 @@ void pxScene2d::onUpdate(double t)
   // Periodically let's poke the onMouseMove handler with the current pointer position
   // to better handle objects that animate in or out from under the mouse cursor
   // eg. scrolling
-  if (t-mPointerLastUpdated > 1) // Once a second
+  if (t-mPointerLastUpdated > 0.2) // every 0.2 seconds
   {
     updateMouseEntered();
     mPointerLastUpdated = t;
@@ -1499,8 +1519,8 @@ bool pxScene2d::onMouseUp(int32_t x, int32_t y, uint32_t flags)
     // TODO optimization... we really only need to check mMouseDown
     if (mRoot->hitTestInternal(m, pt, hit, hitPt))
     {
-      // Only send onMouseUp if this object got an onMouseDown
-      if (tMouseDown == hit)
+      // Only send onMouseUp if this object got an onMouseDown -- WHY???
+//      if (tMouseDown == hit)
       {
         rtObjectRef e = new rtMapObject;
         e.set("name", "onMouseUp");
@@ -1533,11 +1553,11 @@ void pxScene2d::setMouseEntered(rtRef<pxObject> o, int32_t x /* = 0*/, int32_t y
     {
       rtObjectRef e = new rtMapObject;
       e.set("name", "onMouseLeave");
-      e.set("target", o.getPtr());
+      e.set("target", mMouseEntered.getPtr());
       e.set("x", x);
       e.set("y", y);
 
-      bubbleEvent(e,o, "onPreMouseLeave", "onMouseLeave");
+      bubbleEvent(e,mMouseEntered,"onPreMouseLeave","onMouseLeave");
     }
     mMouseEntered = o;
 
@@ -1932,7 +1952,7 @@ bool pxScene2d::onDragMove(int32_t x, int32_t y, int32_t type)
   pxMatrix4f m;
   rtRef<pxObject> hit;
   pxPoint2f pt(static_cast<float>(x),static_cast<float>(y)), hitPt;
-  
+
   if (mRoot->hitTestInternal(m, pt, hit, hitPt))
   {
     mDragType = (pxConstantsDragType::constants) type;
@@ -2018,7 +2038,7 @@ bool pxScene2d::onDragLeave(int32_t x, int32_t y, int32_t type)
 bool pxScene2d::onDragDrop(int32_t x, int32_t y, int32_t type, const char *dropped)
 {
   pxConstantsDragType::constants dragType = (pxConstantsDragType::constants) type;
-  
+
   if (mDragTarget)
   {
     mDragging = false;
@@ -2039,7 +2059,7 @@ bool pxScene2d::onDragDrop(int32_t x, int32_t y, int32_t type, const char *dropp
 
     return bubbleEvent(e, mDragTarget, "onPreDragDrop", "onDragDrop");
   }
-  
+
   return false;
 }
 
@@ -2522,6 +2542,70 @@ rtError pxScene2d::getAvailableApplications(rtString& availableApplications)
   return RT_OK;
 }
 
+rtError pxScene2d::storage(rtObjectRef& v) const
+{
+#ifdef PXSCENE_SUPPORT_STORAGE
+  if (!mStorage)
+  {
+    rtString origin(mScriptView != NULL ? rtUrlGetOrigin(mScriptView->getUrl().cString()) : NULL);
+    if (origin.isEmpty())
+      origin = "file://";
+
+    uint32_t storageQuota = 0;
+#ifdef ENABLE_PERMISSIONS_CHECK
+    mPermissions->getStorageQuota(storageQuota);
+#endif
+    if( storageQuota == 0)
+    {
+      rtLogWarn("Origin %s has no local storage quota", origin.cString());
+      return RT_OK;
+    }
+
+    rtString storagePath;
+    rtValue storagePathVal;
+    if (RT_OK == rtSettings::instance()->value("defaultStoragePath", storagePathVal))
+    {
+      storagePath = storagePathVal.toString();
+    }
+    else
+    {
+      // runtime location, if available
+      const char* env = getenv(DEFAULT_LOCALSTORAGE_DIR_ENV_NAME);
+      if (env)
+        storagePath = env;
+    }
+    if (storagePath.isEmpty())
+    {
+      // default location
+      if (RT_OK == rtGetHomeDirectory(storagePath))
+        storagePath.append(DEFAULT_LOCALSTORAGE_DIR);
+    }
+
+    rtEnsureTrailingPathSeparator(storagePath);
+
+    // Create the path if it doesn't yet exist
+    if (!rtMakeDirectory(storagePath))
+    {
+      rtLogWarn("creation of storage directory %s failed", storagePath.cString());
+      return RT_OK;
+    }
+
+    rtString storageName = rtUrlEscape(origin);
+    storagePath.append(storageName);
+    rtLogInfo("storage path: %s", storagePath.cString());
+
+    mStorage = new rtStorage(storagePath, storageQuota, origin);
+  }
+
+  v = mStorage;
+  return RT_OK;
+#else
+  UNUSED_PARAM(v);
+  rtLogInfo("storage not supported");
+  return RT_FAIL;
+#endif
+}
+
 rtDefineObject(pxScene2d, rtObject);
 rtDefineProperty(pxScene2d, root);
 rtDefineProperty(pxScene2d, info);
@@ -2576,6 +2660,7 @@ rtDefineMethod(pxScene2d, sparkSetting);
 rtDefineProperty(pxScene2d, cors);
 rtDefineMethod(pxScene2d, addServiceProvider);
 rtDefineMethod(pxScene2d, removeServiceProvider);
+rtDefineProperty(pxScene2d, storage);
 
 rtError pxScene2dRef::Get(const char* name, rtValue* value) const
 {
@@ -3012,15 +3097,15 @@ void pxScriptView::runScript()
 
   if (mCtx)
   {
-    mPrintFunc = new rtFunctionCallback(printFunc, this);
     mGetScene = new rtFunctionCallback(getScene,  this);
     mMakeReady = new rtFunctionCallback(makeReady, this);
     mGetContextID = new rtFunctionCallback(getContextID, this);
+    mGetSetting = new rtFunctionCallback(getSetting, this);
 
-    mCtx->add("print", mPrintFunc.getPtr());
     mCtx->add("getScene", mGetScene.getPtr());
     mCtx->add("makeReady", mMakeReady.getPtr());
     mCtx->add("getContextID", mGetContextID.getPtr());
+    mCtx->add("getSetting", mGetSetting.getPtr());
 
 #ifdef RUNINMAIN
     mReady = new rtPromise();
@@ -3058,21 +3143,6 @@ void pxScriptView::runScript()
   #endif //ENABLE_RT_NODE
 }
 
-rtError pxScriptView::printFunc(int numArgs, const rtValue* args, rtValue* result, void* ctx)
-{
-  UNUSED_PARAM(result);
-  //rtLogInfo(__FUNCTION__);
-
-  if (ctx)
-  {
-    if (numArgs > 0 && !args[0].isEmpty())
-    {
-      rtString toPrint = args[0].toString();
-      rtLogWarn("%s", toPrint.cString());
-    }
-  }
-  return RT_OK;
-}
 
 rtError pxScriptView::suspend(const rtValue& v, bool& b)
 {
@@ -3183,6 +3253,24 @@ rtError pxScriptView::getContextID(int /*numArgs*/, const rtValue* /*args*/, rtV
   #endif
 }
 #endif
+
+// JRJR could be made much simpler... 
+rtError pxScriptView::getSetting(int numArgs, const rtValue* args, rtValue* result, void* /*ctx*/)
+{
+  if (numArgs >= 1)
+  {
+    rtValue val;
+    if (RT_OK != rtSettings::instance()->value(args[0].toString(), val))
+    {
+      *result = rtValue();
+      return RT_OK;
+    }
+    *result = val;
+    return RT_OK;
+  }
+  else
+    return RT_ERROR_NOT_ENOUGH_ARGS;
+}
 
 rtError pxScriptView::makeReady(int numArgs, const rtValue* args, rtValue* /*result*/, void* ctx)
 {

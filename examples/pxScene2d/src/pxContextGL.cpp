@@ -661,6 +661,11 @@ public:
 
   ~pxTextureOffscreen() { deleteTexture(); removeFromTextureList(this);};
 
+  virtual unsigned int getNativeId()
+  {
+    return mTextureName;
+  }
+
   virtual pxError createTexture(pxOffscreen& o)
   {
     mOffscreenMutex.lock();
@@ -2543,8 +2548,8 @@ void pxContext::drawRect(float w, float h, float lineWidth, float* fillColor, fl
   // Fill ...
   if(fillColor != NULL && fillColor[3] > 0.0) // with non-transparent color
   {
-    float half = lineWidth/2;
-    drawRect2(half, half, w-lineWidth, h-lineWidth, fillColor);
+    float half = lineWidth;
+    drawRect2(half, half, w-2*lineWidth, h-2*lineWidth, fillColor);
   }
 
   // Frame ...

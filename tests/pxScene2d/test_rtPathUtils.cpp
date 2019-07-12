@@ -140,6 +140,31 @@ class rtPathUtilsTest : public testing::Test
       rtModuleDirs::instance(); // re-creates environment
     }
 
+    void testMakeDirectory()
+    {
+      const rtString pathBase = "/tmp/SparkMakeDirectoryTest";
+      const rtString path1 = pathBase + "/test1";
+      const rtString path2 = pathBase + "/test2/"; // with trailing slash
+
+      // cleanup existing empty dirs, if any
+      rmdir(path1);
+      rmdir(path2);
+      rmdir(pathBase);
+      EXPECT_FALSE (rtFileExists(pathBase));
+
+      // make empty dirs
+      EXPECT_TRUE (rtMakeDirectory(path1));
+      EXPECT_TRUE (rtMakeDirectory(path2));
+      EXPECT_TRUE (rtFileExists(path1));
+      EXPECT_TRUE (rtFileExists(path2));
+
+      // cleanup empty dirs
+      EXPECT_EQ (0, (int)rmdir(path1));
+      EXPECT_EQ (0, (int)rmdir(path2));
+      EXPECT_EQ (0, (int)rmdir(pathBase));
+      EXPECT_FALSE (rtFileExists(pathBase));
+    }
+
     private:
       const char *env_name = "_pxscene_nie_calkiem_przypadkowy_env";
 };
@@ -150,5 +175,6 @@ TEST_F(rtPathUtilsTest, rtPathUtilsTest)
   getPutEnv();
   defaultValue();
   basicTest();
+  testMakeDirectory();
 }
 

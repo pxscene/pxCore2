@@ -181,7 +181,11 @@ static std::map<rtString, uint32_t> colorNames =
   {"slategrey",             0x708090ff },  // #708090   // "SlateGrey",
   {"darkslategray",         0x2F4F4Fff },  // #2F4F4F   // "DarkSlateGray",
   {"darkslategrey",         0x2F4F4Fff },  // #2F4F4F   // "DarkSlateGrey",
-  {"black",                 0x000000ff }   // #000000   // "Black",
+  {"black",                 0x000000ff },  // #000000   // "Black",
+  
+  {"none",                 0x00000000 },  //  #0000     // "None",
+  {"transparent",          0x00000000 },  //  #0000     // "Transparent",
+  {"clear",                0x00000000 },  //  #0000     // "Clear",
 };
 
 //////////////////////////////////////////////////////////////////////

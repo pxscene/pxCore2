@@ -31,6 +31,19 @@ option(PXSCENE_TEST_HTTP_CACHE "PXSCENE_TEST_HTTP_CACHE" OFF)
 option(PXSCENE_TEST_PERMISSIONS_CHECK "PXSCENE_TEST_PERMISSIONS_CHECK" ON)
 
 
+
+if (BUILD_WITH_GIF)
+message("Building with GIF support")
+set(GIF ${EXTDIR}/giflib-5.1.9/)
+set(PXSCENETEST_LINK_DIRECTORIES ${PXSCENETEST_LINK_DIRECTORIES} ${GIF})
+	
+if(WIN32)
+	set(PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} libgif.7.lib)
+else()
+	set(PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} gif)
+endif(WIN32)
+add_definitions(-DSUPPORT_GIF)
+endif (BUILD_WITH_GIF)
 include_directories(AFTER ${GOOGLETESTINC} ${PXCOREINC} ${PXSCENEINC} ${PXSCENERASTERINC})
 include_directories(AFTER ${CMAKE_CURRENT_SOURCE_DIR})
 
@@ -98,7 +111,7 @@ if (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
         set(BUILD_UNIT_TEST 1)
         set(TEST_WAYLAND_SOURCE_FILES "")
         #set(TEST_WAYLAND_SOURCE_FILES test_pxWayland.cpp test_pxWaylandContainer.cpp)
-        set(PLATFORM_TEST_FILES test_jsfiles.cpp test_pxUtil.cpp test_screenshot.cpp test_httpEndAfterClose.cpp)
+        set(PLATFORM_TEST_FILES test_jsfiles.cpp test_pxUtil.cpp test_screenshot.cpp test_httpEndAfterClose.cpp test_pxEventLoop.cpp)
 
         if (PXSCENE_TEST_HTTP_CACHE)
                 message("Enabling http cache tests")
@@ -123,7 +136,7 @@ elseif (APPLE)
     set(PX_PLATFORM PX_PLATFORM_MAC)
     set(PXCORE_LIB_LOCATION ${PXCOREDIR}/build/mac)
     set(PXSCENETEST_LINK_DIRECTORIES ${PXSCENETEST_LINK_DIRECTORIES} ${PXCORE_LIB_LOCATION} ${COMM_DEPS_LIBRARY_DIRS})
-    set(PLATFORM_LIBRARIES rtCore_s pxCore Spark dl ${COMM_DEPS_LIBRARIES} )
+    set(PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} rtCore_s pxCore Spark dl ${COMM_DEPS_LIBRARIES} )
     set(PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} "-framework OpenGL -framework Cocoa -framework Foundation")
 
     add_definitions(${COMM_DEPS_DEFINITIONS} -DRT_PLATFORM_LINUX -DENABLE_NODE_V_6_9 -DNODE_PLATFORM="linux" -DNODE_WANT_INTERNALS=1 -DV8_DEPRECATION_WARNINGS=1 -DNODE_SHARED_MODE -DNODE_USE_V8_PLATFORM=1 -DNODE_HAVE_I18N_SUPPORT=1 -DNODE_HAVE_SMALL_ICU=1 -DHAVE_INSPECTOR=1 -DV8_INSPECTOR_USE_STL=1 -DV8_INSPECTOR_USE_OLD_STL=1)
@@ -156,13 +169,13 @@ endif (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
 
 add_definitions(-D${PX_PLATFORM} -DENABLE_RT_NODE -DRUNINMAIN -DENABLE_HTTP_CACHE)
 
-set(TEST_SOURCE_FILES pxscene2dtestsmain.cpp  test_example.cpp test_api.cpp  test_pxcontext.cpp test_memoryleak.cpp test_rtnode.cpp test_rtMutex.cpp test_pxImage9Border.cpp test_eventListeners.cpp
+set(TEST_SOURCE_FILES pxscene2dtestsmain.cpp  test_rtThreadPool.cpp test_example.cpp test_api.cpp test_memoryleak.cpp test_rtnode.cpp ${PLATFORM_TEST_FILES} test_pxcontext.cpp test_rtMutex.cpp test_pxImage9Border.cpp test_eventListeners.cpp
     test_pxAnimate.cpp test_rtFile.cpp test_rtZip.cpp test_rtString.cpp test_rtValue.cpp test_pxImage.cpp test_pxOffscreen.cpp test_pxMatrix4T.cpp test_rtObject.cpp
     test_pxWindowUtil.cpp test_pxTexture.cpp test_pxWindow.cpp test_ioapi.cpp test_rtLog.cpp test_pxTimerNative.cpp
-    test_rtUrlUtils.cpp test_pxArchive.cpp test_pxPixel_h.cpp test_pxFont.cpp test_rtThreadPool.cpp test_utf8.cpp
+    test_rtUrlUtils.cpp test_pxArchive.cpp test_pxPixel_h.cpp test_pxFont.cpp test_utf8.cpp
     test_rtSettings.cpp test_cors.cpp  test_external.cpp test_pxScene2d.cpp test_oscillate.cpp test_rtPathUtils.cpp
-    test_rtError.cpp test_import_resources.cpp test_rtHttpRequest.cpp test_rtHttpResponse.cpp test_imagecacheSVG.cpp test_rtObjectWrapper.cpp 
-    ${PLATFORM_TEST_FILES} ${TEST_WAYLAND_SOURCE_FILES})
+    test_rtError.cpp test_import_resources.cpp test_rtHttpRequest.cpp test_rtHttpResponse.cpp test_imagecacheSVG.cpp test_rtObjectWrapper.cpp
+    test_baseFilePath.cpp test_js2rt.cpp ${TEST_WAYLAND_SOURCE_FILES})
 
 if (DEFINED ENV{USE_HTTP_CACHE})
     message("Include http cache tests")
@@ -174,6 +187,13 @@ if (PXSCENE_TEST_PERMISSIONS_CHECK)
     add_definitions(-DENABLE_PERMISSIONS_CHECK)
     set(TEST_SOURCE_FILES ${TEST_SOURCE_FILES} test_rtPermissions.cpp)
 endif (PXSCENE_TEST_PERMISSIONS_CHECK)
+
+if (SUPPORT_STORAGE)
+    message("Include storage tests")
+    add_definitions(-DPXSCENE_SUPPORT_STORAGE)
+    add_definitions(-DENABLE_STORAGE_PERF_TEST)
+    set(TEST_SOURCE_FILES ${TEST_SOURCE_FILES} test_rtStorage.cpp)
+endif()
 
 set(TEST_SOURCE_FILES ${TEST_SOURCE_FILES} ${EXTDIR}/gtest/googletest/src/gtest-all.cc ${EXTDIR}/gtest/googlemock/src/gmock-all.cc)
 
