@@ -465,6 +465,9 @@ function Application(props) {
           function(err) { _uiReadyReject(err); }
         );
       }
+      else
+        _uiReadyResolve("no uiReady promise");
+      
     }, function rejection() {
       var msg = "Failed to load uri: " + uri;
       _this.log("failed to launch Spark app: " + _this.id + ". " + msg);
@@ -620,7 +623,7 @@ function Application(props) {
         }
         else
         {
-          _uiReadyResolve("no uiReady event");
+          _uiReadyResolve("no uiReady promise");
         }
       },
       function()
