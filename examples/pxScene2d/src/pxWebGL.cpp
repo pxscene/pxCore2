@@ -72,7 +72,7 @@ void pxWebgl::onInit()
   mReady.send("resolve",this);
   pxObject::onInit();
   
-  rtLogInfo("[%s]", __FUNCTION__);
+  rtLogDebug("[%s]", __FUNCTION__);
   
   pixelStorei_UNPACK_FLIP_Y_WEBGL = 0;
   pixelStorei_UNPACK_PREMULTIPLY_ALPHA_WEBGL = 0;
@@ -84,7 +84,7 @@ void pxWebgl::onInit()
 
 rtError pxWebgl::DrawElements(uint32_t mode, uint32_t count, uint32_t type, uint32_t offset)
 {
-  rtLogInfo("[%s] mode: %u, count: %u type: %u offset: %u", __FUNCTION__, mode, count, type, offset);
+  rtLogDebug("[%s] mode: %u, count: %u type: %u offset: %u", __FUNCTION__, mode, count, type, offset);
 
   GLvoid *gloffset = reinterpret_cast<GLvoid*>(offset);
 
@@ -96,31 +96,31 @@ rtError pxWebgl::DrawElements(uint32_t mode, uint32_t count, uint32_t type, uint
 
 rtError pxWebgl::createTexture(uint32_t& texture)
 {
-  rtLogInfo("[%s]",__FUNCTION__);
+  rtLogDebug("[%s]",__FUNCTION__);
 
   glGenTextures(1, &texture);
   CheckGLError();
 
-  rtLogInfo("[%s] returning texture: %u",__FUNCTION__, texture);
+  rtLogDebug("[%s] returning texture: %u",__FUNCTION__, texture);
 
   return RT_OK;
 }
 
 rtError pxWebgl::createBuffer(uint32_t& buffer)
 {
-  rtLogInfo("[%s]", __FUNCTION__);
+  rtLogDebug("[%s]", __FUNCTION__);
 
   glGenBuffers(1, &buffer);
   CheckGLError();
 
-  rtLogInfo("[%s] returning buffer: %u", __FUNCTION__, buffer);
+  rtLogDebug("[%s] returning buffer: %u", __FUNCTION__, buffer);
 
   return RT_OK;
 }
 
 rtError pxWebgl::bindTexture(uint32_t target, uint32_t texture)
 {
-  rtLogInfo("[%s] target: %u, texture: %u", __FUNCTION__, target, texture);
+  rtLogDebug("[%s] target: %u, texture: %u", __FUNCTION__, target, texture);
 
   glBindTexture(target, texture);
   CheckGLError();
@@ -130,7 +130,7 @@ rtError pxWebgl::bindTexture(uint32_t target, uint32_t texture)
 
 rtError pxWebgl::bindBuffer(uint32_t target, uint32_t buffer)
 {
-  rtLogInfo("[%s] target: %u buffer: %u", __FUNCTION__, target, buffer);
+  rtLogDebug("[%s] target: %u buffer: %u", __FUNCTION__, target, buffer);
 
   glBindBuffer(target,buffer);
   CheckGLError();
@@ -140,7 +140,7 @@ rtError pxWebgl::bindBuffer(uint32_t target, uint32_t buffer)
 
 rtError pxWebgl::bindFramebuffer(uint32_t target, uint32_t framebuffer)
 {
-  rtLogInfo("[%s] target: %u framebuffer: %u", __FUNCTION__, target, framebuffer);
+  rtLogDebug("[%s] target: %u framebuffer: %u", __FUNCTION__, target, framebuffer);
 
   glBindFramebuffer(target, (framebuffer==0) ? mInitialFrameBuffer : framebuffer);
   CheckGLError();
@@ -150,13 +150,13 @@ rtError pxWebgl::bindFramebuffer(uint32_t target, uint32_t framebuffer)
 
 rtError pxWebgl::bufferData(uint32_t target, rtValue data, uint32_t usage)
 {
-  rtLogInfo("[%s] target: %u usage: %u", __FUNCTION__, target, usage);
+  rtLogDebug("[%s] target: %u usage: %u", __FUNCTION__, target, usage);
 
   rtArrayObject* dataArray = (rtArrayObject*) data.toObject().getPtr();
 
   rtValue length;
   dataArray->Get("length", &length);
-  rtLogInfo("[%s] length: %d", __FUNCTION__, length.toUInt32());
+  rtLogDebug("[%s] length: %d", __FUNCTION__, length.toUInt32());
 
   uint32_t dataBufSize = length.toUInt32() * ((target == GL_ELEMENT_ARRAY_BUFFER) ? sizeof(GLushort) : sizeof(GLfloat));
 
@@ -191,7 +191,7 @@ rtError pxWebgl::bufferData(uint32_t target, rtValue data, uint32_t usage)
 
 rtError pxWebgl::pixelStorei(uint32_t pname, bool param)
 {
-  rtLogInfo("[%s] pname: %u param: %u", __FUNCTION__, pname, param);
+  rtLogDebug("[%s] pname: %u param: %u", __FUNCTION__, pname, param);
 
   if (pname == 0x9240 /* UNPACK_FLIP_Y_WEBGL */) {
     pixelStorei_UNPACK_FLIP_Y_WEBGL = param;
@@ -209,7 +209,7 @@ rtError pxWebgl::pixelStorei(uint32_t pname, bool param)
 
 rtError pxWebgl::texParameteri(uint32_t target, uint32_t pname, uint32_t param)
 {
-  rtLogInfo("[%s] target: %u pname: %u param: %u", __FUNCTION__, target, pname, param);
+  rtLogDebug("[%s] target: %u pname: %u param: %u", __FUNCTION__, target, pname, param);
 
   glTexParameteri(target, pname, param);
   CheckGLError();
@@ -219,7 +219,7 @@ rtError pxWebgl::texParameteri(uint32_t target, uint32_t pname, uint32_t param)
 
 rtError pxWebgl::viewport(uint32_t x, uint32_t y, uint32_t width, uint32_t height)
 {
-  rtLogInfo("[%s] x: %u, y: %u, width: %u, height: %u", __FUNCTION__, x, y, width, height );
+  rtLogDebug("[%s] x: %u, y: %u, width: %u, height: %u", __FUNCTION__, x, y, width, height );
 
   glViewport(x, y, width, height);
   CheckGLError();
@@ -229,7 +229,7 @@ rtError pxWebgl::viewport(uint32_t x, uint32_t y, uint32_t width, uint32_t heigh
 
 rtError pxWebgl::clearColor(float_t red, float_t green, float_t blue, float_t alpha)
 {
-  rtLogInfo("[%s] red: %3.2f, green: %3.2f, blue: %3.2f, alpha: %3.2f", __FUNCTION__, red, green, blue, alpha);
+  rtLogDebug("[%s] red: %3.2f, green: %3.2f, blue: %3.2f, alpha: %3.2f", __FUNCTION__, red, green, blue, alpha);
 
   glClearColor(red, green, blue, alpha);
   CheckGLError();
@@ -239,7 +239,7 @@ rtError pxWebgl::clearColor(float_t red, float_t green, float_t blue, float_t al
 
 rtError pxWebgl::Clear(uint32_t mask)
 {
-  rtLogInfo("[%s] mask: %u", __FUNCTION__, mask);
+  rtLogDebug("[%s] mask: %u", __FUNCTION__, mask);
   
   glClear(mask);
   CheckGLError();
@@ -249,7 +249,7 @@ rtError pxWebgl::Clear(uint32_t mask)
 
 rtError pxWebgl::BlendFunc(uint32_t sfactor, uint32_t dfactor)
 {
-  rtLogInfo("[%s] sfactor: %d dfactor: %d", __FUNCTION__, sfactor, dfactor);
+  rtLogDebug("[%s] sfactor: %d dfactor: %d", __FUNCTION__, sfactor, dfactor);
 
   glBlendFunc(sfactor,dfactor);
   CheckGLError();
@@ -259,14 +259,14 @@ rtError pxWebgl::BlendFunc(uint32_t sfactor, uint32_t dfactor)
 
 rtError pxWebgl::texImage2D(uint32_t target, uint32_t level, uint32_t internalformat, uint32_t width, uint32_t height, uint32_t border, uint32_t format, uint32_t type, rtValue data)
 {
-  rtLogInfo("[%s] target: %d level: %d internalformat: %d width: %d height %d format %d", __FUNCTION__, target, level, internalformat, width, height, format);
+  rtLogDebug("[%s] target: %d level: %d internalformat: %d width: %d height %d format %d", __FUNCTION__, target, level, internalformat, width, height, format);
 
   rtArrayObject* pixelArray = (rtArrayObject*) data.toObject().getPtr();
 
   rtValue length;
   pixelArray->Get("length", &length);
 
-  rtLogInfo("[%s] length is %u", __FUNCTION__, length.toUInt32());
+  rtLogDebug("[%s] length is %u", __FUNCTION__, length.toUInt32());
 
   uint8_t *pixels = (uint8_t *) malloc(length.toUInt32());
 
@@ -324,7 +324,7 @@ void pxWebgl::preprocessTexImageData(void * pixels, int width, int height, int f
 
 rtError pxWebgl::Enable(uint32_t cap)
 {
-  rtLogInfo("[%s] cap: %u", __FUNCTION__, cap);
+  rtLogDebug("[%s] cap: %u", __FUNCTION__, cap);
 
   glEnable(cap);
   CheckGLError();
@@ -334,7 +334,7 @@ rtError pxWebgl::Enable(uint32_t cap)
 
 rtError pxWebgl::Disable(uint32_t cap)
 {
-  rtLogInfo("[%s] cap: %u", __FUNCTION__, cap);
+  rtLogDebug("[%s] cap: %u", __FUNCTION__, cap);
 
   glDisable(cap);
   CheckGLError();
@@ -344,29 +344,29 @@ rtError pxWebgl::Disable(uint32_t cap)
 
 rtError pxWebgl::CreateProgram(uint32_t& glprogram)
 {
-  rtLogInfo("[%s]",__FUNCTION__);
+  rtLogDebug("[%s]",__FUNCTION__);
 
   glprogram=glCreateProgram();
   CheckGLError();
 
-  rtLogInfo("[%s] returning program: %u", __FUNCTION__, glprogram);
+  rtLogDebug("[%s] returning program: %u", __FUNCTION__, glprogram);
 
   return RT_OK;
 }
 rtError pxWebgl::CreateShader(uint32_t type, uint32_t& glshader)
 {
-  rtLogInfo("[%s] type: %u", __FUNCTION__, type);
+  rtLogDebug("[%s] type: %u", __FUNCTION__, type);
 
   glshader=glCreateShader(type);
   CheckGLError();
 
-  rtLogInfo("[%s] returning shader: %u", __FUNCTION__, glshader);
+  rtLogDebug("[%s] returning shader: %u", __FUNCTION__, glshader);
 
   return RT_OK;
 }
 rtError pxWebgl::ShaderSource(uint32_t shader, rtString source)
 {
-  rtLogInfo("[%s] shader: %u, length: %u, source:\n\n%s\n", __FUNCTION__, shader, source.byteLength(), source.cString());
+  rtLogDebug("[%s] shader: %u, length: %u, source:\n\n%s\n", __FUNCTION__, shader, source.byteLength(), source.cString());
 
   const char* codes[1];
   codes[0] = source.cString();
@@ -380,7 +380,7 @@ rtError pxWebgl::ShaderSource(uint32_t shader, rtString source)
 
 rtError pxWebgl::CompileShader(uint32_t shader)
 {
-  rtLogInfo("[%s] shader: %u", __FUNCTION__, shader);
+  rtLogDebug("[%s] shader: %u", __FUNCTION__, shader);
 
   glCompileShader(shader);
   CheckGLError();
@@ -390,7 +390,7 @@ rtError pxWebgl::CompileShader(uint32_t shader)
 
 rtError pxWebgl::GetShaderParameter(uint32_t shader, uint32_t pname, uint32_t& ret)
 {
-  rtLogInfo("[%s] shader: %u pname: %u", __FUNCTION__, shader, pname);
+  rtLogDebug("[%s] shader: %u pname: %u", __FUNCTION__, shader, pname);
 
   int value=100;
 
@@ -424,7 +424,7 @@ rtError pxWebgl::GetShaderParameter(uint32_t shader, uint32_t pname, uint32_t& r
 
 rtError pxWebgl::GetShaderInfoLog(uint32_t shader, rtString errorlog)
 {
-  rtLogInfo("[%s] shader: %u", __FUNCTION__, shader);
+  rtLogDebug("[%s] shader: %u", __FUNCTION__, shader);
 
   int Len = 1024;
   char Error[1024];
@@ -434,14 +434,14 @@ rtError pxWebgl::GetShaderInfoLog(uint32_t shader, rtString errorlog)
 
   errorlog.init(Error, Len);
 
-  rtLogInfo("[%s] error string: %s length: %u", __FUNCTION__, Error, Len);
+  rtLogDebug("[%s] error string: %s length: %u", __FUNCTION__, Error, Len);
 
   return RT_OK;
 }
 
 rtError pxWebgl::AttachShader(uint32_t program, uint32_t shader)
 {
-  rtLogInfo("[%s] program %u, shader: %u", __FUNCTION__, program, shader);
+  rtLogDebug("[%s] program %u, shader: %u", __FUNCTION__, program, shader);
 
   glAttachShader(program, shader);
   CheckGLError();
@@ -451,7 +451,7 @@ rtError pxWebgl::AttachShader(uint32_t program, uint32_t shader)
 
 rtError pxWebgl::LinkProgram(uint32_t program)
 {
-  rtLogInfo("[%s] program %u", __FUNCTION__, program);
+  rtLogDebug("[%s] program %u", __FUNCTION__, program);
 
   glLinkProgram(program);
   CheckGLError();
@@ -461,7 +461,7 @@ rtError pxWebgl::LinkProgram(uint32_t program)
 
 rtError pxWebgl::GetProgramParameter(uint32_t program, uint32_t pname, uint32_t& ret)
 {
-  rtLogInfo("[%s] program: %d pname: %u", __FUNCTION__, program, pname);
+  rtLogDebug("[%s] program: %d pname: %u", __FUNCTION__, program, pname);
 
   int value = 0;
   switch (pname) {
@@ -488,7 +488,7 @@ rtError pxWebgl::GetProgramParameter(uint32_t program, uint32_t pname, uint32_t&
 
 rtError pxWebgl::DeleteShader(uint32_t shader)
 {
-  rtLogInfo("[%s] shader %u", __FUNCTION__, shader);
+  rtLogDebug("[%s] shader %u", __FUNCTION__, shader);
 
   glDeleteShader(shader);
   CheckGLError();
@@ -498,7 +498,7 @@ rtError pxWebgl::DeleteShader(uint32_t shader)
 
 rtError pxWebgl::UseProgram(uint32_t program)
 {
-  rtLogInfo("[%s] program %u", __FUNCTION__, program);
+  rtLogDebug("[%s] program %u", __FUNCTION__, program);
 
   glUseProgram(program);
   CheckGLError();
@@ -508,7 +508,7 @@ rtError pxWebgl::UseProgram(uint32_t program)
 
 rtError pxWebgl::GetAttribLocation(uint32_t program, rtString name, uint32_t& ret)
 {
-  rtLogInfo("[%s] program %u, name: %s", __FUNCTION__, program, name.cString());
+  rtLogDebug("[%s] program %u, name: %s", __FUNCTION__, program, name.cString());
 
   ret = glGetAttribLocation(program, name.cString());
   CheckGLError();
@@ -518,7 +518,7 @@ rtError pxWebgl::GetAttribLocation(uint32_t program, rtString name, uint32_t& re
 
 rtError pxWebgl::VertexAttribPointer(uint32_t indx, uint32_t size, uint32_t type, uint32_t normalized, uint32_t stride, uint32_t offset)
 {
-  rtLogInfo("[%s] index: %u, size: %u, type: %u, normalized: %u, stride: %u, offset: %u", __FUNCTION__, indx, size, type, normalized, stride, offset);
+  rtLogDebug("[%s] index: %u, size: %u, type: %u, normalized: %u, stride: %u, offset: %u", __FUNCTION__, indx, size, type, normalized, stride, offset);
 
   GLvoid *gloffset = reinterpret_cast<GLvoid*>(offset);
 
@@ -530,7 +530,7 @@ rtError pxWebgl::VertexAttribPointer(uint32_t indx, uint32_t size, uint32_t type
 
 rtError pxWebgl::EnableVertexAttribArray(uint32_t index)
 {
-  rtLogInfo("[%s] index %u", __FUNCTION__, index);
+  rtLogDebug("[%s] index %u", __FUNCTION__, index);
 
   glEnableVertexAttribArray(index);
   CheckGLError();
@@ -540,7 +540,7 @@ rtError pxWebgl::EnableVertexAttribArray(uint32_t index)
 
 rtError pxWebgl::GetUniformLocation(uint32_t program, rtString name, uint32_t& ret)
 {
-  rtLogInfo("[%s] program %u, name: %s", __FUNCTION__, program, name.cString());
+  rtLogDebug("[%s] program %u, name: %s", __FUNCTION__, program, name.cString());
 
   ret = glGetUniformLocation(program, name.cString());
   CheckGLError();
@@ -550,7 +550,7 @@ rtError pxWebgl::GetUniformLocation(uint32_t program, rtString name, uint32_t& r
 
 rtError pxWebgl::UniformMatrix4fv(uint32_t location, bool transpose, rtValue data)
 {
-  rtLogInfo("[%s] location: %u transpose: %u", __FUNCTION__, location, transpose);
+  rtLogDebug("[%s] location: %u transpose: %u", __FUNCTION__, location, transpose);
 
   rtArrayObject* dataArray = (rtArrayObject*) data.toObject().getPtr();
 
@@ -578,7 +578,7 @@ rtError pxWebgl::UniformMatrix4fv(uint32_t location, bool transpose, rtValue dat
 
 rtError pxWebgl::DrawArrays(uint32_t mode, uint32_t first, uint32_t count)
 {
-  rtLogInfo("[%s] mode %u, first: %u, count: %u", __FUNCTION__, mode, first, count);
+  rtLogDebug("[%s] mode %u, first: %u, count: %u", __FUNCTION__, mode, first, count);
 
   glDrawArrays(mode, first, count);
   CheckGLError();
@@ -588,7 +588,7 @@ rtError pxWebgl::DrawArrays(uint32_t mode, uint32_t first, uint32_t count)
 
 rtError pxWebgl::Uniform2fv(uint32_t location, rtValue data)
 {
-  rtLogInfo("[%s] location: %u", __FUNCTION__, location);
+  rtLogDebug("[%s] location: %u", __FUNCTION__, location);
 
   rtArrayObject* dataArray = (rtArrayObject*) data.toObject().getPtr();
 
@@ -615,7 +615,7 @@ rtError pxWebgl::Uniform2fv(uint32_t location, rtValue data)
 
 rtError pxWebgl::Scissor(uint32_t x, uint32_t y, uint32_t width, uint32_t height)
 {
-  rtLogInfo("[%s] x: %u, y: %u, width: %u, height: %u", __FUNCTION__, x, y, width, height);
+  rtLogDebug("[%s] x: %u, y: %u, width: %u, height: %u", __FUNCTION__, x, y, width, height);
 
   glScissor(x, y, width, height);
   CheckGLError();
@@ -625,7 +625,7 @@ rtError pxWebgl::Scissor(uint32_t x, uint32_t y, uint32_t width, uint32_t height
 
 rtError pxWebgl::DisableVertexAttribArray(uint32_t index)
 {
-  rtLogInfo("[%s] index: %u", __FUNCTION__, index);
+  rtLogDebug("[%s] index: %u", __FUNCTION__, index);
 
   glDisableVertexAttribArray(index);
   CheckGLError();
