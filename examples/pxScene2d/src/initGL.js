@@ -813,6 +813,7 @@ var onClose = function() {
   }
   sandbox['global'] = null;
   contextifiedSandbox = null;
+  vm.ClearSourceTextModules();
   for (var key in modmap)
   {
    delete modmap[key]; 

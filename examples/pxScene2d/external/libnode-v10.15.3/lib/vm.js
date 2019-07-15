@@ -429,4 +429,5 @@ if (require('internal/options').getOptionValue('--experimental-vm-modules')) {
   const { SourceTextModule } = require('internal/vm/source_text_module');
   module.exports.SourceTextModule = SourceTextModule;
   module.exports.CreateSourceTextModule =  require('internal/vm/source_text_module').CreateSourceTextModule;
+  module.exports.ClearSourceTextModules =  require('internal/vm/source_text_module').ClearSourceTextModules;
 }

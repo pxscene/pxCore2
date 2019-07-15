@@ -48,7 +48,7 @@ const linkingStatusMap = new WeakMap();
 // ModuleWrap -> vm.SourceTextModule
 const wrapToModuleMap = new WeakMap();
 const defaultModuleName = 'vm:module';
-const moduleMap = {}
+var moduleMap = {}
 // TODO(devsnek): figure out AbstractModule class or protocol
 class SourceTextModule {
   constructor(src, options = {}) {
@@ -282,10 +282,21 @@ function CreateSourceTextModule(src, options = {})
     return new SourceTextModule(src, options);
 }
 
+function ClearSourceTextModules()
+{
+  for (var key in moduleMap)
+  {
+   delete moduleMap[key];
+   moduleMap[key] = null;
+  }
+  moduleMap = {};
+}
+
 module.exports = {
   SourceTextModule,
   wrapToModuleMap,
   wrapMap,
   linkingStatusMap,
-  CreateSourceTextModule  
+  CreateSourceTextModule,  
+  ClearSourceTextModules  
 };
