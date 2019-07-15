@@ -96,6 +96,7 @@ if(WIN32)
 else()
 	set(PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} gif)
 endif(WIN32)
+
 add_definitions(-DSUPPORT_GIF)
 endif (BUILD_WITH_GIF)
 
