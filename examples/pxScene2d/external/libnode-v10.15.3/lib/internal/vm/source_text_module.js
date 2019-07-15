@@ -48,7 +48,7 @@ const linkingStatusMap = new WeakMap();
 // ModuleWrap -> vm.SourceTextModule
 const wrapToModuleMap = new WeakMap();
 const defaultModuleName = 'vm:module';
-
+const moduleMap = {}
 // TODO(devsnek): figure out AbstractModule class or protocol
 class SourceTextModule {
   constructor(src, options = {}) {
@@ -134,6 +134,7 @@ class SourceTextModule {
       url: { value: url, enumerable: true },
       context: { value: context, enumerable: true },
     });
+    moduleMap[options.url] = this;
   }
 
   get linkingStatus() {
@@ -262,6 +263,7 @@ class SourceTextModule {
     o.context = this.context;
     return require('util').inspect(o, options);
   }
+
 }
 
 function validateInteger(prop, propName) {
@@ -273,9 +275,17 @@ function validateInteger(prop, propName) {
   }
 }
 
+function CreateSourceTextModule(src, options = {})
+{
+    if (options.url in moduleMap)
+      return moduleMap[options.url]
+    return new SourceTextModule(src, options);
+}
+
 module.exports = {
   SourceTextModule,
   wrapToModuleMap,
   wrapMap,
   linkingStatusMap,
+  CreateSourceTextModule  
 };
