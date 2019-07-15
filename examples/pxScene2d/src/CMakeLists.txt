@@ -368,7 +368,7 @@ include_directories(AFTER ${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(AFTER ${CMAKE_CURRENT_SOURCE_DIR}/rasterizer)
 
 set(PXSCENE_COMMON_FILES pxResource.cpp pxConstants.cpp pxRectangle.cpp pxFont.cpp pxText.cpp
-        pxTextBox.cpp pxImage.cpp pxImage9.cpp pxImageA.cpp pxImage9Border.cpp pxArchive.cpp pxAnimate.cpp)
+    pxTextBox.cpp pxTextCanvas.cpp pxImage.cpp pxImage9.cpp pxImageA.cpp pxImage9Border.cpp pxArchive.cpp pxAnimate.cpp)
 
 set(PXSCENE_COMMON_FILES ${PXSCENE_COMMON_FILES} pxObject.cpp)
 set(PXSCENE_COMMON_FILES ${PXSCENE_COMMON_FILES} pxShaderUtils.cpp)

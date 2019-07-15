@@ -97,6 +97,7 @@ PX_SRCS_FULL=\
     pxFont.cpp \
     pxText.cpp \
     pxTextBox.cpp \
+    pxTextCanvas.cpp \
     pxImage.cpp \
     pxImage9.cpp \
     pxArchive.cpp 
@@ -215,6 +216,7 @@ PXSCENE_LIB_SRCS=\
 	   pxRectangle.cpp \
            pxText.cpp \
            pxTextBox.cpp \
+           pxTextCanvas.cpp \
            pxImage.cpp \
            pxImage9.cpp \
            pxArchive.cpp \

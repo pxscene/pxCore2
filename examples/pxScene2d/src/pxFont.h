@@ -154,6 +154,8 @@ class pxTexturedQuads
   }
 
   void draw(float x, float y, float* color);
+  void draw(float x, float y);
+  void setColor(uint32_t c);
 
   void clear()
   {
@@ -162,6 +164,7 @@ class pxTexturedQuads
 
 private:
   vector<quads> mQuads;
+  float mColor[4] = {0xff, 0xff, 0xff, 0xff};
 };
 
 #endif
