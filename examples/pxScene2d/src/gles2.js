@@ -15,7 +15,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 */
-
 var init = function(options) {
     options = options || {};
 
@@ -25,8 +24,7 @@ var init = function(options) {
     var title = options.title || "";
 
     //gles2.init(width, height, fullscreen, title);
-
-    return require('./webgl').instance;
+    return global.sparkwebgl.instance;
 };
 
 module.exports = {
