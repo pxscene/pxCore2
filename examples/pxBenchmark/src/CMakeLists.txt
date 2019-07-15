@@ -296,7 +296,7 @@ include_directories(AFTER ${CMAKE_CURRENT_SOURCE_DIR}/../../pxScene2d/src/)
 message(** ${CMAKE_CURRENT_SOURCE_DIR}/../external/Celero/include/} **)
 
 set(PXSCENE_COMMON_FILES ${CMAKE_CURRENT_SOURCE_DIR}/../../pxScene2d/src/pxResource.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../../pxScene2d/src/pxConstants.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../../pxScene2d/src/pxRectangle.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../../pxScene2d/src/pxFont.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../../pxScene2d/src/pxText.cpp
-${CMAKE_CURRENT_SOURCE_DIR}/../../pxScene2d/src/pxTextBox.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../../pxScene2d/src/pxImage.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../../pxScene2d/src/pxImage9.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../../pxScene2d/src/pxImageA.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../../pxScene2d/src/pxImage9Border.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../../pxScene2d/src/pxArchive.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../../pxScene2d/src/pxAnimate.cpp)
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../pxScene2d/src/pxTextBox.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../../pxScene2d/src/pxTextCanvas.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../../pxScene2d/src/pxImage.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../../pxScene2d/src/pxImage9.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../../pxScene2d/src/pxImageA.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../../pxScene2d/src/pxImage9Border.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../../pxScene2d/src/pxArchive.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../../pxScene2d/src/pxAnimate.cpp)
 
 set(CELERO_DEFINITIONS "${CMAKE_CURRENT_SOURCE_DIR}/../external/Celero/include")
 

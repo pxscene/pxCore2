@@ -961,4 +961,9 @@ void pxTexturedQuads::draw(float x, float y, float* color)
     context.drawTexturedQuads(q.verts.size()/12, &verts[0], &q.uvs[0], q.t, color);
   }
 }
+
+void pxTexturedQuads::draw(float x, float y)
+{
+    draw(x, y, mColor);
+}
 #endif
