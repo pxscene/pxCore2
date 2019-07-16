@@ -636,6 +636,7 @@ const bootStrap = (moduleName, from, request) => {
         script.runInContext(contextifiedSandbox);
         try {
           (async () => {
+            var instantiated = false;
             try
             {
               var source, rpath;
@@ -643,7 +644,11 @@ const bootStrap = (moduleName, from, request) => {
                 result = await loadHttpFile(filename);
                 app = await loadMjs(result, filename, contextifiedSandbox);
                 app.instantiate();
+                instantiated = true;
+                makeReady(true, {});
+                beginDrawing();
                 await app.evaluate();
+                endDrawing();
               }
               else
               {
@@ -658,11 +663,18 @@ const bootStrap = (moduleName, from, request) => {
                 rpath = "file://" + rpath;
                 app = await loadMjs(source, rpath, contextifiedSandbox);
                 app.instantiate();
+                instantiated = true;
+                makeReady(true, {});
+                beginDrawing();
                 await app.evaluate();
+                endDrawing();
               }
             }
             catch(err) {
               console.log("load mjs module failed " + err);
+              if (false == instantiated) {
+                makeReady(false, {});
+              } 
             }
           })();
         }
@@ -704,9 +716,11 @@ const bootStrap = (moduleName, from, request) => {
 
       try {
           compiled.call(exports, exports, require, module, filename, path.dirname(filename));
+          makeReady(true, {});
       }
       catch(e) {
-        console.log(e)
+        console.log(e);
+        makeReady(false, {});
       }
 
       bootStrapCache[filename] = module.exports
