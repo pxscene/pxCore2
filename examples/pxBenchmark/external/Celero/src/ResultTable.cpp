@@ -65,7 +65,7 @@ public:
 		{
 			this->ofs << "Group,Problem "
 						 "Space,Samples,Iterations,Failure,Baseline,";
-			this->ofs << "TotalTime(us),us/Iteration,Iterations/sec,Min (us),Mean (us),Max "
+			this->ofs << "Time(us), TotalTime(us),us/Iteration,Iterations/sec,Min (us),Mean (us),Max "
 						 "(us),Variance,Standard Deviation,Skewness,Kurtosis,Z Score"
 					  << std::endl;
 		}
