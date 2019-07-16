@@ -172,7 +172,15 @@ var loadUrl = function(url, _beginDrawing, _endDrawing, _view) {
   {
     sandbox[sandboxKeys[i]] = global[sandboxKeys[i]];
   }
-  sandbox['__dirname'] = __dirname;
+  var sandboxDir = __dirname;
+  if (url.startsWith('gl:')) {
+    var fn = url.substring(3);
+    if (fn.indexOf('/') == 0)
+    {
+      sandboxDir = fn.substring(0,fn.lastIndexOf('/')+1);
+    }
+  }
+  sandbox['__dirname'] = sandboxDir;
   sandbox['require'] = reqOrig;
   sandbox['Buffer'] = Buffer;
   contextifiedSandbox = vm.createContext(sandbox);
