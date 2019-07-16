@@ -533,7 +533,7 @@ uint64_t pxApiFixture::run(const uint64_t threads, const uint64_t iterations, co
         
         if (mExp != nullptr)
         {
-            string experimentName = to_string((int)mExperimentValue.mTotalTime);
+            string experimentName = to_string((double)(totalTime*0.001)) + "," + to_string((int)mExperimentValue.mTotalTime);
         
             mExp->setName (experimentName);
             //win.popBaselineBm()->setBaseline(exp);
