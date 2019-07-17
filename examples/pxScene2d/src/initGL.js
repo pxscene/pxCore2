@@ -31,6 +31,7 @@ limitations under the License.
 // NOTE TO self... declarations with no "var" are in global namespace... danger
 // are setInterval and clearInterval polluting global namespace... ?
 // /Users/johnrobinson/code/pxgl/examples/pxScene2d/external/spark-webgl/examples/2-triangle/triangle.js
+
 var _timers = require('timers')
 var fs = require('fs')
 var path = require('path')
