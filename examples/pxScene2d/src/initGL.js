@@ -285,7 +285,7 @@ async function loadJsonModule(source, specifier, ctx)
   return mod;
 }
 
-/* load js file and returns as ejs module */
+/* load javascript file and returns as ejs module */
 async function loadJavaScriptModule(source, specifier, ctx)
 {
   if (specifier in modmap)
@@ -371,7 +371,7 @@ async function loadNodeModule(specifier, ctx)
   return mod;
 }
 
-/* load cjs module and returns as ejs module */
+/* load commonjs module and returns as ejs module */
 async function loadCommonJSModule(specifier, ctx)
 {
   if (specifier in modmap)
