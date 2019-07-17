@@ -633,7 +633,7 @@ const bootStrap = (moduleName, from, request) => {
 
                 console.log("About to load http file !!");
       //it will be good if we have some way to tell, we are loading esm module in js file
-      if ((filename.indexOf('.mjs') != -1)) {
+      /*if ((filename.indexOf('.mjs') != -1))*/ {
         script.runInContext(contextifiedSandbox);
         try {
           (async () => {
