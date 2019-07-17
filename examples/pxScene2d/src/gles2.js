@@ -26,7 +26,7 @@ var init = function(options) {
 
     //gles2.init(width, height, fullscreen, title);
 
-    return require('./webgl').instance;
+    return global.sparkwebgl.instance;
 };
 
 module.exports = {
