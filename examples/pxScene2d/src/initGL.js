@@ -287,7 +287,7 @@ async function loadJsonModule(source, specifier, ctx)
 }
 
 /* load js file and returns as ejs module */
-async function loadJsModule(source, specifier, ctx)
+async function loadJavaScriptModule(source, specifier, ctx)
 {
   if (specifier in modmap)
   { 
@@ -373,7 +373,7 @@ async function loadNodeModule(specifier, ctx)
 }
 
 /* load cjs module and returns as ejs module */
-async function loadCjsModule(specifier, ctx)
+async function loadCommonJSModule(specifier, ctx)
 {
   if (specifier in modmap)
   {
@@ -414,7 +414,7 @@ async function loadCjsModule(specifier, ctx)
 }
 
 /* load mjs file and returns as ejs module */
-async function getMod(specifier, referencingModule) {
+async function getModule(specifier, referencingModule) {
    try {
    var isLocalApp = (referencingModule.url.indexOf("file:") == 0)?true:false;
    var baseString = "";
@@ -458,13 +458,13 @@ async function getMod(specifier, referencingModule) {
            specifier = path.resolve(baseString.substring(0, baseString.lastIndexOf("/")+1), specifier);
            source = await readFileAsync(specifier, {'encoding' : 'utf-8'})
            specifier = "file://" + specifier;
-           mod = loadJsModule(source, specifier, referencingModule.context);
+           mod = loadJavaScriptModule(source, specifier, referencingModule.context);
          }
          else
          {
            specifier = "http://" + baseString.substring(0, baseString.lastIndexOf("/")+1) + specifier;
            result = await loadHttpFile(specifier);
-           mod = loadJsModule(result, specifier, referencingModule.context);
+           mod = loadJavaScriptModule(result, specifier, referencingModule.context);
          }
        } catch(err) {
          console.log(err);
@@ -475,10 +475,10 @@ async function getMod(specifier, referencingModule) {
      // node modules
      if (fs.existsSync("node_modules/" + specifier) && (specifier.indexOf("wpe-lightning") == -1))
      {
-       mod = loadCjsModule(specifier, referencingModule.context);
+       mod = loadCommonJSModule(specifier, referencingModule.context);
      }
      else if(specifier == 'fs' || specifier == 'http' || specifier == 'https') {
-       mod = loadCjsModule(specifier, referencingModule.context);
+       mod = loadCommonJSModule(specifier, referencingModule.context);
      }
      else
      {
@@ -570,21 +570,22 @@ async function getMod(specifier, referencingModule) {
   }
   return mod;
   } catch(err) {
-    console.log("Exception in linker " + err);
+    console.log(err);
  }
 }
 
 async function linker(specifier, referencingModule) {
   try {
-  var mod = await getMod(specifier, referencingModule);
+  var mod = await getModule(specifier, referencingModule);
   return mod;
   } catch(err) {
-    console.log("linker error !!!!!!!!!!!!!!!!! "  +err);
+    console.log("linker error !!!!!!!!!!!!!!!!!");
+    console.log(err);
   }
 }
 
 async function importModuleDynamically(specifier, { url }) {
-  var mod = await getMod(specifier,{ url });
+  var mod = await getModule(specifier,{ url });
   mod.instantiate();
   await mod.evaluate();
   return mod;
@@ -671,7 +672,8 @@ const bootStrap = (moduleName, from, request) => {
               }
             }
             catch(err) {
-              console.log("load mjs module failed " + err);
+              console.log("load mjs module failed ");
+              console.log(err);
               if (false == instantiated) {
                 makeReady(false, {});
               } 
