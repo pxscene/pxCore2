@@ -456,7 +456,7 @@ void rtShaderResource::loadResourceFromFile()
   }
 }
 
-void rtShaderResource::loadResourceFromArchive(rtObjectRef archiveRef)
+void rtShaderResource::loadResourceFromArchive(rtObjectRef /*archiveRef*/)
 {
 #if 0
   pxArchive* archive = (pxArchive*)archiveRef.getPtr();

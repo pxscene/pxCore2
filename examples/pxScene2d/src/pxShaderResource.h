@@ -102,7 +102,7 @@ public:
   virtual void     loadResource(rtObjectRef archive = NULL, bool reloading=false);
   virtual uint32_t loadResourceData(rtFileDownloadRequest* fileDownloadRequest);
   virtual void     loadResourceFromFile();
-  virtual void     loadResourceFromArchive(rtObjectRef archiveRef);
+  virtual void     loadResourceFromArchive(rtObjectRef /*archiveRef*/);
 
 protected:
   //
