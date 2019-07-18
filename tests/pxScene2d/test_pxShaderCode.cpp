@@ -84,7 +84,7 @@ public:
 
       pxObject myObj(NULL);
 
-      pxError res1 = applyConfig(array, myObj);
+      pxError res1 = applyRTconfig(array, myObj);
       EXPECT_TRUE (res1 == PX_FAIL);
     }
 
@@ -289,7 +289,7 @@ public:
 
       pxObject myObj(NULL);
 
-      pxError res1 = setShaderConfig(array, myObj);
+      pxError res1 = applyRTconfig(array, myObj);
       EXPECT_TRUE (res1 == PX_FAIL);
 
       rtString junk("foo");
@@ -308,7 +308,7 @@ public:
       // - - - - - - - - - - - - - - - - - - - -
 
       rtValue array_val( mo.getPtr() );
-      EXPECT_TRUE ( setShaderConfig(config, myObj) == PX_FAIL );
+      EXPECT_TRUE ( applyRTconfig(config, myObj) == PX_FAIL );
     }
 
     void testLoadFromDataURL()
