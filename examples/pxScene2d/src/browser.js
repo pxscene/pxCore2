@@ -86,7 +86,15 @@ px.import({ scene:   'px:scene.1.js',
   var fontRes       = scene.create({ t: "fontResource",  url: "FreeSans.ttf" });
 
   var version = scene.info.version
-  var bgSVG = (version.startsWith('edge_')||version.startsWith('dev'))?'/browser/images/status_bg_edge.svg':'/browser/images/status_bg.svg'
+  var bgSVG;
+  if (version.startsWith('edge_')) {
+    bgSVG = '/browser/images/status_bg_edge.svg';
+  } else if (version.startsWith('dev')) {
+    bgSVG = '/browser/images/status_bg_dev.svg';
+  } else {
+    bgSVG = '/browser/images/status_bg.svg';
+  }
+
   var bg        = scene.create({t:"image",  parent: root, url:base+bgSVG, stretchX: myStretch, stretchY: myStretch});
   var contentBG = scene.create({t:"rect",   parent: bg, x:10, y:60, fillColor: 0xffffffff, a: 0.05 });
   var content   = scene.create({t:"scene",  parent: bg,      x:10, y:60, clip:true });
