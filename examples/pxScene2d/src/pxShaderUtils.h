@@ -126,11 +126,11 @@ typedef enum UniformType
 struct uniformLoc
 {
   rtString       name;         // uniform NAME
-  rtString       typeStr;      // GLSL type name
-  UniformType_t  type;
+  UniformType_t  type;         // GLSL type indicated by enum
   GLint          loc;          // uniform location in Shader
 
   rtValue        value;        // rtValue to be applied per draw.
+
   bool           needsUpdate;  // flag to set in shader only whence changed.
 
   setFunc_t      setFunc;      // static pointer to *setter* function to unwrap and apply rtValue into Shader
@@ -192,8 +192,6 @@ protected:
   GLint mPosLoc,  mUVLoc,         mAlphaLoc,   mColorLoc;
 
   UniformMap_t  mUniform_map;
- // UniformList_t mUniform_list;
-
 }; // CLASS
 
 //=====================================================================================================================================

@@ -577,14 +577,13 @@ public:
 
   pxScene2d* getScene() { return mScene; }
   void createSnapshot(pxContextFramebufferRef& fbo, bool separateContext=false, bool antiAliasing=false);
-  void renderEffect(pxContextFramebufferRef& fbo);
+  void renderEffectSnapshot(pxContextFramebufferRef& fbo);
 
 
   void setEffectConfig(rtObjectRef v)    { mEffectRef = v; };
-  void setEffectArray(rtObjectRef v)     { mEffects   = v; };
   
-  void setEffectPtr(rtShaderResource *p) { mEffectPtr = p;    };
-  rtShaderResource *effectPtr()          { return mEffectPtr; };
+  void setEffectPtr(rtShaderResource *p) { mEffectShaderPtr = p;    };
+  rtShaderResource *effectPtr()          { return mEffectShaderPtr; };
 
 public:
   rtEmitRef mEmit;
@@ -610,11 +609,15 @@ protected:
   bool mDraw;
 
   rtObjectRef             mEffectRef;         // Shader Config objects
+  rtObjectRef             mEffectConfigRef;   // rtMap   is Shader Config object
+  rtObjectRef             mEffectArrayRef;    // rtArray of Shader Config objects
+
   rtObjectRef             mEffects;           // rtArray of Shader Config objects
-  rtShaderResource       *mEffectPtr;         // Shader Effect used by this pxObject
+  rtShaderResource       *mEffectShaderPtr;   // Shader Effect used by this pxObject
+  
   pxContextFramebufferRef mEffectSnapshotRef; // FBO
 
-  finline bool hasEffect()   { return ( mEffectRef || mEffects ); }
+  finline bool hasEffect()   { return ( mEffectRef || mEffects || mEffectShaderPtr || mEffectConfigRef || mEffectArrayRef); }
 
   bool mHitTest;
   rtObjectRef mReady;

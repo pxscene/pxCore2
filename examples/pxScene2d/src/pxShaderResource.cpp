@@ -163,7 +163,7 @@ rtError rtShaderResource::setUniformVals(const rtValue& v)
     return RT_FAIL;
   }
 
-  rtValue     keysVal;
+  rtValue keysVal;
   uniforms->Get("allKeys", &keysVal);
 
   if( keysVal.isEmpty() )
@@ -171,7 +171,7 @@ rtError rtShaderResource::setUniformVals(const rtValue& v)
     rtLogError(" Empty Uniforms array.");
     return RT_FAIL;
   }
-  
+
   rtObjectRef keys = keysVal.toObject();
   uint32_t     len = keys.get<uint32_t>("length");
 
@@ -185,8 +185,13 @@ rtError rtShaderResource::setUniformVals(const rtValue& v)
     {
       setUniformVal(key, val); // update this value in Uniforms map...
     }
+    else
+    {
+      rtLogError(" Failed to set Uniform - key: %s", key.cString() );
+      return RT_FAIL;
+    }
   }
-
+  
   return RT_OK;
 }
 
@@ -194,7 +199,6 @@ rtError rtShaderResource::Set(const char* name, const rtValue* value)
 {
   // Only have EXPLICIT supported Properties ... otherwise its a UNIFORM
   //
-
   if(strcmp(name, "passes") == 0)
   {
     mPasses = value->toInt32();
@@ -244,31 +248,49 @@ rtError rtShaderResource::setUniforms(rtObjectRef o)
       else
       if(type == "int")
       {
-        setFunc = &rtShaderResource::setUniform1f;
+        setFunc  = rtShaderResource::setUniform1i;
         typeEnum = UniformType_Int;
       }
       else
       if(type == "float")
       {
-        setFunc = rtShaderResource::setUniform1f;
+        setFunc  = rtShaderResource::setUniform1f;
         typeEnum = UniformType_Float;
+      }
+      else
+      if(type == "ivec2")
+      {
+        setFunc  = rtShaderResource::setUniform2iv;
+        typeEnum = UniformType_iVec2;
+      }
+      else
+      if(type == "ivec3")
+      {
+        setFunc  = rtShaderResource::setUniform3iv;
+        typeEnum = UniformType_iVec3;
+      }
+      else
+      if(type == "ivec4")
+      {
+        setFunc  = rtShaderResource::setUniform4iv;
+        typeEnum = UniformType_iVec4;
       }
       else
       if(type == "vec2")
       {
-        setFunc = rtShaderResource::setUniform2fv;
+        setFunc  = rtShaderResource::setUniform2fv;
         typeEnum = UniformType_Vec2;
       }
       else
       if(type == "vec3")
       {
-        setFunc = rtShaderResource::setUniform3fv;
+        setFunc  = rtShaderResource::setUniform3fv;
         typeEnum = UniformType_Vec3;
       }
       else
       if(type == "vec4")
       {
-        setFunc = rtShaderResource::setUniform4fv;
+        setFunc  = rtShaderResource::setUniform4fv;
         typeEnum = UniformType_Vec4;
       }
       else
@@ -287,11 +309,10 @@ rtError rtShaderResource::setUniforms(rtObjectRef o)
         mSamplerCount++;
       }
 
-      mUniform_map[name] = { name, type, typeEnum, (GLint) -1, rtValue(), false, setFunc };  // ADD TO MAP
+      mUniform_map[name] = { name, typeEnum, (GLint) -1, rtValue(), false, setFunc };  // ADD TO MAP
     }
   }//FOR
 
-  mUniforms = o;
   return RT_OK;
 }
 
@@ -305,11 +326,13 @@ void rtShaderResource::loadResourceFromFile()
 
   if(mVertexUrl.beginsWith("data:text/plain,"))
   {
-    mVertexSrc.init( (const uint8_t* ) mVertexUrl.substring(16).cString(), mVertexUrl.length() - 16 + 1);  // copy null character too
+    mVertexSrc.init( (const uint8_t* ) mVertexUrl.substring(16).cString(),
+                                       mVertexUrl.byteLength() - 16);
   }
   if(mFragmentUrl.beginsWith("data:text/plain,"))
   {
-    mFragmentSrc.init( (const uint8_t* ) mFragmentUrl.substring(16).cString(), mFragmentUrl.length() - 16 + 1);  // copy null character too
+    mFragmentSrc.init( (const uint8_t* ) mFragmentUrl.substring(16).cString(),
+                                         mFragmentUrl.byteLength() - 16);
   }
 
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -739,14 +762,18 @@ void rtShaderResource::postlink()
   if(img)
   {
     pxTextureRef tex = img->getTexture();
-    GLuint       tid = tex->getNativeId();
+    
+    if(tex)
+    {
+      GLuint     tid = tex->getNativeId();
 
-    glActiveTexture(GL_TEXTURE3);
-    glBindTexture(GL_TEXTURE_2D,     tid);
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-    glUniform1i(p.loc, 3);
+      glActiveTexture(GL_TEXTURE3);
+      glBindTexture(GL_TEXTURE_2D,     tid);
+      glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+      glUniform1i(p.loc, 3);
 
-    return RT_OK;
+      return RT_OK;
+    }
   }
 
   return RT_FAIL;
@@ -760,16 +787,20 @@ void rtShaderResource::postlink()
   if(img)
   {
     pxTextureRef tex = img->getTexture();
-    GLuint       tid = tex->getNativeId();
 
-    tex->bindTexture();
+    if(tex)
+    {
+      GLuint     tid = tex->getNativeId();
 
-    glActiveTexture(GL_TEXTURE4);
-    glBindTexture(GL_TEXTURE_2D,     tid);
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-    glUniform1i(p.loc, 4);
+      tex->bindTexture();
 
-    return RT_OK;
+      glActiveTexture(GL_TEXTURE4);
+      glBindTexture(GL_TEXTURE_2D,     tid);
+      glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+      glUniform1i(p.loc, 4);
+
+      return RT_OK;
+    }
   }
 
   return RT_FAIL;
@@ -783,14 +814,18 @@ void rtShaderResource::postlink()
   if(img)
   {
     pxTextureRef tex = img->getTexture();
-    GLuint       tid = tex->getNativeId();
+    
+    if(tex)
+    {
+      GLuint     tid = tex->getNativeId();
 
-    glActiveTexture(GL_TEXTURE5);
-    glBindTexture(GL_TEXTURE_2D,     tid);
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-    glUniform1i(p.loc, 5);
+      glActiveTexture(GL_TEXTURE5);
+      glBindTexture(GL_TEXTURE_2D,     tid);
+      glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+      glUniform1i(p.loc, 5);
 
-    return RT_OK;
+      return RT_OK;
+    }
   }
 
   return RT_FAIL;
@@ -973,21 +1008,23 @@ rtError findKey(rtArrayObject* array, rtString k)
 
 //=====================================================================================================================================
 //
-// Set a (JS) CONFIG object directly
+// Set a (JS) CONFIG object + UNIFORMS to Shader directly
 //
-rtError setShaderConfig(rtObjectRef v, pxObject &obj)
+rtError applyJSconfig(rtObjectRef v, pxObject &obj)
 {
   if(v)
   {
-    //
-    // >>> GET >> "name"
-    //
+    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    // (JS)  NAME
+    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
     rtValue nameVal;
     v->Get("name", &nameVal);
 
-    //
-    // >>> GET >> "shader"
-    //
+    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    // (JS)  SHADER
+    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
     rtValue shaderVal;
     v->Get("shader", &shaderVal);
 
@@ -1006,9 +1043,12 @@ rtError setShaderConfig(rtObjectRef v, pxObject &obj)
       return RT_FAIL;
     }
 
-    //
-    // >>> GET >> "uniforms"
-    //
+    obj.setEffectConfig(shaderRef);
+
+    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    // (JS)  UNIFORMS
+    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    
     rtValue uniformsVal;
     v->Get("uniforms", &uniformsVal);
 
@@ -1018,13 +1058,7 @@ rtError setShaderConfig(rtObjectRef v, pxObject &obj)
       return RT_FAIL;
     }
 
-    rtObjectRef uniforms = uniformsVal.toObject();
-
-    rtValue count;                          // HACK - WORKAROUND
-    uniforms->Get("length", &count);        // HACK - WORKAROUND
-
-    obj.setEffectConfig(shaderRef);
-    shader->setUniformVals(uniformsVal); // WAS uniforms ????? FIXME
+    shader->setUniformVals(uniformsVal);
 
     return RT_OK;
   }
@@ -1035,18 +1069,18 @@ rtError setShaderConfig(rtObjectRef v, pxObject &obj)
 
 //=====================================================================================================================================
 //
-// Set an (RT) CONFIG object of UNIFORMS to Shader
+// Set an (RT) CONFIG object + UNIFORMS to Shader
 //
-rtError applyConfig(rtObjectRef v, pxObject &obj)
+rtError applyRTconfig(rtObjectRef v, pxObject &obj)
 {
   rtMapObject *mapp = dynamic_cast<rtMapObject *>(v.getPtr());
 
-  rtObjectRef keys;
-
   if(mapp)
   {
+    rtObjectRef keys;
+
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    // NAME
+    // (RT)  NAME
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
     rtValue name;
@@ -1058,7 +1092,7 @@ rtError applyConfig(rtObjectRef v, pxObject &obj)
     }
 
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    // SHADER
+    // (RT)  SHADER
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
     rtValue shaderVal;
@@ -1069,58 +1103,158 @@ rtError applyConfig(rtObjectRef v, pxObject &obj)
       rtLogError(" - No 'shader' specified. ");
       return RT_FAIL;
     }
-    else
-    {
-      obj.setEffectPtr(  (rtShaderResource *) ( shaderVal.toVoidPtr() ) );
-    }
 
+    rtShaderResource *shader = static_cast<rtShaderResource *>( shaderVal.toVoidPtr() );
+    obj.setEffectPtr( (rtShaderResource *) ( shader ) );
+    
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    // UNIFORMS
+    // (RT)  UNIFORMS
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
     rtValue uniformsVal;
     mapp->Get("uniforms", &uniformsVal);
 
-    if(uniformsVal.isEmpty() == false)
-    {
-      rtMapObject *uniforms = dynamic_cast<rtMapObject *>(uniformsVal.toObject().getPtr());
-
-      if(uniforms)
-      {
-        rtObjectRef keys = uniforms->get<rtObjectRef>("allKeys");
-        uint32_t     len = keys.get<uint32_t>("length");
-
-        // Iterate UNIFORMS map
-        for (uint32_t i = 0; i < len; i++)
-        {
-          rtString key = keys.get<rtString>(i);
-          rtValue  val = uniforms->get<rtValue>(key);
-
-          rtShaderResource *shader = obj.effectPtr();
-          if(shader)
-          {
-            shader->setUniformVal(key, val);
-          }
-        }//FOR
-      }
-    }
-    else
+    if(uniformsVal.isEmpty() )
     {
       rtLogWarn(" - \"uniforms\" list is empty/missing. ");
       return RT_FAIL;
+    }
+  
+    rtMapObject *uniforms = dynamic_cast<rtMapObject *>(uniformsVal.toObject().getPtr());
+
+    if(uniforms && shader)
+    {
+      rtObjectRef keys = uniforms->get<rtObjectRef>("allKeys");
+      uint32_t     len = keys.get<uint32_t>("length");
+
+      // Iterate UNIFORMS map
+      for (uint32_t i = 0; i < len; i++)
+      {
+        rtString key = keys.get<rtString>(i);
+        rtValue  val = uniforms->get<rtValue>(key);
+
+        shader->setUniformVal(key, val);
+      }//FOR
     }
 
     return RT_OK;
   }
 
+  rtLogWarn(" - applyConfig() - bad args ");
+  
   return RT_FAIL; // default fail
+}
+
+//=====================================================================================================================================
+//
+//  Copy  (JS) CONFIG object to (RT) Config object ... single
+//
+rtObjectRef copyConfigJS2RT(rtObjectRef &v)
+{
+  rtShaderResource *pShader = NULL;
+  
+  rtObjectRef configRef = v;// v.toObject(); // Unwrap the Config object
+  
+  if(configRef == NULL)
+  {
+    rtLogError("ERROR:  Invlaid 'config' specified. ");
+    return NULL;
+  }
+  
+  rtObjectRef thisConfig = new rtMapObject();
+  
+  // printf("\n\nGOT >> CONFIG[%d]  >>  %s\n",i, thisConfig.getTypeStr());
+  
+  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  // (JS to RT) NAME
+  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  
+  rtValue name = configRef.get<rtValue>("name");
+  if(name.isEmpty() == false)
+  {
+    rtLogDebug("GOT name:  %s \n", name.toString().cString());
+    
+    thisConfig->Set("name", &name);
+  }
+  
+  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  // (JS to RT) SHADER
+  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  rtValue  shader = configRef.get<rtValue>("shader");
+  
+  if(shader.isEmpty() == false)
+  {
+    rtShaderResource *ptr = dynamic_cast<rtShaderResource *>( shader.toObject().getPtr() );
+    
+    pShader = ptr; // needed below...
+    
+    rtValue ptrVal;
+    
+    ptrVal.setVoidPtr(ptr);
+    thisConfig->Set("shader", &ptrVal);
+  }
+  else
+  {
+    rtLogError("ERROR:  No 'shader' specified. ");
+    return NULL;
+  }
+  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  // (JS to RT) UNIFORMS ARRAY
+  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  
+  rtValue uniformsValue = configRef.get<rtValue>("uniforms");
+  
+  if(uniformsValue.isEmpty())
+  {
+    rtLogError("ERROR:  No 'uniforms' specified. ");
+    return NULL;
+  }
+  else
+  if(pShader == NULL)
+  {
+    rtLogError("ERROR:  No 'shader' specified. ");
+    return NULL;
+  }
+  else
+  {
+    rtObjectRef dstUniforms = new rtMapObject();
+    
+    rtValue uniforms;
+    uniforms.setObject(dstUniforms);
+    
+    thisConfig->Set("uniforms", &uniforms);
+    
+    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    // Iterate UNIFORMS maps in Array
+    //
+    rtObjectRef  uniformsObject = uniformsValue.toObject();
+    rtObjectRef            keys = uniformsObject.get<rtObjectRef>("allKeys");
+    uint32_t            numKeys = keys.get<uint32_t>("length");
+    
+    for (uint32_t i = 0; i < numKeys; i++)
+    {
+      rtString key = keys.get<rtString>(i);
+      rtValue  val = uniformsObject.get<rtValue>(key);
+      
+      UniformType_t type = pShader->getUniformType(key);
+      
+      rtValue uniform = copyUniform(type, val);
+      
+      dstUniforms->Set(key.cString(), &uniform); // add UNIFORM to 'uniforms' map
+      
+      //printf("\nCOPY UNIFORM >>> key:%15s  val: %15s", key.cString(), uniform.getTypeStr());
+    }//FOR - uniforms
+    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  }
+  
+  return thisConfig;
 }
 
 //=====================================================================================================================================
 //
 // Copy  (JS) CONFIG objects to (RT) Config objects ... array
 //
-rtObjectRef copyShaderConfigs(rtObjectRef &v)
+rtObjectRef copyArrayJS2RT(rtObjectRef &v)
 {
   rtObjectRef keys = v.get<rtObjectRef>("allKeys");
   uint32_t numKeys = keys.get<uint32_t>("length");
@@ -1133,10 +1267,8 @@ rtObjectRef copyShaderConfigs(rtObjectRef &v)
 
   rtObjectRef dstConfigs = new rtArrayObject();
 
-  rtShaderResource *pShader = NULL;
-
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  // CONFIG
+  // (JS to RT) CONFIG
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
   // Iterate CONFIG objects in Array
@@ -1145,95 +1277,14 @@ rtObjectRef copyShaderConfigs(rtObjectRef &v)
     rtString            key = keys.get<rtString>(i);
     rtValue          config = v.get<rtValue>(key);
     rtObjectRef   configRef = config.toObject(); // Unwrap the Config object
-
-    rtObjectRef thisConfig = new rtMapObject();
-
-    //    printf("\n\nGOT >> CONFIG[%d]  >>  %s\n",i, thisConfig.getTypeStr());
-
-    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    // NAME
-    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-    rtValue name = configRef.get<rtValue>("name");
-    if(name.isEmpty() == false)
-    {
-      rtLogDebug("GOT name:  %s \n", name.toString().cString());
-
-      //printf("COPY NAME >>> %s\n",  name.toString().cString());
-
-      thisConfig->Set("name", &name);
-    }
-
-    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    // SHADER
-    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    rtValue  shader = configRef.get<rtValue>("shader");
-
-    if(shader.isEmpty() == false)
-    {
-      rtShaderResource *ptr = dynamic_cast<rtShaderResource *>( shader.toObject().getPtr() );
-
-      pShader = ptr;
-
-      rtValue ptrVal;
-
-      ptrVal.setVoidPtr(ptr);
-      thisConfig->Set("shader", &ptrVal);
-    }
-    else
-    {
-      rtLogError("ERROR:  No 'shader' specified. ");
-      return NULL;
-    }
-    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    // UNIFORMS ARRAY
-    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-    rtValue uniformsValue = configRef.get<rtValue>("uniforms");
-
-    if(uniformsValue.isEmpty())
-    {
-      rtLogError("ERROR:  No 'uniforms' specified. ");
-      return NULL;
-    }
-    else
-    {
-      rtObjectRef dstUniforms = new rtMapObject();
-
-      rtValue uniforms;
-      uniforms.setObject(dstUniforms);
-
-      thisConfig->Set("uniforms", &uniforms);
-
-      // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-      // Iterate UNIFORMS maps in Array
-      //
-      rtObjectRef  uniformsObject = uniformsValue.toObject();
-      rtObjectRef            keys = uniformsObject.get<rtObjectRef>("allKeys");
-      uint32_t            numKeys = keys.get<uint32_t>("length");
-
-      for (uint32_t i = 0; i < numKeys; i++)
-      {
-        rtString key = keys.get<rtString>(i);
-        rtValue  val = uniformsObject.get<rtValue>(key);
-
-        UniformType_t type = pShader->getUniformType(key);
-
-        rtValue uniform = copyUniform(type, val);
-
-        dstUniforms->Set(key.cString(), &uniform); // add UNIFORM to 'uniforms' map
-
-        //printf("\nCOPY UNIFORM >>> key:%15s  val: %15s", key.cString(), uniform.getTypeStr());
-      }//FOR - uniforms
-      // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-      rtValue val;
-      val.setObject(thisConfig);
-
-      ((rtArrayObject*) dstConfigs.getPtr())->pushBack(val);
-
-      // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    }
+    
+    rtObjectRef thisConfig = copyConfigJS2RT(configRef);
+    
+    rtValue val;
+    val.setObject(thisConfig);
+    
+    ((rtArrayObject*) dstConfigs.getPtr())->pushBack(val);
+    
   }//FOR - config objects
 
   return rtObjectRef(dstConfigs);
@@ -1255,19 +1306,52 @@ rtValue copyUniform(UniformType_t type, rtValue &val)
 
       case UniformType_Bool:
       case UniformType_Int:
+          // JS only has Doubles.  Cast to Int.
+          ans.setValue((int) val.toDouble());
+          return ans;
+      break;
+
       case UniformType_UInt:
+          // JS only has Doubles.  Cast to UInt.
+          ans.setValue( (uint32_t) val.toDouble());
+          return ans;
+      break;
+
       case UniformType_Float:
       case UniformType_Double:
-      //printf("\nCOPY UNIFORM >>> scalar (float/int/bool) ");
-      ans.setValue(val);
-      return ans;
+          // JS only has Doubles.  Cast to Float.
+          ans.setValue((float) val.toDouble() );
+          return ans;
       break;
 
       // Vectors:  int
       case UniformType_iVec2:
       case UniformType_iVec3:
       case UniformType_iVec4:
-
+      {
+        rtObjectRef    array = new rtArrayObject();
+        rtObjectRef   valObj = val.toObject();
+        rtObjectRef     keys = valObj.get<rtObjectRef>("allKeys");
+        
+        if (keys)
+        {
+          uint32_t len = keys.get<uint32_t>("length");
+          for (uint32_t i = 0; i < len; i++)
+          {
+            rtValue  val = valObj.get<rtValue>(i);
+            
+            // JS only has Doubles.  Cast to Int.
+            val.setInt32( (int32_t) val.toDouble() );
+            
+            ((rtArrayObject*) array.getPtr())->pushBack(val);
+          }
+        }
+        
+        ans.setObject(array);
+        
+        return ans;
+      }
+      break;
       // TODO: Possibly not in ES 2.0
       //
       //      // Vectors:  bool
@@ -1290,39 +1374,35 @@ rtValue copyUniform(UniformType_t type, rtValue &val)
       case UniformType_Vec2:
       case UniformType_Vec3:
       case UniformType_Vec4:
-    {
-      //printf(" \nCOPY UNIFORM >>> vector (vec2/vec3/vec4)");
-
-      rtObjectRef    array = new rtArrayObject();
-      rtObjectRef   valObj = val.toObject();
-      rtObjectRef     keys = valObj.get<rtObjectRef>("allKeys");
-
-      if (keys)
       {
-        uint32_t len = keys.get<uint32_t>("length");
-        for (uint32_t i = 0; i < len; i++)
+        rtObjectRef    array = new rtArrayObject();
+        rtObjectRef   valObj = val.toObject();
+        rtObjectRef     keys = valObj.get<rtObjectRef>("allKeys");
+
+        if (keys)
         {
-          rtValue  val = valObj.get<rtValue>(i);
-
-          // JS only has Doubles.  Convert to Floats.
-          if(val.getType() == RT_doubleType)
+          uint32_t len = keys.get<uint32_t>("length");
+          for (uint32_t i = 0; i < len; i++)
           {
-            //printf("\n  COPY UNIFORM >>> vec%d  i: %d   val: %f", len, i, (float) val.toDouble());
+            rtValue  val = valObj.get<rtValue>(i);
 
+            // JS only has Doubles.  Cast to Float.
             val.setFloat( (float) val.toDouble() );
+
+            ((rtArrayObject*) array.getPtr())->pushBack(val);
           }
-
-          ((rtArrayObject*) array.getPtr())->pushBack(val);
         }
+
+        ans.setObject(array);
+
+        return ans;
       }
-
-      ans.setObject(array);
-
-      return ans;
-    }
       break;
 
       case UniformType_Sampler2D:
+        ans.setValue(val);
+        return ans;
+      break;
       case UniformType_Struct:
       break;
   }//SWITCH

@@ -132,7 +132,7 @@ void shaderProgram::use()
   }
 }
 
-static double dt = 0;
+static double last_ms = 0.0;
 
 pxError shaderProgram::draw(int resW, int resH, float* matrix, float alpha,
                             pxTextureRef t,
@@ -151,84 +151,71 @@ pxError shaderProgram::draw(int resW, int resH, float* matrix, float alpha,
     return RT_FAIL;
   }
 
-  use();
+  use(); // this program ! (if different)
 
-  glUniform2f(mResolutionLoc, static_cast<GLfloat>(resW), static_cast<GLfloat>(resH));
+  //
+  // Always update UNIFORM(S) ...
+  //
   glUniformMatrix4fv(mMatrixLoc, 1, GL_FALSE, matrix);
-
+  glUniform2f(mResolutionLoc, static_cast<GLfloat>(resW), static_cast<GLfloat>(resH));
+  
   //
-  // Update UNIFORMS ...
+  // Update specific UNIFORMS ...
   //
-  for (UniformMapIter_t it  = mUniform_map.begin();
-                        it != mUniform_map.end(); ++it)
+  if(mTimeLoc != -1)
   {
-    uniformLoc_t &p = (*it).second;
+    double time_ms = pxMilliseconds();
+    if(last_ms == 0)
+      last_ms = time_ms;
+    
+    glUniform1f(mTimeLoc, (float) ((time_ms - last_ms) / 1000.0) );
+  }
 
-    // TODO:  String matching ... yuk ... move to 'char' based switch() for types
-    if(p.name == "u_time")
-    {
-      double time = pxMilliseconds();
-      if(dt == 0)
-      dt = time;
+  if(mAlphaLoc != -1)
+  {
+    glUniform1f(mAlphaLoc, alpha);
+  }
 
-      double tt = (time - dt) / 1000.0;
+//  if(mColorLoc != -1)
+//  {
+//    float color[4] = {1,0,0,1};
+//    glUniform4fv(mColorLoc, 1, color);
+//  }
 
-      glUniform1f(p.loc, (float) tt );
-      p.needsUpdate = false;
-    }
-    //    else
-    //    if(p.needsUpdate == false)
-    //    {
-    //      continue; // SKIP
-    //    }
-    //    else
-    //    if(p.name == "u_color")
-    //    {
-    //      float color[4] = {1,0,0,1};
-    //      glUniform4fv(p.loc, 1, color);
-    //      p.needsUpdate = false;
-    //    }
-    else
-    if(p.name == "u_alpha")
+  //
+  // Bind to object FBO if needed
+  //
+  if(t)
+  {
+    UniformMapIter_t found = mUniform_map.find( "s_texture" );
+    if(found !=  mUniform_map.end() )
     {
-      glUniform1f(p.loc, alpha);
-      p.needsUpdate = false;
-    }
-    else
-    if(p.name == "u_resolution")
-    {
-      glUniform2f(p.loc, static_cast<GLfloat>(resW), static_cast<GLfloat>(resH));
-      p.needsUpdate = false;
-    }
-    else
-    // TODO  ... is this "s_texture" needed given BIND setFunc's
-    //
-    if(p.name == "s_texture")
-    {
-      if (t && t->bindGLTexture(p.loc) != PX_OK)
+      uniformLoc_t &p = (*found).second;
+      
+      if(t->bindGLTexture(p.loc) != PX_OK)  // to GL_TEXTURE1
       {
         rtLogError("Texture Bind failed !!");
-        //  return PX_FAIL;
       }
-      p.needsUpdate = false;
     }
-  }//FOR
+  }
 
+  //
   // Apply updated UNIFORM values to GPU...
+  //
   if(mUniform_map.size() > 0)
   {
-    for(UniformMapIter_t  it = mUniform_map.begin();
+    for(UniformMapIter_t it  = mUniform_map.begin();
                          it != mUniform_map.end(); ++it)
     {
       uniformLoc_t &p = (*it).second;
 
-      if(p.setFunc && (p.needsUpdate || p.type == UniformType_Sampler2D ) )
+      if(p.setFunc && p.needsUpdate)
       {
-        p.setFunc(p); // SET UNIFORM ... set p.value .. calls glUnifornXXX() ... etc.
+        p.setFunc(p); // SET UNIFORM ... set p.value .. calls glUniformXXX() and glBindTexture(3,4,5) calls ... etc.
 
-        p.needsUpdate = false;
+        p.needsUpdate = (p.type == UniformType_Sampler2D); // always bind Samplers... otherwise once will do.
       }
-    }//FOR
+    }
   }//ENDIF
 
   //
@@ -297,10 +284,15 @@ glShaderProgDetails_t  createShaderProgram(const char* vShaderTxt, const char* f
 
   if (!stat)
   {
+    char log[1000];
+    GLsizei len;
+    glGetShaderInfoLog(details.vertShader, 1000, &len, log);
+    rtLogError("VERTEX SHADER - Failed to compile:  [%s]", log);
+    
     GLenum err = glGetError();
 
     rtLogError("vertex shader did not compile: %d",err);
-    throw glException( rtString("VERTEX SHADER - Compile Error: ") );
+    throw glException( rtString("VERTEX SHADER - Compile Error: ") + rtString(log) );
     //exit(1);
   }
 
@@ -314,14 +306,15 @@ void linkShaderProgram(GLuint program)
 {
   GLint stat;
 
-  glLinkProgram(program);  /* needed to put attribs into effect */
+  glLinkProgram(program);  // needed to put attribs into effect
   glGetProgramiv(program, GL_LINK_STATUS, &stat);
+
   if (!stat)
   {
     char log[1000];
     GLsizei len;
     glGetProgramInfoLog(program, 1000, &len, log);
-    rtLogError("VERTEX SHADER - Failed to link: %s", log);
+    rtLogError("VERTEX SHADER - Failed to link:  [%s]", log);
 
     throw glException( rtString("VERTEX SHADER - Link Error: ") + log );
     // TODO purge all exit calls

@@ -54,9 +54,11 @@ pxCore Copyright 2005-2018 John Robinson
 
 //=====================================================================================================================================
 
-rtError            applyConfig(rtObjectRef v, pxObject &obj);  // Set an (RT) CONFIG object of UNIFORMS to Shader
-rtError        setShaderConfig(rtObjectRef v, pxObject &obj);  // Set a (JS) CONFIG object directly
-rtObjectRef  copyShaderConfigs(rtObjectRef &v);                // Copy  (JS) CONFIG objects to (RT) Config objects ... array
+rtError        applyRTconfig(rtObjectRef v, pxObject &obj);    // Set a (RT) CONFIG object of UNIFORMS to Shader
+rtError        applyJSconfig(rtObjectRef v, pxObject &obj);    // Set a (JS) CONFIG object of UNIFORMS to Shader
+
+rtObjectRef    copyConfigJS2RT(rtObjectRef &v);                // Copy  (JS) CONFIG object  to (RT) Config object  ... single
+rtObjectRef     copyArrayJS2RT(rtObjectRef &v);                // Copy  (JS) CONFIG object to (RT) Config objects  ... array
 
 rtError findKey(rtArrayObject* array, rtString k);            // helper to find key in array
 rtValue copyUniform(UniformType_t type, rtValue &val);        // helper to copy "variant" like UNIFORM types
@@ -66,7 +68,6 @@ rtValue copyUniform(UniformType_t type, rtValue &val);        // helper to copy 
 class rtShaderResource: public pxResource, public shaderProgram
 {
 public:
-
   rtShaderResource();
   rtShaderResource(const char* fragmentUrl, const char* vertexUrl = NULL, const rtCORSRef& cors = NULL, rtObjectRef archive = NULL);
 
@@ -94,7 +95,6 @@ public:
   UniformType_t getUniformType(rtString &name);
 
   rtError setUniformVal(const rtString& name, const rtValue& v);
-
   rtError setUniformVals(const rtValue& v);
 
   // Loading
@@ -104,36 +104,36 @@ public:
   virtual void     loadResourceFromFile();
   virtual void     loadResourceFromArchive(rtObjectRef archiveRef);
 
+protected:
   //
   // GL Setters
   //
-  static rtError fillInt32Vec(int32_t *vec, const rtArrayObject* vals);
-  static rtError fillFloatVec(float   *vec, const rtArrayObject* vals);
+  static rtError fillInt32Vec(int32_t *vec, const rtArrayObject* vals); // generic code
+  static rtError fillFloatVec(float   *vec, const rtArrayObject* vals); // generic code
 
-  // samplers
+  // Samplers
   static rtError bindTexture3(const uniformLoc_t &p);
   static rtError bindTexture4(const uniformLoc_t &p);
   static rtError bindTexture5(const uniformLoc_t &p);
 
   // Scalars
-  static rtError setUniform1i (const uniformLoc_t &p)  { glUniform1i(p.loc, p.value.toInt32() ); return RT_OK; };
-  static rtError setUniform1f (const uniformLoc_t &p)  { glUniform1f(p.loc, p.value.toFloat() ); return RT_OK; };
+  static rtError setUniform1i(const uniformLoc_t &p)   { glUniform1i(p.loc, p.value.toInt32() ); return RT_OK; }
+  static rtError setUniform1f(const uniformLoc_t &p)   { glUniform1f(p.loc, p.value.toFloat() ); return RT_OK; }
 
   // INT vectors
   static rtError setUniform2iv(const uniformLoc_t &p)  { return setUniformNiv(2, p); }
   static rtError setUniform3iv(const uniformLoc_t &p)  { return setUniformNiv(3, p); }
   static rtError setUniform4iv(const uniformLoc_t &p)  { return setUniformNiv(4, p); }
 
-  static rtError setUniformNiv(int N, const uniformLoc_t &p);
+  static rtError setUniformNiv(int N, const uniformLoc_t &p); // generic setter
 
   // FLOAT vectors
   static rtError setUniform2fv(const uniformLoc_t &p)  { return setUniformNfv(2, p); }
   static rtError setUniform3fv(const uniformLoc_t &p)  { return setUniformNfv(3, p); }
   static rtError setUniform4fv(const uniformLoc_t &p)  { return setUniformNfv(4, p); }
 
-  static rtError setUniformNfv(int N, const uniformLoc_t &p);
+  static rtError setUniformNfv(int N, const uniformLoc_t &p); // generic setter
 
-protected:
   // Override to do uniform lookups
   virtual void prelink();
   virtual void postlink();
@@ -147,8 +147,8 @@ private:
   int32_t     mPasses;
   int32_t     mSamplerCount;
 
-  rtObjectRef mUniforms;
-  rtObjectRef mAttributes;
+//  rtObjectRef mUniforms;
+//  rtObjectRef mAttributes;
 
   rtString    mVertexUrl;
   rtData      mVertexSrc;

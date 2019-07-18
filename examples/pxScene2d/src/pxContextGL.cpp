@@ -1651,7 +1651,7 @@ static void drawEffect(GLfloat x, GLfloat y, GLfloat w, GLfloat h, pxTextureRef 
 {
   if(shader == NULL)
   {
-    rtLogError("Bad shader");
+    rtLogError("drawEffect() ... Shader is NULL !");
     return;
   }
 

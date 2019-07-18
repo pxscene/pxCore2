@@ -119,7 +119,7 @@ pxObject::pxObject(pxScene2d* scene):
     msx(1), msy(1), mw(0), mh(0),
     mInteractive(true),
     mSnapshotRef(), mPainting(true), mClip(false), mMask(false), mDraw(true),
-    mEffectRef(NULL), mEffects(NULL), mEffectPtr(NULL), mEffectSnapshotRef(),
+    mEffectRef(NULL), mEffects(NULL), mEffectShaderPtr(NULL), mEffectSnapshotRef(),
     mHitTest(true), mReady(),
     mFocus(false), mClipSnapshotRef(),mCancelInSet(true), mRepaint(true),
     mIsDirty(true), mRenderMatrix(), mLastRenderMatrix(), mScreenCoordinates(), mDirtyRect(), mScene(NULL),
@@ -1219,7 +1219,7 @@ void pxObject::drawInternal(bool maskPass /* = false */)
   {
     context.pushState();
 
-    renderEffect(mEffectSnapshotRef);
+    renderEffectSnapshot(mEffectSnapshotRef);
 
     context.popState();
 
@@ -1638,7 +1638,8 @@ rtError pxObject::setEffect(rtObjectRef v)
     //
     if(pResource)
     {
-      mEffectRef = pResource;  // BARE SHADER
+      mEffectRef       = pResource;  // BARE SHADER
+      mEffectShaderPtr = pResource;  // BARE SHADER
     }
     else
     {
@@ -1651,9 +1652,9 @@ rtError pxObject::setEffect(rtObjectRef v)
       //
       // CONFIG OBJECT
       //
-      if(findKey(keys, "shader") == RT_OK) // Look for the key "shader" ... a Shader Config OBJECT
+      if(keys && findKey(keys, "shader") == RT_OK) // Look for the key "shader" ... a Shader Config OBJECT
       {
-        setShaderConfig(v, *this);
+        mEffectConfigRef = copyConfigJS2RT(v);   // CONFIG OBJECT
       }
       else
       // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1661,8 +1662,7 @@ rtError pxObject::setEffect(rtObjectRef v)
       // CONFIG OBJECTS (array)
       //
       {
-        mEffectRef = v;
-        mEffects   = copyShaderConfigs(v);
+        mEffectArrayRef = copyArrayJS2RT(v);  // CONFIG ARRAY
       }
       // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     }
@@ -1675,7 +1675,7 @@ rtError pxObject::setEffect(rtObjectRef v)
 }
 
 
-void pxObject::renderEffect(pxContextFramebufferRef& fbo)
+void pxObject::renderEffectSnapshot(pxContextFramebufferRef& fbo)
 {
   pxMatrix4f m;
   float parentAlpha = 1.0;
@@ -1690,6 +1690,10 @@ void pxObject::renderEffect(pxContextFramebufferRef& fbo)
   bool fullFboRepaint = false;
   //#endif //PX_DIRTY_RECTANGLES
   
+  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  //
+  // Create an FBO to work with ...
+  //
   if (fbo.getPtr() == NULL || fbo->width() != floor(w) || fbo->height() != floor(h))
   {
     clearSnapshot(fbo);
@@ -1705,6 +1709,10 @@ void pxObject::renderEffect(pxContextFramebufferRef& fbo)
     context.updateFramebuffer(fbo, static_cast<int>(floor(w)), static_cast<int>(floor(h)));
   }
   
+  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  //
+  // Prepare the FBO ...
+  //
   pxContextFramebufferRef previousRenderSurface = context.getCurrentFramebuffer();
   if (context.setFramebuffer(fbo) == PX_OK)
   {
@@ -1726,9 +1734,16 @@ void pxObject::renderEffect(pxContextFramebufferRef& fbo)
         clearHeight = h;
         context.clear(clearX, clearY, clearWidth, clearHeight);
       }
-    } else {
+    }
+    else
+    {
       context.clear(static_cast<int>(w), static_cast<int>(h));
     }
+    
+    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    //
+    // Flatten self/children to FBO ...
+    //
     
     draw(); // DRAW self...
     
@@ -1739,34 +1754,40 @@ void pxObject::renderEffect(pxContextFramebufferRef& fbo)
       context.popState();
     }
     
+    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    //
+    // Render SHADER to FBO ...
+    //
+
     if (fbo.getPtr() != NULL)
     {
       // Flattened pxObject (+ any children) now passed to Shader magic !
       
       drawShader(fbo);
     }
+    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   }
   context.setFramebuffer(previousRenderSurface);
 }
 
+
 void pxObject::drawShader(pxContextFramebufferRef &flattenFbo)
 {
-  rtObjectRef               fx = this->effect();
-  rtShaderResource  *shaderRes = dynamic_cast<rtShaderResource *> ( fx.getPtr() ); // DIRECT OBJECT ??
+  rtShaderResource  *shaderRes = this->effectPtr();
 
   // DIRECT ? ----------------------------------------------------------------------------------------------------------
-  if (flattenFbo.getPtr() == NULL)
+  if ( mEffectConfigRef == NULL &&
+       mEffectArrayRef  == NULL)
   {
     // Render with EFFECT shader... DIRECTLY to render buffer
-    context.drawEffect( 0,0, mw, mh, NULL,
+    context.drawEffect( 0,0, mw, mh,
+                       (flattenFbo ? flattenFbo->getTexture() : 0),
                        (shaderProgram*) shaderRes);
   }
   // CONFIG OBJECT ? ---------------------------------------------------------------------------------------------------
   else
   {
-    // Render EFFECT... using FBO/textures
-    rtArrayObject *multiPass = dynamic_cast<rtArrayObject *> ( this->mEffects.getPtr() );
-    
+    // Render EFFECT... using FBO/textures    
     pxContextFramebufferRef effectFbo;
     pxContextFramebufferRef previousSurface;
     
@@ -1778,8 +1799,19 @@ void pxObject::drawShader(pxContextFramebufferRef &flattenFbo)
     pxContextFramebufferRef sourceFbo = flattenFbo;
     pxContextFramebufferRef targetFbo = effectFbo;
     
-    if(multiPass == NULL)
+
+    // SINGLE CONFIG ? ---------------------------------------------------------------------------------------------------
+    if(mEffectConfigRef != NULL)
     {
+      rtMapObject *config = static_cast<rtMapObject *> ( this->mEffectConfigRef.getPtr() );
+      
+      if(config)
+      {
+        // Set Uniforms here ...
+        applyRTconfig(config, *this);
+        shaderRes = this->effectPtr();
+      }
+      
       context.setFramebuffer(effectFbo);
       context.clear(static_cast<int>(mw), static_cast<int>(mh));
 
@@ -1792,14 +1824,16 @@ void pxObject::drawShader(pxContextFramebufferRef &flattenFbo)
     // CONFIGS ARRAY ? ---------------------------------------------------------------------------------------------------
     else
     {
-      for (uint32_t i = 0, l = multiPass->length(); i < l; i++)
+      rtArrayObject *multiPass = static_cast<rtArrayObject *> ( this->mEffectArrayRef.getPtr() );
+
+      for (uint32_t i = 0, l = multiPass ? multiPass->length() : 0; i < l; i++)
       {
         rtValue config;
         if (multiPass->Get(i, &config) == RT_OK && !config.isEmpty())
         {
           // Set Uniforms here ...
-          applyConfig(config.toObject(), *this);
-          shaderRes = this->mEffectPtr;
+          applyRTconfig(config.toObject(), *this);
+          shaderRes = this->mEffectShaderPtr;
           
           context.setFramebuffer(targetFbo);
           context.clear(static_cast<int>(mw), static_cast<int>(mh));
