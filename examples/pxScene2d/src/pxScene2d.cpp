@@ -556,7 +556,7 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   graphicsCapabilities.set("colors", 1);
       
 #ifdef SUPPORT_GIF
-    graphicsCapabilities.set("gif", 1);
+    graphicsCapabilities.set("gif", 2);
 #endif //SUPPORT_GIF
   graphicsCapabilities.set("imageAResource", 2);
       

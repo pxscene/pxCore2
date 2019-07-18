@@ -20,15 +20,12 @@ limitations under the License.
 
 var isV8=(typeof _isV8 !== "undefined");
 
-try {
-  var http2 = isV8?null:require('http2');
-} catch (ignored) {
-}
-
+var http2 = isV8?null:require('http2');
 var https = require('https');
 var http = require('http');
 var url = require('url');
 var EventEmitter = require('events');
+
 var Logger = require('rcvrcore/Logger').Logger;
 var log = new Logger('http_wrap');
 
@@ -52,10 +49,9 @@ function Request(moduleName, appSceneContext, options, callback) {
   }
 
   var self = this;
-  var is_v2 = !isV8 && moduleName === 'http2' && http2;
+  options = Utils._normalizeOptions(options);
   var defaultProtocol = moduleName === 'http' ? 'http:' : 'https:';
-  options = Utils._normalizeOptions(options, defaultProtocol, is_v2);
-  var toOrigin = options.origin;
+  var toOrigin = Utils._getRequestOrigin(options, defaultProtocol);
   var fromOrigin = null;
   var withCredentials = false;
   var isBlocked = appSceneContext.isTerminated;
@@ -89,7 +85,7 @@ function Request(moduleName, appSceneContext, options, callback) {
     appSceneContext.innerscene.cors &&
     !isBlocked &&
     fromOrigin) {
-    var h = options.headers;
+    var h = options.headers ? options.headers : (options.headers = {});
     var keys = Object.keys(h);
     for (var i = 0; i < keys.length; i++) {
       var k = keys[i];
@@ -105,12 +101,17 @@ function Request(moduleName, appSceneContext, options, callback) {
   }
 
   if (!isBlocked) {
-    var module = moduleName === 'http' ? http : (is_v2 ? http2 : https);
+    var module = moduleName === 'http' ? http : (moduleName === 'https' ? https : (isV8 ? https : http2));
+
+    // for v8 http/https/http2 are the same, set protocol explicitly
+    if (isV8 && !options.protocol) {
+      options.protocol = defaultProtocol;
+    }
 
     // convert a dummy Agent into a real one
     if (options.agent instanceof Agent) {
       var agentObj = options.agent;
-      var newAgent = (isV8 || is_v2) ? null : (AgentCache[agentObj.uid] || new module.Agent(agentObj.options));
+      var newAgent = isV8 ? null : (AgentCache[agentObj.uid] || new module.Agent(agentObj.options));
       options.agent = AgentCache[agentObj.uid] = newAgent;
       agentObj.once('destroy', function () {
         if (newAgent) {
@@ -120,31 +121,11 @@ function Request(moduleName, appSceneContext, options, callback) {
       });
     }
 
-    if (!is_v2) {
-      var legacy = url.parse(options.toString());
-      options = Utils._extend(legacy, {
-        method: options.method, agent: options.agent, headers: options.headers
-      });
-      httpRequest = module.request.call(null, options);
-    } else {
-      // HTTP/2
-      var clientHttp2Session = module.connect(options);
-      clientHttp2Session.on('error', function (err) {
-        httpRequest.emit('error', err);
-      });
-      httpRequest = clientHttp2Session.request(options.headers);
-    }
+    httpRequest = module.request.call(null, options);
 
     httpRequest.once('response', function (httpResponse) {
       if (appSceneContext.isTerminated) {
         return;
-      }
-
-      if (is_v2) {
-        // HTTP/2
-        httpRequest.headers = httpResponse;
-        httpRequest.statisCode = httpResponse[':status'];
-        httpResponse = httpRequest;
       }
 
       var response = new Response(httpResponse, appSceneContext, fromOrigin, toOrigin, withCredentials);
@@ -205,8 +186,6 @@ function Request(moduleName, appSceneContext, options, callback) {
     if (!isBlocked) {
       if (isV8) {
         httpRequest.abort();
-      } else if (is_v2) {
-        httpRequest.destroy();
       } else {
         httpRequest.abort.apply(httpRequest, arguments);
       }
@@ -216,8 +195,6 @@ function Request(moduleName, appSceneContext, options, callback) {
     if (!isBlocked) {
       if (isV8) {
         return httpRequest.getHeader(arguments[0]);
-      } else if (is_v2) {
-        return httpRequest.sentHeaders[arguments[0]];
       } else {
         return httpRequest.getHeader.apply(httpRequest, arguments);
       }
@@ -227,8 +204,6 @@ function Request(moduleName, appSceneContext, options, callback) {
     if (!isBlocked) {
       if (isV8) {
         log.warn("setNoDelay not implemented for v8");
-      } else if (is_v2) {
-        log.warn("setNoDelay not implemented for HTTP/2");
       } else {
         httpRequest.setNoDelay.apply(httpRequest, arguments);
       }
@@ -238,8 +213,6 @@ function Request(moduleName, appSceneContext, options, callback) {
     if (!isBlocked) {
       if (isV8) {
         log.warn("setSocketKeepAlive not implemented for v8");
-      } else if (is_v2) {
-        log.warn("setSocketKeepAlive not implemented for HTTP/2");
       } else {
         httpRequest.setSocketKeepAlive.apply(httpRequest, arguments);
       }
@@ -406,69 +379,13 @@ var AgentCache = {};
 function Utils() {
 }
 
-Utils._normalizeOptions = function (o, defaultProtocol, is_v2) {
-  var agent = o.agent;
-  var headers = o.headers;
-  var method = o.method;
-
-  var urlString;
-  if (typeof o === 'object' && o.toString().indexOf('http') !== 0) {
-    // hand made 'options'...
-    o = Utils._extend({}, o);
-    var scheme = o.protocol ? o.protocol : defaultProtocol;
-    var protocol = scheme.toLowerCase();
-    var host = o.hostname || o.host || 'localhost';
-    var v6 = (host.match(/:/g) || []).length > 1;
-    host = v6 ? '[' + host + ']' : host;
-    var auth = o.auth ? o.auth + '@' : '';
-    var port = o.port ? ':' + o.port : '';
-    var path = o.path ? o.path : '';
-    urlString = protocol + '//' + auth + host + port + path;
-  } else if (typeof o === 'string') {
-    // <string>
-    urlString = o;
+Utils._normalizeOptions = function (options) {
+  if (typeof options === 'string') {
+    options = url.parse(options);
   } else {
-    // <URL>
+    options = Utils._extend({}, options);
   }
-
-  if (urlString) {
-    if (is_v2) {
-      o = new url.URL(urlString);
-    } else {
-      o = url.parse(urlString);
-      o.origin = Utils._getRequestOrigin(o, defaultProtocol);
-      o.toString = () => urlString;
-    }
-  }
-
-  if (agent) {
-    o.agent = agent;
-  }
-  o.headers = headers ? headers : {};
-  if (method) {
-    o.method = method;
-    if (is_v2) {
-      o.headers[':method'] = method;
-    }
-  }
-
-  if (is_v2) {
-    if (o.pathname) {
-      o.headers[':path'] = o.pathname;
-      if (o.search) {
-        o.headers[':path'] = o.headers[':path'] + o.search;
-      }
-    }
-    if (o.username) {
-      o.headers[':authority'] = o.username;
-      if (o.password) {
-        o.headers[':authority'] = o.headers[':authority'] + ':' + o.password;
-      }
-    }
-    o.headers[':scheme'] = o.protocol;
-  }
-
-  return o;
+  return options;
 };
 
 Utils._packHeaders = function (headers) {
@@ -477,6 +394,17 @@ Utils._packHeaders = function (headers) {
     rawHeaders += "\r\n" + t + ": " + headers[t];
   });
   return rawHeaders.slice(2);
+};
+
+Utils._getRequestOrigin = function (options, defaultProtocol) {
+  // hostname: w/o port, nonempty if URL object, w/o auth, w/o [] if IPv6
+  // host: w/ port if URL object otherwise w/o port, nonempty if URL object, w/o auth, w/ [] if IPv6 and URL object
+  var protocol = Utils._getRequestScheme(options, defaultProtocol);
+  var host = options.hostname || options.host || 'localhost';
+  var v6 = (host.match(/:/g) || []).length > 1;
+  host = v6 ? '[' + host + ']' : host;
+  var port = options.port ? ':' + options.port : '';
+  return protocol + '//' + host + port;
 };
 
 Utils._extend = function (target, source) {
@@ -494,17 +422,6 @@ Utils._assert = function (condition, message) {
     log.warn(message);
     throw new Error(message);
   }
-};
-
-Utils._getRequestOrigin = function (options, defaultProtocol) {
-  // hostname: w/o port, nonempty if URL object, w/o auth, w/o [] if IPv6
-  // host: w/ port if URL object otherwise w/o port, nonempty if URL object, w/o auth, w/ [] if IPv6 and URL object
-  var protocol = Utils._getRequestScheme(options, defaultProtocol);
-  var host = options.hostname || options.host || 'localhost';
-  var v6 = (host.match(/:/g) || []).length > 1;
-  host = v6 ? '[' + host + ']' : host;
-  var port = options.port ? ':' + options.port : '';
-  return protocol + '//' + host + port;
 };
 
 Utils._getRequestScheme = function (options, defaultProtocol) {

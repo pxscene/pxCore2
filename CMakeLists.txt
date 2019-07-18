@@ -5,7 +5,7 @@ option(BUILD_PXCORE "BUILD_PXCORE" ON)
 option(BUILD_PXSCENE "BUILD_PXSCENE" ON)
 option(BUILD_PX_TESTS "BUILD_PX_TESTS" OFF)
 option(BUILD_PXBENCHMARK "BUILD_PXBENCHMARK" OFF)
-option(BUILD_WITH_GIF "BUILD_WITH_GIF" OFF)
+option(BUILD_WITH_GIF "BUILD_WITH_GIF" ON)
 
 option(PREFER_SYSTEM_LIBRARIES "Prefer to use system libraries over bundled." "OFF")
     # Fine selection of which external node package to pick-up, if multiple are installed on the system
@@ -17,7 +17,6 @@ option(DISABLE_DEBUG_MODE "Disable debugging mode." "OFF") # OFF for backward co
 option(SUPPORT_NODE "SUPPORT_NODE" ON)
 option(SUPPORT_V8 "SUPPORT_V8" OFF)
 option(SUPPORT_DUKTAPE "SUPPORT_DUKTAPE" ON)
-option(USE_NODE_8 "USE_NODE_8" OFF)
 
 option(SUPPORT_STORAGE "SUPPORT_STORAGE" ON)
 option(ENABLE_SQLITE_ENCRYPTION_EXTENSION "Toggle SQLite encryption extension support" OFF)
