@@ -2682,6 +2682,10 @@ void pxContext::drawEffect(float x, float y, float w, float h, pxTextureRef t, s
   ::drawEffect(x, y, w, h, t, shader);
 };
 
+void pxContext::flush()
+{
+  glFlush();
+}
 
 pxTextureRef pxContext::createTexture()
 {

@@ -1304,7 +1304,7 @@ void pxObject::drawInternal(bool maskPass /* = false */)
         }
 
         context.pushState(); // DRAW
-       
+
         // DRAW DRAW DRAW DRAW DRAW DRAW DRAW DRAW DRAW DRAW DRAW DRAW DRAW DRAW DRAW DRAW
         // DRAW DRAW DRAW DRAW DRAW DRAW DRAW DRAW DRAW DRAW DRAW DRAW DRAW DRAW DRAW DRAW
 
@@ -1631,7 +1631,7 @@ rtError pxObject::setEffect(rtObjectRef v)
   if(v)
   {
     rtShaderResource *pResource = dynamic_cast<rtShaderResource *>(v.getPtr()); // Is this a Direct Shader object ?
-    
+
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     //
     // DIRECT
@@ -1645,9 +1645,9 @@ rtError pxObject::setEffect(rtObjectRef v)
     {
       rtValue allKeys;
       v->Get("allKeys", &allKeys);
-      
+
       rtArrayObject* keys = static_cast<rtArrayObject*>( (allKeys.toObject().getPtr()) );
-      
+
       // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
       //
       // CONFIG OBJECT
@@ -1666,10 +1666,10 @@ rtError pxObject::setEffect(rtObjectRef v)
       }
       // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     }
-    
+
     return RT_OK;
   }
-  
+
   rtLogError("setEffect() ... passed NULL");
   return RT_FAIL;
 }
@@ -1679,17 +1679,17 @@ void pxObject::renderEffectSnapshot(pxContextFramebufferRef& fbo)
 {
   pxMatrix4f m;
   float parentAlpha = 1.0;
-  
+
   context.setMatrix(m);
   context.setAlpha(parentAlpha);
-  
+
   float w = getOnscreenWidth();
   float h = getOnscreenHeight();
-  
+
   //#ifdef PX_DIRTY_RECTANGLES
   bool fullFboRepaint = false;
   //#endif //PX_DIRTY_RECTANGLES
-  
+
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   //
   // Create an FBO to work with ...
@@ -1698,7 +1698,8 @@ void pxObject::renderEffectSnapshot(pxContextFramebufferRef& fbo)
   {
     clearSnapshot(fbo);
 
-    fbo = context.createFramebuffer(static_cast<int>(floor(w)), static_cast<int>(floor(h)), false);
+    fbo = context.createFramebuffer(static_cast<int>(floor(w)), static_cast<int>(floor(h)));
+
     if (gDirtyRectsEnabled)
     {
       fullFboRepaint = true;
@@ -1708,7 +1709,7 @@ void pxObject::renderEffectSnapshot(pxContextFramebufferRef& fbo)
   {
     context.updateFramebuffer(fbo, static_cast<int>(floor(w)), static_cast<int>(floor(h)));
   }
-  
+
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   //
   // Prepare the FBO ...
@@ -1722,10 +1723,10 @@ void pxObject::renderEffectSnapshot(pxContextFramebufferRef& fbo)
       int clearY      = mDirtyRect.top();
       int clearWidth  = mDirtyRect.right()  - clearX+1;
       int clearHeight = mDirtyRect.bottom() - clearY+1;
-      
+
       if (!mIsDirty)
       context.clear(static_cast<int>(w), static_cast<int>(h));
-      
+
       if (fullFboRepaint)
       {
         clearX = 0;
@@ -1739,21 +1740,21 @@ void pxObject::renderEffectSnapshot(pxContextFramebufferRef& fbo)
     {
       context.clear(static_cast<int>(w), static_cast<int>(h));
     }
-    
+
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     //
     // Flatten self/children to FBO ...
     //
-    
+
     draw(); // DRAW self...
-    
+
     for(vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
     {
       context.pushState();
       (*it)->drawInternal();
       context.popState();
     }
-    
+
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     //
     // Render SHADER to FBO ...
@@ -1762,7 +1763,7 @@ void pxObject::renderEffectSnapshot(pxContextFramebufferRef& fbo)
     if (fbo.getPtr() != NULL)
     {
       // Flattened pxObject (+ any children) now passed to Shader magic !
-      
+
       drawShader(fbo);
     }
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1783,35 +1784,36 @@ void pxObject::drawShader(pxContextFramebufferRef &flattenFbo)
     context.drawEffect( 0,0, mw, mh,
                        (flattenFbo ? flattenFbo->getTexture() : 0),
                        (shaderProgram*) shaderRes);
+
+    context.flush();
   }
   // CONFIG OBJECT ? ---------------------------------------------------------------------------------------------------
   else
   {
-    // Render EFFECT... using FBO/textures    
+    // Render EFFECT... using FBO/textures
     pxContextFramebufferRef effectFbo;
     pxContextFramebufferRef previousSurface;
-    
+
     previousSurface = context.getCurrentFramebuffer();
-    
+
     // Scratch buffer...
     effectFbo = context.createFramebuffer(mw, mh);
-    
+
     pxContextFramebufferRef sourceFbo = flattenFbo;
     pxContextFramebufferRef targetFbo = effectFbo;
-    
 
     // SINGLE CONFIG ? ---------------------------------------------------------------------------------------------------
     if(mEffectConfigRef != NULL)
     {
       rtMapObject *config = static_cast<rtMapObject *> ( this->mEffectConfigRef.getPtr() );
-      
+
       if(config)
       {
         // Set Uniforms here ...
         applyRTconfig(config, *this);
         shaderRes = this->effectPtr();
       }
-      
+
       context.setFramebuffer(effectFbo);
       context.clear(static_cast<int>(mw), static_cast<int>(mh));
 
@@ -1834,7 +1836,7 @@ void pxObject::drawShader(pxContextFramebufferRef &flattenFbo)
           // Set Uniforms here ...
           applyRTconfig(config.toObject(), *this);
           shaderRes = this->mEffectShaderPtr;
-          
+
           context.setFramebuffer(targetFbo);
           context.clear(static_cast<int>(mw), static_cast<int>(mh));
 
@@ -1854,12 +1856,12 @@ void pxObject::drawShader(pxContextFramebufferRef &flattenFbo)
     // -------------------------------------------------------------------------------------------------------------------
 
     context.setFramebuffer(previousSurface);
-    
+
     // Draw result of effect
     context.drawImage(0,0, mw, mh,targetFbo->getTexture(), NULL);
-    
+
   }//FBO
-  
+
   if( shaderRes && shaderRes->isRealTime() )
   {
     this->markDirty();
