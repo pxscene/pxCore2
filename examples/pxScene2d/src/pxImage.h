@@ -35,13 +35,14 @@ public:
   rtProperty(stretchX, stretchX, setStretchX, int32_t);
   rtProperty(stretchY, stretchY, setStretchY, int32_t);
   rtProperty(maskOp, maskOp, setMaskOp, int32_t);
+  rtProperty(flip, flip, setFlip, bool);
   
   rtProperty(resource, resource, setResource, rtObjectRef);
   rtProperty(downscaleSmooth, downscaleSmooth, setDownscaleSmooth, bool);
   rtMethodNoArgAndReturn("texture", texture, uint32_t);
   
   pxImage(pxScene2d* scene) : pxObject(scene),mStretchX(pxConstantsStretch::NONE),mStretchY(pxConstantsStretch::NONE), 
-          mMaskOp(pxConstantsMaskOperation::NORMAL), imageLoaded(false), mListenerAdded(false), mDownscaleSmooth(false)
+          mMaskOp(pxConstantsMaskOperation::NORMAL), imageLoaded(false), mListenerAdded(false), mDownscaleSmooth(false), mFlip(false)
   { 
     mw = -1;
     mh = -1;
@@ -64,6 +65,9 @@ public:
 
   rtError stretchY(int32_t& v) const { v = (int32_t)mStretchY; return RT_OK; }
   rtError setStretchY(int32_t v);
+
+  rtError flip(bool& v)  const;
+  rtError setFlip(bool v);
   
   rtError maskOp(int32_t& v)   const { v = (int32_t)  mMaskOp; return RT_OK; }
   rtError setMaskOp(int32_t v);
@@ -108,6 +112,7 @@ protected:
   bool imageLoaded;
   bool mListenerAdded;
   bool mDownscaleSmooth;
+  bool mFlip;
 };
 
 #endif
