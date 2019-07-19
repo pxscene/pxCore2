@@ -1,0 +1,26 @@
+IDI_ICON1 ICON pxBenchmark_installer.ico
+
+1 VERSIONINFO
+FILEVERSION 1,9,0,0
+FILEOS 0x4
+FILETYPE 0x0
+BEGIN
+  BLOCK "StringFileInfo"
+  BEGIN
+    BLOCK "040904B0"
+    BEGIN
+      VALUE "CompanyName", "pxBenchmark"
+      VALUE "FileDescription", "pxBenchmark"
+      VALUE "InternalName", "pxBenchmark"
+      VALUE "LegalCopyright", "Copyright 2018"
+      VALUE "OriginalFilename", "pxBenchmark.exe"
+      VALUE "ProductName", "pxBenchmark"
+      VALUE "ProductVersion", "1,9,0,0"
+    END
+  END
+  
+ BLOCK "VarFileInfo"
+  BEGIN
+    VALUE "Translation", 0x0409, 0x04B0
+  END
+END
