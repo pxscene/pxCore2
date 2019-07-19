@@ -310,8 +310,6 @@ private:
   size_t mFontDataSize;
   rtMutex mFontMutex;
 	rtMutex mFontDataMutex;
-	char* mFontDownloadedData;
-	size_t mFontDownloadedDataSize;
 	rtString mFontDataUrl;
 
 };

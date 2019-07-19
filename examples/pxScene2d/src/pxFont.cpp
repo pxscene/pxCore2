@@ -84,7 +84,7 @@ pxFontAtlas gFontAtlas;
 #endif
 
 pxFont::pxFont(rtString fontUrl, uint32_t id, rtString proxyUrl):pxResource(),mFace(NULL),mPixelSize(0), mFontData(0), mFontDataSize(0),
-             mFontMutex(), mFontDataMutex(), mFontDownloadedData(NULL), mFontDownloadedDataSize(0), mFontDataUrl()
+             mFontMutex(), mFontDataMutex(), mFontDataUrl()
 {  
   mFontId = id; 
   mUrl = fontUrl;
@@ -114,7 +114,7 @@ pxFont::~pxFont()
   mFace = 0;
   
   if(mFontData) {
-    free(mFontData);
+    delete []mFontData; 
     mFontData = 0;
     mFontDataSize = 0;
   }
@@ -126,36 +126,22 @@ void pxFont::setFontData(const FT_Byte*  fontData, FT_Long size, const char* n)
 {
   mFontDataMutex.lock();
   mFontDataUrl = n;
-  if (mFontDownloadedData != NULL)
-  {
-    delete [] mFontDownloadedData;
-    mFontDownloadedData = NULL;
-    mFontDownloadedDataSize = 0;
-  }
   if (fontData == NULL)
   {
-    mFontDownloadedData = NULL;
-    mFontDownloadedDataSize = 0;
+    mFontData = NULL;
+    mFontDataSize = 0;
   }
   else
   {
-    mFontDownloadedData = new char[size];
-    mFontDownloadedDataSize = size;
-    memcpy(mFontDownloadedData, fontData, mFontDownloadedDataSize);
+    mFontData = new char[size];
+    mFontDataSize = size;
+    memcpy(mFontData, fontData, size);
   }
   mFontDataMutex.unlock();
 }
 
 void pxFont::clearDownloadedData()
 {
-  mFontDataMutex.lock();
-  if (mFontDownloadedData != NULL)
-  {
-    delete [] mFontDownloadedData;
-    mFontDownloadedData = NULL;
-  }
-  mFontDownloadedDataSize = 0;
-  mFontDataMutex.unlock();
 }
 
 void pxFont::setupResource()
@@ -163,14 +149,10 @@ void pxFont::setupResource()
   if (!mInitialized)
   {
     mFontDataMutex.lock();
-    if (mFontDownloadedData != NULL)
-    {
-      init( (FT_Byte*)mFontDownloadedData,
-            (FT_Long)mFontDownloadedDataSize,
+    if (NULL != mFontData) {
+      init( (FT_Byte*)mFontData,
+            (FT_Long)mFontDataSize,
             mFontDataUrl.cString());
-      delete [] mFontDownloadedData;
-      mFontDownloadedData = NULL;
-      mFontDownloadedDataSize = 0;
     }
     mFontDataMutex.unlock();
   }
@@ -296,11 +278,8 @@ rtError pxFont::init(const FT_Byte*  fontData, FT_Long size, const char* n)
   mFontMutex.lock();
   double startResourceSetupTime = pxMilliseconds();
   // We need to keep a copy of fontData since the download will be deleted.
-  mFontData = (char *)malloc(size);
-  memcpy(mFontData, fontData, size);
-  mFontDataSize = size;
   mUrl = n;
-  if(FT_New_Memory_Face(ft, (const FT_Byte*)mFontData, mFontDataSize, 0, &mFace))
+  if(FT_New_Memory_Face(ft, fontData, size, 0, &mFace))
   {
     mFontMutex.unlock();
     return RT_FAIL;
