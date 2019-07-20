@@ -174,6 +174,9 @@ public:
 
   void use();
 
+  void saveUniforms();        // save uniforms
+  void restoreUniforms();     // restore uniforms
+
   pxError draw( int resW, int resH, float* matrix, float alpha,
                 pxTextureRef t,
                 GLenum mode,
@@ -187,11 +190,17 @@ protected:
   virtual void prelink()  {}
   virtual void postlink() {}
 
+  void copyUniforms(UniformMap_t &from,
+                    UniformMap_t &to,
+                    bool needsUpdate = false);
+
   GLint mProgram, mFragShader,    mVertShader;
   GLint mTimeLoc, mResolutionLoc, mMatrixLoc;
   GLint mPosLoc,  mUVLoc,         mAlphaLoc,   mColorLoc;
 
-  UniformMap_t  mUniform_map;
+  UniformMap_t  mUniform_map;  // live
+  UniformMap_t  mUniform_map2; // save/restore
+
 }; // CLASS
 
 //=====================================================================================================================================

@@ -28,6 +28,8 @@ pxCore Copyright 2005-2018 John Robinson
 extern const char* vShaderText;
 extern int currentGLProgram;
 
+extern rtValue copyUniform(UniformType_t type, rtValue &val);        // helper to copy "variant" like UNIFORM types
+
 ////////////////////////////////////////////////////////////////
 //
 // Debug Statistics
@@ -132,6 +134,35 @@ void shaderProgram::use()
   }
 }
 
+void shaderProgram::saveUniforms()
+{
+  copyUniforms(mUniform_map, mUniform_map2);
+}
+
+void shaderProgram::restoreUniforms()
+{
+  copyUniforms(mUniform_map2, mUniform_map, true); // needs update
+}
+
+void shaderProgram::copyUniforms(UniformMap_t &from, UniformMap_t &to, bool needsUpdate /*= false*/)
+{
+  //
+  // Apply updated UNIFORM values to GPU...
+  //
+  if(from.size() > 0)
+  {
+    for(UniformMapIter_t it  = from.begin();
+                         it != from.end(); ++it)
+    {
+      const rtString &n = (*it).first;
+      uniformLoc_t   &p = (*it).second;
+
+      to[n].value = copyUniform(p.type, p.value);
+    }
+  }//ENDIF
+}
+
+
 static double last_ms = 0.0;
 
 pxError shaderProgram::draw(int resW, int resH, float* matrix, float alpha,
@@ -158,7 +189,7 @@ pxError shaderProgram::draw(int resW, int resH, float* matrix, float alpha,
   //
   glUniformMatrix4fv(mMatrixLoc, 1, GL_FALSE, matrix);
   glUniform2f(mResolutionLoc, static_cast<GLfloat>(resW), static_cast<GLfloat>(resH));
-  
+
   //
   // Update specific UNIFORMS ...
   //
@@ -167,7 +198,7 @@ pxError shaderProgram::draw(int resW, int resH, float* matrix, float alpha,
     double time_ms = pxMilliseconds();
     if(last_ms == 0)
       last_ms = time_ms;
-    
+
     glUniform1f(mTimeLoc, (float) ((time_ms - last_ms) / 1000.0) );
   }
 
@@ -191,7 +222,7 @@ pxError shaderProgram::draw(int resW, int resH, float* matrix, float alpha,
     if(found !=  mUniform_map.end() )
     {
       uniformLoc_t &p = (*found).second;
-      
+
       if(t->bindGLTexture(p.loc) != PX_OK)  // to GL_TEXTURE1
       {
         rtLogError("Texture Bind failed !!");
@@ -288,7 +319,7 @@ glShaderProgDetails_t  createShaderProgram(const char* vShaderTxt, const char* f
     GLsizei len;
     glGetShaderInfoLog(details.vertShader, 1000, &len, log);
     rtLogError("VERTEX SHADER - Failed to compile:  [%s]", log);
-    
+
     GLenum err = glGetError();
 
     rtLogError("vertex shader did not compile: %d",err);

@@ -1811,11 +1811,15 @@ void pxObject::drawShader(pxContextFramebufferRef &flattenFbo)
       {
         // Set Uniforms here ...
         applyRTconfig(config, *this);
-        shaderRes = this->effectPtr();
+        shaderRes = this->effectPtr(); // updated from config
       }
 
       context.setFramebuffer(effectFbo);
       context.clear(static_cast<int>(mw), static_cast<int>(mh));
+
+      //############################
+      shaderRes->saveUniforms();//##
+      //############################
 
       // Uniforms are SET in Setter ...
       // Render with EFFECT shader...
@@ -1828,6 +1832,8 @@ void pxObject::drawShader(pxContextFramebufferRef &flattenFbo)
     {
       rtArrayObject *multiPass = static_cast<rtArrayObject *> ( this->mEffectArrayRef.getPtr() );
 
+      bool once = true;
+
       for (uint32_t i = 0, l = multiPass ? multiPass->length() : 0; i < l; i++)
       {
         rtValue config;
@@ -1835,10 +1841,19 @@ void pxObject::drawShader(pxContextFramebufferRef &flattenFbo)
         {
           // Set Uniforms here ...
           applyRTconfig(config.toObject(), *this);
-          shaderRes = this->mEffectShaderPtr;
+          shaderRes = this->mEffectShaderPtr; // updated
 
           context.setFramebuffer(targetFbo);
           context.clear(static_cast<int>(mw), static_cast<int>(mh));
+
+          if(once)
+          {
+            //############################
+            shaderRes->saveUniforms();//##
+            //############################
+
+            once = false;
+          }
 
           // Render with EFFECT shader...
           context.drawEffect( 0,0,  mw, mh,sourceFbo->getTexture(),
@@ -1860,6 +1875,9 @@ void pxObject::drawShader(pxContextFramebufferRef &flattenFbo)
     // Draw result of effect
     context.drawImage(0,0, mw, mh,targetFbo->getTexture(), NULL);
 
+    //###############################
+    shaderRes->restoreUniforms();//##
+    //###############################
   }//FBO
 
   if( shaderRes && shaderRes->isRealTime() )
