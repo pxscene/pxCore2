@@ -42,7 +42,7 @@ public:
   rtMethodNoArgAndReturn("texture", texture, uint32_t);
   
   pxImage(pxScene2d* scene) : pxObject(scene),mStretchX(pxConstantsStretch::NONE),mStretchY(pxConstantsStretch::NONE), 
-          mMaskOp(pxConstantsMaskOperation::NORMAL), imageLoaded(false), mListenerAdded(false), mDownscaleSmooth(false), mStartupUrl(), mFlip(false)
+          mMaskOp(pxConstantsMaskOperation::NORMAL), imageLoaded(false), mListenerAdded(false), mDownscaleSmooth(false), mFlip(false)
   { 
     mw = -1;
     mh = -1;
@@ -112,7 +112,6 @@ protected:
   bool imageLoaded;
   bool mListenerAdded;
   bool mDownscaleSmooth;
-  rtString mStartupUrl;
   bool mFlip;
 };
 
