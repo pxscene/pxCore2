@@ -58,7 +58,7 @@ var _intervals = []
 var _timeouts = []
 var _immediates = []
 var _websockets = []
-var sandboxKeys = ["vm", "process", "setTimeout", "console", "clearTimeout", "setInterval", "clearInterval", "setImmediate", "clearImmediate", "sparkview", "sparkscene", "sparkgles2", "beginDrawing", "endDrawing", "sparkwebgl", "require"]
+var sandboxKeys = ["vm", "process", "setTimeout", "console", "clearTimeout", "setInterval", "clearInterval", "setImmediate", "clearImmediate", "sparkview", "sparkscene", "sparkgles2", "beginDrawing", "endDrawing", "sparkwebgl", "require", "localStorage"]
 var sandbox = {}
 /* holds loaded main mjs module reference */
 var app = null;
@@ -164,6 +164,7 @@ var loadUrl = function(url, _beginDrawing, _endDrawing, _view) {
   global.clearImmediate = xxclearImmediate
   global.sparkview = _view
   global.sparkscene = getScene("scene.1")
+  global.localStorage = global.sparkscene.storage;
   const script = new vm.Script("global.sparkwebgl = sparkwebgl= require('webgl'); global.sparkgles2 = sparkgles2 = require('gles2.js');");
   global.sparkscene.on('onClose', onClose);
   sandbox.global = global
@@ -633,7 +634,7 @@ const bootStrap = (moduleName, from, request) => {
 
                 console.log("About to load http file !!");
       //it will be good if we have some way to tell, we are loading esm module in js file
-      /*if ((filename.indexOf('.mjs') != -1))*/ {
+      if ((filename.indexOf('.mjs') != -1)) {
         script.runInContext(contextifiedSandbox);
         try {
           (async () => {
