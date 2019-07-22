@@ -308,7 +308,7 @@ public:
       // - - - - - - - - - - - - - - - - - - - -
 
       rtValue array_val( mo.getPtr() );
-      EXPECT_TRUE ( applyRTconfig(config, myObj) == PX_FAIL );
+      EXPECT_TRUE ( applyRTconfig(config, myObj) == PX_OK );
     }
 
     void testLoadFromDataURL()

@@ -144,10 +144,10 @@ void shaderProgram::restoreUniforms()
   copyUniforms(mUniform_map2, mUniform_map, true); // needs update
 }
 
-void shaderProgram::copyUniforms(UniformMap_t &from, UniformMap_t &to, bool needsUpdate /*= false*/)
+void shaderProgram::copyUniforms(UniformMap_t &from, UniformMap_t &to, bool needsUpdate /* = false */)
 {
   //
-  // Apply updated UNIFORM values to GPU...
+  // Copy the UNIFORM: "from" -> "to" ...
   //
   if(from.size() > 0)
   {
@@ -158,6 +158,8 @@ void shaderProgram::copyUniforms(UniformMap_t &from, UniformMap_t &to, bool need
       uniformLoc_t   &p = (*it).second;
 
       to[n].value = copyUniform(p.type, p.value);
+
+	  to[n].needsUpdate = needsUpdate;
     }
   }//ENDIF
 }
