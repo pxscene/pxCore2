@@ -169,7 +169,7 @@ rtError pxImage::setUrl(const char* s)
   {
     mResource = pxImageManager::getImage(s, NULL, mScene ? mScene->cors() : NULL,
                                                   pRes->initW(),  pRes->initH(),
-                                                  pRes->initSX(), pRes->initSY(), mScene ? mScene->getArchive() : NULL );
+                                                  pRes->initSX(), pRes->initSY(), mScene ? mScene->getArchive() : NULL, mFlip );
   }
 
   if(getImageResource() != NULL && getImageResource()->getUrl().length() > 0 && mInitialized && !imageLoaded)
@@ -347,6 +347,18 @@ rtError pxImage::setStretchY(int32_t v)
   return RT_OK;
 }
 
+rtError pxImage::flip(bool& v)  const
+{
+  v = mFlip;
+  return RT_OK;
+}
+
+rtError pxImage::setFlip(bool v)
+{
+  mFlip = v;
+  return RT_OK;
+}
+
 rtError pxImage::setMaskOp(int32_t v)
 {
   mMaskOp = (pxConstantsMaskOperation::constants)v;
@@ -372,7 +384,10 @@ rtError pxImage::texture(uint32_t &v)
   {
     if (getImageResource()->getTexture()->getNativeId() == 0)
     {
-      getImageResource()->getTexture()->setUpsideDown(false);
+      if (mFlip)
+      {
+        getImageResource()->getTexture()->setUpsideDown(false);
+      }
       getImageResource()->getTexture()->prepareForRendering();
     }
     v = getImageResource()->getTexture()->getNativeId();
@@ -430,6 +445,7 @@ rtDefineProperty(pxImage, url);
 rtDefineProperty(pxImage, resource);
 rtDefineProperty(pxImage, stretchX);
 rtDefineProperty(pxImage, stretchY);
+rtDefineProperty(pxImage, flip);
 rtDefineProperty(pxImage, maskOp);
 rtDefineProperty(pxImage, downscaleSmooth);
 rtDefineMethod(pxImage, texture);

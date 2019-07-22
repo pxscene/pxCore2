@@ -149,7 +149,7 @@ class rtImageResource : public pxResource, public pxTextureListener
 {
 public:
   rtImageResource();
-  rtImageResource(const char* url, const char* proxy = 0, int32_t iw = 0, int32_t ih = 0, float sx = 1.0f, float sy = 1.0f);
+  rtImageResource(const char* url, const char* proxy = 0, int32_t iw = 0, int32_t ih = 0, float sx = 1.0f, float sy = 1.0f, bool f = false);
 
   virtual ~rtImageResource();
 
@@ -161,11 +161,15 @@ public:
 
   rtReadOnlyProperty(w, w, int32_t);
   rtReadOnlyProperty(h, h, int32_t);  
+  rtReadOnlyProperty(flip, flip, bool);
 
   virtual int32_t w() const;
   virtual rtError w(int32_t& v) const;
   virtual int32_t h() const;
   virtual rtError h(int32_t& v) const; 
+
+  virtual bool flip() const;
+  virtual rtError flip(bool& v) const;
 
   pxTextureRef getTexture(bool initializing = false);
   void setTextureData(pxOffscreen& imageOffscreen);
@@ -201,14 +205,17 @@ private:
 
   pxTextureRef mTexture;
   pxTextureRef mDownloadedTexture;
-  rtMutex mTextureMutex;
+  mutable rtMutex mTextureMutex;
   bool mDownloadComplete;
 
   // convey "create-time" dimension & scale preference (SVG only)
+
+
   int32_t   init_w,  init_h;
   float     init_sx, init_sy;
 
   rtData    mData;
+  bool mFlip;
 };
 
 class rtImageAResource : public pxResource
@@ -254,7 +261,7 @@ class pxImageManager
 {  
   public: 
     static rtRef<rtImageResource> getImage(const char* url, const char* proxy = NULL, const rtCORSRef& cors = NULL,
-                                          int32_t iw = 0, int32_t ih = 0, float sx = 1.0f, float sy = 1.0f, rtObjectRef archive = NULL);
+                                          int32_t iw = 0, int32_t ih = 0, float sx = 1.0f, float sy = 1.0f, rtObjectRef archive = NULL, bool flip = false);
   
     static void removeImage(rtString name);
 
