@@ -177,7 +177,7 @@ rtError pxImage::setUrl(const char* s)
 
   if(pRes && !imageLoaded)
   {
-    if (mInitialized)
+    if (mInitialized || (mScene && mScene->getArchive()))
     {
       mResource = pxImageManager::getImage(s, NULL, mScene ? mScene->cors() : NULL,
                                                   pRes->initW(),  pRes->initH(),
