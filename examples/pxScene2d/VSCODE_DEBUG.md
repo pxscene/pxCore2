@@ -36,9 +36,10 @@ NOTE:  From VSCode 1.25 and greater ... it is necessary to include `"protocol": 
       "name": "DBG file in pxscene",
       "type": "node",
       "request": "launch",
-      "protocol": "legacy",
+      "protocol": "inspector",
       "cwd": "/Applications/Spark.app/Contents/MacOS",
       "runtimeExecutable": "/Applications/Spark.app/Contents/MacOS/Spark",
+      // Edit below as gl:${file} when running under webgl
       "args":["${file}"],
       "env" : {
       "LD_LIBRARY_PATH":"/Applications/Spark.app/Contents/MacOS/lib",
@@ -50,7 +51,7 @@ NOTE:  From VSCode 1.25 and greater ... it is necessary to include `"protocol": 
       "name": "DBG pxscene",
       "type": "node",
       "request": "launch",
-      "protocol": "legacy",
+      "protocol": "inspector",
       "cwd": "/Applications/Spark.app/Contents/MacOS",
       "runtimeExecutable": "/Applications/Spark.app/Contents/MacOS/Spark",
       "env" : {
@@ -66,7 +67,7 @@ NOTE:  From VSCode 1.25 and greater ... it is necessary to include `"protocol": 
     // TCP/IP address. Default is "localhost".
     "address": "localhost",
     // Port to attach to.
-    "port": 5858,
+    "port": 9229,
     "sourceMaps": false
     }
   ]
