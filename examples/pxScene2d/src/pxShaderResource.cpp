@@ -1116,8 +1116,8 @@ rtError applyRTconfig(rtObjectRef v, pxObject &obj)
 
     if(uniformsVal.isEmpty() )
     {
-      rtLogWarn(" - \"uniforms\" list is empty/missing. ");
-      return RT_FAIL;
+     // rtLogDebug(" - \"uniforms\" list is empty/missing. ");
+      return RT_OK;
     }
 
     rtMapObject *uniforms = dynamic_cast<rtMapObject *>(uniformsVal.toObject().getPtr());
@@ -1206,8 +1206,7 @@ rtObjectRef copyConfigJS2RT(rtObjectRef &v)
 
   if(uniformsValue.isEmpty())
   {
-    rtLogError("ERROR:  No 'uniforms' specified. ");
-    return NULL;
+    rtLogWarn("NOTE:  No 'uniforms' specified. ");
   }
   else
   if(pShader == NULL)
