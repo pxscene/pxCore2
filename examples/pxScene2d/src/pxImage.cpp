@@ -57,7 +57,11 @@ void pxImage::onInit()
 
   rtImageResource *pRes = getImageResource();
 
-  if (pRes != NULL)
+  if (!mStartupUrl.isEmpty())
+  {
+    setUrl(mStartupUrl.cString());
+  }
+  else if (pRes != NULL)
   {
     setUrl(pRes->getUrl());
   }
@@ -65,6 +69,8 @@ void pxImage::onInit()
   {
     setUrl("");
   }
+
+  mStartupUrl = "";
 }
 
 /**
@@ -90,7 +96,7 @@ rtError pxImage::setResource(rtObjectRef o)
     if( getImageResource() != NULL && getImageResource()->getUrl().compare(o.get<rtString>("url")) )
     {
       removeResourceListener();
-      mResource = o; 
+      mResource = o;
       imageLoaded = false;
       createNewPromise();
       mListenerAdded = true;
@@ -120,7 +126,11 @@ void pxImage::createWithOffscreen(pxOffscreen &o)
 
 rtError pxImage::url(rtString& s) const
 {
-  if (getImageResource() != NULL)
+  if (mStartupUrl.isEmpty())
+  {
+    s = mStartupUrl;
+  }
+  else if (getImageResource() != NULL)
   {
     s = getImageResource()->getUrl();
   }
@@ -167,9 +177,16 @@ rtError pxImage::setUrl(const char* s)
 
   if(pRes && !imageLoaded)
   {
-    mResource = pxImageManager::getImage(s, NULL, mScene ? mScene->cors() : NULL,
+    if (mInitialized)
+    {
+      mResource = pxImageManager::getImage(s, NULL, mScene ? mScene->cors() : NULL,
                                                   pRes->initW(),  pRes->initH(),
                                                   pRes->initSX(), pRes->initSY(), mScene ? mScene->getArchive() : NULL, mFlip );
+    }
+    else
+    {
+      mStartupUrl = s;
+    }
   }
 
   if(getImageResource() != NULL && getImageResource()->getUrl().length() > 0 && mInitialized && !imageLoaded)
