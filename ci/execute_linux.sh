@@ -1,6 +1,5 @@
 #!/bin/sh
-#exiting immediately to generate cache
-#exit 0;
+
 checkError()
 {
   if [ "$1" -ne 0 ]
