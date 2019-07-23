@@ -133,6 +133,7 @@ typedef struct glShaderProgDetails
   GLuint fragShader;
   GLuint vertShader;
 
+  bool     didError;
   rtString compilation;
 
 } glShaderProgDetails_t;

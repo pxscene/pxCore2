@@ -146,13 +146,6 @@ public:
       EXPECT_TRUE ( shaderEx->setUniformVals( array ) == PX_FAIL );
     }
 
-    void testGLexception()
-    {
-      glException foo("test message");
-
-      EXPECT_TRUE ( foo.desc() != NULL );
-    }
-
     void testInit2() // trivial NULL
     {
       shaderProgram shader;
@@ -415,7 +408,6 @@ TEST_F(pxShaderTest, pxShaderTests)
   testUniformType();
   testSetUniformVal();
   testSetUniformVals();
-  testGLexception();
   testDraw();
   testFillVectors();
   testBindTextures();

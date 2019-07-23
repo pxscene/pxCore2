@@ -82,7 +82,7 @@ pxError shaderProgram::initShader(const char* v, const char* f)
 
     glShaderProgDetails_t details = createShaderProgram(v, f);
 
-    if(details.program == -1)
+    if(details.didError)
     {
       mProgram     = -1; // ERROR
       mCompilation = details.compilation;
@@ -280,7 +280,7 @@ pxError shaderProgram::draw(int resW, int resH, float* matrix, float alpha,
 
 glShaderProgDetails_t  createShaderProgram(const char* vShaderTxt, const char* fShaderTxt)
 {
-  glShaderProgDetails_t details = { 0,0,0 };
+  glShaderProgDetails_t details = { 0,0,0,   false, "" };
   GLint stat;
 
   details.fragShader = glCreateShader(GL_FRAGMENT_SHADER);
@@ -304,7 +304,7 @@ glShaderProgDetails_t  createShaderProgram(const char* vShaderTxt, const char* f
     //Exit with failure.
     glDeleteShader(details.fragShader); //Don't leak the shader.
 
-    details.program     = -1; // ERROR
+    details.didError    = true; // ERROR
     details.compilation = rtString("FRAGMENT SHADER - Compile Error: ") + &errorLog[0];
     
     return details;
@@ -325,8 +325,10 @@ glShaderProgDetails_t  createShaderProgram(const char* vShaderTxt, const char* f
     GLenum err = glGetError();
     rtLogError("VERTEX SHADER - glGetError(): %d",err);
 
-    details.program     = -1; // ERROR
+    details.didError    = true; // ERROR
     details.compilation = rtString("VERTEX SHADER - Compile Error: ") + rtString(log);
+    
+    return details;
   }
 
   details.program = glCreateProgram();
