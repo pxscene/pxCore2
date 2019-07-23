@@ -119,6 +119,10 @@ class rtNodeContext;
 
 typedef rtRef<rtNodeContext> rtNodeContextRef;
 
+#ifdef ENABLE_DEBUG_MODE
+#define NODE_DEBUGGER_PORT 9229
+#endif
+
 class rtNodeContext: rtIScriptContext  // V8
 {
 public:
@@ -263,6 +267,7 @@ private:
 #endif
 
   int mRefCount;
+  
 };
 
 
@@ -292,6 +297,8 @@ using namespace node;
 #ifdef ENABLE_DEBUG_MODE
 int g_argc = 0;
 char** g_argv;
+extern bool g_enableDebugger;
+extern int g_debuggerPort;
 #endif
 #ifndef ENABLE_DEBUG_MODE
 extern args_t *s_gArgs;
@@ -455,9 +462,14 @@ void rtNodeContext::createEnvironment()
 #else
 #if HAVE_INSPECTOR
 #ifdef USE_NODE_PLATFORM
-    rtString currentPath;
-    rtGetCurrentDirectory(currentPath);
-    node::InspectorStart(mEnv, currentPath.cString(), platform);
+    if (g_enableDebugger) {
+      if (0 == g_debuggerPort) {
+        g_debuggerPort = NODE_DEBUGGER_PORT;
+      }
+      rtString currentPath;
+      rtGetCurrentDirectory(currentPath);
+      node::InspectorStart(mEnv, currentPath.cString(), g_debuggerPort);
+    }
 #endif //USE_NODE_PLATFORM
 #endif
 #endif

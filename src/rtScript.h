@@ -99,6 +99,7 @@ public:
   void* getParameter(rtString param);
 
 private:
+  void populateDebuggerInfo();
   bool mInitialized;
   rtScriptRef mScript;
 };
