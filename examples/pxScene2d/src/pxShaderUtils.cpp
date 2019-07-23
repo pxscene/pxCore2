@@ -75,32 +75,31 @@ shaderProgram::~shaderProgram()
 
 pxError shaderProgram::initShader(const char* v, const char* f)
 {
-  try
+  if(f)
   {
-    if(f)
+    rtString vtxStr(v);
+    rtString frgStr(f);
+
+    glShaderProgDetails_t details = createShaderProgram(v, f);
+
+    if(details.program == -1)
     {
-      rtString vtxStr(v);
-      rtString frgStr(f);
-
-      glShaderProgDetails_t details = createShaderProgram(v, f);
-
-      mProgram    = details.program;
-      mFragShader = details.fragShader;
-      mVertShader = details.vertShader;
-
-      prelink();
-      linkShaderProgram(mProgram);
-      postlink();
-    }
-    else
-    {
-      rtLogError("No FRAGMENT Shader defined. \n");
+      mProgram     = -1; // ERROR
+      mCompilation = details.compilation;
       return RT_FAIL;
     }
+    
+    mProgram    = details.program;
+    mFragShader = details.fragShader;
+    mVertShader = details.vertShader;
+
+    prelink();
+    linkShaderProgram(mProgram);
+    postlink();
   }
-  catch (glException &e)
+  else
   {
-    rtLogError("FATAL: Shader error: %s \n", e.desc() );
+    rtLogError("No FRAGMENT Shader defined. \n");
     return RT_FAIL;
   }
 
@@ -305,9 +304,10 @@ glShaderProgDetails_t  createShaderProgram(const char* vShaderTxt, const char* f
     //Exit with failure.
     glDeleteShader(details.fragShader); //Don't leak the shader.
 
-    throw glException( rtString("FRAGMENT SHADER - Compile Error: ") + &errorLog[0] );
-    //TODO get rid of exit
-    //exit(1);
+    details.program     = -1; // ERROR
+    details.compilation = rtString("FRAGMENT SHADER - Compile Error: ") + &errorLog[0];
+    
+    return details;
   }
 
   details.vertShader = glCreateShader(GL_VERTEX_SHADER);
@@ -323,10 +323,10 @@ glShaderProgDetails_t  createShaderProgram(const char* vShaderTxt, const char* f
     rtLogError("VERTEX SHADER - Failed to compile:  [%s]", log);
 
     GLenum err = glGetError();
+    rtLogError("VERTEX SHADER - glGetError(): %d",err);
 
-    rtLogError("vertex shader did not compile: %d",err);
-    throw glException( rtString("VERTEX SHADER - Compile Error: ") + rtString(log) );
-    //exit(1);
+    details.program     = -1; // ERROR
+    details.compilation = rtString("VERTEX SHADER - Compile Error: ") + rtString(log);
   }
 
   details.program = glCreateProgram();
@@ -349,7 +349,9 @@ void linkShaderProgram(GLuint program)
     glGetProgramInfoLog(program, 1000, &len, log);
     rtLogError("VERTEX SHADER - Failed to link:  [%s]", log);
 
-    throw glException( rtString("VERTEX SHADER - Link Error: ") + log );
+//    details.program     = -1; // ERROR
+//    details.compilation = rtString("VERTEX SHADER - Link Error: ") + rtString(log);
+
     // TODO purge all exit calls
     // exit(1);
   }

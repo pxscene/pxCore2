@@ -94,9 +94,17 @@ void rtShaderResource::setupResource()
 
     const char* vtxCode = mVertexSrc.length() > 0 ? (const char*) mVertexSrc.data() : vShaderText;
 
-    // TODO:  TRY
-    shaderProgram::initShader( vtxCode, (const char*) mFragmentSrc.data() );
-    // TODO:  CATCH
+    if(shaderProgram::initShader( vtxCode, (const char*) mFragmentSrc.data() ) != RT_OK)
+    {
+        rtLogError("FATAL: Shader error: %s \n", mCompilation.cString() );
+  
+        setLoadStatus("glError", mCompilation.cString() );
+  
+        gUIThreadQueue->addTask(onDownloadCanceledUI, this, (void*)"reject");
+      
+        rtValue nullValue;
+        mReady.send("reject", nullValue );
+    }
 
     double stopDecodeTime = pxMilliseconds();
     setLoadStatus("decodeTimeMs", static_cast<int>(stopDecodeTime-startDecodeTime));
@@ -320,7 +328,10 @@ void rtShaderResource::loadResourceFromFile()
 {
   init();
 
-  rtString status = "resolve";
+  // Since this object can be released before we get a async completion
+  // We need to maintain this object's lifetime
+  // TODO review overall flow and organization
+  AddRef();
 
   rtError loadFrgShader = RT_FAIL;
 
@@ -428,14 +439,14 @@ void rtShaderResource::loadResourceFromFile()
       setLoadStatus("statusCode", PX_RESOURCE_STATUS_DECODE_FAILURE);
     }
 
-    // Since this object can be released before we get a async completion
-    // We need to maintain this object's lifetime
-    // TODO review overall flow and organization
-    AddRef();
+//    // Since this object can be released before we get a async completion
+//    // We need to maintain this object's lifetime
+//    // TODO review overall flow and organization
+//    AddRef();
 
     if (gUIThreadQueue)
     {
-      gUIThreadQueue->addTask(onDownloadCompleteUI, this, (void*)"reject");
+      gUIThreadQueue->addTask(onDownloadCanceledUI, this, (void*)"reject");
     }
     //mTexture->notifyListeners( mTexture, RT_FAIL, errorCode);
   }
@@ -494,9 +505,14 @@ void rtShaderResource::loadResourceFromArchive(rtObjectRef /*archiveRef*/)
 
     const char* vtxCode = mVertexSrc.length() > 0 ? (const char*) mVertexSrc.data() : vShaderText;
 
-    // TODO:  TRY
-    shaderProgram::initShader( vtxCode, (const char*) mFragmentSrc.data() );
-    // TODO:  CATCH
+    if(shaderProgram::initShader( vtxCode, (const char*) mFragmentSrc.data() ) != RT_OK)
+    {
+      rtLogError("FATAL: Shader error: %s \n", mCompilation.cString() );
+      
+      setLoadStatus("glError", mCompilation.cString() );
+      
+      gUIThreadQueue->addTask(onDownloadCanceledUI, this, (void*)"reject");
+    }
 
     double stopDecodeTime = pxMilliseconds();
     setLoadStatus("decodeTimeMs", static_cast<int>(stopDecodeTime-startDecodeTime));
@@ -528,7 +544,7 @@ void rtShaderResource::loadResourceFromArchive(rtObjectRef /*archiveRef*/)
 
     if (gUIThreadQueue)
     {
-      gUIThreadQueue->addTask(onDownloadCompleteUI, this, (void*)"reject");
+      gUIThreadQueue->addTask(onDownloadCanceledUI, this, (void*)"reject");
     }
     //mTexture->notifyListeners( mTexture, RT_FAIL, errorCode);
   }

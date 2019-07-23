@@ -52,25 +52,6 @@ class shaderProgram; //fwd
 
 //=====================================================================================================================================
 
-class glException: public std::exception
-{
-public:
-  glException(rtString err)
-  {
-    mErr = err;
-  }
-
-  virtual const char* desc() const throw()
-  {
-    return mErr.cString();
-  }
-
-private:
-  rtString mErr;
-};
-
-//=====================================================================================================================================
-
 struct uniformLoc; //fwd
 
 typedef  rtError (*setFunc_t)(const uniformLoc &);
@@ -152,6 +133,8 @@ typedef struct glShaderProgDetails
   GLuint fragShader;
   GLuint vertShader;
 
+  rtString compilation;
+
 } glShaderProgDetails_t;
 
 //=====================================================================================================================================
@@ -197,6 +180,8 @@ protected:
   GLint mProgram, mFragShader,    mVertShader;
   GLint mTimeLoc, mResolutionLoc, mMatrixLoc;
   GLint mPosLoc,  mUVLoc,         mAlphaLoc,   mColorLoc;
+
+  rtString mCompilation;
 
   UniformMap_t  mUniform_map;  // live
   UniformMap_t  mUniform_map2; // save/restore
