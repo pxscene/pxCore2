@@ -441,9 +441,9 @@ void rtShaderResource::loadResourceFromFile()
 
     if (gUIThreadQueue)
     {
+      AddRef(); // async
       gUIThreadQueue->addTask(onDownloadCanceledUI, this, (void*)"reject");
     }
-    //mTexture->notifyListeners( mTexture, RT_FAIL, errorCode);
   }
   else
   {
@@ -454,6 +454,7 @@ void rtShaderResource::loadResourceFromFile()
     
     if (gUIThreadQueue)
     {
+      AddRef(); // async
       gUIThreadQueue->addTask(onDownloadCompleteUI, this, (void *) "resolve");
     }
   }
