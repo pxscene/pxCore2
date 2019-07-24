@@ -119,7 +119,7 @@ pxObject::pxObject(pxScene2d* scene):
     msx(1), msy(1), mw(0), mh(0),
     mInteractive(true),
     mSnapshotRef(), mPainting(true), mClip(false), mMask(false), mDraw(true),
-    mEffectRef(NULL), mEffects(NULL), mEffectShaderPtr(NULL), mEffectSnapshotRef(),
+    mEffectRef(NULL), mEffects(NULL), mEffectShaderRef(NULL), mEffectSnapshotRef(),
     mHitTest(true), mReady(),
     mFocus(false), mClipSnapshotRef(),mCancelInSet(true), mRepaint(true),
     mIsDirty(true), mRenderMatrix(), mLastRenderMatrix(), mScreenCoordinates(), mDirtyRect(), mScene(NULL),
@@ -1639,7 +1639,7 @@ rtError pxObject::setEffect(rtObjectRef v)
     if(pResource)
     {
       mEffectRef       = pResource;  // BARE SHADER
-      mEffectShaderPtr = pResource;  // BARE SHADER
+      mEffectShaderRef = pResource;  // BARE SHADER
     }
     else
     {
@@ -1764,7 +1764,7 @@ void pxObject::renderEffectSnapshot(pxContextFramebufferRef& fbo)
     {
       // Flattened pxObject (+ any children) now passed to Shader magic !
 
-      drawShader(fbo);
+      drawEffect(fbo);
     }
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   }
@@ -1772,7 +1772,7 @@ void pxObject::renderEffectSnapshot(pxContextFramebufferRef& fbo)
 }
 
 
-void pxObject::drawShader(pxContextFramebufferRef &flattenFbo)
+void pxObject::drawEffect(pxContextFramebufferRef &flattenFbo)
 {
   rtShaderResource  *shaderRes = this->effectPtr();
 
@@ -1841,7 +1841,7 @@ void pxObject::drawShader(pxContextFramebufferRef &flattenFbo)
         {
           // Set Uniforms here ...
           applyRTconfig(config.toObject(), *this);
-          shaderRes = this->mEffectShaderPtr; // updated
+          shaderRes = this->mEffectShaderRef; // updated
 
           context.setFramebuffer(targetFbo);
           context.clear(static_cast<int>(mw), static_cast<int>(mh));

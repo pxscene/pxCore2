@@ -771,74 +771,35 @@ void rtShaderResource::postlink()
 }
 
 // sampler
-/*static*/ rtError rtShaderResource::bindTexture3(const uniformLoc_t &p)
+/*static*/ rtError rtShaderResource::bindTextureN(GLuint n, const uniformLoc_t &p)
 {
   rtImageResource *img = (rtImageResource *) p.value.toObject().getPtr();
 
   if(img)
   {
     pxTextureRef tex = img->getTexture();
-
+    
     if(tex)
     {
-      GLuint     tid = tex->getNativeId();
+      GLuint tid = tex->getNativeId();
 
-      glActiveTexture(GL_TEXTURE3);
+      GLenum texN;
+      
+      switch(n)
+      {
+        case 3: texN = GL_TEXTURE3; break;
+        case 4: texN = GL_TEXTURE4; break;
+        case 5: texN = GL_TEXTURE5; break;
+        default:
+          rtLogError("Invalid texture ID: %d  (Not 3,4 or 5) ", n);
+          return RT_FAIL;
+      }
+
+      glActiveTexture( texN );
+      
       glBindTexture(GL_TEXTURE_2D,     tid);
       glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-      glUniform1i(p.loc, 3);
-
-      return RT_OK;
-    }
-  }
-
-  return RT_FAIL;
-}
-
-// sampler
-/*static*/ rtError rtShaderResource::bindTexture4(const uniformLoc_t &p)
-{
-  rtImageResource *img = (rtImageResource *) p.value.toObject().getPtr();
-
-  if(img)
-  {
-    pxTextureRef tex = img->getTexture();
-
-    if(tex)
-    {
-      GLuint     tid = tex->getNativeId();
-
-      tex->bindTexture();
-
-      glActiveTexture(GL_TEXTURE4);
-      glBindTexture(GL_TEXTURE_2D,     tid);
-      glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-      glUniform1i(p.loc, 4);
-
-      return RT_OK;
-    }
-  }
-
-  return RT_FAIL;
-}
-
-// sampler
-/*static*/ rtError rtShaderResource::bindTexture5(const uniformLoc_t &p)
-{
-  rtImageResource *img = (rtImageResource *) p.value.toObject().getPtr();
-
-  if(img)
-  {
-    pxTextureRef tex = img->getTexture();
-
-    if(tex)
-    {
-      GLuint     tid = tex->getNativeId();
-
-      glActiveTexture(GL_TEXTURE5);
-      glBindTexture(GL_TEXTURE_2D,     tid);
-      glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-      glUniform1i(p.loc, 5);
+      glUniform1i(p.loc, n);
 
       return RT_OK;
     }

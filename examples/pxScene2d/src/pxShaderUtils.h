@@ -22,33 +22,17 @@ pxCore Copyright 2005-2018 John Robinson
 
 #include <map>
 
-class rtValue; //fwd
+class rtValue;       //fwd
+class shaderProgram; //fwd
 
 #include "pxCore.h"
 #include "pxTexture.h"
-
-#include <exception>
 
 #ifdef ENABLE_DFB
 #include "pxContextDescDFB.h"
 #else
 #include "pxContextDescGL.h"
 #endif //ENABLE_DFB
-
-class shaderProgram; //fwd
-
-#define MAX_TEXTURE_WIDTH  2048
-#define MAX_TEXTURE_HEIGHT 2048
-
-#define DEFAULT_EJECT_TEXTURE_AGE 5
-
-#ifndef ENABLE_DFB
-  #define PXSCENE_DEFAULT_TEXTURE_MEMORY_LIMIT_IN_BYTES (65 * 1024 * 1024)   // GL
-  #define PXSCENE_DEFAULT_TEXTURE_MEMORY_LIMIT_THRESHOLD_PADDING_IN_BYTES (5 * 1024 * 1024)
-#else
-  #define PXSCENE_DEFAULT_TEXTURE_MEMORY_LIMIT_IN_BYTES (15 * 1024 * 1024)   // DFB .. Should be 40 ?
-  #define PXSCENE_DEFAULT_TEXTURE_MEMORY_LIMIT_THRESHOLD_PADDING_IN_BYTES (5 * 1024 * 1024)
-#endif
 
 //=====================================================================================================================================
 

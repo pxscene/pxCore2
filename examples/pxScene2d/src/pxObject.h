@@ -46,6 +46,7 @@
 #include "pxInterpolators.h"
 #include "pxTexture.h"
 #include "pxContextFramebuffer.h"
+#include "pxShaderResource.h"
 
 #include "pxCore.h"
 #include "pxAnimate.h"
@@ -287,7 +288,7 @@ public:
   virtual void dispose(bool pumpJavascript);
 
   void drawInternal(bool maskPass=false);
-  void drawShader(pxContextFramebufferRef &flattenFbo);
+  void drawEffect(pxContextFramebufferRef &flattenFbo);
   
   virtual void draw() {}
   virtual void sendPromise();
@@ -582,8 +583,8 @@ public:
 
   void setEffectConfig(rtObjectRef v)    { mEffectRef = v; };
   
-  void setEffectPtr(rtShaderResource *p) { mEffectShaderPtr = p;    };
-  rtShaderResource *effectPtr()          { return mEffectShaderPtr; };
+  void setEffectPtr(rtShaderResource *p) { mEffectShaderRef = p;    };
+  rtShaderResource *effectPtr()          { return mEffectShaderRef; };
 
 public:
   rtEmitRef mEmit;
@@ -613,11 +614,11 @@ protected:
   rtObjectRef             mEffectArrayRef;    // rtArray of Shader Config objects
 
   rtObjectRef             mEffects;           // rtArray of Shader Config objects
-  rtShaderResource       *mEffectShaderPtr;   // Shader Effect used by this pxObject
+  pxShaderResourceRef     mEffectShaderRef;   // Shader Effect used by this pxObject
   
   pxContextFramebufferRef mEffectSnapshotRef; // FBO
 
-  finline bool hasEffect()   { return ( mEffectRef || mEffects || mEffectShaderPtr || mEffectConfigRef || mEffectArrayRef); }
+  finline bool hasEffect()   { return ( mEffectRef || mEffects || mEffectShaderRef || mEffectConfigRef || mEffectArrayRef); }
 
   bool mHitTest;
   rtObjectRef mReady;

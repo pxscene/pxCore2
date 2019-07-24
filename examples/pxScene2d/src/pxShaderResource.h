@@ -17,8 +17,8 @@ pxCore Copyright 2005-2018 John Robinson
   Created by Fitzpatrick, Hugh on 5/10/19.
 */
 
-#ifndef PXSHADERRESOURCE_HPP
-#define PXSHADERRESOURCE_HPP
+#ifndef PXSHADERRESOURCE_H
+#define PXSHADERRESOURCE_H
 
 #include "pxContext.h"
 #include "pxObject.h"
@@ -51,6 +51,8 @@ pxCore Copyright 2005-2018 John Robinson
 #include <GL/gl.h>
 #endif //PX_PLATFORM_WAYLAND_EGL
 #endif
+
+class pxObject; // fwd
 
 //=====================================================================================================================================
 
@@ -112,9 +114,11 @@ protected:
   static rtError fillFloatVec(float   *vec, const rtArrayObject* vals); // generic code
 
   // Samplers
-  static rtError bindTexture3(const uniformLoc_t &p);
-  static rtError bindTexture4(const uniformLoc_t &p);
-  static rtError bindTexture5(const uniformLoc_t &p);
+  static rtError bindTexture3(const uniformLoc_t &p)   { return bindTextureN(3, p); };
+  static rtError bindTexture4(const uniformLoc_t &p)   { return bindTextureN(4, p); };
+  static rtError bindTexture5(const uniformLoc_t &p)   { return bindTextureN(5, p); };
+
+  static rtError bindTextureN(GLenum n, const uniformLoc_t &p); // generic setter
 
   // Scalars
   static rtError setUniform1i(const uniformLoc_t &p)   { glUniform1i(p.loc, p.value.toInt32() ); return RT_OK; }
@@ -182,4 +186,4 @@ protected:
 
 //=====================================================================================================================================
 
-#endif /* PXSHADERRESOURCE_HPP */
+#endif /* PXSHADERRESOURCE_H */
