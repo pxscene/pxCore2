@@ -563,6 +563,8 @@ void rtShaderResource::loadResourceFromArchive(rtObjectRef /*archiveRef*/)
       gUIThreadQueue->addTask(onDownloadCompleteUI, this, (void *) "resolve");
     }
   }
+#else
+  rtLogWarn("loadResourceFromArchive() ... loading Shaders from an Archive is NOT currently supported.");
 #endif // 0
 }
 
