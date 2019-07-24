@@ -65,6 +65,7 @@ printValgrindLogs()
 cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src
 ./spark.sh $TESTRUNNERURL?tests=$TESTS > $EXECLOGS 2>&1 &
 
+
 grep "TEST RESULTS: " $EXECLOGS
 retVal=$?
 
