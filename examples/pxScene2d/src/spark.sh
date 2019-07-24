@@ -29,12 +29,12 @@ fi
 echo "valgrind --vgdb=yes --tool=memcheck --log-file=$VALGRINDLOGS --leak-check=yes --show-reachable=yes --num-callers=20 --track-fds=yes ./Spark --experimental-vm-modules $1 $2 $3 $4 $5 $6 $7"
 if [ -z $SUPPRESSIONS ]
 then
-valgrind --vgdb=yes --tool=memcheck --log-file=$VALGRINDLOGS --leak-check=yes --show-reachable=yes --num-callers=20 --track-fds=yes ./Spark --inspect --experimental-vm-modules $1 $2 $3 $4 $5 $6 $7
+valgrind --vgdb=yes --tool=memcheck --log-file=$VALGRINDLOGS --leak-check=yes --show-reachable=yes --num-callers=20 --track-fds=yes ./Spark --experimental-vm-modules $1 $2 $3 $4 $5 $6 $7
 else
-valgrind --vgdb=yes --tool=memcheck --suppressions=$SUPPRESSIONS  --log-file=$VALGRINDLOGS --leak-check=yes --show-reachable=yes --num-callers=20 --track-fds=yes ./Spark --inspect --experimental-vm-modules $1 $2 $3 $4 $5 $6 $7
+valgrind --vgdb=yes --tool=memcheck --suppressions=$SUPPRESSIONS  --log-file=$VALGRINDLOGS --leak-check=yes --show-reachable=yes --num-callers=20 --track-fds=yes ./Spark --experimental-vm-modules $1 $2 $3 $4 $5 $6 $7
 fi
 else
-./Spark --inspect --experimental-vm-modules $1 $2 $3 $4 $5 $6 $7
+./Spark --experimental-vm-modules $1 $2 $3 $4 $5 $6 $7
 fi
 #To run Spark as background process
 #./Spark --experimental-vm-modules $1 $2 $3 $4 $5 $6 $7 < `tty` >> /var/tmp/spark.log 2>&1 &
