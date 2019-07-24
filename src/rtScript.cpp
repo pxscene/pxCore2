@@ -253,7 +253,7 @@ void* rtScript::getParameter(rtString param)
 void rtScript::populateDebuggerInfo()
 {
 #ifdef ENABLE_DEBUG_MODE
- if (true == rtFileExists("/tmp/disableSparkDebugger"))
+ if (true == rtFileExists("/opt/disableSparkDebugger"))
  {
    g_enableDebugger = false;
  }

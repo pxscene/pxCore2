@@ -262,7 +262,7 @@ private:
   void init2(int argc, char** argv);
 #endif
 
-  int mRefCount;  
+  int mRefCount;
 };
 
 

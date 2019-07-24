@@ -39,7 +39,7 @@ NOTE:  From VSCode 1.25 and greater ... it is necessary to include `"protocol": 
       "protocol": "inspector",
       "cwd": "/Applications/Spark.app/Contents/MacOS",
       "runtimeExecutable": "/Applications/Spark.app/Contents/MacOS/Spark",
-      // Edit below as gl:${file} when running under webgl
+      // Edit below as gl:${file} when running under webgl based apps
       "args":["${file}"],
       "env" : {
       "LD_LIBRARY_PATH":"/Applications/Spark.app/Contents/MacOS/lib",
