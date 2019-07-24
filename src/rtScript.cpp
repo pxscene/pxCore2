@@ -34,6 +34,7 @@
 #include "rtScriptDuk/rtScriptDuk.h"
 #endif
 
+#include "rtSettings.h"
 
 #ifdef __APPLE__
 static pthread_mutex_t sSceneLock = PTHREAD_RECURSIVE_MUTEX_INITIALIZER; //PTHREAD_MUTEX_INITIALIZER;
@@ -56,6 +57,10 @@ static pthread_mutex_t sObjectMapMutex = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
 
 #ifndef ENABLE_DEBUG_MODE
 args_t *s_gArgs;
+#else
+#define SPARK_DEBUGGER_PORT 9229
+bool g_enableDebugger = true;
+int g_debuggerPort = SPARK_DEBUGGER_PORT;
 #endif
 
 static int sLockCount;
@@ -203,6 +208,9 @@ rtError rtScript::init()
     #endif
     
     mScript->init();
+#ifdef ENABLE_DEBUG_MODE
+    populateDebuggerInfo();
+#endif
     mInitialized = true;
   }
   return RT_OK;
@@ -239,4 +247,32 @@ rtError rtScript::createContext(const char *lang, rtScriptContextRef& ctx)
 void* rtScript::getParameter(rtString param) 
 {
   return mScript->getParameter(param);
+}
+
+void rtScript::populateDebuggerInfo()
+{
+#ifdef ENABLE_DEBUG_MODE
+ if (true == rtFileExists("/opt/disableSparkDebugger"))
+ {
+   g_enableDebugger = false;
+ }
+
+ rtLogInfo("Spark debugger enabled  - [%d]",g_enableDebugger);
+ if (true == g_enableDebugger)
+ {
+   rtValue debuggerPort;
+   if (RT_OK == rtSettings::instance()->value("sparkDebuggerPort", debuggerPort))
+   {
+     g_debuggerPort = debuggerPort.toInt64();
+   }
+
+   char const *debugport = getenv("SPARK_DEBUGGER_PORT");
+   if (debugport)
+   {
+     g_debuggerPort = atoi(debugport);
+   }
+
+   rtLogInfo("Spark debugger port[%d]", g_debuggerPort);
+ }
+#endif
 }
