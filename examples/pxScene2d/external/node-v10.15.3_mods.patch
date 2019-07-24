@@ -446,7 +446,7 @@ index a8de196..607a7db 100755
        'deps/node-inspect/lib/internal/inspect_client.js',
        'deps/node-inspect/lib/internal/inspect_repl.js',
 diff --git a/examples/pxScene2d/external/libnode-v10.15.3/src/node.cc b/examples/pxScene2d/external/libnode-v10.15.3/src/node.cc
-index 9fb5ab3b8..19822981b 100755
+index 9fb5ab3b8..640e41a71 100755
 --- a/examples/pxScene2d/external/libnode-v10.15.3/src/node.cc
 +++ b/examples/pxScene2d/external/libnode-v10.15.3/src/node.cc
 @@ -173,7 +173,9 @@ using v8::V8;
@@ -662,7 +662,15 @@ index 9fb5ab3b8..19822981b 100755
      }
    }
  }
-@@ -2805,6 +2874,14 @@ MultiIsolatePlatform* GetMainThreadMultiIsolatePlatform() {
+@@ -2786,6 +2855,7 @@ Environment* CreateEnvironment(IsolateData* isolate_data,
+   std::vector<std::string> exec_args(exec_argv, exec_argv + exec_argc);
+   Environment* env = new Environment(isolate_data, context,
+                                      v8_platform.GetTracingAgentWriter());
++  env->options()->experimental_vm_modules = true;
+   env->Start(args, exec_args, v8_is_profiling);
+   return env;
+ }
+@@ -2805,6 +2875,14 @@ MultiIsolatePlatform* GetMainThreadMultiIsolatePlatform() {
  MultiIsolatePlatform* CreatePlatform(
      int thread_pool_size,
      node::tracing::TracingController* tracing_controller) {
@@ -677,7 +685,7 @@ index 9fb5ab3b8..19822981b 100755
    return new NodePlatform(thread_pool_size, tracing_controller);
  }
  
-@@ -3050,6 +3127,21 @@ void RegisterBuiltinModules() {
+@@ -3050,6 +3128,21 @@ void RegisterBuiltinModules() {
  #undef V
  }
  
