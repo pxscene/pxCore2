@@ -16,6 +16,8 @@ include(../../cmake/CommDeps.cmake)
 include(../../cmake/NodeDeps.cmake)
 include(../../cmake/DukeDeps.cmake)
 
+add_definitions(-DANIMATION_ROTATE_XYZ )
+
 set(WESTEROSINC ${EXTDIR}/westeros/external/install/include)
 set(WESTEROSSTUBINC ${EXTDIR}/westeros-stub)
 set(GOOGLETESTINC ${EXTDIR}/gtest/googletest/include ${EXTDIR}/gtest/googletest ${EXTDIR}/gtest/googlemock/include ${EXTDIR}/gtest/googlemock)
