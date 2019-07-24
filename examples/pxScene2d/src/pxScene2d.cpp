@@ -597,7 +597,7 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
 
   mCapabilityVersions.set("network", networkCapabilities);
 #ifdef PXSCENE_SUPPORT_STORAGE
-  mCapabilityVersions.set("storage", 1);
+  mCapabilityVersions.set("storage", 2);
 #endif
 
   rtObjectRef metricsCapabilities = new rtMapObject;
