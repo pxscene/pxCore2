@@ -166,31 +166,15 @@ rtError pxWebgl::bufferData(uint32_t target, rtValue data, uint32_t usage)
 
   uint32_t dataBufSize = length.toUInt32() * ((target == GL_ELEMENT_ARRAY_BUFFER) ? sizeof(GLushort) : sizeof(GLfloat));
 
-  GLvoid *dataBuf = (GLvoid *) malloc(dataBufSize); 
-  rtString buffStr;
+  rtValue key;
+  dataArray->Get("arrayData", &key);
+  void* dataPtr = NULL;
+  key.getVoidPtr(dataPtr);
 
-  for (uint32_t i = 0, l = length.toUInt32(); i < l; ++i) {
-    rtValue key;
-    if (dataArray->Get(i, &key) == RT_OK && !key.isEmpty()) {
-      if(target == GL_ELEMENT_ARRAY_BUFFER){
-        ((GLushort *)dataBuf)[i] = static_cast<GLushort> (key.toUInt32());
-      }else if(target == GL_ARRAY_BUFFER){
-        ((GLfloat *)dataBuf)[i] = key.toFloat();
-      }else{
-        rtLogWarn("[%s] unsupported target type! %d", __FUNCTION__, target);
-        ((GLfloat *)dataBuf)[i] = key.toFloat();
-      }
-      buffStr.append(key.toString().cString());
-      buffStr.append(" ");
-    }
-  }
+  rtLogDebug("[%s] size: %u", __FUNCTION__, dataBufSize);
 
-  rtLogDebug("[%s] size: %u buffer:\n%s", __FUNCTION__, dataBufSize, buffStr.cString());
-
-  glBufferData(target, dataBufSize, dataBuf, usage);
+  glBufferData(target, dataBufSize, dataPtr, usage);
   CheckGLError();
-
-  free(dataBuf);
 
   return RT_OK;
 }
