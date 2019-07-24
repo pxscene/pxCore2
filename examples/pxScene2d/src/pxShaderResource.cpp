@@ -439,11 +439,6 @@ void rtShaderResource::loadResourceFromFile()
       setLoadStatus("statusCode", PX_RESOURCE_STATUS_DECODE_FAILURE);
     }
 
-//    // Since this object can be released before we get a async completion
-//    // We need to maintain this object's lifetime
-//    // TODO review overall flow and organization
-//    AddRef();
-
     if (gUIThreadQueue)
     {
       gUIThreadQueue->addTask(onDownloadCanceledUI, this, (void*)"reject");
@@ -456,10 +451,7 @@ void rtShaderResource::loadResourceFromFile()
     mVertexSrc.term();   // Dump the source data...
 
     setLoadStatus("statusCode",0);
-    // Since this object can be released before we get a async completion
-    // We need to maintain this object's lifetime
-    // TODO review overall flow and organization
-    AddRef();
+    
     if (gUIThreadQueue)
     {
       gUIThreadQueue->addTask(onDownloadCompleteUI, this, (void *) "resolve");
