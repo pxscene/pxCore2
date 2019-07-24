@@ -292,6 +292,8 @@ using namespace node;
 #ifdef ENABLE_DEBUG_MODE
 int g_argc = 0;
 char** g_argv;
+extern bool g_enableDebugger;
+extern int g_debuggerPort;
 #endif
 #ifndef ENABLE_DEBUG_MODE
 extern args_t *s_gArgs;
@@ -455,9 +457,11 @@ void rtNodeContext::createEnvironment()
 #else
 #if HAVE_INSPECTOR
 #ifdef USE_NODE_PLATFORM
-    rtString currentPath;
-    rtGetCurrentDirectory(currentPath);
-    node::InspectorStart(mEnv, currentPath.cString(), platform);
+    if (g_enableDebugger) {
+      rtString currentPath;
+      rtGetCurrentDirectory(currentPath);
+      node::InspectorStart(mEnv, currentPath.cString(), g_debuggerPort);
+    }
 #endif //USE_NODE_PLATFORM
 #endif
 #endif

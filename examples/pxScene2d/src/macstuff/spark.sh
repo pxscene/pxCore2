@@ -38,10 +38,10 @@ fi
 if [ -z ${DS+x} ]
 then
 echo Logging to log files
-./Spark --experimental-vm-modules $* < /dev/zero >> /var/tmp/Spark.log 2>&1 &
+./Spark --inspect --experimental-vm-modules $* < /dev/zero >> /var/tmp/Spark.log 2>&1 &
 else
 echo Logging to console
-./Spark --experimental-vm-modules $*
+./Spark --inspect --experimental-vm-modules $*
 fi
 
 # Software update below

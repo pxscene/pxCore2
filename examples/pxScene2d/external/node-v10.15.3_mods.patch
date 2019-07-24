@@ -284,7 +284,7 @@ index 0bdfef5..e79edfb 100755
      printf("=========================================================\n");
      printf("Exception thrown:\n");
 diff --git a/examples/pxScene2d/external/libnode-v10.15.3/lib/internal/bootstrap/node.js b/examples/pxScene2d/external/libnode-v10.15.3/lib/internal/bootstrap/node.js
-index b168eb0..82cdec8 100755
+index b168eb08a..b2d387764 100755
 --- a/examples/pxScene2d/external/libnode-v10.15.3/lib/internal/bootstrap/node.js
 +++ b/examples/pxScene2d/external/libnode-v10.15.3/lib/internal/bootstrap/node.js
 @@ -257,11 +257,12 @@
@@ -334,6 +334,23 @@ index b168eb0..82cdec8 100755
        }
      }
    }
+@@ -564,10 +571,15 @@
+   }
+ 
+   function wrapForBreakOnFirstLine(source) {
++    // MODIFIED CODE BEGIN
++    /*
+     if (!process._breakFirstLine)
+       return source;
+     const fn = `function() {\n\n${source};\n\n}`;
+     return `process.binding('inspector').callAndPauseOnStart(${fn}, {})`;
++    */
++    return source;
++    // MODIFIED CODE END
+   }
+ 
+   function evalScript(name, body = wrapForBreakOnFirstLine(process._eval)) {
+
 diff --git a/examples/pxScene2d/external/libnode-v10.15.3/lib/net.js b/examples/pxScene2d/external/libnode-v10.15.3/lib/net.js
 index e40aaa8..1c6ad2a 100755
 --- a/examples/pxScene2d/external/libnode-v10.15.3/lib/net.js
@@ -429,7 +446,7 @@ index a8de196..607a7db 100755
        'deps/node-inspect/lib/internal/inspect_client.js',
        'deps/node-inspect/lib/internal/inspect_repl.js',
 diff --git a/examples/pxScene2d/external/libnode-v10.15.3/src/node.cc b/examples/pxScene2d/external/libnode-v10.15.3/src/node.cc
-index 9fb5ab3..7c3c865 100755
+index 9fb5ab3b8..6fd8e7f94 100755
 --- a/examples/pxScene2d/external/libnode-v10.15.3/src/node.cc
 +++ b/examples/pxScene2d/external/libnode-v10.15.3/src/node.cc
 @@ -173,7 +173,9 @@ using v8::V8;
@@ -660,14 +677,19 @@ index 9fb5ab3..7c3c865 100755
    return new NodePlatform(thread_pool_size, tracing_controller);
  }
  
-@@ -3050,6 +3127,15 @@ void RegisterBuiltinModules() {
+@@ -3050,6 +3127,20 @@ void RegisterBuiltinModules() {
  #undef V
  }
  
 +/*MODIFIED CODE BEGIN*/
 +#if HAVE_INSPECTOR
-+void InspectorStart(Environment* env, const char* path, MultiIsolatePlatform* platform) {
++void InspectorStart(Environment* env, const char* path, int port) {
++  env->options()->debug_options->host_port.port = port;
 +  env->inspector_agent()->Start(path, env->options()->debug_options, true);
++}
++
++void InspectorStop(Environment* env) {
++  env->inspector_agent()->Stop();
 +}
 +#endif
 +/*MODIFIED CODE END*/
@@ -677,7 +699,7 @@ index 9fb5ab3..7c3c865 100755
  
  #if !HAVE_INSPECTOR
 diff --git a/examples/pxScene2d/external/libnode-v10.15.3/src/node.h b/examples/pxScene2d/external/libnode-v10.15.3/src/node.h
-index 2a6f5b5..6bf2b29 100755
+index 2a6f5b59c..ad0daa22b 100755
 --- a/examples/pxScene2d/external/libnode-v10.15.3/src/node.h
 +++ b/examples/pxScene2d/external/libnode-v10.15.3/src/node.h
 @@ -204,6 +204,12 @@ typedef intptr_t ssize_t;
@@ -704,20 +726,21 @@ index 2a6f5b5..6bf2b29 100755
  class NODE_EXTERN MultiIsolatePlatform : public v8::Platform {
   public:
    virtual ~MultiIsolatePlatform() { }
-@@ -253,6 +263,12 @@ class NODE_EXTERN MultiIsolatePlatform : public v8::Platform {
+@@ -253,6 +263,13 @@ class NODE_EXTERN MultiIsolatePlatform : public v8::Platform {
    virtual void UnregisterIsolate(IsolateData* isolate_data) = 0;
  };
  
 +/*MODIFIED CODE BEGIN*/
 +#if HAVE_INSPECTOR
-+NODE_EXTERN void InspectorStart(Environment* env, const char* path, MultiIsolatePlatform* platform);
++NODE_EXTERN void InspectorStart(Environment* env, const char* path, int port);
++NODE_EXTERN void InspectorStop(Environment* env);
 +#endif
 +/*MODIFIED CODE END*/
 +
  // Creates a new isolate with Node.js-specific settings.
  NODE_EXTERN v8::Isolate* NewIsolate(ArrayBufferAllocator* allocator);
  
-@@ -296,10 +312,11 @@ NODE_EXTERN void FreeEnvironment(Environment* env);
+@@ -296,10 +313,11 @@ NODE_EXTERN void FreeEnvironment(Environment* env);
  // If NODE_USE_V8_PLATFORM haven't been defined when Node.js was built,
  // it returns nullptr.
  NODE_EXTERN MultiIsolatePlatform* GetMainThreadMultiIsolatePlatform();
