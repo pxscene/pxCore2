@@ -55,13 +55,10 @@ static pthread_mutex_t sObjectMapMutex = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
 #endif //!RUNINMAIN
 #endif
 
-#ifndef ENABLE_DEBUG_MODE
 args_t *s_gArgs;
-#else
 #define SPARK_DEBUGGER_PORT 9229
 bool g_enableDebugger = true;
 int g_debuggerPort = SPARK_DEBUGGER_PORT;
-#endif
 
 static int sLockCount;
 
