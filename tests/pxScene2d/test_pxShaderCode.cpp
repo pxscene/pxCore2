@@ -21,6 +21,7 @@ limitations under the License.
 #define private public
 #define protected public
 
+#include "pxObject.h"
 #include "pxShaderResource.h"
 
 #include "test_includes.h" // Needs to be included last
