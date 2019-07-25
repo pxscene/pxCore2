@@ -56,9 +56,8 @@ static pthread_mutex_t sObjectMapMutex = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
 #endif
 
 args_t *s_gArgs;
-#define SPARK_DEBUGGER_PORT 9229
-bool g_enableDebugger = true;
-int g_debuggerPort = SPARK_DEBUGGER_PORT;
+bool g_debuggerEnabled = false;
+int g_debuggerPort = 0;
 
 static int sLockCount;
 
@@ -177,6 +176,9 @@ rtError rtScript::init()
 {
   if (false == mInitialized)
   {
+#ifdef ENABLE_DEBUG_MODE
+    populateDebuggerInfo();
+#endif
     #if defined(RTSCRIPT_SUPPORT_NODE) && defined(RTSCRIPT_SUPPORT_DUKTAPE) 
       static int useDuktape = -1;
     
@@ -205,9 +207,6 @@ rtError rtScript::init()
     #endif
     
     mScript->init();
-#ifdef ENABLE_DEBUG_MODE
-    populateDebuggerInfo();
-#endif
     mInitialized = true;
   }
   return RT_OK;
@@ -249,13 +248,15 @@ void* rtScript::getParameter(rtString param)
 void rtScript::populateDebuggerInfo()
 {
 #ifdef ENABLE_DEBUG_MODE
- if (true == rtFileExists("/opt/disableSparkDebugger"))
- {
-   g_enableDebugger = false;
- }
+   char const *debugenabled = getenv("SPARK_ENABLE_DEBUGGING");
+   if (debugenabled)
+   {
+     if (1 == atoi(debugenabled))
+       g_debuggerEnabled = true;
+   }
 
- rtLogInfo("Spark debugger enabled  - [%d]",g_enableDebugger);
- if (true == g_enableDebugger)
+ rtLogInfo("Spark debugger enabled  - [%d]",g_debuggerEnabled);
+ if (true == g_debuggerEnabled)
  {
    rtValue debuggerPort;
    if (RT_OK == rtSettings::instance()->value("sparkDebuggerPort", debuggerPort))

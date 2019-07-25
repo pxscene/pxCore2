@@ -643,7 +643,7 @@ const bootStrap = (moduleName, from, request) => {
               var source, rpath;
               if (filename.indexOf('http') == 0) {
                 result = await loadHttpFile(filename);
-                if (process._breakFirstLine) {
+                if (process.env.BREAK_ON_SCRIPTSTART == 1) {
                   result = "debugger;\n" + source;
                 }
                 app = await loadMjs(result, filename, contextifiedSandbox);
@@ -665,7 +665,7 @@ const bootStrap = (moduleName, from, request) => {
                 }
                 source = await readFileAsync(rpath, {'encoding' : 'utf-8'})
                 rpath = "file://" + rpath;
-                if (process._breakFirstLine) {
+                if (process.env.BREAK_ON_SCRIPTSTART == 1) {
                   source = "debugger;\n" + source;
                 }
                 app = await loadMjs(source, rpath, contextifiedSandbox);

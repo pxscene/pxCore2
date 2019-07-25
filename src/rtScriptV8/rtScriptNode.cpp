@@ -109,6 +109,8 @@ bool gIsPumpingJavaScript = false;
 #define USE_NODE_PLATFORM
 #endif
 
+extern int g_debuggerPort;
+extern bool g_debuggerEnabled;
 namespace node
 {
 class Environment;
@@ -119,6 +121,7 @@ class rtNodeContext;
 
 typedef rtRef<rtNodeContext> rtNodeContextRef;
 
+#define NODE_DEBUGGER_PORT 9229
 class rtNodeContext: rtIScriptContext  // V8
 {
 public:
@@ -440,7 +443,10 @@ void rtNodeContext::createEnvironment()
 #else
 #if HAVE_INSPECTOR
 #ifdef USE_NODE_PLATFORM
-    if (g_enableDebugger) {
+    if (g_debuggerEnabled) {
+      if (0 == g_debuggerPort) {
+        g_debuggerPort = NODE_DEBUGGER_PORT;
+      }
       rtString currentPath;
       rtGetCurrentDirectory(currentPath);
       node::InspectorStart(mEnv, currentPath.cString(), g_debuggerPort);
@@ -1063,15 +1069,9 @@ rtError rtScriptNode::init()
   static const char* exposeGcConfig = "rtNode\0--experimental-vm-modules\0--expose-gc\0-e\0console.log(\"rtNode Initalized\");\0\0";
   static const char* exposeGcConfigv[] = {&exposeGcConfig[0], &exposeGcConfig[7], &exposeGcConfig[33], &exposeGcConfig[45], &exposeGcConfig[48], NULL};
 
-  char const* enableDebuggingSetting = getenv("SPARK_ENABLE_DEBUGGING");
-  int enableDebugging = 0;
-  if (enableDebuggingSetting)
-  {
-    enableDebugging = atoi(enableDebuggingSetting);
-  }
 
   static char** argv2 = NULL;
-  if (enableDebugging > 0) {
+  if (g_debuggerEnabled == true) {
   #if ENABLE_V8_HEAP_PARAMS
   #ifdef ENABLE_NODE_V_6_9
     argc = sizeof(debug_node69Configv)/sizeof(char*) - 1;
