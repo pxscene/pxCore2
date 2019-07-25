@@ -53,7 +53,7 @@
 
 struct pxPoint2f;        // fwd
 class  pxScene2d;        // fwd
-class  rtShaderResource; // fwd
+class  pxShaderResource; // fwd
 
 class pxObject: public rtObject
 {
@@ -583,8 +583,8 @@ public:
 
   void setEffectConfig(rtObjectRef v)    { mEffectRef = v; };
   
-  void setEffectPtr(rtShaderResource *p) { mEffectShaderRef = p;    };
-  rtShaderResource *effectPtr()          { return mEffectShaderRef; };
+  void setEffectPtr(pxShaderResource *p) { mEffectShaderRef = p;    };
+  pxShaderResource *effectPtr()          { return mEffectShaderRef; };
 
 public:
   rtEmitRef mEmit;

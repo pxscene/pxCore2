@@ -40,14 +40,14 @@ extern const char* vShaderText;
 
 //=====================================================================================================================================
 
-rtShaderResource::rtShaderResource()
+pxShaderResource::pxShaderResource()
 : pxResource(), mIsRealTime(false), mNeedsFbo(false), mPasses(1), mSamplerCount(3)
 {
   mFragmentUrl = NULL;
   mVertexUrl   = NULL;
 }
 
-rtShaderResource::rtShaderResource(const char* fragmentUrl, const char* vertexUrl /*= NULL*/,
+pxShaderResource::pxShaderResource(const char* fragmentUrl, const char* vertexUrl /*= NULL*/,
                                    const rtCORSRef& /*cors = NULL*/, rtObjectRef /*archive = NULL*/)
 
   : pxResource(), mIsRealTime(false), mNeedsFbo(false), mPasses(1), mSamplerCount(3)
@@ -56,12 +56,12 @@ rtShaderResource::rtShaderResource(const char* fragmentUrl, const char* vertexUr
   mVertexUrl   = vertexUrl;
 }
 
-rtShaderResource::~rtShaderResource()
+pxShaderResource::~pxShaderResource()
 {
-  rtLogDebug("~rtShaderResource()");
+  rtLogDebug("~pxShaderResource()");
 }
 
-void rtShaderResource::onInit()
+void pxShaderResource::onInit()
 {
   postlink();
 
@@ -71,7 +71,7 @@ void rtShaderResource::onInit()
   mInitialized = true;
 }
 
-void rtShaderResource::init()
+void pxShaderResource::init()
 {
   if( mInitialized)
     return;
@@ -79,9 +79,9 @@ void rtShaderResource::init()
   mInitialized = true;
 }
 
-void rtShaderResource::setupResource()
+void pxShaderResource::setupResource()
 {
-  rtShaderResource::init();
+  pxShaderResource::init();
 
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -113,7 +113,7 @@ void rtShaderResource::setupResource()
 }
 
 
-unsigned long rtShaderResource::Release()
+unsigned long pxShaderResource::Release()
 {
   long l = rtAtomicDec(&mRefCount);
   if (l == 0)
@@ -126,7 +126,7 @@ unsigned long rtShaderResource::Release()
   return l;
 }
 
-UniformType_t rtShaderResource::getUniformType(rtString &name)
+UniformType_t pxShaderResource::getUniformType(rtString &name)
 {
   UniformMapIter_t it = mUniform_map.find(name.cString());
   if(it != mUniform_map.end())
@@ -142,13 +142,13 @@ UniformType_t rtShaderResource::getUniformType(rtString &name)
 //
 //  Set() >> setUniformVal() ... called when setting Uniforms directly on a [shaderProgram].
 //
-rtError rtShaderResource::setUniformVal(const rtString& name, const rtValue& v)
+rtError pxShaderResource::setUniformVal(const rtString& name, const rtValue& v)
 {
   UniformMapIter_t it = mUniform_map.find(name);
   if(it != mUniform_map.end())
   {
     use();
-
+    
     uniformLoc_t &p = (*it).second;
 
     p.value = v;        // update the VALUE
@@ -160,7 +160,7 @@ rtError rtShaderResource::setUniformVal(const rtString& name, const rtValue& v)
   return RT_FAIL; // not found
 }
 
-rtError rtShaderResource::setUniformVals(const rtValue& v)
+rtError pxShaderResource::setUniformVals(const rtValue& v)
 {
   rtObjectRef uniforms = v.toObject();
   rtArrayObject   *arr = (rtArrayObject *) uniforms.getPtr();
@@ -199,11 +199,11 @@ rtError rtShaderResource::setUniformVals(const rtValue& v)
       return RT_FAIL;
     }
   }
-
+  
   return RT_OK;
 }
 
-rtError rtShaderResource::Set(const char* name, const rtValue* value)
+rtError pxShaderResource::Set(const char* name, const rtValue* value)
 {
   // Only have EXPLICIT supported Properties ... otherwise its a UNIFORM
   //
@@ -215,7 +215,7 @@ rtError rtShaderResource::Set(const char* name, const rtValue* value)
   else
   if(strcmp(name, "uniforms") == 0)
   {
-    return rtShaderResource::setUniforms( value->toObject() );
+    return pxShaderResource::setUniforms( value->toObject() );
   }
   if(strcmp(name, "t") == 0)
   {
@@ -231,8 +231,8 @@ rtError rtShaderResource::Set(const char* name, const rtValue* value)
 //
 // Stores the UNIFORMS parsed from JS code/config; to be located in Shader when compiled
 //
-rtError rtShaderResource::uniforms(rtObjectRef& /* o */) const { return RT_OK; }
-rtError rtShaderResource::setUniforms(rtObjectRef o)
+rtError pxShaderResource::uniforms(rtObjectRef& /* o */) const { return RT_OK; }
+rtError pxShaderResource::setUniforms(rtObjectRef o)
 {
   rtValue allKeys;
   o->Get("allKeys", &allKeys);
@@ -256,49 +256,49 @@ rtError rtShaderResource::setUniforms(rtObjectRef o)
       else
       if(type == "int")
       {
-        setFunc  = rtShaderResource::setUniform1i;
+        setFunc  = pxShaderResource::setUniform1i;
         typeEnum = UniformType_Int;
       }
       else
       if(type == "float")
       {
-        setFunc  = rtShaderResource::setUniform1f;
+        setFunc  = pxShaderResource::setUniform1f;
         typeEnum = UniformType_Float;
       }
       else
       if(type == "ivec2")
       {
-        setFunc  = rtShaderResource::setUniform2iv;
+        setFunc  = pxShaderResource::setUniform2iv;
         typeEnum = UniformType_iVec2;
       }
       else
       if(type == "ivec3")
       {
-        setFunc  = rtShaderResource::setUniform3iv;
+        setFunc  = pxShaderResource::setUniform3iv;
         typeEnum = UniformType_iVec3;
       }
       else
       if(type == "ivec4")
       {
-        setFunc  = rtShaderResource::setUniform4iv;
+        setFunc  = pxShaderResource::setUniform4iv;
         typeEnum = UniformType_iVec4;
       }
       else
       if(type == "vec2")
       {
-        setFunc  = rtShaderResource::setUniform2fv;
+        setFunc  = pxShaderResource::setUniform2fv;
         typeEnum = UniformType_Vec2;
       }
       else
       if(type == "vec3")
       {
-        setFunc  = rtShaderResource::setUniform3fv;
+        setFunc  = pxShaderResource::setUniform3fv;
         typeEnum = UniformType_Vec3;
       }
       else
       if(type == "vec4")
       {
-        setFunc  = rtShaderResource::setUniform4fv;
+        setFunc  = pxShaderResource::setUniform4fv;
         typeEnum = UniformType_Vec4;
       }
       else
@@ -308,9 +308,9 @@ rtError rtShaderResource::setUniforms(rtObjectRef o)
         {
           mNeedsFbo = true;
         }
-        setFunc = (mSamplerCount == 3) ? rtShaderResource::bindTexture3 :
-                  (mSamplerCount == 4) ? rtShaderResource::bindTexture4 :
-                  (mSamplerCount == 5) ? rtShaderResource::bindTexture5 : NULL;
+        setFunc = (mSamplerCount == 3) ? pxShaderResource::bindTexture3 :
+                  (mSamplerCount == 4) ? pxShaderResource::bindTexture4 :
+                  (mSamplerCount == 5) ? pxShaderResource::bindTexture5 : NULL;
 
         typeEnum = UniformType_Sampler2D;
 
@@ -324,7 +324,7 @@ rtError rtShaderResource::setUniforms(rtObjectRef o)
   return RT_OK;
 }
 
-void rtShaderResource::loadResourceFromFile()
+void pxShaderResource::loadResourceFromFile()
 {
   init();
 
@@ -460,7 +460,7 @@ void rtShaderResource::loadResourceFromFile()
   }
 }
 
-void rtShaderResource::loadResourceFromArchive(rtObjectRef /*archiveRef*/)
+void pxShaderResource::loadResourceFromArchive(rtObjectRef /*archiveRef*/)
 {
 #if 0
   pxArchive* archive = (pxArchive*)archiveRef.getPtr();
@@ -561,7 +561,7 @@ void rtShaderResource::loadResourceFromArchive(rtObjectRef /*archiveRef*/)
 #endif // 0
 }
 
-void rtShaderResource::loadResource(rtObjectRef archive, bool reloading)
+void pxShaderResource::loadResource(rtObjectRef archive, bool reloading)
 {
   if(!reloading && ((rtPromise*)mReady.getPtr())->status())
   {
@@ -630,9 +630,9 @@ void rtShaderResource::loadResource(rtObjectRef archive, bool reloading)
   {
     setLoadStatus("sourceType", "dataurl");
     double startResourceSetupTime = pxMilliseconds();
-
+    
     loadResourceFromFile(); // Detect and Load shaders from URL directly
-
+    
     double stopResourceSetupTime = pxMilliseconds();
     setLoadStatus("setupTimeMs", static_cast<int>(stopResourceSetupTime-startResourceSetupTime));
   }
@@ -654,7 +654,7 @@ void rtShaderResource::loadResource(rtObjectRef archive, bool reloading)
   }
 }
 
-uint32_t rtShaderResource::loadResourceData(rtFileDownloadRequest* fileDownloadRequest)
+uint32_t pxShaderResource::loadResourceData(rtFileDownloadRequest* fileDownloadRequest)
 {
   double startDecodeTime = pxMilliseconds();
   rtError decodeResult = RT_OK; // TODO: create shaderProgram   //pxLoadImage(fileDownloadRequest->downloadedData(),
@@ -687,7 +687,7 @@ uint32_t rtShaderResource::loadResourceData(rtFileDownloadRequest* fileDownloadR
   return PX_RESOURCE_LOAD_FAIL;
 }
 
-void rtShaderResource::prelink()
+void pxShaderResource::prelink()
 {
   mPosLoc = 0;
   mUVLoc = 1;
@@ -695,7 +695,7 @@ void rtShaderResource::prelink()
   glBindAttribLocation(mProgram, mUVLoc,  "uv");
 }
 
-void rtShaderResource::postlink()
+void pxShaderResource::postlink()
 {
   mTimeLoc       = getUniformLocation("u_time");
   mResolutionLoc = getUniformLocation("u_resolution");
@@ -715,7 +715,7 @@ void rtShaderResource::postlink()
 //
 // GL Setters
 //
-/*static*/ rtError rtShaderResource::fillInt32Vec(int32_t *vec, const rtArrayObject* vals)
+/*static*/ rtError pxShaderResource::fillInt32Vec(int32_t *vec, const rtArrayObject* vals)
 {
   if(vals && vec)
   {
@@ -740,7 +740,7 @@ void rtShaderResource::postlink()
   return RT_FAIL;
 }
 
-/*static*/ rtError rtShaderResource::fillFloatVec(float *vec, const rtArrayObject* vals)
+/*static*/ rtError pxShaderResource::fillFloatVec(float *vec, const rtArrayObject* vals)
 {
   if(vals && vec)
   {
@@ -766,7 +766,7 @@ void rtShaderResource::postlink()
 }
 
 // sampler
-/*static*/ rtError rtShaderResource::bindTextureN(GLuint n, const uniformLoc_t &p)
+/*static*/ rtError pxShaderResource::bindTextureN(GLuint n, const uniformLoc_t &p)
 {
   rtImageResource *img = (rtImageResource *) p.value.toObject().getPtr();
 
@@ -803,7 +803,7 @@ void rtShaderResource::postlink()
   return RT_FAIL;
 }
 
-/*static*/ rtError rtShaderResource::setUniformNiv(int N, const uniformLoc_t &p)
+/*static*/ rtError pxShaderResource::setUniformNiv(int N, const uniformLoc_t &p)
 {
   const rtArrayObject* vals = (const rtArrayObject*)  p.value.toObject().getPtr();
 
@@ -812,7 +812,7 @@ void rtShaderResource::postlink()
     static int32_t vec[4] = {0}; // up to vec4
 
     fillInt32Vec(&vec[0], vals);
-
+    
     switch(N)
     {
       case 2: glUniform2iv(p.loc, 1, vec ); break;
@@ -826,7 +826,7 @@ void rtShaderResource::postlink()
   return RT_FAIL;
 }
 
-/*static*/ rtError rtShaderResource::setUniformNfv(int N, const uniformLoc_t &p)
+/*static*/ rtError pxShaderResource::setUniformNfv(int N, const uniformLoc_t &p)
 {
   const rtArrayObject* vals = (const rtArrayObject*)  p.value.toObject().getPtr();
 
@@ -849,8 +849,8 @@ void rtShaderResource::postlink()
   return RT_FAIL;
 }
 
-rtDefineObject(  rtShaderResource, pxResource);
-rtDefineProperty(rtShaderResource, uniforms);
+rtDefineObject(  pxShaderResource, pxResource);
+rtDefineProperty(pxShaderResource, uniforms);
 
 static int gShaderId = 0;
 
@@ -898,14 +898,14 @@ pxShaderResourceRef pxShaderManager::getShader(const char* fragmentUrl,
   ShaderMap::iterator it = mShaderMap.find(shaderId);
   if (it != mShaderMap.end())
   {
-    rtLogDebug("Found rtShaderResource in map for %s\n",fragmentUrl);
+    rtLogDebug("Found pxShaderResource in map for %s\n",fragmentUrl);
     shaderRef = it->second;
     return shaderRef;
   }
   else
   {
-    rtLogDebug("Create rtShaderResource in map for %s\n",fragmentUrl);
-    shaderRef = new rtShaderResource(fragmentUrl, vertexUrl);
+    rtLogDebug("Create pxShaderResource in map for %s\n",fragmentUrl);
+    shaderRef = new pxShaderResource(fragmentUrl, vertexUrl);
     shaderRef->setCORS(cors);
     mShaderMap.insert(make_pair(shaderId, shaderRef));
     shaderRef->loadResource(archive);
@@ -1007,7 +1007,7 @@ rtError applyJSconfig(rtObjectRef v, pxObject &obj)
     }
 
     rtObjectRef      shaderRef = shaderVal.toObject();
-    rtShaderResource *shader   = static_cast<rtShaderResource *>( (shaderRef) ? shaderRef.getPtr() : NULL);
+    pxShaderResource *shader   = static_cast<pxShaderResource *>( (shaderRef) ? shaderRef.getPtr() : NULL);
 
     if( shader == NULL )
     {
@@ -1020,7 +1020,7 @@ rtError applyJSconfig(rtObjectRef v, pxObject &obj)
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     // (JS)  UNIFORMS
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
+    
     rtValue uniformsVal;
     v->Get("uniforms", &uniformsVal);
 
@@ -1076,9 +1076,9 @@ rtError applyRTconfig(rtObjectRef v, pxObject &obj)
       return RT_FAIL;
     }
 
-    rtShaderResource *shader = static_cast<rtShaderResource *>( shaderVal.toVoidPtr() );
-    obj.setEffectPtr( (rtShaderResource *) ( shader ) );
-
+    pxShaderResource *shader = static_cast<pxShaderResource *>( shaderVal.toVoidPtr() );
+    obj.setEffectPtr( (pxShaderResource *) ( shader ) );
+    
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     // (RT)  UNIFORMS
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1091,7 +1091,7 @@ rtError applyRTconfig(rtObjectRef v, pxObject &obj)
      // rtLogDebug(" - \"uniforms\" list is empty/missing. ");
       return RT_OK;
     }
-
+  
     rtMapObject *uniforms = dynamic_cast<rtMapObject *>(uniformsVal.toObject().getPtr());
 
     if(uniforms && shader)
@@ -1113,7 +1113,7 @@ rtError applyRTconfig(rtObjectRef v, pxObject &obj)
   }
 
   rtLogWarn(" - applyConfig() - bad args ");
-
+  
   return RT_FAIL; // default fail
 }
 
@@ -1123,45 +1123,45 @@ rtError applyRTconfig(rtObjectRef v, pxObject &obj)
 //
 rtObjectRef copyConfigJS2RT(rtObjectRef &v)
 {
-  rtShaderResource *pShader = NULL;
-
+  pxShaderResource *pShader = NULL;
+  
   rtObjectRef configRef = v;// v.toObject(); // Unwrap the Config object
-
+  
   if(configRef == NULL)
   {
     rtLogError("ERROR:  Invlaid 'config' specified. ");
     return NULL;
   }
-
+  
   rtObjectRef thisConfig = new rtMapObject();
-
+  
   // printf("\n\nGOT >> CONFIG[%d]  >>  %s\n",i, thisConfig.getTypeStr());
-
+  
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   // (JS to RT) NAME
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
+  
   rtValue name = configRef.get<rtValue>("name");
   if(name.isEmpty() == false)
   {
     rtLogDebug("GOT name:  %s \n", name.toString().cString());
-
+    
     thisConfig->Set("name", &name);
   }
-
+  
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   // (JS to RT) SHADER
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   rtValue  shader = configRef.get<rtValue>("shader");
-
+  
   if(shader.isEmpty() == false)
   {
-    rtShaderResource *ptr = dynamic_cast<rtShaderResource *>( shader.toObject().getPtr() );
-
+    pxShaderResource *ptr = dynamic_cast<pxShaderResource *>( shader.toObject().getPtr() );
+    
     pShader = ptr; // needed below...
-
+    
     rtValue ptrVal;
-
+    
     ptrVal.setVoidPtr(ptr);
     thisConfig->Set("shader", &ptrVal);
   }
@@ -1173,9 +1173,9 @@ rtObjectRef copyConfigJS2RT(rtObjectRef &v)
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   // (JS to RT) UNIFORMS ARRAY
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
+  
   rtValue uniformsValue = configRef.get<rtValue>("uniforms");
-
+  
   if(uniformsValue.isEmpty())
   {
     rtLogWarn("NOTE:  No 'uniforms' specified. ");
@@ -1189,35 +1189,35 @@ rtObjectRef copyConfigJS2RT(rtObjectRef &v)
   else
   {
     rtObjectRef dstUniforms = new rtMapObject();
-
+    
     rtValue uniforms;
     uniforms.setObject(dstUniforms);
-
+    
     thisConfig->Set("uniforms", &uniforms);
-
+    
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     // Iterate UNIFORMS maps in Array
     //
     rtObjectRef  uniformsObject = uniformsValue.toObject();
     rtObjectRef            keys = uniformsObject.get<rtObjectRef>("allKeys");
     uint32_t            numKeys = keys.get<uint32_t>("length");
-
+    
     for (uint32_t i = 0; i < numKeys; i++)
     {
       rtString key = keys.get<rtString>(i);
       rtValue  val = uniformsObject.get<rtValue>(key);
-
+      
       UniformType_t type = pShader->getUniformType(key);
-
+      
       rtValue uniform = copyUniform(type, val);
-
+      
       dstUniforms->Set(key.cString(), &uniform); // add UNIFORM to 'uniforms' map
-
+      
       //printf("\nCOPY UNIFORM >>> key:%15s  val: %15s", key.cString(), uniform.getTypeStr());
     }//FOR - uniforms
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   }
-
+  
   return thisConfig;
 }
 
@@ -1248,14 +1248,14 @@ rtObjectRef copyArrayJS2RT(rtObjectRef &v)
     rtString            key = keys.get<rtString>(i);
     rtValue          config = v.get<rtValue>(key);
     rtObjectRef   configRef = config.toObject(); // Unwrap the Config object
-
+    
     rtObjectRef thisConfig = copyConfigJS2RT(configRef);
-
+    
     rtValue val;
     val.setObject(thisConfig);
-
+    
     ((rtArrayObject*) dstConfigs.getPtr())->pushBack(val);
-
+    
   }//FOR - config objects
 
   return rtObjectRef(dstConfigs);
@@ -1303,23 +1303,23 @@ rtValue copyUniform(UniformType_t type, rtValue &val)
         rtObjectRef    array = new rtArrayObject();
         rtObjectRef   valObj = val.toObject();
         rtObjectRef     keys = valObj.get<rtObjectRef>("allKeys");
-
+        
         if (keys)
         {
           uint32_t len = keys.get<uint32_t>("length");
           for (uint32_t i = 0; i < len; i++)
           {
             rtValue  val = valObj.get<rtValue>(i);
-
+            
             // JS only has Doubles.  Cast to Int.
             val.setInt32( (int32_t) val.toDouble() );
-
+            
             ((rtArrayObject*) array.getPtr())->pushBack(val);
           }
         }
-
+        
         ans.setObject(array);
-
+        
         return ans;
       }
       break;
@@ -1347,7 +1347,7 @@ rtValue copyUniform(UniformType_t type, rtValue &val)
       case UniformType_Vec4:
       {
         rtObjectRef valObj = val.toObject();
-
+        
         if(valObj)
         {
           rtObjectRef keys = valObj.get<rtObjectRef>("allKeys");

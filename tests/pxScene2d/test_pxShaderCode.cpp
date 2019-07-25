@@ -26,7 +26,7 @@ limitations under the License.
 
 #include "test_includes.h" // Needs to be included last
 
-class pxShaderExample: public rtShaderResource
+class pxShaderExample: public pxShaderResource
 {
 public:
 
@@ -165,7 +165,7 @@ public:
 
     void testFillVectors() // trivial NULL
     {
-      rtShaderResource shaderRes;
+      pxShaderResource shaderRes;
 
       pxError res1 = shaderRes.fillInt32Vec( NULL, NULL);
       EXPECT_TRUE (res1 == PX_FAIL);
@@ -176,7 +176,7 @@ public:
 
     void testBindTextures() // trivial NULL
     {
-      rtShaderResource shaderRes;
+      pxShaderResource shaderRes;
       uniformLoc_t p;
 
       rtImageResource img;
@@ -195,7 +195,7 @@ public:
 
     void testSetScalars() // trivial NULL
     {
-      rtShaderResource shaderRes;
+      pxShaderResource shaderRes;
       uniformLoc_t p;
 
       p.value = rtValue( (int) 0);
@@ -212,7 +212,7 @@ public:
 
     void testSetVectors()
     {
-      rtShaderResource shaderRes;
+      pxShaderResource shaderRes;
       uniformLoc_t p;
 
       p.value = rtValue( (void *) NULL );
@@ -241,7 +241,7 @@ public:
 
     void testSetVectors2()
     {
-      rtShaderResource shaderRes;
+      pxShaderResource shaderRes;
       uniformLoc_t p;
 
       rtObjectRef       ao = new rtArrayObject;

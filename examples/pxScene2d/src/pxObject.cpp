@@ -1630,7 +1630,7 @@ rtError pxObject::setEffect(rtObjectRef v)
 {
   if(v)
   {
-    rtShaderResource *pResource = dynamic_cast<rtShaderResource *>(v.getPtr()); // Is this a Direct Shader object ?
+    pxShaderResource *pResource = dynamic_cast<pxShaderResource *>(v.getPtr()); // Is this a Direct Shader object ?
 
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     //
@@ -1774,7 +1774,7 @@ void pxObject::renderEffectSnapshot(pxContextFramebufferRef& fbo)
 
 void pxObject::drawEffect(pxContextFramebufferRef &flattenFbo)
 {
-  rtShaderResource  *shaderRes = this->effectPtr();
+  pxShaderResource  *shaderRes = this->effectPtr();
 
   // DIRECT ? ----------------------------------------------------------------------------------------------------------
   if ( mEffectConfigRef == NULL &&

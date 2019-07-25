@@ -67,15 +67,15 @@ rtValue copyUniform(UniformType_t type, rtValue &val);        // helper to copy 
 
 //=====================================================================================================================================
 
-class rtShaderResource: public pxResource, public shaderProgram
+class pxShaderResource: public pxResource, public shaderProgram
 {
 public:
-  rtShaderResource();
-  rtShaderResource(const char* fragmentUrl, const char* vertexUrl = NULL, const rtCORSRef& cors = NULL, rtObjectRef archive = NULL);
+  pxShaderResource();
+  pxShaderResource(const char* fragmentUrl, const char* vertexUrl = NULL, const rtCORSRef& cors = NULL, rtObjectRef archive = NULL);
 
-  virtual ~rtShaderResource();
+  virtual ~pxShaderResource();
 
-  rtDeclareObject(rtShaderResource, pxResource);
+  rtDeclareObject(pxShaderResource, pxResource);
 
   virtual unsigned long Release();
 
@@ -164,9 +164,9 @@ private:
 
 //=====================================================================================================================================
 
-typedef rtRef<rtShaderResource> pxShaderResourceRef;
+typedef rtRef<pxShaderResource> pxShaderResourceRef;
 
-typedef std::map<uint32_t, rtShaderResource*> ShaderMap;
+typedef std::map<uint32_t, pxShaderResource*> ShaderMap;
 typedef std::map<rtString, uint32_t> ShaderUrlMap;
 
 class pxShaderManager
