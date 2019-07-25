@@ -175,7 +175,7 @@ elseif (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
                   ${NODE_LIBRARIES}
                   ${V8_LIBRARIES}
                   ${DUKE_LIBRARIES}
-             ${COMM_DEPS_LIBRARIES}
+                  ${COMM_DEPS_LIBRARIES}
              pthread rt dl m)
 
     set(PXSCENE_APP_LIBRARIES ${PXSCENE_APP_LIBRARIES} pxCore rtCore_s)
@@ -201,6 +201,7 @@ elseif (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
             message("Building pxscene with essos windows")
             set(PX_PLATFORM PX_PLATFORM_WAYLAND_EGL)
             set(PXSCENE_APP_LIBRARIES ${PXSCENE_APP_LIBRARIES} essos)
+            set(PXSCENE_LINK_LIBRARIES ${PXSCENE_LINK_LIBRARIES} essos)
         elseif (BUILD_PXSCENE_WAYLAND_EGL)
             message("Building pxscene with wayland windows")
             set(PX_PLATFORM PX_PLATFORM_WAYLAND_EGL)
