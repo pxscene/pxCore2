@@ -42,10 +42,13 @@ NOTE:  From VSCode 1.25 and greater ... it is necessary to include `"protocol": 
       // Edit below as gl:${file} when running under webgl based apps
       "args":["${file}"],
       "env" : {
+      "BREAK_ON_SCRIPTSTART":"0",
       "LD_LIBRARY_PATH":"/Applications/Spark.app/Contents/MacOS/lib",
       "DYLD_LIBRARY_PATH":"/Applications/Spark.app/Contents/MacOS/lib"
       //,"BREAK_ON_SCRIPTSTART":1    
-      }
+      },
+      "port":9229,
+      "stopOnEntry": true
     },
     {
       "name": "DBG pxscene",
