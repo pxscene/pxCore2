@@ -68,6 +68,11 @@ public:
     rtMethod2ArgAndNoReturn("uniform2fv", Uniform2fv, uint32_t, rtValue);
     rtMethod4ArgAndNoReturn("scissor", Scissor, uint32_t, uint32_t, uint32_t, uint32_t);
     rtMethod1ArgAndNoReturn("disableVertexAttribArray", DisableVertexAttribArray, uint32_t);
+    rtMethodNoArgAndReturn("createFramebuffer", CreateFramebuffer, uint32_t);
+    rtMethod5ArgAndNoReturn("framebufferTexture2D", FramebufferTexture2D, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t);
+    rtMethod2ArgAndNoReturn("uniform1f", Uniform1f, uint32_t, float);
+    rtMethod2ArgAndNoReturn("uniform1i", Uniform1i, uint32_t, uint32_t);
+    rtMethod1ArgAndNoReturn("activeTexture", ActiveTexture, uint32_t);
 
     pxWebgl(pxScene2d* scene);
 
@@ -110,6 +115,11 @@ public:
    rtError Uniform2fv(uint32_t location, rtValue data);
    rtError Scissor(uint32_t x, uint32_t y, uint32_t width, uint32_t height);
    rtError DisableVertexAttribArray(uint32_t index);
+   rtError CreateFramebuffer(uint32_t& buffer);
+   rtError FramebufferTexture2D(uint32_t target, uint32_t attachment, uint32_t textarget, uint32_t texture, uint32_t level);
+   rtError Uniform1f(uint32_t location, float x);
+   rtError Uniform1i(uint32_t location, uint32_t x);
+   rtError ActiveTexture(uint32_t texture);
 
 private:
 
