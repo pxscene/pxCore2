@@ -252,28 +252,33 @@ rtError pxWebgl::texImage2D(uint32_t target, uint32_t level, uint32_t internalfo
   rtLogDebug("[%s] target: %d level: %d internalformat: %d width: %d height %d format %d", __FUNCTION__, target, level, internalformat, width, height, format);
 
   rtArrayObject* pixelArray = (rtArrayObject*) data.toObject().getPtr();
+  
+  uint8_t *pixels = NULL;
 
-  rtValue length;
-  pixelArray->Get("length", &length);
+  if(pixelArray) {
+    rtValue length;
+    pixelArray->Get("length", &length);
 
-  rtLogDebug("[%s] length is %u", __FUNCTION__, length.toUInt32());
+    rtLogDebug("[%s] length is %u", __FUNCTION__, length.toUInt32());
 
-  uint8_t *pixels = (uint8_t *) malloc(length.toUInt32());
+    pixels = (uint8_t *) malloc(length.toUInt32());
 
 
-  for (uint32_t i = 0, l = length.toUInt32(); i < l; ++i) {
-    rtValue key;
-    if (pixelArray->Get(i, &key) == RT_OK && !key.isEmpty()) {
-      pixels[i] = key.toUInt8();
+    for (uint32_t i = 0, l = length.toUInt32(); i < l; ++i) {
+      rtValue key;
+      if (pixelArray->Get(i, &key) == RT_OK && !key.isEmpty()) {
+        pixels[i] = key.toUInt8();
+      }
     }
-  }
 
-  preprocessTexImageData(pixels, width, height, format, type);
+    preprocessTexImageData(pixels, width, height, format, type);
+  }
 
   glTexImage2D(target, level, internalformat, width, height, border, format, type, pixels);
   CheckGLError();
-
-  free(pixels);
+  
+  if(pixels)
+    free(pixels);
 
   return RT_OK;
 }
@@ -623,6 +628,58 @@ rtError pxWebgl::DisableVertexAttribArray(uint32_t index)
   return RT_OK;
 }
 
+rtError pxWebgl::CreateFramebuffer(uint32_t& buffer)
+{
+  rtLogDebug("[%s]", __FUNCTION__);
+  
+  glGenFramebuffers(1, &buffer);
+  CheckGLError();
+
+  rtLogDebug("[%s] returning buffer: %u",__FUNCTION__, buffer);
+  
+  return RT_OK;
+}
+
+rtError pxWebgl::FramebufferTexture2D(uint32_t target, uint32_t attachment, uint32_t textarget, uint32_t texture, uint32_t level)
+{
+  rtLogDebug("[%s] target: %u, attachment: %u, textarget: %u, texture: %u, level: %u", __FUNCTION__, target, attachment, textarget, texture, level);
+  
+  glFramebufferTexture2D(target, attachment, textarget, texture, level);
+  CheckGLError();
+  
+  return RT_OK;
+}
+
+rtError pxWebgl::Uniform1f(uint32_t location, float x)
+{
+  rtLogDebug("[%s] location: %u x: %f", __FUNCTION__, location, x);
+
+  glUniform1f(location, x);
+  CheckGLError();
+
+  return RT_OK;
+}
+
+rtError pxWebgl::Uniform1i(uint32_t location, uint32_t x)
+{
+  rtLogDebug("[%s] location: %u x: %u", __FUNCTION__, location, x);
+
+  glUniform1i(location, x);
+  CheckGLError();
+
+  return RT_OK;
+}
+
+rtError pxWebgl::ActiveTexture(uint32_t texture)
+{
+  rtLogDebug("[%s] texture: %u", __FUNCTION__, texture);
+
+  glActiveTexture(texture);
+  CheckGLError();
+
+  return RT_OK;
+}
+
 rtDefineObject(pxWebgl, pxObject);
 rtDefineMethod(pxWebgl, DrawElements);
 rtDefineMethod(pxWebgl, createTexture);
@@ -660,3 +717,8 @@ rtDefineMethod(pxWebgl, DrawArrays);
 rtDefineMethod(pxWebgl, Uniform2fv);
 rtDefineMethod(pxWebgl, Scissor);
 rtDefineMethod(pxWebgl, DisableVertexAttribArray);
+rtDefineMethod(pxWebgl, CreateFramebuffer);
+rtDefineMethod(pxWebgl, FramebufferTexture2D);
+rtDefineMethod(pxWebgl, Uniform1f);
+rtDefineMethod(pxWebgl, Uniform1i);
+rtDefineMethod(pxWebgl, ActiveTexture);
