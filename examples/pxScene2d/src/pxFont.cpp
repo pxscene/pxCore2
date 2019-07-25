@@ -257,21 +257,23 @@ rtError pxFont::init(const char* n)
   mUrl = n;
   rtError loadFontStatus = RT_FAIL;
 
+  rtString urlStr = mUrl.beginsWith("file://") ? mUrl.substring(7) : mUrl;
+
   do {
-    if (FT_New_Face(ft, n, 0, &mFace) == 0)
+    if (FT_New_Face(ft, urlStr.cString(), 0, &mFace) == 0)
     {
       loadFontStatus = RT_OK;
       break;
     }
 
-    if (rtIsPathAbsolute(n))
+    if (rtIsPathAbsolute(urlStr))
       break;
 
     rtModuleDirs *dirs = rtModuleDirs::instance();
 
     for (rtModuleDirs::iter it = dirs->iterator(); it.first != it.second; it.first++)
     {
-      if (FT_New_Face(ft, rtConcatenatePath(*it.first, n).c_str(), 0, &mFace) == 0)
+      if (FT_New_Face(ft, rtConcatenatePath(*it.first, urlStr.cString()).c_str(), 0, &mFace) == 0)
       {
         loadFontStatus = RT_OK;
         break;

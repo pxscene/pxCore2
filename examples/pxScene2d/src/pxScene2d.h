@@ -581,11 +581,13 @@ public:
       mGetScene->clearContext();
       mMakeReady->clearContext();
       mGetContextID->clearContext();
+      mGetSetting->clearContext();
 
       // TODO Given that the context is being cleared we likely don't need to zero these out
       mCtx->add("getScene", 0);
       mCtx->add("makeReady", 0);
       mCtx->add("getContextID", 0);
+      mCtx->add("getSetting", 0);
     }
 #endif //ENABLE_RT_NODE
 
@@ -670,6 +672,7 @@ protected:
   static rtError makeReady(int /*numArgs*/, const rtValue* /*args*/, rtValue* result, void* ctx);
 
   static rtError getContextID(int /*numArgs*/, const rtValue* /*args*/, rtValue* result, void* /*ctx*/);
+  static rtError getSetting(int numArgs, const rtValue* args, rtValue* result, void* /*ctx*/);
 
   virtual void onSize(int32_t w, int32_t h)
   {
@@ -820,6 +823,7 @@ protected:
   rtRef<rtFunctionCallback> mGetScene;
   rtRef<rtFunctionCallback> mMakeReady;
   rtRef<rtFunctionCallback> mGetContextID;
+  rtRef<rtFunctionCallback> mGetSetting;
 
 #ifdef ENABLE_RT_NODE
   rtScriptContextRef mCtx;

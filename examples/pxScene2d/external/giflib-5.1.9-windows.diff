@@ -1,7 +1,7 @@
-diff --git a/examples/pxScene2d/external/giflib-5.1.9/gif_hash.h b/examples/pxScene2d/external/giflib-5.1.9/gif_hash.h
+diff --git giflib-5.1.9/gif_hash.h giflib-5.1.9/gif_hash.h
 index ac20a43cb..a236bb56d 100644
---- a/examples/pxScene2d/external/giflib-5.1.9/gif_hash.h
-+++ b/examples/pxScene2d/external/giflib-5.1.9/gif_hash.h
+--- giflib-5.1.9/gif_hash.h
++++ giflib-5.1.9/gif_hash.h
 @@ -7,7 +7,7 @@ gif_hash.h - magfic constants and declarations for GIF LZW
  #ifndef _GIF_HASH_H_
  #define _GIF_HASH_H_
@@ -11,10 +11,10 @@ index ac20a43cb..a236bb56d 100644
  #include <stdint.h>
  
  #define HT_SIZE			8192	   /* 12bits = 4096 or twice as big! */
-diff --git a/examples/pxScene2d/external/giflib-5.1.9/giftool.c b/examples/pxScene2d/external/giflib-5.1.9/giftool.c
+diff --git giflib-5.1.9/giftool.c giflib-5.1.9/giftool.c
 index 21b9c486b..afdce4567 100644
---- a/examples/pxScene2d/external/giflib-5.1.9/giftool.c
-+++ b/examples/pxScene2d/external/giflib-5.1.9/giftool.c
+--- giflib-5.1.9/giftool.c
++++ giflib-5.1.9/giftool.c
 @@ -10,7 +10,7 @@ giftool.c - GIF transformation tool.
  #include <fcntl.h>
  #include <stdbool.h>
@@ -23,4 +23,21 @@ index 21b9c486b..afdce4567 100644
 +//#include "getopt.h"
  #include "getarg.h"
  #include "gif_lib.h"
+ 
+ 
+ 
+ diff --git giflib-5.1.9/dgif_lib.c giflib-5.1.9/dgif_lib.c
+index 21b9c486b..afdce4567 100644
+--- giflib-5.1.9/dgif_lib.c
++++ giflib-5.1.9/dgif_lib.c
+
+@@ -941,7 +941,7 @@ DGifDecompressLine(GifFileType *GifFile, GifPixelType *Line, int LineLen)
+                 while (StackPtr != 0 && i < LineLen)
+                     Line[i++] = Stack[--StackPtr];
+             }
+-            if (LastCode != NO_SUCH_CODE && Private->RunningCode - 2 < LZ_MAX_CODE && Prefix[Private->RunningCode - 2] == NO_SUCH_CODE) {
++            if (LastCode != NO_SUCH_CODE && Prefix[Private->RunningCode - 2] == NO_SUCH_CODE) {
+                 Prefix[Private->RunningCode - 2] = LastCode;
+ 
+                 if (CrntCode == Private->RunningCode - 2) {
  

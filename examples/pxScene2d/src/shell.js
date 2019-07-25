@@ -19,6 +19,8 @@ limitations under the License.
 var isDuk=(typeof Duktape != "undefined")?true:false;
 var isV8 = (typeof _isV8 != "undefined")?true:false;
 
+var defaultAppUrl = 'browser.js'
+
 px.import({ scene: 'px:scene.1.js',
   log: "px:tools.../Logger.js",
   keys: 'px:tools.keys.js',
@@ -37,21 +39,8 @@ px.import({ scene: 'px:scene.1.js',
   var rtLogLevel = process.env.RT_LOG_LEVEL ?  process.env.RT_LOG_LEVEL : 'warn';
   setLoggingLevel(rtLogLevel);
 
-  function uncaughtException(err) {
-    if (!isDuk && !isV8) {
-      logger.message('error', "Received uncaught exception " + err.stack);
-    }
-  }
-  function unhandledRejection(err) {
-    if (!isDuk && !isV8) {
-      logger.message('error', "Received uncaught rejection.... " + err);
-    }
-  }
-  if (!isDuk && !isV8) {
-    process.on('uncaughtException', uncaughtException);
-    process.on('unhandledRejection', unhandledRejection);
-  }
-
+  var appUrl = scene.sparkSetting('defaultAppUrl')
+  defaultAppUrl = appUrl?appUrl:defaultAppUrl
 
   /**
    * This is helper method which resolves resource URL for scene
@@ -65,6 +54,7 @@ px.import({ scene: 'px:scene.1.js',
    *
    * @returns {String} URL for a scene
    */
+  /*
   function resolveSceneUrl(url) {
     if (url && url.toLowerCase().indexOf('.js?') > 0) { // this is a js file with query params
       return url;
@@ -74,11 +64,12 @@ px.import({ scene: 'px:scene.1.js',
     }
     return url;
   }
+  */
 
   // JRJR TODO had to add more modules
   var url = queryStringModule.parse(urlModule.parse(module.appSceneContext.packageUrl).query).url;
-  url = resolveSceneUrl(url);
-  var originalURL = (!url || url==="") ? "browser.js":url;
+  //url = resolveSceneUrl(url)
+  var originalURL = (!url || url==="") ? defaultAppUrl:url;
   logger.message('info', "url:" + originalURL);
 
   var    blackBg = scene.create({t:"rect", fillColor:0x000000ff,x:0,y:0,w:1280,h:720,a:0,parent:scene.root});
@@ -220,9 +211,9 @@ if( scene.capabilities != undefined && scene.capabilities.graphics != undefined 
       else
       if(code == keys.H)  // ctrl-alt-shft-h
       {
-        // logger.message('info', "SHELL: onPreKeyDown: Loading HOME url [ "+"browser.js"+" ] !!!  ############# ");
+        // console.log("SHELL: onPreKeyDown: Loading HOME url [ "+defaultAppUrl+" ] !!!  ############# ");
 
-        var homeURL = "browser.js";
+        var homeURL = defaultAppUrl;
         logger.message('warn',"Loading home url: " + homeURL);
         childScene.url = homeURL;
         e.stopPropagation();
@@ -285,7 +276,7 @@ if( scene.capabilities != undefined && scene.capabilities.graphics != undefined 
         else
         if (code == keys.H)  // ctrl-alt-h
         {
-          var homeURL = "browser.js";
+          var homeURL = defaultAppUrl;
           logger.message('warn', "Loading home url: " + homeURL);
           childScene.url = homeURL;
           e.stopPropagation();
@@ -344,10 +335,7 @@ if( scene.capabilities != undefined && scene.capabilities.graphics != undefined 
   */
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   function releaseResources() {
-    if (!isDuk && !isV8) {
-        process.removeListener("uncaughtException", uncaughtException);
-        process.removeListener("unhandledRejection", unhandledRejection);
-    }
+
   }
 
   scene.on("onClose",releaseResources);
