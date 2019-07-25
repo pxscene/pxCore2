@@ -131,7 +131,7 @@ then
 
   cd ft
   export LIBPNG_LIBS="-L../png/.libs -lpng16"
-  ./configure --with-png=no
+  ./configure --with-png=no --with-harfbuzz=no
   make all "-j${make_parallel}"
   cd ..
 
