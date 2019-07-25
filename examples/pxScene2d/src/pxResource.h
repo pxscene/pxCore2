@@ -161,7 +161,7 @@ public:
 
   rtReadOnlyProperty(w, w, int32_t);
   rtReadOnlyProperty(h, h, int32_t);  
-  rtReadOnlyProperty(flip, flip, bool);
+  rtProperty(flip, flip, setFlip, bool);
 
   virtual int32_t w() const;
   virtual rtError w(int32_t& v) const;
@@ -170,6 +170,7 @@ public:
 
   virtual bool flip() const;
   virtual rtError flip(bool& v) const;
+  rtError setFlip(bool v);
 
   pxTextureRef getTexture(bool initializing = false);
   void setTextureData(pxOffscreen& imageOffscreen);

@@ -433,6 +433,15 @@ rtError rtImageResource::flip(bool& v) const
   return RT_OK;
 }
 
+rtError rtImageResource::setFlip(bool v)
+{
+  mTextureMutex.lock();
+  mFlip = v;
+  mTextureMutex.unlock();
+  return RT_OK;
+}
+
+
 pxTextureRef rtImageResource::getTexture(bool initializing)
 {
   if (!mTexture.getPtr() && (isInitialized() || initializing))

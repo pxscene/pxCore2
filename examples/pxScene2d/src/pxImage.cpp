@@ -356,6 +356,11 @@ rtError pxImage::flip(bool& v)  const
 rtError pxImage::setFlip(bool v)
 {
   mFlip = v;
+  rtImageResource* imageResource = getImageResource();
+  if (imageResource)
+  {
+    imageResource->setFlip(v);
+  }
   return RT_OK;
 }
 
