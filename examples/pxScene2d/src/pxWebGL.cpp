@@ -166,10 +166,10 @@ rtError pxWebgl::bufferData(uint32_t target, rtValue data, uint32_t usage)
 
   uint32_t dataBufSize = length.toUInt32() * ((target == GL_ELEMENT_ARRAY_BUFFER) ? sizeof(GLushort) : sizeof(GLfloat));
 
-  rtValue key;
-  dataArray->Get("arrayData", &key);
+  rtValue dataValue;
+  dataArray->Get("arrayData", &dataValue);
   void* dataPtr = NULL;
-  key.getVoidPtr(dataPtr);
+  dataValue.getVoidPtr(dataPtr);
 
   rtLogDebug("[%s] size: %u", __FUNCTION__, dataBufSize);
 
@@ -253,7 +253,7 @@ rtError pxWebgl::texImage2D(uint32_t target, uint32_t level, uint32_t internalfo
 
   rtArrayObject* pixelArray = (rtArrayObject*) data.toObject().getPtr();
   
-  uint8_t *pixels = NULL;
+  void *pixels = NULL;
 
   if(pixelArray) {
     rtValue length;
@@ -261,24 +261,15 @@ rtError pxWebgl::texImage2D(uint32_t target, uint32_t level, uint32_t internalfo
 
     rtLogDebug("[%s] length is %u", __FUNCTION__, length.toUInt32());
 
-    pixels = (uint8_t *) malloc(length.toUInt32());
-
-
-    for (uint32_t i = 0, l = length.toUInt32(); i < l; ++i) {
-      rtValue key;
-      if (pixelArray->Get(i, &key) == RT_OK && !key.isEmpty()) {
-        pixels[i] = key.toUInt8();
-      }
-    }
+    rtValue dataValue;
+    pixelArray->Get("arrayData", &dataValue);
+    dataValue.getVoidPtr(pixels);
 
     preprocessTexImageData(pixels, width, height, format, type);
   }
 
   glTexImage2D(target, level, internalformat, width, height, border, format, type, pixels);
   CheckGLError();
-  
-  if(pixels)
-    free(pixels);
 
   return RT_OK;
 }
@@ -554,19 +545,13 @@ rtError pxWebgl::UniformMatrix4fv(uint32_t location, bool transpose, rtValue dat
 
   uint32_t dataBufSize = length.toUInt32();
 
-  GLfloat *dataBuf = (GLfloat *) malloc(dataBufSize*sizeof(GLfloat));
+  rtValue dataValue;
+  dataArray->Get("arrayData", &dataValue);
+  void* dataPtr = NULL;
+  dataValue.getVoidPtr(dataPtr);
 
-  for (uint32_t i = 0, l = length.toUInt32(); i < l; ++i) {
-    rtValue key;
-    if (dataArray->Get(i, &key) == RT_OK && !key.isEmpty()) {
-      dataBuf[i] = key.toFloat();
-    }
-  }
-
-  glUniformMatrix4fv(location, dataBufSize / 16, transpose, (GLfloat*)dataBuf);
+  glUniformMatrix4fv(location, dataBufSize / 16, transpose, (GLfloat*)dataPtr);
   CheckGLError();
-
-  free(dataBuf);
 
   return RT_OK;
 }
@@ -591,19 +576,13 @@ rtError pxWebgl::Uniform2fv(uint32_t location, rtValue data)
   dataArray->Get("length", &length);
 
   uint32_t dataBufSize = length.toUInt32();
-  GLfloat *dataBuf = (GLfloat *) malloc(dataBufSize*sizeof(GLfloat));
+  rtValue dataValue;
+  dataArray->Get("arrayData", &dataValue);
+  void* dataPtr = NULL;
+  dataValue.getVoidPtr(dataPtr);
 
-  for (uint32_t i = 0, l = length.toUInt32(); i < l; ++i) {
-    rtValue key;
-    if (dataArray->Get(i, &key) == RT_OK && !key.isEmpty()) {
-      dataBuf[i] = key.toFloat();
-    }
-  }
-
-  glUniform2fv(location, dataBufSize/2, (GLfloat *)dataBuf);
+  glUniform2fv(location, dataBufSize/2, (GLfloat *)dataPtr);
   CheckGLError();
-
-  free(dataBuf);
 
   return RT_OK;
 }
