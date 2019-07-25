@@ -176,15 +176,10 @@ var loadUrl = function(url, _beginDrawing, _endDrawing, _view) {
   var sandboxDir = __dirname;
   if (url.startsWith('gl:')) {
     var fn = url.substring(3);
-    if (fn.indexOf('/') == 0)
-    {
-      sandboxDir = fn.substring(0,fn.lastIndexOf('/')+1);
-    }
+    sandboxDir = path.dirname(fn);
   }
   sandbox['__dirname'] = sandboxDir;
-  sandbox['require'] = reqOrig;
   sandbox['Buffer'] = Buffer;
-  contextifiedSandbox = vm.createContext(sandbox);
 // JRJR todo make into a map
 var bootStrapCache = {}
 
@@ -604,7 +599,6 @@ async function loadMjs(source, url, context)
 }
 
 // Spark node-like module loader
-const bootStrap = (moduleName, from, request) => {
   const makeRequire = pathToParent => {
     return moduleName => {
       const parentDir = path.dirname(pathToParent);
@@ -632,9 +626,34 @@ const bootStrap = (moduleName, from, request) => {
         return m
       }
 
-                console.log("About to load http file !!");
-      //it will be good if we have some way to tell, we are loading esm module in js file
-      if ((filename.indexOf('.mjs') != -1)) {
+      var source = "";
+      if (isLocalFile) {
+        source = fs.readFileSync(filename, 'utf-8');
+      }
+      const wrapped = `(function(exports,require,module,__filename,__dirname) {${source}})`;
+      let compiled = vm.runInThisContext(wrapped, {filename:filename,displayErrors:true})
+      const exports = {};
+      // OUR own require, independent of node require
+      const require = makeRequire(filename);
+      const module = {exports};
+      try {
+          compiled.call(exports, exports, require, module, filename, path.dirname(filename));
+          makeReady(true, {});
+      }
+      catch(e) {
+        console.log(e);
+        makeReady(false, {});
+      }
+
+      bootStrapCache[filename] = module.exports
+      return module.exports;
+    };
+  };
+
+    function loadESM(filename) {
+       // override require to our own require to load files relative to file path
+        sandbox.require = makeRequire(filename);
+        contextifiedSandbox = vm.createContext(sandbox);
         script.runInContext(contextifiedSandbox);
         try {
           (async () => {
@@ -687,51 +706,6 @@ const bootStrap = (moduleName, from, request) => {
         return;
       }
 
-      const source = fs.readFileSync(filename, 'utf-8');
-
-      const wrapped = `(function(exports,require,module,__filename,__dirname) {${source}})`;
-
-      let compiled
-      if (false) {
-          var sandbox = {}
-          for (var k of Object.getOwnPropertyNames(global)) { sandbox[k] = global[k]}
-          sandbox.setTimeout = xxsetTimeout
-          sandbox.clearTimeout = xxclearTimeout
-          sandbox.setInterval = xxsetInterval
-          sandbox.clearInterval = xxclearInterval
-          sandbox.setImmediate = xxsetImmediate
-          sandbox.clearImmediate = xxclearImmediate
-          sandbox.sparkview = _view
-
-          beginDrawing = _beginDrawing
-          endDrawing = _endDrawing
-
-          compiled = vm.runInNewContext(wrapped, sandbox, {filename:filename});
-      }
-      else {
-        compiled = vm.runInThisContext(wrapped, {filename:filename,displayErrors:true})
-      }
-      global.sparkwebgl = sparkwebgl= reqOrig('webgl'); global.sparkgles2 = sparkgles2 = reqOrig('gles2.js');
-      const exports = {};
-      // OUR own require, independent of node require
-      const require = makeRequire(filename);
-      const module = {exports};
-
-      try {
-          compiled.call(exports, exports, require, module, filename, path.dirname(filename));
-          makeReady(true, {});
-      }
-      catch(e) {
-        console.log(e);
-        makeReady(false, {});
-      }
-
-      bootStrapCache[filename] = module.exports
-      return module.exports;
-    };
-  };
-  return makeRequire(from)(moduleName);
-};  
 
   var filename = ''
 
@@ -742,7 +716,7 @@ const bootStrap = (moduleName, from, request) => {
 
   try {
     // bootStrap into the spark module system
-    bootStrap(filename,initGLPath,'blah')
+    loadESM(filename);
     succeeded = true
   }
   catch(e) {

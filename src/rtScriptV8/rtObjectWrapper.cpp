@@ -455,6 +455,15 @@ rtError jsObjectWrapper::Get(const char* name, rtValue* value) const
   Local<Context> ctx = self->CreationContext();
   Context::Scope contextScope(ctx);
 
+  if (!strcmp(name, "arrayData") && self->IsArrayBufferView())
+  {
+    Local<ArrayBufferView> arrayBufferView = self.As<ArrayBufferView>();
+    void* dataPtr = arrayBufferView->Buffer()->GetContents().Data();
+
+    value->setVoidPtr(dataPtr);
+    return RT_OK;
+  }
+
   if (mIsArray)
   {
     if (!strcmp(name, "length"))

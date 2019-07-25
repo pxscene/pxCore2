@@ -283,15 +283,15 @@ void pxResource::raiseDownloadPriority()
 
 
 rtImageResource::rtImageResource()
-: pxResource(), mTexture(), mDownloadedTexture(), mTextureMutex(), mDownloadComplete(false), init_w(0), init_h(0), init_sx(0.0f), init_sy(0.0f), mData()
+: pxResource(), mTexture(), mDownloadedTexture(), mTextureMutex(), mDownloadComplete(false), init_w(0), init_h(0), init_sx(0.0f), init_sy(0.0f), mData(), mFlip(false)
 {
   // empty
 }
 
 rtImageResource::rtImageResource(const char* url, const char* proxy, int32_t iw /* = 0 */,  int32_t ih /* = 0 */,
-                                                                       float sx /* = 1.0f*/,  float sy /* = 1.0f*/ )
+                                                                       float sx /* = 1.0f*/,  float sy /* = 1.0f*/, bool f /* = false */ )
     : pxResource(), mTexture(), mDownloadedTexture(), mTextureMutex(), mDownloadComplete(false),
-      init_w(iw), init_h(ih), init_sx(sx), init_sy(sy), mData()
+      init_w(iw), init_h(ih), init_sx(sx), init_sy(sy), mData(), mFlip(f)
 {
   setUrl(url, proxy);
 }
@@ -416,6 +416,23 @@ rtError rtImageResource::h(int32_t& v) const
   return RT_OK;
 }
 
+bool rtImageResource::flip() const
+{
+  bool returnValue = false;
+  mTextureMutex.lock();
+  returnValue = mFlip;
+  mTextureMutex.unlock();
+  return returnValue;
+}
+
+rtError rtImageResource::flip(bool& v) const
+{
+  mTextureMutex.lock();
+  v = mFlip;
+  mTextureMutex.unlock();
+  return RT_OK;
+}
+
 pxTextureRef rtImageResource::getTexture(bool initializing)
 {
   if (!mTexture.getPtr() && (isInitialized() || initializing))
@@ -450,6 +467,11 @@ void rtImageResource::prepare()
     sharedContext->makeCurrent(true);
   }
   setInternalContextCurrent = false;
+  bool flipImage = flip();
+  if (flipImage)
+  {
+    mDownloadedTexture->setUpsideDown(false);
+  }
   mDownloadedTexture->prepareForRendering();
 #endif //ENABLE_BACKGROUND_TEXTURE_CREATION
   mTextureMutex.lock();
@@ -1045,7 +1067,7 @@ rtRef<rtImageResource> pxImageManager::emptyUrlResource = 0;
 
 rtRef<rtImageResource> pxImageManager::getImage(const char* url, const char* proxy    /* = NULL  */, const rtCORSRef& cors /* = NULL  */,
                                                 int32_t iw /* = 0    */,   int32_t ih /* = 0     */,
-                                                  float sx /* = 1.0f */,   float sy   /* = 1.0f  */, rtObjectRef archive)
+                                                  float sx /* = 1.0f */,   float sy   /* = 1.0f  */, rtObjectRef archive, bool flip)
 {
   //rtLogDebug("pxImageManager::getImage\n");
   // Handle empty url
@@ -1054,7 +1076,7 @@ rtRef<rtImageResource> pxImageManager::getImage(const char* url, const char* pro
     if( !emptyUrlResource)
     {
       //rtLogDebug("Creating empty Url rtImageResource\n");
-      emptyUrlResource = new rtImageResource(NULL, NULL, iw, ih, sx, sy);
+      emptyUrlResource = new rtImageResource(NULL, NULL, iw, ih, sx, sy, flip);
       //rtLogDebug("Done creating empty Url rtImageResource\n");
     }
     //rtLogDebug("Returning empty Url rtImageResource\n");
@@ -1146,7 +1168,7 @@ rtRef<rtImageResource> pxImageManager::getImage(const char* url, const char* pro
   else
   {
     //rtLogInfo("Create rtImageResource in map for \"%s\"\n",url);
-    pResImage = new rtImageResource(url, proxy, iw, ih, sx, sy);
+    pResImage = new rtImageResource(url, proxy, iw, ih, sx, sy, flip);
     pResImage->setCORS(cors);
     pResImage->setName(key);
     mImageMap.insert(make_pair(key.cString(), pResImage));
@@ -1263,6 +1285,7 @@ rtDefineProperty(pxResource,loadStatus);
 rtDefineObject(rtImageResource, pxResource);
 rtDefineProperty(rtImageResource, w);
 rtDefineProperty(rtImageResource, h);
+rtDefineProperty(rtImageResource, flip);
 
 rtDefineObject(rtImageAResource, pxResource);
 rtDefineProperty(rtImageAResource, w);

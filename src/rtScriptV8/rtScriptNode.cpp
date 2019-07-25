@@ -1063,22 +1063,22 @@ rtError rtScriptNode::init()
                               //0123456 789ABCDEF012 345 67890ABCDEF
 #if ENABLE_V8_HEAP_PARAMS
 #ifdef ENABLE_NODE_V_6_9
-  static const char *args2   = "rtNode\0-e\0console.log(\"rtNode Initalized\");\0\0";
-  static const char *argv2[] = {&args2[0], &args2[7], &args2[10], NULL};
+  static const char *args2   = "rtNode\0--experimental-vm-modules\0-e\0console.log(\"rtNode Initalized\");\0\0";
+  static const char *argv2[] = {&args2[0], &args2[7], &args2[33], &args2[36], NULL};
 #else
   rtLogWarn("v8 old heap space configured to 64mb\n");
-  static const char *args2   = "rtNode\0--expose-gc\0--max_old_space_size=64\0-e\0console.log(\"rtNode Initalized\");\0\0";
-  static const char *argv2[] = {&args2[0], &args2[7], &args2[19], &args2[43], &args2[46], NULL};
+  static const char *args2   = "rtNode\0--experimental-vm-modules\0--expose-gc\0--max_old_space_size=64\0-e\0console.log(\"rtNode Initalized\");\0\0";
+  static const char *argv2[] = {&args2[0], &args2[7], &args2[33], &args2[45], &args2[69], &args2[72], NULL};
 #endif // ENABLE_NODE_V_6_9
 #else
 #ifdef ENABLE_NODE_V_6_9
 #ifndef ENABLE_DEBUG_MODE
-   static const char *args2   = "rtNode\0-e\0console.log(\"rtNode Initalized\");\0\0";
-   static const char *argv2[] = {&args2[0], &args2[7], &args2[10], NULL};
+   static const char *args2   = "rtNode\0--experimental-vm-modules\0-e\0console.log(\"rtNode Initalized\");\0\0";
+   static const char *argv2[] = {&args2[0], &args2[7], &args2[33], &args2[36], NULL};
 #endif //!ENABLE_DEBUG_MODE
 #else
-  static const char *args2   = "rtNode\0--expose-gc\0-e\0console.log(\"rtNode Initalized\");\0\0";
-  static const char *argv2[] = {&args2[0], &args2[7], &args2[19], &args2[22], NULL};
+  static const char *args2   = "rtNode\0--experimental-vm-modules\0--expose-gc\0-e\0console.log(\"rtNode Initalized\");\0\0";
+  static const char *argv2[] = {&args2[0], &args2[7], &args2[33], &args2[45], &args2[48], NULL};
 #endif // ENABLE_NODE_V_6_9
 #endif //ENABLE_V8_HEAP_PARAMS
 #ifndef ENABLE_DEBUG_MODE
