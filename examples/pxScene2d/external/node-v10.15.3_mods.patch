@@ -284,7 +284,7 @@ index 0bdfef5..e79edfb 100755
      printf("=========================================================\n");
      printf("Exception thrown:\n");
 diff --git a/examples/pxScene2d/external/libnode-v10.15.3/lib/internal/bootstrap/node.js b/examples/pxScene2d/external/libnode-v10.15.3/lib/internal/bootstrap/node.js
-index b168eb08a..82cdec8c4 100755
+index b168eb0..82cdec8 100755
 --- a/examples/pxScene2d/external/libnode-v10.15.3/lib/internal/bootstrap/node.js
 +++ b/examples/pxScene2d/external/libnode-v10.15.3/lib/internal/bootstrap/node.js
 @@ -257,11 +257,12 @@
@@ -429,7 +429,7 @@ index a8de196..607a7db 100755
        'deps/node-inspect/lib/internal/inspect_client.js',
        'deps/node-inspect/lib/internal/inspect_repl.js',
 diff --git a/examples/pxScene2d/external/libnode-v10.15.3/src/node.cc b/examples/pxScene2d/external/libnode-v10.15.3/src/node.cc
-index 9fb5ab3b8..6fd8e7f94 100755
+index 9fb5ab3..7c3c865 100755
 --- a/examples/pxScene2d/external/libnode-v10.15.3/src/node.cc
 +++ b/examples/pxScene2d/external/libnode-v10.15.3/src/node.cc
 @@ -173,7 +173,9 @@ using v8::V8;
@@ -660,19 +660,14 @@ index 9fb5ab3b8..6fd8e7f94 100755
    return new NodePlatform(thread_pool_size, tracing_controller);
  }
  
-@@ -3050,6 +3127,20 @@ void RegisterBuiltinModules() {
+@@ -3050,6 +3127,15 @@ void RegisterBuiltinModules() {
  #undef V
  }
  
 +/*MODIFIED CODE BEGIN*/
 +#if HAVE_INSPECTOR
-+void InspectorStart(Environment* env, const char* path, int port) {
-+  env->options()->debug_options->host_port.port = port;
++void InspectorStart(Environment* env, const char* path, MultiIsolatePlatform* platform) {
 +  env->inspector_agent()->Start(path, env->options()->debug_options, true);
-+}
-+
-+void InspectorStop(Environment* env) {
-+  env->inspector_agent()->Stop();
 +}
 +#endif
 +/*MODIFIED CODE END*/
@@ -682,7 +677,7 @@ index 9fb5ab3b8..6fd8e7f94 100755
  
  #if !HAVE_INSPECTOR
 diff --git a/examples/pxScene2d/external/libnode-v10.15.3/src/node.h b/examples/pxScene2d/external/libnode-v10.15.3/src/node.h
-index 2a6f5b59c..ad0daa22b 100755
+index 2a6f5b5..6bf2b29 100755
 --- a/examples/pxScene2d/external/libnode-v10.15.3/src/node.h
 +++ b/examples/pxScene2d/external/libnode-v10.15.3/src/node.h
 @@ -204,6 +204,12 @@ typedef intptr_t ssize_t;
@@ -709,21 +704,20 @@ index 2a6f5b59c..ad0daa22b 100755
  class NODE_EXTERN MultiIsolatePlatform : public v8::Platform {
   public:
    virtual ~MultiIsolatePlatform() { }
-@@ -253,6 +263,13 @@ class NODE_EXTERN MultiIsolatePlatform : public v8::Platform {
+@@ -253,6 +263,12 @@ class NODE_EXTERN MultiIsolatePlatform : public v8::Platform {
    virtual void UnregisterIsolate(IsolateData* isolate_data) = 0;
  };
  
 +/*MODIFIED CODE BEGIN*/
 +#if HAVE_INSPECTOR
-+NODE_EXTERN void InspectorStart(Environment* env, const char* path, int port);
-+NODE_EXTERN void InspectorStop(Environment* env);
++NODE_EXTERN void InspectorStart(Environment* env, const char* path, MultiIsolatePlatform* platform);
 +#endif
 +/*MODIFIED CODE END*/
 +
  // Creates a new isolate with Node.js-specific settings.
  NODE_EXTERN v8::Isolate* NewIsolate(ArrayBufferAllocator* allocator);
  
-@@ -296,10 +313,11 @@ NODE_EXTERN void FreeEnvironment(Environment* env);
+@@ -296,10 +312,11 @@ NODE_EXTERN void FreeEnvironment(Environment* env);
  // If NODE_USE_V8_PLATFORM haven't been defined when Node.js was built,
  // it returns nullptr.
  NODE_EXTERN MultiIsolatePlatform* GetMainThreadMultiIsolatePlatform();
@@ -949,43 +943,43 @@ index 4b902aa..382bf7b 100755
  #else
    watchdog_disabled_ = true;
  #endif
-diff --git a/examples/pxScene2d/external/libnode-v10.15.3/vcbuild.bat b/examples/pxScene2d/external/libnode-v10.15.3/vcbuild.bat	
-index 834db64..0c108bd 100755	
---- a/examples/pxScene2d/external/libnode-v10.15.3/vcbuild.bat	
-+++ b/examples/pxScene2d/external/libnode-v10.15.3/vcbuild.bat	
-@@ -55,6 +55,10 @@ set "common_test_suites=%js_test_suites% doctool addons addons-napi&set build_ad	
- set http2_debug=	
- set nghttp2_debug=	
- set link_module=	
-+@rem MODIFIED CODE BEGIN	
-+set no_optimization=	
-+set shared_openssl=	
-+@rem MODIFIED CODE END	
- set no_cctest=	
- set cctest=	
- set openssl_no_asm=	
-@@ -127,6 +131,10 @@ if /i "%1"=="static"           set enable_static=1&goto arg-ok	
- if /i "%1"=="no-NODE-OPTIONS"	set no_NODE_OPTIONS=1&goto arg-ok	
- if /i "%1"=="debug-nghttp2" set debug_nghttp2=1&goto arg-ok	
- if /i "%1"=="link-module"   set "link_module= --link-module=%2%link_module%"&goto arg-ok-2	
-+@rem MODIFIED CODE BEGIN	
-+if /i "%1"=="no-optimization" set no_optimization=1&goto arg-ok	
-+if /i "%1"=="shared-openssl" set shared_openssl=1&goto arg-ok	
-+@rem MODIFIED CODE END	
- if /i "%1"=="no-cctest"     set no_cctest=1&goto arg-ok	
- if /i "%1"=="cctest"        set cctest=1&goto arg-ok	
- if /i "%1"=="openssl-no-asm"   set openssl_no_asm=1&goto arg-ok	
-@@ -182,6 +190,10 @@ if defined link_module      set configure_flags=%configure_flags% %link_module%	
- if defined i18n_arg         set configure_flags=%configure_flags% --with-intl=%i18n_arg%	
- if defined config_flags     set configure_flags=%configure_flags% %config_flags%	
- if defined target_arch      set configure_flags=%configure_flags% --dest-cpu=%target_arch%	
-+@rem MODIFIED CODE BEGIN	
-+if defined no_optimization  set configure_flags=%configure_flags% --no-optimization	
-+if defined shared_openssl   set configure_flags=%configure_flags% --shared-openssl --shared-openssl-libpath=%CD%\..\openssl-1.0.2o\lib\ --shared-openssl-libname=libeay32,ssleay32 --shared-openssl-includes=%CD%\..\openssl-1.0.2o\include	
-+@rem MODIFIED CODE END	
- if defined openssl_no_asm   set configure_flags=%configure_flags% --openssl-no-asm	
- if defined DEBUG_HELPER     set configure_flags=%configure_flags% --verbose	
-
+diff --git a/examples/pxScene2d/external/libnode-v10.15.3/vcbuild.bat b/examples/pxScene2d/external/libnode-v10.15.3/vcbuild.bat
+index 834db64..0c108bd 100755
+--- a/examples/pxScene2d/external/libnode-v10.15.3/vcbuild.bat
++++ b/examples/pxScene2d/external/libnode-v10.15.3/vcbuild.bat
+@@ -55,6 +55,10 @@ set "common_test_suites=%js_test_suites% doctool addons addons-napi&set build_ad
+ set http2_debug=
+ set nghttp2_debug=
+ set link_module=
++@rem MODIFIED CODE BEGIN
++set no_optimization=
++set shared_openssl=
++@rem MODIFIED CODE END
+ set no_cctest=
+ set cctest=
+ set openssl_no_asm=
+@@ -127,6 +131,10 @@ if /i "%1"=="static"           set enable_static=1&goto arg-ok
+ if /i "%1"=="no-NODE-OPTIONS"	set no_NODE_OPTIONS=1&goto arg-ok
+ if /i "%1"=="debug-nghttp2" set debug_nghttp2=1&goto arg-ok
+ if /i "%1"=="link-module"   set "link_module= --link-module=%2%link_module%"&goto arg-ok-2
++@rem MODIFIED CODE BEGIN
++if /i "%1"=="no-optimization" set no_optimization=1&goto arg-ok
++if /i "%1"=="shared-openssl" set shared_openssl=1&goto arg-ok
++@rem MODIFIED CODE END
+ if /i "%1"=="no-cctest"     set no_cctest=1&goto arg-ok
+ if /i "%1"=="cctest"        set cctest=1&goto arg-ok
+ if /i "%1"=="openssl-no-asm"   set openssl_no_asm=1&goto arg-ok
+@@ -182,6 +190,10 @@ if defined link_module      set configure_flags=%configure_flags% %link_module%
+ if defined i18n_arg         set configure_flags=%configure_flags% --with-intl=%i18n_arg%
+ if defined config_flags     set configure_flags=%configure_flags% %config_flags%
+ if defined target_arch      set configure_flags=%configure_flags% --dest-cpu=%target_arch%
++@rem MODIFIED CODE BEGIN
++if defined no_optimization  set configure_flags=%configure_flags% --no-optimization
++if defined shared_openssl   set configure_flags=%configure_flags% --shared-openssl --shared-openssl-libpath=%CD%\..\openssl-1.0.2o\lib\ --shared-openssl-libname=libeay32,ssleay32 --shared-openssl-includes=%CD%\..\openssl-1.0.2o\include
++@rem MODIFIED CODE END
+ if defined openssl_no_asm   set configure_flags=%configure_flags% --openssl-no-asm
+ if defined DEBUG_HELPER     set configure_flags=%configure_flags% --verbose
+ 
 diff --git a/examples/pxScene2d/external/libnode-v10.15.3/configure.py b/examples/pxScene2d/external/libnode-v10.15.3/configure.py
 index 0ad986a..c215ee6 100755
 --- a/examples/pxScene2d/external/libnode-v10.15.3/configure.py
