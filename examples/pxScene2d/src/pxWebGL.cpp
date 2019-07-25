@@ -253,7 +253,7 @@ rtError pxWebgl::texImage2D(uint32_t target, uint32_t level, uint32_t internalfo
 
   rtArrayObject* pixelArray = (rtArrayObject*) data.toObject().getPtr();
   
-  uint8_t *pixels = NULL;
+  void *pixels = NULL;
 
   if(pixelArray) {
     rtValue length;
@@ -261,24 +261,15 @@ rtError pxWebgl::texImage2D(uint32_t target, uint32_t level, uint32_t internalfo
 
     rtLogDebug("[%s] length is %u", __FUNCTION__, length.toUInt32());
 
-    pixels = (uint8_t *) malloc(length.toUInt32());
-
-
     rtValue dataValue;
     pixelArray->Get("arrayData", &dataValue);
-    void* dataPtr = NULL;
-    dataValue.getVoidPtr(dataPtr);
-
-    memcpy(pixels, dataPtr, length.toUInt32());
+    dataValue.getVoidPtr(pixels);
 
     preprocessTexImageData(pixels, width, height, format, type);
   }
 
   glTexImage2D(target, level, internalformat, width, height, border, format, type, pixels);
   CheckGLError();
-  
-  if(pixels)
-    free(pixels);
 
   return RT_OK;
 }
