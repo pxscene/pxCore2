@@ -15470,13 +15470,25 @@ Maybe<bool> JSObject::AddDataElement(Handle<JSObject> object, uint32_t index,
   printf("JSObject::AddDataElement 4 [%d] \n",object->map()->is_extensible());
   fflush(stdout);
   ElementsKind to = value->OptimalElementsKind();
+  printf("JSObject::AddDataElement 41 [%d] \n",object->map()->is_extensible());
+  fflush(stdout);
   if (IsHoleyOrDictionaryElementsKind(kind) || !object->IsJSArray() ||
       index > old_length) {
+  printf("JSObject::AddDataElement 42 [%d] \n",object->map()->is_extensible());
+  fflush(stdout);
     to = GetHoleyElementsKind(to);
     kind = GetHoleyElementsKind(kind);
+  printf("JSObject::AddDataElement 43 [%d] \n",object->map()->is_extensible());
+  fflush(stdout);
   }
+  printf("JSObject::AddDataElement 44 [%d] \n",object->map()->is_extensible());
+  fflush(stdout);
   to = GetMoreGeneralElementsKind(kind, to);
+  printf("JSObject::AddDataElement 45 [%d] \n",object->map()->is_extensible());
+  fflush(stdout);
   ElementsAccessor* accessor = ElementsAccessor::ForKind(to);
+  printf("JSObject::AddDataElement 46 [%d] \n",(NULL == accessor));
+  fflush(stdout);
   accessor->Add(object, index, value, attributes, new_capacity);
 
   printf("JSObject::AddDataElement 5 [%d] \n",object->map()->is_extensible());
