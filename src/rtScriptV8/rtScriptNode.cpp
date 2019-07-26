@@ -1051,9 +1051,11 @@ rtError rtScriptNode::init()
 
                               //0123456 789ABCDEF012 345 67890ABCDEF
 #ifdef ENABLE_DEBUG_MODE
-  static const char* debug_node69Config = "rtNode\0--inspect\0--experimental-vm-modules\0-e\0console.log(\"rtNode Initalized\");\0\0";
-  static const char* debug_node69Configv[] = {&debug_node69Config[0], &debug_node69Config[7], &debug_node69Config[17], &debug_node69Config[43], &debug_node69Config[46], NULL};
+  //static const char* debug_node69Config = "rtNode\0--inspect\0--experimental-vm-modules\0-e\0console.log(\"rtNode Initalized\");\0\0";
+  //static const char* debug_node69Configv[] = {&debug_node69Config[0], &debug_node69Config[7], &debug_node69Config[17], &debug_node69Config[43], &debug_node69Config[46], NULL};
 
+  static const char* debug_node69Config = "rtNode\0--inspect\0-e\0console.log(\"rtNode Initalized\");\0\0";
+  static const char* debug_node69Configv[] = {&debug_node69Config[0], &debug_node69Config[7], &debug_node69Config[17], &debug_node69Config[20], NULL};
   static const char* debug_nodeHeapConfig = "rtNode\0--inspect\0--experimental-vm-modules\0--expose-gc\0--max_old_space_size=64\0-e\0console.log(\"rtNode Initalized\");\0\0";
   static const char* debug_nodeHeapConfigv[] = {&debug_nodeHeapConfig[0], &debug_nodeHeapConfig[7], &debug_nodeHeapConfig[17], &debug_nodeHeapConfig[43], &debug_nodeHeapConfig[55], &debug_nodeHeapConfig[79], &debug_nodeHeapConfig[82], NULL};
 
