@@ -110,7 +110,7 @@ int shaderProgram::getUniformLocation(const char* name)
 {
   if(mProgram == -1)
   {
-    rtLogError("Shader program undefined.  (-1)");
+    rtLogWarn("getUniformLocation() - '%s' ... Shader program undefined.  (-1)", name);
     return -1;
   }
 
