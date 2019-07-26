@@ -304,6 +304,10 @@ rtImageResource::~rtImageResource()
   {
     mTexture->setTextureListener(NULL);
   }
+  if (mData.length() != 0)
+  {
+    mData.term();
+  }
 }
 
 unsigned long rtImageResource::Release()
