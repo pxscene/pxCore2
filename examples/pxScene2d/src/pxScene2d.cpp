@@ -442,7 +442,7 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
 #ifdef PX_DIRTY_RECTANGLES
     mArchive(),mDirtyRect(), mLastFrameDirtyRect(),
 #endif //PX_DIRTY_RECTANGLES
-    mDirty(true), mDragging(false), mDragType(pxConstantsDragType::NONE), mDragTarget(NULL), mTestView(NULL), mDisposed(false), mArchiveSet(false)
+    mDirty(true), mDragging(false), mDragType(pxConstantsDragType::NONE), mDragTarget(NULL), mTestView(NULL), mDisposed(false), mArchiveSet(false), mSceneContainer(NULL)
 #ifdef PXSCENE_SUPPORT_STORAGE
 , mStorage(NULL)
 #endif
@@ -906,6 +906,9 @@ rtError pxScene2d::createFontResource(rtObjectRef p, rtObjectRef& o)
 rtError pxScene2d::createScene(rtObjectRef p, rtObjectRef& o)
 {
   pxSceneContainer* sceneContainer = new pxSceneContainer(this);
+  if (mSceneContainer == NULL) {
+    mSceneContainer = sceneContainer;
+  }
   o = sceneContainer;
   o.set(p);
   o.send("init");
@@ -2810,6 +2813,11 @@ pxIViewContainer* pxScene2d::viewContainer()
   return mContainer;
 }
 
+pxSceneContainer* pxScene2d::sceneContainer()
+{
+  return mSceneContainer;
+}
+
 rtDefineObject(pxViewContainer, pxObject);
 rtDefineProperty(pxViewContainer, w);
 rtDefineProperty(pxViewContainer, h);
@@ -3143,6 +3151,23 @@ void pxScriptView::runScript()
   #endif //ENABLE_RT_NODE
 }
 
+void pxScriptView::setUrl(rtString url)
+{
+  mUrl = url;
+  rtValue args;
+  args.setString("scene");
+  rtValue scene;
+  pxScriptView::getScene(1, &args, &scene, this);
+  pxScene2d* pxScene = (pxScene2d*)(scene.toObject().getPtr());
+  if (pxScene)
+  {
+    pxSceneContainer* sceneContainer = pxScene->sceneContainer();
+    if (sceneContainer)
+    {
+      sceneContainer->setUrl(url);
+    }
+  }
+}
 
 rtError pxScriptView::suspend(const rtValue& v, bool& b)
 {
