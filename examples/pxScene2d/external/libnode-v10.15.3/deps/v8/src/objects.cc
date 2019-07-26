@@ -15467,7 +15467,7 @@ Maybe<bool> JSObject::AddDataElement(Handle<JSObject> object, uint32_t index,
     kind = dictionary_kind;
   }
 
-  printf("JSObject::AddDataElement 4 [%d] \n",object->map()->is_extensible());
+  printf("JSObject::AddDataElement 4 [%d] [%d]\n",object->map()->is_extensible(), NULL==value);
   fflush(stdout);
   ElementsKind to = value->OptimalElementsKind();
   printf("JSObject::AddDataElement 41 [%d] \n",object->map()->is_extensible());
