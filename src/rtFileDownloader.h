@@ -119,6 +119,8 @@ public:
   bool isByteRangeEnabled(void);
   void setByteRangeIntervals(size_t byteRangeIntervals);
   size_t byteRangeIntervals(void);
+  void setCurlRetryEnable(bool bCurlRetry);
+  bool isCurlRetryEnabled(void);
 
 private:
   rtString mFileUrl;
@@ -160,6 +162,7 @@ private:
   size_t mActualFileSize;
   bool mIsByteRangeEnabled;
   size_t mByteRangeIntervals;
+  bool mCurlRetry;
 };
 
 struct rtFileDownloadHandle

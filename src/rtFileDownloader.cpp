@@ -197,7 +197,8 @@ rtFileDownloadRequest::rtFileDownloadRequest(const char* imageUrl, void* callbac
     , mDownloadOnly(false)
     , mActualFileSize(0)
     , mIsByteRangeEnabled(false)
-    , mByteRangeIntervals()
+    , mByteRangeIntervals(0)
+    , mCurlRetry(false)
 {
   mAdditionalHttpHeaders.clear();
 #ifdef ENABLE_HTTP_CACHE
@@ -593,6 +594,16 @@ size_t rtFileDownloadRequest::byteRangeIntervals(void)
   return mByteRangeIntervals;
 }
 
+void rtFileDownloadRequest::setCurlRetryEnable(bool bCurlRetry)
+{
+  mCurlRetry = bCurlRetry;
+}
+
+bool rtFileDownloadRequest::isCurlRetryEnabled(void)
+{
+  return mCurlRetry;
+}
+
 void rtFileDownloadRequest::setDownloadOnly(bool downloadOnly)
 {
   mDownloadOnly = downloadOnly;
@@ -874,260 +885,307 @@ void rtFileDownloader::downloadFileAsByteRange(rtFileDownloadRequest* downloadRe
 
 bool rtFileDownloader::downloadByteRangeFromNetwork(rtFileDownloadRequest* downloadRequest)
 {
-    CURL *curl_handle = NULL;
-    CURLcode res = CURLE_OK;
-    char errorBuffer[CURL_ERROR_SIZE];
-    int multipleIntervals = 1;
-    size_t startRange = 0;
-    std::string byteRange("NULL");
-    size_t fileSize = 0;
+   CURL *curl_handle = NULL;
+   CURLcode res = CURLE_OK;
+   char errorBuffer[CURL_ERROR_SIZE];
+   int multipleIntervals = 1;
+   size_t startRange = 0;
+   rtString byteRange("NULL");
+   char byteRangeStr[100];
+   rtString strLocation;
+   bool bCurlErrorFlag = false;
+   rtString curlUrl = downloadRequest->fileUrl();
+   bool useProxy = !downloadRequest->proxy().isEmpty();
+   rtString proxyServer = downloadRequest->proxy();
+   bool headerOnly = downloadRequest->headerOnly();
+   MemoryStruct chunk;
 
-    bool useProxy = !downloadRequest->proxy().isEmpty();
-    rtString proxyServer = downloadRequest->proxy();
-    bool headerOnly = downloadRequest->headerOnly();
-    MemoryStruct chunk;
+   rtString method = downloadRequest->method();
+   size_t readDataSize = downloadRequest->readDataSize();
 
-    rtString method = downloadRequest->method();
-    size_t readDataSize = downloadRequest->readDataSize();
+   rtString origin = rtUrlGetOrigin(downloadRequest->fileUrl());
 
-    rtString origin = rtUrlGetOrigin(downloadRequest->fileUrl());
-
-    curl_handle = rtFileDownloader::instance()->retrieveDownloadHandle(origin);
-    curl_easy_reset(curl_handle);
-    /* specify URL to get */
-    curl_easy_setopt(curl_handle, CURLOPT_URL, downloadRequest->fileUrl().cString());
-    curl_easy_setopt(curl_handle, CURLOPT_FOLLOWLOCATION, 1); //when redirected, follow the redirections
-    curl_easy_setopt(curl_handle, CURLOPT_HEADERFUNCTION, HeaderCallback);
-    curl_easy_setopt(curl_handle, CURLOPT_HEADERDATA, (void *)&chunk);
-    if (false == headerOnly)
-    {
+   curl_handle = rtFileDownloader::instance()->retrieveDownloadHandle(origin);
+   curl_easy_reset(curl_handle);
+   /* specify URL to get */
+   curl_easy_setopt(curl_handle, CURLOPT_URL, curlUrl.cString());
+   curl_easy_setopt(curl_handle, CURLOPT_FOLLOWLOCATION, 1); //when redirected, follow the redirections
+   curl_easy_setopt(curl_handle, CURLOPT_HEADERFUNCTION, HeaderCallback);
+   curl_easy_setopt(curl_handle, CURLOPT_HEADERDATA, (void *)&chunk);
+   if (false == headerOnly)
+   {
       chunk.downloadRequest = downloadRequest;
       curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, WriteMemoryCallback);
       curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, (void *)&chunk);
-    }
+   }
 
-    if(downloadRequest->isCurlDefaultTimeoutSet() == false)
-    {
+   if(downloadRequest->isCurlDefaultTimeoutSet() == false)
+   {
       curl_easy_setopt(curl_handle, CURLOPT_TIMEOUT, kCurlTimeoutInSeconds);
-    }
-    curl_easy_setopt(curl_handle, CURLOPT_NOSIGNAL, 1L);
+   }
+   curl_easy_setopt(curl_handle, CURLOPT_NOSIGNAL, 1L);
 
-    if(downloadRequest->isProgressMeterSwitchOff())
-        curl_easy_setopt(curl_handle, CURLOPT_NOPROGRESS, 1);
+   if(downloadRequest->isProgressMeterSwitchOff())
+      curl_easy_setopt(curl_handle, CURLOPT_NOPROGRESS, 1);
 
-    if(downloadRequest->isHTTPFailOnError())
-    {
-        memset(errorBuffer, 0, sizeof(errorBuffer));
-        curl_easy_setopt(curl_handle, CURLOPT_FAILONERROR, 1);
-        curl_easy_setopt(curl_handle, CURLOPT_VERBOSE, 1);
-        curl_easy_setopt(curl_handle, CURLOPT_ERRORBUFFER, errorBuffer);
-    }
+   if(downloadRequest->isHTTPFailOnError())
+   {
+      memset(errorBuffer, 0, sizeof(errorBuffer));
+      curl_easy_setopt(curl_handle, CURLOPT_FAILONERROR, 1);
+      curl_easy_setopt(curl_handle, CURLOPT_VERBOSE, 1);
+      curl_easy_setopt(curl_handle, CURLOPT_ERRORBUFFER, errorBuffer);
+   }
 #if !defined(PX_PLATFORM_GENERIC_DFB) && !defined(PX_PLATFORM_DFB_NON_X11)
-    curl_easy_setopt(curl_handle, CURLOPT_TCP_KEEPALIVE, 1);
-    curl_easy_setopt(curl_handle, CURLOPT_TCP_KEEPIDLE, 60);
-    curl_easy_setopt(curl_handle, CURLOPT_TCP_KEEPINTVL, 30);
+   curl_easy_setopt(curl_handle, CURLOPT_TCP_KEEPALIVE, 1);
+   curl_easy_setopt(curl_handle, CURLOPT_TCP_KEEPIDLE, 60);
+   curl_easy_setopt(curl_handle, CURLOPT_TCP_KEEPINTVL, 30);
 #endif //!PX_PLATFORM_GENERIC_DFB && !PX_PLATFORM_DFB_NON_X11
 
-    double downloadHandleExpiresTime = downloadRequest->downloadHandleExpiresTime();
+   double downloadHandleExpiresTime = downloadRequest->downloadHandleExpiresTime();
 
-    vector<rtString>& additionalHttpHeaders = downloadRequest->additionalHttpHeaders();
-    struct curl_slist *list = NULL;
-    for (unsigned int headerOption = 0;headerOption < additionalHttpHeaders.size();headerOption++)
-    {
+   vector<rtString>& additionalHttpHeaders = downloadRequest->additionalHttpHeaders();
+   struct curl_slist *list = NULL;
+   for (unsigned int headerOption = 0;headerOption < additionalHttpHeaders.size();headerOption++)
+   {
       list = curl_slist_append(list, additionalHttpHeaders[headerOption].cString());
-    }
-    if (downloadRequest->cors() != NULL)
+   }
+   if (downloadRequest->cors() != NULL)
       downloadRequest->cors()->updateRequestForAccessControl(&list);
-    if (readDataSize > 0)
-    {
+   if (readDataSize > 0)
+   {
       list = curl_slist_append(list, "Expect:");
-    }
-    curl_easy_setopt(curl_handle, CURLOPT_HTTPHEADER, list);
-    //CA certificates
-    // !CLF: Use system CA Cert rather than CA_CERTIFICATE fo now.  Revisit!
-    //curl_easy_setopt(curl_handle,CURLOPT_CAINFO,mCaCertFile.cString());
-    curl_easy_setopt(curl_handle, CURLOPT_SSL_VERIFYHOST, 2);
-    curl_easy_setopt(curl_handle, CURLOPT_SSL_VERIFYPEER, true);
+   }
+   curl_easy_setopt(curl_handle, CURLOPT_HTTPHEADER, list);
+   //CA certificates
+   // !CLF: Use system CA Cert rather than CA_CERTIFICATE fo now.  Revisit!
+   //curl_easy_setopt(curl_handle,CURLOPT_CAINFO,mCaCertFile.cString());
+   curl_easy_setopt(curl_handle, CURLOPT_SSL_VERIFYHOST, 2);
+   curl_easy_setopt(curl_handle, CURLOPT_SSL_VERIFYPEER, true);
 
-    /* some servers don't like requests that are made without a user-agent
-     field, so we provide one */
-    curl_easy_setopt(curl_handle, CURLOPT_USERAGENT, "libcurl-agent/1.0");
+   /* some servers don't like requests that are made without a user-agent
+      field, so we provide one */
+   curl_easy_setopt(curl_handle, CURLOPT_USERAGENT, "libcurl-agent/1.0");
 
-    if (useProxy)
-
-    {
-        curl_easy_setopt(curl_handle, CURLOPT_PROXY, proxyServer.cString());
-        curl_easy_setopt(curl_handle, CURLOPT_PROXYTYPE, CURLPROXY_HTTP);
-    }
-    else
-    {
+   if (useProxy)
+   {
+      curl_easy_setopt(curl_handle, CURLOPT_PROXY, proxyServer.cString());
+      curl_easy_setopt(curl_handle, CURLOPT_PROXYTYPE, CURLPROXY_HTTP);
+   }
+   else
+   {
       curl_easy_setopt(curl_handle, CURLOPT_PROXY, "");
-    }
+   }
 
-    if (true == headerOnly)
-    {
+   if (true == headerOnly)
+   {
       curl_easy_setopt(curl_handle, CURLOPT_NOBODY, 1);
-    }
+   }
 
-    if (!method.isEmpty() && method.compare("GET") != 0)
-    {
+   if (!method.isEmpty() && method.compare("GET") != 0)
+   {
       if (method.compare("POST") == 0)
-        curl_easy_setopt(curl_handle, CURLOPT_POST, 1L);
+         curl_easy_setopt(curl_handle, CURLOPT_POST, 1L);
       else if (method.compare("PUT") == 0)
-        curl_easy_setopt(curl_handle, CURLOPT_UPLOAD, 1L);
+         curl_easy_setopt(curl_handle, CURLOPT_UPLOAD, 1L);
       else
-        curl_easy_setopt(curl_handle, CURLOPT_CUSTOMREQUEST, method.cString());
-    }
+         curl_easy_setopt(curl_handle, CURLOPT_CUSTOMREQUEST, method.cString());
+   }
 
-    if (readDataSize > 0)
-    {
+   if (readDataSize > 0)
+   {
       chunk.downloadRequest = downloadRequest;
       curl_easy_setopt(curl_handle, CURLOPT_READFUNCTION, ReadMemoryCallback);
       curl_easy_setopt(curl_handle, CURLOPT_READDATA, (void *)&chunk);
       curl_easy_setopt(curl_handle, CURLOPT_POSTFIELDSIZE, readDataSize);
-    }
+   }
 
-    for(int iLoop=0; iLoop<= multipleIntervals; iLoop++)
-    {
-      if(iLoop < multipleIntervals)
+   for(int iLoop=0; iLoop<= multipleIntervals; /* Increment handled inside the body. *iamhere */)
+   {
+      if(bCurlErrorFlag == false)
       {
-        byteRange = std::to_string(startRange) + "-" + std::to_string(startRange + downloadRequest->byteRangeIntervals() -1);
+         if(iLoop < multipleIntervals)
+         {
+            byteRange = rtString::toString(startRange) + "-" + rtString::toString(startRange + downloadRequest->byteRangeIntervals()-1);
+         }
+         else if(iLoop == multipleIntervals)
+         {
+            if(downloadRequest->actualFileSize() % downloadRequest->byteRangeIntervals())
+            {
+               byteRange = rtString::toString(startRange) + "-" + rtString::toString(downloadRequest->actualFileSize()-1);
+            }
+         }
+         rtLogInfo("byteRange [%s]", byteRange.cString());
+         curl_easy_setopt(curl_handle, CURLOPT_RANGE, byteRange.cString());
       }
-      else if(iLoop == multipleIntervals)
-      {
-        if(fileSize % downloadRequest->byteRangeIntervals())
-          byteRange = std::to_string(startRange) + "-" + std::to_string(fileSize-1);
-      }
-      curl_easy_setopt(curl_handle, CURLOPT_RANGE, byteRange.c_str());
 
       res = curl_easy_perform(curl_handle);
       if(res != CURLE_OK)
-        break;
+      {
+         if(res == CURLE_COULDNT_CONNECT)
+         {
+            if(downloadRequest->isCurlRetryEnabled())
+            {
+               // If there is above metioned error even after retry, quit from curl download.
+               if(bCurlErrorFlag == true)
+               {
+                  rtLogInfo("After retry. Error[%d] occured during curl download for byteRange[%s] Url [%s]", res, byteRange.cString(), curlUrl.cString());
+                  break;
+               }
+
+               // If there is above mentioned error, retry one more time. Don't increment, execute the loop for the same index.
+               bCurlErrorFlag = true;
+               rtLogInfo("Retry again. Error[%d] occured during curl download for byteRange[%s] Url [%s]", res, byteRange.cString(), curlUrl.cString());
+               continue;
+            }
+         }
+         rtLogInfo("Error[%d] occured during curl download for byteRange[%s] Url [%s]", res, byteRange.cString(), curlUrl.cString());
+         break;
+      }
 
       if(iLoop == 0)
       {
-        curl_easy_setopt(curl_handle, CURLOPT_HEADERFUNCTION, NULL);
-        curl_easy_setopt(curl_handle, CURLOPT_HEADERDATA, NULL);
+         curl_easy_setopt(curl_handle, CURLOPT_HEADERFUNCTION, NULL);
+         curl_easy_setopt(curl_handle, CURLOPT_HEADERDATA, NULL);
 
-        // Parsing total filesize from Content-Range.
-        std::string httpHeaderStr(reinterpret_cast< char const* >((char *)chunk.headerBuffer));
-        size_t findContentRange = httpHeaderStr.find("Content-Range:");
-        if(findContentRange != std::string::npos)
-        {
-          std::string strContentRange = httpHeaderStr.substr(findContentRange+1);
-          size_t findRange = strContentRange.find("/");
+         rtString httpHeaderStr(reinterpret_cast< char const* >((unsigned char *)chunk.headerBuffer));
 
-          if(findRange != std::string::npos)
-          {
-            std::string substrRange = strContentRange.substr(findRange+1);
-            std::string strRange = substrRange.substr(0, substrRange.find("\n")-1);
-            fileSize = atoi(strRange.c_str());
-            downloadRequest->setActualFileSize(fileSize);
-            rtLogInfo("File[%s] fileSize [%ld] from http header(Content-Range)\n", downloadRequest->fileUrl().cString(), fileSize);
-          }
-          else
-            rtLogError("File[%s] http header Content-Range is not in xxx/yyy format\n", downloadRequest->fileUrl().cString());
-        }
-        else
-          rtLogError("File[%s] http header doesn't have Content-Range\n", downloadRequest->fileUrl().cString());
+         // Parsing redirected Url if 302 found.
+         size_t find302Status = httpHeaderStr.find(0, "302 Found");
+         if(find302Status != -1)
+         {
+            rtString str302Found = httpHeaderStr.substring(find302Status);
+            size_t findReDirLoc = str302Found.find(0, "Location:");
 
-        multipleIntervals = (fileSize >= downloadRequest->byteRangeIntervals()) ? (fileSize / downloadRequest->byteRangeIntervals()) : 0;
-        rtLogInfo("File[%s] multipleIntervals [%d] fileSize[%ld]\n", downloadRequest->fileUrl().cString(), multipleIntervals, fileSize);
+            if(findReDirLoc != -1)
+            {
+               strLocation = str302Found.substring(findReDirLoc+strlen("Location:"));
+               strLocation = strLocation.substring(0, strLocation.find(0, "\n")-1);
+               curlUrl = strLocation.trim();
+               rtLogInfo("302 Found. Redirected curl URL [%s]", curlUrl.cString());
+               curl_easy_setopt(curl_handle, CURLOPT_URL, curlUrl.cString());
+            }
+         }
+
+         // Parsing total filesize from Content-Range.
+         int32_t findContentRange = httpHeaderStr.find(0, "Content-Range: bytes");
+         if(findContentRange != -1)
+         {
+            rtString strContentRange = httpHeaderStr.substring(findContentRange+1);
+            int32_t findRange = strContentRange.find(0, "/");
+
+            if(findRange != -1)
+            {
+               rtString substrRange = strContentRange.substring(findRange+1);
+               rtString strRange = substrRange.substring(0, substrRange.find(0, "\n")-1);
+               downloadRequest->setActualFileSize(atoi(strRange.cString()));
+               rtLogInfo("FileSize [%ld] from http header(Content-Range). Url[%s]\n", downloadRequest->actualFileSize(), downloadRequest->fileUrl().cString());
+            }
+            else
+               rtLogError("Http header Content-Range is not in xxx/yyy format. Url[%s]\n", downloadRequest->fileUrl().cString());
+         }
+         else
+            rtLogError("Http header doesn't have Content-Range. Url[%s]\n", downloadRequest->fileUrl().cString());
+
+         multipleIntervals = (downloadRequest->actualFileSize() >= downloadRequest->byteRangeIntervals()) ? (downloadRequest->actualFileSize() / downloadRequest->byteRangeIntervals()) : 0;
+         rtLogInfo("File[%s] multipleIntervals [%d] fileSize[%ld]\n", downloadRequest->fileUrl().cString(), multipleIntervals, downloadRequest->actualFileSize());
       }
       startRange += downloadRequest->byteRangeIntervals();
-    }
 
-    curl_slist_free_all(list);
+      bCurlErrorFlag = false;
+      iLoop++; // *iamhere
+   }
 
-    downloadRequest->setDownloadStatusCode(res);
-    if(downloadRequest->isHTTPFailOnError())
-        downloadRequest->setHTTPError(errorBuffer);
+   curl_slist_free_all(list);
 
-    /* check for errors */
-    if (res != CURLE_OK)
-    {
-        rtString proxyMessage("Using proxy:");
-        if (useProxy)
-        {
-          proxyMessage.append("true - ");
-          proxyMessage.append(proxyServer.cString());
-        }
-        else
-        {
-          proxyMessage.append("false ");
-        }
-        char errorMessage[MAX_URL_SIZE+400];
-        memset(errorMessage, 0, sizeof(errorMessage));
-        sprintf(errorMessage, "Download error for:%s. Error code:%d. %s",downloadRequest->fileUrl().cString(), res, proxyMessage.cString());
-        downloadRequest->setErrorString(errorMessage);
-        rtFileDownloader::instance()->releaseDownloadHandle(curl_handle, downloadHandleExpiresTime, origin);
+   downloadRequest->setDownloadStatusCode(res);
+   if(downloadRequest->isHTTPFailOnError())
+      downloadRequest->setHTTPError(errorBuffer);
 
-        //clean up contents on error
-        if (chunk.contentsBuffer != NULL)
-        {
-            free(chunk.contentsBuffer);
-            chunk.contentsBuffer = NULL;
-        }
+   /* check for errors */
+   if (res != CURLE_OK)
+   {
+      rtString proxyMessage("Using proxy:");
+      if (useProxy)
+      {
+         proxyMessage.append("true - ");
+         proxyMessage.append(proxyServer.cString());
+      }
+      else
+      {
+         proxyMessage.append("false ");
+      }
+      char errorMessage[MAX_URL_SIZE+400];
+      memset(errorMessage, 0, sizeof(errorMessage));
+      sprintf(errorMessage, "Download error for:%s. Error code:%d. %s",downloadRequest->fileUrl().cString(), res, proxyMessage.cString());
+      downloadRequest->setErrorString(errorMessage);
+      rtFileDownloader::instance()->releaseDownloadHandle(curl_handle, downloadHandleExpiresTime, origin);
 
-        if (chunk.headerBuffer != NULL)
-        {
-            free(chunk.headerBuffer);
-            chunk.headerBuffer = NULL;
-        }
-        downloadRequest->setDownloadedData(NULL, 0);
-        return false;
-    }
+      //clean up contents on error
+      if (chunk.contentsBuffer != NULL)
+      {
+         free(chunk.contentsBuffer);
+         chunk.contentsBuffer = NULL;
+      }
 
-    // record download stats
-    double connectTime = 0;
-    curl_easy_getinfo(curl_handle, CURLINFO_CONNECT_TIME, &connectTime);
-    double sslConnectTime = 0;
-    curl_easy_getinfo(curl_handle, CURLINFO_APPCONNECT_TIME, &sslConnectTime);
-    double downloadSpeed = 0;
-    curl_easy_getinfo(curl_handle, CURLINFO_SPEED_DOWNLOAD, &downloadSpeed);
-    double totalDownloadTime = 0;
-    curl_easy_getinfo(curl_handle, CURLINFO_TOTAL_TIME, &totalDownloadTime);
+      if (chunk.headerBuffer != NULL)
+      {
+         free(chunk.headerBuffer);
+         chunk.headerBuffer = NULL;
+      }
+      downloadRequest->setDownloadedData(NULL, 0);
+      return false;
+   }
 
-    if (sslConnectTime < connectTime)
-    {
+   // record download stats
+   double connectTime = 0;
+   curl_easy_getinfo(curl_handle, CURLINFO_CONNECT_TIME, &connectTime);
+   double sslConnectTime = 0;
+   curl_easy_getinfo(curl_handle, CURLINFO_APPCONNECT_TIME, &sslConnectTime);
+   double downloadSpeed = 0;
+   curl_easy_getinfo(curl_handle, CURLINFO_SPEED_DOWNLOAD, &downloadSpeed);
+   double totalDownloadTime = 0;
+   curl_easy_getinfo(curl_handle, CURLINFO_TOTAL_TIME, &totalDownloadTime);
+
+   if (sslConnectTime < connectTime)
+   {
       sslConnectTime = connectTime;
-    }
+   }
 
-    rtLogInfo("download stats - connect time: %d ms, ssl time: %d ms, total time: %d ms, download speed: %d bytes/sec, url: %s",
+   rtLogInfo("download stats - connect time: %d ms, ssl time: %d ms, total time: %d ms, download speed: %d bytes/sec, url: %s",
               (int)(connectTime*1000), (int)((sslConnectTime - connectTime) * 1000),
               (int)(totalDownloadTime*1000), (int)downloadSpeed, downloadRequest->fileUrl().cString());
 
-    downloadRequest->setDownloadMetrics(static_cast<int32_t>(connectTime*1000), static_cast<int32_t>((sslConnectTime - connectTime) * 1000),
+   downloadRequest->setDownloadMetrics(static_cast<int32_t>(connectTime*1000), static_cast<int32_t>((sslConnectTime - connectTime) * 1000),
                                         static_cast<int32_t>(totalDownloadTime*1000), static_cast<int32_t>(downloadSpeed));
 
-    long httpCode = -1;
-    if (curl_easy_getinfo(curl_handle, CURLINFO_RESPONSE_CODE, &httpCode) == CURLE_OK)
-    {
-        downloadRequest->setHttpStatusCode(httpCode);
-    }
-    rtFileDownloader::instance()->releaseDownloadHandle(curl_handle, downloadHandleExpiresTime, origin);
+   long httpCode = -1;
+   if (curl_easy_getinfo(curl_handle, CURLINFO_RESPONSE_CODE, &httpCode) == CURLE_OK)
+   {
+      downloadRequest->setHttpStatusCode(httpCode);
+   }
+   rtFileDownloader::instance()->releaseDownloadHandle(curl_handle, downloadHandleExpiresTime, origin);
 
-    //todo read the header information before closing
-    if (chunk.headerBuffer != NULL)
-    {
-        downloadRequest->setHeaderData(chunk.headerBuffer, chunk.headerSize);
-    }
+   //todo read the header information before closing
+   if (chunk.headerBuffer != NULL)
+   {
+      downloadRequest->setHeaderData(chunk.headerBuffer, chunk.headerSize);
+   }
 
-    //don't free the downloaded data (contentsBuffer) because it will be used later
-    if (false == headerOnly)
-    {
-      downloadRequest->setDownloadedData(chunk.contentsBuffer, chunk.contentsSize);
-    }
-    else if (chunk.contentsBuffer != NULL)
-    {
-        free(chunk.contentsBuffer);
-        chunk.contentsBuffer = NULL;
-    }
-    chunk.headerBuffer = NULL;
-    chunk.contentsBuffer = NULL;
-    if (downloadRequest->cors() != NULL)
+   //don't free the downloaded data (contentsBuffer) because it will be used later
+   if (false == headerOnly)
+   {
+     downloadRequest->setDownloadedData(chunk.contentsBuffer, chunk.contentsSize);
+   }
+   else if (chunk.contentsBuffer != NULL)
+   {
+      free(chunk.contentsBuffer);
+      chunk.contentsBuffer = NULL;
+   }
+   chunk.headerBuffer = NULL;
+   chunk.contentsBuffer = NULL;
+   if (downloadRequest->cors() != NULL)
       downloadRequest->cors()->updateResponseForAccessControl(downloadRequest);
-    return true;
+   return true;
 }
 
 void rtFileDownloader::downloadFile(rtFileDownloadRequest* downloadRequest)
