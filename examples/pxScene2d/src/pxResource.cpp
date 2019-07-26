@@ -705,7 +705,7 @@ void rtImageResource::loadResourceFromFile()
     mTexture = context.createTexture(imageOffscreen);
     mTexture->setTextureListener(this);
 
-    mData.term(); // Dump the source data...
+    //mData.term(); // Dump the source data...
 
     setLoadStatus("statusCode",0);
     // Since this object can be released before we get a async completion
@@ -791,7 +791,7 @@ void rtImageResource::loadResourceFromArchive(rtObjectRef archiveRef)
     mTexture = context.createTexture(imageOffscreen);
     mTexture->setTextureListener(this);
 
-    mData.term(); // Dump the source data...
+    //mData.term(); // Dump the source data...
 
     setLoadStatus("statusCode",0);
     // Since this object can be released before we get a async completion
