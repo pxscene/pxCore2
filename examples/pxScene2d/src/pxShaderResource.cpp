@@ -92,7 +92,7 @@ void pxShaderResource::setupResource()
     // Setup shader
     double startDecodeTime = pxMilliseconds();
 
-    const char* vtxCode = mVertexSrc.length() > 0 ? (const char*) mVertexSrc.data() : vShaderText;
+    const char* vtxCode = mVertexSrc.length() > 0 ? (const char*) mVertexSrc.data() : vShaderText; // or use "default" Vertex shader
 
     if(shaderProgram::initShader( vtxCode, (const char*) mFragmentSrc.data() ) != RT_OK)
     {
