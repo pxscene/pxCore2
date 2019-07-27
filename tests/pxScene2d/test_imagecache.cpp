@@ -925,7 +925,8 @@ class rtFileDownloaderTest : public testing::Test, public commonTestFns
       expectedHttpCode = 206;
       expectedCachePresence = false;
       request->setByteRangeEnable(true);
-	  request->setByteRangeIntervals(1347584); // 7 * 47 * 4096
+      request->setCurlRetryEnable(true);
+      request->setByteRangeIntervals(1347584); // 7 * 47 * 4096
       rtFileDownloader::instance()->downloadFileAsByteRange(request);
       sem_wait(testSem);
       EXPECT_TRUE (request->httpStatusCode() == 206);
