@@ -108,11 +108,11 @@
       }
     }
 
-
+/*
     if (process.config.variables.v8_enable_inspector) {
       NativeModule.require('internal/inspector_async_hook').setup();
     }
-
+*/
     const { getOptionValue } = NativeModule.require('internal/options');
     const helpOption = getOptionValue('--help');
     const completionBashOption = getOptionValue('--completion-bash');
@@ -227,6 +227,7 @@
         NativeModule.require('_third_party_main');
       });
     } else if (process.argv[1] === 'inspect' || process.argv[1] === 'debug') {
+/*
       if (process.argv[1] === 'debug') {
         process.emitWarning(
           '`node debug` is deprecated. Please use `node inspect` instead.',
@@ -237,7 +238,7 @@
       process.nextTick(() => {
         NativeModule.require('internal/deps/node-inspect/lib/_inspect').start();
       });
-
+*/
     } else if (process.profProcess) {
       NativeModule.require('internal/v8_prof_processor');
     } else {
@@ -411,7 +412,7 @@
       value: wrappedConsole,
       writable: true
     });
-    setupInspector(originalConsole, wrappedConsole);
+    //setupInspector(originalConsole, wrappedConsole);
   }
 
   function setupGlobalURL() {
