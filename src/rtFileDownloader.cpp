@@ -1014,7 +1014,6 @@ bool rtFileDownloader::downloadByteRangeFromNetwork(rtFileDownloadRequest* downl
                byteRange = rtString::toString(startRange) + "-" + rtString::toString(downloadRequest->actualFileSize()-1);
             }
          }
-         rtLogInfo("byteRange [%s]", byteRange.cString());
          curl_easy_setopt(curl_handle, CURLOPT_RANGE, byteRange.cString());
       }
 
