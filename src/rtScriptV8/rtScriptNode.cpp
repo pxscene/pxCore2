@@ -449,7 +449,7 @@ void rtNodeContext::createEnvironment()
       }
       rtString currentPath;
       rtGetCurrentDirectory(currentPath);
-      node::InspectorStart(mEnv, currentPath.cString(), g_debuggerPort);
+      //node::InspectorStart(mEnv, currentPath.cString(), g_debuggerPort);
     }
 #endif //USE_NODE_PLATFORM
 #endif
