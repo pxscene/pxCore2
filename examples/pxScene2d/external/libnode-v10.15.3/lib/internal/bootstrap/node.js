@@ -33,7 +33,7 @@
     // Do this good and early, since it handles errors.
     setupProcessFatal();
 
-    setupProcessICUVersions();
+    //setupProcessICUVersions();
 
     setupGlobalVariables();
 
