@@ -8,6 +8,7 @@
 namespace node {
 
 using v8::Array;
+using v8::ArrayBuffer;
 using v8::Context;
 using v8::Function;
 using v8::FunctionCallbackInfo;
@@ -24,6 +25,8 @@ using v8::Promise;
 using v8::PromiseRejectEvent;
 using v8::PromiseRejectMessage;
 using v8::String;
+using v8::Uint32Array;
+using v8::Uint8Array;
 using v8::Value;
 
 void SetupProcessObject(const FunctionCallbackInfo<Value>& args) {
@@ -37,22 +40,54 @@ void RunMicrotasks(const FunctionCallbackInfo<Value>& args) {
 }
 
 void SetupNextTick(const FunctionCallbackInfo<Value>& args) {
+  printf("SetupNextTick called !!!! [%d] [%d] \n",sizeof(uint8_t), sizeof(uint32_t));
+  fflush(stdout);
+
   Environment* env = Environment::GetCurrent(args);
+  printf("SetupNextTick called !!!! \n");
+  fflush(stdout);
   Isolate* isolate = env->isolate();
   Local<Context> context = env->context();
 
+  printf("SetupNextTick called 1 !!!! \n");
+  fflush(stdout);
   CHECK(args[0]->IsFunction());
+  printf("SetupNextTick called 2 !!!! \n");
+  fflush(stdout);
 
   env->set_tick_callback_function(args[0].As<Function>());
 
+  printf("SetupNextTick called 3 !!!! \n");
+  fflush(stdout);
   Local<Function> run_microtasks_fn =
       env->NewFunctionTemplate(RunMicrotasks)->GetFunction(context)
           .ToLocalChecked();
+  printf("SetupNextTick called 4 !!!! \n");
+  fflush(stdout);
   run_microtasks_fn->SetName(FIXED_ONE_BYTE_STRING(isolate, "runMicrotasks"));
+  printf("SetupNextTick called 5 !!!! \n");
+  fflush(stdout);
 
   Local<Array> ret = Array::New(isolate, 2);
-  ret->Set(context, 0, env->tick_info()->fields().GetJSArray()).FromJust();
+
+
+  // Values use to cross communicate with processNextTick.
+  uint32_t* const fields = env->tick_info()->fields();
+  uint32_t const fields_count = env->tick_info()->fields_count();
+  Local<ArrayBuffer> array_buffer =
+      ArrayBuffer::New(env->isolate(), fields, sizeof(*fields) * fields_count);
+  ret->Set(context, 0, Uint32Array::New(array_buffer, 0, fields_count)).FromJust();
+/*
+  ret->Set(context, 0, Uint8Array::New(env->tick_info()->fields().GetArrayBuffer(), 0, fields_count)).FromJust();*/
+  //args.GetReturnValue().Set(Uint32Array::New(array_buffer, 0, fields_count));
+
+
+  //ret->Set(context, 0, env->tick_info()->fields().GetJSArray()).FromJust();
+  //printf("SetupNextTick called 7 !!!! [%d] [%d]\n",sizeof(*fields) * fields_count, fields_count);
+  //fflush(stdout);
   ret->Set(context, 1, run_microtasks_fn).FromJust();
+  printf("SetupNextTick called 8 !!!! \n");
+  fflush(stdout);
 
   args.GetReturnValue().Set(ret);
 }
