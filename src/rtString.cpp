@@ -264,7 +264,7 @@ rtString rtString::trim(void) const
 rtString rtString::toString(size_t val)
 {
   char buf[256];
-  int got_len = snprintf(buf, sizeof(buf), "%d", val);
+  int got_len = snprintf(buf, sizeof(buf), "%ld", val);
 
   return rtString(buf);
 }
