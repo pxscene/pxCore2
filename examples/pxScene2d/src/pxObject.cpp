@@ -1785,7 +1785,10 @@ void pxObject::drawEffect(pxContextFramebufferRef &flattenFbo)
                        (flattenFbo ? flattenFbo->getTexture() : 0),
                        (shaderProgram*) shaderRes);
 
-    context.flush();
+    if(shaderRes && shaderRes->isRealTime() == false) // avoid flicker on RT shaders
+    {
+      context.flush();
+    }
   }
   // CONFIG OBJECT ? ---------------------------------------------------------------------------------------------------
   else
