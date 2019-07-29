@@ -792,7 +792,7 @@ void rtImageResource::loadResourceFromArchive(rtObjectRef archiveRef)
     mTexture = context.createTexture(imageOffscreen);
     mTexture->setTextureListener(this);
 
-    if (mUrl.beginsWith("data:image/") == false)
+    if (mUrl.beginsWith("md5sum/") == false)
         mData.term(); // Dump the source data...
 
     setLoadStatus("statusCode",0);
@@ -1264,7 +1264,7 @@ rtRef<rtImageResource> pxImageManager::getImage(const char* url, const char* pro
       {
         pResImage->initUriData(dataUri);
 
-        //pResImage->setUrl(svgUrl); // DUMP the URL
+        pResImage->setUrl(svgUrl); // DUMP the URL
       }
       else
       if(uri_string.beginsWith("data:image/")) // BASE64 PNG/JPG
@@ -1272,7 +1272,7 @@ rtRef<rtImageResource> pxImageManager::getImage(const char* url, const char* pro
         if( base64_decode( dataUri, data ) == RT_OK)
         {
           pResImage->initUriData( data );
-          //pResImage->setUrl(svgUrl);         // DUMP the URL
+          pResImage->setUrl(svgUrl);         // DUMP the URL
         }
       }
     }//ENDIF - index_of_comma + index_of_slash
