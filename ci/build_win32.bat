@@ -49,7 +49,6 @@ set uploadArtifact=False
 @rem build Spark
 if "%APPVEYOR_SCHEDULED_BUILD%"=="True" (
   echo "building edge"
-  copy ..\examples\pxScene2d\src\browser\images\status_bg_edge.svg ..\examples\pxScene2d\src\browser\images\status_bg.svg
 
   set uploadArtifact=True
   call:replaceString "..\examples\pxScene2d\src\win\pxscene.rc" "Spark_installer.ico" "SparkEdge_installer.ico"
@@ -65,7 +64,6 @@ if "%APPVEYOR_SCHEDULED_BUILD%"=="True" (
   call:replaceString "CPackSourceConfig.cmake" "Spark_installer.ico" "SparkEdge_installer.ico"
   )
 
-del ..\examples\pxScene2d\src\browser\images\status_bg_edge.svg 
 
 
 for /f "tokens=1,* delims=]" %%a in ('find /n /v "" ^< "..\examples\pxScene2d\src\win\pxscene.rc" ^| findstr "FILEVERSION" ') DO ( 
