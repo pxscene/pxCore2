@@ -705,7 +705,7 @@ void rtImageResource::loadResourceFromFile()
     mTexture = context.createTexture(imageOffscreen);
     mTexture->setTextureListener(this);
 
-    if (mUrl.beginsWith("data:image/") == false)
+    if (mUrl.beginsWith("md5sum/") == false)
         mData.term(); // Dump the source data...
 
     setLoadStatus("statusCode",0);
