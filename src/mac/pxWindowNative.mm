@@ -1161,6 +1161,11 @@ pxError pxWindow::init(int left, int top, int width, int height)
   MyView* view = [[MyView alloc] initWithPXWindow:this];
 
   [window setContentView: view];
+  if (openGLContext != nil)
+  {
+    [openGLContext setView:view];
+    [openGLContext update];
+  }
   [window makeFirstResponder:view];
 
   [view release];
