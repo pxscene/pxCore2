@@ -68,5 +68,5 @@
       {"url":"../tests/test_transparentGifLoader.js", "title":"test_transparentGifLoader","useBaseURI":"true"},
       {"url":"../tests/test_compressedGifLoader.js", "title":"test_compressedGifLoader","useBaseURI":"true"},
       {"url":"../tests/test_ws.js", "title":"test_ws","useBaseURI":"true"},
-      {"url":"../tests/test_storage_v2.js", "title":"test_storage","useBaseURI":"true"}
+      {"url":"../tests/test_storage.js", "title":"test_storage","useBaseURI":"true"}
 ]
