@@ -257,6 +257,12 @@ void rtScript::populateDebuggerInfo()
  rtLogInfo("Spark debugger enabled  - [%d]",g_debuggerEnabled);
  if (true == g_debuggerEnabled)
  {
+   rtValue debuggerAddress;
+   if (RT_OK == rtSettings::instance()->value("sparkDebuggerAddress", debuggerAddress))
+   {
+     g_debuggerAddress = debuggerAddress.toString();
+   }
+
    rtValue debuggerPort;
    if (RT_OK == rtSettings::instance()->value("sparkDebuggerPort", debuggerPort))
    {
@@ -268,6 +274,8 @@ void rtScript::populateDebuggerInfo()
    {
      g_debuggerAddress = debugaddress;
    }
+
+   rtLogInfo("Spark debugger address[%s]", g_debuggerAddress.cString());
 
    char const *debugport = getenv("SPARK_DEBUGGER_PORT");
    if (debugport)
