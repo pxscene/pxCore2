@@ -558,9 +558,7 @@ class Environment {
 
   class TickInfo {
    public:
-    //inline AliasedBuffer<uint8_t, v8::Uint8Array>& fields();
-    inline uint32_t* fields();
-    inline int fields_count() const;
+    inline AliasedBuffer<uint8_t, v8::Uint8Array>& fields();
     inline bool has_scheduled() const;
     inline bool has_promise_rejections() const;
     inline bool has_thrown() const;
@@ -578,8 +576,8 @@ class Environment {
       kHasThrown,
       kFieldsCount
     };
-    uint32_t fields_[kFieldsCount];
-    //AliasedBuffer<uint8_t, v8::Uint8Array> fields_;
+
+    AliasedBuffer<uint8_t, v8::Uint8Array> fields_;
 
     DISALLOW_COPY_AND_ASSIGN(TickInfo);
   };

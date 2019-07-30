@@ -8,7 +8,6 @@
 namespace node {
 
 using v8::Array;
-using v8::ArrayBuffer;
 using v8::Context;
 using v8::Function;
 using v8::FunctionCallbackInfo;
@@ -25,7 +24,6 @@ using v8::Promise;
 using v8::PromiseRejectEvent;
 using v8::PromiseRejectMessage;
 using v8::String;
-using v8::Uint8Array;
 using v8::Value;
 
 void SetupProcessObject(const FunctionCallbackInfo<Value>& args) {
@@ -53,11 +51,7 @@ void SetupNextTick(const FunctionCallbackInfo<Value>& args) {
   run_microtasks_fn->SetName(FIXED_ONE_BYTE_STRING(isolate, "runMicrotasks"));
 
   Local<Array> ret = Array::New(isolate, 2);
-  // Values use to cross communicate with processNextTick.
-  unsigned char* fields = (unsigned char*)env->tick_info()->fields().GetNativeBuffer();
-  Local<ArrayBuffer> array_buffer =
-      ArrayBuffer::New(env->isolate(), fields, sizeof(*fields) * 3);
-  ret->Set(context, 0, Uint8Array::New(array_buffer, 0, 3)).FromJust();
+  ret->Set(context, 0, env->tick_info()->fields().GetJSArray()).FromJust();
   ret->Set(context, 1, run_microtasks_fn).FromJust();
 
   args.GetReturnValue().Set(ret);

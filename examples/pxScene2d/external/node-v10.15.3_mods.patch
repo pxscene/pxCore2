@@ -1096,3 +1096,42 @@ index 834db64..0c108bd 100755
  if defined openssl_no_asm   set configure_flags=%configure_flags% --openssl-no-asm
  if defined DEBUG_HELPER     set configure_flags=%configure_flags% --verbose
  
+diff --git a/examples/pxScene2d/external/libnode-v10.15.3/src/bootstrapper.cc b/examples/pxScene2d/external/libnode-v10.15.3/src/bootstrapper.cc
+index d23a145..e291646 100755
+--- a/examples/pxScene2d/external/libnode-v10.15.3/src/bootstrapper.cc
++++ b/examples/pxScene2d/external/libnode-v10.15.3/src/bootstrapper.cc
+@@ -8,6 +8,9 @@
+ namespace node {
+ 
+ using v8::Array;
++// MODIFIED CODE BEGIN
++using v8::ArrayBuffer;
++// MODIFIED CODE END
+ using v8::Context;
+ using v8::Function;
+ using v8::FunctionCallbackInfo;
+@@ -24,6 +27,9 @@ using v8::Promise;
+ using v8::PromiseRejectEvent;
+ using v8::PromiseRejectMessage;
+ using v8::String;
++// MODIFIED CODE BEGIN
++using v8::Uint8Array;
++// MODIFIED CODE END
+ using v8::Value;
+ 
+ void SetupProcessObject(const FunctionCallbackInfo<Value>& args) {
+@@ -51,7 +57,13 @@ void SetupNextTick(const FunctionCallbackInfo<Value>& args) {
+   run_microtasks_fn->SetName(FIXED_ONE_BYTE_STRING(isolate, "runMicrotasks"));
+ 
+   Local<Array> ret = Array::New(isolate, 2);
+-  ret->Set(context, 0, env->tick_info()->fields().GetJSArray()).FromJust();
++  // Values use to cross communicate with processNextTick.
++// MODIFIED CODE BEGIN
++  unsigned char* fields = (unsigned char*)env->tick_info()->fields().GetNativeBuffer();
++  Local<ArrayBuffer> array_buffer =
++      ArrayBuffer::New(env->isolate(), fields, sizeof(*fields) * 3);
++  ret->Set(context, 0, Uint8Array::New(array_buffer, 0, 3)).FromJust();
++// MODIFIED CODE END
+   ret->Set(context, 1, run_microtasks_fn).FromJust();
+ 
+   args.GetReturnValue().Set(ret);
