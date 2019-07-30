@@ -109,6 +109,7 @@ bool gIsPumpingJavaScript = false;
 #define USE_NODE_PLATFORM
 #endif
 
+extern rtString g_debuggerAddress;
 extern int g_debuggerPort;
 extern bool g_debuggerEnabled;
 namespace node
@@ -121,6 +122,7 @@ class rtNodeContext;
 
 typedef rtRef<rtNodeContext> rtNodeContextRef;
 
+#define NODE_DEBUGGER_ADDRESS "127.0.0.1"
 #define NODE_DEBUGGER_PORT 9229
 class rtNodeContext: rtIScriptContext  // V8
 {
@@ -447,9 +449,12 @@ void rtNodeContext::createEnvironment()
       if (0 == g_debuggerPort) {
         g_debuggerPort = NODE_DEBUGGER_PORT;
       }
+      if (0 == g_debuggerAddress.length()) {
+        g_debuggerAddress = NODE_DEBUGGER_ADDRESS;
+      }
       rtString currentPath;
       rtGetCurrentDirectory(currentPath);
-      node::InspectorStart(mEnv, currentPath.cString(), g_debuggerPort);
+      node::InspectorStart(mEnv, currentPath.cString(), g_debuggerAddress, g_debuggerPort);
     }
 #endif //USE_NODE_PLATFORM
 #endif

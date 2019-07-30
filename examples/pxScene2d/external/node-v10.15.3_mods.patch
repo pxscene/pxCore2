@@ -429,7 +429,7 @@ index a8de196..607a7db 100755
        'deps/node-inspect/lib/internal/inspect_client.js',
        'deps/node-inspect/lib/internal/inspect_repl.js',
 diff --git a/examples/pxScene2d/external/libnode-v10.15.3/src/node.cc b/examples/pxScene2d/external/libnode-v10.15.3/src/node.cc
-index 9fb5ab3b8..6fd8e7f94 100755
+index 9fb5ab3..c616a8e 100755
 --- a/examples/pxScene2d/external/libnode-v10.15.3/src/node.cc
 +++ b/examples/pxScene2d/external/libnode-v10.15.3/src/node.cc
 @@ -173,7 +173,9 @@ using v8::V8;
@@ -660,13 +660,14 @@ index 9fb5ab3b8..6fd8e7f94 100755
    return new NodePlatform(thread_pool_size, tracing_controller);
  }
  
-@@ -3050,6 +3127,20 @@ void RegisterBuiltinModules() {
+@@ -3050,6 +3127,21 @@ void RegisterBuiltinModules() {
  #undef V
  }
  
 +/*MODIFIED CODE BEGIN*/
 +#if HAVE_INSPECTOR
-+void InspectorStart(Environment* env, const char* path, int port) {
++void InspectorStart(Environment* env, const char* path, const char* address, int port) {
++  env->options()->debug_options->host_port.host_name = address;
 +  env->options()->debug_options->host_port.port = port;
 +  env->inspector_agent()->Start(path, env->options()->debug_options, true);
 +}
@@ -682,7 +683,7 @@ index 9fb5ab3b8..6fd8e7f94 100755
  
  #if !HAVE_INSPECTOR
 diff --git a/examples/pxScene2d/external/libnode-v10.15.3/src/node.h b/examples/pxScene2d/external/libnode-v10.15.3/src/node.h
-index 2a6f5b59c..ad0daa22b 100755
+index 2a6f5b5..cf834fa 100755
 --- a/examples/pxScene2d/external/libnode-v10.15.3/src/node.h
 +++ b/examples/pxScene2d/external/libnode-v10.15.3/src/node.h
 @@ -204,6 +204,12 @@ typedef intptr_t ssize_t;
@@ -715,7 +716,7 @@ index 2a6f5b59c..ad0daa22b 100755
  
 +/*MODIFIED CODE BEGIN*/
 +#if HAVE_INSPECTOR
-+NODE_EXTERN void InspectorStart(Environment* env, const char* path, int port);
++NODE_EXTERN void InspectorStart(Environment* env, const char* path, const char* address, int port);
 +NODE_EXTERN void InspectorStop(Environment* env);
 +#endif
 +/*MODIFIED CODE END*/

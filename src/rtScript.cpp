@@ -56,6 +56,7 @@ static pthread_mutex_t sObjectMapMutex = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
 #endif
 
 args_t *s_gArgs;
+rtString g_debuggerAddress;
 bool g_debuggerEnabled = false;
 int g_debuggerPort = 0;
 
@@ -260,6 +261,12 @@ void rtScript::populateDebuggerInfo()
    if (RT_OK == rtSettings::instance()->value("sparkDebuggerPort", debuggerPort))
    {
      g_debuggerPort = debuggerPort.toInt64();
+   }
+
+   char const *debugaddress = getenv("SPARK_DEBUGGER_ADDRESS");
+   if (debugaddress)
+   {
+     g_debuggerAddress = debugaddress;
    }
 
    char const *debugport = getenv("SPARK_DEBUGGER_PORT");
