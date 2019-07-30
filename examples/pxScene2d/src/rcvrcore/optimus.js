@@ -393,9 +393,6 @@ function Application(props) {
     this.applicationCreated();
   }
   else if (cmd === "sparkInstance"){
-    if (process.env.SPARK_DEBUGGER_PORT) {
-      process.env.SPARK_DEBUGGER_PORT++;
-    }
     this.type = ApplicationType.SPARK_INSTANCE;
     _externalApp = scene.create( {t:"external", parent:root, cmd:"spark " + uri, w:w, h:h, hasApi:true} );
     _externalApp.on("onReady", function () { _this.log("onReady"); }); // is never called
