@@ -175,7 +175,7 @@ rtError rtStorage::getItem(const char* key, rtValue& retValue) const
 
   sqlite3* &db = SQLITE;
 
-  retValue = "";
+  retValue.setEmpty();
 
   if (db)
   {
@@ -473,6 +473,46 @@ bool rtStorage::isEncrypted(const char* fileName)
   free(fileHeader);
 
   return !eq;
+}
+
+rtError rtStorage::Get(const char* name, rtValue* value) const
+{
+  if (!value)
+    return RT_FAIL;
+
+  rtValue v;
+
+  rtError e = rtObject::Get(name, &v);
+  if (e == RT_PROP_NOT_FOUND)
+  {
+    rtValue v1;
+    if (getItem(name, v1) == RT_OK && !v1.isEmpty())
+    {
+      *value = v1;
+      return RT_OK;
+    }
+  }
+
+  *value = v;
+  return e;
+}
+
+rtError rtStorage::Get(uint32_t /*i*/, rtValue* /*value*/) const
+{
+  return RT_PROP_NOT_FOUND;
+}
+
+rtError rtStorage::Set(const char* name, const rtValue* value)
+{
+  if (!value)
+    return RT_ERROR_INVALID_ARG;
+
+  return setItem(name, *value);
+}
+
+rtError rtStorage::Set(uint32_t /*i*/, const rtValue* /*value*/)
+{
+  return RT_PROP_NOT_FOUND;
 }
 
 rtDefineObject(rtStorage,rtObject);

@@ -597,7 +597,7 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
 
   mCapabilityVersions.set("network", networkCapabilities);
 #ifdef PXSCENE_SUPPORT_STORAGE
-  mCapabilityVersions.set("storage", 1);
+  mCapabilityVersions.set("storage", 2);
 #endif
 
   rtObjectRef metricsCapabilities = new rtMapObject;
@@ -3111,7 +3111,9 @@ void pxScriptView::runScript()
     mReady = new rtPromise();
 #endif
 
-    mCtx->runFile("init.js");
+    rtString s = getenv("SPARK_PATH");
+    s.append("init.js");
+    mCtx->runFile(s.cString());
 
     char buffer[MAX_URL_SIZE + 50];
     memset(buffer, 0, sizeof(buffer));
