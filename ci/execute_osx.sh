@@ -67,6 +67,7 @@ count=0
 max_seconds=2100
 
 while [ "$count" -le "$max_seconds" ]; do
+        tail -f /var/tmp/spark.log
 	#leaks -nocontext Spark > $LEAKLOGS
 	printf "\n [execute_osx.sh] snoozing for 30 seconds (%d of %d) \n" $count $max_seconds
 	sleep 30; # seconds
