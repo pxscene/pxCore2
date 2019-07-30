@@ -807,6 +807,7 @@ var onClose = function() {
   {
     sandbox[sandboxKeys[i]] = null;
   }
+  // cleanup other sandbox params
   sandbox['global'] = null;
   sandbox['vm'] = null;
   sandbox['__dirname'] = null;
