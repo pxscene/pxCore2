@@ -53,8 +53,6 @@ void SetupNextTick(const FunctionCallbackInfo<Value>& args) {
   run_microtasks_fn->SetName(FIXED_ONE_BYTE_STRING(isolate, "runMicrotasks"));
 
   Local<Array> ret = Array::New(isolate, 2);
-
-
   // Values use to cross communicate with processNextTick.
   unsigned char* fields = (unsigned char*)env->tick_info()->fields().GetNativeBuffer();
   Local<ArrayBuffer> array_buffer =
