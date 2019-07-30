@@ -176,9 +176,7 @@ rtError rtScript::init()
 {
   if (false == mInitialized)
   {
-#ifdef ENABLE_DEBUG_MODE
     populateDebuggerInfo();
-#endif
     #if defined(RTSCRIPT_SUPPORT_NODE) && defined(RTSCRIPT_SUPPORT_DUKTAPE) 
       static int useDuktape = -1;
     

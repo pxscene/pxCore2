@@ -1075,11 +1075,11 @@ rtError rtScriptNode::init()
   #if ENABLE_V8_HEAP_PARAMS
   #ifdef ENABLE_NODE_V_6_9
     argc = sizeof(debug_node69Configv)/sizeof(char*) - 1;
-    argv2 = debug_node69Configv;
+    argv2 = (char**)debug_node69Configv;
   #else
     rtLogWarn("v8 old heap space configured to 64mb\n");
     argc = sizeof(debug_nodeHeapConfigv)/sizeof(char*) - 1;
-    argv2 = debug_nodeHeapConfigv; 
+    argv2 = (char**)debug_nodeHeapConfigv; 
   #endif // ENABLE_NODE_V_6_9
   #else
   #ifdef ENABLE_NODE_V_6_9
@@ -1087,7 +1087,7 @@ rtError rtScriptNode::init()
     argv2 = (char**)debug_node69Configv;
   #else
     argc = sizeof(debug_exposeGcConfigv)/sizeof(char*) - 1;
-    argv2 = debug_exposeGcConfigv;
+    argv2 = (char**)debug_exposeGcConfigv;
   #endif // ENABLE_NODE_V_6_9
   #endif //ENABLE_V8_HEAP_PARAMS
   }
