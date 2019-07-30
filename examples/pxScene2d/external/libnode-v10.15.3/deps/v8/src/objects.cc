@@ -15427,14 +15427,10 @@ Maybe<bool> JSObject::AddDataElement(Handle<JSObject> object, uint32_t index,
                                      Handle<Object> value,
                                      PropertyAttributes attributes,
                                      ShouldThrow should_throw) {
-  printf("JSObject::AddDataElement 1 [%d] \n",object->map()->is_extensible());
-  fflush(stdout);
   DCHECK(object->map()->is_extensible());
 
   Isolate* isolate = object->GetIsolate();
 
-  printf("JSObject::AddDataElement 2 [%d] \n",object->map()->is_extensible());
-  fflush(stdout);
   uint32_t old_length = 0;
   uint32_t new_capacity = 0;
 
@@ -15442,8 +15438,6 @@ Maybe<bool> JSObject::AddDataElement(Handle<JSObject> object, uint32_t index,
     CHECK(JSArray::cast(*object)->length()->ToArrayLength(&old_length));
   }
 
-  printf("JSObject::AddDataElement 3 [%d] \n",object->map()->is_extensible());
-  fflush(stdout);
   ElementsKind kind = object->GetElementsKind();
   FixedArrayBase* elements = object->elements();
   ElementsKind dictionary_kind = DICTIONARY_ELEMENTS;
@@ -15467,32 +15461,16 @@ Maybe<bool> JSObject::AddDataElement(Handle<JSObject> object, uint32_t index,
     kind = dictionary_kind;
   }
 
-  printf("JSObject::AddDataElement 4 [%d] [%d]\n",object->map()->is_extensible(), value.is_null());
-  fflush(stdout);
   ElementsKind to = value->OptimalElementsKind();
-  printf("JSObject::AddDataElement 41 [%d] \n",object->map()->is_extensible());
-  fflush(stdout);
   if (IsHoleyOrDictionaryElementsKind(kind) || !object->IsJSArray() ||
       index > old_length) {
-  printf("JSObject::AddDataElement 42 [%d] \n",object->map()->is_extensible());
-  fflush(stdout);
     to = GetHoleyElementsKind(to);
     kind = GetHoleyElementsKind(kind);
-  printf("JSObject::AddDataElement 43 [%d] \n",object->map()->is_extensible());
-  fflush(stdout);
   }
-  printf("JSObject::AddDataElement 44 [%d] \n",object->map()->is_extensible());
-  fflush(stdout);
   to = GetMoreGeneralElementsKind(kind, to);
-  printf("JSObject::AddDataElement 45 [%d] \n",object->map()->is_extensible());
-  fflush(stdout);
   ElementsAccessor* accessor = ElementsAccessor::ForKind(to);
-  printf("JSObject::AddDataElement 46 [%d] \n",(NULL == accessor));
-  fflush(stdout);
   accessor->Add(object, index, value, attributes, new_capacity);
 
-  printf("JSObject::AddDataElement 5 [%d] \n",object->map()->is_extensible());
-  fflush(stdout);
   if (object->IsJSArray() && index >= old_length) {
     Handle<Object> new_length =
         isolate->factory()->NewNumberFromUint(index + 1);

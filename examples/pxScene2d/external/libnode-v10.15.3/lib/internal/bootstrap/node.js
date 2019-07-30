@@ -108,6 +108,7 @@
       }
     }
 
+
     if (process.config.variables.v8_enable_inspector) {
       NativeModule.require('internal/inspector_async_hook').setup();
     }
@@ -226,7 +227,6 @@
         NativeModule.require('_third_party_main');
       });
     } else if (process.argv[1] === 'inspect' || process.argv[1] === 'debug') {
-
       if (process.argv[1] === 'debug') {
         process.emitWarning(
           '`node debug` is deprecated. Please use `node inspect` instead.',
