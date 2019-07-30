@@ -583,8 +583,8 @@ public:
 
   void setEffectConfig(rtObjectRef v)    { mEffectRef = v; };
   
-  void setEffectPtr(pxShaderResource *p) { mEffectShaderRef = p;    };
-  pxShaderResource *effectPtr()          { return mEffectShaderRef; };
+  void setEffectRef(pxShaderResource *p) { mEffectShaderRef = p;    };
+  pxShaderResource *effectRef()          { return mEffectShaderRef; };
 
 public:
   rtEmitRef mEmit;

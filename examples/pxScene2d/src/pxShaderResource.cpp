@@ -304,7 +304,7 @@ rtError pxShaderResource::setUniforms(rtObjectRef o)
       else
       if(type == "sampler2D")
       {
-        //if(name == "s_texture")
+        if(name == "s_texture")
         {
           mNeedsFbo = true;
         }
@@ -1077,7 +1077,7 @@ rtError applyRTconfig(rtObjectRef v, pxObject &obj)
     }
 
     pxShaderResource *shader = static_cast<pxShaderResource *>( shaderVal.toVoidPtr() );
-    obj.setEffectPtr( (pxShaderResource *) ( shader ) );
+    obj.setEffectRef( (pxShaderResource *) ( shader ) );
     
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     // (RT)  UNIFORMS

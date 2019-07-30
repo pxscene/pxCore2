@@ -1219,12 +1219,24 @@ void pxObject::drawInternal(bool maskPass /* = false */)
   {
     context.pushState();
 
-    renderEffectSnapshot(mEffectSnapshotRef);
+    pxShaderResourceRef  shaderRes = this->effectRef();
+    
+    // Only flatten if we're using "s_texture" ... affecting the pxObject with effect applied
+    //
+    if(shaderRes && shaderRes->needsFbo())
+    {
+      renderEffectSnapshot(mEffectSnapshotRef);
+    }
+
+    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    //
+    
+    // Flattened pxObject (+ any children) now passed to Shader magic !
+    drawEffect(mEffectSnapshotRef);
+    
+    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
     context.popState();
-
-    static pxTextureRef nullMaskRef;
-    context.drawImage(0,0,w,h, mEffectSnapshotRef->getTexture(), nullMaskRef);
   }
   else
   if (mPainting)
@@ -1756,17 +1768,6 @@ void pxObject::renderEffectSnapshot(pxContextFramebufferRef& fbo)
     }
 
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    //
-    // Render SHADER to FBO ...
-    //
-
-    if (fbo.getPtr() != NULL)
-    {
-      // Flattened pxObject (+ any children) now passed to Shader magic !
-
-      drawEffect(fbo);
-    }
-    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   }
   context.setFramebuffer(previousRenderSurface);
 }
@@ -1774,7 +1775,18 @@ void pxObject::renderEffectSnapshot(pxContextFramebufferRef& fbo)
 
 void pxObject::drawEffect(pxContextFramebufferRef &flattenFbo)
 {
-  pxShaderResource  *shaderRes = this->effectPtr();
+  pxShaderResourceRef shaderRes = this->effectRef();
+
+  pxContextFramebufferRef previousSurface;
+  previousSurface = context.getCurrentFramebuffer();
+  
+  // Always need Scratch buffer...
+  pxContextFramebufferRef effectFbo = context.createFramebuffer(mw, mh);
+  
+  context.setFramebuffer(effectFbo);
+  context.clear(static_cast<int>(mw), static_cast<int>(mh));
+
+  pxContextFramebufferRef targetFbo = effectFbo;
 
   // DIRECT ? ----------------------------------------------------------------------------------------------------------
   if ( mEffectConfigRef == NULL &&
@@ -1784,42 +1796,22 @@ void pxObject::drawEffect(pxContextFramebufferRef &flattenFbo)
     context.drawEffect( 0,0, mw, mh,
                        (flattenFbo ? flattenFbo->getTexture() : 0),
                        (shaderProgram*) shaderRes);
-
-    if(shaderRes && shaderRes->isRealTime() == false) // avoid flicker on RT shaders
-    {
-      context.flush();
-    }
   }
   // CONFIG OBJECT ? ---------------------------------------------------------------------------------------------------
   else
   {
-    // Render EFFECT... using FBO/textures
-    pxContextFramebufferRef effectFbo;
-    pxContextFramebufferRef previousSurface;
-
-    previousSurface = context.getCurrentFramebuffer();
-
-    // Scratch buffer...
-    effectFbo = context.createFramebuffer(mw, mh);
-
-    pxContextFramebufferRef sourceFbo = flattenFbo;
-    pxContextFramebufferRef targetFbo = effectFbo;
-
     // SINGLE CONFIG ? ---------------------------------------------------------------------------------------------------
     if(mEffectConfigRef != NULL)
     {
       rtMapObject *config = static_cast<rtMapObject *> ( this->mEffectConfigRef.getPtr() );
-
+      
       if(config)
       {
         // Set Uniforms here ...
         applyRTconfig(config, *this);
-        shaderRes = this->effectPtr(); // updated from config
+        shaderRes = this->effectRef(); // updated from config
       }
-
-      context.setFramebuffer(effectFbo);
-      context.clear(static_cast<int>(mw), static_cast<int>(mh));
-
+      
       //############################
       shaderRes->saveUniforms();//##
       //############################
@@ -1827,16 +1819,18 @@ void pxObject::drawEffect(pxContextFramebufferRef &flattenFbo)
       // Uniforms are SET in Setter ...
       // Render with EFFECT shader...
       context.drawEffect( 0,0, mw, mh,
-                         (flattenFbo ? flattenFbo->getTexture() : 0),
+                         (flattenFbo ? flattenFbo->getTexture() : NULL),
                          (shaderProgram*) shaderRes);
     }
     // CONFIGS ARRAY ? ---------------------------------------------------------------------------------------------------
     else
     {
+      pxContextFramebufferRef sourceFbo = flattenFbo; // Using Flattened image
+
       rtArrayObject *multiPass = static_cast<rtArrayObject *> ( this->mEffectArrayRef.getPtr() );
 
       bool once = true;
-
+      
       for (uint32_t i = 0, l = multiPass ? multiPass->length() : 0; i < l; i++)
       {
         rtValue config;
@@ -1845,23 +1839,23 @@ void pxObject::drawEffect(pxContextFramebufferRef &flattenFbo)
           // Set Uniforms here ...
           applyRTconfig(config.toObject(), *this);
           shaderRes = this->mEffectShaderRef; // updated
-
+          
           context.setFramebuffer(targetFbo);
           context.clear(static_cast<int>(mw), static_cast<int>(mh));
-
+          
           if(once)
           {
             //############################
             shaderRes->saveUniforms();//##
             //############################
-
+            
             once = false;
           }
 
           // Render with EFFECT shader...
-          context.drawEffect( 0,0,  mw, mh,sourceFbo->getTexture(),
+          context.drawEffect( 0,0,  mw, mh, sourceFbo ? sourceFbo->getTexture() : NULL,
                              (shaderProgram*) shaderRes);
-
+          
           if(i < l-1)
           {
             pxContextFramebufferRef swap = targetFbo;
@@ -1872,17 +1866,17 @@ void pxObject::drawEffect(pxContextFramebufferRef &flattenFbo)
       }//FOR
     }
     // -------------------------------------------------------------------------------------------------------------------
-
-    context.setFramebuffer(previousSurface);
-
-    // Draw result of effect
-    context.drawImage(0,0, mw, mh,targetFbo->getTexture(), NULL);
-
-    //###############################
-    shaderRes->restoreUniforms();//##
-    //###############################
   }//FBO
 
+  context.setFramebuffer(previousSurface);
+  
+  // Draw result of effect
+  context.drawImage(0,0, mw, mh, targetFbo ? targetFbo->getTexture() : NULL, NULL);
+  
+  //###############################
+  shaderRes->restoreUniforms();//##
+  //###############################
+  
   if( shaderRes && shaderRes->isRealTime() )
   {
     this->markDirty();
