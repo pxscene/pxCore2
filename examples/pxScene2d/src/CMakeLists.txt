@@ -83,6 +83,8 @@ set(PXSCENE_DEFINITIONS )
 set(PXSCENE_ADDITIONAL_RESOURCES )
 set(PXSCENE_INSTALLER 0)
 
+add_definitions(-DANIMATION_ROTATE_XYZ )
+
 if (BUILD_WITH_GIF)
 message("Building with GIF support")
 set(GIF ${EXTDIR}/giflib-5.1.9/)
@@ -90,7 +92,7 @@ set(GIF ${EXTDIR}/giflib-5.1.9/)
 if(NOT PREFER_SYSTEM_LIBRARIES)
 set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${GIF})
 endif(NOT PREFER_SYSTEM_LIBRARIES)
-	
+
 if(WIN32)
 	set(PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} libgif.7.lib)
 else()
@@ -127,7 +129,7 @@ if (APPLE)
     set(PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} pxCore rtCore_s pthread ${NODE_LIBRARIES} ${V8_LIBRARIES} ${DUKE_LIBRARIES} ${COMM_DEPS_LIBRARIES})
     if (SUPPORT_V8)
         set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${UWS})
-        set(PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} uWS) 
+        set(PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} uWS)
     endif ()
 
     include_directories(AFTER ${NODE_INCLUDE_DIRS} ${DUKE_INCLUDE_DIRS} ${COMM_DEPS_INCLUDE_DIRS})
@@ -315,7 +317,7 @@ elseif (WIN32)
     set(PXSCENE_DEFINITIONS ${PXSCENE_DEFINITIONS} -DHAS_WINDOWS_BREAKPAD)
     add_definitions(-DPX_PLATFORM_WIN -DRT_PLATFORM_WINDOWS -DWIN32 -DWIN32_LEAN_AND_MEAN -DGLEW_STATIC -D_TIMESPEC_DEFINED -D_CONSOLE
             -DCURL_STATICLIB -DRUNINMAIN -DENABLE_RT_NODE -DDISABLE_WAYLAND -DNODE_WANT_INTERNALS=1
-            -DENABLE_NODE_V_6_9 -DENABLE_V8_HEAP_PARAMS=1 -DV8_DEPRECATION_WARNINGS=1 -DNODE_SHARED_MODE 
+            -DENABLE_NODE_V_6_9 -DENABLE_V8_HEAP_PARAMS=1 -DV8_DEPRECATION_WARNINGS=1 -DNODE_SHARED_MODE
             -DENABLE_MAX_TEXTURE_SIZE
             -DHAVE_OPENSSL -D_CRT_SECURE_NO_DEPRECATE -D_CRT_NONSTDC_NO_DEPRECATE -D_HAS_EXCEPTIONS=0 -DBUILDING_V8_SHARED=1
             -DBUILDING_UV_SHARED=1 -DNODE_ARCH="ia32" -DNODE_USE_V8_PLATFORM=1 -DNODE_HAVE_I18N_SUPPORT=1 -DNODE_HAVE_SMALL_ICU=1
@@ -337,7 +339,7 @@ elseif (WIN32)
         Ws2_32.lib Wldap32.lib psapi.lib
         iphlpapi.lib userenv.lib rtCore_s.lib common.lib
         crash_generation_client.lib exception_handler.lib)
-  
+
     if(SUPPORT_DUKTAPE)
       set(PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} msvcrt.lib)
     endif(SUPPORT_DUKTAPE)
@@ -390,6 +392,8 @@ set(PXSCENE_COMMON_FILES pxResource.cpp pxConstants.cpp pxRectangle.cpp pxFont.c
         pxTextBox.cpp pxImage.cpp pxImage9.cpp pxImageA.cpp pxImage9Border.cpp pxArchive.cpp pxAnimate.cpp)
 
 set(PXSCENE_COMMON_FILES ${PXSCENE_COMMON_FILES} pxObject.cpp)
+set(PXSCENE_COMMON_FILES ${PXSCENE_COMMON_FILES} pxShaderUtils.cpp)
+set(PXSCENE_COMMON_FILES ${PXSCENE_COMMON_FILES} pxShaderResource.cpp)
 set(PXSCENE_COMMON_FILES ${PXSCENE_COMMON_FILES} pxScene2d.cpp)
 
 set(PXWAYLAND_LIB_FILES pxContextGL.cpp egl/pxContextUtils.cpp)
@@ -557,7 +561,7 @@ if (BUILD_PXSCENE_APP)
 
         file(GLOB PXSCENE_INSTALL_FILES "${CMAKE_CURRENT_SOURCE_DIR}/FreeSans.ttf"
            "${CMAKE_CURRENT_SOURCE_DIR}/*.json" "${CMAKE_CURRENT_SOURCE_DIR}/*.conf"
-           "${CMAKE_CURRENT_SOURCE_DIR}/../external/vc.build/builds/*.dll" 
+           "${CMAKE_CURRENT_SOURCE_DIR}/../external/vc.build/builds/*.dll"
            "${CMAKE_CURRENT_SOURCE_DIR}/../external/v8/out.gn/ia32.release/v8*.dll"
            "${CMAKE_CURRENT_SOURCE_DIR}/Release/")
         if (SUPPORT_DUKTAPE)
