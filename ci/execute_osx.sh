@@ -40,6 +40,7 @@ export HANDLE_SIGNALS=1
 export ENABLE_MEMLEAK_CHECK=1
 export MallocStackLogging=1
 export SPARK_ENABLE_COLLECT_GARBAGE=1
+export SPARK_ENABLE_DEBUGGING=1
 
 EXECLOGS=$TRAVIS_BUILD_DIR/logs/exec_logs
 LEAKLOGS=$TRAVIS_BUILD_DIR/logs/leak_logs
@@ -67,7 +68,6 @@ count=0
 max_seconds=2100
 
 while [ "$count" -le "$max_seconds" ]; do
-        tail -f /var/tmp/spark.log
 	#leaks -nocontext Spark > $LEAKLOGS
 	printf "\n [execute_osx.sh] snoozing for 30 seconds (%d of %d) \n" $count $max_seconds
 	sleep 30; # seconds
