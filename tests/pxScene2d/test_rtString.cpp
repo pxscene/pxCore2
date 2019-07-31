@@ -190,6 +190,6 @@ TEST_F(rtStringTest, rtStringTests)
   substringTest();
   findTests();
   trimTest();
-  toStringTest()
+  toStringTest();
 }
 
