@@ -5,7 +5,7 @@ minJS=./jsMin.sh  #minify
 
 externalDir=../external
 APPNAME=Spark
-if [ "$TRAVIS_EVENT_TYPE" == "cron" ]
+if [ "$TRAVIS_EVENT_TYPE" == "cron" ] && [ "$TRAVIS_JOB_NAME" != "osx_asan_validation" ]
 then
 APPNAME=SparkEdge
 fi
@@ -66,7 +66,7 @@ cp FreeSans.ttf $bundleRes
 cp sparkpermissions.conf $bundleRes
 
 cp package.json $bundleRes
-if [ "$TRAVIS_EVENT_TYPE" == "cron" ]  
+if [ "$TRAVIS_EVENT_TYPE" == "cron" ] && [ "$TRAVIS_JOB_NAME" != "osx_asan_validation" ]
 then
 echo "************ building edge"
 cp Spark $bundleBin/SparkEdge
@@ -74,7 +74,7 @@ else
 cp ${APPNAME} $bundleBin
 fi
 
-if [ "$TRAVIS_EVENT_TYPE" == "cron" ]  
+if [ "$TRAVIS_EVENT_TYPE" == "cron" ] && [ "$TRAVIS_JOB_NAME" != "osx_asan_validation" ]
 then
   sed -i -e 's/\.\/Spark/\.\/SparkEdge/g' macstuff/spark.sh
   sed -i -e 's/Spark.log /SparkEdge.log /g' macstuff/spark.sh

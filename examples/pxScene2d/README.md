@@ -242,6 +242,8 @@ file:///home/username/directory/filename.js
 
 ## Developer CMake options
    ENABLE_THREAD_SANITIZER - Turn on this option to enable thread sanitizer support.  The default value is OFF
+   ENABLE_ADDRESS_SANITIZER - Turn on this option to enable address sanitizer support.  The default value is OFF
+   ADDRESS_SANITIZER_SUPPRESS_FILE - Mention absolute path to file having suppression formats of address sanitizer
 
 
 ## On Mac OS X - Xcode Workspace 

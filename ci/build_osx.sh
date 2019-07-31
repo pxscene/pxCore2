@@ -27,6 +27,7 @@ then
         cat $BUILDLOGS
         printf "\n**********************************************************************\n\n";
     fi
+    touch /tmp/error
 exit 1;
 fi
 }
@@ -50,23 +51,37 @@ then
   else
     if [ "$TRAVIS_EVENT_TYPE" == "cron" ] ; 
     then
-      cp ../examples/pxScene2d/src/macstuff/Resources/SparkEdge.icns ../examples/pxScene2d/src/macstuff/Resources/pxscene.icns
-      cp ../examples/pxScene2d/src/macstuff/Resources/SparkEdge.icns ../examples/pxScene2d/src/macstuff/Resources/AppIcon.icns
-      cp ../examples/pxScene2d/src/macstuff/Resources/SparkEdge.icns ../examples/pxScene2d/src/macstuff/dmgresources/pxscene.icns
-      cp ../examples/pxScene2d/src/browser/images/status_bg_edge.svg ../examples/pxScene2d/src/browser/images/status_bg.svg
-       
-      cmake -DSUPPORT_DUKTAPE=OFF -DPXSCENE_VERSION=edge_`date +%Y-%m-%d` .. >>$BUILDLOGS 2>&1;
+      if [ "$TRAVIS_JOB_NAME" != "osx_asan_validation" ] ;
+      then
+        cp ../examples/pxScene2d/src/macstuff/Resources/SparkEdge.icns ../examples/pxScene2d/src/macstuff/Resources/pxscene.icns
+        cp ../examples/pxScene2d/src/macstuff/Resources/SparkEdge.icns ../examples/pxScene2d/src/macstuff/Resources/AppIcon.icns
+        cp ../examples/pxScene2d/src/macstuff/Resources/SparkEdge.icns ../examples/pxScene2d/src/macstuff/dmgresources/pxscene.icns
+        cp ../examples/pxScene2d/src/browser/images/status_bg_edge.svg ../examples/pxScene2d/src/browser/images/status_bg.svg
+        cmake -DSUPPORT_DUKTAPE=OFF -DPXSCENE_VERSION=edge_`date +%Y-%m-%d` .. >>$BUILDLOGS 2>&1;
+      else
+        cmake -DBUILD_PX_TESTS=ON -DBUILD_PXSCENE_STATIC_LIB=ON -DBUILD_DEBUG_METRICS=ON -DPXSCENE_TEST_HTTP_CACHE=ON -DENABLE_ADDRESS_SANITIZER=ON -DADDRESS_SANITIZER_SUPPRESS_FILE=$TRAVIS_BUILD_DIR/ci/asan.supp .. >>$BUILDLOGS 2>&1;
+      fi
     else
       cmake -DSUPPORT_DUKTAPE=OFF .. >>$BUILDLOGS 2>&1;
     fi
   fi
-
-  checkError $? 0 "cmake config failed" "Config error" "Check the error in $BUILDLOGS"
+  cmakeRetVal=$?
+  if [ "$TRAVIS_EVENT_TYPE" = "cron" ] && [ "$TRAVIS_JOB_NAME" = "osx_asan_validation" ];
+  then
+    checkError $cmakeRetVal 1 "cmake config failed" "Config error" "Check the error in $BUILDLOGS also"
+  else
+    checkError $cmakeRetVal 0 "cmake config failed" "Config error" "Check the error in $BUILDLOGS"
+  fi
 
   echo "***************************** Building pxcore,rtcore,pxscene app,libpxscene,unitttests ****" >> $BUILDLOGS
   cmake --build . -- -j$(getconf _NPROCESSORS_ONLN) >>$BUILDLOGS 2>&1;
-  checkError $? 0 "Building either pxcore,rtcore,pxscene app,libpxscene,unitttest failed" "Compilation error" "check the $BUILDLOGS file"
-
+  cmakeRetVal=$?
+  if [ "$TRAVIS_EVENT_TYPE" = "cron" ] && [ "$TRAVIS_JOB_NAME" = "osx_asan_validation" ];
+  then
+    checkError $cmakeRetVal 1 "Building either pxcore,rtcore,pxscene app,libpxscene,unitttest failed" "Compilation error" "check the $BUILDLOGS file also"
+  else
+    checkError $cmakeRetVal 0 "Building either pxcore,rtcore,pxscene app,libpxscene,unitttest failed" "Compilation error" "check the $BUILDLOGS file"
+  fi
 else
 
   echo "***************************** Generating config files ****"
@@ -85,9 +100,11 @@ if [ "$TRAVIS_PULL_REQUEST" = "false" ]
 
   if [ "$TRAVIS_EVENT_TYPE" = "cron" ]  ;
   then
-    cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src/
-    ./mkdeploy.sh edge_`date +%Y-%m-%d` >>$BUILDLOGS 2>&1
-        
+    if [ "$TRAVIS_JOB_NAME" != "osx_asan_validation" ] ;
+    then
+      cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src/
+      ./mkdeploy.sh edge_`date +%Y-%m-%d` >>$BUILDLOGS 2>&1
+    fi
   elif [ "$TRAVIS_EVENT_TYPE" = "api" ] || [ ! -z "${TRAVIS_TAG}" ] 
   then
     cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src/

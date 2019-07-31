@@ -2,7 +2,7 @@
 
 
 APPNAME=Spark
-if [ "$TRAVIS_EVENT_TYPE" == "cron" ]
+if [ "$TRAVIS_EVENT_TYPE" == "cron" ] && [ "$TRAVIS_JOB_NAME" != "osx_asan_validation" ]
 then
 APPNAME=SparkEdge
 fi
@@ -17,7 +17,7 @@ SIZE=`stat -f "%z" deploy/mac/${APPNAME}.dmg`
 HASH=`openssl sha1 -binary "${DMGFILE}" | openssl base64`
 VERS=$1
 
-if [ "$TRAVIS_EVENT_TYPE" == "cron" ]
+if [ "$TRAVIS_EVENT_TYPE" == "cron" ] && [ "$TRAVIS_JOB_NAME" != "osx_asan_validation" ]
 then
 IMGURL="http://96.116.56.119/edge/osx/artifacts/SparkEdge.dmg"
 else

@@ -1,5 +1,6 @@
 #!/bin/sh
-export DEPLOY_DESTINATION=${DEPLOY_DESTINATION:-/var/www/html/ciresults}
+#made destination directory as option
+export DEPLOY_DESTINATION=${DEPLOY_DESTINATION:-$3}
 export DEPLOY_USER="${DEPLOY_USER:-ubuntu}"
 REMOTE_HOST="$1"
 REMOTE_DIR="${DEPLOY_DESTINATION}/${TRAVIS_BUILD_ID}-${TRAVIS_COMMIT}-${TRAVIS_OS_NAME}"
@@ -12,7 +13,7 @@ filename=$2
 scp -P 2220 ${filename} ${DEPLOY_USER}@${REMOTE_HOST}:${REMOTE_TEMPDIR}
 SSH="ssh -tt -o StrictHostKeyChecking=no -p 2220 -l ${DEPLOY_USER} ${REMOTE_HOST}"
 $SSH "set -e;
-sudo mkdir $REMOTE_DIR
+sudo mkdir -p $REMOTE_DIR
 cd $REMOTE_TEMPDIR
 sudo tar -C $REMOTE_DIR -xvzf ${filename};
 sudo mv $REMOTE_DIR/logs/* $REMOTE_DIR/.

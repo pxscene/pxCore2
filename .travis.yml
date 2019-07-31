@@ -1,6 +1,7 @@
 matrix:
   include:
   - os: linux
+    name: linux_regular
     dist: trusty
     sudo: required
     addons:
@@ -14,6 +15,12 @@ matrix:
       - MATRIX_EVAL="CC=gcc-6 && CXX=g++-6"
   - os: osx
     osx_image: xcode9.4
+    name: osx_regular_cron
+  - if: type = cron
+    os: osx
+    osx_image: xcode9.4
+    name: osx_asan_validation
+
 language: c++
 before_install:
 - eval "${MATRIX_EVAL}"
@@ -31,7 +38,7 @@ before_script:
 - if ( [ "$TRAVIS_EVENT_TYPE" = "push" ] || [ "$TRAVIS_EVENT_TYPE" = "pull_request" ] ) && [ -z "${TRAVIS_TAG}" ] ; then ccache -s; fi
 - ./ci/before_script.sh
 - if [ "$TRAVIS_EVENT_TYPE" = "api" ] || [ ! -z "${TRAVIS_TAG}" ] ;  then export linenumber=`awk '/CFBundleShortVersionString/{ print NR; exit }' $TRAVIS_BUILD_DIR/examples/pxScene2d/src/macstuff/Info.plist`;export PX_VERSION=`sed -n "\`echo $((linenumber+1))\`p" $TRAVIS_BUILD_DIR/examples/pxScene2d/src/macstuff/Info.plist|awk -F '<string>' '{print $2}'|awk -F'</string>' '{print $1}'`; fi
-- if [ "$TRAVIS_EVENT_TYPE" = "cron" ] ; then export PX_VERSION=edge_`date +%Y-%m-%d` ; fi
+- if [ "$TRAVIS_EVENT_TYPE" = "cron" ] && [ "$TRAVIS_JOB_NAME" != "osx_asan_validation" ] ; then export PX_VERSION=edge_`date +%Y-%m-%d` ; fi
 script:
 - ./ci/script.sh
 - if ( [ "$TRAVIS_EVENT_TYPE" = "push" ] || [ "$TRAVIS_EVENT_TYPE" = "pull_request" ] ) && [ -z "${TRAVIS_TAG}" ] ; then codecov --build "$TRAVIS_OS_NAME-$TRAVIS_COMMIT-$TRAVIS_BUILD_NUMBER" -X gcov -f $TRAVIS_BUILD_DIR/tracefile ; fi
