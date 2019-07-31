@@ -157,6 +157,21 @@ class rtStringTest : public testing::Test
        EXPECT_TRUE(mData.find(0, 0x34) == -1 );  // Bad !   0x34 = "4"
     }
 
+    void trimTest()
+    {
+      mData = " trimTest ";
+
+      EXPECT_TRUE( mData.trim() == "trimTest" );
+      EXPECT_FALSE( mData.trim() == " trimTest" );
+      EXPECT_FALSE( mData.trim() == "trimTest " );
+      EXPECT_FALSE( mData.trim() == " trimTest " );
+    }
+
+    void toStringTest()
+    {
+      EXPECT_TRUE(rtString::toString(1234) == "1234" );
+    }
+
     private:
       rtString mData;
 };
@@ -174,5 +189,7 @@ TEST_F(rtStringTest, rtStringTests)
   beginsTest();
   substringTest();
   findTests();
+  trimTest();
+  toStringTest()
 }
 
