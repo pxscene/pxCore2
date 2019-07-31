@@ -328,11 +328,6 @@ void pxShaderResource::loadResourceFromFile()
 {
   init();
 
-  // Since this object can be released before we get a async completion
-  // We need to maintain this object's lifetime
-  // TODO review overall flow and organization
-  AddRef();
-
   rtError loadFrgShader = RT_FAIL;
 
   if(mVertexUrl.beginsWith("data:text/plain,"))
