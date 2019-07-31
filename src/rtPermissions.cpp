@@ -19,14 +19,7 @@
 #include "rtPermissions.h"
 
 #include "rtUrlUtils.h"
-#include "rtPathUtils.h"
-
-#include <rapidjson/document.h>
-#include <rapidjson/filereadstream.h>
-#include <rapidjson/error/en.h>
-
-#include <stdlib.h>
-#include <fstream>
+#include "rtJsonUtils.h"
 
 const char* rtPermissions::DEFAULT_CONFIG_FILE = "./sparkpermissions.conf";
 const char* rtPermissions::CONFIG_ENV_NAME = "SPARK_PERMISSIONS_CONFIG";
@@ -116,13 +109,12 @@ rtError rtPermissions::init(const char* filename)
     if (!filename)
       filename = DEFAULT_CONFIG_FILE;
 
-    rtString s;
-    e = file2str(filename, s);
+    rtValue v;
+    e = jsonFile2rtValue(filename, v);
     if (e == RT_OK)
     {
       rtObjectRef obj;
-      const char* sStr = s.cString();
-      e = json2obj(sStr, obj);
+      e = v.getObject(obj);
       if (e == RT_OK)
       {
         rtLogInfo("using permissions config '%s", filename);
@@ -139,13 +131,19 @@ rtError rtPermissions::init(const char* filename)
 
 rtError rtPermissions::set(const char* json)
 {
-  rtError e = RT_OK;
+  rtError e;
 
-  rtObjectRef obj;
-  e = json2obj(json, obj);
+  rtValue v;
+  e = json2rtValue(json, v);
   if (e == RT_OK)
-    mRole = obj;
-  else
+  {
+    rtObjectRef obj;
+    e = v.getObject(obj);
+    if (e == RT_OK)
+      mRole = obj;
+  }
+
+  if (e != RT_OK)
     rtLogError("cannot set permissions json");
 
   return e;
@@ -241,141 +239,6 @@ rtError rtPermissions::getStorageQuota(uint32_t& o) const
 {
   o = mStorageQuota;
   return RT_OK;
-}
-
-rtError rtPermissions::file2str(const char* file, rtString& s)
-{
-  rtError e = RT_OK;
-
-  if (rtFileExists(file))
-  {
-    std::ifstream is(file, std::ifstream::binary);
-    if (is)
-    {
-      is.seekg(0, is.end);
-      int length = is.tellg();
-      is.seekg(0, is.beg);
-      if (length > 0)
-      {
-        char * buffer = new char[length];
-        is.read(buffer, length);
-        if (!is)
-          e = RT_FAIL;
-        else
-          s = rtString(buffer, length);
-        is.close();
-        delete[] buffer;
-      }
-      else
-      {
-        s = rtString();
-      }
-    }
-    else
-    {
-      rtLogError("error opening '%s'", file);
-      e = RT_FAIL;
-    }
-  }
-
-  return e;
-}
-
-namespace
-{
-  rtError jsonValue2rtValue(const rapidjson::Value& jsonValue, rtValue& v)
-  {
-    if (jsonValue.IsArray())
-    {
-      rtArrayObject* o = new rtArrayObject;
-      for (rapidjson::SizeType k = 0; k < jsonValue.Size(); k++)
-      {
-        const rapidjson::Value& val = jsonValue[k];
-        rtValue val2;
-        if (jsonValue2rtValue(val, val2) == RT_OK)
-          o->pushBack(val2);
-      }
-      v = o;
-    }
-    else if (jsonValue.IsObject())
-    {
-      rtMapObject* o = new rtMapObject;
-      for (rapidjson::Value::ConstMemberIterator itr = jsonValue.MemberBegin(); itr != jsonValue.MemberEnd(); ++itr)
-      {
-        const rapidjson::Value& key = itr->name;
-        const rapidjson::Value& val = itr->value;
-        if (!key.IsString())
-        {
-          rtLogError("%s : map key is not string", __FUNCTION__);
-          continue;
-        }
-        rtValue val2;
-        if (jsonValue2rtValue(val, val2) == RT_OK)
-          o->Set(key.GetString(), &val2);
-      }
-      v = o;
-    }
-
-    // string
-    else if (jsonValue.IsString())
-      v = jsonValue.GetString();
-
-    // number
-    else if (jsonValue.IsUint())
-      v = jsonValue.GetUint();
-    else if (jsonValue.IsInt())
-      v = jsonValue.GetInt();
-    else if (jsonValue.IsInt64())
-      v = jsonValue.GetInt64();
-    else if (jsonValue.IsUint64())
-      v = jsonValue.GetUint64();
-    else if (jsonValue.IsDouble())
-      v = jsonValue.GetDouble();
-
-    // other types
-    else if (jsonValue.IsBool())
-      v = jsonValue.GetBool();
-
-    else
-    {
-      rtLogError("%s : value is not string/array/object", __FUNCTION__);
-      return RT_FAIL;
-    }
-    return RT_OK;
-  }
-}
-
-rtError rtPermissions::json2obj(const char* json, rtObjectRef& obj)
-{
-  if (!json || *json == 0)
-  {
-    rtLogError("%s : empty", __FUNCTION__);
-    return RT_FAIL;
-  }
-
-  rapidjson::Document doc;
-  rapidjson::ParseResult result = doc.Parse(json);
-
-  if (!result)
-  {
-    rapidjson::ParseErrorCode e = doc.GetParseError();
-    rtLogError("%s : [JSON parse error : %s (%ld)]", __FUNCTION__, rapidjson::GetParseError_En(e), result.Offset());
-    return RT_FAIL;
-  }
-
-  if (!doc.IsObject())
-  {
-    rtLogError("%s : no root object", __FUNCTION__);
-    return RT_FAIL;
-  }
-
-  rtError e;
-  rtValue val2;
-  e = jsonValue2rtValue(doc, val2);
-  if (e == RT_OK)
-    obj = val2.toObject();
-
-  return e;
 }
 
 rtError rtPermissions::find(const rtObjectRef& obj, const char* s, rtString& found)

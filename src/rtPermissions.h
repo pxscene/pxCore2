@@ -58,8 +58,6 @@ public:
   uint32_t getStorageQuota(const rtString& origin) const;
 
   // Parsing
-  static rtError file2str(const char* file, rtString& s);
-  static rtError json2obj(const char* json, rtObjectRef& obj);
   static rtError find(const rtObjectRef& obj, const char* s, rtString& found); // obj = map or array
   static const char* type2str(Type t);
 

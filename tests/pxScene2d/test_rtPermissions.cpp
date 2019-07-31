@@ -19,7 +19,7 @@ limitations under the License.
 #include <sstream>
 
 #include "rtPermissions.h"
-#include "rtUrlUtils.h"
+#include "rtJsonUtils.h"
 
 #include "test_includes.h" // Needs to be included last
 
@@ -1174,7 +1174,9 @@ public:
       "}";
 
     rtObjectRef obj;
-    EXPECT_TRUE (RT_OK == rtPermissions::json2obj(example, obj));
+    rtValue val;
+    EXPECT_TRUE (RT_OK == json2rtValue(example, val));
+    EXPECT_TRUE (RT_OK == val.getObject(obj));
 
     rtString s;
     EXPECT_EQ ((int)RT_OK, (int)rtPermissions::find(obj, "", s));
@@ -1222,7 +1224,9 @@ public:
       "}";
 
     rtObjectRef obj;
-    EXPECT_TRUE (RT_OK == rtPermissions::json2obj(example, obj));
+    rtValue val;
+    EXPECT_TRUE (RT_OK == json2rtValue(example, val));
+    EXPECT_TRUE (RT_OK == val.getObject(obj));
 
     rtString s;
     EXPECT_EQ ((int)RT_OK, (int)rtPermissions::find(obj, "http://", s));
@@ -1319,7 +1323,9 @@ public:
       "}";
 
     rtObjectRef obj;
-    EXPECT_TRUE (RT_OK == rtPermissions::json2obj(example, obj));
+    rtValue val;
+    EXPECT_TRUE (RT_OK == json2rtValue(example, val));
+    EXPECT_TRUE (RT_OK == val.getObject(obj));
 
     rtString s;
     EXPECT_EQ ((int)RT_PROP_NOT_FOUND, (int)rtPermissions::find(obj, "http://", s));
@@ -1446,7 +1452,9 @@ public:
       "}";
 
     rtObjectRef obj;
-    EXPECT_TRUE (RT_OK == rtPermissions::json2obj(example, obj));
+    rtValue val;
+    EXPECT_TRUE (RT_OK == json2rtValue(example, val));
+    EXPECT_TRUE (RT_OK == val.getObject(obj));
 
     rtString s;
     EXPECT_EQ ((int)RT_OK, (int)rtPermissions::find(obj, "https://github.com/pxscene/pxCore/blob/master/examples/pxScene2d/README.md", s));
@@ -1519,7 +1527,9 @@ public:
       "}";
 
     rtObjectRef obj;
-    EXPECT_TRUE (RT_OK == rtPermissions::json2obj(example, obj));
+    rtValue val;
+    EXPECT_TRUE (RT_OK == json2rtValue(example, val));
+    EXPECT_TRUE (RT_OK == val.getObject(obj));
 
     rtString s;
     EXPECT_EQ ((int)RT_OK, (int)rtPermissions::find(obj, "http://localhost/", s));
@@ -1536,7 +1546,9 @@ public:
       "}";
 
     rtObjectRef obj;
-    EXPECT_TRUE (RT_OK == rtPermissions::json2obj(example, obj));
+    rtValue val;
+    EXPECT_TRUE (RT_OK == json2rtValue(example, val));
+    EXPECT_TRUE (RT_OK == val.getObject(obj));
 
     rtString s;
     EXPECT_EQ ((int)RT_OK, (int)rtPermissions::find(obj, "x", s));
