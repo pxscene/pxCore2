@@ -44,8 +44,6 @@
 #include "rtPromise.h"
 #include "rtThreadQueue.h"
 
-#define ANIMATION_ROTATE_XYZ
-
 #include "pxResource.h"
 
 #include "pxCore.h"
@@ -925,6 +923,7 @@ public:
   rtError createImageResource(rtObjectRef p, rtObjectRef& o);
   rtError createImageAResource(rtObjectRef p, rtObjectRef& o);
   rtError createFontResource(rtObjectRef p, rtObjectRef& o);
+  rtError createShaderResource(rtObjectRef p, rtObjectRef& o);
   rtError createScene(rtObjectRef p,rtObjectRef& o);
   rtError createExternal(rtObjectRef p, rtObjectRef& o);
   rtError createWayland(rtObjectRef p, rtObjectRef& o);

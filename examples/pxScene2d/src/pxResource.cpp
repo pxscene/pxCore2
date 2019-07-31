@@ -623,7 +623,7 @@ void pxResource::loadResource(rtObjectRef archive, bool reloading)
 }
 void pxResource::onDownloadCompleteUI(void* context, void* data)
 {
-  pxResource* res = (rtImageResource*)context;
+  pxResource* res = (pxResource*)context;
   rtString resolution = (char*)data;
 
   res->setupResource();

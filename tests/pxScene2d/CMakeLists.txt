@@ -16,6 +16,8 @@ include(../../cmake/CommDeps.cmake)
 include(../../cmake/NodeDeps.cmake)
 include(../../cmake/DukeDeps.cmake)
 
+add_definitions(-DANIMATION_ROTATE_XYZ )
+
 set(WESTEROSINC ${EXTDIR}/westeros/external/install/include)
 set(WESTEROSSTUBINC ${EXTDIR}/westeros-stub)
 set(GOOGLETESTINC ${EXTDIR}/gtest/googletest/include ${EXTDIR}/gtest/googletest ${EXTDIR}/gtest/googlemock/include ${EXTDIR}/gtest/googlemock)
@@ -162,7 +164,7 @@ set(TEST_SOURCE_FILES pxscene2dtestsmain.cpp  test_rtThreadPool.cpp test_example
     test_rtUrlUtils.cpp test_pxArchive.cpp test_pxPixel_h.cpp test_pxFont.cpp test_utf8.cpp
     test_rtSettings.cpp test_cors.cpp  test_external.cpp test_pxScene2d.cpp test_oscillate.cpp test_rtPathUtils.cpp
     test_rtError.cpp test_import_resources.cpp test_rtHttpRequest.cpp test_rtHttpResponse.cpp test_imagecacheSVG.cpp test_rtObjectWrapper.cpp
-    test_baseFilePath.cpp
+    test_baseFilePath.cpp test_pxShaderCode.cpp
     ${PLATFORM_TEST_FILES} ${TEST_WAYLAND_SOURCE_FILES})
 
 if (DEFINED ENV{USE_HTTP_CACHE})
