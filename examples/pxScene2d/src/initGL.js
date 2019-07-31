@@ -64,7 +64,6 @@ var sandbox = {}
 var app = null;
 var contextifiedSandbox = null;
 var __dirname = process.cwd()
-
 /* holds map of depenedent module name and its reference */
 var modmap = {}
 var loadUrl = function(url, _beginDrawing, _endDrawing, _view) {
