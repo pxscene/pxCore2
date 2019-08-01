@@ -2,12 +2,16 @@
 if [ "$TRAVIS_EVENT_TYPE" != "cron" ]
 then
 export DEPLOY_DESTINATION=${DEPLOY_DESTINATION:-/var/www/html/releases}
+export RELEASE=1
 else
+export RELEASE=0
 if [ "$TRAVIS_BRANCH" = "master" ]
 then
-export DEPLOY_DESTINATION=${DEPLOY_DESTINATION:-/var/www/html/edge/osx}
+export DEPLOY_DESTINATION=${DEPLOY_DESTINATION:-/var/www/html/edge/}
+export LATEST_IMAGE=${LATEST_IMAGE:-/var/www/html/edge/osx}
 else
-export DEPLOY_DESTINATION=${DEPLOY_DESTINATION:-/var/www/html/edge_webgl/osx}
+export DEPLOY_DESTINATION=${DEPLOY_DESTINATION:-/var/www/html/edge_webgl/}
+export LATEST_IMAGE=${LATEST_IMAGE:-/var/www/html/edge_webgl/osx}
 fi
 fi
 export DEPLOY_USER="${DEPLOY_USER:-ubuntu}"
@@ -16,7 +20,7 @@ if [ "$TRAVIS_EVENT_TYPE" != "cron" ]
 then
 REMOTE_DIR="${DEPLOY_DESTINATION}/${PX_VERSION}"
 else
-REMOTE_DIR="${DEPLOY_DESTINATION}"
+REMOTE_DIR="${DEPLOY_DESTINATION}/${TRAVIS_BUILD_ID}-${TRAVIS_COMMIT}-${TRAVIS_OS_NAME}"
 fi
 #since we saved $1 to REMOTE_HOST delete it from args via shift
 export REMOTE_FILE_COUNT=$(ssh -o StrictHostKeyChecking=no -p 2220 ${DEPLOY_USER}@${REMOTE_HOST} "ls -lrt $DEPLOY_DESTINATION|wc -l")
@@ -35,8 +39,13 @@ sudo tar -C $REMOTE_DIR -xvzf ${filename};
 sudo mv $REMOTE_DIR/release/* $REMOTE_DIR/. ;
 sudo rm -rf $REMOTE_DIR/release;
 sudo rm -rf ${REMOTE_TEMPDIR};
+if [ $RELEASE -eq 0 ]
+then
+sudo rm -rf ${LATEST_IMAGE}
+sudo ln -s ${REMOTE_DIR} ${LATEST_IMAGE}
+fi
 echo $REMOTE_FILE_COUNT;
-if [ $REMOTE_FILE_COUNT -gt 30 ]
+if [ $REMOTE_FILE_COUNT -eq 8 ]
 then
   sudo rm -rf $REMOTE_FILE_OLD;
 fi
