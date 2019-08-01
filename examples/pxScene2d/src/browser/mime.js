@@ -49,7 +49,6 @@ limitations under the License.
 
     return url;
   }
-
   /**
    * Prepares URL by unifying it
    *
