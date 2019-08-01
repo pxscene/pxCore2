@@ -49,7 +49,7 @@ limitations under the License.
 
     return url;
   }
-  
+
   /**
    * Prepares URL by unifying it
    *
@@ -82,7 +82,7 @@ limitations under the License.
     {
       url = "about.js";
     }
-    else if ( (url.indexOf(':') == -1) && url.endsWith(".js") )
+    else if ( url.indexOf('/') !== 0 && url.indexOf('/') !== 0 && (url.indexOf(':') == -1) && url.endsWith(".js") )
     {
       url = baseUrl + url;
     }
