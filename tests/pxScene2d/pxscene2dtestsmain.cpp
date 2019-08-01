@@ -32,10 +32,16 @@ extern "C" void __gcov_flush();
 pxContext context;
 int gargc;
 char** gargv;
+char *nodeInput = NULL;
 #ifdef ENABLE_DEBUG_MODE
+#if defined RTSCRIPT_SUPPORT_NODE
 extern int g_argc;
 extern char** g_argv;
-char *nodeInput = NULL;
+#endif
+#if RTSCRIPT_SUPPORT_DUKTAPE
+extern int g_argcduk;
+extern char** g_argvduk;
+#endif
 #endif
 extern rtScript script;
 
@@ -71,7 +77,11 @@ int main(int argc, char **argv) {
   gargv = argv;
 #ifdef ENABLE_DEBUG_MODE
   bool isDebugging = false;
+#ifdef RTSCRIPT_SUPPORT_DUKTAPE
+  g_argvduk = (char**)malloc((argc+2) * sizeof(char*));
+#else
   g_argv = (char**)malloc((argc+2) * sizeof(char*));
+#endif
   int size  = 0;
   for (int i=1;i<argc;i++)
   {
@@ -96,8 +106,13 @@ int main(int argc, char **argv) {
   }
   int curpos = 0;
   strcpy(nodeInput,"pxscene\0");
+#if RTSCRIPT_SUPPORT_DUKTAPE
+  g_argcduk  = 0;
+  g_argvduk[g_argcduk++] = &nodeInput[0];
+#else
   g_argc  = 0;
   g_argv[g_argc++] = &nodeInput[0];
+#endif
   curpos += 8;
 
   for (int i=1;i<argc;i++)
@@ -106,17 +121,29 @@ int main(int argc, char **argv) {
     {
       strcpy(nodeInput+curpos,argv[i]);
       *(nodeInput+curpos+strlen(argv[i])) = '\0';
+#ifdef RTSCRIPT_SUPPORT_DUKTAPE
+      g_argvduk[g_argcduk++] = &nodeInput[curpos];
+#else
       g_argv[g_argc++] = &nodeInput[curpos];
+#endif
       curpos = curpos + strlen(argv[i]) + 1;
     }
   }
   if (false == isDebugging)
   {
       strcpy(nodeInput+curpos,"-e\0");
+#ifdef RTSCRIPT_SUPPORT_DUKTAPE
+      g_argvduk[g_argcduk++] = &nodeInput[curpos];
+#else
       g_argv[g_argc++] = &nodeInput[curpos];
+#endif
       curpos = curpos + 3;
       strcpy(nodeInput+curpos,"console.log(\"rtNode Initialized\");\0");
+#ifdef RTSCRIPT_SUPPORT_DUKTAPE
+      g_argvduk[g_argcduk++] = &nodeInput[curpos];
+#else
       g_argv[g_argc++] = &nodeInput[curpos];
+#endif
       curpos = curpos + 35;
   }
 #endif

@@ -38,8 +38,8 @@ SceneModuleLoader.prototype.loadScenePackage = function(scene, fileSpec) {
 
   var _this = this;
   return new Promise(function (resolve, reject) {
-    scene.loadArchive(fileSpec.fileUri)
-      .ready.then(function(a) {
+        var archive = scene.loadArchive(fileSpec.fileUri);
+        archive.ready.then(function(a) {
           if (a.loadStatus.httpStatusCode && a.loadStatus.httpStatusCode != 200)
           {
             console.error("http status is not 200 rejecting");

@@ -215,4 +215,42 @@ if [ "$leakcount" -ne 0 ]
 else
 	echo "Valgrind reports success !!!!!!!!!!!"
 fi
+
+if [ "$TRAVIS_JOB_NAME" = "duktape_validation" ] && [ "$TRAVIS_EVENT_TYPE" = "cron" ] ;
+then
+  TESTS="file://$TRAVIS_BUILD_DIR/tests/pxScene2d/testRunner/tests_duktape.json"
+  rm -rf /var/tmp/spark.log
+  cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src/spark.app/Contents/MacOS
+  ./spark.sh $TESTRUNNERURL?tests=$TESTS &
+
+  count=0
+  max_seconds=2100
+  
+  while [ "$count" -le "$max_seconds" ]; do
+          #leaks -nocontext Spark > $LEAKLOGS
+          printf "\n [execute_osx.sh] snoozing for 30 seconds (%d of %d) \n" $count $max_seconds
+          sleep 30; # seconds
+          grep "TEST RESULTS: " /var/tmp/spark.log   # string in [results.js] must be "TEST RESULTS: "
+          retVal=$?
+  
+          if [ "$retVal" -eq 0 ] # text found    exit code from Grep is '1' if NOT found
+          then
+                  printf "\n ############  TESTING COMPLETE ... finishing up.\n\n"
+                  break
+          fi
+          count=$((count+30)) # add 30 seconds
+  done #LOOP
+  
+  leakcount=`leaks Spark|grep Leak|wc -l`
+  echo "leakcount during termination $leakcount"
+  kill -15 `ps -ef | grep Spark |grep -v grep|grep -v spark.sh|awk '{print $2}'`
+  
+  ps -ef | grep Spark |grep -v grep
+  sparkexited=$?
+  echo "Spark presence status $sparkexited"
+  pkill -9 -f spark.sh	
+  
+  cp /var/tmp/spark.log $EXEC_DUKTAPE_LOGS
+fi
+
 exit 0;

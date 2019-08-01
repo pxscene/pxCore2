@@ -26,10 +26,16 @@ cd temp
 
 if [ "$TRAVIS_PULL_REQUEST" = "false" ]
 then
+    if [ "$TRAVIS_EVENT_TYPE" == "cron" ] && [ "$TRAVIS_JOB_NAME" = "duktape_validation" ];
+    then
+	echo "************************* Generating config files *************************" >> $BUILDLOGS
+	cmake -DBUILD_PX_TESTS=ON -DBUILD_PXSCENE_STATIC_LIB=ON -DBUILD_DEBUG_METRICS=ON -DPXSCENE_TEST_HTTP_CACHE=ON -DSUPPORT_NODE=OFF .. >>$BUILDLOGS 2>&1;
+	checkError $? "cmake config failed" "Config error" "Check the error in $BUILDLOGS"
+    else
 	echo "************************* Generating config files *************************" >> $BUILDLOGS
 	cmake -DBUILD_PX_TESTS=ON -DBUILD_PXSCENE_STATIC_LIB=ON -DBUILD_DEBUG_METRICS=ON -DPXSCENE_TEST_HTTP_CACHE=ON .. >>$BUILDLOGS 2>&1;
 	checkError $? "cmake config failed" "Config error" "Check the error in $BUILDLOGS"
-
+    fi
   echo "************************* Building pxcore,rtcore,pxscene app,libpxscene, unitttests ****" >> $BUILDLOGS
   cmake --build . --clean-first -- -j$(getconf _NPROCESSORS_ONLN) >>$BUILDLOGS 2>&1;
   checkError $? "cmake build failed for pxcore or rtcore" "Compilation error" "Check the error in $BUILDLOGS"
@@ -46,4 +52,3 @@ else
 fi
 cd $TRAVIS_BUILD_DIR
 exit 0;
-

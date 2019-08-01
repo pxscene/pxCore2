@@ -142,17 +142,42 @@ static duk_ret_t dukObjectMethodGetStub(duk_context *ctx)
   return 1;
 }
 
+static duk_ret_t dukObjectFinalizer(duk_context *ctx)
+{
+   bool res = duk_get_prop_string(ctx, 0, "\xff""\xff""data");
+   if (res) {
+      rtIObject* obj = (rtIObject*)duk_require_pointer(ctx, -1);
+      obj->Release();
+   }
+}
+
+std::map<rtMethodMap *, dukObjectFunctionInfo *> methodCache;
+
+void clearMethodCache()
+{
+  for (std::map<rtMethodMap *, dukObjectFunctionInfo *>::iterator it=methodCache.begin(); it!=methodCache.end(); ++it)
+  {
+    for (dukObjectFunctionInfo* prevInfo = it->second; prevInfo != NULL; )
+    {
+      dukObjectFunctionInfo* temp = prevInfo;
+      prevInfo = prevInfo->mNext;
+      delete temp;
+    }
+  }
+  methodCache.clear();
+}
 
 static void wrapObjToDuk(duk_context *ctx, const rtObjectRef& ref)
 {
-  static std::map<rtMethodMap *, dukObjectFunctionInfo *> methodCache;
 
-  duk_push_object(ctx);
-
+  duk_idx_t objidx = duk_push_object(ctx);
   const_cast<rtObjectRef &>(ref)->AddRef();
 
   duk_push_pointer(ctx, (void*)ref.getPtr());
-  duk_put_prop_string(ctx, -2, "\xff""\xff""data");
+  duk_put_prop_string(ctx, objidx, "\xff""\xff""data");
+
+  duk_push_c_function(ctx, dukObjectFinalizer, 1);
+  duk_set_finalizer(ctx, objidx);
 
   dukObjectFunctionInfo *prevInfo = NULL, *firstInfo = NULL;
 

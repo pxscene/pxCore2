@@ -24,12 +24,12 @@ extern uv_mutex_t threadMutex;
 #endif
 #include <rtMutex.h>
 
-
-
+#include <set>
+#include <sstream>
 using namespace std;
-
 namespace rtScriptDukUtils
 {
+static std::map<duk_context*, std::set<std::string>> g_dukRtObjectSet;
 std::hash<std::string> hashFn;
 
 void rt2duk(duk_context *ctx, const rtValue& v)
@@ -186,7 +186,7 @@ std::string rtAllocDukIdentId()
   return buf;
 }
 
-
+static std::set<std::string> g_globalIdsSet;
 std::string rtDukPutIdentToGlobal(duk_context *ctx, const std::string &name)
 {
   std::string id = name;
@@ -195,6 +195,7 @@ std::string rtDukPutIdentToGlobal(duk_context *ctx, const std::string &name)
   }
   duk_bool_t rc = duk_put_global_string(ctx, id.c_str());
   assert(rc);
+  g_globalIdsSet.insert(id); 
   return id;
 }
 
@@ -204,6 +205,16 @@ void rtDukDelGlobalIdent(duk_context *ctx, const std::string &name)
   duk_push_global_object(ctx);
   duk_del_prop_string(ctx, -1, name.c_str());
   duk_pop(ctx);
+  g_globalIdsSet.erase(name);
 }
 
+void rtClearAllGlobalIdents(duk_context *ctx)
+{
+  std::set<std::string> copySet(g_globalIdsSet);
+  for (std::set<std::string>::iterator it = copySet.begin(); it != copySet.end(); ++it) {
+    if ((*it).substr(0, 7) == "__ident") {
+      rtDukDelGlobalIdent(ctx, *it);
+    }
+  }
+}
 }

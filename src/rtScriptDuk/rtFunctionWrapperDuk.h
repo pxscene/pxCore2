@@ -92,7 +92,7 @@ private:
   size_t mHash;
   rtValue mReturnValue;
 };
-
+void clearAllPendingrtFns(duk_context *ctx);
 } // namespace rtScriptDukUtils
 
 #endif
