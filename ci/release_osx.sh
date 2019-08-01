@@ -3,6 +3,7 @@ if [ "$TRAVIS_EVENT_TYPE" != "cron" ]
 then
 export DEPLOY_DESTINATION=${DEPLOY_DESTINATION:-/var/www/html/releases}
 export RELEASE=1
+
 else
 export RELEASE=0
 if [ "$TRAVIS_BRANCH" = "master" ]
