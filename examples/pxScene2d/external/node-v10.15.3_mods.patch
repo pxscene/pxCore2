@@ -429,7 +429,7 @@ index a8de196..607a7db 100755
        'deps/node-inspect/lib/internal/inspect_client.js',
        'deps/node-inspect/lib/internal/inspect_repl.js',
 diff --git a/examples/pxScene2d/external/libnode-v10.15.3/src/node.cc b/examples/pxScene2d/external/libnode-v10.15.3/src/node.cc
-index 9fb5ab3..7c3c865 100755
+index 9fb5ab3..c616a8e 100755
 --- a/examples/pxScene2d/external/libnode-v10.15.3/src/node.cc
 +++ b/examples/pxScene2d/external/libnode-v10.15.3/src/node.cc
 @@ -173,7 +173,9 @@ using v8::V8;
@@ -660,14 +660,20 @@ index 9fb5ab3..7c3c865 100755
    return new NodePlatform(thread_pool_size, tracing_controller);
  }
  
-@@ -3050,6 +3127,15 @@ void RegisterBuiltinModules() {
+@@ -3050,6 +3127,21 @@ void RegisterBuiltinModules() {
  #undef V
  }
  
 +/*MODIFIED CODE BEGIN*/
 +#if HAVE_INSPECTOR
-+void InspectorStart(Environment* env, const char* path, MultiIsolatePlatform* platform) {
++void InspectorStart(Environment* env, const char* path, const char* address, int port) {
++  env->options()->debug_options->host_port.host_name = address;
++  env->options()->debug_options->host_port.port = port;
 +  env->inspector_agent()->Start(path, env->options()->debug_options, true);
++}
++
++void InspectorStop(Environment* env) {
++  env->inspector_agent()->Stop();
 +}
 +#endif
 +/*MODIFIED CODE END*/
@@ -677,7 +683,7 @@ index 9fb5ab3..7c3c865 100755
  
  #if !HAVE_INSPECTOR
 diff --git a/examples/pxScene2d/external/libnode-v10.15.3/src/node.h b/examples/pxScene2d/external/libnode-v10.15.3/src/node.h
-index 2a6f5b5..6bf2b29 100755
+index 2a6f5b5..cf834fa 100755
 --- a/examples/pxScene2d/external/libnode-v10.15.3/src/node.h
 +++ b/examples/pxScene2d/external/libnode-v10.15.3/src/node.h
 @@ -204,6 +204,12 @@ typedef intptr_t ssize_t;
@@ -704,20 +710,21 @@ index 2a6f5b5..6bf2b29 100755
  class NODE_EXTERN MultiIsolatePlatform : public v8::Platform {
   public:
    virtual ~MultiIsolatePlatform() { }
-@@ -253,6 +263,12 @@ class NODE_EXTERN MultiIsolatePlatform : public v8::Platform {
+@@ -253,6 +263,13 @@ class NODE_EXTERN MultiIsolatePlatform : public v8::Platform {
    virtual void UnregisterIsolate(IsolateData* isolate_data) = 0;
  };
  
 +/*MODIFIED CODE BEGIN*/
 +#if HAVE_INSPECTOR
-+NODE_EXTERN void InspectorStart(Environment* env, const char* path, MultiIsolatePlatform* platform);
++NODE_EXTERN void InspectorStart(Environment* env, const char* path, const char* address, int port);
++NODE_EXTERN void InspectorStop(Environment* env);
 +#endif
 +/*MODIFIED CODE END*/
 +
  // Creates a new isolate with Node.js-specific settings.
  NODE_EXTERN v8::Isolate* NewIsolate(ArrayBufferAllocator* allocator);
  
-@@ -296,10 +312,11 @@ NODE_EXTERN void FreeEnvironment(Environment* env);
+@@ -296,10 +313,11 @@ NODE_EXTERN void FreeEnvironment(Environment* env);
  // If NODE_USE_V8_PLATFORM haven't been defined when Node.js was built,
  // it returns nullptr.
  NODE_EXTERN MultiIsolatePlatform* GetMainThreadMultiIsolatePlatform();
@@ -1090,3 +1097,43 @@ index 02b3f0bce..430c921b6 100755
 +  module.exports.CreateSourceTextModule =  require('internal/vm/source_text_module').CreateSourceTextModule;
 +  module.exports.ClearSourceTextModules =  require('internal/vm/source_text_module').ClearSourceTextModules;
  }
+diff --git a/examples/pxScene2d/external/libnode-v10.15.3/src/bootstrapper.cc b/examples/pxScene2d/external/libnode-v10.15.3/src/bootstrapper.cc
+index d23a145..e291646 100755
+--- a/examples/pxScene2d/external/libnode-v10.15.3/src/bootstrapper.cc
++++ b/examples/pxScene2d/external/libnode-v10.15.3/src/bootstrapper.cc
+@@ -8,6 +8,9 @@
+ namespace node {
+ 
+ using v8::Array;
++// MODIFIED CODE BEGIN
++using v8::ArrayBuffer;
++// MODIFIED CODE END
+ using v8::Context;
+ using v8::Function;
+ using v8::FunctionCallbackInfo;
+@@ -24,6 +27,9 @@ using v8::Promise;
+ using v8::PromiseRejectEvent;
+ using v8::PromiseRejectMessage;
+ using v8::String;
++// MODIFIED CODE BEGIN
++using v8::Uint8Array;
++// MODIFIED CODE END
+ using v8::Value;
+ 
+ void SetupProcessObject(const FunctionCallbackInfo<Value>& args) {
+@@ -51,7 +57,13 @@ void SetupNextTick(const FunctionCallbackInfo<Value>& args) {
+   run_microtasks_fn->SetName(FIXED_ONE_BYTE_STRING(isolate, "runMicrotasks"));
+ 
+   Local<Array> ret = Array::New(isolate, 2);
+-  ret->Set(context, 0, env->tick_info()->fields().GetJSArray()).FromJust();
++  // Values use to cross communicate with processNextTick.
++// MODIFIED CODE BEGIN
++  unsigned char* fields = (unsigned char*)env->tick_info()->fields().GetNativeBuffer();
++  Local<ArrayBuffer> array_buffer =
++      ArrayBuffer::New(env->isolate(), fields, sizeof(*fields) * 3);
++  ret->Set(context, 0, Uint8Array::New(array_buffer, 0, 3)).FromJust();
++// MODIFIED CODE END
+   ret->Set(context, 1, run_microtasks_fn).FromJust();
+ 
+   args.GetReturnValue().Set(ret);
+
