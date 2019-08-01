@@ -1,4 +1,5 @@
 #!/bin/sh
+return 0;
 
 checkError()
 {
