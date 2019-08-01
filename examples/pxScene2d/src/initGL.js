@@ -660,6 +660,9 @@ async function loadMjs(source, url, context)
               var source, rpath;
               if (filename.indexOf('http') == 0) {
                 result = await loadHttpFile(filename);
+                if (process.env.BREAK_ON_SCRIPTSTART == 1) {
+                  result = "debugger;\n" + source;
+                }
                 app = await loadMjs(result, filename, contextifiedSandbox);
                 app.instantiate();
                 instantiated = true;
@@ -680,6 +683,9 @@ async function loadMjs(source, url, context)
                 }
                 source = await readFileAsync(rpath, {'encoding' : 'utf-8'})
                 rpath = "file://" + rpath;
+                if (process.env.BREAK_ON_SCRIPTSTART == 1) {
+                  source = "debugger;\n" + source;
+                }
                 app = await loadMjs(source, rpath, contextifiedSandbox);
                 app.instantiate();
                 instantiated = true;

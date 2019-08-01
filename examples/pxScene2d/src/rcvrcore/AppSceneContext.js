@@ -465,17 +465,15 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (packageUri, module
         moduleFunc(px, xModule_wrap, fname, this.basePackageUri);
 
       } else {
+        // Set breakpoint on module start
+        if (process.env.BREAK_ON_SCRIPTSTART == 1 && (packageUri.indexOf("shell.js") == -1))
+        {
+          sourceCode = "debugger;\n" + sourceCode;
+        }
         var moduleFunc = vm.runInNewContext(sourceCode, newSandbox, {
           filename: path.normalize(fname),
           displayErrors: true
         });
-        if (process._debugWaitConnect) {
-          // Set breakpoint on module start
-          if (process.env.BREAK_ON_SCRIPTSTART != 1)
-            delete process._debugWaitConnect;
-          const Debug = vm.runInDebugContext('Debug');
-          Debug.setBreakPoint(moduleFunc, 0, 0);
-        }
         moduleFunc(px, xModule_wrap, fname, this.basePackageUri);
       }
       log.message(4, "vm.runInNewContext done");

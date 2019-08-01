@@ -12,7 +12,7 @@ PathD=$externalLibs:$externalDir/node/out/Debug/obj.target
 PathR=$externalLibs:$externalDir/node/out/Release/obj.target
 
 export LD_LIBRARY_PATH=$PathR
-
+export SPARK_ENABLE_DEBUGGING=1
 # TODO - come back and remove node_modules and externalDir before merging to master (once we don't need node_modules for webgl)
 export NODE_PATH=.:./node_modules:$externalDir
 
