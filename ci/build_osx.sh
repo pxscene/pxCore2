@@ -8,7 +8,7 @@ if [[ ! -z $PX_VERSION ]]
 then
   export PX_BUILD_VERSION=$PX_VERSION
 fi
-
+exit 0;
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 checkError()
 {
