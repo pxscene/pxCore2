@@ -42,11 +42,8 @@ then
   checkError $? "unable to move artifacts folder to release directory" "artifacts directory created" "Retry"
   tar -cvzf release.tgz release/*
   checkError $? "unable to compress release folder" "release folder present?" "Retry"
-  if [ "$TRAVIS_REPO_SLUG" = "pxscene/pxCore" ] && ( [ "$TRAVIS_BRANCH" = "master" ] || [ "$TRAVIS_BRANCH" = "_webgl" ] || [ "$TRAVIS_BRANCH" = "$TRAVIS_TAG" ] );
-  then
-    ./ci/release_osx.sh 96.116.56.119 release.tgz 
-    checkError $? "unable to send artifacts to 96.116.56.119" "96.116.56.119 down?" "Retry"
-  fi
+  ./ci/release_osx.sh 96.116.56.119 release.tgz 
+  checkError $? "unable to send artifacts to 96.116.56.119" "96.116.56.119 down?" "Retry"
 fi
 
 if ( [ "$TRAVIS_EVENT_TYPE" = "push" ] || [ "$TRAVIS_EVENT_TYPE" = "pull_request" ] ) && [ -z "${TRAVIS_TAG}" ] 
