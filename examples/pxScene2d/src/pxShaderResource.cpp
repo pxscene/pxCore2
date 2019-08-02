@@ -400,6 +400,7 @@ void pxShaderResource::loadResourceFromFile()
     }
 
     bool isVtxFILE =  (  mVertexUrl.beginsWith("file://") ||   mVertexUrl.beginsWith("FILE://") );
+
     rtString pathVtx = mVertexUrl;
 
     if(isVtxFILE)
