@@ -7,10 +7,10 @@ else
 export RELEASE=0
 if [ "$TRAVIS_BRANCH" = "master" ]
 then
-export DEPLOY_DESTINATION=${DEPLOY_DESTINATION:-/var/www/html/edge/}
+export DEPLOY_DESTINATION=${DEPLOY_DESTINATION:-/var/www/html/edge}
 export LATEST_IMAGE=${LATEST_IMAGE:-/var/www/html/edge/osx}
 else
-export DEPLOY_DESTINATION=${DEPLOY_DESTINATION:-/var/www/html/edge_webgl/}
+export DEPLOY_DESTINATION=${DEPLOY_DESTINATION:-/var/www/html/edge_webgl}
 export LATEST_IMAGE=${LATEST_IMAGE:-/var/www/html/edge_webgl/osx}
 fi
 fi
