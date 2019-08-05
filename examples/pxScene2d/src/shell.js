@@ -23,12 +23,14 @@ px.import({ scene: 'px:scene.1.js',
   log: "px:tools.../Logger.js",
   keys: 'px:tools.keys.js',
   url: 'url',
+  path: 'path',
   querystring: 'querystring'
 }).then( function ready(imports)
 {
   var scene = imports.scene;
   var keys  = imports.keys;
   var urlModule = imports.url;
+  var pathModule = imports.path;
   var queryStringModule = imports.querystring;
   var Logger = imports.log.Logger;
   var setLoggingLevel = imports.log.setLoggingLevel;
@@ -66,11 +68,9 @@ px.import({ scene: 'px:scene.1.js',
    * @returns {String} URL for a scene
    */
   function resolveSceneUrl(url) {
-    if (url && url.toLowerCase().indexOf('.js?') > 0) { // this is a js file with query params
-      return url;
-    }
-    if (url && !url.match(/\.js$/) && !url.match(/\.mjs$/)) {
-      url = 'mimeScene.js?url=' + url;
+    if (!/^(.js|.mjs|.spark)$/.test(pathModule.extname(url))) {
+      console.log(`url --ext--> ${pathModule.extname(url)}`);
+      return 'mimeScene.js?url=' + url;
     }
     return url;
   }

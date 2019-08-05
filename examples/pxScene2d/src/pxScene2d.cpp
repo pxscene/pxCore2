@@ -72,6 +72,8 @@
 #include "rtScript.h"
 #endif //ENABLE_RT_NODE
 
+#include "rtJsonUtils.h"
+
 using namespace rapidjson;
 
 using namespace std;
@@ -3082,21 +3084,6 @@ pxScriptView::pxScriptView(const char* url, const char* /*lang*/, pxIViewContain
      : mWidth(-1), mHeight(-1), mDrawing(false), mSharedContext(), mViewContainer(container), mRefCount(0)
 {
   rtLogDebug("pxScriptView::pxScriptView()entering\n");
-  mUrl = url;
-
-  shadow = new scriptViewShadow;
-  
-  #ifndef RUNINMAIN // NOTE this ifndef ends after runScript decl, below
-  mReady = new rtPromise();
-  triggerUpdate();
- // mLang = lang;
-  rtLogDebug("pxScriptView::pxScriptView() exiting\n");
-}
-
-void pxScriptView::runScript()
-{
-  rtLogDebug(__FUNCTION__);
-#endif // ifndef RUNINMAIN
 
 // escape url begin
   string escapedUrl;
@@ -3118,7 +3105,44 @@ void pxScriptView::runScript()
   }
 // escape url end
 
+  shadow = new scriptViewShadow;
+  
+  #ifndef RUNINMAIN // NOTE this ifndef ends after runScript decl, below
+  mReady = new rtPromise();
+  triggerUpdate();
+ // mLang = lang;
+  rtLogDebug("pxScriptView::pxScriptView() exiting\n");
+#else
+  runScript();
+#endif // ifndef RUNINMAIN
+}
+
+void pxScriptView::runScript()
+{
+  rtLogDebug(__FUNCTION__);
+
   #ifdef ENABLE_RT_NODE
+
+  if (rtUrlGetExtension(mUrl).compare("spark") == 0)
+  {
+    if (!mBootstrap)
+    {
+      if (!mBootstrapResolve && !mBootstrapReject)
+      {
+        mBootstrapResolve = new rtFunctionCallback(bootstrapResolve, this);
+        mBootstrapReject = new rtFunctionCallback(bootstrapReject, this);
+
+        rtRef<pxArchive> a = new pxArchive;
+        a->initFromUrl(mUrl);
+        rtObjectRef ready; // rtPromise
+        a->ready(ready);
+        rtObjectRef newPromise;
+        ready.sendReturns<rtObjectRef>("then", mBootstrapResolve.getPtr(), mBootstrapReject.getPtr(), newPromise);
+      }
+      return;
+    }
+  }
+
   rtLogDebug("pxScriptView::pxScriptView is just now creating a context for mUrl=%s\n",mUrl.cString());
   //mCtx = script.createContext("javascript");
   script.createContext("javascript", mCtx);
@@ -3138,7 +3162,7 @@ void pxScriptView::runScript()
 #endif
 
     // JRJR Temporary webgl integration
-    if (mUrl.beginsWith("gl:"))
+    if (isGLUrl())
     {
       mSharedContext = context.createSharedContext(true);
       mBeginDrawing = new rtFunctionCallback(beginDrawing2, this);
@@ -3158,10 +3182,20 @@ void pxScriptView::runScript()
       rtValue foo = mCtx->get("loadUrl");
       rtFunctionRef f = foo.toFunction();
       bool b = true;
+      rtString url = mUrl;
+      rtString frameworkURL;
+      rtObjectRef options;
+      if (mBootstrap)
+      {
+        url = mBootstrap.get<rtString>("applicationURL");
+        frameworkURL = mBootstrap.get<rtString>("frameworkURL");
+        options = mBootstrap.get<rtObjectRef>("options");
+      }
+
       // JRJR Adding an AddRef to this... causes bad things to happen when reloading gl scenes
       // investigate... 
       // JRJR WARNING! must use sendReturns since wrappers will invoke asyncronously otherwise.
-      f.sendReturns<bool>(mUrl,mBeginDrawing.getPtr(),mEndDrawing.getPtr(), shadow.getPtr(), b);
+      f.sendReturns<bool>(url,mBeginDrawing.getPtr(),mEndDrawing.getPtr(), shadow.getPtr(), frameworkURL, options, b);
       endDrawing();
       
     }
@@ -3169,10 +3203,16 @@ void pxScriptView::runScript()
     {
       mCtx->runFile("init.js");
 
+      rtString url = mUrl;
+      if (mBootstrap)
+      {
+        url = mBootstrap.get<rtString>("applicationURL");
+      }
+
       char buffer[MAX_URL_SIZE + 50];
       memset(buffer, 0, sizeof(buffer));
-      snprintf(buffer, sizeof(buffer), "loadUrl(\"%s\");", mUrl.cString());
-      rtLogDebug("pxScriptView::runScript calling runScript with %s\n",mUrl.cString());
+      snprintf(buffer, sizeof(buffer), "loadUrl(\"%s\");", url.cString());
+      rtLogDebug("pxScriptView::runScript calling runScript with %s\n",url.cString());
   #ifdef WIN32 // process \\ to /
       unsigned int bufferLen = strlen(buffer);
       char * newBuffer = (char*)malloc(sizeof(char)*(bufferLen + 1));
@@ -3211,6 +3251,11 @@ pxScriptView::~pxScriptView()
     mGetScene->clearContext();
     mMakeReady->clearContext();
     mGetContextID->clearContext();
+
+    if (mBootstrapResolve)
+      mBootstrapResolve->clearContext();
+    if (mBootstrapReject)
+      mBootstrapReject->clearContext();
 
     // TODO Given that the context is being cleared we likely don't need to zero these out
     mCtx->add("getScene", 0);
@@ -3410,7 +3455,7 @@ bool pxScriptView::onChar(uint32_t codepoint)
 void pxScriptView::onDraw(/*pxBuffer& b, pxRect* r*/)
 {
   static pxTextureRef nullMaskRef;
-  if (mUrl.beginsWith("gl:"))
+  if (isGLUrl())
   {
     /* code */
     if (cached.getPtr() && cached->getTexture().getPtr())
@@ -3615,4 +3660,51 @@ rtError pxScriptView::makeReady(int numArgs, const rtValue* args, rtValue* /*res
     }
   }
   return RT_FAIL;
+}
+
+rtError pxScriptView::bootstrapResolve(int numArgs, const rtValue* args, rtValue* result, void* ctx)
+{
+  rtLogDebug("%s", __FUNCTION__);
+
+  UNUSED_PARAM(result);
+
+  if (ctx)
+  {
+    pxScriptView* v = (pxScriptView*)ctx;
+    if (numArgs < 1)
+      return RT_FAIL;
+
+    pxArchive* a = (pxArchive*)args[0].toObject().getPtr();
+
+    rtString s;
+    rtValue val;
+    if (a->getFileAsString(NULL, s) != RT_OK
+      || json2rtValue(s.cString(), val) != RT_OK
+      || val.getObject(v->mBootstrap) != RT_OK)
+    {
+      rtLogError("%s: can't get bootstrap", __FUNCTION__);
+      return RT_FAIL;
+    }
+
+    v->runScript();
+  }
+  return RT_OK;
+}
+
+rtError pxScriptView::bootstrapReject(int numArgs, const rtValue* args, rtValue* result, void* ctx)
+{
+  rtLogError("%s", __FUNCTION__);
+
+  UNUSED_PARAM(numArgs);
+  UNUSED_PARAM(args);
+  UNUSED_PARAM(result);
+  UNUSED_PARAM(ctx);
+
+  return RT_OK;
+}
+
+bool pxScriptView::isGLUrl() const
+{
+  return mUrl.beginsWith("gl:")
+    || (mBootstrap && mBootstrap.get<rtString>("frameworkType").compare("sparkGL") == 0);
 }
