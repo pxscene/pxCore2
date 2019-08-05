@@ -45,6 +45,7 @@ sudo rm -rf ${LATEST_IMAGE}
 sudo ln -s ${REMOTE_DIR} ${LATEST_IMAGE}
 fi
 echo $REMOTE_FILE_COUNT;
+echo $REMOTE_FILE_OLD;
 if [ $REMOTE_FILE_COUNT -eq 8 ]
 then
   sudo rm -rf $REMOTE_FILE_OLD;
