@@ -23,7 +23,7 @@ else
 REMOTE_DIR="${DEPLOY_DESTINATION}/${TRAVIS_BUILD_ID}-${TRAVIS_COMMIT}-${TRAVIS_OS_NAME}"
 fi
 #since we saved $1 to REMOTE_HOST delete it from args via shift
-export REMOTE_FILE_COUNT=$(ssh -o StrictHostKeyChecking=no -p 2220 ${DEPLOY_USER}@${REMOTE_HOST} "ls -lrt $DEPLOY_DESTINATION|wc -l")
+export REMOTE_FILE_COUNT=$(ssh -o StrictHostKeyChecking=no -p 2220 ${DEPLOY_USER}@${REMOTE_HOST} "ls -lrt $DEPLOY_DESTINATION||grep -v '^l'|grep -v total|wc -l")
 export REMOTE_FILE_OLD=$(ssh -o StrictHostKeyChecking=no -p 2220 ${DEPLOY_USER}@${REMOTE_HOST} "ls -t $DEPLOY_DESTINATION|tail -1")
 export REMOTE_TEMPDIR=$(ssh -o StrictHostKeyChecking=no -p 2220 ${DEPLOY_USER}@${REMOTE_HOST} "mktemp -d")
 filename=$2
@@ -48,6 +48,7 @@ echo $REMOTE_FILE_COUNT;
 echo $REMOTE_FILE_OLD;
 if [ $REMOTE_FILE_COUNT -eq 8 ]
 then
-  sudo rm -rf $REMOTE_FILE_OLD;
+  echo \"Removing oldest file ${REMOTE_FILE_OLD}\";
+  sudo rm -rf ${REMOTE_FILE_OLD};
 fi
 "
