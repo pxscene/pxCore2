@@ -46,9 +46,9 @@ sudo ln -s ${REMOTE_DIR} ${LATEST_IMAGE}
 fi
 echo $REMOTE_FILE_COUNT;
 echo $REMOTE_FILE_OLD;
-if [ $REMOTE_FILE_COUNT -eq 8 ]
+if [ $REMOTE_FILE_COUNT -ge 8 ]
 then
-  echo \"Removing oldest file ${REMOTE_FILE_OLD}\";
-  sudo rm -rf ${REMOTE_FILE_OLD};
+  echo \"Removing oldest file $REMOTE_FILE_OLD\";
+  sudo rm -rf $REMOTE_FILE_OLD;
 fi
 "
