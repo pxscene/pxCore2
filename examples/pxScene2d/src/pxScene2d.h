@@ -683,7 +683,8 @@ protected:
   virtual void onCloseRequest()
   {
     rtLogDebug("pxScriptView::onCloseRequest()\n");
-    mScene.send("dispose");
+    if (mScene)
+      mScene.send("dispose");
     mScene = NULL;
     mView = NULL;
   }
