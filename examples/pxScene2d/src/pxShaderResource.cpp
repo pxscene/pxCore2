@@ -99,8 +99,13 @@ void pxShaderResource::setupResource()
         rtLogError("FATAL: Shader error: %s \n", mCompilation.cString() );
   
         setLoadStatus("glError", mCompilation.cString() );
+        setLoadStatus("statusCode",PX_RESOURCE_STATUS_DECODE_FAILURE);
   
-        gUIThreadQueue->addTask(onDownloadCanceledUI, this, (void*)"reject");
+        if (gUIThreadQueue)
+        {
+          AddRef(); // async
+          gUIThreadQueue->addTask(onDownloadCanceledUI, this, (void*)"reject");
+        }
       
         rtValue nullValue;
         mReady.send("reject", nullValue );
@@ -411,6 +416,9 @@ void pxShaderResource::loadResourceFromFile()
 
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+  
+  setLoadStatus("statusCode",0);
+  
   // CREATE SHADER PROGRAMS
 
   if (loadFrgShader == RT_OK && loadVtxShader == RT_OK)
@@ -444,8 +452,6 @@ void pxShaderResource::loadResourceFromFile()
   {
     mFragmentSrc.term(); // Dump the source data...
     mVertexSrc.term();   // Dump the source data...
-
-    setLoadStatus("statusCode",0);
     
     if (gUIThreadQueue)
     {
