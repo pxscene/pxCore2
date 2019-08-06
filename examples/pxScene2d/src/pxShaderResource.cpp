@@ -63,7 +63,10 @@ pxShaderResource::~pxShaderResource()
 
 void pxShaderResource::onInit()
 {
-  postlink();
+  if(mProgram != -1)
+  {
+    postlink();
+  }
 
   if( mInitialized)
     return;
