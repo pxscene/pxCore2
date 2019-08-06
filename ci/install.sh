@@ -2,6 +2,9 @@
 
 checkError()
 {
+  cd $TRAVIS_BUILD_DIR/examples/pxScene2d/external/curl
+  cat config.log
+  cd $TRAVIS_BUILD_DIR
   if [ "$1" -ne 0 ]
   then
     printf "\n\n*********************************************************************";
