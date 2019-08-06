@@ -561,7 +561,7 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   graphicsCapabilities.set("imageAResource", 2);
       
   graphicsCapabilities.set("screenshots", 2);
-  graphicsCapabilities.set("shaders", 1);
+  graphicsCapabilities.set("shaders", 2);
   graphicsCapabilities.set("text", 3);
       
 #ifdef SPARK_CURSOR_SUPPORT
