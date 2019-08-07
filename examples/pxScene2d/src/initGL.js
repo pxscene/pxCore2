@@ -687,7 +687,7 @@ async function loadMjs(source, url, context)
           await app.evaluate();
           if (_options) {
             try {
-              // ????????????????????????
+              new app.namespace.default(_options);
             } catch (err) {
               console.log(err);
             }
