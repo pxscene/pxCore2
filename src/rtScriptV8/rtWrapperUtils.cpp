@@ -498,7 +498,11 @@ rtValue js2rt(v8::Local<v8::Context>& ctx, const Handle<Value>& val, rtWrapperEr
     // from some other native addon. Maybe that would actuall work and fail
     // at a lower level?
     Local<Object> obj = val->ToObject(ctx).ToLocalChecked();
-    if (obj->InternalFieldCount() > 0 && !val->IsArrayBufferView() /*Buffer*/)
+
+    if (obj->InternalFieldCount() > 0
+      && !val->IsArrayBufferView() // JS Buffer
+      && !val->IsPromise() // JS Promise
+      )
     {
       return rtObjectWrapper::unwrapObject(obj);
     }
