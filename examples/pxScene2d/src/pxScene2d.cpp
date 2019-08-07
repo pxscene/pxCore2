@@ -3123,7 +3123,7 @@ void pxScriptView::runScript()
 
   #ifdef ENABLE_RT_NODE
 
-  if (rtUrlGetExtension(mUrl).compare("spark") == 0)
+  if (rtUrlGetExtension(mUrl).compare(".spark") == 0)
   {
     if (!mBootstrap)
     {

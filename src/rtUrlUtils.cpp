@@ -245,7 +245,7 @@ rtString rtUrlGetHostname(const char* origin)
 
 /*
  * rtUrlGetExtension: Takes an url or path and returns an alphanumeric extension
- *  ex. "../index.js?param=value" -> "js", "file://a.com" -> "com", ".txt" -> ""
+ *  ex. "../index.js?param=value" -> ".js", "file://a.com" -> ".com", ".txt" -> ""
  */
 rtString rtUrlGetExtension(const char* s)
 {
@@ -257,16 +257,15 @@ rtString rtUrlGetExtension(const char* s)
 
     if (query > s)
     {
-      // spark-supported ext = *(ALPHA / DIGIT)
+      // spark-supported-ext = . *(ALPHA / DIGIT)
       const char* ext = query - 1;
       for (; ext > s && (isalpha(*ext) || isdigit(*ext)); ext--);
 
       if (ext > s)
       {
-        // spark-supported filename = ... 1*(ALPHA / DIGIT) . ext
+        // spark-supported-filename = ... 1*(ALPHA / DIGIT) spark-supported-ext
         if (*ext == '.' && (isalpha(*(ext - 1)) || isdigit(*(ext - 1))))
         {
-          ++ext;
           if (query > ext)
             return rtString(ext, (uint32_t) (query - ext));
         }
