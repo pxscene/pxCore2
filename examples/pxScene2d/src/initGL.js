@@ -64,6 +64,7 @@ var sandbox = {}
 var app = null;
 var contextifiedSandbox = null;
 var __dirname = process.cwd()
+/* holds map of depenedent module name and its reference */
 var modmap = {}
 var loadUrl = function(url, _beginDrawing, _endDrawing, _view, _frameworkURL, _options) {
 
@@ -142,8 +143,6 @@ var loadUrl = function(url, _beginDrawing, _endDrawing, _view, _frameworkURL, _o
         }())
     _immediates.push(timeout)
     return timeout
-
-   console.log('setImmediate called')
   }
 
 
@@ -639,11 +638,9 @@ async function loadMjs(source, url, context)
       const module = {exports};
       try {
           compiled.call(exports, exports, require, module, filename, path.dirname(filename));
-          makeReady(true, {});
       }
       catch(e) {
         console.log(e);
-        makeReady(false, {});
       }
 
       bootStrapCache[filename] = module.exports
@@ -683,6 +680,7 @@ async function loadMjs(source, url, context)
           app = await loadMjs(source, rpath, contextifiedSandbox);
           app.instantiate();
           instantiated = true;
+          succeeded = true;
           makeReady(true, {});
           beginDrawing();
           await app.evaluate();
@@ -715,9 +713,7 @@ async function loadMjs(source, url, context)
   var initGLPath = __dirname+'/initGL.js'
 
   try {
-    // bootStrap into the spark module system
     loadESM(filename);
-    succeeded = true
   }
   catch(e) {
     console.log(e)
@@ -810,7 +806,11 @@ var onClose = function() {
   {
     sandbox[sandboxKeys[i]] = null;
   }
+  // cleanup other sandbox params
   sandbox['global'] = null;
+  sandbox['vm'] = null;
+  sandbox['__dirname'] = null;
+  sandbox['Buffer'] = null;
   contextifiedSandbox = null;
   vm.ClearSourceTextModules();
   for (var key in modmap)
