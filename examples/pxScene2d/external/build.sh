@@ -58,7 +58,7 @@ make "-j${make_parallel}"
 make install -i
 rm -rf libcrypto.a
 rm -rf libssl.a
-rm -rf lib/ibcrypto.a
+rm -rf lib/libcrypto.a
 rm -rf lib/libssl.a
 cd ..
 unset CCACHE_DISABLE
