@@ -97,6 +97,10 @@ void pxShaderResource::setupResource()
 
     const char* vtxCode = mVertexSrc.length() > 0 ? (const char*) mVertexSrc.data() : vShaderText; // or use "default" Vertex shader
 
+    // COMPILE SHADER PROGRAM
+    // COMPILE SHADER PROGRAM
+    // COMPILE SHADER PROGRAM
+    
     if(shaderProgram::initShader( vtxCode, (const char*) mFragmentSrc.data() ) != RT_OK)
     {
         rtLogError("FATAL: Shader error: %s \n", mCompilation.cString() );
@@ -110,9 +114,13 @@ void pxShaderResource::setupResource()
           gUIThreadQueue->addTask(onDownloadCanceledUI, this, (void*)"reject");
         }
 
-        rtValue nullValue;
-        mReady.send("reject", nullValue );
+        mReady.send("reject", this );
     }
+
+    // COMPILE SHADER PROGRAM
+    // COMPILE SHADER PROGRAM
+    // COMPILE SHADER PROGRAM
+    
 
     double stopDecodeTime = pxMilliseconds();
     setLoadStatus("decodeTimeMs", static_cast<int>(stopDecodeTime-startDecodeTime));
@@ -332,115 +340,110 @@ rtError pxShaderResource::setUniforms(rtObjectRef o)
   return RT_OK;
 }
 
+rtError pxShaderResource::loadShaderSource(rtString url, rtData &source)
+{
+  if (url.length() == 0)
+  {
+    // Bad URL...
+    rtLogError("Bad URL for SHADER: zero length. ");
+    return RT_FAIL;
+  }
+  
+  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  //
+  // Remove (optional) FILE:// protocol prefix...
+  //
+  bool isFILE = ( url.beginsWith("file://") || url.beginsWith("FILE://") );
+  if (isFILE == false && url.beginsWith("/") == false)
+  {
+    rtLogError("SHADER url is NOT a local file.");
+    return RT_FAIL;
+  }
+  
+  rtString path = url;
+  
+  if(isFILE)
+  {
+    path.init( (const char* ) url.substring(7).cString(),
+                 url.byteLength() - 7);
+  }
+  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  //
+  // Load the Shader source code...
+  //
+  if (rtLoadFile( path, source) == RT_OK)
+    return RT_OK;
+  
+  if (rtIsPathAbsolute(path))
+    return RT_OK;;
+  
+  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  //
+  // Resolve path & Load the Shader source code...
+  //
+  rtModuleDirs *dirs = rtModuleDirs::instance();
+  
+  for (rtModuleDirs::iter it = dirs->iterator(); it.first != it.second; it.first++)
+  {
+    if (rtLoadFile(rtConcatenatePath(*it.first, path.cString()).c_str(), source) == RT_OK)
+    {
+      return RT_OK;;
+    }
+  }
+  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  
+  rtLogError("Failed to load SHADER: %s ", path.cString() );
+  return RT_FAIL;
+}
+
 void pxShaderResource::loadResourceFromFile()
 {
   init();
 
   rtError loadFrgShader = RT_FAIL;
-
-  if(mVertexUrl.beginsWith("data:text/plain,"))
-  {
-    mVertexSrc.init( (const uint8_t* ) mVertexUrl.substring(16).cString(),
-                                       mVertexUrl.byteLength() - 16);
-  }
+  rtError loadVtxShader = RT_FAIL;
+  
+  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  //
+  //  FRAGMENT SHADER
+  //
   if(mFragmentUrl.beginsWith("data:text/plain,"))
   {
     mFragmentSrc.init( (const uint8_t* ) mFragmentUrl.substring(16).cString(),
-                                         mFragmentUrl.byteLength() - 16);
+                      mFragmentUrl.byteLength() - 16);
+    
+    loadFrgShader = RT_OK; // it's a DATA URL !!!
+  }
+  else
+  {
+    loadFrgShader = loadShaderSource(mFragmentUrl, mFragmentSrc);
+  }
+  
+  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  //
+  //  VERTEX SHADER
+  //
+  if(mVertexUrl.beginsWith("data:text/plain,"))
+  {
+    mVertexSrc.init( (const uint8_t* ) mVertexUrl.substring(16).cString(),
+                    mVertexUrl.byteLength() - 16);
+    
+    loadVtxShader = RT_OK; // it's a DATA URL !!!
+  }
+  else
+  {
+    loadVtxShader = loadShaderSource(mVertexUrl, mVertexSrc);
+    
+    if (mVertexSrc.length() == 0)
+    {
+      loadVtxShader = RT_OK; // use Default VERTEX SHADER source...
+    }
   }
 
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  do
-  {
-    if (mFragmentSrc.length() != 0)
-    {
-      // We have FRAGMENT SHADER source already...
-      loadFrgShader = RT_OK;
-      break;
-    }
-
-    bool isFrgFILE = ( mFragmentUrl.beginsWith("file://") || mFragmentUrl.beginsWith("FILE://") );
-    rtString pathFrg = mFragmentUrl;
-
-    if(isFrgFILE)
-    {
-      pathFrg.init( (const char* ) mFragmentUrl.substring(7).cString(),
-                                   mFragmentUrl.byteLength() - 7);
-    }
-
-    loadFrgShader = rtLoadFile( pathFrg, mFragmentSrc);
-    if (loadFrgShader == RT_OK)
-      break;
-
-    if (rtIsPathAbsolute(pathFrg))
-      break;
-
-    rtModuleDirs *dirs = rtModuleDirs::instance();
-
-    for (rtModuleDirs::iter it = dirs->iterator(); it.first != it.second; it.first++)
-    {
-      if (rtLoadFile(rtConcatenatePath(*it.first, pathFrg.cString()).c_str(), mFragmentSrc) == RT_OK)
-      {
-        loadFrgShader = RT_OK;
-        break;
-      }
-    }
-  } while(0);
-
-  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-  rtError loadVtxShader = RT_FAIL;
-
-  do
-  {
-    if (mVertexSrc.length() != 0)
-    {
-      // We have VERTEX SHADER source already...
-      loadVtxShader = RT_OK;
-      break;
-    }
-
-    if (mVertexSrc.length() == 0)
-    {
-      //Use the Default VERTEX SHADER source...
-      loadVtxShader = RT_OK;
-      break;
-    }
-
-    bool isVtxFILE =  (  mVertexUrl.beginsWith("file://") ||   mVertexUrl.beginsWith("FILE://") );
-
-    rtString pathVtx = mVertexUrl;
-
-    if(isVtxFILE)
-    {
-      pathVtx.init( (const char* ) mVertexUrl.substring(7).cString(),
-                                   mVertexUrl.byteLength() - 7);
-    }
-
-    loadVtxShader = rtLoadFile(pathVtx, mVertexSrc);
-    if (loadVtxShader == RT_OK)
-      break;
-
-    if (rtIsPathAbsolute(pathVtx))
-      break;
-
-    rtModuleDirs *dirs = rtModuleDirs::instance();
-
-    for (rtModuleDirs::iter it = dirs->iterator(); it.first != it.second; it.first++)
-    {
-      if (rtLoadFile(rtConcatenatePath(*it.first, pathVtx.cString()).c_str(), mVertexSrc) == RT_OK)
-      {
-        loadVtxShader = RT_OK;
-        break;
-      }
-    }
-  } while(0);
-
-  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
   
   setLoadStatus("statusCode",0);
-  
+
   // CREATE SHADER PROGRAMS
 
   if (loadFrgShader == RT_OK && loadVtxShader == RT_OK)
@@ -450,7 +453,7 @@ void pxShaderResource::loadResourceFromFile()
   else
   {
     loadFrgShader = RT_RESOURCE_NOT_FOUND;
-    rtLogError("Could not load FRAGMENT shader file %s.", mFragmentUrl.cString());
+    //rtLogError("Could not load FRAGMENT shader file %s.", mFragmentUrl.cString());
   }
   if ( loadFrgShader != RT_OK)
   {
@@ -584,6 +587,104 @@ void pxShaderResource::loadResourceFromArchive(rtObjectRef /*archiveRef*/)
 #endif // 0
 }
 
+void pxShaderResource::processDownloadedResource(rtFileDownloadRequest* fileDownloadRequest)
+{
+  rtString val = "reject";
+
+  if (fileDownloadRequest != NULL)
+  {
+    bool wasCanceled = fileDownloadRequest->isCanceled();
+    if (wasCanceled)
+    {
+      //rtLogDebug("download was canceled, no need to notify: %s", fileDownloadRequest->fileUrl().cString());
+      setLoadStatus("statusCode", 0);
+      setLoadStatus("httpStatusCode",(uint32_t)fileDownloadRequest->httpStatusCode());
+      if (gUIThreadQueue)
+      {
+        gUIThreadQueue->addTask(pxResource::onDownloadCanceledUI, this, (void*)"reject");
+      }
+    }
+    else if (fileDownloadRequest->downloadStatusCode() == 0    &&
+             fileDownloadRequest->httpStatusCode()     == 200  &&
+             fileDownloadRequest->downloadedData()     != NULL)
+    {
+      double startResourceSetupTime = pxMilliseconds();
+      int32_t result = loadResourceData(fileDownloadRequest);
+      double stopResourceSetupTime = pxMilliseconds();
+
+      setLoadStatus("setupTimeMs", static_cast<int>(stopResourceSetupTime-startResourceSetupTime));
+      if (fileDownloadRequest->isDataCached())
+      {
+        setLoadStatus("loadedFromCache", true);
+      }
+      else
+      {
+        rtObjectRef metrics = fileDownloadRequest->downloadMetrics();
+        rtValue connectTimeMs;
+        rtValue sslConnectTimeMs;
+        rtValue totalDownloadTimeMs;
+        rtValue downloadSpeedBytesPerSecond;
+        metrics.get("connectTimeMs", connectTimeMs);
+        metrics.get("sslConnectTimeMs", sslConnectTimeMs);
+        metrics.get("totalDownloadTimeMs", totalDownloadTimeMs);
+        metrics.get("downloadSpeedBytesPerSecond", downloadSpeedBytesPerSecond);
+        setLoadStatus("connectTimeMs", connectTimeMs);
+        setLoadStatus("sslConnectTimeMs", sslConnectTimeMs);
+        setLoadStatus("totalDownloadTimeMs", totalDownloadTimeMs);
+        setLoadStatus("downloadSpeedBytesPerSecond", downloadSpeedBytesPerSecond);
+        setLoadStatus("loadedFromCache", false);
+      }
+
+      if(result == PX_RESOURCE_LOAD_FAIL)
+      {
+        rtLogError("Resource Decode Failed: %s with proxy: %s", fileDownloadRequest->fileUrl().cString(), fileDownloadRequest->proxy().cString());
+        setLoadStatus("statusCode", PX_RESOURCE_STATUS_DECODE_FAILURE);
+        setLoadStatus("httpStatusCode", (uint32_t)fileDownloadRequest->httpStatusCode());
+        // Since this object can be released before we get a async completion
+        // We need to maintain this object's lifetime
+        // TODO review overall flow and organization
+        if (gUIThreadQueue)
+        {
+          gUIThreadQueue->addTask(pxResource::onDownloadCompleteUI, this, (void*)"reject");
+        }
+      }
+      else if (result == PX_RESOURCE_LOAD_SUCCESS)
+      {
+        //rtLogInfo("File download Successful: %s", fileDownloadRequest->fileUrl().cString());
+        // ToDo: Could context.createTexture ever fail and return null here?
+        // mTexture = context.createTexture(imageOffscreen);
+        setLoadStatus("statusCode", 0);
+        val = "resolve";
+        // Since this object can be released before we get a async completion
+        // We need to maintain this object's lifetime
+        // TODO review overall flow and organization
+        if (gUIThreadQueue)
+        {
+          // This calls "setupResource()" to finish up.
+          //
+          gUIThreadQueue->addTask(pxResource::onDownloadCompleteUI, this, (void*)"resolve");
+        }
+      }
+    }
+    else
+    {
+      rtLogWarn("Resource Download Failed: %s Error: %s HTTP Status Code: %ld",
+                fileDownloadRequest->fileUrl().cString(),
+                fileDownloadRequest->errorString().cString(),
+                fileDownloadRequest->httpStatusCode());
+      setLoadStatus("statusCode", PX_RESOURCE_STATUS_HTTP_ERROR);
+      setLoadStatus("httpStatusCode",(uint32_t)fileDownloadRequest->httpStatusCode());
+      // Since this object can be released before we get a async completion
+      // We need to maintain this object's lifetime
+      // TODO review overall flow and organization
+      if (gUIThreadQueue)
+      {
+        gUIThreadQueue->addTask(pxResource::onDownloadCompleteUI, this, (void*)"reject");
+      }
+    }
+  }
+}
+
 void pxShaderResource::loadResource(rtObjectRef archive, bool reloading)
 {
   if(!reloading && ((rtPromise*)mReady.getPtr())->status())
@@ -623,8 +724,6 @@ void pxShaderResource::loadResource(rtObjectRef archive, bool reloading)
     mDownloadInProgressMutex.unlock();
     AddRef(); //ensure this object is not deleted while downloading
     rtFileDownloader::instance()->addToDownloadQueue(fragRequest);
-
-    return;
   }
 
   // VERTEX SHADER
@@ -646,8 +745,6 @@ void pxShaderResource::loadResource(rtObjectRef archive, bool reloading)
     mDownloadInProgressMutex.unlock();
     AddRef(); //ensure this object is not deleted while downloading
     rtFileDownloader::instance()->addToDownloadQueue(vtxRequest);
-
-    return;
   }
   else if (isFrgDataURL)
   {
@@ -700,11 +797,7 @@ uint32_t pxShaderResource::loadResourceData(rtFileDownloadRequest* fileDownloadR
   {
     setLoadStatus("decodeTimeMs", static_cast<int>(stopDecodeTime-startDecodeTime));
 
-#ifdef ENABLE_BACKGROUND_TEXTURE_CREATION
-    return PX_RESOURCE_LOAD_WAIT;
-#else
     return PX_RESOURCE_LOAD_SUCCESS;
-#endif  //ENABLE_BACKGROUND_TEXTURE_CREATION
   }
 
   return PX_RESOURCE_LOAD_FAIL;

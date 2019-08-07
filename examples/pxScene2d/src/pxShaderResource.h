@@ -85,6 +85,7 @@ public:
   bool needsFbo()   { return mNeedsFbo;   }
   int32_t passes()  { return mPasses;     }
 
+  virtual void processDownloadedResource(rtFileDownloadRequest* fileDownloadRequest);
   virtual void setupResource();
   virtual void init();
   virtual void onInit();
@@ -138,6 +139,8 @@ protected:
 
   static rtError setUniformNfv(int N, const uniformLoc_t &p); // generic setter
 
+  rtError loadShaderSource(rtString url, rtData &source);
+  
   // Override to do uniform lookups
   virtual void prelink();
   virtual void postlink();
@@ -150,9 +153,6 @@ private:
   //
   int32_t     mPasses;
   int32_t     mSamplerCount;
-
-//  rtObjectRef mUniforms;
-//  rtObjectRef mAttributes;
 
   rtString    mVertexUrl;
   rtData      mVertexSrc;
