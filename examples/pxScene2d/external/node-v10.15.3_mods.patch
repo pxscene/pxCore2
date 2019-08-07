@@ -1090,3 +1090,25 @@ index 02b3f0bce..430c921b6 100755
 +  module.exports.CreateSourceTextModule =  require('internal/vm/source_text_module').CreateSourceTextModule;
 +  module.exports.ClearSourceTextModules =  require('internal/vm/source_text_module').ClearSourceTextModules;
  }
+diff --git a/examples/pxScene2d/external/libnode-v10.15.3/src/env-inl.h b/examples/pxScene2d/external/libnode-v10.15.3/src/env-inl.h
+index 4af5add..7ab9076 100755
+--- a/examples/pxScene2d/external/libnode-v10.15.3/src/env-inl.h
++++ b/examples/pxScene2d/external/libnode-v10.15.3/src/env-inl.h
+@@ -156,13 +156,16 @@ inline bool Environment::AsyncHooks::pop_async_id(double async_id) {
+             "actual: %.f, expected: %.f)\n",
+             async_id_fields_.GetValue(kExecutionAsyncId),
+             async_id);
++    /* MODIFIED CODE BEGIN */
++    /*
+     DumpBacktrace(stderr);
+     fflush(stderr);
+     if (!env()->abort_on_uncaught_exception())
+       exit(1);
+     fprintf(stderr, "\n");
+     fflush(stderr);
+-    ABORT_NO_BACKTRACE();
++    ABORT_NO_BACKTRACE(); */
++    /* MODIFIED CODE END */
+   }
+ 
+   uint32_t offset = fields_[kStackLength] - 1;
