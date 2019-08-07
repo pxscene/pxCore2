@@ -26,4 +26,6 @@ rtError jsonFile2rtValue(const char* path, rtValue& val);
 
 rtError rtValue2jsonFile(const rtValue& val, const char* path);
 
+rtError json2rtObject(const char* json, rtObjectRef& obj);
+
 #endif // _RT_JSON_UTILS

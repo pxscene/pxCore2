@@ -3677,10 +3677,8 @@ rtError pxScriptView::bootstrapResolve(int numArgs, const rtValue* args, rtValue
     pxArchive* a = (pxArchive*)args[0].toObject().getPtr();
 
     rtString s;
-    rtValue val;
     if (a->getFileAsString(NULL, s) != RT_OK
-      || json2rtValue(s.cString(), val) != RT_OK
-      || val.getObject(v->mBootstrap) != RT_OK)
+      || json2rtObject(s.cString(), v->mBootstrap) != RT_OK)
     {
       rtLogError("%s: can't get bootstrap", __FUNCTION__);
       return RT_FAIL;

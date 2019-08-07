@@ -240,3 +240,20 @@ rtError rtValue2jsonFile(const rtValue& val, const char* path)
 
   return RT_OK;
 }
+
+rtError json2rtObject(const char* json, rtObjectRef& obj)
+{
+  rtError e;
+
+  rtValue v;
+  e = json2rtValue(json, v);
+  if (e == RT_OK)
+  {
+    rtObjectRef o;
+    e = v.getObject(o);
+    if (e == RT_OK)
+      obj = o;
+  }
+
+  return e;
+}

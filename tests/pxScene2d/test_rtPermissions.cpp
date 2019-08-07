@@ -1174,9 +1174,7 @@ public:
       "}";
 
     rtObjectRef obj;
-    rtValue val;
-    EXPECT_TRUE (RT_OK == json2rtValue(example, val));
-    EXPECT_TRUE (RT_OK == val.getObject(obj));
+    EXPECT_TRUE (RT_OK == json2rtObject(example, obj));
 
     rtString s;
     EXPECT_EQ ((int)RT_OK, (int)rtPermissions::find(obj, "", s));
@@ -1224,9 +1222,7 @@ public:
       "}";
 
     rtObjectRef obj;
-    rtValue val;
-    EXPECT_TRUE (RT_OK == json2rtValue(example, val));
-    EXPECT_TRUE (RT_OK == val.getObject(obj));
+    EXPECT_TRUE (RT_OK == json2rtObject(example, obj));
 
     rtString s;
     EXPECT_EQ ((int)RT_OK, (int)rtPermissions::find(obj, "http://", s));
@@ -1323,9 +1319,7 @@ public:
       "}";
 
     rtObjectRef obj;
-    rtValue val;
-    EXPECT_TRUE (RT_OK == json2rtValue(example, val));
-    EXPECT_TRUE (RT_OK == val.getObject(obj));
+    EXPECT_TRUE (RT_OK == json2rtObject(example, obj));
 
     rtString s;
     EXPECT_EQ ((int)RT_PROP_NOT_FOUND, (int)rtPermissions::find(obj, "http://", s));
@@ -1452,9 +1446,7 @@ public:
       "}";
 
     rtObjectRef obj;
-    rtValue val;
-    EXPECT_TRUE (RT_OK == json2rtValue(example, val));
-    EXPECT_TRUE (RT_OK == val.getObject(obj));
+    EXPECT_TRUE (RT_OK == json2rtObject(example, obj));
 
     rtString s;
     EXPECT_EQ ((int)RT_OK, (int)rtPermissions::find(obj, "https://github.com/pxscene/pxCore/blob/master/examples/pxScene2d/README.md", s));
@@ -1527,9 +1519,7 @@ public:
       "}";
 
     rtObjectRef obj;
-    rtValue val;
-    EXPECT_TRUE (RT_OK == json2rtValue(example, val));
-    EXPECT_TRUE (RT_OK == val.getObject(obj));
+    EXPECT_TRUE (RT_OK == json2rtObject(example, obj));
 
     rtString s;
     EXPECT_EQ ((int)RT_OK, (int)rtPermissions::find(obj, "http://localhost/", s));
@@ -1546,9 +1536,7 @@ public:
       "}";
 
     rtObjectRef obj;
-    rtValue val;
-    EXPECT_TRUE (RT_OK == json2rtValue(example, val));
-    EXPECT_TRUE (RT_OK == val.getObject(obj));
+    EXPECT_TRUE (RT_OK == json2rtObject(example, obj));
 
     rtString s;
     EXPECT_EQ ((int)RT_OK, (int)rtPermissions::find(obj, "x", s));

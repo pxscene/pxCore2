@@ -131,17 +131,7 @@ rtError rtPermissions::init(const char* filename)
 
 rtError rtPermissions::set(const char* json)
 {
-  rtError e;
-
-  rtValue v;
-  e = json2rtValue(json, v);
-  if (e == RT_OK)
-  {
-    rtObjectRef obj;
-    e = v.getObject(obj);
-    if (e == RT_OK)
-      mRole = obj;
-  }
+  rtError e = json2rtObject(json, mRole);
 
   if (e != RT_OK)
     rtLogError("cannot set permissions json");
