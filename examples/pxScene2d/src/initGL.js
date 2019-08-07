@@ -175,8 +175,9 @@ var loadUrl = function(url, _beginDrawing, _endDrawing, _view, _frameworkURL, _o
   }
   var sandboxDir = __dirname;
   if (url.startsWith('gl:')) {
-    var fn = url.substring(3);
-    sandboxDir = path.dirname(fn);
+    sandboxDir = path.dirname(url.substring(3));
+  } else {
+    sandboxDir = path.dirname(url);
   }
   sandbox['__dirname'] = sandboxDir;
   sandbox['Buffer'] = Buffer;
@@ -706,10 +707,10 @@ async function loadMjs(source, url, context)
     }
   }
 
-  var filename = ''
+  var filename = url
 
-  if (url.startsWith('gl:'))
-    filename = url.substring(3)
+  if (filename.startsWith('gl:'))
+    filename = filename.substring(3)
 
   var initGLPath = __dirname+'/initGL.js'
 
