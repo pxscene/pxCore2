@@ -69,6 +69,7 @@ Worker::Worker(Environment* env, Local<Object> wrap, const std::string& url)
     : AsyncWrap(env, wrap, AsyncWrap::PROVIDER_WORKER), url_(url) {
   // Generate a new thread id.
   {
+    printf("hello \n"); fflush(stdout);
     Mutex::ScopedLock next_thread_id_lock(next_thread_id_mutex);
     thread_id_ = next_thread_id++;
   }
