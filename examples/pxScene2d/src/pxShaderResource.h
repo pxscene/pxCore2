@@ -85,7 +85,6 @@ public:
   bool needsFbo()   { return mNeedsFbo;   }
   int32_t passes()  { return mPasses;     }
 
-  virtual void processDownloadedResource(rtFileDownloadRequest* fileDownloadRequest);
   virtual void setupResource();
   virtual void init();
   virtual void onInit();
