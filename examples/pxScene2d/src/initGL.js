@@ -534,7 +534,7 @@ async function getModule(specifier, referencingModule) {
      { 
        specifier = baseString.substring(0, baseString.lastIndexOf("/")+1) + specifier;
      }
-     if (specifier.indexOf(".") == -1)
+     if ((specifier.endsWith(".js") == false) && (specifier.endsWith(".mjs") == false))
      {
        specifier = specifier + ".mjs";
      } 
