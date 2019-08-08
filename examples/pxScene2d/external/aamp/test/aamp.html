@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<!--
+ If not stated otherwise in this file or this component's license file the
+ following copyright and licenses apply:
+
+ Copyright 2018 RDK Management
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+ http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+<html>
+
+<head>
+	<title>AAMP Test Page</title>
+	<style>
+	body {
+		background-color: lightblue;
+	}
+
+	h1 {
+		color: white;
+		text-align: center;
+	}
+
+	p {
+		font-family: verdana;
+		font-size: 20px;
+	}
+	video {
+		position: fixed; right: 0; bottom: 0;
+		min-width: 100%; min-height: 100%;
+		width: auto; height: auto; z-index: -100;
+		background: url(polina.jpg) no-repeat;
+		background-size: cover;
+	}
+	</style>
+</head>
+
+<body>
+	<video id="video" ></video>
+
+	<script type="text/javascript">
+		var video = document.getElementById('video');
+		var playbackRate = 1.0;
+		var channelIndex = 0;
+		var sessionIdValue = 1;
+
+		function aampEventListener(e)
+		{
+			console.log("In aampEventListener received event type " + e.type);
+		}
+
+		function onAAMPEventTuned(e)
+		{
+			//In future, should be able to read manifest specific information when this event received
+			console.log("In onAAMPEventTuned received event type " + e.type + " from session " + window.AAMP_JSController.aampSessionID )
+		}
+
+		function onAAMPEventTuneFailed(e)
+		{
+			console.log("In onAAMPEventTuneFailed received event type " + e.type + " from session " + window.AAMP_JSController.aampSessionID )
+		}
+
+		if(window.AAMP_JSController != "undefined")
+		{
+			window.AAMP_JSController.addEventListener("event", aampEventListener);
+			window.AAMP_JSController.addEventListener("tuneFailed", onAAMPEventTuneFailed);
+			window.AAMP_JSController.addEventListener("tuned", onAAMPEventTuned);
+			window.AAMP_JSController.removeEventListener("tuneFailed", onAAMPEventTuneFailed);
+		}
+
+		document.addEventListener("keypress", keyEventHandler, false);
+		var channels = [
+			"aamps://tungsten.aaplimg.com/VOD/bipbop_adv_example_v2/master.m3u8",
+			"aamp://devimages.apple.com/iphone/samples/bipbop/bipbopall.m3u8",
+			"aamp://192.168.160.254:8080/videos/HlsVideos/the_ides_of_march/masterplaylist_evt.m3u8",
+			"http://192.168.160.254:8080/videos/Madagascar.mp4",
+			];
+
+		function populateVideoUrl(vid, url)
+		{
+			var finalUrl = url + "?sessionId=" + sessionIdValue;
+			sessionIdValue++;
+			console.log("Final url " + finalUrl);
+			vid.src = finalUrl;
+		}
+
+		function channelChange()
+		{
+			video.pause();
+			populateVideoUrl(video, channels[channelIndex]);
+			//video.src = channels[channelIndex];
+			playbackRate = 1.0;
+			video.playbackRate = playbackRate;
+			video.play();
+		}
+		function keyEventHandler(e){
+			var keyCode = e.keyCode;
+			console.log("Key pressed "+e.keyCode);
+			if (keyCode == 102 ){ //keyboard 'f'
+				if (playbackRate == 1)
+				{
+					playbackRate = 4;
+				}
+				else if (playbackRate == -4)
+				{
+					playbackRate = 1;
+				}
+				else
+				{
+					playbackRate = playbackRate + 4;
+				}
+				video.playbackRate = playbackRate;
+				console.log("setting speed to "+video.playbackRate );
+			}
+			else if (keyCode == 114 ){ //keyboard 'r'
+				if (playbackRate == 1)
+				{
+					playbackRate = -4;
+				}
+				else if (playbackRate == 4)
+				{
+					playbackRate = 1;
+				}
+				else
+				{
+					playbackRate = playbackRate - 4;
+				}
+				video.playbackRate = playbackRate;
+				console.log("setting speed to "+video.playbackRate );
+			}
+			else if (keyCode == 112 ){ //keyboard 'p'
+				if ( playbackRate ==  1 )
+				{
+					playbackRate = 0;
+				}
+				else
+				{
+					playbackRate = 1;
+				}
+				video.playbackRate = playbackRate;
+				console.log("setting speed to "+video.playbackRate );
+			}
+			else if (keyCode == 117 ){ //keyboard 'u'
+				channelIndex++;
+				if (channelIndex == channels.length){
+					channelIndex = 0;
+				}
+				channelChange();
+			}
+			else if (keyCode == 100 ){ //keyboard 'd'
+				channelIndex--;
+				if (channelIndex == -1){
+					channelIndex = channels.length-1;
+				}
+				channelChange()
+			}
+			else if (keyCode == 115 ){ //keyboard 's'
+				pos = video.currentTime;
+				video.currentTime = pos+60 ;
+			}
+			else if (keyCode == 56 ){ //keyboard '8'
+				window.AAMP_JSController.closedCaptionEnabled = !window.AAMP_JSController.closedCaptionEnabled;
+			}
+		};
+		//video.src = channels[0];
+		populateVideoUrl(video, channels[0]);
+		video.load();
+		video.play();
+		console.log("play called");
+	</script>
+</body>
+
+</html>
