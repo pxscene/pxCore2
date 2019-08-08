@@ -89,6 +89,8 @@ public:
   virtual void init();
   virtual void onInit();
 
+  rtError addUniform(const rtString &name, const rtString &type);
+
   rtError uniforms(rtObjectRef& o) const;
   rtError setUniforms(rtObjectRef o);
 
