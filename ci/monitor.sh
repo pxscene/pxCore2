@@ -5,6 +5,6 @@ while [ "$count" -le 3600 ]; do
 	count=$((count+60))
 	echo "travis activities running for $count seconds"
         if [ "$count" -ge 800 ]; then
-        top
+        top -b
         fi
 done
