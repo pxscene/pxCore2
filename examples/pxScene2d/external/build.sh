@@ -44,6 +44,7 @@ fi
 
 #--------- OPENSSL
 
+#avoid caching for openssl
 export CCACHE_DISABLE=true
 cd ${OPENSSL_DIR}
 if [ "$(uname)" != "Darwin" ]
@@ -57,12 +58,13 @@ make "-j${make_parallel}"
 make install -i
 rm -rf libcrypto.a
 rm -rf libssl.a
-rm -rf lib/ibcrypto.a
+rm -rf lib/libcrypto.a
 rm -rf lib/libssl.a
 cd ..
 unset CCACHE_DISABLE
 export LD_LIBRARY_PATH="${OPENSSL_DIR}/:$LD_LIBRARY_PATH"
 export DYLD_LIBRARY_PATH="${OPENSSL_DIR}/:$DYLD_LIBRARY_PATH"
+
 #--------- CURL
 
 if [ ! -e ./curl/lib/.libs/libcurl.4.dylib ] ||
