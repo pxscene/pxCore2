@@ -56,6 +56,8 @@ if [ "$TRAVIS_OS_NAME" = "osx" ] ;
 then
   brew update;
   #brew upgrade cmake;
+  brew install yasm bison flex python
+  ln -sf /usr/local/opt/bison/bin/bison /usr/local/bin/bison
   brew install quilt
   brew install libuv
   sudo /usr/sbin/DevToolsSecurity --enable

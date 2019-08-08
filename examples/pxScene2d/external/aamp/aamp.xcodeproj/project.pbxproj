@@ -1,0 +1,259 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 48;
+	objects = {
+
+/* Begin PBXFileReference section */
+		5E461A30209B8B8900683077 /* priv_aamp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = priv_aamp.h; sourceTree = "<group>"; };
+		5E4FA8752097C6140068DEAC /* fragmentcollector_hls.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = fragmentcollector_hls.h; sourceTree = "<group>"; };
+		5E4FA8762097C6140068DEAC /* aampgstplayer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = aampgstplayer.h; sourceTree = "<group>"; };
+		5E4FA8782097C6140068DEAC /* streamabstraction.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = streamabstraction.cpp; sourceTree = "<group>"; };
+		5E4FA87C2097C6140068DEAC /* base16.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = base16.h; sourceTree = "<group>"; };
+		5E4FA87D2097C6140068DEAC /* aampgstplayer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = aampgstplayer.cpp; sourceTree = "<group>"; };
+		5E4FA87E2097C6140068DEAC /* fragmentcollector_hls.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = fragmentcollector_hls.cpp; sourceTree = "<group>"; };
+		5E4FA87F2097C6140068DEAC /* fragmentcollector_mpd.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = fragmentcollector_mpd.h; sourceTree = "<group>"; };
+		5E4FA8802097C6140068DEAC /* fragmentcollector_mpd.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = fragmentcollector_mpd.cpp; sourceTree = "<group>"; };
+		5E4FA8812097C6140068DEAC /* main_aamp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = main_aamp.h; sourceTree = "<group>"; };
+		5E4FA8832097C6150068DEAC /* base16.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = base16.cpp; sourceTree = "<group>"; };
+		5E4FA8842097C6150068DEAC /* StreamAbstractionAAMP.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StreamAbstractionAAMP.h; sourceTree = "<group>"; };
+		5E4FA8852097C6150068DEAC /* _base64.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = _base64.h; sourceTree = "<group>"; };
+		5E4FA8862097C6150068DEAC /* tsprocessor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = tsprocessor.cpp; sourceTree = "<group>"; };
+		5E4FA8872097C6150068DEAC /* _base64.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = _base64.cpp; sourceTree = "<group>"; };
+		5E4FA8882097C6150068DEAC /* main_aamp.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = main_aamp.cpp; sourceTree = "<group>"; };
+		5E4FA8892097C6150068DEAC /* tsprocessor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = tsprocessor.h; sourceTree = "<group>"; };
+		5E56643F2098E7E60021EDB1 /* cocoa_window.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = cocoa_window.mm; sourceTree = "<group>"; };
+		5E5664402098E7E60021EDB1 /* cocoa_window.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cocoa_window.h; sourceTree = "<group>"; };
+		5E9CB170220F58DC00920F99 /* test */ = {isa = PBXFileReference; lastKnownFileType = folder; path = test; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		5E4FA86A2097C5AE0068DEAC = {
+			isa = PBXGroup;
+			children = (
+				5E461A30209B8B8900683077 /* priv_aamp.h */,
+				5E5664402098E7E60021EDB1 /* cocoa_window.h */,
+				5E56643F2098E7E60021EDB1 /* cocoa_window.mm */,
+				5E4FA8872097C6150068DEAC /* _base64.cpp */,
+				5E4FA8852097C6150068DEAC /* _base64.h */,
+				5E4FA87D2097C6140068DEAC /* aampgstplayer.cpp */,
+				5E4FA8762097C6140068DEAC /* aampgstplayer.h */,
+				5E4FA8832097C6150068DEAC /* base16.cpp */,
+				5E4FA87C2097C6140068DEAC /* base16.h */,
+				5E4FA87E2097C6140068DEAC /* fragmentcollector_hls.cpp */,
+				5E4FA8752097C6140068DEAC /* fragmentcollector_hls.h */,
+				5E4FA8802097C6140068DEAC /* fragmentcollector_mpd.cpp */,
+				5E4FA87F2097C6140068DEAC /* fragmentcollector_mpd.h */,
+				5E4FA8882097C6150068DEAC /* main_aamp.cpp */,
+				5E4FA8812097C6140068DEAC /* main_aamp.h */,
+				5E4FA8782097C6140068DEAC /* streamabstraction.cpp */,
+				5E9CB170220F58DC00920F99 /* test */,
+				5E4FA8842097C6150068DEAC /* StreamAbstractionAAMP.h */,
+				5E4FA8862097C6150068DEAC /* tsprocessor.cpp */,
+				5E4FA8892097C6150068DEAC /* tsprocessor.h */,
+			);
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXLegacyTarget section */
+		5E4FA86F2097C5AE0068DEAC /* aamp-cli */ = {
+			isa = PBXLegacyTarget;
+			buildArgumentsString = "$(ACTION)";
+			buildConfigurationList = 5E4FA8722097C5AE0068DEAC /* Build configuration list for PBXLegacyTarget "aamp-cli" */;
+			buildPhases = (
+			);
+			buildToolPath = ./osxbuild.sh;
+			buildWorkingDirectory = "";
+			dependencies = (
+			);
+			name = "aamp-cli";
+			passBuildSettingsInEnvironment = 0;
+			productName = aamp;
+		};
+/* End PBXLegacyTarget section */
+
+/* Begin PBXProject section */
+		5E4FA86B2097C5AE0068DEAC /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0930;
+				ORGANIZATIONNAME = "Damodaran, Vinod";
+				TargetAttributes = {
+					5E4FA86F2097C5AE0068DEAC = {
+						CreatedOnToolsVersion = 9.3;
+					};
+				};
+			};
+			buildConfigurationList = 5E4FA86E2097C5AE0068DEAC /* Build configuration list for PBXProject "aamp" */;
+			compatibilityVersion = "Xcode 9.3";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = 5E4FA86A2097C5AE0068DEAC;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				5E4FA86F2097C5AE0068DEAC /* aamp-cli */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin XCBuildConfiguration section */
+		5E4FA8702097C5AE0068DEAC /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MTL_ENABLE_DEBUG_INFO = YES;
+				ONLY_ACTIVE_ARCH = YES;
+			};
+			name = Debug;
+		};
+		5E4FA8712097C5AE0068DEAC /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+			};
+			name = Release;
+		};
+		5E4FA8732097C5AE0068DEAC /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEBUGGING_SYMBOLS = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				OTHER_CFLAGS = "";
+				OTHER_LDFLAGS = "";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		5E4FA8742097C5AE0068DEAC /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				OTHER_CFLAGS = "";
+				OTHER_LDFLAGS = "";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		5E4FA86E2097C5AE0068DEAC /* Build configuration list for PBXProject "aamp" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				5E4FA8702097C5AE0068DEAC /* Debug */,
+				5E4FA8712097C5AE0068DEAC /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		5E4FA8722097C5AE0068DEAC /* Build configuration list for PBXLegacyTarget "aamp-cli" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				5E4FA8732097C5AE0068DEAC /* Debug */,
+				5E4FA8742097C5AE0068DEAC /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 5E4FA86B2097C5AE0068DEAC /* Project object */;
+}
