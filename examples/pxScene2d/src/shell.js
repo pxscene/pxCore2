@@ -66,7 +66,7 @@ px.import({ scene: 'px:scene.1.js',
    * @returns {String} URL for a scene
    */
   function resolveSceneUrl(url) {
-    if (url && url.toLowerCase().indexOf('.js?') > 0) { // this is a js file with query params
+    if (url && ((url.toLowerCase().indexOf('.js?') > 0) || (url.toLowerCase().indexOf('.mjs?') > 0))) { // this is a js file with query params
       return url;
     }
     if (url && !url.match(/\.js$/) && !url.match(/\.mjs$/)) {
