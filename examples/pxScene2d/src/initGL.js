@@ -534,6 +534,7 @@ async function getModule(specifier, referencingModule) {
      { 
        specifier = baseString.substring(0, baseString.lastIndexOf("/")+1) + specifier;
      }
+     // making sure we are not appending extension with files already having extension
      if ((specifier.endsWith(".js") == false) && (specifier.endsWith(".mjs") == false))
      {
        specifier = specifier + ".mjs";
