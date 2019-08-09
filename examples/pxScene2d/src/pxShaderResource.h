@@ -89,6 +89,8 @@ public:
   virtual void init();
   virtual void onInit();
 
+  rtError addUniform(const rtString &name, const rtString &type);
+
   rtError uniforms(rtObjectRef& o) const;
   rtError setUniforms(rtObjectRef o);
 
@@ -138,6 +140,8 @@ protected:
 
   static rtError setUniformNfv(int N, const uniformLoc_t &p); // generic setter
 
+  rtError loadShaderSource(rtString url, rtData &source);
+  
   // Override to do uniform lookups
   virtual void prelink();
   virtual void postlink();
@@ -150,9 +154,6 @@ private:
   //
   int32_t     mPasses;
   int32_t     mSamplerCount;
-
-//  rtObjectRef mUniforms;
-//  rtObjectRef mAttributes;
 
   rtString    mVertexUrl;
   rtData      mVertexSrc;
