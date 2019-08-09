@@ -341,7 +341,7 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (packageUri, module
 
     if (!isDuk && !isV8) {
       var processWrap = WrapObj(process, {"binding":function() { throw new Error("process.binding is not supported"); }});
-      var globalWrap = WrapObj(global, {"process":processWrap});
+      var globalWrap = WrapObj(global, {"process":processWrap, "console":console});
 
       // TODO: app runs in new context (vm.runInNewContext),
       //  while px (px.imports) is in parent context.
