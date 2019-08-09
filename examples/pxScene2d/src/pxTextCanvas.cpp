@@ -5,6 +5,37 @@
 
 extern pxContext context;
 
+//pxTextLine
+pxTextLine::pxTextLine(const char* text, uint32_t x, uint32_t y)
+        : pixelSize(10)
+        , color(0xFFFFFFFF)
+{
+    this->text = text;
+    this->x = x;
+    this->y = y;
+    this->styleSet = false;
+};
+
+void pxTextLine::setStyle(const rtObjectRef& f, uint32_t ps, uint32_t c) {
+    // TODO: validate pxFont object
+    this->font = f;
+    this->pixelSize = ps;
+    this->color = c;
+    this->styleSet = true;
+}
+
+//pxTextCanvasMeasurements
+pxTextCanvasMeasurements::pxTextCanvasMeasurements(rtObjectRef sm)
+{
+    fromSimpleMeasurements(sm);
+}
+
+void pxTextCanvasMeasurements::fromSimpleMeasurements(rtObjectRef sm) {
+    pxTextSimpleMeasurements* pSm = ((pxTextSimpleMeasurements*)sm.getPtr());
+    mw = pSm->w(); mh = pSm->h();
+}
+
+//pxTextCanvas
 pxTextCanvas::pxTextCanvas(pxScene2d* s): pxText(s)
         , mInitialized(false)
         , mNeedsRecalc(false)
@@ -53,16 +84,125 @@ void pxTextCanvas::resourceReady(rtString readyResolution)
     rtLogDebug("pxTextCanvas::resourceReady - end");
 }
 
+uint32_t pxTextCanvas::alignHorizontal() const
+{
+    return mAlignHorizontal;
+}
+
+rtError pxTextCanvas::alignHorizontal(uint32_t& v) const
+{
+    v = mAlignHorizontal;
+    return RT_OK;
+}
+
+rtError pxTextCanvas::setAlignHorizontal(uint32_t v)
+{
+    mAlignHorizontal = v;
+    setNeedsRecalc(true);
+    return RT_OK;
+}
+
+rtError pxTextCanvas::fillStyle(rtValue &c) const
+{
+    return textColor(c);
+}
+
+rtError pxTextCanvas::setFillStyle(rtValue c)
+{
+    rtLogInfo("pxTextCanvas::setFillStyle. Called with param: %#08x", c.toUInt32());
+    setTextColor(c);
+    return RT_OK;
+}
+rtError pxTextCanvas::textBaseline(rtString &b) const
+{
+    b = mTextBaseline;
+    return RT_OK;
+}
+
+rtError pxTextCanvas::setTextBaseline(const rtString& c)
+{
+    rtLogInfo("pxTextCanvas::setTextBaseline called with param: %s", c.cString());
+    rtLogError("pxTextCanvas::setTextBaseline. NOT IMPLEMENTED. Call ignored.");
+    mTextBaseline = c;
+    return RT_OK;
+}
+
+rtError pxTextCanvas::globalAlpha(float& a) const
+{
+    a = mGlobalAlpha;
+    return RT_OK;
+}
+
+rtError pxTextCanvas::setGlobalAlpha(const float a)
+{
+    rtLogInfo("pxTextCanvas::setGlobalAlpha called with param: %f", a);
+    rtLogError("pxTextCanvas::setGlobalAlpha. NOT IMPLEMENTED. Call ignored.");
+    mGlobalAlpha = a;
+    return RT_OK;
+}
+
+rtError pxTextCanvas::shadowColor(uint32_t& c) const
+{
+    c = mShadowColor;
+    return RT_OK;
+}
+
+rtError pxTextCanvas::setShadowColor(const uint32_t c)
+{
+    rtLogInfo("pxTextCanvas::setShadowColor. Called with param: %#08x", c);
+    rtLogError("pxTextCanvas::setShadowColor. NOT IMPLEMENTED. Call ignored.");
+    mShadowColor = c;
+    return RT_OK;
+}
+
+rtError pxTextCanvas::shadowBlur(uint8_t& b) const
+{
+    b = mShadowColor;
+    return RT_OK;
+}
+
+rtError pxTextCanvas::setShadowBlur(const uint8_t b)
+{
+    rtLogInfo("pxTextCanvas::setShadowBlur. Called with param: %d", b);
+    rtLogError("pxTextCanvas::setShadowBlur. NOT IMPLEMENTED. Call ignored.");
+    mShadowBlur = b;
+    return RT_OK;
+}
+
+rtError pxTextCanvas::shadowOffsetX(float& o) const
+{
+    o = mShadowOffsetX;
+    return RT_OK;
+}
+
+rtError pxTextCanvas::setShadowOffsetX(const float o)
+{
+    rtLogInfo("pxTextCanvas::setShadowOffsetX called with param: %f", o);
+    rtLogError("pxTextCanvas::setShadowOffsetX. NOT IMPLEMENTED. Call ignored.");
+    mShadowOffsetX = o;
+    return RT_OK;
+}
+
+rtError pxTextCanvas::shadowOffsetY(float& o) const
+{
+    o = mShadowOffsetY;
+    return RT_OK;
+}
+
+rtError pxTextCanvas::setShadowOffsetY(const float o)
+{
+    rtLogInfo("pxTextCanvas::setShadowOffsetY called with param: %f", o);
+    rtLogError("pxTextCanvas::setShadowOffsetY. NOT IMPLEMENTED. Call ignored.");
+    mShadowOffsetY = o;
+    return RT_OK;
+}
+
 float pxTextCanvas::getFBOWidth()
 {
-    rtLogDebug("pxTextCanvas::getFBOWidth - begin.");
-    rtLogDebug("pxTextCanvas::getFBOWidth - end.");
     return pxText::getFBOWidth();
 }
 float pxTextCanvas::getFBOHeight()
 {
-    rtLogDebug("pxTextCanvas::getFBOHeight - begin.");
-    rtLogDebug("pxTextCanvas::getFBOHeight - end.");
     return pxText::getFBOHeight();
 }
 

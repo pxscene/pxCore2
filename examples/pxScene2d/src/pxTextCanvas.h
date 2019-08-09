@@ -28,24 +28,8 @@ struct pxTextLine
             , pixelSize(10)
             , color(0xFFFFFFFF)
     {};
-
-    pxTextLine(const char* text, uint32_t x, uint32_t y)
-            : pixelSize(10)
-            , color(0xFFFFFFFF)
-    {
-        this->text = text;
-        this->x = x;
-        this->y = y;
-        this->styleSet = false;
-    };
-
-    void setStyle(const rtObjectRef& f, uint32_t ps, uint32_t c) {
-        // TODO: validate pxFont object
-        this->font = f;
-        this->pixelSize = ps;
-        this->color = c;
-        this->styleSet = true;
-    }
+    pxTextLine(const char* text, uint32_t x, uint32_t y);
+    void setStyle(const rtObjectRef& f, uint32_t ps, uint32_t c);
 
     bool styleSet;
     rtString text;
@@ -66,10 +50,7 @@ class pxTextCanvasMeasurements: public rtObject
 {
 public:
     pxTextCanvasMeasurements():mw(0), mh(0) {}
-    pxTextCanvasMeasurements(rtObjectRef sm)
-    {
-        fromSimpleMeasurements(sm);
-    }
+    pxTextCanvasMeasurements(rtObjectRef sm);
     virtual ~pxTextCanvasMeasurements() {}
 
     rtDeclareObject(pxTextCanvasMeasurements, rtObject);
@@ -77,19 +58,12 @@ public:
 
     int32_t width() const { return mw;  }
     rtError width(int32_t& v) const { v = mw;  return RT_OK; }
-
     int32_t w() const { return mw;  }
     int32_t h() const { return mh; }
-
     void setW(int32_t v) { mw = v;}
     void setH(int32_t v) { mh = v; }
-
     void clear() { mw = 0; mh = 0;}
-
-    void fromSimpleMeasurements(rtObjectRef sm) {
-        pxTextSimpleMeasurements* pSm = ((pxTextSimpleMeasurements*)sm.getPtr());
-        mw = pSm->w(); mh = pSm->h();
-    }
+    void fromSimpleMeasurements(rtObjectRef sm);
 
 protected:
     int32_t mw;
@@ -117,108 +91,27 @@ public:
     rtProperty(shadowOffsetX, shadowOffsetX, setShadowOffsetX, float);
     rtProperty(shadowOffsetY, shadowOffsetY, setShadowOffsetY, float);
 
-    uint32_t alignHorizontal()              const { return mAlignHorizontal;}
-    rtError alignHorizontal(uint32_t& v)    const { v = mAlignHorizontal; return RT_OK;}
-    rtError setAlignHorizontal(uint32_t v)        { mAlignHorizontal = v;  setNeedsRecalc(true); return RT_OK;}
-
-    rtError fillStyle(rtValue &c) const
-    {
-        return textColor(c);
-    }
-
-    rtError setFillStyle(rtValue c)
-    {
-        rtLogInfo("pxTextCanvas::setFillStyle. Called with param: %#08x", c.toUInt32());
-        setTextColor(c);
-        return RT_OK;
-    }
-    rtError textBaseline(rtString &b) const
-    {
-        b = mTextBaseline;
-        return RT_OK;
-    }
-
-    rtError setTextBaseline(const rtString& c)
-    {
-        rtLogInfo("pxTextCanvas::setTextBaseline called with param: %s", c.cString());
-        rtLogError("pxTextCanvas::setTextBaseline. NOT IMPLEMENTED. Call ignored.");
-        mTextBaseline = c;
-        return RT_OK;
-    }
-
-    rtError globalAlpha(float& a) const
-    {
-        a = mGlobalAlpha;
-        return RT_OK;
-    }
-
-    rtError setGlobalAlpha(const float a)
-    {
-        rtLogInfo("pxTextCanvas::setGlobalAlpha called with param: %f", a);
-        rtLogError("pxTextCanvas::setGlobalAlpha. NOT IMPLEMENTED. Call ignored.");
-        mGlobalAlpha = a;
-        return RT_OK;
-    }
-
-    rtError shadowColor(uint32_t& c) const
-    {
-        c = mShadowColor;
-        return RT_OK;
-    }
-
-    rtError setShadowColor(const uint32_t c)
-    {
-        rtLogInfo("pxTextCanvas::setShadowColor. Called with param: %#08x", c);
-        rtLogError("pxTextCanvas::setShadowColor. NOT IMPLEMENTED. Call ignored.");
-        mShadowColor = c;
-        return RT_OK;
-    }
-
-    rtError shadowBlur(uint8_t& b) const
-    {
-        b = mShadowColor;
-        return RT_OK;
-    }
-
-    rtError setShadowBlur(const uint8_t b)
-    {
-        rtLogInfo("pxTextCanvas::setShadowBlur. Called with param: %d", b);
-        rtLogError("pxTextCanvas::setShadowBlur. NOT IMPLEMENTED. Call ignored.");
-        mShadowBlur = b;
-        return RT_OK;
-    }
-
-    rtError shadowOffsetX(float& o) const
-    {
-        o = mShadowOffsetX;
-        return RT_OK;
-    }
-
-    rtError setShadowOffsetX(const float o)
-    {
-        rtLogInfo("pxTextCanvas::setShadowOffsetX called with param: %f", o);
-        rtLogError("pxTextCanvas::setShadowOffsetX. NOT IMPLEMENTED. Call ignored.");
-        mShadowOffsetX = o;
-        return RT_OK;
-    }
-
-    rtError shadowOffsetY(float& o) const
-    {
-        o = mShadowOffsetY;
-        return RT_OK;
-    }
-
-    rtError setShadowOffsetY(const float o)
-    {
-        rtLogInfo("pxTextCanvas::setShadowOffsetY called with param: %f", o);
-        rtLogError("pxTextCanvas::setShadowOffsetY. NOT IMPLEMENTED. Call ignored.");
-        mShadowOffsetY = o;
-        return RT_OK;
-    }
+    uint32_t alignHorizontal() const;
+    rtError alignHorizontal(uint32_t& v) const;
+    rtError setAlignHorizontal(uint32_t v);
+    rtError fillStyle(rtValue &c) const;
+    rtError setFillStyle(rtValue c);
+    rtError textBaseline(rtString &b) const;
+    rtError setTextBaseline(const rtString& c);
+    rtError globalAlpha(float& a) const;
+    rtError setGlobalAlpha(const float a);
+    rtError shadowColor(uint32_t& c) const;
+    rtError setShadowColor(const uint32_t c);
+    rtError shadowBlur(uint8_t& b) const;
+    rtError setShadowBlur(const uint8_t b);
+    rtError shadowOffsetX(float& o) const;
+    rtError setShadowOffsetX(const float o);
+    rtError shadowOffsetY(float& o) const;
+    rtError setShadowOffsetY(const float o);
 
     /* override virtuals from pxObject that must affect the readiness of pxTextCanvas due to text measurements */
-    rtError setW(float v) override      { rtLogInfo("pxTextCanvas::setW: %f", v); setNeedsRecalc(true); return pxObject::setW(v);}
-    rtError setH(float v) override      { rtLogInfo("pxTextCanvas::setH: %f", v); setNeedsRecalc(true); return pxObject::setH(v);}
+    rtError setW(float v) override      { setNeedsRecalc(true); return pxObject::setW(v);}
+    rtError setH(float v) override      { setNeedsRecalc(true); return pxObject::setH(v);}
     rtError setClip(bool v) override    { setNeedsRecalc(true); return pxObject::setClip(v);}
     rtError setSX(float v) override     { setNeedsRecalc(true); return pxObject::setSX(v);}
     rtError setSY(float v) override     { setNeedsRecalc(true); return pxObject::setSY(v);}
