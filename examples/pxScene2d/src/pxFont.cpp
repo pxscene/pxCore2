@@ -966,4 +966,12 @@ void pxTexturedQuads::draw(float x, float y)
 {
     draw(x, y, mColor);
 }
+
+void pxTexturedQuads::setColor(uint32_t c)
+{
+    mColor[0]/*R*/ = (float)((c>>24) & 0xff) / 255.0f;
+    mColor[1]/*G*/ = (float)((c>>16) & 0xff) / 255.0f;
+    mColor[2]/*B*/ = (float)((c>> 8) & 0xff) / 255.0f;
+    mColor[3]/*A*/ = (float)((c>> 0) & 0xff) / 255.0f;
+}
 #endif
