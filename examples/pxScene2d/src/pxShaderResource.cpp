@@ -63,7 +63,10 @@ pxShaderResource::~pxShaderResource()
 
 void pxShaderResource::onInit()
 {
-  postlink();
+  if(mProgram != -1)
+  {
+    postlink();
+  }
 
   if( mInitialized)
     return;
@@ -94,17 +97,29 @@ void pxShaderResource::setupResource()
 
     const char* vtxCode = mVertexSrc.length() > 0 ? (const char*) mVertexSrc.data() : vShaderText; // or use "default" Vertex shader
 
+    // COMPILE SHADER PROGRAM
+    // COMPILE SHADER PROGRAM
+    // COMPILE SHADER PROGRAM
+
     if(shaderProgram::initShader( vtxCode, (const char*) mFragmentSrc.data() ) != RT_OK)
     {
         rtLogError("FATAL: Shader error: %s \n", mCompilation.cString() );
 
         setLoadStatus("glError", mCompilation.cString() );
+        setLoadStatus("statusCode",PX_RESOURCE_STATUS_DECODE_FAILURE);
 
-        gUIThreadQueue->addTask(onDownloadCanceledUI, this, (void*)"reject");
+        if (gUIThreadQueue)
+        {
+          AddRef(); // async
+          gUIThreadQueue->addTask(onDownloadCanceledUI, this, (void*)"reject");
+        }
 
-        rtValue nullValue;
-        mReady.send("reject", nullValue );
+        mReady.send("reject", this );
     }
+
+    // COMPILE SHADER PROGRAM
+    // COMPILE SHADER PROGRAM
+    // COMPILE SHADER PROGRAM
 
     double stopDecodeTime = pxMilliseconds();
     setLoadStatus("decodeTimeMs", static_cast<int>(stopDecodeTime-startDecodeTime));
@@ -243,85 +258,158 @@ rtError pxShaderResource::setUniforms(rtObjectRef o)
     rtValue keyVal;
     if (keys->Get(i, &keyVal) == RT_OK && !keyVal.isEmpty())
     {
-      setFunc_t     setFunc = NULL;
-      UniformType_t typeEnum = UniformType_Unknown;
-
       rtString name = keyVal.toString();
       rtString type = o.get<rtString>(name);
 
-      if(name == "u_time")
-      {
-        mIsRealTime = true;
-      }
-      else
-      if(type == "int")
-      {
-        setFunc  = pxShaderResource::setUniform1i;
-        typeEnum = UniformType_Int;
-      }
-      else
-      if(type == "float")
-      {
-        setFunc  = pxShaderResource::setUniform1f;
-        typeEnum = UniformType_Float;
-      }
-      else
-      if(type == "ivec2")
-      {
-        setFunc  = pxShaderResource::setUniform2iv;
-        typeEnum = UniformType_iVec2;
-      }
-      else
-      if(type == "ivec3")
-      {
-        setFunc  = pxShaderResource::setUniform3iv;
-        typeEnum = UniformType_iVec3;
-      }
-      else
-      if(type == "ivec4")
-      {
-        setFunc  = pxShaderResource::setUniform4iv;
-        typeEnum = UniformType_iVec4;
-      }
-      else
-      if(type == "vec2")
-      {
-        setFunc  = pxShaderResource::setUniform2fv;
-        typeEnum = UniformType_Vec2;
-      }
-      else
-      if(type == "vec3")
-      {
-        setFunc  = pxShaderResource::setUniform3fv;
-        typeEnum = UniformType_Vec3;
-      }
-      else
-      if(type == "vec4")
-      {
-        setFunc  = pxShaderResource::setUniform4fv;
-        typeEnum = UniformType_Vec4;
-      }
-      else
-      if(type == "sampler2D")
-      {
-        if(name == "s_texture")
-        {
-          mNeedsFbo = true;
-        }
-        setFunc = (mSamplerCount == 3) ? pxShaderResource::bindTexture3 :
-                  (mSamplerCount == 4) ? pxShaderResource::bindTexture4 :
-                  (mSamplerCount == 5) ? pxShaderResource::bindTexture5 : NULL;
-
-        typeEnum = UniformType_Sampler2D;
-
-        mSamplerCount++;
-      }
-
-      mUniform_map[name] = { name, typeEnum, (GLint) -1, rtValue(), false, setFunc };  // ADD TO MAP
+      addUniform(name, type); // ADD UNIFORM
     }
   }//FOR
 
   return RT_OK;
+}
+
+rtError pxShaderResource::addUniform(const rtString &name, const rtString &type)
+{
+  setFunc_t     setFunc = NULL;
+  UniformType_t typeEnum = UniformType_Unknown;
+
+  if(name.isEmpty() || type.isEmpty())
+  {
+    rtLogError("Bad args ... empty !");
+    return RT_FAIL;
+  }
+
+  if(name == "u_time")
+  {
+    mIsRealTime = true;
+  }
+  else
+  if(type == "int")
+  {
+    setFunc  = pxShaderResource::setUniform1i;
+    typeEnum = UniformType_Int;
+  }
+  else
+  if(type == "float")
+  {
+    setFunc  = pxShaderResource::setUniform1f;
+    typeEnum = UniformType_Float;
+  }
+  else
+  if(type == "ivec2")
+  {
+    setFunc  = pxShaderResource::setUniform2iv;
+    typeEnum = UniformType_iVec2;
+  }
+  else
+  if(type == "ivec3")
+  {
+    setFunc  = pxShaderResource::setUniform3iv;
+    typeEnum = UniformType_iVec3;
+  }
+  else
+  if(type == "ivec4")
+  {
+    setFunc  = pxShaderResource::setUniform4iv;
+    typeEnum = UniformType_iVec4;
+  }
+  else
+  if(type == "vec2")
+  {
+    setFunc  = pxShaderResource::setUniform2fv;
+    typeEnum = UniformType_Vec2;
+  }
+  else
+  if(type == "vec3")
+  {
+    setFunc  = pxShaderResource::setUniform3fv;
+    typeEnum = UniformType_Vec3;
+  }
+  else
+  if(type == "vec4")
+  {
+    setFunc  = pxShaderResource::setUniform4fv;
+    typeEnum = UniformType_Vec4;
+  }
+  else
+  if(type == "sampler2D")
+  {
+    if(name == "s_texture")
+    {
+      mNeedsFbo = true;
+    }
+    setFunc = (mSamplerCount == 3) ? pxShaderResource::bindTexture3 :
+              (mSamplerCount == 4) ? pxShaderResource::bindTexture4 :
+              (mSamplerCount == 5) ? pxShaderResource::bindTexture5 : NULL;
+
+    typeEnum = UniformType_Sampler2D;
+
+    mSamplerCount++;
+  }
+  else
+  {
+      return RT_FAIL; // unknown type
+  }
+
+  mUniform_map[name] = { name, typeEnum, (GLint) -1, rtValue(), false, setFunc };  // ADD TO MAP
+
+  return RT_OK;
+}
+
+rtError pxShaderResource::loadShaderSource(rtString url, rtData &source)
+{
+  if (url.length() == 0)
+  {
+    // Bad URL...
+    rtLogWarn("Bad URL for SHADER: zero length. ");
+    return RT_FAIL;
+  }
+
+  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  //
+  // Remove (optional) FILE:// protocol prefix...
+  //
+  bool isFILE = ( url.beginsWith("file://") || url.beginsWith("FILE://") );
+  if (isFILE == false && url.beginsWith("/") == false)
+  {
+    rtLogError("SHADER url is NOT a local file.");
+    return RT_FAIL;
+  }
+
+  rtString path = url;
+
+  if(isFILE)
+  {
+    path.init( (const char* ) url.substring(7).cString(),
+                 url.byteLength() - 7);
+  }
+  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  //
+  // Load the Shader source code...
+  //
+  if (rtLoadFile( path, source) == RT_OK)
+    return RT_OK;
+
+  if (rtIsPathAbsolute(path))
+    return RT_OK;;
+
+  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  //
+  // Resolve path & Load the Shader source code...
+  //
+  rtModuleDirs *dirs = rtModuleDirs::instance();
+
+  for (rtModuleDirs::iter it = dirs->iterator(); it.first != it.second; it.first++)
+  {
+    if (rtLoadFile(rtConcatenatePath(*it.first, path.cString()).c_str(), source) == RT_OK)
+    {
+      return RT_OK;;
+    }
+  }
+  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+  rtLogError("Failed to load SHADER: %s ", path.cString() );
+  return RT_FAIL;
 }
 
 void pxShaderResource::loadResourceFromFile()
@@ -329,106 +417,48 @@ void pxShaderResource::loadResourceFromFile()
   init();
 
   rtError loadFrgShader = RT_FAIL;
+  rtError loadVtxShader = RT_FAIL;
 
-  if(mVertexUrl.beginsWith("data:text/plain,"))
-  {
-    mVertexSrc.init( (const uint8_t* ) mVertexUrl.substring(16).cString(),
-                                       mVertexUrl.byteLength() - 16);
-  }
+  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  //
+  //  FRAGMENT SHADER
+  //
   if(mFragmentUrl.beginsWith("data:text/plain,"))
   {
     mFragmentSrc.init( (const uint8_t* ) mFragmentUrl.substring(16).cString(),
-                                         mFragmentUrl.byteLength() - 16);
+                      mFragmentUrl.byteLength() - 16);
+
+    loadFrgShader = RT_OK; // it's a DATA URL !!!
+  }
+  else
+  {
+    loadFrgShader = loadShaderSource(mFragmentUrl, mFragmentSrc);
   }
 
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  do
+  //
+  //  VERTEX SHADER
+  //
+  if(mVertexUrl.beginsWith("data:text/plain,"))
   {
-    if (mFragmentSrc.length() != 0)
+    mVertexSrc.init( (const uint8_t* ) mVertexUrl.substring(16).cString(),
+                    mVertexUrl.byteLength() - 16);
+
+    loadVtxShader = RT_OK; // it's a DATA URL !!!
+  }
+  else
+  {
+    loadVtxShader = loadShaderSource(mVertexUrl, mVertexSrc);
+
+    if(mVertexSrc.length() == 0)
     {
-      // We have FRAGMENT SHADER source already...
-      loadFrgShader = RT_OK;
-      break;
+      loadVtxShader = RT_OK; // use Default VERTEX SHADER source...
     }
-
-    bool isFrgFILE = ( mFragmentUrl.beginsWith("file://") || mFragmentUrl.beginsWith("FILE://") );
-    rtString pathFrg = mFragmentUrl;
-
-    if(isFrgFILE)
-    {
-      pathFrg.init( (const char* ) mFragmentUrl.substring(7).cString(),
-                                   mFragmentUrl.byteLength() - 7);
-    }
-
-    loadFrgShader = rtLoadFile( pathFrg, mFragmentSrc);
-    if (loadFrgShader == RT_OK)
-      break;
-
-    if (rtIsPathAbsolute(pathFrg))
-      break;
-
-    rtModuleDirs *dirs = rtModuleDirs::instance();
-
-    for (rtModuleDirs::iter it = dirs->iterator(); it.first != it.second; it.first++)
-    {
-      if (rtLoadFile(rtConcatenatePath(*it.first, pathFrg.cString()).c_str(), mFragmentSrc) == RT_OK)
-      {
-        loadFrgShader = RT_OK;
-        break;
-      }
-    }
-  } while(0);
+  }
 
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-  rtError loadVtxShader = RT_FAIL;
-
-  do
-  {
-    if (mVertexSrc.length() != 0)
-    {
-      // We have VERTEX SHADER source already...
-      loadVtxShader = RT_OK;
-      break;
-    }
-
-    if (mVertexSrc.length() == 0)
-    {
-      //Use the Default VERTEX SHADER source...
-      loadVtxShader = RT_OK;
-      break;
-    }
-
-    bool isVtxFILE =  (  mVertexUrl.beginsWith("file://") ||   mVertexUrl.beginsWith("FILE://") );
-
-    rtString pathVtx = mVertexUrl;
-
-    if(isVtxFILE)
-    {
-      pathVtx.init( (const char* ) mVertexUrl.substring(7).cString(),
-                                   mVertexUrl.byteLength() - 7);
-    }
-
-    loadVtxShader = rtLoadFile(pathVtx, mVertexSrc);
-    if (loadVtxShader == RT_OK)
-      break;
-
-    if (rtIsPathAbsolute(pathVtx))
-      break;
-
-    rtModuleDirs *dirs = rtModuleDirs::instance();
-
-    for (rtModuleDirs::iter it = dirs->iterator(); it.first != it.second; it.first++)
-    {
-      if (rtLoadFile(rtConcatenatePath(*it.first, pathVtx.cString()).c_str(), mVertexSrc) == RT_OK)
-      {
-        loadVtxShader = RT_OK;
-        break;
-      }
-    }
-  } while(0);
-
-  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  setLoadStatus("statusCode",0);
 
   // CREATE SHADER PROGRAMS
 
@@ -439,7 +469,7 @@ void pxShaderResource::loadResourceFromFile()
   else
   {
     loadFrgShader = RT_RESOURCE_NOT_FOUND;
-    rtLogError("Could not load FRAGMENT shader file %s.", mFragmentUrl.cString());
+    //rtLogError("Could not load FRAGMENT shader file %s.", mFragmentUrl.cString());
   }
   if ( loadFrgShader != RT_OK)
   {
@@ -463,8 +493,6 @@ void pxShaderResource::loadResourceFromFile()
   {
     mFragmentSrc.term(); // Dump the source data...
     mVertexSrc.term();   // Dump the source data...
-
-    setLoadStatus("statusCode",0);
 
     if (gUIThreadQueue)
     {
@@ -589,14 +617,13 @@ void pxShaderResource::loadResource(rtObjectRef archive, bool reloading)
     mArchive = arc;
   }
 
-  bool isFrgURL = (mFragmentUrl.beginsWith("http:") || mFragmentUrl.beginsWith("https:") );
-  bool isVtxURL = (  mVertexUrl.beginsWith("http:") ||   mVertexUrl.beginsWith("https:") );
-
-  bool isFrgDataURL = mFragmentUrl.beginsWith("data:text/plain,");
-  //bool isVtxDataURL =   mVertexUrl.beginsWith("data:text/plain,");
+  bool isFrgURL     = (mFragmentUrl.beginsWith("http:") || mFragmentUrl.beginsWith("https:") );
+  bool isVtxURL     = (  mVertexUrl.beginsWith("http:") ||   mVertexUrl.beginsWith("https:") );
+  bool isFrgDataURL = isFrgURL ? false : mFragmentUrl.beginsWith("data:text/plain,");
+  bool isVtxDataURL = isVtxURL ? false :   mVertexUrl.beginsWith("data:text/plain,");
 
   // FRAGMENT SHADER
-  if( isFrgURL && mFragmentSrc.length() == 0)
+  if( mFragmentSrc.length() == 0 && isFrgURL)
   {
     rtFileDownloadRequest* fragRequest;
 
@@ -614,12 +641,10 @@ void pxShaderResource::loadResource(rtObjectRef archive, bool reloading)
     mDownloadInProgressMutex.unlock();
     AddRef(); //ensure this object is not deleted while downloading
     rtFileDownloader::instance()->addToDownloadQueue(fragRequest);
-
-    return;
   }
 
   // VERTEX SHADER
-  if (isVtxURL && mVertexSrc.length() == 0)
+  if (mVertexSrc.length() == 0 && isVtxURL)
   {
     rtFileDownloadRequest* vtxRequest;
 
@@ -637,15 +662,15 @@ void pxShaderResource::loadResource(rtObjectRef archive, bool reloading)
     mDownloadInProgressMutex.unlock();
     AddRef(); //ensure this object is not deleted while downloading
     rtFileDownloader::instance()->addToDownloadQueue(vtxRequest);
-
-    return;
   }
-  else if (isFrgDataURL)
+
+  // local FILES or DATA urls.
+  if( isFrgURL == false || isVtxURL == false ) // Need a download ?
   {
-    setLoadStatus("sourceType", "dataurl");
+    setLoadStatus("sourceType",  (isFrgDataURL || isVtxDataURL)? "dataurl" : "file");
     double startResourceSetupTime = pxMilliseconds();
 
-    loadResourceFromFile(); // Detect and Load shaders from URL directly
+    loadResourceFromFile(); // Local "/" or "FILE" or "DATA":" url's
 
     double stopResourceSetupTime = pxMilliseconds();
     setLoadStatus("setupTimeMs", static_cast<int>(stopResourceSetupTime-startResourceSetupTime));
@@ -658,22 +683,13 @@ void pxShaderResource::loadResource(rtObjectRef archive, bool reloading)
     double stopResourceSetupTime = pxMilliseconds();
     setLoadStatus("setupTimeMs", static_cast<int>(stopResourceSetupTime-startResourceSetupTime));
   }
-  else
-  {
-    setLoadStatus("sourceType", "file");
-    double startResourceSetupTime = pxMilliseconds();
-    loadResourceFromFile();
-    double stopResourceSetupTime = pxMilliseconds();
-    setLoadStatus("setupTimeMs", static_cast<int>(stopResourceSetupTime-startResourceSetupTime));
-  }
 }
 
 uint32_t pxShaderResource::loadResourceData(rtFileDownloadRequest* fileDownloadRequest)
 {
   double startDecodeTime = pxMilliseconds();
-  rtError decodeResult = RT_OK; // TODO: create shaderProgram   //pxLoadImage(fileDownloadRequest->downloadedData(),
-                                                                //            fileDownloadRequest->downloadedDataSize(),
-                                                                //            imageOffscreen, init_w, init_h, init_sx, init_sy)
+  rtError decodeResult = RT_OK;
+
   if(fileDownloadRequest->tag() == "frg")
   {
     mFragmentSrc.init( (const uint8_t*) fileDownloadRequest->downloadedData(),
@@ -691,11 +707,7 @@ uint32_t pxShaderResource::loadResourceData(rtFileDownloadRequest* fileDownloadR
   {
     setLoadStatus("decodeTimeMs", static_cast<int>(stopDecodeTime-startDecodeTime));
 
-#ifdef ENABLE_BACKGROUND_TEXTURE_CREATION
-    return PX_RESOURCE_LOAD_WAIT;
-#else
     return PX_RESOURCE_LOAD_SUCCESS;
-#endif  //ENABLE_BACKGROUND_TEXTURE_CREATION
   }
 
   return PX_RESOURCE_LOAD_FAIL;
