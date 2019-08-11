@@ -26,18 +26,21 @@ before_install:
 - if ( [ "$TRAVIS_EVENT_TYPE" = "push" ] || [ "$TRAVIS_EVENT_TYPE" = "pull_request" ] ) && [ -z "${TRAVIS_TAG}" ] && [ "$TRAVIS_OS_NAME" = "linux" ] ; then export PATH=/usr/lib/ccache:$PATH ; fi
 - gcc -v && g++ -v 
 install:
+- START=$(date +%s)
 - ./ci/install.sh
+- END=$(date +%s)
+- DIFF=$(( $END - $START ))
 before_script:
 - if ( [ "$TRAVIS_EVENT_TYPE" = "push" ] || [ "$TRAVIS_EVENT_TYPE" = "pull_request" ] ) && [ -z "${TRAVIS_TAG}" ] ; then ccache -s; fi
 - ./ci/before_script.sh
 - if [ "$TRAVIS_EVENT_TYPE" = "api" ] || [ ! -z "${TRAVIS_TAG}" ] ;  then export linenumber=`awk '/CFBundleShortVersionString/{ print NR; exit }' $TRAVIS_BUILD_DIR/examples/pxScene2d/src/macstuff/Info.plist`;export PX_VERSION=`sed -n "\`echo $((linenumber+1))\`p" $TRAVIS_BUILD_DIR/examples/pxScene2d/src/macstuff/Info.plist|awk -F '<string>' '{print $2}'|awk -F'</string>' '{print $1}'`; fi
 - if [ "$TRAVIS_EVENT_TYPE" = "cron" ] ; then export PX_VERSION=edge_`date +%Y-%m-%d` ; fi
 script:
-- ./ci/script.sh
-- if ( [ "$TRAVIS_EVENT_TYPE" = "push" ] || [ "$TRAVIS_EVENT_TYPE" = "pull_request" ] ) && [ -z "${TRAVIS_TAG}" ] ; then codecov --build "$TRAVIS_OS_NAME-$TRAVIS_COMMIT-$TRAVIS_BUILD_NUMBER" -X gcov -f $TRAVIS_BUILD_DIR/tracefile ; fi
-- if ( [ "$TRAVIS_EVENT_TYPE" = "push" ] || [ "$TRAVIS_EVENT_TYPE" = "pull_request" ] ) && [ -z "${TRAVIS_TAG}" ] ; then genhtml -o $TRAVIS_BUILD_DIR/logs/codecoverage $TRAVIS_BUILD_DIR/tracefile; fi
+- if ( [ "$TRAVIS_EVENT_TYPE" = "push" ] || [ "$TRAVIS_EVENT_TYPE" = "pull_request" ] ) && [ "${TRAVIS_OS_NAME}" == "linux" ] && [ "$DIFF" -ge 1000 ] ; then echo "Skipping to run pxscene tests !!!!!!"; else ./ci/script.sh; fi
+- if ( [ "$TRAVIS_EVENT_TYPE" = "push" ] || [ "$TRAVIS_EVENT_TYPE" = "pull_request" ] ) && [ -z "${TRAVIS_TAG}" ] ; then if [ "${TRAVIS_OS_NAME}" == "linux" ] && [ "$DIFF" -ge 1000 ] ; then echo "Skipping to generate codecov report !!!!!!"; else  codecov --build "$TRAVIS_OS_NAME-$TRAVIS_COMMIT-$TRAVIS_BUILD_NUMBER" -X gcov -f $TRAVIS_BUILD_DIR/tracefile ; fi fi
+- if ( [ "$TRAVIS_EVENT_TYPE" = "push" ] || [ "$TRAVIS_EVENT_TYPE" = "pull_request" ] ) && [ -z "${TRAVIS_TAG}" ] ; then if [ "${TRAVIS_OS_NAME}" == "linux" ] && [ "$DIFF" -ge 1000 ] ; then  echo "Skipping to generate codecov html"; else genhtml -o $TRAVIS_BUILD_DIR/logs/codecoverage $TRAVIS_BUILD_DIR/tracefile; fi fi
 after_script:
-- ./ci/after_script.sh
+- if ( [ "$TRAVIS_EVENT_TYPE" = "push" ] || [ "$TRAVIS_EVENT_TYPE" = "pull_request" ] ) && [ "${TRAVIS_OS_NAME}" == "linux" ] [ "$DIFF" -ge 1000 ] ; then echo "Skipping to run pxscene tests !!!!!!"; exit 1; else ./ci/after_script.sh; fi
 - if [ "$TRAVIS_EVENT_TYPE" != "pull_request" ]; then  rm -rf /tmp/pxscene-build.pem; fi
 addons:
   ssh_known_hosts: 96.116.56.119
