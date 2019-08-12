@@ -348,16 +348,22 @@ void rtImageResource::reloadData()
 {
   if (mTexture.getPtr() != NULL)
   {
-    bool reloadData = false;
-    mDownloadInProgressMutex.lock();
-    reloadData = !mDownloadInProgress && !mTexture->readyForRendering();
-    mDownloadInProgressMutex.unlock();
+    bool reloadData = !downloadInProgress() && !mTexture->readyForRendering();
     if (reloadData)
     {
       loadResource(mArchive, true);
     }
   }
   pxResource::reloadData();
+}
+
+bool pxResource::downloadInProgress()
+{
+    bool status = false;
+    mDownloadInProgressMutex.lock();
+    status = mDownloadInProgress;
+    mDownloadInProgressMutex.unlock();
+    return status;
 }
 
 uint64_t rtImageResource::textureMemoryUsage(std::vector<rtObject*> &objectsCounted)
