@@ -27,6 +27,8 @@
 #include "rtScript.h"
 #include "rtSettings.h"
 
+#include "pxShaderUtils.h"
+
 #include "pxContext.h"
 #include "pxUtil.h"
 #include <algorithm>
@@ -125,10 +127,7 @@ rtThreadQueue* gUIThreadQueue = new rtThreadQueue();
 double lastContextGarbageCollectTime = 0;
 double garbageCollectThrottleInSeconds = CONTEXT_GC_THROTTLE_SECS_DEFAULT;
 
-enum pxCurrentGLProgram { PROGRAM_UNKNOWN = 0, PROGRAM_SOLID_SHADER,  PROGRAM_A_TEXTURE_SHADER, PROGRAM_TEXTURE_SHADER,
-    PROGRAM_TEXTURE_MASKED_SHADER, PROGRAM_TEXTURE_BORDER_SHADER};
-
-pxCurrentGLProgram currentGLProgram = PROGRAM_UNKNOWN;
+int currentGLProgram = -1;
 
 #if defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL)
 extern EGLContext defaultEglContext;
@@ -319,7 +318,7 @@ static const char *fATextureShaderText =
   "  gl_FragColor = a_color*a;"
   "}";
 
-static const char *vShaderText =
+/*static*/ const char *vShaderText =
   "uniform vec2 u_resolution;"
   "uniform mat4 amymatrix;"
   "attribute vec2 pos;"
@@ -1268,121 +1267,6 @@ private:
 
 }; // CLASS - pxTextureAlpha
 
-//====================================================================================================================================================================================
-struct glShaderProgDetails
-{
-  GLuint program;
-  GLuint fragShader;
-  GLuint vertShader;
-};
-
-static glShaderProgDetails  createShaderProgram(const char* vShaderTxt, const char* fShaderTxt)
-{
-  struct glShaderProgDetails details = { 0,0,0 };
-  GLint stat;
-
-  details.fragShader = glCreateShader(GL_FRAGMENT_SHADER);
-  glShaderSource(details.fragShader, 1, (const char **) &fShaderTxt, NULL);
-  glCompileShader(details.fragShader);
-  glGetShaderiv(details.fragShader, GL_COMPILE_STATUS, &stat);
-
-  if (!stat)
-  {
-    rtLogError("Error: fragment shader did not compile: %d", glGetError());
-
-    GLint maxLength = 0;
-    glGetShaderiv(details.fragShader, GL_INFO_LOG_LENGTH, &maxLength);
-
-    //The maxLength includes the NULL character
-    std::vector<char> errorLog(maxLength);
-    glGetShaderInfoLog(details.fragShader, maxLength, &maxLength, &errorLog[0]);
-
-    rtLogWarn("%s", &errorLog[0]);
-    //Exit with failure.
-    glDeleteShader(details.fragShader); //Don't leak the shader.
-
-    //TODO get rid of exit
-    exit(1);
-  }
-
-  details.vertShader = glCreateShader(GL_VERTEX_SHADER);
-  glShaderSource(details.vertShader, 1, (const char **) &vShaderTxt, NULL);
-  glCompileShader(details.vertShader);
-  glGetShaderiv(details.vertShader, GL_COMPILE_STATUS, &stat);
-
-  if (!stat)
-  {
-    rtLogError("vertex shader did not compile: %d", glGetError());
-    exit(1);
-  }
-
-  details.program = glCreateProgram();
-  glAttachShader(details.program, details.fragShader);
-  glAttachShader(details.program, details.vertShader);
-  return details;
-}
-
-void linkShaderProgram(GLuint program)
-{
-  GLint stat;
-
-  glLinkProgram(program);  /* needed to put attribs into effect */
-  glGetProgramiv(program, GL_LINK_STATUS, &stat);
-  if (!stat)
-  {
-    char log[1000];
-    GLsizei len;
-    glGetProgramInfoLog(program, 1000, &len, log);
-    rtLogError("faild to link:%s", log);
-    // TODO purge all exit calls
-    exit(1);
-  }
-}
-
-//====================================================================================================================================================================================
-
-class shaderProgram
-{
-public:
-  virtual ~shaderProgram() {
-   glDetachShader(mProgram, mFragShader);
-   glDetachShader(mProgram, mVertShader);
-   glDeleteShader(mFragShader);
-   glDeleteShader(mVertShader);
-   glDeleteProgram(mProgram);
-  }
-  virtual void init(const char* v, const char* f)
-  {
-    glShaderProgDetails details = createShaderProgram(v, f);
-    mProgram    = details.program;
-    mFragShader = details.fragShader;
-    mVertShader = details.vertShader;
-    prelink();
-    linkShaderProgram(mProgram);
-    postlink();
-  }
-
-  int getUniformLocation(const char* name)
-  {
-    int l = glGetUniformLocation(mProgram, name);
-    if (l == -1)
-      rtLogError("Shader does not define uniform %s.\n", name);
-    return l;
-  }
-
-  void use()
-  {
-    currentGLProgram = PROGRAM_UNKNOWN;
-    glUseProgram(mProgram);
-  }
-
-protected:
-  // Override to do uniform lookups
-  virtual void prelink() {}
-  virtual void postlink() {}
-
-  GLuint mProgram,mFragShader,mVertShader;
-}; // CLASS - shaderProgram
 
 //====================================================================================================================================================================================
 
@@ -1412,11 +1296,8 @@ public:
             int count,
             const float* color)
   {
-    if (currentGLProgram != PROGRAM_SOLID_SHADER)
-    {
-      use();
-      currentGLProgram = PROGRAM_SOLID_SHADER;
-    }
+    use(); // change program... if needed
+
     glUniform2f(mResolutionLoc, static_cast<GLfloat>(resW), static_cast<GLfloat>(resH));
     glUniformMatrix4fv(mMatrixLoc, 1, GL_FALSE, matrix);
     glUniform1f(mAlphaLoc, alpha);
@@ -1475,11 +1356,8 @@ public:
             pxTextureRef texture,
             const float* color)
   {
-    if (currentGLProgram != PROGRAM_A_TEXTURE_SHADER)
-    {
-      use();
-      currentGLProgram = PROGRAM_A_TEXTURE_SHADER;
-    }
+    use(); // change program... if needed
+
     glUniform2f(mResolutionLoc, static_cast<GLfloat>(resW), static_cast<GLfloat>(resH));
     glUniformMatrix4fv(mMatrixLoc, 1, GL_FALSE, matrix);
     glUniform1f(mAlphaLoc, alpha);
@@ -1545,11 +1423,8 @@ public:
             pxTextureRef texture,
             int32_t stretchX, int32_t stretchY)
   {
-    if (currentGLProgram != PROGRAM_TEXTURE_SHADER)
-    {
-      use();
-      currentGLProgram = PROGRAM_TEXTURE_SHADER;
-    }
+    use(); // change program... if needed
+
     glUniform2f(mResolutionLoc, static_cast<GLfloat>(resW), static_cast<GLfloat>(resH));
     glUniformMatrix4fv(mMatrixLoc, 1, GL_FALSE, matrix);
     glUniform1f(mAlphaLoc, alpha);
@@ -1617,11 +1492,8 @@ public:
                pxTextureRef texture,
                int32_t stretchX, int32_t stretchY, const float* color = NULL)
   {
-    if (currentGLProgram != PROGRAM_TEXTURE_BORDER_SHADER)
-    {
-      use();
-      currentGLProgram = PROGRAM_TEXTURE_BORDER_SHADER;
-    }
+    use(); // change program... if needed
+
     glUniform2f(mResolutionLoc, static_cast<GLfloat>(resW), static_cast<GLfloat>(resH));
     glUniformMatrix4fv(mMatrixLoc, 1, GL_FALSE, matrix);
     glUniform1f(mAlphaLoc, alpha);
@@ -1704,11 +1576,8 @@ public:
             pxTextureRef mask,
             pxConstantsMaskOperation::constants maskOp = pxConstantsMaskOperation::NORMAL)
   {
-    if (currentGLProgram != PROGRAM_TEXTURE_MASKED_SHADER)
-    {
-      use();
-      currentGLProgram = PROGRAM_TEXTURE_MASKED_SHADER;
-    }
+    use(); // change program... if needed
+
     glUniform2f(mResolutionLoc, static_cast<GLfloat>(resW), static_cast<GLfloat>(resH));
     glUniformMatrix4fv(mMatrixLoc, 1, GL_FALSE, matrix);
     glUniform1f(mAlphaLoc, alpha);
@@ -1777,6 +1646,44 @@ static void drawRect2(GLfloat x, GLfloat y, GLfloat w, GLfloat h, const float* c
   gSolidShader->draw(gResW,gResH,gMatrix.data(),gAlpha,GL_TRIANGLE_STRIP,verts,4,colorPM);
 }
 
+
+static void drawEffect(GLfloat x, GLfloat y, GLfloat w, GLfloat h, pxTextureRef t, shaderProgram *shader)
+{
+  if(shader == NULL)
+  {
+    rtLogError("drawEffect() ... Shader is NULL !");
+    return;
+  }
+
+  // args are tested at call site...
+  
+  const float verts[4][2] =
+  {
+    { x  , y   },
+    { x+w, y   },
+    { x  , y+h },
+    { x+w, y+h }
+  };
+  
+  float iw = static_cast<float>( t ? t->width()  : 1);
+  float ih = static_cast<float>( t ? t->height() : 1);
+  
+  float tw = w/iw;
+  float th = h/ih;
+  
+  float firstTextureY  = 1.0;
+  float secondTextureY = static_cast<float>(1.0-th);
+  
+  const float uv[4][2] =
+  {
+    { 0,  firstTextureY  },
+    { tw, firstTextureY  },
+    { 0,  secondTextureY },
+    { tw, secondTextureY }
+  };
+  
+  shader->draw(gResW, gResH, gMatrix.data(), gAlpha, t, GL_TRIANGLE_STRIP, verts, (t ? uv : NULL), 4);
+}
 
 static void drawRectOutline(GLfloat x, GLfloat y, GLfloat w, GLfloat h, GLfloat lw, const float* c)
 {
@@ -2178,19 +2085,19 @@ void pxContext::init()
   SAFE_DELETE(gTextureMaskedShader);
 
   gSolidShader = new solidShaderProgram();
-  gSolidShader->init(vShaderText,fSolidShaderText);
+  gSolidShader->initShader(vShaderText,fSolidShaderText);
 
   gATextureShader = new aTextureShaderProgram();
-  gATextureShader->init(vShaderText,fATextureShaderText);
+  gATextureShader->initShader(vShaderText,fATextureShaderText);
 
   gTextureShader = new textureShaderProgram();
-  gTextureShader->init(vShaderText,fTextureShaderText);
+  gTextureShader->initShader(vShaderText,fTextureShaderText);
 
   gTextureBorderShader = new textureBorderShaderProgram();
-  gTextureBorderShader->init(vShaderText,fTextureBorderShaderText);
+  gTextureBorderShader->initShader(vShaderText,fTextureBorderShaderText);
 
   gTextureMaskedShader = new textureMaskedShaderProgram();
-  gTextureMaskedShader->init(vShaderText,fTextureMaskedShaderText);
+  gTextureMaskedShader->initShader(vShaderText,fTextureMaskedShaderText);
 
   glEnable(GL_BLEND);
 
@@ -2443,7 +2350,8 @@ pxContextFramebufferRef pxContext::getCurrentFramebuffer()
 
 pxError pxContext::setFramebuffer(pxContextFramebufferRef fbo)
 {
-  currentGLProgram = PROGRAM_UNKNOWN;
+  currentGLProgram = -1; //NB: Force a re-bind of GL program
+
   if (fbo.getPtr() == NULL || fbo->getTexture().getPtr() == NULL)
   {
     glViewport ( 0, 0, defaultContextSurface.width, defaultContextSurface.height);
@@ -2767,6 +2675,12 @@ void pxContext::drawDiagLine(float x1, float y1, float x2, float y2, float* colo
 
   gSolidShader->draw(gResW,gResH,gMatrix.data(),gAlpha,GL_LINES,verts,2,colorPM);
 }
+
+// convenience method
+void pxContext::drawEffect(float x, float y, float w, float h, pxTextureRef t, shaderProgram *shader)
+{
+  ::drawEffect(x, y, w, h, t, shader);
+};
 
 pxTextureRef pxContext::createTexture()
 {
