@@ -135,7 +135,7 @@ bool rtMakeDirectory(const rtString &dir)
       pos = i;
 #endif
     i = pos;
-    rtString sub = dir.substring(0, i == -1 ? 0 : i);
+    rtString sub = i == -1 ? dir : dir.substring(0, i + 1);
     if (!rtFileExists(sub.cString()))
     {
       retVal = mkdir(sub.cString()
