@@ -378,7 +378,7 @@ class pxScene2dTest : public testing::Test
     key = "testKey";
     ret.term();
     EXPECT_EQ ((int)RT_OK, (int)storageRef.sendReturns(fnName, key, ret));
-    EXPECT_TRUE (ret == rtValue(""));
+    EXPECT_TRUE (ret.isEmpty());
 
     // storage destroy
     scene->dispose();
@@ -393,7 +393,7 @@ class pxScene2dTest : public testing::Test
     key = "testKey";
     ret.term();
     EXPECT_EQ ((int)RT_OK, (int)storageRef.sendReturns(fnName, key, ret));
-    EXPECT_TRUE (ret == rtValue(""));
+    EXPECT_TRUE (ret.isEmpty());
   }
 #endif
 

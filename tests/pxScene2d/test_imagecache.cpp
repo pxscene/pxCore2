@@ -914,6 +914,26 @@ class rtFileDownloaderTest : public testing::Test, public commonTestFns
       //EXPECT_TRUE (RT_OK ==rtFileCache::instance()->httpCacheData("https://www.sparkui.org/tests-ci/tests/images/008.jpg",data));
     }
 
+    #define DOWNLOAD_FILE_URL 	"https://www.sparkui.org/tests-ci/tests/images/008.jpg"
+    void downloadFileAsByteRangeAddToCacheTest()
+    {
+      // TODO TESTS images files downloaded from pxscene-samples need expiry date
+      rtFileCache::instance()->clearCache();
+      rtFileDownloadRequest* request = new rtFileDownloadRequest(DOWNLOAD_FILE_URL,this);
+      request->setCallbackFunction(rtFileDownloaderTest::downloadCallback);
+      expectedStatusCode = 0;
+      expectedHttpCode = 206;
+      expectedCachePresence = false;
+      request->setByteRangeEnable(true);
+      request->setCurlRetryEnable(true);
+      request->setByteRangeIntervals(1347584); // 7 * 47 * 4096
+      rtFileDownloader::instance()->downloadFileAsByteRange(request);
+      sem_wait(testSem);
+      EXPECT_TRUE (request->httpStatusCode() == 206);
+      rtHttpCacheData data(DOWNLOAD_FILE_URL);
+      EXPECT_TRUE (RT_OK ==rtFileCache::instance()->httpCacheData(DOWNLOAD_FILE_URL,data));
+    }
+
     #define DEFER_CACHE_BUFFER_SIZE 	 (16*1024) // 16 K Added similar to CURL_MAX_WRITE_SIZE (the usual default is 16K)
     void setDeferCacheReadTest()
     {

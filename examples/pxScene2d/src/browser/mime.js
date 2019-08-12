@@ -82,7 +82,7 @@ limitations under the License.
     {
       url = "about.js";
     }
-    else if ( (url.indexOf(':') == -1) && url.endsWith(".js") )
+    else if ( url.indexOf('/') !== 0 && (url.indexOf(':') == -1) && url.endsWith(".js") )
     {
       url = baseUrl + url;
     }

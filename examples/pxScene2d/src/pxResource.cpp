@@ -593,7 +593,7 @@ void pxResource::loadResource(rtObjectRef archive, bool reloading)
 }
 void pxResource::onDownloadCompleteUI(void* context, void* data)
 {
-  pxResource* res = (rtImageResource*)context;
+  pxResource* res = (pxResource*)context;
   rtString resolution = (char*)data;
 
   res->setupResource();
@@ -858,7 +858,7 @@ void pxResource::processDownloadedResource(rtFileDownloadRequest* fileDownloadRe
       setLoadStatus("httpStatusCode",(uint32_t)fileDownloadRequest->httpStatusCode());
       if (gUIThreadQueue)
       {
-        gUIThreadQueue->addTask(pxResource::onDownloadCanceledUI, this, (void*)"reject");
+        gUIThreadQueue->addTask(onDownloadCanceledUI, this, (void*)"reject");
       }
     }
     else if (fileDownloadRequest->downloadStatusCode() == 0 &&
@@ -901,7 +901,7 @@ void pxResource::processDownloadedResource(rtFileDownloadRequest* fileDownloadRe
         // TODO review overall flow and organization
         if (gUIThreadQueue)
         {
-          gUIThreadQueue->addTask(pxResource::onDownloadCompleteUI, this, (void*)"reject");
+          gUIThreadQueue->addTask(onDownloadCompleteUI, this, (void*)"reject");
         }
       }
       else if (result == PX_RESOURCE_LOAD_SUCCESS)
@@ -916,7 +916,7 @@ void pxResource::processDownloadedResource(rtFileDownloadRequest* fileDownloadRe
         // TODO review overall flow and organization
         if (gUIThreadQueue)
         {
-          gUIThreadQueue->addTask(pxResource::onDownloadCompleteUI, this, (void*)"resolve");
+          gUIThreadQueue->addTask(onDownloadCompleteUI, this, (void*)"resolve");
         }
       }
     }
@@ -933,7 +933,7 @@ void pxResource::processDownloadedResource(rtFileDownloadRequest* fileDownloadRe
       // TODO review overall flow and organization
       if (gUIThreadQueue)
       {
-        gUIThreadQueue->addTask(pxResource::onDownloadCompleteUI, this, (void*)"reject");
+        gUIThreadQueue->addTask(onDownloadCompleteUI, this, (void*)"reject");
       }
     }
   }
