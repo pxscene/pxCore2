@@ -117,6 +117,7 @@ public:
   void setCORS(const rtCORSRef& cors) { mCORS = cors; }
   void setName(rtString name) { mName = name; }
   bool downloadInProgress();
+    
 protected:   
   static void onDownloadComplete(rtFileDownloadRequest* downloadRequest);
   static void onDownloadCompleteUI(void* context, void* data);
