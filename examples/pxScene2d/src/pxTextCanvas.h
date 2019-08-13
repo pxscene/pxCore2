@@ -87,7 +87,7 @@ public:
     rtProperty(textBaseline, textBaseline, setTextBaseline, rtString);
     rtProperty(globalAlpha, globalAlpha, setGlobalAlpha, float);
     rtProperty(shadowColor, shadowColor, setShadowColor, uint32_t);
-    rtProperty(shadowBlur, shadowBlur, setShadowBlur, uint8_t);
+    rtProperty(shadowBlur, shadowBlur, setShadowBlur, uint32_t);
     rtProperty(shadowOffsetX, shadowOffsetX, setShadowOffsetX, float);
     rtProperty(shadowOffsetY, shadowOffsetY, setShadowOffsetY, float);
 
@@ -102,8 +102,8 @@ public:
     rtError setGlobalAlpha(const float a);
     rtError shadowColor(uint32_t& c) const;
     rtError setShadowColor(const uint32_t c);
-    rtError shadowBlur(uint8_t& b) const;
-    rtError setShadowBlur(const uint8_t b);
+    rtError shadowBlur(uint32_t& b) const;
+    rtError setShadowBlur(const uint32_t b);
     rtError shadowOffsetX(float& o) const;
     rtError setShadowOffsetX(const float o);
     rtError shadowOffsetY(float& o) const;
@@ -149,6 +149,7 @@ protected:
     pxTextCanvasMeasurements* getMeasurements() { return (pxTextCanvasMeasurements*)measurements.getPtr();}
     void recalc();
     void clearMeasurements();
+    static uint32_t argb2rgba(uint32_t val);
 
     bool mInitialized;
     bool mNeedsRecalc;
@@ -156,7 +157,7 @@ protected:
     rtString mTextBaseline;
     float mGlobalAlpha;
     uint32_t mShadowColor;
-    uint8_t  mShadowBlur;
+    uint32_t  mShadowBlur;
     float mShadowOffsetX;
     float mShadowOffsetY;
 

@@ -110,7 +110,9 @@ rtError pxTextCanvas::fillStyle(rtValue &c) const
 rtError pxTextCanvas::setFillStyle(rtValue c)
 {
     rtLogInfo("pxTextCanvas::setFillStyle. Called with param: %#08x", c.toUInt32());
-    setTextColor(c);
+    rtValue clr(argb2rgba(c.toUInt32()));
+    rtLogInfo("pxTextCanvas::setFillStyle. Converted to: %#08x", clr.toUInt32());
+    setTextColor(clr);
     return RT_OK;
 }
 rtError pxTextCanvas::textBaseline(rtString &b) const
@@ -155,13 +157,13 @@ rtError pxTextCanvas::setShadowColor(const uint32_t c)
     return RT_OK;
 }
 
-rtError pxTextCanvas::shadowBlur(uint8_t& b) const
+rtError pxTextCanvas::shadowBlur(uint32_t& b) const
 {
-    b = mShadowColor;
+    b = mShadowBlur;
     return RT_OK;
 }
 
-rtError pxTextCanvas::setShadowBlur(const uint8_t b)
+rtError pxTextCanvas::setShadowBlur(const uint32_t b)
 {
     rtLogInfo("pxTextCanvas::setShadowBlur. Called with param: %d", b);
     rtLogError("pxTextCanvas::setShadowBlur. NOT IMPLEMENTED. Call ignored.");
@@ -445,6 +447,12 @@ rtError pxTextCanvas::translate(uint32_t x, uint32_t y)
     rtLogError("pxTextCanvas::translate. NOT IMPLEMENTED. Call ignored.");
     return RT_OK;
 }
+
+uint32_t pxTextCanvas::argb2rgba(uint32_t val)
+{
+    return val << 8 | val >> 24;
+}
+
 
 // pxTextCanvasMeasurements
 rtDefineObject(pxTextCanvasMeasurements, rtObject);
