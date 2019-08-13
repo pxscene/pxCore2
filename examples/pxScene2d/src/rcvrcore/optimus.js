@@ -69,7 +69,7 @@ function Application(props) {
 
   // Public variables
   this.id = undefined;
-  this.priority = 1;
+  this.priority = 5;
   this.name = "";
   this.createTime = 0;
   this.uri = "";
@@ -190,41 +190,111 @@ function Application(props) {
   var w = 0;
   var h = 0;
   var uri = "";
+  var hasApi = true;
   var serviceContext = {};
   var launchParams;
   var _externalApp;
   var _browser;
   var _state = ApplicationState.RUNNING;
 
-  // Public functions that use _externalApp
-  // Suspends the application. Returns true if the application was suspended, or false otherwise
-  this.suspend = function(o) {
-    var ret;
+  // Internal function needed for suspend
+  var do_suspend_internal = function(o)
+  {
+    //basic failure conditions
     if (_state === ApplicationState.DESTROYED){
-      this.log("suspend on already destroyed app");
+      _this.log("suspend on already destroyed app");
       return false;
     }
     if (_state === ApplicationState.SUSPENDED){
-      this.log("suspend on already suspended app");
+      _this.log("suspend on already suspended app");
       return false;
     }
     if (!_externalApp || !_externalApp.suspend){
-      this.log("suspend api not available on app");
+      _this.log("suspend api not available on app");
       _state = ApplicationState.SUSPENDED;
-      this.applicationSuspended();
+      _this.applicationSuspended();
       return false;
     }
-    ret = _externalApp.suspend(o);
+    
+    var ret = _externalApp.suspend(o);
+      
     if (ret === true) {
       _state = ApplicationState.SUSPENDED;
-      this.applicationSuspended();
-      this.logTelemetry("suspend", true);
-    } else {
-      this.log("suspend returned:", ret);
-      this.logTelemetry("suspend", false);
+      _this.applicationSuspended();
     }
+    
+    _this.log("suspend returned:", ret);
+    
     return ret;
+  }
+
+  // Public functions that use _externalApp
+  // Suspends the application. Returns promise if the application was suspended or not.
+  this.suspend = function(o) {
+
+    //setup return promise
+    var ret_promise_resolve;
+    var ret_promise_reject;
+    var ret_promise = new Promise(function (resolve, reject) {
+      ret_promise_resolve = resolve;
+      ret_promise_reject = reject;
+    });
+    
+    //telemetry
+    ret_promise.then(
+      function()
+      {
+        _this.logTelemetry("suspend", true);
+      },
+      function()
+      {
+        _this.logTelemetry("suspend", false);
+      });
+    
+    this.readyBase.then( 
+      function() 
+      { 
+        //needs also remoteReady?
+        if(_externalApp && _externalApp.hasApi)
+        {
+          _externalApp.remoteReady.then(
+            function()
+            {
+              //readyBase and remoteReady succeeded so suspend
+              var suspend_ret = do_suspend_internal(o);
+              
+              if(suspend_ret)
+                ret_promise_resolve();
+              else
+                ret_promise_reject();
+            },
+            function()
+            {
+              _this.log("suspend remoteReady failed");
+              ret_promise_reject();
+            });
+        }
+        else
+        {
+          //otherwise attempt suspend now
+          var suspend_ret = do_suspend_internal(o);
+
+          if(suspend_ret)
+            ret_promise_resolve();
+          else
+            ret_promise_reject();
+        }
+      },
+      function() 
+      { 
+        _this.log("suspend readyBase failed");
+        ret_promise_reject();
+      }
+    );
+    
+    return ret_promise;
   };
+  
   // Resumes a suspended application. Returns true if the application was resumed, or false otherwise
   this.resume = function(o) {
     var ret;
@@ -409,6 +479,9 @@ function Application(props) {
   if ("h" in props){
     h = props.h;
   }
+  if ("hasApi" in props){
+    hasApi = props.hasApi;
+  }
   if (cmd === "wpe" && uri){
     cmd = cmd + " " + uri;
   }
@@ -419,7 +492,7 @@ function Application(props) {
     this.expectedMemoryUsage = props.expectedMemoryUsage;
   }
 
-  this.log("cmd:",cmd,"uri:",uri,"w:",w,"h:",h);
+  this.log("cmd:",cmd,"uri:",uri,"w:",w,"h:",h,"hasApi:",hasApi);
 
   if (!cmd) {
     this.log('cannot create app because cmd is not set');
@@ -587,7 +660,7 @@ function Application(props) {
   }
   else{
     this.type = ApplicationType.NATIVE;
-    _externalApp = scene.create( {t:"external", parent:root, cmd:cmd, w:w, h:h, hasApi:true} );
+    _externalApp = scene.create( {t:"external", parent:root, cmd:cmd, w:w, h:h, hasApi:hasApi} );
     _externalApp.on("onReady", function () { _this.log("onReady"); }); // is never called
     _externalApp.on("onClientStarted", function () { _this.log("onClientStarted"); });
     _externalApp.on("onClientConnected", function () { _this.log("onClientConnected"); });
