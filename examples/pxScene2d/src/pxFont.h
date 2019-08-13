@@ -153,7 +153,7 @@ class pxTexturedQuads
     u.push_back(v2);
   }
 
-  void draw(float x, float y, float* color);
+  void draw(float x, float y, float* color, textFx_t *fx = NULL);
 
   void clear()
   {

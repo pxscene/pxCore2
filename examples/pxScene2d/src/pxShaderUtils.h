@@ -150,7 +150,8 @@ public:
                 GLenum mode,
                 const void* pos,
                 const void* uv,
-                int count);
+                int count,
+                void* user = NULL);
 
 protected:
 

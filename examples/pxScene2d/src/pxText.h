@@ -44,90 +44,82 @@ public:
   rtProperty(font, font, setFont, rtObjectRef);
   rtMethodNoArgAndReturn("texture", texture, uint32_t);
 
+  rtProperty(shadow,        shadow,        setShadow,        bool);
+  rtProperty(shadowColor,   shadowColor,   setShadowColor,   rtValue);
+  rtProperty(shadowOffsetX, shadowOffsetX, setShadowOffsetX, float);
+  rtProperty(shadowOffsetY, shadowOffsetY, setShadowOffsetY, float);
+  rtProperty(shadowBlur,    shadowBlur,    setShadowBlur,    float);
+
+  rtProperty(highlight,             highlight,             setHighlight,              bool);
+  rtProperty(highlightColor,        highlightColor,        setHighlightColor,         rtValue);
+  rtProperty(highlightOffset,       highlightOffset,       setHighlightOffset,        float);
+  rtProperty(highlightPaddingLeft,  highlightPaddingLeft,  setHighlightPadddingLeft,  float);
+  rtProperty(highlightPaddingRight, highlightPaddingRight, setHighlightPadddingRight, float);
+
+
   pxText(pxScene2d* scene);
   virtual ~pxText();
+
   rtError text(rtString& s) const;
   virtual rtError setText(const char* text);
-  rtError removeResourceListener();
 
-  rtError textColorInternal(uint32_t& c) const
-  {
-#ifdef PX_LITTLEENDIAN_PIXELS
+  rtError setColor(float *var, rtValue c);
+  rtError colorFloat4_to_UInt32( const float *clr, uint32_t& c) const;
+  rtError colorUInt32_to_Float4(float *clr, uint32_t c) const;
 
-    c = ((uint8_t) (mTextColor[0] * 255.0f) << 24) |  // R
-        ((uint8_t) (mTextColor[1] * 255.0f) << 16) |  // G
-        ((uint8_t) (mTextColor[2] * 255.0f) <<  8) |  // B
-        ((uint8_t) (mTextColor[3] * 255.0f) <<  0);   // A
-#else
-
-    c = ((uint8_t) (mTextColor[3] * 255.0f) << 24) |  // A
-        ((uint8_t) (mTextColor[2] * 255.0f) << 16) |  // B
-        ((uint8_t) (mTextColor[1] * 255.0f) <<  8) |  // G
-        ((uint8_t) (mTextColor[0] * 255.0f) <<  0);   // R
-#endif
-
-    
-    return RT_OK;
-  }
-
-  rtError setTextColorInternal(uint32_t c)
-  {
-    mTextColor[PX_RED  ] = (float)((c>>24) & 0xff) / 255.0f;
-    mTextColor[PX_GREEN] = (float)((c>>16) & 0xff) / 255.0f;
-    mTextColor[PX_BLUE ] = (float)((c>> 8) & 0xff) / 255.0f;
-    mTextColor[PX_ALPHA] = (float)((c>> 0) & 0xff) / 255.0f;
-    return RT_OK;
-  }
-  
-  rtError textColor(rtValue &c) const
-  {
-    uint32_t cc = 0;
-    rtError err = textColorInternal(cc);
-    
-    c = cc;
-    
-    return err;
-  }
-  
-  rtError setTextColor(rtValue c)
-  {
-    // Set via STRING...
-    if( c.getType() == 's')
-    {
-      rtString str = c.toString();
-      
-      uint8_t r,g,b, a;
-      if( web2rgb( str, r, g, b, a) == RT_OK)
-      {
-        mTextColor[PX_RED  ] = (float) r / 255.0f;  // R
-        mTextColor[PX_GREEN] = (float) g / 255.0f;  // G
-        mTextColor[PX_BLUE ] = (float) b / 255.0f;  // B
-        mTextColor[PX_ALPHA] = (float) a / 255.0f;  // A
-        
-        return RT_OK;
-      }
-      
-      return RT_FAIL;
-    }
-    
-    // Set via UINT32...
-    uint32_t clr = c.toUInt32();
-    
-    return setTextColorInternal(clr);
-  }
+  rtError textColor(rtValue &c) const;
+  rtError setTextColor(rtValue c);
 
   rtError fontUrl(rtString& v) const { getFontResource()->url(v); return RT_OK; }
   virtual rtError setFontUrl(const char* s);
 
   rtError pixelSize(uint32_t& v) const { v = mPixelSize; return RT_OK; }
   virtual rtError setPixelSize(uint32_t v);
-  
+
   rtError font(rtObjectRef& o) const { o = mFont; return RT_OK; }
   virtual rtError setFont(rtObjectRef o);
 
   virtual rtError texture(uint32_t & v);
+
+  // - - - - - - - - - - - - - - - - - - Shadow - - - - - - - - - - - - - - - - - -
+
+  rtError shadow(bool &v) const                      { v = mShadow;  return RT_OK; }
+  virtual rtError setShadow(bool v)                  { mShadow = v;  return RT_OK; }
+
+  rtError shadowColor(rtValue &c) const;
+  rtError setShadowColor(rtValue c);
+
+  rtError shadowOffsetX(float &v) const              { v = mShadowOffsetX; return RT_OK; }
+  virtual rtError setShadowOffsetX(float v)          { mShadowOffsetX = v; return RT_OK; }
+
+  rtError shadowOffsetY(float &v) const              { v = mShadowOffsetY; return RT_OK; }
+  virtual rtError setShadowOffsetY(float v)          { mShadowOffsetY = v; return RT_OK; }
+
+  rtError shadowBlur(float &v) const                 { v = mShadowBlur;    return RT_OK; }
+  virtual rtError setShadowBlur(float v)             { mShadowBlur = v;    return RT_OK; }
+
+  // - - - - - - - - - - - - - - - - - - Highlight - - - - - - - - - - - - - - - - - -
+
+  rtError highlight(bool &v) const                   { v = mHighlight;  return RT_OK; }
+  virtual rtError setHighlight(bool v)               { mHighlight = v;  return RT_OK; }
+
+  rtError highlightColor(rtValue &c) const;
+  rtError setHighlightColor(rtValue c);
+
+  rtError highlightOffset(float &v) const            { v = mHighlightOffset;       return RT_OK; }
+  virtual rtError setHighlightOffset(float v)        { mHighlightOffset = v;       return RT_OK; }
+
+  rtError highlightPaddingLeft(float &v) const       { v = mHighlightPaddingLeft;  return RT_OK; }
+  virtual rtError setHighlightPadddingLeft(float v)  { mHighlightPaddingLeft = v;  return RT_OK; }
+
+  rtError highlightPaddingRight(float &v) const      { v = mHighlightPaddingRight; return RT_OK; }
+  virtual rtError setHighlightPadddingRight(float v) { mHighlightPaddingRight = v; return RT_OK; }
+
+  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   
   virtual void onInit();
+
+  rtError removeResourceListener();
   
   virtual rtError Set(uint32_t i, const rtValue* value) override
   {
@@ -147,7 +139,19 @@ public:
               !strcmp(name,"fontUrl") ||
               !strcmp(name,"font") ||
               !strcmp(name,"sx") || 
-              !strcmp(name,"sy");
+              !strcmp(name,"sy")                   ||
+
+              !strcmp(name,"shadow")               ||
+              !strcmp(name,"shadowColor")          ||
+              !strcmp(name,"shadowOffsetX")        ||
+              !strcmp(name,"shadowOffsetY")        ||
+              !strcmp(name,"shadowBlur")           ||
+
+              !strcmp(name,"highlight")            ||
+              !strcmp(name,"highlightColor")       ||
+              !strcmp(name,"highlightOffset")      ||
+              !strcmp(name,"highlightPaddingLeft") ||
+              !strcmp(name,"highlightPaddingRight");
 #else
     mDirty = true;
 #endif
@@ -182,6 +186,19 @@ public:
   
   float mTextColor[4];
   uint32_t mPixelSize;
+
+  bool     mShadow;
+  float    mShadowColor[4];
+  float    mShadowOffsetX;
+  float    mShadowOffsetY;
+  float    mShadowBlur;
+
+  bool     mHighlight;
+  float    mHighlightColor[4];
+  float    mHighlightOffset;
+  float    mHighlightPaddingLeft;
+  float    mHighlightPaddingRight;
+
   bool mDirty;
   pxContextFramebufferRef mCached;
   rtFileDownloadRequest* mFontDownloadRequest;
