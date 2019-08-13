@@ -940,7 +940,7 @@ bool pxFontAtlas::addGlyph(uint32_t w, uint32_t h, void* buffer, GlyphTextureEnt
 }
 
 
-void pxTexturedQuads::draw(float x, float y, float* color)
+void pxTexturedQuads::draw(float x, float y, float* color, textFx_t *fx /* = NULL */)
 {
   for (uint32_t i = 0; i < mQuads.size(); i++)
   {
@@ -958,7 +958,7 @@ void pxTexturedQuads::draw(float x, float y, float* color)
       }
     }
 
-    context.drawTexturedQuads(q.verts.size()/12, &verts[0], &q.uvs[0], q.t, color);
+    context.drawTexturedQuads( (int) q.verts.size()/12, &verts[0], &q.uvs[0], q.t, color, fx);
   }
 }
 #endif
