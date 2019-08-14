@@ -167,7 +167,6 @@ class pxContext {
                  pxConstantsMaskOperation::constants maskOp= pxConstantsMaskOperation::NORMAL);
 
   void drawEffect(float x, float y, float w, float h, pxTextureRef t, shaderProgram *shader, void *user = NULL);
-  void   drawBlur(float x, float y, float w, float h, pxTextureRef t, shaderProgram *shader, void *user /* = NULL*/);
   
   struct filterXYR
   {

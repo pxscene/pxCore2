@@ -753,7 +753,7 @@ void pxTextBox::renderOneLine(const char * tempStr, float tempX, float tempY, fl
       {
         rtLogWarn("Text width is larger than maximum texture allowed: %lf.  Maximum texture size of %d will be used.",charW, MAX_TEXTURE_WIDTH);
         float tempWidthRatio = charW/MAX_TEXTURE_WIDTH;
-        uint32_t strLen = strlen(tempStr);
+        uint32_t strLen = (uint32_t) strlen(tempStr);
         uint32_t tempNewLen = static_cast<uint32_t> (strLen/tempWidthRatio);
 
         char* trimmedTempStr = (char *)malloc(tempNewLen+1);

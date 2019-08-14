@@ -1420,7 +1420,7 @@ protected:
   }
 
 public:
-  pxError draw(int resW, int resH, float* matrix, float alpha,
+  virtual pxError draw(int resW, int resH, float* matrix, float alpha,
             GLenum mode,
             const void* pos,
             int count,
@@ -1481,7 +1481,7 @@ protected:
   }
 
 public:
-  pxError draw(int resW, int resH, float* matrix, float alpha,
+  virtual pxError draw(int resW, int resH, float* matrix, float alpha,
             GLenum mode,
             int count,
             const void* pos,
@@ -1577,7 +1577,7 @@ class aLinearBlurShaderProgram: public shaderProgram
 
 public:
 
-  pxError draw(int resW, int resH, float* matrix, float alpha,
+  virtual pxError draw(int resW, int resH, float* matrix, float alpha,
                pxTextureRef texture,
                GLenum mode,
                const void* pos,
@@ -1663,7 +1663,7 @@ protected:
   }
 
 public:
-  pxError draw(int resW, int resH, float* matrix, float alpha,
+  virtual pxError draw(int resW, int resH, float* matrix, float alpha,
             int count,
             const void* pos, const void* uv,
             pxTextureRef texture,
@@ -1735,7 +1735,7 @@ protected:
   }
 
 public:
-  pxError draw(int resW, int resH, float* matrix, float alpha,
+  virtual pxError draw(int resW, int resH, float* matrix, float alpha,
                int count,
                const void* pos, const void* uv,
                pxTextureRef texture,
@@ -1820,7 +1820,7 @@ protected:
   }
 
 public:
-  pxError draw(int resW, int resH, float* matrix, float alpha,
+  virtual pxError draw(int resW, int resH, float* matrix, float alpha,
             int count,
             const void* pos,
             const void* uv,
@@ -1899,53 +1899,6 @@ static void drawRect2(GLfloat x, GLfloat y, GLfloat w, GLfloat h, const float* c
 
   gSolidShader->draw(gResW,gResH,gMatrix.data(),gAlpha,GL_TRIANGLE_STRIP,verts,4,colorPM);
 }
-
-// YUCK - should use drawEffect() ... but virtual draw() mishmash
-// YUCK - should use drawEffect() ... but virtual draw() mishmash
-// YUCK - should use drawEffect() ... but virtual draw() mishmash
-// YUCK - should use drawEffect() ... but virtual draw() mishmash
-void pxContext::drawBlur(float x, float y, float w, float h, pxTextureRef t, shaderProgram *shader, void *user /* = NULL*/)
-{
-  if(shader == NULL)
-  {
-    rtLogError("drawBlur() ... Shader is NULL !");
-    return;
-  }
-  
-  // args are tested at call site...
-  
-  const float verts[4][2] =
-  {
-    { x  , y   },
-    { x+w, y   },
-    { x  , y+h },
-    { x+w, y+h }
-  };
-  
-  float iw = static_cast<float>( t ? t->width()  : 1);
-  float ih = static_cast<float>( t ? t->height() : 1);
-  
-  float tw = w/iw;
-  float th = h/ih;
-  
-  float firstTextureY  = 1.0;
-  float secondTextureY = static_cast<float>(1.0-th);
-  
-  const float uv[4][2] =
-  {
-    { 0,  firstTextureY  },
-    { tw, firstTextureY  },
-    { 0,  secondTextureY },
-    { tw, secondTextureY }
-  };
-  
-  aLinearBlurShaderProgram *blur = (aLinearBlurShaderProgram *) shader;
-  blur->draw(gResW, gResH, gMatrix.data(), gAlpha, t, GL_TRIANGLE_STRIP, verts, (t ? uv : NULL), 4, user);
-}
-// YUCK - should use drawEffect() ... but virtual draw() mishmash
-// YUCK - should use drawEffect() ... but virtual draw() mishmash
-// YUCK - should use drawEffect() ... but virtual draw() mishmash
-// YUCK - should use drawEffect() ... but virtual draw() mishmash
 
 
 static void drawEffect(GLfloat x, GLfloat y, GLfloat w, GLfloat h, pxTextureRef t, shaderProgram *shader, void *user /* = NULL*/)
