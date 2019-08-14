@@ -404,21 +404,19 @@ static const char *fLinearBlurShaderText =
   "\n #if 1 \n"
   "  if (u_kernelRadius == 1)"
   "  {"
-"    gl_FragColor = blur5(s_texture, v_uv, u_resolution, u_direction) * u_shadowColor;"
-//  "   gl_FragColor =  texture2D(s_texture, v_uv) + vec4(1.0, 0.0, 0.0,  1.0);" // DEBUG
+"    gl_FragColor = blur5(s_texture, v_uv, u_resolution, u_direction);"
+//  "   gl_FragColor =  texture2D(s_texture, v_uv) + vec4(1.0, 0.0, 0.0,  1.0);" // DEBUG - RED
   "  }"
   "  else if (u_kernelRadius == 2)"
   "  {"
-"      gl_FragColor = blur9(s_texture, v_uv, u_resolution, u_direction) * u_shadowColor;"
-//  "   gl_FragColor =  texture2D(s_texture, v_uv) + vec4(0.0, 1.0, 0.0,  1.0);" // DEBUG
+"      gl_FragColor = blur9(s_texture, v_uv, u_resolution, u_direction);"
+//  "   gl_FragColor =  texture2D(s_texture, v_uv) + vec4(0.0, 1.0, 0.0,  1.0);" // DEBUG - GREEN
   "  }"
   "  else"
   "  {"
-  "    gl_FragColor= blur13(s_texture, v_uv, u_resolution, u_direction) * u_shadowColor;"
- // "   gl_FragColor =  texture2D(s_texture, v_uv) + vec4(0.0, 0.0, 1.0,  1.0);" // DEBUG
+  "    gl_FragColor= blur13(s_texture, v_uv, u_resolution, u_direction);"
+//  "   gl_FragColor =  texture2D(s_texture, v_uv) + vec4(0.0, 0.0, 1.0,  1.0);" // DEBUG - BLUE
   "  }"
-  ""
-  //"  gl_FragColor += vec4(1.0, 0.0, 0.0,  0.1);" // DEBUG
   ""
   "\n #else\n"
   ""
@@ -430,6 +428,9 @@ static const char *fLinearBlurShaderText =
   //"  float a = u_alpha * texture2D(s_texture, v_uv).a;"
   //"  gl_FragColor = u_shadowColor * a * vec4(1.0, 0.0, 0.0,  0.5);"
   //"  gl_FragColor = vec4(1.0, 0.0, 0.0,  0.5);"
+
+  "  gl_FragColor = texture2D(s_texture, v_uv)" // just copy
+
   //"  gl_FragColor = u_shadowColor;"
 
 // DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG
@@ -2897,32 +2898,40 @@ pxContextFramebufferRef pxContext::applyBlurSettings(pxContextFramebufferRef src
   int w = src->width();
   int h = src->height();
 
-  pxContextFramebufferRef output = context.createFramebuffer(w,h);
-  context.setFramebuffer(output);
+  pxContextFramebufferRef output1 = context.createFramebuffer(w,h);
+  context.setFramebuffer(output1);
   context.clear(static_cast<int>(w), static_cast<int>(h) );
 
-  pxContextFramebufferRef fbo_src;
-  pxContextFramebufferRef fbo_dst;
+  pxContextFramebufferRef output0 = context.createFramebuffer(w,h);
+  context.setFramebuffer(output0);
+  context.clear(static_cast<int>(w), static_cast<int>(h) );
 
-  for(size_t i = 0; i< count; i++)
+  context.drawImage(0,0, w,h, src->getTexture(), NULL); // initial
+
+  pxContextFramebufferRef fbo_src = output0;
+  pxContextFramebufferRef fbo_dst = output1;
+
+  for(int i = 0; i< count; i++)
   {
-    bool toggle = (i % 2); // TOGGLE !!
+    bool toggle = (i % 2); // TOGGLE !! ... (0 % 2) = false ... at start
 
     // Alternate between Source Textures -> FBO Destinations
     //
-    fbo_dst = (toggle  == true)   ? src : output;
-    fbo_src = (fbo_dst == output) ? src : output;
+    fbo_src = (toggle) ? output1 : output0;
+    fbo_dst = (toggle) ? output0 : output1;
+    
+    context.setFramebuffer(fbo_dst);
+    if(toggle) context.clear(static_cast<int>(w), static_cast<int>(h) );
 
     // Render with Blur EFFECT shader...
     shdw->x      = filters[i].x;
     shdw->y      = filters[i].y;
     shdw->radius = filters[i].r;
 
-    context.setFramebuffer(fbo_dst);
-    context./*drawEffect*/drawBlur( 0,0, w,h, fbo_src->getTexture(), gATextureBlurShader, (void *) shdw);
+    context.drawEffect( 0,0, w,h, src->getTexture(), gATextureBlurShader, (void *) shdw);
   }
 
-  return output;
+  return fbo_dst;
 }
 
 void pxContext::drawTextEffects(int numQuads, const void *verts, const void* uvs,
@@ -3021,6 +3030,19 @@ void pxContext::drawTextEffects(int numQuads, const void *verts, const void* uvs
 
     // Draw final result of Shadow effect (on top of Higlight) to framebuffer
     context.drawImage(0,0, w,h, fbo3->getTexture(), NULL);
+
+    //DEBUG
+#if 0
+    context.drawImage(0,h*0, w,h, fbo0->getTexture(), NULL);
+    context.drawImage(0,h*1, w,h, fbo1->getTexture(), NULL);
+    context.drawImage(0,h*2, w,h, fbo2->getTexture(), NULL);
+    context.drawImage(0,h*3, w,h, fbo3->getTexture(), NULL);
+//#else
+    context.drawImage(0,h*0, w,h, fbo4->getTexture(), NULL);
+    context.drawImage(0,h*1, w,h, fbo5->getTexture(), NULL);
+    context.drawImage(0,h*2, w,h, fbo6->getTexture(), NULL);
+    context.drawImage(0,h*3, w,h, fbo7->getTexture(), NULL);
+#endif
 
   }//SHADOW
 }
