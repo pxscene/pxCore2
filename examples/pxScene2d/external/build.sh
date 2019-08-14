@@ -44,24 +44,34 @@ fi
 
 #--------- OPENSSL
 
-cd ${OPENSSL_DIR}
-if [ "$(uname)" != "Darwin" ]
+if [ ! -e ./openssl/lib/libssl.dylib ] ||
+   [ "$(uname)" != "Darwin" ]
 then
-./config -shared  --prefix=`pwd`
-else
-./Configure darwin64-x86_64-cc -shared --prefix=`pwd`
-fi
-make clean
-make "-j${make_parallel}"
-make install -i
-rm -rf libcrypto.a
-rm -rf libssl.a
-rm -rf lib/ibcrypto.a
-rm -rf lib/libssl.a
-cd ..
-export LD_LIBRARY_PATH="${OPENSSL_DIR}/:$LD_LIBRARY_PATH"
-export DYLD_LIBRARY_PATH="${OPENSSL_DIR}/:$DYLD_LIBRARY_PATH"
 
+  banner "OPENSSL"
+
+  cd ${OPENSSL_DIR}
+
+  if [ "$(uname)" != "Darwin" ]
+  then
+    ./config -shared  --prefix=`pwd`
+  else
+    ./Configure darwin64-x86_64-cc -shared --prefix=`pwd`
+  fi
+
+  make clean
+  make "-j${make_parallel}"
+  make install -i
+
+  rm -rf libcrypto.a
+  rm -rf libssl.a
+  rm -rf lib/ibcrypto.a
+  rm -rf lib/libssl.a
+
+  cd ..
+  export LD_LIBRARY_PATH="${OPENSSL_DIR}/:$LD_LIBRARY_PATH"
+  export DYLD_LIBRARY_PATH="${OPENSSL_DIR}/:$DYLD_LIBRARY_PATH"
+fi
 #--------- CURL
 
 if [ ! -e ./curl/lib/.libs/libcurl.4.dylib ] ||
@@ -77,7 +87,6 @@ then
     #Removing api definition for Yosemite compatibility.
     sed -i '' '/#define HAVE_CLOCK_GETTIME_MONOTONIC 1/d' lib/curl_config.h
   fi
-
 
   make all "-j${make_parallel}"
   cd ..
@@ -101,48 +110,50 @@ fi
 
 #--------- GIF
 
-banner "GIF"
-
-cd gif
-if [ "$(uname)" == "Darwin" ]; then
-
-[ -d patches ] || mkdir -p patches
-[ -d patches/series ] || echo 'giflib-5.1.9.patch' >patches/series
-cp ../giflib-5.1.9.patch patches/
-
-if [[ "$#" -eq "1" && "$1" == "--clean" ]]; then
-	quilt pop -afq || test $? = 2
-	rm -rf .libs/*
-elif [[ "$#" -eq "1" && "$1" == "--force-clean" ]]; then
-	git clean -fdx .
-	git checkout .
-	rm -rf .libs/*
-else
-	quilt push -aq || test $? = 2
-fi
-
-fi
-
-if [ ! -e ./.libs/libgif.7.dylib ] ||
-[ "$(uname)" != "Darwin" ]
+if [ ! -e ./gif/libgif.7.dylib ] ||
+   [ "$(uname)" != "Darwin" ]
 then
+
+  banner "GIF"
+
+  cd gif
+
+  if [ "$(uname)" == "Darwin" ]; then
+    [ -d patches ] || mkdir -p patches
+    [ -d patches/series ] || echo 'giflib-5.1.9.patch' >patches/series
+    cp ../giflib-5.1.9.patch patches/
+
+    if [[ "$#" -eq "1" && "$1" == "--clean" ]]; then
+      quilt pop -afq || test $? = 2
+      rm -rf .libs/*
+    elif [[ "$#" -eq "1" && "$1" == "--force-clean" ]]; then
+      git clean -fdx .
+      git checkout .
+      rm -rf .libs/*
+    else
+      quilt push -aq || test $? = 2
+    fi
+  fi
+
+  if [ ! -e ./.libs/libgif.7.dylib ] ||
+    [ "$(uname)" != "Darwin" ]
+  then
     make
-[ -d .libs ] || mkdir -p .libs
-if [ -e libgif.7.dylib ]
-then
-    cp libgif.7.dylib .libs/libgif.7.dylib
-    cp libutil.7.dylib .libs/libutil.7.dylib
+    [ -d .libs ] || mkdir -p .libs
+    if [ -e libgif.7.dylib ]
+    then
+        cp libgif.7.dylib .libs/libgif.7.dylib
+        cp libutil.7.dylib .libs/libutil.7.dylib
 
+    elif [ -e libgif.so ]
+    then
+        cp libgif.so .libs/libgif.so
+        cp libutil.so .libs/libutil.so
+    fi
+  fi
 
-elif [ -e libgif.so ]
-then
-    cp libgif.so .libs/libgif.so
-    cp libutil.so .libs/libutil.so
+  cd ..
 fi
-fi
-
-cd ..
-
 #--------- FT
 
 if [ ! -e ./ft/objs/.libs/libfreetype.6.dylib ] ||
@@ -285,7 +296,7 @@ fi
 
   banner "NANOSVG"
 
-./nanosvg/build.sh
+  ./nanosvg/build.sh
 
 #-------- DUKTAPE
 
@@ -297,13 +308,19 @@ then
 fi
 
 #-------- spark-webgl
-export NODE_PATH=$NODE_PATH:`pwd`/../src/node_modules
-export PATH=`pwd`/node/deps/npm/bin/node-gyp-bin/:`pwd`/node/out/Release:$PATH
-cd spark-webgl
-node-gyp rebuild
-cd ..
+if [ ! -d ./spark-webgl/build ] ||
+   [ "$(uname)" != "Darwin" ]
+then
+  banner "WEBGL"
 
-#-------- 
+  export NODE_PATH=$NODE_PATH:`pwd`/../src/node_modules
+  export PATH=`pwd`/node/deps/npm/bin/node-gyp-bin/:`pwd`/node/out/Release:$PATH
+  cd spark-webgl
+  node-gyp rebuild
+  cd ..
+fi
+
+#-------- SQLITE
 
 if [ ! -e sqlite/.libs/libsqlite3.a ]
 then
@@ -316,3 +333,4 @@ then
   cd ..
 
 fi
+#-------- 
