@@ -3135,9 +3135,10 @@ pxScriptView::pxScriptView(const char* url, const char* /*lang*/, pxIViewContain
 // escape url end
 
   shadow = new scriptViewShadow;
-  
-  #ifndef RUNINMAIN // NOTE this ifndef ends after runScript decl, below
+
   mReady = new rtPromise();
+
+  #ifndef RUNINMAIN // NOTE this ifndef ends after runScript decl, below
   triggerUpdate();
  // mLang = lang;
   rtLogDebug("pxScriptView::pxScriptView() exiting\n");
@@ -3158,10 +3159,6 @@ void pxScriptView::runScript()
     {
       if (!mBootstrapResolve && !mBootstrapReject)
       {
-#ifdef RUNINMAIN
-        mReady = new rtPromise();
-#endif
-
         mBootstrapResolve = new rtFunctionCallback(bootstrapResolve, this);
         mBootstrapReject = new rtFunctionCallback(bootstrapReject, this);
 
@@ -3201,10 +3198,6 @@ void pxScriptView::runScript()
     mCtx->add("getScene", mGetScene.getPtr());
     mCtx->add("makeReady", mMakeReady.getPtr());
     mCtx->add("getContextID", mGetContextID.getPtr());
-
-#ifdef RUNINMAIN
-    mReady = new rtPromise();
-#endif
 
     // JRJR Temporary webgl integration
     if (isGLUrl())
