@@ -3158,11 +3158,27 @@ void pxScriptView::runScript()
     {
       if (!mBootstrapResolve && !mBootstrapReject)
       {
+#ifdef RUNINMAIN
+        mReady = new rtPromise();
+#endif
+
         mBootstrapResolve = new rtFunctionCallback(bootstrapResolve, this);
         mBootstrapReject = new rtFunctionCallback(bootstrapReject, this);
 
         rtRef<pxArchive> a = new pxArchive;
-        a->initFromUrl(mUrl);
+
+        // get rid of the query part
+        rtString archiveUrl = mUrl;
+        int32_t pos = archiveUrl.find(0, '#');
+        if (pos != -1) {
+          archiveUrl = archiveUrl.substring(0, pos);
+        }
+        pos = archiveUrl.find(0, '?');
+        if (pos != -1) {
+          archiveUrl = archiveUrl.substring(0, pos);
+        }
+
+        a->initFromUrl(archiveUrl);
         rtObjectRef ready; // rtPromise
         a->ready(ready);
         rtObjectRef newPromise;
