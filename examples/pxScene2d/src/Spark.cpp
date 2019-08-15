@@ -25,7 +25,6 @@
 #include "pxEventLoop.h"
 #include "pxWindow.h"
 
-#define ANIMATION_ROTATE_XYZ
 #include "pxContext.h"
 #include "pxScene2d.h"
 #include "rtUrlUtils.h"
