@@ -561,7 +561,9 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   graphicsCapabilities.set("imageAResource", 2);
       
   graphicsCapabilities.set("screenshots", 2);
+#ifdef ENABLE_SPARK_SHADER_RESOURCES
   graphicsCapabilities.set("shaders", 1);
+#endif //ENABLE_SPARK_SHADER_RESOURCES
   graphicsCapabilities.set("text", 3);
       
 #ifdef SPARK_CURSOR_SUPPORT
@@ -728,11 +730,13 @@ rtError pxScene2d::create(rtObjectRef p, rtObjectRef& o)
     e = createFontResource(p,o);
     needpxObjectTracking = false;
   }
+#ifdef ENABLE_SPARK_SHADER_RESOURCES
   else if (!strcmp("shaderResource",t.cString()))
   {
     e = createShaderResource(p,o);
     needpxObjectTracking = false;
   }
+#endif //ENABLE_SPARK_SHADER_RESOURCES
   else if (!strcmp("scene",t.cString()))
     e = createScene(p,o);
   else if (!strcmp("external",t.cString()))
