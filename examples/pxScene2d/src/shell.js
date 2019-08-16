@@ -92,6 +92,12 @@ px.import({ scene: 'px:scene.1.js',
   logger.message('info', "url:" + originalURL);
 
   var    blackBg = scene.create({t:"rect", fillColor:0x000000ff,x:0,y:0,w:1280,h:720,a:0,parent:scene.root});
+  var defaultToOpaqueBackground = true;
+  if (originalURL.startsWith("gl:"))
+  {
+    blackBg.a = 0;
+    defaultToOpaqueBackground = false;
+  }
   var childScene = scene.create({t:"scene", url: originalURL, parent:scene.root});
   childScene.focus = true;
 
@@ -338,7 +344,7 @@ if( scene.capabilities != undefined && scene.capabilities.graphics != undefined 
           blackBg.a = 1;
 
       }
-      else {
+      else if (defaultToOpaqueBackground) {
           blackBg.a = 1;
       }
   });
