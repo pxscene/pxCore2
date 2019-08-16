@@ -66,7 +66,7 @@ var contextifiedSandbox = null;
 var __dirname = process.cwd()
 /* holds map of depenedent module name and its reference */
 var modmap = {}
-var loadUrl = function(url, _beginDrawing, _endDrawing, _view) {
+var loadUrl = function(url, _beginDrawing, _endDrawing, _view, _frameworkURL, _options) {
 
   // JRJR review this... if we don't draw outside of the timers
   // then no need for this... 
@@ -174,8 +174,9 @@ var loadUrl = function(url, _beginDrawing, _endDrawing, _view) {
   }
   var sandboxDir = __dirname;
   if (url.startsWith('gl:')) {
-    var fn = url.substring(3);
-    sandboxDir = path.dirname(fn);
+    sandboxDir = path.dirname(url.substring(3));
+  } else {
+    sandboxDir = path.dirname(url);
   }
   sandbox['__dirname'] = sandboxDir;
   sandbox['Buffer'] = Buffer;
@@ -648,69 +649,67 @@ async function loadMjs(source, url, context)
     };
   };
 
-    function loadESM(filename) {
-       // override require to our own require to load files relative to file path
-        sandbox.require = makeRequire(filename);
-        contextifiedSandbox = vm.createContext(sandbox);
-        script.runInContext(contextifiedSandbox);
-        try {
-          (async () => {
-            var instantiated = false;
-            try
-            {
-              var source, rpath;
-              if (filename.indexOf('http') == 0) {
-                result = await loadHttpFile(filename);
-                app = await loadMjs(result, filename, contextifiedSandbox);
-                app.instantiate();
-                instantiated = true;
-                succeeded = true
-                makeReady(true, {});
-                beginDrawing();
-                await app.evaluate();
-                endDrawing();
-              }
-              else
-              {
-                if (filename.indexOf("/") != 0) {
-                  rpath = path.resolve(__dirname, filename);
-                }
-                else
-                {
-                  rpath = filename;
-                }
-                source = await readFileAsync(rpath, {'encoding' : 'utf-8'})
-                rpath = "file://" + rpath;
-                app = await loadMjs(source, rpath, contextifiedSandbox);
-                app.instantiate();
-                instantiated = true;
-                succeeded = true
-                makeReady(true, {});
-                beginDrawing();
-                await app.evaluate();
-                endDrawing();
-              }
-            }
-            catch(err) {
-              console.log("load mjs module failed ");
-              console.log(err);
-              if (false == instantiated) {
-                makeReady(false, {});
-              } 
-            }
-          })();
-        }
-        catch(err) {
-          console.log(err);
-        }
-        return;
+  async function getFile(location) {
+    if (location.indexOf('http') === 0) {
+      return {data: await loadHttpFile(location), uri: location};
+    } else {
+      if (location.indexOf("/") !== 0) {
+        location = path.resolve(__dirname, location);
       }
+      return {data: await readFileAsync(location, {'encoding': 'utf-8'}), uri: `file://${location}`};
+    }
+  }
 
+  function loadESM(filename) {
+    // override require to our own require to load files relative to file path
+    sandbox.require = makeRequire(filename);
 
-  var filename = ''
+    contextifiedSandbox = vm.createContext(sandbox);
+    script.runInContext(contextifiedSandbox);
 
-  if (url.startsWith('gl:'))
-    filename = url.substring(3)
+    try {
+      (async () => {
+        let instantiated = false;
+        try {
+          if (_frameworkURL) {
+            let framework = await getFile(_frameworkURL);
+            vm.runInContext(framework.data, contextifiedSandbox, {filename:framework.uri});
+          }
+
+          let file = await getFile(filename);
+          let source = file.data, rpath = file.uri;
+          app = await loadMjs(source, rpath, contextifiedSandbox);
+          app.instantiate();
+          instantiated = true;
+          succeeded = true;
+          makeReady(true, {});
+          beginDrawing();
+          await app.evaluate();
+          if (_options) {
+            try {
+              new app.namespace.default(_options);
+            } catch (err) {
+              console.log(err);
+            }
+          }
+          endDrawing();
+        } catch (err) {
+          console.log("load mjs module failed "+err);
+          console.log(err);
+          if (false === instantiated) {
+            makeReady(false, {});
+          }
+        }
+      })();
+    } catch (err) {
+      console.log(err);
+    }
+  }
+
+  var filename = url
+
+  if (filename.startsWith('gl:'))
+    filename = filename.substring(3)
 
   var initGLPath = __dirname+'/initGL.js'
 
@@ -804,6 +803,11 @@ var onClose = function() {
   _clearImmediates()
   _clearWebsockets()
   _clearSockets()
+
+  // memory leak fix
+  sandbox.sparkwebgl.instance.gl = null;
+  sandbox.sparkwebgl.instance = null;
+
   for (var i=0; i<sandboxKeys.length; i++)
   {
     sandbox[sandboxKeys[i]] = null;
