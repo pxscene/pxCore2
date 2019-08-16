@@ -803,6 +803,11 @@ var onClose = function() {
   _clearImmediates()
   _clearWebsockets()
   _clearSockets()
+
+  // memory leak fix
+  sandbox.sparkwebgl.instance.gl = null;
+  sandbox.sparkwebgl.instance = null;
+
   for (var i=0; i<sandboxKeys.length; i++)
   {
     sandbox[sandboxKeys[i]] = null;
