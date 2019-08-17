@@ -358,7 +358,7 @@ void rtImageResource::reloadData()
 }
 
 bool pxResource::downloadInProgress()
-{
+{ 
     bool status = false;
     mDownloadInProgressMutex.lock();
     status = mDownloadInProgress;
