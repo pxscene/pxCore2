@@ -73,8 +73,15 @@ then
   sh "unittests_$TRAVIS_OS_NAME.sh" 
   checkError $? "#### Build/unittests/execution [unittests_$TRAVIS_OS_NAME.sh] failed" "Either build problem/execution problem" "Analyze corresponding log file"
 
+  export ENABLE_MIN_TESTS=$ENABLE_MIN_TESTS
   sh "execute_$TRAVIS_OS_NAME.sh" 
   checkError $? "#### Build/unittests/execution [execute_$TRAVIS_OS_NAME.sh] failed" "Either build problem/execution problem" "Analyze corresponding log file"
+
+  if [ $ENABLE_MIN_TESTS -eq 1 ]
+  then
+    sh "execute_minimal_$TRAVIS_OS_NAME.sh" 
+    checkError $? "#### Build/unittests/execution [execute_minimal_$TRAVIS_OS_NAME.sh] failed" "Either build problem/execution problem" "Analyze corresponding log file"
+  fi
 
   sh "code_coverage_$TRAVIS_OS_NAME.sh"
   checkError $? "#### Build/unittests/execution [code_coverage_$TRAVIS_OS_NAME.sh] failed" "Either build problem/execution problem" "Analyze corresponding log file"

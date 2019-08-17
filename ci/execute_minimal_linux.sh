@@ -11,7 +11,6 @@ checkError()
         printf "\nReproduction/How to fix: $4"
 	printf "\n*******************************************************************";
 	printf "\n*******************************************************************\n\n";
-        #exit 1;
   fi
 }
 
@@ -26,45 +25,29 @@ else
 fi
 
 rm -rf /tmp/cache/*
-rm -rf $TRAVIS_BUILD_DIR/logs/*
 rm /tmp/pxscenecrash
 
-export VALGRINDLOGS=$TRAVIS_BUILD_DIR/logs/valgrind_logs
 export PX_DUMP_MEMUSAGE=1
 export HANDLE_SIGNALS=1
-export ENABLE_VALGRIND=1
+export ENABLE_VALGRIND=0
 export RT_LOG_LEVEL=info
 export SPARK_CORS_ENABLED=true
 export SPARK_PERMISSIONS_CONFIG=$TRAVIS_BUILD_DIR/examples/pxScene2d/src/sparkpermissions.conf
 export SPARK_PERMISSIONS_ENABLED=true
-export SUPPRESSIONS=$TRAVIS_BUILD_DIR/ci/leak.supp
 export SPARK_ENABLE_COLLECT_GARBAGE=1
 
-touch $VALGRINDLOGS
-EXECLOGS=$TRAVIS_BUILD_DIR/logs/exec_logs
+EXECLOGS=$TRAVIS_BUILD_DIR/logs/exec_minimal_logs
 TESTRUNNERURL="https://www.sparkui.org/tests-ci/test-run/testRunner.js"
-if [ $ENABLE_MIN_TESTS -eq 1 ]
-then
-TESTS="file://$TRAVIS_BUILD_DIR/tests/pxScene2d/testRunner/testsDesktop.json"
-else
-TESTS="file://$TRAVIS_BUILD_DIR/tests/pxScene2d/testRunner/testsDesktop.json,file://$TRAVIS_BUILD_DIR/tests/pxScene2d/testRunner/tests.json"
-fi
+TESTS="file://$TRAVIS_BUILD_DIR/tests/pxScene2d/testRunner/tests.json"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 printExecLogs()
 {
-  printf "\n********************** PRINTING EXEC LOG **************************\n"
+  printf "\n********************** PRINTING EXEC MINIMAL LOG **************************\n"
   cat $EXECLOGS
   printf "\n**********************     LOG ENDS      **************************\n"
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-printValgrindLogs()
-{
-  printf "\n********************** PRINTING VALGRIND LOG **************************\n"
-  tail -150 $VALGRINDLOGS
-  printf "\n**********************     LOG ENDS      **************************\n"
-}
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 # Start testRunner ... 
 cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src
@@ -79,7 +62,7 @@ count=0
 
 #adding spark log a part of console.log increase execution time in linux in ci
 #in linux we have timeouts, so increasing the limit
-max_seconds=2100
+max_seconds=900
 while [ "$retVal" -ne 0 ] &&  [ "$count" -ne "$max_seconds" ]; do
 	printf "\n [execute_linux.sh] snoozing for 30 seconds (%d of %d) \n" $count $max_seconds
 	sleep 30; # seconds
@@ -94,34 +77,24 @@ while [ "$retVal" -ne 0 ] &&  [ "$count" -ne "$max_seconds" ]; do
 	fi
 done
 
-ls -lrt /tmp/pxscenecrash
+#check for corefile presence
+processId=`ps -ef | grep Spark |grep -v grep|grep -v spark.sh|awk '{print $2}'`
+ls -l /tmp/pxscenecrash
 retVal=$?
 if [ "$retVal" -eq 0 ]
-then
-gdb $TRAVIS_BUILD_DIR/examples/pxScene2d/src/Spark -batch -q -ex "target remote | vgdb" -ex "thread apply all bt" -ex "quit"
+  then
+  $TRAVIS_BUILD_DIR/ci/check_dump_cores_linux.sh `pwd` "$TRAVIS_BUILD_DIR/examples/pxScene2d/Spark" "$processId" "$EXECLOGS"
+  kill -9 $processId
+  sleep 5s;
+  pkill -9 -f spark.sh
+  printExecLogs
+  checkError -1 "Spark minimal execution failed" "Core dump"  "Verify Unit test logs/Run spark testrunner without valgrind locally."
+  exit 1;
 fi
 
 kill -15 `ps -ef | grep Spark |grep -v grep|grep -v spark.sh|awk '{print $2}'`
 echo "Sleeping for 90 secomds to make the logs dump completely"
 sleep 90
-chmod 444 $VALGRINDLOGS
-
-ls -lrt /tmp/pxscenecrash
-retVal=$?
-if [ "$retVal" -eq 0 ]
-  then
-  if [ "$TRAVIS_PULL_REQUEST" != "false" ]
-  then
-    echo "****************************** CORE DUMP DETAILS ******************************"
-    cat $VALGRINDLOGS | head -150
-    echo "*******************************************************************************"
-    checkError -1 "Execution failed" "Core dump" "Kindly refer the above trace and test by running locally"
-  else
-    checkError -1 "Execution failed" "Core dump" "Kindly refer $VALGRINDLOGS and test by running locally"
-  fi
-  exit 1;
-fi
-
 
 # Check for any testRunner failures
 grep "Failures: 0" $EXECLOGS
@@ -181,30 +154,4 @@ else
 	exit 1;
 fi
 
-# Check for valgrind memory leaks
-grep "definitely lost: 0 bytes in 0 blocks" $VALGRINDLOGS
-retVal=$?
-if [ "$retVal" -eq 0 ]
-	then
-	echo "************************* Valgrind reports success *************************";
-else
-  #search for leaked areas from valgrind logs
-	grep -A 100 -B 100 "definitely lost" $VALGRINDLOGS
-	leakcheck=$?
-	if [ "$leakcheck" -eq 0 ]
-	then
-		errCause="Memory leaks present"
-	else
-		errCause="Execution stopped due to crash or abnormal execution"
-	fi
-	if [ "$TRAVIS_PULL_REQUEST" != "false" ]
-	then
-		errCause="$errCause . Check the above logs"
-		printValgrindLogs
-	else
-		errCause="$errCause . Check the file $VALGRINDLOGS "
-	fi
-	checkError $retVal "Valgrind execution reported problem" "$errCause" "Follow the steps locally : export ENABLE_VALGRIND=1;export SUPPRESSIONS=<pxcore dir>/ci/leak.supp;./spark.sh $TESTRUNNERURL?tests=<pxcore dir>/tests/pxScene2d/testRunner/tests.json and fix it"
-	exit 1;
-fi
 exit 0;
