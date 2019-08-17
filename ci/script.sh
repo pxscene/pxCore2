@@ -73,6 +73,7 @@ then
   sh "unittests_$TRAVIS_OS_NAME.sh" 
   checkError $? "#### Build/unittests/execution [unittests_$TRAVIS_OS_NAME.sh] failed" "Either build problem/execution problem" "Analyze corresponding log file"
 
+  export ENABLE_MIN_TESTS=$ENABLE_MIN_TESTS
   sh "execute_$TRAVIS_OS_NAME.sh" 
   checkError $? "#### Build/unittests/execution [execute_$TRAVIS_OS_NAME.sh] failed" "Either build problem/execution problem" "Analyze corresponding log file"
 

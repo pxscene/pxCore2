@@ -26,14 +26,17 @@ before_install:
 - if ( [ "$TRAVIS_EVENT_TYPE" = "push" ] || [ "$TRAVIS_EVENT_TYPE" = "pull_request" ] ) && [ -z "${TRAVIS_TAG}" ] && [ "$TRAVIS_OS_NAME" = "linux" ] ; then export PATH=/usr/lib/ccache:$PATH ; fi
 - gcc -v && g++ -v 
 install:
+-  START=$(date +%s)
 - ./ci/install.sh
+- END=$(date +%s)
+- DIFF=$(( $END - $START ))
 before_script:
 - if ( [ "$TRAVIS_EVENT_TYPE" = "push" ] || [ "$TRAVIS_EVENT_TYPE" = "pull_request" ] ) && [ -z "${TRAVIS_TAG}" ] ; then ccache -s; fi
 - ./ci/before_script.sh
 - if [ "$TRAVIS_EVENT_TYPE" = "api" ] || [ ! -z "${TRAVIS_TAG}" ] ;  then export linenumber=`awk '/CFBundleShortVersionString/{ print NR; exit }' $TRAVIS_BUILD_DIR/examples/pxScene2d/src/macstuff/Info.plist`;export PX_VERSION=`sed -n "\`echo $((linenumber+1))\`p" $TRAVIS_BUILD_DIR/examples/pxScene2d/src/macstuff/Info.plist|awk -F '<string>' '{print $2}'|awk -F'</string>' '{print $1}'`; fi
 - if [ "$TRAVIS_EVENT_TYPE" = "cron" ] ; then export PX_VERSION=edge_`date +%Y-%m-%d` ; fi
 script:
-- ./ci/script.sh
+- if ( [ "$TRAVIS_EVENT_TYPE" = "push" ] || [ "$TRAVIS_EVENT_TYPE" = "pull_request" ] ) && [ "$DIFF" -ge 1000 ] ; then ENABLE_MIN_TESTS=1 ./ci/script.sh; else ENABLE_MIN_TESTS=0 ./ci/script.sh; fi
 - if ( [ "$TRAVIS_EVENT_TYPE" = "push" ] || [ "$TRAVIS_EVENT_TYPE" = "pull_request" ] ) && [ -z "${TRAVIS_TAG}" ] ; then codecov --build "$TRAVIS_OS_NAME-$TRAVIS_COMMIT-$TRAVIS_BUILD_NUMBER" -X gcov -f $TRAVIS_BUILD_DIR/tracefile ; fi
 - if ( [ "$TRAVIS_EVENT_TYPE" = "push" ] || [ "$TRAVIS_EVENT_TYPE" = "pull_request" ] ) && [ -z "${TRAVIS_TAG}" ] ; then genhtml -o $TRAVIS_BUILD_DIR/logs/codecoverage $TRAVIS_BUILD_DIR/tracefile; fi
 after_script:
