@@ -107,7 +107,7 @@ px.import({ scene: 'px:scene.1.js' }).then( function importsAreReady(imports)
                                     w: label_w, h: label_h + 4, x: lx, y: py });
 
     var labelTxt   = scene.create({ t: "textBox", parent: labelRect, textColor: 0x000000ff,
-                                    w: label_w, h: label_h,     x: x_pos , y: 0,
+                                    w: label_w, h: label_h,     x: x_pos, y: 0,
                                     font: fontRes, pixelSize: textPts, wordWrap: true,
                                     xStartPos: ix, xStopPos: ix,
                                     text: label, // ### LABEL
