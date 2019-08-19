@@ -90,6 +90,7 @@ public:
     rtProperty(shadowBlur, shadowBlur, setShadowBlur, uint32_t);
     rtProperty(shadowOffsetX, shadowOffsetX, setShadowOffsetX, float);
     rtProperty(shadowOffsetY, shadowOffsetY, setShadowOffsetY, float);
+    rtProperty(label, label, setLabel, rtString);
 
     uint32_t alignHorizontal() const;
     rtError alignHorizontal(uint32_t& v) const;
@@ -108,6 +109,8 @@ public:
     rtError setShadowOffsetX(const float o);
     rtError shadowOffsetY(float& o) const;
     rtError setShadowOffsetY(const float o);
+    rtError label(rtString &c) const;
+    rtError setLabel(const rtString &c);
 
     /* override virtuals from pxObject that must affect the readiness of pxTextCanvas due to text measurements */
     rtError setW(float v) override      { setNeedsRecalc(true); return pxObject::setW(v);}
@@ -160,6 +163,7 @@ protected:
     uint32_t  mShadowBlur;
     float mShadowOffsetX;
     float mShadowOffsetY;
+    rtString mLabel;
 
     std::vector<pxTextLine> mTextLines;
 

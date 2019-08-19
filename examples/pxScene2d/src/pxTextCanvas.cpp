@@ -52,6 +52,7 @@ pxTextCanvas::pxTextCanvas(pxScene2d* s): pxText(s)
     mFontLoaded = false;
     mFontFailed = false;
     mTextBaseline = "alphabetic"; //TODO: make a const class from it?
+	mLabel = "";
     rtLogDebug("pxTextCanvas::ctor - end");
 }
 /** This signals that the font file loaded successfully; now we need to
@@ -199,6 +200,16 @@ rtError pxTextCanvas::setShadowOffsetY(const float o)
     return RT_OK;
 }
 
+rtError pxTextCanvas::label(rtString &c) const
+{
+    c = mLabel;
+    return RT_OK;
+}
+rtError pxTextCanvas::setLabel(const rtString &c)
+{
+    mLabel = c;
+    return RT_OK;
+}
 float pxTextCanvas::getFBOWidth()
 {
     return pxText::getFBOWidth();
@@ -468,6 +479,7 @@ rtDefineProperty(pxTextCanvas, shadowColor);
 rtDefineProperty(pxTextCanvas, shadowBlur);
 rtDefineProperty(pxTextCanvas, shadowOffsetX);
 rtDefineProperty(pxTextCanvas, shadowOffsetY);
+rtDefineProperty(pxTextCanvas, label);
 
 rtDefineMethod(pxTextCanvas, measureText);
 rtDefineMethod(pxTextCanvas, fillText);
