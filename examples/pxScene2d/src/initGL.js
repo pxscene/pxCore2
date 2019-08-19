@@ -58,7 +58,7 @@ var _intervals = []
 var _timeouts = []
 var _immediates = []
 var _websockets = []
-var sandboxKeys = ["vm", "process", "setTimeout", "console", "clearTimeout", "setInterval", "clearInterval", "setImmediate", "clearImmediate", "sparkview", "sparkscene", "sparkgles2", "beginDrawing", "endDrawing", "sparkwebgl", "require", "localStorage"]
+var sandboxKeys = ["vm", "process", "setTimeout", "console", "clearTimeout", "setInterval", "clearInterval", "setImmediate", "clearImmediate", "sparkview", "sparkscene", "sparkgles2", "beginDrawing", "endDrawing", "sparkwebgl", "sparkkeys", "require", "localStorage"]
 var sandbox = {}
 /* holds loaded main mjs module reference */
 var app = null;
@@ -164,7 +164,7 @@ var loadUrl = function(url, _beginDrawing, _endDrawing, _view, _frameworkURL, _o
   global.sparkview = _view
   global.sparkscene = getScene("scene.1")
   global.localStorage = global.sparkscene.storage;
-  const script = new vm.Script("global.sparkwebgl = sparkwebgl= require('webgl'); global.sparkgles2 = sparkgles2 = require('gles2.js');");
+  const script = new vm.Script("global.sparkwebgl = sparkwebgl= require('webgl'); global.sparkgles2 = sparkgles2 = require('gles2.js'); global.sparkkeys = sparkkeys = require('rcvrcore/tools/keys.js');");
   global.sparkscene.on('onClose', onClose);
   sandbox.global = global
   sandbox.vm = vm;
@@ -650,6 +650,12 @@ async function loadMjs(source, url, context)
   };
 
   async function getFile(location) {
+    //remove the query parameters for downloading the file
+    let pos = location.indexOf('?');
+    if (pos !== -1) {
+      location = location.substring(0, pos);
+    }
+
     if (location.indexOf('http') === 0) {
       return {data: await loadHttpFile(location), uri: location};
     } else {
