@@ -1,5 +1,4 @@
 #!/bin/sh
-
 count=0
 while [ "$count" -le 3600 ]; do
 	sleep 60;
