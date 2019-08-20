@@ -64,7 +64,7 @@ count=0
 #in linux we have timeouts, so increasing the limit
 max_seconds=900
 while [ "$retVal" -ne 0 ] &&  [ "$count" -ne "$max_seconds" ]; do
-	printf "\n [execute_linux.sh] snoozing for 30 seconds (%d of %d) \n" $count $max_seconds
+	printf "\n [execute_minimal_linux.sh] snoozing for 30 seconds (%d of %d) \n" $count $max_seconds
 	sleep 30; # seconds
 	grep "TEST RESULTS: " $EXECLOGS
 	retVal=$?
