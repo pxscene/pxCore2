@@ -659,11 +659,6 @@ if (s && (strcmp(s,"1") == 0))
   gDumpMemUsage = true;
 }
 
-char const* madan = getenv("CRASH_PXSCENE");
-if (madan && (strcmp(madan,"1") == 0))
-{
-  printf("crashing here [%s] \n", (char*)0x96);
-}
   const char* url = "browser.js";
   for (int i=1;i<argc;i++)
   {
