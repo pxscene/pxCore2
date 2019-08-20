@@ -3217,6 +3217,13 @@ pxScriptView::~pxScriptView()
     mCtx->add("makeReady", 0);
     mCtx->add("getContextID", 0);
   }
+
+  mDrawing = false;
+  if (NULL != mBeginDrawing.getPtr())
+    mBeginDrawing->clearContext();
+  if (NULL != mEndDrawing.getPtr())
+    mEndDrawing->clearContext();
+
 #endif //ENABLE_RT_NODE
 
   if (mView)
