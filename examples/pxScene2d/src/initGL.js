@@ -58,7 +58,7 @@ var _intervals = []
 var _timeouts = []
 var _immediates = []
 var _websockets = []
-var sandboxKeys = ["vm", "process", "setTimeout", "console", "clearTimeout", "setInterval", "clearInterval", "setImmediate", "clearImmediate", "sparkview", "sparkscene", "sparkgles2", "beginDrawing", "endDrawing", "sparkwebgl", "sparkkeys", "require", "localStorage"]
+var sandboxKeys = ["vm", "process", "setTimeout", "console", "clearTimeout", "setInterval", "clearInterval", "setImmediate", "clearImmediate", "sparkview", "sparkscene", "sparkgles2", "beginDrawing", "endDrawing", "sparkwebgl", "sparkkeys", "sparkQueryParams", "require", "localStorage"]
 var sandbox = {}
 /* holds loaded main mjs module reference */
 var app = null;
@@ -166,6 +166,7 @@ var loadUrl = function(url, _beginDrawing, _endDrawing, _view, _frameworkURL, _o
   global.localStorage = global.sparkscene.storage;
   const script = new vm.Script("global.sparkwebgl = sparkwebgl= require('webgl'); global.sparkgles2 = sparkgles2 = require('gles2.js'); global.sparkkeys = sparkkeys = require('rcvrcore/tools/keys.js');");
   global.sparkscene.on('onClose', onClose);
+  global.sparkQueryParams = urlmain.parse(url, true).query;
   sandbox.global = global
   sandbox.vm = vm;
   for (var i=0; i<sandboxKeys.length; i++)
