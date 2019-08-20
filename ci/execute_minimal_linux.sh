@@ -48,7 +48,7 @@ printExecLogs()
   printf "\n**********************     LOG ENDS      **************************\n"
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-
+export CRASH_PXSCENE=1
 # Start testRunner ... 
 cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src
 ./spark.sh $TESTRUNNERURL?tests=$TESTS > $EXECLOGS 2>&1 &
