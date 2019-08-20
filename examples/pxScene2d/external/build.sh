@@ -44,8 +44,6 @@ fi
 
 #--------- OPENSSL
 
-#avoid caching for openssl
-export CCACHE_DISABLE=true
 cd ${OPENSSL_DIR}
 if [ "$(uname)" != "Darwin" ]
 then
@@ -61,7 +59,6 @@ rm -rf libssl.a
 rm -rf lib/libcrypto.a
 rm -rf lib/libssl.a
 cd ..
-unset CCACHE_DISABLE
 export LD_LIBRARY_PATH="${OPENSSL_DIR}/:$LD_LIBRARY_PATH"
 export DYLD_LIBRARY_PATH="${OPENSSL_DIR}/:$DYLD_LIBRARY_PATH"
 
