@@ -436,8 +436,30 @@ rtError rtImageResource::flip(bool& v) const
 rtError rtImageResource::setFlip(bool v)
 {
   mTextureMutex.lock();
+#ifdef ENABLE_BACKGROUND_TEXTURE_CREATION
+  bool prevFlip = mFlip;
+#endif //ENABLE_BACKGROUND_TEXTURE_CREATION
   mFlip = v;
   mTextureMutex.unlock();
+#ifdef ENABLE_BACKGROUND_TEXTURE_CREATION
+  if (v != prevFlip)
+  {
+    mDownloadInProgressMutex.lock();
+    bool isDownloadInProgress =  mDownloadInProgress;
+    mDownloadInProgressMutex.unlock();
+    if (isDownloadInProgress)
+    {
+      //only attempt to reload if download is in progress
+      //rtLogDebug("restarting downloand");
+      if (mDownloadRequest != NULL)
+      {
+        rtFileDownloader::cancelDownloadRequestThreadSafe(mDownloadRequest, this);
+        clearDownloadRequest();
+      }
+      loadResource();
+    }
+  }
+#endif //ENABLE_BACKGROUND_TEXTURE_CREATION
   return RT_OK;
 }
 
