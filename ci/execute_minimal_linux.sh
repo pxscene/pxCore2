@@ -83,7 +83,7 @@ ls -l /tmp/pxscenecrash
 retVal=$?
 if [ "$retVal" -eq 0 ]
   then
-  $TRAVIS_BUILD_DIR/ci/check_dump_cores_linux.sh `pwd` "$TRAVIS_BUILD_DIR/examples/pxScene2d/Spark" "$processId" "$EXECLOGS"
+  $TRAVIS_BUILD_DIR/ci/check_dump_cores_linux.sh `pwd` "$TRAVIS_BUILD_DIR/examples/pxScene2d/src/Spark" "$processId" "$EXECLOGS"
   kill -9 $processId
   sleep 5s;
   pkill -9 -f spark.sh

@@ -79,8 +79,10 @@ then
 
   if [ $ENABLE_MIN_TESTS -eq 1 ]
   then
+    EXECLOGS=$TRAVIS_BUILD_DIR/logs/exec_minimal_logs
     sh "execute_minimal_$TRAVIS_OS_NAME.sh" 
     checkError $? "#### Build/unittests/execution [execute_minimal_$TRAVIS_OS_NAME.sh] failed" "Either build problem/execution problem" "Analyze corresponding log file"
+    EXECLOGS=$TRAVIS_BUILD_DIR/logs/exec_logs
   fi
 
   sh "code_coverage_$TRAVIS_OS_NAME.sh"
