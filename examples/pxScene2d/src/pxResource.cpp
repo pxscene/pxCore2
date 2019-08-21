@@ -436,8 +436,30 @@ rtError rtImageResource::flip(bool& v) const
 rtError rtImageResource::setFlip(bool v)
 {
   mTextureMutex.lock();
+#ifdef ENABLE_BACKGROUND_TEXTURE_CREATION
+  bool prevFlip = mFlip;
+#endif //ENABLE_BACKGROUND_TEXTURE_CREATION
   mFlip = v;
   mTextureMutex.unlock();
+#ifdef ENABLE_BACKGROUND_TEXTURE_CREATION
+  if (v != prevFlip)
+  {
+    mDownloadInProgressMutex.lock();
+    bool isDownloadInProgress =  mDownloadInProgress;
+    mDownloadInProgressMutex.unlock();
+    if (isDownloadInProgress)
+    {
+      //only attempt to reload if download is in progress
+      //rtLogDebug("restarting downloand");
+      if (mDownloadRequest != NULL)
+      {
+        rtFileDownloader::cancelDownloadRequestThreadSafe(mDownloadRequest, this);
+        clearDownloadRequest();
+      }
+      loadResource();
+    }
+  }
+#endif //ENABLE_BACKGROUND_TEXTURE_CREATION
   return RT_OK;
 }
 
@@ -623,7 +645,7 @@ void pxResource::loadResource(rtObjectRef archive, bool reloading)
 }
 void pxResource::onDownloadCompleteUI(void* context, void* data)
 {
-  pxResource* res = (rtImageResource*)context;
+  pxResource* res = (pxResource*)context;
   rtString resolution = (char*)data;
 
   res->setupResource();
@@ -885,7 +907,7 @@ void pxResource::processDownloadedResource(rtFileDownloadRequest* fileDownloadRe
       setLoadStatus("httpStatusCode",(uint32_t)fileDownloadRequest->httpStatusCode());
       if (gUIThreadQueue)
       {
-        gUIThreadQueue->addTask(pxResource::onDownloadCanceledUI, this, (void*)"reject");
+        gUIThreadQueue->addTask(onDownloadCanceledUI, this, (void*)"reject");
       }
     }
     else if (fileDownloadRequest->downloadStatusCode() == 0 &&
@@ -928,7 +950,7 @@ void pxResource::processDownloadedResource(rtFileDownloadRequest* fileDownloadRe
         // TODO review overall flow and organization
         if (gUIThreadQueue)
         {
-          gUIThreadQueue->addTask(pxResource::onDownloadCompleteUI, this, (void*)"reject");
+          gUIThreadQueue->addTask(onDownloadCompleteUI, this, (void*)"reject");
         }
       }
       else if (result == PX_RESOURCE_LOAD_SUCCESS)
@@ -943,7 +965,7 @@ void pxResource::processDownloadedResource(rtFileDownloadRequest* fileDownloadRe
         // TODO review overall flow and organization
         if (gUIThreadQueue)
         {
-          gUIThreadQueue->addTask(pxResource::onDownloadCompleteUI, this, (void*)"resolve");
+          gUIThreadQueue->addTask(onDownloadCompleteUI, this, (void*)"resolve");
         }
       }
     }
@@ -960,7 +982,7 @@ void pxResource::processDownloadedResource(rtFileDownloadRequest* fileDownloadRe
       // TODO review overall flow and organization
       if (gUIThreadQueue)
       {
-        gUIThreadQueue->addTask(pxResource::onDownloadCompleteUI, this, (void*)"reject");
+        gUIThreadQueue->addTask(onDownloadCompleteUI, this, (void*)"reject");
       }
     }
   }

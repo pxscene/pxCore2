@@ -219,7 +219,9 @@ set(PXCORE_FILES ${PXCORE_FILES} pxOffscreen.cpp pxWindowUtil.cpp pxColorNames.c
         rtZip.cpp pxInterpolators.cpp pxUtil.cpp
         rtFileDownloader.cpp unzip.c ioapi.c
         rtScript.cpp rtSettings.cpp rtCORS.cpp
-        rtHttpRequest.cpp rtHttpResponse.cpp)
+        rtHttpRequest.cpp rtHttpResponse.cpp
+        rtJsonUtils.cpp
+        )
 
 if (SUPPORT_STORAGE)
     message("Adding local storage support")
