@@ -54,6 +54,7 @@ public:
 
   virtual rtError runScript(const char *script, rtValue* retVal = NULL, const char *args = NULL) = 0;
   virtual rtError runFile  (const char *file,   rtValue* retVal = NULL, const char *args = NULL) = 0;
+  virtual uint32_t getContextId()  const = 0;
 };
 
 typedef rtRef<rtIScriptContext> rtScriptContextRef;
