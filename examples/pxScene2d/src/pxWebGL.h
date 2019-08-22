@@ -75,6 +75,10 @@ public:
     rtMethod1ArgAndNoReturn("activeTexture", ActiveTexture, uint32_t);
     rtMethod1ArgAndNoReturn("generateMipmap", GenerateMipmap, uint32_t);
     rtMethod3ArgAndNoReturn("uniformMatrix3fv", UniformMatrix3fv, uint32_t, bool, rtValue);
+    rtMethod1ArgAndNoReturn("deleteFramebuffer", DeleteFramebuffer, uint32_t);
+    rtMethod1ArgAndNoReturn("deleteTexture", DeleteTexture, uint32_t);
+    rtMethod1ArgAndNoReturn("deleteBuffer", DeleteBuffer, uint32_t);
+    rtMethod1ArgAndNoReturn("deleteProgram", DeleteProgram, uint32_t);
 
     pxWebgl(pxScene2d* scene);
     virtual ~pxWebgl();
@@ -125,6 +129,10 @@ public:
    rtError ActiveTexture(uint32_t texture);
    rtError GenerateMipmap(uint32_t target);
    rtError UniformMatrix3fv(uint32_t location, bool transpose, rtValue data);
+   rtError DeleteFramebuffer(uint32_t buffer);
+   rtError DeleteTexture(uint32_t texture);
+   rtError DeleteBuffer(uint32_t buffer);
+   rtError DeleteProgram(uint32_t program);
 
 private:
 

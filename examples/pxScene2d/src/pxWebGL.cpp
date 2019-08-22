@@ -76,27 +76,37 @@ pxWebgl::pxWebgl(pxScene2d* scene):pxObject(scene)
 pxWebgl::~pxWebgl()
 {
   rtLogInfo("%s : %lu Framebuffers, %lu Textures, %lu Buffers, %lu Shaders, %lu Programs",
-    __FUNCTION__, mFramebuffers.size(), mTextures.size(), mBuffers.size(), mShaders.size(), mPrograms.size());
+    __FUNCTION__,
+    mFramebuffers.size(),
+    mTextures.size(),
+    mBuffers.size(),
+    mShaders.size(),
+    mPrograms.size());
 
   glDeleteFramebuffers(mFramebuffers.size(), mFramebuffers.data());
   CheckGLError();
+  mFramebuffers.clear();
 
   glDeleteTextures(mTextures.size(), mTextures.data());
   CheckGLError();
+  mTextures.clear();
 
   glDeleteBuffers(mBuffers.size(), mBuffers.data());
   CheckGLError();
+  mBuffers.clear();
 
-  for(auto const& value: mShaders)
+  for(auto i = mShaders.begin(); i != mShaders.end();)
   {
-    glDeleteShader(value);
+    glDeleteShader(*i);
     CheckGLError();
+    i = mShaders.erase(i);
   }
 
-  for(auto const& value: mPrograms)
+  for(auto i = mPrograms.begin(); i != mPrograms.end();)
   {
-    glDeleteProgram(value);
+    glDeleteProgram(*i);
     CheckGLError();
+    i = mPrograms.erase(i);
   }
 }
 
@@ -513,10 +523,13 @@ rtError pxWebgl::GetProgramParameter(uint32_t program, uint32_t pname, uint32_t&
 
 rtError pxWebgl::DeleteShader(uint32_t shader)
 {
-  rtLogDebug("[%s] shader %u", __FUNCTION__, shader);
+  rtLogInfo("[%s] shader %u", __FUNCTION__, shader);
 
   glDeleteShader(shader);
   CheckGLError();
+
+  for(auto i = mShaders.begin(); i != mShaders.end();)
+    i = *i == shader ? mShaders.erase(i) : i + 1;
 
   return RT_OK;
 }
@@ -733,6 +746,58 @@ rtError pxWebgl::UniformMatrix3fv(uint32_t location, bool transpose, rtValue dat
   return RT_OK;
 }
 
+rtError pxWebgl::DeleteFramebuffer(uint32_t buffer)
+{
+  rtLogInfo("[%s] framebuffer %u", __FUNCTION__, buffer);
+
+  glDeleteFramebuffers(1, &buffer);
+  CheckGLError();
+
+  for(auto i = mFramebuffers.begin(); i != mFramebuffers.end();)
+    i = *i == buffer ? mFramebuffers.erase(i) : i + 1;
+
+  return RT_OK;
+}
+
+rtError pxWebgl::DeleteTexture(uint32_t texture)
+{
+  rtLogInfo("[%s] texture %u", __FUNCTION__, texture);
+
+  glDeleteTextures(1, &texture);
+  CheckGLError();
+
+  for(auto i = mTextures.begin(); i != mTextures.end();)
+    i = *i == texture ? mTextures.erase(i) : i + 1;
+
+  return RT_OK;
+}
+
+rtError pxWebgl::DeleteBuffer(uint32_t buffer)
+{
+  rtLogInfo("[%s] buffer %u", __FUNCTION__, buffer);
+
+  glDeleteBuffers(1, &buffer);
+  CheckGLError();
+
+  for(auto i = mBuffers.begin(); i != mBuffers.end();)
+    i = *i == buffer ? mBuffers.erase(i) : i + 1;
+
+  return RT_OK;
+}
+
+rtError pxWebgl::DeleteProgram(uint32_t program)
+{
+  rtLogInfo("[%s] program %u", __FUNCTION__, program);
+
+  glDeleteProgram(program);
+  CheckGLError();
+
+  for(auto i = mPrograms.begin(); i != mPrograms.end();)
+    i = *i == program ? mPrograms.erase(i) : i + 1;
+
+  return RT_OK;
+}
+
 rtDefineObject(pxWebgl, pxObject);
 rtDefineMethod(pxWebgl, DrawElements);
 rtDefineMethod(pxWebgl, createTexture);
@@ -777,3 +842,7 @@ rtDefineMethod(pxWebgl, Uniform1i);
 rtDefineMethod(pxWebgl, ActiveTexture);
 rtDefineMethod(pxWebgl, GenerateMipmap);
 rtDefineMethod(pxWebgl, UniformMatrix3fv);
+rtDefineMethod(pxWebgl, DeleteFramebuffer);
+rtDefineMethod(pxWebgl, DeleteTexture);
+rtDefineMethod(pxWebgl, DeleteBuffer);
+rtDefineMethod(pxWebgl, DeleteProgram);
