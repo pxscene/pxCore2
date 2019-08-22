@@ -62,13 +62,10 @@ public:
 private:
   rtSettings();
 
-  static const int FILE_BUFFER_SIZE;
   static const char* FILE_NAME;
   static const char* FILE_ENV_NAME;
 
   std::map<rtString, rtValue> mValues;
-
-  friend class rtSettingsTest;
 };
 
 #endif

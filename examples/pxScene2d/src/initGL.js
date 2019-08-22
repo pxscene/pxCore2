@@ -58,14 +58,14 @@ var _intervals = []
 var _timeouts = []
 var _immediates = []
 var _websockets = []
-var sandboxKeys = ["vm", "process", "setTimeout", "console", "clearTimeout", "setInterval", "clearInterval", "setImmediate", "clearImmediate", "sparkview", "sparkscene", "sparkgles2", "beginDrawing", "endDrawing", "sparkwebgl", "require", "localStorage"]
+var sandboxKeys = ["vm", "process", "setTimeout", "console", "clearTimeout", "setInterval", "clearInterval", "setImmediate", "clearImmediate", "sparkview", "sparkscene", "sparkgles2", "beginDrawing", "endDrawing", "sparkwebgl", "sparkkeys", "sparkQueryParams", "require", "localStorage"]
 var sandbox = {}
 /* holds loaded main mjs module reference */
 var app = null;
 var __dirname = process.cwd()
 /* holds map of depenedent module name and its reference */
 var modmap = {}
-var loadUrl = function(url, _beginDrawing, _endDrawing, _view) {
+var loadUrl = function(url, _beginDrawing, _endDrawing, _view, _frameworkURL, _options) {
 
   // JRJR review this... if we don't draw outside of the timers
   // then no need for this... 
@@ -175,8 +175,9 @@ var loadUrl = function(url, _beginDrawing, _endDrawing, _view) {
   global.sparkview = _view
   global.sparkscene = getScene("scene.1")
   global.localStorage = global.sparkscene.storage;
-  const script = new vm.Script("global.sparkwebgl = sparkwebgl= require('webgl'); global.sparkgles2 = sparkgles2 = require('gles2.js');");
+  const script = new vm.Script("global.sparkwebgl = sparkwebgl= require('webgl'); global.sparkgles2 = sparkgles2 = require('gles2.js'); global.sparkkeys = sparkkeys = require('rcvrcore/tools/keys.js');");
   global.sparkscene.on('onSceneTerminate', onSceneTerminate);
+  global.sparkQueryParams = urlmain.parse(url, true).query;
   sandbox.global = global
   sandbox.vm = vm;
   for (var i=0; i<sandboxKeys.length; i++)
@@ -185,8 +186,9 @@ var loadUrl = function(url, _beginDrawing, _endDrawing, _view) {
   }
   var sandboxDir = __dirname;
   if (url.startsWith('gl:')) {
-    var fn = url.substring(3);
-    sandboxDir = path.dirname(fn);
+    sandboxDir = path.dirname(url.substring(3));
+  } else {
+    sandboxDir = path.dirname(url);
   }
   sandbox['__dirname'] = sandboxDir;
   sandbox['Buffer'] = Buffer;
@@ -553,7 +555,8 @@ async function getModule(specifier, referencingModule) {
      { 
        specifier = baseString.substring(0, baseString.lastIndexOf("/")+1) + specifier;
      }
-     if (specifier.indexOf(".") == -1)
+     // making sure we are not appending extension with files already having extension
+     if ((specifier.endsWith(".js") == false) && (specifier.endsWith(".mjs") == false))
      {
        specifier = specifier + ".mjs";
      } 
@@ -727,11 +730,27 @@ async function loadMjs(source, url, context)
       return;
   }
 
+  async function getFile(location) {
+    //remove the query parameters for downloading the file
+    let pos = location.indexOf('?');
+    if (pos !== -1) {
+      location = location.substring(0, pos);
+    }
 
-  var filename = ''
+    if (location.indexOf('http') === 0) {
+      return {data: await loadHttpFile(location), uri: location};
+    } else {
+      if (location.indexOf("/") !== 0) {
+        location = path.resolve(__dirname, location);
+      }
+      return {data: await readFileAsync(location, {'encoding': 'utf-8'}), uri: `file://${location}`};
+    }
+  }
 
-  if (url.startsWith('gl:'))
-    filename = url.substring(3)
+  var filename = url
+
+  if (filename.startsWith('gl:'))
+    filename = filename.substring(3)
 
   var initGLPath = __dirname+'/initGL.js'
 
@@ -825,6 +844,11 @@ var onSceneTerminate = function() {
   _clearImmediates()
   _clearWebsockets()
   _clearSockets()
+
+  // memory leak fix
+  sandbox.sparkwebgl.instance.gl = null;
+  sandbox.sparkwebgl.instance = null;
+
   for (var i=0; i<sandboxKeys.length; i++)
   {
     sandbox[sandboxKeys[i]] = null;
