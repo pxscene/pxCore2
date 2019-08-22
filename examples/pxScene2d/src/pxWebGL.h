@@ -36,6 +36,7 @@ public:
     rtMethodNoArgAndReturn("createTexture", createTexture, uint32_t);
     rtMethodNoArgAndReturn("createBuffer", createBuffer, uint32_t);
     rtMethod2ArgAndNoReturn("bindTexture", bindTexture, uint32_t, uint32_t);
+    rtMethod1ArgAndNoReturn("deleteTexture", DeleteTexture, uint32_t);
     rtMethod2ArgAndNoReturn("bindBuffer", bindBuffer, uint32_t, uint32_t);
     rtMethod2ArgAndNoReturn("bindFramebuffer", bindFramebuffer, uint32_t, uint32_t);
     rtMethod3ArgAndNoReturn("bufferData", bufferData, uint32_t, rtValue, uint32_t);
@@ -59,6 +60,7 @@ public:
     rtMethod2ArgAndReturn("getProgramParameter", GetProgramParameter, uint32_t, uint32_t, uint32_t);
     rtMethod1ArgAndNoReturn("deleteShader", DeleteShader, uint32_t);
     rtMethod1ArgAndNoReturn("useProgram", UseProgram, uint32_t);
+    rtMethod1ArgAndNoReturn("deleteProgram", DeleteProgram, uint32_t);
     rtMethod2ArgAndReturn("getAttribLocation", GetAttribLocation, uint32_t, rtString, uint32_t);
     rtMethod6ArgAndNoReturn("vertexAttribPointer", VertexAttribPointer, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t);
     rtMethod1ArgAndNoReturn("enableVertexAttribArray", EnableVertexAttribArray, uint32_t);
@@ -81,6 +83,7 @@ public:
     //methods
    rtError DrawElements(uint32_t mode, uint32_t count, uint32_t type, uint32_t offset);
    rtError createTexture(uint32_t& texture);
+   rtError DeleteTexture(uint32_t texture);
    rtError createBuffer(uint32_t& buffer);
    rtError bindTexture(uint32_t target, uint32_t texture);
    rtError bindBuffer(uint32_t target, uint32_t buffer);
@@ -106,6 +109,7 @@ public:
    rtError GetProgramParameter(uint32_t program, uint32_t param, uint32_t& ret);
    rtError DeleteShader(uint32_t shader);
    rtError UseProgram(uint32_t program);
+   rtError DeleteProgram(uint32_t program);
    rtError GetAttribLocation(uint32_t program, rtString name, uint32_t& ret);
    rtError VertexAttribPointer(uint32_t indx, uint32_t size, uint32_t type, uint32_t normalized, uint32_t stride, uint32_t offset);
    rtError EnableVertexAttribArray(uint32_t index);

@@ -108,11 +108,9 @@ var loadUrl = function(url, _beginDrawing, _endDrawing, _view) {
         return function() {
           //console.log('before beginDrawing2')
           try {
-          var temp = global.sparkscene;
             beginDrawing();
             f.apply(null,rest);
             endDrawing();
-          temp = null;
           } catch(e) {
             console.log("exception during draw in setTimeout !!");
           }
@@ -178,7 +176,7 @@ var loadUrl = function(url, _beginDrawing, _endDrawing, _view) {
   global.sparkscene = getScene("scene.1")
   global.localStorage = global.sparkscene.storage;
   const script = new vm.Script("global.sparkwebgl = sparkwebgl= require('webgl'); global.sparkgles2 = sparkgles2 = require('gles2.js');");
-  global.sparkscene.on('onClose', onClose);
+  global.sparkscene.on('onSceneTerminate', onSceneTerminate);
   sandbox.global = global
   sandbox.vm = vm;
   for (var i=0; i<sandboxKeys.length; i++)
@@ -675,7 +673,6 @@ async function loadMjs(source, url, context)
       sandbox.require = makeRequire(filename);
       var contextifiedSandbox = vm.createContext(sandbox);
       contextifiedSandbox.lngAppId = contextid;
-      contextid++;
       script.runInContext(contextifiedSandbox);
       try {
         (async () => {
@@ -820,9 +817,8 @@ var _clearSockets = function() {
   }
 }
 
-var onClose = function() {
-  console.log(`onClose`);
-
+var onSceneTerminate = function() {
+  console.log(`onSceneTerminate in init.js called`);
   active = false
   _clearIntervals()
   _clearTimeouts()
@@ -850,5 +846,8 @@ var onClose = function() {
   app = null;
   sandbox = {};
   // JRJR something is invoking setImmediate after this and causing problems
+  global.sparkwebgl.instance = null;
+  global.sparkwebgl = null;
+  global.sparkgles2 = null;
   global = null;
 }
