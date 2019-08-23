@@ -86,11 +86,13 @@ public:
     rtProperty(fillStyle, fillStyle, setFillStyle, rtValue);
     rtProperty(textBaseline, textBaseline, setTextBaseline, rtString);
     rtProperty(globalAlpha, globalAlpha, setGlobalAlpha, float);
-    rtProperty(shadowColor, shadowColor, setShadowColor, uint32_t);
-    rtProperty(shadowBlur, shadowBlur, setShadowBlur, uint32_t);
-    rtProperty(shadowOffsetX, shadowOffsetX, setShadowOffsetX, float);
-    rtProperty(shadowOffsetY, shadowOffsetY, setShadowOffsetY, float);
-    rtProperty(label, label, setLabel, rtString);
+    rtProperty(width, w, setW, float);
+    rtProperty(height, h, setH, float);
+    // specific to pxTextCanvas
+    rtProperty(label, label, setLabel, rtString);   // mainly for debug logging when multiple canvases are created (default behaviour)
+                                                    // Lightning++ assigns the timestamp, initially
+    rtProperty(colorMode, colorMode, setColorMode, rtString); // Lightning++ assigns 'ARGB' for color compatibility
+
 
     uint32_t alignHorizontal() const;
     rtError alignHorizontal(uint32_t& v) const;
@@ -101,20 +103,14 @@ public:
     rtError setTextBaseline(const rtString& c);
     rtError globalAlpha(float& a) const;
     rtError setGlobalAlpha(const float a);
-    rtError shadowColor(uint32_t& c) const;
-    rtError setShadowColor(const uint32_t c);
-    rtError shadowBlur(uint32_t& b) const;
-    rtError setShadowBlur(const uint32_t b);
-    rtError shadowOffsetX(float& o) const;
-    rtError setShadowOffsetX(const float o);
-    rtError shadowOffsetY(float& o) const;
-    rtError setShadowOffsetY(const float o);
     rtError label(rtString &c) const;
     rtError setLabel(const rtString &c);
+    rtError colorMode(rtString &c) const;
+    rtError setColorMode(const rtString &c);
 
     /* override virtuals from pxObject that must affect the readiness of pxTextCanvas due to text measurements */
-    rtError setW(float v) override      { setNeedsRecalc(true); return pxObject::setW(v);}
-    rtError setH(float v) override      { setNeedsRecalc(true); return pxObject::setH(v);}
+    rtError setW(float v) override      { setNeedsRecalc(true); rtLogDebug("pxTextCanvas::width set to %4.0f ('%s')", v, mLabel.cString()); return pxObject::setW(v);}
+    rtError setH(float v) override      { setNeedsRecalc(true); rtLogDebug("pxTextCanvas::height set to %4.0f ('%s')", v, mLabel.cString());return pxObject::setH(v);}
     rtError setClip(bool v) override    { setNeedsRecalc(true); return pxObject::setClip(v);}
     rtError setSX(float v) override     { setNeedsRecalc(true); return pxObject::setSX(v);}
     rtError setSY(float v) override     { setNeedsRecalc(true); return pxObject::setSY(v);}
@@ -159,11 +155,10 @@ protected:
     uint32_t mAlignHorizontal;
     rtString mTextBaseline;
     float mGlobalAlpha;
-    uint32_t mShadowColor;
-    uint32_t  mShadowBlur;
-    float mShadowOffsetX;
-    float mShadowOffsetY;
     rtString mLabel;
+    rtString mColorMode;
+    uint32_t mTranslateX;
+    uint32_t mTranslateY;
 
     std::vector<pxTextLine> mTextLines;
 
