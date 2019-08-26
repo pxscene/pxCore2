@@ -1022,7 +1022,7 @@ index 0ad986a..c215ee6 100755
  # variables should be a root level element,
  # move everything else to target_defaults
 diff --git a/examples/pxScene2d/external/libnode-v10.15.3/lib/internal/vm/source_text_module.js b/examples/pxScene2d/external/libnode-v10.15.3/lib/internal/vm/source_text_module.js
-index 1898831bf..5b87c88df 100755
+index 1898831..8b533a5 100755
 --- a/examples/pxScene2d/external/libnode-v10.15.3/lib/internal/vm/source_text_module.js
 +++ b/examples/pxScene2d/external/libnode-v10.15.3/lib/internal/vm/source_text_module.js
 @@ -48,7 +48,7 @@ const linkingStatusMap = new WeakMap();
@@ -1034,50 +1034,46 @@ index 1898831bf..5b87c88df 100755
  // TODO(devsnek): figure out AbstractModule class or protocol
  class SourceTextModule {
    constructor(src, options = {}) {
-@@ -134,6 +134,7 @@ class SourceTextModule {
+@@ -134,8 +134,10 @@ class SourceTextModule {
        url: { value: url, enumerable: true },
        context: { value: context, enumerable: true },
      });
-+    moduleMap[options.url] = this;
++    if (undefined == moduleMap[options.context.lngAppId])
++      moduleMap[options.context.lngAppId] = {}
++    moduleMap[options.context.lngAppId][options.url] = this;
    }
- 
+-
    get linkingStatus() {
-@@ -262,6 +263,7 @@ class SourceTextModule {
-     o.context = this.context;
-     return require('util').inspect(o, options);
+     return linkingStatusMap.get(this);
    }
-+
- }
- 
- function validateInteger(prop, propName) {
 @@ -273,9 +275,28 @@ function validateInteger(prop, propName) {
    }
  }
  
 +function CreateSourceTextModule(src, options = {})
 +{
-+    if (options.url in moduleMap)
-+      return moduleMap[options.url]
++    if ((options.context.lngAppId in moduleMap) && (options.url in moduleMap[options.context.lngAppId]))
++      return moduleMap[options.context.lngAppId][options.url]
 +    return new SourceTextModule(src, options);
 +}
-+
-+function ClearSourceTextModules()
++function ClearSourceTextModules(context)
 +{
-+  for (var key in moduleMap)
++  for (var key in moduleMap[context])
 +  {
-+   delete moduleMap[key];
-+   moduleMap[key] = null;
++   delete moduleMap[context][key];
++   moduleMap[context][key] = null;
 +  }
-+  moduleMap = {};
++  moduleMap[context] = {};
 +}
++
 +
  module.exports = {
    SourceTextModule,
    wrapToModuleMap,
    wrapMap,
    linkingStatusMap,
-+  CreateSourceTextModule,  
-+  ClearSourceTextModules  
++  CreateSourceTextModule,
++  ClearSourceTextModules
  };
 diff --git a/examples/pxScene2d/external/libnode-v10.15.3/lib/vm.js b/examples/pxScene2d/external/libnode-v10.15.3/lib/vm.js
 index 02b3f0bce..430c921b6 100755

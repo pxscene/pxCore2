@@ -164,7 +164,7 @@ public:
   }
 
   unsigned long Release();
-
+  uint32_t                  getContextId()    const;
   const char   *js_file;
   std::string   js_script;
 
@@ -1033,6 +1033,10 @@ rtError rtDukContext::runFile(const char *file, rtValue* retVal /*= NULL*/, cons
   return runScript(js_script.c_str(), retVal, args);
 }
 
+uint32_t rtDukContext::getContextId() const
+{
+  return 0;
+}
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 rtScriptDuk::rtScriptDuk(bool initialize): dukCtx(NULL), duk_is_initialized(false),

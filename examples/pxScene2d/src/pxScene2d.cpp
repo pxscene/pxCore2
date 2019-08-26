@@ -3584,9 +3584,9 @@ rtError pxScriptView::getScene(int numArgs, const rtValue* args, rtValue* result
 
 
 #if 1
-rtError pxScriptView::getContextID(int /*numArgs*/, const rtValue* /*args*/, rtValue* result, void* /*ctx*/)
+rtError pxScriptView::getContextID(int numArgs, const rtValue* args, rtValue* result, void* ctx)
 {
-  #if 0
+  #if 1
   //rtLogInfo(__FUNCTION__);
   UNUSED_PARAM(numArgs);
   UNUSED_PARAM(args);
@@ -3595,14 +3595,10 @@ rtError pxScriptView::getContextID(int /*numArgs*/, const rtValue* /*args*/, rtV
   if (ctx)
   {
     pxScriptView* v = (pxScriptView*)ctx;
-
-    Locker                locker(v->mCtx->getIsolate());
-    Isolate::Scope isolate_scope(v->mCtx->getIsolate());
-    HandleScope     handle_scope(v->mCtx->getIsolate());
-
-    Local<Context> ctx = v->mCtx->getLocalContext();
-    uint32_t ctx_id = GetContextId( ctx );
-
+    uint32_t ctx_id = 0;
+    if ((NULL != v) && (NULL != v->mCtx.getPtr())) {
+        ctx_id = v->mCtx->getContextId();
+    }
     if (result)
     {
       *result = rtValue(ctx_id);

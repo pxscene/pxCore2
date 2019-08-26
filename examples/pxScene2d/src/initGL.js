@@ -47,7 +47,7 @@ const readFileAsync = promisify(fs.readFile)
 const ArrayJoin = Function.call.bind(Array.prototype.join);
 const ArrayMap = Function.call.bind(Array.prototype.map);
 var reqOrig = require;
-
+var contextid = getContextID();
 // JRJR not sure why Buffer is not already defined.
 // Could look at adding to sandbox.js but this works for now
 Buffer = require('buffer').Buffer
@@ -62,7 +62,6 @@ var sandboxKeys = ["vm", "process", "setTimeout", "console", "clearTimeout", "se
 var sandbox = {}
 /* holds loaded main mjs module reference */
 var app = null;
-var contextifiedSandbox = null;
 var __dirname = process.cwd()
 /* holds map of depenedent module name and its reference */
 var modmap = {}
@@ -245,9 +244,9 @@ function stripBOM(content) {
 /* load json module and returns as ejs module */
 async function loadJsonModule(source, specifier, ctx)
 {
-  if (specifier in modmap)
+  if ((ctx.lngAppId in modmap) && (specifier in modmap[ctx.lngAppId]))
   { 
-    return modmap[specifier];
+    return modmap[ctx.lngAppId][specifier];
   }
   var mod;
   var module = JSON.parse(stripBOM(source));
@@ -275,7 +274,9 @@ async function loadJsonModule(source, specifier, ctx)
          throw err;
        }
    }}});
-  modmap[specifier] = mod;
+  if (undefined == modmap[context.lngAppId])
+    modmap[context.lngAppId] = {}
+  modmap[context.lngAppId][specifier] = mod;
   if (mod.linkingStatus == 'unlinked')
   {
     var result = await mod.link(function() {});
@@ -286,9 +287,9 @@ async function loadJsonModule(source, specifier, ctx)
 /* load javascript file and returns as ejs module */
 async function loadJavaScriptModule(source, specifier, ctx)
 {
-  if (specifier in modmap)
+  if ((ctx.lngAppId in modmap) && (specifier in modmap[ctx.lngAppId]))
   { 
-    return modmap[specifier];
+    return modmap[ctx.lngAppId][specifier];
   }
   var mod;
   var wrapper = [
@@ -324,7 +325,9 @@ async function loadJavaScriptModule(source, specifier, ctx)
          throw err;
        }
    }}});
-  modmap[specifier] = mod; 
+  if (undefined == modmap[ctx.lngAppId])
+    modmap[ctx.lngAppId] = {}
+  modmap[ctx.lngAppId][specifier] = mod; 
   if (mod.linkingStatus == 'unlinked')
   { 
     var result = await mod.link(function() {});
@@ -335,9 +338,9 @@ async function loadJavaScriptModule(source, specifier, ctx)
 /* load node module and returns as ejs module */
 async function loadNodeModule(specifier, ctx)
 {     
-  if (specifier in modmap)
+  if ((ctx.lngAppId in modmap) && (specifier in modmap[ctx.lngAppId]))
   { 
-    return modmap[specifier];
+    return modmap[ctx.lngAppId][specifier];
   }
   var mod;
   var module; 
@@ -361,7 +364,9 @@ async function loadNodeModule(specifier, ctx)
         process.dlopen(module, _makeLong(pathname));
         meta.exports.default.set(module.exports);
   }}});
-  modmap[specifier] = mod; 
+  if (undefined == modmap[ctx.lngAppId])
+    modmap[ctx.lngAppId] = {}
+  modmap[ctx.lngAppId][specifier] = mod; 
   if (mod.linkingStatus == 'unlinked')
   { 
     var result = await mod.link(function() {});
@@ -372,9 +377,9 @@ async function loadNodeModule(specifier, ctx)
 /* load commonjs module and returns as ejs module */
 async function loadCommonJSModule(specifier, ctx)
 {
-  if (specifier in modmap)
+  if ((ctx.lngAppId in modmap) && (specifier in modmap[ctx.lngAppId]))
   {
-    return modmap[specifier];
+    return modmap[ctx.lngAppId][specifier];
   }
   var mod;
   var module = reqOrig(specifier);
@@ -402,7 +407,9 @@ async function loadCommonJSModule(specifier, ctx)
         meta.exports['default'].set(module);
       };
   }});
-  modmap[specifier] = mod;
+  if (undefined == modmap[ctx.lngAppId])
+    modmap[ctx.lngAppId] = {}
+  modmap[ctx.lngAppId][specifier] = mod;
   if (mod.linkingStatus == 'unlinked')
   {
     var result = await mod.link(function() {});
@@ -501,9 +508,9 @@ async function getModule(specifier, referencingModule) {
            specifier = baseString.substring(0, baseString.lastIndexOf("/")+1) + specifier;
          }
        }
-       if (specifier in modmap)
+       if ((referencingModule.context.lngAppId in modmap) && (specifier in modmap[referencingModule.context.lngAppId]))
        {
-         mod = modmap[specifier];
+         mod = modmap[referencingModule.context.lngAppId][specifier];
        }
        else {
        var source;
@@ -541,9 +548,9 @@ async function getModule(specifier, referencingModule) {
      {
        specifier = specifier + ".mjs";
      } 
-     if (specifier in modmap)
+     if ((referencingModule.context.lngAppId in modmap) && (specifier in modmap[referencingModule.context.lngAppId]))
      {
-       mod = modmap[specifier];
+       mod = modmap[referencingModule.context.lngAppId][specifier];
      }
      else {
        // search for ux.mjs or ux.js
@@ -592,7 +599,9 @@ async function importModuleDynamically(specifier, { url }) {
 async function loadMjs(source, url, context)
 {
   var mod = vm.CreateSourceTextModule(source , { context: context, initializeImportMeta:initializeImportMeta, importModuleDynamically:importModuleDynamically, url:url });
-  modmap[url] = mod;
+  if (undefined == modmap[context.lngAppId])
+    modmap[context.lngAppId] = {}
+  modmap[context.lngAppId][url] = mod;
   if (mod.linkingStatus == 'unlinked')
   {
     var result = await mod.link(linker);
@@ -671,7 +680,8 @@ async function loadMjs(source, url, context)
     // override require to our own require to load files relative to file path
     sandbox.require = makeRequire(filename);
 
-    contextifiedSandbox = vm.createContext(sandbox);
+    var contextifiedSandbox = vm.createContext(sandbox);
+    contextifiedSandbox.lngAppId = contextid;
     script.runInContext(contextifiedSandbox);
 
     try {
@@ -824,14 +834,15 @@ var onClose = function() {
   sandbox['vm'] = null;
   sandbox['__dirname'] = null;
   sandbox['Buffer'] = null;
-  contextifiedSandbox = null;
-  vm.ClearSourceTextModules();
-  for (var key in modmap)
+  for (var key in modmap[contextid])
   {
-   delete modmap[key]; 
-   modmap[key] = null;
+   delete modmap[contextid][key]; 
+   modmap[contextid][key] = null;
   }
+  modmap[contextid] = null;
   modmap = {};
+  vm.ClearSourceTextModules(contextid);
+  //console.log("clearing all modules for context " + contextid);
   app = null;
   sandbox = {};
   // JRJR something is invoking setImmediate after this and causing problems
