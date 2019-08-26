@@ -1342,7 +1342,7 @@ rtError rtScriptNode::term()
     if(mPlatform)
     {
 #ifdef USE_NODE_PLATFORM
-      #ifndef USE_NODE_10
+      #ifdef USE_NODE_10
       node::NodePlatform* platform_ = static_cast<node::NodePlatform*>(mPlatform);
       platform_->Shutdown();
       node::FreePlatform(platform_);
