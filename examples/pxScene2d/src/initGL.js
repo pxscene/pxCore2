@@ -707,13 +707,7 @@ async function loadMjs(source, url, context)
 
           let file = await getFile(filename);
           let source = file.data, rpath = file.uri;
-          // define platform
-          var platformsource = "";
-          if (filename.indexOf(".mjs") != -1) {
-            let platformfile = await getFile(filename.substring(0, filename.lastIndexOf("/")+1) + "lib/lightning-spark.js");
-            platformsource = platformfile.data;
-          }
-          app = await loadMjs(platformsource + source, rpath, contextifiedSandbox);
+          app = await loadMjs(source, rpath, contextifiedSandbox);
           app.instantiate();
           instantiated = true;
           succeeded = true;
