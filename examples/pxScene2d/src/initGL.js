@@ -82,9 +82,13 @@ var loadUrl = function(url, _beginDrawing, _endDrawing, _view, _frameworkURL, _o
     var rest = Array.from(arguments).slice(2)
     var interval = _timers.setInterval(function() {
       return function() {
-        beginDrawing();
-        f.apply(null,rest);
-        endDrawing(); }
+          try {
+          beginDrawing();
+          f.apply(null,rest);
+          endDrawing(); }
+           catch(e) {
+            console.log("exception during draw in setInterval !!");
+          }}
       }(),i)
     _intervals.push(interval)
     return interval
@@ -103,9 +107,13 @@ var loadUrl = function(url, _beginDrawing, _endDrawing, _view, _frameworkURL, _o
     var timeout = _timers.setTimeout(function() {
         return function() {
           //console.log('before beginDrawing2')
-          beginDrawing();
-          f.apply(null,rest)
-          endDrawing();
+          try {
+            beginDrawing();
+            f.apply(null,rest);
+            endDrawing();
+          } catch(e) {
+            console.log("exception during draw in setTimeout !!");
+          }
           //console.log('after end Drawing2')
           var index = _timeouts.indexOf(timeout)
           if (index > -1) {
@@ -130,9 +138,13 @@ var loadUrl = function(url, _beginDrawing, _endDrawing, _view, _frameworkURL, _o
     var timeout = _timers.setImmediate(function() {
         return function() {
           //console.log('before beginDrawing3')
-          if (active) beginDrawing();
-          f.apply(null,rest)
-          if (active) endDrawing();
+          try {
+            if (active) beginDrawing();
+            f.apply(null,rest)
+            if (active) endDrawing();
+          } catch(e) {
+            console.log("exception during draw in setImmediate !!");
+          }
           //console.log('after end Drawing3')
           var index = _immediates.indexOf(timeout)
           if (index > -1) {
@@ -164,7 +176,7 @@ var loadUrl = function(url, _beginDrawing, _endDrawing, _view, _frameworkURL, _o
   global.sparkscene = getScene("scene.1")
   global.localStorage = global.sparkscene.storage;
   const script = new vm.Script("global.sparkwebgl = sparkwebgl= require('webgl'); global.sparkgles2 = sparkgles2 = require('gles2.js'); global.sparkkeys = sparkkeys = require('rcvrcore/tools/keys.js');");
-  global.sparkscene.on('onClose', onClose);
+  global.sparkscene.on('onSceneTerminate', onSceneTerminate);
   global.sparkQueryParams = urlmain.parse(url, true).query;
   sandbox.global = global
   sandbox.vm = vm;
@@ -695,7 +707,13 @@ async function loadMjs(source, url, context)
 
           let file = await getFile(filename);
           let source = file.data, rpath = file.uri;
-          app = await loadMjs(source, rpath, contextifiedSandbox);
+          // define platform
+          var platformsource = "";
+          if (filename.indexOf(".mjs") != -1) {
+            let platformfile = await getFile(filename.substring(0, filename.lastIndexOf("/")+1) + "lib/lightning-spark.js");
+            platformsource = platformfile.data;
+          }
+          app = await loadMjs(platformsource + source, rpath, contextifiedSandbox);
           app.instantiate();
           instantiated = true;
           succeeded = true;
@@ -812,9 +830,8 @@ var _clearSockets = function() {
   }
 }
 
-var onClose = function() {
-  console.log(`onClose`);
-
+var onSceneTerminate = function() {
+  active = false
   _clearIntervals()
   _clearTimeouts()
   _clearImmediates()
@@ -846,5 +863,13 @@ var onClose = function() {
   app = null;
   sandbox = {};
   // JRJR something is invoking setImmediate after this and causing problems
-  active = false
+  global.beginDrawing = null;
+  global.endDrawing = null;
+  global.sparkwebgl.instance = null;
+  global.sparkwebgl = null;
+  global.sparkgles2 = null;
+  global.sparkview = null;
+  global.localStorage = null;
+  global.sparkscene = null;
+  global = null;
 }

@@ -492,6 +492,22 @@ rtError pxWebgl::UseProgram(uint32_t program)
   return RT_OK;
 }
 
+rtError pxWebgl::DeleteProgram(uint32_t program)
+{
+  rtLogDebug("[%s] program %u", __FUNCTION__, program);
+
+  glDeleteProgram(program);
+  CheckGLError();
+
+  return RT_OK;
+}
+
+rtError pxWebgl::DeleteTexture(uint32_t texture)
+{
+  rtLogDebug("[%s] texture %u", __FUNCTION__, texture);
+  return RT_OK;
+}
+
 rtError pxWebgl::GetAttribLocation(uint32_t program, rtString name, uint32_t& ret)
 {
   rtLogDebug("[%s] program %u, name: %s", __FUNCTION__, program, name.cString());
@@ -687,6 +703,8 @@ rtDefineMethod(pxWebgl, LinkProgram);
 rtDefineMethod(pxWebgl, GetProgramParameter);
 rtDefineMethod(pxWebgl, DeleteShader);
 rtDefineMethod(pxWebgl, UseProgram);
+rtDefineMethod(pxWebgl, DeleteProgram);
+rtDefineMethod(pxWebgl, DeleteTexture);
 rtDefineMethod(pxWebgl, GetAttribLocation);
 rtDefineMethod(pxWebgl, VertexAttribPointer);
 rtDefineMethod(pxWebgl, EnableVertexAttribArray);
