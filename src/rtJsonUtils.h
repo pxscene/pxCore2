@@ -16,19 +16,16 @@
 
 */
 
-#ifndef _RT_URL_UTILS
-#define _RT_URL_UTILS
+#ifndef _RT_JSON_UTILS
+#define _RT_JSON_UTILS
 
-#include "rtString.h"
+#include "rtValue.h"
 
-// Apply url encoding to the provided string.
-rtString rtUrlEscape(const char* s);
+rtError json2rtValue(const char* json, rtValue& val);
+rtError jsonFile2rtValue(const char* path, rtValue& val);
 
-// JRJR todo refactor urlencodeparameters to use urlescape
-rtString rtUrlEncodeParameters(const char* url);
-rtString rtUrlGetOrigin(const char* url);
-rtString rtUrlGetHostname(const char* origin);
+rtError rtValue2jsonFile(const rtValue& val, const char* path);
 
-rtString rtUrlGetExtension(const char* s);
+rtError json2rtObject(const char* json, rtObjectRef& obj);
 
-#endif
+#endif // _RT_JSON_UTILS

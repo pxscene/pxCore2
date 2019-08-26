@@ -44,8 +44,6 @@
 #include "rtPromise.h"
 #include "rtThreadQueue.h"
 
-#define ANIMATION_ROTATE_XYZ
-
 #include "pxResource.h"
 
 #include "pxCore.h"
@@ -602,9 +600,7 @@ public:
   pxScriptView(const char* url, const char* /*lang*/, pxIViewContainer* container=NULL);
   virtual ~pxScriptView();
 
-#ifndef RUNINMAIN
   void runScript(); // Run the script
-#endif
 
   virtual unsigned long AddRef() 
   {
@@ -737,6 +733,15 @@ protected:
 
   // JRJR should go away
   pxSharedContextRef mSharedContext;
+
+  rtObjectRef mBootstrap;
+  rtRef<rtFunctionCallback> mBootstrapResolve;
+  rtRef<rtFunctionCallback> mBootstrapReject;
+
+  static rtError bootstrapResolve(int numArgs, const rtValue* args, rtValue* result, void* ctx);
+  static rtError bootstrapReject(int numArgs, const rtValue* args, rtValue* result, void* ctx);
+
+  bool isGLUrl() const;
 
 #ifdef ENABLE_RT_NODE
   rtScriptContextRef mCtx;
@@ -925,6 +930,7 @@ public:
   rtError createImageResource(rtObjectRef p, rtObjectRef& o);
   rtError createImageAResource(rtObjectRef p, rtObjectRef& o);
   rtError createFontResource(rtObjectRef p, rtObjectRef& o);
+  rtError createShaderResource(rtObjectRef p, rtObjectRef& o);
   rtError createScene(rtObjectRef p,rtObjectRef& o);
   rtError createExternal(rtObjectRef p, rtObjectRef& o);
   rtError createWayland(rtObjectRef p, rtObjectRef& o);

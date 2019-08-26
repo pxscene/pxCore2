@@ -58,7 +58,7 @@ var _intervals = []
 var _timeouts = []
 var _immediates = []
 var _websockets = []
-var sandboxKeys = ["vm", "process", "setTimeout", "console", "clearTimeout", "setInterval", "clearInterval", "setImmediate", "clearImmediate", "sparkview", "sparkscene", "sparkgles2", "beginDrawing", "endDrawing", "sparkwebgl", "require", "localStorage"]
+var sandboxKeys = ["vm", "process", "setTimeout", "console", "clearTimeout", "setInterval", "clearInterval", "setImmediate", "clearImmediate", "sparkview", "sparkscene", "sparkgles2", "beginDrawing", "endDrawing", "sparkwebgl", "sparkkeys", "sparkQueryParams", "require", "localStorage"]
 var sandbox = {}
 /* holds loaded main mjs module reference */
 var app = null;
@@ -66,7 +66,7 @@ var contextifiedSandbox = null;
 var __dirname = process.cwd()
 /* holds map of depenedent module name and its reference */
 var modmap = {}
-var loadUrl = function(url, _beginDrawing, _endDrawing, _view) {
+var loadUrl = function(url, _beginDrawing, _endDrawing, _view, _frameworkURL, _options) {
 
   // JRJR review this... if we don't draw outside of the timers
   // then no need for this... 
@@ -164,8 +164,9 @@ var loadUrl = function(url, _beginDrawing, _endDrawing, _view) {
   global.sparkview = _view
   global.sparkscene = getScene("scene.1")
   global.localStorage = global.sparkscene.storage;
-  const script = new vm.Script("global.sparkwebgl = sparkwebgl= require('webgl'); global.sparkgles2 = sparkgles2 = require('gles2.js');");
+  const script = new vm.Script("global.sparkwebgl = sparkwebgl= require('webgl'); global.sparkgles2 = sparkgles2 = require('gles2.js'); global.sparkkeys = sparkkeys = require('rcvrcore/tools/keys.js');");
   global.sparkscene.on('onClose', onClose);
+  global.sparkQueryParams = urlmain.parse(url, true).query;
   sandbox.global = global
   sandbox.vm = vm;
   for (var i=0; i<sandboxKeys.length; i++)
@@ -174,8 +175,9 @@ var loadUrl = function(url, _beginDrawing, _endDrawing, _view) {
   }
   var sandboxDir = __dirname;
   if (url.startsWith('gl:')) {
-    var fn = url.substring(3);
-    sandboxDir = path.dirname(fn);
+    sandboxDir = path.dirname(url.substring(3));
+  } else {
+    sandboxDir = path.dirname(url);
   }
   sandbox['__dirname'] = sandboxDir;
   sandbox['Buffer'] = Buffer;
@@ -524,7 +526,8 @@ async function getModule(specifier, referencingModule) {
      { 
        specifier = baseString.substring(0, baseString.lastIndexOf("/")+1) + specifier;
      }
-     if (specifier.indexOf(".") == -1)
+     // making sure we are not appending extension with files already having extension
+     if ((specifier.endsWith(".js") == false) && (specifier.endsWith(".mjs") == false))
      {
        specifier = specifier + ".mjs";
      } 
@@ -637,74 +640,78 @@ async function loadMjs(source, url, context)
     };
   };
 
-    function loadESM(filename) {
-       // override require to our own require to load files relative to file path
-        sandbox.require = makeRequire(filename);
-        contextifiedSandbox = vm.createContext(sandbox);
-        script.runInContext(contextifiedSandbox);
-        try {
-          (async () => {
-            var instantiated = false;
-            try
-            {
-              var source, rpath;
-              if (filename.indexOf('http') == 0) {
-                result = await loadHttpFile(filename);
-                app = await loadMjs(result, filename, contextifiedSandbox);
-                app.instantiate();
-                instantiated = true;
-                succeeded = true
-                makeReady(true, {});
-                beginDrawing();
-                await app.evaluate();
-                endDrawing();
-              }
-              else
-              {
-                if (filename.indexOf("/") != 0) {
-                  rpath = path.resolve(__dirname, filename);
-                }
-                else
-                {
-                  rpath = filename;
-                }
-                // define platform
-                var platformsource = "";
-                if (rpath.indexOf(".mjs") != -1) {
-                  platformsource = await readFileAsync(rpath.substring(0, rpath.lastIndexOf("/")+1) + "lib/lightning-spark.js", {'encoding' : 'utf-8'});
-                } 
-                source = await readFileAsync(rpath, {'encoding' : 'utf-8'})
-                rpath = "file://" + rpath;
-                app = await loadMjs(platformsource + source, rpath, contextifiedSandbox);
-                app.instantiate();
-                instantiated = true;
-                succeeded = true
-                makeReady(true, {});
-                beginDrawing();
-                await app.evaluate();
-                endDrawing();
-              }
-            }
-            catch(err) {
-              console.log("load mjs module failed ");
-              console.log(err);
-              if (false == instantiated) {
-                makeReady(false, {});
-              } 
-            }
-          })();
-        }
-        catch(err) {
-          console.log(err);
-        }
-        return;
+  async function getFile(location) {
+    //remove the query parameters for downloading the file
+    let pos = location.indexOf('?');
+    if (pos !== -1) {
+      location = location.substring(0, pos);
+    }
+
+    if (location.indexOf('http') === 0) {
+      return {data: await loadHttpFile(location), uri: location};
+    } else {
+      if (location.indexOf("/") !== 0) {
+        location = path.resolve(__dirname, location);
       }
+      return {data: await readFileAsync(location, {'encoding': 'utf-8'}), uri: `file://${location}`};
+    }
+  }
 
+  function loadESM(filename) {
+    // override require to our own require to load files relative to file path
+    sandbox.require = makeRequire(filename);
 
-  var filename = ''
+    contextifiedSandbox = vm.createContext(sandbox);
+    script.runInContext(contextifiedSandbox);
 
-  if (url.startsWith('gl:'))
-    filename = url.substring(3)
+    try {
+      (async () => {
+        let instantiated = false;
+        try {
+          if (_frameworkURL) {
+            let framework = await getFile(_frameworkURL);
+            vm.runInContext(framework.data, contextifiedSandbox, {filename:framework.uri});
+          }
+          let file = await getFile(filename);
+          let source = file.data, rpath = file.uri;
+          // define platform
+          var platformsource = "";
+          if (filename.indexOf(".mjs") != -1) {
+            let platformfile = await getFile(filename.substring(0, filename.lastIndexOf("/")+1) + "lib/lightning-spark.js");
+            platformsource = platformfile.data;
+          }
+          app = await loadMjs(platformsource + source, rpath, contextifiedSandbox);
+          app.instantiate();
+          instantiated = true;
+          succeeded = true;
+          makeReady(true, {});
+          beginDrawing();
+          await app.evaluate();
+          if (_options) {
+            try {
+              new app.namespace.default(_options);
+            } catch (err) {
+             console.log(err);
+            }
+          }
+          endDrawing();
+        } catch (err) {
+          console.log("load mjs module failed "+err);
+          console.log(err);
+          if (false === instantiated) {
+            makeReady(false, {});
+          }
+        }
+      })();
+    } catch (err) {
+      console.log(err);
+    }
+  }
+
+  var filename = url
+
+  if (filename.startsWith('gl:'))
+    filename = filename.substring(3)
 
   var initGLPath = __dirname+'/initGL.js'
 
@@ -798,6 +805,11 @@ var onClose = function() {
   _clearImmediates()
   _clearWebsockets()
   _clearSockets()
+
+  // memory leak fix
+  sandbox.sparkwebgl.instance.gl = null;
+  sandbox.sparkwebgl.instance = null;
+
   for (var i=0; i<sandboxKeys.length; i++)
   {
     sandbox[sandboxKeys[i]] = null;

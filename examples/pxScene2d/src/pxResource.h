@@ -36,7 +36,10 @@
 #include "rtFileCache.h"
 #endif
 #include "rtCORS.h"
+
 #include <map>
+#include <list>
+
 class rtFileDownloadRequest;
 class pxArchive;
 
