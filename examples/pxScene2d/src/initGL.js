@@ -263,7 +263,7 @@ async function loadJsonModule(source, specifier, ctx)
   }
   import.meta.done();
   `
-  mod = vm.CreateSourceTextModule(jsonsource , { url: specifier, context:ctx, initializeImportMeta:function(meta, url) {
+  mod = new vm.SourceTextModule(jsonsource , { url: specifier, context:ctx, initializeImportMeta:function(meta, url) {
       meta.exports = {}
       meta.done = () => {
        try {
@@ -312,7 +312,7 @@ async function loadJavaScriptModule(source, specifier, ctx)
   }
   import.meta.done();
   `
-  mod = vm.CreateSourceTextModule(jssource , { url: specifier, context:ctx, initializeImportMeta:function(meta, url) {
+  mod = new vm.SourceTextModule(jssource , { url: specifier, context:ctx, initializeImportMeta:function(meta, url) {
       meta.exports = {} 
       meta.done = () => {
        try {
@@ -353,7 +353,7 @@ async function loadNodeModule(specifier, ctx)
   }
   import.meta.done();
   `
-  mod = vm.CreateSourceTextModule(source , { url: "file://" + __dirname + specifier, context:ctx, initializeImportMeta:function(meta, url) {
+  mod = new vm.SourceTextModule(source , { url: "file://" + __dirname + specifier, context:ctx, initializeImportMeta:function(meta, url) {
       meta.exports = {} 
       meta.done = () => {
         const module = { exports: {} };
@@ -394,7 +394,7 @@ async function loadCommonJSModule(specifier, ctx)
   }
   import.meta.done();
   `
-  mod = vm.CreateSourceTextModule(source , { url: "file://" + __dirname + "/node_modules/" + specifier, context:ctx, initializeImportMeta:function(meta, url) {
+  mod = new vm.SourceTextModule(source , { url: "file://" + __dirname + "/node_modules/" + specifier, context:ctx, initializeImportMeta:function(meta, url) {
       meta.exports = {}
       meta.done = () => {
         for (const key of Object.keys(module))
@@ -591,7 +591,7 @@ async function importModuleDynamically(specifier, { url }) {
 
 async function loadMjs(source, url, context)
 {
-  var mod = vm.CreateSourceTextModule(source , { context: context, initializeImportMeta:initializeImportMeta, importModuleDynamically:importModuleDynamically, url:url });
+  var mod = new vm.SourceTextModule(source , { context: context, initializeImportMeta:initializeImportMeta, importModuleDynamically:importModuleDynamically, url:url });
   modmap[url] = mod;
   if (mod.linkingStatus == 'unlinked')
   {
@@ -825,10 +825,10 @@ var onClose = function() {
   sandbox['__dirname'] = null;
   sandbox['Buffer'] = null;
   contextifiedSandbox = null;
-  vm.ClearSourceTextModules();
   for (var key in modmap)
   {
-   delete modmap[key]; 
+    delete modmap[key].context;
+   delete modmap[key];
    modmap[key] = null;
   }
   modmap = {};
