@@ -672,6 +672,7 @@ WebGLRenderingContext.prototype.deleteTexture = function deleteTexture(texture) 
     if (!(arguments.length === 1 && (texture === null || texture instanceof WebGLTexture))) {
         throw new TypeError('Expected deleteTexture(WebGLTexture texture)');
     }
+    //enabling this is causing crash, but no texture leak seen
     //return this.gl.deleteTexture(texture ? texture._ : 0);
     return 0;
 };
