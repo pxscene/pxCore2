@@ -834,6 +834,10 @@ var onClose = function() {
   modmap = {};
   app = null;
   sandbox = {};
+  for (var i=0; i<sandboxKeys.length; i++)
+  {
+    delete global[sandboxKeys[i]];
+  }
   // JRJR something is invoking setImmediate after this and causing problems
   active = false
 }
