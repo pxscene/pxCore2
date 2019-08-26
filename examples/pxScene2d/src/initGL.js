@@ -672,6 +672,7 @@ async function loadMjs(source, url, context)
             let framework = await getFile(_frameworkURL);
             vm.runInContext(framework.data, contextifiedSandbox, {filename:framework.uri});
           }
+          
           let file = await getFile(filename);
           let source = file.data, rpath = file.uri;
           // define platform
