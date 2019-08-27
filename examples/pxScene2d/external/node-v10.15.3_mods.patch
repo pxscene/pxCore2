@@ -1021,16 +1021,6 @@ index 0ad986a..c215ee6 100755
  
  # variables should be a root level element,
  # move everything else to target_defaults
-diff --git a/examples/pxScene2d/external/libnode-v10.15.3/lib/vm.js b/examples/pxScene2d/external/libnode-v10.15.3/lib/vm.js
-index 02b3f0bce..430c921b6 100755
---- a/examples/pxScene2d/external/libnode-v10.15.3/lib/vm.js
-+++ b/examples/pxScene2d/external/libnode-v10.15.3/lib/vm.js
-@@ -428,4 +428,6 @@ module.exports = {
- if (require('internal/options').getOptionValue('--experimental-vm-modules')) {
-   const { SourceTextModule } = require('internal/vm/source_text_module');
-   module.exports.SourceTextModule = SourceTextModule;
-+  module.exports.CreateSourceTextModule =  require('internal/vm/source_text_module').CreateSourceTextModule;
-+  module.exports.ClearSourceTextModules =  require('internal/vm/source_text_module').ClearSourceTextModules;
 diff --git a/examples/pxScene2d/external/libnode-v10.15.3/lib/internal/vm/source_text_module.js b/examples/pxScene2d/external/libnode-v10.15.3/lib/internal/vm/source_text_module.js
 index 1898831bf..8468f944e 100755
 --- a/examples/pxScene2d/external/libnode-v10.15.3/lib/internal/vm/source_text_module.js
