@@ -3306,6 +3306,7 @@ pxScriptView::~pxScriptView()
     mSharedContext->makeCurrent(false);
   }
   mDrawing = false;
+  
   if (NULL != mBeginDrawing.getPtr())
     mBeginDrawing->clearContext();
   if (NULL != mEndDrawing.getPtr())
