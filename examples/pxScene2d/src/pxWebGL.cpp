@@ -550,8 +550,11 @@ rtError pxWebgl::DeleteShader(uint32_t shader)
   glDeleteShader(shader);
   CheckGLError();
 
-  for(auto i = mShaders.begin(); i != mShaders.end();)
-    i = *i == shader ? mShaders.erase(i) : i + 1;
+  auto i = std::find(mShaders.begin(), mShaders.end(), shader);
+  if (i != mShaders.end())
+    mShaders.erase(i);
+  else
+    rtLogWarn("[%s] %u doesn't exist",__FUNCTION__, shader);
 
   return RT_OK;
 }
@@ -780,8 +783,11 @@ rtError pxWebgl::DeleteFramebuffer(uint32_t buffer)
   glDeleteFramebuffers(1, &buffer);
   CheckGLError();
 
-  for(auto i = mFramebuffers.begin(); i != mFramebuffers.end();)
-    i = *i == buffer ? mFramebuffers.erase(i) : i + 1;
+  auto i = std::find(mFramebuffers.begin(), mFramebuffers.end(), buffer);
+  if (i != mFramebuffers.end())
+    mFramebuffers.erase(i);
+  else
+    rtLogWarn("[%s] %u doesn't exist",__FUNCTION__, buffer);
 
   return RT_OK;
 }
@@ -793,8 +799,11 @@ rtError pxWebgl::DeleteTexture(uint32_t texture)
   glDeleteTextures(1, &texture);
   CheckGLError();
 
-  for(auto i = mTextures.begin(); i != mTextures.end();)
-    i = *i == texture ? mTextures.erase(i) : i + 1;
+  auto i = std::find(mTextures.begin(), mTextures.end(), texture);
+  if (i != mTextures.end())
+    mTextures.erase(i);
+  else
+    rtLogWarn("[%s] %u doesn't exist",__FUNCTION__, texture);
 
   return RT_OK;
 }
@@ -806,8 +815,11 @@ rtError pxWebgl::DeleteBuffer(uint32_t buffer)
   glDeleteBuffers(1, &buffer);
   CheckGLError();
 
-  for(auto i = mBuffers.begin(); i != mBuffers.end();)
-    i = *i == buffer ? mBuffers.erase(i) : i + 1;
+  auto i = std::find(mBuffers.begin(), mBuffers.end(), buffer);
+  if (i != mBuffers.end())
+    mBuffers.erase(i);
+  else
+    rtLogWarn("[%s] %u doesn't exist",__FUNCTION__, buffer);
 
   return RT_OK;
 }
@@ -819,8 +831,11 @@ rtError pxWebgl::DeleteProgram(uint32_t program)
   glDeleteProgram(program);
   CheckGLError();
 
-  for(auto i = mPrograms.begin(); i != mPrograms.end();)
-    i = *i == program ? mPrograms.erase(i) : i + 1;
+  auto i = std::find(mPrograms.begin(), mPrograms.end(), program);
+  if (i != mPrograms.end())
+    mPrograms.erase(i);
+  else
+    rtLogWarn("[%s] %u doesn't exist",__FUNCTION__, program);
 
   return RT_OK;
 }
