@@ -784,7 +784,7 @@ public:
 
   virtual pxError prepareForRendering()
   {
-    if (context.isTextureSpaceAvailable(this, false))
+    if (mTextureName == 0 && context.isTextureSpaceAvailable(this, false))
     {
       glActiveTexture(GL_TEXTURE1);
       glGenTextures(1, &mTextureName);
@@ -798,7 +798,7 @@ public:
       glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
                    mOffscreen.width(), mOffscreen.height(), 0, GL_RGBA,
                    GL_UNSIGNED_BYTE, mOffscreen.base());
-      if (mDownscaleSmooth)
+      if (mDownscaleSmooth && !mMipmapCreated)
       {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
         glGenerateMipmap(GL_TEXTURE_2D);
