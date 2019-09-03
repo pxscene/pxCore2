@@ -523,7 +523,7 @@ rtError pxWebgl::GetProgramParameter(uint32_t program, uint32_t pname, uint32_t&
 
 rtError pxWebgl::DeleteShader(uint32_t shader)
 {
-  rtLogInfo("[%s] shader %u", __FUNCTION__, shader);
+  rtLogDebug("[%s] shader %u", __FUNCTION__, shader);
 
   glDeleteShader(shader);
   CheckGLError();
@@ -748,7 +748,7 @@ rtError pxWebgl::UniformMatrix3fv(uint32_t location, bool transpose, rtValue dat
 
 rtError pxWebgl::DeleteFramebuffer(uint32_t buffer)
 {
-  rtLogInfo("[%s] framebuffer %u", __FUNCTION__, buffer);
+  rtLogDebug("[%s] framebuffer %u", __FUNCTION__, buffer);
 
   glDeleteFramebuffers(1, &buffer);
   CheckGLError();
@@ -761,7 +761,7 @@ rtError pxWebgl::DeleteFramebuffer(uint32_t buffer)
 
 rtError pxWebgl::DeleteTexture(uint32_t texture)
 {
-  rtLogInfo("[%s] texture %u", __FUNCTION__, texture);
+  rtLogDebug("[%s] texture %u", __FUNCTION__, texture);
 
   glDeleteTextures(1, &texture);
   CheckGLError();
@@ -774,7 +774,7 @@ rtError pxWebgl::DeleteTexture(uint32_t texture)
 
 rtError pxWebgl::DeleteBuffer(uint32_t buffer)
 {
-  rtLogInfo("[%s] buffer %u", __FUNCTION__, buffer);
+  rtLogDebug("[%s] buffer %u", __FUNCTION__, buffer);
 
   glDeleteBuffers(1, &buffer);
   CheckGLError();
@@ -787,7 +787,7 @@ rtError pxWebgl::DeleteBuffer(uint32_t buffer)
 
 rtError pxWebgl::DeleteProgram(uint32_t program)
 {
-  rtLogInfo("[%s] program %u", __FUNCTION__, program);
+  rtLogDebug("[%s] program %u", __FUNCTION__, program);
 
   glDeleteProgram(program);
   CheckGLError();
