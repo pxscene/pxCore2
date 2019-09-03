@@ -359,7 +359,8 @@ public:
 
 #if (defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL)) && !defined(PXSCENE_DISABLE_PXCONTEXT_EXT)
         ,mAntiAliasing(antiAliasing)
-#endif        
+#endif
+, mDepthrenderbuffer(0)
   {
     UNUSED_PARAM(antiAliasing);
 
@@ -483,6 +484,12 @@ public:
       }
     }
 
+    if (mDepthrenderbuffer != 0)
+    {
+      glDeleteRenderbuffers(1, &mDepthrenderbuffer);
+      mDepthrenderbuffer = 0;
+    }
+
     return PX_OK;
   }
 
@@ -512,16 +519,15 @@ public:
 
       if (mDepthBuffer)
       {
-        // The depth buffer
-        GLuint depthrenderbuffer;
-        glGenRenderbuffers(1, &depthrenderbuffer);
-        glBindRenderbuffer(GL_RENDERBUFFER, depthrenderbuffer);
+        if (mDepthrenderbuffer == 0)
+          glGenRenderbuffers(1, &mDepthrenderbuffer);
+        glBindRenderbuffer(GL_RENDERBUFFER, mDepthrenderbuffer);
 #if (defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL))
         glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, mWidth, mHeight);
 #else
         glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, mWidth, mHeight);
 #endif //(defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL))
-        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthrenderbuffer);
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, mDepthrenderbuffer);
       }
 
       GLenum result = glCheckFramebufferStatus(GL_FRAMEBUFFER);
@@ -608,6 +614,7 @@ private:
 #if (defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL)) && !defined(PXSCENE_DISABLE_PXCONTEXT_EXT)
   bool mAntiAliasing;
 #endif
+  GLuint mDepthrenderbuffer;
 
 };// CLASS - pxFBOTexture
 
