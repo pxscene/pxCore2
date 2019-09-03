@@ -128,6 +128,8 @@ public:
     rtError setSX(float v) override     { setNeedsRecalc(true); return pxObject::setSX(v);}
     rtError setSY(float v) override     { setNeedsRecalc(true); return pxObject::setSY(v);}
 
+    rtError setPixelSize(uint32_t v) override ;
+
     void renderText(bool render);
     void setNeedsRecalc(bool recalc);
     virtual float getFBOWidth();

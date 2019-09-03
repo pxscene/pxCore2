@@ -318,6 +318,13 @@ void pxTextCanvas::sendPromise()
     }
 }
 
+rtError pxTextCanvas::setPixelSize(uint32_t v)
+{
+    mPixelSize = v;
+    setNeedsRecalc(true);
+    return RT_OK;
+}
+
 void pxTextCanvas::renderText(bool render)
 {
     if (render && !mTextLines.empty()) {
@@ -336,8 +343,8 @@ void pxTextCanvas::renderTextLine(const pxTextLine& textLine)
     float sx = 1.0;
     float sy = 1.0;
 
-    float charW = 0, charH = 0;
     uint32_t size = textLine.pixelSize;
+
     if (mFont != textLine.font)
     {
         setFont(textLine.font);
@@ -350,15 +357,11 @@ void pxTextCanvas::renderTextLine(const pxTextLine& textLine)
             );
 
     // TODO: calc alignment
+
     if (getFontResource() != nullptr)
     {
-        getFontResource()->measureTextInternal(cStr, size, sx, sy, charW, charH);
-        //TODO: add clipping support here
-        mw = charW > mw ? charW : mw;
+        //getFontResource()->measureTextInternal(cStr, size, sx, sy, charW, charH);
     }
-
-    mh  += charH;   // TODO: hack, remove. For some reason canvas size calculated in js is smaller than expected
-                    // this allows to account for height changes when drawing multiple lines
 
     // Now, render the text
     if( getFontResource() != nullptr)
@@ -443,7 +446,8 @@ rtError pxTextCanvas::fillText(rtString text, uint32_t x, uint32_t y)
             , mw
             , mh
             );
-    pxTextLine textLine(text, x, y);
+    pxTextLine textLine(text, x, y - mPixelSize);   // subtract pixelSize from y in order to get y = 0 positioned
+                                                        // at the text baseline like HTML canvas does
     rtValue color;
     textColor(color);
     textLine.setStyle(mFont, mPixelSize, color.toInt32());
@@ -455,8 +459,6 @@ rtError pxTextCanvas::fillText(rtString text, uint32_t x, uint32_t y)
 rtError pxTextCanvas::clear()
 {
     mTextLines.clear();
-    mw = 0;
-    mh = 0;
     mTranslateX = 0;
     mTranslateY = 0;
     setNeedsRecalc(true);
