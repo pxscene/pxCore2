@@ -43,6 +43,8 @@
 #endif
 #include "pxContextUtils.h"
 
+#include <algorithm>
+
 void _CheckGLError(const char* file, int line);
 
 #define CheckGLError() _CheckGLError(__FILE__, __LINE__)
@@ -145,7 +147,12 @@ rtError pxWebgl::createTexture(uint32_t& texture)
   CheckGLError();
 
   if (texture)
-    mTextures.push_back(texture);
+  {
+    if (std::find(mTextures.begin(), mTextures.end(), texture) == mTextures.end())
+      mTextures.push_back(texture);
+    else
+      rtLogWarn("[%s] %u exists",__FUNCTION__, texture);
+  }
 
   rtLogDebug("[%s] returning texture: %u",__FUNCTION__, texture);
 
@@ -160,7 +167,12 @@ rtError pxWebgl::createBuffer(uint32_t& buffer)
   CheckGLError();
 
   if (buffer)
-    mBuffers.push_back(buffer);
+  {
+    if (std::find(mBuffers.begin(), mBuffers.end(), buffer) == mBuffers.end())
+      mBuffers.push_back(buffer);
+    else
+      rtLogWarn("[%s] %u exists",__FUNCTION__, buffer);
+  }
 
   rtLogDebug("[%s] returning buffer: %u", __FUNCTION__, buffer);
 
@@ -379,7 +391,12 @@ rtError pxWebgl::CreateProgram(uint32_t& glprogram)
   CheckGLError();
 
   if (glprogram)
-    mPrograms.push_back(glprogram);
+  {
+    if (std::find(mPrograms.begin(), mPrograms.end(), glprogram) == mPrograms.end())
+      mPrograms.push_back(glprogram);
+    else
+      rtLogWarn("[%s] %u exists",__FUNCTION__, glprogram);
+  }
 
   rtLogDebug("[%s] returning program: %u", __FUNCTION__, glprogram);
 
@@ -393,7 +410,12 @@ rtError pxWebgl::CreateShader(uint32_t type, uint32_t& glshader)
   CheckGLError();
 
   if (glshader)
-    mShaders.push_back(glshader);
+  {
+    if (std::find(mShaders.begin(), mShaders.end(), glshader) == mShaders.end())
+      mShaders.push_back(glshader);
+    else
+      rtLogWarn("[%s] %u exists",__FUNCTION__, glshader);
+  }
 
   rtLogDebug("[%s] returning shader: %u", __FUNCTION__, glshader);
 
@@ -667,7 +689,12 @@ rtError pxWebgl::CreateFramebuffer(uint32_t& buffer)
   CheckGLError();
 
   if (buffer)
-    mFramebuffers.push_back(buffer);
+  {
+    if (std::find(mFramebuffers.begin(), mFramebuffers.end(), buffer) == mFramebuffers.end())
+      mFramebuffers.push_back(buffer);
+    else
+      rtLogWarn("[%s] %u exists",__FUNCTION__, buffer);
+  }
 
   rtLogDebug("[%s] returning buffer: %u",__FUNCTION__, buffer);
   
