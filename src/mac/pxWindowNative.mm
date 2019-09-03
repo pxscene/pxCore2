@@ -849,8 +849,6 @@ void MyDisplayReconfigurationCallBack(CGDirectDisplayID display,
 
     // NSLog(@"DROP LEAVE >> LOCATION: (%f, %f)", pt.x, pt.y);
 
-    NSURL *fileURL = [NSURL URLFromPasteboard: [sender draggingPasteboard]];
-
     //uint32_t dragType = (fileURL) ? 2 : 1;  // 2 == URL, 1 == TEXT
 
     pxWindowNative::_helper_onDragLeave(mWindow, pt.x, pt.y, 0); // drop point

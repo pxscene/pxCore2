@@ -20,6 +20,8 @@
 		4C2FF259219C9AFA0010DA38 /* rtObjectWrapper.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C2FF254219C9AFA0010DA38 /* rtObjectWrapper.cpp */; };
 		4C2FF25A219C9AFA0010DA38 /* rtScriptV8.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C2FF255219C9AFA0010DA38 /* rtScriptV8.cpp */; };
 		4C2FF25B219C9AFA0010DA38 /* rtWrapperUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C2FF256219C9AFA0010DA38 /* rtWrapperUtils.cpp */; };
+		4C81E12E231EF37C00E6578A /* rtStorage.h in Headers */ = {isa = PBXBuildFile; fileRef = 4C81E12C231EF37C00E6578A /* rtStorage.h */; };
+		4C81E12F231EF37C00E6578A /* rtStorage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C81E12D231EF37C00E6578A /* rtStorage.cpp */; };
 		4C8440B520D82F7E00C24E45 /* rtSettings.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C8440B320D82F7E00C24E45 /* rtSettings.cpp */; };
 		4C8440B620D82F7E00C24E45 /* rtSettings.h in Headers */ = {isa = PBXBuildFile; fileRef = 4C8440B420D82F7E00C24E45 /* rtSettings.h */; };
 		4C8440B920D82FAD00C24E45 /* rtPermissions.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C8440B720D82FAD00C24E45 /* rtPermissions.cpp */; };
@@ -246,6 +248,8 @@
 		4C7B860E1D10A45200C2489F /* pxClipboard.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pxClipboard.h; path = src/pxClipboard.h; sourceTree = SOURCE_ROOT; };
 		4C7B86111D10A47300C2489F /* pxClipboardNative.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = pxClipboardNative.mm; path = src/mac/pxClipboardNative.mm; sourceTree = SOURCE_ROOT; };
 		4C7B86121D10A47300C2489F /* pxClipboardNative.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pxClipboardNative.h; path = src/mac/pxClipboardNative.h; sourceTree = SOURCE_ROOT; };
+		4C81E12C231EF37C00E6578A /* rtStorage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = rtStorage.h; path = src/rtStorage.h; sourceTree = SOURCE_ROOT; };
+		4C81E12D231EF37C00E6578A /* rtStorage.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = rtStorage.cpp; path = src/rtStorage.cpp; sourceTree = SOURCE_ROOT; };
 		4C8440B320D82F7E00C24E45 /* rtSettings.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = rtSettings.cpp; path = src/rtSettings.cpp; sourceTree = SOURCE_ROOT; };
 		4C8440B420D82F7E00C24E45 /* rtSettings.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = rtSettings.h; path = src/rtSettings.h; sourceTree = SOURCE_ROOT; };
 		4C8440B720D82FAD00C24E45 /* rtPermissions.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = rtPermissions.cpp; path = src/rtPermissions.cpp; sourceTree = SOURCE_ROOT; };
@@ -411,6 +415,8 @@
 		4C12026B1E9683C900B0F89C /* rtCode */ = {
 			isa = PBXGroup;
 			children = (
+				4C81E12D231EF37C00E6578A /* rtStorage.cpp */,
+				4C81E12C231EF37C00E6578A /* rtStorage.h */,
 				4C2D53C82147463D001103BA /* rtScriptHeaders.h */,
 				4C2D53C7214745A3001103BA /* rtScriptV8 */,
 				464BD7D6210F6ABD00C4EFB7 /* rtCORS.cpp */,
@@ -744,6 +750,7 @@
 				4CF5468A20210AB600529907 /* ioapi.h in Headers */,
 				4CF5468B20210AB600529907 /* pxRect.h in Headers */,
 				4CF5468C20210AB600529907 /* pxInterpolators.h in Headers */,
+				4C81E12E231EF37C00E6578A /* rtStorage.h in Headers */,
 				4CF5468D20210AB600529907 /* pxClipboard.h in Headers */,
 				4CF5468E20210AB600529907 /* rtTest.h in Headers */,
 				4CF5468F20210AB600529907 /* pxBuffer.h in Headers */,
@@ -1175,6 +1182,7 @@
 				4CF5466420210AB600529907 /* pxUtil.cpp in Sources */,
 				4CF5466520210AB600529907 /* rtThreadTask.cpp in Sources */,
 				4C2FF24D219C854D0010DA38 /* rtHttpResponse.cpp in Sources */,
+				4C81E12F231EF37C00E6578A /* rtStorage.cpp in Sources */,
 				4CF5466620210AB600529907 /* rtFile.cpp in Sources */,
 				4CF5466720210AB600529907 /* rtPromise.cpp in Sources */,
 				4CF5466920210AB600529907 /* ioapi.c in Sources */,
@@ -1327,7 +1335,10 @@
 					examples/pxScene2d/external/nanosvg/src,
 					examples/pxScene2d/external/dukluv/src,
 					"examples/pxScene2d/external/dukluv/lib/duktape/src-separate",
+					examples/pxScene2d/external/rapidjson,
+					examples/pxScene2d/external,
 				);
+				LIBRARY_SEARCH_PATHS = "";
 				OTHER_CPLUSPLUSFLAGS = (
 					"$(OTHER_CFLAGS)",
 					"-std=c++11",
@@ -1404,7 +1415,10 @@
 					examples/pxScene2d/external/nanosvg/src,
 					examples/pxScene2d/external/dukluv/src,
 					"examples/pxScene2d/external/dukluv/lib/duktape/src-separate",
+					examples/pxScene2d/external/rapidjson,
+					examples/pxScene2d/external,
 				);
+				LIBRARY_SEARCH_PATHS = "";
 				OTHER_CPLUSPLUSFLAGS = (
 					"$(OTHER_CFLAGS)",
 					"-std=c++11",
