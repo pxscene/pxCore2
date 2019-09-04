@@ -11,10 +11,16 @@ externalLibs=$externalDir/png/.libs/:$externalDir/jpg/.libs/:$externalDir/curl/l
 
 PathD=$externalLibs:$externalDir/libnode-v6.9.0/out/Debug/obj.target
 PathR=$externalLibs:$externalDir/libnode-v6.9.0/out/Release/obj.target
+PathR=$externalLibs/extlibs/lib:PathR
 
 export LD_LIBRARY_PATH=$PathR
 
 export NODE_PATH=.
+
+export GST_REGISTRY_FORK="no"
+export GST_PLUGIN_SCANNER=$externalLibs/extlibs/libexec/gstreamer-1.0/gst-plugin-scanner
+export GST_PLUGIN_PATH=$externalLibs/extlibs/lib/
+export GST_REGISTRY=/tmp/.spark_gst_registry.bin
 
 #export RT_LOG_LEVEL=info
 

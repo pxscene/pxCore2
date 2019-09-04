@@ -176,3 +176,5 @@ examples/pxScene2d/external/libpng-1.6.28/timepng
 tests/pxScene2d/Makefile
 
 remote/js/node_modules
+
+examples/pxScene2d/external/extlibs

@@ -1,0 +1,356 @@
+<!--
+/*
+ * If not stated otherwise in this file or this component's license file the
+ * following copyright and licenses apply:
+ *
+ * Copyright 2018 RDK Management
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+*/
+-->
+
+<html>
+
+<head>
+    <title>MicroEvent Analysis</title>
+    <link rel="stylesheet" href="microEventAnalysisStyle.css">
+</head>
+
+<body>
+    <!--
+     RDK microevent bugs?
+     - incomplete data (particularly for some failures)
+     - bogus starttime on some records
+     - some entries missing microEvent data
+
+     Field/Rack:
+     - action: deployment ticket with RFC to turn on microevents in production
+
+     statistics/distributions for anomalies/bottlenecks
+     direct link analysis view to viewer
+
+     Viewer:
+     - add pretty-print, commented json to viewer
+     - add legend/labels to viewer
+    -->
+    <div class="micro-event-tool-bar">
+        <a id="microEventTool"><b>Micro Event Analysis Tool</b></a>
+        <label id="fileUpload" for="files">Upload File</label>
+        <input type="file" name="files" id="files" />
+        <label id="LaunchMicroEvent" onclick="launchEventViewer()">Launch Micro Event Viewer</label>
+    </div>
+    <div id="content">
+    </div>
+
+    <script>
+
+        var raw;
+        /*
+            Common:
+            ct = Content Type
+            it = Initiation Time of Playback in epoch format (on Receiver side)
+            tt = Total Tune Time/latency
+            pi = Playback Index
+            ts = Tune Status
+            va = Vector of tune Attempts
+
+            Individual Tune Attempts:
+            s = Start Time in epoch format
+            td = Tune Duration
+            st = Stream Type
+            u = URL
+            r = Result (1:Success, 0:Failure)
+            v = Vector of Events happened
+
+            Events:
+            i = Id
+        */
+        var iMAIN_MANIFEST_DOWNLOAD = 0;
+        var iVIDEO_PLAYLIST_DOWNLOAD = 1;
+        var iAUDIO_PLAYLIST_DOWNLOAD = 2;
+        var iVIDEO_INIT_FRAGMENT_DOWNLOAD = 3;
+        var iAUDIO_INIT_FRAGMENT_DOWNLOAD = 4;
+        var iVIDEO_FRAGMENT_DOWNLOAD = 5;
+        var iAUDIO_FRAGMENT_DOWNLOAD = 6;
+        var iVIDEO_FRAGMENT_DECRYPTION = 7;
+        var iAUDIO_FRAGMENT_DECRYPTION = 8;
+        var iLICENSE_ACQUISITION_OVERALL = 9;
+        //var iLICENSE_ACQUISITION_PREPROCESSING = 10;
+        var iLICENSE_ACQUISITION_NETWORK = 11;
+        //var iLICENSE_ACQUISITION_POST_PROCESSING = 12;
+        /*
+            b = Beginning time of the event, relative to 's'
+            d = Duration till the completion of event
+            o = Output of Event (200:Success, Non 200:Error Code)
+            */
+        var eventName = [
+            "MAIN_MANIFEST_DOWNLOAD",
+            "VIDEO_PLAYLIST_DOWNLOAD",
+            "AUDIO_PLAYLIST_DOWNLOAD",
+            "VIDEO_INIT_FRAGMENT_DOWNLOAD",
+            "AUDIO_INIT_FRAGMENT_DOWNLOAD",
+            "VIDEO_FRAGMENT_DOWNLOAD",
+            "AUDIO_FRAGMENT_DOWNLOAD",
+            "VIDEO_FRAGMENT_DECRYPTION",
+            "AUDIO_FRAGMENT_DECRYPTION",
+            "LICENSE_ACQUISITION_OVERALL",
+            "LICENSE_ACQUISITION_PREPROCESSING",
+            "LICENSE_ACQUISITION_NETWORK",
+            "LICENSE_ACQUISITION_POST_PROCESSING"
+        ];
+
+
+        var indent = "";
+        var blobData = [];
+        document.getElementById("content").innerHTML = "";
+
+        function Log(string, red) {
+            var logHTMLString;
+            if (red) {
+                logHTMLString = "<p style='" + indent + "color:red'>";
+            } else {
+                logHTMLString = "<p style='" + indent + "'>";
+            }
+            logHTMLString += string + "</p>";
+            document.getElementById('content').insertAdjacentHTML('beforeend', logHTMLString);
+        }
+
+        function FormatError(errCode) {
+            var desc = "";
+            var type = "";
+            if (errCode == 0 || errCode == 200) {
+                errCode = "";
+            } else if (errCode >= 200) {
+                type = "HTTP";
+                switch (errCode) {
+                    case 403:
+                        desc = "(forbidden)";
+                        break;
+                    case 404:
+                        desc = "(not found)";
+                        break;
+                    case 406:
+                        desc = "(not acceptable)";
+                        break;
+                    case 409:
+                        desc = "(conflict)";
+                        break;
+                    case 500:
+                        desc = "(internal server error)";
+                        break;
+                    case 502:
+                        desc = "(bad gateway)";
+                        break;
+                }
+            } else if (errCode >= 0) {
+                type = "CURL";
+
+                switch (errCode) {
+                    case 28:
+                        desc = "(timeout)";
+                        break;
+                    case 23:
+                        desc = "(failed writing body)";
+                        break;
+                    case 32:
+                        desc = "(aborted by callback)";
+                        break;
+                }
+            }
+            return type + errCode + desc;
+        }
+
+        function FormatDuration(ms) {
+            return (ms / 1000.0) + "s";
+        }
+
+        function compareFunction(a, b) {
+            var t0 = a.microEvents.tt;
+            var t1 = b.microEvents.tt;
+            return t1 - t0;
+        }
+
+        function ProcessMicroEvents(obj, eventIndex) {
+            var contentType = obj.ct;
+            var initialization_time_utc = obj.it;
+            var total_tune_time = obj.tt;
+            var playback_index = obj.pi;
+            var tune_status = (obj.ts == "true");
+            var va = obj.va;
+
+            indent = "";
+            Log('\tcontent type: ' + contentType + '\n');
+            Log('\tinitial time utc: ' + initialization_time_utc + '\n');
+            Log('\ttotal tune time: ' + FormatDuration(total_tune_time) + '\n', total_tune_time >= 10000);
+            Log('\tplayback index: ' + playback_index + '\n');
+            Log('\ttune success: ' + tune_status + '\n', !tune_status);
+            Log('\ttune attempts: ' + va.length + '\n', va.length > 1);
+
+            for (var i = 0; i < va.length; i++) {
+                var tuneInfo = va[i];
+                var startTimeUtc = tuneInfo.s;
+                var events = tuneInfo.v;
+                var uri = tuneInfo.u;
+                var attemptStartTime = startTimeUtc - initialization_time_utc;
+                indent = "text-indent:2em;"
+                Log('<b>Attempt#' + (i + 1) + ' (' + tuneInfo.st + ')</b> <i>' + tuneInfo.u + '</i>');
+                Log('\t\tresult:' + (tuneInfo.r ? "success" : "failure") + '(' + FormatDuration(tuneInfo.td) + ')', !tuneInfo.r);
+                Log('\t\trelative start time: ' + FormatDuration(attemptStartTime) + '\n', attemptStartTime < 0);
+                for (var j = 0; j < events.length; j++) {
+                    indent = "text-indent:4em;"
+                    var event = events[j];
+                    var eventId = event.i;
+                    var eventBeginRelative = event.b;
+                    var eventDuration = event.d;
+                    var eventOutput = event.o;
+                    var start = attemptStartTime + eventBeginRelative;
+                    var finish = start + eventDuration;
+                    var bucketType;
+
+                    var isException = false;
+                    if (
+                        (eventId == iMAIN_MANIFEST_DOWNLOAD ||
+                            eventId == iVIDEO_FRAGMENT_DOWNLOAD ||
+                            eventId == iAUDIO_FRAGMENT_DOWNLOAD ||
+                            eventId == iVIDEO_INIT_FRAGMENT_DOWNLOAD ||
+                            eventId == iAUDIO_INIT_FRAGMENT_DOWNLOAD
+                        ) &&
+                        (eventOutput != 200 || eventDuration >= 1000)) {
+                        isException = true;
+                    } else if (eventId == iLICENSE_ACQUISITION_NETWORK && eventOutput != 200) {
+                        isException = true;
+                    } else if ((eventId == iVIDEO_FRAGMENT_DECRYPTION || eventId == iAUDIO_FRAGMENT_DECRYPTION) && eventOutput != 200) {
+                        isException = true;
+                    }
+
+                    Log('\t\t\t' + eventName[eventId] + ' b=' + FormatDuration(eventBeginRelative) + ' d=' + FormatDuration(eventDuration) + ' ' + FormatError(eventOutput) + '\n', isException);
+                } // next event
+            }
+            indent = "";
+            blobData.push(obj);
+            document.getElementById('content').insertAdjacentHTML('beforeend', '<button class="jsonButton" onclick="openDownloadActivityTool(\''+ eventIndex + '\')">' + JSON.stringify(obj) + '</button>');
+        }
+
+        function openDownloadActivityTool(eventIndex) { 
+            // Take the moicro event blob data using the index value       
+            blobDataItem = blobData[Number(eventIndex)];
+            jsonParam =  encodeURI(JSON.stringify(blobDataItem));
+            //Open Download Activity Tool in new Tab
+            var newTab = window.open("MicroEventViewer/microEventView.html?viewType=normal&blobInfo=" + jsonParam, '_blank');
+            newTab.focus();
+        }
+
+        function myLoadHandler(e) {
+            document.getElementById('content').innerHTML = "";
+            raw = e.target.result;
+            var lines = raw.split("\n");
+            var raw2 = [];
+            for (var i = 0; i < lines.length; i++) {
+                var line = lines[i];
+                if (line.charAt(line.length - 1) == "\r") { // strip trailing newline
+                    line = line.slice(0, -1);
+                }
+                if (i == 0) {
+                    columns = line.split(",");
+                } else {
+                    var offs = 0;
+                    var obj = new Object();
+                    for (var col = 0; col < columns.length; col++) {
+                        var c = line.charAt(offs);
+                        if (c == '"') {
+                            offs++; // skip opening quote
+                            var field = "";
+                            for (;;) {
+                                var delim = line.indexOf('"', offs);
+                                field += line.substring(offs, delim);
+                                offs = delim + 1;
+                                var next = line.charAt(offs);
+                                if (next == '"') { // skip 2nd quote in quoted quote
+                                    field += next;
+                                    offs++;
+                                } else {
+                                    if (next == ',') {
+                                        offs++;
+                                    }
+                                    if (columns[col] == "microEvents") {
+                                        //console.log( field + "\n\n" );
+                                        obj[columns[col]] = JSON.parse(field);
+                                    } else {
+                                        obj[columns[col]] = field;
+                                    }
+                                    break;
+                                }
+                            }
+                        } // quoted field
+                        else { // non-quoted field
+                            var delim = line.indexOf(',', offs);
+                            if (delim >= 0) {
+                                obj[columns[col]] = line.substring(offs, delim);
+                                offs = delim + 1;
+                            } else {
+                                break;
+                            }
+                        }
+                    }
+                    if (obj.microEvents != undefined) {
+                        raw2.push(obj);
+                    }
+                }
+            }
+
+            raw2.sort(compareFunction);
+            for (var i = 0; i < raw2.length; i++) {
+                var obj = raw2[i].microEvents;
+                if (obj != undefined) {
+                    ProcessMicroEvents(obj, i);
+                    document.getElementById('content').insertAdjacentHTML('beforeend', '<hr/>');
+                }
+            }
+        }
+
+        // Display the Loading widget while the file being uploaded
+        function showLoadingWidget() {
+            document.getElementById("content").innerHTML = "<div class='loader'></div><h2 id='loadText'>Loading...<\h2>";
+        }
+
+        // When the launchEventViewer button is clicked
+        function launchEventViewer() {
+            var newTab = window.open("MicroEventViewer/microEventView.html?viewType=advanced", '_blank');
+            newTab.focus();
+
+        }
+
+        function handleFileSelect(evt) {
+            //reset blobData on every file upload
+            blobData = [];
+            // call Loading widget
+            showLoadingWidget();
+            var files = evt.target.files;
+            for (var fileIndex = 0; fileIndex < files.length; fileIndex++) {
+                var f = files[fileIndex];
+                if (f.type = "text/plain") {
+                    var filename = f.name;
+                    console.log("processing: " + filename);
+                    var reader = new FileReader();
+                    reader.onload = myLoadHandler;
+                    reader.filename = filename;
+                    reader.readAsText(f);
+                }
+            }
+        }
+
+        document.getElementById('files').addEventListener('change', handleFileSelect, false);
+    </script>
+</body>
+
+</html>

@@ -21,8 +21,13 @@
 #ifndef PX_VIDEO_H
 #define PX_VIDEO_H
 
+#include <gst/gst.h>
+#include "main_aamp.h"
 #include "pxScene2d.h"
 #include "pxObject.h"
+#include "pxContext.h"
+
+//#define AAMP_USE_SHADER 1
 
 class pxVideo: public pxObject
 {
@@ -57,56 +62,85 @@ public:
 
 
   pxVideo(pxScene2d* scene);
+  virtual ~pxVideo();
 
   virtual void onInit();
 
   //properties
-  rtError availableAudioLanguages(rtObjectRef& v) const;
-  rtError availableClosedCaptionsLanguages(rtObjectRef& v) const;
-  rtError availableSpeeds(rtObjectRef& v) const;
-  rtError duration(float& v) const;
-  rtError zoom(rtString& v) const;
-  rtError setZoom(const char* s);
-  rtError volume(uint32_t& v) const;
-  rtError setVolume(uint32_t v);
-  rtError closedCaptionsOptions(rtObjectRef& v) const;
-  rtError setClosedCaptionsOptions(rtObjectRef v);
-  rtError closedCaptionsLanguage(rtString& v) const;
-  rtError setClosedCaptionsLanguage(const char* s);
-  rtError contentOptions(rtObjectRef& v) const;
-  rtError setContentOptions(rtObjectRef v);
-  rtError speed(float& v) const;
-  rtError setSpeedProperty(float v);
-  rtError position(float& v) const;
-  rtError setPosition(float v);
-  rtError audioLanguage(rtString& v) const;
-  rtError setAudioLanguage(const char* s);
-  rtError secondaryAudioLanguage(rtString& v) const;
-  rtError setSecondaryAudioLanguage(const char* s);
-  rtError url(rtString& v) const;
-  rtError setUrl(const char* s);
-  rtError tsbEnabled(bool& v) const;
-  rtError setTsbEnabled(bool v);
-  rtError closedCaptionsEnabled(bool& v) const;
-  rtError setClosedCaptionsEnabled(bool v);
-  rtError autoPlay(bool& v) const;
-  rtError setAutoPlay(bool v);
+  virtual rtError availableAudioLanguages(rtObjectRef& v) const;
+  virtual rtError availableClosedCaptionsLanguages(rtObjectRef& v) const;
+  virtual rtError availableSpeeds(rtObjectRef& v) const;
+  virtual rtError duration(float& v) const;
+  virtual rtError zoom(rtString& v) const;
+  virtual rtError setZoom(const char* s);
+  virtual rtError volume(uint32_t& v) const;
+  virtual rtError setVolume(uint32_t v);
+  virtual rtError closedCaptionsOptions(rtObjectRef& v) const;
+  virtual rtError setClosedCaptionsOptions(rtObjectRef v);
+  virtual rtError closedCaptionsLanguage(rtString& v) const;
+  virtual rtError setClosedCaptionsLanguage(const char* s);
+  virtual rtError contentOptions(rtObjectRef& v) const;
+  virtual rtError setContentOptions(rtObjectRef v);
+  virtual rtError speed(float& v) const;
+  virtual rtError setSpeedProperty(float v);
+  virtual rtError position(float& v) const;
+  virtual rtError setPosition(float v);
+  virtual rtError audioLanguage(rtString& v) const;
+  virtual rtError setAudioLanguage(const char* s);
+  virtual rtError secondaryAudioLanguage(rtString& v) const;
+  virtual rtError setSecondaryAudioLanguage(const char* s);
+  virtual rtError url(rtString& url) const;
+  virtual rtError setUrl(const char* s);
+  virtual rtError tsbEnabled(bool& v) const;
+  virtual rtError setTsbEnabled(bool v);
+  virtual rtError closedCaptionsEnabled(bool& v) const;
+  virtual rtError setClosedCaptionsEnabled(bool v);
+  virtual rtError autoPlay(bool& autoPlay) const;
+  virtual rtError setAutoPlay(bool v);
 
   //methods
-  rtError play();
-  rtError pause();
-  rtError stop();
-  rtError setSpeed(float speed, float overshootCorrection );
-  rtError setPositionRelative(float seconds);
-  rtError requestStatus();
-  rtError setAdditionalAuth(rtObjectRef params);
+  virtual rtError play();
+  virtual rtError pause();
+  virtual rtError stop();
+  virtual rtError setSpeed(float speed, float overshootCorrection );
+  virtual rtError setPositionRelative(float seconds);
+  virtual rtError requestStatus();
+  virtual rtError setAdditionalAuth(rtObjectRef params);
   
   virtual void draw();
 
+  void updateYUVFrame(uint8_t *yuvBuffer, int size, int pixel_w, int pixel_h);
+
 private:
+  void InitPlayerLoop();
+  void TermPlayerLoop();
+  static void* AAMPGstPlayer_StreamThread(void *arg);
+  static void newAampFrame(void* context, void* data);
+
+private:
+    static GMainLoop *AAMPGstPlayerMainLoop;
+
     bool isRotated();
-    pxTextureRef mVideoTexture;
     bool mEnablePunchThrough;
+    bool mAutoPlay;
+    rtString mUrl;
+
+    class PlayerInstanceAAMP* mAamp;
+
+    rtMutex mYuvFrameMutex;
+    pxOffscreen mOffscreen;
+    struct YUVBUFFER{
+    	uint8_t *buffer;
+    	int size;
+    	int pixel_w;
+    	int pixel_h;
+    };
+    YUVBUFFER mYuvBuffer;
+    bool initialized = false;
+    GThread *aampMainLoopThread;
+
+public:
+    static pxVideo *pxVideoObj; //This object
 };
 
 #endif // PX_VIDEO_H

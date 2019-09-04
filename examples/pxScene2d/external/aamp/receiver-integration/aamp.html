@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<!--
+ If not stated otherwise in this file or this component's license file the
+ following copyright and licenses apply:
+
+ Copyright 2018 RDK Management
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+ http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+<head>
+<meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+<meta content="text/html" charset="utf-8" http-equiv="content-type">
+<style>
+	html, body {
+		margin: 0;
+		width: 100%;
+		height: 100%;
+	}
+	body { 
+		width: 100%; 
+		height: 100%; 
+	}		
+	div { 
+		width: 100%; 
+		height: 100%; 
+	}
+</style>
+<script type="application/javascript">
+
+var videoX = 0;
+var videoY = 0;
+var videoW = 0;
+var videoH = 0;
+
+var callMethodMap =
+{
+	"cleanup" : function (params)
+	{
+		AAMP.stop();
+		XREReceiver.onEvent("onCleanUp", {});
+	},
+	"enableAutoPlay" : function (params)
+	{
+	},
+	"enableClosedCaptions" : function (params)
+	{
+	},
+	"pause" : function (params)
+	{
+		AAMP.setRate(0);
+	},
+	"play" : function (params)
+	{
+		AAMP.setRate(1);
+	},
+	"seek" : function (params)
+	{
+		AAMP.seek(params/1000.0);
+	},
+	"seekToLive" : function (params)
+	{
+		AAMP.seekToLive();
+	},
+	"setBufferTime" : function (params)
+	{
+	},
+	"setClosedCaptionsOptions" : function (params)
+	{
+	},
+	"setClosedCaptionsTrack" : function (params)
+	{
+	},
+	"setContentOptions" : function (params)
+	{
+	},
+	"setContentUrl" : function (params)
+	{
+		AAMP.tune(params);
+	},
+	"setLiveFetchHoldTime" : function (params)
+	{
+	},
+	"setOffset" : function (params)
+	{
+	},
+	"setPreferredAudioLanguage" : function (params)
+	{
+		if(params == "eng")
+			lang = "en"
+		else if(params == "spa")
+			lang = "es";
+		else if(params == "fra")
+			lang = "fr";
+		else if(params == "deu")
+			lang = "de";
+		else if(params == "ita")
+			lang = "it";
+		else if(params == "por")
+			lang = "pt";
+		else
+			lang = params;
+		AAMP.setLanguage(lang);
+	},
+	"setPreferredZoomSetting" : function (params)
+	{
+		AAMP.setZoom(params);
+	},
+	"setRect" : function (params)
+	{
+		videoX = params[0];
+		videoY = params[1];
+		videoW = params[2];
+		videoH = params[3];
+		AAMP.setRect(params[0],params[1],params[2],params[3]);
+	},
+	"setScale" : function (params)
+	{
+	},
+	"setSpeed" : function (params)
+	{
+		AAMP.setRate(params[0],params[1]);
+	},
+	"setVideoMute" : function (params)
+	{
+	},
+	"setVolume" : function (params)
+	{
+	},
+	"showDiag" : function (params)
+	{
+	},
+	"stop" : function (params)
+	{
+		AAMP.stop();
+	}
+};
+
+function callMethod(method, params)
+{
+	console.log("[AAMP_JS_HTML] callMethod " + method);
+	callMethodMap[method](params);
+}
+
+function onXREReady()
+{
+	console.log("[AAMP_JS_HTML] onXREReady");
+	XREReceiver.onEvent("onReady", {});
+}
+
+function onTuned(event)
+{
+	console.log("[AAMP_JS_HTML_EVENT] event onTuned");
+	XREReceiver.onEvent("onTuned", {});
+}
+function onTuneFailed()
+{
+	console.log("[AAMP_JS_HTML_EVENT] event onTuneFailed");
+	XREReceiver.onEvent("onMediaFailed", {});
+}
+function onSpeedChanged(event)
+{
+	console.log("[AAMP_JS_HTML_EVENT] event onSpeedChanged speed="+event.speed+" reason="+event.reason);
+	XREReceiver.onEvent("onPlaybackSpeedChanged", { speed: event.speed, reason: event.reason });
+}
+function onEOS(event)
+{
+	console.log("[AAMP_JS_HTML_EVENT] event onEOS");
+	XREReceiver.onEvent("onMediaEnded", {});
+}
+function onPlaylistIndexed()
+{
+	console.log("[AAMP_JS_HTML_EVENT] event onPlaylistIndexed");
+}
+function onProgress(event)
+{
+	XREReceiver.onEvent("onMediaProgress", {
+		position : event.positionMiliseconds,
+		startPosition : event.startMiliseconds,
+		endPosition : event.endMiliseconds,
+		playbackSpeed : event.playbackSpeed
+	});
+}
+function onDecoderAvailable(event)
+{
+	console.log("[AAMP_JS_HTML_EVENT] event onDecoderAvailable decoderHandle="+event.decoderHandle);
+	XREReceiver.onEvent("onDecoderAvailable", { decoderHandle : event.decoderHandle });
+}
+function onJSEvent(event)
+{
+	console.log("[AAMP_JS_HTML_EVENT] event onJSEvent");
+}
+function onMetadata(event)
+{
+	console.log("[AAMP_JS_HTML_EVENT] event onMetadata");
+
+	len = event.languages.length;
+
+	var langs3 = [];
+	if (len == 0)
+	{
+		langs3.push("eng");
+	}
+	else
+	{
+		for (var i = 0; i < len; i++) {
+			lang = event.languages[i];
+			if(lang == "en")
+				langs3.push("eng");
+			else if(lang == "es")
+				langs3.push("spa");
+			else if(lang == "fr")
+				langs3.push("fra");
+			else if(lang == "de")
+				langs3.push("deu");
+			else if(lang == "it")
+				langs3.push("ita");
+			else if(lang == "pt")
+				langs3.push("por");
+			else
+				langs3.push(lang);
+		}
+	}
+
+	XREReceiver.onEvent("onMediaOpened", {
+		endPosition: event.durationMiliseconds,
+		availableAudioLanguages: langs3,
+		playbackSpeeds: [-64, -32, -16, -4, -1, 0, 1, 4, 16, 32, 64],
+		width: videoW,
+		height: videoH,
+		mediaSegments: {}
+	});
+}
+
+AAMP.addEventListener("tuned", onTuned, null);
+AAMP.addEventListener("tuneFailed", onTuneFailed, null);
+AAMP.addEventListener("speedChanged", onSpeedChanged, null);
+AAMP.addEventListener("eos", onEOS, null);
+AAMP.addEventListener("playlistIndexed", onPlaylistIndexed, null);
+AAMP.addEventListener("progress", onProgress, null);
+AAMP.addEventListener("decoderAvailable", onDecoderAvailable, null);
+AAMP.addEventListener("jsEvent", onJSEvent, null);
+AAMP.addEventListener("metadata", onMetadata, null);
+
+XREReceiver.callMethod.connect(callMethod);
+
+</script>
+</head>
+<body>
+</body>
+<html>
