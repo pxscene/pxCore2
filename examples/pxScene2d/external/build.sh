@@ -232,7 +232,7 @@ then
 
   if [ -e Makefile.build ]
   then
-    mv Makefile.build Makefile
+    cp Makefile.build Makefile
   fi
 
   make
@@ -279,6 +279,7 @@ then
   autoreconf -f -i
   ./configure
   make -j3
+
   git checkout aclocal.m4   # ... help GIT out
   git checkout compile      # ... help GIT out
   git checkout config.guess # ... help GIT out

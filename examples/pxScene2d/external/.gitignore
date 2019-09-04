@@ -117,7 +117,7 @@ sqlite-autoconf-3280000/sqlite3
 
 sqlite-autoconf-3280000/*.cache
 
-uWebSockets-0.14.8/Makefile.build
+uWebSockets-0.14.8/Makefile
 
 zlib-1.2.11/example
 zlib-1.2.11/examplesh
