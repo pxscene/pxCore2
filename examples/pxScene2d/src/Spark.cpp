@@ -1,4 +1,4 @@
-﻿/*
+/*
 
  pxCore Copyright 2005-2018 John Robinson
 
@@ -638,7 +638,7 @@ int pxMain(int argc, char* argv[])
   
 #ifdef PX_PLATFORM_MAC_XCODE
 
-#warning "PX_PLATFORM_MAC_XCODE build... Xcode DEBUG only !"
+  // #warning "PX_PLATFORM_MAC_XCODE build... Xcode DEBUG only !"
 
   // NOTE: PX_PLATFORM_MAC_XCODE is only defined for DEBUG + XCODE IDE builds
   //       via the  .xcconfig file ...
