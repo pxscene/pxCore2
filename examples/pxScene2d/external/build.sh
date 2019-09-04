@@ -119,6 +119,8 @@ then
 fi
 fi
 
+quilt pop -afq  # remove patches ... help GIT out
+
 cd ..
 
 #--------- FT
@@ -163,6 +165,8 @@ then
   cd zlib
   ./configure
   make all "-j${make_parallel}"
+  git checkout Makefile   # help GIT out
+  git checkout zconf.h    # help GIT out
   cd ..
 
 fi
@@ -249,9 +253,12 @@ fi
 
 #-------- NANOSVG
 
-  banner "NANOSVG"
+banner "NANOSVG"
 
-./nanosvg/build.sh
+cd nanosvg
+build.sh
+quilt pop -afq  # remove patches ... help GIT out
+cd ..
 
 #-------- DUKTAPE
 
@@ -272,6 +279,16 @@ then
   autoreconf -f -i
   ./configure
   make -j3
+  git checkout aclocal.m4   # ... help GIT out
+  git checkout compile      # ... help GIT out
+  git checkout config.guess # ... help GIT out
+  git checkout config.sub   # ... help GIT out
+  git checkout configure    # ... help GIT out
+  git checkout depcomp      # ... help GIT out
+  git checkout install-sh   # ... help GIT out
+  git checkout ltmain.sh    # ... help GIT out
+  git checkout Makefile.in  # ... help GIT out
+  git checkout missing      # ... help GIT out
   cd ..
 
 fi

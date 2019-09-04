@@ -25,5 +25,7 @@ pushd $DIRECTORY
             cmake -DCMAKE_VERBOSE_MAKEFILE=ON ..
             make -j$(getconf _NPROCESSORS_ONLN)
         popd
+
+        quilt pop -afq  # removed patches ... help out GIT
     fi
 popd
