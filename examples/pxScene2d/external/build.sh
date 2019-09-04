@@ -257,6 +257,8 @@ then
     cp Makefile.build Makefile
   fi
 
+  export CPLUS_INCLUDE_PATH='/usr/local/include'
+
   make "-j${make_parallel}"
 
   cd ..
@@ -335,4 +337,7 @@ then
   cd ..
 
 fi
+
+#-------
+exit 0    #success
 #-------
