@@ -53,8 +53,8 @@ then
 
   make all "-j${make_parallel}"
 
-  git update-index --assume-unchanged .        # ... help GIT out
-  git update-index --assume-unchanged ./src    # ... help GIT out
+  # git update-index --assume-unchanged .      # ... help GIT out
+  # git update-index --assume-unchanged src    # ... help GIT out
 
   cd ..
 
@@ -128,7 +128,6 @@ then
   fi
 fi
 
-git update-index --assume-unchanged .              # ... help GIT out
 git update-index --assume-unchanged dgif_lib.c     # ... help GIT out
 git update-index --assume-unchanged Makefile       # ... help GIT out
 
@@ -287,8 +286,7 @@ banner "NANOSVG"
 cd nanosvg
 
 ./build.sh
-git update-index --assume-unchanged .                # ... help GIT out
-git update-index --assume-unchanged nanosvgrast.h    # ... help GIT out
+git update-index --assume-unchanged ./src/nanosvgrast.h    # ... help GIT out
 
 cd ..
 
@@ -302,7 +300,7 @@ then
 
   ./build.sh
 
-  git update-index --assume-unchanged .    # ... help GIT out
+  # git update-index --assume-unchanged .    # ... help GIT out
 
   cd ..
 
