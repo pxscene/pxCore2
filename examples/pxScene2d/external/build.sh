@@ -119,8 +119,6 @@ then
 fi
 fi
 
-quilt pop -afq  # remove patches ... help GIT out
-
 cd ..
 
 #--------- FT
@@ -257,7 +255,6 @@ banner "NANOSVG"
 
 cd nanosvg
 build.sh
-quilt pop -afq  # remove patches ... help GIT out
 cd ..
 
 #-------- DUKTAPE
