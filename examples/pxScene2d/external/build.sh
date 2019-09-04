@@ -302,8 +302,8 @@ then
 
   git update-index --assume-unchanged CMakeLists.txt   # ... help GIT out
   git update-index --assume-unchanged uv.cmake         # ... help GIT out
-  git update-index --assume-unchanged duv.c            # ... help GIT out
-  git update-index --assume-unchanged main.c           # ... help GIT out
+  git update-index --assume-unchanged src/duv.c        # ... help GIT out
+  git update-index --assume-unchanged src/main.c       # ... help GIT out
 
   cd ..
 
