@@ -665,7 +665,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "cd $PROJECT_DIR/../src\n\n# Copy\ncp sparkpermissions.conf $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/MacOS\ncp package.json $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/MacOS\ncp -R macstuff/Resources $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents\ncp    macstuff/EngineRunner $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/MacOS\ncp    macstuff/spark.sh $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/MacOS\n\ncp FreeSans.ttf $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/MacOS\ncp -R browser $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/MacOS\ncp -R node_modules $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/MacOS\n\n#minifyJS=\"true\"\n\nif [ \"$minifyJS\" == \"true\" ]\nthen\n\n# Minify JS to App Bundle\nprintf \"\\n ###  Minify JS code to App Bundle\\n\"\n\n./jsMinFolder.sh rcvrcore $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/MacOS/rcvrcore\ncp -R browser $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/MacOS\n\n./jsMin.sh init.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/MacOS/init.js\n./jsMin.sh shell.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/MacOS/shell.js\n./jsMin.sh about.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/MacOS/about.js\n./jsMin.sh mime.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/MacOS/mime.js\n#./jsMin.sh mime/pxMimeTypes.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/MacOS/pxMimeTypes.js\n./jsMin.sh browser.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/MacOS/browser.js\n./jsMin.sh browser/editbox.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/MacOS/browser/editbox.js\nelse\n\n# Skip JS Minify - just copy\nprintf \"\\n ###  Skip JS Minify - just copy\\n\"\n\ncp -R rcvrcore $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/MacOS\ncp -R browser $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/MacOS\n\ncp init.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/MacOS\ncp shell.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/MacOS\ncp about.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/MacOS\ncp mime.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/MacOS\ncp mime/pxMimeTypes.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/MacOS\ncp browser.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/MacOS\nfi\n\necho $PROJECT_DIR/../lib\n";
+			shellScript = "cd $PROJECT_DIR/../src\n\n# Copy\ncp sparkpermissions.conf $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/MacOS\ncp package.json $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/MacOS\ncp -R macstuff/Resources $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents\ncp    macstuff/EngineRunner $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/MacOS\ncp    macstuff/spark.sh $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/MacOS\n\ncp FreeSans.ttf $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/MacOS\ncp -R browser $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/MacOS\ncp -R node_modules $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/MacOS\n\n#minifyJS=\"true\"\n\nif [ \"$minifyJS\" == \"true\" ]\nthen\n\n# Minify JS to App Bundle\nprintf \"\\n ###  Minify JS code to App Bundle\\n\"\n\n./jsMinFolder.sh rcvrcore $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/MacOS/rcvrcore\ncp -R browser $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/MacOS\n\n./jsMin.sh init.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/MacOS/init.js\n./jsMin.sh shell.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/MacOS/shell.js\n./jsMin.sh about.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/MacOS/about.js\n#./jsMin.sh mime.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/MacOS/mime.js\n#./jsMin.sh mime/pxMimeTypes.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/MacOS/pxMimeTypes.js\n./jsMin.sh browser.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/MacOS/browser.js\n./jsMin.sh browser/editbox.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/MacOS/browser/editbox.js\nelse\n\n# Skip JS Minify - just copy\nprintf \"\\n ###  Skip JS Minify - just copy\\n\"\n\ncp -R rcvrcore $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/MacOS\ncp -R browser $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/MacOS\n\ncp init.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/MacOS\ncp shell.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/MacOS\ncp about.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/MacOS\n#cp mime.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/MacOS\n#cp mime/pxMimeTypes.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/MacOS\ncp browser.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/MacOS\nfi\n\necho $PROJECT_DIR/../lib\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -800,15 +800,13 @@
 					RT_PLATFORM_LINUX,
 					PX_PLATFORM_MAC,
 					RTSCRIPT_SUPPORT_NODE,
-					RTSCRIPT_SUPPORT_DUKTAPE,
 					ENABLE_RT_NODE,
-					ENABLE_RT_DUKTAPE,
 					RUNINMAIN,
 					ENABLE_HTTP_CACHE,
 					"_DARWIN_USE_64_BIT_INODE=1",
+					"V8_DEPRECATION_WARNINGS=1",
 					"NODE_ARCH=\"x64\"",
 					"NODE_WANT_INTERNALS=1",
-					"V8_DEPRECATION_WARNINGS=1",
 					NODE_SHARED_MODE,
 					"NODE_USE_V8_PLATFORM=1",
 					"NODE_HAVE_I18N_SUPPORT=1",
@@ -833,13 +831,16 @@
 					_LARGEFILE_SOURCE,
 					"_FILE_OFFSET_BITS=64",
 					ENABLE_DEBUG_MODE,
+					SPARK_ENABLE_ALPHA_FBO_SUPPORT,
+					ENABLE_LRU_TEXTURE_EJECTION,
 					PXSCENE_DISABLE_WST_DECODER,
 					"SPARK_BUILD_GIT_REVISION=\"Xcode User\"",
-					PX_PLATFORM_MAC_XCODE,
 					ANIMATION_ROTATE_XYZ,
+					PX_PLATFORM_MAC_XCODE,
 					PXSCENE_FONT_ATLAS,
 					PXSCENE_SUPPORT_STORAGE,
 				);
+				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				HEADER_SEARCH_PATHS = (
 					"$(PROJECT_DIR)/../src",
 					"$(PROJECT_DIR)/../../../src",
@@ -888,15 +889,13 @@
 					RT_PLATFORM_LINUX,
 					PX_PLATFORM_MAC,
 					RTSCRIPT_SUPPORT_NODE,
-					RTSCRIPT_SUPPORT_DUKTAPE,
 					ENABLE_RT_NODE,
-					ENABLE_RT_DUKTAPE,
 					RUNINMAIN,
 					ENABLE_HTTP_CACHE,
 					"_DARWIN_USE_64_BIT_INODE=1",
+					"V8_DEPRECATION_WARNINGS=1",
 					"NODE_ARCH=\"x64\"",
 					"NODE_WANT_INTERNALS=1",
-					"V8_DEPRECATION_WARNINGS=1",
 					NODE_SHARED_MODE,
 					"NODE_USE_V8_PLATFORM=1",
 					"NODE_HAVE_I18N_SUPPORT=1",
@@ -921,13 +920,16 @@
 					_LARGEFILE_SOURCE,
 					"_FILE_OFFSET_BITS=64",
 					ENABLE_DEBUG_MODE,
+					SPARK_ENABLE_ALPHA_FBO_SUPPORT,
+					ENABLE_LRU_TEXTURE_EJECTION,
 					PXSCENE_DISABLE_WST_DECODER,
 					"SPARK_BUILD_GIT_REVISION=\"Xcode User\"",
-					PX_PLATFORM_MAC_XCODE,
 					ANIMATION_ROTATE_XYZ,
+					PX_PLATFORM_MAC_XCODE,
 					PXSCENE_FONT_ATLAS,
 					PXSCENE_SUPPORT_STORAGE,
 				);
+				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				HEADER_SEARCH_PATHS = (
 					"$(PROJECT_DIR)/../src",
 					"$(PROJECT_DIR)/../../../src",

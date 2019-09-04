@@ -125,10 +125,9 @@ then
       cp libgif.so .libs/libgif.so.7
       cp libutil.so .libs/libutil.so.7
   fi
-
-  git update-index --assume-unchanged .    # ... help GIT out
-
 fi
+
+git update-index --assume-unchanged .    # ... help GIT out
 
 cd ..
 
@@ -294,7 +293,14 @@ if [ ! -e dukluv/build/libduktape.a ]
 then
   banner "DUCKTAPE"
 
-  ./dukluv/build.sh
+  cd dukluv
+
+  ./build.sh
+
+  git update-index --assume-unchanged .    # ... help GIT out
+
+  cd ..
+
 fi
 
 #--------  SQLITE
