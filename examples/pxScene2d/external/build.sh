@@ -307,7 +307,7 @@ then
 
   autoreconf -f -i
   ./configure
-  make -j3
+  make "-j${make_parallel}"
 
   git update-index --assume-unchanged aclocal.m4   # ... help GIT out
   git update-index --assume-unchanged compile      # ... help GIT out
