@@ -128,7 +128,9 @@ then
   fi
 fi
 
-git update-index --assume-unchanged .    # ... help GIT out
+git update-index --assume-unchanged .              # ... help GIT out
+git update-index --assume-unchanged dgif_lib.c     # ... help GIT out
+git update-index --assume-unchanged Makefile       # ... help GIT out
 
 cd ..
 
