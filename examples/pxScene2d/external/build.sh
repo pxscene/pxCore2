@@ -108,7 +108,7 @@ if [ ! -e ./.libs/libgif.7.dylib ] ||
 [ "$(uname)" != "Darwin" ]
 then
 
-  make
+  make "-j${make_parallel}"
 
   [ -d .libs ] || mkdir -p .libs
   if [ -e libgif.7.dylib ]
