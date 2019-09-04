@@ -25,7 +25,7 @@
 1. Install required packages:
     
     ~~~~
-    sudo apt-get install git libglew-dev freeglut3 freeglut3-dev libgcrypt11-dev zlib1g-dev g++ libssl-dev nasm autoconf libtool cmake quilt
+    sudo apt-get install git libglew-dev freeglut3 freeglut3-dev libgcrypt11-dev zlib1g-dev g++ libssl-dev nasm autoconf libtool cmake quilt yasm bison flex  python-dev python3-dev
     
     ~~~~
 
@@ -37,7 +37,7 @@
 >   * From terminal install dependencies: cmake, pkg-config, quilt, java.
 
 ```bash
-    brew install cmake pkg-config quilt caskroom/cask/java libuv
+    brew install cmake pkg-config quilt caskroom/cask/java libuv yasm bison flex python
 ```
 
 ## Windows Setup
@@ -72,9 +72,13 @@
       ~~~~
       cd examples/pxScene2d/external
       ~~~~
-      For Linux and Mac run:
+      For Linux and Mac run (Without AAMP Support):
       ~~~~
       ./build.sh
+      ~~~~
+      For Linux and Mac run (With AAMP Support):
+      ~~~~
+      ./build.sh SPARK_ENABLE_VIDEO
       ~~~~
       For Raspberry Pi run:
       ~~~~
@@ -142,7 +146,8 @@
 4. Build **pxScene**
 
     On following step 3b, Specify -DPREFER_SYSTEM_LIBRARIES=ON to use system libraries rather than libraries from externals directory.
-    Note :  If a dependent library is not found installed on the system, then the version in externals will be used.
+    Note 1:  To enable VIDEO support, specify -DSPARK_ENABLE_VIDEO=ON in cmake command
+    Note 2:  If a dependent library is not found installed on the system, then the version in externals will be used.
     ~~~~
     cd pxCore/
     mkdir temp
