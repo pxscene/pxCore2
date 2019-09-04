@@ -255,7 +255,8 @@ then
     cp Makefile.build Makefile
   fi
 
-  make
+  make "-j${make_parallel}"
+
   cd ..
 
 fi
