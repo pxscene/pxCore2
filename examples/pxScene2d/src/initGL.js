@@ -698,16 +698,22 @@ async function loadMjs(source, url, context)
           app.instantiate();
           instantiated = true;
           succeeded = true;
-          makeReady(true, {});
+          makeReady(true, app.namespace);
           beginDrawing();
           await app.evaluate();
-          if (_options) {
+
+          if (typeof app.namespace.default === 'function') {
             try {
-              new app.namespace.default(_options);
+              if (_options) {
+                new app.namespace.default(_options);
+              } else {
+                new app.namespace.default();
+              }
             } catch (err) {
               console.log(err);
             }
           }
+
           endDrawing();
         } catch (err) {
           console.log("load mjs module failed "+err);
