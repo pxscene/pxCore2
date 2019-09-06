@@ -69,9 +69,10 @@ pxTextCanvas::pxTextCanvas(pxScene2d* s): pxText(s)
     measurements = new pxTextCanvasMeasurements;
     mFontLoaded = false;
     mFontFailed = false;
-    mTextBaseline = "alphabetic"; //TODO: make a const class from it?
+    mTextBaseline = pxConstantsTextBaseline::ALPHABETIC;
     mColorMode = "RGBA"; //TODO: make a const class from it?
 	mLabel = "";
+	setClip(true);
 }
 /** This signals that the font file loaded successfully; now we need to
  * send the ready promise once we have the text, too
@@ -112,10 +113,35 @@ rtError pxTextCanvas::alignHorizontal(uint32_t& v) const
     return RT_OK;
 }
 
-rtError pxTextCanvas::setAlignHorizontal(uint32_t v)
+rtError pxTextCanvas::alignHorizontal(rtString& v) const
 {
-    mAlignHorizontal = v;
+    v = mAlignHorizontalStr;
+    return RT_OK;
+}
+
+rtError pxTextCanvas::setAlignHorizontal(const rtString &v)
+{
+    if (v == "left" || v == "start")
+    {
+        mAlignHorizontal = pxConstantsAlignHorizontal::LEFT;
+    }
+    else if (v == "center")
+    {
+        mAlignHorizontal = pxConstantsAlignHorizontal::CENTER;
+    }
+    else if (v == "right" || v == "end")
+    {
+        mAlignHorizontal = pxConstantsAlignHorizontal::RIGHT;
+    }
+    else
+    {
+        mAlignHorizontal = pxConstantsAlignHorizontal::LEFT;
+    }
+
+    mAlignHorizontalStr = v;
+
     setNeedsRecalc(true);
+
     return RT_OK;
 }
 
@@ -138,17 +164,53 @@ rtError pxTextCanvas::setFillStyle(rtValue c)
     return RT_OK;
 }
 
-rtError pxTextCanvas::textBaseline(rtString &b) const
+rtError pxTextCanvas::textBaseline(uint32_t& v) const
 {
-    b = mTextBaseline;
+    v = mTextBaseline;
     return RT_OK;
 }
 
-rtError pxTextCanvas::setTextBaseline(const rtString& c)
+rtError pxTextCanvas::textBaseline(rtString& v) const
 {
-//    rtLogInfo("pxTextCanvas::setTextBaseline called with param: %s", c.cString());
-//    rtLogError("pxTextCanvas::setTextBaseline. NOT IMPLEMENTED. Call ignored.");
-    mTextBaseline = c;
+    v = mTextBaselineStr;
+    return RT_OK;
+}
+
+rtError pxTextCanvas::setTextBaseline(const rtString &v)
+{
+    if (v == "alphabetic")
+    {
+        mTextBaseline = pxConstantsTextBaseline::ALPHABETIC;
+    }
+    else if (v == "top")
+    {
+        mTextBaseline = pxConstantsTextBaseline::TOP;
+    }
+    else if (v == "hanging")
+    {
+        mTextBaseline = pxConstantsTextBaseline::HANGING;
+    }
+    else if (v == "middle")
+    {
+        mTextBaseline = pxConstantsTextBaseline::MIDDLE;
+    }
+    else if (v == "ideographic")
+    {
+        mTextBaseline = pxConstantsTextBaseline::IDEOGRAPHIC;
+    }
+    else if (v == "bottom")
+    {
+        mTextBaseline = pxConstantsTextBaseline::BOTTOM;
+    }
+    else
+    {
+        mTextBaseline = pxConstantsTextBaseline::ALPHABETIC;
+    }
+
+    mTextBaselineStr = v;
+
+    setNeedsRecalc(true);
+
     return RT_OK;
 }
 
@@ -161,8 +223,8 @@ rtError pxTextCanvas::globalAlpha(float& a) const
 rtError pxTextCanvas::setGlobalAlpha(const float a)
 {
     rtLogDebug("pxTextCanvas::setGlobalAlpha called with param: %f", a);
-    rtLogError("pxTextCanvas::setGlobalAlpha. NOT IMPLEMENTED. Call ignored.");
-    mGlobalAlpha = a;
+    mGlobalAlpha = pxCalc::clamp(a, 0.0f, 1.0f);
+    setA(mGlobalAlpha); // temporary solution. Actually alpha must be applied to the rendered objects, not the canvas itself.
     return RT_OK;
 }
 
@@ -354,14 +416,15 @@ void pxTextCanvas::renderText(bool render)
 void pxTextCanvas::renderTextLine(const pxTextLine& textLine)
 {
     const char* cStr = textLine.text.cString();
-    float xPos = textLine.x + mTranslateX;
-    float yPos = textLine.y + mTranslateY;
-
+    float xPos = (float)(textLine.x + mTranslateX);
+    float yPos = (float)(textLine.y + mTranslateY);
     // TODO ignoring sx and sy now.
     float sx = 1.0;
     float sy = 1.0;
 
     uint32_t size = textLine.pixelSize;
+    uint32_t alignH = textLine.alignHorizontal;
+    uint32_t baseline = textLine.textBaseline;
 
     if (mFont != textLine.font)
     {
@@ -374,11 +437,49 @@ void pxTextCanvas::renderTextLine(const pxTextLine& textLine)
             , mh
             );
 
-    // TODO: calc alignment
-
     if (getFontResource() != nullptr)
     {
-        //getFontResource()->measureTextInternal(cStr, size, sx, sy, charW, charH);
+        float textW, textH;
+
+        getFontResource()->measureTextInternal(cStr, size, sx, sy, textW, textH);
+
+        switch (alignH)
+        {
+            case pxConstantsAlignHorizontal::CENTER:
+                xPos -= textW / 2;
+                break;
+
+            case pxConstantsAlignHorizontal::RIGHT:
+                xPos -= textW;
+                break;
+        }
+
+        switch (baseline)
+        {
+            case pxConstantsTextBaseline::ALPHABETIC:
+                yPos -= size;
+                break;
+
+            case pxConstantsTextBaseline::TOP:
+                yPos -= 0.2 * textH;
+                break;
+
+            case pxConstantsTextBaseline::HANGING:
+                yPos -= 0.325 * textH;
+                break;
+
+            case pxConstantsTextBaseline::MIDDLE:
+                yPos -= 0.575 * textH;
+                break;
+
+            case pxConstantsTextBaseline::IDEOGRAPHIC:
+                yPos -= 1.1 * size;
+                break;
+
+            case pxConstantsTextBaseline::BOTTOM:
+                yPos -= textH;
+                break;
+        }
     }
 
     // Now, render the text
@@ -386,7 +487,7 @@ void pxTextCanvas::renderTextLine(const pxTextLine& textLine)
     {
 #ifdef PXSCENE_FONT_ATLAS
         pxTexturedQuads quads;
-        getFontResource()->renderTextToQuads(cStr, size, sx, sy, quads, roundf(xPos), roundf(yPos));
+        getFontResource()->renderTextToQuads(cStr, size, sx, sy, quads, roundf(xPos) , roundf(yPos));
         quads.setColor(textLine.color);
         mQuadsVector.push_back(quads);
 #else
@@ -454,7 +555,7 @@ rtError pxTextCanvas::measureText(rtString text, rtObjectRef& o)
     return RT_OK;
 }
 
-rtError pxTextCanvas::fillText(rtString text, uint32_t x, uint32_t y)
+rtError pxTextCanvas::fillText(rtString text, int32_t x, int32_t y)
 {
     rtLogDebug("pxTextCanvas::fillText called with params: text: '%s', x %d, y %d. Canvas: '%s' (w x h): %04.0f x %04.0f"
             , text.cString()
@@ -464,11 +565,12 @@ rtError pxTextCanvas::fillText(rtString text, uint32_t x, uint32_t y)
             , mw
             , mh
             );
-    pxTextLine textLine(text, x, y - mPixelSize);   // subtract pixelSize from y in order to get y = 0 positioned
-                                                        // at the text baseline like HTML canvas does
+    pxTextLine textLine(text, x, y);
     rtValue color;
     textColor(color);
     textLine.setStyle(mFont, mPixelSize, color.toInt32());
+    textLine.alignHorizontal = mAlignHorizontal;
+    textLine.textBaseline = mTextBaseline;
     mTextLines.push_back(textLine);
     setNeedsRecalc(true);
     return RT_OK;
@@ -483,18 +585,18 @@ rtError pxTextCanvas::clear()
     return RT_OK;
 }
 
-rtError pxTextCanvas::fillRect(uint32_t x, uint32_t y, uint32_t width, uint32_t height)
+rtError pxTextCanvas::fillRect(int32_t x, int32_t y, uint32_t width, uint32_t height)
 {
     UNUSED_PARAM(x);
     UNUSED_PARAM(y);
     UNUSED_PARAM(width);
     UNUSED_PARAM(height);
     rtLogDebug("pxTextCanvas::fillRect called with params: x %d, y %d, width %d, height %d", x, y, width, height);
-    rtLogError("pxTextCanvas::fillRect. NOT IMPLEMENTED. Call ignored.");
+    rtLogDebug("pxTextCanvas::fillRect. NOT IMPLEMENTED. Call ignored.");
     return RT_OK;
 }
 
-rtError pxTextCanvas::translate(uint32_t x, uint32_t y)
+rtError pxTextCanvas::translate(int32_t x, int32_t y)
 {
     mTranslateX += x;
     mTranslateY += y;

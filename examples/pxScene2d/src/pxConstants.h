@@ -210,6 +210,26 @@ public:
   rtConstantProperty(TRUNCATE_AT_WORD, TRUNCATE_AT_WORD, uint32_t);
 };
 
+class pxConstantsTextBaseline : public rtObject
+{
+public:
+    enum constants {
+        ALPHABETIC = 0,
+        TOP,
+        HANGING,
+        MIDDLE,
+        IDEOGRAPHIC,
+        BOTTOM,
+    };
+    rtDeclareObject(pxConstantsTextBaseline, rtObject);
+
+    rtConstantProperty(ALPHABETIC,  ALPHABETIC,  uint32_t);
+    rtConstantProperty(TOP,         TOP,         uint32_t);
+    rtConstantProperty(HANGING,     HANGING,     uint32_t);
+    rtConstantProperty(MIDDLE,      MIDDLE,      uint32_t);
+    rtConstantProperty(IDEOGRAPHIC, IDEOGRAPHIC, uint32_t);
+    rtConstantProperty(BOTTOM,      BOTTOM,      uint32_t);
+};
 
 /* Class for access to constants */
 class pxConstants : public rtObject
