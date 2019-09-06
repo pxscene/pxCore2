@@ -10,11 +10,17 @@ externalDir=../external
 externalLibs=$externalDir/openssl-1.0.2o/:$externalDir/png/.libs/:$externalDir/jpg/.libs/:$externalDir/curl/lib/.libs/:$externalDir/ft/objs/.libs/:$externalDir/zlib:$externalDir/westeros/external/install/lib/:$externalDir/libjpeg-turbo/.libs/:rpc/:$externalDir/gif/.libs/
 PathD=$externalLibs:$externalDir/node/out/Debug/obj.target
 PathR=$externalLibs:$externalDir/node/out/Release/obj.target
+PathR=$externalLibs/extlibs/lib:$PathR
 
 export LD_LIBRARY_PATH=$PathR
 
 # TODO - come back and remove node_modules and externalDir before merging to master (once we don't need node_modules for webgl)
 export NODE_PATH=.:./node_modules:$externalDir
+
+export GST_REGISTRY_FORK="no"
+export GST_PLUGIN_SCANNER=$externalLibs/extlibs/libexec/gstreamer-1.0/gst-plugin-scanner
+export GST_PLUGIN_PATH=$externalLibs/extlibs/lib/
+export GST_REGISTRY=/tmp/.spark_gst_registry.bin
 
 #export RT_LOG_LEVEL=info
 
