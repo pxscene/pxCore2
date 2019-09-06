@@ -384,7 +384,7 @@ then
     mv Makefile.build Makefile
   fi
 
-  make
+  CPPFLAGS="-I${OPENSSL_DIR} -I${OPENSSL_DIR}/include" LDFLAGS="-L${OPENSSL_DIR}/lib -Wl,-rpath,${OPENSSL_DIR}/lib " make
   cd ..
 
 fi
