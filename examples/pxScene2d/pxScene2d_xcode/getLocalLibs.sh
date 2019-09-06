@@ -4,13 +4,12 @@
 xLIBS=${PROJECT_DIR}/lib
 xEXT=${PROJECT_DIR}/../external
 
-#echo ${xLIBS} !!!
+echo ${xLIBS} !!!
 
 # Test if libraries collected already ?
 if [ ! -d ${xLIBS} ]; then
 
   mkdir $xLIBS
-
 
   echo Copying ${xLIBS} !!!
 
