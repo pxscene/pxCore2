@@ -319,7 +319,12 @@ then
 
   cd sqlite
 
-  autoreconf -f -i
+  if [ "$(uname)" != "Darwin" ]; then   ## If non-Mac
+    autoreconf -f -i
+  else
+    autoreconf -f
+  fi
+
   ./configure
   make "-j${make_parallel}"
 
