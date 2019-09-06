@@ -247,14 +247,14 @@ rtString rtString::trim(void) const
   unsigned int start=0, length=0;
 
   // Trim.Start:
-  length = strlen(s);
+  length = (unsigned int) strlen(s);
   while ((s)[start]==' ') start++;
   (s) += start;
 
   if (start < length) // Required for empty (ex. "	") input
   {
     // Trim.End:
-    unsigned int end = strlen(s)-1; // Get string length again (after Trim.Start)
+    unsigned int end = (unsigned int) strlen(s)-1; // Get string length again (after Trim.Start)
     while ((s)[end]==' ') end--;
     (s)[end+1] = 0;
   }
@@ -265,6 +265,8 @@ rtString rtString::toString(size_t val)
 {
   char buf[256];
   int got_len = snprintf(buf, sizeof(buf), "%ld", val);
+  
+  got_len = got_len; //warning
 
   return rtString(buf);
 }

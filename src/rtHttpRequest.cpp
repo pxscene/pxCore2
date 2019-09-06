@@ -244,7 +244,7 @@ rtError rtHttpRequest::removeHeader(const rtString& name)
     rtString header = mHeaders[i];
     if (header.beginsWith(name.cString()))
     {
-      need_remove_idx = i;
+      need_remove_idx = (int) i;
       break;
     } 
   }
