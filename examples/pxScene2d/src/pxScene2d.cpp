@@ -38,6 +38,7 @@
 #include "pxRectangle.h"
 #include "pxText.h"
 #include "pxTextBox.h"
+#include "pxTextCanvas.h"
 #include "pxImage.h"
 
 #ifdef ENABLE_SPARK_WEBGL
@@ -711,6 +712,8 @@ rtError pxScene2d::create(rtObjectRef p, rtObjectRef& o)
     e = createText(p,o);
   else if (!strcmp("textBox",t.cString()))
     e = createTextBox(p,o);
+  else if (!strcmp("textCanvas",t.cString()))
+    e = createTextCanvas(p,o);
   else if (!strcmp("image",t.cString()))
     e = createImage(p,o);
   else if (!strcmp("image9",t.cString()))
@@ -807,6 +810,14 @@ rtError pxScene2d::createText(rtObjectRef p, rtObjectRef& o)
 rtError pxScene2d::createTextBox(rtObjectRef p, rtObjectRef& o)
 {
   o = new pxTextBox(this);
+  o.set(p);
+  o.send("init");
+  return RT_OK;
+}
+
+rtError pxScene2d::createTextCanvas(rtObjectRef p, rtObjectRef& o)
+{
+  o = new pxTextCanvas(this);
   o.set(p);
   o.send("init");
   return RT_OK;

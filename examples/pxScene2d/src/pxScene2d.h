@@ -922,6 +922,7 @@ public:
   rtError createRectangle(rtObjectRef p, rtObjectRef& o);
   rtError createText(rtObjectRef p, rtObjectRef& o);
   rtError createTextBox(rtObjectRef p, rtObjectRef& o);
+  rtError createTextCanvas(rtObjectRef p, rtObjectRef& o);
   rtError createImage(rtObjectRef p, rtObjectRef& o);
   rtError createPath(rtObjectRef p, rtObjectRef& o);
   rtError createImage9(rtObjectRef p, rtObjectRef& o);

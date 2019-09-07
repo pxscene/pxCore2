@@ -73,8 +73,15 @@ public:
     rtMethod2ArgAndNoReturn("uniform1f", Uniform1f, uint32_t, float);
     rtMethod2ArgAndNoReturn("uniform1i", Uniform1i, uint32_t, uint32_t);
     rtMethod1ArgAndNoReturn("activeTexture", ActiveTexture, uint32_t);
+    rtMethod1ArgAndNoReturn("generateMipmap", GenerateMipmap, uint32_t);
+    rtMethod3ArgAndNoReturn("uniformMatrix3fv", UniformMatrix3fv, uint32_t, bool, rtValue);
+    rtMethod1ArgAndNoReturn("deleteFramebuffer", DeleteFramebuffer, uint32_t);
+    rtMethod1ArgAndNoReturn("deleteTexture", DeleteTexture, uint32_t);
+    rtMethod1ArgAndNoReturn("deleteBuffer", DeleteBuffer, uint32_t);
+    rtMethod1ArgAndNoReturn("deleteProgram", DeleteProgram, uint32_t);
 
     pxWebgl(pxScene2d* scene);
+    virtual ~pxWebgl();
 
     virtual void onInit();
 
@@ -120,10 +127,22 @@ public:
    rtError Uniform1f(uint32_t location, float x);
    rtError Uniform1i(uint32_t location, uint32_t x);
    rtError ActiveTexture(uint32_t texture);
+   rtError GenerateMipmap(uint32_t target);
+   rtError UniformMatrix3fv(uint32_t location, bool transpose, rtValue data);
+   rtError DeleteFramebuffer(uint32_t buffer);
+   rtError DeleteTexture(uint32_t texture);
+   rtError DeleteBuffer(uint32_t buffer);
+   rtError DeleteProgram(uint32_t program);
 
 private:
 
      void preprocessTexImageData(void *pixels, int width, int height, int format, int type);
+
+  std::vector<uint32_t> mShaders;
+  std::vector<uint32_t> mFramebuffers;
+  std::vector<uint32_t> mTextures;
+  std::vector<uint32_t> mBuffers;
+  std::vector<uint32_t> mPrograms;
  };
 
 #endif // PX_WEBGL_H

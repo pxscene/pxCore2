@@ -43,6 +43,8 @@
 #endif
 #include "pxContextUtils.h"
 
+#include <algorithm>
+
 void _CheckGLError(const char* file, int line);
 
 #define CheckGLError() _CheckGLError(__FILE__, __LINE__)
@@ -71,6 +73,43 @@ void _CheckGLError(const char* file, int line)
 
 pxWebgl::pxWebgl(pxScene2d* scene):pxObject(scene)
 {
+}
+
+pxWebgl::~pxWebgl()
+{
+  rtLogInfo("%s : %lu Framebuffers, %lu Textures, %lu Buffers, %lu Shaders, %lu Programs",
+    __FUNCTION__,
+    mFramebuffers.size(),
+    mTextures.size(),
+    mBuffers.size(),
+    mShaders.size(),
+    mPrograms.size());
+
+  glDeleteFramebuffers(mFramebuffers.size(), mFramebuffers.data());
+  CheckGLError();
+  mFramebuffers.clear();
+
+  glDeleteTextures(mTextures.size(), mTextures.data());
+  CheckGLError();
+  mTextures.clear();
+
+  glDeleteBuffers(mBuffers.size(), mBuffers.data());
+  CheckGLError();
+  mBuffers.clear();
+
+  for(auto i = mShaders.begin(); i != mShaders.end();)
+  {
+    glDeleteShader(*i);
+    CheckGLError();
+    i = mShaders.erase(i);
+  }
+
+  for(auto i = mPrograms.begin(); i != mPrograms.end();)
+  {
+    glDeleteProgram(*i);
+    CheckGLError();
+    i = mPrograms.erase(i);
+  }
 }
 
 void pxWebgl::onInit()
@@ -107,6 +146,14 @@ rtError pxWebgl::createTexture(uint32_t& texture)
   glGenTextures(1, &texture);
   CheckGLError();
 
+  if (texture)
+  {
+    if (std::find(mTextures.begin(), mTextures.end(), texture) == mTextures.end())
+      mTextures.push_back(texture);
+    else
+      rtLogWarn("[%s] %u exists",__FUNCTION__, texture);
+  }
+
   rtLogDebug("[%s] returning texture: %u",__FUNCTION__, texture);
 
   return RT_OK;
@@ -118,6 +165,14 @@ rtError pxWebgl::createBuffer(uint32_t& buffer)
 
   glGenBuffers(1, &buffer);
   CheckGLError();
+
+  if (buffer)
+  {
+    if (std::find(mBuffers.begin(), mBuffers.end(), buffer) == mBuffers.end())
+      mBuffers.push_back(buffer);
+    else
+      rtLogWarn("[%s] %u exists",__FUNCTION__, buffer);
+  }
 
   rtLogDebug("[%s] returning buffer: %u", __FUNCTION__, buffer);
 
@@ -335,6 +390,14 @@ rtError pxWebgl::CreateProgram(uint32_t& glprogram)
   glprogram=glCreateProgram();
   CheckGLError();
 
+  if (glprogram)
+  {
+    if (std::find(mPrograms.begin(), mPrograms.end(), glprogram) == mPrograms.end())
+      mPrograms.push_back(glprogram);
+    else
+      rtLogWarn("[%s] %u exists",__FUNCTION__, glprogram);
+  }
+
   rtLogDebug("[%s] returning program: %u", __FUNCTION__, glprogram);
 
   return RT_OK;
@@ -345,6 +408,14 @@ rtError pxWebgl::CreateShader(uint32_t type, uint32_t& glshader)
 
   glshader=glCreateShader(type);
   CheckGLError();
+
+  if (glshader)
+  {
+    if (std::find(mShaders.begin(), mShaders.end(), glshader) == mShaders.end())
+      mShaders.push_back(glshader);
+    else
+      rtLogWarn("[%s] %u exists",__FUNCTION__, glshader);
+  }
 
   rtLogDebug("[%s] returning shader: %u", __FUNCTION__, glshader);
 
@@ -478,6 +549,12 @@ rtError pxWebgl::DeleteShader(uint32_t shader)
 
   glDeleteShader(shader);
   CheckGLError();
+
+  auto i = std::find(mShaders.begin(), mShaders.end(), shader);
+  if (i != mShaders.end())
+    mShaders.erase(i);
+  else
+    rtLogWarn("[%s] %u doesn't exist",__FUNCTION__, shader);
 
   return RT_OK;
 }
@@ -614,6 +691,14 @@ rtError pxWebgl::CreateFramebuffer(uint32_t& buffer)
   glGenFramebuffers(1, &buffer);
   CheckGLError();
 
+  if (buffer)
+  {
+    if (std::find(mFramebuffers.begin(), mFramebuffers.end(), buffer) == mFramebuffers.end())
+      mFramebuffers.push_back(buffer);
+    else
+      rtLogWarn("[%s] %u exists",__FUNCTION__, buffer);
+  }
+
   rtLogDebug("[%s] returning buffer: %u",__FUNCTION__, buffer);
   
   return RT_OK;
@@ -655,6 +740,102 @@ rtError pxWebgl::ActiveTexture(uint32_t texture)
 
   glActiveTexture(texture);
   CheckGLError();
+
+  return RT_OK;
+}
+
+rtError pxWebgl::GenerateMipmap(uint32_t target)
+{
+  rtLogDebug("[%s] target: %u", __FUNCTION__, target);
+
+  glGenerateMipmap(target);
+  CheckGLError();
+
+  return RT_OK;
+}
+
+rtError pxWebgl::UniformMatrix3fv(uint32_t location, bool transpose, rtValue data)
+{
+  rtLogDebug("[%s] location: %u transpose: %u", __FUNCTION__, location, transpose);
+
+  rtArrayObject* dataArray = (rtArrayObject*) data.toObject().getPtr();
+
+  rtValue length;
+  dataArray->Get("length", &length);
+
+  uint32_t dataBufSize = length.toUInt32();
+
+  rtValue dataValue;
+  dataArray->Get("arrayData", &dataValue);
+  void* dataPtr = NULL;
+  dataValue.getVoidPtr(dataPtr);
+
+  glUniformMatrix3fv(location, dataBufSize / 16, transpose, (GLfloat*)dataPtr);
+  CheckGLError();
+
+  return RT_OK;
+}
+
+rtError pxWebgl::DeleteFramebuffer(uint32_t buffer)
+{
+  rtLogDebug("[%s] framebuffer %u", __FUNCTION__, buffer);
+
+  glDeleteFramebuffers(1, &buffer);
+  CheckGLError();
+
+  auto i = std::find(mFramebuffers.begin(), mFramebuffers.end(), buffer);
+  if (i != mFramebuffers.end())
+    mFramebuffers.erase(i);
+  else
+    rtLogWarn("[%s] %u doesn't exist",__FUNCTION__, buffer);
+
+  return RT_OK;
+}
+
+rtError pxWebgl::DeleteTexture(uint32_t texture)
+{
+  rtLogDebug("[%s] texture %u", __FUNCTION__, texture);
+
+  glDeleteTextures(1, &texture);
+  CheckGLError();
+
+  auto i = std::find(mTextures.begin(), mTextures.end(), texture);
+  if (i != mTextures.end())
+    mTextures.erase(i);
+  else
+    rtLogWarn("[%s] %u doesn't exist",__FUNCTION__, texture);
+
+  return RT_OK;
+}
+
+rtError pxWebgl::DeleteBuffer(uint32_t buffer)
+{
+  rtLogDebug("[%s] buffer %u", __FUNCTION__, buffer);
+
+  glDeleteBuffers(1, &buffer);
+  CheckGLError();
+
+  auto i = std::find(mBuffers.begin(), mBuffers.end(), buffer);
+  if (i != mBuffers.end())
+    mBuffers.erase(i);
+  else
+    rtLogWarn("[%s] %u doesn't exist",__FUNCTION__, buffer);
+
+  return RT_OK;
+}
+
+rtError pxWebgl::DeleteProgram(uint32_t program)
+{
+  rtLogDebug("[%s] program %u", __FUNCTION__, program);
+
+  glDeleteProgram(program);
+  CheckGLError();
+
+  auto i = std::find(mPrograms.begin(), mPrograms.end(), program);
+  if (i != mPrograms.end())
+    mPrograms.erase(i);
+  else
+    rtLogWarn("[%s] %u doesn't exist",__FUNCTION__, program);
 
   return RT_OK;
 }
@@ -701,3 +882,9 @@ rtDefineMethod(pxWebgl, FramebufferTexture2D);
 rtDefineMethod(pxWebgl, Uniform1f);
 rtDefineMethod(pxWebgl, Uniform1i);
 rtDefineMethod(pxWebgl, ActiveTexture);
+rtDefineMethod(pxWebgl, GenerateMipmap);
+rtDefineMethod(pxWebgl, UniformMatrix3fv);
+rtDefineMethod(pxWebgl, DeleteFramebuffer);
+rtDefineMethod(pxWebgl, DeleteTexture);
+rtDefineMethod(pxWebgl, DeleteBuffer);
+rtDefineMethod(pxWebgl, DeleteProgram);

@@ -177,7 +177,12 @@ var loadUrl = function(url, _beginDrawing, _endDrawing, _view, _frameworkURL, _o
   global.sparkscene = getScene("scene.1")
   global.localStorage = global.sparkscene.storage;
   const script = new vm.Script("global.sparkwebgl = sparkwebgl= require('webgl'); global.sparkgles2 = sparkgles2 = require('gles2.js'); global.sparkkeys = sparkkeys = require('rcvrcore/tools/keys.js');");
-  global.sparkscene.on('onSceneTerminate ', onSceneTerminate );
+  global.sparkscene.on('onSceneTerminate', () => {
+    for (let key in bootStrapCache) {
+      delete bootStrapCache[key];
+    }
+    onSceneTerminate();
+  });
   global.sparkQueryParams = urlmain.parse(url, true).query;
   sandbox.global = global
   sandbox.vm = vm;
@@ -258,7 +263,7 @@ function stripBOM(content) {
 async function loadJsonModule(source, specifier, ctx)
 {
   if (specifier in modmap)
-  { 
+  {
     return modmap[specifier];
   }
   var mod;
@@ -275,7 +280,7 @@ async function loadJsonModule(source, specifier, ctx)
   }
   import.meta.done();
   `
-  mod = vm.CreateSourceTextModule(jsonsource , { url: specifier, context:ctx, initializeImportMeta:function(meta, url) {
+  mod = new vm.SourceTextModule(jsonsource , { url: specifier, context:ctx, initializeImportMeta:function(meta, url) {
       meta.exports = {}
       meta.done = () => {
        try {
@@ -299,7 +304,7 @@ async function loadJsonModule(source, specifier, ctx)
 async function loadJavaScriptModule(source, specifier, ctx)
 {
   if (specifier in modmap)
-  { 
+  {
     return modmap[specifier];
   }
   var mod;
@@ -324,7 +329,7 @@ async function loadJavaScriptModule(source, specifier, ctx)
   }
   import.meta.done();
   `
-  mod = vm.CreateSourceTextModule(jssource , { url: specifier, context:ctx, initializeImportMeta:function(meta, url) {
+  mod = new vm.SourceTextModule(jssource , { url: specifier, context:ctx, initializeImportMeta:function(meta, url) {
       meta.exports = {} 
       meta.done = () => {
        try {
@@ -348,7 +353,7 @@ async function loadJavaScriptModule(source, specifier, ctx)
 async function loadNodeModule(specifier, ctx)
 {     
   if (specifier in modmap)
-  { 
+  {
     return modmap[specifier];
   }
   var mod;
@@ -365,7 +370,7 @@ async function loadNodeModule(specifier, ctx)
   }
   import.meta.done();
   `
-  mod = vm.CreateSourceTextModule(source , { url: "file://" + __dirname + specifier, context:ctx, initializeImportMeta:function(meta, url) {
+  mod = new vm.SourceTextModule(source , { url: "file://" + __dirname + specifier, context:ctx, initializeImportMeta:function(meta, url) {
       meta.exports = {} 
       meta.done = () => {
         const module = { exports: {} };
@@ -406,7 +411,7 @@ async function loadCommonJSModule(specifier, ctx)
   }
   import.meta.done();
   `
-  mod = vm.CreateSourceTextModule(source , { url: "file://" + __dirname + "/node_modules/" + specifier, context:ctx, initializeImportMeta:function(meta, url) {
+  mod = new vm.SourceTextModule(source , { url: "file://" + __dirname + "/node_modules/" + specifier, context:ctx, initializeImportMeta:function(meta, url) {
       meta.exports = {}
       meta.done = () => {
         for (const key of Object.keys(module))
@@ -452,7 +457,7 @@ async function getModule(specifier, referencingModule) {
          else
          {
            specifier = "http://" + baseString.substring(0, baseString.lastIndexOf("/")+1) + specifier;
-           result = await loadHttpFile(specifier);
+           let result = await loadHttpFile(specifier);
            mod = loadJsonModule(result, specifier, referencingModule.context);
          }
        } catch(err) {
@@ -472,7 +477,7 @@ async function getModule(specifier, referencingModule) {
          else
          {
            specifier = "http://" + baseString.substring(0, baseString.lastIndexOf("/")+1) + specifier;
-           result = await loadHttpFile(specifier);
+           let result = await loadHttpFile(specifier);
            mod = loadJavaScriptModule(result, specifier, referencingModule.context);
          }
        } catch(err) {
@@ -528,7 +533,7 @@ async function getModule(specifier, referencingModule) {
          else
          {
            specifier = "http://" + specifier;
-           result = await loadHttpFile(specifier);
+           let result = await loadHttpFile(specifier);
            mod = loadMjs(result, specifier, referencingModule.context);
          }
        } catch(err) {
@@ -570,7 +575,7 @@ async function getModule(specifier, referencingModule) {
          {
            //http module read
            specifier = "http://" + specifier;
-           result = await loadHttpFile(specifier);
+           let result = await loadHttpFile(specifier);
            mod = loadMjs(result, specifier, referencingModule.context);
          }
        } catch(err) {
@@ -603,7 +608,11 @@ async function importModuleDynamically(specifier, { url }) {
 
 async function loadMjs(source, url, context)
 {
-  var mod = vm.CreateSourceTextModule(source , { context: context, initializeImportMeta:initializeImportMeta, importModuleDynamically:importModuleDynamically, url:url });
+  if (url in modmap)
+  {
+    return modmap[url];
+  }
+  var mod = new vm.SourceTextModule(source , { context: context, initializeImportMeta:initializeImportMeta, importModuleDynamically:importModuleDynamically, url:url });
   modmap[url] = mod;
   if (mod.linkingStatus == 'unlinked')
   {
@@ -701,16 +710,22 @@ async function loadMjs(source, url, context)
           app.instantiate();
           instantiated = true;
           succeeded = true;
-          makeReady(true, {});
+          makeReady(true, app.namespace);
           beginDrawing();
           await app.evaluate();
-          if (_options) {
+
+          if (typeof app.namespace.default === 'function') {
             try {
-              new app.namespace.default(_options);
+              if (_options) {
+                new app.namespace.default(_options);
+              } else {
+                new app.namespace.default();
+              }
             } catch (err) {
               console.log(err);
             }
           }
+
           endDrawing();
         } catch (err) {
           console.log("load mjs module failed "+err);
@@ -825,27 +840,26 @@ var onSceneTerminate  = function() {
   _clearSockets()
 
   // memory leak fix
-  sandbox.sparkwebgl.instance.gl = null;
-  sandbox.sparkwebgl.instance = null;
+  delete sandbox.sparkwebgl.instance.gl;
+  delete sandbox.sparkwebgl.instance;
 
-  for (var i=0; i<sandboxKeys.length; i++)
+  for (var k in sandbox)
   {
-    sandbox[sandboxKeys[i]] = null;
+    delete sandbox[k];
   }
-  // cleanup other sandbox params
-  sandbox['global'] = null;
-  sandbox['vm'] = null;
-  sandbox['__dirname'] = null;
-  sandbox['Buffer'] = null;
+
   contextifiedSandbox = null;
-  vm.ClearSourceTextModules();
   for (var key in modmap)
   {
-   delete modmap[key]; 
-   modmap[key] = null;
+    delete modmap[key].context;
+   delete modmap[key];
   }
   modmap = {};
   app = null;
   sandbox = {};
+  for (var key in global)
+  {
+    delete global[key];
+  }
   // JRJR something is invoking setImmediate after this and causing problems
 }

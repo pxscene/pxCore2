@@ -1022,74 +1022,59 @@ index 0ad986a..c215ee6 100755
  # variables should be a root level element,
  # move everything else to target_defaults
 diff --git a/examples/pxScene2d/external/libnode-v10.15.3/lib/internal/vm/source_text_module.js b/examples/pxScene2d/external/libnode-v10.15.3/lib/internal/vm/source_text_module.js
-index 1898831bf..5b87c88df 100755
+index 1898831bf..8468f944e 100755
 --- a/examples/pxScene2d/external/libnode-v10.15.3/lib/internal/vm/source_text_module.js
 +++ b/examples/pxScene2d/external/libnode-v10.15.3/lib/internal/vm/source_text_module.js
-@@ -48,7 +48,7 @@ const linkingStatusMap = new WeakMap();
- // ModuleWrap -> vm.SourceTextModule
- const wrapToModuleMap = new WeakMap();
- const defaultModuleName = 'vm:module';
--
-+var moduleMap = {}
- // TODO(devsnek): figure out AbstractModule class or protocol
- class SourceTextModule {
-   constructor(src, options = {}) {
-@@ -134,6 +134,7 @@ class SourceTextModule {
+@@ -132,7 +132,9 @@ class SourceTextModule {
+ 
+     Object.defineProperties(this, {
        url: { value: url, enumerable: true },
-       context: { value: context, enumerable: true },
+-      context: { value: context, enumerable: true },
++      // getter leaks... to prevent this make the property configurable and delete when necessary
++      //context: { value: context, enumerable: true },
++      context: { value: context, enumerable: true, configurable: true},
      });
-+    moduleMap[options.url] = this;
    }
  
-   get linkingStatus() {
-@@ -262,6 +263,7 @@ class SourceTextModule {
-     o.context = this.context;
-     return require('util').inspect(o, options);
-   }
+diff --git a/examples/pxScene2d/external/libnode-v10.15.3/src/module_wrap.cc b/examples/pxScene2d/external/libnode-v10.15.3/src/module_wrap.cc
+index fe6a8e263..056a00d7b 100755
+--- a/examples/pxScene2d/external/libnode-v10.15.3/src/module_wrap.cc
++++ b/examples/pxScene2d/external/libnode-v10.15.3/src/module_wrap.cc
+@@ -182,6 +182,9 @@ void ModuleWrap::New(const FunctionCallbackInfo<Value>& args) {
+ 
+   that->SetIntegrityLevel(context, IntegrityLevel::kFrozen);
+   args.GetReturnValue().Set(that);
 +
++  // ModuleWrap leaks
++  obj->context_.SetWeak(obj, WeakCallback, v8::WeakCallbackType::kParameter);
  }
  
- function validateInteger(prop, propName) {
-@@ -273,9 +275,28 @@ function validateInteger(prop, propName) {
-   }
+ void ModuleWrap::Link(const FunctionCallbackInfo<Value>& args) {
+@@ -818,6 +821,11 @@ void ModuleWrap::SetInitializeImportMetaObjectCallback(
+       HostInitializeImportMetaObjectCallback);
  }
  
-+function CreateSourceTextModule(src, options = {})
-+{
-+    if (options.url in moduleMap)
-+      return moduleMap[options.url]
-+    return new SourceTextModule(src, options);
++void ModuleWrap::WeakCallback(const v8::WeakCallbackInfo<ModuleWrap>& data) {
++  ModuleWrap* wrap = data.GetParameter();
++  delete wrap;
 +}
 +
-+function ClearSourceTextModules()
-+{
-+  for (var key in moduleMap)
-+  {
-+   delete moduleMap[key];
-+   moduleMap[key] = null;
-+  }
-+  moduleMap = {};
-+}
-+
- module.exports = {
-   SourceTextModule,
-   wrapToModuleMap,
-   wrapMap,
-   linkingStatusMap,
-+  CreateSourceTextModule,  
-+  ClearSourceTextModules  
- };
-diff --git a/examples/pxScene2d/external/libnode-v10.15.3/lib/vm.js b/examples/pxScene2d/external/libnode-v10.15.3/lib/vm.js
-index 02b3f0bce..430c921b6 100755
---- a/examples/pxScene2d/external/libnode-v10.15.3/lib/vm.js
-+++ b/examples/pxScene2d/external/libnode-v10.15.3/lib/vm.js
-@@ -428,4 +428,6 @@ module.exports = {
- if (require('internal/options').getOptionValue('--experimental-vm-modules')) {
-   const { SourceTextModule } = require('internal/vm/source_text_module');
-   module.exports.SourceTextModule = SourceTextModule;
-+  module.exports.CreateSourceTextModule =  require('internal/vm/source_text_module').CreateSourceTextModule;
-+  module.exports.ClearSourceTextModules =  require('internal/vm/source_text_module').ClearSourceTextModules;
- }
+ void ModuleWrap::Initialize(Local<Object> target,
+                             Local<Value> unused,
+                             Local<Context> context) {
+diff --git a/examples/pxScene2d/external/libnode-v10.15.3/src/module_wrap.h b/examples/pxScene2d/external/libnode-v10.15.3/src/module_wrap.h
+index 0e352c657..5599a52dd 100755
+--- a/examples/pxScene2d/external/libnode-v10.15.3/src/module_wrap.h
++++ b/examples/pxScene2d/external/libnode-v10.15.3/src/module_wrap.h
+@@ -82,6 +82,8 @@ class ModuleWrap : public BaseObject {
+       v8::Local<v8::String> specifier,
+       v8::Local<v8::Module> referrer);
+   static ModuleWrap* GetFromModule(node::Environment*, v8::Local<v8::Module>);
++  static void WeakCallback(
++      const v8::WeakCallbackInfo<ModuleWrap>& data);
+ 
+   Persistent<v8::Module> module_;
+   Persistent<v8::String> url_;
 diff --git a/examples/pxScene2d/external/libnode-v10.15.3/src/env-inl.h b/examples/pxScene2d/external/libnode-v10.15.3/src/env-inl.h
 index 4af5add..7ab9076 100755
 --- a/examples/pxScene2d/external/libnode-v10.15.3/src/env-inl.h
@@ -1112,3 +1097,57 @@ index 4af5add..7ab9076 100755
    }
  
    uint32_t offset = fields_[kStackLength] - 1;
+diff --git a/examples/pxScene2d/external/libnode-v10.15.3/deps/uv/src/unix/core.c b/examples/pxScene2d/external/libnode-v10.15.3/deps/uv/src/unix/core.c
+index f92446f..d02c098 100755
+--- a/examples/pxScene2d/external/libnode-v10.15.3/deps/uv/src/unix/core.c
++++ b/examples/pxScene2d/external/libnode-v10.15.3/deps/uv/src/unix/core.c
+@@ -726,9 +726,12 @@ void uv_disable_stdio_inheritance(void) {
+   /* Set the CLOEXEC flag on all open descriptors. Unconditionally try the
+    * first 16 file descriptors. After that, bail out after the first error.
+    */
+-  for (fd = 0; ; fd++)
++  /*MODIFIED CODE BEGIN */
++  //for (fd = 0; ; fd++)
++  for (fd = 3; ; fd++)
+     if (uv__cloexec(fd, 1) && fd > 15)
+       break;
++  /*MODIFIED CODE END */
+ }
+ 
+ 
+@@ -1003,6 +1006,9 @@ int uv__open_cloexec(const char* path, int flags) {
+ 
+ int uv__dup2_cloexec(int oldfd, int newfd) {
+   int r;
++  /*MODIFIED CODE BEGIN*/
++  int flags = 0;
++  /*MODIFIED CODE END*/
+ #if (defined(__FreeBSD__) && __FreeBSD__ >= 10) || defined(__NetBSD__)
+   r = dup3(oldfd, newfd, O_CLOEXEC);
+   if (r == -1)
+@@ -1018,9 +1024,23 @@ int uv__dup2_cloexec(int oldfd, int newfd) {
+ #elif defined(__linux__)
+   static int no_dup3;
+   if (!no_dup3) {
++    /* MODIFIED CODE BEGIN */
++    //do
++    //  r = uv__dup3(oldfd, newfd, UV__O_CLOEXEC);
++    //while (r == -1 && errno == EBUSY);
+     do
+-      r = uv__dup3(oldfd, newfd, UV__O_CLOEXEC);
+-    while (r == -1 && errno == EBUSY);
++    {
++      if (newfd >=0  && newfd <= 2)
++      {
++        flags = 0;
++      }
++      else
++      {
++        flags = UV__O_CLOEXEC;
++      }
++      r = uv__dup3(oldfd, newfd, flags);
++    }while (r == -1 && (errno == EINTR || errno == EBUSY));
++    /* MODIFIED CODE END */
+     if (r != -1)
+       return r;
+     if (errno != ENOSYS)
