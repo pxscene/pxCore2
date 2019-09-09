@@ -24,7 +24,7 @@ NSOpenGLPixelFormatAttribute attribs[] =
             NSOpenGLPFAOpenGLProfile,NSOpenGLProfileVersionLegacy/*, NSOpenGLProfileVersion3_2Core*/, // Core Profile is the future
             0
         };
-NSOpenGLPixelFormat *internalPixelFormat = [[[NSOpenGLPixelFormat alloc] initWithAttributes:attribs] retain];
+NSOpenGLPixelFormat *internalPixelFormat = [[NSOpenGLPixelFormat alloc] initWithAttributes:attribs];
 
 std::map<int, NSOpenGLContext *> internalContexts;
 
@@ -60,9 +60,7 @@ pxError deleteInternalGLContext(int id)
   rtMutexLockGuard eglContextMutexGuard(eglContextMutex);
   if ( internalContexts.find(id) != internalContexts.end() )
   {
-    NSOpenGLContext *context = internalContexts[id];
     internalContexts.erase(id);
-    [context release];
   }
   return PX_OK;
 }

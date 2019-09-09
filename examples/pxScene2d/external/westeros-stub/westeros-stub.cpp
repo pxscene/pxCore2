@@ -334,7 +334,7 @@ bool WstCompositorSetNestedDisplayName( WstCompositor *ctx, const char *nestedDi
 
       if ( nestedDisplayName )
       {
-         len= strlen(nestedDisplayName);
+         len= (int) strlen(nestedDisplayName);
 
          if ( (len == 0) || (len > MAX_NESTED_NAME_LEN) )
          {
@@ -935,7 +935,7 @@ bool WstCompositorLaunchClient( WstCompositor *ctx, const char *cmd )
          goto exit;
       }
 
-      int i= (cmd ? strlen(cmd) : 0);
+      int i= (cmd ? (int) strlen(cmd) : 0);
       if ( !cmd || (i > 255) )
       {
          sprintf( ctx->lastErrorDetail,

@@ -1822,7 +1822,7 @@ int readGifData (GifFileType *gif, GifByteType *dst, int size){
     if(!gif->UserData) return -1;
     
     data = (GifData *) gif->UserData;
-    len = data->imageDataSize - data->readPosition;
+    len = (int) (data->imageDataSize - data->readPosition);
     
     if(size > len) size = len;
     
@@ -1844,7 +1844,7 @@ void drawGifImage(pxOffscreen& obj, const size_t& imgX, const size_t& imgY, cons
     for(size_t y = imgY; y < imgH; y++){
         for(size_t x = imgX; x < imgW; x++){
             id = rows[y][x];
-            pixel = obj.pixel(x, y);
+            pixel = obj.pixel( (int32_t) x, (int32_t) y);
             if(transparent != -1 && transparent == id){
                 continue;
             }
@@ -1885,7 +1885,7 @@ rtError pxLoadAGIFImage(const char *imageData, size_t imageDataSize,
     GifImageDesc *img = NULL;
     ColorMapObject *map = NULL;
     int extcode, transparent;
-    GifByteType *extension = NULL;
+   // GifByteType *extension = NULL;
     GifWord width, height, i, x, y, w, h;
     size_t size, count;
     
@@ -2034,7 +2034,7 @@ rtError pxLoadAGIFImage(const char *imageData, size_t imageDataSize,
                 
                 case EXTENSION_RECORD_TYPE:
                 {
-                    int ext_code;
+                   // int ext_code;
                     GifByteType* extension;
                     
                     if (DGifGetExtension(gif, &extcode, &extension) == GIF_ERROR) {
@@ -2137,7 +2137,7 @@ rtError pxLoadGIFImage(const char *imageData, size_t imageDataSize,
     GifImageDesc *img = NULL;
     ColorMapObject *map = NULL;
     int extcode, transparent;
-    GifByteType *extension = NULL;
+   // GifByteType *extension = NULL;
     GifWord width, height, i, x, y, w, h;
     size_t size, count;
     
@@ -2276,8 +2276,8 @@ rtError pxLoadGIFImage(const char *imageData, size_t imageDataSize,
                     break;
                     
                     case EXTENSION_RECORD_TYPE:
-                {
-                    int ext_code;
+                    {
+                    //int ext_code;
                     GifByteType* extension;
                     
                     if (DGifGetExtension(gif, &extcode, &extension) == GIF_ERROR) {

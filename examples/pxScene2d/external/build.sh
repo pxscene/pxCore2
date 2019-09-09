@@ -12,9 +12,12 @@ banner() {
   echo " "
 }
 
-#--------- CURL
+#--------- Configuration
 
 make_parallel=3
+
+#--------- CURL
+
 
 if [ "$(uname)" = "Darwin" ]; then
     make_parallel="$(sysctl -n hw.ncpu)"
@@ -48,8 +51,11 @@ then
       fi
   fi
 
-  
   make all "-j${make_parallel}"
+
+  # git update-index --assume-unchanged .      # ... help GIT out
+  # git update-index --assume-unchanged src    # ... help GIT out
+
   cd ..
 
 fi
@@ -63,8 +69,10 @@ then
   banner "PNG"
 
   cd png
+
   ./configure
   make all "-j${make_parallel}"
+
   cd ..
 
 fi
@@ -78,11 +86,11 @@ cd gif
 [ -d patches ] || mkdir -p patches
 
 if [ "$(uname)" == "Darwin" ]; then
-[ -d patches/series ] || echo 'giflib-5.1.9-mac.patch' >patches/series
-cp ../giflib-5.1.9-mac.patch patches/
+  [ -d patches/series ] || echo 'giflib-5.1.9-mac.patch' >patches/series
+  cp ../giflib-5.1.9-mac.patch patches/
 else
-[ -d patches/series ] || echo 'giflib-5.1.9.patch' >patches/series
-cp ../giflib-5.1.9.patch patches/
+  [ -d patches/series ] || echo 'giflib-5.1.9.patch' >patches/series
+  cp ../giflib-5.1.9.patch patches/
 fi
 
 
@@ -100,24 +108,28 @@ fi
 if [ ! -e ./.libs/libgif.7.dylib ] ||
 [ "$(uname)" != "Darwin" ]
 then
-    make
-[ -d .libs ] || mkdir -p .libs
-if [ -e libgif.7.dylib ]
-then
-    cp libgif.7.dylib .libs/libgif.7.dylib
-    cp libutil.7.dylib .libs/libutil.7.dylib
 
+  make "-j${make_parallel}"
 
-elif [ -e libgif.so ]
-then
-    cp libgif.so libgif.so.7
-    cp libutil.so libutil.so.7
-    cp libgif.so .libs/libgif.so
-    cp libutil.so .libs/libutil.so
-    cp libgif.so .libs/libgif.so.7
-    cp libutil.so .libs/libutil.so.7
+  [ -d .libs ] || mkdir -p .libs
+  if [ -e libgif.7.dylib ]
+  then
+      cp libgif.7.dylib .libs/libgif.7.dylib
+      cp libutil.7.dylib .libs/libutil.7.dylib
+
+  elif [ -e libgif.so ]
+  then
+      cp libgif.so libgif.so.7
+      cp libutil.so libutil.so.7
+      cp libgif.so .libs/libgif.so
+      cp libutil.so .libs/libutil.so
+      cp libgif.so .libs/libgif.so.7
+      cp libutil.so .libs/libutil.so.7
+  fi
 fi
-fi
+
+git update-index --assume-unchanged dgif_lib.c     # ... help GIT out
+git update-index --assume-unchanged Makefile       # ... help GIT out
 
 cd ..
 
@@ -130,9 +142,11 @@ then
   banner "FT"
 
   cd ft
+
   export LIBPNG_LIBS="-L../png/.libs -lpng16"
   ./configure --with-png=no --with-harfbuzz=no
   make all "-j${make_parallel}"
+
   cd ..
 
 fi
@@ -146,8 +160,10 @@ then
   banner "JPG"
 
   cd jpg
+
   ./configure
   make all "-j${make_parallel}"
+
   cd ..
 
 fi
@@ -161,8 +177,14 @@ then
   banner "ZLIB"
 
   cd zlib
+
   ./configure
+
   make all "-j${make_parallel}"
+
+  git update-index --assume-unchanged Makefile              # help GIT out
+  git update-index --assume-unchanged zconf.h               # help GIT out
+
   cd ..
 
 fi
@@ -175,25 +197,27 @@ then
   banner "TURBO"
 
   cd libjpeg-turbo
-  git update-index --assume-unchanged Makefile.in
-  git update-index --assume-unchanged aclocal.m4
-  git update-index --assume-unchanged ar-lib
-  git update-index --assume-unchanged compile
-  git update-index --assume-unchanged config.guess
-  git update-index --assume-unchanged config.h.in
-  git update-index --assume-unchanged config.sub
-  git update-index --assume-unchanged configure
-  git update-index --assume-unchanged depcomp
-  git update-index --assume-unchanged install-sh
-  git update-index --assume-unchanged java/Makefile.in
-  git update-index --assume-unchanged ltmain.sh
-  git update-index --assume-unchanged md5/Makefile.in
-  git update-index --assume-unchanged missing
-  git update-index --assume-unchanged simd/Makefile.in
+
+  git update-index --assume-unchanged Makefile.in           # ... help GIT out
+  git update-index --assume-unchanged aclocal.m4            # ... help GIT out
+  git update-index --assume-unchanged ar-lib                # ... help GIT out
+  git update-index --assume-unchanged compile               # ... help GIT out
+  git update-index --assume-unchanged config.guess          # ... help GIT out
+  git update-index --assume-unchanged config.h.in           # ... help GIT out
+  git update-index --assume-unchanged config.sub            # ... help GIT out
+  git update-index --assume-unchanged configure             # ... help GIT out
+  git update-index --assume-unchanged depcomp               # ... help GIT out
+  git update-index --assume-unchanged install-sh            # ... help GIT out
+  git update-index --assume-unchanged java/Makefile.in      # ... help GIT out
+  git update-index --assume-unchanged ltmain.sh             # ... help GIT out
+  git update-index --assume-unchanged md5/Makefile.in       # ... help GIT out
+  git update-index --assume-unchanged missing               # ... help GIT out
+  git update-index --assume-unchanged simd/Makefile.in      # ... help GIT out
 
   autoreconf -f -i
   ./configure
   make "-j${make_parallel}"
+
   cd ..
 
 fi
@@ -207,12 +231,14 @@ then
   banner "NODE"
 
   cd node
+
   ./configure --shared
   make "-j${make_parallel}"
   ln -sf out/Release/obj.target/libnode.so.48 libnode.so.48
   ln -sf libnode.so.48 libnode.so
   ln -sf out/Release/libnode.48.dylib libnode.48.dylib
   ln -sf libnode.48.dylib libnode.dylib
+
   cd ..
 
 fi
@@ -228,10 +254,13 @@ then
 
   if [ -e Makefile.build ]
   then
-    mv Makefile.build Makefile
+    cp Makefile.build Makefile
   fi
 
-  make
+  export CPLUS_INCLUDE_PATH='/usr/local/include'
+
+  make "-j${make_parallel}"
+
   cd ..
 
 fi
@@ -244,14 +273,24 @@ fi
 #-------- BREAKPAD (Non -macOS)
 
 if [ "$(uname)" != "Darwin" ]; then
-  ./breakpad/build.sh
+
+  cd breakpad
+
+  ./build.sh
+
+  cd ..
 fi
 
 #-------- NANOSVG
 
-  banner "NANOSVG"
+banner "NANOSVG"
 
-./nanosvg/build.sh
+cd nanosvg
+
+./build.sh
+git update-index --assume-unchanged ./src/nanosvgrast.h    # ... help GIT out
+
+cd ..
 
 #-------- DUKTAPE
 
@@ -259,19 +298,51 @@ if [ ! -e dukluv/build/libduktape.a ]
 then
   banner "DUCKTAPE"
 
-  ./dukluv/build.sh
+  cd dukluv
+
+  ./build.sh
+
+  git update-index --assume-unchanged CMakeLists.txt   # ... help GIT out
+  git update-index --assume-unchanged uv.cmake         # ... help GIT out
+  git update-index --assume-unchanged src/duv.c        # ... help GIT out
+  git update-index --assume-unchanged src/main.c       # ... help GIT out
+
+  cd ..
+
 fi
 
-#--------
+#--------  SQLITE
 
 if [ ! -e sqlite/.libs/libsqlite3.a ]
 then
   banner "SQLITE"
 
   cd sqlite
-  autoreconf -f -i
+
+  if [ "$(uname)" != "Darwin" ]; then   ## If non-Mac
+    autoreconf -f -i
+  else
+    autoreconf -f
+  fi
+
   ./configure
-  make -j3
+  make "-j${make_parallel}"
+
+  git update-index --assume-unchanged aclocal.m4   # ... help GIT out
+  git update-index --assume-unchanged compile      # ... help GIT out
+  git update-index --assume-unchanged config.guess # ... help GIT out
+  git update-index --assume-unchanged config.sub   # ... help GIT out
+  git update-index --assume-unchanged configure    # ... help GIT out
+  git update-index --assume-unchanged depcomp      # ... help GIT out
+  git update-index --assume-unchanged install-sh   # ... help GIT out
+  git update-index --assume-unchanged ltmain.sh    # ... help GIT out
+  git update-index --assume-unchanged Makefile.in  # ... help GIT out
+  git update-index --assume-unchanged missing      # ... help GIT out
+
   cd ..
 
 fi
+
+#-------
+exit 0    #success
+#-------

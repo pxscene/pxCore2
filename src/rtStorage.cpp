@@ -106,7 +106,7 @@ rtError rtStorage::init(const char* filename, uint32_t storageQuota, const char*
 #endif
   }
 
-  sqlite3_stmt *stmt;
+//  sqlite3_stmt *stmt;
 
   char *errmsg;
   sqlite3_exec(db, "CREATE TABLE if not exists SizeTable (currentSize MEDIUMINT_UNSIGNED UNIQUE ON CONFLICT REPLACE);", 0, 0, &errmsg);
@@ -466,7 +466,7 @@ bool rtStorage::isEncrypted(const char* fileName)
   int magicSize = strlen(SQLITE_FILE_HEADER);
   char* fileHeader = (char*)malloc(magicSize + 1/*for Coverity*/);
 
-  int readSize = fread(fileHeader, 1, magicSize, fd);
+  int readSize = (int) fread(fileHeader, 1, magicSize, fd);
   fclose(fd);
 
   bool eq = magicSize == readSize && ::memcmp(fileHeader, SQLITE_FILE_HEADER, magicSize) == 0;
