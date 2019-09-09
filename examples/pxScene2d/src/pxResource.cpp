@@ -608,7 +608,7 @@ void pxResource::onDownloadCanceledUI(void* context, void* data)
 {
   // no need to notify on canceled downloads
   (void)data;
-  pxResource* res = (rtImageResource*)context;
+  pxResource* res = (pxResource*)context;
 
   res->Release();
 }

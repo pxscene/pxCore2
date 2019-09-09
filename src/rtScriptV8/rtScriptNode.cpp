@@ -913,7 +913,7 @@ rtError rtNodeContext::runFile(const char *file, rtValue* retVal /*= NULL*/, con
 {
   if(file == NULL)
   {
-    rtLogError(" %s  ... no script given.",__PRETTY_FUNCTION__);
+    rtLogError(" %s  ... file == NULL ... no script given.",__PRETTY_FUNCTION__);
 
     return RT_FAIL;
   }
@@ -924,7 +924,7 @@ rtError rtNodeContext::runFile(const char *file, rtValue* retVal /*= NULL*/, con
   
   if( js_script.empty() ) // load error
   {
-    rtLogError(" %s  ... load error / not found.",__PRETTY_FUNCTION__);
+    rtLogError(" %s  ... [%s] load error / not found.",__PRETTY_FUNCTION__, file);
 
     return RT_FAIL;
   }

@@ -240,7 +240,7 @@ rtError rtPermissions::allows(const rtString& url, bool& o) const
 
 rtError rtPermissions::getStorageQuota(uint32_t& o) const
 {
-  o = mStorageQuota;
+  o = (uint32_t) mStorageQuota;
   return RT_OK;
 }
 
@@ -254,7 +254,7 @@ rtError rtPermissions::file2str(const char* file, rtString& s)
     if (is)
     {
       is.seekg(0, is.end);
-      int length = is.tellg();
+      int length = (int) is.tellg();
       is.seekg(0, is.beg);
       if (length > 0)
       {

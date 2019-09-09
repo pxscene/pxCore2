@@ -115,10 +115,12 @@ void rtResolverFunction::afterWorkCallback(uv_work_t* req, int /* status */)
   if (resolverFunc->mDisposition == DispositionResolve)
   {
     v8::Maybe<bool> b = resolver->Resolve(local_context, value);
+    b = b; // warning
   }
   else
   {
     v8::Maybe<bool> b = resolver->Reject(local_context, value);
+    b = b; // warning
   }
 
   if (tryCatch.HasCaught())

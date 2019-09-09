@@ -144,7 +144,6 @@ else {
         
         //console.log('Rewritten Url: ', url)
 
-
         var ctx = new AppSceneContext({        scene: getScene("scene.1"),
                                             makeReady: this.makeReady,
                                         getContextID: this.getContextID,

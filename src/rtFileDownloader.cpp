@@ -894,7 +894,7 @@ bool rtFileDownloader::downloadByteRangeFromNetwork(rtFileDownloadRequest* downl
    int multipleIntervals = 1;
    size_t startRange = 0;
    rtString byteRange("NULL");
-   char byteRangeStr[100];
+//   char byteRangeStr[100];
    rtString strLocation;
    bool bCurlErrorFlag = false;
    rtString curlUrl = downloadRequest->fileUrl();
@@ -1088,7 +1088,7 @@ bool rtFileDownloader::downloadByteRangeFromNetwork(rtFileDownloadRequest* downl
          else
             rtLogError("Http header doesn't have Content-Range. Url[%s]\n", downloadRequest->fileUrl().cString());
 
-         multipleIntervals = (downloadRequest->actualFileSize() >= downloadRequest->byteRangeIntervals()) ? (downloadRequest->actualFileSize() / downloadRequest->byteRangeIntervals()) : 0;
+         multipleIntervals = (downloadRequest->actualFileSize() >= downloadRequest->byteRangeIntervals()) ? (int) (downloadRequest->actualFileSize() / downloadRequest->byteRangeIntervals()) : 0;
          rtLogInfo("File[%s] multipleIntervals [%d] fileSize[%ld]\n", downloadRequest->fileUrl().cString(), multipleIntervals, downloadRequest->actualFileSize());
       }
       startRange += downloadRequest->byteRangeIntervals();

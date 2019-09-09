@@ -81,12 +81,17 @@
     
     [NSApp          setWindowsMenu: fileMenu];
     [fileMenuItem setSubmenu: fileMenu];
-    
+  
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wundeclared-selector"
+
     [fileMenu addItemWithTitle: @"New Window"
                         action: @selector(newWindow:)
                  keyEquivalent: @"n"];
-    
-    [fileMenu addItemWithTitle: @"Miniaturize"
+  
+#pragma clang diagnostic pop
+  
+  [fileMenu addItemWithTitle: @"Miniaturize"
                         action: @selector(performMiniaturize:)
                  keyEquivalent: @"m"];
     
