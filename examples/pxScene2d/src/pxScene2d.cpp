@@ -3268,6 +3268,39 @@ void pxScriptView::runScript()
         options = mBootstrap.get<rtObjectRef>("options");
       }
 
+      // Add URL Query Parameters to Options for Lightning Apps
+      int32_t pos = mUrl.find(0, '?');
+      if (pos != -1)
+      {
+        rtString query = mUrl.substring(pos + 1);
+        rtString script = "require(\"querystring\").parse(\"" + query + "\");";
+        rtValue retVal;
+        if (RT_OK != mCtx->runScript(script.cString(), &retVal) || retVal.isEmpty())
+        {
+          rtLogError("Failed to parse - query: %s", query.cString());
+        }
+        else
+        {
+          rtObjectRef map = retVal.toObject();
+          rtObjectRef keys = map.get<rtObjectRef>("allKeys");
+          uint32_t length = keys.get<uint32_t>("length");
+          rtLogDebug("Set options - num keys: %u", length);
+
+          for (uint32_t i = 0; i < length; ++i)
+          {
+            rtValue val;
+            rtString key = keys.get<rtString>(i);
+            if (RT_OK != map->Get(key, &val) || val.isEmpty())
+              rtLogError("Failed to get - key: %s", key.cString());
+            else
+            {
+              rtLogDebug("Set options - key: %s", key.cString());
+              options->Set(key, &val);
+            }
+          }
+        }
+      }
+
       // JRJR Adding an AddRef to this... causes bad things to happen when reloading gl scenes
       // investigate... 
       // JRJR WARNING! must use sendReturns since wrappers will invoke asyncronously otherwise.
