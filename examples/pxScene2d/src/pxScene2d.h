@@ -936,6 +936,7 @@ public:
   rtError createExternal(rtObjectRef p, rtObjectRef& o);
   rtError createWayland(rtObjectRef p, rtObjectRef& o);
   rtError createWebGL(rtObjectRef p, rtObjectRef& o);
+  rtError createVideo(rtObjectRef p, rtObjectRef& o);
 
   rtError clock(double & time);
   rtError logDebugMetrics();
