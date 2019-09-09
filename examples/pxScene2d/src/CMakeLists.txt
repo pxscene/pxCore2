@@ -86,6 +86,10 @@ set(PXSCENE_INSTALLER 0)
 
 add_definitions(-DANIMATION_ROTATE_XYZ )
 
+
+set(OPENSSLLIB ${EXTDIR}/openssl-1.0.2o/lib)
+set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${OPENSSLLIB})
+
 if (BUILD_WITH_GIF)
 message("Building with GIF support")
 set(GIF ${EXTDIR}/gif/)
