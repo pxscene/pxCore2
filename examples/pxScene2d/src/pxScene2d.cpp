@@ -3371,6 +3371,18 @@ pxScriptView::~pxScriptView()
     mCtx->add("makeReady", 0);
     mCtx->add("getContextID", 0);
   }
+
+  if (mDrawing) {
+    context.setFramebuffer(previousSurface);
+    mSharedContext->makeCurrent(false);
+  }
+  mDrawing = false;
+  
+  if (NULL != mBeginDrawing.getPtr())
+    mBeginDrawing->clearContext();
+  if (NULL != mEndDrawing.getPtr())
+    mEndDrawing->clearContext();
+
 #endif //ENABLE_RT_NODE
 
   if (mView)
