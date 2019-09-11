@@ -334,6 +334,11 @@ if [ ! -e "libnode-v${NODE_VER}/libnode.dylib" ] ||
 then
 
   banner "NODE"
+  if [ -e "node-v${NODE_VER}_mods.patch" ]
+  then
+    git apply "node-v${NODE_VER}_mods.patch"
+    git apply "openssl_1.0.2_compatibility.patch"
+  fi
   cd "libnode-v${NODE_VER}"
   if [ "$(uname)" != "Darwin" ]
   then
