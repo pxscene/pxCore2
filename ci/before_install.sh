@@ -135,3 +135,9 @@ then
 	fi
 	sudo pip install codecov
 fi
+
+cd $TRAVIS_BUILD_DIR/examples/pxScene2d
+mkdir rlExternals
+cd rlExternals
+git clone --branch=master https://github.com/madanagopalt/Spark-Externals.git
+cd $TRAVIS_BUILD_DIR
