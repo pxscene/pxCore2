@@ -50,20 +50,8 @@ fi
 #--------- OPENSSL
 
 cd ${OPENSSL_DIR}
-if [ "$(uname)" != "Darwin" ]
-then
-./config -shared  --prefix=`pwd`
-else
-./Configure darwin64-x86_64-cc -shared --prefix=`pwd`
-fi
-make clean
-make "-j${make_parallel}"
-make install -i
-rm -rf libcrypto.a
-rm -rf libssl.a
-rm -rf lib/libcrypto.a
-rm -rf lib/libssl.a
-cd ..
+ln -s ../../rlExternals/artifacts/libcrypto.so.1.0.0 libcrypto.so
+ln -s ../../rlExternals/artifacts/libssl.so.1.0.0 libssl.so
 export LD_LIBRARY_PATH="${OPENSSL_DIR}/:$LD_LIBRARY_PATH"
 export DYLD_LIBRARY_PATH="${OPENSSL_DIR}/:$DYLD_LIBRARY_PATH"
 
@@ -345,25 +333,15 @@ if [ ! -e "libnode-v${NODE_VER}/libnode.dylib" ] ||
 then
 
   banner "NODE"
-  if [ -e "node-v${NODE_VER}_mods.patch" ]
-  then
-    git apply "node-v${NODE_VER}_mods.patch"
-    git apply "openssl_1.0.2_compatibility.patch"
-  fi
-
   cd "libnode-v${NODE_VER}"
-  ./configure --shared --shared-openssl --shared-openssl-includes="${OPENSSL_DIR}/include/" --shared-openssl-libpath="${OPENSSL_DIR}/lib"
-  make "-j${make_parallel}"
-
   if [ "$(uname)" != "Darwin" ]
   then
-    ln -sf out/Release/obj.target/libnode.so.* ./
+    ln -sf ../../rlExternals/artifacts/libnode.so.* ./
     ln -sf libnode.so.* libnode.so
   else
-    ln -sf out/Release/libnode.*.dylib ./
+    ln -sf ../../rlExternals/artifacts/libnode.*.dylib ./
     ln -sf libnode.*.dylib libnode.dylib
   fi
-
   cd ..
   rm node
   ln -sf "libnode-v${NODE_VER}" node
