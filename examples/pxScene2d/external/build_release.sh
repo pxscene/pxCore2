@@ -57,6 +57,7 @@ then
   ln -sf libcrypto.so.1.0.0 libcrypto.so
   ln -sf ../../rlExternals/Spark-Externals/artifacts/linux/libssl.so.1.0.0 libssl.so.1.0.0
   ln -sf libssl.so.1.0.0 libssl.so
+  ls -lrt
   mkdir lib
   cd lib
   ln -sf ../../rlExternals/Spark-Externals/artifacts/linux/libcrypto.so.1.0.0 libcrypto.so.1.0.0
