@@ -50,8 +50,15 @@ fi
 #--------- OPENSSL
 
 cd ${OPENSSL_DIR}
-ln -s ../../rlExternals/artifacts/libcrypto.so.1.0.0 libcrypto.so
-ln -s ../../rlExternals/artifacts/libssl.so.1.0.0 libssl.so
+if [ "$(uname)" != "Darwin" ]
+then
+  ln -sf ../../rlExternals/artifacts/linux/libcrypto.so.1.0.0 libcrypto.so
+  ln -sf ../../rlExternals/artifacts/linux/libssl.so.1.0.0 libssl.so
+  ls -lrt 
+else
+  ln -sf ../../rlExternals/artifacts/osx/libcrypto.1.0.0.dylib libcrypto.dylib
+  ln -sf ../../rlExternals/artifacts/osx/libssl.1.0.0.dylib libssl.dylib
+fi
 cd ..
 export LD_LIBRARY_PATH="${OPENSSL_DIR}/:$LD_LIBRARY_PATH"
 export DYLD_LIBRARY_PATH="${OPENSSL_DIR}/:$DYLD_LIBRARY_PATH"
@@ -342,10 +349,11 @@ then
   cd "libnode-v${NODE_VER}"
   if [ "$(uname)" != "Darwin" ]
   then
-    ln -sf ../../rlExternals/artifacts/libnode.so.* ./
+    ln -sf ../../rlExternals/artifacts/linux/libnode.so.* ./
     ln -sf libnode.so.* libnode.so
+    ls -lrt 
   else
-    ln -sf ../../rlExternals/artifacts/libnode.*.dylib ./
+    ln -sf ../../rlExternals/artifacts/osx/libnode.*.dylib ./
     ln -sf libnode.*.dylib libnode.dylib
   fi
   cd ..
