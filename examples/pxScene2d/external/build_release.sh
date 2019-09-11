@@ -49,38 +49,55 @@ fi
 
 #--------- OPENSSL
 
+export DISABLE_CCACHE=true
 cd ${OPENSSL_DIR}
 if [ "$(uname)" != "Darwin" ]
 then
-  ls -rlt ../../rlExternals/Spark-Externals/artifacts/linux/
-  ln -sf ../../rlExternals/Spark-Externals/artifacts/linux/libcrypto.so.1.0.0 libcrypto.so.1.0.0
-  ln -sf libcrypto.so.1.0.0 libcrypto.so
-  ln -sf ../../rlExternals/Spark-Externals/artifacts/linux/libssl.so.1.0.0 libssl.so.1.0.0
-  ln -sf libssl.so.1.0.0 libssl.so
-  ls -lrt
-  mkdir lib
-  cd lib
-  ln -sf ../../rlExternals/Spark-Externals/artifacts/linux/libcrypto.so.1.0.0 libcrypto.so.1.0.0
-  ln -sf libcrypto.so.1.0.0 libcrypto.so
-  ln -sf ../../rlExternals/Spark-Externals/artifacts/linux/libssl.so.1.0.0 libssl.so.1.0.0
-  ln -sf libssl.so.1.0.0 libssl.so
-  cd ..
-  ls -lrt 
+./config -shared  --prefix=`pwd`
 else
-  ln -sf ../../rlExternals/Spark-Externals/artifacts/osx/libcrypto.1.0.0.dylib libcrypto.1.0.0.dylib
-  ln -sf libcrypto.1.0.0.dylib libcrypto.dylib
-  ln -sf ../../rlExternals/Spark-Externals/artifacts/osx/libssl.1.0.0.dylib libssl.1.0.0.dylib
-  ln -sf libssl.1.0.0.dylib libssl.dylib
-  mkdir lib
-  cd lib
-  ln -sf ../../rlExternals/Spark-Externals/artifacts/osx/libcrypto.1.0.0.dylib libcrypto.1.0.0.dylib
-  ln -sf libcrypto.1.0.0.dylib libcrypto.dylib
-  ln -sf ../../rlExternals/Spark-Externals/artifacts/osx/libssl.1.0.0.dylib libssl.1.0.0.dylib
-  ln -sf libssl.1.0.0.dylib libssl.dylib
-  cd ..
-  ls -lrt 
+./Configure darwin64-x86_64-cc -shared --prefix=`pwd`
 fi
+make clean
+make "-j${make_parallel}"
+make install -i
+rm -rf libcrypto.a
+rm -rf libssl.a
+rm -rf lib/libcrypto.a
+rm -rf lib/libssl.a
 cd ..
+unset DISABLE_CCACHE
+#cd ${OPENSSL_DIR}
+#if [ "$(uname)" != "Darwin" ]
+#then
+#  ls -rlt ../../rlExternals/Spark-Externals/artifacts/linux/
+#  ln -sf ../../rlExternals/Spark-Externals/artifacts/linux/libcrypto.so.1.0.0 libcrypto.so.1.0.0
+#  ln -sf libcrypto.so.1.0.0 libcrypto.so
+#  ln -sf ../../rlExternals/Spark-Externals/artifacts/linux/libssl.so.1.0.0 libssl.so.1.0.0
+#  ln -sf libssl.so.1.0.0 libssl.so
+#  ls -lrt
+#  mkdir lib
+#  cd lib
+#  ln -sf ../../rlExternals/Spark-Externals/artifacts/linux/libcrypto.so.1.0.0 libcrypto.so.1.0.0
+#  ln -sf libcrypto.so.1.0.0 libcrypto.so
+#  ln -sf ../../rlExternals/Spark-Externals/artifacts/linux/libssl.so.1.0.0 libssl.so.1.0.0
+#  ln -sf libssl.so.1.0.0 libssl.so
+#  cd ..
+#  ls -lrt 
+#else
+#  ln -sf ../../rlExternals/Spark-Externals/artifacts/osx/libcrypto.1.0.0.dylib libcrypto.1.0.0.dylib
+#  ln -sf libcrypto.1.0.0.dylib libcrypto.dylib
+#  ln -sf ../../rlExternals/Spark-Externals/artifacts/osx/libssl.1.0.0.dylib libssl.1.0.0.dylib
+#  ln -sf libssl.1.0.0.dylib libssl.dylib
+#  mkdir lib
+#  cd lib
+#  ln -sf ../../rlExternals/Spark-Externals/artifacts/osx/libcrypto.1.0.0.dylib libcrypto.1.0.0.dylib
+#  ln -sf libcrypto.1.0.0.dylib libcrypto.dylib
+#  ln -sf ../../rlExternals/Spark-Externals/artifacts/osx/libssl.1.0.0.dylib libssl.1.0.0.dylib
+#  ln -sf libssl.1.0.0.dylib libssl.dylib
+#  cd ..
+#  ls -lrt 
+#fi
+#cd ..
 export LD_LIBRARY_PATH="${OPENSSL_DIR}/:$LD_LIBRARY_PATH"
 export DYLD_LIBRARY_PATH="${OPENSSL_DIR}/:$DYLD_LIBRARY_PATH"
 
