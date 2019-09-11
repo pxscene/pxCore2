@@ -53,21 +53,29 @@ cd ${OPENSSL_DIR}
 if [ "$(uname)" != "Darwin" ]
 then
   ls -rlt ../../rlExternals/Spark-Externals/artifacts/linux/
-  ln -sf ../../rlExternals/Spark-Externals/artifacts/linux/libcrypto.so.1.0.0 libcrypto.so
-  ln -sf ../../rlExternals/Spark-Externals/artifacts/linux/libssl.so.1.0.0 libssl.so
+  ln -sf ../../rlExternals/Spark-Externals/artifacts/linux/libcrypto.so.1.0.0 libcrypto.so.1.0.0
+  ln -sf libcrypto.so.1.0.0 libcrypto.so
+  ln -sf ../../rlExternals/Spark-Externals/artifacts/linux/libssl.so.1.0.0 libssl.so.1.0.0
+  ln -sf libssl.so.1.0.0 libssl.so
   mkdir lib
   cd lib
-  ln -sf ../../../rlExternals/Spark-Externals/artifacts/linux/libcrypto.so.1.0.0 libcrypto.so
-  ln -sf ../../../rlExternals/Spark-Externals/artifacts/linux/libssl.so.1.0.0 libssl.so
+  ln -sf ../../rlExternals/Spark-Externals/artifacts/linux/libcrypto.so.1.0.0 libcrypto.so.1.0.0
+  ln -sf libcrypto.so.1.0.0 libcrypto.so
+  ln -sf ../../rlExternals/Spark-Externals/artifacts/linux/libssl.so.1.0.0 libssl.so.1.0.0
+  ln -sf libssl.so.1.0.0 libssl.so
   cd ..
   ls -lrt 
 else
-  ln -sf ../../rlExternals/Spark-Externals/artifacts/osx/libcrypto.1.0.0.dylib libcrypto.dylib
-  ln -sf ../../rlExternals/Spark-Externals/artifacts/osx/libssl.1.0.0.dylib libssl.dylib
+  ln -sf ../../rlExternals/Spark-Externals/artifacts/osx/libcrypto.1.0.0.dylib libcrypto.1.0.0.dylib
+  ln -sf libcrypto.1.0.0.dylib libcrypto.dylib
+  ln -sf ../../rlExternals/Spark-Externals/artifacts/osx/libssl.1.0.0.dylib libssl.1.0.0.dylib
+  ln -sf libssl.1.0.0.dylib libssl.dylib
   mkdir lib
   cd lib
-  ln -sf ../../../rlExternals/Spark-Externals/artifacts/osx/libcrypto.1.0.0.dylib libcrypto.dylib
-  ln -sf ../../../rlExternals/Spark-Externals/artifacts/osx/libssl.1.0.0.dylib libssl.dylib
+  ln -sf ../../rlExternals/Spark-Externals/artifacts/osx/libcrypto.1.0.0.dylib libcrypto.1.0.0.dylib
+  ln -sf libcrypto.1.0.0.dylib libcrypto.dylib
+  ln -sf ../../rlExternals/Spark-Externals/artifacts/osx/libssl.1.0.0.dylib libssl.1.0.0.dylib
+  ln -sf libssl.1.0.0.dylib libssl.dylib
   cd ..
   ls -lrt 
 fi
