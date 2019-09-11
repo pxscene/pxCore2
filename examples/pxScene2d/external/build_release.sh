@@ -55,10 +55,21 @@ then
   ls -rlt ../../rlExternals/Spark-Externals/artifacts/linux/
   ln -sf ../../rlExternals/Spark-Externals/artifacts/linux/libcrypto.so.1.0.0 libcrypto.so
   ln -sf ../../rlExternals/Spark-Externals/artifacts/linux/libssl.so.1.0.0 libssl.so
+  mkdir lib
+  cd lib
+  ln -sf ../../../rlExternals/Spark-Externals/artifacts/linux/libcrypto.so.1.0.0 libcrypto.so
+  ln -sf ../../../rlExternals/Spark-Externals/artifacts/linux/libssl.so.1.0.0 libssl.so
+  cd ..
   ls -lrt 
 else
   ln -sf ../../rlExternals/Spark-Externals/artifacts/osx/libcrypto.1.0.0.dylib libcrypto.dylib
   ln -sf ../../rlExternals/Spark-Externals/artifacts/osx/libssl.1.0.0.dylib libssl.dylib
+  mkdir lib
+  cd lib
+  ln -sf ../../../rlExternals/Spark-Externals/artifacts/osx/libcrypto.1.0.0.dylib libcrypto.dylib
+  ln -sf ../../../rlExternals/Spark-Externals/artifacts/osx/libssl.1.0.0.dylib libssl.dylib
+  cd ..
+  ls -lrt 
 fi
 cd ..
 export LD_LIBRARY_PATH="${OPENSSL_DIR}/:$LD_LIBRARY_PATH"
