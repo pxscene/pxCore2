@@ -389,12 +389,14 @@ then
   then
     ln -sf ../../rlExternals/Spark-Externals/artifacts/linux/libnode.so.* ./
     ln -sf libnode.so.* libnode.so
+    ln -sf ../../rlExternals/Spark-Externals/artifacts/linux/node node
     echo "before printing data "
     ls -rlt ../../rlExternals/Spark-Externals/artifacts/linux/
     ls -lrt 
   else
     ln -sf ../../rlExternals/Spark-Externals/artifacts/osx/libnode.*.dylib ./
     ln -sf libnode.*.dylib libnode.dylib
+    ln -sf ../../rlExternals/Spark-Externals/artifacts/osx/node node
   fi
   cd ..
   rm node
@@ -451,7 +453,7 @@ fi
 
 #-------- spark-webgl
 export NODE_PATH=$NODE_PATH:`pwd`/../src/node_modules
-export PATH=`pwd`/node/deps/npm/bin/node-gyp-bin/:`pwd`/node/out/Release:$PATH
+export PATH=`pwd`/node/deps/npm/bin/node-gyp-bin/:`pwd`/node/:$PATH
 cd spark-webgl
 node-gyp rebuild
 cd ..
