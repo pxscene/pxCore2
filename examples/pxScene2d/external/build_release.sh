@@ -351,6 +351,8 @@ then
   then
     ln -sf ../../rlExternals/artifacts/linux/libnode.so.* ./
     ln -sf libnode.so.* libnode.so
+    echo "before printing data "
+    ls -rlt ../../rlExternals/artifacts/linux/
     ls -lrt 
   else
     ln -sf ../../rlExternals/artifacts/osx/libnode.*.dylib ./
