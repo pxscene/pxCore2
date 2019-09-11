@@ -59,7 +59,7 @@ ln -s ../../examples/pxScene2d/src/sparkpermissions.conf sparkpermissions.conf
 cd supportfiles
 ln -s ../../../examples/pxScene2d/src/browser/images/input2.png input2.png
 cd ..
-
+ldd pxscene2dtests
 ${DBG} ./pxscene2dtests "$@"
 
 #remove temporary files created for running js files from unittests
