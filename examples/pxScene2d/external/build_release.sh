@@ -52,6 +52,7 @@ fi
 cd ${OPENSSL_DIR}
 if [ "$(uname)" != "Darwin" ]
 then
+  ls -rlt ../../rlExternals/Spark-Externals/artifacts/linux/
   ln -sf ../../rlExternals/Spark-Externals/artifacts/linux/libcrypto.so.1.0.0 libcrypto.so
   ln -sf ../../rlExternals/Spark-Externals/artifacts/linux/libssl.so.1.0.0 libssl.so
   ls -lrt 
