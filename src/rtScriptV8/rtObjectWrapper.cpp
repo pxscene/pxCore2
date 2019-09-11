@@ -409,9 +409,10 @@ rtError jsObjectWrapper::getAllKeys(Isolate* isolate, rtValue* value) const
 {
   HandleScope handleScope(isolate);
   Local<Object> self = PersistentToLocal(isolate, mObject);
-  Local<Array> names = self->GetPropertyNames();
   Local<Context> ctx = self->CreationContext();
   Context::Scope contextScope(ctx);
+
+  Local<Array> names = self->GetPropertyNames();
 
   rtRefT<rtArrayObject> result(new rtArrayObject);
   for (int i = 0, n = names->Length(); i < n; ++i)

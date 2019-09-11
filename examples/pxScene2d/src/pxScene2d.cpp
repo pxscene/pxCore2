@@ -45,6 +45,10 @@
 #include "pxWebGL.h"
 #endif //ENABLE_SPARK_WEBGL
 
+#ifdef ENABLE_SPARK_VIDEO
+#include "pxVideo.h"
+#endif //ENABLE_SPARK_VIDEO
+
 #ifdef PX_SERVICE_MANAGER
 #include "pxServiceManager.h"
 #endif //PX_SERVICE_MANAGER
@@ -553,7 +557,9 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   // 
   // capabilities.animations.durations = 2
   //
-  // capabilities.events.drag_n_drop    = 2   // additional Drag'n'Drop events 
+  // capabilities.events.drag_n_drop    = 2   // additional Drag'n'Drop events
+  //
+  // capabilities.video.player         = 1
 
   mCapabilityVersions = new rtMapObject;
 
@@ -629,6 +635,12 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
 
   mCapabilityVersions.set("events", userCapabilities);
   userCapabilities.set("drag_n_drop", (gPlatformOS == "macOS") ? 2 : 1);
+
+#ifdef ENABLE_SPARK_VIDEO
+  rtObjectRef videoCapabilities = new rtMapObject;
+  videoCapabilities.set("player", 1);
+  mCapabilityVersions.set("video", videoCapabilities);
+#endif //ENABLE_SPARK_VIDEO
 
   //////////////////////////////////////////////////////
 }
@@ -750,6 +762,8 @@ rtError pxScene2d::create(rtObjectRef p, rtObjectRef& o)
     e = createWayland(p,o);
   else if (!strcmp("webgl",t.cString()))
     e = createWebGL(p,o);
+  else if (!strcmp("video",t.cString()))
+    e = createVideo(p,o);
   else if (!strcmp("object",t.cString()))
     e = createObject(p,o);
   else
@@ -1102,6 +1116,19 @@ rtError pxScene2d::createWebGL(rtObjectRef p, rtObjectRef& o)
   rtLogError("Type 'webgl' is not supported");
   return RT_FAIL;
 #endif //ENABLE_SPARK_WEBGL
+}
+
+rtError pxScene2d::createVideo(rtObjectRef p, rtObjectRef& o)
+{
+#ifdef ENABLE_SPARK_VIDEO
+  o = new pxVideo(this);
+  o.set(p);
+  o.send("init");
+  return RT_OK;
+#else
+  rtLogError("Type 'video' is not supported");
+  return RT_FAIL;
+#endif //ENABLE_SPARK_VIDEO
 }
 
 void pxScene2d::draw()
@@ -3241,6 +3268,39 @@ void pxScriptView::runScript()
         options = mBootstrap.get<rtObjectRef>("options");
       }
 
+      // Add URL Query Parameters to Options for Lightning Apps
+      int32_t pos = mUrl.find(0, '?');
+      if (pos != -1)
+      {
+        rtString query = mUrl.substring(pos + 1);
+        rtString script = "require(\"querystring\").parse(\"" + query + "\");";
+        rtValue retVal;
+        if (RT_OK != mCtx->runScript(script.cString(), &retVal) || retVal.isEmpty())
+        {
+          rtLogError("Failed to parse - query: %s", query.cString());
+        }
+        else
+        {
+          rtObjectRef map = retVal.toObject();
+          rtObjectRef keys = map.get<rtObjectRef>("allKeys");
+          uint32_t length = keys.get<uint32_t>("length");
+          rtLogDebug("Set options - num keys: %u", length);
+
+          for (uint32_t i = 0; i < length; ++i)
+          {
+            rtValue val;
+            rtString key = keys.get<rtString>(i);
+            if (RT_OK != map->Get(key, &val) || val.isEmpty())
+              rtLogError("Failed to get - key: %s", key.cString());
+            else
+            {
+              rtLogDebug("Set options - key: %s", key.cString());
+              options->Set(key, &val);
+            }
+          }
+        }
+      }
+
       // JRJR Adding an AddRef to this... causes bad things to happen when reloading gl scenes
       // investigate... 
       // JRJR WARNING! must use sendReturns since wrappers will invoke asyncronously otherwise.
@@ -3311,6 +3371,18 @@ pxScriptView::~pxScriptView()
     mCtx->add("makeReady", 0);
     mCtx->add("getContextID", 0);
   }
+
+  if (mDrawing) {
+    context.setFramebuffer(previousSurface);
+    mSharedContext->makeCurrent(false);
+  }
+  mDrawing = false;
+  
+  if (NULL != mBeginDrawing.getPtr())
+    mBeginDrawing->clearContext();
+  if (NULL != mEndDrawing.getPtr())
+    mEndDrawing->clearContext();
+
 #endif //ENABLE_RT_NODE
 
   if (mView)
