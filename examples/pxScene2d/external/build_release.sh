@@ -59,7 +59,7 @@ else
 ./Configure darwin64-x86_64-cc -shared --prefix=`pwd`
 fi
 make clean
-make "-j${make_parallel}"
+make "-j1"
 make install -i
 rm -rf libcrypto.a
 rm -rf libssl.a
