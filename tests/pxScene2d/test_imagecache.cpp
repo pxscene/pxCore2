@@ -914,7 +914,12 @@ class rtFileDownloaderTest : public testing::Test, public commonTestFns
       //EXPECT_TRUE (RT_OK ==rtFileCache::instance()->httpCacheData("https://www.sparkui.org/tests-ci/tests/images/008.jpg",data));
     }
 
-    #define DOWNLOAD_FILE_URL 	"https://www.sparkui.org/tests-ci/tests/images/008.jpg"
+    //#define DOWNLOAD_FILE_URL 				"https://www.sparkui.org/tests-ci/tests/images/008.jpg"
+    #define DOWNLOAD_FILE_URL 					"http://ccr.mpeg4-ads.xcr.comcast.net/adt6qam12/CSAJ7002609400100001/1530220816476/CSAJ8002609400100001_mezz_4QAM.ts"
+    #define BYTE_RANGE_SPLIT    				(7 * 47 * 4096) // 1347584 //The rational number that is the least common multiple of 4096 and 1316 which is (188*7).
+    #define CURLE_COULDNT_CONNECT_RETRY_COUNT 	                2
+    #define CURLE_CONNECTION_TIMEOUT			        2L
+
     void downloadFileAsByteRangeAddToCacheTest()
     {
       // TODO TESTS images files downloaded from pxscene-samples need expiry date
@@ -924,9 +929,39 @@ class rtFileDownloaderTest : public testing::Test, public commonTestFns
       expectedStatusCode = 0;
       expectedHttpCode = 206;
       expectedCachePresence = false;
+      request->setProgressMeter(false);
+      EXPECT_FALSE(request->isProgressMeterSwitchOff());
+
       request->setByteRangeEnable(true);
+      EXPECT_TRUE(request->isByteRangeEnabled());
+
       request->setCurlRetryEnable(true);
-      request->setByteRangeIntervals(1347584); // 7 * 47 * 4096
+      EXPECT_TRUE(request->isCurlRetryEnabled());
+
+      request->setUserAgent("libcurl-agent/1.0");
+      EXPECT_FALSE(request->userAgent().isEmpty());
+
+      request->setKeepTCPAlive(false);
+      EXPECT_FALSE(request->keepTCPAliveEnabled());
+
+      request->setCROSRequired(false);
+      EXPECT_FALSE(request->isCROSRequired());
+
+      request->enableDownloadMetrics(false);
+      EXPECT_FALSE(request->isDownloadMetricsEnabled());
+
+      request->setRedirectFollowLocation(false);
+      EXPECT_FALSE(request->isRedirectFollowLocationEnabled());
+
+      request->setByteRangeIntervals(BYTE_RANGE_SPLIT);
+      EXPECT_TRUE(request->byteRangeIntervals() == BYTE_RANGE_SPLIT);
+
+      request->setConnectionTimeout(CURLE_CONNECTION_TIMEOUT);
+      EXPECT_TRUE(request->getConnectionTimeout() == CURLE_CONNECTION_TIMEOUT);
+
+      request->setCurlErrRetryCount(CURLE_COULDNT_CONNECT_RETRY_COUNT);
+      EXPECT_TRUE(request->getCurlErrRetryCount() == CURLE_COULDNT_CONNECT_RETRY_COUNT);
+
       rtFileDownloader::instance()->downloadFileAsByteRange(request);
       sem_wait(testSem);
       EXPECT_TRUE (request->httpStatusCode() == 206);
