@@ -498,17 +498,7 @@ async function getModule(specifier, referencingModule) {
      {
        // mjs module
        var treatAsLocal = false;
-       if(specifier.indexOf("wpe-lightning-spark") == 0)
-       {
-         treatAsLocal = true;
-         specifier = path.resolve(__dirname ,"node_modules/wpe-lightning-spark/src/lightning.mjs") ;
-       }
-       else if(specifier.indexOf("wpe-lightning") == 0)
-       {
-         treatAsLocal = true;
-         specifier = path.resolve(__dirname ,"node_modules/" + specifier);
-       }
-       else if (specifier.indexOf(".mjs") != -1)
+       if (specifier.indexOf(".mjs") != -1)
        {
          if (isLocalApp) {
            specifier = path.resolve(baseString.substring(0, baseString.lastIndexOf("/")+1), specifier);
@@ -703,10 +693,17 @@ async function loadMjs(source, url, context)
             let framework = await getFile(_frameworkURL);
             vm.runInContext(framework.data, contextifiedSandbox, {filename:framework.uri});
           }
-
+          
           let file = await getFile(filename);
           let source = file.data, rpath = file.uri;
-          app = await loadMjs(source, rpath, contextifiedSandbox);
+          
+          // define platform
+          var platformsource = "";
+          if (filename.indexOf(".mjs") != -1) {
+            let platformfile = await getFile(urlmain.resolve(path.dirname(filename) + "/", "lib/lightning-spark.js"));
+            platformsource = platformfile.data;
+          }
+          app = await loadMjs(platformsource + source, rpath, contextifiedSandbox);
           app.instantiate();
           instantiated = true;
           succeeded = true;
@@ -722,7 +719,7 @@ async function loadMjs(source, url, context)
                 new app.namespace.default();
               }
             } catch (err) {
-              console.log(err);
+             console.log(err);
             }
           }
 
