@@ -1,5 +1,6 @@
 #!/bin/sh
 
+EXECLOGS=$TRAVIS_BUILD_DIR/logs/exec_logs
 checkError()
 {
   if [ "$1" -ne 0 ]
@@ -11,11 +12,11 @@ checkError()
         printf "\nReproduction/How to fix: $4"
 	printf "\n*******************************************************************";
 	printf "\n*******************************************************************\n\n";
-        #exit 1;
+        cat $EXECLOGS
+        exit 1;
   fi
 }
 
-EXECLOGS=$TRAVIS_BUILD_DIR/logs/exec_logs
 #This script executes necessary javascript files and measures pxleak checks and memory leaks checks
 
 if [ -z "${TRAVIS_BUILD_DIR}" ]
@@ -88,7 +89,6 @@ while [ "$retVal" -ne 0 ] &&  [ "$count" -ne "$max_seconds" ]; do
 		retVal=$?
 	fi
 done
-cat $EXECLOGS
 ls -lrt /tmp/pxscenecrash
 retVal=$?
 if [ "$retVal" -eq 0 ]
