@@ -457,11 +457,14 @@ then
 fi
 
 #-------- spark-webgl
-#export NODE_PATH=$NODE_PATH:`pwd`/../src/node_modules
-#export PATH=`pwd`/node/deps/npm/bin/node-gyp-bin/:`pwd`/node/:$PATH
-#cd spark-webgl
-#node-gyp rebuild
-#cd ..
+cd spark-webgl
+if [ "$(uname)" != "Darwin" ]
+then
+  cp ../../rlExternals/Spark-Externals/artifacts/linux/gles2.node ../../src/node_modules/.
+else
+  cp ../../rlExternals/Spark-Externals/artifacts/osx/gles2.node ../../src/node_modules/.
+fi
+cd ..
 
 #-------- 
 
