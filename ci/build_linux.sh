@@ -31,8 +31,7 @@ then
 	checkError $? "cmake config failed" "Config error" "Check the error in $BUILDLOGS"
 
   echo "************************* Building pxcore,rtcore,pxscene app,libpxscene, unitttests ****" >> $BUILDLOGS
-  #cmake --build . --clean-first -- -j$(getconf _NPROCESSORS_ONLN) >>$BUILDLOGS 2>&1;
-  cmake --build . --clean-first -- -j$(getconf _NPROCESSORS_ONLN)
+  cmake --build . --clean-first -- -j$(getconf _NPROCESSORS_ONLN) >>$BUILDLOGS 2>&1;
   checkError $? "cmake build failed for pxcore or rtcore" "Compilation error" "Check the error in $BUILDLOGS"
 
 else

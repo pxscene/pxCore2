@@ -392,9 +392,6 @@ then
     ln -sf ../../rlExternals/Spark-Externals/artifacts/linux/libnode.so.* ./
     ln -sf libnode.so.* libnode.so
     ln -sf ../../rlExternals/Spark-Externals/artifacts/linux/node node
-    echo "before printing data "
-    ls -rlt ../../rlExternals/Spark-Externals/artifacts/linux/
-    ls -lrt 
   else
     ln -sf ../../rlExternals/Spark-Externals/artifacts/osx/libnode.*.dylib ./
     ln -sf libnode.*.dylib libnode.dylib
@@ -404,7 +401,6 @@ then
   rm node
   ln -sf "libnode-v${NODE_VER}" node
 fi
-ls -lrt node
 export LD_LIBRARY_PATH="`pwd`/node:$LD_LIBRARY_PATH"
 export DYLD_LIBRARY_PATH="`pwd`/node:$DYLD_LIBRARY_PATH"
 #---------
