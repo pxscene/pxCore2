@@ -404,6 +404,9 @@ then
   rm node
   ln -sf "libnode-v${NODE_VER}" node
 fi
+ls -lrt node
+export LD_LIBRARY_PATH="`pwd`/node:$LD_LIBRARY_PATH"
+export DYLD_LIBRARY_PATH="`pwd`/node:$DYLD_LIBRARY_PATH"
 #---------
 
 #--------- uWebSockets
