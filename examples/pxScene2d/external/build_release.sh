@@ -67,6 +67,7 @@ rm -rf lib/libcrypto.a
 rm -rf lib/libssl.a
 cd ..
 unset DISABLE_CCACHE
+ln -s ${OPENSSL_DIR} openssl
 #cd ${OPENSSL_DIR}
 #if [ "$(uname)" != "Darwin" ]
 #then

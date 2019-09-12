@@ -141,4 +141,6 @@ mkdir rlExternals
 cd rlExternals
 git clone --branch=master https://github.com/madanagopalt/Spark-Externals.git
 ls -lrt Spark-Externals
+cd ..
 cd $TRAVIS_BUILD_DIR
+ln -s $TRAVIS_BUILD_DIR/examples/pxScene2d/rlExternals/Spark-Externals Spark-Externals

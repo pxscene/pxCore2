@@ -82,6 +82,8 @@ then
    checkError $? "unable to commit data to repo" "" "check the credentials"
 fi
 
+cd $TRAVIS_BUILD_DIR
+rm -rf Spark-Externals
 cd $TRAVIS_BUILD_DIR/examples/pxScene2d
 rm -rf rlExternals
 cd $TRAVIS_BUILD_DIR
