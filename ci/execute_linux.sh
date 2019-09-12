@@ -15,6 +15,7 @@ checkError()
   fi
 }
 
+EXECLOGS=$TRAVIS_BUILD_DIR/logs/exec_logs
 #This script executes necessary javascript files and measures pxleak checks and memory leaks checks
 
 if [ -z "${TRAVIS_BUILD_DIR}" ]
@@ -41,7 +42,6 @@ export SUPPRESSIONS=$TRAVIS_BUILD_DIR/ci/leak.supp
 export SPARK_ENABLE_COLLECT_GARBAGE=1
 
 touch $VALGRINDLOGS
-EXECLOGS=$TRAVIS_BUILD_DIR/logs/exec_logs
 TESTRUNNERURL="https://www.sparkui.org/tests-ci/test-run/testRunner.js"
 TESTS="file://$TRAVIS_BUILD_DIR/tests/pxScene2d/testRunner/testsDesktop.json,file://$TRAVIS_BUILD_DIR/tests/pxScene2d/testRunner/tests.json"
 
@@ -63,8 +63,7 @@ printValgrindLogs()
 
 # Start testRunner ... 
 cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src
-#./spark.sh $TESTRUNNERURL?tests=$TESTS > $EXECLOGS 2>&1 &
-./spark.sh $TESTRUNNERURL?tests=$TESTS
+./spark.sh $TESTRUNNERURL?tests=$TESTS > $EXECLOGS 2>&1 &
 
 
 grep "TEST RESULTS: " $EXECLOGS
@@ -89,7 +88,7 @@ while [ "$retVal" -ne 0 ] &&  [ "$count" -ne "$max_seconds" ]; do
 		retVal=$?
 	fi
 done
-
+cat $EXECLOGS
 ls -lrt /tmp/pxscenecrash
 retVal=$?
 if [ "$retVal" -eq 0 ]
