@@ -53,13 +53,12 @@ px.import({ scene:   'px:scene.1.js',
   var root  = imports.scene.root;
 
   var storage = scene.storage
-
   var hasStorage = storage?true:false
 
   function getHomeUrl() {
     var homeUrl
 
-    if (storage)
+    if (hasStorage)
       homeUrl = storage.getItem('.home.')
 
     if (!homeUrl)
@@ -165,6 +164,15 @@ px.import({ scene:   'px:scene.1.js',
   }
 
   makeMenu()
+
+  if (hasStorage) {
+    menuButton.a = 0.8
+    menuButton.interactive = true
+  }
+  else {
+    menuButton.a = 0.3
+    menuButton.interactive = false
+  }
 
   var helpBox  = null;
   var backUrls = []
@@ -319,7 +327,7 @@ px.import({ scene:   'px:scene.1.js',
               starContainer.interactive = false
               var favorites = []
 
-              if (storage)
+              if (hasStorage)
                 favorites = storage.getItems('.fav.')
 
               var doc = ''
@@ -336,7 +344,7 @@ px.import({ scene:   'px:scene.1.js',
             }
             else {
               home.a = 0
-              if (storage) {
+              if (hasStorage) {
                 starContainer.a = 1
                 starContainer.interactive = true
                 var urlKey = '.fav.'+currUrl//content.url
@@ -348,6 +356,9 @@ px.import({ scene:   'px:scene.1.js',
                   star.a = style.star.a
                   starFill.a = 0
                 }
+              } else {
+                starContainer.a = 0
+                starContainer.interactive = false
               }
             }
 
@@ -545,19 +556,6 @@ px.import({ scene:   'px:scene.1.js',
 
     home.x   = inputBox.x+inputBox.w -32;
     home.y   = inputBox.y - inputBox.h +40;
-
-    if (hasStorage) {
-      starContainer.a = 1
-      starContainer.interactive = true
-      menuButton.a = 0.8
-      menuButton.interactive = true
-    }
-    else {
-      starContainer.a = 0
-      starContainer.interactive = false
-      menuButton.a = 0.3
-      menuButton.interactive = false
-    }
   }
 
   scene.root.on("onPreKeyDown", function(e)

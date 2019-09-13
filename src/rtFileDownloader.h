@@ -104,6 +104,8 @@ public:
   char* httpErrorBuffer(void);
   void setCurlDefaultTimeout(bool val);
   bool isCurlDefaultTimeoutSet();
+  void setConnectionTimeout(long val);
+  long getConnectionTimeout();
   void setCORS(const rtCORSRef& cors);
   rtCORSRef cors() const;
   void cancelRequest();
@@ -113,6 +115,8 @@ public:
   void setReadData(const uint8_t* data, size_t size);
   const uint8_t* readData() const;
   size_t readDataSize() const;
+  void enableDownloadMetrics(bool enableDownloadMetrics);
+  bool isDownloadMetricsEnabled(void);
   rtObjectRef downloadMetrics() const;
   void setDownloadMetrics(int32_t connectTimeMs, int32_t sslConnectTimeMs, int32_t totalTimeMs, int32_t downloadSpeedBytesPerSecond);
   void setDownloadOnly(bool downloadOnly);
@@ -123,8 +127,20 @@ public:
   bool isByteRangeEnabled(void);
   void setByteRangeIntervals(size_t byteRangeIntervals);
   size_t byteRangeIntervals(void);
+  void setCurlErrRetryCount(unsigned int curlRetryCount);
+  unsigned int getCurlErrRetryCount(void);
   void setCurlRetryEnable(bool bCurlRetry);
   bool isCurlRetryEnabled(void);
+  void setUserAgent(const char* userAgent);
+  rtString userAgent() const;
+  void setRedirectFollowLocation(bool redirectFollowLocation);
+  bool isRedirectFollowLocationEnabled(void);
+  void setKeepTCPAlive(bool keepTCPAlive);
+  bool keepTCPAliveEnabled(void);
+  void setCROSRequired(bool crosRequired);
+  bool isCROSRequired(void);
+  void setVerifySSL(bool verifySSL);
+  bool isVerifySSLEnabled(void);
 
 private:
   rtString mTag;
@@ -155,6 +171,7 @@ private:
   bool mHTTPFailOnError;
   char mHttpErrorBuffer[CURL_ERROR_SIZE];
   bool mDefaultTimeout;
+  long mConnectionTimeout;
   rtCORSRef mCORS;
   bool mCanceled;
   bool mUseCallbackDataSize;
@@ -162,12 +179,18 @@ private:
   rtString mMethod;
   const uint8_t* mReadData;
   size_t mReadDataSize;
+  bool mDownloadMetricsEnabled;
   rtObjectRef mDownloadMetrics;
   bool mDownloadOnly;
   size_t mActualFileSize;
   bool mIsByteRangeEnabled;
   size_t mByteRangeIntervals;
+  unsigned int curlErrRetryCount;
   bool mCurlRetry;
+  rtString mUserAgent;
+  bool mRedirectFollowLocation;
+  bool mKeepTCPAlive;
+  bool mCROSRequired;
 };
 
 struct rtFileDownloadHandle
@@ -199,7 +222,7 @@ public:
     void downloadFileAsByteRange(rtFileDownloadRequest* downloadRequest);
     void setDefaultCallbackFunction(void (*callbackFunction)(rtFileDownloadRequest*));
     bool downloadFromNetwork(rtFileDownloadRequest* downloadRequest);
-    bool downloadByteRangeFromNetwork(rtFileDownloadRequest* downloadRequest);
+    bool downloadByteRangeFromNetwork(rtFileDownloadRequest* downloadRequest, bool *bRedirect);
     void checkForExpiredHandles();
 
 private:
