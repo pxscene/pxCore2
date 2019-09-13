@@ -1171,14 +1171,23 @@ class rtFileDownloaderTest : public testing::Test, public commonTestFns
       sem_wait(testSem);
     }
 
+    static void onPreDownloadComplete(rtFileDownloadRequest* fileDownloadRequest)
+    {
+      rtHttpCacheData cachedData;
+      if (fileDownloadRequest != NULL && fileDownloadRequest->callbackData() != NULL)
+      {
+        rtFileDownloaderTest* callbackData = (rtFileDownloaderTest*) fileDownloadRequest->callbackData();
+        EXPECT_TRUE (callbackData->expectedCachePresence == rtFileDownloader::instance()->checkAndDownloadFromCache(fileDownloadRequest,cachedData));
+        sem_post(callbackData->testSem);
+      }
+    }
+
     void addToByteRangeDownloadQueueTest()
     {
       rtFileCache::instance()->clearCache();
-      addDataToCache("http://fileserver/file.jpeg",getHeader(),getBodyData(),fixedData.length());
-      expectedStatusCode = 0;
-      expectedHttpCode = 206;
+      addDataToCache(DOWNLOAD_FILE_URL,getHeader(),getBodyData(),fixedData.length());
       expectedCachePresence = true;
-      rtFileDownloadRequest* request = new rtFileDownloadRequest("http://fileserver/file.jpeg",this);
+      rtFileDownloadRequest* request = new rtFileDownloadRequest(DOWNLOAD_FILE_URL,this);
 
       request->setCurlDefaultTimeout(true);
       request->setKeepTCPAlive(false);
@@ -1192,7 +1201,7 @@ class rtFileDownloaderTest : public testing::Test, public commonTestFns
       request->setConnectionTimeout(CURLE_CONNECTION_TIMEOUT);
       request->setCurlErrRetryCount(CURLE_COULDNT_CONNECT_RETRY_COUNT);
 
-      request->setCallbackFunction(rtFileDownloaderTest::downloadCallback);
+      request->setCallbackFunction(rtFileDownloaderTest::onPreDownloadComplete);
       request->setCallbackData(this);
       rtFileDownloader::instance()->addToDownloadQueue(request);
       sem_wait(testSem);
