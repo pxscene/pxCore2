@@ -914,6 +914,17 @@ class rtFileDownloaderTest : public testing::Test, public commonTestFns
       //EXPECT_TRUE (RT_OK ==rtFileCache::instance()->httpCacheData("https://www.sparkui.org/tests-ci/tests/images/008.jpg",data));
     }
 
+    static void onPreDownloadComplete(rtFileDownloadRequest* fileDownloadRequest)
+    {
+      rtHttpCacheData cachedData;
+      if (fileDownloadRequest != NULL && fileDownloadRequest->callbackData() != NULL)
+      {
+        rtFileDownloaderTest* callbackData = (rtFileDownloaderTest*) fileDownloadRequest->callbackData();
+        EXPECT_TRUE (callbackData->expectedCachePresence == rtFileDownloader::instance()->checkAndDownloadFromCache(fileDownloadRequest,cachedData));
+        sem_post(callbackData->testSem);
+      }
+    }
+
     //#define DOWNLOAD_FILE_URL 				"https://www.sparkui.org/tests-ci/tests/images/008.jpg"
     #define DOWNLOAD_FILE_URL 					"http://ccr.mpeg4-ads.xcr.comcast.net/adt6qam12/CSAJ7002609400100001/1530220816476/CSAJ8002609400100001_mezz_4QAM.ts"
     #define BYTE_RANGE_SPLIT 					(7 * 47 * 4096) // 1347584 //The rational number that is the least common multiple of 4096 and 1316 which is (188*7).
@@ -924,7 +935,7 @@ class rtFileDownloaderTest : public testing::Test, public commonTestFns
       // TODO TESTS images files downloaded from pxscene-samples need expiry date
       rtFileCache::instance()->clearCache();
       rtFileDownloadRequest* request = new rtFileDownloadRequest(DOWNLOAD_FILE_URL,this);
-      request->setCallbackFunction(rtFileDownloaderTest::downloadCallback);
+      request->setCallbackFunction(rtFileDownloaderTest::onPreDownloadComplete);
       expectedStatusCode = 0;
       expectedHttpCode = 206;
       expectedCachePresence = false;
@@ -1169,17 +1180,6 @@ class rtFileDownloaderTest : public testing::Test, public commonTestFns
       request->setCallbackData(this);
       rtFileDownloader::instance()->addToDownloadQueue(request);
       sem_wait(testSem);
-    }
-
-    static void onPreDownloadComplete(rtFileDownloadRequest* fileDownloadRequest)
-    {
-      rtHttpCacheData cachedData;
-      if (fileDownloadRequest != NULL && fileDownloadRequest->callbackData() != NULL)
-      {
-        rtFileDownloaderTest* callbackData = (rtFileDownloaderTest*) fileDownloadRequest->callbackData();
-        EXPECT_TRUE (callbackData->expectedCachePresence == rtFileDownloader::instance()->checkAndDownloadFromCache(fileDownloadRequest,cachedData));
-        sem_post(callbackData->testSem);
-      }
     }
 
     void addToByteRangeDownloadQueueTest()
