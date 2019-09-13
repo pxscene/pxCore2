@@ -916,10 +916,9 @@ class rtFileDownloaderTest : public testing::Test, public commonTestFns
 
     //#define DOWNLOAD_FILE_URL 				"https://www.sparkui.org/tests-ci/tests/images/008.jpg"
     #define DOWNLOAD_FILE_URL 					"http://ccr.mpeg4-ads.xcr.comcast.net/adt6qam12/CSAJ7002609400100001/1530220816476/CSAJ8002609400100001_mezz_4QAM.ts"
-    #define BYTE_RANGE_SPLIT    				(7 * 47 * 4096) // 1347584 //The rational number that is the least common multiple of 4096 and 1316 which is (188*7).
-    #define CURLE_COULDNT_CONNECT_RETRY_COUNT 	                2
-    #define CURLE_CONNECTION_TIMEOUT			        2L
-
+    #define BYTE_RANGE_SPLIT 					(7 * 47 * 4096) // 1347584 //The rational number that is the least common multiple of 4096 and 1316 which is (188*7).
+    #define CURLE_COULDNT_CONNECT_RETRY_COUNT 	2
+    #define CURLE_CONNECTION_TIMEOUT			2L
     void downloadFileAsByteRangeAddToCacheTest()
     {
       // TODO TESTS images files downloaded from pxscene-samples need expiry date
@@ -977,6 +976,18 @@ class rtFileDownloaderTest : public testing::Test, public commonTestFns
       rtFileDownloadRequest* request = new rtFileDownloadRequest("https://www.sparkui.org/tests-ci/tests/images/008.jpg",this);
       request->setCallbackFunction(rtFileDownloaderTest::downloadCallbackForDeferCache);
       request->setDeferCacheRead(true);
+      request->setCachedFileReadSize(DEFER_CACHE_BUFFER_SIZE);
+      expectedStatusCode = 0;
+      expectedHttpCode = 200;
+      expectedCachePresence = false;
+      rtFileDownloader::instance()->downloadFile(request);
+      sem_wait(testSem);
+      EXPECT_TRUE(request->getCachedFileReadSize() == DEFER_CACHE_BUFFER_SIZE);
+
+      // Covering cacheFilePointer test
+      request->setCallbackFunction(rtFileDownloaderTest::downloadCallbackForDeferCache);
+      request->setDeferCacheRead(true);
+      request->setDownloadOnly(false);
       request->setCachedFileReadSize(DEFER_CACHE_BUFFER_SIZE);
       expectedStatusCode = 0;
       expectedHttpCode = 200;
@@ -1154,6 +1165,33 @@ class rtFileDownloaderTest : public testing::Test, public commonTestFns
       expectedHttpCode = 200;
       expectedCachePresence = true;
       rtFileDownloadRequest* request = new rtFileDownloadRequest("http://fileserver/file.jpeg",this);
+      request->setCallbackFunction(rtFileDownloaderTest::downloadCallback);
+      request->setCallbackData(this);
+      rtFileDownloader::instance()->addToDownloadQueue(request);
+      sem_wait(testSem);
+    }
+
+    void addToByteRangeDownloadQueueTest()
+    {
+      rtFileCache::instance()->clearCache();
+      addDataToCache("http://fileserver/file.jpeg",getHeader(),getBodyData(),fixedData.length());
+      expectedStatusCode = 0;
+      expectedHttpCode = 200;
+      expectedCachePresence = true;
+      rtFileDownloadRequest* request = new rtFileDownloadRequest("http://fileserver/file.jpeg",this);
+
+      request->setCurlDefaultTimeout(true);
+      request->setKeepTCPAlive(false);
+      request->setCROSRequired(false);
+      request->enableDownloadMetrics(false);
+      request->setRedirectFollowLocation(false);
+      request->setDownloadOnly(true);
+      request->setByteRangeEnable(true);
+      request->setByteRangeIntervals(BYTE_RANGE_SPLIT);
+      request->setCurlRetryEnable(true);
+      request->setConnectionTimeout(CURLE_CONNECTION_TIMEOUT);
+      request->setCurlErrRetryCount(CURLE_COULDNT_CONNECT_RETRY_COUNT);
+
       request->setCallbackFunction(rtFileDownloaderTest::downloadCallback);
       request->setCallbackData(this);
       rtFileDownloader::instance()->addToDownloadQueue(request);
@@ -1359,6 +1397,7 @@ TEST_F(rtFileDownloaderTest, checkCacheTests)
   downloadFileCacheDataProperAvailableTest();
   disableCacheTest();
   downloadFileAddToCacheTest();
+  downloadFileAsByteRangeAddToCacheTest();
   setDeferCacheReadTest();
   setUseCallbackDataSizeTest();
   checkAndDownloadFromNetworkSuccess();
@@ -1372,6 +1411,7 @@ TEST_F(rtFileDownloaderTest, checkCacheTests)
   setCallbackDataTest();
   setDownloadHandleExpiresTimeTest();
   addToDownloadQueueTest();
+  addToByteRangeDownloadQueueTest();
   setCallbackFunctionNullInDownloadFileTest();
   setDefaultCallbackFunctionNullTest();
   startNextDownloadInBackgroundTest();
