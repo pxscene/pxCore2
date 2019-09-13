@@ -1176,7 +1176,7 @@ class rtFileDownloaderTest : public testing::Test, public commonTestFns
       rtFileCache::instance()->clearCache();
       addDataToCache("http://fileserver/file.jpeg",getHeader(),getBodyData(),fixedData.length());
       expectedStatusCode = 0;
-      expectedHttpCode = 200;
+      expectedHttpCode = 206;
       expectedCachePresence = true;
       rtFileDownloadRequest* request = new rtFileDownloadRequest("http://fileserver/file.jpeg",this);
 
