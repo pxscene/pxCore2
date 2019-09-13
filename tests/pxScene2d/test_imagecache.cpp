@@ -925,8 +925,8 @@ class rtFileDownloaderTest : public testing::Test, public commonTestFns
       }
     }
 
-    //#define DOWNLOAD_FILE_URL 				"https://www.sparkui.org/tests-ci/tests/images/008.jpg"
-    #define DOWNLOAD_FILE_URL 					"http://ccr.mpeg4-ads.xcr.comcast.net/adt6qam12/CSAJ7002609400100001/1530220816476/CSAJ8002609400100001_mezz_4QAM.ts"
+    #define DOWNLOAD_FILE_URL 				"https://www.sparkui.org/tests-ci/tests/images/008.jpg"
+    //#define DOWNLOAD_FILE_URL 					"http://ccr.mpeg4-ads.xcr.comcast.net/adt6qam12/CSAJ7002609400100001/1530220816476/CSAJ8002609400100001_mezz_4QAM.ts"
     #define BYTE_RANGE_SPLIT 					(7 * 47 * 4096) // 1347584 //The rational number that is the least common multiple of 4096 and 1316 which is (188*7).
     #define CURLE_COULDNT_CONNECT_RETRY_COUNT 	2
     #define CURLE_CONNECTION_TIMEOUT			2L
@@ -985,18 +985,6 @@ class rtFileDownloaderTest : public testing::Test, public commonTestFns
       rtFileDownloadRequest* request = new rtFileDownloadRequest("https://www.sparkui.org/tests-ci/tests/images/008.jpg",this);
       request->setCallbackFunction(rtFileDownloaderTest::downloadCallbackForDeferCache);
       request->setDeferCacheRead(true);
-      request->setCachedFileReadSize(DEFER_CACHE_BUFFER_SIZE);
-      expectedStatusCode = 0;
-      expectedHttpCode = 200;
-      expectedCachePresence = false;
-      rtFileDownloader::instance()->downloadFile(request);
-      sem_wait(testSem);
-      EXPECT_TRUE(request->getCachedFileReadSize() == DEFER_CACHE_BUFFER_SIZE);
-
-      // Covering cacheFilePointer test
-      request->setCallbackFunction(rtFileDownloaderTest::downloadCallbackForDeferCache);
-      request->setDeferCacheRead(true);
-      request->setDownloadOnly(false);
       request->setCachedFileReadSize(DEFER_CACHE_BUFFER_SIZE);
       expectedStatusCode = 0;
       expectedHttpCode = 200;
