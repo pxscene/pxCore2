@@ -190,13 +190,6 @@ var loadUrl = function(url, _beginDrawing, _endDrawing, _view, _frameworkURL, _o
   {
     sandbox[sandboxKeys[i]] = global[sandboxKeys[i]];
   }
-  var sandboxDir = __dirname;
-  if (url.startsWith('gl:')) {
-    sandboxDir = path.dirname(url.substring(3));
-  } else {
-    sandboxDir = path.dirname(url);
-  }
-  sandbox['__dirname'] = sandboxDir;
   sandbox['Buffer'] = Buffer;
 // JRJR todo make into a map
 var bootStrapCache = {}
@@ -651,8 +644,15 @@ async function loadMjs(source, url, context)
 
       var source = "";
       if (isLocalFile) {
-        source = fs.readFileSync(filename, 'utf-8');
+        if (/^file:/.test(filename)) {
+          source = fs.readFileSync(new urlmain.URL(filename), 'utf-8');
+        } else {
+          source = fs.readFileSync(filename, 'utf-8');
+        }
+      } else {
+        throw 'cannot require remote modules!';
       }
+
       const wrapped = `(function(exports,require,module,__filename,__dirname) {${source}})`;
       let compiled = vm.runInThisContext(wrapped, {filename:filename,displayErrors:true})
       const exports = {};
@@ -671,26 +671,39 @@ async function loadMjs(source, url, context)
     };
   };
 
-  async function getFile(location) {
-    //remove the query parameters for downloading the file
-    let pos = location.indexOf('?');
-    if (pos !== -1) {
-      location = location.substring(0, pos);
-    }
+  function filename2url(loc) {
+    let pos = loc.indexOf('#');
+    if (pos !== -1)
+      loc = loc.substring(0, pos);
+    pos = loc.indexOf('?');
+    if (pos !== -1)
+      loc = loc.substring(0, pos);
 
-    if (location.indexOf('http') === 0) {
-      return {data: await loadHttpFile(location), uri: location};
-    } else {
-      if (location.indexOf("/") !== 0) {
-        location = path.resolve(__dirname, location);
-      }
-      return {data: await readFileAsync(location, {'encoding': 'utf-8'}), uri: `file://${location}`};
-    }
+    if (/^http:|^https:|^file:/.test(loc))
+      return loc; //already a URL
+
+    if (loc.charAt(0) !== '/' && __dirname)
+      loc = urlmain.resolve(__dirname + '/', loc);
+    if (!/^file:/.test(loc))
+      loc = `file://${loc}`;
+    return loc;
+  }
+
+  async function getFile(url) {
+    if (/^http:|^https:/.test(url))
+      return await loadHttpFile(url);
+    if (/^file:/.test(url))
+      return await readFileAsync(new urlmain.URL(url), {'encoding': 'utf-8'});
+    return await readFileAsync(url, {'encoding': 'utf-8'});
   }
 
   function loadESM(filename) {
+    const url = filename2url(filename);
+    const loc = /^file:/.test(url) ? url.substring(7) : url;
+
     // override require to our own require to load files relative to file path
-    sandbox.require = makeRequire(filename);
+    sandbox.require = makeRequire(loc);
+    sandbox['__dirname'] = path.dirname(loc);
 
     contextifiedSandbox = vm.createContext(sandbox);
     script.runInContext(contextifiedSandbox);
@@ -700,13 +713,14 @@ async function loadMjs(source, url, context)
         let instantiated = false;
         try {
           if (_frameworkURL) {
-            let framework = await getFile(_frameworkURL);
-            vm.runInContext(framework.data, contextifiedSandbox, {filename:framework.uri});
+            const url2 = filename2url(_frameworkURL);
+            const loc2 = /^file:/.test(url2) ? url2.substring(7) : url2;
+            const source2 = await getFile(url2);
+            vm.runInContext(source2, contextifiedSandbox, {filename:loc2});
           }
 
-          let file = await getFile(filename);
-          let source = file.data, rpath = file.uri;
-          app = await loadMjs(source, rpath, contextifiedSandbox);
+          const source = await getFile(url);
+          app = await loadMjs(source, url, contextifiedSandbox);
           app.instantiate();
           instantiated = true;
           succeeded = true;
