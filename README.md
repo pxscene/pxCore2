@@ -1,6 +1,3 @@
-[![codecov](https://codecov.io/gh/pxscene/pxCore/branch/master/graph/badge.svg)](https://codecov.io/gh/pxscene/pxCore)
-[![coverity](https://scan.coverity.com/projects/13125/badge.svg)](https://scan.coverity.com/projects/pxcore)
-
 # pxCore
 
 pxCore is a small open source library that provides a portable framebuffer and windowing abstraction for C++. This library is intended to hide the complexity of writing rasterization code on multiple platforms and allows you to easily write the following sorts of things in a portable way:
