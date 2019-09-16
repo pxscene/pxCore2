@@ -61,5 +61,5 @@
       {"url":"../tests/test_dirty_rectangles.js", "title":"test_dirty_rectangles","useBaseURI":"true"},
       {"url":"../tests/test_pxShaderResource.js", "title":"test_pxShaderResource","useBaseURI":"true"},
       {"url":"../tests/test_gifLoader.js", "title":"test_gifLoader","useBaseURI":"true"},
-      {"url":"../tests/test_bootstrap.spark", "title":"test_bootstrap","timeToRun": "5000","useBaseURI":"true"}
+      {"url":"../tests/test_bootstrap.spark", "title":"test_bootstrap","timeToRun": "10000","useBaseURI":"true"}
 ]
