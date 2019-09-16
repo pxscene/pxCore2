@@ -39,9 +39,9 @@ EXT_INSTALL_PATH=$PWD/extlibs
 mkdir -p $EXT_INSTALL_PATH
 if [ "$(uname)" != "Darwin" ]
 then
-  cp -R ../../rlExternals/Spark-Externals/artifacts/linux/* $EXT_INSTALL_PATH/.
+  cp -R ../rlExternals/Spark-Externals/artifacts/linux/* $EXT_INSTALL_PATH/.
 else
-  cp -R ../../rlExternals/Spark-Externals/artifacts/osx/* $EXT_INSTALL_PATH/.
+  cp -R ../rlExternals/Spark-Externals/artifacts/osx/* $EXT_INSTALL_PATH/.
 fi
 
 ls -lrt $EXT_INSTALL_PATH
