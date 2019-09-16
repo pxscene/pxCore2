@@ -35,16 +35,18 @@ while (( "$#" )); do
   esac
 done
 
+RELEASE_EXTERNALS_PATH=../rlExternals/Spark-Externals
 EXT_INSTALL_PATH=$PWD/extlibs
-mkdir -p $EXT_INSTALL_PATH
+#mkdir -p $EXT_INSTALL_PATH
 if [ "$(uname)" != "Darwin" ]
 then
-  cp -R ../rlExternals/Spark-Externals/artifacts/linux/* $EXT_INSTALL_PATH/.
+  ln -s $RELEASE_EXTERNALS_PATH/artifacts/linux extlibs   
+  cp -R $RELEASE_EXTERNALS_PATH/artifacts/linux/* $EXT_INSTALL_PATH/.
 else
-  cp -R ../rlExternals/Spark-Externals/artifacts/osx/* $EXT_INSTALL_PATH/.
+  ln -s $RELEASE_EXTERNALS_PATH/artifacts/osx extlibs   
+  cp -R $RELEASE_EXTERNALS_PATH/artifacts/osx/* $EXT_INSTALL_PATH/.
 fi
-
-ls -lrt $EXT_INSTALL_PATH
+ln -s $EXT_INSTALL_PATH $RELEASE_EXTERNALS_PATH/extlibs
 
 make_parallel=3
 
@@ -397,13 +399,13 @@ then
   cd "libnode-v${NODE_VER}"
   if [ "$(uname)" != "Darwin" ]
   then
-    ln -sf ../../rlExternals/Spark-Externals/artifacts/linux/lib/libnode.so.* ./
+    ln -sf $RELEASE_EXTERNALS_PATH/artifacts/linux/lib/libnode.so.* ./
     ln -sf libnode.so.* libnode.so
-    ln -sf ../../rlExternals/Spark-Externals/artifacts/linux/lib/node node
+    ln -sf $RELEASE_EXTERNALS_PATH/artifacts/linux/lib/node node
   else
-    ln -sf ../../rlExternals/Spark-Externals/artifacts/osx/lib/libnode.*.dylib ./
+    ln -sf $RELEASE_EXTERNALS_PATH/artifacts/osx/lib/libnode.*.dylib ./
     ln -sf libnode.*.dylib libnode.dylib
-    ln -sf ../../rlExternals/Spark-Externals/artifacts/osx/lib/node node
+    ln -sf $RELEASE_EXTERNALS_PATH/artifacts/osx/lib/node node
   fi
   cd ..
   rm node
@@ -464,9 +466,9 @@ fi
 cd spark-webgl
 if [ "$(uname)" != "Darwin" ]
 then
-  cp ../../rlExternals/Spark-Externals/artifacts/linux/node_modules/gles2.node ../../src/node_modules/.
+  cp $RELEASE_EXTERNALS_PATH/artifacts/linux/node_modules/gles2.node ../../src/node_modules/.
 else
-  cp ../../rlExternals/Spark-Externals/artifacts/osx/node_modules/gles2.node ../../src/node_modules/.
+  cp $RELEASE_EXTERNALS_PATH/artifacts/osx/node_modules/gles2.node ../../src/node_modules/.
 fi
 cd ..
 

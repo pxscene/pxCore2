@@ -136,9 +136,17 @@ then
 	sudo pip install codecov
 fi
 
-cd $TRAVIS_BUILD_DIR/examples/pxScene2d
+#setup spark externals repo
+SRC_REPO_USER_NAME='madanagopalt'
+DEST_REPO_USER_NAME=`echo $TRAVIS_REPO_SLUG | cut -d'/' -f 1`
+cd $TRAVIS_BUILD_DIR/examples/pxScene2d/
 mkdir rlExternals
 cd rlExternals
 git clone --branch=master https://github.com/madanagopalt/Spark-Externals.git
-ls -lrt Spark-Externals
+cd Spark-Externals
+sed -i "s/$SRC_REPO_USER_NAME/$DEST_REPO_USER_NAME/g" artifacts/linux/lib/pkgconfig/*
+sed -i "s/$SRC_REPO_USER_NAME/$DEST_REPO_USER_NAME/g" artifacts/osx/lib/pkgconfig/*
+cd $TRAVIS_BUILD_DIR
 cd ..
+ln -s pxCore/examples/pxScene2d/rlExternals/Spark-Externals Spark-Externals
+cd $TRAVIS_BUILD_DIR
