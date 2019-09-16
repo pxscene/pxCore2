@@ -64,7 +64,7 @@ export DUMP_STACK_ON_EXCEPTION=1
 cd $TRAVIS_BUILD_DIR/ci
 if ( [ "$TRAVIS_EVENT_TYPE" = "push" ] || [ "$TRAVIS_EVENT_TYPE" = "pull_request" ] ) && [ -z "${TRAVIS_TAG}" ] 
 then
-  ls -lrt $TRAVIS_BUILD_DIR/examples/pxScene2d/external
+  ls -lrt $TRAVIS_BUILD_DIR/examples/pxScene2d/extlibs
   sh build_px.sh 
   checkError $? "#### Build/unittests/execution [build_px.sh] failed" "Either build problem/execution problem" "Analyze corresponding log file"
 
