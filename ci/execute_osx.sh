@@ -88,7 +88,6 @@ while [ "$count" -le "$max_seconds" ]; do
 		#crash check ends
 	fi
 
-        cat /var/tmp/spark.log
 	count=$((count+30)) # add 30 seconds
 done #LOOP
 
