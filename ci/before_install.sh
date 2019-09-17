@@ -144,8 +144,11 @@ mkdir rlExternals
 cd rlExternals
 git clone --branch=master https://github.com/madanagopalt/Spark-Externals.git
 cd Spark-Externals
-sed -i "s/$SRC_REPO_USER_NAME/$DEST_REPO_USER_NAME/g" artifacts/linux/lib/pkgconfig/*
-sed -i "s/$SRC_REPO_USER_NAME/$DEST_REPO_USER_NAME/g" artifacts/osx/lib/pkgconfig/*
+if [ "$TRAVIS_OS_NAME" = "osx" ]; then
+  sed -i -n "s/$SRC_REPO_USER_NAME/$DEST_REPO_USER_NAME/g" artifacts/$TRAVIS_OS_NAME/lib/pkgconfig/*
+else
+  sed -i "s/$SRC_REPO_USER_NAME/$DEST_REPO_USER_NAME/g" artifacts/$TRAVIS_OS_NAME/lib/pkgconfig/*
+fi
 cd $TRAVIS_BUILD_DIR
 cd ..
 ln -s pxCore/examples/pxScene2d/rlExternals/Spark-Externals Spark-Externals
