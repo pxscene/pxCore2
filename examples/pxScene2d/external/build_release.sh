@@ -466,9 +466,9 @@ fi
 cd spark-webgl
 if [ "$(uname)" != "Darwin" ]
 then
-  cp ../$RELEASE_EXTERNALS_PATH/artifacts/node_modules/linux/gles2.node ../../src/node_modules/.
+  cp ../$RELEASE_EXTERNALS_PATH/artifacts/linux/node_modules/gles2.node ../../src/node_modules/.
 else
-  cp ../$RELEASE_EXTERNALS_PATH/artifacts/node_modules/osx/gles2.node ../../src/node_modules/.
+  cp ../$RELEASE_EXTERNALS_PATH/artifacts/osx/node_modules/gles2.node ../../src/node_modules/.
 fi
 cd ..
 
