@@ -59,9 +59,7 @@ printExecLogs()
 # Start testRunner ...
 rm -rf /var/tmp/spark.log
 cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src/spark.app/Contents/MacOS
-#./spark.sh $TESTRUNNERURL?tests=$TESTS &
-./spark.sh $TESTRUNNERURL?tests=$TESTS
-
+./spark.sh $TESTRUNNERURL?tests=$TESTS &
 
 # Monitor testRunner ...
 count=0
@@ -90,6 +88,7 @@ while [ "$count" -le "$max_seconds" ]; do
 		#crash check ends
 	fi
 
+        cat /var/tmp/spark.log
 	count=$((count+30)) # add 30 seconds
 done #LOOP
 
