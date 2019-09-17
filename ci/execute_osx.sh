@@ -59,13 +59,14 @@ printExecLogs()
 # Start testRunner ...
 rm -rf /var/tmp/spark.log
 cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src/spark.app/Contents/MacOS
-./spark.sh ENABLE-AAMP $TESTRUNNERURL?tests=$TESTS &
+./spark.sh $TESTRUNNERURL?tests=$TESTS &
 
 # Monitor testRunner ...
 count=0
 max_seconds=2100
 
 while [ "$count" -le "$max_seconds" ]; do
+        tail /var/tmp/spark.log
 	#leaks -nocontext Spark > $LEAKLOGS
 	printf "\n [execute_osx.sh] snoozing for 30 seconds (%d of %d) \n" $count $max_seconds
 	sleep 30; # seconds
