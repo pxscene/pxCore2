@@ -17,6 +17,7 @@ banner() {
 
 NODE_VER="10.15.3"
 OPENSSL_DIR="`pwd`/openssl-1.0.2o"
+RELEASE_EXTERNALS_PATH=../rlExternals/Spark-Externals
 
 while (( "$#" )); do
   case "$1" in
@@ -35,18 +36,8 @@ while (( "$#" )); do
   esac
 done
 
-RELEASE_EXTERNALS_PATH=../rlExternals/Spark-Externals
 EXT_INSTALL_PATH=$PWD/extlibs
-#mkdir -p $EXT_INSTALL_PATH
-if [ "$(uname)" != "Darwin" ]
-then
-  ln -s $RELEASE_EXTERNALS_PATH/artifacts/linux extlibs   
-  #cp -R $RELEASE_EXTERNALS_PATH/artifacts/linux/* $EXT_INSTALL_PATH/.
-else
-  ln -s $RELEASE_EXTERNALS_PATH/artifacts/osx extlibs   
-  #cp -R $RELEASE_EXTERNALS_PATH/artifacts/osx/* $EXT_INSTALL_PATH/.
-fi
-ln -s $EXT_INSTALL_PATH $RELEASE_EXTERNALS_PATH/extlibs
+ln -s $RELEASE_EXTERNALS_PATH/extlibs $EXT_INSTALL_PATH
 
 make_parallel=3
 
@@ -78,38 +69,6 @@ rm -rf lib/libssl.a
 cd ..
 unset DISABLE_CCACHE
 ln -s ${OPENSSL_DIR} openssl
-#cd ${OPENSSL_DIR}
-#if [ "$(uname)" != "Darwin" ]
-#then
-#  ls -rlt ../../rlExternals/Spark-Externals/artifacts/linux/
-#  ln -sf ../../rlExternals/Spark-Externals/artifacts/linux/libcrypto.so.1.0.0 libcrypto.so.1.0.0
-#  ln -sf libcrypto.so.1.0.0 libcrypto.so
-#  ln -sf ../../rlExternals/Spark-Externals/artifacts/linux/libssl.so.1.0.0 libssl.so.1.0.0
-#  ln -sf libssl.so.1.0.0 libssl.so
-#  ls -lrt
-#  mkdir lib
-#  cd lib
-#  ln -sf ../../rlExternals/Spark-Externals/artifacts/linux/libcrypto.so.1.0.0 libcrypto.so.1.0.0
-#  ln -sf libcrypto.so.1.0.0 libcrypto.so
-#  ln -sf ../../rlExternals/Spark-Externals/artifacts/linux/libssl.so.1.0.0 libssl.so.1.0.0
-#  ln -sf libssl.so.1.0.0 libssl.so
-#  cd ..
-#  ls -lrt 
-#else
-#  ln -sf ../../rlExternals/Spark-Externals/artifacts/osx/libcrypto.1.0.0.dylib libcrypto.1.0.0.dylib
-#  ln -sf libcrypto.1.0.0.dylib libcrypto.dylib
-#  ln -sf ../../rlExternals/Spark-Externals/artifacts/osx/libssl.1.0.0.dylib libssl.1.0.0.dylib
-#  ln -sf libssl.1.0.0.dylib libssl.dylib
-#  mkdir lib
-#  cd lib
-#  ln -sf ../../rlExternals/Spark-Externals/artifacts/osx/libcrypto.1.0.0.dylib libcrypto.1.0.0.dylib
-#  ln -sf libcrypto.1.0.0.dylib libcrypto.dylib
-#  ln -sf ../../rlExternals/Spark-Externals/artifacts/osx/libssl.1.0.0.dylib libssl.1.0.0.dylib
-#  ln -sf libssl.1.0.0.dylib libssl.dylib
-#  cd ..
-#  ls -lrt 
-#fi
-#cd ..
 export LD_LIBRARY_PATH="${OPENSSL_DIR}/:$LD_LIBRARY_PATH"
 export DYLD_LIBRARY_PATH="${OPENSSL_DIR}/:$DYLD_LIBRARY_PATH"
 
@@ -146,74 +105,6 @@ then
 
 fi
 #---------
-
-#if [[ $# -eq 1 ]] && [[ $1 == "SPARK_ENABLE_VIDEO" ]]; then
-##--------graphite2
-#
-#if [ ! -e $EXT_INSTALL_PATH/lib/libgraphite2.la ]
-#then
-#  banner "graphite2"
-#
-#  ./graphite2/build.sh
-#fi
-#
-##--------
-#
-##-------- pcre
-#
-#if [ ! -e $EXT_INSTALL_PATH/lib/libpcre.la ]
-#then
-#  banner "pcre"
-#
-#  ./pcre/build.sh
-#fi
-#
-##--------
-#
-##--------icu
-#
-#if [ ! -e $EXT_INSTALL_PATH/lib/libicudata.$LIBEXTN ]
-#then
-#  banner "icu"
-#
-#  ./icu/build.sh
-#fi
-#
-##--------
-#
-##-------- libffi
-#
-#if [ ! -e $EXT_INSTALL_PATH/lib/libffi.la ]
-#then
-#  banner "libffi"
-#
-#  ./libffi/build.sh
-#fi
-#
-##--------
-#
-##--------gettext
-#
-#if [ ! -e $EXT_INSTALL_PATH/lib/libintl.la ]
-#then
-#  banner "gettext"
-#
-#  ./gettext/build.sh
-#fi
-#
-##--------
-#
-##--------glib
-#
-#if [ ! -e $EXT_INSTALL_PATH/lib/libglib-2.0.la ]
-#then
-#  banner "glib"
-#
-#  ./glib/build.sh
-#fi
-#
-##--------
-#fi
 
 #--------- GIF
 
@@ -258,47 +149,6 @@ fi
 fi
 
 cd ..
-
-#--------- FT
-
-#if [ ! -e ./ft/objs/.libs/libfreetype.6.dylib ] ||
-#   [ "$(uname)" != "Darwin" ]
-#then
-#
-#  banner "FT"
-#
-#  cd ft
-#
-#  LIBPNG_LIBS="-L../png/.libs -lpng16" PKG_CONFIG_PATH=$EXT_INSTALL_PATH/lib/pkgconfig:$PKG_CONFIG_PATH ./configure --with-png=no --with-harfbuzz=no --prefix=$EXT_INSTALL_PATH
-#  make all "-j${make_parallel}"
-#  make install
-#  cd ..
-#
-#fi
-#---------
-
-#if [[ $# -eq 1 ]] && [[ $1 == "SPARK_ENABLE_VIDEO" ]]; then
-##--------Fontconfig
-#
-#if [ ! -e $EXT_INSTALL_PATH/lib/libfontconfig.$LIBEXTN ]
-#then
-#  banner "Fontconfig"
-#
-#  ./fontconfig/build.sh
-#fi
-#
-##--------
-#
-##--------harfbuzz
-#
-#if [ ! -e $EXT_INSTALL_PATH/lib/libharfbuzz.la ]
-#then
-#  banner "harfbuzz"
-#
-#  ./harfbuzz/build.sh
-#fi
-##---------
-#fi
 
 #-------- openssl
 
@@ -399,13 +249,13 @@ then
   cd "libnode-v${NODE_VER}"
   if [ "$(uname)" != "Darwin" ]
   then
-    ln -sf $RELEASE_EXTERNALS_PATH/artifacts/linux/lib/libnode.so.* ./
+    ln -sf $RELEASE_EXTERNALS_PATH/extlibs/lib/libnode.so.* ./
     ln -sf libnode.so.* libnode.so
-    ln -sf $RELEASE_EXTERNALS_PATH/artifacts/linux/lib/node node
+    ln -sf $RELEASE_EXTERNALS_PATH/extlibs/lib/node node
   else
-    ln -sf $RELEASE_EXTERNALS_PATH/artifacts/osx/lib/libnode.*.dylib ./
+    ln -sf $RELEASE_EXTERNALS_PATH/extlibs/lib/libnode.*.dylib ./
     ln -sf libnode.*.dylib libnode.dylib
-    ln -sf $RELEASE_EXTERNALS_PATH/artifacts/osx/lib/node node
+    ln -sf $RELEASE_EXTERNALS_PATH/extlibs/lib/node node
   fi
   cd ..
   rm node
@@ -466,9 +316,9 @@ fi
 cd spark-webgl
 if [ "$(uname)" != "Darwin" ]
 then
-  cp ../$RELEASE_EXTERNALS_PATH/artifacts/linux/node_modules/gles2.node ../../src/node_modules/.
+  cp ../$RELEASE_EXTERNALS_PATH/extlibs/node_modules/gles2.node ../../src/node_modules/.
 else
-  cp ../$RELEASE_EXTERNALS_PATH/artifacts/osx/node_modules/gles2.node ../../src/node_modules/.
+  cp ../$RELEASE_EXTERNALS_PATH/extlibs/node_modules/gles2.node ../../src/node_modules/.
 fi
 cd ..
 
@@ -484,156 +334,3 @@ then
   make -j3
   cd ..
 fi
-
-#if [[ $# -eq 1 ]] && [[ $1 == "SPARK_ENABLE_VIDEO" ]]; then
-##-------- cJSON
-#
-#if [ ! -e $EXT_INSTALL_PATH/lib/libcjson.$LIBEXTN ]
-#then
-#  banner "cJSON"
-#
-#  ./cJSON/build.sh
-#fi
-#
-##--------
-#
-##--------orc
-#
-#if [ ! -e $EXT_INSTALL_PATH/lib/liborc-0.4.la ]
-#then
-#  banner "orc"
-#
-#  ./orc/build.sh
-#fi
-#
-##--------
-#
-#
-##--------ossp-uuid
-#
-#if [ ! -e $EXT_INSTALL_PATH/lib/libuuid.la ]
-#then
-#  banner "ossp-uuid"
-#
-#  ./ossp-uuid/build.sh
-#fi
-#
-##--------
-#
-##--------libxml2
-#
-#if [ ! -e $EXT_INSTALL_PATH/lib/libxml2.la ]
-#then
-#  banner "libxml2"
-#
-#  ./libxml2/build.sh
-#fi
-#
-##--------
-#
-##-------- libdash
-#
-#if [ ! -e $EXT_INSTALL_PATH/lib/libdash.$LIBEXTN ]
-#then
-#  banner "libdash"
-#
-#  ./libdash/libdash/build.sh
-#fi
-#
-##--------
-#
-##-------- xz-5.2.2
-#
-#if [ ! -e $EXT_INSTALL_PATH/lib/liblzma.la ]
-#then
-#  banner "xz"
-#
-#  ./xz/build.sh
-#fi
-#
-##--------
-#
-##-------- gstreamer-1.16
-#
-#if [ ! -e $EXT_INSTALL_PATH/lib/libgstreamer-1.0.la ]
-#then
-#  banner "gstreamer-1.16"
-#
-#  ./gstreamer/build.sh
-#fi
-#
-##--------
-#
-##-------- gst-plugin-base
-#
-#if [ ! -e $EXT_INSTALL_PATH/lib/libgstapp-1.0.la ]
-#then
-#  banner "gst-plugins-base"
-#
-#  ./gst-plugins-base/build.sh
-#fi
-#
-##--------
-##-------- gst-plugin-bad
-#
-#if [ ! -e $EXT_INSTALL_PATH/lib/libgstbadaudio-1.0.la ]
-#then
-#  banner "gst-plugins-bad"
-#
-#  ./gst-plugins-bad/build.sh
-#fi
-#
-##--------
-##-------- gst-plugin-ugly
-#
-#if [ ! -e $EXT_INSTALL_PATH/lib/gstreamer-1.0/libgstx264.la ]
-#then
-#  banner "gst-plugins-ugly"
-#
-#  ./gst-plugins-ugly/build.sh
-#fi
-#
-##--------
-##-------- gst-plugin-good
-#
-#if [ ! -e $EXT_INSTALL_PATH/lib/gstreamer-1.0/libgstavi.la ]
-#then
-#  banner "gst-plugins-good"
-#
-#  ./gst-plugins-good/build.sh
-#fi
-#
-##--------
-##-------- gst-libav
-#
-#if [ ! -e $EXT_INSTALL_PATH/lib/gstreamer-1.0/libgstlibav.la ]
-#then
-#  banner "gst-libav"
-#
-#  ./gst-libav/build.sh
-#fi
-#
-##--------
-#
-##-------- aampabr
-#
-#if [ ! -e $EXT_INSTALL_PATH/lib/libabr.$LIBEXTN ]
-#then
-#  banner "aampabr"
-#
-#  ./aampabr/build.sh
-#fi
-#
-##--------
-#
-##-------- aamp
-#
-#if [ ! -e $EXT_INSTALL_PATH/lib/libaamp.$LIBEXTN ]
-#then
-#  banner "aamp"
-#
-#  ./aamp/build.sh
-#fi
-#
-##--------
-#fi

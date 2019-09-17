@@ -83,6 +83,7 @@ then
                 echo "************************** LOG ENDS *******************************"
         else
 		errCause="Either one or more tests failed. Check the log file $TESTLOGS"
+                cat $TESTLOGS
 	fi 
 	checkError $retVal "unittests execution failed" "$errCause" "Rrun unittests locally"
 fi
@@ -100,7 +101,8 @@ then
                 cat $TESTLOGS
                 echo "************************** LOG ENDS *******************************"
         else
-		errCause="Either one or more tests failed. Check the log file $TESTLOGS"
+		errCause="Failed Test. Either one or more tests failed. Check the log file $TESTLOGS"
+                cat $TESTLOGS
 	fi 
 	checkError -1 "unittests execution failed" "$errCause" "Run unittests locally"
 else
