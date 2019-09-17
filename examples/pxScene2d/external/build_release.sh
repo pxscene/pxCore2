@@ -41,7 +41,7 @@ while (( "$#" )); do
 done
 
 EXT_INSTALL_PATH=$PWD/extlibs
-ln -s $RELEASE_EXTERNALS_PATH/extlibs $EXT_INSTALL_PATH
+ln -sf $RELEASE_EXTERNALS_PATH/extlibs $EXT_INSTALL_PATH
 
 make_parallel=3
 
