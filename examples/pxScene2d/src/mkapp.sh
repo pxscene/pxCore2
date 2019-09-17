@@ -51,6 +51,9 @@ cp $externalDir/sqlite/.libs/libsqlite3.dylib $bundleLib
 if [[ $# -ge 1 ]] && [[ $1 == "ENABLE-AAMP" ]]; then
  echo "Madana Gopal $EXT_INSTALL_PATH"
  ls -rlt $EXT_INSTALL_PATH
+ ls -lrt ../../../../rlExternals/Spark-Externals/extlibs
+ ls -lrt ../../../../rlExternals/Spark-Externals/extlibs/lib
+ echo "Madana Gopal loosu $EXT_INSTALL_PATH"
  find $EXT_INSTALL_PATH -name *.dylib
  find $EXT_INSTALL_PATH -name *.dylib -exec cp -PR {} $bundleLib \;
  find $EXT_INSTALL_PATH -name *.so -exec cp -PR {} $bundleLib \;
