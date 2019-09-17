@@ -3268,6 +3268,7 @@ void pxScriptView::runScript()
         options = mBootstrap.get<rtObjectRef>("options");
       }
 
+#if 0
       // Add URL Query Parameters to Options for Lightning Apps
       int32_t pos = mUrl.find(0, '?');
       if (pos != -1)
@@ -3300,6 +3301,7 @@ void pxScriptView::runScript()
           }
         }
       }
+#endif //0
 
       // JRJR Adding an AddRef to this... causes bad things to happen when reloading gl scenes
       // investigate... 
