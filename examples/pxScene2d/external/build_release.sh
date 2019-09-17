@@ -41,10 +41,10 @@ EXT_INSTALL_PATH=$PWD/extlibs
 if [ "$(uname)" != "Darwin" ]
 then
   ln -s $RELEASE_EXTERNALS_PATH/artifacts/linux extlibs   
-  cp -R $RELEASE_EXTERNALS_PATH/artifacts/linux/* $EXT_INSTALL_PATH/.
+  #cp -R $RELEASE_EXTERNALS_PATH/artifacts/linux/* $EXT_INSTALL_PATH/.
 else
   ln -s $RELEASE_EXTERNALS_PATH/artifacts/osx extlibs   
-  cp -R $RELEASE_EXTERNALS_PATH/artifacts/osx/* $EXT_INSTALL_PATH/.
+  #cp -R $RELEASE_EXTERNALS_PATH/artifacts/osx/* $EXT_INSTALL_PATH/.
 fi
 ln -s $EXT_INSTALL_PATH $RELEASE_EXTERNALS_PATH/extlibs
 
