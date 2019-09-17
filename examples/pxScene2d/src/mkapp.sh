@@ -49,6 +49,7 @@ fi
 cp $externalDir/sqlite/.libs/libsqlite3.dylib $bundleLib
 
 if [[ $# -ge 1 ]] && [[ $1 == "ENABLE-AAMP" ]]; then
+ find $EXT_INSTALL_PATH -name *.dylib
  find $EXT_INSTALL_PATH -name *.dylib -exec cp -PR {} $bundleLib \;
  find $EXT_INSTALL_PATH -name *.so -exec cp -PR {} $bundleLib \;
  cp $EXT_INSTALL_PATH/libexec/gstreamer-1.0/gst-plugin-scanner $bundleLib
