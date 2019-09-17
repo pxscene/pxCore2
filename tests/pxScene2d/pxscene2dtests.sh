@@ -26,7 +26,7 @@ uWSLibs=$externalDir/uWebSockets
 jpegturboLibs=$externalDir/libjpeg-turbo/.libs/
 westerosLibs=$externalDir/westeros/external/install/lib
 openssllibs=$externalDir/openssl-1.0.2o
-releaselibs=$externalDir/extlibs/lib
+releaselibs=$externalDir/extlibs/lib_orig
 # Aggregated Libs path
 externalLibs=$openssllibs:$pngLibs/:$jpgLibs/:$curlLibs/:$ftLibs/:$zLibs:$westerosLibs/:$jpegturboLibs/:rpc/:$uWSLibs
 

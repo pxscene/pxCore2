@@ -152,6 +152,9 @@ else
   sed -i "s/$SRC_REPO_USER_NAME/$DEST_REPO_USER_NAME/g" artifacts/$TRAVIS_OS_NAME/lib/pkgconfig/*
 fi
 ln -s artifacts/$TRAVIS_OS_NAME extlibs
+cd extlibs
+mkdir lib_orig
+cp -R lib/* lib_orig/.
 cd $TRAVIS_BUILD_DIR
 cd ..
 #ln -s pxCore/examples/pxScene2d/rlExternals/Spark-Externals Spark-Externals
