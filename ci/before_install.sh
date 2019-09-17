@@ -139,7 +139,9 @@ fi
 #setup spark externals repo
 SRC_REPO_USER_NAME='madanagopalt'
 DEST_REPO_USER_NAME=`echo $TRAVIS_REPO_SLUG | cut -d'/' -f 1`
-cd $TRAVIS_BUILD_DIR/examples/pxScene2d/
+#cd $TRAVIS_BUILD_DIR/examples/pxScene2d/
+cd $TRAVIS_BUILD_DIR
+cd ../
 mkdir rlExternals
 cd rlExternals
 git clone --branch=master https://github.com/madanagopalt/Spark-Externals.git
@@ -152,5 +154,6 @@ fi
 ln -s artifacts/$TRAVIS_OS_NAME extlibs
 cd $TRAVIS_BUILD_DIR
 cd ..
-ln -s pxCore/examples/pxScene2d/rlExternals/Spark-Externals Spark-Externals
+#ln -s pxCore/examples/pxScene2d/rlExternals/Spark-Externals Spark-Externals
+ln -s rlExternals/Spark-Externals Spark-Externals
 cd $TRAVIS_BUILD_DIR

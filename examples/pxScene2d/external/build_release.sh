@@ -17,12 +17,16 @@ banner() {
 
 NODE_VER="10.15.3"
 OPENSSL_DIR="`pwd`/openssl-1.0.2o"
-RELEASE_EXTERNALS_PATH=../rlExternals/Spark-Externals
+RELEASE_EXTERNALS_PATH=`pwd`/../rlExternals/Spark-Externals
 
 while (( "$#" )); do
   case "$1" in
     --node-version)
       NODE_VER=$2
+      shift 2
+      ;;
+    --release-externals-path)
+      RELEASE_EXTERNALS_PATH=$2
       shift 2
       ;;
     --) # end argument parsing
@@ -316,9 +320,9 @@ fi
 cd spark-webgl
 if [ "$(uname)" != "Darwin" ]
 then
-  cp ../$RELEASE_EXTERNALS_PATH/extlibs/node_modules/gles2.node ../../src/node_modules/.
+  cp $RELEASE_EXTERNALS_PATH/extlibs/node_modules/gles2.node ../../src/node_modules/.
 else
-  cp ../$RELEASE_EXTERNALS_PATH/extlibs/node_modules/gles2.node ../../src/node_modules/.
+  cp $RELEASE_EXTERNALS_PATH/extlibs/node_modules/gles2.node ../../src/node_modules/.
 fi
 cd ..
 
