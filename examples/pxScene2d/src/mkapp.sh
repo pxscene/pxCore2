@@ -54,9 +54,9 @@ if [[ $# -ge 1 ]] && [[ $1 == "ENABLE-AAMP" ]]; then
  ls -lrt ../../../../rlExternals/Spark-Externals/extlibs
  ls -lrt ../../../../rlExternals/Spark-Externals/extlibs/lib
  echo "Madana Gopal loosu $EXT_INSTALL_PATH"
- find $EXT_INSTALL_PATH -name *.dylib
- find $EXT_INSTALL_PATH -name *.dylib -exec cp -PR {} $bundleLib \;
- find $EXT_INSTALL_PATH -name *.so -exec cp -PR {} $bundleLib \;
+ find -L $EXT_INSTALL_PATH -name *.dylib
+ find -L $EXT_INSTALL_PATH -name *.dylib -exec cp -PR {} $bundleLib \;
+ find -L $EXT_INSTALL_PATH -name *.so -exec cp -PR {} $bundleLib \;
  cp $EXT_INSTALL_PATH/libexec/gstreamer-1.0/gst-plugin-scanner $bundleLib
  rm $bundleLib/libpng.dylib $bundleLib/libjpeg.dylib  #to avoid circular dependency
 fi
