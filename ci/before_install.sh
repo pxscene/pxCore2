@@ -137,13 +137,13 @@ then
 fi
 
 #setup spark externals repo
-SRC_REPO_USER_NAME='madanagopalt'
+SRC_REPO_USER_NAME='pxscene'
 DEST_REPO_USER_NAME=`echo $TRAVIS_REPO_SLUG | cut -d'/' -f 1`
 cd $TRAVIS_BUILD_DIR
 cd ../
 mkdir rlExternals
 cd rlExternals
-git clone --branch=master https://github.com/madanagopalt/Spark-Externals.git
+git clone --branch=master https://github.com/$SRC_REPO_USER_NAME/Spark-Externals.git
 cd Spark-Externals
 if [ "$TRAVIS_OS_NAME" = "osx" ]; then
   sed -i -n "s/$SRC_REPO_USER_NAME/$DEST_REPO_USER_NAME/g" artifacts/$TRAVIS_OS_NAME/lib/pkgconfig/*
