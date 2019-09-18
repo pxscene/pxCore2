@@ -21,6 +21,18 @@
 
 #include "pxScene2d.h"
 #include "pxText.h"
+
+namespace pxCalc {
+    template<typename T>
+    inline T min(T x, T y) { return (x < y ? x : y); }
+
+    template<typename T>
+    inline T max(T x, T y) { return (x > y ? x : y); }
+
+    template<typename T>
+    inline T clamp(T x, T lo, T hi) { return max(min(x, hi), lo); }
+}
+
 struct pxTextLine
 {
     pxTextLine(): styleSet(false)
@@ -33,12 +45,14 @@ struct pxTextLine
 
     bool styleSet;
     rtString text;
-    uint32_t x;
-    uint32_t y;
+    int32_t x;
+    int32_t y;
     // current style settings
     rtObjectRef font;
     uint32_t pixelSize;
     uint32_t color;
+    uint32_t alignHorizontal;
+    uint32_t textBaseline;
 };
 
 /**********************************************************************
@@ -82,7 +96,7 @@ public:
     pxTextCanvas(pxScene2d *s);
     virtual ~pxTextCanvas() {}
 
-    rtProperty(alignHorizontal, alignHorizontal, setAlignHorizontal, uint32_t);
+    rtProperty(alignHorizontal, alignHorizontal, setAlignHorizontal, rtString);
     rtProperty(fillStyle, fillStyle, setFillStyle, rtValue);
     rtProperty(textBaseline, textBaseline, setTextBaseline, rtString);
     rtProperty(globalAlpha, globalAlpha, setGlobalAlpha, float);
@@ -94,17 +108,17 @@ public:
     rtProperty(height, h, setH, float);
     // specific to pxTextCanvas
     rtProperty(label, label, setLabel, rtString);   // mainly for debug logging when multiple canvases are created (default behaviour)
-                                                    // Lightning++ assigns the timestamp, initially
     rtProperty(colorMode, colorMode, setColorMode, rtString); // Lightning++ assigns 'ARGB' for color compatibility
-
 
     uint32_t alignHorizontal() const;
     rtError alignHorizontal(uint32_t& v) const;
-    rtError setAlignHorizontal(uint32_t v);
+    rtError alignHorizontal(rtString& v) const;
+    rtError setAlignHorizontal(const rtString &v);
     rtError fillStyle(rtValue &c) const;
     rtError setFillStyle(rtValue c);
-    rtError textBaseline(rtString &b) const;
-    rtError setTextBaseline(const rtString& c);
+    rtError textBaseline(uint32_t& v) const;
+    rtError textBaseline(rtString& v) const;
+    rtError setTextBaseline(const rtString &v);
     rtError globalAlpha(float& a) const;
     rtError setGlobalAlpha(const float a);
     rtError shadowColor(uint32_t& c) const;
@@ -147,17 +161,17 @@ public:
     rtMethod1ArgAndReturn("measureText", measureText, rtString, rtObjectRef);
     rtError measureText(rtString text, rtObjectRef &o);
 
-    rtMethod3ArgAndNoReturn("fillText", fillText, rtString, uint32_t, uint32_t);
-    rtError fillText(rtString text, uint32_t x, uint32_t y);
+    rtMethod3ArgAndNoReturn("fillText", fillText, rtString, int32_t, int32_t);
+    rtError fillText(rtString text, int32_t x, int32_t y);
 
     rtMethodNoArgAndNoReturn("clear", clear);
     rtError clear();
 
-    rtMethod4ArgAndNoReturn("fillRect", fillRect, uint32_t, uint32_t, uint32_t, uint32_t);
-    rtError fillRect(uint32_t x, uint32_t y, uint32_t width, uint32_t height);
+    rtMethod4ArgAndNoReturn("fillRect", fillRect, int32_t, int32_t, uint32_t, uint32_t);
+    rtError fillRect(int32_t x, int32_t y, uint32_t width, uint32_t height);
 
-    rtMethod2ArgAndNoReturn("translate", translate, uint32_t, uint32_t);
-    rtError translate(uint32_t x, uint32_t y);
+    rtMethod2ArgAndNoReturn("translate", translate, int32_t, int32_t);
+    rtError translate(int32_t x, int32_t y);
 
 protected:
     pxTextCanvasMeasurements* getMeasurements() { return (pxTextCanvasMeasurements*)measurements.getPtr();}
@@ -167,8 +181,10 @@ protected:
 
     bool mInitialized;
     bool mNeedsRecalc;
+    rtString mAlignHorizontalStr;
     uint32_t mAlignHorizontal;
-    rtString mTextBaseline;
+    rtString mTextBaselineStr;
+    uint32_t mTextBaseline;
     float mGlobalAlpha;
     uint32_t mShadowColor;
     uint32_t  mShadowBlur;
@@ -177,8 +193,8 @@ protected:
 
     rtString mLabel;
     rtString mColorMode;
-    uint32_t mTranslateX;
-    uint32_t mTranslateY;
+    int32_t mTranslateX;
+    int32_t mTranslateY;
 
     std::vector<pxTextLine> mTextLines;
 
