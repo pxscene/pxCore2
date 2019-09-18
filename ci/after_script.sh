@@ -87,5 +87,3 @@ cd ..
 rm -rf Spark-Externals
 rm -rf rlExternals
 cd $TRAVIS_BUILD_DIR
-#cd $TRAVIS_BUILD_DIR/examples/pxScene2d
-#rm -rf rlExternals
