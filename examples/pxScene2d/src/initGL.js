@@ -195,7 +195,7 @@ var loadUrl = function(url, _beginDrawing, _endDrawing, _view, _frameworkURL, _o
 var bootStrapCache = {}
 
   // Add wrapped standard modules here...
-  bootStrapCache[_module._resolveFilename('ws')] = function WebSocket(address, protocols, options) {
+  bootStrapCache[_module._resolveFilename('ws', {paths:[__dirname].concat(_module._nodeModulePaths(__dirname))})] = function WebSocket(address, protocols, options) {
     let client = new _ws(address, protocols, options);
     _websockets.push(client);
     client.on('close', () => {
