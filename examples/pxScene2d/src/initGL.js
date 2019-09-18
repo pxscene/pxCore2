@@ -175,6 +175,7 @@ var loadUrl = function(url, _beginDrawing, _endDrawing, _view, _frameworkURL, _o
   global.clearImmediate = xxclearImmediate
   global.sparkview = _view
   global.sparkscene = getScene("scene.1")
+  global.sparkscene.api = {}
   global.localStorage = global.sparkscene.storage;
   const script = new vm.Script("global.sparkwebgl = sparkwebgl= require('webgl'); global.sparkgles2 = sparkgles2 = require('gles2.js'); global.sparkkeys = sparkkeys = require('rcvrcore/tools/keys.js');");
   global.sparkscene.on('onSceneTerminate', () => {
