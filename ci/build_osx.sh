@@ -117,5 +117,4 @@ fi
 
 
 cd $TRAVIS_BUILD_DIR
-cat $BUILDLOGS
 exit 0;
