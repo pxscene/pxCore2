@@ -14,8 +14,7 @@ PathR=$externalLibs/extlibs/lib:$PathR
 
 export LD_LIBRARY_PATH=$PathR
 
-# TODO - come back and remove node_modules and externalDir before merging to master (once we don't need node_modules for webgl)
-export NODE_PATH=.:./node_modules:$externalDir
+export NODE_PATH=.
 
 export GST_REGISTRY_FORK="no"
 export GST_PLUGIN_SCANNER=$externalLibs/extlibs/libexec/gstreamer-1.0/gst-plugin-scanner
