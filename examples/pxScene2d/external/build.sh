@@ -101,7 +101,7 @@ then
 fi
 #---------
 
-#if [[ $# -eq 1 ]] && [[ $1 == "SPARK_ENABLE_VIDEO" ]]; then
+if [[ $# -eq 1 ]] && [[ $1 == "SPARK_ENABLE_VIDEO" ]]; then
 #--------graphite2
 
 if [ ! -e $EXT_INSTALL_PATH/lib/libgraphite2.la ]
@@ -167,7 +167,7 @@ then
 fi
 
 #--------
-#fi
+fi
 
 #--------- GIF
 
