@@ -81,3 +81,9 @@ then
    git push --repo="https://$REPO_USER_NAME:$GH_TOKEN@github.com/$REPO_USER_NAME/$REPO_NAME.git"
    checkError $? "unable to commit data to repo" "" "check the credentials"
 fi
+
+cd $TRAVIS_BUILD_DIR
+cd ..
+rm -rf Spark-Externals
+rm -rf rlExternals
+cd $TRAVIS_BUILD_DIR

@@ -1,5 +1,6 @@
 #!/bin/sh
 
+EXECLOGS=$TRAVIS_BUILD_DIR/logs/exec_logs
 checkError()
 {
   if [ "$1" -ne 0 ]
@@ -11,7 +12,8 @@ checkError()
         printf "\nReproduction/How to fix: $4"
 	printf "\n*******************************************************************";
 	printf "\n*******************************************************************\n\n";
-        #exit 1;
+        cat $EXECLOGS
+        exit 1;
   fi
 }
 
@@ -41,9 +43,8 @@ export SUPPRESSIONS=$TRAVIS_BUILD_DIR/ci/leak.supp
 export SPARK_ENABLE_COLLECT_GARBAGE=1
 
 touch $VALGRINDLOGS
-EXECLOGS=$TRAVIS_BUILD_DIR/logs/exec_logs
 TESTRUNNERURL="https://www.sparkui.org/tests-ci/test-run/testRunner.js"
-TESTS="file://$TRAVIS_BUILD_DIR/tests/pxScene2d/testRunner/testsDesktop.json,file://$TRAVIS_BUILD_DIR/tests/pxScene2d/testRunner/tests.json"
+TESTS="file://$TRAVIS_BUILD_DIR/tests/pxScene2d/testRunner/tests.json"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 printExecLogs()
@@ -88,7 +89,6 @@ while [ "$retVal" -ne 0 ] &&  [ "$count" -le "$max_seconds" ]; do
 		retVal=$?
 	fi
 done
-
 ls -lrt /tmp/pxscenecrash
 retVal=$?
 if [ "$retVal" -eq 0 ]
@@ -202,4 +202,5 @@ else
 	checkError $retVal "Valgrind execution reported problem" "$errCause" "Follow the steps locally : export ENABLE_VALGRIND=1;export SUPPRESSIONS=<pxcore dir>/ci/leak.supp;./spark.sh $TESTRUNNERURL?tests=<pxcore dir>/tests/pxScene2d/testRunner/tests.json and fix it"
 	exit 1;
 fi
+printExecLogs
 exit 0;

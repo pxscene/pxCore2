@@ -48,9 +48,10 @@ if [ -e $externalDir/v8/out.gn ]; then
 fi
 cp $externalDir/sqlite/.libs/libsqlite3.dylib $bundleLib
 
-if [[ $# -eq 1 ]] && [[ $1 == "ENABLE-AAMP" ]]; then
- find $EXT_INSTALL_PATH -name *.dylib -exec cp -PR {} $bundleLib \;
- find $EXT_INSTALL_PATH -name *.so -exec cp -PR {} $bundleLib \;
+if [[ $# -ge 1 ]] && [[ $1 == "ENABLE-AAMP" ]]; then
+ find -L $EXT_INSTALL_PATH -name *.dylib
+ find -L $EXT_INSTALL_PATH -name *.dylib -exec cp -PR {} $bundleLib \;
+ find -L $EXT_INSTALL_PATH -name *.so -exec cp -PR {} $bundleLib \;
  cp $EXT_INSTALL_PATH/libexec/gstreamer-1.0/gst-plugin-scanner $bundleLib
  rm $bundleLib/libpng.dylib $bundleLib/libjpeg.dylib  #to avoid circular dependency
 fi

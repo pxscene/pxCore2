@@ -135,3 +135,26 @@ then
 	fi
 	sudo pip install codecov
 fi
+
+#setup spark externals repo
+SRC_REPO_USER_NAME='pxscene'
+DEST_REPO_USER_NAME=`echo $TRAVIS_REPO_SLUG | cut -d'/' -f 1`
+cd $TRAVIS_BUILD_DIR
+cd ../
+mkdir rlExternals
+cd rlExternals
+git clone --branch=master https://github.com/$SRC_REPO_USER_NAME/Spark-Externals.git
+cd Spark-Externals
+if [ "$TRAVIS_OS_NAME" = "osx" ]; then
+  sed -i -n "s/$SRC_REPO_USER_NAME/$DEST_REPO_USER_NAME/g" artifacts/$TRAVIS_OS_NAME/lib/pkgconfig/*
+else
+  sed -i "s/$SRC_REPO_USER_NAME/$DEST_REPO_USER_NAME/g" artifacts/$TRAVIS_OS_NAME/lib/pkgconfig/*
+fi
+ln -sf artifacts/$TRAVIS_OS_NAME extlibs
+cd extlibs
+mkdir lib_orig
+cp -R lib/* lib_orig/.
+cd $TRAVIS_BUILD_DIR
+cd ..
+ln -sf rlExternals/Spark-Externals Spark-Externals
+cd $TRAVIS_BUILD_DIR
