@@ -301,7 +301,7 @@ protected:
 #endif
     rtLogInfo("about to call garbage collect during close");
     fflush(stdout);
-    script.collectGarbage();
+    //script.collectGarbage();
     rtLogInfo("called garbage collect during close");
     fflush(stdout);
 
@@ -310,7 +310,9 @@ protected:
       #ifdef RUNINMAIN
           script.pump();
       #endif
-      script.collectGarbage();
+      rtLogInfo("after second script pump");
+      fflush(stdout);
+      //script.collectGarbage();
       rtLogInfo("pxobjectcount is [%d]",pxObjectCount);
 #ifndef PX_PLATFORM_DFB_NON_X11
       rtLogInfo("texture memory usage is [%" PRId64 "]",context.currentTextureMemoryUsageInBytes());
