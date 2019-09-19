@@ -776,8 +776,6 @@ var _clearIntervals = function() {
     console.log(`clear ${_intervals.length} intervals`);
 
     for (var interval of _intervals) {
-     console.log(interval);
-     console.log(JSON.stringify(interval));
       _timers.clearInterval(interval)
     }
   }
