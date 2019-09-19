@@ -309,11 +309,9 @@ protected:
 
     if (gDumpMemUsage)
     {
-/*
       #ifdef RUNINMAIN
           script.pump();
       #endif
-*/
       rtLogInfo("after second script pump");
       fflush(stdout);
       script.collectGarbage();
