@@ -296,11 +296,9 @@ protected:
     rtLogInfo("cleared all the fonts during close");
     fflush(stdout);
     context.term();
-
 #ifdef RUNINMAIN
     script.pump();
 #endif
-
     rtLogInfo("about to call garbage collect during close");
     fflush(stdout);
     script.collectGarbage();
