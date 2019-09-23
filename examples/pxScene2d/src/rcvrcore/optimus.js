@@ -215,9 +215,10 @@ function Application(props) {
       _this.applicationSuspended();
       return false;
     }
-    
-    var ret = _externalApp.suspend(o);
-      
+
+    // External Applications implementing rtMethod1ArgAndNoReturn always returns false. So we have to set "ret" to true until we implement a promise mechanism.
+    var ret = true;
+    _externalApp.suspend(o);
     if (ret === true) {
       _state = ApplicationState.SUSPENDED;
       _this.applicationSuspended();
@@ -312,7 +313,10 @@ function Application(props) {
       this.applicationResumed();
       return false;
     }
-    ret = _externalApp.resume(o);
+
+    // External Applications implementing rtMethod1ArgAndNoReturn always returns false. So we have to set "ret" to true until we implement a promise mechanism.
+    var ret = true;
+    _externalApp.resume(o);
     if (ret === true) {
       _state = ApplicationState.RUNNING;
       this.applicationResumed();
