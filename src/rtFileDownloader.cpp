@@ -868,7 +868,6 @@ void rtFileDownloader::downloadFileAsByteRange(rtFileDownloadRequest* downloadRe
         if(downloadRequest->deferCacheRead())
         {
             rtLogInfo("Reading from cache Start for %s\n", downloadRequest->fileUrl().cString());
-            mFileCacheMutex.lock();
             FILE *fp = downloadRequest->cacheFilePointer();
 
             if(fp != NULL)
@@ -897,7 +896,6 @@ void rtFileDownloader::downloadFileAsByteRange(rtFileDownloadRequest* downloadRe
                 delete [] buffer;
                 fclose(fp);
             }
-            mFileCacheMutex.unlock();
             rtLogInfo("Reading from cache End for %s\n", downloadRequest->fileUrl().cString());
         }
       }
@@ -1398,7 +1396,6 @@ void rtFileDownloader::downloadFile(rtFileDownloadRequest* downloadRequest)
         if(downloadRequest->deferCacheRead())
         {
             rtLogInfo("Reading from cache Start for %s\n", downloadRequest->fileUrl().cString());
-            mFileCacheMutex.lock();
             FILE *fp = downloadRequest->cacheFilePointer();
 
             if(fp != NULL)
@@ -1427,7 +1424,6 @@ void rtFileDownloader::downloadFile(rtFileDownloadRequest* downloadRequest)
                 delete [] buffer;
                 fclose(fp);
             }
-            mFileCacheMutex.unlock();
             rtLogInfo("Reading from cache End for %s\n", downloadRequest->fileUrl().cString());
         }
     }
