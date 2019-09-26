@@ -111,7 +111,19 @@ fi
 cd ..
 
 #---------
+#-------- BREAKPAD (Non -macOS)
 
+if [ "$(uname)" != "Darwin" ]; then
+  ./breakpad/build.sh
+fi
+#---------
+
+#-------- NANOSVG
+
+  banner "NANOSVG"
+
+./nanosvg/build.sh
+#---------
 #--------- LIBNODE
 
 if [ ! -e "libnode-v${NODE_VER}/libnode.dylib" ] ||
