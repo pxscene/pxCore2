@@ -137,7 +137,7 @@ then
 fi
 
 #setup spark externals repo
-SRC_REPO_USER_NAME='pxscene'
+SRC_REPO_USER_NAME='kannanmadanagopalt'
 DEST_REPO_USER_NAME=`echo $TRAVIS_REPO_SLUG | cut -d'/' -f 1`
 cd $TRAVIS_BUILD_DIR
 cd ../
