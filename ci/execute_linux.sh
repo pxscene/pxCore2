@@ -76,6 +76,7 @@ count=0
 #adding spark log a part of console.log increase execution time in linux in ci
 #in linux we have timeouts, so increasing the limit
 max_seconds=2300
+ldd Spark
 while [ "$retVal" -ne 0 ] &&  [ "$count" -le "$max_seconds" ]; do
 	printf "\n [execute_linux.sh] snoozing for 30 seconds (%d of %d) \n" $count $max_seconds
 	sleep 30; # seconds
