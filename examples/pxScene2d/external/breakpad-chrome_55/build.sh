@@ -19,7 +19,5 @@ pushd $DIRECTORY
         git checkout .
     else
         quilt push -aq || test $? = 2
-        ./configure
-        make -j$(getconf _NPROCESSORS_ONLN)
     fi
 popd
