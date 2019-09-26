@@ -42,116 +42,35 @@ done
 EXT_INSTALL_PATH=$PWD/extlibs
 ln -sf $RELEASE_EXTERNALS_PATH/extlibs $EXT_INSTALL_PATH
 
-make_parallel=3
-
-if [ "$(uname)" = "Darwin" ]; then
-    make_parallel="$(sysctl -n hw.ncpu)"
-    LIBEXTN=dylib
-elif [ "$(uname)" = "Linux" ]; then
-    make_parallel="$(cat /proc/cpuinfo | grep '^processor' | wc --lines)"
-    LIBEXTN=so
-fi
-
-#--------- OPENSSL
-
 ln -s ${OPENSSL_DIR} openssl
 
-#--------- CURL
-
-if [ ! -e $EXT_INSTALL_PATH/lib/libcurl.la ]; then
-
-  banner "CURL"
-
-  cd curl
-
-  if [ "$(uname)" = "Darwin" ]; then
-    #Removing api definition for Yosemite compatibility.
-    sed -i '' '/#define HAVE_CLOCK_GETTIME_MONOTONIC 1/d' lib/curl_config.h
-  fi
-  cd ..
-
-fi
-
-#--------- GIF
-
-banner "GIF"
-
-cd gif
-if [ "$(uname)" == "Darwin" ]; then
-
-[ -d patches ] || mkdir -p patches
-[ -d patches/series ] || echo 'giflib-5.1.9.patch' >patches/series
-cp ../giflib-5.1.9.patch patches/
-
-if [[ "$#" -eq "1" && "$1" == "--clean" ]]; then
-	quilt pop -afq || test $? = 2
-	rm -rf .libs/*
-elif [[ "$#" -eq "1" && "$1" == "--force-clean" ]]; then
-	git clean -fdx .
-	git checkout .
-	rm -rf .libs/*
-else
-	quilt push -aq || test $? = 2
-fi
-
-fi
-
-if [ -e libgif.7.dylib ]
-then
-    cp libgif.7.dylib .libs/libgif.7.dylib
-    cp libutil.7.dylib .libs/libutil.7.dylib
-
-
-elif [ -e libgif.so ]
-then
-    cp libgif.so .libs/libgif.so
-    cp libutil.so .libs/libutil.so
-fi
-
-cd ..
-
-#---------
-#-------- BREAKPAD (Non -macOS)
-
 if [ "$(uname)" != "Darwin" ]; then
-  ./breakpad/build.sh
+  cp -R $RELEASE_EXTERNALS_PATH/extlibs/include/breakpad/* breakpad/.
 fi
-#---------
 
-#-------- NANOSVG
+cp $RELEASE_EXTERNALS_PATH/extlibs/include/nanosvg/nanosvgrast.h nanosvg/src/.
 
-  banner "NANOSVG"
-
-./nanosvg/build.sh
-#---------
-#--------- LIBNODE
-
-if [ ! -e "libnode-v${NODE_VER}/libnode.dylib" ] ||
-   [ "$(uname)" != "Darwin" ]
+cd "libnode-v${NODE_VER}"
+if [ "$(uname)" != "Darwin" ]
 then
-
-  banner "NODE"
-  if [ -e "node-v${NODE_VER}_mods.patch" ]
-  then
-    git apply "node-v${NODE_VER}_mods.patch"
-    git apply "openssl_1.0.2_compatibility.patch"
-  fi
-  cd "libnode-v${NODE_VER}"
-  if [ "$(uname)" != "Darwin" ]
-  then
-    ln -sf $RELEASE_EXTERNALS_PATH/extlibs/lib/libnode.so.* ./
-    ln -sf libnode.so.* libnode.so
-    ln -sf $RELEASE_EXTERNALS_PATH/extlibs/lib/node node
-  else
-    ln -sf $RELEASE_EXTERNALS_PATH/extlibs/lib/libnode.*.dylib ./
-    ln -sf libnode.*.dylib libnode.dylib
-    ln -sf $RELEASE_EXTERNALS_PATH/extlibs/lib/node node
-  fi
-  cd ..
-  rm node
-  ln -sf "libnode-v${NODE_VER}" node
+  ln -sf $RELEASE_EXTERNALS_PATH/extlibs/lib/libnode.so.* ./
+  ln -sf libnode.so.* libnode.so
+  ln -sf $RELEASE_EXTERNALS_PATH/extlibs/lib/node node
+else
+  ln -sf $RELEASE_EXTERNALS_PATH/extlibs/lib/libnode.*.dylib ./
+  ln -sf libnode.*.dylib libnode.dylib
+  ln -sf $RELEASE_EXTERNALS_PATH/extlibs/lib/node node
 fi
-#-------- spark-webgl
+cp $RELEASE_EXTERNALS_PATH/extlibs/include/node/node.h src/.
+cp $RELEASE_EXTERNALS_PATH/extlibs/include/node_contextify_mods.h src/.
+cp $RELEASE_EXTERNALS_PATH/extlibs/include/node_internals.h src/.
+cp $RELEASE_EXTERNALS_PATH/extlibs/include/module_wrap.h src/.
+cp $RELEASE_EXTERNALS_PATH/extlibs/include/env-inl.h src/.
+cp $RELEASE_EXTERNALS_PATH/extlibs/include/node_crypto.h src/.
+cd ..
+rm node
+ln -sf "libnode-v${NODE_VER}" node
+
 cd spark-webgl
 if [ "$(uname)" != "Darwin" ]
 then
