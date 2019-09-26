@@ -42,16 +42,6 @@ done
 EXT_INSTALL_PATH=$PWD/extlibs
 ln -sf $RELEASE_EXTERNALS_PATH/extlibs $EXT_INSTALL_PATH
 
-make_parallel=3
-
-if [ "$(uname)" = "Darwin" ]; then
-    make_parallel="$(sysctl -n hw.ncpu)"
-    LIBEXTN=dylib
-elif [ "$(uname)" = "Linux" ]; then
-    make_parallel="$(cat /proc/cpuinfo | grep '^processor' | wc --lines)"
-    LIBEXTN=so
-fi
-
 #--------- OPENSSL
 
 ln -s ${OPENSSL_DIR} openssl
