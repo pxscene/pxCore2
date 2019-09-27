@@ -217,33 +217,16 @@ function initializeImportMeta(meta, { url }) {
 
 function loadHttpFile(fileUri) {
   return new Promise(function(resolve, reject) {
-    var code = [];
-    var options = urlmain.parse(fileUri);
-    var req = null;
-    var httpCallback = function (res) {
-      res.on('data', function (data) {
-        if (Buffer.isBuffer(data)) {
-          code.push(data);
-        } else {
-          code.push(new Buffer(data));
-        }
-      });
-      res.on('end', function () {
-        if( res.statusCode === 200 ) {
-          var data = Buffer.concat(code);
-          resolve(data.toString('utf8'));
-         } else {
-          console.error("StatusCode Bad: FAILED to read file[" + fileUri + "] from web service");
-          reject(res.statusCode);
-          }
-        });
-    };
-    var isHttps = fileUri.substring(0, 5).toLowerCase() === "https";
-    req = (isHttps ? _https : _http).get(options, httpCallback);
-    
-    req.on('error', function (err) {
-      console.error("Error: FAILED to read file[" + fileUri + "] from web service");
-      reject(err);
+    global.sparkscene.loadArchive(fileUri).ready.then(a => {
+      if (a.loadStatus.httpStatusCode !== 200) {
+        console.error(`StatusCode Bad: FAILED to read file[${fileUri}] from web service`);
+        reject(a.loadStatus.httpStatusCode);
+      } else {
+        resolve(a.getFileAsString(""));
+      }
+    }, () => {
+      console.error(`Error: FAILED to read file[${fileUri}] from web service`);
+      reject();
     });
   });
 }
