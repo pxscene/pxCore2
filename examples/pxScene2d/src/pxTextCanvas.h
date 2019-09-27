@@ -39,6 +39,8 @@ struct pxTextLine
             , x(0), y(0)
             , pixelSize(10)
             , color(0xFFFFFFFF)
+            , translateX(0)
+            , translateY(0)
     {};
     pxTextLine(const char* text, uint32_t x, uint32_t y);
     void setStyle(const rtObjectRef& f, uint32_t ps, uint32_t c);
@@ -53,6 +55,8 @@ struct pxTextLine
     uint32_t color;
     uint32_t alignHorizontal;
     uint32_t textBaseline;
+    int32_t translateX;
+    int32_t translateY;
 };
 
 /**********************************************************************
@@ -91,6 +95,9 @@ protected:
  **********************************************************************/
 class pxTextCanvas : public pxText {
 public:
+    static constexpr float DEFAULT_WIDTH  = 300;
+    static constexpr float DEFAULT_HEIGHT = 150;
+
     rtDeclareObject(pxTextCanvas, pxText);
 
     pxTextCanvas(pxScene2d *s);
@@ -136,8 +143,8 @@ public:
     rtError setColorMode(const rtString &c);
 
     /* override virtuals from pxObject that must affect the readiness of pxTextCanvas due to text measurements */
-    rtError setW(float v) override      { setNeedsRecalc(true); return pxObject::setW(v);}
-    rtError setH(float v) override      { setNeedsRecalc(true); return pxObject::setH(v);}
+    rtError setW(float v) override      { if (v < 0) { clear(); return pxObject::setW(DEFAULT_WIDTH);  } setNeedsRecalc(true); return pxObject::setW(v); }
+    rtError setH(float v) override      { if (v < 0) { clear(); return pxObject::setH(DEFAULT_HEIGHT); } setNeedsRecalc(true); return pxObject::setH(v); }
     rtError setClip(bool v) override    { setNeedsRecalc(true); return pxObject::setClip(v);}
     rtError setSX(float v) override     { setNeedsRecalc(true); return pxObject::setSX(v);}
     rtError setSY(float v) override     { setNeedsRecalc(true); return pxObject::setSY(v);}
