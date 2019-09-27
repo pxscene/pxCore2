@@ -152,8 +152,8 @@ if (APPLE)
 
 elseif (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
 
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC -fpermissive -g -Wall -Wno-attributes -Wall -Wextra")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -fpermissive -g -Wall -Wno-attributes -Wall -Wextra")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC -g -Wall -Wno-attributes -Wall -Wextra")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -g -Wall -Wno-attributes -Wall -Wextra")
     execute_process(COMMAND "hostname" OUTPUT_VARIABLE HOSTNAME)
     string(STRIP ${HOSTNAME} HOSTNAME)
     set(PXSCENE_DEFINITIONS ${PXSCENE_DEFINITIONS} -DRT_PLATFORM_LINUX)
