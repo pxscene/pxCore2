@@ -78,7 +78,7 @@ else
   cmake --build . -- -j$(getconf _NPROCESSORS_ONLN) 1>>$BUILDLOGS;
   checkError $? 1 "Building either pxcore,rtcore,pxscene app,libpxscene,unitttest failed" "Compilation error" "Check the errors displayed in this window"
 fi
-
+cat $BUILDLOGS
 cd $TRAVIS_BUILD_DIR
 if [ "$TRAVIS_PULL_REQUEST" = "false" ]
   then
