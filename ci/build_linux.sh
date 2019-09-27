@@ -45,6 +45,7 @@ else
 	checkError $? "cmake build failed for pxcore,rtcore,pxscene app,libpxscene or unitttests" "Compilation error" "Check the errors displayed in this window"
 
 fi
+grep -rin png .
 cd $TRAVIS_BUILD_DIR
 exit 0;
 
