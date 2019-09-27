@@ -202,7 +202,7 @@ else ()
 endif (APPLE)
 
 if (NOT PXCORE_DFB)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpermissive -std=c++11")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 endif (NOT PXCORE_DFB)
 
 if (PXCORE_COMPILE_WARNINGS_AS_ERRORS)

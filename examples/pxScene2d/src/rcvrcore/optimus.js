@@ -601,12 +601,11 @@ function Application(props) {
   else if (cmd === "WebApp"){
     this.type = ApplicationType.WEB;
     _externalApp = scene.create( {t:"external", parent:root, server:"wl-rdkbrowser2-server", w:w, h:h, hasApi:true} );
-    // The following doesn't work - causes black screen:
-    //_externalApp.on("onReady", function () { _this.log("onReady"); });
-    //_externalApp.on("onClientStarted", function () { _this.log("onClientStarted"); });
-    //_externalApp.on("onClientConnected", function () { _this.log("onClientConnected"); });
-    //_externalApp.on("onClientDisconnected", function () { _this.log("onClientDisconnected"); });
-    //_externalApp.on("onClientStopped", function () { _this.log("onClientStopped"); });
+    _externalApp.on("onReady", function () { _this.log("onReady"); });
+    _externalApp.on("onClientStarted", function () { _this.log("onClientStarted"); });
+    _externalApp.on("onClientConnected", function () { _this.log("onClientConnected"); });
+    _externalApp.on("onClientDisconnected", function () { _this.log("onClientDisconnected"); });
+    _externalApp.on("onClientStopped", function () { _this.log("onClientStopped"); });
     _externalApp.remoteReady.then(function(obj) {
       if(obj) {
         _this.log("about to create browser window");
