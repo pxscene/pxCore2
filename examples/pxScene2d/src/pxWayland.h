@@ -188,6 +188,7 @@ private:
   static void hidePointer( WstCompositor *wctx, bool hide, void *userData );
   static void clientStatus( WstCompositor *wctx, int status, int pid, int detail, void *userData );
   static void remoteDisconnectedCB(void *data);
+  static void onClientStatus(void* context, void* data);
 
   void handleInvalidate();
   void handleHidePointer( bool hide );
