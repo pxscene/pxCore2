@@ -24,7 +24,7 @@ export CODE_COVERAGE=1
 cd $TRAVIS_BUILD_DIR
 mkdir -p temp
 cd temp
-
+export PKG_CONFIG_PATH=$TRAVIS_BUILD_DIR/examples/pxScene2d/external/extlibs/lib/pkgconfig:$PKG_CONFIG_PATH
 if [ "$TRAVIS_PULL_REQUEST" = "false" ]
 then
 	echo "************************* Generating config files *************************" >> $BUILDLOGS
