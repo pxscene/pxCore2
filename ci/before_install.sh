@@ -152,6 +152,7 @@ ln -sf artifacts/$TRAVIS_OS_NAME extlibs
 cd extlibs
 mkdir lib_orig
 cp -R lib/* lib_orig/.
+rm -rf lib_orig/libpng.dylib
 cd $TRAVIS_BUILD_DIR
 cd ..
 ln -sf rlExternals/Spark-Externals Spark-Externals
