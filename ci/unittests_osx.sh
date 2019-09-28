@@ -13,6 +13,7 @@ checkError()
     exit 1
   fi
 }
+
 ulimit -c unlimited
 
 cd $TRAVIS_BUILD_DIR

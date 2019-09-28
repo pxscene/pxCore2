@@ -50,7 +50,6 @@ fi
 
 cp $RELEASE_EXTERNALS_PATH/extlibs/include/nanosvg/nanosvgrast.h nanosvg/src/.
 
-grep -rn nsvgRasterizeFull $RELEASE_EXTERNALS_PATH/extlibs/include/nanosvg/nanosvgrast.h
 
 cd "libnode-v${NODE_VER}"
 if [ "$(uname)" != "Darwin" ]
