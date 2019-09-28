@@ -82,13 +82,3 @@ else
 fi
 cd ..
 
-if [ ! -e sqlite/.libs/libsqlite3.a ]
-then
-  banner "SQLITE"
-
-  cd sqlite
-  autoreconf -f -i
-  ./configure
-  make -j3
-  cd ..
-fi

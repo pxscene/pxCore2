@@ -53,8 +53,9 @@ if [[ $# -ge 1 ]] && [[ $1 == "ENABLE-AAMP" ]]; then
  find -L $EXT_INSTALL_PATH -name *.dylib -exec cp -PR {} $bundleLib \;
  find -L $EXT_INSTALL_PATH -name *.so -exec cp -PR {} $bundleLib \;
  cp $EXT_INSTALL_PATH/libexec/gstreamer-1.0/gst-plugin-scanner $bundleLib
- rm $bundleLib/libpng.dylib $bundleLib/libjpeg.dylib  #to avoid circular dependency
+ rm $bundleLib/libpng.dylib $bundleLib/libjpeg.dylib  $bundleLib/libsqlite3.dylib #to avoid circular dependency
 fi
+#cp $externalDir/sqlite/.libs/libsqlite3.dylib $bundleLib
 
 # Copy OTHER to Bundle...
 #
