@@ -13,7 +13,6 @@ checkError()
     exit 1
   fi
 }
-exit 0;
 ulimit -c unlimited
 
 cd $TRAVIS_BUILD_DIR
@@ -24,6 +23,7 @@ cd $TRAVIS_BUILD_DIR/tests/pxScene2d;
 touch $TRAVIS_BUILD_DIR/logs/test_logs;
 TESTLOGS=$TRAVIS_BUILD_DIR/logs/test_logs;
 #sudo -E ./pxscene2dtests.sh>$TESTLOGS 2>&1 &
+rm $TRAVIS_BUILD_DIR/examples/pxScene2d/extlibs/lib/libpng.dylib $TRAVIS_BUILD_DIR/examples/pxScene2d/extlibs/lib/libjpeg.dylib
 ./pxscene2dtests.sh
 #>$TESTLOGS 2>&1 &
 
