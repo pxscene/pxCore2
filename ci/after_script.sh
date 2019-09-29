@@ -49,10 +49,10 @@ then
   fi
 fi
 
-if ( [ "$TRAVIS_EVENT_TYPE" = "push" ] || [ "$TRAVIS_EVENT_TYPE" = "pull_request" ] ) && [ -z "${TRAVIS_TAG}" ] 	
-then	
-  ccache -s	
-fi	
+if ( [ "$TRAVIS_EVENT_TYPE" = "push" ] || [ "$TRAVIS_EVENT_TYPE" = "pull_request" ] ) && [ -z "${TRAVIS_TAG}" ]
+then
+  ccache -s
+fi
 
 #update release  notes and info.plist in github
 if ( [ "$TRAVIS_EVENT_TYPE" = "api" ] || [ ! -z "${TRAVIS_TAG}" ] ) && [ "$UPDATE_VERSION" = "true" ] 
