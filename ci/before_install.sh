@@ -154,6 +154,7 @@ mkdir lib_orig
 cp -R lib/* lib_orig/.
 rm -rf lib_orig/libpng.dylib
 rm -rf lib_orig/libsqlite3.dylib
+rm -rf lib_orig/libjpeg.dylib
 cd $TRAVIS_BUILD_DIR
 cd ..
 ln -sf rlExternals/Spark-Externals Spark-Externals
