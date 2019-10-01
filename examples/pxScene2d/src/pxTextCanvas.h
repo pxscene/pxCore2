@@ -100,10 +100,19 @@ public:
     rtProperty(fillStyle, fillStyle, setFillStyle, rtValue);
     rtProperty(textBaseline, textBaseline, setTextBaseline, rtString);
     rtProperty(globalAlpha, globalAlpha, setGlobalAlpha, float);
-    rtProperty(shadowColor, shadowColor, setShadowColor, uint32_t);
-    rtProperty(shadowBlur, shadowBlur, setShadowBlur, uint32_t);
+
+    rtProperty(shadow,        shadow,        setShadow,        bool);
+    rtProperty(shadowColor,   shadowColor,   setShadowColor,   rtValue);
     rtProperty(shadowOffsetX, shadowOffsetX, setShadowOffsetX, float);
     rtProperty(shadowOffsetY, shadowOffsetY, setShadowOffsetY, float);
+    rtProperty(shadowBlur,    shadowBlur,    setShadowBlur,    float);
+
+    rtProperty(highlight,             highlight,             setHighlight,              bool);
+    rtProperty(highlightColor,        highlightColor,        setHighlightColor,         rtValue);
+    rtProperty(highlightOffset,       highlightOffset,       setHighlightOffset,        float);
+    rtProperty(highlightPaddingLeft,  highlightPaddingLeft,  setHighlightPadddingLeft,  float);
+    rtProperty(highlightPaddingRight, highlightPaddingRight, setHighlightPadddingRight, float);
+
     rtProperty(width, w, setW, float);
     rtProperty(height, h, setH, float);
     // specific to pxTextCanvas
@@ -121,14 +130,6 @@ public:
     rtError setTextBaseline(const rtString &v);
     rtError globalAlpha(float& a) const;
     rtError setGlobalAlpha(const float a);
-    rtError shadowColor(uint32_t& c) const;
-    rtError setShadowColor(const uint32_t c);
-    rtError shadowBlur(uint32_t& b) const;
-    rtError setShadowBlur(const uint32_t b);
-    rtError shadowOffsetX(float& o) const;
-    rtError setShadowOffsetX(const float o);
-    rtError shadowOffsetY(float& o) const;
-    rtError setShadowOffsetY(const float o);
 
     rtError label(rtString &c) const;
     rtError setLabel(const rtString &c);
@@ -143,6 +144,42 @@ public:
     rtError setSY(float v) override     { setNeedsRecalc(true); return pxObject::setSY(v);}
 
     rtError setPixelSize(uint32_t v) override ;
+
+// - - - - - - - - - - - - - - - - - - Shadow - - - - - - - - - - - - - - - - - -
+
+    rtError shadow(bool &v) const                      { v = mShadow;  return RT_OK; }
+    virtual rtError setShadow(bool v)                  { mShadow = v;  return RT_OK; }
+
+    rtError shadowColor(rtValue &c) const;
+    rtError setShadowColor(rtValue c);
+
+    rtError shadowOffsetX(float &v) const              { v = mShadowOffsetX; return RT_OK; }
+    virtual rtError setShadowOffsetX(float v)          { mShadowOffsetX = v; return RT_OK; }
+
+    rtError shadowOffsetY(float &v) const              { v = mShadowOffsetY; return RT_OK; }
+    virtual rtError setShadowOffsetY(float v)          { mShadowOffsetY = v; return RT_OK; }
+
+    rtError shadowBlur(float &v) const                 { v = mShadowBlur;    return RT_OK; }
+    virtual rtError setShadowBlur(float v)             { mShadowBlur = v;    return RT_OK; }
+
+    // - - - - - - - - - - - - - - - - - - Highlight - - - - - - - - - - - - - - - - - -
+
+    rtError highlight(bool &v) const                   { v = mHighlight;  return RT_OK; }
+    virtual rtError setHighlight(bool v)               { mHighlight = v;  return RT_OK; }
+
+    rtError highlightColor(rtValue &c) const;
+    rtError setHighlightColor(rtValue c);
+
+    rtError highlightOffset(float &v) const            { v = mHighlightOffset;       return RT_OK; }
+    virtual rtError setHighlightOffset(float v)        { mHighlightOffset = v;       return RT_OK; }
+
+    rtError highlightPaddingLeft(float &v) const       { v = mHighlightPaddingLeft;  return RT_OK; }
+    virtual rtError setHighlightPadddingLeft(float v)  { mHighlightPaddingLeft = v;  return RT_OK; }
+
+    rtError highlightPaddingRight(float &v) const      { v = mHighlightPaddingRight; return RT_OK; }
+    virtual rtError setHighlightPadddingRight(float v) { mHighlightPaddingRight = v; return RT_OK; }
+
+    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
     void renderText(bool render);
     void setNeedsRecalc(bool recalc);
@@ -181,15 +218,27 @@ protected:
 
     bool mInitialized;
     bool mNeedsRecalc;
+
     rtString mAlignHorizontalStr;
     uint32_t mAlignHorizontal;
     rtString mTextBaselineStr;
     uint32_t mTextBaseline;
     float mGlobalAlpha;
-    uint32_t mShadowColor;
-    uint32_t  mShadowBlur;
+
+    bool     mShadow;
+    float    mShadowColor[4];
     float mShadowOffsetX;
     float mShadowOffsetY;
+    float    mShadowBlur;
+
+    bool     mHighlight;
+    float    mHighlightColor[4];
+    float    mHighlightOffset;
+    float    mHighlightPaddingLeft;
+    float    mHighlightPaddingRight;
+
+    float    mTextW;
+    float    mTextH;
 
     rtString mLabel;
     rtString mColorMode;
