@@ -448,7 +448,7 @@ void pxTextCanvas::renderTextLine(const pxTextLine& textLine)
         switch (alignH)
         {
             case pxConstantsAlignHorizontal::CENTER:
-                xPos -= textW / 2;
+                xPos -= float(textW / 2);
                 break;
 
             case pxConstantsAlignHorizontal::RIGHT:
@@ -459,23 +459,23 @@ void pxTextCanvas::renderTextLine(const pxTextLine& textLine)
         switch (baseline)
         {
             case pxConstantsTextBaseline::ALPHABETIC:
-                yPos -= size;
+                yPos -= float(size);
                 break;
 
             case pxConstantsTextBaseline::TOP:
-                yPos -= 0.2 * textH;
+                yPos -= float(0.2 * textH);
                 break;
 
             case pxConstantsTextBaseline::HANGING:
-                yPos -= 0.325 * textH;
+                yPos -= float(0.325 * textH);
                 break;
 
             case pxConstantsTextBaseline::MIDDLE:
-                yPos -= 0.575 * textH;
+                yPos -= float(0.575 * textH);
                 break;
 
             case pxConstantsTextBaseline::IDEOGRAPHIC:
-                yPos -= 1.1 * size;
+                yPos -= float(1.1 * size);
                 break;
 
             case pxConstantsTextBaseline::BOTTOM:

@@ -23,13 +23,13 @@
 #include "pxText.h"
 
 namespace pxCalc {
-    template<typename T>
+    template<class T>
     T min(T x, T y) { return (x < y ? x : y); }
 
-    template<typename T>
+    template<class T>
     T max(T x, T y) { return (x > y ? x : y); }
 
-    template<typename T>
+    template<class T>
     T clamp(T x, T lo, T hi) { return max(min(x, hi), lo); }
 }
 
