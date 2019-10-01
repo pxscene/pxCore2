@@ -1028,7 +1028,7 @@ bool pxFontAtlas::addGlyph(uint32_t w, uint32_t h, void* buffer, GlyphTextureEnt
 }
 
 
-void pxTexturedQuads::draw(float x, float y, float* color)
+void pxTexturedQuads::draw(float x, float y, float* color,  const textFx_t* pFx)
 {
   for (uint32_t i = 0; i < mQuads.size(); i++)
   {
@@ -1046,13 +1046,13 @@ void pxTexturedQuads::draw(float x, float y, float* color)
       }
     }
 
-    context.drawTexturedQuads( (int) q.verts.size()/12, &verts[0], &q.uvs[0], q.t, color);
+    context.drawTexturedQuads( (int) q.verts.size()/12, &verts[0], &q.uvs[0], q.t, color, (void*)pFx);
   }
 }
 
 void pxTexturedQuads::draw(float x, float y)
 {
-    draw(x, y, mColor);
+    draw(x, y, mColor, mpFx);
 }
 
 void pxTexturedQuads::setColor(uint32_t c)
@@ -1062,4 +1062,9 @@ void pxTexturedQuads::setColor(uint32_t c)
     mColor[2]/*B*/ = (float)((c>> 8) & 0xff) / 255.0f;
     mColor[3]/*A*/ = (float)((c>> 0) & 0xff) / 255.0f;
 }
+void pxTexturedQuads::setFx( const textFx_t * pFx)
+{
+    mpFx = pFx;
+}
+
 #endif

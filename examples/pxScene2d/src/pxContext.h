@@ -53,7 +53,45 @@ class shaderProgram; //fwd
   #define PXSCENE_DEFAULT_TEXTURE_MEMORY_LIMIT_THRESHOLD_PADDING_IN_BYTES (5 * 1024 * 1024)
 #endif
 
-//enum pxStretch { PX_NONE = 0, PX_STRETCH = 1, PX_REPEAT = 2 };
+
+typedef struct shadowFx_
+{
+  bool      enabled;
+
+  float     color[4];
+  float     offsetX;
+  float     offsetY;
+  float     blur;
+
+  float     x;         // used internally
+  float     y;         // used internally
+  float     radius;    // used internally
+  
+  float     width;           // used internally
+  float     height;          // used internally
+}
+shadowFx_t;
+
+typedef struct highlightFx_ {
+    bool enabled;
+
+    float color[4];
+    float offset;
+    float paddingLeft;
+    float paddingRight;
+
+    float highlightHeight; // used internally
+    float width;           // used internally
+    float height;          // used internally
+}
+highlightFx_t;
+
+typedef struct textFx_
+{
+  highlightFx_t  highlight;
+  shadowFx_t     shadow;
+}
+textFx_t;
 
 class pxContext {
  public:
@@ -115,7 +153,7 @@ class pxContext {
 
   void drawRect(float w, float h, float lineWidth, float* fillColor, float* lineColor);
 
-  // conveinience method
+  // convenience method
   void drawImageMasked(float x, float y, float w, float h,
                         pxConstantsMaskOperation::constants maskOp,
                         pxTextureRef t, pxTextureRef mask);
@@ -127,7 +165,15 @@ class pxContext {
                  bool downscaleSmooth = false,
                  pxConstantsMaskOperation::constants maskOp= pxConstantsMaskOperation::NORMAL);
 
-  void drawEffect(float x, float y, float w, float h, pxTextureRef t, shaderProgram *shader);
+  void drawEffect(float x, float y, float w, float h, pxTextureRef t, shaderProgram *shader, void *user = NULL);
+
+  struct filterXYR
+  {
+    float x; float y; float r;
+  };
+
+  pxContextFramebufferRef applyBlurSettings(pxContextFramebufferRef src, shadowFx_t *shdw,
+                                       filterXYR *filters, size_t count);
 
 #ifdef PXSCENE_FONT_ATLAS
   // This is intended to draw numQuads from the same texture.
@@ -135,8 +181,11 @@ class pxContext {
   // using GL_TRIANGLES in an optimal way.  quad oriented backends can skip vertices appropriately
   // 6 vertices (12 floats) and 6 uvs (12 floats) per quad
   void drawTexturedQuads(int numQuads, const void *verts, const void* uvs,
-                          pxTextureRef t, float* color);
+                         pxTextureRef t, float* color, void *user = nullptr);
 #endif                          
+
+  void drawTextEffects(int numQuads, const void *verts, const void* uvs,
+                      pxTextureRef t, textFx_t *textFx);
 
   void drawImage9(float w, float h, float x1, float y1,
                   float x2, float y2, pxTextureRef texture);

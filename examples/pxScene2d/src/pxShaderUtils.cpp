@@ -171,8 +171,10 @@ pxError shaderProgram::draw(int resW, int resH, float* matrix, float alpha,
                             GLenum mode,
                             const void* pos,
                             const void* uv,
-                            int count)
+                            int count, void* user /* = NULL */)
 {
+  UNUSED_PARAM(user);
+
   if(!resW || !resH || !matrix || !pos)
   {
     return RT_FAIL;

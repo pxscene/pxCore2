@@ -108,7 +108,7 @@ class pxTexturedQuads
     pxTextureRef t;
   };
 
-  pxTexturedQuads() {}
+  pxTexturedQuads():mpFx(nullptr) {}
 
   void addQuad(float x1,float y1,float x2,float y2, float u1, float v1, float u2, float v2, pxTextureRef t)
   {
@@ -154,9 +154,11 @@ class pxTexturedQuads
     u.push_back(v2);
   }
 
-  void draw(float x, float y, float* color);
+  void draw(float x, float y, float* color, const textFx_t *fx = nullptr);
   void draw(float x, float y);
+
   void setColor(uint32_t c);
+  void setFx(const textFx_t * pFx);
 
   void clear()
   {
@@ -166,6 +168,7 @@ class pxTexturedQuads
 private:
   vector<quads> mQuads;
   float mColor[4] = {0xff, 0xff, 0xff, 0xff};
+  const textFx_t* mpFx;
 };
 
 #endif
