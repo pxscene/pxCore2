@@ -179,7 +179,8 @@ rtError rtHttpRequest::write(const rtValue& chunk)
       uint32_t len = static_cast<uint32_t>(str.byteLength());
       if (len > 0) {
         rtLogInfo("write %u bytes (string)", len);
-        mWriteData = (uint8_t*)malloc(len);
+        mWriteData = (uint8_t*)malloc(len + 1);
+        mWriteData[len] = 0;
         mWriteDataSize = len;
         memcpy(mWriteData, str.cString(), len);
       }
