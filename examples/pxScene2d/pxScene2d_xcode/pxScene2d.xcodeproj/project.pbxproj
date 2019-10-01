@@ -263,6 +263,7 @@
 		4CF5463A2020F6E200529907 /* libz.1.2.11.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.1.2.11.dylib; path = lib/libz.1.2.11.dylib; sourceTree = "<group>"; };
 		783C7DAE1EBB6A440079FBE5 /* pxAnimate.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = pxAnimate.cpp; path = src/pxAnimate.cpp; sourceTree = "<group>"; };
 		783C7DAF1EBB6A440079FBE5 /* pxAnimate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pxAnimate.h; path = src/pxAnimate.h; sourceTree = "<group>"; };
+		D76580B72378AC5F002911C0 /* pxTextEffects.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pxTextEffects.h; path = src/pxTextEffects.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -436,6 +437,7 @@
 				4C0C6D631E5218BB00BD8932 /* pxText.h */,
 				4C0C6D641E5218BB00BD8932 /* pxTextBox.cpp */,
 				4C0C6D651E5218BB00BD8932 /* pxTextBox.h */,
+				D76580B72378AC5F002911C0 /* pxTextEffects.h */,
 			);
 			name = Text;
 			sourceTree = "<group>";

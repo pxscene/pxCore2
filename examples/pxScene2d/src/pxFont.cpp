@@ -22,9 +22,9 @@
 #include "rtFileDownloader.h"
 #include "pxFont.h"
 #include "pxTimer.h"
-#include "pxText.h"
+#include "pxTextEffects.h"
 
-#include <math.h>
+#include <cmath>
 #include <map>
 
 using namespace std;
@@ -1027,8 +1027,7 @@ bool pxFontAtlas::addGlyph(uint32_t w, uint32_t h, void* buffer, GlyphTextureEnt
   return false;
 }
 
-
-void pxTexturedQuads::draw(float x, float y, float* color)
+void pxTexturedQuads::draw(float x, float y, float* color,  const pxTextEffects* pe)
 {
   for (uint32_t i = 0; i < mQuads.size(); i++)
   {
@@ -1046,13 +1045,33 @@ void pxTexturedQuads::draw(float x, float y, float* color)
       }
     }
 
-    context.drawTexturedQuads( (int) q.verts.size()/12, &verts[0], &q.uvs[0], q.t, color);
+    if (pe)
+    {
+        context.drawTexturedQuadsWithEffects( (int) q.verts.size()/12, &verts[0], &q.uvs[0], q.t, color
+                , pe->shadowEnabled
+                , (float*)pe->shadowColor
+                , pe->shadowBlur
+                , pe->shadowOffsetX
+                , pe->shadowOffsetY
+                , pe->shadowWidth
+                , pe->shadowHeight
+                , pe->highlightEnabled
+                , (float*)pe->highlightColor
+                , pe->highlightOffset
+                , pe->highlightWidth
+                , pe->highlightHeight
+                , pe->highlightPaddingLeft
+                , pe->highlightPaddingRight
+                , pe->highlightBlockHeight);
+    } else {
+          context.drawTexturedQuads( (int) q.verts.size()/12, &verts[0], &q.uvs[0], q.t, color);
+    }
   }
 }
 
 void pxTexturedQuads::draw(float x, float y)
 {
-    draw(x, y, mColor);
+    draw(x, y, mColor, mpTextEffects);
 }
 
 void pxTexturedQuads::setColor(uint32_t c)
@@ -1062,4 +1081,9 @@ void pxTexturedQuads::setColor(uint32_t c)
     mColor[2]/*B*/ = (float)((c>> 8) & 0xff) / 255.0f;
     mColor[3]/*A*/ = (float)((c>> 0) & 0xff) / 255.0f;
 }
+void pxTexturedQuads::setTextEffects(const pxTextEffects* pe)
+{
+    mpTextEffects = pe;
+}
+
 #endif
