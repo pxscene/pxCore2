@@ -21,6 +21,7 @@
 #include "pxTextCanvas.h"
 #include "pxContext.h"
 
+#define CLAMP(_x, _min, _max) ( (_x) < (_min) ? (_min) : (_x) > (_max) ? (_max) : (_x) )
 extern pxContext context;
 
 //pxTextLine
@@ -225,7 +226,7 @@ rtError pxTextCanvas::globalAlpha(float& a) const
 rtError pxTextCanvas::setGlobalAlpha(const float a)
 {
     rtLogDebug("pxTextCanvas::setGlobalAlpha called with param: %f", a);
-    mGlobalAlpha = pxCalc::clamp(a, 0.0f, 1.0f);
+    mGlobalAlpha = CLAMP(a, 0.0f, 1.0f);
     setA(mGlobalAlpha); // temporary solution. Actually alpha must be applied to the rendered objects, not the canvas itself.
     return RT_OK;
 }
