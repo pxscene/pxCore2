@@ -40,13 +40,13 @@ fi
 cd $TRAVIS_BUILD_DIR;
 mkdir -p temp
 cd  temp
-
+export PKG_CONFIG_PATH=$TRAVIS_BUILD_DIR/examples/pxScene2d/external/extlibs/lib/pkgconfig:$PKG_CONFIG_PATH
 if [ "$TRAVIS_PULL_REQUEST" = "false" ]
 then
   echo "***************************** Generating config files ****" >> $BUILDLOGS
   if [ "$TRAVIS_EVENT_TYPE" != "cron" ] && [ "$TRAVIS_EVENT_TYPE" != "api" ] && [ -z "${TRAVIS_TAG}" ] 
   then
-    cmake -DSPARK_ENABLE_VIDEO=ON -DBUILD_PX_TESTS=ON -DBUILD_PXSCENE_STATIC_LIB=ON -DBUILD_DEBUG_METRICS=ON -DPXSCENE_TEST_HTTP_CACHE=ON -DENABLE_THREAD_SANITIZER=ON .. >>$BUILDLOGS 2>&1;
+    cmake -DPREFER_SYSTEM_LIBRARIES=ON -DPREFER_PKGCONFIG=ON -DSPARK_ENABLE_VIDEO=ON -DBUILD_PX_TESTS=ON -DBUILD_PXSCENE_STATIC_LIB=ON -DBUILD_DEBUG_METRICS=ON -DPXSCENE_TEST_HTTP_CACHE=ON -DENABLE_THREAD_SANITIZER=ON .. >>$BUILDLOGS 2>&1;
   else
     if [ "$TRAVIS_EVENT_TYPE" == "cron" ] ; 
     then
@@ -70,7 +70,7 @@ then
 else
 
   echo "***************************** Generating config files ****"
-  cmake -DSPARK_ENABLE_VIDEO=ON -DBUILD_PX_TESTS=ON -DBUILD_PXSCENE_STATIC_LIB=ON -DBUILD_DEBUG_METRICS=OFF -DPXSCENE_TEST_HTTP_CACHE=ON -DENABLE_THREAD_SANITIZER=ON .. 1>>$BUILDLOGS;
+  cmake -DPREFER_SYSTEM_LIBRARIES=ON -DPREFER_PKGCONFIG=ON -DSPARK_ENABLE_VIDEO=ON -DBUILD_PX_TESTS=ON -DBUILD_PXSCENE_STATIC_LIB=ON -DBUILD_DEBUG_METRICS=OFF -DPXSCENE_TEST_HTTP_CACHE=ON -DENABLE_THREAD_SANITIZER=ON .. 1>>$BUILDLOGS;
   checkError $? 1  "cmake config failed" "Config error" "Check the errors displayed in this window"
 
   echo "***************************** Building pxcore,rtcore,pxscene app,libpxscene,unitttests ****" >> $BUILDLOGS

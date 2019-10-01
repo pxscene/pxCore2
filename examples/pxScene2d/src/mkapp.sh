@@ -54,6 +54,9 @@ if [[ $# -ge 1 ]] && [[ $1 == "ENABLE-AAMP" ]]; then
  find -L $EXT_INSTALL_PATH -name *.so -exec cp -PR {} $bundleLib \;
  cp $EXT_INSTALL_PATH/libexec/gstreamer-1.0/gst-plugin-scanner $bundleLib
  rm $bundleLib/libpng.dylib $bundleLib/libjpeg.dylib  #to avoid circular dependency
+ if [ ! -e $externalDir/sqlite/.libs/libsqlite3.dylib ]; then
+   rm $bundleLib/libsqlite3.dylib #to avoid conflict with sqlite lib used by CoreFoundation
+ fi
 fi
 
 # Copy OTHER to Bundle...
