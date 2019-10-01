@@ -576,8 +576,8 @@ void pxTextCanvas::draw()
     //
     textFx_t *pFx = (mShadow || mHighlight) ? &textFx : NULL;
 
-    float x = 0, y = 50;  // TODO: '50' is an Egregious MAGIC NUMBER
-
+    float x = 0, y =  y = mTextH/2;  // TODO: 'mTextH/2' is an Egregious MAGIC NUMBER
+  
     for (std::vector<pxTexturedQuads>::iterator it  = mQuadsVector.begin();
                                                 it != mQuadsVector.end();   ++it)
     {
