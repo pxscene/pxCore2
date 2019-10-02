@@ -17,10 +17,6 @@ matrix:
 language: c++
 before_install:
 - eval "${MATRIX_EVAL}"
-- if [ "$TRAVIS_EVENT_TYPE" != "pull_request" ]; then openssl aes-256-cbc -K $encrypted_8b763c087de9_key -iv $encrypted_8b763c087de9_iv -in pxscene-build.pem.enc -out /tmp/pxscene-build.pem -d; fi
-- if [ "$TRAVIS_EVENT_TYPE" != "pull_request" ]; then  eval "$(ssh-agent -s)"; fi
-- if [ "$TRAVIS_EVENT_TYPE" != "pull_request" ]; then  chmod 0600 /tmp/pxscene-build.pem; fi
-- if [ "$TRAVIS_EVENT_TYPE" != "pull_request" ]; then  ssh-add /tmp/pxscene-build.pem; fi
 - ./ci/before_install.sh
 - if ( [ "$TRAVIS_EVENT_TYPE" = "push" ] || [ "$TRAVIS_EVENT_TYPE" = "pull_request" ] ) && [ -z "${TRAVIS_TAG}" ] && [ "$TRAVIS_OS_NAME" = "osx" ] ; then export PATH=/usr/local/opt/ccache/libexec:$PATH ; fi
 - if ( [ "$TRAVIS_EVENT_TYPE" = "push" ] || [ "$TRAVIS_EVENT_TYPE" = "pull_request" ] ) && [ -z "${TRAVIS_TAG}" ] && [ "$TRAVIS_OS_NAME" = "linux" ] ; then export PATH=/usr/lib/ccache:$PATH ; fi
@@ -37,7 +33,6 @@ script:
 - if ( [ "$TRAVIS_EVENT_TYPE" = "push" ] || [ "$TRAVIS_EVENT_TYPE" = "pull_request" ] ) && [ -z "${TRAVIS_TAG}" ] ; then genhtml -o $TRAVIS_BUILD_DIR/logs/codecoverage $TRAVIS_BUILD_DIR/tracefile; fi
 after_script:
 - ./ci/after_script.sh
-- if [ "$TRAVIS_EVENT_TYPE" != "pull_request" ]; then  rm -rf /tmp/pxscene-build.pem; fi
 addons:
   ssh_known_hosts: 96.116.56.119
 notifications:
