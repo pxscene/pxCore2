@@ -47,6 +47,7 @@ int numberOfDefaultThreads()
                 RT_THREAD_POOL_DEFAULT_THREAD_COUNT);
       numberOfThreads = RT_THREAD_POOL_DEFAULT_THREAD_COUNT;
     }
+    once = false;
   }
   printf("The default number of threads in the rt thread pool is %d\n", numberOfThreads);
   return numberOfThreads;
