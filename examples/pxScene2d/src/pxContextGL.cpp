@@ -1941,9 +1941,9 @@ static void drawEffect(GLfloat x, GLfloat y, GLfloat w, GLfloat h, pxTextureRef 
     { tw, secondTextureY }
   };
 
-  aLinearBlurShaderProgram *ss = (aLinearBlurShaderProgram *)shader; // Yuck
+  aLinearBlurShaderProgram *ss = static_cast<aLinearBlurShaderProgram *>(shader); // Yuck
 
-  ss->draw(gResW, gResH, gMatrix.data(), gAlpha, t, GL_TRIANGLE_STRIP, verts, (t ? uv : NULL), 4, user);
+  if(ss) ss->draw(gResW, gResH, gMatrix.data(), gAlpha, t, GL_TRIANGLE_STRIP, verts, (t ? uv : NULL), 4, user);
 }
 
 static void drawRectOutline(GLfloat x, GLfloat y, GLfloat w, GLfloat h, GLfloat lw, const float* c)
