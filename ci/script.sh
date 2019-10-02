@@ -36,7 +36,7 @@ then
     echo "Ignoring script stage for $TRAVIS_EVENT_TYPE event";
     exit 0
   fi
-  if [ "$TRAVIS_EVENT_TYPE" = "cron" && "$TRAVIS_OS_NAME" = "windows" ] 
+  if [ "$TRAVIS_EVENT_TYPE" = "cron" ]
   then
     # Since We don't have any plans to include permission file to appveyor, uploading of artifacts to build server directly from appveyor cannot be done.
     # So it is planned to fetch the artifact from appveyor in travis builds and to upload it to build server.
