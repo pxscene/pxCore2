@@ -36,16 +36,11 @@ int numberOfDefaultThreads()
     char const *s = getenv("RT_THREAD_POOL_SIZE");
     if (s)
     {
-      if (strlen(s) > 0)
+      int numThreads = atoi(s);
+      if (numThreads > 0)
       {
-        numberOfThreads = atoi(s);
+        numberOfThreads = numThreads;
       }
-    }
-    if (numberOfThreads <= 0)
-    {
-      printf("The number of threads in the rt thread pool is too small: %d.  Defaulting to %d\n", numberOfThreads,
-                RT_THREAD_POOL_DEFAULT_THREAD_COUNT);
-      numberOfThreads = RT_THREAD_POOL_DEFAULT_THREAD_COUNT;
     }
     once = false;
   }
