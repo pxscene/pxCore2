@@ -55,26 +55,26 @@ then
       cp ../examples/pxScene2d/src/macstuff/Resources/SparkEdge.icns ../examples/pxScene2d/src/macstuff/dmgresources/pxscene.icns
       cp ../examples/pxScene2d/src/browser/images/status_bg_edge.svg ../examples/pxScene2d/src/browser/images/status_bg.svg
        
-      cmake -DSUPPORT_DUKTAPE=OFF -DPXSCENE_VERSION=edge_`date +%Y-%m-%d` .. >>$BUILDLOGS 2>&1;
+      cmake -DSUPPORT_DUKTAPE=OFF -DPXSCENE_VERSION=edge_`date +%Y-%m-%d`
     else
-      cmake -DSUPPORT_DUKTAPE=OFF .. >>$BUILDLOGS 2>&1;
+      cmake -DSUPPORT_DUKTAPE=OFF ..
     fi
   fi
 
   checkError $? 0 "cmake config failed" "Config error" "Check the error in $BUILDLOGS"
 
   echo "***************************** Building pxcore,rtcore,pxscene app,libpxscene,unitttests ****" >> $BUILDLOGS
-  cmake --build . -- -j$(getconf _NPROCESSORS_ONLN) >>$BUILDLOGS 2>&1;
+  cmake --build . -- -j$(getconf _NPROCESSORS_ONLN)
   checkError $? 0 "Building either pxcore,rtcore,pxscene app,libpxscene,unitttest failed" "Compilation error" "check the $BUILDLOGS file"
 
 else
 
   echo "***************************** Generating config files ****"
-  cmake -DPREFER_SYSTEM_LIBRARIES=ON -DPREFER_PKGCONFIG=ON -DSPARK_ENABLE_VIDEO=ON -DBUILD_PX_TESTS=ON -DBUILD_PXSCENE_STATIC_LIB=ON -DBUILD_DEBUG_METRICS=OFF -DPXSCENE_TEST_HTTP_CACHE=ON -DENABLE_THREAD_SANITIZER=ON .. 1>>$BUILDLOGS;
+  cmake -DPREFER_SYSTEM_LIBRARIES=ON -DPREFER_PKGCONFIG=ON -DSPARK_ENABLE_VIDEO=ON -DBUILD_PX_TESTS=ON -DBUILD_PXSCENE_STATIC_LIB=ON -DBUILD_DEBUG_METRICS=OFF -DPXSCENE_TEST_HTTP_CACHE=ON -DENABLE_THREAD_SANITIZER=ON ..
   checkError $? 1  "cmake config failed" "Config error" "Check the errors displayed in this window"
 
   echo "***************************** Building pxcore,rtcore,pxscene app,libpxscene,unitttests ****" >> $BUILDLOGS
-  cmake --build . -- -j$(getconf _NPROCESSORS_ONLN) 1>>$BUILDLOGS;
+  cmake --build . -- -j$(getconf _NPROCESSORS_ONLN)
   checkError $? 1 "Building either pxcore,rtcore,pxscene app,libpxscene,unitttest failed" "Compilation error" "Check the errors displayed in this window"
 fi
 
