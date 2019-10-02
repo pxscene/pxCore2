@@ -267,8 +267,11 @@ public:
   rtMethod1ArgAndReturn("getFontMetrics", getFontMetrics, uint32_t, rtObjectRef);
   rtError getFontMetrics(uint32_t pixelSize, rtObjectRef& o);
   rtMethod2ArgAndReturn("measureText", measureText, uint32_t, rtString, rtObjectRef);
-  rtError measureText(uint32_t, rtString, rtObjectRef& o);   
-    
+  rtError measureText(uint32_t, rtString, rtObjectRef& o);
+  rtMethod1ArgAndReturn("needsStyleCoercion", needsStyleCoercion, rtString, bool);
+  rtError needsStyleCoercion(rtString fontStyle, bool& o);
+  static bool coercible(const char* fontStyle);
+
   // FT Face related functions
   void setPixelSize(uint32_t s);  
   const GlyphCacheEntry* getGlyph(uint32_t codePoint);

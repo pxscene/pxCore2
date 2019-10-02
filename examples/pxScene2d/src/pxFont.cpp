@@ -260,8 +260,19 @@ rtError pxFont::init(const char* n)
 
   do {
     if (FT_New_Face(ft, n, 0, &mFace) == 0)
+    // Simulating italic or oblique font style if required and possible
     {
       loadFontStatus = RT_OK;
+      rtString loadedStyleName(mFace->style_name);
+      loadedStyleName.toLowerAscii();
+      if (mFontStyle.isEmpty()) {
+          mFontStyle = loadedStyleName;
+      }
+
+      if (loadedStyleName.beginsWith("italic"))
+      {
+        break;
+      }
 
       if (mFontStyle.isEmpty() || !(mFontStyle.beginsWith("italic") || mFontStyle.beginsWith("oblique")))
       {
@@ -276,7 +287,7 @@ rtError pxFont::init(const char* n)
       }
       else
       {
-        uint32_t pos = mFontStyle.find(0, " ");
+        int32_t pos = mFontStyle.find(0, " ");
 
         if (pos < 0) break;
 
@@ -778,6 +789,20 @@ rtError pxFont::measureText(uint32_t pixelSize, rtString stringToMeasure, rtObje
   return RT_OK; 
 }
 
+rtError pxFont::needsStyleCoercion(rtString fontStyle, bool& o)
+{
+    fontStyle.toLowerAscii();
+    bool aRegular = mFontStyle.beginsWith("regular") || mFontStyle.beginsWith("normal");
+    bool bOblique = fontStyle.beginsWith("italic") || fontStyle.beginsWith("oblique");
+
+    o = (aRegular && bOblique);
+    return RT_OK;
+}
+
+bool pxFont::coercible(const char *fontStyle) {
+    rtString style = fontStyle;
+    return (style.beginsWith("italic") || style.beginsWith("oblique"));
+}
 
 /**********************************************************************/
 /**                    pxFontManager                                  */
@@ -812,6 +837,10 @@ rtRef<pxFont> pxFontManager::getFont(const char* url, const char* proxy, const c
     url = defaultFont;
 
   rtString key = url;
+  if (pxFont::coercible(fontStyle)) {
+     key = key + "+" + fontStyle;
+  }
+
   if (false == ((key.beginsWith("http:")) || (key.beginsWith("https:"))))
   {
     pxArchive* arc = (pxArchive*)archive.getPtr();
@@ -848,7 +877,7 @@ rtRef<pxFont> pxFontManager::getFont(const char* url, const char* proxy, const c
   }
   else 
   {
-    rtLogDebug("Create pxFont in map for %s\n",url);
+    rtLogDebug("Create pxFont in map for %s\n",key.cString());
     pFont = new pxFont(url, fontId, proxy, fontStyle);
     pFont->setCORS(cors);
     mFontMap.insert(make_pair(fontId, pFont));
@@ -891,8 +920,10 @@ rtDefineProperty(pxTextMetrics, baseline);
 
 // pxFont
 rtDefineObject(pxFont, pxResource);
+rtDefineProperty(pxFont, fontStyle);
 rtDefineMethod(pxFont, getFontMetrics);
 rtDefineMethod(pxFont, measureText);
+rtDefineMethod(pxFont, needsStyleCoercion);
 
 rtDefineObject(pxTextSimpleMeasurements, rtObject);
 rtDefineProperty(pxTextSimpleMeasurements, w);
