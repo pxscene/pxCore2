@@ -74,7 +74,7 @@ else
   checkError $? 1  "cmake config failed" "Config error" "Check the errors displayed in this window"
 
   echo "***************************** Building pxcore,rtcore,pxscene app,libpxscene,unitttests ****" >> $BUILDLOGS
-  cmake --build . -- -j$(getconf _NPROCESSORS_ONLN)  1>>$BUILDLOGS;
+  cmake --build . -- -j$(getconf _NPROCESSORS_ONLN) 1>>$BUILDLOGS;
   checkError $? 1 "Building either pxcore,rtcore,pxscene app,libpxscene,unitttest failed" "Compilation error" "Check the errors displayed in this window"
 fi
 
