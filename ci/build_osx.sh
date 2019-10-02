@@ -46,7 +46,7 @@ then
   echo "***************************** Generating config files ****" >> $BUILDLOGS
   if [ "$TRAVIS_EVENT_TYPE" != "cron" ] && [ "$TRAVIS_EVENT_TYPE" != "api" ] && [ -z "${TRAVIS_TAG}" ] 
   then
-    cmake -DPREFER_SYSTEM_LIBRARIES=ON -DPREFER_PKGCONFIG=ON -DSPARK_ENABLE_VIDEO=ON -DBUILD_PX_TESTS=ON -DBUILD_PXSCENE_STATIC_LIB=ON -DBUILD_DEBUG_METRICS=ON -DPXSCENE_TEST_HTTP_CACHE=ON -DENABLE_THREAD_SANITIZER=ON .. >>$BUILDLOGS 2>&1;
+    cmake -DPREFER_SYSTEM_LIBRARIES=ON -DPREFER_PKGCONFIG=ON -DSPARK_ENABLE_VIDEO=ON -DBUILD_PX_TESTS=ON -DBUILD_PXSCENE_STATIC_LIB=ON -DBUILD_DEBUG_METRICS=ON -DPXSCENE_TEST_HTTP_CACHE=ON -DENABLE_THREAD_SANITIZER=ON ..
   else
     if [ "$TRAVIS_EVENT_TYPE" == "cron" ] ; 
     then
@@ -55,7 +55,7 @@ then
       cp ../examples/pxScene2d/src/macstuff/Resources/SparkEdge.icns ../examples/pxScene2d/src/macstuff/dmgresources/pxscene.icns
       cp ../examples/pxScene2d/src/browser/images/status_bg_edge.svg ../examples/pxScene2d/src/browser/images/status_bg.svg
        
-      cmake -DSUPPORT_DUKTAPE=OFF -DPXSCENE_VERSION=edge_`date +%Y-%m-%d`
+      cmake -DSUPPORT_DUKTAPE=OFF -DPXSCENE_VERSION=edge_`date +%Y-%m-%d` ..
     else
       cmake -DSUPPORT_DUKTAPE=OFF ..
     fi
