@@ -659,6 +659,20 @@ rtError pxTextCanvas::fillText(rtString text, int32_t x, int32_t y)
     return RT_OK;
 }
 
+rtError pxTextCanvas::setText(const char* s)
+{
+  if( !mText.compare(s) ) // did NOT change
+  {
+    return RT_OK;
+  }
+  
+  pxText::setText(s);
+
+  fillText(mText, 0,0);
+  
+  return RT_OK;
+}
+
 rtError pxTextCanvas::clear()
 {
     mTextLines.clear();
@@ -702,6 +716,7 @@ rtDefineProperty(pxTextCanvasMeasurements, width);
 
 // pxTextCanvas
 rtDefineObject(pxTextCanvas, pxText);
+
 rtDefineProperty(pxTextCanvas, alignHorizontal);
 rtDefineProperty(pxTextCanvas, fillStyle);
 rtDefineProperty(pxTextCanvas, textBaseline);
@@ -718,12 +733,14 @@ rtDefineMethod(pxTextCanvas, clear);
 rtDefineMethod(pxTextCanvas, fillRect);
 rtDefineMethod(pxTextCanvas, translate);
 
+// Shadow stuff
 rtDefineProperty(pxTextCanvas, shadow);
 rtDefineProperty(pxTextCanvas, shadowColor);
 rtDefineProperty(pxTextCanvas, shadowOffsetX);
 rtDefineProperty(pxTextCanvas, shadowOffsetY);
 rtDefineProperty(pxTextCanvas, shadowBlur);
 
+// Highlight stuff
 rtDefineProperty(pxTextCanvas, highlight);
 rtDefineProperty(pxTextCanvas, highlightColor);
 rtDefineProperty(pxTextCanvas, highlightOffset);
