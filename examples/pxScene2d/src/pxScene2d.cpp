@@ -938,13 +938,16 @@ rtError pxScene2d::createFontResource(rtObjectRef p, rtObjectRef& o)
 {
   rtString url = p.get<rtString>("url");
   rtString proxy = p.get<rtString>("proxy");
+  rtString fontStyle = p.get<rtString>("fontStyle");
+
+  if (!fontStyle.isEmpty()) fontStyle.toLowerAscii();
 
 #ifdef ENABLE_PERMISSIONS_CHECK
   if (RT_OK != mPermissions->allows(url, rtPermissions::DEFAULT))
     return RT_ERROR_NOT_ALLOWED;
 #endif
 
-  o = pxFontManager::getFont(url, proxy, mCORS, mArchive);
+  o = pxFontManager::getFont(url, proxy, mCORS, mArchive, fontStyle);
   return RT_OK;
 }
 
