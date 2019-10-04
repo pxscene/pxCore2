@@ -28,6 +28,7 @@
 // TODO it would be nice to push this back into implemention
 #include <ft2build.h>
 #include FT_FREETYPE_H
+#include FT_GLYPH_H
 
 #include "pxScene2d.h"
 #include <map>
@@ -252,17 +253,25 @@ protected:
 class pxFont: public pxResource {
 
 public:
-	pxFont(rtString fontUrl, uint32_t id, rtString proxyUrl);
+	pxFont(rtString fontUrl, uint32_t id, rtString proxyUrl, rtString fontStyle);
 	virtual ~pxFont() ;
 
 	rtDeclareObject(pxFont, pxResource);
   rtReadOnlyProperty(ready, ready, rtObjectRef);
+  rtReadOnlyProperty(fontStyle, fontStyle, rtString);
+
+  rtString fontStyle()             const { return mFontStyle; }
+  rtError fontStyle(rtString& v)   const { v = mFontStyle; return RT_OK; }
+  rtError setFontStyle(rtString v)       { mFontStyle = v; return RT_OK; }
   
   rtMethod1ArgAndReturn("getFontMetrics", getFontMetrics, uint32_t, rtObjectRef);
   rtError getFontMetrics(uint32_t pixelSize, rtObjectRef& o);
   rtMethod2ArgAndReturn("measureText", measureText, uint32_t, rtString, rtObjectRef);
-  rtError measureText(uint32_t, rtString, rtObjectRef& o);   
-    
+  rtError measureText(uint32_t, rtString, rtObjectRef& o);
+  rtMethod1ArgAndReturn("needsStyleCoercion", needsStyleCoercion, rtString, bool);
+  rtError needsStyleCoercion(rtString fontStyle, bool& o);
+  static bool coercible(const char* fontStyle);
+
   // FT Face related functions
   void setPixelSize(uint32_t s);  
   const GlyphCacheEntry* getGlyph(uint32_t codePoint);
@@ -316,7 +325,7 @@ private:
 	char* mFontDownloadedData;
 	size_t mFontDownloadedDataSize;
 	rtString mFontDataUrl;
-
+  rtString mFontStyle;
 };
 
 // Weak Map
@@ -327,7 +336,7 @@ class pxFontManager
   
   public: 
     
-    static rtRef<pxFont> getFont(const char* url, const char* proxy = NULL, const rtCORSRef& cors = NULL, rtObjectRef archive = NULL);
+    static rtRef<pxFont> getFont(const char* url, const char* proxy = NULL, const rtCORSRef& cors = NULL, rtObjectRef archive = NULL, const char* fontStyle = NULL);
     static void removeFont(uint32_t fontId);
     static void clearAllFonts();
     
