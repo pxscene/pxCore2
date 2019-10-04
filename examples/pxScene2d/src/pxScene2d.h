@@ -668,13 +668,13 @@ protected:
 
   static rtError getContextID(int /*numArgs*/, const rtValue* /*args*/, rtValue* result, void* /*ctx*/);
 
-  static rtError sparkHttp(int numArgs, const rtValue* args, rtValue* result, void* /*ctx*/);
-
   void beginDrawing();
   void endDrawing();
 
   static rtError beginDrawing2(int /*numArgs*/, const rtValue* /*args*/, rtValue* result, void* ctx);
   static rtError endDrawing2(int /*numArgs*/, const rtValue* /*args*/, rtValue* result, void* ctx);
+
+  static rtError sparkHttp(int numArgs, const rtValue* args, rtValue* result, void* /*ctx*/);
 
   virtual void onSize(int32_t w, int32_t h);
 
@@ -723,13 +723,14 @@ protected:
   rtRef<rtFunctionCallback> mGetScene;
   rtRef<rtFunctionCallback> mMakeReady;
   rtRef<rtFunctionCallback> mGetContextID;
-  rtRef<rtFunctionCallback> mSparkHttp;
 
   // webgl stuff
 
   bool mDrawing;
   rtRef<rtFunctionCallback> mBeginDrawing;
   rtRef<rtFunctionCallback> mEndDrawing;
+
+  rtRef<rtFunctionCallback> mSparkHttp;
 
   pxContextFramebufferRef cached;
   pxContextFramebufferRef previousSurface;

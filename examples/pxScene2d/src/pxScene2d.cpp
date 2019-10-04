@@ -3233,12 +3233,10 @@ void pxScriptView::runScript()
     mGetScene = new rtFunctionCallback(getScene,  this);
     mMakeReady = new rtFunctionCallback(makeReady, this);
     mGetContextID = new rtFunctionCallback(getContextID, this);
-    mSparkHttp = new rtFunctionCallback(sparkHttp, this);
 
     mCtx->add("getScene", mGetScene.getPtr());
     mCtx->add("makeReady", mMakeReady.getPtr());
     mCtx->add("getContextID", mGetContextID.getPtr());
-    mCtx->add("sparkHttp", mSparkHttp.getPtr());
 
     // JRJR Temporary webgl integration
     if (isGLUrl())
@@ -3246,6 +3244,7 @@ void pxScriptView::runScript()
       mSharedContext = context.createSharedContext(true);
       mBeginDrawing = new rtFunctionCallback(beginDrawing2, this);
       mEndDrawing = new rtFunctionCallback(endDrawing2, this);
+      mSparkHttp = new rtFunctionCallback(sparkHttp, this);
       //mCtx->add("view", this);     
 
       // JRJR TODO initially with zero mWidth/mHeight until onSize event
@@ -3309,7 +3308,7 @@ void pxScriptView::runScript()
       // JRJR Adding an AddRef to this... causes bad things to happen when reloading gl scenes
       // investigate... 
       // JRJR WARNING! must use sendReturns since wrappers will invoke asyncronously otherwise.
-      f.sendReturns<bool>(url,mBeginDrawing.getPtr(),mEndDrawing.getPtr(), shadow.getPtr(), frameworkURL, options, b);
+      f.sendReturns<bool>(url,mBeginDrawing.getPtr(),mEndDrawing.getPtr(), shadow.getPtr(), frameworkURL, options, mSparkHttp.getPtr(), b);
       endDrawing();
       
     }
@@ -3365,7 +3364,6 @@ pxScriptView::~pxScriptView()
     mGetScene->clearContext();
     mMakeReady->clearContext();
     mGetContextID->clearContext();
-    mSparkHttp->clearContext();
 
     if (mBootstrapResolve)
       mBootstrapResolve->clearContext();
@@ -3376,7 +3374,6 @@ pxScriptView::~pxScriptView()
     mCtx->add("getScene", 0);
     mCtx->add("makeReady", 0);
     mCtx->add("getContextID", 0);
-    mCtx->add("sparkHttp", 0);
   }
 
   if (mDrawing) {
@@ -3389,6 +3386,8 @@ pxScriptView::~pxScriptView()
     mBeginDrawing->clearContext();
   if (NULL != mEndDrawing.getPtr())
     mEndDrawing->clearContext();
+  if (NULL != mSparkHttp.getPtr())
+    mSparkHttp->clearContext();
 
 #endif //ENABLE_RT_NODE
 

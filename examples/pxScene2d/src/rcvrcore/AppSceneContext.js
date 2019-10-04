@@ -358,7 +358,6 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (packageUri, module
         process: processWrap,
         require: requireMethod,
         global: globalWrap,
-        sparkHttp: sparkHttp,
         Function: Function,
         Uint8Array: Uint8Array,
         setTimeout: function (callback, after, arg1, arg2, arg3) {
