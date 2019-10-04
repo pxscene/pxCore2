@@ -250,7 +250,7 @@ void pxFont::loadResourceFromFile()
 
     } 
 }
-
+// Simulating italic or oblique font style if required (and possible)
 bool pxFont::transform()
 {
     bool res = false;
@@ -318,7 +318,6 @@ rtError pxFont::init(const char* n)
 
   do {
     if (FT_New_Face(ft, n, 0, &mFace) == 0)
-    // Simulating italic or oblique font style if required and possible
     {
       loadFontStatus = RT_OK;
       transform();
