@@ -109,11 +109,42 @@ rtError rtStorage::init(const char* filename, uint32_t storageQuota, const char*
 //  sqlite3_stmt *stmt;
 
   char *errmsg;
-  sqlite3_exec(db, "CREATE TABLE if not exists SizeTable (currentSize MEDIUMINT_UNSIGNED UNIQUE ON CONFLICT REPLACE);", 0, 0, &errmsg);
-  sqlite3_exec(db, "CREATE TABLE if not exists ItemTable (key TEXT UNIQUE ON CONFLICT REPLACE, value TEXT);", 0, 0, &errmsg);
+  rc = sqlite3_exec(db, "CREATE TABLE if not exists SizeTable (currentSize MEDIUMINT_UNSIGNED UNIQUE ON CONFLICT REPLACE);", 0, 0, &errmsg);
+  if (rc != SQLITE_OK || errmsg)
+  {
+    if (errmsg)
+    {
+      rtLogError("%s : %d : %s", __FUNCTION__, rc, errmsg);
+      sqlite3_free(errmsg);
+    }
+    else
+      rtLogError("%s : %d", __FUNCTION__, rc);
+  }
+
+  rc = sqlite3_exec(db, "CREATE TABLE if not exists ItemTable (key TEXT UNIQUE ON CONFLICT REPLACE, value TEXT);", 0, 0, &errmsg);
+  if (rc != SQLITE_OK || errmsg)
+  {
+    if (errmsg)
+    {
+      rtLogError("%s : %d : %s", __FUNCTION__, rc, errmsg);
+      sqlite3_free(errmsg);
+    }
+    else
+      rtLogError("%s : %d", __FUNCTION__, rc);
+  }
 
   // initial currentSize must be 0
-  sqlite3_exec(db, "INSERT OR IGNORE INTO SizeTable (currentSize) VALUES(0);", 0, 0, &errmsg);
+  rc = sqlite3_exec(db, "INSERT OR IGNORE INTO SizeTable (currentSize) VALUES(0);", 0, 0, &errmsg);
+  if (rc != SQLITE_OK || errmsg)
+  {
+    if (errmsg)
+    {
+      rtLogError("%s : %d : %s", __FUNCTION__, rc, errmsg);
+      sqlite3_free(errmsg);
+    }
+    else
+      rtLogError("%s : %d", __FUNCTION__, rc);
+  }
 
   mQuota = storageQuota;
   return RT_OK;
@@ -451,7 +482,18 @@ rtError rtStorage::runVacuumCommand()
 
   if (db)
   {
-    sqlite3_exec(db, "VACUUM", 0, 0, 0);
+    char *errmsg;
+    int rc = sqlite3_exec(db, "VACUUM", 0, 0, &errmsg);
+    if (rc != SQLITE_OK || errmsg)
+    {
+      if (errmsg)
+      {
+        rtLogError("%s : %s", __FUNCTION__, errmsg);
+        sqlite3_free(errmsg);
+      }
+      else
+        rtLogError("%s : %d", __FUNCTION__, rc);
+    }
   }
 
   return RT_OK;
