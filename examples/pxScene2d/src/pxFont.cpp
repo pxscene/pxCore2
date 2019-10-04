@@ -264,13 +264,12 @@ rtError pxFont::init(const char* n)
     {
       loadFontStatus = RT_OK;
       rtString loadedStyleName(mFace->style_name);
-      loadedStyleName.toLowerAscii();
-      if (mFontStyle.isEmpty()) {
-          mFontStyle = loadedStyleName;
-      }
+      if (!loadedStyleName.isEmpty())loadedStyleName.toLowerAscii();
+      if (!mFontStyle.isEmpty()) mFontStyle.toLowerAscii();
 
       if (loadedStyleName.beginsWith("italic"))
       {
+        mFontStyle = loadedStyleName;
         break;
       }
 
@@ -308,6 +307,10 @@ rtError pxFont::init(const char* n)
       FT_Set_Transform(mFace, &matrix, 0);
 
       break;
+    }
+
+    if (mFontStyle.isEmpty()) {
+      mFontStyle = mFace->style_name;
     }
 
     if (rtIsPathAbsolute(n))
@@ -826,7 +829,7 @@ void pxFontManager::initFT()
   }
   
 }
-rtRef<pxFont> pxFontManager::getFont(const char* url, const char* proxy, const char* fontStyle, const rtCORSRef& cors, rtObjectRef archive)
+rtRef<pxFont> pxFontManager::getFont(const char* url, const char* proxy, const rtCORSRef& cors, rtObjectRef archive, const char* fontStyle)
 {
   initFT();
 

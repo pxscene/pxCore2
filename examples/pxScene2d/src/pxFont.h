@@ -336,7 +336,7 @@ class pxFontManager
   
   public: 
     
-    static rtRef<pxFont> getFont(const char* url, const char* proxy = NULL, const char* fontStyle = NULL, const rtCORSRef& cors = NULL, rtObjectRef archive = NULL);
+    static rtRef<pxFont> getFont(const char* url, const char* proxy = NULL, const rtCORSRef& cors = NULL, rtObjectRef archive = NULL, const char* fontStyle = NULL);
     static void removeFont(uint32_t fontId);
     static void clearAllFonts();
     
