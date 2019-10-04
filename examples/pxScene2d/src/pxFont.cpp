@@ -309,10 +309,6 @@ rtError pxFont::init(const char* n)
       break;
     }
 
-    if (mFontStyle.isEmpty()) {
-      mFontStyle = mFace->style_name;
-    }
-
     if (rtIsPathAbsolute(n))
       break;
 
@@ -328,7 +324,12 @@ rtError pxFont::init(const char* n)
     }
   } while (0);
 
-  if(loadFontStatus == RT_OK)
+    if (mFontStyle.isEmpty()) {
+        mFontStyle = mFace->style_name;
+        mFontStyle.toLowerAscii();
+    }
+
+    if(loadFontStatus == RT_OK)
   {
     mInitialized = true;
     setPixelSize(defaultPixelSize);
@@ -794,11 +795,14 @@ rtError pxFont::measureText(uint32_t pixelSize, rtString stringToMeasure, rtObje
 
 rtError pxFont::needsStyleCoercion(rtString fontStyle, bool& o)
 {
-    fontStyle.toLowerAscii();
-    bool aRegular = mFontStyle.beginsWith("regular") || mFontStyle.beginsWith("normal");
-    bool bOblique = fontStyle.beginsWith("italic") || fontStyle.beginsWith("oblique");
+    if (!fontStyle.isEmpty()) fontStyle.toLowerAscii();
+    if (mFontStyle.isEmpty()) {
+        rtLogWarn("Unable to detect font style of the current font. Style coercion declined.");
+    }
+    bool regularFont = mFontStyle.beginsWith("regular") || mFontStyle.beginsWith("normal");
+    bool needsSloping = fontStyle.beginsWith("italic") || fontStyle.beginsWith("oblique");
 
-    o = (aRegular && bOblique);
+    o = (regularFont && needsSloping);
     return RT_OK;
 }
 

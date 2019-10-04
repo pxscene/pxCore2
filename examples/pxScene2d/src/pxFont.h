@@ -253,7 +253,7 @@ protected:
 class pxFont: public pxResource {
 
 public:
-	pxFont(rtString fontUrl, uint32_t id, rtString proxyUrl, rtString fontStyle);
+	pxFont(rtString fontUrl, uint32_t id, rtString proxyUrl, rtString fontStyle = "");
 	virtual ~pxFont() ;
 
 	rtDeclareObject(pxFont, pxResource);
