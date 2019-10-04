@@ -668,6 +668,8 @@ protected:
 
   static rtError getContextID(int /*numArgs*/, const rtValue* /*args*/, rtValue* result, void* /*ctx*/);
 
+  static rtError sparkHttp(int numArgs, const rtValue* args, rtValue* result, void* /*ctx*/);
+
   void beginDrawing();
   void endDrawing();
 
@@ -721,6 +723,7 @@ protected:
   rtRef<rtFunctionCallback> mGetScene;
   rtRef<rtFunctionCallback> mMakeReady;
   rtRef<rtFunctionCallback> mGetContextID;
+  rtRef<rtFunctionCallback> mSparkHttp;
 
   // webgl stuff
 

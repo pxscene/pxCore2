@@ -81,6 +81,7 @@
 #endif //ENABLE_RT_NODE
 
 #include "rtJsonUtils.h"
+#include "rtHttpRequest.h"
 
 using namespace rapidjson;
 
@@ -3232,10 +3233,12 @@ void pxScriptView::runScript()
     mGetScene = new rtFunctionCallback(getScene,  this);
     mMakeReady = new rtFunctionCallback(makeReady, this);
     mGetContextID = new rtFunctionCallback(getContextID, this);
+    mSparkHttp = new rtFunctionCallback(sparkHttp, this);
 
     mCtx->add("getScene", mGetScene.getPtr());
     mCtx->add("makeReady", mMakeReady.getPtr());
     mCtx->add("getContextID", mGetContextID.getPtr());
+    mCtx->add("sparkHttp", mSparkHttp.getPtr());
 
     // JRJR Temporary webgl integration
     if (isGLUrl())
@@ -3362,6 +3365,7 @@ pxScriptView::~pxScriptView()
     mGetScene->clearContext();
     mMakeReady->clearContext();
     mGetContextID->clearContext();
+    mSparkHttp->clearContext();
 
     if (mBootstrapResolve)
       mBootstrapResolve->clearContext();
@@ -3372,6 +3376,7 @@ pxScriptView::~pxScriptView()
     mCtx->add("getScene", 0);
     mCtx->add("makeReady", 0);
     mCtx->add("getContextID", 0);
+    mCtx->add("sparkHttp", 0);
   }
 
   if (mDrawing) {
@@ -3828,4 +3833,32 @@ bool pxScriptView::isGLUrl() const
 {
   return mUrl.beginsWith("gl:")
     || (mBootstrap && mBootstrap.get<rtString>("frameworkType").compare("sparkGL") == 0);
+}
+
+rtError pxScriptView::sparkHttp(int numArgs, const rtValue* args, rtValue* result, void* /*ctx*/)
+{
+  if (numArgs < 1)
+  {
+    rtLogError("%s: invalid args", __FUNCTION__);
+    return RT_ERROR_INVALID_ARG;
+  }
+
+  rtHttpRequest* req;
+  if (args[0].getType() == RT_stringType)
+    req = new rtHttpRequest(args[0].toString());
+  else if (args[0].getType() == RT_objectType)
+    req = new rtHttpRequest(args[0].toObject());
+  else
+  {
+    rtLogError("%s: invalid arg type", __FUNCTION__);
+    return RT_ERROR_INVALID_ARG;
+  }
+
+  if (numArgs > 1 && args[1].getType() == RT_functionType)
+    req->addListener("response", args[1].toFunction());
+
+  rtObjectRef ref = req;
+  *result = ref;
+
+  return RT_OK;
 }

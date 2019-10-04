@@ -125,6 +125,8 @@ public:
   size_t byteRangeIntervals(void);
   void setCurlRetryEnable(bool bCurlRetry);
   bool isCurlRetryEnabled(void);
+  void setUseEncoding(bool useEncoding);
+  bool isUseEncoding() const;
 
 private:
   rtString mTag;
@@ -168,6 +170,7 @@ private:
   bool mIsByteRangeEnabled;
   size_t mByteRangeIntervals;
   bool mCurlRetry;
+  bool mUseEncoding;
 };
 
 struct rtFileDownloadHandle
