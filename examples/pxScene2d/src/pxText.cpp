@@ -34,7 +34,7 @@ pxText::pxText(pxScene2d* scene):pxObject(scene), mFontLoaded(false), mFontFaile
   float c[4] = {1, 1, 1, 1};
   memcpy(mTextColor, c, sizeof(mTextColor));
   // Default to use default font
-  mFont = pxFontManager::getFont(defaultFont, NULL, NULL, scene->getArchive());
+  mFont = pxFontManager::getFont(defaultFont, NULL, NULL, scene->getArchive(), NULL);
   mPixelSize = defaultPixelSize;
 }
 
@@ -192,7 +192,7 @@ rtError pxText::setFontUrl(const char* s)
   createNewPromise();
 
   removeResourceListener();
-  mFont = pxFontManager::getFont(s, NULL, NULL, mScene->getArchive());
+  mFont = pxFontManager::getFont(s, NULL, NULL, mScene->getArchive(), NULL);
   mListenerAdded = true;
   if (getFontResource() != NULL)
   {

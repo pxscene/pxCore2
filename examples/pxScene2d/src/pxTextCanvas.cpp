@@ -21,6 +21,7 @@
 #include "pxTextCanvas.h"
 #include "pxContext.h"
 
+#define CLAMP(_x, _min, _max) ( (_x) < (_min) ? (_min) : (_x) > (_max) ? (_max) : (_x) )
 extern pxContext context;
 
 //pxTextLine
@@ -71,8 +72,10 @@ pxTextCanvas::pxTextCanvas(pxScene2d* s): pxText(s)
     mFontFailed = false;
     mTextBaseline = pxConstantsTextBaseline::ALPHABETIC;
     mColorMode = "RGBA"; //TODO: make a const class from it?
-	mLabel = "";
-	setClip(true);
+    mLabel = "";
+    setW(pxTextCanvas::DEFAULT_WIDTH);
+    setH(pxTextCanvas::DEFAULT_HEIGHT);
+    setClip(true);
 }
 /** This signals that the font file loaded successfully; now we need to
  * send the ready promise once we have the text, too
@@ -223,7 +226,7 @@ rtError pxTextCanvas::globalAlpha(float& a) const
 rtError pxTextCanvas::setGlobalAlpha(const float a)
 {
     rtLogDebug("pxTextCanvas::setGlobalAlpha called with param: %f", a);
-    mGlobalAlpha = pxCalc::clamp(a, 0.0f, 1.0f);
+    mGlobalAlpha = CLAMP(a, 0.0f, 1.0f);
     setA(mGlobalAlpha); // temporary solution. Actually alpha must be applied to the rendered objects, not the canvas itself.
     return RT_OK;
 }
@@ -416,8 +419,8 @@ void pxTextCanvas::renderText(bool render)
 void pxTextCanvas::renderTextLine(const pxTextLine& textLine)
 {
     const char* cStr = textLine.text.cString();
-    float xPos = (float)(textLine.x + mTranslateX);
-    float yPos = (float)(textLine.y + mTranslateY);
+    float xPos = (float)(textLine.x + textLine.translateX);
+    float yPos = (float)(textLine.y + textLine.translateY);
     // TODO ignoring sx and sy now.
     float sx = 1.0;
     float sy = 1.0;
@@ -446,7 +449,7 @@ void pxTextCanvas::renderTextLine(const pxTextLine& textLine)
         switch (alignH)
         {
             case pxConstantsAlignHorizontal::CENTER:
-                xPos -= textW / 2;
+                xPos -= float(textW / 2);
                 break;
 
             case pxConstantsAlignHorizontal::RIGHT:
@@ -457,23 +460,23 @@ void pxTextCanvas::renderTextLine(const pxTextLine& textLine)
         switch (baseline)
         {
             case pxConstantsTextBaseline::ALPHABETIC:
-                yPos -= size;
+                yPos -= float(size);
                 break;
 
             case pxConstantsTextBaseline::TOP:
-                yPos -= 0.2 * textH;
+                yPos -= float(0.2 * textH);
                 break;
 
             case pxConstantsTextBaseline::HANGING:
-                yPos -= 0.325 * textH;
+                yPos -= float(0.325 * textH);
                 break;
 
             case pxConstantsTextBaseline::MIDDLE:
-                yPos -= 0.575 * textH;
+                yPos -= float(0.575 * textH);
                 break;
 
             case pxConstantsTextBaseline::IDEOGRAPHIC:
-                yPos -= 1.1 * size;
+                yPos -= float(1.1 * size);
                 break;
 
             case pxConstantsTextBaseline::BOTTOM:
@@ -571,6 +574,8 @@ rtError pxTextCanvas::fillText(rtString text, int32_t x, int32_t y)
     textLine.setStyle(mFont, mPixelSize, color.toInt32());
     textLine.alignHorizontal = mAlignHorizontal;
     textLine.textBaseline = mTextBaseline;
+    textLine.translateX = mTranslateX;
+    textLine.translateY = mTranslateY;
     mTextLines.push_back(textLine);
     setNeedsRecalc(true);
     return RT_OK;

@@ -83,12 +83,13 @@ uint32_t npot(uint32_t i)
 pxFontAtlas gFontAtlas;
 #endif
 
-pxFont::pxFont(rtString fontUrl, uint32_t id, rtString proxyUrl):pxResource(),mFace(NULL),mPixelSize(0), mFontData(0), mFontDataSize(0),
+pxFont::pxFont(rtString fontUrl, uint32_t id, rtString proxyUrl, rtString fontStyle):pxResource(),mFace(NULL),mPixelSize(0), mFontData(0), mFontDataSize(0),
              mFontMutex(), mFontDataMutex(), mFontDownloadedData(NULL), mFontDownloadedDataSize(0), mFontDataUrl()
 {  
   mFontId = id; 
   mUrl = fontUrl;
   mProxy = proxyUrl;
+  mFontStyle = fontStyle;
 }
 
 pxFont::~pxFont() 
@@ -259,9 +260,57 @@ rtError pxFont::init(const char* n)
 
   do {
     if (FT_New_Face(ft, n, 0, &mFace) == 0)
+    // Simulating italic or oblique font style if required and possible
     {
       loadFontStatus = RT_OK;
+      rtString loadedStyleName(mFace->style_name);
+      if (!loadedStyleName.isEmpty())loadedStyleName.toLowerAscii();
+      if (!mFontStyle.isEmpty()) mFontStyle.toLowerAscii();
+
+      if (loadedStyleName.beginsWith("italic"))
+      {
+        mFontStyle = loadedStyleName;
+        break;
+      }
+
+      if (mFontStyle.isEmpty() || !(mFontStyle.beginsWith("italic") || mFontStyle.beginsWith("oblique")))
+      {
+        break;
+      }
+
+      double k = 0;
+
+      if (mFontStyle.beginsWith("italic"))
+      {
+        k = 0.24;
+      }
+      else
+      {
+        int32_t pos = mFontStyle.find(0, " ");
+
+        if (pos < 0) break;
+
+        double angle = atof(mFontStyle.substring(pos, mFontStyle.length() - 3).cString());
+
+        k = tan(angle * M_PI / 180);
+      }
+
+      if (k <= 0) break;
+
+      FT_Matrix matrix;
+
+      matrix.xx = 0x10000L;
+      matrix.xy = k * 0x10000L;
+      matrix.yx = 0;
+      matrix.yy = 0x10000L;
+
+      FT_Set_Transform(mFace, &matrix, 0);
+
       break;
+    }
+
+    if (mFontStyle.isEmpty()) {
+      mFontStyle = mFace->style_name;
     }
 
     if (rtIsPathAbsolute(n))
@@ -743,6 +792,20 @@ rtError pxFont::measureText(uint32_t pixelSize, rtString stringToMeasure, rtObje
   return RT_OK; 
 }
 
+rtError pxFont::needsStyleCoercion(rtString fontStyle, bool& o)
+{
+    fontStyle.toLowerAscii();
+    bool aRegular = mFontStyle.beginsWith("regular") || mFontStyle.beginsWith("normal");
+    bool bOblique = fontStyle.beginsWith("italic") || fontStyle.beginsWith("oblique");
+
+    o = (aRegular && bOblique);
+    return RT_OK;
+}
+
+bool pxFont::coercible(const char *fontStyle) {
+    rtString style = fontStyle;
+    return (style.beginsWith("italic") || style.beginsWith("oblique"));
+}
 
 /**********************************************************************/
 /**                    pxFontManager                                  */
@@ -766,7 +829,7 @@ void pxFontManager::initFT()
   }
   
 }
-rtRef<pxFont> pxFontManager::getFont(const char* url, const char* proxy, const rtCORSRef& cors, rtObjectRef archive)
+rtRef<pxFont> pxFontManager::getFont(const char* url, const char* proxy, const rtCORSRef& cors, rtObjectRef archive, const char* fontStyle)
 {
   initFT();
 
@@ -777,6 +840,10 @@ rtRef<pxFont> pxFontManager::getFont(const char* url, const char* proxy, const r
     url = defaultFont;
 
   rtString key = url;
+  if (pxFont::coercible(fontStyle)) {
+     key = key + "+" + fontStyle;
+  }
+
   if (false == ((key.beginsWith("http:")) || (key.beginsWith("https:"))))
   {
     pxArchive* arc = (pxArchive*)archive.getPtr();
@@ -813,8 +880,8 @@ rtRef<pxFont> pxFontManager::getFont(const char* url, const char* proxy, const r
   }
   else 
   {
-    rtLogDebug("Create pxFont in map for %s\n",url);
-    pFont = new pxFont(url, fontId, proxy);
+    rtLogDebug("Create pxFont in map for %s\n",key.cString());
+    pFont = new pxFont(url, fontId, proxy, fontStyle);
     pFont->setCORS(cors);
     mFontMap.insert(make_pair(fontId, pFont));
     pFont->loadResource(archive);
@@ -856,8 +923,10 @@ rtDefineProperty(pxTextMetrics, baseline);
 
 // pxFont
 rtDefineObject(pxFont, pxResource);
+rtDefineProperty(pxFont, fontStyle);
 rtDefineMethod(pxFont, getFontMetrics);
 rtDefineMethod(pxFont, measureText);
+rtDefineMethod(pxFont, needsStyleCoercion);
 
 rtDefineObject(pxTextSimpleMeasurements, rtObject);
 rtDefineProperty(pxTextSimpleMeasurements, w);
