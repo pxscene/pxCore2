@@ -40,7 +40,7 @@ rtHttpRequest::rtHttpRequest(const rtString& url)
   , mWriteData(NULL)
   , mWriteDataSize(0)
   , mInQueue(false)
-  , mCompress(false)
+  , mCompress(true)
 {
 }
 
@@ -49,7 +49,7 @@ rtHttpRequest::rtHttpRequest(const rtObjectRef& options)
   , mWriteData(NULL)
   , mWriteDataSize(0)
   , mInQueue(false)
-  , mCompress(false)
+  , mCompress(true)
 {
   rtString url;
 
@@ -60,10 +60,13 @@ rtHttpRequest::rtHttpRequest(const rtObjectRef& options)
   rtString method = options.get<rtString>("method");
   rtObjectRef headers = options.get<rtObjectRef>("headers");
   uint32_t port = options.get<uint32_t>("port");
-  bool compress = options.get<bool>("compress");
 
   mMethod = method;
-  mCompress = compress;
+
+  rtValue v;
+  rtError e = options->Get("compress", &v);
+  if (e == RT_OK)
+    v.tryConvert<bool>(mCompress);
 
   url.append(proto.cString());
   url.append("//");

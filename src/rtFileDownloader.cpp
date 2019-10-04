@@ -199,7 +199,7 @@ rtFileDownloadRequest::rtFileDownloadRequest(const char* imageUrl, void* callbac
     , mIsByteRangeEnabled(false)
     , mByteRangeIntervals(0)
     , mCurlRetry(false)
-    , mUseEncoding(false)
+    , mUseEncoding(true)
 {
   mAdditionalHttpHeaders.clear();
 #ifdef ENABLE_HTTP_CACHE
