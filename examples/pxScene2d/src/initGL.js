@@ -58,7 +58,7 @@ var _intervals = []
 var _timeouts = []
 var _immediates = []
 var _websockets = []
-var sandboxKeys = ["vm", "process", "setTimeout", "console", "clearTimeout", "setInterval", "clearInterval", "setImmediate", "clearImmediate", "sparkview", "sparkscene", "sparkgles2", "beginDrawing", "endDrawing", "sparkwebgl", "sparkkeys", "sparkQueryParams", "require", "localStorage"]
+var sandboxKeys = ["vm", "process", "setTimeout", "console", "clearTimeout", "setInterval", "clearInterval", "setImmediate", "clearImmediate", "sparkview", "sparkscene", "sparkgles2", "beginDrawing", "endDrawing", "sparkwebgl", "sparkkeys", "sparkQueryParams", "require", "localStorage", "sparkHttp"]
 var sandbox = {}
 /* holds loaded main mjs module reference */
 var app = null;
@@ -66,7 +66,7 @@ var contextifiedSandbox = null;
 var __dirname = process.cwd()
 /* holds map of depenedent module name and its reference */
 var modmap = {}
-var loadUrl = function(url, _beginDrawing, _endDrawing, _view, _frameworkURL, _options) {
+var loadUrl = function(url, _beginDrawing, _endDrawing, _view, _frameworkURL, _options, _sparkHttp) {
 
   // JRJR review this... if we don't draw outside of the timers
   // then no need for this... 
@@ -179,6 +179,7 @@ var loadUrl = function(url, _beginDrawing, _endDrawing, _view, _frameworkURL, _o
     global.sparkscene.api = {}
   }
   global.localStorage = global.sparkscene.storage;
+  global.sparkHttp = _sparkHttp;
   const script = new vm.Script("global.sparkwebgl = sparkwebgl= require('webgl'); global.sparkgles2 = sparkgles2 = require('gles2.js'); global.sparkkeys = sparkkeys = require('rcvrcore/tools/keys.js');");
   global.sparkscene.on('onSceneTerminate', () => {
     for (let key in bootStrapCache) {

@@ -199,6 +199,7 @@ rtFileDownloadRequest::rtFileDownloadRequest(const char* imageUrl, void* callbac
     , mIsByteRangeEnabled(false)
     , mByteRangeIntervals(0)
     , mCurlRetry(false)
+    , mUseEncoding(true)
 {
   mAdditionalHttpHeaders.clear();
 #ifdef ENABLE_HTTP_CACHE
@@ -615,6 +616,16 @@ void rtFileDownloadRequest::setDownloadOnly(bool downloadOnly)
 bool rtFileDownloadRequest::isDownloadOnly(void)
 {
   return mDownloadOnly;
+}
+
+void rtFileDownloadRequest::setUseEncoding(bool useEncoding)
+{
+  mUseEncoding = useEncoding;
+}
+
+bool rtFileDownloadRequest::isUseEncoding() const
+{
+  return mUseEncoding;
 }
 
 rtFileDownloader::rtFileDownloader()
@@ -1444,6 +1455,12 @@ bool rtFileDownloader::downloadFromNetwork(rtFileDownloadRequest* downloadReques
       curl_easy_setopt(curl_handle, CURLOPT_READFUNCTION, ReadMemoryCallback);
       curl_easy_setopt(curl_handle, CURLOPT_READDATA, (void *)&chunk);
       curl_easy_setopt(curl_handle, CURLOPT_POSTFIELDSIZE, readDataSize);
+    }
+
+    if (downloadRequest->isUseEncoding())
+    {
+      /* enable all supported built-in compressions */
+      curl_easy_setopt(curl_handle, CURLOPT_ACCEPT_ENCODING, "");
     }
 
     /* get it! */

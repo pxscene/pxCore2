@@ -81,6 +81,7 @@
 #endif //ENABLE_RT_NODE
 
 #include "rtJsonUtils.h"
+#include "rtHttpRequest.h"
 
 using namespace rapidjson;
 
@@ -3246,6 +3247,7 @@ void pxScriptView::runScript()
       mSharedContext = context.createSharedContext(true);
       mBeginDrawing = new rtFunctionCallback(beginDrawing2, this);
       mEndDrawing = new rtFunctionCallback(endDrawing2, this);
+      mSparkHttp = new rtFunctionCallback(sparkHttp, this);
       //mCtx->add("view", this);     
 
       // JRJR TODO initially with zero mWidth/mHeight until onSize event
@@ -3309,7 +3311,7 @@ void pxScriptView::runScript()
       // JRJR Adding an AddRef to this... causes bad things to happen when reloading gl scenes
       // investigate... 
       // JRJR WARNING! must use sendReturns since wrappers will invoke asyncronously otherwise.
-      f.sendReturns<bool>(url,mBeginDrawing.getPtr(),mEndDrawing.getPtr(), shadow.getPtr(), frameworkURL, options, b);
+      f.sendReturns<bool>(url,mBeginDrawing.getPtr(),mEndDrawing.getPtr(), shadow.getPtr(), frameworkURL, options, mSparkHttp.getPtr(), b);
       endDrawing();
       
     }
@@ -3387,6 +3389,8 @@ pxScriptView::~pxScriptView()
     mBeginDrawing->clearContext();
   if (NULL != mEndDrawing.getPtr())
     mEndDrawing->clearContext();
+  if (NULL != mSparkHttp.getPtr())
+    mSparkHttp->clearContext();
 
 #endif //ENABLE_RT_NODE
 
@@ -3831,4 +3835,32 @@ bool pxScriptView::isGLUrl() const
 {
   return mUrl.beginsWith("gl:")
     || (mBootstrap && mBootstrap.get<rtString>("frameworkType").compare("sparkGL") == 0);
+}
+
+rtError pxScriptView::sparkHttp(int numArgs, const rtValue* args, rtValue* result, void* /*ctx*/)
+{
+  if (numArgs < 1)
+  {
+    rtLogError("%s: invalid args", __FUNCTION__);
+    return RT_ERROR_INVALID_ARG;
+  }
+
+  rtHttpRequest* req;
+  if (args[0].getType() == RT_stringType)
+    req = new rtHttpRequest(args[0].toString());
+  else if (args[0].getType() == RT_objectType)
+    req = new rtHttpRequest(args[0].toObject());
+  else
+  {
+    rtLogError("%s: invalid arg type", __FUNCTION__);
+    return RT_ERROR_INVALID_ARG;
+  }
+
+  if (numArgs > 1 && args[1].getType() == RT_functionType)
+    req->addListener("response", args[1].toFunction());
+
+  rtObjectRef ref = req;
+  *result = ref;
+
+  return RT_OK;
 }

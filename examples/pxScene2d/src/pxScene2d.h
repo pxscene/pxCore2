@@ -674,6 +674,8 @@ protected:
   static rtError beginDrawing2(int /*numArgs*/, const rtValue* /*args*/, rtValue* result, void* ctx);
   static rtError endDrawing2(int /*numArgs*/, const rtValue* /*args*/, rtValue* result, void* ctx);
 
+  static rtError sparkHttp(int numArgs, const rtValue* args, rtValue* result, void* /*ctx*/);
+
   virtual void onSize(int32_t w, int32_t h);
 
   virtual void onCloseRequest()
@@ -727,6 +729,8 @@ protected:
   bool mDrawing;
   rtRef<rtFunctionCallback> mBeginDrawing;
   rtRef<rtFunctionCallback> mEndDrawing;
+
+  rtRef<rtFunctionCallback> mSparkHttp;
 
   pxContextFramebufferRef cached;
   pxContextFramebufferRef previousSurface;
