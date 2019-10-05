@@ -250,6 +250,64 @@ void pxFont::loadResourceFromFile()
 
     } 
 }
+// Simulating italic or oblique font style if required (and possible)
+bool pxFont::transform()
+{
+    bool res = false;
+    rtString loadedStyleName(mFace->style_name);
+    if (!loadedStyleName.isEmpty())loadedStyleName.toLowerAscii();
+    if (!mFontStyle.isEmpty()) mFontStyle.toLowerAscii();
+
+    do {
+        if (loadedStyleName.beginsWith("italic"))
+        {
+            mFontStyle = loadedStyleName;
+            break;
+        }
+
+        if (mFontStyle.isEmpty() || !(mFontStyle.beginsWith("italic") || mFontStyle.beginsWith("oblique")))
+        {
+            break;
+        }
+
+        double k = 0;
+
+        if (mFontStyle.beginsWith("italic"))
+        {
+            k = 0.24;
+        }
+        else
+        {
+            int32_t pos = mFontStyle.find(0, " ");
+
+            if (pos < 0) break;
+
+            double angle = atof(mFontStyle.substring(pos, mFontStyle.length() - 3).cString());
+
+            k = tan(angle * M_PI / 180);
+        }
+
+        if (k <= 0) break;
+
+        FT_Matrix matrix;
+
+        matrix.xx = 0x10000L;
+        matrix.xy = k * 0x10000L;
+        matrix.yx = 0;
+        matrix.yy = 0x10000L;
+
+        FT_Set_Transform(mFace, &matrix, 0);
+        res = true;
+        break;
+    } while(0);
+
+    if (mFontStyle.isEmpty()) {
+        mFontStyle = mFace->style_name;
+        mFontStyle.toLowerAscii();
+    }
+
+    return res;
+}
 
 // This init(char*) is for load of local font files
 rtError pxFont::init(const char* n)
@@ -260,57 +318,10 @@ rtError pxFont::init(const char* n)
 
   do {
     if (FT_New_Face(ft, n, 0, &mFace) == 0)
-    // Simulating italic or oblique font style if required and possible
     {
       loadFontStatus = RT_OK;
-      rtString loadedStyleName(mFace->style_name);
-      if (!loadedStyleName.isEmpty())loadedStyleName.toLowerAscii();
-      if (!mFontStyle.isEmpty()) mFontStyle.toLowerAscii();
-
-      if (loadedStyleName.beginsWith("italic"))
-      {
-        mFontStyle = loadedStyleName;
-        break;
-      }
-
-      if (mFontStyle.isEmpty() || !(mFontStyle.beginsWith("italic") || mFontStyle.beginsWith("oblique")))
-      {
-        break;
-      }
-
-      double k = 0;
-
-      if (mFontStyle.beginsWith("italic"))
-      {
-        k = 0.24;
-      }
-      else
-      {
-        int32_t pos = mFontStyle.find(0, " ");
-
-        if (pos < 0) break;
-
-        double angle = atof(mFontStyle.substring(pos, mFontStyle.length() - 3).cString());
-
-        k = tan(angle * M_PI / 180);
-      }
-
-      if (k <= 0) break;
-
-      FT_Matrix matrix;
-
-      matrix.xx = 0x10000L;
-      matrix.xy = k * 0x10000L;
-      matrix.yx = 0;
-      matrix.yy = 0x10000L;
-
-      FT_Set_Transform(mFace, &matrix, 0);
-
+      transform();
       break;
-    }
-
-    if (mFontStyle.isEmpty()) {
-      mFontStyle = mFace->style_name;
     }
 
     if (rtIsPathAbsolute(n))
@@ -323,12 +334,13 @@ rtError pxFont::init(const char* n)
       if (FT_New_Face(ft, rtConcatenatePath(*it.first, n).c_str(), 0, &mFace) == 0)
       {
         loadFontStatus = RT_OK;
+        transform();
         break;
       }
     }
   } while (0);
 
-  if(loadFontStatus == RT_OK)
+    if(loadFontStatus == RT_OK)
   {
     mInitialized = true;
     setPixelSize(defaultPixelSize);
@@ -353,6 +365,7 @@ rtError pxFont::init(const FT_Byte*  fontData, FT_Long size, const char* n)
     return RT_FAIL;
   }
 
+  transform();
   mInitialized = true;
   setPixelSize(defaultPixelSize);
 
@@ -794,11 +807,14 @@ rtError pxFont::measureText(uint32_t pixelSize, rtString stringToMeasure, rtObje
 
 rtError pxFont::needsStyleCoercion(rtString fontStyle, bool& o)
 {
-    fontStyle.toLowerAscii();
-    bool aRegular = mFontStyle.beginsWith("regular") || mFontStyle.beginsWith("normal");
-    bool bOblique = fontStyle.beginsWith("italic") || fontStyle.beginsWith("oblique");
+    if (!fontStyle.isEmpty()) fontStyle.toLowerAscii();
+    if (mFontStyle.isEmpty()) {
+        rtLogWarn("Unable to detect font style of the current font. Style coercion declined.");
+    }
+    bool regularFont = mFontStyle.beginsWith("regular") || mFontStyle.beginsWith("normal");
+    bool needsSloping = fontStyle.beginsWith("italic") || fontStyle.beginsWith("oblique");
 
-    o = (aRegular && bOblique);
+    o = (regularFont && needsSloping);
     return RT_OK;
 }
 

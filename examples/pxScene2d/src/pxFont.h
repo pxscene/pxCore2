@@ -253,7 +253,7 @@ protected:
 class pxFont: public pxResource {
 
 public:
-	pxFont(rtString fontUrl, uint32_t id, rtString proxyUrl, rtString fontStyle);
+	pxFont(rtString fontUrl, uint32_t id, rtString proxyUrl, rtString fontStyle = "");
 	virtual ~pxFont() ;
 
 	rtDeclareObject(pxFont, pxResource);
@@ -311,6 +311,7 @@ protected:
 private:
   void loadResourceFromFile();
   void loadResourceFromArchive(rtObjectRef archiveRef);
+  bool transform();
   rtError init(const char* n);
   rtError init(const FT_Byte*  fontData, FT_Long size, const char* n); 
 
@@ -345,6 +346,5 @@ class pxFontManager
     static FontMap mFontMap;
     static FontIdMap mFontIdMap;
     static bool init;
-    
 };
 #endif
