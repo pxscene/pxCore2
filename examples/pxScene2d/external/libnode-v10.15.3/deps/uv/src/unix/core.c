@@ -726,9 +726,12 @@ void uv_disable_stdio_inheritance(void) {
   /* Set the CLOEXEC flag on all open descriptors. Unconditionally try the
    * first 16 file descriptors. After that, bail out after the first error.
    */
-  for (fd = 0; ; fd++)
+  /*MODIFIED CODE BEGIN */
+  //for (fd = 0; ; fd++)
+  for (fd = 3; ; fd++)
     if (uv__cloexec(fd, 1) && fd > 15)
       break;
+  /*MODIFIED CODE END */
 }
 
 
@@ -1003,6 +1006,9 @@ int uv__open_cloexec(const char* path, int flags) {
 
 int uv__dup2_cloexec(int oldfd, int newfd) {
   int r;
+  /*MODIFIED CODE BEGIN*/
+  int flags = 0;
+  /*MODIFIED CODE END*/
 #if (defined(__FreeBSD__) && __FreeBSD__ >= 10) || defined(__NetBSD__)
   r = dup3(oldfd, newfd, O_CLOEXEC);
   if (r == -1)
@@ -1018,9 +1024,23 @@ int uv__dup2_cloexec(int oldfd, int newfd) {
 #elif defined(__linux__)
   static int no_dup3;
   if (!no_dup3) {
+    /* MODIFIED CODE BEGIN */
+    //do
+    //  r = uv__dup3(oldfd, newfd, UV__O_CLOEXEC);
+    //while (r == -1 && errno == EBUSY);
     do
-      r = uv__dup3(oldfd, newfd, UV__O_CLOEXEC);
-    while (r == -1 && errno == EBUSY);
+    {
+      if (newfd >=0  && newfd <= 2)
+      {
+        flags = 0;
+      }
+      else
+      {
+        flags = UV__O_CLOEXEC;
+      }
+      r = uv__dup3(oldfd, newfd, flags);
+    }while (r == -1 && (errno == EINTR || errno == EBUSY));
+    /* MODIFIED CODE END */
     if (r != -1)
       return r;
     if (errno != ENOSYS)
