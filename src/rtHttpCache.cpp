@@ -489,7 +489,7 @@ bool rtHttpCacheData::handleDownloadRequest(vector<rtString>& headers,bool downl
   }
 
   if (downloadRequest->downloadStatusCode() == 0 &&
-       downloadRequest->httpStatusCode() == 200)
+       ((downloadRequest->httpStatusCode() == 200) || (downloadRequest->isByteRangeEnabled() && downloadRequest->httpStatusCode() == 206)))
   {
     if (downloadRequest->headerData() != NULL)
       mHeaderMetaData.init((uint8_t*)downloadRequest->headerData(), downloadRequest->headerDataSize());

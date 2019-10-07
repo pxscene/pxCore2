@@ -58,7 +58,7 @@ var _intervals = []
 var _timeouts = []
 var _immediates = []
 var _websockets = []
-var sandboxKeys = ["vm", "process", "setTimeout", "console", "clearTimeout", "setInterval", "clearInterval", "setImmediate", "clearImmediate", "sparkview", "sparkscene", "sparkgles2", "beginDrawing", "endDrawing", "sparkwebgl", "sparkkeys", "sparkQueryParams", "require", "localStorage"]
+var sandboxKeys = ["vm", "process", "setTimeout", "console", "clearTimeout", "setInterval", "clearInterval", "setImmediate", "clearImmediate", "sparkview", "sparkscene", "sparkgles2", "beginDrawing", "endDrawing", "sparkwebgl", "sparkkeys", "sparkQueryParams", "require", "localStorage", "sparkHttp"]
 var sandbox = {}
 /* holds loaded main mjs module reference */
 var app = null;
@@ -66,7 +66,7 @@ var contextifiedSandbox = null;
 var __dirname = process.cwd()
 /* holds map of depenedent module name and its reference */
 var modmap = {}
-var loadUrl = function(url, _beginDrawing, _endDrawing, _view, _frameworkURL, _options) {
+var loadUrl = function(url, _beginDrawing, _endDrawing, _view, _frameworkURL, _options, _sparkHttp) {
 
   // JRJR review this... if we don't draw outside of the timers
   // then no need for this... 
@@ -179,6 +179,7 @@ var loadUrl = function(url, _beginDrawing, _endDrawing, _view, _frameworkURL, _o
     global.sparkscene.api = {}
   }
   global.localStorage = global.sparkscene.storage;
+  global.sparkHttp = _sparkHttp;
   const script = new vm.Script("global.sparkwebgl = sparkwebgl= require('webgl'); global.sparkgles2 = sparkgles2 = require('gles2.js'); global.sparkkeys = sparkkeys = require('rcvrcore/tools/keys.js');");
   global.sparkscene.on('onSceneTerminate', () => {
     for (let key in bootStrapCache) {
@@ -217,33 +218,16 @@ function initializeImportMeta(meta, { url }) {
 
 function loadHttpFile(fileUri) {
   return new Promise(function(resolve, reject) {
-    var code = [];
-    var options = urlmain.parse(fileUri);
-    var req = null;
-    var httpCallback = function (res) {
-      res.on('data', function (data) {
-        if (Buffer.isBuffer(data)) {
-          code.push(data);
-        } else {
-          code.push(new Buffer(data));
-        }
-      });
-      res.on('end', function () {
-        if( res.statusCode === 200 ) {
-          var data = Buffer.concat(code);
-          resolve(data.toString('utf8'));
-         } else {
-          console.error("StatusCode Bad: FAILED to read file[" + fileUri + "] from web service");
-          reject(res.statusCode);
-          }
-        });
-    };
-    var isHttps = fileUri.substring(0, 5).toLowerCase() === "https";
-    req = (isHttps ? _https : _http).get(options, httpCallback);
-    
-    req.on('error', function (err) {
-      console.error("Error: FAILED to read file[" + fileUri + "] from web service");
-      reject(err);
+    global.sparkscene.loadArchive(fileUri).ready.then(a => {
+      if (a.loadStatus.httpStatusCode !== 200) {
+        console.error(`StatusCode Bad: FAILED to read file[${fileUri}] from web service`);
+        reject(a.loadStatus.httpStatusCode);
+      } else {
+        resolve(a.getFileAsString(""));
+      }
+    }, () => {
+      console.error(`Error: FAILED to read file[${fileUri}] from web service`);
+      reject();
     });
   });
 }
