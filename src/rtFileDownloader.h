@@ -131,7 +131,6 @@ public:
   unsigned int getCurlErrRetryCount(void);
   void setCurlRetryEnable(bool bCurlRetry);
   bool isCurlRetryEnabled(void);
-<<<<<<< HEAD
   void setUseEncoding(bool useEncoding);
   bool isUseEncoding() const;
   void setUserAgent(const char* userAgent);
