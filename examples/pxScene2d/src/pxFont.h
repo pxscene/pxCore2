@@ -48,6 +48,49 @@ class rtFileDownloadRequest;
 typedef uint32_t u_int32_t;
 #endif
 
+
+
+typedef struct shadowFx_
+{
+  bool      shadow;
+  
+  float     shadowColor[4];
+  float     shadowOffsetX;
+  float     shadowOffsetY;
+  float     shadowBlur;
+  
+  float     x;         // used internally
+  float     y;         // used internally
+  float     radius;    // used internally
+  
+  float     width;           // used internally
+  float     height;          // used internally
+}
+shadowFx_t;
+
+typedef struct highlightFx_
+{
+  bool      highlight;
+  
+  float     highlightColor[4];
+  float     highlightOffset;
+  float     highlightPaddingLeft;
+  float     highlightPaddingRight;
+  
+  float     highlightHeight; // used internally
+  float     width;           // used internally
+  float     height;          // used internally
+}
+highlightFx_t;
+
+typedef struct textFx_
+{
+  highlightFx_t  highlight;
+  shadowFx_t     shadow;
+}
+textFx_t;
+
+
 struct GlyphCacheEntry
 {
   int32_t bitmap_left;

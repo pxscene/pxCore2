@@ -12,8 +12,11 @@
 		4C62A296228587FA0015B7D1 /* pxContextUtils.mm in Sources */ = {isa = PBXBuildFile; fileRef = 4C62A295228587FA0015B7D1 /* pxContextUtils.mm */; };
 		4C8440CC20D8362E00C24E45 /* sparkpermissions.conf in Resources */ = {isa = PBXBuildFile; fileRef = 4C8440CB20D8362E00C24E45 /* sparkpermissions.conf */; };
 		4C93A17D2021161E002278E5 /* libz.1.2.11.dylib in Copy Dynamic Library Files */ = {isa = PBXBuildFile; fileRef = 4CF5463A2020F6E200529907 /* libz.1.2.11.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
-		4CAA277E22C6637400993F81 /* pxShaderUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4CAA277D22C6637400993F81 /* pxShaderUtils.cpp */; };
-		4CF3A06A228F3E800068DD31 /* pxShaderResource.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4CF3A05E228F3E7F0068DD31 /* pxShaderResource.cpp */; };
+		4CA265522344E96F001043EF /* pxShaderUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4CA2654F2344E96F001043EF /* pxShaderUtils.cpp */; };
+		4CA265532344E96F001043EF /* pxShaderResource.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4CA265502344E96F001043EF /* pxShaderResource.cpp */; };
+		4CE3F51B2343BEFF00D3017D /* pxWebGL.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4CE3F50B2343BEFE00D3017D /* pxWebGL.cpp */; };
+		4CE3F51C2343BEFF00D3017D /* pxVideo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4CE3F5162343BEFE00D3017D /* pxVideo.cpp */; };
+		4CE3F51D2343BEFF00D3017D /* pxTextCanvas.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4CE3F5172343BEFE00D3017D /* pxTextCanvas.cpp */; };
 		4CF546072020F5B600529907 /* pxImage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C0C6D521E5218BB00BD8932 /* pxImage.cpp */; };
 		4CF546092020F5B600529907 /* pxImage9.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C0C6D541E5218BB00BD8932 /* pxImage9.cpp */; };
 		4CF5460A2020F5B600529907 /* pxImageA.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C5137B21E5F81BE0052A99C /* pxImageA.cpp */; };
@@ -49,7 +52,6 @@
 		4CF5462F2020F5B600529907 /* libpng16.16.dylib in Copy Dynamic Library Files */ = {isa = PBXBuildFile; fileRef = 4C1447A11E68A90600610575 /* libpng16.16.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		4CF546302020F5B600529907 /* libfreetype.6.dylib in Copy Dynamic Library Files */ = {isa = PBXBuildFile; fileRef = 4C1447991E68A90600610575 /* libfreetype.6.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		4CF546312020F5B600529907 /* libnode.dylib in Copy Dynamic Library Files */ = {isa = PBXBuildFile; fileRef = 4C14479F1E68A90600610575 /* libnode.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
-		4CF5463D2020F89E00529907 /* libz.1.2.11.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 4CF5463A2020F6E200529907 /* libz.1.2.11.dylib */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -212,7 +214,6 @@
 		4C20BEAD1E5B8638005ABBB7 /* pxscene.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = pxscene.sh; path = ../pxscene.sh; sourceTree = "<group>"; };
 		4C20BEB11E5CDE01005ABBB7 /* pxScene2d.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = pxScene2d.xcconfig; sourceTree = SOURCE_ROOT; };
 		4C2F20D31EEF1C250099DAE6 /* browser */ = {isa = PBXFileReference; lastKnownFileType = folder; name = browser; path = src/browser; sourceTree = "<group>"; };
-		4C2FF267219C9CCA0010DA38 /* mime */ = {isa = PBXFileReference; lastKnownFileType = folder; name = mime; path = src/mime; sourceTree = "<group>"; };
 		4C2FF268219C9CCA0010DA38 /* mime.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; name = mime.js; path = src/mime.js; sourceTree = "<group>"; };
 		4C38CDB31E538CF7003E4A35 /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
 		4C38CDBF1E538D19003E4A35 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
@@ -230,10 +231,16 @@
 		4C8440CB20D8362E00C24E45 /* sparkpermissions.conf */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = sparkpermissions.conf; path = src/sparkpermissions.conf; sourceTree = "<group>"; };
 		4C9F22AA1E6A24D200979F4E /* westeros-compositor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "westeros-compositor.h"; path = "external/westeros-stub/westeros-compositor.h"; sourceTree = "<group>"; };
 		4C9F22AB1E6A24D200979F4E /* westeros-stub.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = "westeros-stub.cpp"; path = "external/westeros-stub/westeros-stub.cpp"; sourceTree = "<group>"; };
-		4CAA277222C65DD500993F81 /* pxShaderUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pxShaderUtils.h; path = src/pxShaderUtils.h; sourceTree = "<group>"; };
-		4CAA277D22C6637400993F81 /* pxShaderUtils.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = pxShaderUtils.cpp; path = src/pxShaderUtils.cpp; sourceTree = "<group>"; };
-		4CF3A05E228F3E7F0068DD31 /* pxShaderResource.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = pxShaderResource.cpp; path = src/pxShaderResource.cpp; sourceTree = "<group>"; };
-		4CF3A069228F3E800068DD31 /* pxShaderResource.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pxShaderResource.h; path = src/pxShaderResource.h; sourceTree = "<group>"; };
+		4CA2654E2344E96F001043EF /* pxShaderUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pxShaderUtils.h; path = src/pxShaderUtils.h; sourceTree = "<group>"; };
+		4CA2654F2344E96F001043EF /* pxShaderUtils.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = pxShaderUtils.cpp; path = src/pxShaderUtils.cpp; sourceTree = "<group>"; };
+		4CA265502344E96F001043EF /* pxShaderResource.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = pxShaderResource.cpp; path = src/pxShaderResource.cpp; sourceTree = "<group>"; };
+		4CA265512344E96F001043EF /* pxShaderResource.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pxShaderResource.h; path = src/pxShaderResource.h; sourceTree = "<group>"; };
+		4CE3F50B2343BEFE00D3017D /* pxWebGL.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = pxWebGL.cpp; path = src/pxWebGL.cpp; sourceTree = "<group>"; };
+		4CE3F5162343BEFE00D3017D /* pxVideo.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = pxVideo.cpp; path = src/pxVideo.cpp; sourceTree = "<group>"; };
+		4CE3F5172343BEFE00D3017D /* pxTextCanvas.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = pxTextCanvas.cpp; path = src/pxTextCanvas.cpp; sourceTree = "<group>"; };
+		4CE3F5182343BEFF00D3017D /* pxVideo.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pxVideo.h; path = src/pxVideo.h; sourceTree = "<group>"; };
+		4CE3F5192343BEFF00D3017D /* pxTextCanvas.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pxTextCanvas.h; path = src/pxTextCanvas.h; sourceTree = "<group>"; };
+		4CE3F51A2343BEFF00D3017D /* pxWebGL.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pxWebGL.h; path = src/pxWebGL.h; sourceTree = "<group>"; };
 		4CF546362020F5B600529907 /* Spark.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Spark.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		4CF5463A2020F6E200529907 /* libz.1.2.11.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.1.2.11.dylib; path = lib/libz.1.2.11.dylib; sourceTree = "<group>"; };
 		783C7DAE1EBB6A440079FBE5 /* pxAnimate.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = pxAnimate.cpp; path = src/pxAnimate.cpp; sourceTree = "<group>"; };
@@ -263,7 +270,6 @@
 		4C04660D1E574CAE00D59925 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
-				4C2FF267219C9CCA0010DA38 /* mime */,
 				4C2FF268219C9CCA0010DA38 /* mime.js */,
 				4C8440CB20D8362E00C24E45 /* sparkpermissions.conf */,
 				4C0466191E574CEE00D59925 /* shell.js */,
@@ -326,10 +332,6 @@
 				4C62A295228587FA0015B7D1 /* pxContextUtils.mm */,
 				4C62A28B228485660015B7D1 /* pxObject.cpp */,
 				4C62A28C228485660015B7D1 /* pxObject.h */,
-				4CF3A05E228F3E7F0068DD31 /* pxShaderResource.cpp */,
-				4CF3A069228F3E800068DD31 /* pxShaderResource.h */,
-				4CAA277D22C6637400993F81 /* pxShaderUtils.cpp */,
-				4CAA277222C65DD500993F81 /* pxShaderUtils.h */,
 				4C04660D1E574CAE00D59925 /* Resources */,
 				783C7DAE1EBB6A440079FBE5 /* pxAnimate.cpp */,
 				783C7DAF1EBB6A440079FBE5 /* pxAnimate.h */,
@@ -339,6 +341,10 @@
 				4C0C6D421E5218BB00BD8932 /* pxConstants.h */,
 				4C0C6D431E5218BB00BD8932 /* pxContext.h */,
 				4C0C6D451E5218BB00BD8932 /* pxContextDescGL.h */,
+				4CE3F5162343BEFE00D3017D /* pxVideo.cpp */,
+				4CE3F5182343BEFF00D3017D /* pxVideo.h */,
+				4CE3F50B2343BEFE00D3017D /* pxWebGL.cpp */,
+				4CE3F51A2343BEFF00D3017D /* pxWebGL.h */,
 				4C0C6D471E5218BB00BD8932 /* pxContextFramebuffer.h */,
 				4C0C6D481E5218BB00BD8932 /* pxContextGL.cpp */,
 				4C0C6D5C1E5218BB00BD8932 /* pxResource.cpp */,
@@ -350,6 +356,7 @@
 				4C0C6D661E5218BB00BD8932 /* pxTexture.h */,
 				4C0C6D671E5218BB00BD8932 /* pxTransform.cpp */,
 				4C0C6D681E5218BB00BD8932 /* pxTransform.h */,
+				4CE3F51E2344A53A00D3017D /* Shader */,
 				4CE99F391F30B37900BA95C2 /* Rasterizer */,
 				4C49A4FF1E69B53B00D5548B /* Rectangle */,
 				4C49A4FD1E69B4BA00D5548B /* Font */,
@@ -399,6 +406,8 @@
 				4C0C6D631E5218BB00BD8932 /* pxText.h */,
 				4C0C6D641E5218BB00BD8932 /* pxTextBox.cpp */,
 				4C0C6D651E5218BB00BD8932 /* pxTextBox.h */,
+				4CE3F5172343BEFE00D3017D /* pxTextCanvas.cpp */,
+				4CE3F5192343BEFF00D3017D /* pxTextCanvas.h */,
 			);
 			name = Text;
 			sourceTree = "<group>";
@@ -443,6 +452,17 @@
 				4C62369620B342CF00DAB86F /* nanosvgrast.h */,
 			);
 			name = nanosvg;
+			sourceTree = "<group>";
+		};
+		4CE3F51E2344A53A00D3017D /* Shader */ = {
+			isa = PBXGroup;
+			children = (
+				4CA265502344E96F001043EF /* pxShaderResource.cpp */,
+				4CA265512344E96F001043EF /* pxShaderResource.h */,
+				4CA2654F2344E96F001043EF /* pxShaderUtils.cpp */,
+				4CA2654E2344E96F001043EF /* pxShaderUtils.h */,
+			);
+			name = Shader;
 			sourceTree = "<group>";
 		};
 		4CE99F391F30B37900BA95C2 /* Rasterizer */ = {
@@ -671,22 +691,25 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4CE3F51C2343BEFF00D3017D /* pxVideo.cpp in Sources */,
 				4C62A28D228485660015B7D1 /* pxObject.cpp in Sources */,
 				4CF546072020F5B600529907 /* pxImage.cpp in Sources */,
 				4CF546092020F5B600529907 /* pxImage9.cpp in Sources */,
-				4CAA277E22C6637400993F81 /* pxShaderUtils.cpp in Sources */,
-				4CF3A06A228F3E800068DD31 /* pxShaderResource.cpp in Sources */,
 				4CF5460A2020F5B600529907 /* pxImageA.cpp in Sources */,
 				4CF5460B2020F5B600529907 /* pxImage9Border.cpp in Sources */,
+				4CA265532344E96F001043EF /* pxShaderResource.cpp in Sources */,
 				4CF5460C2020F5B600529907 /* pxConstants.cpp in Sources */,
 				4CF5460D2020F5B600529907 /* pxContextGL.cpp in Sources */,
 				4CF5460E2020F5B600529907 /* pxArchive.cpp in Sources */,
 				4CF5460F2020F5B600529907 /* pxScene2d.cpp in Sources */,
 				4CF546102020F5B600529907 /* pxAnimate.cpp in Sources */,
+				4CA265522344E96F001043EF /* pxShaderUtils.cpp in Sources */,
 				4CF546112020F5B600529907 /* pxTransform.cpp in Sources */,
+				4CE3F51B2343BEFF00D3017D /* pxWebGL.cpp in Sources */,
 				4CF546122020F5B600529907 /* pxText.cpp in Sources */,
 				4CF546132020F5B600529907 /* pxTextBox.cpp in Sources */,
 				4CF546142020F5B600529907 /* pxResource.cpp in Sources */,
+				4CE3F51D2343BEFF00D3017D /* pxTextCanvas.cpp in Sources */,
 				4CF546152020F5B600529907 /* pxRectangle.cpp in Sources */,
 				4CF546162020F5B600529907 /* pxFont.cpp in Sources */,
 				4CF546182020F5B600529907 /* Spark.cpp in Sources */,

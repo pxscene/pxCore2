@@ -30,7 +30,9 @@
 #include "pxShaderUtils.h"
 
 #include "pxContext.h"
+#include "pxFont.h"
 #include "pxUtil.h"
+
 #include <algorithm>
 #include <ctime>
 #include <cstdlib>
@@ -149,6 +151,23 @@ rtMutex contextLock;
 #endif //ENABLE_BACKGROUND_TEXTURE_CREATION
 bool gFlipRendering = false;
 
+
+////////////////////////////
+//
+// Forward Declarations
+
+struct filterXYR
+{
+  float x; float y; float r;
+};
+
+static pxContextFramebufferRef applyBlurSettings(pxContextFramebufferRef src, shadowFx_t *shdw,
+                                          filterXYR *filters, size_t count);
+
+static void drawTextEffects(int numQuads, const void *verts, const void* uvs,
+                     pxTextureRef t, textFx_t *textFx);
+
+////////////////////////////
 
 pxError lockContext()
 {
@@ -2942,7 +2961,7 @@ void pxContext::drawTexturedQuads(int numQuads, const void *verts, const void* u
 }
 #endif
 
-pxContextFramebufferRef pxContext::applyBlurSettings(pxContextFramebufferRef src, shadowFx_t *shdw, filterXYR *filters, size_t count)
+static pxContextFramebufferRef applyBlurSettings(pxContextFramebufferRef src, shadowFx_t *shdw, filterXYR *filters, size_t count)
 {
   if(filters == NULL)
   {
@@ -2998,7 +3017,7 @@ pxContextFramebufferRef pxContext::applyBlurSettings(pxContextFramebufferRef src
   return fbo_src; // NOTE:  It's NOT 'fbo_dst' ... the last toggle makes it 'fbo_src'
 }
 
-void pxContext::drawTextEffects(int numQuads, const void *verts, const void* uvs,
+static void drawTextEffects(int numQuads, const void *verts, const void* uvs,
                                   pxTextureRef t, textFx_t *textFx)
 {
   shadowFx_t    *shdw = &textFx->shadow;    //    SHADOW style
