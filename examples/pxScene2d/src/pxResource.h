@@ -50,6 +50,7 @@ class pxArchive;
 #define PX_RESOURCE_STATUS_DECODE_FAILURE 4
 #define PX_RESOURCE_STATUS_HTTP_ERROR     5
 #define PX_RESOURCE_STATUS_UNKNOWN_ERROR  6
+#define PX_RESOURCE_STATUS_DOWNLOAD_PROCESSING 7
 
 
 // errors specific to rtRemote

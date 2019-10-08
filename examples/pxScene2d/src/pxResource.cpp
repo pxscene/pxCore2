@@ -110,7 +110,7 @@ void pxResource::addListener(pxResourceListener* pListener)
   downloadRequestActive = mDownloadInProgress;
   mDownloadInProgressMutex.unlock();
 
-
+  rtValue statusCode = getLoadStatus("statusCode");
   if (isDownloadCanceled)
   {
     //if the download was canceled then download again
@@ -135,9 +135,8 @@ void pxResource::addListener(pxResourceListener* pListener)
     /* need not pass archive here, as this flow go for network downloads */
     loadResource();
   }
-  else if( !downloadRequestActive)
+  else if((!downloadRequestActive) && (PX_RESOURCE_STATUS_DOWNLOAD_PROCESSING != statusCode.toInt32()))
   {
-    rtValue statusCode = getLoadStatus("statusCode");
     //rtLogDebug("download was not active for: %s code: %d", mUrl.cString(), statusCode.toInt32());
     if( statusCode.toInt32() == 0)
     {
@@ -967,6 +966,10 @@ void pxResource::processDownloadedResource(rtFileDownloadRequest* fileDownloadRe
         {
           gUIThreadQueue->addTask(onDownloadCompleteUI, this, (void*)"resolve");
         }
+      }
+      else if (result == PX_RESOURCE_LOAD_WAIT)
+      {
+        setLoadStatus("statusCode", PX_RESOURCE_STATUS_DOWNLOAD_PROCESSING);
       }
     }
     else
