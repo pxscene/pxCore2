@@ -969,24 +969,6 @@ rtError pxScene2d::createShaderResource(rtObjectRef p, rtObjectRef& o)
   return RT_OK;
 }
 
-rtError pxScene2d::createShaderResource(rtObjectRef p, rtObjectRef& o)
-{
-  rtString fragmentUrl = p.get<rtString>("fragment");
-  rtString vertexUrl   = p.get<rtString>("vertex");
-  
-  if(fragmentUrl.isEmpty() && vertexUrl.isEmpty())
-  {
-     rtLogError("Failed to create [shaderResource] ... no Fragment/Vertex shader found.");
-     return RT_FAIL;
-  }
-
-  o = pxShaderManager::getShader(fragmentUrl, vertexUrl, mCORS, mArchive);
-  o.set(p);
-  o.send("init");
-
-  return RT_OK;
-}
-
 rtError pxScene2d::createScene(rtObjectRef p, rtObjectRef& o)
 {
   pxSceneContainer* sceneContainer = new pxSceneContainer(this);
