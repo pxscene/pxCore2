@@ -88,31 +88,6 @@ pxWindowNative::~pxWindowNative()
     }
     CFRelease(resourcesURL);
 
-    //
-    // Xcode DEBUG builds package the App Bundle a little differently.
-    //
-    NSString *init_js = [NSString stringWithFormat:@"%s/init.js", resourcesBundlePath];
-
-    BOOL isXCodeBuild = [ [NSFileManager defaultManager] fileExistsAtPath: init_js isDirectory: nil];
-
-    if(isXCodeBuild)
-    {
-      chdir(resourcesBundlePath);
-
-      char *value = resourcesBundlePath;
-
-      char *key = (char *) "NODE_PATH";
-      char *val = (char *) getenv(key); // existing
-
-      NSLog(@"NODE_PATH:  [ %s ]", val);
-
-      // Set NODE_PATH env
-      int overwrite = 1;
-      setenv(key, value, overwrite);
-
-      NSLog(@"NODE_PATH:  [ %s ]", val);
-    }
-
     // --------------------------------------------------------------------------------------------------------------------
 
     return self;
@@ -848,8 +823,6 @@ void MyDisplayReconfigurationCallBack(CGDirectDisplayID display,
     NSPoint pt = [self convertPoint:p fromView:nil];
 
     // NSLog(@"DROP LEAVE >> LOCATION: (%f, %f)", pt.x, pt.y);
-
-    NSURL *fileURL = [NSURL URLFromPasteboard: [sender draggingPasteboard]];
 
     //uint32_t dragType = (fileURL) ? 2 : 1;  // 2 == URL, 1 == TEXT
 

@@ -24,8 +24,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WinSparkle_wx", "..\WinSpar
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WinSparkle_expat", "..\WinSparkle\3rdparty\expat.vcxproj", "{47B228CB-24FE-5250-B1FC-DFC81D3E69DF}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gif", "gif.vcxproj", "{1C6653D7-910C-4CC9-B95D-30D7B65EEA8E}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug Library|Win32 = Debug Library|Win32
@@ -1471,7 +1469,7 @@ Global
 		{47B228CB-24FE-5250-B1FC-DFC81D3E69DF}.RelWithDebInfo|Win32.ActiveCfg = Release|Win32
 		{47B228CB-24FE-5250-B1FC-DFC81D3E69DF}.RelWithDebInfo|Win32.Build.0 = Release|Win32
 		{47B228CB-24FE-5250-B1FC-DFC81D3E69DF}.RelWithDebInfo|x64.ActiveCfg = Release|x64
-		{47B228CB-24FE-5250-B1FC-DFC81D3E69DF}.RelWithDebInfo|x64.Build.0 = Release|x64
+		{47B228CB-24FE-5250-B1FC-DFC81D3E69DF}.RelWithDebInfo|x64.Build.0 = Release|x64		
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -106,14 +106,45 @@ rtError rtStorage::init(const char* filename, uint32_t storageQuota, const char*
 #endif
   }
 
-  sqlite3_stmt *stmt;
+//  sqlite3_stmt *stmt;
 
   char *errmsg;
-  sqlite3_exec(db, "CREATE TABLE if not exists SizeTable (currentSize MEDIUMINT_UNSIGNED UNIQUE ON CONFLICT REPLACE);", 0, 0, &errmsg);
-  sqlite3_exec(db, "CREATE TABLE if not exists ItemTable (key TEXT UNIQUE ON CONFLICT REPLACE, value TEXT);", 0, 0, &errmsg);
+  rc = sqlite3_exec(db, "CREATE TABLE if not exists SizeTable (currentSize MEDIUMINT_UNSIGNED UNIQUE ON CONFLICT REPLACE);", 0, 0, &errmsg);
+  if (rc != SQLITE_OK || errmsg)
+  {
+    if (errmsg)
+    {
+      rtLogError("%s : %d : %s", __FUNCTION__, rc, errmsg);
+      sqlite3_free(errmsg);
+    }
+    else
+      rtLogError("%s : %d", __FUNCTION__, rc);
+  }
+
+  rc = sqlite3_exec(db, "CREATE TABLE if not exists ItemTable (key TEXT UNIQUE ON CONFLICT REPLACE, value TEXT);", 0, 0, &errmsg);
+  if (rc != SQLITE_OK || errmsg)
+  {
+    if (errmsg)
+    {
+      rtLogError("%s : %d : %s", __FUNCTION__, rc, errmsg);
+      sqlite3_free(errmsg);
+    }
+    else
+      rtLogError("%s : %d", __FUNCTION__, rc);
+  }
 
   // initial currentSize must be 0
-  sqlite3_exec(db, "INSERT OR IGNORE INTO SizeTable (currentSize) VALUES(0);", 0, 0, &errmsg);
+  rc = sqlite3_exec(db, "INSERT OR IGNORE INTO SizeTable (currentSize) VALUES(0);", 0, 0, &errmsg);
+  if (rc != SQLITE_OK || errmsg)
+  {
+    if (errmsg)
+    {
+      rtLogError("%s : %d : %s", __FUNCTION__, rc, errmsg);
+      sqlite3_free(errmsg);
+    }
+    else
+      rtLogError("%s : %d", __FUNCTION__, rc);
+  }
 
   mQuota = storageQuota;
   return RT_OK;
@@ -175,7 +206,7 @@ rtError rtStorage::getItem(const char* key, rtValue& retValue) const
 
   sqlite3* &db = SQLITE;
 
-  retValue = "";
+  retValue.setEmpty();
 
   if (db)
   {
@@ -451,7 +482,18 @@ rtError rtStorage::runVacuumCommand()
 
   if (db)
   {
-    sqlite3_exec(db, "VACUUM", 0, 0, 0);
+    char *errmsg;
+    int rc = sqlite3_exec(db, "VACUUM", 0, 0, &errmsg);
+    if (rc != SQLITE_OK || errmsg)
+    {
+      if (errmsg)
+      {
+        rtLogError("%s : %s", __FUNCTION__, errmsg);
+        sqlite3_free(errmsg);
+      }
+      else
+        rtLogError("%s : %d", __FUNCTION__, rc);
+    }
   }
 
   return RT_OK;
@@ -464,15 +506,55 @@ bool rtStorage::isEncrypted(const char* fileName)
     return false;
 
   int magicSize = strlen(SQLITE_FILE_HEADER);
-  char* fileHeader = (char*)malloc(magicSize);
+  char* fileHeader = (char*)malloc(magicSize + 1/*for Coverity*/);
 
-  int readSize = fread(fileHeader, 1, magicSize, fd);
+  int readSize = (int) fread(fileHeader, 1, magicSize, fd);
   fclose(fd);
 
   bool eq = magicSize == readSize && ::memcmp(fileHeader, SQLITE_FILE_HEADER, magicSize) == 0;
   free(fileHeader);
 
   return !eq;
+}
+
+rtError rtStorage::Get(const char* name, rtValue* value) const
+{
+  if (!value)
+    return RT_FAIL;
+
+  rtValue v;
+
+  rtError e = rtObject::Get(name, &v);
+  if (e == RT_PROP_NOT_FOUND)
+  {
+    rtValue v1;
+    if (getItem(name, v1) == RT_OK && !v1.isEmpty())
+    {
+      *value = v1;
+      return RT_OK;
+    }
+  }
+
+  *value = v;
+  return e;
+}
+
+rtError rtStorage::Get(uint32_t /*i*/, rtValue* /*value*/) const
+{
+  return RT_PROP_NOT_FOUND;
+}
+
+rtError rtStorage::Set(const char* name, const rtValue* value)
+{
+  if (!value)
+    return RT_ERROR_INVALID_ARG;
+
+  return setItem(name, *value);
+}
+
+rtError rtStorage::Set(uint32_t /*i*/, const rtValue* /*value*/)
+{
+  return RT_PROP_NOT_FOUND;
 }
 
 rtDefineObject(rtStorage,rtObject);

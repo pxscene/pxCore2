@@ -27,7 +27,7 @@ else()
 endif(WIN32)
 
 set(EXTDIR "${CMAKE_CURRENT_SOURCE_DIR}/../examples/pxScene2d/external")
-
+set(NODEDIR "${EXTDIR}/node/")
 include(../cmake/CommOpts.cmake)
 include(../cmake/CommDeps.cmake)
 include(../cmake/NodeDeps.cmake)
@@ -37,7 +37,9 @@ set(BUILD_RTCORE_SHARED_LIBRARY 1)
 
 if (BUILD_WITH_GIF)
 message("Building with GIF support")
-
+if(NOT PREFER_SYSTEM_LIBRARIES)
+include_directories(AFTER ${EXTDIR}/giflib-5.1.9/)
+endif(NOT PREFER_SYSTEM_LIBRARIES)
 add_definitions(-DSUPPORT_GIF)
 
 endif (BUILD_WITH_GIF)
@@ -200,7 +202,7 @@ else ()
 endif (APPLE)
 
 if (NOT PXCORE_DFB)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpermissive -std=c++11")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 endif (NOT PXCORE_DFB)
 
 if (PXCORE_COMPILE_WARNINGS_AS_ERRORS)

@@ -105,10 +105,6 @@ using namespace rtScriptV8NodeUtils;
 bool gIsPumpingJavaScript = false;
 #endif
 
-#if NODE_VERSION_AT_LEAST(8,12,0)
-#define USE_NODE_PLATFORM
-#endif
-
 namespace node
 {
 class Environment;
@@ -302,7 +298,7 @@ namespace node
 extern DebugOptions debug_options;
 #else
 extern bool use_debug_agent;
-#if HAVE_INSPECTOR
+#ifdef HAVE_INSPECTOR
 extern bool use_inspector;
 #endif
 extern bool debug_wait_connect;
@@ -403,12 +399,7 @@ void rtNodeContext::createEnvironment()
   // Create Environment.
 
 #if NODE_VERSION_AT_LEAST(8,9,4)
-#ifdef USE_NODE_PLATFORM
-  node::MultiIsolatePlatform* platform = static_cast<node::MultiIsolatePlatform*>(mPlatform);
-  IsolateData *isolateData = new IsolateData(mIsolate,uv_default_loop(),platform,array_buffer_allocator->zero_fill_field());
-#else
   IsolateData *isolateData = new IsolateData(mIsolate,uv_default_loop(),array_buffer_allocator->zero_fill_field());
-#endif //USE_NODE_PLATFORM
 
   mEnv = CreateEnvironment(isolateData,
 #else
@@ -437,7 +428,7 @@ void rtNodeContext::createEnvironment()
   if (use_debug_agent)
   {
     rtLogWarn("use_debug_agent\n");
-#if HAVE_INSPECTOR
+#ifdef HAVE_INSPECTOR
     if (use_inspector)
     {
       char currentPath[100];
@@ -484,15 +475,9 @@ void rtNodeContext::createEnvironment()
 #else
       bool more;
 #ifdef ENABLE_NODE_V_6_9
-#ifndef USE_NODE_PLATFORM
       v8::platform::PumpMessageLoop(mPlatform, mIsolate);
-#endif //USE_NODE_PLATFORM
 #endif //ENABLE_NODE_V_6_9
       more = uv_run(mEnv->event_loop(), UV_RUN_ONCE);
-#ifdef USE_NODE_PLATFORM
-      node::MultiIsolatePlatform* platform = static_cast<node::MultiIsolatePlatform*>(mPlatform);
-      platform->DrainBackgroundTasks(mIsolate);
-#endif //USE_NODE_PLATFORM
       if (more == false)
       {
         EmitBeforeExit(mEnv);
@@ -980,7 +965,7 @@ rtError rtNodeContext::runFile(const char *file, rtValue* retVal /*= NULL*/, con
 {
   if(file == NULL)
   {
-    rtLogError(" %s  ... no script given.",__PRETTY_FUNCTION__);
+    rtLogError(" %s  ... file == NULL ... no script given.",__PRETTY_FUNCTION__);
 
     return RT_FAIL;
   }
@@ -991,7 +976,7 @@ rtError rtNodeContext::runFile(const char *file, rtValue* retVal /*= NULL*/, con
   
   if( js_script.empty() ) // load error
   {
-    rtLogError(" %s  ... load error / not found.",__PRETTY_FUNCTION__);
+    rtLogError(" %s  ... [%s] load error / not found.",__PRETTY_FUNCTION__, file);
 
     return RT_FAIL;
   }
@@ -1146,16 +1131,10 @@ rtError rtScriptNode::pump()
     Isolate::Scope isolate_scope(mIsolate);
     HandleScope     handle_scope(mIsolate);    // Create a stack-allocated handle scope.
 #ifdef ENABLE_NODE_V_6_9
-#ifndef USE_NODE_PLATFORM
     v8::platform::PumpMessageLoop(mPlatform, mIsolate);
-#endif //USE_NODE_PLATFORM
 #endif //ENABLE_NODE_V_6_9
     mIsolate->RunMicrotasks();
     uv_run(uv_default_loop(), UV_RUN_NOWAIT);//UV_RUN_ONCE);
-#ifdef USE_NODE_PLATFORM
-    node::MultiIsolatePlatform* platform = static_cast<node::MultiIsolatePlatform*>(mPlatform);
-    platform->DrainBackgroundTasks(mIsolate);
-#endif //USE_NODE_PLATFORM
     // Enable this to expedite garbage collection for testing... warning perf hit
     if (mTestGc)
     {
@@ -1267,6 +1246,9 @@ void rtScriptNode::init2(int argc, char** argv)
 #else
     Init(&argc, const_cast<const char**>(argv), &exec_argc, &exec_argv);
 #endif
+
+//    mPlatform = platform::CreateDefaultPlatform();
+//    V8::InitializePlatform(mPlatform);
 
 #ifdef ENABLE_NODE_V_6_9
    rtLogWarn("using node version %s\n", NODE_VERSION);

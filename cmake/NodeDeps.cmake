@@ -70,7 +70,7 @@ if (NOT NODE_FOUND)
                   libuv.lib openssl.lib v8_inspector_stl.lib
                   node.lib cctest.lib
                  )
-          endif ()
+          endif (USE_NODE_10)
       endif (NOT WIN32)
   else (NOT BUILD_WITH_STATIC_NODE)
       set(NODE_LIBRARY_DIRS ${NODE_LIBRARY_DIRS}

@@ -45,6 +45,7 @@ function Scene() {
       this.filePath = filePath;
       this.addServiceProvider = scene.addServiceProvider;
       this.removeServiceProvider = scene.removeServiceProvider;
+      this.sparkSetting = scene.sparkSetting;
 
       if (!isDuk) { 
         this.__defineGetter__("w", function() { return scene.w; });

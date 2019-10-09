@@ -17,27 +17,13 @@ banner() {
 NODE_VER="10.15.3"
 OPENSSL_DIR="`pwd`/openssl-1.0.2o"
 
-while (( "$#" )); do
-  case "$1" in
-    --node-version)
-      NODE_VER=$2
-      shift 2
-      ;;
-    --) # end argument parsing
-      shift
-      break
-      ;;
-    -*|--*=) # unsupported flags
-      echo "Error: Unsupported flag $1" >&2
-      exit 1
-      ;;
-  esac
-done
+#--------- Configuration
+
+make_parallel=3
 
 EXT_INSTALL_PATH=$PWD/extlibs
 mkdir -p $EXT_INSTALL_PATH
 
-make_parallel=3
 
 if [ "$(uname)" = "Darwin" ]; then
     make_parallel="$(sysctl -n hw.ncpu)"
@@ -79,6 +65,9 @@ then
   ./configure --prefix=$EXT_INSTALL_PATH
   make all "-j${make_parallel}"
   make install
+  # git update-index --assume-unchanged .      # ... help GIT out
+  # git update-index --assume-unchanged src    # ... help GIT out
+
   cd ..
 
 fi
@@ -174,11 +163,17 @@ fi
 banner "GIF"
 
 cd gif
-if [ "$(uname)" == "Darwin" ]; then
 
 [ -d patches ] || mkdir -p patches
-[ -d patches/series ] || echo 'giflib-5.1.9.patch' >patches/series
-cp ../giflib-5.1.9.patch patches/
+
+if [ "$(uname)" == "Darwin" ]; then
+  [ -d patches/series ] || echo 'giflib-5.1.9-mac.patch' >patches/series
+  cp ../giflib-5.1.9-mac.patch patches/
+else
+  [ -d patches/series ] || echo 'giflib-5.1.9.patch' >patches/series
+  cp ../giflib-5.1.9.patch patches/
+fi
+
 
 if [[ "$#" -eq "1" && "$1" == "--clean" ]]; then
 	quilt pop -afq || test $? = 2
@@ -191,25 +186,31 @@ else
 	quilt push -aq || test $? = 2
 fi
 
-fi
-
 if [ ! -e ./.libs/libgif.7.dylib ] ||
 [ "$(uname)" != "Darwin" ]
 then
-    make
-[ -d .libs ] || mkdir -p .libs
-if [ -e libgif.7.dylib ]
-then
-    cp libgif.7.dylib .libs/libgif.7.dylib
-    cp libutil.7.dylib .libs/libutil.7.dylib
 
+  make "-j${make_parallel}"
 
-elif [ -e libgif.so ]
-then
-    cp libgif.so .libs/libgif.so
-    cp libutil.so .libs/libutil.so
+  [ -d .libs ] || mkdir -p .libs
+  if [ -e libgif.7.dylib ]
+  then
+      cp libgif.7.dylib .libs/libgif.7.dylib
+      cp libutil.7.dylib .libs/libutil.7.dylib
+
+  elif [ -e libgif.so ]
+  then
+      cp libgif.so libgif.so.7
+      cp libutil.so libutil.so.7
+      cp libgif.so .libs/libgif.so
+      cp libutil.so .libs/libutil.so
+      cp libgif.so .libs/libgif.so.7
+      cp libutil.so .libs/libutil.so.7
+  fi
 fi
-fi
+
+git update-index --assume-unchanged dgif_lib.c     # ... help GIT out
+git update-index --assume-unchanged Makefile       # ... help GIT out
 
 cd ..
 
@@ -300,6 +301,10 @@ then
   ./configure --prefix=$EXT_INSTALL_PATH
   make all "-j${make_parallel}"
   make install
+
+  git update-index --assume-unchanged Makefile              # help GIT out
+  git update-index --assume-unchanged zconf.h               # help GIT out
+
   cd ..
 
 fi
@@ -313,21 +318,22 @@ then
   banner "TURBO"
 
   cd libjpeg-turbo
-  git update-index --assume-unchanged Makefile.in
-  git update-index --assume-unchanged aclocal.m4
-  git update-index --assume-unchanged ar-lib
-  git update-index --assume-unchanged compile
-  git update-index --assume-unchanged config.guess
-  git update-index --assume-unchanged config.h.in
-  git update-index --assume-unchanged config.sub
-  git update-index --assume-unchanged configure
-  git update-index --assume-unchanged depcomp
-  git update-index --assume-unchanged install-sh
-  git update-index --assume-unchanged java/Makefile.in
-  git update-index --assume-unchanged ltmain.sh
-  git update-index --assume-unchanged md5/Makefile.in
-  git update-index --assume-unchanged missing
-  git update-index --assume-unchanged simd/Makefile.in
+
+  git update-index --assume-unchanged Makefile.in           # ... help GIT out
+  git update-index --assume-unchanged aclocal.m4            # ... help GIT out
+  git update-index --assume-unchanged ar-lib                # ... help GIT out
+  git update-index --assume-unchanged compile               # ... help GIT out
+  git update-index --assume-unchanged config.guess          # ... help GIT out
+  git update-index --assume-unchanged config.h.in           # ... help GIT out
+  git update-index --assume-unchanged config.sub            # ... help GIT out
+  git update-index --assume-unchanged configure             # ... help GIT out
+  git update-index --assume-unchanged depcomp               # ... help GIT out
+  git update-index --assume-unchanged install-sh            # ... help GIT out
+  git update-index --assume-unchanged java/Makefile.in      # ... help GIT out
+  git update-index --assume-unchanged ltmain.sh             # ... help GIT out
+  git update-index --assume-unchanged md5/Makefile.in       # ... help GIT out
+  git update-index --assume-unchanged missing               # ... help GIT out
+  git update-index --assume-unchanged simd/Makefile.in      # ... help GIT out
 
   autoreconf -f -i
   ./configure --prefix=$EXT_INSTALL_PATH
@@ -340,7 +346,7 @@ fi
 
 #--------- LIBNODE
 
-if [ ! -e "libnode-v${NODE_VER}/libnode.dylib" ] ||
+if [ ! -e node/libnode.dylib ] ||
    [ "$(uname)" != "Darwin" ]
 then
 
@@ -353,20 +359,15 @@ then
 
   cd "libnode-v${NODE_VER}"
   ./configure --shared --shared-openssl --shared-openssl-includes="${OPENSSL_DIR}/include/" --shared-openssl-libpath="${OPENSSL_DIR}/lib"
-  make "-j${make_parallel}"
 
-  if [ "$(uname)" != "Darwin" ]
-  then
-    ln -sf out/Release/obj.target/libnode.so.* ./
-    ln -sf libnode.so.* libnode.so
-  else
-    ln -sf out/Release/libnode.*.dylib ./
-    ln -sf libnode.*.dylib libnode.dylib
-  fi
+  make "-j${make_parallel}"
+  ln -sf out/Release/obj.target/libnode.so.48 libnode.so.48
+  ln -sf libnode.so.48 libnode.so
+  ln -sf out/Release/libnode.48.dylib libnode.48.dylib
+  ln -sf libnode.48.dylib libnode.dylib
 
   cd ..
-  rm node
-  ln -sf "libnode-v${NODE_VER}" node
+
 fi
 #---------
 
@@ -381,7 +382,7 @@ then
 
   if [ -e Makefile.build ]
   then
-    mv Makefile.build Makefile
+    cp Makefile.build Makefile
   fi
 
   CPPFLAGS="-I${OPENSSL_DIR} -I${OPENSSL_DIR}/include" LDFLAGS="-L${OPENSSL_DIR}/lib -Wl,-rpath,${OPENSSL_DIR}/lib " make
@@ -397,15 +398,21 @@ fi
 #-------- BREAKPAD (Non -macOS)
 
 if [ "$(uname)" != "Darwin" ]; then
-  ./breakpad/build.sh
+
+  cd breakpad
+
+  ./build.sh
+
+  cd ..
 fi
 #---------
 
 #-------- NANOSVG
 
-  banner "NANOSVG"
+banner "NANOSVG"
 
 ./nanosvg/build.sh
+git update-index --assume-unchanged ./nanosvg/src/nanosvgrast.h    # ... help GIT out
 #---------
 
 #-------- DUKTAPE
@@ -414,7 +421,17 @@ if [ ! -e dukluv/build/libduktape.a ]
 then
   banner "DUCKTAPE"
 
-  ./dukluv/build.sh
+  cd dukluv
+
+  ./build.sh
+
+  git update-index --assume-unchanged CMakeLists.txt   # ... help GIT out
+  git update-index --assume-unchanged uv.cmake         # ... help GIT out
+  git update-index --assume-unchanged src/duv.c        # ... help GIT out
+  git update-index --assume-unchanged src/main.c       # ... help GIT out
+
+  cd ..
+
 fi
 
 #-------- spark-webgl
@@ -426,14 +443,34 @@ cd ..
 
 #-------- 
 
+#--------  SQLITE
+
 if [ ! -e sqlite/.libs/libsqlite3.a ]
 then
   banner "SQLITE"
 
   cd sqlite
-  autoreconf -f -i
+
+  if [ "$(uname)" != "Darwin" ]; then   ## If non-Mac
+    autoreconf -f -i
+  else
+    autoreconf -f
+  fi
+
   ./configure
-  make -j3
+  make "-j${make_parallel}"
+
+  git update-index --assume-unchanged aclocal.m4   # ... help GIT out
+  git update-index --assume-unchanged compile      # ... help GIT out
+  git update-index --assume-unchanged config.guess # ... help GIT out
+  git update-index --assume-unchanged config.sub   # ... help GIT out
+  git update-index --assume-unchanged configure    # ... help GIT out
+  git update-index --assume-unchanged depcomp      # ... help GIT out
+  git update-index --assume-unchanged install-sh   # ... help GIT out
+  git update-index --assume-unchanged ltmain.sh    # ... help GIT out
+  git update-index --assume-unchanged Makefile.in  # ... help GIT out
+  git update-index --assume-unchanged missing      # ... help GIT out
+
   cd ..
 fi
 
@@ -589,3 +626,7 @@ fi
 
 #--------
 fi
+
+#-------
+exit 0    #success
+#-------

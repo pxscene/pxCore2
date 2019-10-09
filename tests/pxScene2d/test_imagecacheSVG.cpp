@@ -141,7 +141,7 @@ class rtSvgCacheTest : public testing::Test
       return rtFileCache::instance()->addToCache(cacheData);
     }
 
-    char mNonExpireDate[1000];
+    char mNonExpireDate[2000];
     char mNonExpireDateVal[1000];
     char mExpireDate[1000];
 };

@@ -316,22 +316,24 @@ rtError pxFont::init(const char* n)
   mUrl = n;
   rtError loadFontStatus = RT_FAIL;
 
+  rtString urlStr = mUrl.beginsWith("file://") ? mUrl.substring(7) : mUrl;
+
   do {
-    if (FT_New_Face(ft, n, 0, &mFace) == 0)
+    if (FT_New_Face(ft, urlStr.cString(), 0, &mFace) == 0)
     {
       loadFontStatus = RT_OK;
       transform();
       break;
     }
 
-    if (rtIsPathAbsolute(n))
+    if (rtIsPathAbsolute(urlStr))
       break;
 
     rtModuleDirs *dirs = rtModuleDirs::instance();
 
     for (rtModuleDirs::iter it = dirs->iterator(); it.first != it.second; it.first++)
     {
-      if (FT_New_Face(ft, rtConcatenatePath(*it.first, n).c_str(), 0, &mFace) == 0)
+      if (FT_New_Face(ft, rtConcatenatePath(*it.first, urlStr.cString()).c_str(), 0, &mFace) == 0)
       {
         loadFontStatus = RT_OK;
         transform();
@@ -968,6 +970,7 @@ bool pxFontAtlas::addGlyph(uint32_t w, uint32_t h, void* buffer, GlyphTextureEnt
   {
     mTexture = context.createTexture(PXSCENE_FONT_ATLAS_DIM,PXSCENE_FONT_ATLAS_DIM,PXSCENE_FONT_ATLAS_DIM,PXSCENE_FONT_ATLAS_DIM, NULL);
   }
+  rtLogDebug("adding a texture of [%u] size memory", w*h);
   //return false;
   // bail on biggish glyphs
   if (h < 128)
@@ -1043,7 +1046,7 @@ void pxTexturedQuads::draw(float x, float y, float* color)
       }
     }
 
-    context.drawTexturedQuads(q.verts.size()/12, &verts[0], &q.uvs[0], q.t, color);
+    context.drawTexturedQuads( (int) q.verts.size()/12, &verts[0], &q.uvs[0], q.t, color);
   }
 }
 

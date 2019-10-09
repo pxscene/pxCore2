@@ -570,7 +570,7 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   graphicsCapabilities.set("colors", 1);
       
 #ifdef SUPPORT_GIF
-    graphicsCapabilities.set("gif", 1);
+    graphicsCapabilities.set("gif", 2);
 #endif //SUPPORT_GIF
   graphicsCapabilities.set("imageAResource", 2);
       
@@ -617,7 +617,7 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
 
   mCapabilityVersions.set("network", networkCapabilities);
 #ifdef PXSCENE_SUPPORT_STORAGE
-  mCapabilityVersions.set("storage", 1);
+  mCapabilityVersions.set("storage", 2);
 #endif
 
   rtObjectRef metricsCapabilities = new rtMapObject;
@@ -948,6 +948,24 @@ rtError pxScene2d::createFontResource(rtObjectRef p, rtObjectRef& o)
 #endif
 
   o = pxFontManager::getFont(url, proxy, mCORS, mArchive, fontStyle);
+  return RT_OK;
+}
+
+rtError pxScene2d::createShaderResource(rtObjectRef p, rtObjectRef& o)
+{
+  rtString fragmentUrl = p.get<rtString>("fragment");
+  rtString vertexUrl   = p.get<rtString>("vertex");
+  
+  if(fragmentUrl.isEmpty() && vertexUrl.isEmpty())
+  {
+     rtLogError("Failed to create [shaderResource] ... no Fragment/Vertex shader found.");
+     return RT_FAIL;
+  }
+
+  o = pxShaderManager::getShader(fragmentUrl, vertexUrl, mCORS, mArchive);
+  o.set(p);
+  o.send("init");
+
   return RT_OK;
 }
 
@@ -1424,7 +1442,7 @@ void pxScene2d::onUpdate(double t)
   // Periodically let's poke the onMouseMove handler with the current pointer position
   // to better handle objects that animate in or out from under the mouse cursor
   // eg. scrolling
-  if (t-mPointerLastUpdated > 1) // Once a second
+  if (t-mPointerLastUpdated > 0.2) // every 0.2 seconds
   {
     updateMouseEntered();
     mPointerLastUpdated = t;
@@ -1611,8 +1629,8 @@ bool pxScene2d::onMouseUp(int32_t x, int32_t y, uint32_t flags)
     // TODO optimization... we really only need to check mMouseDown
     if (mRoot->hitTestInternal(m, pt, hit, hitPt))
     {
-      // Only send onMouseUp if this object got an onMouseDown
-      if (tMouseDown == hit)
+      // Only send onMouseUp if this object got an onMouseDown -- WHY???
+//      if (tMouseDown == hit)
       {
         rtObjectRef e = new rtMapObject;
         e.set("name", "onMouseUp");
@@ -1645,11 +1663,11 @@ void pxScene2d::setMouseEntered(rtRef<pxObject> o, int32_t x /* = 0*/, int32_t y
     {
       rtObjectRef e = new rtMapObject;
       e.set("name", "onMouseLeave");
-      e.set("target", o.getPtr());
+      e.set("target", mMouseEntered.getPtr());
       e.set("x", x);
       e.set("y", y);
 
-      bubbleEvent(e,o, "onPreMouseLeave", "onMouseLeave");
+      bubbleEvent(e,mMouseEntered,"onPreMouseLeave","onMouseLeave");
     }
     mMouseEntered = o;
 
@@ -2044,7 +2062,7 @@ bool pxScene2d::onDragMove(int32_t x, int32_t y, int32_t type)
   pxMatrix4f m;
   rtRef<pxObject> hit;
   pxPoint2f pt(static_cast<float>(x),static_cast<float>(y)), hitPt;
-  
+
   if (mRoot->hitTestInternal(m, pt, hit, hitPt))
   {
     mDragType = (pxConstantsDragType::constants) type;
@@ -2130,7 +2148,7 @@ bool pxScene2d::onDragLeave(int32_t x, int32_t y, int32_t type)
 bool pxScene2d::onDragDrop(int32_t x, int32_t y, int32_t type, const char *dropped)
 {
   pxConstantsDragType::constants dragType = (pxConstantsDragType::constants) type;
-  
+
   if (mDragTarget)
   {
     mDragging = false;
@@ -2151,7 +2169,7 @@ bool pxScene2d::onDragDrop(int32_t x, int32_t y, int32_t type, const char *dropp
 
     return bubbleEvent(e, mDragTarget, "onPreDragDrop", "onDragDrop");
   }
-  
+
   return false;
 }
 
@@ -3236,10 +3254,12 @@ void pxScriptView::runScript()
     mGetScene = new rtFunctionCallback(getScene,  this);
     mMakeReady = new rtFunctionCallback(makeReady, this);
     mGetContextID = new rtFunctionCallback(getContextID, this);
+    mGetSetting = new rtFunctionCallback(getSetting, this);
 
     mCtx->add("getScene", mGetScene.getPtr());
     mCtx->add("makeReady", mMakeReady.getPtr());
     mCtx->add("getContextID", mGetContextID.getPtr());
+    mCtx->add("getSetting", mGetSetting.getPtr());
 
     // JRJR Temporary webgl integration
     if (isGLUrl())
@@ -3317,7 +3337,9 @@ void pxScriptView::runScript()
     }
     else
     {
-      mCtx->runFile("init.js");
+      rtString s = getenv("SPARK_PATH");
+      s.append("init.js");
+      mCtx->runFile(s.cString());
 
       rtString url = mUrl;
       if (mBootstrap)
@@ -3756,6 +3778,24 @@ rtError pxScriptView::endDrawing2(int /*numArgs*/, const rtValue* /*args*/, rtVa
     v->endDrawing();
   }
   return RT_OK;
+}
+
+// JRJR could be made much simpler... 
+rtError pxScriptView::getSetting(int numArgs, const rtValue* args, rtValue* result, void* /*ctx*/)
+{
+  if (numArgs >= 1)
+  {
+    rtValue val;
+    if (RT_OK != rtSettings::instance()->value(args[0].toString(), val))
+    {
+      *result = rtValue();
+      return RT_OK;
+    }
+    *result = val;
+    return RT_OK;
+  }
+  else
+    return RT_ERROR_NOT_ENOUGH_ARGS;
 }
 
 rtError pxScriptView::makeReady(int numArgs, const rtValue* args, rtValue* /*result*/, void* ctx)

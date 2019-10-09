@@ -32,6 +32,7 @@ rtObjectRef rtPermissions::mConfig = NULL;
 rtPermissions::rtPermissions(const char* origin)
   : mOrigin(rtUrlGetOrigin(origin))
   , mParent(NULL)
+  , mStorageQuota(0)
 {
   if (mOrigin.isEmpty())
     mOrigin = LOCAL_FILE_ORIGIN;
@@ -227,7 +228,7 @@ rtError rtPermissions::allows(const rtString& url, bool& o) const
 
 rtError rtPermissions::getStorageQuota(uint32_t& o) const
 {
-  o = mStorageQuota;
+  o = (uint32_t) mStorageQuota;
   return RT_OK;
 }
 

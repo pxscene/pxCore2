@@ -79,9 +79,7 @@ pxError deleteInternalGLContext(int id)
   rtMutexLockGuard eglContextMutexGuard(eglContextMutex);
   if ( internalContexts.find(id) != internalContexts.end() )
   {
-    NSOpenGLContext *context = internalContexts[id];
     internalContexts.erase(id);
-    [context release];
   }
   return PX_OK;
 }

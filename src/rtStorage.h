@@ -60,6 +60,11 @@ public:
 
   static bool isEncrypted(const char* fileName);
 
+  virtual rtError Get(const char* name, rtValue* value) const;
+  virtual rtError Get(uint32_t /*i*/, rtValue* /*value*/) const;
+  virtual rtError Set(const char* name, const rtValue* value);
+  virtual rtError Set(uint32_t /*i*/, const rtValue* /*value*/);
+
 private:
   void* mPrivateData;
   uint32_t mQuota;

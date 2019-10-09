@@ -63,3 +63,7 @@ node-gyp clean
 cd ..
 
 
+#--------- GIF
+cd gif
+make clean -j3
+cd ..

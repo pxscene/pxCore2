@@ -67,6 +67,24 @@ var ApplicationState = Object.freeze({
  */
 function Application(props) {
 
+  // Public variables
+  this.id = undefined;
+  this.priority = 5;
+  this.name = "";
+  this.createTime = 0;
+  this.uri = "";
+  this.type = ApplicationType.UNDEFINED;
+  this.expectedMemoryUsage = -1;
+  this.actualMemoryUsage = -1;
+  var _readyBaseResolve = function(){};
+  var _readyBaseReject = function(){};
+  var _readyResolve = function(){};
+  var _readyReject = function(){};
+  var _uiReadyResolve = function(){};
+  var _uiReadyReject = function(){};
+  var _urlChangeResolve = function(){};
+  var _urlChangeReject = function(){};
+  
   // Getters/setters
   var _externalAppPropsReadWrite = {
     x:"x",y:"y",w:"w",h:"h",cx:"cx",cy:"cy",sx:"sx",sy:"sy",r:"r",a:"a",
@@ -81,9 +99,20 @@ function Application(props) {
       get: function() { return _externalApp[_externalAppPropsReadWrite[key]]; },
       set: function(v) {
            if (key === "url") {
-             if (this.type === ApplicationType.SPARK_INSTANCE && _externalApp.api) {
-               // set the api property for spark instance
-               _externalApp.api.url = v;
+             if ((this.type === ApplicationType.SPARK_INSTANCE || this.type === ApplicationType.WEB) && typeof(this.api()) != "undefined") {
+               
+               this.api().url = v;
+               
+               this.urlChangeUiReady = new Promise(function (resolve, reject) 
+               {
+                 _urlChangeResolve = resolve;
+                 _urlChangeReject = reject;
+               });
+               
+               this.urlChangeUiReady.then( 
+                 function() { _this.logTelemetry("urlChangeUiReady", true); },
+                 function() { _this.logTelemetry("urlChangeUiReady", false); }
+                 );
              }
              else if (this.type === ApplicationType.SPARK) {
                console.log("setting url on spark app is not permitted");
@@ -104,60 +133,168 @@ function Application(props) {
     });
   });
 
-  // Public variables
-  this.id = undefined;
-  this.priority = 1;
-  this.name = "";
-  this.createTime = 0;
-  this.uri = "";
-  this.type = ApplicationType.UNDEFINED;
-  this.expectedMemoryUsage = -1;
-  this.actualMemoryUsage = -1;
-  var _readyResolve = undefined;
-  var _readyReject = undefined;
+  this.readyBase = new Promise(function (resolve, reject) {
+    _readyBaseResolve = resolve;
+    _readyBaseReject = reject;
+  });
   this.ready = new Promise(function (resolve, reject) {
     _readyResolve = resolve;
     _readyReject = reject;
   });
+  this.uiReady = new Promise(function (resolve, reject) 
+  {
+    _uiReadyResolve = resolve;
+    _uiReadyReject = reject;
+  });
+  this.urlChangeUiReady = null;
+  
+  //only fire newReady and ready and uiReady have succeeded
+  Promise.all([this.readyBase, this.uiReady]).then(function() 
+  {
+    _readyResolve();
+  }, function() 
+  {
+    _readyReject();
+  });
+  
+  this.logTelemetry = function(log_id, is_success)
+  {
+    var timestamp = "timestamp unknown";
+      
+    if(typeof(scene) != "undefined")
+      timestamp = scene.clock().toFixed(2);
+    
+    if(is_success)
+      console.log("OPTIMUS_uiReady:" + timestamp + "," + log_id + "," + _this.id + ",success");
+    else
+      console.log("OPTIMUS_uiReady:" + timestamp + "," + log_id + "," + _this.id + ",failure");
+  }
+  
+  this.uiReady.then( 
+    function() { _this.logTelemetry("uiReady", true); },
+    function() { _this.logTelemetry("uiReady", false); }
+    );
+  
+  this.readyBase.then( 
+    function() { _this.logTelemetry("readyBase", true); },
+    function() { _this.logTelemetry("readyBase", false); }
+    );
+  
+  this.ready.then( 
+    function() { _this.logTelemetry("ready", true); },
+    function() { _this.logTelemetry("ready", false); }
+    );
 
   // Private variables
   var cmd = "";
   var w = 0;
   var h = 0;
   var uri = "";
+  var hasApi = true;
   var serviceContext = {};
   var launchParams;
   var _externalApp;
   var _browser;
   var _state = ApplicationState.RUNNING;
 
-  // Public functions that use _externalApp
-  // Suspends the application. Returns true if the application was suspended, or false otherwise
-  this.suspend = function(o) {
-    var ret;
+  // Internal function needed for suspend
+  var do_suspend_internal = function(o)
+  {
+    //basic failure conditions
     if (_state === ApplicationState.DESTROYED){
-      this.log("suspend on already destroyed app");
+      _this.log("suspend on already destroyed app");
       return false;
     }
     if (_state === ApplicationState.SUSPENDED){
-      this.log("suspend on already suspended app");
+      _this.log("suspend on already suspended app");
       return false;
     }
     if (!_externalApp || !_externalApp.suspend){
-      this.log("suspend api not available on app");
+      _this.log("suspend api not available on app");
       _state = ApplicationState.SUSPENDED;
-      this.applicationSuspended();
+      _this.applicationSuspended();
       return false;
     }
-    ret = _externalApp.suspend(o);
+    
+    var ret = _externalApp.suspend(o);
+      
     if (ret === true) {
       _state = ApplicationState.SUSPENDED;
-      this.applicationSuspended();
-    } else {
-      this.log("suspend returned:", ret);
+      _this.applicationSuspended();
     }
+    
+    _this.log("suspend returned:", ret);
+    
     return ret;
+  }
+
+  // Public functions that use _externalApp
+  // Suspends the application. Returns promise if the application was suspended or not.
+  this.suspend = function(o) {
+
+    //setup return promise
+    var ret_promise_resolve;
+    var ret_promise_reject;
+    var ret_promise = new Promise(function (resolve, reject) {
+      ret_promise_resolve = resolve;
+      ret_promise_reject = reject;
+    });
+    
+    //telemetry
+    ret_promise.then(
+      function()
+      {
+        _this.logTelemetry("suspend", true);
+      },
+      function()
+      {
+        _this.logTelemetry("suspend", false);
+      });
+    
+    this.readyBase.then( 
+      function() 
+      { 
+        //needs also remoteReady?
+        if(_externalApp && _externalApp.hasApi)
+        {
+          _externalApp.remoteReady.then(
+            function()
+            {
+              //readyBase and remoteReady succeeded so suspend
+              var suspend_ret = do_suspend_internal(o);
+              
+              if(suspend_ret)
+                ret_promise_resolve();
+              else
+                ret_promise_reject();
+            },
+            function()
+            {
+              _this.log("suspend remoteReady failed");
+              ret_promise_reject();
+            });
+        }
+        else
+        {
+          //otherwise attempt suspend now
+          var suspend_ret = do_suspend_internal(o);
+
+          if(suspend_ret)
+            ret_promise_resolve();
+          else
+            ret_promise_reject();
+        }
+      },
+      function() 
+      { 
+        _this.log("suspend readyBase failed");
+        ret_promise_reject();
+      }
+    );
+    
+    return ret_promise;
   };
+  
   // Resumes a suspended application. Returns true if the application was resumed, or false otherwise
   this.resume = function(o) {
     var ret;
@@ -179,8 +316,10 @@ function Application(props) {
     if (ret === true) {
       _state = ApplicationState.RUNNING;
       this.applicationResumed();
+      this.logTelemetry("resume", true);
     } else {
       this.log("resume returned:", ret);
+      this.logTelemetry("resume", false);
     }
     return ret;
   };
@@ -220,8 +359,10 @@ function Application(props) {
       _externalApp = null;
       _state = ApplicationState.DESTROYED;
       this.applicationDestroyed();
+      this.logTelemetry("destroy", true);
     } else {
       this.log("destroy returned:", ret);
+      this.logTelemetry("destroy", false);
     }
     return ret;
   };
@@ -338,6 +479,9 @@ function Application(props) {
   if ("h" in props){
     h = props.h;
   }
+  if ("hasApi" in props){
+    hasApi = props.hasApi;
+  }
   if (cmd === "wpe" && uri){
     cmd = cmd + " " + uri;
   }
@@ -348,25 +492,28 @@ function Application(props) {
     this.expectedMemoryUsage = props.expectedMemoryUsage;
   }
 
-  this.log("cmd:",cmd,"uri:",uri,"w:",w,"h:",h);
+  this.log("cmd:",cmd,"uri:",uri,"w:",w,"h:",h,"hasApi:",hasApi);
 
   if (!cmd) {
     this.log('cannot create app because cmd is not set');
-    _readyReject(new Error('cmd is not set'));
+    _readyBaseReject(new Error('cmd is not set'));
+    _uiReadyReject();
     setTimeout(function () { // app not created yet
       _this.applicationClosed();
     });
   }
   else if (!scene) {
     this.log('cannot create app because the scene is not set');
-    _readyReject(new Error('scene is not set'));
+    _readyBaseReject(new Error('scene is not set'));
+    _uiReadyReject();
     setTimeout(function () { // app not created yet
       _this.applicationClosed();
     });
   }
   else if (appManager.getApplicationById(props.id)) {
     this.log('cannot create app with duplicate ID: ' + props.id);
-    _readyReject(new Error('duplicate ID: ' + props.id));
+    _readyBaseReject(new Error('duplicate ID: ' + props.id));
+    _uiReadyReject();
     setTimeout(function () { // app not created yet
       _this.applicationClosed();
     });
@@ -381,12 +528,24 @@ function Application(props) {
     _externalApp.on("onClientStopped", function () { _this.log( "onClientStopped"); }); // is never called
     _externalApp.ready.then(function() {
       _this.log("successfully created Spark app: " + _this.id);
-      _readyResolve();
+      _readyBaseResolve();
       _this.applicationReady();
+
+      if(typeof(_externalApp.api.uiReady) == "object")
+      {
+        _externalApp.api.uiReady.then(
+          function(result) { _uiReadyResolve(result); }, 
+          function(err) { _uiReadyReject(err); }
+        );
+      }
+      else
+        _uiReadyResolve("no uiReady promise");
+      
     }, function rejection() {
       var msg = "Failed to load uri: " + uri;
       _this.log("failed to launch Spark app: " + _this.id + ". " + msg);
-      _readyReject(new Error("failed to create. " + msg));
+      _readyBaseReject(new Error("failed to create. " + msg));
+      _uiReadyReject();
       _this.applicationClosed();
     });
     this.setProperties(props);
@@ -394,6 +553,10 @@ function Application(props) {
   }
   else if (cmd === "sparkInstance"){
     this.type = ApplicationType.SPARK_INSTANCE;
+    process.env.PXCORE_ESSOS_WAYLAND=1;
+    if (uri === ""){
+      uri = "preloadSparkInstance.js";
+    }
     _externalApp = scene.create( {t:"external", parent:root, cmd:"spark " + uri, w:w, h:h, hasApi:true} );
     _externalApp.on("onReady", function () { _this.log("onReady"); }); // is never called
     _externalApp.on("onClientStarted", function () { _this.log("onClientStarted"); });
@@ -408,16 +571,28 @@ function Application(props) {
     _externalApp.ready.then(function() {
     }, function rejection() {
       _this.log("failed to launch Spark instance app: " + _this.id);
-      _readyReject(new Error("failed to create"));
+      _readyBaseReject(new Error("failed to create"));
+      _uiReadyReject();
       _this.applicationClosed();
     });
     _externalApp.remoteReady.then(function() {
       _this.log("spark instance ready");
-      _readyResolve();
+      
+      _externalApp.api.on("onApplicationLoaded", function(e)
+      {
+        if(e.success)
+          _urlChangeResolve();
+        else
+          _urlChangeReject();
+      });
+      
+      _readyBaseResolve();
+      _uiReadyResolve();
       _this.applicationReady();
     }, function rejection() {
       _this.log("failed to create Spark instance");
-      _readyReject(new Error("failed to create"));
+      _readyBaseReject(new Error("failed to create"));
+      _uiReadyReject();
       _this.applicationClosed();
     });
     this.setProperties(props);
@@ -426,42 +601,65 @@ function Application(props) {
   else if (cmd === "WebApp"){
     this.type = ApplicationType.WEB;
     _externalApp = scene.create( {t:"external", parent:root, server:"wl-rdkbrowser2-server", w:w, h:h, hasApi:true} );
-    // The following doesn't work - causes black screen:
-    //_externalApp.on("onReady", function () { _this.log("onReady"); });
-    //_externalApp.on("onClientStarted", function () { _this.log("onClientStarted"); });
-    //_externalApp.on("onClientConnected", function () { _this.log("onClientConnected"); });
-    //_externalApp.on("onClientDisconnected", function () { _this.log("onClientDisconnected"); });
-    //_externalApp.on("onClientStopped", function () { _this.log("onClientStopped"); });
+    _externalApp.on("onReady", function () { _this.log("onReady"); });
+    _externalApp.on("onClientStarted", function () { _this.log("onClientStarted"); });
+    _externalApp.on("onClientConnected", function () { _this.log("onClientConnected"); });
+    _externalApp.on("onClientDisconnected", function () { _this.log("onClientDisconnected"); });
+    _externalApp.on("onClientStopped", function () { _this.log("onClientStopped"); });
     _externalApp.remoteReady.then(function(obj) {
       if(obj) {
         _this.log("about to create browser window");
         _browser = _externalApp.api.createWindow(_externalApp.displayName, false);
         if (_browser) {
+          
+          function handleOnHTMLDocumentLoadedEvent(e)
+          {
+            if(e.success)
+            {
+              _uiReadyResolve();
+              
+              if(typeof(_urlChangeResolve) != "undefined")
+                _urlChangeResolve();
+            }
+            else
+            {
+              _uiReadyReject();
+              
+              if(typeof(_urlChangeReject) != "undefined")
+                _urlChangeReject();
+            }
+          }
+          
+          _browser.on("onHTMLDocumentLoaded",handleOnHTMLDocumentLoadedEvent);
+          
           _browser.url = uri;
           _this.log("launched WebApp uri:" + uri);
           _this.applicationCreated();
-          _readyResolve();
+          _readyBaseResolve();
           _this.applicationReady();
         } else {
           _this.log("failed to create window for WebApp");
-          _readyReject(new Error("failed to create"));
+          _readyBaseReject(new Error("failed to create"));
+          _uiReadyReject();
           _this.applicationClosed();
         }
       } else {
         _this.log("failed to create WebApp invalid waylandObj");
-        _readyReject(new Error("failed to create"));
+        _readyBaseReject(new Error("failed to create"));
+        _uiReadyReject();
         _this.applicationClosed();
       }
     }, function rejection() {
       _this.log("failed to create WebApp");
-      _readyReject(new Error("failed to create"));
+      _readyBaseReject(new Error("failed to create"));
+      _uiReadyReject();
       _this.applicationClosed();
     });
     this.setProperties(props);
   }
   else{
     this.type = ApplicationType.NATIVE;
-    _externalApp = scene.create( {t:"external", parent:root, cmd:cmd, w:w, h:h, hasApi:true} );
+    _externalApp = scene.create( {t:"external", parent:root, cmd:cmd, w:w, h:h, hasApi:hasApi} );
     _externalApp.on("onReady", function () { _this.log("onReady"); }); // is never called
     _externalApp.on("onClientStarted", function () { _this.log("onClientStarted"); });
     _externalApp.on("onClientConnected", function () { _this.log("onClientConnected"); });
@@ -472,15 +670,47 @@ function Application(props) {
         _this.destroy();
       });
     });
+
     _externalApp.ready.then(function() {
       _this.log("successfully created: " + _this.id);
-      _readyResolve();
+      _readyBaseResolve();
       _this.applicationReady();
     }, function rejection() {
       _this.log("failed to launch app: " + _this.id);
-      _readyReject(new Error("failed to create"));
+      _readyBaseReject(new Error("failed to create"));
+      _uiReadyReject();
       _this.applicationClosed();
     });
+    
+    if(_externalApp.hasApi === true)
+    {
+      _externalApp.remoteReady.then(function(wayland)
+      {
+        if(typeof(wayland.api.uiReady) == "object")
+        {
+          wayland.api.uiReady.then( 
+            function() { _uiReadyResolve("uiReady succeeded"); },
+            function() { _uiReadyReject("uiReady failed"); }
+            );
+        }
+        else
+        {
+          _uiReadyResolve("no uiReady promise");
+        }
+      },
+      function()
+      {
+        console.log("native remoteReady error");
+        console.log("uiReady state or existance unknown because of remoteReady error. Defaulting to resolved.");
+        _uiReadyResolve("native remoteReady error");
+      }
+      );
+    }
+    else
+    {
+      _uiReadyResolve("no api");
+    }
+    
     this.setProperties(props);
     this.applicationCreated();
   }

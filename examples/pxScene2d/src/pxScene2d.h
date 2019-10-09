@@ -667,6 +667,7 @@ protected:
   static rtError makeReady(int /*numArgs*/, const rtValue* /*args*/, rtValue* result, void* ctx);
 
   static rtError getContextID(int /*numArgs*/, const rtValue* /*args*/, rtValue* result, void* /*ctx*/);
+  static rtError getSetting(int numArgs, const rtValue* args, rtValue* result, void* /*ctx*/);
 
   void beginDrawing();
   void endDrawing();
@@ -723,6 +724,7 @@ protected:
   rtRef<rtFunctionCallback> mGetScene;
   rtRef<rtFunctionCallback> mMakeReady;
   rtRef<rtFunctionCallback> mGetContextID;
+  rtRef<rtFunctionCallback> mGetSetting;
 
   // webgl stuff
 

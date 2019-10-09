@@ -14,6 +14,24 @@ copy /y curl-7.40.0\include\curl\curlbuild-win.h curl-7.40.0\include\curl\curlbu
 copy /y libpng-1.6.28\scripts\pnglibconf.h.prebuilt libpng-1.6.28\pnglibconf.h
 copy /y jpeg-9a\jconfig.vc jpeg-9a\jconfig.h
 
+REM --------- SQLITE
+
+cd sqlite-autoconf-3280000
+cl /c /EHsc sqlite3.c
+lib sqlite3.obj
+cd ..
+
+REM --------- GIF
+cd giflib-5.1.9
+patch -p1 < ../giflib-5.1.9-windows.diff
+
+cl /c /EHsc dgif_lib.c egif_lib.c getarg.c gif2rgb.c gif_err.c gif_font.c gif_hash.c gifalloc.c gifbg.c gifbuild.c gifclrmp.c gifcolor.c gifecho.c giffilter.c giffix.c gifhisto.c gifinto.c gifsponge.c giftext.c giftool.c gifwedge.c openbsd-reallocarray.c qprintf.c quantize.c
+
+lib *.obj
+
+copy /y dgif_lib.lib libgif.7.lib
+cd ..
+
 set buildExternal=0
 if NOT [%APPVEYOR_REPO_COMMIT%] == [] (
     FOR /F "tokens=* USEBACKQ" %%F IN (`git diff --name-only %APPVEYOR_REPO_COMMIT% %APPVEYOR_REPO_COMMIT%~`) DO (

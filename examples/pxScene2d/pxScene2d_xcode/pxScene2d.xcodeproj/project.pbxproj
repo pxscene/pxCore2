@@ -10,8 +10,12 @@
 		4C4746D7215046FC00E06357 /* libpxCore Static Library.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 4CF546B420210AE200529907 /* libpxCore Static Library.a */; };
 		4C62A28D228485660015B7D1 /* pxObject.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C62A28B228485660015B7D1 /* pxObject.cpp */; };
 		4C62A296228587FA0015B7D1 /* pxContextUtils.mm in Sources */ = {isa = PBXBuildFile; fileRef = 4C62A295228587FA0015B7D1 /* pxContextUtils.mm */; };
-		4C8440CC20D8362E00C24E45 /* sparkpermissions.conf in Resources */ = {isa = PBXBuildFile; fileRef = 4C8440CB20D8362E00C24E45 /* sparkpermissions.conf */; };
+		4C81E131231EF55100E6578A /* libgif.7.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C81E130231EF55100E6578A /* libgif.7.dylib */; };
+		4C81E133231EFBB500E6578A /* libsqlite3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C81E132231EFBB500E6578A /* libsqlite3.dylib */; };
+		4C81E134231EFC4000E6578A /* libsqlite3.dylib in Copy Dynamic Library Files */ = {isa = PBXBuildFile; fileRef = 4C81E132231EFBB500E6578A /* libsqlite3.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		4C81E135231EFC4000E6578A /* libgif.7.dylib in Copy Dynamic Library Files */ = {isa = PBXBuildFile; fileRef = 4C81E130231EF55100E6578A /* libgif.7.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		4C93A17D2021161E002278E5 /* libz.1.2.11.dylib in Copy Dynamic Library Files */ = {isa = PBXBuildFile; fileRef = 4CF5463A2020F6E200529907 /* libz.1.2.11.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		4C988A7E2322A8F7006E2D93 /* macstuff in Resources */ = {isa = PBXBuildFile; fileRef = 4C988A732322A8F7006E2D93 /* macstuff */; };
 		4CAA277E22C6637400993F81 /* pxShaderUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4CAA277D22C6637400993F81 /* pxShaderUtils.cpp */; };
 		4CF3A06A228F3E800068DD31 /* pxShaderResource.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4CF3A05E228F3E7F0068DD31 /* pxShaderResource.cpp */; };
 		4CF546072020F5B600529907 /* pxImage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C0C6D521E5218BB00BD8932 /* pxImage.cpp */; };
@@ -35,21 +39,17 @@
 		4CF5461C2020F5B600529907 /* westeros-stub.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C9F22AB1E6A24D200979F4E /* westeros-stub.cpp */; };
 		4CF5461F2020F5B600529907 /* libz.1.2.11.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C5D05EA201FC5B500D2B292 /* libz.1.2.11.dylib */; };
 		4CF546212020F5B600529907 /* libfreetype.6.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C1447991E68A90600610575 /* libfreetype.6.dylib */; };
-		4CF546222020F5B600529907 /* libnode.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C14479F1E68A90600610575 /* libnode.dylib */; };
+		4CF546222020F5B600529907 /* libnode.48.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C14479F1E68A90600610575 /* libnode.48.dylib */; };
 		4CF546232020F5B600529907 /* libjpeg.9.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C14479C1E68A90600610575 /* libjpeg.9.dylib */; };
 		4CF546242020F5B600529907 /* libcurl.4.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C1447961E68A90600610575 /* libcurl.4.dylib */; };
 		4CF546252020F5B600529907 /* libpng16.16.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C1447A11E68A90600610575 /* libpng16.16.dylib */; };
 		4CF546262020F5B600529907 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C38CDBF1E538D19003E4A35 /* Cocoa.framework */; };
 		4CF546272020F5B600529907 /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C38CDB31E538CF7003E4A35 /* OpenGL.framework */; };
-		4CF546292020F5B600529907 /* package.json in Resources */ = {isa = PBXBuildFile; fileRef = 4C63A6821E7878AA00313D9C /* package.json */; };
-		4CF5462A2020F5B600529907 /* browser in Resources */ = {isa = PBXBuildFile; fileRef = 4C2F20D31EEF1C250099DAE6 /* browser */; };
-		4CF5462B2020F5B600529907 /* about.js in Resources */ = {isa = PBXBuildFile; fileRef = 4C5B75C21F4FB51600664DC6 /* about.js */; };
 		4CF5462D2020F5B600529907 /* libcurl.4.dylib in Copy Dynamic Library Files */ = {isa = PBXBuildFile; fileRef = 4C1447961E68A90600610575 /* libcurl.4.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		4CF5462E2020F5B600529907 /* libjpeg.9.dylib in Copy Dynamic Library Files */ = {isa = PBXBuildFile; fileRef = 4C14479C1E68A90600610575 /* libjpeg.9.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		4CF5462F2020F5B600529907 /* libpng16.16.dylib in Copy Dynamic Library Files */ = {isa = PBXBuildFile; fileRef = 4C1447A11E68A90600610575 /* libpng16.16.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		4CF546302020F5B600529907 /* libfreetype.6.dylib in Copy Dynamic Library Files */ = {isa = PBXBuildFile; fileRef = 4C1447991E68A90600610575 /* libfreetype.6.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
-		4CF546312020F5B600529907 /* libnode.dylib in Copy Dynamic Library Files */ = {isa = PBXBuildFile; fileRef = 4C14479F1E68A90600610575 /* libnode.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
-		4CF5463D2020F89E00529907 /* libz.1.2.11.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 4CF5463A2020F6E200529907 /* libz.1.2.11.dylib */; };
+		4CF546312020F5B600529907 /* libnode.48.dylib in Copy Dynamic Library Files */ = {isa = PBXBuildFile; fileRef = 4C14479F1E68A90600610575 /* libnode.48.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -146,12 +146,14 @@
 			dstPath = lib;
 			dstSubfolderSpec = 6;
 			files = (
+				4C81E134231EFC4000E6578A /* libsqlite3.dylib in Copy Dynamic Library Files */,
+				4C81E135231EFC4000E6578A /* libgif.7.dylib in Copy Dynamic Library Files */,
 				4C93A17D2021161E002278E5 /* libz.1.2.11.dylib in Copy Dynamic Library Files */,
 				4CF5462D2020F5B600529907 /* libcurl.4.dylib in Copy Dynamic Library Files */,
 				4CF5462E2020F5B600529907 /* libjpeg.9.dylib in Copy Dynamic Library Files */,
 				4CF5462F2020F5B600529907 /* libpng16.16.dylib in Copy Dynamic Library Files */,
 				4CF546302020F5B600529907 /* libfreetype.6.dylib in Copy Dynamic Library Files */,
-				4CF546312020F5B600529907 /* libnode.dylib in Copy Dynamic Library Files */,
+				4CF546312020F5B600529907 /* libnode.48.dylib in Copy Dynamic Library Files */,
 			);
 			name = "Copy Dynamic Library Files";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -206,7 +208,7 @@
 		4C1447961E68A90600610575 /* libcurl.4.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libcurl.4.dylib; path = lib/libcurl.4.dylib; sourceTree = "<group>"; };
 		4C1447991E68A90600610575 /* libfreetype.6.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libfreetype.6.dylib; path = lib/libfreetype.6.dylib; sourceTree = "<group>"; };
 		4C14479C1E68A90600610575 /* libjpeg.9.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libjpeg.9.dylib; path = lib/libjpeg.9.dylib; sourceTree = "<group>"; };
-		4C14479F1E68A90600610575 /* libnode.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libnode.dylib; path = lib/libnode.dylib; sourceTree = "<group>"; };
+		4C14479F1E68A90600610575 /* libnode.48.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libnode.48.dylib; path = lib/libnode.48.dylib; sourceTree = "<group>"; };
 		4C1447A11E68A90600610575 /* libpng16.16.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libpng16.16.dylib; path = lib/libpng16.16.dylib; sourceTree = "<group>"; };
 		4C20BEAB1E5B85CC005ABBB7 /* EngineRunner */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; name = EngineRunner; path = ../EngineRunner; sourceTree = "<group>"; };
 		4C20BEAD1E5B8638005ABBB7 /* pxscene.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = pxscene.sh; path = ../pxscene.sh; sourceTree = "<group>"; };
@@ -227,7 +229,11 @@
 		4C62A28C228485660015B7D1 /* pxObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pxObject.h; path = src/pxObject.h; sourceTree = "<group>"; };
 		4C62A295228587FA0015B7D1 /* pxContextUtils.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = pxContextUtils.mm; path = src/mac/pxContextUtils.mm; sourceTree = "<group>"; };
 		4C63A6821E7878AA00313D9C /* package.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; name = package.json; path = ../../src/package.json; sourceTree = "<group>"; };
+		4C81E130231EF55100E6578A /* libgif.7.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libgif.7.dylib; path = lib/libgif.7.dylib; sourceTree = "<group>"; };
+		4C81E132231EFBB500E6578A /* libsqlite3.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libsqlite3.dylib; path = lib/libsqlite3.dylib; sourceTree = "<group>"; };
 		4C8440CB20D8362E00C24E45 /* sparkpermissions.conf */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = sparkpermissions.conf; path = src/sparkpermissions.conf; sourceTree = "<group>"; };
+		4C988A4F23219E36006E2D93 /* BuildDefines.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = BuildDefines.xcconfig; sourceTree = SOURCE_ROOT; };
+		4C988A732322A8F7006E2D93 /* macstuff */ = {isa = PBXFileReference; lastKnownFileType = folder; name = macstuff; path = ../../src/macstuff; sourceTree = "<group>"; };
 		4C9F22AA1E6A24D200979F4E /* westeros-compositor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "westeros-compositor.h"; path = "external/westeros-stub/westeros-compositor.h"; sourceTree = "<group>"; };
 		4C9F22AB1E6A24D200979F4E /* westeros-stub.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = "westeros-stub.cpp"; path = "external/westeros-stub/westeros-stub.cpp"; sourceTree = "<group>"; };
 		4CAA277222C65DD500993F81 /* pxShaderUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pxShaderUtils.h; path = src/pxShaderUtils.h; sourceTree = "<group>"; };
@@ -247,11 +253,13 @@
 			files = (
 				4C4746D7215046FC00E06357 /* libpxCore Static Library.a in Frameworks */,
 				4CF5461F2020F5B600529907 /* libz.1.2.11.dylib in Frameworks */,
+				4C81E133231EFBB500E6578A /* libsqlite3.dylib in Frameworks */,
 				4CF546212020F5B600529907 /* libfreetype.6.dylib in Frameworks */,
-				4CF546222020F5B600529907 /* libnode.dylib in Frameworks */,
+				4CF546222020F5B600529907 /* libnode.48.dylib in Frameworks */,
 				4CF546232020F5B600529907 /* libjpeg.9.dylib in Frameworks */,
 				4CF546242020F5B600529907 /* libcurl.4.dylib in Frameworks */,
 				4CF546252020F5B600529907 /* libpng16.16.dylib in Frameworks */,
+				4C81E131231EF55100E6578A /* libgif.7.dylib in Frameworks */,
 				4CF546262020F5B600529907 /* Cocoa.framework in Frameworks */,
 				4CF546272020F5B600529907 /* OpenGL.framework in Frameworks */,
 			);
@@ -308,6 +316,8 @@
 		4C0C6D311E52189500BD8932 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
+				4C988A732322A8F7006E2D93 /* macstuff */,
+				4C988A4F23219E36006E2D93 /* BuildDefines.xcconfig */,
 				4C63A6821E7878AA00313D9C /* package.json */,
 				4C1447701E687D5000610575 /* checkLocalLibs.sh */,
 				4C1447711E687D5000610575 /* getLocalLibs.sh */,
@@ -456,7 +466,9 @@
 		4CF04F961E525739003FE926 /* Libraries */ = {
 			isa = PBXGroup;
 			children = (
-				4C14479F1E68A90600610575 /* libnode.dylib */,
+				4C81E132231EFBB500E6578A /* libsqlite3.dylib */,
+				4C81E130231EF55100E6578A /* libgif.7.dylib */,
+				4C14479F1E68A90600610575 /* libnode.48.dylib */,
 				4C14479C1E68A90600610575 /* libjpeg.9.dylib */,
 				4CF5463A2020F6E200529907 /* libz.1.2.11.dylib */,
 				4C1447991E68A90600610575 /* libfreetype.6.dylib */,
@@ -626,10 +638,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				4CF546292020F5B600529907 /* package.json in Resources */,
-				4CF5462A2020F5B600529907 /* browser in Resources */,
-				4C8440CC20D8362E00C24E45 /* sparkpermissions.conf in Resources */,
-				4CF5462B2020F5B600529907 /* about.js in Resources */,
+				4C988A7E2322A8F7006E2D93 /* macstuff in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -648,7 +657,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "$PROJECT_DIR/getLocalLibs.sh\n";
+			shellScript = $PROJECT_DIR/getLocalLibs.sh;
 		};
 		4CF546322020F5B600529907 /* Run Script - Copy Resources to App Bundle */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -662,7 +671,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "cd $PROJECT_DIR/../src\n\n# Copy\ncp package.json $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/MacOS\ncp -R macstuff/Resources $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents\ncp    macstuff/EngineRunner $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/MacOS\ncp    macstuff/spark.sh $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/MacOS\n\ncp FreeSans.ttf $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\ncp -R browser $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\ncp -R node_modules $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\n\nminifyJS=\"true\"\n\nif [ \"$minifyJS\" == \"true\" ]\nthen\n\n  # Minify JS to App Bundle\n  printf \"\\n ###  Minify JS code to App Bundle\\n\"\n\n  ./jsMinFolder.sh rcvrcore $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources/rcvrcore\n  cp -R browser $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\n\n  ./jsMin.sh init.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources/init.js\n  ./jsMin.sh shell.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources/shell.js\n  ./jsMin.sh about.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources/about.js\n  ./jsMin.sh mime.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources/mime.js\n  ./jsMin.sh mime/pxMimeTypes.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources/pxMimeTypes.js\n  ./jsMin.sh browser.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources/browser.js\n  ./jsMin.sh browser/editbox.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources/browser/editbox.js\nelse\n\n  # Skip JS Minify - just copy\n  printf \"\\n ###  Skip JS Minify - just copy\\n\"\n\n  cp -R rcvrcore $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\n  cp -R browser $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\n\n  cp init.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\n  cp shell.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\n  cp about.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\n  cp mime.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\n  cp mime/pxMimeTypes.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\n  cp browser.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/Resources\nfi\n\necho $PROJECT_DIR/../lib\n";
+			shellScript = "cd $PROJECT_DIR/../src\n\nDST_FOLDER=MacOS\n\n# Copy\ncp package.json $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/MacOS\n\ncp -R macstuff/Resources $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents\n\ncp    macstuff/EngineRunner $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/MacOS\n\ncp    macstuff/spark.sh $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/MacOS\n\ncp sparkpermissions.conf $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/$DST_FOLDER\n\ncp FreeSans.ttf $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/$DST_FOLDER\n\ncp -R browser $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/$DST_FOLDER\n\ncp -R node_modules $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/$DST_FOLDER\n\nminifyJS=\"true\"\n\n\nif [ \"$minifyJS\" == \"true\" ]\nthen\n\n  # Minify JS to App Bundle\n  printf \"\\n ###  Minify JS code to App Bundle\\n\"\n\n\n  ./jsMinFolder.sh rcvrcore $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/$DST_FOLDER/rcvrcore\n  cp -R browser $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/$DST_FOLDER\n\n  ./jsMin.sh init.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/$DST_FOLDER/init.js\n  ./jsMin.sh shell.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/$DST_FOLDER/shell.js\n  ./jsMin.sh about.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/$DST_FOLDER/about.js\n ./jsMin.sh browser/mime.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/$DST_FOLDER/browser/mime.js\n# ./jsMin.sh mime/pxMimeTypes.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/$DST_FOLDER/pxMimeTypes.js\n  ./jsMin.sh browser.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/$DST_FOLDER/browser.js\n  ./jsMin.sh browser/editbox.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/$DST_FOLDER/browser/editbox.js\nelse\n\n  # Skip JS Minify - just copy\n  printf \"\\n ###  Skip JS Minify - just copy\\n\"\n\n  cp -R rcvrcore $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/$DST_FOLDER\n  cp -R browser $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/$DST_FOLDER\n\n  cp init.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/$DST_FOLDER\n  cp shell.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/$DST_FOLDER\n  cp about.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/$DST_FOLDER\n cp mime.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/$DST_FOLDER/browser\n# cp mime/pxMimeTypes.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/$DST_FOLDER\n  cp browser.js $BUILT_PRODUCTS_DIR/${EXECUTABLE_NAME}.app/Contents/$DST_FOLDER\nfi\n\necho $PROJECT_DIR/../lib\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -789,68 +798,30 @@
 		};
 		4CF546342020F5B600529907 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 4C20BEB11E5CDE01005ABBB7 /* pxScene2d.xcconfig */;
+			baseConfigurationReference = 4C988A4F23219E36006E2D93 /* BuildDefines.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_IDENTITY = "";
 				COMBINE_HIDPI_IMAGES = YES;
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					RT_PLATFORM_LINUX,
-					PX_PLATFORM_MAC,
-					RTSCRIPT_SUPPORT_NODE,
-					RTSCRIPT_SUPPORT_DUKTAPE,
-					ENABLE_RT_NODE,
-					ENABLE_RT_DUKTAPE,
-					RUNINMAIN,
-					ENABLE_HTTP_CACHE,
-					"_DARWIN_USE_64_BIT_INODE=1",
-					"NODE_ARCH=\"x64\"",
-					"NODE_WANT_INTERNALS=1",
-					"V8_DEPRECATION_WARNINGS=1",
-					NODE_SHARED_MODE,
-					"NODE_USE_V8_PLATFORM=1",
-					"NODE_HAVE_I18N_SUPPORT=1",
-					"NODE_HAVE_SMALL_ICU=1",
-					"HAVE_INSPECTOR=1",
-					"V8_INSPECTOR_USE_STL=1",
-					"V8_INSPECTOR_USE_OLD_STL=1",
-					"HAVE_OPENSSL=1",
-					"HAVE_DTRACE=1",
-					__POSIX__,
-					"NODE_PLATFORM=\"darwin\"",
-					"UCONFIG_NO_TRANSLITERATION=1",
-					"UCONFIG_NO_SERVICE=1",
-					"UCONFIG_NO_REGULAR_EXPRESSIONS=1",
-					"U_ENABLE_DYLOAD=0",
-					"U_STATIC_IMPLEMENTATION=1",
-					"U_HAVE_STD_STRING=0",
-					"UCONFIG_NO_BREAK_ITERATION=0",
-					"UCONFIG_NO_LEGACY_CONVERSION=1",
-					"UCONFIG_NO_CONVERSION=1",
-					"HTTP_PARSER_STRICT=0",
-					_LARGEFILE_SOURCE,
-					"_FILE_OFFSET_BITS=64",
-					ENABLE_DEBUG_MODE,
-					PXSCENE_DISABLE_WST_DECODER,
-					"SPARK_BUILD_GIT_REVISION=\"Xcode User\"",
-					PX_PLATFORM_MAC_XCODE,
-					ANIMATION_ROTATE_XYZ,
-				);
+				GCC_PREPROCESSOR_DEFINITIONS = "$(inherited)";
+				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				HEADER_SEARCH_PATHS = (
 					"$(PROJECT_DIR)/../src",
 					"$(PROJECT_DIR)/../../../src",
-					"$(PROJECT_DIR)/../external/node/src",
-					"$(PROJECT_DIR)/../external/node/deps/v8",
-					"$(PROJECT_DIR)/../external/node/deps/v8/include",
-					"$(PROJECT_DIR)/../external/node/deps/openssl/openssl/include",
-					"$(PROJECT_DIR)/../external/node/deps/uv/include",
+					"$(PROJECT_DIR)/../external/libnode-v6.9.0/src",
+					"$(PROJECT_DIR)/../external/libnode-v6.9.0/deps/v8",
+					"$(PROJECT_DIR)/../external/libnode-v6.9.0/deps/v8/include",
+					"$(PROJECT_DIR)/../external/libnode-v6.9.0/deps/openssl/openssl/include",
+					"$(PROJECT_DIR)/../external/libnode-v6.9.0/deps/uv/include",
 					"$(PROJECT_DIR)/../external/zlib",
 					"$(PROJECT_DIR)/../external/png",
+					"$(PROJECT_DIR)/../external/gif",
 					"$(PROJECT_DIR)/../external/jpg",
 					"$(PROJECT_DIR)/../external/curl/include",
 					"$(PROJECT_DIR)/../external/ft/include",
 					"$(PROJECT_DIR)/../external/westeros-stub",
 					"$(PROJECT_DIR)/../../../remote",
 					"$(PROJECT_DIR)/../src/rasterizer/xs_code",
+					"$(PROJECT_DIR)/../external/rapidjson",
 					"$(PROJECT_DIR)/../external",
 				);
 				INFOPLIST_FILE = pxScene2d/Info.plist;
@@ -861,7 +832,6 @@
 					"$(PROJECT_DIR)/../external/libpng-1.6.28/.libs",
 					"$(PROJECT_DIR)/../external/zlib/",
 					"$(PROJECT_DIR)/../external/dukluv/build",
-					/usr/local/Cellar/rapidjson/1.1.0/lib,
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				OTHER_LDFLAGS = (
@@ -875,68 +845,30 @@
 		};
 		4CF546352020F5B600529907 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 4C20BEB11E5CDE01005ABBB7 /* pxScene2d.xcconfig */;
+			baseConfigurationReference = 4C988A4F23219E36006E2D93 /* BuildDefines.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_IDENTITY = "";
 				COMBINE_HIDPI_IMAGES = YES;
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					RT_PLATFORM_LINUX,
-					PX_PLATFORM_MAC,
-					RTSCRIPT_SUPPORT_NODE,
-					RTSCRIPT_SUPPORT_DUKTAPE,
-					ENABLE_RT_NODE,
-					ENABLE_RT_DUKTAPE,
-					RUNINMAIN,
-					ENABLE_HTTP_CACHE,
-					"_DARWIN_USE_64_BIT_INODE=1",
-					"NODE_ARCH=\"x64\"",
-					"NODE_WANT_INTERNALS=1",
-					"V8_DEPRECATION_WARNINGS=1",
-					NODE_SHARED_MODE,
-					"NODE_USE_V8_PLATFORM=1",
-					"NODE_HAVE_I18N_SUPPORT=1",
-					"NODE_HAVE_SMALL_ICU=1",
-					"HAVE_INSPECTOR=1",
-					"V8_INSPECTOR_USE_STL=1",
-					"V8_INSPECTOR_USE_OLD_STL=1",
-					"HAVE_OPENSSL=1",
-					"HAVE_DTRACE=1",
-					__POSIX__,
-					"NODE_PLATFORM=\"darwin\"",
-					"UCONFIG_NO_TRANSLITERATION=1",
-					"UCONFIG_NO_SERVICE=1",
-					"UCONFIG_NO_REGULAR_EXPRESSIONS=1",
-					"U_ENABLE_DYLOAD=0",
-					"U_STATIC_IMPLEMENTATION=1",
-					"U_HAVE_STD_STRING=0",
-					"UCONFIG_NO_BREAK_ITERATION=0",
-					"UCONFIG_NO_LEGACY_CONVERSION=1",
-					"UCONFIG_NO_CONVERSION=1",
-					"HTTP_PARSER_STRICT=0",
-					_LARGEFILE_SOURCE,
-					"_FILE_OFFSET_BITS=64",
-					ENABLE_DEBUG_MODE,
-					PXSCENE_DISABLE_WST_DECODER,
-					"SPARK_BUILD_GIT_REVISION=\"Xcode User\"",
-					PX_PLATFORM_MAC_XCODE,
-					ANIMATION_ROTATE_XYZ,
-				);
+				GCC_PREPROCESSOR_DEFINITIONS = "$(inherited)";
+				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				HEADER_SEARCH_PATHS = (
 					"$(PROJECT_DIR)/../src",
 					"$(PROJECT_DIR)/../../../src",
-					"$(PROJECT_DIR)/../external/node/src",
-					"$(PROJECT_DIR)/../external/node/deps/v8",
-					"$(PROJECT_DIR)/../external/node/deps/v8/include",
-					"$(PROJECT_DIR)/../external/node/deps/openssl/openssl/include",
-					"$(PROJECT_DIR)/../external/node/deps/uv/include",
+					"$(PROJECT_DIR)/../external/libnode-v6.9.0/src",
+					"$(PROJECT_DIR)/../external/libnode-v6.9.0/deps/v8",
+					"$(PROJECT_DIR)/../external/libnode-v6.9.0/deps/v8/include",
+					"$(PROJECT_DIR)/../external/libnode-v6.9.0/deps/openssl/openssl/include",
+					"$(PROJECT_DIR)/../external/libnode-v6.9.0/deps/uv/include",
 					"$(PROJECT_DIR)/../external/zlib",
 					"$(PROJECT_DIR)/../external/png",
+					"$(PROJECT_DIR)/../external/gif",
 					"$(PROJECT_DIR)/../external/jpg",
 					"$(PROJECT_DIR)/../external/curl/include",
 					"$(PROJECT_DIR)/../external/ft/include",
 					"$(PROJECT_DIR)/../external/westeros-stub",
 					"$(PROJECT_DIR)/../../../remote",
 					"$(PROJECT_DIR)/../src/rasterizer/xs_code",
+					"$(PROJECT_DIR)/../external/rapidjson",
 					"$(PROJECT_DIR)/../external",
 				);
 				INFOPLIST_FILE = pxScene2d/Info.plist;
@@ -947,7 +879,6 @@
 					"$(PROJECT_DIR)/../external/libpng-1.6.28/.libs",
 					"$(PROJECT_DIR)/../external/zlib/",
 					"$(PROJECT_DIR)/../external/dukluv/build",
-					/usr/local/Cellar/rapidjson/1.1.0/lib,
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				OTHER_LDFLAGS = (

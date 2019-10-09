@@ -37,7 +37,8 @@ fi
 
 cp $externalDir/png/.libs/libpng16.16.dylib $bundleLib
 cp $externalDir/curl/lib/.libs/libcurl.4.dylib $bundleLib
-cp $externalDir/node/out/Release/libnode*.dylib $bundleLib
+#cp $externalDir/libnode/out/Release/libnode.dylib $bundleLib
+cp $externalDir/libnode-v6.9.0/out/Release/libnode*.dylib $bundleLib
 cp $externalDir/ft/objs/.libs/libfreetype.6.dylib $bundleLib
 cp $externalDir/jpg/.libs/libjpeg.9.dylib $bundleLib
 cp $externalDir/openssl-1.0.2o/lib/libssl*.dylib $bundleLib
@@ -72,8 +73,6 @@ cp macstuff/Info.plist $bundle/Contents
 
 # Copy RESOURCES to Bundle...
 #
-
-rm -f browser/images/status_bg_edge.svg
 
 cp -a browser $bundleRes
 cp FreeSans.ttf $bundleRes
@@ -112,16 +111,13 @@ ${minJS} init.js $bundleRes/init.js
 ${minJS} shell.js $bundleRes/shell.js
 ${minJS} browser.js $bundleRes/browser.js
 ${minJS} about.js $bundleRes/about.js
-${minJS} mime.js $bundleRes/mime.js
+${minJS} browser/mime.js $bundleRes/browser/mime.js
 ${minJS} browser/editbox.js $bundleRes/browser/editbox.js
 cp initGL.js $bundleRes/initGL.js
 cp webgl.js $bundleRes/webgl.js
 cp gles2.js $bundleRes/gles2.js
 
 #./jsMinFolder.sh browser $bundleRes/browser
-
-# Copy MIME files...
-${minJS} mime.js $bundleRes/mime.js
 
 # Copy duktape modules
 cp -a duk_modules $bundleRes/duk_modules
