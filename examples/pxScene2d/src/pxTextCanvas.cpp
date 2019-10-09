@@ -542,7 +542,7 @@ void pxTextCanvas::draw()
 
     if(mHighlightCfg.highlight)
     {
-        rtLogError("Draw Highlight stuff.... mQuadsVector = %d", (int) mQuadsVector.size() );
+//        rtLogDebug("Draw Highlight stuff.... mQuadsVector = %d", (int) mQuadsVector.size() );
 	
         if(mQuadsVector.size() > 0)
         {
@@ -627,7 +627,7 @@ rtError pxTextCanvas::measureText(rtString text, rtObjectRef& o)
 
 rtError pxTextCanvas::fillText(rtString text, int32_t x, int32_t y)
 {
-    rtLogError("pxTextCanvas::fillText called with params: text: '%s', x %d, y %d. Canvas: '%s' (w x h): %04.0f x %04.0f"
+    rtLogDebug("pxTextCanvas::fillText called with params: text: '%s', x %d, y %d. Canvas: '%s' (w x h): %04.0f x %04.0f"
             , text.cString()
             , x
             , y
