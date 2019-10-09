@@ -64,8 +64,8 @@ typedef struct shadowFx_
   float     y;         // used internally
   float     radius;    // used internally
   
-  float     width;           // used internally
-  float     height;          // used internally
+  float     width;     // used internally
+  float     height;    // used internally
 }
 shadowFx_t;
 

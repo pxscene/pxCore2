@@ -21,6 +21,7 @@
 
 #include "pxScene2d.h"
 #include "pxText.h"
+#include "pxFont.h"
 
 struct pxTextLine
 {
@@ -31,22 +32,25 @@ struct pxTextLine
             , translateX(0)
             , translateY(0)
     {};
+
     pxTextLine(const char* text, uint32_t x, uint32_t y);
     void setStyle(const rtObjectRef& f, uint32_t ps, uint32_t c);
 
     bool styleSet;
+
     rtString text;
     int32_t x;
     int32_t y;
 
     // current style settings
     rtObjectRef font;
+
     uint32_t pixelSize;
     uint32_t color;
     uint32_t alignHorizontal;
     uint32_t textBaseline;
-    int32_t translateX;
-    int32_t translateY;
+    int32_t  translateX;
+    int32_t  translateY;
 };
 
 /**********************************************************************
@@ -91,21 +95,23 @@ public:
     static constexpr float DEFAULT_WIDTH  = 300;
     static constexpr float DEFAULT_HEIGHT = 150;
 
+    enum class ColorMode { RGBA, ARGB };
+  
     rtDeclareObject(pxTextCanvas, pxText);
 
     pxTextCanvas(pxScene2d *s);
     virtual ~pxTextCanvas() {}
   
-    rtProperty(alignHorizontal, alignHorizontal, setAlignHorizontal, rtString);
-    rtProperty(fillStyle,       fillStyle,       setFillStyle,       rtValue);
-    rtProperty(textBaseline,    textBaseline,    setTextBaseline,    rtString);
-    rtProperty(globalAlpha,     globalAlpha,     setGlobalAlpha,     float);
+    rtProperty(alignHorizontal,       alignHorizontal,       setAlignHorizontal,        rtString);
+    rtProperty(fillStyle,             fillStyle,             setFillStyle,              rtValue);
+    rtProperty(textBaseline,          textBaseline,          setTextBaseline,           rtString);
+    rtProperty(globalAlpha,           globalAlpha,           setGlobalAlpha,            float);
 
-    rtProperty(shadow,          shadow,          setShadow,          bool);
-    rtProperty(shadowColor,     shadowColor,     setShadowColor,     rtValue);
-    rtProperty(shadowOffsetX,   shadowOffsetX,   setShadowOffsetX,   float);
-    rtProperty(shadowOffsetY,   shadowOffsetY,   setShadowOffsetY,   float);
-    rtProperty(shadowBlur,      shadowBlur,      setShadowBlur,      float);
+    rtProperty(shadow,                shadow,                setShadow,                 bool);
+    rtProperty(shadowColor,           shadowColor,           setShadowColor,            rtValue);
+    rtProperty(shadowOffsetX,         shadowOffsetX,         setShadowOffsetX,          float);
+    rtProperty(shadowOffsetY,         shadowOffsetY,         setShadowOffsetY,          float);
+    rtProperty(shadowBlur,            shadowBlur,            setShadowBlur,             float);
 
     rtProperty(highlight,             highlight,             setHighlight,              bool);
     rtProperty(highlightColor,        highlightColor,        setHighlightColor,         rtValue);
@@ -115,6 +121,7 @@ public:
 
     rtProperty(width,  w, setW, float);
     rtProperty(height, h, setH, float);
+
     // specific to pxTextCanvas
     rtProperty(label, label, setLabel, rtString);   // mainly for debug logging when multiple canvases are created (default behaviour)
     rtProperty(colorMode, colorMode, setColorMode, rtString); // Lightning++ assigns 'ARGB' for color compatibility
@@ -149,39 +156,39 @@ public:
 
     rtError setPixelSize(uint32_t v) override ;
 
-// - - - - - - - - - - - - - - - - - - Shadow - - - - - - - - - - - - - - - - - -
+    // - - - - - - - - - - - - - - - - - - Shadow - - - - - - - - - - - - - - - - - -
 
-    rtError shadow(bool &v) const                      { v = mShadow;  return RT_OK; }
-    virtual rtError setShadow(bool v)                  { mShadow = v;  return RT_OK; }
+    rtError shadow(bool &v) const                      { v = mShadowCfg.shadow;  return RT_OK; }
+    virtual rtError setShadow(bool v)                  { mShadowCfg.shadow = v;  return RT_OK; }
 
     rtError shadowColor(rtValue &c) const;
     rtError setShadowColor(rtValue c);
 
-    rtError shadowOffsetX(float &v) const              { v = mShadowOffsetX; return RT_OK; }
-    virtual rtError setShadowOffsetX(float v)          { mShadowOffsetX = v; return RT_OK; }
+    rtError shadowOffsetX(float &v) const              { v = mShadowCfg.shadowOffsetX; return RT_OK; }
+    virtual rtError setShadowOffsetX(float v)          { mShadowCfg.shadowOffsetX = v; return RT_OK; }
 
-    rtError shadowOffsetY(float &v) const              { v = mShadowOffsetY; return RT_OK; }
-    virtual rtError setShadowOffsetY(float v)          { mShadowOffsetY = v; return RT_OK; }
+    rtError shadowOffsetY(float &v) const              { v = mShadowCfg.shadowOffsetY; return RT_OK; }
+    virtual rtError setShadowOffsetY(float v)          { mShadowCfg.shadowOffsetY = v; return RT_OK; }
 
-    rtError shadowBlur(float &v) const                 { v = mShadowBlur;    return RT_OK; }
-    virtual rtError setShadowBlur(float v)             { mShadowBlur = v;    return RT_OK; }
+    rtError shadowBlur(float &v) const                 { v = mShadowCfg.shadowBlur;    return RT_OK; }
+    virtual rtError setShadowBlur(float v)             { mShadowCfg.shadowBlur = v;    return RT_OK; }
 
     // - - - - - - - - - - - - - - - - - - Highlight - - - - - - - - - - - - - - - - - -
 
-    rtError highlight(bool &v) const                   { v = mHighlight;  return RT_OK; }
-    virtual rtError setHighlight(bool v)               { mHighlight = v;  return RT_OK; }
+    rtError highlight(bool &v) const                   { v = mHighlightCfg.highlight;  return RT_OK; }
+    virtual rtError setHighlight(bool v)               { mHighlightCfg.highlight = v;  return RT_OK; }
 
     rtError highlightColor(rtValue &c) const;
     rtError setHighlightColor(rtValue c);
 
-    rtError highlightOffset(float &v) const            { v = mHighlightOffset;       return RT_OK; }
-    virtual rtError setHighlightOffset(float v)        { mHighlightOffset = v;       return RT_OK; }
+    rtError highlightOffset(float &v) const            { v = mHighlightCfg.highlightOffset;       return RT_OK; }
+    virtual rtError setHighlightOffset(float v)        { mHighlightCfg.highlightOffset = v;       return RT_OK; }
 
-    rtError highlightPaddingLeft(float &v) const       { v = mHighlightPaddingLeft;  return RT_OK; }
-    virtual rtError setHighlightPadddingLeft(float v)  { mHighlightPaddingLeft = v;  return RT_OK; }
+    rtError highlightPaddingLeft(float &v) const       { v = mHighlightCfg.highlightPaddingLeft;  return RT_OK; }
+    virtual rtError setHighlightPadddingLeft(float v)  { mHighlightCfg.highlightPaddingLeft = v;  return RT_OK; }
 
-    rtError highlightPaddingRight(float &v) const      { v = mHighlightPaddingRight; return RT_OK; }
-    virtual rtError setHighlightPadddingRight(float v) { mHighlightPaddingRight = v; return RT_OK; }
+    rtError highlightPaddingRight(float &v) const      { v = mHighlightCfg.highlightPaddingRight; return RT_OK; }
+    virtual rtError setHighlightPadddingRight(float v) { mHighlightCfg.highlightPaddingRight = v; return RT_OK; }
 
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -216,6 +223,30 @@ public:
     rtMethod2ArgAndNoReturn("translate", translate, int32_t, int32_t);
     rtError translate(int32_t x, int32_t y);
 
+  
+    virtual rtError Set(const char* name, const rtValue* value) override
+    {
+      //rtLogDebug("pxTextBox Set for %s\n", name );
+      
+      mDirty = mDirty || (
+                          !strcmp(name,"shadow")                ||
+                          !strcmp(name,"shadowColor")           ||
+                          !strcmp(name,"shadowOffsetX")         ||
+                          !strcmp(name,"shadowOffsetY")         ||
+                          !strcmp(name,"shadowBlur")            ||
+                          
+                          !strcmp(name,"highlight")             ||
+                          !strcmp(name,"highlightColor")        ||
+                          !strcmp(name,"highlightOffset")       ||
+                          !strcmp(name,"highlightPaddingLeft")  ||
+                          !strcmp(name,"highlightPaddingRight")
+                          );
+      
+      rtError e = pxText::Set(name, value);
+      
+      return e;
+    }
+
 protected:
     pxTextCanvasMeasurements* getMeasurements() { return (pxTextCanvasMeasurements*)measurements.getPtr();}
     void recalc();
@@ -225,29 +256,21 @@ protected:
     bool mInitialized;
     bool mNeedsRecalc;
 
-    rtString mAlignHorizontalStr;
-    uint32_t mAlignHorizontal;
-    rtString mTextBaselineStr;
-    uint32_t mTextBaseline;
-    float    mGlobalAlpha;
+    rtString  mAlignHorizontalStr;
+    uint32_t  mAlignHorizontal;
+    rtString  mTextBaselineStr;
+    uint32_t  mTextBaseline;
+    float     mGlobalAlpha;
 
-    bool     mShadow;
-    float    mShadowColor[4];
-    float    mShadowOffsetX;
-    float    mShadowOffsetY;
-    float    mShadowBlur;
+    shadowFx_t    mShadowCfg;
+    highlightFx_t mHighlightCfg;
 
-    bool     mHighlight;
-    float    mHighlightColor[4];
-    float    mHighlightOffset;
-    float    mHighlightPaddingLeft;
-    float    mHighlightPaddingRight;
-  
     float    mTextW;
     float    mTextH;
 
     rtString mLabel;
-    rtString mColorMode;
+    ColorMode mColorMode;
+
     int32_t  mTranslateX;
     int32_t  mTranslateY;
 

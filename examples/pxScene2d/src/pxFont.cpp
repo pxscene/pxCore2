@@ -29,7 +29,7 @@
 
 using namespace std;
 
-struct GlyphKey 
+struct GlyphKey
 {
   uint32_t mFontId;
   uint32_t mPixelSize;
@@ -85,14 +85,14 @@ pxFontAtlas gFontAtlas;
 
 pxFont::pxFont(rtString fontUrl, uint32_t id, rtString proxyUrl, rtString fontStyle):pxResource(),mFace(NULL),mPixelSize(0), mFontData(0), mFontDataSize(0),
              mFontMutex(), mFontDataMutex(), mFontDownloadedData(NULL), mFontDownloadedDataSize(0), mFontDataUrl()
-{  
-  mFontId = id; 
+{
+  mFontId = id;
   mUrl = fontUrl;
   mProxy = proxyUrl;
   mFontStyle = fontStyle;
 }
 
-pxFont::~pxFont() 
+pxFont::~pxFont()
 {
   rtLogInfo("~pxFont %s\n", mUrl.cString());
   if (gUIThreadQueue)
@@ -104,16 +104,16 @@ pxFont::~pxFont()
   //{
     //// clear any pending downloads
     //mFontDownloadRequest->setCallbackFunctionThreadSafe(NULL);
-  //}  
-   
+  //}
+
   pxFontManager::removeFont( mFontId);
- 
-  if( mInitialized) 
+
+  if( mInitialized)
   {
     FT_Done_Face(mFace);
   }
   mFace = 0;
-  
+
   if(mFontData) {
     free(mFontData);
     mFontData = 0;
@@ -183,7 +183,7 @@ uint32_t pxFont::loadResourceData(rtFileDownloadRequest* fileDownloadRequest)
     setFontData( (FT_Byte*)fileDownloadRequest->downloadedData(),
             (FT_Long)fileDownloadRequest->downloadedDataSize(),
             fileDownloadRequest->fileUrl().cString());
-            
+
       return PX_RESOURCE_LOAD_SUCCESS;
 }
 
@@ -248,7 +248,7 @@ void pxFont::loadResourceFromFile()
         gUIThreadQueue->addTask(onDownloadCompleteUI, this, (void*)"resolve");
       }
 
-    } 
+    }
 }
 // Simulating italic or oblique font style if required (and possible)
 bool pxFont::transform()
@@ -373,7 +373,7 @@ rtError pxFont::init(const FT_Byte*  fontData, FT_Long size, const char* n)
   setLoadStatus("setupTimeMs", static_cast<int>(stopResourceSetupTime-startResourceSetupTime));
 
   mFontMutex.unlock();
-  
+
   return RT_OK;
 }
 
@@ -388,24 +388,24 @@ void pxFont::setPixelSize(uint32_t s)
 }
 void pxFont::getHeight(uint32_t size, float& height)
 {
-	// TO DO:  check FT_IS_SCALABLE 
-  if( !mInitialized) 
+	// TO DO:  check FT_IS_SCALABLE
+  if( !mInitialized)
   {
     rtLogWarn("getHeight called on font before it is initialized\n");
     return;
   }
-  
+
   setPixelSize(size);
-  
+
 	FT_Size_Metrics* metrics = &mFace->size->metrics;
-  	
-	height = static_cast<float>(metrics->height>>6); 
+
+	height = static_cast<float>(metrics->height>>6);
 }
-  
+
 void pxFont::getMetrics(uint32_t size, float& height, float& ascender, float& descender, float& naturalLeading)
 {
-	// TO DO:  check FT_IS_SCALABLE 
-  if( !mInitialized) 
+	// TO DO:  check FT_IS_SCALABLE
+  if( !mInitialized)
   {
     rtLogWarn("Font getMetrics called on font before it is initialized\n");
     return;
@@ -413,14 +413,14 @@ void pxFont::getMetrics(uint32_t size, float& height, float& ascender, float& de
   if(!size) {
     rtLogWarn("Font getMetrics called with pixelSize=0\n");
   }
-  
+
   setPixelSize(size);
-  
+
 	FT_Size_Metrics* metrics = &mFace->size->metrics;
-  	
+
 	height = static_cast<float>(metrics->height>>6);
-	ascender =static_cast<float>(metrics->ascender>>6); 
-	descender = static_cast<float>(-metrics->descender>>6); 
+	ascender =static_cast<float>(metrics->ascender>>6);
+	descender = static_cast<float>(-metrics->descender>>6);
   naturalLeading = height - (ascender + descender);
 
 }
@@ -431,7 +431,7 @@ GlyphTextureEntry pxFont::getGlyphTexture(uint32_t codePoint, float sx, float sy
   // Select a glyph texture better suited for rendering the glyph
   // taking pixelSize and scale into account
   uint32_t pixelSize=(uint32_t)ceil((sx>sy?sx:sy)*mPixelSize);
-  
+
   //  TODO:  FIXME: Disabled for now.   Sub-Pixel rounding making some Glyphs too "wide" at certain sizes.
   //
 #if 0
@@ -449,11 +449,11 @@ GlyphTextureEntry pxFont::getGlyphTexture(uint32_t codePoint, float sx, float sy
 #else
   pixelSize = mPixelSize; // HACK
 #endif
-  
-  
-  GlyphKey key; 
-  key.mFontId = mFontId; 
-  key.mPixelSize = pixelSize; 
+
+
+  GlyphKey key;
+  key.mFontId = mFontId;
+  key.mPixelSize = pixelSize;
   key.mCodePoint = codePoint;
   GlyphTextureCache::iterator it = gGlyphTextureCache.find(key);
   if (it != gGlyphTextureCache.end())
@@ -461,7 +461,7 @@ GlyphTextureEntry pxFont::getGlyphTexture(uint32_t codePoint, float sx, float sy
   else
   {
     // temporarily set pixel size to more optimal size for
-    // rendering texture 
+    // rendering texture
     FT_Set_Pixel_Sizes(mFace, 0, pixelSize);
     // TODO only need to render glyph here
     if(!FT_Load_Char(mFace, codePoint, FT_LOAD_RENDER))
@@ -475,8 +475,8 @@ GlyphTextureEntry pxFont::getGlyphTexture(uint32_t codePoint, float sx, float sy
       {
 #endif
         rtLogWarn("Glyph not in atlas");
-        result.t = context.createTexture(static_cast<float>(g->bitmap.width), static_cast<float>(g->bitmap.rows), 
-                                                static_cast<float>(g->bitmap.width), static_cast<float>(g->bitmap.rows), 
+        result.t = context.createTexture(static_cast<float>(g->bitmap.width), static_cast<float>(g->bitmap.rows),
+                                                static_cast<float>(g->bitmap.width), static_cast<float>(g->bitmap.rows),
                                                 g->bitmap.buffer);
 
         result.u1 = 0;
@@ -486,24 +486,24 @@ GlyphTextureEntry pxFont::getGlyphTexture(uint32_t codePoint, float sx, float sy
 #ifdef PXSCENE_FONT_ATLAS
       }
 #endif
-      
+
       gGlyphTextureCache.insert(make_pair(key,result));
 
       // restore current pixelSize
       FT_Set_Pixel_Sizes(mFace, 0, mPixelSize);
-      return result;  
+      return result;
     }
     // restore current pixelSize
     FT_Set_Pixel_Sizes(mFace, 0, mPixelSize);
   }
-  return result;  
+  return result;
 }
-  
+
 const GlyphCacheEntry* pxFont::getGlyph(uint32_t codePoint)
 {
-  GlyphKey key; 
-  key.mFontId = mFontId; 
-  key.mPixelSize = mPixelSize; 
+  GlyphKey key;
+  key.mFontId = mFontId;
+  key.mPixelSize = mPixelSize;
   key.mCodePoint = codePoint;
   GlyphCache::iterator it = gGlyphCache.find(key);
   if (it != gGlyphCache.end())
@@ -518,7 +518,7 @@ const GlyphCacheEntry* pxFont::getGlyph(uint32_t codePoint)
       rtLogDebug("glyph cache miss");
       GlyphCacheEntry *entry = new GlyphCacheEntry;
       FT_GlyphSlot g = mFace->glyph;
-      
+
       entry->bitmap_left = g->bitmap_left;
       entry->bitmap_top = g->bitmap_top;
       entry->bitmapdotwidth = g->bitmap.width;
@@ -535,15 +535,15 @@ const GlyphCacheEntry* pxFont::getGlyph(uint32_t codePoint)
   return NULL;
 }
 
-void pxFont::measureTextInternal(const char* text, uint32_t size,  float sx, float sy, 
-                         float& w, float& h) 
+void pxFont::measureTextInternal(const char* text, uint32_t size,  float sx, float sy,
+                         float& w, float& h)
 {
   w = 0; h = 0;
 
   // TODO ignoring sx and sy now
   sx = 1.0;
   sy = 1.0;
-  if( !mInitialized) 
+  if( !mInitialized)
   {
     rtLogWarn("measureText called TOO EARLY -- not initialized or font not loaded!\n");
     return;
@@ -551,22 +551,22 @@ void pxFont::measureTextInternal(const char* text, uint32_t size,  float sx, flo
 
   setPixelSize(size);
 
-  if (!text) 
+  if (!text)
     return;
-    
+
   int i = 0;
   u_int32_t codePoint;
-  
+
   FT_Size_Metrics* metrics = &mFace->size->metrics;
-  
+
   h = static_cast<float>(metrics->height>>6);
   float lw = 0;
-  while((codePoint = u8_nextchar((char*)text, &i)) != 0) 
+  while((codePoint = u8_nextchar((char*)text, &i)) != 0)
   {
     const GlyphCacheEntry* entry = getGlyph(codePoint);
-    if (!entry) 
+    if (!entry)
       continue;
-      
+
     if (codePoint != '\n')
     {
       lw += (entry->advancedotx >> 6) * sx;
@@ -584,12 +584,12 @@ void pxFont::measureTextInternal(const char* text, uint32_t size,  float sx, flo
 }
 
 #ifndef PXSCENE_FONT_ATLAS
-void pxFont::renderText(const char *text, uint32_t size, float x, float y, 
-                        float nsx, float nsy, 
-                        float* color, float mw) 
+void pxFont::renderText(const char *text, uint32_t size, float x, float y,
+                        float nsx, float nsy,
+                        float* color, float mw)
 {
   if (!text || !mInitialized)
-  { 
+  {
     rtLogWarn("renderText called on font before it is initialized\n");
     return;
   }
@@ -599,11 +599,11 @@ void pxFont::renderText(const char *text, uint32_t size, float x, float y,
 
   setPixelSize(size);
   FT_Size_Metrics* metrics = &mFace->size->metrics;
-  
-  while((codePoint = u8_nextchar((char*)text, &i)) != 0) 
+
+  while((codePoint = u8_nextchar((char*)text, &i)) != 0)
   {
     const GlyphCacheEntry* entry = getGlyph(codePoint);
-    if (!entry) 
+    if (!entry)
       continue;
 
     float x2 = x + entry->bitmap_left;
@@ -611,16 +611,16 @@ void pxFont::renderText(const char *text, uint32_t size, float x, float y,
     float y2 = (y - entry->bitmap_top) + (metrics->ascender>>6);
     float w = static_cast<float>(entry->bitmapdotwidth);
     float h = static_cast<float>(entry->bitmapdotrows);
-    
+
     if (codePoint != '\n')
     {
-      if (x == 0) 
+      if (x == 0)
       {
         float c[4] = {0, 1, 0, 1};
-        context.drawDiagLine(0, y+(metrics->ascender>>6), mw, 
-                             y+(metrics->ascender>>6), c);
+        context.drawDiagLine(0, y+(metrics->ascender>>6), mw,
+                                y+(metrics->ascender>>6), c);
       }
-      
+
       GlyphTextureEntry texture = getGlyphTexture(codePoint, nsx, nsy);
 
       pxTextureRef nullImage;
@@ -637,18 +637,18 @@ void pxFont::renderText(const char *text, uint32_t size, float x, float y,
       };
       const float uvs[6][2] =
       {
-        { texture.u1,  texture.v1  },
-        { texture.u2, texture.v1  },
-        { texture.u1,  texture.v2 },
-        { texture.u2, texture.v1  },
-        { texture.u1,  texture.v2 },
+        { texture.u1, texture.v1 },
+        { texture.u2, texture.v1 },
+        { texture.u1, texture.v2 },
+        { texture.u2, texture.v1 },
+        { texture.u1, texture.v2 },
         { texture.u2, texture.v2 }
       };
       context.drawTexturedQuads(1, verts, uvs, texture.t, color);
       #else
       context.drawImage(x2,y2, w, h, texture.t, nullImage, false, color);
       #endif
-      
+
       x += (entry->advancedotx >> 6);
       // no change to y because we are not moving to next line yet
     }
@@ -662,14 +662,14 @@ void pxFont::renderText(const char *text, uint32_t size, float x, float y,
 }
 #endif // #ifndef PXSCENE_FONT_ATLAS
 #ifdef PXSCENE_FONT_ATLAS
-void pxFont::renderTextToQuads(const char *text, uint32_t size, 
-                        float nsx, float nsy, 
-                        pxTexturedQuads& quads, 
-                        float x, float y) 
+void pxFont::renderTextToQuads(const char *text, uint32_t size,
+                        float nsx, float nsy,
+                        pxTexturedQuads& quads,
+                        float x, float y)
 {
   quads.clear();
   if (!text || !mInitialized)
-  { 
+  {
     rtLogWarn("renderText called on font before it is initialized\n");
     return;
   }
@@ -679,12 +679,12 @@ void pxFont::renderTextToQuads(const char *text, uint32_t size,
 
   setPixelSize(size);
   FT_Size_Metrics* metrics = &mFace->size->metrics;
-  
-  while((codePoint = u8_nextchar((char*)text, &i)) != 0) 
+
+  while((codePoint = u8_nextchar((char*)text, &i)) != 0)
   {
     GlyphCacheEntry* entry = (GlyphCacheEntry*)getGlyph(codePoint);
 
-    if (!entry) 
+    if (!entry)
       continue;
 
     float x2 = x + entry->bitmap_left;
@@ -692,10 +692,10 @@ void pxFont::renderTextToQuads(const char *text, uint32_t size,
     float y2 = (y - entry->bitmap_top) + (metrics->ascender>>6);
     float w = static_cast<float>(entry->bitmapdotwidth);
     float h = static_cast<float>(entry->bitmapdotrows);
-    
+
     if (codePoint != '\n')
     {
-      
+
       GlyphTextureEntry t = getGlyphTexture(codePoint, nsx, nsy);
 
       pxTextureRef nullImage;
@@ -715,8 +715,8 @@ void pxFont::renderTextToQuads(const char *text, uint32_t size,
 }
 #endif
 
-void pxFont::measureTextChar(u_int32_t codePoint, uint32_t size,  float sx, float sy, 
-                         float& w, float& h) 
+void pxFont::measureTextChar(u_int32_t codePoint, uint32_t size,  float sx, float sy,
+                         float& w, float& h)
 {
   // TODO ignoring sx and sy now
   sx = 1.0;
@@ -725,18 +725,18 @@ void pxFont::measureTextChar(u_int32_t codePoint, uint32_t size,  float sx, floa
     rtLogWarn("measureTextChar called TOO EARLY -- not initialized or font not loaded!\n");
     return;
   }
-    
+
   setPixelSize(size);
-  
+
   w = 0; h = 0;
-  
+
   FT_Size_Metrics* metrics = &mFace->size->metrics;
-  
+
   h = static_cast<float>(metrics->height>>6);
   float lw = 0;
 
   const GlyphCacheEntry* entry = getGlyph(codePoint);
-  if (!entry) 
+  if (!entry)
     return;
 
   lw = (entry->advancedotx >> 6) * sx;
@@ -748,20 +748,20 @@ void pxFont::measureTextChar(u_int32_t codePoint, uint32_t size,  float sx, floa
 
 
 /*
-#### getFontMetrics - returns information about the font (font and size).  It does not convey information about the text of the font.  
-* See section 3.a in http://www.freetype.org/freetype2/docs/tutorial/step2.html .  
+#### getFontMetrics - returns information about the font (font and size).  It does not convey information about the text of the font.
+* See section 3.a in http://www.freetype.org/freetype2/docs/tutorial/step2.html .
 * The returned object has the following properties:
 * height - float - the distance between baselines
 * ascent - float - the distance from the baseline to the font ascender (note that this is a hint, not a solid rule)
 * descent - float - the distance from the baseline to the font descender  (note that this is a hint, not a solid rule)
 */
-rtError pxFont::getFontMetrics(uint32_t pixelSize, rtObjectRef& o) 
+rtError pxFont::getFontMetrics(uint32_t pixelSize, rtObjectRef& o)
 {
-  //rtLogDebug("pxFont::getFontMetrics\n");  
+  //rtLogDebug("pxFont::getFontMetrics\n");
 	float height, ascent, descent, naturalLeading;
 	pxTextMetrics* metrics = new pxTextMetrics();
 
-  if(!mInitialized ) 
+  if(!mInitialized )
   {
     rtLogWarn("getFontMetrics called TOO EARLY -- not initialized or font not loaded!\n");
     o = metrics;
@@ -783,26 +783,26 @@ rtError pxFont::getFontMetrics(uint32_t pixelSize, rtObjectRef& o)
 rtError pxFont::measureText(uint32_t pixelSize, rtString stringToMeasure, rtObjectRef& o)
 {
   pxTextSimpleMeasurements* measure = new pxTextSimpleMeasurements();
-  
-  if(!mInitialized ) 
+
+  if(!mInitialized )
   {
     rtLogWarn("measureText called TOO EARLY -- not initialized or font not loaded!\n");
     o = measure;
     return RT_OK; // !CLF: TO DO - COULD RETURN RT_ERROR HERE TO CATCH NOT WAITING ON PROMISE
-  } 
-  
+  }
+
   if(!pixelSize) {
     rtLogWarn("Font measureText called with pixelSize=0\n");
-  }    
-  
+  }
+
   float w, h;
   measureTextInternal(stringToMeasure, pixelSize, 1.0,1.0, w, h);
   //rtLogDebug("pxFont::measureText returned %f and %f for pixelSize=%d and text \"%s\"\n",w, h,pixelSize, stringToMeasure.cString());
   measure->setW(static_cast<int32_t>(w));
   measure->setH(static_cast<int32_t>(h));
   o = measure;
-  
-  return RT_OK; 
+
+  return RT_OK;
 }
 
 rtError pxFont::needsStyleCoercion(rtString fontStyle, bool& o)
@@ -829,21 +829,21 @@ bool pxFont::coercible(const char *fontStyle) {
 FontMap pxFontManager::mFontMap;
 FontIdMap pxFontManager::mFontIdMap;
 bool pxFontManager::init = false;
-void pxFontManager::initFT() 
+void pxFontManager::initFT()
 {
-  if (init) 
+  if (init)
   {
     //rtLogDebug("initFT returning; already inited\n");
     return;
   }
   init = true;
-  
-  if(FT_Init_FreeType(&ft)) 
+
+  if(FT_Init_FreeType(&ft))
   {
     rtLogError("Could not init freetype library\n");
     return;
   }
-  
+
 }
 rtRef<pxFont> pxFontManager::getFont(const char* url, const char* proxy, const rtCORSRef& cors, rtObjectRef archive, const char* fontStyle)
 {
@@ -876,11 +876,11 @@ rtRef<pxFont> pxFontManager::getFont(const char* url, const char* proxy, const r
   }
   // Assign font urls an id number if they don't have one
   FontIdMap::iterator itId = mFontIdMap.find(key);
-  if( itId != mFontIdMap.end()) 
+  if( itId != mFontIdMap.end())
   {
     fontId = itId->second;
   }
-  else 
+  else
   {
     fontId = gFontId++;
     mFontIdMap.insert(make_pair(key, fontId));
@@ -891,10 +891,10 @@ rtRef<pxFont> pxFontManager::getFont(const char* url, const char* proxy, const r
   {
     rtLogDebug("Found pxFont in map for %s\n",url);
     pFont = it->second;
-    return pFont;  
-    
+    return pFont;
+
   }
-  else 
+  else
   {
     rtLogDebug("Create pxFont in map for %s\n",key.cString());
     pFont = new pxFont(url, fontId, proxy, fontStyle);
@@ -902,7 +902,7 @@ rtRef<pxFont> pxFontManager::getFont(const char* url, const char* proxy, const r
     mFontMap.insert(make_pair(fontId, pFont));
     pFont->loadResource(archive);
   }
-  
+
   return pFont;
 }
 
@@ -910,7 +910,7 @@ void pxFontManager::removeFont(uint32_t fontId)
 {
   FontMap::iterator it = mFontMap.find(fontId);
   if (it != mFontMap.end())
-  {  
+  {
     mFontMap.erase(it);
   }
 }
@@ -918,7 +918,9 @@ void pxFontManager::removeFont(uint32_t fontId)
 void pxFontManager::clearAllFonts()
 {
   for (GlyphCache::iterator it =  gGlyphCache.begin(); it != gGlyphCache.end(); it++)
+  {
     delete it->second;
+  }
 
 
   gGlyphCache.clear();
@@ -931,7 +933,7 @@ void pxFontManager::clearAllFonts()
 
 // pxTextMetrics
 rtDefineObject(pxTextMetrics, rtObject);
-rtDefineProperty(pxTextMetrics, height); 
+rtDefineProperty(pxTextMetrics, height);
 rtDefineProperty(pxTextMetrics, ascent);
 rtDefineProperty(pxTextMetrics, descent);
 rtDefineProperty(pxTextMetrics, naturalLeading);
@@ -955,7 +957,7 @@ pxFontAtlas::pxFontAtlas(): fence(0)
   mTexture = context.createTexture(PXSCENE_FONT_ATLAS_DIM,PXSCENE_FONT_ATLAS_DIM,PXSCENE_FONT_ATLAS_DIM,PXSCENE_FONT_ATLAS_DIM, NULL);
 }
 
-void pxFontAtlas::clearTexture() 
+void pxFontAtlas::clearTexture()
 {
   if( mTexture) {
     mTexture->deleteTexture();
@@ -981,11 +983,11 @@ bool pxFontAtlas::addGlyph(uint32_t w, uint32_t h, void* buffer, GlyphTextureEnt
       if ((h2 == r.height) && (r.rFence+w < (uint32_t)mTexture->width()))
       {
         e.t = mTexture;
-        e.u1 = (float)r.rFence/(float)mTexture->width();
-        e.u2 = (float)(r.rFence+w)/(float)mTexture->width();
-        e.v1 = (float)r.top/(float)mTexture->height();
-        e.v2 = (float)(r.top+h)/(float)mTexture->height();
-        
+        e.u1 = (float)   (r.rFence)/(float)mTexture->width();
+        e.u2 = (float) (r.rFence+w)/(float)mTexture->width();
+        e.v1 = (float)      (r.top)/(float)mTexture->height();
+        e.v2 = (float)    (r.top+h)/(float)mTexture->height();
+
         mTexture->updateTexture(r.rFence,r.top,w,h,buffer);
 
         r.rFence += w+1;
@@ -1010,7 +1012,7 @@ bool pxFontAtlas::addGlyph(uint32_t w, uint32_t h, void* buffer, GlyphTextureEnt
         e.u1 = (float)nr.rFence/(float)mTexture->width();
         e.u2 = (float)(nr.rFence+w)/(float)mTexture->width();
         e.v1 = (float)nr.top/(float)mTexture->height();
-        e.v2 = (float)(nr.top+h)/(float)mTexture->height(); 
+        e.v2 = (float)(nr.top+h)/(float)mTexture->height();
 
         mTexture->updateTexture(nr.rFence,nr.top,w,h,buffer);
 
@@ -1018,7 +1020,7 @@ bool pxFontAtlas::addGlyph(uint32_t w, uint32_t h, void* buffer, GlyphTextureEnt
 
         mRows.push_back(nr);
         return true;
-      }        
+      }
     }
   }
   return false;

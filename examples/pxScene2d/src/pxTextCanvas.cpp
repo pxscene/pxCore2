@@ -24,23 +24,22 @@
 #define CLAMP(_x, _min, _max) ( (_x) < (_min) ? (_min) : (_x) > (_max) ? (_max) : (_x) )
 extern pxContext context;
 
-//pxTextLine
 pxTextLine::pxTextLine(const char* text, uint32_t x, uint32_t y)
         : pixelSize(10)
         , color(0xFFFFFFFF)
 {
-    this->text = text;
-    this->x = x;
-    this->y = y;
+    this->text     = text;
+    this->x        = x;
+    this->y        = y;
     this->styleSet = false;
 };
 
 void pxTextLine::setStyle(const rtObjectRef& f, uint32_t ps, uint32_t c) {
     // TODO: validate pxFont object
-    this->font = f;
+    this->font      = f;
     this->pixelSize = ps;
-    this->color = c;
-    this->styleSet = true;
+    this->color     = c;
+    this->styleSet  = true;
 }
 
 //pxTextCanvasMeasurements
@@ -61,21 +60,11 @@ pxTextCanvas::pxTextCanvas(pxScene2d* s): pxText(s)
         , mAlignHorizontal(pxConstantsAlignHorizontal::LEFT)
         , mGlobalAlpha(0.0f)
 
-        , mShadow(false)
-        , mShadowOffsetX(0.0f)
-        , mShadowOffsetY(0.0f)
-        , mShadowBlur(0.0f)
-
-        , mHighlight(false)
-        , mHighlightOffset(0.0f)
-        , mHighlightPaddingLeft(0.0f)
-        , mHighlightPaddingRight(0.0f)
-
         , mTextW(0.0f)
         , mTextH(0.0f)
 
         , mLabel("")
-        , mColorMode("RGBA") //TODO: make a const class from it?
+        , mColorMode(ColorMode::ARGB)
 
         , mTranslateX(0)
         , mTranslateY(0)
@@ -87,26 +76,23 @@ pxTextCanvas::pxTextCanvas(pxScene2d* s): pxText(s)
 
     mTextBaseline = pxConstantsTextBaseline::ALPHABETIC;
 
-    float c[4] = {1, 1, 1, 1}; // WHITE
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     //
     // Shadow stuff..
     //
-    memcpy(mShadowColor, c, sizeof(mShadowColor));
-
+    mShadowCfg.shadow = false;
+  
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     //
     // Highlight stuff..
     //
-    memcpy(mHighlightColor, c, sizeof(mHighlightColor));
+    mHighlightCfg.highlight = false;
 
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-    mColorMode = "RGBA"; //TODO: make a const class from it?
-    mLabel     = "";
-
     setW(pxTextCanvas::DEFAULT_WIDTH);
     setH(pxTextCanvas::DEFAULT_HEIGHT);
+
     setClip(true);
 }
 
@@ -189,11 +175,14 @@ rtError pxTextCanvas::fillStyle(rtValue &c) const
 rtError pxTextCanvas::setFillStyle(rtValue c)
 {
     rtValue clr;
-    if (mColorMode == "ARGB")
+
+    if (mColorMode == ColorMode::ARGB)
     {
         clr = argb2rgba(c.toUInt32());
         rtLogDebug("pxTextCanvas::setFillStyle. ARGB param %#08x converted to RGBA: %#08x", c.toUInt32(), clr.toUInt32());
-    } else {
+    }
+    else
+    {
         clr = c;
     }
     setTextColor(clr);
@@ -277,23 +266,28 @@ rtError pxTextCanvas::setLabel(const rtString &c)
 
 rtError pxTextCanvas::colorMode(rtString &c) const
 {
-    c = mColorMode;
-    return RT_OK;
+   (mColorMode == ColorMode::RGBA) ? c = "RGBA" : "ARGB";
+   return RT_OK;
 }
+
 rtError pxTextCanvas::setColorMode(const rtString &c)
 {
     rtError res = RT_OK;
 
-    if (c != mColorMode)
+    rtString clr;
+    this->colorMode(clr); // current color mode
+  
+    if (c != clr)
     {
         if ((c == "ARGB") || (c == "RGBA"))
         {
-            mColorMode = c;
-            rtLogDebug("Setting color mode: '%s;", c.cString());
+            (c == "RGBA") ? mColorMode = ColorMode::RGBA : ColorMode::ARGB;
+          
+            rtLogDebug("Setting color mode: '%s;", clr.cString());
         }
         else
         {
-            rtLogError("Unknown color mode %s. Supported modes: 'ARGB', 'RGBA'", c.cString());
+            rtLogError("Unknown color mode %s. Supported modes: 'ARGB', 'RGBA'", clr.cString());
             res = RT_ERROR;
         }
     }
@@ -388,13 +382,25 @@ rtError pxTextCanvas::setPixelSize(uint32_t v)
 
 rtError pxTextCanvas::setShadowColor(rtValue c)
 {
-    return setColor(mShadowColor, c);
+    rtValue clr = c;
+    if (mColorMode == ColorMode::ARGB)
+    {
+      clr = argb2rgba(c.toUInt32());
+    }
+  
+    return setColor(mShadowCfg.shadowColor, clr);
 }
 
 rtError pxTextCanvas::shadowColor(rtValue &c) const
 {
     uint32_t cc = 0;
-    rtError err = colorFloat4_to_UInt32(&mShadowColor[0], cc);
+    rtError err = colorFloat4_to_UInt32(&mShadowCfg.shadowColor[0], cc); // RGBA
+  
+    if (mColorMode == ColorMode::ARGB)
+    {
+      uint32_t argb = argb2rgba(cc);
+      cc = argb;
+    }
 
     c = cc;
 
@@ -403,13 +409,25 @@ rtError pxTextCanvas::shadowColor(rtValue &c) const
 
 rtError pxTextCanvas::setHighlightColor(rtValue c)
 {
-    return setColor(mHighlightColor, c);
+    rtValue clr = c;
+    if (mColorMode == ColorMode::ARGB)
+    {
+      clr = argb2rgba(c.toUInt32());
+    }
+
+    return setColor(mHighlightCfg.highlightColor, clr);
 }
 
 rtError pxTextCanvas::highlightColor(rtValue &c) const
 {
     uint32_t cc = 0;
-    rtError err = colorFloat4_to_UInt32(&mHighlightColor[0], cc);
+    rtError err = colorFloat4_to_UInt32(&mHighlightCfg.highlightColor[0], cc); // RGBA
+
+    if (mColorMode == ColorMode::ARGB)
+    {
+      uint32_t argb = argb2rgba(cc);
+      cc = argb;
+    }
 
     c = cc;
 
@@ -437,8 +455,8 @@ void pxTextCanvas::renderTextLine(const pxTextLine& textLine)
     float sx = 1.0;
     float sy = 1.0;
 
-    uint32_t size = textLine.pixelSize;
-    uint32_t alignH = textLine.alignHorizontal;
+    uint32_t size     = textLine.pixelSize;
+    uint32_t alignH   = textLine.alignHorizontal;
     uint32_t baseline = textLine.textBaseline;
 
     if (mFont != textLine.font)
@@ -459,40 +477,18 @@ void pxTextCanvas::renderTextLine(const pxTextLine& textLine)
 
         switch (alignH)
         {
-            case pxConstantsAlignHorizontal::CENTER:
-            xPos -= float(mTextW / 2);
-                break;
-
-            case pxConstantsAlignHorizontal::RIGHT:
-                xPos -= mTextW;
-                break;
+            case pxConstantsAlignHorizontal::CENTER:   xPos -= float(mTextW / 2);     break;
+            case pxConstantsAlignHorizontal::RIGHT:    xPos -= mTextW;                break;
         }
 
         switch (baseline)
         {
-            case pxConstantsTextBaseline::ALPHABETIC:
-                yPos -= float(size);
-                break;
-
-            case pxConstantsTextBaseline::TOP:
-            yPos -= float(0.2 * mTextH);
-                break;
-
-            case pxConstantsTextBaseline::HANGING:
-            yPos -= float(0.325 * mTextH);
-                break;
-
-            case pxConstantsTextBaseline::MIDDLE:
-            yPos -= float(0.575 * mTextH);
-                break;
-
-            case pxConstantsTextBaseline::IDEOGRAPHIC:
-                yPos -= float(1.1 * size);
-                break;
-
-            case pxConstantsTextBaseline::BOTTOM:
-                yPos -= mTextH;
-                break;
+            case pxConstantsTextBaseline::ALPHABETIC:  yPos -= float(size);           break;
+            case pxConstantsTextBaseline::TOP:         yPos -= float(0.200 * mTextH); break;
+            case pxConstantsTextBaseline::HANGING:     yPos -= float(0.325 * mTextH); break;
+            case pxConstantsTextBaseline::MIDDLE:      yPos -= float(0.575 * mTextH); break;
+            case pxConstantsTextBaseline::IDEOGRAPHIC: yPos -= float(1.100 * size);   break;
+            case pxConstantsTextBaseline::BOTTOM:      yPos -= mTextH;                break;
         }
     }
 
@@ -531,19 +527,12 @@ void pxTextCanvas::draw()
     textFx.shadow.shadow       = false;  // default
     textFx.highlight.highlight = false;  // default
 
-    if(mShadow)
+    if(mShadowCfg.shadow)
     {
-        rtLogError("Draw SHADOW stuff.... mQuadsVector = %d", (int) mQuadsVector.size() );
+        mShadowCfg.width  = getOnscreenWidth()  + mShadowCfg.shadowOffsetX;
+        mShadowCfg.height = getOnscreenHeight() + mShadowCfg.shadowOffsetY;
 
-        memcpy(textFx.shadow.shadowColor, mShadowColor, sizeof(textFx.shadow.shadowColor));
-
-        textFx.shadow.shadow        = mShadow;
-        textFx.shadow.shadowOffsetX = mShadowOffsetX;
-        textFx.shadow.shadowOffsetY = mShadowOffsetY;
-        textFx.shadow.shadowBlur    = mShadowBlur;
-
-        textFx.shadow.width         = getOnscreenWidth()  + textFx.shadow.shadowOffsetX;
-        textFx.shadow.height        = getOnscreenHeight() + textFx.shadow.shadowOffsetY;
+        memcpy(&textFx.shadow, &mShadowCfg, sizeof(shadowFx_t) );
     }
 
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -551,27 +540,17 @@ void pxTextCanvas::draw()
     // Highlight stuff...
     //
 
-    if(mHighlight)
+    if(mHighlightCfg.highlight)
     {
         rtLogError("Draw Highlight stuff.... mQuadsVector = %d", (int) mQuadsVector.size() );
 	
         if(mQuadsVector.size() > 0)
         {
- //         pxTexturedQuads &quads = mQuadsVector.front();
-        
-//          rtLogError("Draw Highlight stuff... XY: (%f, %f) WxH: %f x %f",
-//                     quads.x(), quads.y(), quads.width(), quads.height());
-
-          memcpy(textFx.highlight.highlightColor, mHighlightColor, sizeof(textFx.highlight.highlightColor));
-
-          textFx.highlight.highlight             = mHighlight;
-          textFx.highlight.highlightOffset       = mHighlightOffset ?: 0;//getOnscreenHeight()/2;
-          textFx.highlight.highlightPaddingLeft  = mHighlightPaddingLeft;//  + quads.x();
-          textFx.highlight.highlightPaddingRight = mHighlightPaddingRight;// + quads.y() ;
-
-          textFx.highlight.highlightHeight       = mPixelSize * 1.45;   // TODO: '1.45' is an Egregious MAGIC NUMBER
-          textFx.highlight.width                 = mTextW; // getOnscreenWidth();
-          textFx.highlight.height                = mTextH; // getOnscreenHeight();
+          mHighlightCfg.highlightHeight = mPixelSize * 1.45;   // TODO: '1.45' is an Egregious MAGIC NUMBER
+          mHighlightCfg.width           = mTextW; // getOnscreenWidth();
+          mHighlightCfg.height          = mTextH; // getOnscreenHeight();
+          
+          memcpy(&textFx.highlight, &mHighlightCfg, sizeof(highlightFx_t) );
         }
     }
 
@@ -579,9 +558,13 @@ void pxTextCanvas::draw()
     //
     // DRAW Text / Glyphs via 'mQuadsVector'
     //
-    textFx_t *pFx = (mShadow || mHighlight) ? &textFx : NULL;
+  
+    mShadowCfg.shadow = true;//JUNK
+    textFx_t *pFx = (mShadowCfg.shadow || mHighlightCfg.highlight) ? &textFx : NULL;
 
-    float x = 0, y =  y = mTextH/2;  // TODO: 'mTextH/2' is an Egregious MAGIC NUMBER
+    // y = 0 ... for LIGHTNING
+
+    float x = 0, y = 0;// mTextH/2;  // TODO: 'mTextH/2' is an Egregious MAGIC NUMBER
   
     for (std::vector<pxTexturedQuads>::iterator it  = mQuadsVector.begin();
                                                 it != mQuadsVector.end();   ++it)
@@ -644,7 +627,7 @@ rtError pxTextCanvas::measureText(rtString text, rtObjectRef& o)
 
 rtError pxTextCanvas::fillText(rtString text, int32_t x, int32_t y)
 {
-    rtLogDebug("pxTextCanvas::fillText called with params: text: '%s', x %d, y %d. Canvas: '%s' (w x h): %04.0f x %04.0f"
+    rtLogError("pxTextCanvas::fillText called with params: text: '%s', x %d, y %d. Canvas: '%s' (w x h): %04.0f x %04.0f"
             , text.cString()
             , x
             , y
@@ -652,8 +635,9 @@ rtError pxTextCanvas::fillText(rtString text, int32_t x, int32_t y)
             , mw
             , mh
             );
-  
+
     pxTextLine textLine(text, x, y);
+
     rtValue color;
     textColor(color);
     textLine.setStyle(mFont, mPixelSize, color.toInt32());
@@ -663,7 +647,7 @@ rtError pxTextCanvas::fillText(rtString text, int32_t x, int32_t y)
     textLine.translateX      = mTranslateX;
     textLine.translateY      = mTranslateY;
 
-  mTextLines.push_back(textLine);
+    mTextLines.push_back(textLine);
     setNeedsRecalc(true);
 
     return RT_OK;
