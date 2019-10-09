@@ -19,7 +19,7 @@ VERS=$1
 
 if [ "$TRAVIS_EVENT_TYPE" == "cron" ]
 then
-IMGURL="http://96.116.56.119/edge_webgl/osx/artifacts/SparkEdge.dmg"
+IMGURL="http://96.116.56.119/edge/osx/artifacts/SparkEdge.dmg"
 else
 IMGURL="http://www.sparkui.org/dist/osx/spark/Spark.dmg"
 fi
