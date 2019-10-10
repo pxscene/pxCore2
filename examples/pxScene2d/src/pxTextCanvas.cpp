@@ -523,16 +523,16 @@ void pxTextCanvas::draw()
     // Shadow stuff...
     //
     static textFx_t textFx;
-
-    textFx.shadow.shadow       = false;  // default
-    textFx.highlight.highlight = false;  // default
+  
+    textFx.shadow    = NULL;  // default
+    textFx.highlight = NULL;  // default
 
     if(mShadowCfg.shadow)
     {
         mShadowCfg.width  = getOnscreenWidth()  + mShadowCfg.shadowOffsetX;
         mShadowCfg.height = getOnscreenHeight() + mShadowCfg.shadowOffsetY;
 
-        memcpy(&textFx.shadow, &mShadowCfg, sizeof(shadowFx_t) );
+        textFx.shadow = &mShadowCfg;
     }
 
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -542,15 +542,13 @@ void pxTextCanvas::draw()
 
     if(mHighlightCfg.highlight)
     {
-//        rtLogDebug("Draw Highlight stuff.... mQuadsVector = %d", (int) mQuadsVector.size() );
-	
         if(mQuadsVector.size() > 0)
         {
           mHighlightCfg.highlightHeight = mPixelSize * 1.45;   // TODO: '1.45' is an Egregious MAGIC NUMBER
           mHighlightCfg.width           = mTextW; // getOnscreenWidth();
           mHighlightCfg.height          = mTextH; // getOnscreenHeight();
           
-          memcpy(&textFx.highlight, &mHighlightCfg, sizeof(highlightFx_t) );
+          textFx.highlight = &mHighlightCfg;
         }
     }
 
@@ -559,7 +557,6 @@ void pxTextCanvas::draw()
     // DRAW Text / Glyphs via 'mQuadsVector'
     //
   
-    mShadowCfg.shadow = true;//JUNK
     textFx_t *pFx = (mShadowCfg.shadow || mHighlightCfg.highlight) ? &textFx : NULL;
 
     // y = 0 ... for LIGHTNING

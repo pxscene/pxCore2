@@ -3020,8 +3020,8 @@ static pxContextFramebufferRef applyBlurSettings(pxContextFramebufferRef src, sh
 static void drawTextEffects(int numQuads, const void *verts, const void* uvs,
                                   pxTextureRef t, textFx_t *textFx)
 {
-  shadowFx_t    *shdw = &textFx->shadow;    //    SHADOW style
-  highlightFx_t *high = &textFx->highlight; // HIGHLIGHT style
+  shadowFx_t    *shdw = textFx->shadow;    //    SHADOW style
+  highlightFx_t *high = textFx->highlight; // HIGHLIGHT style
 
   // HIGHLIGHT - HIGHLIGHT - HIGHLIGHT - HIGHLIGHT - HIGHLIGHT - HIGHLIGHT - HIGHLIGHT - HIGHLIGHT -
   //

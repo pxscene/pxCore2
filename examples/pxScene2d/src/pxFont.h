@@ -86,8 +86,8 @@ highlightFx_t;
 
 typedef struct textFx_
 {
-  highlightFx_t  highlight;
-  shadowFx_t     shadow;
+  highlightFx_t  *highlight;
+  shadowFx_t     *shadow;
 }
 textFx_t;
 
