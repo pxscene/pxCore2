@@ -77,19 +77,13 @@ pxTextCanvas::pxTextCanvas(pxScene2d* s): pxText(s)
 
     mTextBaseline = pxConstantsTextBaseline::ALPHABETIC;
 
-    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    //
     // Shadow stuff..
     //
     mShadowCfg.shadow = false;
   
-    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    //
     // Highlight stuff..
     //
     mHighlightCfg.highlight = false;
-
-    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
     setW(pxTextCanvas::DEFAULT_WIDTH);
     setH(pxTextCanvas::DEFAULT_HEIGHT);
@@ -259,6 +253,7 @@ rtError pxTextCanvas::label(rtString &c) const
     c = mLabel;
     return RT_OK;
 }
+
 rtError pxTextCanvas::setLabel(const rtString &c)
 {
     mLabel = c;
@@ -300,6 +295,7 @@ float pxTextCanvas::getFBOWidth()
 {
     return pxText::getFBOWidth();
 }
+
 float pxTextCanvas::getFBOHeight()
 {
     return pxText::getFBOHeight();
@@ -450,8 +446,10 @@ void pxTextCanvas::renderText(bool render)
 void pxTextCanvas::renderTextLine(const pxTextLine& textLine)
 {
     const char* cStr = textLine.text.cString();
+
     float xPos = (float)(textLine.x + textLine.translateX);
     float yPos = (float)(textLine.y + textLine.translateY);
+
     // TODO ignoring sx and sy now.
     float sx = 1.0;
     float sy = 1.0;
@@ -540,7 +538,6 @@ void pxTextCanvas::draw()
     //
     // Highlight stuff...
     //
-
     if(mHighlightCfg.highlight)
     {
         if(mQuadsVector.size() > 0)
@@ -560,9 +557,9 @@ void pxTextCanvas::draw()
   
     textFx_t *pFx = (mShadowCfg.shadow || mHighlightCfg.highlight) ? &textFx : NULL;
 
-  // TODO:  NOTE >>> Spark needs "y = mTextH/2" ... Lightning needs "y = 0"
+    // TODO:  NOTE >>> Spark needs "y = mTextH/2" ... Lightning needs "y = 0"
 
-  float x = 0, y = 0;//mTextH/2;  // TODO: 'mTextH/2' is an Egregious MAGIC NUMBER
+    float x = 0, y = 0;//mTextH/2;  // TODO: 'mTextH/2' is an Egregious MAGIC NUMBER
   
     for (std::vector<pxTexturedQuads>::iterator it  = mQuadsVector.begin();
                                                 it != mQuadsVector.end();   ++it)
