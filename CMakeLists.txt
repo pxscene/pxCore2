@@ -61,3 +61,7 @@ if (BUILD_PXBENCHMARK)
     message("Building pxbenchmark")
     add_subdirectory(examples/pxBenchmark/src)
 endif (BUILD_PXBENCHMARK)
+
+if (APPLE)
+  add_definitions(-DGL_SILENCE_DEPRECATION)
+endif (APPLE)
