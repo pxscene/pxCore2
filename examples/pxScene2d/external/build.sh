@@ -361,13 +361,19 @@ then
   ./configure --shared --shared-openssl --shared-openssl-includes="${OPENSSL_DIR}/include/" --shared-openssl-libpath="${OPENSSL_DIR}/lib"
 
   make "-j${make_parallel}"
-  ln -sf out/Release/obj.target/libnode.so.48 libnode.so.48
-  ln -sf libnode.so.48 libnode.so
-  ln -sf out/Release/libnode.48.dylib libnode.48.dylib
-  ln -sf libnode.48.dylib libnode.dylib
+
+  if [ "$(uname)" != "Darwin" ]
+  then
+    ln -sf out/Release/obj.target/libnode.so.* ./
+    ln -sf libnode.so.* libnode.so
+  else
+    ln -sf out/Release/libnode.*.dylib ./
+    ln -sf libnode.*.dylib libnode.dylib
+  fi
 
   cd ..
-
+  rm node
+  ln -sf "libnode-v${NODE_VER}" node
 fi
 #---------
 
