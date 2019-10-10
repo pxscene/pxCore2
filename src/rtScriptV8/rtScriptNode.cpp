@@ -105,6 +105,10 @@ using namespace rtScriptV8NodeUtils;
 bool gIsPumpingJavaScript = false;
 #endif
 
+#if NODE_VERSION_AT_LEAST(8,12,0)
+#define USE_NODE_PLATFORM
+#endif
+
 namespace node
 {
 class Environment;
@@ -399,7 +403,12 @@ void rtNodeContext::createEnvironment()
   // Create Environment.
 
 #if NODE_VERSION_AT_LEAST(8,9,4)
+#ifdef USE_NODE_PLATFORM
+  node::MultiIsolatePlatform* platform = static_cast<node::MultiIsolatePlatform*>(mPlatform);
+  IsolateData *isolateData = new IsolateData(mIsolate,uv_default_loop(),platform,array_buffer_allocator->zero_fill_field());
+#else
   IsolateData *isolateData = new IsolateData(mIsolate,uv_default_loop(),array_buffer_allocator->zero_fill_field());
+#endif //USE_NODE_PLATFORM
 
   mEnv = CreateEnvironment(isolateData,
 #else
@@ -475,9 +484,15 @@ void rtNodeContext::createEnvironment()
 #else
       bool more;
 #ifdef ENABLE_NODE_V_6_9
+#ifndef USE_NODE_PLATFORM
       v8::platform::PumpMessageLoop(mPlatform, mIsolate);
+#endif //USE_NODE_PLATFORM
 #endif //ENABLE_NODE_V_6_9
       more = uv_run(mEnv->event_loop(), UV_RUN_ONCE);
+#ifdef USE_NODE_PLATFORM
+      node::MultiIsolatePlatform* platform = static_cast<node::MultiIsolatePlatform*>(mPlatform);
+      platform->DrainBackgroundTasks(mIsolate);
+#endif //USE_NODE_PLATFORM
       if (more == false)
       {
         EmitBeforeExit(mEnv);
@@ -1131,10 +1146,16 @@ rtError rtScriptNode::pump()
     Isolate::Scope isolate_scope(mIsolate);
     HandleScope     handle_scope(mIsolate);    // Create a stack-allocated handle scope.
 #ifdef ENABLE_NODE_V_6_9
+#ifndef USE_NODE_PLATFORM
     v8::platform::PumpMessageLoop(mPlatform, mIsolate);
+#endif //USE_NODE_PLATFORM
 #endif //ENABLE_NODE_V_6_9
     mIsolate->RunMicrotasks();
     uv_run(uv_default_loop(), UV_RUN_NOWAIT);//UV_RUN_ONCE);
+#ifdef USE_NODE_PLATFORM
+    node::MultiIsolatePlatform* platform = static_cast<node::MultiIsolatePlatform*>(mPlatform);
+    platform->DrainBackgroundTasks(mIsolate);
+#endif //USE_NODE_PLATFORM
     // Enable this to expedite garbage collection for testing... warning perf hit
     if (mTestGc)
     {

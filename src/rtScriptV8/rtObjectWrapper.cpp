@@ -217,6 +217,7 @@ void rtObjectWrapper::getProperty(const T& prop, const PropertyCallbackInfo<Valu
 {
   HandleScope handle_scope(info.GetIsolate());
   Local<Context> ctx = info.This()->CreationContext();
+  Context::Scope contextScope(ctx);
 
   rtObjectWrapper* wrapper = OBJECT_WRAP_CLASS::Unwrap<rtObjectWrapper>(info.This());
   if (!wrapper)
@@ -257,6 +258,7 @@ void rtObjectWrapper::setProperty(const T& prop, Local<Value> val, const Propert
   Isolate::Scope isolateScope(info.GetIsolate());
   HandleScope handleScope(info.GetIsolate());
   Local<Context> creationContext = info.This()->CreationContext();
+  Context::Scope contextScope(creationContext);
 
   rtWrapperError error;
   rtValue value = js2rt(creationContext, val, &error);
@@ -408,6 +410,7 @@ rtError jsObjectWrapper::getAllKeys(Isolate* isolate, rtValue* value) const
   HandleScope handleScope(isolate);
   Local<Object> self = PersistentToLocal(isolate, mObject);
   Local<Context> ctx = self->CreationContext();
+  Context::Scope contextScope(ctx);
 
   Local<Array> names = self->GetPropertyNames();
 
@@ -451,6 +454,7 @@ rtError jsObjectWrapper::Get(const char* name, rtValue* value) const
   Local<Object> self = PersistentToLocal(mIsolate, mObject);
   Local<String> s = String::NewFromUtf8(mIsolate, name);
   Local<Context> ctx = self->CreationContext();
+  Context::Scope contextScope(ctx);
 
   if (!strcmp(name, "arrayData") && self->IsArrayBufferView())
   {
@@ -504,6 +508,7 @@ rtError jsObjectWrapper::Get(uint32_t i, rtValue* value) const
 
   Local<Object> self = PersistentToLocal(mIsolate, mObject);
   Local<Context> ctx = self->CreationContext();
+  Context::Scope contextScope(ctx);
 
 #if defined ENABLE_NODE_V_6_9 || defined RTSCRIPT_SUPPORT_V8
   if (!(self->Has(ctx,i).FromMaybe(false)))
@@ -532,6 +537,7 @@ rtError jsObjectWrapper::Set(const char* name, const rtValue* value)
   Local<String> s = String::NewFromUtf8(mIsolate, name);
   Local<Object> self = PersistentToLocal(mIsolate, mObject);
   Local<Context> ctx = self->CreationContext();
+  Context::Scope contextScope(ctx);
 
   rtError err = RT_OK;
 
@@ -566,6 +572,7 @@ rtError jsObjectWrapper::Set(uint32_t i, const rtValue* value)
   HandleScope handleScope(mIsolate);
   Local<Object> self = PersistentToLocal(mIsolate, mObject);
   Local<Context> ctx = self->CreationContext();
+  Context::Scope contextScope(ctx);
 
   if (!self->Set(i, rt2js(ctx, *value)))
     return RT_FAIL;
