@@ -64,7 +64,8 @@ pxTextCanvas::pxTextCanvas(pxScene2d* s): pxText(s)
         , mTextH(0.0f)
 
         , mLabel("")
-        , mColorMode(ColorMode::ARGB)
+
+, mColorMode(ColorMode::ARGB)  // TODO:  NOTE >>> Spark needs RGBA ... Lightning needs ARGB
 
         , mTranslateX(0)
         , mTranslateY(0)
@@ -559,9 +560,9 @@ void pxTextCanvas::draw()
   
     textFx_t *pFx = (mShadowCfg.shadow || mHighlightCfg.highlight) ? &textFx : NULL;
 
-    // y = 0 ... for LIGHTNING
+  // TODO:  NOTE >>> Spark needs "y = mTextH/2" ... Lightning needs "y = 0"
 
-    float x = 0, y = 0;// mTextH/2;  // TODO: 'mTextH/2' is an Egregious MAGIC NUMBER
+  float x = 0, y = 0;//mTextH/2;  // TODO: 'mTextH/2' is an Egregious MAGIC NUMBER
   
     for (std::vector<pxTexturedQuads>::iterator it  = mQuadsVector.begin();
                                                 it != mQuadsVector.end();   ++it)
