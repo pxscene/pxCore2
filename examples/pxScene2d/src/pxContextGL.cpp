@@ -3034,13 +3034,11 @@ static void drawTextEffects(int numQuads, const void *verts, const void* uvs,
 
     context.pushState();
 
-    // TODO: '0.575' is an Egregious MAGIC NUMBER
-    
     pxMatrix4f m;
-    m.translate(0, high->highlightOffset + high->height * 0.575); // apply highlight offset
+    m.translate(0, high->base_y + high->highlightOffset);
     context.setMatrix(m);
 
-    context.drawRect(high->width, high->height * 0.2, 0, high->highlightColor, NULL); // TODO: '0.2' is an Egregious MAGIC NUMBER
+    context.drawRect(high->width, high->height, 0, high->highlightColor, NULL);
 
     context.popState();
   }
@@ -3060,9 +3058,10 @@ static void drawTextEffects(int numQuads, const void *verts, const void* uvs,
     float w = shdw->width  * 1.2; // gResW;
     float h = shdw->height * 1.2; // gResH;
 
+   // float clrFoo[] = {0.0, 0.0, 0.0,  0.15};
     pxContextFramebufferRef fbo0 = context.createFramebuffer(w,h);
     context.setFramebuffer(fbo0);
-    context.clear(static_cast<int>(w), static_cast<int>(h) );
+    context.clear(static_cast<int>(w), static_cast<int>(h));//, &clrFoo[0] );
 
     pxMatrix4f m;
     m.translate(shdw->shadowOffsetX, shdw->shadowOffsetY); // apply shadow offset
@@ -3077,7 +3076,7 @@ static void drawTextEffects(int numQuads, const void *verts, const void* uvs,
     // Draw 'solid' text to 'fbo0'
     gATextureShader->draw(w,h, gMatrix.data(), gAlpha, GL_TRIANGLES, numQuads, verts, uvs, t, shadowPM);
 
-    float blurAmount   = shdw->shadowBlur / 11.0;
+    float blurAmount   = shdw->shadowBlur / 10.75;
     float kernelRadius = fmax(1, blurAmount /4);
 
     float blurFactor[] = {1.00, 1.25, 1.50, 1.75, 2.0};

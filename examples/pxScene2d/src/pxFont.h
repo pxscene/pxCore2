@@ -78,9 +78,10 @@ typedef struct highlightFx_
   float     highlightPaddingLeft;
   float     highlightPaddingRight;
   
-  float     highlightHeight; // used internally
   float     width;           // used internally
   float     height;          // used internally
+  
+  float     base_y;          // used internally
 }
 highlightFx_t;
 

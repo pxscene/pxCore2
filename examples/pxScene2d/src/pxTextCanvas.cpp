@@ -542,9 +542,9 @@ void pxTextCanvas::draw()
     {
         if(mQuadsVector.size() > 0)
         {
-          mHighlightCfg.highlightHeight = mPixelSize * 1.45;   // TODO: '1.45' is an Egregious MAGIC NUMBER
-          mHighlightCfg.width           = mTextW; // getOnscreenWidth();
-          mHighlightCfg.height          = mTextH; // getOnscreenHeight();
+          mHighlightCfg.width  = mTextW; // getOnscreenWidth();
+          mHighlightCfg.height = mTextH; // getOnscreenHeight();
+          mHighlightCfg.base_y = mTextH * 0.745;     // TODO: <<< this is an Egregious MAGIC NUMBER
           
           textFx.highlight = &mHighlightCfg;
         }
