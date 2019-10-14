@@ -42,6 +42,7 @@ var _ws = require('ws')
 var _http = require('http')
 var _https = require('https')
 var urlmain = require("url")
+var nodeFetchSpark = require('sparkHttp_wrap')
 const {promisify} = require('util')
 const readFileAsync = promisify(fs.readFile)
 const ArrayJoin = Function.call.bind(Array.prototype.join);
@@ -195,11 +196,16 @@ var loadUrl = function(url, _beginDrawing, _endDrawing, _view, _frameworkURL, _o
     sandbox[sandboxKeys[i]] = global[sandboxKeys[i]];
   }
   sandbox['Buffer'] = Buffer;
+
+  function resolveStandardModulePath(moduleName) {
+    return _module._resolveFilename(moduleName, {paths:[__dirname].concat(_module._nodeModulePaths(__dirname))});
+  }
+
 // JRJR todo make into a map
 var bootStrapCache = {}
 
   // Add wrapped standard modules here...
-  bootStrapCache[_module._resolveFilename('ws', {paths:[__dirname].concat(_module._nodeModulePaths(__dirname))})] = function WebSocket(address, protocols, options) {
+  bootStrapCache[resolveStandardModulePath('ws')] = function WebSocket(address, protocols, options) {
     let client = new _ws(address, protocols, options);
     _websockets.push(client);
     client.on('close', () => {
@@ -211,6 +217,7 @@ var bootStrapCache = {}
     });
     return client;
   };
+  bootStrapCache[resolveStandardModulePath('node-fetch')] = nodeFetchSpark;
 
 function initializeImportMeta(meta, { url }) {
   meta.url = url;
