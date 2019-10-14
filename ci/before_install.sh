@@ -152,6 +152,9 @@ ln -sf artifacts/$TRAVIS_OS_NAME extlibs
 cd extlibs
 mkdir lib_orig
 cp -R lib/* lib_orig/.
+cd lib_orig
+ln -s libgif.7.dylib libgif.dylib
+cd ..
 rm -rf lib_orig/libpng.dylib
 rm -rf lib_orig/libsqlite3.dylib
 rm -rf lib_orig/libjpeg.dylib
