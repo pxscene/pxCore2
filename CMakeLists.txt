@@ -5,7 +5,7 @@ option(BUILD_PXCORE "BUILD_PXCORE" ON)
 option(BUILD_PXSCENE "BUILD_PXSCENE" ON)
 option(BUILD_PX_TESTS "BUILD_PX_TESTS" OFF)
 option(BUILD_PXBENCHMARK "BUILD_PXBENCHMARK" OFF)
-option(BUILD_WITH_GIF "BUILD_WITH_GIF" ON)
+option(BUILD_WITH_GIF "BUILD_WITH_GIF" OFF)
 
 option(PREFER_SYSTEM_LIBRARIES "Prefer to use system libraries over bundled." "OFF")
     # Fine selection of which external node package to pick-up, if multiple are installed on the system
