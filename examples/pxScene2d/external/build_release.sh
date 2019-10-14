@@ -102,3 +102,52 @@ else
 fi
 cd ..
 
+
+cd gif
+
+[ -d patches ] || mkdir -p patches
+
+if [ "$(uname)" == "Darwin" ]; then
+  [ -d patches/series ] || echo 'giflib-5.1.9-mac.patch' >patches/series
+  cp ../giflib-5.1.9-mac.patch patches/
+else
+  [ -d patches/series ] || echo 'giflib-5.1.9.patch' >patches/series
+  cp ../giflib-5.1.9.patch patches/
+fi
+
+
+if [[ "$#" -eq "1" && "$1" == "--clean" ]]; then
+	quilt pop -afq || test $? = 2
+	rm -rf .libs/*
+elif [[ "$#" -eq "1" && "$1" == "--force-clean" ]]; then
+	git clean -fdx .
+	git checkout .
+	rm -rf .libs/*
+else
+	quilt push -aq || test $? = 2
+fi
+
+if [ ! -e ./.libs/libgif.7.dylib ] ||
+[ "$(uname)" != "Darwin" ]
+then
+
+  make
+
+  [ -d .libs ] || mkdir -p .libs
+  if [ -e libgif.7.dylib ]
+  then
+      cp libgif.7.dylib .libs/libgif.7.dylib
+      cp libutil.7.dylib .libs/libutil.7.dylib
+
+  elif [ -e libgif.so ]
+  then
+      cp libgif.so libgif.so.7
+      cp libutil.so libutil.so.7
+      cp libgif.so .libs/libgif.so
+      cp libutil.so .libs/libutil.so
+      cp libgif.so .libs/libgif.so.7
+      cp libutil.so .libs/libutil.so.7
+  fi
+fi
+
+cd ..
