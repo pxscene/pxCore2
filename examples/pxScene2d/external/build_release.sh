@@ -50,6 +50,27 @@ fi
 
 cp $RELEASE_EXTERNALS_PATH/extlibs/include/nanosvg/nanosvgrast.h nanosvg/src/.
 
+cd giflib-5.1.9
+[ -d .libs ] || mkdir -p .libs
+if [ "$(uname)" != "Darwin" ]
+then
+  cp $RELEASE_EXTERNALS_PATH/extlibs/lib/libgif.7.dylib .
+  cp $RELEASE_EXTERNALS_PATH/extlibs/lib/libgif.7.dylib .libs/.
+  cp $RELEASE_EXTERNALS_PATH/extlibs/lib/libutil.7.dylib .
+  cp $RELEASE_EXTERNALS_PATH/extlibs/lib/libutil.7.dylib .libs/.
+else
+  cp $RELEASE_EXTERNALS_PATH/extlibs/lib/libgif.so.7 .
+  cp $RELEASE_EXTERNALS_PATH/extlibs/lib/libgif.so.7 .libs/.
+  cp $RELEASE_EXTERNALS_PATH/extlibs/lib/libutil.so.7 .
+  cp $RELEASE_EXTERNALS_PATH/extlibs/lib/libutil.so.7 .libs/.
+  ln -s libgif.so.7 libgif.so
+  ln -s libutil.so.7 libutil.so
+  cd .libs
+  ln -s libgif.so.7 libgif.so
+  ln -s libutil.so.7 libutil.so
+  cd ..
+fi
+cd ..
 
 cd "libnode-v${NODE_VER}"
 if [ "$(uname)" != "Darwin" ]
