@@ -542,9 +542,11 @@ void pxTextCanvas::draw()
     {
         if(mQuadsVector.size() > 0)
         {
-          mHighlightCfg.width  = mTextW; // getOnscreenWidth();
-          mHighlightCfg.height = mTextH; // getOnscreenHeight();
-          mHighlightCfg.base_y = mTextH * 0.745;     // TODO: <<< this is an Egregious MAGIC NUMBER
+          mHighlightCfg.width           = mTextW; // getOnscreenWidth();
+          mHighlightCfg.height          = mPixelSize * 1.5; //mTextH; // getOnscreenHeight();
+          mHighlightCfg.highlightOffset = 0;//mTextH * (-0.5);
+
+          mHighlightCfg.base_y          = mTextH;
           
           textFx.highlight = &mHighlightCfg;
         }
