@@ -116,10 +116,10 @@
       cd examples/pxScene2d/external/node
       ./configure --shared
       make -j1
-      ln -sf out/Release/obj.target/libnode.so.48 libnode.so.48
-      ln -sf libnode.so.48 libnode.so
-      ln -sf out/Release/libnode.48.dylib libnode.48.dylib
-      ln -sf libnode.48.dylib libnode.dylib
+      ln -sf out/Release/obj.target/libnode.so.* ./
+      ln -sf libnode.so.* libnode.so
+      ln -sf out/Release/libnode.*.dylib ./
+      ln -sf libnode.*.dylib libnode.dylib
       ~~~~
       Build breakpad
       ~~~~

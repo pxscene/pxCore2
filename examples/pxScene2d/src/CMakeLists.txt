@@ -568,6 +568,10 @@ if (BUILD_PXSCENE_APP)
       add_dependencies(pxscene_app optimus)
     endif (BUILD_OPTIMUS_STATIC_LIB)
 
+    if (WIN32)
+      add_dependencies(pxscene_app pxCore)
+    endif (WIN32)
+
     if (PXSCENE_INSTALLER GREATER 0)
       if (WIN32)
         message("enabling installer support")

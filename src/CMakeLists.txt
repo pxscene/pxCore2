@@ -27,7 +27,7 @@ else()
 endif(WIN32)
 
 set(EXTDIR "${CMAKE_CURRENT_SOURCE_DIR}/../examples/pxScene2d/external")
-set(NODEDIR "${EXTDIR}/node/")
+
 include(../cmake/CommOpts.cmake)
 include(../cmake/CommDeps.cmake)
 include(../cmake/NodeDeps.cmake)

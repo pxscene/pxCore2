@@ -302,7 +302,7 @@ namespace node
 extern DebugOptions debug_options;
 #else
 extern bool use_debug_agent;
-#ifdef HAVE_INSPECTOR
+#if HAVE_INSPECTOR
 extern bool use_inspector;
 #endif
 extern bool debug_wait_connect;
@@ -437,7 +437,7 @@ void rtNodeContext::createEnvironment()
   if (use_debug_agent)
   {
     rtLogWarn("use_debug_agent\n");
-#ifdef HAVE_INSPECTOR
+#if HAVE_INSPECTOR
     if (use_inspector)
     {
       char currentPath[100];
@@ -1267,9 +1267,6 @@ void rtScriptNode::init2(int argc, char** argv)
 #else
     Init(&argc, const_cast<const char**>(argv), &exec_argc, &exec_argv);
 #endif
-
-//    mPlatform = platform::CreateDefaultPlatform();
-//    V8::InitializePlatform(mPlatform);
 
 #ifdef ENABLE_NODE_V_6_9
    rtLogWarn("using node version %s\n", NODE_VERSION);

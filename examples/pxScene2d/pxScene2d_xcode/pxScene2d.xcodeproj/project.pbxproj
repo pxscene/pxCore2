@@ -39,7 +39,7 @@
 		4CF5461C2020F5B600529907 /* westeros-stub.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C9F22AB1E6A24D200979F4E /* westeros-stub.cpp */; };
 		4CF5461F2020F5B600529907 /* libz.1.2.11.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C5D05EA201FC5B500D2B292 /* libz.1.2.11.dylib */; };
 		4CF546212020F5B600529907 /* libfreetype.6.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C1447991E68A90600610575 /* libfreetype.6.dylib */; };
-		4CF546222020F5B600529907 /* libnode.48.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C14479F1E68A90600610575 /* libnode.48.dylib */; };
+		4CF546222020F5B600529907 /* libnode.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C14479F1E68A90600610575 /* libnode.dylib */; };
 		4CF546232020F5B600529907 /* libjpeg.9.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C14479C1E68A90600610575 /* libjpeg.9.dylib */; };
 		4CF546242020F5B600529907 /* libcurl.4.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C1447961E68A90600610575 /* libcurl.4.dylib */; };
 		4CF546252020F5B600529907 /* libpng16.16.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C1447A11E68A90600610575 /* libpng16.16.dylib */; };
@@ -49,7 +49,8 @@
 		4CF5462E2020F5B600529907 /* libjpeg.9.dylib in Copy Dynamic Library Files */ = {isa = PBXBuildFile; fileRef = 4C14479C1E68A90600610575 /* libjpeg.9.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		4CF5462F2020F5B600529907 /* libpng16.16.dylib in Copy Dynamic Library Files */ = {isa = PBXBuildFile; fileRef = 4C1447A11E68A90600610575 /* libpng16.16.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		4CF546302020F5B600529907 /* libfreetype.6.dylib in Copy Dynamic Library Files */ = {isa = PBXBuildFile; fileRef = 4C1447991E68A90600610575 /* libfreetype.6.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
-		4CF546312020F5B600529907 /* libnode.48.dylib in Copy Dynamic Library Files */ = {isa = PBXBuildFile; fileRef = 4C14479F1E68A90600610575 /* libnode.48.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		4CF546312020F5B600529907 /* libnode.dylib in Copy Dynamic Library Files */ = {isa = PBXBuildFile; fileRef = 4C14479F1E68A90600610575 /* libnode.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		4CF5463D2020F89E00529907 /* libz.1.2.11.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 4CF5463A2020F6E200529907 /* libz.1.2.11.dylib */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -153,7 +154,7 @@
 				4CF5462E2020F5B600529907 /* libjpeg.9.dylib in Copy Dynamic Library Files */,
 				4CF5462F2020F5B600529907 /* libpng16.16.dylib in Copy Dynamic Library Files */,
 				4CF546302020F5B600529907 /* libfreetype.6.dylib in Copy Dynamic Library Files */,
-				4CF546312020F5B600529907 /* libnode.48.dylib in Copy Dynamic Library Files */,
+				4CF546312020F5B600529907 /* libnode.dylib in Copy Dynamic Library Files */,
 			);
 			name = "Copy Dynamic Library Files";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -208,7 +209,7 @@
 		4C1447961E68A90600610575 /* libcurl.4.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libcurl.4.dylib; path = lib/libcurl.4.dylib; sourceTree = "<group>"; };
 		4C1447991E68A90600610575 /* libfreetype.6.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libfreetype.6.dylib; path = lib/libfreetype.6.dylib; sourceTree = "<group>"; };
 		4C14479C1E68A90600610575 /* libjpeg.9.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libjpeg.9.dylib; path = lib/libjpeg.9.dylib; sourceTree = "<group>"; };
-		4C14479F1E68A90600610575 /* libnode.48.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libnode.48.dylib; path = lib/libnode.48.dylib; sourceTree = "<group>"; };
+		4C14479F1E68A90600610575 /* libnode.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libnode.dylib; path = lib/libnode.dylib; sourceTree = "<group>"; };
 		4C1447A11E68A90600610575 /* libpng16.16.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libpng16.16.dylib; path = lib/libpng16.16.dylib; sourceTree = "<group>"; };
 		4C20BEAB1E5B85CC005ABBB7 /* EngineRunner */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; name = EngineRunner; path = ../EngineRunner; sourceTree = "<group>"; };
 		4C20BEAD1E5B8638005ABBB7 /* pxscene.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = pxscene.sh; path = ../pxscene.sh; sourceTree = "<group>"; };
@@ -255,7 +256,7 @@
 				4CF5461F2020F5B600529907 /* libz.1.2.11.dylib in Frameworks */,
 				4C81E133231EFBB500E6578A /* libsqlite3.dylib in Frameworks */,
 				4CF546212020F5B600529907 /* libfreetype.6.dylib in Frameworks */,
-				4CF546222020F5B600529907 /* libnode.48.dylib in Frameworks */,
+				4CF546222020F5B600529907 /* libnode.dylib in Frameworks */,
 				4CF546232020F5B600529907 /* libjpeg.9.dylib in Frameworks */,
 				4CF546242020F5B600529907 /* libcurl.4.dylib in Frameworks */,
 				4CF546252020F5B600529907 /* libpng16.16.dylib in Frameworks */,
@@ -468,7 +469,7 @@
 			children = (
 				4C81E132231EFBB500E6578A /* libsqlite3.dylib */,
 				4C81E130231EF55100E6578A /* libgif.7.dylib */,
-				4C14479F1E68A90600610575 /* libnode.48.dylib */,
+				4C14479F1E68A90600610575 /* libnode.dylib */,
 				4C14479C1E68A90600610575 /* libjpeg.9.dylib */,
 				4CF5463A2020F6E200529907 /* libz.1.2.11.dylib */,
 				4C1447991E68A90600610575 /* libfreetype.6.dylib */,
@@ -657,7 +658,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = $PROJECT_DIR/getLocalLibs.sh;
+			shellScript = "$PROJECT_DIR/getLocalLibs.sh\n";
 		};
 		4CF546322020F5B600529907 /* Run Script - Copy Resources to App Bundle */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -807,11 +808,11 @@
 				HEADER_SEARCH_PATHS = (
 					"$(PROJECT_DIR)/../src",
 					"$(PROJECT_DIR)/../../../src",
-					"$(PROJECT_DIR)/../external/libnode-v6.9.0/src",
-					"$(PROJECT_DIR)/../external/libnode-v6.9.0/deps/v8",
-					"$(PROJECT_DIR)/../external/libnode-v6.9.0/deps/v8/include",
-					"$(PROJECT_DIR)/../external/libnode-v6.9.0/deps/openssl/openssl/include",
-					"$(PROJECT_DIR)/../external/libnode-v6.9.0/deps/uv/include",
+					"$(PROJECT_DIR)/../external/node/src",
+					"$(PROJECT_DIR)/../external/node/deps/v8",
+					"$(PROJECT_DIR)/../external/node/deps/v8/include",
+					"$(PROJECT_DIR)/../external/node/deps/openssl/openssl/include",
+					"$(PROJECT_DIR)/../external/node/deps/uv/include",
 					"$(PROJECT_DIR)/../external/zlib",
 					"$(PROJECT_DIR)/../external/png",
 					"$(PROJECT_DIR)/../external/gif",
@@ -854,11 +855,11 @@
 				HEADER_SEARCH_PATHS = (
 					"$(PROJECT_DIR)/../src",
 					"$(PROJECT_DIR)/../../../src",
-					"$(PROJECT_DIR)/../external/libnode-v6.9.0/src",
-					"$(PROJECT_DIR)/../external/libnode-v6.9.0/deps/v8",
-					"$(PROJECT_DIR)/../external/libnode-v6.9.0/deps/v8/include",
-					"$(PROJECT_DIR)/../external/libnode-v6.9.0/deps/openssl/openssl/include",
-					"$(PROJECT_DIR)/../external/libnode-v6.9.0/deps/uv/include",
+					"$(PROJECT_DIR)/../external/node/src",
+					"$(PROJECT_DIR)/../external/node/deps/v8",
+					"$(PROJECT_DIR)/../external/node/deps/v8/include",
+					"$(PROJECT_DIR)/../external/node/deps/openssl/openssl/include",
+					"$(PROJECT_DIR)/../external/node/deps/uv/include",
 					"$(PROJECT_DIR)/../external/zlib",
 					"$(PROJECT_DIR)/../external/png",
 					"$(PROJECT_DIR)/../external/gif",

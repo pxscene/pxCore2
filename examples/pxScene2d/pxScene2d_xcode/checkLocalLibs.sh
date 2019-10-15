@@ -10,7 +10,6 @@ otool -L ./lib/libjpeg.dylib
 otool -L ./lib/libjpeg.9.dylib
 
 otool -L ./lib/libnode.dylib
-otool -L ./lib/libnode.48.dylib
 
 otool -L ./lib/libpng16.dylib
 otool -L ./lib/libpng16.16.dylib

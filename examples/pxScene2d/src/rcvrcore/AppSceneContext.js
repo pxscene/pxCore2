@@ -343,6 +343,13 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (packageUri, module
       var processWrap = WrapObj(process, {"binding":function() { throw new Error("process.binding is not supported"); }});
       var globalWrap = WrapObj(global, {"process":processWrap, "console":console});
 
+      // TODO: app runs in new context (vm.runInNewContext),
+      //  while px (px.imports) is in parent context.
+      //  Hence in imported module Function isn't the same object as Function in app,
+      //  'instanceof Function' won't work.
+      //  Propagating Function: Function here solves the problem only partially
+      //  (not for lowercase 'function').
+
       newSandbox = {
         sandboxName: "InitialSandbox",
         console: console,
@@ -351,6 +358,8 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (packageUri, module
         process: processWrap,
         require: requireMethod,
         global: globalWrap,
+        //Function: Function,
+        //Uint8Array: Uint8Array,
         setTimeout: function (callback, after, arg1, arg2, arg3) {
           //pass the timers list to callback function on timeout
           var timerId = SetTimeout(setTimeoutCallback, after, this.timers, function() { callback(arg1, arg2, arg3)});
@@ -585,14 +594,17 @@ AppSceneContext.prototype.include = function(filePath, currentXModule) {
   var origFilePath = filePath;
 
   return new Promise(function (onImportComplete, reject) {
-    if (/^(px|url|querystring|htmlparser|crypto|oauth)$/.test(filePath)) {
+    if (/^(px|url|querystring|htmlparser|crypto|oauth|grpc|google-protobuf)$/.test(filePath)) {
       if (isDuk && filePath === 'htmlparser') {
         console.log("Not permitted to use the module " + filePath);
         reject("include failed due to module not permitted");
         return;
       }
       // built-ins
-      var modData = require(filePath);
+      var moduleName = filePath;
+      if (filePath === 'grpc')
+        moduleName = '@grpc/grpc-js';
+      var modData = require(moduleName);
       onImportComplete([modData, origFilePath]);
       return;
     } else if( filePath === 'fs' || filePath === 'os' || filePath === 'events') {
