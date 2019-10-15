@@ -1,0 +1,388 @@
+/*
+* If not stated otherwise in this file or this component's license file the
+* following copyright and licenses apply:
+*
+* Copyright 2018 RDK Management
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+* http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*/
+
+body{
+    margin:0;
+    background-image: linear-gradient(to right, #20E2D7 , #F9FEA5);
+}
+
+.header {
+  margin:0;
+  padding: 1px;
+  height: 3%;
+  background: #031F2B;
+  color: white;
+  font-family: Verdana, Geneva, sans-serif;
+  text-align: center;
+}
+
+.content {
+  height: 15%;
+  width: 100%;
+  margin: 0;
+  margin-top: -15px;
+  background: white;
+  color: black;
+  padding-top: 2px;
+  box-shadow:0 1px 5px rgba(0, 0, 0, 0.3), 0 0 36px rgba(0, 0, 0, 0.1) inset;
+  -webkit-box-shadow:0 1px 5px rgba(0, 0, 0, 0.3), 0 0 36px rgba(0, 0, 0, 0.1) inset;
+  font-family: Verdana, Geneva, sans-serif;
+  font-size: 15px;
+  text-align: center;
+}
+
+.boxes {
+    margin-top: 6%;
+    width: 100%;
+    display: block;
+}
+
+.inner-box {
+    position: absolute;
+    display: inline-block;
+    background-color: white;
+    height: 280px;
+    width: 16%;
+    text-align: justify;
+    text-justify: inter-word;
+    font-family: Verdana, Geneva, sans-serif;
+    padding: 20px;
+    box-shadow:0 1px 5px rgba(0, 0, 0, 0.3), 0 0 37px rgba(0, 0, 0, 0.1) inset;
+    -webkit-box-shadow:0 1px 5px rgba(0, 0, 0, 0.3), 0 0 37px rgba(0, 0, 0, 0.1) inset;
+}
+
+#firstBox {
+    margin-left: 10%;
+}
+
+#secondBox {
+    margin-left: 40%;
+}
+
+#thirdBox {
+    margin-left: 70%;
+}
+
+h3 {
+    text-align: center;
+}
+
+.icon-logo {
+    height: 100px;
+    width: 100px;
+    padding-left: 28%;
+    margin-bottom: -12%;
+}
+
+.icon-text {
+    color: darkred;
+    text-align: center;
+    font: 14px  Arial, Helvetica, sans-serif;
+}
+
+.container {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    padding: 0;
+    margin: 0;
+    left: 0px;
+    top: 0px;
+    z-index: -1000;
+    overflow: hidden;
+}
+
+.videoPlayer {
+    height: 100%;
+    width: 100%;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+}
+
+/* Style the buttons */
+.button {
+    background-color:  rgba(255,255,255,0.8); 
+    text-align: center;
+    display: inline-block;
+    cursor: pointer;
+    border-radius: 2px;
+    border: 2px solid #00448A;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, .6);
+    transition: background-color 0s;
+}
+
+#controlDiv {
+    transition: all 0s linear;
+}
+
+#controlDivNext {
+    transition: all 0s linear;
+}
+
+#videoControlsDiv {
+    height:60px;
+    opacity: 0;
+    position: fixed;
+    bottom: 0;
+    width:100%;
+    -webkit-transition: opacity 0s;
+    transition: opacity 0s;
+    background-image: linear-gradient(left, #000000 30%,#171717 50%, #000000 70%);
+    background-image: -webkit-linear-gradient(left, #000000 30%,#171717 50%, #000000 70%);
+    border-top: 1px solid #00253D;
+    border-right: 1px solid #00253D;
+    border-left: 1px solid #00253D;
+    box-shadow: 0 -3px 3px -3px #002C4A, 3px 0px 3px -3px #002C4A, -3px 0px 3px -3px #002C4A;
+    border-radius: 3px 3px 0px 0px / 6px 6px 0px 0px;
+}
+
+#videoControlsDivNext {
+    padding-top: 10px;
+    height:60px;
+    opacity: 0;
+    position: fixed;
+    top: 0;
+    width:100%;
+    -webkit-transition: opacity 0s;
+    transition: opacity 0s;
+    background-image: linear-gradient(left, #000000 30%,#171717 50%, #000000 70%);
+    background-image: -webkit-linear-gradient(left, #000000 30%,#171717 50%, #000000 70%);
+    border-top: 1px solid #00253D;
+    border-right: 1px solid #00253D;
+    border-left: 1px solid #00253D;
+    box-shadow: 0 -3px 3px -3px #002C4A, 3px 0px 3px -3px #002C4A, -3px 0px 3px -3px #002C4A;
+    border-radius: 3px 3px 0px 0px / 6px 6px 0px 0px;
+}
+
+#videoContainer #videoControlsDiv {
+    opacity: .9;
+}
+
+#videoContainer #videoControlsDivNext {
+    opacity: .9;
+}
+
+img {
+    display: block;
+    height: 21px;  
+    width: 31px;
+}
+
+.flipImg {
+    -webkit-transform: scaleX(-1);
+    transform: scaleX(-1);
+}
+
+#videoURLs {
+    margin-left: 25%;
+    width: 30%;
+    position: fixed;
+    font-family: Arial, Helvetica, sans-serif;
+    margin-top: 2%;
+}
+
+#playOrPauseButton {
+    margin-left: 16%;
+}
+
+
+#rewindButton {
+    height: 30px;
+}
+
+#skipBackwardButton {
+    height: 30px;
+}
+
+#muteVideoButton {
+    height: 30px;
+}
+
+#skipForwardButton {
+    height: 30px;
+}
+
+#fastForwardButton {
+    height: 30px;
+}
+
+#ccButton {
+    height: 30px;
+}
+
+#playOrPauseButton {
+    background-color:#ccc;
+    margin-top: 10px;
+    height: 30px;
+    width: 50px;
+}
+
+#playOrPauseButton.focus {
+    background-color: orange;
+}
+
+#seekBar {
+    width: 397px;
+    text-align:center;
+}
+
+#seekBarOuter {
+    display: inline-block;
+    width: 398px;
+    height: 25px;
+    background-color: rgba(0,0,0,0.4);
+    outline: thin solid #00448A;
+}
+
+.focus {
+    background:orange;
+}
+
+.overModal {
+    display: none; 
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    position: absolute;
+    background-color: rgba(0,0,0,0.5);
+    border: 1.2px solid #2B364F;
+    box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
+    -webkit-animation-name: flydown;
+    -webkit-animation-duration: 0.21s;
+    animation-name: flydown;
+    animation-duration: 0.21s;
+    width: auto;
+    height: 10%;
+    top: 22%;
+    left: 5%;
+    padding: 0px 15px 15px 15px;
+    font: 13px arial, sans-serif;
+}
+
+.urlModal {
+    display: none; 
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    position: absolute;
+    background-color: rgba(0,0,0,0.5);
+    border: 1.2px solid #2B364F;
+    box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
+    -webkit-animation-name: flydown;
+    -webkit-animation-duration: 0.21s;
+    animation-name: flydown;
+    animation-duration: 0.21s;
+    width: 90%;
+    height: 7%;
+    top: 12%;
+    left: 0;
+    right: 0;
+    margin: 0 auto;
+    font: 13px arial, sans-serif;
+}
+
+#contentURL {
+    text-align: center;
+}
+
+@-webkit-keyframes flydown {
+    from {top:-211px; opacity:0.1} 
+    to {top:0; opacity:1}
+}
+
+@keyframes flydown {
+    from {top:-211px; opacity:0.1}
+    to {top:0; opacity:1}
+}
+
+@-webkit-keyframes animatebottom {
+   from {bottom:-211px; opacity:0.1} 
+    to {bottom:0; opacity:1}
+}
+
+@keyframes animatebottom {
+     from {bottom:-211px; opacity:0.1} 
+    to {bottom:0; opacity:1}
+}
+
+#homeButton {
+ position: fixed;
+ margin-left: 4%;
+ margin-top: -0.5%;
+}
+
+#homeIcon {
+    position: fixed;
+    width: 25px;
+    height: 25px;
+    margin-left: -7px;
+    margin-top: -12.5px;
+}
+
+
+#homeButton.focus {
+    border: 4px solid orange; 
+}
+
+.round-button {
+    width: 32px;
+    height: 32px;
+    border: 4px solid grey;
+    border-radius: 50%;
+    background: black;
+}
+
+.round-button.focus {
+    border: 2px solid orange;
+}
+
+.round-button img{
+    width: 32px;
+    height: 32px;
+    margin-left: -10px;
+    margin-top: -4px;
+}
+
+option { 
+    background-color: #72daef;
+}
+
+#playerType {
+    margin: 3px;
+    text-align: center;
+    font-family: Verdana, Geneva, sans-serif;
+    letter-spacing: 3px;
+    font-size: 15px;
+}
+
+#logState {
+    margin-left: 57%;
+}
+
+#autoLogButton {
+    position: absolute;
+    width: 25px;
+    height: 25px;
+    margin-left: 1px;
+}
+
+#logCheck{
+    padding: 5px;
+    width: 18px;
+    height: 18px;
+}

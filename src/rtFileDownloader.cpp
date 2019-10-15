@@ -201,6 +201,7 @@ rtFileDownloadRequest::rtFileDownloadRequest(const char* imageUrl, void* callbac
     , mByteRangeIntervals(0)
     , curlErrRetryCount(0)
     , mCurlRetry(false)
+    , mUseEncoding(true)
     , mUserAgent()
     , mRedirectFollowLocation(true)
     , mKeepTCPAlive(true)
@@ -653,6 +654,16 @@ bool rtFileDownloadRequest::isDownloadOnly(void)
   return mDownloadOnly;
 }
 
+void rtFileDownloadRequest::setUseEncoding(bool useEncoding)
+{
+  mUseEncoding = useEncoding;
+}
+
+bool rtFileDownloadRequest::isUseEncoding() const
+{
+  return mUseEncoding;
+}
+
 void rtFileDownloadRequest::setUserAgent(const char* userAgent)
 {
   mUserAgent = userAgent;
@@ -976,6 +987,7 @@ bool rtFileDownloader::downloadByteRangeFromNetwork(rtFileDownloadRequest* downl
    int multipleIntervals = 1;
    size_t startRange = 0;
    rtString byteRange("NULL");
+   char byteRangeStr[100];
    rtString strLocation;
    unsigned int curlErrRetryCount = 0;
    rtString curlUrl = downloadRequest->fileUrl();
@@ -1235,7 +1247,7 @@ bool rtFileDownloader::downloadByteRangeFromNetwork(rtFileDownloadRequest* downl
             rtLogError("Http header doesn't have Content-Range. Url(%s)\n", downloadRequest->fileUrl().cString());
 
          multipleIntervals = (downloadRequest->actualFileSize() >= downloadRequest->byteRangeIntervals()) ? (downloadRequest->actualFileSize() / downloadRequest->byteRangeIntervals()) : 0;
-         rtLogInfo("File(%s) multipleIntervals (%d) fileSize(%ld)\n", downloadRequest->fileUrl().cString(), multipleIntervals, downloadRequest->actualFileSize());
+         rtLogInfo("File[%s] multipleIntervals [%d] fileSize[%ld]\n", downloadRequest->fileUrl().cString(), multipleIntervals, downloadRequest->actualFileSize());
       }
       startRange += downloadRequest->byteRangeIntervals();
 
@@ -1602,6 +1614,12 @@ bool rtFileDownloader::downloadFromNetwork(rtFileDownloadRequest* downloadReques
       curl_easy_setopt(curl_handle, CURLOPT_READFUNCTION, ReadMemoryCallback);
       curl_easy_setopt(curl_handle, CURLOPT_READDATA, (void *)&chunk);
       curl_easy_setopt(curl_handle, CURLOPT_POSTFIELDSIZE, readDataSize);
+    }
+
+    if (downloadRequest->isUseEncoding())
+    {
+      /* enable all supported built-in compressions */
+      curl_easy_setopt(curl_handle, CURLOPT_ACCEPT_ENCODING, "");
     }
 
     /* get it! */

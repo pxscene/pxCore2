@@ -11,15 +11,11 @@ libnode-v6.9.0/config.gypi
 libnode-v6.9.0/config.mk
 libnode-v6.9.0/icu_config.gypi
 libnode-v6.9.0/node
-libnode-v6.9.0/build
-libnode-v6.9.0/Release
-libnode-v6.9.0/deps/openssl/Release
-libnode-v6.9.0/deps/zlib/Release
-libnode-v6.9.0/deps/gtest/Release
-libnode-v6.9.0/deps/http_parser/Release
-libnode-v6.9.0/deps/v8_inspector/third_party/v8_inspector/platform/v8_inspector/Release
-libnode-v6.9.0/tools/icu/Release
-libnode-v6.9.0/tools/msvs/genfiles
+libnode-v10.15.3/out
+libnode-v10.15.3/config.gypi
+libnode-v10.15.3/config.mk
+libnode-v10.15.3/icu_config.gypi
+libnode-v10.15.3/node
 
 jpeg-9a/.deps/
 jpeg-9a/.libs/
@@ -34,20 +30,6 @@ jpeg-9a/jpegtran
 jpeg-9a/libjpeg.la
 jpeg-9a/rdjpgcom
 jpeg-9a/wrjpgcom
-
-libpng-1.6.12/config.log
-libpng-1.6.12/.libs/
-libpng-1.6.12/libpng16-config
-libpng-1.6.12/png-fix-itxt
-libpng-1.6.12/pngfix
-libpng-1.6.12/pngimage
-libpng-1.6.12/pnglibconf.dfn
-libpng-1.6.12/pnglibconf.h
-libpng-1.6.12/pngprefix.h
-libpng-1.6.12/pngstest
-libpng-1.6.12/pngtest
-libpng-1.6.12/pngunknown
-libpng-1.6.12/pngvalid
 
 libpng-1.6.28/config.log
 libpng-1.6.28/Makefile

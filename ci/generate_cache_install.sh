@@ -25,14 +25,16 @@ travis_retry() {
 if [ "$TRAVIS_OS_NAME" = "linux" ] ; 
 then 
   travis_retry sudo apt-get update
-  travis_retry sudo apt-get install git libglew-dev freeglut3 freeglut3-dev libgcrypt11-dev zlib1g-dev g++ libssl-dev nasm autoconf libyaml-dev cmake gdb quilt libuv-dev xmlto
+  travis_retry sudo apt-get install git libglew-dev freeglut3 freeglut3-dev libgcrypt11-dev zlib1g-dev g++ nasm autoconf libyaml-dev cmake gdb quilt libuv-dev xmlto
 fi
 
 if [ "$TRAVIS_OS_NAME" = "osx" ] ;
 then
   brew update;
+  brew install yasm bison flex python
+  ln -sf /usr/local/opt/bison/bin/bison /usr/local/bin/bison
   brew upgrade cmake;
-  brew install quilt libuv xmlto;
+  brew install quilt libuv xmlto pkg-config glfw3 glew;
   sudo /usr/sbin/DevToolsSecurity --enable
 fi
 

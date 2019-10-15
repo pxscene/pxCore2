@@ -56,11 +56,21 @@ px.import({ scene: 'px:scene.1.js',
    */
   /*
   function resolveSceneUrl(url) {
-    if (url && url.toLowerCase().indexOf('.js?') > 0) { // this is a js file with query params
-      return url;
-    }
-    if (url && !url.match(/\.js$/)) {
-      url = 'mimeScene.js?url=' + url;
+    if (url) {
+      let pos = url.indexOf('#');
+      let noQueryPart;
+      if (pos !== -1) {
+        noQueryPart = url.substring(0, pos);
+      } else {
+        noQueryPart = url;
+      }
+      pos = noQueryPart.indexOf('?');
+      if (pos !== -1) {
+        noQueryPart = noQueryPart.substring(0, pos);
+      }
+      if (!/.js$/.test(noQueryPart) && !/.mjs$/.test(noQueryPart) && !/.spark$/.test(noQueryPart)) {
+        url = 'mimeScene.js?url=' + url;
+      }
     }
     return url;
   }
@@ -73,6 +83,12 @@ px.import({ scene: 'px:scene.1.js',
   logger.message('info', "url:" + originalURL);
 
   var    blackBg = scene.create({t:"rect", fillColor:0x000000ff,x:0,y:0,w:1280,h:720,a:0,parent:scene.root});
+  var defaultToOpaqueBackground = true;
+  if (originalURL.startsWith("gl:"))
+  {
+    blackBg.a = 0;
+    defaultToOpaqueBackground = false;
+  }
   var childScene = scene.create({t:"scene", url: originalURL, parent:scene.root});
   childScene.focus = true;
 
@@ -319,7 +335,7 @@ if( scene.capabilities != undefined && scene.capabilities.graphics != undefined 
           blackBg.a = 1;
 
       }
-      else {
+      else if (defaultToOpaqueBackground) {
           blackBg.a = 1;
       }
   });

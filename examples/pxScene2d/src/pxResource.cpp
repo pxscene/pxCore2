@@ -82,9 +82,16 @@ rtError pxResource::ready(rtObjectRef& r) const
 
 rtError pxResource::loadStatus(rtObjectRef& v) const
 {
+  rtMapObject* mapObject = new rtMapObject();
+  rtObjectRef returnValue = mapObject;
   mLoadStatusMutex.lock();
-  v = mLoadStatus;
+  rtMapObject* status = dynamic_cast<rtMapObject*>(mLoadStatus.getPtr());
+  if (status != NULL)
+  {
+    status->copyTo(mapObject);
+  }
   mLoadStatusMutex.unlock();
+  v = returnValue;
   return RT_OK;
 }
 
@@ -110,7 +117,7 @@ void pxResource::addListener(pxResourceListener* pListener)
   downloadRequestActive = mDownloadInProgress;
   mDownloadInProgressMutex.unlock();
 
-
+  rtValue statusCode = getLoadStatus("statusCode");
   if (isDownloadCanceled)
   {
     //if the download was canceled then download again
@@ -135,9 +142,8 @@ void pxResource::addListener(pxResourceListener* pListener)
     /* need not pass archive here, as this flow go for network downloads */
     loadResource();
   }
-  else if( !downloadRequestActive)
+  else if((!downloadRequestActive) && (PX_RESOURCE_STATUS_DOWNLOAD_PROCESSING != statusCode.toInt32()))
   {
-    rtValue statusCode = getLoadStatus("statusCode");
     //rtLogDebug("download was not active for: %s code: %d", mUrl.cString(), statusCode.toInt32());
     if( statusCode.toInt32() == 0)
     {
@@ -283,15 +289,15 @@ void pxResource::raiseDownloadPriority()
 
 
 rtImageResource::rtImageResource()
-: pxResource(), mTexture(), mDownloadedTexture(), mTextureMutex(), mDownloadComplete(false), init_w(0), init_h(0), init_sx(0.0f), init_sy(0.0f), mData()
+: pxResource(), mTexture(), mDownloadedTexture(), mTextureMutex(), mDownloadComplete(false), init_w(0), init_h(0), init_sx(0.0f), init_sy(0.0f), mData(), mFlip(false)
 {
   // empty
 }
 
 rtImageResource::rtImageResource(const char* url, const char* proxy, int32_t iw /* = 0 */,  int32_t ih /* = 0 */,
-                                                                       float sx /* = 1.0f*/,  float sy /* = 1.0f*/ )
+                                                                       float sx /* = 1.0f*/,  float sy /* = 1.0f*/, bool f /* = false */ )
     : pxResource(), mTexture(), mDownloadedTexture(), mTextureMutex(), mDownloadComplete(false),
-      init_w(iw), init_h(ih), init_sx(sx), init_sy(sy), mData()
+      init_w(iw), init_h(ih), init_sx(sx), init_sy(sy), mData(), mFlip(f)
 {
   setUrl(url, proxy);
 }
@@ -416,6 +422,54 @@ rtError rtImageResource::h(int32_t& v) const
   return RT_OK;
 }
 
+bool rtImageResource::flip() const
+{
+  bool returnValue = false;
+  mTextureMutex.lock();
+  returnValue = mFlip;
+  mTextureMutex.unlock();
+  return returnValue;
+}
+
+rtError rtImageResource::flip(bool& v) const
+{
+  mTextureMutex.lock();
+  v = mFlip;
+  mTextureMutex.unlock();
+  return RT_OK;
+}
+
+rtError rtImageResource::setFlip(bool v)
+{
+  mTextureMutex.lock();
+#ifdef ENABLE_BACKGROUND_TEXTURE_CREATION
+  bool prevFlip = mFlip;
+#endif //ENABLE_BACKGROUND_TEXTURE_CREATION
+  mFlip = v;
+  mTextureMutex.unlock();
+#ifdef ENABLE_BACKGROUND_TEXTURE_CREATION
+  if (v != prevFlip)
+  {
+    mDownloadInProgressMutex.lock();
+    bool isDownloadInProgress =  mDownloadInProgress;
+    mDownloadInProgressMutex.unlock();
+    if (isDownloadInProgress)
+    {
+      //only attempt to reload if download is in progress
+      //rtLogDebug("restarting downloand");
+      if (mDownloadRequest != NULL)
+      {
+        rtFileDownloader::cancelDownloadRequestThreadSafe(mDownloadRequest, this);
+        clearDownloadRequest();
+      }
+      loadResource();
+    }
+  }
+#endif //ENABLE_BACKGROUND_TEXTURE_CREATION
+  return RT_OK;
+}
+
+
 pxTextureRef rtImageResource::getTexture(bool initializing)
 {
   if (!mTexture.getPtr() && (isInitialized() || initializing))
@@ -450,6 +504,11 @@ void rtImageResource::prepare()
     sharedContext->makeCurrent(true);
   }
   setInternalContextCurrent = false;
+  bool flipImage = flip();
+  if (flipImage)
+  {
+    mDownloadedTexture->setUpsideDown(false);
+  }
   mDownloadedTexture->prepareForRendering();
 #endif //ENABLE_BACKGROUND_TEXTURE_CREATION
   mTextureMutex.lock();
@@ -919,6 +978,10 @@ void pxResource::processDownloadedResource(rtFileDownloadRequest* fileDownloadRe
           gUIThreadQueue->addTask(onDownloadCompleteUI, this, (void*)"resolve");
         }
       }
+      else if (result == PX_RESOURCE_LOAD_WAIT)
+      {
+        setLoadStatus("statusCode", PX_RESOURCE_STATUS_DOWNLOAD_PROCESSING);
+      }
     }
     else
     {
@@ -1138,7 +1201,7 @@ rtRef<rtImageResource> pxImageManager::emptyUrlResource = 0;
 
 rtRef<rtImageResource> pxImageManager::getImage(const char* url, const char* proxy    /* = NULL  */, const rtCORSRef& cors /* = NULL  */,
                                                 int32_t iw /* = 0    */,   int32_t ih /* = 0     */,
-                                                  float sx /* = 1.0f */,   float sy   /* = 1.0f  */, rtObjectRef archive)
+                                                  float sx /* = 1.0f */,   float sy   /* = 1.0f  */, rtObjectRef archive, bool flip)
 {
   //rtLogDebug("pxImageManager::getImage\n");
   // Handle empty url
@@ -1147,7 +1210,7 @@ rtRef<rtImageResource> pxImageManager::getImage(const char* url, const char* pro
     if( !emptyUrlResource)
     {
       //rtLogDebug("Creating empty Url rtImageResource\n");
-      emptyUrlResource = new rtImageResource(NULL, NULL, iw, ih, sx, sy);
+      emptyUrlResource = new rtImageResource(NULL, NULL, iw, ih, sx, sy, flip);
       //rtLogDebug("Done creating empty Url rtImageResource\n");
     }
     //rtLogDebug("Returning empty Url rtImageResource\n");
@@ -1239,7 +1302,7 @@ rtRef<rtImageResource> pxImageManager::getImage(const char* url, const char* pro
   else
   {
     //rtLogInfo("Create rtImageResource in map for \"%s\"\n",url);
-    pResImage = new rtImageResource(url, proxy, iw, ih, sx, sy);
+    pResImage = new rtImageResource(url, proxy, iw, ih, sx, sy, flip);
     pResImage->setCORS(cors);
     pResImage->setName(key);
     mImageMap.insert(make_pair(key.cString(), pResImage));
@@ -1356,6 +1419,7 @@ rtDefineProperty(pxResource,loadStatus);
 rtDefineObject(rtImageResource, pxResource);
 rtDefineProperty(rtImageResource, w);
 rtDefineProperty(rtImageResource, h);
+rtDefineProperty(rtImageResource, flip);
 
 rtDefineObject(rtImageAResource, pxResource);
 rtDefineProperty(rtImageAResource, w);

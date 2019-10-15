@@ -23,11 +23,11 @@ export CODE_COVERAGE=1
 cd $TRAVIS_BUILD_DIR
 mkdir -p temp
 cd temp
-
+export PKG_CONFIG_PATH=$TRAVIS_BUILD_DIR/examples/pxScene2d/external/extlibs/lib/pkgconfig:$PKG_CONFIG_PATH
 if [ "$TRAVIS_PULL_REQUEST" = "false" ]
 then
 	echo "************************* Generating config files *************************" >> $BUILDLOGS
-	cmake -DBUILD_PX_TESTS=ON -DBUILD_PXSCENE_STATIC_LIB=ON -DBUILD_DEBUG_METRICS=ON -DPXSCENE_TEST_HTTP_CACHE=ON .. >>$BUILDLOGS 2>&1;
+	cmake -DPREFER_SYSTEM_LIBRARIES=ON -DPREFER_PKGCONFIG=ON -DPREFER_EXTERNAL_GIF=ON -DSPARK_ENABLE_VIDEO=ON -DBUILD_PX_TESTS=ON -DBUILD_PXSCENE_STATIC_LIB=ON -DBUILD_DEBUG_METRICS=ON -DPXSCENE_TEST_HTTP_CACHE=ON .. >>$BUILDLOGS 2>&1;
 	checkError $? "cmake config failed" "Config error" "Check the error in $BUILDLOGS"
 
   echo "************************* Building pxcore,rtcore,pxscene app,libpxscene, unitttests ****" >> $BUILDLOGS
@@ -36,7 +36,7 @@ then
 
 else
   echo "************************* Generating config files ****"
-  cmake -DBUILD_PX_TESTS=ON -DBUILD_PXSCENE_STATIC_LIB=ON -DBUILD_DEBUG_METRICS=ON -DPXSCENE_TEST_HTTP_CACHE=ON .. 1>>$BUILDLOGS;
+  cmake -DPREFER_SYSTEM_LIBRARIES=ON -DPREFER_PKGCONFIG=ON -DPREFER_EXTERNAL_GIF=ON -DSPARK_ENABLE_VIDEO=ON -DBUILD_PX_TESTS=ON -DBUILD_PXSCENE_STATIC_LIB=ON -DBUILD_DEBUG_METRICS=ON -DPXSCENE_TEST_HTTP_CACHE=ON .. 1>>$BUILDLOGS;
   checkError $? "cmake config failed" "Config error" "Check the errors displayed in this window"
 
 	echo "************************* Building pxcore,rtcore,pxscene app,libpxscene, unitttests ********"

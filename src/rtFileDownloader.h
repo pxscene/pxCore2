@@ -131,6 +131,8 @@ public:
   unsigned int getCurlErrRetryCount(void);
   void setCurlRetryEnable(bool bCurlRetry);
   bool isCurlRetryEnabled(void);
+  void setUseEncoding(bool useEncoding);
+  bool isUseEncoding() const;
   void setUserAgent(const char* userAgent);
   rtString userAgent() const;
   void setRedirectFollowLocation(bool redirectFollowLocation);
@@ -187,6 +189,7 @@ private:
   size_t mByteRangeIntervals;
   unsigned int curlErrRetryCount;
   bool mCurlRetry;
+  bool mUseEncoding;
   rtString mUserAgent;
   bool mRedirectFollowLocation;
   bool mKeepTCPAlive;

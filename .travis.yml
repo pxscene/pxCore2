@@ -28,7 +28,6 @@ before_install:
 install:
 - ./ci/install.sh
 before_script:
-- if ( [ "$TRAVIS_EVENT_TYPE" = "push" ] || [ "$TRAVIS_EVENT_TYPE" = "pull_request" ] ) && [ -z "${TRAVIS_TAG}" ] ; then ccache -s; fi
 - ./ci/before_script.sh
 - if [ "$TRAVIS_EVENT_TYPE" = "api" ] || [ ! -z "${TRAVIS_TAG}" ] ;  then export linenumber=`awk '/CFBundleShortVersionString/{ print NR; exit }' $TRAVIS_BUILD_DIR/examples/pxScene2d/src/macstuff/Info.plist`;export PX_VERSION=`sed -n "\`echo $((linenumber+1))\`p" $TRAVIS_BUILD_DIR/examples/pxScene2d/src/macstuff/Info.plist|awk -F '<string>' '{print $2}'|awk -F'</string>' '{print $1}'`; fi
 - if [ "$TRAVIS_EVENT_TYPE" = "cron" ] ; then export PX_VERSION=edge_`date +%Y-%m-%d` ; fi
