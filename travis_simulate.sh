@@ -1,6 +1,6 @@
 #!/bin/bash
-#cleanup
 
+#cleanup
 if [ -e simulateTravis ]; then
   rm -rf simulateTravis
 fi
