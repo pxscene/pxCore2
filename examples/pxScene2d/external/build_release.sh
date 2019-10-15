@@ -69,6 +69,12 @@ else
   cp $RELEASE_EXTERNALS_PATH/extlibs/lib/libgif.7.dylib .libs/.
   cp $RELEASE_EXTERNALS_PATH/extlibs/lib/libutil.7.dylib .
   cp $RELEASE_EXTERNALS_PATH/extlibs/lib/libutil.7.dylib .libs/.
+  ln -s libgif.7.dylib libgif.dylib 
+  ln -s libutil.7.dylib libutil.dylib 
+  cd .libs
+  ln -s libgif.7.dylib libgif.dylib 
+  ln -s libutil.7.dylib libutil.dylib 
+  cd ..
 fi
 cd ..
 
