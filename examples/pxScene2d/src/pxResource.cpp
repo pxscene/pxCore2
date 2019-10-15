@@ -82,13 +82,16 @@ rtError pxResource::ready(rtObjectRef& r) const
 
 rtError pxResource::loadStatus(rtObjectRef& v) const
 {
+  rtMapObject* mapObject = new rtMapObject();
+  rtObjectRef returnValue = mapObject;
   mLoadStatusMutex.lock();
   rtMapObject* status = dynamic_cast<rtMapObject*>(mLoadStatus.getPtr());
   if (status != NULL)
   {
-    v = new rtMapObject(*status);
+    status->copyTo(mapObject);
   }
   mLoadStatusMutex.unlock();
+  v = returnValue;
   return RT_OK;
 }
 
