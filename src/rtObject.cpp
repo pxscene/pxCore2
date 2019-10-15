@@ -449,15 +449,6 @@ rtError rtMapObject::Set(uint32_t /*i*/, const rtValue* /*value*/)
   return RT_PROP_NOT_FOUND;
 }
 
-rtError rtMapObject::copyTo(rtMapObject* dst)
-{
-  if (dst != NULL)
-  {
-    dst->mProps = mProps;
-  }
-  return RT_OK;
-}
-
 
 // rtObject
   
