@@ -22,6 +22,9 @@ var fs = require('fs')
 var path = require('path')
 const {promisify} = require('util')
 const readFileAsync = promisify(fs.readFile)
+const ArrayJoin = Function.call.bind(Array.prototype.join);
+const ArrayMap = Function.call.bind(Array.prototype.map);
+var reqOrig = require;
 
 var filename2url = function (loc) {
   var __dirname = process.cwd()
@@ -176,7 +179,7 @@ var loadNodeModule = async function (specifier, ctx)
       meta.exports = {} 
       meta.done = () => {
         const module = { exports: {} };
-        const pathname = internalURLModule.fileURLToPath(new URL(url));
+        const pathname = urlmain.fileURLToPath(new URL(url));
         process.dlopen(module, _makeLong(pathname));
         meta.exports.default.set(module.exports);
   }}});
@@ -195,6 +198,7 @@ var loadCommonJSModule = async function (specifier, ctx)
   {
     return ctx.modmap[specifier];
   }
+  var __dirname = process.cwd()
   var mod;
   var module = reqOrig(specifier);
   const names = ArrayMap([...Object.keys(module)], (name) => `${name}`);
@@ -239,6 +243,7 @@ var getFile = async function (scene, url) {
 
 /* load mjs file and returns as ejs module */
 var getModule = async function (specifier, referencingModule) {
+   var __dirname = process.cwd()
    try {
    var isLocalApp = (referencingModule.url.indexOf("file:") == 0)?true:false;
    var baseString = "";

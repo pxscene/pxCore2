@@ -130,7 +130,7 @@ const makeRequire = function(pathToParent) {
 
 var xxsetInterval = function(f,i){
   var rest = Array.from(arguments).slice(2)
-  var interval = this._timers.setInterval(function() {
+  var interval = _timers.setInterval(function() {
     return function() {
         try {
         this.global.beginDrawing();
