@@ -156,6 +156,7 @@ extern uv_async_t gcTrigger;
 #endif // RUNINMAIN
 #endif //ENABLE_RT_NODE
 
+extern char *initAppScript;
 #ifdef ENABLE_VALGRIND
 #include <valgrind/callgrind.h>
 void startProfiling()
@@ -3260,9 +3261,10 @@ void pxScriptView::runScript()
 
       beginDrawing();
       glClearColor(0, 0, 0, 0);
-      glClear(GL_COLOR_BUFFER_BIT);      
-      mCtx->runFile("initGL.js");
-      rtValue foo = mCtx->get("loadUrl");
+      glClear(GL_COLOR_BUFFER_BIT);
+      // compile initGL.js
+      mCtx->runScript(initAppScript);
+      rtValue foo = mCtx->get("loadAppUrl");
       rtFunctionRef f = foo.toFunction();
       bool b = true;
       rtString url = mUrl;
