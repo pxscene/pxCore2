@@ -12,7 +12,7 @@ PathD=$externalLibs:$externalDir/node/out/Debug/obj.target
 PathR=$externalLibs:$externalDir/node/out/Release/obj.target
 PathR=$externalLibs/extlibs/lib:$PathR
 
-export LD_LIBRARY_PATH=$PathR
+export LD_LIBRARY_PATH=$PathR:./
 
 export NODE_PATH=.
 
