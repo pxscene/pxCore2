@@ -15,12 +15,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 */
-
 var exports = module.exports;
 
 // Main object.
-function WebGLRenderingContext() {
-    this.gl = sparkscene.create({t:"webgl"});
+function WebGLRenderingContext(scene) {
+    this.gl = scene.create({t:"webgl"});
 }
 
 // Support objects.
@@ -44,7 +43,8 @@ exports.WebGLActiveInfo = WebGLActiveInfo;
 exports.WebGLUniformLocation = WebGLUniformLocation;
 
 // The singleton webgl render context.
-exports.instance = new WebGLRenderingContext();
+//exports.instance = new WebGLRenderingContext();
+//exports = WebGLRenderingContext
 
 // The following constants were extracted from the Broadcom's gl2.h file.
 
@@ -1093,7 +1093,6 @@ WebGLRenderingContext.prototype.texImage2D = function texImage2D(target, level, 
     if(!(arguments.length == 9)) {
         throw new TypeError('Expected texImage2D(number target, number level, number internalformat, number width, number height, number border, number format, number type, Buffer pixels)');
     }
-
     if(!(typeof target === "number" &&
         typeof level === "number" && typeof internalformat === "number" &&
         typeof width === "number" && typeof height === "number" && typeof border === "number" &&

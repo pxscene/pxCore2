@@ -16,21 +16,22 @@ limitations under the License.
 
 */
 
-var init = function(options) {
-    options = options || {};
+var initModule = require("rcvrcore/initGL")
+var ESMLoader = require('rcvrcore/ESMLoader')
 
-    var width = (typeof options.width == "number" ? options.width : 1280);
-    var height = (typeof options.height == "number" ? options.height : 720);
-    var fullscreen = !!options.fullscreen;
-    var title = options.title || "";
+var loadAppUrl = function(url, _beginDrawing, _endDrawing, _view, _frameworkURL, _options) {
+  var params = {}
+  params.url = url;
+  params._beginDrawing = _beginDrawing;
+  params._endDrawing = _endDrawing;
+  params._view = _view
+  params._frameworkURL = _frameworkURL;
+  params._options = _options;
 
-    //gles2.init(width, height, fullscreen, title);
-
-    return global.sparkwebgl;
-};
-
-module.exports = {
-    init: init
-};
+  params.sparkscene = getScene("scene.1")
+  params.makeReady = this.makeReady
 
 
+  var llapp = new initModule.app(params)
+  llapp.loadUrl();
+}
