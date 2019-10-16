@@ -620,7 +620,7 @@ rtError pxTextCanvas::fillText(rtString text, int32_t x, int32_t y)
         int32_t rectY = mHighlightRect[1];
         uint32_t rectW =  mHighlightRect[2];
         uint32_t rectH =  mHighlightRect[3];
-        textLine.textFx.highlight.offset = (y - rectY) ?: 0;//getOnscreenHeight()/2;
+        textLine.textFx.highlight.offset = (y - rectY) > 0 ? (y - rectY): 0;//getOnscreenHeight()/2;
         textLine.textFx.highlight.paddingLeft = x - rectX;
         textLine.textFx.highlight.paddingRight =  rectW - textLine.textFx.highlight.width - textLine.textFx.highlight.paddingLeft;
         textLine.textFx.highlight.highlightHeight = rectH;
