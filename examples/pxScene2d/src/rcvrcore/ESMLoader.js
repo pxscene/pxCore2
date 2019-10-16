@@ -117,7 +117,7 @@ var loadJavaScriptModule = async function (source, specifier, ctx)
   var module = {};
   module.exports = {}
   source = wrapper[0] + source + wrapper[1];
-  var moduleFunc = vm.runInContext(source, sandbox, {'filename':specifier, 'displayErrors':true});
+  var moduleFunc = vm.runInContext(source, ctx, {'filename':specifier, 'displayErrors':true});
   moduleFunc(module);
   const names = ArrayMap([...Object.keys(module.exports), 'default'], (name) => `${name}`);
     const jssource = `
@@ -229,9 +229,9 @@ var loadCommonJSModule = async function (specifier, ctx)
   return mod;
 }
 
-var getFile = async function (url) {
+var getFile = async function (scene, url) {
   if (/^http:|^https:/.test(url))
-    return await loadHttpFile(url);
+    return await loadHttpFile(scene, url);
   if (/^file:/.test(url))
     return await readFileAsync(new urlmain.URL(url), {'encoding': 'utf-8'});
   return await readFileAsync(url, {'encoding': 'utf-8'});
@@ -267,7 +267,7 @@ var getModule = async function (specifier, referencingModule) {
          else
          {
            specifier = "http://" + baseString.substring(0, baseString.lastIndexOf("/")+1) + specifier;
-           let result = await loadHttpFile(specifier);
+           let result = await loadHttpFile(referencingModule.context.global.sparkscene, specifier);
            mod = loadJsonModule(result, specifier, referencingModule.context);
          }
        } catch(err) {
@@ -287,7 +287,7 @@ var getModule = async function (specifier, referencingModule) {
          else
          {
            specifier = "http://" + baseString.substring(0, baseString.lastIndexOf("/")+1) + specifier;
-           let result = await loadHttpFile(specifier);
+           let result = await loadHttpFile(referencingModule.context.global.sparkscene, specifier);
            mod = loadJavaScriptModule(result, specifier, referencingModule.context);
          }
        } catch(err) {
@@ -338,13 +338,13 @@ var getModule = async function (specifier, referencingModule) {
          if (isLocalApp || (true == treatAsLocal)) {
            source = await readFileAsync(specifier, {'encoding' : 'utf-8'})
            specifier = "file://" + specifier;
-           mod = loadMjs(source, specifier, referencingModule.context);
+           mod = loadMjs(source, specifier, referencingModule.context, referencingModule.context.modmap);
          }
          else
          {
            specifier = "http://" + specifier;
-           let result = await loadHttpFile(specifier);
-           mod = loadMjs(result, specifier, referencingModule.context);
+           let result = await loadHttpFile(referencingModule.context.global.sparkscene, specifier);
+           mod = loadMjs(result, specifier, referencingModule.context, referencingModule.context.modmap);
          }
        } catch(err) {
          console.log(err);
@@ -379,14 +379,14 @@ var getModule = async function (specifier, referencingModule) {
          if (isLocalApp) {
            source = await readFileAsync(specifier, {'encoding' : 'utf-8'})
            specifier = "file://" + specifier;
-           mod = loadMjs(source, specifier, referencingModule.context);
+           mod = loadMjs(source, specifier, referencingModule.context, referencingModule.context.modmap);
          }
          else
          {
            //http module read
            specifier = "http://" + specifier;
-           let result = await loadHttpFile(specifier);
-           mod = loadMjs(result, specifier, referencingModule.context);
+           let result = await loadHttpFile(referencingModule.context.global.sparkscene, specifier);
+           mod = loadMjs(result, specifier, referencingModule.context, referencingModule.context.modmap);
          }
        } catch(err) {
          console.log(err);
@@ -453,10 +453,10 @@ function ESMLoader(params) {
           if (loadCtx._frameworkURL) {
             const url2 = filename2url(loadCtx._frameworkURL);
             const loc2 = /^file:/.test(url2) ? url2.substring(7) : url2;
-            const source2 = await getFile(url2);
+            const source2 = await getFile(loadCtx.global.sparkscene,url2);
             vm.runInContext(source2, loadCtx.contextifiedSandbox, {filename:loc2});
           }
-          const source = await getFile(url);
+          const source = await getFile(loadCtx.global.sparkscene, url);
           loadCtx.app = await loadMjs(source, url, loadCtx.contextifiedSandbox, loadCtx.modmap);
           loadCtx.app.instantiate();
           instantiated = true;
