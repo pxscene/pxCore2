@@ -548,7 +548,7 @@ if (BUILD_PXSCENE_APP)
     if (PX_LIBRARY_SUPPORT GREATER 0)
         if (BUILD_PXSCENE_SHARED_LIB OR BUILD_PXSCENE_SHARED_LIB)
             add_dependencies(pxscene_app pxscene_shared)
-            target_link_libraries(pxscene_app pxscene_shared ${PXSCENE_APP_LIBRARIES} ${PXSCENE_LINK_LIBRARIES})
+            target_link_libraries(pxscene_app -L${CMAKE_CURRENT_SOURCE_DIR} -lSpark ${PXSCENE_APP_LIBRARIES} ${PXSCENE_LINK_LIBRARIES})
         endif (BUILD_PXSCENE_SHARED_LIB OR BUILD_PXSCENE_SHARED_LIB)
     endif (PX_LIBRARY_SUPPORT GREATER 0)
 
