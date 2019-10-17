@@ -85,15 +85,15 @@ pxWebgl::~pxWebgl()
     mShaders.size(),
     mPrograms.size());
 
-  glDeleteFramebuffers(mFramebuffers.size(), mFramebuffers.data());
+  glDeleteFramebuffers( (GLsizei) mFramebuffers.size(), mFramebuffers.data());
   CheckGLError();
   mFramebuffers.clear();
 
-  glDeleteTextures(mTextures.size(), mTextures.data());
+  glDeleteTextures((GLsizei) mTextures.size(), mTextures.data());
   CheckGLError();
   mTextures.clear();
 
-  glDeleteBuffers(mBuffers.size(), mBuffers.data());
+  glDeleteBuffers((GLsizei) mBuffers.size(), mBuffers.data());
   CheckGLError();
   mBuffers.clear();
 
@@ -456,18 +456,18 @@ rtError pxWebgl::GetShaderParameter(uint32_t shader, uint32_t pname, uint32_t& r
     case GL_COMPILE_STATUS:
       glGetShaderiv(shader, pname, &value);
 
-      ret = static_cast<unsigned long>(value!=0);
+      ret = static_cast</*unsigned long*/ uint32_t>(value!=0);
 
       break;
     case GL_SHADER_TYPE:
       glGetShaderiv(shader, pname, &value);
-      ret = static_cast<unsigned long>(value);
+      ret = static_cast</*unsigned long*/ uint32_t>(value);
 
       break;
     case GL_INFO_LOG_LENGTH:
     case GL_SHADER_SOURCE_LENGTH:
       glGetShaderiv(shader, pname, &value);
-      ret = static_cast<unsigned long>(value);
+      ret = static_cast</*unsigned long*/ uint32_t>(value);
 
       break;
     default:
@@ -526,13 +526,13 @@ rtError pxWebgl::GetProgramParameter(uint32_t program, uint32_t pname, uint32_t&
     case GL_LINK_STATUS:
     case GL_VALIDATE_STATUS:
       glGetProgramiv(program, pname, &value);
-      ret = static_cast<unsigned long>(value!=0);
+      ret = static_cast</*unsigned long*/ uint32_t>(value!=0);
       break;
     case GL_ATTACHED_SHADERS:
     case GL_ACTIVE_ATTRIBUTES:
     case GL_ACTIVE_UNIFORMS:
       glGetProgramiv(program, pname, &value);
-      ret = (static_cast<unsigned long>(value));
+      ret = (static_cast</*unsigned long*/ uint32_t>(value));
       break;
     default:
       rtLogWarn("[%s] Invalid Enum", __FUNCTION__);

@@ -28,6 +28,8 @@
 		4C8440BA20D82FAD00C24E45 /* rtPermissions.h in Headers */ = {isa = PBXBuildFile; fileRef = 4C8440B820D82FAD00C24E45 /* rtPermissions.h */; };
 		4C9E8A6B21DEC99900CD3890 /* pxColorNames.h in Headers */ = {isa = PBXBuildFile; fileRef = 4C9E8A6A21DEC99900CD3890 /* pxColorNames.h */; };
 		4C9E8A6F21DFFA4E00CD3890 /* pxColorNames.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C9E8A6E21DFFA4E00CD3890 /* pxColorNames.cpp */; };
+		4CDC37552357CB42003B3FD0 /* rtJsonUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4CDC37532357CB41003B3FD0 /* rtJsonUtils.cpp */; };
+		4CDC37562357CB42003B3FD0 /* rtJsonUtils.h in Headers */ = {isa = PBXBuildFile; fileRef = 4CDC37542357CB42003B3FD0 /* rtJsonUtils.h */; };
 		4CF5464120210AB600529907 /* unzip.c in Sources */ = {isa = PBXBuildFile; fileRef = 46B077771E30FFC700BC6B9C /* unzip.c */; };
 		4CF5464220210AB600529907 /* rtThreadPoolNative.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46B077B01E30FFED00BC6B9C /* rtThreadPoolNative.cpp */; };
 		4CF5464320210AB600529907 /* pxInterpolators.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46D3046A1E673978000C5A5B /* pxInterpolators.cpp */; };
@@ -259,6 +261,8 @@
 		4C9DAFA32019373D00540240 /* rtScript.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = rtScript.cpp; path = src/rtScript.cpp; sourceTree = SOURCE_ROOT; };
 		4C9E8A6A21DEC99900CD3890 /* pxColorNames.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pxColorNames.h; path = src/pxColorNames.h; sourceTree = SOURCE_ROOT; };
 		4C9E8A6E21DFFA4E00CD3890 /* pxColorNames.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = pxColorNames.cpp; path = src/pxColorNames.cpp; sourceTree = SOURCE_ROOT; };
+		4CDC37532357CB41003B3FD0 /* rtJsonUtils.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = rtJsonUtils.cpp; path = src/rtJsonUtils.cpp; sourceTree = SOURCE_ROOT; };
+		4CDC37542357CB42003B3FD0 /* rtJsonUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = rtJsonUtils.h; path = src/rtJsonUtils.h; sourceTree = SOURCE_ROOT; };
 		4CF546B120210AB600529907 /* libpxCore Static Library.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libpxCore Static Library.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		AE1D42BC1B7CF5E0002E7CAE /* Hover.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Hover.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AE1D42DC1B7CF611002E7CAE /* Hover.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Hover.cpp; path = examples/Hover/Hover.cpp; sourceTree = SOURCE_ROOT; };
@@ -416,6 +420,8 @@
 		4C12026B1E9683C900B0F89C /* rtCode */ = {
 			isa = PBXGroup;
 			children = (
+				4CDC37532357CB41003B3FD0 /* rtJsonUtils.cpp */,
+				4CDC37542357CB42003B3FD0 /* rtJsonUtils.h */,
 				4C81E12D231EF37C00E6578A /* rtStorage.cpp */,
 				4C81E12C231EF37C00E6578A /* rtStorage.h */,
 				4C2D53C82147463D001103BA /* rtScriptHeaders.h */,
@@ -789,6 +795,7 @@
 				4C9E8A6B21DEC99900CD3890 /* pxColorNames.h in Headers */,
 				4CF546A820210AB600529907 /* rtPromise.h in Headers */,
 				4CF546A920210AB600529907 /* pxClipboardNative.h in Headers */,
+				4CDC37562357CB42003B3FD0 /* rtJsonUtils.h in Headers */,
 				4CF546AA20210AB600529907 /* rtCore.h in Headers */,
 				4C2FF24C219C854D0010DA38 /* rtHttpRequest.h in Headers */,
 				464BD7D9210F6ABD00C4EFB7 /* rtCORS.h in Headers */,
@@ -1164,6 +1171,7 @@
 				4CF5464720210AB600529907 /* Simple.cpp in Sources */,
 				4CF5464820210AB600529907 /* utf8.c in Sources */,
 				4CF5464920210AB600529907 /* pxViewWindow.cpp in Sources */,
+				4CDC37552357CB42003B3FD0 /* rtJsonUtils.cpp in Sources */,
 				4CF5464A20210AB600529907 /* pxOffscreen.cpp in Sources */,
 				4C9E8A6F21DFFA4E00CD3890 /* pxColorNames.cpp in Sources */,
 				4CF5464B20210AB600529907 /* rtValue.cpp in Sources */,
@@ -1288,6 +1296,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 4C988A5B23219E4D006E2D93 /* BuildDefines.xcconfig */;
 			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
 				CLANG_ENABLE_OBJC_ARC = NO;
 				COMBINE_HIDPI_IMAGES = YES;
 				CONFIGURATION_BUILD_DIR = "$(BUILD_DIR)/mac";
@@ -1315,7 +1324,7 @@
 				LIBRARY_SEARCH_PATHS = "";
 				OTHER_CPLUSPLUSFLAGS = (
 					"$(OTHER_CFLAGS)",
-					"-std=c++11",
+					"-std=c++14",
 				);
 				OTHER_LDFLAGS = (
 					"-framwork",
@@ -1332,6 +1341,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 4C988A5B23219E4D006E2D93 /* BuildDefines.xcconfig */;
 			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
 				CLANG_ENABLE_OBJC_ARC = NO;
 				COMBINE_HIDPI_IMAGES = YES;
 				CONFIGURATION_BUILD_DIR = "$(BUILD_DIR)/mac";
@@ -1359,7 +1369,7 @@
 				LIBRARY_SEARCH_PATHS = "";
 				OTHER_CPLUSPLUSFLAGS = (
 					"$(OTHER_CFLAGS)",
-					"-std=c++11",
+					"-std=c++14",
 				);
 				OTHER_LDFLAGS = (
 					"-framwork",
