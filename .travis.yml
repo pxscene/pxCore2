@@ -22,7 +22,6 @@ before_install:
 install:
   - if [ "$TRAVIS_EVENT_TYPE" != "cron" ]; then ./ci/install.sh; fi
 before_script:
-  - if [ "$TRAVIS_EVENT_TYPE" = "push" ] || [ "$TRAVIS_EVENT_TYPE" = "pull_request" ]; then ccache -s; fi
   - if [ "$TRAVIS_EVENT_TYPE" != "cron" ]; then ./ci/before_script.sh; fi
 script:
   - if [ "$TRAVIS_EVENT_TYPE" != "cron" ]; then ./ci/clean_coverity.sh; fi

@@ -74,6 +74,7 @@ private:
   uint8_t* mWriteData;
   size_t mWriteDataSize;
   bool mInQueue;
+  bool mCompress;
 };
 
 #endif //RT_HTTP_REQUEST_H

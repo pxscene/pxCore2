@@ -42,8 +42,8 @@ typedef struct _pxContextState
 class pxContextFramebuffer
 {
 public:
-  pxContextFramebuffer() : mRef(0), m_framebufferTexture(), m_framebufferStateStack(), mDirtyRectanglesEnabled(false), mDirtyRectangle() {}
-  pxContextFramebuffer(pxTextureRef texture) : m_framebufferTexture(texture), m_framebufferStateStack(), mDirtyRectanglesEnabled(false), mDirtyRectangle() {}
+  pxContextFramebuffer() : mRef(0), m_framebufferTexture(), m_framebufferStateStack(), mDirtyRectanglesEnabled(false), mDirtyRectangle(), mFlipRendering(false) {}
+  pxContextFramebuffer(pxTextureRef texture) : m_framebufferTexture(texture), m_framebufferStateStack(), mDirtyRectanglesEnabled(false), mDirtyRectangle(),mFlipRendering(false) {}
   virtual ~pxContextFramebuffer() {resetFbo();}
 
   virtual unsigned long AddRef(){ return rtAtomicInc(&mRef);}
@@ -142,12 +142,22 @@ public:
     return mDirtyRectangle;
   }
 
+  void enableFlipRendering(bool enable)
+  {
+    mFlipRendering = enable;
+  }
+  bool flipRenderingEnabled()
+  {
+    return mFlipRendering;
+  }
+
 protected:
   rtAtomic mRef;
   pxTextureRef m_framebufferTexture;
   std::vector<pxContextState> m_framebufferStateStack;
   bool mDirtyRectanglesEnabled;
   pxRect mDirtyRectangle;
+  bool mFlipRendering;
 };
 
 typedef rtRef<pxContextFramebuffer> pxContextFramebufferRef;

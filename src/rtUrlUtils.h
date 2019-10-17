@@ -29,4 +29,6 @@ rtString rtUrlEncodeParameters(const char* url);
 rtString rtUrlGetOrigin(const char* url);
 rtString rtUrlGetHostname(const char* origin);
 
+rtString rtUrlGetExtension(const char* s);
+
 #endif

@@ -68,6 +68,7 @@ rtError rtEmit::addListener(const char* eventName, rtIFunction* f)
   return addListener(eventName, f, false);
 }
 
+// JRJR gotten to be a bit complicated review... 
 rtError rtEmit::addListener(const char* eventName, rtIFunction* f, bool emitOnce)
 {
   if (!eventName || !f)
@@ -105,7 +106,7 @@ rtError rtEmit::addListener(const char* eventName, rtIFunction* f, bool emitOnce
       mPendingEntriesToAdd.push_back(e);
     }
   }
-  
+
   return RT_OK;
 }
 
@@ -446,6 +447,15 @@ rtError rtMapObject::Get(uint32_t /*i*/, rtValue* /*value*/) const
 rtError rtMapObject::Set(uint32_t /*i*/, const rtValue* /*value*/)
 {
   return RT_PROP_NOT_FOUND;
+}
+
+rtError rtMapObject::copyTo(rtMapObject* dst)
+{
+  if (dst != NULL)
+  {
+    dst->mProps = mProps;
+  }
+  return RT_OK;
 }
 
 

@@ -27,19 +27,25 @@
 
 extern pxContext context;
 
-pxText::pxText(pxScene2d* scene):pxObject(scene), mFontLoaded(false), mFontFailed(false), mDirty(true), mFontDownloadRequest(NULL), mListenerAdded(false)
+pxText::pxText(pxScene2d* scene):pxObject(scene), mFontLoaded(false), mFontFailed(false), mDirty(true), mFontDownloadRequest(NULL), mListenerAdded(false),
+                                 mTextFbo()
 
 {
   float c[4] = {1, 1, 1, 1};
   memcpy(mTextColor, c, sizeof(mTextColor));
   // Default to use default font
-  mFont = pxFontManager::getFont(defaultFont, NULL, NULL, scene->getArchive());
+  mFont = pxFontManager::getFont(defaultFont, NULL, NULL, scene->getArchive(), NULL);
   mPixelSize = defaultPixelSize;
 }
 
 pxText::~pxText()
 {
   removeResourceListener();
+  if (mTextFbo.getPtr() != NULL)
+  {
+    mTextFbo->resetFbo();
+  }
+  mTextFbo = NULL;
 }
 
 void pxText::onInit()
@@ -186,7 +192,7 @@ rtError pxText::setFontUrl(const char* s)
   createNewPromise();
 
   removeResourceListener();
-  mFont = pxFontManager::getFont(s, NULL, NULL, mScene->getArchive());
+  mFont = pxFontManager::getFont(s, NULL, NULL, mScene->getArchive(), NULL);
   mListenerAdded = true;
   if (getFontResource() != NULL)
   {
@@ -223,6 +229,40 @@ rtError pxText::setFont(rtObjectRef o)
   return RT_OK;
 }
 
+rtError pxText::texture(uint32_t &v)
+{
+  v = 0;
+  if (mTextFbo.getPtr() != NULL && mTextFbo->getTexture() != NULL && !mDirty)
+  {
+    v = mTextFbo->getTexture()->getNativeId();
+  }
+  else
+  {
+    pxContextFramebufferRef previousSurface;
+    context.pushState();
+    previousSurface = context.getCurrentFramebuffer();
+    mTextFbo = context.createFramebuffer(getFBOWidth(), getFBOHeight());
+    if (mTextFbo.getPtr())
+    {
+      mTextFbo->enableFlipRendering(true);
+      if (context.setFramebuffer(mTextFbo) == PX_OK)
+      {
+        pxMatrix4f m;
+        context.setMatrix(m);
+        context.setAlpha(1.0);
+        context.clear(getFBOWidth(), getFBOHeight());
+        bool previousDirty = mDirty;
+        draw();
+        mDirty = previousDirty;
+      }
+      context.setFramebuffer(previousSurface);
+      v = mTextFbo->getTexture()->getNativeId();
+    }
+    context.popState();
+  }
+  return RT_OK;
+}
+
 float pxText::getOnscreenWidth()
 {
   // TODO review max texture handling
@@ -234,7 +274,7 @@ float pxText::getOnscreenHeight()
   return (mh > MAX_TEXTURE_HEIGHT?MAX_TEXTURE_HEIGHT:mh);
 }
 
-float pxText::getFBOWidth() 
+float pxText::getFBOWidth()
 { 
   if( mw > MAX_TEXTURE_WIDTH) 
   {
@@ -245,7 +285,7 @@ float pxText::getFBOWidth()
     return mw; 
 }
 
-float pxText::getFBOHeight() 
+float pxText::getFBOHeight()
 { 
   if( mh > MAX_TEXTURE_HEIGHT) 
   {
@@ -309,3 +349,4 @@ rtDefineProperty(pxText, textColor);
 rtDefineProperty(pxText, pixelSize);
 rtDefineProperty(pxText, fontUrl);
 rtDefineProperty(pxText, font);
+rtDefineMethod(pxText, texture);

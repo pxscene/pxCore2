@@ -25,7 +25,7 @@
 1. Install required packages:
     
     ~~~~
-    sudo apt-get install git libglew-dev freeglut3 freeglut3-dev libgcrypt11-dev zlib1g-dev g++ libssl-dev nasm autoconf libtool cmake quilt xmlto
+    sudo apt-get install git libglew-dev freeglut3 freeglut3-dev libgcrypt11-dev zlib1g-dev g++ libssl-dev nasm autoconf libtool cmake quilt xmlto yasm bison flex  python-dev python3-dev
     ~~~~
 
 2. For Ubuntu 18.04+ also install:
@@ -42,7 +42,7 @@
 >   * From terminal install dependencies: cmake, pkg-config, quilt, java.
 
 ```bash
-    brew install cmake pkg-config quilt caskroom/cask/java libuv xmlto
+    brew install cmake pkg-config quilt caskroom/cask/java libuv xmlto glfw3 glew yasm bison flex python
 ```
 
 ## Windows Setup
@@ -56,7 +56,11 @@
 >   * patch utility for windows (this comes with git. setup environment variables depending on install location of patch.exe)
 >   * Download and install cmake for windows from https://cmake.org/download/
 >   * Download and install NSIS installer from http://nsis.sourceforge.net/Download
+>   * Download ans install active state perl 5.28 https://www.activestate.com/products/activeperl/downloads/
 >   * **Run all these commands from a Visual Studio Command Prompt**
+>   Environment variables after compilation -> 
+     1. NODE_PATH -> pxCore/examples/pxScene2d/src; pxCore/examples/pxScene2d/src/node_modules/; [Add them as separate lines]
+     2. PATH variable -> pxCore/examples/pxScene2d/external/openssl-1.0.2o/bin
 
 
 ## Building with CMake (this will work for all platforms after setup is complete)
@@ -78,9 +82,13 @@
       ~~~~
       cd examples/pxScene2d/external
       ~~~~
-      For Linux and Mac run:
+      For Linux and Mac run (Without AAMP Support):
       ~~~~
       ./build.sh
+      ~~~~
+      For Linux and Mac run (With AAMP Support):
+      ~~~~
+      ./build.sh SPARK_ENABLE_VIDEO
       ~~~~
       For Raspberry Pi run:
       ~~~~
@@ -108,10 +116,10 @@
       cd examples/pxScene2d/external/node
       ./configure --shared
       make -j1
-      ln -sf out/Release/obj.target/libnode.so.48 libnode.so.48
-      ln -sf libnode.so.48 libnode.so
-      ln -sf out/Release/libnode.48.dylib libnode.48.dylib
-      ln -sf libnode.48.dylib libnode.dylib
+      ln -sf out/Release/obj.target/libnode.so.* ./
+      ln -sf libnode.so.* libnode.so
+      ln -sf out/Release/libnode.*.dylib ./
+      ln -sf libnode.*.dylib libnode.dylib
       ~~~~
       Build breakpad
       ~~~~
@@ -148,7 +156,8 @@
 4. Build **pxScene**
 
     On following step 3b, Specify -DPREFER_SYSTEM_LIBRARIES=ON to use system libraries rather than libraries from externals directory.
-    Note :  If a dependent library is not found installed on the system, then the version in externals will be used.
+    Note 1:  To enable VIDEO support, specify -DSPARK_ENABLE_VIDEO=ON in cmake command
+    Note 2:  If a dependent library is not found installed on the system, then the version in externals will be used.
     ~~~~
     cd pxCore/
     mkdir temp

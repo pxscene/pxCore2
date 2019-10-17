@@ -147,6 +147,7 @@ rtMutex textureListMutex;
 #ifdef ENABLE_BACKGROUND_TEXTURE_CREATION
 rtMutex contextLock;
 #endif //ENABLE_BACKGROUND_TEXTURE_CREATION
+bool gFlipRendering = false;
 
 
 pxError lockContext()
@@ -321,6 +322,7 @@ static const char *fATextureShaderText =
 /*static*/ const char *vShaderText =
   "uniform vec2 u_resolution;"
   "uniform mat4 amymatrix;"
+  "uniform bool u_flipY;"
   "attribute vec2 pos;"
   "attribute vec2 uv;"
   "varying vec2 v_uv;"
@@ -332,10 +334,11 @@ static const char *fATextureShaderText =
   "  vec4 zeroToTwo = zeroToOne * vec4(2.0, 2.0, 1, 1);"
   "  vec4 clipSpace = zeroToTwo - vec4(1.0, 1.0, 0, 0);"
   "  clipSpace.w = 1.0+clipSpace.z;"
-  "  gl_Position =  clipSpace * vec4(1, -1, 1, 1);"
+  "  int yScale = -1;"
+  "  if (u_flipY) { yScale = 1; }"
+  "  gl_Position =  clipSpace * vec4(1, yScale, 1, 1);"
   "  v_uv = uv;"
   "}";
-
 
 //====================================================================================================================================================================================
 
@@ -352,11 +355,12 @@ inline void premultiply(float* d, const float* s)
 class pxFBOTexture : public pxTexture
 {
 public:
-  pxFBOTexture(bool antiAliasing, bool alphaOnly) : mWidth(0), mHeight(0), mFramebufferId(0), mTextureId(0), mBindTexture(true), mAlphaOnly(alphaOnly)
+  pxFBOTexture(bool antiAliasing, bool alphaOnly, bool depthBuffer) : mWidth(0), mHeight(0), mFramebufferId(0), mTextureId(0), mBindTexture(true), mAlphaOnly(alphaOnly), mDepthBuffer(depthBuffer)
 
 #if (defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL)) && !defined(PXSCENE_DISABLE_PXCONTEXT_EXT)
         ,mAntiAliasing(antiAliasing)
-#endif        
+#endif
+, mDepthrenderbuffer(0)
   {
     UNUSED_PARAM(antiAliasing);
 
@@ -480,6 +484,12 @@ public:
       }
     }
 
+    if (mDepthrenderbuffer != 0)
+    {
+      glDeleteRenderbuffers(1, &mDepthrenderbuffer);
+      mDepthrenderbuffer = 0;
+    }
+
     return PX_OK;
   }
 
@@ -507,7 +517,22 @@ public:
       }
 #endif
 
-      if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+      if (mDepthBuffer)
+      {
+        if (mDepthrenderbuffer == 0)
+          glGenRenderbuffers(1, &mDepthrenderbuffer);
+        glBindRenderbuffer(GL_RENDERBUFFER, mDepthrenderbuffer);
+#if (defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL))
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, mWidth, mHeight);
+#else
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, mWidth, mHeight);
+#endif //(defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL))
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, mDepthrenderbuffer);
+      }
+
+      GLenum result = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+
+      if (result != GL_FRAMEBUFFER_COMPLETE)
       {
         if ((mWidth != 0) && (mHeight != 0))
         {
@@ -520,7 +545,7 @@ public:
             createFboTexture(mWidth, mHeight);
             return prepareForRendering();
           }
-          rtLogWarn("error setting the render surface");
+          rtLogWarn("error setting the render surface: %d", result);
           return PX_FAIL;
         }
         return PX_FAIL;
@@ -584,10 +609,12 @@ private:
   GLuint mTextureId;
   bool mBindTexture;
   bool mAlphaOnly;
+  bool mDepthBuffer;
 
 #if (defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL)) && !defined(PXSCENE_DISABLE_PXCONTEXT_EXT)
   bool mAntiAliasing;
 #endif
+  GLuint mDepthrenderbuffer;
 
 };// CLASS - pxFBOTexture
 
@@ -752,9 +779,19 @@ public:
     return PX_OK;
   }
 
+  virtual void setUpsideDown(bool upsideDown)
+  {
+    // TODO - revisit
+    pxOffscreen tempOffscreen;
+    tempOffscreen.init(mOffscreen.width(), mOffscreen.height());
+    tempOffscreen.setUpsideDown(upsideDown);
+    mOffscreen.blit(tempOffscreen);
+    mOffscreen = tempOffscreen;
+  }
+
   virtual pxError prepareForRendering()
   {
-    if (context.isTextureSpaceAvailable(this, false))
+    if (mTextureName == 0 && context.isTextureSpaceAvailable(this, false))
     {
       glActiveTexture(GL_TEXTURE1);
       glGenTextures(1, &mTextureName);
@@ -768,7 +805,7 @@ public:
       glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
                    mOffscreen.width(), mOffscreen.height(), 0, GL_RGBA,
                    GL_UNSIGNED_BYTE, mOffscreen.base());
-      if (mDownscaleSmooth)
+      if (mDownscaleSmooth && !mMipmapCreated)
       {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
         glGenerateMipmap(GL_TEXTURE_2D);
@@ -1285,6 +1322,7 @@ protected:
   {
     mResolutionLoc = getUniformLocation("u_resolution");
     mMatrixLoc     = getUniformLocation("amymatrix");
+    mFlipYLoc      = getUniformLocation("u_flipY");
     mColorLoc      = getUniformLocation("a_color");
     mAlphaLoc      = getUniformLocation("u_alpha");
   }
@@ -1300,6 +1338,7 @@ public:
 
     glUniform2f(mResolutionLoc, static_cast<GLfloat>(resW), static_cast<GLfloat>(resH));
     glUniformMatrix4fv(mMatrixLoc, 1, GL_FALSE, matrix);
+    glUniform1i(mFlipYLoc, gFlipRendering);
     glUniform1f(mAlphaLoc, alpha);
     glUniform4fv(mColorLoc, 1, color);
 
@@ -1314,6 +1353,7 @@ public:
 private:
   GLint mResolutionLoc;
   GLint mMatrixLoc;
+  GLint mFlipYLoc;
 
   GLint mPosLoc;
   GLint mUVLoc;
@@ -1342,6 +1382,7 @@ protected:
   {
     mResolutionLoc = getUniformLocation("u_resolution");
     mMatrixLoc     = getUniformLocation("amymatrix");
+    mFlipYLoc      = getUniformLocation("u_flipY");
     mColorLoc      = getUniformLocation("a_color");
     mAlphaLoc      = getUniformLocation("u_alpha");
     mTextureLoc    = getUniformLocation("s_texture");
@@ -1361,6 +1402,7 @@ public:
     glUniform2f(mResolutionLoc, static_cast<GLfloat>(resW), static_cast<GLfloat>(resH));
     glUniformMatrix4fv(mMatrixLoc, 1, GL_FALSE, matrix);
     glUniform1f(mAlphaLoc, alpha);
+    glUniform1i(mFlipYLoc, gFlipRendering);
     glUniform4fv(mColorLoc, 1, color);
 
     if (texture->bindGLTexture(mTextureLoc) != PX_OK)
@@ -1382,6 +1424,7 @@ public:
 private:
   GLint mResolutionLoc;
   GLint mMatrixLoc;
+  GLint mFlipYLoc;
 
   GLint mPosLoc;
   GLint mUVLoc;
@@ -1412,6 +1455,7 @@ protected:
   {
     mResolutionLoc = getUniformLocation("u_resolution");
     mMatrixLoc     = getUniformLocation("amymatrix");
+    mFlipYLoc      = getUniformLocation("u_flipY");
     mAlphaLoc      = getUniformLocation("u_alpha");
     mTextureLoc    = getUniformLocation("s_texture");
   }
@@ -1427,6 +1471,7 @@ public:
 
     glUniform2f(mResolutionLoc, static_cast<GLfloat>(resW), static_cast<GLfloat>(resH));
     glUniformMatrix4fv(mMatrixLoc, 1, GL_FALSE, matrix);
+    glUniform1i(mFlipYLoc, gFlipRendering);
     glUniform1f(mAlphaLoc, alpha);
 
     if (texture->bindGLTexture(mTextureLoc) != PX_OK)
@@ -1453,6 +1498,7 @@ public:
 private:
   GLint mResolutionLoc;
   GLint mMatrixLoc;
+  GLint mFlipYLoc;
 
   GLint mPosLoc;
   GLint mUVLoc;
@@ -1480,6 +1526,7 @@ protected:
   {
     mResolutionLoc = getUniformLocation("u_resolution");
     mMatrixLoc     = getUniformLocation("amymatrix");
+    mFlipYLoc      = getUniformLocation("u_flipY");
     mAlphaLoc      = getUniformLocation("u_alpha");
     mColorLoc      = getUniformLocation("u_color");
     mTextureLoc    = getUniformLocation("s_texture");
@@ -1496,6 +1543,7 @@ public:
 
     glUniform2f(mResolutionLoc, static_cast<GLfloat>(resW), static_cast<GLfloat>(resH));
     glUniformMatrix4fv(mMatrixLoc, 1, GL_FALSE, matrix);
+    glUniform1i(mFlipYLoc, gFlipRendering);
     glUniform1f(mAlphaLoc, alpha);
     if (color != NULL)
     {
@@ -1531,6 +1579,7 @@ public:
 private:
   GLint mResolutionLoc;
   GLint mMatrixLoc;
+  GLint mFlipYLoc;
 
   GLint mPosLoc;
   GLint mUVLoc;
@@ -1561,6 +1610,7 @@ protected:
   {
     mResolutionLoc = getUniformLocation("u_resolution");
     mMatrixLoc     = getUniformLocation("amymatrix");
+    mFlipYLoc      = getUniformLocation("u_flipY");
     mAlphaLoc      = getUniformLocation("u_alpha");
     mInvertedLoc   = getUniformLocation("u_doInverted");
     mTextureLoc    = getUniformLocation("s_texture");
@@ -1580,6 +1630,7 @@ public:
 
     glUniform2f(mResolutionLoc, static_cast<GLfloat>(resW), static_cast<GLfloat>(resH));
     glUniformMatrix4fv(mMatrixLoc, 1, GL_FALSE, matrix);
+    glUniform1i(mFlipYLoc, gFlipRendering);
     glUniform1f(mAlphaLoc, alpha);
     glUniform1f(mInvertedLoc, static_cast<GLfloat>((maskOp == pxConstantsMaskOperation::NORMAL) ? 0.0 : 1.0));
     
@@ -1612,6 +1663,7 @@ public:
 private:
   GLint mResolutionLoc;
   GLint mMatrixLoc;
+  GLint mFlipYLoc;
 
   GLint mPosLoc;
   GLint mUVLoc;
@@ -2288,6 +2340,53 @@ void pxContext::clear(int left, int top, int width, int height)
   glClear(GL_COLOR_BUFFER_BIT);
 }
 
+void pxContext::punchThrough(int left, int top, int width, int height)
+{
+  GLfloat priorColor[4];
+  GLint priorBox[4];
+  bool wasEnabled= glIsEnabled(GL_SCISSOR_TEST);
+  glGetIntegerv( GL_SCISSOR_BOX, priorBox );
+  glGetFloatv( GL_COLOR_CLEAR_VALUE, priorColor );
+
+  glEnable( GL_SCISSOR_TEST );
+  glClearColor( 0.0f, 0.0f, 0.0f, 0.0f );
+
+
+  if (left < 0)
+  {
+    left = 0;
+  }
+  if (top < 0)
+  {
+    top = 0;
+  }
+  if ((left+width) > gResW)
+  {
+    width = gResW - left;
+  }
+  if ((top+height) > gResH)
+  {
+    height = gResH - top;
+  }
+  int clearTop = gResH-top-height;
+
+  glEnable(GL_SCISSOR_TEST);
+
+  //map form screen to window coordinates
+  glScissor(left, clearTop, width, height);
+  glClear(GL_COLOR_BUFFER_BIT);
+
+  glClearColor( priorColor[0], priorColor[1], priorColor[2], priorColor[3] );
+  if ( wasEnabled )
+  {
+    glScissor( priorBox[0], priorBox[1], priorBox[2], priorBox[3] );
+  }
+  else
+  {
+    glDisable( GL_SCISSOR_TEST );
+  }
+}
+
 void pxContext::enableClipping(bool enable)
 {
   if (enable)
@@ -2320,10 +2419,10 @@ float pxContext::getAlpha()
   return gAlpha;
 }
 
-pxContextFramebufferRef pxContext::createFramebuffer(int width, int height, bool antiAliasing, bool alphaOnly)
+pxContextFramebufferRef pxContext::createFramebuffer(int width, int height, bool antiAliasing, bool alphaOnly, bool depthBuffer)
 {
   pxContextFramebuffer* fbo = new pxContextFramebuffer();
-  pxFBOTexture* fboTexture = new pxFBOTexture(antiAliasing, alphaOnly);
+  pxFBOTexture* fboTexture = new pxFBOTexture(antiAliasing, alphaOnly, depthBuffer);
   pxTextureRef texture = fboTexture;
 
   fboTexture->createFboTexture(width, height);
@@ -2368,6 +2467,7 @@ pxError pxContext::setFramebuffer(pxContextFramebufferRef fbo)
 
     gAlpha = contextState.alpha;
     gMatrix = contextState.matrix;
+    gFlipRendering = currentFramebuffer->flipRenderingEnabled();
 
 #ifdef PX_DIRTY_RECTANGLES
     if (currentFramebuffer->isDirtyRectanglesEnabled())
@@ -2389,6 +2489,7 @@ pxError pxContext::setFramebuffer(pxContextFramebufferRef fbo)
   currentFramebuffer->currentState(contextState);
   gAlpha = contextState.alpha;
   gMatrix = contextState.matrix;
+  gFlipRendering = currentFramebuffer->flipRenderingEnabled();
 
 #ifdef PX_DIRTY_RECTANGLES
   if (currentFramebuffer->isDirtyRectanglesEnabled())
@@ -2700,9 +2801,9 @@ pxTextureRef pxContext::createTexture(float w, float h, float iw, float ih, void
   return alphaTexture;
 }
 
-pxSharedContextRef pxContext::createSharedContext()
+pxSharedContextRef pxContext::createSharedContext(bool depthBuffer)
 {
-  pxSharedContext* sharedContext = new pxSharedContext();
+  pxSharedContext* sharedContext = new pxSharedContext(depthBuffer);
   return sharedContext;
 }
 
@@ -2949,6 +3050,4 @@ void pxContext::updateRenderTick()
     gRenderTick++;
   }
 }
-
-
 

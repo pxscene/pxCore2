@@ -92,6 +92,7 @@ public:
   virtual bool initialized() { return true; }
   virtual bool readyForRendering() { return true; }
   virtual bool setupForRendering() { return true; }
+  virtual void setUpsideDown(bool /*upsideDown*/) {};
 protected:
   rtAtomic mRef;
   pxTextureType mTextureType;

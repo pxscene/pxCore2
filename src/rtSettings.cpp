@@ -19,15 +19,8 @@
 #include "rtSettings.h"
 
 #include "rtPathUtils.h"
+#include "rtJsonUtils.h"
 
-#include <rapidjson/document.h>
-#include <rapidjson/filereadstream.h>
-#include <rapidjson/error/en.h>
-#include <rapidjson/filewritestream.h>
-#include <rapidjson/writer.h>
-#include <string.h>
-
-const int rtSettings::FILE_BUFFER_SIZE = 65536;
 const char* rtSettings::FILE_NAME = ".sparkSettings.json";
 const char* rtSettings::FILE_ENV_NAME = "SPARK_SETTINGS";
 
@@ -115,69 +108,21 @@ rtError rtSettings::loadFromFile(const rtString& filePath)
   if (settingsPath.isEmpty())
     return RT_RESOURCE_NOT_FOUND;
 
-  FILE* fp = fopen(settingsPath.cString(), "rb");
-  if (NULL == fp)
+  rtValue v;
+  if (jsonFile2rtValue(settingsPath.cString(), v) == RT_OK)
   {
-    rtLogError("%s : cannot open '%s'", __FUNCTION__, settingsPath.cString());
-    return RT_ERROR;
-  }
-
-  rapidjson::Document doc;
-  rapidjson::ParseResult result;
-  char readBuffer[FILE_BUFFER_SIZE];
-  memset(readBuffer, 0, sizeof(readBuffer));
-  rapidjson::FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-  result = doc.ParseStream(is);
-  fclose(fp);
-
-  if (!result)
-  {
-    rapidjson::ParseErrorCode e = doc.GetParseError();
-    rtLogError("%s : [JSON parse error : %s (%ld)]", __FUNCTION__, rapidjson::GetParseError_En(e), result.Offset());
-    return RT_ERROR;
-  }
-
-  if (!doc.IsObject())
-  {
-    rtLogError("%s : no root object in json", __FUNCTION__);
-    return RT_ERROR;
-  }
-
-  for (rapidjson::Value::ConstMemberIterator itr = doc.MemberBegin(); itr != doc.MemberEnd(); ++itr)
-  {
-    const rapidjson::Value& key = itr->name;
-    if (!key.IsString())
+    rtObjectRef obj;
+    if (v.getObject(obj) == RT_OK)
     {
-      rtLogWarn("%s : key is not string", __FUNCTION__);
-      continue;
+      rtValue allKeys;
+      obj->Get("allKeys", &allKeys);
+      rtArrayObject* arr = (rtArrayObject*) allKeys.toObject().getPtr();
+      for (uint32_t i = 0; i < arr->length(); ++i)
+      {
+        rtString key = arr->get<rtString>(i);
+        setValue(key, obj.get<rtValue>(key));
+      }
     }
-
-    const rapidjson::Value& val = itr->value;
-    rtValue value;
-    if (val.IsNull())
-      value = rtValue();
-    else if (val.IsBool())
-      value = val.GetBool();
-    else if (val.IsString())
-      value = val.GetString();
-    else if (val.IsInt())
-      value = val.GetInt();
-    else if (val.IsUint())
-      value = val.GetUint();
-    else if (val.IsInt64())
-      value = val.GetInt64();
-    else if (val.IsUint64())
-      value = val.GetUint64();
-    // All float values are convertible to double, no float in rapidjson
-    else if (val.IsDouble())
-      value = val.GetDouble();
-    else
-    {
-      rtLogWarn("%s : bad value type: %d for key %s", __FUNCTION__, val.GetType(), key.GetString());
-      continue;
-    }
-
-    setValue(key.GetString(), value);
   }
 
   return RT_OK;
@@ -215,65 +160,15 @@ rtError rtSettings::loadFromArgs(int argc, char* argv[])
 
 rtError rtSettings::save(const rtString& filePath) const
 {
-  FILE* fp = fopen(filePath.cString(), "wb");
-  if (NULL == fp)
-  {
-    rtLogError("%s : cannot open '%s'", __FUNCTION__, filePath.cString());
-    return RT_ERROR;
-  }
-
-  rapidjson::Document doc;
-  doc.SetObject();
-
+  rtMapObject* o = new rtMapObject;
   for (std::map<rtString, rtValue>::const_iterator it = mValues.begin(); it != mValues.end(); ++it)
   {
-    rapidjson::Value val;
-    if (it->second.isEmpty())
-      val.SetNull();
-    else
-    {
-      rtType t = it->second.getType();
-      if (t == RT_boolType)
-        val = it->second.toBool();
-      else if (t == RT_int8_tType)
-        val = it->second.toInt8();
-      else if (t == RT_uint8_tType)
-        val = it->second.toUInt8();
-      else if (t == RT_intType || t == RT_int32_tType)
-        val = it->second.toInt32();
-      else if (t == RT_uint32_tType)
-        val = it->second.toUInt32();
-      else if (t == RT_int64_tType)
-        val = it->second.toInt64();
-      else if (t == RT_uint64_tType)
-        val = it->second.toUInt64();
-      else if (t == RT_floatType)
-        val = it->second.toFloat();
-      else if (t == RT_doubleType)
-        val = it->second.toDouble();
-      else if (t == RT_stringType || t == RT_rtStringType)
-      {
-        rtString s = it->second.toString();
-        val.SetString(s.cString(), s.byteLength(), doc.GetAllocator());
-      }
-      else
-      {
-        rtLogWarn("%s : bad value type: %c for key %s", __FUNCTION__, t, it->first.cString());
-        continue;
-      }
-    }
-    rapidjson::Value key;
-    key.SetString(it->first.cString(), it->first.byteLength(), doc.GetAllocator());
-    doc.AddMember(key, val, doc.GetAllocator());
+    o->Set(it->first, &it->second);
   }
 
-  char writeBuffer[FILE_BUFFER_SIZE];
-  rapidjson::FileWriteStream os(fp, writeBuffer, sizeof(writeBuffer));
-  rapidjson::Writer<rapidjson::FileWriteStream> writer(os);
-  doc.Accept(writer);
-  fclose(fp);
+  rtValue v = o;
 
-  return RT_OK;
+  return rtValue2jsonFile(v, filePath.cString());
 }
 
 rtDefineObject(rtSettings, rtObject);

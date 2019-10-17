@@ -19,8 +19,7 @@ if [ ! -d ${xLIBS} ]; then
 
   cp ${xEXT}/jpg/.libs/libjpeg.9.dylib ${xLIBS}
 
-  #cp ${xEXT}/libnode-v6.9.0/out/Release/libnode.dylib ${xLIBS}
-  cp ${xEXT}/libnode-v6.9.0/out/Release/libnode.48.dylib ${xLIBS}  #      <<<<< MISSING ???
+  cp ${xEXT}/node/libnode.dylib ${xLIBS}
 
   ### OLDER PNG
   ##

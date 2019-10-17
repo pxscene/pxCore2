@@ -1960,6 +1960,8 @@ rtError pxLoadAGIFImage(const char *imageData, size_t imageDataSize,
         pxOffscreen obj;
         obj.initWithColor(width, height, pxClear);
         GraphicsControlBlock gcb;
+        gcb.DisposalMode = 0;//GraphicsControlBlock.DISPOSAL_UNSPECIFIED;
+        gcb.DelayTime = 0;
         do {
             // determine what sort of record type we have
             // these can be image, extension, or termination
@@ -2029,7 +2031,8 @@ rtError pxLoadAGIFImage(const char *imageData, size_t imageDataSize,
             
                 // Clear the GCB so it doesn't apply to the next frame.
                 gcb = GraphicsControlBlock();
-				
+                gcb.DisposalMode = 0;//GraphicsControlBlock.DISPOSAL_UNSPECIFIED;
+                gcb.DelayTime = 0;
                 break;
                 
                 case EXTENSION_RECORD_TYPE:
@@ -2211,6 +2214,8 @@ rtError pxLoadGIFImage(const char *imageData, size_t imageDataSize,
         transparent = -1;
         obj.initWithColor(width, height, pxClear);
         GraphicsControlBlock gcb;
+        gcb.DisposalMode = 0;//GraphicsControlBlock.DISPOSAL_UNSPECIFIED;
+        gcb.DelayTime = 0;
         bool isFirstImageRendered = false;
         do {
             // determine what sort of record type we have
@@ -2273,6 +2278,8 @@ rtError pxLoadGIFImage(const char *imageData, size_t imageDataSize,
                     isFirstImageRendered = true;
                     // Clear the GCB so it doesn't apply to the next frame.
                     gcb = GraphicsControlBlock();
+                    gcb.DisposalMode = 0;//GraphicsControlBlock.DISPOSAL_UNSPECIFIED;
+                    gcb.DelayTime = 0;
                     break;
                     
                     case EXTENSION_RECORD_TYPE:

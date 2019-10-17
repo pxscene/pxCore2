@@ -1138,7 +1138,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "cd $PROJECT_DIR/examples/pxScene2d/external\npwd\n./build.sh";
+			shellScript = "cd $PROJECT_DIR/examples/pxScene2d/external\npwd\n./build.sh\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -1294,13 +1294,13 @@
 				EXECUTABLE_PREFIX = lib;
 				GCC_PREPROCESSOR_DEFINITIONS = "$(inherited)";
 				HEADER_SEARCH_PATHS = (
-					"examples/pxScene2d/external/libnode-v6.9.0/src",
-					"examples/pxScene2d/external/libnode-v6.9.0/deps/uv/include",
-					"examples/pxScene2d/external/libnode-v6.9.0/deps/v8",
-					"examples/pxScene2d/external/libnode-v6.9.0/deps/openssl/openssl/include",
-					"examples/pxScene2d/external/libnode-v6.9.0/deps/debugger-agent/include",
-					"examples/pxScene2d/external/libnode-v6.9.0/deps/v8/include",
-					"examples/pxScene2d/external/libnode-v6.9.0/deps/cares/include",
+					examples/pxScene2d/external/node/src,
+					examples/pxScene2d/external/node/deps/uv/include,
+					examples/pxScene2d/external/node/deps/v8,
+					examples/pxScene2d/external/node/deps/openssl/openssl/include,
+					"examples/pxScene2d/external/node/deps/debugger-agent/include",
+					examples/pxScene2d/external/node/deps/v8/include,
+					examples/pxScene2d/external/node/deps/cares/include,
 					examples/pxScene2d/external/zlib/,
 					examples/pxScene2d/external/curl/include,
 					examples/pxScene2d/external/jpg,
@@ -1338,13 +1338,13 @@
 				EXECUTABLE_PREFIX = lib;
 				GCC_PREPROCESSOR_DEFINITIONS = "$(inherited)";
 				HEADER_SEARCH_PATHS = (
-					"examples/pxScene2d/external/libnode-v6.9.0/src",
-					"examples/pxScene2d/external/libnode-v6.9.0/deps/uv/include",
-					"examples/pxScene2d/external/libnode-v6.9.0/deps/v8",
-					"examples/pxScene2d/external/libnode-v6.9.0/deps/openssl/openssl/include",
-					"examples/pxScene2d/external/libnode-v6.9.0/deps/debugger-agent/include",
-					"examples/pxScene2d/external/libnode-v6.9.0/deps/v8/include",
-					"examples/pxScene2d/external/libnode-v6.9.0/deps/cares/include",
+					examples/pxScene2d/external/node/src,
+					examples/pxScene2d/external/node/deps/uv/include,
+					examples/pxScene2d/external/node/deps/v8,
+					examples/pxScene2d/external/node/deps/openssl/openssl/include,
+					"examples/pxScene2d/external/node/deps/debugger-agent/include",
+					examples/pxScene2d/external/node/deps/v8/include,
+					examples/pxScene2d/external/node/deps/cares/include,
 					examples/pxScene2d/external/zlib/,
 					examples/pxScene2d/external/curl/include,
 					examples/pxScene2d/external/jpg,
