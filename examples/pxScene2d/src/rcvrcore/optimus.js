@@ -554,6 +554,7 @@ function Application(props) {
   else if (cmd === "sparkInstance"){
     this.type = ApplicationType.SPARK_INSTANCE;
     process.env.PXCORE_ESSOS_WAYLAND=1;
+    process.env.WESTEROS_FAST_RENDER=0;
     if (uri === ""){
       uri = "preloadSparkInstance.js";
     }
