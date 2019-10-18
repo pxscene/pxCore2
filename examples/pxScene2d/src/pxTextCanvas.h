@@ -169,6 +169,9 @@ public:
     rtMethod2ArgAndNoReturn("translate", translate, int32_t, int32_t);
     rtError translate(int32_t x, int32_t y);
 
+    rtMethod2ArgAndNoReturn(“drawText”, drawText, float, float);
+    rtError drawText(float x, float y);
+
 protected:
     pxTextCanvasMeasurements* getMeasurements() { return (pxTextCanvasMeasurements*)measurements.getPtr();}
     void recalc();
