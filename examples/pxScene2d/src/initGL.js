@@ -703,7 +703,16 @@ async function loadMjs(source, url, context)
             const url2 = filename2url(_frameworkURL);
             const loc2 = /^file:/.test(url2) ? url2.substring(7) : url2;
             const source2 = await getFile(url2);
+
+            // use paths for frameworkURL
+            sandbox.require = makeRequire(loc2);
+            sandbox['__dirname'] = path.dirname(loc2);
+
             vm.runInContext(source2, contextifiedSandbox, {filename:loc2});
+
+            // restore previous values
+            sandbox.require = makeRequire(loc);
+            sandbox['__dirname'] = path.dirname(loc);
           }
 
           const source = await getFile(url);

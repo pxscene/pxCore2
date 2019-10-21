@@ -51,6 +51,8 @@ std::string rtConcatenatePath(const std::string &dir, const std::string &file);
 
 std::string rtGetRootModulePath(const char *file = "");
 
+rtString rtResolveRelativePath(const rtString& relative, const rtString& base);
+
 class rtModuleDirs {
 
 public:
