@@ -690,16 +690,22 @@ uint32_t pxShaderResource::loadResourceData(rtFileDownloadRequest* fileDownloadR
   double startDecodeTime = pxMilliseconds();
   rtError decodeResult = RT_OK;
 
+  // Store FRAGMENT shader code
   if(fileDownloadRequest->tag() == "frg")
   {
     mFragmentSrc.init( (const uint8_t*) fileDownloadRequest->downloadedData(),
                                         fileDownloadRequest->downloadedDataSize());
   }
   else
+  // Store VERTEX shader code
   if(fileDownloadRequest->tag() == "vtx")
   {
     mVertexSrc.init( (const uint8_t*) fileDownloadRequest->downloadedData(),
                                       fileDownloadRequest->downloadedDataSize());
+  }
+  else
+  {
+    return PX_RESOURCE_LOAD_FAIL;
   }
 
   double stopDecodeTime = pxMilliseconds();
