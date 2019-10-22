@@ -851,6 +851,9 @@ var onSceneTerminate  = function() {
   delete sandbox.sparkwebgl.instance.gl;
   delete sandbox.sparkwebgl.instance;
 
+  // memory leak fix
+  sandbox.sparkscene.api = null;
+
   for (var k in sandbox)
   {
     delete sandbox[k];
