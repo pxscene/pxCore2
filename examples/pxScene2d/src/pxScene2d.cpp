@@ -3738,6 +3738,7 @@ void pxScriptView::endDrawing()
 {
   if (mDrawing)
   {
+    glViewport(0,0,1,1);
     glFlush();
     context.setFramebuffer(previousSurface);
     mSharedContext->makeCurrent(false);

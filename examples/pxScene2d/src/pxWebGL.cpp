@@ -383,6 +383,15 @@ rtError pxWebgl::Disable(uint32_t cap)
   return RT_OK;
 }
 
+rtError pxWebgl::Flush()
+{
+  rtLogDebug("Flush called");
+  glFlush();
+  CheckGLError();
+
+  return RT_OK;
+}
+
 rtError pxWebgl::CreateProgram(uint32_t& glprogram)
 {
   rtLogDebug("[%s]",__FUNCTION__);
@@ -857,6 +866,7 @@ rtDefineMethod(pxWebgl, Clear);
 rtDefineMethod(pxWebgl, BlendFunc);
 rtDefineMethod(pxWebgl, Enable);
 rtDefineMethod(pxWebgl, Disable);
+rtDefineMethod(pxWebgl, Flush);
 rtDefineMethod(pxWebgl, CreateProgram);
 rtDefineMethod(pxWebgl, CreateShader);
 rtDefineMethod(pxWebgl, ShaderSource);
