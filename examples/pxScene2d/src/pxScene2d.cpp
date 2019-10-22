@@ -3273,6 +3273,12 @@ void pxScriptView::runScript()
         url = mBootstrap.get<rtString>("applicationURL");
         frameworkURL = mBootstrap.get<rtString>("frameworkURL");
         options = mBootstrap.get<rtObjectRef>("options");
+
+        if (url.beginsWith("./") || url.beginsWith("../"))
+          url = rtResolveRelativePath(url, mUrl);
+
+        if (frameworkURL.beginsWith("./") || frameworkURL.beginsWith("../"))
+          frameworkURL = rtResolveRelativePath(frameworkURL, mUrl);
       }
 
 #if 0
@@ -3732,6 +3738,7 @@ void pxScriptView::endDrawing()
 {
   if (mDrawing)
   {
+    glViewport(0,0,1,1);
     glFlush();
     context.setFramebuffer(previousSurface);
     mSharedContext->makeCurrent(false);
