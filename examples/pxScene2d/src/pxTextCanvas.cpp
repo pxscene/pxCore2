@@ -420,10 +420,9 @@ void pxTextCanvas::renderTextLine(const pxTextLine& textLine)
     const char* cStr = textLine.text.cString();
     float xPos = (float)(textLine.x + textLine.translateX);
     float yPos = (float)(textLine.y + textLine.translateY);
-    
     // TODO ignoring sx and sy now.
-    float sx = 1;
-    float sy = 1;
+    float sx = 1.0;
+    float sy = 1.0;
 
     uint32_t size = textLine.pixelSize;
     uint32_t alignH = textLine.alignHorizontal;
@@ -508,7 +507,7 @@ rtError pxTextCanvas::setText(const char* s)
     return RT_OK;
   }
   mText = s;
-  fillText(mText,0, 0);
+  fillText(mText, 0, mPixelSize);
   if( getFontResource() != NULL && getFontResource()->isFontLoaded())
   {
     getFontResource()->measureTextInternal(s, mPixelSize, 1.0, 1.0, mw, mh);
@@ -600,7 +599,8 @@ rtError pxTextCanvas::measureText(rtString text, rtObjectRef& o)
 
 rtError pxTextCanvas::fillText(rtString text, int32_t x, int32_t y)
 {
-    rtLogDebug("pxTextCanvas::fillText called with params: text: '%s', x %d, y %d. Canvas: '%s' (w x h): %04.0f x %04.0f"
+    rtLogDebug("pxTextCanvas::fillText(%d) called with params: text: '%s', x %d, y %d. Canvas: '%s' (w x h): %04.0f x %04.0f"
+            , mTextLines.size()
             , text.cString()
             , x
             , y
@@ -608,7 +608,7 @@ rtError pxTextCanvas::fillText(rtString text, int32_t x, int32_t y)
             , mw
             , mh
             );
-    pxTextLine textLine(text, x, y + mPixelSize);
+    pxTextLine textLine(text, x, y);
     rtValue color;
     textColor(color);
     textLine.setStyle(mFont, mPixelSize, color.toInt32());
