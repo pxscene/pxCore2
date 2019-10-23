@@ -420,9 +420,10 @@ void pxTextCanvas::renderTextLine(const pxTextLine& textLine)
     const char* cStr = textLine.text.cString();
     float xPos = (float)(textLine.x + textLine.translateX);
     float yPos = (float)(textLine.y + textLine.translateY);
+    
     // TODO ignoring sx and sy now.
-    float sx = msx;
-    float sy = msy;
+    float sx = 1;
+    float sy = 1;
 
     uint32_t size = textLine.pixelSize;
     uint32_t alignH = textLine.alignHorizontal;
