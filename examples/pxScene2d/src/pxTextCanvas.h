@@ -154,6 +154,8 @@ public:
     virtual float getOnscreenWidth();
     virtual float getOnscreenHeight();
 
+    virtual rtError setText(const char* text);
+    
     rtMethod1ArgAndReturn("measureText", measureText, rtString, rtObjectRef);
     rtError measureText(rtString text, rtObjectRef &o);
 
@@ -168,7 +170,8 @@ public:
 
     rtMethod2ArgAndNoReturn("translate", translate, int32_t, int32_t);
     rtError translate(int32_t x, int32_t y);
-
+    rtMethod2ArgAndNoReturn("drawText", drawText, float, float);
+    rtError drawText(float x, float y);
 protected:
     pxTextCanvasMeasurements* getMeasurements() { return (pxTextCanvasMeasurements*)measurements.getPtr();}
     void recalc();
