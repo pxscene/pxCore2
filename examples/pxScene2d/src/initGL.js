@@ -38,7 +38,6 @@ var path = require('path')
 var vm = require('vm')
 var _module = require('module')
 var _require = require;
-var _ws = require('ws')
 var _http = require('http')
 var _https = require('https')
 var urlmain = require("url")
@@ -206,6 +205,7 @@ var bootStrapCache = {}
 
   // Add wrapped standard modules here...
   bootStrapCache[resolveStandardModulePath('ws')] = function WebSocket(address, protocols, options) {
+    var _ws = require('ws');
     let client = new _ws(address, protocols, options);
     _websockets.push(client);
     client.on('close', () => {
