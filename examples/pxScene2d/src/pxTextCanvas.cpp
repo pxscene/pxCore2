@@ -608,7 +608,7 @@ rtError pxTextCanvas::fillText(rtString text, int32_t x, int32_t y)
             , mw
             , mh
             );
-    pxTextLine textLine(text, x, y + mPixelSize);
+    pxTextLine textLine(text, x, y);
     rtValue color;
     textColor(color);
     textLine.setStyle(mFont, mPixelSize, color.toInt32());
