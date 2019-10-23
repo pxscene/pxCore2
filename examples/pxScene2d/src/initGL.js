@@ -42,7 +42,7 @@ var _ws = require('ws')
 var _http = require('http')
 var _https = require('https')
 var urlmain = require("url")
-var nodeFetchSpark = require('sparkHttp_wrap')
+//var nodeFetchSpark = require('sparkHttp_wrap')
 const {promisify} = require('util')
 const readFileAsync = promisify(fs.readFile)
 const ArrayJoin = Function.call.bind(Array.prototype.join);
@@ -217,7 +217,7 @@ var bootStrapCache = {}
     });
     return client;
   };
-  bootStrapCache[resolveStandardModulePath('node-fetch')] = nodeFetchSpark;
+  //bootStrapCache[resolveStandardModulePath('node-fetch')] = nodeFetchSpark;
 
 function initializeImportMeta(meta, { url }) {
   meta.url = url;
