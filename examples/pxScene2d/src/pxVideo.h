@@ -26,8 +26,18 @@
 #include "pxScene2d.h"
 #include "pxObject.h"
 #include "pxContext.h"
+#include <map>
+#include <memory>
 
 //#define AAMP_USE_SHADER 1
+
+struct PlaybackMetadata
+{
+	int languageCount;                                              /**< Available language count */
+	char languages[MAX_LANGUAGE_COUNT][MAX_LANGUAGE_TAG_LENGTH];    /**< Available languages */
+	int supportedSpeedCount;                                        /**< Supported playback speed count */
+	int supportedSpeeds[MAX_SUPPORTED_SPEED_COUNT];                 /**< Supported playback speeds */
+};
 
 class pxVideo: public pxObject
 {
@@ -39,12 +49,12 @@ public:
   rtReadOnlyProperty(availableSpeeds, availableSpeeds, rtObjectRef);
   rtReadOnlyProperty(duration, duration, float);
   rtProperty(zoom, zoom, setZoom, rtString);
-  rtProperty(volume, volume, setVolume, uint32_t);
+  rtProperty(volume, volume, setVolume, int);
   rtProperty(closedCaptionsOptions, closedCaptionsOptions, setClosedCaptionsOptions, rtObjectRef);
   rtProperty(closedCaptionsLanguage, closedCaptionsLanguage, setClosedCaptionsLanguage, rtString);
   rtProperty(contentOptions, contentOptions, setContentOptions, rtObjectRef);
-  rtProperty(speed, speed, setSpeedProperty, float);
-  rtProperty(position, position, setPosition, float);
+  rtProperty(speed, speed, setSpeedProperty, int);
+  rtProperty(position, position, setPosition, double);
   rtProperty(audioLanguage, audioLanguage, setAudioLanguage, rtString);
   rtProperty(secondaryAudioLanguage, secondaryAudioLanguage, setSecondaryAudioLanguage, rtString);
   rtProperty(url, url, setUrl, rtString);
@@ -55,7 +65,7 @@ public:
   rtMethodNoArgAndNoReturn("play", play);
   rtMethodNoArgAndNoReturn("pause", pause);
   rtMethodNoArgAndNoReturn("stop", stop);
-  rtMethod2ArgAndNoReturn("setSpeed", setSpeed, float, float);
+  rtMethod2ArgAndNoReturn("setSpeed", setSpeed, int, int);
   rtMethod1ArgAndNoReturn("setPositionRelative", setPositionRelative, float);
   rtMethodNoArgAndNoReturn("requestStatus", requestStatus);
   rtMethod1ArgAndNoReturn("setAdditionalAuth", setAdditionalAuth, rtObjectRef);
@@ -67,26 +77,26 @@ public:
   virtual void onInit();
 
   //properties
-  virtual rtError availableAudioLanguages(rtObjectRef& v) const;
+  virtual rtError availableAudioLanguages(rtObjectRef& languages) const;
   virtual rtError availableClosedCaptionsLanguages(rtObjectRef& v) const;
-  virtual rtError availableSpeeds(rtObjectRef& v) const;
-  virtual rtError duration(float& v) const;
+  virtual rtError availableSpeeds(rtObjectRef& speeds) const;
+  virtual rtError duration(float& duration) const;
   virtual rtError zoom(rtString& v) const;
-  virtual rtError setZoom(const char* s);
-  virtual rtError volume(uint32_t& v) const;
-  virtual rtError setVolume(uint32_t v);
+  virtual rtError setZoom(const char* zoom);
+  virtual rtError volume(int& volume) const;
+  virtual rtError setVolume(int volume);
   virtual rtError closedCaptionsOptions(rtObjectRef& v) const;
   virtual rtError setClosedCaptionsOptions(rtObjectRef v);
   virtual rtError closedCaptionsLanguage(rtString& v) const;
   virtual rtError setClosedCaptionsLanguage(const char* s);
   virtual rtError contentOptions(rtObjectRef& v) const;
   virtual rtError setContentOptions(rtObjectRef v);
-  virtual rtError speed(float& v) const;
-  virtual rtError setSpeedProperty(float v);
-  virtual rtError position(float& v) const;
-  virtual rtError setPosition(float v);
-  virtual rtError audioLanguage(rtString& v) const;
-  virtual rtError setAudioLanguage(const char* s);
+  virtual rtError speed(int& speed) const;
+  virtual rtError setSpeedProperty(int speed);
+  virtual rtError position(double& position) const;
+  virtual rtError setPosition(double position);
+  virtual rtError audioLanguage(rtString& language) const;
+  virtual rtError setAudioLanguage(const char* language);
   virtual rtError secondaryAudioLanguage(rtString& v) const;
   virtual rtError setSecondaryAudioLanguage(const char* s);
   virtual rtError url(rtString& url) const;
@@ -102,8 +112,8 @@ public:
   virtual rtError play();
   virtual rtError pause();
   virtual rtError stop();
-  virtual rtError setSpeed(float speed, float overshootCorrection );
-  virtual rtError setPositionRelative(float seconds);
+  virtual rtError setSpeed(int speed, int overshootCorrection);
+  virtual rtError setPositionRelative(double relativePosition);
   virtual rtError requestStatus();
   virtual rtError setAdditionalAuth(rtObjectRef params);
   
@@ -112,10 +122,14 @@ public:
   void updateYUVFrame(uint8_t *yuvBuffer, int size, int pixel_w, int pixel_h);
 
 private:
+
   void InitPlayerLoop();
   void TermPlayerLoop();
   static void* AAMPGstPlayer_StreamThread(void *arg);
   static void newAampFrame(void* context, void* data);
+  void registerMediaMetadataEventListener();
+  void registerSpeedsChangedEventListener();
+  void unregisterEventsListeners();
 
 private:
     static GMainLoop *AAMPGstPlayerMainLoop;
@@ -138,6 +152,10 @@ private:
     YUVBUFFER mYuvBuffer;
     bool initialized = false;
     GThread *aampMainLoopThread;
+
+    std::map<AAMPEventType, std::unique_ptr<AAMPEventListener>> mEventsListeners;
+
+    PlaybackMetadata mPlaybackMetadata;
 
 public:
     static pxVideo *pxVideoObj; //This object
