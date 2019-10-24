@@ -599,8 +599,7 @@ rtError pxTextCanvas::measureText(rtString text, rtObjectRef& o)
 
 rtError pxTextCanvas::fillText(rtString text, int32_t x, int32_t y)
 {
-    rtLogDebug("pxTextCanvas::fillText(%d) called with params: text: '%s', x %d, y %d. Canvas: '%s' (w x h): %04.0f x %04.0f"
-            , mTextLines.size()
+    rtLogDebug("pxTextCanvas::fillText called with params: text: '%s', x %d, y %d. Canvas: '%s' (w x h): %04.0f x %04.0f"
             , text.cString()
             , x
             , y
