@@ -352,7 +352,6 @@ void pxTextCanvas::onInit()
 
 void pxTextCanvas::recalc()
 {
-    
     if( mNeedsRecalc && mInitialized && mFontLoaded) {
         clearMeasurements();
 #ifdef PXSCENE_FONT_ATLAS
