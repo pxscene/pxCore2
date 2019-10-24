@@ -60,7 +60,6 @@
 >   * **Run all these commands from a Visual Studio Command Prompt**
 >   Environment variables after compilation -> 
      1. NODE_PATH -> pxCore/examples/pxScene2d/src; pxCore/examples/pxScene2d/src/node_modules/; [Add them as separate lines]
-     2. PATH variable -> pxCore/examples/pxScene2d/external/openssl-1.0.2o/bin
 
 
 ## Building with CMake (this will work for all platforms after setup is complete)
