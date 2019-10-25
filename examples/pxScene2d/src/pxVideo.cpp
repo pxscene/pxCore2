@@ -69,7 +69,9 @@ void pxVideo::TermPlayerLoop()
 	{
 		g_main_loop_quit(AAMPGstPlayerMainLoop);
 		g_thread_join(aampMainLoopThread);
-		gst_deinit ();
+		//gst_deinit(); gst_deinit should not be called on every pxVideo object destruction.
+		// This is because after call to gst_deinit, you can not use gstreamer at all.
+		// Even call to gst_init will not change it, and will not reinitialize gstreamer.
 		printf("%s(): Exited GStreamer MainLoop.\n", __FUNCTION__);
 	}
 }
