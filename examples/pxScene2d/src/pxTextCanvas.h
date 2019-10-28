@@ -170,6 +170,7 @@ public:
 
     rtMethod2ArgAndNoReturn("translate", translate, int32_t, int32_t);
     rtError translate(int32_t x, int32_t y);
+    
     rtMethod2ArgAndNoReturn("paint", paint, float, float);
     rtError paint(float x, float y);
 protected:
