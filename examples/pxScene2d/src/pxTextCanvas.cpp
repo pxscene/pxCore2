@@ -532,7 +532,7 @@ void pxTextCanvas::draw()
 #endif
 }
 
-rtError pxTextCanvas::drawText(float x, float y)
+rtError pxTextCanvas::paint(float x, float y)
 {
 #ifdef PXSCENE_FONT_ATLAS
     if (mDirty)
@@ -679,4 +679,4 @@ rtDefineMethod(pxTextCanvas, fillText);
 rtDefineMethod(pxTextCanvas, clear);
 rtDefineMethod(pxTextCanvas, fillRect);
 rtDefineMethod(pxTextCanvas, translate);
-rtDefineMethod(pxTextCanvas, drawText);
+rtDefineMethod(pxTextCanvas, paint);
