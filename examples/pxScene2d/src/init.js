@@ -41,7 +41,7 @@ global.constructPromise = function (obj) {
         obj.then2(resolve, reject);
     });
 }
-}
+} // end isDuk
 else if (isV8) {
 global = global || {};
 global.console = console = require('console');
@@ -54,6 +54,21 @@ global.clearInterval = clearInterval = timers.clearInterval;
 global.Promise = Promise = require('bluebird');
 global.process = process = require('process');
 global.pako = pako = require('pako');
+} // end isV8
+else {
+  // not isDuk and not isV8
+
+  let process = require('process');
+  if (process.listenerCount('uncaughtException') === 0) {
+    process.on('uncaughtException', (err, origin) => {
+      console.log('Received uncaught exception ' + err.stack);
+    });
+  }
+  if (process.listenerCount('unhandledRejection') === 0) {
+    process.on('unhandledRejection', (reason, promise) => {
+      console.log('Received uncaught rejection.... ' + reason);
+    });
+  }
 }
 
 var AppSceneContext = require('rcvrcore/AppSceneContext');
@@ -72,7 +87,7 @@ global.loadUrl = function loadUrl(url) {
 
   ctx.loadScene();
 }
-}
+} // end isDuk
 else {
     var baseViewerUrl = getSetting('defaultViewerBaseUrl')
     
@@ -128,7 +143,6 @@ else {
         }
         
         //console.log('Rewritten Url: ', url)
-
 
         var ctx = new AppSceneContext({        scene: getScene("scene.1"),
                                             makeReady: this.makeReady,

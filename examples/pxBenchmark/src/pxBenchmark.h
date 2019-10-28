@@ -18,7 +18,6 @@
 #include "pxTimer.h"
 #include "pxWindow.h"
 
-#define ANIMATION_ROTATE_XYZ
 #include "rtUrlUtils.h"
 #include "rtScript.h"
 #include <stdlib.h>
@@ -105,6 +104,7 @@ class pxApiFixture : public celero::TestFixture
     void TestDrawImage9Border ();
     void TestDrawImageJPG ();
     void TestDrawImagePNG ();
+    void TestDrawImageGIF ();
     void TestDrawAll ();
     void TestDrawImageMasked ();
     void TestDrawTextureQuads ();
@@ -116,6 +116,7 @@ class pxApiFixture : public celero::TestFixture
     void TestDrawImageMaskedRan ();
     void TestDrawTextureQuadsRan ();
     pxTextureRef GetImageTexture (const std::string& format);
+    pxOffscreen& GetImageATexture (const std::string& format);
     
     pxTextureRef CreateTexture ();
 public:
@@ -137,6 +138,7 @@ public:
         xDrawTextureQuadsRan,*/
         xDrawImageJPG,
         xDrawImagePNG,
+        xDrawImageGIF,
         xDrawAll,
         xEnd
     };

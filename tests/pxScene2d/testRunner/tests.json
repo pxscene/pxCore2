@@ -59,6 +59,15 @@
       {"url":"../tests/test_pxColorNames.js", "title":"test_pxColorNames","useBaseURI":"true"},
       {"url":"../tests/test_objects_alpha.js", "title":"test_objects_alpha","useBaseURI":"true"},
       {"url":"../tests/test_dirty_rectangles.js", "title":"test_dirty_rectangles","useBaseURI":"true"},
+      {"url":"../tests/test_bootstrap.spark", "title":"test_bootstrap","timeToRun": "5000","useBaseURI":"true"},
       {"url":"../tests/test_gifLoader.js", "title":"test_gifLoader","useBaseURI":"true"},
-      {"url":"../tests/test_pxRectangleWithAlpha0-1.js", "title":"test_pxRectangleWithAlpha0-1","useBaseURI":"true"}
+      {"url":"../tests/test_pxShaderResource.js", "title":"test_pxShaderResource","useBaseURI":"true"},
+      {"url":"../tests/test_pxRectangleWithAlpha0-1.js", "title":"test_pxRectangleWithAlpha0-1","useBaseURI":"true"},
+      {"url":"../tests/test_pxScreenshot.js", "title":"test_pxScreenshot","useBaseURI":"true"},
+      {"url":"../tests/test_pxResourceA.js", "title":"test_pxResourceA","useBaseURI":"true"},
+      {"url":"../tests/test_gifLoader_pxImage.js", "title":"test_gifLoader_pxImage","useBaseURI":"true"},
+      {"url":"../tests/test_transparentGifLoader.js", "title":"test_transparentGifLoader","useBaseURI":"true"},
+      {"url":"../tests/test_compressedGifLoader.js", "title":"test_compressedGifLoader","useBaseURI":"true"},
+      {"url":"../tests/test_ws.js", "title":"test_ws","useBaseURI":"true"},
+      {"url":"../tests/test_storage.js", "title":"test_storage","useBaseURI":"true"}
 ]

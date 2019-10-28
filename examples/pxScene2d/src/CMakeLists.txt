@@ -3,7 +3,7 @@ project(pxscene)
 find_package(PkgConfig)
 
 set(EXE "Spark")
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
@@ -34,7 +34,7 @@ set(PX_LIBRARY_LINK_PXCORE 1)
 option(BUILD_WITH_GL "BUILD_WITH_GL" ON)
 option(BUILD_WITH_WAYLAND "BUILD_WITH_WAYLAND" OFF)
 option(BUILD_WITH_WESTEROS "BUILD_WITH_WESTEROS" OFF)
-option(BUILD_WITH_CXX_11 "BUILD_WITH_CXX_11" ON)
+option(BUILD_WITH_CXX_1Y "BUILD_WITH_CXX_1Y" ON)
 option(BUILD_WITH_TEXTURE_USAGE_MONITORING "BUILD_WITH_TEXTURE_USAGE_MONITORING" OFF)
 option(BUILD_WITH_WINDOWLESS_EGL "BUILD_WITH_WINDOWLESS_EGL" OFF)
 option(BUILD_PXSCENE_WAYLAND_EGL "BUILD_PXSCENE_WAYLAND_EGL" OFF)
@@ -63,6 +63,7 @@ option(SPARK_ENABLE_ALPHA_FBO_SUPPORT "SPARK_ENABLE_ALPHA_FBO_SUPPORT" ON)
 option(SPARK_ENABLE_CURSOR_SUPPORT "SPARK_ENABLE_CURSOR_SUPPORT" OFF)
 option(BUILD_WITH_PXOBJECT_TRACKING "BUILD_WITH_PXOBJECT_TRACKING" OFF)
 option(SPARK_ENABLE_OPTIMIZED_UPDATE "SPARK_ENABLE_OPTIMIZED_UPDATE" OFF)
+option(SPARK_ENABLE_WEBGL "SPARK_ENABLE_WEBGL" ON)
 
 if(WIN32)
     option(PXSCENE_COMPILE_WARNINGS_AS_ERRORS "PXSCENE_COMPILE_WARNINGS_AS_ERRORS" OFF)
@@ -83,16 +84,29 @@ set(PXSCENE_DEFINITIONS )
 set(PXSCENE_ADDITIONAL_RESOURCES )
 set(PXSCENE_INSTALLER 0)
 
+add_definitions(-DANIMATION_ROTATE_XYZ )
+
+if(WIN32)
+  set(OPENSSLLIB ${EXTDIR}/openssl-1.0.2o/)
+  set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${OPENSSLLIB}/lib)
+  
+  include_directories(AFTER ${OPENSSLLIB}/bin)
+endif(WIN32)
+
 if (BUILD_WITH_GIF)
 message("Building with GIF support")
 set(GIF ${EXTDIR}/giflib-5.1.9/)
+
+if ((NOT PREFER_SYSTEM_LIBRARIES) OR (PREFER_EXTERNAL_GIF))
 set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${GIF})
-	
+endif ((NOT PREFER_SYSTEM_LIBRARIES) OR (PREFER_EXTERNAL_GIF))
+
 if(WIN32)
-	set(PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} libgif.lib)
+	set(PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} libgif.7.lib)
 else()
 	set(PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} gif)
 endif(WIN32)
+
 add_definitions(-DSUPPORT_GIF)
 endif (BUILD_WITH_GIF)
 
@@ -123,7 +137,7 @@ if (APPLE)
     set(PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} pxCore rtCore_s pthread ${NODE_LIBRARIES} ${V8_LIBRARIES} ${DUKE_LIBRARIES} ${COMM_DEPS_LIBRARIES})
     if (SUPPORT_V8)
         set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${UWS})
-        set(PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} uWS) 
+        set(PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} uWS)
     endif ()
 
     include_directories(AFTER ${NODE_INCLUDE_DIRS} ${DUKE_INCLUDE_DIRS} ${COMM_DEPS_INCLUDE_DIRS})
@@ -146,8 +160,8 @@ if (APPLE)
 
 elseif (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
 
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC -fpermissive -g -Wall -Wno-attributes -Wall -Wextra")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -fpermissive -g -Wall -Wno-attributes -Wall -Wextra")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC -g -Wall -Wno-attributes -Wall -Wextra")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -g -Wall -Wno-attributes -Wall -Wextra")
     execute_process(COMMAND "hostname" OUTPUT_VARIABLE HOSTNAME)
     string(STRIP ${HOSTNAME} HOSTNAME)
     set(PXSCENE_DEFINITIONS ${PXSCENE_DEFINITIONS} -DRT_PLATFORM_LINUX)
@@ -259,7 +273,10 @@ elseif (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
         set(PLATFORM_SOURCES glut/pxContextUtils.cpp)
         set(PXSCENE_DEFINITIONS ${PXSCENE_DEFINITIONS} -DHAS_LINUX_BREAKPAD)
         include_directories(AFTER ${GLUTINC})
-        set(PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} glut breakpad_client uWS)
+        set(PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} glut breakpad_client )
+        if (SUPPORT_V8)
+          set(PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} uWS)
+        endif (SUPPORT_V8)
         set(PX_LIBRARY_LINK_PXCORE 0)
     endif (HOSTNAME STREQUAL "raspberrypi")
     if (NOT USE_NODE_0_12_7)
@@ -285,33 +302,15 @@ elseif (WIN32)
     add_definitions(-DWIN32 -D_LIB -DPX_PLATFORM_WIN -DRT_PLATFORM_WINDOWS)
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT ")
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /EHs-c-")
-    set(PXCORE_LIB_LOCATION ${PXCOREDIR}/build/win/Release)
+    set(PXCORE_LIB_LOCATION ${PXCORE_LIB_LOCATION} ${PXCOREDIR}/build/win/Release)
     set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${PXCORE_LIB_LOCATION})
     set(PLATFORM_SOURCES win/pxContextUtils.cpp)
-	if ((SUPPORT_NODE) AND (NOT USE_NODE_8))
-        set(PLATFORM_SOURCES ${PLATFORM_SOURCES}
-           ${NODEDIR}/src/async-wrap.cc ${NODEDIR}/src/backtrace_win32.cc
-           ${NODEDIR}/src/cares_wrap.cc ${NODEDIR}/src/connection_wrap.cc ${NODEDIR}/src/connect_wrap.cc
-           ${NODEDIR}/src/debug-agent.cc ${NODEDIR}/src/env.cc ${NODEDIR}/src/fs_event_wrap.cc ${NODEDIR}/src/handle_wrap.cc
-           ${NODEDIR}/src/inspector_agent.cc ${NODEDIR}/src/inspector_socket.cc ${NODEDIR}/src/js_stream.cc ${NODEDIR}/src/node.cc
-           ${NODEDIR}/src/node_buffer.cc ${NODEDIR}/src/node_config.cc ${NODEDIR}/src/node_constants.cc
-           ${NODEDIR}/src/node_contextify.cc ${NODEDIR}/src/node_counters.cc ${NODEDIR}/src/node_crypto.cc
-           ${NODEDIR}/src/node_crypto_bio.cc ${NODEDIR}/src/node_crypto_clienthello.cc ${NODEDIR}/src/node_dtrace.cc
-           ${NODEDIR}/src/node_file.cc ${NODEDIR}/src/node_http_parser.cc ${NODEDIR}/src/node_i18n.cc
-           ${NODEDIR}/src/node_javascript.cc ${NODEDIR}/src/node_os.cc ${NODEDIR}/src/node_revert.cc
-           ${NODEDIR}/src/node_stat_watcher.cc ${NODEDIR}/src/node_util.cc ${NODEDIR}/src/node_v8.cc ${NODEDIR}/src/node_watchdog.cc
-           ${NODEDIR}/src/node_win32_etw_provider.cc ${NODEDIR}/src/node_win32_perfctr_provider.cc ${NODEDIR}/src/node_zlib.cc
-           ${NODEDIR}/src/pipe_wrap.cc ${NODEDIR}/src/process_wrap.cc ${NODEDIR}/src/signal_wrap.cc ${NODEDIR}/src/spawn_sync.cc
-           ${NODEDIR}/src/stream_base.cc ${NODEDIR}/src/stream_wrap.cc ${NODEDIR}/src/string_bytes.cc ${NODEDIR}/src/string_search.cc
-           ${NODEDIR}/src/tcp_wrap.cc ${NODEDIR}/src/timer_wrap.cc ${NODEDIR}/src/tls_wrap.cc ${NODEDIR}/src/tty_wrap.cc
-           ${NODEDIR}/src/udp_wrap.cc ${NODEDIR}/src/util.cc ${NODEDIR}/src/uv.cc)
-    endif ()
     set(PLATFORM_SOURCES ${PLATFORM_SOURCES} ${PXCOREDIR}/src/utf8.c)
     set_source_files_properties(utf8.c PROPERTIES LANGUAGE CXX)
     set(PXSCENE_DEFINITIONS ${PXSCENE_DEFINITIONS} -DHAS_WINDOWS_BREAKPAD)
     add_definitions(-DPX_PLATFORM_WIN -DRT_PLATFORM_WINDOWS -DWIN32 -DWIN32_LEAN_AND_MEAN -DGLEW_STATIC -D_TIMESPEC_DEFINED -D_CONSOLE
             -DCURL_STATICLIB -DRUNINMAIN -DENABLE_RT_NODE -DDISABLE_WAYLAND -DNODE_WANT_INTERNALS=1
-            -DENABLE_NODE_V_6_9 -DENABLE_V8_HEAP_PARAMS=1 -DV8_DEPRECATION_WARNINGS=1 -DNODE_SHARED_MODE 
+            -DENABLE_NODE_V_6_9 -DENABLE_V8_HEAP_PARAMS=1 -DV8_DEPRECATION_WARNINGS=1 -DNODE_SHARED_MODE
             -DENABLE_MAX_TEXTURE_SIZE
             -DHAVE_OPENSSL -D_CRT_SECURE_NO_DEPRECATE -D_CRT_NONSTDC_NO_DEPRECATE -D_HAS_EXCEPTIONS=0 -DBUILDING_V8_SHARED=1
             -DBUILDING_UV_SHARED=1 -DNODE_ARCH="ia32" -DNODE_USE_V8_PLATFORM=1 -DNODE_HAVE_I18N_SUPPORT=1 -DNODE_HAVE_SMALL_ICU=1
@@ -333,7 +332,7 @@ elseif (WIN32)
         Ws2_32.lib Wldap32.lib psapi.lib
         iphlpapi.lib userenv.lib rtCore_s.lib common.lib
         crash_generation_client.lib exception_handler.lib)
-  
+
     if(SUPPORT_DUKTAPE)
       set(PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} msvcrt.lib)
     endif(SUPPORT_DUKTAPE)
@@ -383,9 +382,11 @@ include_directories(AFTER ${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(AFTER ${CMAKE_CURRENT_SOURCE_DIR}/rasterizer)
 
 set(PXSCENE_COMMON_FILES pxResource.cpp pxConstants.cpp pxRectangle.cpp pxFont.cpp pxText.cpp
-        pxTextBox.cpp pxImage.cpp pxImage9.cpp pxImageA.cpp pxImage9Border.cpp pxArchive.cpp pxAnimate.cpp)
+    pxTextBox.cpp pxTextCanvas.cpp pxImage.cpp pxImage9.cpp pxImageA.cpp pxImage9Border.cpp pxArchive.cpp pxAnimate.cpp)
 
 set(PXSCENE_COMMON_FILES ${PXSCENE_COMMON_FILES} pxObject.cpp)
+set(PXSCENE_COMMON_FILES ${PXSCENE_COMMON_FILES} pxShaderUtils.cpp)
+set(PXSCENE_COMMON_FILES ${PXSCENE_COMMON_FILES} pxShaderResource.cpp)
 set(PXSCENE_COMMON_FILES ${PXSCENE_COMMON_FILES} pxScene2d.cpp)
 
 set(PXWAYLAND_LIB_FILES pxContextGL.cpp egl/pxContextUtils.cpp)
@@ -467,9 +468,31 @@ if (SPARK_ENABLE_OPTIMIZED_UPDATE)
     add_definitions(-DENABLE_SPARK_OPTIMIZED_UPDATE)
 endif (SPARK_ENABLE_OPTIMIZED_UPDATE)
 
+if (SPARK_ENABLE_WEBGL)
+     message("Enabling webgl support")
+     add_definitions(-DENABLE_SPARK_WEBGL)
+     set(PXSCENE_COMMON_FILES ${PXSCENE_COMMON_FILES} pxWebGL.cpp)
+endif(SPARK_ENABLE_WEBGL)
+
+if (SPARK_ENABLE_VIDEO)
+	message("Enabling video support")
+	add_definitions(-DENABLE_SPARK_VIDEO)
+	set(VIDEO_SUPPORT "ENABLE-AAMP")
+	set(PXSCENE_COMMON_FILES ${PXSCENE_COMMON_FILES} pxVideo.cpp)
+	if (SPARK_ENABLE_VIDEO_PUNCHTHROUGH)
+		message("Enabling video punchthrough")
+		add_definitions(-DENABLE_SPARK_VIDEO_PUNCHTHROUGH)
+	endif(SPARK_ENABLE_VIDEO_PUNCHTHROUGH)
+endif(SPARK_ENABLE_VIDEO)
+
 set(PXSCENE_COMMON_FILES ${PXSCENE_COMMON_FILES} ${PLATFORM_SOURCES})
 
 set(PXSCENE_APP_FILES ${PXSCENE_COMMON_FILES} Spark.cpp)
+if (PX_LIBRARY_SUPPORT GREATER 0)
+    if (BUILD_PXSCENE_SHARED_LIB OR BUILD_PXSCENE_SHARED_LIB)
+        set(PXSCENE_APP_FILES Spark.cpp)
+    endif (BUILD_PXSCENE_SHARED_LIB OR BUILD_PXSCENE_SHARED_LIB)
+endif (PX_LIBRARY_SUPPORT GREATER 0)
 set(PXSCENE_LIB_FILES ${PXSCENE_COMMON_FILES})
 
 if (PXSCENE_COMPILE_WARNINGS_AS_ERRORS)
@@ -481,11 +504,11 @@ if (PXSCENE_COMPILE_WARNINGS_AS_ERRORS)
   endif ()
 endif (PXSCENE_COMPILE_WARNINGS_AS_ERRORS)
 
-if (BUILD_WITH_CXX_11)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+if (BUILD_WITH_CXX_1Y)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++1y")
 else ()
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
-endif (BUILD_WITH_CXX_11)
+endif (BUILD_WITH_CXX_1Y)
 
 execute_process(
         COMMAND git rev-parse HEAD
@@ -521,12 +544,13 @@ if (BUILD_PXSCENE_APP)
     add_definitions(${PXSCENE_DEFINITIONS})
 
     if (APPLE)
-        add_custom_command(TARGET pxscene_app COMMENT "making app bundle" POST_BUILD COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/mkapp.sh WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+        add_custom_command(TARGET pxscene_app COMMENT "making app bundle" POST_BUILD COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/mkapp.sh ${VIDEO_SUPPORT} WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
     endif (APPLE)
 
     if (PX_LIBRARY_SUPPORT GREATER 0)
         if (BUILD_PXSCENE_SHARED_LIB OR BUILD_PXSCENE_SHARED_LIB)
-            add_dependencies(pxscene_app pxscene)
+            add_dependencies(pxscene_app pxscene_shared)
+            target_link_libraries(pxscene_app -L${CMAKE_CURRENT_SOURCE_DIR} -lSpark ${PXSCENE_APP_LIBRARIES} ${PXSCENE_LINK_LIBRARIES})
         endif (BUILD_PXSCENE_SHARED_LIB OR BUILD_PXSCENE_SHARED_LIB)
     endif (PX_LIBRARY_SUPPORT GREATER 0)
 
@@ -557,9 +581,10 @@ if (BUILD_PXSCENE_APP)
 
         file(GLOB PXSCENE_INSTALL_FILES "${CMAKE_CURRENT_SOURCE_DIR}/FreeSans.ttf"
            "${CMAKE_CURRENT_SOURCE_DIR}/*.json" "${CMAKE_CURRENT_SOURCE_DIR}/*.conf"
-           "${CMAKE_CURRENT_SOURCE_DIR}/../external/vc.build/builds/*.dll" 
+           "${CMAKE_CURRENT_SOURCE_DIR}/../external/vc.build/builds/*.dll"
            "${CMAKE_CURRENT_SOURCE_DIR}/../external/v8/out.gn/ia32.release/v8*.dll"
-           "${CMAKE_CURRENT_SOURCE_DIR}/Release/")
+           "${CMAKE_CURRENT_SOURCE_DIR}/Release/"
+           "${CMAKE_CURRENT_SOURCE_DIR}/../external/openssl-1.0.2o/bin/*.dll")
         if (SUPPORT_DUKTAPE)
             message("installing additional duktape files")
             install(FILES ${PXSCENE_INSTALL_FILES_JS2} DESTINATION . COMPONENT pxscene)

@@ -27,6 +27,8 @@
 #include "rtScript.h"
 #include "rtSettings.h"
 
+#include "pxShaderUtils.h"
+
 #include "pxContext.h"
 #include "pxUtil.h"
 #include <algorithm>
@@ -125,10 +127,7 @@ rtThreadQueue* gUIThreadQueue = new rtThreadQueue();
 double lastContextGarbageCollectTime = 0;
 double garbageCollectThrottleInSeconds = CONTEXT_GC_THROTTLE_SECS_DEFAULT;
 
-enum pxCurrentGLProgram { PROGRAM_UNKNOWN = 0, PROGRAM_SOLID_SHADER,  PROGRAM_A_TEXTURE_SHADER, PROGRAM_TEXTURE_SHADER,
-    PROGRAM_TEXTURE_MASKED_SHADER, PROGRAM_TEXTURE_BORDER_SHADER};
-
-pxCurrentGLProgram currentGLProgram = PROGRAM_UNKNOWN;
+int currentGLProgram = -1;
 
 #if defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL)
 extern EGLContext defaultEglContext;
@@ -148,6 +147,7 @@ rtMutex textureListMutex;
 #ifdef ENABLE_BACKGROUND_TEXTURE_CREATION
 rtMutex contextLock;
 #endif //ENABLE_BACKGROUND_TEXTURE_CREATION
+bool gFlipRendering = false;
 
 
 pxError lockContext()
@@ -319,9 +319,10 @@ static const char *fATextureShaderText =
   "  gl_FragColor = a_color*a;"
   "}";
 
-static const char *vShaderText =
+/*static*/ const char *vShaderText =
   "uniform vec2 u_resolution;"
   "uniform mat4 amymatrix;"
+  "uniform bool u_flipY;"
   "attribute vec2 pos;"
   "attribute vec2 uv;"
   "varying vec2 v_uv;"
@@ -333,10 +334,11 @@ static const char *vShaderText =
   "  vec4 zeroToTwo = zeroToOne * vec4(2.0, 2.0, 1, 1);"
   "  vec4 clipSpace = zeroToTwo - vec4(1.0, 1.0, 0, 0);"
   "  clipSpace.w = 1.0+clipSpace.z;"
-  "  gl_Position =  clipSpace * vec4(1, -1, 1, 1);"
+  "  int yScale = -1;"
+  "  if (u_flipY) { yScale = 1; }"
+  "  gl_Position =  clipSpace * vec4(1, yScale, 1, 1);"
   "  v_uv = uv;"
   "}";
-
 
 //====================================================================================================================================================================================
 
@@ -353,11 +355,12 @@ inline void premultiply(float* d, const float* s)
 class pxFBOTexture : public pxTexture
 {
 public:
-  pxFBOTexture(bool antiAliasing, bool alphaOnly) : mWidth(0), mHeight(0), mFramebufferId(0), mTextureId(0), mBindTexture(true), mAlphaOnly(alphaOnly)
+  pxFBOTexture(bool antiAliasing, bool alphaOnly, bool depthBuffer) : mWidth(0), mHeight(0), mFramebufferId(0), mTextureId(0), mBindTexture(true), mAlphaOnly(alphaOnly), mDepthBuffer(depthBuffer)
 
 #if (defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL)) && !defined(PXSCENE_DISABLE_PXCONTEXT_EXT)
         ,mAntiAliasing(antiAliasing)
-#endif        
+#endif
+, mDepthrenderbuffer(0)
   {
     UNUSED_PARAM(antiAliasing);
 
@@ -481,6 +484,12 @@ public:
       }
     }
 
+    if (mDepthrenderbuffer != 0)
+    {
+      glDeleteRenderbuffers(1, &mDepthrenderbuffer);
+      mDepthrenderbuffer = 0;
+    }
+
     return PX_OK;
   }
 
@@ -508,7 +517,22 @@ public:
       }
 #endif
 
-      if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+      if (mDepthBuffer)
+      {
+        if (mDepthrenderbuffer == 0)
+          glGenRenderbuffers(1, &mDepthrenderbuffer);
+        glBindRenderbuffer(GL_RENDERBUFFER, mDepthrenderbuffer);
+#if (defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL))
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, mWidth, mHeight);
+#else
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, mWidth, mHeight);
+#endif //(defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL))
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, mDepthrenderbuffer);
+      }
+
+      GLenum result = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+
+      if (result != GL_FRAMEBUFFER_COMPLETE)
       {
         if ((mWidth != 0) && (mHeight != 0))
         {
@@ -521,7 +545,7 @@ public:
             createFboTexture(mWidth, mHeight);
             return prepareForRendering();
           }
-          rtLogWarn("error setting the render surface");
+          rtLogWarn("error setting the render surface: %d", result);
           return PX_FAIL;
         }
         return PX_FAIL;
@@ -585,10 +609,12 @@ private:
   GLuint mTextureId;
   bool mBindTexture;
   bool mAlphaOnly;
+  bool mDepthBuffer;
 
 #if (defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL)) && !defined(PXSCENE_DISABLE_PXCONTEXT_EXT)
   bool mAntiAliasing;
 #endif
+  GLuint mDepthrenderbuffer;
 
 };// CLASS - pxFBOTexture
 
@@ -753,9 +779,19 @@ public:
     return PX_OK;
   }
 
+  virtual void setUpsideDown(bool upsideDown)
+  {
+    // TODO - revisit
+    pxOffscreen tempOffscreen;
+    tempOffscreen.init(mOffscreen.width(), mOffscreen.height());
+    tempOffscreen.setUpsideDown(upsideDown);
+    mOffscreen.blit(tempOffscreen);
+    mOffscreen = tempOffscreen;
+  }
+
   virtual pxError prepareForRendering()
   {
-    if (context.isTextureSpaceAvailable(this, false))
+    if (mTextureName == 0 && context.isTextureSpaceAvailable(this, false))
     {
       glActiveTexture(GL_TEXTURE1);
       glGenTextures(1, &mTextureName);
@@ -769,7 +805,7 @@ public:
       glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
                    mOffscreen.width(), mOffscreen.height(), 0, GL_RGBA,
                    GL_UNSIGNED_BYTE, mOffscreen.base());
-      if (mDownscaleSmooth)
+      if (mDownscaleSmooth && !mMipmapCreated)
       {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
         glGenerateMipmap(GL_TEXTURE_2D);
@@ -1268,121 +1304,6 @@ private:
 
 }; // CLASS - pxTextureAlpha
 
-//====================================================================================================================================================================================
-struct glShaderProgDetails
-{
-  GLuint program;
-  GLuint fragShader;
-  GLuint vertShader;
-};
-
-static glShaderProgDetails  createShaderProgram(const char* vShaderTxt, const char* fShaderTxt)
-{
-  struct glShaderProgDetails details = { 0,0,0 };
-  GLint stat;
-
-  details.fragShader = glCreateShader(GL_FRAGMENT_SHADER);
-  glShaderSource(details.fragShader, 1, (const char **) &fShaderTxt, NULL);
-  glCompileShader(details.fragShader);
-  glGetShaderiv(details.fragShader, GL_COMPILE_STATUS, &stat);
-
-  if (!stat)
-  {
-    rtLogError("Error: fragment shader did not compile: %d", glGetError());
-
-    GLint maxLength = 0;
-    glGetShaderiv(details.fragShader, GL_INFO_LOG_LENGTH, &maxLength);
-
-    //The maxLength includes the NULL character
-    std::vector<char> errorLog(maxLength);
-    glGetShaderInfoLog(details.fragShader, maxLength, &maxLength, &errorLog[0]);
-
-    rtLogWarn("%s", &errorLog[0]);
-    //Exit with failure.
-    glDeleteShader(details.fragShader); //Don't leak the shader.
-
-    //TODO get rid of exit
-    exit(1);
-  }
-
-  details.vertShader = glCreateShader(GL_VERTEX_SHADER);
-  glShaderSource(details.vertShader, 1, (const char **) &vShaderTxt, NULL);
-  glCompileShader(details.vertShader);
-  glGetShaderiv(details.vertShader, GL_COMPILE_STATUS, &stat);
-
-  if (!stat)
-  {
-    rtLogError("vertex shader did not compile: %d", glGetError());
-    exit(1);
-  }
-
-  details.program = glCreateProgram();
-  glAttachShader(details.program, details.fragShader);
-  glAttachShader(details.program, details.vertShader);
-  return details;
-}
-
-void linkShaderProgram(GLuint program)
-{
-  GLint stat;
-
-  glLinkProgram(program);  /* needed to put attribs into effect */
-  glGetProgramiv(program, GL_LINK_STATUS, &stat);
-  if (!stat)
-  {
-    char log[1000];
-    GLsizei len;
-    glGetProgramInfoLog(program, 1000, &len, log);
-    rtLogError("faild to link:%s", log);
-    // TODO purge all exit calls
-    exit(1);
-  }
-}
-
-//====================================================================================================================================================================================
-
-class shaderProgram
-{
-public:
-  virtual ~shaderProgram() {
-   glDetachShader(mProgram, mFragShader);
-   glDetachShader(mProgram, mVertShader);
-   glDeleteShader(mFragShader);
-   glDeleteShader(mVertShader);
-   glDeleteProgram(mProgram);
-  }
-  virtual void init(const char* v, const char* f)
-  {
-    glShaderProgDetails details = createShaderProgram(v, f);
-    mProgram    = details.program;
-    mFragShader = details.fragShader;
-    mVertShader = details.vertShader;
-    prelink();
-    linkShaderProgram(mProgram);
-    postlink();
-  }
-
-  int getUniformLocation(const char* name)
-  {
-    int l = glGetUniformLocation(mProgram, name);
-    if (l == -1)
-      rtLogError("Shader does not define uniform %s.\n", name);
-    return l;
-  }
-
-  void use()
-  {
-    currentGLProgram = PROGRAM_UNKNOWN;
-    glUseProgram(mProgram);
-  }
-
-protected:
-  // Override to do uniform lookups
-  virtual void prelink() {}
-  virtual void postlink() {}
-
-  GLuint mProgram,mFragShader,mVertShader;
-}; // CLASS - shaderProgram
 
 //====================================================================================================================================================================================
 
@@ -1401,6 +1322,7 @@ protected:
   {
     mResolutionLoc = getUniformLocation("u_resolution");
     mMatrixLoc     = getUniformLocation("amymatrix");
+    mFlipYLoc      = getUniformLocation("u_flipY");
     mColorLoc      = getUniformLocation("a_color");
     mAlphaLoc      = getUniformLocation("u_alpha");
   }
@@ -1412,13 +1334,11 @@ public:
             int count,
             const float* color)
   {
-    if (currentGLProgram != PROGRAM_SOLID_SHADER)
-    {
-      use();
-      currentGLProgram = PROGRAM_SOLID_SHADER;
-    }
+    use(); // change program... if needed
+
     glUniform2f(mResolutionLoc, static_cast<GLfloat>(resW), static_cast<GLfloat>(resH));
     glUniformMatrix4fv(mMatrixLoc, 1, GL_FALSE, matrix);
+    glUniform1i(mFlipYLoc, gFlipRendering);
     glUniform1f(mAlphaLoc, alpha);
     glUniform4fv(mColorLoc, 1, color);
 
@@ -1433,6 +1353,7 @@ public:
 private:
   GLint mResolutionLoc;
   GLint mMatrixLoc;
+  GLint mFlipYLoc;
 
   GLint mPosLoc;
   GLint mUVLoc;
@@ -1461,6 +1382,7 @@ protected:
   {
     mResolutionLoc = getUniformLocation("u_resolution");
     mMatrixLoc     = getUniformLocation("amymatrix");
+    mFlipYLoc      = getUniformLocation("u_flipY");
     mColorLoc      = getUniformLocation("a_color");
     mAlphaLoc      = getUniformLocation("u_alpha");
     mTextureLoc    = getUniformLocation("s_texture");
@@ -1475,14 +1397,12 @@ public:
             pxTextureRef texture,
             const float* color)
   {
-    if (currentGLProgram != PROGRAM_A_TEXTURE_SHADER)
-    {
-      use();
-      currentGLProgram = PROGRAM_A_TEXTURE_SHADER;
-    }
+    use(); // change program... if needed
+
     glUniform2f(mResolutionLoc, static_cast<GLfloat>(resW), static_cast<GLfloat>(resH));
     glUniformMatrix4fv(mMatrixLoc, 1, GL_FALSE, matrix);
     glUniform1f(mAlphaLoc, alpha);
+    glUniform1i(mFlipYLoc, gFlipRendering);
     glUniform4fv(mColorLoc, 1, color);
 
     if (texture->bindGLTexture(mTextureLoc) != PX_OK)
@@ -1504,6 +1424,7 @@ public:
 private:
   GLint mResolutionLoc;
   GLint mMatrixLoc;
+  GLint mFlipYLoc;
 
   GLint mPosLoc;
   GLint mUVLoc;
@@ -1534,6 +1455,7 @@ protected:
   {
     mResolutionLoc = getUniformLocation("u_resolution");
     mMatrixLoc     = getUniformLocation("amymatrix");
+    mFlipYLoc      = getUniformLocation("u_flipY");
     mAlphaLoc      = getUniformLocation("u_alpha");
     mTextureLoc    = getUniformLocation("s_texture");
   }
@@ -1545,13 +1467,11 @@ public:
             pxTextureRef texture,
             int32_t stretchX, int32_t stretchY)
   {
-    if (currentGLProgram != PROGRAM_TEXTURE_SHADER)
-    {
-      use();
-      currentGLProgram = PROGRAM_TEXTURE_SHADER;
-    }
+    use(); // change program... if needed
+
     glUniform2f(mResolutionLoc, static_cast<GLfloat>(resW), static_cast<GLfloat>(resH));
     glUniformMatrix4fv(mMatrixLoc, 1, GL_FALSE, matrix);
+    glUniform1i(mFlipYLoc, gFlipRendering);
     glUniform1f(mAlphaLoc, alpha);
 
     if (texture->bindGLTexture(mTextureLoc) != PX_OK)
@@ -1578,6 +1498,7 @@ public:
 private:
   GLint mResolutionLoc;
   GLint mMatrixLoc;
+  GLint mFlipYLoc;
 
   GLint mPosLoc;
   GLint mUVLoc;
@@ -1605,6 +1526,7 @@ protected:
   {
     mResolutionLoc = getUniformLocation("u_resolution");
     mMatrixLoc     = getUniformLocation("amymatrix");
+    mFlipYLoc      = getUniformLocation("u_flipY");
     mAlphaLoc      = getUniformLocation("u_alpha");
     mColorLoc      = getUniformLocation("u_color");
     mTextureLoc    = getUniformLocation("s_texture");
@@ -1617,13 +1539,11 @@ public:
                pxTextureRef texture,
                int32_t stretchX, int32_t stretchY, const float* color = NULL)
   {
-    if (currentGLProgram != PROGRAM_TEXTURE_BORDER_SHADER)
-    {
-      use();
-      currentGLProgram = PROGRAM_TEXTURE_BORDER_SHADER;
-    }
+    use(); // change program... if needed
+
     glUniform2f(mResolutionLoc, static_cast<GLfloat>(resW), static_cast<GLfloat>(resH));
     glUniformMatrix4fv(mMatrixLoc, 1, GL_FALSE, matrix);
+    glUniform1i(mFlipYLoc, gFlipRendering);
     glUniform1f(mAlphaLoc, alpha);
     if (color != NULL)
     {
@@ -1659,6 +1579,7 @@ public:
 private:
   GLint mResolutionLoc;
   GLint mMatrixLoc;
+  GLint mFlipYLoc;
 
   GLint mPosLoc;
   GLint mUVLoc;
@@ -1689,6 +1610,7 @@ protected:
   {
     mResolutionLoc = getUniformLocation("u_resolution");
     mMatrixLoc     = getUniformLocation("amymatrix");
+    mFlipYLoc      = getUniformLocation("u_flipY");
     mAlphaLoc      = getUniformLocation("u_alpha");
     mInvertedLoc   = getUniformLocation("u_doInverted");
     mTextureLoc    = getUniformLocation("s_texture");
@@ -1704,13 +1626,11 @@ public:
             pxTextureRef mask,
             pxConstantsMaskOperation::constants maskOp = pxConstantsMaskOperation::NORMAL)
   {
-    if (currentGLProgram != PROGRAM_TEXTURE_MASKED_SHADER)
-    {
-      use();
-      currentGLProgram = PROGRAM_TEXTURE_MASKED_SHADER;
-    }
+    use(); // change program... if needed
+
     glUniform2f(mResolutionLoc, static_cast<GLfloat>(resW), static_cast<GLfloat>(resH));
     glUniformMatrix4fv(mMatrixLoc, 1, GL_FALSE, matrix);
+    glUniform1i(mFlipYLoc, gFlipRendering);
     glUniform1f(mAlphaLoc, alpha);
     glUniform1f(mInvertedLoc, static_cast<GLfloat>((maskOp == pxConstantsMaskOperation::NORMAL) ? 0.0 : 1.0));
     
@@ -1743,6 +1663,7 @@ public:
 private:
   GLint mResolutionLoc;
   GLint mMatrixLoc;
+  GLint mFlipYLoc;
 
   GLint mPosLoc;
   GLint mUVLoc;
@@ -1777,6 +1698,44 @@ static void drawRect2(GLfloat x, GLfloat y, GLfloat w, GLfloat h, const float* c
   gSolidShader->draw(gResW,gResH,gMatrix.data(),gAlpha,GL_TRIANGLE_STRIP,verts,4,colorPM);
 }
 
+
+static void drawEffect(GLfloat x, GLfloat y, GLfloat w, GLfloat h, pxTextureRef t, shaderProgram *shader)
+{
+  if(shader == NULL)
+  {
+    rtLogError("drawEffect() ... Shader is NULL !");
+    return;
+  }
+
+  // args are tested at call site...
+  
+  const float verts[4][2] =
+  {
+    { x  , y   },
+    { x+w, y   },
+    { x  , y+h },
+    { x+w, y+h }
+  };
+  
+  float iw = static_cast<float>( t ? t->width()  : 1);
+  float ih = static_cast<float>( t ? t->height() : 1);
+  
+  float tw = w/iw;
+  float th = h/ih;
+  
+  float firstTextureY  = 1.0;
+  float secondTextureY = static_cast<float>(1.0-th);
+  
+  const float uv[4][2] =
+  {
+    { 0,  firstTextureY  },
+    { tw, firstTextureY  },
+    { 0,  secondTextureY },
+    { tw, secondTextureY }
+  };
+  
+  shader->draw(gResW, gResH, gMatrix.data(), gAlpha, t, GL_TRIANGLE_STRIP, verts, (t ? uv : NULL), 4);
+}
 
 static void drawRectOutline(GLfloat x, GLfloat y, GLfloat w, GLfloat h, GLfloat lw, const float* c)
 {
@@ -2178,19 +2137,19 @@ void pxContext::init()
   SAFE_DELETE(gTextureMaskedShader);
 
   gSolidShader = new solidShaderProgram();
-  gSolidShader->init(vShaderText,fSolidShaderText);
+  gSolidShader->initShader(vShaderText,fSolidShaderText);
 
   gATextureShader = new aTextureShaderProgram();
-  gATextureShader->init(vShaderText,fATextureShaderText);
+  gATextureShader->initShader(vShaderText,fATextureShaderText);
 
   gTextureShader = new textureShaderProgram();
-  gTextureShader->init(vShaderText,fTextureShaderText);
+  gTextureShader->initShader(vShaderText,fTextureShaderText);
 
   gTextureBorderShader = new textureBorderShaderProgram();
-  gTextureBorderShader->init(vShaderText,fTextureBorderShaderText);
+  gTextureBorderShader->initShader(vShaderText,fTextureBorderShaderText);
 
   gTextureMaskedShader = new textureMaskedShaderProgram();
-  gTextureMaskedShader->init(vShaderText,fTextureMaskedShaderText);
+  gTextureMaskedShader->initShader(vShaderText,fTextureMaskedShaderText);
 
   glEnable(GL_BLEND);
 
@@ -2381,6 +2340,53 @@ void pxContext::clear(int left, int top, int width, int height)
   glClear(GL_COLOR_BUFFER_BIT);
 }
 
+void pxContext::punchThrough(int left, int top, int width, int height)
+{
+  GLfloat priorColor[4];
+  GLint priorBox[4];
+  bool wasEnabled= glIsEnabled(GL_SCISSOR_TEST);
+  glGetIntegerv( GL_SCISSOR_BOX, priorBox );
+  glGetFloatv( GL_COLOR_CLEAR_VALUE, priorColor );
+
+  glEnable( GL_SCISSOR_TEST );
+  glClearColor( 0.0f, 0.0f, 0.0f, 0.0f );
+
+
+  if (left < 0)
+  {
+    left = 0;
+  }
+  if (top < 0)
+  {
+    top = 0;
+  }
+  if ((left+width) > gResW)
+  {
+    width = gResW - left;
+  }
+  if ((top+height) > gResH)
+  {
+    height = gResH - top;
+  }
+  int clearTop = gResH-top-height;
+
+  glEnable(GL_SCISSOR_TEST);
+
+  //map form screen to window coordinates
+  glScissor(left, clearTop, width, height);
+  glClear(GL_COLOR_BUFFER_BIT);
+
+  glClearColor( priorColor[0], priorColor[1], priorColor[2], priorColor[3] );
+  if ( wasEnabled )
+  {
+    glScissor( priorBox[0], priorBox[1], priorBox[2], priorBox[3] );
+  }
+  else
+  {
+    glDisable( GL_SCISSOR_TEST );
+  }
+}
+
 void pxContext::enableClipping(bool enable)
 {
   if (enable)
@@ -2413,10 +2419,10 @@ float pxContext::getAlpha()
   return gAlpha;
 }
 
-pxContextFramebufferRef pxContext::createFramebuffer(int width, int height, bool antiAliasing, bool alphaOnly)
+pxContextFramebufferRef pxContext::createFramebuffer(int width, int height, bool antiAliasing, bool alphaOnly, bool depthBuffer)
 {
   pxContextFramebuffer* fbo = new pxContextFramebuffer();
-  pxFBOTexture* fboTexture = new pxFBOTexture(antiAliasing, alphaOnly);
+  pxFBOTexture* fboTexture = new pxFBOTexture(antiAliasing, alphaOnly, depthBuffer);
   pxTextureRef texture = fboTexture;
 
   fboTexture->createFboTexture(width, height);
@@ -2443,7 +2449,8 @@ pxContextFramebufferRef pxContext::getCurrentFramebuffer()
 
 pxError pxContext::setFramebuffer(pxContextFramebufferRef fbo)
 {
-  currentGLProgram = PROGRAM_UNKNOWN;
+  currentGLProgram = -1; //NB: Force a re-bind of GL program
+
   if (fbo.getPtr() == NULL || fbo->getTexture().getPtr() == NULL)
   {
     glViewport ( 0, 0, defaultContextSurface.width, defaultContextSurface.height);
@@ -2460,6 +2467,7 @@ pxError pxContext::setFramebuffer(pxContextFramebufferRef fbo)
 
     gAlpha = contextState.alpha;
     gMatrix = contextState.matrix;
+    gFlipRendering = currentFramebuffer->flipRenderingEnabled();
 
 #ifdef PX_DIRTY_RECTANGLES
     if (currentFramebuffer->isDirtyRectanglesEnabled())
@@ -2481,6 +2489,7 @@ pxError pxContext::setFramebuffer(pxContextFramebufferRef fbo)
   currentFramebuffer->currentState(contextState);
   gAlpha = contextState.alpha;
   gMatrix = contextState.matrix;
+  gFlipRendering = currentFramebuffer->flipRenderingEnabled();
 
 #ifdef PX_DIRTY_RECTANGLES
   if (currentFramebuffer->isDirtyRectanglesEnabled())
@@ -2768,6 +2777,12 @@ void pxContext::drawDiagLine(float x1, float y1, float x2, float y2, float* colo
   gSolidShader->draw(gResW,gResH,gMatrix.data(),gAlpha,GL_LINES,verts,2,colorPM);
 }
 
+// convenience method
+void pxContext::drawEffect(float x, float y, float w, float h, pxTextureRef t, shaderProgram *shader)
+{
+  ::drawEffect(x, y, w, h, t, shader);
+};
+
 pxTextureRef pxContext::createTexture()
 {
   pxTextureNone* noneTexture = new pxTextureNone();
@@ -2786,9 +2801,9 @@ pxTextureRef pxContext::createTexture(float w, float h, float iw, float ih, void
   return alphaTexture;
 }
 
-pxSharedContextRef pxContext::createSharedContext()
+pxSharedContextRef pxContext::createSharedContext(bool depthBuffer)
 {
-  pxSharedContext* sharedContext = new pxSharedContext();
+  pxSharedContext* sharedContext = new pxSharedContext(depthBuffer);
   return sharedContext;
 }
 
@@ -3035,6 +3050,4 @@ void pxContext::updateRenderTick()
     gRenderTick++;
   }
 }
-
-
 

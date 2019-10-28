@@ -190,6 +190,6 @@ Run local versions of *testRunner* and *tests.json*:
 
 Run deployed *testRunner* with local *tests.json* file via queryParam "tests":
 ``` 
-./soark.sh https://www.sparkui.org/tests-ci/test-run/testRunner.js?tests=file://{local_path_to_a_tests.json_file}
+./spark.sh https://www.sparkui.org/tests-ci/test-run/testRunner.js?tests=file://{local_path_to_a_tests.json_file}
 ```
 

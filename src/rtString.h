@@ -125,6 +125,9 @@ public:
   int32_t find(size_t pos, const char* s) const;
   int32_t find(size_t pos, uint32_t codePoint) const;
 
+  rtString trim(void) const;
+  static rtString toString(size_t val);
+
 private:
   char* mData;
 };

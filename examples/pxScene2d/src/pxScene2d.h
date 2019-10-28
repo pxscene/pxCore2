@@ -44,8 +44,6 @@
 #include "rtPromise.h"
 #include "rtThreadQueue.h"
 
-#define ANIMATION_ROTATE_XYZ
-
 #include "pxResource.h"
 
 #include "pxCore.h"
@@ -106,6 +104,7 @@ extern rtThreadQueue* gUIThreadQueue;
 // TODO Finish
 //#include "pxTransform.h"
 #include "pxConstants.h"
+#include "pxContextUtils.h"
 
 // Constants
 static pxConstants CONSTANTS;
@@ -560,52 +559,48 @@ typedef rtRef<pxSceneContainer> pxSceneContainerRef;
 
 typedef rtRef<pxObject> pxObjectRef;
 
+class scriptViewShadow: public rtObject
+{
+  rtDeclareObject(scriptViewShadow, rtObject);
+  rtMethod2ArgAndNoReturn("on", addListener, rtString, rtFunctionRef);
+  rtMethod2ArgAndNoReturn("delListener", delListener, rtString, rtFunctionRef);
+
+public:
+  scriptViewShadow()
+  {
+    mEmit = new rtEmit();
+  }
+
+  rtEmitRef emit()
+  {
+    return mEmit;
+  }
+
+private:
+
+  rtError addListener(rtString  eventName, const rtFunctionRef& f)
+  {
+    return mEmit->addListener(eventName, f);
+  }
+
+  rtError delListener(rtString  eventName, const rtFunctionRef& f)
+  {
+    return mEmit->delListener(eventName, f);
+  }
+
+  rtEmitRef mEmit;
+};
+
 // Important that this have a separate lifetime from scene object
 // and to not hold direct references to this objects from the script context
 // Don't make this into an rtObject
-class pxScriptView: public pxIView
+class pxScriptView: public rtObject, public pxIView
 {
 public:
   pxScriptView(const char* url, const char* /*lang*/, pxIViewContainer* container=NULL);
-#ifndef RUNINMAIN
+  virtual ~pxScriptView();
+
   void runScript(); // Run the script
-#endif
-  virtual ~pxScriptView()
-  {
-    rtLogDebug("~pxScriptView for mUrl=%s\n",mUrl.cString());
-    // Clear out these references since the script context
-    // can outlive this view
-#ifdef ENABLE_RT_NODE
-    if(mCtx)
-    {
-      mGetScene->clearContext();
-      mMakeReady->clearContext();
-      mGetContextID->clearContext();
-      mGetSetting->clearContext();
-
-      // TODO Given that the context is being cleared we likely don't need to zero these out
-      mCtx->add("getScene", 0);
-      mCtx->add("makeReady", 0);
-      mCtx->add("getContextID", 0);
-      mCtx->add("getSetting", 0);
-    }
-#endif //ENABLE_RT_NODE
-
-    if (mView)
-      mView->setViewContainer(NULL);
-
-    // TODO JRJR Do we have GC tests yet
-    // Hack to try and reduce leaks until garbage collection can
-    // be cleaned up
-    if(mScene)
-      mEmit.send("onSceneRemoved", mScene);
-
-    if (mScene)
-      mScene.send("dispose");
-
-    mView = NULL;
-    mScene = NULL;
-  }
 
   virtual unsigned long AddRef() 
   {
@@ -674,126 +669,36 @@ protected:
   static rtError getContextID(int /*numArgs*/, const rtValue* /*args*/, rtValue* result, void* /*ctx*/);
   static rtError getSetting(int numArgs, const rtValue* args, rtValue* result, void* /*ctx*/);
 
-  virtual void onSize(int32_t w, int32_t h)
-  {
-    mWidth = w;
-    mHeight = h;
-    if (mView)
-      mView->onSize(w,h);
-  }
+  void beginDrawing();
+  void endDrawing();
+
+  static rtError beginDrawing2(int /*numArgs*/, const rtValue* /*args*/, rtValue* result, void* ctx);
+  static rtError endDrawing2(int /*numArgs*/, const rtValue* /*args*/, rtValue* result, void* ctx);
+
+  static rtError sparkHttp(int numArgs, const rtValue* args, rtValue* result, void* /*ctx*/);
+
+  virtual void onSize(int32_t w, int32_t h);
 
   virtual void onCloseRequest()
   {
     rtLogDebug("pxScriptView::onCloseRequest()\n");
-    mScene.send("dispose");
+    if (mScene)
+      mScene.send("dispose");
     mScene = NULL;
     mView = NULL;
   }
 
-  virtual bool onMouseDown(int32_t x, int32_t y, uint32_t flags)
-  {
-    if (mView)
-      return mView->onMouseDown(x,y,flags);
-    return false;
-  }
-
-  virtual bool onMouseUp(int32_t x, int32_t y, uint32_t flags)
-  {
-    if (mView)
-      return mView->onMouseUp(x,y,flags);
-    return false;
-  }
-
-  virtual bool onMouseMove(int32_t x, int32_t y)
-  {
-    if (mView)
-      return mView->onMouseMove(x,y);
-    return false;
-  }
-
-  virtual bool onDragMove(int32_t x, int32_t y, int32_t type)
-  {
-    if (mView)
-    return mView->onDragMove(x,y, type);
-    return false;
-  }
-
-  virtual bool onDragEnter(int32_t x, int32_t y, int32_t type)
-  {
-    if (mView)
-    return mView->onDragEnter(x,y, type);
-    return false;
-  }
-
-  virtual bool onDragLeave(int32_t x, int32_t y, int32_t type)
-  {
-    if (mView)
-    return mView->onDragLeave(x,y, type);
-    return false;
-  }
-
-  virtual bool onDragDrop(int32_t x, int32_t y, int32_t type, const char *dropped)
-  {
-    if (mView)
-    return mView->onDragDrop(x,y, type, dropped);
-    return false;
-  }
-
-  virtual bool onScrollWheel(float dx, float dy)
-  {
-    if (mView)
-      return mView->onScrollWheel(dx,dy);
-    return false;
-  }
-  
-  virtual bool onMouseEnter()
-  {
-    if (mView)
-      return mView->onMouseEnter();
-    return false;
-  }
-
-  virtual bool onMouseLeave()
-  {
-    if (mView)
-      return mView->onMouseLeave();
-    return false;
-  }
-
-  virtual bool onFocus()
-  {
-    if (mView)
-      return mView->onFocus();
-    return false;
-  }
-
-  virtual bool onBlur()
-  {
-    if (mView)
-      return mView->onBlur();
-    return false;
-  }
-
-  virtual bool onKeyDown(uint32_t keycode, uint32_t flags)
-  {
-    if (mView)
-      return mView->onKeyDown(keycode, flags);
-    return false;
-  }
-
-  virtual bool onKeyUp(uint32_t keycode, uint32_t flags)
-  {
-    if (mView)
-      return mView->onKeyUp(keycode,flags);
-    return false;
-  }
-
-  virtual bool onChar(uint32_t codepoint)
-  {
-    if (mView)
-      return mView->onChar(codepoint);
-    return false;
-  }
+  virtual bool onMouseDown(int32_t x, int32_t y, uint32_t flags);
+  virtual bool onMouseUp(int32_t x, int32_t y, uint32_t flags);
+  virtual bool onMouseMove(int32_t x, int32_t y);
+  virtual bool onScrollWheel(float dx, float dy);
+  virtual bool onMouseEnter();
+  virtual bool onMouseLeave();
+  virtual bool onFocus();
+  virtual bool onBlur();
+  virtual bool onKeyDown(uint32_t keycode, uint32_t flags);
+  virtual bool onKeyUp(uint32_t keycode, uint32_t flags);
+  virtual bool onChar(uint32_t codepoint);
 
   virtual void onUpdate(double t)
   {
@@ -801,11 +706,7 @@ protected:
       mView->onUpdate(t);
   }
 
-  virtual void onDraw(/*pxBuffer& b, pxRect* r*/)
-  {
-    if (mView)
-      mView->onDraw();
-  }
+  virtual void onDraw(/*pxBuffer& b, pxRect* r*/);
 
   virtual void setViewContainer(pxIViewContainer* l)
   {
@@ -825,6 +726,29 @@ protected:
   rtRef<rtFunctionCallback> mGetContextID;
   rtRef<rtFunctionCallback> mGetSetting;
 
+  // webgl stuff
+
+  bool mDrawing;
+  rtRef<rtFunctionCallback> mBeginDrawing;
+  rtRef<rtFunctionCallback> mEndDrawing;
+
+  rtRef<rtFunctionCallback> mSparkHttp;
+
+  pxContextFramebufferRef cached;
+  pxContextFramebufferRef previousSurface;
+
+  // JRJR should go away
+  pxSharedContextRef mSharedContext;
+
+  rtObjectRef mBootstrap;
+  rtRef<rtFunctionCallback> mBootstrapResolve;
+  rtRef<rtFunctionCallback> mBootstrapReject;
+
+  static rtError bootstrapResolve(int numArgs, const rtValue* args, rtValue* result, void* ctx);
+  static rtError bootstrapReject(int numArgs, const rtValue* args, rtValue* result, void* ctx);
+
+  bool isGLUrl() const;
+
 #ifdef ENABLE_RT_NODE
   rtScriptContextRef mCtx;
 #endif //ENABLE_RT_NODE
@@ -834,7 +758,11 @@ protected:
 #ifndef RUNINMAIN
   rtString mLang;
 #endif
+  // JRJR WARNING why is this static?
   static rtEmitRef mEmit;
+
+  // For gl view events
+  rtRef<scriptViewShadow> shadow;
 };
 
 class pxScene2d: public rtObject, public pxIView, public rtIServiceProvider
@@ -1000,6 +928,7 @@ public:
   rtError createRectangle(rtObjectRef p, rtObjectRef& o);
   rtError createText(rtObjectRef p, rtObjectRef& o);
   rtError createTextBox(rtObjectRef p, rtObjectRef& o);
+  rtError createTextCanvas(rtObjectRef p, rtObjectRef& o);
   rtError createImage(rtObjectRef p, rtObjectRef& o);
   rtError createPath(rtObjectRef p, rtObjectRef& o);
   rtError createImage9(rtObjectRef p, rtObjectRef& o);
@@ -1008,9 +937,12 @@ public:
   rtError createImageResource(rtObjectRef p, rtObjectRef& o);
   rtError createImageAResource(rtObjectRef p, rtObjectRef& o);
   rtError createFontResource(rtObjectRef p, rtObjectRef& o);
+  rtError createShaderResource(rtObjectRef p, rtObjectRef& o);
   rtError createScene(rtObjectRef p,rtObjectRef& o);
   rtError createExternal(rtObjectRef p, rtObjectRef& o);
   rtError createWayland(rtObjectRef p, rtObjectRef& o);
+  rtError createWebGL(rtObjectRef p, rtObjectRef& o);
+  rtError createVideo(rtObjectRef p, rtObjectRef& o);
 
   rtError clock(double & time);
   rtError logDebugMetrics();

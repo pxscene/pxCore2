@@ -409,9 +409,10 @@ rtError jsObjectWrapper::getAllKeys(Isolate* isolate, rtValue* value) const
 {
   HandleScope handleScope(isolate);
   Local<Object> self = PersistentToLocal(isolate, mObject);
-  Local<Array> names = self->GetPropertyNames();
   Local<Context> ctx = self->CreationContext();
   Context::Scope contextScope(ctx);
+
+  Local<Array> names = self->GetPropertyNames();
 
   rtRefT<rtArrayObject> result(new rtArrayObject);
   for (int i = 0, n = names->Length(); i < n; ++i)
@@ -454,6 +455,15 @@ rtError jsObjectWrapper::Get(const char* name, rtValue* value) const
   Local<String> s = String::NewFromUtf8(mIsolate, name);
   Local<Context> ctx = self->CreationContext();
   Context::Scope contextScope(ctx);
+
+  if (!strcmp(name, "arrayData") && self->IsArrayBufferView())
+  {
+    Local<ArrayBufferView> arrayBufferView = self.As<ArrayBufferView>();
+    void* dataPtr = arrayBufferView->Buffer()->GetContents().Data();
+
+    value->setVoidPtr(dataPtr);
+    return RT_OK;
+  }
 
   if (mIsArray)
   {

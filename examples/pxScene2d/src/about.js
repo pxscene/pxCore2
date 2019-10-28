@@ -70,7 +70,7 @@ px.import({ scene: 'px:scene.1.js' }).then( function importsAreReady(imports)
 
   var title     = null;
   var title_bg  = scene.create({ t: "rect", parent: panel, fillColor: LIGHT_BLUE, w: panel.w, h: 26, x: 0, y: 0});
-
+ var py = 0;
   //##################################################################################################################################
 
   function addRow(pp, key, label, value)
@@ -80,38 +80,55 @@ px.import({ scene: 'px:scene.1.js' }).then( function importsAreReady(imports)
     var lx = 0;              // label x
     var valueTxtM = fontRes.measureText(textPts, value);
     var labelTxtM = fontRes.measureText(textPts, label);
-    label_h = labelTxtM.h;
-    value_h = valueTxtM.h;
+    var x_pos = 0;
+    var alignV = scene.alignVertical.CENTER;
+    var w = valueTxtM.w + 10;
+    if (value_w < w)
+    {
+     var value_h_d = value_h;
+     var label_h_d = label_h;
+      while (value_w <  w) {
+        value_h += value_h_d + 4;
+        label_h += label_h_d;
+        w -= value_w;
+        alignV = scene.alignVertical.TOP;
+        ix = 0;
+        x_pos = 10;
+        }
+    }
+    else{
+        label_h = labelTxtM.h;
+        value_h = valueTxtM.h;
+    }
     var vx = (label_w + 4);  // value x
-    var py = (label_h * i) + title.h + title.y + 5;
-
     var row = scene.create({ t: "object",  parent: pp, x: 8});
 
     var labelRect  = scene.create({ t: "rect",    parent: row, fillColor: (i%2) ? DARK_GRAY : LIGHT_GRAY,
                                     w: label_w, h: label_h + 4, x: lx, y: py });
 
     var labelTxt   = scene.create({ t: "textBox", parent: labelRect, textColor: 0x000000ff,
-                                    w: label_w, h: label_h,     x: 0, y: 0,
+                                    w: label_w, h: label_h,     x: x_pos, y: 0,
                                     font: fontRes, pixelSize: textPts, wordWrap: true,
                                     xStartPos: ix, xStopPos: ix,
                                     text: label, // ### LABEL
                                     alignHorizontal: scene.alignHorizontal.LEFT,
-                                    alignVertical:   scene.alignVertical.CENTER})
+                                    alignVertical:   alignV})
 
      var valueRect = scene.create({ t: "rect",    parent: row, fillColor: (i%2) ? DARK_GRAY : LIGHT_GRAY,
                                     w: value_w, h: value_h + 4, x: vx, y: py });
 
      var valueTxt  = scene.create({ t: "textBox", parent: valueRect, textColor: 0x000000ff,
-                                    w: value_w, h: value_h,     x: 0, y: 0,
+                                    w: value_w-x_pos, h: value_h,     x: x_pos, y: 0,
                                     font: fontRes, pixelSize: textPts, wordWrap: true, truncation: scene.truncation.TRUNCATE,
                                     xStartPos: ix, xStopPos: ix,
                                     text: value, // ### VALUE
                                     alignHorizontal: scene.alignHorizontal.LEFT,
-                                    alignVertical:   scene.alignVertical.CENTER})
+                                    alignVertical:   alignV})
     textRows[key] = valueTxt;
 
     max_h += (value_h + 4);
-                                           
+    py += label_h;
+
 
     return Promise.all([row.ready, labelRect.ready, labelTxt.ready, valueRect.ready, valueTxt.ready] )
       .catch( function (err)
@@ -129,7 +146,8 @@ px.import({ scene: 'px:scene.1.js' }).then( function importsAreReady(imports)
     var gfx = parseInt( parseInt( scene.info.gfxmemory ) / 1024);
 
     var promises = [];
-                        
+
+    py = title.h + title.y + 5;
     promises.push( addRow(rows, "InfoBuildVersion",  "Version: ",         scene.info.version) );
     promises.push( addRow(rows, "InfoBuildEngine",   "Engine: ",          scene.info.engine) );
     promises.push( addRow(rows, "InfoBuildDate",     "Build Date: ",      scene.info.build.date.replace(/"/g, '') )); // global RegEx

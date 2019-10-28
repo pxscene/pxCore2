@@ -40,6 +40,7 @@ rtHttpRequest::rtHttpRequest(const rtString& url)
   , mWriteData(NULL)
   , mWriteDataSize(0)
   , mInQueue(false)
+  , mCompress(true)
 {
 }
 
@@ -48,6 +49,7 @@ rtHttpRequest::rtHttpRequest(const rtObjectRef& options)
   , mWriteData(NULL)
   , mWriteDataSize(0)
   , mInQueue(false)
+  , mCompress(true)
 {
   rtString url;
 
@@ -60,6 +62,11 @@ rtHttpRequest::rtHttpRequest(const rtObjectRef& options)
   uint32_t port = options.get<uint32_t>("port");
 
   mMethod = method;
+
+  rtValue v;
+  rtError e = options->Get("compress", &v);
+  if (e == RT_OK)
+    v.tryConvert<bool>(mCompress);
 
   url.append(proto.cString());
   url.append("//");
@@ -137,6 +144,7 @@ rtError rtHttpRequest::end()
   req->setAdditionalHttpHeaders(mHeaders);
   req->setMethod(mMethod);
   req->setReadData(mWriteData, mWriteDataSize);
+  req->setUseEncoding(mCompress);
   if (rtFileDownloader::instance()->addToDownloadQueue(req)) {
     AddRef();
     mInQueue = true;
@@ -179,7 +187,8 @@ rtError rtHttpRequest::write(const rtValue& chunk)
       uint32_t len = static_cast<uint32_t>(str.byteLength());
       if (len > 0) {
         rtLogInfo("write %u bytes (string)", len);
-        mWriteData = (uint8_t*)malloc(len);
+        mWriteData = (uint8_t*)malloc(len + 1);
+        mWriteData[len] = 0;
         mWriteDataSize = len;
         memcpy(mWriteData, str.cString(), len);
       }
@@ -244,7 +253,7 @@ rtError rtHttpRequest::removeHeader(const rtString& name)
     rtString header = mHeaders[i];
     if (header.beginsWith(name.cString()))
     {
-      need_remove_idx = i;
+      need_remove_idx = (int) i;
       break;
     } 
   }

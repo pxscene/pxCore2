@@ -38,6 +38,7 @@
 #include "pxContextDescGL.h"
 #endif //ENABLE_DFB
 
+class shaderProgram; //fwd
 
 #define MAX_TEXTURE_WIDTH  2048
 #define MAX_TEXTURE_HEIGHT 2048
@@ -48,7 +49,7 @@
   #define PXSCENE_DEFAULT_TEXTURE_MEMORY_LIMIT_IN_BYTES (65 * 1024 * 1024)   // GL
   #define PXSCENE_DEFAULT_TEXTURE_MEMORY_LIMIT_THRESHOLD_PADDING_IN_BYTES (5 * 1024 * 1024)
 #else
-  #define PXSCENE_DEFAULT_TEXTURE_MEMORY_LIMIT_IN_BYTES (15 * 1024 * 1024)   // DFB .. Shoul be 40 ?
+  #define PXSCENE_DEFAULT_TEXTURE_MEMORY_LIMIT_IN_BYTES (15 * 1024 * 1024)   // DFB .. Should be 40 ?
   #define PXSCENE_DEFAULT_TEXTURE_MEMORY_LIMIT_THRESHOLD_PADDING_IN_BYTES (5 * 1024 * 1024)
 #endif
 
@@ -85,6 +86,7 @@ class pxContext {
   void clear(int w, int h);
   void clear(int w, int h, float *fillColor );
   void clear(int left, int top, int width, int height);
+  void punchThrough(int left, int top, int width, int height);
   void enableClipping(bool enable);
 
   void setMatrix(pxMatrix4f& m);
@@ -95,7 +97,7 @@ class pxContext {
   void pushState();
   void popState();
 
-  pxContextFramebufferRef createFramebuffer(int width, int height, bool antiAliasing=false, bool alphaOnly=false);
+  pxContextFramebufferRef createFramebuffer(int width, int height, bool antiAliasing=false, bool alphaOnly=false, bool depthBuffer=false);
   pxError updateFramebuffer(pxContextFramebufferRef fbo, int width, int height);
   pxError setFramebuffer(pxContextFramebufferRef fbo);
   pxContextFramebufferRef getCurrentFramebuffer();
@@ -107,7 +109,7 @@ class pxContext {
   pxTextureRef createTexture(); // default to use before image load is complete
   pxTextureRef createTexture(pxOffscreen& o);
   pxTextureRef createTexture(float w, float h, float iw, float ih, void* buffer = NULL);
-  pxSharedContextRef createSharedContext();
+  pxSharedContextRef createSharedContext(bool depthBuffer = false);
 
   void snapshot(pxOffscreen& o);
 
@@ -124,6 +126,8 @@ class pxContext {
                  pxConstantsStretch::constants yStretch = pxConstantsStretch::STRETCH,
                  bool downscaleSmooth = false,
                  pxConstantsMaskOperation::constants maskOp= pxConstantsMaskOperation::NORMAL);
+
+  void drawEffect(float x, float y, float w, float h, pxTextureRef t, shaderProgram *shader);
 
 #ifdef PXSCENE_FONT_ATLAS
   // This is intended to draw numQuads from the same texture.

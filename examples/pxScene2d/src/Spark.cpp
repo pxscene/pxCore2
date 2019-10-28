@@ -1,4 +1,4 @@
-﻿/*
+/*
 
  pxCore Copyright 2005-2018 John Robinson
 
@@ -25,7 +25,6 @@
 #include "pxEventLoop.h"
 #include "pxWindow.h"
 
-#define ANIMATION_ROTATE_XYZ
 #include "pxContext.h"
 #include "pxScene2d.h"
 #include "rtUrlUtils.h"
@@ -639,7 +638,7 @@ int pxMain(int argc, char* argv[])
   
 #ifdef PX_PLATFORM_MAC_XCODE
 
-#warning "PX_PLATFORM_MAC_XCODE build... Xcode DEBUG only !"
+  // #warning "PX_PLATFORM_MAC_XCODE build... Xcode DEBUG only !"
 
   // NOTE: PX_PLATFORM_MAC_XCODE is only defined for DEBUG + XCODE IDE builds
   //       via the  .xcconfig file ...
@@ -679,9 +678,9 @@ if (s && (strcmp(s,"1") == 0))
   int size  = 0;
   for (int i=1;i<argc;i++)
   {
-    if (strstr(argv[i],"--"))
+    if (strncmp(argv[i], "--", 2) == 0)
     {
-      if (strstr(argv[i],"--debug"))
+      if (strncmp(argv[i], "--debug", 7) == 0)
       {
         isDebugging = true;
       }
@@ -706,7 +705,7 @@ if (s && (strcmp(s,"1") == 0))
 
   for (int i=1;i<argc;i++)
   {
-    if (strstr(argv[i],"--"))
+    if (strncmp(argv[i], "--", 2) == 0)
     {
         strcpy(nodeInput+curpos,argv[i]);
         *(nodeInput+curpos+strlen(argv[i])) = '\0';

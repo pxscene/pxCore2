@@ -31,6 +31,8 @@
 #include "pxTextBox.h"
 #include "pxImage.h"
 
+#include "pxShaderResource.h"
+
 #include <algorithm>
 
 using namespace std;
@@ -107,7 +109,7 @@ rtDefineObject(pxObjectChildren, rtObject);
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
 // pxObject methods
-pxObject::pxObject(pxScene2d* scene): 
+pxObject::pxObject(pxScene2d* scene):
   rtObject(), mParent(NULL), mpx(0), mpy(0), mcx(0), mcy(0), mx(0), my(0), ma(1.0), mr(0),
 
 #ifdef ANIMATION_ROTATE_XYZ
@@ -116,10 +118,12 @@ pxObject::pxObject(pxScene2d* scene):
 
     msx(1), msy(1), mw(0), mh(0),
     mInteractive(true),
-    mSnapshotRef(), mPainting(true), mClip(false), mMask(false), mDraw(true), mHitTest(true), mReady(),
-    mFocus(false),mClipSnapshotRef(),mCancelInSet(true),mRepaint(true)
-    , mIsDirty(true), mRenderMatrix(), mLastRenderMatrix(), mScreenCoordinates(), mDirtyRect(), mScene(NULL)
-    ,mDrawableSnapshotForMask(), mMaskSnapshot(), mIsDisposed(false), mSceneSuspended(false)
+    mSnapshotRef(), mPainting(true), mClip(false), mMask(false), mDraw(true),
+    mEffectRef(NULL), mEffects(NULL), mEffectShaderRef(NULL), mEffectSnapshotRef(),
+    mHitTest(true), mReady(),
+    mFocus(false), mClipSnapshotRef(),mCancelInSet(true), mRepaint(true),
+    mIsDirty(true), mRenderMatrix(), mLastRenderMatrix(), mScreenCoordinates(), mDirtyRect(), mScene(NULL),
+    mDrawableSnapshotForMask(), mMaskSnapshot(), mIsDisposed(false), mSceneSuspended(false)
   {
     pxObjectCount++;
     mScene = scene;
@@ -144,10 +148,12 @@ pxObject::~pxObject()
     pxObjectCount--;
     clearSnapshot(mSnapshotRef);
     clearSnapshot(mClipSnapshotRef);
+    clearSnapshot(mEffectSnapshotRef);
     clearSnapshot(mDrawableSnapshotForMask);
     clearSnapshot(mMaskSnapshot);
     mSnapshotRef = NULL;
     mClipSnapshotRef = NULL;
+    mEffectSnapshotRef = NULL;
     mDrawableSnapshotForMask = NULL;
     mMaskSnapshot = NULL;
     pxScene2d::updateObject(this, false);
@@ -194,10 +200,12 @@ void pxObject::dispose(bool pumpJavascript)
     mChildren.clear();
     clearSnapshot(mSnapshotRef);
     clearSnapshot(mClipSnapshotRef);
+    clearSnapshot(mEffectSnapshotRef);
     clearSnapshot(mDrawableSnapshotForMask);
     clearSnapshot(mMaskSnapshot);
     mSnapshotRef = NULL;
     mClipSnapshotRef = NULL;
+    mEffectSnapshotRef = NULL;
     mDrawableSnapshotForMask = NULL;
     mMaskSnapshot = NULL;
     if (mScene)
@@ -254,18 +262,18 @@ static double getDurationSeconds(rtString str)
 {
   const char* pStr = str.cString();
   char*    p = (char*) pStr;
-  
+
   while( *p++ != '\0') // find Units ... default to Seconds if not found
   {
     if(*p == 'm' || *p == 'M' || *p == 'S' || *p == 's') break;
   };
-  
+
   double d = 0;
   if(sscanf(pStr,"%lf", &d) == 1)
   {
     if(*p == 'm' || *p == 'M') {  d /= 1000.0; } // 'sS' seconds, 'mM' milliseconds ... Convert 'ms' to 's'
   }
-  
+
   return d;
 }
 
@@ -928,6 +936,7 @@ void pxObject::update(double t, bool updateChildren)
 void pxObject::releaseData(bool sceneSuspended)
 {
   clearSnapshot(mClipSnapshotRef);
+  clearSnapshot(mEffectSnapshotRef);
   clearSnapshot(mDrawableSnapshotForMask);
   clearSnapshot(mMaskSnapshot);
   mSceneSuspended = sceneSuspended;
@@ -957,6 +966,10 @@ uint64_t pxObject::textureMemoryUsage(std::vector<rtObject*> &objectsCounted)
     if (mClipSnapshotRef.getPtr() != NULL)
     {
       textureMemory += (mClipSnapshotRef->width() * mClipSnapshotRef->height() * 4);
+    }
+    if (mEffectSnapshotRef.getPtr() != NULL)
+    {
+      textureMemory += (mEffectSnapshotRef->width() * mEffectSnapshotRef->height() * 4);
     }
     if (mDrawableSnapshotForMask.getPtr() != NULL)
     {
@@ -1100,7 +1113,7 @@ pxRect pxObject::convertToScreenCoordinates(pxRect* r)
 
 const float alphaEpsilon = (1.0f/255.0f);
 
-void pxObject::drawInternal(bool maskPass)
+void pxObject::drawInternal(bool maskPass /* = false */)
 {
   //rtLogInfo("pxObject::drawInternal mw=%f mh=%f\n", mw, mh);
 
@@ -1201,7 +1214,31 @@ void pxObject::drawInternal(bool maskPass)
   float c[4] = {1, 0, 0, 1};
   context.drawDiagRect(0, 0, w, h, c);
 
-  //rtLogInfo("pxObject::drawInternal mPainting=%d mw=%f mh=%f\n", mPainting, mw, mh);
+  // SHADER RESOURCE ? ---------------------------------------------------------------------------------------------------
+  if(hasEffect())
+  {
+    context.pushState();
+
+    pxShaderResourceRef  shaderRes = this->effectRef();
+    
+    // Only flatten if we're using "s_texture" ... affecting the pxObject with effect applied
+    //
+    if(shaderRes && shaderRes->needsFbo())
+    {
+      renderEffectSnapshot(mEffectSnapshotRef);
+    }
+
+    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    //
+    
+    // Flattened pxObject (+ any children) now passed to Shader magic !
+    drawEffect(mEffectSnapshotRef);
+    
+    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+    context.popState();
+  }
+  else
   if (mPainting)
   {
     pxConstantsMaskOperation::constants maskOp = pxConstantsMaskOperation::NORMAL; // default
@@ -1277,13 +1314,22 @@ void pxObject::drawInternal(bool maskPass)
         {
           continue;
         }
-        context.pushState();
+
+        context.pushState(); // DRAW
+
+        // DRAW DRAW DRAW DRAW DRAW DRAW DRAW DRAW DRAW DRAW DRAW DRAW DRAW DRAW DRAW DRAW
+        // DRAW DRAW DRAW DRAW DRAW DRAW DRAW DRAW DRAW DRAW DRAW DRAW DRAW DRAW DRAW DRAW
+
         //rtLogInfo("calling drawInternal() mw=%f mh=%f\n", (*it)->mw, (*it)->mh);
         (*it)->drawInternal();
+
+        // DRAW DRAW DRAW DRAW DRAW DRAW DRAW DRAW DRAW DRAW DRAW DRAW DRAW DRAW DRAW DRAW
+        // DRAW DRAW DRAW DRAW DRAW DRAW DRAW DRAW DRAW DRAW DRAW DRAW DRAW DRAW DRAW DRAW
+
 /*if (gDirtyRectsEnabled) {
-        int left = (*it)->mScreenCoordinates.left();
-        int right = (*it)->mScreenCoordinates.right();
-        int top = (*it)->mScreenCoordinates.top();
+        int left   = (*it)->mScreenCoordinates.left();
+        int right  = (*it)->mScreenCoordinates.right();
+        int top    = (*it)->mScreenCoordinates.top();
         int bottom = (*it)->mScreenCoordinates.bottom();
         if (right > mScreenCoordinates.right())
         {
@@ -1302,10 +1348,13 @@ void pxObject::drawInternal(bool maskPass)
           mScreenCoordinates.setBottom(bottom);
         }
  }*/
-        context.popState();
-      }
+
+        context.popState(); // DRAW
+
+      }//FOR
+
       // ---------------------------------------------------------------------------------------------------
-    }
+    }//ENDIF - drawing
   }
   else
   {
@@ -1324,7 +1373,6 @@ void pxObject::drawInternal(bool maskPass)
     mDirtyRect.setEmpty();
   }
 }
-
 
 bool pxObject::hitTestInternal(pxMatrix4f m, pxPoint2f& pt, rtRef<pxObject>& hit,
                    pxPoint2f& hitPt)
@@ -1501,7 +1549,9 @@ void pxObject::createSnapshotOfChildren()
 
   //rtLogInfo("createSnapshotOfChildren  w=%f h=%f\n", w, h);
 
-  if (mDrawableSnapshotForMask.getPtr() == NULL || mDrawableSnapshotForMask->width() != floor(w) || mDrawableSnapshotForMask->height() != floor(h))
+  if (mDrawableSnapshotForMask.getPtr()  == NULL     ||
+      mDrawableSnapshotForMask->width()  != floor(w) ||
+      mDrawableSnapshotForMask->height() != floor(h))
   {
     mDrawableSnapshotForMask = context.createFramebuffer(static_cast<int>(floor(w)), static_cast<int>(floor(h)));
   }
@@ -1510,7 +1560,9 @@ void pxObject::createSnapshotOfChildren()
     context.updateFramebuffer(mDrawableSnapshotForMask, static_cast<int>(floor(w)), static_cast<int>(floor(h)));
   }
 
-  if (mMaskSnapshot.getPtr() == NULL || mMaskSnapshot->width() != floor(w) || mMaskSnapshot->height() != floor(h))
+  if (mMaskSnapshot.getPtr()  == NULL     ||
+      mMaskSnapshot->width()  != floor(w) ||
+      mMaskSnapshot->height() != floor(h))
   {
     mMaskSnapshot = context.createFramebuffer(static_cast<int>(floor(w)), static_cast<int>(floor(h)), false, true);
   }
@@ -1561,8 +1613,6 @@ void pxObject::clearSnapshot(pxContextFramebufferRef fbo)
   }
 }
 
-
-
 bool pxObject::onTextureReady()
 {
   repaint();
@@ -1585,6 +1635,260 @@ void pxObject::repaintParents()
     parent = parent->parent();
   }
 }
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+rtError pxObject::setEffect(rtObjectRef v)
+{
+  if(v)
+  {
+    pxShaderResource *pResource = dynamic_cast<pxShaderResource *>(v.getPtr()); // Is this a Direct Shader object ?
+
+    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    //
+    // DIRECT
+    //
+    if(pResource)
+    {
+      mEffectRef       = pResource;  // BARE SHADER
+      mEffectShaderRef = pResource;  // BARE SHADER
+    }
+    else
+    {
+      rtValue allKeys;
+      v->Get("allKeys", &allKeys);
+
+      rtArrayObject* keys = static_cast<rtArrayObject*>( (allKeys.toObject().getPtr()) );
+
+      // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+      //
+      // CONFIG OBJECT
+      //
+      if(keys && findKey(keys, "shader") == RT_OK) // Look for the key "shader" ... a Shader Config OBJECT
+      {
+        mEffectConfigRef = copyConfigJS2RT(v);   // CONFIG OBJECT
+      }
+      else
+      // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+      //
+      // CONFIG OBJECTS (array)
+      //
+      {
+        mEffectArrayRef = copyArrayJS2RT(v);  // CONFIG ARRAY
+      }
+      // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    }
+
+    return RT_OK;
+  }
+
+  rtLogError("setEffect() ... passed NULL");
+  return RT_FAIL;
+}
+
+
+void pxObject::renderEffectSnapshot(pxContextFramebufferRef& fbo)
+{
+  pxMatrix4f m;
+  float parentAlpha = 1.0;
+
+  context.setMatrix(m);
+  context.setAlpha(parentAlpha);
+
+  float w = getOnscreenWidth();
+  float h = getOnscreenHeight();
+
+  //#ifdef PX_DIRTY_RECTANGLES
+  bool fullFboRepaint = false;
+  //#endif //PX_DIRTY_RECTANGLES
+
+  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  //
+  // Create an FBO to work with ...
+  //
+  if (fbo.getPtr() == NULL || fbo->width() != floor(w) || fbo->height() != floor(h))
+  {
+    clearSnapshot(fbo);
+
+    fbo = context.createFramebuffer(static_cast<int>(floor(w)), static_cast<int>(floor(h)));
+
+    if (gDirtyRectsEnabled)
+    {
+      fullFboRepaint = true;
+    }
+  }
+  else
+  {
+    context.updateFramebuffer(fbo, static_cast<int>(floor(w)), static_cast<int>(floor(h)));
+  }
+
+  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  //
+  // Prepare the FBO ...
+  //
+  pxContextFramebufferRef previousRenderSurface = context.getCurrentFramebuffer();
+  if (context.setFramebuffer(fbo) == PX_OK)
+  {
+    if (gDirtyRectsEnabled)
+    {
+      int clearX      = mDirtyRect.left();
+      int clearY      = mDirtyRect.top();
+      int clearWidth  = mDirtyRect.right()  - clearX+1;
+      int clearHeight = mDirtyRect.bottom() - clearY+1;
+
+      if (!mIsDirty)
+      context.clear(static_cast<int>(w), static_cast<int>(h));
+
+      if (fullFboRepaint)
+      {
+        clearX = 0;
+        clearY = 0;
+        clearWidth = w;
+        clearHeight = h;
+        context.clear(clearX, clearY, clearWidth, clearHeight);
+      }
+    }
+    else
+    {
+      context.clear(static_cast<int>(w), static_cast<int>(h));
+    }
+
+    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    //
+    // Flatten self/children to FBO ...
+    //
+
+    draw(); // DRAW self...
+
+    for(vector<rtRef<pxObject> >::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
+    {
+      context.pushState();
+      (*it)->drawInternal();
+      context.popState();
+    }
+
+    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  }
+  context.setFramebuffer(previousRenderSurface);
+}
+
+
+void pxObject::drawEffect(pxContextFramebufferRef &flattenFbo)
+{
+  pxShaderResourceRef shaderRes = this->effectRef();
+
+  pxContextFramebufferRef previousSurface;
+  previousSurface = context.getCurrentFramebuffer();
+  
+  // Always need Scratch buffer...
+  pxContextFramebufferRef effectFbo = context.createFramebuffer(mw, mh);
+  
+  context.setFramebuffer(effectFbo);
+  context.clear(static_cast<int>(mw), static_cast<int>(mh));
+
+  pxContextFramebufferRef targetFbo = effectFbo;
+
+  // DIRECT ? ----------------------------------------------------------------------------------------------------------
+  if ( mEffectConfigRef == NULL &&
+       mEffectArrayRef  == NULL)
+  {
+    // Render with EFFECT shader... DIRECTLY to render buffer
+    context.drawEffect( 0,0, mw, mh,
+                       (flattenFbo ? flattenFbo->getTexture() : 0),
+                       (shaderProgram*) shaderRes);
+  }
+  // CONFIG OBJECT ? ---------------------------------------------------------------------------------------------------
+  else
+  {
+    // SINGLE CONFIG ? ---------------------------------------------------------------------------------------------------
+    if(mEffectConfigRef != NULL)
+    {
+      rtMapObject *config = static_cast<rtMapObject *> ( this->mEffectConfigRef.getPtr() );
+      
+      if(config)
+      {
+        // Set Uniforms here ...
+        applyRTconfig(config, *this);
+        shaderRes = this->effectRef(); // updated from config
+      }
+      
+      //############################
+      shaderRes->saveUniforms();//##
+      //############################
+
+      // Uniforms are SET in Setter ...
+      // Render with EFFECT shader...
+      context.drawEffect( 0,0, mw, mh,
+                         (flattenFbo ? flattenFbo->getTexture() : NULL),
+                         (shaderProgram*) shaderRes);
+    }
+    // CONFIGS ARRAY ? ---------------------------------------------------------------------------------------------------
+    else
+    {
+      pxContextFramebufferRef sourceFbo = flattenFbo; // Using Flattened image
+
+      rtArrayObject *multiPass = static_cast<rtArrayObject *> ( this->mEffectArrayRef.getPtr() );
+
+      bool once = true;
+      
+      for (uint32_t i = 0, l = multiPass ? multiPass->length() : 0; i < l; i++)
+      {
+        rtValue config;
+        if (multiPass->Get(i, &config) == RT_OK && !config.isEmpty())
+        {
+          // Set Uniforms here ...
+          applyRTconfig(config.toObject(), *this);
+          shaderRes = this->mEffectShaderRef; // updated
+          
+          context.setFramebuffer(targetFbo);
+          context.clear(static_cast<int>(mw), static_cast<int>(mh));
+          
+          if(once)
+          {
+            //############################
+            shaderRes->saveUniforms();//##
+            //############################
+            
+            once = false;
+          }
+
+          // Render with EFFECT shader...
+          context.drawEffect( 0,0,  mw, mh, sourceFbo ? sourceFbo->getTexture() : NULL,
+                             (shaderProgram*) shaderRes);
+          
+          if(i < l-1)
+          {
+            pxContextFramebufferRef swap = targetFbo;
+            targetFbo = sourceFbo;
+            sourceFbo = swap;
+          }
+        }
+      }//FOR
+    }
+    // -------------------------------------------------------------------------------------------------------------------
+  }//FBO
+
+  context.setFramebuffer(previousSurface);
+  
+  // Draw result of effect
+  context.drawImage(0,0, mw, mh, targetFbo ? targetFbo->getTexture() : NULL, NULL);
+  
+  //###############################
+  shaderRes->restoreUniforms();//##
+  //###############################
+  
+  if( shaderRes && shaderRes->isRealTime() )
+  {
+    this->markDirty();
+    mScene->mDirty = true;
+  }
+}
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+
 
 #if 0
 rtDefineObject(rtPromise, rtObject);
@@ -1620,6 +1924,9 @@ rtDefineProperty(pxObject, painting);
 rtDefineProperty(pxObject, clip);
 rtDefineProperty(pxObject, mask);
 rtDefineProperty(pxObject, draw);
+
+rtDefineProperty(pxObject, effect);
+
 rtDefineProperty(pxObject, hitTest);
 rtDefineProperty(pxObject,focus);
 rtDefineProperty(pxObject,ready);

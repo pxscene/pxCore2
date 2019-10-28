@@ -42,6 +42,7 @@
 using namespace std;
 
 extern pxContext context;
+extern rtThreadQueue* gUIThreadQueue;
 
 #define MAX_FIND_REMOTE_TIMEOUT_IN_MS 5000
 #define FIND_REMOTE_ATTEMPT_TIMEOUT_IN_MS 100
@@ -647,13 +648,37 @@ void pxWayland::hidePointer( WstCompositor *wctx, bool hide, void *userData )
    pxw->handleHidePointer( hide );
 }
 
+struct pxWaylandClientStatus
+{
+   pxWaylandClientStatus(int s, int p, int d) : status(s), pid(p), detail(d){}
+   int status;
+   int pid;
+   int detail;
+};
+
+void pxWayland::onClientStatus(void* context, void* data)
+{
+   pxWayland* pxw = (pxWayland*)context;
+   pxWaylandClientStatus* statusData = (pxWaylandClientStatus*)data;
+   pxw->handleClientStatus(statusData->status, statusData->pid, statusData->detail);
+   // Release here since we had to addRef when setting up callback to
+   // this function
+   pxw->Release();
+   delete statusData;
+}
+
 void pxWayland::clientStatus( WstCompositor *wctx, int status, int pid, int detail, void *userData )
 {
    (void)wctx;
 
    pxWayland *pxw= (pxWayland*)userData;
 
-   pxw->handleClientStatus( status, pid, detail );
+   if (gUIThreadQueue)
+   {
+      pxw->AddRef();
+      pxWaylandClientStatus* statusData = new pxWaylandClientStatus(status, pid, detail);
+      gUIThreadQueue->addTask(onClientStatus, pxw, statusData);
+   }
 }
 
 void pxWayland::remoteDisconnectedCB(void *data)

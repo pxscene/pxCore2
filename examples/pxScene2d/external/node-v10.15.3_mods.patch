@@ -1,0 +1,1153 @@
+diff --git a/examples/pxScene2d/external/libnode-v10.15.3/common.gypi b/examples/pxScene2d/external/libnode-v10.15.3/common.gypi
+index 4c64339..6b40aec 100755
+--- a/examples/pxScene2d/external/libnode-v10.15.3/common.gypi
++++ b/examples/pxScene2d/external/libnode-v10.15.3/common.gypi
+@@ -107,7 +107,9 @@
+           'v8_enable_handle_zapping': 1,
+         },
+         'defines': [ 'DEBUG', '_DEBUG', 'V8_ENABLE_CHECKS' ],
+-        'cflags': [ '-g', '-O0' ],
++        # MODIFIED CODE BEGIN
++        'cflags': [ '-Os' ],
++        # MODIFIED CODE END
+         'conditions': [
+           ['target_arch=="x64"', {
+             'msvs_configuration_platform': 'x64',
+@@ -178,7 +180,9 @@
+         'variables': {
+           'v8_enable_handle_zapping': 0,
+         },
+-        'cflags': [ '-O3' ],
++        # MODIFIED CODE BEGIN
++        'cflags': [ '-Os' ],
++        # MODIFIED CODE END 
+         'conditions': [
+           ['target_arch=="x64"', {
+             'msvs_configuration_platform': 'x64',
+@@ -215,6 +219,35 @@
+             'cflags': [ '-fPIE' ],
+             'ldflags': [ '-fPIE', '-pie' ]
+           }],
++          # MODIFIED CODE BEGIN
++          [ 'no_optimization==1', {
++            'cflags': [ '-O0' ],
++            'msvs_settings': {
++              'VCCLCompilerTool': {
++                'Optimization': 0, # /Od, no optimization
++              }
++            }
++          }],
++          [ 'no_optimization!=1', {
++            'cflags': [ '-Os' ],
++            'msvs_settings': {
++              'VCCLCompilerTool': {
++                'Optimization': 3, # /Ox, full optimization
++                'FavorSizeOrSpeed': 1, # /Ot, favour speed over size
++                'InlineFunctionExpansion': 2, # /Ob2, inline anything eligible
++                'WholeProgramOptimization': 'true', # /GL, whole program optimization, needed for LTCG
++              },
++              'VCLibrarianTool': {
++                'AdditionalOptions': [
++                  '/LTCG', # link time code generation
++                ],
++              },
++              'VCLinkerTool': {
++                'OptimizeReferences': 2, # /OPT:REF
++                'EnableCOMDATFolding': 2, # /OPT:ICF
++              }
++            }
++          }],
+           ['node_shared=="true"', {
+             'msvs_settings': {
+              'VCCLCompilerTool': {
+@@ -231,17 +264,21 @@
+           }],
+           ['node_with_ltcg=="true"', {
+             'msvs_settings': {
+-              'VCCLCompilerTool': {
+-                'WholeProgramOptimization': 'true' # /GL, whole program optimization, needed for LTCG
+-              },
+-              'VCLibrarianTool': {
+-                'AdditionalOptions': [
+-                  '/LTCG:INCREMENTAL', # link time code generation
+-                ]
+-              },
++              # MODIFIED CODE BEGIN
++              #'VCCLCompilerTool': {
++              #  'WholeProgramOptimization': 'true' # /GL, whole program optimization, needed for LTCG
++              #},
++              #'VCLibrarianTool': {
++              #  'AdditionalOptions': [
++              #    '/LTCG:INCREMENTAL', # link time code generation
++              #  ]
++              #},
++              # MODIFIED CODE END
+               'VCLinkerTool': {
+-                'OptimizeReferences': 2, # /OPT:REF
+-                'EnableCOMDATFolding': 2, # /OPT:ICF
++                # MODIFIED CODE BEGIN
++                #'OptimizeReferences': 2, # /OPT:REF
++                #'EnableCOMDATFolding': 2, # /OPT:ICF
++                # MODIFIED CODE END
+                 'LinkIncremental': 1, # disable incremental linking
+                 'AdditionalOptions': [
+                   '/LTCG:INCREMENTAL', # incremental link-time code generation
+@@ -261,9 +298,11 @@
+         ],
+         'msvs_settings': {
+           'VCCLCompilerTool': {
+-            'Optimization': 3, # /Ox, full optimization
+-            'FavorSizeOrSpeed': 1, # /Ot, favor speed over size
+-            'InlineFunctionExpansion': 2, # /Ob2, inline anything eligible
++            # MODIFIED CODE BEGIN
++            #'Optimization': 3, # /Ox, full optimization
++            #'FavorSizeOrSpeed': 1, # /Ot, favor speed over size
++            #'InlineFunctionExpansion': 2, # /Ob2, inline anything eligible
++            # MODIFIED CODE END
+             'OmitFramePointers': 'true',
+             'EnableFunctionLevelLinking': 'true',
+             'EnableIntrinsicFunctions': 'true',
+@@ -513,6 +552,9 @@
+               'GCC_VERSION': 'com.apple.compilers.llvm.clang.1_0',
+               'CLANG_CXX_LANGUAGE_STANDARD': 'gnu++1y',  # -std=gnu++1y
+               'CLANG_CXX_LIBRARY': 'libc++',
++              # MODIFIED CODE BEGIN
++              'MACOSX_DEPLOYMENT_TARGET': '10.9',
++              # MODIFIED CODE END
+             },
+           }],
+         ],
+diff --git a/examples/pxScene2d/external/libnode-v10.15.3/deps/http_parser/http_parser.gyp b/examples/pxScene2d/external/libnode-v10.15.3/deps/http_parser/http_parser.gyp
+index 4364f73..7137f82 100755
+--- a/examples/pxScene2d/external/libnode-v10.15.3/deps/http_parser/http_parser.gyp
++++ b/examples/pxScene2d/external/libnode-v10.15.3/deps/http_parser/http_parser.gyp
+@@ -12,7 +12,9 @@
+       #       RuntimeLibrary MUST MATCH across the entire project
+       'Debug': {
+         'defines': [ 'DEBUG', '_DEBUG' ],
+-        'cflags': [ '-Wall', '-Wextra', '-O0', '-g', '-ftrapv' ],
++        # MODIFIED CODE BEGIN 
++        'cflags': [ '-Wall', '-Wextra', '-Os', '-g', '-ftrapv' ],
++        # MODIFIED CODE END
+         'msvs_settings': {
+           'VCCLCompilerTool': {
+             'RuntimeLibrary': 1, # static debug
+@@ -21,7 +23,9 @@
+       },
+       'Release': {
+         'defines': [ 'NDEBUG' ],
+-        'cflags': [ '-Wall', '-Wextra', '-O3' ],
++        # MODIFIED CODE BEGIN
++        'cflags': [ '-Wall', '-Wextra', '-Os' ],
++        # MODIFIED CODE END
+         'msvs_settings': {
+           'VCCLCompilerTool': {
+             'RuntimeLibrary': 0, # static release
+diff --git a/examples/pxScene2d/external/libnode-v10.15.3/deps/uv/common.gypi b/examples/pxScene2d/external/libnode-v10.15.3/deps/uv/common.gypi
+index 2297bdf..8298bea 100755
+--- a/examples/pxScene2d/external/libnode-v10.15.3/deps/uv/common.gypi
++++ b/examples/pxScene2d/external/libnode-v10.15.3/deps/uv/common.gypi
+@@ -46,7 +46,9 @@
+       'Release': {
+         'defines': [ 'NDEBUG' ],
+         'cflags': [
+-          '-O3',
++         # MODIFIED CODE BEGIN
++         '-Os',
++         # MODIFIED CODE END
+         ],
+         'msvs_settings': {
+           'VCCLCompilerTool': {
+diff --git a/examples/pxScene2d/external/libnode-v10.15.3/deps/v8/BUILD.gn b/examples/pxScene2d/external/libnode-v10.15.3/deps/v8/BUILD.gn
+index 19ffdb3..ff82ac0 100755
+--- a/examples/pxScene2d/external/libnode-v10.15.3/deps/v8/BUILD.gn
++++ b/examples/pxScene2d/external/libnode-v10.15.3/deps/v8/BUILD.gn
+@@ -1437,8 +1437,6 @@ v8_source_set("v8_base") {
+     "//base/trace_event/common/trace_event_common.h",
+ 
+     ### gcmole(all) ###
+-    "include/v8-inspector-protocol.h",
+-    "include/v8-inspector.h",
+     "include/v8-platform.h",
+     "include/v8-profiler.h",
+     "include/v8-testing.h",
+@@ -2753,8 +2751,14 @@ v8_source_set("v8_base") {
+     ":v8_headers",
+     ":v8_libbase",
+     ":v8_libsampler",
+-    "src/inspector:inspector",
+   ]
++  #MODIFIED CODE BEGIN
++  if (v8_enable_inspector) {
++    deps += ["src/inspector:inspector",]
++    sources += [ "include/v8-inspector-protocol.h",]
++    sources += [ "include/v8-inspector.h",]
++  }
++  #MODIFIED CODE END
+ 
+   if (v8_enable_i18n_support) {
+     public_deps = [
+diff --git a/examples/pxScene2d/external/libnode-v10.15.3/deps/v8/gypfiles/toolchain.gypi b/examples/pxScene2d/external/libnode-v10.15.3/deps/v8/gypfiles/toolchain.gypi
+index ea8f1c2..60cd77a 100755
+--- a/examples/pxScene2d/external/libnode-v10.15.3/deps/v8/gypfiles/toolchain.gypi
++++ b/examples/pxScene2d/external/libnode-v10.15.3/deps/v8/gypfiles/toolchain.gypi
+@@ -1225,10 +1225,14 @@
+               # Don't use -O3 with sanitizers.
+               ['asan==0 and msan==0 and lsan==0 \
+                 and tsan==0 and ubsan==0 and ubsan_vptr==0', {
+-                'cflags': ['-O3'],
++                # MODIFIED CODE BEGIN
++                'cflags': ['-Os'],
++                # MODIFIED CODE END
+                 'cflags!': ['-O2'],
+                 }, {
+-                'cflags': ['-O2'],
++                # MODIFIED CODE BEGIN 
++                'cflags': ['-Os'],
++                # MODIFIED CODE END
+                 'cflags!': ['-O3'],
+               }],
+             ],
+@@ -1347,10 +1351,14 @@
+               # Don't use -O3 with sanitizers.
+               ['asan==0 and msan==0 and lsan==0 \
+                 and tsan==0 and ubsan==0 and ubsan_vptr==0', {
+-                'cflags': ['-O3'],
++                # MODIFIED CODE BEGIN
++                'cflags': ['-Os'],
++                # MODIFIED CODE END  
+                 'cflags!': ['-O2'],
+               }, {
+-                'cflags': ['-O2'],
++                # MODIFIED CODE BEGIN  
++                'cflags': ['-Os'],
++                # MODIFIED CODE end
+                 'cflags!': ['-O3'],
+               }],
+             ],
+diff --git a/examples/pxScene2d/external/libnode-v10.15.3/deps/v8/gypfiles/v8.gyp b/examples/pxScene2d/external/libnode-v10.15.3/deps/v8/gypfiles/v8.gyp
+index 8c78f02..9367ca6 100755
+--- a/examples/pxScene2d/external/libnode-v10.15.3/deps/v8/gypfiles/v8.gyp
++++ b/examples/pxScene2d/external/libnode-v10.15.3/deps/v8/gypfiles/v8.gyp
+@@ -434,7 +434,6 @@
+       # Since this target is a static-library, but as a side effect it generates
+       # header files, it needs to be a hard dependency.
+       'hard_dependency': 1,
+-      'includes': [ 'inspector.gypi' ],
+       'dependencies': [
+         'v8_libbase',
+         'v8_libsampler',
+@@ -453,9 +452,6 @@
+         '<(SHARED_INTERMEDIATE_DIR)'
+       ],
+       'sources': [
+-        '<@(inspector_all_sources)',
+-        '../include//v8-inspector-protocol.h',
+-        '../include//v8-inspector.h',
+         '../include//v8-platform.h',
+         '../include//v8-profiler.h',
+         '../include//v8-testing.h',
+@@ -1480,6 +1476,16 @@
+         '<@(torque_generated_pure_headers)',
+       ],
+       'conditions': [
++        # MODIFIED CODE BEGIN
++        ['v8_enable_inspector==1', {
++          'sources': [
++            '<@(inspector_all_sources)',
++            '../include//v8-inspector-protocol.h',
++            '../include//v8-inspector.h',
++          ],
++          'includes': [ 'inspector.gypi' ],
++        }],
++        # MODIFIED CODE END
+         ['want_separate_host_toolset==1', {
+           'toolsets': ['host', 'target'],
+         }, {
+diff --git a/examples/pxScene2d/external/libnode-v10.15.3/deps/v8/src/isolate.cc b/examples/pxScene2d/external/libnode-v10.15.3/deps/v8/src/isolate.cc
+index 0bdfef5..e79edfb 100755
+--- a/examples/pxScene2d/external/libnode-v10.15.3/deps/v8/src/isolate.cc
++++ b/examples/pxScene2d/external/libnode-v10.15.3/deps/v8/src/isolate.cc
+@@ -1160,6 +1160,14 @@ Object* Isolate::Throw(Object* exception, MessageLocation* location) {
+   HandleScope scope(this);
+   Handle<Object> exception_handle(exception, this);
+ 
++  /* MODIFIED CODE BEGIN */
++  char const* stack_on_exception_enabled = getenv("DUMP_STACK_ON_EXCEPTION");
++  if (stack_on_exception_enabled && (strcmp(stack_on_exception_enabled,"1") == 0))
++  {
++    PrintCurrentStackTrace(stderr);
++  }
++  /* MODIFIED CODE END */
++
+   if (FLAG_print_all_exceptions) {
+     printf("=========================================================\n");
+     printf("Exception thrown:\n");
+diff --git a/examples/pxScene2d/external/libnode-v10.15.3/lib/internal/bootstrap/node.js b/examples/pxScene2d/external/libnode-v10.15.3/lib/internal/bootstrap/node.js
+index b168eb0..82cdec8 100755
+--- a/examples/pxScene2d/external/libnode-v10.15.3/lib/internal/bootstrap/node.js
++++ b/examples/pxScene2d/external/libnode-v10.15.3/lib/internal/bootstrap/node.js
+@@ -257,11 +257,12 @@
+         // User passed '-e' or '--eval' arguments to Node without '-i' or
+         // '--interactive'.
+         preloadModules();
+-
+-        const {
+-          addBuiltinLibsToObject
+-        } = NativeModule.require('internal/modules/cjs/helpers');
+-        addBuiltinLibsToObject(global);
++        /* MODIFIED CODE BEGIN */
++        //const {
++        //  addBuiltinLibsToObject
++        //} = NativeModule.require('internal/modules/cjs/helpers');
++        //addBuiltinLibsToObject(global);
++        /* MODIFIED CODE END */
+         evalScript('[eval]');
+       } else if (process.argv[1] && process.argv[1] !== '-') {
+         // Make process.argv[1] into a full path.
+@@ -284,7 +285,9 @@
+       } else {
+         preloadModules();
+         // If -i or --interactive were passed, or stdin is a TTY.
+-        if (process._forceRepl || NativeModule.require('tty').isatty(0)) {
++        /* MODIFIED CODE BEGIN */
++        //if (process._forceRepl || NativeModule.require('tty').isatty(0)) {
++        /* MODIFIED CODE END */
+           // REPL
+           const cliRepl = NativeModule.require('internal/repl');
+           cliRepl.createInternalRepl(process.env, (err, repl) => {
+@@ -306,6 +309,8 @@
+             // User passed '-e' or '--eval'
+             evalScript('[eval]');
+           }
++/* MODIFIED CODE BEGIN */
++/*
+         } else {
+           // Read all of stdin - execute it.
+           process.stdin.setEncoding('utf8');
+@@ -324,6 +329,8 @@
+             }
+           });
+         }
++*/
++/* MODIFIED CODE END */
+       }
+     }
+   }
+diff --git a/examples/pxScene2d/external/libnode-v10.15.3/lib/net.js b/examples/pxScene2d/external/libnode-v10.15.3/lib/net.js
+index e40aaa8..1c6ad2a 100755
+--- a/examples/pxScene2d/external/libnode-v10.15.3/lib/net.js
++++ b/examples/pxScene2d/external/libnode-v10.15.3/lib/net.js
+@@ -25,6 +25,9 @@ const EventEmitter = require('events');
+ const stream = require('stream');
+ const util = require('util');
+ const internalUtil = require('internal/util');
++/*MODIFIED CODE BEGIN*/
++const fileSystem = require('fs');
++/*MODIFIED CODE END*/
+ const {
+   isIP,
+   isIPv4,
+@@ -985,6 +988,27 @@ function lookupAndConnect(self, options) {
+       dnsopts.hints === 0) {
+     dnsopts.hints = dns.ADDRCONFIG;
+   }
++/*MODIFIED CODE BEGIN*/
++  var ipMode = 0;
++  try {
++    fileSystem.accessSync('/tmp/ipmode_v4');
++    ipMode = 4;
++  } catch(e) {
++    debug('/tmp/ipmode_v4 does not exist');
++  }
++
++  try {
++    fileSystem.accessSync('/tmp/ipmode_v6');
++    ipMode = 6;
++  } catch(e) {
++    debug('/tmp/ipmode_v6 does not exist');
++  }
++
++  if (ipMode == 4 || ipMode == 6) {
++    dnsopts.family = ipMode;
++  }
++/*MODIFIED CODE END*/
++
+ 
+   debug('connect: find host', host);
+   debug('connect: dns options', dnsopts);
+diff --git a/examples/pxScene2d/external/libnode-v10.15.3/node.gyp b/examples/pxScene2d/external/libnode-v10.15.3/node.gyp
+index a8de196..607a7db 100755
+--- a/examples/pxScene2d/external/libnode-v10.15.3/node.gyp
++++ b/examples/pxScene2d/external/libnode-v10.15.3/node.gyp
+@@ -36,7 +36,6 @@
+       'lib/console.js',
+       'lib/constants.js',
+       'lib/crypto.js',
+-      'lib/cluster.js',
+       'lib/dgram.js',
+       'lib/dns.js',
+       'lib/domain.js',
+@@ -89,12 +88,6 @@
+       'lib/internal/buffer.js',
+       'lib/internal/cli_table.js',
+       'lib/internal/child_process.js',
+-      'lib/internal/cluster/child.js',
+-      'lib/internal/cluster/master.js',
+-      'lib/internal/cluster/round_robin_handle.js',
+-      'lib/internal/cluster/shared_handle.js',
+-      'lib/internal/cluster/utils.js',
+-      'lib/internal/cluster/worker.js',
+       'lib/internal/crypto/certificate.js',
+       'lib/internal/crypto/cipher.js',
+       'lib/internal/crypto/diffiehellman.js',
+@@ -168,8 +161,6 @@
+       'lib/internal/http2/core.js',
+       'lib/internal/http2/compat.js',
+       'lib/internal/http2/util.js',
+-      'lib/internal/v8_prof_polyfill.js',
+-      'lib/internal/v8_prof_processor.js',
+       'lib/internal/validators.js',
+       'lib/internal/stream_base_commons.js',
+       'lib/internal/vm/source_text_module.js',
+@@ -184,17 +175,6 @@
+       'lib/internal/streams/pipeline.js',
+       'lib/internal/streams/end-of-stream.js',
+       'lib/internal/wrap_js_stream.js',
+-      'deps/v8/tools/splaytree.js',
+-      'deps/v8/tools/codemap.js',
+-      'deps/v8/tools/consarray.js',
+-      'deps/v8/tools/csvparser.js',
+-      'deps/v8/tools/profile.js',
+-      'deps/v8/tools/profile_view.js',
+-      'deps/v8/tools/logreader.js',
+-      'deps/v8/tools/arguments.js',
+-      'deps/v8/tools/tickprocessor.js',
+-      'deps/v8/tools/SourceMap.js',
+-      'deps/v8/tools/tickprocessor-driver.js',
+       'deps/node-inspect/lib/_inspect.js',
+       'deps/node-inspect/lib/internal/inspect_client.js',
+       'deps/node-inspect/lib/internal/inspect_repl.js',
+diff --git a/examples/pxScene2d/external/libnode-v10.15.3/src/node.cc b/examples/pxScene2d/external/libnode-v10.15.3/src/node.cc
+index 9fb5ab3..7c3c865 100755
+--- a/examples/pxScene2d/external/libnode-v10.15.3/src/node.cc
++++ b/examples/pxScene2d/external/libnode-v10.15.3/src/node.cc
+@@ -173,7 +173,9 @@ using v8::V8;
+ using v8::Value;
+ 
+ static bool v8_is_profiling = false;
+-static bool node_is_initialized = false;
++/* MODIFIED CODE BEGIN */
++bool node_is_initialized = false;
++/* MODIFIED CODE END */
+ static uv_once_t init_modpending_once = UV_ONCE_INIT;
+ static uv_key_t thread_local_modpending;
+ static node_module* modlist_builtin;
+@@ -196,8 +198,10 @@ std::shared_ptr<PerProcessOptions> per_process_opts {
+     new PerProcessOptions() };
+ 
+ static Mutex node_isolate_mutex;
+-static Isolate* node_isolate;
+-
++/* MODIFIED CODE BEGIN */
++Isolate* node_isolate;
++FILE* errorFile = NULL;
++/* MODIFIED CODE END */
+ // Ensures that __metadata trace events are only emitted
+ // when tracing is enabled.
+ class NodeTraceStateObserver :
+@@ -387,6 +391,29 @@ static struct {
+ static const unsigned kMaxSignal = 32;
+ #endif
+ 
++/* MODIFIED CODE BEGIN */
++void PrintErrorStringToFile(const char* format, ...) {
++  va_list filelog;
++  va_start(filelog, format);
++  const char* val = getenv("NODE_ERROR_FILE");
++  if (val) {
++    errorFile = fopen(val,"w");
++  }
++  else
++  {
++    errorFile = fopen("/tmp/nodeerror.log","w");
++  }
++  if (NULL != errorFile)
++  {
++    vfprintf(errorFile, format, filelog);
++    fclose(errorFile);
++    errorFile = NULL;
++  }
++  va_end(filelog);
++}
++/* MODIFIED CODE END */
++
++
+ void PrintErrorString(const char* format, ...) {
+   va_list ap;
+   va_start(ap, format);
+@@ -610,8 +637,9 @@ void* ArrayBufferAllocator::Allocate(size_t size) {
+     return UncheckedMalloc(size);
+ }
+ 
+-namespace {
+-
++/* MODIFIED CODE BEGIN */
++//namespace {
++/* MODIFIED CODE END */
+ bool ShouldAbortOnUncaughtException(Isolate* isolate) {
+   HandleScope scope(isolate);
+   Environment* env = Environment::GetCurrent(isolate);
+@@ -619,9 +647,9 @@ bool ShouldAbortOnUncaughtException(Isolate* isolate) {
+          env->should_abort_on_uncaught_toggle()[0] &&
+          !env->inside_should_not_abort_on_uncaught_scope();
+ }
+-
+-}  // anonymous namespace
+-
++/* MODIFIED CODE BEGIN */
++//}  // anonymous namespace
++/* MODIFIED CODE END */
+ 
+ void AddPromiseHook(Isolate* isolate, promise_hook_func fn, void* arg) {
+   Environment* env = Environment::GetCurrent(isolate);
+@@ -896,6 +924,9 @@ void AppendExceptionLine(Environment* env,
+ 
+     uv_tty_reset_mode();
+     PrintErrorString("\n%s", arrow);
++    /* MODIFIED CODE BEGIN */
++    PrintErrorStringToFile("\n%s", arrow);
++    /* MODIFIED CODE END */
+     return;
+   }
+ 
+@@ -939,9 +970,15 @@ void ReportException(Environment* env,
+   if (trace.length() > 0 && !trace_value->IsUndefined()) {
+     if (arrow.IsEmpty() || !arrow->IsString() || decorated) {
+       PrintErrorString("%s\n", *trace);
++      /* MODIFIED CODE BEGIN */
++      PrintErrorStringToFile("%s\n", *trace);
++      /* MODIFIED CODE END */
+     } else {
+       node::Utf8Value arrow_string(env->isolate(), arrow);
+       PrintErrorString("%s\n%s\n", *arrow_string, *trace);
++      /* MODIFIED CODE BEGIN */
++      PrintErrorStringToFile("%s\n%s\n", *arrow_string, *trace);
++      /* MODIFIED CODE END */
+     }
+   } else {
+     // this really only happens for RangeErrors, since they're the only
+@@ -965,18 +1002,34 @@ void ReportException(Environment* env,
+ 
+       PrintErrorString("%s\n", *message ? *message :
+                                           "<toString() threw exception>");
++      /* MODIFIED CODE BEGIN */
++      PrintErrorStringToFile("%s\n", *message ? *message :
++                                          "<toString() threw exception>");
++      /* MODIFIED CODE END */
++
+     } else {
+       node::Utf8Value name_string(env->isolate(), name);
+       node::Utf8Value message_string(env->isolate(), message);
+ 
+       if (arrow.IsEmpty() || !arrow->IsString() || decorated) {
+         PrintErrorString("%s: %s\n", *name_string, *message_string);
++        /* MODIFIED CODE BEGIN */
++        PrintErrorStringToFile("%s: %s\n", *name_string, *message_string);
++        /* MODIFIED CODE END */
++
+       } else {
+         node::Utf8Value arrow_string(env->isolate(), arrow);
+         PrintErrorString("%s\n%s: %s\n",
+                          *arrow_string,
+                          *name_string,
+                          *message_string);
++        /* MODIFIED CODE BEGIN */
++        PrintErrorStringToFile("%s\n%s: %s\n",
++                         *arrow_string,
++                         *name_string,
++                         *message_string);
++        /* MODIFIED CODE END */
++
+       }
+     }
+   }
+@@ -1340,14 +1393,20 @@ static void OnFatalError(const char* location, const char* message) {
+     PrintErrorString("FATAL ERROR: %s\n", message);
+   }
+   fflush(stderr);
+-  ABORT();
++  /* MODIFIED CODE BEGIN */
++  //ABORT();
++  /* MODIFIED CODE END */
+ }
+ 
+ 
+-[[noreturn]] void FatalError(const char* location, const char* message) {
++/* MODIFIED CODE BEGIN */
++/*[[noreturn]]*/ void FatalError(const char* location, const char* message) {
++/* MODIFIED CODE END */
+   OnFatalError(location, message);
+   // to suppress compiler warning
+-  ABORT();
++/* MODIFIED CODE BEGIN */
++  //ABORT();
++/* MODIFIED CODE END */
+ }
+ 
+ 
+@@ -1355,7 +1414,9 @@ FatalTryCatch::~FatalTryCatch() {
+   if (HasCaught()) {
+     HandleScope scope(env_->isolate());
+     ReportException(env_, *this);
+-    exit(7);
++    /* MODIFIED CODE BEGIN */
++    //exit(7);
++    /* MODIFIED CODE END */
+   }
+ }
+ 
+@@ -1376,7 +1437,9 @@ void FatalException(Isolate* isolate,
+     // Failed before the process._fatalException function was added!
+     // this is probably pretty bad.  Nothing to do but report and exit.
+     ReportException(env, error, message);
+-    exit(6);
++    /* MODIFIED CODE BEGIN */
++    //exit(6);
++    /* MODIFIED CODE END */
+   } else {
+     TryCatch fatal_try_catch(isolate);
+ 
+@@ -1393,7 +1456,9 @@ void FatalException(Isolate* isolate,
+     if (fatal_try_catch.HasCaught()) {
+       // The fatal exception function threw, so we must exit
+       ReportException(env, fatal_try_catch);
+-      exit(7);
++      /* MODIFIED CODE BEGIN */
++      //exit(7);
++      /* MODIFIED CODE END */
+     } else if (caught.ToLocalChecked()->IsFalse()) {
+       ReportException(env, error, message);
+ 
+@@ -1403,9 +1468,13 @@ void FatalException(Isolate* isolate,
+       Local<Value> code;
+       if (!process_object->Get(env->context(), exit_code).ToLocal(&code) ||
+           !code->IsInt32()) {
+-        exit(1);
++        /* MODIFIED CODE BEGIN */
++        //exit(1);
++        /* MODIFIED CODE END */  
+       }
+-      exit(code.As<Int32>()->Value());
++      /* MODIFIED CODE BEGIN */
++      //exit(code.As<Int32>()->Value());
++      /* MODIFIED CODE END */
+     }
+   }
+ }
+@@ -2805,6 +2874,14 @@ MultiIsolatePlatform* GetMainThreadMultiIsolatePlatform() {
+ MultiIsolatePlatform* CreatePlatform(
+     int thread_pool_size,
+     node::tracing::TracingController* tracing_controller) {
++  /* MODIFIED CODE BEGIN */ 
++  if (0 == thread_pool_size)
++  {
++    v8_platform.Initialize(
++        per_process_opts->v8_thread_pool_size);
++    return v8_platform.Platform();
++  }
++  /* MODIFIED CODE END */
+   return new NodePlatform(thread_pool_size, tracing_controller);
+ }
+ 
+@@ -3050,6 +3127,15 @@ void RegisterBuiltinModules() {
+ #undef V
+ }
+ 
++/*MODIFIED CODE BEGIN*/
++#if HAVE_INSPECTOR
++void InspectorStart(Environment* env, const char* path, MultiIsolatePlatform* platform) {
++  env->inspector_agent()->Start(path, env->options()->debug_options, true);
++}
++#endif
++/*MODIFIED CODE END*/
++
++
+ }  // namespace node
+ 
+ #if !HAVE_INSPECTOR
+diff --git a/examples/pxScene2d/external/libnode-v10.15.3/src/node.h b/examples/pxScene2d/external/libnode-v10.15.3/src/node.h
+index 2a6f5b5..6bf2b29 100755
+--- a/examples/pxScene2d/external/libnode-v10.15.3/src/node.h
++++ b/examples/pxScene2d/external/libnode-v10.15.3/src/node.h
+@@ -204,6 +204,12 @@ typedef intptr_t ssize_t;
+ 
+ namespace node {
+ 
++
++/*MODIFIED CODE BEGIN*/
++NODE_EXTERN extern v8::Isolate* node_isolate;
++NODE_EXTERN extern bool node_is_initialized;
++/*MODIFIED CODE END*/
++
+ // TODO(addaleax): Remove all of these.
+ NODE_DEPRECATED("use command-line flags",
+                 NODE_EXTERN extern bool no_deprecation);
+@@ -237,6 +243,10 @@ NODE_EXTERN void FreeArrayBufferAllocator(ArrayBufferAllocator* allocator);
+ class IsolateData;
+ class Environment;
+ 
++/*MODIFIED CODE BEGIN*/
++NODE_EXTERN bool ShouldAbortOnUncaughtException(v8::Isolate* isolate);
++/*MODIFIED CODE END*/
++
+ class NODE_EXTERN MultiIsolatePlatform : public v8::Platform {
+  public:
+   virtual ~MultiIsolatePlatform() { }
+@@ -253,6 +263,12 @@ class NODE_EXTERN MultiIsolatePlatform : public v8::Platform {
+   virtual void UnregisterIsolate(IsolateData* isolate_data) = 0;
+ };
+ 
++/*MODIFIED CODE BEGIN*/
++#if HAVE_INSPECTOR
++NODE_EXTERN void InspectorStart(Environment* env, const char* path, MultiIsolatePlatform* platform);
++#endif
++/*MODIFIED CODE END*/
++
+ // Creates a new isolate with Node.js-specific settings.
+ NODE_EXTERN v8::Isolate* NewIsolate(ArrayBufferAllocator* allocator);
+ 
+@@ -296,10 +312,11 @@ NODE_EXTERN void FreeEnvironment(Environment* env);
+ // If NODE_USE_V8_PLATFORM haven't been defined when Node.js was built,
+ // it returns nullptr.
+ NODE_EXTERN MultiIsolatePlatform* GetMainThreadMultiIsolatePlatform();
+-
++/* MODIFIED CODE BEGIN */
+ NODE_EXTERN MultiIsolatePlatform* CreatePlatform(
+     int thread_pool_size,
+-    node::tracing::TracingController* tracing_controller);
++    node::tracing::TracingController* tracing_controller=NULL);
++/* MODIFIED CODE END */
+ MultiIsolatePlatform* InitializeV8Platform(int thread_pool_size);
+ NODE_EXTERN void FreePlatform(MultiIsolatePlatform* platform);
+ 
+diff --git a/examples/pxScene2d/external/libnode-v10.15.3/src/node_contextify.cc b/examples/pxScene2d/external/libnode-v10.15.3/src/node_contextify.cc
+index a1903d9..70fd8ca 100755
+--- a/examples/pxScene2d/external/libnode-v10.15.3/src/node_contextify.cc
++++ b/examples/pxScene2d/external/libnode-v10.15.3/src/node_contextify.cc
+@@ -796,6 +796,14 @@ void ContextifyScript::RunInThisContext(
+ 
+   CHECK(args[2]->IsBoolean());
+   bool break_on_sigint = args[2]->IsTrue();
++  /* MODIFIED CODE BEGIN */
++  // https://github.com/nodejs/node/issues/14757
++  // without this doesn't run in the current context but rather the top level context
++  // We need to be careful about merging this in and side effects
++  auto context = args.GetIsolate()->GetEnteredContext();
++  if (context.IsEmpty()) context = env->context();
++  Context::Scope context_scope(context);
++  /* MODIFIED CODE END */
+ 
+   // Do the eval within this context
+   EvalMachine(env, timeout, display_errors, break_on_sigint, args);
+@@ -1119,4 +1127,75 @@ void Initialize(Local<Object> target,
+ }  // namespace contextify
+ }  // namespace node
+ 
++/*MODIFIED CODE BEGIN*/
++namespace node
++{
++namespace contextify
++{
++void deleteContextifyContext(void *ctx)
++{
++  ContextifyContext* context =  (ContextifyContext*)ctx;
++  if (nullptr != context)
++    delete context;
++}
++
++v8::Handle<Context> makeContext(v8::Isolate *isolate, v8::Handle<Object> sandbox, const ContextOptions& options)  // basically MakeContext()  circa line 268
++{
++  if (!isolate)
++  {
++    printf("\nERROR: bad isolate pointer.");
++    return Local<Context>(); // NULL;
++  }
++
++    Environment* env = Environment::GetCurrent(isolate);
++//  HandleScope scope(env->isolate());
++
++  if (!sandbox->IsObject())
++  {
++    env->ThrowTypeError("sandbox argument must be an object.");
++    return Local<Context>(); // NULL;
++  }
++
++  EscapableHandleScope  scope( isolate );
++
++  // Local<Object> sandbox = args[0].As<Object>();
++
++  Local<String> symbol_name =
++      FIXED_ONE_BYTE_STRING(isolate, "_contextifyPrivate");
++
++  // Don't allow contextifying a sandbox multiple times.
++  Local<v8::Private> private_symbol_name = v8::Private::ForApi(isolate, symbol_name);
++  CHECK(
++      !sandbox->HasPrivate(
++          env->context(),
++          private_symbol_name).FromJust());
++
++  TryCatch try_catch(isolate);
++  ContextifyContext* context = new ContextifyContext(env, sandbox, options);
++
++  if (try_catch.HasCaught())
++  {
++    try_catch.ReThrow();
++    return Local<Context>(); // NULL;
++  }
++
++  if (context->context().IsEmpty())
++  {
++    return Local<Context>(); // NULL;
++  }
++
++  Local<External> hidden_context = External::New(isolate, context);
++  sandbox->SetPrivate(
++      env->context(),
++      private_symbol_name,
++      hidden_context);
++
++  Local<Context>  local_context = context->context(); // returns a local context
++
++  return scope.Escape( local_context );
++}
++}
++} // namespace node
++/*MODIFIED CODE END*/
++
+ NODE_BUILTIN_MODULE_CONTEXT_AWARE(contextify, node::contextify::Initialize)
+diff --git a/examples/pxScene2d/external/libnode-v10.15.3/src/node_contextify_mods.h b/examples/pxScene2d/external/libnode-v10.15.3/src/node_contextify_mods.h
+new file mode 100644
+index 0000000..aa9979a
+--- /dev/null
++++ b/examples/pxScene2d/external/libnode-v10.15.3/src/node_contextify_mods.h
+@@ -0,0 +1,19 @@
++// This is not part of Node... added to expose needed methods.
++
++#include "v8.h"
++
++/*MODIFIED CODE BEGIN*/
++
++namespace node
++{
++namespace contextify
++{
++  class Environment;
++ 
++  v8::Handle<v8::Context> makeContext(v8::Isolate *isolate, v8::Handle<v8::Object> sandbox, const ContextOptions& options);
++  void deleteContextifyContext(void*);
++}
++} 
++/*MODIFIED CODE END*/
++
++
+diff --git a/examples/pxScene2d/external/libnode-v10.15.3/src/node_http_parser.cc b/examples/pxScene2d/external/libnode-v10.15.3/src/node_http_parser.cc
+index b29cdf4..fbc49d8 100755
+--- a/examples/pxScene2d/external/libnode-v10.15.3/src/node_http_parser.cc
++++ b/examples/pxScene2d/external/libnode-v10.15.3/src/node_http_parser.cc
+@@ -439,7 +439,15 @@ class Parser : public AsyncWrap, public StreamListener {
+     Parser* parser;
+     ASSIGN_OR_RETURN_UNWRAP(&parser, args.Holder());
+ 
+-    CHECK(parser->current_buffer_.IsEmpty());
++    /* MODIFIED CODE BEGIN */
++    //CHECK(parser->current_buffer_.IsEmpty());
++    if (false == parser->current_buffer_.IsEmpty())
++    {
++      parser->got_exception_ = true;
++      return;
++    }
++    /* MODIFIED CODE END */
++
+     parser->got_exception_ = false;
+ 
+     int rv = http_parser_execute(&(parser->parser_), &settings, nullptr, 0);
+diff --git a/examples/pxScene2d/external/libnode-v10.15.3/src/node_internals.h b/examples/pxScene2d/external/libnode-v10.15.3/src/node_internals.h
+index 12089bc..7e8bf86 100755
+--- a/examples/pxScene2d/external/libnode-v10.15.3/src/node_internals.h
++++ b/examples/pxScene2d/external/libnode-v10.15.3/src/node_internals.h
+@@ -253,7 +253,9 @@ void AppendExceptionLine(Environment* env,
+                          v8::Local<v8::Message> message,
+                          enum ErrorHandlingMode mode);
+ 
+-[[noreturn]] void FatalError(const char* location, const char* message);
++/* MODIFIED CODE BEGIN */
++/*[[noreturn]]*/ void FatalError(const char* location, const char* message);
++/* MODIFIED CODE END */
+ 
+ // Like a `TryCatch` but exits the process if an exception was caught.
+ class FatalTryCatch : public v8::TryCatch {
+diff --git a/examples/pxScene2d/external/libnode-v10.15.3/src/node_platform.cc b/examples/pxScene2d/external/libnode-v10.15.3/src/node_platform.cc
+index fd8d045..c70036e 100755
+--- a/examples/pxScene2d/external/libnode-v10.15.3/src/node_platform.cc
++++ b/examples/pxScene2d/external/libnode-v10.15.3/src/node_platform.cc
+@@ -329,6 +329,13 @@ void PerIsolatePlatformData::RunForegroundTask(std::unique_ptr<Task> task) {
+   Isolate* isolate = Isolate::GetCurrent();
+   HandleScope scope(isolate);
+   Environment* env = Environment::GetCurrent(isolate);
++/*MODIFIED CODE BEGIN*/
++  if (isolate->GetCurrentContext().IsEmpty() || (NULL == env))
++  {
++    task->Run();
++    return;
++  }
++/*MODIFIED CODE END*/
+   InternalCallbackScope cb_scope(env, Local<Object>(), { 0, 0 },
+                                  InternalCallbackScope::kAllowEmptyResource);
+   task->Run();
+@@ -411,12 +418,19 @@ std::shared_ptr<PerIsolatePlatformData>
+ NodePlatform::ForIsolate(Isolate* isolate) {
+   Mutex::ScopedLock lock(per_isolate_mutex_);
+   std::shared_ptr<PerIsolatePlatformData> data = per_isolate_[isolate];
+-  CHECK(data);
++  //  MODIFIED CODE BEGIN
++  // CHECK(data);
++  // MODIFIED CODE END
+   return data;
+ }
+ 
+ void NodePlatform::CallOnForegroundThread(Isolate* isolate, Task* task) {
+-  ForIsolate(isolate)->PostTask(std::unique_ptr<Task>(task));
++  /* MODIFIED CODE BEGIN */
++  std::shared_ptr<PerIsolatePlatformData> data = ForIsolate(isolate);
++  if (nullptr != data.get()) {
++    data->PostTask(std::unique_ptr<Task>(task));
++  }
++  /* MODIFIED CODE END */
+ }
+ 
+ void NodePlatform::CallDelayedOnForegroundThread(Isolate* isolate,
+diff --git a/examples/pxScene2d/external/libnode-v10.15.3/src/node_watchdog.cc b/examples/pxScene2d/external/libnode-v10.15.3/src/node_watchdog.cc
+index 4b902aa..382bf7b 100755
+--- a/examples/pxScene2d/external/libnode-v10.15.3/src/node_watchdog.cc
++++ b/examples/pxScene2d/external/libnode-v10.15.3/src/node_watchdog.cc
+@@ -244,7 +244,10 @@ bool SigintWatchdogHelper::Stop() {
+   CHECK_EQ(0, pthread_join(thread_, nullptr));
+   has_running_thread_ = false;
+ 
+-  RegisterSignalHandler(SIGINT, SignalExit, true);
++  /* MODIFIED CODE BEGIN */
++  // To make sure SIGINT signal is not caught by libnode
++  //RegisterSignalHandler(SIGINT, SignalExit, true);
++  /* MODIFIED CODE END */
+ #else
+   watchdog_disabled_ = true;
+ #endif
+diff --git a/examples/pxScene2d/external/libnode-v10.15.3/vcbuild.bat b/examples/pxScene2d/external/libnode-v10.15.3/vcbuild.bat
+index 834db64..0c108bd 100755
+--- a/examples/pxScene2d/external/libnode-v10.15.3/vcbuild.bat
++++ b/examples/pxScene2d/external/libnode-v10.15.3/vcbuild.bat
+@@ -55,6 +55,10 @@ set "common_test_suites=%js_test_suites% doctool addons addons-napi&set build_ad
+ set http2_debug=
+ set nghttp2_debug=
+ set link_module=
++@rem MODIFIED CODE BEGIN
++set no_optimization=
++set shared_openssl=
++@rem MODIFIED CODE END
+ set no_cctest=
+ set cctest=
+ set openssl_no_asm=
+@@ -127,6 +131,10 @@ if /i "%1"=="static"           set enable_static=1&goto arg-ok
+ if /i "%1"=="no-NODE-OPTIONS"	set no_NODE_OPTIONS=1&goto arg-ok
+ if /i "%1"=="debug-nghttp2" set debug_nghttp2=1&goto arg-ok
+ if /i "%1"=="link-module"   set "link_module= --link-module=%2%link_module%"&goto arg-ok-2
++@rem MODIFIED CODE BEGIN
++if /i "%1"=="no-optimization" set no_optimization=1&goto arg-ok
++if /i "%1"=="shared-openssl" set shared_openssl=1&goto arg-ok
++@rem MODIFIED CODE END
+ if /i "%1"=="no-cctest"     set no_cctest=1&goto arg-ok
+ if /i "%1"=="cctest"        set cctest=1&goto arg-ok
+ if /i "%1"=="openssl-no-asm"   set openssl_no_asm=1&goto arg-ok
+@@ -182,6 +190,10 @@ if defined link_module      set configure_flags=%configure_flags% %link_module%
+ if defined i18n_arg         set configure_flags=%configure_flags% --with-intl=%i18n_arg%
+ if defined config_flags     set configure_flags=%configure_flags% %config_flags%
+ if defined target_arch      set configure_flags=%configure_flags% --dest-cpu=%target_arch%
++@rem MODIFIED CODE BEGIN
++if defined no_optimization  set configure_flags=%configure_flags% --no-optimization
++if defined shared_openssl   set configure_flags=%configure_flags% --shared-openssl --shared-openssl-libpath=%CD%\..\openssl-1.0.2o\lib\ --shared-openssl-libname=libeay32,ssleay32 --shared-openssl-includes=%CD%\..\openssl-1.0.2o\include
++@rem MODIFIED CODE END
+ if defined openssl_no_asm   set configure_flags=%configure_flags% --openssl-no-asm
+ if defined DEBUG_HELPER     set configure_flags=%configure_flags% --verbose
+ 
+diff --git a/examples/pxScene2d/external/libnode-v10.15.3/configure.py b/examples/pxScene2d/external/libnode-v10.15.3/configure.py
+index 0ad986a..c215ee6 100755
+--- a/examples/pxScene2d/external/libnode-v10.15.3/configure.py
++++ b/examples/pxScene2d/external/libnode-v10.15.3/configure.py
+@@ -566,6 +566,13 @@ parser.add_option('--without-bundled-v8',
+     help='do not use V8 includes from the bundled deps folder. ' +
+          '(This mode is not officially supported for regular applications)')
+ 
++# MODIFIED CODE BEGIN
++parser.add_option('--no-optimization',
++    action='store_true',
++    dest='no_optimization',
++    help='build without optimization')
++# MODIFIED CODE END
++
+ parser.add_option('--build-v8-with-gn',
+     action='store_true',
+     dest='build_v8_with_gn',
+@@ -1237,8 +1244,10 @@ def configure_openssl(o):
+          of modern CPU cryptographic instructions and will therefore be slower.
+          Please refer to BUILDING.md''')
+ 
+-  if options.openssl_no_asm and options.shared_openssl:
+-    error('--openssl-no-asm is incompatible with --shared-openssl')
++  #MODIFIED CODE BEGIN
++  #if options.openssl_no_asm and options.shared_openssl:
++  #  warn('--openssl-no-asm is incompatible with --shared-openssl')
++  #MODIFIED CODE END
+ 
+   if options.openssl_fips:
+      error('FIPS is not supported in this version of Node.js')
+@@ -1608,6 +1617,9 @@ configure_openssl(output)
+ configure_intl(output)
+ configure_static(output)
+ configure_inspector(output)
++# MODIFIED CODE BEGIN
++output['variables']['no_optimization'] = 1 if options.no_optimization else 0
++# MODIFIED CODE END
+ 
+ # variables should be a root level element,
+ # move everything else to target_defaults
+diff --git a/examples/pxScene2d/external/libnode-v10.15.3/lib/internal/vm/source_text_module.js b/examples/pxScene2d/external/libnode-v10.15.3/lib/internal/vm/source_text_module.js
+index 1898831bf..8468f944e 100755
+--- a/examples/pxScene2d/external/libnode-v10.15.3/lib/internal/vm/source_text_module.js
++++ b/examples/pxScene2d/external/libnode-v10.15.3/lib/internal/vm/source_text_module.js
+@@ -132,7 +132,9 @@ class SourceTextModule {
+ 
+     Object.defineProperties(this, {
+       url: { value: url, enumerable: true },
+-      context: { value: context, enumerable: true },
++      // getter leaks... to prevent this make the property configurable and delete when necessary
++      //context: { value: context, enumerable: true },
++      context: { value: context, enumerable: true, configurable: true},
+     });
+   }
+ 
+diff --git a/examples/pxScene2d/external/libnode-v10.15.3/src/module_wrap.cc b/examples/pxScene2d/external/libnode-v10.15.3/src/module_wrap.cc
+index fe6a8e263..056a00d7b 100755
+--- a/examples/pxScene2d/external/libnode-v10.15.3/src/module_wrap.cc
++++ b/examples/pxScene2d/external/libnode-v10.15.3/src/module_wrap.cc
+@@ -182,6 +182,9 @@ void ModuleWrap::New(const FunctionCallbackInfo<Value>& args) {
+ 
+   that->SetIntegrityLevel(context, IntegrityLevel::kFrozen);
+   args.GetReturnValue().Set(that);
++
++  // ModuleWrap leaks
++  obj->context_.SetWeak(obj, WeakCallback, v8::WeakCallbackType::kParameter);
+ }
+ 
+ void ModuleWrap::Link(const FunctionCallbackInfo<Value>& args) {
+@@ -818,6 +821,11 @@ void ModuleWrap::SetInitializeImportMetaObjectCallback(
+       HostInitializeImportMetaObjectCallback);
+ }
+ 
++void ModuleWrap::WeakCallback(const v8::WeakCallbackInfo<ModuleWrap>& data) {
++  ModuleWrap* wrap = data.GetParameter();
++  delete wrap;
++}
++
+ void ModuleWrap::Initialize(Local<Object> target,
+                             Local<Value> unused,
+                             Local<Context> context) {
+diff --git a/examples/pxScene2d/external/libnode-v10.15.3/src/module_wrap.h b/examples/pxScene2d/external/libnode-v10.15.3/src/module_wrap.h
+index 0e352c657..5599a52dd 100755
+--- a/examples/pxScene2d/external/libnode-v10.15.3/src/module_wrap.h
++++ b/examples/pxScene2d/external/libnode-v10.15.3/src/module_wrap.h
+@@ -82,6 +82,8 @@ class ModuleWrap : public BaseObject {
+       v8::Local<v8::String> specifier,
+       v8::Local<v8::Module> referrer);
+   static ModuleWrap* GetFromModule(node::Environment*, v8::Local<v8::Module>);
++  static void WeakCallback(
++      const v8::WeakCallbackInfo<ModuleWrap>& data);
+ 
+   Persistent<v8::Module> module_;
+   Persistent<v8::String> url_;
+diff --git a/examples/pxScene2d/external/libnode-v10.15.3/src/env-inl.h b/examples/pxScene2d/external/libnode-v10.15.3/src/env-inl.h
+index 4af5add..7ab9076 100755
+--- a/examples/pxScene2d/external/libnode-v10.15.3/src/env-inl.h
++++ b/examples/pxScene2d/external/libnode-v10.15.3/src/env-inl.h
+@@ -156,13 +156,16 @@ inline bool Environment::AsyncHooks::pop_async_id(double async_id) {
+             "actual: %.f, expected: %.f)\n",
+             async_id_fields_.GetValue(kExecutionAsyncId),
+             async_id);
++    /* MODIFIED CODE BEGIN */
++    /*
+     DumpBacktrace(stderr);
+     fflush(stderr);
+     if (!env()->abort_on_uncaught_exception())
+       exit(1);
+     fprintf(stderr, "\n");
+     fflush(stderr);
+-    ABORT_NO_BACKTRACE();
++    ABORT_NO_BACKTRACE(); */
++    /* MODIFIED CODE END */
+   }
+ 
+   uint32_t offset = fields_[kStackLength] - 1;
+diff --git a/examples/pxScene2d/external/libnode-v10.15.3/deps/uv/src/unix/core.c b/examples/pxScene2d/external/libnode-v10.15.3/deps/uv/src/unix/core.c
+index f92446f..d02c098 100755
+--- a/examples/pxScene2d/external/libnode-v10.15.3/deps/uv/src/unix/core.c
++++ b/examples/pxScene2d/external/libnode-v10.15.3/deps/uv/src/unix/core.c
+@@ -726,9 +726,12 @@ void uv_disable_stdio_inheritance(void) {
+   /* Set the CLOEXEC flag on all open descriptors. Unconditionally try the
+    * first 16 file descriptors. After that, bail out after the first error.
+    */
+-  for (fd = 0; ; fd++)
++  /*MODIFIED CODE BEGIN */
++  //for (fd = 0; ; fd++)
++  for (fd = 3; ; fd++)
+     if (uv__cloexec(fd, 1) && fd > 15)
+       break;
++  /*MODIFIED CODE END */
+ }
+ 
+ 
+@@ -1003,6 +1006,9 @@ int uv__open_cloexec(const char* path, int flags) {
+ 
+ int uv__dup2_cloexec(int oldfd, int newfd) {
+   int r;
++  /*MODIFIED CODE BEGIN*/
++  int flags = 0;
++  /*MODIFIED CODE END*/
+ #if (defined(__FreeBSD__) && __FreeBSD__ >= 10) || defined(__NetBSD__)
+   r = dup3(oldfd, newfd, O_CLOEXEC);
+   if (r == -1)
+@@ -1018,9 +1024,23 @@ int uv__dup2_cloexec(int oldfd, int newfd) {
+ #elif defined(__linux__)
+   static int no_dup3;
+   if (!no_dup3) {
++    /* MODIFIED CODE BEGIN */
++    //do
++    //  r = uv__dup3(oldfd, newfd, UV__O_CLOEXEC);
++    //while (r == -1 && errno == EBUSY);
+     do
+-      r = uv__dup3(oldfd, newfd, UV__O_CLOEXEC);
+-    while (r == -1 && errno == EBUSY);
++    {
++      if (newfd >=0  && newfd <= 2)
++      {
++        flags = 0;
++      }
++      else
++      {
++        flags = UV__O_CLOEXEC;
++      }
++      r = uv__dup3(oldfd, newfd, flags);
++    }while (r == -1 && (errno == EINTR || errno == EBUSY));
++    /* MODIFIED CODE END */
+     if (r != -1)
+       return r;
+     if (errno != ENOSYS)

@@ -1,0 +1,124 @@
+/*
+ * If not stated otherwise in this file or this component's license file the
+ * following copyright and licenses apply:
+ *
+ * Copyright 2018 RDK Management
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+*/
+
+body{
+    margin:0;
+    background-color: #f0f0f0;
+}
+
+.micro-event-tool-bar {
+  padding-top: 3px;
+  width: 100%;
+  height: 28px;
+  background-color: #0865BF;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 16px;
+}
+
+#microEventTool {
+    padding: 30px;
+    font-size: 18px;
+}
+
+.micro-event-tool-bar a {
+  padding-left: 10px;
+  color: white;
+  text-align: center;
+  text-decoration: none;
+}
+
+#fileUpload {
+   cursor: pointer;
+   color: white;
+   text-align: center;
+   border: 2px solid #0B87FF;
+   padding: 3px;
+   margin-top: 1px;
+}
+
+#LaunchMicroEvent{
+   cursor: pointer;
+   color: white;
+   text-align: center;
+   border: 2px solid #0BB6FF;
+   padding: 3px;
+   margin-top: 1px;
+   margin-left: 50%;
+}
+
+#LaunchMicroEvent:hover {
+  background-color: #0BB6FF;
+}
+
+
+#files {
+   opacity: 0;
+   position: absolute;
+   z-index: -1;
+   height: 30px;
+   background-color: #0865BF;
+}
+
+#fileUpload:hover {
+  background-color: #0B87FF;
+}
+
+#content {
+  padding-left: 10px;
+  width: 100%;
+}
+
+.jsonButton {
+  padding: 5px;
+}
+
+.jsonButton:hover {
+  border: 2px solid #0B87FF;
+}
+
+.loader {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    z-index: 3;
+    border: 16px solid #4CFF6B;
+    border-radius: 50%;
+    border-top: 16px solid #007F16;
+    width: 80px;
+    height: 80px;
+    margin: -75px 0 0 -75px;
+    -webkit-animation: spin 1s linear infinite;
+    animation: spin 1s linear infinite;
+}
+
+@-webkit-keyframes spin {
+    0% { -webkit-transform: rotate(0deg); }
+    100% { -webkit-transform: rotate(360deg); }
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+#loadText {
+    position: absolute;
+    left: 45%;
+    top: 60%;
+}

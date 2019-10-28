@@ -661,6 +661,14 @@ class ContextifyScript : public BaseObject {
       return;
     }
 
+    // JRJRJR  Patch applied mentioned in
+    // https://github.com/nodejs/node/issues/14757
+    // without this doesn't run in the current context but rather the top level context
+    // We need to be careful about merging this in and side effects
+    auto context = args.GetIsolate()->GetEnteredContext();
+    if (context.IsEmpty()) context = env->context();
+    Context::Scope context_scope(context);    
+
     // Do the eval within this context
     EvalMachine(env, timeout, display_errors, break_on_sigint, args,
                 &try_catch);

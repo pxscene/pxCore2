@@ -135,34 +135,19 @@ private:
 };
 inline rtString toString(v8::Isolate* isolate, const v8::Handle<v8::Object>& obj)
 {
-  #if defined RTSCRIPT_SUPPORT_V8
   v8::String::Utf8Value utf(isolate, obj->ToString());
-  #else
-  UNUSED_PARAM(isolate);
-  v8::String::Utf8Value utf(obj->ToString());
-  #endif
   return rtString(*utf);
 }
 
 inline rtString toString(v8::Isolate* isolate, const v8::Handle<v8::Value>& val)
 {
-  #if defined RTSCRIPT_SUPPORT_V8
   v8::String::Utf8Value utf(isolate, val->ToString());
-  #else
-  UNUSED_PARAM(isolate);
-  v8::String::Utf8Value utf(val->ToString());
-  #endif
   return rtString(*utf);
 }
 
 inline rtString toString(v8::Isolate* isolate, const v8::Local<v8::String>& s)
 {
-  #if defined RTSCRIPT_SUPPORT_V8
   v8::String::Utf8Value utf(isolate, s);
-  #else
-  UNUSED_PARAM(isolate);
-  v8::String::Utf8Value utf(s);
-  #endif
   return rtString(*utf);
 }
 
@@ -170,7 +155,12 @@ inline int toInt32(const v8::FunctionCallbackInfo<v8::Value>& args, int which, i
 {
   int i = defaultValue;
   if (!args[which]->IsUndefined())
-    i = (int)args[which]->IntegerValue();
+  {
+    v8::Local<v8::Context> ctx = args.This()->CreationContext();
+    v8::Maybe<int64_t> val = args[which]->IntegerValue(ctx);
+    if (val.IsNothing()) return i;
+    i = val.FromJust();
+  }
   return i;
 }
 

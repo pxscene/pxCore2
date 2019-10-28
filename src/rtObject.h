@@ -766,6 +766,8 @@ public:
   virtual rtError Set(const char* name, const rtValue* value);
   virtual rtError Set(uint32_t /*i*/, const rtValue* /*value*/);
 
+  rtError copyTo(rtMapObject* dst);
+
 private:
   std::vector<rtNamedValue>::iterator find(const char* name);
   std::vector<rtNamedValue> mProps;

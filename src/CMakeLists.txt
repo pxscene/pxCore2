@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8)
 project(pxcore)
 find_package(PkgConfig)
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 14)
 
 option(WINDOWLESS_EGL "WINDOWLESS_EGL" OFF)
 option(PXCORE_WAYLAND_EGL "PXCORE_WAYLAND_EGL" OFF)
@@ -37,9 +37,9 @@ set(BUILD_RTCORE_SHARED_LIBRARY 1)
 
 if (BUILD_WITH_GIF)
 message("Building with GIF support")
-if(NOT PREFER_SYSTEM_LIBRARIES)
+if ((NOT PREFER_SYSTEM_LIBRARIES) OR (PREFER_EXTERNAL_GIF))
 include_directories(AFTER ${EXTDIR}/giflib-5.1.9/)
-endif(PREFER_SYSTEM_LIBRARIES)
+endif ((NOT PREFER_SYSTEM_LIBRARIES) OR (PREFER_EXTERNAL_GIF))
 add_definitions(-DSUPPORT_GIF)
 
 endif (BUILD_WITH_GIF)
@@ -202,7 +202,7 @@ else ()
 endif (APPLE)
 
 if (NOT PXCORE_DFB)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpermissive -std=c++11")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 endif (NOT PXCORE_DFB)
 
 if (PXCORE_COMPILE_WARNINGS_AS_ERRORS)
@@ -221,7 +221,9 @@ set(PXCORE_FILES ${PXCORE_FILES} pxOffscreen.cpp pxWindowUtil.cpp pxColorNames.c
         rtZip.cpp pxInterpolators.cpp pxUtil.cpp
         rtFileDownloader.cpp unzip.c ioapi.c
         rtScript.cpp rtSettings.cpp rtCORS.cpp
-        rtHttpRequest.cpp rtHttpResponse.cpp)
+        rtHttpRequest.cpp rtHttpResponse.cpp
+        rtJsonUtils.cpp
+        )
 
 if (SUPPORT_STORAGE)
     message("Adding local storage support")
@@ -240,6 +242,9 @@ if (SUPPORT_NODE)
     add_definitions(-DRTSCRIPT_SUPPORT_NODE)
     set(PXCORE_FILES ${PXCORE_FILES} rtScriptV8/rtScriptNode.cpp rtScriptV8/jsCallback.cpp rtScriptV8/rtFunctionWrapper.cpp 
         rtScriptV8/rtObjectWrapper.cpp rtScriptV8/rtWrapperUtils.cpp)
+    if (USE_NODE_10)
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++1y")
+    endif (USE_NODE_10)
 endif()
 
 if (SUPPORT_V8)
