@@ -378,7 +378,7 @@ LRESULT __stdcall pxWindowNative::windowProc(HWND hWnd, UINT msg, WPARAM wParam,
                 GET_WHEEL_DELTA_WPARAM(wParam);
                 int direction = (int(wParam) > 0) ? 1 : -1;
 
-                w->onScrollWheel((float)(GET_X_LPARAM(lParam) * direction), (float)(GET_Y_LPARAM(lParam) * direction);
+                w->onScrollWheel((float)(GET_X_LPARAM(lParam) * direction), (float)(GET_Y_LPARAM(lParam) * direction));
 	    }
 	    break;
  
