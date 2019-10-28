@@ -87,8 +87,10 @@ set(PXSCENE_INSTALLER 0)
 add_definitions(-DANIMATION_ROTATE_XYZ )
 
 if(WIN32)
-  set(OPENSSLLIB ${EXTDIR}/openssl-1.0.2o/lib)
-  set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${OPENSSLLIB})
+  set(OPENSSLLIB ${EXTDIR}/openssl-1.0.2o/)
+  set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${OPENSSLLIB}/lib)
+  
+  include_directories(AFTER ${OPENSSLLIB}/bin)
 endif(WIN32)
 
 if (BUILD_WITH_GIF)
@@ -581,7 +583,8 @@ if (BUILD_PXSCENE_APP)
            "${CMAKE_CURRENT_SOURCE_DIR}/*.json" "${CMAKE_CURRENT_SOURCE_DIR}/*.conf"
            "${CMAKE_CURRENT_SOURCE_DIR}/../external/vc.build/builds/*.dll"
            "${CMAKE_CURRENT_SOURCE_DIR}/../external/v8/out.gn/ia32.release/v8*.dll"
-           "${CMAKE_CURRENT_SOURCE_DIR}/Release/")
+           "${CMAKE_CURRENT_SOURCE_DIR}/Release/"
+           "${CMAKE_CURRENT_SOURCE_DIR}/../external/openssl-1.0.2o/bin/*.dll")
         if (SUPPORT_DUKTAPE)
             message("installing additional duktape files")
             install(FILES ${PXSCENE_INSTALL_FILES_JS2} DESTINATION . COMPONENT pxscene)
