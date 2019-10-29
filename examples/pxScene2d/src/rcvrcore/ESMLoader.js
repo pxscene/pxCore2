@@ -459,7 +459,13 @@ function ESMLoader(params) {
             const url2 = filename2url(loadCtx._frameworkURL);
             const loc2 = /^file:/.test(url2) ? url2.substring(7) : url2;
             const source2 = await getFile(loadCtx.global.sparkscene,url2);
+            // use paths for frameworkURL
+            sandbox.require = loadCtx.makeRequire(loc2);
+            sandbox['__dirname'] = path.dirname(loc2);
             vm.runInContext(source2, loadCtx.contextifiedSandbox, {filename:loc2});
+            // restore previous values
+            sandbox.require = loadCtx.makeRequire(loc);
+            sandbox['__dirname'] = path.dirname(loc);
           }
           const source = await getFile(loadCtx.global.sparkscene, url);
           loadCtx.app = await loadMjs(source, url, loadCtx.contextifiedSandbox, loadCtx.modmap);
