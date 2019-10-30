@@ -42,7 +42,6 @@ var _ws = require('ws')
 var _http = require('http')
 var _https = require('https')
 var urlmain = require("url")
-//var nodeFetchSpark = require('sparkHttp_wrap')
 const {promisify} = require('util')
 const readFileAsync = promisify(fs.readFile)
 const ArrayJoin = Function.call.bind(Array.prototype.join);
@@ -217,7 +216,6 @@ var bootStrapCache = {}
     });
     return client;
   };
-  //bootStrapCache[resolveStandardModulePath('node-fetch')] = nodeFetchSpark;
 
 function initializeImportMeta(meta, { url }) {
   meta.url = url;
@@ -648,7 +646,7 @@ async function loadMjs(source, url, context)
       }
 
       const wrapped = `(function(exports,require,module,__filename,__dirname) {${source}})`;
-      let compiled = vm.runInThisContext(wrapped, {filename:filename,displayErrors:true})
+      let compiled = vm.runInContext(wrapped, contextifiedSandbox, {filename:filename,displayErrors:true})
       const exports = {};
       // OUR own require, independent of node require
       const require = makeRequire(filename);
