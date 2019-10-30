@@ -185,6 +185,7 @@ var loadUrl = function(url, _beginDrawing, _endDrawing, _view, _frameworkURL, _o
     for (let key in bootStrapCache) {
       delete bootStrapCache[key];
     }
+    
     xxsetInterval = null
     xxsetTimeout = null
     xxclearInterval = null
