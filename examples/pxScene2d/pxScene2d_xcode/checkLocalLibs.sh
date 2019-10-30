@@ -29,5 +29,7 @@ otool -L ./lib/libz.1.2.11.dylib
 
 otool -L ./lib/libgif.7.dylib
 
+otool -L ./lib/libGLEW.2.1.dylib
+
 
 
