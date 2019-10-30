@@ -113,7 +113,7 @@ const makeRequire = function(pathToParent) {
     // OUR own require, independent of node require
     const require = makeRequire(filename).bind(this);
     const wrapped = `(function(exports,require,module,__filename,__dirname) {${source}})`;
-    let compiled = vm.runInThisContext(wrapped, {filename:filename,displayErrors:true})
+    let compiled = vm.runInContext(wrapped, this.contextifiedSandbox , {filename:filename,displayErrors:true})
     const exports = {};
     const module = {exports};
     try {
