@@ -31,5 +31,7 @@ otool -L ./lib/libgif.7.dylib
 
 otool -L ./lib/libGLEW.2.1.dylib
 
+otool -L ./lib/librtmp.1.dylib
+
 
 
