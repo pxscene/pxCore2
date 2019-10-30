@@ -1132,6 +1132,7 @@ bool rtFileDownloader::downloadByteRangeFromNetwork(rtFileDownloadRequest* downl
             }
             else if(iLoop == 1)
             {
+               startRange = 0;
                byteRange = rtString::toString(8192) + "-" + rtString::toString(startRange + downloadRequest->byteRangeIntervals()-1);
             }
             else
