@@ -122,6 +122,8 @@ public:
   void updateYUVFrame(uint8_t *yuvBuffer, int size, int pixel_w, int pixel_h);
 
 private:
+  void initPlayback();
+  void deInitPlayback();
 
   void InitPlayerLoop();
   void TermPlayerLoop();
