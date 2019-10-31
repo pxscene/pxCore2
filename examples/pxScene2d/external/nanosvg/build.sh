@@ -19,4 +19,6 @@ pushd $DIRECTORY
     else
         quilt push -aq || test $? = 2
     fi
+
+    touch PATCHED
 popd
