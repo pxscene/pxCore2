@@ -1075,28 +1075,6 @@ index 0e352c657..5599a52dd 100755
  
    Persistent<v8::Module> module_;
    Persistent<v8::String> url_;
-diff --git a/examples/pxScene2d/external/libnode-v10.15.3/src/env-inl.h b/examples/pxScene2d/external/libnode-v10.15.3/src/env-inl.h
-index 4af5add..7ab9076 100755
---- a/examples/pxScene2d/external/libnode-v10.15.3/src/env-inl.h
-+++ b/examples/pxScene2d/external/libnode-v10.15.3/src/env-inl.h
-@@ -156,13 +156,16 @@ inline bool Environment::AsyncHooks::pop_async_id(double async_id) {
-             "actual: %.f, expected: %.f)\n",
-             async_id_fields_.GetValue(kExecutionAsyncId),
-             async_id);
-+    /* MODIFIED CODE BEGIN */
-+    /*
-     DumpBacktrace(stderr);
-     fflush(stderr);
-     if (!env()->abort_on_uncaught_exception())
-       exit(1);
-     fprintf(stderr, "\n");
-     fflush(stderr);
--    ABORT_NO_BACKTRACE();
-+    ABORT_NO_BACKTRACE(); */
-+    /* MODIFIED CODE END */
-   }
- 
-   uint32_t offset = fields_[kStackLength] - 1;
 diff --git a/examples/pxScene2d/external/libnode-v10.15.3/deps/uv/src/unix/core.c b/examples/pxScene2d/external/libnode-v10.15.3/deps/uv/src/unix/core.c
 index f92446f..d02c098 100755
 --- a/examples/pxScene2d/external/libnode-v10.15.3/deps/uv/src/unix/core.c
@@ -1151,3 +1129,125 @@ index f92446f..d02c098 100755
      if (r != -1)
        return r;
      if (errno != ENOSYS)
+diff --git a/examples/pxScene2d/external/libnode-v10.15.3/src/bootstrapper.cc b/examples/pxScene2d/external/libnode-v10.15.3/src/bootstrapper.cc
+index d23a145..ee2f1a2 100755
+--- a/examples/pxScene2d/external/libnode-v10.15.3/src/bootstrapper.cc
++++ b/examples/pxScene2d/external/libnode-v10.15.3/src/bootstrapper.cc
+@@ -8,6 +8,9 @@
+ namespace node {
+ 
+ using v8::Array;
++/* MODIFIED CODE BEGIN */
++using v8::ArrayBuffer;
++/* MODIFIED CODE END */
+ using v8::Context;
+ using v8::Function;
+ using v8::FunctionCallbackInfo;
+@@ -24,6 +27,10 @@ using v8::Promise;
+ using v8::PromiseRejectEvent;
+ using v8::PromiseRejectMessage;
+ using v8::String;
++/* MODIFIED CODE BEGIN */
++using v8::Uint32Array;
++using v8::Uint8Array;
++/* MODIFIED CODE END */
+ using v8::Value;
+ 
+ void SetupProcessObject(const FunctionCallbackInfo<Value>& args) {
+@@ -51,7 +58,14 @@ void SetupNextTick(const FunctionCallbackInfo<Value>& args) {
+   run_microtasks_fn->SetName(FIXED_ONE_BYTE_STRING(isolate, "runMicrotasks"));
+ 
+   Local<Array> ret = Array::New(isolate, 2);
+-  ret->Set(context, 0, env->tick_info()->fields().GetJSArray()).FromJust();
++/* MODIFIED CODE BEGIN */
++  uint32_t* const fields = env->tick_info()->fields();
++  uint32_t const fields_count = env->tick_info()->fields_count();
++  Local<ArrayBuffer> array_buffer =
++      ArrayBuffer::New(env->isolate(), fields, sizeof(*fields) * fields_count);
++  ret->Set(context, 0, Uint32Array::New(array_buffer, 0, fields_count)).FromJust();
++  //ret->Set(context, 0, env->tick_info()->fields().GetJSArray()).FromJust();
++/* MODIFIED CODE END */
+   ret->Set(context, 1, run_microtasks_fn).FromJust();
+ 
+   args.GetReturnValue().Set(ret);
+diff --git a/examples/pxScene2d/external/libnode-v10.15.3/src/env.h b/examples/pxScene2d/external/libnode-v10.15.3/src/env.h
+index 66c69e8..e229a8f 100755
+--- a/examples/pxScene2d/external/libnode-v10.15.3/src/env.h
++++ b/examples/pxScene2d/external/libnode-v10.15.3/src/env.h
+@@ -558,7 +558,12 @@ class Environment {
+ 
+   class TickInfo {
+    public:
+-    inline AliasedBuffer<uint8_t, v8::Uint8Array>& fields();
++/* MODIFIED CODE BEGIN */
++    //inline AliasedBuffer<uint8_t, v8::Uint8Array>& fields();
++    //inline AliasedBuffer<uint32_t, v8::Uint32Array>& fields();
++    inline uint32_t* fields();
++    inline int fields_count() const;
++/* MODIFIED CODE END */
+     inline bool has_scheduled() const;
+     inline bool has_promise_rejections() const;
+     inline bool has_thrown() const;
+@@ -576,9 +581,10 @@ class Environment {
+       kHasThrown,
+       kFieldsCount
+     };
+-
+-    AliasedBuffer<uint8_t, v8::Uint8Array> fields_;
+-
++/* MODIFIED CODE BEGIN */
++    //AliasedBuffer<uint32_t, v8::Uint32Array> fields_;
++    uint32_t fields_[kFieldsCount];
++/* MODIFIED CODE END */
+     DISALLOW_COPY_AND_ASSIGN(TickInfo);
+   };
+ 
+diff --git a/examples/pxScene2d/external/libnode-v10.15.3/src/env-inl.h b/examples/pxScene2d/external/libnode-v10.15.3/src/env-inl.h
+index 4af5add..89a4c03 100755
+--- a/examples/pxScene2d/external/libnode-v10.15.3/src/env-inl.h
++++ b/examples/pxScene2d/external/libnode-v10.15.3/src/env-inl.h
+@@ -156,13 +156,16 @@ inline bool Environment::AsyncHooks::pop_async_id(double async_id) {
+             "actual: %.f, expected: %.f)\n",
+             async_id_fields_.GetValue(kExecutionAsyncId),
+             async_id);
++    /* MODIFIED CODE BEGIN */
++    /*
+     DumpBacktrace(stderr);
+     fflush(stderr);
+     if (!env()->abort_on_uncaught_exception())
+       exit(1);
+     fprintf(stderr, "\n");
+     fflush(stderr);
+-    ABORT_NO_BACKTRACE();
++    ABORT_NO_BACKTRACE(); */
++    /* MODIFIED CODE END */
+   }
+ 
+   uint32_t offset = fields_[kStackLength] - 1;
+@@ -259,12 +262,24 @@ inline void Environment::ImmediateInfo::ref_count_dec(uint32_t decrement) {
+ }
+ 
+ inline Environment::TickInfo::TickInfo(v8::Isolate* isolate)
+-    : fields_(isolate, kFieldsCount) {}
++/* MODIFIED CODE BEGIN */
++   {
++  for (int i = 0; i < kFieldsCount; ++i)
++    fields_[i] = 0;
++/* MODIFIED CODE END */
++}
+ 
+-inline AliasedBuffer<uint8_t, v8::Uint8Array>& Environment::TickInfo::fields() {
++/* MODIFIED CODE BEGIN */
++//inline AliasedBuffer<uint8_t, v8::Uint8Array>& Environment::TickInfo::fields() {
++inline uint32_t* Environment::TickInfo::fields() {
+   return fields_;
+ }
+ 
++inline int Environment::TickInfo::fields_count() const {
++  return kFieldsCount;
++}
++/* MODIFIED CODE END */
++
+ inline bool Environment::TickInfo::has_scheduled() const {
+   return fields_[kHasScheduled] == 1;
+ }
