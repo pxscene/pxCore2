@@ -1145,7 +1145,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "cd $PROJECT_DIR/examples/pxScene2d/external\npwd\n./build.sh\n";
+			shellScript = "cd $PROJECT_DIR/examples/pxScene2d/external\npwd\nexport IDE_SEARCH_PATH=-I/usr/local/include\n/bin/bash ./build.sh # 2>&1 | tee > output.txt\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
