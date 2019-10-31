@@ -23,8 +23,8 @@ if [ ! -d ${xLIBS} ]; then
 
   cp ${xEXT}/node/libnode.64.dylib ${xLIBS}
 
-  cp ${xEXT}/openssl/libcrypto.dylib ${xLIBS}
-  cp ${xEXT}/openssl/libssl.dylib ${xLIBS}
+  cp ${xEXT}/openssl_dir/libcrypto.dylib ${xLIBS}
+  cp ${xEXT}/openssl_dir/libssl.dylib ${xLIBS}
 
   ### OLDER PNG
   ##

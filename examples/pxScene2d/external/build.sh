@@ -393,8 +393,8 @@ then
 
   if [ -e "node-v${NODE_VER}_mods.patch" ]
   then
-    git apply "node-v${NODE_VER}_mods.patch"
-    git apply "openssl_1.0.2_compatibility.patch"
+    git apply --whitespace=nowarn "node-v${NODE_VER}_mods.patch"
+    git apply --whitespace=nowarn "openssl_1.0.2_compatibility.patch"
   fi
 
   cd "libnode-v${NODE_VER}"
@@ -411,9 +411,38 @@ then
     ln -sf libnode.*.dylib libnode.dylib
   fi
 
+  git update-index --assume-unchanged common.gypi                             # ... help GIT out
+  git update-index --assume-unchanged configure.py                            # ... help GIT out
+  git update-index --assume-unchanged deps/http_parser/http_parser.gyp        # ... help GIT out
+  git update-index --assume-unchanged deps/uv/common.gypi                     # ... help GIT out
+  git update-index --assume-unchanged deps/uv/src/unix/core.c                 # ... help GIT out
+  git update-index --assume-unchanged deps/v8/BUILD.gn                        # ... help GIT out
+  git update-index --assume-unchanged deps/v8/gypfiles/toolchain.gypi         # ... help GIT out
+  git update-index --assume-unchanged deps/v8/gypfiles/v8.gyp                 # ... help GIT out
+  git update-index --assume-unchanged deps/v8/src/isolate.cc                  # ... help GIT out
+  git update-index --assume-unchanged lib/internal/bootstrap/node.js          # ... help GIT out
+  git update-index --assume-unchanged lib/internal/vm/source_text_module.js   # ... help GIT out
+  git update-index --assume-unchanged lib/net.js                              # ... help GIT out
+  git update-index --assume-unchanged node.gyp                                # ... help GIT out
+  git update-index --assume-unchanged src/env-inl.h                           # ... help GIT out
+  git update-index --assume-unchanged src/module_wrap.cc                      # ... help GIT out
+  git update-index --assume-unchanged src/module_wrap.h                       # ... help GIT out
+  git update-index --assume-unchanged src/node.cc                             # ... help GIT out
+  git update-index --assume-unchanged src/node.h                              # ... help GIT out
+  git update-index --assume-unchanged src/node_contextify.cc                  # ... help GIT out
+  git update-index --assume-unchanged src/node_crypto.cc                      # ... help GIT out
+  git update-index --assume-unchanged src/node_crypto.h                       # ... help GIT out
+  git update-index --assume-unchanged src/node_http_parser.cc                 # ... help GIT out
+  git update-index --assume-unchanged src/node_internals.h                    # ... help GIT out
+  git update-index --assume-unchanged src/node_platform.cc                    # ... help GIT out
+  git update-index --assume-unchanged src/node_watchdog.cc                    # ... help GIT out
+  git update-index --assume-unchanged vcbuild.bat                             # ... help GIT out
+
   cd ..
   rm node
   ln -sf "libnode-v${NODE_VER}" node
+
+  git update-index --assume-unchanged node   # ... help GIT out
 fi
 #---------
 
@@ -431,7 +460,7 @@ then
     cp Makefile.build Makefile
   fi
 
-  CPPFLAGS="-I${OPENSSL_DIR} -I${OPENSSL_DIR}/include" LDFLAGS="-L${OPENSSL_DIR}/lib -Wl,-rpath,${OPENSSL_DIR}/lib " make
+  CPPFLAGS="${IDE_SEARCH_PATH} -I${OPENSSL_DIR} -I${OPENSSL_DIR}/include" LDFLAGS="-L${OPENSSL_DIR}/lib -Wl,-rpath,${OPENSSL_DIR}/lib " make
   cd ..
 
 fi
