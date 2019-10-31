@@ -5,10 +5,17 @@ THIS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 cd "$THIS_DIR"
 
+# Needed to pickup the spark-webgl native module
+export NODE_PATH="$THIS_DIR":"$THIS_DIR/node_modules"
+
 updateEdge=true
 cmdLineArgs=false
 export LD_LIBRARY_PATH=./lib/
 export DYLD_LIBRARY_PATH=./lib/
+export GST_REGISTRY_FORK="no"
+export GST_PLUGIN_SCANNER=./lib/gst-plugin-scanner
+export GST_PLUGIN_PATH=./lib/
+export GST_REGISTRY=/tmp/.spark_gst_registry.bin
 for i in $*; do 
    if [[ $i == "-autoUpdateEdge="* ]] ; 
    then
@@ -32,7 +39,14 @@ then
   fi
 fi
 
-./Spark $* < /dev/zero >> /var/tmp/Spark.log 2>&1 &
+if [ -z ${DS+x} ]
+then
+echo Logging to log files
+./Spark --experimental-vm-modules $* < /dev/zero >> /var/tmp/Spark.log 2>&1 &
+else
+echo Logging to console
+./Spark --experimental-vm-modules $*
+fi
 
 # Software update below
 

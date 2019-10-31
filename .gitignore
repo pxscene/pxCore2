@@ -176,3 +176,25 @@ examples/pxScene2d/external/libpng-1.6.28/timepng
 tests/pxScene2d/Makefile
 
 remote/js/node_modules
+examples/pxScene2d/external/spark-webgl/build
+.vscode/
+examples/pxScene2d/external/zlib-1.2.11/Makefile
+examples/pxScene2d/external/zlib-1.2.11/zconf.h
+
+examples/pxScene2d/external/freetype-2.8.1/builds/unix/config.log
+examples/pxScene2d/external/freetype-2.8.1/config.mk
+examples/pxScene2d/external/freetype-2.8.1/builds/unix/config.status
+examples/pxScene2d/external/freetype-2.8.1/builds/unix/ftconfig.h
+examples/pxScene2d/external/freetype-2.8.1/builds/unix/libtool
+examples/pxScene2d/external/freetype-2.8.1/builds/unix/unix-cc.mk
+examples/pxScene2d/external/freetype-2.8.1/builds/unix/unix-def.mk
+examples/pxScene2d/external/freetype-2.8.1/objs/ftmodule.h
+examples/pxScene2d/external/spark-webgl/node_modules/
+examples/pxScene2d/pxScene2d.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist
+examples/pxScene2d/external/zlib-1.2.11/Makefile
+examples/pxScene2d/external/zlib-1.2.11/example
+examples/pxScene2d/external/zlib-1.2.11/examplesh
+examples/pxScene2d/external/zlib-1.2.11/minigzip
+examples/pxScene2d/external/zlib-1.2.11/minigzipsh
+examples/pxScene2d/external/zlib-1.2.11/zconf.h
+examples/pxScene2d/external/extlibs

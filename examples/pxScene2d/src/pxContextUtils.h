@@ -26,12 +26,13 @@ limitations under the License.
 pxError deleteInternalGLContext(int id);
 pxError createInternalContext(int &id);
 pxError makeInternalGLContextCurrent(bool current, int id = 0);
+pxError createInternalContext(int &id, bool depthBuffer = false);
 
 
 class pxSharedContext
 {
 public:
-    pxSharedContext() : mRef(0), mContextId(0), mIsCurrent(false)
+    pxSharedContext(bool depthBuffer) : mRef(0), mContextId(0), mIsCurrent(false), mDepthBuffer(depthBuffer)
     { }
     virtual ~pxSharedContext()
     {
@@ -63,7 +64,7 @@ public:
     {
       if (mContextId == 0)
       {
-        createInternalContext(mContextId);
+        createInternalContext(mContextId, mDepthBuffer);
       }
       mIsCurrent = current;
       return makeInternalGLContextCurrent(current, mContextId);
@@ -73,6 +74,7 @@ protected:
     rtAtomic mRef;
     int32_t mContextId;
     bool mIsCurrent;
+    bool mDepthBuffer;
 };
 
 typedef rtRef<pxSharedContext> pxSharedContextRef;

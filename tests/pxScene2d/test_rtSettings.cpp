@@ -18,6 +18,9 @@ limitations under the License.
 
 #include <sstream>
 
+#define private public
+#define protected public
+
 #include "rtSettings.h"
 #include "rtPathUtils.h"
 #include <pxScene2d.h>

@@ -12,6 +12,15 @@ otool -L ./lib/libjpeg.9.dylib
 otool -L ./lib/libnode.dylib
 otool -L ./lib/libnode.48.dylib
 
+
+otool -L ./lib/libssl.1.0.0.dylib
+otool -L ./lib/libssl.dylib
+
+
+otool -L ./lib/libcrypto.1.0.0.dylib
+otool -L ./lib/libcrypto.dylib
+
+
 otool -L ./lib/libpng16.dylib
 otool -L ./lib/libpng16.16.dylib
 

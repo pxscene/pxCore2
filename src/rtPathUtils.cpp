@@ -191,6 +191,34 @@ std::string rtGetRootModulePath(const char *file)
   return rtConcatenatePath(rootDir, file != NULL ? file : "");
 }
 
+rtString rtResolveRelativePath(const rtString& relative, const rtString& base)
+{
+  // get rid of the query part
+  rtString baseUrl = base;
+  int32_t pos = baseUrl.find(0, '#');
+  if (pos != -1)
+    baseUrl = baseUrl.substring(0, pos);
+  pos = baseUrl.find(0, '?');
+  if (pos != -1)
+    baseUrl = baseUrl.substring(0, pos);
+
+  int32_t lastPos = -1;
+  pos = baseUrl.find(0, '/');
+  while (pos != -1)
+  {
+    lastPos = pos;
+    pos = baseUrl.find(lastPos + 1, '/');
+  }
+
+  rtString path;
+  if (lastPos != -1)
+    path = baseUrl.substring(0, lastPos + 1);
+  // otherwise don't use base
+
+  // path ends with slash or is empty
+  return path + relative;
+}
+
 rtModuleDirs::rtModuleDirs(const char *env_name) {
   rtString cwd;
   rtGetCurrentDirectory(cwd);

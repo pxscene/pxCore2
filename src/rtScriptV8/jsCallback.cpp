@@ -145,7 +145,7 @@ rtValue jsCallback::run()
   rtValue returnValue;
   if (tryCatch.HasCaught())
   {
-    #if defined RTSCRIPT_SUPPORT_V8
+    #if ((defined RTSCRIPT_SUPPORT_V8) || (NODE_VERSION_AT_LEAST(8,10,0)))
     String::Utf8Value trace(mIsolate, (tryCatch.StackTrace(ctx)).ToLocalChecked());
     #else
     String::Utf8Value trace((tryCatch.StackTrace(ctx)).ToLocalChecked());

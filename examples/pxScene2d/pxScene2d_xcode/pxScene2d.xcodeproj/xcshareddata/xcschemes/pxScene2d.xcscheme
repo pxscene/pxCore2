@@ -53,6 +53,16 @@
             ReferencedContainer = "container:pxScene2d.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
+      <CommandLineArguments>
+         <CommandLineArgument
+            argument = "/Users/hfitzp200/XRE2/Lightning/Lightning/testTextShadow.js"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "/Users/hfitzp200/Desktop/testTextShadow.js"
+            isEnabled = "YES">
+         </CommandLineArgument>
+      </CommandLineArguments>
       <EnvironmentVariables>
          <EnvironmentVariable
             key = "SPARK_PATH"

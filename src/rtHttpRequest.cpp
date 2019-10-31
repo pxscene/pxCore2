@@ -40,6 +40,7 @@ rtHttpRequest::rtHttpRequest(const rtString& url)
   , mWriteData(NULL)
   , mWriteDataSize(0)
   , mInQueue(false)
+  , mCompress(true)
 {
 }
 
@@ -48,6 +49,7 @@ rtHttpRequest::rtHttpRequest(const rtObjectRef& options)
   , mWriteData(NULL)
   , mWriteDataSize(0)
   , mInQueue(false)
+  , mCompress(true)
 {
   rtString url;
 
@@ -60,6 +62,11 @@ rtHttpRequest::rtHttpRequest(const rtObjectRef& options)
   uint32_t port = options.get<uint32_t>("port");
 
   mMethod = method;
+
+  rtValue v;
+  rtError e = options->Get("compress", &v);
+  if (e == RT_OK)
+    v.tryConvert<bool>(mCompress);
 
   url.append(proto.cString());
   url.append("//");
@@ -137,6 +144,7 @@ rtError rtHttpRequest::end()
   req->setAdditionalHttpHeaders(mHeaders);
   req->setMethod(mMethod);
   req->setReadData(mWriteData, mWriteDataSize);
+  req->setUseEncoding(mCompress);
   if (rtFileDownloader::instance()->addToDownloadQueue(req)) {
     AddRef();
     mInQueue = true;

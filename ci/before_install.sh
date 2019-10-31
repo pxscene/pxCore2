@@ -56,9 +56,12 @@ if [ "$TRAVIS_OS_NAME" = "osx" ] ;
 then
   brew update;
   #brew upgrade cmake;
+  brew install yasm bison flex python
+  ln -sf /usr/local/opt/bison/bin/bison /usr/local/bin/bison
   brew install quilt
   brew install libuv
   brew install xmlto
+  brew install pkg-config glfw3 glew
   sudo /usr/sbin/DevToolsSecurity --enable
   lldb --version
   lldb --help
@@ -74,8 +77,6 @@ then
 #    brew install lighttpd
     brew install gcovr
     brew install lcov
-    brew install ccache
-    ls -al $HOME/.ccache
   fi
 fi
 
@@ -132,3 +133,32 @@ then
 	fi
 	sudo pip install codecov
 fi
+
+#setup spark externals repo
+SRC_REPO_USER_NAME='pxscene'
+DEST_REPO_USER_NAME=`echo $TRAVIS_REPO_SLUG | cut -d'/' -f 1`
+cd $TRAVIS_BUILD_DIR
+cd ../
+mkdir rlExternals
+cd rlExternals
+git clone --branch=master https://github.com/$SRC_REPO_USER_NAME/Spark-Externals.git
+cd Spark-Externals
+if [ "$TRAVIS_OS_NAME" = "osx" ]; then
+  sed -i -n "s/$SRC_REPO_USER_NAME/$DEST_REPO_USER_NAME/g" artifacts/$TRAVIS_OS_NAME/lib/pkgconfig/*
+else
+  sed -i "s/$SRC_REPO_USER_NAME/$DEST_REPO_USER_NAME/g" artifacts/$TRAVIS_OS_NAME/lib/pkgconfig/*
+fi
+ln -sf artifacts/$TRAVIS_OS_NAME extlibs
+cd extlibs
+mkdir lib_orig
+cp -R lib/* lib_orig/.
+if [ "$TRAVIS_OS_NAME" = "osx" ]; then
+rm -rf lib_orig/libgif.7.dylib
+rm -rf lib_orig/libpng.dylib
+rm -rf lib_orig/libsqlite3.dylib
+rm -rf lib_orig/libjpeg.dylib
+fi
+cd $TRAVIS_BUILD_DIR
+cd ..
+ln -sf rlExternals/Spark-Externals Spark-Externals
+cd $TRAVIS_BUILD_DIR

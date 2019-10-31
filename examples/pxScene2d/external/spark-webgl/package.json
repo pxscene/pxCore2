@@ -1,0 +1,100 @@
+{
+  "_args": [
+    [
+      {
+        "raw": "spark-webgl",
+        "scope": null,
+        "escapedName": "spark-webgl",
+        "name": "spark-webgl",
+        "rawSpec": "",
+        "spec": "latest",
+        "type": "tag"
+      },
+      "/Users/johnrobinson/code/ln2"
+    ]
+  ],
+  "_from": "spark-webgl@latest",
+  "_id": "spark-webgl@0.0.5",
+  "_inCache": true,
+  "_location": "/spark-webgl",
+  "_nodeVersion": "7.8.0",
+  "_npmOperationalInternal": {
+    "host": "s3://npm-registry-packages",
+    "tmp": "tmp/spark-webgl-0.0.5.tgz_1514458457685_0.03388150967657566"
+  },
+  "_npmUser": {
+    "name": "",
+    "email": ""
+  },
+  "_npmVersion": "4.2.0",
+  "_phantomChildren": {},
+  "_requested": {
+    "raw": "spark-webgl",
+    "scope": null,
+    "escapedName": "spark-webgl",
+    "name": "spark-webgl",
+    "rawSpec": "",
+    "spec": "latest",
+    "type": "tag"
+  },
+  "_requiredBy": [
+    "#USER"
+  ],
+  "_resolved": "https://registry.npmjs.org/spark-webgl/-/spark-webgl-0.0.5.tgz",
+  "_shasum": "c6511b02cc4d610b4dec1f198f8e49c712693938",
+  "_shrinkwrap": null,
+  "_spec": "spark-webgl",
+  "_where": "/Users/johnrobinson/code/ln2",
+  "author": {
+    "name": "",
+    "email": ""
+  },
+  "bugs": {
+    "url": ""
+  },
+  "dependencies": {
+    "nan": "^2.1.0"
+  },
+  "description": "Provides a webgl canvas for the spark runtime",
+  "devDependencies": {},
+  "directories": {},
+  "dist": {
+    "shasum": "",
+    "tarball": ""
+  },
+  "engines": {
+    "node": ">=4.0.0"
+  },
+  "gitHead": "80b1eda982b02f943be8eed94c5be836d9b73fff",
+  "gypfile": true,
+  "homepage": "https://github.com/WebPlatformForEmbedded/node-spark-webgl",
+  "keywords": [
+    "webgl",
+    "opengl",
+    "gles",
+    "egl",
+    "raspberry",
+    "pi",
+    "x11",
+    "spark"
+  ],
+  "license": "BSD-2-Clause",
+  "main": "gles2.js",
+  "maintainers": [
+    {
+      "name": "",
+      "email": ""
+    }
+  ],
+  "name": "spark-webgl",
+  "optionalDependencies": {},
+  "readme": "ERROR: No README data found!",
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "scripts": {
+    "install": "node-gyp rebuild"
+  },
+  "version": "0.0.5"
+}

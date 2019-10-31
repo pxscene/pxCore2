@@ -235,3 +235,42 @@
    fun:_ZN9pxScene2d8onUpdateEd
    fun:_ZN12pxScriptView8onUpdateEd
 }
+{
+   rtScriptNodeDtorNeverCalled
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:calloc
+   fun:allocate_dtv
+   fun:_dl_allocate_tls
+   fun:allocate_stack
+   fun:pthread_create@@GLIBC_2.2.5
+   fun:uv_thread_create
+   fun:_ZN4node12NodePlatformC1EiPN2v817TracingControllerE
+   fun:_ZN4node14CreatePlatformEiPN2v817TracingControllerE
+   fun:_ZN12rtScriptNode5init2Ev
+   fun:_ZN12rtScriptNode4initEv
+   fun:_ZN8rtScript4initEv
+   fun:_Z6pxMainiPPc
+   fun:main
+}
+{
+   gcSweeperLeak
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:_Znwm
+   fun:_ZN2v88internal7Sweeper31ScheduleIncrementalSweepingTaskEv
+   fun:_ZN2v88internal7Sweeper17StartSweeperTasksEv
+   fun:_ZN2v88internal20MarkCompactCollector6FinishEv
+   fun:_ZN2v88internal20MarkCompactCollector14CollectGarbageEv
+   fun:_ZN2v88internal4Heap11MarkCompactEv
+   fun:_ZN2v88internal4Heap24PerformGarbageCollectionENS0_16GarbageCollectorENS_15GCCallbackFlagsE
+   fun:_ZN2v88internal4Heap14CollectGarbageENS0_15AllocationSpaceENS0_23GarbageCollectionReasonENS_15GCCallbackFlagsE
+   fun:_ZN2v88internal4Heap26CollectAllAvailableGarbageENS0_23GarbageCollectionReasonE
+   fun:_ZN2v815SnapshotCreator10CreateBlobENS0_20FunctionCodeHandlingE
+   fun:_ZN2v82V822CreateSnapshotDataBlobEPKc
+   fun:_ZN12rtScriptNode5init2Ev
+   fun:_ZN12rtScriptNode4initEv
+   fun:_ZN8rtScript4initEv
+   fun:_Z6pxMainiPPc
+   fun:main
+}

@@ -88,7 +88,7 @@ pxError shaderProgram::initShader(const char* v, const char* f)
       mCompilation = details.compilation;
       return RT_FAIL;
     }
-    
+
     mProgram    = details.program;
     mFragShader = details.fragShader;
     mVertShader = details.vertShader;
@@ -297,16 +297,16 @@ glShaderProgDetails_t  createShaderProgram(const char* vShaderTxt, const char* f
 
     //The maxLength includes the NULL character
     std::vector<char> errorLog(maxLength);
-    glGetShaderInfoLog(details.fragShader, maxLength, &maxLength, &errorLog[0]);
+    glGetShaderInfoLog(details.fragShader, maxLength, &maxLength, (char *) &errorLog[0]);
 
-    rtLogError("%s", &errorLog[0]);
+    rtLogError("%s", (char *) &errorLog[0]);
 
     //Exit with failure.
     glDeleteShader(details.fragShader); //Don't leak the shader.
 
     details.didError    = true; // ERROR
     details.compilation = rtString("FRAGMENT SHADER - Compile Error: ") + &errorLog[0];
-    
+
     return details;
   }
 
@@ -327,7 +327,7 @@ glShaderProgDetails_t  createShaderProgram(const char* vShaderTxt, const char* f
 
     details.didError    = true; // ERROR
     details.compilation = rtString("VERTEX SHADER - Compile Error: ") + rtString(log);
-    
+
     return details;
   }
 

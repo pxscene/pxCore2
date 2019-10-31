@@ -1,5 +1,6 @@
 #!/bin/bash
 
+PROJECT_DIR=`pwd`  # for DEBUG
 
 xLIBS=${PROJECT_DIR}/lib
 xEXT=${PROJECT_DIR}/../external
@@ -19,8 +20,11 @@ if [ ! -d ${xLIBS} ]; then
 
   cp ${xEXT}/jpg/.libs/libjpeg.9.dylib ${xLIBS}
 
-  #cp ${xEXT}/libnode-v6.9.0/out/Release/libnode.dylib ${xLIBS}
-  cp ${xEXT}/libnode-v6.9.0/out/Release/libnode.48.dylib ${xLIBS}  #      <<<<< MISSING ???
+
+  cp ${xEXT}/node/libnode.64.dylib ${xLIBS}
+
+  cp ${xEXT}/openssl/libcrypto.dylib ${xLIBS}
+  cp ${xEXT}/openssl/libssl.dylib ${xLIBS}
 
   ### OLDER PNG
   ##
@@ -34,6 +38,7 @@ if [ ! -d ${xLIBS} ]; then
   cp ${xEXT}/zlib/libz.1.2.11.dylib ${xLIBS}
 
   cp ${xEXT}/gif/.libs/libgif.7.dylib ${xLIBS}
+  cp ${xEXT}/gif/.libs/libutil.7.dylib ${xLIBS}
 
   cp ${xEXT}/sqlite/.libs/libsqlite3.dylib ${xLIBS}
 

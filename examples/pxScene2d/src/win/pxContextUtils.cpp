@@ -20,7 +20,7 @@ limitations under the License.
 
 int nextInternalContextId = 0;
 
-pxError createInternalContext(int &id)
+pxError createInternalContext(int &id, bool /*depthBuffer*/)
 {
   id = nextInternalContextId++;
   //TODO

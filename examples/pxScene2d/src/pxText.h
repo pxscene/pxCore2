@@ -42,6 +42,7 @@ public:
   rtProperty(pixelSize, pixelSize, setPixelSize, uint32_t);
   rtProperty(fontUrl, fontUrl, setFontUrl, rtString);  
   rtProperty(font, font, setFont, rtObjectRef);
+  rtMethodNoArgAndReturn("texture", texture, uint32_t);
 
   pxText(pxScene2d* scene);
   virtual ~pxText();
@@ -123,6 +124,8 @@ public:
   
   rtError font(rtObjectRef& o) const { o = mFont; return RT_OK; }
   virtual rtError setFont(rtObjectRef o);
+
+  virtual rtError texture(uint32_t & v);
   
   virtual void onInit();
   
@@ -190,6 +193,7 @@ public:
   #ifdef PXSCENE_FONT_ATLAS
   pxTexturedQuads mQuads;
   #endif
+  pxContextFramebufferRef mTextFbo;
 };
 
 #endif // PX_TEXT_H
