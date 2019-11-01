@@ -42,15 +42,15 @@ var _ws = require('ws')
 var _http = require('http')
 var _https = require('https')
 var urlmain = require("url")
-const {promisify} = require('util')
-const readFileAsync = promisify(fs.readFile)
-const ArrayJoin = Function.call.bind(Array.prototype.join);
-const ArrayMap = Function.call.bind(Array.prototype.map);
+var {promisify} = require('util')
+var readFileAsync = promisify(fs.readFile)
+var ArrayJoin = Function.call.bind(Array.prototype.join);
+var ArrayMap = Function.call.bind(Array.prototype.map);
 var reqOrig = require;
 
 // JRJR not sure why Buffer is not already defined.
 // Could look at adding to sandbox.js but this works for now
-Buffer = require('buffer').Buffer
+var Buffer = require('buffer').Buffer
 
 // Define global within the global namespace
 var global = this
@@ -58,6 +58,7 @@ var _intervals = []
 var _timeouts = []
 var _immediates = []
 var _websockets = []
+var script = null;
 var sandboxKeys = ["vm", "process", "setTimeout", "console", "clearTimeout", "setInterval", "clearInterval", "setImmediate", "clearImmediate", "sparkview", "sparkscene", "sparkgles2", "beginDrawing", "endDrawing", "sparkwebgl", "sparkkeys", "sparkQueryParams", "require", "localStorage", "sparkHttp"]
 var sandbox = {}
 /* holds loaded main mjs module reference */
@@ -180,7 +181,7 @@ var loadUrl = function(url, _beginDrawing, _endDrawing, _view, _frameworkURL, _o
   }
   global.localStorage = global.sparkscene.storage;
   global.sparkHttp = _sparkHttp;
-  const script = new vm.Script("global.sparkwebgl = sparkwebgl= require('webgl'); global.sparkgles2 = sparkgles2 = require('gles2.js'); global.sparkkeys = sparkkeys = require('rcvrcore/tools/keys.js');");
+  script = new vm.Script("global.sparkwebgl = sparkwebgl= require('webgl'); global.sparkgles2 = sparkgles2 = require('gles2.js'); global.sparkkeys = sparkkeys = require('rcvrcore/tools/keys.js');");
   global.sparkscene.on('onSceneTerminate', () => {
     for (let key in bootStrapCache) {
       delete bootStrapCache[key];
@@ -899,5 +900,7 @@ var onSceneTerminate  = function() {
   _http = null
   _https = null
   reqOrig = null
+  script = null
+  _timers = null
   // JRJR something is invoking setImmediate after this and causing problems
 }
