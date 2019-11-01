@@ -463,6 +463,7 @@ then
 
   CPPFLAGS="${IDE_SEARCH_PATH} -I${OPENSSL_DIR} -I${OPENSSL_DIR}/include" LDFLAGS="-L${OPENSSL_DIR}/lib -Wl,-rpath,${OPENSSL_DIR}/lib " make
 
+
   git ls-files -z . | xargs -0 git update-index --assume-unchanged # ... help GIT out
 
   cd ..

@@ -35,7 +35,7 @@ extern rtThreadQueue* gUIThreadQueue;
  * @param[in] arg user_data
  * @retval void pointer
  */
-void* pxVideo::AAMPGstPlayer_StreamThread(void *arg)
+void* pxVideo::AAMPGstPlayer_StreamThread(void* /*arg*/)
 {
   if (AAMPGstPlayerMainLoop)
   {
@@ -78,42 +78,19 @@ void pxVideo::TermPlayerLoop()
 
 pxVideo::pxVideo(pxScene2d* scene):pxObject(scene)
 #ifdef ENABLE_SPARK_VIDEO_PUNCHTHROUGH
- ,mEnablePunchThrough(true)
+, mEnablePunchThrough(true)
 #else
 , mEnablePunchThrough(false)
 #endif //ENABLE_SPARK_VIDEO_PUNCHTHROUGH
-,mAutoPlay(false)
-,mUrl("")
+, mAutoPlay(false)
+, mUrl("")
+, initialized(false)
 {
-	  aampMainLoopThread = NULL;
-	  AAMPGstPlayerMainLoop = NULL;
-	  InitPlayerLoop();
-
-	  std::function< void(uint8_t *, int, int, int) > cbExportFrames = nullptr;
-	  if(!mEnablePunchThrough)
-	  {
-		  //Keeping this block to dynamically turn punch through on/off
-		  //Spark will render frames
-		  cbExportFrames = std::bind(&pxVideo::updateYUVFrame, this, _1, _2, _3, _4);
-	  }
-	  mAamp = new PlayerInstanceAAMP(NULL
-#ifndef ENABLE_SPARK_VIDEO_PUNCHTHROUGH //TODO: Remove this check, once the official builds contain the second argument to PlayerInstanceAAMP
-			  , cbExportFrames
-#endif
-			  );
-	  assert (nullptr != mAamp);
-	  pxVideo::pxVideoObj = this;
-	  mYuvBuffer.buffer = NULL;
-	  registerMediaMetadataEventListener();
-	  registerSpeedsChangedEventListener();
 }
 
 pxVideo::~pxVideo()
 {
-	mAamp->Stop();
-	unregisterEventsListeners();
-	delete mAamp;
-	TermPlayerLoop();
+	deInitPlayback();
 }
 
 void pxVideo::onInit()
@@ -127,7 +104,55 @@ void pxVideo::onInit()
   pxObject::onInit();
 }
 
-void pxVideo::newAampFrame(void* context, void* data)
+void pxVideo::initPlayback()
+{
+	rtLogInfo("%s start initialized: %d\n", __FUNCTION__, initialized);
+	if (!initialized)
+	{
+		aampMainLoopThread = NULL;
+		AAMPGstPlayerMainLoop = NULL;
+		InitPlayerLoop();
+
+		std::function< void(uint8_t *, int, int, int) > cbExportFrames = nullptr;
+		if(!mEnablePunchThrough)
+		{
+			//Keeping this block to dynamically turn punch through on/off
+			//Spark will render frames
+			cbExportFrames = std::bind(&pxVideo::updateYUVFrame, this, _1, _2, _3, _4);
+		}
+		mAamp = new PlayerInstanceAAMP(NULL
+	#ifndef ENABLE_SPARK_VIDEO_PUNCHTHROUGH //TODO: Remove this check, once the official builds contain the second argument to PlayerInstanceAAMP
+				, cbExportFrames
+	#endif
+				);
+		assert (nullptr != mAamp);
+		pxVideo::pxVideoObj = this;
+		mYuvBuffer.buffer = NULL;
+
+		registerMediaMetadataEventListener();
+		registerSpeedsChangedEventListener();
+
+		initialized = true;
+		rtLogInfo("%s end initialized: %d\n", __FUNCTION__, initialized);
+	}
+}
+
+void pxVideo::deInitPlayback()
+{
+	rtLogInfo("%s start initialized: %d\n", __FUNCTION__, initialized);
+	if (initialized)
+	{
+		unregisterEventsListeners();
+		delete mAamp;
+		mAamp = NULL;
+		TermPlayerLoop();
+
+		initialized = false;
+		rtLogInfo("%s end initialized: %d\n", __FUNCTION__, initialized);
+	}
+}
+
+void pxVideo::newAampFrame(void* context, void* /*data*/)
 {
 	pxVideo* videoObj = reinterpret_cast<pxVideo*>(context);
 	if (videoObj)
@@ -530,8 +555,11 @@ rtError pxVideo::setAutoPlay(bool value)
 rtError pxVideo::play()
 {
 	rtLogError("%s:%d.",__FUNCTION__,__LINE__);
+
 	if(!mUrl.isEmpty())
 	{
+		initPlayback();
+
 		mAamp->Tune(mUrl.cString());
 	}
 	return RT_OK;
@@ -551,6 +579,8 @@ rtError pxVideo::stop()
 	if(mAamp)
 	{
 		mAamp->Stop();
+
+		deInitPlayback();
 	}
 	return RT_OK;
 }

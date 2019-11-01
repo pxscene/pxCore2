@@ -26,6 +26,7 @@
 using namespace std;
 
 #define RT_THREAD_POOL_DEFAULT_THREAD_COUNT 6
+#define RT_THREAD_POOL_MAX_THREAD_COUNT 10
 
 int numberOfDefaultThreads()
 {
@@ -37,7 +38,7 @@ int numberOfDefaultThreads()
     if (s)
     {
       int numThreads = atoi(s);
-      if (numThreads > 0)
+      if (numThreads > 0 && numThreads <= RT_THREAD_POOL_MAX_THREAD_COUNT)
       {
         numberOfThreads = numThreads;
       }
