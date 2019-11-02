@@ -43,6 +43,8 @@ extern const char* vShaderText;
 pxShaderResource::pxShaderResource()
 : pxResource(), mIsRealTime(false), mNeedsFbo(false), mPasses(1), mSamplerCount(3)
 {
+  printf("MADANA GOPAL pxShaderResource::pxShaderResource one arg constructor [%p] \n", this);
+  fflush(stdout);
   mFragmentUrl = NULL;
   mVertexUrl   = NULL;
 }
@@ -52,12 +54,16 @@ pxShaderResource::pxShaderResource(const char* fragmentUrl, const char* vertexUr
 
   : pxResource(), mIsRealTime(false), mNeedsFbo(false), mPasses(1), mSamplerCount(3)
 {
+  printf("MADANA GOPAL pxShaderResource::pxShaderResource args constructor [%p] \n", this);
+  fflush(stdout);
   mFragmentUrl = fragmentUrl;
   mVertexUrl   = vertexUrl;
 }
 
 pxShaderResource::~pxShaderResource()
 {
+  printf("MADANA GOPAL pxShaderResource::pxShaderResource destructor [%p] \n", this);
+  fflush(stdout);
   rtLogDebug("~pxShaderResource()");
 }
 
