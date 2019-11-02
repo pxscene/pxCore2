@@ -89,6 +89,7 @@ else
   ln -sf libnode.*.dylib libnode.dylib
   ln -sf $RELEASE_EXTERNALS_PATH/extlibs/lib/node node
 fi
+
 cp $RELEASE_EXTERNALS_PATH/extlibs/include/node/node.h src/.
 cp $RELEASE_EXTERNALS_PATH/extlibs/include/node/node_contextify_mods.h src/.
 cp $RELEASE_EXTERNALS_PATH/extlibs/include/node/node_internals.h src/.
@@ -96,6 +97,7 @@ cp $RELEASE_EXTERNALS_PATH/extlibs/include/node/module_wrap.h src/.
 cp $RELEASE_EXTERNALS_PATH/extlibs/include/node/env.h src/.
 cp $RELEASE_EXTERNALS_PATH/extlibs/include/node/env-inl.h src/.
 cp $RELEASE_EXTERNALS_PATH/extlibs/include/node/node_crypto.h src/.
+
 cd ..
 rm node
 ln -sf "libnode-v${NODE_VER}" node
