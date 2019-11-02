@@ -1218,7 +1218,8 @@ void pxObject::drawInternal(bool maskPass /* = false */)
   if(hasEffect())
   {
     context.pushState();
-
+    printf("MADANA EFFECT REF IS [%p] \n", this->effectRef());
+    fflush(stdout);
     pxShaderResourceRef  shaderRes = this->effectRef();
     
     // Only flatten if we're using "s_texture" ... affecting the pxObject with effect applied
@@ -1651,6 +1652,8 @@ rtError pxObject::setEffect(rtObjectRef v)
     if(pResource)
     {
       mEffectRef       = pResource;  // BARE SHADER
+      printf("SETTING MADANA EFFECT REF IS [%p] \n", pResource);
+      fflush(stdout);
       mEffectShaderRef = pResource;  // BARE SHADER
     }
     else
