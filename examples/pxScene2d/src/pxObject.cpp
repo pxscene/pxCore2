@@ -1652,8 +1652,6 @@ rtError pxObject::setEffect(rtObjectRef v)
     if(pResource)
     {
       mEffectRef       = pResource;  // BARE SHADER
-      printf("SETTING MADANA EFFECT REF IS [%p] \n", pResource);
-      fflush(stdout);
       mEffectShaderRef = pResource;  // BARE SHADER
     }
     else
