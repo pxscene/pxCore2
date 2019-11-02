@@ -62,7 +62,7 @@ pxShaderResource::pxShaderResource(const char* fragmentUrl, const char* vertexUr
 
 pxShaderResource::~pxShaderResource()
 {
-  printf("MADANA GOPAL pxShaderResource::pxShaderResource destructor [%p] \n", this);
+  printf("MADANA GOPAL pxShaderResource::pxShaderResource destructor [%p] [%s]\n", this, (char*)0x96);
   fflush(stdout);
   rtLogDebug("~pxShaderResource()");
 }
