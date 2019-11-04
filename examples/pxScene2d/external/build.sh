@@ -75,6 +75,8 @@ then
   rm -rf lib/libcrypto.a
   rm -rf lib/libssl.a
 
+  git ls-files -z . | xargs -0 git update-index --assume-unchanged # ... help GIT out
+
   cd ..
 fi
 
@@ -95,8 +97,7 @@ then
   make all "-j${make_parallel}"
   make install
 
-  # git update-index --assume-unchanged .      # ... help GIT out
-  # git update-index --assume-unchanged src    # ... help GIT out
+  git ls-files -z . | xargs -0 git update-index --assume-unchanged # ... help GIT out
 
   cd ..
 
@@ -461,6 +462,9 @@ then
   fi
 
   CPPFLAGS="${IDE_SEARCH_PATH} -I${OPENSSL_DIR} -I${OPENSSL_DIR}/include" LDFLAGS="-L${OPENSSL_DIR}/lib -Wl,-rpath,${OPENSSL_DIR}/lib " make
+
+  git ls-files -z . | xargs -0 git update-index --assume-unchanged # ... help GIT out
+
   cd ..
 
 fi
