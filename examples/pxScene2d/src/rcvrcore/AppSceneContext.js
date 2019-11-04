@@ -196,24 +196,8 @@ AppSceneContext.prototype.loadPackage = function(packageUri) {
 
   moduleLoader.loadScenePackage(this.innerscene, {fileUri:packageUri})
     .then(function processScenePackage() {
-      if( moduleLoader.isDefaultManifest() ) {
-        _this.getFile("package.json").then( function(packageFileContents) {
-          var manifest = new SceneModuleManifest();
-          manifest.loadFromJSON(packageFileContents);
-          //console.info("AppSceneContext#loadScenePackage0");
-          _this.runScriptInNewVMContext(packageUri, moduleLoader, manifest.getConfigImport());
-          //console.info("AppSceneContext#loadScenePackage0 done");
-        }).catch(function (e) {
-            //console.info("AppSceneContext#loadScenePackage1");
-            _this.runScriptInNewVMContext(packageUri, moduleLoader, null);
-            //console.info("AppSceneContext#loadScenePackage1 done");
-        });
-      } else {
-        var manifest = moduleLoader.getManifest();
-        //console.info("AppSceneContext#loadScenePackage2");
-        _this.runScriptInNewVMContext(packageUri, moduleLoader, manifest.getConfigImport());
-        //console.info("AppSceneContext#loadScenePackage2 done");
-      }
+      var manifest = moduleLoader.getManifest();
+      _this.runScriptInNewVMContext(packageUri, moduleLoader, manifest.getConfigImport());
     })
     .catch(function (err) {
       //console.info("AppSceneContext#loadScenePackage3");
