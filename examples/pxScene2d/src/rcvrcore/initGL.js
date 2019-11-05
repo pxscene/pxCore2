@@ -50,7 +50,7 @@ var {promisify} = require('util')
 var Buffer = require('buffer').Buffer
 var cachedSource = {}
 
-var sandboxKeys = ["vm", "process", "setTimeout", "console", "clearTimeout", "setInterval", "clearInterval", "setImmediate", "clearImmediate", "sparkview", "sparkscene", "sparkgles2", "beginDrawing", "endDrawing", "sparkwebgl", "sparkkeys", "sparkQueryParams", "require", "localStorage"]
+var sandboxKeys = ["vm", "process", "setTimeout", "console", "clearTimeout", "setInterval", "clearInterval", "setImmediate", "clearImmediate", "sparkview", "sparkscene", "sparkgles2", "beginDrawing", "endDrawing", "sparkwebgl", "sparkkeys", "sparkQueryParams", "require", "localStorage", "sparkHttp"]
 var __dirname = process.cwd()
 
 // Spark node-like module loader
@@ -342,6 +342,7 @@ function LightningApp(params) {
   tmpGlobal.beginDrawing = params._beginDrawing
   tmpGlobal.endDrawing = params._endDrawing
   tmpGlobal.sparkscene = params.sparkscene
+  tmpGlobal.sparkHttp = params._sparkHttp
   // JRJR review this... if we don't draw outside of the timers
   // then no need for this... 
   // general todo... in terms of sandboxing webgl operations.
