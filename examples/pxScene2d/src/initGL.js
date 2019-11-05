@@ -860,7 +860,13 @@ var onSceneTerminate  = function() {
   sandbox = {};
   for (var key in global)
   {
-    delete global[key];
+    if (key != "console")
+    {
+      console.log(key);
+      delete global[key];
+    }
   }
+  delete global["console"];
+
   // JRJR something is invoking setImmediate after this and causing problems
 }
