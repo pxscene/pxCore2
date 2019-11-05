@@ -661,9 +661,6 @@ void pxWayland::onClientStatus(void* context, void* data)
    pxWayland* pxw = (pxWayland*)context;
    pxWaylandClientStatus* statusData = (pxWaylandClientStatus*)data;
    pxw->handleClientStatus(statusData->status, statusData->pid, statusData->detail);
-   // Release here since we had to addRef when setting up callback to
-   // this function
-   pxw->Release();
    delete statusData;
 }
 
@@ -675,7 +672,6 @@ void pxWayland::clientStatus( WstCompositor *wctx, int status, int pid, int deta
 
    if (gUIThreadQueue)
    {
-      pxw->AddRef();
       pxWaylandClientStatus* statusData = new pxWaylandClientStatus(status, pid, detail);
       gUIThreadQueue->addTask(onClientStatus, pxw, statusData);
    }

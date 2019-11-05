@@ -42,7 +42,6 @@ var _ws = require('ws')
 var _http = require('http')
 var _https = require('https')
 var urlmain = require("url")
-//var nodeFetchSpark = require('sparkHttp_wrap')
 const {promisify} = require('util')
 const readFileAsync = promisify(fs.readFile)
 const ArrayJoin = Function.call.bind(Array.prototype.join);
@@ -186,6 +185,13 @@ var loadUrl = function(url, _beginDrawing, _endDrawing, _view, _frameworkURL, _o
     for (let key in bootStrapCache) {
       delete bootStrapCache[key];
     }
+    
+    xxsetInterval = null
+    xxsetTimeout = null
+    xxclearInterval = null
+    xxclearImmediate = null
+    xxclearTimeout = null
+    xxsetImmediate = null
     onSceneTerminate();
   });
   global.sparkQueryParams = urlmain.parse(url, true).query;
@@ -217,7 +223,6 @@ var bootStrapCache = {}
     });
     return client;
   };
-  //bootStrapCache[resolveStandardModulePath('node-fetch')] = nodeFetchSpark;
 
 function initializeImportMeta(meta, { url }) {
   meta.url = url;
@@ -648,7 +653,7 @@ async function loadMjs(source, url, context)
       }
 
       const wrapped = `(function(exports,require,module,__filename,__dirname) {${source}})`;
-      let compiled = vm.runInThisContext(wrapped, {filename:filename,displayErrors:true})
+      let compiled = vm.runInContext(wrapped, contextifiedSandbox, {filename:filename,displayErrors:true})
       const exports = {};
       // OUR own require, independent of node require
       const require = makeRequire(filename);
@@ -722,8 +727,9 @@ async function loadMjs(source, url, context)
             sandbox['__dirname'] = path.dirname(loc);
           }
 
-          const source = await getFile(url);
+          var source = await getFile(url);
           app = await loadMjs(source, url, contextifiedSandbox);
+          source = null
           app.instantiate();
           instantiated = true;
           succeeded = true;
@@ -855,6 +861,10 @@ var onSceneTerminate  = function() {
   _clearImmediates()
   _clearWebsockets()
   _clearSockets()
+  _clearIntervals = null
+  _clearTimeouts = null
+  _clearImmediates = null
+  _clearSockets =  null
 
   // memory leak fix
   delete sandbox.sparkwebgl.instance.gl;
@@ -881,5 +891,13 @@ var onSceneTerminate  = function() {
   {
     delete global[key];
   }
+  fs = null
+  path = null
+  vm = null
+  _module = null
+  _require = null
+  _http = null
+  _https = null
+  reqOrig = null
   // JRJR something is invoking setImmediate after this and causing problems
 }

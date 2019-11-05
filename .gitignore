@@ -198,3 +198,16 @@ examples/pxScene2d/external/zlib-1.2.11/minigzip
 examples/pxScene2d/external/zlib-1.2.11/minigzipsh
 examples/pxScene2d/external/zlib-1.2.11/zconf.h
 examples/pxScene2d/external/extlibs
+
+examples/pxScene2d/external/glib/***
+examples/pxScene2d/external/gettext/***
+
+examples/pxScene2d/external/libnode-v10.15.3/
+
+examples/pxScene2d/external/icu/***
+
+examples/pxScene2d/external/libffi/***
+
+examples/pxScene2d/external/openssl-1.0.2o/***
+
+examples/pxScene2d/external/pcre/***
