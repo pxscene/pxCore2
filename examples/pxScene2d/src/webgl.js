@@ -19,8 +19,8 @@ limitations under the License.
 var exports = module.exports;
 
 // Main object.
-function WebGLRenderingContext(scene) {
-    this.gl = scene.create({t:"webgl"});
+function WebGLRenderingContext() {
+    this.gl = sparkscene.create({t:"webgl"});
 }
 
 // Support objects.
@@ -44,7 +44,7 @@ exports.WebGLActiveInfo = WebGLActiveInfo;
 exports.WebGLUniformLocation = WebGLUniformLocation;
 
 // The singleton webgl render context.
-//exports.instance = new WebGLRenderingContext();
+exports.instance = new WebGLRenderingContext();
 
 // The following constants were extracted from the Broadcom's gl2.h file.
 
