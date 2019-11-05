@@ -357,8 +357,6 @@ static inline bool file_exists(const char *file)
 rtNodeContext::rtNodeContext(Isolate *isolate,Platform* platform) :
      js_file(NULL), mIsolate(isolate), mEnv(NULL), mRefCount(0),mPlatform(platform), mContextifyContext(NULL)
 {
-  printf("rtNodeContext::rtNodeContext plain [%p] \n", this);
-  fflush(stdout);
   assert(isolate); // MUST HAVE !
   mId = rtAtomicInc(&sNextId);
 
@@ -369,9 +367,6 @@ rtNodeContext::rtNodeContext(Isolate *isolate,Platform* platform) :
 rtNodeContext::rtNodeContext(Isolate *isolate, rtNodeContextRef clone_me) :
       js_file(NULL), mIsolate(isolate), mEnv(NULL), mRefCount(0), mPlatform(NULL), mContextifyContext(NULL)
 {
-          printf("rtNodeContext::rtNodeContext clone [%p] \n", this);
-  fflush(stdout);
-
   assert(mIsolate); // MUST HAVE !
   mId = rtAtomicInc(&sNextId);
 
