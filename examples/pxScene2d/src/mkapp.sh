@@ -47,8 +47,14 @@ if [ -e $externalDir/v8/out.gn ]; then
  cp $externalDir/v8/out.gn/x64.release/*.bin $bundleBin
 fi
 cp $externalDir/sqlite/.libs/libsqlite3.dylib $bundleLib
-cp /usr/local/opt/glew/lib/libGLEW.2.1.dylib $bundleLib
-cp /usr/local/opt/rtmpdump/lib/librtmp.1.dylib $bundleLib
+
+if [ -e /usr/local/opt/glew/lib/ ]; then
+cp /usr/local/opt/glew/lib/*.dylib $bundleLib
+fi
+
+if [ -e /usr/local/opt/rtmpdump/lib/ ]; then
+cp /usr/local/opt/rtmpdump/lib/*.dylib $bundleLib
+fi
 
 if [[ $# -ge 1 ]] && [[ $1 == "ENABLE-AAMP" ]]; then
  find -L $EXT_INSTALL_PATH -name *.dylib
