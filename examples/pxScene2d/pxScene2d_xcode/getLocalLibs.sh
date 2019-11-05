@@ -51,5 +51,4 @@ if [ ! -d ${xLIBS} ]; then
   fi
 
   source makeLocalLibs.sh
-
 fi
