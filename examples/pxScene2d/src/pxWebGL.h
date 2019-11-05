@@ -49,6 +49,7 @@ public:
     rtMethod1ArgAndNoReturn("enable", Enable, uint32_t);
     rtMethod1ArgAndNoReturn("disable", Disable, uint32_t);
     rtMethodNoArgAndReturn("createProgram", CreateProgram, uint32_t);
+    rtMethodNoArgAndNoReturn("flush", Flush);
     rtMethod1ArgAndReturn("createShader", CreateShader, uint32_t, uint32_t);
     rtMethod2ArgAndNoReturn("shaderSource", ShaderSource, uint32_t, rtString);
     rtMethod1ArgAndNoReturn("compileShader", CompileShader, uint32_t);
@@ -102,6 +103,7 @@ public:
    rtError Enable(uint32_t cap);
    rtError Disable(uint32_t cap);
    rtError CreateProgram(uint32_t& program);
+   rtError Flush();
    rtError CreateShader(uint32_t type, uint32_t& shader);
    rtError texImage2D(uint32_t target, uint32_t level, uint32_t internalformat, uint32_t width, uint32_t height, uint32_t border, uint32_t format, uint32_t type, rtValue data);
    rtError ShaderSource(uint32_t shader, rtString source);

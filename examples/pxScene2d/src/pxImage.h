@@ -86,6 +86,20 @@ public:
   // !CLF: To Do: These names are terrible... find better ones!
   virtual float getOnscreenWidth();
   virtual float getOnscreenHeight();
+  
+  // Pass through to ImageResource this pxImage is using
+  pxTextureRef getTexture()
+  {
+    rtImageResource* res = dynamic_cast<rtImageResource*>(mResource.getPtr());
+    
+    if(res)
+    {
+      return res->getTexture(); // return the Texture
+    }
+    
+    return pxTextureRef(); //empty
+  }
+  
   virtual void dispose(bool pumpJavascript);
   void checkStretchX();
   void checkStretchY();

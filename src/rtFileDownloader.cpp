@@ -1132,6 +1132,7 @@ bool rtFileDownloader::downloadByteRangeFromNetwork(rtFileDownloadRequest* downl
             }
             else if(iLoop == 1)
             {
+               startRange = 0;
                byteRange = rtString::toString(8192) + "-" + rtString::toString(startRange + downloadRequest->byteRangeIntervals()-1);
             }
             else
@@ -1247,6 +1248,7 @@ bool rtFileDownloader::downloadByteRangeFromNetwork(rtFileDownloadRequest* downl
             rtLogError("Http header doesn't have Content-Range. Url(%s)\n", downloadRequest->fileUrl().cString());
 
          multipleIntervals = (downloadRequest->actualFileSize() >= downloadRequest->byteRangeIntervals()) ? (downloadRequest->actualFileSize() / downloadRequest->byteRangeIntervals()) : 0;
+         multipleIntervals++; // Increment one more because already one iteration made before determinding multipleIntervals.
          rtLogInfo("File[%s] multipleIntervals [%d] fileSize[%ld]\n", downloadRequest->fileUrl().cString(), multipleIntervals, downloadRequest->actualFileSize());
       }
       startRange += downloadRequest->byteRangeIntervals();

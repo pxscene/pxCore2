@@ -87,8 +87,10 @@ set(PXSCENE_INSTALLER 0)
 add_definitions(-DANIMATION_ROTATE_XYZ )
 
 if(WIN32)
-  set(OPENSSLLIB ${EXTDIR}/openssl-1.0.2o/lib)
-  set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${OPENSSLLIB})
+  set(OPENSSLLIB ${EXTDIR}/openssl-1.0.2o/)
+  set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${OPENSSLLIB}/lib)
+  
+  include_directories(AFTER ${OPENSSLLIB}/bin)
 endif(WIN32)
 
 if (BUILD_WITH_GIF)
@@ -486,6 +488,11 @@ endif(SPARK_ENABLE_VIDEO)
 set(PXSCENE_COMMON_FILES ${PXSCENE_COMMON_FILES} ${PLATFORM_SOURCES})
 
 set(PXSCENE_APP_FILES ${PXSCENE_COMMON_FILES} Spark.cpp)
+if (PX_LIBRARY_SUPPORT GREATER 0)
+    if (BUILD_PXSCENE_SHARED_LIB OR BUILD_PXSCENE_SHARED_LIB)
+        set(PXSCENE_APP_FILES Spark.cpp)
+    endif (BUILD_PXSCENE_SHARED_LIB OR BUILD_PXSCENE_SHARED_LIB)
+endif (PX_LIBRARY_SUPPORT GREATER 0)
 set(PXSCENE_LIB_FILES ${PXSCENE_COMMON_FILES})
 
 if (PXSCENE_COMPILE_WARNINGS_AS_ERRORS)
@@ -542,7 +549,8 @@ if (BUILD_PXSCENE_APP)
 
     if (PX_LIBRARY_SUPPORT GREATER 0)
         if (BUILD_PXSCENE_SHARED_LIB OR BUILD_PXSCENE_SHARED_LIB)
-            add_dependencies(pxscene_app pxscene)
+            add_dependencies(pxscene_app pxscene_shared)
+            target_link_libraries(pxscene_app -L${CMAKE_CURRENT_SOURCE_DIR} -lSpark ${PXSCENE_APP_LIBRARIES} ${PXSCENE_LINK_LIBRARIES})
         endif (BUILD_PXSCENE_SHARED_LIB OR BUILD_PXSCENE_SHARED_LIB)
     endif (PX_LIBRARY_SUPPORT GREATER 0)
 
@@ -575,7 +583,8 @@ if (BUILD_PXSCENE_APP)
            "${CMAKE_CURRENT_SOURCE_DIR}/*.json" "${CMAKE_CURRENT_SOURCE_DIR}/*.conf"
            "${CMAKE_CURRENT_SOURCE_DIR}/../external/vc.build/builds/*.dll"
            "${CMAKE_CURRENT_SOURCE_DIR}/../external/v8/out.gn/ia32.release/v8*.dll"
-           "${CMAKE_CURRENT_SOURCE_DIR}/Release/")
+           "${CMAKE_CURRENT_SOURCE_DIR}/Release/"
+           "${CMAKE_CURRENT_SOURCE_DIR}/../external/openssl-1.0.2o/bin/*.dll")
         if (SUPPORT_DUKTAPE)
             message("installing additional duktape files")
             install(FILES ${PXSCENE_INSTALL_FILES_JS2} DESTINATION . COMPONENT pxscene)

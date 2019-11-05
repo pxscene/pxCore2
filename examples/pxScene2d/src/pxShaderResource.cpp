@@ -30,6 +30,7 @@ pxCore Copyright 2005-2018 John Robinson
 #include "pxContext.h"
 
 #include "pxScene2d.h"
+#include "pxImage.h"
 #include "pxShaderResource.h"
 
 
@@ -696,16 +697,22 @@ uint32_t pxShaderResource::loadResourceData(rtFileDownloadRequest* fileDownloadR
   double startDecodeTime = pxMilliseconds();
   rtError decodeResult = RT_OK;
 
+  // Store FRAGMENT shader code
   if(fileDownloadRequest->tag() == "frg")
   {
     mFragmentSrc.init( (const uint8_t*) fileDownloadRequest->downloadedData(),
                                         fileDownloadRequest->downloadedDataSize());
   }
   else
+  // Store VERTEX shader code
   if(fileDownloadRequest->tag() == "vtx")
   {
     mVertexSrc.init( (const uint8_t*) fileDownloadRequest->downloadedData(),
                                       fileDownloadRequest->downloadedDataSize());
+  }
+  else
+  {
+    return PX_RESOURCE_LOAD_FAIL;
   }
 
   double stopDecodeTime = pxMilliseconds();
@@ -800,36 +807,40 @@ void pxShaderResource::postlink()
 // sampler
 /*static*/ rtError pxShaderResource::bindTextureN(GLuint n, const uniformLoc_t &p)
 {
-  rtImageResource *img = (rtImageResource *) p.value.toObject().getPtr();
+  pxImage         *img = dynamic_cast<         pxImage* >(p.value.toObject().getPtr());
+  rtImageResource *res = dynamic_cast< rtImageResource* >(p.value.toObject().getPtr());
 
+  pxTextureRef tex;
+  
+  if(res)
+    tex = res->getTexture(); // passed an imageResource 
+  else
   if(img)
+    tex = img->getTexture(); // passed an image 
+
+  if(tex)
   {
-    pxTextureRef tex = img->getTexture();
+    GLuint tid = tex->getNativeId();
 
-    if(tex)
+    GLenum texN;
+
+    switch(n)
     {
-      GLuint tid = tex->getNativeId();
-
-      GLenum texN;
-
-      switch(n)
-      {
-        case 3: texN = GL_TEXTURE3; break;
-        case 4: texN = GL_TEXTURE4; break;
-        case 5: texN = GL_TEXTURE5; break;
-        default:
-          rtLogError("Invalid texture ID: %d  (Not 3,4 or 5) ", n);
-          return RT_FAIL;
-      }
-
-      glActiveTexture( texN );
-
-      glBindTexture(GL_TEXTURE_2D,     tid);
-      glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-      glUniform1i(p.loc, n);
-
-      return RT_OK;
+      case 3: texN = GL_TEXTURE3; break;
+      case 4: texN = GL_TEXTURE4; break;
+      case 5: texN = GL_TEXTURE5; break;
+      default:
+        rtLogError("Invalid texture ID: %d  (Not 3,4 or 5) ", n);
+        return RT_FAIL;
     }
+
+    glActiveTexture( texN );
+
+    glBindTexture(GL_TEXTURE_2D,     tid);
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    glUniform1i(p.loc, n);
+
+    return RT_OK;
   }
 
   return RT_FAIL;
