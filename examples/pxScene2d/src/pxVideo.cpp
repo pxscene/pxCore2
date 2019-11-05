@@ -146,6 +146,9 @@ void pxVideo::deInitPlayback()
 		delete mAamp;
 		mAamp = NULL;
 		TermPlayerLoop();
+		
+		free(mYuvBuffer.buffer);
+		mYuvBuffer.buffer = NULL;
 
 		initialized = false;
 		rtLogInfo("%s end initialized: %d\n", __FUNCTION__, initialized);
@@ -245,29 +248,30 @@ void pxVideo::draw()
   }
   else
   {
-	YUVBUFFER yuvBuffer{NULL,0,0,0};
-	mYuvFrameMutex.lock();
-	if(mYuvBuffer.buffer)
-	{
-		yuvBuffer = mYuvBuffer;
-		mYuvBuffer.buffer = NULL;
-	}
-	mYuvFrameMutex.unlock();
+		YUVBUFFER yuvBuffer{NULL,0,0,0};
+		mYuvFrameMutex.lock();
+		if(mYuvBuffer.buffer)
+		{
+			yuvBuffer = mYuvBuffer;
+			mYuvBuffer.buffer = NULL;
+		}
+		mYuvFrameMutex.unlock();
 
-	if(yuvBuffer.buffer)
-	{
-		static pxTextureRef nullMaskRef;
+		if(yuvBuffer.buffer)
+		{
+			static pxTextureRef nullMaskRef;
 
-		int rgbLen = yuvBuffer.pixel_w * yuvBuffer.pixel_h*4;
-		uint8_t *buffer_convert = (uint8_t *) malloc(rgbLen);
-		CONVERT_YUV420PtoRGBA32(yuvBuffer.buffer,buffer_convert,yuvBuffer.pixel_w, yuvBuffer.pixel_h);
+			int rgbLen = yuvBuffer.pixel_w * yuvBuffer.pixel_h*4;
+			uint8_t *buffer_convert = (uint8_t *) malloc(rgbLen);
+			CONVERT_YUV420PtoRGBA32(yuvBuffer.buffer,buffer_convert,yuvBuffer.pixel_w, yuvBuffer.pixel_h);
 
-		mOffscreen.init(yuvBuffer.pixel_w, yuvBuffer.pixel_h);
-		mOffscreen.setBase(buffer_convert);
-		pxTextureRef videoFrame = context.createTexture(mOffscreen);
-		context.drawImage(0, 0, mw, mh,  videoFrame, nullMaskRef, false, NULL, pxConstantsStretch::STRETCH, pxConstantsStretch::STRETCH);
-		free(yuvBuffer.buffer);
-	}
+			mOffscreen.init(yuvBuffer.pixel_w, yuvBuffer.pixel_h);
+			mOffscreen.setBase(buffer_convert);
+			pxTextureRef videoFrame = context.createTexture(mOffscreen);
+			context.drawImage(0, 0, mw, mh,  videoFrame, nullMaskRef, false, NULL, pxConstantsStretch::STRETCH, pxConstantsStretch::STRETCH);
+			free(yuvBuffer.buffer);
+			free(buffer_convert);
+		}
   }
 }
 
