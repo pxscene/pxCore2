@@ -19,6 +19,7 @@
 // rtScript.cpp
 
 #include "rtScript.h"
+
 #include "rtScriptHeaders.h"
 
 #include "rtPathUtils.h"
