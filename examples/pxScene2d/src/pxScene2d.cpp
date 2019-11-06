@@ -119,6 +119,9 @@ static int fpsWarningThreshold = 25;
 
 rtEmitRef pxScriptView::mEmit = new rtEmit();
 
+rtRef<rtFunctionCallback> pxScriptView::mSparkHttp = NULL;
+rtString pxScriptView::mSparkGlInitApp;
+
 
 #ifdef PXSCENE_SUPPORT_STORAGE
 #define DEFAULT_LOCALSTORAGE_DIR ".spark/storage/"
@@ -155,7 +158,6 @@ extern uv_async_t asyncNewScript;
 extern uv_async_t gcTrigger;
 #endif // RUNINMAIN
 #endif //ENABLE_RT_NODE
-
 #ifdef ENABLE_VALGRIND
 #include <valgrind/callgrind.h>
 void startProfiling()
@@ -3251,7 +3253,10 @@ void pxScriptView::runScript()
       mSharedContext = context.createSharedContext(true);
       mBeginDrawing = new rtFunctionCallback(beginDrawing2, this);
       mEndDrawing = new rtFunctionCallback(endDrawing2, this);
-      mSparkHttp = new rtFunctionCallback(sparkHttp, this);
+      if (mSparkHttp.getPtr() == NULL)
+      {
+        mSparkHttp = new rtFunctionCallback(sparkHttp, NULL);
+      }
       //mCtx->add("view", this);     
 
       // JRJR TODO initially with zero mWidth/mHeight until onSize event
@@ -3263,8 +3268,15 @@ void pxScriptView::runScript()
       beginDrawing();
       glClearColor(0, 0, 0, 0);
       glClear(GL_COLOR_BUFFER_BIT);      
-      mCtx->runFile("initGL.js");
-      rtValue foo = mCtx->get("loadUrl");
+      // compile initGL.js
+      if (mSparkGlInitApp.isEmpty())
+      {
+        rtData initData;
+        rtError e = rtLoadFile("initApp.js", initData);
+        mSparkGlInitApp = rtString((char*)initData.data(), (size_t)initData.length());
+      }
+      mCtx->runScript(mSparkGlInitApp.cString());
+      rtValue foo = mCtx->get("loadAppUrl");
       rtFunctionRef f = foo.toFunction();
       bool b = true;
       rtString url = mUrl;
@@ -3401,8 +3413,6 @@ pxScriptView::~pxScriptView()
     mBeginDrawing->clearContext();
   if (NULL != mEndDrawing.getPtr())
     mEndDrawing->clearContext();
-  if (NULL != mSparkHttp.getPtr())
-    mSparkHttp->clearContext();
 
 #endif //ENABLE_RT_NODE
 
