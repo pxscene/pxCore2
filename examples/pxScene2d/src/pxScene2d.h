@@ -732,7 +732,7 @@ protected:
   rtRef<rtFunctionCallback> mBeginDrawing;
   rtRef<rtFunctionCallback> mEndDrawing;
 
-  rtRef<rtFunctionCallback> mSparkHttp;
+  static rtRef<rtFunctionCallback> mSparkHttp;
 
   pxContextFramebufferRef cached;
   pxContextFramebufferRef previousSurface;

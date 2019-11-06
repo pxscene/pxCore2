@@ -28,6 +28,9 @@ var loadAppUrl = function(url, _beginDrawing, _endDrawing, _view, _frameworkURL,
   params._frameworkURL = _frameworkURL;
   params._options = _options;
   params._sparkHttp = _sparkHttp
+  if (!global.sparkHttp){
+    global.sparkHttp = _sparkHttp;
+  }
   params.sparkscene = getScene("scene.1")
   params.makeReady = this.makeReady
 

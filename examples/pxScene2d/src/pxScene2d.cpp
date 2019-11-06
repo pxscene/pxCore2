@@ -119,6 +119,8 @@ static int fpsWarningThreshold = 25;
 
 rtEmitRef pxScriptView::mEmit = new rtEmit();
 
+rtRef<rtFunctionCallback> pxScriptView::mSparkHttp = NULL;
+
 
 #ifdef PXSCENE_SUPPORT_STORAGE
 #define DEFAULT_LOCALSTORAGE_DIR ".spark/storage/"
@@ -3251,7 +3253,10 @@ void pxScriptView::runScript()
       mSharedContext = context.createSharedContext(true);
       mBeginDrawing = new rtFunctionCallback(beginDrawing2, this);
       mEndDrawing = new rtFunctionCallback(endDrawing2, this);
-      mSparkHttp = new rtFunctionCallback(sparkHttp, this);
+      if (mSparkHttp.getPtr() == NULL)
+      {
+        mSparkHttp = new rtFunctionCallback(sparkHttp, NULL);
+      }
       //mCtx->add("view", this);     
 
       // JRJR TODO initially with zero mWidth/mHeight until onSize event
@@ -3402,8 +3407,6 @@ pxScriptView::~pxScriptView()
     mBeginDrawing->clearContext();
   if (NULL != mEndDrawing.getPtr())
     mEndDrawing->clearContext();
-  if (NULL != mSparkHttp.getPtr())
-    mSparkHttp->clearContext();
 
 #endif //ENABLE_RT_NODE
 
