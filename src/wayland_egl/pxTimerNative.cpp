@@ -72,7 +72,7 @@ double  pxMicroseconds()
 void pxSleepMS(uint32_t msToSleep)
 {
     timeval tv;
-    tv.tv_sec = 0;
-    tv.tv_usec = 1000 * msToSleep;
+    tv.tv_sec = msToSleep / 1000;
+    tv.tv_usec = 1000 * (msToSleep % 1000);
     select(0, NULL, NULL, NULL, &tv);
 }
