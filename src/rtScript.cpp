@@ -19,8 +19,6 @@
 // rtScript.cpp
 
 #include "rtScript.h"
-#include <rtFile.h>
-#include <string.h>
 #include "rtScriptHeaders.h"
 
 #include "rtPathUtils.h"
@@ -60,6 +58,7 @@ args_t *s_gArgs;
 #endif
 
 static int sLockCount;
+
 bool rtWrapperSceneUpdateHasLock()
 {
 #ifdef USE_STD_THREADS
