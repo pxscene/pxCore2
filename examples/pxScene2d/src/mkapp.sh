@@ -114,7 +114,7 @@ ${minJS} browser.js $bundleRes/browser.js
 ${minJS} about.js $bundleRes/about.js
 ${minJS} browser/mime.js $bundleRes/browser/mime.js
 ${minJS} browser/editbox.js $bundleRes/browser/editbox.js
-cp initGL.js $bundleRes/initGL.js
+cp initApp.js $bundleRes/initApp.js
 cp webgl.js $bundleRes/webgl.js
 cp gles2.js $bundleRes/gles2.js
 

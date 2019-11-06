@@ -24,9 +24,8 @@ var init = function(options) {
     var fullscreen = !!options.fullscreen;
     var title = options.title || "";
 
-    //gles2.init(width, height, fullscreen, title);
-
-    return global.sparkwebgl.instance;
+    //gles2.init(width, height, fullscreen, title)
+    return global.sparkwebgl;
 };
 
 module.exports = {

@@ -79,8 +79,8 @@ void pxSleepMS(uint32_t msToSleep)
 {
 #ifdef USE_SELECT_FOR_SLEEP
   timeval tv;
-  tv.tv_sec = 0;
-  tv.tv_usec = 1000 * msToSleep;
+  tv.tv_sec = msToSleep / 1000;
+  tv.tv_usec = 1000 * (msToSleep % 1000);
   select(0, NULL, NULL, NULL, &tv);
 #else
   useconds_t s = (useconds_t)msToSleep*1000;
