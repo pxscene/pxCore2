@@ -120,6 +120,7 @@ static int fpsWarningThreshold = 25;
 rtEmitRef pxScriptView::mEmit = new rtEmit();
 
 rtRef<rtFunctionCallback> pxScriptView::mSparkHttp = NULL;
+rtString pxScriptView::mSparkGlInitApp;
 
 
 #ifdef PXSCENE_SUPPORT_STORAGE
@@ -157,7 +158,6 @@ extern uv_async_t asyncNewScript;
 extern uv_async_t gcTrigger;
 #endif // RUNINMAIN
 #endif //ENABLE_RT_NODE
-extern char *initAppScript;
 #ifdef ENABLE_VALGRIND
 #include <valgrind/callgrind.h>
 void startProfiling()
@@ -3269,7 +3269,13 @@ void pxScriptView::runScript()
       glClearColor(0, 0, 0, 0);
       glClear(GL_COLOR_BUFFER_BIT);      
       // compile initGL.js
-      mCtx->runScript(initAppScript);
+      if (mSparkGlInitApp.isEmpty())
+      {
+        rtData initData;
+        rtError e = rtLoadFile("initApp.js", initData);
+        mSparkGlInitApp = rtString((char*)initData.data(), (size_t)initData.length());
+      }
+      mCtx->runScript(mSparkGlInitApp.cString());
       rtValue foo = mCtx->get("loadAppUrl");
       rtFunctionRef f = foo.toFunction();
       bool b = true;
