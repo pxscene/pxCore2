@@ -97,6 +97,17 @@ sqlite-autoconf-3280000/Makefile.in
 sqlite-autoconf-3280000/missing
 sqlite-autoconf-3280000/sqlite3
 
+gettext/*
+glib/*
+libnode-v10.15.3/*
+openssl-1.0.2o/*
+uWebSockets-0.14.8/*
+libpng-1.6.28/*
+libpng-1.6.28/libpng-config
+./node
+
+nanosvg/PATCHED
+
 sqlite-autoconf-3280000/*.cache
 
 uWebSockets-0.14.8/Makefile

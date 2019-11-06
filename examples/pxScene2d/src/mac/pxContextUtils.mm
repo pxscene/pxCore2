@@ -38,8 +38,8 @@ NSOpenGLPixelFormatAttribute attribsWithDepth[] =
             0
         };
 
-NSOpenGLPixelFormat *internalPixelFormat = [[[NSOpenGLPixelFormat alloc] initWithAttributes:attribs] retain];
-NSOpenGLPixelFormat *internalPixelWithDepthFormat = [[[NSOpenGLPixelFormat alloc] initWithAttributes:attribsWithDepth] retain];
+NSOpenGLPixelFormat *internalPixelFormat = [[NSOpenGLPixelFormat alloc] initWithAttributes:attribs];
+NSOpenGLPixelFormat *internalPixelWithDepthFormat = [[NSOpenGLPixelFormat alloc] initWithAttributes:attribsWithDepth];
 
 std::map<int, NSOpenGLContext *> internalContexts;
 
