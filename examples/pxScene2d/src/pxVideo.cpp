@@ -27,6 +27,7 @@ using namespace std::placeholders;
 extern pxContext context;
 extern rtThreadQueue* gUIThreadQueue;
 
+
 /**
  * @brief Thread to run mainloop (for standalone mode)
  * @param[in] arg user_data
@@ -78,7 +79,7 @@ pxVideo::pxVideo(pxScene2d* scene):pxObject(scene)
 #endif //ENABLE_SPARK_VIDEO_PUNCHTHROUGH
 , mAutoPlay(false)
 , mUrl("")
-, mInitialized(false)
+, mPlaybackInitialized(false)
 {
 }
 
@@ -100,8 +101,8 @@ void pxVideo::onInit()
 
 void pxVideo::initPlayback()
 {
-	rtLogInfo("%s start initialized: %d\n", __FUNCTION__, mInitialized);
-	if (!mInitialized)
+	rtLogInfo("%s start initialized: %d\n", __FUNCTION__, mPlaybackInitialized);
+	if (!mPlaybackInitialized)
 	{
 		mAampMainLoopThread = NULL;
 		mAampMainLoop = NULL;
@@ -125,15 +126,15 @@ void pxVideo::initPlayback()
 		registerMediaMetadataEventListener();
 		registerSpeedsChangedEventListener();
 
-		mInitialized = true;
-		rtLogInfo("%s end initialized: %d\n", __FUNCTION__, mInitialized);
+		mPlaybackInitialized = true;
+		rtLogInfo("%s end initialized: %d\n", __FUNCTION__, mPlaybackInitialized);
 	}
 }
 
 void pxVideo::deInitPlayback()
 {
-	rtLogInfo("%s start initialized: %d\n", __FUNCTION__, mInitialized);
-	if (mInitialized)
+	rtLogInfo("%s start initialized: %d\n", __FUNCTION__, mPlaybackInitialized);
+	if (mPlaybackInitialized)
 	{
 		unregisterEventsListeners();
 		delete mAamp;
@@ -143,8 +144,8 @@ void pxVideo::deInitPlayback()
 		free(mYuvBuffer.buffer);
 		mYuvBuffer.buffer = NULL;
 
-		mInitialized = false;
-		rtLogInfo("%s end initialized: %d\n", __FUNCTION__, mInitialized);
+		mPlaybackInitialized = false;
+		rtLogInfo("%s end initialized: %d\n", __FUNCTION__, mPlaybackInitialized);
 	}
 }
 
