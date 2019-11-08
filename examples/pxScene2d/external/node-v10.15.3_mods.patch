@@ -1,3 +1,30 @@
+The npm application
+Copyright (c) npm, Inc. and Contributors
+Licensed on the terms of The Artistic License 2.0
+
+Node package dependencies of the npm application
+Copyright (c) their respective copyright owners
+Licensed on their respective license terms
+
+The npm public registry at https://registry.npmjs.org
+and the npm website at https://www.npmjs.com
+Operated by npm, Inc.
+Use governed by terms published on https://www.npmjs.com
+
+Date: Oct 16, 2019 11:28 PM
+From: f6beeabcc00737fd6b386bd5b19bc53fc44a2b33 Oct 16, 2019 11:28 PM
+
+Subject: [PATCH] DELIA-37507: Spark 1.10.0.1
+
+        updating to Spark 1.10.0.1
+
+Source of this patch: COMCAST
+
+Upstream Status: Pending
+
+Signed-off-by: mfiess200 <michael_fiess@cable.comcast.com>
+---
+
 diff --git a/examples/pxScene2d/external/libnode-v10.15.3/common.gypi b/examples/pxScene2d/external/libnode-v10.15.3/common.gypi
 index 4c64339..6b40aec 100755
 --- a/examples/pxScene2d/external/libnode-v10.15.3/common.gypi
@@ -334,48 +361,6 @@ index b168eb0..82cdec8 100755
        }
      }
    }
-diff --git a/examples/pxScene2d/external/libnode-v10.15.3/lib/net.js b/examples/pxScene2d/external/libnode-v10.15.3/lib/net.js
-index e40aaa8..1c6ad2a 100755
---- a/examples/pxScene2d/external/libnode-v10.15.3/lib/net.js
-+++ b/examples/pxScene2d/external/libnode-v10.15.3/lib/net.js
-@@ -25,6 +25,9 @@ const EventEmitter = require('events');
- const stream = require('stream');
- const util = require('util');
- const internalUtil = require('internal/util');
-+/*MODIFIED CODE BEGIN*/
-+const fileSystem = require('fs');
-+/*MODIFIED CODE END*/
- const {
-   isIP,
-   isIPv4,
-@@ -985,6 +988,27 @@ function lookupAndConnect(self, options) {
-       dnsopts.hints === 0) {
-     dnsopts.hints = dns.ADDRCONFIG;
-   }
-+/*MODIFIED CODE BEGIN*/
-+  var ipMode = 0;
-+  try {
-+    fileSystem.accessSync('/tmp/ipmode_v4');
-+    ipMode = 4;
-+  } catch(e) {
-+    debug('/tmp/ipmode_v4 does not exist');
-+  }
-+
-+  try {
-+    fileSystem.accessSync('/tmp/ipmode_v6');
-+    ipMode = 6;
-+  } catch(e) {
-+    debug('/tmp/ipmode_v6 does not exist');
-+  }
-+
-+  if (ipMode == 4 || ipMode == 6) {
-+    dnsopts.family = ipMode;
-+  }
-+/*MODIFIED CODE END*/
-+
- 
-   debug('connect: find host', host);
-   debug('connect: dns options', dnsopts);
 diff --git a/examples/pxScene2d/external/libnode-v10.15.3/node.gyp b/examples/pxScene2d/external/libnode-v10.15.3/node.gyp
 index a8de196..607a7db 100755
 --- a/examples/pxScene2d/external/libnode-v10.15.3/node.gyp
@@ -888,7 +873,7 @@ index 12089bc..7e8bf86 100755
  // Like a `TryCatch` but exits the process if an exception was caught.
  class FatalTryCatch : public v8::TryCatch {
 diff --git a/examples/pxScene2d/external/libnode-v10.15.3/src/node_platform.cc b/examples/pxScene2d/external/libnode-v10.15.3/src/node_platform.cc
-index fd8d045..c70036e 100755
+index fd8d045..c4286d4 100755
 --- a/examples/pxScene2d/external/libnode-v10.15.3/src/node_platform.cc
 +++ b/examples/pxScene2d/external/libnode-v10.15.3/src/node_platform.cc
 @@ -329,6 +329,13 @@ void PerIsolatePlatformData::RunForegroundTask(std::unique_ptr<Task> task) {
@@ -905,7 +890,34 @@ index fd8d045..c70036e 100755
    InternalCallbackScope cb_scope(env, Local<Object>(), { 0, 0 },
                                   InternalCallbackScope::kAllowEmptyResource);
    task->Run();
-@@ -411,12 +418,19 @@ std::shared_ptr<PerIsolatePlatformData>
+@@ -356,14 +363,18 @@ void PerIsolatePlatformData::CancelPendingDelayedTasks() {
+ 
+ void NodePlatform::DrainBackgroundTasks(Isolate* isolate) {
+   std::shared_ptr<PerIsolatePlatformData> per_isolate = ForIsolate(isolate);
+-
+-  do {
+-    // Right now, there is no way to drain only background tasks associated
+-    // with a specific isolate, so this sometimes does more work than
+-    // necessary. In the long run, that functionality is probably going to
+-    // be available anyway, though.
+-    background_task_runner_->BlockingDrain();
+-  } while (per_isolate->FlushForegroundTasksInternal());
++  /* MODIFIED CODE BEGIN */
++  if (NULL != per_isolate)
++  {
++    do {
++      // Right now, there is no way to drain only background tasks associated
++      // with a specific isolate, so this sometimes does more work than
++      // necessary. In the long run, that functionality is probably going to
++      // be available anyway, though.
++      background_task_runner_->BlockingDrain();
++    } while (per_isolate->FlushForegroundTasksInternal());
++  }
++  /* MODIFIED CODE END */
+ }
+ 
+ bool PerIsolatePlatformData::FlushForegroundTasksInternal() {
+@@ -411,12 +422,19 @@ std::shared_ptr<PerIsolatePlatformData>
  NodePlatform::ForIsolate(Isolate* isolate) {
    Mutex::ScopedLock lock(per_isolate_mutex_);
    std::shared_ptr<PerIsolatePlatformData> data = per_isolate_[isolate];
@@ -1075,28 +1087,6 @@ index 0e352c657..5599a52dd 100755
  
    Persistent<v8::Module> module_;
    Persistent<v8::String> url_;
-diff --git a/examples/pxScene2d/external/libnode-v10.15.3/src/env-inl.h b/examples/pxScene2d/external/libnode-v10.15.3/src/env-inl.h
-index 4af5add..7ab9076 100755
---- a/examples/pxScene2d/external/libnode-v10.15.3/src/env-inl.h
-+++ b/examples/pxScene2d/external/libnode-v10.15.3/src/env-inl.h
-@@ -156,13 +156,16 @@ inline bool Environment::AsyncHooks::pop_async_id(double async_id) {
-             "actual: %.f, expected: %.f)\n",
-             async_id_fields_.GetValue(kExecutionAsyncId),
-             async_id);
-+    /* MODIFIED CODE BEGIN */
-+    /*
-     DumpBacktrace(stderr);
-     fflush(stderr);
-     if (!env()->abort_on_uncaught_exception())
-       exit(1);
-     fprintf(stderr, "\n");
-     fflush(stderr);
--    ABORT_NO_BACKTRACE();
-+    ABORT_NO_BACKTRACE(); */
-+    /* MODIFIED CODE END */
-   }
- 
-   uint32_t offset = fields_[kStackLength] - 1;
 diff --git a/examples/pxScene2d/external/libnode-v10.15.3/deps/uv/src/unix/core.c b/examples/pxScene2d/external/libnode-v10.15.3/deps/uv/src/unix/core.c
 index f92446f..d02c098 100755
 --- a/examples/pxScene2d/external/libnode-v10.15.3/deps/uv/src/unix/core.c
@@ -1151,3 +1141,229 @@ index f92446f..d02c098 100755
      if (r != -1)
        return r;
      if (errno != ENOSYS)
+diff --git a/examples/pxScene2d/external/libnode-v10.15.3/lib/dns.js b/examples/pxScene2d/external/libnode-v10.15.3/lib/dns.js
+index f90d7c1a5..b151f530c 100755
+--- a/examples/pxScene2d/external/libnode-v10.15.3/lib/dns.js
++++ b/examples/pxScene2d/external/libnode-v10.15.3/lib/dns.js
+@@ -69,15 +69,30 @@ function onlookupall(err, addresses) {
+   }
+ 
+   var family = this.family;
++  /* MODIFIED CODE BEGIN */
++  var ipV4Addresses = [];
++  var ipV4count = 0;
++  var ipV6Addresses = []
++  var ipV6count = 0;
++  var result = {}
+   for (var i = 0; i < addresses.length; i++) {
+     const addr = addresses[i];
+-    addresses[i] = {
+-      address: addr,
+-      family: family || (isIPv4(addr) ? 4 : 6)
+-    };
++    var addrfamily = family || (isIPv4(addr) ? 4 : 6)
++    if (addrfamily == 4) {
++      ipV4Addresses[ipV4count] = {address: addr, family: addrfamily}
++      ipV4count++;
++    }
++    else {
++      ipV6Addresses[ipV6count] = {address: addr, family: addrfamily}
++      ipV6count++;
++    }
+   }
+-
+-  this.callback(null, addresses);
++  result['v4address'] = ipV4Addresses
++  result['v4count'] = ipV4count
++  result['v6address'] = ipV6Addresses
++  result['v6count'] = ipV6count
++  this.callback(null, result);
++  /* MODIFIED CODE END */
+ }
+ 
+ 
+diff --git a/examples/pxScene2d/external/libnode-v10.15.3/lib/net.js b/examples/pxScene2d/external/libnode-v10.15.3/lib/net.js
+index e40aaa870..774cd03bb 100755
+--- a/examples/pxScene2d/external/libnode-v10.15.3/lib/net.js
++++ b/examples/pxScene2d/external/libnode-v10.15.3/lib/net.js
+@@ -812,6 +812,116 @@ function checkBindError(err, port, handle) {
+   return err;
+ }
+ 
++/* MODIFIED CODE BEGIN */
++function internalConnectMultipleAddress(
++  self, address, port, localAddress, localPort) {
++  var ipV4addresses = address['v4address']
++  var ipv4count =  address['v4count']
++  var ipV6addresses = address['v6address']
++  var ipv6count = address['v6count']
++  var tempLocalAddress = "";
++  var bindSucceeded = true;
++  var connectSucceeded = false;
++  var err;
++
++  // IPV6 bind
++  bindSucceeded = true;
++  if (localAddress || localPort) {
++    tempLocalAddress = localAddress || '::';
++    err = self._handle.bind6(tempLocalAddress, localPort);
++    debug('binding to localAddress: %s and localPort: %d (addressType: 6)',
++          tempLocalAddress, localPort);
++
++    err = checkBindError(err, localPort, self._handle);
++    if (err) {
++      console.log("Bind error for IPV6 : " + err + " happened for " + tempLocalAddress + " and port " + localPort);
++      bindSucceeded = false;
++    }
++  }
++
++  // IPV6 connect
++  connectSucceeded = false;
++  if (true == bindSucceeded) {
++    for (var i=0; i<ipv6count; i++)
++    {
++      connectSucceeded = internalConnectWithReturn(self, ipV6addresses[i].address, port, ipV6addresses[i].family, tempLocalAddress, localPort);
++      if (true == connectSucceeded)
++        break;
++    }
++  }
++
++  // try for ipv4 if ipv6 connect fails
++  if (false == connectSucceeded) {
++
++    bindSucceeded = true;
++    // IPV4 bind 
++    if (localAddress || localPort) {
++      tempLocalAddress = localAddress || '0.0.0.0';
++      err = self._handle.bind(tempLocalAddress, localPort);
++      debug('binding to localAddress: %s and localPort: %d (addressType: 4)',
++            tempLocalAddress, localPort);
++
++      err = checkBindError(err, localPort, self._handle);
++      if (err) {
++        console.log("Bind error for IPV4 : " + err + " happened for " + tempLocalAddress + " and port " + localPort);
++        bindSucceeded = false;
++      }
++    }
++
++    connectSucceeded = false;
++    if (true == bindSucceeded) {
++      for (var i=0; i<ipv4count; i++)
++      {
++        connectSucceeded = internalConnectWithReturn(self, ipV4addresses[i].address, port, ipV4addresses[i].family, tempLocalAddress, localPort);
++        if (true == connectSucceeded)
++          break;
++      }
++    }
++  }
++
++  if ((false == bindSucceeded) || (false == connectSucceeded))
++  {
++    self.destroy();
++  }
++}
++
++function internalConnectWithReturn(self, address, port, addressType, localAddress, localPort) 
++{
++  assert(self.connecting);
++  var ret = false;
++  var err;
++
++  if (addressType === 6 || addressType === 4) {
++    const req = new TCPConnectWrap();
++    req.oncomplete = afterConnect;
++    req.address = address;
++    req.port = port;
++    req.localAddress = localAddress;
++    req.localPort = localPort;
++
++    if (addressType === 4)
++      err = self._handle.connect(req, address, port);
++    else
++      err = self._handle.connect6(req, address, port);
++  }
++
++  if (err) {
++    var sockname = self._getsockname();
++    var details;
++
++    if (sockname) {
++      details = sockname.address + ':' + sockname.port;
++    }
++
++    console.log("Connect error happened : " + err + " , " + details + " , " + address + ":"  + port + " ,family: " + addressType); 
++  }
++  else
++  {
++    ret = true;
++  }
++  return ret;
++}
++/* MODIFIED CODE END */
+ 
+ function internalConnect(
+   self, address, port, addressType, localAddress, localPort) {
+@@ -974,11 +1084,22 @@ function lookupAndConnect(self, options) {
+ 
+ 
+   if (dns === undefined) dns = require('dns');
++  /* MODIFIED CODE BEGIN */
+   var dnsopts = {
+     family: options.family,
+-    hints: options.hints || 0
++    hints: options.hints || 0,
+   };
+-
++  console.log(options);
++  if (options.all != undefined)
++  {
++    dnsopts.all = options.all
++  }
++  else
++  {
++    dnsopts.all = false;
++  }
++  dnsopts.all = true;
++  /* MODIFIED CODE END */
+   if (process.platform !== 'win32' &&
+       dnsopts.family !== 4 &&
+       dnsopts.family !== 6 &&
+@@ -1008,7 +1129,9 @@ function lookupAndConnect(self, options) {
+         err.port = options.port;
+         err.message = err.message + ' ' + options.host + ':' + options.port;
+         process.nextTick(connectErrorNT, self, err);
+-      } else if (addressType !== 4 && addressType !== 6) {
++        /* MODIFIED CODE BEGIN */
++      } else if ((false == dnsopts.all) && addressType !== 4 && addressType !== 6) {
++        /* MODIFIED CODE END */
+         err = new ERR_INVALID_ADDRESS_FAMILY(addressType);
+         err.host = options.host;
+         err.port = options.port;
+@@ -1016,11 +1139,22 @@ function lookupAndConnect(self, options) {
+         process.nextTick(connectErrorNT, self, err);
+       } else {
+         self._unrefTimer();
+-        defaultTriggerAsyncIdScope(
+-          self[async_id_symbol],
+-          internalConnect,
+-          self, ip, port, addressType, localAddress, localPort
+-        );
++        /* MODIFIED CODE BEGIN */
++        if (dnsopts.all) {
++          defaultTriggerAsyncIdScope(
++            self[async_id_symbol],
++            internalConnectMultipleAddress,
++            self, ip, port, localAddress, localPort
++          );
++        }
++        else {
++          defaultTriggerAsyncIdScope(
++            self[async_id_symbol],
++            internalConnect,
++            self, ip, port, addressType, localAddress, localPort
++          );
++        }
++        /* MODIFIED CODE END */
+       }
+     });
+   });
