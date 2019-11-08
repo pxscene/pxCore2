@@ -1183,7 +1183,7 @@ index f90d7c1a5..b151f530c 100755
  
  
 diff --git a/examples/pxScene2d/external/libnode-v10.15.3/lib/net.js b/examples/pxScene2d/external/libnode-v10.15.3/lib/net.js
-index e40aaa870..774cd03bb 100755
+index e40aaa870..8950dba55 100755
 --- a/examples/pxScene2d/external/libnode-v10.15.3/lib/net.js
 +++ b/examples/pxScene2d/external/libnode-v10.15.3/lib/net.js
 @@ -812,6 +812,116 @@ function checkBindError(err, port, handle) {
@@ -1303,7 +1303,7 @@ index e40aaa870..774cd03bb 100755
  
  function internalConnect(
    self, address, port, addressType, localAddress, localPort) {
-@@ -974,11 +1084,22 @@ function lookupAndConnect(self, options) {
+@@ -974,11 +1084,13 @@ function lookupAndConnect(self, options) {
  
  
    if (dns === undefined) dns = require('dns');
@@ -1314,21 +1314,12 @@ index e40aaa870..774cd03bb 100755
 +    hints: options.hints || 0,
    };
 -
-+  console.log(options);
-+  if (options.all != undefined)
-+  {
-+    dnsopts.all = options.all
-+  }
-+  else
-+  {
-+    dnsopts.all = false;
-+  }
 +  dnsopts.all = true;
 +  /* MODIFIED CODE END */
    if (process.platform !== 'win32' &&
        dnsopts.family !== 4 &&
        dnsopts.family !== 6 &&
-@@ -1008,7 +1129,9 @@ function lookupAndConnect(self, options) {
+@@ -1008,7 +1120,9 @@ function lookupAndConnect(self, options) {
          err.port = options.port;
          err.message = err.message + ' ' + options.host + ':' + options.port;
          process.nextTick(connectErrorNT, self, err);
@@ -1339,7 +1330,7 @@ index e40aaa870..774cd03bb 100755
          err = new ERR_INVALID_ADDRESS_FAMILY(addressType);
          err.host = options.host;
          err.port = options.port;
-@@ -1016,11 +1139,22 @@ function lookupAndConnect(self, options) {
+@@ -1016,11 +1130,22 @@ function lookupAndConnect(self, options) {
          process.nextTick(connectErrorNT, self, err);
        } else {
          self._unrefTimer();
