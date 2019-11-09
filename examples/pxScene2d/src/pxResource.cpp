@@ -990,7 +990,12 @@ void pxResource::processDownloadedResource(rtFileDownloadRequest* fileDownloadRe
       }
       else if (result == PX_RESOURCE_LOAD_WAIT)
       {
-        setLoadStatus("statusCode", PX_RESOURCE_STATUS_DOWNLOAD_PROCESSING);
+        // possibility being status code got changed
+        rtValue currStatusCode = getLoadStatus("statusCode");
+        if (-1 == currStatusCode.toInt32())
+        {
+          setLoadStatus("statusCode", PX_RESOURCE_STATUS_DOWNLOAD_PROCESSING);
+        }
       }
     }
     else
