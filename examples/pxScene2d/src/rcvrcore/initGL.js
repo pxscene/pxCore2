@@ -56,10 +56,6 @@ var __dirname = process.cwd()
 // Spark node-like module loader
 const makeRequire = function(pathToParent) {
   return function(moduleName) {
-    if ((moduleName == 'node-fetch') || (moduleName == 'iconv-lite') || (moduleName == 'safer-buffer') || (moduleName == 'is-stream'))
-    {
-      return reqOrig(moduleName)
-    }
     const parentDir = path.dirname(pathToParent);
     // use Node's built-in module resolver here, but we could easily pass in our own
     var resolvedModule = _module._resolveLookupPaths(moduleName, {paths:[parentDir],id:pathToParent,filename:pathToParent});
