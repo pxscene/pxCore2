@@ -63,6 +63,8 @@ public:
   static rtError parseHeader(const rtString& data, rtString& key, rtString& value);
   static rtString toLowercaseStr(const rtString& str);
 
+  bool hasError();
+
 private:
   int32_t mStatusCode;
   rtString mErrorMessage;

@@ -48,20 +48,28 @@ function initializeImportMeta(meta, { url }) {
   meta.url = url;
 }
 
+var fetchWithGlobal = require('node-fetch').fetchWithGlobal;
+
 var loadHttpFile = function(scene, fileUri) {
   return new Promise(function(resolve, reject) {
+    fetchWithGlobal(this.global, fileUri, {}).then(response =>  response.text()).then(data => {
+        resolve(data.toString());
+  	}).catch(err => { console.error(`Error: FAILED to read file[${fileUri}] from web service`); reject(); });
+    });
+  /*return new Promise(function(resolve, reject) {
     scene.loadArchive(fileUri).ready.then(a => {
       if (a.loadStatus.httpStatusCode !== 200) {
         console.error(`StatusCode Bad: FAILED to read file[${fileUri}] from web service`);
         reject(a.loadStatus.httpStatusCode);
       } else {
+        console.log(a.getFileAsString(""));
         resolve(a.getFileAsString(""));
       }
     }, () => {
       console.error(`Error: FAILED to read file[${fileUri}] from web service`);
       reject();
     });
-  });
+  });*/
 }
 
 function stripBOM(content) {

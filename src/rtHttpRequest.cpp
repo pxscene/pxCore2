@@ -19,6 +19,9 @@
 #include "rtHttpRequest.h"
 
 #include "rtHttpResponse.h"
+#include "rtThreadQueue.h"
+
+extern rtThreadQueue* gUIThreadQueue;
 
 rtDefineObject(rtHttpRequest, rtObject);
 
@@ -41,6 +44,7 @@ rtHttpRequest::rtHttpRequest(const rtString& url)
   , mWriteDataSize(0)
   , mInQueue(false)
   , mCompress(true)
+  , mProxy()
 {
 }
 
@@ -50,6 +54,7 @@ rtHttpRequest::rtHttpRequest(const rtObjectRef& options)
   , mWriteDataSize(0)
   , mInQueue(false)
   , mCompress(true)
+  , mProxy()
 {
   rtString url;
 
@@ -60,6 +65,7 @@ rtHttpRequest::rtHttpRequest(const rtObjectRef& options)
   rtString method = options.get<rtString>("method");
   rtObjectRef headers = options.get<rtObjectRef>("headers");
   uint32_t port = options.get<uint32_t>("port");
+  mProxy = options.get<rtString>("proxy");  
 
   mMethod = method;
 
@@ -145,6 +151,10 @@ rtError rtHttpRequest::end()
   req->setMethod(mMethod);
   req->setReadData(mWriteData, mWriteDataSize);
   req->setUseEncoding(mCompress);
+  if (!mProxy.isEmpty())
+  {
+    req->setProxy(mProxy);
+  }
   if (rtFileDownloader::instance()->addToDownloadQueue(req)) {
     AddRef();
     mInQueue = true;
@@ -266,7 +276,27 @@ rtError rtHttpRequest::removeHeader(const rtString& name)
   return RT_OK;
 }
 
-void rtHttpRequest::onDownloadComplete(rtFileDownloadRequest* downloadRequest)
+void rtHttpRequest::onDownloadComplete(void* context, void* data)
+{
+  rtHttpRequest* req = (rtHttpRequest*)context;
+  rtHttpResponse* resp = (rtHttpResponse*)data;
+
+  rtObjectRef ref = resp; 
+
+  if (!resp->hasError()) {
+    req->mEmit.send("response", ref);
+    resp->onData();
+    resp->onEnd();
+  } else {
+    rtString errorString;
+    resp->errorMessage(errorString);
+    req->mEmit.send("error", errorString);
+  }
+
+  req->Release();
+}
+
+void rtHttpRequest::onDownloadCompleteAndRelease(rtFileDownloadRequest* downloadRequest)
 {
   rtHttpRequest* req = (rtHttpRequest*)downloadRequest->callbackData();
 
@@ -277,24 +307,9 @@ void rtHttpRequest::onDownloadComplete(rtFileDownloadRequest* downloadRequest)
   resp->setHeaders(downloadRequest->headerData(), downloadRequest->headerDataSize());
   resp->setDownloadedData(downloadRequest->downloadedData(), downloadRequest->downloadedDataSize());
 
-  rtObjectRef ref = resp; 
-
-  if (downloadRequest->errorString().isEmpty()) {
-    req->mEmit.send("response", ref);
-    resp->onData();
-    resp->onEnd();
-  } else {
-    req->mEmit.send("error", downloadRequest->errorString());
-  }
-}
-
-void rtHttpRequest::onDownloadCompleteAndRelease(rtFileDownloadRequest* downloadRequest)
-{
-  onDownloadComplete(downloadRequest);
-  rtHttpRequest* req = (rtHttpRequest*)downloadRequest->callbackData();
-  if (req != NULL)
+  if (gUIThreadQueue)
   {
-    req->Release();
+    gUIThreadQueue->addTask(onDownloadComplete, req, resp);
   }
 }
 

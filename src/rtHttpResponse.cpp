@@ -197,3 +197,8 @@ rtString rtHttpResponse::toLowercaseStr(const rtString& str)
   std::transform(s.begin(), s.end(), s.begin(), ::tolower);
   return rtString(s.c_str());
 }
+
+bool rtHttpResponse::hasError()
+{
+  return !mErrorMessage.isEmpty();
+}

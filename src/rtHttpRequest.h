@@ -56,8 +56,8 @@ public:
   rtError getHeader(const rtString& name, rtString& s);
   rtError removeHeader(const rtString& name);
 
-  static void onDownloadComplete(rtFileDownloadRequest* downloadRequest);
   static void onDownloadCompleteAndRelease(rtFileDownloadRequest* downloadRequest);
+  static void onDownloadComplete(void* context, void* data);
 
   rtString url() const;
   std::vector<rtString> headers() const;
@@ -75,6 +75,7 @@ private:
   size_t mWriteDataSize;
   bool mInQueue;
   bool mCompress;
+  rtString mProxy;
 };
 
 #endif //RT_HTTP_REQUEST_H
