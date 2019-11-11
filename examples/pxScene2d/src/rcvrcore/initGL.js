@@ -56,7 +56,7 @@ var __dirname = process.cwd()
 // Spark node-like module loader
 const makeRequire = function(pathToParent) {
   return function(moduleName) {
-    if ((moduleName == 'node-fetch') || (moduleName == 'iconv-lite') || (moduleName == 'safer-buffer') || (moduleName == 'is-stream'))
+    if (/*(moduleName == 'node-fetch') ||*/ (moduleName == 'iconv-lite') || (moduleName == 'safer-buffer') || (moduleName == 'is-stream'))
     {
       return reqOrig(moduleName)
     }
