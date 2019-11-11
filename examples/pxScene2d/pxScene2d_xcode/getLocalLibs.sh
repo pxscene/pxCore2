@@ -41,9 +41,14 @@ if [ ! -d ${xLIBS} ]; then
   cp ${xEXT}/gif/.libs/libutil.7.dylib ${xLIBS}
 
   cp ${xEXT}/sqlite/.libs/libsqlite3.dylib ${xLIBS}
-  cp /usr/local/opt/glew/lib/libGLEW.2.1.dylib ${xLIBS}
-  cp /usr/local/opt/rtmpdump/lib/librtmp.1.dylib ${xLIBS}
+ 
+  if [ -e /usr/local/opt/glew/lib/ ]; then
+  cp /usr/local/opt/glew/lib/*.dylib ${xLIBS}
+  fi
+
+  if [ -e /usr/local/opt/rtmpdump/lib/ ]; then
+  cp /usr/local/opt/rtmpdump/lib/*.dylib ${xLIBS}
+  fi
 
   source makeLocalLibs.sh
-
 fi

@@ -122,6 +122,12 @@ pxWayland::~pxWayland()
 #ifdef ENABLE_PX_WAYLAND_RPC
   rtRemoteUnregisterDisconnectedCallback(pxWayland::remoteDisconnectedCB, this);
 #endif //ENABLE_PX_WAYLAND_RPC
+
+  if (gUIThreadQueue)
+  {
+    gUIThreadQueue->removeAllTasksForObject(this);
+  }
+
   if ( mWCtx )
   {
      terminateClient();
@@ -140,6 +146,16 @@ pxWayland::~pxWayland()
      mClientPID= -1;
      mWCtx = NULL;
   }
+}
+
+void pxWayland::setEvents(pxWaylandEvents *events)
+{
+  if (gUIThreadQueue)
+  {
+    gUIThreadQueue->removeAllTasksForObject(this);
+  }
+
+  mEvents = events;
 }
 
 rtError pxWayland::displayName(rtString& s) const { s = mDisplayName; return RT_OK; }
