@@ -61,7 +61,7 @@ public:
   virtual unsigned long AddRef() {
     return rtAtomicInc(&mRefCount);
   }
-  
+
   virtual unsigned long Release() {
     long l = rtAtomicDec(&mRefCount);
     if (l == 0) delete this;
@@ -72,16 +72,13 @@ public:
   {
     mContainer = l;
   }
-  
+
   virtual void RT_STDCALL onCloseRequest()
   {
     rtLogInfo("pxWayland::onCloseRequest()");
   }
 
-  void setEvents( pxWaylandEvents *events )
-  {
-     mEvents= events;
-  }
+  void setEvents(pxWaylandEvents *events);
 
   rtError displayName(rtString& s) const;
   rtError setDisplayName(const char* s);
@@ -123,7 +120,7 @@ public:
     mHasApi = v;
     return RT_OK;
   }
-  
+
   rtError api(rtValue& v) const
   {
     mRemoteObjectMutex.lock();
@@ -131,7 +128,7 @@ public:
     mRemoteObjectMutex.unlock();
     return RT_OK;
   }
-  
+
   void setPos( int x, int y )
   {
      mX= x;
