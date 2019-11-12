@@ -127,21 +127,22 @@ private:
 
   void InitPlayerLoop();
   void TermPlayerLoop();
-  static void* AAMPGstPlayer_StreamThread(void *arg);
+  static void* AAMPGstPlayer_StreamThread(void* arg);
   static void newAampFrame(void* context, void* data);
   void registerMediaMetadataEventListener();
   void registerSpeedsChangedEventListener();
   void unregisterEventsListeners();
 
 private:
-    static GMainLoop *AAMPGstPlayerMainLoop;
+    GMainLoop* mAampMainLoop;
+    GThread* mAampMainLoopThread;
+    class PlayerInstanceAAMP* mAamp;
+
 
     bool isRotated();
     bool mEnablePunchThrough;
     bool mAutoPlay;
     rtString mUrl;
-
-    class PlayerInstanceAAMP* mAamp;
 
     rtMutex mYuvFrameMutex;
     pxOffscreen mOffscreen;
@@ -152,15 +153,11 @@ private:
     	int pixel_h;
     };
     YUVBUFFER mYuvBuffer;
-    bool initialized = false;
-    GThread *aampMainLoopThread;
+    bool mPlaybackInitialized = false;
 
     std::map<AAMPEventType, std::unique_ptr<AAMPEventListener>> mEventsListeners;
 
     PlaybackMetadata mPlaybackMetadata;
-
-public:
-    static pxVideo *pxVideoObj; //This object
 };
 
 #endif // PX_VIDEO_H
