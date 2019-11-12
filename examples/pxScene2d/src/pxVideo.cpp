@@ -24,27 +24,26 @@
 
 using namespace std::placeholders;
 
-pxVideo *pxVideo::pxVideoObj = NULL;
-GMainLoop *pxVideo::AAMPGstPlayerMainLoop;
-
 extern pxContext context;
 extern rtThreadQueue* gUIThreadQueue;
+
 
 /**
  * @brief Thread to run mainloop (for standalone mode)
  * @param[in] arg user_data
  * @retval void pointer
  */
-void* pxVideo::AAMPGstPlayer_StreamThread(void* /*arg*/)
+void* pxVideo::AAMPGstPlayer_StreamThread(void* arg)
 {
-  if (AAMPGstPlayerMainLoop)
-  {
-    g_main_loop_run(AAMPGstPlayerMainLoop); // blocks
-    printf("AAMPGstPlayer_StreamThread: exited main event loop\n");
-  }
-  g_main_loop_unref(AAMPGstPlayerMainLoop);
-  AAMPGstPlayerMainLoop = NULL;
-  return NULL;
+	pxVideo* videoObj = static_cast<pxVideo*>(arg);
+	if (videoObj->mAampMainLoop)
+	{
+		g_main_loop_run(videoObj->mAampMainLoop); // blocks
+		rtLogInfo("AAMPGstPlayer_StreamThread: exited main event loop\n");
+	}
+	g_main_loop_unref(videoObj->mAampMainLoop);
+	videoObj->mAampMainLoop = NULL;
+	return NULL;
 }
 
 /**
@@ -54,25 +53,21 @@ void* pxVideo::AAMPGstPlayer_StreamThread(void* /*arg*/)
  */
 void pxVideo::InitPlayerLoop()
 {
-  if (!initialized)
-  {
-    initialized = true;
-    gst_init(NULL, NULL);
-    AAMPGstPlayerMainLoop = g_main_loop_new(NULL, FALSE);
-    aampMainLoopThread = g_thread_new("AAMPGstPlayerLoop", &pxVideo::AAMPGstPlayer_StreamThread, NULL );
-  }
+	gst_init(NULL, NULL);
+	mAampMainLoop = g_main_loop_new(NULL, FALSE);
+	mAampMainLoopThread = g_thread_new("AAMPGstPlayerLoop", &pxVideo::AAMPGstPlayer_StreamThread, this);
 }
 
 void pxVideo::TermPlayerLoop()
 {
-	if(AAMPGstPlayerMainLoop)
+	if(mAampMainLoop)
 	{
-		g_main_loop_quit(AAMPGstPlayerMainLoop);
-		g_thread_join(aampMainLoopThread);
+		g_main_loop_quit(mAampMainLoop);
+		g_thread_join(mAampMainLoopThread);
 		//gst_deinit(); gst_deinit should not be called on every pxVideo object destruction.
 		// This is because after call to gst_deinit, you can not use gstreamer at all.
 		// Even call to gst_init will not change it, and will not reinitialize gstreamer.
-		printf("%s(): Exited GStreamer MainLoop.\n", __FUNCTION__);
+		rtLogInfo("%s(): Exited GStreamer MainLoop.\n", __FUNCTION__);
 	}
 }
 
@@ -84,7 +79,7 @@ pxVideo::pxVideo(pxScene2d* scene):pxObject(scene)
 #endif //ENABLE_SPARK_VIDEO_PUNCHTHROUGH
 , mAutoPlay(false)
 , mUrl("")
-, initialized(false)
+, mPlaybackInitialized(false)
 {
 }
 
@@ -106,11 +101,11 @@ void pxVideo::onInit()
 
 void pxVideo::initPlayback()
 {
-	rtLogInfo("%s start initialized: %d\n", __FUNCTION__, initialized);
-	if (!initialized)
+	rtLogInfo("%s start initialized: %d\n", __FUNCTION__, mPlaybackInitialized);
+	if (!mPlaybackInitialized)
 	{
-		aampMainLoopThread = NULL;
-		AAMPGstPlayerMainLoop = NULL;
+		mAampMainLoopThread = NULL;
+		mAampMainLoop = NULL;
 		InitPlayerLoop();
 
 		std::function< void(uint8_t *, int, int, int) > cbExportFrames = nullptr;
@@ -126,32 +121,31 @@ void pxVideo::initPlayback()
 	#endif
 				);
 		assert (nullptr != mAamp);
-		pxVideo::pxVideoObj = this;
 		mYuvBuffer.buffer = NULL;
 
 		registerMediaMetadataEventListener();
 		registerSpeedsChangedEventListener();
 
-		initialized = true;
-		rtLogInfo("%s end initialized: %d\n", __FUNCTION__, initialized);
+		mPlaybackInitialized = true;
+		rtLogInfo("%s end initialized: %d\n", __FUNCTION__, mPlaybackInitialized);
 	}
 }
 
 void pxVideo::deInitPlayback()
 {
-	rtLogInfo("%s start initialized: %d\n", __FUNCTION__, initialized);
-	if (initialized)
+	rtLogInfo("%s start initialized: %d\n", __FUNCTION__, mPlaybackInitialized);
+	if (mPlaybackInitialized)
 	{
 		unregisterEventsListeners();
 		delete mAamp;
 		mAamp = NULL;
 		TermPlayerLoop();
-		
+
 		free(mYuvBuffer.buffer);
 		mYuvBuffer.buffer = NULL;
 
-		initialized = false;
-		rtLogInfo("%s end initialized: %d\n", __FUNCTION__, initialized);
+		mPlaybackInitialized = false;
+		rtLogInfo("%s end initialized: %d\n", __FUNCTION__, mPlaybackInitialized);
 	}
 }
 
@@ -233,7 +227,7 @@ void pxVideo::updateYUVFrame(uint8_t *yuvBuffer, int size, int pixel_w, int pixe
 		}
 		mYuvFrameMutex.unlock();
 
-		gUIThreadQueue->addTask(newAampFrame, pxVideo::pxVideoObj, NULL);
+		gUIThreadQueue->addTask(newAampFrame, this, NULL);
 	}
 }
 
