@@ -56,7 +56,9 @@ var __dirname = process.cwd()
 // Spark node-like module loader
 const makeRequire = function(pathToParent) {
   return function(moduleName) {
-    if ((moduleName == 'node-fetch') || (moduleName == 'iconv-lite') || (moduleName == 'safer-buffer') || (moduleName == 'is-stream'))
+    // TODO: if code runs via "runInContext(... sandbox", then required module runs in sandbox,
+    //  but if via "vm.SourceTextModule(... sandbox", then required module runs in global context.
+    if ((moduleName == 'iconv-lite') || (moduleName == 'safer-buffer') || (moduleName == 'is-stream'))
     {
       return reqOrig(moduleName)
     }
@@ -364,11 +366,13 @@ function LightningApp(params) {
   tmpGlobal.setImmediate = xxsetImmediate.bind(this)
   tmpGlobal.clearImmediate = xxclearImmediate.bind(this)
   tmpGlobal.sparkQueryParams = urlmain.parse(this.url, true).query;
+  tmpGlobal.thisIsTmpGlobal = true;
 
   var tmpSandbox = this.sandbox
   tmpSandbox.makeReady = this.makeReady = params.makeReady
   tmpSandbox.global = tmpGlobal
   tmpSandbox['Buffer'] = Buffer;
+  tmpSandbox.thisIsSandbox = true;
   for (var i=0; i<sandboxKeys.length; i++)
   {
     tmpSandbox[sandboxKeys[i]] = tmpGlobal[sandboxKeys[i]];
