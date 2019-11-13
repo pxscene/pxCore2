@@ -301,6 +301,28 @@ void rtHttpRequest::onDownloadComplete(void* context, void* data)
   req->Release();
 }
 
+void rtHttpRequest::onDownloadComplete(rtFileDownloadRequest* downloadRequest)
+{
+  rtHttpRequest* req = (rtHttpRequest*)downloadRequest->callbackData();
+
+  rtHttpResponse* resp = new rtHttpResponse();
+
+  resp->setStatusCode((int32_t)downloadRequest->httpStatusCode());
+  resp->setErrorMessage(downloadRequest->errorString());
+  resp->setHeaders(downloadRequest->headerData(), downloadRequest->headerDataSize());
+  resp->setDownloadedData(downloadRequest->downloadedData(), downloadRequest->downloadedDataSize());
+
+  rtObjectRef ref = resp;
+
+  if (downloadRequest->errorString().isEmpty()) {
+    req->mEmit.send("response", ref);
+    resp->onData();
+    resp->onEnd();
+  } else {
+    req->mEmit.send("error", downloadRequest->errorString());
+  }
+}
+
 void rtHttpRequest::onDownloadCompleteAndRelease(rtFileDownloadRequest* downloadRequest)
 {
   rtHttpRequest* req = (rtHttpRequest*)downloadRequest->callbackData();
@@ -321,21 +343,7 @@ void rtHttpRequest::onDownloadCompleteAndRelease(rtFileDownloadRequest* download
   }
   else if (req != NULL)
   {
-    rtHttpResponse* resp = new rtHttpResponse();
-
-    resp->setStatusCode((int32_t)downloadRequest->httpStatusCode());
-    resp->setErrorMessage(downloadRequest->errorString());
-    resp->setHeaders(downloadRequest->headerData(), downloadRequest->headerDataSize());
-    resp->setDownloadedData(downloadRequest->downloadedData(), downloadRequest->downloadedDataSize());
-
-    rtObjectRef ref = resp; 
-
-    if (downloadRequest->errorString().isEmpty()) {
-      req->mEmit.send("response", ref);
-      resp->onDataAndEnd();
-    } else {
-      req->mEmit.send("error", downloadRequest->errorString());
-    }
+    onDownloadComplete(downloadRequest);
     req->Release();
   }
 }

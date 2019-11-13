@@ -56,6 +56,7 @@ public:
   rtError getHeader(const rtString& name, rtString& s);
   rtError removeHeader(const rtString& name);
 
+  static void onDownloadComplete(rtFileDownloadRequest* downloadRequest);
   static void onDownloadCompleteAndRelease(rtFileDownloadRequest* downloadRequest);
   static void onDownloadComplete(void* context, void* data);
 
