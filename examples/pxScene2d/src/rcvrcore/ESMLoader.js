@@ -52,10 +52,15 @@ var fastFetch = require('node-fetch').fastFetch;
 
 var loadHttpFile = function(scene, fileUri) {
   return new Promise(function(resolve, reject) {
-    fastFetch(this.global, fileUri, {}).then(data => {
-        resolve(data);
-        }).catch(err => { console.error(`Error: FAILED to read file[${fileUri}] from web service`); reject(); });
-    });
+    fastFetch(this.global, fileUri, {}).then( data => {
+      if (data.statusCode !== 200) {
+        console.error(`StatusCode Bad: FAILED to read file[${fileUri}] http file get`);
+        reject(data.statusCode);
+      } else {
+        resolve(data.responseData);
+      }
+    }).catch(err => { console.error(`Error: FAILED to read file[${fileUri}] from web service`); reject(); });
+  });
   /*return new Promise(function(resolve, reject) {
     scene.loadArchive(fileUri).ready.then(a => {
       if (a.loadStatus.httpStatusCode !== 200) {
