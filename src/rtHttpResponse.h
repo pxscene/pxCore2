@@ -59,12 +59,11 @@ public:
   void onData();
   void onEnd();
   void onDataAndEnd();
+  bool hasError();
 
   static rtError parseHeaders(const rtString& data, std::map<rtString, rtString>& headerMap);
   static rtError parseHeader(const rtString& data, rtString& key, rtString& value);
   static rtString toLowercaseStr(const rtString& str);
-
-  bool hasError();
 
 private:
   int32_t mStatusCode;
