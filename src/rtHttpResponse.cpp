@@ -139,6 +139,15 @@ void rtHttpResponse::onEnd()
   }
 }
 
+void rtHttpResponse::onDataAndEnd()
+{
+  if (mErrorMessage.isEmpty()) {
+    mEmit.send("dataAndEnd", mDownloadedData);
+  } else {
+    mEmit.send("error", mErrorMessage);
+  }
+}
+
 rtError rtHttpResponse::parseHeaders(const rtString& data, std::map<rtString, rtString>& headerMap)
 {
   headerMap.clear();

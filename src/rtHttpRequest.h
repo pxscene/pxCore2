@@ -65,6 +65,7 @@ public:
   const uint8_t* writeData() const;
   size_t writeDataSize() const;
   bool inQueue() const;
+  bool delayReply() const;
 
 private:
   rtEmitRef mEmit;
@@ -76,6 +77,7 @@ private:
   bool mInQueue;
   bool mCompress;
   rtString mProxy;
+  bool mDelayReply;
 };
 
 #endif //RT_HTTP_REQUEST_H

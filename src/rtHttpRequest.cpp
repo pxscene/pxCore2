@@ -45,6 +45,7 @@ rtHttpRequest::rtHttpRequest(const rtString& url)
   , mInQueue(false)
   , mCompress(true)
   , mProxy()
+  , mDelayReply(false)
 {
 }
 
@@ -55,6 +56,7 @@ rtHttpRequest::rtHttpRequest(const rtObjectRef& options)
   , mInQueue(false)
   , mCompress(true)
   , mProxy()
+  , mDelayReply(false)
 {
   rtString url;
 
@@ -73,6 +75,10 @@ rtHttpRequest::rtHttpRequest(const rtObjectRef& options)
   rtError e = options->Get("compress", &v);
   if (e == RT_OK)
     v.tryConvert<bool>(mCompress);
+
+  e = options->Get("delayReply", &v);
+  if (e == RT_OK)
+    v.tryConvert<bool>(mDelayReply);
 
   url.append(proto.cString());
   url.append("//");
@@ -285,8 +291,7 @@ void rtHttpRequest::onDownloadComplete(void* context, void* data)
 
   if (!resp->hasError()) {
     req->mEmit.send("response", ref);
-    resp->onData();
-    resp->onEnd();
+    resp->onDataAndEnd();
   } else {
     rtString errorString;
     resp->errorMessage(errorString);
@@ -300,16 +305,38 @@ void rtHttpRequest::onDownloadCompleteAndRelease(rtFileDownloadRequest* download
 {
   rtHttpRequest* req = (rtHttpRequest*)downloadRequest->callbackData();
 
-  rtHttpResponse* resp = new rtHttpResponse();
-
-  resp->setStatusCode((int32_t)downloadRequest->httpStatusCode());
-  resp->setErrorMessage(downloadRequest->errorString());
-  resp->setHeaders(downloadRequest->headerData(), downloadRequest->headerDataSize());
-  resp->setDownloadedData(downloadRequest->downloadedData(), downloadRequest->downloadedDataSize());
-
-  if (gUIThreadQueue)
+  if (req->delayReply())
   {
-    gUIThreadQueue->addTask(onDownloadComplete, req, resp);
+    rtHttpResponse* resp = new rtHttpResponse();
+
+    resp->setStatusCode((int32_t)downloadRequest->httpStatusCode());
+    resp->setErrorMessage(downloadRequest->errorString());
+    resp->setHeaders(downloadRequest->headerData(), downloadRequest->headerDataSize());
+    resp->setDownloadedData(downloadRequest->downloadedData(), downloadRequest->downloadedDataSize());
+
+    if (gUIThreadQueue)
+    {
+      gUIThreadQueue->addTask(onDownloadComplete, req, resp);
+    }
+  }
+  else if (req != NULL)
+  {
+    rtHttpResponse* resp = new rtHttpResponse();
+
+    resp->setStatusCode((int32_t)downloadRequest->httpStatusCode());
+    resp->setErrorMessage(downloadRequest->errorString());
+    resp->setHeaders(downloadRequest->headerData(), downloadRequest->headerDataSize());
+    resp->setDownloadedData(downloadRequest->downloadedData(), downloadRequest->downloadedDataSize());
+
+    rtObjectRef ref = resp; 
+
+    if (downloadRequest->errorString().isEmpty()) {
+      req->mEmit.send("response", ref);
+      resp->onDataAndEnd();
+    } else {
+      req->mEmit.send("error", downloadRequest->errorString());
+    }
+    req->Release();
   }
 }
 
@@ -341,4 +368,9 @@ size_t rtHttpRequest::writeDataSize() const
 bool rtHttpRequest::inQueue() const
 {
   return mInQueue;
+}
+
+bool rtHttpRequest::delayReply() const
+{
+  return mDelayReply;
 }

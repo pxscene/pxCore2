@@ -58,6 +58,7 @@ public:
 
   void onData();
   void onEnd();
+  void onDataAndEnd();
 
   static rtError parseHeaders(const rtString& data, std::map<rtString, rtString>& headerMap);
   static rtError parseHeader(const rtString& data, rtString& key, rtString& value);
