@@ -153,7 +153,7 @@ private:
     	int pixel_h;
     };
     YUVBUFFER mYuvBuffer;
-    bool mPlaybackInitialized = false;
+    bool mPlaybackInitialized;
 
     std::map<AAMPEventType, std::unique_ptr<AAMPEventListener>> mEventsListeners;
 

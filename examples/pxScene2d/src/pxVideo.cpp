@@ -72,6 +72,7 @@ void pxVideo::TermPlayerLoop()
 }
 
 pxVideo::pxVideo(pxScene2d* scene):pxObject(scene)
+, mAamp(NULL)
 #ifdef ENABLE_SPARK_VIDEO_PUNCHTHROUGH
 , mEnablePunchThrough(true)
 #else
@@ -79,6 +80,7 @@ pxVideo::pxVideo(pxScene2d* scene):pxObject(scene)
 #endif //ENABLE_SPARK_VIDEO_PUNCHTHROUGH
 , mAutoPlay(false)
 , mUrl("")
+, mYuvBuffer({NULL,0,0,0})
 , mPlaybackInitialized(false)
 {
 }
@@ -90,13 +92,14 @@ pxVideo::~pxVideo()
 
 void pxVideo::onInit()
 {
-	rtLogError("%s:%d.",__FUNCTION__,__LINE__);
+	rtLogError("%s:%d mAutoPlay: %d.",__FUNCTION__,__LINE__, mAutoPlay);
+
 	if(mAutoPlay)
 	{
 		play();
 	}
-  mReady.send("resolve",this);
-  pxObject::onInit();
+	mReady.send("resolve",this);
+	pxObject::onInit();
 }
 
 void pxVideo::initPlayback()
@@ -321,7 +324,7 @@ rtError pxVideo::availableSpeeds(rtObjectRef& speeds) const
 
 rtError pxVideo::duration(float& duration) const
 {
-	if (mAamp)
+	if (mPlaybackInitialized)
 	{
 		duration = mAamp->GetPlaybackDuration();
 	}
@@ -337,7 +340,7 @@ rtError pxVideo::zoom(rtString& /*v*/) const
 
 rtError pxVideo::setZoom(const char* zoom)
 {
-	if (!mAamp || NULL == zoom)
+	if (!mPlaybackInitialized || NULL == zoom)
 	{
 		return RT_OK;
 	}
@@ -356,7 +359,7 @@ rtError pxVideo::setZoom(const char* zoom)
 
 rtError pxVideo::volume(int& volume) const
 {
-	if (mAamp)
+	if (mPlaybackInitialized)
 	{
 		volume = mAamp->GetAudioVolume();
 	}
@@ -365,7 +368,7 @@ rtError pxVideo::volume(int& volume) const
 
 rtError pxVideo::setVolume(int volume)
 {
-	if (mAamp)
+	if (mPlaybackInitialized)
 	{
 		mAamp->SetAudioVolume(volume);
 	}
@@ -410,7 +413,7 @@ rtError pxVideo::setContentOptions(rtObjectRef /*v*/)
 
 rtError pxVideo::speed(int& speed) const
 {
-	if (mAamp)
+	if (mPlaybackInitialized)
 	{
 		speed = mAamp->GetPlaybackRate();
 	}
@@ -420,7 +423,7 @@ rtError pxVideo::speed(int& speed) const
 
 rtError pxVideo::setSpeedProperty(int speed)
 {
-	if(mAamp)
+	if(mPlaybackInitialized)
 	{
 		 mAamp->SetRate(speed);
 	}
@@ -429,7 +432,7 @@ rtError pxVideo::setSpeedProperty(int speed)
 
 rtError pxVideo::position(double& position) const
 {
-	if (mAamp)
+	if (mPlaybackInitialized)
 	{
 		position = mAamp->GetPlaybackPosition();
 	}
@@ -439,7 +442,8 @@ rtError pxVideo::position(double& position) const
 
 rtError pxVideo::setPosition(double position)
 {
-	if (mAamp)
+	rtLogInfo("%s:%d position: %lf.",__FUNCTION__,__LINE__, position);
+	if (mPlaybackInitialized)
 	{
 		double playbackDuration = mAamp->GetPlaybackDuration();
 
@@ -460,7 +464,7 @@ rtError pxVideo::setPosition(double position)
 
 rtError pxVideo::audioLanguage(rtString& language) const
 {
-	if (mAamp)
+	if (mPlaybackInitialized)
 	{
 		language = mAamp->GetCurrentAudioLanguage();
 	}
@@ -469,7 +473,7 @@ rtError pxVideo::audioLanguage(rtString& language) const
 
 rtError pxVideo::setAudioLanguage(const char* language)
 {
-	if (mAamp && language != NULL)
+	if (mPlaybackInitialized && language != NULL)
 	{
 		mAamp->SetLanguage(language);
 	}
@@ -546,13 +550,13 @@ rtError pxVideo::autoPlay(bool& autoPlay) const
 rtError pxVideo::setAutoPlay(bool value)
 {
 	mAutoPlay = value;
-	rtLogError("%s:%d: autoPlay[%s].",__FUNCTION__,__LINE__,value?"TRUE":"FALSE");
+	rtLogInfo("%s:%d: autoPlay[%s].",__FUNCTION__,__LINE__,value?"TRUE":"FALSE");
 	return RT_OK;
 }
 
 rtError pxVideo::play()
 {
-	rtLogError("%s:%d.",__FUNCTION__,__LINE__);
+	rtLogInfo("%s:%d.",__FUNCTION__,__LINE__);
 
 	if(!mUrl.isEmpty())
 	{
@@ -565,7 +569,8 @@ rtError pxVideo::play()
 
 rtError pxVideo::pause()
 {
-	if(mAamp)
+	rtLogInfo("%s:%d.",__FUNCTION__,__LINE__);
+	if(mPlaybackInitialized)
 	{
 		mAamp->SetRate(0);
 	}
@@ -574,7 +579,8 @@ rtError pxVideo::pause()
 
 rtError pxVideo::stop()
 {
-	if(mAamp)
+	rtLogInfo("%s:%d.",__FUNCTION__,__LINE__);
+	if(mPlaybackInitialized)
 	{
 		mAamp->Stop();
 
@@ -585,7 +591,8 @@ rtError pxVideo::stop()
 
 rtError pxVideo::setSpeed(int speed, int overshootCorrection)
 {
-	if(mAamp)
+	rtLogInfo("%s:%d speed: %d, overshootCorrection: %d.",__FUNCTION__,__LINE__, speed, overshootCorrection);
+	if(mPlaybackInitialized)
 	{
 		mAamp->SetRate(speed, overshootCorrection);
 	}
@@ -594,7 +601,8 @@ rtError pxVideo::setSpeed(int speed, int overshootCorrection)
 
 rtError pxVideo::setPositionRelative(double relativePosition)
 {
-	if (mAamp)
+	rtLogInfo("%s:%d relativePosition: %lf.",__FUNCTION__,__LINE__, relativePosition);
+	if (mPlaybackInitialized)
 	{
 		double currentPosition = mAamp->GetPlaybackPosition();
 		double playbackDuration = mAamp->GetPlaybackDuration();
