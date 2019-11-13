@@ -123,8 +123,7 @@ void pxVideo::initPlayback()
 		assert (nullptr != mAamp);
 		mYuvBuffer.buffer = NULL;
 
-		registerMediaMetadataEventListener();
-		registerSpeedsChangedEventListener();
+		registerAampEventsListeners();
 
 		mPlaybackInitialized = true;
 		rtLogInfo("%s end initialized: %d\n", __FUNCTION__, mPlaybackInitialized);
@@ -136,7 +135,7 @@ void pxVideo::deInitPlayback()
 	rtLogInfo("%s start initialized: %d\n", __FUNCTION__, mPlaybackInitialized);
 	if (mPlaybackInitialized)
 	{
-		unregisterEventsListeners();
+		unregisterAampEventsListeners();
 		delete mAamp;
 		mAamp = NULL;
 		TermPlayerLoop();
@@ -683,30 +682,64 @@ public:
 	PlaybackMetadata& mMetadata;
 };
 
-void pxVideo::registerMediaMetadataEventListener()
+class PlaybackEndOfStreamListener : public AAMPEventListener
+{
+public:
+
+	PlaybackEndOfStreamListener(rtEmitRef& rtEmit) : mEmit(rtEmit) {}
+	~PlaybackEndOfStreamListener() = default;
+
+	void Event(const AAMPEvent& event) override
+	{
+		assert(AAMP_EVENT_EOS == event.type);
+		rtObjectRef e = new rtMapObject;
+		mEmit.send("onEndOfStream", e);
+	}
+
+private:
+
+	rtEmitRef mEmit;
+};
+
+
+
+class PlaybackProgressListener : public AAMPEventListener
+{
+public:
+
+	PlaybackProgressListener(rtEmitRef& rtEmit) : mEmit(rtEmit) {}
+	~PlaybackProgressListener() = default;
+
+	void Event(const AAMPEvent& event) override
+	{
+		assert(AAMP_EVENT_PROGRESS == event.type);
+		rtObjectRef e = new rtMapObject;
+		mEmit.send("onProgressUpdate", e);
+	}
+
+private:
+
+	rtEmitRef mEmit;
+};
+
+void pxVideo::registerAampEventsListeners()
 {
 	if (mAamp)
 	{
-		auto listener = std::make_unique<MediaMetadataListener>(mPlaybackMetadata);
-
-		mAamp->AddEventListener(AAMPEventType::AAMP_EVENT_MEDIA_METADATA,  listener.get());
-		mEventsListeners[AAMPEventType::AAMP_EVENT_MEDIA_METADATA] = std::move(listener);
+		addAampEventListener(AAMPEventType::AAMP_EVENT_MEDIA_METADATA, std::make_unique<MediaMetadataListener>(mPlaybackMetadata));
+		addAampEventListener(AAMPEventType::AAMP_EVENT_SPEEDS_CHANGED, std::make_unique<SpeedsChangeListener>(mPlaybackMetadata));
+		addAampEventListener(AAMPEventType::AAMP_EVENT_PROGRESS,       std::make_unique<PlaybackProgressListener>(this->mEmit));
+		addAampEventListener(AAMPEventType::AAMP_EVENT_EOS,            std::make_unique<PlaybackEndOfStreamListener>(this->mEmit));
 	}
 }
 
-void pxVideo::registerSpeedsChangedEventListener()
+void pxVideo::addAampEventListener(AAMPEventType event, std::unique_ptr<AAMPEventListener> listener)
 {
-	if (mAamp)
-	{
-		auto listener = std::make_unique<SpeedsChangeListener>(mPlaybackMetadata);
-
-		mAamp->AddEventListener(AAMPEventType::AAMP_EVENT_SPEEDS_CHANGED,  listener.get());
-		mEventsListeners[AAMPEventType::AAMP_EVENT_SPEEDS_CHANGED] = std::move(listener);
-	}
+		mAamp->AddEventListener(event,  listener.get());
+		mEventsListeners[event] = std::move(listener);
 }
 
-
-void pxVideo::unregisterEventsListeners()
+void pxVideo::unregisterAampEventsListeners()
 {
 	if (mAamp)
 	{
@@ -717,6 +750,18 @@ void pxVideo::unregisterEventsListeners()
 		}
 	}
 }
+
+rtError pxVideo::registerEventListener(rtString eventName, const rtFunctionRef& f)
+{
+	return this->addListener(eventName, f);
+
+}
+
+rtError pxVideo::unregisterEventListener(rtString  eventName, const rtFunctionRef& f)
+{
+	return this->delListener(eventName, f);
+}
+
 
 rtDefineObject(pxVideo, pxObject);
 rtDefineProperty(pxVideo, availableAudioLanguages);
@@ -743,4 +788,6 @@ rtDefineMethod(pxVideo, setSpeed);
 rtDefineMethod(pxVideo, setPositionRelative);
 rtDefineMethod(pxVideo, requestStatus);
 rtDefineMethod(pxVideo, setAdditionalAuth);
+rtDefineMethod(pxVideo, registerEventListener);
+rtDefineMethod(pxVideo, unregisterEventListener);
 
