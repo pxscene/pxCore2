@@ -31,6 +31,25 @@ var http_wrap = require('rcvrcore/http_wrap');
 var Logger = require('rcvrcore/Logger').Logger;
 var log = new Logger('FileUtils');
 
+var __dirname = process.cwd()
+
+function filename2url(loc) {
+  let pos = loc.indexOf('#');
+  if (pos !== -1)
+    loc = loc.substring(0, pos);
+  pos = loc.indexOf('?');
+  if (pos !== -1)
+    loc = loc.substring(0, pos);
+
+  if (/^file:|package.json/.test(loc))
+    return loc; //already a URL
+  if (loc.charAt(0) !== '/' && __dirname)
+    loc = url.resolve(__dirname + '/', loc);
+  if (!/^file:/.test(loc))
+    loc = `file://${loc}`;
+  return loc;
+}
+
 /**
  * Load a file from either the filesystem or webservice
  * @param fileUri the full path of the file
@@ -78,10 +97,11 @@ function loadFile(fileUri, appSceneContext) {
 
     }
     else {
+      var resolvedUrl = filename2url(fileUri);
       if (appSceneContext &&
         appSceneContext.innerscene &&
         appSceneContext.innerscene.permissions &&
-        !appSceneContext.innerscene.permissions.allows(fileUri)) {
+        !appSceneContext.innerscene.permissions.allows(resolvedUrl)) {
         console.log("local file access not allowed !!!");
         reject("Local file access not allowed");
         return;
