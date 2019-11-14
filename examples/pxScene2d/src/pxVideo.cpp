@@ -72,7 +72,9 @@ void pxVideo::TermPlayerLoop()
 }
 
 pxVideo::pxVideo(pxScene2d* scene):pxObject(scene)
-, mAamp(NULL)
+,	mAampMainLoop(nullptr)
+,	mAampMainLoopThread(nullptr)
+, mAamp(nullptr)
 #ifdef ENABLE_SPARK_VIDEO_PUNCHTHROUGH
 , mEnablePunchThrough(true)
 #else
@@ -80,7 +82,7 @@ pxVideo::pxVideo(pxScene2d* scene):pxObject(scene)
 #endif //ENABLE_SPARK_VIDEO_PUNCHTHROUGH
 , mAutoPlay(false)
 , mUrl("")
-, mYuvBuffer({NULL,0,0,0})
+, mYuvBuffer({nullptr, 0, 0, 0})
 , mPlaybackInitialized(false)
 {
 }
@@ -107,8 +109,6 @@ void pxVideo::initPlayback()
 	rtLogInfo("%s start initialized: %d\n", __FUNCTION__, mPlaybackInitialized);
 	if (!mPlaybackInitialized)
 	{
-		mAampMainLoopThread = NULL;
-		mAampMainLoop = NULL;
 		InitPlayerLoop();
 
 		std::function< void(uint8_t *, int, int, int) > cbExportFrames = nullptr;
@@ -124,7 +124,6 @@ void pxVideo::initPlayback()
 	#endif
 				);
 		assert (nullptr != mAamp);
-		mYuvBuffer.buffer = NULL;
 
 		registerMediaMetadataEventListener();
 		registerSpeedsChangedEventListener();
@@ -141,11 +140,14 @@ void pxVideo::deInitPlayback()
 	{
 		unregisterEventsListeners();
 		delete mAamp;
-		mAamp = NULL;
+		mAamp = nullptr;
 		TermPlayerLoop();
 
 		free(mYuvBuffer.buffer);
-		mYuvBuffer.buffer = NULL;
+		mYuvBuffer.buffer = nullptr;
+
+		mAampMainLoop = nullptr;
+		mAampMainLoopThread = nullptr;
 
 		mPlaybackInitialized = false;
 		rtLogInfo("%s end initialized: %d\n", __FUNCTION__, mPlaybackInitialized);
