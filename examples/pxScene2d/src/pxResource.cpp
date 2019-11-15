@@ -990,7 +990,15 @@ void pxResource::processDownloadedResource(rtFileDownloadRequest* fileDownloadRe
       }
       else if (result == PX_RESOURCE_LOAD_WAIT)
       {
-        setLoadStatus("statusCode", PX_RESOURCE_STATUS_DOWNLOAD_PROCESSING);
+        mLoadStatusMutex.lock();
+        rtValue currentStatusCode;
+        mLoadStatus.get("statusCode", currentStatusCode);
+        if (currentStatusCode.toInt32() == -1) 
+        {
+          //only update the status code if the background processing is not complete
+          mLoadStatus.set("statusCode", PX_RESOURCE_STATUS_DOWNLOAD_PROCESSING);
+        }
+        mLoadStatusMutex.unlock();      
       }
     }
     else
