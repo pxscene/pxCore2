@@ -105,8 +105,9 @@ if (NOT WIN32)
       pkg_search_module(GLESV2 glesv2)
       pkg_search_module(X11 x11)
     endif (NOT DFB)
-
+    message(STATUS "about to check openssl library")
     if (PREFER_SYSTEM_LIBRARIES)
+        message(STATUS "about to check openssl library 1")
         pkg_search_module(OPENSSL openssl)
         pkg_search_module(CRYPTO libcrypto)
         message(STATUS "Using package openssl library")
@@ -273,3 +274,5 @@ set(COMM_DEPS_LIBRARIES ${COMM_DEPS_LIBRARIES}
          ${ICU_UC_LIBRARIES}
          ${SQLITE_LIBRARIES}
    )
+
+message(STATUS "Madana ${COMM_DEPS_INCLUDE_DIRS}")
