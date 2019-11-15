@@ -1008,7 +1008,7 @@ void pxResource::processDownloadedResource(rtFileDownloadRequest* fileDownloadRe
                 fileDownloadRequest->errorString().cString(),
                 fileDownloadRequest->httpStatusCode());
       setLoadStatus("statusCode", PX_RESOURCE_STATUS_HTTP_ERROR);
-      setpuLoadStatus("httpStatusCode",(uint32_t)fileDownloadRequest->httpStatusCode());
+      setLoadStatus("httpStatusCode",(uint32_t)fileDownloadRequest->httpStatusCode());
       // Since this object can be released before we get a async completion
       // We need to maintain this object's lifetime
       // TODO review overall flow and organization
