@@ -990,12 +990,15 @@ void pxResource::processDownloadedResource(rtFileDownloadRequest* fileDownloadRe
       }
       else if (result == PX_RESOURCE_LOAD_WAIT)
       {
-        // possibility being status code got changed
-        rtValue currStatusCode = getLoadStatus("statusCode");
-        if (-1 == currStatusCode.toInt32())
+        mLoadStatusMutex.lock();
+        rtValue currentStatusCode;
+        mLoadStatus.get("statusCode", currentStatusCode);
+        if (currentStatusCode.toInt32() == -1) 
         {
-          setLoadStatus("statusCode", PX_RESOURCE_STATUS_DOWNLOAD_PROCESSING);
+          //only update the status code if the background processing is not complete
+          mLoadStatus.set("statusCode", PX_RESOURCE_STATUS_DOWNLOAD_PROCESSING);
         }
+        mLoadStatusMutex.unlock();
       }
     }
     else
@@ -1005,7 +1008,7 @@ void pxResource::processDownloadedResource(rtFileDownloadRequest* fileDownloadRe
                 fileDownloadRequest->errorString().cString(),
                 fileDownloadRequest->httpStatusCode());
       setLoadStatus("statusCode", PX_RESOURCE_STATUS_HTTP_ERROR);
-      setLoadStatus("httpStatusCode",(uint32_t)fileDownloadRequest->httpStatusCode());
+      setpuLoadStatus("httpStatusCode",(uint32_t)fileDownloadRequest->httpStatusCode());
       // Since this object can be released before we get a async completion
       // We need to maintain this object's lifetime
       // TODO review overall flow and organization
