@@ -327,7 +327,7 @@ void rtHttpRequest::onDownloadCompleteAndRelease(rtFileDownloadRequest* download
 {
   rtHttpRequest* req = (rtHttpRequest*)downloadRequest->callbackData();
 
-  if (req->delayReply())
+  if (req != NULL && req->delayReply())
   {
     rtHttpResponse* resp = new rtHttpResponse();
 
