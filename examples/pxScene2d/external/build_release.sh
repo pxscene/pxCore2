@@ -95,7 +95,7 @@ cp $RELEASE_EXTERNALS_PATH/extlibs/include/node/node_internals.h src/.
 cp $RELEASE_EXTERNALS_PATH/extlibs/include/node/module_wrap.h src/.
 cp $RELEASE_EXTERNALS_PATH/extlibs/include/node/env-inl.h src/.
 cp $RELEASE_EXTERNALS_PATH/extlibs/include/node/env.h src/.
-cat env.h
+cat src/env.h
 ls -lrt $RELEASE_EXTERNALS_PATH/extlibs/include/node/
 cp $RELEASE_EXTERNALS_PATH/extlibs/include/node/stream_wrap.h src/.
 cp $RELEASE_EXTERNALS_PATH/extlibs/include/node/tcp_wrap.h src/.
