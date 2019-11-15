@@ -70,6 +70,9 @@ public:
   rtMethodNoArgAndNoReturn("requestStatus", requestStatus);
   rtMethod1ArgAndNoReturn("setAdditionalAuth", setAdditionalAuth, rtObjectRef);
 
+  rtMethod2ArgAndNoReturn("on", registerEventListener, rtString, rtFunctionRef);
+  rtMethod2ArgAndNoReturn("delListener", unregisterEventListener, rtString, rtFunctionRef);
+
 
   pxVideo(pxScene2d* scene);
   virtual ~pxVideo();
@@ -117,6 +120,9 @@ public:
   virtual rtError requestStatus();
   virtual rtError setAdditionalAuth(rtObjectRef params);
   
+  rtError registerEventListener(rtString eventName, const rtFunctionRef& f);
+  rtError unregisterEventListener(rtString  eventName, const rtFunctionRef& f);
+
   virtual void draw();
 
   void updateYUVFrame(uint8_t *yuvBuffer, int size, int pixel_w, int pixel_h);
@@ -129,9 +135,10 @@ private:
   void TermPlayerLoop();
   static void* AAMPGstPlayer_StreamThread(void* arg);
   static void newAampFrame(void* context, void* data);
-  void registerMediaMetadataEventListener();
-  void registerSpeedsChangedEventListener();
-  void unregisterEventsListeners();
+  void registerAampEventsListeners();
+  void unregisterAampEventsListeners();
+  void addAampEventListener(AAMPEventType event, std::unique_ptr<AAMPEventListener> listener);
+
 
 private:
     GMainLoop* mAampMainLoop;
@@ -153,7 +160,7 @@ private:
     	int pixel_h;
     };
     YUVBUFFER mYuvBuffer;
-    bool mPlaybackInitialized = false;
+    bool mPlaybackInitialized;
 
     std::map<AAMPEventType, std::unique_ptr<AAMPEventListener>> mEventsListeners;
 
