@@ -141,7 +141,7 @@ cd $TRAVIS_BUILD_DIR
 cd ../
 mkdir rlExternals
 cd rlExternals
-git clone --branch=master https://github.com/$SRC_REPO_USER_NAME/Spark-Externals.git
+git clone --branch=tt https://github.com/madanagopalt/Spark-Externals.git
 cd Spark-Externals
 if [ "$TRAVIS_OS_NAME" = "osx" ]; then
   sed -i -n "s/$SRC_REPO_USER_NAME/$DEST_REPO_USER_NAME/g" artifacts/$TRAVIS_OS_NAME/lib/pkgconfig/*
