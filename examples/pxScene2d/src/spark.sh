@@ -14,7 +14,7 @@ PathR=$externalLibs/extlibs/lib:$PathR
 
 export LD_LIBRARY_PATH=$PathR:./
 
-export NODE_PATH=.
+export NODE_PATH=.:./node_modules/
 
 export GST_REGISTRY_FORK="no"
 export GST_PLUGIN_SCANNER=$externalLibs/extlibs/libexec/gstreamer-1.0/gst-plugin-scanner

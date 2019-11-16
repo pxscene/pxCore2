@@ -998,7 +998,7 @@ void pxResource::processDownloadedResource(rtFileDownloadRequest* fileDownloadRe
           //only update the status code if the background processing is not complete
           mLoadStatus.set("statusCode", PX_RESOURCE_STATUS_DOWNLOAD_PROCESSING);
         }
-        mLoadStatusMutex.unlock();      
+        mLoadStatusMutex.unlock();
       }
     }
     else

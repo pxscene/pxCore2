@@ -48,8 +48,20 @@ function initializeImportMeta(meta, { url }) {
   meta.url = url;
 }
 
+var fastFetch = require('node-fetch').fastFetch;
+
 var loadHttpFile = function(scene, fileUri) {
   return new Promise(function(resolve, reject) {
+    fastFetch(this.global, fileUri, {}).then( data => {
+      if (data.statusCode !== 200) {
+        console.error(`StatusCode Bad: FAILED to read file[${fileUri}] http file get`);
+        reject(data.statusCode);
+      } else {
+        resolve(data.responseData);
+      }
+    }).catch(err => { console.error(`Error: FAILED to read file[${fileUri}] from web service`); reject(); });
+  });
+  /*return new Promise(function(resolve, reject) {
     scene.loadArchive(fileUri).ready.then(a => {
       if (a.loadStatus.httpStatusCode !== 200) {
         console.error(`StatusCode Bad: FAILED to read file[${fileUri}] from web service`);
@@ -61,7 +73,7 @@ var loadHttpFile = function(scene, fileUri) {
       console.error(`Error: FAILED to read file[${fileUri}] from web service`);
       reject();
     });
-  });
+  });*/
 }
 
 function stripBOM(content) {
@@ -467,11 +479,11 @@ function ESMLoader(params) {
             const loc2 = /^file:/.test(url2) ? url2.substring(7) : url2;
             const source2 = await getFile(loadCtx.global.sparkscene,url2);
             // use paths for frameworkURL
-            loadCtx.sandbox.require = loadCtx.makeRequire(loc2);
+            loadCtx.sandbox.require = loadCtx.makeRequire(loc2).bind(loadCtx);
             loadCtx.sandbox['__dirname'] = path.dirname(loc2);
             vm.runInContext(source2, loadCtx.contextifiedSandbox, {filename:loc2});
             // restore previous values
-            loadCtx.sandbox.require = loadCtx.makeRequire(loc);
+            loadCtx.sandbox.require = loadCtx.makeRequire(loc).bind(loadCtx);
             loadCtx.sandbox['__dirname'] = path.dirname(loc);
           }
           var source = await getFile(loadCtx.global.sparkscene, url);
@@ -486,8 +498,8 @@ function ESMLoader(params) {
   
           if (typeof loadCtx.app.namespace.default === 'function') {
             try {
-              if (_options) {
-                new loadCtx.app.namespace.default(_options);
+              if (params._options) {
+                new loadCtx.app.namespace.default(params._options);
               } else {
                 new loadCtx.app.namespace.default();
               }
