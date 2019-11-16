@@ -1,7 +1,7 @@
-diff --git a/examples/pxScene2d/external/libnode-v10.15.3/common.gypi b/examples/pxScene2d/external/libnode-v10.15.3/common.gypi
+diff --git a/libnode-v10.15.3/common.gypi b/libnode-v10.15.3/common.gypi
 index 4c64339..6b40aec 100755
---- a/examples/pxScene2d/external/libnode-v10.15.3/common.gypi
-+++ b/examples/pxScene2d/external/libnode-v10.15.3/common.gypi
+--- a/libnode-v10.15.3/common.gypi
++++ b/libnode-v10.15.3/common.gypi
 @@ -107,7 +107,9 @@
            'v8_enable_handle_zapping': 1,
          },
@@ -117,10 +117,10 @@ index 4c64339..6b40aec 100755
              },
            }],
          ],
-diff --git a/examples/pxScene2d/external/libnode-v10.15.3/deps/http_parser/http_parser.gyp b/examples/pxScene2d/external/libnode-v10.15.3/deps/http_parser/http_parser.gyp
+diff --git a/libnode-v10.15.3/deps/http_parser/http_parser.gyp b/libnode-v10.15.3/deps/http_parser/http_parser.gyp
 index 4364f73..7137f82 100755
---- a/examples/pxScene2d/external/libnode-v10.15.3/deps/http_parser/http_parser.gyp
-+++ b/examples/pxScene2d/external/libnode-v10.15.3/deps/http_parser/http_parser.gyp
+--- a/libnode-v10.15.3/deps/http_parser/http_parser.gyp
++++ b/libnode-v10.15.3/deps/http_parser/http_parser.gyp
 @@ -12,7 +12,9 @@
        #       RuntimeLibrary MUST MATCH across the entire project
        'Debug': {
@@ -143,10 +143,10 @@ index 4364f73..7137f82 100755
          'msvs_settings': {
            'VCCLCompilerTool': {
              'RuntimeLibrary': 0, # static release
-diff --git a/examples/pxScene2d/external/libnode-v10.15.3/deps/uv/common.gypi b/examples/pxScene2d/external/libnode-v10.15.3/deps/uv/common.gypi
+diff --git a/libnode-v10.15.3/deps/uv/common.gypi b/libnode-v10.15.3/deps/uv/common.gypi
 index 2297bdf..8298bea 100755
---- a/examples/pxScene2d/external/libnode-v10.15.3/deps/uv/common.gypi
-+++ b/examples/pxScene2d/external/libnode-v10.15.3/deps/uv/common.gypi
+--- a/libnode-v10.15.3/deps/uv/common.gypi
++++ b/libnode-v10.15.3/deps/uv/common.gypi
 @@ -46,7 +46,9 @@
        'Release': {
          'defines': [ 'NDEBUG' ],
@@ -158,10 +158,10 @@ index 2297bdf..8298bea 100755
          ],
          'msvs_settings': {
            'VCCLCompilerTool': {
-diff --git a/examples/pxScene2d/external/libnode-v10.15.3/deps/v8/BUILD.gn b/examples/pxScene2d/external/libnode-v10.15.3/deps/v8/BUILD.gn
+diff --git a/libnode-v10.15.3/deps/v8/BUILD.gn b/libnode-v10.15.3/deps/v8/BUILD.gn
 index 19ffdb3..ff82ac0 100755
---- a/examples/pxScene2d/external/libnode-v10.15.3/deps/v8/BUILD.gn
-+++ b/examples/pxScene2d/external/libnode-v10.15.3/deps/v8/BUILD.gn
+--- a/libnode-v10.15.3/deps/v8/BUILD.gn
++++ b/libnode-v10.15.3/deps/v8/BUILD.gn
 @@ -1437,8 +1437,6 @@ v8_source_set("v8_base") {
      "//base/trace_event/common/trace_event_common.h",
  
@@ -187,10 +187,10 @@ index 19ffdb3..ff82ac0 100755
  
    if (v8_enable_i18n_support) {
      public_deps = [
-diff --git a/examples/pxScene2d/external/libnode-v10.15.3/deps/v8/gypfiles/toolchain.gypi b/examples/pxScene2d/external/libnode-v10.15.3/deps/v8/gypfiles/toolchain.gypi
+diff --git a/libnode-v10.15.3/deps/v8/gypfiles/toolchain.gypi b/libnode-v10.15.3/deps/v8/gypfiles/toolchain.gypi
 index ea8f1c2..60cd77a 100755
---- a/examples/pxScene2d/external/libnode-v10.15.3/deps/v8/gypfiles/toolchain.gypi
-+++ b/examples/pxScene2d/external/libnode-v10.15.3/deps/v8/gypfiles/toolchain.gypi
+--- a/libnode-v10.15.3/deps/v8/gypfiles/toolchain.gypi
++++ b/libnode-v10.15.3/deps/v8/gypfiles/toolchain.gypi
 @@ -1225,10 +1225,14 @@
                # Don't use -O3 with sanitizers.
                ['asan==0 and msan==0 and lsan==0 \
@@ -225,10 +225,10 @@ index ea8f1c2..60cd77a 100755
                  'cflags!': ['-O3'],
                }],
              ],
-diff --git a/examples/pxScene2d/external/libnode-v10.15.3/deps/v8/gypfiles/v8.gyp b/examples/pxScene2d/external/libnode-v10.15.3/deps/v8/gypfiles/v8.gyp
+diff --git a/libnode-v10.15.3/deps/v8/gypfiles/v8.gyp b/libnode-v10.15.3/deps/v8/gypfiles/v8.gyp
 index 8c78f02..9367ca6 100755
---- a/examples/pxScene2d/external/libnode-v10.15.3/deps/v8/gypfiles/v8.gyp
-+++ b/examples/pxScene2d/external/libnode-v10.15.3/deps/v8/gypfiles/v8.gyp
+--- a/libnode-v10.15.3/deps/v8/gypfiles/v8.gyp
++++ b/libnode-v10.15.3/deps/v8/gypfiles/v8.gyp
 @@ -434,7 +434,6 @@
        # Since this target is a static-library, but as a side effect it generates
        # header files, it needs to be a hard dependency.
@@ -264,10 +264,10 @@ index 8c78f02..9367ca6 100755
          ['want_separate_host_toolset==1', {
            'toolsets': ['host', 'target'],
          }, {
-diff --git a/examples/pxScene2d/external/libnode-v10.15.3/deps/v8/src/isolate.cc b/examples/pxScene2d/external/libnode-v10.15.3/deps/v8/src/isolate.cc
+diff --git a/libnode-v10.15.3/deps/v8/src/isolate.cc b/libnode-v10.15.3/deps/v8/src/isolate.cc
 index 0bdfef5..e79edfb 100755
---- a/examples/pxScene2d/external/libnode-v10.15.3/deps/v8/src/isolate.cc
-+++ b/examples/pxScene2d/external/libnode-v10.15.3/deps/v8/src/isolate.cc
+--- a/libnode-v10.15.3/deps/v8/src/isolate.cc
++++ b/libnode-v10.15.3/deps/v8/src/isolate.cc
 @@ -1160,6 +1160,14 @@ Object* Isolate::Throw(Object* exception, MessageLocation* location) {
    HandleScope scope(this);
    Handle<Object> exception_handle(exception, this);
@@ -283,10 +283,10 @@ index 0bdfef5..e79edfb 100755
    if (FLAG_print_all_exceptions) {
      printf("=========================================================\n");
      printf("Exception thrown:\n");
-diff --git a/examples/pxScene2d/external/libnode-v10.15.3/lib/internal/bootstrap/node.js b/examples/pxScene2d/external/libnode-v10.15.3/lib/internal/bootstrap/node.js
+diff --git a/libnode-v10.15.3/lib/internal/bootstrap/node.js b/libnode-v10.15.3/lib/internal/bootstrap/node.js
 index b168eb0..82cdec8 100755
---- a/examples/pxScene2d/external/libnode-v10.15.3/lib/internal/bootstrap/node.js
-+++ b/examples/pxScene2d/external/libnode-v10.15.3/lib/internal/bootstrap/node.js
+--- a/libnode-v10.15.3/lib/internal/bootstrap/node.js
++++ b/libnode-v10.15.3/lib/internal/bootstrap/node.js
 @@ -257,11 +257,12 @@
          // User passed '-e' or '--eval' arguments to Node without '-i' or
          // '--interactive'.
@@ -334,52 +334,10 @@ index b168eb0..82cdec8 100755
        }
      }
    }
-diff --git a/examples/pxScene2d/external/libnode-v10.15.3/lib/net.js b/examples/pxScene2d/external/libnode-v10.15.3/lib/net.js
-index e40aaa8..1c6ad2a 100755
---- a/examples/pxScene2d/external/libnode-v10.15.3/lib/net.js
-+++ b/examples/pxScene2d/external/libnode-v10.15.3/lib/net.js
-@@ -25,6 +25,9 @@ const EventEmitter = require('events');
- const stream = require('stream');
- const util = require('util');
- const internalUtil = require('internal/util');
-+/*MODIFIED CODE BEGIN*/
-+const fileSystem = require('fs');
-+/*MODIFIED CODE END*/
- const {
-   isIP,
-   isIPv4,
-@@ -985,6 +988,27 @@ function lookupAndConnect(self, options) {
-       dnsopts.hints === 0) {
-     dnsopts.hints = dns.ADDRCONFIG;
-   }
-+/*MODIFIED CODE BEGIN*/
-+  var ipMode = 0;
-+  try {
-+    fileSystem.accessSync('/tmp/ipmode_v4');
-+    ipMode = 4;
-+  } catch(e) {
-+    debug('/tmp/ipmode_v4 does not exist');
-+  }
-+
-+  try {
-+    fileSystem.accessSync('/tmp/ipmode_v6');
-+    ipMode = 6;
-+  } catch(e) {
-+    debug('/tmp/ipmode_v6 does not exist');
-+  }
-+
-+  if (ipMode == 4 || ipMode == 6) {
-+    dnsopts.family = ipMode;
-+  }
-+/*MODIFIED CODE END*/
-+
- 
-   debug('connect: find host', host);
-   debug('connect: dns options', dnsopts);
-diff --git a/examples/pxScene2d/external/libnode-v10.15.3/node.gyp b/examples/pxScene2d/external/libnode-v10.15.3/node.gyp
+diff --git a/libnode-v10.15.3/node.gyp b/libnode-v10.15.3/node.gyp
 index a8de196..607a7db 100755
---- a/examples/pxScene2d/external/libnode-v10.15.3/node.gyp
-+++ b/examples/pxScene2d/external/libnode-v10.15.3/node.gyp
+--- a/libnode-v10.15.3/node.gyp
++++ b/libnode-v10.15.3/node.gyp
 @@ -36,7 +36,6 @@
        'lib/console.js',
        'lib/constants.js',
@@ -428,10 +386,10 @@ index a8de196..607a7db 100755
        'deps/node-inspect/lib/_inspect.js',
        'deps/node-inspect/lib/internal/inspect_client.js',
        'deps/node-inspect/lib/internal/inspect_repl.js',
-diff --git a/examples/pxScene2d/external/libnode-v10.15.3/src/node.cc b/examples/pxScene2d/external/libnode-v10.15.3/src/node.cc
+diff --git a/libnode-v10.15.3/src/node.cc b/libnode-v10.15.3/src/node.cc
 index 9fb5ab3..7c3c865 100755
---- a/examples/pxScene2d/external/libnode-v10.15.3/src/node.cc
-+++ b/examples/pxScene2d/external/libnode-v10.15.3/src/node.cc
+--- a/libnode-v10.15.3/src/node.cc
++++ b/libnode-v10.15.3/src/node.cc
 @@ -173,7 +173,9 @@ using v8::V8;
  using v8::Value;
  
@@ -676,10 +634,10 @@ index 9fb5ab3..7c3c865 100755
  }  // namespace node
  
  #if !HAVE_INSPECTOR
-diff --git a/examples/pxScene2d/external/libnode-v10.15.3/src/node.h b/examples/pxScene2d/external/libnode-v10.15.3/src/node.h
+diff --git a/libnode-v10.15.3/src/node.h b/libnode-v10.15.3/src/node.h
 index 2a6f5b5..6bf2b29 100755
---- a/examples/pxScene2d/external/libnode-v10.15.3/src/node.h
-+++ b/examples/pxScene2d/external/libnode-v10.15.3/src/node.h
+--- a/libnode-v10.15.3/src/node.h
++++ b/libnode-v10.15.3/src/node.h
 @@ -204,6 +204,12 @@ typedef intptr_t ssize_t;
  
  namespace node {
@@ -731,10 +689,10 @@ index 2a6f5b5..6bf2b29 100755
  MultiIsolatePlatform* InitializeV8Platform(int thread_pool_size);
  NODE_EXTERN void FreePlatform(MultiIsolatePlatform* platform);
  
-diff --git a/examples/pxScene2d/external/libnode-v10.15.3/src/node_contextify.cc b/examples/pxScene2d/external/libnode-v10.15.3/src/node_contextify.cc
+diff --git a/libnode-v10.15.3/src/node_contextify.cc b/libnode-v10.15.3/src/node_contextify.cc
 index a1903d9..70fd8ca 100755
---- a/examples/pxScene2d/external/libnode-v10.15.3/src/node_contextify.cc
-+++ b/examples/pxScene2d/external/libnode-v10.15.3/src/node_contextify.cc
+--- a/libnode-v10.15.3/src/node_contextify.cc
++++ b/libnode-v10.15.3/src/node_contextify.cc
 @@ -796,6 +796,14 @@ void ContextifyScript::RunInThisContext(
  
    CHECK(args[2]->IsBoolean());
@@ -826,11 +784,11 @@ index a1903d9..70fd8ca 100755
 +/*MODIFIED CODE END*/
 +
  NODE_BUILTIN_MODULE_CONTEXT_AWARE(contextify, node::contextify::Initialize)
-diff --git a/examples/pxScene2d/external/libnode-v10.15.3/src/node_contextify_mods.h b/examples/pxScene2d/external/libnode-v10.15.3/src/node_contextify_mods.h
+diff --git a/libnode-v10.15.3/src/node_contextify_mods.h b/libnode-v10.15.3/src/node_contextify_mods.h
 new file mode 100644
 index 0000000..aa9979a
 --- /dev/null
-+++ b/examples/pxScene2d/external/libnode-v10.15.3/src/node_contextify_mods.h
++++ b/libnode-v10.15.3/src/node_contextify_mods.h
 @@ -0,0 +1,19 @@
 +// This is not part of Node... added to expose needed methods.
 +
@@ -851,10 +809,10 @@ index 0000000..aa9979a
 +/*MODIFIED CODE END*/
 +
 +
-diff --git a/examples/pxScene2d/external/libnode-v10.15.3/src/node_http_parser.cc b/examples/pxScene2d/external/libnode-v10.15.3/src/node_http_parser.cc
+diff --git a/libnode-v10.15.3/src/node_http_parser.cc b/libnode-v10.15.3/src/node_http_parser.cc
 index b29cdf4..fbc49d8 100755
---- a/examples/pxScene2d/external/libnode-v10.15.3/src/node_http_parser.cc
-+++ b/examples/pxScene2d/external/libnode-v10.15.3/src/node_http_parser.cc
+--- a/libnode-v10.15.3/src/node_http_parser.cc
++++ b/libnode-v10.15.3/src/node_http_parser.cc
 @@ -439,7 +439,15 @@ class Parser : public AsyncWrap, public StreamListener {
      Parser* parser;
      ASSIGN_OR_RETURN_UNWRAP(&parser, args.Holder());
@@ -872,10 +830,10 @@ index b29cdf4..fbc49d8 100755
      parser->got_exception_ = false;
  
      int rv = http_parser_execute(&(parser->parser_), &settings, nullptr, 0);
-diff --git a/examples/pxScene2d/external/libnode-v10.15.3/src/node_internals.h b/examples/pxScene2d/external/libnode-v10.15.3/src/node_internals.h
+diff --git a/libnode-v10.15.3/src/node_internals.h b/libnode-v10.15.3/src/node_internals.h
 index 12089bc..7e8bf86 100755
---- a/examples/pxScene2d/external/libnode-v10.15.3/src/node_internals.h
-+++ b/examples/pxScene2d/external/libnode-v10.15.3/src/node_internals.h
+--- a/libnode-v10.15.3/src/node_internals.h
++++ b/libnode-v10.15.3/src/node_internals.h
 @@ -253,7 +253,9 @@ void AppendExceptionLine(Environment* env,
                           v8::Local<v8::Message> message,
                           enum ErrorHandlingMode mode);
@@ -887,50 +845,10 @@ index 12089bc..7e8bf86 100755
  
  // Like a `TryCatch` but exits the process if an exception was caught.
  class FatalTryCatch : public v8::TryCatch {
-diff --git a/examples/pxScene2d/external/libnode-v10.15.3/src/node_platform.cc b/examples/pxScene2d/external/libnode-v10.15.3/src/node_platform.cc
-index fd8d045..c70036e 100755
---- a/examples/pxScene2d/external/libnode-v10.15.3/src/node_platform.cc
-+++ b/examples/pxScene2d/external/libnode-v10.15.3/src/node_platform.cc
-@@ -329,6 +329,13 @@ void PerIsolatePlatformData::RunForegroundTask(std::unique_ptr<Task> task) {
-   Isolate* isolate = Isolate::GetCurrent();
-   HandleScope scope(isolate);
-   Environment* env = Environment::GetCurrent(isolate);
-+/*MODIFIED CODE BEGIN*/
-+  if (isolate->GetCurrentContext().IsEmpty() || (NULL == env))
-+  {
-+    task->Run();
-+    return;
-+  }
-+/*MODIFIED CODE END*/
-   InternalCallbackScope cb_scope(env, Local<Object>(), { 0, 0 },
-                                  InternalCallbackScope::kAllowEmptyResource);
-   task->Run();
-@@ -411,12 +418,19 @@ std::shared_ptr<PerIsolatePlatformData>
- NodePlatform::ForIsolate(Isolate* isolate) {
-   Mutex::ScopedLock lock(per_isolate_mutex_);
-   std::shared_ptr<PerIsolatePlatformData> data = per_isolate_[isolate];
--  CHECK(data);
-+  //  MODIFIED CODE BEGIN
-+  // CHECK(data);
-+  // MODIFIED CODE END
-   return data;
- }
- 
- void NodePlatform::CallOnForegroundThread(Isolate* isolate, Task* task) {
--  ForIsolate(isolate)->PostTask(std::unique_ptr<Task>(task));
-+  /* MODIFIED CODE BEGIN */
-+  std::shared_ptr<PerIsolatePlatformData> data = ForIsolate(isolate);
-+  if (nullptr != data.get()) {
-+    data->PostTask(std::unique_ptr<Task>(task));
-+  }
-+  /* MODIFIED CODE END */
- }
- 
- void NodePlatform::CallDelayedOnForegroundThread(Isolate* isolate,
-diff --git a/examples/pxScene2d/external/libnode-v10.15.3/src/node_watchdog.cc b/examples/pxScene2d/external/libnode-v10.15.3/src/node_watchdog.cc
+diff --git a/libnode-v10.15.3/src/node_watchdog.cc b/libnode-v10.15.3/src/node_watchdog.cc
 index 4b902aa..382bf7b 100755
---- a/examples/pxScene2d/external/libnode-v10.15.3/src/node_watchdog.cc
-+++ b/examples/pxScene2d/external/libnode-v10.15.3/src/node_watchdog.cc
+--- a/libnode-v10.15.3/src/node_watchdog.cc
++++ b/libnode-v10.15.3/src/node_watchdog.cc
 @@ -244,7 +244,10 @@ bool SigintWatchdogHelper::Stop() {
    CHECK_EQ(0, pthread_join(thread_, nullptr));
    has_running_thread_ = false;
@@ -943,10 +861,10 @@ index 4b902aa..382bf7b 100755
  #else
    watchdog_disabled_ = true;
  #endif
-diff --git a/examples/pxScene2d/external/libnode-v10.15.3/vcbuild.bat b/examples/pxScene2d/external/libnode-v10.15.3/vcbuild.bat
+diff --git a/libnode-v10.15.3/vcbuild.bat b/libnode-v10.15.3/vcbuild.bat
 index 834db64..0c108bd 100755
---- a/examples/pxScene2d/external/libnode-v10.15.3/vcbuild.bat
-+++ b/examples/pxScene2d/external/libnode-v10.15.3/vcbuild.bat
+--- a/libnode-v10.15.3/vcbuild.bat
++++ b/libnode-v10.15.3/vcbuild.bat
 @@ -55,6 +55,10 @@ set "common_test_suites=%js_test_suites% doctool addons addons-napi&set build_ad
  set http2_debug=
  set nghttp2_debug=
@@ -980,10 +898,10 @@ index 834db64..0c108bd 100755
  if defined openssl_no_asm   set configure_flags=%configure_flags% --openssl-no-asm
  if defined DEBUG_HELPER     set configure_flags=%configure_flags% --verbose
  
-diff --git a/examples/pxScene2d/external/libnode-v10.15.3/configure.py b/examples/pxScene2d/external/libnode-v10.15.3/configure.py
+diff --git a/libnode-v10.15.3/configure.py b/libnode-v10.15.3/configure.py
 index 0ad986a..c215ee6 100755
---- a/examples/pxScene2d/external/libnode-v10.15.3/configure.py
-+++ b/examples/pxScene2d/external/libnode-v10.15.3/configure.py
+--- a/libnode-v10.15.3/configure.py
++++ b/libnode-v10.15.3/configure.py
 @@ -566,6 +566,13 @@ parser.add_option('--without-bundled-v8',
      help='do not use V8 includes from the bundled deps folder. ' +
           '(This mode is not officially supported for regular applications)')
@@ -1021,10 +939,10 @@ index 0ad986a..c215ee6 100755
  
  # variables should be a root level element,
  # move everything else to target_defaults
-diff --git a/examples/pxScene2d/external/libnode-v10.15.3/lib/internal/vm/source_text_module.js b/examples/pxScene2d/external/libnode-v10.15.3/lib/internal/vm/source_text_module.js
+diff --git a/libnode-v10.15.3/lib/internal/vm/source_text_module.js b/libnode-v10.15.3/lib/internal/vm/source_text_module.js
 index 1898831bf..8468f944e 100755
---- a/examples/pxScene2d/external/libnode-v10.15.3/lib/internal/vm/source_text_module.js
-+++ b/examples/pxScene2d/external/libnode-v10.15.3/lib/internal/vm/source_text_module.js
+--- a/libnode-v10.15.3/lib/internal/vm/source_text_module.js
++++ b/libnode-v10.15.3/lib/internal/vm/source_text_module.js
 @@ -132,7 +132,9 @@ class SourceTextModule {
  
      Object.defineProperties(this, {
@@ -1036,10 +954,10 @@ index 1898831bf..8468f944e 100755
      });
    }
  
-diff --git a/examples/pxScene2d/external/libnode-v10.15.3/src/module_wrap.cc b/examples/pxScene2d/external/libnode-v10.15.3/src/module_wrap.cc
+diff --git a/libnode-v10.15.3/src/module_wrap.cc b/libnode-v10.15.3/src/module_wrap.cc
 index fe6a8e263..056a00d7b 100755
---- a/examples/pxScene2d/external/libnode-v10.15.3/src/module_wrap.cc
-+++ b/examples/pxScene2d/external/libnode-v10.15.3/src/module_wrap.cc
+--- a/libnode-v10.15.3/src/module_wrap.cc
++++ b/libnode-v10.15.3/src/module_wrap.cc
 @@ -182,6 +182,9 @@ void ModuleWrap::New(const FunctionCallbackInfo<Value>& args) {
  
    that->SetIntegrityLevel(context, IntegrityLevel::kFrozen);
@@ -1062,10 +980,10 @@ index fe6a8e263..056a00d7b 100755
  void ModuleWrap::Initialize(Local<Object> target,
                              Local<Value> unused,
                              Local<Context> context) {
-diff --git a/examples/pxScene2d/external/libnode-v10.15.3/src/module_wrap.h b/examples/pxScene2d/external/libnode-v10.15.3/src/module_wrap.h
+diff --git a/libnode-v10.15.3/src/module_wrap.h b/libnode-v10.15.3/src/module_wrap.h
 index 0e352c657..5599a52dd 100755
---- a/examples/pxScene2d/external/libnode-v10.15.3/src/module_wrap.h
-+++ b/examples/pxScene2d/external/libnode-v10.15.3/src/module_wrap.h
+--- a/libnode-v10.15.3/src/module_wrap.h
++++ b/libnode-v10.15.3/src/module_wrap.h
 @@ -82,6 +82,8 @@ class ModuleWrap : public BaseObject {
        v8::Local<v8::String> specifier,
        v8::Local<v8::Module> referrer);
@@ -1075,32 +993,10 @@ index 0e352c657..5599a52dd 100755
  
    Persistent<v8::Module> module_;
    Persistent<v8::String> url_;
-diff --git a/examples/pxScene2d/external/libnode-v10.15.3/src/env-inl.h b/examples/pxScene2d/external/libnode-v10.15.3/src/env-inl.h
-index 4af5add..7ab9076 100755
---- a/examples/pxScene2d/external/libnode-v10.15.3/src/env-inl.h
-+++ b/examples/pxScene2d/external/libnode-v10.15.3/src/env-inl.h
-@@ -156,13 +156,16 @@ inline bool Environment::AsyncHooks::pop_async_id(double async_id) {
-             "actual: %.f, expected: %.f)\n",
-             async_id_fields_.GetValue(kExecutionAsyncId),
-             async_id);
-+    /* MODIFIED CODE BEGIN */
-+    /*
-     DumpBacktrace(stderr);
-     fflush(stderr);
-     if (!env()->abort_on_uncaught_exception())
-       exit(1);
-     fprintf(stderr, "\n");
-     fflush(stderr);
--    ABORT_NO_BACKTRACE();
-+    ABORT_NO_BACKTRACE(); */
-+    /* MODIFIED CODE END */
-   }
- 
-   uint32_t offset = fields_[kStackLength] - 1;
-diff --git a/examples/pxScene2d/external/libnode-v10.15.3/deps/uv/src/unix/core.c b/examples/pxScene2d/external/libnode-v10.15.3/deps/uv/src/unix/core.c
+diff --git a/libnode-v10.15.3/deps/uv/src/unix/core.c b/libnode-v10.15.3/deps/uv/src/unix/core.c
 index f92446f..d02c098 100755
---- a/examples/pxScene2d/external/libnode-v10.15.3/deps/uv/src/unix/core.c
-+++ b/examples/pxScene2d/external/libnode-v10.15.3/deps/uv/src/unix/core.c
+--- a/libnode-v10.15.3/deps/uv/src/unix/core.c
++++ b/libnode-v10.15.3/deps/uv/src/unix/core.c
 @@ -726,9 +726,12 @@ void uv_disable_stdio_inheritance(void) {
    /* Set the CLOEXEC flag on all open descriptors. Unconditionally try the
     * first 16 file descriptors. After that, bail out after the first error.
@@ -1151,3 +1047,558 @@ index f92446f..d02c098 100755
      if (r != -1)
        return r;
      if (errno != ENOSYS)
+diff --git a/libnode-v10.15.3/src/env.h b/libnode-v10.15.3/src/env.h
+index 66c69e8d0..e229a8fbd 100755
+--- a/libnode-v10.15.3/src/env.h
++++ b/libnode-v10.15.3/src/env.h
+@@ -558,7 +558,12 @@ class Environment {
+ 
+   class TickInfo {
+    public:
+-    inline AliasedBuffer<uint8_t, v8::Uint8Array>& fields();
++/* MODIFIED CODE BEGIN */
++    //inline AliasedBuffer<uint8_t, v8::Uint8Array>& fields();
++    //inline AliasedBuffer<uint32_t, v8::Uint32Array>& fields();
++    inline uint32_t* fields();
++    inline int fields_count() const;
++/* MODIFIED CODE END */
+     inline bool has_scheduled() const;
+     inline bool has_promise_rejections() const;
+     inline bool has_thrown() const;
+@@ -576,9 +581,10 @@ class Environment {
+       kHasThrown,
+       kFieldsCount
+     };
+-
+-    AliasedBuffer<uint8_t, v8::Uint8Array> fields_;
+-
++/* MODIFIED CODE BEGIN */
++    //AliasedBuffer<uint32_t, v8::Uint32Array> fields_;
++    uint32_t fields_[kFieldsCount];
++/* MODIFIED CODE END */
+     DISALLOW_COPY_AND_ASSIGN(TickInfo);
+   };
+ 
+diff --git a/libnode-v10.15.3/src/env-inl.h b/libnode-v10.15.3/src/env-inl.h
+index 4af5add4c..89a4c0329 100755
+--- a/libnode-v10.15.3/src/env-inl.h
++++ b/libnode-v10.15.3/src/env-inl.h
+@@ -156,13 +156,16 @@ inline bool Environment::AsyncHooks::pop_async_id(double async_id) {
+             "actual: %.f, expected: %.f)\n",
+             async_id_fields_.GetValue(kExecutionAsyncId),
+             async_id);
++    /* MODIFIED CODE BEGIN */
++    /*
+     DumpBacktrace(stderr);
+     fflush(stderr);
+     if (!env()->abort_on_uncaught_exception())
+       exit(1);
+     fprintf(stderr, "\n");
+     fflush(stderr);
+-    ABORT_NO_BACKTRACE();
++    ABORT_NO_BACKTRACE(); */
++    /* MODIFIED CODE END */
+   }
+ 
+   uint32_t offset = fields_[kStackLength] - 1;
+@@ -259,12 +262,24 @@ inline void Environment::ImmediateInfo::ref_count_dec(uint32_t decrement) {
+ }
+ 
+ inline Environment::TickInfo::TickInfo(v8::Isolate* isolate)
+-    : fields_(isolate, kFieldsCount) {}
++/* MODIFIED CODE BEGIN */
++   {
++  for (int i = 0; i < kFieldsCount; ++i)
++    fields_[i] = 0;
++/* MODIFIED CODE END */
++}
+ 
+-inline AliasedBuffer<uint8_t, v8::Uint8Array>& Environment::TickInfo::fields() {
++/* MODIFIED CODE BEGIN */
++//inline AliasedBuffer<uint8_t, v8::Uint8Array>& Environment::TickInfo::fields() {
++inline uint32_t* Environment::TickInfo::fields() {
+   return fields_;
+ }
+ 
++inline int Environment::TickInfo::fields_count() const {
++  return kFieldsCount;
++}
++/* MODIFIED CODE END */
++
+ inline bool Environment::TickInfo::has_scheduled() const {
+   return fields_[kHasScheduled] == 1;
+ }
+diff --git a/libnode-v10.15.3/src/bootstrapper.cc b/libnode-v10.15.3/src/bootstrapper.cc
+index d23a145ca..ee2f1a2e5 100755
+--- a/libnode-v10.15.3/src/bootstrapper.cc
++++ b/libnode-v10.15.3/src/bootstrapper.cc
+@@ -8,6 +8,9 @@
+ namespace node {
+ 
+ using v8::Array;
++/* MODIFIED CODE BEGIN */
++using v8::ArrayBuffer;
++/* MODIFIED CODE END */
+ using v8::Context;
+ using v8::Function;
+ using v8::FunctionCallbackInfo;
+@@ -24,6 +27,10 @@ using v8::Promise;
+ using v8::PromiseRejectEvent;
+ using v8::PromiseRejectMessage;
+ using v8::String;
++/* MODIFIED CODE BEGIN */
++using v8::Uint32Array;
++using v8::Uint8Array;
++/* MODIFIED CODE END */
+ using v8::Value;
+ 
+ void SetupProcessObject(const FunctionCallbackInfo<Value>& args) {
+@@ -51,7 +58,14 @@ void SetupNextTick(const FunctionCallbackInfo<Value>& args) {
+   run_microtasks_fn->SetName(FIXED_ONE_BYTE_STRING(isolate, "runMicrotasks"));
+ 
+   Local<Array> ret = Array::New(isolate, 2);
+-  ret->Set(context, 0, env->tick_info()->fields().GetJSArray()).FromJust();
++/* MODIFIED CODE BEGIN */
++  uint32_t* const fields = env->tick_info()->fields();
++  uint32_t const fields_count = env->tick_info()->fields_count();
++  Local<ArrayBuffer> array_buffer =
++      ArrayBuffer::New(env->isolate(), fields, sizeof(*fields) * fields_count);
++  ret->Set(context, 0, Uint32Array::New(array_buffer, 0, fields_count)).FromJust();
++  //ret->Set(context, 0, env->tick_info()->fields().GetJSArray()).FromJust();
++/* MODIFIED CODE END */
+   ret->Set(context, 1, run_microtasks_fn).FromJust();
+ 
+   args.GetReturnValue().Set(ret);
+diff --git a/libnode-v10.15.3/src/node_platform.cc b/libnode-v10.15.3/src/node_platform.cc
+index fd8d04540..c4286d459 100755
+--- a/libnode-v10.15.3/src/node_platform.cc
++++ b/libnode-v10.15.3/src/node_platform.cc
+@@ -329,6 +329,13 @@ void PerIsolatePlatformData::RunForegroundTask(std::unique_ptr<Task> task) {
+   Isolate* isolate = Isolate::GetCurrent();
+   HandleScope scope(isolate);
+   Environment* env = Environment::GetCurrent(isolate);
++/*MODIFIED CODE BEGIN*/
++  if (isolate->GetCurrentContext().IsEmpty() || (NULL == env))
++  {
++    task->Run();
++    return;
++  }
++/*MODIFIED CODE END*/
+   InternalCallbackScope cb_scope(env, Local<Object>(), { 0, 0 },
+                                  InternalCallbackScope::kAllowEmptyResource);
+   task->Run();
+@@ -356,14 +363,18 @@ void PerIsolatePlatformData::CancelPendingDelayedTasks() {
+ 
+ void NodePlatform::DrainBackgroundTasks(Isolate* isolate) {
+   std::shared_ptr<PerIsolatePlatformData> per_isolate = ForIsolate(isolate);
+-
+-  do {
+-    // Right now, there is no way to drain only background tasks associated
+-    // with a specific isolate, so this sometimes does more work than
+-    // necessary. In the long run, that functionality is probably going to
+-    // be available anyway, though.
+-    background_task_runner_->BlockingDrain();
+-  } while (per_isolate->FlushForegroundTasksInternal());
++  /* MODIFIED CODE BEGIN */
++  if (NULL != per_isolate)
++  {
++    do {
++      // Right now, there is no way to drain only background tasks associated
++      // with a specific isolate, so this sometimes does more work than
++      // necessary. In the long run, that functionality is probably going to
++      // be available anyway, though.
++      background_task_runner_->BlockingDrain();
++    } while (per_isolate->FlushForegroundTasksInternal());
++  }
++  /* MODIFIED CODE END */
+ }
+ 
+ bool PerIsolatePlatformData::FlushForegroundTasksInternal() {
+@@ -411,12 +422,19 @@ std::shared_ptr<PerIsolatePlatformData>
+ NodePlatform::ForIsolate(Isolate* isolate) {
+   Mutex::ScopedLock lock(per_isolate_mutex_);
+   std::shared_ptr<PerIsolatePlatformData> data = per_isolate_[isolate];
+-  CHECK(data);
++  //  MODIFIED CODE BEGIN
++  // CHECK(data);
++  // MODIFIED CODE END
+   return data;
+ }
+ 
+ void NodePlatform::CallOnForegroundThread(Isolate* isolate, Task* task) {
+-  ForIsolate(isolate)->PostTask(std::unique_ptr<Task>(task));
++  /* MODIFIED CODE BEGIN */
++  std::shared_ptr<PerIsolatePlatformData> data = ForIsolate(isolate);
++  if (nullptr != data.get()) {
++    data->PostTask(std::unique_ptr<Task>(task));
++  }
++  /* MODIFIED CODE END */
+ }
+ 
+ void NodePlatform::CallDelayedOnForegroundThread(Isolate* isolate,
+diff --git a/libnode-v10.15.3/lib/net.js b/libnode-v10.15.3/lib/net.js
+index e40aaa870..793014f12 100755
+--- a/libnode-v10.15.3/lib/net.js
++++ b/libnode-v10.15.3/lib/net.js
+@@ -812,6 +812,119 @@ function checkBindError(err, port, handle) {
+   return err;
+ }
+ 
++/* MODIFIED CODE BEGIN */
++function internalConnectMultipleAddress(
++  self, address, port, localAddress, localPort) {
++  var ipV4addresses = address['v4address']
++  var ipv4count =  address['v4count']
++  var ipV6addresses = address['v6address']
++  var ipv6count = address['v6count']
++  var tempLocalAddress = "";
++  var bindSucceeded = true;
++  var connectSucceeded = false;
++  var err;
++
++  // IPV6 bind
++  bindSucceeded = true;
++  if (localAddress || localPort) {
++    tempLocalAddress = localAddress || '::';
++    err = self._handle.bind6(tempLocalAddress, localPort);
++    debug('binding to localAddress: %s and localPort: %d (addressType: 6)',
++          tempLocalAddress, localPort);
++
++    err = checkBindError(err, localPort, self._handle);
++    if (err) {
++      console.log("Bind error for IPV6 : " + err + " happened for " + tempLocalAddress + " and port " + localPort);
++      bindSucceeded = false;
++    }
++  }
++
++  // IPV6 connect
++  connectSucceeded = false;
++  if (true == bindSucceeded) {
++    for (var i=0; i<ipv6count; i++)
++    {
++      connectSucceeded = internalConnectWithReturn(self, ipV6addresses[i].address, port, ipV6addresses[i].family, tempLocalAddress, localPort);
++      if (true == connectSucceeded)
++        break;
++    }
++  }
++
++  // try for ipv4 if ipv6 connect fails
++  if (false == connectSucceeded) {
++    self._handle.reset(); //call to prepare IPV4 socket
++
++    bindSucceeded = true;
++    // IPV4 bind 
++    if (localAddress || localPort) {
++      tempLocalAddress = localAddress || '0.0.0.0';
++      err = self._handle.bind(tempLocalAddress, localPort);
++      debug('binding to localAddress: %s and localPort: %d (addressType: 4)',
++            tempLocalAddress, localPort);
++
++      err = checkBindError(err, localPort, self._handle);
++      if (err) {
++        console.log("Bind error for IPV4 : " + err + " happened for " + tempLocalAddress + " and port " + localPort);
++        bindSucceeded = false;
++      }
++    }
++
++    connectSucceeded = false;
++    if (true == bindSucceeded) {
++      for (var i=0; i<ipv4count; i++)
++      {
++        connectSucceeded = internalConnectWithReturn(self, ipV4addresses[i].address, port, ipV4addresses[i].family, tempLocalAddress, localPort);
++        if (true == connectSucceeded)
++          break;
++      }
++    }
++  }
++
++  if ((false == bindSucceeded) || (false == connectSucceeded))
++  {
++    var details = "Address: " + localAddress + ", port: " + localPort
++    console.log("Multiple address connection failed connect - " + address + ":" + port + " " + details);
++    self.destroy();
++  }
++}
++
++function internalConnectWithReturn(self, address, port, addressType, localAddress, localPort) 
++{
++  assert(self.connecting);
++  var ret = false;
++  var err;
++
++  if (addressType === 6 || addressType === 4) {
++    const req = new TCPConnectWrap();
++    req.oncomplete = afterConnectAll;
++    req.address = address;
++    req.port = port;
++    req.localAddress = localAddress;
++    req.localPort = localPort;
++
++    if (addressType === 4)
++      err = self._handle.connect(req, address, port);
++    else
++      err = self._handle.connect6(req, address, port);
++  }
++
++  if (err) {
++    var sockname = self._getsockname();
++    var details;
++
++    if (sockname) {
++      details = sockname.address + ':' + sockname.port;
++    }
++
++    console.log("Connect error happened : " + err + " , " + details + " , " + address + ":"  + port + " ,family: " + addressType); 
++  }
++  else
++  {
++    ret = true;
++  }
++  return ret;
++}
++/* MODIFIED CODE END */
+ 
+ function internalConnect(
+   self, address, port, addressType, localAddress, localPort) {
+@@ -974,11 +1087,13 @@ function lookupAndConnect(self, options) {
+ 
+ 
+   if (dns === undefined) dns = require('dns');
++  /* MODIFIED CODE BEGIN */
+   var dnsopts = {
+     family: options.family,
+-    hints: options.hints || 0
++    hints: options.hints || 0,
+   };
+-
++  dnsopts.all = true;
++  /* MODIFIED CODE END */
+   if (process.platform !== 'win32' &&
+       dnsopts.family !== 4 &&
+       dnsopts.family !== 6 &&
+@@ -1008,7 +1123,9 @@ function lookupAndConnect(self, options) {
+         err.port = options.port;
+         err.message = err.message + ' ' + options.host + ':' + options.port;
+         process.nextTick(connectErrorNT, self, err);
+-      } else if (addressType !== 4 && addressType !== 6) {
++        /* MODIFIED CODE BEGIN */
++      } else if ((false == dnsopts.all) && addressType !== 4 && addressType !== 6) {
++        /* MODIFIED CODE END */
+         err = new ERR_INVALID_ADDRESS_FAMILY(addressType);
+         err.host = options.host;
+         err.port = options.port;
+@@ -1016,11 +1133,22 @@ function lookupAndConnect(self, options) {
+         process.nextTick(connectErrorNT, self, err);
+       } else {
+         self._unrefTimer();
+-        defaultTriggerAsyncIdScope(
+-          self[async_id_symbol],
+-          internalConnect,
+-          self, ip, port, addressType, localAddress, localPort
+-        );
++        /* MODIFIED CODE BEGIN */
++        if (dnsopts.all) {
++          defaultTriggerAsyncIdScope(
++            self[async_id_symbol],
++            internalConnectMultipleAddress,
++            self, ip, port, localAddress, localPort
++          );
++        }
++        else {
++          defaultTriggerAsyncIdScope(
++            self[async_id_symbol],
++            internalConnect,
++            self, ip, port, addressType, localAddress, localPort
++          );
++        }
++        /* MODIFIED CODE END */
+       }
+     });
+   });
+@@ -1107,6 +1235,41 @@ function afterConnect(status, handle, req, readable, writable) {
+   }
+ }
+ 
++/* MODIFIED CODE BEGIN */
++function afterConnectAll(status, handle, req, readable, writable) {
++  var self = handle[owner_symbol];
++
++  // callback may come after call to destroy
++  if (self.destroyed) {
++    return;
++  }
++
++  debug('afterConnectAll');
++
++  assert(self.connecting);
++
++  if (status === 0) {
++    self.connecting = false;
++    self._sockname = null;
++    self.readable = readable;
++    if (!self._writableState.ended)
++      self.writable = writable;
++    self._unrefTimer();
++
++    self.emit('connect');
++    self.emit('ready');
++
++    // start the first read, or get an immediate EOF.
++    // this doesn't actually consume any bytes, because len=0.
++    if (readable && !self.isPaused())
++      self.read(0);
++
++  } else {
++      if (util === undefined) util = require('util');
++      const code = util.getSystemErrorName(status);
++  }
++}
++/* MODIFIED CODE END */
+ 
+ function Server(options, connectionListener) {
+   if (!(this instanceof Server))
+diff --git a/libnode-v10.15.3/lib/dns.js b/libnode-v10.15.3/lib/dns.js
+index f90d7c1a5..b151f530c 100755
+--- a/libnode-v10.15.3/lib/dns.js
++++ b/libnode-v10.15.3/lib/dns.js
+@@ -69,15 +69,30 @@ function onlookupall(err, addresses) {
+   }
+ 
+   var family = this.family;
++  /* MODIFIED CODE BEGIN */
++  var ipV4Addresses = [];
++  var ipV4count = 0;
++  var ipV6Addresses = []
++  var ipV6count = 0;
++  var result = {}
+   for (var i = 0; i < addresses.length; i++) {
+     const addr = addresses[i];
+-    addresses[i] = {
+-      address: addr,
+-      family: family || (isIPv4(addr) ? 4 : 6)
+-    };
++    var addrfamily = family || (isIPv4(addr) ? 4 : 6)
++    if (addrfamily == 4) {
++      ipV4Addresses[ipV4count] = {address: addr, family: addrfamily}
++      ipV4count++;
++    }
++    else {
++      ipV6Addresses[ipV6count] = {address: addr, family: addrfamily}
++      ipV6count++;
++    }
+   }
+-
+-  this.callback(null, addresses);
++  result['v4address'] = ipV4Addresses
++  result['v4count'] = ipV4count
++  result['v6address'] = ipV6Addresses
++  result['v6count'] = ipV6count
++  this.callback(null, result);
++  /* MODIFIED CODE END */
+ }
+ 
+ 
+diff --git a/libnode-v10.15.3/lib/_tls_wrap.js b/libnode-v10.15.3/lib/_tls_wrap.js
+index 9bfdd4062..0dc161af9 100755
+--- a/libnode-v10.15.3/lib/_tls_wrap.js
++++ b/libnode-v10.15.3/lib/_tls_wrap.js
+@@ -345,16 +345,16 @@ function TLSSocket(socket, opts) {
+ }
+ util.inherits(TLSSocket, net.Socket);
+ exports.TLSSocket = TLSSocket;
+-
++/* MODIFIED CODE BEGIN */
+ var proxiedMethods = [
+-  'ref', 'unref', 'open', 'bind', 'listen', 'connect', 'bind6',
++  'ref', 'unref', 'open', 'bind', 'listen', 'connect', 'bind6', 'reset',
+   'connect6', 'getsockname', 'getpeername', 'setNoDelay', 'setKeepAlive',
+   'setSimultaneousAccepts', 'setBlocking',
+ 
+   // PipeWrap
+   'setPendingInstances'
+ ];
+-
++/* MODIFIED CODE END */
+ // Proxy HandleWrap, PipeWrap and TCPWrap methods
+ function makeMethodProxy(name) {
+   return function methodProxy(...args) {
+diff --git a/libnode-v10.15.3/src/stream_wrap.h b/libnode-v10.15.3/src/stream_wrap.h
+index 98f0ca4ac..7924678ca 100755
+--- a/libnode-v10.15.3/src/stream_wrap.h
++++ b/libnode-v10.15.3/src/stream_wrap.h
+@@ -60,6 +60,12 @@ class LibuvStreamWrap : public HandleWrap, public StreamBase {
+     return stream_;
+   }
+ 
++/* MODIFIED CODE BEGIN */
++  void update_stream(uv_stream_t* s) {
++    stream_ = s;
++  }
++/* MODIFIED CODE END */
++
+   inline bool is_named_pipe() const {
+     return stream()->type == UV_NAMED_PIPE;
+   }
+@@ -108,8 +114,9 @@ class LibuvStreamWrap : public HandleWrap, public StreamBase {
+ 
+   static void AfterUvWrite(uv_write_t* req, int status);
+   static void AfterUvShutdown(uv_shutdown_t* req, int status);
+-
+-  uv_stream_t* const stream_;
++  /* MODIFIED CODE BEGIN */
++  uv_stream_t* stream_;
++  /* MODIFIED CODE END */
+ 
+ #ifdef _WIN32
+   // We don't always have an FD that we could look up on the stream_
+diff --git a/libnode-v10.15.3/src/tcp_wrap.cc b/libnode-v10.15.3/src/tcp_wrap.cc
+index a6cc01f12..c66a0cfcc 100755
+--- a/libnode-v10.15.3/src/tcp_wrap.cc
++++ b/libnode-v10.15.3/src/tcp_wrap.cc
+@@ -93,6 +93,9 @@ void TCPWrap::Initialize(Local<Object> target,
+   env->SetProtoMethod(t, "open", Open);
+   env->SetProtoMethod(t, "bind", Bind);
+   env->SetProtoMethod(t, "listen", Listen);
++/* MODIFIED CODE BEGIN*/
++  env->SetProtoMethod(t, "reset",Reset);
++/* MODIFIED CODE END */
+   env->SetProtoMethod(t, "connect", Connect);
+   env->SetProtoMethod(t, "bind6", Bind6);
+   env->SetProtoMethod(t, "connect6", Connect6);
+@@ -274,6 +277,22 @@ void TCPWrap::Listen(const FunctionCallbackInfo<Value>& args) {
+   args.GetReturnValue().Set(err);
+ }
+ 
++/* MODIFIED CODE BEGIN */
++void TCPWrap::Reset(const FunctionCallbackInfo<Value>& args) {
++  TCPWrap* wrap;
++  ASSIGN_OR_RETURN_UNWRAP(&wrap,
++                          args.Holder(),
++                          args.GetReturnValue().Set(UV_EBADF));
++  Environment* env = wrap->env();
++  int err = uv_tcp_init(env->event_loop(), &wrap->handle_);
++  wrap->update_stream(reinterpret_cast<uv_stream_t*> (&wrap->handle_));
++  wrap->handle_.data = wrap;
++  //err = uv_tcp_init(env->event_loop(), &wrap->handle_);
++  CHECK_EQ(err, 0);  // How do we proxy this error up to javascript?
++                   // Suggestion: uv_tcp_init() returns void.
++  args.GetReturnValue().Set(err);
++}
++/* MODIFIED CODE END */
+ 
+ void TCPWrap::Connect(const FunctionCallbackInfo<Value>& args) {
+   CHECK(args[2]->IsUint32());
+diff --git a/libnode-v10.15.3/src/tcp_wrap.h b/libnode-v10.15.3/src/tcp_wrap.h
+index 3cbeae6d6..67bf832a0 100755
+--- a/libnode-v10.15.3/src/tcp_wrap.h
++++ b/libnode-v10.15.3/src/tcp_wrap.h
+@@ -79,6 +79,9 @@ class TCPWrap : public ConnectionWrap<TCPWrap, uv_tcp_t> {
+   static void Connect(const v8::FunctionCallbackInfo<v8::Value>& args,
+       std::function<int(const char* ip_address, T* addr)> uv_ip_addr);
+   static void Open(const v8::FunctionCallbackInfo<v8::Value>& args);
++/* MODIFIED CODE BEGIN */
++  static void Reset(const v8::FunctionCallbackInfo<v8::Value>& args);
++/* MODIFIED CODE END */
+ 
+ #ifdef _WIN32
+   static void SetSimultaneousAccepts(
