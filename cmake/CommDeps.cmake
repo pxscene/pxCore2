@@ -105,13 +105,17 @@ if (NOT WIN32)
       pkg_search_module(GLESV2 glesv2)
       pkg_search_module(X11 x11)
     endif (NOT DFB)
-
+    message(STATUS "about to check openssl library")
     if (PREFER_SYSTEM_LIBRARIES)
+        message(STATUS "about to check openssl library 1")
         pkg_search_module(OPENSSL openssl)
         pkg_search_module(CRYPTO libcrypto)
+        message(STATUS "Using package openssl library")
+        message(STATUS "${OPENSSL_INCLUDE_DIRS}")
     endif (PREFER_SYSTEM_LIBRARIES)
     if (NOT OPENSSL_FOUND)
       if (USE_NODE_10)
+         message(STATUS "Using external openssl library")
         set(OPENSSL_INCLUDE_DIRS "${EXTDIR}/openssl-1.0.2o/include")
         set(OPENSSL_LIBRARY_DIRS "${EXTDIR}/openssl-1.0.2o/")
         set(OPENSSL_LIBRARIES "ssl")
@@ -270,3 +274,5 @@ set(COMM_DEPS_LIBRARIES ${COMM_DEPS_LIBRARIES}
          ${ICU_UC_LIBRARIES}
          ${SQLITE_LIBRARIES}
    )
+
+message(STATUS "Madana ${COMM_DEPS_INCLUDE_DIRS}")
