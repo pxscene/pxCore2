@@ -21,7 +21,7 @@
 
 #include "pxScene2d.h"
 #include "pxText.h"
-#include "pxTextEffects.h"
+#include "pxEffects.h"
 
 struct pxTextLine
 {

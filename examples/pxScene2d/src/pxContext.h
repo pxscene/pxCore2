@@ -31,6 +31,7 @@
 #include "pxTexture.h"
 #include "pxContextFramebuffer.h"
 #include "pxContextUtils.h"
+#include "pxEffects.h"
 
 #ifdef ENABLE_DFB
 #include "pxContextDescDFB.h"
@@ -137,24 +138,7 @@ class pxContext {
 
 
   void drawTexturedQuadsWithEffects(int numQuads, const void *verts, const void *uvs,
-                                    pxTextureRef t, float *color
-                                    // in sync with pxTextEffects.h
-                                    ,  bool shadowEnabled
-                                    , float *shadowColor
-                                    , float shadowBlur
-                                    , float shadowOffsetX
-                                    , float shadowOffsetY
-                                    , float shadowWidth
-                                    , float shadowHeight
-                                    ,  bool highlightEnabled
-                                    , float *highlightColor
-                                    , float highlightOffset
-                                    , float highlightWidth
-                                    , float highlightHeight
-                                    , float highlightPaddingLeft
-                                    , float highlightPaddingRight
-                                    , float highlightBlockHeight
-                                    );
+                                      pxTextureRef t, float *color, const pxTextEffects *pe);
 #endif
 
   void drawImage9(float w, float h, float x1, float y1,

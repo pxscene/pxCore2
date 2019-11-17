@@ -16,10 +16,10 @@
 
 */
 
-#ifndef PX_TEXTEFFECTS_H
-#define PX_TEXTEFFECTS_H
+#ifndef PX_EFFECTS_H
+#define PX_EFFECTS_H
 
-typedef struct _pxTextEffects
+typedef struct _pxTextEffects // meant to be copied using memcpy()
 {
     bool shadowEnabled;
     float shadowColor[4];
@@ -64,4 +64,4 @@ typedef struct _pxTextEffects
     {}
 } pxTextEffects;
 
-#endif //PX_TEXTEFFECTS_H
+#endif //PX_EFFECTS_H

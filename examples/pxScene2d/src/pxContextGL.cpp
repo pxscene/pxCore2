@@ -60,7 +60,6 @@
 
 #include "pxContextUtils.h"
 #include "pxTimer.h"
-#include "pxTextEffects.h"
 
 #define PX_TEXTURE_MIN_FILTER GL_LINEAR
 #define PX_TEXTURE_MAG_FILTER GL_LINEAR
@@ -1883,7 +1882,7 @@ private:
 textureMaskedShaderProgram *gTextureMaskedShader = NULL;
 
 //====================================================================================================================================================================================
-pxContextFramebufferRef applyBlurSettings(pxContextFramebufferRef src, pxTextEffects* pe, filterXYR *filters, size_t count)
+pxContextFramebufferRef applyBlurSettings(pxContextFramebufferRef src, const pxTextEffects* pe, filterXYR *filters, size_t count)
 {
     if(filters == NULL)
     {
@@ -1910,16 +1909,19 @@ pxContextFramebufferRef applyBlurSettings(pxContextFramebufferRef src, pxTextEff
     pxContextFramebufferRef fbo_src = src;      // initial draw of SRC to OUTPUT0
     pxContextFramebufferRef fbo_dst = output0;
 
+    pxTextEffects options;
+    memcpy(&options, pe, sizeof(options));
+
     size_t i = 0;
     do
     {
         // Render pass with Blur EFFECT shader...
-        pe->shadowX      = filters[i].x;
-        pe->shadowY      = filters[i].y;
-        pe->shadowRadius = filters[i].r;
+        options.shadowX      = filters[i].x;
+        options.shadowY      = filters[i].y;
+        options.shadowRadius = filters[i].r;
 
         context.setFramebuffer(fbo_dst);
-        context.drawEffect(0, 0, w, h, fbo_src->getTexture(), gATextureBlurShader, pe);
+        context.drawEffect(0, 0, w, h, fbo_src->getTexture(), gATextureBlurShader, &options);
 
         bool toggle = (i++ % 2); // TOGGLE !! ... (0 % 2) = false ... at start
 
@@ -1933,7 +1935,7 @@ pxContextFramebufferRef applyBlurSettings(pxContextFramebufferRef src, pxTextEff
     return fbo_src; // NOTE:  It's NOT 'fbo_dst' ... the last toggle makes it 'fbo_src'
 }
 
-void drawTextEffects(int numQuads, const void *verts, const void* uvs, pxTextureRef t, pxTextEffects* pe)
+void drawTextEffects(int numQuads, const void *verts, const void* uvs, pxTextureRef t, const pxTextEffects* pe)
 {
     if(pe->highlightEnabled)
     {
@@ -1947,8 +1949,13 @@ void drawTextEffects(int numQuads, const void *verts, const void* uvs, pxTexture
         context.setMatrix(m);
 
         rtLogInfo("drawTextEffects, highlight: w: %f, h: %f", pe->highlightWidth, pe->highlightHeight);
-        context.drawRect(pe->highlightWidth - (pe->highlightPaddingLeft + pe->highlightPaddingRight), pe->highlightHeight * 0.2, 0, pe->highlightColor, NULL); // TODO: '0.2' is an Egregious MAGIC NUMBER
+        float w = pe->highlightWidth - (pe->highlightPaddingLeft + pe->highlightPaddingRight);
+        float h = pe->highlightHeight * 0.2; // TODO: '0.2' is an Egregious MAGIC NUMBER
+        float lineWidth = 0;
+        float fillColor[4];
 
+        memcpy(&fillColor, pe->highlightColor, sizeof(fillColor));
+        context.drawRect(w, h, lineWidth, fillColor, nullptr);
         context.popState();
     }
 
@@ -3056,23 +3063,9 @@ void pxContext::drawTexturedQuads(int numQuads, const void *verts, const void* u
   // - - - - - - - - - - - - - - - - - - - -
 }
 
-void pxContext::drawTexturedQuadsWithEffects(int numQuads, const void *verts, const void *uvs, pxTextureRef t, float *color
-                                ,  bool shadowEnabled
-                                , float *shadowColor
-                                , float shadowBlur
-                                , float shadowOffsetX
-                                , float shadowOffsetY
-                                , float shadowWidth
-                                , float shadowHeight
-                                ,  bool highlightEnabled
-                                , float *highlightColor
-                                , float highlightOffset
-                                , float highlightWidth
-                                , float highlightHeight
-                                , float highlightPaddingLeft
-                                , float highlightPaddingRight
-                                , float highlightBlockHeight
-                                )
+void
+pxContext::drawTexturedQuadsWithEffects(int numQuads, const void *verts, const void *uvs, pxTextureRef t, float *color,
+                                        const pxTextEffects *pe)
 {
 #ifdef DEBUG_SKIP_IMAGE
     #warning "DEBUG_SKIP_IMAGE enabled ... Skipping "
@@ -3095,25 +3088,7 @@ void pxContext::drawTexturedQuadsWithEffects(int numQuads, const void *verts, co
 
     // Shadow / Highlight draw
     //
-
-    pxTextEffects effects;
-    effects.shadowEnabled = shadowEnabled;
-    memcpy(effects.shadowColor, shadowColor, sizeof(effects.shadowColor));
-    effects.shadowBlur = shadowBlur;
-    effects.shadowOffsetX = shadowOffsetX;
-    effects.shadowOffsetY = shadowOffsetY;
-    effects.shadowWidth = shadowWidth;
-    effects.shadowHeight = shadowHeight;
-    effects.highlightEnabled = highlightEnabled;
-    memcpy(effects.highlightColor, highlightColor, sizeof(effects.highlightColor));
-    effects.highlightOffset = highlightOffset;
-    effects.highlightWidth = highlightWidth;
-    effects.highlightHeight = highlightHeight;
-    effects.highlightPaddingLeft = highlightPaddingLeft;
-    effects.highlightPaddingRight = highlightPaddingRight;
-    effects.highlightBlockHeight = highlightBlockHeight;
-
-    drawTextEffects( 6*numQuads, verts, uvs, t, &effects);
+    drawTextEffects( 6*numQuads, verts, uvs, t, pe);
 
     float colorPM[4];
     premultiply(colorPM,color);
