@@ -455,6 +455,13 @@ var loadMjs = async function (source, url, context, modmap)
   return mod;
 }
 
+var evalURL = async function(src) {
+  const url = filename2url(src);
+  const loc = /^file:/.test(url) ? url.substring(7) : url;
+  const code = await getFile(this.global.sparkscene, url);
+  return vm.runInContext(code, this.contextifiedSandbox, {filename:loc});
+};
+
 function ESMLoader(params) {
   this.ctx = params
   this.loadESM = function(filename) {
@@ -467,6 +474,7 @@ function ESMLoader(params) {
     loadCtx.sandbox['__dirname'] = path.dirname(loc);
     loadCtx.contextifiedSandbox = vm.createContext(loadCtx.sandbox);
     loadCtx.contextifiedSandbox.modmap = loadCtx.modmap;
+    loadCtx.sandbox.evalURL = evalURL.bind(loadCtx);
     var script = new vm.Script("var sgl = require('webgl.js'); global.sparkwebgl = sparkwebgl = new sgl.WebGLRenderingContext(global.sparkscene); global.sparkgles2 = sparkgles2 = require('gles2.js');");
     script.runInContext(loadCtx.contextifiedSandbox);
     script = null; 
@@ -481,7 +489,9 @@ function ESMLoader(params) {
             // use paths for frameworkURL
             loadCtx.sandbox.require = loadCtx.makeRequire(loc2).bind(loadCtx);
             loadCtx.sandbox['__dirname'] = path.dirname(loc2);
-            vm.runInContext(source2, loadCtx.contextifiedSandbox, {filename:loc2});
+            const app2 = await loadMjs(source2, url2, loadCtx.contextifiedSandbox, loadCtx.modmap);
+            app2.instantiate();
+            await app2.evaluate();
             // restore previous values
             loadCtx.sandbox.require = loadCtx.makeRequire(loc).bind(loadCtx);
             loadCtx.sandbox['__dirname'] = path.dirname(loc);
