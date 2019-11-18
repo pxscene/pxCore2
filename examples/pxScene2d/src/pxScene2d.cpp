@@ -3273,7 +3273,11 @@ void pxScriptView::runScript()
       {
         rtData initData;
         rtError e = rtLoadFile("initApp.js", initData);
-        mSparkGlInitApp = rtString((char*)initData.data(), (size_t)initData.length());
+        if(e != RT_OK)
+        {
+          rtLogError("Failed to load - 'initApp.js' ");
+        }
+        mSparkGlInitApp = rtString((char*)initData.data(), (uint32_t) initData.length());
       }
       mCtx->runScript(mSparkGlInitApp.cString());
       rtValue foo = mCtx->get("loadAppUrl");
