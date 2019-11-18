@@ -131,8 +131,8 @@ private:
   void initPlayback();
   void deInitPlayback();
 
-  void InitPlayerLoop();
-  void TermPlayerLoop();
+  void initPlayerLoop();
+  void termPlayerLoop();
   static void* AAMPGstPlayer_StreamThread(void* arg);
   static void newAampFrame(void* context, void* data);
   void registerAampEventsListeners();

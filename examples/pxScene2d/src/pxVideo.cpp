@@ -51,19 +51,21 @@ void* pxVideo::AAMPGstPlayer_StreamThread(void* arg)
  * @param[in] argc number of arguments
  * @param[in] argv array of arguments
  */
-void pxVideo::InitPlayerLoop()
+void pxVideo::initPlayerLoop()
 {
 	gst_init(NULL, NULL);
 	mAampMainLoop = g_main_loop_new(NULL, FALSE);
 	mAampMainLoopThread = g_thread_new("AAMPGstPlayerLoop", &pxVideo::AAMPGstPlayer_StreamThread, this);
 }
 
-void pxVideo::TermPlayerLoop()
+void pxVideo::termPlayerLoop()
 {
 	if(mAampMainLoop)
 	{
 		g_main_loop_quit(mAampMainLoop);
+		mAampMainLoop = nullptr;
 		g_thread_join(mAampMainLoopThread);
+		mAampMainLoopThread = nullptr;
 		//gst_deinit(); gst_deinit should not be called on every pxVideo object destruction.
 		// This is because after call to gst_deinit, you can not use gstreamer at all.
 		// Even call to gst_init will not change it, and will not reinitialize gstreamer.
@@ -72,8 +74,8 @@ void pxVideo::TermPlayerLoop()
 }
 
 pxVideo::pxVideo(pxScene2d* scene):pxObject(scene)
-,	mAampMainLoop(nullptr)
-,	mAampMainLoopThread(nullptr)
+, mAampMainLoop(nullptr)
+, mAampMainLoopThread(nullptr)
 , mAamp(nullptr)
 #ifdef ENABLE_SPARK_VIDEO_PUNCHTHROUGH
 , mEnablePunchThrough(true)
@@ -85,11 +87,13 @@ pxVideo::pxVideo(pxScene2d* scene):pxObject(scene)
 , mYuvBuffer({nullptr, 0, 0, 0})
 , mPlaybackInitialized(false)
 {
+	initPlayerLoop();
 }
 
 pxVideo::~pxVideo()
 {
 	deInitPlayback();
+	termPlayerLoop();
 }
 
 void pxVideo::onInit()
@@ -109,8 +113,6 @@ void pxVideo::initPlayback()
 	rtLogInfo("%s start initialized: %d\n", __FUNCTION__, mPlaybackInitialized);
 	if (!mPlaybackInitialized)
 	{
-		InitPlayerLoop();
-
 		std::function< void(uint8_t *, int, int, int) > cbExportFrames = nullptr;
 		if(!mEnablePunchThrough)
 		{
@@ -140,13 +142,9 @@ void pxVideo::deInitPlayback()
 		unregisterAampEventsListeners();
 		delete mAamp;
 		mAamp = nullptr;
-		TermPlayerLoop();
 
 		free(mYuvBuffer.buffer);
 		mYuvBuffer.buffer = nullptr;
-
-		mAampMainLoop = nullptr;
-		mAampMainLoopThread = nullptr;
 
 		mPlaybackInitialized = false;
 		rtLogInfo("%s end initialized: %d\n", __FUNCTION__, mPlaybackInitialized);
