@@ -373,7 +373,7 @@ rtError pxShaderResource::loadShaderSource(rtString url, rtData &source)
   bool isFILE = ( url.beginsWith("file://") || url.beginsWith("FILE://") );
   if (isFILE == false && url.beginsWith("/") == false)
   {
-    rtLogError("SHADER url is NOT a local file.");
+    rtLogInfo("SHADER url is NOT a local file.");
     return RT_FAIL;
   }
 
@@ -449,7 +449,17 @@ void pxShaderResource::loadResourceFromFile()
   }
   else
   {
-    loadVtxShader = loadShaderSource(mVertexUrl, mVertexSrc);
+    if(mVertexUrl.isEmpty()) // Empty URL
+    {
+      loadVtxShader = RT_OK; // Use Default VERTEX SHADER source...
+      
+       rtLogInfo("Use Default VERTEX SHADER source...");
+    }
+    else
+    {
+      // Load VERTEX source code from URL
+      loadVtxShader = loadShaderSource(mVertexUrl, mVertexSrc);
+    }
 
     if(mVertexSrc.length() == 0)
     {
@@ -466,15 +476,21 @@ void pxShaderResource::loadResourceFromFile()
   if (loadFrgShader == RT_OK && loadVtxShader == RT_OK)
   {
     setupResource();
+    
+    mFragmentSrc.term(); // Dump the source data...
+    mVertexSrc.term();   // Dump the source data...
+    
+    if (gUIThreadQueue)
+    {
+      AddRef(); // async
+      gUIThreadQueue->addTask(onDownloadCompleteUI, this, (void *) "resolve");
+    }
   }
   else
   {
     loadFrgShader = RT_RESOURCE_NOT_FOUND;
-    //rtLogError("Could not load FRAGMENT shader file %s.", mFragmentUrl.cString());
-  }
-  if ( loadFrgShader != RT_OK)
-  {
-    rtLogWarn("shader load failed"); // TODO: why?
+
+    //rtLogWarn("shader load failed"); // TODO: why?
     if (loadFrgShader == RT_RESOURCE_NOT_FOUND)
     {
       setLoadStatus("statusCode",PX_RESOURCE_STATUS_FILE_NOT_FOUND);
@@ -488,17 +504,6 @@ void pxShaderResource::loadResourceFromFile()
     {
       AddRef(); // async
       gUIThreadQueue->addTask(onDownloadCanceledUI, this, (void*)"reject");
-    }
-  }
-  else
-  {
-    mFragmentSrc.term(); // Dump the source data...
-    mVertexSrc.term();   // Dump the source data...
-
-    if (gUIThreadQueue)
-    {
-      AddRef(); // async
-      gUIThreadQueue->addTask(onDownloadCompleteUI, this, (void *) "resolve");
     }
   }
 }
@@ -688,9 +693,6 @@ void pxShaderResource::loadResource(rtObjectRef archive, bool reloading)
 
 uint32_t pxShaderResource::loadResourceData(rtFileDownloadRequest* fileDownloadRequest)
 {
-  double startDecodeTime = pxMilliseconds();
-  rtError decodeResult = RT_OK;
-
   // Store FRAGMENT shader code
   if(fileDownloadRequest->tag() == "frg")
   {
@@ -709,15 +711,7 @@ uint32_t pxShaderResource::loadResourceData(rtFileDownloadRequest* fileDownloadR
     return PX_RESOURCE_LOAD_FAIL;
   }
 
-  double stopDecodeTime = pxMilliseconds();
-  if (decodeResult == RT_OK)
-  {
-    setLoadStatus("decodeTimeMs", static_cast<int>(stopDecodeTime-startDecodeTime));
-
-    return PX_RESOURCE_LOAD_SUCCESS;
-  }
-
-  return PX_RESOURCE_LOAD_FAIL;
+  return PX_RESOURCE_LOAD_SUCCESS;
 }
 
 void pxShaderResource::prelink()
