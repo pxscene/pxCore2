@@ -489,9 +489,13 @@ function ESMLoader(params) {
             // use paths for frameworkURL
             loadCtx.sandbox.require = loadCtx.makeRequire(loc2).bind(loadCtx);
             loadCtx.sandbox['__dirname'] = path.dirname(loc2);
-            const app2 = await loadMjs(source2, url2, loadCtx.contextifiedSandbox, loadCtx.modmap);
-            app2.instantiate();
-            await app2.evaluate();
+            if (path.extname(url2) === '.mjs') {
+              const app2 = await loadMjs(source2, url2, loadCtx.contextifiedSandbox, loadCtx.modmap);
+              app2.instantiate();
+              await app2.evaluate();
+            } else {
+              vm.runInContext(source2, loadCtx.contextifiedSandbox, {filename: loc2});
+            }
             // restore previous values
             loadCtx.sandbox.require = loadCtx.makeRequire(loc).bind(loadCtx);
             loadCtx.sandbox['__dirname'] = path.dirname(loc);
