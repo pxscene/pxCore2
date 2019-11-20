@@ -751,10 +751,10 @@ void pxVideo::unregisterAampEventsListeners()
 {
 	if (mAamp)
 	{
-		for (auto it = mEventsListeners.begin(); it != mEventsListeners.end(); it++)
+		for (auto it = mEventsListeners.begin(); it != mEventsListeners.end();)
 		{
 			mAamp->RemoveEventListener(it->first, it->second.get());
-			mEventsListeners.erase(it);
+			it = mEventsListeners.erase(it);
 		}
 	}
 }
