@@ -94,9 +94,18 @@ cp $RELEASE_EXTERNALS_PATH/extlibs/include/node/node_contextify_mods.h src/.
 cp $RELEASE_EXTERNALS_PATH/extlibs/include/node/node_internals.h src/.
 cp $RELEASE_EXTERNALS_PATH/extlibs/include/node/module_wrap.h src/.
 cp $RELEASE_EXTERNALS_PATH/extlibs/include/node/env-inl.h src/.
+if [ -e $RELEASE_EXTERNALS_PATH/extlibs/include/node/env.h ]
+then
 cp $RELEASE_EXTERNALS_PATH/extlibs/include/node/env.h src/.
+fi
+if [ -e $RELEASE_EXTERNALS_PATH/extlibs/include/node/stream_wrap.h ]
+then
 cp $RELEASE_EXTERNALS_PATH/extlibs/include/node/stream_wrap.h src/.
+fi
+if [ -e $RELEASE_EXTERNALS_PATH/extlibs/include/node/tcp_wrap.h ]
+then
 cp $RELEASE_EXTERNALS_PATH/extlibs/include/node/tcp_wrap.h src/.
+fi
 cp $RELEASE_EXTERNALS_PATH/extlibs/include/node/node_crypto.h src/.
 cd ..
 rm node
