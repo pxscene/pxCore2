@@ -60,6 +60,8 @@ pxShaderResource::pxShaderResource(const char* fragmentUrl, const char* vertexUr
 pxShaderResource::~pxShaderResource()
 {
   rtLogDebug("~pxShaderResource()");
+  printf("Debug [%s] \n", (char*)0x96);
+  fflush(stdout);
 }
 
 void pxShaderResource::onInit()
