@@ -394,8 +394,8 @@ then
 
   if [ -e "node-v${NODE_VER}_mods.patch" ]
   then
-    git apply --whitespace=nowarn "node-v${NODE_VER}_mods.patch"
-    git apply --whitespace=nowarn "openssl_1.0.2_compatibility.patch"
+    git apply --ignore-space-change --whitespace=nowarn "node-v${NODE_VER}_mods.patch"
+    git apply --ignore-space-change --whitespace=nowarn "openssl_1.0.2_compatibility.patch"
   fi
 
   cd "libnode-v${NODE_VER}"
