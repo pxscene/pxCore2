@@ -55,7 +55,7 @@ var __dirname = process.cwd()
 
 // Spark node-like module loader
 const makeRequire = function(pathToParent) {
-  return function(moduleName) {
+  return function(moduleName, iife) {
     // TODO: if code runs via "runInContext(... sandbox", then required module runs in sandbox,
     //  but if via "vm.SourceTextModule(... sandbox", then required module runs in global context.
     if ((moduleName == 'iconv-lite') || (moduleName == 'safer-buffer') || (moduleName == 'is-stream'))
@@ -114,11 +114,12 @@ const makeRequire = function(pathToParent) {
     }
     // OUR own require, independent of node require
     const require = makeRequire(filename).bind(this);
-    const wrapped = `(function(exports,require,module,__filename,__dirname) {${source}})`;
+    const wrapped = iife ? `{${source}}` : `(function(exports,require,module,__filename,__dirname) {${source}})`;
     let compiled = vm.runInContext(wrapped, this.contextifiedSandbox , {filename:filename,displayErrors:true})
     const exports = {};
     const module = {exports};
     try {
+      if (!iife)
         compiled.call(exports, exports, require, module, filename, path.dirname(filename));
     }
     catch(e) {
