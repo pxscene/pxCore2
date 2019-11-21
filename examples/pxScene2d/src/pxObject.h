@@ -112,7 +112,7 @@ public:
                         uint32_t, uint32_t, int32_t, rtObjectRef);
   rtMethod2ArgAndNoReturn("on", addListener, rtString, rtFunctionRef);
   rtMethod2ArgAndNoReturn("delListener", delListener, rtString, rtFunctionRef);
-  rtMethodNoArgAndNoReturn("dispose",releaseResources);
+  rtMethod1ArgAndNoReturn("dispose",releaseResources, bool);
  // rtProperty(onReady, onReady, setOnReady, rtFunctionRef);
 
 //  rtReadOnlyProperty(emit, emit, rtFunctionRef);
@@ -568,9 +568,9 @@ public:
 
   void repaint() { mRepaint = true; }
 
-  rtError releaseResources()
+  rtError releaseResources(bool pumpJavascript=true)
   {
-     dispose(true);
+     dispose(pumpJavascript);
      return RT_OK;
   }
 

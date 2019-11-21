@@ -106,7 +106,7 @@ rtWrapperSceneUpdateExit();
     {
         if (NULL == parentRef)
         {
-          temp.send("dispose");
+          temp.send("dispose", false);
         }
     }
   }
@@ -188,7 +188,7 @@ rtWrapperSceneUpdateExit();
     {
         if (NULL == parentRef)
         {
-          temp.send("dispose");
+          temp.send("dispose", false);
         }
     }
   }
