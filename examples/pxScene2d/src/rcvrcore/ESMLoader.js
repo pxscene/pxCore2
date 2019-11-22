@@ -495,7 +495,7 @@ function ESMLoader(params) {
           loadCtx.makeReady(true, loadCtx.app.namespace);
           loadCtx.global.beginDrawing();
           await loadCtx.app.evaluate();
-
+  
           if (typeof loadCtx.app.namespace.default === 'function') {
             try {
               if (params._options) {
@@ -507,7 +507,7 @@ function ESMLoader(params) {
               console.log(err);
             }
           }
-
+  
           loadCtx.global.endDrawing();
         } catch (err) {
           console.log("load mjs module failed ");
