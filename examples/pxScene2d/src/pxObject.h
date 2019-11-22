@@ -570,7 +570,7 @@ public:
 
   rtError releaseResources()
   {
-     dispose(true);
+     dispose(false);
      return RT_OK;
   }
 
