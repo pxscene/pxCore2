@@ -1,5 +1,4 @@
 exit 0;
-
 #!/bin/sh
 
 checkError()
