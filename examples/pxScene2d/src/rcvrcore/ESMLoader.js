@@ -474,6 +474,18 @@ function ESMLoader(params) {
       (async () => {
         let instantiated = false;
         try {
+          if (loadCtx._frameworkURL) {
+            const url2 = filename2url(loadCtx._frameworkURL);
+            const loc2 = /^file:/.test(url2) ? url2.substring(7) : url2;
+            const source2 = await getFile(loadCtx.global.sparkscene,url2);
+            // use paths for frameworkURL
+            loadCtx.sandbox.require = loadCtx.makeRequire(loc2).bind(loadCtx);
+            loadCtx.sandbox['__dirname'] = path.dirname(loc2);
+            vm.runInContext(source2, loadCtx.contextifiedSandbox, {filename:loc2});
+            // restore previous values
+            loadCtx.sandbox.require = loadCtx.makeRequire(loc).bind(loadCtx);
+            loadCtx.sandbox['__dirname'] = path.dirname(loc);
+          }
           var source = await getFile(loadCtx.global.sparkscene, url);
           loadCtx.app = await loadMjs(source, url, loadCtx.contextifiedSandbox, loadCtx.modmap);
           source = null;
@@ -483,6 +495,19 @@ function ESMLoader(params) {
           loadCtx.makeReady(true, loadCtx.app.namespace);
           loadCtx.global.beginDrawing();
           await loadCtx.app.evaluate();
+
+          if (typeof loadCtx.app.namespace.default === 'function') {
+            try {
+              if (params._options) {
+                new loadCtx.app.namespace.default(params._options);
+              } else {
+                new loadCtx.app.namespace.default();
+              }
+            } catch (err) {
+              console.log(err);
+            }
+          }
+
           loadCtx.global.endDrawing();
         } catch (err) {
           console.log("load mjs module failed ");
