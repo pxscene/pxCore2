@@ -44,6 +44,9 @@ extern const char* vShaderText;
 pxShaderResource::pxShaderResource()
 : pxResource(), mIsRealTime(false), mNeedsFbo(false), mPasses(1), mSamplerCount(3)
 {
+    printf("Debug empty constructor [%p]\n", this);
+  fflush(stdout);
+
   mFragmentUrl = NULL;
   mVertexUrl   = NULL;
 }
@@ -53,6 +56,9 @@ pxShaderResource::pxShaderResource(const char* fragmentUrl, const char* vertexUr
 
   : pxResource(), mIsRealTime(false), mNeedsFbo(false), mPasses(1), mSamplerCount(3)
 {
+    printf("Debug arg constructor [%p]\n", this);
+  fflush(stdout);
+
   mFragmentUrl = fragmentUrl;
   mVertexUrl   = vertexUrl;
 }
@@ -60,6 +66,9 @@ pxShaderResource::pxShaderResource(const char* fragmentUrl, const char* vertexUr
 pxShaderResource::~pxShaderResource()
 {
   rtLogDebug("~pxShaderResource()");
+      printf("Debug empty destructor [%p]\n", this);
+  fflush(stdout);
+
   printf("Debug [%s] \n", (char*)0x96);
   fflush(stdout);
 }
