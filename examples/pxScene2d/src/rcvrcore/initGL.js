@@ -51,7 +51,6 @@ var Buffer = require('buffer').Buffer
 var cachedSource = {}
 
 var sandboxKeys = ["vm", "process", "setTimeout", "console", "clearTimeout", "setInterval", "clearInterval", "setImmediate", "clearImmediate", "sparkview", "sparkscene", "sparkgles2", "beginDrawing", "endDrawing", "sparkwebgl", "sparkkeys", "sparkQueryParams", "require", "localStorage", "sparkHttp"]
-var __dirname = process.cwd()
 
 // Spark node-like module loader
 const makeRequire = function(pathToParent) {
@@ -380,7 +379,8 @@ function LightningApp(params) {
   }
 
   this.bootStrapCache = {}
-  this.bootStrapCache[_module._resolveFilename('ws', {paths:[__dirname].concat(_module._nodeModulePaths(__dirname))})] = function WebSocket(address, protocols, options) {
+  const cwd = process.cwd();
+  this.bootStrapCache[_module._resolveFilename('ws', {paths:[cwd].concat(_module._nodeModulePaths(cwd))})] = function WebSocket(address, protocols, options) {
     let client = new _ws(address, protocols, options);
     _websockets.push(client);
     client.on('close', () => {
