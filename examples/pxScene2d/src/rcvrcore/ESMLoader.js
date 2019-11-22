@@ -433,8 +433,8 @@ var linker = async function (specifier, referencingModule) {
   }
 }
 
-var importModuleDynamically = async function (specifier, { url }) {
-  var mod = await getModule(specifier,{ url });
+var importModuleDynamically = async function (specifier, referencingModule) {
+  var mod = await getModule(specifier,referencingModule);
   mod.instantiate();
   await mod.evaluate();
   return mod;
