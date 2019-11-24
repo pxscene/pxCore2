@@ -62,11 +62,14 @@ then
   brew install libuv
   brew install xmlto
   brew install pkg-config glfw3 glew
-  
-  brew install openssl
-  brew link openssl --force
-  brew uninstall python
-  brew install python --with-brewed-openssl
+  echo "About to install openssl ............."
+  ln -s /usr/local/opt/openssl/lib/libcrypto.1.0.0.dylib /usr/local/lib/
+  ln -s /usr/local/opt/openssl/lib/libssl.1.0.0.dylib /usr/local/lib/
+  #brew uninstall --ignore-dependencies python
+  #brew install openssl
+  #brew link openssl --force
+  #brew uninstall python
+  #brew install python --with-brewed-openssl
   sudo /usr/sbin/DevToolsSecurity --enable
   lldb --version
   lldb --help
@@ -136,9 +139,11 @@ then
 	then
 		sudo apt-get install python-pip
 	fi
-	sudo pip install codecov
-        brew uninstall openssl
-        codecov
+	sudo LD_LIBRARY_PATH=/usr/local/opt/openssl/lib pip install codecov
+  #rm -rf /usr/local/opt/openssl/lib/libcrypto.1.0.0.dylib
+  #rm -rf /usr/local/opt/openssl/lib/libssl.1.0.0.dylib
+  #brew uninstall openssl
+  codecov
 fi
 
 #setup spark externals repo
