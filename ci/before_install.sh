@@ -127,11 +127,12 @@ then
 	then
 		git clone https://github.com/pypa/pip 
 		sudo easy_install pip
+    sudo pip3 install codecov
 	elif [ "$TRAVIS_OS_NAME" = "linux" ] ;
 	then
 		sudo apt-get install python-pip
+    sudo pip install codecov
 	fi
-  sudo pip3 install codecov
 fi
 
 #setup spark externals repo
