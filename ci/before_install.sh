@@ -63,6 +63,7 @@ then
   brew install xmlto
   brew install pkg-config glfw3 glew
   echo "About to install openssl ............."
+  brew install python@2
   #ln -s /usr/local/opt/openssl/lib/libcrypto.1.0.0.dylib /usr/local/lib/
   #ln -s /usr/local/opt/openssl/lib/libssl.1.0.0.dylib /usr/local/lib/
   #brew uninstall --ignore-dependencies python
@@ -70,12 +71,12 @@ then
   #brew link openssl --force
   #brew uninstall python
   #brew install python --with-brewed-openssl
-  brew update    
-  brew install openssl    
-  ln -s /usr/local/opt/openssl/lib/libcrypto.1.0.0.dylib /usr/local/lib/    
-  ln -s /usr/local/opt/openssl/lib/libssl.1.0.0.dylib /usr/local/lib/
-  brew uninstall python
-  brew install python --with-brewed-openssl
+  #brew update    
+  #brew install openssl    
+  #ln -s /usr/local/opt/openssl/lib/libcrypto.1.0.0.dylib /usr/local/lib/    
+  #ln -s /usr/local/opt/openssl/lib/libssl.1.0.0.dylib /usr/local/lib/
+  #brew uninstall python
+  #brew install python --with-brewed-openssl
 
   sudo /usr/sbin/DevToolsSecurity --enable
   lldb --version
