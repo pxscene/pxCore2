@@ -63,7 +63,7 @@ then
   brew install xmlto
   brew install pkg-config glfw3 glew
   echo "About to install openssl ............."
-  brew install python@2
+  #brew install python@2
   #ln -s /usr/local/opt/openssl/lib/libcrypto.1.0.0.dylib /usr/local/lib/
   #ln -s /usr/local/opt/openssl/lib/libssl.1.0.0.dylib /usr/local/lib/
   #brew uninstall --ignore-dependencies python
@@ -148,7 +148,7 @@ then
 		sudo apt-get install python-pip
 	fi
 	#sudo LD_LIBRARY_PATH=/usr/local/opt/openssl/lib pip install codecov
-  sudo pip install codecov
+  sudo pip3 install codecov
   #rm -rf /usr/local/opt/openssl/lib/libcrypto.1.0.0.dylib
   #rm -rf /usr/local/opt/openssl/lib/libssl.1.0.0.dylib
   #brew uninstall openssl
