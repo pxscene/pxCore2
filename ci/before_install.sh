@@ -56,12 +56,17 @@ if [ "$TRAVIS_OS_NAME" = "osx" ] ;
 then
   brew update;
   #brew upgrade cmake;
-  brew install yasm bison flex python
+  brew install yasm bison flex 
   ln -sf /usr/local/opt/bison/bin/bison /usr/local/bin/bison
   brew install quilt
   brew install libuv
   brew install xmlto
   brew install pkg-config glfw3 glew
+  
+  brew install openssl
+  brew link openssl --force
+  brew uninstall python
+  brew install python --with-brewed-openssl
   sudo /usr/sbin/DevToolsSecurity --enable
   lldb --version
   lldb --help
@@ -132,6 +137,8 @@ then
 		sudo apt-get install python-pip
 	fi
 	sudo pip install codecov
+        brew uninstall openssl
+        codecov
 fi
 
 #setup spark externals repo

@@ -1,4 +1,5 @@
 #!/bin/sh
+exit 0;
 
 EXECLOGS=$TRAVIS_BUILD_DIR/logs/exec_logs
 
