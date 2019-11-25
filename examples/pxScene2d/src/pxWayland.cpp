@@ -150,12 +150,16 @@ pxWayland::~pxWayland()
 
 void pxWayland::setEvents(pxWaylandEvents *events)
 {
+  if (!events)
+    mEvents = events;
+
   if (gUIThreadQueue)
   {
     gUIThreadQueue->removeAllTasksForObject(this);
   }
 
-  mEvents = events;
+  if (events)
+    mEvents = events;
 }
 
 rtError pxWayland::displayName(rtString& s) const { s = mDisplayName; return RT_OK; }
