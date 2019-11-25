@@ -485,6 +485,13 @@ pxError pxWindow::init(int left, int top, int width, int height)
                     error= true;
                 }
             }
+            else if (!error && gDisplayWidth > 0 && gDisplayHeight > 0 )
+            {
+              if ( !EssContextSetInitialWindowSize( d->ctx, gDisplayWidth, gDisplayHeight) )
+              {
+                error= true;
+              }
+            }
             if ( error )
             {
                 const char *detail= EssContextGetLastErrorDetail( d->ctx );
