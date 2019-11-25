@@ -570,7 +570,8 @@ public:
 
   rtError releaseResources()
   {
-     dispose(true);
+     // avoid javascript execution on dispose
+     dispose(false);
      return RT_OK;
   }
 
