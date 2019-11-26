@@ -71,7 +71,8 @@ void _CheckGLError(const char* file, int line)
     return;
 }
 
-pxWebgl::pxWebgl(pxScene2d* scene):pxObject(scene)
+pxWebgl::pxWebgl(pxScene2d* scene):pxObject(scene), pixelStorei_UNPACK_FLIP_Y_WEBGL(0), pixelStorei_UNPACK_PREMULTIPLY_ALPHA_WEBGL(0),
+          pixelStorei_UNPACK_FLIP_BLUE_RED(0), mInitialFrameBuffer (0)
 {
 }
 
