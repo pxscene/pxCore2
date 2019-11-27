@@ -27,7 +27,7 @@ extern pxContext context;
 //pxTextLine
 pxTextLine::pxTextLine(const char* text, uint32_t x, uint32_t y)
         : pixelSize(10)
-        , color(0xFFFFFFFF)
+        , color(0xFFFFFFFF), alignHorizontal(0), textBaseline(0), translateX(0), translateY(0)
 {
     this->text = text;
     this->x = x;
