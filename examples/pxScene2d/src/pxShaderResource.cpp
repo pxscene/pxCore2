@@ -489,16 +489,7 @@ void pxShaderResource::loadResourceFromFile()
   else
   {
     loadFrgShader = RT_RESOURCE_NOT_FOUND;
-
-    //rtLogWarn("shader load failed"); // TODO: why?
-    if (loadFrgShader == RT_RESOURCE_NOT_FOUND)
-    {
-      setLoadStatus("statusCode",PX_RESOURCE_STATUS_FILE_NOT_FOUND);
-    }
-    else
-    {
-      setLoadStatus("statusCode", PX_RESOURCE_STATUS_DECODE_FAILURE);
-    }
+    setLoadStatus("statusCode",PX_RESOURCE_STATUS_FILE_NOT_FOUND);
 
     if (gUIThreadQueue)
     {

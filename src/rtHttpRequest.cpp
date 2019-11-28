@@ -329,15 +329,15 @@ void rtHttpRequest::onDownloadCompleteAndRelease(rtFileDownloadRequest* download
 
   if (req != NULL && req->delayReply())
   {
-    rtHttpResponse* resp = new rtHttpResponse();
-
-    resp->setStatusCode((int32_t)downloadRequest->httpStatusCode());
-    resp->setErrorMessage(downloadRequest->errorString());
-    resp->setHeaders(downloadRequest->headerData(), downloadRequest->headerDataSize());
-    resp->setDownloadedData(downloadRequest->downloadedData(), downloadRequest->downloadedDataSize());
-
     if (gUIThreadQueue)
     {
+      //resp's memory is managed in onDownloadComplete (set to rtObjectRef)
+      rtHttpResponse* resp = new rtHttpResponse();
+
+      resp->setStatusCode((int32_t)downloadRequest->httpStatusCode());
+      resp->setErrorMessage(downloadRequest->errorString());
+      resp->setHeaders(downloadRequest->headerData(), downloadRequest->headerDataSize());
+      resp->setDownloadedData(downloadRequest->downloadedData(), downloadRequest->downloadedDataSize());
       gUIThreadQueue->addTask(onDownloadComplete, req, resp);
     }
   }
