@@ -121,6 +121,7 @@ rtEmitRef pxScriptView::mEmit = new rtEmit();
 
 rtRef<rtFunctionCallback> pxScriptView::mSparkHttp = NULL;
 rtString pxScriptView::mSparkGlInitApp;
+rtString pxScriptView::mSparkInitApp;
 
 
 #ifdef PXSCENE_SUPPORT_STORAGE
@@ -3339,9 +3340,16 @@ void pxScriptView::runScript()
     }
     else
     {
-      rtString s = getenv("SPARK_PATH");
-      s.append("init.js");
-      mCtx->runFile(s.cString());
+      // compile init.js
+      if (mSparkInitApp.isEmpty())
+      {
+        rtString s = getenv("SPARK_PATH");
+        s.append("init.js");
+        rtData initData;
+        rtError e = rtLoadFile(s.cString(), initData);
+        mSparkInitApp = rtString((char*)initData.data(), (size_t)initData.length());
+      }
+      mCtx->runScript(mSparkInitApp.cString());
 
       rtString url = mUrl;
       if (mBootstrap)

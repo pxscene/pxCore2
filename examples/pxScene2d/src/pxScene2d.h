@@ -734,6 +734,7 @@ protected:
 
   static rtRef<rtFunctionCallback> mSparkHttp;
   static rtString mSparkGlInitApp;
+  static rtString mSparkInitApp;
 
   pxContextFramebufferRef cached;
   pxContextFramebufferRef previousSurface;
