@@ -1150,8 +1150,8 @@ rtError rtScriptNode::pump()
     v8::platform::PumpMessageLoop(mPlatform, mIsolate);
 #endif //USE_NODE_PLATFORM
 #endif //ENABLE_NODE_V_6_9
-    uv_run(uv_default_loop(), UV_RUN_NOWAIT);//UV_RUN_ONCE);
     mIsolate->RunMicrotasks();
+    uv_run(uv_default_loop(), UV_RUN_NOWAIT);//UV_RUN_ONCE);
 #ifdef USE_NODE_PLATFORM
     node::MultiIsolatePlatform* platform = static_cast<node::MultiIsolatePlatform*>(mPlatform);
     platform->DrainBackgroundTasks(mIsolate);
