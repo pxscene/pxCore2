@@ -556,10 +556,10 @@ void ConcurrentMarking::Run(int task_id, TaskState* task_state) {
         if (new_space_top <= addr && addr < new_space_limit) {
           on_hold_->Push(task_id, object);
         } else {
-          printf("Madana before printing [%p]\n", this); fflush(stdout);
-          printf("Madana before sychronized map access [%p] \n", object); fflush(stdout);
+          //printf("Madana before printing [%p]\n", this); fflush(stdout);
+          //printf("Madana before sychronized map access [%p] \n", object); fflush(stdout);
           Map* map = object->synchronized_map();
-          printf("Madana before sychronized map access prints [%p] \n", map); fflush(stdout);
+          //printf("Madana before sychronized map access prints [%p] \n", map); fflush(stdout);
           current_marked_bytes += visitor.Visit(map, object);
         }
       }
