@@ -966,13 +966,18 @@ rtError rtNodeContext::runScript(const char* script, rtValue* retVal /*= NULL*/,
 
 static std::string readFile(const char *file)
 {
-  std::ifstream       src_file(file);
-  std::stringstream   src_script;
+  std::string s("");
+  try {
+    std::ifstream       src_file(file);
+    std::stringstream   src_script;
 
-  src_script << src_file.rdbuf(); // slurp up file
+    src_script << src_file.rdbuf(); // slurp up file
 
-  std::string s = src_script.str();
-
+    s = src_script.str();
+  }
+  catch (std::ifstream::failure e) {
+    rtLogError("Exception opening/reading/closing file [%s]\n", e.what());
+  }
   return s;
 }
 
