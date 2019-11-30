@@ -740,6 +740,7 @@ rtFileDownloader::~rtFileDownloader()
     CURL *curlHandle = (*it).curlHandle;
     if (curlHandle != NULL)
     {
+      printf("Madana cleaning up [%p] \n", curlHandle); fflush(stdout);
       curl_easy_cleanup(curlHandle);
     }
     it = mDownloadHandles.erase(it);
@@ -1825,6 +1826,7 @@ void rtFileDownloader::releaseDownloadHandle(CURL* curlHandle, double expiresTim
     static int numberOfDownloadHandles = rtThreadPool::globalInstance()->numberOfThreadsInPool();
     if(!mReuseDownloadHandles || mDownloadHandles.size() >= numberOfDownloadHandles || (expiresTime == 0))
     {
+      printf("Madana cleaning up from release [%p] \n", curlHandle); fflush(stdout);
       curl_easy_cleanup(curlHandle);
     }
     else
@@ -1837,6 +1839,7 @@ void rtFileDownloader::releaseDownloadHandle(CURL* curlHandle, double expiresTim
     }
     downloadHandleMutex.unlock();
 #else
+      printf("Madana cleaning up from release1 [%p] \n", curlHandle); fflush(stdout);
     curl_easy_cleanup(curlHandle);
 #endif //PX_REUSE_DOWNLOAD_HANDLES
 }
@@ -1953,6 +1956,7 @@ void rtFileDownloader::checkForExpiredHandles()
     else if (pxSeconds() > fileDownloadHandle.expiresTime)
     {
       rtLogDebug("erasing handle!!!\n");
+      printf("Madana checkForExpiredHandles [%p] \n", fileDownloadHandle.curlHandle); fflush(stdout);
       curl_easy_cleanup(fileDownloadHandle.curlHandle);
       it = mDownloadHandles.erase(it);
     }
