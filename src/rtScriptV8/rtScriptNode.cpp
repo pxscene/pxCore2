@@ -978,6 +978,9 @@ static std::string readFile(const char *file)
   catch (std::ifstream::failure e) {
     rtLogError("Exception opening/reading/closing file [%s]\n", e.what());
   }
+  catch(...) {
+    rtLogError("Exception opening/reading/closing file \n");
+  }
   return s;
 }
 
