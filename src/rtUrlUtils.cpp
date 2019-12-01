@@ -47,7 +47,6 @@ rtString rtUrlEscape(const char* s)
         t = escaped;
         curl_free(escaped);
       }
-      printf("Madana urlescape [%p] \n", curl); fflush(stdout);
       curl_easy_cleanup(curl);
     }
   }
@@ -98,7 +97,6 @@ rtString rtUrlEncodeParameters(const char* url)
     }
     if (curl)
     {
-      printf("Madana url encode parameters [%p] \n", curl); fflush(stdout);
       curl_easy_cleanup(curl);
     }
   }
