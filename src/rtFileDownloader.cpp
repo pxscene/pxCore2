@@ -740,6 +740,7 @@ rtFileDownloader::~rtFileDownloader()
     CURL *curlHandle = (*it).curlHandle;
     if (curlHandle != NULL)
     {
+      printf("Madana cleaning up ... [%p] \n", curlHandle); fflush(stdout);
       curl_easy_cleanup(curlHandle);
     }
     it = mDownloadHandles.erase(it);
@@ -792,7 +793,7 @@ void rtFileDownloader::deleteInstance()
 bool rtFileDownloader::addToDownloadQueue(rtFileDownloadRequest* downloadRequest)
 {
     bool submitted = false;
-    //todo: check the download queue before starting download
+    //todo: check t~rthe download queue before starting download
     submitted = true;
     addFileDownloadRequest(downloadRequest);
     downloadFileInBackground(downloadRequest);
