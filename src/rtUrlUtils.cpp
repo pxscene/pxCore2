@@ -97,7 +97,7 @@ rtString rtUrlEncodeParameters(const char* url)
     }
     if (curl)
       curl_easy_cleanup(curl);
-   }
+  }
   else {
     retVal = url;
   }
