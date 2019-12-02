@@ -740,7 +740,6 @@ rtFileDownloader::~rtFileDownloader()
     CURL *curlHandle = (*it).curlHandle;
     if (curlHandle != NULL)
     {
-      printf("Madana cleaning up ... [%p] \n", curlHandle); fflush(stdout);
       curl_easy_cleanup(curlHandle);
     }
     it = mDownloadHandles.erase(it);
