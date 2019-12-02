@@ -792,7 +792,7 @@ void rtFileDownloader::deleteInstance()
 bool rtFileDownloader::addToDownloadQueue(rtFileDownloadRequest* downloadRequest)
 {
     bool submitted = false;
-    //todo: check t~rthe download queue before starting download
+    //todo: check the download queue before starting download
     submitted = true;
     addFileDownloadRequest(downloadRequest);
     downloadFileInBackground(downloadRequest);
