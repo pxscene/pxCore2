@@ -740,7 +740,6 @@ rtFileDownloader::~rtFileDownloader()
     CURL *curlHandle = (*it).curlHandle;
     if (curlHandle != NULL)
     {
-      printf("Madana Gopal rtFileDownloader destructor [%p] \n", curlHandle); fflush(stdout);
       curl_easy_cleanup(curlHandle);
     }
     it = mDownloadHandles.erase(it);
@@ -1952,7 +1951,6 @@ void rtFileDownloader::checkForExpiredHandles()
     else if (pxSeconds() > fileDownloadHandle.expiresTime)
     {
       rtLogDebug("erasing handle!!!\n");
-      printf("Madana Gopal checkForExpiredHandles [%p] \n", fileDownloadHandle.curlHandle); fflush(stdout);
       curl_easy_cleanup(fileDownloadHandle.curlHandle);
       it = mDownloadHandles.erase(it);
     }

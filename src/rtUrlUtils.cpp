@@ -47,7 +47,6 @@ rtString rtUrlEscape(const char* s)
         t = escaped;
         curl_free(escaped);
       }
-      printf("Madana Gopal rtUrlEscape [%p] \n", curl); fflush(stdout);
       curl_easy_cleanup(curl);
     }
   }
@@ -98,7 +97,6 @@ rtString rtUrlEncodeParameters(const char* url)
     }
     if (curl)
     {
-      printf("Madana Gopal rtUrlEncodeParameters [%p] \n", curl); fflush(stdout);
       curl_easy_cleanup(curl);
     }
   }
