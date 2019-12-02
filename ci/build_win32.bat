@@ -45,6 +45,7 @@ cd "%BASE_DIR%"
 md build-win32
 cd build-win32
 set addVer=False
+set uploadArtifact=False
 @rem build Spark
 if "%APPVEYOR_SCHEDULED_BUILD%"=="True" (
   echo "building edge"
