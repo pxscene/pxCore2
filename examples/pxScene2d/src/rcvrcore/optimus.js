@@ -216,7 +216,8 @@ function Application(props) {
       return false;
     }
     
-    var ret = _externalApp.suspend(o);
+    var ret = true;
+    _externalApp.suspend(o);
       
     if (ret === true) {
       _state = ApplicationState.SUSPENDED;
@@ -297,7 +298,7 @@ function Application(props) {
   
   // Resumes a suspended application. Returns true if the application was resumed, or false otherwise
   this.resume = function(o) {
-    var ret;
+    var ret = true;
     if (_state === ApplicationState.DESTROYED){
       this.log("resume on already destroyed app");
       return false;
@@ -312,7 +313,7 @@ function Application(props) {
       this.applicationResumed();
       return false;
     }
-    ret = _externalApp.resume(o);
+    _externalApp.resume(o);
     if (ret === true) {
       _state = ApplicationState.RUNNING;
       this.applicationResumed();
