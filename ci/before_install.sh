@@ -56,7 +56,7 @@ if [ "$TRAVIS_OS_NAME" = "osx" ] ;
 then
   brew update;
   #brew upgrade cmake;
-  brew install yasm bison flex python
+  brew install yasm bison flex 
   ln -sf /usr/local/opt/bison/bin/bison /usr/local/bin/bison
   brew install quilt
   brew install libuv
@@ -127,11 +127,12 @@ then
 	then
 		git clone https://github.com/pypa/pip 
 		sudo easy_install pip
+    sudo pip3 install codecov
 	elif [ "$TRAVIS_OS_NAME" = "linux" ] ;
 	then
 		sudo apt-get install python-pip
+    sudo pip install codecov
 	fi
-	sudo pip install codecov
 fi
 
 #setup spark externals repo
