@@ -1824,7 +1824,6 @@ void rtFileDownloader::releaseDownloadHandle(CURL* curlHandle, double expiresTim
     static int numberOfDownloadHandles = rtThreadPool::globalInstance()->numberOfThreadsInPool();
     if(!mReuseDownloadHandles || mDownloadHandles.size() >= numberOfDownloadHandles || (expiresTime == 0))
     {
-      printf("Madana Gopal releaseDownloadHandle [%p] \n", curlHandle); fflush(stdout);
       curl_easy_cleanup(curlHandle);
     }
     else
@@ -1837,7 +1836,6 @@ void rtFileDownloader::releaseDownloadHandle(CURL* curlHandle, double expiresTim
     }
     downloadHandleMutex.unlock();
 #else
-    printf("Madana Gopal releaseDownloadHandle 1 [%p] \n", curlHandle); fflush(stdout);
     curl_easy_cleanup(curlHandle);
 #endif //PX_REUSE_DOWNLOAD_HANDLES
 }
