@@ -96,10 +96,8 @@ rtString rtUrlEncodeParameters(const char* url)
       curl_free(output);
     }
     if (curl)
-    {
       curl_easy_cleanup(curl);
-    }
-  }
+   }
   else {
     retVal = url;
   }
