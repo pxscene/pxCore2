@@ -1647,7 +1647,6 @@ bool rtFileDownloader::downloadFromNetwork(rtFileDownloadRequest* downloadReques
         memset(errorMessage, 0, sizeof(errorMessage));
         sprintf(errorMessage, "Download error for:%s. Error code:%d. %s",downloadRequest->fileUrl().cString(), res, proxyMessage.cString());
         downloadRequest->setErrorString(errorMessage);
-        printf("calling releaseDownloadHandle [%p] \n", curl_handle); fflush(stdout);
         rtFileDownloader::instance()->releaseDownloadHandle(curl_handle, downloadHandleExpiresTime, origin);
 
         //clean up contents on error
