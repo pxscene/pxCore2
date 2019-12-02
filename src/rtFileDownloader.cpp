@@ -1647,6 +1647,7 @@ bool rtFileDownloader::downloadFromNetwork(rtFileDownloadRequest* downloadReques
         memset(errorMessage, 0, sizeof(errorMessage));
         sprintf(errorMessage, "Download error for:%s. Error code:%d. %s",downloadRequest->fileUrl().cString(), res, proxyMessage.cString());
         downloadRequest->setErrorString(errorMessage);
+        printf("Madana releasing download handle [%p] [%d] \n", curl_handle, downloadHandleExpiresTime); fflush(stdout);
         rtFileDownloader::instance()->releaseDownloadHandle(curl_handle, downloadHandleExpiresTime, origin);
 
         //clean up contents on error
@@ -1823,6 +1824,7 @@ void rtFileDownloader::releaseDownloadHandle(CURL* curlHandle, double expiresTim
     static int numberOfDownloadHandles = rtThreadPool::globalInstance()->numberOfThreadsInPool();
     if(!mReuseDownloadHandles || mDownloadHandles.size() >= numberOfDownloadHandles || (expiresTime == 0))
     {
+      printf("calling easy cleanup [%p] \n", curlHandle); fflush(stdout);
       curl_easy_cleanup(curlHandle);
     }
     else
