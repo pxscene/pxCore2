@@ -1824,7 +1824,6 @@ void rtFileDownloader::releaseDownloadHandle(CURL* curlHandle, double expiresTim
     static int numberOfDownloadHandles = rtThreadPool::globalInstance()->numberOfThreadsInPool();
     if(!mReuseDownloadHandles || mDownloadHandles.size() >= numberOfDownloadHandles || (expiresTime == 0))
     {
-      printf("calling easy cleanup [%p] \n", curlHandle); fflush(stdout);
       curl_easy_cleanup(curlHandle);
     }
     else
