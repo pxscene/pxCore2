@@ -69,7 +69,7 @@ public:
     : rtHttpRequest(options)
   { }
 
-  void onDownloadComplete(rtFileDownloadRequest* downloadRequest) override
+  void onDownloadCompleteImpl(rtFileDownloadRequest* downloadRequest) final
   {
     AddRef();
     if (!downloadRequest->errorString().isEmpty()) {
