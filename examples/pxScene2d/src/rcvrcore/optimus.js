@@ -210,7 +210,7 @@ function Application(props) {
       return false;
     }
     if (_this.type === ApplicationType.WEB){
-      if (_browser !== undefined){
+      if (_browser !== undefined && _browser.suspend){
          _this.log("Suspending Web app");
         _browser.suspend();
         _state = ApplicationState.SUSPENDED;
@@ -318,7 +318,7 @@ function Application(props) {
       return false;
     }
     if (this.type === ApplicationType.WEB){
-      if (_browser !== undefined){
+      if (_browser !== undefined && _browser.resume){
          this.log("Resuming Web app");
         _browser.resume();
         _state = ApplicationState.RUNNING;
