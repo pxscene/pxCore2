@@ -95,10 +95,10 @@ pxEventLoop* gLoop = &eventLoop;
 
 pxContext context;
 #ifdef ENABLE_DEBUG_MODE
+#ifdef RTSCRIPT_SUPPORT_NODE
 extern int g_argc;
 extern char** g_argv;
-char *nodeInput = NULL;
-char** g_origArgv = NULL;
+#endif
 #endif
 bool gDumpMemUsage = false;
 extern bool gApplicationIsClosing;
@@ -286,10 +286,6 @@ protected:
   #ifndef RUNINMAIN
    script.setNeedsToEnd(true);
   #endif
-  #ifdef ENABLE_DEBUG_MODE
-    free(g_origArgv);
-  #endif
-
     rtLogInfo("about to clear all the fonts during close");
     fflush(stdout);
     pxFontManager::clearAllFonts();
@@ -671,58 +667,9 @@ if (s && (strcmp(s,"1") == 0))
 
 #ifdef ENABLE_DEBUG_MODE
 #ifdef RTSCRIPT_SUPPORT_NODE
-  bool isDebugging = false;
-
-  g_argv = (char**)malloc((argc+2) * sizeof(char*));
-  g_origArgv = g_argv;
-  int size  = 0;
-  for (int i=1;i<argc;i++)
-  {
-    if (strncmp(argv[i], "--", 2) == 0)
-    {
-      if (strncmp(argv[i], "--debug", 7) == 0)
-      {
-        isDebugging = true;
-      }
-      size += strlen(argv[i])+1;
-    }
-  }
-  if (isDebugging == true)
-  {
-    nodeInput = (char *)malloc(size+8);
-    memset(nodeInput,0,size+8);
-  }
-  else
-  {
-    nodeInput = (char *)malloc(size+46);
-    memset(nodeInput,0,size+46);
-  }
-  int curpos = 0;
-  strcpy(nodeInput,"pxscene\0");
-  g_argc  = 0;
-  g_argv[g_argc++] = &nodeInput[0];
-  curpos += 8;
-
-  for (int i=1;i<argc;i++)
-  {
-    if (strncmp(argv[i], "--", 2) == 0)
-    {
-        strcpy(nodeInput+curpos,argv[i]);
-        *(nodeInput+curpos+strlen(argv[i])) = '\0';
-        g_argv[g_argc++] = &nodeInput[curpos];
-        curpos = curpos + (int) strlen(argv[i]) + 1;
-    }
-  }
-  if (false == isDebugging)
-  {
-      strcpy(nodeInput+curpos,"-e\0");
-      g_argv[g_argc++] = &nodeInput[curpos];
-      curpos = curpos + 3;
-      strcpy(nodeInput+curpos,"console.log(\"rtNode Initialized\");\0");
-      g_argv[g_argc++] = &nodeInput[curpos];
-      curpos = curpos + 35;
-  }
-  #endif
+  g_argv = argv;
+  g_argc = argc;
+#endif
 #endif
 
 #ifdef RUNINMAIN

@@ -227,13 +227,6 @@ public:
   rtError collectGarbage();
   void* getParameter(rtString param);
 private:
-#if 0
-#ifdef ENABLE_DEBUG_MODE
-  void init();
-#else
-  void init(int argc, char** argv);
-#endif
-#endif
 
   rtError term();
 
@@ -256,11 +249,7 @@ private:
 #ifndef RUNINMAIN
   bool mNeedsToEnd;
 #endif
-#ifdef ENABLE_DEBUG_MODE
-  void init2();
-#else
   void init2(int argc, char** argv);
-#endif
 
   int mRefCount;
 };
@@ -292,10 +281,10 @@ using namespace node;
 #ifdef ENABLE_DEBUG_MODE
 int g_argc = 0;
 char** g_argv;
+char* g_debugArgStr = NULL;
+char** g_debugArgv = NULL;
 #endif
-#ifndef ENABLE_DEBUG_MODE
 extern args_t *s_gArgs;
-#endif
 namespace node
 {
 #if NODE_VERSION_AT_LEAST(8,9,4)
@@ -416,13 +405,8 @@ void rtNodeContext::createEnvironment()
                            uv_default_loop(),
 #endif
                            local_context,
-#ifdef ENABLE_DEBUG_MODE
-                           g_argc,
-                           g_argv,
-#else
                            s_gArgs->argc,
                            s_gArgs->argv,
-#endif
                            exec_argc,
                            exec_argv);
 
@@ -521,13 +505,8 @@ void rtNodeContext::createEnvironment()
   mEnv = CreateEnvironment(mIsolate,
                            uv_default_loop(),
                            local_context,
-#ifdef ENABLE_DEBUG_MODE
-                           g_argc,
-                           g_argv,
-#else
                            s_gArgs->argc,
                            s_gArgs->argv,
-#endif
                            exec_argc,
                            exec_argv);
 
@@ -968,11 +947,8 @@ static std::string readFile(const char *file)
 {
   std::ifstream       src_file(file);
   std::stringstream   src_script;
-
   src_script << src_file.rdbuf(); // slurp up file
-
   std::string s = src_script.str();
-
   return s;
 }
 
@@ -1072,10 +1048,67 @@ rtError rtScriptNode::init()
 #endif // ENABLE_NODE_V_6_9
 #else
 #ifdef ENABLE_NODE_V_6_9
-#ifndef ENABLE_DEBUG_MODE
+#ifdef ENABLE_DEBUG_MODE
+   char** argv2 = NULL;
+   int numargs = 0, paramindex=0, curpos=0, cmdlinesize=0;
+   bool isDebugging = false;
+   for (int i=1;i<g_argc;i++)
+   {
+     if (strncmp(g_argv[i], "--", 2) == 0)
+     {
+       if (strncmp(g_argv[i], "--debug", 7) == 0)
+       {
+         isDebugging = true;
+       }
+       cmdlinesize += strlen(g_argv[i])+1;
+       numargs++;
+     }
+   }
+   argv2 = (char**)malloc((numargs+4) * sizeof(char*));
+   g_debugArgv = argv2;
+
+   if (false == isDebugging)
+   {
+     g_debugArgStr = (char *)malloc(cmdlinesize+71);
+     memset(g_debugArgStr,0,cmdlinesize+71);
+     numargs += 4;
+   }
+   else
+   {
+     g_debugArgStr = (char *)malloc(cmdlinesize+33);
+     memset(g_debugArgStr,0,cmdlinesize+33);
+     numargs += 2;
+   }
+   strcpy(g_debugArgStr,"rtNode\0");
+   argv2[paramindex++] = &g_debugArgStr[curpos];
+   curpos += 7;
+   strcpy(g_debugArgStr+curpos,"--experimental-vm-modules\0");
+   argv2[paramindex++] = &g_debugArgStr[curpos];
+   curpos += 26;
+   //populate args from user
+   for (int i=1;i<g_argc;i++)
+   {
+     if (strncmp(g_argv[i], "--", 2) == 0)
+     {
+         strcpy(g_debugArgStr+curpos,g_argv[i]);
+         *(g_debugArgStr+curpos+strlen(g_argv[i])) = '\0';
+         argv2[paramindex++] = &g_debugArgStr[curpos];
+         curpos = curpos + (int) strlen(g_argv[i]) + 1;
+     }
+   }
+   if (false == isDebugging)
+   {
+       strcpy(g_debugArgStr+curpos,"-e\0");
+       argv2[paramindex++] = &g_debugArgStr[curpos];
+       curpos = curpos + 3;
+       strcpy(g_debugArgStr+curpos,"console.log(\"rtNode Initialized\");\0");
+       argv2[paramindex++] = &g_debugArgStr[curpos];
+       curpos = curpos + 35;
+   }
+#else
    static const char *args2   = "rtNode\0--experimental-vm-modules\0-e\0console.log(\"rtNode Initalized\");\0\0";
    static const char *argv2[] = {&args2[0], &args2[7], &args2[33], &args2[36], NULL};
-#endif //!ENABLE_DEBUG_MODE
+#endif //ENABLE_DEBUG_MODE
 #else
   static const char *args2   = "rtNode\0--experimental-vm-modules\0--expose-gc\0-e\0console.log(\"rtNode Initalized\");\0\0";
   static const char *argv2[] = {&args2[0], &args2[7], &args2[33], &args2[45], &args2[48], NULL};
@@ -1084,13 +1117,15 @@ rtError rtScriptNode::init()
 #ifndef ENABLE_DEBUG_MODE
   int          argc   = sizeof(argv2)/sizeof(char*) - 1;
 
-  static args_t aa(argc, (char**)argv2);
-
-  s_gArgs = &aa;
-
-
-  char **argv = aa.argv;
+#else
+  int          argc   = numargs;
 #endif
+static args_t aa(argc, (char**)argv2);
+
+s_gArgs = &aa;
+
+
+char **argv = aa.argv;
 
 #ifdef RUNINMAIN
 #ifdef WIN32
@@ -1104,20 +1139,11 @@ rtError rtScriptNode::init()
 
 #ifdef ENABLE_NODE_V_6_9
   rtLogWarn("rtNode::rtNode() calling init \n");
-#ifdef ENABLE_DEBUG_MODE
-  init2();
-#else
   init2(argc, argv);
-#endif
 #else
   mIsolate     = Isolate::New();
   node_isolate = mIsolate; // Must come first !!
-
-#ifdef ENABLE_DEBUG_MODE
-  init2();
-#else
   init2(argc, argv);
-#endif
 #endif // ENABLE_NODE_V_6_9
   return RT_OK;
 }
@@ -1239,18 +1265,10 @@ bool rtNode::isInitialized()
 #endif
 
 #if 1
-#ifdef ENABLE_DEBUG_MODE
-void rtScriptNode::init2()
-#else
 void rtScriptNode::init2(int argc, char** argv)
-#endif
 {
   // Hack around with the argv pointer. Used for process.title = "blah".
-#ifdef ENABLE_DEBUG_MODE
-  g_argv = uv_setup_args(g_argc, g_argv);
-#else
   argv = uv_setup_args(argc, argv);
-#endif
 
   rtLogInfo(__FUNCTION__);
 
@@ -1262,20 +1280,12 @@ void rtScriptNode::init2(int argc, char** argv)
   if(node_is_initialized == false)
   {
     rtLogWarn("About to Init\n");
-#ifdef ENABLE_DEBUG_MODE
-    Init(&g_argc, const_cast<const char**>(g_argv), &exec_argc, &exec_argv);
-#else
     Init(&argc, const_cast<const char**>(argv), &exec_argc, &exec_argv);
-#endif
 
 #ifdef ENABLE_NODE_V_6_9
    rtLogWarn("using node version %s\n", NODE_VERSION);
    v8::V8::InitializeICU();
-#ifdef ENABLE_DEBUG_MODE
-   V8::InitializeExternalStartupData(g_argv[0]);
-#else
    V8::InitializeExternalStartupData(argv[0]);
-#endif
 
 #ifdef USE_NODE_PLATFORM
    Platform* platform = node::CreatePlatform(0, NULL);
@@ -1316,6 +1326,10 @@ void rtScriptNode::init2(int argc, char** argv)
 rtError rtScriptNode::term()
 {
   rtLogInfo(__FUNCTION__);
+  #ifdef ENABLE_DEBUG_MODE
+    free(g_debugArgv);
+    free(g_debugArgStr);
+  #endif
   nodeTerminated = true;
 #if 0
 #ifdef USE_CONTEXTIFY_CLONES
