@@ -67,7 +67,7 @@ void initMainLoop()
   }
 #endif
   //  JSRemoteInspectorStart();
-  //  JSRemoteInspectorSetLogToSystemConsole(true);
+  JSRemoteInspectorSetLogToSystemConsole(true);
   gMainThreadId = std::this_thread::get_id();
 }
 

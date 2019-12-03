@@ -41,6 +41,8 @@ namespace
 class rtHttpRequestEx : public rtHttpRequest
 {
 public:
+  rtDeclareObject(rtHttpRequestEx, rtHttpRequest);
+
   rtHttpRequestEx(const rtString& url)
     : rtHttpRequest(url)
   { }
@@ -76,6 +78,7 @@ public:
     }
   }
 };
+rtDefineObject(rtHttpRequestEx, rtHttpRequest);
 
 rtError rtHttpGetBinding(int numArgs, const rtValue* args, rtValue* result, void* context)
 {

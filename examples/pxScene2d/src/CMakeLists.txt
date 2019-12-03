@@ -189,7 +189,11 @@ elseif (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
              ${COMM_DEPS_LIBRARIES}
              pthread rt dl m)
 
-    set(PXSCENE_APP_LIBRARIES ${PXSCENE_APP_LIBRARIES} pxCore rtCore_s)
+    if (PX_LIBRARY_SUPPORT EQUAL 0 OR NOT BUILD_PXSCENE_SHARED_LIB)
+        set(PXSCENE_APP_LIBRARIES ${PXSCENE_APP_LIBRARIES} pxCore)
+    endif(PX_LIBRARY_SUPPORT EQUAL 0 OR NOT BUILD_PXSCENE_SHARED_LIB)
+
+    set(PXSCENE_APP_LIBRARIES ${PXSCENE_APP_LIBRARIES} rtCore_s)
 
     if (HOSTNAME STREQUAL "raspberrypi")
         message("building pxscene for raspberrypi")

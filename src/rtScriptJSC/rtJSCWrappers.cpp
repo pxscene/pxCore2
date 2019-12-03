@@ -74,6 +74,15 @@ public:
     : m_callback(ref)
   {
   }
+  ~rtPromiseCallbackWrapper()
+  {
+    // destroy wrapper on UI thread
+    if (m_callback) {
+      rtIFunction *funPtr = m_callback.getPtr();
+      funPtr->AddRef();
+      RtJSC::dispatchOnMainLoop([funPtr]{ funPtr->Release(); });
+    }
+  }
 };
 
 class SymbolIteratorImpl: public rtObject
