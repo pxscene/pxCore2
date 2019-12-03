@@ -209,6 +209,16 @@ function Application(props) {
       _this.log("suspend on already suspended app");
       return false;
     }
+    if (_this.type === ApplicationType.WEB){
+      if (_browser !== undefined){
+         _this.log("Suspending Web app");
+        _browser.suspend();
+        _state = ApplicationState.SUSPENDED;
+        _this.applicationSuspended();
+        return true;
+      }
+      return false;
+    }
     if (!_externalApp || !_externalApp.suspend){
       _this.log("suspend api not available on app");
       _state = ApplicationState.SUSPENDED;
@@ -305,6 +315,16 @@ function Application(props) {
     }
     if (_state === ApplicationState.RUNNING){
       this.log("resume on already running app");
+      return false;
+    }
+    if (this.type === ApplicationType.WEB){
+      if (_browser !== undefined){
+         this.log("Resuming Web app");
+        _browser.resume();
+        _state = ApplicationState.RUNNING;
+        this.applicationResumed();
+        return true;
+      }
       return false;
     }
     if (!_externalApp || !_externalApp.resume){
