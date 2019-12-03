@@ -268,7 +268,7 @@
    fun:_ZN2v88internal4Heap26CollectAllAvailableGarbageENS0_23GarbageCollectionReasonE
    fun:_ZN2v815SnapshotCreator10CreateBlobENS0_20FunctionCodeHandlingE
    fun:_ZN2v82V822CreateSnapshotDataBlobEPKc
-   fun:_ZN12rtScriptNode5init2Ev
+   fun:_ZN12rtScriptNode5init2EiPPc
    fun:_ZN12rtScriptNode4initEv
    fun:_ZN8rtScript4initEv
    fun:_Z6pxMainiPPc
