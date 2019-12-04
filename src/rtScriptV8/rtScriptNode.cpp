@@ -1039,8 +1039,67 @@ rtError rtScriptNode::init()
                               //0123456 789ABCDEF012 345 67890ABCDEF
 #if ENABLE_V8_HEAP_PARAMS
 #ifdef ENABLE_NODE_V_6_9
+#ifdef ENABLE_DEBUG_MODE
+   char** argv2 = NULL;
+   int numargs = 0, paramindex=0, curpos=0, cmdlinesize=0;
+   bool isDebugging = false;
+   for (int i=1;i<g_argc;i++)
+   {
+     if (strncmp(g_argv[i], "--", 2) == 0)
+     {
+       if (strncmp(g_argv[i], "--debug", 7) == 0)
+       {
+         isDebugging = true;
+       }
+       cmdlinesize += strlen(g_argv[i])+1;
+       numargs++;
+     }
+   }
+   argv2 = (char**)malloc((numargs+4) * sizeof(char*));
+   g_debugArgv = argv2;
+
+   if (false == isDebugging)
+   {
+     g_debugArgStr = (char *)malloc(cmdlinesize+71);
+     memset(g_debugArgStr,0,cmdlinesize+71);
+     numargs += 4;
+   }
+   else
+   {
+     g_debugArgStr = (char *)malloc(cmdlinesize+33);
+     memset(g_debugArgStr,0,cmdlinesize+33);
+     numargs += 2;
+   }
+   strcpy(g_debugArgStr,"rtNode\0");
+   argv2[paramindex++] = &g_debugArgStr[curpos];
+   curpos += 7;
+   strcpy(g_debugArgStr+curpos,"--experimental-vm-modules\0");
+   argv2[paramindex++] = &g_debugArgStr[curpos];
+   curpos += 26;
+   //populate args from user
+   for (int i=1;i<g_argc;i++)
+   {
+     if (strncmp(g_argv[i], "--", 2) == 0)
+     {
+         strcpy(g_debugArgStr+curpos,g_argv[i]);
+         *(g_debugArgStr+curpos+strlen(g_argv[i])) = '\0';
+         argv2[paramindex++] = &g_debugArgStr[curpos];
+         curpos = curpos + (int) strlen(g_argv[i]) + 1;
+     }
+   }
+   if (false == isDebugging)
+   {
+       strcpy(g_debugArgStr+curpos,"-e\0");
+       argv2[paramindex++] = &g_debugArgStr[curpos];
+       curpos = curpos + 3;
+       strcpy(g_debugArgStr+curpos,"console.log(\"rtNode Initialized\");\0");
+       argv2[paramindex++] = &g_debugArgStr[curpos];
+       curpos = curpos + 35;
+   }
+#else
   static const char *args2   = "rtNode\0--experimental-vm-modules\0-e\0console.log(\"rtNode Initalized\");\0\0";
   static const char *argv2[] = {&args2[0], &args2[7], &args2[33], &args2[36], NULL};
+#endif
 #else
   rtLogWarn("v8 old heap space configured to 64mb\n");
   static const char *args2   = "rtNode\0--experimental-vm-modules\0--expose-gc\0--max_old_space_size=64\0-e\0console.log(\"rtNode Initalized\");\0\0";
