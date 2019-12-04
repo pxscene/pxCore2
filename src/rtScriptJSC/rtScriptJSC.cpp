@@ -228,6 +228,8 @@ JSContextGroupRef globalContextGroup()
   return gGroupRef;
 }
 
+static JSGlobalContextRef gTopLevelContext = nullptr;
+
 }  // namespace
 
 namespace RtJSC
@@ -285,11 +287,17 @@ rtJSCContext::rtJSCContext()
   add("clearTimeout", m_clearTimeoutBinding.getPtr());
   add("setInterval", m_setIntervalBinding.getPtr());
   add("clearInterval", m_clearIntervalBinding.getPtr());
+
+  if (!gTopLevelContext)
+    gTopLevelContext = m_context;
 }
 
 rtJSCContext::~rtJSCContext()
 {
   rtLogInfo("%s begin", __FUNCTION__);
+
+  if (gTopLevelContext == m_context)
+    gTopLevelContext = nullptr;
 
 //  RtJSC::dispatchOnMainLoop([m_priv=m_priv,m_context=m_context,m_contextGroup=m_contextGroup] {
 //  static JSStringRef codeStr = JSStringCreateWithUTF8CString("console.clear(); delete global.console");
@@ -297,9 +305,6 @@ rtJSCContext::~rtJSCContext()
 
   m_priv->releaseAllProtected();
 
-  // schedule GC
-  JSGarbageCollect(m_context);
-  // JSSynchronousGarbageCollectForDebugging(m_context);
   JSGlobalContextRelease(m_context);
   JSContextGroupRelease(m_contextGroup);
 
@@ -470,6 +475,10 @@ rtError rtScriptJSC::pump()
 
 rtError rtScriptJSC::collectGarbage()
 {
+  if (gTopLevelContext) {
+    JSGarbageCollect(gTopLevelContext);
+    // JSSynchronousGarbageCollectForDebugging(gTopLevelContext);
+  }
   return RT_OK;
 }
 

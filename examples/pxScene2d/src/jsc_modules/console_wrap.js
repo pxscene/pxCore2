@@ -22,7 +22,7 @@ limitations under the License.
  * convert multiple messages to single string
  * @param  {...any} args the messages
  */
-var console = require("console");
+// var console = require("console");
 function stringify(...args) {
     return Array.prototype.slice.apply(arguments).join(' ');
 }

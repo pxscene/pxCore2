@@ -33,6 +33,7 @@ typedef const struct OpaqueJSWeak* JSWeakRef;
 namespace RtJSC {
 
 class rtJSCProtected;
+class rtJSCWeak;
 
 class rtJSCContextPrivate
 {
@@ -40,7 +41,7 @@ class rtJSCContextPrivate
 
   int m_refCount { 0 };
   std::unordered_set<rtJSCProtected*> m_protected;
-  std::map<rtString, std::unique_ptr<rtJSCProtected>> m_moduleCache;
+  std::map<rtString, std::unique_ptr<rtJSCWeak>> m_moduleCache;
 
   void addProtected(rtJSCProtected* o) {
     m_protected.insert(o);
@@ -88,7 +89,6 @@ protected:
 
   void releaseProtected();
 public:
-  rtJSCProtected(JSGlobalContextRef context, JSObjectRef obj, rtJSCContextPrivate *priv);
   rtJSCProtected(JSContextRef context, JSObjectRef obj);
   virtual ~rtJSCProtected();
 

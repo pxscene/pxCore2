@@ -532,7 +532,22 @@ static void rtObjectWrapper_finalize(JSObjectRef thisObject)
     }
   }
 
-  RtJSC::dispatchOnMainLoop([p=p] { delete p; });
+  RtJSC::dispatchOnMainLoop([p=p] {
+      {
+        rtObjectRef temp = p->v.toObject();
+        rtObjectRef parentRef;
+        rtError err = temp.get<rtObjectRef>("parent",parentRef);
+        if (err == RT_OK)
+        {
+          if (!parentRef)
+          {
+            temp.send("dispose");
+          }
+        }
+      }
+
+      delete p;
+    });
 }
 
 static const JSClassDefinition rtObjectWrapper_class_def =

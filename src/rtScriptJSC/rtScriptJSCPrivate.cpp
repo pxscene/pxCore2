@@ -155,14 +155,17 @@ rtJSCContextPrivate* rtJSCContextPrivate::fromCtx(JSGlobalContextRef contextRef)
 JSObjectRef rtJSCContextPrivate::findModule(const rtString &path)
 {
   auto it = m_moduleCache.find(path);
-  if (it != m_moduleCache.end())
-    return it->second->wrapped();
+  if (it != m_moduleCache.end()) {
+    if (JSObjectRef res = it->second->wrapped())
+      return res;
+    m_moduleCache.erase(it);
+  }
   return nullptr;
 }
 
 void rtJSCContextPrivate::addToModuleCache(const rtString &path, JSGlobalContextRef context, JSObjectRef module)
 {
-  m_moduleCache[path] = std::make_unique<rtJSCProtected>(context, module, this);
+  m_moduleCache[path] = std::make_unique<rtJSCWeak>(context, module);
 }
 
 void rtJSCContextPrivate::releaseAllProtected()
@@ -172,16 +175,6 @@ void rtJSCContextPrivate::releaseAllProtected()
   for(auto &p : protectedSet)
     p->releaseProtected();
   m_moduleCache.clear();
-}
-
-rtJSCProtected::rtJSCProtected(JSGlobalContextRef context, JSObjectRef object, rtJSCContextPrivate *priv)
-  : m_contextRef(context)
-  , m_object(object)
-  , m_priv(priv)
-{
-//  JSGlobalContextRetain(m_contextRef);
-  JSValueProtect(m_contextRef, m_object);
-  m_priv->addProtected(this);
 }
 
 rtJSCProtected::rtJSCProtected(JSContextRef context, JSObjectRef object)

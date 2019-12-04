@@ -396,17 +396,19 @@ static JSValueRef runInNewContext(JSContextRef ctx, JSObjectRef, JSObjectRef thi
     if (exception && *exception)
       break;
 
+    JSObjectRef origSandboxRef = sandboxRef;
+
     // clone sandbox ?
     if (false) {
       static JSStringRef cloneCodeStr = JSStringCreateWithUTF8CString("(function(){ return function(o){return Object.assign({},o);}})()");
       JSValueRef cloneCodeV = JSEvaluateScript(newCtx, cloneCodeStr, newGlobalObj, nullptr, 0, exception);
       if (exception && *exception)
         break;
-      JSObjectRef coneFun = JSValueToObject(newCtx, cloneCodeV, exception);
+      JSObjectRef cloneFun = JSValueToObject(newCtx, cloneCodeV, exception);
       if (exception && *exception)
         break;
       JSValueRef args[] = { sandboxRef };
-      JSValueRef resultRef = JSObjectCallAsFunction(newCtx, coneFun, newGlobalObj, 1, args, exception);
+      JSValueRef resultRef = JSObjectCallAsFunction(newCtx, cloneFun, newGlobalObj, 1, args, exception);
       if (exception && *exception)
         break;
       sandboxRef = JSValueToObject(newCtx, resultRef, exception);
@@ -457,7 +459,7 @@ static JSValueRef runInNewContext(JSContextRef ctx, JSObjectRef, JSObjectRef thi
     if (exception && *exception)
       break;
 
-    SandboxPrivate::init(ctx, sandboxRef, newCtx, newGlobalObj, exception);
+    SandboxPrivate::init(ctx, origSandboxRef, newCtx, newGlobalObj, exception);
   } while (0);
 
   JSGlobalContextRelease(newCtx);

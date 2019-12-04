@@ -52,6 +52,7 @@ extern "C" {
 #endif
   JS_EXPORT void JSRemoteInspectorStart(void);
   JS_EXPORT void JSRemoteInspectorSetLogToSystemConsole(bool logToSystemConsole);
+  JS_EXPORT void JSRemoteInspectorSetInspectionEnabledByDefault(bool);
 #ifdef __cplusplus
 }
 #endif
@@ -84,7 +85,8 @@ void initMainLoop()
     gMainLoop = g_main_loop_new (nullptr, false);
   }
 #endif
-  //  JSRemoteInspectorStart();
+  // JSRemoteInspectorStart();
+  // JSRemoteInspectorSetInspectionEnabledByDefault(false);
   JSRemoteInspectorSetLogToSystemConsole(true);
   gMainThreadId = std::this_thread::get_id();
 }
