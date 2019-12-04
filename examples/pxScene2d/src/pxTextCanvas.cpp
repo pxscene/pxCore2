@@ -460,7 +460,7 @@ void pxTextCanvas::renderTextLine(const pxTextLine& textLine)
         switch (baseline)
         {
             case pxConstantsTextBaseline::ALPHABETIC:
-                yPos -= float(size);
+                yPos -= float(1.1 * size);
                 break;
 
             case pxConstantsTextBaseline::TOP:
