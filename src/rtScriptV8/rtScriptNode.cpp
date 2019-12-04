@@ -947,8 +947,11 @@ static std::string readFile(const char *file)
 {
   std::ifstream       src_file(file);
   std::stringstream   src_script;
+
   src_script << src_file.rdbuf(); // slurp up file
+
   std::string s = src_script.str();
+
   return s;
 }
 
