@@ -310,7 +310,6 @@ var getModule = async function (specifier, referencingModule) {
          }
          else
          {
-           //specifier = "http://" + baseString.substring(0, baseString.lastIndexOf("/")+1) + specifier; // WTF??
            let result = await loadHttpFile(referencingModule.context.global.sparkscene, specifier);
            mod = loadJavaScriptModule(result, specifier, referencingModule.context);
          }
