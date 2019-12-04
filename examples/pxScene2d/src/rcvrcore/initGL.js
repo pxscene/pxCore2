@@ -377,16 +377,16 @@ function LightningApp(params) {
   {
     tmpSandbox[sandboxKeys[i]] = tmpGlobal[sandboxKeys[i]];
   }
-
+  var _this = this;
   this.bootStrapCache = {}
   this.bootStrapCache[_module._resolveFilename('ws', {paths:[__dirname].concat(_module._nodeModulePaths(__dirname))})] = function WebSocket(address, protocols, options) {
     let client = new _ws(address, protocols, options);
-    _websockets.push(client);
+    _this._websockets.push(client);
     client.on('close', () => {
       console.log(`websocket ${address} closed`);
-      let index = _websockets.indexOf(client);
+      let index = _this._websockets.indexOf(client);
       if (index !== -1) {
-        _websockets.splice(index, 1);
+        _this._websockets.splice(index, 1);
       }
     });
     return client;
