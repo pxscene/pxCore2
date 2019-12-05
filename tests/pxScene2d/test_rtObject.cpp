@@ -281,8 +281,6 @@ class rtObjectTest : public testing::Test
       // move constructor
       auto o5 = rtObjectRef(rtObjectRef(obj));
       EXPECT_TRUE(o5.getPtr() == obj);
-
-      delete obj;
     }
 };
 
