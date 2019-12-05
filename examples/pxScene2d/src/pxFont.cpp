@@ -585,6 +585,15 @@ void pxFont::measureTextInternal(const char* text, uint32_t size,  float sx, flo
   h *= sy;
 }
 
+void pxFont::measureTextInternal(const char* text, uint32_t size,  float sx, float sy,
+                         float& w, float& h, long& ascender, long& descender)
+{
+    measureTextInternal(text, size, sx, sy, w, h);
+    FT_Size_Metrics* metrics = &mFace->size->metrics;
+    ascender = static_cast<long>(metrics->ascender>>6);
+    descender = static_cast<long>(metrics->descender>>6);
+}
+
 #ifndef PXSCENE_FONT_ATLAS
 void pxFont::renderText(const char *text, uint32_t size, float x, float y, 
                         float nsx, float nsy, 
