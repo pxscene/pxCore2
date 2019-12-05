@@ -241,6 +241,7 @@ class rtObjectRef: public rtRef<rtIObject>, public rtObjectBase
 
   // operator= is not inherited
   rtObjectRef& operator=(rtIObject* o) {asn(o);return *this;}
+  rtObjectRef& operator=(rtObjectRef&&) = default;
   virtual ~rtObjectRef() {}
 
  private:
@@ -259,6 +260,7 @@ class rtFunctionRef: public rtRef<rtIFunction>, public rtFunctionBase
 
   // operator= is not inherited
   rtFunctionRef& operator=(rtIFunction* f) { asn(f); return *this; }
+  rtFunctionRef& operator=(rtFunctionRef&&) = default;
 
  private:
   virtual rtError Send(int numArgs, const rtValue* args, rtValue* result);
