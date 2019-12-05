@@ -281,7 +281,9 @@ public:
   void measureText(const char* text, uint32_t size, float& w, float& h);
   void measureTextInternal(const char* text, uint32_t size,  float sx, float sy, 
                    float& w, float& h);
-  void measureTextChar(u_int32_t codePoint, uint32_t size,  float sx, float sy, 
+  void measureTextInternal(const char* text, uint32_t size,  float sx, float sy,
+                   float& w, float& h, long& ascender, long& descender);
+  void measureTextChar(u_int32_t codePoint, uint32_t size,  float sx, float sy,
                          float& w, float& h);
   #ifndef PXSCENE_FONT_ATLAS
   void renderText(const char *text, uint32_t size, float x, float y, 

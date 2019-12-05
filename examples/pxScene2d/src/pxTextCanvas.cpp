@@ -443,8 +443,9 @@ void pxTextCanvas::renderTextLine(const pxTextLine& textLine)
     if (getFontResource() != nullptr)
     {
         float textW, textH;
-
-        getFontResource()->measureTextInternal(cStr, size, sx, sy, textW, textH);
+        long ascender;
+        long descender;
+        getFontResource()->measureTextInternal(cStr, size, sx, sy, textW, textH, ascender, descender);
 
         switch (alignH)
         {
@@ -460,7 +461,7 @@ void pxTextCanvas::renderTextLine(const pxTextLine& textLine)
         switch (baseline)
         {
             case pxConstantsTextBaseline::ALPHABETIC:
-                yPos -= float(size);
+                yPos -= float(ascender);
                 break;
 
             case pxConstantsTextBaseline::TOP:
