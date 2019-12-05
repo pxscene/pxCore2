@@ -188,6 +188,7 @@ class rtStringTest : public testing::Test
 
     // copy assignment
     s4 = std::move(s3);
+    EXPECT_EQ(0, s1.compare(str));
     EXPECT_EQ(0, s3.compare(str));
     EXPECT_EQ(0, s4.compare(str));
 
