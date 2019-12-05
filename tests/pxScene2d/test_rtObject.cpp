@@ -250,7 +250,7 @@ class rtObjectTest : public testing::Test
 
     void moveTests()
     {
-      rtIObject* obj = new rtMapObject;
+      rtMapObject* obj = new rtMapObject;
 
       rtObjectRef o1(obj), o2;
 
