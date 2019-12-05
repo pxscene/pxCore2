@@ -238,9 +238,11 @@ class rtObjectRef: public rtRef<rtIObject>, public rtObjectBase
  public:
   rtObjectRef() {}
   rtObjectRef(const rtIObject* o) {asn(o);}
+  rtObjectRef(const rtObjectRef&) = default;
 
   // operator= is not inherited
   rtObjectRef& operator=(rtIObject* o) {asn(o);return *this;}
+  rtObjectRef& operator=(const rtObjectRef&) = default;
   rtObjectRef& operator=(rtObjectRef&&) = default;
   virtual ~rtObjectRef() {}
 
@@ -256,10 +258,12 @@ class rtFunctionRef: public rtRef<rtIFunction>, public rtFunctionBase
  public:
   rtFunctionRef() {}
   rtFunctionRef(const rtIFunction* f) { asn(f); }
+  rtFunctionRef(const rtFunctionRef&) = default;
   virtual ~rtFunctionRef() { }
 
   // operator= is not inherited
   rtFunctionRef& operator=(rtIFunction* f) { asn(f); return *this; }
+  rtFunctionRef& operator=(const rtFunctionRef&) = default;
   rtFunctionRef& operator=(rtFunctionRef&&) = default;
 
  private:
