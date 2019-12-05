@@ -247,6 +247,43 @@ class rtObjectTest : public testing::Test
       e = obj.sendReturns("exampleMessage", rtValue(), rtValue(), rtValue(), rtValue(), rtValue(), rtValue(), rtValue(), result);
       EXPECT_TRUE (RT_OK != e);
     }
+
+    void moveTests()
+    {
+      rtIObject* obj = new rtMapObject;
+
+      rtObjectRef o1(obj), o2;
+
+      // copy assign
+      o2 = o1;
+      EXPECT_TRUE(o1.getPtr() == obj);
+      EXPECT_TRUE(o2.getPtr() == obj);
+
+      // move-assign from xvalue
+      o2 = std::move(o1);
+      EXPECT_TRUE(o1.getPtr() == NULL);
+      EXPECT_TRUE(o2.getPtr() == obj);
+
+      // move-assign from rvalue temporary
+      o1 = rtObjectRef(obj);
+      EXPECT_TRUE(o1.getPtr() == obj);
+
+      // copy constructor
+      const rtObjectRef o3(o1);
+      rtObjectRef o4;
+
+      // copy assignment
+      o4 = std::move(o3);
+      EXPECT_TRUE(o1.getPtr() == obj);
+      EXPECT_TRUE(o3.getPtr() == obj);
+      EXPECT_TRUE(o4.getPtr() == obj);
+
+      // move constructor
+      auto o5 = rtObjectRef(rtObjectRef(obj));
+      EXPECT_TRUE(o5.getPtr() == obj);
+
+      delete obj;
+    }
 };
 
 TEST_F(rtObjectTest, rtObjectTests)
@@ -256,6 +293,7 @@ TEST_F(rtObjectTest, rtObjectTests)
   setValWithIdFailedTest();
   sendTests();
   sendReturnsTests();
+  moveTests();
 }
 
 class rtMapObjectTest : public testing::Test
