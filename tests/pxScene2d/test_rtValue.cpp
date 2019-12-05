@@ -22,6 +22,7 @@ limitations under the License.
 #define protected public
 
 #include "rtValue.h"
+#include "rtObject.h"
 #include <string.h>
 
 #include "test_includes.h" // Needs to be included last
@@ -745,6 +746,43 @@ class rtValueTest : public testing::Test
         // rtValue voidPtrVal(voidPtr v);
       }
 
+  void moveTest()
+  {
+    const char* str = "123";
+
+    rtValue v1(str), v2;
+
+    // copy assign
+    v2 = v1;
+    EXPECT_TRUE(v1.toString() == str);
+    EXPECT_TRUE(v2.toString() == str);
+
+    // move-assign from xvalue
+    v2 = std::move(v1);
+    EXPECT_TRUE(v1.toString().isEmpty());
+    EXPECT_TRUE(v2.toString() == str);
+
+    // move-assign from rvalue temporary
+    rtObjectRef obj = new rtMapObject;
+    v2 = rtValue(obj);
+    EXPECT_TRUE(v2.toString().isEmpty());
+    EXPECT_FALSE(v2.toObject() == NULL);
+
+    // copy constructor
+    const rtValue v3(v2);
+    rtValue v4;
+
+    // copy assignment
+    v4 = std::move(v3);
+    EXPECT_FALSE(v2.toObject() == NULL);
+    EXPECT_FALSE(v3.toObject() == NULL);
+    EXPECT_FALSE(v4.toObject() == NULL);
+
+    // move constructor
+    auto v5 = rtValue(rtValue(str));
+    EXPECT_TRUE(v5.toString() == str);
+  }
+
     private:
       rtValue    boolVal;
       rtValue    int8Val;
@@ -796,5 +834,7 @@ TEST_F(rtValueTest, rtValueTests)
   testStringType();
   
   compareTest();
+
+  moveTest();
 }
 
