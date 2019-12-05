@@ -42,6 +42,13 @@ rtValue::rtValue(const rtIFunction* v)  :mType(0) { setFunction(v); }
 rtValue::rtValue(const rtFunctionRef& v):mType(0) { setFunction(v); }
 rtValue::rtValue(const rtValue& v)      :mType(0) { setValue(v);  }
 rtValue::rtValue(voidPtr v)             :mType(0) { setVoidPtr(v); }
+rtValue::rtValue(rtValue&& v) noexcept  :mType(v.mType), mValue(v.mValue), mIsEmpty(v.mIsEmpty)
+{
+  v.mValue.stringValue = nullptr;
+  v.mValue.objectValue = nullptr;
+  v.mValue.functionValue = nullptr;
+  v.mValue.voidPtrValue = nullptr;
+}
 
 rtValue::~rtValue()
 {

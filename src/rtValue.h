@@ -118,6 +118,7 @@ class rtValue
   rtValue(const rtFunctionRef& v);
   rtValue(const rtValue& v);
   rtValue(voidPtr v);
+  rtValue(rtValue&& v) noexcept;
   ~rtValue();
 
   void term() { setEmpty(); }
@@ -139,6 +140,17 @@ class rtValue
   finline rtValue& operator=(const rtFunctionRef& v){ setFunction(v); return *this; }
   finline rtValue& operator=(const rtValue& v)      { setValue(v);    return *this; }
   finline rtValue& operator=(voidPtr v)             { setVoidPtr(v);  return *this; }
+  finline rtValue& operator =(rtValue&& v) noexcept
+  {
+    mType = v.mType;
+    mValue = v.mValue;
+    mIsEmpty = v.mIsEmpty;
+    v.mValue.stringValue = nullptr;
+    v.mValue.objectValue = nullptr;
+    v.mValue.functionValue = nullptr;
+    v.mValue.voidPtrValue = nullptr;
+    return *this;
+  }
 
   bool operator!=(const rtValue& rhs) const { return !(*this == rhs); }
   bool operator==(const rtValue& rhs) const;
