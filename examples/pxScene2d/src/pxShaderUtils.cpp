@@ -173,6 +173,7 @@ pxError shaderProgram::draw(int resW, int resH, float* matrix, float alpha,
                             const void* uv,
                             int count)
 {
+
   if(!resW || !resH || !matrix || !pos)
   {
     return RT_FAIL;
