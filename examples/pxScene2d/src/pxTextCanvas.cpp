@@ -28,7 +28,7 @@ pxTextLine::pxTextLine()
         : styleSet(false)
         , x(0), y(0)
         , pixelSize(10)
-        , color(0xFFFFFFFF)
+        , color(0xFFFFFFFF), alignHorizontal(0), textBaseline(0)
         , translateX(0)
         , translateY(0)
 {
@@ -525,7 +525,8 @@ void pxTextCanvas::draw()
         mDirty = false;
     }
 
-    float x = 0, y =  y = 0;
+    float x = 0;
+    float y = 0;
     for (std::vector<pxTexturedQuads>::iterator it  = mQuadsVector.begin();
                                                 it != mQuadsVector.end();   ++it)
     {
