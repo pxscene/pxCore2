@@ -2080,7 +2080,7 @@ static void drawEffect(GLfloat x, GLfloat y, GLfloat w, GLfloat h, pxTextureRef 
   };
 
   // TODO - hacky, come back and clean up
-  aLinearBlurShaderProgram *linearBlurShaderProgram = dynamicCast<aLinearBlurShaderProgram*>(shader);
+  aLinearBlurShaderProgram *linearBlurShaderProgram = dynamic_cast<aLinearBlurShaderProgram*>(shader);
   if (linearBlurShaderProgram != NULL)
   {
     linearBlurShaderProgram->draw(gResW, gResH, gMatrix.data(), gAlpha, t, GL_TRIANGLE_STRIP, verts, (t ? uv : NULL), 4, options);
