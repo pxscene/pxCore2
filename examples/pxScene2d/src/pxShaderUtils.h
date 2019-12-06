@@ -151,7 +151,6 @@ public:
                 const void* pos,
                 const void* uv,
                 int count);
-
 protected:
 
   // Override to do uniform lookups

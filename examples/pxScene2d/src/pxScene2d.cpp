@@ -1133,7 +1133,8 @@ rtError pxScene2d::createVideo(rtObjectRef p, rtObjectRef& o)
   o.send("init");
   return RT_OK;
 #else
-  UNUSED_PARAM(p); UNUSED_PARAM(o);
+  UNUSED_PARAM(p);
+  UNUSED_PARAM(o);
 
   rtLogError("Type 'video' is not supported");
   return RT_FAIL;

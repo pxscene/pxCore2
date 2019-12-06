@@ -25,7 +25,7 @@
 #include "rtRef.h"
 #include "rtCORS.h"
 
-// TODO it would be nice to push this back into implemention
+// TODO it would be nice to push this back into implementation
 #include <ft2build.h>
 #include FT_FREETYPE_H
 #include FT_GLYPH_H
@@ -38,6 +38,8 @@ using std::vector;
 
 class pxText;
 class pxFont;
+struct _pxTextEffects;
+typedef struct _pxTextEffects pxTextEffects; //forward-declaration
 
 #define defaultPixelSize 16
 #define defaultFont "FreeSans.ttf"
@@ -108,7 +110,7 @@ class pxTexturedQuads
     pxTextureRef t;
   };
 
-  pxTexturedQuads() {}
+  pxTexturedQuads(): mpTextEffects(nullptr) {}
 
   void addQuad(float x1,float y1,float x2,float y2, float u1, float v1, float u2, float v2, pxTextureRef t)
   {
@@ -154,9 +156,11 @@ class pxTexturedQuads
     u.push_back(v2);
   }
 
-  void draw(float x, float y, float* color);
+  void draw(float x, float y, float* color, const pxTextEffects *pe = nullptr);
   void draw(float x, float y);
+
   void setColor(uint32_t c);
+  void setTextEffects(const pxTextEffects* pe);
 
   void clear()
   {
@@ -166,6 +170,7 @@ class pxTexturedQuads
 private:
   vector<quads> mQuads;
   float mColor[4] = {0xff, 0xff, 0xff, 0xff};
+  const pxTextEffects* mpTextEffects;
 };
 
 #endif
