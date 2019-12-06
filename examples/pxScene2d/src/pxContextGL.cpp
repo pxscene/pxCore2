@@ -3180,7 +3180,7 @@ void pxContext::drawDiagLine(float x1, float y1, float x2, float y2, float* colo
 // convenience method
 void pxContext::drawEffect(float x, float y, float w, float h, pxTextureRef t, shaderProgram *shader, void *options /* = nullptr */)
 {
-  ::drawEffect(x, y, w, h, t, (aLinearBlurShaderProgram *)shader, options);
+  ::drawEffect(x, y, w, h, t, shader, options);
 };
 
 pxTextureRef pxContext::createTexture()
