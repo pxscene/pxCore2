@@ -150,9 +150,12 @@ pxWayland::~pxWayland()
 
 void pxWayland::setEvents(pxWaylandEvents *events)
 {
-  if (gUIThreadQueue)
+  if (mEvents)
   {
-    gUIThreadQueue->removeAllTasksForObject(this);
+    mEvents = null;
+
+    if (gUIThreadQueue)
+      gUIThreadQueue->removeAllTasksForObject(this);
   }
 
   mEvents = events;
