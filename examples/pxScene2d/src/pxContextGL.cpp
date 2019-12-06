@@ -2079,9 +2079,16 @@ static void drawEffect(GLfloat x, GLfloat y, GLfloat w, GLfloat h, pxTextureRef 
     { tw, secondTextureY }
   };
 
-  aLinearBlurShaderProgram *shaderProgram = (aLinearBlurShaderProgram *)shader;
-
-    shaderProgram->draw(gResW, gResH, gMatrix.data(), gAlpha, t, GL_TRIANGLE_STRIP, verts, (t ? uv : NULL), 4, options);
+  // TODO - hacky, come back and clean up
+  aLinearBlurShaderProgram *linearBlurShaderProgram = dynamicCast<aLinearBlurShaderProgram*>(shader);
+  if (linearBlurShaderProgram != NULL)
+  {
+    linearBlurShaderProgram->draw(gResW, gResH, gMatrix.data(), gAlpha, t, GL_TRIANGLE_STRIP, verts, (t ? uv : NULL), 4, options);
+  }
+  else
+  {
+    shader->draw(gResW, gResH, gMatrix.data(), gAlpha, t, GL_TRIANGLE_STRIP, verts, (t ? uv : NULL), 4);
+  }
 }
 
 static void drawRectOutline(GLfloat x, GLfloat y, GLfloat w, GLfloat h, GLfloat lw, const float* c)
