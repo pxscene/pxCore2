@@ -140,8 +140,9 @@ class rtValue
   finline rtValue& operator=(const rtFunctionRef& v){ setFunction(v); return *this; }
   finline rtValue& operator=(const rtValue& v)      { setValue(v);    return *this; }
   finline rtValue& operator=(voidPtr v)             { setVoidPtr(v);  return *this; }
-  finline rtValue& operator =(rtValue&& v) noexcept
+  finline rtValue& operator=(rtValue&& v) noexcept
   {
+    setEmpty();
     mType = v.mType;
     mValue = v.mValue;
     mIsEmpty = v.mIsEmpty;

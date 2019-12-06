@@ -69,6 +69,7 @@ public:
   rtString& operator+=(const rtString& s) { return append(s.cString()); };
   rtString& operator =(rtString&& s) noexcept
   {
+    term();
     mData = s.mData;
     s.mData = nullptr;
     return *this;
