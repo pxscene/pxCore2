@@ -54,6 +54,7 @@ public:
 
   rtString& operator=(const rtString& s);
   rtString& operator=(const char* s);
+  rtString& operator=(rtString&& s) noexcept;
 
   friend
   rtString operator+(const rtString& lhs, const char *rhs)
@@ -67,14 +68,7 @@ public:
   rtString& operator +(const rtString& s) { return append(s.cString()); };
   rtString& operator+=(const char* s)     { return append(s);           };
   rtString& operator+=(const rtString& s) { return append(s.cString()); };
-  rtString& operator =(rtString&& s) noexcept
-  {
-    term();
-    mData = s.mData;
-    s.mData = nullptr;
-    return *this;
-  }
-  
+
   /**
    * Determines if the string is empty.
    * @returns true if string length is zero or is null

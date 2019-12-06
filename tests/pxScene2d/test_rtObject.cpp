@@ -264,6 +264,10 @@ class rtObjectTest : public testing::Test
       EXPECT_TRUE(o1.getPtr() == NULL);
       EXPECT_TRUE(o2.getPtr() == obj);
 
+      // move to self
+      o2 = std::move(o2);
+      EXPECT_TRUE(o2.getPtr() == obj);
+
       // move-assign from rvalue temporary
       o1 = rtObjectRef(obj);
       EXPECT_TRUE(o1.getPtr() == obj);

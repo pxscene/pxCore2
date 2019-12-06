@@ -58,7 +58,15 @@ public:
 
   inline rtRef<T>& operator=(const T* p)                                  {asn(p);      return *this;}
   inline rtRef<T>& operator=(const rtRef<T>& r)                           {asn(r.mRef); return *this;}
-  inline rtRef<T>& operator=(rtRef<T>&& r) noexcept                       {term(); mRef = r.mRef; r.mRef = nullptr; return *this;}
+  inline rtRef<T>& operator=(rtRef<T>&& r) noexcept
+  {
+    T* ref = r.mRef;
+    if (mRef != ref)
+      term();
+    r.mRef = nullptr;
+    mRef = ref;
+    return *this;
+  }
 
   inline friend bool operator==(const T* lhs,const rtRef<T>& rhs)         {return lhs==rhs.mRef;}
   inline friend bool operator==(const rtRef<T>& lhs,const T* rhs)         {return lhs.mRef==rhs;}

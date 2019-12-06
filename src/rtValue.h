@@ -140,22 +140,11 @@ class rtValue
   finline rtValue& operator=(const rtFunctionRef& v){ setFunction(v); return *this; }
   finline rtValue& operator=(const rtValue& v)      { setValue(v);    return *this; }
   finline rtValue& operator=(voidPtr v)             { setVoidPtr(v);  return *this; }
-  finline rtValue& operator=(rtValue&& v) noexcept
-  {
-    setEmpty();
-    mType = v.mType;
-    mValue = v.mValue;
-    mIsEmpty = v.mIsEmpty;
-    v.mValue.stringValue = nullptr;
-    v.mValue.objectValue = nullptr;
-    v.mValue.functionValue = nullptr;
-    v.mValue.voidPtrValue = nullptr;
-    return *this;
-  }
 
   bool operator!=(const rtValue& rhs) const { return !(*this == rhs); }
   bool operator==(const rtValue& rhs) const;
 
+  rtValue& operator=(rtValue&& v) noexcept;
 
   finline bool       toBool()     const { bool v;        getBool(v);   return v; }
   finline int8_t     toInt8()     const { int8_t v;      getInt8(v);   return v; }
