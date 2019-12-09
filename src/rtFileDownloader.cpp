@@ -1825,6 +1825,7 @@ void rtFileDownloader::releaseDownloadHandle(CURL* curlHandle, double expiresTim
     static int numberOfDownloadHandles = rtThreadPool::globalInstance()->numberOfThreadsInPool();
     if(!mReuseDownloadHandles || mDownloadHandles.size() >= numberOfDownloadHandles || (expiresTime == 0))
     {
+      printf("cleaning up handle .... [%p] \n", curlHandle); fflush(stdout);
       curl_easy_cleanup(curlHandle);
     }
     else
@@ -1953,6 +1954,7 @@ void rtFileDownloader::checkForExpiredHandles()
     else if (pxSeconds() > fileDownloadHandle.expiresTime)
     {
       rtLogDebug("erasing handle!!!\n");
+      printf("erasing handle [%p] \n", fileDownloadHandle.curlHandle); fflush(stdout);
       curl_easy_cleanup(fileDownloadHandle.curlHandle);
       it = mDownloadHandles.erase(it);
     }
