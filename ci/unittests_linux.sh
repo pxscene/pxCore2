@@ -52,7 +52,8 @@ if [ "$retVal" -eq 0 ]
   echo "************************** LOG ENDS *******************************"
   checkError -1 "Unittests execution failed" "Core dump"  "Verify Unit test logs/Run unittests locally."
 fi
-cat $TESTLOGS
+
+
 kill -9 $processId
 sleep 5s;
 pkill -9 -f pxscene2dtests.sh
