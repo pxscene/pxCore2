@@ -736,8 +736,6 @@ rtFileDownloader::rtFileDownloader()
 rtFileDownloader::~rtFileDownloader()
 {
 #ifdef PX_REUSE_DOWNLOAD_HANDLES
-  printf("Destructor of downloader called .... [%p][%d]\n", this, continueDownloadHandleCheck);
-  fflush(stdout);
   downloadHandleMutex.lock();
   for (vector<rtFileDownloadHandle>::iterator it = mDownloadHandles.begin(); it != mDownloadHandles.end(); )
   {
@@ -1829,7 +1827,6 @@ void rtFileDownloader::releaseDownloadHandle(CURL* curlHandle, double expiresTim
     static int numberOfDownloadHandles = rtThreadPool::globalInstance()->numberOfThreadsInPool();
     if(!mReuseDownloadHandles || mDownloadHandles.size() >= numberOfDownloadHandles || (expiresTime == 0))
     {
-      printf("cleaning up handle .... [%p] \n", curlHandle); fflush(stdout);
       curl_easy_cleanup(curlHandle);
     }
     else
