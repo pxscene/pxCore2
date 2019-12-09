@@ -1151,3 +1151,47 @@ index f92446f..d02c098 100755
      if (r != -1)
        return r;
      if (errno != ENOSYS)
+diff --git a/examples/pxScene2d/external/libnode-v10.15.3/deps/v8/src/builtins/builtins-function.cc b/examples/pxScene2d/external/libnode-v10.15.3/deps/v8/src/builtins/builtins-function.cc
+index df1dc19..d7d5bbf 100755
+--- a/examples/pxScene2d/external/libnode-v10.15.3/deps/v8/src/builtins/builtins-function.cc
++++ b/examples/pxScene2d/external/libnode-v10.15.3/deps/v8/src/builtins/builtins-function.cc
+@@ -12,6 +12,12 @@
+ #include "src/objects-inl.h"
+ #include "src/objects/api-callbacks.h"
+ #include "src/string-builder.h"
++/* MODIFIED CODE BEGIN */
++#include "src/api.h"
++#include "src/handles.h"
++
++using Utils = v8::Utils;
++/* MODIFIED CODE END */
+ 
+ namespace v8 {
+ namespace internal {
+@@ -35,6 +41,10 @@ MaybeHandle<Object> CreateDynamicFunction(Isolate* isolate,
+   }
+ 
+   // Build the source string.
++/* MODIFIED CODE BEGIN */
++  v8::Local<v8::Context> callingCtx = reinterpret_cast<v8::Isolate*>(isolate)->GetCallingContext();
++  Handle<Context> callingCtxHandle = Utils::OpenHandle(*callingCtx);
++/* MODIFIED CODE END */
+   Handle<String> source;
+   int parameters_end_pos = kNoSourcePosition;
+   {
+@@ -103,12 +113,14 @@ MaybeHandle<Object> CreateDynamicFunction(Isolate* isolate,
+   // come from here.
+   Handle<JSFunction> function;
+   {
++/* MODIFIED CODE BEGIN */
+     ASSIGN_RETURN_ON_EXCEPTION(
+         isolate, function,
+         Compiler::GetFunctionFromString(
+-            handle(target->native_context(), isolate), source,
++            handle(*callingCtxHandle, isolate), source,
+             ONLY_SINGLE_FUNCTION_LITERAL, parameters_end_pos),
+         Object);
++/* MODIFIED CODE END */
+     Handle<Object> result;
+     ASSIGN_RETURN_ON_EXCEPTION(
+         isolate, result,
