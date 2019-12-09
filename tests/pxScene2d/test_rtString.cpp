@@ -178,10 +178,10 @@ class rtStringTest : public testing::Test
     EXPECT_EQ(0, s2.compare(str));
     EXPECT_TRUE(ptr == s2.cString());
 
-//    // move to self
-//    s2 = std::move(s2);
-//    EXPECT_EQ(0, s2.compare(str));
-//    EXPECT_TRUE(ptr == s2.cString());
+    // move to self
+    s2 = std::move(s2);
+    EXPECT_EQ(0, s2.compare(str));
+    EXPECT_TRUE(ptr == s2.cString());
 
     // move-assign from rvalue temporary
     s1 = rtString(str);

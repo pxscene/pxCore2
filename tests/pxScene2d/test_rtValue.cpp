@@ -762,9 +762,9 @@ class rtValueTest : public testing::Test
     EXPECT_TRUE(v1.toString().isEmpty());
     EXPECT_TRUE(v2.toString() == str);
 
-//    // move to self
-//    v2 = std::move(v2);
-//    EXPECT_TRUE(v2.toString() == str);
+    // move to self
+    v2 = std::move(v2);
+    EXPECT_TRUE(v2.toString() == str);
 
     // move-assign from rvalue temporary
     rtObjectRef obj = new rtMapObject;
