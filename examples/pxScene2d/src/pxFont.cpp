@@ -22,9 +22,9 @@
 #include "rtFileDownloader.h"
 #include "pxFont.h"
 #include "pxTimer.h"
-#include "pxText.h"
+#include "pxEffects.h"
 
-#include <math.h>
+#include <cmath>
 #include <map>
 
 using namespace std;
@@ -585,6 +585,15 @@ void pxFont::measureTextInternal(const char* text, uint32_t size,  float sx, flo
   h *= sy;
 }
 
+void pxFont::measureTextInternal(const char* text, uint32_t size,  float sx, float sy,
+                         float& w, float& h, long& ascender, long& descender)
+{
+    measureTextInternal(text, size, sx, sy, w, h);
+    FT_Size_Metrics* metrics = &mFace->size->metrics;
+    ascender = static_cast<long>(metrics->ascender>>6);
+    descender = static_cast<long>(metrics->descender>>6);
+}
+
 #ifndef PXSCENE_FONT_ATLAS
 void pxFont::renderText(const char *text, uint32_t size, float x, float y, 
                         float nsx, float nsy, 
@@ -1027,8 +1036,7 @@ bool pxFontAtlas::addGlyph(uint32_t w, uint32_t h, void* buffer, GlyphTextureEnt
   return false;
 }
 
-
-void pxTexturedQuads::draw(float x, float y, float* color)
+void pxTexturedQuads::draw(float x, float y, float* color, const pxTextEffects* pe)
 {
   for (uint32_t i = 0; i < mQuads.size(); i++)
   {
@@ -1046,13 +1054,18 @@ void pxTexturedQuads::draw(float x, float y, float* color)
       }
     }
 
-    context.drawTexturedQuads( (int) q.verts.size()/12, &verts[0], &q.uvs[0], q.t, color);
+    if (pe)
+    {
+        context.drawTexturedQuadsWithEffects( (int) q.verts.size()/12, &verts[0], &q.uvs[0], q.t, color, pe);
+    } else {
+        context.drawTexturedQuads( (int) q.verts.size()/12, &verts[0], &q.uvs[0], q.t, color);
+    }
   }
 }
 
 void pxTexturedQuads::draw(float x, float y)
 {
-    draw(x, y, mColor);
+    draw(x, y, mColor, mpTextEffects);
 }
 
 void pxTexturedQuads::setColor(uint32_t c)
@@ -1062,4 +1075,9 @@ void pxTexturedQuads::setColor(uint32_t c)
     mColor[2]/*B*/ = (float)((c>> 8) & 0xff) / 255.0f;
     mColor[3]/*A*/ = (float)((c>> 0) & 0xff) / 255.0f;
 }
+void pxTexturedQuads::setTextEffects(const pxTextEffects* pe)
+{
+    mpTextEffects = pe;
+}
+
 #endif
