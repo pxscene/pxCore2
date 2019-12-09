@@ -1954,7 +1954,6 @@ void rtFileDownloader::checkForExpiredHandles()
     else if (pxSeconds() > fileDownloadHandle.expiresTime)
     {
       rtLogDebug("erasing handle!!!\n");
-      printf("erasing handle [%p] \n", fileDownloadHandle.curlHandle); fflush(stdout);
       curl_easy_cleanup(fileDownloadHandle.curlHandle);
       it = mDownloadHandles.erase(it);
     }
