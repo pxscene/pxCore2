@@ -174,5 +174,6 @@ TEST_F(rtStringTest, rtStringTests)
   beginsTest();
   substringTest();
   findTests();
+
 }
 
