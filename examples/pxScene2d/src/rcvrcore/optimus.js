@@ -209,6 +209,16 @@ function Application(props) {
       _this.log("suspend on already suspended app");
       return false;
     }
+    if (_this.type === ApplicationType.WEB){
+      if (_browser !== undefined && _browser.suspend){
+         _this.log("Suspending Web app");
+        _browser.suspend();
+        _state = ApplicationState.SUSPENDED;
+        _this.applicationSuspended();
+        return true;
+      }
+      return false;
+    }
     if (!_externalApp || !_externalApp.suspend){
       _this.log("suspend api not available on app");
       _state = ApplicationState.SUSPENDED;
@@ -216,7 +226,8 @@ function Application(props) {
       return false;
     }
     
-    var ret = _externalApp.suspend(o);
+    var ret = true;
+    _externalApp.suspend(o);
       
     if (ret === true) {
       _state = ApplicationState.SUSPENDED;
@@ -297,7 +308,7 @@ function Application(props) {
   
   // Resumes a suspended application. Returns true if the application was resumed, or false otherwise
   this.resume = function(o) {
-    var ret;
+    var ret = true;
     if (_state === ApplicationState.DESTROYED){
       this.log("resume on already destroyed app");
       return false;
@@ -306,13 +317,23 @@ function Application(props) {
       this.log("resume on already running app");
       return false;
     }
+    if (this.type === ApplicationType.WEB){
+      if (_browser !== undefined && _browser.resume){
+         this.log("Resuming Web app");
+        _browser.resume();
+        _state = ApplicationState.RUNNING;
+        this.applicationResumed();
+        return true;
+      }
+      return false;
+    }
     if (!_externalApp || !_externalApp.resume){
       this.log("resume api not available on app");
       _state = ApplicationState.RUNNING;
       this.applicationResumed();
       return false;
     }
-    ret = _externalApp.resume(o);
+    _externalApp.resume(o);
     if (ret === true) {
       _state = ApplicationState.RUNNING;
       this.applicationResumed();

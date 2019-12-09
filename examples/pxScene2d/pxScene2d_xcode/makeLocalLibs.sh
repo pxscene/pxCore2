@@ -3,6 +3,8 @@
 echo Making Libs local to @executable_path
 echo HERE `pwd`
 
+chmod 755 *   #  ensure files can be modified.
+
 install_name_tool -id @executable_path/lib/libcurl.4.dylib ./lib/libcurl.4.dylib
 
 install_name_tool -id @executable_path/lib/libfreetype.6.dylib ./lib/libfreetype.6.dylib

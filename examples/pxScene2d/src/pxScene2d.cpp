@@ -121,6 +121,7 @@ rtEmitRef pxScriptView::mEmit = new rtEmit();
 
 rtRef<rtFunctionCallback> pxScriptView::mSparkHttp = NULL;
 rtString pxScriptView::mSparkGlInitApp;
+rtString pxScriptView::mSparkInitApp;
 
 
 #ifdef PXSCENE_SUPPORT_STORAGE
@@ -1132,7 +1133,8 @@ rtError pxScene2d::createVideo(rtObjectRef p, rtObjectRef& o)
   o.send("init");
   return RT_OK;
 #else
-  UNUSED_PARAM(p); UNUSED_PARAM(o);
+  UNUSED_PARAM(p);
+  UNUSED_PARAM(o);
 
   rtLogError("Type 'video' is not supported");
   return RT_FAIL;
@@ -3273,7 +3275,11 @@ void pxScriptView::runScript()
       {
         rtData initData;
         rtError e = rtLoadFile("initApp.js", initData);
-        mSparkGlInitApp = rtString((char*)initData.data(), (size_t)initData.length());
+        if(e != RT_OK)
+        {
+          rtLogError("Failed to load - 'initApp.js' ");
+        }
+        mSparkGlInitApp = rtString((char*)initData.data(), (uint32_t) initData.length());
       }
       mCtx->runScript(mSparkGlInitApp.cString());
       rtValue foo = mCtx->get("loadAppUrl");
@@ -3339,9 +3345,16 @@ void pxScriptView::runScript()
     }
     else
     {
-      rtString s = getenv("SPARK_PATH");
-      s.append("init.js");
-      mCtx->runFile(s.cString());
+      // compile init.js
+      if (mSparkInitApp.isEmpty())
+      {
+        rtString s = getenv("SPARK_PATH");
+        s.append("init.js");
+        rtData initData;
+        rtError e = rtLoadFile(s.cString(), initData);
+        mSparkInitApp = rtString((char*)initData.data(), (size_t)initData.length());
+      }
+      mCtx->runScript(mSparkInitApp.cString());
 
       rtString url = mUrl;
       if (mBootstrap)

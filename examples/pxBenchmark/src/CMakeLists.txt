@@ -329,7 +329,11 @@ set(PXWAYLAND_LIB_FILES ${CMAKE_CURRENT_SOURCE_DIR}/../../pxScene2d/src/pxContex
 
 if (BUILD_WITH_GL)
 message("Building with GL support")
-set(PXSCENE_COMMON_FILES ${PXSCENE_COMMON_FILES} ${CMAKE_CURRENT_SOURCE_DIR}/../../pxScene2d/src/pxObject.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../../pxScene2d/src/pxContextGL.cpp)
+set(PXSCENE_COMMON_FILES ${PXSCENE_COMMON_FILES}
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../pxScene2d/src/pxObject.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../pxScene2d/src/pxShaderUtils.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../pxScene2d/src/pxShaderResource.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../pxScene2d/src/pxContextGL.cpp)
 else ()
 message("Building with DirectFB support")
 set(PXSCENE_COMMON_FILES ${PXSCENE_COMMON_FILES} ${CMAKE_CURRENT_SOURCE_DIR}/../../pxScene2d/src/pxContextDFB.cpp)
