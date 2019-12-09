@@ -834,7 +834,7 @@ class rtFileDownloaderTest : public testing::Test, public commonTestFns
       expectedStatusCode = 0;
       expectedHttpCode = 0;
       expectedCachePresence = false;
-      continueDownloadHandleCheck = false;
+      //continueDownloadHandleCheck = false;
     }
 
     virtual void TearDown()
