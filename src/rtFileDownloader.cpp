@@ -736,7 +736,7 @@ rtFileDownloader::rtFileDownloader()
 rtFileDownloader::~rtFileDownloader()
 {
 #ifdef PX_REUSE_DOWNLOAD_HANDLES
-  printf("Destructor of downloader called .... [%p][%d]\n", this, downloadHandleExpiresCheckThread);
+  printf("Destructor of downloader called .... [%p][%d]\n", this, continueDownloadHandleCheck);
   fflush(stdout);
   downloadHandleMutex.lock();
   for (vector<rtFileDownloadHandle>::iterator it = mDownloadHandles.begin(); it != mDownloadHandles.end(); )
