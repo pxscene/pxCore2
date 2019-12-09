@@ -172,13 +172,11 @@ void onDownloadHandleCheck()
   while (checkHandles)
   {
 	pxSleepMS(kDownloadHandleTimerIntervalInMilliSeconds);
-    printf("calling expired handles .. \n"); fflush(stdout);
     rtFileDownloader::instance()->checkForExpiredHandles();
     downloadHandleMutex.lock();
     checkHandles = continueDownloadHandleCheck;
     downloadHandleMutex.unlock();
   }
-  printf("ending expired handles thread .. \n"); fflush(stdout);
 }
 
 rtFileDownloadRequest::rtFileDownloadRequest(const char* imageUrl, void* callbackData, void (*callbackFunction)(rtFileDownloadRequest*))
