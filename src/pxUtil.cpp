@@ -1880,8 +1880,8 @@ rtError pxLoadAGIFImage(const char *imageData, size_t imageDataSize,
     
     GifFileType *gif = NULL;
     GifRowType  *rows = NULL;
-    GifRowType row = 0;
-    GifRecordType type = UNDEFINED_RECORD_TYPE;
+    GifRowType row;
+    GifRecordType type;
     GifImageDesc *img = NULL;
     ColorMapObject *map = NULL;
     int extcode, transparent;
@@ -2135,8 +2135,8 @@ rtError pxLoadGIFImage(const char *imageData, size_t imageDataSize,
     
     GifFileType *gif = NULL;
     GifRowType  *rows = NULL;
-    GifRowType row = 0;
-    GifRecordType type = UNDEFINED_RECORD_TYPE;
+    GifRowType row;
+    GifRecordType type;
     GifImageDesc *img = NULL;
     ColorMapObject *map = NULL;
     int extcode, transparent;
