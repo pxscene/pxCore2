@@ -3553,6 +3553,34 @@ bool pxScriptView::onMouseLeave()
   return false;
 }
 
+bool pxScriptView::onDragMove(int32_t x, int32_t y, int32_t type)
+{
+  if (mView)
+    return mView->onDragMove(x, y, type);
+  return false;
+}
+
+bool pxScriptView::onDragEnter(int32_t x, int32_t y, int32_t type)
+{
+  if (mView)
+    return mView->onDragEnter(x, y, type);
+  return false;
+}
+
+bool pxScriptView::onDragLeave(int32_t x, int32_t y, int32_t type)
+{
+  if (mView)
+    return mView->onDragLeave(x, y, type);
+  return false;
+}
+
+bool pxScriptView::onDragDrop(int32_t x, int32_t y, int32_t type, const char *dropped)
+{
+  if (mView)
+    return mView->onDragDrop(x, y, type, dropped);
+  return false;
+}
+
 bool pxScriptView::onFocus()
 {
   // top level scene event
