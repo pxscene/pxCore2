@@ -37,6 +37,7 @@ rtString rtGetEnvAsString(const char* name, const char* defaultValue = "");
 rtValue rtGetEnvAsValue(const char* name, const char* defaultValue = "");
 
 bool rtFileExists(const char* f);
+bool rtFileRemove(const char* f);
 
 bool rtIsPathAbsolute(const char *path);
 bool rtIsPathAbsolute(const rtString &path);
