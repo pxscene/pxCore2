@@ -11,6 +11,7 @@
       {"url":"../tests/test_xre2_1555.js", "title":"test_XRE2-1555","useBaseURI":"true"},
       {"url":"../tests/test_moveToBackFront.js", "title":"test_moveToBackFront","useBaseURI":"true"},
       {"url":"../tests/test_getObjectById.js", "title":"test_getObjectById","useBaseURI":"true"},
+      {"url":"../tests/test_fancyNewAnimate.js", "title":"fancyNewAnimate","useBaseURI":"true","timeToRun":"10000"},
       {"url":"../tests/test_pxConstants.js", "title":"test_pxConstants","useBaseURI":"true"},
       {"url":"../tests/test_pxImageA.js", "title":"test_pxImageA","useBaseURI":"true"},
       {"url":"../tests/test_promiseCreationImage.js", "title":"test_promiseCreationImage","useBaseURI":"true"},
