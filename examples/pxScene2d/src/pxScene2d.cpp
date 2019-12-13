@@ -3352,7 +3352,11 @@ void pxScriptView::runScript()
         s.append("init.js");
         rtData initData;
         rtError e = rtLoadFile(s.cString(), initData);
-        mSparkInitApp = rtString((char*)initData.data(), (size_t)initData.length());
+        
+        if (e != RT_OK)
+          rtLogError("Failed to load file: %s", s.cString());
+        
+        mSparkInitApp = rtString((char*)initData.data(), (uint32_t)initData.length());
       }
       mCtx->runScript(mSparkInitApp.cString());
 

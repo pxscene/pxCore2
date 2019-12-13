@@ -987,7 +987,6 @@ bool rtFileDownloader::downloadByteRangeFromNetwork(rtFileDownloadRequest* downl
    int multipleIntervals = 1;
    size_t startRange = 0;
    rtString byteRange("NULL");
-   char byteRangeStr[100];
    rtString strLocation;
    unsigned int curlErrRetryCount = 0;
    rtString curlUrl = downloadRequest->fileUrl();

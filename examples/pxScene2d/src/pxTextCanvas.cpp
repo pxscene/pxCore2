@@ -435,9 +435,6 @@ void pxTextCanvas::renderTextLine(const pxTextLine& textLine)
     uint32_t alignH = textLine.alignHorizontal;
     uint32_t baseline = textLine.textBaseline;
 
-    float    textW;
-    float    textH;
-
     if (mFont != textLine.font)
     {
         setFont(textLine.font);
