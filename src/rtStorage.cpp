@@ -55,10 +55,9 @@ rtError rtStorage::init(const char* filename, uint32_t storageQuota, const char*
 
   term();
 
+  bool shouldEncrypt = key && *key;
 #if defined(SQLITE_HAS_CODEC)
-  bool shouldReKey = false;
-  if (key && *key)
-    shouldReKey = rtFileExists(filename) && !isEncrypted(filename);
+  bool shouldReKey = shouldEncrypt && rtFileExists(filename) && !isEncrypted(filename);
 #endif
 
   int rc = sqlite3_open(filename, &db);
@@ -68,7 +67,7 @@ rtError rtStorage::init(const char* filename, uint32_t storageQuota, const char*
     return RT_FAIL;
   }
 
-  if (key && *key)
+  if (shouldEncrypt)
   {
 #if defined(SQLITE_HAS_CODEC)
     std::vector<uint8_t> pKey;
@@ -119,6 +118,29 @@ rtError rtStorage::init(const char* filename, uint32_t storageQuota, const char*
     }
     else
       rtLogError("%s : %d", __FUNCTION__, rc);
+  }
+
+  if (rc == SQLITE_NOTADB
+    && shouldEncrypt
+#if defined(SQLITE_HAS_CODEC)
+    && !shouldReKey // re-key should never fail
+#endif
+      )
+  {
+    rtLogWarn("SQLite database is encrypted, but the key doesn't work");
+    term();
+    if (!rtFileRemove(filename) || rtFileExists(filename))
+    {
+      return RT_FAIL;
+    }
+    rc = sqlite3_open(filename, &db);
+    term();
+    if (rc || !rtFileExists(filename))
+    {
+      return RT_FAIL;
+    }
+    rtLogWarn("SQLite database has been reset, trying re-key");
+    return init(filename, storageQuota, key);
   }
 
   rc = sqlite3_exec(db, "CREATE TABLE if not exists ItemTable (key TEXT UNIQUE ON CONFLICT REPLACE, value TEXT);", 0, 0, &errmsg);
