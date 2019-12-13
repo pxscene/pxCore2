@@ -1,4 +1,5 @@
 [
+      {"url": "https://www.sparkui.org/examples/gallery/fancy.js", "title": "fancy", "timeToRun": "5000", "useBaseURI": "false" },
       {"url": "https://www.sparkui.org/examples/gallery/picturepile.js", "title": "picturepile", "timeToRun": "5000", "useBaseURI": "false" },
       {"url": "https://www.sparkui.org/examples/gallery/gallery3.js", "title": "gallery3", "timeToRun": "5000", "useBaseURI": "false" },
       {"url":"../tests/test_simpleApiParent.js", "title":"test_simpleApiParent","useBaseURI":"true"},
