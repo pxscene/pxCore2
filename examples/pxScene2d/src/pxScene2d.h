@@ -691,6 +691,12 @@ protected:
   virtual bool onMouseDown(int32_t x, int32_t y, uint32_t flags);
   virtual bool onMouseUp(int32_t x, int32_t y, uint32_t flags);
   virtual bool onMouseMove(int32_t x, int32_t y);
+  
+  virtual bool onDragMove( int32_t x, int32_t y, int32_t type);
+  virtual bool onDragEnter(int32_t x, int32_t y, int32_t type);
+  virtual bool onDragLeave(int32_t x, int32_t y, int32_t type);
+  virtual bool onDragDrop( int32_t x, int32_t y, int32_t type, const char *dropped);
+
   virtual bool onScrollWheel(float dx, float dy);
   virtual bool onMouseEnter();
   virtual bool onMouseLeave();

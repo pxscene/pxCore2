@@ -3,7 +3,7 @@
 echo Making Libs local to @executable_path
 echo HERE `pwd`
 
-chmod 755 *   #  ensure files can be modified.
+chmod 755 ./lib/*   #  ensure files can be modified.
 
 install_name_tool -id @executable_path/lib/libcurl.4.dylib ./lib/libcurl.4.dylib
 
@@ -33,5 +33,5 @@ install_name_tool -id @executable_path/lib/libsqlite3.dylib ./lib/libsqlite3.dyl
 
 install_name_tool -id @executable_path/lib/libGLEW.2.1.dylib ./lib/libGLEW.2.1.dylib
 
-install_name_tool -id @executable_path/lib/librtmp.1.dylib ./lib/librtmp.1.dylib
+# install_name_tool -id @executable_path/lib/librtmp.1.dylib ./lib/librtmp.1.dylib
 

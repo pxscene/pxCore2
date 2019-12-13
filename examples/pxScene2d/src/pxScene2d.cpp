@@ -3352,7 +3352,11 @@ void pxScriptView::runScript()
         s.append("init.js");
         rtData initData;
         rtError e = rtLoadFile(s.cString(), initData);
-        mSparkInitApp = rtString((char*)initData.data(), (size_t)initData.length());
+        
+        if (e != RT_OK)
+          rtLogError("Failed to load file: %s", s.cString());
+        
+        mSparkInitApp = rtString((char*)initData.data(), (uint32_t)initData.length());
       }
       mCtx->runScript(mSparkInitApp.cString());
 
@@ -3550,6 +3554,34 @@ bool pxScriptView::onMouseLeave()
 {
   if (mView)
     return mView->onMouseLeave();
+  return false;
+}
+
+bool pxScriptView::onDragMove(int32_t x, int32_t y, int32_t type)
+{
+  if (mView)
+    return mView->onDragMove(x, y, type);
+  return false;
+}
+
+bool pxScriptView::onDragEnter(int32_t x, int32_t y, int32_t type)
+{
+  if (mView)
+    return mView->onDragEnter(x, y, type);
+  return false;
+}
+
+bool pxScriptView::onDragLeave(int32_t x, int32_t y, int32_t type)
+{
+  if (mView)
+    return mView->onDragLeave(x, y, type);
+  return false;
+}
+
+bool pxScriptView::onDragDrop(int32_t x, int32_t y, int32_t type, const char *dropped)
+{
+  if (mView)
+    return mView->onDragDrop(x, y, type, dropped);
   return false;
 }
 
