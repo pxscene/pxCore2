@@ -762,15 +762,26 @@ class rtValueTest : public testing::Test
     EXPECT_TRUE(v1.toString().isEmpty());
     EXPECT_TRUE(v2.toString() == str);
 
-//    // move to self
-//    v2 = std::move(v2);
-//    EXPECT_TRUE(v2.toString() == str);
-
     // move-assign from rvalue temporary
-    rtObjectRef obj = new rtMapObject;
-    v2 = rtValue(obj);
-    EXPECT_TRUE(v2.toString().isEmpty());
-    EXPECT_FALSE(v2.toObject() == NULL);
+    auto obj = new rtMapObject;
+    rtObjectRef ref = obj;
+    v2 = rtValue(ref);
+    EXPECT_TRUE(ref.getPtr() == obj);
+    EXPECT_TRUE(v2.toObject().getPtr() == obj);
+    EXPECT_EQ(3u, obj->AddRef());
+    EXPECT_EQ(2u, obj->Release());
+
+    // move-assign from xvalue
+    v1 = std::move(v2);
+    EXPECT_TRUE(v2.toObject().getPtr() == NULL);
+    EXPECT_TRUE(v1.toObject().getPtr() == obj);
+    EXPECT_EQ(3u, obj->AddRef());
+    EXPECT_EQ(2u, obj->Release());
+    v2 = std::move(v1);
+    EXPECT_TRUE(v1.toObject().getPtr() == NULL);
+    EXPECT_TRUE(v2.toObject().getPtr() == obj);
+    EXPECT_EQ(3u, obj->AddRef());
+    EXPECT_EQ(2u, obj->Release());
 
     // copy constructor
     const rtValue v3(v2);
@@ -778,9 +789,18 @@ class rtValueTest : public testing::Test
 
     // copy assignment
     v4 = std::move(v3);
-    EXPECT_FALSE(v2.toObject() == NULL);
-    EXPECT_FALSE(v3.toObject() == NULL);
-    EXPECT_FALSE(v4.toObject() == NULL);
+    EXPECT_TRUE(v2.toObject().getPtr() == obj);
+    EXPECT_TRUE(v3.toObject().getPtr() == obj);
+    EXPECT_TRUE(v4.toObject().getPtr() == obj);
+    EXPECT_EQ(5u, obj->AddRef());
+    EXPECT_EQ(4u, obj->Release());
+
+    // move-assign
+    v4 = std::move(v2);
+    EXPECT_TRUE(v2.toObject().getPtr() == NULL);
+    EXPECT_TRUE(v4.toObject().getPtr() == obj);
+    EXPECT_EQ(4u, obj->AddRef());
+    EXPECT_EQ(3u, obj->Release());
 
     // move constructor
     auto v5 = rtValue(rtValue(str));

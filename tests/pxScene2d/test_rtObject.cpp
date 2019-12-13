@@ -250,7 +250,7 @@ class rtObjectTest : public testing::Test
 
     void moveTests()
     {
-      rtMapObject* obj = new rtMapObject;
+      auto obj = new rtMapObject;
 
       rtObjectRef o1(obj), o2;
 
@@ -258,19 +258,31 @@ class rtObjectTest : public testing::Test
       o2 = o1;
       EXPECT_TRUE(o1.getPtr() == obj);
       EXPECT_TRUE(o2.getPtr() == obj);
+      EXPECT_EQ(3u, obj->AddRef());
+      EXPECT_EQ(2u, obj->Release());
+      o1 = o2;
+      EXPECT_TRUE(o1.getPtr() == obj);
+      EXPECT_TRUE(o2.getPtr() == obj);
+      EXPECT_EQ(3u, obj->AddRef());
+      EXPECT_EQ(2u, obj->Release());
 
       // move-assign from xvalue
       o2 = std::move(o1);
       EXPECT_TRUE(o1.getPtr() == NULL);
       EXPECT_TRUE(o2.getPtr() == obj);
-
-//      // move to self
-//      o2 = std::move(o2);
-//      EXPECT_TRUE(o2.getPtr() == obj);
+      EXPECT_EQ(2u, obj->AddRef());
+      EXPECT_EQ(1u, obj->Release());
+      o1 = std::move(o2);
+      EXPECT_TRUE(o2.getPtr() == NULL);
+      EXPECT_TRUE(o1.getPtr() == obj);
+      EXPECT_EQ(2u, obj->AddRef());
+      EXPECT_EQ(1u, obj->Release());
 
       // move-assign from rvalue temporary
       o1 = rtObjectRef(obj);
       EXPECT_TRUE(o1.getPtr() == obj);
+      EXPECT_EQ(2u, obj->AddRef());
+      EXPECT_EQ(1u, obj->Release());
 
       // copy constructor
       const rtObjectRef o3(o1);
@@ -281,10 +293,14 @@ class rtObjectTest : public testing::Test
       EXPECT_TRUE(o1.getPtr() == obj);
       EXPECT_TRUE(o3.getPtr() == obj);
       EXPECT_TRUE(o4.getPtr() == obj);
+      EXPECT_EQ(4u, obj->AddRef());
+      EXPECT_EQ(3u, obj->Release());
 
       // move constructor
       auto o5 = rtObjectRef(rtObjectRef(obj));
       EXPECT_TRUE(o5.getPtr() == obj);
+      EXPECT_EQ(5u, obj->AddRef());
+      EXPECT_EQ(4u, obj->Release());
     }
 };
 

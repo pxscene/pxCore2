@@ -170,18 +170,13 @@ class rtStringTest : public testing::Test
     EXPECT_EQ(0, s1.compare(str));
     EXPECT_EQ(0, s2.compare(str));
     EXPECT_TRUE(ptr == s1.cString());
-    EXPECT_FALSE(ptr == s2.cString());
+    EXPECT_TRUE(ptr != s2.cString());
 
     // move-assign from xvalue
     s2 = std::move(s1);
     EXPECT_TRUE(s1.isEmpty());
     EXPECT_EQ(0, s2.compare(str));
     EXPECT_TRUE(ptr == s2.cString());
-
-//    // move to self
-//    s2 = std::move(s2);
-//    EXPECT_EQ(0, s2.compare(str));
-//    EXPECT_TRUE(ptr == s2.cString());
 
     // move-assign from rvalue temporary
     s1 = rtString(str);
