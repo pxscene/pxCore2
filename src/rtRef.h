@@ -60,11 +60,9 @@ public:
   inline rtRef<T>& operator=(const rtRef<T>& r)                           {asn(r.mRef); return *this;}
   inline rtRef<T>& operator=(rtRef<T>&& r) noexcept
   {
-    T* ref = r.mRef;
-    if (mRef != ref)
-      term();
+    term();
+    mRef = r.mRef;
     r.mRef = nullptr;
-    mRef = ref;
     return *this;
   }
 

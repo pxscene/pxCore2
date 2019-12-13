@@ -62,38 +62,13 @@ bool rtValue::operator==(const rtValue& rhs) const
 
 rtValue& rtValue::operator=(rtValue&& v) noexcept
 {
-  rtString* str = v.mValue.stringValue;
-  rtIObject* obj = v.mValue.objectValue;
-  rtIFunction* fun = v.mValue.functionValue;
-
-  if (mType == RT_objectType)
-  {
-    if (mValue.objectValue && mValue.objectValue != obj)
-      mValue.objectValue->Release();
-  }
-  else if (mType == RT_functionType)
-  {
-    if (mValue.functionValue && mValue.functionValue != fun)
-      mValue.functionValue->Release();
-  }
-  else if (mType == RT_stringType)
-  {
-    if (mValue.stringValue && mValue.stringValue != str)
-      delete mValue.stringValue;
-  }
-
-  v.mValue.stringValue = nullptr;
-  v.mValue.objectValue = nullptr;
-  v.mValue.functionValue = nullptr;
-
+  term();
   mType = v.mType;
   mValue = v.mValue;
   mIsEmpty = v.mIsEmpty;
-
-  mValue.stringValue = str;
-  mValue.objectValue = obj;
-  mValue.functionValue = fun;
-
+  v.mValue.stringValue = nullptr;
+  v.mValue.objectValue = nullptr;
+  v.mValue.functionValue = nullptr;
   return *this;
 }
 

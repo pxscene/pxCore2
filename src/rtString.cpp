@@ -89,11 +89,9 @@ rtString& rtString::operator=(const char* s)
 
 rtString& rtString::operator=(rtString&& s) noexcept
 {
-  char* data = s.mData;
-  if (mData != data)
-    term();
+  term();
+  mData = s.mData;
   s.mData = nullptr;
-  mData = data;
   return *this;
 }
 
