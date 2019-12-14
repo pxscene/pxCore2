@@ -78,6 +78,11 @@ bool rtFileExists(const char* f)
   return (stat (f, &buffer) == 0);
 }
 
+bool rtFileRemove(const char* f)
+{
+  return (remove (f) == 0);
+}
+
 rtError rtGetEnv(const char* e, rtString& v)
 {
   v = getenv(e);
