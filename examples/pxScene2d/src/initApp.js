@@ -19,14 +19,13 @@ limitations under the License.
 var initModule = require("rcvrcore/initGL")
 var ESMLoader = require('rcvrcore/ESMLoader')
 
-var loadAppUrl = function(url, _beginDrawing, _endDrawing, _view, _frameworkURL, _options, _sparkHttp) {
+var loadAppUrl = function(url, _beginDrawing, _endDrawing, _view, bootstrap, _sparkHttp) {
   var params = {}
   params.url = url;
   params._beginDrawing = _beginDrawing;
   params._endDrawing = _endDrawing;
   params._view = _view
-  params._frameworkURL = _frameworkURL;
-  params._options = _options;
+  params.bootstrap = bootstrap;
   params._sparkHttp = _sparkHttp
   if (!global.sparkHttp){
     global.sparkHttp = _sparkHttp;
