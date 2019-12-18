@@ -993,60 +993,6 @@ index 0e352c657..5599a52dd 100755
  
    Persistent<v8::Module> module_;
    Persistent<v8::String> url_;
-diff --git a/examples/pxScene2d/external/libnode-v10.15.3/deps/uv/src/unix/core.c b/examples/pxScene2d/external/libnode-v10.15.3/deps/uv/src/unix/core.c
-index f92446f..d02c098 100755
---- a/examples/pxScene2d/external/libnode-v10.15.3/deps/uv/src/unix/core.c
-+++ b/examples/pxScene2d/external/libnode-v10.15.3/deps/uv/src/unix/core.c
-@@ -726,9 +726,12 @@ void uv_disable_stdio_inheritance(void) {
-   /* Set the CLOEXEC flag on all open descriptors. Unconditionally try the
-    * first 16 file descriptors. After that, bail out after the first error.
-    */
--  for (fd = 0; ; fd++)
-+  /*MODIFIED CODE BEGIN */
-+  //for (fd = 0; ; fd++)
-+  for (fd = 3; ; fd++)
-     if (uv__cloexec(fd, 1) && fd > 15)
-       break;
-+  /*MODIFIED CODE END */
- }
- 
- 
-@@ -1003,6 +1006,9 @@ int uv__open_cloexec(const char* path, int flags) {
- 
- int uv__dup2_cloexec(int oldfd, int newfd) {
-   int r;
-+  /*MODIFIED CODE BEGIN*/
-+  int flags = 0;
-+  /*MODIFIED CODE END*/
- #if (defined(__FreeBSD__) && __FreeBSD__ >= 10) || defined(__NetBSD__)
-   r = dup3(oldfd, newfd, O_CLOEXEC);
-   if (r == -1)
-@@ -1018,9 +1024,23 @@ int uv__dup2_cloexec(int oldfd, int newfd) {
- #elif defined(__linux__)
-   static int no_dup3;
-   if (!no_dup3) {
-+    /* MODIFIED CODE BEGIN */
-+    //do
-+    //  r = uv__dup3(oldfd, newfd, UV__O_CLOEXEC);
-+    //while (r == -1 && errno == EBUSY);
-     do
--      r = uv__dup3(oldfd, newfd, UV__O_CLOEXEC);
--    while (r == -1 && errno == EBUSY);
-+    {
-+      if (newfd >=0  && newfd <= 2)
-+      {
-+        flags = 0;
-+      }
-+      else
-+      {
-+        flags = UV__O_CLOEXEC;
-+      }
-+      r = uv__dup3(oldfd, newfd, flags);
-+    }while (r == -1 && (errno == EINTR || errno == EBUSY));
-+    /* MODIFIED CODE END */
-     if (r != -1)
-       return r;
-     if (errno != ENOSYS)
 diff --git a/examples/pxScene2d/external/libnode-v10.15.3/src/env.h b/examples/pxScene2d/external/libnode-v10.15.3/src/env.h
 index 66c69e8d0..e229a8fbd 100755
 --- a/examples/pxScene2d/external/libnode-v10.15.3/src/env.h
@@ -1551,43 +1497,6 @@ index 98f0ca4ac..7924678ca 100755
  
  #ifdef _WIN32
    // We don't always have an FD that we could look up on the stream_
-diff --git a/examples/pxScene2d/external/libnode-v10.15.3/src/tcp_wrap.cc b/examples/pxScene2d/external/libnode-v10.15.3/src/tcp_wrap.cc
-index a6cc01f12..c66a0cfcc 100755
---- a/examples/pxScene2d/external/libnode-v10.15.3/src/tcp_wrap.cc
-+++ b/examples/pxScene2d/external/libnode-v10.15.3/src/tcp_wrap.cc
-@@ -93,6 +93,9 @@ void TCPWrap::Initialize(Local<Object> target,
-   env->SetProtoMethod(t, "open", Open);
-   env->SetProtoMethod(t, "bind", Bind);
-   env->SetProtoMethod(t, "listen", Listen);
-+/* MODIFIED CODE BEGIN*/
-+  env->SetProtoMethod(t, "reset",Reset);
-+/* MODIFIED CODE END */
-   env->SetProtoMethod(t, "connect", Connect);
-   env->SetProtoMethod(t, "bind6", Bind6);
-   env->SetProtoMethod(t, "connect6", Connect6);
-@@ -274,6 +277,22 @@ void TCPWrap::Listen(const FunctionCallbackInfo<Value>& args) {
-   args.GetReturnValue().Set(err);
- }
- 
-+/* MODIFIED CODE BEGIN */
-+void TCPWrap::Reset(const FunctionCallbackInfo<Value>& args) {
-+  TCPWrap* wrap;
-+  ASSIGN_OR_RETURN_UNWRAP(&wrap,
-+                          args.Holder(),
-+                          args.GetReturnValue().Set(UV_EBADF));
-+  Environment* env = wrap->env();
-+  int err = uv_tcp_init(env->event_loop(), &wrap->handle_);
-+  wrap->update_stream(reinterpret_cast<uv_stream_t*> (&wrap->handle_));
-+  wrap->handle_.data = wrap;
-+  //err = uv_tcp_init(env->event_loop(), &wrap->handle_);
-+  CHECK_EQ(err, 0);  // How do we proxy this error up to javascript?
-+                   // Suggestion: uv_tcp_init() returns void.
-+  args.GetReturnValue().Set(err);
-+}
-+/* MODIFIED CODE END */
- 
- void TCPWrap::Connect(const FunctionCallbackInfo<Value>& args) {
-   CHECK(args[2]->IsUint32());
 diff --git a/examples/pxScene2d/external/libnode-v10.15.3/src/tcp_wrap.h b/examples/pxScene2d/external/libnode-v10.15.3/src/tcp_wrap.h
 index 3cbeae6d6..67bf832a0 100755
 --- a/examples/pxScene2d/external/libnode-v10.15.3/src/tcp_wrap.h
@@ -1602,3 +1511,158 @@ index 3cbeae6d6..67bf832a0 100755
  
  #ifdef _WIN32
    static void SetSimultaneousAccepts(
+diff --git a/examples/pxScene2d/external/libnode-v10.15.3/deps/uv/include/uv.h b/examples/pxScene2d/external/libnode-v10.15.3/deps/uv/include/uv.h
+index 717c2e570..d08e8632f 100755
+--- a/examples/pxScene2d/external/libnode-v10.15.3/deps/uv/include/uv.h
++++ b/examples/pxScene2d/external/libnode-v10.15.3/deps/uv/include/uv.h
+@@ -449,6 +449,9 @@ UV_EXTERN void uv_print_all_handles(uv_loop_t* loop, FILE* stream);
+ UV_EXTERN void uv_print_active_handles(uv_loop_t* loop, FILE* stream);
+ 
+ UV_EXTERN void uv_close(uv_handle_t* handle, uv_close_cb close_cb);
++/* MODIFIED CODE BEGIN */
++UV_EXTERN void uv_close_immediate(uv_handle_t* handle, uv_close_cb close_cb);
++/* MODIFIED CODE END */
+ 
+ UV_EXTERN int uv_send_buffer_size(uv_handle_t* handle, int* value);
+ UV_EXTERN int uv_recv_buffer_size(uv_handle_t* handle, int* value);
+diff --git a/examples/pxScene2d/external/libnode-v10.15.3/deps/uv/src/unix/core.c b/examples/pxScene2d/external/libnode-v10.15.3/deps/uv/src/unix/core.c
+index f92446ff4..e71a20523 100755
+--- a/examples/pxScene2d/external/libnode-v10.15.3/deps/uv/src/unix/core.c
++++ b/examples/pxScene2d/external/libnode-v10.15.3/deps/uv/src/unix/core.c
+@@ -304,6 +304,24 @@ static void uv__run_closing_handles(uv_loop_t* loop) {
+   }
+ }
+ 
++/* MODIFIED CODE BEGIN */
++void uv_close_immediate(uv_handle_t* handle, uv_close_cb close_cb) {
++  assert(!uv__is_closing(handle));
++
++  handle->flags |= UV_HANDLE_CLOSING;
++  handle->close_cb = close_cb;
++
++  switch (handle->type) {
++  case UV_TCP:
++    uv__tcp_close((uv_tcp_t*)handle);
++    uv__finish_close(handle);
++    break;
++
++  default:
++    assert(1);
++  }
++}
++/* MODIFIED CODE END */
+ 
+ int uv_is_closing(const uv_handle_t* handle) {
+   return uv__is_closing(handle);
+@@ -726,9 +744,12 @@ void uv_disable_stdio_inheritance(void) {
+   /* Set the CLOEXEC flag on all open descriptors. Unconditionally try the
+    * first 16 file descriptors. After that, bail out after the first error.
+    */
+-  for (fd = 0; ; fd++)
++  /*MODIFIED CODE BEGIN */
++  //for (fd = 0; ; fd++)
++  for (fd = 3; ; fd++)
+     if (uv__cloexec(fd, 1) && fd > 15)
+       break;
++  /*MODIFIED CODE END */
+ }
+ 
+ 
+@@ -1003,6 +1024,9 @@ int uv__open_cloexec(const char* path, int flags) {
+ 
+ int uv__dup2_cloexec(int oldfd, int newfd) {
+   int r;
++  /*MODIFIED CODE BEGIN*/
++  int flags = 0;
++  /*MODIFIED CODE END*/
+ #if (defined(__FreeBSD__) && __FreeBSD__ >= 10) || defined(__NetBSD__)
+   r = dup3(oldfd, newfd, O_CLOEXEC);
+   if (r == -1)
+@@ -1018,9 +1042,23 @@ int uv__dup2_cloexec(int oldfd, int newfd) {
+ #elif defined(__linux__)
+   static int no_dup3;
+   if (!no_dup3) {
++    /* MODIFIED CODE BEGIN */
++    //do
++    //  r = uv__dup3(oldfd, newfd, UV__O_CLOEXEC);
++    //while (r == -1 && errno == EBUSY);
+     do
+-      r = uv__dup3(oldfd, newfd, UV__O_CLOEXEC);
+-    while (r == -1 && errno == EBUSY);
++    {
++      if (newfd >=0  && newfd <= 2)
++      {
++        flags = 0;
++      }
++      else
++      {
++        flags = UV__O_CLOEXEC;
++      }
++      r = uv__dup3(oldfd, newfd, flags);
++    }while (r == -1 && (errno == EINTR || errno == EBUSY));
++    /* MODIFIED CODE END */
+     if (r != -1)
+       return r;
+     if (errno != ENOSYS)
+diff --git a/examples/pxScene2d/external/libnode-v10.15.3/deps/uv/src/win/handle.c b/examples/pxScene2d/external/libnode-v10.15.3/deps/uv/src/win/handle.c
+index 9d76c3f54..ceb42f263 100755
+--- a/examples/pxScene2d/external/libnode-v10.15.3/deps/uv/src/win/handle.c
++++ b/examples/pxScene2d/external/libnode-v10.15.3/deps/uv/src/win/handle.c
+@@ -148,6 +148,11 @@ void uv_close(uv_handle_t* handle, uv_close_cb cb) {
+   }
+ }
+ 
++/* MODIFIED CODE BEGIN */
++void uv_close_immediate(uv_handle_t* handle, uv_close_cb cb) {
++  uv_close(handle, cb);
++}
++/* MODIFIED CODE END */
+ 
+ int uv_is_closing(const uv_handle_t* handle) {
+   return !!(handle->flags & (UV_HANDLE_CLOSING | UV_HANDLE_CLOSED));
+diff --git a/examples/pxScene2d/external/libnode-v10.15.3/src/tcp_wrap.cc b/examples/pxScene2d/external/libnode-v10.15.3/src/tcp_wrap.cc
+index a6cc01f12..ceee5e7ef 100755
+--- a/examples/pxScene2d/external/libnode-v10.15.3/src/tcp_wrap.cc
++++ b/examples/pxScene2d/external/libnode-v10.15.3/src/tcp_wrap.cc
+@@ -33,7 +33,6 @@
+ 
+ #include <stdlib.h>
+ 
+-
+ namespace node {
+ 
+ using v8::Boolean;
+@@ -93,6 +92,9 @@ void TCPWrap::Initialize(Local<Object> target,
+   env->SetProtoMethod(t, "open", Open);
+   env->SetProtoMethod(t, "bind", Bind);
+   env->SetProtoMethod(t, "listen", Listen);
++/* MODIFIED CODE BEGIN*/
++  env->SetProtoMethod(t, "reset",Reset);
++/* MODIFIED CODE END */
+   env->SetProtoMethod(t, "connect", Connect);
+   env->SetProtoMethod(t, "bind6", Bind6);
+   env->SetProtoMethod(t, "connect6", Connect6);
+@@ -260,6 +262,23 @@ void TCPWrap::Bind6(const FunctionCallbackInfo<Value>& args) {
+ }
+ 
+ 
++/* MODIFIED CODE BEGIN */
++void TCPWrap::Reset(const FunctionCallbackInfo<Value>& args) {
++  TCPWrap* wrap;
++  ASSIGN_OR_RETURN_UNWRAP(&wrap,
++                          args.Holder(),
++                          args.GetReturnValue().Set(UV_EBADF));
++  Environment* env = wrap->env();
++  uv_close_immediate(reinterpret_cast<uv_handle_t*>(&wrap->handle_), nullptr);
++  int err = uv_tcp_init(env->event_loop(), &wrap->handle_);
++  wrap->update_stream(reinterpret_cast<uv_stream_t*> (&wrap->handle_));
++  wrap->handle_.data = wrap;
++  //err = uv_tcp_init(env->event_loop(), &wrap->handle_);
++  CHECK_EQ(err, 0);  // How do we proxy this error up to javascript?
++                   // Suggestion: uv_tcp_init() returns void.
++  args.GetReturnValue().Set(err);
++}
++/* MODIFIED CODE END */
+ void TCPWrap::Listen(const FunctionCallbackInfo<Value>& args) {
+   TCPWrap* wrap;
+   ASSIGN_OR_RETURN_UNWRAP(&wrap,
