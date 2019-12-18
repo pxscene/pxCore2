@@ -26,6 +26,8 @@ var ArrayJoin = Function.call.bind(Array.prototype.join);
 var ArrayMap = Function.call.bind(Array.prototype.map);
 var reqOrig = require;
 
+// Normalize the URL, for consistency. Remove the query part.
+// All local URLs would have the 'file:' prefix.
 var filename2url = function (loc) {
   var __dirname = process.cwd()
   let pos = loc.indexOf('#');
@@ -262,165 +264,41 @@ var getFile = async function (scene, url) {
 
 /* load mjs file and returns as ejs module */
 var getModule = async function (specifier, referencingModule) {
-   var __dirname = process.cwd()
-   try {
-   var isLocalApp = (referencingModule.url.indexOf("file:") == 0)?true:false;
-   var baseString = "";
-   if (isLocalApp) {
-     baseString = referencingModule.url.indexOf("file:") == 0?referencingModule.url.substring(7):referencingModule.url;
-   }
-   else
-   {
-     baseString = referencingModule.url.indexOf("http:") == 0?referencingModule.url.substring(7):referencingModule.url;
-   }
-   var mod;
-   if (specifier.indexOf('.node') != -1) // native node module
-   {
-     mod = loadNodeModule(specifier, referencingModule.context);
-   }
-   else if (specifier.indexOf('.json') != -1) // json module
-   {
-     var source;
-     try {
-       if (isLocalApp) {
-           specifier = path.resolve(baseString.substring(0, baseString.lastIndexOf("/")+1), specifier);
-           source = await readFileAsync(specifier, {'encoding' : 'utf-8'})
-           specifier = "file://" + specifier;
-           mod = loadJsonModule(source, specifier, referencingModule.context);
-         }
-         else
-         {
-           specifier = "http://" + baseString.substring(0, baseString.lastIndexOf("/")+1) + specifier;
-           let result = await loadHttpFile(referencingModule.context.global.sparkscene, specifier);
-           mod = loadJsonModule(result, specifier, referencingModule.context);
-         }
-       } catch(err) {
-         console.log(err);
-       }
-   }
-   else if (specifier.indexOf('.js') != -1) // js module used by app
-   {
-     var source;
-     try {
-       if (isLocalApp) {
-           specifier = path.resolve(baseString.substring(0, baseString.lastIndexOf("/")+1), specifier);
-           source = await readFileAsync(specifier, {'encoding' : 'utf-8'})
-           specifier = "file://" + specifier;
-           mod = loadJavaScriptModule(source, specifier, referencingModule.context);
-         }
-         else
-         {
-           let result = await loadHttpFile(referencingModule.context.global.sparkscene, specifier);
-           mod = loadJavaScriptModule(result, specifier, referencingModule.context);
-         }
-       } catch(err) {
-         console.log(err);
-       }
-   }
-   // may be relative or non-relative
-   else if ((specifier.startsWith(".") == false) && (specifier.startsWith("/") == false)) {
-     // node modules
-     if (fs.existsSync("node_modules/" + specifier) && (specifier.indexOf("wpe-lightning") == -1))
-     {
-       mod = loadCommonJSModule(specifier, referencingModule.context);
-     }
-     else if(specifier == 'fs' || specifier == 'http' || specifier == 'https') {
-       mod = loadCommonJSModule(specifier, referencingModule.context);
-     }
-     else
-     {
-       // mjs module
-       var treatAsLocal = false;
-       if(specifier.indexOf("wpe-lightning-spark") == 0)
-       {
-         treatAsLocal = true;
-         specifier = path.resolve(__dirname ,"node_modules/wpe-lightning-spark/src/lightning.mjs") ;
-       }
-       else if(specifier.indexOf("wpe-lightning") == 0)
-       {
-         treatAsLocal = true;
-         specifier = path.resolve(__dirname ,"node_modules/" + specifier);
-       }
-       else if (specifier.indexOf(".mjs") != -1)
-       {
-         if (isLocalApp) {
-           specifier = path.resolve(baseString.substring(0, baseString.lastIndexOf("/")+1), specifier);
-         }
-         else
-         {
-           specifier = baseString.substring(0, baseString.lastIndexOf("/")+1) + specifier;
-         }
-       }
-       if (specifier in referencingModule.context.modmap)
-       {
-         mod = referencingModule.context.modmap[specifier];
-       }
-       else {
-       var source;
-       try {
-         if (isLocalApp || (true == treatAsLocal)) {
-           source = await readFileAsync(specifier, {'encoding' : 'utf-8'})
-           specifier = "file://" + specifier;
-           mod = loadMjs(source, specifier, referencingModule.context, referencingModule.context.modmap);
-         }
-         else
-         {
-           specifier = "http://" + specifier;
-           let result = await loadHttpFile(referencingModule.context.global.sparkscene, specifier);
-           mod = loadMjs(result, specifier, referencingModule.context, referencingModule.context.modmap);
-         }
-       } catch(err) {
-         console.log(err);
-       }
-      }
-     }
-   }
-   else if (specifier.indexOf(".") == 0) {
-     if (specifier.indexOf("./") == 0) {
-       specifier = specifier.substring(2);
-     }
-     if (isLocalApp) {
-       specifier = path.resolve(baseString.substring(0, baseString.lastIndexOf("/")+1), specifier);
-     }
-     else
-     { 
-       specifier = baseString.substring(0, baseString.lastIndexOf("/")+1) + specifier;
-     }
-     // making sure we are not appending extension with files already having extension
-     if ((specifier.endsWith(".js") == false) && (specifier.endsWith(".mjs") == false))
-     {
-       specifier = specifier + ".mjs";
-     } 
-     if (specifier in referencingModule.context.modmap)
-     {
-       mod = referencingModule.context.modmap[specifier];
-     }
-     else {
-       // search for ux.mjs or ux.js
-       var source;
-       try {
-         if (isLocalApp) {
-           source = await readFileAsync(specifier, {'encoding' : 'utf-8'})
-           specifier = "file://" + specifier;
-           mod = loadMjs(source, specifier, referencingModule.context, referencingModule.context.modmap);
-         }
-         else
-         {
-           //http module read
-           specifier = "http://" + specifier;
-           let result = await loadHttpFile(referencingModule.context.global.sparkscene, specifier);
-           mod = loadMjs(result, specifier, referencingModule.context, referencingModule.context.modmap);
-         }
-       } catch(err) {
-         console.log(err);
-       }
-     }
+  if (/\.node$/.test(specifier))
+    return await loadNodeModule(specifier, referencingModule.context);
+  if ((fs.existsSync("node_modules/" + specifier) && !/^(wpe-lightning|wpe-lightning-spark)/.test(specifier)) || /^(fs|http|https)$/.test(specifier))
+    return await loadCommonJSModule(specifier, referencingModule.context);
+
+  if (specifier.indexOf("wpe-lightning-spark") === 0) {
+    specifier = path.resolve(process.cwd(), "node_modules/wpe-lightning-spark/src/lightning.mjs");
+  } else if (specifier.indexOf("wpe-lightning") === 0) {
+    specifier = path.resolve(process.cwd(), "node_modules/" + specifier);
   }
-  return mod;
-  } catch(err) {
-    console.log(err);
- }
-}
+
+  // The following code is default.
+  // Specifier can be a relative, absolute path, or URL. Convert to URL, for consistency.
+  else {
+    if (!/^(http:|https:|file:)/.test(specifier))
+      specifier = urlmain.resolve(referencingModule.url, specifier);
+    const ext = path.extname(specifier);
+    if (!/^(\.js|\.mjs)$/.test(ext))
+      specifier += '.mjs';
+  }
+  if (!/^(http:|https:|file:)/.test(specifier))
+    specifier = `file://${specifier}`;
+
+  // Load as .js, .mjs, or .json.
+  // If the module has been loaded already, return it.
+  if (specifier in referencingModule.context.modmap) {
+    return referencingModule.context.modmap[specifier];
+  }
+  const source = await getFile(referencingModule.context.global.sparkscene, specifier);
+  if (/\.json$/.test(specifier))
+    return await loadJsonModule(source, specifier, referencingModule.context);
+  if (/\.js$/.test(specifier))
+    return await loadJavaScriptModule(source, specifier, referencingModule.context);
+  return await loadMjs(source, specifier, referencingModule.context, referencingModule.context.modmap);
+};
 
 var linker = async function (specifier, referencingModule) {
   try {
@@ -445,6 +323,8 @@ var loadMjs = async function (source, url, context, modmap)
   {
     return modmap[url];
   }
+  // NOTE: 'url' is not a supported key.
+  // Instead it's used in our code to calculate relative paths. See 'refUrl' in getModule.
   var mod = new vm.SourceTextModule(source , { context: context, initializeImportMeta:initializeImportMeta, importModuleDynamically:importModuleDynamically, url:url });
   modmap[url] = mod;
   if (mod.linkingStatus == 'unlinked')
@@ -458,10 +338,20 @@ function ESMLoader(params) {
   this.ctx = params
   this.loadESM = function(filename) {
     var loadCtx = this.ctx;
-    const url = filename2url(filename);
+    let url = filename2url(filename);
     const loc = /^file:/.test(url) ? url.substring(7) : url;
   
+    // When URL is .spark, applicationURL is 'filename'.
+    const bootstrapUrl = url;
+    if (loadCtx.bootstrap) {
+      let appURL = loadCtx.bootstrap.applicationURL;
+      if (!/^(http:|https:|file:)/.test(appURL))
+        appURL = urlmain.resolve(url, appURL);
+      url = appURL;
+    }
+
     // override require to our own require to load files relative to file path
+    // TODO: __dirname doesn't change in modules imported dynamically. However, in modules loaded via 'require', it is set correctly.
     loadCtx.sandbox.require = loadCtx.makeRequire(loc).bind(loadCtx);
     loadCtx.sandbox['__dirname'] = path.dirname(loc);
     loadCtx.contextifiedSandbox = vm.createContext(loadCtx.sandbox);
@@ -473,17 +363,14 @@ function ESMLoader(params) {
       (async () => {
         let instantiated = false;
         try {
-          if (loadCtx._frameworkURL) {
-            const url2 = filename2url(loadCtx._frameworkURL);
-            const loc2 = /^file:/.test(url2) ? url2.substring(7) : url2;
-            const source2 = await getFile(loadCtx.global.sparkscene,url2);
-            // use paths for frameworkURL
-            loadCtx.sandbox.require = loadCtx.makeRequire(loc2).bind(loadCtx);
-            loadCtx.sandbox['__dirname'] = path.dirname(loc2);
-            vm.runInContext(source2, loadCtx.contextifiedSandbox, {filename:loc2});
-            // restore previous values
-            loadCtx.sandbox.require = loadCtx.makeRequire(loc).bind(loadCtx);
-            loadCtx.sandbox['__dirname'] = path.dirname(loc);
+          // When URL is .spark, frameworkURL-s are loaded like dynamic imports.
+          if (loadCtx.bootstrap && loadCtx.bootstrap.frameworks) {
+            const list = loadCtx.bootstrap.frameworks;
+            for (let i = 0; i < list.length; i++) {
+              let _framework = list[i];
+              let _url = _framework.url || _framework;
+              await importModuleDynamically(_url, {url:bootstrapUrl, context:loadCtx.contextifiedSandbox});
+            }
           }
           var source = await getFile(loadCtx.global.sparkscene, url);
           loadCtx.app = await loadMjs(source, url, loadCtx.contextifiedSandbox, loadCtx.modmap);
@@ -494,19 +381,6 @@ function ESMLoader(params) {
           loadCtx.makeReady(true, loadCtx.app.namespace);
           loadCtx.global.beginDrawing();
           await loadCtx.app.evaluate();
-  
-          if (typeof loadCtx.app.namespace.default === 'function') {
-            try {
-              if (params._options) {
-                new loadCtx.app.namespace.default(params._options);
-              } else {
-                new loadCtx.app.namespace.default();
-              }
-            } catch (err) {
-              console.log(err);
-            }
-          }
-  
           loadCtx.global.endDrawing();
         } catch (err) {
           console.log("load mjs module failed ");
