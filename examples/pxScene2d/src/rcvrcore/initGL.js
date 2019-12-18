@@ -327,8 +327,7 @@ function initializeImportMeta(meta, { url }) {
   
 function LightningApp(params) {
   this.url = params.url
-  this._frameworkURL = params._frameworkURL;
-  this._options = params._options;
+  this.bootstrap = params.bootstrap;
   
   this._intervals = []
   this._timeouts = []
