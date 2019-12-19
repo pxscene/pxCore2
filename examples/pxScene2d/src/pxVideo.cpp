@@ -266,6 +266,7 @@ void pxVideo::draw()
 			pxTextureRef videoFrame = context.createTexture(mOffscreen);
 			context.drawImage(0, 0, mw, mh,  videoFrame, nullMaskRef, false, NULL, pxConstantsStretch::STRETCH, pxConstantsStretch::STRETCH);
 			free(yuvBuffer.buffer);
+                        mOffscreen.setBase(NULL);
 			free(buffer_convert);
 		}
   }
