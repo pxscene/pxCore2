@@ -526,16 +526,16 @@ rtError pxVideo::proxy(rtString& proxy) const
 
 rtError pxVideo::setProxy(const char* proxy)
 {
-	mProxy = rtString(proxy);
-	if (proxy != NULL)
-	{
-           mAamp->SetNetworkProxy(proxy);
-	}
-	else
-	{
-          mAamp->SetNetworkProxy("");
-	}
-	return RT_OK;
+  mProxy = rtString(proxy);
+  if (proxy != NULL)
+  {
+    mAamp->SetNetworkProxy(proxy);
+  }
+  else
+  {
+    mAamp->SetNetworkProxy("");
+  }
+  return RT_OK;
 }
 
 rtError pxVideo::tsbEnabled(bool& /*v*/) const
