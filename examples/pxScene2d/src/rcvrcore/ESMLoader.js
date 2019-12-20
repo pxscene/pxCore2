@@ -127,7 +127,7 @@ var loadJsonModule = async function (source, specifier, ctx)
 }
     
 /* load javascript file and returns as ejs module */
-var loadJavaScriptModule = async function (source, specifier, ctx)
+var loadJavaScriptModule = async function (source, specifier, ctx, version)
 {
   if (specifier in ctx.modmap)
   {
@@ -167,6 +167,7 @@ var loadJavaScriptModule = async function (source, specifier, ctx)
          throw err;
        }
    }}});
+  mod.version = version;
   ctx.modmap[specifier] = mod; 
   if (mod.linkingStatus == 'unlinked')
   { 
@@ -263,7 +264,7 @@ var getFile = async function (scene, url) {
 }
 
 /* load mjs file and returns as ejs module */
-var getModule = async function (specifier, referencingModule) {
+var getModule = async function (specifier, referencingModule, version) {
   if (/\.node$/.test(specifier))
     return await loadNodeModule(specifier, referencingModule.context);
   if ((fs.existsSync("node_modules/" + specifier) && !/^(wpe-lightning|wpe-lightning-spark)/.test(specifier)) || /^(fs|http|https)$/.test(specifier))
@@ -292,12 +293,27 @@ var getModule = async function (specifier, referencingModule) {
   if (specifier in referencingModule.context.modmap) {
     return referencingModule.context.modmap[specifier];
   }
+
+  // Same file from different domains is shared if has 'version'.
+  // URL is added to modmap anyway.
+  if (version) {
+    for (let k in referencingModule.context.modmap) {
+      if (referencingModule.context.modmap.hasOwnProperty(k)) {
+        let mod = referencingModule.context.modmap[k];
+        if (mod.version === version) {
+          referencingModule.context.modmap[specifier] = mod;
+          return mod;
+        }
+      }
+    }
+  }
+
   const source = await getFile(referencingModule.context.global.sparkscene, specifier);
   if (/\.json$/.test(specifier))
     return await loadJsonModule(source, specifier, referencingModule.context);
   if (/\.js$/.test(specifier))
-    return await loadJavaScriptModule(source, specifier, referencingModule.context);
-  return await loadMjs(source, specifier, referencingModule.context, referencingModule.context.modmap);
+    return await loadJavaScriptModule(source, specifier, referencingModule.context, version);
+  return await loadMjs(source, specifier, referencingModule.context, referencingModule.context.modmap, version);
 };
 
 var linker = async function (specifier, referencingModule) {
@@ -310,22 +326,22 @@ var linker = async function (specifier, referencingModule) {
   }
 }
 
-var importModuleDynamically = async function (specifier, referencingModule) {
-  var mod = await getModule(specifier,referencingModule);
+// NOTE: 'version' is not a standard arg. It's used in our code. See getModule.
+var importModuleDynamically = async function (specifier, referencingModule, version) {
+  var mod = await getModule(specifier,referencingModule,version);
   mod.instantiate();
   await mod.evaluate();
   return mod;
 }
 
-var loadMjs = async function (source, url, context, modmap)
+var loadMjs = async function (source, url, context, modmap, version)
 {
   if (url in modmap)
   {
     return modmap[url];
   }
-  // NOTE: 'url' is not a supported key.
-  // Instead it's used in our code to calculate relative paths. See 'refUrl' in getModule.
   var mod = new vm.SourceTextModule(source , { context: context, initializeImportMeta:initializeImportMeta, importModuleDynamically:importModuleDynamically, url:url });
+  mod.version = version;
   modmap[url] = mod;
   if (mod.linkingStatus == 'unlinked')
   {
@@ -369,7 +385,7 @@ function ESMLoader(params) {
             for (let i = 0; i < list.length; i++) {
               let _framework = list[i];
               let _url = _framework.url || _framework;
-              await importModuleDynamically(_url, {url:bootstrapUrl, context:loadCtx.contextifiedSandbox});
+              await importModuleDynamically(_url, {url:bootstrapUrl, context:loadCtx.contextifiedSandbox}, _framework.md5);
             }
           }
           var source = await getFile(loadCtx.global.sparkscene, url);
