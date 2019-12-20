@@ -3337,7 +3337,10 @@ void pxScriptView::runScript()
       // JRJR Adding an AddRef to this... causes bad things to happen when reloading gl scenes
       // investigate... 
       // JRJR WARNING! must use sendReturns since wrappers will invoke asyncronously otherwise.
-      f.sendReturns<bool>(url,mBeginDrawing.getPtr(),mEndDrawing.getPtr(), shadow.getPtr(), frameworkURL, options, mSparkHttp.getPtr(), b);
+      if (f)
+      {
+        f.sendReturns<bool>(url,mBeginDrawing.getPtr(),mEndDrawing.getPtr(), shadow.getPtr(), frameworkURL, options, mSparkHttp.getPtr(), b);
+      }
       endDrawing();
       
     }

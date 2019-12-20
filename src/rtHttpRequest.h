@@ -68,7 +68,8 @@ public:
   bool inQueue() const;
   bool delayReply() const;
 
-private:
+protected:
+  virtual void onDownloadCompleteImpl(rtFileDownloadRequest* downloadRequest);
   rtEmitRef mEmit;
   rtString mUrl;
   std::vector<rtString> mHeaders;

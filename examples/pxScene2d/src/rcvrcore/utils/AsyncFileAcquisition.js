@@ -20,6 +20,7 @@ limitations under the License.
 
 var isDuk=(typeof Duktape != "undefined")?true:false;
 var isV8=(typeof _isV8 != "undefined")?true:false;
+var isJSC = (typeof _isJSC != "undefined")?true:false;
 var Logger = require('rcvrcore/Logger').Logger;
 var SceneModuleLoader = require('rcvrcore/SceneModuleLoader');
 var log = new Logger('AsyncFileAcquisition');
@@ -60,7 +61,7 @@ AsyncFileAcquisition.prototype.acquire = function(uri) {
           }
           self.requestMap[uri].listeners = null;
           delete self.requestMap[uri];
-          if (!isDuk && !isV8) {
+          if (!isDuk && !isV8 && !isJSC) {
             process._tickCallback();
           }
         })

@@ -18,9 +18,10 @@ limitations under the License.
 
 'use strict';
 var isV8 = (typeof _isV8 != "undefined") ? true : false;
+var isJSC = (typeof _isJSC != "undefined")?true:false;
 
 var WS = null;
-if (isV8) {
+if (isV8 || isJSC) {
   WS = require('ws');
 } else {
   WS = require('ws/lib/WebSocket');

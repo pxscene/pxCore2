@@ -18,6 +18,7 @@ limitations under the License.
 
 var isDuk=(typeof Duktape != "undefined")?true:false;
 var isV8 = (typeof _isV8 != "undefined")?true:false;
+var isJSC = (typeof _isJSC != "undefined")?true:false;
 
 var defaultAppUrl = 'browser.js'
 
