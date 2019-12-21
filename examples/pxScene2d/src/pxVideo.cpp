@@ -86,6 +86,7 @@ pxVideo::pxVideo(pxScene2d* scene):pxObject(scene)
 , mUrl("")
 , mYuvBuffer({nullptr, 0, 0, 0})
 , mPlaybackInitialized(false)
+, mProxy()
 {
 	initPlayerLoop();
 }
@@ -126,6 +127,10 @@ void pxVideo::initPlayback()
 	#endif
 				);
 		assert (nullptr != mAamp);
+                if (mProxy.length() > 0)
+                {
+                  mAamp->SetNetworkProxy(mProxy.cString());
+                }
 
 		registerAampEventsListeners();
 
@@ -517,6 +522,19 @@ rtError pxVideo::setUrl(const char* url)
 	return RT_OK;
 }
 
+rtError pxVideo::proxy(rtString& proxy) const
+{
+	proxy = mProxy;
+	return RT_OK;
+}
+
+rtError pxVideo::setProxy(const char* proxy)
+{
+  mProxy = rtString(proxy);
+
+  return RT_OK;
+}
+
 rtError pxVideo::tsbEnabled(bool& /*v*/) const
 {
   //TODO
@@ -790,6 +808,7 @@ rtDefineProperty(pxVideo, url);
 rtDefineProperty(pxVideo, tsbEnabled);
 rtDefineProperty(pxVideo, closedCaptionsEnabled);
 rtDefineProperty(pxVideo, autoPlay);
+rtDefineProperty(pxVideo, proxy);
 rtDefineMethod(pxVideo, play);
 rtDefineMethod(pxVideo, pause);
 rtDefineMethod(pxVideo, stop);
