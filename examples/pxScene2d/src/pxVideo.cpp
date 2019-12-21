@@ -127,6 +127,10 @@ void pxVideo::initPlayback()
 	#endif
 				);
 		assert (nullptr != mAamp);
+                if (mProxy.length() > 0)
+                {
+                  mAamp->SetNetworkProxy(mProxy.cString());
+                }
 
 		registerAampEventsListeners();
 
@@ -527,14 +531,7 @@ rtError pxVideo::proxy(rtString& proxy) const
 rtError pxVideo::setProxy(const char* proxy)
 {
   mProxy = rtString(proxy);
-  if (proxy != NULL)
-  {
-    mAamp->SetNetworkProxy(proxy);
-  }
-  else
-  {
-    mAamp->SetNetworkProxy("");
-  }
+
   return RT_OK;
 }
 
