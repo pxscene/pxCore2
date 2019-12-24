@@ -329,8 +329,10 @@ var linker = async function (specifier, referencingModule) {
 // NOTE: 'version' is not a standard arg. It's used in our code. See getModule.
 var importModuleDynamically = async function (specifier, referencingModule, version) {
   var mod = await getModule(specifier,referencingModule,version);
-  mod.instantiate();
-  await mod.evaluate();
+  if (!/^(evaluating|evaluated|errored)$/.test(mod.status)) {
+    mod.instantiate();
+    await mod.evaluate();
+  }
   return mod;
 }
 
