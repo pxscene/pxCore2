@@ -25,9 +25,12 @@
 1. Install required packages:
     
     ~~~~
-    sudo apt-get install git libglew-dev freeglut3 freeglut3-dev libgcrypt11-dev zlib1g-dev g++ libssl-dev nasm autoconf libtool cmake quilt xmlto yasm bison flex  python-dev python3-dev
+    sudo apt-get install git libglew-dev freeglut3 freeglut3-dev libgcrypt11-dev zlib1g-dev g++ libssl-dev nasm autoconf libtool cmake quilt xmlto yasm bison flex  python-dev python3-dev  libuv-dev
     ~~~~
 
+    ~~~~
+    update gcc to 6+ (sudo apt-get install gcc-6 g++-6 -y)
+    ~~~~
 2. For Ubuntu 18.04+ also install:
 
     ~~~~
