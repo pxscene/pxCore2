@@ -25,6 +25,9 @@ var readFileAsync = promisify(fs.readFile)
 var ArrayJoin = Function.call.bind(Array.prototype.join);
 var ArrayMap = Function.call.bind(Array.prototype.map);
 var reqOrig = require;
+var frameWorkCache = {}
+var enableFrameworkCaching = undefined;
+var keepFrameworksOnExit = undefined;
 
 // Normalize the URL, for consistency. Remove the query part.
 // All local URLs would have the 'file:' prefix.
@@ -350,10 +353,130 @@ var loadMjs = async function (source, url, context, modmap, version)
   return mod;
 }
 
+function eligibleForFrameWorkCaching(scene, url, name, hash)
+{
+  if (undefined == enableFrameworkCaching)
+  {
+    enableFrameworkCaching = scene.sparkSetting("enableFrameWorkCache");
+    if (undefined == enableFrameworkCaching)
+    {
+      enableFrameworkCaching = true;
+    }
+    if (false == enableFrameworkCaching) {
+      keepFrameworksOnExit = false;
+    }
+  }
+  if (enableFrameworkCaching == true)
+  {
+    // currently enable only for .js file
+    if ((/\.js$/.test(url)) && (hash != undefined) && ((url != undefined) || (name != undefined)))
+      return true;
+  }
+  return false;
+}
+
+function ensureUniqueFramework(url)
+{
+  var noentries = frameWorkCache[url].length;
+  if (noentries > 1) {
+    var entriestoremove = []
+    for (var i=0; i<noentries; i++) {
+      if (frameWorkCache[url][i].numAppsUsing == 0)
+      {
+        entriestoremove.push(i)
+      }
+    }
+    for (var i=0; i<entriestoremove.length-1; i++) {
+      var index = entriestoremove[i];
+      for (key in frameWorkCache[url][index]) {
+        delete frameWorkCache[url][index][key]
+      }
+    }
+    for (var i=0; i<entriestoremove.length-1; i++) {
+      var index = entriestoremove[i];
+      index = index-i;
+      frameWorkCache[url].splice(entriestoremove[index], 1);
+    }
+    entriestoremove = []
+  }
+}
+
+function getCachePosition(url, hash)
+{
+  var cacheposition = -1;
+  if (frameWorkCache[url] != undefined)
+  {
+    for (var i=0; i<frameWorkCache[url].length; i++) {
+      if (frameWorkCache[url][i].hash == hash)
+      {
+        cacheposition = i;
+        break;
+      }
+    }
+/*
+    // means we got a requirement for a framework version not in cache
+    // removing unsed earlier to handle any scenarios to unwanted memory removal
+    ensureUniqueFramework(url);
+*/
+  }
+  return cacheposition;
+}
+
+async function loadFrameWorks(loadCtx, bootstrapUrl) {
+  const list = loadCtx.bootstrap.frameworks;
+  var frameWorkUsageInfo = {}
+  for (let i = 0; i < list.length; i++) {
+    let _framework = list[i];
+    let _url = _framework.url || _framework;
+    let _name = _framework.name
+
+    let _hash = _framework.md5
+    let useFrameWorkCaching = eligibleForFrameWorkCaching(loadCtx.sandbox.global.sparkscene, _url, _name, _hash)
+
+    // store framework compiled scripts only for js files
+    if (true == useFrameWorkCaching)
+    {
+      let _cachekey = (undefined != _name)?_name:_url;
+      let _cachePostion = getCachePosition(_cachekey, _hash);
+      if (_cachePostion != -1)
+      {
+        frameWorkUsageInfo[_cachekey] = _cachePostion;
+        //console.log("framework "+  _cachekey + " available in cache at postion " + _cachePostion + " , no need to reload !!!!!!!!!!!!!!!!!!!");
+      }
+      else
+      {
+        if (!/^(http:|https:|file:)/.test(_url))
+          _url = urlmain.resolve(bootstrapUrl, _url);
+
+        var frameWorkSource = await getFile(loadCtx.sandbox.global.sparkscene, _url);
+        var frameWorkScript = new vm.Script(frameWorkSource);
+        if (undefined == frameWorkCache[_cachekey]) {
+          frameWorkCache[_cachekey] = []
+        }
+        frameWorkCache[_cachekey].push({'hash' : _hash, 'script' : frameWorkScript, 'numAppsUsing' : 0})
+        frameWorkUsageInfo[_cachekey] = frameWorkCache[_cachekey].length - 1;
+        //console.log("Newly loaded cache for " + _cachekey + " at position " + frameWorkUsageInfo[_cachekey]);
+      }
+    }
+    else
+    {
+      await importModuleDynamically(_url, {url:bootstrapUrl, context:loadCtx.contextifiedSandbox}, _hash);
+    }
+  }
+  for (var key in frameWorkUsageInfo)
+  {
+    var pos = frameWorkUsageInfo[key];
+    frameWorkCache[key][pos].script.runInContext(loadCtx.contextifiedSandbox);
+    frameWorkCache[key][pos].numAppsUsing = frameWorkCache[key][pos].numAppsUsing + 1;
+  }
+  loadCtx.frameWorkUsageInfo = frameWorkUsageInfo;
+}
+
 function ESMLoader(params) {
   this.ctx = params
   this.loadESM = function(filename) {
     var loadCtx = this.ctx;
+    loadCtx.frameWorkUsageInfo = {}
     let url = filename2url(filename);
     const loc = /^file:/.test(url) ? url.substring(7) : url;
   
@@ -381,12 +504,7 @@ function ESMLoader(params) {
         try {
           // When URL is .spark, frameworkURL-s are loaded like dynamic imports.
           if (loadCtx.bootstrap && loadCtx.bootstrap.frameworks) {
-            const list = loadCtx.bootstrap.frameworks;
-            for (let i = 0; i < list.length; i++) {
-              let _framework = list[i];
-              let _url = _framework.url || _framework;
-              await importModuleDynamically(_url, {url:bootstrapUrl, context:loadCtx.contextifiedSandbox}, _framework.md5);
-            }
+            await loadFrameWorks(loadCtx, bootstrapUrl);
           }
           var source = await getFile(loadCtx.global.sparkscene, url);
           loadCtx.app = await loadMjs(source, url, loadCtx.contextifiedSandbox, loadCtx.modmap);
@@ -411,6 +529,47 @@ function ESMLoader(params) {
     }
   }
   this.clearResources = function() {
+    if (enableFrameworkCaching == true)
+    {
+      if (undefined == keepFrameworksOnExit)
+      {
+        keepFrameworksOnExit = this.ctx.global.sparkscene.sparkSetting("keepFrameworksOnExit");
+        if (undefined == keepFrameworksOnExit)
+        {
+          keepFrameworksOnExit = true;
+        }
+      }
+      if (undefined != this.ctx.frameWorkUsageInfo) {
+        for (key in this.ctx.frameWorkUsageInfo)
+        {
+          var pos = this.ctx.frameWorkUsageInfo[key];
+          frameWorkCache[key][pos].numAppsUsing--;
+          if (false == keepFrameworksOnExit) {
+            // not deleting the cache entry if someone is using
+            if (frameWorkCache[key][pos].numAppsUsing == 0)
+            {
+              for(var k in frameWorkCache[key][pos]) 
+              { 
+                delete frameWorkCache[key][pos][k]; 
+              }
+              frameWorkCache[key].splice(pos, 1);
+            }
+            if (frameWorkCache[key].length == 0)
+            {
+              delete frameWorkCache[key];
+            }
+          }
+          else {
+            ensureUniqueFramework(key);
+          }
+        }
+        this.ctx.frameWorkUsageInfo = {}
+        delete this.ctx.frameWorkUsageInfo;
+      }
+    }
+    else {
+      console.log("no framework manipulation !!!!!");
+    }
     this.ctx = null
   }
 }
