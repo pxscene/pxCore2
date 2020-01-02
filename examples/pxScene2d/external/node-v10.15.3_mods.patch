@@ -1604,22 +1604,6 @@ index f92446ff4..e71a20523 100755
      if (r != -1)
        return r;
      if (errno != ENOSYS)
-diff --git a/examples/pxScene2d/external/libnode-v10.15.3/deps/uv/src/win/handle.c b/examples/pxScene2d/external/libnode-v10.15.3/deps/uv/src/win/handle.c
-index 9d76c3f54..ceb42f263 100755
---- a/examples/pxScene2d/external/libnode-v10.15.3/deps/uv/src/win/handle.c
-+++ b/examples/pxScene2d/external/libnode-v10.15.3/deps/uv/src/win/handle.c
-@@ -148,6 +148,11 @@ void uv_close(uv_handle_t* handle, uv_close_cb cb) {
-   }
- }
- 
-+/* MODIFIED CODE BEGIN */
-+void uv_close_immediate(uv_handle_t* handle, uv_close_cb cb) {
-+  uv_close(handle, cb);
-+}
-+/* MODIFIED CODE END */
- 
- int uv_is_closing(const uv_handle_t* handle) {
-   return !!(handle->flags & (UV_HANDLE_CLOSING | UV_HANDLE_CLOSED));
 diff --git a/examples/pxScene2d/external/libnode-v10.15.3/src/tcp_wrap.cc b/examples/pxScene2d/external/libnode-v10.15.3/src/tcp_wrap.cc
 index a6cc01f12..ceee5e7ef 100755
 --- a/examples/pxScene2d/external/libnode-v10.15.3/src/tcp_wrap.cc
@@ -1666,3 +1650,131 @@ index a6cc01f12..ceee5e7ef 100755
  void TCPWrap::Listen(const FunctionCallbackInfo<Value>& args) {
    TCPWrap* wrap;
    ASSIGN_OR_RETURN_UNWRAP(&wrap,
+diff --git a/examples/pxScene2d/external/libnode-v10.15.3/deps/uv/src/win/handle.c b/examples/pxScene2d/external/libnode-v10.15.3/deps/uv/src/win/handle.c
+index 9d76c3f..8e9a6df 100755
+--- a/examples/pxScene2d/external/libnode-v10.15.3/deps/uv/src/win/handle.c
++++ b/examples/pxScene2d/external/libnode-v10.15.3/deps/uv/src/win/handle.c
+@@ -148,6 +148,26 @@ void uv_close(uv_handle_t* handle, uv_close_cb cb) {
+   }
+ }
+ 
++/* MODIFIED CODE BEGIN */
++void uv_close_immediate(uv_handle_t* handle, uv_close_cb cb) {
++  uv_loop_t* loop = handle->loop;
++
++  if (handle->flags & UV_HANDLE_CLOSING) {
++    assert(0);
++    return;
++  }
++
++  handle->close_cb = cb;
++  switch (handle->type) {
++    case UV_TCP:
++      uv_tcp_close_immediate(loop, (uv_tcp_t*)handle);
++      return;
++
++    default:
++      assert(1);
++  }
++}
++/* MODIFIED CODE END */
+ 
+ int uv_is_closing(const uv_handle_t* handle) {
+   return !!(handle->flags & (UV_HANDLE_CLOSING | UV_HANDLE_CLOSED));
+diff --git a/examples/pxScene2d/external/libnode-v10.15.3/deps/uv/src/win/internal.h b/examples/pxScene2d/external/libnode-v10.15.3/deps/uv/src/win/internal.h
+index 634b9f7..d727c5e 100755
+--- a/examples/pxScene2d/external/libnode-v10.15.3/deps/uv/src/win/internal.h
++++ b/examples/pxScene2d/external/libnode-v10.15.3/deps/uv/src/win/internal.h
+@@ -90,6 +90,9 @@ void uv_process_tcp_connect_req(uv_loop_t* loop, uv_tcp_t* handle,
+     uv_connect_t* req);
+ 
+ void uv_tcp_close(uv_loop_t* loop, uv_tcp_t* tcp);
++/* MODIFIED CODE BEGIN */
++void uv_tcp_close_immediate(uv_loop_t* loop, uv_tcp_t* tcp);
++/* MODIFIED CODE END */
+ void uv_tcp_endgame(uv_loop_t* loop, uv_tcp_t* handle);
+ 
+ int uv__tcp_xfer_export(uv_tcp_t* handle,
+diff --git a/examples/pxScene2d/external/libnode-v10.15.3/deps/uv/src/win/tcp.c b/examples/pxScene2d/external/libnode-v10.15.3/deps/uv/src/win/tcp.c
+index 8b6f0a5..7a601a6 100755
+--- a/examples/pxScene2d/external/libnode-v10.15.3/deps/uv/src/win/tcp.c
++++ b/examples/pxScene2d/external/libnode-v10.15.3/deps/uv/src/win/tcp.c
+@@ -1444,6 +1444,78 @@ void uv_tcp_close(uv_loop_t* loop, uv_tcp_t* tcp) {
+   }
+ }
+ 
++/* MODIFIED CODE BEGIN */
++void uv_tcp_close_immediate(uv_loop_t* loop, uv_tcp_t* tcp) {
++  int close_socket = 1;
++
++  if (tcp->flags & UV_HANDLE_READ_PENDING) {
++    /* In order for winsock to do a graceful close there must not be any any
++     * pending reads, or the socket must be shut down for writing */
++    if (!(tcp->flags & UV_HANDLE_SHARED_TCP_SOCKET)) {
++      /* Just do shutdown on non-shared sockets, which ensures graceful close. */
++      shutdown(tcp->socket, SD_SEND);
++
++    } else if (uv_tcp_try_cancel_io(tcp) == 0) {
++      /* In case of a shared socket, we try to cancel all outstanding I/O,. If
++       * that works, don't close the socket yet - wait for the read req to
++       * return and close the socket in uv_tcp_endgame. */
++      close_socket = 0;
++
++    } else {
++      /* When cancelling isn't possible - which could happen when an LSP is
++       * present on an old Windows version, we will have to close the socket
++       * with a read pending. That is not nice because trailing sent bytes may
++       * not make it to the other side. */
++    }
++
++  } else if ((tcp->flags & UV_HANDLE_SHARED_TCP_SOCKET) &&
++             tcp->tcp.serv.accept_reqs != NULL) {
++    /* Under normal circumstances closesocket() will ensure that all pending
++     * accept reqs are canceled. However, when the socket is shared the
++     * presence of another reference to the socket in another process will keep
++     * the accept reqs going, so we have to ensure that these are canceled. */
++    if (uv_tcp_try_cancel_io(tcp) != 0) {
++      /* When cancellation is not possible, there is another option: we can
++       * close the incoming sockets, which will also cancel the accept
++       * operations. However this is not cool because we might inadvertently
++       * close a socket that just accepted a new connection, which will cause
++       * the connection to be aborted. */
++      unsigned int i;
++      for (i = 0; i < uv_simultaneous_server_accepts; i++) {
++        uv_tcp_accept_t* req = &tcp->tcp.serv.accept_reqs[i];
++        if (req->accept_socket != INVALID_SOCKET &&
++            !HasOverlappedIoCompleted(&req->u.io.overlapped)) {
++          closesocket(req->accept_socket);
++          req->accept_socket = INVALID_SOCKET;
++        }
++      }
++    }
++  }
++
++  if (tcp->flags & UV_HANDLE_READING) {
++    tcp->flags &= ~UV_HANDLE_READING;
++    DECREASE_ACTIVE_COUNT(loop, tcp);
++  }
++
++  if (tcp->flags & UV_HANDLE_LISTENING) {
++    tcp->flags &= ~UV_HANDLE_LISTENING;
++    DECREASE_ACTIVE_COUNT(loop, tcp);
++  }
++
++  if (close_socket) {
++    closesocket(tcp->socket);
++    tcp->socket = INVALID_SOCKET;
++    tcp->flags |= UV_HANDLE_TCP_SOCKET_CLOSED;
++  }
++
++  tcp->flags &= ~(UV_HANDLE_READABLE | UV_HANDLE_WRITABLE);
++  uv__handle_closing(tcp);
++
++  if (tcp->reqs_pending == 0) {
++    uv_tcp_endgame(tcp->loop, (uv_handle_t*)tcp);
++  }
++}
++/* MODIFIED CODE END */
+ 
+ int uv_tcp_open(uv_tcp_t* handle, uv_os_sock_t sock) {
+   WSAPROTOCOL_INFOW protocol_info;
