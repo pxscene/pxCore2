@@ -228,6 +228,7 @@ rtError pxWaylandContainer::setCmd(const char* s)
           if (!rtFileExists(binaryPath))
           {
             rtLogError("Application %s does not exist", binaryPath.cString());
+            free( (void*)cmd );
             return RT_ERROR;
           }
        }
