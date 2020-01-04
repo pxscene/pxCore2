@@ -395,6 +395,7 @@ rtError pxImage::texture(uint32_t &v)
       }
       getImageResource()->getTexture()->prepareForRendering();
     }
+    draw();
     v = getImageResource()->getTexture()->getNativeId();
   }
   return RT_OK;
