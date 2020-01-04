@@ -395,6 +395,7 @@ rtError pxImage::texture(uint32_t &v)
       }
       getImageResource()->getTexture()->prepareForRendering();
     }
+    // without this call, some settings like stretch not applied
     draw();
     v = getImageResource()->getTexture()->getNativeId();
   }
