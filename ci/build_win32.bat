@@ -45,7 +45,8 @@ cd "%BASE_DIR%"
 md build-win32
 cd build-win32
 set addVer=False
-set uploadArtifact=False
+set uploadArtifact=True
+set APPVEYOR_SCHEDULED_BUILD=True
 @rem build Spark
 if "%APPVEYOR_SCHEDULED_BUILD%"=="True" (
   echo "building edge"
@@ -97,6 +98,9 @@ if %errorlevel% neq 0  (
 
 
 echo Creating standalone archive
+move ..\examples\pxScene2d\src\Release\Spark.pdb _CPack_Packages\win32\NSIS\spark-setup\.
+move ..\examples\pxScene2d\src\Release\Spark.lib _CPack_Packages\win32\NSIS\spark-setup\.
+move ..\examples\pxScene2d\src\Release\Spark.exp _CPack_Packages\win32\NSIS\spark-setup\.
 cd _CPack_Packages/win32/NSIS
 7z a -y spark-setup.zip spark-setup
 
