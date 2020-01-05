@@ -61,5 +61,15 @@
       {"url":"../tests/test_dirty_rectangles.js", "title":"test_dirty_rectangles","useBaseURI":"true"},
       {"url":"../tests/test_pxShaderResource.js", "title":"test_pxShaderResource","useBaseURI":"true"},
       {"url":"../tests/test_gifLoader.js", "title":"test_gifLoader","useBaseURI":"true"},
-      {"url":"../tests/test_bootstrap.spark", "title":"test_bootstrap","timeToRun": "5000","useBaseURI":"true"}
+      {"url":"../tests/test_bootstrap.spark", "title":"test_bootstrap","timeToRun": "5000","useBaseURI":"true"},
+      {"url":"../tests/lightning/app1.mjs", "title":"test_simpleLightningApp1","useBaseURI":"true", "timeToRun": "5000", "lightningApp":"true"},
+      {"url":"../tests/lightning/app2.mjs", "title":"test_simpleLightningApp2","useBaseURI":"true", "timeToRun": "5000", "lightningApp":"true"},
+      {"url":"../tests/lightning/app3.mjs", "title":"test_simpleLightningApp3","useBaseURI":"true", "timeToRun": "5000", "lightningApp":"true"},
+      {"url":"../tests/lightning/app4.mjs", "title":"test_simpleLightningApp4","useBaseURI":"true", "timeToRun": "5000", "lightningApp":"true"},
+      {"url":"../tests/lightning/app5.mjs", "title":"test_simpleLightningApp5","useBaseURI":"true", "timeToRun": "5000", "lightningApp":"true"},
+      {"url":"../tests/lightning/app1.js", "title":"test_simpleLightningApp6","useBaseURI":"true", "timeToRun": "5000", "lightningApp":"true"},
+      {"url":"../tests/lightning/app2.js", "title":"test_simpleLightningApp7","useBaseURI":"true", "timeToRun": "5000", "lightningApp":"true"},
+      {"url":"../tests/lightning/app3.js", "title":"test_simpleLightningApp8","useBaseURI":"true", "timeToRun": "5000", "lightningApp":"true"},
+      {"url":"../tests/lightning/app4.js", "title":"test_simpleLightningApp9","useBaseURI":"true", "timeToRun": "5000", "lightningApp":"true"},
+      {"url":"../tests/lightning/app5.js", "title":"test_simpleLightningApp10","useBaseURI":"true", "timeToRun": "5000", "lightningApp":"true"}
 ]
