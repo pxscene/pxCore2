@@ -984,7 +984,7 @@ bool rtFileDownloader::downloadByteRangeFromNetwork(rtFileDownloadRequest* downl
    CURL *curl_handle = NULL;
    CURLcode res = CURLE_OK;
    char errorBuffer[CURL_ERROR_SIZE];
-   int multipleIntervals = 1;
+   size_t multipleIntervals = 1;
    size_t startRange = 0;
    rtString byteRange("NULL");
    rtString strLocation;
@@ -1248,7 +1248,7 @@ bool rtFileDownloader::downloadByteRangeFromNetwork(rtFileDownloadRequest* downl
 
          multipleIntervals = (downloadRequest->actualFileSize() >= downloadRequest->byteRangeIntervals()) ? (downloadRequest->actualFileSize() / downloadRequest->byteRangeIntervals()) : 0;
          multipleIntervals++; // Increment one more because already one iteration made before determinding multipleIntervals.
-         rtLogInfo("File[%s] multipleIntervals [%d] fileSize[%ld]\n", downloadRequest->fileUrl().cString(), multipleIntervals, downloadRequest->actualFileSize());
+         rtLogInfo("File[%s] multipleIntervals [%ld] fileSize[%ld]\n", downloadRequest->fileUrl().cString(), multipleIntervals, downloadRequest->actualFileSize());
       }
       startRange += downloadRequest->byteRangeIntervals();
 
