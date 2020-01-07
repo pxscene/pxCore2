@@ -42,7 +42,7 @@ public:
   rtMethodNoArgAndReturn("texture", texture, uint32_t);
   
   pxImage(pxScene2d* scene) : pxObject(scene),mStretchX(pxConstantsStretch::NONE),mStretchY(pxConstantsStretch::NONE), 
-          mMaskOp(pxConstantsMaskOperation::NORMAL), imageLoaded(false), mListenerAdded(false), mDownscaleSmooth(false), mFlip(false)
+          mMaskOp(pxConstantsMaskOperation::NORMAL), imageLoaded(false), mListenerAdded(false), mDownscaleSmooth(false), mFlip(false), mReceivedReadyBeforeInit(false)
   { 
     mw = -1;
     mh = -1;
@@ -127,6 +127,7 @@ protected:
   bool mListenerAdded;
   bool mDownscaleSmooth;
   bool mFlip;
+  bool mReceivedReadyBeforeInit;
 };
 
 #endif
