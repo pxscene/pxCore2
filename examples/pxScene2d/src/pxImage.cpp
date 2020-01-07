@@ -198,7 +198,7 @@ void pxImage::sendPromise()
       }
       else
       {
-        //Received a case where image is loaded before init is done
+        // Received a case where image is loaded before init is done
         mReceivedReadyBeforeInit = true;
       }
   }
