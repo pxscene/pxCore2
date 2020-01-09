@@ -67,7 +67,7 @@ if [[ $PRODUCT_ID == $CURRENT_PRODUCT_ID ]]; then
 
   if [[ $CURRENT_VERSION != $VERSION ]]; then
       echo "UPDATE"
-      sudo hdiutil attach $CURRENT_CODEBASE
+      sudo hdiutil attach $URL
   fi
 
 fi
