@@ -66,7 +66,21 @@ if [[ $PRODUCT_ID == $CURRENT_PRODUCT_ID ]]; then
   if [[ $CURRENT_VERSION != $VERSION ]]; then
       echo "Updating..."
       hdiutil attach $CURRENT_CODEBASE
-      cp -av /Volumes/Spark/* /Applications/
+      if [ $CURRENT_CODEBASE ?? 'SparkEdge.dmg' ]; then
+        if [ -d "/Applications/SparkEdge.app" ]
+        then
+          cp -av /Volumes/SparkEdge/* ./
+        else
+          cp -av /Volumes/SparkEdge/* /Applications/
+        fi
+      else
+        if [ -d "/Applications/Spark.app" ]
+        then
+          cp -av /Volumes/Spark/* ./
+        else
+          cp -av /Volumes/Spark/* /Applications/
+        fi
+      fi
   fi
 
 fi
