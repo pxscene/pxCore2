@@ -16,8 +16,6 @@ CURRENT_CODEBASE=""
 SOFTWARE_UPDATE_PLIST=$URL
 DATA=$(curl $SOFTWARE_UPDATE_PLIST)
 #echo $DATA
-#P_ID=$(cat $SOFTWARE_UPDATE_PLIST | grep ^ProductID:$tag1 | cut -d "</key> <string>" -f 2)
-#echo "P_ID=$P_ID"
 
 idx=""
 regex='<string>([A-za-z0-9.\:/]+)</string>'
