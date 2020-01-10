@@ -81,6 +81,7 @@ if [[ $PRODUCT_ID == $CURRENT_PRODUCT_ID ]]; then
           cp -av /Volumes/Spark/* /Applications/
         fi
       fi
+
   fi
 
 fi
