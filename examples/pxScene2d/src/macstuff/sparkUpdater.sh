@@ -13,8 +13,8 @@ CURRENT_PRODUCT_ID=0
 CURRENT_CODEBASE=""
 #echo "GIVEN" $PRODUCT_ID $VERSION $URL
 
-SOFTWARE_UPDATE_PLIST="./software_update.plist"
-DATA=$(cat $SOFTWARE_UPDATE_PLIST)
+SOFTWARE_UPDATE_PLIST=$URL
+DATA=$(curl $SOFTWARE_UPDATE_PLIST)
 #echo $DATA
 #P_ID=$(cat $SOFTWARE_UPDATE_PLIST | grep ^ProductID:$tag1 | cut -d "</key> <string>" -f 2)
 #echo "P_ID=$P_ID"
@@ -66,8 +66,9 @@ done <<< "$DATA"
 if [[ $PRODUCT_ID == $CURRENT_PRODUCT_ID ]]; then
 
   if [[ $CURRENT_VERSION != $VERSION ]]; then
-      echo "UPDATE"
-      sudo hdiutil attach $URL
+      echo "Updating..."
+      hdiutil attach $CURRENT_CODEBASE
+      cp -av /Volumes/Spark/* /Applications/
   fi
 
 fi
