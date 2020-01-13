@@ -37,6 +37,7 @@ class pxWaylandContainer: public pxViewContainer, pxWaylandEvents {
   rtMethod1ArgAndReturn("resume", resume, rtValue, bool);
   rtMethodNoArgAndReturn("destroy", destroy, bool);
   rtMethod1ArgAndReturn("screenshot", screenshot, rtString, rtValue);
+  rtMethodNoArgAndReturn("texture", texture, uint32_t);
 public:
   pxWaylandContainer(pxScene2d* scene);
   ~pxWaylandContainer();
@@ -80,6 +81,7 @@ public:
   rtError resume(const rtValue& v, bool& b);
   rtError destroy(bool& b);
   rtError screenshot(rtString type, rtValue& returnValue);
+  rtError texture(uint32_t & v);
 
 private:
   rtString mDisplayName;
@@ -92,6 +94,7 @@ private:
   rtValue mAPI;  
   rtObjectRef mRemoteReady;
   rtString mBinary;
+  pxContextFramebufferRef mTextureFBO;
 };
 
 typedef rtRef<pxWayland> pxWaylandRef;

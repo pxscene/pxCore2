@@ -449,6 +449,22 @@ rtError pxWaylandContainer::screenshot(rtString type, rtValue& returnValue)
   return RT_FAIL;
 }
 
+rtError pxWaylandContainer::texture(uint32_t &v)
+{
+  v = 0;
+  if (mWayland)
+  {
+    mWayland->drawToFbo(mTextureFBO);
+    if (mTextureFBO)
+    {
+      auto tex = mTextureFBO->getTexture();
+      if (tex)
+        v = tex->getNativeId();
+    }
+  }
+  return RT_OK;
+}
+
 void pxWaylandContainer::onInit()
 {
   if ( mWayland )
@@ -479,3 +495,4 @@ rtDefineMethod(pxWaylandContainer, suspend);
 rtDefineMethod(pxWaylandContainer, resume);
 rtDefineMethod(pxWaylandContainer, destroy);
 rtDefineMethod(pxWaylandContainer, screenshot);
+rtDefineMethod(pxWaylandContainer, texture);

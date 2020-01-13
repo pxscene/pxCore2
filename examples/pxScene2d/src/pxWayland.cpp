@@ -937,7 +937,11 @@ rtError pxWayland::drawToFbo(pxContextFramebufferRef& fbo)
   }
 
   bool rotated= isRotated();
-  fbo = context.createFramebuffer(static_cast<int>(floor(mWidth)), static_cast<int>(floor(mHeight)));
+  int width = static_cast<int>(floor(mWidth));
+  int height = static_cast<int>(floor(mHeight));
+
+  if (!fbo || fbo->width() != width || fbo->height() != height)
+    fbo = context.createFramebuffer(width, height);
 
   int hints= WstHints_none;
 
