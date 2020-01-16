@@ -549,9 +549,12 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   // capabilities.graphics.screenshots  = 2
   // capabilities.graphics.shaders      = 1
   // capabilities.graphics.text         = 3
+  // capabilities.graphics.text_fallback = 1
   // capabilities.graphics.imageAResource  = 2
   //
-  // capabilities.scene.external  = 1
+  // capabilities.font.fallback = 1
+  //
+  // capabilities.scene.external = 1
   //
   // capabilities.network.cors          = 1
   // capabilities.network.corsResources = 1
@@ -580,7 +583,13 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   graphicsCapabilities.set("screenshots", 2);
   graphicsCapabilities.set("shaders", 1);
   graphicsCapabilities.set("text", 3);
-      
+  
+  
+  rtObjectRef fontCapabilities = new rtMapObject;
+  fontCapabilities.set("fallback", 1);
+
+  mCapabilityVersions.set("font", fontCapabilities);
+  
 #ifdef SPARK_CURSOR_SUPPORT
   graphicsCapabilities.set("cursor", 1);
 
