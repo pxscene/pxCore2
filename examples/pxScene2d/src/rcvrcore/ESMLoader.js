@@ -26,6 +26,7 @@ var ArrayJoin = Function.call.bind(Array.prototype.join);
 var ArrayMap = Function.call.bind(Array.prototype.map);
 var reqOrig = require;
 var frameWorkCache = {}
+
 // default value is true for below parameters if not defined in spark settings
 var enableFrameworkCaching = undefined;
 var keepFrameworksOnExit = undefined;
@@ -402,6 +403,26 @@ function ensureUniqueFramework(url)
   }
 }
 
+function getUrlMatchingHashDetails(hash)
+{
+  var details = {}
+  var matchFound = false;
+  for (var key in frameWorkCache) {
+    for (var i=0; i<frameWorkCache[key].length; i++) {
+      if (frameWorkCache[key][i].hash == hash)
+      {
+        details['url'] = key
+        details['index'] = i
+        matchFound = true;
+        break;
+      }
+    }
+    if (true == matchFound)
+      break;
+  }
+  return details;
+}
+
 function getCachePosition(url, hash)
 {
   var cacheposition = -1;
@@ -456,14 +477,20 @@ async function loadFrameWorks(loadCtx, bootstrapUrl) {
       }
       else
       {
-        var frameWorkSource = await getFile(loadCtx.sandbox.global.sparkscene, _url);
-        var frameWorkScript = new vm.Script(frameWorkSource);
-        if (undefined == frameWorkCache[_cachekey]) {
-          frameWorkCache[_cachekey] = []
+        var hashMatchDetails = getUrlMatchingHashDetails(_hash);
+        if (hashMatchDetails['url'] != undefined) {
+          frameWorkUsageInfo[hashMatchDetails['url']] = hashMatchDetails['index']
         }
-        frameWorkCache[_cachekey].push({'hash' : _hash, 'script' : frameWorkScript, 'numAppsUsing' : 0})
-        frameWorkUsageInfo[_cachekey] = frameWorkCache[_cachekey].length - 1;
-        //console.log("Newly loaded cache for " + _cachekey + " at position " + frameWorkUsageInfo[_cachekey]);
+        else {
+          var frameWorkSource = await getFile(loadCtx.sandbox.global.sparkscene, _url);
+          var frameWorkScript = new vm.Script(frameWorkSource);
+          if (undefined == frameWorkCache[_cachekey]) {
+            frameWorkCache[_cachekey] = []
+          }
+          frameWorkCache[_cachekey].push({'hash' : _hash, 'script' : frameWorkScript, 'numAppsUsing' : 0})
+          frameWorkUsageInfo[_cachekey] = frameWorkCache[_cachekey].length - 1;
+          //console.log("Newly loaded cache for " + _cachekey + " at position " + frameWorkUsageInfo[_cachekey]);
+        }
       }
     }
     else
