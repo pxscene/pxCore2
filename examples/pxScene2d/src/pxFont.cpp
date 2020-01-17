@@ -86,7 +86,8 @@ pxFontAtlas gFontAtlas;
 #endif
 
 pxFont::pxFont(rtString fontUrl, uint32_t id, rtString proxyUrl, rtString fontStyle):pxResource(),mFace(NULL),mPixelSize(0), mFontData(0), mFontDataSize(0),
-             mFontMutex(), mFontDataMutex(), mFontDownloadedData(NULL), mFontDownloadedDataSize(0), mFallbackFont(NULL), mFontDataUrl()
+             mFontMutex(), mFontDataMutex(), mFontDownloadedData(NULL), mFontDownloadedDataSize(0),
+            mFontDataUrl(), mFontStyle(), mFallbackFont(NULL)
 {  
   mFontId = id; 
   mUrl = fontUrl;
