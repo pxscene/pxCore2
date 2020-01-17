@@ -16,7 +16,7 @@ limitations under the License.
 
 */
 
-// pxTimerNative.cpp
+// pxTimerNative.h
 
 #include <windows.h>
 #include <stdint.h>
