@@ -285,7 +285,7 @@ LRESULT __stdcall pxWindowNative::windowProc(HWND hWnd, UINT msg, WPARAM wParam,
 
 		// re resolve the window ptr since we have destroyed it
         
-        double currT = 0;
+        double startT = 0;
         w = (pxWindowNative*)getWindowPtr(hWnd);
 		if (w)
 		{
@@ -415,10 +415,10 @@ LRESULT __stdcall pxWindowNative::windowProc(HWND hWnd, UINT msg, WPARAM wParam,
 
         case WM_TIMER:
 			// Should filter this to a single id
-            currT = pxSeconds();
+            startT = pxSeconds();
             w->onAnimationTimer();
             //printf("\ntime:%d fps:%d", abs(pxSeconds() - currT), w->mAnimationFPS);
-            w->mTimerId = SetTimer(w->mWindow, 1, (1000 / sFPS) - (pxSeconds() - currT), NULL);
+            w->mTimerId = SetTimer(w->mWindow, 1, (1000 / sFPS) - (pxSeconds() - startT), NULL);
             break;
 
         case WM_KEYDOWN:
