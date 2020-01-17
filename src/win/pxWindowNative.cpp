@@ -414,10 +414,9 @@ LRESULT __stdcall pxWindowNative::windowProc(HWND hWnd, UINT msg, WPARAM wParam,
 #endif
 
         case WM_TIMER:
-			// Should filter this to a single id
+            // Should filter this to a single id
             startT = pxSeconds();
             w->onAnimationTimer();
-            //printf("\ntime:%d fps:%d", abs(pxSeconds() - currT), w->mAnimationFPS);
             w->mTimerId = SetTimer(w->mWindow, 1, (1000 / sFPS) - (pxSeconds() - startT), NULL);
             break;
 
