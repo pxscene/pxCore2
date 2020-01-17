@@ -159,6 +159,7 @@ void pxWindow::setVisibility(bool visible)
     ShowWindow(mWindow, visible?SW_SHOW:SW_HIDE);
 }
 
+static int sFPS = 0;
 pxError pxWindow::setAnimationFPS(uint32_t fps)
 {
 #if 0
@@ -171,6 +172,8 @@ pxError pxWindow::setAnimationFPS(uint32_t fps)
     if (fps > 0)
     {
         mTimerId = SetTimer(mWindow, 1, 1000/fps, NULL);
+        
+        sFPS = fps;
     }
     return PX_OK;
 #else
@@ -281,7 +284,8 @@ LRESULT __stdcall pxWindowNative::windowProc(HWND hWnd, UINT msg, WPARAM wParam,
 		}
 
 		// re resolve the window ptr since we have destroyed it
-
+        
+        double currT = 0;
         w = (pxWindowNative*)getWindowPtr(hWnd);
 		if (w)
 		{
@@ -411,7 +415,10 @@ LRESULT __stdcall pxWindowNative::windowProc(HWND hWnd, UINT msg, WPARAM wParam,
 
         case WM_TIMER:
 			// Should filter this to a single id
+            currT = pxSeconds();
             w->onAnimationTimer();
+            //printf("\ntime:%d fps:%d", abs(pxSeconds() - currT), w->mAnimationFPS);
+            w->mTimerId = SetTimer(w->mWindow, 1, (1000 / sFPS) - (pxSeconds() - currT), NULL);
             break;
 
         case WM_KEYDOWN:
