@@ -59,7 +59,7 @@ struct webGlContextState
 {
   std::vector<uint32_t> webGlStates;
   std::vector<uint32_t> attributes;
-  std::map<uint32_t, attributeData> attributeData;
+  std::map<uint32_t, attributeData> attributesData;
   std::map<uint32_t, uint32_t> buffers;
   std::map<uint32_t, uint32_t> textures;
   GLint programId = 0;
@@ -643,7 +643,7 @@ rtError pxWebgl::VertexAttribPointer(uint32_t indx, uint32_t size, uint32_t type
   GLvoid *gloffset = reinterpret_cast<GLvoid*>(offset);
 
   attributeData data{size, type, normalized, stride, gloffset};
-  webGlContext.attributeData[indx] = data;
+  webGlContext.attributesData[indx] = data;
 
   glVertexAttribPointer(indx, size, type, normalized, stride, gloffset);
   CheckGLError();
@@ -967,8 +967,8 @@ void pxWebgl::endNativeSparkRendering()
   for (std::vector<uint32_t>::iterator it = webGlContext.attributes.begin() ; it != webGlContext.attributes.end(); ++it)
   {
     glEnableVertexAttribArray(*it);
-    auto attributeDataItem = webGlContext.attributeData.find(*it);
-    if ( attributeDataItem != webGlContext.attributeData.end())
+    auto attributeDataItem = webGlContext.attributesData.find(*it);
+    if ( attributeDataItem != webGlContext.attributesData.end())
     {
       glVertexAttribPointer(*it, attributeDataItem->second.size, attributeDataItem->second.type,
         attributeDataItem->second.normalized, attributeDataItem->second.stride, attributeDataItem->second.offset);
