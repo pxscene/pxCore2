@@ -136,6 +136,9 @@ public:
    rtError DeleteBuffer(uint32_t buffer);
    rtError DeleteProgram(uint32_t program);
 
+   static void beginNativeSparkRendering();
+   static void endNativeSparkRendering();
+
 private:
 
      void preprocessTexImageData(void *pixels, int width, int height, int format, int type);
