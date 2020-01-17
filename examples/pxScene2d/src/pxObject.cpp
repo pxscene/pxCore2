@@ -30,6 +30,8 @@
 #include "pxText.h"
 #include "pxTextBox.h"
 #include "pxImage.h"
+#include "pxContext.h"
+#include "pxWebGL.h"
 
 #include "pxShaderResource.h"
 
@@ -931,6 +933,41 @@ void pxObject::update(double t, bool updateChildren)
 
   // Send promise
   sendPromise();
+}
+
+rtError pxObject::paint(float x, float y, uint32_t /*color*/, bool translateOnly)
+{
+    pxWebgl::beginNativeSparkRendering();
+
+    context.pushState();
+    pxMatrix4f m;
+    if (translateOnly)
+    {
+      m.translate(mx+x, my+y);
+    }
+    else
+    {
+      float tempX = mx;
+      float tempY = my;
+      mx += x;
+      my += y;
+      applyMatrix(m);
+      mx = tempX;
+      my = tempY;
+    }
+    context.setMatrix(m);
+    context.setAlpha(ma);
+
+    //ensure the viewport and size are correctly set
+    int w = 0, h = 0;
+    context.getSize(w, h);
+    context.setSize(w, h);
+
+    draw();
+    context.popState();
+
+    pxWebgl::endNativeSparkRendering();
+    return RT_OK;
 }
 
 void pxObject::releaseData(bool sceneSuspended)
@@ -1953,3 +1990,4 @@ rtDefineMethod(pxObject, delListener);
 //rtDefineProperty(pxObject, emit);
 //rtDefineProperty(pxObject, onReady);
 rtDefineMethod(pxObject, getObjectById);
+rtDefineMethod(pxObject, paint);
