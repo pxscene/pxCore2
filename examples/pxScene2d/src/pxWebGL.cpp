@@ -67,8 +67,10 @@ struct webGlContextState
   GLint scissorBox[4] = {0, 0, 1280, 720};
   GLint viewport[4] = {0, 0, 1280, 720};
   GLint activeTexture = 0;
-  GLint blendSrcFactor = GL_ONE;
-  GLint blendDestFactor = GL_ONE_MINUS_SRC_ALPHA;
+  GLint blendSrcRgb = GL_ONE;
+  GLint blendDestRgb = GL_ONE_MINUS_SRC_ALPHA;
+  GLint blendSrcAlpha = GL_ONE;
+  GLint blendDestAlpha = GL_ONE_MINUS_SRC_ALPHA;
 };
 
 webGlContextState webGlContext;
@@ -939,8 +941,10 @@ void pxWebgl::beginNativeSparkRendering()
   glGetIntegerv(GL_VIEWPORT, webGlContext.viewport);
   glGetIntegerv(GL_ACTIVE_TEXTURE, &webGlContext.activeTexture);
 
-  glGetIntegerv(GL_BLEND_SRC, &webGlContext.blendSrcFactor);
-  glGetIntegerv(GL_BLEND_DST, &webGlContext.blendDestFactor);
+  glGetIntegerv(GL_BLEND_SRC_RGB, &webGlContext.blendSrcRgb);
+  glGetIntegerv(GL_BLEND_DST_RGB, &webGlContext.blendDestRgb);
+  glGetIntegerv(GL_BLEND_SRC_ALPHA, &webGlContext.blendSrcAlpha);
+  glGetIntegerv(GL_BLEND_DST_ALPHA, &webGlContext.blendDestAlpha);
 
   // set the states needed for pxContext rendering
   currentGLProgram = webGlContext.programId;
@@ -975,7 +979,7 @@ void pxWebgl::endNativeSparkRendering()
     }
   }
   glUseProgram(webGlContext.programId);
-  glBlendFunc(webGlContext.blendSrcFactor, webGlContext.blendDestFactor);
+  glBlendFuncSeparate(webGlContext.blendSrcRgb, webGlContext.blendDestRgb, webGlContext.blendSrcAlpha, webGlContext.blendDestAlpha);
   glViewport (webGlContext.viewport[0], webGlContext.viewport[1], webGlContext.viewport[2], webGlContext.viewport[3]);
   glScissor(webGlContext.scissorBox[0], webGlContext.scissorBox[1], webGlContext.scissorBox[2], webGlContext.scissorBox[3]);
   glClearColor(webGlContext.clearColor[0], webGlContext.clearColor[1], webGlContext.clearColor[2], webGlContext.clearColor[3]);
