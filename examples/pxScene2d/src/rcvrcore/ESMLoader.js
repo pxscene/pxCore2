@@ -26,7 +26,6 @@ var ArrayJoin = Function.call.bind(Array.prototype.join);
 var ArrayMap = Function.call.bind(Array.prototype.map);
 var reqOrig = require;
 var frameWorkCache = {}
-
 // default value is true for below parameters if not defined in spark settings
 var enableFrameworkCaching = undefined;
 var keepFrameworksOnExit = undefined;
