@@ -26,6 +26,8 @@ var ArrayJoin = Function.call.bind(Array.prototype.join);
 var ArrayMap = Function.call.bind(Array.prototype.map);
 var reqOrig = require;
 var frameWorkCache = {}
+
+// default value is true for below parameters if not defined in spark settings
 var enableFrameworkCaching = undefined;
 var keepFrameworksOnExit = undefined;
 
@@ -428,6 +430,16 @@ async function loadFrameWorks(loadCtx, bootstrapUrl) {
   for (let i = 0; i < list.length; i++) {
     let _framework = list[i];
     let _url = _framework.url || _framework;
+
+    if (!/^(http:|https:|file:)/.test(_url))
+      _url = urlmain.resolve(bootstrapUrl, _url);
+    const ext = path.extname(_url);
+    if (!/^(\.js|\.mjs)$/.test(ext))
+      _url += '.js';
+
+    if (!/^(http:|https:|file:)/.test(_url))
+      _url = `file://${_url}`;
+
     let _name = _framework.name
 
     let _hash = _framework.md5
@@ -445,9 +457,6 @@ async function loadFrameWorks(loadCtx, bootstrapUrl) {
       }
       else
       {
-        if (!/^(http:|https:|file:)/.test(_url))
-          _url = urlmain.resolve(bootstrapUrl, _url);
-
         var frameWorkSource = await getFile(loadCtx.sandbox.global.sparkscene, _url);
         var frameWorkScript = new vm.Script(frameWorkSource);
         if (undefined == frameWorkCache[_cachekey]) {
@@ -568,7 +577,7 @@ function ESMLoader(params) {
       }
     }
     else {
-      console.log("no framework manipulation !!!!!");
+      //console.log("no framework manipulation !!!!!");
     }
     this.ctx = null
   }
