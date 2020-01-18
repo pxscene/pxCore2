@@ -937,8 +937,6 @@ void pxObject::update(double t, bool updateChildren)
 
 rtError pxObject::paint(float x, float y, uint32_t /*color*/, bool translateOnly)
 {
-    pxWebgl::beginNativeSparkRendering();
-
     context.pushState();
     pxMatrix4f m;
     if (translateOnly)
@@ -965,8 +963,6 @@ rtError pxObject::paint(float x, float y, uint32_t /*color*/, bool translateOnly
 
     draw();
     context.popState();
-
-    pxWebgl::endNativeSparkRendering();
     return RT_OK;
 }
 
