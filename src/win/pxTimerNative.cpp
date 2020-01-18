@@ -20,9 +20,6 @@ limitations under the License.
 
 #include "pxTimerNative.h"
 
-static bool gFreqInitialized = false;
-static LARGE_INTEGER gFreq;
-
 double pxSeconds()
 {
     if (!gFreqInitialized)
