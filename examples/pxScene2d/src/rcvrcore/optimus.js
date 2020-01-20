@@ -551,6 +551,7 @@ function Application(props) {
     _externalApp.on("onClientConnected", function () { _this.log("onClientConnected"); }); // is never called
     _externalApp.on("onClientDisconnected", function () { _this.log("onClientDisconnected"); }); // is never called
     _externalApp.on("onClientStopped", function () { _this.log( "onClientStopped"); }); // is never called
+
     _externalApp.ready.then(function() {
       _this.log("successfully created Spark app: " + _this.id);
       _readyBaseResolve();
@@ -695,6 +696,10 @@ function Application(props) {
       setTimeout(function () {
         _this.destroy();
       });
+    });
+
+    _externalApp.on("onResolutionChanged", function (e) {
+       scene.resolutionChanged(e.width, e.height);
     });
 
     _externalApp.ready.then(function() {

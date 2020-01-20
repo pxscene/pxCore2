@@ -42,7 +42,8 @@ public:
   void setVisibility(bool visible);
   
   virtual void RT_STDCALL invalidateRect(pxRect* r = NULL);
-  
+  virtual void RT_STDCALL resolutionChanged(int32_t width, int32_t height);
+
   void setTitle(const char* name);
   
   // This method enables the onAnimationTimer event

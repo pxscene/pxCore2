@@ -1188,6 +1188,10 @@ void pxWindow::invalidateRect(pxRect* pxr)
   }
 }
 
+void pxWindow::resolutionChanged(int32_t width, int32_t height)
+{
+}
+
 bool pxWindow::visibility()
 {
   NSWindow *window = (NSWindow*)mWindow;

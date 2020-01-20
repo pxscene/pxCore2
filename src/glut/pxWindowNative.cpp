@@ -689,6 +689,9 @@ void pxWindow::invalidateRect(pxRect *r)
   invalidateRectInternal(r);
 }
 
+void pxWindow::resolutionChanged(int32_t width, int32_t height)
+{
+}
 
 // This can be improved by collecting the dirty regions and painting
 // when the event loop goes idle

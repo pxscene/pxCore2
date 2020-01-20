@@ -152,6 +152,13 @@ class sceneWindow : public pxWindow, public pxIViewContainer
       mousemovereceived = true;
     }
 
+    virtual void resolutionChanged(int32_t w, int32_t h)
+    {
+      UNUSED_PARAM(w);
+      UNUSED_PARAM(h);
+    }
+
+
   private:
     pxIView* mView;
     int mWidth;

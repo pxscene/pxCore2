@@ -224,6 +224,11 @@ public:
     pxWindow::invalidateRect(r);
   }
 
+  virtual void resolutionChanged(int32_t w, int32_t h)
+  {
+    pxWindow::resolutionChanged(w, h);
+  }
+
   void close()
   {
     onCloseRequest();
