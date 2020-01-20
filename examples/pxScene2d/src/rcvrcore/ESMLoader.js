@@ -451,6 +451,7 @@ async function loadFrameWorks(loadCtx, bootstrapUrl) {
     let _framework = list[i];
     let _url = _framework.url || _framework;
 
+    //below code is for keeping url as absolute path
     if (!/^(http:|https:|file:)/.test(_url))
       _url = urlmain.resolve(bootstrapUrl, _url);
     const ext = path.extname(_url);
@@ -460,15 +461,23 @@ async function loadFrameWorks(loadCtx, bootstrapUrl) {
     if (!/^(http:|https:|file:)/.test(_url))
       _url = `file://${_url}`;
 
-    let _name = _framework.name
+    let _filename = _url;
+
+    //find the filename alone from url to be used as key if name not present
+    var filenameIndex = _url.lastIndexOf("/"); 
+    if ((-1 != filenameIndex) && (_url.length > filenameIndex)) {
+      _filename = _url.substring(filenameIndex+1);
+    }
+
+    let _frameworkname = _framework.name
 
     let _hash = _framework.md5
-    let useFrameWorkCaching = eligibleForFrameWorkCaching(loadCtx.sandbox.global.sparkscene, _url, _name, _hash)
+    let useFrameWorkCaching = eligibleForFrameWorkCaching(loadCtx.sandbox.global.sparkscene, _filename, _frameworkname, _hash)
 
     // store framework compiled scripts only for js files
     if (true == useFrameWorkCaching)
     {
-      let _cachekey = (undefined != _name)?_name:_url;
+      let _cachekey = (undefined != _frameworkname)?_frameworkname:_filename;
       let _cachePostion = getCachePosition(_cachekey, _hash);
       if (_cachePostion != -1)
       {
@@ -480,6 +489,7 @@ async function loadFrameWorks(loadCtx, bootstrapUrl) {
         var hashMatchDetails = getUrlMatchingHashDetails(_hash);
         if (hashMatchDetails['url'] != undefined) {
           frameWorkUsageInfo[hashMatchDetails['url']] = hashMatchDetails['index']
+          //console.log("framework matching hash "+  _cachekey + " available in cache at postion " + _cachePostion + " , no need to reload !!!!!!!!!!!!!!!!!!!");
         }
         else {
           var frameWorkSource = await getFile(loadCtx.sandbox.global.sparkscene, _url);
@@ -489,7 +499,7 @@ async function loadFrameWorks(loadCtx, bootstrapUrl) {
           }
           frameWorkCache[_cachekey].push({'hash' : _hash, 'script' : frameWorkScript, 'numAppsUsing' : 0})
           frameWorkUsageInfo[_cachekey] = frameWorkCache[_cachekey].length - 1;
-          //console.log("Newly loaded cache for " + _cachekey + " at position " + frameWorkUsageInfo[_cachekey]);
+          //console.log("Newly loaded cache for ********************* " + _cachekey + " at position " + frameWorkUsageInfo[_cachekey]);
         }
       }
     }
