@@ -176,6 +176,10 @@ function Scene() {
       return nativeScene.getAvailableApplications(appNames);
   };
 
+  this.resolutionChanged = function resolutionChanged(width, height) {
+      return nativeScene.resolutionChanged(width, height);
+  };
+
   this.setAppContext = function(appContextName, appContext) {
     if( !appContextMap.hasOwnProperty(appContextName) ) {
       appContextMap[appContextName] = appContext;

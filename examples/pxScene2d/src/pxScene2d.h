@@ -243,6 +243,12 @@ public:
     return NULL;
   }  
 
+  virtual void resolutionChanged(int width, int height)
+  {
+    UNUSED_PARAM(width);
+    UNUSED_PARAM(height);
+  }  
+
 #if 0
   rtError url(rtString& v) const { v = mUri; return RT_OK; }
   rtError setUrl(rtString v) { mUri = v; return RT_OK; }
@@ -531,7 +537,6 @@ public:
   rtError suspend(const rtValue& v, bool& b);
   rtError resume(const rtValue& v, bool& b);
   rtError screenshot(rtString type, rtValue& returnValue);
-
 #ifdef ENABLE_PERMISSIONS_CHECK
   rtError permissions(rtObjectRef& v) const;
   rtError setPermissions(const rtObjectRef& v);
@@ -546,6 +551,7 @@ public:
   virtual void sendPromise() { /*rtLogDebug("pxSceneContainer ignoring sendPromise\n");*/ }
 
   virtual void* getInterface(const char* name);
+  virtual void resolutionChanged(int width, int height);
   virtual void releaseData(bool sceneSuspended);
   virtual void reloadData(bool sceneSuspended);
   virtual uint64_t textureMemoryUsage(std::vector<rtObject*> &objectsCounted);
@@ -717,7 +723,9 @@ protected:
   virtual void setViewContainer(pxIViewContainer* l)
   {
     if (mView)
+    {
       mView->setViewContainer(l);
+    }
     mViewContainer = l;
   }
 
@@ -842,6 +850,7 @@ public:
   rtMethod1ArgAndReturn("sparkSetting", sparkSetting, rtString, rtValue);
   rtMethod1ArgAndNoReturn("addServiceProvider", addServiceProvider, rtFunctionRef);
   rtMethod1ArgAndNoReturn("removeServiceProvider", removeServiceProvider, rtFunctionRef);
+  rtMethod2ArgAndNoReturn("resolutionChanged", resolutionChanged, int, int);
 
   rtReadOnlyProperty(storage,storage,rtObjectRef);
 
@@ -1143,6 +1152,7 @@ public:
   rtError getService(rtString name, rtObjectRef& returnObject);
   rtError getService(const char* name, const rtObjectRef& ctx, rtObjectRef& service);
   rtError getAvailableApplications(rtString& availableApplications);
+  rtError resolutionChanged(int width, int height);
   rtObjectRef getArchive()
   {
     return mArchive;

@@ -36,6 +36,7 @@ public:
   // NULL means invalidate everything
   virtual void RT_STDCALL invalidateRect(pxRect* r) = 0;
   virtual void* RT_STDCALL getInterface(const char* t) = 0;
+  virtual void RT_STDCALL resolutionChanged(int width, int height) = 0;
 };
 
 // TODO no way to have a scene draw to an arbitrary rectangle

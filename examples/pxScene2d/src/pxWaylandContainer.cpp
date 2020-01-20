@@ -48,21 +48,45 @@ extern map<string, string> gWaylandAppsMap;
 // #define TEST_REMOTE_OBJECT_NAME "waylandClient123" //TODO - update
 
 // #define UNUSED_PARAM(x) ((void)x)
+static rtError onResolutionChangedCallback(int numArgs, const rtValue* args, rtValue* /*result*/, void* context)
+{
+  rtError rc = RT_FAIL;
+  if (context == NULL)
+  {
+    return rc;
+  }
+  pxWaylandContainer* obj = (pxWaylandContainer*)context;
+  if (numArgs >= 2)
+  {
+    int width = args[0].toInt32();
+    int height = args[1].toInt32();
+    obj->resolutionChanged(width, height);
+    rc = RT_OK;
+  }
+  return rc;
+}
+
 
 pxWaylandContainer::pxWaylandContainer(pxScene2d* scene)
-   : pxViewContainer(scene), mWayland(NULL),mClientPID(0),mFillColor(0),mHasApi(false),mBinary()
+   : pxViewContainer(scene), mWayland(NULL),mClientPID(0),mFillColor(0),mHasApi(false),mBinary(), mResolutionChangedCallback()
 {
   addListener("onClientStarted", get<rtFunctionRef>("onClientStarted"));
   addListener("onClientStopped", get<rtFunctionRef>("onClientStopped"));
   addListener("onClientConnected", get<rtFunctionRef>("onClientConnected"));
   addListener("onClientDisconnected", get<rtFunctionRef>("onClientDisconnected"));
   mRemoteReady = new rtPromise();
+  mResolutionChangedCallback = new rtFunctionCallback(onResolutionChangedCallback, this);
 }
 
 pxWaylandContainer::~pxWaylandContainer()
 {
   if ( mWayland )
   {
+     if (mResolutionChangedCallback.getPtr() != NULL)
+     {
+       mWayland->delListener("onResolutionChanged", mResolutionChangedCallback);
+       mResolutionChangedCallback = NULL;
+     }
      mWayland->setEvents(NULL);
   }
   mRemoteReady = NULL;
@@ -95,6 +119,15 @@ void pxWaylandContainer::clientStarted( int pid )
    e.set("target", this);
    e.set("pid", pid );
    mEmit.send("onClientStarted", e);
+}
+
+void pxWaylandContainer::resolutionChanged( int width, int height )
+{
+   rtObjectRef e = new rtMapObject;
+   e.set("name", "onResolutionChanged");
+   e.set("width", width);
+   e.set("height", height );
+   mEmit.send("onResolutionChanged", e);
 }
 
 void pxWaylandContainer::clientConnected( int pid )
@@ -310,6 +343,10 @@ rtError pxWaylandContainer::setView(pxWayland* v)
   {
      mWayland->setPos( mx, my );
      mWayland->setEvents( this );
+     if (mResolutionChangedCallback.getPtr() != NULL)
+     {
+       mWayland->addListener("onResolutionChanged", mResolutionChangedCallback);
+     }
   }
   return pxViewContainer::setView(v);
 }
@@ -386,6 +423,11 @@ rtError pxWaylandContainer::destroy(bool& b)
   b = false;
   if ( mWayland )
   {
+    if (mResolutionChangedCallback.getPtr() != NULL)
+    {
+      mWayland->delListener("onResolutionChanged", mResolutionChangedCallback);
+      mResolutionChangedCallback = NULL;
+    }
     mWayland->setEvents(NULL);
     setView(NULL);
     b = true;

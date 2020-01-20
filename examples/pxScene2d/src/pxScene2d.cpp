@@ -2621,6 +2621,13 @@ rtError pxScene2d::getService(const char* name, const rtObjectRef& ctx, rtObject
   }
 }
 
+rtError pxScene2d::resolutionChanged(int width, int height)
+{
+  if (mContainer != NULL) {
+    mContainer->resolutionChanged(width, height);
+  }
+}
+
 rtError pxScene2d::getAvailableApplications(rtString& availableApplications)
 {
   availableApplications = "";
@@ -2740,6 +2747,7 @@ rtDefineMethod(pxScene2d, clipboardGet);
 rtDefineMethod(pxScene2d, clipboardSet);
 rtDefineMethod(pxScene2d, getService);
 rtDefineMethod(pxScene2d, getAvailableApplications);
+rtDefineMethod(pxScene2d, resolutionChanged);
 
 rtDefineMethod(pxScene2d, loadArchive);
 rtDefineProperty(pxScene2d, ctx);
@@ -3040,6 +3048,14 @@ rtError pxSceneContainer::screenshot(rtString type, rtValue& returnValue)
     return scriptView->screenshot(type, returnValue);
   }
   return RT_FAIL;
+}
+
+void pxSceneContainer::resolutionChanged(int width, int height)
+{
+  if (mScene != NULL)
+  {
+    mScene->resolutionChanged(width, height);
+  }
 }
 
 rtError pxSceneContainer::setScriptView(pxScriptView* scriptView)
@@ -3675,7 +3691,6 @@ rtError pxScriptView::getScene(int numArgs, const rtValue* args, rtValue* result
         top = false;
         v->mView = scene;
         v->mScene = scene;
-
         v->mView->setViewContainer(v->mViewContainer);
         v->mView->onSize(v->mWidth,v->mHeight);
       }

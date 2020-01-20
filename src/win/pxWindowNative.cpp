@@ -149,6 +149,10 @@ void pxWindow::invalidateRect(pxRect* r)
 }
 #endif
 
+void pxWindow::resolutionChanged(int32_t width, int32_t height)
+{
+}
+
 bool pxWindow::visibility()
 {
     return IsWindowVisible(mWindow)?true:false;

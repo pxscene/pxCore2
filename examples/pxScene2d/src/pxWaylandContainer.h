@@ -52,6 +52,7 @@ public:
   virtual void clientDisconnected( int pid );
   virtual void clientStoppedNormal( int pid, int exitCode );
   virtual void clientStoppedAbnormal( int pid, int signo );
+  virtual void resolutionChanged( int width, int height );
   virtual void isReady( bool ready );
   virtual void isRemoteReady(bool ready);
   virtual void sendPromise();
