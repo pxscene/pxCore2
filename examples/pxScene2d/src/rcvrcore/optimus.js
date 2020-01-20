@@ -84,11 +84,11 @@ function Application(props) {
   var _uiReadyReject = function(){};
   var _urlChangeResolve = function(){};
   var _urlChangeReject = function(){};
-  
+
   // Getters/setters
   var _externalAppPropsReadWrite = {
     x:"x",y:"y",w:"w",h:"h",cx:"cx",cy:"cy",sx:"sx",sy:"sy",r:"r",a:"a",
-    interactive:"interactive",painting:"painting",clip:"clip",mask:"mask",draw:"draw",hasApi:"hasApi", url:"url"
+    interactive:"interactive",painting:"painting",clip:"clip",mask:"mask",draw:"draw",hasApi:"hasApi", url:"url", displayName:"displayName"
   };
   var _externalAppPropsReadonly = {
     pid:"clientPID" // integer process id associated with the application
@@ -196,6 +196,7 @@ function Application(props) {
   var _externalApp;
   var _browser;
   var _state = ApplicationState.RUNNING;
+  var displayName;
 
   // Internal function needed for suspend
   var do_suspend_internal = function(o)
@@ -517,6 +518,9 @@ function Application(props) {
   if ("expectedMemoryUsage" in props) {
     this.expectedMemoryUsage = props.expectedMemoryUsage;
   }
+  if ("displayName" in props) {
+    displayName = props.displayName;
+  }
 
   this.log("cmd:",cmd,"uri:",uri,"w:",w,"h:",h,"hasApi:",hasApi);
 
@@ -686,7 +690,7 @@ function Application(props) {
   }
   else{
     this.type = ApplicationType.NATIVE;
-    _externalApp = scene.create( {t:"external", parent:root, cmd:cmd, w:w, h:h, hasApi:hasApi} );
+    _externalApp = scene.create( {t:"external", parent:root, cmd:cmd, w:w, h:h, hasApi:hasApi, displayName:displayName} );
     _externalApp.on("onReady", function () { _this.log("onReady"); }); // is never called
     _externalApp.on("onClientStarted", function () { _this.log("onClientStarted"); });
     _externalApp.on("onClientConnected", function () { _this.log("onClientConnected"); });
