@@ -489,6 +489,11 @@ function Application(props) {
       return _externalApp.paint(x, y, color, translateOnly);
     }
   };
+  this.description = function() {
+    if (_externalApp){
+      return _externalApp.description();
+    }
+  };
 
   // Constructor
   if ("launchParams" in props){
