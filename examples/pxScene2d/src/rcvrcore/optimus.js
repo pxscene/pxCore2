@@ -484,6 +484,11 @@ function Application(props) {
   this.state = function () {
     return _state;
   };
+  this.paint = function(x, y, color, translateOnly) {
+    if (_externalApp){
+      return _externalApp.paint(x, y, color, translateOnly);
+    }
+  };
 
   // Constructor
   if ("launchParams" in props){
