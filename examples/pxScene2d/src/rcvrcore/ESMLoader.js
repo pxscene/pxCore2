@@ -345,6 +345,10 @@ var loadMjs = async function (source, url, context, modmap, version)
   {
     return modmap[url];
   }
+  if (null == context)
+  {
+    throw "Context is empty, app might got terminated !!!";
+  }
   var mod = new vm.SourceTextModule(source , { context: context, initializeImportMeta:initializeImportMeta, importModuleDynamically:importModuleDynamically, url:url });
   mod.version = version;
   modmap[url] = mod;
@@ -564,8 +568,10 @@ function ESMLoader(params) {
         } catch (err) {
           console.log("load mjs module failed ");
           console.log(err);
-          if (false === instantiated) {
-            loadCtx.makeReady(false, {});
+          if ((false === instantiated) && (null != loadCtx)) {
+            if ((null != loadCtx) && (null != loadCtx.makeReady)) {
+              loadCtx.makeReady(false, {});
+            }
           }
         }
       })();
