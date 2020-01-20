@@ -470,11 +470,6 @@ function Application(props) {
       return _externalApp.api;
     }
   };
-  this.texture = function() {
-    if (_externalApp){
-      return _externalApp.texture();
-    }
-  };
   this.setProperties = function(props) {
     Object.keys(props).forEach(function(k) {
       if (k.match(/^(id|name|priority)$/g) || Object.keys(_externalAppPropsReadWrite).indexOf(k) >= 0) {
