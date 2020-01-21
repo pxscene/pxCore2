@@ -451,6 +451,7 @@ function getCachePosition(url, hash)
 async function loadFrameWorks(loadCtx, bootstrapUrl) {
   const list = loadCtx.bootstrap.frameworks;
   var frameWorkUsageInfo = {}
+  var urlsToRun = []
   for (let i = 0; i < list.length; i++) {
     let _framework = list[i];
     let _url = _framework.url || _framework;
@@ -492,6 +493,7 @@ async function loadFrameWorks(loadCtx, bootstrapUrl) {
       {
         var hashMatchDetails = getUrlMatchingHashDetails(_hash);
         if (hashMatchDetails['url'] != undefined) {
+          _cachekey = hashMatchDetails['url'];
           frameWorkUsageInfo[hashMatchDetails['url']] = hashMatchDetails['index']
           //console.log("framework matching hash "+  _cachekey + " available in cache at postion " + _cachePostion + " , no need to reload !!!!!!!!!!!!!!!!!!!");
         }
@@ -506,17 +508,24 @@ async function loadFrameWorks(loadCtx, bootstrapUrl) {
           //console.log("Newly loaded cache for ********************* " + _cachekey + " at position " + frameWorkUsageInfo[_cachekey]);
         }
       }
+      urlsToRun.push({'url' : _cachekey, 'hash' : _hash});
     }
     else
     {
-      await importModuleDynamically(_url, {url:bootstrapUrl, context:loadCtx.contextifiedSandbox}, _hash);
+      urlsToRun.push({'url' : _url, 'hash' : _hash});
     }
   }
-  for (var key in frameWorkUsageInfo)
+  for (var i=0; i<urlsToRun.length; i++)
   {
-    var pos = frameWorkUsageInfo[key];
-    frameWorkCache[key][pos].script.runInContext(loadCtx.contextifiedSandbox);
-    frameWorkCache[key][pos].numAppsUsing = frameWorkCache[key][pos].numAppsUsing + 1;
+    var key = urlsToRun[i].url;
+    var hash = urlsToRun[i].hash;
+    if (frameWorkUsageInfo[key] == undefined) {
+      await importModuleDynamically(key, {url:bootstrapUrl, context:loadCtx.contextifiedSandbox}, hash);
+    } else {
+      var pos = frameWorkUsageInfo[key];
+      frameWorkCache[key][pos].script.runInContext(loadCtx.contextifiedSandbox);
+      frameWorkCache[key][pos].numAppsUsing = frameWorkCache[key][pos].numAppsUsing + 1;
+    }
   }
   loadCtx.frameWorkUsageInfo = frameWorkUsageInfo;
 }
