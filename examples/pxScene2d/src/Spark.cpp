@@ -224,6 +224,7 @@ public:
     pxWindow::invalidateRect(r);
   }
 
+  // pass event back to native window
   virtual void resolutionChanged(int32_t w, int32_t h)
   {
     pxWindow::resolutionChanged(w, h);
