@@ -472,12 +472,12 @@ GlyphTextureEntry pxFont::getGlyphTexture(uint32_t codePoint, float sx, float sy
   {
     // temporarily set pixel size to more optimal size for rendering texture
     FT_Set_Pixel_Sizes(*face, 0, pixelSize);
-    err = FT_Load_Char(*face, codePoint, FT_LOAD_RENDER);  // TODO only need to render glyph here
+    err = FT_Load_Char(*face, codePoint, FT_LOAD_RENDER);  // non-zero return ... means error - TODO only need to render glyph here - need 'FT_LOAD_RENDER' ?
     FT_Set_Pixel_Sizes(*face, 0, mPixelSize); // restore
   
     FT_GlyphSlot gg = (*face)->glyph;
     
-    if(codePoint != CODEPOINT_SPACE && (gg && gg->bitmap.width == 0) ) // Not a SPACE,  Fallback for not found ?
+    if(err != 0 || (codePoint != CODEPOINT_SPACE && (gg && gg->bitmap.width == 0)) ) // Not a SPACE,  Fallback for not found ?
     {
       // Try using the FALLBACK font
       pxFont *fallback = static_cast<pxFont *>( mFallbackFont.getPtr() );
@@ -516,12 +516,17 @@ GlyphTextureEntry pxFont::getGlyphTexture(uint32_t codePoint, float sx, float sy
       
       gGlyphTextureCache.insert(make_pair(key, result));
     }
+    else
+    {
+       rtLogWarn("FT_Load_Char() returned FT_Error = %d", err);
+    }
   }
   return result;  
 }
   
 const GlyphCacheEntry* pxFont::getGlyph(uint32_t codePoint)
 {
+  FT_Error err  = 0;
   FT_Face *face = &mFace;
 
   GlyphKey key; 
@@ -537,8 +542,11 @@ const GlyphCacheEntry* pxFont::getGlyph(uint32_t codePoint)
   else
   {
     // TODO should not need to render here !
-    if(FT_Load_Char(*face, codePoint, FT_LOAD_RENDER))
+    if( (err = FT_Load_Char(*face, codePoint, FT_LOAD_RENDER)) != 0)
     {
+      // not found or error
+      rtLogWarn("FT_Load_Char() returned FT_Error = %d", err);
+
       return NULL;
     }
     else
