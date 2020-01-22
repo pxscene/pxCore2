@@ -537,17 +537,31 @@ const GlyphCacheEntry* pxFont::getGlyph(uint32_t codePoint)
   GlyphCache::iterator it = gGlyphCache.find(key);
   if (it != gGlyphCache.end())
   {
-    return it->second;
+    return it->second; // it's cached !
   }
   else
   {
-    // TODO should not need to render here !
-    if( (err = FT_Load_Char(*face, codePoint, FT_LOAD_RENDER)) != 0)
+    // TODO should not need to 'FT_LOAD_RENDER' render here ???
+    err = FT_Load_Char(*face, codePoint, FT_LOAD_RENDER);
+    if(err != 0)
     {
-      // not found or error
-      rtLogWarn("FT_Load_Char() returned FT_Error = %d", err);
+      // not found or and error
+      // Try using the FALLBACK font
+      pxFont *fallback = static_cast<pxFont *>( mFallbackFont.getPtr() );
+      
+      if(fallback)
+      {
+        face = &fallback->mFace;
+        
+        FT_Set_Pixel_Sizes(*face, 0, mPixelSize);
+        err = FT_Load_Char(*face, codePoint, FT_LOAD_RENDER);
+      }
 
-      return NULL;
+      if(err != 0)
+      {
+        rtLogWarn("FT_Load_Char() returned FT_Error = %d ... %s try Fallback font ", err, (fallback ? "DID try " : "did NOT"));
+        return NULL;
+      }
     }
     else
     {
