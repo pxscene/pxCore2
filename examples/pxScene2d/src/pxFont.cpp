@@ -559,7 +559,7 @@ const GlyphCacheEntry* pxFont::getGlyph(uint32_t codePoint)
 
       if(err != 0)
       {
-        rtLogWarn("FT_Load_Char() returned FT_Error = %d ... %s try Fallback font ", err, (fallback ? "DID try " : "did NOT"));
+        rtLogWarn("FT_Load_Char() returned FT_Error = %d ... %s try Fallback font ", err, (fallback ? "DID" : "did NOT"));
         return NULL;
       }
     }
