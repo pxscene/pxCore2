@@ -106,7 +106,6 @@ cp macstuff/spark.sh $bundleBin
 cp macstuff/EngineRunner $bundleBin
 cp macstuff/sparkUpdater.sh $bundleBin
 
-
 # Minify JS into Bundle...
 #
 # For Node
