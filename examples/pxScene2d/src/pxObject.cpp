@@ -961,7 +961,25 @@ rtError pxObject::paint(float x, float y, uint32_t /*color*/, bool translateOnly
     context.getSize(w, h);
     context.setSize(w, h);
 
-    draw();
+    if (mClip)
+    {
+      if (mRepaint)
+      {
+        createSnapshot(mClipSnapshotRef);
+        context.setMatrix(m);
+        context.setAlpha(ma);
+      }
+
+      if (mClipSnapshotRef.getPtr() != NULL)
+      {
+        static pxTextureRef nullMaskRef;
+        context.drawImage(0, 0, w, h, mClipSnapshotRef->getTexture(), nullMaskRef);
+      }
+    }
+    else
+    {
+      draw();
+    }
     context.popState();
     return RT_OK;
 }
