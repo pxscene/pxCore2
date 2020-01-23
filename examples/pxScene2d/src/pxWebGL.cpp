@@ -43,7 +43,14 @@ void _CheckGLError(const char* file, int line)
             case GL_OUT_OF_MEMORY:      error="OUT_OF_MEMORY";          break;
             case GL_INVALID_FRAMEBUFFER_OPERATION:  error="INVALID_FRAMEBUFFER_OPERATION";  break;
         }
-        rtLogError("GL %s - %s : %d", error.c_str(), file, line);
+        if (err == GL_INVALID_FRAMEBUFFER_OPERATION)
+        {
+          rtLogDebug("GL %s - %s : %d", error.c_str(), file, line);
+        }
+        else
+        {
+          rtLogError("GL %s - %s : %d", error.c_str(), file, line);
+        }
         err = glGetError();
     }
 
