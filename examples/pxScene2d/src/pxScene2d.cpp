@@ -564,6 +564,7 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   // capabilities.events.drag_n_drop    = 2   // additional Drag'n'Drop events
   //
   // capabilities.video.player         = 1
+  // capabilities.sparkgl.nativedrawing    = 1
 
   mCapabilityVersions = new rtMapObject;
 
@@ -645,6 +646,26 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   videoCapabilities.set("player", 1);
   mCapabilityVersions.set("video", videoCapabilities);
 #endif //ENABLE_SPARK_VIDEO
+
+  rtObjectRef sparkGlCapabilities = new rtMapObject;
+  sparkGlCapabilities.set("nativedrawing", 1);
+  rtValue enableSparkGlNativeDrawing;
+  char const* sparkGlNativeDrawingEnv = getenv("SPARK_ENABLE_SPARKGL_NATIVE_DRAWING");
+  if (sparkGlNativeDrawingEnv && (strcmp(sparkGlNativeDrawingEnv,"0") == 0))
+  {
+    rtLogWarn("disabling SparkGL native rendering capability");
+    sparkGlCapabilities.set("nativedrawing", 0);
+  }
+  else if (RT_OK == rtSettings::instance()->value("enableSparkGlNativeDrawing", enableSparkGlNativeDrawing))
+  {
+    if (enableSparkGlNativeDrawing.toString().compare("false") == 0)
+    {
+      //disable SparkGL native drawing support if setting disables it
+      rtLogWarn("disabling SparkGL native rendering");
+      sparkGlCapabilities.set("nativedrawing", 0);
+    }
+  }
+  mCapabilityVersions.set("sparkgl", sparkGlCapabilities);
 
   //////////////////////////////////////////////////////
 }

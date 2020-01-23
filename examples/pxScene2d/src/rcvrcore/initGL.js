@@ -62,6 +62,10 @@ const makeRequire = function(pathToParent) {
     {
       return reqOrig(moduleName)
     }
+    if (moduleName.substring(0,7) === "optimus")
+    {
+      return reqOrig('rcvrcore/optimus.js');
+    }
     const parentDir = path.dirname(pathToParent);
     // use Node's built-in module resolver here, but we could easily pass in our own
     var resolvedModule = _module._resolveLookupPaths(moduleName, {paths:[parentDir],id:pathToParent,filename:pathToParent});
@@ -311,6 +315,8 @@ function onSceneTerminate() {
   }
   this.succeeded = false;
   this.active = true;
+  this.makeRequire = null
+  this.makeReady = null
   // JRJR something is invoking setImmediate after this and causing problems
 }
 

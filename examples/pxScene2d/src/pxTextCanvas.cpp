@@ -19,6 +19,8 @@
 #include "pxConstants.h"
 #include "pxText.h"
 #include "pxTextCanvas.h"
+#include "pxContext.h"
+#include "pxWebGL.h"
 
 #define CLAMP(_x, _min, _max) ( (_x) < (_min) ? (_min) : (_x) > (_max) ? (_max) : (_x) )
 extern pxContext context;
@@ -510,6 +512,65 @@ void pxTextCanvas::renderTextLine(const pxTextLine& textLine)
         rtLogError("pxTextCanvas::drawing without FONT ATLAS is not supported yet.");
 #endif
     }
+}
+
+rtError pxTextCanvas::paint(float x, float y, uint32_t color, bool translateOnly)
+{
+#ifdef PXSCENE_FONT_ATLAS
+    if (mDirty)
+    {
+        mQuadsVector.clear();
+        renderText(true);
+        mDirty = false;
+    }
+
+    context.pushState();
+    pxMatrix4f m;
+    if (translateOnly)
+    {
+        m.translate(mx+x, my+y);
+    }
+    else
+    {
+      float tempX = mx;
+      float tempY = my;
+      mx += x;
+      my += y;
+      applyMatrix(m);
+      mx = tempX;
+      my = tempY;
+    }
+    context.setMatrix(m);
+    context.setAlpha(ma);
+
+    //ensure the viewport and size are correctly set
+    int w = 0, h = 0;
+    context.getSize(w, h);
+    context.setSize(w, h);
+
+    float textColor[4];
+    memcpy(textColor, mTextColor, sizeof(textColor));
+    if (color != 0xFFFFFFFF)
+    {
+        if (mColorMode == "ARGB")
+        {
+            color = argb2rgba(color);
+        }
+        textColor[PX_RED  ] *= (float)((color>>24) & 0xff) / 255.0f;
+        textColor[PX_GREEN] *= (float)((color>>16) & 0xff) / 255.0f;
+        textColor[PX_BLUE ] *= (float)((color>> 8) & 0xff) / 255.0f;
+        textColor[PX_ALPHA] *= (float)((color>> 0) & 0xff) / 255.0f;
+    }
+
+    for (std::vector<pxTexturedQuads>::iterator it = mQuadsVector.begin() ; it != mQuadsVector.end(); ++it)
+    {
+        (*it).draw(0, 0, textColor);
+    }
+    context.popState();
+#else
+    rtLogError("pxTextCanvas::drawing without FONT ATLAS is not supported yet.");
+#endif
+    return RT_OK;
 }
 
 void pxTextCanvas::draw()
