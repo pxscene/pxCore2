@@ -537,15 +537,18 @@ const GlyphCacheEntry* pxFont::getGlyph(uint32_t codePoint)
   GlyphCache::iterator it = gGlyphCache.find(key);
   if (it != gGlyphCache.end())
   {
-    return it->second; // it's cached !
+    return it->second; // it's cached ... we're done !
   }
   else
   {
     // TODO should not need to 'FT_LOAD_RENDER' render here ???
-    err = FT_Load_Char(*face, codePoint, FT_LOAD_RENDER);
-    if(err != 0)
+    err = FT_Load_Char(*face, codePoint, FT_LOAD_RENDER);       // in the PRIMARY font ?
+    
+    FT_GlyphSlot gg = (*face)->glyph;
+
+    if( (err != 0) ||                                                     // Not Found and/or Error
+        (codePoint != CODEPOINT_SPACE && (gg && gg->bitmap.width == 0) )) // Not a SPACE ... but missing glyph !
     {
-      // not found or and error
       // Try using the FALLBACK font
       pxFont *fallback = static_cast<pxFont *>( mFallbackFont.getPtr() );
       
@@ -554,7 +557,7 @@ const GlyphCacheEntry* pxFont::getGlyph(uint32_t codePoint)
         face = &fallback->mFace;
         
         FT_Set_Pixel_Sizes(*face, 0, mPixelSize);
-        err = FT_Load_Char(*face, codePoint, FT_LOAD_RENDER);
+        err = FT_Load_Char(*face, codePoint, FT_LOAD_RENDER);     // in the FALLBACK font ?
       }
 
       if(err != 0)
@@ -563,42 +566,26 @@ const GlyphCacheEntry* pxFont::getGlyph(uint32_t codePoint)
         return NULL;
       }
     }
-    else
-    {
-      FT_GlyphSlot gg = (*face)->glyph;
-      
-      if(codePoint != CODEPOINT_SPACE && (gg && gg->bitmap.width == 0) ) // Not a SPACE,  Fallback for not found ?
-      {
-          // Try using the FALLBACK font
-          pxFont *fallback = static_cast<pxFont *>( mFallbackFont.getPtr() );
-          
-          if(fallback)
-          {
-            face = &fallback->mFace;
-            
-            if(FT_Load_Char(*face, codePoint, FT_LOAD_RENDER))
-            {
-              return NULL;
-            }
-          }
-      }
-      
-      rtLogDebug("glyph cache miss");
-      GlyphCacheEntry *entry = new GlyphCacheEntry();
-      FT_GlyphSlot g = (*face)->glyph;
-      
-      entry->bitmap_left    = g->bitmap_left;
-      entry->bitmap_top     = g->bitmap_top;
-      entry->bitmapdotwidth = g->bitmap.width;
-      entry->bitmapdotrows  = g->bitmap.rows;
-      entry->advancedotx    = (int32_t) g->advance.x;
-      entry->advancedoty    = (int32_t) g->advance.y;
-      entry->vertAdvance    = (int32_t) g->metrics.vertAdvance; // !CLF: Why vertAdvance? SHould only be valid for vert layout of text.
+   
+    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    // Add "new" glyph to cache
+    
+    rtLogDebug("glyph cache miss");
+    GlyphCacheEntry *entry = new GlyphCacheEntry();
+    FT_GlyphSlot g = (*face)->glyph;
+    
+    entry->bitmap_left    = g->bitmap_left;
+    entry->bitmap_top     = g->bitmap_top;
+    entry->bitmapdotwidth = g->bitmap.width;
+    entry->bitmapdotrows  = g->bitmap.rows;
+    entry->advancedotx    = (int32_t) g->advance.x;
+    entry->advancedoty    = (int32_t) g->advance.y;
+    entry->vertAdvance    = (int32_t) g->metrics.vertAdvance; // !CLF: Why vertAdvance? SHould only be valid for vert layout of text.
 
-      gGlyphCache.insert(make_pair(key, entry));
+    gGlyphCache.insert(make_pair(key, entry));
 
-      return entry;
-    }
+    return entry;
+    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   }
   return NULL;
 }
