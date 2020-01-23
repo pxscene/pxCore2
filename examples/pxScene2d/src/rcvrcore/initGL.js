@@ -311,6 +311,8 @@ function onSceneTerminate() {
   }
   this.succeeded = false;
   this.active = true;
+  this.makeRequire = null
+  this.makeReady = null
   // JRJR something is invoking setImmediate after this and causing problems
 }
 

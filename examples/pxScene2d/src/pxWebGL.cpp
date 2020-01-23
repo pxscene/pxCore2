@@ -17,33 +17,12 @@
  */
 
 #include "pxWebGL.h"
-
-// Silence "macOS 10.14 - OpenGL API deprecated" warnings
-#define GL_SILENCE_DEPRECATION
-#ifdef __APPLE__
-#include <GLUT/glut.h>
-#include <OpenGL/gl.h>
-#include <OpenGL/glu.h>
-#elif defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL)
-#include <GLES2/gl2.h>
-#ifndef GL_GLEXT_PROTOTYPES
-#define GL_GLEXT_PROTOTYPES
-#endif
-#include <GLES2/gl2ext.h>
-#else
-#ifdef WIN32 
-#include <GL/glew.h>
-#include <GL/wglew.h>
-#endif
-#ifdef PX_PLATFORM_GLUT
-#include <GL/glut.h>
-#endif
-#include <GL/gl.h>
-#include <GL/glu.h>
-#endif
 #include "pxContextUtils.h"
+#include "pxContext.h"
 
 #include <algorithm>
+
+extern int currentGLProgram;
 
 void _CheckGLError(const char* file, int line);
 
@@ -72,7 +51,8 @@ void _CheckGLError(const char* file, int line)
 }
 
 pxWebgl::pxWebgl(pxScene2d* scene):pxObject(scene), pixelStorei_UNPACK_FLIP_Y_WEBGL(0), pixelStorei_UNPACK_PREMULTIPLY_ALPHA_WEBGL(0),
-          pixelStorei_UNPACK_FLIP_BLUE_RED(0), mInitialFrameBuffer (0)
+          pixelStorei_UNPACK_FLIP_BLUE_RED(0), mInitialFrameBuffer (0), mShaders(), mFramebuffers(),
+          mTextures(), mBuffers(), mPrograms(), mWebGlContext()
 {
 }
 
@@ -184,6 +164,8 @@ rtError pxWebgl::bindTexture(uint32_t target, uint32_t texture)
 {
   rtLogDebug("[%s] target: %u, texture: %u", __FUNCTION__, target, texture);
 
+  mWebGlContext.textures[target] = texture;
+
   glBindTexture(target, texture);
   CheckGLError();
 
@@ -193,6 +175,8 @@ rtError pxWebgl::bindTexture(uint32_t target, uint32_t texture)
 rtError pxWebgl::bindBuffer(uint32_t target, uint32_t buffer)
 {
   rtLogDebug("[%s] target: %u buffer: %u", __FUNCTION__, target, buffer);
+
+  mWebGlContext.buffers[target] = buffer;
 
   glBindBuffer(target,buffer);
   CheckGLError();
@@ -368,6 +352,13 @@ rtError pxWebgl::Enable(uint32_t cap)
 {
   rtLogDebug("[%s] cap: %u", __FUNCTION__, cap);
 
+  std::vector<uint32_t>::iterator it;
+  it = find (mWebGlContext.webGlStates.begin(), mWebGlContext.webGlStates.end(), cap);
+  if (it == mWebGlContext.webGlStates.end())
+  {
+    mWebGlContext.webGlStates.push_back(cap);
+  }
+
   glEnable(cap);
   CheckGLError();
 
@@ -377,6 +368,13 @@ rtError pxWebgl::Enable(uint32_t cap)
 rtError pxWebgl::Disable(uint32_t cap)
 {
   rtLogDebug("[%s] cap: %u", __FUNCTION__, cap);
+
+  std::vector<uint32_t>::iterator it;
+  it = find (mWebGlContext.webGlStates.begin(), mWebGlContext.webGlStates.end(), cap);
+  if (it != mWebGlContext.webGlStates.end())
+  {
+    mWebGlContext.webGlStates.erase(it);
+  }
 
   glDisable(cap);
   CheckGLError();
@@ -595,6 +593,9 @@ rtError pxWebgl::VertexAttribPointer(uint32_t indx, uint32_t size, uint32_t type
 
   GLvoid *gloffset = reinterpret_cast<GLvoid*>(offset);
 
+  attributeData data{size, type, normalized, stride, gloffset};
+  mWebGlContext.attributesData[indx] = data;
+
   glVertexAttribPointer(indx, size, type, normalized, stride, gloffset);
   CheckGLError();
 
@@ -604,6 +605,13 @@ rtError pxWebgl::VertexAttribPointer(uint32_t indx, uint32_t size, uint32_t type
 rtError pxWebgl::EnableVertexAttribArray(uint32_t index)
 {
   rtLogDebug("[%s] index %u", __FUNCTION__, index);
+
+  std::vector<uint32_t>::iterator it;
+  it = find (mWebGlContext.attributes.begin(), mWebGlContext.attributes.end(), index);
+  if (it == mWebGlContext.attributes.end())
+  {
+    mWebGlContext.attributes.push_back(index);
+  }
 
   glEnableVertexAttribArray(index);
   CheckGLError();
@@ -687,6 +695,13 @@ rtError pxWebgl::Scissor(uint32_t x, uint32_t y, uint32_t width, uint32_t height
 rtError pxWebgl::DisableVertexAttribArray(uint32_t index)
 {
   rtLogDebug("[%s] index: %u", __FUNCTION__, index);
+
+  std::vector<uint32_t>::iterator it;
+  it = find (mWebGlContext.attributes.begin(), mWebGlContext.attributes.end(), index);
+  if (it != mWebGlContext.attributes.end())
+  {
+    mWebGlContext.attributes.erase(it);
+  }
 
   glDisableVertexAttribArray(index);
   CheckGLError();
@@ -850,6 +865,79 @@ rtError pxWebgl::DeleteProgram(uint32_t program)
   return RT_OK;
 }
 
+rtError pxWebgl::beginNativeSparkRendering()
+{
+  for (std::vector<uint32_t>::iterator it = mWebGlContext.webGlStates.begin() ; it != mWebGlContext.webGlStates.end(); ++it)
+  {
+    glDisable(*it);
+  }
+  for (std::vector<uint32_t>::iterator it = mWebGlContext.attributes.begin() ; it != mWebGlContext.attributes.end(); ++it)
+  {
+    glDisableVertexAttribArray(*it);
+  }
+  for (std::map<uint32_t, uint32_t>::iterator it=mWebGlContext.textures.begin(); it!=mWebGlContext.textures.end(); ++it)
+  {
+    glBindTexture(it->first, 0);
+  }
+  for (std::map<uint32_t, uint32_t>::iterator it=mWebGlContext.buffers.begin(); it!=mWebGlContext.buffers.end(); ++it)
+  {
+    glBindBuffer(it->first, 0);
+  }
+  glGetIntegerv(GL_CURRENT_PROGRAM,&mWebGlContext.programId);
+
+  glGetIntegerv(GL_SCISSOR_BOX, mWebGlContext.scissorBox);
+  glGetFloatv(GL_COLOR_CLEAR_VALUE, mWebGlContext.clearColor);
+  glGetIntegerv(GL_VIEWPORT, mWebGlContext.viewport);
+  glGetIntegerv(GL_ACTIVE_TEXTURE, &mWebGlContext.activeTexture);
+
+  glGetIntegerv(GL_BLEND_SRC_RGB, &mWebGlContext.blendSrcRgb);
+  glGetIntegerv(GL_BLEND_DST_RGB, &mWebGlContext.blendDestRgb);
+  glGetIntegerv(GL_BLEND_SRC_ALPHA, &mWebGlContext.blendSrcAlpha);
+  glGetIntegerv(GL_BLEND_DST_ALPHA, &mWebGlContext.blendDestAlpha);
+
+  // set the states needed for pxContext rendering
+  currentGLProgram = mWebGlContext.programId;
+  glDisable( GL_SCISSOR_TEST );
+  glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+  glEnable(GL_BLEND);
+
+  return RT_OK;
+}
+
+rtError pxWebgl::endNativeSparkRendering()
+{
+  glActiveTexture(mWebGlContext.activeTexture);
+  for (std::vector<uint32_t>::iterator it = mWebGlContext.webGlStates.begin() ; it != mWebGlContext.webGlStates.end(); ++it)
+  {
+    glEnable(*it);
+  }
+  for (std::map<uint32_t, uint32_t>::iterator it=mWebGlContext.textures.begin(); it!=mWebGlContext.textures.end(); ++it)
+  {
+    glBindTexture(it->first, it->second);
+  }
+  for (std::map<uint32_t, uint32_t>::iterator it=mWebGlContext.buffers.begin(); it!=mWebGlContext.buffers.end(); ++it)
+  {
+    glBindBuffer(it->first, it->second);
+  }
+  for (std::vector<uint32_t>::iterator it = mWebGlContext.attributes.begin() ; it != mWebGlContext.attributes.end(); ++it)
+  {
+    glEnableVertexAttribArray(*it);
+    auto attributeDataItem = mWebGlContext.attributesData.find(*it);
+    if ( attributeDataItem != mWebGlContext.attributesData.end())
+    {
+      glVertexAttribPointer(*it, attributeDataItem->second.size, attributeDataItem->second.type,
+        attributeDataItem->second.normalized, attributeDataItem->second.stride, attributeDataItem->second.offset);
+    }
+  }
+  glUseProgram(mWebGlContext.programId);
+  glBlendFuncSeparate(mWebGlContext.blendSrcRgb, mWebGlContext.blendDestRgb, mWebGlContext.blendSrcAlpha, mWebGlContext.blendDestAlpha);
+  glViewport (mWebGlContext.viewport[0], mWebGlContext.viewport[1], mWebGlContext.viewport[2], mWebGlContext.viewport[3]);
+  glScissor(mWebGlContext.scissorBox[0], mWebGlContext.scissorBox[1], mWebGlContext.scissorBox[2], mWebGlContext.scissorBox[3]);
+  glClearColor(mWebGlContext.clearColor[0], mWebGlContext.clearColor[1], mWebGlContext.clearColor[2], mWebGlContext.clearColor[3]);
+
+  return RT_OK;
+}
+
 rtDefineObject(pxWebgl, pxObject);
 rtDefineMethod(pxWebgl, DrawElements);
 rtDefineMethod(pxWebgl, createTexture);
@@ -899,3 +987,5 @@ rtDefineMethod(pxWebgl, DeleteFramebuffer);
 rtDefineMethod(pxWebgl, DeleteTexture);
 rtDefineMethod(pxWebgl, DeleteBuffer);
 rtDefineMethod(pxWebgl, DeleteProgram);
+rtDefineMethod(pxWebgl, beginNativeSparkRendering);
+rtDefineMethod(pxWebgl, endNativeSparkRendering);

@@ -118,6 +118,8 @@ public:
 //  rtReadOnlyProperty(emit, emit, rtFunctionRef);
   rtMethod1ArgAndReturn("getObjectById",getObjectById,rtString,rtObjectRef);
 
+  rtMethod4ArgAndNoReturn("paint", paint, float, float, uint32_t, bool);
+
   pxObject(pxScene2d* scene);
 
   virtual unsigned long Release()
@@ -325,6 +327,8 @@ public:
   {
     return mEmit->delListener(eventName, f);
   }
+
+  virtual rtError paint(float x, float y, uint32_t color, bool translateOnly);
 
   //rtError onReady(rtFunctionRef& /*f*/) const
   //{
