@@ -172,8 +172,7 @@ public:
 
     rtMethod2ArgAndNoReturn("translate", translate, int32_t, int32_t);
     rtError translate(int32_t x, int32_t y);
-    
-    rtMethod2ArgAndNoReturn("paint", paint, float, float);
+
     virtual rtError paint(float x, float y, uint32_t color, bool translateOnly) override;
 
 protected:
