@@ -601,11 +601,9 @@ void pxTextCanvas::draw()
     pxMatrix4f m;
     context.setMatrix(m);
     context.setAlpha(1.0);
-    float x = 0;
-    float y = 0;
     for (std::vector<pxTexturedQuads>::iterator it = mQuadsVector.begin() ; it != mQuadsVector.end(); ++it)
     {
-        (*it).draw(x, y, mTextColor);
+        (*it).draw(0, 0, mTextColor);
     }
     context.popState();
 #else
