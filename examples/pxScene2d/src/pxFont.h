@@ -264,20 +264,24 @@ public:
 	rtDeclareObject(pxFont, pxResource);
   rtReadOnlyProperty(ready, ready, rtObjectRef);
   rtReadOnlyProperty(fontStyle, fontStyle, rtString);
+
   
-  
+  rtReadOnlyProperty(fallbackGlyphsCount, fallbackGlyphsCount, uint32_t);
   rtProperty(fallbackFont, fallbackFont, setFallbackFont, rtObjectRef);
   
 
-  rtString   fontStyle()                const { return mFontStyle; }
-  rtError    fontStyle(rtString& v)     const {    v = mFontStyle;        return RT_OK; }
-  rtError setFontStyle(rtString v)            {        mFontStyle = v;    return RT_OK; }
+  rtString   fontStyle()                    const { return mFontStyle; }
+  rtError    fontStyle(rtString& v)         const {    v = mFontStyle;        return RT_OK; }
+  rtError setFontStyle(rtString v)                  {        mFontStyle = v;    return RT_OK; }
   
   
-  rtObjectRef   fallbackFont()               const { return mFallbackFont; }
-  rtError       fallbackFont(rtObjectRef v)  const {    v = mFallbackFont;     return RT_OK; }
-  rtError    setFallbackFont(rtObjectRef v)        {        mFallbackFont = v; return RT_OK; }
+  rtObjectRef   fallbackFont()              const { return mFallbackFont; }
+  rtError       fallbackFont(rtObjectRef v) const {    v = mFallbackFont;     return RT_OK; }
+  rtError    setFallbackFont(rtObjectRef v)         {        mFallbackFont = v; return RT_OK; }
   
+  
+  uint32_t fallbackGlyphsCount()            const { return mFallbackGlyphsCount; }
+  rtError  fallbackGlyphsCount(uint32_t &v) const {    v = mFallbackGlyphsCount; return RT_OK; }
 
   rtMethod1ArgAndReturn("getFontMetrics", getFontMetrics, uint32_t, rtObjectRef);
   rtError getFontMetrics(uint32_t pixelSize, rtObjectRef& o);
@@ -353,6 +357,7 @@ private:
   rtString mFontStyle;
 
   rtObjectRef mFallbackFont;
+  uint32_t    mFallbackGlyphsCount;
 };
 
 // Weak Map
