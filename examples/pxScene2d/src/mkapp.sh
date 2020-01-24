@@ -48,6 +48,14 @@ if [ -e $externalDir/v8/out.gn ]; then
 fi
 cp $externalDir/sqlite/.libs/libsqlite3.dylib $bundleLib
 
+if [ -e /usr/local/opt/glew/lib/ ]; then
+cp /usr/local/opt/glew/lib/*.dylib $bundleLib
+fi
+
+if [ -e /usr/local/opt/rtmpdump/lib/ ]; then
+cp /usr/local/opt/rtmpdump/lib/*.dylib $bundleLib
+fi
+
 if [[ $# -ge 1 ]] && [[ $1 == "ENABLE-AAMP" ]]; then
  find -L $EXT_INSTALL_PATH -name *.dylib
  find -L $EXT_INSTALL_PATH -name *.dylib -exec cp -PR {} $bundleLib \;
@@ -112,7 +120,7 @@ ${minJS} browser.js $bundleRes/browser.js
 ${minJS} about.js $bundleRes/about.js
 ${minJS} browser/mime.js $bundleRes/browser/mime.js
 ${minJS} browser/editbox.js $bundleRes/browser/editbox.js
-cp initGL.js $bundleRes/initGL.js
+cp initApp.js $bundleRes/initApp.js
 cp webgl.js $bundleRes/webgl.js
 cp gles2.js $bundleRes/gles2.js
 

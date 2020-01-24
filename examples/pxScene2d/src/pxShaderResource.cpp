@@ -30,6 +30,7 @@ pxCore Copyright 2005-2018 John Robinson
 #include "pxContext.h"
 
 #include "pxScene2d.h"
+#include "pxImage.h"
 #include "pxShaderResource.h"
 
 
@@ -372,7 +373,7 @@ rtError pxShaderResource::loadShaderSource(rtString url, rtData &source)
   bool isFILE = ( url.beginsWith("file://") || url.beginsWith("FILE://") );
   if (isFILE == false && url.beginsWith("/") == false)
   {
-    rtLogError("SHADER url is NOT a local file.");
+    rtLogInfo("SHADER url is NOT a local file.");
     return RT_FAIL;
   }
 
@@ -448,7 +449,17 @@ void pxShaderResource::loadResourceFromFile()
   }
   else
   {
-    loadVtxShader = loadShaderSource(mVertexUrl, mVertexSrc);
+    if(mVertexUrl.isEmpty()) // Empty URL
+    {
+      loadVtxShader = RT_OK; // Use Default VERTEX SHADER source...
+      
+       rtLogInfo("Use Default VERTEX SHADER source...");
+    }
+    else
+    {
+      // Load VERTEX source code from URL
+      loadVtxShader = loadShaderSource(mVertexUrl, mVertexSrc);
+    }
 
     if(mVertexSrc.length() == 0)
     {
@@ -465,39 +476,25 @@ void pxShaderResource::loadResourceFromFile()
   if (loadFrgShader == RT_OK && loadVtxShader == RT_OK)
   {
     setupResource();
+    
+    mFragmentSrc.term(); // Dump the source data...
+    mVertexSrc.term();   // Dump the source data...
+    
+    if (gUIThreadQueue)
+    {
+      AddRef(); // async
+      gUIThreadQueue->addTask(onDownloadCompleteUI, this, (void *) "resolve");
+    }
   }
   else
   {
     loadFrgShader = RT_RESOURCE_NOT_FOUND;
-    //rtLogError("Could not load FRAGMENT shader file %s.", mFragmentUrl.cString());
-  }
-  if ( loadFrgShader != RT_OK)
-  {
-    rtLogWarn("shader load failed"); // TODO: why?
-    if (loadFrgShader == RT_RESOURCE_NOT_FOUND)
-    {
-      setLoadStatus("statusCode",PX_RESOURCE_STATUS_FILE_NOT_FOUND);
-    }
-    else
-    {
-      setLoadStatus("statusCode", PX_RESOURCE_STATUS_DECODE_FAILURE);
-    }
+    setLoadStatus("statusCode",PX_RESOURCE_STATUS_FILE_NOT_FOUND);
 
     if (gUIThreadQueue)
     {
       AddRef(); // async
       gUIThreadQueue->addTask(onDownloadCanceledUI, this, (void*)"reject");
-    }
-  }
-  else
-  {
-    mFragmentSrc.term(); // Dump the source data...
-    mVertexSrc.term();   // Dump the source data...
-
-    if (gUIThreadQueue)
-    {
-      AddRef(); // async
-      gUIThreadQueue->addTask(onDownloadCompleteUI, this, (void *) "resolve");
     }
   }
 }
@@ -687,9 +684,6 @@ void pxShaderResource::loadResource(rtObjectRef archive, bool reloading)
 
 uint32_t pxShaderResource::loadResourceData(rtFileDownloadRequest* fileDownloadRequest)
 {
-  double startDecodeTime = pxMilliseconds();
-  rtError decodeResult = RT_OK;
-
   // Store FRAGMENT shader code
   if(fileDownloadRequest->tag() == "frg")
   {
@@ -708,15 +702,7 @@ uint32_t pxShaderResource::loadResourceData(rtFileDownloadRequest* fileDownloadR
     return PX_RESOURCE_LOAD_FAIL;
   }
 
-  double stopDecodeTime = pxMilliseconds();
-  if (decodeResult == RT_OK)
-  {
-    setLoadStatus("decodeTimeMs", static_cast<int>(stopDecodeTime-startDecodeTime));
-
-    return PX_RESOURCE_LOAD_SUCCESS;
-  }
-
-  return PX_RESOURCE_LOAD_FAIL;
+  return PX_RESOURCE_LOAD_SUCCESS;
 }
 
 void pxShaderResource::prelink()
@@ -800,36 +786,40 @@ void pxShaderResource::postlink()
 // sampler
 /*static*/ rtError pxShaderResource::bindTextureN(GLuint n, const uniformLoc_t &p)
 {
-  rtImageResource *img = (rtImageResource *) p.value.toObject().getPtr();
+  pxImage         *img = dynamic_cast<         pxImage* >(p.value.toObject().getPtr());
+  rtImageResource *res = dynamic_cast< rtImageResource* >(p.value.toObject().getPtr());
 
+  pxTextureRef tex;
+  
+  if(res)
+    tex = res->getTexture(); // passed an imageResource 
+  else
   if(img)
+    tex = img->getTexture(); // passed an image 
+
+  if(tex)
   {
-    pxTextureRef tex = img->getTexture();
+    GLuint tid = tex->getNativeId();
 
-    if(tex)
+    GLenum texN;
+
+    switch(n)
     {
-      GLuint tid = tex->getNativeId();
-
-      GLenum texN;
-
-      switch(n)
-      {
-        case 3: texN = GL_TEXTURE3; break;
-        case 4: texN = GL_TEXTURE4; break;
-        case 5: texN = GL_TEXTURE5; break;
-        default:
-          rtLogError("Invalid texture ID: %d  (Not 3,4 or 5) ", n);
-          return RT_FAIL;
-      }
-
-      glActiveTexture( texN );
-
-      glBindTexture(GL_TEXTURE_2D,     tid);
-      glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-      glUniform1i(p.loc, n);
-
-      return RT_OK;
+      case 3: texN = GL_TEXTURE3; break;
+      case 4: texN = GL_TEXTURE4; break;
+      case 5: texN = GL_TEXTURE5; break;
+      default:
+        rtLogError("Invalid texture ID: %d  (Not 3,4 or 5) ", n);
+        return RT_FAIL;
     }
+
+    glActiveTexture( texN );
+
+    glBindTexture(GL_TEXTURE_2D,     tid);
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    glUniform1i(p.loc, n);
+
+    return RT_OK;
   }
 
   return RT_FAIL;

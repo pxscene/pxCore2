@@ -139,6 +139,15 @@ void rtHttpResponse::onEnd()
   }
 }
 
+void rtHttpResponse::onDataAndEnd()
+{
+  if (mErrorMessage.isEmpty()) {
+    mEmit.send("dataAndEnd", mDownloadedData);
+  } else {
+    mEmit.send("error", mErrorMessage);
+  }
+}
+
 rtError rtHttpResponse::parseHeaders(const rtString& data, std::map<rtString, rtString>& headerMap)
 {
   headerMap.clear();
@@ -196,4 +205,9 @@ rtString rtHttpResponse::toLowercaseStr(const rtString& str)
   std::string s(str.cString(), str.byteLength());
   std::transform(s.begin(), s.end(), s.begin(), ::tolower);
   return rtString(s.c_str());
+}
+
+bool rtHttpResponse::hasError()
+{
+  return !mErrorMessage.isEmpty();
 }

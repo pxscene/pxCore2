@@ -142,15 +142,15 @@ rtError rtSettings::loadFromArgs(int argc, char* argv[])
         val = strchr(arg, '=');
         if (key && val)
         {
-          rtString keyStr(key, val-key);
+          rtString keyStr(key, static_cast<uint32_t> (val - key) );
           setValue(keyStr, val+1);
-          key = NULL, val = NULL;
+          key = NULL; val = NULL;
         }
       }
       else if (key)
       {
         setValue(key, arg);
-        key = NULL, val = NULL;
+        key = NULL; val = NULL;
       }
     }
   }

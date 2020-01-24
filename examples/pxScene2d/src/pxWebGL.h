@@ -22,6 +22,57 @@
 #include "pxScene2d.h"
 #include "pxObject.h"
 
+// Silence "macOS 10.14 - OpenGL API deprecated" warnings
+#define GL_SILENCE_DEPRECATION
+#ifdef __APPLE__
+#include <GLUT/glut.h>
+#include <OpenGL/gl.h>
+#include <OpenGL/glu.h>
+#elif defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL)
+#include <GLES2/gl2.h>
+#ifndef GL_GLEXT_PROTOTYPES
+#define GL_GLEXT_PROTOTYPES
+#endif
+#include <GLES2/gl2ext.h>
+#else
+#ifdef WIN32 
+#include <GL/glew.h>
+#include <GL/wglew.h>
+#endif
+#ifdef PX_PLATFORM_GLUT
+#include <GL/glut.h>
+#endif
+#include <GL/gl.h>
+#include <GL/glu.h>
+#endif
+
+struct attributeData
+{
+  uint32_t size;
+  uint32_t type;
+  uint32_t normalized;
+  uint32_t stride;
+  GLvoid* offset;
+};
+
+struct webGlContextState
+{
+  std::vector<uint32_t> webGlStates;
+  std::vector<uint32_t> attributes;
+  std::map<uint32_t, attributeData> attributesData;
+  std::map<uint32_t, uint32_t> buffers;
+  std::map<uint32_t, uint32_t> textures;
+  GLint programId = 0;
+  GLfloat clearColor[4] = {0, 0, 0, 0};
+  GLint scissorBox[4] = {0, 0, 1280, 720};
+  GLint viewport[4] = {0, 0, 1280, 720};
+  GLint activeTexture = 0;
+  GLint blendSrcRgb = GL_ONE;
+  GLint blendDestRgb = GL_ONE_MINUS_SRC_ALPHA;
+  GLint blendSrcAlpha = GL_ONE;
+  GLint blendDestAlpha = GL_ONE_MINUS_SRC_ALPHA;
+};
+
 class pxWebgl: public pxObject
 {
 public:
@@ -80,6 +131,8 @@ public:
     rtMethod1ArgAndNoReturn("deleteTexture", DeleteTexture, uint32_t);
     rtMethod1ArgAndNoReturn("deleteBuffer", DeleteBuffer, uint32_t);
     rtMethod1ArgAndNoReturn("deleteProgram", DeleteProgram, uint32_t);
+    rtMethodNoArgAndNoReturn("beginNativeSparkRendering", beginNativeSparkRendering);
+    rtMethodNoArgAndNoReturn("endNativeSparkRendering", endNativeSparkRendering);
 
     pxWebgl(pxScene2d* scene);
     virtual ~pxWebgl();
@@ -135,6 +188,8 @@ public:
    rtError DeleteTexture(uint32_t texture);
    rtError DeleteBuffer(uint32_t buffer);
    rtError DeleteProgram(uint32_t program);
+   rtError beginNativeSparkRendering();
+   rtError endNativeSparkRendering();
 
 private:
 
@@ -145,6 +200,7 @@ private:
   std::vector<uint32_t> mTextures;
   std::vector<uint32_t> mBuffers;
   std::vector<uint32_t> mPrograms;
+  webGlContextState mWebGlContext;
  };
 
 #endif // PX_WEBGL_H

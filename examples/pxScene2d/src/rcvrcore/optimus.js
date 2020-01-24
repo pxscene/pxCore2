@@ -84,11 +84,11 @@ function Application(props) {
   var _uiReadyReject = function(){};
   var _urlChangeResolve = function(){};
   var _urlChangeReject = function(){};
-  
+
   // Getters/setters
   var _externalAppPropsReadWrite = {
     x:"x",y:"y",w:"w",h:"h",cx:"cx",cy:"cy",sx:"sx",sy:"sy",r:"r",a:"a",
-    interactive:"interactive",painting:"painting",clip:"clip",mask:"mask",draw:"draw",hasApi:"hasApi", url:"url"
+    interactive:"interactive",painting:"painting",clip:"clip",mask:"mask",draw:"draw",hasApi:"hasApi", url:"url", displayName:"displayName"
   };
   var _externalAppPropsReadonly = {
     pid:"clientPID" // integer process id associated with the application
@@ -196,6 +196,7 @@ function Application(props) {
   var _externalApp;
   var _browser;
   var _state = ApplicationState.RUNNING;
+  var displayName;
 
   // Internal function needed for suspend
   var do_suspend_internal = function(o)
@@ -209,6 +210,16 @@ function Application(props) {
       _this.log("suspend on already suspended app");
       return false;
     }
+    if (_this.type === ApplicationType.WEB){
+      if (_browser !== undefined && _browser.suspend){
+         _this.log("Suspending Web app");
+        _browser.suspend();
+        _state = ApplicationState.SUSPENDED;
+        _this.applicationSuspended();
+        return true;
+      }
+      return false;
+    }
     if (!_externalApp || !_externalApp.suspend){
       _this.log("suspend api not available on app");
       _state = ApplicationState.SUSPENDED;
@@ -216,7 +227,8 @@ function Application(props) {
       return false;
     }
     
-    var ret = _externalApp.suspend(o);
+    var ret = true;
+    _externalApp.suspend(o);
       
     if (ret === true) {
       _state = ApplicationState.SUSPENDED;
@@ -297,7 +309,7 @@ function Application(props) {
   
   // Resumes a suspended application. Returns true if the application was resumed, or false otherwise
   this.resume = function(o) {
-    var ret;
+    var ret = true;
     if (_state === ApplicationState.DESTROYED){
       this.log("resume on already destroyed app");
       return false;
@@ -306,13 +318,23 @@ function Application(props) {
       this.log("resume on already running app");
       return false;
     }
+    if (this.type === ApplicationType.WEB){
+      if (_browser !== undefined && _browser.resume){
+         this.log("Resuming Web app");
+        _browser.resume();
+        _state = ApplicationState.RUNNING;
+        this.applicationResumed();
+        return true;
+      }
+      return false;
+    }
     if (!_externalApp || !_externalApp.resume){
       this.log("resume api not available on app");
       _state = ApplicationState.RUNNING;
       this.applicationResumed();
       return false;
     }
-    ret = _externalApp.resume(o);
+    _externalApp.resume(o);
     if (ret === true) {
       _state = ApplicationState.RUNNING;
       this.applicationResumed();
@@ -462,6 +484,16 @@ function Application(props) {
   this.state = function () {
     return _state;
   };
+  this.paint = function(x, y, color, translateOnly) {
+    if (_externalApp){
+      return _externalApp.paint(x, y, color, translateOnly);
+    }
+  };
+  this.description = function() {
+    if (_externalApp){
+      return _externalApp.description();
+    }
+  };
 
   // Constructor
   if ("launchParams" in props){
@@ -490,6 +522,9 @@ function Application(props) {
   }
   if ("expectedMemoryUsage" in props) {
     this.expectedMemoryUsage = props.expectedMemoryUsage;
+  }
+  if ("displayName" in props) {
+    displayName = props.displayName;
   }
 
   this.log("cmd:",cmd,"uri:",uri,"w:",w,"h:",h,"hasApi:",hasApi);
@@ -660,7 +695,7 @@ function Application(props) {
   }
   else{
     this.type = ApplicationType.NATIVE;
-    _externalApp = scene.create( {t:"external", parent:root, cmd:cmd, w:w, h:h, hasApi:hasApi} );
+    _externalApp = scene.create( {t:"external", parent:root, cmd:cmd, w:w, h:h, hasApi:hasApi, displayName:displayName} );
     _externalApp.on("onReady", function () { _this.log("onReady"); }); // is never called
     _externalApp.on("onClientStarted", function () { _this.log("onClientStarted"); });
     _externalApp.on("onClientConnected", function () { _this.log("onClientConnected"); });

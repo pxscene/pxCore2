@@ -310,6 +310,8 @@ rtImageResource::~rtImageResource()
   {
     mTexture->setTextureListener(NULL);
   }
+  if (mData.length() != 0)
+      mData.term();
 }
 
 unsigned long rtImageResource::Release()
@@ -352,16 +354,22 @@ void rtImageResource::reloadData()
 {
   if (mTexture.getPtr() != NULL)
   {
-    bool reloadData = false;
-    mDownloadInProgressMutex.lock();
-    reloadData = !mDownloadInProgress && !mTexture->readyForRendering();
-    mDownloadInProgressMutex.unlock();
+    bool reloadData = !downloadInProgress() && !mTexture->readyForRendering();
     if (reloadData)
     {
       loadResource(mArchive, true);
     }
   }
   pxResource::reloadData();
+}
+
+bool pxResource::downloadInProgress()
+{ 
+    bool status = false;
+    mDownloadInProgressMutex.lock();
+    status = mDownloadInProgress;
+    mDownloadInProgressMutex.unlock();
+    return status;
 }
 
 uint64_t rtImageResource::textureMemoryUsage(std::vector<rtObject*> &objectsCounted)
@@ -764,7 +772,8 @@ void rtImageResource::loadResourceFromFile()
     mTexture = context.createTexture(imageOffscreen);
     mTexture->setTextureListener(this);
 
-    mData.term(); // Dump the source data...
+    if (mUrl.beginsWith("md5sum/") == false)
+        mData.term(); // Dump the source data...
 
     setLoadStatus("statusCode",0);
     // Since this object can be released before we get a async completion
@@ -850,7 +859,8 @@ void rtImageResource::loadResourceFromArchive(rtObjectRef archiveRef)
     mTexture = context.createTexture(imageOffscreen);
     mTexture->setTextureListener(this);
 
-    mData.term(); // Dump the source data...
+    if (mUrl.beginsWith("md5sum/") == false)
+        mData.term(); // Dump the source data...
 
     setLoadStatus("statusCode",0);
     // Since this object can be released before we get a async completion
@@ -980,7 +990,15 @@ void pxResource::processDownloadedResource(rtFileDownloadRequest* fileDownloadRe
       }
       else if (result == PX_RESOURCE_LOAD_WAIT)
       {
-        setLoadStatus("statusCode", PX_RESOURCE_STATUS_DOWNLOAD_PROCESSING);
+        mLoadStatusMutex.lock();
+        rtValue currentStatusCode;
+        mLoadStatus.get("statusCode", currentStatusCode);
+        if (currentStatusCode.toInt32() == -1) 
+        {
+          //only update the status code if the background processing is not complete
+          mLoadStatus.set("statusCode", PX_RESOURCE_STATUS_DOWNLOAD_PROCESSING);
+        }
+        mLoadStatusMutex.unlock();
       }
     }
     else

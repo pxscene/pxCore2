@@ -19,8 +19,8 @@ limitations under the License.
 var exports = module.exports;
 
 // Main object.
-function WebGLRenderingContext() {
-    this.gl = sparkscene.create({t:"webgl"});
+function WebGLRenderingContext(scene) {
+    this.gl = scene.create({t:"webgl"});
 }
 
 // Support objects.
@@ -44,7 +44,7 @@ exports.WebGLActiveInfo = WebGLActiveInfo;
 exports.WebGLUniformLocation = WebGLUniformLocation;
 
 // The singleton webgl render context.
-exports.instance = new WebGLRenderingContext();
+//exports.instance = new WebGLRenderingContext();
 
 // The following constants were extracted from the Broadcom's gl2.h file.
 
@@ -1347,4 +1347,12 @@ WebGLRenderingContext.prototype.viewport = function viewport(x, y, width, height
         throw new TypeError('Expected viewport(number x, number y, number width, number height)');
     }
     return this.gl.viewport(x, y, width, height);
+};
+
+WebGLRenderingContext.prototype.beginNativeSparkRendering = function beginNativeSparkRendering() {
+    return this.gl.beginNativeSparkRendering();
+};
+
+WebGLRenderingContext.prototype.endNativeSparkRendering = function endNativeSparkRendering() {
+    return this.gl.endNativeSparkRendering();
 };

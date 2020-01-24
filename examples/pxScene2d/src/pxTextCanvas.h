@@ -21,18 +21,14 @@
 
 #include "pxScene2d.h"
 #include "pxText.h"
+#include "pxEffects.h"
 
 struct pxTextLine
 {
-    pxTextLine(): styleSet(false)
-            , x(0), y(0)
-            , pixelSize(10)
-            , color(0xFFFFFFFF)
-            , translateX(0)
-            , translateY(0)
-    {};
+    pxTextLine();
     pxTextLine(const char* text, uint32_t x, uint32_t y);
     void setStyle(const rtObjectRef& f, uint32_t ps, uint32_t c);
+    bool hasTextEffects() const;
 
     bool styleSet;
     rtString text;
@@ -46,6 +42,8 @@ struct pxTextLine
     uint32_t textBaseline;
     int32_t translateX;
     int32_t translateY;
+    // shadow/hightlight settings
+    pxTextEffects effects;
 };
 
 /**********************************************************************
@@ -96,10 +94,12 @@ public:
     rtProperty(fillStyle, fillStyle, setFillStyle, rtValue);
     rtProperty(textBaseline, textBaseline, setTextBaseline, rtString);
     rtProperty(globalAlpha, globalAlpha, setGlobalAlpha, float);
-    rtProperty(shadowColor, shadowColor, setShadowColor, uint32_t);
-    rtProperty(shadowBlur, shadowBlur, setShadowBlur, uint32_t);
+
+    rtProperty(shadowColor,   shadowColor,   setShadowColor,   rtValue);
     rtProperty(shadowOffsetX, shadowOffsetX, setShadowOffsetX, float);
     rtProperty(shadowOffsetY, shadowOffsetY, setShadowOffsetY, float);
+    rtProperty(shadowBlur,    shadowBlur,    setShadowBlur,    float);
+
     rtProperty(width, w, setW, float);
     rtProperty(height, h, setH, float);
     // specific to pxTextCanvas
@@ -117,14 +117,6 @@ public:
     rtError setTextBaseline(const rtString &v);
     rtError globalAlpha(float& a) const;
     rtError setGlobalAlpha(const float a);
-    rtError shadowColor(uint32_t& c) const;
-    rtError setShadowColor(const uint32_t c);
-    rtError shadowBlur(uint32_t& b) const;
-    rtError setShadowBlur(const uint32_t b);
-    rtError shadowOffsetX(float& o) const;
-    rtError setShadowOffsetX(const float o);
-    rtError shadowOffsetY(float& o) const;
-    rtError setShadowOffsetY(const float o);
 
     rtError label(rtString &c) const;
     rtError setLabel(const rtString &c);
@@ -139,6 +131,16 @@ public:
     rtError setSY(float v) override     { setNeedsRecalc(true); return pxObject::setSY(v);}
 
     rtError setPixelSize(uint32_t v) override ;
+
+    // - - - - - - - - - - - - - - - - - - Shadow - - - - - - - - - - - - - - - - - -
+    rtError shadowColor(rtValue &c) const;
+    rtError setShadowColor(rtValue c);
+    rtError shadowOffsetX(float &v) const              { v = mShadowOffsetX; return RT_OK; }
+    virtual rtError setShadowOffsetX(float v)          { mShadowOffsetX = v; return RT_OK; }
+    rtError shadowOffsetY(float &v) const              { v = mShadowOffsetY; return RT_OK; }
+    virtual rtError setShadowOffsetY(float v)          { mShadowOffsetY = v; return RT_OK; }
+    rtError shadowBlur(float &v) const                 { v = mShadowBlur;    return RT_OK; }
+    virtual rtError setShadowBlur(float v)             { mShadowBlur = v;    return RT_OK; }
 
     void renderText(bool render);
     void setNeedsRecalc(bool recalc);
@@ -166,30 +168,39 @@ public:
     rtError clear();
 
     rtMethod4ArgAndNoReturn("fillRect", fillRect, int32_t, int32_t, uint32_t, uint32_t);
-    rtError fillRect(int32_t x, int32_t y, uint32_t width, uint32_t height);
+    rtError fillRect(int32_t x, int32_t y, uint32_t width, uint32_t height); // static because it is a stub
 
     rtMethod2ArgAndNoReturn("translate", translate, int32_t, int32_t);
     rtError translate(int32_t x, int32_t y);
     
     rtMethod2ArgAndNoReturn("paint", paint, float, float);
-    rtError paint(float x, float y);
+    virtual rtError paint(float x, float y, uint32_t color, bool translateOnly) override;
 protected:
+    bool shadow() const;
+    bool highlight() const;
     pxTextCanvasMeasurements* getMeasurements() { return (pxTextCanvasMeasurements*)measurements.getPtr();}
     void recalc();
     void clearMeasurements();
     static uint32_t argb2rgba(uint32_t val);
+    static uint32_t rgba2argb(uint32_t val);
 
     bool mInitialized;
     bool mNeedsRecalc;
+
     rtString mAlignHorizontalStr;
     uint32_t mAlignHorizontal;
     rtString mTextBaselineStr;
     uint32_t mTextBaseline;
     float mGlobalAlpha;
-    uint32_t mShadowColor;
-    uint32_t  mShadowBlur;
-    float mShadowOffsetX;
-    float mShadowOffsetY;
+
+    float    mShadowColor[4];
+    float    mShadowOffsetX;
+    float    mShadowOffsetY;
+    float    mShadowBlur;
+
+    bool     mHighlight;
+    float    mHighlightColor[4];
+    int32_t  mHighlightRect[4]; //x,y,w,h
 
     rtString mLabel;
     rtString mColorMode;
@@ -205,5 +216,9 @@ protected:
 
     void renderTextLine(const pxTextLine& textLine);
 };
+<<<<<<< HEAD
 
 #endif
+=======
+#endif
+>>>>>>> c3d0f792eabc68aaf0eec1d7d4cfe4500520c8b2

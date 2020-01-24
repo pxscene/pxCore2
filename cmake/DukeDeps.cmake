@@ -14,7 +14,7 @@ if (NOT DUKE_FOUND)
            )
         set(DUKE_LIBRARY_DIRS ${DUKE_LIBRARY_DIRS} ${DUKEDIR}/build)
         set(DUKE_LIBRARIES ${DUKE_LIBRARIES}
-            duktape.a dschema.a duv.a uv.a
+            duktape.a dschema.a duv.a 
            )
     else (NOT WIN32)
         set(DUKE_INCLUDE_DIRS ${DUKE_INCLUDE_DIRS}
@@ -24,7 +24,7 @@ if (NOT DUKE_FOUND)
            )
         set(DUKE_LIBRARY_DIRS ${DUKE_LIBRARY_DIRS} ${DUKEDIR}/build/Release)
         set(DUKE_LIBRARIES ${DUKE_LIBRARIES}
-            duktape.lib dschema.lib duv.lib uv.lib
+            duktape.lib dschema.lib duv.lib
            )
     endif (NOT WIN32)
 endif(NOT DUKE_FOUND)

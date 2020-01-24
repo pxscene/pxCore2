@@ -88,7 +88,7 @@ pxError shaderProgram::initShader(const char* v, const char* f)
       mCompilation = details.compilation;
       return RT_FAIL;
     }
-    
+
     mProgram    = details.program;
     mFragShader = details.fragShader;
     mVertShader = details.vertShader;
@@ -173,6 +173,7 @@ pxError shaderProgram::draw(int resW, int resH, float* matrix, float alpha,
                             const void* uv,
                             int count)
 {
+
   if(!resW || !resH || !matrix || !pos)
   {
     return RT_FAIL;
@@ -306,7 +307,7 @@ glShaderProgDetails_t  createShaderProgram(const char* vShaderTxt, const char* f
 
     details.didError    = true; // ERROR
     details.compilation = rtString("FRAGMENT SHADER - Compile Error: ") + &errorLog[0];
-    
+
     return details;
   }
 
@@ -327,7 +328,7 @@ glShaderProgDetails_t  createShaderProgram(const char* vShaderTxt, const char* f
 
     details.didError    = true; // ERROR
     details.compilation = rtString("VERTEX SHADER - Compile Error: ") + rtString(log);
-    
+
     return details;
   }
 

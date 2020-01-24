@@ -46,7 +46,7 @@ limitations under the License.
 using namespace std;
 bool defaultCallbackExecuted = false;
 extern void startFileDownloadInBackground(void* data);
-extern bool continueDownloadHandleCheck;
+
 
 // disabled as it causes crash
 // please note that realloc is also extensively
@@ -834,7 +834,6 @@ class rtFileDownloaderTest : public testing::Test, public commonTestFns
       expectedStatusCode = 0;
       expectedHttpCode = 0;
       expectedCachePresence = false;
-      continueDownloadHandleCheck = false;
     }
 
     virtual void TearDown()

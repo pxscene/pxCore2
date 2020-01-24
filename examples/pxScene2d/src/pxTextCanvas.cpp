@@ -20,19 +20,34 @@
 #include "pxText.h"
 #include "pxTextCanvas.h"
 #include "pxContext.h"
+#include "pxWebGL.h"
 
 #define CLAMP(_x, _min, _max) ( (_x) < (_min) ? (_min) : (_x) > (_max) ? (_max) : (_x) )
 extern pxContext context;
 
 //pxTextLine
+pxTextLine::pxTextLine()
+        : styleSet(false)
+        , x(0), y(0)
+        , pixelSize(10)
+        , color(0xFFFFFFFF), alignHorizontal(0), textBaseline(0)
+        , translateX(0)
+        , translateY(0)
+{
+    this->effects.shadowEnabled = false;
+    this->effects.highlightEnabled = false;
+}
+
 pxTextLine::pxTextLine(const char* text, uint32_t x, uint32_t y)
         : pixelSize(10)
-        , color(0xFFFFFFFF)
+        , color(0xFFFFFFFF), alignHorizontal(0), textBaseline(0), translateX(0), translateY(0)
 {
     this->text = text;
     this->x = x;
     this->y = y;
     this->styleSet = false;
+    this->effects.shadowEnabled = false;
+    this->effects.highlightEnabled = false;
 };
 
 void pxTextLine::setStyle(const rtObjectRef& f, uint32_t ps, uint32_t c) {
@@ -41,6 +56,11 @@ void pxTextLine::setStyle(const rtObjectRef& f, uint32_t ps, uint32_t c) {
     this->pixelSize = ps;
     this->color = c;
     this->styleSet = true;
+}
+
+bool pxTextLine::hasTextEffects() const
+{
+    return effects.shadowEnabled || effects.highlightEnabled;
 }
 
 //pxTextCanvasMeasurements
@@ -59,24 +79,27 @@ pxTextCanvas::pxTextCanvas(pxScene2d* s): pxText(s)
         , mInitialized(false)
         , mNeedsRecalc(false)
         , mAlignHorizontal(pxConstantsAlignHorizontal::LEFT)
-        , mGlobalAlpha(0.0)
+        , mGlobalAlpha(0.0f)
+        , mShadowOffsetX(0.0f)
+        , mShadowOffsetY(0.0f)
+        , mShadowBlur(0.0f)
+        , mHighlight(false)
+        , mLabel("")
+        , mColorMode("RGBA") //TODO: make a const class from it?
         , mTranslateX(0)
         , mTranslateY(0)
 {
-    mShadowColor = 0x00000000;
-    mShadowBlur = 0;
-    mShadowOffsetX = 0.0;
-    mShadowOffsetY = 0.0;
     measurements = new pxTextCanvasMeasurements;
     mFontLoaded = false;
     mFontFailed = false;
     mTextBaseline = pxConstantsTextBaseline::ALPHABETIC;
-    mColorMode = "RGBA"; //TODO: make a const class from it?
-    mLabel = "";
-    setW(pxTextCanvas::DEFAULT_WIDTH);
-    setH(pxTextCanvas::DEFAULT_HEIGHT);
-    setClip(true);
+	setClip(true);
+    float c[4] = {1, 1, 1, 0};
+    memset(mHighlightRect, 0, sizeof(mHighlightRect));
+    memcpy(mShadowColor, c, sizeof(mShadowColor));
+    memcpy(mHighlightColor, c, sizeof(mHighlightColor));
 }
+
 /** This signals that the font file loaded successfully; now we need to
  * send the ready promise once we have the text, too
  */
@@ -231,63 +254,6 @@ rtError pxTextCanvas::setGlobalAlpha(const float a)
     return RT_OK;
 }
 
-rtError pxTextCanvas::shadowColor(uint32_t& c) const
-{
-    c = mShadowColor;
-    return RT_OK;
-}
-
-rtError pxTextCanvas::setShadowColor(const uint32_t c)
-{
-    rtLogDebug("pxTextCanvas::setShadowColor. Called with param: %#08x", c);
-    rtLogError("pxTextCanvas::setShadowColor. NOT IMPLEMENTED. Call ignored.");
-    mShadowColor = c;
-    return RT_OK;
-}
-
-rtError pxTextCanvas::shadowBlur(uint32_t& b) const
-
-{
-    b = mShadowBlur;
-    return RT_OK;
-}
-
-rtError pxTextCanvas::setShadowBlur(const uint32_t b)
-{
-    rtLogDebug("pxTextCanvas::setShadowBlur. Called with param: %d", b);
-    rtLogError("pxTextCanvas::setShadowBlur. NOT IMPLEMENTED. Call ignored.");
-    mShadowBlur = b;
-    return RT_OK;
-}
-
-rtError pxTextCanvas::shadowOffsetX(float& o) const
-{
-    o = mShadowOffsetX;
-    return RT_OK;
-}
-
-rtError pxTextCanvas::setShadowOffsetX(const float o)
-{
-    rtLogDebug("pxTextCanvas::setShadowOffsetX called with param: %f", o);
-    rtLogError("pxTextCanvas::setShadowOffsetX. NOT IMPLEMENTED. Call ignored.");
-    mShadowOffsetX = o;
-    return RT_OK;
-}
-
-rtError pxTextCanvas::shadowOffsetY(float& o) const
-{
-    o = mShadowOffsetY;
-    return RT_OK;
-}
-
-rtError pxTextCanvas::setShadowOffsetY(const float o)
-{
-    rtLogDebug("pxTextCanvas::setShadowOffsetY called with param: %f", o);
-    rtLogError("pxTextCanvas::setShadowOffsetY. NOT IMPLEMENTED. Call ignored.");
-    mShadowOffsetY = o;
-    return RT_OK;
-}
-
 rtError pxTextCanvas::label(rtString &c) const
 {
     c = mLabel;
@@ -314,7 +280,9 @@ rtError pxTextCanvas::setColorMode(const rtString &c)
         {
             mColorMode = c;
             rtLogDebug("Setting color mode: '%s;", c.cString());
-        } else {
+        }
+        else
+        {
             rtLogError("Unknown color mode %s. Supported modes: 'ARGB', 'RGBA'", c.cString());
             res = RT_ERROR;
         }
@@ -406,12 +374,52 @@ rtError pxTextCanvas::setPixelSize(uint32_t v)
     setNeedsRecalc(true);
     return RT_OK;
 }
+bool pxTextCanvas::shadow() const
+{
+    return mShadowColor[3] > 0 && (mShadowOffsetX || mShadowOffsetY);
+}
+
+bool pxTextCanvas::highlight() const
+{
+    return mHighlight && mHighlightColor[3] > 0;
+}
+
+rtError pxTextCanvas::setShadowColor(rtValue c)
+{
+    rtValue clr;
+    if (mColorMode == "ARGB")
+    {
+        clr = argb2rgba(c.toUInt32());
+    } else {
+        clr = c;
+    }
+
+    return setColor(mShadowColor, clr);
+}
+
+rtError pxTextCanvas::shadowColor(rtValue &c) const
+{
+    uint32_t cc = 0;
+    rtError err = colorFloat4_to_UInt32(&mShadowColor[0], cc);
+
+    if (mColorMode == "ARGB")
+    {
+        c = rgba2argb(cc);
+    } else {
+        c = cc;
+    }
+    return err;
+}
 
 void pxTextCanvas::renderText(bool render)
 {
-    if (render && !mTextLines.empty()) {
-        for (std::vector<pxTextLine>::iterator it = mTextLines.begin() ; it != mTextLines.end(); ++it)
+    if (render && !mTextLines.empty())
+    {
+        for (std::vector<pxTextLine>::iterator it = mTextLines.begin();
+                                              it != mTextLines.end();   ++it)
+        {
             renderTextLine(*it);
+        }
     }
 }
 
@@ -432,23 +440,27 @@ void pxTextCanvas::renderTextLine(const pxTextLine& textLine)
     {
         setFont(textLine.font);
     }
-    rtLogDebug("pxTextCanvas::renderTextLine; textline: '%s', current canvas: '%s' (w x h): %04.0f x %04.0f"
+
+    rtLogDebug("pxTextCanva::renderTextLine; textline: '%s', current canvas: '%s' (w x h): %04.0f x %04.0f, shadow: %s, highlight: %s"
             , cStr
             , mLabel.cString()
             , mw
             , mh
+            , textLine.effects.shadowEnabled ? "YES" : "NO"
+            , textLine.effects.highlightEnabled ? "YES" : "NO"
             );
 
     if (getFontResource() != nullptr)
     {
         float textW, textH;
-
-        getFontResource()->measureTextInternal(cStr, size, sx, sy, textW, textH);
+        long ascender;
+        long descender;
+        getFontResource()->measureTextInternal(cStr, size, sx, sy, textW, textH, ascender, descender);
 
         switch (alignH)
         {
             case pxConstantsAlignHorizontal::CENTER:
-                xPos -= float(textW / 2);
+                xPos -= textW / 2;
                 break;
 
             case pxConstantsAlignHorizontal::RIGHT:
@@ -459,19 +471,19 @@ void pxTextCanvas::renderTextLine(const pxTextLine& textLine)
         switch (baseline)
         {
             case pxConstantsTextBaseline::ALPHABETIC:
-                yPos -= float(size);
+                yPos -= float(ascender);
                 break;
 
             case pxConstantsTextBaseline::TOP:
-                yPos -= float(0.2 * textH);
+                yPos -= 0.2 * textH;
                 break;
 
             case pxConstantsTextBaseline::HANGING:
-                yPos -= float(0.325 * textH);
+                yPos -= 0.325 * textH;
                 break;
 
             case pxConstantsTextBaseline::MIDDLE:
-                yPos -= float(0.575 * textH);
+                yPos -= 0.575 * textH;
                 break;
 
             case pxConstantsTextBaseline::IDEOGRAPHIC:
@@ -490,7 +502,9 @@ void pxTextCanvas::renderTextLine(const pxTextLine& textLine)
 #ifdef PXSCENE_FONT_ATLAS
         pxTexturedQuads quads;
         getFontResource()->renderTextToQuads(cStr, size, sx, sy, quads, roundf(xPos) , roundf(yPos));
+
         quads.setColor(textLine.color);
+        if (textLine.hasTextEffects()) quads.setTextEffects(&textLine.effects);
         mQuadsVector.push_back(quads);
 #else
         //getFontResource()->renderText(cStr, size, xPos, tempY, sx, sy, mTextColor,lineWidth);
@@ -515,6 +529,61 @@ rtError pxTextCanvas::setText(const char* s)
   return RT_OK;
 }
 
+rtError pxTextCanvas::paint(float x, float y, uint32_t color, bool translateOnly)
+{
+#ifdef PXSCENE_FONT_ATLAS
+    if (mDirty)
+    {
+        mQuadsVector.clear();
+        renderText(true);
+        mDirty = false;
+    }
+
+    context.pushState();
+    pxMatrix4f m;
+    if (translateOnly)
+    {
+        m.translate(mx+x, my+y);
+    }
+    else
+    {
+      float tempX = mx;
+      float tempY = my;
+      mx += x;
+      my += y;
+      applyMatrix(m);
+      mx = tempX;
+      my = tempY;
+    }
+    context.setMatrix(m);
+    context.setAlpha(ma);
+
+    //ensure the viewport and size are correctly set
+    int w = 0, h = 0;
+    context.getSize(w, h);
+    context.setSize(w, h);
+
+    float textColor[4];
+    memcpy(textColor, mTextColor, sizeof(textColor));
+    if (color != 0xFFFFFFFF)
+    {
+        if (mColorMode == "ARGB")
+        {
+            color = argb2rgba(color);
+        }
+        textColor[PX_RED  ] *= (float)((color>>24) & 0xff) / 255.0f;
+        textColor[PX_GREEN] *= (float)((color>>16) & 0xff) / 255.0f;
+        textColor[PX_BLUE ] *= (float)((color>> 8) & 0xff) / 255.0f;
+        textColor[PX_ALPHA] *= (float)((color>> 0) & 0xff) / 255.0f;
+    }
+
+    for (std::vector<pxTexturedQuads>::iterator it = mQuadsVector.begin() ; it != mQuadsVector.end(); ++it)
+        (*it).draw(x, y, mTextColor);
+#else
+    rtLogError("pxTextCanvas::drawing without FONT ATLAS is not supported yet.");
+#endif
+}
+
 void pxTextCanvas::draw()
 {
 #ifdef PXSCENE_FONT_ATLAS
@@ -524,23 +593,7 @@ void pxTextCanvas::draw()
         renderText(true);
         mDirty = false;
     }
-    float x = 0, y = 0;
-    for (std::vector<pxTexturedQuads>::iterator it = mQuadsVector.begin() ; it != mQuadsVector.end(); ++it)
-        (*it).draw(x, y, mTextColor);
-#else
-    rtLogError("pxTextCanvas::drawing without FONT ATLAS is not supported yet.");
-#endif
-}
-
-rtError pxTextCanvas::paint(float x, float y)
-{
-#ifdef PXSCENE_FONT_ATLAS
-    if (mDirty)
-    {
-        mQuadsVector.clear();
-        renderText(true);
-        mDirty = false;
-    }
+    
     context.pushState();
     pxMatrix4f m;
     context.setMatrix(m);
@@ -581,7 +634,9 @@ rtError pxTextCanvas::measureText(rtString text, rtObjectRef& o)
 {
     rtObjectRef tcm = new pxTextCanvasMeasurements(); // TODO: aren't we leaking here with 'new'? Is it efficient?
     o = tcm;
-    if(getFontResource() != nullptr) {
+
+    if(getFontResource() != nullptr)
+    {
         rtObjectRef sm; // pxTextSimpleMeasurements
         getFontResource()->measureText(mPixelSize, text, sm);
         ((pxTextCanvasMeasurements*)tcm.getPtr())->fromSimpleMeasurements(sm);
@@ -590,7 +645,9 @@ rtError pxTextCanvas::measureText(rtString text, rtObjectRef& o)
                 , ((pxTextCanvasMeasurements*)tcm.getPtr())->width()
                 , ((pxTextCanvasMeasurements*)tcm.getPtr())->h()
                 );
-    } else {
+    }
+    else
+    {
         rtLogWarn("measureText called TOO EARLY -- not initialized or font not loaded!\n");
         //return RT_OK; // !CLF: TO DO - COULD RETURN RT_ERROR HERE TO CATCH NOT WAITING ON PROMISE
     }
@@ -611,13 +668,47 @@ rtError pxTextCanvas::fillText(rtString text, int32_t x, int32_t y)
     rtValue color;
     textColor(color);
     textLine.setStyle(mFont, mPixelSize, color.toInt32());
+
     textLine.alignHorizontal = mAlignHorizontal;
     textLine.textBaseline = mTextBaseline;
     textLine.translateX = mTranslateX;
     textLine.translateY = mTranslateY;
+
+    // Shadow
+    textLine.effects.shadowEnabled       = false;  // default
+    textLine.effects.highlightEnabled = false;  // default
+
+    if(shadow()) // creating the shadow effects config
+    {
+        textLine.effects.shadowEnabled = true;
+        memcpy(textLine.effects.shadowColor, mShadowColor, sizeof(textLine.effects.shadowColor));
+        textLine.effects.shadowBlur = mShadowBlur;
+        textLine.effects.shadowOffsetX = mShadowOffsetX;
+        textLine.effects.shadowOffsetY = mShadowOffsetY;
+        textLine.effects.shadowWidth = getOnscreenWidth() + textLine.effects.shadowOffsetX;
+        textLine.effects.shadowHeight = getOnscreenHeight() + textLine.effects.shadowOffsetY;
+    }
+
+    if(highlight())// creating the hightlight effects config
+    {
+        textLine.effects.highlightEnabled = true;
+        memcpy(textLine.effects.highlightColor, mHighlightColor, sizeof(textLine.effects.highlightColor));
+        // now we have to translate the previous fillRect() call to highlight properties
+        int32_t rectX = mHighlightRect[0];
+        int32_t rectY = mHighlightRect[1];
+        uint32_t rectW =  mHighlightRect[2];
+        uint32_t rectH =  mHighlightRect[3];
+        textLine.effects.highlightOffset = (y - rectY) > 0 ? (y - rectY) : 0;//getOnscreenHeight()/2;
+        textLine.effects.highlightWidth = getOnscreenWidth();
+        textLine.effects.highlightHeight = rectH;
+        textLine.effects.highlightPaddingLeft = x - rectX;
+        textLine.effects.highlightPaddingRight = rectW - textLine.effects.highlightWidth - textLine.effects.highlightPaddingLeft;
+        textLine.effects.highlightBlockHeight = getOnscreenHeight();
+        mHighlight = false;
+    }
     mTextLines.push_back(textLine);
     setNeedsRecalc(true);
-    return RT_OK;
+return RT_OK;
 }
 
 rtError pxTextCanvas::clear()
@@ -626,17 +717,24 @@ rtError pxTextCanvas::clear()
     mTranslateX = 0;
     mTranslateY = 0;
     setNeedsRecalc(true);
+
     return RT_OK;
 }
 
 rtError pxTextCanvas::fillRect(int32_t x, int32_t y, uint32_t width, uint32_t height)
 {
-    UNUSED_PARAM(x);
-    UNUSED_PARAM(y);
-    UNUSED_PARAM(width);
-    UNUSED_PARAM(height);
     rtLogDebug("pxTextCanvas::fillRect called with params: x %d, y %d, width %d, height %d", x, y, width, height);
-    rtLogDebug("pxTextCanvas::fillRect. NOT IMPLEMENTED. Call ignored.");
+    rtLogDebug("pxTextCanvas::fillRect is a hack now. A rect (we call it 'highlight') can be drawn beneath a text line issued by the next fillText() command.");
+
+    // pxTextCanvas does not support drawing of primitives (yet); fillRect is a special case: it is used by Lightning
+    // for highlighting a block of text. Current implementation sets the highlight parameters which will be applied
+    // to the next fillText() call.
+    mHighlight = true;
+    memcpy(mHighlightColor, mTextColor, sizeof(mHighlightColor));
+    mHighlightRect[0] = x;
+    mHighlightRect[1] = y;
+    mHighlightRect[2] = width;
+    mHighlightRect[3] = height;
     return RT_OK;
 }
 
@@ -646,12 +744,18 @@ rtError pxTextCanvas::translate(int32_t x, int32_t y)
     mTranslateY += y;
 
     rtLogDebug("pxTextCanvas::translate applied translation params: x: %d, y: %d, current translation (x, y): %d, %d", x, y, mTranslateX, mTranslateY);
+
     return RT_OK;
 }
 
 uint32_t pxTextCanvas::argb2rgba(uint32_t val)
 {
     return val << 8 | val >> 24;
+}
+
+uint32_t pxTextCanvas::rgba2argb(uint32_t val)
+{
+    return val << 24 | val >> 8;
 }
 
 // pxTextCanvasMeasurements
@@ -664,10 +768,6 @@ rtDefineProperty(pxTextCanvas, alignHorizontal);
 rtDefineProperty(pxTextCanvas, fillStyle);
 rtDefineProperty(pxTextCanvas, textBaseline);
 rtDefineProperty(pxTextCanvas, globalAlpha);
-rtDefineProperty(pxTextCanvas, shadowColor);
-rtDefineProperty(pxTextCanvas, shadowBlur);
-rtDefineProperty(pxTextCanvas, shadowOffsetX);
-rtDefineProperty(pxTextCanvas, shadowOffsetY);
 
 rtDefineProperty(pxTextCanvas, label);
 rtDefineProperty(pxTextCanvas, colorMode);
@@ -680,3 +780,7 @@ rtDefineMethod(pxTextCanvas, clear);
 rtDefineMethod(pxTextCanvas, fillRect);
 rtDefineMethod(pxTextCanvas, translate);
 rtDefineMethod(pxTextCanvas, paint);
+rtDefineProperty(pxTextCanvas, shadowColor);
+rtDefineProperty(pxTextCanvas, shadowOffsetX);
+rtDefineProperty(pxTextCanvas, shadowOffsetY);
+rtDefineProperty(pxTextCanvas, shadowBlur);

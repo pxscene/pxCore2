@@ -58,6 +58,7 @@ public:
 
   static void onDownloadComplete(rtFileDownloadRequest* downloadRequest);
   static void onDownloadCompleteAndRelease(rtFileDownloadRequest* downloadRequest);
+  static void onDownloadComplete(void* context, void* data);
 
   rtString url() const;
   std::vector<rtString> headers() const;
@@ -65,6 +66,7 @@ public:
   const uint8_t* writeData() const;
   size_t writeDataSize() const;
   bool inQueue() const;
+  bool delayReply() const;
 
 private:
   rtEmitRef mEmit;
@@ -75,6 +77,8 @@ private:
   size_t mWriteDataSize;
   bool mInQueue;
   bool mCompress;
+  rtString mProxy;
+  bool mDelayReply;
 };
 
 #endif //RT_HTTP_REQUEST_H

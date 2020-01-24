@@ -26,12 +26,19 @@ limitations under the License.
 void pxEventLoop::run()
 {
     MSG msg;
-
+    BOOL bRet;
     // Main message loop:
-    while (GetMessage(&msg, NULL, 0, 0)) 
+    while ((bRet = GetMessage(&msg, NULL, 0, 0)) != 0) 
     {
-        TranslateMessage(&msg);
-        DispatchMessage(&msg);
+      if (bRet == -1)
+      {
+          // handle the error
+      }
+      else
+      {
+          TranslateMessage(&msg);
+          DispatchMessage(&msg);
+      }
     }
 }
 
