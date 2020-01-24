@@ -34,6 +34,7 @@ public:
   rtProperty(stretchX, stretchX, setStretchX, int32_t);
   rtProperty(stretchY, stretchY, setStretchY, int32_t);
   rtProperty(resource, resource, setResource, rtObjectRef);
+  rtProperty(resolveWithoutParent, resolveWithoutParent, setResolveWithoutParent, bool);
 
   pxImageA(pxScene2d* scene);
   virtual ~pxImageA();
@@ -50,6 +51,8 @@ public:
   rtError resource(rtObjectRef& o) const { o = mResource; return RT_OK; }
   rtError setResource(rtObjectRef o);
   rtError removeResourceListener();
+  rtError resolveWithoutParent(bool& v)  const;
+  rtError setResolveWithoutParent(bool v);
   virtual void resourceReady(rtString readyResolution);
   virtual void resourceDirty();
 
@@ -90,6 +93,7 @@ protected:
   rtObjectRef mResource;
   bool mImageLoaded;
   bool mListenerAdded;
+  bool mResolveWithoutParent;
 };
 
 #endif

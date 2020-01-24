@@ -116,6 +116,7 @@ extern rtThreadQueue* gUIThreadQueue;
 extern pxContext      context;
 
 static int fpsWarningThreshold = 25;
+bool topSparkView = true;
 
 rtEmitRef pxScriptView::mEmit = new rtEmit();
 
@@ -3691,9 +3692,8 @@ rtError pxScriptView::getScene(int numArgs, const rtValue* args, rtValue* result
       // JR Todo can specify what scene version/type to create in args
       if (!v->mScene)
       {
-        static bool top = true;
-        pxScene2dRef scene = new pxScene2d(top, v);
-        top = false;
+        pxScene2dRef scene = new pxScene2d(topSparkView, v);
+        topSparkView = false;
         v->mView = scene;
         v->mScene = scene;
 
