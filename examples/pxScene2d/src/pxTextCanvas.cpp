@@ -779,6 +779,7 @@ rtDefineMethod(pxTextCanvas, fillText);
 rtDefineMethod(pxTextCanvas, clear);
 rtDefineMethod(pxTextCanvas, fillRect);
 rtDefineMethod(pxTextCanvas, translate);
+
 rtDefineMethod(pxTextCanvas, paint);
 rtDefineProperty(pxTextCanvas, shadowColor);
 rtDefineProperty(pxTextCanvas, shadowOffsetX);

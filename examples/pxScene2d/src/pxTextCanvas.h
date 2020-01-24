@@ -175,6 +175,7 @@ public:
     
     rtMethod2ArgAndNoReturn("paint", paint, float, float);
     virtual rtError paint(float x, float y, uint32_t color, bool translateOnly) override;
+
 protected:
     bool shadow() const;
     bool highlight() const;
@@ -216,9 +217,4 @@ protected:
 
     void renderTextLine(const pxTextLine& textLine);
 };
-<<<<<<< HEAD
-
 #endif
-=======
-#endif
->>>>>>> c3d0f792eabc68aaf0eec1d7d4cfe4500520c8b2
