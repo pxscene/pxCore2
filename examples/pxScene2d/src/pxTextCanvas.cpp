@@ -579,7 +579,7 @@ rtError pxTextCanvas::paint(float x, float y, uint32_t color, bool translateOnly
     }
 
     for (std::vector<pxTexturedQuads>::iterator it = mQuadsVector.begin() ; it != mQuadsVector.end(); ++it)
-        (*it).draw(x, y, mTextColor);
+        (*it).draw(x, y, textColor);
     context.popState();
 #else
     rtLogError("pxTextCanvas::drawing without FONT ATLAS is not supported yet.");
