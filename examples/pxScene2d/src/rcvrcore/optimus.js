@@ -413,9 +413,13 @@ function Application(props) {
     }
   };
   // Sets the input focus to this application
-  this.setFocus = function() {
+  this.setFocus = function(b) {
     if (_externalApp){
-      _externalApp.focus = true;
+      if (typeof b === 'boolean') {
+        _externalApp.focus = b;
+      } else {
+        _externalApp.focus = true;
+      }
     }
   };
   // Returns true if this application currently has focus, false if it does not
