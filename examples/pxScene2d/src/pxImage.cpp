@@ -269,7 +269,7 @@ void pxImage::resourceReady(rtString readyResolution)
     mScene->mDirty = true;
     markDirty();
     pxObject* parent = mParent;
-    if( !parent)
+    if( !parent || mResolveWithoutParent)
     {
       // Send the promise here because the image will not get an 
       // update call until it has a parent
@@ -364,6 +364,18 @@ rtError pxImage::setFlip(bool v)
   return RT_OK;
 }
 
+rtError pxImage::resolveWithoutParent(bool& v)  const
+{
+  v = mResolveWithoutParent;
+  return RT_OK;
+}
+
+rtError pxImage::setResolveWithoutParent(bool v)
+{
+  mResolveWithoutParent = v;
+  return RT_OK;
+}
+
 rtError pxImage::setMaskOp(int32_t v)
 {
   mMaskOp = (pxConstantsMaskOperation::constants)v;
@@ -451,6 +463,7 @@ rtDefineProperty(pxImage, resource);
 rtDefineProperty(pxImage, stretchX);
 rtDefineProperty(pxImage, stretchY);
 rtDefineProperty(pxImage, flip);
+rtDefineProperty(pxImage, resolveWithoutParent);
 rtDefineProperty(pxImage, maskOp);
 rtDefineProperty(pxImage, downscaleSmooth);
 rtDefineMethod(pxImage, texture);
