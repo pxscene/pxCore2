@@ -320,7 +320,7 @@ void pxTextCanvas::onInit()
 
 void pxTextCanvas::recalc()
 {
-    
+
     if( mNeedsRecalc && mInitialized && mFontLoaded) {
         clearMeasurements();
 #ifdef PXSCENE_FONT_ATLAS
@@ -579,7 +579,9 @@ rtError pxTextCanvas::paint(float x, float y, uint32_t color, bool translateOnly
     }
 
     for (std::vector<pxTexturedQuads>::iterator it = mQuadsVector.begin() ; it != mQuadsVector.end(); ++it)
-        (*it).draw(x, y, textColor);
+    {
+        (*it).draw(0, 0, textColor);
+    }
     context.popState();
 #else
     rtLogError("pxTextCanvas::drawing without FONT ATLAS is not supported yet.");
@@ -596,20 +598,17 @@ void pxTextCanvas::draw()
         renderText(true);
         mDirty = false;
     }
-    
-    context.pushState();
-    pxMatrix4f m;
-    context.setMatrix(m);
-    context.setAlpha(1.0);
-    for (std::vector<pxTexturedQuads>::iterator it = mQuadsVector.begin() ; it != mQuadsVector.end(); ++it)
+
+    float x = 0;
+    float y = 0;
+    for (std::vector<pxTexturedQuads>::iterator it  = mQuadsVector.begin();
+                                                it != mQuadsVector.end();   ++it)
     {
-        (*it).draw(0, 0, mTextColor);
+        (*it).draw(x, y);
     }
-    context.popState();
 #else
     rtLogError("pxTextCanvas::drawing without FONT ATLAS is not supported yet.");
 #endif
-    return RT_OK;
 }
 
 float pxTextCanvas::getOnscreenWidth()
