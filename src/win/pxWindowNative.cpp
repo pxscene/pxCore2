@@ -25,6 +25,7 @@ limitations under the License.
 #include "../pxWindowUtil.h"
 
 #include "../pxKeycodes.h"
+#include "pxTimerNative.h"
 
 #ifndef WINCE
 #include <tchar.h>
