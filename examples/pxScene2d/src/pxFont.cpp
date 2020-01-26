@@ -24,6 +24,20 @@
 #include "pxTimer.h"
 #include "pxEffects.h"
 
+#include <ft2build.h>
+#include FT_FREETYPE_H
+
+const char* getErrorMessage(FT_Error err)
+{
+#undef __FTERRORS_H__
+#define FT_ERRORDEF( e, v, s )  case e: return s;
+#define FT_ERROR_START_LIST     switch (err) {
+#define FT_ERROR_END_LIST       }
+#include FT_ERRORS_H
+  return "(Unknown error)";
+}
+
+
 #include <cmath>
 #include <map>
 
@@ -518,7 +532,8 @@ GlyphTextureEntry pxFont::getGlyphTexture(uint32_t codePoint, float sx, float sy
     }
     else
     {
-       rtLogWarn("FT_Load_Char() returned FT_Error = %d", err);
+       rtLogWarn("getGlyphTexture() >>  FT_Load_Char() returned FT_Error = %d ... %s", err, getErrorMessage(err));
+       rtLogWarn("getGlyphTexture() >>  FT_Load_Char() returned FT_Error = %d", err);
     }
   }
   return result;  
@@ -567,7 +582,9 @@ const GlyphCacheEntry* pxFont::getGlyph(uint32_t codePoint)
 
       if(err != 0)
       {
-        rtLogWarn("FT_Load_Char() returned FT_Error = %d ... %s try Fallback font ", err, (fallback ? "DID" : "did NOT"));
+        rtLogWarn("getGlyph()  >> FT_Load_Char() returned FT_Error = %d ... %s try Fallback font ", err, (fallback ? "DID" : "did NOT"));
+        rtLogWarn("getGlyph()  >> FT_Load_Char() returned FT_Error = %d ... %s", err, getErrorMessage(err));
+        
         return NULL;
       }
     }
