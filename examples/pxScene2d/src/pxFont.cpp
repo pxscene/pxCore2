@@ -24,19 +24,22 @@
 #include "pxTimer.h"
 #include "pxEffects.h"
 
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
-const char* getErrorMessage(FT_Error err)
+// Helper function to get 'FT_Error' message strings.
+//
+static const char* getErrorMessage(FT_Error err)
 {
-#undef __FTERRORS_H__
-#define FT_ERRORDEF( e, v, s )  case e: return s;
-#define FT_ERROR_START_LIST     switch (err) {
-#define FT_ERROR_END_LIST       }
-#include FT_ERRORS_H
-  return "(Unknown error)";
+  #undef __FTERRORS_H__
+  #define FT_ERRORDEF( e, v, s )  case e: return s;
+  #define FT_ERROR_START_LIST     switch (err) {
+  #define FT_ERROR_END_LIST       }
+  #include FT_ERRORS_H
+    return "(Unknown error)";
 }
-
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 #include <cmath>
 #include <map>
