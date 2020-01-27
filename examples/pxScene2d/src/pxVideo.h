@@ -34,7 +34,7 @@
 struct PlaybackMetadata
 {
 	int languageCount;                                              /**< Available language count */
-	char languages[MAX_LANGUAGE_COUNT][MAX_LANGUAGE_TAG_LENGTH];    /**< Available languages */
+	std::vector<std::string> languages;                             /**< Available languages */
 	int supportedSpeedCount;                                        /**< Supported playback speed count */
 	int supportedSpeeds[MAX_SUPPORTED_SPEED_COUNT];                 /**< Supported playback speeds */
 };
