@@ -24,10 +24,95 @@
 #include "pxCore.h"
 #include "pxKeycodes.h"
 #include <stdio.h>
+#include "rtLog.h"
+#include <map>
+#include <rapidjson/document.h>
+#include <rapidjson/filereadstream.h>
+#include <rapidjson/error/en.h>
+
+static std::map<uint32_t, uint32_t> nativeKeyMap;
+static bool nativeKeyMapLoaded = false;
+
+void mapNativeKeyCodes()
+{
+  if (false == nativeKeyMapLoaded)
+  {
+    nativeKeyMapLoaded = true;
+    //populate from the native key map file
+    FILE* fp = NULL;
+    const char* s = getenv("PXCORE_KEYMAP_FILE");
+    if (s)
+    {
+      fp = fopen(s, "rb");
+      if (NULL == fp)
+      {
+        rtLogInfo("Native keymap read error : [unable to open file (%s)]\n", s);
+        return;
+      }
+      char readBuffer[65536];
+      memset(readBuffer, 0, sizeof(readBuffer));
+      rapidjson::FileReadStream is(fp, readBuffer, sizeof(readBuffer));
+      rapidjson::Document doc;
+      rapidjson::ParseResult result = doc.ParseStream(is);
+      if (!result)
+      {
+        rapidjson::ParseErrorCode e = doc.GetParseError();
+        rtLogInfo("Native keymap read error : [JSON parse error while reading keymap conf (%s): (%s) (%zu)]\n", s, rapidjson::GetParseError_En(e), result.Offset());
+        fclose(fp);
+        return;
+      }
+      fclose(fp);
+
+      if (! doc.HasMember("nativekeymaps"))
+      {
+        rtLogInfo("Native keymap config read error : [nativekeymaps element not found]\n");
+        return;
+      }
+
+      const rapidjson::Value& nativeKeyMapList = doc["nativekeymaps"];
+      for (rapidjson::SizeType i = 0; i < nativeKeyMapList.Size(); i++)
+      {
+        if (nativeKeyMapList[i].IsObject())
+        {
+          if ((nativeKeyMapList[i].HasMember("nativeCode")) && (nativeKeyMapList[i]["nativeCode"].IsUint()) && (nativeKeyMapList[i].HasMember("mappedKeyCode")) &&
+              (nativeKeyMapList[i]["mappedKeyCode"].IsUint()))
+          {
+            uint32_t nativeCode = nativeKeyMapList[i]["nativeCode"].GetUint();
+            uint32_t mappedKeyCode = nativeKeyMapList[i]["mappedKeyCode"].GetUint();
+            if ((nativeCode != 0) && (mappedKeyCode != 0))
+            {
+              nativeKeyMap[nativeCode] = mappedKeyCode;
+              rtLogInfo("Mapped native key [%d] to [%d] \n", nativeCode, mappedKeyCode);
+            }
+            else
+            {
+              rtLogInfo("Native keymap config read error : [one of the entry not added due to nativeCode/mappedKeyCode value is 0]\n");
+            }
+          }
+          else
+          {
+            rtLogInfo("Native keymap config read error : [one of the entry not added due to nativeCode/mappedKeyCode not present or in wrong format]\n");
+          }
+        }
+      }
+    }
+    else
+    {
+      rtLogInfo("Native keymap not populated as env is not set\n");
+    }
+  }
+}
 
 uint32_t keycodeFromNative(uint32_t nativeKeycode)
 {
   int commonKeycode = 0;
+
+  std::map<uint32_t, uint32_t>::iterator it  = nativeKeyMap.find(nativeKeycode);
+  if (it != nativeKeyMap.end())
+  {
+    return it->second;
+  }
+
   switch (nativeKeycode)
   {
   case PX_KEY_NATIVE_ENTER:

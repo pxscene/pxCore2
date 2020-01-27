@@ -183,6 +183,48 @@ public:
     EXPECT_TRUE (keycodeToAscii(pxKeycode, PX_MOD_SHIFT) == 0);
   }
 
+  void mapNativeKeyCodesEnvNotSetTest()
+  {
+    mapNativeKeyCodes();
+    EXPECT_TRUE (keycodeFromNative(PX_KEY_NATIVE_ONE) == 123);
+  }
+
+  void mapNativeKeyCodesFileUnableToOpenTest()
+  {
+    setenv("PXCORE_KEYMAP_FILE", "supportfiles/nativekeymapwrong.conf", 1);
+    mapNativeKeyCodes();
+    EXPECT_TRUE (keycodeFromNative(PX_KEY_NATIVE_ONE) == 123);
+  }
+
+  void mapNativeKeyCodesSuccessTest()
+  {
+    setenv("PXCORE_KEYMAP_FILE", "supportfiles/nativekeymap.conf", 1);
+    mapNativeKeyCodes();
+    EXPECT_TRUE (keycodeFromNative(PX_KEY_NATIVE_ONE) == 123);
+  }
+
+  void mapNativeKeyCodesJsonFormatErrorTest()
+  {
+    setenv("PXCORE_KEYMAP_FILE", "supportfiles/nativekeymapformaterror.conf", 1);
+    mapNativeKeyCodes();
+    EXPECT_TRUE (keycodeFromNative(PX_KEY_NATIVE_ONE) == 123);
+  }
+
+  void mapNativeKeyCodesJsonParamErrorTest()
+  {
+    setenv("PXCORE_KEYMAP_FILE", "supportfiles/nativekeymapdatakeyerror.conf", 1);
+    mapNativeKeyCodes();
+    EXPECT_TRUE (keycodeFromNative(PX_KEY_NATIVE_ONE) == 123);
+  }
+
+  void mapNativeKeyCodesJsonDataErrorTest()
+  {
+    setenv("PXCORE_KEYMAP_FILE", "supportfiles/nativekeymapdatavalueerror.conf", 1);
+    mapNativeKeyCodes();
+    EXPECT_TRUE (keycodeFromNative(PX_KEY_NATIVE_ONE) == 123);
+  }
+
+
 private:
   void initNativeKeycodes()
   {
@@ -429,4 +471,10 @@ TEST_F(pxWindowUtilTest, pxWindowUtilTests)
   testPxKeycodeToPrintableAsciiCoverage();
   testUnknownNativeKeycodeToZero();
   testUnknownPxKeycodeToZero();
+  mapNativeKeyCodesSuccessTest();
+  mapNativeKeyCodesEnvNotSetTest();
+  mapNativeKeyCodesFileUnableToOpenTest();
+  mapNativeKeyCodesJsonFormatErrorTest();
+  mapNativeKeyCodesJsonParamErrorTest();
+  mapNativeKeyCodesJsonDataErrorTest();
 }
