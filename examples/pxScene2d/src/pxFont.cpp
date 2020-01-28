@@ -519,7 +519,7 @@ GlyphTextureEntry pxFont::getGlyphTexture(uint32_t codePoint, float sx, float sy
       if (!gFontAtlas.addGlyph(g->bitmap.width, g->bitmap.rows, g->bitmap.buffer, result))
       {
 #endif
-        rtLogWarn("Glyph not in atlas");
+        rtLogDebug("Glyph not in atlas");
         result.t = context.createTexture(static_cast<float>(g->bitmap.width), static_cast<float>(g->bitmap.rows),
                                          static_cast<float>(g->bitmap.width), static_cast<float>(g->bitmap.rows),
                                          g->bitmap.buffer);
