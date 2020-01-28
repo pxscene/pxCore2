@@ -38,6 +38,7 @@ void mapNativeKeyCodes()
   if (false == nativeKeyMapLoaded)
   {
     nativeKeyMapLoaded = true;
+
     //populate from the native key map file
     const char* keymapfile = getenv("PXCORE_KEYMAP_FILE");
     if (keymapfile)
