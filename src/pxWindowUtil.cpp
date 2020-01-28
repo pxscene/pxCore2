@@ -24,10 +24,112 @@
 #include "pxCore.h"
 #include "pxKeycodes.h"
 #include <stdio.h>
+#include "rtLog.h"
+#include <map>
+#include "rtObject.h"
+#include "rtRef.h"
+#include "rtJsonUtils.h"
+
+static std::map<uint32_t, uint32_t> nativeKeyMap;
+static bool nativeKeyMapLoaded = false;
+
+void mapNativeKeyCodes()
+{
+  if (false == nativeKeyMapLoaded)
+  {
+    nativeKeyMapLoaded = true;
+
+    //populate from the native key map file
+    const char* keymapfile = getenv("PXCORE_KEYMAP_FILE");
+    if (keymapfile)
+    {
+      rtValue v;
+      rtError e = RT_OK;
+      rtObjectRef keymapobj = NULL;
+      e = jsonFile2rtValue(keymapfile, v);
+      if (e == RT_OK)
+      {
+        e = v.getObject(keymapobj);
+        if ((NULL == keymapobj) || (e != RT_OK))
+        {
+          rtLogInfo("Native keymap read error : [unable to read file (%s)]\n", keymapfile);
+          return;
+        }
+      }
+      else
+      {
+        rtLogInfo("Native keymap read error : [unable to open/read file (%s)]\n", keymapfile);
+        return;
+      }
+
+      // populate keymaps
+      rtValue keymaps;
+      keymapobj->Get("nativekeymaps", &keymaps);
+      rtArrayObject* arr = (rtArrayObject*) keymaps.toObject().getPtr();
+      if (NULL != arr) {
+        for (uint32_t i = 0; i < arr->length(); ++i)
+        {
+          rtObjectRef keyobjentry = arr->get<rtObjectRef>(i);
+          if (NULL == keyobjentry)
+          {
+            rtLogInfo("Native keymap config read error : [one of the entry not valid]\n");
+            continue;
+          }
+
+          uint32_t nativeCode,mappedKeyCode;
+          rtValue value;
+
+          // read nativeCode
+          e = keyobjentry->Get("nativeCode", &value);
+          if (e != RT_OK)
+          {
+            rtLogInfo("Native keymap config read error : [one of the entry not added due to absence of nativeCode]\n");
+            continue;
+          }
+          e = value.getUInt32(nativeCode);
+
+          // read mappedKeyCode
+          e = keyobjentry->Get("mappedKeyCode", &value);
+          if (e != RT_OK)
+          {
+            rtLogInfo("Native keymap config read error : [one of the entry not added due to absence of mappedKeyCode]\n");
+            continue;
+          }
+          e = value.getUInt32(mappedKeyCode);
+
+          // validate and insert
+          if ((nativeCode != 0) && (mappedKeyCode != 0))
+          {
+            nativeKeyMap[nativeCode] = mappedKeyCode;
+            rtLogInfo("Mapped native key [%d] to [%d] \n", nativeCode, mappedKeyCode);
+          }
+          else
+          {
+            rtLogInfo("Native keymap config read error : [one of the entry not added due to nativeCode/mappedKeyCode value is 0]\n");
+          }
+        }
+      }
+      else {
+        rtLogInfo("Native keymap config read error : [key nativekeymaps not present]\n");
+      }
+    }
+    else
+    {
+      rtLogInfo("Native keymap not populated as env is not set\n");
+    }
+  }
+}
 
 uint32_t keycodeFromNative(uint32_t nativeKeycode)
 {
   int commonKeycode = 0;
+
+  std::map<uint32_t, uint32_t>::iterator it  = nativeKeyMap.find(nativeKeycode);
+  if (it != nativeKeyMap.end())
+  {
+    return it->second;
+  }
+
   switch (nativeKeycode)
   {
   case PX_KEY_NATIVE_ENTER:
