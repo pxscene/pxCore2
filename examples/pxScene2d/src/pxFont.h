@@ -266,7 +266,6 @@ public:
   rtReadOnlyProperty(fontStyle, fontStyle, rtString);
 
   
-  rtReadOnlyProperty(fallbackGlyphsCount, fallbackGlyphsCount, uint32_t);
   rtProperty(fallbackFont, fallbackFont, setFallbackFont, rtObjectRef);
   
 
@@ -279,10 +278,6 @@ public:
   rtError       fallbackFont(rtObjectRef v) const {    v = mFallbackFont;     return RT_OK; }
   rtError    setFallbackFont(rtObjectRef v)         {        mFallbackFont = v; return RT_OK; }
   
-  
-  uint32_t fallbackGlyphsCount()            const { return mFallbackGlyphsCount; }
-  rtError  fallbackGlyphsCount(uint32_t &v) const {    v = mFallbackGlyphsCount; return RT_OK; }
-
   rtMethod1ArgAndReturn("getFontMetrics", getFontMetrics, uint32_t, rtObjectRef);
   rtError getFontMetrics(uint32_t pixelSize, rtObjectRef& o);
 
@@ -357,7 +352,6 @@ private:
   rtString mFontStyle;
 
   rtObjectRef mFallbackFont;
-  uint32_t    mFallbackGlyphsCount;
 };
 
 // Weak Map

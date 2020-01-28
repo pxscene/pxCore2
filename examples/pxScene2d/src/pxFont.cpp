@@ -104,7 +104,7 @@ pxFontAtlas gFontAtlas;
 
 pxFont::pxFont(rtString fontUrl, uint32_t id, rtString proxyUrl, rtString fontStyle):pxResource(),mFace(NULL),mPixelSize(0), mFontData(0), mFontDataSize(0),
              mFontMutex(), mFontDataMutex(), mFontDownloadedData(NULL), mFontDownloadedDataSize(0),
-            mFontDataUrl(), mFontStyle(), mFallbackFont(NULL), mFallbackGlyphsCount(0)
+            mFontDataUrl(), mFontStyle(), mFallbackFont(NULL)
 {  
   mFontId = id; 
   mUrl = fontUrl;
@@ -576,11 +576,6 @@ const GlyphCacheEntry* pxFont::getGlyph(uint32_t codePoint)
         
         FT_Set_Pixel_Sizes(*face, 0, mPixelSize);
         err = FT_Load_Char(*face, codePoint, FT_LOAD_RENDER);     // in the FALLBACK font ?
-        
-        if(err == 0)
-        {
-          mFallbackGlyphsCount++;
-        }
       }
 
       if(err != 0)
@@ -1028,7 +1023,6 @@ rtDefineProperty(pxTextMetrics, baseline);
 // pxFont
 rtDefineObject(pxFont, pxResource);
 rtDefineProperty(pxFont, fontStyle);
-rtDefineProperty(pxFont, fallbackGlyphsCount);
 rtDefineProperty(pxFont, fallbackFont);
 
 rtDefineMethod(pxFont, getFontMetrics);
