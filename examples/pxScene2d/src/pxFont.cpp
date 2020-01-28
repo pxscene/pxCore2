@@ -535,8 +535,7 @@ GlyphTextureEntry pxFont::getGlyphTexture(uint32_t codePoint, float sx, float sy
     }
     else
     {
-       rtLogWarn("getGlyphTexture() >>  FT_Load_Char() returned FT_Error = %d ... %s", err, getErrorMessage(err));
-       rtLogWarn("getGlyphTexture() >>  FT_Load_Char() returned FT_Error = %d", err);
+       rtLogDebug("getGlyphTexture() >>  FT_Load_Char() returned FT_Error = %d ... %s", err, getErrorMessage(err) );
     }
   }
   return result;  
@@ -580,8 +579,8 @@ const GlyphCacheEntry* pxFont::getGlyph(uint32_t codePoint)
 
       if(err != 0)
       {
-        rtLogWarn("getGlyph()  >> FT_Load_Char() returned FT_Error = %d ... %s try Fallback font ", err, (fallback ? "DID" : "did NOT"));
-        rtLogWarn("getGlyph()  >> FT_Load_Char() returned FT_Error = %d ... %s", err, getErrorMessage(err));
+        rtLogDebug("getGlyph()  >> FT_Load_Char() returned FT_Error = %d ... %s try Fallback font ", err, (fallback ? "DID" : "did NOT"));
+        rtLogDebug("getGlyph()  >> FT_Load_Char() returned FT_Error = %d ... %s", err, getErrorMessage(err));
         
         return NULL;
       }
