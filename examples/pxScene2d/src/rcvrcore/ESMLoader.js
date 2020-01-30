@@ -553,7 +553,16 @@ function ESMLoader(params) {
     loadCtx.sandbox['__dirname'] = path.dirname(loc);
     loadCtx.contextifiedSandbox = vm.createContext(loadCtx.sandbox);
     loadCtx.contextifiedSandbox.modmap = loadCtx.modmap;
-    var script = new vm.Script("var sgl = require('webgl.js'); global.sparkwebgl = sparkwebgl = new sgl.WebGLRenderingContext(global.sparkscene); global.sparkgles2 = sparkgles2 = require('gles2.js');");
+    var script = new vm.Script(
+      "var sgl = require('webgl.js');" +
+      "global.sparkwebgl = sparkwebgl = new sgl.WebGLRenderingContext(global.sparkscene);" +
+      "global.sparkgles2 = sparkgles2 = require('gles2.js');" +
+      "global.fetch = fetch = require('node-fetch');" +
+      "global.Headers = Headers = global.fetch.Headers;" +
+      "global.Request = Request = global.fetch.Request;" +
+      "global.Response = Response = global.fetch.Response;" +
+      "global.WebSocket = WebSocket = require('ws');"
+    );
     script.runInContext(loadCtx.contextifiedSandbox);
     script = null; 
     try {

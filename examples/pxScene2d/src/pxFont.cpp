@@ -24,8 +24,27 @@
 #include "pxTimer.h"
 #include "pxEffects.h"
 
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+#include <ft2build.h>
+#include FT_FREETYPE_H
+
+// Helper function to get 'FT_Error' message strings.
+//
+static const char* getErrorMessage(FT_Error err)
+{
+  #undef __FTERRORS_H__
+  #define FT_ERRORDEF( e, v, s )  case e: return s;
+  #define FT_ERROR_START_LIST     switch (err) {
+  #define FT_ERROR_END_LIST       }
+  #include FT_ERRORS_H
+    return "(Unknown error)";
+}
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 #include <cmath>
 #include <map>
+
+#define  CODEPOINT_SPACE 0x20 // 32 // Space character
 
 using namespace std;
 
@@ -84,7 +103,8 @@ pxFontAtlas gFontAtlas;
 #endif
 
 pxFont::pxFont(rtString fontUrl, uint32_t id, rtString proxyUrl, rtString fontStyle):pxResource(),mFace(NULL),mPixelSize(0), mFontData(0), mFontDataSize(0),
-             mFontMutex(), mFontDataMutex(), mFontDownloadedData(NULL), mFontDownloadedDataSize(0), mFontDataUrl()
+             mFontMutex(), mFontDataMutex(), mFontDownloadedData(NULL), mFontDownloadedDataSize(0),
+            mFontDataUrl(), mFontStyle(), mFallbackFont(NULL)
 {  
   mFontId = id; 
   mUrl = fontUrl;
@@ -429,10 +449,13 @@ void pxFont::getMetrics(uint32_t size, float& height, float& ascender, float& de
 
 GlyphTextureEntry pxFont::getGlyphTexture(uint32_t codePoint, float sx, float sy)
 {
+  FT_Error err  = 0;
+  FT_Face *face = &mFace;
+
   GlyphTextureEntry result;
   // Select a glyph texture better suited for rendering the glyph
   // taking pixelSize and scale into account
-  uint32_t pixelSize=(uint32_t)ceil((sx>sy?sx:sy)*mPixelSize);
+  uint32_t pixelSize = (uint32_t) ceil( (sx > sy ? sx : sy) * mPixelSize );
   
   //  TODO:  FIXME: Disabled for now.   Sub-Pixel rounding making some Glyphs too "wide" at certain sizes.
   //
@@ -452,35 +475,54 @@ GlyphTextureEntry pxFont::getGlyphTexture(uint32_t codePoint, float sx, float sy
   pixelSize = mPixelSize; // HACK
 #endif
   
-  
   GlyphKey key; 
-  key.mFontId = mFontId; 
+  key.mFontId    = mFontId;
   key.mPixelSize = pixelSize; 
   key.mCodePoint = codePoint;
+
   GlyphTextureCache::iterator it = gGlyphTextureCache.find(key);
   if (it != gGlyphTextureCache.end())
-    return it->second;
+  {
+    return it->second; // FOUND in cache !!!
+  }
   else
   {
-    // temporarily set pixel size to more optimal size for
-    // rendering texture 
-    FT_Set_Pixel_Sizes(mFace, 0, pixelSize);
-    // TODO only need to render glyph here
-    if(!FT_Load_Char(mFace, codePoint, FT_LOAD_RENDER))
+    // temporarily set pixel size to more optimal size for rendering texture
+    FT_Set_Pixel_Sizes(*face, 0, pixelSize);
+    err = FT_Load_Char(*face, codePoint, FT_LOAD_RENDER);  // non-zero return ... means error - TODO only need to render glyph here - need 'FT_LOAD_RENDER' ?
+    FT_Set_Pixel_Sizes(*face, 0, mPixelSize); // restore
+  
+    FT_GlyphSlot gg = (*face)->glyph;
+    
+    if(err != 0 || (codePoint != CODEPOINT_SPACE && (gg && gg->bitmap.width == 0)) ) // Not a SPACE,  Fallback for not found ?
+    {
+      // Try using the FALLBACK font
+      pxFont *fallback = static_cast<pxFont *>( mFallbackFont.getPtr() );
+      
+      if(fallback)
+      {
+        face = &fallback->mFace;
+        
+        FT_Set_Pixel_Sizes(*face, 0, pixelSize);
+        err = FT_Load_Char(*face, codePoint, FT_LOAD_RENDER);
+        FT_Set_Pixel_Sizes(*face, 0, mPixelSize); // restore
+      }
+    }
+
+    if(err == 0) // No error
     {
       rtLogDebug("glyph texture cache miss");
 
-      FT_GlyphSlot g = mFace->glyph;
-
+      FT_GlyphSlot g = (*face)->glyph;
+      
 #ifdef PXSCENE_FONT_ATLAS
       if (!gFontAtlas.addGlyph(g->bitmap.width, g->bitmap.rows, g->bitmap.buffer, result))
       {
 #endif
-        rtLogWarn("Glyph not in atlas");
-        result.t = context.createTexture(static_cast<float>(g->bitmap.width), static_cast<float>(g->bitmap.rows), 
-                                                static_cast<float>(g->bitmap.width), static_cast<float>(g->bitmap.rows), 
-                                                g->bitmap.buffer);
-
+        rtLogDebug("Glyph not in atlas");
+        result.t = context.createTexture(static_cast<float>(g->bitmap.width), static_cast<float>(g->bitmap.rows),
+                                         static_cast<float>(g->bitmap.width), static_cast<float>(g->bitmap.rows),
+                                         g->bitmap.buffer);
         result.u1 = 0;
         result.v1 = 1;
         result.u2 = 1;
@@ -489,50 +531,80 @@ GlyphTextureEntry pxFont::getGlyphTexture(uint32_t codePoint, float sx, float sy
       }
 #endif
       
-      gGlyphTextureCache.insert(make_pair(key,result));
-
-      // restore current pixelSize
-      FT_Set_Pixel_Sizes(mFace, 0, mPixelSize);
-      return result;  
+      gGlyphTextureCache.insert(make_pair(key, result));
     }
-    // restore current pixelSize
-    FT_Set_Pixel_Sizes(mFace, 0, mPixelSize);
+    else
+    {
+       rtLogDebug("getGlyphTexture() >>  FT_Load_Char() returned FT_Error = %d ... %s", err, getErrorMessage(err) );
+    }
   }
   return result;  
 }
   
 const GlyphCacheEntry* pxFont::getGlyph(uint32_t codePoint)
 {
+  FT_Error err  = 0;
+  FT_Face *face = &mFace;
+
   GlyphKey key; 
-  key.mFontId = mFontId; 
+  key.mFontId    = mFontId;
   key.mPixelSize = mPixelSize; 
   key.mCodePoint = codePoint;
+
   GlyphCache::iterator it = gGlyphCache.find(key);
   if (it != gGlyphCache.end())
-    return it->second;
+  {
+    return it->second; // it's cached ... we're done !
+  }
   else
   {
-    // TODO should not need to render here !
-    if(FT_Load_Char(mFace, codePoint, FT_LOAD_RENDER))
-      return NULL;
-    else
+    // TODO should not need to 'FT_LOAD_RENDER' render here ???
+    err = FT_Load_Char(*face, codePoint, FT_LOAD_RENDER);       // in the PRIMARY font ?
+    
+    FT_GlyphSlot gg = (*face)->glyph;
+
+    if( (err != 0) ||                                                     // Not Found and/or Error
+        (codePoint != CODEPOINT_SPACE && (gg && gg->bitmap.width == 0) )) // Not a SPACE ... but missing glyph !
     {
-      rtLogDebug("glyph cache miss");
-      GlyphCacheEntry *entry = new GlyphCacheEntry;
-      FT_GlyphSlot g = mFace->glyph;
+      // Try using the FALLBACK font
+      pxFont *fallback = static_cast<pxFont *>( mFallbackFont.getPtr() );
       
-      entry->bitmap_left = g->bitmap_left;
-      entry->bitmap_top = g->bitmap_top;
-      entry->bitmapdotwidth = g->bitmap.width;
-      entry->bitmapdotrows = g->bitmap.rows;
-      entry->advancedotx = (int32_t) g->advance.x;
-      entry->advancedoty = (int32_t) g->advance.y;
-      entry->vertAdvance = (int32_t) g->metrics.vertAdvance; // !CLF: Why vertAdvance? SHould only be valid for vert layout of text.
+      if(fallback)
+      {
+        face = &fallback->mFace;
+        
+        FT_Set_Pixel_Sizes(*face, 0, mPixelSize);
+        err = FT_Load_Char(*face, codePoint, FT_LOAD_RENDER);     // in the FALLBACK font ?
+      }
 
-      gGlyphCache.insert(make_pair(key,entry));
-
-      return entry;
+      if(err != 0)
+      {
+        rtLogDebug("getGlyph()  >> FT_Load_Char() returned FT_Error = %d ... %s try Fallback font ", err, (fallback ? "DID" : "did NOT"));
+        rtLogDebug("getGlyph()  >> FT_Load_Char() returned FT_Error = %d ... %s", err, getErrorMessage(err));
+        
+        return NULL;
+      }
     }
+   
+    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    // Add "new" glyph to cache
+    
+    rtLogDebug("glyph cache miss");
+    GlyphCacheEntry *entry = new GlyphCacheEntry();
+    FT_GlyphSlot g = (*face)->glyph;
+    
+    entry->bitmap_left    = g->bitmap_left;
+    entry->bitmap_top     = g->bitmap_top;
+    entry->bitmapdotwidth = g->bitmap.width;
+    entry->bitmapdotrows  = g->bitmap.rows;
+    entry->advancedotx    = (int32_t) g->advance.x;
+    entry->advancedoty    = (int32_t) g->advance.y;
+    entry->vertAdvance    = (int32_t) g->metrics.vertAdvance; // !CLF: Why vertAdvance? SHould only be valid for vert layout of text.
+
+    gGlyphCache.insert(make_pair(key, entry));
+
+    return entry;
+    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   }
   return NULL;
 }
@@ -648,12 +720,12 @@ void pxFont::renderText(const char *text, uint32_t size, float x, float y,
       };
       const float uvs[6][2] =
       {
-        { texture.u1,  texture.v1  },
-        { texture.u2, texture.v1  },
+        { texture.u1,  texture.v1 },
+        { texture.u2,  texture.v1 },
         { texture.u1,  texture.v2 },
-        { texture.u2, texture.v1  },
+        { texture.u2,  texture.v1 },
         { texture.u1,  texture.v2 },
-        { texture.u2, texture.v2 }
+        { texture.u2,  texture.v2 }
       };
       context.drawTexturedQuads(1, verts, uvs, texture.t, color);
       #else
@@ -705,8 +777,7 @@ void pxFont::renderTextToQuads(const char *text, uint32_t size,
     float h = static_cast<float>(entry->bitmapdotrows);
     
     if (codePoint != '\n')
-    {
-      
+    {      
       GlyphTextureEntry t = getGlyphTexture(codePoint, nsx, nsy);
 
       pxTextureRef nullImage;
@@ -951,6 +1022,8 @@ rtDefineProperty(pxTextMetrics, baseline);
 // pxFont
 rtDefineObject(pxFont, pxResource);
 rtDefineProperty(pxFont, fontStyle);
+rtDefineProperty(pxFont, fallbackFont);
+
 rtDefineMethod(pxFont, getFontMetrics);
 rtDefineMethod(pxFont, measureText);
 rtDefineMethod(pxFont, needsStyleCoercion);

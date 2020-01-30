@@ -30,7 +30,7 @@ static pxTextureRef nullMaskRef;
 pxImageA::pxImageA(pxScene2d *scene) : pxObject(scene), 
                                        mImageWidth(0), mImageHeight(0),
                                        mStretchX(pxConstantsStretch::NONE), mStretchY(pxConstantsStretch::NONE),
-                                       mResource(), mImageLoaded(false), mListenerAdded(false)
+                                       mResource(), mImageLoaded(false), mListenerAdded(false), mResolveWithoutParent(false)
 {
   mCurFrame = 0;
   mCachedFrame = UINT32_MAX;
@@ -288,7 +288,7 @@ void pxImageA::resourceReady(rtString readyResolution)
     mScene->mDirty = true;
     loadImageSequence();
     pxObject* parent = mParent;
-    if( !parent)
+    if( !parent || mResolveWithoutParent)
     {
       // Send the promise here because the image will not get an 
       // update call until it has a parent
@@ -385,8 +385,21 @@ float pxImageA::getOnscreenHeight()
     return mh;
 }
 
+rtError pxImageA::resolveWithoutParent(bool& v)  const
+{
+  v = mResolveWithoutParent;
+  return RT_OK;
+}
+
+rtError pxImageA::setResolveWithoutParent(bool v)
+{
+  mResolveWithoutParent = v;
+  return RT_OK;
+}
+
 rtDefineObject(pxImageA, pxObject);
 rtDefineProperty(pxImageA, url);
 rtDefineProperty(pxImageA, resource);
 rtDefineProperty(pxImageA, stretchX);
 rtDefineProperty(pxImageA, stretchY);
+rtDefineProperty(pxImageA, resolveWithoutParent);
