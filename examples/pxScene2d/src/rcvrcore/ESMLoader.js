@@ -327,8 +327,11 @@ var getModule = async function (specifier, referencingModule, version) {
   if (/\.json$/.test(specifier))
     return await loadJsonModule(source, specifier, referencingModule.context);
   if (/\.js$/.test(specifier)) {
-    if (enableFrameworkCaching && isFramework)
-      return await loadFrameworkModule(source, specifier, referencingModule.context, version)
+    if (isFramework) {
+      if (enableFrameworkCaching)
+        return await loadFrameworkModule(source, specifier, referencingModule.context, version)
+      return await loadFrameworkModule(source, specifier, referencingModule.context)
+    }
     return await loadJavaScriptModule(source, specifier, referencingModule.context);
   }
   return await loadMjs(source, specifier, referencingModule.context, referencingModule.context.modmap);
