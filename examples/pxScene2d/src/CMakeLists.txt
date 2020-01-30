@@ -89,7 +89,7 @@ add_definitions(-DANIMATION_ROTATE_XYZ )
 if(WIN32)
   set(OPENSSLLIB ${EXTDIR}/openssl-1.0.2o/)
   set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${OPENSSLLIB}/lib)
-
+  
   include_directories(AFTER ${OPENSSLLIB}/bin)
 endif(WIN32)
 
