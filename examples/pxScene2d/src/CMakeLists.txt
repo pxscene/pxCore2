@@ -649,7 +649,7 @@ if (BUILD_PXSCENE_APP)
         endif (SUPPORT_DUKTAPE)
 
         install(FILES ${PXSCENE_INSTALL_FILES_JS} ${PXSCENE_INSTALL_FILES} DESTINATION "/home/Spark/" COMPONENT pxscene)
-        set(CPACK_GENERATOR "DEB")
+        #set(CPACK_GENERATOR "DEB") let user decide between DEB TGZ
         set(CPACK_PACKAGE_NAME ${EXE})
         set(CPACK_DEBIAN_PACKAGE_MAINTAINER ${EXE})
         # autogenerate dependency information
