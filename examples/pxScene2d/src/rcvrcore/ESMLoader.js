@@ -93,10 +93,6 @@ function stripBOM(content) {
 /* load json module and returns as ejs module */
 var loadJsonModule = async function (source, specifier, ctx)
 {
-  if (specifier in ctx.modmap)
-  {
-    return ctx.modmap[specifier];
-  }
   var mod;
   var module = JSON.parse(stripBOM(source));
   const names = ArrayMap([...Object.keys(module), 'default'], (name) => `${name}`);
@@ -132,12 +128,8 @@ var loadJsonModule = async function (source, specifier, ctx)
 }
     
 /* load javascript file and returns as ejs module */
-var loadJavaScriptModule = async function (source, specifier, ctx, version)
+var loadJavaScriptModule = async function (source, specifier, ctx)
 {
-  if (specifier in ctx.modmap)
-  {
-    return ctx.modmap[specifier];
-  }
   var mod;
   var wrapper = [
     '(function (module) { ',
@@ -172,24 +164,18 @@ var loadJavaScriptModule = async function (source, specifier, ctx, version)
          throw err;
        }
    }}});
-  mod.version = version;
   ctx.modmap[specifier] = mod; 
   if (mod.linkingStatus == 'unlinked')
   { 
     var result = await mod.link(function() {});
   }
   return mod;
-}      
-    
+}
+
 /* load node module and returns as ejs module */
 var loadNodeModule = async function (specifier, ctx)
-{     
-  if (specifier in ctx.modmap)
-  {
-    return ctx.modmap[specifier];
-  }
+{
   var mod;
-  var module; 
   const names = ArrayMap(['default'], (name) => `${name}`);
     const source = `
   ${ArrayJoin(ArrayMap(names, (name) =>
@@ -221,10 +207,6 @@ var loadNodeModule = async function (specifier, ctx)
 /* load commonjs module and returns as ejs module */
 var loadCommonJSModule = async function (specifier, ctx)
 {
-  if (specifier in ctx.modmap)
-  {
-    return ctx.modmap[specifier];
-  }
   var __dirname = process.cwd()
   var mod;
   var module = reqOrig(specifier);
@@ -260,6 +242,20 @@ var loadCommonJSModule = async function (specifier, ctx)
   return mod;
 }
 
+/* iife, or umd */
+var loadFrameworkModule = async function (source, specifier, ctx, version)
+{
+  // console.log(`loading framework '${specifier}' ver.'${version}'`);
+  var mod = new vm.Script(source);
+  mod.runInContext(ctx);
+  if (typeof version === "string" && version !== "") {
+    frameWorkCache[version] = mod
+  } else {
+    ctx.modmap[specifier] = mod
+  }
+  return mod;
+}
+
 var getFile = async function (scene, url) {
   if (/^http:|^https:/.test(url))
     return await loadHttpFile(scene, url);
@@ -270,10 +266,8 @@ var getFile = async function (scene, url) {
 
 /* load mjs file and returns as ejs module */
 var getModule = async function (specifier, referencingModule, version) {
-  if (/\.node$/.test(specifier))
-    return await loadNodeModule(specifier, referencingModule.context);
-  if ((fs.existsSync("node_modules/" + specifier) && !/^(wpe-lightning|wpe-lightning-spark)/.test(specifier)) || /^(fs|http|https)$/.test(specifier))
-    return await loadCommonJSModule(specifier, referencingModule.context);
+  let isCommonJSModule = false
+  let isFramework = version !== undefined && version !== null
 
   if (specifier.indexOf("wpe-lightning-spark") === 0) {
     specifier = path.resolve(process.cwd(), "node_modules/wpe-lightning-spark/src/lightning.mjs");
@@ -284,41 +278,60 @@ var getModule = async function (specifier, referencingModule, version) {
   // The following code is default.
   // Specifier can be a relative, absolute path, or URL. Convert to URL, for consistency.
   else {
-    if (!/^(http:|https:|file:)/.test(specifier))
-      specifier = urlmain.resolve(referencingModule.url, specifier);
-    const ext = path.extname(specifier);
-    if (!/^(\.js|\.mjs)$/.test(ext))
-      specifier += '.mjs';
+    if (!/^(http:|https:|file:)/.test(specifier)) {
+      if (fs.existsSync("node_modules/" + specifier)) {
+        isCommonJSModule = true
+      } else {
+        specifier = urlmain.resolve(referencingModule.url, specifier);
+        const ext = path.extname(specifier);
+        if (!/^(\.js|\.mjs)$/.test(ext))
+          specifier += '.mjs';
+      }
+    }
   }
-  if (!/^(http:|https:|file:)/.test(specifier))
+  if (!/^(http:|https:|file:)/.test(specifier) && !isCommonJSModule)
     specifier = `file://${specifier}`;
 
   // Load as .js, .mjs, or .json.
   // If the module has been loaded already, return it.
   if (specifier in referencingModule.context.modmap) {
+    // console.log(`found module '${specifier}' in cache`);
     return referencingModule.context.modmap[specifier];
   }
 
   // Same file from different domains is shared if has 'version'.
-  // URL is added to modmap anyway.
-  if (version) {
-    for (let k in referencingModule.context.modmap) {
-      if (referencingModule.context.modmap.hasOwnProperty(k)) {
-        let mod = referencingModule.context.modmap[k];
-        if (mod.version === version) {
-          referencingModule.context.modmap[specifier] = mod;
-          return mod;
-        }
+  if (isFramework) {
+    if (undefined === enableFrameworkCaching) {
+      enableFrameworkCaching = referencingModule.context.global.sparkscene.sparkSetting("enableFrameWorkCache");
+      if (undefined === enableFrameworkCaching) {
+        enableFrameworkCaching = true;
+      }
+      if (false === enableFrameworkCaching) {
+        keepFrameworksOnExit = false;
       }
     }
+    if (enableFrameworkCaching && version && (version in frameWorkCache)) {
+      // console.log(`found module '${specifier}' ver.'${version}' in persistent cache`);
+      let mod = frameWorkCache[version];
+      mod.runInContext(referencingModule.context);
+      return mod;
+    }
   }
+
+  if (/\.node$/.test(specifier))
+    return await loadNodeModule(specifier, referencingModule.context);
+  if (isCommonJSModule)
+    return await loadCommonJSModule(specifier, referencingModule.context);
 
   const source = await getFile(referencingModule.context.global.sparkscene, specifier);
   if (/\.json$/.test(specifier))
     return await loadJsonModule(source, specifier, referencingModule.context);
-  if (/\.js$/.test(specifier))
-    return await loadJavaScriptModule(source, specifier, referencingModule.context, version);
-  return await loadMjs(source, specifier, referencingModule.context, referencingModule.context.modmap, version);
+  if (/\.js$/.test(specifier)) {
+    if (enableFrameworkCaching && isFramework)
+      return await loadFrameworkModule(source, specifier, referencingModule.context, version)
+    return await loadJavaScriptModule(source, specifier, referencingModule.context);
+  }
+  return await loadMjs(source, specifier, referencingModule.context, referencingModule.context.modmap);
 };
 
 var linker = async function (specifier, referencingModule) {
@@ -331,15 +344,14 @@ var linker = async function (specifier, referencingModule) {
   }
 }
 
-// NOTE: 'version' is not a standard arg. It's used in our code. See getModule.
-var importModuleDynamically = async function (specifier, referencingModule, version) {
-  var mod = await getModule(specifier,referencingModule,version);
+var importModuleDynamically = async function (specifier, referencingModule) {
+  var mod = await getModule(specifier,referencingModule);
   mod.instantiate();
   await mod.evaluate();
   return mod;
 }
 
-var loadMjs = async function (source, url, context, modmap, version)
+var loadMjs = async function (source, url, context, modmap)
 {
   if (url in modmap)
   {
@@ -350,7 +362,6 @@ var loadMjs = async function (source, url, context, modmap, version)
     throw "Context is empty, app might got terminated !!!";
   }
   var mod = new vm.SourceTextModule(source , { context: context, initializeImportMeta:initializeImportMeta, importModuleDynamically:importModuleDynamically, url:url });
-  mod.version = version;
   modmap[url] = mod;
   if (mod.linkingStatus == 'unlinked')
   {
@@ -359,182 +370,10 @@ var loadMjs = async function (source, url, context, modmap, version)
   return mod;
 }
 
-function eligibleForFrameWorkCaching(scene, url, name, hash)
-{
-  if (undefined == enableFrameworkCaching)
-  {
-    enableFrameworkCaching = scene.sparkSetting("enableFrameWorkCache");
-    if (undefined == enableFrameworkCaching)
-    {
-      enableFrameworkCaching = true;
-    }
-    if (false == enableFrameworkCaching) {
-      keepFrameworksOnExit = false;
-    }
-  }
-  if (enableFrameworkCaching == true)
-  {
-    // currently enable only for .js file
-    if ((/\.js$/.test(url)) && (hash != undefined) && ((url != undefined) || (name != undefined)))
-      return true;
-  }
-  return false;
-}
-
-function ensureUniqueFramework(url)
-{
-  var noentries = frameWorkCache[url].length;
-  if (noentries > 1) {
-    var entriestoremove = []
-    for (var i=0; i<noentries; i++) {
-      if (frameWorkCache[url][i].numAppsUsing == 0)
-      {
-        entriestoremove.push(i)
-      }
-    }
-    for (var i=0; i<entriestoremove.length-1; i++) {
-      var index = entriestoremove[i];
-      for (key in frameWorkCache[url][index]) {
-        delete frameWorkCache[url][index][key]
-      }
-    }
-    for (var i=0; i<entriestoremove.length-1; i++) {
-      var index = entriestoremove[i];
-      index = index-i;
-      frameWorkCache[url].splice(entriestoremove[index], 1);
-    }
-    entriestoremove = []
-  }
-}
-
-function getUrlMatchingHashDetails(hash)
-{
-  var details = {}
-  var matchFound = false;
-  for (var key in frameWorkCache) {
-    for (var i=0; i<frameWorkCache[key].length; i++) {
-      if (frameWorkCache[key][i].hash == hash)
-      {
-        details['url'] = key
-        details['index'] = i
-        matchFound = true;
-        break;
-      }
-    }
-    if (true == matchFound)
-      break;
-  }
-  return details;
-}
-
-function getCachePosition(url, hash)
-{
-  var cacheposition = -1;
-  if (frameWorkCache[url] != undefined)
-  {
-    for (var i=0; i<frameWorkCache[url].length; i++) {
-      if (frameWorkCache[url][i].hash == hash)
-      {
-        cacheposition = i;
-        break;
-      }
-    }
-/*
-    // means we got a requirement for a framework version not in cache
-    // removing unsed earlier to handle any scenarios to unwanted memory removal
-    ensureUniqueFramework(url);
-*/
-  }
-  return cacheposition;
-}
-
-async function loadFrameWorks(loadCtx, bootstrapUrl) {
-  const list = loadCtx.bootstrap.frameworks;
-  var frameWorkUsageInfo = {}
-  var urlsToRun = []
-  for (let i = 0; i < list.length; i++) {
-    let _framework = list[i];
-    let _url = _framework.url || _framework;
-
-    //below code is for keeping url as absolute path
-    if (!/^(http:|https:|file:)/.test(_url))
-      _url = urlmain.resolve(bootstrapUrl, _url);
-    const ext = path.extname(_url);
-    if (!/^(\.js|\.mjs)$/.test(ext))
-      _url += '.js';
-
-    if (!/^(http:|https:|file:)/.test(_url))
-      _url = `file://${_url}`;
-
-    let _filename = _url;
-
-    //find the filename alone from url to be used as key if name not present
-    var filenameIndex = _url.lastIndexOf("/"); 
-    if ((-1 != filenameIndex) && (_url.length > filenameIndex)) {
-      _filename = _url.substring(filenameIndex+1);
-    }
-
-    let _frameworkname = _framework.name
-
-    let _hash = _framework.md5
-    let useFrameWorkCaching = eligibleForFrameWorkCaching(loadCtx.sandbox.global.sparkscene, _filename, _frameworkname, _hash)
-
-    // store framework compiled scripts only for js files
-    if (true == useFrameWorkCaching)
-    {
-      let _cachekey = (undefined != _frameworkname)?_frameworkname:_filename;
-      let _cachePostion = getCachePosition(_cachekey, _hash);
-      if (_cachePostion != -1)
-      {
-        frameWorkUsageInfo[_cachekey] = _cachePostion;
-        //console.log("framework "+  _cachekey + " available in cache at postion " + _cachePostion + " , no need to reload !!!!!!!!!!!!!!!!!!!");
-      }
-      else
-      {
-        var hashMatchDetails = getUrlMatchingHashDetails(_hash);
-        if (hashMatchDetails['url'] != undefined) {
-          _cachekey = hashMatchDetails['url'];
-          frameWorkUsageInfo[hashMatchDetails['url']] = hashMatchDetails['index']
-          //console.log("framework matching hash "+  _cachekey + " available in cache at postion " + _cachePostion + " , no need to reload !!!!!!!!!!!!!!!!!!!");
-        }
-        else {
-          var frameWorkSource = await getFile(loadCtx.sandbox.global.sparkscene, _url);
-          var frameWorkScript = new vm.Script(frameWorkSource);
-          if (undefined == frameWorkCache[_cachekey]) {
-            frameWorkCache[_cachekey] = []
-          }
-          frameWorkCache[_cachekey].push({'hash' : _hash, 'script' : frameWorkScript, 'numAppsUsing' : 0})
-          frameWorkUsageInfo[_cachekey] = frameWorkCache[_cachekey].length - 1;
-          //console.log("Newly loaded cache for ********************* " + _cachekey + " at position " + frameWorkUsageInfo[_cachekey]);
-        }
-      }
-      urlsToRun.push({'url' : _cachekey, 'hash' : _hash});
-    }
-    else
-    {
-      urlsToRun.push({'url' : _url, 'hash' : _hash});
-    }
-  }
-  for (var i=0; i<urlsToRun.length; i++)
-  {
-    var key = urlsToRun[i].url;
-    var hash = urlsToRun[i].hash;
-    if (frameWorkUsageInfo[key] == undefined) {
-      await importModuleDynamically(key, {url:bootstrapUrl, context:loadCtx.contextifiedSandbox}, hash);
-    } else {
-      var pos = frameWorkUsageInfo[key];
-      frameWorkCache[key][pos].script.runInContext(loadCtx.contextifiedSandbox);
-      frameWorkCache[key][pos].numAppsUsing = frameWorkCache[key][pos].numAppsUsing + 1;
-    }
-  }
-  loadCtx.frameWorkUsageInfo = frameWorkUsageInfo;
-}
-
 function ESMLoader(params) {
   this.ctx = params
   this.loadESM = function(filename) {
     var loadCtx = this.ctx;
-    loadCtx.frameWorkUsageInfo = {}
     let url = filename2url(filename);
     const loc = /^file:/.test(url) ? url.substring(7) : url;
   
@@ -551,6 +390,7 @@ function ESMLoader(params) {
     // TODO: __dirname doesn't change in modules imported dynamically. However, in modules loaded via 'require', it is set correctly.
     loadCtx.sandbox.require = loadCtx.makeRequire(loc).bind(loadCtx);
     loadCtx.sandbox['__dirname'] = path.dirname(loc);
+    loadCtx.sandbox.global.__dirname = loadCtx.sandbox.__dirname;
     loadCtx.contextifiedSandbox = vm.createContext(loadCtx.sandbox);
     loadCtx.contextifiedSandbox.modmap = loadCtx.modmap;
     var script = new vm.Script(
@@ -571,7 +411,16 @@ function ESMLoader(params) {
         try {
           // When URL is .spark, frameworkURL-s are loaded like dynamic imports.
           if (loadCtx.bootstrap && loadCtx.bootstrap.frameworks) {
-            await loadFrameWorks(loadCtx, bootstrapUrl);
+            const list = loadCtx.bootstrap.frameworks;
+            for (let i = 0; i < list.length; i++) {
+              let _framework = list[i];
+              let _url = _framework.url || _framework;
+              let _version = _framework.md5 || "";
+              await getModule(_url, {
+                url:bootstrapUrl,
+                context:loadCtx.contextifiedSandbox
+              }, _version);
+            }
           }
           var source = await getFile(loadCtx.global.sparkscene, url);
           loadCtx.app = await loadMjs(source, url, loadCtx.contextifiedSandbox, loadCtx.modmap);
@@ -598,46 +447,16 @@ function ESMLoader(params) {
     }
   }
   this.clearResources = function() {
-    if (enableFrameworkCaching == true)
-    {
-      if (undefined == keepFrameworksOnExit)
-      {
-        keepFrameworksOnExit = this.ctx.global.sparkscene.sparkSetting("keepFrameworksOnExit");
-        if (undefined == keepFrameworksOnExit)
-        {
-          keepFrameworksOnExit = true;
+    if (enableFrameworkCaching) {
+      if (undefined === keepFrameworksOnExit) {
+        keepFrameworksOnExit = this.ctx.global.sparkscene.sparkSetting("keepFrameworksOnExit")
+        if (undefined === keepFrameworksOnExit) {
+          keepFrameworksOnExit = true
         }
       }
-      if (undefined != this.ctx.frameWorkUsageInfo) {
-        for (key in this.ctx.frameWorkUsageInfo)
-        {
-          var pos = this.ctx.frameWorkUsageInfo[key];
-          frameWorkCache[key][pos].numAppsUsing--;
-          if (false == keepFrameworksOnExit) {
-            // not deleting the cache entry if someone is using
-            if (frameWorkCache[key][pos].numAppsUsing == 0)
-            {
-              for(var k in frameWorkCache[key][pos]) 
-              { 
-                delete frameWorkCache[key][pos][k]; 
-              }
-              frameWorkCache[key].splice(pos, 1);
-            }
-            if (frameWorkCache[key].length == 0)
-            {
-              delete frameWorkCache[key];
-            }
-          }
-          else {
-            ensureUniqueFramework(key);
-          }
-        }
-        this.ctx.frameWorkUsageInfo = {}
-        delete this.ctx.frameWorkUsageInfo;
+      if (!keepFrameworksOnExit) {
+        frameWorkCache = {}
       }
-    }
-    else {
-      //console.log("no framework manipulation !!!!!");
     }
     this.ctx = null
   }
