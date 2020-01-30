@@ -652,9 +652,8 @@ if (BUILD_PXSCENE_APP)
         set(CPACK_GENERATOR "DEB")
         set(CPACK_PACKAGE_NAME ${EXE})
         set(CPACK_DEBIAN_PACKAGE_MAINTAINER ${EXE})
-              # autogenerate dependency information
+        # autogenerate dependency information
         #set (CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
-        #set(CPACK_DEBIAN_PACKAGE_DEPENDS "gif")
         set(CPACK_PACKAGE_VERSION "${PXSCENE_VERSION}")
         set(CPACK_PACKAGE_FILE_NAME "spark-setup")
         set(CPACK_PACKAGE_INSTALL_DIRECTORY "/home/Spark/")
