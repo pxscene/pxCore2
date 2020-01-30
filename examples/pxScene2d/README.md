@@ -21,7 +21,6 @@
 ## Ubuntu Setup
 >Setup Ubuntu
 >   * Create a linux VM.  The following version is recommended:  ubuntu-14.04.1-desktop-amd64
-
 1. Install required packages:
 
     ~~~~
