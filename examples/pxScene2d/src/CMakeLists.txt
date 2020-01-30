@@ -361,7 +361,7 @@ endif(DEFINED ENV{PX_BUILD_VERSION})
 
 if ("${PXSCENE_VERSION}" STREQUAL "")
     add_definitions(-DPX_SCENE_VERSION=dev)
-    set(PXSCENE_VERSION 1.1.dev)
+    set(PXSCENE_VERSION 1.0.dev)
 else ()
     message("pxscene version is: ${PXSCENE_VERSION}")
     add_definitions(-DPX_SCENE_VERSION=${PXSCENE_VERSION})
