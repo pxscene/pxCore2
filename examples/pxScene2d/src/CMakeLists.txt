@@ -640,7 +640,6 @@ if (BUILD_PXSCENE_APP)
             "${CMAKE_CURRENT_SOURCE_DIR}/../external/sqlite/.libs/libsqlite3.so.0.8.6"
             "${CMAKE_CURRENT_SOURCE_DIR}/../external/extlibs/lib/libturbojpeg.so.*0"
             "${CMAKE_CURRENT_SOURCE_DIR}/../external/giflib-5.1.9/.libs/libgif.so.*"
-            "${CMAKE_CURRENT_SOURCE_DIR}/../external/giflib-5.1.9/.libs/libgif.so.*"
             "/usr/lib/x86_64-linux-gnu/libGLEW.so.1.10.0"
             "/usr/lib/x86_64-linux-gnu/libGLEW.so.1.10")
         if (SUPPORT_DUKTAPE)
