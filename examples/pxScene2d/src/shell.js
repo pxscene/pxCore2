@@ -84,7 +84,7 @@ px.import({ scene: 'px:scene.1.js',
 
   var    blackBg = scene.create({t:"rect", fillColor:0x000000ff,x:0,y:0,w:1280,h:720,a:0,parent:scene.root});
   var defaultToOpaqueBackground = true;
-  if (originalURL.startsWith("gl:"))
+  if (originalURL.startsWith("gl:") || originalURL.includes(".spark"))
   {
     blackBg.a = 0;
     defaultToOpaqueBackground = false;
