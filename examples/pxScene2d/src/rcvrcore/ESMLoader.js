@@ -249,6 +249,15 @@ var loadFrameworkModule = async function (source, specifier, ctx, version)
   var mod = new vm.Script(source);
   mod.runInContext(ctx);
   if (typeof version === "string" && version !== "") {
+    const filename = specifier.substring(specifier.lastIndexOf('/')+1);
+    mod.filename = filename;
+    Object.keys(frameWorkCache).forEach(function (key) {
+      if (frameWorkCache[key].filename === filename) {
+        // console.log(`ver.'${key}' => ${version} for ${filename}`);
+        delete frameWorkCache[key];
+      }
+    });
+
     frameWorkCache[version] = mod
   } else {
     ctx.modmap[specifier] = mod
