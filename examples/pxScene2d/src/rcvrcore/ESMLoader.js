@@ -27,6 +27,14 @@ var ArrayMap = Function.call.bind(Array.prototype.map);
 var reqOrig = require;
 var frameWorkCache = {}
 
+class Framework {
+  constructor(module, specifier) {
+    this.module = module;
+    this.filename = specifier.substring(specifier.lastIndexOf('/')+1);
+    this.use = 1;
+  }
+}
+
 // default value is true for below parameters if not defined in spark settings
 var enableFrameworkCaching = undefined;
 var keepFrameworksOnExit = undefined;
@@ -249,7 +257,14 @@ var loadFrameworkModule = async function (source, specifier, ctx, version)
   var mod = new vm.Script(source);
   mod.runInContext(ctx);
   if (typeof version === "string" && version !== "") {
-    frameWorkCache[version] = mod
+    let framework = new Framework(mod, specifier);
+    Object.keys(frameWorkCache).forEach(key => {
+      if (frameWorkCache[key].filename === framework.filename && frameWorkCache[key].use <= 0) {
+        // console.log(`replace framework '${framework.filename}' ver.'${key}' => '${version}'`);
+        delete frameWorkCache[key];
+      }
+    });
+    frameWorkCache[version] = framework;
   } else {
     ctx.modmap[specifier] = mod
   }
@@ -311,10 +326,11 @@ var getModule = async function (specifier, referencingModule, version) {
       }
     }
     if (enableFrameworkCaching && version && (version in frameWorkCache)) {
-      // console.log(`found module '${specifier}' ver.'${version}' in persistent cache`);
-      let mod = frameWorkCache[version];
-      mod.runInContext(referencingModule.context);
-      return mod;
+      // console.log(`found framework '${specifier}' ver.'${version}' in cache`);
+      let framework = frameWorkCache[version];
+      framework.module.runInContext(referencingModule.context);
+      framework.use++;
+      return framework.module;
     }
   }
 
@@ -458,7 +474,20 @@ function ESMLoader(params) {
         }
       }
       if (!keepFrameworksOnExit) {
+        // console.log(`delete all frameworks on exit`);
         frameWorkCache = {}
+      } else {
+        if (this.ctx.bootstrap && this.ctx.bootstrap.frameworks) {
+          this.ctx.bootstrap.frameworks.forEach(i => {
+            if (i.md5 && i.md5 in frameWorkCache) {
+              let framework = frameWorkCache[i.md5];
+              if (--framework.use <= 0 && Object.values(frameWorkCache).some(j => j !== framework && j.filename === framework.filename)) {
+                // console.log(`delete framework '${framework.filename}' ver.'${i.md5}'`);
+                delete frameWorkCache[i.md5];
+              }
+            }
+          });
+        }
       }
     }
     this.ctx = null
