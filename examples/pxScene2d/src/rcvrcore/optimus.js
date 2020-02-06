@@ -84,6 +84,7 @@ function Application(props) {
   var _uiReadyReject = function(){};
   var _urlChangeResolve = function(){};
   var _urlChangeReject = function(){};
+  this._metaData = {}
 
   // Getters/setters
   var _externalAppPropsReadWrite = {
@@ -131,6 +132,10 @@ function Application(props) {
     Object.defineProperty(_this, key, {
       get: function() { return _externalApp[_externalAppPropsReadonly[key]]; }
     });
+  });
+
+  Object.defineProperty(_this, "metaData", {
+      get: function() { return _metaData; }
   });
 
   this.readyBase = new Promise(function (resolve, reject) {
@@ -197,6 +202,9 @@ function Application(props) {
   var _browser;
   var _state = ApplicationState.RUNNING;
   var displayName;
+  var userAgent = null;
+  var localStorage = false;
+  var appParent = null;
 
   // Internal function needed for suspend
   var do_suspend_internal = function(o)
@@ -412,6 +420,12 @@ function Application(props) {
       _externalApp.moveBackward();
     }
   };
+  // Sets the parent
+  this.setParent = function(p) {
+    if (_externalApp){
+      _externalApp.parent = p;
+    }
+  };
   // Sets the input focus to this application
   this.setFocus = function(b) {
     if (_externalApp){
@@ -518,6 +532,20 @@ function Application(props) {
   if ("hasApi" in props){
     hasApi = props.hasApi;
   }
+  if ("metaData" in props){
+    _metaData = props.metaData;
+  }
+  if ("userAgent" in props){
+    userAgent = props.userAgent;
+  }
+  if ("localStorage" in props){
+    localStorage = props.localStorage;
+  }
+  if ("parent" in props){
+    appParent = props.parent;
+  } else {
+    appParent = root;
+  }
   if (cmd === "wpe" && uri){
     cmd = cmd + " " + uri;
   }
@@ -541,7 +569,7 @@ function Application(props) {
       _this.applicationClosed();
     });
   }
-  else if (!scene) {
+  else if (!scene && !appParent) {
     this.log('cannot create app because the scene is not set');
     _readyBaseReject(new Error('scene is not set'));
     _uiReadyReject();
@@ -559,7 +587,7 @@ function Application(props) {
   }
   else if (cmd === "spark"){
     this.type = ApplicationType.SPARK;
-    _externalApp = scene.create({t:"scene", parent:root, url:uri, serviceContext:serviceContext});
+    _externalApp = scene.create({t:"scene", parent:appParent, url:uri, serviceContext:serviceContext});
     _externalApp.on("onReady", function () { _this.log("onReady"); }); // is never called
     _externalApp.on("onClientStarted", function () { _this.log("onClientStarted"); }); // is never called
     _externalApp.on("onClientConnected", function () { _this.log("onClientConnected"); }); // is never called
@@ -597,7 +625,7 @@ function Application(props) {
     if (uri === ""){
       uri = "preloadSparkInstance.js";
     }
-    _externalApp = scene.create( {t:"external", parent:root, cmd:"spark " + uri, w:w, h:h, hasApi:true} );
+    _externalApp = scene.create( {t:"external", parent:appParent, cmd:"spark " + uri, w:w, h:h, hasApi:true} );
     _externalApp.on("onReady", function () { _this.log("onReady"); }); // is never called
     _externalApp.on("onClientStarted", function () { _this.log("onClientStarted"); });
     _externalApp.on("onClientConnected", function () { _this.log("onClientConnected"); });
@@ -640,7 +668,7 @@ function Application(props) {
   }
   else if (cmd === "WebApp"){
     this.type = ApplicationType.WEB;
-    _externalApp = scene.create( {t:"external", parent:root, server:"wl-rdkbrowser2-server", w:w, h:h, hasApi:true} );
+    _externalApp = scene.create( {t:"external", parent:appParent, server:"wl-rdkbrowser2-server", w:w, h:h, hasApi:true} );
     _externalApp.on("onReady", function () { _this.log("onReady"); });
     _externalApp.on("onClientStarted", function () { _this.log("onClientStarted"); });
     _externalApp.on("onClientConnected", function () { _this.log("onClientConnected"); });
@@ -671,7 +699,13 @@ function Application(props) {
           }
           
           _browser.on("onHTMLDocumentLoaded",handleOnHTMLDocumentLoadedEvent);
-          
+          if (userAgent){
+            _browser.userAgent = userAgent;
+          }
+          if (localStorage){
+            _browser.localStorageEnabled = localStorage;
+          }
+
           _browser.url = uri;
           _this.log("launched WebApp uri:" + uri);
           _this.applicationCreated();
@@ -699,7 +733,7 @@ function Application(props) {
   }
   else{
     this.type = ApplicationType.NATIVE;
-    _externalApp = scene.create( {t:"external", parent:root, cmd:cmd, w:w, h:h, hasApi:hasApi, displayName:displayName} );
+    _externalApp = scene.create( {t:"external", parent:appParent, cmd:cmd, w:w, h:h, hasApi:hasApi, displayName:displayName} );
     _externalApp.on("onReady", function () { _this.log("onReady"); }); // is never called
     _externalApp.on("onClientStarted", function () { _this.log("onClientStarted"); });
     _externalApp.on("onClientConnected", function () { _this.log("onClientConnected"); });
