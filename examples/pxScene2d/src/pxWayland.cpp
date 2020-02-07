@@ -123,11 +123,6 @@ pxWayland::~pxWayland()
   rtRemoteUnregisterDisconnectedCallback(pxWayland::remoteDisconnectedCB, this);
 #endif //ENABLE_PX_WAYLAND_RPC
 
-  if (gUIThreadQueue)
-  {
-    gUIThreadQueue->removeAllTasksForObject(this);
-  }
-
   if ( mWCtx )
   {
      terminateClient();
@@ -146,19 +141,6 @@ pxWayland::~pxWayland()
      mClientPID= -1;
      mWCtx = NULL;
   }
-}
-
-void pxWayland::setEvents(pxWaylandEvents *events)
-{
-  if (mEvents)
-  {
-    mEvents = NULL;
-
-    if (gUIThreadQueue)
-      gUIThreadQueue->removeAllTasksForObject(this);
-  }
-
-  mEvents = events;
 }
 
 rtError pxWayland::displayName(rtString& s) const { s = mDisplayName; return RT_OK; }
@@ -679,7 +661,11 @@ void pxWayland::onClientStatus(void* context, void* data)
 {
    pxWayland* pxw = (pxWayland*)context;
    pxWaylandClientStatus* statusData = (pxWaylandClientStatus*)data;
-   pxw->handleClientStatus(statusData->status, statusData->pid, statusData->detail);
+   if (pxw)
+   {
+      pxw->handleClientStatus(statusData->status, statusData->pid, statusData->detail);
+      pxw->Release();
+   }
    delete statusData;
 }
 
@@ -687,10 +673,11 @@ void pxWayland::clientStatus( WstCompositor *wctx, int status, int pid, int deta
 {
    (void)wctx;
 
-   pxWayland *pxw= (pxWayland*)userData;
+   pxWayland *pxw = (pxWayland*)userData;
 
-   if (gUIThreadQueue)
+   if (pxw && gUIThreadQueue)
    {
+      pxw->AddRef();
       pxWaylandClientStatus* statusData = new pxWaylandClientStatus(status, pid, detail);
       gUIThreadQueue->addTask(onClientStatus, pxw, statusData);
    }
