@@ -145,6 +145,18 @@ void pxWaylandContainer::clientStoppedAbnormal( int pid, int signo )
    mEmit.send("onClientStopped", e);
 }
 
+void pxWaylandContainer::remoteDisconnected(void * data)
+{
+  UNUSED_PARAM(data);
+  if (!mIsDisposed) {
+    mRemoteReady = new rtPromise();
+    if ( mWayland )
+    {
+      mWayland->startRemoteObjectDetection();
+    }
+  }
+}
+
 void pxWaylandContainer::isReady( bool ready )
 {
   mReady.send(ready?"resolve":"reject", this);
