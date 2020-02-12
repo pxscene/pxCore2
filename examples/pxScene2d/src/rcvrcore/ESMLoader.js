@@ -420,7 +420,8 @@ function ESMLoader(params) {
       "global.Headers = Headers = global.fetch.Headers;" +
       "global.Request = Request = global.fetch.Request;" +
       "global.Response = Response = global.fetch.Response;" +
-      "global.WebSocket = WebSocket = require('ws');"
+      "global.WebSocket = WebSocket = require('ws');" +
+      "global.window = window = {};"
     );
     script.runInContext(loadCtx.contextifiedSandbox);
     script = null; 
