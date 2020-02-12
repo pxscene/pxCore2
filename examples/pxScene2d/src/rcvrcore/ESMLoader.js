@@ -423,6 +423,7 @@ function ESMLoader(params) {
       "global.WebSocket = WebSocket = require('ws');" +
       "global.window = window = {};"
     );
+    
     script.runInContext(loadCtx.contextifiedSandbox);
     script = null; 
     try {
