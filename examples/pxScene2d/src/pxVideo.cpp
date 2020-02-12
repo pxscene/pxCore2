@@ -749,6 +749,26 @@ private:
 	rtEmitRef mEmit;
 };
 
+class PlayerStateChangeListener : public AAMPEventListener
+{
+public:
+
+	PlayerStateChangeListener(rtEmitRef& rtEmit) : mEmit(rtEmit) {}
+	~PlayerStateChangeListener() = default;
+
+	void Event(const AAMPEvent& event) override
+	{
+		assert(AAMP_EVENT_STATE_CHANGED == event.type);
+		rtObjectRef e = new rtMapObject;
+                e.set("state",event.data.stateChanged.state);
+		mEmit.send("onPlayerStateChanged", e);
+	}
+
+private:
+
+	rtEmitRef mEmit;
+};
+
 void pxVideo::registerAampEventsListeners()
 {
 	if (mAamp)
@@ -757,6 +777,7 @@ void pxVideo::registerAampEventsListeners()
 		addAampEventListener(AAMPEventType::AAMP_EVENT_SPEEDS_CHANGED, std::make_unique<SpeedsChangeListener>(mPlaybackMetadata));
 		addAampEventListener(AAMPEventType::AAMP_EVENT_PROGRESS,       std::make_unique<PlaybackProgressListener>(this->mEmit));
 		addAampEventListener(AAMPEventType::AAMP_EVENT_EOS,            std::make_unique<PlaybackEndOfStreamListener>(this->mEmit));
+		addAampEventListener(AAMPEventType::AAMP_EVENT_STATE_CHANGED,  std::make_unique<PlayerStateChangeListener>(this->mEmit));
 	}
 }
 
