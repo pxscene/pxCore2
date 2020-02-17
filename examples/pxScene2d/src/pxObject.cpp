@@ -1834,7 +1834,7 @@ void pxObject::drawEffect(pxContextFramebufferRef &flattenFbo)
   // Always need Scratch buffer...
   pxContextFramebufferRef effectFbo = context.createFramebuffer(mw, mh);
   
-  float clr[] = {0.0, 0.0, 0.0, 1.0};
+  float clr[] = {0.0, 0.0, 0.0, 0.0};
   
   context.setFramebuffer(effectFbo);
   context.clear(static_cast<int>(mw), static_cast<int>(mh), &clr[0]);
