@@ -422,6 +422,7 @@ function ESMLoader(params) {
       "global.Response = Response = global.fetch.Response;" +
       "global.WebSocket = WebSocket = require('ws');" +
       "global.window = window = {};" +
+      "global.URL = URL = require('url').URL;" +
       "global.document = document = {};"
     );
     
