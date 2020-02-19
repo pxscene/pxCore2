@@ -159,6 +159,7 @@ public:
   rtError addListener(const rtString& eventName, const rtFunctionRef& f);
   rtError delListener(const rtString& eventName, const rtFunctionRef& f);
   rtError startRemoteObjectLocator();
+  void startRemoteObjectDetection();
   rtError connectToRemoteObject(unsigned int timeout_ms);
   rtError useDispatchThread(bool use);
   rtError resume(const rtValue& v, bool& b);
@@ -201,7 +202,6 @@ private:
   uint32_t getModifiers( uint32_t flags );
   bool isRotated();
   uint32_t linuxFromPX( uint32_t keyCode );
-  void startRemoteObjectDetection();
   rtError connectToRemoteObject();
 
 protected:
