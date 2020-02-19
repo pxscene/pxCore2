@@ -241,7 +241,6 @@ void pxWayland::createDisplay(rtString displayName)
 
       if ( mUseDispatchThread && !mRemoteObjectName.isEmpty() )
       {
-         mWaitingForRemoteObject = true;
          startRemoteObjectDetection();
       }
    }
@@ -692,6 +691,7 @@ void pxWayland::remoteDisconnectedCB(void *data)
 
 void pxWayland::startRemoteObjectDetection()
 {
+  mWaitingForRemoteObject = true;
   int rc= pthread_create( &mFindRemoteThreadId, NULL, findRemoteThread, this );
   if ( rc )
   {

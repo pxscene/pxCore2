@@ -54,6 +54,7 @@ public:
   virtual void clientStoppedAbnormal( int pid, int signo );
   virtual void isReady( bool ready );
   virtual void isRemoteReady(bool ready);
+  virtual void remoteDisconnected(void * data);
   virtual void sendPromise();
 
   rtError displayName(rtString& s) const;
