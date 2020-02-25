@@ -157,6 +157,46 @@ class rtStringTest : public testing::Test
        EXPECT_TRUE(mData.find(0, 0x34) == -1 );  // Bad !   0x34 = "4"
     }
 
+  void moveTests()
+  {
+    const char* str = "123";
+
+    rtString s1(str), s2;
+
+    auto ptr = s1.cString();
+
+    // copy assign
+    s2 = s1;
+    EXPECT_EQ(0, s1.compare(str));
+    EXPECT_EQ(0, s2.compare(str));
+    EXPECT_TRUE(ptr == s1.cString());
+    EXPECT_TRUE(ptr != s2.cString());
+
+    // move-assign from xvalue
+    s2 = std::move(s1);
+    EXPECT_TRUE(s1.isEmpty());
+    EXPECT_EQ(0, s2.compare(str));
+    EXPECT_TRUE(ptr == s2.cString());
+
+    // move-assign from rvalue temporary
+    s1 = rtString(str);
+    EXPECT_EQ(0, s1.compare(str));
+
+    // copy constructor
+    const rtString s3(s1);
+    rtString s4;
+
+    // copy assignment
+    s4 = std::move(s3);
+    EXPECT_EQ(0, s1.compare(str));
+    EXPECT_EQ(0, s3.compare(str));
+    EXPECT_EQ(0, s4.compare(str));
+
+    // move constructor
+    auto s5 = rtString(rtString(str));
+    EXPECT_EQ(0, s5.compare(str));
+  }
+
     private:
       rtString mData;
 };
@@ -174,5 +214,7 @@ TEST_F(rtStringTest, rtStringTests)
   beginsTest();
   substringTest();
   findTests();
+
+  moveTests();
 }
 
