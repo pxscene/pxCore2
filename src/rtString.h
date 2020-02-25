@@ -48,11 +48,13 @@ public:
   rtString(const char* s, uint32_t byteLen);
 
   rtString(const rtString& s);
+  rtString(rtString&& s) noexcept : mData(s.mData) { s.mData = nullptr; }
   
   ~rtString();
 
   rtString& operator=(const rtString& s);
   rtString& operator=(const char* s);
+  rtString& operator=(rtString&& s) noexcept;
 
   friend
   rtString operator+(const rtString& lhs, const char *rhs)
@@ -66,7 +68,7 @@ public:
   rtString& operator +(const rtString& s) { return append(s.cString()); };
   rtString& operator+=(const char* s)     { return append(s);           };
   rtString& operator+=(const rtString& s) { return append(s.cString()); };
-  
+
   /**
    * Determines if the string is empty.
    * @returns true if string length is zero or is null
