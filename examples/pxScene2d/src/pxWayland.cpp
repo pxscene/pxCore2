@@ -125,6 +125,10 @@ pxWayland::~pxWayland()
 
   if ( mWCtx )
   {
+     rtLogInfo("removing wayland callbacks before destroying");
+     WstCompositorSetInvalidateCallback(mWCtx, NULL, NULL);
+     WstCompositorSetHidePointerCallback(mWCtx, NULL, NULL);
+     WstCompositorSetClientStatusCallback(mWCtx, NULL, NULL);
      terminateClient();
      WstCompositorDestroy(mWCtx);
      //Adding mClientTerminated flag check because SIGKILL has to be sent to
@@ -140,6 +144,10 @@ pxWayland::~pxWayland()
      }
      mClientPID= -1;
      mWCtx = NULL;
+  }
+  if (gUIThreadQueue)
+  {
+    gUIThreadQueue->removeAllTasksForObject(this);
   }
 }
 
