@@ -21,6 +21,8 @@
 #include "rtThreadQueue.h"
 #include "pxTimer.h"
 
+#include <algorithm>
+
 using namespace std;
 
 rtThreadQueue::rtThreadQueue(){}
@@ -42,15 +44,17 @@ rtError rtThreadQueue::addTask(rtThreadTaskCB t, void* context, void* data)
 rtError rtThreadQueue::removeAllTasksForObject(void* context)
 {
   mTaskMutex.lock();
-  for(deque<ThreadQueueEntry>::iterator it = mTasks.begin();
-        it != mTasks.end(); ++it)
-  {
-    if ((it)->context == context)
-    {
-      it = mTasks.erase(it);
-      break;
-    }
-  }
+  mTasks.erase(
+    std::remove_if(
+      mTasks.begin(),
+      mTasks.end(),
+      [context](const ThreadQueueEntry& e)
+      {
+        return e.context == context;
+      }
+    ),
+    mTasks.end()
+  );
   mTaskMutex.unlock();
 
   return RT_OK;
