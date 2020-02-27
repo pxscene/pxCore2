@@ -426,6 +426,13 @@ function Application(props) {
       _externalApp.parent = p;
     }
   };
+  // takes a screenshot of the application
+  this.screenshot = function(mimeType) {
+    if (_externalApp && _externalApp.screenshot && typeof _externalApp.screenshot === "function"){
+      return _externalApp.screenshot(mimeType);
+    }
+    return null;
+  };
   // Sets the input focus to this application
   this.setFocus = function(b) {
     if (_externalApp){
