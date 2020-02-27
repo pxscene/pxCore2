@@ -78,10 +78,7 @@ public:
     rtLogInfo("pxWayland::onCloseRequest()");
   }
 
-  void setEvents(pxWaylandEvents *events)
-  {
-     mEvents = events;
-  }
+  void setEvents(pxWaylandEvents *events);
 
   rtError displayName(rtString& s) const;
   rtError setDisplayName(const char* s);

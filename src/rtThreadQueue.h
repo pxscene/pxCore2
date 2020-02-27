@@ -45,6 +45,7 @@ public:
   rtError addTask(rtThreadTaskCB t, void* context, void* data);
 
   rtError removeAllTasksForObject(void* context);
+  rtError clearObjectInAllTasksForObject(void* context);
 
   // Invoke this method periodically on the dispatching (owning) thread
   // maxSeconds=0 means process until empty

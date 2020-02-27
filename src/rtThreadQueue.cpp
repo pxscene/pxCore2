@@ -56,6 +56,17 @@ rtError rtThreadQueue::removeAllTasksForObject(void* context)
   return RT_OK;
 }
 
+rtError rtThreadQueue::clearObjectInAllTasksForObject(void* context)
+{
+  mTaskMutex.lock();
+  for (deque<ThreadQueueEntry>::iterator it = mTasks.begin(); it != mTasks.end(); ++it)
+    if (it->context == context)
+      it->context = nullptr;
+  mTaskMutex.unlock();
+
+  return RT_OK;
+}
+
 rtError rtThreadQueue::process(double maxSeconds)
 {
   bool done = false;

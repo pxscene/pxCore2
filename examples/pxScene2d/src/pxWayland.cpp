@@ -151,6 +151,12 @@ pxWayland::~pxWayland()
   }
 }
 
+void pxWayland::setEvents(pxWaylandEvents *events)
+{
+  mEvents = events;
+  gUIThreadQueue->removeAllTasksForObject(this);
+}
+
 rtError pxWayland::displayName(rtString& s) const { s = mDisplayName; return RT_OK; }
 rtError pxWayland::setDisplayName(const char* s)
 {
@@ -668,11 +674,8 @@ void pxWayland::onClientStatus(void* context, void* data)
 {
    pxWayland* pxw = (pxWayland*)context;
    pxWaylandClientStatus* statusData = (pxWaylandClientStatus*)data;
-   if (pxw)
-   {
+   if (pxw && pxw->mEvents)
       pxw->handleClientStatus(statusData->status, statusData->pid, statusData->detail);
-      pxw->Release();
-   }
    delete statusData;
 }
 
@@ -683,11 +686,7 @@ void pxWayland::clientStatus( WstCompositor *wctx, int status, int pid, int deta
    pxWayland *pxw = (pxWayland*)userData;
 
    if (pxw && gUIThreadQueue)
-   {
-      pxw->AddRef();
-      pxWaylandClientStatus* statusData = new pxWaylandClientStatus(status, pid, detail);
-      gUIThreadQueue->addTask(onClientStatus, pxw, statusData);
-   }
+      gUIThreadQueue->addTask(onClientStatus, pxw, new pxWaylandClientStatus(status, pid, detail));
 }
 
 void pxWayland::remoteDisconnectedCB(void *data)
