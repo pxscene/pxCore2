@@ -190,6 +190,7 @@ private:
   static void clientStatus( WstCompositor *wctx, int status, int pid, int detail, void *userData );
   static void remoteDisconnectedCB(void *data);
   static void onClientStatus(void* context, void* data);
+  static bool onRemoveTask(void* context, void* data);
 
   void handleInvalidate();
   void handleHidePointer( bool hide );

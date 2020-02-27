@@ -147,7 +147,7 @@ pxWayland::~pxWayland()
   }
   if (gUIThreadQueue)
   {
-    gUIThreadQueue->removeAllTasksForObject(this);
+    gUIThreadQueue->removeAllTasksForObject(this, onRemoveTask);
   }
 }
 
@@ -559,7 +559,7 @@ uint32_t pxWayland::getModifiers( uint32_t flags )
 bool pxWayland::isRotated()
 {
    pxMatrix4f matrix = context.getMatrix();
-   float *f = matrix.data(); 
+   float *f = matrix.data();
    const float e= 1.0e-2;
 
    if ( (fabsf(f[1]) > e) ||
@@ -666,34 +666,33 @@ struct pxWaylandClientStatus
 
 void pxWayland::onClientStatus(void* context, void* data)
 {
-   pxWayland* pxw = (pxWayland*)context;
-   pxWaylandClientStatus* statusData = (pxWaylandClientStatus*)data;
-   if (pxw)
+   if (context && data)
    {
+      pxWayland* pxw = (pxWayland*)context;
+      pxWaylandClientStatus* statusData = (pxWaylandClientStatus*)data;
       pxw->handleClientStatus(statusData->status, statusData->pid, statusData->detail);
-      pxw->Release();
    }
-   delete statusData;
+   onRemoveTask(context, data);
 }
 
 void pxWayland::clientStatus( WstCompositor *wctx, int status, int pid, int detail, void *userData )
 {
    (void)wctx;
+   if (userData && gUIThreadQueue)
+      gUIThreadQueue->addTask(onClientStatus, userData, new pxWaylandClientStatus(status, pid, detail));
+}
 
-   pxWayland *pxw = (pxWayland*)userData;
-
-   if (pxw && gUIThreadQueue)
-   {
-      pxw->AddRef();
-      pxWaylandClientStatus* statusData = new pxWaylandClientStatus(status, pid, detail);
-      gUIThreadQueue->addTask(onClientStatus, pxw, statusData);
-   }
+bool pxWayland::onRemoveTask(void* context, void* data)
+{
+   if (data)
+      delete (pxWaylandClientStatus*)data;
+   return true;
 }
 
 void pxWayland::remoteDisconnectedCB(void *data)
 {
     pxWayland *pxw = (pxWayland *)data;
-    if(pxw->mEvents)
+    if (pxw->mEvents)
         pxw->mEvents->remoteDisconnected(data);
 }
 
@@ -969,7 +968,7 @@ rtError pxWayland::drawToFbo(pxContextFramebufferRef& fbo)
 
   context.setFramebuffer( previousFrameBuffer );
   context.popState();
-  
+
   return RT_OK;
 }
 
