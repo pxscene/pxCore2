@@ -133,6 +133,8 @@
         'src',
         'tools/msvs/genfiles',
         'deps/uv/src/ares',
+        'deps/openssl/include',
+        'deps/openssl/openssl/include',
         '<(SHARED_INTERMEDIATE_DIR)', # for node_natives.h
       ],
 
