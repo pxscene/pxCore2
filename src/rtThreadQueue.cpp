@@ -29,7 +29,7 @@ rtThreadQueue::~rtThreadQueue() {}
 rtError rtThreadQueue::addTask(rtThreadTaskCB t, void* context, void* data)
 {
   mTaskMutex.lock();
-  ThreadQueueEntry entry;
+  rtThreadQueueEntry entry;
   entry.task = t;
   entry.context = context;
   entry.data = data;
@@ -39,18 +39,30 @@ rtError rtThreadQueue::addTask(rtThreadTaskCB t, void* context, void* data)
   return RT_OK;
 }
 
-rtError rtThreadQueue::removeAllTasksForObject(void* context)
+template<class It, class Pr>
+It removeIf(It first, It last, Pr pred)
+{
+  It result = first;
+  for (; first != last; ++first)
+    if (!pred(*first))
+      *result++ = move(*first);
+  return result;
+}
+
+rtError rtThreadQueue::removeAllTasksForObject(void* context, rtThreadQueueRemoveTaskCB cb)
 {
   mTaskMutex.lock();
-  for(deque<ThreadQueueEntry>::iterator it = mTasks.begin();
-        it != mTasks.end(); ++it)
-  {
-    if ((it)->context == context)
-    {
-      it = mTasks.erase(it);
-      break;
-    }
-  }
+  mTasks.erase(
+    removeIf(
+      mTasks.begin(),
+      mTasks.end(),
+      [context, cb](const rtThreadQueueEntry& e)
+      {
+        return (e.context == context) && (!cb || cb(e.context, e.data));
+      }
+    ),
+    mTasks.end()
+  );
   mTaskMutex.unlock();
 
   return RT_OK;
@@ -62,7 +74,7 @@ rtError rtThreadQueue::process(double maxSeconds)
   double start = pxSeconds();
   do
   {
-    ThreadQueueEntry entry;
+    rtThreadQueueEntry entry;
     mTaskMutex.lock();
     if (!mTasks.empty())
     {
