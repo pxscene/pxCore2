@@ -26,8 +26,9 @@
 #include <deque>
 
 typedef void (*rtThreadTaskCB)(void* context, void* data);
+typedef bool (*rtThreadQueueRemoveTaskCB)(void* context, void* data);
 
-struct ThreadQueueEntry
+struct rtThreadQueueEntry
 {
   rtThreadTaskCB task;
   void* context;
@@ -44,14 +45,14 @@ public:
   // Thread safe
   rtError addTask(rtThreadTaskCB t, void* context, void* data);
 
-  rtError removeAllTasksForObject(void* context);
+  rtError removeAllTasksForObject(void* context, rtThreadQueueRemoveTaskCB cb = nullptr);
 
   // Invoke this method periodically on the dispatching (owning) thread
   // maxSeconds=0 means process until empty
   rtError process(double maxSeconds = 0);
 
 private:
-  std::deque<ThreadQueueEntry> mTasks;
+  std::deque<rtThreadQueueEntry> mTasks;
   rtMutex mTaskMutex;
 };
 #endif //RT_THREAD_QUEUE_H
