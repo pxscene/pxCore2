@@ -3294,8 +3294,16 @@ void pxScriptView::runScript()
 
       // JRJR TODO initially with zero mWidth/mHeight until onSize event
       // defer to onSize once events have been ironed out
+      int width = 1280;
+      int height = 720;
+      if (mUrl.find(0, "enableSparkGL1080") >= 0)
+      {
+        rtLogInfo("enabling 1080 SparkGL app");
+        width = 1920;
+        height = 1080;
+      }
       mSharedContext->makeCurrent(true);
-      cached = context.createFramebuffer(1280,720,false,false,true);
+      cached = context.createFramebuffer(width,height,false,false,true);
       mSharedContext->makeCurrent(false);
 
       beginDrawing();
