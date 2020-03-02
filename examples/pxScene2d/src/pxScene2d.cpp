@@ -569,6 +569,7 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   //
   // capabilities.video.player         = 1
   // capabilities.sparkgl.nativedrawing    = 1
+  // capabilities.sparkgl.supports1080    = 1
 
   mCapabilityVersions = new rtMapObject;
 
@@ -675,6 +676,7 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
       sparkGlCapabilities.set("nativedrawing", 0);
     }
   }
+  sparkGlCapabilities.set("supports1080", 1);
   mCapabilityVersions.set("sparkgl", sparkGlCapabilities);
 
   //////////////////////////////////////////////////////
@@ -3294,8 +3296,16 @@ void pxScriptView::runScript()
 
       // JRJR TODO initially with zero mWidth/mHeight until onSize event
       // defer to onSize once events have been ironed out
+      int width = 1280;
+      int height = 720;
+      if (mUrl.find(0, "enableSparkGL1080") >= 0)
+      {
+        rtLogInfo("enabling 1080 SparkGL app");
+        width = 1920;
+        height = 1080;
+      }
       mSharedContext->makeCurrent(true);
-      cached = context.createFramebuffer(1280,720,false,false,true);
+      cached = context.createFramebuffer(width,height,false,false,true);
       mSharedContext->makeCurrent(false);
 
       beginDrawing();
