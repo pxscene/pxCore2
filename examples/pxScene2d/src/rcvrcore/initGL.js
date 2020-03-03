@@ -106,6 +106,13 @@ const makeRequire = function(pathToParent) {
         source = cachedSource['gles2.js']
         cachedData = true
       }
+      if (filename.indexOf('web-globals.js') != -1)
+      {
+        if (undefined == cachedSource['web-globals.js'])
+          cachedSource['web-globals.js'] = fs.readFileSync('rcvrcore/web-globals.js', 'utf-8');
+        source = cachedSource['web-globals.js']
+        cachedData = true
+      }
       if (false == cachedData) {    
         if (/^file:/.test(filename)) {
           source = fs.readFileSync(new urlmain.URL(filename), 'utf-8');
