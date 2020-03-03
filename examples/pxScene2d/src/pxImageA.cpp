@@ -21,6 +21,7 @@
 #include "pxImageA.h"
 #include "pxContext.h"
 #include <algorithm>
+#include "pxTimer.h"
 
 extern pxContext context;
 
@@ -397,9 +398,58 @@ rtError pxImageA::setResolveWithoutParent(bool v)
   return RT_OK;
 }
 
+rtError pxImageA::animate()
+{
+  if (getImageAResource() == NULL || !mImageLoaded)
+  {
+    return RT_OK;
+  }
+
+  double t = pxSeconds();
+  pxTimedOffscreenSequence& imageSequence = getImageAResource()->getTimedOffscreenSequence();
+  uint32_t numFrames = imageSequence.numFrames();
+
+  if (numFrames > 0)
+  {
+    if (mFrameTime < 0)
+    {
+      mCurFrame = 0;
+      mFrameTime = t;
+    }
+
+    for (; mCurFrame < numFrames; mCurFrame++)
+    {
+      double d = imageSequence.getDuration(mCurFrame);
+      if (mFrameTime + d >= t)
+        break;
+      mFrameTime += d;
+    }
+
+    if (mCurFrame >= numFrames)
+    {
+      mCurFrame = numFrames - 1; // snap animation to last frame
+
+      if (!imageSequence.numPlays() || mPlays < imageSequence.numPlays())
+      {
+        mFrameTime = -1; // reset animation
+        mPlays++;
+      }
+    }
+
+    if (mCachedFrame != mCurFrame)
+    {
+      pxOffscreen &o = imageSequence.getFrameBuffer(mCurFrame);
+      mTexture = context.createTexture(o);
+      mCachedFrame = mCurFrame;
+    }
+  }
+  return RT_OK;
+}
+
 rtDefineObject(pxImageA, pxObject);
 rtDefineProperty(pxImageA, url);
 rtDefineProperty(pxImageA, resource);
 rtDefineProperty(pxImageA, stretchX);
 rtDefineProperty(pxImageA, stretchY);
 rtDefineProperty(pxImageA, resolveWithoutParent);
+rtDefineMethod(pxImageA, animate);

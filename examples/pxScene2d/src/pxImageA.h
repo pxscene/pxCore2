@@ -35,6 +35,7 @@ public:
   rtProperty(stretchY, stretchY, setStretchY, int32_t);
   rtProperty(resource, resource, setResource, rtObjectRef);
   rtProperty(resolveWithoutParent, resolveWithoutParent, setResolveWithoutParent, bool);
+  rtMethodNoArgAndNoReturn("animate", animate);
 
   pxImageA(pxScene2d* scene);
   virtual ~pxImageA();
@@ -53,6 +54,7 @@ public:
   rtError removeResourceListener();
   rtError resolveWithoutParent(bool& v)  const;
   rtError setResolveWithoutParent(bool v);
+  rtError animate();
   virtual void resourceReady(rtString readyResolution);
   virtual void resourceDirty();
 
