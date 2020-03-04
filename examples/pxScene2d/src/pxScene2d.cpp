@@ -570,6 +570,7 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   // capabilities.video.player         = 1
   // capabilities.sparkgl.nativedrawing    = 1
   // capabilities.sparkgl.supports1080    = 1
+   // capabilities.sparkgl.animatedImages    = 1
 
   mCapabilityVersions = new rtMapObject;
 
@@ -677,6 +678,7 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
     }
   }
   sparkGlCapabilities.set("supports1080", 1);
+  sparkGlCapabilities.set("animatedImages", 1);
   mCapabilityVersions.set("sparkgl", sparkGlCapabilities);
 
   //////////////////////////////////////////////////////
