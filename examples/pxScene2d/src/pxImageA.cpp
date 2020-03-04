@@ -398,7 +398,7 @@ rtError pxImageA::setResolveWithoutParent(bool v)
   return RT_OK;
 }
 
-rtError pxImageA::animate()
+rtError pxImageA::animateImage()
 {
   if (getImageAResource() == NULL || !mImageLoaded)
   {
@@ -452,4 +452,4 @@ rtDefineProperty(pxImageA, resource);
 rtDefineProperty(pxImageA, stretchX);
 rtDefineProperty(pxImageA, stretchY);
 rtDefineProperty(pxImageA, resolveWithoutParent);
-rtDefineMethod(pxImageA, animate);
+rtDefineMethod(pxImageA, animateImage);
