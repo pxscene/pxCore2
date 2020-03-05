@@ -71,7 +71,7 @@
       {"url":"../tests/test_ws.js", "title":"test_ws","useBaseURI":"true"},
       {"url":"../tests/test_storage.js", "title":"test_storage","useBaseURI":"true"},
       {"url":"../tests/test_pxSuspendAndResume.js", "title":"test_pxSuspendAndResume","useBaseURI":"true"},
-      {"url": "https://www.sparkui.org/examples/Lightning/action/js/init.spark", "title": "actions", "timeToRun": "3000", "useBaseURI": "false"},
+      {"url": "https://www.sparkui.org/examples/Lightning/actions/js/init.spark", "title": "actions", "timeToRun": "3000", "useBaseURI": "false"},
       {"url": "https://www.sparkui.org/examples/Lightning/action-value/js/init.spark", "title": "action-value", "timeToRun": "3000", "useBaseURI": "false"},
       {"url": "https://www.sparkui.org/examples/Lightning/animations/js/init.spark", "title": "animations", "timeToRun": "3000", "useBaseURI": "false"},
       {"url": "https://www.sparkui.org/examples/Lightning/animations-attributes/js/init.spark", "title": "animations-attributes", "timeToRun": "3000", "useBaseURI": "false"},
