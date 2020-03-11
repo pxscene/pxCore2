@@ -20,6 +20,7 @@
 
 #include <iostream>
 #include <string>
+#include <functional>
 #include "pxVideo.h"
 
 using namespace std::placeholders;
