@@ -64,7 +64,7 @@ const makeRequire = function(pathToParent) {
     }
     if (moduleName.substring(0,7) === "optimus")
     {
-      moduleName = 'rcvrcore/optimus.js';
+      return reqOrig('rcvrcore/optimus.js');
     }
     const parentDir = path.dirname(pathToParent);
     // use Node's built-in module resolver here, but we could easily pass in our own
