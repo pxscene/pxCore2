@@ -295,6 +295,10 @@ function onSceneTerminate() {
   // memory leak fix
   this.sandbox.sparkscene.api = null;
 
+  // fix for clearing sparkwebgl reference
+  var script = new vm.Script("for (var k in this) { delete this[k]; }; ");
+  script.runInContext(this.contextifiedSandbox);
+  
   for (var k in this.sandbox)
   {
     delete this.sandbox[k];
