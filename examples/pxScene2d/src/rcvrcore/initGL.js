@@ -295,6 +295,7 @@ function onSceneTerminate() {
   // memory leak fix
   this.sandbox.sparkscene.api = null;
   
+  
   for (var k in this.sandbox)
   {
     delete this.sandbox[k];
