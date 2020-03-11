@@ -294,6 +294,7 @@ function onSceneTerminate() {
   delete this.sandbox.sparkwebgl;
   // memory leak fix
   this.sandbox.sparkscene.api = null;
+
   for (var k in this.sandbox)
   {
     delete this.sandbox[k];
