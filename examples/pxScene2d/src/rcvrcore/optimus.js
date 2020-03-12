@@ -955,6 +955,7 @@ function Optimus() {
   };
   this.setScene = function(s){
     scene = s;
+    // remove reference to scene by passing null
     if (null != s) {
       root = scene.root;
       availableApplicationsArray.splice(0,availableApplicationsArray.length);
