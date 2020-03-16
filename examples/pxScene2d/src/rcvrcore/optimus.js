@@ -955,11 +955,17 @@ function Optimus() {
   };
   this.setScene = function(s){
     scene = s;
-    root = scene.root;
-    availableApplicationsArray.splice(0,availableApplicationsArray.length);
-    var availableApps = scene.getAvailableApplications();
-    if (availableApps.length > 0) {
-      availableApplicationsArray = JSON.parse(availableApps);
+    // remove reference to scene by passing null
+    if (null != s) {
+      root = scene.root;
+      availableApplicationsArray.splice(0,availableApplicationsArray.length);
+      var availableApps = scene.getAvailableApplications();
+      if (availableApps.length > 0) {
+        availableApplicationsArray = JSON.parse(availableApps);
+      }
+    }
+    else {
+      root = null;
     }
   };
   this.getExpectedMemoryUsage = function(props){
