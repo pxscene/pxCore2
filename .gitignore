@@ -15,6 +15,7 @@ gl2d*
 apinames
 src/obj/
 src/.vscode/
+.idea
 examples/pxScene2d/external/libpng-1.6.12/Makefile
 examples/pxScene2d/external/libpng-1.6.12/config.h
 examples/pxScene2d/external/libpng-1.6.12/config.status
