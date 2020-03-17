@@ -168,8 +168,10 @@ void rtWrapperSceneUpdateExit()
 #endif // RUNINMAIN
 }
 
-rtScript::rtScript():mInitialized(false)  {
+rtScript::rtScript():mInitialized(false)  { 
+#ifndef ENABLE_DEBUG_MODE
   init();
+#endif
 }
 
 rtScript::~rtScript() {}
