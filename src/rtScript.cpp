@@ -170,6 +170,7 @@ void rtWrapperSceneUpdateExit()
 
 rtScript::rtScript():mInitialized(false)  { 
 #ifndef ENABLE_DEBUG_MODE
+  // for debug mode, we have global variables initialized on process start
   init();
 #endif
 }
