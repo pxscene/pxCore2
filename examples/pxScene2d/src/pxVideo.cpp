@@ -64,8 +64,8 @@ void pxVideo::termPlayerLoop()
 	if(mAampMainLoop)
 	{
 		g_main_loop_quit(mAampMainLoop);
-		mAampMainLoop = nullptr;
 		g_thread_join(mAampMainLoopThread);
+ 		mAampMainLoop = nullptr;
 		mAampMainLoopThread = nullptr;
 		//gst_deinit(); gst_deinit should not be called on every pxVideo object destruction.
 		// This is because after call to gst_deinit, you can not use gstreamer at all.
