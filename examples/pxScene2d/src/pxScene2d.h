@@ -798,6 +798,7 @@ public:
   rtMethod1ArgAndReturn("resume", resume, rtValue, bool);
   rtMethodNoArgAndReturn("suspended", suspended, bool);
   rtMethodNoArgAndReturn("textureMemoryUsage", textureMemoryUsage, rtValue);
+  rtMethodNoArgAndReturn("thunderToken", thunderToken, rtValue);
 /*
   rtMethod1ArgAndReturn("createExternal", createExternal, rtObjectRef,
                         rtObjectRef);
@@ -959,6 +960,7 @@ public:
   rtError resume(const rtValue& v, bool& b);
   rtError suspended(bool &b);
   rtError textureMemoryUsage(rtValue &v);
+  rtError thunderToken(rtValue &v);
 
   rtError addListener(rtString eventName, const rtFunctionRef& f)
   {
