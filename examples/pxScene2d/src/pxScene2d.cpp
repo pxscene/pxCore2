@@ -657,6 +657,14 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
 #ifdef ENABLE_SPARK_VIDEO
   rtObjectRef videoCapabilities = new rtMapObject;
   videoCapabilities.set("player", 2);
+  rtValue enableVideo;
+  if (RT_OK == rtSettings::instance()->value("enableVideo", enableVideo))
+  {
+    if (enableVideo.toString().compare("false") == 0)
+    {
+      videoCapabilities.set("player", 0);
+    }
+  }
   mCapabilityVersions.set("video", videoCapabilities);
 #endif //ENABLE_SPARK_VIDEO
 

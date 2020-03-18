@@ -64,7 +64,7 @@ printValgrindLogs()
 
 # Start testRunner ... 
 cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src
-./spark.sh $TESTRUNNERURL?tests=$TESTS > $EXECLOGS 2>&1 &
+./spark.sh -enableVideo=false $TESTRUNNERURL?tests=$TESTS > $EXECLOGS 2>&1 &
 
 
 grep "TEST RESULTS: " $EXECLOGS
