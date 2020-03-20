@@ -22,11 +22,14 @@ limitations under the License.
 var applicationsArray = [];
 var availableApplicationsArray = [];
 var eventListenerHash = {};
+var html5_suspend_whitelist = [];
 
 var scene;
 var root;
 var appManager = new Optimus();
 module.exports = appManager;
+
+var node_url = require('url');
 
 var ApplicationType = Object.freeze({
   SPARK:"SPARK",
@@ -205,6 +208,7 @@ function Application(props) {
   var userAgent = null;
   var localStorage = false;
   var appParent = null;
+  var suspendDelayTimeout = null;
 
   // Internal function needed for suspend
   var do_suspend_internal = function(o)
@@ -220,8 +224,33 @@ function Application(props) {
     }
     if (_this.type === ApplicationType.WEB){
       if (_browser !== undefined && _browser.suspend){
-         _this.log("Suspending Web app");
-        _browser.suspend();
+        _this.log("Suspending Web app");
+         
+        if (_this.urlDelaysSuspend(_this.api().url))
+        {
+          _this.log("delaying suspend and setting visibility to hidden");
+          _this.api().visibility = 'hidden';
+          
+          if(suspendDelayTimeout != null)
+          {
+            _this.log("WARNING! suspendDelayTimeout already set, canceling and restarting anew");
+            clearTimeout(suspendDelayTimeout);
+            suspendDelayTimeout = null;
+          }
+          
+          suspendDelayTimeout = setTimeout(function ()
+          {
+              _this.log("doing delayed suspend now");
+              _browser.suspend();
+              suspendDelayTimeout = null;
+          }, 5000);
+        }
+        else
+        {
+          _this.log("suspending immediately");
+          _browser.suspend();
+        }
+        
         _state = ApplicationState.SUSPENDED;
         _this.applicationSuspended();
         return true;
@@ -328,7 +357,15 @@ function Application(props) {
     }
     if (this.type === ApplicationType.WEB){
       if (_browser !== undefined && _browser.resume){
-         this.log("Resuming Web app");
+        this.log("Resuming Web app");
+         
+        if(suspendDelayTimeout != null)
+        {
+          _this.log("suspendDelayTimeout set, canceling");
+          clearTimeout(suspendDelayTimeout);
+          suspendDelayTimeout = null;
+        }
+         
         _browser.resume();
         _state = ApplicationState.RUNNING;
         this.applicationResumed();
@@ -374,6 +411,14 @@ function Application(props) {
     }
     try {
       this.log("about to destroy");
+      
+      if(suspendDelayTimeout != null)
+      {
+        _this.log("suspendDelayTimeout set, canceling");
+        clearTimeout(suspendDelayTimeout);
+        suspendDelayTimeout = null;
+      }
+      
       if (_externalApp.destroy) {
         ret = _externalApp.destroy();
       } else if (this.type === ApplicationType.SPARK && _externalApp.api && _externalApp.api.destroy) {
@@ -425,6 +470,18 @@ function Application(props) {
     if (_externalApp){
       _externalApp.parent = p;
     }
+  };
+  // Check if a link would have a delayed suspend
+  this.urlDelaysSuspend = function(url_val)
+  {
+    var parsedURL = node_url.parse(url_val);
+    var url_hostname = parsedURL.hostname;
+    
+    for(var i=0;i<html5_suspend_whitelist.length;i++)
+      if (url_hostname.toLowerCase().indexOf(html5_suspend_whitelist[i]) != -1)
+        return true;
+      
+    return false;
   };
   // takes a screenshot of the application
   this.screenshot = function(mimeType) {
@@ -998,4 +1055,30 @@ function Optimus() {
     
     return i.toString();
   };
+ 
+  function loadHTML5SuspendWhitelist()
+  {
+    //var whilelist_file = px.getModuleFile("optimus_html5_suspend_whitelist.js");
+
+    //set
+    html5_suspend_whitelist = ["youtube"];
+  }
+  
+  function checkLoadHTML5SuspendWhitelist()
+  {
+    if(process.env.RFC_OPTIMUS_HTML5_DELAY_SUSPEND === "true")
+    {
+      console.log("RFC_OPTIMUS_HTML5_DELAY_SUSPEND set to true. Loading HTML5 Delay Suspend Whitelist file.");
+      loadHTML5SuspendWhitelist();
+    }
+    else if(process.env.RFC_OPTIMUS_HTML5_DELAY_SUSPEND === "false")
+      console.log("RFC_OPTIMUS_HTML5_DELAY_SUSPEND set to false. Not loading HTML5 Delay Suspend Whitelist file.");
+    else if(typeof(process.env.RFC_DESTROY_APPS_TO_CLEAR_MEM) == "undefined")
+    {
+      console.log("RFC_OPTIMUS_HTML5_DELAY_SUSPEND undefined. Defaulting to loading HTML5 Delay Suspend Whitelist file.");
+      loadHTML5SuspendWhitelist();
+    }
+  }
+  
+  checkLoadHTML5SuspendWhitelist();
 }
