@@ -65,7 +65,7 @@ void pxImage::onInit()
   {
     setUrl("");
   }
-  // send resolve for cases where resource got ready before init
+  //send resolve for cases where resource got ready before init
   if ((mParent == NULL) && (mReceivedReadyBeforeInit == true)) {
     mReady.send("resolve",this);
     mReceivedReadyBeforeInit = false;
