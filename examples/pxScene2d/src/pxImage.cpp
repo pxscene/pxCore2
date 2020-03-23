@@ -54,6 +54,17 @@ void pxImage::onInit()
   mInitialized = true;
   //rtLogDebug("pxImage::onInit for mUrl=\n");
   //rtLogDebug("%s\n",getImageResource()->getUrl().cString());
+
+  rtImageResource *pRes = getImageResource();
+
+  if (pRes != NULL)
+  {
+    setUrl(pRes->getUrl());
+  }
+  else
+  {
+    setUrl("");
+  }
 }
 
 /**
@@ -91,7 +102,6 @@ rtError pxImage::setResource(rtObjectRef o)
   {
     rtLogError("Object passed as resource is not an imageResource!\n");
     pxObject::onTextureReady();
-    createNewPromise();
     mReady.send("reject",this);
     return RT_ERROR; 
   }
@@ -130,12 +140,28 @@ rtError pxImage::setUrl(const char* s)
 
   //rtLogInfo("pxImage::setUrl init=%d imageLoaded=%d \n", mInitialized, imageLoaded);
   //rtLogDebug("pxImage::setUrl for s=%s mUrl=%s\n", s, mUrl.cString());
-
+  
+  // we don't want to createNewPromise on the first time through when the 
+  // url is initially being set because it's already created on construction
+  // If mUrl is already set and loaded and s is different, create a new promise
   rtImageResource* pRes = getImageResource();
   if( pRes != NULL && pRes->getUrl().length() > 0 && pRes->getUrl().compare(s))
   {
-    imageLoaded = false;
-    createNewPromise();
+    // This could be an error case where the url was invalid and promise was rejected.
+    // If promise was already fulfilled/rejected, create a new one since the url is changing
+    if(imageLoaded || ((rtPromise*)mReady.getPtr())->status())
+    {
+      imageLoaded = false;
+      //rtLogDebug("pxImage calling pxObject::createPromise for %s\n",resourceObj->getUrl().cString());
+      createNewPromise();
+    }
+    // ToDo Need to cancel the download if url is reassigned before its done
+    /*else if(!imageLoaded)
+    {
+      // Stop listening for the old resource that this image was using
+      pRes->removeListener(this);
+      mReady.send("reject",this); // reject the original promise for old image
+    } */
     removeResourceListener();
   }
 
@@ -146,7 +172,7 @@ rtError pxImage::setUrl(const char* s)
                                                   pRes->initSX(), pRes->initSY(), mScene ? mScene->getArchive() : NULL, mFlip );
   }
 
-  if(getImageResource() != NULL && getImageResource()->getUrl().length() > 0 && !imageLoaded)
+  if(getImageResource() != NULL && getImageResource()->getUrl().length() > 0 && mInitialized && !imageLoaded)
 {
     mListenerAdded = true;
     getImageResource()->addListener(this);
@@ -157,14 +183,22 @@ rtError pxImage::setUrl(const char* s)
 
 void pxImage::sendPromise()
 {
-  // Note: this method is called on each pxObject::update, so check if promise is already set
-  if (imageLoaded && !((rtPromise*)mReady.getPtr())->status())
-    mReady.send("resolve",this);
+  if(mInitialized && imageLoaded && !((rtPromise*)mReady.getPtr())->status())
+  {
+      //rtLogDebug("pxImage SENDPROMISE for %s\n", mUrl.cString());
+      mReady.send("resolve",this); 
+  }
 }
 
 void pxImage::createNewPromise()
 {
-  mReady = new rtPromise();
+  // Only create a new promise if the existing one has been
+  // resolved or rejected already.
+  if(((rtPromise*)mReady.getPtr())->status())
+  {
+    rtLogDebug("CREATING NEW PROMISE\n");
+    mReady = new rtPromise();
+  }
 }
 
 bool pxImage::needsUpdate()
@@ -234,7 +268,14 @@ void pxImage::resourceReady(rtString readyResolution)
     // dimensions could have changed.
     mScene->mDirty = true;
     markDirty();
-    sendPromise();
+    pxObject* parent = mParent;
+    if( !parent || mResolveWithoutParent)
+    {
+      // Send the promise here because the image will not get an 
+      // update call until it has a parent
+      sendPromise();
+      //rtLogInfo("In pxImage::resourceReady, pxImage with url=%s has no parent!\n", getImageResource()->getUrl().cString());
+    }
   }
   else 
   {
