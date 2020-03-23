@@ -51,7 +51,7 @@ pxImageA::~pxImageA()
 
 void pxImageA::onInit() 
 {
-  // send resolve when resource got ready before init
+  //send resolve when resource got ready before init
   if ((mParent == NULL) && (mReceivedReadyBeforeInit == true)) {
     mReady.send("resolve",this);
     mReceivedReadyBeforeInit = false;
