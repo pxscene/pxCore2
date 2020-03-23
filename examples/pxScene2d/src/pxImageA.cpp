@@ -31,7 +31,7 @@ static pxTextureRef nullMaskRef;
 pxImageA::pxImageA(pxScene2d *scene) : pxObject(scene), 
                                        mImageWidth(0), mImageHeight(0),
                                        mStretchX(pxConstantsStretch::NONE), mStretchY(pxConstantsStretch::NONE),
-                                       mResource(), mImageLoaded(false), mListenerAdded(false), mResolveWithoutParent(false)
+                                       mResource(), mImageLoaded(false), mListenerAdded(false), mResolveWithoutParent(false), mReceivedReadyBeforeInit(false)
 {
   mCurFrame = 0;
   mCachedFrame = UINT32_MAX;
@@ -51,6 +51,11 @@ pxImageA::~pxImageA()
 
 void pxImageA::onInit() 
 {
+  //send resolve when resource got ready before init
+  if ((mParent == NULL) && (mReceivedReadyBeforeInit == true)) {
+    mReady.send("resolve",this);
+    mReceivedReadyBeforeInit = false;
+  }
   pxObject::onInit();
 }
 
@@ -293,7 +298,16 @@ void pxImageA::resourceReady(rtString readyResolution)
     {
       // Send the promise here because the image will not get an 
       // update call until it has a parent
-      sendPromise();
+      if (mInitialized)
+      {
+        sendPromise();
+        mReceivedReadyBeforeInit = false;
+      }
+      else
+      {
+        // Received a case where image is loaded before init is done
+        mReceivedReadyBeforeInit = true;
+      }
     }
   }
   else
