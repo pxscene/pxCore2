@@ -77,17 +77,15 @@ rtError pxImageA::setUrl(const char *s)
   rtImageAResource* resourceObj = getImageAResource();
   if( resourceObj != NULL && resourceObj->getUrl().length() > 0 && resourceObj->getUrl().compare(s))
   {
-    if(mImageLoaded || ((rtPromise*)mReady.getPtr())->status())
-    {
-      mCurFrame = 0;
-      mCachedFrame = UINT32_MAX;
-      mFrameTime = -1;
-      mPlays = 0;
-      mImageWidth = 0;
-      mImageHeight = 0;
-      mImageLoaded = false;
-      createNewPromise();
-    }
+    mCurFrame = 0;
+    mCachedFrame = UINT32_MAX;
+    mFrameTime = -1;
+    mPlays = 0;
+    mImageWidth = 0;
+    mImageHeight = 0;
+    mImageLoaded = false;
+    createNewPromise();
+    triggerUpdate();
   }
   removeResourceListener();
   mResource = pxImageManager::getImageA(s, NULL, mScene ? mScene->cors() : NULL, mScene ? mScene->getArchive(): NULL);
@@ -241,6 +239,7 @@ rtError pxImageA::setResource(rtObjectRef o)
       mResource = o;
       mImageLoaded = false;
       createNewPromise();
+      triggerUpdate();
       mListenerAdded = true;
       getImageAResource()->addListener(this);
     }
@@ -250,6 +249,7 @@ rtError pxImageA::setResource(rtObjectRef o)
   {
     rtLogError("Object passed as resource is not an imageAResource!\n");
     pxObject::onTextureReady();
+    createNewPromise();
     mReady.send("reject",this);
     return RT_ERROR;
   }
@@ -267,8 +267,7 @@ void pxImageA::loadImageSequence()
       mImageWidth = o.width();
       mImageHeight = o.height();
     }
-    if (!((rtPromise*)mReady.getPtr())->status())
-      mReady.send("resolve", this);
+    mReady.send("resolve", this);
   }
   else
   {
@@ -288,13 +287,7 @@ void pxImageA::resourceReady(rtString readyResolution)
     pxObject::onTextureReady();
     mScene->mDirty = true;
     loadImageSequence();
-    pxObject* parent = mParent;
-    if( !parent || mResolveWithoutParent)
-    {
-      // Send the promise here because the image will not get an 
-      // update call until it has a parent
-      sendPromise();
-    }
+    sendPromise();
   }
   else
   {
@@ -310,14 +303,7 @@ void pxImageA::resourceDirty()
 
 void pxImageA::createNewPromise()
 {
-  // Only create a new promise if the existing one has been
-  // resolved or rejected already.
-  if(((rtPromise*)mReady.getPtr())->status())
-  {
-    rtLogDebug("CREATING NEW PROMISE\n");
-    mReady = new rtPromise();
-    triggerUpdate();
-  }
+  mReady = new rtPromise();
 }
 
 bool pxImageA::needsUpdate()

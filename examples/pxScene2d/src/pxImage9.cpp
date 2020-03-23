@@ -41,14 +41,6 @@ pxImage9::~pxImage9()
 void pxImage9::onInit()
 {
   mInitialized = true;
-  if (getImageResource() != NULL)
-  {
-    setUrl(getImageResource()->getUrl());
-  }
-  else
-  {
-    setUrl("");
-  }
 }
 
 rtError pxImage9::url(rtString& s) const 
@@ -74,17 +66,14 @@ rtError pxImage9::setUrl(const char* s)
   rtImageResource* resourceObj = getImageResource();  
   if(resourceObj != NULL && resourceObj->getUrl().length() > 0 && resourceObj->getUrl().compare(s))
   {
-    if(imageLoaded || ((rtPromise*)mReady.getPtr())->status())
-    {
-      imageLoaded = false;
-      createNewPromise();
-    }
+    imageLoaded = false;
+    createNewPromise();
     removeResourceListener();
   }
   
   
   mResource = pxImageManager::getImage(s, NULL, mScene ? mScene->cors() : NULL, 0, 0, 1.0f, 1.0f, mScene ? mScene->getArchive(): NULL);
-  if(getImageResource() != NULL && (getImageResource()->getUrl().length() > 0) && mInitialized && !imageLoaded)
+  if(getImageResource() != NULL && (getImageResource()->getUrl().length() > 0) && !imageLoaded)
   {
     mListenerAdded = true;
     getImageResource()->addListener(this);
@@ -137,28 +126,15 @@ rtError pxImage9::setResource(rtObjectRef o)
 }
 
 void pxImage9::sendPromise() 
-{ 
-  //rtLogDebug("image9 init=%d imageLoaded=%d\n",mInitialized,imageLoaded);
-  if(mInitialized && imageLoaded && !((rtPromise*)mReady.getPtr())->status())
-  {
-    if (getImageResource() != NULL)
-    {
-      rtLogDebug("pxImage9 SENDPROMISE for %s\n", getImageResource()->getUrl().cString());
-    }
+{
+  // Note: this method is called on each pxObject::update, so check if promise is already set
+  if (imageLoaded && !((rtPromise*)mReady.getPtr())->status())
     mReady.send("resolve",this);
-
-  }
 }
 
 void pxImage9::createNewPromise()
 {
-  // Only create a new promise if the existing one has been
-  // resolved or rejected already.
-  if(((rtPromise*)mReady.getPtr())->status())
-  {
-    rtLogDebug("CREATING NEW PROMISE\n");
-    mReady = new rtPromise();
-  }
+  mReady = new rtPromise();
 }
 
 bool pxImage9::needsUpdate()
@@ -212,14 +188,7 @@ void pxImage9::resourceReady(rtString readyResolution)
     // dimensions could have changed.
     mScene->mDirty = true;
     markDirty();
-    pxObject* parent = mParent;
-    if( !parent)
-    {
-      // Send the promise here because the image will not get an 
-      // update call until it has a parent
-      sendPromise();
-      //rtLogInfo("In pxImage::resourceReady, pxImage with url=%s has no parent!\n", getImageResource()->getUrl().cString());
-    }
+    sendPromise();
   }
   else 
   {
