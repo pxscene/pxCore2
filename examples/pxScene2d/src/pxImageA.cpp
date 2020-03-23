@@ -31,8 +31,7 @@ static pxTextureRef nullMaskRef;
 pxImageA::pxImageA(pxScene2d *scene) : pxObject(scene), 
                                        mImageWidth(0), mImageHeight(0),
                                        mStretchX(pxConstantsStretch::NONE), mStretchY(pxConstantsStretch::NONE),
-                                       mResource(), mImageLoaded(false), mListenerAdded(false), mResolveWithoutParent(false),
-                                       mReceivedReadyBeforeInit(false)
+                                       mResource(), mImageLoaded(false), mListenerAdded(false), mResolveWithoutParent(false), mReceivedReadyBeforeInit(false)
 {
   mCurFrame = 0;
   mCachedFrame = UINT32_MAX;
