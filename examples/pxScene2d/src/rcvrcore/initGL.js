@@ -359,6 +359,7 @@ function LightningApp(params) {
     }
   };
   tmpGlobal.sparkHttp = params._sparkHttp
+  tmpGlobal.bootstrap = params.bootstrap;
   // JRJR review this... if we don't draw outside of the timers
   // then no need for this... 
   // general todo... in terms of sandboxing webgl operations.
@@ -380,6 +381,7 @@ function LightningApp(params) {
   tmpGlobal.setImmediate = xxsetImmediate.bind(this)
   tmpGlobal.clearImmediate = xxclearImmediate.bind(this)
   tmpGlobal.sparkQueryParams = urlmain.parse(this.url, true).query;
+  tmpGlobal.sparkHash = urlmain.parse(this.url, true).hash;
   tmpGlobal.thisIsTmpGlobal = true;
 
   var tmpSandbox = this.sandbox
