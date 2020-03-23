@@ -96,6 +96,7 @@ protected:
   bool mImageLoaded;
   bool mListenerAdded;
   bool mResolveWithoutParent;
+  bool mReceivedReadyBeforeInit;
 };
 
 #endif

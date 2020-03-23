@@ -82,6 +82,12 @@
 
 #include "rtJsonUtils.h"
 #include "rtHttpRequest.h"
+#include "rtUrlUtils.h"
+
+#ifdef ENABLE_SPARK_THUNDER
+#include <securityagent/securityagent.h>
+#endif //ENABLE_SPARK_THUNDER
+#define MAX_TOKEN_BUFFER_LENGTH 2048
 
 using namespace rapidjson;
 
@@ -1105,6 +1111,41 @@ rtError pxScene2d::textureMemoryUsage(rtValue &v)
   textureMemory += mRoot->textureMemoryUsage(objectsCounted);
   v.setUInt64(textureMemory);
   return RT_OK;
+}
+
+rtError pxScene2d::thunderToken(rtValue &v)
+{
+#ifdef ENABLE_SPARK_THUNDER
+  v.setString("");
+  unsigned char tokenBuffer[MAX_TOKEN_BUFFER_LENGTH];
+  memset(tokenBuffer, 0, MAX_TOKEN_BUFFER_LENGTH);
+  rtString appUrl = mScriptView != NULL ? mScriptView->getUrl() : "";
+  if (!appUrl.isEmpty())
+  {
+    appUrl = rtUrlGetOrigin(appUrl.cString());
+  }
+  rtString params = "{\"url\":\"" + appUrl;
+  params += "\"}";
+  size_t paramsLength = (size_t)params.length();
+  if(!memcpy(tokenBuffer,params.cString(),paramsLength))
+  {
+    rtLogError("unable to copy url buffer for token");
+    return RT_FAIL;
+  }
+  rtLogInfo("thunder request: %s length: %d", (char*)tokenBuffer, (int)paramsLength);
+  int result = GetToken(MAX_TOKEN_BUFFER_LENGTH, paramsLength, tokenBuffer);
+  if (result < 0)
+  {
+    rtLogError("unable to get token for app");
+    return RT_FAIL;
+  }
+  rtString tokenString = tokenBuffer;
+  v.setString(tokenString);
+  return RT_OK;
+#else
+  rtLogWarn("thunder support is not available");
+  return RT_FAIL;
+#endif //ENABLE_SPARK_THUNDER
 }
 
 rtError pxScene2d::clock(double & time)
@@ -2774,6 +2815,7 @@ rtDefineMethod(pxScene2d, suspend);
 rtDefineMethod(pxScene2d, resume);
 rtDefineMethod(pxScene2d, suspended);
 rtDefineMethod(pxScene2d, textureMemoryUsage);
+rtDefineMethod(pxScene2d, thunderToken);
 //rtDefineMethod(pxScene2d, createWayland);
 rtDefineMethod(pxScene2d, addListener);
 rtDefineMethod(pxScene2d, delListener);
