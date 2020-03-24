@@ -578,6 +578,7 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   // capabilities.sparkgl.supports1080    = 1
   // capabilities.sparkgl.animatedImages    = 1
   // capabilities.sparkgl.optimus = 2
+  // capabilities.sparkgl.bootstrap = 2
 
   mCapabilityVersions = new rtMapObject;
 
@@ -695,6 +696,7 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   sparkGlCapabilities.set("supports1080", 1);
   sparkGlCapabilities.set("animatedImages", 1);
   sparkGlCapabilities.set("optimus", 2);
+  sparkGlCapabilities.set("bootstrap", 2);
   mCapabilityVersions.set("sparkgl", sparkGlCapabilities);
 
   //////////////////////////////////////////////////////
