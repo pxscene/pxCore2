@@ -32,6 +32,7 @@ include(../cmake/CommOpts.cmake)
 include(../cmake/CommDeps.cmake)
 include(../cmake/NodeDeps.cmake)
 include(../cmake/V8Deps.cmake)
+include(../cmake/JSCDeps.cmake)
 
 set(BUILD_RTCORE_SHARED_LIBRARY 1)
 
@@ -202,7 +203,7 @@ else ()
 endif (APPLE)
 
 if (NOT PXCORE_DFB)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++1y")
 endif (NOT PXCORE_DFB)
 
 if (PXCORE_COMPILE_WARNINGS_AS_ERRORS)
@@ -246,6 +247,22 @@ if (SUPPORT_NODE)
       set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++1y")
     endif (USE_NODE_10)
 endif()
+
+if (SUPPORT_JSC)
+    message("Adding JSC scripting support")
+    add_definitions(-DRTSCRIPT_SUPPORT_JSC)
+    include_directories(AFTER ${JAVASCRIPTCORE_INCLUDE_DIRS})
+    include_directories(AFTER ${EXTDIR}/uWebSockets/src)
+    set(PXCORE_FILES ${PXCORE_FILES}
+      rtScriptJSC/rtScriptJSC.cpp
+      rtScriptJSC/rtScriptJSCPrivate.cpp
+      rtScriptJSC/rtJSCWrappers.cpp
+      rtScriptJSC/rtJSCMisc.cpp
+      rtScriptJSC/rtJSCBindings.cpp)
+    if (LIBUV_FOUND AND NOT SUPPORT_V8)
+      set(PXCORE_FILES ${PXCORE_FILES} rtScriptV8/rtWebSocket.cpp)
+    endif(LIBUV_FOUND AND NOT SUPPORT_V8)
+endif(SUPPORT_JSC)
 
 if (SUPPORT_V8)
     message("Adding V8 scripting support")

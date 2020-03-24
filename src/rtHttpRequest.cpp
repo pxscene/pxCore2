@@ -301,7 +301,7 @@ void rtHttpRequest::onDownloadComplete(void* context, void* data)
   req->Release();
 }
 
-void rtHttpRequest::onDownloadComplete(rtFileDownloadRequest* downloadRequest)
+void rtHttpRequest::onDownloadCompleteImpl(rtFileDownloadRequest* downloadRequest)
 {
   rtHttpRequest* req = (rtHttpRequest*)downloadRequest->callbackData();
 
@@ -320,6 +320,15 @@ void rtHttpRequest::onDownloadComplete(rtFileDownloadRequest* downloadRequest)
     resp->onEnd();
   } else {
     req->mEmit.send("error", downloadRequest->errorString());
+  }
+}
+
+void rtHttpRequest::onDownloadComplete(rtFileDownloadRequest* downloadRequest)
+{
+  rtHttpRequest* req = (rtHttpRequest*)downloadRequest->callbackData();
+  if (req != NULL)
+  {
+    req->onDownloadCompleteImpl(downloadRequest);
   }
 }
 
