@@ -279,7 +279,6 @@ var getFile = async function (scene, url) {
   return await readFileAsync(url, {'encoding': 'utf-8'});
 }
 
-
 class ModuleItem {
   constructor(specifier, referencingModule, version) {
     let isCommonJSModule = false
