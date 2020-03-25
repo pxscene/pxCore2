@@ -87,6 +87,14 @@ rtString& rtString::operator=(const char* s)
   return *this;
 }
 
+rtString& rtString::operator=(rtString&& s) noexcept
+{
+  term();
+  mData = s.mData;
+  s.mData = nullptr;
+  return *this;
+}
+
 bool rtString::isEmpty() const
 {
   return (!mData || !(*mData));

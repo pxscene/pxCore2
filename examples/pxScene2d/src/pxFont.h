@@ -25,7 +25,7 @@
 #include "rtRef.h"
 #include "rtCORS.h"
 
-// TODO it would be nice to push this back into implemention
+// TODO it would be nice to push this back into implementation
 #include <ft2build.h>
 #include FT_FREETYPE_H
 #include FT_GLYPH_H
@@ -38,6 +38,8 @@ using std::vector;
 
 class pxText;
 class pxFont;
+struct _pxTextEffects;
+typedef struct _pxTextEffects pxTextEffects; //forward-declaration
 
 #define defaultPixelSize 16
 #define defaultFont "FreeSans.ttf"
@@ -108,7 +110,7 @@ class pxTexturedQuads
     pxTextureRef t;
   };
 
-  pxTexturedQuads() {}
+  pxTexturedQuads(): mpTextEffects(nullptr) {}
 
   void addQuad(float x1,float y1,float x2,float y2, float u1, float v1, float u2, float v2, pxTextureRef t)
   {
@@ -154,9 +156,11 @@ class pxTexturedQuads
     u.push_back(v2);
   }
 
-  void draw(float x, float y, float* color);
+  void draw(float x, float y, float* color, const pxTextEffects *pe = nullptr);
   void draw(float x, float y);
+
   void setColor(uint32_t c);
+  void setTextEffects(const pxTextEffects* pe);
 
   void clear()
   {
@@ -166,6 +170,7 @@ class pxTexturedQuads
 private:
   vector<quads> mQuads;
   float mColor[4] = {0xff, 0xff, 0xff, 0xff};
+  const pxTextEffects* mpTextEffects;
 };
 
 #endif
@@ -260,29 +265,44 @@ public:
   rtReadOnlyProperty(ready, ready, rtObjectRef);
   rtReadOnlyProperty(fontStyle, fontStyle, rtString);
 
-  rtString fontStyle()             const { return mFontStyle; }
-  rtError fontStyle(rtString& v)   const { v = mFontStyle; return RT_OK; }
-  rtError setFontStyle(rtString v)       { mFontStyle = v; return RT_OK; }
+  
+  rtProperty(fallbackFont, fallbackFont, setFallbackFont, rtObjectRef);
+  
+
+  rtString   fontStyle()                    const { return mFontStyle; }
+  rtError    fontStyle(rtString& v)         const {    v = mFontStyle;        return RT_OK; }
+  rtError setFontStyle(rtString v)                  {        mFontStyle = v;    return RT_OK; }
+  
+  
+  rtObjectRef   fallbackFont()              const { return mFallbackFont; }
+  rtError       fallbackFont(rtObjectRef v) const {    v = mFallbackFont;     return RT_OK; }
+  rtError    setFallbackFont(rtObjectRef v)         {        mFallbackFont = v; return RT_OK; }
   
   rtMethod1ArgAndReturn("getFontMetrics", getFontMetrics, uint32_t, rtObjectRef);
   rtError getFontMetrics(uint32_t pixelSize, rtObjectRef& o);
+
   rtMethod2ArgAndReturn("measureText", measureText, uint32_t, rtString, rtObjectRef);
   rtError measureText(uint32_t, rtString, rtObjectRef& o);
+
   rtMethod1ArgAndReturn("needsStyleCoercion", needsStyleCoercion, rtString, bool);
   rtError needsStyleCoercion(rtString fontStyle, bool& o);
+
   static bool coercible(const char* fontStyle);
 
   // FT Face related functions
   void setPixelSize(uint32_t s);  
+
   const GlyphCacheEntry* getGlyph(uint32_t codePoint);
   GlyphTextureEntry getGlyphTexture(uint32_t codePoint, float sx, float sy);  
+
   void getMetrics(uint32_t size, float& height, float& ascender, float& descender, float& naturalLeading);
   void getHeight(uint32_t size, float& height);
+
   void measureText(const char* text, uint32_t size, float& w, float& h);
-  void measureTextInternal(const char* text, uint32_t size,  float sx, float sy, 
-                   float& w, float& h);
-  void measureTextChar(u_int32_t codePoint, uint32_t size,  float sx, float sy, 
-                         float& w, float& h);
+  void measureTextInternal(const char* text, uint32_t size,  float sx, float sy, float& w, float& h);
+  void measureTextInternal(const char* text, uint32_t size,  float sx, float sy, float& w, float& h, long& ascender, long& descender);
+  void measureTextChar(u_int32_t codePoint, uint32_t size,  float sx, float sy, float& w, float& h);
+
   #ifndef PXSCENE_FONT_ATLAS
   void renderText(const char *text, uint32_t size, float x, float y, 
                   float sx, float sy, 
@@ -300,6 +320,7 @@ public:
   bool isFontLoaded() { return mInitialized;}
 
 	void setFontData(const FT_Byte*  fontData, FT_Long size, const char* n);
+
 	virtual void setupResource();
   void clearDownloadedData();
   uint32_t getFontId() { return mFontId;}
@@ -312,6 +333,7 @@ private:
   void loadResourceFromFile();
   void loadResourceFromArchive(rtObjectRef archiveRef);
   bool transform();
+
   rtError init(const char* n);
   rtError init(const FT_Byte*  fontData, FT_Long size, const char* n); 
 
@@ -326,7 +348,10 @@ private:
 	char* mFontDownloadedData;
 	size_t mFontDownloadedDataSize;
 	rtString mFontDataUrl;
+  
   rtString mFontStyle;
+
+  rtObjectRef mFallbackFont;
 };
 
 // Weak Map

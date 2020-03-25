@@ -82,6 +82,12 @@
 
 #include "rtJsonUtils.h"
 #include "rtHttpRequest.h"
+#include "rtUrlUtils.h"
+
+#ifdef ENABLE_SPARK_THUNDER
+#include <securityagent/securityagent.h>
+#endif //ENABLE_SPARK_THUNDER
+#define MAX_TOKEN_BUFFER_LENGTH 2048
 
 using namespace rapidjson;
 
@@ -116,11 +122,13 @@ extern rtThreadQueue* gUIThreadQueue;
 extern pxContext      context;
 
 static int fpsWarningThreshold = 25;
+bool topSparkView = true;
 
 rtEmitRef pxScriptView::mEmit = new rtEmit();
 
 rtRef<rtFunctionCallback> pxScriptView::mSparkHttp = NULL;
 rtString pxScriptView::mSparkGlInitApp;
+rtString pxScriptView::mSparkInitApp;
 
 
 #ifdef PXSCENE_SUPPORT_STORAGE
@@ -548,9 +556,12 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   // capabilities.graphics.screenshots  = 2
   // capabilities.graphics.shaders      = 1
   // capabilities.graphics.text         = 3
+  // capabilities.graphics.text_fallback = 1
   // capabilities.graphics.imageAResource  = 2
   //
-  // capabilities.scene.external  = 1
+  // capabilities.font.fallback = 1
+  //
+  // capabilities.scene.external = 1
   //
   // capabilities.network.cors          = 1
   // capabilities.network.corsResources = 1
@@ -563,6 +574,11 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   // capabilities.events.drag_n_drop    = 2   // additional Drag'n'Drop events
   //
   // capabilities.video.player         = 1
+  // capabilities.sparkgl.nativedrawing    = 1
+  // capabilities.sparkgl.supports1080    = 1
+  // capabilities.sparkgl.animatedImages    = 1
+  // capabilities.sparkgl.optimus = 2
+  // capabilities.sparkgl.bootstrap = 2
 
   mCapabilityVersions = new rtMapObject;
 
@@ -579,7 +595,13 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   graphicsCapabilities.set("screenshots", 2);
   graphicsCapabilities.set("shaders", 1);
   graphicsCapabilities.set("text", 3);
-      
+  
+  
+  rtObjectRef fontCapabilities = new rtMapObject;
+  fontCapabilities.set("fallback", 1);
+
+  mCapabilityVersions.set("font", fontCapabilities);
+  
 #ifdef SPARK_CURSOR_SUPPORT
   graphicsCapabilities.set("cursor", 1);
 
@@ -641,9 +663,41 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
 
 #ifdef ENABLE_SPARK_VIDEO
   rtObjectRef videoCapabilities = new rtMapObject;
-  videoCapabilities.set("player", 1);
+  videoCapabilities.set("player", 2);
+  rtValue enableVideo;
+  if (RT_OK == rtSettings::instance()->value("enableVideo", enableVideo))
+  {
+    if (enableVideo.toString().compare("false") == 0)
+    {
+      videoCapabilities.set("player", 0);
+    }
+  }
   mCapabilityVersions.set("video", videoCapabilities);
 #endif //ENABLE_SPARK_VIDEO
+
+  rtObjectRef sparkGlCapabilities = new rtMapObject;
+  sparkGlCapabilities.set("nativedrawing", 1);
+  rtValue enableSparkGlNativeDrawing;
+  char const* sparkGlNativeDrawingEnv = getenv("SPARK_ENABLE_SPARKGL_NATIVE_DRAWING");
+  if (sparkGlNativeDrawingEnv && (strcmp(sparkGlNativeDrawingEnv,"0") == 0))
+  {
+    rtLogWarn("disabling SparkGL native rendering capability");
+    sparkGlCapabilities.set("nativedrawing", 0);
+  }
+  else if (RT_OK == rtSettings::instance()->value("enableSparkGlNativeDrawing", enableSparkGlNativeDrawing))
+  {
+    if (enableSparkGlNativeDrawing.toString().compare("false") == 0)
+    {
+      //disable SparkGL native drawing support if setting disables it
+      rtLogWarn("disabling SparkGL native rendering");
+      sparkGlCapabilities.set("nativedrawing", 0);
+    }
+  }
+  sparkGlCapabilities.set("supports1080", 1);
+  sparkGlCapabilities.set("animatedImages", 1);
+  sparkGlCapabilities.set("optimus", 2);
+  sparkGlCapabilities.set("bootstrap", 2);
+  mCapabilityVersions.set("sparkgl", sparkGlCapabilities);
 
   //////////////////////////////////////////////////////
 }
@@ -1061,6 +1115,41 @@ rtError pxScene2d::textureMemoryUsage(rtValue &v)
   return RT_OK;
 }
 
+rtError pxScene2d::thunderToken(rtValue &v)
+{
+#ifdef ENABLE_SPARK_THUNDER
+  v.setString("");
+  unsigned char tokenBuffer[MAX_TOKEN_BUFFER_LENGTH];
+  memset(tokenBuffer, 0, MAX_TOKEN_BUFFER_LENGTH);
+  rtString appUrl = mScriptView != NULL ? mScriptView->getUrl() : "";
+  if (!appUrl.isEmpty())
+  {
+    appUrl = rtUrlGetOrigin(appUrl.cString());
+  }
+  rtString params = "{\"url\":\"" + appUrl;
+  params += "\"}";
+  size_t paramsLength = (size_t)params.length();
+  if(!memcpy(tokenBuffer,params.cString(),paramsLength))
+  {
+    rtLogError("unable to copy url buffer for token");
+    return RT_FAIL;
+  }
+  rtLogInfo("thunder request: %s length: %d", (char*)tokenBuffer, (int)paramsLength);
+  int result = GetToken(MAX_TOKEN_BUFFER_LENGTH, paramsLength, tokenBuffer);
+  if (result < 0)
+  {
+    rtLogError("unable to get token for app");
+    return RT_FAIL;
+  }
+  rtString tokenString = tokenBuffer;
+  v.setString(tokenString);
+  return RT_OK;
+#else
+  rtLogWarn("thunder support is not available");
+  return RT_FAIL;
+#endif //ENABLE_SPARK_THUNDER
+}
+
 rtError pxScene2d::clock(double & time)
 {
   time = pxMilliseconds();
@@ -1132,7 +1221,8 @@ rtError pxScene2d::createVideo(rtObjectRef p, rtObjectRef& o)
   o.send("init");
   return RT_OK;
 #else
-  UNUSED_PARAM(p); UNUSED_PARAM(o);
+  UNUSED_PARAM(p);
+  UNUSED_PARAM(o);
 
   rtLogError("Type 'video' is not supported");
   return RT_FAIL;
@@ -2727,6 +2817,7 @@ rtDefineMethod(pxScene2d, suspend);
 rtDefineMethod(pxScene2d, resume);
 rtDefineMethod(pxScene2d, suspended);
 rtDefineMethod(pxScene2d, textureMemoryUsage);
+rtDefineMethod(pxScene2d, thunderToken);
 //rtDefineMethod(pxScene2d, createWayland);
 rtDefineMethod(pxScene2d, addListener);
 rtDefineMethod(pxScene2d, delListener);
@@ -3261,8 +3352,16 @@ void pxScriptView::runScript()
 
       // JRJR TODO initially with zero mWidth/mHeight until onSize event
       // defer to onSize once events have been ironed out
+      int width = 1280;
+      int height = 720;
+      if (mUrl.find(0, "enableSparkGL1080") >= 0)
+      {
+        rtLogInfo("enabling 1080 SparkGL app");
+        width = 1920;
+        height = 1080;
+      }
       mSharedContext->makeCurrent(true);
-      cached = context.createFramebuffer(1280,720,false,false,true);
+      cached = context.createFramebuffer(width,height,false,false,true);
       mSharedContext->makeCurrent(false);
 
       beginDrawing();
@@ -3283,72 +3382,33 @@ void pxScriptView::runScript()
       rtValue foo = mCtx->get("loadAppUrl");
       rtFunctionRef f = foo.toFunction();
       bool b = true;
-      rtString url = mUrl;
-      rtString frameworkURL;
-      rtObjectRef options;
-      if (mBootstrap)
-      {
-        url = mBootstrap.get<rtString>("applicationURL");
-        frameworkURL = mBootstrap.get<rtString>("frameworkURL");
-        options = mBootstrap.get<rtObjectRef>("options");
-
-        if (url.beginsWith("./") || url.beginsWith("../"))
-          url = rtResolveRelativePath(url, mUrl);
-
-        if (frameworkURL.beginsWith("./") || frameworkURL.beginsWith("../"))
-          frameworkURL = rtResolveRelativePath(frameworkURL, mUrl);
-      }
-
-#if 0
-      // Add URL Query Parameters to Options for Lightning Apps
-      int32_t pos = mUrl.find(0, '?');
-      if (pos != -1)
-      {
-        rtString query = mUrl.substring(pos + 1);
-        rtString script = "require(\"querystring\").parse(\"" + query + "\");";
-        rtValue retVal;
-        if (RT_OK != mCtx->runScript(script.cString(), &retVal) || retVal.isEmpty())
-        {
-          rtLogError("Failed to parse - query: %s", query.cString());
-        }
-        else
-        {
-          rtObjectRef map = retVal.toObject();
-          rtObjectRef keys = map.get<rtObjectRef>("allKeys");
-          uint32_t length = keys.get<uint32_t>("length");
-          rtLogDebug("Set options - num keys: %u", length);
-
-          for (uint32_t i = 0; i < length; ++i)
-          {
-            rtValue val;
-            rtString key = keys.get<rtString>(i);
-            if (RT_OK != map->Get(key, &val) || val.isEmpty())
-              rtLogError("Failed to get - key: %s", key.cString());
-            else
-            {
-              rtLogDebug("Set options - key: %s", key.cString());
-              options->Set(key, &val);
-            }
-          }
-        }
-      }
-#endif //0
 
       // JRJR Adding an AddRef to this... causes bad things to happen when reloading gl scenes
       // investigate... 
       // JRJR WARNING! must use sendReturns since wrappers will invoke asyncronously otherwise.
       if (f)
       {
-        f.sendReturns<bool>(url,mBeginDrawing.getPtr(),mEndDrawing.getPtr(), shadow.getPtr(), frameworkURL, options, mSparkHttp.getPtr(), b);
+        f.sendReturns<bool>(mUrl,mBeginDrawing.getPtr(),mEndDrawing.getPtr(), shadow.getPtr(), mBootstrap, mSparkHttp.getPtr(), b);
       }
       endDrawing();
       
     }
     else
     {
-      rtString s = getenv("SPARK_PATH");
-      s.append("init.js");
-      mCtx->runFile(s.cString());
+      // compile init.js
+      if (mSparkInitApp.isEmpty())
+      {
+        rtString s = getenv("SPARK_PATH");
+        s.append("init.js");
+        rtData initData;
+        rtError e = rtLoadFile(s.cString(), initData);
+        
+        if (e != RT_OK)
+          rtLogError("Failed to load file: %s", s.cString());
+        
+        mSparkInitApp = rtString((char*)initData.data(), (uint32_t)initData.length());
+      }
+      mCtx->runScript(mSparkInitApp.cString());
 
       rtString url = mUrl;
       if (mBootstrap)
@@ -3547,6 +3607,34 @@ bool pxScriptView::onMouseLeave()
   return false;
 }
 
+bool pxScriptView::onDragMove(int32_t x, int32_t y, int32_t type)
+{
+  if (mView)
+    return mView->onDragMove(x, y, type);
+  return false;
+}
+
+bool pxScriptView::onDragEnter(int32_t x, int32_t y, int32_t type)
+{
+  if (mView)
+    return mView->onDragEnter(x, y, type);
+  return false;
+}
+
+bool pxScriptView::onDragLeave(int32_t x, int32_t y, int32_t type)
+{
+  if (mView)
+    return mView->onDragLeave(x, y, type);
+  return false;
+}
+
+bool pxScriptView::onDragDrop(int32_t x, int32_t y, int32_t type, const char *dropped)
+{
+  if (mView)
+    return mView->onDragDrop(x, y, type, dropped);
+  return false;
+}
+
 bool pxScriptView::onFocus()
 {
   // top level scene event
@@ -3682,9 +3770,8 @@ rtError pxScriptView::getScene(int numArgs, const rtValue* args, rtValue* result
       // JR Todo can specify what scene version/type to create in args
       if (!v->mScene)
       {
-        static bool top = true;
-        pxScene2dRef scene = new pxScene2d(top, v);
-        top = false;
+        pxScene2dRef scene = new pxScene2d(topSparkView, v);
+        topSparkView = false;
         v->mView = scene;
         v->mScene = scene;
 

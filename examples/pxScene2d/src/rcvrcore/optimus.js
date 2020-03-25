@@ -84,11 +84,12 @@ function Application(props) {
   var _uiReadyReject = function(){};
   var _urlChangeResolve = function(){};
   var _urlChangeReject = function(){};
-  
+  this._metaData = {}
+
   // Getters/setters
   var _externalAppPropsReadWrite = {
     x:"x",y:"y",w:"w",h:"h",cx:"cx",cy:"cy",sx:"sx",sy:"sy",r:"r",a:"a",
-    interactive:"interactive",painting:"painting",clip:"clip",mask:"mask",draw:"draw",hasApi:"hasApi", url:"url"
+    interactive:"interactive",painting:"painting",clip:"clip",mask:"mask",draw:"draw",hasApi:"hasApi", url:"url", displayName:"displayName"
   };
   var _externalAppPropsReadonly = {
     pid:"clientPID" // integer process id associated with the application
@@ -131,6 +132,10 @@ function Application(props) {
     Object.defineProperty(_this, key, {
       get: function() { return _externalApp[_externalAppPropsReadonly[key]]; }
     });
+  });
+
+  Object.defineProperty(_this, "metaData", {
+      get: function() { return _metaData; }
   });
 
   this.readyBase = new Promise(function (resolve, reject) {
@@ -196,6 +201,10 @@ function Application(props) {
   var _externalApp;
   var _browser;
   var _state = ApplicationState.RUNNING;
+  var displayName;
+  var userAgent = null;
+  var localStorage = false;
+  var appParent = null;
 
   // Internal function needed for suspend
   var do_suspend_internal = function(o)
@@ -207,6 +216,16 @@ function Application(props) {
     }
     if (_state === ApplicationState.SUSPENDED){
       _this.log("suspend on already suspended app");
+      return false;
+    }
+    if (_this.type === ApplicationType.WEB){
+      if (_browser !== undefined && _browser.suspend){
+         _this.log("Suspending Web app");
+        _browser.suspend();
+        _state = ApplicationState.SUSPENDED;
+        _this.applicationSuspended();
+        return true;
+      }
       return false;
     }
     if (!_externalApp || !_externalApp.suspend){
@@ -307,6 +326,16 @@ function Application(props) {
       this.log("resume on already running app");
       return false;
     }
+    if (this.type === ApplicationType.WEB){
+      if (_browser !== undefined && _browser.resume){
+         this.log("Resuming Web app");
+        _browser.resume();
+        _state = ApplicationState.RUNNING;
+        this.applicationResumed();
+        return true;
+      }
+      return false;
+    }
     if (!_externalApp || !_externalApp.resume){
       this.log("resume api not available on app");
       _state = ApplicationState.RUNNING;
@@ -391,10 +420,27 @@ function Application(props) {
       _externalApp.moveBackward();
     }
   };
-  // Sets the input focus to this application
-  this.setFocus = function() {
+  // Sets the parent
+  this.setParent = function(p) {
     if (_externalApp){
-      _externalApp.focus = true;
+      _externalApp.parent = p;
+    }
+  };
+  // takes a screenshot of the application
+  this.screenshot = function(mimeType) {
+    if (_externalApp && _externalApp.screenshot && typeof _externalApp.screenshot === "function"){
+      return _externalApp.screenshot(mimeType);
+    }
+    return null;
+  };
+  // Sets the input focus to this application
+  this.setFocus = function(b) {
+    if (_externalApp){
+      if (typeof b === 'boolean') {
+        _externalApp.focus = b;
+      } else {
+        _externalApp.focus = true;
+      }
     }
   };
   // Returns true if this application currently has focus, false if it does not
@@ -463,6 +509,16 @@ function Application(props) {
   this.state = function () {
     return _state;
   };
+  this.paint = function(x, y, color, translateOnly) {
+    if (_externalApp){
+      return _externalApp.paint(x, y, color, translateOnly);
+    }
+  };
+  this.description = function() {
+    if (_externalApp){
+      return _externalApp.description();
+    }
+  };
 
   // Constructor
   if ("launchParams" in props){
@@ -483,6 +539,20 @@ function Application(props) {
   if ("hasApi" in props){
     hasApi = props.hasApi;
   }
+  if ("metaData" in props){
+    _metaData = props.metaData;
+  }
+  if ("userAgent" in props){
+    userAgent = props.userAgent;
+  }
+  if ("localStorage" in props){
+    localStorage = props.localStorage;
+  }
+  if ("parent" in props){
+    appParent = props.parent;
+  } else {
+    appParent = root;
+  }
   if (cmd === "wpe" && uri){
     cmd = cmd + " " + uri;
   }
@@ -491,6 +561,9 @@ function Application(props) {
   }
   if ("expectedMemoryUsage" in props) {
     this.expectedMemoryUsage = props.expectedMemoryUsage;
+  }
+  if ("displayName" in props) {
+    displayName = props.displayName;
   }
 
   this.log("cmd:",cmd,"uri:",uri,"w:",w,"h:",h,"hasApi:",hasApi);
@@ -503,7 +576,7 @@ function Application(props) {
       _this.applicationClosed();
     });
   }
-  else if (!scene) {
+  else if (!scene && !appParent) {
     this.log('cannot create app because the scene is not set');
     _readyBaseReject(new Error('scene is not set'));
     _uiReadyReject();
@@ -521,7 +594,7 @@ function Application(props) {
   }
   else if (cmd === "spark"){
     this.type = ApplicationType.SPARK;
-    _externalApp = scene.create({t:"scene", parent:root, url:uri, serviceContext:serviceContext});
+    _externalApp = scene.create({t:"scene", parent:appParent, url:uri, serviceContext:serviceContext});
     _externalApp.on("onReady", function () { _this.log("onReady"); }); // is never called
     _externalApp.on("onClientStarted", function () { _this.log("onClientStarted"); }); // is never called
     _externalApp.on("onClientConnected", function () { _this.log("onClientConnected"); }); // is never called
@@ -559,7 +632,7 @@ function Application(props) {
     if (uri === ""){
       uri = "preloadSparkInstance.js";
     }
-    _externalApp = scene.create( {t:"external", parent:root, cmd:"spark " + uri, w:w, h:h, hasApi:true} );
+    _externalApp = scene.create( {t:"external", parent:appParent, cmd:"spark " + uri, w:w, h:h, hasApi:true} );
     _externalApp.on("onReady", function () { _this.log("onReady"); }); // is never called
     _externalApp.on("onClientStarted", function () { _this.log("onClientStarted"); });
     _externalApp.on("onClientConnected", function () { _this.log("onClientConnected"); });
@@ -602,7 +675,7 @@ function Application(props) {
   }
   else if (cmd === "WebApp"){
     this.type = ApplicationType.WEB;
-    _externalApp = scene.create( {t:"external", parent:root, server:"wl-rdkbrowser2-server", w:w, h:h, hasApi:true} );
+    _externalApp = scene.create( {t:"external", parent:appParent, server:"wl-rdkbrowser2-server", w:w, h:h, hasApi:true} );
     _externalApp.on("onReady", function () { _this.log("onReady"); });
     _externalApp.on("onClientStarted", function () { _this.log("onClientStarted"); });
     _externalApp.on("onClientConnected", function () { _this.log("onClientConnected"); });
@@ -633,7 +706,13 @@ function Application(props) {
           }
           
           _browser.on("onHTMLDocumentLoaded",handleOnHTMLDocumentLoadedEvent);
-          
+          if (userAgent){
+            _browser.userAgent = userAgent;
+          }
+          if (localStorage){
+            _browser.localStorageEnabled = localStorage;
+          }
+
           _browser.url = uri;
           _this.log("launched WebApp uri:" + uri);
           _this.applicationCreated();
@@ -661,7 +740,7 @@ function Application(props) {
   }
   else{
     this.type = ApplicationType.NATIVE;
-    _externalApp = scene.create( {t:"external", parent:root, cmd:cmd, w:w, h:h, hasApi:hasApi} );
+    _externalApp = scene.create( {t:"external", parent:appParent, cmd:cmd, w:w, h:h, hasApi:hasApi, displayName:displayName} );
     _externalApp.on("onReady", function () { _this.log("onReady"); }); // is never called
     _externalApp.on("onClientStarted", function () { _this.log("onClientStarted"); });
     _externalApp.on("onClientConnected", function () { _this.log("onClientConnected"); });
@@ -876,11 +955,17 @@ function Optimus() {
   };
   this.setScene = function(s){
     scene = s;
-    root = scene.root;
-    availableApplicationsArray.splice(0,availableApplicationsArray.length);
-    var availableApps = scene.getAvailableApplications();
-    if (availableApps.length > 0) {
-      availableApplicationsArray = JSON.parse(availableApps);
+    // remove reference to scene by passing null
+    if (null != s) {
+      root = scene.root;
+      availableApplicationsArray.splice(0,availableApplicationsArray.length);
+      var availableApps = scene.getAvailableApplications();
+      if (availableApps.length > 0) {
+        availableApplicationsArray = JSON.parse(availableApps);
+      }
+    }
+    else {
+      root = null;
     }
   };
   this.getExpectedMemoryUsage = function(props){

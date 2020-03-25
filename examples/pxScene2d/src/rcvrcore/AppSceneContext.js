@@ -34,6 +34,7 @@ var JarFileMap = require('rcvrcore/utils/JarFileMap');
 var AsyncFileAcquisition = require('rcvrcore/utils/AsyncFileAcquisition');
 var WrapObj = require('rcvrcore/utils/WrapObj');
 var http_wrap = require('rcvrcore/http_wrap');
+var processKeys = ['env' ,'binding', 'hrtime', 'memoryUsage']
 
 var log = new Logger('AppSceneContext');
 //overriding original timeout and interval functions
@@ -67,6 +68,7 @@ function AppSceneContext(params) {
   this.topXModule = null;
   this.jarFileMap = new JarFileMap();
   this.sceneWrapper = null;
+  this.thunderWrapper = null;
   //array to store the list of pending timers
   this.timers = [];
   this.timerIntervals = [];
@@ -161,6 +163,9 @@ function terminateScene() {
     if (null != this.sceneWrapper)
       this.sceneWrapper.close();
     this.sceneWrapper = null;
+    if (null != this.thunderWrapper)
+      this.thunderWrapper.close();
+    this.thunderWrapper = null;
     this.rpcController = null;
     this.isCloseEvtRcvd = false;
     this.isTermEvtRcvd = false;
@@ -219,7 +224,7 @@ AppSceneContext.prototype.loadPackage = function(packageUri) {
     .catch(function (err) {
       //console.info("AppSceneContext#loadScenePackage3");
       thisMakeReady(false, {});
-      console.error("AppSceneContext#loadScenePackage: Error: Did not load fileArchive: Error=",err );
+      console.error("AppSceneContext#loadScenePackage: Error: Did not load fileArchive: Error=" + JSON.stringify(err));
     });
 };
 
@@ -341,7 +346,7 @@ AppSceneContext.prototype.runScriptInNewVMContext = function (packageUri, module
     }
 
     if (!isDuk && !isV8 && !isJSC) {
-      var processWrap = WrapObj(process, {"binding":function() { throw new Error("process.binding is not supported"); }});
+      var processWrap = WrapObj(process, {"binding":function() { throw new Error("process.binding is not supported"); }}, false, processKeys);
       var globalWrap = WrapObj(global, {"process":processWrap, "console":console});
 
       // TODO: app runs in new context (vm.runInNewContext),
@@ -602,7 +607,7 @@ AppSceneContext.prototype.include = function(filePath, currentXModule) {
   var origFilePath = filePath;
 
   return new Promise(function (onImportComplete, reject) {
-    if (/^(px|url|querystring|htmlparser|crypto|oauth|grpc|google-protobuf)$/.test(filePath)) {
+    if (/^(px|url|querystring|htmlparser|crypto|oauth|grpc|google-protobuf|thunderJS)$/.test(filePath)) {
       if (isDuk && filePath === 'htmlparser') {
         console.log("Not permitted to use the module " + filePath);
         reject("include failed due to module not permitted");
@@ -661,6 +666,14 @@ AppSceneContext.prototype.include = function(filePath, currentXModule) {
     else if( filePath.substring(0,7) === "optimus") {
       modData = require('rcvrcore/optimus.js');
       onImportComplete([modData, origFilePath]);
+      return;
+    } else if( filePath.substring(0, 7) === "thunder") {
+      var thunder = require('rcvrcore/thunder.js');
+      if( _this.thunderWrapper === null ) {
+        _this.thunderWrapper = new thunder();
+      }
+      _this.thunderWrapper._setScene(_this.innerscene);
+      onImportComplete([_this.thunderWrapper, origFilePath]);
       return;
     }
 

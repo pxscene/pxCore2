@@ -65,6 +65,11 @@ void pxImage::onInit()
   {
     setUrl("");
   }
+  // send resolve when resource got ready before init
+  if ((mParent == NULL) && (mReceivedReadyBeforeInit == true)) {
+    mReady.send("resolve",this);
+    mReceivedReadyBeforeInit = false;
+  }
 }
 
 /**
@@ -183,10 +188,19 @@ rtError pxImage::setUrl(const char* s)
 
 void pxImage::sendPromise()
 {
-  if(mInitialized && imageLoaded && !((rtPromise*)mReady.getPtr())->status())
+  if(imageLoaded && !((rtPromise*)mReady.getPtr())->status())
   {
       //rtLogDebug("pxImage SENDPROMISE for %s\n", mUrl.cString());
-      mReady.send("resolve",this); 
+      if (mInitialized)
+      {
+        mReady.send("resolve",this); 
+        mReceivedReadyBeforeInit = false;
+      }
+      else
+      {
+        // Received a case where image is loaded before init is done
+        mReceivedReadyBeforeInit = true;
+      }
   }
 }
 
@@ -269,7 +283,7 @@ void pxImage::resourceReady(rtString readyResolution)
     mScene->mDirty = true;
     markDirty();
     pxObject* parent = mParent;
-    if( !parent)
+    if( !parent || mResolveWithoutParent)
     {
       // Send the promise here because the image will not get an 
       // update call until it has a parent
@@ -364,6 +378,18 @@ rtError pxImage::setFlip(bool v)
   return RT_OK;
 }
 
+rtError pxImage::resolveWithoutParent(bool& v)  const
+{
+  v = mResolveWithoutParent;
+  return RT_OK;
+}
+
+rtError pxImage::setResolveWithoutParent(bool v)
+{
+  mResolveWithoutParent = v;
+  return RT_OK;
+}
+
 rtError pxImage::setMaskOp(int32_t v)
 {
   mMaskOp = (pxConstantsMaskOperation::constants)v;
@@ -451,6 +477,7 @@ rtDefineProperty(pxImage, resource);
 rtDefineProperty(pxImage, stretchX);
 rtDefineProperty(pxImage, stretchY);
 rtDefineProperty(pxImage, flip);
+rtDefineProperty(pxImage, resolveWithoutParent);
 rtDefineProperty(pxImage, maskOp);
 rtDefineProperty(pxImage, downscaleSmooth);
 rtDefineMethod(pxImage, texture);

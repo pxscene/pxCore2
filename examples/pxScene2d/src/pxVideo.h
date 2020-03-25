@@ -61,6 +61,7 @@ public:
   rtProperty(tsbEnabled, tsbEnabled, setTsbEnabled, bool);
   rtProperty(closedCaptionsEnabled, closedCaptionsEnabled, setClosedCaptionsEnabled, bool);
   rtProperty(autoPlay, autoPlay, setAutoPlay, bool);
+  rtProperty(proxy, proxy, setProxy, rtString);
 
   rtMethodNoArgAndNoReturn("play", play);
   rtMethodNoArgAndNoReturn("pause", pause);
@@ -110,6 +111,8 @@ public:
   virtual rtError setClosedCaptionsEnabled(bool v);
   virtual rtError autoPlay(bool& autoPlay) const;
   virtual rtError setAutoPlay(bool v);
+  virtual rtError proxy(rtString& url) const;
+  virtual rtError setProxy(const char* s);
 
   //methods
   virtual rtError play();
@@ -161,6 +164,7 @@ private:
     };
     YUVBUFFER mYuvBuffer;
     bool mPlaybackInitialized;
+    rtString mProxy;
 
     std::map<AAMPEventType, std::unique_ptr<AAMPEventListener>> mEventsListeners;
 

@@ -50,7 +50,7 @@ var {promisify} = require('util')
 var Buffer = require('buffer').Buffer
 var cachedSource = {}
 
-var sandboxKeys = ["vm", "process", "setTimeout", "console", "clearTimeout", "setInterval", "clearInterval", "setImmediate", "clearImmediate", "sparkview", "sparkscene", "sparkgles2", "beginDrawing", "endDrawing", "sparkwebgl", "sparkkeys", "sparkQueryParams", "require", "localStorage", "sparkHttp"]
+var sandboxKeys = ["vm", "process", "setTimeout", "console", "clearTimeout", "setInterval", "clearInterval", "setImmediate", "clearImmediate", "sparkview", "sparkscene", "thunder", "sparkgles2", "beginDrawing", "endDrawing", "sparkwebgl", "sparkkeys", "sparkQueryParams", "require", "localStorage", "sparkHttp"]
 var __dirname = process.cwd()
 
 // Spark node-like module loader
@@ -61,6 +61,10 @@ const makeRequire = function(pathToParent) {
     if ((moduleName == 'iconv-lite') || (moduleName == 'safer-buffer') || (moduleName == 'is-stream'))
     {
       return reqOrig(moduleName)
+    }
+    if (moduleName.substring(0,7) === "optimus")
+    {
+      return reqOrig('rcvrcore/optimus.js');
     }
     const parentDir = path.dirname(pathToParent);
     // use Node's built-in module resolver here, but we could easily pass in our own
@@ -311,6 +315,8 @@ function onSceneTerminate() {
   }
   this.succeeded = false;
   this.active = true;
+  this.makeRequire = null
+  this.makeReady = null
   // JRJR something is invoking setImmediate after this and causing problems
 }
 
@@ -327,8 +333,7 @@ function initializeImportMeta(meta, { url }) {
   
 function LightningApp(params) {
   this.url = params.url
-  this._frameworkURL = params._frameworkURL;
-  this._options = params._options;
+  this.bootstrap = params.bootstrap;
   
   this._intervals = []
   this._timeouts = []
@@ -344,7 +349,17 @@ function LightningApp(params) {
   tmpGlobal.beginDrawing = params._beginDrawing
   tmpGlobal.endDrawing = params._endDrawing
   tmpGlobal.sparkscene = params.sparkscene
+  tmpGlobal.thunder = {
+    token : function() {
+      if (tmpGlobal && tmpGlobal.sparkscene && tmpGlobal.sparkscene.thunderToken) {
+        return tmpGlobal.sparkscene.thunderToken();
+      } else {
+        return "";
+      }
+    }
+  };
   tmpGlobal.sparkHttp = params._sparkHttp
+  tmpGlobal.bootstrap = params.bootstrap;
   // JRJR review this... if we don't draw outside of the timers
   // then no need for this... 
   // general todo... in terms of sandboxing webgl operations.
@@ -366,6 +381,7 @@ function LightningApp(params) {
   tmpGlobal.setImmediate = xxsetImmediate.bind(this)
   tmpGlobal.clearImmediate = xxclearImmediate.bind(this)
   tmpGlobal.sparkQueryParams = urlmain.parse(this.url, true).query;
+  tmpGlobal.sparkHash = urlmain.parse(this.url, true).hash;
   tmpGlobal.thisIsTmpGlobal = true;
 
   var tmpSandbox = this.sandbox
@@ -377,16 +393,16 @@ function LightningApp(params) {
   {
     tmpSandbox[sandboxKeys[i]] = tmpGlobal[sandboxKeys[i]];
   }
-
+  var _this = this;
   this.bootStrapCache = {}
   this.bootStrapCache[_module._resolveFilename('ws', {paths:[__dirname].concat(_module._nodeModulePaths(__dirname))})] = function WebSocket(address, protocols, options) {
     let client = new _ws(address, protocols, options);
-    _websockets.push(client);
+    _this._websockets.push(client);
     client.on('close', () => {
       console.log(`websocket ${address} closed`);
-      let index = _websockets.indexOf(client);
+      let index = _this._websockets.indexOf(client);
       if (index !== -1) {
-        _websockets.splice(index, 1);
+        _this._websockets.splice(index, 1);
       }
     });
     return client;

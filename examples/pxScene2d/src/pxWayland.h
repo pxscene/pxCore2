@@ -78,7 +78,10 @@ public:
     rtLogInfo("pxWayland::onCloseRequest()");
   }
 
-  void setEvents(pxWaylandEvents *events);
+  void setEvents(pxWaylandEvents *events)
+  {
+     mEvents = events;
+  }
 
   rtError displayName(rtString& s) const;
   rtError setDisplayName(const char* s);
@@ -156,6 +159,7 @@ public:
   rtError addListener(const rtString& eventName, const rtFunctionRef& f);
   rtError delListener(const rtString& eventName, const rtFunctionRef& f);
   rtError startRemoteObjectLocator();
+  void startRemoteObjectDetection();
   rtError connectToRemoteObject(unsigned int timeout_ms);
   rtError useDispatchThread(bool use);
   rtError resume(const rtValue& v, bool& b);
@@ -186,6 +190,7 @@ private:
   static void clientStatus( WstCompositor *wctx, int status, int pid, int detail, void *userData );
   static void remoteDisconnectedCB(void *data);
   static void onClientStatus(void* context, void* data);
+  static bool onRemoveTask(void* context, void* data);
 
   void handleInvalidate();
   void handleHidePointer( bool hide );
@@ -198,7 +203,6 @@ private:
   uint32_t getModifiers( uint32_t flags );
   bool isRotated();
   uint32_t linuxFromPX( uint32_t keyCode );
-  void startRemoteObjectDetection();
   rtError connectToRemoteObject();
 
 protected:

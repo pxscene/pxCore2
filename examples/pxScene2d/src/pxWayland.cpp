@@ -123,13 +123,12 @@ pxWayland::~pxWayland()
   rtRemoteUnregisterDisconnectedCallback(pxWayland::remoteDisconnectedCB, this);
 #endif //ENABLE_PX_WAYLAND_RPC
 
-  if (gUIThreadQueue)
-  {
-    gUIThreadQueue->removeAllTasksForObject(this);
-  }
-
   if ( mWCtx )
   {
+     rtLogInfo("removing wayland callbacks before destroying");
+     WstCompositorSetInvalidateCallback(mWCtx, NULL, NULL);
+     WstCompositorSetHidePointerCallback(mWCtx, NULL, NULL);
+     WstCompositorSetClientStatusCallback(mWCtx, NULL, NULL);
      terminateClient();
      WstCompositorDestroy(mWCtx);
      //Adding mClientTerminated flag check because SIGKILL has to be sent to
@@ -146,16 +145,10 @@ pxWayland::~pxWayland()
      mClientPID= -1;
      mWCtx = NULL;
   }
-}
-
-void pxWayland::setEvents(pxWaylandEvents *events)
-{
   if (gUIThreadQueue)
   {
-    gUIThreadQueue->removeAllTasksForObject(this);
+    gUIThreadQueue->removeAllTasksForObject(this, onRemoveTask);
   }
-
-  mEvents = events;
 }
 
 rtError pxWayland::displayName(rtString& s) const { s = mDisplayName; return RT_OK; }
@@ -256,7 +249,6 @@ void pxWayland::createDisplay(rtString displayName)
 
       if ( mUseDispatchThread && !mRemoteObjectName.isEmpty() )
       {
-         mWaitingForRemoteObject = true;
          startRemoteObjectDetection();
       }
    }
@@ -567,7 +559,7 @@ uint32_t pxWayland::getModifiers( uint32_t flags )
 bool pxWayland::isRotated()
 {
    pxMatrix4f matrix = context.getMatrix();
-   float *f = matrix.data(); 
+   float *f = matrix.data();
    const float e= 1.0e-2;
 
    if ( (fabsf(f[1]) > e) ||
@@ -674,34 +666,39 @@ struct pxWaylandClientStatus
 
 void pxWayland::onClientStatus(void* context, void* data)
 {
-   pxWayland* pxw = (pxWayland*)context;
-   pxWaylandClientStatus* statusData = (pxWaylandClientStatus*)data;
-   pxw->handleClientStatus(statusData->status, statusData->pid, statusData->detail);
-   delete statusData;
+   if (context && data)
+   {
+      pxWayland* pxw = (pxWayland*)context;
+      pxWaylandClientStatus* statusData = (pxWaylandClientStatus*)data;
+      pxw->handleClientStatus(statusData->status, statusData->pid, statusData->detail);
+   }
+   onRemoveTask(context, data);
 }
 
 void pxWayland::clientStatus( WstCompositor *wctx, int status, int pid, int detail, void *userData )
 {
    (void)wctx;
+   if (userData && gUIThreadQueue)
+      gUIThreadQueue->addTask(onClientStatus, userData, new pxWaylandClientStatus(status, pid, detail));
+}
 
-   pxWayland *pxw= (pxWayland*)userData;
-
-   if (gUIThreadQueue)
-   {
-      pxWaylandClientStatus* statusData = new pxWaylandClientStatus(status, pid, detail);
-      gUIThreadQueue->addTask(onClientStatus, pxw, statusData);
-   }
+bool pxWayland::onRemoveTask(void* context, void* data)
+{
+   if (data)
+      delete (pxWaylandClientStatus*)data;
+   return true;
 }
 
 void pxWayland::remoteDisconnectedCB(void *data)
 {
     pxWayland *pxw = (pxWayland *)data;
-    if(pxw->mEvents)
+    if (pxw->mEvents)
         pxw->mEvents->remoteDisconnected(data);
 }
 
 void pxWayland::startRemoteObjectDetection()
 {
+  mWaitingForRemoteObject = true;
   int rc= pthread_create( &mFindRemoteThreadId, NULL, findRemoteThread, this );
   if ( rc )
   {
@@ -971,7 +968,7 @@ rtError pxWayland::drawToFbo(pxContextFramebufferRef& fbo)
 
   context.setFramebuffer( previousFrameBuffer );
   context.popState();
-  
+
   return RT_OK;
 }
 

@@ -25,7 +25,22 @@ var readFileAsync = promisify(fs.readFile)
 var ArrayJoin = Function.call.bind(Array.prototype.join);
 var ArrayMap = Function.call.bind(Array.prototype.map);
 var reqOrig = require;
+var frameWorkCache = {}
 
+class Framework {
+  constructor(module, specifier) {
+    this.module = module;
+    this.filename = specifier.substring(specifier.lastIndexOf('/')+1);
+    this.use = 1;
+  }
+}
+
+// default value is true for below parameters if not defined in spark settings
+var enableFrameworkCaching = undefined;
+var keepFrameworksOnExit = undefined;
+
+// Normalize the URL, for consistency. Remove the query part.
+// All local URLs would have the 'file:' prefix.
 var filename2url = function (loc) {
   var __dirname = process.cwd()
   let pos = loc.indexOf('#');
@@ -86,10 +101,6 @@ function stripBOM(content) {
 /* load json module and returns as ejs module */
 var loadJsonModule = async function (source, specifier, ctx)
 {
-  if (specifier in ctx.modmap)
-  {
-    return ctx.modmap[specifier];
-  }
   var mod;
   var module = JSON.parse(stripBOM(source));
   const names = ArrayMap([...Object.keys(module), 'default'], (name) => `${name}`);
@@ -127,10 +138,6 @@ var loadJsonModule = async function (source, specifier, ctx)
 /* load javascript file and returns as ejs module */
 var loadJavaScriptModule = async function (source, specifier, ctx)
 {
-  if (specifier in ctx.modmap)
-  {
-    return ctx.modmap[specifier];
-  }
   var mod;
   var wrapper = [
     '(function (module) { ',
@@ -171,17 +178,12 @@ var loadJavaScriptModule = async function (source, specifier, ctx)
     var result = await mod.link(function() {});
   }
   return mod;
-}      
-    
+}
+
 /* load node module and returns as ejs module */
 var loadNodeModule = async function (specifier, ctx)
-{     
-  if (specifier in ctx.modmap)
-  {
-    return ctx.modmap[specifier];
-  }
+{
   var mod;
-  var module; 
   const names = ArrayMap(['default'], (name) => `${name}`);
     const source = `
   ${ArrayJoin(ArrayMap(names, (name) =>
@@ -213,10 +215,6 @@ var loadNodeModule = async function (specifier, ctx)
 /* load commonjs module and returns as ejs module */
 var loadCommonJSModule = async function (specifier, ctx)
 {
-  if (specifier in ctx.modmap)
-  {
-    return ctx.modmap[specifier];
-  }
   var __dirname = process.cwd()
   var mod;
   var module = reqOrig(specifier);
@@ -252,6 +250,27 @@ var loadCommonJSModule = async function (specifier, ctx)
   return mod;
 }
 
+/* iife, or umd */
+var loadFrameworkModule = async function (source, specifier, ctx, version)
+{
+  // console.log(`loading framework '${specifier}' ver.'${version}'`);
+  var mod = new vm.Script(source);
+  mod.runInContext(ctx);
+  if (typeof version === "string" && version !== "") {
+    let framework = new Framework(mod, specifier);
+    Object.keys(frameWorkCache).forEach(key => {
+      if (frameWorkCache[key].filename === framework.filename && frameWorkCache[key].use <= 0) {
+        // console.log(`replace framework '${framework.filename}' ver.'${key}' => '${version}'`);
+        delete frameWorkCache[key];
+      }
+    });
+    frameWorkCache[version] = framework;
+  } else {
+    ctx.modmap[specifier] = mod
+  }
+  return mod;
+}
+
 var getFile = async function (scene, url) {
   if (/^http:|^https:/.test(url))
     return await loadHttpFile(scene, url);
@@ -261,167 +280,78 @@ var getFile = async function (scene, url) {
 }
 
 /* load mjs file and returns as ejs module */
-var getModule = async function (specifier, referencingModule) {
-   var __dirname = process.cwd()
-   try {
-   var isLocalApp = (referencingModule.url.indexOf("file:") == 0)?true:false;
-   var baseString = "";
-   if (isLocalApp) {
-     baseString = referencingModule.url.indexOf("file:") == 0?referencingModule.url.substring(7):referencingModule.url;
-   }
-   else
-   {
-     baseString = referencingModule.url.indexOf("http:") == 0?referencingModule.url.substring(7):referencingModule.url;
-   }
-   var mod;
-   if (specifier.indexOf('.node') != -1) // native node module
-   {
-     mod = loadNodeModule(specifier, referencingModule.context);
-   }
-   else if (specifier.indexOf('.json') != -1) // json module
-   {
-     var source;
-     try {
-       if (isLocalApp) {
-           specifier = path.resolve(baseString.substring(0, baseString.lastIndexOf("/")+1), specifier);
-           source = await readFileAsync(specifier, {'encoding' : 'utf-8'})
-           specifier = "file://" + specifier;
-           mod = loadJsonModule(source, specifier, referencingModule.context);
-         }
-         else
-         {
-           specifier = "http://" + baseString.substring(0, baseString.lastIndexOf("/")+1) + specifier;
-           let result = await loadHttpFile(referencingModule.context.global.sparkscene, specifier);
-           mod = loadJsonModule(result, specifier, referencingModule.context);
-         }
-       } catch(err) {
-         console.log(err);
-       }
-   }
-   else if (specifier.indexOf('.js') != -1) // js module used by app
-   {
-     var source;
-     try {
-       if (isLocalApp) {
-           specifier = path.resolve(baseString.substring(0, baseString.lastIndexOf("/")+1), specifier);
-           source = await readFileAsync(specifier, {'encoding' : 'utf-8'})
-           specifier = "file://" + specifier;
-           mod = loadJavaScriptModule(source, specifier, referencingModule.context);
-         }
-         else
-         {
-           specifier = "http://" + baseString.substring(0, baseString.lastIndexOf("/")+1) + specifier;
-           let result = await loadHttpFile(referencingModule.context.global.sparkscene, specifier);
-           mod = loadJavaScriptModule(result, specifier, referencingModule.context);
-         }
-       } catch(err) {
-         console.log(err);
-       }
-   }
-   // may be relative or non-relative
-   else if ((specifier.startsWith(".") == false) && (specifier.startsWith("/") == false)) {
-     // node modules
-     if (fs.existsSync("node_modules/" + specifier) && (specifier.indexOf("wpe-lightning") == -1))
-     {
-       mod = loadCommonJSModule(specifier, referencingModule.context);
-     }
-     else if(specifier == 'fs' || specifier == 'http' || specifier == 'https') {
-       mod = loadCommonJSModule(specifier, referencingModule.context);
-     }
-     else
-     {
-       // mjs module
-       var treatAsLocal = false;
-       if(specifier.indexOf("wpe-lightning-spark") == 0)
-       {
-         treatAsLocal = true;
-         specifier = path.resolve(__dirname ,"node_modules/wpe-lightning-spark/src/lightning.mjs") ;
-       }
-       else if(specifier.indexOf("wpe-lightning") == 0)
-       {
-         treatAsLocal = true;
-         specifier = path.resolve(__dirname ,"node_modules/" + specifier);
-       }
-       else if (specifier.indexOf(".mjs") != -1)
-       {
-         if (isLocalApp) {
-           specifier = path.resolve(baseString.substring(0, baseString.lastIndexOf("/")+1), specifier);
-         }
-         else
-         {
-           specifier = baseString.substring(0, baseString.lastIndexOf("/")+1) + specifier;
-         }
-       }
-       if (specifier in referencingModule.context.modmap)
-       {
-         mod = referencingModule.context.modmap[specifier];
-       }
-       else {
-       var source;
-       try {
-         if (isLocalApp || (true == treatAsLocal)) {
-           source = await readFileAsync(specifier, {'encoding' : 'utf-8'})
-           specifier = "file://" + specifier;
-           mod = loadMjs(source, specifier, referencingModule.context, referencingModule.context.modmap);
-         }
-         else
-         {
-           specifier = "http://" + specifier;
-           let result = await loadHttpFile(referencingModule.context.global.sparkscene, specifier);
-           mod = loadMjs(result, specifier, referencingModule.context, referencingModule.context.modmap);
-         }
-       } catch(err) {
-         console.log(err);
-       }
-      }
-     }
-   }
-   else if (specifier.indexOf(".") == 0) {
-     if (specifier.indexOf("./") == 0) {
-       specifier = specifier.substring(2);
-     }
-     if (isLocalApp) {
-       specifier = path.resolve(baseString.substring(0, baseString.lastIndexOf("/")+1), specifier);
-     }
-     else
-     { 
-       specifier = baseString.substring(0, baseString.lastIndexOf("/")+1) + specifier;
-     }
-     // making sure we are not appending extension with files already having extension
-     if ((specifier.endsWith(".js") == false) && (specifier.endsWith(".mjs") == false))
-     {
-       specifier = specifier + ".mjs";
-     } 
-     if (specifier in referencingModule.context.modmap)
-     {
-       mod = referencingModule.context.modmap[specifier];
-     }
-     else {
-       // search for ux.mjs or ux.js
-       var source;
-       try {
-         if (isLocalApp) {
-           source = await readFileAsync(specifier, {'encoding' : 'utf-8'})
-           specifier = "file://" + specifier;
-           mod = loadMjs(source, specifier, referencingModule.context, referencingModule.context.modmap);
-         }
-         else
-         {
-           //http module read
-           specifier = "http://" + specifier;
-           let result = await loadHttpFile(referencingModule.context.global.sparkscene, specifier);
-           mod = loadMjs(result, specifier, referencingModule.context, referencingModule.context.modmap);
-         }
-       } catch(err) {
-         console.log(err);
-       }
-     }
+var getModule = async function (specifier, referencingModule, version) {
+  let isCommonJSModule = false
+  let isFramework = version !== undefined && version !== null
+
+  if (specifier.indexOf("wpe-lightning-spark") === 0) {
+    specifier = path.resolve(process.cwd(), "node_modules/wpe-lightning-spark/src/lightning.mjs");
+  } else if (specifier.indexOf("wpe-lightning") === 0) {
+    specifier = path.resolve(process.cwd(), "node_modules/" + specifier);
   }
-  return mod;
-  } catch(err) {
-    console.log(err);
- }
-}
+
+  // The following code is default.
+  // Specifier can be a relative, absolute path, or URL. Convert to URL, for consistency.
+  else {
+    if (!/^(http:|https:|file:)/.test(specifier)) {
+      if (fs.existsSync("node_modules/" + specifier)) {
+        isCommonJSModule = true
+      } else {
+        specifier = urlmain.resolve(referencingModule.url, specifier);
+        const ext = path.extname(specifier);
+        if (!/^(\.js|\.mjs)$/.test(ext))
+          specifier += '.mjs';
+      }
+    }
+  }
+  if (!/^(http:|https:|file:)/.test(specifier) && !isCommonJSModule)
+    specifier = `file://${specifier}`;
+
+  // Load as .js, .mjs, or .json.
+  // If the module has been loaded already, return it.
+  if (specifier in referencingModule.context.modmap) {
+    // console.log(`found module '${specifier}' in cache`);
+    return referencingModule.context.modmap[specifier];
+  }
+
+  // Same file from different domains is shared if has 'version'.
+  if (isFramework) {
+    if (undefined === enableFrameworkCaching) {
+      enableFrameworkCaching = referencingModule.context.global.sparkscene.sparkSetting("enableFrameWorkCache");
+      if (undefined === enableFrameworkCaching) {
+        enableFrameworkCaching = true;
+      }
+      if (false === enableFrameworkCaching) {
+        keepFrameworksOnExit = false;
+      }
+    }
+    if (enableFrameworkCaching && version && (version in frameWorkCache)) {
+      // console.log(`found framework '${specifier}' ver.'${version}' in cache`);
+      let framework = frameWorkCache[version];
+      framework.module.runInContext(referencingModule.context);
+      framework.use++;
+      return framework.module;
+    }
+  }
+
+  if (/\.node$/.test(specifier))
+    return await loadNodeModule(specifier, referencingModule.context);
+  if (isCommonJSModule)
+    return await loadCommonJSModule(specifier, referencingModule.context);
+
+  const source = await getFile(referencingModule.context.global.sparkscene, specifier);
+  if (/\.json$/.test(specifier))
+    return await loadJsonModule(source, specifier, referencingModule.context);
+  if (/\.js$/.test(specifier)) {
+    if (isFramework) {
+      if (enableFrameworkCaching)
+        return await loadFrameworkModule(source, specifier, referencingModule.context, version)
+      return await loadFrameworkModule(source, specifier, referencingModule.context)
+    }
+    return await loadJavaScriptModule(source, specifier, referencingModule.context);
+  }
+  return await loadMjs(source, specifier, referencingModule.context, referencingModule.context.modmap);
+};
 
 var linker = async function (specifier, referencingModule) {
   try {
@@ -433,8 +363,8 @@ var linker = async function (specifier, referencingModule) {
   }
 }
 
-var importModuleDynamically = async function (specifier, { url }) {
-  var mod = await getModule(specifier,{ url });
+var importModuleDynamically = async function (specifier, referencingModule) {
+  var mod = await getModule(specifier,referencingModule);
   mod.instantiate();
   await mod.evaluate();
   return mod;
@@ -445,6 +375,10 @@ var loadMjs = async function (source, url, context, modmap)
   if (url in modmap)
   {
     return modmap[url];
+  }
+  if (null == context)
+  {
+    throw "Context is empty, app might got terminated !!!";
   }
   var mod = new vm.SourceTextModule(source , { context: context, initializeImportMeta:initializeImportMeta, importModuleDynamically:importModuleDynamically, url:url });
   modmap[url] = mod;
@@ -459,32 +393,55 @@ function ESMLoader(params) {
   this.ctx = params
   this.loadESM = function(filename) {
     var loadCtx = this.ctx;
-    const url = filename2url(filename);
+    let url = filename2url(filename);
     const loc = /^file:/.test(url) ? url.substring(7) : url;
   
+    // When URL is .spark, applicationURL is 'filename'.
+    const bootstrapUrl = url;
+    if (loadCtx.bootstrap) {
+      let appURL = loadCtx.bootstrap.applicationURL;
+      if (!/^(http:|https:|file:)/.test(appURL))
+        appURL = urlmain.resolve(url, appURL);
+      url = appURL;
+    }
+
     // override require to our own require to load files relative to file path
+    // TODO: __dirname doesn't change in modules imported dynamically. However, in modules loaded via 'require', it is set correctly.
     loadCtx.sandbox.require = loadCtx.makeRequire(loc).bind(loadCtx);
     loadCtx.sandbox['__dirname'] = path.dirname(loc);
+    loadCtx.sandbox.global.__dirname = loadCtx.sandbox.__dirname;
     loadCtx.contextifiedSandbox = vm.createContext(loadCtx.sandbox);
     loadCtx.contextifiedSandbox.modmap = loadCtx.modmap;
-    var script = new vm.Script("var sgl = require('webgl.js'); global.sparkwebgl = sparkwebgl = new sgl.WebGLRenderingContext(global.sparkscene); global.sparkgles2 = sparkgles2 = require('gles2.js');");
+    var script = new vm.Script(
+      "var sgl = require('webgl.js');" +
+      "global.sparkwebgl = sparkwebgl = new sgl.WebGLRenderingContext(global.sparkscene);" +
+      "global.sparkgles2 = sparkgles2 = require('gles2.js');" +
+      "global.fetch = fetch = require('node-fetch');" +
+      "global.Headers = Headers = global.fetch.Headers;" +
+      "global.Request = Request = global.fetch.Request;" +
+      "global.Response = Response = global.fetch.Response;" +
+      "global.WebSocket = WebSocket = require('ws');" +
+      "global.window = window = {};"
+    );
+    
     script.runInContext(loadCtx.contextifiedSandbox);
     script = null; 
     try {
       (async () => {
         let instantiated = false;
         try {
-          if (loadCtx._frameworkURL) {
-            const url2 = filename2url(loadCtx._frameworkURL);
-            const loc2 = /^file:/.test(url2) ? url2.substring(7) : url2;
-            const source2 = await getFile(loadCtx.global.sparkscene,url2);
-            // use paths for frameworkURL
-            loadCtx.sandbox.require = loadCtx.makeRequire(loc2).bind(loadCtx);
-            loadCtx.sandbox['__dirname'] = path.dirname(loc2);
-            vm.runInContext(source2, loadCtx.contextifiedSandbox, {filename:loc2});
-            // restore previous values
-            loadCtx.sandbox.require = loadCtx.makeRequire(loc).bind(loadCtx);
-            loadCtx.sandbox['__dirname'] = path.dirname(loc);
+          // When URL is .spark, frameworkURL-s are loaded like dynamic imports.
+          if (loadCtx.bootstrap && loadCtx.bootstrap.frameworks) {
+            const list = loadCtx.bootstrap.frameworks;
+            for (let i = 0; i < list.length; i++) {
+              let _framework = list[i];
+              let _url = _framework.url || _framework;
+              let _version = _framework.md5 || "";
+              await getModule(_url, {
+                url:bootstrapUrl,
+                context:loadCtx.contextifiedSandbox
+              }, _version);
+            }
           }
           var source = await getFile(loadCtx.global.sparkscene, url);
           loadCtx.app = await loadMjs(source, url, loadCtx.contextifiedSandbox, loadCtx.modmap);
@@ -495,25 +452,14 @@ function ESMLoader(params) {
           loadCtx.makeReady(true, loadCtx.app.namespace);
           loadCtx.global.beginDrawing();
           await loadCtx.app.evaluate();
-  
-          if (typeof loadCtx.app.namespace.default === 'function') {
-            try {
-              if (params._options) {
-                new loadCtx.app.namespace.default(params._options);
-              } else {
-                new loadCtx.app.namespace.default();
-              }
-            } catch (err) {
-              console.log(err);
-            }
-          }
-  
           loadCtx.global.endDrawing();
         } catch (err) {
           console.log("load mjs module failed ");
           console.log(err);
-          if (false === instantiated) {
-            loadCtx.makeReady(false, {});
+          if ((false === instantiated) && (null != loadCtx)) {
+            if ((null != loadCtx) && (null != loadCtx.makeReady)) {
+              loadCtx.makeReady(false, {});
+            }
           }
         }
       })();
@@ -522,6 +468,30 @@ function ESMLoader(params) {
     }
   }
   this.clearResources = function() {
+    if (enableFrameworkCaching) {
+      if (undefined === keepFrameworksOnExit) {
+        keepFrameworksOnExit = this.ctx.global.sparkscene.sparkSetting("keepFrameworksOnExit")
+        if (undefined === keepFrameworksOnExit) {
+          keepFrameworksOnExit = true
+        }
+      }
+      if (!keepFrameworksOnExit) {
+        // console.log(`delete all frameworks on exit`);
+        frameWorkCache = {}
+      } else {
+        if (this.ctx.bootstrap && this.ctx.bootstrap.frameworks) {
+          this.ctx.bootstrap.frameworks.forEach(i => {
+            if (i.md5 && i.md5 in frameWorkCache) {
+              let framework = frameWorkCache[i.md5];
+              if (--framework.use <= 0 && Object.values(frameWorkCache).some(j => j !== framework && j.filename === framework.filename)) {
+                // console.log(`delete framework '${framework.filename}' ver.'${i.md5}'`);
+                delete frameWorkCache[i.md5];
+              }
+            }
+          });
+        }
+      }
+    }
     this.ctx = null
   }
 }

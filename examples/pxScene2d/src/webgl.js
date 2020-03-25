@@ -1348,3 +1348,11 @@ WebGLRenderingContext.prototype.viewport = function viewport(x, y, width, height
     }
     return this.gl.viewport(x, y, width, height);
 };
+
+WebGLRenderingContext.prototype.beginNativeSparkRendering = function beginNativeSparkRendering() {
+    return this.gl.beginNativeSparkRendering();
+};
+
+WebGLRenderingContext.prototype.endNativeSparkRendering = function endNativeSparkRendering() {
+    return this.gl.endNativeSparkRendering();
+};
