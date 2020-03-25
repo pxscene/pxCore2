@@ -279,78 +279,102 @@ var getFile = async function (scene, url) {
   return await readFileAsync(url, {'encoding': 'utf-8'});
 }
 
+class ModuleItem {
+  constructor(specifier, referencingModule, version) {
+    let isCommonJSModule = false
+    let isFramework = version !== undefined && version !== null
+
+    if (specifier.indexOf("wpe-lightning-spark") === 0) {
+      specifier = path.resolve(process.cwd(), "node_modules/wpe-lightning-spark/src/lightning.mjs");
+    } else if (specifier.indexOf("wpe-lightning") === 0) {
+      specifier = path.resolve(process.cwd(), "node_modules/" + specifier);
+    }
+
+    // The following code is default.
+    // Specifier can be a relative, absolute path, or URL. Convert to URL, for consistency.
+    else {
+      if (!/^(http:|https:|file:)/.test(specifier)) {
+        if (fs.existsSync("node_modules/" + specifier)) {
+          isCommonJSModule = true
+        } else {
+          specifier = urlmain.resolve(referencingModule.url, specifier);
+          const ext = path.extname(specifier);
+          if (!/^(\.js|\.mjs)$/.test(ext))
+            specifier += '.mjs';
+        }
+      }
+    }
+    if (!/^(http:|https:|file:)/.test(specifier) && !isCommonJSModule)
+      specifier = `file://${specifier}`;
+
+    this.specifier = specifier;
+    this.refModule = referencingModule;
+    this.version = version;
+    this.isCommonJSModule = isCommonJSModule;
+    this.isFramework = isFramework;
+
+    // If the module has been loaded already, return it.
+    if (specifier in referencingModule.context.modmap) {
+      // console.log(`found module '${specifier}' in cache`);
+      this.module = referencingModule.context.modmap[specifier];
+    }
+
+    // Same file from different domains is shared if has 'version'.
+    else if (isFramework) {
+      if (undefined === enableFrameworkCaching) {
+        enableFrameworkCaching = referencingModule.context.global.sparkscene.sparkSetting("enableFrameWorkCache");
+        if (undefined === enableFrameworkCaching) {
+          enableFrameworkCaching = true;
+        }
+        if (false === enableFrameworkCaching) {
+          keepFrameworksOnExit = false;
+        }
+      }
+      if (enableFrameworkCaching && version && (version in frameWorkCache)) {
+        // console.log(`found framework '${specifier}' ver.'${version}' in cache`);
+        this.module = frameWorkCache[version];
+      }
+    }
+  }
+
+  async download() {
+    if (!this.module && !this.source && !/\.node$/.test(this.specifier) && !this.isCommonJSModule) {
+      this.source = await getFile(this.refModule.context.global.sparkscene, this.specifier)
+    }
+  }
+
+  async load() {
+    if (this.module instanceof Framework) {
+      this.module.module.runInContext(this.refModule.context);
+      this.module.use++;
+      return this.module.module;
+    }
+
+    if (/\.node$/.test(this.specifier))
+      return await loadNodeModule(this.specifier, this.refModule.context);
+    if (this.isCommonJSModule)
+      return await loadCommonJSModule(this.specifier, this.refModule.context);
+
+    // Load as .js, .mjs, or .json.
+    if (/\.json$/.test(this.specifier))
+      return await loadJsonModule(this.source, this.specifier, this.refModule.context);
+    if (/\.js$/.test(this.specifier)) {
+      if (this.isFramework) {
+        if (enableFrameworkCaching)
+          return await loadFrameworkModule(this.source, this.specifier, this.refModule.context, this.version);
+        return await loadFrameworkModule(this.source, this.specifier, this.refModule.context)
+      }
+      return await loadJavaScriptModule(this.source, this.specifier, this.refModule.context);
+    }
+    return await loadMjs(this.source, this.specifier, this.refModule.context, this.refModule.context.modmap);
+  }
+}
+
 /* load mjs file and returns as ejs module */
 var getModule = async function (specifier, referencingModule, version) {
-  let isCommonJSModule = false
-  let isFramework = version !== undefined && version !== null
-
-  if (specifier.indexOf("wpe-lightning-spark") === 0) {
-    specifier = path.resolve(process.cwd(), "node_modules/wpe-lightning-spark/src/lightning.mjs");
-  } else if (specifier.indexOf("wpe-lightning") === 0) {
-    specifier = path.resolve(process.cwd(), "node_modules/" + specifier);
-  }
-
-  // The following code is default.
-  // Specifier can be a relative, absolute path, or URL. Convert to URL, for consistency.
-  else {
-    if (!/^(http:|https:|file:)/.test(specifier)) {
-      if (fs.existsSync("node_modules/" + specifier)) {
-        isCommonJSModule = true
-      } else {
-        specifier = urlmain.resolve(referencingModule.url, specifier);
-        const ext = path.extname(specifier);
-        if (!/^(\.js|\.mjs)$/.test(ext))
-          specifier += '.mjs';
-      }
-    }
-  }
-  if (!/^(http:|https:|file:)/.test(specifier) && !isCommonJSModule)
-    specifier = `file://${specifier}`;
-
-  // Load as .js, .mjs, or .json.
-  // If the module has been loaded already, return it.
-  if (specifier in referencingModule.context.modmap) {
-    // console.log(`found module '${specifier}' in cache`);
-    return referencingModule.context.modmap[specifier];
-  }
-
-  // Same file from different domains is shared if has 'version'.
-  if (isFramework) {
-    if (undefined === enableFrameworkCaching) {
-      enableFrameworkCaching = referencingModule.context.global.sparkscene.sparkSetting("enableFrameWorkCache");
-      if (undefined === enableFrameworkCaching) {
-        enableFrameworkCaching = true;
-      }
-      if (false === enableFrameworkCaching) {
-        keepFrameworksOnExit = false;
-      }
-    }
-    if (enableFrameworkCaching && version && (version in frameWorkCache)) {
-      // console.log(`found framework '${specifier}' ver.'${version}' in cache`);
-      let framework = frameWorkCache[version];
-      framework.module.runInContext(referencingModule.context);
-      framework.use++;
-      return framework.module;
-    }
-  }
-
-  if (/\.node$/.test(specifier))
-    return await loadNodeModule(specifier, referencingModule.context);
-  if (isCommonJSModule)
-    return await loadCommonJSModule(specifier, referencingModule.context);
-
-  const source = await getFile(referencingModule.context.global.sparkscene, specifier);
-  if (/\.json$/.test(specifier))
-    return await loadJsonModule(source, specifier, referencingModule.context);
-  if (/\.js$/.test(specifier)) {
-    if (isFramework) {
-      if (enableFrameworkCaching)
-        return await loadFrameworkModule(source, specifier, referencingModule.context, version)
-      return await loadFrameworkModule(source, specifier, referencingModule.context)
-    }
-    return await loadJavaScriptModule(source, specifier, referencingModule.context);
-  }
-  return await loadMjs(source, specifier, referencingModule.context, referencingModule.context.modmap);
+  let mod = new ModuleItem(specifier, referencingModule, version);
+  await mod.download();
+  return await mod.load();
 };
 
 var linker = async function (specifier, referencingModule) {
@@ -433,14 +457,19 @@ function ESMLoader(params) {
           // When URL is .spark, frameworkURL-s are loaded like dynamic imports.
           if (loadCtx.bootstrap && loadCtx.bootstrap.frameworks) {
             const list = loadCtx.bootstrap.frameworks;
+            const modules = [];
             for (let i = 0; i < list.length; i++) {
               let _framework = list[i];
               let _url = _framework.url || _framework;
               let _version = _framework.md5 || "";
-              await getModule(_url, {
+              modules.push(new ModuleItem(_url, {
                 url:bootstrapUrl,
                 context:loadCtx.contextifiedSandbox
-              }, _version);
+              }, _version));
+            }
+            await Promise.all(modules.map(m => m.download()));
+            for (let i = 0; i < modules.length; i++) {
+              await modules[i].load();
             }
           }
           var source = await getFile(loadCtx.global.sparkscene, url);
