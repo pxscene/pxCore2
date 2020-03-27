@@ -16,12 +16,15 @@ limitations under the License.
 
 */
 
+const isJSC = typeof _isJSC !== "undefined";
+
 var vm = require('vm')
 var urlmain = require("url")
 var fs = require('fs')
 var path = require('path')
 var {promisify} = require('util')
 var readFileAsync = promisify(fs.readFile)
+var process = require('process')
 var ArrayJoin = Function.call.bind(Array.prototype.join);
 var ArrayMap = Function.call.bind(Array.prototype.map);
 var reqOrig = require;
@@ -274,8 +277,8 @@ var loadFrameworkModule = async function (source, specifier, ctx, version)
 var getFile = async function (scene, url) {
   if (/^http:|^https:/.test(url))
     return await loadHttpFile(scene, url);
-  if (/^file:/.test(url))
-    return await readFileAsync(new urlmain.URL(url), {'encoding': 'utf-8'});
+  if (/^file:\/\/\//.test(url))
+    url = url.substring(7);
   return await readFileAsync(url, {'encoding': 'utf-8'});
 }
 
@@ -443,16 +446,27 @@ function ESMLoader(params) {
               }, _version);
             }
           }
-          var source = await getFile(loadCtx.global.sparkscene, url);
-          loadCtx.app = await loadMjs(source, url, loadCtx.contextifiedSandbox, loadCtx.modmap);
-          source = null;
-          loadCtx.app.instantiate();
-          instantiated = true;
-          loadCtx.succeeded = true;
-          loadCtx.makeReady(true, loadCtx.app.namespace);
-          loadCtx.global.beginDrawing();
-          await loadCtx.app.evaluate();
-          loadCtx.global.endDrawing();
+          if (!isJSC) {
+            const source = await getFile(loadCtx.global.sparkscene, url);
+            loadCtx.app = await loadMjs(source, url, loadCtx.contextifiedSandbox, loadCtx.modmap);
+            loadCtx.app.instantiate();
+            instantiated = true;
+            loadCtx.succeeded = true;
+            loadCtx.makeReady(true, loadCtx.app.namespace);
+            loadCtx.global.beginDrawing();
+            await loadCtx.app.evaluate();
+            loadCtx.global.endDrawing();
+          } else {
+            instantiated = true;
+            loadCtx.succeeded = true;
+            loadCtx.global.beginDrawing();
+            await getModule(url, {
+              url:bootstrapUrl,
+              context:loadCtx.contextifiedSandbox
+            }, "");
+            loadCtx.global.endDrawing();
+            loadCtx.makeReady(true, {});
+          }
         } catch (err) {
           console.log("load mjs module failed ");
           console.log(err);

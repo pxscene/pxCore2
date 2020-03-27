@@ -116,41 +116,46 @@ static JSValueRef readFileCallback(JSContextRef ctx, JSObjectRef, JSObjectRef th
   return result;
 }
 
+static bool resolveModulePath(const rtString &name, rtString &data, std::list<rtString> extraDirs = std::list<rtString>())
+{
+  std::list<rtString> dirs;
+  std::list<rtString> endings;
+  bool found = false;
+  rtString path;
+
+  dirs.push_back(""); // this dir
+  dirs.push_back("jsc_modules/");
+  dirs.push_back("node_modules/");
+
+  std::list<rtString>::const_iterator it, jt;
+  for (it = extraDirs.begin(); it != extraDirs.end(); ++it) {
+    dirs.push_back(*it);
+  }
+
+  endings.push_back(".js");
+
+  for (it = dirs.begin(); !found && it != dirs.end(); ++it) {
+    rtString s = *it;
+    if (!s.isEmpty() && !s.endsWith("/"))
+      s.append("/");
+    s.append(name.beginsWith("./") ? name.substring(2) : name);
+    for (jt = endings.begin(); !found && jt != endings.end(); ++jt) {
+      path = s;
+      if (!path.endsWith((*jt).cString()))
+        path.append(*jt);
+      found = fileExists(path.cString());
+    }
+  }
+
+  if (found)
+    data = path;
+  return found;
+}
+
 static JSValueRef requireCallback(JSContextRef ctx, JSObjectRef, JSObjectRef thisObject, size_t argumentCount, const JSValueRef arguments[], JSValueRef *exception)
 {
   if (argumentCount != 1)
       return JSValueMakeNull(ctx);
-
-  static const auto resolveModulePath = [](const rtString &name, rtString &data) -> bool
-  {
-    std::list<rtString> dirs;
-    std::list<rtString> endings;
-    bool found = false;
-    rtString path;
-
-    dirs.push_back(""); // this dir
-    dirs.push_back("jsc_modules/");
-
-    endings.push_back(".js");
-
-    std::list<rtString>::const_iterator it, jt;
-    for (it = dirs.begin(); !found && it != dirs.end(); ++it) {
-      rtString s = *it;
-      if (!s.isEmpty() && !s.endsWith("/"))
-        s.append("/");
-      s.append(name.beginsWith("./") ? name.substring(2) : name);
-      for (jt = endings.begin(); !found && jt != endings.end(); ++jt) {
-        path = s;
-        if (!path.endsWith((*jt).cString()))
-          path.append(*jt);
-        found = fileExists(path.cString());
-      }
-    }
-
-    if (found)
-      data = path;
-    return found;
-  };
 
   do {
     JSStringRef reqArgStr = JSValueToStringCopy(ctx, arguments[0], exception);
@@ -307,7 +312,7 @@ public:
 
 static JSValueRef runInContext(JSContextRef ctx, JSObjectRef, JSObjectRef thisobj, size_t argumentCount, const JSValueRef arguments[], JSValueRef *exception)
 {
-  if (argumentCount < 7)
+  if (argumentCount < 2)
     return JSValueMakeUndefined(ctx);
 
   JSValueRef result = nullptr;
@@ -342,7 +347,22 @@ static JSValueRef runInContext(JSContextRef ctx, JSObjectRef, JSObjectRef thisob
     if (exception && *exception)
       break;
 
-    JSStringRef fileNameStr = JSValueToStringCopy(ctx, arguments[5], exception);
+    JSStringRef fileNameStr;
+    if (argumentCount > 5) {
+      fileNameStr = JSValueToStringCopy(ctx, arguments[5], exception);
+    } else if (argumentCount > 2) {
+      JSObjectRef optObj = JSValueToObject(sandboxCtx, arguments[2], exception);
+      if (!(exception && *exception)) {
+        JSStringRef s = JSStringCreateWithUTF8CString("filename");
+        JSValueRef v = JSObjectGetProperty(ctx, optObj, s, exception);
+        JSStringRelease(s);
+        if (!(exception && *exception)) {
+          fileNameStr = JSValueToStringCopy(ctx, v, exception);
+        }
+      }
+    } else {
+      fileNameStr = JSStringCreateWithUTF8CString("unknown");
+    }
     if (exception && *exception) {
       JSStringRelease(codeStr);
       break;
@@ -355,12 +375,16 @@ static JSValueRef runInContext(JSContextRef ctx, JSObjectRef, JSObjectRef thisob
     if (exception && *exception)
       break;
 
-    JSObjectRef funcObj = JSValueToObject(sandboxCtx, evalResult, exception);
-    if (exception && *exception)
-      break;
+    if (argumentCount > 5) {
+      JSObjectRef funcObj = JSValueToObject(sandboxCtx, evalResult, exception);
+      if (exception && *exception)
+        break;
 
-    JSValueRef args[] = { arguments[3], arguments[4] };
-    result = JSObjectCallAsFunction(sandboxCtx, funcObj, sandboxGlobalObj, 2, args, exception);
+      JSValueRef args[] = { arguments[3], arguments[4] };
+      result = JSObjectCallAsFunction(sandboxCtx, funcObj, sandboxGlobalObj, 2, args, exception);
+    } else {
+      result = evalResult;
+    }
   } while (0);
 
   if (exception && *exception) {
@@ -371,13 +395,8 @@ static JSValueRef runInContext(JSContextRef ctx, JSObjectRef, JSObjectRef thisob
   return result;
 }
 
-static JSValueRef runInNewContext(JSContextRef ctx, JSObjectRef, JSObjectRef thisobj, size_t argumentCount, const JSValueRef arguments[], JSValueRef *exception)
+static void contextifySandbox(JSContextRef ctx, JSObjectRef& sandboxRef, JSValueRef *exception)
 {
-  if (argumentCount < 7)
-    return JSValueMakeUndefined(ctx);
-
-  JSValueRef result = nullptr;
-
   JSContextGroupRef groupRef = JSContextGetGroup(JSContextGetGlobalContext(ctx));
   JSGlobalContextRef newCtx = JSGlobalContextCreateInGroup(groupRef, nullptr);
 
@@ -388,11 +407,6 @@ static JSValueRef runInNewContext(JSContextRef ctx, JSObjectRef, JSObjectRef thi
   do {
     JSObjectRef newGlobalObj = JSContextGetGlobalObject(newCtx);
     markJSContext(newCtx, newGlobalObj, exception);
-    if (exception && *exception)
-      break;
-
-    // sandbox
-    JSObjectRef sandboxRef = JSValueToObject(ctx, arguments[1],  exception);
     if (exception && *exception)
       break;
 
@@ -432,6 +446,41 @@ static JSValueRef runInNewContext(JSContextRef ctx, JSObjectRef, JSObjectRef thi
     if (exception && *exception)
       break;
 
+    SandboxPrivate::init(ctx, origSandboxRef, newCtx, newGlobalObj, exception);
+  } while (0);
+
+  if (exception && *exception) {
+    JSGlobalContextRelease(newCtx);
+  }
+}
+
+static JSValueRef runInNewContext(JSContextRef ctx, JSObjectRef, JSObjectRef thisobj, size_t argumentCount, const JSValueRef arguments[], JSValueRef *exception)
+{
+  if (argumentCount < 7)
+    return JSValueMakeUndefined(ctx);
+
+  JSValueRef result = nullptr;
+  JSGlobalContextRef newCtx = nullptr;
+  do {
+    // sandbox
+    JSObjectRef sandboxRef = JSValueToObject(ctx, arguments[1],  exception);
+    if (exception && *exception)
+      break;
+
+    contextifySandbox(ctx, sandboxRef, exception);
+    if (exception && *exception)
+      break;
+
+    SandboxPrivate* priv = SandboxPrivate::from(ctx, sandboxRef, exception);
+    if (exception && *exception)
+      break;
+
+    JSObjectRef newGlobalObj = nullptr;
+    if (priv) {
+      newGlobalObj = priv->wrapped();
+      newCtx = priv->context();
+    }
+
     // code
     JSStringRef codeStr = JSValueToStringCopy(ctx, arguments[0], exception);
     if (exception && *exception)
@@ -458,11 +507,116 @@ static JSValueRef runInNewContext(JSContextRef ctx, JSObjectRef, JSObjectRef thi
     result = JSObjectCallAsFunction(newCtx, funcObj, newGlobalObj, 2, args, exception);
     if (exception && *exception)
       break;
-
-    SandboxPrivate::init(ctx, origSandboxRef, newCtx, newGlobalObj, exception);
   } while (0);
 
-  JSGlobalContextRelease(newCtx);
+  if (newCtx)
+    JSGlobalContextRelease(newCtx);
+
+  if (exception && *exception) {
+    printException(ctx, *exception);
+    return JSValueMakeUndefined(ctx);
+  }
+
+  return result;
+}
+
+static JSValueRef createContext(JSContextRef ctx, JSObjectRef, JSObjectRef, size_t argumentCount, const JSValueRef arguments[], JSValueRef *exception)
+{
+  // sandbox
+  JSObjectRef sandboxRef = nullptr;
+  if (!argumentCount) {
+    sandboxRef = JSObjectMake(ctx, nullptr, nullptr);
+  } else {
+    sandboxRef = JSValueToObject(ctx, arguments[0], exception);
+  }
+
+  do {
+    if (exception && *exception)
+      break;
+
+    contextifySandbox(ctx, sandboxRef, exception);
+  } while(0);
+
+  if (exception && *exception) {
+    printException(ctx, *exception);
+    return JSValueMakeUndefined(ctx);
+  }
+
+  return sandboxRef;
+}
+
+static JSValueRef resolveFilename(JSContextRef ctx, JSObjectRef, JSObjectRef, size_t argumentCount, const JSValueRef arguments[], JSValueRef *exception)
+{
+  if (argumentCount != 2)
+    return JSValueMakeNull(ctx);
+
+  JSStringRef reqArgStr = JSValueToStringCopy(ctx, arguments[0], exception);
+
+  JSValueRef result = nullptr;
+  do {
+    if (exception && *exception)
+      break;
+
+    rtString moduleName = jsToRtString(reqArgStr);
+    JSStringRelease(reqArgStr);
+
+    JSObjectRef paths = JSValueToObject(ctx, arguments[1], exception);
+    if (exception && *exception)
+      break;
+
+    std::list<rtString> extraDirs;
+    for (int i = 0;; i++) {
+      JSValueRef pVal = JSObjectGetPropertyAtIndex(ctx, paths, i, nullptr);
+      if (!JSValueIsString(ctx, pVal))
+        break;
+
+      JSStringRef pStr = JSValueToStringCopy(ctx, pVal, nullptr);
+      extraDirs.push_back(jsToRtString(pStr));
+      JSStringRelease(pStr);
+    }
+
+    rtString path;
+    if (!resolveModulePath(moduleName, path, extraDirs)) {
+      rtLogError("Module '%s' not found", moduleName.cString());
+    } else {
+      JSStringRef retStr = JSStringCreateWithUTF8CString(path.cString());
+      result = JSValueMakeString(ctx, retStr);
+      JSStringRelease(retStr);
+    }
+  } while(0);
+
+  if (exception && *exception) {
+    printException(ctx, *exception);
+    return JSValueMakeNull(ctx);
+  }
+
+  return result;
+}
+
+static JSValueRef readFileSync(JSContextRef ctx, JSObjectRef, JSObjectRef, size_t argumentCount, const JSValueRef arguments[], JSValueRef *exception)
+{
+  if (argumentCount != 1)
+    return JSValueMakeUndefined(ctx);
+
+  JSValueRef result = nullptr;
+  do {
+    JSStringRef filePath = JSValueToStringCopy(ctx, arguments[0], exception);
+    if (exception && *exception)
+      break;
+
+    rtString path = jsToRtString(filePath);
+    JSStringRelease(filePath);
+
+    JSStringRef retStr = nullptr;
+    if (access(path.cString(), R_OK) == 0) {
+      retStr = JSStringCreateWithUTF8CString(readFile(path.cString()).c_str());
+    } else {
+      retStr = JSStringCreateWithUTF8CString("");
+    }
+
+    result = JSValueMakeString(ctx, retStr);
+    JSStringRelease(retStr);
+  } while (0);
 
   if (exception && *exception) {
     printException(ctx, *exception);
@@ -492,6 +646,9 @@ void injectBindings(JSContextRef jsContext)
   injectFun(jsContext, "_readFile", readFileCallback);
   injectFun(jsContext, "_runInNewContext", runInNewContext);
   injectFun(jsContext, "_runInContext", runInContext);
+  injectFun(jsContext, "_createContext", createContext);
+  injectFun(jsContext, "_resolveFilename", resolveFilename);
+  injectFun(jsContext, "_readFileSync", readFileSync);
 
   markJSContext(jsContext, nullptr, nullptr);
 }

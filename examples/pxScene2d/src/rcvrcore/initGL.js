@@ -32,6 +32,8 @@ limitations under the License.
 // are setInterval and clearInterval polluting global namespace... ?
 // /Users/johnrobinson/code/pxgl/examples/pxScene2d/external/spark-webgl/examples/2-triangle/triangle.js
 
+const isJSC = typeof _isJSC !== "undefined";
+
 var _timers = require('timers')
 var fs = require('fs')
 var path = require('path')
@@ -389,6 +391,18 @@ function LightningApp(params) {
   tmpSandbox.global = tmpGlobal
   tmpSandbox['Buffer'] = Buffer;
   tmpSandbox.thisIsSandbox = true;
+  if (isJSC) {
+    tmpSandbox.print = print;
+    tmpSandbox._exit = _exit;
+    tmpSandbox._platform = _platform;
+    tmpSandbox._hrtime = _hrtime;
+    tmpSandbox._readFile = _readFile;
+    tmpSandbox._runInNewContext = _runInNewContext;
+    tmpSandbox._runInContext = _runInContext;
+    tmpSandbox._createContext = _createContext;
+    tmpSandbox._resolveFilename = _resolveFilename;
+    tmpSandbox._readFileSync = _readFileSync;
+  }
   for (var i=0; i<sandboxKeys.length; i++)
   {
     tmpSandbox[sandboxKeys[i]] = tmpGlobal[sandboxKeys[i]];
