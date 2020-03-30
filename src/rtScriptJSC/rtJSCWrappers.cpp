@@ -484,7 +484,7 @@ static JSValueRef rtObjectWrapper_getProperty(JSContextRef context, JSObjectRef 
           }
         }
         return res;
-      }  
+      }
       if (isRtArray(o))
       {
         rtValue length;
