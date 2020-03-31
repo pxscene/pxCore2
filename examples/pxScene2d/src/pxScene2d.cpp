@@ -1399,6 +1399,10 @@ void pxScene2d::enableOptimizedUpdate(bool enable)
 
 void pxScene2d::onUpdate(double t)
 {
+  if (mDisposed)
+  {
+    return;
+  }
   #ifdef ENABLE_RT_NODE
   if (mTop)
   {
@@ -2109,7 +2113,7 @@ bool pxScene2d::onMouseMove(int32_t x, int32_t y)
   pt.x = x; pt.y = y;
   rtRef<pxObject> hit;
 
-  if (mRoot->hitTestInternal(m, pt, hit))
+  if (mRoot && (mRoot->hitTestInternal(m, pt, hit)))
   {
     rtString id = hit->get<rtString>("id");
     rtLogDebug("found object id: %s\n", id.isEmpty()?"none":id.cString());
