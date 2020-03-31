@@ -2109,7 +2109,7 @@ bool pxScene2d::onMouseMove(int32_t x, int32_t y)
   pt.x = x; pt.y = y;
   rtRef<pxObject> hit;
 
-  if (mRoot->hitTestInternal(m, pt, hit))
+  if (mRoot && (mRoot->hitTestInternal(m, pt, hit)))
   {
     rtString id = hit->get<rtString>("id");
     rtLogDebug("found object id: %s\n", id.isEmpty()?"none":id.cString());
