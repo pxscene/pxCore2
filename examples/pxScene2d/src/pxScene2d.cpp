@@ -1399,6 +1399,10 @@ void pxScene2d::enableOptimizedUpdate(bool enable)
 
 void pxScene2d::onUpdate(double t)
 {
+  if (mDisposed)
+  {
+    return;
+  }
   #ifdef ENABLE_RT_NODE
   if (mTop)
   {
