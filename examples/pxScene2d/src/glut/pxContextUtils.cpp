@@ -83,6 +83,7 @@ static int ctxErrorHandler( Display *dpy, XErrorEvent *ev )
     ctxErrorOccurred = true;
     return 0;
 }
+
 GLXContext* getContext()
 {
   Display *display = XOpenDisplay(NULL);
