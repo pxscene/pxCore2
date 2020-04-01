@@ -890,6 +890,18 @@ rtError JSObjectWrapper::Get(const char* name, rtValue* value) const
     return RT_OK;
   }
 
+  if (strcmp(name, "arrayData") == 0) {
+    JSTypedArrayType arrType = JSValueGetTypedArrayType(context(), wrapped(), nullptr);
+    if (arrType != kJSTypedArrayTypeNone) {
+      value->setVoidPtr(JSObjectGetTypedArrayBytesPtr(context(), wrapped(), &exc));
+      if (exc) {
+        printException(context(), exc);
+        return RT_FAIL;
+      }
+      return RT_OK;
+    }
+  }
+
   JSStringRef namePtr = JSStringCreateWithUTF8CString(name);
   JSValueRef valueRef = JSObjectGetProperty(context(), wrapped(), namePtr, &exc);
   JSStringRelease(namePtr);

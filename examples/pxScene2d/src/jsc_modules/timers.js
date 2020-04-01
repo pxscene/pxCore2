@@ -18,31 +18,11 @@ limitations under the License.
 
 "use strict";
 
-function runInNewContext(...args) {
-  return _runInNewContext(...args);
-}
-
-function runInContext(...args) {
-  return _runInContext(...args);
-}
-
-function createContext(...args) {
-  return _createContext(...args);
-}
-
-class Script {
-  constructor(source) {
-    this.source = source;
-  }
-
-  runInContext(ctx) {
-    return _runInContext(this.source, ctx);
-  }
-}
-
 module.exports = {
-  runInNewContext: runInNewContext,
-  runInContext: runInContext,
-  createContext: createContext,
-  Script: Script,
+  setInterval: setInterval,
+  clearInterval: clearInterval,
+  setTimeout: setTimeout,
+  clearTimeout: clearTimeout,
+  setImmediate: setTimeout,
+  clearImmediate: clearTimeout,
 };

@@ -18,10 +18,15 @@ limitations under the License.
 
 "use strict";
 
-function readFile(filePath, cb) {
-    _readFile(filePath, cb);
+function readFile(path, options, callback) {
+    _readFile(path, callback || options);
+}
+
+function readFileSync(path) {
+    return _readFileSync(path);
 }
 
 module.exports = {
     'readFile': readFile,
-}
+    'readFileSync': readFileSync,
+};

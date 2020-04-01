@@ -18,31 +18,9 @@ limitations under the License.
 
 "use strict";
 
-function runInNewContext(...args) {
-  return _runInNewContext(...args);
-}
-
-function runInContext(...args) {
-  return _runInContext(...args);
-}
-
-function createContext(...args) {
-  return _createContext(...args);
-}
-
-class Script {
-  constructor(source) {
-    this.source = source;
-  }
-
-  runInContext(ctx) {
-    return _runInContext(this.source, ctx);
-  }
-}
-
 module.exports = {
-  runInNewContext: runInNewContext,
-  runInContext: runInContext,
-  createContext: createContext,
-  Script: Script,
+  _resolveLookupPaths: function(name) { return [null, [name]] },
+  _resolveFilename: function(name, options) { return _resolveFilename(name, options.paths || []) },
+  _nodeModulePaths: function() { return [] },
+  _load: function() { throw "not implemented" },
 };

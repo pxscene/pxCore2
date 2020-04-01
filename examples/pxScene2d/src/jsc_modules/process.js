@@ -23,7 +23,10 @@ module.exports = {
     hrtime: function() { return _hrtime(); },
     memoryUsage: function() { return 0; },
     platform: _platform(),
-    cwd: function() { return "" },
+    cwd: function() {
+        // TODO
+        return ""
+    },
     env: new Proxy({}, {
         set: function(obj, prop, value) {
             throw new Error("Not supported");
