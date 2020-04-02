@@ -126,6 +126,7 @@ static bool resolveModulePath(const rtString &name, rtString &data, std::list<rt
   dirs.push_back(""); // this dir
   dirs.push_back("jsc_modules/");
   dirs.push_back("node_modules/");
+  dirs.push_back("v8_modules/");
 
   std::list<rtString>::const_iterator it, jt;
   for (it = extraDirs.begin(); it != extraDirs.end(); ++it) {
@@ -133,6 +134,16 @@ static bool resolveModulePath(const rtString &name, rtString &data, std::list<rt
   }
 
   endings.push_back(".js");
+  // not parsing package.json
+  endings.push_back("/index.js");
+  endings.push_back("/lib/index.js");
+  if (name.find(0, "/") == -1) {
+    if (name.endsWith(".js")) {
+      endings.push_back("/lib/" + name);
+    } else {
+      endings.push_back("/lib/" + name + ".js");
+    }
+  }
 
   for (it = dirs.begin(); !found && it != dirs.end(); ++it) {
     rtString s = *it;
