@@ -37,6 +37,7 @@ rtString rtGetEnvAsString(const char* name, const char* defaultValue = "");
 rtValue rtGetEnvAsValue(const char* name, const char* defaultValue = "");
 
 bool rtFileExists(const char* f);
+bool rtFileRemove(const char* f);
 
 bool rtIsPathAbsolute(const char *path);
 bool rtIsPathAbsolute(const rtString &path);
@@ -50,6 +51,8 @@ rtError rtPathUtilPutEnv(const char *name, const char * value);
 std::string rtConcatenatePath(const std::string &dir, const std::string &file);
 
 std::string rtGetRootModulePath(const char *file = "");
+
+rtString rtResolveRelativePath(const rtString& relative, const rtString& base);
 
 class rtModuleDirs {
 

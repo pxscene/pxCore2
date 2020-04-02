@@ -1,0 +1,85 @@
+<!--
+/*
+* If not stated otherwise in this file or this component's license file the
+* following copyright and licenses apply:
+*
+* Copyright 2018 RDK Management
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+* http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*/
+-->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>AAMP Reference Player</title>
+    <link rel="stylesheet" href="AAMPReferencePlayerStyle.css">
+    <link rel="stylesheet" href="../ReferencePlayerStyle.css">
+    <script src="AAMPReferencePlayer.js"></script>
+    <script src="../URLs.js"></script>
+</head>
+
+<body>
+    <div id="videoContainer"  class="container">
+        <!-- Video -->
+        <video id="video" class="videoPlayer" src="">        
+        </video>
+        <div id="controlDiv">
+          <!-- Video Controls -->
+          <div id="videoControlsDiv">
+              <button class="button" id="playOrPauseButton"><img id="playOrPauseIcon" src="../icons/play.png"></button>
+              <button class="button" id="rewindButton"><img class="flipImg" src="../icons/fastForward.png"></button>
+              <button class="button" id="skipBackwardButton"><img class="flipImg" src="../icons/skipForward.png"></button>
+              <nobr id="currentDuration">00:00:00</nobr>
+              <div id="seekBarOuter">
+                  <div id="seekBar"></div>
+              </div>
+              <nobr id="totalDuration">00:00:00</nobr>
+              <button class="button" id="skipForwardButton"><img src="../icons/skipForward.png"></button>
+              <button class="button" id="fastForwardButton"><img src="../icons/fastForward.png"></button>
+              <button class="button" id="muteVideoButton"><img id="muteIcon" src="../icons/unMute.png"></button>
+              <button class="button" id="ccButton" ><img id="ccIcon" src="../icons/closedCaptioningDisabled.png"></button>
+          </div>
+        </div>
+        <div id="controlDivNext">
+          <div id="videoControlsDivNext">
+              <select id="videoURLs">
+              </select>
+              <p id="playerType">VIDEO TAG PLAYER</p>
+              <span id="logState">Diagnostics: </span>
+              <label id="autoLogButton">
+                  <input type="checkbox" id="logCheck">
+              </label>
+              <label>
+                  <button class="round-button" id="homeButton"><img id="homeIcon" src="../icons/home.png"></button>
+              </label>
+          </div>
+        </div>
+    </div>
+
+    <!-- The Overlay Modal -->
+    <div id="overlayModal" class="overModal">
+        <h4>
+            AAMP<nobr id="contentType"></nobr><nobr id="manifestType"></nobr><nobr id="drmType"></nobr>
+        </h4>
+        Bitrates(Mbps): <nobr id="availableBitratesList"></nobr>
+    </div>
+
+    <!-- The URL Modal -->
+    <div id="urlModal" class="urlModal">
+        <p id="contentURL"></p>
+    </div>
+</body>
+
+</html>

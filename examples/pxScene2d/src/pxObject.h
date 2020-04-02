@@ -18,8 +18,6 @@
 
 // pxObject.h
 
-#define ANIMATION_ROTATE_XYZ
-
 #ifndef PX_OBJECT_H
 #define PX_OBJECT_H
 
@@ -48,15 +46,14 @@
 #include "pxInterpolators.h"
 #include "pxTexture.h"
 #include "pxContextFramebuffer.h"
-
-
-#define ANIMATION_ROTATE_XYZ
+#include "pxShaderResource.h"
 
 #include "pxCore.h"
 #include "pxAnimate.h"
 
-struct pxPoint2f; //fwd
-class pxScene2d;  //fwd
+struct pxPoint2f;        // fwd
+class  pxScene2d;        // fwd
+class  pxShaderResource; // fwd
 
 class pxObject: public rtObject
 {
@@ -90,6 +87,9 @@ public:
   rtProperty(clip, clip, setClip, bool);
   rtProperty(mask, mask, setMask, bool);
   rtProperty(draw, drawEnabled, setDrawEnabled, bool);
+
+  rtProperty(effect, effect, setEffect, rtObjectRef);
+
   rtProperty(hitTest, hitTest, setHitTest, bool);
   rtProperty(focus, focus, setFocus, bool);
   rtReadOnlyProperty(ready, ready, rtObjectRef);
@@ -117,6 +117,8 @@ public:
 
 //  rtReadOnlyProperty(emit, emit, rtFunctionRef);
   rtMethod1ArgAndReturn("getObjectById",getObjectById,rtString,rtObjectRef);
+
+  rtMethod4ArgAndNoReturn("paint", paint, float, float, uint32_t, bool);
 
   pxObject(pxScene2d* scene);
 
@@ -262,6 +264,10 @@ public:
   rtError drawEnabled(bool& v)  const { v = mDraw; return RT_OK;  }
   rtError setDrawEnabled(bool v) { mDraw = v; return RT_OK; }
 
+  rtObjectRef effect()            const { return mEffectRef;}
+  rtError effect(rtObjectRef& v)  const { v = mEffectRef; return RT_OK; }
+  rtError setEffect(rtObjectRef v);
+
   bool hitTest()            const { return mHitTest;}
   rtError hitTest(bool& v)  const { v = mHitTest; return RT_OK;  }
   rtError setHitTest(bool v) { mHitTest = v; return RT_OK; }
@@ -284,6 +290,8 @@ public:
   virtual void dispose(bool pumpJavascript);
 
   void drawInternal(bool maskPass=false);
+  void drawEffect(pxContextFramebufferRef &flattenFbo);
+  
   virtual void draw() {}
   virtual void sendPromise();
 
@@ -319,6 +327,8 @@ public:
   {
     return mEmit->delListener(eventName, f);
   }
+
+  virtual rtError paint(float x, float y, uint32_t color, bool translateOnly);
 
   //rtError onReady(rtFunctionRef& /*f*/) const
   //{
@@ -564,7 +574,8 @@ public:
 
   rtError releaseResources()
   {
-     dispose(true);
+     // avoid javascript execution on dispose
+     dispose(false);
      return RT_OK;
   }
 
@@ -572,6 +583,13 @@ public:
 
   pxScene2d* getScene() { return mScene; }
   void createSnapshot(pxContextFramebufferRef& fbo, bool separateContext=false, bool antiAliasing=false);
+  void renderEffectSnapshot(pxContextFramebufferRef& fbo);
+
+
+  void setEffectConfig(rtObjectRef v)    { mEffectRef = v; };
+  
+  void setEffectRef(pxShaderResource *p) { mEffectShaderRef = p;    };
+  pxShaderResource *effectRef()          { return mEffectShaderRef; };
 
 public:
   rtEmitRef mEmit;
@@ -595,10 +613,23 @@ protected:
   bool mClip;
   bool mMask;
   bool mDraw;
+
+  rtObjectRef             mEffectRef;         // Shader Config objects
+  rtObjectRef             mEffectConfigRef;   // rtMap   is Shader Config object
+  rtObjectRef             mEffectArrayRef;    // rtArray of Shader Config objects
+
+  rtObjectRef             mEffects;           // rtArray of Shader Config objects
+  pxShaderResourceRef     mEffectShaderRef;   // Shader Effect used by this pxObject
+  
+  pxContextFramebufferRef mEffectSnapshotRef; // FBO
+
+  finline bool hasEffect()   { return ( mEffectRef || mEffects || mEffectShaderRef || mEffectConfigRef || mEffectArrayRef); }
+
   bool mHitTest;
   rtObjectRef mReady;
   bool mFocus;
   pxContextFramebufferRef mClipSnapshotRef;
+
   bool mCancelInSet;
   rtString mId;
   bool mRepaint;

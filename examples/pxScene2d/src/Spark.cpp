@@ -1,4 +1,4 @@
-﻿/*
+/*
 
  pxCore Copyright 2005-2018 John Robinson
 
@@ -25,7 +25,6 @@
 #include "pxEventLoop.h"
 #include "pxWindow.h"
 
-#define ANIMATION_ROTATE_XYZ
 #include "pxContext.h"
 #include "pxScene2d.h"
 #include "rtUrlUtils.h"
@@ -90,6 +89,7 @@ static uv_work_t nodeLoopReq;
 
 #include <stdlib.h>
 #include <fstream>
+#include "pxWindowUtil.h"
 
 pxEventLoop  eventLoop;
 pxEventLoop* gLoop = &eventLoop;
@@ -593,6 +593,7 @@ namespace OptimusClient
 
 int pxMain(int argc, char* argv[])
 {
+  mapNativeKeyCodes();
 #ifdef HAS_LINUX_BREAKPAD
   google_breakpad::MinidumpDescriptor descriptor("/tmp");
   google_breakpad::ExceptionHandler eh(descriptor, NULL, dumpCallback, NULL, true, -1);
@@ -639,7 +640,7 @@ int pxMain(int argc, char* argv[])
   
 #ifdef PX_PLATFORM_MAC_XCODE
 
-#warning "PX_PLATFORM_MAC_XCODE build... Xcode DEBUG only !"
+  // #warning "PX_PLATFORM_MAC_XCODE build... Xcode DEBUG only !"
 
   // NOTE: PX_PLATFORM_MAC_XCODE is only defined for DEBUG + XCODE IDE builds
   //       via the  .xcconfig file ...

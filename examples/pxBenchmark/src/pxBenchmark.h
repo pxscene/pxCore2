@@ -18,7 +18,6 @@
 #include "pxTimer.h"
 #include "pxWindow.h"
 
-#define ANIMATION_ROTATE_XYZ
 #include "rtUrlUtils.h"
 #include "rtScript.h"
 #include <stdlib.h>

@@ -61,7 +61,7 @@ public:
   virtual unsigned long AddRef() {
     return rtAtomicInc(&mRefCount);
   }
-  
+
   virtual unsigned long Release() {
     long l = rtAtomicDec(&mRefCount);
     if (l == 0) delete this;
@@ -72,15 +72,15 @@ public:
   {
     mContainer = l;
   }
-  
+
   virtual void RT_STDCALL onCloseRequest()
   {
     rtLogInfo("pxWayland::onCloseRequest()");
   }
 
-  void setEvents( pxWaylandEvents *events )
+  void setEvents(pxWaylandEvents *events)
   {
-     mEvents= events;
+     mEvents = events;
   }
 
   rtError displayName(rtString& s) const;
@@ -123,7 +123,7 @@ public:
     mHasApi = v;
     return RT_OK;
   }
-  
+
   rtError api(rtValue& v) const
   {
     mRemoteObjectMutex.lock();
@@ -131,7 +131,7 @@ public:
     mRemoteObjectMutex.unlock();
     return RT_OK;
   }
-  
+
   void setPos( int x, int y )
   {
      mX= x;
@@ -159,6 +159,7 @@ public:
   rtError addListener(const rtString& eventName, const rtFunctionRef& f);
   rtError delListener(const rtString& eventName, const rtFunctionRef& f);
   rtError startRemoteObjectLocator();
+  void startRemoteObjectDetection();
   rtError connectToRemoteObject(unsigned int timeout_ms);
   rtError useDispatchThread(bool use);
   rtError resume(const rtValue& v, bool& b);
@@ -188,6 +189,8 @@ private:
   static void hidePointer( WstCompositor *wctx, bool hide, void *userData );
   static void clientStatus( WstCompositor *wctx, int status, int pid, int detail, void *userData );
   static void remoteDisconnectedCB(void *data);
+  static void onClientStatus(void* context, void* data);
+  static bool onRemoveTask(void* context, void* data);
 
   void handleInvalidate();
   void handleHidePointer( bool hide );
@@ -200,7 +203,6 @@ private:
   uint32_t getModifiers( uint32_t flags );
   bool isRotated();
   uint32_t linuxFromPX( uint32_t keyCode );
-  void startRemoteObjectDetection();
   rtError connectToRemoteObject();
 
 protected:

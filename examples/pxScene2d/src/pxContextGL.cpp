@@ -27,6 +27,8 @@
 #include "rtScript.h"
 #include "rtSettings.h"
 
+#include "pxShaderUtils.h"
+
 #include "pxContext.h"
 #include "pxUtil.h"
 #include <algorithm>
@@ -46,7 +48,7 @@
 #include <GLES2/gl2ext.h>
 #else
 #include <GL/glew.h>
-#ifdef WIN32 
+#ifdef WIN32
 #include <GL/wglew.h>
 #endif // WIN32
 #ifdef PX_PLATFORM_GLUT
@@ -64,7 +66,7 @@
 
 #define CONTEXT_GC_THROTTLE_SECS_DEFAULT 5
 
-// Values must match pxCanvas.h // TODO FIX 
+// Values must match pxCanvas.h // TODO FIX
 #define  CANVAS_W   1280
 #define  CANVAS_H    720
 
@@ -125,16 +127,18 @@ rtThreadQueue* gUIThreadQueue = new rtThreadQueue();
 double lastContextGarbageCollectTime = 0;
 double garbageCollectThrottleInSeconds = CONTEXT_GC_THROTTLE_SECS_DEFAULT;
 
-enum pxCurrentGLProgram { PROGRAM_UNKNOWN = 0, PROGRAM_SOLID_SHADER,  PROGRAM_A_TEXTURE_SHADER, PROGRAM_TEXTURE_SHADER,
-    PROGRAM_TEXTURE_MASKED_SHADER, PROGRAM_TEXTURE_BORDER_SHADER};
-
-pxCurrentGLProgram currentGLProgram = PROGRAM_UNKNOWN;
+int currentGLProgram = -1;
 
 #if defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL)
 extern EGLContext defaultEglContext;
 extern EGLDisplay defaultEglDisplay;
 extern EGLSurface defaultEglSurface;
 #endif //PX_PLATFORM_GENERIC_EGL || PX_PLATFORM_WAYLAND_EGL
+
+struct filterXYR
+{
+    float x; float y; float r;
+};
 
 // TODO get rid of this global crap
 
@@ -148,6 +152,7 @@ rtMutex textureListMutex;
 #ifdef ENABLE_BACKGROUND_TEXTURE_CREATION
 rtMutex contextLock;
 #endif //ENABLE_BACKGROUND_TEXTURE_CREATION
+bool gFlipRendering = false;
 
 
 pxError lockContext()
@@ -319,9 +324,10 @@ static const char *fATextureShaderText =
   "  gl_FragColor = a_color*a;"
   "}";
 
-static const char *vShaderText =
+/*static*/ const char *vShaderText =
   "uniform vec2 u_resolution;"
   "uniform mat4 amymatrix;"
+  "uniform bool u_flipY;"
   "attribute vec2 pos;"
   "attribute vec2 uv;"
   "varying vec2 v_uv;"
@@ -333,10 +339,96 @@ static const char *vShaderText =
   "  vec4 zeroToTwo = zeroToOne * vec4(2.0, 2.0, 1, 1);"
   "  vec4 clipSpace = zeroToTwo - vec4(1.0, 1.0, 0, 0);"
   "  clipSpace.w = 1.0+clipSpace.z;"
-  "  gl_Position =  clipSpace * vec4(1, -1, 1, 1);"
+  "  int yScale = -1;"
+  "  if (u_flipY) { yScale = 1; }"
+  "  gl_Position =  clipSpace * vec4(1, yScale, 1, 1);"
   "  v_uv = uv;"
   "}";
 
+// assume premultiplied
+static const char *fLinearBlurShaderText =
+
+  "#ifdef GL_ES\n"
+  "  precision mediump float;\n"
+  "#endif\n"
+
+  "uniform float     u_alpha;"
+  "uniform vec4      a_color;"
+
+  "varying vec2      v_uv;"
+
+  "uniform vec2      u_resolution;"
+  "uniform int       u_kernelRadius;"
+
+  "uniform vec2      u_direction;"
+  "uniform vec4      u_shadowColor;"
+
+  "uniform sampler2D s_texture;"
+
+  "vec4 blur5(sampler2D image, vec2 uv, vec2 resolution, vec2 direction)"
+  "{"
+  "  vec4 color = vec4(0.0);"
+  "  vec2 off1  = vec2(1.3333333333333333) * direction;"
+  "  color += texture2D(image, uv) * 0.29411764705882354;"
+  "  color += texture2D(image, uv + (off1 / resolution)) * 0.35294117647058826;"
+  "  color += texture2D(image, uv - (off1 / resolution)) * 0.35294117647058826;"
+  "  return color;"
+  "}"
+
+  "vec4 blur9(sampler2D image, vec2 uv, vec2 resolution, vec2 direction)"
+  "{"
+  "  vec4 color = vec4(0.0);"
+  "  vec2 off1 = vec2(1.3846153846) * direction;"
+  "  vec2 off2 = vec2(3.2307692308) * direction;"
+  "  color += texture2D(image, uv) * 0.2270270270;"
+  "  color += texture2D(image, uv + (off1 / resolution)) * 0.3162162162;"
+  "  color += texture2D(image, uv - (off1 / resolution)) * 0.3162162162;"
+  "  color += texture2D(image, uv + (off2 / resolution)) * 0.0702702703;"
+  "  color += texture2D(image, uv - (off2 / resolution)) * 0.0702702703;"
+  "  return color;"
+  "}"
+
+  "vec4 blur13(sampler2D image, vec2 uv, vec2 resolution, vec2 direction)"
+  "{"
+  "  vec4 color = vec4(0.0);"
+  "  vec2 off1 = vec2(1.4117647058823530) * direction;"
+  "  vec2 off2 = vec2(3.2941176470588234) * direction;"
+  "  vec2 off3 = vec2(5.1764705882352940) * direction;"
+  "  color += texture2D(image, uv) * 0.1964825501511404;"
+  "  color += texture2D(image, uv + (off1 / resolution)) * 0.2969069646728344;"
+  "  color += texture2D(image, uv - (off1 / resolution)) * 0.2969069646728344;"
+  "  color += texture2D(image, uv + (off2 / resolution)) * 0.09447039785044732;"
+  "  color += texture2D(image, uv - (off2 / resolution)) * 0.09447039785044732;"
+  "  color += texture2D(image, uv + (off3 / resolution)) * 0.010381362401148057;"
+  "  color += texture2D(image, uv - (off3 / resolution)) * 0.010381362401148057;"
+  "  return color;"
+  "}"
+
+  "void main()"
+  "{"
+  "\n #if 1 \n"
+  "  if (u_kernelRadius == 1)"
+  "  {"
+"    gl_FragColor = blur5(s_texture, v_uv, u_resolution, u_direction);"
+//  "   gl_FragColor =  texture2D(s_texture, v_uv) + vec4(1.0, 0.0, 0.0,  1.0);" // DEBUG - RED
+  "  }"
+  "  else if (u_kernelRadius == 2)"
+  "  {"
+"      gl_FragColor = blur9(s_texture, v_uv, u_resolution, u_direction);"
+//  "   gl_FragColor =  texture2D(s_texture, v_uv) + vec4(0.0, 1.0, 0.0,  1.0);" // DEBUG - GREEN
+  "  }"
+  "  else"
+  "  {"
+  "    gl_FragColor= blur13(s_texture, v_uv, u_resolution, u_direction);"
+//  "   gl_FragColor =  texture2D(s_texture, v_uv) + vec4(0.0, 0.0, 1.0,  1.0);" // DEBUG - BLUE
+  "  }"
+  ""
+  "\n #else\n"
+  ""
+  "  gl_FragColor = texture2D(s_texture, v_uv)" // just copy
+  ""
+  "\n#endif\n"
+  "}";
 
 //====================================================================================================================================================================================
 
@@ -353,11 +445,12 @@ inline void premultiply(float* d, const float* s)
 class pxFBOTexture : public pxTexture
 {
 public:
-  pxFBOTexture(bool antiAliasing, bool alphaOnly) : mWidth(0), mHeight(0), mFramebufferId(0), mTextureId(0), mBindTexture(true), mAlphaOnly(alphaOnly)
+  pxFBOTexture(bool antiAliasing, bool alphaOnly, bool depthBuffer) : mWidth(0), mHeight(0), mFramebufferId(0), mTextureId(0), mBindTexture(true), mAlphaOnly(alphaOnly), mDepthBuffer(depthBuffer)
 
 #if (defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL)) && !defined(PXSCENE_DISABLE_PXCONTEXT_EXT)
         ,mAntiAliasing(antiAliasing)
-#endif        
+#endif
+, mDepthrenderbuffer(0)
   {
     UNUSED_PARAM(antiAliasing);
 
@@ -481,6 +574,12 @@ public:
       }
     }
 
+    if (mDepthrenderbuffer != 0)
+    {
+      glDeleteRenderbuffers(1, &mDepthrenderbuffer);
+      mDepthrenderbuffer = 0;
+    }
+
     return PX_OK;
   }
 
@@ -508,7 +607,22 @@ public:
       }
 #endif
 
-      if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+      if (mDepthBuffer)
+      {
+        if (mDepthrenderbuffer == 0)
+          glGenRenderbuffers(1, &mDepthrenderbuffer);
+        glBindRenderbuffer(GL_RENDERBUFFER, mDepthrenderbuffer);
+#if (defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL))
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, mWidth, mHeight);
+#else
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, mWidth, mHeight);
+#endif //(defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL))
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, mDepthrenderbuffer);
+      }
+
+      GLenum result = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+
+      if (result != GL_FRAMEBUFFER_COMPLETE)
       {
         if ((mWidth != 0) && (mHeight != 0))
         {
@@ -521,7 +635,7 @@ public:
             createFboTexture(mWidth, mHeight);
             return prepareForRendering();
           }
-          rtLogWarn("error setting the render surface");
+          rtLogWarn("error setting the render surface: %d", result);
           return PX_FAIL;
         }
         return PX_FAIL;
@@ -585,10 +699,12 @@ private:
   GLuint mTextureId;
   bool mBindTexture;
   bool mAlphaOnly;
+  bool mDepthBuffer;
 
 #if (defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL)) && !defined(PXSCENE_DISABLE_PXCONTEXT_EXT)
   bool mAntiAliasing;
 #endif
+  GLuint mDepthrenderbuffer;
 
 };// CLASS - pxFBOTexture
 
@@ -753,23 +869,33 @@ public:
     return PX_OK;
   }
 
+  virtual void setUpsideDown(bool upsideDown)
+  {
+    // TODO - revisit
+    pxOffscreen tempOffscreen;
+    tempOffscreen.init(mOffscreen.width(), mOffscreen.height());
+    tempOffscreen.setUpsideDown(upsideDown);
+    mOffscreen.blit(tempOffscreen);
+    mOffscreen = tempOffscreen;
+  }
+
   virtual pxError prepareForRendering()
   {
-    if (context.isTextureSpaceAvailable(this, false))
+    if (mTextureName == 0 && context.isTextureSpaceAvailable(this, false))
     {
       glActiveTexture(GL_TEXTURE1);
       glGenTextures(1, &mTextureName);
       glBindTexture(GL_TEXTURE_2D, mTextureName);   TRACK_TEX_CALLS();
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, PX_TEXTURE_MIN_FILTER);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, PX_TEXTURE_MAG_FILTER);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
       glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
       glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
                    mOffscreen.width(), mOffscreen.height(), 0, GL_RGBA,
                    GL_UNSIGNED_BYTE, mOffscreen.base());
-      if (mDownscaleSmooth)
+      if (mDownscaleSmooth && !mMipmapCreated)
       {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
         glGenerateMipmap(GL_TEXTURE_2D);
@@ -1268,121 +1394,6 @@ private:
 
 }; // CLASS - pxTextureAlpha
 
-//====================================================================================================================================================================================
-struct glShaderProgDetails
-{
-  GLuint program;
-  GLuint fragShader;
-  GLuint vertShader;
-};
-
-static glShaderProgDetails  createShaderProgram(const char* vShaderTxt, const char* fShaderTxt)
-{
-  struct glShaderProgDetails details = { 0,0,0 };
-  GLint stat;
-
-  details.fragShader = glCreateShader(GL_FRAGMENT_SHADER);
-  glShaderSource(details.fragShader, 1, (const char **) &fShaderTxt, NULL);
-  glCompileShader(details.fragShader);
-  glGetShaderiv(details.fragShader, GL_COMPILE_STATUS, &stat);
-
-  if (!stat)
-  {
-    rtLogError("Error: fragment shader did not compile: %d", glGetError());
-
-    GLint maxLength = 0;
-    glGetShaderiv(details.fragShader, GL_INFO_LOG_LENGTH, &maxLength);
-
-    //The maxLength includes the NULL character
-    std::vector<char> errorLog(maxLength);
-    glGetShaderInfoLog(details.fragShader, maxLength, &maxLength, &errorLog[0]);
-
-    rtLogWarn("%s", &errorLog[0]);
-    //Exit with failure.
-    glDeleteShader(details.fragShader); //Don't leak the shader.
-
-    //TODO get rid of exit
-    exit(1);
-  }
-
-  details.vertShader = glCreateShader(GL_VERTEX_SHADER);
-  glShaderSource(details.vertShader, 1, (const char **) &vShaderTxt, NULL);
-  glCompileShader(details.vertShader);
-  glGetShaderiv(details.vertShader, GL_COMPILE_STATUS, &stat);
-
-  if (!stat)
-  {
-    rtLogError("vertex shader did not compile: %d", glGetError());
-    exit(1);
-  }
-
-  details.program = glCreateProgram();
-  glAttachShader(details.program, details.fragShader);
-  glAttachShader(details.program, details.vertShader);
-  return details;
-}
-
-void linkShaderProgram(GLuint program)
-{
-  GLint stat;
-
-  glLinkProgram(program);  /* needed to put attribs into effect */
-  glGetProgramiv(program, GL_LINK_STATUS, &stat);
-  if (!stat)
-  {
-    char log[1000];
-    GLsizei len;
-    glGetProgramInfoLog(program, 1000, &len, log);
-    rtLogError("faild to link:%s", log);
-    // TODO purge all exit calls
-    exit(1);
-  }
-}
-
-//====================================================================================================================================================================================
-
-class shaderProgram
-{
-public:
-  virtual ~shaderProgram() {
-   glDetachShader(mProgram, mFragShader);
-   glDetachShader(mProgram, mVertShader);
-   glDeleteShader(mFragShader);
-   glDeleteShader(mVertShader);
-   glDeleteProgram(mProgram);
-  }
-  virtual void init(const char* v, const char* f)
-  {
-    glShaderProgDetails details = createShaderProgram(v, f);
-    mProgram    = details.program;
-    mFragShader = details.fragShader;
-    mVertShader = details.vertShader;
-    prelink();
-    linkShaderProgram(mProgram);
-    postlink();
-  }
-
-  int getUniformLocation(const char* name)
-  {
-    int l = glGetUniformLocation(mProgram, name);
-    if (l == -1)
-      rtLogError("Shader does not define uniform %s.\n", name);
-    return l;
-  }
-
-  void use()
-  {
-    currentGLProgram = PROGRAM_UNKNOWN;
-    glUseProgram(mProgram);
-  }
-
-protected:
-  // Override to do uniform lookups
-  virtual void prelink() {}
-  virtual void postlink() {}
-
-  GLuint mProgram,mFragShader,mVertShader;
-}; // CLASS - shaderProgram
 
 //====================================================================================================================================================================================
 
@@ -1401,24 +1412,23 @@ protected:
   {
     mResolutionLoc = getUniformLocation("u_resolution");
     mMatrixLoc     = getUniformLocation("amymatrix");
+    mFlipYLoc      = getUniformLocation("u_flipY");
     mColorLoc      = getUniformLocation("a_color");
     mAlphaLoc      = getUniformLocation("u_alpha");
   }
 
 public:
-  pxError draw(int resW, int resH, float* matrix, float alpha,
+   pxError draw(int resW, int resH, float* matrix, float alpha,
             GLenum mode,
             const void* pos,
             int count,
             const float* color)
   {
-    if (currentGLProgram != PROGRAM_SOLID_SHADER)
-    {
-      use();
-      currentGLProgram = PROGRAM_SOLID_SHADER;
-    }
+    use(); // change program... if needed
+
     glUniform2f(mResolutionLoc, static_cast<GLfloat>(resW), static_cast<GLfloat>(resH));
     glUniformMatrix4fv(mMatrixLoc, 1, GL_FALSE, matrix);
+    glUniform1i(mFlipYLoc, gFlipRendering);
     glUniform1f(mAlphaLoc, alpha);
     glUniform4fv(mColorLoc, 1, color);
 
@@ -1433,6 +1443,7 @@ public:
 private:
   GLint mResolutionLoc;
   GLint mMatrixLoc;
+  GLint mFlipYLoc;
 
   GLint mPosLoc;
   GLint mUVLoc;
@@ -1461,6 +1472,7 @@ protected:
   {
     mResolutionLoc = getUniformLocation("u_resolution");
     mMatrixLoc     = getUniformLocation("amymatrix");
+    mFlipYLoc      = getUniformLocation("u_flipY");
     mColorLoc      = getUniformLocation("a_color");
     mAlphaLoc      = getUniformLocation("u_alpha");
     mTextureLoc    = getUniformLocation("s_texture");
@@ -1475,14 +1487,12 @@ public:
             pxTextureRef texture,
             const float* color)
   {
-    if (currentGLProgram != PROGRAM_A_TEXTURE_SHADER)
-    {
-      use();
-      currentGLProgram = PROGRAM_A_TEXTURE_SHADER;
-    }
+    use(); // change program... if needed
+
     glUniform2f(mResolutionLoc, static_cast<GLfloat>(resW), static_cast<GLfloat>(resH));
     glUniformMatrix4fv(mMatrixLoc, 1, GL_FALSE, matrix);
     glUniform1f(mAlphaLoc, alpha);
+    glUniform1i(mFlipYLoc, gFlipRendering);
     glUniform4fv(mColorLoc, 1, color);
 
     if (texture->bindGLTexture(mTextureLoc) != PX_OK)
@@ -1504,6 +1514,7 @@ public:
 private:
   GLint mResolutionLoc;
   GLint mMatrixLoc;
+  GLint mFlipYLoc;
 
   GLint mPosLoc;
   GLint mUVLoc;
@@ -1516,6 +1527,119 @@ private:
 }; //CLASS - aTextureShaderProgram
 
 aTextureShaderProgram *gATextureShader = NULL;
+
+
+//====================================================================================================================================================================================
+
+class aLinearBlurShaderProgram: public shaderProgram
+{
+  public:
+  aLinearBlurShaderProgram()
+  {
+    mResolutionLoc    = -1;
+    mMatrixLoc        = -1;
+    mKernelRadiusLoc  = -1;
+    mBlurDirectionLoc = -1;
+    mShadowColorLoc   = -1;
+    mPosLoc           = -1;
+    mUVLoc            = -1;
+    mColorLoc         = -1;
+    mAlphaLoc         = -1;
+    mTextureLoc       = -1;
+  }
+
+  protected:
+  virtual void prelink()
+  {
+    mPosLoc = 0;
+    mUVLoc  = 1;
+    glBindAttribLocation(mProgram, mPosLoc, "pos");
+    glBindAttribLocation(mProgram, mUVLoc,  "uv");
+  }
+
+  virtual void postlink()
+  {
+    mResolutionLoc    = getUniformLocation("u_resolution");
+    mMatrixLoc        = getUniformLocation("amymatrix");
+    mColorLoc         = getUniformLocation("a_color");
+    mAlphaLoc         = getUniformLocation("u_alpha");
+    mTextureLoc       = getUniformLocation("s_texture");
+
+    mKernelRadiusLoc  = getUniformLocation("u_kernelRadius");
+    mBlurDirectionLoc = getUniformLocation("u_direction");
+
+    mShadowColorLoc   = getUniformLocation("u_shadowColor");
+  }
+
+public:
+
+     pxError draw(int resW, int resH, float* matrix, float alpha,
+               pxTextureRef texture,
+               GLenum mode,
+               const void* pos,
+               const void* uv,
+               int count, void *options)
+  {
+      pxTextEffects* pe;
+      if (options)
+      {
+          pe = static_cast<pxTextEffects*>(options);
+      } else {
+          return PX_FAIL;  // could no draw w/o shadow/hightlihgt options
+      }
+
+    if(mResolutionLoc == -1)
+    {
+      return PX_FAIL;  // not ready
+    }
+
+    use(); // change program... if needed
+
+    glUniform2f(mResolutionLoc, static_cast<GLfloat>(resW), static_cast<GLfloat>(resH));
+    glUniformMatrix4fv(mMatrixLoc, 1, GL_FALSE, matrix);
+
+    glUniform1f(mAlphaLoc, alpha);
+    glUniform4fv(mShadowColorLoc, 1, pe->shadowColor);
+    glUniform1i(mKernelRadiusLoc, (int) pe->shadowRadius);
+
+    float dir[] = { pe->shadowX, pe->shadowY };
+    glUniform2fv(mBlurDirectionLoc, 1, dir);
+
+    if (texture->bindGLTexture(mTextureLoc) != PX_OK)
+    {
+      return PX_FAIL;
+    }
+
+    glVertexAttribPointer(mPosLoc, 2, GL_FLOAT, GL_FALSE, 0, pos);
+    glVertexAttribPointer(mUVLoc,  2, GL_FLOAT, GL_FALSE, 0, uv);
+    glEnableVertexAttribArray(mPosLoc);
+    glEnableVertexAttribArray(mUVLoc);
+    glDrawArrays(mode, 0, count);  TRACK_DRAW_CALLS();
+    glDisableVertexAttribArray(mPosLoc);
+    glDisableVertexAttribArray(mUVLoc);
+
+    return PX_OK;
+  }
+
+private:
+  GLint mResolutionLoc;
+  GLint mMatrixLoc;
+
+  GLint mKernelRadiusLoc;
+  GLint mBlurDirectionLoc;
+  GLint mShadowColorLoc;
+
+  GLint mPosLoc;
+  GLint mUVLoc;
+
+  GLint mColorLoc;
+  GLint mAlphaLoc;
+
+  GLint mTextureLoc;
+
+}; //CLASS - aTextureBlurShaderProgram
+
+aLinearBlurShaderProgram *gATextureBlurShader = NULL;
 
 //====================================================================================================================================================================================
 
@@ -1534,6 +1658,7 @@ protected:
   {
     mResolutionLoc = getUniformLocation("u_resolution");
     mMatrixLoc     = getUniformLocation("amymatrix");
+    mFlipYLoc      = getUniformLocation("u_flipY");
     mAlphaLoc      = getUniformLocation("u_alpha");
     mTextureLoc    = getUniformLocation("s_texture");
   }
@@ -1545,13 +1670,11 @@ public:
             pxTextureRef texture,
             int32_t stretchX, int32_t stretchY)
   {
-    if (currentGLProgram != PROGRAM_TEXTURE_SHADER)
-    {
-      use();
-      currentGLProgram = PROGRAM_TEXTURE_SHADER;
-    }
+    use(); // change program... if needed
+
     glUniform2f(mResolutionLoc, static_cast<GLfloat>(resW), static_cast<GLfloat>(resH));
     glUniformMatrix4fv(mMatrixLoc, 1, GL_FALSE, matrix);
+    glUniform1i(mFlipYLoc, gFlipRendering);
     glUniform1f(mAlphaLoc, alpha);
 
     if (texture->bindGLTexture(mTextureLoc) != PX_OK)
@@ -1578,6 +1701,7 @@ public:
 private:
   GLint mResolutionLoc;
   GLint mMatrixLoc;
+  GLint mFlipYLoc;
 
   GLint mPosLoc;
   GLint mUVLoc;
@@ -1605,6 +1729,7 @@ protected:
   {
     mResolutionLoc = getUniformLocation("u_resolution");
     mMatrixLoc     = getUniformLocation("amymatrix");
+    mFlipYLoc      = getUniformLocation("u_flipY");
     mAlphaLoc      = getUniformLocation("u_alpha");
     mColorLoc      = getUniformLocation("u_color");
     mTextureLoc    = getUniformLocation("s_texture");
@@ -1617,13 +1742,11 @@ public:
                pxTextureRef texture,
                int32_t stretchX, int32_t stretchY, const float* color = NULL)
   {
-    if (currentGLProgram != PROGRAM_TEXTURE_BORDER_SHADER)
-    {
-      use();
-      currentGLProgram = PROGRAM_TEXTURE_BORDER_SHADER;
-    }
+    use(); // change program... if needed
+
     glUniform2f(mResolutionLoc, static_cast<GLfloat>(resW), static_cast<GLfloat>(resH));
     glUniformMatrix4fv(mMatrixLoc, 1, GL_FALSE, matrix);
+    glUniform1i(mFlipYLoc, gFlipRendering);
     glUniform1f(mAlphaLoc, alpha);
     if (color != NULL)
     {
@@ -1659,6 +1782,7 @@ public:
 private:
   GLint mResolutionLoc;
   GLint mMatrixLoc;
+  GLint mFlipYLoc;
 
   GLint mPosLoc;
   GLint mUVLoc;
@@ -1689,6 +1813,7 @@ protected:
   {
     mResolutionLoc = getUniformLocation("u_resolution");
     mMatrixLoc     = getUniformLocation("amymatrix");
+    mFlipYLoc      = getUniformLocation("u_flipY");
     mAlphaLoc      = getUniformLocation("u_alpha");
     mInvertedLoc   = getUniformLocation("u_doInverted");
     mTextureLoc    = getUniformLocation("s_texture");
@@ -1704,16 +1829,14 @@ public:
             pxTextureRef mask,
             pxConstantsMaskOperation::constants maskOp = pxConstantsMaskOperation::NORMAL)
   {
-    if (currentGLProgram != PROGRAM_TEXTURE_MASKED_SHADER)
-    {
-      use();
-      currentGLProgram = PROGRAM_TEXTURE_MASKED_SHADER;
-    }
+    use(); // change program... if needed
+
     glUniform2f(mResolutionLoc, static_cast<GLfloat>(resW), static_cast<GLfloat>(resH));
     glUniformMatrix4fv(mMatrixLoc, 1, GL_FALSE, matrix);
+    glUniform1i(mFlipYLoc, gFlipRendering);
     glUniform1f(mAlphaLoc, alpha);
     glUniform1f(mInvertedLoc, static_cast<GLfloat>((maskOp == pxConstantsMaskOperation::NORMAL) ? 0.0 : 1.0));
-    
+
 
     if (texture->bindGLTexture(mTextureLoc) != PX_OK)
     {
@@ -1743,6 +1866,7 @@ public:
 private:
   GLint mResolutionLoc;
   GLint mMatrixLoc;
+  GLint mFlipYLoc;
 
   GLint mPosLoc;
   GLint mUVLoc;
@@ -1758,6 +1882,148 @@ private:
 textureMaskedShaderProgram *gTextureMaskedShader = NULL;
 
 //====================================================================================================================================================================================
+pxContextFramebufferRef applyBlurSettings(pxContextFramebufferRef src, const pxTextEffects* pe, filterXYR *filters, size_t count)
+{
+    if(filters == NULL)
+    {
+        rtLogError("No filters to apply.");
+        return NULL;
+    }
+    int w = src->width();
+    int h = src->height();
+
+    //
+    // FBO: 'output1'
+    //
+    pxContextFramebufferRef output1 = context.createFramebuffer(w,h);
+    context.setFramebuffer(output1);
+    context.clear(w,h);
+
+    //
+    // FBO: 'output0'
+    //
+    pxContextFramebufferRef output0 = context.createFramebuffer(w,h);
+    context.setFramebuffer(output0);
+    context.clear(w,h);
+
+    pxContextFramebufferRef fbo_src = src;      // initial draw of SRC to OUTPUT0
+    pxContextFramebufferRef fbo_dst = output0;
+
+    pxTextEffects options;
+    memcpy(&options, pe, sizeof(options));
+
+    size_t i = 0;
+    do
+    {
+        // Render pass with Blur EFFECT shader...
+        options.shadowX      = filters[i].x;
+        options.shadowY      = filters[i].y;
+        options.shadowRadius = filters[i].r;
+
+        context.setFramebuffer(fbo_dst);
+        context.drawEffect(0, 0, w, h, fbo_src->getTexture(), gATextureBlurShader, &options);
+
+        bool toggle = (i++ % 2); // TOGGLE !! ... (0 % 2) = false ... at start
+
+        // Alternate between Source Textures -> FBO Destinations
+        //
+        fbo_src = (toggle) ? output1 : output0;
+        fbo_dst = (toggle) ? output0 : output1;
+    }
+    while(i< count);
+
+    return fbo_src; // NOTE:  It's NOT 'fbo_dst' ... the last toggle makes it 'fbo_src'
+}
+
+void drawTextEffects(int numQuads, const void *verts, const void* uvs, pxTextureRef t, const pxTextEffects* pe)
+{
+    if(pe->highlightEnabled)
+    {
+        // Draw HIGHLIGHT directly on FrameBuffer ... at back
+        // float padding = (highlightPaddingLeft + highlightPaddingRight);
+        context.pushState();
+
+        // TODO: '0.575' is an Egregious MAGIC NUMBER
+        pxMatrix4f m;
+        m.translate(pe->highlightPaddingLeft, pe->highlightOffset + pe->highlightHeight * 0.575); // apply highlight offset
+        context.setMatrix(m);
+
+        rtLogInfo("drawTextEffects, highlight: w: %f, h: %f", pe->highlightWidth, pe->highlightHeight);
+        float w = pe->highlightWidth - (pe->highlightPaddingLeft + pe->highlightPaddingRight);
+        float h = pe->highlightHeight * 0.2; // TODO: '0.2' is an Egregious MAGIC NUMBER
+        float lineWidth = 0;
+        float fillColor[4];
+
+        memcpy(&fillColor, pe->highlightColor, sizeof(fillColor));
+        context.drawRect(w, h, lineWidth, fillColor, nullptr);
+        context.popState();
+    }
+
+    if(pe->shadowEnabled)
+    {
+        pxContextFramebufferRef previousSurface;
+        previousSurface = context.getCurrentFramebuffer();
+
+        context.pushState();
+
+        // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        // Setup Scratch buffers...
+
+        float w = pe->shadowWidth * 1.2; // gResW;
+        float h = pe->shadowHeight * 1.2; // gResH;
+
+        pxContextFramebufferRef fbo0 = context.createFramebuffer(w,h);
+        context.setFramebuffer(fbo0);
+        context.clear(static_cast<int>(w), static_cast<int>(h) );
+
+        pxMatrix4f m;
+        m.translate(pe->shadowOffsetX, pe->shadowOffsetY);
+        context.setMatrix(m);
+
+        // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        // Draw the TEXT for shadow
+
+        float shadowPM[4];
+        premultiply(shadowPM, pe->shadowColor);
+
+        // Draw 'solid' text to 'fbo0'
+        gATextureShader->draw(w,h, gMatrix.data(), gAlpha, GL_TRIANGLES, numQuads, verts, uvs, t, shadowPM);
+
+        float blurAmount   = pe->shadowBlur / 11.0;
+        float kernelRadius = fmax(1, blurAmount /4);
+
+        float blurFactor[] = {1.00, 1.25, 1.50, 1.75, 2.0};
+
+        size_t len = sizeof(blurFactor) / sizeof(float);
+
+        pxContextFramebufferRef input = fbo0;
+        pxContextFramebufferRef output;
+
+        for(size_t i =0; i<len; i++)
+        {
+            float f = blurFactor[i];
+
+            const float amount = (f * blurAmount);
+            const float radius = (f * kernelRadius);
+
+            filterXYR blur_settings[] =   // [X Y] Radius
+                    {
+                            { amount,    0.0,   radius },
+                            { 0.0,    amount,   radius },
+                    };
+
+            int count = sizeof(blur_settings) / sizeof(filterXYR);
+            output = applyBlurSettings(input, pe, blur_settings, count);
+
+            input = output;
+        }
+        // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        context.setFramebuffer(previousSurface);
+        context.popState();
+        // Draw final result of Shadow effects (on top of Higlight) to framebuffer
+        context.drawImage(0,0, w,h, output->getTexture(), NULL);
+    }
+}
 
 static void drawRect2(GLfloat x, GLfloat y, GLfloat w, GLfloat h, const float* c)
 {
@@ -1777,6 +2043,53 @@ static void drawRect2(GLfloat x, GLfloat y, GLfloat w, GLfloat h, const float* c
   gSolidShader->draw(gResW,gResH,gMatrix.data(),gAlpha,GL_TRIANGLE_STRIP,verts,4,colorPM);
 }
 
+
+static void drawEffect(GLfloat x, GLfloat y, GLfloat w, GLfloat h, pxTextureRef t, shaderProgram *shader, void *options /* = nulptr*/)
+{
+  if(shader == NULL)
+  {
+    rtLogError("drawEffect() ... Shader is NULL !");
+    return;
+  }
+
+  // args are tested at call site...
+
+  const float verts[4][2] =
+  {
+    { x  , y   },
+    { x+w, y   },
+    { x  , y+h },
+    { x+w, y+h }
+  };
+
+  float iw = static_cast<float>( t ? t->width()  : 1);
+  float ih = static_cast<float>( t ? t->height() : 1);
+
+  float tw = w/iw;
+  float th = h/ih;
+
+  float firstTextureY  = 1.0;
+  float secondTextureY = static_cast<float>(1.0-th);
+
+  const float uv[4][2] =
+  {
+    { 0,  firstTextureY  },
+    { tw, firstTextureY  },
+    { 0,  secondTextureY },
+    { tw, secondTextureY }
+  };
+
+  // TODO - hacky, come back and clean up
+  aLinearBlurShaderProgram *linearBlurShaderProgram = dynamic_cast<aLinearBlurShaderProgram*>(shader);
+  if (linearBlurShaderProgram != NULL)
+  {
+    linearBlurShaderProgram->draw(gResW, gResH, gMatrix.data(), gAlpha, t, GL_TRIANGLE_STRIP, verts, (t ? uv : NULL), 4, options);
+  }
+  else
+  {
+    shader->draw(gResW, gResH, gMatrix.data(), gAlpha, t, GL_TRIANGLE_STRIP, verts, (t ? uv : NULL), 4);
+  }
+}
 
 static void drawRectOutline(GLfloat x, GLfloat y, GLfloat w, GLfloat h, GLfloat lw, const float* c)
 {
@@ -2020,7 +2333,7 @@ static void drawImage92(GLfloat x, GLfloat y, GLfloat w, GLfloat h, GLfloat x1, 
   gTextureShader->draw(gResW,gResH,gMatrix.data(),gAlpha,22,verts,uv,texture,pxConstantsStretch::NONE,pxConstantsStretch::NONE);
 }
 
-static void drawImage9Border2(GLfloat x, GLfloat y, GLfloat w, GLfloat h, 
+static void drawImage9Border2(GLfloat x, GLfloat y, GLfloat w, GLfloat h,
                        GLfloat borderX1, GLfloat borderY1, GLfloat borderX2, GLfloat borderY2,
                        GLfloat insetX1, GLfloat insetY1, GLfloat insetX2, GLfloat insetY2,
                        bool drawCenter, float* color,
@@ -2155,6 +2468,7 @@ pxContext::~pxContext()
 {
   SAFE_DELETE(gSolidShader);
   SAFE_DELETE(gATextureShader);
+  SAFE_DELETE(gATextureBlurShader);
   SAFE_DELETE(gTextureShader);
   SAFE_DELETE(gTextureBorderShader);
   SAFE_DELETE(gTextureMaskedShader);
@@ -2173,24 +2487,28 @@ void pxContext::init()
 
   SAFE_DELETE(gSolidShader);
   SAFE_DELETE(gATextureShader);
+  SAFE_DELETE(gATextureBlurShader);
   SAFE_DELETE(gTextureShader);
   SAFE_DELETE(gTextureBorderShader);
   SAFE_DELETE(gTextureMaskedShader);
 
   gSolidShader = new solidShaderProgram();
-  gSolidShader->init(vShaderText,fSolidShaderText);
+  gSolidShader->initShader(vShaderText,fSolidShaderText);
 
   gATextureShader = new aTextureShaderProgram();
-  gATextureShader->init(vShaderText,fATextureShaderText);
+  gATextureShader->initShader(vShaderText,fATextureShaderText);
+
+  gATextureBlurShader = new aLinearBlurShaderProgram();
+  gATextureBlurShader->initShader(vShaderText,fLinearBlurShaderText);
 
   gTextureShader = new textureShaderProgram();
-  gTextureShader->init(vShaderText,fTextureShaderText);
+  gTextureShader->initShader(vShaderText,fTextureShaderText);
 
   gTextureBorderShader = new textureBorderShaderProgram();
-  gTextureBorderShader->init(vShaderText,fTextureBorderShaderText);
+  gTextureBorderShader->initShader(vShaderText,fTextureBorderShaderText);
 
   gTextureMaskedShader = new textureMaskedShaderProgram();
-  gTextureMaskedShader->init(vShaderText,fTextureMaskedShaderText);
+  gTextureMaskedShader->initShader(vShaderText,fTextureMaskedShaderText);
 
   glEnable(GL_BLEND);
 
@@ -2310,7 +2628,7 @@ void pxContext::init()
   std::srand(unsigned (std::time(0)));
 }
 
-void pxContext::term()  // clean up statics 
+void pxContext::term()  // clean up statics
 {
 }
 
@@ -2381,6 +2699,53 @@ void pxContext::clear(int left, int top, int width, int height)
   glClear(GL_COLOR_BUFFER_BIT);
 }
 
+void pxContext::punchThrough(int left, int top, int width, int height)
+{
+  GLfloat priorColor[4];
+  GLint priorBox[4];
+  bool wasEnabled= glIsEnabled(GL_SCISSOR_TEST);
+  glGetIntegerv( GL_SCISSOR_BOX, priorBox );
+  glGetFloatv( GL_COLOR_CLEAR_VALUE, priorColor );
+
+  glEnable( GL_SCISSOR_TEST );
+  glClearColor( 0.0f, 0.0f, 0.0f, 0.0f );
+
+
+  if (left < 0)
+  {
+    left = 0;
+  }
+  if (top < 0)
+  {
+    top = 0;
+  }
+  if ((left+width) > gResW)
+  {
+    width = gResW - left;
+  }
+  if ((top+height) > gResH)
+  {
+    height = gResH - top;
+  }
+  int clearTop = gResH-top-height;
+
+  glEnable(GL_SCISSOR_TEST);
+
+  //map form screen to window coordinates
+  glScissor(left, clearTop, width, height);
+  glClear(GL_COLOR_BUFFER_BIT);
+
+  glClearColor( priorColor[0], priorColor[1], priorColor[2], priorColor[3] );
+  if ( wasEnabled )
+  {
+    glScissor( priorBox[0], priorBox[1], priorBox[2], priorBox[3] );
+  }
+  else
+  {
+    glDisable( GL_SCISSOR_TEST );
+  }
+}
+
 void pxContext::enableClipping(bool enable)
 {
   if (enable)
@@ -2413,10 +2778,10 @@ float pxContext::getAlpha()
   return gAlpha;
 }
 
-pxContextFramebufferRef pxContext::createFramebuffer(int width, int height, bool antiAliasing, bool alphaOnly)
+pxContextFramebufferRef pxContext::createFramebuffer(int width, int height, bool antiAliasing, bool alphaOnly, bool depthBuffer)
 {
   pxContextFramebuffer* fbo = new pxContextFramebuffer();
-  pxFBOTexture* fboTexture = new pxFBOTexture(antiAliasing, alphaOnly);
+  pxFBOTexture* fboTexture = new pxFBOTexture(antiAliasing, alphaOnly, depthBuffer);
   pxTextureRef texture = fboTexture;
 
   fboTexture->createFboTexture(width, height);
@@ -2443,7 +2808,8 @@ pxContextFramebufferRef pxContext::getCurrentFramebuffer()
 
 pxError pxContext::setFramebuffer(pxContextFramebufferRef fbo)
 {
-  currentGLProgram = PROGRAM_UNKNOWN;
+  currentGLProgram = -1; //NB: Force a re-bind of GL program
+
   if (fbo.getPtr() == NULL || fbo->getTexture().getPtr() == NULL)
   {
     glViewport ( 0, 0, defaultContextSurface.width, defaultContextSurface.height);
@@ -2460,6 +2826,7 @@ pxError pxContext::setFramebuffer(pxContextFramebufferRef fbo)
 
     gAlpha = contextState.alpha;
     gMatrix = contextState.matrix;
+    gFlipRendering = currentFramebuffer->flipRenderingEnabled();
 
 #ifdef PX_DIRTY_RECTANGLES
     if (currentFramebuffer->isDirtyRectanglesEnabled())
@@ -2481,6 +2848,7 @@ pxError pxContext::setFramebuffer(pxContextFramebufferRef fbo)
   currentFramebuffer->currentState(contextState);
   gAlpha = contextState.alpha;
   gMatrix = contextState.matrix;
+  gFlipRendering = currentFramebuffer->flipRenderingEnabled();
 
 #ifdef PX_DIRTY_RECTANGLES
   if (currentFramebuffer->isDirtyRectanglesEnabled())
@@ -2584,7 +2952,7 @@ void pxContext::drawImage9(float w, float h, float x1, float y1,
   drawImage92(0, 0, w, h, x1, y1, x2, y2, texture);
 }
 
-void pxContext::drawImage9Border(float w, float h, 
+void pxContext::drawImage9Border(float w, float h,
                   float bx1, float by1, float bx2, float by2,
                   float ix1, float iy1, float ix2, float iy2,
                   bool drawCenter, float* color,
@@ -2695,8 +3063,49 @@ void pxContext::drawTexturedQuads(int numQuads, const void *verts, const void* u
 
   float colorPM[4];
   premultiply(colorPM,color);
+
+  // - - - - - - - - - - - - - - - - - - - -
+  // Draw the TEXT quads
   gATextureShader->draw(gResW,gResH,gMatrix.data(),gAlpha,GL_TRIANGLES,6*numQuads,verts,uvs,t,colorPM);
+  // - - - - - - - - - - - - - - - - - - - -
 }
+
+void
+pxContext::drawTexturedQuadsWithEffects(int numQuads, const void *verts, const void *uvs, pxTextureRef t, float *color,
+                                        const pxTextEffects *pe)
+{
+#ifdef DEBUG_SKIP_IMAGE
+    #warning "DEBUG_SKIP_IMAGE enabled ... Skipping "
+  return;
+#endif
+
+    // TRANSPARENT
+    if(gAlpha == 0.0)
+    {
+        return;
+    }
+
+    // TEXTURELESS
+    if (t.getPtr() == NULL)
+    {
+        return;
+    }
+
+    t->setLastRenderTick(gRenderTick);
+
+    // Shadow / Highlight draw
+    //
+    drawTextEffects( 6*numQuads, verts, uvs, t, pe);
+
+    float colorPM[4];
+    premultiply(colorPM,color);
+
+    // - - - - - - - - - - - - - - - - - - - -
+    // Draw the TEXT quads
+    gATextureShader->draw(gResW,gResH,gMatrix.data(),gAlpha,GL_TRIANGLES,6*numQuads,verts,uvs,t,colorPM);
+    // - - - - - - - - - - - - - - - - - - - -
+}
+
 #endif
 
 void pxContext::drawDiagRect(float x, float y, float w, float h, float* color)
@@ -2768,6 +3177,12 @@ void pxContext::drawDiagLine(float x1, float y1, float x2, float y2, float* colo
   gSolidShader->draw(gResW,gResH,gMatrix.data(),gAlpha,GL_LINES,verts,2,colorPM);
 }
 
+// convenience method
+void pxContext::drawEffect(float x, float y, float w, float h, pxTextureRef t, shaderProgram *shader, void *options /* = nullptr */)
+{
+  ::drawEffect(x, y, w, h, t, shader, options);
+};
+
 pxTextureRef pxContext::createTexture()
 {
   pxTextureNone* noneTexture = new pxTextureNone();
@@ -2786,9 +3201,9 @@ pxTextureRef pxContext::createTexture(float w, float h, float iw, float ih, void
   return alphaTexture;
 }
 
-pxSharedContextRef pxContext::createSharedContext()
+pxSharedContextRef pxContext::createSharedContext(bool depthBuffer)
 {
-  pxSharedContext* sharedContext = new pxSharedContext();
+  pxSharedContext* sharedContext = new pxSharedContext(depthBuffer);
   return sharedContext;
 }
 
@@ -3035,6 +3450,4 @@ void pxContext::updateRenderTick()
     gRenderTick++;
   }
 }
-
-
 

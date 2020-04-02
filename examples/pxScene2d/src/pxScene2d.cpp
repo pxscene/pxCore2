@@ -38,7 +38,16 @@
 #include "pxRectangle.h"
 #include "pxText.h"
 #include "pxTextBox.h"
+#include "pxTextCanvas.h"
 #include "pxImage.h"
+
+#ifdef ENABLE_SPARK_WEBGL
+#include "pxWebGL.h"
+#endif //ENABLE_SPARK_WEBGL
+
+#ifdef ENABLE_SPARK_VIDEO
+#include "pxVideo.h"
+#endif //ENABLE_SPARK_VIDEO
 
 #ifdef PX_SERVICE_MANAGER
 #include "pxServiceManager.h"
@@ -46,6 +55,9 @@
 #include "pxImage9.h"
 #include "pxImageA.h"
 #include "pxImage9Border.h"
+
+#include "pxShaderResource.h"
+
 
 #if !defined(ENABLE_DFB) && !defined(DISABLE_WAYLAND)
 #include "pxWaylandContainer.h"
@@ -67,6 +79,15 @@
 #ifdef ENABLE_RT_NODE
 #include "rtScript.h"
 #endif //ENABLE_RT_NODE
+
+#include "rtJsonUtils.h"
+#include "rtHttpRequest.h"
+#include "rtUrlUtils.h"
+
+#ifdef ENABLE_SPARK_THUNDER
+#include <securityagent/securityagent.h>
+#endif //ENABLE_SPARK_THUNDER
+#define MAX_TOKEN_BUFFER_LENGTH 2048
 
 using namespace rapidjson;
 
@@ -101,8 +122,13 @@ extern rtThreadQueue* gUIThreadQueue;
 extern pxContext      context;
 
 static int fpsWarningThreshold = 25;
+bool topSparkView = true;
 
 rtEmitRef pxScriptView::mEmit = new rtEmit();
+
+rtRef<rtFunctionCallback> pxScriptView::mSparkHttp = NULL;
+rtString pxScriptView::mSparkGlInitApp;
+rtString pxScriptView::mSparkInitApp;
 
 
 #ifdef PXSCENE_SUPPORT_STORAGE
@@ -140,7 +166,6 @@ extern uv_async_t asyncNewScript;
 extern uv_async_t gcTrigger;
 #endif // RUNINMAIN
 #endif //ENABLE_RT_NODE
-
 #ifdef ENABLE_VALGRIND
 #include <valgrind/callgrind.h>
 void startProfiling()
@@ -529,10 +554,14 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   // capabilities.graphics.cursor       = 1
   // capabilities.graphics.colors       = 1
   // capabilities.graphics.screenshots  = 2
+  // capabilities.graphics.shaders      = 1
   // capabilities.graphics.text         = 3
+  // capabilities.graphics.text_fallback = 1
   // capabilities.graphics.imageAResource  = 2
   //
-  // capabilities.scene.external  = 1
+  // capabilities.font.fallback = 1
+  //
+  // capabilities.scene.external = 1
   //
   // capabilities.network.cors          = 1
   // capabilities.network.corsResources = 1
@@ -542,7 +571,14 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   // 
   // capabilities.animations.durations = 2
   //
-  // capabilities.events.drag_n_drop    = 2   // additional Drag'n'Drop events 
+  // capabilities.events.drag_n_drop    = 2   // additional Drag'n'Drop events
+  //
+  // capabilities.video.player         = 1
+  // capabilities.sparkgl.nativedrawing    = 1
+  // capabilities.sparkgl.supports1080    = 1
+  // capabilities.sparkgl.animatedImages    = 1
+  // capabilities.sparkgl.optimus = 2
+  // capabilities.sparkgl.bootstrap = 2
 
   mCapabilityVersions = new rtMapObject;
 
@@ -557,10 +593,18 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   graphicsCapabilities.set("imageAResource", 2);
       
   graphicsCapabilities.set("screenshots", 2);
+  graphicsCapabilities.set("shaders", 1);
   graphicsCapabilities.set("text", 3);
-      
+  
+  
+  rtObjectRef fontCapabilities = new rtMapObject;
+  fontCapabilities.set("fallback", 1);
+
+  mCapabilityVersions.set("font", fontCapabilities);
+  
 #ifdef SPARK_CURSOR_SUPPORT
   graphicsCapabilities.set("cursor", 1);
+
 #else
   rtValue enableCursor;
   if (RT_OK == rtSettings::instance()->value("enableCursor", enableCursor))
@@ -597,7 +641,7 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
 
   mCapabilityVersions.set("network", networkCapabilities);
 #ifdef PXSCENE_SUPPORT_STORAGE
-  mCapabilityVersions.set("storage", 1);
+  mCapabilityVersions.set("storage", 2);
 #endif
 
   rtObjectRef metricsCapabilities = new rtMapObject;
@@ -616,6 +660,44 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
 
   mCapabilityVersions.set("events", userCapabilities);
   userCapabilities.set("drag_n_drop", (gPlatformOS == "macOS") ? 2 : 1);
+
+#ifdef ENABLE_SPARK_VIDEO
+  rtObjectRef videoCapabilities = new rtMapObject;
+  videoCapabilities.set("player", 2);
+  rtValue enableVideo;
+  if (RT_OK == rtSettings::instance()->value("enableVideo", enableVideo))
+  {
+    if (enableVideo.toString().compare("false") == 0)
+    {
+      videoCapabilities.set("player", 0);
+    }
+  }
+  mCapabilityVersions.set("video", videoCapabilities);
+#endif //ENABLE_SPARK_VIDEO
+
+  rtObjectRef sparkGlCapabilities = new rtMapObject;
+  sparkGlCapabilities.set("nativedrawing", 1);
+  rtValue enableSparkGlNativeDrawing;
+  char const* sparkGlNativeDrawingEnv = getenv("SPARK_ENABLE_SPARKGL_NATIVE_DRAWING");
+  if (sparkGlNativeDrawingEnv && (strcmp(sparkGlNativeDrawingEnv,"0") == 0))
+  {
+    rtLogWarn("disabling SparkGL native rendering capability");
+    sparkGlCapabilities.set("nativedrawing", 0);
+  }
+  else if (RT_OK == rtSettings::instance()->value("enableSparkGlNativeDrawing", enableSparkGlNativeDrawing))
+  {
+    if (enableSparkGlNativeDrawing.toString().compare("false") == 0)
+    {
+      //disable SparkGL native drawing support if setting disables it
+      rtLogWarn("disabling SparkGL native rendering");
+      sparkGlCapabilities.set("nativedrawing", 0);
+    }
+  }
+  sparkGlCapabilities.set("supports1080", 1);
+  sparkGlCapabilities.set("animatedImages", 1);
+  sparkGlCapabilities.set("optimus", 2);
+  sparkGlCapabilities.set("bootstrap", 2);
+  mCapabilityVersions.set("sparkgl", sparkGlCapabilities);
 
   //////////////////////////////////////////////////////
 }
@@ -699,6 +781,8 @@ rtError pxScene2d::create(rtObjectRef p, rtObjectRef& o)
     e = createText(p,o);
   else if (!strcmp("textBox",t.cString()))
     e = createTextBox(p,o);
+  else if (!strcmp("textCanvas",t.cString()))
+    e = createTextCanvas(p,o);
   else if (!strcmp("image",t.cString()))
     e = createImage(p,o);
   else if (!strcmp("image9",t.cString()))
@@ -722,12 +806,21 @@ rtError pxScene2d::create(rtObjectRef p, rtObjectRef& o)
     e = createFontResource(p,o);
     needpxObjectTracking = false;
   }
+  else if (!strcmp("shaderResource",t.cString()))
+  {
+    e = createShaderResource(p,o);
+    needpxObjectTracking = false;
+  }
   else if (!strcmp("scene",t.cString()))
     e = createScene(p,o);
   else if (!strcmp("external",t.cString()))
     e = createExternal(p,o);
   else if (!strcmp("wayland",t.cString()))
     e = createWayland(p,o);
+  else if (!strcmp("webgl",t.cString()))
+    e = createWebGL(p,o);
+  else if (!strcmp("video",t.cString()))
+    e = createVideo(p,o);
   else if (!strcmp("object",t.cString()))
     e = createObject(p,o);
   else
@@ -788,6 +881,14 @@ rtError pxScene2d::createText(rtObjectRef p, rtObjectRef& o)
 rtError pxScene2d::createTextBox(rtObjectRef p, rtObjectRef& o)
 {
   o = new pxTextBox(this);
+  o.set(p);
+  o.send("init");
+  return RT_OK;
+}
+
+rtError pxScene2d::createTextCanvas(rtObjectRef p, rtObjectRef& o)
+{
+  o = new pxTextCanvas(this);
   o.set(p);
   o.send("init");
   return RT_OK;
@@ -893,13 +994,34 @@ rtError pxScene2d::createFontResource(rtObjectRef p, rtObjectRef& o)
 {
   rtString url = p.get<rtString>("url");
   rtString proxy = p.get<rtString>("proxy");
+  rtString fontStyle = p.get<rtString>("fontStyle");
+
+  if (!fontStyle.isEmpty()) fontStyle.toLowerAscii();
 
 #ifdef ENABLE_PERMISSIONS_CHECK
   if (RT_OK != mPermissions->allows(url, rtPermissions::DEFAULT))
     return RT_ERROR_NOT_ALLOWED;
 #endif
 
-  o = pxFontManager::getFont(url, proxy, mCORS, mArchive);
+  o = pxFontManager::getFont(url, proxy, mCORS, mArchive, fontStyle);
+  return RT_OK;
+}
+
+rtError pxScene2d::createShaderResource(rtObjectRef p, rtObjectRef& o)
+{
+  rtString fragmentUrl = p.get<rtString>("fragment");
+  rtString vertexUrl   = p.get<rtString>("vertex");
+  
+  if(fragmentUrl.isEmpty() && vertexUrl.isEmpty())
+  {
+     rtLogError("Failed to create [shaderResource] ... no Fragment/Vertex shader found.");
+     return RT_FAIL;
+  }
+
+  o = pxShaderManager::getShader(fragmentUrl, vertexUrl, mCORS, mArchive);
+  o.set(p);
+  o.send("init");
+
   return RT_OK;
 }
 
@@ -993,6 +1115,41 @@ rtError pxScene2d::textureMemoryUsage(rtValue &v)
   return RT_OK;
 }
 
+rtError pxScene2d::thunderToken(rtValue &v)
+{
+#ifdef ENABLE_SPARK_THUNDER
+  v.setString("");
+  unsigned char tokenBuffer[MAX_TOKEN_BUFFER_LENGTH];
+  memset(tokenBuffer, 0, MAX_TOKEN_BUFFER_LENGTH);
+  rtString appUrl = mScriptView != NULL ? mScriptView->getUrl() : "";
+  if (!appUrl.isEmpty())
+  {
+    appUrl = rtUrlGetOrigin(appUrl.cString());
+  }
+  rtString params = "{\"url\":\"" + appUrl;
+  params += "\"}";
+  size_t paramsLength = (size_t)params.length();
+  if(!memcpy(tokenBuffer,params.cString(),paramsLength))
+  {
+    rtLogError("unable to copy url buffer for token");
+    return RT_FAIL;
+  }
+  rtLogInfo("thunder request: %s length: %d", (char*)tokenBuffer, (int)paramsLength);
+  int result = GetToken(MAX_TOKEN_BUFFER_LENGTH, paramsLength, tokenBuffer);
+  if (result < 0)
+  {
+    rtLogError("unable to get token for app");
+    return RT_FAIL;
+  }
+  rtString tokenString = tokenBuffer;
+  v.setString(tokenString);
+  return RT_OK;
+#else
+  rtLogWarn("thunder support is not available");
+  return RT_FAIL;
+#endif //ENABLE_SPARK_THUNDER
+}
+
 rtError pxScene2d::clock(double & time)
 {
   time = pxMilliseconds();
@@ -1041,6 +1198,35 @@ rtError pxScene2d::createWayland(rtObjectRef p, rtObjectRef& o)
   rtLogWarn("Type 'wayland' is deprecated; use 'external' instead.\n");
   UNUSED_PARAM(p);
   return this->createExternal(p, o);
+}
+
+rtError pxScene2d::createWebGL(rtObjectRef p, rtObjectRef& o)
+{
+#ifdef ENABLE_SPARK_WEBGL
+  o = new pxWebgl(this);
+  o.set(p);
+  o.send("init");
+  return RT_OK;
+#else
+  rtLogError("Type 'webgl' is not supported");
+  return RT_FAIL;
+#endif //ENABLE_SPARK_WEBGL
+}
+
+rtError pxScene2d::createVideo(rtObjectRef p, rtObjectRef& o)
+{
+#ifdef ENABLE_SPARK_VIDEO
+  o = new pxVideo(this);
+  o.set(p);
+  o.send("init");
+  return RT_OK;
+#else
+  UNUSED_PARAM(p);
+  UNUSED_PARAM(o);
+
+  rtLogError("Type 'video' is not supported");
+  return RT_FAIL;
+#endif //ENABLE_SPARK_VIDEO
 }
 
 void pxScene2d::draw()
@@ -1213,6 +1399,10 @@ void pxScene2d::enableOptimizedUpdate(bool enable)
 
 void pxScene2d::onUpdate(double t)
 {
+  if (mDisposed)
+  {
+    return;
+  }
   #ifdef ENABLE_RT_NODE
   if (mTop)
   {
@@ -1923,7 +2113,7 @@ bool pxScene2d::onMouseMove(int32_t x, int32_t y)
   pt.x = x; pt.y = y;
   rtRef<pxObject> hit;
 
-  if (mRoot->hitTestInternal(m, pt, hit))
+  if (mRoot && (mRoot->hitTestInternal(m, pt, hit)))
   {
     rtString id = hit->get<rtString>("id");
     rtLogDebug("found object id: %s\n", id.isEmpty()?"none":id.cString());
@@ -2606,6 +2796,10 @@ rtError pxScene2d::storage(rtObjectRef& v) const
 #endif
 }
 
+rtDefineObject(scriptViewShadow, rtObject);
+rtDefineMethod(scriptViewShadow, addListener);
+rtDefineMethod(scriptViewShadow, delListener);
+
 rtDefineObject(pxScene2d, rtObject);
 rtDefineProperty(pxScene2d, root);
 rtDefineProperty(pxScene2d, info);
@@ -2627,6 +2821,7 @@ rtDefineMethod(pxScene2d, suspend);
 rtDefineMethod(pxScene2d, resume);
 rtDefineMethod(pxScene2d, suspended);
 rtDefineMethod(pxScene2d, textureMemoryUsage);
+rtDefineMethod(pxScene2d, thunderToken);
 //rtDefineMethod(pxScene2d, createWayland);
 rtDefineMethod(pxScene2d, addListener);
 rtDefineMethod(pxScene2d, delListener);
@@ -3053,22 +3248,12 @@ rtError createObject2(const char* t, rtObjectRef& o)
 }
 #endif
 
+int contextId = 1;
+
 pxScriptView::pxScriptView(const char* url, const char* /*lang*/, pxIViewContainer* container)
-     : mWidth(-1), mHeight(-1), mViewContainer(container), mRefCount(0)
+     : mWidth(-1), mHeight(-1), mDrawing(false), mSharedContext(), mViewContainer(container), mRefCount(0)
 {
   rtLogDebug("pxScriptView::pxScriptView()entering\n");
-  mUrl = url;
-#ifndef RUNINMAIN // NOTE this ifndef ends after runScript decl, below
-  mReady = new rtPromise();
-  triggerUpdate();
- // mLang = lang;
-  rtLogDebug("pxScriptView::pxScriptView() exiting\n");
-}
-
-void pxScriptView::runScript()
-{
-  rtLogDebug(__FUNCTION__);
-#endif // ifndef RUNINMAIN
 
 // escape url begin
   string escapedUrl;
@@ -3090,7 +3275,57 @@ void pxScriptView::runScript()
   }
 // escape url end
 
+  shadow = new scriptViewShadow;
+
+  mReady = new rtPromise();
+
+  #ifndef RUNINMAIN // NOTE this ifndef ends after runScript decl, below
+  triggerUpdate();
+ // mLang = lang;
+  rtLogDebug("pxScriptView::pxScriptView() exiting\n");
+#else
+  runScript();
+#endif // ifndef RUNINMAIN
+}
+
+void pxScriptView::runScript()
+{
+  rtLogDebug(__FUNCTION__);
+
   #ifdef ENABLE_RT_NODE
+
+  if (rtUrlGetExtension(mUrl).compare(".spark") == 0)
+  {
+    if (!mBootstrap)
+    {
+      if (!mBootstrapResolve && !mBootstrapReject)
+      {
+        mBootstrapResolve = new rtFunctionCallback(bootstrapResolve, this);
+        mBootstrapReject = new rtFunctionCallback(bootstrapReject, this);
+
+        rtRef<pxArchive> a = new pxArchive;
+
+        // get rid of the query part
+        rtString archiveUrl = mUrl;
+        int32_t pos = archiveUrl.find(0, '#');
+        if (pos != -1) {
+          archiveUrl = archiveUrl.substring(0, pos);
+        }
+        pos = archiveUrl.find(0, '?');
+        if (pos != -1) {
+          archiveUrl = archiveUrl.substring(0, pos);
+        }
+
+        a->initFromUrl(archiveUrl);
+        rtObjectRef ready; // rtPromise
+        a->ready(ready);
+        rtObjectRef newPromise;
+        ready.sendReturns<rtObjectRef>("then", mBootstrapResolve.getPtr(), mBootstrapReject.getPtr(), newPromise);
+      }
+      return;
+    }
+  }
+
   rtLogDebug("pxScriptView::pxScriptView is just now creating a context for mUrl=%s\n",mUrl.cString());
   //mCtx = script.createContext("javascript");
   script.createContext("javascript", mCtx);
@@ -3107,42 +3342,382 @@ void pxScriptView::runScript()
     mCtx->add("getContextID", mGetContextID.getPtr());
     mCtx->add("getSetting", mGetSetting.getPtr());
 
-#ifdef RUNINMAIN
-    mReady = new rtPromise();
-#endif
+    // JRJR Temporary webgl integration
+    if (isGLUrl())
+    {
+      mSharedContext = context.createSharedContext(true);
+      mBeginDrawing = new rtFunctionCallback(beginDrawing2, this);
+      mEndDrawing = new rtFunctionCallback(endDrawing2, this);
+      if (mSparkHttp.getPtr() == NULL)
+      {
+        mSparkHttp = new rtFunctionCallback(sparkHttp, NULL);
+      }
+      //mCtx->add("view", this);     
 
-    mCtx->runFile("init.js");
+      // JRJR TODO initially with zero mWidth/mHeight until onSize event
+      // defer to onSize once events have been ironed out
+      int width = 1280;
+      int height = 720;
+      if (mUrl.find(0, "enableSparkGL1080") >= 0)
+      {
+        rtLogInfo("enabling 1080 SparkGL app");
+        width = 1920;
+        height = 1080;
+      }
+      mSharedContext->makeCurrent(true);
+      cached = context.createFramebuffer(width,height,false,false,true);
+      mSharedContext->makeCurrent(false);
 
-    char buffer[MAX_URL_SIZE + 50];
-    memset(buffer, 0, sizeof(buffer));
-    snprintf(buffer, sizeof(buffer), "loadUrl(\"%s\");", mUrl.cString());
-    rtLogDebug("pxScriptView::runScript calling runScript with %s\n",mUrl.cString());
-#ifdef WIN32 // process \\ to /
-		unsigned int bufferLen = strlen(buffer);
-		char * newBuffer = (char*)malloc(sizeof(char)*(bufferLen + 1));
-		unsigned int newBufferLen = 0;
-		for (size_t i = 0; i < bufferLen - 1; i++) {
-			if (buffer[i] == '\\') {
-				newBuffer[newBufferLen++] = '/';
-				if (buffer[i + 1] == '\\') {
-					i = i + 1;
-				}
-			}
-			else {
-				newBuffer[newBufferLen++] = buffer[i];
-			}
-		}
-		newBuffer[newBufferLen++] = '\0';
-		strcpy(buffer, newBuffer);
-		free(newBuffer);
-#endif
-    mCtx->runScript(buffer);
-    rtLogDebug("pxScriptView::runScript() ending\n");
+      beginDrawing();
+      glClearColor(0, 0, 0, 0);
+      glClear(GL_COLOR_BUFFER_BIT);      
+      // compile initGL.js
+      if (mSparkGlInitApp.isEmpty())
+      {
+        rtData initData;
+        rtError e = rtLoadFile("initApp.js", initData);
+        if(e != RT_OK)
+        {
+          rtLogError("Failed to load - 'initApp.js' ");
+        }
+        mSparkGlInitApp = rtString((char*)initData.data(), (uint32_t) initData.length());
+      }
+      mCtx->runScript(mSparkGlInitApp.cString());
+      rtValue foo = mCtx->get("loadAppUrl");
+      rtFunctionRef f = foo.toFunction();
+      bool b = true;
+
+      // JRJR Adding an AddRef to this... causes bad things to happen when reloading gl scenes
+      // investigate... 
+      // JRJR WARNING! must use sendReturns since wrappers will invoke asyncronously otherwise.
+      f.sendReturns<bool>(mUrl,mBeginDrawing.getPtr(),mEndDrawing.getPtr(), shadow.getPtr(), mBootstrap, mSparkHttp.getPtr(), b);
+      endDrawing();
+      
+    }
+    else
+    {
+      // compile init.js
+      if (mSparkInitApp.isEmpty())
+      {
+        rtString s = getenv("SPARK_PATH");
+        s.append("init.js");
+        rtData initData;
+        rtError e = rtLoadFile(s.cString(), initData);
+        
+        if (e != RT_OK)
+          rtLogError("Failed to load file: %s", s.cString());
+        
+        mSparkInitApp = rtString((char*)initData.data(), (uint32_t)initData.length());
+      }
+      mCtx->runScript(mSparkInitApp.cString());
+
+      rtString url = mUrl;
+      if (mBootstrap)
+      {
+        url = mBootstrap.get<rtString>("applicationURL");
+      }
+
+      char buffer[MAX_URL_SIZE + 50];
+      memset(buffer, 0, sizeof(buffer));
+      snprintf(buffer, sizeof(buffer), "loadUrl(\"%s\");", url.cString());
+      rtLogDebug("pxScriptView::runScript calling runScript with %s\n",url.cString());
+  #ifdef WIN32 // process \\ to /
+      unsigned int bufferLen = strlen(buffer);
+      char * newBuffer = (char*)malloc(sizeof(char)*(bufferLen + 1));
+      unsigned int newBufferLen = 0;
+      for (size_t i = 0; i < bufferLen - 1; i++) {
+        if (buffer[i] == '\\') {
+          newBuffer[newBufferLen++] = '/';
+          if (buffer[i + 1] == '\\') {
+            i = i + 1;
+          }
+        }
+        else {
+          newBuffer[newBufferLen++] = buffer[i];
+        }
+      }
+      newBuffer[newBufferLen++] = '\0';
+      strcpy(buffer, newBuffer);
+      free(newBuffer);
+  #endif
+      mCtx->runScript(buffer);
+      rtLogDebug("pxScriptView::runScript() ending\n");
+    }
 //#endif
   }
   #endif //ENABLE_RT_NODE
 }
 
+pxScriptView::~pxScriptView()
+{
+  rtLogDebug("~pxScriptView for mUrl=%s\n",mUrl.cString());
+  // Clear out these references since the script context
+  // can outlive this view
+#ifdef ENABLE_RT_NODE
+  if(mCtx)
+  {
+    mGetScene->clearContext();
+    mMakeReady->clearContext();
+    mGetContextID->clearContext();
+
+    if (mBootstrapResolve)
+      mBootstrapResolve->clearContext();
+    if (mBootstrapReject)
+      mBootstrapReject->clearContext();
+
+    // TODO Given that the context is being cleared we likely don't need to zero these out
+    mCtx->add("getScene", 0);
+    mCtx->add("makeReady", 0);
+    mCtx->add("getContextID", 0);
+  }
+
+  if (mDrawing) {
+    context.setFramebuffer(previousSurface);
+    mSharedContext->makeCurrent(false);
+  }
+  mDrawing = false;
+  
+  if (NULL != mBeginDrawing.getPtr())
+    mBeginDrawing->clearContext();
+  if (NULL != mEndDrawing.getPtr())
+    mEndDrawing->clearContext();
+
+#endif //ENABLE_RT_NODE
+
+  if (mView)
+    mView->setViewContainer(NULL);
+
+  // TODO JRJR Do we have GC tests yet
+  // Hack to try and reduce leaks until garbage collection can
+  // be cleaned up
+
+  shadow->emit()->clearListeners();
+
+  // JRJR TODO Not Releasing GL Context 
+
+  if(mScene)
+    mEmit.send("onSceneRemoved", mScene);
+
+  if (mScene)
+    mScene.send("dispose");
+
+  mView = NULL;
+  mScene = NULL;
+}
+
+void pxScriptView::onSize(int32_t w, int32_t h)
+{
+  mWidth = w;
+  mHeight = h;
+
+  {
+    rtObjectRef e = new rtMapObject;
+    e.set("name", "onResize");
+    e.set("w", w);
+    e.set("h", h);
+    shadow->emit().send("onResize", e);
+  }
+
+  #if 0  // JRJR TODO Leave out until we get the resizing events ironed out for gl content
+  if (mUrl == "triangle")
+  {
+    cached = context.createFramebuffer(mWidth,mHeight);
+  }
+  #endif
+
+  if (mView)
+    mView->onSize(w,h);
+}
+
+bool pxScriptView::onMouseDown(int32_t x, int32_t y, uint32_t flags)
+{
+  {
+    // Send to root scene in global window coordinates
+    rtObjectRef e = new rtMapObject;
+    e.set("name", "onMouseDown");
+    e.set("x", x);
+    e.set("y", y);
+    e.set("flags", (uint32_t)flags);
+    shadow->emit().send("onMouseDown", e);
+  }
+
+  if (mView)
+    return mView->onMouseDown(x,y,flags);
+
+  return false;
+}
+
+bool pxScriptView::onMouseUp(int32_t x, int32_t y, uint32_t flags)
+{
+  {
+    // Send to root scene in global window coordinates
+    rtObjectRef e = new rtMapObject;
+    e.set("name", "onMouseUp");
+    e.set("x", x);
+    e.set("y", y);
+    e.set("flags", static_cast<uint32_t>(flags));
+    shadow->emit().send("onMouseUp", e);
+  }
+  if (mView)
+    return mView->onMouseUp(x,y,flags);
+  return false;
+}
+
+bool pxScriptView::onMouseMove(int32_t x, int32_t y)
+{
+  {
+    // Send to root scene in global window coordinates
+    rtObjectRef e = new rtMapObject;
+    e.set("name", "onMouseMove");
+    e.set("x", x);
+    e.set("y", y);
+    shadow->emit().send("onMouseMove", e);
+  }
+
+  if (mView)
+    return mView->onMouseMove(x,y);
+  return false;
+}
+
+bool pxScriptView::onScrollWheel(float dx, float dy)
+{
+  {
+    rtObjectRef e = new rtMapObject;
+    e.set("name", "onScrollWheel");
+    e.set("dx", dx);
+    e.set("dy", dy);
+    shadow->emit().send("onScrollWheel");
+  }
+
+  if (mView)
+    return mView->onScrollWheel(dx,dy);
+  return false;
+}
+
+bool pxScriptView::onMouseEnter()
+{
+  if (mView)
+    return mView->onMouseEnter();
+  return false;
+}
+
+bool pxScriptView::onMouseLeave()
+{
+  if (mView)
+    return mView->onMouseLeave();
+  return false;
+}
+
+bool pxScriptView::onDragMove(int32_t x, int32_t y, int32_t type)
+{
+  if (mView)
+    return mView->onDragMove(x, y, type);
+  return false;
+}
+
+bool pxScriptView::onDragEnter(int32_t x, int32_t y, int32_t type)
+{
+  if (mView)
+    return mView->onDragEnter(x, y, type);
+  return false;
+}
+
+bool pxScriptView::onDragLeave(int32_t x, int32_t y, int32_t type)
+{
+  if (mView)
+    return mView->onDragLeave(x, y, type);
+  return false;
+}
+
+bool pxScriptView::onDragDrop(int32_t x, int32_t y, int32_t type, const char *dropped)
+{
+  if (mView)
+    return mView->onDragDrop(x, y, type, dropped);
+  return false;
+}
+
+bool pxScriptView::onFocus()
+{
+  // top level scene event
+  rtObjectRef e = new rtMapObject;
+  e.set("name", "onFocus");
+  shadow->emit().send("onFocus", e);
+
+  if (mView)
+    return mView->onFocus();
+  return false;
+}
+
+bool pxScriptView::onBlur()
+{
+  // top level scene event
+  rtObjectRef e = new rtMapObject;
+  e.set("name", "onBlur");
+  shadow->emit().send("onBlur", e);
+
+  if (mView)
+    return mView->onBlur();
+  return false;
+}
+
+bool pxScriptView::onKeyDown(uint32_t keycode, uint32_t flags)
+{  
+  {
+    rtObjectRef e = new rtMapObject;
+    e.set("keyCode", keycode);
+    e.set("flags", (uint32_t)flags);
+    shadow->emit().send("onKeyDown", e);
+  }
+
+  if (mView)
+    return mView->onKeyDown(keycode, flags);
+  return false;
+}
+
+bool pxScriptView::onKeyUp(uint32_t keycode, uint32_t flags)
+{
+  {
+    rtObjectRef e = new rtMapObject;
+    e.set("keyCode", keycode);
+    e.set("flags", (uint32_t)flags);
+    shadow->emit().send("onKeyUp", e);
+  }
+
+  if (mView)
+    return mView->onKeyUp(keycode,flags);
+  return false;
+}
+
+bool pxScriptView::onChar(uint32_t codepoint)
+{
+  {
+    rtObjectRef e = new rtMapObject;
+    e.set("charCode", codepoint);
+    shadow->emit().send("onChar", e);
+  }
+  if (mView)
+    return mView->onChar(codepoint);
+  return false;
+}
+
+void pxScriptView::onDraw(/*pxBuffer& b, pxRect* r*/)
+{
+  static pxTextureRef nullMaskRef;
+  if (isGLUrl())
+  {
+    /* code */
+    if (cached.getPtr() && cached->getTexture().getPtr())
+    {
+      context.drawImage(0, 0, cached->width(), cached->height(), cached->getTexture(), nullMaskRef);
+    }
+  }
+  else
+  {
+    if (mView)
+      mView->onDraw();
+  }
+  
+}
 
 rtError pxScriptView::suspend(const rtValue& v, bool& b)
 {
@@ -3196,9 +3771,8 @@ rtError pxScriptView::getScene(int numArgs, const rtValue* args, rtValue* result
       // JR Todo can specify what scene version/type to create in args
       if (!v->mScene)
       {
-        static bool top = true;
-        pxScene2dRef scene = new pxScene2d(top, v);
-        top = false;
+        pxScene2dRef scene = new pxScene2d(topSparkView, v);
+        topSparkView = false;
         v->mView = scene;
         v->mScene = scene;
 
@@ -3254,6 +3828,54 @@ rtError pxScriptView::getContextID(int /*numArgs*/, const rtValue* /*args*/, rtV
 }
 #endif
 
+void pxScriptView::beginDrawing()
+{
+  if (!mDrawing)
+  {
+    mDrawing = true;
+    mSharedContext->makeCurrent(true);
+    previousSurface = context.getCurrentFramebuffer();
+    context.setFramebuffer(cached);
+    return;
+  }
+  rtLogWarn("pxScriptView::beginDrawing() already entered");
+}
+
+void pxScriptView::endDrawing()
+{
+  if (mDrawing)
+  {
+    glViewport(0,0,1,1);
+    glFlush();
+    context.setFramebuffer(previousSurface);
+    mSharedContext->makeCurrent(false);
+    mViewContainer->invalidateRect(NULL);
+    mDrawing = false;
+    return;
+  }
+  rtLogWarn("pxScriptView::endDrawing() not currently drawing");
+}
+
+rtError pxScriptView::beginDrawing2(int /*numArgs*/, const rtValue* /*args*/, rtValue* /*result*/, void* ctx)
+{
+  if (ctx)
+  {
+    pxScriptView* v = (pxScriptView*)ctx;
+    v->beginDrawing();   
+  }
+  return RT_OK;
+}
+
+rtError pxScriptView::endDrawing2(int /*numArgs*/, const rtValue* /*args*/, rtValue* /*result*/, void* ctx)
+{
+  if (ctx)
+  {
+    pxScriptView* v = (pxScriptView*)ctx;
+    v->endDrawing();
+  }
+  return RT_OK;
+}
+
 // JRJR could be made much simpler... 
 rtError pxScriptView::getSetting(int numArgs, const rtValue* args, rtValue* result, void* /*ctx*/)
 {
@@ -3304,4 +3926,77 @@ rtError pxScriptView::makeReady(int numArgs, const rtValue* args, rtValue* /*res
     }
   }
   return RT_FAIL;
+}
+
+rtError pxScriptView::bootstrapResolve(int numArgs, const rtValue* args, rtValue* result, void* ctx)
+{
+  rtLogDebug("%s", __FUNCTION__);
+
+  UNUSED_PARAM(result);
+
+  if (ctx)
+  {
+    pxScriptView* v = (pxScriptView*)ctx;
+    if (numArgs < 1)
+      return RT_FAIL;
+
+    pxArchive* a = (pxArchive*)args[0].toObject().getPtr();
+
+    rtString s;
+    if (a->getFileAsString(NULL, s) != RT_OK
+      || json2rtObject(s.cString(), v->mBootstrap) != RT_OK)
+    {
+      rtLogError("%s: can't get bootstrap", __FUNCTION__);
+      return RT_FAIL;
+    }
+
+    v->runScript();
+  }
+  return RT_OK;
+}
+
+rtError pxScriptView::bootstrapReject(int numArgs, const rtValue* args, rtValue* result, void* ctx)
+{
+  rtLogError("%s", __FUNCTION__);
+
+  UNUSED_PARAM(numArgs);
+  UNUSED_PARAM(args);
+  UNUSED_PARAM(result);
+  UNUSED_PARAM(ctx);
+
+  return RT_OK;
+}
+
+bool pxScriptView::isGLUrl() const
+{
+  return mUrl.beginsWith("gl:")
+    || (mBootstrap && mBootstrap.get<rtString>("frameworkType").compare("sparkGL") == 0);
+}
+
+rtError pxScriptView::sparkHttp(int numArgs, const rtValue* args, rtValue* result, void* /*ctx*/)
+{
+  if (numArgs < 1)
+  {
+    rtLogError("%s: invalid args", __FUNCTION__);
+    return RT_ERROR_INVALID_ARG;
+  }
+
+  rtHttpRequest* req;
+  if (args[0].getType() == RT_stringType)
+    req = new rtHttpRequest(args[0].toString());
+  else if (args[0].getType() == RT_objectType)
+    req = new rtHttpRequest(args[0].toObject());
+  else
+  {
+    rtLogError("%s: invalid arg type", __FUNCTION__);
+    return RT_ERROR_INVALID_ARG;
+  }
+
+  if (numArgs > 1 && args[1].getType() == RT_functionType)
+    req->addListener("response", args[1].toFunction());
+
+  rtObjectRef ref = req;
+  *result = ref;
+
+  return RT_OK;
 }

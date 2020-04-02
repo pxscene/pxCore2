@@ -42,78 +42,21 @@ public:
   rtProperty(pixelSize, pixelSize, setPixelSize, uint32_t);
   rtProperty(fontUrl, fontUrl, setFontUrl, rtString);  
   rtProperty(font, font, setFont, rtObjectRef);
+  rtMethodNoArgAndReturn("texture", texture, uint32_t);
 
   pxText(pxScene2d* scene);
   virtual ~pxText();
+
   rtError text(rtString& s) const;
   virtual rtError setText(const char* text);
   rtError removeResourceListener();
 
-  rtError textColorInternal(uint32_t& c) const
-  {
-#ifdef PX_LITTLEENDIAN_PIXELS
+  rtError setColor(float *var, rtValue c);
+  rtError colorFloat4_to_UInt32( const float *clr, uint32_t& c) const;
+  rtError colorUInt32_to_Float4(float *clr, uint32_t c) const;
 
-    c = ((uint8_t) (mTextColor[0] * 255.0f) << 24) |  // R
-        ((uint8_t) (mTextColor[1] * 255.0f) << 16) |  // G
-        ((uint8_t) (mTextColor[2] * 255.0f) <<  8) |  // B
-        ((uint8_t) (mTextColor[3] * 255.0f) <<  0);   // A
-#else
-
-    c = ((uint8_t) (mTextColor[3] * 255.0f) << 24) |  // A
-        ((uint8_t) (mTextColor[2] * 255.0f) << 16) |  // B
-        ((uint8_t) (mTextColor[1] * 255.0f) <<  8) |  // G
-        ((uint8_t) (mTextColor[0] * 255.0f) <<  0);   // R
-#endif
-
-    
-    return RT_OK;
-  }
-
-  rtError setTextColorInternal(uint32_t c)
-  {
-    mTextColor[PX_RED  ] = (float)((c>>24) & 0xff) / 255.0f;
-    mTextColor[PX_GREEN] = (float)((c>>16) & 0xff) / 255.0f;
-    mTextColor[PX_BLUE ] = (float)((c>> 8) & 0xff) / 255.0f;
-    mTextColor[PX_ALPHA] = (float)((c>> 0) & 0xff) / 255.0f;
-    return RT_OK;
-  }
-  
-  rtError textColor(rtValue &c) const
-  {
-    uint32_t cc = 0;
-    rtError err = textColorInternal(cc);
-    
-    c = cc;
-    
-    return err;
-  }
-  
-  rtError setTextColor(rtValue c)
-  {
-    // Set via STRING...
-    if( c.getType() == 's')
-    {
-      rtString str = c.toString();
-      
-      uint8_t r,g,b, a;
-      if( web2rgb( str, r, g, b, a) == RT_OK)
-      {
-        mTextColor[PX_RED  ] = (float) r / 255.0f;  // R
-        mTextColor[PX_GREEN] = (float) g / 255.0f;  // G
-        mTextColor[PX_BLUE ] = (float) b / 255.0f;  // B
-        mTextColor[PX_ALPHA] = (float) a / 255.0f;  // A
-        
-        return RT_OK;
-      }
-      
-      return RT_FAIL;
-    }
-    
-    // Set via UINT32...
-    uint32_t clr = c.toUInt32();
-    
-    return setTextColorInternal(clr);
-  }
+  rtError textColor(rtValue &c) const;
+  rtError setTextColor(rtValue c);
 
   rtError fontUrl(rtString& v) const { getFontResource()->url(v); return RT_OK; }
   virtual rtError setFontUrl(const char* s);
@@ -123,6 +66,8 @@ public:
   
   rtError font(rtObjectRef& o) const { o = mFont; return RT_OK; }
   virtual rtError setFont(rtObjectRef o);
+
+  virtual rtError texture(uint32_t & v);
   
   virtual void onInit();
   
@@ -190,6 +135,7 @@ public:
   #ifdef PXSCENE_FONT_ATLAS
   pxTexturedQuads mQuads;
   #endif
+  pxContextFramebufferRef mTextFbo;
 };
 
 #endif // PX_TEXT_H

@@ -24,6 +24,7 @@
 #include <inttypes.h>
 
 uint32_t keycodeFromNative(uint32_t nativeKeycode);
+void mapNativeKeyCodes();
 
 // WARNING this utility function should be avoided.
 // This function provides a very very simple way to map from keycodes

@@ -16,6 +16,8 @@ include(../../cmake/CommDeps.cmake)
 include(../../cmake/NodeDeps.cmake)
 include(../../cmake/DukeDeps.cmake)
 
+add_definitions(-DANIMATION_ROTATE_XYZ )
+
 set(WESTEROSINC ${EXTDIR}/westeros/external/install/include)
 set(WESTEROSSTUBINC ${EXTDIR}/westeros-stub)
 set(GOOGLETESTINC ${EXTDIR}/gtest/googletest/include ${EXTDIR}/gtest/googletest ${EXTDIR}/gtest/googlemock/include ${EXTDIR}/gtest/googlemock)
@@ -72,8 +74,12 @@ set(PXSCENETEST_LINK_LIBRARIES ${PXSCENETEST_LINK_LIBRARIES}
                ${DUKE_LIBRARIES}
           ${COMM_DEPS_LIBRARIES}
         ${WAYLAND_EGL_LIBRARIES}
-                             uWS
 )
+if (SUPPORT_V8)
+  set(PXSCENETEST_LINK_LIBRARIES ${PXSCENETEST_LINK_LIBRARIES}
+                               uWS
+  )
+endif (SUPPORT_V8)
 
 message(STATUS "NODE_LIBRARY_DIRS: ${NODE_LIBRARY_DIRS}")
 message(STATUS "DUKE_LIBRARY_DIRS: ${DUKE_LIBRARY_DIRS}")
@@ -175,7 +181,7 @@ set(TEST_SOURCE_FILES pxscene2dtestsmain.cpp  test_rtThreadPool.cpp test_example
     test_rtUrlUtils.cpp test_pxArchive.cpp test_pxPixel_h.cpp test_pxFont.cpp test_utf8.cpp
     test_rtSettings.cpp test_cors.cpp  test_external.cpp test_pxScene2d.cpp test_oscillate.cpp test_rtPathUtils.cpp
     test_rtError.cpp test_import_resources.cpp test_rtHttpRequest.cpp test_rtHttpResponse.cpp test_imagecacheSVG.cpp test_rtObjectWrapper.cpp
-    test_baseFilePath.cpp test_js2rt.cpp ${TEST_WAYLAND_SOURCE_FILES})
+    test_baseFilePath.cpp test_js2rt.cpp test_pxShaderCode.cpp ${TEST_WAYLAND_SOURCE_FILES})
 
 if (DEFINED ENV{USE_HTTP_CACHE})
     message("Include http cache tests")
@@ -197,7 +203,7 @@ endif()
 
 set(TEST_SOURCE_FILES ${TEST_SOURCE_FILES} ${EXTDIR}/gtest/googletest/src/gtest-all.cc ${EXTDIR}/gtest/googlemock/src/gmock-all.cc)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -fpermissive -Wall -Wno-attributes -Wall -Wextra -Wno-format-security -Werror -std=c++11 -O3")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -fpermissive -Wall -Wno-attributes -Wall -Wextra -Wno-format-security -Werror -Wno-deprecated-declarations -std=c++11 -O3")
 
 if (BUILD_UNIT_TEST GREATER 0)
     link_directories(${PXSCENETEST_LINK_DIRECTORIES})

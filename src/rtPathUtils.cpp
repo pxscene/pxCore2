@@ -78,6 +78,11 @@ bool rtFileExists(const char* f)
   return (stat (f, &buffer) == 0);
 }
 
+bool rtFileRemove(const char* f)
+{
+  return (remove (f) == 0);
+}
+
 rtError rtGetEnv(const char* e, rtString& v)
 {
   v = getenv(e);
@@ -124,53 +129,34 @@ bool rtIsPathAbsolute(const rtString &path)
 bool rtMakeDirectory(const rtString &dir)
 {
   int32_t retVal = 0;
-  std::string path = dir.cString();
+  int32_t i = 0;
 
-#ifdef RT_PLATFORM_WINDOWS
-  const std::string sep = "\\";
-#else
-  const std::string sep = "/";  
-#endif
-  size_t index = 0;
-  while (path.size() && index != std::string::npos)
+  do
   {
-    index = path.find(sep, ++index);
-    if( index != std::string::npos)
+    int32_t pos = dir.find(i + 1, '/');
+#ifdef RT_PLATFORM_WINDOWS
+    i = dir.find(i + 1, '\\');
+    if (i != -1 && (pos == -1 || i < pos))
+      pos = i;
+#endif
+    i = pos;
+    rtString sub = i == -1 ? dir : dir.substring(0, i + 1);
+    if (!rtFileExists(sub.cString()))
     {
-      if( !rtFileExists(path.substr(0, index).c_str()))
+      retVal = mkdir(sub.cString()
+#ifndef RT_PLATFORM_WINDOWS
+          , 0777
+#endif
+          );
+      if (retVal != 0)
       {
-        #ifdef RT_PLATFORM_WINDOWS
-          retVal  = mkdir((path.substr(0, index)).c_str());
-        #else
-          retVal = mkdir((path.substr(0, index)).c_str(), 0777);
-        #endif
+        rtLogError("creation of directory %s failed: %d", sub.cString(), retVal);
+        break;
       }
     }
-    else
-    {
-      if( !rtFileExists(path.c_str()))
-      {
-        #ifdef RT_PLATFORM_WINDOWS
-          retVal  = mkdir(path.c_str());
-        #else
-          retVal = mkdir(path.c_str(), 0777);
-        #endif
-      }
-      
-    }
+  } while (i != -1);
 
-    if( retVal != 0) {
-      rtLogError("creation of storage directory %s failed: %d", dir.cString(), retVal);
-      break;
-    }
-
-  }
-  if( retVal == 0) { 
-    return true;
-  } 
-  else {
-    return false;
-  }
+  return retVal == 0;
 }
 
 const char *rtModuleDirSeparator()
@@ -208,6 +194,34 @@ std::string rtGetRootModulePath(const char *file)
   rtModuleDirs *dirs = rtModuleDirs::instance();
   const std::string rootDir = *dirs->iterator().first;
   return rtConcatenatePath(rootDir, file != NULL ? file : "");
+}
+
+rtString rtResolveRelativePath(const rtString& relative, const rtString& base)
+{
+  // get rid of the query part
+  rtString baseUrl = base;
+  int32_t pos = baseUrl.find(0, '#');
+  if (pos != -1)
+    baseUrl = baseUrl.substring(0, pos);
+  pos = baseUrl.find(0, '?');
+  if (pos != -1)
+    baseUrl = baseUrl.substring(0, pos);
+
+  int32_t lastPos = -1;
+  pos = baseUrl.find(0, '/');
+  while (pos != -1)
+  {
+    lastPos = pos;
+    pos = baseUrl.find(lastPos + 1, '/');
+  }
+
+  rtString path;
+  if (lastPos != -1)
+    path = baseUrl.substring(0, lastPos + 1);
+  // otherwise don't use base
+
+  // path ends with slash or is empty
+  return path + relative;
 }
 
 rtModuleDirs::rtModuleDirs(const char *env_name) {

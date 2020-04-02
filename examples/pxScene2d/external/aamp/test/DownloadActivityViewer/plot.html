@@ -1,0 +1,23 @@
+<html>
+   <head>
+      <title>Download Activity Visualization Tool</title>
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+      <link rel="stylesheet" href="plotStyle.css">
+      <script src="plotScript.js"></script>
+   </head>
+   <body>
+      <div class="download-activity-tool-bar">
+         <a id="downloadTool"><b>Download Activity Visualization Tool</b></a>
+         <label id="fileUpload" for="files">Upload</label>
+         <input type="file" name="files" id="files" />
+         <nobr class="check-box-name">Session:</nobr> 
+         <select name="session" id="session" class="session-drop-down">
+         </select>
+         <nobr class="check-box-name">Bandwidth: </nobr> 
+         <input type="checkbox" class="check-box" id="showbandwidth"/>
+         <nobr class="check-box-name">Normalization: </nobr> 
+         <input type="checkbox" class="check-box" checked id="applyNorm"/>
+      </div>
+      <canvas id="myCanvas" style="overflow: scroll;"></canvas>
+   </body>
+</html>

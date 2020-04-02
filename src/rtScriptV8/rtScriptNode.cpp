@@ -44,11 +44,10 @@
 
 #include "node.h"
 #include "node_javascript.h"
-#include "node_contextify_mods.h"
-
-#if NODE_VERSION_AT_LEAST(8,9,0)
-#include "tracing/agent.h"
+#if NODE_VERSION_AT_LEAST(9,6,0)
+#include "node_contextify.h"
 #endif
+#include "node_contextify_mods.h"
 
 #include "env.h"
 #include "env-inl.h"
@@ -106,6 +105,10 @@ using namespace rtScriptV8NodeUtils;
 bool gIsPumpingJavaScript = false;
 #endif
 
+#if NODE_VERSION_AT_LEAST(8,12,0)
+#define USE_NODE_PLATFORM
+#endif
+
 namespace node
 {
 class Environment;
@@ -156,11 +159,19 @@ public:
 
 private:
   v8::Isolate                   *mIsolate;
+  #if NODE_VERSION_AT_LEAST(9,8,0)
+  node::Persistent<v8::Context>    mContext;
+  #else
   v8::Persistent<v8::Context>    mContext;
+  #endif
   uint32_t                       mContextId;
 
   node::Environment*             mEnv;
+  #if NODE_VERSION_AT_LEAST(9,8,0)
+  node::Persistent<v8::Object>     mRtWrappers;
+  #else
   v8::Persistent<v8::Object>     mRtWrappers;
+  #endif
 
   void createEnvironment();
 
@@ -230,7 +241,11 @@ private:
 
   v8::Isolate                   *mIsolate;
   v8::Platform                  *mPlatform;
+  #if NODE_VERSION_AT_LEAST(9,8,0)
+  node::Persistent<v8::Context>    mContext;
+  #else
   v8::Persistent<v8::Context>    mContext;
+  #endif
 
 
 #ifdef USE_CONTEXTIFY_CLONES
@@ -287,7 +302,7 @@ namespace node
 extern DebugOptions debug_options;
 #else
 extern bool use_debug_agent;
-#ifdef HAVE_INSPECTOR
+#if HAVE_INSPECTOR
 extern bool use_inspector;
 #endif
 extern bool debug_wait_connect;
@@ -388,7 +403,12 @@ void rtNodeContext::createEnvironment()
   // Create Environment.
 
 #if NODE_VERSION_AT_LEAST(8,9,4)
+#ifdef USE_NODE_PLATFORM
+  node::MultiIsolatePlatform* platform = static_cast<node::MultiIsolatePlatform*>(mPlatform);
+  IsolateData *isolateData = new IsolateData(mIsolate,uv_default_loop(),platform,array_buffer_allocator->zero_fill_field());
+#else
   IsolateData *isolateData = new IsolateData(mIsolate,uv_default_loop(),array_buffer_allocator->zero_fill_field());
+#endif //USE_NODE_PLATFORM
 
   mEnv = CreateEnvironment(isolateData,
 #else
@@ -417,7 +437,7 @@ void rtNodeContext::createEnvironment()
   if (use_debug_agent)
   {
     rtLogWarn("use_debug_agent\n");
-#ifdef HAVE_INSPECTOR
+#if HAVE_INSPECTOR
     if (use_inspector)
     {
       char currentPath[100];
@@ -434,8 +454,11 @@ void rtNodeContext::createEnvironment()
   }
 #else
 #if HAVE_INSPECTOR
-//     if( !mEnv->inspector_agent()->IsStarted() )
-//         mEnv->inspector_agent()->Start(mPlatform, nullptr, debug_options);
+#ifdef USE_NODE_PLATFORM
+    rtString currentPath;
+    rtGetCurrentDirectory(currentPath);
+    node::InspectorStart(mEnv, currentPath.cString(), platform);
+#endif //USE_NODE_PLATFORM
 #endif
 #endif
 #endif
@@ -461,9 +484,15 @@ void rtNodeContext::createEnvironment()
 #else
       bool more;
 #ifdef ENABLE_NODE_V_6_9
+#ifndef USE_NODE_PLATFORM
       v8::platform::PumpMessageLoop(mPlatform, mIsolate);
+#endif //USE_NODE_PLATFORM
 #endif //ENABLE_NODE_V_6_9
       more = uv_run(mEnv->event_loop(), UV_RUN_ONCE);
+#ifdef USE_NODE_PLATFORM
+      node::MultiIsolatePlatform* platform = static_cast<node::MultiIsolatePlatform*>(mPlatform);
+      platform->DrainBackgroundTasks(mIsolate);
+#endif //USE_NODE_PLATFORM
       if (more == false)
       {
         EmitBeforeExit(mEnv);
@@ -573,7 +602,20 @@ void rtNodeContext::clonedEnvironment(rtNodeContextRef clone_me)
   //
   // Clone a new context.
   {
+  #if NODE_VERSION_AT_LEAST(10,0,0)
+    contextify::ContextOptions options;
+    std::stringstream   ctxname;
+    ctxname << "SparkContext:" << mId;
+    rtString currentPath;
+    rtGetCurrentDirectory(currentPath);
+    options.name = String::NewFromUtf8(mIsolate, ctxname.str().c_str() );
+    options.origin =   String::NewFromUtf8(mIsolate, currentPath.cString() );
+    options.allow_code_gen_strings = Boolean::New(mIsolate, true);
+    options.allow_code_gen_wasm = Boolean::New(mIsolate, true);
+    Local<Context>  clone_local = node::contextify::makeContext(mIsolate, sandbox, options); // contextify context with 'sandbox'
+#else
     Local<Context>  clone_local = node::makeContext(mIsolate, sandbox); // contextify context with 'sandbox'
+#endif
 
     clone_local->SetEmbedderData(HandleMap::kContextIdIndex, Integer::New(mIsolate, mId));
 #ifdef ENABLE_NODE_V_6_9
@@ -650,12 +692,24 @@ rtNodeContext::~rtNodeContext()
     // clear out persistent javascript handles
       HandleMap::clearAllForContext(mId);
 #if defined(ENABLE_NODE_V_6_9) && defined(USE_CONTEXTIFY_CLONES)
+      // JRJR  This was causing HTTPS to crash in gl content reloads
+      // what does this do exactly... am I leaking now  why is this only a 6.9 thing?
+      #ifndef USE_NODE_10
       node::deleteContextifyContext(mContextifyContext);
+      #endif
 #endif
       mContextifyContext = NULL;
     }
     if(exec_argv)
     {
+      #ifdef USE_NODE_10
+        for (int i=0; i<exec_argc; i++) {
+          if (NULL != exec_argv[i]) {
+            free((void*)exec_argv[i]);
+            exec_argv[i] = NULL;
+          }
+        }
+      #endif
       delete[] exec_argv;
       exec_argv = NULL;
       exec_argc = 0;
@@ -861,15 +915,28 @@ rtError rtNodeContext::runScript(const char* script, rtValue* retVal /*= NULL*/,
     Local<String> source = String::NewFromUtf8(mIsolate, script);
 
     // Compile the source code.
-    Local<Script> run_script = Script::Compile(source);
+    MaybeLocal<Script> run_script = Script::Compile(local_context, source);
+    if (run_script.IsEmpty()) {
+      #if NODE_VERSION_AT_LEAST(8,10,0)
+      String::Utf8Value trace(mIsolate, tryCatch.StackTrace(local_context).ToLocalChecked());
+      #else
+      String::Utf8Value trace(tryCatch.StackTrace(local_context).ToLocalChecked());
+      #endif
+      rtLogWarn("%s", *trace);
+      return RT_FAIL;
+    }
 
     // Run the script to get the result.
-    Local<Value> result = run_script->Run();
+    MaybeLocal<Value> result = (run_script.ToLocalChecked())->Run(local_context);
 // !CLF TODO: TEST FOR MT
 #ifdef RUNINMAIN
    if (tryCatch.HasCaught())
     {
-      String::Utf8Value trace(tryCatch.StackTrace());
+      #if NODE_VERSION_AT_LEAST(8,10,0)
+      String::Utf8Value trace(mIsolate, tryCatch.StackTrace(local_context).ToLocalChecked());
+      #else
+      String::Utf8Value trace(tryCatch.StackTrace(local_context).ToLocalChecked());
+      #endif
       rtLogWarn("%s", *trace);
 
       return RT_FAIL;
@@ -880,7 +947,7 @@ rtError rtNodeContext::runScript(const char* script, rtValue* retVal /*= NULL*/,
     {
       // Return val
       rtWrapperError error;
-      *retVal = js2rt(local_context, result, &error);
+      *retVal = js2rt(local_context, result.ToLocalChecked(), &error);
 
       if(error.hasError())
       {
@@ -899,13 +966,21 @@ rtError rtNodeContext::runScript(const char* script, rtValue* retVal /*= NULL*/,
 
 static std::string readFile(const char *file)
 {
-  std::ifstream       src_file(file);
-  std::stringstream   src_script;
+  std::string s("");
+  try {
+    std::ifstream       src_file(file);
+    std::stringstream   src_script;
 
-  src_script << src_file.rdbuf(); // slurp up file
+    src_script << src_file.rdbuf(); // slurp up file
 
-  std::string s = src_script.str();
-
+    s = src_script.str();
+  }
+  catch (std::ifstream::failure e) {
+    rtLogError("Exception opening/reading/closing file [%s]\n", e.what());
+  }
+  catch(...) {
+    rtLogError("Exception opening/reading/closing file \n");
+  }
   return s;
 }
 
@@ -913,7 +988,7 @@ rtError rtNodeContext::runFile(const char *file, rtValue* retVal /*= NULL*/, con
 {
   if(file == NULL)
   {
-    rtLogError(" %s  ... no script given.",__PRETTY_FUNCTION__);
+    rtLogError(" %s  ... file == NULL ... no script given.",__PRETTY_FUNCTION__);
 
     return RT_FAIL;
   }
@@ -924,7 +999,7 @@ rtError rtNodeContext::runFile(const char *file, rtValue* retVal /*= NULL*/, con
   
   if( js_script.empty() ) // load error
   {
-    rtLogError(" %s  ... load error / not found.",__PRETTY_FUNCTION__);
+    rtLogError(" %s  ... [%s] load error / not found.",__PRETTY_FUNCTION__, file);
 
     return RT_FAIL;
   }
@@ -996,22 +1071,22 @@ rtError rtScriptNode::init()
                               //0123456 789ABCDEF012 345 67890ABCDEF
 #if ENABLE_V8_HEAP_PARAMS
 #ifdef ENABLE_NODE_V_6_9
-  static const char *args2   = "rtNode\0-e\0console.log(\"rtNode Initalized\");\0\0";
-  static const char *argv2[] = {&args2[0], &args2[7], &args2[10], NULL};
+  static const char *args2   = "rtNode\0--experimental-vm-modules\0-e\0console.log(\"rtNode Initalized\");\0\0";
+  static const char *argv2[] = {&args2[0], &args2[7], &args2[33], &args2[36], NULL};
 #else
   rtLogWarn("v8 old heap space configured to 64mb\n");
-  static const char *args2   = "rtNode\0--expose-gc\0--max_old_space_size=64\0-e\0console.log(\"rtNode Initalized\");\0\0";
-  static const char *argv2[] = {&args2[0], &args2[7], &args2[19], &args2[43], &args2[46], NULL};
+  static const char *args2   = "rtNode\0--experimental-vm-modules\0--expose-gc\0--max_old_space_size=64\0-e\0console.log(\"rtNode Initalized\");\0\0";
+  static const char *argv2[] = {&args2[0], &args2[7], &args2[33], &args2[45], &args2[69], &args2[72], NULL};
 #endif // ENABLE_NODE_V_6_9
 #else
 #ifdef ENABLE_NODE_V_6_9
 #ifndef ENABLE_DEBUG_MODE
-   static const char *args2   = "rtNode\0-e\0console.log(\"rtNode Initalized\");\0\0";
-   static const char *argv2[] = {&args2[0], &args2[7], &args2[10], NULL};
+   static const char *args2   = "rtNode\0--experimental-vm-modules\0-e\0console.log(\"rtNode Initalized\");\0\0";
+   static const char *argv2[] = {&args2[0], &args2[7], &args2[33], &args2[36], NULL};
 #endif //!ENABLE_DEBUG_MODE
 #else
-  static const char *args2   = "rtNode\0--expose-gc\0-e\0console.log(\"rtNode Initalized\");\0\0";
-  static const char *argv2[] = {&args2[0], &args2[7], &args2[19], &args2[22], NULL};
+  static const char *args2   = "rtNode\0--experimental-vm-modules\0--expose-gc\0-e\0console.log(\"rtNode Initalized\");\0\0";
+  static const char *argv2[] = {&args2[0], &args2[7], &args2[33], &args2[45], &args2[48], NULL};
 #endif // ENABLE_NODE_V_6_9
 #endif //ENABLE_V8_HEAP_PARAMS
 #ifndef ENABLE_DEBUG_MODE
@@ -1079,10 +1154,16 @@ rtError rtScriptNode::pump()
     Isolate::Scope isolate_scope(mIsolate);
     HandleScope     handle_scope(mIsolate);    // Create a stack-allocated handle scope.
 #ifdef ENABLE_NODE_V_6_9
+#ifndef USE_NODE_PLATFORM
     v8::platform::PumpMessageLoop(mPlatform, mIsolate);
+#endif //USE_NODE_PLATFORM
 #endif //ENABLE_NODE_V_6_9
     mIsolate->RunMicrotasks();
     uv_run(uv_default_loop(), UV_RUN_NOWAIT);//UV_RUN_ONCE);
+#ifdef USE_NODE_PLATFORM
+    node::MultiIsolatePlatform* platform = static_cast<node::MultiIsolatePlatform*>(mPlatform);
+    platform->DrainBackgroundTasks(mIsolate);
+#endif //USE_NODE_PLATFORM
     // Enable this to expedite garbage collection for testing... warning perf hit
     if (mTestGc)
     {
@@ -1195,24 +1276,24 @@ void rtScriptNode::init2(int argc, char** argv)
     Init(&argc, const_cast<const char**>(argv), &exec_argc, &exec_argv);
 #endif
 
-//    mPlatform = platform::CreateDefaultPlatform();
-//    V8::InitializePlatform(mPlatform);
-
 #ifdef ENABLE_NODE_V_6_9
    rtLogWarn("using node version %s\n", NODE_VERSION);
-   V8::InitializeICU();
+   v8::V8::InitializeICU();
 #ifdef ENABLE_DEBUG_MODE
    V8::InitializeExternalStartupData(g_argv[0]);
 #else
    V8::InitializeExternalStartupData(argv[0]);
 #endif
+
+#ifdef USE_NODE_PLATFORM
+   Platform* platform = node::CreatePlatform(0, NULL);
+#else
    Platform* platform = platform::CreateDefaultPlatform();
+#endif // USE_NODE_PLATFORM
    mPlatform = platform;
-   V8::InitializePlatform(platform);
-#if NODE_VERSION_AT_LEAST(8,9,0)
-   // behaves as --trace-events-enabled command line option were not used
-   tracing::TraceEventHelper::SetTracingController(new v8::TracingController());
-#endif
+  #ifndef USE_NODE_10
+    v8::V8::InitializePlatform(platform);
+  #endif
    V8::Initialize();
    Isolate::CreateParams params;
    array_buffer_allocator = new ArrayBufferAllocator();
@@ -1265,10 +1346,18 @@ rtError rtScriptNode::term()
 
     node_is_initialized = false;
 
-    V8::ShutdownPlatform();
+    //V8::ShutdownPlatform();
     if(mPlatform)
     {
+#ifdef USE_NODE_PLATFORM
+      #ifndef USE_NODE_10
+      node::NodePlatform* platform_ = static_cast<node::NodePlatform*>(mPlatform);
+      platform_->Shutdown();
+      node::FreePlatform(platform_);
+      #endif
+#else
       delete mPlatform;
+#endif // USE_NODE_PLATFORM
       mPlatform = NULL;
     }
 

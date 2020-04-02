@@ -20,12 +20,16 @@
 		4C2FF259219C9AFA0010DA38 /* rtObjectWrapper.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C2FF254219C9AFA0010DA38 /* rtObjectWrapper.cpp */; };
 		4C2FF25A219C9AFA0010DA38 /* rtScriptV8.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C2FF255219C9AFA0010DA38 /* rtScriptV8.cpp */; };
 		4C2FF25B219C9AFA0010DA38 /* rtWrapperUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C2FF256219C9AFA0010DA38 /* rtWrapperUtils.cpp */; };
+		4C81E12E231EF37C00E6578A /* rtStorage.h in Headers */ = {isa = PBXBuildFile; fileRef = 4C81E12C231EF37C00E6578A /* rtStorage.h */; };
+		4C81E12F231EF37C00E6578A /* rtStorage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C81E12D231EF37C00E6578A /* rtStorage.cpp */; };
 		4C8440B520D82F7E00C24E45 /* rtSettings.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C8440B320D82F7E00C24E45 /* rtSettings.cpp */; };
 		4C8440B620D82F7E00C24E45 /* rtSettings.h in Headers */ = {isa = PBXBuildFile; fileRef = 4C8440B420D82F7E00C24E45 /* rtSettings.h */; };
 		4C8440B920D82FAD00C24E45 /* rtPermissions.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C8440B720D82FAD00C24E45 /* rtPermissions.cpp */; };
 		4C8440BA20D82FAD00C24E45 /* rtPermissions.h in Headers */ = {isa = PBXBuildFile; fileRef = 4C8440B820D82FAD00C24E45 /* rtPermissions.h */; };
 		4C9E8A6B21DEC99900CD3890 /* pxColorNames.h in Headers */ = {isa = PBXBuildFile; fileRef = 4C9E8A6A21DEC99900CD3890 /* pxColorNames.h */; };
 		4C9E8A6F21DFFA4E00CD3890 /* pxColorNames.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C9E8A6E21DFFA4E00CD3890 /* pxColorNames.cpp */; };
+		4CDC37552357CB42003B3FD0 /* rtJsonUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4CDC37532357CB41003B3FD0 /* rtJsonUtils.cpp */; };
+		4CDC37562357CB42003B3FD0 /* rtJsonUtils.h in Headers */ = {isa = PBXBuildFile; fileRef = 4CDC37542357CB42003B3FD0 /* rtJsonUtils.h */; };
 		4CF5464120210AB600529907 /* unzip.c in Sources */ = {isa = PBXBuildFile; fileRef = 46B077771E30FFC700BC6B9C /* unzip.c */; };
 		4CF5464220210AB600529907 /* rtThreadPoolNative.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46B077B01E30FFED00BC6B9C /* rtThreadPoolNative.cpp */; };
 		4CF5464320210AB600529907 /* pxInterpolators.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46D3046A1E673978000C5A5B /* pxInterpolators.cpp */; };
@@ -246,14 +250,19 @@
 		4C7B860E1D10A45200C2489F /* pxClipboard.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pxClipboard.h; path = src/pxClipboard.h; sourceTree = SOURCE_ROOT; };
 		4C7B86111D10A47300C2489F /* pxClipboardNative.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = pxClipboardNative.mm; path = src/mac/pxClipboardNative.mm; sourceTree = SOURCE_ROOT; };
 		4C7B86121D10A47300C2489F /* pxClipboardNative.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pxClipboardNative.h; path = src/mac/pxClipboardNative.h; sourceTree = SOURCE_ROOT; };
+		4C81E12C231EF37C00E6578A /* rtStorage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = rtStorage.h; path = src/rtStorage.h; sourceTree = SOURCE_ROOT; };
+		4C81E12D231EF37C00E6578A /* rtStorage.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = rtStorage.cpp; path = src/rtStorage.cpp; sourceTree = SOURCE_ROOT; };
 		4C8440B320D82F7E00C24E45 /* rtSettings.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = rtSettings.cpp; path = src/rtSettings.cpp; sourceTree = SOURCE_ROOT; };
 		4C8440B420D82F7E00C24E45 /* rtSettings.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = rtSettings.h; path = src/rtSettings.h; sourceTree = SOURCE_ROOT; };
 		4C8440B720D82FAD00C24E45 /* rtPermissions.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = rtPermissions.cpp; path = src/rtPermissions.cpp; sourceTree = SOURCE_ROOT; };
 		4C8440B820D82FAD00C24E45 /* rtPermissions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = rtPermissions.h; path = src/rtPermissions.h; sourceTree = SOURCE_ROOT; };
+		4C988A5B23219E4D006E2D93 /* BuildDefines.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = BuildDefines.xcconfig; path = examples/pxScene2d/pxScene2d_xcode/BuildDefines.xcconfig; sourceTree = "<group>"; };
 		4C9DAFA22019373D00540240 /* rtPromise.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = rtPromise.cpp; path = src/rtPromise.cpp; sourceTree = SOURCE_ROOT; };
 		4C9DAFA32019373D00540240 /* rtScript.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = rtScript.cpp; path = src/rtScript.cpp; sourceTree = SOURCE_ROOT; };
 		4C9E8A6A21DEC99900CD3890 /* pxColorNames.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pxColorNames.h; path = src/pxColorNames.h; sourceTree = SOURCE_ROOT; };
 		4C9E8A6E21DFFA4E00CD3890 /* pxColorNames.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = pxColorNames.cpp; path = src/pxColorNames.cpp; sourceTree = SOURCE_ROOT; };
+		4CDC37532357CB41003B3FD0 /* rtJsonUtils.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = rtJsonUtils.cpp; path = src/rtJsonUtils.cpp; sourceTree = SOURCE_ROOT; };
+		4CDC37542357CB42003B3FD0 /* rtJsonUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = rtJsonUtils.h; path = src/rtJsonUtils.h; sourceTree = SOURCE_ROOT; };
 		4CF546B120210AB600529907 /* libpxCore Static Library.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libpxCore Static Library.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		AE1D42BC1B7CF5E0002E7CAE /* Hover.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Hover.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AE1D42DC1B7CF611002E7CAE /* Hover.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Hover.cpp; path = examples/Hover/Hover.cpp; sourceTree = SOURCE_ROOT; };
@@ -411,6 +420,10 @@
 		4C12026B1E9683C900B0F89C /* rtCode */ = {
 			isa = PBXGroup;
 			children = (
+				4CDC37532357CB41003B3FD0 /* rtJsonUtils.cpp */,
+				4CDC37542357CB42003B3FD0 /* rtJsonUtils.h */,
+				4C81E12D231EF37C00E6578A /* rtStorage.cpp */,
+				4C81E12C231EF37C00E6578A /* rtStorage.h */,
 				4C2D53C82147463D001103BA /* rtScriptHeaders.h */,
 				4C2D53C7214745A3001103BA /* rtScriptV8 */,
 				464BD7D6210F6ABD00C4EFB7 /* rtCORS.cpp */,
@@ -490,6 +503,14 @@
 				46B077341E30FF8000BC6B9C /* jsCallback.h */,
 			);
 			name = Other;
+			sourceTree = "<group>";
+		};
+		4C3CD33523219DE200D94622 /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				4C988A5B23219E4D006E2D93 /* BuildDefines.xcconfig */,
+			);
+			name = "Supporting Files";
 			sourceTree = "<group>";
 		};
 		4C6887271E96901300B143C5 /* ------------------------------------ */ = {
@@ -609,6 +630,7 @@
 		AECBECA01B6796DC00851BFE = {
 			isa = PBXGroup;
 			children = (
+				4C3CD33523219DE200D94622 /* Supporting Files */,
 				4C2FF252219C9AFA0010DA38 /* jsCallback.cpp */,
 				4C2FF253219C9AFA0010DA38 /* rtFunctionWrapper.cpp */,
 				4C2FF254219C9AFA0010DA38 /* rtObjectWrapper.cpp */,
@@ -744,6 +766,7 @@
 				4CF5468A20210AB600529907 /* ioapi.h in Headers */,
 				4CF5468B20210AB600529907 /* pxRect.h in Headers */,
 				4CF5468C20210AB600529907 /* pxInterpolators.h in Headers */,
+				4C81E12E231EF37C00E6578A /* rtStorage.h in Headers */,
 				4CF5468D20210AB600529907 /* pxClipboard.h in Headers */,
 				4CF5468E20210AB600529907 /* rtTest.h in Headers */,
 				4CF5468F20210AB600529907 /* pxBuffer.h in Headers */,
@@ -772,6 +795,7 @@
 				4C9E8A6B21DEC99900CD3890 /* pxColorNames.h in Headers */,
 				4CF546A820210AB600529907 /* rtPromise.h in Headers */,
 				4CF546A920210AB600529907 /* pxClipboardNative.h in Headers */,
+				4CDC37562357CB42003B3FD0 /* rtJsonUtils.h in Headers */,
 				4CF546AA20210AB600529907 /* rtCore.h in Headers */,
 				4C2FF24C219C854D0010DA38 /* rtHttpRequest.h in Headers */,
 				464BD7D9210F6ABD00C4EFB7 /* rtCORS.h in Headers */,
@@ -1121,7 +1145,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "cd $PROJECT_DIR/examples/pxScene2d/external\npwd\n./build.sh";
+			shellScript = "cd $PROJECT_DIR/examples/pxScene2d/external\npwd\nexport IDE_SEARCH_PATH=-I/usr/local/include\n/bin/bash ./build.sh # 2>&1 | tee > output.txt\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -1147,6 +1171,7 @@
 				4CF5464720210AB600529907 /* Simple.cpp in Sources */,
 				4CF5464820210AB600529907 /* utf8.c in Sources */,
 				4CF5464920210AB600529907 /* pxViewWindow.cpp in Sources */,
+				4CDC37552357CB42003B3FD0 /* rtJsonUtils.cpp in Sources */,
 				4CF5464A20210AB600529907 /* pxOffscreen.cpp in Sources */,
 				4C9E8A6F21DFFA4E00CD3890 /* pxColorNames.cpp in Sources */,
 				4CF5464B20210AB600529907 /* rtValue.cpp in Sources */,
@@ -1175,6 +1200,7 @@
 				4CF5466420210AB600529907 /* pxUtil.cpp in Sources */,
 				4CF5466520210AB600529907 /* rtThreadTask.cpp in Sources */,
 				4C2FF24D219C854D0010DA38 /* rtHttpResponse.cpp in Sources */,
+				4C81E12F231EF37C00E6578A /* rtStorage.cpp in Sources */,
 				4CF5466620210AB600529907 /* rtFile.cpp in Sources */,
 				4CF5466720210AB600529907 /* rtPromise.cpp in Sources */,
 				4CF5466920210AB600529907 /* ioapi.c in Sources */,
@@ -1268,69 +1294,37 @@
 /* Begin XCBuildConfiguration section */
 		4CF546AF20210AB600529907 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 4C988A5B23219E4D006E2D93 /* BuildDefines.xcconfig */;
 			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
 				CLANG_ENABLE_OBJC_ARC = NO;
 				COMBINE_HIDPI_IMAGES = YES;
 				CONFIGURATION_BUILD_DIR = "$(BUILD_DIR)/mac";
 				EXECUTABLE_PREFIX = lib;
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					PX_PLATFORM_MAC,
-					RTSCRIPT_SUPPORT_NODE,
-					"RTSCRIPT_SUPPORT_DUKTAPE_____",
-					ENABLE_RT_NODE,
-					ENABLE_HTTP_CACHE,
-					RUNINMAIN,
-					"_DARWIN_USE_64_BIT_INODE=1",
-					"NODE_ARCH=\"x64\"",
-					"NODE_WANT_INTERNALS=1",
-					"V8_DEPRECATION_WARNINGS=",
-					NODE_SHARED_MODE,
-					"NODE_USE_V8_PLATFORM=1",
-					"NODE_HAVE_I18N_SUPPORT=1",
-					"NODE_HAVE_SMALL_ICU=1",
-					"HAVE_INSPECTOR=1",
-					"V8_INSPECTOR_USE_STL=1",
-					"V8_INSPECTOR_USE_OLD_STL=1",
-					"HAVE_OPENSSL=1",
-					"HAVE_DTRACE=1",
-					__POSIX__,
-					"NODE_PLATFORM=\"darwin\"",
-					"UCONFIG_NO_TRANSLITERATION=1",
-					"UCONFIG_NO_SERVICE=1",
-					"UCONFIG_NO_REGULAR_EXPRESSIONS=1",
-					"U_ENABLE_DYLOAD=0",
-					"U_STATIC_IMPLEMENTATION=1",
-					"U_HAVE_STD_STRING=0",
-					"UCONFIG_NO_BREAK_ITERATION=0",
-					"UCONFIG_NO_LEGACY_CONVERSION=1",
-					"UCONFIG_NO_CONVERSION=1",
-					"HTTP_PARSER_STRICT=0",
-					_LARGEFILE_SOURCE,
-					"_FILE_OFFSET_BITS=64",
-					RT_PLATFORM_LINUX,
-					ENABLE_NODE_V_6_9,
-					ENABLE_DEBUG_MODE,
-					PNG_APNG_SUPPORTED,
-				);
+				GCC_PREPROCESSOR_DEFINITIONS = "$(inherited)";
 				HEADER_SEARCH_PATHS = (
-					"examples/pxScene2d/external/libnode-v6.9.0/src",
-					"examples/pxScene2d/external/libnode-v6.9.0/deps/uv/include",
-					"examples/pxScene2d/external/libnode-v6.9.0/deps/v8",
-					"examples/pxScene2d/external/libnode-v6.9.0/deps/openssl/openssl/include",
-					"examples/pxScene2d/external/libnode-v6.9.0/deps/debugger-agent/include",
-					"examples/pxScene2d/external/libnode-v6.9.0/deps/v8/include",
-					"examples/pxScene2d/external/libnode-v6.9.0/deps/cares/include",
+					examples/pxScene2d/external/node/src,
+					examples/pxScene2d/external/node/deps/uv/include,
+					examples/pxScene2d/external/node/deps/v8,
+					examples/pxScene2d/external/node/deps/openssl/openssl/include,
+					"examples/pxScene2d/external/node/deps/debugger-agent/include",
+					examples/pxScene2d/external/node/deps/v8/include,
+					examples/pxScene2d/external/node/deps/cares/include,
 					examples/pxScene2d/external/zlib/,
 					examples/pxScene2d/external/curl/include,
 					examples/pxScene2d/external/jpg,
+					examples/pxScene2d/external/gif,
 					examples/pxScene2d/external/png,
 					examples/pxScene2d/external/nanosvg/src,
 					examples/pxScene2d/external/dukluv/src,
 					"examples/pxScene2d/external/dukluv/lib/duktape/src-separate",
+					examples/pxScene2d/external/rapidjson,
+					examples/pxScene2d/external,
 				);
+				LIBRARY_SEARCH_PATHS = "";
 				OTHER_CPLUSPLUSFLAGS = (
 					"$(OTHER_CFLAGS)",
-					"-std=c++11",
+					"-std=c++14",
 				);
 				OTHER_LDFLAGS = (
 					"-framwork",
@@ -1345,69 +1339,37 @@
 		};
 		4CF546B020210AB600529907 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 4C988A5B23219E4D006E2D93 /* BuildDefines.xcconfig */;
 			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
 				CLANG_ENABLE_OBJC_ARC = NO;
 				COMBINE_HIDPI_IMAGES = YES;
 				CONFIGURATION_BUILD_DIR = "$(BUILD_DIR)/mac";
 				EXECUTABLE_PREFIX = lib;
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					PX_PLATFORM_MAC,
-					RTSCRIPT_SUPPORT_NODE,
-					"RTSCRIPT_SUPPORT_DUKTAPE_____",
-					ENABLE_RT_NODE,
-					ENABLE_HTTP_CACHE,
-					RUNINMAIN,
-					"_DARWIN_USE_64_BIT_INODE=1",
-					"NODE_ARCH=\"x64\"",
-					"NODE_WANT_INTERNALS=1",
-					"V8_DEPRECATION_WARNINGS=",
-					NODE_SHARED_MODE,
-					"NODE_USE_V8_PLATFORM=1",
-					"NODE_HAVE_I18N_SUPPORT=1",
-					"NODE_HAVE_SMALL_ICU=1",
-					"HAVE_INSPECTOR=1",
-					"V8_INSPECTOR_USE_STL=1",
-					"V8_INSPECTOR_USE_OLD_STL=1",
-					"HAVE_OPENSSL=1",
-					"HAVE_DTRACE=1",
-					__POSIX__,
-					"NODE_PLATFORM=\"darwin\"",
-					"UCONFIG_NO_TRANSLITERATION=1",
-					"UCONFIG_NO_SERVICE=1",
-					"UCONFIG_NO_REGULAR_EXPRESSIONS=1",
-					"U_ENABLE_DYLOAD=0",
-					"U_STATIC_IMPLEMENTATION=1",
-					"U_HAVE_STD_STRING=0",
-					"UCONFIG_NO_BREAK_ITERATION=0",
-					"UCONFIG_NO_LEGACY_CONVERSION=1",
-					"UCONFIG_NO_CONVERSION=1",
-					"HTTP_PARSER_STRICT=0",
-					_LARGEFILE_SOURCE,
-					"_FILE_OFFSET_BITS=64",
-					RT_PLATFORM_LINUX,
-					ENABLE_NODE_V_6_9,
-					ENABLE_DEBUG_MODE,
-					PNG_APNG_SUPPORTED,
-				);
+				GCC_PREPROCESSOR_DEFINITIONS = "$(inherited)";
 				HEADER_SEARCH_PATHS = (
-					"examples/pxScene2d/external/libnode-v6.9.0/src",
-					"examples/pxScene2d/external/libnode-v6.9.0/deps/uv/include",
-					"examples/pxScene2d/external/libnode-v6.9.0/deps/v8",
-					"examples/pxScene2d/external/libnode-v6.9.0/deps/openssl/openssl/include",
-					"examples/pxScene2d/external/libnode-v6.9.0/deps/debugger-agent/include",
-					"examples/pxScene2d/external/libnode-v6.9.0/deps/v8/include",
-					"examples/pxScene2d/external/libnode-v6.9.0/deps/cares/include",
+					examples/pxScene2d/external/node/src,
+					examples/pxScene2d/external/node/deps/uv/include,
+					examples/pxScene2d/external/node/deps/v8,
+					examples/pxScene2d/external/node/deps/openssl/openssl/include,
+					"examples/pxScene2d/external/node/deps/debugger-agent/include",
+					examples/pxScene2d/external/node/deps/v8/include,
+					examples/pxScene2d/external/node/deps/cares/include,
 					examples/pxScene2d/external/zlib/,
 					examples/pxScene2d/external/curl/include,
 					examples/pxScene2d/external/jpg,
+					examples/pxScene2d/external/gif,
 					examples/pxScene2d/external/png,
 					examples/pxScene2d/external/nanosvg/src,
 					examples/pxScene2d/external/dukluv/src,
 					"examples/pxScene2d/external/dukluv/lib/duktape/src-separate",
+					examples/pxScene2d/external/rapidjson,
+					examples/pxScene2d/external,
 				);
+				LIBRARY_SEARCH_PATHS = "";
 				OTHER_CPLUSPLUSFLAGS = (
 					"$(OTHER_CFLAGS)",
-					"-std=c++11",
+					"-std=c++14",
 				);
 				OTHER_LDFLAGS = (
 					"-framwork",

@@ -21,6 +21,7 @@
 #include "pxImageA.h"
 #include "pxContext.h"
 #include <algorithm>
+#include "pxTimer.h"
 
 extern pxContext context;
 
@@ -30,7 +31,7 @@ static pxTextureRef nullMaskRef;
 pxImageA::pxImageA(pxScene2d *scene) : pxObject(scene), 
                                        mImageWidth(0), mImageHeight(0),
                                        mStretchX(pxConstantsStretch::NONE), mStretchY(pxConstantsStretch::NONE),
-                                       mResource(), mImageLoaded(false), mListenerAdded(false)
+                                       mResource(), mImageLoaded(false), mListenerAdded(false), mResolveWithoutParent(false), mReceivedReadyBeforeInit(false)
 {
   mCurFrame = 0;
   mCachedFrame = UINT32_MAX;
@@ -50,6 +51,11 @@ pxImageA::~pxImageA()
 
 void pxImageA::onInit() 
 {
+  //send resolve when resource got ready before init
+  if ((mParent == NULL) && (mReceivedReadyBeforeInit == true)) {
+    mReady.send("resolve",this);
+    mReceivedReadyBeforeInit = false;
+  }
   pxObject::onInit();
 }
 
@@ -288,11 +294,20 @@ void pxImageA::resourceReady(rtString readyResolution)
     mScene->mDirty = true;
     loadImageSequence();
     pxObject* parent = mParent;
-    if( !parent)
+    if( !parent || mResolveWithoutParent)
     {
       // Send the promise here because the image will not get an 
       // update call until it has a parent
-      sendPromise();
+      if (mInitialized)
+      {
+        sendPromise();
+        mReceivedReadyBeforeInit = false;
+      }
+      else
+      {
+        // Received a case where image is loaded before init is done
+        mReceivedReadyBeforeInit = true;
+      }
     }
   }
   else
@@ -385,8 +400,70 @@ float pxImageA::getOnscreenHeight()
     return mh;
 }
 
+rtError pxImageA::resolveWithoutParent(bool& v)  const
+{
+  v = mResolveWithoutParent;
+  return RT_OK;
+}
+
+rtError pxImageA::setResolveWithoutParent(bool v)
+{
+  mResolveWithoutParent = v;
+  return RT_OK;
+}
+
+rtError pxImageA::animateImage()
+{
+  if (getImageAResource() == NULL || !mImageLoaded)
+  {
+    return RT_OK;
+  }
+
+  double t = pxSeconds();
+  pxTimedOffscreenSequence& imageSequence = getImageAResource()->getTimedOffscreenSequence();
+  uint32_t numFrames = imageSequence.numFrames();
+
+  if (numFrames > 0)
+  {
+    if (mFrameTime < 0)
+    {
+      mCurFrame = 0;
+      mFrameTime = t;
+    }
+
+    for (; mCurFrame < numFrames; mCurFrame++)
+    {
+      double d = imageSequence.getDuration(mCurFrame);
+      if (mFrameTime + d >= t)
+        break;
+      mFrameTime += d;
+    }
+
+    if (mCurFrame >= numFrames)
+    {
+      mCurFrame = numFrames - 1; // snap animation to last frame
+
+      if (!imageSequence.numPlays() || mPlays < imageSequence.numPlays())
+      {
+        mFrameTime = -1; // reset animation
+        mPlays++;
+      }
+    }
+
+    if (mCachedFrame != mCurFrame)
+    {
+      pxOffscreen &o = imageSequence.getFrameBuffer(mCurFrame);
+      mTexture = context.createTexture(o);
+      mCachedFrame = mCurFrame;
+    }
+  }
+  return RT_OK;
+}
+
 rtDefineObject(pxImageA, pxObject);
 rtDefineProperty(pxImageA, url);
 rtDefineProperty(pxImageA, resource);
 rtDefineProperty(pxImageA, stretchX);
 rtDefineProperty(pxImageA, stretchY);
+rtDefineProperty(pxImageA, resolveWithoutParent);
+rtDefineMethod(pxImageA, animateImage);

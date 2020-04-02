@@ -29,7 +29,7 @@ using namespace v8;
 namespace rtScriptV8NodeUtils
 {
 
-static const char* kClassName = "Function";
+static const char* kClassName = "__rtFunctionWrapper";
 static Persistent<v8::Function> ctor;
 std::hash<std::string> hashFn;
 
@@ -115,15 +115,17 @@ void rtResolverFunction::afterWorkCallback(uv_work_t* req, int /* status */)
   if (resolverFunc->mDisposition == DispositionResolve)
   {
     v8::Maybe<bool> b = resolver->Resolve(local_context, value);
+    b = b; // warning
   }
   else
   {
     v8::Maybe<bool> b = resolver->Reject(local_context, value);
+    b = b; // warning
   }
 
   if (tryCatch.HasCaught())
   {
-    #if defined RTSCRIPT_SUPPORT_V8
+    #if ((defined RTSCRIPT_SUPPORT_V8) || (NODE_VERSION_AT_LEAST(8,10,0)))
     String::Utf8Value trace(resolverFunc->mIsolate, (tryCatch.StackTrace(local_context)).ToLocalChecked());
     #else
     String::Utf8Value trace((tryCatch.StackTrace(local_context)).ToLocalChecked());
@@ -178,7 +180,9 @@ void rtFunctionWrapper::exportPrototype(Isolate* isolate, Handle<Object> exports
   inst->SetCallAsFunctionHandler(call);
 
   ctor.Reset(isolate, tmpl->GetFunction());
-  exports->Set(String::NewFromUtf8(isolate, kClassName), tmpl->GetFunction());
+
+  // TODO this breaks js 'Function' (https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function)
+  //exports->Set(String::NewFromUtf8(isolate, kClassName), tmpl->GetFunction());
 }
 
 void rtFunctionWrapper::create(const FunctionCallbackInfo<Value>& args)
@@ -299,7 +303,7 @@ jsFunctionWrapper::jsFunctionWrapper(Local<Context>& ctx, const Handle<Value>& v
   , mTeardownThreadingPrimitives(false)
   , mHash(-1)
 {
-  #if defined RTSCRIPT_SUPPORT_V8
+  #if ((defined RTSCRIPT_SUPPORT_V8) || (NODE_VERSION_AT_LEAST(8,10,0)))
   v8::String::Utf8Value fn(ctx->GetIsolate(), Handle<Function>::Cast(val)->ToString());
   #else
   v8::String::Utf8Value fn(Handle<Function>::Cast(val)->ToString());

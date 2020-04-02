@@ -118,6 +118,7 @@ class rtValue
   rtValue(const rtFunctionRef& v);
   rtValue(const rtValue& v);
   rtValue(voidPtr v);
+  rtValue(rtValue&& v) noexcept;
   ~rtValue();
 
   void term() { setEmpty(); }
@@ -143,6 +144,7 @@ class rtValue
   bool operator!=(const rtValue& rhs) const { return !(*this == rhs); }
   bool operator==(const rtValue& rhs) const;
 
+  rtValue& operator=(rtValue&& v) noexcept;
 
   finline bool       toBool()     const { bool v;        getBool(v);   return v; }
   finline int8_t     toInt8()     const { int8_t v;      getInt8(v);   return v; }

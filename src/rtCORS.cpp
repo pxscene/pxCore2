@@ -120,7 +120,7 @@ rtError rtCORS::updateResponseForAccessControl(rtFileDownloadRequest* request) c
   }
 
   rtString errorDescription;
-  rtString rawHeaders(request->headerData(), request->headerDataSize());
+  rtString rawHeaders(request->headerData(), (uint32_t) request->headerDataSize());
   std::map<rtString, rtString> headerMap;
   rtHttpResponse::parseHeaders(rawHeaders, headerMap);
   rtLogDebug("%s : check access to '%s' from origin '%s'", __FUNCTION__, origin.cString(), mOrigin.cString());

@@ -3,6 +3,8 @@
 //  pxScene2d
 //
 
+#include "./BuildDefines.xcconfig” // Include other xcconfig files
+
 PREBINDING = NO
 
 PX_PLATFORM_MAC_XCODE=YES

@@ -238,9 +238,12 @@ class rtObjectRef: public rtRef<rtIObject>, public rtObjectBase
  public:
   rtObjectRef() {}
   rtObjectRef(const rtIObject* o) {asn(o);}
+  rtObjectRef(const rtObjectRef&) = default;
 
   // operator= is not inherited
   rtObjectRef& operator=(rtIObject* o) {asn(o);return *this;}
+  rtObjectRef& operator=(const rtObjectRef&) = default;
+  rtObjectRef& operator=(rtObjectRef&&) = default;
   virtual ~rtObjectRef() {}
 
  private:
@@ -255,10 +258,13 @@ class rtFunctionRef: public rtRef<rtIFunction>, public rtFunctionBase
  public:
   rtFunctionRef() {}
   rtFunctionRef(const rtIFunction* f) { asn(f); }
+  rtFunctionRef(const rtFunctionRef&) = default;
   virtual ~rtFunctionRef() { }
 
   // operator= is not inherited
   rtFunctionRef& operator=(rtIFunction* f) { asn(f); return *this; }
+  rtFunctionRef& operator=(const rtFunctionRef&) = default;
+  rtFunctionRef& operator=(rtFunctionRef&&) = default;
 
  private:
   virtual rtError Send(int numArgs, const rtValue* args, rtValue* result);
@@ -765,6 +771,8 @@ public:
   virtual rtError Get(uint32_t /*i*/, rtValue* /*value*/) const;
   virtual rtError Set(const char* name, const rtValue* value);
   virtual rtError Set(uint32_t /*i*/, const rtValue* /*value*/);
+
+  rtError copyTo(rtMapObject* dst);
 
 private:
   std::vector<rtNamedValue>::iterator find(const char* name);

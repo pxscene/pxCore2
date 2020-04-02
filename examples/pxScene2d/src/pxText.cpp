@@ -27,19 +27,25 @@
 
 extern pxContext context;
 
-pxText::pxText(pxScene2d* scene):pxObject(scene), mFontLoaded(false), mFontFailed(false), mDirty(true), mFontDownloadRequest(NULL), mListenerAdded(false)
+pxText::pxText(pxScene2d* scene):pxObject(scene), mFontLoaded(false), mFontFailed(false), mDirty(true), mFontDownloadRequest(NULL), mListenerAdded(false),
+                                 mTextFbo()
 
 {
-  float c[4] = {1, 1, 1, 1};
+  float c[4] = {1, 1, 1, 1}; // WHITE
   memcpy(mTextColor, c, sizeof(mTextColor));
   // Default to use default font
-  mFont = pxFontManager::getFont(defaultFont, NULL, NULL, scene->getArchive());
+  mFont = pxFontManager::getFont(defaultFont, NULL, NULL, scene->getArchive(), NULL);
   mPixelSize = defaultPixelSize;
 }
 
 pxText::~pxText()
 {
   removeResourceListener();
+  if (mTextFbo.getPtr() != NULL)
+  {
+    mTextFbo->resetFbo();
+  }
+  mTextFbo = NULL;
 }
 
 void pxText::onInit()
@@ -134,11 +140,13 @@ void pxText::draw()
   {
     pxContextFramebufferRef previousSurface;
     pxContextFramebufferRef cached;
+
     if ((msx < 1.0) || (msy < 1.0))
     {
       context.pushState();
       previousSurface = context.getCurrentFramebuffer();
       cached = context.createFramebuffer(getFBOWidth(),getFBOHeight());
+
       if (cached.getPtr())
       {
         if (context.setFramebuffer(cached) == PX_OK)
@@ -149,14 +157,17 @@ void pxText::draw()
           context.clear(getFBOWidth(), getFBOHeight());
         }
       }
-    }
+    }// ENDIF - Scale Down
+
 #ifdef PXSCENE_FONT_ATLAS
     if (mDirty)
     {
       getFontResource()->renderTextToQuads(mText,mPixelSize,msx,msy,mQuads);
       mDirty = false;
     }
-    mQuads.draw(0,0,mTextColor);
+
+    mQuads.draw(0, 0, mTextColor);
+
 #else
     if (getFontResource() != NULL)
     {
@@ -169,7 +180,9 @@ void pxText::draw()
       context.popState();
       if (cached.getPtr() && cached->getTexture().getPtr())
       {
-        context.drawImage(0, 0, (mw>MAX_TEXTURE_WIDTH?MAX_TEXTURE_WIDTH:mw), (mh>MAX_TEXTURE_HEIGHT?MAX_TEXTURE_HEIGHT:mh), cached->getTexture(), nullMaskRef);
+        context.drawImage(0, 0, (mw > MAX_TEXTURE_WIDTH  ? MAX_TEXTURE_WIDTH  : mw),
+                                (mh > MAX_TEXTURE_HEIGHT ? MAX_TEXTURE_HEIGHT : mh),
+                          cached->getTexture(), nullMaskRef);
       }
     }
   }
@@ -181,13 +194,15 @@ rtError pxText::setFontUrl(const char* s)
   if (!s || !s[0]) {
     s = defaultFont;
   }
+
   mFontLoaded = false;
   mFontFailed = false;
   createNewPromise();
 
   removeResourceListener();
-  mFont = pxFontManager::getFont(s, NULL, NULL, mScene->getArchive());
+  mFont = pxFontManager::getFont(s, NULL, NULL, mScene->getArchive(), NULL);
   mListenerAdded = true;
+
   if (getFontResource() != NULL)
   {
     getFontResource()->addListener(this);
@@ -201,6 +216,7 @@ rtError pxText::setFont(rtObjectRef o)
   mFont = NULL;
   mFontLoaded = false;
   mFontFailed = false;
+
   createNewPromise();
   removeResourceListener();
 
@@ -223,6 +239,40 @@ rtError pxText::setFont(rtObjectRef o)
   return RT_OK;
 }
 
+rtError pxText::texture(uint32_t &v)
+{
+  v = 0;
+  if (mTextFbo.getPtr() != NULL && mTextFbo->getTexture() != NULL && !mDirty)
+  {
+    v = mTextFbo->getTexture()->getNativeId();
+  }
+  else
+  {
+    pxContextFramebufferRef previousSurface;
+    context.pushState();
+    previousSurface = context.getCurrentFramebuffer();
+    mTextFbo = context.createFramebuffer(getFBOWidth(), getFBOHeight());
+    if (mTextFbo.getPtr())
+    {
+      mTextFbo->enableFlipRendering(true);
+      if (context.setFramebuffer(mTextFbo) == PX_OK)
+      {
+        pxMatrix4f m;
+        context.setMatrix(m);
+        context.setAlpha(1.0);
+        context.clear(getFBOWidth(), getFBOHeight());
+        bool previousDirty = mDirty;
+        draw();
+        mDirty = previousDirty;
+      }
+      context.setFramebuffer(previousSurface);
+      v = mTextFbo->getTexture()->getNativeId();
+    }
+    context.popState();
+  }
+  return RT_OK;
+}
+
 float pxText::getOnscreenWidth()
 {
   // TODO review max texture handling
@@ -234,7 +284,7 @@ float pxText::getOnscreenHeight()
   return (mh > MAX_TEXTURE_HEIGHT?MAX_TEXTURE_HEIGHT:mh);
 }
 
-float pxText::getFBOWidth() 
+float pxText::getFBOWidth()
 { 
   if( mw > MAX_TEXTURE_WIDTH) 
   {
@@ -245,7 +295,7 @@ float pxText::getFBOWidth()
     return mw; 
 }
 
-float pxText::getFBOHeight() 
+float pxText::getFBOHeight()
 { 
   if( mh > MAX_TEXTURE_HEIGHT) 
   {
@@ -268,6 +318,7 @@ rtError pxText::removeResourceListener()
   }
   return RT_OK;
 }
+
 void pxText::createNewPromise()
 {
   // Only create a new promise if the existing one has been
@@ -302,10 +353,90 @@ uint64_t pxText::textureMemoryUsage(std::vector<rtObject*> &objectsCounted)
   return textureMemory;
 }
 
+rtError pxText::setColor(float *var, rtValue c)
+{
+  // Set via STRING...
+  if( c.getType() == 's')
+  {
+    rtString str = c.toString();
+
+    uint8_t r,g,b, a;
+    if( web2rgb( str, r, g, b, a) == RT_OK)
+    {
+      var[PX_RED  ] = (float) r / 255.0f;  // R
+      var[PX_GREEN] = (float) g / 255.0f;  // G
+      var[PX_BLUE ] = (float) b / 255.0f;  // B
+      var[PX_ALPHA] = (float) a / 255.0f;  // A
+
+      return RT_OK;
+    }
+
+    return RT_FAIL;
+  }
+
+  // JS is all doubles !
+  uint32_t clr = (uint32_t) c.toDouble();
+
+  return colorUInt32_to_Float4(var, clr);
+}
+
+
+rtError pxText::setTextColor(rtValue c)
+{
+  return setColor(mTextColor, c);
+}
+
+rtError pxText::textColor(rtValue &c) const
+{
+  uint32_t cc = 0;
+  rtError err = colorFloat4_to_UInt32(&mTextColor[0], cc);
+
+  c = cc;
+
+  return err;
+}
+
+// Helpers
+rtError pxText::colorFloat4_to_UInt32( const float *clr, uint32_t& c) const
+{
+  if(clr == NULL)
+  {
+    rtLogError("Bad color param. (NULL)");
+    return RT_FAIL;
+  }
+#ifdef PX_LITTLEENDIAN_PIXELS
+
+  c = ((uint8_t) (clr[0] * 255.0f) << 24) |  // R
+      ((uint8_t) (clr[1] * 255.0f) << 16) |  // G
+      ((uint8_t) (clr[2] * 255.0f) <<  8) |  // B
+      ((uint8_t) (clr[3] * 255.0f) <<  0);   // A
+#else
+
+  c = ((uint8_t) (clr[3] * 255.0f) << 24) |  // A
+      ((uint8_t) (clr[2] * 255.0f) << 16) |  // B
+      ((uint8_t) (clr[1] * 255.0f) <<  8) |  // G
+      ((uint8_t) (clr[0] * 255.0f) <<  0);   // R
+#endif
+
+  return RT_OK;
+}
+
+rtError pxText::colorUInt32_to_Float4(float *clr, uint32_t c) const
+{
+  clr[PX_RED  ] = (float)((c>>24) & 0xff) / 255.0f;
+  clr[PX_GREEN] = (float)((c>>16) & 0xff) / 255.0f;
+  clr[PX_BLUE ] = (float)((c>> 8) & 0xff) / 255.0f;
+  clr[PX_ALPHA] = (float)((c>> 0) & 0xff) / 255.0f;
+
+  return RT_OK;
+}
+
 
 rtDefineObject(pxText, pxObject);
+
 rtDefineProperty(pxText, text);
 rtDefineProperty(pxText, textColor);
 rtDefineProperty(pxText, pixelSize);
 rtDefineProperty(pxText, fontUrl);
 rtDefineProperty(pxText, font);
+rtDefineMethod(pxText, texture);

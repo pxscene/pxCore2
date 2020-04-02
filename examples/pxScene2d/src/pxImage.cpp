@@ -65,6 +65,11 @@ void pxImage::onInit()
   {
     setUrl("");
   }
+  // send resolve when resource got ready before init
+  if ((mParent == NULL) && (mReceivedReadyBeforeInit == true)) {
+    mReady.send("resolve",this);
+    mReceivedReadyBeforeInit = false;
+  }
 }
 
 /**
@@ -169,7 +174,7 @@ rtError pxImage::setUrl(const char* s)
   {
     mResource = pxImageManager::getImage(s, NULL, mScene ? mScene->cors() : NULL,
                                                   pRes->initW(),  pRes->initH(),
-                                                  pRes->initSX(), pRes->initSY(), mScene ? mScene->getArchive() : NULL );
+                                                  pRes->initSX(), pRes->initSY(), mScene ? mScene->getArchive() : NULL, mFlip );
   }
 
   if(getImageResource() != NULL && getImageResource()->getUrl().length() > 0 && mInitialized && !imageLoaded)
@@ -183,10 +188,19 @@ rtError pxImage::setUrl(const char* s)
 
 void pxImage::sendPromise()
 {
-  if(mInitialized && imageLoaded && !((rtPromise*)mReady.getPtr())->status())
+  if(imageLoaded && !((rtPromise*)mReady.getPtr())->status())
   {
       //rtLogDebug("pxImage SENDPROMISE for %s\n", mUrl.cString());
-      mReady.send("resolve",this); 
+      if (mInitialized)
+      {
+        mReady.send("resolve",this); 
+        mReceivedReadyBeforeInit = false;
+      }
+      else
+      {
+        // Received a case where image is loaded before init is done
+        mReceivedReadyBeforeInit = true;
+      }
   }
 }
 
@@ -269,7 +283,7 @@ void pxImage::resourceReady(rtString readyResolution)
     mScene->mDirty = true;
     markDirty();
     pxObject* parent = mParent;
-    if( !parent)
+    if( !parent || mResolveWithoutParent)
     {
       // Send the promise here because the image will not get an 
       // update call until it has a parent
@@ -347,6 +361,35 @@ rtError pxImage::setStretchY(int32_t v)
   return RT_OK;
 }
 
+rtError pxImage::flip(bool& v)  const
+{
+  v = mFlip;
+  return RT_OK;
+}
+
+rtError pxImage::setFlip(bool v)
+{
+  mFlip = v;
+  rtImageResource* imageResource = getImageResource();
+  if (imageResource)
+  {
+    imageResource->setFlip(v);
+  }
+  return RT_OK;
+}
+
+rtError pxImage::resolveWithoutParent(bool& v)  const
+{
+  v = mResolveWithoutParent;
+  return RT_OK;
+}
+
+rtError pxImage::setResolveWithoutParent(bool v)
+{
+  mResolveWithoutParent = v;
+  return RT_OK;
+}
+
 rtError pxImage::setMaskOp(int32_t v)
 {
   mMaskOp = (pxConstantsMaskOperation::constants)v;
@@ -363,6 +406,24 @@ rtError pxImage::setDownscaleSmooth(bool v)
 {
     mDownscaleSmooth = v;
     return RT_OK;
+}
+
+rtError pxImage::texture(uint32_t &v)
+{
+  v = 0;
+  if (getImageResource() != NULL && getImageResource()->isInitialized() && getImageResource()->getTexture().getPtr())
+  {
+    if (getImageResource()->getTexture()->getNativeId() == 0)
+    {
+      if (mFlip)
+      {
+        getImageResource()->getTexture()->setUpsideDown(false);
+      }
+      getImageResource()->getTexture()->prepareForRendering();
+    }
+    v = getImageResource()->getTexture()->getNativeId();
+  }
+  return RT_OK;
 }
 
 rtError pxImage::removeResourceListener()
@@ -415,5 +476,8 @@ rtDefineProperty(pxImage, url);
 rtDefineProperty(pxImage, resource);
 rtDefineProperty(pxImage, stretchX);
 rtDefineProperty(pxImage, stretchY);
+rtDefineProperty(pxImage, flip);
+rtDefineProperty(pxImage, resolveWithoutParent);
 rtDefineProperty(pxImage, maskOp);
 rtDefineProperty(pxImage, downscaleSmooth);
+rtDefineMethod(pxImage, texture);

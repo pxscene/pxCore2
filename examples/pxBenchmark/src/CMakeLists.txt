@@ -7,6 +7,8 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
+add_definitions(-DANIMATION_ROTATE_XYZ )
+
 set(PXCOREDIR ${CMAKE_CURRENT_SOURCE_DIR}/../../..)
 set(EXTDIR "${CMAKE_CURRENT_SOURCE_DIR}/../../pxScene2d/external")
 include(${PXCOREDIR}/cmake/CommOpts.cmake)
@@ -312,7 +314,7 @@ include_directories(AFTER ${CMAKE_CURRENT_SOURCE_DIR}/../../pxScene2d/src/)
 message(** ${CMAKE_CURRENT_SOURCE_DIR}/../external/Celero/include/} **)
 
 set(PXSCENE_COMMON_FILES ${CMAKE_CURRENT_SOURCE_DIR}/../../pxScene2d/src/pxResource.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../../pxScene2d/src/pxConstants.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../../pxScene2d/src/pxRectangle.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../../pxScene2d/src/pxFont.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../../pxScene2d/src/pxText.cpp
-${CMAKE_CURRENT_SOURCE_DIR}/../../pxScene2d/src/pxTextBox.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../../pxScene2d/src/pxImage.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../../pxScene2d/src/pxImage9.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../../pxScene2d/src/pxImageA.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../../pxScene2d/src/pxImage9Border.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../../pxScene2d/src/pxArchive.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../../pxScene2d/src/pxAnimate.cpp)
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../pxScene2d/src/pxTextBox.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../../pxScene2d/src/pxTextCanvas.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../../pxScene2d/src/pxImage.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../../pxScene2d/src/pxImage9.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../../pxScene2d/src/pxImageA.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../../pxScene2d/src/pxImage9Border.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../../pxScene2d/src/pxArchive.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../../pxScene2d/src/pxAnimate.cpp)
 
 set(CELERO_DEFINITIONS "${CMAKE_CURRENT_SOURCE_DIR}/../external/Celero/include")
 
@@ -327,7 +329,11 @@ set(PXWAYLAND_LIB_FILES ${CMAKE_CURRENT_SOURCE_DIR}/../../pxScene2d/src/pxContex
 
 if (BUILD_WITH_GL)
 message("Building with GL support")
-set(PXSCENE_COMMON_FILES ${PXSCENE_COMMON_FILES} ${CMAKE_CURRENT_SOURCE_DIR}/../../pxScene2d/src/pxObject.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../../pxScene2d/src/pxContextGL.cpp)
+set(PXSCENE_COMMON_FILES ${PXSCENE_COMMON_FILES}
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../pxScene2d/src/pxObject.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../pxScene2d/src/pxShaderUtils.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../pxScene2d/src/pxShaderResource.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../pxScene2d/src/pxContextGL.cpp)
 else ()
 message("Building with DirectFB support")
 set(PXSCENE_COMMON_FILES ${PXSCENE_COMMON_FILES} ${CMAKE_CURRENT_SOURCE_DIR}/../../pxScene2d/src/pxContextDFB.cpp)

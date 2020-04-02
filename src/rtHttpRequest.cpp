@@ -19,6 +19,9 @@
 #include "rtHttpRequest.h"
 
 #include "rtHttpResponse.h"
+#include "rtThreadQueue.h"
+
+extern rtThreadQueue* gUIThreadQueue;
 
 rtDefineObject(rtHttpRequest, rtObject);
 
@@ -40,6 +43,9 @@ rtHttpRequest::rtHttpRequest(const rtString& url)
   , mWriteData(NULL)
   , mWriteDataSize(0)
   , mInQueue(false)
+  , mCompress(true)
+  , mProxy()
+  , mDelayReply(false)
 {
 }
 
@@ -48,6 +54,9 @@ rtHttpRequest::rtHttpRequest(const rtObjectRef& options)
   , mWriteData(NULL)
   , mWriteDataSize(0)
   , mInQueue(false)
+  , mCompress(true)
+  , mProxy()
+  , mDelayReply(false)
 {
   rtString url;
 
@@ -58,8 +67,18 @@ rtHttpRequest::rtHttpRequest(const rtObjectRef& options)
   rtString method = options.get<rtString>("method");
   rtObjectRef headers = options.get<rtObjectRef>("headers");
   uint32_t port = options.get<uint32_t>("port");
+  mProxy = options.get<rtString>("proxy");  
 
   mMethod = method;
+
+  rtValue v;
+  rtError e = options->Get("compress", &v);
+  if (e == RT_OK)
+    v.tryConvert<bool>(mCompress);
+
+  e = options->Get("delayReply", &v);
+  if (e == RT_OK)
+    v.tryConvert<bool>(mDelayReply);
 
   url.append(proto.cString());
   url.append("//");
@@ -137,6 +156,11 @@ rtError rtHttpRequest::end()
   req->setAdditionalHttpHeaders(mHeaders);
   req->setMethod(mMethod);
   req->setReadData(mWriteData, mWriteDataSize);
+  req->setUseEncoding(mCompress);
+  if (!mProxy.isEmpty())
+  {
+    req->setProxy(mProxy);
+  }
   if (rtFileDownloader::instance()->addToDownloadQueue(req)) {
     AddRef();
     mInQueue = true;
@@ -179,7 +203,8 @@ rtError rtHttpRequest::write(const rtValue& chunk)
       uint32_t len = static_cast<uint32_t>(str.byteLength());
       if (len > 0) {
         rtLogInfo("write %u bytes (string)", len);
-        mWriteData = (uint8_t*)malloc(len);
+        mWriteData = (uint8_t*)malloc(len + 1);
+        mWriteData[len] = 0;
         mWriteDataSize = len;
         memcpy(mWriteData, str.cString(), len);
       }
@@ -244,7 +269,7 @@ rtError rtHttpRequest::removeHeader(const rtString& name)
     rtString header = mHeaders[i];
     if (header.beginsWith(name.cString()))
     {
-      need_remove_idx = i;
+      need_remove_idx = (int) i;
       break;
     } 
   }
@@ -255,6 +280,25 @@ rtError rtHttpRequest::removeHeader(const rtString& name)
     mHeaders.erase(it);
   }
   return RT_OK;
+}
+
+void rtHttpRequest::onDownloadComplete(void* context, void* data)
+{
+  rtHttpRequest* req = (rtHttpRequest*)context;
+  rtHttpResponse* resp = (rtHttpResponse*)data;
+
+  rtObjectRef ref = resp; 
+
+  if (!resp->hasError()) {
+    req->mEmit.send("response", ref);
+    resp->onDataAndEnd();
+  } else {
+    rtString errorString;
+    resp->errorMessage(errorString);
+    req->mEmit.send("error", errorString);
+  }
+
+  req->Release();
 }
 
 void rtHttpRequest::onDownloadComplete(rtFileDownloadRequest* downloadRequest)
@@ -268,7 +312,7 @@ void rtHttpRequest::onDownloadComplete(rtFileDownloadRequest* downloadRequest)
   resp->setHeaders(downloadRequest->headerData(), downloadRequest->headerDataSize());
   resp->setDownloadedData(downloadRequest->downloadedData(), downloadRequest->downloadedDataSize());
 
-  rtObjectRef ref = resp; 
+  rtObjectRef ref = resp;
 
   if (downloadRequest->errorString().isEmpty()) {
     req->mEmit.send("response", ref);
@@ -281,10 +325,25 @@ void rtHttpRequest::onDownloadComplete(rtFileDownloadRequest* downloadRequest)
 
 void rtHttpRequest::onDownloadCompleteAndRelease(rtFileDownloadRequest* downloadRequest)
 {
-  onDownloadComplete(downloadRequest);
   rtHttpRequest* req = (rtHttpRequest*)downloadRequest->callbackData();
-  if (req != NULL)
+
+  if (req != NULL && req->delayReply())
   {
+    if (gUIThreadQueue)
+    {
+      //resp's memory is managed in onDownloadComplete (set to rtObjectRef)
+      rtHttpResponse* resp = new rtHttpResponse();
+
+      resp->setStatusCode((int32_t)downloadRequest->httpStatusCode());
+      resp->setErrorMessage(downloadRequest->errorString());
+      resp->setHeaders(downloadRequest->headerData(), downloadRequest->headerDataSize());
+      resp->setDownloadedData(downloadRequest->downloadedData(), downloadRequest->downloadedDataSize());
+      gUIThreadQueue->addTask(onDownloadComplete, req, resp);
+    }
+  }
+  else if (req != NULL)
+  {
+    onDownloadComplete(downloadRequest);
     req->Release();
   }
 }
@@ -317,4 +376,9 @@ size_t rtHttpRequest::writeDataSize() const
 bool rtHttpRequest::inQueue() const
 {
   return mInQueue;
+}
+
+bool rtHttpRequest::delayReply() const
+{
+  return mDelayReply;
 }

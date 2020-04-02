@@ -201,6 +201,7 @@ public:
     EXPECT_EQ ((int)RT_OK, (int)s->getItem("key1", item));
     str = item.toString();
     EXPECT_EQ (std::string(""), str.cString());
+    EXPECT_TRUE (item.isEmpty());
     // CLOSE
     EXPECT_EQ ((int)RT_OK, (int)s->term());
   }
@@ -224,6 +225,7 @@ public:
     EXPECT_EQ ((int)RT_OK, (int)s->getItem("key1", item));
     str = item.toString();
     EXPECT_EQ (std::string(""), str.cString());
+    EXPECT_TRUE (item.isEmpty());
     // GET ALL
     EXPECT_EQ ((int)RT_OK, (int)s->getItems("", items));
     // VERIFY LENGTH
@@ -419,8 +421,7 @@ public:
     rtValue item;
     rtString str;
 
-    auto cmd = rtString("rm -f ").append(encryptedTestStorageLocation);
-    EXPECT_EQ ((int)0, (int)system(cmd.cString()));
+    EXPECT_TRUE (rtFileRemove(encryptedTestStorageLocation));
     EXPECT_FALSE (rtFileExists(encryptedTestStorageLocation));
 
     // NO KEY
@@ -447,21 +448,14 @@ public:
     str = item.toString();
     EXPECT_EQ (std::string("encrypted_v1"), str.cString());
 
-    // WRONG KEY
-    EXPECT_EQ ((int)RT_OK, (int)s->init(encryptedTestStorageLocation, 100, "LrAmyMguFVJbQMLJ"));
-    EXPECT_TRUE (rtStorage::isEncrypted(encryptedTestStorageLocation));
-    // GET FAILS, DB ENCRYPTED
-    EXPECT_EQ ((int)RT_OK, (int)s->getItem("key1", item));
-    str = item.toString();
-    EXPECT_EQ (std::string(""), str.cString());
-
     // NO KEY
     EXPECT_EQ ((int)RT_OK, (int)s->init(encryptedTestStorageLocation, 100));
     EXPECT_TRUE (rtStorage::isEncrypted(encryptedTestStorageLocation));
     // GET FAILS, DB ENCRYPTED
-    EXPECT_EQ ((int)RT_OK, (int)s->getItem("key1", item));
+    EXPECT_EQ ((int)RT_OK, (int)s->getItem("k1", item));
     str = item.toString();
     EXPECT_EQ (std::string(""), str.cString());
+    EXPECT_TRUE (item.isEmpty());
 
     // KEY
     s = new rtStorage(encryptedTestStorageLocation, 100, encryptedStorageKey);
@@ -479,10 +473,47 @@ public:
     str = item.toString();
     EXPECT_EQ (std::string("encrypted_v2"), str.cString());
 
+    // WRONG KEY => REKEY
+    EXPECT_EQ ((int)RT_OK, (int)s->init(encryptedTestStorageLocation, 100, "LrAmyMguFVJbQMLJ"));
+    EXPECT_TRUE (rtStorage::isEncrypted(encryptedTestStorageLocation));
+    // SET
+    EXPECT_EQ ((int)RT_OK, (int)s->setItem("encrypted_k3", "encrypted_v3"));
+    // GET FAILS, DB WAS RECEREATED
+    EXPECT_EQ ((int)RT_OK, (int)s->getItem("k1", item));
+    str = item.toString();
+    EXPECT_EQ (std::string(""), str.cString());
+    EXPECT_TRUE (item.isEmpty());
+    // GET
+    EXPECT_EQ ((int)RT_OK, (int)s->getItem("encrypted_k3", item));
+    str = item.toString();
+    EXPECT_EQ (std::string("encrypted_v3"), str.cString());
+
     // CLOSE
     EXPECT_EQ ((int)RT_OK, (int)s->term());
   }
 #endif
+
+  void dotBracketNotation_test()
+  {
+    rtStorageRef s;
+    rtValue item;
+    rtValue value("value1");
+    rtString str;
+
+    s = new rtStorage(testStorageLocation, 100);
+    // SET
+    EXPECT_EQ ((int)RT_OK, (int)s->clear());
+    EXPECT_EQ ((int)RT_OK, (int)s->Set("key1", &value));
+    // GET
+    EXPECT_EQ ((int)RT_OK, (int)s->Get("key1", &item));
+    EXPECT_TRUE (item == value);
+    EXPECT_EQ ((int)RT_OK, (int)s->Get("setItem", &item));
+    EXPECT_EQ ((int)RT_functionType, (int)item.getType());
+    EXPECT_EQ ((int)RT_PROP_NOT_FOUND, (int)s->Get("keyNotExist", &item));
+    EXPECT_TRUE (item.isEmpty());
+    // CLOSE
+    EXPECT_EQ ((int)RT_OK, (int)s->term());
+  }
 };
 
 TEST_F(rtStorageTest, rtStorageTests)
@@ -502,4 +533,5 @@ TEST_F(rtStorageTest, rtStorageTests)
 #if defined(SQLITE_HAS_CODEC)
   encryption_test();
 #endif
+  dotBracketNotation_test();
 }
