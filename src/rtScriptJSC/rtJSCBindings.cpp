@@ -626,6 +626,31 @@ static JSValueRef readFileSync(JSContextRef ctx, JSObjectRef, JSObjectRef, size_
   return result;
 }
 
+static JSValueRef existsSync(JSContextRef ctx, JSObjectRef, JSObjectRef, size_t argumentCount, const JSValueRef arguments[], JSValueRef *exception)
+{
+  if (argumentCount != 1)
+    return JSValueMakeUndefined(ctx);
+
+  JSValueRef result = nullptr;
+  do {
+    JSStringRef filePath = JSValueToStringCopy(ctx, arguments[0], exception);
+    if (exception && *exception)
+      break;
+
+    rtString path = jsToRtString(filePath);
+    JSStringRelease(filePath);
+
+    result = JSValueMakeBoolean(ctx, access(path.cString(), R_OK) == 0);
+  } while (0);
+
+  if (exception && *exception) {
+    printException(ctx, *exception);
+    return JSValueMakeUndefined(ctx);
+  }
+
+  return result;
+}
+
 void injectBindings(JSContextRef jsContext)
 {
   auto injectFun =
@@ -649,6 +674,7 @@ void injectBindings(JSContextRef jsContext)
   injectFun(jsContext, "_createContext", createContext);
   injectFun(jsContext, "_resolveFilename", resolveFilename);
   injectFun(jsContext, "_readFileSync", readFileSync);
+  injectFun(jsContext, "_existsSync", existsSync);
 
   markJSContext(jsContext, nullptr, nullptr);
 }
