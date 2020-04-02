@@ -662,6 +662,41 @@ static JSValueRef existsSync(JSContextRef ctx, JSObjectRef, JSObjectRef, size_t 
   return result;
 }
 
+static JSValueRef runInThisContext(JSContextRef ctx, JSObjectRef, JSObjectRef, size_t argumentCount, const JSValueRef arguments[], JSValueRef *exception)
+{
+  if (argumentCount < 1)
+    return JSValueMakeUndefined(ctx);
+
+  JSValueRef result = nullptr;
+  do {
+    JSGlobalContextRef sandboxCtx = JSContextGetGlobalContext(ctx);
+    JSObjectRef sandboxGlobalObj = JSContextGetGlobalObject(sandboxCtx);
+
+    if (!sandboxCtx) {
+      if (exception) {
+        static JSStringRef exceptionStr = JSStringCreateWithUTF8CString("No sandbox context");
+        *exception = JSValueMakeString(ctx, exceptionStr);
+      }
+      break;
+    }
+
+    // code
+    JSStringRef codeStr = JSValueToStringCopy(ctx, arguments[0], exception);
+    if (exception && *exception)
+      break;
+
+    result = JSEvaluateScript(sandboxCtx, codeStr, sandboxGlobalObj, nullptr, 0, exception);
+    JSStringRelease(codeStr);
+  } while (0);
+
+  if (exception && *exception) {
+    printException(ctx, *exception);
+    return JSValueMakeUndefined(ctx);
+  }
+
+  return result;
+}
+
 void injectBindings(JSContextRef jsContext)
 {
   auto injectFun =
@@ -686,6 +721,7 @@ void injectBindings(JSContextRef jsContext)
   injectFun(jsContext, "_resolveFilename", resolveFilename);
   injectFun(jsContext, "_readFileSync", readFileSync);
   injectFun(jsContext, "_existsSync", existsSync);
+  injectFun(jsContext, "_runInThisContext", runInThisContext);
 
   markJSContext(jsContext, nullptr, nullptr);
 }

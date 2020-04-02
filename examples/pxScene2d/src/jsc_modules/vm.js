@@ -40,9 +40,14 @@ class Script {
   }
 }
 
+function runInThisContext(...args) {
+  return _runInThisContext(...args);
+}
+
 module.exports = {
   runInNewContext: runInNewContext,
   runInContext: runInContext,
   createContext: createContext,
   Script: Script,
+  runInThisContext: runInThisContext,
 };
