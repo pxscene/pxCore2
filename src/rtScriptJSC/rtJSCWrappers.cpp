@@ -485,7 +485,7 @@ static JSValueRef rtObjectWrapper_getProperty(JSContextRef context, JSObjectRef 
         }
         return res;
       }    
-      if (isRtArray(o))
+      else if (isRtArray(o))
       {
         rtValue length;
         std::vector<JSValueRef> args;
