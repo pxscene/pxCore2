@@ -3374,8 +3374,10 @@ void pxScriptView::runScript()
       // compile initGL.js
       if (mSparkGlInitApp.isEmpty())
       {
+        rtString s = getenv("SPARK_PATH");
+        s.append("initApp.js");
         rtData initData;
-        rtError e = rtLoadFile("initApp.js", initData);
+        rtError e = rtLoadFile(s.cString(), initData);
         if(e != RT_OK)
         {
           rtLogError("Failed to load - 'initApp.js' ");
