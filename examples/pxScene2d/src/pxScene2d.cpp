@@ -82,6 +82,12 @@
 
 #include "rtJsonUtils.h"
 #include "rtHttpRequest.h"
+#include "rtUrlUtils.h"
+
+#ifdef ENABLE_SPARK_THUNDER
+#include <securityagent/securityagent.h>
+#endif //ENABLE_SPARK_THUNDER
+#define MAX_TOKEN_BUFFER_LENGTH 2048
 
 using namespace rapidjson;
 
@@ -116,6 +122,7 @@ extern rtThreadQueue* gUIThreadQueue;
 extern pxContext      context;
 
 static int fpsWarningThreshold = 25;
+bool topSparkView = true;
 
 rtEmitRef pxScriptView::mEmit = new rtEmit();
 
@@ -549,9 +556,12 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   // capabilities.graphics.screenshots  = 2
   // capabilities.graphics.shaders      = 1
   // capabilities.graphics.text         = 3
+  // capabilities.graphics.text_fallback = 1
   // capabilities.graphics.imageAResource  = 2
   //
-  // capabilities.scene.external  = 1
+  // capabilities.font.fallback = 1
+  //
+  // capabilities.scene.external = 1
   //
   // capabilities.network.cors          = 1
   // capabilities.network.corsResources = 1
@@ -564,6 +574,11 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   // capabilities.events.drag_n_drop    = 2   // additional Drag'n'Drop events
   //
   // capabilities.video.player         = 1
+  // capabilities.sparkgl.nativedrawing    = 1
+  // capabilities.sparkgl.supports1080    = 1
+  // capabilities.sparkgl.animatedImages    = 1
+  // capabilities.sparkgl.optimus = 2
+  // capabilities.sparkgl.bootstrap = 2
 
   mCapabilityVersions = new rtMapObject;
 
@@ -580,7 +595,13 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   graphicsCapabilities.set("screenshots", 2);
   graphicsCapabilities.set("shaders", 1);
   graphicsCapabilities.set("text", 3);
-      
+  
+  
+  rtObjectRef fontCapabilities = new rtMapObject;
+  fontCapabilities.set("fallback", 1);
+
+  mCapabilityVersions.set("font", fontCapabilities);
+  
 #ifdef SPARK_CURSOR_SUPPORT
   graphicsCapabilities.set("cursor", 1);
 
@@ -642,9 +663,41 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
 
 #ifdef ENABLE_SPARK_VIDEO
   rtObjectRef videoCapabilities = new rtMapObject;
-  videoCapabilities.set("player", 1);
+  videoCapabilities.set("player", 2);
+  rtValue enableVideo;
+  if (RT_OK == rtSettings::instance()->value("enableVideo", enableVideo))
+  {
+    if (enableVideo.toString().compare("false") == 0)
+    {
+      videoCapabilities.set("player", 0);
+    }
+  }
   mCapabilityVersions.set("video", videoCapabilities);
 #endif //ENABLE_SPARK_VIDEO
+
+  rtObjectRef sparkGlCapabilities = new rtMapObject;
+  sparkGlCapabilities.set("nativedrawing", 1);
+  rtValue enableSparkGlNativeDrawing;
+  char const* sparkGlNativeDrawingEnv = getenv("SPARK_ENABLE_SPARKGL_NATIVE_DRAWING");
+  if (sparkGlNativeDrawingEnv && (strcmp(sparkGlNativeDrawingEnv,"0") == 0))
+  {
+    rtLogWarn("disabling SparkGL native rendering capability");
+    sparkGlCapabilities.set("nativedrawing", 0);
+  }
+  else if (RT_OK == rtSettings::instance()->value("enableSparkGlNativeDrawing", enableSparkGlNativeDrawing))
+  {
+    if (enableSparkGlNativeDrawing.toString().compare("false") == 0)
+    {
+      //disable SparkGL native drawing support if setting disables it
+      rtLogWarn("disabling SparkGL native rendering");
+      sparkGlCapabilities.set("nativedrawing", 0);
+    }
+  }
+  sparkGlCapabilities.set("supports1080", 1);
+  sparkGlCapabilities.set("animatedImages", 1);
+  sparkGlCapabilities.set("optimus", 2);
+  sparkGlCapabilities.set("bootstrap", 2);
+  mCapabilityVersions.set("sparkgl", sparkGlCapabilities);
 
   //////////////////////////////////////////////////////
 }
@@ -1062,6 +1115,41 @@ rtError pxScene2d::textureMemoryUsage(rtValue &v)
   return RT_OK;
 }
 
+rtError pxScene2d::thunderToken(rtValue &v)
+{
+#ifdef ENABLE_SPARK_THUNDER
+  v.setString("");
+  unsigned char tokenBuffer[MAX_TOKEN_BUFFER_LENGTH];
+  memset(tokenBuffer, 0, MAX_TOKEN_BUFFER_LENGTH);
+  rtString appUrl = mScriptView != NULL ? mScriptView->getUrl() : "";
+  if (!appUrl.isEmpty())
+  {
+    appUrl = rtUrlGetOrigin(appUrl.cString());
+  }
+  rtString params = "{\"url\":\"" + appUrl;
+  params += "\"}";
+  size_t paramsLength = (size_t)params.length();
+  if(!memcpy(tokenBuffer,params.cString(),paramsLength))
+  {
+    rtLogError("unable to copy url buffer for token");
+    return RT_FAIL;
+  }
+  rtLogInfo("thunder request: %s length: %d", (char*)tokenBuffer, (int)paramsLength);
+  int result = GetToken(MAX_TOKEN_BUFFER_LENGTH, paramsLength, tokenBuffer);
+  if (result < 0)
+  {
+    rtLogError("unable to get token for app");
+    return RT_FAIL;
+  }
+  rtString tokenString = tokenBuffer;
+  v.setString(tokenString);
+  return RT_OK;
+#else
+  rtLogWarn("thunder support is not available");
+  return RT_FAIL;
+#endif //ENABLE_SPARK_THUNDER
+}
+
 rtError pxScene2d::clock(double & time)
 {
   time = pxMilliseconds();
@@ -1076,6 +1164,36 @@ rtError pxScene2d::createExternal(rtObjectRef p, rtObjectRef& o)
   c->setView(mTestView);
   o = c.getPtr();
   o.set(p);
+  // Add a text label of the app type which would be displayed if extnerals was enabled
+  rtObjectRef text = new pxText(this);
+  rtObjectRef textProps = new rtMapObject;
+  rtString externalLabel = "App: ";
+  rtValue appName;
+  p->Get("cmd", &appName);
+  if (appName.toString().isEmpty())
+  {
+    p->Get("server", &appName);
+    if (!appName.toString().isEmpty())
+    {
+      externalLabel.append("Web App");
+    }
+    else
+    {
+      externalLabel.append("Unknown Type");
+    }
+  }
+  else
+  {
+    externalLabel.append(appName.toString());
+  }
+  textProps.set("text", externalLabel);
+  textProps.set("pixelSize", 22);
+  textProps.set("y", 10);
+  textProps.set("x", 10);
+  textProps.set("textColor", 0x000000ff);
+  text.set(textProps);
+  rtValue value(c);
+  text->Set("parent", &value);
   o.send("init");
   return RT_OK;
 #else
@@ -1311,6 +1429,10 @@ void pxScene2d::enableOptimizedUpdate(bool enable)
 
 void pxScene2d::onUpdate(double t)
 {
+  if (mDisposed)
+  {
+    return;
+  }
   #ifdef ENABLE_RT_NODE
   if (mTop)
   {
@@ -2021,7 +2143,7 @@ bool pxScene2d::onMouseMove(int32_t x, int32_t y)
   pt.x = x; pt.y = y;
   rtRef<pxObject> hit;
 
-  if (mRoot->hitTestInternal(m, pt, hit))
+  if (mRoot && (mRoot->hitTestInternal(m, pt, hit)))
   {
     rtString id = hit->get<rtString>("id");
     rtLogDebug("found object id: %s\n", id.isEmpty()?"none":id.cString());
@@ -2729,6 +2851,7 @@ rtDefineMethod(pxScene2d, suspend);
 rtDefineMethod(pxScene2d, resume);
 rtDefineMethod(pxScene2d, suspended);
 rtDefineMethod(pxScene2d, textureMemoryUsage);
+rtDefineMethod(pxScene2d, thunderToken);
 //rtDefineMethod(pxScene2d, createWayland);
 rtDefineMethod(pxScene2d, addListener);
 rtDefineMethod(pxScene2d, delListener);
@@ -3263,8 +3386,16 @@ void pxScriptView::runScript()
 
       // JRJR TODO initially with zero mWidth/mHeight until onSize event
       // defer to onSize once events have been ironed out
+      int width = 1280;
+      int height = 720;
+      if (mUrl.find(0, "enableSparkGL1080") >= 0)
+      {
+        rtLogInfo("enabling 1080 SparkGL app");
+        width = 1920;
+        height = 1080;
+      }
       mSharedContext->makeCurrent(true);
-      cached = context.createFramebuffer(1280,720,false,false,true);
+      cached = context.createFramebuffer(width,height,false,false,true);
       mSharedContext->makeCurrent(false);
 
       beginDrawing();
@@ -3273,8 +3404,10 @@ void pxScriptView::runScript()
       // compile initGL.js
       if (mSparkGlInitApp.isEmpty())
       {
+        rtString s = getenv("SPARK_PATH");
+        s.append("initApp.js");
         rtData initData;
-        rtError e = rtLoadFile("initApp.js", initData);
+        rtError e = rtLoadFile(s.cString(), initData);
         if(e != RT_OK)
         {
           rtLogError("Failed to load - 'initApp.js' ");
@@ -3670,9 +3803,8 @@ rtError pxScriptView::getScene(int numArgs, const rtValue* args, rtValue* result
       // JR Todo can specify what scene version/type to create in args
       if (!v->mScene)
       {
-        static bool top = true;
-        pxScene2dRef scene = new pxScene2d(top, v);
-        top = false;
+        pxScene2dRef scene = new pxScene2d(topSparkView, v);
+        topSparkView = false;
         v->mView = scene;
         v->mScene = scene;
 

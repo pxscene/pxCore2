@@ -30,6 +30,8 @@
 #include "pxText.h"
 #include "pxTextBox.h"
 #include "pxImage.h"
+#include "pxContext.h"
+#include "pxWebGL.h"
 
 #include "pxShaderResource.h"
 
@@ -933,6 +935,55 @@ void pxObject::update(double t, bool updateChildren)
   sendPromise();
 }
 
+rtError pxObject::paint(float x, float y, uint32_t /*color*/, bool translateOnly)
+{
+    context.pushState();
+    pxMatrix4f m;
+    if (translateOnly)
+    {
+      m.translate(mx+x, my+y);
+    }
+    else
+    {
+      float tempX = mx;
+      float tempY = my;
+      mx += x;
+      my += y;
+      applyMatrix(m);
+      mx = tempX;
+      my = tempY;
+    }
+    context.setMatrix(m);
+    context.setAlpha(ma);
+
+    //ensure the viewport and size are correctly set
+    int w = 0, h = 0;
+    context.getSize(w, h);
+    context.setSize(w, h);
+
+    if (mClip)
+    {
+      if (mRepaint)
+      {
+        createSnapshot(mClipSnapshotRef);
+        context.setMatrix(m);
+        context.setAlpha(ma);
+      }
+
+      if (mClipSnapshotRef.getPtr() != NULL)
+      {
+        static pxTextureRef nullMaskRef;
+        context.drawImage(0, 0, w, h, mClipSnapshotRef->getTexture(), nullMaskRef);
+      }
+    }
+    else
+    {
+      draw();
+    }
+    context.popState();
+    return RT_OK;
+}
+
 void pxObject::releaseData(bool sceneSuspended)
 {
   clearSnapshot(mClipSnapshotRef);
@@ -1783,7 +1834,7 @@ void pxObject::drawEffect(pxContextFramebufferRef &flattenFbo)
   // Always need Scratch buffer...
   pxContextFramebufferRef effectFbo = context.createFramebuffer(mw, mh);
   
-  float clr[] = {0.0, 0.0, 0.0, 1.0};
+  float clr[] = {0.0, 0.0, 0.0, 0.0};
   
   context.setFramebuffer(effectFbo);
   context.clear(static_cast<int>(mw), static_cast<int>(mh), &clr[0]);
@@ -1953,3 +2004,4 @@ rtDefineMethod(pxObject, delListener);
 //rtDefineProperty(pxObject, emit);
 //rtDefineProperty(pxObject, onReady);
 rtDefineMethod(pxObject, getObjectById);
+rtDefineMethod(pxObject, paint);

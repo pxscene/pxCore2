@@ -572,7 +572,7 @@ px.import({ scene:   'px:scene.1.js',
 
     if( keys.is_CTRL_ALT( e.flags ) ) // CTRL-ALT keys !!
     {
-      switch(code)
+      switch(e.keyCode)
       {
         // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         case keys.LEFT:   //  CTRL-ALT-LEFT

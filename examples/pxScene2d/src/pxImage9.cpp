@@ -49,6 +49,11 @@ void pxImage9::onInit()
   {
     setUrl("");
   }
+  // send resolve when resource got ready before init
+  if ((mParent == NULL) && (mReceivedReadyBeforeInit == true)) {
+    mReady.send("resolve",this);
+    mReceivedReadyBeforeInit = false;
+  }
 }
 
 rtError pxImage9::url(rtString& s) const 
@@ -139,14 +144,22 @@ rtError pxImage9::setResource(rtObjectRef o)
 void pxImage9::sendPromise() 
 { 
   //rtLogDebug("image9 init=%d imageLoaded=%d\n",mInitialized,imageLoaded);
-  if(mInitialized && imageLoaded && !((rtPromise*)mReady.getPtr())->status())
+  if(imageLoaded && !((rtPromise*)mReady.getPtr())->status())
   {
     if (getImageResource() != NULL)
     {
       rtLogDebug("pxImage9 SENDPROMISE for %s\n", getImageResource()->getUrl().cString());
     }
-    mReady.send("resolve",this);
-
+    if (mInitialized)
+    {
+      mReady.send("resolve",this); 
+      mReceivedReadyBeforeInit = false;
+    }
+    else
+    {
+      // Received a case where image is loaded before init is done
+      mReceivedReadyBeforeInit = true;
+    }
   }
 }
 

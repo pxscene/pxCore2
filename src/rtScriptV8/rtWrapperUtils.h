@@ -159,7 +159,7 @@ inline int toInt32(const v8::FunctionCallbackInfo<v8::Value>& args, int which, i
     v8::Local<v8::Context> ctx = args.This()->CreationContext();
     v8::Maybe<int64_t> val = args[which]->IntegerValue(ctx);
     if (val.IsNothing()) return i;
-    i = val.FromJust();
+    i = (int) val.FromJust();
   }
   return i;
 }

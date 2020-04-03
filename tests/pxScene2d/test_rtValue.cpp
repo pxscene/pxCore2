@@ -22,6 +22,7 @@ limitations under the License.
 #define protected public
 
 #include "rtValue.h"
+#include "rtObject.h"
 #include <string.h>
 
 #include "test_includes.h" // Needs to be included last
@@ -745,6 +746,67 @@ class rtValueTest : public testing::Test
         // rtValue voidPtrVal(voidPtr v);
       }
 
+  void moveTest()
+  {
+    const char* str = "123";
+
+    rtValue v1(str), v2;
+
+    // copy assign
+    v2 = v1;
+    EXPECT_TRUE(v1.toString() == str);
+    EXPECT_TRUE(v2.toString() == str);
+
+    // move-assign from xvalue
+    v2 = std::move(v1);
+    EXPECT_TRUE(v1.toString().isEmpty());
+    EXPECT_TRUE(v2.toString() == str);
+
+    // move-assign from rvalue temporary
+    auto obj = new rtMapObject;
+    rtObjectRef ref = obj;
+    v2 = rtValue(ref);
+    EXPECT_TRUE(ref.getPtr() == obj);
+    EXPECT_TRUE(v2.toObject().getPtr() == obj);
+    EXPECT_EQ(3u, obj->AddRef());
+    EXPECT_EQ(2u, obj->Release());
+
+    // move-assign from xvalue
+    v1 = std::move(v2);
+    EXPECT_TRUE(v2.toObject().getPtr() == NULL);
+    EXPECT_TRUE(v1.toObject().getPtr() == obj);
+    EXPECT_EQ(3u, obj->AddRef());
+    EXPECT_EQ(2u, obj->Release());
+    v2 = std::move(v1);
+    EXPECT_TRUE(v1.toObject().getPtr() == NULL);
+    EXPECT_TRUE(v2.toObject().getPtr() == obj);
+    EXPECT_EQ(3u, obj->AddRef());
+    EXPECT_EQ(2u, obj->Release());
+
+    // copy constructor
+    const rtValue v3(v2);
+    rtValue v4;
+
+    // copy assignment
+    v4 = std::move(v3);
+    EXPECT_TRUE(v2.toObject().getPtr() == obj);
+    EXPECT_TRUE(v3.toObject().getPtr() == obj);
+    EXPECT_TRUE(v4.toObject().getPtr() == obj);
+    EXPECT_EQ(5u, obj->AddRef());
+    EXPECT_EQ(4u, obj->Release());
+
+    // move-assign
+    v4 = std::move(v2);
+    EXPECT_TRUE(v2.toObject().getPtr() == NULL);
+    EXPECT_TRUE(v4.toObject().getPtr() == obj);
+    EXPECT_EQ(4u, obj->AddRef());
+    EXPECT_EQ(3u, obj->Release());
+
+    // move constructor
+    auto v5 = rtValue(rtValue(str));
+    EXPECT_TRUE(v5.toString() == str);
+  }
+
     private:
       rtValue    boolVal;
       rtValue    int8Val;
@@ -796,5 +858,7 @@ TEST_F(rtValueTest, rtValueTests)
   testStringType();
   
   compareTest();
+
+  moveTest();
 }
 

@@ -20,6 +20,7 @@
 
 #include <iostream>
 #include <string>
+#include <functional>
 #include "pxVideo.h"
 
 using namespace std::placeholders;
@@ -63,8 +64,8 @@ void pxVideo::termPlayerLoop()
 	if(mAampMainLoop)
 	{
 		g_main_loop_quit(mAampMainLoop);
-		mAampMainLoop = nullptr;
 		g_thread_join(mAampMainLoopThread);
+ 		mAampMainLoop = nullptr;
 		mAampMainLoopThread = nullptr;
 		//gst_deinit(); gst_deinit should not be called on every pxVideo object destruction.
 		// This is because after call to gst_deinit, you can not use gstreamer at all.
@@ -86,6 +87,7 @@ pxVideo::pxVideo(pxScene2d* scene):pxObject(scene)
 , mUrl("")
 , mYuvBuffer({nullptr, 0, 0, 0})
 , mPlaybackInitialized(false)
+, mProxy()
 {
 	initPlayerLoop();
 }
@@ -126,6 +128,10 @@ void pxVideo::initPlayback()
 	#endif
 				);
 		assert (nullptr != mAamp);
+                if (mProxy.length() > 0)
+                {
+                  mAamp->SetNetworkProxy(mProxy.cString());
+                }
 
 		registerAampEventsListeners();
 
@@ -266,6 +272,7 @@ void pxVideo::draw()
 			pxTextureRef videoFrame = context.createTexture(mOffscreen);
 			context.drawImage(0, 0, mw, mh,  videoFrame, nullMaskRef, false, NULL, pxConstantsStretch::STRETCH, pxConstantsStretch::STRETCH);
 			free(yuvBuffer.buffer);
+                        mOffscreen.setBase(NULL);
 			free(buffer_convert);
 		}
   }
@@ -516,6 +523,19 @@ rtError pxVideo::setUrl(const char* url)
 	return RT_OK;
 }
 
+rtError pxVideo::proxy(rtString& proxy) const
+{
+	proxy = mProxy;
+	return RT_OK;
+}
+
+rtError pxVideo::setProxy(const char* proxy)
+{
+  mProxy = rtString(proxy);
+
+  return RT_OK;
+}
+
 rtError pxVideo::tsbEnabled(bool& /*v*/) const
 {
   //TODO
@@ -730,6 +750,26 @@ private:
 	rtEmitRef mEmit;
 };
 
+class PlayerStateChangeListener : public AAMPEventListener
+{
+public:
+
+	PlayerStateChangeListener(rtEmitRef& rtEmit) : mEmit(rtEmit) {}
+	~PlayerStateChangeListener() = default;
+
+	void Event(const AAMPEvent& event) override
+	{
+		assert(AAMP_EVENT_STATE_CHANGED == event.type);
+		rtObjectRef e = new rtMapObject;
+                e.set("state",event.data.stateChanged.state);
+		mEmit.send("onPlayerStateChanged", e);
+	}
+
+private:
+
+	rtEmitRef mEmit;
+};
+
 void pxVideo::registerAampEventsListeners()
 {
 	if (mAamp)
@@ -738,6 +778,7 @@ void pxVideo::registerAampEventsListeners()
 		addAampEventListener(AAMPEventType::AAMP_EVENT_SPEEDS_CHANGED, std::make_unique<SpeedsChangeListener>(mPlaybackMetadata));
 		addAampEventListener(AAMPEventType::AAMP_EVENT_PROGRESS,       std::make_unique<PlaybackProgressListener>(this->mEmit));
 		addAampEventListener(AAMPEventType::AAMP_EVENT_EOS,            std::make_unique<PlaybackEndOfStreamListener>(this->mEmit));
+		addAampEventListener(AAMPEventType::AAMP_EVENT_STATE_CHANGED,  std::make_unique<PlayerStateChangeListener>(this->mEmit));
 	}
 }
 
@@ -789,6 +830,7 @@ rtDefineProperty(pxVideo, url);
 rtDefineProperty(pxVideo, tsbEnabled);
 rtDefineProperty(pxVideo, closedCaptionsEnabled);
 rtDefineProperty(pxVideo, autoPlay);
+rtDefineProperty(pxVideo, proxy);
 rtDefineMethod(pxVideo, play);
 rtDefineMethod(pxVideo, pause);
 rtDefineMethod(pxVideo, stop);

@@ -89,6 +89,7 @@ static uv_work_t nodeLoopReq;
 
 #include <stdlib.h>
 #include <fstream>
+#include "pxWindowUtil.h"
 
 pxEventLoop  eventLoop;
 pxEventLoop* gLoop = &eventLoop;
@@ -592,6 +593,7 @@ namespace OptimusClient
 
 int pxMain(int argc, char* argv[])
 {
+  mapNativeKeyCodes();
 #ifdef HAS_LINUX_BREAKPAD
   google_breakpad::MinidumpDescriptor descriptor("/tmp");
   google_breakpad::ExceptionHandler eh(descriptor, NULL, dumpCallback, NULL, true, -1);

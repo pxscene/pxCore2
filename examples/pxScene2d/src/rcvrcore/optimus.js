@@ -22,11 +22,15 @@ limitations under the License.
 var applicationsArray = [];
 var availableApplicationsArray = [];
 var eventListenerHash = {};
+var html5_suspend_whitelist = [];
+var html5_suspend_delay_seconds = 5;
 
 var scene;
 var root;
 var appManager = new Optimus();
 module.exports = appManager;
+
+var node_url = require('url');
 
 var ApplicationType = Object.freeze({
   SPARK:"SPARK",
@@ -84,11 +88,12 @@ function Application(props) {
   var _uiReadyReject = function(){};
   var _urlChangeResolve = function(){};
   var _urlChangeReject = function(){};
-  
+  this._metaData = {}
+
   // Getters/setters
   var _externalAppPropsReadWrite = {
     x:"x",y:"y",w:"w",h:"h",cx:"cx",cy:"cy",sx:"sx",sy:"sy",r:"r",a:"a",
-    interactive:"interactive",painting:"painting",clip:"clip",mask:"mask",draw:"draw",hasApi:"hasApi", url:"url"
+    interactive:"interactive",painting:"painting",clip:"clip",mask:"mask",draw:"draw",hasApi:"hasApi", url:"url", displayName:"displayName"
   };
   var _externalAppPropsReadonly = {
     pid:"clientPID" // integer process id associated with the application
@@ -131,6 +136,10 @@ function Application(props) {
     Object.defineProperty(_this, key, {
       get: function() { return _externalApp[_externalAppPropsReadonly[key]]; }
     });
+  });
+
+  Object.defineProperty(_this, "metaData", {
+      get: function() { return _metaData; }
   });
 
   this.readyBase = new Promise(function (resolve, reject) {
@@ -196,6 +205,11 @@ function Application(props) {
   var _externalApp;
   var _browser;
   var _state = ApplicationState.RUNNING;
+  var displayName;
+  var userAgent = null;
+  var localStorage = false;
+  var appParent = null;
+  var suspendDelayTimeout = null;
 
   // Internal function needed for suspend
   var do_suspend_internal = function(o)
@@ -211,8 +225,33 @@ function Application(props) {
     }
     if (_this.type === ApplicationType.WEB){
       if (_browser !== undefined && _browser.suspend){
-         _this.log("Suspending Web app");
-        _browser.suspend();
+        _this.log("Suspending Web app");
+         
+        if (_this.urlDelaysSuspend(_this.api().url) && html5_suspend_delay_seconds >= 1)
+        {
+          _this.log("delaying suspend and setting visibility to hidden");
+          _this.api().visibility = 'hidden';
+          
+          if(suspendDelayTimeout != null)
+          {
+            _this.log("WARNING! suspendDelayTimeout already set, canceling and restarting anew");
+            clearTimeout(suspendDelayTimeout);
+            suspendDelayTimeout = null;
+          }
+          
+          suspendDelayTimeout = setTimeout(function ()
+          {
+              _this.log("doing delayed suspend now");
+              _browser.suspend();
+              suspendDelayTimeout = null;
+          }, html5_suspend_delay_seconds * 1000);
+        }
+        else
+        {
+          _this.log("suspending immediately");
+          _browser.suspend();
+        }
+        
         _state = ApplicationState.SUSPENDED;
         _this.applicationSuspended();
         return true;
@@ -319,7 +358,15 @@ function Application(props) {
     }
     if (this.type === ApplicationType.WEB){
       if (_browser !== undefined && _browser.resume){
-         this.log("Resuming Web app");
+        this.log("Resuming Web app");
+         
+        if(suspendDelayTimeout != null)
+        {
+          _this.log("suspendDelayTimeout set, canceling");
+          clearTimeout(suspendDelayTimeout);
+          suspendDelayTimeout = null;
+        }
+         
         _browser.resume();
         _state = ApplicationState.RUNNING;
         this.applicationResumed();
@@ -365,6 +412,14 @@ function Application(props) {
     }
     try {
       this.log("about to destroy");
+      
+      if(suspendDelayTimeout != null)
+      {
+        _this.log("suspendDelayTimeout set, canceling");
+        clearTimeout(suspendDelayTimeout);
+        suspendDelayTimeout = null;
+      }
+      
       if (_externalApp.destroy) {
         ret = _externalApp.destroy();
       } else if (this.type === ApplicationType.SPARK && _externalApp.api && _externalApp.api.destroy) {
@@ -411,10 +466,39 @@ function Application(props) {
       _externalApp.moveBackward();
     }
   };
-  // Sets the input focus to this application
-  this.setFocus = function() {
+  // Sets the parent
+  this.setParent = function(p) {
     if (_externalApp){
-      _externalApp.focus = true;
+      _externalApp.parent = p;
+    }
+  };
+  // Check if a link would have a delayed suspend
+  this.urlDelaysSuspend = function(url_val)
+  {
+    var parsedURL = node_url.parse(url_val);
+    var url_hostname = parsedURL.hostname;
+    
+    for(var i=0;i<html5_suspend_whitelist.length;i++)
+      if (url_hostname.toLowerCase().indexOf(html5_suspend_whitelist[i]) != -1)
+        return true;
+      
+    return false;
+  };
+  // takes a screenshot of the application
+  this.screenshot = function(mimeType) {
+    if (_externalApp && _externalApp.screenshot && typeof _externalApp.screenshot === "function"){
+      return _externalApp.screenshot(mimeType);
+    }
+    return null;
+  };
+  // Sets the input focus to this application
+  this.setFocus = function(b) {
+    if (_externalApp){
+      if (typeof b === 'boolean') {
+        _externalApp.focus = b;
+      } else {
+        _externalApp.focus = true;
+      }
     }
   };
   // Returns true if this application currently has focus, false if it does not
@@ -483,6 +567,16 @@ function Application(props) {
   this.state = function () {
     return _state;
   };
+  this.paint = function(x, y, color, translateOnly) {
+    if (_externalApp){
+      return _externalApp.paint(x, y, color, translateOnly);
+    }
+  };
+  this.description = function() {
+    if (_externalApp){
+      return _externalApp.description();
+    }
+  };
 
   // Constructor
   if ("launchParams" in props){
@@ -503,6 +597,20 @@ function Application(props) {
   if ("hasApi" in props){
     hasApi = props.hasApi;
   }
+  if ("metaData" in props){
+    _metaData = props.metaData;
+  }
+  if ("userAgent" in props){
+    userAgent = props.userAgent;
+  }
+  if ("localStorage" in props){
+    localStorage = props.localStorage;
+  }
+  if ("parent" in props){
+    appParent = props.parent;
+  } else {
+    appParent = root;
+  }
   if (cmd === "wpe" && uri){
     cmd = cmd + " " + uri;
   }
@@ -511,6 +619,9 @@ function Application(props) {
   }
   if ("expectedMemoryUsage" in props) {
     this.expectedMemoryUsage = props.expectedMemoryUsage;
+  }
+  if ("displayName" in props) {
+    displayName = props.displayName;
   }
 
   this.log("cmd:",cmd,"uri:",uri,"w:",w,"h:",h,"hasApi:",hasApi);
@@ -523,7 +634,7 @@ function Application(props) {
       _this.applicationClosed();
     });
   }
-  else if (!scene) {
+  else if (!scene && !appParent) {
     this.log('cannot create app because the scene is not set');
     _readyBaseReject(new Error('scene is not set'));
     _uiReadyReject();
@@ -541,7 +652,7 @@ function Application(props) {
   }
   else if (cmd === "spark"){
     this.type = ApplicationType.SPARK;
-    _externalApp = scene.create({t:"scene", parent:root, url:uri, serviceContext:serviceContext});
+    _externalApp = scene.create({t:"scene", parent:appParent, url:uri, serviceContext:serviceContext});
     _externalApp.on("onReady", function () { _this.log("onReady"); }); // is never called
     _externalApp.on("onClientStarted", function () { _this.log("onClientStarted"); }); // is never called
     _externalApp.on("onClientConnected", function () { _this.log("onClientConnected"); }); // is never called
@@ -579,7 +690,7 @@ function Application(props) {
     if (uri === ""){
       uri = "preloadSparkInstance.js";
     }
-    _externalApp = scene.create( {t:"external", parent:root, cmd:"spark " + uri, w:w, h:h, hasApi:true} );
+    _externalApp = scene.create( {t:"external", parent:appParent, cmd:"spark " + uri, w:w, h:h, hasApi:true} );
     _externalApp.on("onReady", function () { _this.log("onReady"); }); // is never called
     _externalApp.on("onClientStarted", function () { _this.log("onClientStarted"); });
     _externalApp.on("onClientConnected", function () { _this.log("onClientConnected"); });
@@ -622,7 +733,7 @@ function Application(props) {
   }
   else if (cmd === "WebApp"){
     this.type = ApplicationType.WEB;
-    _externalApp = scene.create( {t:"external", parent:root, server:"wl-rdkbrowser2-server", w:w, h:h, hasApi:true} );
+    _externalApp = scene.create( {t:"external", parent:appParent, server:"wl-rdkbrowser2-server", w:w, h:h, hasApi:true} );
     _externalApp.on("onReady", function () { _this.log("onReady"); });
     _externalApp.on("onClientStarted", function () { _this.log("onClientStarted"); });
     _externalApp.on("onClientConnected", function () { _this.log("onClientConnected"); });
@@ -653,7 +764,13 @@ function Application(props) {
           }
           
           _browser.on("onHTMLDocumentLoaded",handleOnHTMLDocumentLoadedEvent);
-          
+          if (userAgent){
+            _browser.userAgent = userAgent;
+          }
+          if (localStorage){
+            _browser.localStorageEnabled = localStorage;
+          }
+
           _browser.url = uri;
           _this.log("launched WebApp uri:" + uri);
           _this.applicationCreated();
@@ -681,7 +798,7 @@ function Application(props) {
   }
   else{
     this.type = ApplicationType.NATIVE;
-    _externalApp = scene.create( {t:"external", parent:root, cmd:cmd, w:w, h:h, hasApi:hasApi} );
+    _externalApp = scene.create( {t:"external", parent:appParent, cmd:cmd, w:w, h:h, hasApi:hasApi, displayName:displayName} );
     _externalApp.on("onReady", function () { _this.log("onReady"); }); // is never called
     _externalApp.on("onClientStarted", function () { _this.log("onClientStarted"); });
     _externalApp.on("onClientConnected", function () { _this.log("onClientConnected"); });
@@ -896,11 +1013,17 @@ function Optimus() {
   };
   this.setScene = function(s){
     scene = s;
-    root = scene.root;
-    availableApplicationsArray.splice(0,availableApplicationsArray.length);
-    var availableApps = scene.getAvailableApplications();
-    if (availableApps.length > 0) {
-      availableApplicationsArray = JSON.parse(availableApps);
+    // remove reference to scene by passing null
+    if (null != s) {
+      root = scene.root;
+      availableApplicationsArray.splice(0,availableApplicationsArray.length);
+      var availableApps = scene.getAvailableApplications();
+      if (availableApps.length > 0) {
+        availableApplicationsArray = JSON.parse(availableApps);
+      }
+    }
+    else {
+      root = null;
     }
   };
   this.getExpectedMemoryUsage = function(props){
@@ -933,4 +1056,72 @@ function Optimus() {
     
     return i.toString();
   };
+ 
+  function loadHTML5SuspendWhitelist()
+  {
+    //OPTIMUS_HTML5_DELAY_SUSPEND_FILE not set?
+    if(typeof(process.env.OPTIMUS_HTML5_DELAY_SUSPEND_FILE) == "undefined")
+    {
+      console.log("OPTIMUS_HTML5_DELAY_SUSPEND_FILE undefined. Not loading HTML5 Delay Suspend Whitelist.");
+      return;
+    }
+
+    //set / read whitelist
+    try
+    {
+      html5_suspend_whitelist = require(process.env.OPTIMUS_HTML5_DELAY_SUSPEND_FILE);
+    }
+    catch(err)
+    {
+      console.log("loading html5_suspend_whitelist with '" + process.env.OPTIMUS_HTML5_DELAY_SUSPEND_FILE + "' failed with error '" + err.message + "'");
+    }
+    
+    //set delay in seconds
+    {
+      var default_html5_suspend_delay_seconds = html5_suspend_delay_seconds;
+      
+      if(typeof(process.env.OPTIMUS_HTML5_DELAY_SUSPEND_SECONDS) == "number")
+        html5_suspend_delay_seconds = process.env.OPTIMUS_HTML5_DELAY_SUSPEND_SECONDS;
+      if(typeof(process.env.OPTIMUS_HTML5_DELAY_SUSPEND_SECONDS) == "string")
+        html5_suspend_delay_seconds = Number(process.env.OPTIMUS_HTML5_DELAY_SUSPEND_SECONDS);
+      else
+        console.log("OPTIMUS_HTML5_DELAY_SUSPEND_SECONDS is undefined. Will use default time of " + html5_suspend_delay_seconds);
+      
+      //check if nan
+      if(isNaN(html5_suspend_delay_seconds))
+      {
+        console.log("html5_suspend_whitelist_delay_in_seconds was NaN. Possibly bad OPTIMUS_HTML5_DELAY_SUSPEND_SECONDS string?");
+        html5_suspend_delay_seconds = default_html5_suspend_delay_seconds;
+      }
+
+      //disable suspend delay?
+      if(html5_suspend_delay_seconds < 1)
+      {
+        console.log("html5_suspend_whitelist_delay_in_seconds set to less than 1, disabling html5 delay suspend.");
+        html5_suspend_delay_seconds = 0;
+      }
+    }
+
+    console.log("html5_suspend_whitelist loaded:");
+    console.log(html5_suspend_whitelist);
+    console.log("html5_suspend_whitelist_delay_in_seconds: " + html5_suspend_delay_seconds);
+  }
+  
+  function checkLoadHTML5SuspendWhitelist()
+  {
+    if(process.env.OPTIMUS_HTML5_DELAY_SUSPEND === "true")
+    {
+      console.log("OPTIMUS_HTML5_DELAY_SUSPEND set to true. Loading HTML5 Delay Suspend Whitelist file.");
+      loadHTML5SuspendWhitelist();
+    }
+    else if(process.env.OPTIMUS_HTML5_DELAY_SUSPEND === "false")
+      console.log("OPTIMUS_HTML5_DELAY_SUSPEND set to false. Not loading HTML5 Delay Suspend Whitelist file.");
+    else if(typeof(process.env.OPTIMUS_HTML5_DELAY_SUSPEND) == "undefined")
+    {
+      console.log("OPTIMUS_HTML5_DELAY_SUSPEND undefined. Defaulting to loading HTML5 Delay Suspend Whitelist file.");
+      loadHTML5SuspendWhitelist();
+    }
+  }
+  
+  checkLoadHTML5SuspendWhitelist();
 }

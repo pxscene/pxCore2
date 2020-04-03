@@ -34,6 +34,7 @@ public:
   rtRef():                  mRef(NULL) {}
   rtRef(const T* p):        mRef(NULL) {asn(p);         }
   rtRef(const rtRef<T>& r): mRef(NULL) {asn(r.getPtr());}
+  rtRef(rtRef<T>&& r) noexcept: mRef(r.mRef) {r.mRef = nullptr;}
 
   virtual ~rtRef()                     {term();}
 
@@ -57,6 +58,13 @@ public:
 
   inline rtRef<T>& operator=(const T* p)                                  {asn(p);      return *this;}
   inline rtRef<T>& operator=(const rtRef<T>& r)                           {asn(r.mRef); return *this;}
+  inline rtRef<T>& operator=(rtRef<T>&& r) noexcept
+  {
+    term();
+    mRef = r.mRef;
+    r.mRef = nullptr;
+    return *this;
+  }
 
   inline friend bool operator==(const T* lhs,const rtRef<T>& rhs)         {return lhs==rhs.mRef;}
   inline friend bool operator==(const rtRef<T>& lhs,const T* rhs)         {return lhs.mRef==rhs;}
