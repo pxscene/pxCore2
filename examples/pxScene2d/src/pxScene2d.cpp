@@ -1164,6 +1164,36 @@ rtError pxScene2d::createExternal(rtObjectRef p, rtObjectRef& o)
   c->setView(mTestView);
   o = c.getPtr();
   o.set(p);
+  // Add a text label of the app type which would be displayed if extnerals was enabled
+  rtObjectRef text = new pxText(this);
+  rtObjectRef textProps = new rtMapObject;
+  rtString externalLabel = "App: ";
+  rtValue appName;
+  p->Get("cmd", &appName);
+  if (appName.toString().isEmpty())
+  {
+    p->Get("server", &appName);
+    if (!appName.toString().isEmpty())
+    {
+      externalLabel.append("Web App");
+    }
+    else
+    {
+      externalLabel.append("Unknown Type");
+    }
+  }
+  else
+  {
+    externalLabel.append(appName.toString());
+  }
+  textProps.set("text", externalLabel);
+  textProps.set("pixelSize", 22);
+  textProps.set("y", 10);
+  textProps.set("x", 10);
+  textProps.set("textColor", 0x000000ff);
+  text.set(textProps);
+  rtValue value(c);
+  text->Set("parent", &value);
   o.send("init");
   return RT_OK;
 #else
@@ -3374,8 +3404,10 @@ void pxScriptView::runScript()
       // compile initGL.js
       if (mSparkGlInitApp.isEmpty())
       {
+        rtString s = getenv("SPARK_PATH");
+        s.append("initApp.js");
         rtData initData;
-        rtError e = rtLoadFile("initApp.js", initData);
+        rtError e = rtLoadFile(s.cString(), initData);
         if(e != RT_OK)
         {
           rtLogError("Failed to load - 'initApp.js' ");
