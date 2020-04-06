@@ -26,7 +26,12 @@ function readFileSync(path) {
     return _readFileSync(path);
 }
 
+function existsSync(path) {
+    return _existsSync(path);
+}
+
 module.exports = {
     'readFile': readFile,
     'readFileSync': readFileSync,
+    'existsSync': existsSync,
 };

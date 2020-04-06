@@ -20,6 +20,7 @@
 #include "rtJSCMisc.h"
 #include "rtScriptJSCPrivate.h"
 #include "rtLog.h"
+#include "rtPathUtils.h"
 
 #include "pxTimer.h"
 
@@ -126,6 +127,7 @@ static bool resolveModulePath(const rtString &name, rtString &data, std::list<rt
   dirs.push_back(""); // this dir
   dirs.push_back("jsc_modules/");
   dirs.push_back("node_modules/");
+  dirs.push_back("v8_modules/");
 
   std::list<rtString>::const_iterator it, jt;
   for (it = extraDirs.begin(); it != extraDirs.end(); ++it) {
@@ -133,6 +135,16 @@ static bool resolveModulePath(const rtString &name, rtString &data, std::list<rt
   }
 
   endings.push_back(".js");
+  // not parsing package.json
+  endings.push_back("/index.js");
+  endings.push_back("/lib/index.js");
+  if (name.find(0, "/") == -1) {
+    if (name.endsWith(".js")) {
+      endings.push_back("/lib/" + name);
+    } else {
+      endings.push_back("/lib/" + name + ".js");
+    }
+  }
 
   for (it = dirs.begin(); !found && it != dirs.end(); ++it) {
     rtString s = *it;
@@ -154,7 +166,7 @@ static bool resolveModulePath(const rtString &name, rtString &data, std::list<rt
 
 static JSValueRef requireCallback(JSContextRef ctx, JSObjectRef, JSObjectRef thisObject, size_t argumentCount, const JSValueRef arguments[], JSValueRef *exception)
 {
-  if (argumentCount != 1)
+  if (argumentCount < 1)
       return JSValueMakeNull(ctx);
 
   do {
@@ -162,9 +174,19 @@ static JSValueRef requireCallback(JSContextRef ctx, JSObjectRef, JSObjectRef thi
     if (exception && *exception)
       break;
 
+    std::list<rtString> extraDirs;
+    if (argumentCount > 1) {
+      JSStringRef srcStr = JSValueToStringCopy(ctx, arguments[1], nullptr);
+      if (srcStr) {
+        rtString src = jsToRtString(srcStr);
+        JSStringRelease(srcStr);
+        extraDirs.push_back(rtResolveRelativePath("", src));
+      }
+    }
+
     rtString moduleName = jsToRtString(reqArgStr);
     rtString path;
-    if (!resolveModulePath(moduleName, path)) {
+    if (!resolveModulePath(moduleName, path, extraDirs)) {
       JSStringRelease(reqArgStr);
       rtLogError("Module '%s' not found", moduleName.cString());
       break;
@@ -191,10 +213,12 @@ static JSValueRef requireCallback(JSContextRef ctx, JSObjectRef, JSObjectRef thi
     }
 
     codeStr =
-        "(function(){ let m = {}; m.exports = {}; \n"
-        "  (function(module, exports){\n"
+        "(function(){ let m = {}; m.exports = {}; let r = x => require(x, '"
+        + std::string(path.cString()) +
+        "'); \n"
+        "  (function(module, exports, require){\n"
         + codeStr +
-        "  \n}).call(undefined, m, m.exports); return m;})()";
+        "  \n}).call(undefined, m, m.exports, r); return m;})()";
 
     JSStringRef jsstr = JSStringCreateWithUTF8CString(codeStr.c_str());
     JSValueRef module = JSEvaluateScript(globalCtx, jsstr, nullptr, reqArgStr, 0, exception);
@@ -626,6 +650,66 @@ static JSValueRef readFileSync(JSContextRef ctx, JSObjectRef, JSObjectRef, size_
   return result;
 }
 
+static JSValueRef existsSync(JSContextRef ctx, JSObjectRef, JSObjectRef, size_t argumentCount, const JSValueRef arguments[], JSValueRef *exception)
+{
+  if (argumentCount != 1)
+    return JSValueMakeUndefined(ctx);
+
+  JSValueRef result = nullptr;
+  do {
+    JSStringRef filePath = JSValueToStringCopy(ctx, arguments[0], exception);
+    if (exception && *exception)
+      break;
+
+    rtString path = jsToRtString(filePath);
+    JSStringRelease(filePath);
+
+    result = JSValueMakeBoolean(ctx, access(path.cString(), R_OK) == 0);
+  } while (0);
+
+  if (exception && *exception) {
+    printException(ctx, *exception);
+    return JSValueMakeUndefined(ctx);
+  }
+
+  return result;
+}
+
+static JSValueRef runInThisContext(JSContextRef ctx, JSObjectRef, JSObjectRef, size_t argumentCount, const JSValueRef arguments[], JSValueRef *exception)
+{
+  if (argumentCount < 1)
+    return JSValueMakeUndefined(ctx);
+
+  JSValueRef result = nullptr;
+  do {
+    JSGlobalContextRef sandboxCtx = JSContextGetGlobalContext(ctx);
+    JSObjectRef sandboxGlobalObj = JSContextGetGlobalObject(sandboxCtx);
+
+    if (!sandboxCtx) {
+      if (exception) {
+        static JSStringRef exceptionStr = JSStringCreateWithUTF8CString("No sandbox context");
+        *exception = JSValueMakeString(ctx, exceptionStr);
+      }
+      break;
+    }
+
+    // code
+    JSStringRef codeStr = JSValueToStringCopy(ctx, arguments[0], exception);
+    if (exception && *exception)
+      break;
+
+    result = JSEvaluateScript(sandboxCtx, codeStr, sandboxGlobalObj, nullptr, 0, exception);
+    JSStringRelease(codeStr);
+  } while (0);
+
+  if (exception && *exception) {
+    printException(ctx, *exception);
+    return JSValueMakeUndefined(ctx);
+  }
+
+  return result;
+}
+
 void injectBindings(JSContextRef jsContext)
 {
   auto injectFun =
@@ -649,6 +733,8 @@ void injectBindings(JSContextRef jsContext)
   injectFun(jsContext, "_createContext", createContext);
   injectFun(jsContext, "_resolveFilename", resolveFilename);
   injectFun(jsContext, "_readFileSync", readFileSync);
+  injectFun(jsContext, "_existsSync", existsSync);
+  injectFun(jsContext, "_runInThisContext", runInThisContext);
 
   markJSContext(jsContext, nullptr, nullptr);
 }

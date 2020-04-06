@@ -70,7 +70,7 @@ function error(type) {
  */
 function map(array, fn) {
 	const result = [];
-	length = array.length;
+	let length = array.length;
 	while (length--) {
 		result[length] = fn(array[length]);
 	}
@@ -89,7 +89,7 @@ function map(array, fn) {
  */
 function mapDomain(string, fn) {
 	const parts = string.split('@');
-	result = '';
+	let result = '';
 	if (parts.length > 1) {
 		// In email addresses, only the domain name should be punycoded. Leave
 		// the local part (i.e. everything up to `@`) intact.
@@ -118,7 +118,7 @@ function mapDomain(string, fn) {
  */
 function ucs2decode(string) {
 	const output = [];
-	counter = 0;
+	let counter = 0;
 	const length = string.length;
 	while (counter < length) {
 		const value = string.charCodeAt(counter++);
