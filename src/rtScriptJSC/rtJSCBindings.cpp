@@ -20,6 +20,7 @@
 #include "rtJSCMisc.h"
 #include "rtScriptJSCPrivate.h"
 #include "rtLog.h"
+#include "rtPathUtils.h"
 
 #include "pxTimer.h"
 
@@ -173,9 +174,19 @@ static JSValueRef requireCallback(JSContextRef ctx, JSObjectRef, JSObjectRef thi
     if (exception && *exception)
       break;
 
+    std::list<rtString> extraDirs;
+    if (argumentCount > 1) {
+      JSStringRef srcStr = JSValueToStringCopy(ctx, arguments[1], nullptr);
+      if (srcStr) {
+        rtString src = jsToRtString(srcStr);
+        JSStringRelease(srcStr);
+        extraDirs.push_back(rtResolveRelativePath("", src));
+      }
+    }
+
     rtString moduleName = jsToRtString(reqArgStr);
     rtString path;
-    if (!resolveModulePath(moduleName, path)) {
+    if (!resolveModulePath(moduleName, path, extraDirs)) {
       JSStringRelease(reqArgStr);
       rtLogError("Module '%s' not found", moduleName.cString());
       break;
@@ -202,10 +213,12 @@ static JSValueRef requireCallback(JSContextRef ctx, JSObjectRef, JSObjectRef thi
     }
 
     codeStr =
-        "(function(){ let m = {}; m.exports = {}; \n"
-        "  (function(module, exports){\n"
+        "(function(){ let m = {}; m.exports = {}; let r = x => require(x, '"
+        + std::string(path.cString()) +
+        "'); \n"
+        "  (function(module, exports, require){\n"
         + codeStr +
-        "  \n}).call(undefined, m, m.exports); return m;})()";
+        "  \n}).call(undefined, m, m.exports, r); return m;})()";
 
     JSStringRef jsstr = JSStringCreateWithUTF8CString(codeStr.c_str());
     JSValueRef module = JSEvaluateScript(globalCtx, jsstr, nullptr, reqArgStr, 0, exception);
