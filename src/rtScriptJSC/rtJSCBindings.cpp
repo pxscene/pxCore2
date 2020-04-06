@@ -165,7 +165,7 @@ static bool resolveModulePath(const rtString &name, rtString &data, std::list<rt
 
 static JSValueRef requireCallback(JSContextRef ctx, JSObjectRef, JSObjectRef thisObject, size_t argumentCount, const JSValueRef arguments[], JSValueRef *exception)
 {
-  if (argumentCount != 1)
+  if (argumentCount < 1)
       return JSValueMakeNull(ctx);
 
   do {
