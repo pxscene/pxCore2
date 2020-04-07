@@ -160,7 +160,7 @@ private:
 
   rtString    mFragmentUrl;
   rtData      mFragmentSrc;
-
+  rtMutex mShadersDownloadMutex;
 }; // CLASS - pxShaderResource
 
 //=====================================================================================================================================
