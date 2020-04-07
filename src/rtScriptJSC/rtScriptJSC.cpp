@@ -229,7 +229,6 @@ JSContextGroupRef globalContextGroup()
 }
 
 static JSGlobalContextRef gTopLevelContext = nullptr;
-static rtScriptRef gScriptRef = nullptr;
 
 }  // namespace
 
@@ -299,13 +298,12 @@ rtJSCContext::~rtJSCContext()
 
   if (gTopLevelContext == m_context)
   {
-    if (nullptr != gScriptRef) {
-      gScriptRef->collectGarbage();
+    if (gTopLevelContext != nullptr) {
+      JSSynchronousGarbageCollectForDebugging(gTopLevelContext);
     }
-    gScriptRef = nullptr;
     gTopLevelContext = nullptr;
   }
-
+  
 //  RtJSC::dispatchOnMainLoop([m_priv=m_priv,m_context=m_context,m_contextGroup=m_contextGroup] {
 //  static JSStringRef codeStr = JSStringCreateWithUTF8CString("console.clear(); delete global.console");
 //  JSEvaluateScript(m_context, codeStr, nullptr, nullptr, 0, nullptr);
@@ -509,6 +507,5 @@ rtError rtScriptJSC::createContext(const char *lang, rtScriptContextRef& ctx)
 rtError createScriptJSC(rtScriptRef& script)
 {
   script = new RtJSC::rtScriptJSC();
-  gScriptRef = script;
   return RT_OK;
 }
