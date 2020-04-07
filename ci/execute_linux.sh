@@ -119,6 +119,7 @@ fi
 
 grep "Failures:" $EXECLOGS
 grep "Successes:" $EXECLOGS
+grep -A 2000 "Results are" $EXECLOGS
 grep "calculating....." $EXECLOGS
 
 # Check for any testRunner failures
