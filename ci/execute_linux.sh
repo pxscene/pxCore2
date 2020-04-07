@@ -117,9 +117,6 @@ if [ "$retVal" -eq 0 ]
   exit 1;
 fi
 
-grep "Failures:" $EXECLOGS
-grep "Successes:" $EXECLOGS
-grep -A 700 "Results are" $EXECLOGS
 
 # Check for any testRunner failures
 grep "Failures: 0" $EXECLOGS
