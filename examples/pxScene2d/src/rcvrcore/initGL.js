@@ -292,8 +292,12 @@ function onSceneTerminate() {
   _clearSockets.bind(this)()
 
   // memory leak fix
-  delete this.sandbox.sparkwebgl.gl;
-  delete this.sandbox.sparkwebgl;
+  if (isJSC) {
+    // TODO: jsc context has own sandbox and 'global', not accessible here
+  } else {
+    delete this.sandbox.sparkwebgl.gl;
+    delete this.sandbox.sparkwebgl;
+  }
   // memory leak fix
   this.sandbox.sparkscene.api = null;
 
