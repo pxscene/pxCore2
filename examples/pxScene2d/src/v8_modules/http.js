@@ -26,5 +26,8 @@ module.exports = {
   },
   'request': function (url, cb) {
     return httpGet(url, cb);
-  }
+  },
+  'globalAgent': {
+    'sockets': []
+  },
 };
