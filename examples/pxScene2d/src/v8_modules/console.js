@@ -55,3 +55,8 @@ module.exports = {
     time:info,
     timeEnd: info,
 };
+
+// prefer built-in, if available
+if (typeof console !== 'undefined') {
+    module.exports = console
+}
