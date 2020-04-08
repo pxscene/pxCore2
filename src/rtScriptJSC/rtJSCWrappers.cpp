@@ -41,9 +41,10 @@ struct rtObjectWrapperPrivate
 static std::unordered_map<rtIObject*, rtJSCWeak> globalWrapperCache;
 static bool gEnableWrapperCache = true;
 static const char* kIsJSObjectWrapper = "833fba0e-31fd-11e9-b210-d663bd873d93";
-static const char* kPropLength = "length";
 
 static JSValueRef rtObjectWrapper_wrapPromise(JSContextRef context, rtObjectRef obj);
+static JSValueRef rtObjectWrapper_wrapArray(JSContextRef context, rtObjectRef obj);
+static JSValueRef rtObjectWrapper_wrapMap(JSContextRef context, rtObjectRef obj);
 static JSValueRef rtObjectWrapper_wrapObject(JSContextRef context, rtObjectRef obj);
 static JSValueRef rtFunctionWrapper_wrapFunction(JSContextRef context, rtFunctionRef func);
 
@@ -69,6 +70,16 @@ static bool isRtArray(const rtObjectRef& objRef)
   {
     rtMethodMap* methodMap = objRef.getPtr()->getMap();
     return methodMap && methodMap->className && ((strcmp(methodMap->className, "rtArrayObject") == 0) || (strcmp(methodMap->className, "pxObjectChildren") == 0));
+  }
+  return false;
+}
+
+static bool isRtMap(const rtObjectRef& objRef)
+{
+  if (objRef)
+  {
+    rtMethodMap* methodMap = objRef.getPtr()->getMap();
+    return methodMap && methodMap->className && strcmp(methodMap->className, "rtMapObject") == 0;
   }
   return false;
 }
@@ -462,49 +473,25 @@ static JSValueRef rtObjectWrapper_getProperty(JSContextRef context, JSObjectRef 
   if (RT_objectType == v.getType())
   {
     rtObjectRef o;
-    e = v.getObject(o);
-    if (e == RT_OK)
+    if (RT_OK == v.getObject(o) && isRtPromise(o))
     {
-      if (isRtPromise(o))
+      JSValueRef res = nullptr;
+      auto &cache = p->promiseCache[propName.cString()];
+      if (cache.first == o.getPtr())
       {
-        JSValueRef res = nullptr;
-        auto &cache = p->promiseCache[propName.cString()];
-        if (cache.first == o.getPtr())
-        {
-          res = cache.second.wrapped();
-        }
-        if (!res)
-        {
-          res = rtObjectWrapper_wrapPromise(JSContextGetGlobalContext(context), o);
-          if (JSValueIsObject(context, res)) {
-            cache.first = o.getPtr();
-            cache.second = rtJSCWeak(context, JSValueToObject(context, res, exception));
-          } else {
-            p->promiseCache.erase(propName.cString());
-          }
-        }
-        return res;
-      }    
-      else if (isRtArray(o))
+        res = cache.second.wrapped();
+      }
+      if (!res)
       {
-        rtValue length;
-        std::vector<JSValueRef> args;
-        if (o->Get(kPropLength, &length) != RT_PROP_NOT_FOUND)
-        {
-          const int n = length.toInt32();
-          for (int i = 0; i < n; ++i)
-          {
-            rtValue item;
-            if (o->Get(i, &item) == RT_OK)
-            {
-              args.push_back(rtToJs(context, item));
-            }
-          }
-          JSValueRef res = JSObjectMakeArray(context, n, args.data(), exception);
-          args.clear();
-          return res;
+        res = rtObjectWrapper_wrapPromise(JSContextGetGlobalContext(context), o);
+        if (JSValueIsObject(context, res)) {
+          cache.first = o.getPtr();
+          cache.second = rtJSCWeak(context, JSValueToObject(context, res, exception));
+        } else {
+          p->promiseCache.erase(propName.cString());
         }
       }
+      return res;
     }
   }
 
@@ -695,6 +682,56 @@ static JSValueRef rtObjectWrapper_wrapPromise(JSContextRef context, rtObjectRef 
   return promiseVal;
 }
 
+static JSValueRef rtObjectWrapper_wrapArray(JSContextRef context, rtObjectRef obj)
+{
+  if (!obj)
+    return JSValueMakeNull(context);
+
+  assert(isRtArray(obj));
+
+  rtValue length;
+  obj->Get("length", &length);
+  uint32_t n = length.toUInt32();
+
+  std::vector<JSValueRef> args;
+  for (uint32_t i = 0; i < n; ++i) {
+    rtValue value;
+    obj->Get(i, &value);
+    args.push_back(rtToJs(context, value));
+  }
+
+  return JSObjectMakeArray(context, n, args.data(), nullptr);
+}
+
+static JSValueRef rtObjectWrapper_wrapMap(JSContextRef context, rtObjectRef obj)
+{
+  if (!obj)
+    return JSValueMakeNull(context);
+
+  assert(isRtMap(obj));
+
+  rtValue allKeys;
+  obj->Get("allKeys", &allKeys);
+  rtObjectRef arr = allKeys.toObject();
+  rtValue length;
+  arr->Get("length", &length);
+  uint32_t l = length.toUInt32();
+
+  JSObjectRef object = JSObjectMake(context, nullptr, nullptr);
+  for (uint32_t i = 0; i < l; ++i) {
+    rtValue key;
+    arr->Get(i, &key);
+    rtString str = key.toString();
+    rtValue value;
+    obj->Get(str.cString(), &value);
+
+    JSStringRef name = JSStringCreateWithUTF8CString(str.cString());
+    JSObjectSetProperty(context, object, name, rtToJs(context, value), kJSPropertyAttributeNone, nullptr);
+    JSStringRelease(name);
+  }
+  return object;
+}
+
 static JSValueRef rtObjectWrapper_wrapObject(JSContextRef context, rtObjectRef obj)
 {
   if (!obj)
@@ -702,6 +739,10 @@ static JSValueRef rtObjectWrapper_wrapObject(JSContextRef context, rtObjectRef o
 
   if (isRtPromise(obj))
     return rtObjectWrapper_wrapPromise(JSContextGetGlobalContext(context), obj);
+  if (isRtArray(obj))
+    return rtObjectWrapper_wrapArray(JSContextGetGlobalContext(context), obj);
+  if (isRtMap(obj))
+    return rtObjectWrapper_wrapMap(JSContextGetGlobalContext(context), obj);
 
   if (gEnableWrapperCache)
   {
