@@ -40,6 +40,33 @@ class Script {
   }
 }
 
+class SourceTextModule {
+  constructor(code, options) {
+    this.code = code;
+    this.options = options;
+    this.status = this.linkingStatus = 'unlinked';
+  }
+
+  link(linker) {
+    let self = this;
+    self.status = 'linking';
+    return Promise.resolve().then(() => self.status = self.linkingStatus = 'linked');
+  }
+
+  instantiate() {
+    this.namespace = {};
+  }
+
+  evaluate() {
+    let self = this;
+    self.status = 'evaluating';
+    return new Promise(resolve => {
+      _runInContext(self.code, self.options.context);
+      resolve();
+    }).then(() => self.status = 'evaluated');
+  }
+}
+
 function runInThisContext(...args) {
   return _runInThisContext(...args);
 }
@@ -50,4 +77,5 @@ module.exports = {
   createContext: createContext,
   Script: Script,
   runInThisContext: runInThisContext,
+  SourceTextModule: SourceTextModule,
 };
