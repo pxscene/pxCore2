@@ -2158,7 +2158,6 @@ void pxScene2d::updateMouseEntered()
   {
     return;
   }
-  
   #if 1
     pxMatrix4f m;
     pxPoint2f pt(static_cast<float>(mPointerX),static_cast<float>(mPointerY)), hitPt;
