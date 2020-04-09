@@ -58,7 +58,7 @@ printExecLogs()
 
 # Start testRunner ...
 sparkPlatform=$1
-if [ "$sparkPlatform" -eq "jsc" ]; then
+if [ "$sparkPlatform" = "jsc" ]; then
 export SPARK_USE_JSC=1
   echo "Running under JSC Platform"
 else
