@@ -16,8 +16,6 @@ limitations under the License.
 
 */
 
-const isJSC = typeof _isJSC !== "undefined";
-
 var vm = require('vm')
 var urlmain = require("url")
 var fs = require('fs')
@@ -446,27 +444,16 @@ function ESMLoader(params) {
               }, _version);
             }
           }
-          if (!isJSC) {
-            const source = await getFile(loadCtx.global.sparkscene, url);
-            loadCtx.app = await loadMjs(source, url, loadCtx.contextifiedSandbox, loadCtx.modmap);
-            loadCtx.app.instantiate();
-            instantiated = true;
-            loadCtx.succeeded = true;
-            loadCtx.makeReady(true, loadCtx.app.namespace);
-            loadCtx.global.beginDrawing();
-            await loadCtx.app.evaluate();
-            loadCtx.global.endDrawing();
-          } else {
-            instantiated = true;
-            loadCtx.succeeded = true;
-            loadCtx.global.beginDrawing();
-            await getModule(url, {
-              url:bootstrapUrl,
-              context:loadCtx.contextifiedSandbox
-            }, "");
-            loadCtx.global.endDrawing();
-            loadCtx.makeReady(true, {});
-          }
+          var source = await getFile(loadCtx.global.sparkscene, url);
+          loadCtx.app = await loadMjs(source, url, loadCtx.contextifiedSandbox, loadCtx.modmap);
+          source = null;
+          loadCtx.app.instantiate();
+          instantiated = true;
+          loadCtx.succeeded = true;
+          loadCtx.makeReady(true, loadCtx.app.namespace);
+          loadCtx.global.beginDrawing();
+          await loadCtx.app.evaluate();
+          loadCtx.global.endDrawing();
         } catch (err) {
           console.log("load mjs module failed ");
           console.log(err);
