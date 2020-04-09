@@ -973,6 +973,10 @@ rtError JSObjectWrapper::Get(uint32_t i, rtValue* value) const
     return RT_ERROR_INVALID_ARG;
   JSValueRef exc = nullptr;
   JSValueRef valueRef = JSObjectGetPropertyAtIndex(context(), wrapped(), i, &exc);
+  if (JSValueGetType(context(), valueRef) == kJSTypeUndefined)
+  {
+    return RT_PROPERTY_NOT_FOUND;
+  }
   if (exc) {
     printException(context(), exc);
     return RT_FAIL;
@@ -993,7 +997,8 @@ rtError JSObjectWrapper::Set(const char* name, const rtValue* value)
     return RT_FAIL;
   }
   if (!name || !value)
-    return RT_FAIL;
+    return RT_ERROR_INVALID_ARG;
+
   if (m_isArray)
     return RT_PROP_NOT_FOUND;
   JSValueRef valueRef = rtToJs(context(), *value);
@@ -1012,7 +1017,7 @@ rtError JSObjectWrapper::Set(uint32_t i, const rtValue* value)
 {
   RtJSC::assertIsMainThread();
   if (!value)
-    return RT_FAIL;
+    return RT_ERROR_INVALID_ARG;
   JSValueRef valueRef = rtToJs(context(), *value);
   JSValueRef exc = nullptr;
   JSObjectSetPropertyAtIndex(context(), wrapped(), i, valueRef, &exc);

@@ -53,6 +53,8 @@ export SPARK_PERMISSIONS_ENABLED=true
 ln -s ../../examples/pxScene2d/src/shell.js shell.js
 ln -s ../../examples/pxScene2d/src/init.js init.js
 ln -s ../../examples/pxScene2d/src/node_modules/ node_modules
+ln -s ../../examples/pxScene2d/src/jsc_modules/ jsc_modules
+ln -s ../../examples/pxScene2d/src/v8_modules/ v8_modules
 ln -s ../../examples/pxScene2d/src/rcvrcore/ rcvrcore
 ln -s ../../examples/pxScene2d/src/FreeSans.ttf FreeSans.ttf
 ln -s ../../examples/pxScene2d/src/package.json package.json
@@ -66,6 +68,8 @@ ${DBG} ./pxscene2dtests "$@"
 rm -rf shell.js
 rm -rf init.js
 rm -rf node_modules
+rm -rf jsc_modules
+rm -rf v8_modules
 rm -rf rcvrcore
 rm -rf FreeSans.ttf
 rm -rf package.json
