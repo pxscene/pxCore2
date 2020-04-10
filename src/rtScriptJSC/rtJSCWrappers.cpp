@@ -1033,17 +1033,23 @@ JSFunctionWrapper::JSFunctionWrapper(JSContextRef context, JSObjectRef thisObj, 
   : rtJSCWrapperBase(context, funcObj)
   , m_thisObj(context, thisObj)
 {
+  printf("jsfun cons1 [%p]\n", this);
+  fflush(stdout);
   RtJSC::assertIsMainThread();
 }
 
 JSFunctionWrapper::JSFunctionWrapper(JSContextRef context, JSObjectRef funcObj)
   : rtJSCWrapperBase(context, funcObj)
 {
+  printf("jsfun cons2 [%p]\n", this);
+  fflush(stdout);
   RtJSC::assertIsMainThread();
 }
 
 JSFunctionWrapper::~JSFunctionWrapper()
 {
+  printf("jsfun dest [%p]\n", this);
+  fflush(stdout);
   RtJSC::assertIsMainThread();
 }
 
@@ -1067,7 +1073,7 @@ rtError JSFunctionWrapper::Send(int numArgs, const rtValue* args, rtValue* resul
   }
   JSValueRef exception = nullptr;
 
-  printf("jsfun send \n");
+  printf("jsfun send [%p]\n", this);
   fflush(stdout);
   JSValueRef jsResult = JSObjectCallAsFunction(context(), wrapped(), m_thisObj.wrapped(), numArgs, jsArgs, &exception);
   if (exception) {
