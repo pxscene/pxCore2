@@ -272,12 +272,13 @@ static bool rtObjectWrapper_setProperty(JSContextRef context, JSObjectRef thisOb
   }
 
   rtValue val;
+  rtString name = jsToRtString(propertyName);
+  printf("rtobject set property [%s] \n", name.cString()); fflush(stdout);
   if (jsToRt(context, value, val, exception) != RT_OK) {
     printException(context, *exception);
     return false;
   }
 
-  rtString name = jsToRtString(propertyName);
   rtError e = objectRef.set(name, val);
   if (e != RT_OK) {
     rtLogDebug("Failed to set property: %s", name.cString());
