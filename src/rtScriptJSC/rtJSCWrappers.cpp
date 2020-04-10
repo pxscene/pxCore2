@@ -973,6 +973,7 @@ rtError JSObjectWrapper::Get(uint32_t i, rtValue* value) const
     return RT_ERROR_INVALID_ARG;
   JSValueRef exc = nullptr;
   JSValueRef valueRef = JSObjectGetPropertyAtIndex(context(), wrapped(), i, &exc);
+  
   if (JSValueGetType(context(), valueRef) == kJSTypeUndefined)
   {
     return RT_PROPERTY_NOT_FOUND;
