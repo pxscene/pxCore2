@@ -1066,6 +1066,8 @@ rtError JSFunctionWrapper::Send(int numArgs, const rtValue* args, rtValue* resul
     }
   }
   JSValueRef exception = nullptr;
+  printf("jsfun send \n");
+  fflush(stdout);
   JSValueRef jsResult = JSObjectCallAsFunction(context(), wrapped(), m_thisObj.wrapped(), numArgs, jsArgs, &exception);
   if (exception) {
     printException(context(), exception);
