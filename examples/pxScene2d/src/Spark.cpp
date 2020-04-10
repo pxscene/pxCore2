@@ -309,7 +309,7 @@ protected:
     if (gDumpMemUsage)
     {
       #ifdef RUNINMAIN
-      script.pump();
+          script.pump();
       #endif
       script.collectGarbage();
       rtLogInfo("pxobjectcount is [%d]",pxObjectCount);
