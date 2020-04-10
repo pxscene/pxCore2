@@ -1,4 +1,3 @@
-
 #!/bin/sh
 #This script executes necessary javascript files and mesaures pxleak checks and memory leaks checks
 
@@ -163,7 +162,7 @@ fi
 echo "Sleeping to make terminate complete ...";
 sleep 90s
 pkill -9 -f spark.sh	
-pkill -f Spark
+pkill -9 -f Spark
 
 cp /var/tmp/spark.log $EXECLOGS
 if [ "$dumped_core" -eq 1 ]
