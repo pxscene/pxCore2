@@ -1,3 +1,4 @@
+
 #!/bin/sh
 #This script executes necessary javascript files and mesaures pxleak checks and memory leaks checks
 
