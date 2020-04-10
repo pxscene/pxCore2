@@ -297,9 +297,18 @@ function onSceneTerminate() {
   // memory leak fix
   this.sandbox.sparkscene.api = null;
 
-  for (var k in this.sandbox)
-  {
-    delete this.sandbox[k];
+  if (isJSC) {
+    var script = new vm.Script(
+      "for (var key in this) { delete this[key]; }"
+    );
+    script.runInContext(this.sandbox);
+    script = null;
+  }
+  else {
+    for (var k in this.sandbox)
+    {
+      delete this.sandbox[k];
+    }
   }
 
   this.contextifiedSandbox = null;
