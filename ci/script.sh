@@ -73,14 +73,14 @@ then
   sh "unittests_$TRAVIS_OS_NAME.sh" 
   checkError $? "#### Build/unittests/execution [unittests_$TRAVIS_OS_NAME.sh] failed" "Either build problem/execution problem" "Analyze corresponding log file"
 
-  sh "execute_$TRAVIS_OS_NAME.sh" "node"
-  checkError $? "#### Build/unittests/execution node platform [execute_$TRAVIS_OS_NAME.sh] failed" "Either build problem/execution problem" "Analyze corresponding log file"
-
   if [ "$TRAVIS_OS_NAME" = "osx" ]
   then
     sh "execute_$TRAVIS_OS_NAME.sh" "jsc"
     checkError $? "#### Build/unittests/execution jsc platform [execute_$TRAVIS_OS_NAME.sh] failed" "Either build problem/execution problem" "Analyze corresponding log file"
   fi
+
+  sh "execute_$TRAVIS_OS_NAME.sh" "node"
+  checkError $? "#### Build/unittests/execution node platform [execute_$TRAVIS_OS_NAME.sh] failed" "Either build problem/execution problem" "Analyze corresponding log file"
   
   sh "code_coverage_$TRAVIS_OS_NAME.sh"
   checkError $? "#### Build/unittests/execution [code_coverage_$TRAVIS_OS_NAME.sh] failed" "Either build problem/execution problem" "Analyze corresponding log file"
