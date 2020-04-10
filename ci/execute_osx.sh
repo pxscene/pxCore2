@@ -162,6 +162,7 @@ fi
 echo "Sleeping to make terminate complete ...";
 sleep 90s
 pkill -9 -f spark.sh	
+pkill -f Spark
 
 cp /var/tmp/spark.log $EXECLOGS
 if [ "$dumped_core" -eq 1 ]
