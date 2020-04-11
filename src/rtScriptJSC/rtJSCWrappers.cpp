@@ -1033,22 +1033,26 @@ JSFunctionWrapper::JSFunctionWrapper(JSContextRef context, JSObjectRef thisObj, 
   : rtJSCWrapperBase(context, funcObj)
   , m_thisObj(context, thisObj)
 {
+  printf("MADANA JSFunctionWrapper create 1 [%p] \n, this); fflush(stdout);
   RtJSC::assertIsMainThread();
 }
 
 JSFunctionWrapper::JSFunctionWrapper(JSContextRef context, JSObjectRef funcObj)
   : rtJSCWrapperBase(context, funcObj)
 {
+  printf("MADANA JSFunctionWrapper create 2 [%p] \n, this); fflush(stdout);
   RtJSC::assertIsMainThread();
 }
 
 JSFunctionWrapper::~JSFunctionWrapper()
 {
+  printf("MADANA JSFunctionWrapper destruct [%p] \n, this); fflush(stdout);
   RtJSC::assertIsMainThread();
 }
 
 rtError JSFunctionWrapper::Send(int numArgs, const rtValue* args, rtValue* result)
 {
+  printf("MADANA JSFunctionWrapper::Send [%p] \n, this); fflush(stdout);
   RtJSC::assertIsMainThread();
   if (!context() || !wrapped()) {
     rtLogWarn("Lost JS context!");

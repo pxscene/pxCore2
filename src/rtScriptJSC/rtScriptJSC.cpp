@@ -267,7 +267,7 @@ private:
 
 rtJSCContext::rtJSCContext()
 {
-  rtLogInfo("%s", __FUNCTION__);
+  rtLogInfo("%s %p\n", __FUNCTION__, this);
   m_contextGroup = JSContextGroupRetain(globalContextGroup());
   m_context = JSGlobalContextCreateInGroup(m_contextGroup, nullptr);
   m_priv = rtJSCContextPrivate::create(m_context);
@@ -294,7 +294,7 @@ rtJSCContext::rtJSCContext()
 
 rtJSCContext::~rtJSCContext()
 {
-  rtLogInfo("%s begin", __FUNCTION__);
+  rtLogInfo("%s %p begin", __FUNCTION__, this);
 
   if (gTopLevelContext == m_context)
   {
