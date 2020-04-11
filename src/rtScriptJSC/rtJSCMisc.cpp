@@ -114,7 +114,7 @@ void pumpMainLoop()
   }
 #endif
   
-  //dispatchPending();
+  dispatchPending();
   isPumping = false;
 }
 
