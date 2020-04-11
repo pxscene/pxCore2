@@ -1,3 +1,4 @@
+
 /*
 
  pxCore Copyright 2005-2018 John Robinson
@@ -653,7 +654,9 @@ static JSValueRef rtObjectWrapper_wrapPromise(JSContextRef context, rtObjectRef 
     return JSValueMakeUndefined(context);
   }
   rtValue resolveCallback;
+  printf("MADANA IT IS RESOLVE CB BEGIN \n");fflush(stdout);  
   rtError rc = jsToRt(context, resolveVal, resolveCallback, &exception);
+  printf("MADANA IT IS RESOLVE CB END \n"); fflush(stdout);  
   if (rc != RT_OK) {
     rtLogError("Failed to convert resove callback. rc = %d", rc);
     return JSValueMakeUndefined(context);
@@ -667,7 +670,9 @@ static JSValueRef rtObjectWrapper_wrapPromise(JSContextRef context, rtObjectRef 
     return JSValueMakeUndefined(context);
   }
   rtValue rejectCallback;
+  printf("MADANA IT IS REJECT CB BEGIN \n"); fflush(stdout);  
   rc = jsToRt(context, rejectVal, rejectCallback, &exception);
+  printf("MADANA IT IS REJECT CB END \n"); fflush(stdout);  
   if (rc != RT_OK) {
     rtLogError("Failed to convert reject callback. rc = %d", rc);
     return JSValueMakeUndefined(context);
