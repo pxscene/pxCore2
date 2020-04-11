@@ -95,12 +95,6 @@ pxEventLoop  eventLoop;
 pxEventLoop* gLoop = &eventLoop;
 
 pxContext context;
-#ifdef ENABLE_DEBUG_MODE
-extern int g_argc;
-extern char** g_argv;
-char *nodeInput = NULL;
-char** g_origArgv = NULL;
-#endif
 bool gDumpMemUsage = false;
 extern bool gApplicationIsClosing;
 extern int pxObjectCount;
@@ -286,9 +280,6 @@ protected:
   EXITSCENELOCK()
   #ifndef RUNINMAIN
    script.setNeedsToEnd(true);
-  #endif
-  #ifdef ENABLE_DEBUG_MODE
-    free(g_origArgv);
   #endif
 
     rtLogInfo("about to clear all the fonts during close");
@@ -671,6 +662,7 @@ if (s && (strcmp(s,"1") == 0))
     }
   }
 
+#if 0
 #ifdef ENABLE_DEBUG_MODE
 #ifdef RTSCRIPT_SUPPORT_NODE
   bool isDebugging = false;
@@ -726,6 +718,7 @@ if (s && (strcmp(s,"1") == 0))
   }
   #endif
 #endif
+#endif //0
 
 #ifdef RUNINMAIN
   script.init();
