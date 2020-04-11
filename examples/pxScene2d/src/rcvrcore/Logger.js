@@ -20,7 +20,7 @@ limitations under the License.
  * Created by tcarro004 on 7/18/15, updated by sgladk001c on 3/07/19.
  */
 
-var loggingLevel = 1;
+var loggingLevel = 4;
 
 var rtLogLevels = [
   'fatal'   // 0
@@ -53,7 +53,8 @@ function setLoggingLevel(level) {
     levelNum = rtl('warn');
   }
 
-  loggingLevel = levelNum;
+  //loggingLevel = levelNum;
+  loggingLevel = 4;
 }
 
 function Logger(name) {
