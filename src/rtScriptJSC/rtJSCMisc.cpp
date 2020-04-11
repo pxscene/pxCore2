@@ -113,7 +113,7 @@ void pumpMainLoop()
     } while(ret);
   }
 #endif
-  dispatchPending();
+  //dispatchPending();
   isPumping = false;
 }
 
