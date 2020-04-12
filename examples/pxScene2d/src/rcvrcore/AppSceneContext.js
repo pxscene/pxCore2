@@ -740,11 +740,13 @@ AppSceneContext.prototype.processCodeBuffer = function(origFilePath, filePath, c
 
   // FIXME: XModule names are not unique
   var xModule = this.getXModule(filePath);
+  log.message(4, "Need to run script 0: " + filePath);
   if( xModule !== 'undefined' ) {
     log.message(4, "xModule already exists: " + filePath);
     return;
   }
 
+  log.message(4, "Need to run script 1: " + filePath);
   var isJar = moduleLoader.jarFileWasLoaded();
   var currentFileArchive = moduleLoader.getFileArchive();
   var currentFileManifest = moduleLoader.getManifest();
@@ -760,7 +762,9 @@ AppSceneContext.prototype.processCodeBuffer = function(origFilePath, filePath, c
   }
 
   log.message(7, "cb Creating new XModule for " + filePath + " basePath="+basePath);
+  log.message(4, "Need to run script 2: " + filePath);
   xModule = new XModule(filePath, _this, basePath, jarName);
+  log.message(4, "Need to run script 3: " + filePath);
   xModule.initSandbox(_this.sandbox);
 
   if (isJar) {
@@ -768,6 +772,7 @@ AppSceneContext.prototype.processCodeBuffer = function(origFilePath, filePath, c
     log.message(4, "JAR added: " + xModule.name);
   }
 
+  log.message(4, "Need to run script 4: " + filePath);
   var sourceCode = AppSceneContext.wrap(codeBuffer);
   log.message(4, "RUN " + filePath);
   var px = createModule_pxScope.call(this, xModule, true);
