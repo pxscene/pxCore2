@@ -1,4 +1,3 @@
-
 #!/bin/sh
 
 travis_retry() {
@@ -68,8 +67,6 @@ then
   lldb --help
   cmake --version
   man lldb
-  cat /System/Library/Frameworks/JavaScriptCore.framework/Resources/version.plist
-  find /Applications/ -name *clang_rt*osx*
 fi
 
 #install lighttpd, code coverage binaries for mac
