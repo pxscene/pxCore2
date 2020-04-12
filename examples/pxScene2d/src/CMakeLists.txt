@@ -151,7 +151,12 @@ if (APPLE)
         execute_process(COMMAND clang --version OUTPUT_VARIABLE LLVM_VERSION1 ERROR_VARIABLE ERROR_VARIABLE1 COMMAND grep "LLVM version" OUTPUT_VARIABLE LLVM_VERSION2 ERROR_VARIABLE LLVM_ERROR2 COMMAND awk "{print $4}" OUTPUT_FILE llvmoutput OUTPUT_VARIABLE LLVM_VERSION3 ERROR_VARIABLE LLVM_ERROR3)
         execute_process(COMMAND awk "{ printf \"%s\", $0 }" llvmoutput OUTPUT_VARIABLE LLVM_VERSION)
         execute_process(COMMAND rm llvmoutput)
-        set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/${LLVM_VERSION}/lib/darwin)
+
+        execute_process(COMMAND xcodebuild -version OUTPUT_VARIABLE XCODE_VERSION1 ERROR_VARIABLE ERROR_VARIABLE1 COMMAND grep "Xcode " OUTPUT_VARIABLE XCODE_VERSION2 ERROR_VARIABLE XCODE_ERROR2 COMMAND awk "{print $2}" OUTPUT_FILE xcodeoutput OUTPUT_VARIABLE XCODE_VERSION3 ERROR_VARIABLE XCODE_ERROR3)
+        execute_process(COMMAND awk "{ printf \"%s\", $0 }" xcodeoutput OUTPUT_VARIABLE XCODE_VERSION)
+        execute_process(COMMAND rm xcodeoutput)
+
+        set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} /Applications/Xcode-${XCODE_VERSION}.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/${LLVM_VERSION}/lib/darwin)
         set(PXSCENE_LINK_LIBRARIES ${PXSCENE_LINK_LIBRARIES} clang_rt.profile_osx)
     endif ()
     #set(PX_LIBRARY_SUPPORT 0)
