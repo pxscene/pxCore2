@@ -68,7 +68,6 @@ then
   cmake --version
   man lldb
   cat /System/Library/Frameworks/JavaScriptCore.framework/Resources/Info.plist
-  echo "version "
   cat /System/Library/Frameworks/JavaScriptCore.framework/Resources/version.plist
 fi
 
