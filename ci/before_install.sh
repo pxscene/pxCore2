@@ -67,7 +67,6 @@ then
   lldb --help
   cmake --version
   man lldb
-  cat /System/Library/Frameworks/JavaScriptCore.framework/Resources/Info.plist
   cat /System/Library/Frameworks/JavaScriptCore.framework/Resources/version.plist
 fi
 
