@@ -297,8 +297,13 @@ rtJSCContext::~rtJSCContext()
   rtLogInfo("%s begin", __FUNCTION__);
 
   if (gTopLevelContext == m_context)
+  {
+    if (gTopLevelContext != nullptr) {
+      JSSynchronousGarbageCollectForDebugging(gTopLevelContext);
+    }
     gTopLevelContext = nullptr;
-
+  }
+  
 //  RtJSC::dispatchOnMainLoop([m_priv=m_priv,m_context=m_context,m_contextGroup=m_contextGroup] {
 //  static JSStringRef codeStr = JSStringCreateWithUTF8CString("console.clear(); delete global.console");
 //  JSEvaluateScript(m_context, codeStr, nullptr, nullptr, 0, nullptr);
@@ -476,8 +481,7 @@ rtError rtScriptJSC::pump()
 rtError rtScriptJSC::collectGarbage()
 {
   if (gTopLevelContext) {
-    JSGarbageCollect(gTopLevelContext);
-    // JSSynchronousGarbageCollectForDebugging(gTopLevelContext);
+    JSSynchronousGarbageCollectForDebugging(gTopLevelContext);
   }
   return RT_OK;
 }

@@ -42,7 +42,7 @@ extern const char* vShaderText;
 //=====================================================================================================================================
 
 pxShaderResource::pxShaderResource()
-: pxResource(), mIsRealTime(false), mNeedsFbo(false), mPasses(1), mSamplerCount(3)
+: pxResource(), mIsRealTime(false), mNeedsFbo(false), mPasses(1), mSamplerCount(3), mShadersDownloadMutex()
 {
   mFragmentUrl = NULL;
   mVertexUrl   = NULL;
@@ -51,7 +51,7 @@ pxShaderResource::pxShaderResource()
 pxShaderResource::pxShaderResource(const char* fragmentUrl, const char* vertexUrl /*= NULL*/,
                                    const rtCORSRef& /*cors = NULL*/, rtObjectRef /*archive = NULL*/)
 
-  : pxResource(), mIsRealTime(false), mNeedsFbo(false), mPasses(1), mSamplerCount(3)
+  : pxResource(), mIsRealTime(false), mNeedsFbo(false), mPasses(1), mSamplerCount(3), mShadersDownloadMutex()
 {
   mFragmentUrl = fragmentUrl;
   mVertexUrl   = vertexUrl;
@@ -90,7 +90,7 @@ void pxShaderResource::setupResource()
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
   // CREATE SHADER PROGRAMS
-
+  mShadersDownloadMutex.lock();
   if(mFragmentSrc.length() > 0)
   {
     // Setup shader
@@ -125,6 +125,7 @@ void pxShaderResource::setupResource()
     double stopDecodeTime = pxMilliseconds();
     setLoadStatus("decodeTimeMs", static_cast<int>(stopDecodeTime-startDecodeTime));
   }
+  mShadersDownloadMutex.unlock();
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 }
 
@@ -687,15 +688,19 @@ uint32_t pxShaderResource::loadResourceData(rtFileDownloadRequest* fileDownloadR
   // Store FRAGMENT shader code
   if(fileDownloadRequest->tag() == "frg")
   {
+    mShadersDownloadMutex.lock();
     mFragmentSrc.init( (const uint8_t*) fileDownloadRequest->downloadedData(),
                                         fileDownloadRequest->downloadedDataSize());
+    mShadersDownloadMutex.unlock();
   }
   else
   // Store VERTEX shader code
   if(fileDownloadRequest->tag() == "vtx")
   {
+    mShadersDownloadMutex.lock();
     mVertexSrc.init( (const uint8_t*) fileDownloadRequest->downloadedData(),
                                       fileDownloadRequest->downloadedDataSize());
+    mShadersDownloadMutex.unlock();
   }
   else
   {
