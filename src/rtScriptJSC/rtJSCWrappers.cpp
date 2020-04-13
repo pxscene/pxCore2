@@ -48,6 +48,8 @@ static JSValueRef rtObjectWrapper_wrapMap(JSContextRef context, rtObjectRef obj)
 static JSValueRef rtObjectWrapper_wrapObject(JSContextRef context, rtObjectRef obj);
 static JSValueRef rtFunctionWrapper_wrapFunction(JSContextRef context, rtFunctionRef func);
 
+std::hash<std::string> hashFn;
+
 static bool isJSObjectWrapper(const rtObjectRef& obj)
 {
   rtValue value;
@@ -1067,14 +1069,24 @@ rtError JSObjectWrapper::Set(uint32_t i, const rtValue* value)
 JSFunctionWrapper::JSFunctionWrapper(JSContextRef context, JSObjectRef thisObj, JSObjectRef funcObj)
   : rtJSCWrapperBase(context, funcObj)
   , m_thisObj(context, thisObj)
+  , mHash(-1)
 {
   RtJSC::assertIsMainThread();
+
+  JSStringRef str = JSValueToStringCopy(context, funcObj, nullptr);
+  mHash = hashFn(jsToRtString(str).cString());
+  JSStringRelease(str);
 }
 
 JSFunctionWrapper::JSFunctionWrapper(JSContextRef context, JSObjectRef funcObj)
   : rtJSCWrapperBase(context, funcObj)
+  , mHash(-1)
 {
   RtJSC::assertIsMainThread();
+
+  JSStringRef str = JSValueToStringCopy(context, funcObj, nullptr);
+  mHash = hashFn(jsToRtString(str).cString());
+  JSStringRelease(str);
 }
 
 JSFunctionWrapper::~JSFunctionWrapper()
