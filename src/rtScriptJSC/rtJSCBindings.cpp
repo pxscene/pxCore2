@@ -204,7 +204,7 @@ static JSValueRef requireCallback(JSContextRef ctx, JSObjectRef, JSObjectRef thi
       return moduleObj;
     }
 
-    rtLogInfo("Loading %s", path.cString());
+    rtLogDebug("Loading %s", path.cString());
     std::string codeStr = readFile(path.cString());
     if (codeStr.empty()) {
       JSStringRelease(reqArgStr);
