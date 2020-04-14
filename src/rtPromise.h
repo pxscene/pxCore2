@@ -162,6 +162,10 @@ public:
     {
       mObject = objRef.getPtr();
     }
+    else
+    {
+      mObject = new rtObject;
+    }
     if (mObject != NULL)
     {
       for (std::vector<thenData>::iterator it = mThenData.begin();
@@ -175,7 +179,6 @@ public:
       }
     }
     mThenData.clear();
-    mObject = objRef.getPtr();
     return RT_OK;
   }
 
