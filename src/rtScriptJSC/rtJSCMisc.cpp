@@ -112,8 +112,7 @@ void pumpMainLoop()
       ret = g_main_context_iteration(nullptr, false);
     } while(ret);
   }
-#endif
-  
+#endif  
   dispatchPending();
   isPumping = false;
 }
