@@ -91,18 +91,18 @@ public:
 
       if (resolve)
       {
-        resolve.send(mObject.getPtr());
+        resolve.send(mObject);
         newPromise = new rtPromise;
-        newPromise.send("resolve",mObject.getPtr());
+        newPromise.send("resolve",mObject);
       }
     }
     else if (mState == REJECTED)
     {
       if (reject)
       {
-        reject.send(mObject.getPtr());
+        reject.send(mObject);
         newPromise = new rtPromise;
-        newPromise.send("reject",mObject.getPtr());
+        newPromise.send("reject",mObject);
       }
     }
     else
@@ -137,8 +137,8 @@ public:
     {
       if (it->mResolve)
       {
-        it->mResolve.send(mObject.getPtr());
-        it->mNextPromise.send("resolve",mObject.getPtr());
+        it->mResolve.send(mObject);
+        it->mNextPromise.send("resolve",mObject);
       }
     }
     mThenData.clear();
@@ -169,8 +169,8 @@ public:
       {
         if (it->mReject)
         {
-          it->mReject.send(mObject.getPtr());
-          it->mNextPromise.send("reject",mObject.getPtr());
+          it->mReject.send(mObject);
+          it->mNextPromise.send("reject",mObject);
         }
       }
     }
@@ -208,7 +208,7 @@ public:
 private:
   rtPromiseState mState;
   std::vector<thenData> mThenData;
-  rtRef<rtIObject> mObject;
+  rtIObject* mObject;
 };
 
 // uint32_t rtPromise::promiseID = 0;
