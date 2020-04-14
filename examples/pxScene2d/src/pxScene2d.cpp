@@ -3915,7 +3915,7 @@ rtError pxScriptView::makeReady(int numArgs, const rtValue* args, rtValue* /*res
       else
       {
         success = false;
-        v->mReady.send("reject", new rtObject); // TODO JRJR  Why does this fail if I leave the argment as null...
+        v->mReady.send("reject", (rtObject*)NULL); // TODO JRJR  Why does this fail if I leave the argment as null...
       }
 
       rtValue urlValue(v->mUrl);
