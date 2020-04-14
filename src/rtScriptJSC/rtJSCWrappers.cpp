@@ -102,7 +102,8 @@ private:
     }
     RtJSC::dispatchOnMainLoop(
       [callback = std::move(m_callback), newArgs = std::move(newArgs)] () mutable {
-        rtError rc = callback->Send(newArgs.size(), newArgs.data(), nullptr);
+        rtValue result;
+        rtError rc = callback->Send(newArgs.size(), newArgs.data(), &result);
         if (rc != RT_OK)
         {
           rtLogWarn("rtPromiseCallbackWrapper dispatch failed rc=%d", rc);
@@ -1112,21 +1113,36 @@ rtError JSFunctionWrapper::Send(int numArgs, const rtValue* args, rtValue* resul
       jsArgs[i] = rtToJs(context(), rtVal);
     }
   }
-  JSValueRef exception = nullptr;
-  JSValueRef jsResult = JSObjectCallAsFunction(context(), wrapped(), m_thisObj.wrapped(), numArgs, jsArgs, &exception);
-  if (exception) {
-    printException(context(), exception);
-    return RT_FAIL;
-  }
-  rtError ret = RT_OK;
   if (result) {
+    JSValueRef exception = nullptr;
+    JSValueRef jsResult = JSObjectCallAsFunction(context(), wrapped(), m_thisObj.wrapped(), numArgs, jsArgs,
+                                                 &exception);
+    if (exception) {
+      printException(context(), exception);
+      return RT_FAIL;
+    }
+    rtError ret = RT_OK;
     ret = jsToRt(context(), jsResult, *result, &exception);
     if (exception) {
       printException(context(), exception);
       return RT_FAIL;
     }
+    return ret;
+  } else {
+    JSStringRef str = JSValueToStringCopy(context(), wrapped(), nullptr);
+    rtLogWarn("Send numArgs=%d fn=%s", numArgs, jsToRtString(str).cString());
+    JSStringRelease(str);
+
+    RtJSC::dispatchOnMainLoop(
+        [context = context(), object = wrapped(), thisObject = m_thisObj.wrapped(), numArgs, jsArgs] () mutable {
+          JSValueRef exception = nullptr;
+          JSObjectCallAsFunction(context, object, thisObject, numArgs, jsArgs, &exception);
+          if (exception) {
+            printException(context, exception);
+          }
+        });
+    return RT_OK;
   }
-  return ret;
 }
 
 }  // RtJSC
