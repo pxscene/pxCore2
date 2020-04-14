@@ -1129,10 +1129,6 @@ rtError JSFunctionWrapper::Send(int numArgs, const rtValue* args, rtValue* resul
     }
     return ret;
   } else {
-    JSStringRef str = JSValueToStringCopy(context(), wrapped(), nullptr);
-    rtLogWarn("Send numArgs=%d fn=%s", numArgs, jsToRtString(str).cString());
-    JSStringRelease(str);
-
     RtJSC::dispatchOnMainLoop(
         [context = context(), object = wrapped(), thisObject = m_thisObj.wrapped(), numArgs, jsArgs] () mutable {
           JSValueRef exception = nullptr;
