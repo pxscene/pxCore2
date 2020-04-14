@@ -53,7 +53,7 @@ public:
   rtMethod1ArgAndNoReturn("reject",reject,rtValue);
   rtProperty(promiseId, getPromiseId, setPromiseId, rtString);
 
-  rtPromise() :  /*promise_id(promiseID++),*/ promise_name(""), mState(PENDING), mObject(NULL)
+  rtPromise() :  /*promise_id(promiseID++),*/ promise_name(""), mState(PENDING), mObject(NULL), mRcvdRejectBeforeThen(false)
   {
 //    rtLogDebug("############# PROMISE >> CREATED   [ id: %d ]  \n", promise_id);
   }
@@ -100,6 +100,10 @@ public:
     {
       if (reject)
       {
+        if (mRcvdRejectBeforeThen == true && (NULL != mObject)) {
+          mObject = new rtObject;
+          mRcvdRejectBeforeThen = false;
+        }
         reject.send(mObject);
         newPromise = new rtPromise;
         newPromise.send("reject",mObject);
@@ -163,6 +167,10 @@ public:
       mObject = objRef.getPtr();
     }
 
+    if (mThenData.size() == 0) {
+      mRcvdRejectBeforeThen = true;
+    }
+
       for (std::vector<thenData>::iterator it = mThenData.begin();
          it != mThenData.end(); ++it)
       {
@@ -206,6 +214,7 @@ private:
   rtPromiseState mState;
   std::vector<thenData> mThenData;
   rtIObject* mObject;
+  bool mRcvdRejectBeforeThen;
 };
 
 // uint32_t rtPromise::promiseID = 0;
