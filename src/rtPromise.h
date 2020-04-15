@@ -181,7 +181,7 @@ public:
           it->mNextPromise.send("reject",mObject);
         }
       }
-    }  
+    }
     mThenData.clear();
     return RT_OK;
   }
