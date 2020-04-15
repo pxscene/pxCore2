@@ -457,8 +457,11 @@ void rtNodeContext::createEnvironment()
 #ifdef USE_NODE_PLATFORM
     rtString currentPath;
     rtGetCurrentDirectory(currentPath);
-    //node::InspectorStart(mEnv, currentPath.cString(), platform);
+    #ifdef WIN32
+    node::InspectorStart(mEnv, currentPath.cString(), platform);
+    #else
     node::InspectorStart(mEnv, currentPath.cString(), "", 0);
+    #endif                       
 #endif //USE_NODE_PLATFORM
 #endif
 #endif
