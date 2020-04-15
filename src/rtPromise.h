@@ -170,7 +170,8 @@ public:
     if (mThenData.size() == 0) {
       mRcvdRejectBeforeThen = true;
     }
-
+    if (mObject != NULL)
+    {
       for (std::vector<thenData>::iterator it = mThenData.begin();
          it != mThenData.end(); ++it)
       {
@@ -180,6 +181,7 @@ public:
           it->mNextPromise.send("reject",mObject);
         }
       }
+    }  
     mThenData.clear();
     return RT_OK;
   }
