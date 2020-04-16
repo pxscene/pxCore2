@@ -902,6 +902,9 @@ public:
         mMipmapCreated = true;
       }
       context.adjustCurrentTextureMemorySize(mOffscreen.width()*mOffscreen.height()*4, false);
+#ifdef ENABLE_BACKGROUND_TEXTURE_CREATION
+      mOffscreen.term();
+#endif //ENABLE_BACKGROUND_TEXTURE_CREATION
     }
     return PX_OK;
   }
@@ -2616,6 +2619,7 @@ void pxContext::init()
     }
   }
 
+  rtLogWarn("initialization all complete");
   rtLogInfo("context garbage collect throttle set to %f seconds", garbageCollectThrottleInSeconds);
 
 #if defined(PX_PLATFORM_WAYLAND_EGL) || defined(PX_PLATFORM_GENERIC_EGL)
