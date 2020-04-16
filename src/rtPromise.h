@@ -166,7 +166,6 @@ public:
     {
       mObject = objRef.getPtr();
     }
-
     if (mThenData.size() == 0) {
       mRcvdRejectBeforeThen = true;
     }
