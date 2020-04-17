@@ -199,7 +199,7 @@ var xxsetImmediate = function(f){
           f.apply(null,rest)
           if (this.active) this.global.endDrawing();
         } catch(e) {
-          console.log(e);
+          console.error(e.stack||e);
           console.log("exception during draw in setImmediate !!");
         }
         //console.log('after end Drawing3')
