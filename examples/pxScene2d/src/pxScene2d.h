@@ -60,6 +60,8 @@
 #include "pxAnimate.h"
 #include "testView.h"
 
+#include "pxColorNames.h"
+
 class pxConstantsDragType;
 
 #ifdef ENABLE_RT_NODE
@@ -818,6 +820,9 @@ public:
   
   rtMethod1ArgAndReturn("screenshot", screenshot, rtString, rtValue);
 
+  rtMethod1ArgAndReturn("web2rgba", web2rgba, rtString, rtValue);
+  rtMethod1ArgAndReturn("web2argb", web2argb, rtString, rtValue);
+  
   rtMethod1ArgAndReturn("clipboardGet", clipboardGet, rtString, rtString);
   rtMethod2ArgAndNoReturn("clipboardSet", clipboardSet, rtString, rtString);
 
@@ -1135,6 +1140,9 @@ public:
     }
     return e;
   }
+
+  rtError web2rgba(rtString clr, rtValue& returnRGBA);
+  rtError web2argb(rtString clr, rtValue& returnARGB);
 
   void innerpxObjectDisposed(rtObjectRef ref);
   bool isObjectTracked(rtObjectRef ref);

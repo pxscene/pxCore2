@@ -1145,6 +1145,7 @@ rtError pxScene2d::thunderToken(rtValue &v)
   v.setString(tokenString);
   return RT_OK;
 #else
+  UNUSED_PARAM(v);
   rtLogWarn("thunder support is not available");
   return RT_FAIL;
 #endif //ENABLE_SPARK_THUNDER
@@ -2553,10 +2554,34 @@ rtError pxScene2d::screenshot(rtString type, rtValue& returnValue)
   return RT_FAIL;
 }
 
+rtError pxScene2d::web2rgba(rtString clr, rtValue &returnRGBA)
+{
+  uint32_t ans_rgba;
+  rtError ret = ::web2rgba(clr, ans_rgba);
+  
+  if(ret == RT_OK)
+  {
+    returnRGBA = rtValue(ans_rgba);
+  }
+  
+  return ret;
+}
+
+rtError pxScene2d::web2argb(rtString clr, rtValue &returnARGB)
+{
+  uint32_t ans_argb;
+  rtError ret = ::web2argb(clr, ans_argb);
+  
+  if(ret == RT_OK)
+  {
+    returnARGB = rtValue(ans_argb);
+  }
+  
+  return ret;
+}
+
 rtError pxScene2d::clipboardSet(rtString type, rtString clipString)
 {
-//    rtLogDebug("\n ##########   clipboardSet()  >> %s ", type.cString() ); fflush(stdout);
-
     pxClipboard::instance()->setString(type.cString(), clipString.cString());
 
     return RT_OK;
@@ -2564,7 +2589,6 @@ rtError pxScene2d::clipboardSet(rtString type, rtString clipString)
 
 rtError pxScene2d::clipboardGet(rtString type, rtString &retString)
 {
-//    rtLogDebug("\n ##########   clipboardGet()  >> %s ", type.cString() ); fflush(stdout);
     std::string retVal = pxClipboard::instance()->getString(type.cString());
 
     retString = rtString(retVal.c_str());
@@ -2862,6 +2886,9 @@ rtDefineMethod(pxScene2d, delListener);
 rtDefineMethod(pxScene2d, getFocus);
 //rtDefineMethod(pxScene2d, stopPropagation);
 rtDefineMethod(pxScene2d, screenshot);
+
+rtDefineMethod(pxScene2d, web2rgba);
+rtDefineMethod(pxScene2d, web2argb);
 
 rtDefineMethod(pxScene2d, clipboardGet);
 rtDefineMethod(pxScene2d, clipboardSet);

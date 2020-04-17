@@ -160,6 +160,14 @@ function Scene() {
     return nativeScene.screenshot(type, pngData);
   };
     
+  this.web2rgba = function web2rgba(type) {
+    return nativeScene.web2rgba(type);
+  };
+    
+  this.web2argb = function web2argb(type) {
+    return nativeScene.web2argb(type);
+  };
+
   this.clipboardGet = function clipboardGet(type) {
       return nativeScene.clipboardGet(type);
   };
