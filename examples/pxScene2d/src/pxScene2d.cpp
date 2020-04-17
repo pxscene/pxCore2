@@ -552,7 +552,7 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   //
   // capabilities.graphics.svg          = 2
   // capabilities.graphics.cursor       = 1
-  // capabilities.graphics.colors       = 1
+  // capabilities.graphics.colors       = 2
   // capabilities.graphics.screenshots  = 2
   // capabilities.graphics.shaders      = 1
   // capabilities.graphics.text         = 3
@@ -585,7 +585,7 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   rtObjectRef graphicsCapabilities = new rtMapObject;
 
   graphicsCapabilities.set("svg", 2);
-  graphicsCapabilities.set("colors", 1);
+  graphicsCapabilities.set("colors", 2);
       
 #ifdef SUPPORT_GIF
     graphicsCapabilities.set("gif", 2);
