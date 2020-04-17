@@ -26,4 +26,7 @@
 
 rtError web2rgb(rtString &input, uint8_t &r, uint8_t &g, uint8_t &b, uint8_t &a);
 
+rtError web2rgba(rtString &input, uint32_t &rgba);
+rtError web2argb(rtString &input, uint32_t &argb);
+
 #endif // PX_COLORNAMES_H
