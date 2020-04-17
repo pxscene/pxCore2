@@ -143,7 +143,8 @@ var xxsetInterval = function(f,i){
         f.apply(null,rest);
         this.global.endDrawing(); }
          catch(e) {
-          console.log("exception during draw in setInterval !!");
+          console.log('EXCEPTION: Stack:' + e.stack||e);
+          console.log("EXCEPTION: Exception during draw in setInterval !!");
         }}.bind(this)
     }.bind(this)(),i)
   this._intervals.push(interval)
@@ -167,8 +168,8 @@ var xxsetTimeout = function(f,t){
           f.apply(null,rest);
           this.global.endDrawing();
         } catch(e) {
-          console.log(e);
-          console.log("exception during draw in setTimeout !!");
+          console.log('EXCEPTION: Stack:' + e.stack||e);
+          console.log("EXCEPTION: Exception during draw in setTimeout !!");
         }
         //console.log('after end Drawing2')
         var index = this._timeouts.indexOf(timeout)
@@ -199,8 +200,8 @@ var xxsetImmediate = function(f){
           f.apply(null,rest)
           if (this.active) this.global.endDrawing();
         } catch(e) {
-          console.log(e);
-          console.log("exception during draw in setImmediate !!");
+          console.log('EXCEPTION: Stack:' + e.stack||e);
+          console.log("EXCEPTION: Exception during draw in setImmediate !!");
         }
         //console.log('after end Drawing3')
         var index = this._immediates.indexOf(timeout)
