@@ -70,6 +70,7 @@ public:
   rtMethod1ArgAndNoReturn("setPositionRelative", setPositionRelative, float);
   rtMethodNoArgAndNoReturn("requestStatus", requestStatus);
   rtMethod1ArgAndNoReturn("setAdditionalAuth", setAdditionalAuth, rtObjectRef);
+  rtMethod4ArgAndNoReturn("setVideoRectangle", setVideoRectangle, int, int, int, int);
 
   rtMethod2ArgAndNoReturn("on", registerEventListener, rtString, rtFunctionRef);
   rtMethod2ArgAndNoReturn("delListener", unregisterEventListener, rtString, rtFunctionRef);
@@ -122,6 +123,7 @@ public:
   virtual rtError setPositionRelative(double relativePosition);
   virtual rtError requestStatus();
   virtual rtError setAdditionalAuth(rtObjectRef params);
+  virtual rtError setVideoRectangle(int, int, int, int);
   
   rtError registerEventListener(rtString eventName, const rtFunctionRef& f);
   rtError unregisterEventListener(rtString  eventName, const rtFunctionRef& f);
