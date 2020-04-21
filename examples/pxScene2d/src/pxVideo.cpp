@@ -122,7 +122,6 @@ void pxVideo::initPlayback()
 			//Spark will render frames
 			cbExportFrames = std::bind(&pxVideo::updateYUVFrame, this, _1, _2, _3, _4);
 		}
- 
 		mAamp = new PlayerInstanceAAMP(NULL
 	#ifndef ENABLE_SPARK_VIDEO_PUNCHTHROUGH //TODO: Remove this check, once the official builds contain the second argument to PlayerInstanceAAMP
 				, cbExportFrames
