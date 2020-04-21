@@ -137,7 +137,7 @@ void unsetAAMPPlayerInstance(PlayerInstanceAAMP *aamp)
  */
 static JSValueRef AAMPJSC_getProperty_closedCaptionEnabled(JSContextRef context, JSObjectRef thisObject, JSStringRef propertyName, JSValueRef* exception)
 {
-	LOG("[AAMP_JSController] %s()\n", __FUNCTION__);
+	LOG("[AAMP_JSController] %s()", __FUNCTION__);
 	AAMP_JSController* obj = (AAMP_JSController*) JSObjectGetPrivate(thisObject);
 
 	if (obj == NULL)
@@ -146,7 +146,7 @@ static JSValueRef AAMPJSC_getProperty_closedCaptionEnabled(JSContextRef context,
 		return JSValueMakeUndefined(context);
 	}
 
-	ERROR("[AAMP_JSController] %s() AAMP_JSController.closedCaptionEnabled has been deprecated!!\n", __FUNCTION__);
+	ERROR("[AAMP_JSController] %s() AAMP_JSController.closedCaptionEnabled has been deprecated!!", __FUNCTION__);
 	return JSValueMakeBoolean(context, false);
 }
 
@@ -162,7 +162,7 @@ static JSValueRef AAMPJSC_getProperty_closedCaptionEnabled(JSContextRef context,
  */
 static bool AAMPJSC_setProperty_closedCaptionEnabled(JSContextRef context, JSObjectRef thisObject, JSStringRef propertyName, JSValueRef value, JSValueRef* exception)
 {
-	LOG("[AAMP_JSController] %s()\n", __FUNCTION__);
+	LOG("[AAMP_JSController] %s()", __FUNCTION__);
 	AAMP_JSController* obj = (AAMP_JSController*) JSObjectGetPrivate(thisObject);
 
 	if (obj == NULL)
@@ -175,7 +175,7 @@ static bool AAMPJSC_setProperty_closedCaptionEnabled(JSContextRef context, JSObj
 
 	}
 
-	ERROR("[AAMP_JSController] %s() AAMP_JSController.closedCaptionEnabled has been deprecated!!\n", __FUNCTION__);
+	ERROR("[AAMP_JSController] %s() AAMP_JSController.closedCaptionEnabled has been deprecated!!", __FUNCTION__);
 	return false;
 }
 
@@ -190,7 +190,7 @@ static bool AAMPJSC_setProperty_closedCaptionEnabled(JSContextRef context, JSObj
  */
 static JSValueRef AAMPJSC_getProperty_aampSessionID(JSContextRef context, JSObjectRef thisObject, JSStringRef propertyName, JSValueRef* exception)
 {
-	LOG("[AAMP_JSController] %s() \n", __FUNCTION__);
+	LOG("[AAMP_JSController] %s() ", __FUNCTION__);
 
 	AAMP_JSController *aampObj = (AAMP_JSController *) JSObjectGetPrivate(thisObject);
 
@@ -393,7 +393,7 @@ static const JSStaticFunction AAMP_JSController_static_methods[] =
  */
 void AAMP_JSController_finalize(JSObjectRef thisObj)
 {
-	LOG("[AAMP_JSController] AAMP_finalize: object=%p\n", thisObj);
+	LOG("[AAMP_JSController] AAMP_finalize: object=%p", thisObj);
 	AAMP_JSController *aampObj = (AAMP_JSController*) JSObjectGetPrivate(thisObj);
 
 	if (aampObj == NULL)
@@ -459,7 +459,7 @@ static const JSClassDefinition AAMP_JSController_class_def =
  */
 void aamp_LoadJSController(JSGlobalContextRef context)
 {
-	INFO("[AAMP_JSController] aamp_LoadJSController context=%p\n", context);
+	INFO("[AAMP_JSController] aamp_LoadJSController context=%p", context);
 
 	AAMP_JSController* aampObj = new AAMP_JSController();
 	aampObj->_ctx = context;
@@ -488,7 +488,7 @@ void aamp_LoadJSController(JSGlobalContextRef context)
  */
 void aamp_UnloadJSController(JSGlobalContextRef context)
 {
-	INFO("[AAMP_JSController] aamp_UnloadJSController context=%p\n", context);
+	INFO("[AAMP_JSController] aamp_UnloadJSController context=%p", context);
 
 	aamp_UnloadJS(context);
 	AAMPPlayer_UnloadJS(context);
@@ -516,6 +516,6 @@ void aamp_UnloadJSController(JSGlobalContextRef context)
 	JSObjectSetProperty(context, globalObj, str, JSValueMakeUndefined(context), kJSPropertyAttributeReadOnly, NULL);
 	JSStringRelease(str);
 
-	LOG("[AAMP_JSController] JSGarbageCollect(%p)\n", context);
+	LOG("[AAMP_JSController] JSGarbageCollect(%p)", context);
 	JSGarbageCollect(context);
 }

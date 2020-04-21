@@ -30,6 +30,7 @@
 #else
 #include "playreadydrmsession.h"
 #endif
+#include "ClearKeyDrmSession.h"
 
 /**
  *  @brief		Creates appropriate DRM systems Session objects based
@@ -55,6 +56,9 @@ AampDrmSession* AampDrmSessionFactory::GetDrmSession(const char* systemid)
         std::string key_system = WIDEVINE_KEY_SYSTEM_STRING;
         drmSession = new AAMPOCDMSession(key_system);
 #endif
+    } else if(!strcmp(CLEARKEY_PROTECTION_SYSTEM_ID, systemid))
+    {
+        drmSession = new ClearKeySession();
     }
 	return drmSession;
 }

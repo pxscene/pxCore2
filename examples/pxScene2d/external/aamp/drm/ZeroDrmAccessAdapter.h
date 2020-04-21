@@ -180,7 +180,7 @@ public :
 
 		long long timetaken = (drmGetCurrentTimeMS() - mStartTime);
 		if(timetaken > 300)
-			logprintf("!!!!! ZeroDRMPerf::Function[%s]->[%ld]\n", mFuncName.c_str(),timetaken);
+			logprintf("!!!!! ZeroDRMPerf::Function[%s]->[%ld]", mFuncName.c_str(),timetaken);
 	}
 
 static long long drmGetCurrentTimeMS(void);

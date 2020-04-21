@@ -36,8 +36,15 @@ struct PrivAAMPStruct_JS {
 	PrivAAMPStruct_JS() : _ctx(), _aamp(NULL), _listeners()
 	{
 	}
+	virtual ~PrivAAMPStruct_JS()
+	{
+	}
 	PrivAAMPStruct_JS(const PrivAAMPStruct_JS&) = delete;
 	PrivAAMPStruct_JS& operator=(const PrivAAMPStruct_JS&) = delete;
+
+	virtual JSObjectRef getCallbackForAdId(std::string id) { return NULL; }
+	virtual void removeCallbackForAdId(std::string id) { }
+
 	JSGlobalContextRef _ctx;
 	PlayerInstanceAAMP* _aamp;
 

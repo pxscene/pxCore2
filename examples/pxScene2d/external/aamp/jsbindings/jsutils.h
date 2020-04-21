@@ -79,4 +79,6 @@ void aamp_dispatchEventToJS(JSContextRef context, JSObjectRef callback, JSObject
 AAMPEventType aampPlayer_getEventTypeFromName(const char* szName);
 const char* aampPlayer_getNameFromEventType(AAMPEventType type);
 
+JSObjectRef aamp_CreateTimedMetadataJSObject(JSContextRef context, long long timeMS, const char* szName, const char* szContent, const char* id, double durationMS);
+
 #endif /* __AAMP_JSUTILS_H__ */

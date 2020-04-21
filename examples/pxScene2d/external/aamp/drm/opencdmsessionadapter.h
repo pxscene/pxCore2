@@ -73,7 +73,11 @@ private:
 	KeyState m_eKeyState;
 
 	OpenCDMSession* m_pOpenCDMSession;
+#ifdef USE_THUNDER_OCDM_API_0_2
+	struct OpenCDMSystem* m_pOpenCDMSystem;
+#else
 	struct OpenCDMAccessor* m_pOpenCDMSystem;
+#endif
 	OpenCDMSessionCallbacks m_OCDMSessionCallbacks;
 	AampOutputProtection* m_pOutputProtection;
 
@@ -92,7 +96,8 @@ private:
 
 public:
 	void processOCDMChallenge(const char destUrl[], const uint8_t challenge[], const uint16_t challengeSize);
-	void keyUpdatedOCDM(const uint8_t key[], const uint8_t keySize);
+	void keysUpdatedOCDM();
+	void keyUpdateOCDM(const uint8_t key[], const uint8_t keySize);
 
 private:
 	void initAampDRMSystem();

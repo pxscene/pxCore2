@@ -26,6 +26,23 @@
 		5E4FA8892097C6150068DEAC /* tsprocessor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = tsprocessor.h; sourceTree = "<group>"; };
 		5E56643F2098E7E60021EDB1 /* cocoa_window.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = cocoa_window.mm; sourceTree = "<group>"; };
 		5E5664402098E7E60021EDB1 /* cocoa_window.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cocoa_window.h; sourceTree = "<group>"; };
+		5E838F382419218600D39371 /* admanager_mpd.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = admanager_mpd.h; sourceTree = "<group>"; };
+		5E838F392419218600D39371 /* AampCacheHandler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AampCacheHandler.h; sourceTree = "<group>"; };
+		5E838F3A2419218700D39371 /* aamplogging.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = aamplogging.cpp; sourceTree = "<group>"; };
+		5E838F3B2419218700D39371 /* AdManagerBase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AdManagerBase.h; sourceTree = "<group>"; };
+		5E838F3C2419218700D39371 /* fragmentcollector_progressive.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = fragmentcollector_progressive.h; sourceTree = "<group>"; };
+		5E838F3D2419218700D39371 /* iso639map.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = iso639map.cpp; sourceTree = "<group>"; };
+		5E838F3E2419218700D39371 /* AampCacheHandler.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = AampCacheHandler.cpp; sourceTree = "<group>"; };
+		5E838F3F2419218700D39371 /* admanager_mpd.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = admanager_mpd.cpp; sourceTree = "<group>"; };
+		5E838F402419218700D39371 /* fragmentcollector_progressive.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = fragmentcollector_progressive.cpp; sourceTree = "<group>"; };
+		5E838F412419218700D39371 /* iso639map.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iso639map.h; sourceTree = "<group>"; };
+		5E838F43241921CC00D39371 /* metrics */ = {isa = PBXFileReference; lastKnownFileType = folder; path = metrics; sourceTree = "<group>"; };
+		5E838F44241921CC00D39371 /* isobmff */ = {isa = PBXFileReference; lastKnownFileType = folder; path = isobmff; sourceTree = "<group>"; };
+		5E838F45241921CC00D39371 /* jsbindings */ = {isa = PBXFileReference; lastKnownFileType = folder; path = jsbindings; sourceTree = "<group>"; };
+		5E838F46241921CC00D39371 /* drm */ = {isa = PBXFileReference; lastKnownFileType = folder; path = drm; sourceTree = "<group>"; };
+		5E838F47241921CC00D39371 /* receiver-integration */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "receiver-integration"; sourceTree = "<group>"; };
+		5E838F48241921CC00D39371 /* subtitle */ = {isa = PBXFileReference; lastKnownFileType = folder; path = subtitle; sourceTree = "<group>"; };
+		5E838F49241921CC00D39371 /* mediaprocessor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mediaprocessor.h; sourceTree = "<group>"; };
 		5E9CB170220F58DC00920F99 /* test */ = {isa = PBXFileReference; lastKnownFileType = folder; path = test; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -34,6 +51,23 @@
 			isa = PBXGroup;
 			children = (
 				5E461A30209B8B8900683077 /* priv_aamp.h */,
+				5E838F3E2419218700D39371 /* AampCacheHandler.cpp */,
+				5E838F46241921CC00D39371 /* drm */,
+				5E838F44241921CC00D39371 /* isobmff */,
+				5E838F45241921CC00D39371 /* jsbindings */,
+				5E838F49241921CC00D39371 /* mediaprocessor.h */,
+				5E838F43241921CC00D39371 /* metrics */,
+				5E838F47241921CC00D39371 /* receiver-integration */,
+				5E838F48241921CC00D39371 /* subtitle */,
+				5E838F392419218600D39371 /* AampCacheHandler.h */,
+				5E838F3A2419218700D39371 /* aamplogging.cpp */,
+				5E838F3F2419218700D39371 /* admanager_mpd.cpp */,
+				5E838F382419218600D39371 /* admanager_mpd.h */,
+				5E838F3B2419218700D39371 /* AdManagerBase.h */,
+				5E838F402419218700D39371 /* fragmentcollector_progressive.cpp */,
+				5E838F3C2419218700D39371 /* fragmentcollector_progressive.h */,
+				5E838F3D2419218700D39371 /* iso639map.cpp */,
+				5E838F412419218700D39371 /* iso639map.h */,
 				5E5664402098E7E60021EDB1 /* cocoa_window.h */,
 				5E56643F2098E7E60021EDB1 /* cocoa_window.mm */,
 				5E4FA8872097C6150068DEAC /* _base64.cpp */,
