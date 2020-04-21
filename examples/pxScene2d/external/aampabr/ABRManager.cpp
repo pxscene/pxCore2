@@ -29,7 +29,7 @@
 #include "syslog_helper_ifc.h"
 #endif
 #endif
-
+//#define DEBUG_ENABLED 1
 // Loggers
 
 /**
@@ -365,6 +365,47 @@ int ABRManager::getRampedDownProfileIndex(int currentProfileIndex) {
 #endif
   return desiredProfileIndex;
 }
+
+/**
+ * @brief Ramp Up the profile one step to get the profile index of a upper bitrate.
+ *
+ * @param currentProfileIndex The current profile index
+ * @return the profile index of a upper bitrate (one step)
+ */
+int ABRManager::getRampedUpProfileIndex(int currentProfileIndex) {
+  // Clamp the param to avoid overflow
+  int profileCount = getProfileCount();
+  int desiredProfileIndex = currentProfileIndex;
+
+  if (profileCount == 0 || currentProfileIndex >= profileCount) {
+    sLogger("%s:%d No profiles/input profile %d more than profileCount %d\n",
+      __FUNCTION__, __LINE__, currentProfileIndex, profileCount);
+	return desiredProfileIndex;
+  }
+  
+  long currentBandwidth = mProfiles[currentProfileIndex].bandwidthBitsPerSecond;
+  SortedBWProfileListIter iter = mSortedBWProfileList.find(currentBandwidth);
+  if (iter == mSortedBWProfileList.end()) {
+    sLogger("%s:%d The current bitrate %ld is not in the profile list\n",
+       __FUNCTION__, __LINE__, currentBandwidth);
+    return desiredProfileIndex;
+  }
+
+  if(std::next(iter) != mSortedBWProfileList.end())
+  {
+	std::advance(iter, 1);
+	desiredProfileIndex = iter->second;
+  }
+
+#if defined(DEBUG_ENABLED)
+  sLogger("%s:%d Ramped up profile index = %d bitrate = %ld\n",
+    __FUNCTION__, __LINE__, desiredProfileIndex, mProfiles[desiredProfileIndex].bandwidthBitsPerSecond);
+#endif
+  return desiredProfileIndex;
+}
+
+
+
 
 /**
  * @brief Check if the bitrate of currentProfileIndex reaches to the lowest.

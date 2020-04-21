@@ -20,22 +20,7 @@
 window.onload = function() {
     var params = (new URL(document.location)).searchParams;
     var viewType = params.get('viewType'); 
-    // for the Micro Event Viewer without Nav bar
-    if(viewType == "normal") {
-        //Hide Nav elements
-        document.getElementById('fileUpload').style.display = "none";
-        document.getElementById('files').style.display = "none";
-        document.getElementById('enterText').style.display = "none";
-        document.getElementById('submitButton').style.display = "none";
-        var blobInfo = params.get('blobInfo'); 
-        document.getElementById('enterText').value = blobInfo;
-        myLoadHandler(document.getElementById('enterText').value);
-    }
-
-    function time2x(t) { // map time in milliseconds (relative to start of tune) to x-axis
-        return t * 0.1 + 32;
-    }
-
+    var canvasY = 0;
     /*
     Common:
     ct = Content Type
@@ -54,24 +39,48 @@ window.onload = function() {
     v = Vector of Events happened
 
     Events:
-    i = Id
-    	0: Main Manifest Download
-    	1: Video Playlist download
-    	2: Audio Playlist download
-    	3: Video Init fragment download
-    	4: Audio Init fragment download
-    	5: Video fragment download
-    	6: Audio fragment download
-    	7: Video framgment decryption
-    	8: Audio framgment decryption
-    	9: License Acquisition overall
-    	10: License Acquisition pre-processing - Not included
-    	11: License Acquisition Network
-    	12: License Acquisition post-processing - Not included
+    i = Id - see profilerBuckerNames below
     b = Beginning time of the event, relative to 's'
     d = Duration till the completion of event
     o = Output of Event (200:Success, Non 200:Error Code)
     */
+
+    var profilerBucketNames =
+    [
+     {"name":"main manifest download", "color":"#cccccc" },// 0
+     {"name":"video playlist download", "color":"#aaffaa" }, // 1
+     {"name":"audio playlist download", "color":"#aaaaff" }, // 2
+     {"name":"subtitle playlist download", "color":"#aaaaaa" }, // 3
+     {"name":"video initialization fragment download", "color":"#aaffaa" }, // 4
+     {"name":"audio initialization fragment download", "color":"#aaaaff" }, // 5
+     {"name":"subtitle initialization fragment download", "color":"#aaaaaa" }, // 6
+     {"name":"video fragment download", "color":"#aaffaa" }, // 7
+     {"name":"audio fragment download", "color":"#aaaaff" }, // 8
+     {"name":"subtitle fragment download", "color":"#aaaaaa" }, // 9
+     {"name":"video decryption", "color":"#aaffaa" }, // 10
+     {"name":"audio decryption", "color":"#aaaaff" }, // 11
+     {"name":"subtitle decryption", "color":"#aaaaaa" }, // 12
+     {"name":"license acquisition total", "color":"#ffffaa" }, // 13
+     {"name":"license acquisition pre-processing", "color":"#ffffaa" },// 14
+     {"name":"license acquisition network", "color":"#ffffaa" }, // 15
+     {"name":"license acquisition post-processing", "color":"#ffffaa" }, // 16
+     ];
+
+    // for the Micro Event Viewer without Nav bar
+    if(viewType == "normal") {
+        //Hide Nav elements
+        document.getElementById('fileUpload').style.display = "none";
+        document.getElementById('files').style.display = "none";
+        document.getElementById('enterText').style.display = "none";
+        document.getElementById('submitButton').style.display = "none";
+        var blobInfo = params.get('blobInfo');
+        document.getElementById('enterText').value = blobInfo;
+        myLoadHandler(document.getElementById('enterText').value);
+    }
+
+    function time2x(t) { // map time in milliseconds (relative to start of tune) to x-axis
+        return t * 0.1 + 32;
+    }
 
     function myLoadHandler(e) {
         // Hide bucket details initially
@@ -89,17 +98,26 @@ window.onload = function() {
         var playback_index = obj.pi;
         var tune_status = obj.ts;
         var va = obj.va;
+        if( va == undefined )
+        { // make structure for JSON_FROM_AAMP_LOG.txt consistent with receiver generated JSON
+            contentType = "unknown"; // unused
+            initialization_time_utc = obj.s; // used!
+            total_tune_time = obj.td;// unused
+            playback_index = 1; // unused
+            tune_status = "false"; // unused
+            va = [obj];
+        }
 
         function myclickhandler(event) {
             var x = event.pageX;
             var y = event.pageY-31;
 
+            var sz = 20;
             for (var i = 0; i < va.length; i++) {
                 var tuneInfo = va[i];
                 var startTimeUtc = tuneInfo.s;
                 var events = tuneInfo.v;
                 var uri = tuneInfo.u;
-                var sz = 16;
                 var y0 = canvas.height - sz;
                 var attemptStartTime = startTimeUtc - initialization_time_utc;
 
@@ -113,50 +131,8 @@ window.onload = function() {
                     var finish = start + eventDuration;
                     var x0 = time2x(start);
                     var x1 = time2x(finish);
-                    var bucketType;
-
-                    switch (eventId) {
-                        case 0:
-                            bucketType = "Main Manifest Download";
-                            break;
-                        case 1:
-                            bucketType = "Video Playlist Download";
-                            break;
-                        case 2:
-                            bucketType = "Audio Playlist Download";
-                            break;
-                        case 3:
-                            bucketType = "Video Init Fragment Download";
-                            break;
-                        case 4:
-                            bucketType = "Audio Init Fragment Download";
-                            break;
-                        case 5:
-                            bucketType = "Video Fragment Download";
-                            break;
-                        case 6:
-                            bucketType = "Audio Fragment Download";
-                            break;
-                        case 7:
-                            bucketType = "Video Fragment Decryption";
-                            break;
-                        case 8:
-                            bucketType = "Audio Fragment Decryption";
-                            break;
-                        case 9:
-                            bucketType = "License Acquisition Overall";
-                            break;
-                        case 10:
-                            bucketType = "License Acquisition Pre-processing";
-                            break;
-                        case 11:
-                            bucketType = "License Acquisition Network";
-                            break;
-                        case 12:
-                            bucketType = "License Acquisition Post-processing";
-                            break;
-                    }
-                    // The cordinates of the bucket
+                    var bucketType = profilerBucketNames[eventId].name;
+                    // The coordinates of the bucket
                     var x1Box = x0;
                     var y1Box = y0;
                     var x2Box = x1;
@@ -167,7 +143,7 @@ window.onload = function() {
                         document.getElementById('codeID').innerHTML = eventOutput;
                         document.getElementById('durationID').innerHTML = eventDuration + "ms";
                         document.getElementById('uriID').innerHTML = uri;
-                        document.getElementById("bucketModalContent").style.top = y-240;
+                        document.getElementById("bucketModalContent").style.top = y-canvasY;
                         document.getElementById("bucketModalContent").style.left = x;
                         document.getElementById('bucketModal').style.display = "block";
                         break;
@@ -177,7 +153,15 @@ window.onload = function() {
             }
         }
 
+        var sz = 20;
         var canvas = document.getElementById("myCanvas");
+        var requiredCanvasHeight = 72;
+        for (var i = 0; i < va.length; i++) { // walk through the tune attempts
+            requiredCanvasHeight += va[i].v.length*sz;
+        }
+        canvas.height = requiredCanvasHeight;
+        canvasY = canvas.height;
+
         canvas.onclick = myclickhandler;
         var ctx = canvas.getContext("2d");
         ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -188,7 +172,7 @@ window.onload = function() {
         var y0 = 0;
         var y1 = canvas.height - 2; // avoid overlap with canvas outline
         var shade = true;
-        for (var t0 = 0; t0 <= 40000; t0 += 1000) { // render backdrop for timeline, with alternating grey bands
+        for (var t0 = 0; t0 <= 20000; t0 += 1000) { // render backdrop for timeline, with alternating grey bands
             var x0 = time2x(t0);
             var x1 = time2x(t0 + 1000);
             if (shade) {
@@ -212,7 +196,6 @@ window.onload = function() {
             var uri = tuneInfo.u;
             var result = tuneInfo.r; // 1 for success
             var events = tuneInfo.v;
-            var sz = 16;
             var y0 = canvas.height - sz;
 
             var attemptStartTime = startTimeUtc - initialization_time_utc;
@@ -226,7 +209,7 @@ window.onload = function() {
             }
             var x0 = time2x(attemptStartTime);
             var x1 = time2x(attemptStartTime + tuneDurationMs);
-            ctx.fillRect(x0, 96, x1 - x0, canvas.height - 96);
+            ctx.fillRect(x0, canvas.height - sz*events.length, x1 - x0, sz*events.length );
 
             ctx.globalAlpha = 1.0;
 
@@ -241,70 +224,20 @@ window.onload = function() {
                 var finish = start + eventDuration;
                 var x0 = time2x(start);
                 var x1 = time2x(finish);
-                switch (eventId) {
-                    case 0:
-                        ctx.fillStyle = '#7f7f7f';
-                        break; // Main Manifest Download
-
-                        // video-related profiling: green
-                    case 1:
-                        ctx.fillStyle = '#00ff00';
-                        break; // Video Playlist download
-                    case 3:
-                        ctx.fillStyle = '#00dd00';
-                        break; // Video Init fragment download
-                    case 5:
-                        ctx.fillStyle = '#00bb00';
-                        break; // Video fragment download
-                    case 7:
-                        ctx.fillStyle = '#009900';
-                        break; // Video fragment decryption
-
-                        // audio-related profiling: blue
-                    case 2:
-                        ctx.fillStyle = '#0000ff';
-                        break; // Audio Playlist download
-                    case 4:
-                        ctx.fillStyle = '#0000dd';
-                        break; // Audio Init fragment download
-                    case 6:
-                        ctx.fillStyle = '#0000bb';
-                        break; // Audio fragment download
-                    case 8:
-                        ctx.fillStyle = '#000099';
-                        break; // Audio framgment decryption
-
-                        // drm-related profiling: yellow
-                    case 9:
-                        ctx.fillStyle = '#ffff00';
-                        break; // License Acquisition overall
-                    case 10:
-                        ctx.fillStyle = '#dddd00';
-                        break; // License Acquisition pre-processing - Not included
-                    case 11:
-                        ctx.fillStyle = '#bbbb00';
-                        break; // License Acquisition Network
-                    case 12:
-                        ctx.fillStyle = '#999900';
-                        break; // License Acquisition post-processing - Not included
-                }
-                ctx.fillRect(x0, y0, x1 - x0, sz);
+                ctx.fillStyle = profilerBucketNames[eventId].color;
+                ctx.fillRect(x0, y0+1, x1 - x0, sz-2);
+                ctx.strokeStyle = '#000000';
+                ctx.strokeRect( x0,y0+1,x1-x0,sz-2 );
                 if (eventOutput != 200) { // draw red line through middle if error
                     ctx.fillStyle = "#ff0000";
                     ctx.fillRect(x0, y0 + sz / 2, x1 - x0, 1);
                 }
+                ctx.textAlign = 'left';
+                ctx.fillStyle = '#000000';
+                ctx.fillText( profilerBucketNames[eventId].name, x1+3, y0+14 );
                 y0 -= sz;
             }
         }
-
-        /*
-        	ctx.strokeStyle = '#ff00ff'; // magenta
-            ctx.beginPath();
-            ctx.moveTo(x0,y0);
-            ctx.lineTo(x0,y0);
-            ctx.stroke();
-        */
-
     }
 
     function handleFileSelect(evt) {

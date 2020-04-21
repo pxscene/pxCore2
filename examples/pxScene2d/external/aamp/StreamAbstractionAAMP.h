@@ -32,6 +32,7 @@
 
 #include <ABRManager.h>
 #include <glib.h>
+#include "subtitleParser.h"
 
 
 /**
@@ -40,7 +41,8 @@
 typedef enum
 {
 	eTRACK_VIDEO,   /**< Video track */
-	eTRACK_AUDIO    /**< Audio track */
+	eTRACK_AUDIO,    /**< Audio track */
+	eTRACK_SUBTITLE  /**< Subtitle track */
 } TrackType;
 
 /**
@@ -55,7 +57,7 @@ struct CachedFragment
 	bool discontinuity;         /**< PTS discontinuity status */
 	int profileIndex;           /**< Profile index; Updated internally */
 #ifdef AAMP_DEBUG_INJECT
-	char uri[MAX_URI_LENGTH];   /**< Fragment url */
+	std::string uri;   /**< Fragment url */
 #endif
 };
 
@@ -78,6 +80,14 @@ enum BufferHealthStatus
 	BUFFER_STATUS_YELLOW, /**< Danger  state, where buffering is close to being exhausted */
 	BUFFER_STATUS_RED     /**< Failed state, where buffers have run dry, and player experiences underrun/stalled video */
 };
+
+typedef enum
+{
+	eDISCONTIUITY_FREE = 0,
+	eDISCONTINUIY_IN_VIDEO = 1,
+	eDISCONTINUIY_IN_AUDIO = 2,
+	eDISCONTINUIY_IN_BOTH = 3
+} MediaTrackDiscontinuityState;
 
 /**
  * @brief Base Class for Media Track
@@ -181,6 +191,7 @@ public:
 	 * @return void
 	 */
 	virtual void ABRProfileChanged(void) = 0;
+	virtual double GetBufferedDuration (void) = 0;
 
 	/**
 	 * @brief Get number of fragments dpownloaded
@@ -228,7 +239,6 @@ public:
 
 	bool isFragmentInjectorThreadStarted( ) {  return fragmentInjectorThreadStarted;}
 	void MonitorBufferHealth();
-
 	void ScheduleBufferHealthMonitor();
 
 	/**
@@ -251,6 +261,20 @@ public:
 	 * @return true if injection is aborted, false otherwise
 	 */
 	bool IsInjectionAborted() { return (abort || abortInject); }
+
+	/**
+	 * @brief Returns if the end of track reached.
+	 */
+	virtual bool IsAtEndOfTrack() { return eosReached;}
+
+	/**
+	 * @brief To check for discontinuity in future fragments.
+	 *
+	 * @param[out] cacheDuration - cached fragment duration in seconds
+	 * @return bool - true if discontinuity present, false otherwise
+	 */
+	bool CheckForFutureDiscontinuity(double &cacheDuration);
+
 protected:
 
 	/**
@@ -307,6 +331,7 @@ public:
 	int segDrmDecryptFailCount;         /**< Segment decryption failure count*/
 	int mSegInjectFailCount;            /**< Segment Inject/Decode fail count */
 	TrackType type;                     /**< Media type of the track*/
+	SubtitleParser* mSubtitleParser;    /**< Parser for subtitle data*/
 protected:
 	PrivateInstanceAAMP* aamp;          /**< Pointer to the PrivateInstanceAAMP*/
 	CachedFragment *cachedFragment;     /**< storage for currently-downloaded fragment */
@@ -327,12 +352,13 @@ private:
 	bool notifiedCachingComplete;       /**< Fragment caching completed or not*/
 	int fragmentIdxToInject;            /**< Write position */
 	int fragmentIdxToFetch;             /**< Read position */
-	int bandwidthBytesPerSecond;        /**< Bandwidth of last selected profile*/
+	int bandwidthBitsPerSecond;        /**< Bandwidth of last selected profile*/
 	double totalFetchedDuration;        /**< Total fragment fetched duration*/
 	bool discontinuityProcessed;
 
 	BufferHealthStatus bufferStatus;     /**< Buffer status of the track*/
 	BufferHealthStatus prevBufferStatus; /**< Previous buffer status of the track*/
+
 };
 
 
@@ -343,6 +369,7 @@ struct StreamResolution
 {
 	int width;      /**< Width in pixels*/
 	int height;     /**< Height in pixels*/
+	double framerate; /**< Frame Rate */
 };
 
 /**
@@ -353,39 +380,6 @@ struct StreamInfo
 	bool isIframeTrack;             /**< indicates if the stream is iframe stream*/
 	long bandwidthBitsPerSecond;    /**< Bandwidth of the stream bps*/
 	StreamResolution resolution;    /**< Resolution of the stream*/
-};
-
-/**
- * @brief Base class for the client side DAI object
- */
-class CDAIObject
-{
-public:
-	/**
-	 * @brief CDAIObject constructor.
-	 */
-	CDAIObject(PrivateInstanceAAMP* aamp)
-	{
-
-	}
-
-	/**
-	 * @brief CDAIObject destructor.
-	 */
-	virtual ~CDAIObject()
-	{
-
-	}
-
-	/**
-	 *   @brief Setting the alternate contents' (Ads/blackouts) URL
-	 *
-	 *   @param[in] adBreakId - Adbreak's unique identifier.
-	 *   @param[in] adId - Individual Ad's id
-	 *   @param[in] url - Ad URL
-	 *   @param[in] startMS - Ad start time in milliseconds
-	 */
-	virtual void SetAlternateContents(const std::string &adBreakId, const std::string &adId, const std::string &url, uint64_t startMS=0){}
 };
 
 /**
@@ -541,8 +535,36 @@ public:
 	 * @return True, if ramp down successful. Else false
 	 */
 	bool RampDownProfile(long http_error);
-
 	/**
+	 *   @brief Get Desired Profile based on Buffer availability
+	 *
+	 *   @param [in] currProfileIndex
+	 *   @param [in] newProfileIndex
+	 *   @return None.
+	 */
+	void GetDesiredProfileOnBuffer(int currProfileIndex, int &newProfileIndex);
+	/**
+	 *   @brief Get Desired Profile on steady state 
+	 *
+	 *   @param [in] currProfileIndex
+	 *   @param [in] newProfileIndex
+	 *   @param [in] nwBandwidth         
+	 *   @return None.
+	 */
+	void GetDesiredProfileOnSteadyState(int currProfileIndex, int &newProfileIndex, long nwBandwidth);
+	/**
+	 *   @brief Configure download timeouts based on buffer
+	 *
+	 *   @return None.
+	 */        
+	void ConfigureTimeoutOnBuffer();
+	/**
+	 *   @brief Function to get the buffer duration of stream
+	 *
+	 *   @return buffer value 
+	 */                
+        virtual double GetBufferedDuration (void) = 0;
+        /**
 	 *   @brief Check for ramdown profile.
 	 *
 	 *   @param http_error
@@ -641,6 +663,12 @@ public:
 
 	double GetElapsedTime();
 
+	/**
+	 *   @brief Check for ramp down limit reached by player
+	 *   @return true if limit reached, false otherwise
+	 */
+	bool CheckForRampDownLimitReached();
+
 	bool trickplayMode;                     /**< trick play flag to be updated by subclasses*/
 	int currentProfileIndex;                /**< current profile index of the track*/
 	int profileIdxForBandwidthNotification; /**< internal - profile index for bandwidth change notification*/
@@ -649,10 +677,10 @@ public:
 	bool mIsAtLivePoint;                    /**< flag that denotes if playback is at live point*/
 
 	bool mIsPlaybackStalled;                /**< flag that denotes if playback was stalled or not*/
-	bool mIsFirstBuffer;                    /** <flag that denotes if the first buffer was processed or not*/
 	bool mNetworkDownDetected;              /**< Network down status indicator */
 	bool mCheckForRampdown;			/**< flag to indicate if rampdown is attempted or not */
 	TuneType mTuneType;                     /**< Tune type of current playback, initialize by derived classes on Init()*/
+	int mRampDownCount;			/**< Total number of rampdowns */
 
 
 	/**
@@ -698,7 +726,7 @@ public:
 	 *
 	 *   @return max bandwidth
 	 */
-	long GetMaxBitrate(){
+	virtual long GetMaxBitrate(){
 		return mAbrManager.getBandwidthOfProfile(mAbrManager.getMaxBandwidthProfile());
 	}
 
@@ -768,11 +796,89 @@ public:
 	bool IsMuxedStream();
 
 	/**
+	 *   @brief Receives first video PTS for the current playback
+	 *
+	 *   @param[in] pts - pts value
+	 */
+	virtual void NotifyFirstVideoPTS(unsigned long long pts) = 0;
+
+	/**
+	 *   @brief Waits subtitle track injection until caught up with audio track.
+	 *          Used internally by injection logic
+	 *
+	 *   @param None
+	 *   @return void
+	 */
+	void WaitForAudioTrackCatchup(void);
+
+	/**
+	 *   @brief Unblock subtitle track injector if downloads are stopped
+	 *
+	 *   @return void
+	 */
+	void AbortWaitForAudioTrackCatchup(void);
+
+	/**
 	 *   @brief Set Client Side DAI object instance
 	 *
 	 *   @param[in] cdaiObj - Pointer to Client Side DAI object.
 	 */
 	virtual void SetCDAIObject(CDAIObject *cdaiObj) {};
+
+	/**
+	 *   @brief Checks if streamer reached end of stream
+	 *
+	 *   @return true if end of stream reached, false otherwise
+	 */
+	virtual bool IsEOSReached();
+
+	/**
+	 *   @brief Get available audio tracks.
+	 *
+	 *   @return std::vector<AudioTrackInfo> list of audio tracks
+	 */
+	virtual std::vector<AudioTrackInfo> GetAvailableAudioTracks() { return mAudioTracks; };
+
+	/**
+	 *   @brief Get available text tracks.
+	 *
+	 *   @return std::vector<TextTrackInfo> list of text tracks
+	 */
+	virtual std::vector<TextTrackInfo> GetAvailableTextTracks() { return mTextTracks; };
+
+	/**
+	*   @brief Update seek position when player is initialized
+	*
+	*   @param[in] seekposition time.
+	*/
+	virtual void SeekPosUpdate(double secondsRelativeToTuneTime) = 0;
+
+	/*
+	 *   @brief Function to returns last injected fragment position
+	 *
+	 *   @return double last injected fragment position in seconds
+	 */
+	double GetLastInjectedFragmentPosition();
+
+	/**
+	 *   @brief Function to process discontinuity.
+	 *
+	 *   @param[in] type - track type.
+	 */
+	bool ProcessDiscontinuity(TrackType type);
+
+	/**
+	 *   @brief Function to abort any wait for discontinuity by injector theads.
+	 */
+	void AbortWaitForDiscontinuity();
+
+	/**
+	 *   @brief Function to check if any media tracks are stalled on discontinuity.
+	 *
+	 *   @param[in] type - track type.
+	 */
+	void CheckForMediaTrackInjectionStall(TrackType type);
+
 protected:
 	/**
 	 *   @brief Get stream information of a profile from subclass.
@@ -807,12 +913,15 @@ private:
 
 	pthread_mutex_t mLock;              /**< lock for A/V track catchup logic*/
 	pthread_cond_t mCond;               /**< condition for A/V track catchup logic*/
+	pthread_cond_t mSubCond;            /**< condition for Audio/Subtitle track catchup logic*/
 
 	// abr variables
 	long mCurrentBandwidth;             /**< stores current bandwidth*/
 	int mLastVideoFragCheckedforABR;    /**< Last video fragment for which ABR is checked*/
 	long mTsbBandwidth;                 /**< stores bandwidth when TSB is involved*/
 	long mNwConsistencyBypass;          /**< Network consistency bypass**/
+	int mABRHighBufferCounter;	    /**< ABR High buffer counter */
+	int mABRLowBufferCounter;	    /**< ABR Low Buffer counter */
 	bool mESChangeStatus;               /**< flag value which is used to call pipeline configuration if the audio type changed in mid stream */
 	double mLastVideoFragParsedTimeMS;  /**< timestamp when last video fragment was parsed */
 
@@ -820,8 +929,14 @@ private:
 	long long mTotalPausedDurationMS;   /**< Total duration for which stream is paused */
 	long long mStartTimeStamp;          /**< stores timestamp at which injection starts */
 	long long mLastPausedTimeStamp;     /**< stores timestamp of last pause operation */
+	int mRampDownLimit;		/**< stores ramp down limit value */
+	pthread_mutex_t mStateLock;         /**< lock for A/V track discontinuity injection*/
+	pthread_cond_t mStateCond;          /**< condition for A/V track discontinuity injection*/
 protected:
 	ABRManager mAbrManager;             /**< Pointer to abr manager*/
+	std::vector<AudioTrackInfo> mAudioTracks;
+	std::vector<TextTrackInfo> mTextTracks;
+	MediaTrackDiscontinuityState mTrackState; /**< stores the discontinuity status of tracks*/
 };
 
 #endif // STREAMABSTRACTIONAAMP_H

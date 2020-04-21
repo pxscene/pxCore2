@@ -44,9 +44,15 @@ sudo ln -s /usr/local/Cellar/openssl/<version> /usr/local/ssl
 
 ```
 brew install libxml2
+ln -s /usr/local/opt/libxml2/lib/pkgconfig/* /usr/local/lib/pkgconfig/
 ```
 **7. Install libdash**
 
+```
+source install_libdash.sh
+```
+or
+	
 ***Build***:
 
 ```
@@ -56,7 +62,7 @@ git checkout stable_3_0
 ```
 
 Apply patches downloaded from (**patch -p1 < file.patch**):
-```https://gerrit.teamccp.com/plugins/gitiles/rdk/yocto_oe/layers/meta-rdk-ext/+/refs/heads/1903_sprint/recipes-multimedia/libdash/libdash/```
+```https://code.rdkcentral.com/r/plugins/gitiles/components/generic/rdk-oe/meta-rdk-ext/+/rdk-next/recipes-multimedia/libdash/libdash/```
 
 ```
 mkdir build

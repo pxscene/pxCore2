@@ -26,7 +26,7 @@
 #include <cjson/cJSON.h>
 
 #define COUNT_NONE	0
-#define VIDEO_END_DATA_VERSION		"1.0"
+#define VIDEO_END_DATA_VERSION		"1.1"
 
 /*
  * Defines Video Stat count type
