@@ -129,8 +129,9 @@ void pxVideo::initPlayback()
         #else
                                 , nullptr
 	#endif
-                                , PLAYERMODE_MEDIAPLAYER
+                                , 0
                               );
+//, PLAYERMODE_MEDIAPLAYER
 		assert (nullptr != mAamp);
                 if (mProxy.length() > 0)
                 {
