@@ -28,7 +28,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <pthread.h>
-#include <cmath>
 
 #include "jsutils.h"
 #include "main_aamp.h"
@@ -52,8 +51,6 @@ extern "C"
 	JS_EXPORT JSGlobalContextRef JSContextGetGlobalContext(JSContextRef);
 
 	JSObjectRef AAMP_JS_AddEventTypeClass(JSGlobalContextRef context);
-
-	JSObjectRef AAMP_JS_CreateTimedMetadata(JSContextRef context, double timeMS, const char* szName, const char* szContent, const char* id, double durationMS=0);
 }
 
 /**
@@ -379,7 +376,7 @@ static JSValueRef AAMP_getProperty_timedMetadata(JSContextRef context, JSObjectR
 	for (int32_t i = 0; i < length; i++)
 	{
 		TimedMetadata item = privAAMP->timedMetadata.at(i);
-		JSObjectRef ref = AAMP_JS_CreateTimedMetadata(context, item._timeMS, item._name.c_str(), item._content.c_str(), item._id.c_str(), item._durationMS);
+		JSObjectRef ref = aamp_CreateTimedMetadataJSObject(context, item._timeMS, item._name.c_str(), item._content.c_str(), item._id.c_str(), item._durationMS);
 		array[i] = ref;
 	}
 
@@ -753,6 +750,10 @@ public:
 		name = JSStringCreateWithUTF8CString("endMiliseconds");
 		JSObjectSetProperty(context, eventObj, name, JSValueMakeNumber(context, e.data.progress.endMiliseconds), kJSPropertyAttributeReadOnly, NULL);
 		JSStringRelease(name);
+
+		name = JSStringCreateWithUTF8CString("currentPTS");
+		JSObjectSetProperty(context, eventObj, name, JSValueMakeNumber(context, e.data.progress.videoPTS), kJSPropertyAttributeReadOnly, NULL);
+		JSStringRelease(name);
 	}
 };
 
@@ -801,6 +802,10 @@ public:
 
 		name = JSStringCreateWithUTF8CString("height");
 		JSObjectSetProperty(context, eventObj, name, JSValueMakeNumber(context, e.data.bitrateChanged.height), kJSPropertyAttributeReadOnly, NULL);
+		JSStringRelease(name);
+		
+		name = JSStringCreateWithUTF8CString("framerate");
+		JSObjectSetProperty(context, eventObj, name, JSValueMakeNumber(context, e.data.bitrateChanged.framerate), kJSPropertyAttributeReadOnly, NULL);
 		JSStringRelease(name);
 
 	}
@@ -922,7 +927,7 @@ public:
                 int code = e.data.dash_drmmetadata.accessStatus_value;
                 const char* description = e.data.dash_drmmetadata.accessStatus;
 
-                ERROR("AAMP_JSListener_DRMMetadata code %d Description %s\n",code,description);
+                ERROR("AAMP_JSListener_DRMMetadata code %d Description %s",code,description);
                 name = JSStringCreateWithUTF8CString("code");
                 JSObjectSetProperty(context, eventObj, name, JSValueMakeNumber(context, code), kJSPropertyAttributeReadOnly, NULL);
                 JSStringRelease(name);
@@ -966,7 +971,7 @@ public:
                 int severity = e.data.anomalyReport.severity;
                 const char* description = e.data.anomalyReport.msg;
 
-                ERROR("AAMP_JSListener_AnomalyReport severity %d Description %s\n",severity,description);
+                ERROR("AAMP_JSListener_AnomalyReport severity %d Description %s",severity,description);
                 name = JSStringCreateWithUTF8CString("severity");
                 JSObjectSetProperty(context, eventObj, name, JSValueMakeNumber(context, severity), kJSPropertyAttributeReadOnly, NULL);
                 JSStringRelease(name);
@@ -1139,6 +1144,39 @@ public:
 };
 
 /**
+ * @class AAMP_JSListener_BulkTimedMetadata
+ * @brief Event listener impl for BULK_TIMED_METADATA AAMP event
+ */
+class AAMP_JSListener_BulkTimedMetadata : public AAMP_JSListener
+{
+public:
+
+        /**
+         * @brief AAMP_JSListener_TimedMetadata Constructor
+         * @param[in] aamp instance of AAMP_JS
+         * @param[in] type event type
+         * @param[in] jsCallback callback to be registered as listener
+         */
+	AAMP_JSListener_BulkTimedMetadata(AAMP_JS* aamp, AAMPEventType type, JSObjectRef jsCallback) : AAMP_JSListener(aamp, type, jsCallback)
+	{
+	}
+
+	/**
+	 * @brief Set JS event properties
+	 * @param[in] e AAMP event object
+	 * @param[in] context JS execution context
+	 * @param[out] eventObj JS event object
+	 */
+	void setEventProperties(const AAMPEvent& e, JSContextRef context, JSObjectRef eventObj)
+	{
+			JSStringRef name = JSStringCreateWithUTF8CString("timedMetadatas");
+			JSObjectSetProperty(context, eventObj, name, aamp_CStringToJSValue(context, e.data.bulktimedMetadata.szMetaContent),  kJSPropertyAttributeReadOnly, NULL);
+			JSStringRelease(name);
+	}
+};
+
+
+/**
  * @class AAMP_JSListener_TimedMetadata
  * @brief Event listener impl for TIMED_METADATA AAMP event
  */
@@ -1164,7 +1202,7 @@ public:
 	 */
 	void setEventProperties(const AAMPEvent& e, JSContextRef context, JSObjectRef eventObj)
 	{
-		JSObjectRef timedMetadata = AAMP_JS_CreateTimedMetadata(context, e.data.timedMetadata.timeMilliseconds, e.data.timedMetadata.szName, e.data.timedMetadata.szContent, e.data.timedMetadata.id, e.data.timedMetadata.durationMilliSeconds);
+		JSObjectRef timedMetadata = aamp_CreateTimedMetadataJSObject(context, e.data.timedMetadata.timeMilliseconds, e.data.timedMetadata.szName, e.data.timedMetadata.szContent, e.data.timedMetadata.id, e.data.timedMetadata.durationMilliSeconds);
         	if (timedMetadata) {
                 	JSValueProtect(context, timedMetadata);
 			JSStringRef name = JSStringCreateWithUTF8CString("timedMetadata");
@@ -1532,6 +1570,89 @@ public:
 };
 
 /**
+ * @class AAMP_JSListener_BufferingChanged
+ * @brief Event listener impl for (AAMP_EVENT_BUFFER_UNDERFLOW) AAMP event
+ */
+class AAMP_JSListener_BufferingChanged: public AAMP_JSListener
+{
+public:
+
+        /**
+         * @brief AAMP_JSListener_BufferingChanged Constructor
+         * @param[in] aamp instance of AAMP_JS
+         * @param[in] type event type
+         * @param[in] jsCallback callback to be registered as listener
+         */
+	AAMP_JSListener_BufferingChanged(AAMP_JS* aamp, AAMPEventType type, JSObjectRef jsCallback) : AAMP_JSListener(aamp, type, jsCallback)
+	{
+	}
+
+	/**
+	 * @brief Set JS event properties
+	 * @param[in] e AAMP event object
+	 * @param[in] context JS execution context
+	 * @param[out] eventObj JS event object
+	 */
+	void setEventProperties(const AAMPEvent& e, JSContextRef context, JSObjectRef eventObj)
+	{
+		JSStringRef prop;
+
+		/* e.data.bufferingChanged.buffering buffering started(underflow ended) = true, buffering end(underflow started) = false*/
+		prop = JSStringCreateWithUTF8CString("status");
+		JSObjectSetProperty(context, eventObj, prop, JSValueMakeBoolean(context, e.data.bufferingChanged.buffering), kJSPropertyAttributeReadOnly, NULL);
+		JSStringRelease(prop);
+	}
+};
+
+
+/**
+ * @class AAMP_JSListener_Id3Metadata
+ * @brief Event listener impl for (AAMP_JSListener_Id3Metadata) AAMP event
+ */
+class AAMP_JSListener_Id3Metadata: public AAMP_JSListener
+{
+public:
+
+        /**
+         * @brief AAMP_JSListener_Id3Metadata Constructor
+         * @param[in] aamp instance of AAMP_JS
+         * @param[in] type event type
+         * @param[in] jsCallback callback to be registered as listener
+         */
+	AAMP_JSListener_Id3Metadata(AAMP_JS* aamp, AAMPEventType type, JSObjectRef jsCallback) : AAMP_JSListener(aamp, type, jsCallback)
+	{
+	}
+
+	/**
+	 * @brief Set JS event properties
+	 * @param[in] e AAMP event object
+	 * @param[in] context JS execution context
+	 * @param[out] eventObj JS event object
+	 */
+	void setEventProperties(const AAMPEvent& e, JSContextRef context, JSObjectRef eventObj)
+	{
+		JSStringRef prop;
+
+		JSValueRef* array = new JSValueRef[e.data.id3Metadata.length];
+		for (int32_t i = 0; i < e.data.id3Metadata.length; i++)
+		{
+			array[i] = JSValueMakeNumber(context, *(e.data.id3Metadata.data + i));
+		}
+
+		prop = JSStringCreateWithUTF8CString("data");
+		JSObjectSetProperty(context, eventObj, prop, JSObjectMakeArray(context, e.data.id3Metadata.length, array, NULL), kJSPropertyAttributeReadOnly, NULL);
+		JSStringRelease(prop);
+		delete [] array;
+
+		prop = JSStringCreateWithUTF8CString("length");
+		JSObjectSetProperty(context, eventObj, prop, JSValueMakeNumber(context, e.data.id3Metadata.length), kJSPropertyAttributeReadOnly, NULL);
+		JSStringRelease(prop);
+	}
+};
+
+
+
+/**
  * @brief Callback invoked from JS to add an event listener for a particular event
  * @param[in] context JS execution context
  * @param[in] function JSObject that is the function being called
@@ -1622,6 +1743,10 @@ void AAMP_JSListener::AddEventListener(AAMP_JS* aamp, AAMPEventType type, JSObje
 	{
 		pListener = new AAMP_JSListener_BitRateChanged(aamp, type, jsCallback);
 	}
+	else if(type == AAMP_EVENT_BULK_TIMED_METADATA)
+	{
+		pListener = new AAMP_JSListener_BulkTimedMetadata(aamp, type, jsCallback);
+	}
 	else if(type == AAMP_EVENT_TIMED_METADATA)
 	{
 		pListener = new AAMP_JSListener_TimedMetadata(aamp, type, jsCallback);
@@ -1673,6 +1798,14 @@ void AAMP_JSListener::AddEventListener(AAMP_JS* aamp, AAMPEventType type, JSObje
 	else if(type == AAMP_EVENT_AD_PLACEMENT_ERROR)
 	{
 		pListener = new AAMP_JSListener_AdPlacementEror(aamp, type, jsCallback);
+	}
+	else if(type == AAMP_EVENT_BUFFERING_CHANGED)
+	{
+		pListener = new AAMP_JSListener_BufferingChanged(aamp, type, jsCallback);
+	}
+	else if(type == AAMP_EVENT_ID3_METADATA)
+	{
+		pListener = new AAMP_JSListener_Id3Metadata(aamp, type, jsCallback);
 	}
 	else
 	{
@@ -1842,7 +1975,7 @@ static JSValueRef AAMP_tune(JSContextRef context, JSObjectRef function, JSObject
 		case 1:
 			{
 				char* url = aamp_JSValueToCString(context, arguments[0], exception);
-				pAAMP->_aamp->Tune(url, contentType, bFirstAttempt, bFinalAttempt);
+				pAAMP->_aamp->Tune(url, true, contentType, bFirstAttempt, bFinalAttempt);
 				delete [] url;
 			}
 			if(NULL != contentType)
@@ -1923,7 +2056,7 @@ static JSValueRef AAMP_load(JSContextRef context, JSObjectRef function, JSObject
 		}
 
 		char* url = aamp_JSValueToCString(context, arguments[0], exception);
-		pAAMP->_aamp->Tune(url, contentType, bFirstAttempt, bFinalAttempt,strTraceId);
+		pAAMP->_aamp->Tune(url, true, contentType, bFirstAttempt, bFinalAttempt,strTraceId);
 
 		delete [] url;
 		if (contentType)
@@ -2362,7 +2495,7 @@ static JSValueRef AAMP_addCustomHTTPHeader(JSContextRef context, JSObjectRef fun
 		// Don't support empty values now
 		if (headerVal.size() == 0)
 		{
-			ERROR("[AAMP_JS] %s() InvalidArgument: Custom header's value is empty", __FUNCTION__, argumentCount);
+			ERROR("[AAMP_JS] %s() InvalidArgument: Custom header's value is empty", __FUNCTION__);
 			*exception = aamp_GetException(context, AAMPJS_INVALID_ARGUMENT, "Failed to execute 'AAMP.addCustomHTTPHeader' - 2nd argument should be a string or array of strings");
 			return JSValueMakeUndefined(context);
 		}
@@ -2818,7 +2951,7 @@ static JSValueRef AAMP_notifyReservationCompletion(JSContextRef context, JSObjec
 		long time = (long) JSValueToNumber(context, arguments[1], exception);
 		//Need an API in AAMP to notify that placements for this reservation are over and AAMP might have to trim
 		//the ads to the period duration or not depending on time param
-		ERROR("[AAMP_JS] %s(): Called reservation close for periodId:%s and time:%d", __FUNCTION__, reservationId, time);
+		ERROR("[AAMP_JS] %s(): Called reservation close for periodId:%s and time:%ld", __FUNCTION__, reservationId, time);
 		delete[] reservationId;
 	}
 	return JSValueMakeUndefined(context);
@@ -3002,7 +3135,7 @@ static JSValueRef AAMP_setNetworkTimeout(JSContextRef context, JSObjectRef funct
 	}
 	else
 	{
-		long networkTimeout = (long)JSValueToNumber(context, arguments[0], exception);
+		double networkTimeout = (double)JSValueToNumber(context, arguments[0], exception);
 		pAAMP->_aamp->SetNetworkTimeout(networkTimeout);
 	}
 
@@ -3093,8 +3226,9 @@ static void AAMP_finalize(JSObjectRef thisObject)
 	pthread_mutex_lock(&mutex);
 	if (NULL != _allocated_aamp)
 	{
-		_allocated_aamp->Stop();
-		LOG("[AAMP_JS] %s:%d delete aamp %p\n", __FUNCTION__, __LINE__, _allocated_aamp);
+		//when finalizing JS object, don't generate state change events
+		_allocated_aamp->Stop(false);
+		LOG("[AAMP_JS] %s:%d delete aamp %p", __FUNCTION__, __LINE__, _allocated_aamp);
 		delete _allocated_aamp;
 		_allocated_aamp = NULL;
 	}
@@ -3405,155 +3539,6 @@ JSObjectRef AAMP_JS_AddEventTypeClass(JSGlobalContextRef context)
 
 
 /**
- * @brief Create a TimedMetadata JS object with args passed
- * @param[in] context JS execution context
- * @param[in] timeMS time in milliseconds
- * @param[in] szName name of the metadata tag
- * @param[in] szContent metadata associated with the tag
- * @retval JSObject of TimedMetadata generated
- */
-JSObjectRef AAMP_JS_CreateTimedMetadata(JSContextRef context, double timeMS, const char* szName, const char* szContent, const char* id, double durationMS)
-{
-	JSStringRef name;
-
-	JSObjectRef timedMetadata = JSObjectMake(context, NULL, NULL);
-	
-	if (timedMetadata) {
-		JSValueProtect(context, timedMetadata);
-		bool bGenerateID = true;
-
-		name = JSStringCreateWithUTF8CString("time");
-		JSObjectSetProperty(context, timedMetadata, name, JSValueMakeNumber(context, std::round(timeMS)), kJSPropertyAttributeReadOnly, NULL);
-		JSStringRelease(name);
-
-		if(!strcmp(szName,"SCTE35") && id && *id != '\0')
-		{
-			name = JSStringCreateWithUTF8CString("reservationId");
-			JSObjectSetProperty(context, timedMetadata, name, aamp_CStringToJSValue(context, id), kJSPropertyAttributeReadOnly, NULL);
-			JSStringRelease(name);
-			bGenerateID = false;
-		}
-
-		name = JSStringCreateWithUTF8CString("duration");
-		JSObjectSetProperty(context, timedMetadata, name, JSValueMakeNumber(context, (int)durationMS), kJSPropertyAttributeReadOnly, NULL);
-		JSStringRelease(name);
-
-		name = JSStringCreateWithUTF8CString("name");
-		JSObjectSetProperty(context, timedMetadata, name, aamp_CStringToJSValue(context, szName), kJSPropertyAttributeReadOnly, NULL);
-		JSStringRelease(name);
-
-		name = JSStringCreateWithUTF8CString("content");
-		JSObjectSetProperty(context, timedMetadata, name, aamp_CStringToJSValue(context, szContent), kJSPropertyAttributeReadOnly, NULL);
-		JSStringRelease(name);
-
-		// Force type=0 (HLS tag) for now.
-		// Does type=1 ID3 need to be supported?
-		name = JSStringCreateWithUTF8CString("type");
-		JSObjectSetProperty(context, timedMetadata, name, JSValueMakeNumber(context, 0), kJSPropertyAttributeReadOnly, NULL);
-		JSStringRelease(name);
-
-		// Force metadata as empty object
-		JSObjectRef metadata = JSObjectMake(context, NULL, NULL);
-		if (metadata) {
-                	JSValueProtect(context, metadata);
-			name = JSStringCreateWithUTF8CString("metadata");
-			JSObjectSetProperty(context, timedMetadata, name, metadata, kJSPropertyAttributeReadOnly, NULL);
-			JSStringRelease(name);
-
-			// Parse CUE metadata and TRICKMODE-RESTRICTION metadata
-			if ((strcmp(szName, "#EXT-X-CUE") == 0) ||
-			    (strcmp(szName, "#EXT-X-TRICKMODE-RESTRICTION") == 0)) {
-				const char* szStart = szContent;
-
-				// Advance past #EXT tag.
-				for (; *szStart != ':' && *szStart != '\0'; szStart++);
-				if (*szStart == ':')
-					szStart++;
-
-				// Parse comma seperated name=value list.
-				while (*szStart != '\0') {
-					char* szSep;
-					// Find the '=' seperator.
-					for (szSep = (char*)szStart; *szSep != '=' && *szSep != '\0'; szSep++);
-
-					// Find the end of the value.
-					char* szEnd = (*szSep != '\0') ? szSep + 1 : szSep;
-					for (; *szEnd != ',' && *szEnd != '\0'; szEnd++);
-
-					// Append the name / value metadata.
-					if ((szStart < szSep) && (szSep < szEnd)) {
-						JSValueRef value;
-						char chSave = *szSep;
-
-						*szSep = '\0';
-						name = JSStringCreateWithUTF8CString(szStart);
-						*szSep = chSave;
-
-						chSave = *szEnd;
-						*szEnd = '\0';
-						value = aamp_CStringToJSValue(context, szSep+1);
-						*szEnd = chSave;
-
-						JSObjectSetProperty(context, metadata, name, value, kJSPropertyAttributeReadOnly, NULL);
-						JSStringRelease(name);
-
-						// If we just added the 'ID', copy into timedMetadata.id
-						if (szStart[0] == 'I' && szStart[1] == 'D' && szStart[2] == '=') {
-							bGenerateID = false;
-							name = JSStringCreateWithUTF8CString("id");
-							JSObjectSetProperty(context, timedMetadata, name, value, kJSPropertyAttributeReadOnly, NULL);
-							JSStringRelease(name);
-						}
-					}
-
-					szStart = (*szEnd != '\0') ? szEnd + 1 : szEnd;
-				}
-			}
-
-			// Parse TARGETDURATION and CONTENT-IDENTIFIER metadata
-			else {
-				const char* szStart = szContent;
-				// Advance past #EXT tag.
-				for (; *szStart != ':' && *szStart != '\0'; szStart++);
-				if (*szStart == ':')
-					szStart++;
-
-				// Stuff all content into DATA name/value pair.
-				JSValueRef value = aamp_CStringToJSValue(context, szStart);
-				if (strcmp(szName, "#EXT-X-TARGETDURATION") == 0) {
-					// Stuff into DURATION if EXT-X-TARGETDURATION content.
-					name = JSStringCreateWithUTF8CString("DURATION");
-				} else {
-					name = JSStringCreateWithUTF8CString("DATA");
-				}
-				JSObjectSetProperty(context, metadata, name, value, kJSPropertyAttributeReadOnly, NULL);
-				JSStringRelease(name);
-			}
-			JSValueUnprotect(context, metadata);
-		}
-
-		// Generate an ID
-		if (bGenerateID) {
-			int hash = (int)timeMS;
-			const char* szStart = szName;
-			for (; *szStart != '\0'; szStart++) {
-				hash = (hash * 33) ^ *szStart;
-			}
-
-			char buf[32];
-			sprintf(buf, "%d", hash);
-			name = JSStringCreateWithUTF8CString("id");
-			JSObjectSetProperty(context, timedMetadata, name, aamp_CStringToJSValue(context, buf), kJSPropertyAttributeReadOnly, NULL);
-			JSStringRelease(name);
-		}
-		JSValueUnprotect(context, timedMetadata);
-	}
-
-        return timedMetadata;
-}
-
-
-/**
  *   @brief  Loads AAMP JS object into JS execution context
  *
  *   @param[in]  context - JS execution context
@@ -3577,12 +3562,12 @@ void aamp_LoadJS(void* context, void* playerInstanceAAMP)
 		pthread_mutex_lock(&mutex);
 		if (NULL == _allocated_aamp )
 		{
-			_allocated_aamp = new PlayerInstanceAAMP();
-			LOG("[AAMP_JS] %s:%d create aamp %p\n", __FUNCTION__, __LINE__, _allocated_aamp);
+			_allocated_aamp = new PlayerInstanceAAMP(NULL, NULL, PLAYERMODE_JSPLAYER);
+			LOG("[AAMP_JS] %s:%d create aamp %p", __FUNCTION__, __LINE__, _allocated_aamp);
 		}
 		else
 		{
-			LOG("[AAMP_JS] %s:%d reuse aamp %p\n", __FUNCTION__, __LINE__, _allocated_aamp);
+			LOG("[AAMP_JS] %s:%d reuse aamp %p", __FUNCTION__, __LINE__, _allocated_aamp);
 		}
 		pAAMP->_aamp = _allocated_aamp;
 		pthread_mutex_unlock(&mutex);
@@ -3651,13 +3636,14 @@ void aamp_UnloadJS(void* context)
  */
 void __attribute__ ((destructor(101))) _aamp_term()
 {
-	LOG("[AAMP_JS] %s:%d\n", __FUNCTION__, __LINE__);
+	LOG("[AAMP_JS] %s:%d", __FUNCTION__, __LINE__);
 	pthread_mutex_lock(&mutex);
 	if (NULL != _allocated_aamp)
 	{
-		LOG("[AAMP_JS] %s:%d stopping aamp\n", __FUNCTION__, __LINE__);
-		_allocated_aamp->Stop();
-		LOG("[AAMP_JS] %s:%d stopped aamp\n", __FUNCTION__, __LINE__);
+		LOG("[AAMP_JS] %s:%d stopping aamp", __FUNCTION__, __LINE__);
+		//when finalizing JS object, don't generate state change events
+		_allocated_aamp->Stop(false);
+		LOG("[AAMP_JS] %s:%d stopped aamp", __FUNCTION__, __LINE__);
 		delete _allocated_aamp;
 		_allocated_aamp = NULL;
 	}

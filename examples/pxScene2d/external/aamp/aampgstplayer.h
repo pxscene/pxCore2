@@ -29,6 +29,7 @@
 #include <functional>
 #include <gst/gst.h>
 #include "priv_aamp.h"
+#include <pthread.h>
 
 /**
  * @struct AAMPGstPlayerPriv
@@ -51,11 +52,11 @@ public:
 	void Stream(void);
 	void Stop(bool keepLastFrame);
 	void DumpStatus(void);
-	void Flush(double position, int rate);
-	void SelectAudio(int index);
+	void Flush(double position, int rate, bool shouldTearDown);
 	bool Pause(bool pause);
 	long GetPositionMilliseconds(void);
 	unsigned long getCCDecoderHandle(void);
+	virtual long long GetVideoPTS(void);
 	void SetVideoRectangle(int x, int y, int w, int h);
 	bool Discontinuity( MediaType mediaType);
 	void SetVideoZoom(VideoZoomMode zoom);
@@ -63,14 +64,17 @@ public:
 	void SetAudioVolume(int volume);
 	void setVolumeOrMuteUnMute(void);
 	bool IsCacheEmpty(MediaType mediaType);
+	bool CheckForPTSChange();
 	void NotifyFragmentCachingComplete();
 	void GetVideoSize(int &w, int &h);
-	void QueueProtectionEvent(const char *protSystemId, const void *ptr, size_t len);
+	void QueueProtectionEvent(const char *protSystemId, const void *ptr, size_t len, MediaType type);
 	void ClearProtectionEvent();
+	void StopBuffering(bool forceStop);
+
 
 	struct AAMPGstPlayerPriv *privateContext;
 	AAMPGstPlayer(PrivateInstanceAAMP *aamp
-#ifdef AAMP_RENDER_IN_APP
+#ifdef RENDER_FRAMES_IN_APP_CONTEXT
 	, std::function< void(uint8_t *, int, int, int) > exportFrames = nullptr
 #endif
 	);
@@ -82,11 +86,12 @@ public:
 	void NotifyFirstFrame(MediaType type);
 	void DumpDiagnostics();
 	void SignalTrickModeDiscontinuity();
-
-#ifdef AAMP_RENDER_IN_APP
+#ifdef RENDER_FRAMES_IN_APP_CONTEXT
 	std::function< void(uint8_t *, int, int, int) > cbExportYUVFrame;
 	static GstFlowReturn AAMPGstPlayer_OnVideoSample(GstElement* object, AAMPGstPlayer * _this);
 #endif
+	void SeekStreamSink(double position, double rate);
+	std::string GetVideoRectangle();
 private:
 	void PauseAndFlush(bool playAfterFlush);
 	void TearDownStream(MediaType mediaType);
@@ -95,6 +100,8 @@ private:
 	static bool initialized;
 	void Flush(void);
 	void DisconnectCallbacks();
+
+	pthread_mutex_t mBufferingLock;
 };
 
 #endif // AAMPGSTPLAYER_H

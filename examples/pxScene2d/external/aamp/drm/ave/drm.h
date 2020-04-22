@@ -32,6 +32,8 @@
 #define MAX_DRM_CONTEXT 6
 #define DRM_SHA1_HASH_LEN 40
 #define DRM_IV_LEN 16
+#define SESSION_TOKEN_URL "http://localhost:50050/authService/getSessionToken"
+
 #ifdef AVE_DRM
 #include "ave-adapter/MyFlashAccessAdapter.h"
 #else
@@ -152,6 +154,7 @@ public:
 	static std::shared_ptr<AveDrm> GetAveDrm(char* sha1Hash,int trackType);
 	static bool AcquireKey(PrivateInstanceAAMP *aamp, DrmMetadataNode *metaDataNode,int trackType,bool overrideDeferring=false);
 	static int GetNewMetadataIndex(DrmMetadataNode* drmMetadataIdx, int drmMetadataCount);
+	static void ApplySessionToken();
 private:
 	AveDrmManager();
 	void Reset();
@@ -162,7 +165,12 @@ private:
 	int mUserCount;
 	int mTrackType;
 	long long mDeferredTime;
+	static bool mSessionTokenAcquireStarted;
+	static bool mSessionTokenWaitAbort;
 	static std::vector<AveDrmManager*> sAveDrmManager;
+	static long setSessionToken();
+	static size_t write_callback_session(char *ptr, size_t size,size_t nmemb, void *userdata);
+	static int progress_callback(void *clientp,double dltotal,double dlnow,double ultotal, double ulnow );
 };
 
 #endif // DRM_H

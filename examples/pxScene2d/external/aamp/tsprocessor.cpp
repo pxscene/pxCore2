@@ -160,6 +160,7 @@ private:
 	unsigned long long base_pts;
 	unsigned long long current_pts;
 	unsigned long long current_dts;
+	unsigned long long first_pts;
 	MediaType type;
 	bool trickmode;
 	bool finalized_base_pts;
@@ -173,7 +174,7 @@ private:
 	{
 		if ((base_pts > current_pts) || (current_dts && base_pts > current_dts))
 		{
-			WARNING("Discard ES Type %d position %f base_pts %llu current_pts %llu diff %f seconds length %d\n", type, position, base_pts, current_pts, (double)(base_pts - current_pts) / 90000, (int)es.len );
+			WARNING("Discard ES Type %d position %f base_pts %llu current_pts %llu diff %f seconds length %d", type, position, base_pts, current_pts, (double)(base_pts - current_pts) / 90000, (int)es.len );
 		}
 		else
 		{
@@ -191,15 +192,15 @@ private:
 			{
 				dts = pts;
 			}
-			DEBUG_DEMUX("Send : pts %f dts %f\n", pts, dts);
-			DEBUG_DEMUX("position %f base_pts %llu current_pts %llu diff %f seconds length %d\n", position, base_pts, current_pts, (double)(current_pts - base_pts) / 90000, (int)es.len );
+			DEBUG_DEMUX("Send : pts %f dts %f", pts, dts);
+			DEBUG_DEMUX("position %f base_pts %llu current_pts %llu diff %f seconds length %d", position, base_pts, current_pts, (double)(current_pts - base_pts) / 90000, (int)es.len );
 			aamp->SendStream(type, es.ptr, es.len, pts, dts, duration);
 			if (gpGlobalConfig->logging.info)
 			{
 				sentESCount++;
 				if(0 == (sentESCount % 150 ))
 				{
-					logprintf("Demuxer::%s:%d: type %d sent %d packets\n", __FUNCTION__, __LINE__, (int)type, sentESCount);
+					logprintf("Demuxer::%s:%d: type %d sent %d packets", __FUNCTION__, __LINE__, (int)type, sentESCount);
 				}
 			}
 		}
@@ -216,7 +217,7 @@ public:
 		pes_header_ext_len(0), pes_header_ext_read(0), pes_header(),
 		es(), position(0), duration(0), base_pts(0), current_pts(0),
 		current_dts(0), type(type), trickmode(false), finalized_base_pts(false),
-		sentESCount(0)
+		sentESCount(0), first_pts(0)
 	{
 		init(0, 0, false, true);
 	}
@@ -259,12 +260,13 @@ public:
 		}
 		current_dts = 0;
 		current_pts = 0;
+		first_pts = 0;
 		finalized_base_pts = false;
 		memset(&pes_header, 0x00, sizeof(GrowableBuffer));
 		memset(&es, 0x00, sizeof(GrowableBuffer));
 		sentESCount = 0;
 		pes_state = PES_STATE_WAITING_FOR_HEADER;
-		DEBUG_DEMUX("init : position %f, duration %f resetBasePTS %d\n", position, duration, resetBasePTS);
+		DEBUG_DEMUX("init : position %f, duration %f resetBasePTS %d", position, duration, resetBasePTS);
 	}
 
 
@@ -275,10 +277,10 @@ public:
 	{
 		if (es.len > 0)
 		{
-			INFO("demux : sending remaining bytes. es.len %d\n", (int)es.len);
+			INFO("demux : sending remaining bytes. es.len %d", (int)es.len);
 			send();
 		}
-		AAMPLOG_INFO("Demuxer::%s:%d: count %d in duration %f\n", __FUNCTION__, __LINE__, sentESCount, duration);
+		AAMPLOG_INFO("Demuxer::%s:%d: count %d in duration %f", __FUNCTION__, __LINE__, sentESCount, duration);
 		reset();
 	}
 
@@ -301,14 +303,14 @@ public:
 	 * @param[in] basePTS new base PTS
 	 * @param[in] final true if base PTS is finalized
 	 */
-	void setBasePTS(unsigned long long basePTS, bool final)
+	void setBasePTS(unsigned long long basePTS, bool isFinal)
 	{
 		if (!trickmode)
 		{
-			NOTICE("Type[%d], basePTS %llu final %d\n", (int)type, basePTS, (int)final);
+			NOTICE("Type[%d], basePTS %llu final %d", (int)type, basePTS, (int)isFinal);
 		}
 		base_pts = basePTS;
-		finalized_base_pts = final;
+		finalized_base_pts = isFinal;
 	}
 
 	/**
@@ -365,7 +367,7 @@ public:
 							timeStamp |= (v >> 2) & (0x7fff << 15); // middle 15 bits
 							timeStamp |= (v >> 1) & (0x7fff << 0); // bottom 15 bits
 							current_pts = timeStamp;
-							DEBUG("PTS updated %llu\n", current_pts);
+							DEBUG("PTS updated %llu", current_pts);
 							if(!finalized_base_pts)
 							{
 								finalized_base_pts = true;
@@ -374,7 +376,7 @@ public:
 									if (-1 == base_pts)
 									{
 										base_pts = current_pts - MAX_FIRST_PTS_OFFSET;
-										WARNING("Type[%d] base_pts not initialized, updated to %llu\n", type, base_pts);
+										WARNING("Type[%d] base_pts not initialized, updated to %llu", type, base_pts);
 									}
 									else
 									{
@@ -383,27 +385,27 @@ public:
 										{
 											unsigned long long orig_base_pts = base_pts;
 											base_pts = current_pts - MAX_FIRST_PTS_OFFSET;
-											NOTICE("Type[%d] delta[%lld] > MAX_FIRST_PTS_OFFSET, current_pts[%llu] base_pts[%llu]->[%llu]\n", type, delta, current_pts, orig_base_pts, base_pts);
+											NOTICE("Type[%d] delta[%lld] > MAX_FIRST_PTS_OFFSET, current_pts[%llu] base_pts[%llu]->[%llu]", type, delta, current_pts, orig_base_pts, base_pts);
 										}
 										else if (delta < 0 )
 										{
-											WARNING("Type[%d] delta[%lld] < 0, base_pts[%llu]->[%llu]\n", type, delta, base_pts, current_pts);
+											WARNING("Type[%d] delta[%lld] < 0, base_pts[%llu]->[%llu]", type, delta, base_pts, current_pts);
 											base_pts = current_pts;
 										}
 										else
 										{
-											NOTICE("Type[%d] PTS in range.delta[%lld] <= MAX_FIRST_PTS_OFFSET base_pts[%llu]\n", type, delta, base_pts);
+											NOTICE("Type[%d] PTS in range.delta[%lld] <= MAX_FIRST_PTS_OFFSET base_pts[%llu]", type, delta, base_pts);
 										}
 									}
 								}
 								if (-1 == base_pts)
 								{
 									base_pts = timeStamp;
-									WARNING("base_pts not available, updated to pts %llu\n", timeStamp);
+									WARNING("base_pts not available, updated to pts %llu", timeStamp);
 								}
 								else if (base_pts > timeStamp)
 								{
-									WARNING("base_pts update from %llu to %llu\n", base_pts, timeStamp);
+									WARNING("base_pts update from %llu to %llu", base_pts, timeStamp);
 									base_pts = timeStamp;
 								}
 								basePtsUpdated = true;
@@ -411,7 +413,7 @@ public:
 						}
 						else
 						{
-							WARNING("PTS NOT present pesStart[7] & 0x80 = 0x%x pesStart[9]&0xF0 = 0x%x\n",
+							WARNING("PTS NOT present pesStart[7] & 0x80 = 0x%x pesStart[9]&0xF0 = 0x%x",
 								pesStart[7] & 0x80, (pesStart[9] & 0x20));
 						}
 
@@ -425,33 +427,45 @@ public:
 							timeStamp |= (v >> 3) & (0x0007ULL << 30); // top 3 bits, shifted left by 3, other bits zeroed out
 							timeStamp |= (v >> 2) & (0x7fff << 15); // middle 15 bits
 							timeStamp |= (v >> 1) & (0x7fff << 0); // bottom 15 bits
-							DEBUG("dts : %llu \n", timeStamp);
+							DEBUG("dts : %llu ", timeStamp);
 
 							current_dts = timeStamp;
 						}
 						else
 						{
-							DEBUG("DTS NOT present pesStart[7] & 0x80 = 0x%x pesStart[9]&0xF0 = 0x%x\n",
+							DEBUG("DTS NOT present pesStart[7] & 0x80 = 0x%x pesStart[9]&0xF0 = 0x%x",
 								pesStart[7] & 0x80, (pesStart[9] & 0x20));
 						}
 					}
 					else
 					{
-						WARNING("Optional pes header NOT present pesStart[6] & 0xC0 = 0x%x\n", pesStart[6] & 0xC0);
+						WARNING("Optional pes header NOT present pesStart[6] & 0xC0 = 0x%x", pesStart[6] & 0xC0);
 					}
 				}
 				else
 				{
-					WARNING("Packet start prefix check failed 0x%x 0x%x 0x%x adaptation_fieldlen %d\n", pesStart[0],
+					WARNING("Packet start prefix check failed 0x%x 0x%x 0x%x adaptation_fieldlen %d", pesStart[0],
 						pesStart[1], pesStart[2], adaptation_fieldlen);
 				}
-				DEBUG(" PES_PAYLOAD_LENGTH %d\n", PES_PAYLOAD_LENGTH(pesStart));
+				DEBUG(" PES_PAYLOAD_LENGTH %d", PES_PAYLOAD_LENGTH(pesStart));
 			}
 			if (current_pts < base_pts)
 			{
-				WARNING("current_pts[%llu] < base_pts[%llu]\n", current_pts, base_pts);
+				WARNING("current_pts[%llu] < base_pts[%llu]", current_pts, base_pts);
 				ptsError = true;
 				return;
+			}
+
+			if (first_pts == 0)
+			{
+				first_pts = current_pts;
+				//Notify first video PTS to AAMP for VTT initialization
+				if (!trickmode && type == eMEDIATYPE_VIDEO)
+				{
+					aamp->NotifyFirstVideoPTS(first_pts);
+					//Notifying BasePTS value for media progress event
+					aamp->NotifyVideoBasePTS(getBasePTS());
+				}
 			}
 			/*PARSE PES*/
 			{
@@ -462,7 +476,7 @@ public:
 				{
 					pes_state = PES_STATE_GETTING_HEADER;
 					pes_header.len = 0;
-					DEBUG_DEMUX("Payload Unit Start\n");
+					DEBUG_DEMUX("Payload Unit Start");
 				}
 
 				while (size > 0)
@@ -470,7 +484,7 @@ public:
 					switch (pes_state)
 					{
 					case PES_STATE_WAITING_FOR_HEADER:
-						WARNING("PES_STATE_WAITING_FOR_HEADER , discard data. type =%d size = %d\n", (int)type, size);
+						WARNING("PES_STATE_WAITING_FOR_HEADER , discard data. type =%d size = %d", (int)type, size);
 						size = 0;
 						break;
 					case PES_STATE_GETTING_HEADER:
@@ -479,7 +493,7 @@ public:
 						{
 							bytes_to_read = size;
 						}
-						DEBUG("PES_STATE_GETTING_HEADER. size = %d, bytes_to_read =%d\n", size, bytes_to_read);
+						DEBUG("PES_STATE_GETTING_HEADER. size = %d, bytes_to_read =%d", size, bytes_to_read);
 						aamp_AppendBytes(&pes_header, data, bytes_to_read);
 						data += bytes_to_read;
 						size -= bytes_to_read;
@@ -487,7 +501,7 @@ public:
 						{
 							if (!IS_PES_PACKET_START(pes_header.ptr))
 							{
-								WARNING("Packet start prefix check failed 0x%x 0x%x 0x%x\n", pes_header.ptr[0],
+								WARNING("Packet start prefix check failed 0x%x 0x%x 0x%x", pes_header.ptr[0],
 									pes_header.ptr[1], pes_header.ptr[2]);
 								pes_state = PES_STATE_WAITING_FOR_HEADER;
 								break;
@@ -498,13 +512,13 @@ public:
 								pes_header_ext_len = PES_OPTIONAL_HEADER_LENGTH(pes_header.ptr);
 								pes_header_ext_read = 0;
 								DEBUG(
-									"Optional header preset len = %d. Switching to PES_STATE_GETTING_HEADER_EXTENSION\n",
+									"Optional header preset len = %d. Switching to PES_STATE_GETTING_HEADER_EXTENSION",
 									pes_header_ext_len);
 							}
 							else
 							{
 								WARNING(
-									"Optional header not preset pesStart[6] 0x%x bytes_to_read %d- switching to PES_STATE_WAITING_FOR_HEADER\n",
+									"Optional header not preset pesStart[6] 0x%x bytes_to_read %d- switching to PES_STATE_WAITING_FOR_HEADER",
 									pes_header.ptr[6], bytes_to_read);
 								pes_state = PES_STATE_WAITING_FOR_HEADER;
 							}
@@ -527,13 +541,13 @@ public:
 						break;
 					case PES_STATE_GETTING_ES:
 						/*Handle padding?*/
-						TRACE1("PES_STATE_GETTING_ES bytes_to_read = %d\n", size);
+						TRACE1("PES_STATE_GETTING_ES bytes_to_read = %d", size);
 						aamp_AppendBytes(&es, data, size);
 						size = 0;
 						break;
 					default:
 						pes_state = PES_STATE_WAITING_FOR_HEADER;
-						ERROR("Invalid pes_state. type =%d size = %d\n", (int)type, size);
+						ERROR("Invalid pes_state. type =%d size = %d", (int)type, size);
 						break;
 					}
 				}
@@ -541,7 +555,7 @@ public:
 		}
 		else
 		{
-			INFO("No payload in packet packetStart[3] 0x%x\n", packetStart[3]);
+			INFO("No payload in packet packetStart[3] 0x%x", packetStart[3]);
 		}
 		ptsError = false;
 	}
@@ -677,11 +691,11 @@ TSProcessor::TSProcessor(class PrivateInstanceAAMP *aamp,StreamOperation streamO
 	m_throttleDelayIgnoredMs(DEFAULT_THROTTLE_DELAY_IGNORED_MS), m_throttleDelayForDiscontinuityMs(DEFAULT_THROTTLE_DELAY_FOR_DISCONTINUITY_MS),
 	m_throttleCond(), m_basePTSCond(), m_mutex(), m_enabled(true), m_processing(false), m_framesProcessedInSegment(0),
 	m_lastPTSOfSegment(-1), m_streamOperation(streamOperation), m_vidDemuxer(NULL), m_audDemuxer(NULL),
-	m_demux(NULL), m_peerTSProcessor(peerTSProcessor), m_packetStartAfterFirstPTS(-1), m_queuedSegment(NULL),
+	m_demux(false), m_peerTSProcessor(peerTSProcessor), m_packetStartAfterFirstPTS(-1), m_queuedSegment(NULL),
 	m_queuedSegmentPos(0), m_queuedSegmentDuration(0), m_queuedSegmentLen(0), m_queuedSegmentDiscontinuous(false), m_startPosition(-1.0),
 	m_track(track), m_last_frame_time(0), m_demuxInitialized(false), m_basePTSFromPeer(-1)
 {
-	INFO("constructor - %p\n", this);
+	INFO("constructor - %p", this);
 
 	memset(m_SPS, 0, 32 * sizeof(H264SPS));
 	memset(m_PPS, 0, 256 * sizeof(H264PPS));
@@ -713,7 +727,7 @@ TSProcessor::TSProcessor(class PrivateInstanceAAMP *aamp,StreamOperation streamO
  */
 TSProcessor::~TSProcessor()
 {
-	INFO("destructor - %p\n", this);
+	INFO("destructor - %p", this);
 	if (m_PatPmt)
 	{
 		free(m_PatPmt);
@@ -852,7 +866,7 @@ void TSProcessor::insertPCR(unsigned char *packet, int pid)
 	packet[i + 4] = 0xB7; // 1 byte of adaptation data, but require length of 183 when no payload is indicated
 	packet[i + 5] = 0x10; // PCR
 	currPCR = ((m_currRateAdjustedPTS - 10000) & 0x1FFFFFFFFLL);
-	TRACE1("TSProcessor::insertPCR: m_currRateAdjustedPTS= %llx currPCR= %llx\n", m_currRateAdjustedPTS, currPCR);
+	TRACE1("TSProcessor::insertPCR: m_currRateAdjustedPTS= %llx currPCR= %llx", m_currRateAdjustedPTS, currPCR);
 	writePCR(&packet[i + 6], currPCR, true);
 	for (int i = 6 + 6 + m_ttsSize; i < m_packetSize; i++)
 	{
@@ -918,7 +932,7 @@ void TSProcessor::processPMTSection(unsigned char* section, int sectionLength)
 			}
 			else
 			{
-				WARNING("Warning: RecordContext: pmt contains more than %d video PIDs\n", MAX_PIDS);
+				WARNING("Warning: RecordContext: pmt contains more than %d video PIDs", MAX_PIDS);
 			}
 			break;
 		case 0x1B: // H.264 Video
@@ -932,7 +946,7 @@ void TSProcessor::processPMTSection(unsigned char* section, int sectionLength)
 			}
 			else
 			{
-				WARNING("Warning: RecordContext: pmt contains more than %d video PIDs\n", MAX_PIDS);
+				WARNING("Warning: RecordContext: pmt contains more than %d video PIDs", MAX_PIDS);
 			}
 			break;
 		case 0x03: // MPEG1 Audio
@@ -983,12 +997,12 @@ void TSProcessor::processPMTSection(unsigned char* section, int sectionLength)
 			}
 			else
 			{
-				WARNING("Warning: RecordContext: pmt contains more than %d audio PIDs\n", MAX_PIDS);
+				WARNING("Warning: RecordContext: pmt contains more than %d audio PIDs", MAX_PIDS);
 			}
 			break;
 
 		default:
-			DEBUG("RecordContext: pmt contains unused stream type 0x%x\n", streamType);
+			DEBUG("RecordContext: pmt contains unused stream type 0x%x", streamType);
 			break;
 		}
 		programInfo += (5 + len);
@@ -997,12 +1011,12 @@ void TSProcessor::processPMTSection(unsigned char* section, int sectionLength)
 	if (videoComponentCount > 0)
 	{
 		m_videoPid = videoComponents[0].pid;
-		NOTICE( "[%p] found %d video pids in program %d with pcr pid %d video pid %d\n",
+		NOTICE( "[%p] found %d video pids in program %d with pcr pid %d video pid %d",
 			this, videoComponentCount, m_program, pcrPid, m_videoPid);
 	}
 	if (audioComponentCount > 0)
 	{
-		NOTICE( "[%p] found %d audio pids in program %d with pcr pid %d audio pid %d\n",
+		NOTICE( "[%p] found %d audio pids in program %d with pcr pid %d audio pid %d",
 			this, audioComponentCount, m_program, pcrPid, audioComponents[0].pid);
 	}
 
@@ -1096,7 +1110,7 @@ void TSProcessor::sendDiscontinuity(double position)
 			m_haveBaseTime = true;
 			m_baseTime = insertPCR;
 			m_segmentBaseTime = m_baseTime;
-			INFO("have baseTime %llx from pid %x on signal of PCR discontinuity\n", m_baseTime, m_pcrPid);
+			INFO("have baseTime %llx from pid %x on signal of PCR discontinuity", m_baseTime, m_pcrPid);
 		}
 #endif
 	}
@@ -1228,7 +1242,7 @@ bool TSProcessor::throttle()
 		if (contentTime != -1LL)
 		{
 			long long now, contentTimeDiff, realTimeDiff;
-			TRACE2("contentTime %lld (%lld ms) m_playRate %f\n", contentTime, contentTime / 90, m_playRate);
+			TRACE2("contentTime %lld (%lld ms) m_playRate %f", contentTime, contentTime / 90, m_playRate);
 
 			// Convert from 90KHz milliseconds
 			contentTime = (contentTime / 90LL);
@@ -1253,23 +1267,23 @@ bool TSProcessor::throttle()
 								if (throttleDiff > m_throttleMaxDelayMs)
 								{
 									// Don't delay more than 500 ms in any given request
-									TRACE2("TSProcessor::fillBuffer: throttle: cap %lld to %d ms\n", throttleDiff, m_throttleMaxDelayMs);
+									TRACE2("TSProcessor::fillBuffer: throttle: cap %lld to %d ms", throttleDiff, m_throttleMaxDelayMs);
 									throttleDiff = m_throttleMaxDelayMs;
 								}
 								else
 								{
-									TRACE2("TSProcessor::fillBuffer: throttle: sleep %lld ms\n", throttleDiff);
+									TRACE2("TSProcessor::fillBuffer: throttle: sleep %lld ms", throttleDiff);
 								}
 								aborted = msleep(throttleDiff);
 							}
 							else
 							{
-								INFO("throttleDiff negative? %lld\n", throttleDiff);
+								INFO("throttleDiff negative? %lld", throttleDiff);
 							}
 						}
 						else
 						{
-							TRACE2("realTimeDiff %lld\n", realTimeDiff);
+							TRACE2("realTimeDiff %lld", realTimeDiff);
 						}
 					}
 					else if ((contentTimeDiff < -m_throttleDelayForDiscontinuityMs) || (contentTimeDiff > m_throttleDelayForDiscontinuityMs))
@@ -1277,16 +1291,16 @@ bool TSProcessor::throttle()
 						// There has been some timing irregularity such as a PTS discontinuity.
 						// Establish a new throttling time base.
 						m_haveThrottleBase = false;
-						INFO(" contentTimeDiff( %lld) greater than threshold (%d) - probable pts discontinuity\n", contentTimeDiff, m_throttleDelayForDiscontinuityMs);
+						INFO(" contentTimeDiff( %lld) greater than threshold (%d) - probable pts discontinuity", contentTimeDiff, m_throttleDelayForDiscontinuityMs);
 					}
 					else
 					{
-						INFO(" Out of throttle window - contentTimeDiff %lld realTimeDiff  %lld\n", contentTimeDiff, realTimeDiff);
+						INFO(" Out of throttle window - contentTimeDiff %lld realTimeDiff  %lld", contentTimeDiff, realTimeDiff);
 					}
 				}
 				else
 				{
-					TRACE2(" m_lastThrottleContentTime %lld\n", m_lastThrottleContentTime);
+					TRACE2(" m_lastThrottleContentTime %lld", m_lastThrottleContentTime);
 				}
 			}
 			else
@@ -1312,7 +1326,7 @@ bool TSProcessor::throttle()
 				if (nextFrameTime > now)
 				{
 					long long throttleDiff = nextFrameTime - now;
-					INFO("Wait %llu ms \n", throttleDiff);
+					INFO("Wait %llu ms ", throttleDiff);
 					aborted = msleep(throttleDiff);
 				}
 			}
@@ -1372,8 +1386,8 @@ bool TSProcessor::processBuffer(unsigned char *buffer, int size, bool &insPatPmt
 	// For the moment, insist on buffers being TS packet aligned
 	if (!((packet[0] == 0x47) && ((size%m_packetSize) == 0)))
 	{
-		FATAL("Error: data buffer not TS packet aligned\n");
-		logprintf("packet=%p size=%d m_packetSize=%d\n", packet, size, m_packetSize);
+		FATAL("Error: data buffer not TS packet aligned");
+		logprintf("packet=%p size=%d m_packetSize=%d", packet, size, m_packetSize);
 		dumpPacket(packet, m_packetSize);
 		assert(false);
 	}
@@ -1382,7 +1396,7 @@ bool TSProcessor::processBuffer(unsigned char *buffer, int size, bool &insPatPmt
 	while (packet < bufferEnd)
 	{
 		pid = (((packet[1] << 8) | packet[2]) & 0x1FFF);
-		TRACE4("pid = %d, m_ttsSize %d\n", pid, m_ttsSize);
+		TRACE4("pid = %d, m_ttsSize %d", pid, m_ttsSize);
 
 		if (m_checkContinuity)
 		{
@@ -1395,7 +1409,7 @@ bool TSProcessor::processBuffer(unsigned char *buffer, int size, bool &insPatPmt
 					expected = ((expected + 1) & 0xF);
 					if (expected != continuity)
 					{
-						WARNING("input SPTS discontinuity on pid %X (%d instead of %d) offset %llx\n",
+						WARNING("input SPTS discontinuity on pid %X (%d instead of %d) offset %llx",
 							pid, continuity, expected, (long long)(packetCount*m_packetSize));
 					}
 				}
@@ -1425,7 +1439,7 @@ bool TSProcessor::processBuffer(unsigned char *buffer, int size, bool &insPatPmt
 						int current = (version & 0x01);
 						version = ((version >> 1) & 0x1F);
 
-						TRACE4("PAT current version %d existing version %d\n", version, m_versionPAT);
+						TRACE4("PAT current version %d existing version %d", version, m_versionPAT);
 						if (!m_havePAT || (current && (version != m_versionPAT)))
 						{
 							dumpPacket(packet, m_packetSize);
@@ -1445,11 +1459,11 @@ bool TSProcessor::processBuffer(unsigned char *buffer, int size, bool &insPatPmt
 										goto done;
 									}
 									m_havePMT = false;
-									DEBUG("RecordContext: acquired PAT version %d program %X pmt pid %X\n", version, m_program, m_pmtPid);
+									DEBUG("RecordContext: acquired PAT version %d program %X pmt pid %X", version, m_program, m_pmtPid);
 								}
 								else
 								{
-									WARNING("Warning: RecordContext: ignoring pid 0 TS packet with suspect program %x and pmtPid %x\n", m_program, m_pmtPid);
+									WARNING("Warning: RecordContext: ignoring pid 0 TS packet with suspect program %x and pmtPid %x", m_program, m_pmtPid);
 									dumpPacket(packet, m_packetSize);
 									m_program = -1;
 									m_pmtPid = -1;
@@ -1457,23 +1471,23 @@ bool TSProcessor::processBuffer(unsigned char *buffer, int size, bool &insPatPmt
 							}
 							else
 							{
-								WARNING("Warning: RecordContext: ignoring pid 0 TS packet with length of %d - not SPTS?\n", length);
+								WARNING("Warning: RecordContext: ignoring pid 0 TS packet with length of %d - not SPTS?", length);
 							}
 						}
 					}
 					else
 					{
-						WARNING("Warning: RecordContext: ignoring pid 0 TS packet with tableid of %x\n", tableid);
+						WARNING("Warning: RecordContext: ignoring pid 0 TS packet with tableid of %x", tableid);
 					}
 				}
 				else
 				{
-					WARNING("Warning: RecordContext: ignoring pid 0 TS packet with adaptation of %x\n", adaptation);
+					WARNING("Warning: RecordContext: ignoring pid 0 TS packet with adaptation of %x", adaptation);
 				}
 			}
 			else
 			{
-				WARNING("Warning: RecordContext: ignoring pid 0 TS with no payload indicator\n");
+				WARNING("Warning: RecordContext: ignoring pid 0 TS with no payload indicator");
 			}
 			/*For trickmodes, remove PAT/PMT*/
 			if (removePatPmt)
@@ -1485,7 +1499,7 @@ bool TSProcessor::processBuffer(unsigned char *buffer, int size, bool &insPatPmt
 		}
 		else if (pid == m_pmtPid)
 		{
-			TRACE4("Got PMT : m_pmtPid %d\n", m_pmtPid);
+			TRACE4("Got PMT : m_pmtPid %d", m_pmtPid);
 			adaptation = ((packet[3] & 0x30) >> 4);
 			if (adaptation & 0x01)
 			{
@@ -1509,14 +1523,14 @@ bool TSProcessor::processBuffer(unsigned char *buffer, int size, bool &insPatPmt
 							int current = (version & 0x01);
 							version = ((version >> 1) & 0x1F);
 
-							TRACE4("PMT current version %d existing version %d\n", version, m_versionPMT);
+							TRACE4("PMT current version %d existing version %d", version, m_versionPMT);
 							if (!m_havePMT || (current && (version != m_versionPMT)))
 							{
 								dumpPacket(packet, m_packetSize);
 
 								if (m_havePMT && (version != m_versionPMT))
 								{
-									INFO("RecordContext: pmt change detected: version %d -> %d\n", m_versionPMT, version);
+									INFO("RecordContext: pmt change detected: version %d -> %d", m_versionPMT, version);
 									m_havePMT = false;
 									goto done;
 								}
@@ -1537,10 +1551,10 @@ bool TSProcessor::processBuffer(unsigned char *buffer, int size, bool &insPatPmt
 											m_pmtCollector = (unsigned char*)malloc(MAX_PMT_SECTION_SIZE);
 											if (!m_pmtCollector)
 											{
-												ERROR("Error: unable to allocate pmt collector buffer - ignoring large pmt (section length %d)\n", sectionLength);
+												ERROR("Error: unable to allocate pmt collector buffer - ignoring large pmt (section length %d)", sectionLength);
 												goto done;
 											}
-											INFO("RecordContext: allocating pmt collector buffer %p\n", m_pmtCollector);
+											INFO("RecordContext: allocating pmt collector buffer %p", m_pmtCollector);
 										}
 										// section data starts after table id, section length and pointer field
 										int sectionOffset = payloadOffset + 4;
@@ -1550,24 +1564,24 @@ bool TSProcessor::processBuffer(unsigned char *buffer, int size, bool &insPatPmt
 										m_pmtCollectorSectionLength = sectionLength;
 										m_pmtCollectorOffset = sectionAvail;
 										m_pmtCollectorNextContinuity = ((packet[3] + 1) & 0xF);
-										INFO("RecordContext: starting to collect multi-packet pmt: section length %d\n", sectionLength);
+										INFO("RecordContext: starting to collect multi-packet pmt: section length %d", sectionLength);
 									}
 									else
 									{
-										WARNING("Warning: RecordContext: ignoring oversized pmt (section length %d)\n", sectionLength);
+										WARNING("Warning: RecordContext: ignoring oversized pmt (section length %d)", sectionLength);
 									}
 								}
 							}
 						}
 						else
 						{
-							WARNING("Warning: RecordContext: ignoring pmt TS packet with mismatched program of %x (expecting %x)\n", program, m_program);
+							WARNING("Warning: RecordContext: ignoring pmt TS packet with mismatched program of %x (expecting %x)", program, m_program);
 							dumpPacket(packet, m_packetSize);
 						}
 					}
 					else
 					{
-						TRACE1("Warning: RecordContext: ignoring pmt TS packet with tableid of %x\n", tableid);
+						TRACE1("Warning: RecordContext: ignoring pmt TS packet with tableid of %x", tableid);
 					}
 				}
 				else
@@ -1578,7 +1592,7 @@ bool TSProcessor::processBuffer(unsigned char *buffer, int size, bool &insPatPmt
 						int continuity = (packet[3] & 0xF);
 						if (((continuity + 1) & 0xF) == m_pmtCollectorNextContinuity)
 						{
-							WARNING("Warning: RecordContext: next packet of multi-packet pmt has wrong continuity count %d (expecting %d)\n",
+							WARNING("Warning: RecordContext: next packet of multi-packet pmt has wrong continuity count %d (expecting %d)",
 								m_pmtCollectorNextContinuity, continuity);
 							// Assume continuity counts for all packets of this pmt will remain the same.
 							// Allow this since it has been observed in the field
@@ -1603,7 +1617,7 @@ bool TSProcessor::processBuffer(unsigned char *buffer, int size, bool &insPatPmt
 						}
 						else
 						{
-							ERROR("Error: RecordContext: aborting multi-packet pmt due to discontinuity error: expected %d got %d\n",
+							ERROR("Error: RecordContext: aborting multi-packet pmt due to discontinuity error: expected %d got %d",
 								m_pmtCollectorNextContinuity, continuity);
 							m_pmtCollectorOffset = 0;
 						}
@@ -1640,9 +1654,9 @@ bool TSProcessor::processBuffer(unsigned char *buffer, int size, bool &insPatPmt
 				{
 					if (!m_scrambledWarningIssued)
 					{
-						TRACE3("RecordingContext: video pid %x transport_scrambling_control bits are non-zero (%02x)- is data still scrambled?\n", pid, packet[3]);
+						TRACE3("RecordingContext: video pid %x transport_scrambling_control bits are non-zero (%02x)- is data still scrambled?", pid, packet[3]);
 						m_scrambledWarningIssued = true;
-						TRACE3("[%s:%d] found scrambled data, NOT writing idx,mpg files, returning(true)... \n", __FUNCTION__, __LINE__);
+						TRACE3("[%s:%d] found scrambled data, NOT writing idx,mpg files, returning(true)... ", __FUNCTION__, __LINE__);
 					}
 				}
 				m_scrambledWarningIssued = false;
@@ -1697,7 +1711,7 @@ bool TSProcessor::processBuffer(unsigned char *buffer, int size, bool &insPatPmt
 										}
 										else
 										{
-											INFO("RecordContext: pts rollover: 0x%llx to 0x%llx\n", m_currentPTS, PTS);
+											INFO("RecordContext: pts rollover: 0x%llx to 0x%llx", m_currentPTS, PTS);
 										}
 									}
 
@@ -1711,7 +1725,7 @@ bool TSProcessor::processBuffer(unsigned char *buffer, int size, bool &insPatPmt
 										}
 										else
 										{
-											INFO("RecordContext: pts discontinuity: %llx to %llx\n", m_currentPTS, PTS);
+											INFO("RecordContext: pts discontinuity: %llx to %llx", m_currentPTS, PTS);
 											m_currentPTS = PTS;
 										}
 									}
@@ -1721,7 +1735,7 @@ bool TSProcessor::processBuffer(unsigned char *buffer, int size, bool &insPatPmt
 										if (m_actualStartPTS == -1LL)
 										{
 											m_actualStartPTS = PTS;
-											TRACE2("Updated m_actualStartPTS to %lld\n", m_actualStartPTS);
+											TRACE2("Updated m_actualStartPTS to %lld", m_actualStartPTS);
 										}
 									}
 
@@ -1780,7 +1794,7 @@ void TSProcessor::setupThrottle(int segmentDurationMsSigned)
 	m_throttleMaxDiffSegments = m_throttleMaxDelayMs;
 	m_throttleDelayIgnoredMs = DEFAULT_THROTTLE_DELAY_IGNORED_MS;
 	m_throttleDelayForDiscontinuityMs = segmentDurationMs * 10;
-	TRACE1("segmentDurationMs %d\n", segmentDurationMs);
+	TRACE1("segmentDurationMs %d", segmentDurationMs);
 }
 
 
@@ -1812,7 +1826,7 @@ bool TSProcessor::demuxAndSend(const void *ptr, size_t len, double position, dou
 		{
 			if (discontinuous && (1.0 == m_playRate))
 			{
-				NOTICE("TSProcessor:%p discontinuous buffer- flushing video demux\n", this);
+				NOTICE("TSProcessor:%p discontinuous buffer- flushing video demux", this);
 			}
 			m_vidDemuxer->flush();
 			m_vidDemuxer->init(position, duration, isTrickMode, true);
@@ -1829,7 +1843,7 @@ bool TSProcessor::demuxAndSend(const void *ptr, size_t len, double position, dou
 
 			if(discontinuous)
 			{
-				NOTICE("TSProcessor:%p discontinuous buffer- flushing audio demux\n", this);
+				NOTICE("TSProcessor:%p discontinuous buffer- flushing audio demux", this);
 			}
 			m_audDemuxer->flush();
 			m_audDemuxer->init(position, duration, isTrickMode, (eStreamOp_DEMUX_AUDIO != m_streamOperation));
@@ -1841,7 +1855,7 @@ bool TSProcessor::demuxAndSend(const void *ptr, size_t len, double position, dou
 	{
 		m_demuxInitialized = true;
 	}
-	INFO("demuxAndSend : len  %d videoPid %d audioPid %d m_pcrPid %d videoComponentCount %d m_demuxInitialized = %d\n", (int)len, videoPid, audioPid, m_pcrPid, videoComponentCount, m_demuxInitialized);
+	INFO("demuxAndSend : len  %d videoPid %d audioPid %d m_pcrPid %d videoComponentCount %d m_demuxInitialized = %d", (int)len, videoPid, audioPid, m_pcrPid, videoComponentCount, m_demuxInitialized);
 
 	unsigned char * packetStart = (unsigned char *)ptr;
 	while (len >= PACKET_SIZE)
@@ -1868,7 +1882,7 @@ bool TSProcessor::demuxAndSend(const void *ptr, size_t len, double position, dou
 						| (unsigned long long) packetStart[8] << 9 | packetStart[9] << 1 | (packetStart[10] & 80) >> 7;
 					if (m_playRate == 1.0)
 					{
-						NOTICE("firstPcr %llu\n", firstPcr);
+						NOTICE("firstPcr %llu", firstPcr);
 					}
 					if (m_vidDemuxer)
 					{
@@ -1890,7 +1904,7 @@ bool TSProcessor::demuxAndSend(const void *ptr, size_t len, double position, dou
 			demuxer->processPacket(packetStart, basePTSUpdated, ptsError);
 			if(!m_demuxInitialized)
 			{
-				WARNING("PCR not available before ES packet, updating firstPCR\n");
+				WARNING("PCR not available before ES packet, updating firstPCR");
 				m_demuxInitialized = true;
 				notifyPeerBasePTS = true;
 				firstPcr = demuxer->getBasePTS();
@@ -1900,12 +1914,12 @@ bool TSProcessor::demuxAndSend(const void *ptr, size_t len, double position, dou
 			{
 				if (m_audDemuxer && (m_audDemuxer!= demuxer) && (eStreamOp_DEMUX_AUDIO != m_streamOperation))
 				{
-					INFO("Using first video pts as base pts\n");
+					INFO("Using first video pts as base pts");
 					m_audDemuxer->setBasePTS(demuxer->getBasePTS(), true);
 				}
 				else if (m_vidDemuxer && (m_vidDemuxer!= demuxer) && (eStreamOp_DEMUX_VIDEO != m_streamOperation))
 				{
-					WARNING("Using first audio pts as base pts\n");
+					WARNING("Using first audio pts as base pts");
 					m_vidDemuxer->setBasePTS(demuxer->getBasePTS(), true);
 				}
 				if(m_peerTSProcessor)
@@ -1916,14 +1930,14 @@ bool TSProcessor::demuxAndSend(const void *ptr, size_t len, double position, dou
 			}
 			if (ptsError)
 			{
-				WARNING("PTS error, discarding segment\n");
+				WARNING("PTS error, discarding segment");
 				ret = false;
 				break;
 			}
 		}
 		else
 		{
-			INFO("demuxAndSend : discarded packet with pid %d\n", pid);
+			INFO("demuxAndSend : discarded packet with pid %d", pid);
 		}
 
 		packetStart += PACKET_SIZE;
@@ -1937,17 +1951,17 @@ bool TSProcessor::demuxAndSend(const void *ptr, size_t len, double position, dou
  */
 void TSProcessor::reset()
 {
-	INFO("PC reset\n");
+	INFO("PC reset");
 	pthread_mutex_lock(&m_mutex);
 	if (m_vidDemuxer)
 	{
-		logprintf("TSProcessor[%p]%s:%d - reset video demux %p\n", this, __FUNCTION__, __LINE__, m_vidDemuxer);
+		logprintf("TSProcessor[%p]%s:%d - reset video demux %p", this, __FUNCTION__, __LINE__, m_vidDemuxer);
 		m_vidDemuxer->reset();
 	}
 
 	if (m_audDemuxer)
 	{
-		logprintf("TSProcessor[%p]%s:%d - reset audio demux %p\n", this, __FUNCTION__, __LINE__, m_audDemuxer);
+		logprintf("TSProcessor[%p]%s:%d - reset audio demux %p", this, __FUNCTION__, __LINE__, m_audDemuxer);
 		m_audDemuxer->reset();
 	}
 	m_enabled = true;
@@ -1964,17 +1978,17 @@ void TSProcessor::reset()
  */
 void TSProcessor::flush()
 {
-	INFO("PC flush\n");
+	INFO("PC flush");
 	pthread_mutex_lock(&m_mutex);
 	if (m_vidDemuxer)
 	{
-		logprintf("TSProcessor[%p]%s:%d - flush video demux %p\n", this, __FUNCTION__, __LINE__, m_vidDemuxer);
+		logprintf("TSProcessor[%p]%s:%d - flush video demux %p", this, __FUNCTION__, __LINE__, m_vidDemuxer);
 		m_vidDemuxer->flush();
 	}
 
 	if (m_audDemuxer)
 	{
-		logprintf("TSProcessor[%p]%s:%d - flush audio demux %p\n", this, __FUNCTION__, __LINE__, m_audDemuxer);
+		logprintf("TSProcessor[%p]%s:%d - flush audio demux %p", this, __FUNCTION__, __LINE__, m_audDemuxer);
 		m_audDemuxer->flush();
 	}
 	pthread_mutex_unlock(&m_mutex);
@@ -1988,13 +2002,13 @@ void TSProcessor::flush()
  */
 void TSProcessor::sendQueuedSegment(long long basepts, double updatedStartPositon)
 {
-	WARNING("PC %p basepts %lld\n", this, basepts);
+	WARNING("PC %p basepts %lld", this, basepts);
 	pthread_mutex_lock(&m_mutex);
 	if (m_queuedSegment)
 	{
 		if (-1 != updatedStartPositon)
 		{
-			DEBUG("%s:%d Update position from %f to %f\n", __FUNCTION__, __LINE__, m_queuedSegmentPos, updatedStartPositon);
+			DEBUG("%s:%d Update position from %f to %f", __FUNCTION__, __LINE__, m_queuedSegmentPos, updatedStartPositon);
 			m_queuedSegmentPos = updatedStartPositon;
 		}
 		if (eStreamOp_QUEUE_AUDIO == m_streamOperation)
@@ -2012,7 +2026,7 @@ void TSProcessor::sendQueuedSegment(long long basepts, double updatedStartPosito
 		}
 		else
 		{
-			ERROR("sendQueuedSegment invoked in Invalid stream operation\n");
+			ERROR("sendQueuedSegment invoked in Invalid stream operation");
 		}
 		free(m_queuedSegment);
 		m_queuedSegment = NULL;
@@ -2035,7 +2049,7 @@ void TSProcessor::setBasePTS(double position, long long pts)
 	pthread_mutex_lock(&m_mutex);
 	m_basePTSFromPeer = pts;
 	m_startPosition = position;
-	INFO("pts = %lld\n", pts);
+	INFO("pts = %lld", pts);
 	if (m_audDemuxer)
 	{
 		m_audDemuxer->flush();
@@ -2079,7 +2093,7 @@ bool TSProcessor::sendSegment(char *segment, size_t& size, double position, doub
 
 		m_playRate = m_playRateNext;
 		m_absPlayRate = fabs(m_playRate);
-		INFO("playback changed to rate %f mode %d\n", m_playRate, m_playMode);
+		INFO("playback changed to rate %f mode %d", m_playRate, m_playMode);
 		m_haveEmittedIFrame = false;
 		m_currFrameOffset = -1LL;
 		m_nullPFrameNextCount = 0;
@@ -2091,7 +2105,7 @@ bool TSProcessor::sendSegment(char *segment, size_t& size, double position, doub
 	packetStart = (unsigned char *)segment;
 	if ((packetStart[0] != 0x47) || ((packetStart[1] & 0x80) != 0x00) || ((packetStart[3] & 0xC0) != 0x00))
 	{
-		ERROR("Segment doesn't starts with valid TS packet, discarding. Dump first packet\n");
+		ERROR("Segment doesn't starts with valid TS packet, discarding. Dump first packet");
 		for (int i = 0; i < PACKET_SIZE; i++)
 		{
 			printf("0x%2x ", packetStart[i]);
@@ -2106,7 +2120,7 @@ bool TSProcessor::sendSegment(char *segment, size_t& size, double position, doub
 	if (len % m_packetSize)
 	{
 		int discardAtEnd = len % m_packetSize;
-		INFO("Discarding %d bytes at end\n", discardAtEnd);
+		INFO("Discarding %d bytes at end", discardAtEnd);
 		len = len - discardAtEnd;
 	}
 	ret = processBuffer((unsigned char*)packetStart, len, insPatPmt);
@@ -2114,11 +2128,11 @@ bool TSProcessor::sendSegment(char *segment, size_t& size, double position, doub
 	{
 		if (-1.0 == m_startPosition)
 		{
-			INFO("Reset m_startPosition to %f\n", position);
+			INFO("Reset m_startPosition to %f", position);
 			m_startPosition = position;
 		}
 		double updatedPosition = m_startPosition + (position - m_startPosition) / m_playRate;
-		INFO("updatedPosition = %f Position = %f m_startPosition = %f m_playRate = %f\n", updatedPosition, position, m_startPosition, m_playRate);
+		INFO("updatedPosition = %f Position = %f m_startPosition = %f m_playRate = %f", updatedPosition, position, m_startPosition, m_playRate);
 		position = updatedPosition;
 
 		if (m_needDiscontinuity&& !m_demux)
@@ -2141,29 +2155,29 @@ bool TSProcessor::sendSegment(char *segment, size_t& size, double position, doub
 		{
 			if (eStreamOp_DEMUX_AUDIO == m_streamOperation)
 			{
-                if(!gpGlobalConfig->bAudioOnlyPlayback)
-                {
-                    pthread_mutex_lock(&m_mutex);
-                    if (-1 == m_basePTSFromPeer)
-                    {
-                        if (m_enabled)
-                        {
-                            logprintf("TSProcessor[%p]%s:%d - wait for base PTS. m_audDemuxer %p\n", this, __FUNCTION__, __LINE__, m_audDemuxer);
-                            pthread_cond_wait(&m_basePTSCond, &m_mutex);
-                        }
+				if(!gpGlobalConfig->bAudioOnlyPlayback)
+				{
+					pthread_mutex_lock(&m_mutex);
+					if (-1 == m_basePTSFromPeer)
+					{
+						if (m_enabled)
+						{
+							logprintf("TSProcessor[%p]%s:%d - wait for base PTS. m_audDemuxer %p", this, __FUNCTION__, __LINE__, m_audDemuxer);
+							pthread_cond_wait(&m_basePTSCond, &m_mutex);
+						}
 
-                        if (!m_enabled)
-                        {
-                            INFO("Not Enabled, Returning");
-                            m_processing = false;
-                            pthread_cond_signal(&m_throttleCond);
-                            pthread_mutex_unlock(&m_mutex);
-                            return false;
-                        }
-                        logprintf("TSProcessor[%p]%s:%d - got base PTS. m_audDemuxer %p\n", this, __FUNCTION__, __LINE__, m_audDemuxer);
-                    }
-                    pthread_mutex_unlock(&m_mutex);
-                }
+						if (!m_enabled)
+						{
+							INFO("Not Enabled, Returning");
+							m_processing = false;
+							pthread_cond_signal(&m_throttleCond);
+							pthread_mutex_unlock(&m_mutex);
+							return false;
+						}
+						logprintf("TSProcessor[%p]%s:%d - got base PTS. m_audDemuxer %p", this, __FUNCTION__, __LINE__, m_audDemuxer);
+					}
+					pthread_mutex_unlock(&m_mutex);
+				}
 				ret = demuxAndSend(packetStart, len, m_startPosition, duration, discontinuous);
 			}
 			else if(!gpGlobalConfig->demuxedAudioBeforeVideo)
@@ -2172,7 +2186,7 @@ bool TSProcessor::sendSegment(char *segment, size_t& size, double position, doub
 			}
 			else
 			{
-				WARNING("Sending Audio First\n");
+				WARNING("Sending Audio First");
 				ret = demuxAndSend(packetStart, len, position, duration, discontinuous, ePC_Track_Audio);
 				ret |= demuxAndSend(packetStart, len, position, duration, discontinuous, ePC_Track_Video);
 			}
@@ -2190,7 +2204,7 @@ bool TSProcessor::sendSegment(char *segment, size_t& size, double position, doub
 			}
 			else
 			{
-				ERROR("m_packetStartAfterFirstPTS Not updated\n");
+				ERROR("m_packetStartAfterFirstPTS Not updated");
 				aamp->SendStream((MediaType)m_track, packetStart + m_packetStartAfterFirstPTS,
 				len - m_packetStartAfterFirstPTS, position, position, duration);
 			}
@@ -2200,13 +2214,13 @@ bool TSProcessor::sendSegment(char *segment, size_t& size, double position, doub
 			pthread_mutex_lock(&m_mutex);
 			if (m_queuedSegment)
 			{
-				ERROR("Queued buffer not NULL\n");
+				ERROR("Queued buffer not NULL");
 				free(m_queuedSegment);
 			}
 			m_queuedSegment = (unsigned char *)malloc(len);
 			if (!m_queuedSegment)
 			{
-				ERROR("Failed to allocate memory\n");
+				ERROR("Failed to allocate memory");
 			}
 			else
 			{
@@ -2333,7 +2347,7 @@ bool TSProcessor::processStartCode(unsigned char *buffer, bool& keepScanning, in
 				newBuff = (unsigned char *)malloc(newSize*sizeof(char));
 				if (!newBuff)
 				{
-					ERROR("Error: unable to allocate emulation prevention buffer\n");
+					ERROR("Error: unable to allocate emulation prevention buffer");
 					break;
 				}
 				if (m_emulationPrevention)
@@ -2417,7 +2431,7 @@ bool TSProcessor::processStartCode(unsigned char *buffer, bool& keepScanning, in
 					newBuff = (unsigned char *)malloc(newSize*sizeof(char));
 					if (!newBuff)
 					{
-						logprintf("Error: unable to allocate emulation prevention buffer\n");
+						logprintf("Error: unable to allocate emulation prevention buffer");
 						break;
 					}
 					if (m_emulationPrevention)
@@ -2496,7 +2510,7 @@ bool TSProcessor::processStartCode(unsigned char *buffer, bool& keepScanning, in
 			m_frameHeight = ((((int)buffer[INDEX(5)]) & 0x0F) << 8) | ((int)buffer[INDEX(6)]);
 			if ((m_nullPFrameWidth != m_frameWidth) || (m_nullPFrameHeight != m_frameHeight))
 			{
-				INFO("TSProcessor: sequence frame size %dx%d\n", m_frameWidth, m_frameHeight);
+				INFO("TSProcessor: sequence frame size %dx%d", m_frameWidth, m_frameHeight);
 			}
 			keepScanning = false;
 		}
@@ -2585,7 +2599,7 @@ void TSProcessor::checkIfInterlaced(unsigned char *packet, int length)
 							copyLen = m_scanRemainderLimit + (m_scanRemainderLimit - m_scanRemainderSize);
 							if (copyLen > packetEnd - (packet + payload))
 							{
-								INFO("scan copyLen adjusted from %d to %d\n", copyLen, (int)(packetEnd - (packet + payload)));
+								INFO("scan copyLen adjusted from %d to %d", copyLen, (int)(packetEnd - (packet + payload)));
 								copyLen = packetEnd - (packet + payload);
 							}
 							rmf_osal_memcpy(remainder + m_scanRemainderSize, packet + payload, copyLen, m_scanRemainderLimit * 3 - m_scanRemainderSize, packetEnd - (packet + payload));
@@ -2677,7 +2691,7 @@ void TSProcessor::reTimestamp(unsigned char *&packet, int length)
 	if (m_isH264 && !m_isInterlacedKnown)
 	{
 		checkIfInterlaced(packet, length);
-		TRACE1("m_isH264 = %s m_isInterlacedKnown = %s m_isInterlaced %s\n", m_isH264 ? "true" : "false",
+		TRACE1("m_isH264 = %s m_isInterlacedKnown = %s m_isInterlaced %s", m_isH264 ? "true" : "false",
 			m_isInterlacedKnown ? "true" : "false", m_isInterlaced ? "true" : "false");
 	}
 
@@ -2687,7 +2701,7 @@ void TSProcessor::reTimestamp(unsigned char *&packet, int length)
 
 	if (!m_haveBaseTime) m_basePCR = -1LL;
 
-	TRACE4("reTimestamp: packet %p length %d\n", packet, length);
+	TRACE4("reTimestamp: packet %p length %d", packet, length);
 	for (int i = 0; i < length; i += m_packetSize)
 	{
 		packet += m_ttsSize;
@@ -2733,7 +2747,7 @@ void TSProcessor::reTimestamp(unsigned char *&packet, int length)
 						  m_haveBaseTime = true;
 						  m_baseTime = PCR;
 						  m_segmentBaseTime = m_baseTime;
-						  INFO("have baseTime %llx from pid %x PCR\n", m_baseTime, pid);
+						  INFO("have baseTime %llx from pid %x PCR", m_baseTime, pid);
 					  }
 					  if (m_basePCR < 0) m_basePCR = PCR;
 					  if (m_playMode == PlayMode_retimestamp_Ionly)
@@ -2815,7 +2829,7 @@ void TSProcessor::reTimestamp(unsigned char *&packet, int length)
 									  m_haveBaseTime = true;
 									  m_baseTime = ((PTS - ((long long)(90000 / (m_apparentFrameRate*rm)))) & 0x1FFFFFFFFLL);
 									  m_segmentBaseTime = m_baseTime;
-									  TRACE2("have baseTime %llx from pid %x PTS\n", m_baseTime, pid);
+									  TRACE2("have baseTime %llx from pid %x PTS", m_baseTime, pid);
 								  }
 								  timeOffset = PTS - m_baseTime;
 								  if (m_playRate < 0) timeOffset = -timeOffset;
@@ -2827,19 +2841,19 @@ void TSProcessor::reTimestamp(unsigned char *&packet, int length)
 										  if (m_currRateAdjustedPCR != 0)
 										  {
 											  rateAdjustedPTS = ((m_currRateAdjustedPCR + 10000) & 0x1FFFFFFFFLL);
-											  TRACE2("Updated rateAdjustedPTS to %lld m_currRateAdjustedPCR %lld\n", rateAdjustedPTS, m_currRateAdjustedPCR);
+											  TRACE2("Updated rateAdjustedPTS to %lld m_currRateAdjustedPCR %lld", rateAdjustedPTS, m_currRateAdjustedPCR);
 										  }
 										  else
 										  {
 											  rateAdjustedPTS = PTS;
-											  TRACE2("Updated rateAdjustedPTS to %lld m_currRateAdjustedPCR %lld\n", rateAdjustedPTS, m_currRateAdjustedPCR);
+											  TRACE2("Updated rateAdjustedPTS to %lld m_currRateAdjustedPCR %lld", rateAdjustedPTS, m_currRateAdjustedPCR);
 										  }
 										  m_haveUpdatedFirstPTS = true;
 									  }
 									  else
 									  {
 										  rateAdjustedPTS = ((m_currRateAdjustedPTS + interFrameDelay) & 0x1FFFFFFFFLL);
-										  TRACE2("Updated rateAdjustedPTS to %lld m_currRateAdjustedPTS %lld interFrameDelay %lld\n", rateAdjustedPTS, m_currRateAdjustedPTS, interFrameDelay);
+										  TRACE2("Updated rateAdjustedPTS to %lld m_currRateAdjustedPTS %lld interFrameDelay %lld", rateAdjustedPTS, m_currRateAdjustedPTS, interFrameDelay);
 										  /*Don't increment pts with interFrameDelay if already done for the segment.*/
 										  if (m_framesProcessedInSegment > 0)
 										  {
@@ -2870,13 +2884,13 @@ void TSProcessor::reTimestamp(unsigned char *&packet, int length)
 								  if (pid == m_pcrPid)
 								  {
 									  m_throttlePTS = rateAdjustedPTS;
-									  TRACE2("Updated throttlePTS to %lld\n", m_throttlePTS);
+									  TRACE2("Updated throttlePTS to %lld", m_throttlePTS);
 								  }
 								  writeTimeStamp(&packet[tsbase], packet[tsbase] >> 4, rateAdjustedPTS);
 								  m_lastPTSOfSegment = PTS;
 								  m_framesProcessedInSegment++;
 
-								  TRACE2("rateAdjustedPTS %lld (%lld ms)\n", rateAdjustedPTS, rateAdjustedPTS / 90);
+								  TRACE2("rateAdjustedPTS %lld (%lld ms)", rateAdjustedPTS, rateAdjustedPTS / 90);
 							  }
 							  tsbase += 5;
 						  }
@@ -2932,7 +2946,7 @@ void TSProcessor::reTimestamp(unsigned char *&packet, int length)
 						  copyLen = 2 * m_scanRemainderLimit + (m_scanRemainderLimit - m_scanRemainderSize);
 						  if (copyLen > packetEnd - (packet + payload))
 						  {
-							  INFO("scan copyLen adjusted from %d to %d\n", copyLen, (int)(packetEnd - (packet + payload)));
+							  INFO("scan copyLen adjusted from %d to %d", copyLen, (int)(packetEnd - (packet + payload)));
 							  copyLen = packetEnd - (packet + payload);
 						  }
 						  rmf_osal_memcpy(remainder + m_scanRemainderSize, packet + payload, copyLen, m_scanRemainderLimit * 3 - m_scanRemainderSize, packetEnd - (packet + payload));
@@ -2998,7 +3012,7 @@ void TSProcessor::reTimestamp(unsigned char *&packet, int length)
 						  }
 						  else
 						  {
-							  INFO("Scan reached out of bound packet packetScanPosition=%p\n", packetScanPosition);
+							  INFO("Scan reached out of bound packet packetScanPosition=%p", packetScanPosition);
 							  m_scanRemainderSize = 0;
 							  packetScanPosition = packetEnd;
 						  }
@@ -3016,7 +3030,7 @@ void TSProcessor::reTimestamp(unsigned char *&packet, int length)
 		  {
 			  m_currRateAdjustedPCR = ((long long)(m_currRateAdjustedPCR + (90000 / (m_apparentFrameRate*rm) + m_pcrPerPTSCount * 8)) & 0x1FFFFFFFFLL);
 		  }
-		  TRACE2("m_currRateAdjustedPCR %lld(%lld ms) diff %lld ms\n", m_currRateAdjustedPCR, m_currRateAdjustedPCR / 90, (m_currRateAdjustedPCR - m_prevRateAdjustedPCR) / 90);
+		  TRACE2("m_currRateAdjustedPCR %lld(%lld ms) diff %lld ms", m_currRateAdjustedPCR, m_currRateAdjustedPCR / 90, (m_currRateAdjustedPCR - m_prevRateAdjustedPCR) / 90);
 		  m_prevRateAdjustedPCR = m_currRateAdjustedPCR;
 		  writePCR(&packet[6], m_currRateAdjustedPCR, ((m_absPlayRate >= 4.0) ? true : false));
 	  }
@@ -3034,7 +3048,7 @@ void TSProcessor::reTimestamp(unsigned char *&packet, int length)
 */
 void TSProcessor::setPlayMode(PlayMode mode)
 {
-	INFO("setting playback mode to %s\n", (mode == PlayMode_normal) ? "PlayMode_normal" :
+	INFO("setting playback mode to %s", (mode == PlayMode_normal) ? "PlayMode_normal" :
 		(mode == PlayMode_retimestamp_IPB) ? "PlayMode_retimestamp_IPB" :
 		(mode == PlayMode_retimestamp_IandP) ? "PlayMode_retimestamp_IandP" :
 		(mode == PlayMode_retimestamp_Ionly) ? "PlayMode_retimestamp_Ionly" :
@@ -3086,7 +3100,7 @@ void TSProcessor::setRate(double rate, PlayMode mode)
 	m_havePMT = false;
 	abortUnlocked();
 	m_playRateNext = rate;
-	INFO("set playback rate to %f\n", m_playRateNext);
+	INFO("set playback rate to %f", m_playRateNext);
 	setPlayMode(mode);
 	m_enabled = true;
 	m_startPosition = -1.0;
@@ -3100,7 +3114,7 @@ void TSProcessor::setRate(double rate, PlayMode mode)
  */
 void TSProcessor::setThrottleEnable(bool enable)
 {
-	INFO("TSProcessor::setThrottleEnable enable=%d\n", enable);
+	INFO("TSProcessor::setThrottleEnable enable=%d", enable);
 	m_throttle = enable;
 }
 
@@ -3125,7 +3139,7 @@ bool TSProcessor::generatePATandPMT(bool trick, unsigned char **buff, int *bufle
 	if (eStreamOp_SEND_VIDEO_AND_QUEUED_AUDIO == m_streamOperation)
 	{
 		m_peerTSProcessor->getAudioComponents(&audioComponents, audioComponentCount);
-		INFO("Got audioComponents from  audio track. audioComponentCount %d\n", audioComponentCount);
+		INFO("Got audioComponents from  audio track. audioComponentCount %d", audioComponentCount);
 	}
 	else
 	{
@@ -3146,7 +3160,7 @@ bool TSProcessor::generatePATandPMT(bool trick, unsigned char **buff, int *bufle
 	}
 	if ((videoComponentCount == 0) && (audioComponentCount == 0))
 	{
-		ERROR("generatePATandPMT: insufficient stream information - no PAT/PMT?\n");
+		ERROR("generatePATandPMT: insufficient stream information - no PAT/PMT?");
 	}
 
 	if (videoComponentCount > 0)
@@ -3252,7 +3266,7 @@ bool TSProcessor::generatePATandPMT(bool trick, unsigned char **buff, int *bufle
 
 	if ((pmtPid < 0x1fff) && (pcrPid < 0x1fff))
 	{
-		DEBUG("using pmt pid %04x pcr pid %04X\n", pmtPid, pcrPid);
+		DEBUG("using pmt pid %04x pcr pid %04X", pmtPid, pcrPid);
 
 		m_pcrPid = pcrPid;
 
@@ -3273,7 +3287,7 @@ bool TSProcessor::generatePATandPMT(bool trick, unsigned char **buff, int *bufle
 
 		pmtSize += 4; //crc
 
-		DEBUG("pmt payload size %d bytes\n", pmtSize);
+		DEBUG("pmt payload size %d bytes", pmtSize);
 		int pmtPacketCount = 1;
 		i = pmtSize - (m_packetSize - 17 - m_ttsSize);
 		while (i > 0)
@@ -3283,12 +3297,12 @@ bool TSProcessor::generatePATandPMT(bool trick, unsigned char **buff, int *bufle
 		}
 		if (pmtPacketCount > 1)
 		{
-			WARNING("================= pmt requires %d packets =====================\n", pmtPacketCount);
+			WARNING("================= pmt requires %d packets =====================", pmtPacketCount);
 		}
 
 		int patpmtLen = (pmtPacketCount + 1)*m_packetSize*sizeof(unsigned char);
 		unsigned char *patpmt = (unsigned char*)malloc(patpmtLen);
-		TRACE1("patpmtLen %d, patpmt %p\n", patpmtLen, patpmt);
+		TRACE1("patpmtLen %d, patpmt %p", patpmtLen, patpmt);
 		if (patpmt)
 		{
 			int temp;
@@ -3468,36 +3482,36 @@ bool TSProcessor::generatePATandPMT(bool trick, unsigned char **buff, int *bufle
 				// Setup pid filter for trick mode.  Block all pids except for
 				// pat, pmt, pcr, video
 				memset(m_pidFilterTrick, 0, sizeof(m_pidFilterTrick));
-				TRACE1("pass pat %04x, pmt %04x pcr %04x\n", 0, pmtPid, pcrPid);
+				TRACE1("pass pat %04x, pmt %04x pcr %04x", 0, pmtPid, pcrPid);
 				m_pidFilterTrick[pcrPid] = 1;
 				for (i = 0; i < videoComponentCount; ++i)
 				{
 					int videoPid = videoComponents[i].pid;
-					TRACE1("video %04x\n", videoPid);
+					TRACE1("video %04x", videoPid);
 					m_pidFilterTrick[videoPid] = 1;
 				}
-				TRACE4("\n");
+				TRACE4("");
 			}
 			else
 			{
 				// Setup pid filter.  Block all pids except for
 				// pcr, video, audio
 				memset(m_pidFilter, 0, sizeof(m_pidFilter));
-				TRACE1("pass pat %04x, pcr %04x\n", 0, pcrPid);
+				TRACE1("pass pat %04x, pcr %04x", 0, pcrPid);
 				m_pidFilter[pcrPid] = 1;
 				for (i = 0; i < videoComponentCount; ++i)
 				{
 					int videoPid = videoComponents[i].pid;
-					TRACE1("video %04x\n", videoPid);
+					TRACE1("video %04x", videoPid);
 					m_pidFilter[videoPid] = 1;
 				}
 				for (i = 0; i < audioComponentCount; ++i)
 				{
 					int audioPid = audioComponents[i].pid;
-					TRACE1("audio %04x\n", audioPid);
+					TRACE1("audio %04x", audioPid);
 					m_pidFilter[audioPid] = 1;
 				}
-				TRACE4("\n");
+				TRACE4("");
 			}
 
 			result = true;
@@ -3506,7 +3520,7 @@ bool TSProcessor::generatePATandPMT(bool trick, unsigned char **buff, int *bufle
 
 	m_patCounter = m_pmtCounter = 0;
 
-	INFO("TSProcessor::generatePATandPMT: trick %d prognum %d pmtpid: %X pcrpid: %X pmt section len %d video %d audio %d\n",
+	INFO("TSProcessor::generatePATandPMT: trick %d prognum %d pmtpid: %X pcrpid: %X pmt section len %d video %d audio %d",
 		trick, prognum, pmtPid, pcrPid, pmtSectionLen,
 		videoComponentCount, audioComponentCount);
 
@@ -3585,7 +3599,7 @@ bool TSProcessor::readTimeStamp(unsigned char *p, long long& TS)
 		break;
 	default:
 		result = false;
-		WARNING("TS:============ TS p[0] YYYY bits have value %X\n", p[0]);
+		WARNING("TS:============ TS p[0] YYYY bits have value %X", p[0]);
 		break;
 	}
 
@@ -4088,7 +4102,7 @@ bool TSProcessor::processSeqParameterSet(unsigned char *p, int length)
 					unsigned int time_scale = getBits(p, mask, 32);
 
 					unsigned int trick_time_scale = m_apparentFrameRate * 2 * 1000;
-					DEBUG("put trick_time_scale=%d at %p mask %X\n", trick_time_scale, timeScaleP, timeScaleMask);
+					DEBUG("put trick_time_scale=%d at %p mask %X", trick_time_scale, timeScaleP, timeScaleMask);
 					putBits(timeScaleP, timeScaleMask, 32, trick_time_scale);
 
 					result = true;
@@ -4097,7 +4111,7 @@ bool TSProcessor::processSeqParameterSet(unsigned char *p, int length)
 		}
 	}
 
-	TRACE2("TSProcessor: H.264 sequence frame size %dx%d interlaced=%d update SPS %d\n", m_frameWidth, m_frameHeight, m_isInterlaced, result);
+	TRACE2("TSProcessor: H.264 sequence frame size %dx%d interlaced=%d update SPS %d", m_frameWidth, m_frameHeight, m_isInterlaced, result);
 
 	return result;
 }

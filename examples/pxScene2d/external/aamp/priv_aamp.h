@@ -40,8 +40,14 @@
 #include <list>
 #include <sstream>
 #include <mutex>
-#include <VideoStat.h>
 #include <queue>
+#include <VideoStat.h>
+#include <limits>
+
+static const char *mMediaFormatName[] =
+{
+    "HLS","DASH","PROGRESSIVE","HLS_MP4"
+};
 
 #ifdef __APPLE__
 #define aamp_pthread_setname(tid,name) pthread_setname_np(name)
@@ -49,22 +55,14 @@
 #define aamp_pthread_setname(tid,name) pthread_setname_np(tid,name)
 #endif
 
-#ifdef WIN32
-#define AAMP_PACKED
-#else
-#define AAMP_PACKED __attribute__((__packed__))
-#endif
-
-#define MAX_URI_LENGTH (2048)           /**< Increasing size to include longer urls */
-#define AAMP_TRACK_COUNT 2              /**< internal use - audio+video track */
+#define AAMP_TRACK_COUNT 3              /**< internal use - audio+video+sub track */
+#define DEFAULT_CURL_INSTANCE_COUNT (AAMP_TRACK_COUNT + 1) // One for Manifest/Playlist + Number of tracks
 #define AAMP_DRM_CURL_COUNT 2           /**< audio+video track DRMs */
-#define AAMP_DAI_CURL_COUNT 1           /**< Download Ad manifest */
-#define AAMP_DAI_CURL_IDX (AAMP_TRACK_COUNT + AAMP_DRM_CURL_COUNT)                                /**< CURL Index for DAI */
-#define MAX_CURL_INSTANCE_COUNT (AAMP_TRACK_COUNT + AAMP_DRM_CURL_COUNT + AAMP_DAI_CURL_COUNT)    /**< Maximum number of CURL instances */
 #define AAMP_MAX_PIPE_DATA_SIZE 1024    /**< Max size of data send across pipe */
 #define AAMP_LIVE_OFFSET 15             /**< Live offset in seconds */
 #define AAMP_CDVR_LIVE_OFFSET 30 	/**< Live offset in seconds for CDVR hot recording */
-#define CURL_FRAGMENT_DL_TIMEOUT 10L     /**< Curl timeout for fragment download */
+#define CURL_FRAGMENT_DL_TIMEOUT 10L    /**< Curl timeout for fragment download */
+#define DEFAULT_PLAYLIST_DL_TIMEOUT 10L /**< Curl timeout for playlist download */
 #define DEFAULT_CURL_TIMEOUT 5L         /**< Default timeout for Curl downloads */
 #define DEFAULT_CURL_CONNECTTIMEOUT 3L  /**< Curl socket connection timeout */
 #define EAS_CURL_TIMEOUT 3L             /**< Curl timeout for EAS manifest downloads */
@@ -76,7 +74,6 @@
 #define DEFAULT_INIT_BITRATE_4K 13000000            /**< Initial bitrate for 4K playback: 13mb ie, 3/4 profile */
 #define DEFAULT_MINIMUM_CACHE_VOD_SECONDS  0        /**< Default cache size of VOD playback */
 #define BITRATE_ALLOWED_VARIATION_BAND 500000       /**< NW BW change beyond this will be ignored */
-#define AAMP_ABR_THRESHOLD_SIZE 50000               /**< ABR threshold size - 50K */
 #define DEFAULT_ABR_CACHE_LIFE 5000                 /**< Default ABR cache life */
 #define DEFAULT_ABR_CACHE_LENGTH 3                  /**< Default ABR cache length */
 #define DEFAULT_ABR_OUTLIER 5000000                 /**< ABR outlier: 5 MB */
@@ -87,10 +84,12 @@
 #define MAX_SEG_DRM_DECRYPT_FAIL_COUNT 10           /**< Max segment decryption failures to identify a playback failure. */
 #define MAX_SEG_INJECT_FAIL_COUNT 10                /**< Max segment injection failure to identify a playback failure. */
 #define DEF_LICENSE_REQ_RETRY_WAIT_TIME 500			/**< Wait time in milliseconds before retrying for DRM license */
+#define MAX_DIFF_BETWEEN_PTS_POS_MS (3600*1000)
 
 #define DEFAULT_CACHED_FRAGMENTS_PER_TRACK  3       /**< Default cached fragements per track */
 #define DEFAULT_BUFFER_HEALTH_MONITOR_DELAY 10
 #define DEFAULT_BUFFER_HEALTH_MONITOR_INTERVAL 5
+#define DEFAULT_DISCONTINUITY_TIMEOUT 3000          /**< Default discontinuity timeout after cache is empty in MS */
 
 #define DEFAULT_STALL_ERROR_CODE (7600)             /**< Default stall error code: 7600 */
 #define DEFAULT_STALL_DETECTION_TIMEOUT (10000)     /**< Stall detection timeout: 10sec */
@@ -105,6 +104,9 @@
 #define MAX_PTS_ERRORS_THRESHOLD 4
 
 #define MANIFEST_TEMP_DATA_LENGTH 100				/**< Manifest temp data length */
+#define AAMP_LOW_BUFFER_BEFORE_RAMPDOWN 10 // 10sec buffer before rampdown
+#define AAMP_HIGH_BUFFER_BEFORE_RAMPUP  15 // 15sec buffer before rampup
+
 
 #define AAMP_USERAGENT_SUFFIX		"AAMP/2.0.0"    /**< Version string of AAMP Player */
 #define AAMP_USERAGENT_BASE_STRING	"Mozilla/5.0 (Linux; x86_64 GNU/Linux) AppleWebKit/601.1 (KHTML, like Gecko) Version/8.0 Safari/601.1 WPE"	/**< Base User agent string,it will be appneded with AAMP_USERAGENT_SUFFIX */
@@ -113,20 +115,40 @@
 #define MAX_PLAYLIST_CACHE_SIZE    (3*1024*1024) // Approx 3MB -> 2 video profiles + one audio profile + one iframe profile, 500-700K MainManifest
 #define DEFAULT_WAIT_TIME_BEFORE_RETRY_HTTP_5XX_MS (1000)    /**< Wait time in milliseconds before retry for 5xx errors */
 
+// VSS Service Zone identifier in url 
+#define VSS_MARKER			"?sz="
+#define VSS_MARKER_LEN			4
+#define VSS_MARKER_FOG		"\%3Fsz\%3D"
+
 //Upper and lower limit for dash drm sessions
 #define MIN_DASH_DRM_SESSIONS 2
 #define MAX_DASH_DRM_SESSIONS 30
 
-// VSS Service Zone identifier in url 
-#define VSS_MARKER			"?sz="
-#define VSS_MARKER_FOG		"\%3Fsz\%3D"
-
-
 //#define PLACEMENT_EMULATION 1    //Only for Dev testing. Can remove later.
-/*1 for debugging video track, 2 for audio track and 3 for both*/
-/*#define AAMP_DEBUG_FETCH_INJECT 0x01*/
+/*1 for debugging video track, 2 for audio track, 4 for subtitle track and 7 for all*/
+/*#define AAMP_DEBUG_FETCH_INJECT 0x001 */
 
+/**
+ * @brief Max debug log buffer size
+ */
+#define MAX_DEBUG_LOG_BUFF_SIZE 1024
 
+/**
+ * @brief Max URL log size
+ */
+#define MAX_URL_LOG_SIZE 960	// Considering "aamp_tune" and [AAMP-PLAYER] pretext
+
+#define DEFAULT_AAMP_ABR_THRESHOLD_SIZE (10000)		/**< aamp abr threshold size */
+
+#define CONVERT_SEC_TO_MS(_x_) (_x_ * 1000) /**< Convert value to sec to ms*/
+#define DEFAULT_PREBUFFER_COUNT (2)
+#define DEFAULT_PRECACHE_WINDOW (10) 	// 10 mins for full precaching
+#define DEFAULT_DOWNLOAD_RETRY_COUNT (1)		// max download failure retry attempt count
+// These error codes are used internally to identify the cause of error from GetFile
+#define PARTIAL_FILE_CONNECTIVITY_AAMP (130)
+#define PARTIAL_FILE_DOWNLOAD_TIME_EXPIRED_AAMP (131)
+#define OPERATION_TIMEOUT_CONNECTIVITY_AAMP (132)
+#define PARTIAL_FILE_START_STALL_TIMEOUT_AAMP (133)
 /**
  * @brief Structure of GrowableBuffer
  */
@@ -135,6 +157,31 @@ struct GrowableBuffer
 	char *ptr;      /**< Pointer to buffer's memory location */
 	size_t len;     /**< Buffer size */
 	size_t avail;   /**< Available buffer size */
+};
+
+
+/**
+ * @brief Structure of X-Start HLS Tag
+ */
+struct HLSXStart
+{
+	double offset;      /**< Time offset from XStart */
+	bool precise;     	/**< Precise input */
+};
+
+/**
+ * @brief Enumeration for Curl Instances
+ */
+enum AampCurlInstance
+{
+	eCURLINSTANCE_VIDEO,
+	eCURLINSTANCE_AUDIO,
+	eCURLINSTANCE_SUBTITLE,
+	eCURLINSTANCE_MANIFEST_PLAYLIST,
+	eCURLINSTANCE_DAI,
+	eCURLINSTANCE_AES,
+	eCURLINSTANCE_PLAYLISTPRECACHE,
+	eCURLINSTANCE_MAX
 };
 
 /**
@@ -156,8 +203,22 @@ enum PlaybackErrorType
 	eGST_ERROR_PTS,                 /**< PTS error from gstreamer */
 	eGST_ERROR_UNDERFLOW,           /**< Underflow error from gstreamer */
 	eGST_ERROR_VIDEO_BUFFERING,     /**< Video buffering error */
-	eDASH_ERROR_STARTTIME_RESET     /**< Start time reset of DASH */
+	eGST_ERROR_OUTPUT_PROTECTION_ERROR,     /**< Output Protection error */
+	eDASH_ERROR_STARTTIME_RESET,    /**< Start time reset of DASH */
+	eSTALL_AFTER_DISCONTINUITY      /** Playback stall after notifying discontinuity */
 };
+
+
+/**
+ * @brief TriState enums 
+ */
+enum TriState
+{
+	eFalseState = 0,
+	eTrueState = 1,
+	eUndefinedState = -1
+};
+
 
 /**
  * @brief Tune Typea
@@ -188,7 +249,8 @@ enum ContentType
 	ContentType_MDVR,           /**< 8 - MDVR */
 	ContentType_IPDVR,          /**< 8 - IPDVR */
 	ContentType_PPV,            /**< 10 - PPV */
-	ContentType_MAX             /**< 11 - Type Count*/
+	ContentType_OTT,            /**< 11 - OTT */
+	ContentType_MAX             /**< 12 - Type Count*/
 };
 
 /**
@@ -199,6 +261,8 @@ enum AAMPStatusType
 	eAAMPSTATUS_OK,
 	eAAMPSTATUS_GENERIC_ERROR,
 	eAAMPSTATUS_MANIFEST_DOWNLOAD_ERROR,
+	eAAMPSTATUS_PLAYLIST_VIDEO_DOWNLOAD_ERROR,
+	eAAMPSTATUS_PLAYLIST_AUDIO_DOWNLOAD_ERROR,
 	eAAMPSTATUS_MANIFEST_PARSE_ERROR,
 	eAAMPSTATUS_MANIFEST_CONTENT_ERROR,
 	eAAMPSTATUS_MANIFEST_INVALID_TYPE,
@@ -230,6 +294,18 @@ enum CurlAbortReason
 	eCURL_ABORT_REASON_START_TIMEDOUT
 };
 
+
+/**
+ * @brief Media format types
+ */
+typedef enum
+{
+	eMEDIAFORMAT_HLS,
+	eMEDIAFORMAT_DASH,
+	eMEDIAFORMAT_PROGRESSIVE,
+	eMEDIAFORMAT_HLS_MP4
+} MediaFormat;
+
 /*================================== AAMP Log Manager =========================================*/
 
 /**
@@ -238,7 +314,7 @@ enum CurlAbortReason
 #ifdef TRACE
 #define traceprintf logprintf
 #else
-#define traceprintf (void)
+#define traceprintf(FORMAT, ...)
 #endif
 
 /**
@@ -325,7 +401,6 @@ struct AAMPAbrInfo
 };
 
 
-
 /**
  * @}
  */
@@ -344,15 +419,15 @@ public:
 	bool curl;       /**< Curl logs*/
 	bool progress;   /**< Download progress logs*/
 	bool failover;	 /**< server fail over logs*/
-	bool latencyLogging[MAX_SUPPORTED_LATENCY_LOGGING_TYPES]; /**< Latency logging for Video, Audio, Manifest download - Refer MediaType on main_aamp.h */ 
+	bool curlHeader; /**< Curl header logs*/
+	bool logMetadata;	 /**< Timed metadata logs*/
 	static bool disableLogRedirection;
 
 	/**
 	 * @brief AampLogManager constructor
 	 */
-	AampLogManager() : aampLoglevel(eLOGLEVEL_WARN), info(false), debug(false), trace(false), gst(false), curl(false), progress(false), failover(false)
+	AampLogManager() : aampLoglevel(eLOGLEVEL_WARN), info(false), debug(false), trace(false), gst(false), curl(false), progress(false), failover(false), curlHeader(false), logMetadata(false)
 	{
-		memset(latencyLogging, 0 , sizeof(latencyLogging));
 	}
 
 	/* ---------- Triage Level Logging Support ---------- */
@@ -363,9 +438,10 @@ public:
 	 * @param[in] url - content url
 	 * @param[in] downloadTime - download time of the fragment or manifest
 	 * @param[in] downloadThresholdTimeoutMs - specified download threshold time out value
+	 * @param[in] type - media type
 	 * @retuen void
 	 */
-	void LogNetworkLatency(const char* url, int downloadTime, int downloadThresholdTimeoutMs);
+	void LogNetworkLatency(const char* url, int downloadTime, int downloadThresholdTimeoutMs, MediaType type);
 
 	/**
 	 * @brief Print the network error level logging for triage purpose
@@ -373,9 +449,10 @@ public:
 	 * @param[in] url - content url
 	 * @param[in] errorType - it can be http or curl errors
 	 * @param[in] errorCode - it can be http error or curl error code
+	 * @param[in] type - media type
 	 * @retuen void
 	 */
-	void LogNetworkError(const char* url, AAMPNetworkErrorType errorType, int errorCode);
+	void LogNetworkError(const char* url, AAMPNetworkErrorType errorType, int errorCode, MediaType type);
 
 	/**
 	 * @brief To get the issue symptom based on the error type for triage purpose
@@ -384,9 +461,10 @@ public:
 	 * @param[out] contentType - it could be a manifest or other audio/video/iframe tracks
 	 * @param[out] location - server location
 	 * @param[out] symptom - issue exhibiting scenario for error case
+	 * @param[in] type - media type
 	 * @retuen void
 	 */
-	void ParseContentUrl(const char* url, std::string& contentType, std::string& location, std::string& symptom);
+	void ParseContentUrl(const char* url, std::string& contentType, std::string& location, std::string& symptom, MediaType type);
 
 	/**
 	 * @brief Print the DRM error level logging for triage purpose
@@ -465,6 +543,7 @@ extern void logprintf(const char *format, ...);
  */
 void DumpBlob(const unsigned char *ptr, size_t len);
 
+
 /*!================================== AAMP Log Manager =========================================*/
 
 /**
@@ -476,12 +555,12 @@ public:
 	long defaultBitrate;        /**< Default bitrate*/
 	long defaultBitrate4K;      /**< Default 4K bitrate*/
 	bool bEnableABR;            /**< Enable/Disable adaptive bitrate logic*/
-	bool SAP;                   /**< Enable/Disable Secondary Audio Program*/
 	bool noFog;                 /**< Disable FOG*/
 	int mapMPD;                 /**< Mapping of HLS to MPD: 0=Disable, 1=Rename m3u8 to mpd, 2=COAM mapping, 3='*-nat-*.comcast.net/' to 'ctv-nat-slivel4lb-vip.cmc.co.ndcwest.comcast.net/'*/
 	bool fogSupportsDash;       /**< Enable FOG support for DASH*/
 #ifdef AAMP_HARVEST_SUPPORT_ENABLED
 	int harvest;                /**< Save decrypted fragments for debugging*/
+	char* harvestpath;
 #endif
 
 	AampLogManager logging;             	/**< Aamp log manager class*/
@@ -494,7 +573,15 @@ public:
 	TunedEventConfig tunedEventConfigVOD;   /**< When to send TUNED event for VOD*/
 	int demuxHLSVideoTsTrackTM;             /**< Demux video track from HLS transport stream track mode*/
 	int demuxedAudioBeforeVideo;            /**< Send demuxed audio before video*/
-	bool playlistsParallelFetch;            /**< Enabled parallel fetching of audio & video playlists*/
+	TriState playlistsParallelFetch;        /**< Enabled parallel fetching of audio & video playlists*/
+	TriState parallelPlaylistRefresh ;	/**< Enabled parallel fetching for refresh of audio & video playlists*/
+	TriState enableBulkTimedMetaReport;	/**< Enabled Bulk event reporting for TimedMetadata*/
+	TriState useRetuneForUnpairedDiscontinuity; /**< Used for unpaired discontinuity retune logic*/
+	TriState mAsyncTuneConfig;		/**< Enalbe Async tune from application */
+	TriState mWesterosSinkConfig;		/**< Enalbe Westeros sink from application */
+	TriState mEnableRectPropertyCfg;        /**< Allow or deny rectangle property set for sink element*/
+	TriState mUseAverageBWForABR;           /** Enables usage of AverageBandwidth if available for ABR */
+	int  mPreCacheTimeWindow;		/** Max time to complete PreCaching .In Minutes  */
 	bool prefetchIframePlaylist;            /**< Enabled prefetching of I-Frame playlist*/
 	int forceEC3;                           /**< Forcefully enable DDPlus*/
 	int disableEC3;                         /**< Disable DDPlus*/
@@ -504,14 +591,21 @@ public:
 	int disablePlaylistIndexEvent;          /**< Disable playlist index event*/
 	int enableSubscribedTags;               /**< Enabled subscribed tags*/
 	bool dashIgnoreBaseURLIfSlash;          /**< Ignore the constructed URI of DASH, if it is / */
-	long networkTimeout;                 /**< Fragment download timeout*/
+	long networkTimeoutMs;                 	/**< Fragment download timeout in ms*/
+	long manifestTimeoutMs;                 /**< Manifest download timeout in ms*/
+	long playlistTimeoutMs;                 /**< Playlist download timeout in ms*/
 	bool licenseAnonymousRequest;           /**< Acquire license without token*/
+	bool useLinearSimulator;				/**< Simulate linear stream from VOD asset*/
 	int minVODCacheSeconds;                 /**< Minimum VOD caching duration in seconds*/
 	int abrCacheLife;                       /**< Adaptive bitrate cache life in seconds*/
 	int abrCacheLength;                     /**< Adaptive bitrate cache length*/
 	int maxCachedFragmentsPerTrack;         /**< fragment cache length*/
 	int abrOutlierDiffBytes;                /**< Adaptive bitrate outlier, if values goes beyond this*/
 	int abrNwConsistency;                   /**< Adaptive bitrate network consistency*/
+	int minABRBufferForRampDown;		/**< Mininum ABR Buffer for Rampdown*/
+	int maxABRBufferForRampUp;		/**< Maximum ABR Buffer for Rampup*/
+	TriState abrBufferCheckEnabled;         /**< Flag to enable/disable buffer based ABR handling*/
+	TriState useNewDiscontinuity;         /**< Flag to enable/disable buffer based ABR handling*/
 	int bufferHealthMonitorDelay;           /**< Buffer health monitor start delay after tune/ seek*/
 	int bufferHealthMonitorInterval;        /**< Buffer health monitor interval*/
 	bool hlsAVTrackSyncUsingStartTime;      /**< HLS A/V track to be synced with start time*/
@@ -540,6 +634,7 @@ public:
 	long iframeBitrate4K;                   /**< Default bitrate for iframe track selection for 4K assets*/
 	char *prLicenseServerURL;               /**< Playready License server URL*/
 	char *wvLicenseServerURL;               /**< Widevine License server URL*/
+	char *ckLicenseServerURL;				/**< ClearKey License server URL*/
 	bool enableMicroEvents;                 /**< Enabling the tunetime micro events*/
 	long curlStallTimeout;                  /**< Timeout value for detection curl download stall in seconds*/
 	long curlDownloadStartTimeout;          /**< Timeout value for curl download to start after connect in seconds*/
@@ -548,47 +643,110 @@ public:
 	bool reTuneOnBufferingTimeout;          /**< Re-tune on buffering timeout */
 	int gMaxPlaylistCacheSize;              /**< Max Playlist Cache Size  */
 	int waitTimeBeforeRetryHttp5xxMS;		/**< Wait time in milliseconds before retry for 5xx errors*/
-	int dash_MaxDRMSessions;				/** < Max drm sessions that can be cached by AampDRMSessionManager*/
+	bool disableSslVerifyPeer;		/**< Disable curl ssl certificate verification. */
+	std::string mSubtitleLanguage;          /**< User preferred subtitle language*/
 	bool enableClientDai;                   /**< Enabling the client side DAI*/
 	bool playAdFromCDN;                     /**< Play Ad from CDN. Not from FOG.*/
+	bool mEnableVideoEndEvent;              /**< Enable or disable videovend events */
+	int dash_MaxDRMSessions;				/** < Max drm sessions that can be cached by AampDRMSessionManager*/
+	long discontinuityTimeout;              /**< Timeout value to auto process pending discontinuity after detecting cache is empty*/
+	bool bReportVideoPTS;                    /**< Enables Video PTS reporting */
+	bool decoderUnavailableStrict;           /**< Reports decoder unavailable GST Warning as aamp error*/
+	bool useAppSrcForProgressivePlayback;    /**< Enables appsrc for playing progressive AV type */
+	int aampAbrThresholdSize;		/**< AAMP ABR threshold size*/
+	int langCodePreference; /**<prefered format for normalizing language code */
+        bool bDescriptiveAudioTrack;            /**< advertise audio tracks using <langcode>-<role> instead of just <langcode> */
+	bool reportBufferEvent;			/** Enables Buffer event reporting */
+	bool fragmp4LicensePrefetch;   /*** Enable fragment mp4 license prefetching**/
+	bool bPositionQueryEnabled;		/** Enables GStreamer position query for progress reporting */
+	int aampRemovePersistent;               /**< Flag to enable/disable code in ave drm to avoid crash when majorerror 3321, 3328 occurs*/
+	int preplaybuffercount;         /** Count of segments to be downloaded until play state */
+	#define GetLangCodePreference() ((LangCodePreference)gpGlobalConfig->langCodePreference)
+	int rampdownLimit;		/*** Fragment rampdown/retry limit */
+	long minBitrate;		/*** Minimum bandwidth of playback profile */
+	long maxBitrate;		/*** Maximum bandwidth of playback profile */
+	int segInjectFailCount;		/*** Inject failure retry threshold */
+	int drmDecryptFailCount;	/*** DRM decryption failure retry threshold */
+	char *uriParameter;	/*** uri parameter data to be appended on download-url during curl request */
+	std::vector<std::string> customHeaderStr; /*** custom header data to be appended to curl request */
+	int initFragmentRetryCount; /**< max attempts for int frag curl timeout failures */
 public:
 
 	/**
 	 * @brief GlobalConfigAAMP Constructor
 	 */
-	GlobalConfigAAMP() :defaultBitrate(DEFAULT_INIT_BITRATE), defaultBitrate4K(DEFAULT_INIT_BITRATE_4K), bEnableABR(true), SAP(false), noFog(false), mapMPD(0), fogSupportsDash(true),abrCacheLife(DEFAULT_ABR_CACHE_LIFE),abrCacheLength(DEFAULT_ABR_CACHE_LENGTH),maxCachedFragmentsPerTrack(DEFAULT_CACHED_FRAGMENTS_PER_TRACK),
+	GlobalConfigAAMP() :defaultBitrate(DEFAULT_INIT_BITRATE), defaultBitrate4K(DEFAULT_INIT_BITRATE_4K), bEnableABR(true), noFog(false), mapMPD(0), fogSupportsDash(true),abrCacheLife(DEFAULT_ABR_CACHE_LIFE),abrCacheLength(DEFAULT_ABR_CACHE_LENGTH),maxCachedFragmentsPerTrack(DEFAULT_CACHED_FRAGMENTS_PER_TRACK),
 #ifdef AAMP_HARVEST_SUPPORT_ENABLED
 		harvest(0),
+		harvestpath(0),
 #endif
 		gPreservePipeline(0), gAampDemuxHLSAudioTsTrack(1), gAampMergeAudioTrack(1), forceEC3(0),
 		gAampDemuxHLSVideoTsTrack(1), demuxHLSVideoTsTrackTM(1), gThrottle(0), demuxedAudioBeforeVideo(0),
-		playlistsParallelFetch(false), prefetchIframePlaylist(false),
+		playlistsParallelFetch(eUndefinedState), prefetchIframePlaylist(false),
 		disableEC3(0), disableATMOS(0),abrOutlierDiffBytes(DEFAULT_ABR_OUTLIER),abrSkipDuration(DEFAULT_ABR_SKIP_DURATION),
-		liveOffset(AAMP_LIVE_OFFSET),cdvrliveOffset(AAMP_CDVR_LIVE_OFFSET), abrNwConsistency(DEFAULT_ABR_NW_CONSISTENCY_CNT),
-		disablePlaylistIndexEvent(1), enableSubscribedTags(1), dashIgnoreBaseURLIfSlash(false),networkTimeout(CURL_FRAGMENT_DL_TIMEOUT),
-		licenseAnonymousRequest(false), minVODCacheSeconds(DEFAULT_MINIMUM_CACHE_VOD_SECONDS),
+		liveOffset(-1),cdvrliveOffset(-1), abrNwConsistency(DEFAULT_ABR_NW_CONSISTENCY_CNT),
+		disablePlaylistIndexEvent(1), enableSubscribedTags(1), dashIgnoreBaseURLIfSlash(false),networkTimeoutMs(-1),
+		licenseAnonymousRequest(false), minVODCacheSeconds(DEFAULT_MINIMUM_CACHE_VOD_SECONDS), useLinearSimulator(false),
 		bufferHealthMonitorDelay(DEFAULT_BUFFER_HEALTH_MONITOR_DELAY), bufferHealthMonitorInterval(DEFAULT_BUFFER_HEALTH_MONITOR_INTERVAL),
 		preferredDrm(eDRM_PlayReady), hlsAVTrackSyncUsingStartTime(false), licenseServerURL(NULL), licenseServerLocalOverride(false),
 		vodTrickplayFPS(TRICKPLAY_NETWORK_PLAYBACK_FPS),vodTrickplayFPSLocalOverride(false),
 		linearTrickplayFPS(TRICKPLAY_TSB_PLAYBACK_FPS),linearTrickplayFPSLocalOverride(false),
 		stallErrorCode(DEFAULT_STALL_ERROR_CODE), stallTimeoutInMS(DEFAULT_STALL_DETECTION_TIMEOUT), httpProxy(0),
-		reportProgressInterval(DEFAULT_REPORT_PROGRESS_INTERVAL), mpdDiscontinuityHandling(true), mpdDiscontinuityHandlingCdvr(true),bForceHttp(false),
+		reportProgressInterval(0), mpdDiscontinuityHandling(true), mpdDiscontinuityHandlingCdvr(true),bForceHttp(false),
 		internalReTune(true), bAudioOnlyPlayback(false), gstreamerBufferingBeforePlay(true),licenseRetryWaitTime(DEF_LICENSE_REQ_RETRY_WAIT_TIME),
 		iframeBitrate(0), iframeBitrate4K(0),ptsErrorThreshold(MAX_PTS_ERRORS_THRESHOLD),
-		prLicenseServerURL(NULL), wvLicenseServerURL(NULL)
+		prLicenseServerURL(NULL), wvLicenseServerURL(NULL),ckLicenseServerURL(NULL)
 		,curlStallTimeout(0), curlDownloadStartTimeout(0)
-		,enableMicroEvents(false),enablePROutputProtection(false), reTuneOnBufferingTimeout(true), gMaxPlaylistCacheSize(MAX_PLAYLIST_CACHE_SIZE)
+		,enableMicroEvents(false),enablePROutputProtection(false), reTuneOnBufferingTimeout(true), gMaxPlaylistCacheSize(0)
 		,waitTimeBeforeRetryHttp5xxMS(DEFAULT_WAIT_TIME_BEFORE_RETRY_HTTP_5XX_MS),
 		dash_MaxDRMSessions(MIN_DASH_DRM_SESSIONS),
-		tunedEventConfigLive(eTUNED_EVENT_ON_PLAYLIST_INDEXED), tunedEventConfigVOD(eTUNED_EVENT_ON_PLAYLIST_INDEXED),
+		tunedEventConfigLive(eTUNED_EVENT_MAX), tunedEventConfigVOD(eTUNED_EVENT_MAX),
 		isUsingLocalConfigForPreferredDRM(false), pUserAgentString(NULL), logging()
+		, disableSslVerifyPeer(true)
+		,mSubtitleLanguage()
 		, enableClientDai(false), playAdFromCDN(false)
+		,mEnableVideoEndEvent(true)
+		,discontinuityTimeout(DEFAULT_DISCONTINUITY_TIMEOUT)
+		,bReportVideoPTS(false)
+		,mEnableRectPropertyCfg(eUndefinedState)
+		,decoderUnavailableStrict(false)
+		,aampAbrThresholdSize(DEFAULT_AAMP_ABR_THRESHOLD_SIZE)
+                ,langCodePreference(0)
+		,bDescriptiveAudioTrack(false)
+		,useAppSrcForProgressivePlayback(false)
+		,reportBufferEvent(true)
+		,manifestTimeoutMs(-1)
+		,fragmp4LicensePrefetch(true)
+		,enableBulkTimedMetaReport(eUndefinedState)
+		,playlistTimeoutMs(-1)
+		,mAsyncTuneConfig(eUndefinedState)
+		,mWesterosSinkConfig(eUndefinedState)
+		,aampRemovePersistent(0)
+		,preplaybuffercount(DEFAULT_PREBUFFER_COUNT)
+		,mUseAverageBWForABR(eUndefinedState)
+		,mPreCacheTimeWindow(0)
+		,parallelPlaylistRefresh(eUndefinedState)
+		,abrBufferCheckEnabled(eUndefinedState)
+		,useNewDiscontinuity(eUndefinedState)
+#ifdef INTELCE
+		,bPositionQueryEnabled(false)
+#else
+		,bPositionQueryEnabled(true)
+#endif
+		,useRetuneForUnpairedDiscontinuity(eUndefinedState)
+		,uriParameter(NULL)
+		,customHeaderStr{""}
+		,minABRBufferForRampDown(AAMP_LOW_BUFFER_BEFORE_RAMPDOWN)
+		,maxABRBufferForRampUp(AAMP_HIGH_BUFFER_BEFORE_RAMPUP)
+		,rampdownLimit(-1), minBitrate(0), maxBitrate(0), segInjectFailCount(0), drmDecryptFailCount(0)
+		,initFragmentRetryCount(-1)
 	{
 		//XRE sends onStreamPlaying while receiving onTuned event.
 		//onVideoInfo depends on the metrics received from pipe.
         // considering round trip delay to remove overlay
         // onStreamPlaying is sent optimistically in advance
 		aamp_SetBaseUserAgentString(AAMP_USERAGENT_BASE_STRING);
+		mSubtitleLanguage = std::string("en");
 	}
 
 	/**
@@ -599,27 +757,6 @@ public:
 	GlobalConfigAAMP(const GlobalConfigAAMP&) = delete;
 
 	GlobalConfigAAMP& operator=(const GlobalConfigAAMP&) = delete;
-
-	/**
-	 * @brief Get SAP status
-	 *
-	 * @return Enabled/Disabled
-	 */
-	bool aamp_GetSAP(void)
-	{
-		return SAP;
-	}
-
-	/**
-	 * @brief Setting secondary audio program
-	 *
-	 * @param[in] on - New SAP status
-	 * @return void
-	 */
-	void aamp_SetSAP(bool on)
-	{
-		SAP = on;
-	}
 
 	/**
 	@brief Sets user agent string
@@ -643,6 +780,14 @@ extern GlobalConfigAAMP *gpGlobalConfig;
 // context-free utility functions
 
 /**
+ * @brief comparing strings
+ * @param[in] inputStr - Input string
+ * @param[in] prefix - substring to be searched
+ * @retval TRUE if substring is found in bigstring
+ */
+bool aamp_StartsWith( const char *inputStr, const char *prefix);
+
+/**
  * @brief Create file URL from the base and file path
  *
  * @param[out] dst - Created URL
@@ -650,7 +795,7 @@ extern GlobalConfigAAMP *gpGlobalConfig;
  * @param[in] uri - File path
  * @return void
  */
-void aamp_ResolveURL(char *dst, const char *base, const char *uri);
+void aamp_ResolveURL(std::string& dst, std::string base, const char *uri);
 
 /**
  * @brief Get current time from epoch is milliseconds
@@ -666,6 +811,14 @@ long long aamp_GetCurrentTimeMS(void); //TODO: Use NOW_STEADY_TS_MS/NOW_SYSTEM_T
  * @return void
  */
 void aamp_Error(const char *msg);
+
+/**
+ * @brief Convert custom curl errors to original
+ *
+ * @param[in] http_error - Error code
+ * @return error code
+ */
+long aamp_GetOriginalCurlError(long http_error);
 
 /**
  * @brief AAMP's custom implementation of memory deallocation
@@ -725,7 +878,7 @@ const char * GetDrmSystemName(DRMSystems drmSystem);
  *
  */
 
-bool UrlEncode(const char *inSrc, std::string &outStr);
+bool UrlEncode(std::string inStr, std::string &outStr);
 
 /**
  * @}
@@ -744,15 +897,19 @@ typedef enum
 
 	PROFILE_BUCKET_PLAYLIST_VIDEO,      /**< Video playlist download bucket*/
 	PROFILE_BUCKET_PLAYLIST_AUDIO,      /**< Audio playlist download bucket*/
+	PROFILE_BUCKET_PLAYLIST_SUBTITLE,   /**< Subtitle playlist download bucket*/
 
 	PROFILE_BUCKET_INIT_VIDEO,          /**< Video init fragment download bucket*/
 	PROFILE_BUCKET_INIT_AUDIO,          /**< Audio init fragment download bucket*/
+	PROFILE_BUCKET_INIT_SUBTITLE,       /**< Subtitle fragment download bucket*/
 
 	PROFILE_BUCKET_FRAGMENT_VIDEO,      /**< Video fragment download bucket*/
 	PROFILE_BUCKET_FRAGMENT_AUDIO,      /**< Audio fragment download bucket*/
+	PROFILE_BUCKET_FRAGMENT_SUBTITLE,   /**< Subtitle fragment download bucket*/
 
 	PROFILE_BUCKET_DECRYPT_VIDEO,       /**< Video decryption bucket*/
 	PROFILE_BUCKET_DECRYPT_AUDIO,       /**< Audio decryption bucket*/
+	PROFILE_BUCKET_DECRYPT_SUBTITLE,    /**< Audio decryption bucket*/
 
 	PROFILE_BUCKET_LA_TOTAL,            /**< License acquisition total bucket*/
 	PROFILE_BUCKET_LA_PREPROC,          /**< License acquisition pre-processing bucket*/
@@ -861,6 +1018,9 @@ private:
 	std::list<TuneEvent> tuneEventList;     /**< List of events happened during tuning */
 	std::mutex tuneEventListMtx;            /**< Mutex protecting tuneEventList */
 
+	ProfilerBucketType mTuneFailBucketType;  /* ProfilerBucketType in case of error */
+	int mTuneFailErrorCode;			/* tune Fail Error Code */
+
 	/**
 	 * @brief Calculating effective time of two overlapping buckets.
 	 *
@@ -882,7 +1042,8 @@ public:
 	 * @brief ProfileEventAAMP Constructor
 	 */
 	ProfileEventAAMP() : tuneStartMonotonicBase(0), tuneStartBaseUTCMS(0), bandwidthBitsPerSecondVideo(0),
-        bandwidthBitsPerSecondAudio(0), drmErrorCode(0), enabled(false), xreTimeBuckets(), tuneEventList(), tuneEventListMtx()
+        bandwidthBitsPerSecondAudio(0), drmErrorCode(0), enabled(false), xreTimeBuckets(), tuneEventList(), tuneEventListMtx(),
+	mTuneFailBucketType(PROFILE_BUCKET_MANIFEST), mTuneFailErrorCode(0)
 	{
 	}
 
@@ -942,7 +1103,9 @@ public:
 			return;
 		}
 
-		if(!(buckets[pbt].complete))
+		// DELIA-41285: don't exclude any pre-tune download activity
+		if( !buckets[PROFILE_BUCKET_FIRST_FRAME].complete )
+		//if(!(buckets[pbt].complete))
 		{
 			std::lock_guard<std::mutex> lock(tuneEventListMtx);
 			tuneEventList.emplace_back(pbt,(start - tuneStartMonotonicBase),dur,res);
@@ -962,12 +1125,22 @@ public:
 	{
 		bool siblingEvent = false;
 		unsigned int tEndTime = NOW_STEADY_TS_MS;
+		size_t end = 0;
+
+		std::string temlUrl = url;
+		end = temlUrl.find("?");
+
+		if (end != std::string::npos)
+		{
+			temlUrl = temlUrl.substr(0, end);
+		}
 
 		outSS << "{\"s\":" << tuneStartBaseUTCMS
 				//TODO: It should be the duration relative to XRE start time.
 				<< ",\"td\":" << (tEndTime - tuneStartMonotonicBase)
-				<< ",\"st\":\"" << streamType << "\",\"u\":\"" << url
-				<< "\",\"r\":" << (success ? 1 : 0) << ",\"v\":[";
+				<< ",\"st\":\"" << streamType << "\",\"u\":\"" << temlUrl
+				<< "\",\"tf\":{" << "\"i\":" << mTuneFailBucketType << ",\"er\":" << mTuneFailErrorCode << "}"
+				<< ",\"r\":" << (success ? 1 : 0) << ",\"v\":[";
 
 		std::lock_guard<std::mutex> lock(tuneEventListMtx);
 		for(auto &te:tuneEventList)
@@ -985,6 +1158,8 @@ public:
 		outSS<<"]}";
 
 		tuneEventList.clear();
+		mTuneFailErrorCode = 0;
+		mTuneFailBucketType = PROFILE_BUCKET_MANIFEST;
 	}
 
 	/**
@@ -1001,6 +1176,8 @@ public:
 		bandwidthBitsPerSecondAudio = 0;
 		drmErrorCode = 0;
 		enabled = true;
+		mTuneFailBucketType = PROFILE_BUCKET_MANIFEST;
+		mTuneFailErrorCode = 0;
 		tuneEventList.clear();
 	}
 
@@ -1052,7 +1229,7 @@ public:
 	 * @param[in] firstTune - Is it a first tune after reboot/crash.
 	 * @return void
 	 */
-	void TuneEnd(bool success, ContentType contentType, int streamType, bool firstTune)
+	void TuneEnd(bool success, ContentType contentType, int streamType, bool firstTune, std::string appName)
 	{
 		if(!enabled )
 		{
@@ -1062,7 +1239,18 @@ public:
 		unsigned int licenseAcqNWTime = bucketDuration(PROFILE_BUCKET_LA_NETWORK);
 		if(licenseAcqNWTime == 0) licenseAcqNWTime = bucketDuration(PROFILE_BUCKET_LA_TOTAL); //A HACK for HLS
 
-		logprintf("IP_AAMP_TUNETIME:%d,%d,%lld," // version, build, tuneStartBaseUTCMS
+		char tuneTimeStrPrefix[64];
+		memset(tuneTimeStrPrefix, '\0', sizeof(tuneTimeStrPrefix));
+		if (!appName.empty())
+		{
+			snprintf(tuneTimeStrPrefix, sizeof(tuneTimeStrPrefix), "APP: %s IP_AAMP_TUNETIME", appName.c_str());
+		}
+		else
+		{
+			strcpy(tuneTimeStrPrefix, "IP_AAMP_TUNETIME");
+		}
+
+		logprintf("%s:%d,%d,%lld," // prefix, version, build, tuneStartBaseUTCMS
 			"%d,%d,%d," 	// main manifest (start,total,err)
 			"%d,%d,%d," 	// video playlist (start,total,err)
 			"%d,%d,%d," 	// audio playlist (start,total,err)
@@ -1078,9 +1266,10 @@ public:
 
 			"%d,%d," 		// VideoDecryptDuration, AudioDecryptDuration
 			"%d,%d," 		// gstPlayStartTime, gstFirstFrameTime
-			"%d,%d,%d\n", 		// contentType, streamType, firstTune
+			"%d,%d,%d", 		// contentType, streamType, firstTune
 			// TODO: settop type, flags, isFOGEnabled, isDDPlus, isDemuxed, assetDurationMs
 
+			tuneTimeStrPrefix,
 			4, // version for this protocol, initially zero
 			0, // build - incremented when there are significant player changes/optimizations
 			tuneStartBaseUTCMS, // when tune logically started from AAMP perspective
@@ -1155,14 +1344,14 @@ public:
 								"%d,%d,%d,%d,"                                          // licenseTotal,success,durationinMilliSec,isLive
 								"%lld,%lld,%lld,"                                       // TuneTimeBeginLoad,TuneTimePrepareToPlay,TuneTimePlay,
 								"%lld,%lld,%lld,"                                       //TuneTimeDrmReady,TuneTimeStartStream,TuneTimeStreaming
-								"%d,%d,%d,%lld",                                             //streamType, tuneRetries, TuneType, TuneCompleteTime(UTC MSec)
+								"%d,%d,%d,%ld",                                             //streamType, tuneRetries, TuneType, TuneCompleteTime(UTC MSec)
 								networkTime,playerLoadTime, failRetryBucketTime, prepareToPlayBucketTime,playBucketTime,drmReadyBucketTime,decoderStreamingBucketTime,
 								manifestTotal,profilesTotal,(initFragmentTotal + fragmentTotal),fragmentBucketTime, licenseTotal,success,durationinSec*1000,isLive,
 								xreTimeBuckets[TuneTimeBeginLoad],xreTimeBuckets[TuneTimePrepareToPlay],xreTimeBuckets[TuneTimePlay] ,xreTimeBuckets[TuneTimeDrmReady],
 								xreTimeBuckets[TuneTimeStartStream],xreTimeBuckets[TuneTimeStreaming],streamType,tuneRetries,firstTuneType,NOW_SYSTEM_TS_MS
 								);
 #ifndef CREATE_PIPE_SESSION_TO_XRE
-						logprintf("AAMP=>XRE: %s\n",TuneTimeInfoStr);
+						logprintf("AAMP=>XRE: %s",TuneTimeInfoStr);
 #endif
 
 	}
@@ -1196,6 +1385,7 @@ public:
 		struct ProfilerBucket *bucket = &buckets[type];
 		if (!bucket->complete && !(0==bucket->tStart))
 		{
+			SetTuneFailCode(result, type);
 			bucket->errorCount++;
 			if(gpGlobalConfig->enableMicroEvents && (type == PROFILE_BUCKET_DECRYPT_VIDEO || type == PROFILE_BUCKET_DECRYPT_AUDIO
 												 || type == PROFILE_BUCKET_LA_TOTAL || type == PROFILE_BUCKET_LA_NETWORK))
@@ -1236,7 +1426,7 @@ public:
 			"first-frame"
 			};
 
-			logprintf("aamp %7d (+%6d): %s\n",
+			logprintf("aamp %7d (+%6d): %s",
 			bucket->tStart,
 			bucket->tFinish - bucket->tStart,
 			bucketName[type]);
@@ -1256,6 +1446,24 @@ public:
 		ProfileBegin(type);
 		buckets[type].complete = true;
 	}
+
+
+	/**
+	 * @brief Method to set Failure code and Bucket Type used for microevents
+	 *
+	 * @param[in] type - tune Fail Code
+	 * @param[in] type - Bucket type
+	 * @return void
+	 */
+	void SetTuneFailCode(int tuneFailCode, ProfilerBucketType failBucketType)
+	{
+		if(!mTuneFailErrorCode){
+			AAMPLOG_INFO("%s:%d Tune Fail: ProfilerBucketType: %d, tuneFailCode: %d", __FUNCTION__, __LINE__, failBucketType, tuneFailCode);
+			mTuneFailErrorCode = tuneFailCode;
+			mTuneFailBucketType = failBucketType;
+		}
+	}
+
 };
 
 /**
@@ -1277,10 +1485,10 @@ public:
 	 * @param[in] name - Metadata name
 	 * @param[in] content - Metadata content
 	 */
-	TimedMetadata(double timeMS, std::string name, std::string content, std::string id, double durMS) : _timeMS(timeMS), _name(name), _content(content), _id(id), _durationMS(durMS) {}
+	TimedMetadata(long long timeMS, std::string name, std::string content, std::string id, double durMS) : _timeMS(timeMS), _name(name), _content(content), _id(id), _durationMS(durMS) {}
 
 public:
-	double      _timeMS;     /**< Time in milliseconds */
+	long long _timeMS;     /**< Time in milliseconds */
 	std::string _name;       /**< Metadata name */
 	std::string _content;    /**< Metadata content */
 	std::string _id;         /**< Id of the timedMetadata. If not available an Id will bre created */
@@ -1323,6 +1531,32 @@ struct ListenerData {
 	ListenerData* pNext;                /**< Next listener */
 };
 
+class AampCacheHandler;
+
+#ifdef AAMP_HLS_DRM
+/**
+*	\Class attrNameData
+* 	\brief	local calss to hold DRM information
+*/
+class attrNameData{
+	public:
+		std::string attrName;
+		bool isProcessed;
+		attrNameData():attrName(""),isProcessed(false) {
+		}
+		
+		attrNameData(std::string argument):attrName(argument),isProcessed(false){
+		}
+
+		bool operator==(const attrNameData& rhs) const { return (this->attrName == rhs.attrName);}
+};
+/**
+ * @}
+ */
+#endif
+
+class AampDRMSessionManager;
+
 /**
  * @brief Class representing the AAMP player's private instance, which is not exposed to outside world.
  */
@@ -1335,8 +1569,13 @@ class PrivateInstanceAAMP
 	    E_AAMP2Receiver_EVENTS,
 	    E_AAMP2Receiver_MsgMAX
 	};
-
-	typedef struct AAMP_PACKED _AAMP2ReceiverMsg
+#ifdef WIN32
+	// 'packed' directive unavailable in win32 build;
+	typedef struct _AAMP2ReceiverMsg
+#else
+	// needed to ensure matching structure alignment in receiver
+	typedef struct __attribute__((__packed__)) _AAMP2ReceiverMsg
+#endif
 	{
 	    unsigned int type;
 	    unsigned int length;
@@ -1357,6 +1596,8 @@ public:
 	{
 		switch (mediaType)
 		{
+		case eMEDIATYPE_SUBTITLE:
+			return isInitializationSegment ? PROFILE_BUCKET_INIT_SUBTITLE : PROFILE_BUCKET_FRAGMENT_SUBTITLE;
 		case eMEDIATYPE_VIDEO:
 			return isInitializationSegment ? PROFILE_BUCKET_INIT_VIDEO : PROFILE_BUCKET_FRAGMENT_VIDEO;
 		case eMEDIATYPE_AUDIO:
@@ -1369,12 +1610,13 @@ public:
 	 * @brief Tune API
 	 *
 	 * @param[in] url - Asset URL
+	 * @param[in] autoPlay - Start playback immediately or not
 	 * @param[in] contentType - Content Type
 	 * @param[in] bFirstAttempt - External initiated tune
 	 * @param[in] bFinalAttempt - Final retry/attempt.
 	 * @return void
 	 */
-	void Tune(const char *url, const char *contentType, bool bFirstAttempt = true, bool bFinalAttempt = false, const char *sessionUUID = NULL);
+	void Tune(const char *url, bool autoPlay,  const char *contentType, bool bFirstAttempt = true, bool bFinalAttempt = false, const char *sessionUUID = NULL);
 
 	/**
 	 * @brief The helper function which perform tuning
@@ -1433,6 +1675,14 @@ public:
 	void sendTuneMetrics(bool success);
 
 	/**
+	 * @brief To pause/play the gstreamer pipeline
+	 *
+	 * @param[in] success - true for pause and false for play
+	 * @return true on success
+	 */
+	bool PausePipeline(bool pause);
+
+	/**
 	 * @brief Convert media file type to profiler bucket type
 	 *
 	 * @param[in] fileType - Media filetype
@@ -1440,17 +1690,26 @@ public:
 	 */
 	ProfilerBucketType mediaType2Bucket(MediaType fileType);
 
+       /**
+         * @brief to set the vod-tune-event according to the player
+         *
+         * @param[in] tuneEventType
+         * @return void
+         */
+	void SetTuneEventConfig( TunedEventConfig tuneEventType);
+
 	std::vector< std::pair<long long,long> > mAbrBitrateData;
 
 	pthread_mutex_t mLock;// = PTHREAD_MUTEX_INITIALIZER;
 	pthread_mutexattr_t mMutexAttr;
+	pthread_mutex_t mParallelPlaylistFetchLock; // mutex lock for parallel fetch
 
 	class StreamAbstractionAAMP *mpStreamAbstractionAAMP; // HLS or MPD collector
 	class CDAIObject *mCdaiObject;      // Client Side DAI Object
 	std::queue<AAMPEvent> mAdEventsQ;   // A Queue of Ad events
 	std::mutex mAdEventQMtx;            // Add events' queue protector
 	bool mInitSuccess;	//TODO: Need to replace with player state
-	StreamOutputFormat mFormat;
+	StreamOutputFormat mVideoFormat;
 	StreamOutputFormat mAudioFormat;
 	pthread_cond_t mDownloadsDisabled;
 	bool mDownloadsEnabled;
@@ -1460,38 +1719,61 @@ public:
 	bool licenceFromManifest;
 	AudioType previousAudioType; /* Used to maintain previous audio type */
 
-	CURL *curl[MAX_CURL_INSTANCE_COUNT];
+	CURL *curl[eCURLINSTANCE_MAX];
 
 	// To store Set Cookie: headers and X-Reason headers in HTTP Response
-	httpRespHeaderData httpRespHeaders[MAX_CURL_INSTANCE_COUNT];
+	httpRespHeaderData httpRespHeaders[eCURLINSTANCE_MAX];
 	//std::string cookieHeaders[MAX_CURL_INSTANCE_COUNT]; //To store Set-Cookie: headers in HTTP response
-	char manifestUrl[MAX_URI_LENGTH];
-	char tunedManifestUrl[MAX_URI_LENGTH];
+	std::string  mManifestUrl;
+	std::string mTunedManifestUrl;
 
+	int mPreCacheDnldTimeWindow;		// Stores PreCaching timewindow
+	int mReportProgressInterval;					// To store the refresh interval in millisec
+	int mInitFragmentRetryCount;		// max attempts for init frag curl timeout failures
+	bool mUseAvgBandwidthForABR;
 	bool mbDownloadsBlocked;
 	bool streamerIsActive;
 	bool mTSBEnabled;
 	bool mIscDVR;
-	int mLiveOffset;
-	bool mNewLiveOffsetflag;
+	double mLiveOffset;
+	long mNetworkTimeoutMs;
+	long mManifestTimeoutMs;
+	long mPlaylistTimeoutMs;
+	bool mParallelFetchPlaylist;
+	bool mParallelFetchPlaylistRefresh;
+	bool mAsyncTuneEnabled;
+	bool mWesterosSinkEnabled;
+	bool mEnableRectPropertyEnabled;
+	bool mBulkTimedMetadata;
+	bool mUseRetuneForUnpairedDiscontinuity;
+	long long prevPositionMiliseconds;
+	MediaFormat mMediaFormat;
+	bool mNewLiveOffsetflag;	
 	pthread_t fragmentCollectorThreadID;
 	double seek_pos_seconds; // indicates the playback position at which most recent playback activity began
 	int rate; // most recent (non-zero) play rate for non-paused content
 	bool pipeline_paused; // true if pipeline is paused
 	char language[MAX_LANGUAGE_TAG_LENGTH];  // current language set
+	bool noExplicitUserLanguageSelection; //true until not updated apart constructor
+	bool languageSetByUser; //initially 'false', set 'true' once language[] is set by user (also with the same as init value)
 	char mLanguageList[MAX_LANGUAGE_COUNT][MAX_LANGUAGE_TAG_LENGTH]; // list of languages in stream
 	int mCurrentLanguageIndex; // Index of current selected lang in mLanguageList, this is used for VideoStat event data collection
 	int  mMaxLanguageCount;
+	std::string preferredLanguagesString; // unparsed string with preferred languages in format "lang1,lang2,.."
+	std::vector<std::string> preferredLanguagesList; // list of preferred languages from most-preferred to the least
 	VideoZoomMode zoom_mode;
 	bool video_muted;
 	int audio_volume;
 	std::vector<std::string> subscribedTags;
 	std::vector<TimedMetadata> timedMetadata;
+	std::vector<TimedMetadata> reportMetadata;
+	bool mIsIframeTrackPresent;				/**< flag to check iframe track availability*/
 
 	/* START: Added As Part of DELIA-28363 and DELIA-28247 */
 	bool IsTuneTypeNew; /* Flag for the eTUNETYPE_NEW_NORMAL */
 	/* END: Added As Part of DELIA-28363 and DELIA-28247 */
-
+	pthread_cond_t waitforplaystart;    /**< Signaled after playback starts */
+	pthread_mutex_t mMutexPlaystart;	/**< Mutex associated with playstart */
 	long long trickStartUTCMS;
 	long long playStartUTCMS;
 	double durationSeconds;
@@ -1510,16 +1792,41 @@ public:
 	pthread_cond_t mCondDiscontinuity;
 	gint mDiscontinuityTuneOperationId;
 	bool mIsVSS;       /**< Indicates if stream is VSS, updated during Tune*/
-	long curlDLTimeout[MAX_CURL_INSTANCE_COUNT]; /**< To store donwload timeout of each curl instance*/
+	long curlDLTimeout[eCURLINSTANCE_MAX]; /**< To store donwload timeout of each curl instance*/
+	char mSubLanguage[MAX_LANGUAGE_TAG_LENGTH];   // current subtitle language set
+	bool mbPlayEnabled;	//Send buffer to pipeline or just cache them.
+	int mPlayerId;
+	TunedEventConfig  mTuneEventConfigVod;
+	TunedEventConfig mTuneEventConfigLive;
+	int mRampDownLimit;
+	int mSegInjectFailCount;	/**< Sets retry count for segment injection failure */
+	int mDrmDecryptFailCount;	/**< Sets retry count for DRM decryption failure */
+#ifdef AAMP_HLS_DRM
+	std::vector <attrNameData> aesCtrAttrDataList; /**< Queue to hold the values of DRM data parsed from manifest */
+	pthread_mutex_t drmParserMutex; /**< Mutex to lock DRM parsing logic */
+	bool fragmentCdmEncrypted; /**< Indicates CDM protection added in fragments **/
+	pthread_t createDRMSessionThreadID; /**< thread ID for DRM session creation **/
+	bool drmSessionThreadStarted; /**< flag to indicate the thread is running on not **/
+#endif
+	Playermode mPlayermode;
+	pthread_t mPreCachePlaylistThreadId;
+	bool mPreCachePlaylistThreadFlag;
+	bool mABRBufferCheckEnabled;
+#if defined(AAMP_MPD_DRM) || defined(AAMP_HLS_DRM)
+	AampDRMSessionManager *mDRMSessionManager;
+#endif
+	bool mNewAdBreakerEnabled;
+	long mPlaylistFetchFailError;	/**< To store HTTP error code when playlist download fails */
 
 	/**
 	 * @brief Curl initialization function
 	 *
 	 * @param[in] startIdx - Start index of the curl instance
 	 * @param[in] instanceCount - Instance count
+	 * @param[in] proxy - proxy to be applied for curl connection	 
 	 * @return void
 	 */
-	void CurlInit(int startIdx, unsigned int instanceCount);
+	void CurlInit(AampCurlInstance startIdx, unsigned int instanceCount=1,const char *proxy=NULL);
 
 	/**
 	 *   @brief Sets Recorded URL from Manifest received form XRE.
@@ -1540,7 +1847,15 @@ public:
 	 * @param[in] instance - Curl instance
 	 * @return void
 	 */
-	void SetCurlTimeout(long timeout, unsigned int instance = 0);
+	void SetCurlTimeout(long timeout, AampCurlInstance instance);
+
+	/**
+	 * @brief Set manifest curl timeout
+	 *
+	 * @param[in] timeout - Timeout value in ms
+	 * @return void
+	 */
+	void SetManifestCurlTimeout(long timeout);
 
 	/**
 	 * @brief Storing audio language list
@@ -1566,7 +1881,17 @@ public:
 	 * @param[in] instanceCount - Instance count
 	 * @return void
 	 */
-	void CurlTerm(int startIdx, unsigned int instanceCount);
+	void CurlTerm(AampCurlInstance startIdx, unsigned int instanceCount=1);
+
+	/**
+	 * @brief GetPlaylistCurlInstance - Get Curl Instance for playlist download
+	 *
+	 * @param[in] MediaType  - type of playlist
+	 * @param[in] flag 		 - Init or Refresh download
+	 * @return AampCurlInstance - curl instance for download
+	 */
+	AampCurlInstance GetPlaylistCurlInstance(MediaType type, bool IsInitDnld=true);
+
 
 	/**
 	 * @brief Download a file from the server
@@ -1581,7 +1906,7 @@ public:
 	 * @param[in] fileType - File type
 	 * @return void
 	 */
-	bool GetFile(const char *remoteUrl, struct GrowableBuffer *buffer, char effectiveUrl[MAX_URI_LENGTH], long *http_error = NULL, const char *range = NULL,unsigned int curlInstance = 0, bool resetBuffer = true,MediaType fileType = eMEDIATYPE_DEFAULT, long *bitrate = NULL, int * fogError = NULL);
+	bool GetFile(std::string remoteUrl, struct GrowableBuffer *buffer, std::string& effectiveUrl, long *http_error = NULL, const char *range = NULL,unsigned int curlInstance = 0, bool resetBuffer = true,MediaType fileType = eMEDIATYPE_DEFAULT, long *bitrate = NULL,  int * fogError = NULL, double fragmentDurationSec = 0);
 
 	/**
 	 * @brief get Media Type in string
@@ -1600,9 +1925,10 @@ public:
 	 * @param[in] curlInstance - Curl instance to be used
 	 * @param[in] range - Byte range
 	 * @param[in] fileType - File type
+	 * @param[out] fogError - Error from FOG
 	 * @return void
 	 */
-	char *LoadFragment( ProfilerBucketType bucketType, const char *fragmentUrl, char *effectiveUrl, size_t *len, unsigned int curlInstance = 0, const char *range = NULL,long * http_code = NULL,MediaType fileType = eMEDIATYPE_MANIFEST,int * fogError = NULL);
+	char *LoadFragment( ProfilerBucketType bucketType, std::string fragmentUrl, std::string& effectiveUrl, size_t *len, unsigned int curlInstance = 0, const char *range = NULL,long * http_code = NULL,MediaType fileType = eMEDIATYPE_MANIFEST,int * fogError = NULL);
 
 	/**
 	 * @brief Download fragment
@@ -1614,9 +1940,10 @@ public:
 	 * @param[in] range - Byte range
 	 * @param[in] fileType - File type
 	 * @param[out] http_code - HTTP error code
+	 * @param[out] fogError - Error from FOG
 	 * @return void
 	 */
-	bool LoadFragment( ProfilerBucketType bucketType, const char *fragmentUrl, char *effectiveUrl, struct GrowableBuffer *buffer, unsigned int curlInstance = 0, const char *range = NULL, MediaType fileType = eMEDIATYPE_MANIFEST, long * http_code = NULL, long *bitrate = NULL, int * fogError = NULL);
+	bool LoadFragment( ProfilerBucketType bucketType, std::string fragmentUrl, std::string& effectiveUrl, struct GrowableBuffer *buffer, unsigned int curlInstance = 0, const char *range = NULL, MediaType fileType = eMEDIATYPE_MANIFEST, long * http_code = NULL, long *bitrate = NULL, int * fogError = NULL, double fragmentDurationSec = 0);
 
 	/**
 	 * @brief Push fragment to the gstreamer
@@ -1731,6 +2058,14 @@ public:
 	 */
 	void SendAnomalyEvent(AAMPAnomalyMessageType type, const char* format, ...);
 
+	void SendBufferChangeEvent(bool bufferingStopped=false);
+
+	/* Buffer Under flow status flag, under flow Start(buffering stopped) is true and under flow end is false*/
+	bool mBufUnderFlowStatus;
+	bool GetBufUnderFlowStatus() { return mBufUnderFlowStatus; }
+	void SetBufUnderFlowStatus(bool statusFlag) { mBufUnderFlowStatus = statusFlag; }
+	void ResetBufUnderFlowStatus() { mBufUnderFlowStatus = false;}
+
 	/**
 	 * @brief Send events synchronously
 	 *
@@ -1754,10 +2089,11 @@ public:
 	 * @param[in] description - Description
 	 * @param[in] width - Video width
 	 * @param[in] height - Video height
+ 	 * @param[in] framerate - FRAME-RATE from manifest
 	 * @param[in] GetBWIndex - Flag to get the bandwidth index
 	 * @return void
 	 */
-	void NotifyBitRateChangeEvent(int bitrate , const char *description ,int width ,int height, bool GetBWIndex = false);
+	void NotifyBitRateChangeEvent(int bitrate , const char *description ,int width ,int height,double framerate, bool GetBWIndex = false);
 
 	/**
 	 * @brief Notify when end of stream reached
@@ -1856,6 +2192,13 @@ public:
 	long long GetPositionMs(void);
 
 	/**
+	 *   @brief Get playback position in milliseconds
+	 *
+	 *   @return Position in ms.
+	 */
+	long long GetPositionMilliseconds(void);
+
+	/**
 	 *   @brief  API to send audio/video stream into the sink.
 	 *
 	 *   @param[in]  mediaType - Type of the media.
@@ -1928,11 +2271,32 @@ public:
 	 * @param[in] szName - Metadata name
 	 * @param[in] szContent - Metadata content
 	 * @param[in] nb - ContentSize
+	 * @param[in] bSyncCall - Sync /Async Event reporting
 	 * @param[in] id - Identifier of the TimedMetadata
 	 * @param[in] durationMS - Duration in milliseconds
 	 * @return void
 	 */
-	void ReportTimedMetadata(double timeMS, const char* szName, const char* szContent, int nb, const char* id = "", double durationMS = 0);
+	void ReportTimedMetadata(long long timeMS, const char* szName, const char* szContent, int nb, bool bSyncCall=false,const char* id = "", double durationMS = -1);
+
+	/**
+	 * @brief Save timed metadata for later bulk reporting
+	 *
+	 * @param[in] timeMS - Time in milliseconds
+	 * @param[in] szName - Metadata name
+	 * @param[in] szContent - Metadata content
+	 * @param[in] nb - ContentSize
+	 * @param[in] id - Identifier of the TimedMetadata
+	 * @param[in] durationMS - Duration in milliseconds
+	 * @return void
+	 */
+	void SaveTimedMetadata(long long timeMS, const char* szName, const char* szContent, int nb, const char* id = "", double durationMS = -1);
+
+	/**
+		 * @brief Report bulk timedMetadata
+		 *
+		 * @return void
+	 */
+	void ReportBulkTimedMetadata();
 
 	/**
 	 * @brief sleep only if aamp downloads are enabled.
@@ -2048,9 +2412,9 @@ public:
 	 *
 	 *   @return Manifest URL
 	 */
-	char *GetManifestUrl(void)
+	std::string& GetManifestUrl(void)
 	{
-		return manifestUrl;
+		return mManifestUrl;
 	}
 
 	/**
@@ -2061,8 +2425,7 @@ public:
 	 */
 	void SetManifestUrl(const char *url)
 	{
-		strncpy(manifestUrl, url, MAX_URI_LENGTH);
-		manifestUrl[MAX_URI_LENGTH-1]='\0';
+		mManifestUrl.assign(url);
 	}
 
 	/**
@@ -2259,9 +2622,10 @@ public:
 	/**
 	 *   @brief Send tuned event
 	 *
+	 *   @param[in] isSynchronous - send event synchronously or not
 	 *   @return success or failure
 	 */
-	bool SendTunedEvent();
+	bool SendTunedEvent(bool isSynchronous = true);
 
 	/**
 	 *   @brief Send VideoEndEvent
@@ -2308,9 +2672,10 @@ public:
 	 *
 	 *   @param[in] headerName  - Header name
 	 *   @param[in] headerValue - Header value
+	 *   @param[in] isLicenseHeader - true if header is for a license request
 	 *   @return void
 	 */
-	void AddCustomHTTPHeader(std::string headerName, std::vector<std::string> headerValue);
+	void AddCustomHTTPHeader(std::string headerName, std::vector<std::string> headerValue, bool isLicenseHeader);
 
 	/**
 	 *   @brief Set license server URL
@@ -2328,6 +2693,30 @@ public:
 	 *   @return void
 	 */
 	void SetPreferredDRM(DRMSystems drmType);
+
+	/**
+	 *   @brief Set Stereo Only Playback.
+	 *   @param[in] bValue - disable EC3/ATMOS if the value is true
+	 *
+	 *   @return void
+	 */
+	void SetStereoOnlyPlayback(bool bValue);
+
+	/**
+	 *   @brief Set Bulk TimedMetadata Reporting flag
+	 *   @param[in] bValue - if true Bulk event reporting enabled
+	 *
+	 *   @return void
+	 */
+	void SetBulkTimedMetaReport(bool bValue);
+
+	/**
+	 *	 @brief Set unpaired discontinuity retune flag
+	 *	 @param[in] bValue - true if unpaired discontinuity retune set
+	 *
+	 *	 @return void
+	 */
+	void SetRetuneForUnpairedDiscontinuity(bool bValue);
 
 	/**
 	 *   @brief Notification from the stream abstraction that a new SCTE35 event is found.
@@ -2387,6 +2776,18 @@ public:
 	void SetAnonymousRequest(bool isAnonymous);
 
 	/**
+	 *   @brief Indicates average BW to be used for ABR Profiling.
+	 *
+	 *   @param  useAvgBW - Flag for true / false
+	 */
+	void SetAvgBWForABR(bool useAvgBW);
+	/**
+	*   @brief SetPreCacheTimeWindow Function to Set PreCache Time
+	*
+	*   @param  Time in minutes - Max PreCache Time 
+	*/
+	void SetPreCacheTimeWindow(int nTimeWindow);
+	/**
 	 *   @brief Set frames per second for VOD trickplay
 	 *
 	 *   @param[in] vodTrickplayFPS - FPS count
@@ -2433,6 +2834,14 @@ public:
 	 *   @param  reportIntervalMS - playback reporting interval in milliseconds.
 	 */
 	void SetReportInterval(int reportIntervalMS);
+
+	/**
+	 *	 @brief To set the max retry attempts for init frag curl timeout failures
+	 *
+	 *	 @param  count - max attempt for timeout retry count
+	 */
+	void SetInitFragTimeoutRetryCount(int count);
+
 	/**
 	 *   @brief Send stalled error
 	 *
@@ -2450,9 +2859,9 @@ public:
 	/**
 	 *   @brief Process pending discontinuity
 	 *
-	 *   @return void
+	 *   @return true if pending discontinuity was processed successful, false if interrupted
 	 */
-	void ProcessPendingDiscontinuity();
+	bool ProcessPendingDiscontinuity();
 
 	/**
 	 *   @brief Notify if first buffer processed by gstreamer
@@ -2468,6 +2877,14 @@ public:
 	 *   @return void
 	 */
 	void UpdateAudioLanguageSelection(const char *lang);
+
+	/**
+	 *   @brief Update subtitle language selection
+	 *
+	 *   @param[in] lang - Language
+	 *   @return void
+	 */
+	void UpdateSubtitleLanguageSelection(const char *lang);
 
 	/**
 	 *   @brief Get stream type
@@ -2555,14 +2972,6 @@ public:
 	void SendSupportedSpeedsChangedEvent(bool isIframeTrackPresent);
 
 	/**
-	 *   @brief  Get Sequence Number from URL
-	 *
-	 *   @param[in] fragmentUrl fragment Url
-	 *   @returns Sequence Number if found in fragment Url else 0
-	 */
-	long long GetSeqenceNumberfromURL(const char *fragmentUrl);
-
-	/**
 	 *   @brief To set the initial bitrate value.
 	 *
 	 *   @param[in] initial bitrate to be selected
@@ -2581,7 +2990,78 @@ public:
 	 *
 	 *   @param[in] preferred timeout value
 	 */
-	void SetNetworkTimeout(long timeout);
+	void SetNetworkTimeout(double timeout);
+	/**
+	 *   @brief To set the network timeout as per priority
+	 *
+	 */
+	void ConfigureNetworkTimeout();	
+	/**
+	 *   @brief To set the manifest timeout as per priority
+	 *
+	*/
+	void ConfigureManifestTimeout();
+	/**
+	*   @brief To set the manifest timeout as per priority
+	*
+	*/
+	void ConfigurePlaylistTimeout();
+
+	/**
+	*   @brief To set the parallel playlist fetch configuration
+	*
+	*/
+	void ConfigureParallelFetch();
+	/**
+	*   @brief To set bulk timedMetadata reporting
+	*
+	*/
+	void ConfigureBulkTimedMetadata();
+
+	/**
+	 *	 @brief To set unpaired discontinuity retune configuration
+	 *
+	 */
+	void ConfigureRetuneForUnpairedDiscontinuity();
+
+	/**
+	 *	 @brief Function to configure PreCachePlaylist
+	 *
+	 */
+	void ConfigurePreCachePlaylist();
+
+	/**
+	 *	 @brief Function to set the max retry attempts for init frag curl timeout failures
+	 *
+	 */
+	void ConfigureInitFragTimeoutRetryCount();
+
+	/**
+	 *	 @brief To set westeros sink configuration
+	 *
+	 */
+	void ConfigureWesterosSink();
+
+	/**
+	 *   @brief Set Playermode config for JSPP / Mediaplayer.
+	 *   @param[in] playermode - either JSPP and Mediaplayer.
+	 *
+	 *   @return void
+	 */
+	void ConfigurePlayerModeSettings();
+
+	/**
+	 *   @brief To set the manifest download timeout value.
+	 *
+	 *   @param[in] preferred timeout value
+	 */
+	void SetManifestTimeout(double timeout);
+	/**
+	*   @brief To set the playlist download timeout value.
+	*
+	*   @param[in] preferred timeout value
+	*/
+	void SetPlaylistTimeout(double timeout);
 
 	/**
 	 *   @brief To set the download buffer size value
@@ -2625,6 +3105,13 @@ public:
 	void SetNetworkProxy(const char * proxy);
 
 	/**
+	 *   @brief To get the network proxy
+	 *
+	 *   @return Network proxy URL, if exists.
+	 */
+	const char* GetNetworkProxy() const;
+
+	/**
 	 *   @brief To set the proxy for license request
 	 *
 	 *   @param[in] proxy to use for license request
@@ -2654,17 +3141,16 @@ public:
 	void SignalTrickModeDiscontinuity();
 
 	/**
+	 *   @brief  return service zone, extracted from locator &sz URI parameter
+	 *   @return std::string
+	 */
+	std::string & getServiceZone() { return mServiceZone; }
+	/**
 	 *   @brief IsNewTune Function to check if tune is New tune or retune
 	 *
 	 *   @return Bool True on new tune
 	 */
 	bool IsNewTune()  { return ((eTUNETYPE_NEW_NORMAL == mTuneType) || (eTUNETYPE_NEW_SEEK == mTuneType)); }
-
-	/**
-	 *   @brief  return service zone, extracted from locator &sz URI parameter
-	 *   @return std::string
-	 */
-	std::string & getServiceZone() { return mServiceZone; }
 
 	/**
 	 *   @brief Check if current stream is muxed
@@ -2688,7 +3174,44 @@ public:
 	void SetDownloadStartTimeout(long startTimeout);
 
 	/**
-	 *   @brief updates download metrics to VideoStat object,
+	 * @brief Stop injection for a track.
+	 * Called from StopInjection
+	 *
+	 * @param[in] Media type
+	 * @return void
+	 */
+	void StopTrackInjection(MediaType type);
+
+	/**
+	 * @brief Resume injection for a track.
+	 * Called from StartInjection
+	 *
+	 * @param[in] Media type
+	 * @return void
+	 */
+	void ResumeTrackInjection(MediaType type);
+
+	/**
+	 *   @brief Receives first video PTS of the current playback
+	 *
+	 *   @param[in]  pts - pts value
+	 */
+	void NotifyFirstVideoPTS(unsigned long long pts);
+
+	/**
+	 *   @brief To send webvtt cue as an event
+	 *
+	 *   @param[in]  cue - vtt cue object
+	 */
+	void SendVTTCueDataAsEvent(VTTCue* cue);
+
+	/**
+	 *   @brief To check if subtitles are enabled
+	 *
+	 *   @return bool - true if subtitles are enabled
+	 */
+	bool IsSubtitleEnabled(void);
+	/**   @brief updates download metrics to VideoStat object,
 	 *
 	 *   @param[in]  mediaType - MediaType ( Manifest/Audio/Video etc )
 	 *   @param[in]  bitrate - bitrate ( bits per sec )
@@ -2696,7 +3219,17 @@ public:
      *   @param[in]  strUrl :  URL in case of faulures
 	 *   @return void
 	 */
-	void UpdateVideoEndMetrics(MediaType mediaType, long bitrate, int curlOrHTTPCode, const char * strUrl);
+	void UpdateVideoEndMetrics(MediaType mediaType, long bitrate, int curlOrHTTPCode, std::string& strUrl);
+
+	/**   @brief updates download metrics to VideoStat object
+	 *
+	 *   @param[in]  mediaType - MediaType ( Manifest/Audio/Video etc )
+	 *   @param[in]  bitrate - bitrate ( bits per sec )
+	 *   @param[in]  width - Frame width
+     *   @param[in]  Height - Frame Height
+	 *   @return void
+	 */
+	void UpdateVideoEndProfileResolution(MediaType mediaType, long bitrate, int width, int height);
 
 	/**
 	 *   @brief updates time shift buffer status
@@ -2717,7 +3250,7 @@ public:
 	*   @param[in] isEncrypted : if fragment is encrypted then it is set to true
 	*   @return void
 	*/
-	void UpdateVideoEndMetrics(MediaType mediaType, long bitrate, int curlOrHTTPCode, const char * strUrl, double duration, bool keyChanged, bool isEncrypted);
+	void UpdateVideoEndMetrics(MediaType mediaType, long bitrate, int curlOrHTTPCode, std::string& strUrl, double duration, bool keyChanged, bool isEncrypted);
     
 	/**
 	*   @brief updates download metrics to VideoStat object, this is used for VideoFragment as it takes duration for calcuation purpose.
@@ -2728,7 +3261,7 @@ public:
 	*   @param[in]  strUrl :  URL in case of faulures
 	*   @return void
 	*/
-	void UpdateVideoEndMetrics(MediaType mediaType, long bitrate, int curlOrHTTPCode, const char * strUrl, double duration);
+	void UpdateVideoEndMetrics(MediaType mediaType, long bitrate, int curlOrHTTPCode, std::string& strUrl, double duration);
 
 
 	/**
@@ -2747,24 +3280,220 @@ public:
 	 */
 	VideoStatTrackType ConvertAudioIndexToVideoStatTrackType(int Index);
 
+	/**
+	 *   @brief To check if current asset is DASH or not
+	 *
+	 *   @return bool - true if its DASH asset
+	 */
+	bool IsDashAsset(void) { return (mMediaFormat==eMEDIAFORMAT_DASH); }
 
 	/**
-	 * @brief Stop injection for a track.
-	 * Called from StopInjection
+	 *   @brief Check if AAMP is in stalled state after it pushed EOS to
+	 *   notify discontinuity
 	 *
-	 * @param[in] Media type
-	 * @return void
+	 *   @param[in]  mediaType stream type
 	 */
-	void StopTrackInjection(MediaType type);
+	void CheckForDiscontinuityStall(MediaType mediaType);
+	
+	/**
+	 *   @brief Notifies base PTS of the HLS video playback
+	 *
+	 *   @param[in]  pts - base pts value
+	 */
+	void NotifyVideoBasePTS(unsigned long long basepts);
 
 	/**
-	 * @brief Resume injection for a track.
-	 * Called from StartInjection
+	 *   @brief To get any custom license HTTP headers that was set by application
+	 *
+	 *   @param[out] headers - curl header structure
+	 */
+	void GetCustomLicenseHeaders(struct curl_slist **headers);
+
+	/**
+	 *   @brief Set parallel playlist download config value.
+	 *
+	 *   @param[in] bValue - true if a/v playlist to be downloaded in parallel
+	 *   @return void
+	 */
+	void SetParallelPlaylistDL(bool bValue);
+
+	/**
+	* @brief Set parallel playlist download config value for linear
+	* @param[in] bValue - true if a/v playlist to be downloaded in parallel
+	*
+	* @return void
+	*/
+	void SetParallelPlaylistRefresh(bool bValue);
+
+	/**
+	 *   @brief Set async tune configuration
+	 *
+	 *   @param[in] bValue - true if async tune enabled
+	 *   @return void
+	 */
+	void SetAsyncTuneConfig(bool bValue);
+
+	/**
+	 *   @brief Get async tune configuration
+	 *
+	 *   @return bool - true if async tune enabled
+	 */
+	bool GetAsyncTuneConfig();
+
+	/**
+	 *   @brief Set Westeros sink Configuration
+	 *
+	 *   @param[in] bValue - true if westeros sink enabled
+	 *   @return void
+	 */
+	void SetWesterosSinkConfig(bool bValue);
+
+	/**
+	 *	 @brief Configure New ABR Enable/Disable
+	 *	 @param[in] bValue - true if new ABR enabled
+	 *
+	 *	 @return void
+	 */
+	void SetNewABRConfig(bool bValue);
+	/**
+	 *	 @brief Configure New AdBreaker Enable/Disable
+	 *	 @param[in] bValue - true if new AdBreaker enabled
+	 *
+	 *	 @return void
+	 */
+	void SetNewAdBreakerConfig(bool bValue);
+
+	/**
+	 *   @brief To flush buffers in streamsink
+	 *
+	 *   @param[in] position - position to which we seek after flush
+	 *   @param[in] rate - playback rate
+	 *   @return void
+	 */
+	void FlushStreamSink(double position, double rate);
+
+	/*
+	 *   @brief Check if autoplay enabled for current stream
+	 *
+	 *   @return true if autoplay enabled
+	 */
+	bool IsPlayEnabled();
+
+	/**
+	 * @brief Soft stop the player instance.
+	 *
+	 */
+	void detach();
+	/**
+	 *	 @brief SetPreCacheDownloadList - Function to assign the PreCaching file list
+	 *	 @param[in] Playlist Download list	
+	 *
+	 *	 @return void
+	 */
+	void SetPreCacheDownloadList(PreCacheUrlList &dnldListInput);	
+	/**
+	 *   @brief PreCachePlaylistDownloadTask Thread function for PreCaching Playlist 
+	 *
+	 *   @return void
+	 */
+	void PreCachePlaylistDownloadTask();
+
+	/**
+	 * @brief Get pointer to AampCacheHandler
+	 *
+	 * @return Pointer to AampCacheHandler
+	 */
+	AampCacheHandler * getAampCacheHandler();
+
+	/**
+	 *   @brief Sends an ID3 metadata event.
+	 *
+	 *   @param[in] data pointer to ID3 metadata
+	 *   @param[in] length length of ID3 metadata
+	 */
+	void SendId3MetadataEvent(uint8_t* data, int32_t length);
+
+	/**
+	 * @brief Gets the registration status of a given event
+	 * @param[in] eventType - type of the event to be checked
+	 *
+	 * @retval bool - True if event is registered
+	 */
+	bool GetEventListenerStatus(AAMPEventType eventType);
+
+	/**
+	 *   @brief Get available audio tracks.
+	 *
+	 *   @return std::string JSON formatted list of audio tracks
+	 */
+	std::string GetAvailableAudioTracks();
+
+	/**
+	 *   @brief Get available text tracks.
+	 *
+	 *   @return std::string JSON formatted list of text tracks
+	 */
+	std::string GetAvailableTextTracks();
+
+	/*
+	 *   @brief Get the video window co-ordinates
+	 *
+	 *   @return current video co-ordinates in x,y,w,h format
+	 */
+	std::string GetVideoRectangle();
+
+	/*
+	 *   @brief Set the application name which has created PlayerInstanceAAMP, for logging purposes
+	 *
+	 *   @return void
+	 */
+	void SetAppName(std::string name);
+
+	/**
+	 * @brief Set profile ramp down limit.
+	 *
+	 */
+	void SetRampDownLimit(int limit);
+
+	/**
+	 * @brief Set minimum bitrate value.
+	 *
+	 */
+	void SetMinimumBitrate(long bitrate);
+
+	/**
+	 * @brief Set maximum bitrate value.
+	 *
+	 */
+	void SetMaximumBitrate(long bitrate);
+
+	/**
+	 * @brief Get maximum bitrate value.
+	 * @return maximum bitrate value
+	 */
+	long GetMaximumBitrate();
+
+	/**
+	 * @brief Get minimum bitrate value.
+	 * @return minimum bitrate value
+	 */
+	long GetMinimumBitrate();
+
+	/**
+	 * @brief Check if track can inject data into GStreamer.
 	 *
 	 * @param[in] Media type
+	 * @return bool true if track can inject data, false otherwise
+	 */
+	bool TrackDownloadsAreEnabled(MediaType type);
+
+	/**
+	 * @brief Stop buffering in AAMP and un-pause pipeline.
+	 *
+	 * @param[in] forceStop - stop buffering forcefully
 	 * @return void
 	 */
-	void ResumeTrackInjection(MediaType type);
+	void StopBuffering(bool forceStop);
 
 private:
 
@@ -2773,14 +3502,14 @@ private:
 	 *
 	 *   @return void
 	 */
-	static void LazilyLoadConfigIfNeeded(void);
+	void LazilyLoadConfigIfNeeded(void);
 
 	/**
 	 *   @brief updates mServiceZone ( service zone) member with string extracted from locator &sz URI parameter
 	 *   @param  url - stream url with vss service zone info as query string
 	 *   @return std::string
 	 */
-	void ExtractServiceZone(const char * url);
+	void ExtractServiceZone(std::string url);
 
 	/**
 	 *   @brief Schedule Event
@@ -2796,7 +3525,7 @@ private:
 	 *
 	 * @return void
 	 */
-	void DeliverAdEvents();
+	void DeliverAdEvents(bool immediate=false);
 
 	/**
 	 *   @brief Set Content Type
@@ -2806,7 +3535,6 @@ private:
 	 *   @return void
 	 */
 	void SetContentType(const char *url, const char *contentType);
-
 
     /**
      *   @brief Set Content Type
@@ -2826,12 +3554,12 @@ private:
 	long long mPlayerLoadTime;
 	PrivAAMPState mState;
 	long long lastUnderFlowTimeMs[AAMP_TRACK_COUNT];
+	long long mLastDiscontinuityTimeMs;
 	bool mbTrackDownloadsBlocked[AAMP_TRACK_COUNT];
-	bool mIsDash;
 	DRMSystems mCurrentDrm;
 	int  mPersistedProfileIndex;
 	long mAvailableBandwidth;
-	bool mProcessingDiscontinuity;
+	bool mProcessingDiscontinuity[AAMP_TRACK_COUNT];
 	bool mDiscontinuityTuneOperationInProgress;
 	ContentType mContentType;
 	bool mTunedEventPending;
@@ -2847,17 +3575,25 @@ private:
 	// VSS license parameters
 	std::string mServiceZone; // part of url
 
-	CVideoStat * mVideoEnd;
-	std::string  mTraceUUID; // Trace ID unique to tune
-	double mTimeToTopProfile;
-	double mTimeAtTopProfile;
-	double mPlaybackDuration; // Stores Total of duration of VideoDownloaded, it is not accurate playback duration but best way to find playback duration.
-
 	bool mTrackInjectionBlocked[AAMP_TRACK_COUNT];
 #ifdef PLACEMENT_EMULATION
 	int mNumAds2Place;
 	std::string sampleAdBreakId;
 #endif
+	CVideoStat * mVideoEnd;
+	std::string  mTraceUUID; // Trace ID unique to tune
+	double mTimeToTopProfile;
+	double mTimeAtTopProfile;
+	unsigned long long mVideoBasePTS;
+	double mPlaybackDuration; // Stores Total of duration of VideoDownloaded, it is not accurate playback duration but best way to find playback duration.
+	std::unordered_map<std::string, std::vector<std::string>> mCustomLicenseHeaders;
+
+	AampCacheHandler *mAampCacheHandler;
+	PreCacheUrlList mPreCacheDnldList;
+	std::string mAppName;
+	long mMinBitrate;	/** minimum bitrate limit of profiles to be selected during playback */
+	long mMaxBitrate;	/** Maximum bitrate limit of profiles to be selected during playback */
+	bool mProgressReportFromProcessDiscontinuity; /** flag dentoes if progress reporting is in execution from ProcessPendingDiscontinuity*/
 };
 
 #endif // PRIVAAMP_H
