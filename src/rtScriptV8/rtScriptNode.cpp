@@ -103,6 +103,7 @@ using namespace rtScriptV8NodeUtils;
 #endif
 #ifdef RUNINMAIN
 bool gIsPumpingJavaScript = false;
+bool gIsDisposingGCObjs = false;
 #endif
 
 #if NODE_VERSION_AT_LEAST(8,12,0)
@@ -1487,16 +1488,16 @@ rtError createScriptNode(rtScriptRef& script)
 
 void disposeGarbageCollectedObjs()
 {
-
-  printf("Inside disposeGarbageCollectedObjs start \n");
-  fflush(stdout);
-  size_t noelems = gcdObjs.size();
-  for (size_t i=0; i<noelems; i++)
+  if (gIsDisposingGCObjs == false) 
   {
-    gcdObjs[i].send("dispose");
+    gIsDisposingGCObjs = true;
+    size_t noelems = gcdObjs.size();
+    for (size_t i=0; i<noelems; i++)
+    {
+      gcdObjs[i].send("dispose");
+    }
+    gcdObjs.erase(gcdObjs.begin(), gcdObjs.begin()+noelems);
+    gIsDisposingGCObjs = false;
   }
-  gcdObjs.erase(gcdObjs.begin(), gcdObjs.begin()+noelems);
-  printf("Inside disposeGarbageCollectedObjs end \n");
-  fflush(stdout);
 }
 #endif // RTSCRIPT_SUPPORT_NODE
