@@ -1487,6 +1487,7 @@ rtError createScriptNode(rtScriptRef& script)
 
 void disposeGarbageCollectedObjs()
 {
+
   printf("Inside disposeGarbageCollectedObjs start \n");
   fflush(stdout);
   size_t noelems = gcdObjs.size();
