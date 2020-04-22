@@ -20,6 +20,7 @@ export GST_REGISTRY_FORK="no"
 export GST_PLUGIN_SCANNER=$externalLibs/extlibs/libexec/gstreamer-1.0/gst-plugin-scanner
 export GST_PLUGIN_PATH=$externalLibs/extlibs/lib/
 export GST_REGISTRY=/tmp/.spark_gst_registry.bin
+export SPARK_ENABLE_DEBUGGING=1
 
 #export RT_LOG_LEVEL=info
 

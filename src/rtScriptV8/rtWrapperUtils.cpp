@@ -98,6 +98,8 @@ rtWrapperSceneUpdateExit();
 #ifndef RUNINMAIN
   pthread_mutex_unlock(&sObjectMapMutex);
 #endif
+  printf("MADANA GC STARTED [%p]...\n", temp.getPtr());
+  fflush(stdout);
   if (NULL != temp.getPtr())
   {
     rtObjectRef parentRef;
@@ -110,6 +112,8 @@ rtWrapperSceneUpdateExit();
         }
     }
   }
+  printf("MADANA GC END ...[%p]\n", temp.getPtr());
+  fflush(stdout);
 }
 #else
 void weakCallback_rt2v8(const WeakCallbackData<Object, rtIObject>& data)
