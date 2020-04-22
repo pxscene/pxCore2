@@ -38,6 +38,7 @@ static pthread_mutex_t sObjectMapMutex = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
 #endif
 
 using namespace std;
+extern vector<rtObjectRef> gcdObjs;
 
 //-----------------------------------
 
@@ -108,7 +109,7 @@ rtWrapperSceneUpdateExit();
     {
         if (NULL == parentRef)
         {
-          temp.send("dispose");
+          gcdObjs.push_back(temp);
         }
     }
   }
@@ -192,7 +193,7 @@ rtWrapperSceneUpdateExit();
     {
         if (NULL == parentRef)
         {
-          temp.send("dispose");
+          gcdObjs.push_back(temp);
         }
     }
   }
