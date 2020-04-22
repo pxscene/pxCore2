@@ -121,9 +121,12 @@ class rtScriptNode;
 class rtNodeContext;
 
 typedef rtRef<rtNodeContext> rtNodeContextRef;
+std::vector<rtObjectRef> gcdObjs;
 
 #define NODE_DEBUGGER_ADDRESS "127.0.0.1"
 #define NODE_DEBUGGER_PORT 9229
+void disposeGarbageCollectedObjs();
+
 class rtNodeContext: rtIScriptContext  // V8
 {
 public:
@@ -1182,8 +1185,6 @@ rtScriptNode::~rtScriptNode()
 
 rtError rtScriptNode::pump()
 {
-  printf("MADANA PUMP STARTED ....\n");
-fflush(stdout);
 //#ifndef RUNINMAIN
 //  return;
 //#else
@@ -1228,8 +1229,7 @@ fflush(stdout);
   }
 #endif
 //#endif // RUNINMAIN
-  printf("MADANA PUMP END ....\n");
-fflush(stdout);
+  disposeGarbageCollectedObjs();
   return RT_OK;
 }
 
@@ -1245,6 +1245,7 @@ rtError rtScriptNode::collectGarbage()
   Local<Context> local_context = Context::New(mIsolate);
   Context::Scope contextScope(local_context);
   mIsolate->LowMemoryNotification();
+  disposeGarbageCollectedObjs();
 //#endif // RUNINMAIN
   return RT_OK;
 }
@@ -1484,4 +1485,13 @@ rtError createScriptNode(rtScriptRef& script)
   return RT_OK;
 }
 
+void disposeGarbageCollectedObjs()
+{
+  size_t noelems = gcdObjs.size();
+  for (size_t i=0; i<noelems; i++)
+  {
+    gcdObjs[i].send("dispose");
+  }
+  gcdObjs.erase(gcdObjs.begin(), gcdObjs.begin()+noelems);
+}
 #endif // RTSCRIPT_SUPPORT_NODE
