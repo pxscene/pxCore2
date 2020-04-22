@@ -42,6 +42,7 @@
           <!-- Video Controls -->
           <div id="videoControlsDiv">
               <button class="button" id="playOrPauseButton"><img id="playOrPauseIcon" src="../icons/play.png"></button>
+              <button class="button" id="videoToggleButton"><img id="flipIcon" src="../icons/flip.png"></button>
               <button class="button" id="rewindButton"><img class="flipImg" src="../icons/fastForward.png"></button>
               <button class="button" id="skipBackwardButton"><img class="flipImg" src="../icons/skipForward.png"></button>
               <nobr id="currentDuration">00:00:00</nobr>
@@ -57,9 +58,17 @@
         </div>
         <div id="controlDivNext">
           <div id="videoControlsDivNext">
+             <select id="ccTracks">
+              </select>
               <select id="videoURLs">
               </select>
               <p id="playerType">UVE PLAYER</p>
+              <span id="cacheOnly" class="cacheOnly">Cache: </span>
+              <label id="cacheOnlyButton">
+                  <input type="checkbox" id="cacheOnlyCheck">
+              </label>
+              <input type="text" id="jumpPosition" placeholder=" position(ms)">
+              <button class="button" id="jumpButton">JUMP</button>
               <span id="logState">Diagnostics: </span>
               <label id="autoLogButton">
                   <input type="checkbox" id="logCheck">
@@ -84,11 +93,33 @@
         <p id="contentURL" ></p>
     </div>
 
+    <!-- The CC Modal -->
+    <div id="ccModal" class="ccModal">
+        <p id="ccContent"></p>
+    </div>
+
+    <!-- The Error Failed Modal -->
+    <div id="errorModal" class="errorModal">
+        <p id="errorContent"></p>
+    </div>
+
     <!-- The Fast Forward Modal -->
     <div id="ffModal" class="circle">
       <img id="ffIMG" src="../icons/fastForward.png">
     </div>
     <p id="ffSpeed"></p>
+
+    <!-- Buffering Modal -->
+    <div id="buffModal" class="ccModal">
+      <p id="buffContent">Buffering...</p>
+    </div>
+
+    <!-- The Subtitle Modal -->
+    <div id="subtitleModal" class="subtitleModal">
+        <p id="subtitleContent" >
+            <mark id="subtitleText"></mark>
+        </p>
+    </div>
 </body>
 
 </html>

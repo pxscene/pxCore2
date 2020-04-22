@@ -49,15 +49,15 @@ class PlayReadyDRMSession : public AampDrmSession
 {
 
 private:
-	DRM_APP_CONTEXT *m_poAppContext;
+	DRM_APP_CONTEXT *m_ptrAppContext;
 	DRM_DECRYPT_CONTEXT m_oDecryptContext;
 
-	DRM_BYTE *m_pbOpaqueBuffer;
-	DRM_DWORD m_cbOpaqueBuffer;
+	DRM_BYTE *m_sbOpaBuf;
+	DRM_DWORD m_cbOpaBuf;
 
-	DRM_BYTE *m_pbRevocationBuffer;
+	DRM_BYTE *m_sbRevocateBuf;
 	KeyState m_eKeyState;
-	DRM_CHAR m_rgchSessionID[CCH_BASE64_EQUIV(SIZEOF(DRM_ID)) + 1];
+	DRM_CHAR m_rgchSesnID[CCH_BASE64_EQUIV(SIZEOF(DRM_ID)) + 1];
 	DRM_BOOL m_fCommit;
 
 	DRM_BYTE *m_pbPRO;
@@ -65,7 +65,7 @@ private:
 
 	DRM_BYTE *m_pbChallenge;
 	DRM_DWORD m_cbChallenge;
-	DRM_CHAR *m_pchSilentURL;
+	DRM_CHAR *m_ptrDestURL;
 	pthread_mutex_t decryptMutex;
 
 	AampOutputProtection* m_pOutputProtection;

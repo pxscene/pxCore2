@@ -35,11 +35,6 @@ using namespace std;
 #endif
 
 /**
- * @brief Max bebug log buffer size
- */
-#define MAX_DEBUG_LOG_BUFF_SIZE 1024
-
-/**
  * @brief Log file and cfg directory path - To support dynamic directory configuration
  */
 static char gAampLog[] = "c:/tmp/aamp.log";
@@ -101,17 +96,18 @@ const char* AampLogManager::getAampCliCfgPath(void)
  * @param[in] url - content url
  * @param[in] downloadTime - download time of the fragment or manifest
  * @param[in] downloadThresholdTimeoutMs - specified download threshold time out value
+ * @param[in] type - media type
  * @retuen void
  */
-void AampLogManager::LogNetworkLatency(const char* url, int downloadTime, int downloadThresholdTimeoutMs)
+void AampLogManager::LogNetworkLatency(const char* url, int downloadTime, int downloadThresholdTimeoutMs, MediaType type)
 {
 	std::string contentType;
 	std::string location;
 	std::string symptom;
 
-	ParseContentUrl(url, contentType, location, symptom);
+	ParseContentUrl(url, contentType, location, symptom, type);
 
-	logprintf ("AAMPLogNetworkLatency RDK-10043 downloadTime=%d downloadThreshold=%d type='%s' location='%s' symptom='%s' url='%s'\n",
+	logprintf ("AAMPLogNetworkLatency downloadTime=%d downloadThreshold=%d type='%s' location='%s' symptom='%s' url='%s'",
 		downloadTime, downloadThresholdTimeoutMs, contentType.c_str(), location.c_str(), symptom.c_str(), url);
 }
 
@@ -120,15 +116,16 @@ void AampLogManager::LogNetworkLatency(const char* url, int downloadTime, int do
  * @param[in] url - content url
  * @param[in] errorType - it can be http or curl errors
  * @param[in] errorCode - it can be http error or curl error code
+ * @param[in] type - media type
  * @retuen void
  */
-void AampLogManager::LogNetworkError(const char* url, AAMPNetworkErrorType errorType, int errorCode)
+void AampLogManager::LogNetworkError(const char* url, AAMPNetworkErrorType errorType, int errorCode, MediaType type)
 {
 	std::string contentType;
 	std::string location;
 	std::string symptom;
 
-	ParseContentUrl(url, contentType, location, symptom);
+	ParseContentUrl(url, contentType, location, symptom, type);
 
 	switch(errorType)
 	{
@@ -136,7 +133,7 @@ void AampLogManager::LogNetworkError(const char* url, AAMPNetworkErrorType error
 		{
 			if(errorCode >= 400)
 			{
-				logprintf("AAMPLogNetworkError RDK-10044 error='http error %d' type='%s' location='%s' symptom='%s' url='%s'\n",
+				logprintf("AAMPLogNetworkError error='http error %d' type='%s' location='%s' symptom='%s' url='%s'",
 					errorCode, contentType.c_str(), location.c_str(), symptom.c_str(), url );
 			}
 		}
@@ -146,7 +143,7 @@ void AampLogManager::LogNetworkError(const char* url, AAMPNetworkErrorType error
 		{
 			if(errorCode > 0)
 			{
-				logprintf("AAMPLogNetworkError RDK-10044 error='timeout %d' type='%s' location='%s' symptom='%s' url='%s'\n",
+				logprintf("AAMPLogNetworkError error='timeout %d' type='%s' location='%s' symptom='%s' url='%s'",
 					errorCode, contentType.c_str(), location.c_str(), symptom.c_str(), url );
 			}
 		}
@@ -156,11 +153,14 @@ void AampLogManager::LogNetworkError(const char* url, AAMPNetworkErrorType error
 		{
 			if(errorCode > 0)
 			{
-				logprintf("AAMPLogNetworkError RDK-10044 error='curl error %d' type='%s' location='%s' symptom='%s' url='%s'\n",
+				logprintf("AAMPLogNetworkError error='curl error %d' type='%s' location='%s' symptom='%s' url='%s'",
 					errorCode, contentType.c_str(), location.c_str(), symptom.c_str(), url );
 			}
 		}
 			break; /*AAMPNetworkErrorCurl*/
+
+		case AAMPNetworkErrorNone:
+			break;
 	}
 }
 
@@ -170,54 +170,77 @@ void AampLogManager::LogNetworkError(const char* url, AAMPNetworkErrorType error
  * @param[out] contentType - it could be a manifest or other audio/video/iframe tracks
  * @param[out] location - server location
  * @param[out] symptom - issue exhibiting scenario for error case
+ * @param[in] type - media type
  * @retuen void
  */
-void AampLogManager::ParseContentUrl(const char* url, std::string& contentType, std::string& location, std::string& symptom)
+void AampLogManager::ParseContentUrl(const char* url, std::string& contentType, std::string& location, std::string& symptom, MediaType type)
 {
-	contentType="unknown";
-	location="unknown";
-	symptom="unknown";
+	static const char *mMediaTypes[eMEDIATYPE_DEFAULT] = { // enum MediaType
+						"VIDEO",
+						"AUDIO",
+						"SUBTITLE",
+						"MANIFEST",
+						"LICENCE",
+						"IFRAME",
+						"INIT_VIDEO",
+						"INIT_AUDIO",
+						"INIT_SUBTITLE",
+						"PLAYLIST_VIDEO",
+						"PLAYLIST_AUDIO",
+						"PLAYLIST_SUBTITLE",
+						"PLAYLIST_IFRAME",
+						"INIT_IFRAME"};
 
-	if(strstr(url,".m3u8") || strstr(url,".mpd") || strstr(url,"-init.seg"))
+	contentType = "unknown";
+	symptom = "unknown";
+	location = "unknown";
+
+	if (type < eMEDIATYPE_DEFAULT)
 	{
-		if(strstr(url,"-bandwidth-"))
+		contentType = mMediaTypes[type];
+	}
+
+	switch (type)
+	{
+		case eMEDIATYPE_MANIFEST:
 		{
-			contentType = "sub manifest";
-			symptom = "freeze/buffering";
-		}
-		else
-		{
-			contentType = "main manifest";
 			symptom = "video fails to start, has delayed start or freezes/buffers";
 		}
-	}
-	else if(strstr(url,".ts") || strstr(url,".mp4"))
-	{
-		if(strstr(url, "-header"))
+			break;
+
+		case eMEDIATYPE_PLAYLIST_VIDEO:
+		case eMEDIATYPE_PLAYLIST_AUDIO:
+		case eMEDIATYPE_PLAYLIST_IFRAME:
 		{
-			contentType = "sub manifest";
+			symptom = "video fails to start or freeze/buffering";
+		}
+			break;
+
+		case eMEDIATYPE_INIT_VIDEO:
+		case eMEDIATYPE_INIT_AUDIO:
+		case eMEDIATYPE_INIT_IFRAME:
+		{
+			symptom = "video fails to start";
+		}
+			break;
+
+		case eMEDIATYPE_VIDEO:
+		{
 			symptom = "freeze/buffering";
 		}
-		if(strstr(url,"-iframe"))
+			break;
+
+		case eMEDIATYPE_AUDIO:
 		{
-			contentType = "iframe";
+			symptom = "audio drop or freeze/buffering";
+		}
+			break;
+
+		case eMEDIATYPE_IFRAME:
+		{
 			symptom = "trickplay ends or freezes";
 		}
-		else if(strstr(url,"-muxed"))
-		{
-			contentType = "muxed segment";
-			symptom = "freeze/buffering";
-		}
-		else if(strstr(url,"-video"))
-		{
-			contentType = "video segment";
-			symptom = "freeze/buffering";
-		}
-		else if(strstr(url,"-audio"))
-		{
-			contentType = "audio segment";
-			symptom = "freeze/buffering";
-		}
+			break;
 	}
 
 	if(strstr(url,"//mm."))
@@ -322,7 +345,7 @@ void AampLogManager::LogDRMError(int major, int minor)
 		description = "Unrecognized error. Please report this to the STB IP-Video team.";
 	}
 
-	logprintf("AAMPLogDRMError RDK-10041 error=%d.%d description='%s'\n", major, minor, description.c_str());
+	logprintf("AAMPLogDRMError error=%d.%d description='%s'", major, minor, description.c_str());
 }
 
 /**
@@ -376,19 +399,14 @@ void AampLogManager::LogABRInfo(AAMPAbrInfo *pstAbrInfo)
 				break; /* AAMPAbrUserRequest */
 		}
 
-		switch(pstAbrInfo->errorType)
+		if(pstAbrInfo->errorType == AAMPNetworkErrorHttp)
 		{
-			case AAMPNetworkErrorHttp:
-			{
-				reason += " error='http error ";
-				reason += to_string(pstAbrInfo->errorCode);
-
-				symptom += " (or) freeze/buffering";
-			}
-				break; /*AAMPNetworkErrorHttp*/
+			reason += " error='http error ";
+			reason += to_string(pstAbrInfo->errorCode);
+			symptom += " (or) freeze/buffering";
 		}
 
-		logprintf("AAMPLogABRInfo : switching to '%s' profile '%d -> %d' currentBandwidth[%ld]->desiredBandwidth[%ld] nwBandwidth[%ld] reason='%s' symptom='%s'\n",
+		logprintf("AAMPLogABRInfo : switching to '%s' profile '%d -> %d' currentBandwidth[%ld]->desiredBandwidth[%ld] nwBandwidth[%ld] reason='%s' symptom='%s'",
 			profile.c_str(), pstAbrInfo->currentProfileIndex, pstAbrInfo->desiredProfileIndex, pstAbrInfo->currentBandwidth,
 			pstAbrInfo->desiredBandwidth, pstAbrInfo->networkBandwidth, reason.c_str(), symptom.c_str());
 	}
@@ -442,7 +460,7 @@ void logprintf(const char *format, ...)
 	{
 		struct timeval t;
 		gettimeofday(&t, NULL);
-		printf("%ld:%3ld : %s", (long int)t.tv_sec, (long int)t.tv_usec / 1000, gDebugPrintBuffer);
+		printf("%ld:%3ld : %s\n", (long int)t.tv_sec, (long int)t.tv_usec / 1000, gDebugPrintBuffer);
 	}
 #else  //USE_SYSTEMD_JOURNAL_PRINT
 #ifdef WIN32
@@ -456,11 +474,11 @@ void logprintf(const char *format, ...)
 		fclose(f);
 	}
 
-	printf("%s", gDebugPrintBuffer);
+	printf("%s\n", gDebugPrintBuffer);
 #else
 	struct timeval t;
 	gettimeofday(&t, NULL);
-	printf("%ld:%3ld : %s", (long int)t.tv_sec, (long int)t.tv_usec / 1000, gDebugPrintBuffer);
+	printf("%ld:%3ld : %s\n", (long int)t.tv_sec, (long int)t.tv_usec / 1000, gDebugPrintBuffer);
 #endif
 #endif
 }
@@ -483,7 +501,7 @@ void DumpBlob(const unsigned char *ptr, size_t len)
 	char str_hex[]="0123456789abcdef";
 	while (ptr < fin)
 	{
-		char c = *ptr++;
+		unsigned char c = *ptr++;
 		if (c >= ' ' && c < 128)
 		{
 			*dst++ = c;
@@ -510,4 +528,3 @@ void DumpBlob(const unsigned char *ptr, size_t len)
 /**
  * @}
  */
-

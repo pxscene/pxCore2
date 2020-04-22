@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="utf-8"?>
+<MPD xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns="urn:mpeg:dash:schema:mpd:2011"
+	xmlns:xlink="http://www.w3.org/1999/xlink"
+	xsi:schemaLocation="urn:mpeg:DASH:schema:MPD:2011 http://standards.iso.org/ittf/PubliclyAvailableStandards/MPEG-DASH_schema_files/DASH-MPD.xsd"
+	profiles="urn:mpeg:dash:profile:isoff-live:2011"
+	type="static"
+	mediaPresentationDuration="PT15M0.0S"
+	minBufferTime="PT4.0S">
+	<ProgramInformation>
+	</ProgramInformation>
+	<Period id="0" start="PT0.0S">
+		<AdaptationSet id="0" contentType="video" segmentAlignment="true" bitstreamSwitching="true" lang="und">
+			<Representation id="0" mimeType="video/mp4" codecs="avc1.4d4028" bandwidth="5000000" width="1920" height="1080" frameRate="25/1">
+				<SegmentTemplate timescale="12800" initialization="dash/1080p_init.m4s" media="dash/1080p_$Number%03d$.m4s" startNumber="1">
+					<SegmentTimeline>
+						<S t="0" d="25600" r="449" />
+					</SegmentTimeline>
+				</SegmentTemplate>
+			</Representation>
+			<Representation id="1" mimeType="video/mp4" codecs="avc1.4d401f" bandwidth="2800000" width="1280" height="720" frameRate="25/1">
+				<SegmentTemplate timescale="12800" initialization="dash/720p_init.m4s" media="dash/720p_$Number%03d$.m4s" startNumber="1">
+					<SegmentTimeline>
+						<S t="0" d="25600" r="449" />
+					</SegmentTimeline>
+				</SegmentTemplate>
+			</Representation>
+			<Representation id="2" mimeType="video/mp4" codecs="avc1.4d401e" bandwidth="1400000" width="842" height="474" frameRate="25/1">
+				<SegmentTemplate timescale="12800" initialization="dash/480p_init.m4s" media="dash/480p_$Number%03d$.m4s" startNumber="1">
+					<SegmentTimeline>
+						<S t="0" d="25600" r="449" />
+					</SegmentTimeline>
+				</SegmentTemplate>
+			</Representation>
+			<Representation id="3" mimeType="video/mp4" codecs="avc1.4d401e" bandwidth="800000" width="640" height="360" frameRate="25/1">
+				<SegmentTemplate timescale="12800" initialization="dash/360p_init.m4s" media="dash/360p_$Number%03d$.m4s" startNumber="1">
+					<SegmentTimeline>
+						<S t="0" d="25600" r="449" />
+					</SegmentTimeline>
+				</SegmentTemplate>
+			</Representation>
+		</AdaptationSet>
+               <AdaptationSet id="2" contentType="video" segmentAlignment="true" bitstreamSwitching="true" lang="und">
+               <EssentialProperty schemeIdUri="http://dashif.org/guidelines/trickmode" value="1" />
+			<Representation id="4" mimeType="video/mp4" codecs="avc1.4d4016" bandwidth="800000" width="640" height="360" frameRate="1/1">
+				<SegmentTemplate timescale="16384" initialization="dash/iframe_init.m4s" media="dash/iframe_$Number%03d$.m4s" startNumber="1">
+					<SegmentTimeline>
+						<S t="0" d="16384" r="899" />
+					</SegmentTimeline>
+				</SegmentTemplate>
+			</Representation>>
+        </AdaptationSet>
+		<AdaptationSet id="3" contentType="audio" segmentAlignment="true" bitstreamSwitching="true" lang="ger">
+            <Role schemeIdUri="urn:mpeg:dash:role:2011" value="german" />
+			<Representation id="5" mimeType="audio/mp4" codecs="mp4a.40.2" bandwidth="288000" audioSamplingRate="48000">
+				<AudioChannelConfiguration schemeIdUri="urn:mpeg:dash:23003:3:audio_channel_configuration:2011" value="1" />
+				<SegmentTemplate timescale="48000" initialization="dash/de_init.m4s" media="dash/de_$Number%03d$.mp3" startNumber="1">
+					<SegmentTimeline>
+						<S t="0" d="95232" />
+						<S d="96256" r="447" />
+						<S d="30080" />
+					</SegmentTimeline>
+				</SegmentTemplate>
+			</Representation>
+		</AdaptationSet>
+				<AdaptationSet id="4" contentType="audio" segmentAlignment="true" bitstreamSwitching="true" lang="ger">
+            <Role schemeIdUri="urn:mpeg:dash:role:2011" value="commentary" />
+			<Representation id="5" mimeType="audio/mp4" codecs="mp4a.40.2" bandwidth="288000" audioSamplingRate="48000">
+				<AudioChannelConfiguration schemeIdUri="urn:mpeg:dash:23003:3:audio_channel_configuration:2011" value="1" />
+				<SegmentTemplate timescale="48000" initialization="dash/de_init.m4s" media="dash/de_$Number%03d$.mp3" startNumber="1">
+					<SegmentTimeline>
+						<S t="0" d="95232" />
+						<S d="96256" r="447" />
+						<S d="30080" />
+					</SegmentTimeline>
+				</SegmentTemplate>
+			</Representation>
+		</AdaptationSet>
+		<AdaptationSet id="5" contentType="audio" segmentAlignment="true" bitstreamSwitching="true" lang="eng">
+            <Role schemeIdUri="urn:mpeg:dash:role:2011" value="english" />
+			<Representation id="6" mimeType="audio/mp4" codecs="mp4a.40.2" bandwidth="288000" audioSamplingRate="48000">
+				<AudioChannelConfiguration schemeIdUri="urn:mpeg:dash:23003:3:audio_channel_configuration:2011" value="1" />
+				<SegmentTemplate timescale="48000" initialization="dash/en_init.m4s" media="dash/en_$Number%03d$.mp3" startNumber="1">
+					<SegmentTimeline>
+						<S t="0" d="95232" />
+						<S d="96256" r="447" />
+						<S d="30080" />
+					</SegmentTimeline>
+				</SegmentTemplate>
+			</Representation>
+		</AdaptationSet>
+		<AdaptationSet id="6" contentType="audio" segmentAlignment="true" bitstreamSwitching="true" lang="eng">
+            <Role schemeIdUri="urn:mpeg:dash:role:2011" value="commentary" />
+			<Representation id="6" mimeType="audio/mp4" codecs="mp4a.40.2" bandwidth="288000" audioSamplingRate="48000">
+				<AudioChannelConfiguration schemeIdUri="urn:mpeg:dash:23003:3:audio_channel_configuration:2011" value="1" />
+				<SegmentTemplate timescale="48000" initialization="dash/en_init.m4s" media="dash/en_$Number%03d$.mp3" startNumber="1">
+					<SegmentTimeline>
+						<S t="0" d="95232" />
+						<S d="96256" r="447" />
+						<S d="30080" />
+					</SegmentTimeline>
+				</SegmentTemplate>
+			</Representation>
+		</AdaptationSet>
+		<AdaptationSet id="7" contentType="audio" segmentAlignment="true" bitstreamSwitching="true" lang="spa">
+            <Role schemeIdUri="urn:mpeg:dash:role:2011" value="spanish" />
+			<Representation id="7" mimeType="audio/mp4" codecs="mp4a.40.2" bandwidth="288000" audioSamplingRate="48000">
+				<AudioChannelConfiguration schemeIdUri="urn:mpeg:dash:23003:3:audio_channel_configuration:2011" value="1" />
+				<SegmentTemplate timescale="48000" initialization="dash/es_init.m4s" media="dash/es_$Number%03d$.mp3" startNumber="1">
+					<SegmentTimeline>
+						<S t="0" d="95232" />
+						<S d="96256" r="447" />
+						<S d="30080" />
+					</SegmentTimeline>
+				</SegmentTemplate>
+			</Representation>
+		</AdaptationSet>
+		<AdaptationSet id="8" contentType="audio" segmentAlignment="true" bitstreamSwitching="true" lang="spa">
+            <Role schemeIdUri="urn:mpeg:dash:role:2011" value="commentary" />
+			<Representation id="7" mimeType="audio/mp4" codecs="mp4a.40.2" bandwidth="288000" audioSamplingRate="48000">
+				<AudioChannelConfiguration schemeIdUri="urn:mpeg:dash:23003:3:audio_channel_configuration:2011" value="1" />
+				<SegmentTemplate timescale="48000" initialization="dash/es_init.m4s" media="dash/es_$Number%03d$.mp3" startNumber="1">
+					<SegmentTimeline>
+						<S t="0" d="95232" />
+						<S d="96256" r="447" />
+						<S d="30080" />
+					</SegmentTimeline>
+				</SegmentTemplate>
+			</Representation>
+		</AdaptationSet>
+		<AdaptationSet id="9" contentType="audio" segmentAlignment="true" bitstreamSwitching="true" lang="fra">
+            <Role schemeIdUri="urn:mpeg:dash:role:2011" value="french" />
+			<Representation id="0" mimeType="audio/mp4" codecs="mp4a.40.2" bandwidth="288000" audioSamplingRate="48000">
+				<AudioChannelConfiguration schemeIdUri="urn:mpeg:dash:23003:3:audio_channel_configuration:2011" value="1" />
+				<SegmentTemplate timescale="48000" initialization="dash/fr_init.m4s" media="dash/fr_$Number%03d$.mp3" startNumber="1">
+					<SegmentTimeline>
+						<S t="0" d="95232" />
+						<S d="96256" r="447" />
+						<S d="30080" />
+					</SegmentTimeline>
+				</SegmentTemplate>
+			</Representation>
+		</AdaptationSet>
+		<AdaptationSet id="10" contentType="audio" segmentAlignment="true" bitstreamSwitching="true" lang="fra">
+            <Role schemeIdUri="urn:mpeg:dash:role:2011" value="commentary" />
+			<Representation id="0" mimeType="audio/mp4" codecs="mp4a.40.2" bandwidth="288000" audioSamplingRate="48000">
+				<AudioChannelConfiguration schemeIdUri="urn:mpeg:dash:23003:3:audio_channel_configuration:2011" value="1" />
+				<SegmentTemplate timescale="48000" initialization="dash/fr_init.m4s" media="dash/fr_$Number%03d$.mp3" startNumber="1">
+					<SegmentTimeline>
+						<S t="0" d="95232" />
+						<S d="96256" r="447" />
+						<S d="30080" />
+					</SegmentTimeline>
+				</SegmentTemplate>
+			</Representation>
+		</AdaptationSet>
+		<AdaptationSet id="11" contentType="audio" segmentAlignment="true" bitstreamSwitching="true" lang="pol">
+            <Role schemeIdUri="urn:mpeg:dash:role:2011" value="polish" />
+			<Representation id="8" mimeType="audio/mp4" codecs="mp4a.40.2" bandwidth="288000" audioSamplingRate="48000">
+				<AudioChannelConfiguration schemeIdUri="urn:mpeg:dash:23003:3:audio_channel_configuration:2011" value="1" />
+				<SegmentTemplate timescale="48000" initialization="dash/pl_init.m4s" media="dash/pl_$Number%03d$.mp3" startNumber="1">
+					<SegmentTimeline>
+						<S t="0" d="95232" />
+						<S d="96256" r="447" />
+						<S d="30080" />
+					</SegmentTimeline>
+				</SegmentTemplate>
+			</Representation>
+		</AdaptationSet>
+		<AdaptationSet id="12" contentType="audio" segmentAlignment="true" bitstreamSwitching="true" lang="pol">
+            <Role schemeIdUri="urn:mpeg:dash:role:2011" value="commentary" />
+			<Representation id="8" mimeType="audio/mp4" codecs="mp4a.40.2" bandwidth="288000" audioSamplingRate="48000">
+				<AudioChannelConfiguration schemeIdUri="urn:mpeg:dash:23003:3:audio_channel_configuration:2011" value="1" />
+				<SegmentTemplate timescale="48000" initialization="dash/pl_init.m4s" media="dash/pl_$Number%03d$.mp3" startNumber="1">
+					<SegmentTimeline>
+						<S t="0" d="95232" />
+						<S d="96256" r="447" />
+						<S d="30080" />
+					</SegmentTimeline>
+				</SegmentTemplate>
+			</Representation>
+		</AdaptationSet>
+	</Period>
+</MPD>
+

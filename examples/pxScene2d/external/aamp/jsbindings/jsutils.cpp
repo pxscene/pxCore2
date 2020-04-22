@@ -26,6 +26,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <cmath>
 
 /**
  * @struct EventTypeMap
@@ -39,7 +40,7 @@ struct EventTypeMap
 
 
 /**
- * @brief Map AAMP events to its corresponding JS event strings
+ * @brief Map AAMP events to its corresponding JS event strings (used by JSPP)
  */
 static EventTypeMap aamp_eventTypes[] =
 {
@@ -56,11 +57,12 @@ static EventTypeMap aamp_eventTypes[] =
 	{ AAMP_EVENT_ENTERING_LIVE, "enteringLive"},
 	{ AAMP_EVENT_BITRATE_CHANGED, "bitrateChanged"},
 	{ AAMP_EVENT_TIMED_METADATA, "timedMetadata"},
+	{ AAMP_EVENT_BULK_TIMED_METADATA, "bulkTimedMetadata"},
 	{ AAMP_EVENT_STATE_CHANGED, "statusChanged"},
 	{ AAMP_EVENT_SPEEDS_CHANGED, "speedsChanged"},
+	{ AAMP_EVENT_SEEKED, "seeked"},
 	{ AAMP_EVENT_DRM_METADATA, "drmMetadata"},
 	{ AAMP_EVENT_REPORT_ANOMALY, "anomalyReport" },
-	{ AAMP_EVENT_REPORT_METRICS_DATA, "metricsData" },
 	{ AAMP_EVENT_AD_RESOLVED, "adResolved"},
 	{ AAMP_EVENT_AD_RESERVATION_START, "reservationStart" },
 	{ AAMP_EVENT_AD_RESERVATION_END, "reservationEnd" },
@@ -68,12 +70,15 @@ static EventTypeMap aamp_eventTypes[] =
 	{ AAMP_EVENT_AD_PLACEMENT_END, "placementEnd" },
 	{ AAMP_EVENT_AD_PLACEMENT_PROGRESS, "placementProgress" },
 	{ AAMP_EVENT_AD_PLACEMENT_ERROR, "placementError" },
+	{ AAMP_EVENT_REPORT_METRICS_DATA, "metricsData" },
+	{ AAMP_EVENT_BUFFERING_CHANGED, "bufferingChanged"},
+	{ AAMP_EVENT_ID3_METADATA, "id3Metadata"},
 	{ (AAMPEventType)0, "" }
 };
 
 
 /**
- * @brief Map AAMP events to its corresponding JS event strings (AAMPMediaPlayer)
+ * @brief Map AAMP events to its corresponding JS event strings (used by AAMPMediaPlayer/UVE APIs)
  */
 static EventTypeMap aampPlayer_eventTypes[] =
 {
@@ -91,8 +96,11 @@ static EventTypeMap aampPlayer_eventTypes[] =
 	{ AAMP_EVENT_ENTERING_LIVE, "enteringLive"},
 	{ AAMP_EVENT_BITRATE_CHANGED, "bitrateChanged"},
 	{ AAMP_EVENT_TIMED_METADATA, "timedMetadata"},
+	{ AAMP_EVENT_BULK_TIMED_METADATA, "bulkTimedMetadata"},
 	{ AAMP_EVENT_STATE_CHANGED, "playbackStateChanged"},
 	{ AAMP_EVENT_SPEEDS_CHANGED, "speedsChanged"},
+	{ AAMP_EVENT_SEEKED, "seeked"},
+	{ AAMP_EVENT_TUNE_PROFILING, "tuneProfiling"},
 	{ AAMP_EVENT_BUFFERING_CHANGED, "bufferingChanged"},
 	{ AAMP_EVENT_DURATION_CHANGED, "durationChanged"},
 	{ AAMP_EVENT_AUDIO_TRACKS_CHANGED, "currentAudioTrackChanged"},
@@ -102,13 +110,15 @@ static EventTypeMap aampPlayer_eventTypes[] =
 	{ AAMP_EVENT_AD_COMPLETED, "contentCompleted"},
 	{ AAMP_EVENT_DRM_METADATA, "drmMetadata"},
 	{ AAMP_EVENT_REPORT_ANOMALY, "anomalyReport" },
+	{ AAMP_EVENT_WEBVTT_CUE_DATA, "vttCueDataListener" },
 	{ AAMP_EVENT_AD_RESOLVED, "adResolved"},
 	{ AAMP_EVENT_AD_RESERVATION_START, "reservationStart" },
 	{ AAMP_EVENT_AD_RESERVATION_END, "reservationEnd" },
 	{ AAMP_EVENT_AD_PLACEMENT_START, "placementStart" },
 	{ AAMP_EVENT_AD_PLACEMENT_END, "placementEnd" },
-	{ AAMP_EVENT_AD_PLACEMENT_PROGRESS, "placementProgress" },
 	{ AAMP_EVENT_AD_PLACEMENT_ERROR, "placementError" },
+	{ AAMP_EVENT_AD_PLACEMENT_PROGRESS, "placementProgress" },
+	{ AAMP_EVENT_ID3_METADATA, "id3Metadata"},
 	{ (AAMPEventType)0, "" }
 };
 
@@ -301,7 +311,7 @@ AAMPEventType aamp_getEventTypeFromName(const char* szName)
 
 	for (int i=0; i<numEvents; i++)
 	{
-		if (strcmp(aamp_eventTypes[i].szName, szName) == 0)
+		if (strcasecmp(aamp_eventTypes[i].szName, szName) == 0)
 		{
 			eventType = aamp_eventTypes[i].eventType;
 			break;
@@ -341,7 +351,7 @@ AAMPEventType aampPlayer_getEventTypeFromName(const char* szName)
 
 	for (int i=0; i<numEvents; i++)
 	{
-		if (strcmp(aampPlayer_eventTypes[i].szName, szName) == 0)
+		if (strcasecmp(aampPlayer_eventTypes[i].szName, szName) == 0)
 		{
 			eventType = aampPlayer_eventTypes[i].eventType;
 			break;
@@ -369,3 +379,159 @@ const char* aampPlayer_getNameFromEventType(AAMPEventType type)
 		return NULL;
 	}
 }
+
+
+/**
+ * @brief Create a TimedMetadata JS object with args passed.
+ * Sample input #EXT-X-CUE:ID=eae90713-db8e,DURATION=30.063
+ * Sample output {"time":62062,"duration":0,"name":"#EXT-X-CUE","content":"-X-CUE:ID=eae90713-db8e,DURATION=30.063","type":0,"metadata":{"ID":"eae90713-db8e","DURATION":"30.063"},"id":"eae90713-db8e"}
+ * @param[in] context JS execution context
+ * @param[in] timeMS time in milliseconds, mostly metadata position in playlist
+ * @param[in] szName name of the metadata tag
+ * @param[in] szContent metadata associated with the tag
+ * @param[in] id adbreak/reservation ID if its a adbreak metadata
+ * @param[in] durationMS duration of ad break if its a adbreak metadata
+ * @retval JSObject of TimedMetadata generated
+ */
+JSObjectRef aamp_CreateTimedMetadataJSObject(JSContextRef context, long long timeMS, const char* szName, const char* szContent, const char* id, double durationMS)
+{
+	JSStringRef name;
+
+	JSObjectRef timedMetadata = JSObjectMake(context, NULL, NULL);
+
+	if (timedMetadata) {
+		JSValueProtect(context, timedMetadata);
+		bool bGenerateID = true;
+
+		name = JSStringCreateWithUTF8CString("time");
+		JSObjectSetProperty(context, timedMetadata, name, JSValueMakeNumber(context, std::round(timeMS)), kJSPropertyAttributeReadOnly, NULL);
+		JSStringRelease(name);
+
+		// For SCTE35 tag, set id as value of key reservationId
+		if(!strcmp(szName, "SCTE35") && id && *id != '\0')
+		{
+			name = JSStringCreateWithUTF8CString("reservationId");
+			JSObjectSetProperty(context, timedMetadata, name, aamp_CStringToJSValue(context, id), kJSPropertyAttributeReadOnly, NULL);
+			JSStringRelease(name);
+			bGenerateID = false;
+		}
+
+		if (durationMS >= 0)
+		{
+			name = JSStringCreateWithUTF8CString("duration");
+			JSObjectSetProperty(context, timedMetadata, name, JSValueMakeNumber(context, (int)durationMS), kJSPropertyAttributeReadOnly, NULL);
+			JSStringRelease(name);
+		}
+
+		name = JSStringCreateWithUTF8CString("name");
+		JSObjectSetProperty(context, timedMetadata, name, aamp_CStringToJSValue(context, szName), kJSPropertyAttributeReadOnly, NULL);
+		JSStringRelease(name);
+
+		name = JSStringCreateWithUTF8CString("content");
+		JSObjectSetProperty(context, timedMetadata, name, aamp_CStringToJSValue(context, szContent), kJSPropertyAttributeReadOnly, NULL);
+		JSStringRelease(name);
+
+		// Force type=0 (HLS tag) for now.
+		// Does type=1 ID3 need to be supported?
+		name = JSStringCreateWithUTF8CString("type");
+		JSObjectSetProperty(context, timedMetadata, name, JSValueMakeNumber(context, 0), kJSPropertyAttributeReadOnly, NULL);
+		JSStringRelease(name);
+
+		// Force metadata as empty object
+		JSObjectRef metadata = JSObjectMake(context, NULL, NULL);
+		if (metadata) {
+			JSValueProtect(context, metadata);
+			name = JSStringCreateWithUTF8CString("metadata");
+			JSObjectSetProperty(context, timedMetadata, name, metadata, kJSPropertyAttributeReadOnly, NULL);
+			JSStringRelease(name);
+
+			// Parse CUE metadata and TRICKMODE-RESTRICTION metadata
+			// Parsed values are used in PlayerPlatform at the time of tag object creation
+			if ((strcmp(szName, "#EXT-X-CUE") == 0) ||
+			    (strcmp(szName, "#EXT-X-TRICKMODE-RESTRICTION") == 0) ||
+			    (strcmp(szName, "#EXT-X-MARKER") == 0) ||
+			    (strcmp(szName, "#EXT-X-SCTE35") == 0)) {
+				const char* szStart = szContent;
+
+				// Parse comma seperated name=value list.
+				while (*szStart != '\0') {
+					char* szSep;
+					// Find the '=' seperator.
+					for (szSep = (char*)szStart; *szSep != '=' && *szSep != '\0'; szSep++);
+
+					// Find the end of the value.
+					char* szEnd = (*szSep != '\0') ? szSep + 1 : szSep;
+					for (; *szEnd != ',' && *szEnd != '\0'; szEnd++);
+
+					// Append the name / value metadata.
+					if ((szStart < szSep) && (szSep < szEnd)) {
+						JSValueRef value;
+						char chSave = *szSep;
+
+						*szSep = '\0';
+						name = JSStringCreateWithUTF8CString(szStart);
+						*szSep = chSave;
+
+						chSave = *szEnd;
+						*szEnd = '\0';
+						value = aamp_CStringToJSValue(context, szSep+1);
+						*szEnd = chSave;
+
+						JSObjectSetProperty(context, metadata, name, value, kJSPropertyAttributeReadOnly, NULL);
+						JSStringRelease(name);
+
+						// If we just added the 'ID', copy into timedMetadata.id
+						if (szStart[0] == 'I' && szStart[1] == 'D' && szStart[2] == '=') {
+							bGenerateID = false;
+							name = JSStringCreateWithUTF8CString("id");
+							JSObjectSetProperty(context, timedMetadata, name, value, kJSPropertyAttributeReadOnly, NULL);
+							JSStringRelease(name);
+						}
+					}
+
+					szStart = (*szEnd != '\0') ? szEnd + 1 : szEnd;
+				}
+			}
+			// Parse TARGETDURATION and CONTENT-IDENTIFIER metadata
+			else {
+				const char* szStart = szContent;
+				// Advance to the tag's value.
+				for (; *szStart != ':' && *szStart != '\0'; szStart++);
+				if (*szStart == ':')
+					szStart++;
+
+				// Stuff all content into DATA name/value pair.
+				JSValueRef value = aamp_CStringToJSValue(context, szStart);
+				if (strcmp(szName, "#EXT-X-TARGETDURATION") == 0) {
+					// Stuff into DURATION if EXT-X-TARGETDURATION content.
+					// Since #EXT-X-TARGETDURATION has only duration as value
+					name = JSStringCreateWithUTF8CString("DURATION");
+				} else {
+					name = JSStringCreateWithUTF8CString("DATA");
+				}
+				JSObjectSetProperty(context, metadata, name, value, kJSPropertyAttributeReadOnly, NULL);
+				JSStringRelease(name);
+			}
+			JSValueUnprotect(context, metadata);
+		}
+
+		// Generate an ID since the tag is missing one
+		if (bGenerateID) {
+			int hash = (int)timeMS;
+			const char* szStart = szName;
+			for (; *szStart != '\0'; szStart++) {
+				hash = (hash * 33) ^ *szStart;
+			}
+
+			char buf[32];
+			sprintf(buf, "%d", hash);
+			name = JSStringCreateWithUTF8CString("id");
+			JSObjectSetProperty(context, timedMetadata, name, aamp_CStringToJSValue(context, buf), kJSPropertyAttributeReadOnly, NULL);
+			JSStringRelease(name);
+		}
+		JSValueUnprotect(context, timedMetadata);
+	}
+
+        return timedMetadata;
+}
+

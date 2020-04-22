@@ -76,11 +76,11 @@ ZeroDRMAccessAdapter::ZeroDRMAccessAdapter ()
 	// start the thread 
 	if (0 == pthread_create(&mWorkerThreadId, NULL, &ThreadEntryFunction, this))
 	{
-		logprintf("[%s]->Created workerThread\n",__FUNCTION__);
+		logprintf("[%s]->Created workerThread",__FUNCTION__);
 	}
 	else
 	{
-		logprintf("[%s]->Failed to create workerThread\n",__FUNCTION__);
+		logprintf("[%s]->Failed to create workerThread",__FUNCTION__);
 	}
 #endif
 }
@@ -98,16 +98,16 @@ ZeroDRMAccessAdapter::~ZeroDRMAccessAdapter ()
 		int ret = pthread_join(mWorkerThreadId, &ptr);
 		if (ret != 0)
 		{
-			logprintf("[%s]***pthread_join workerThreadId returned [%d][%s]\n",__FUNCTION__, ret, strerror(ret));
+			logprintf("[%s]***pthread_join workerThreadId returned [%d][%s]",__FUNCTION__, ret, strerror(ret));
 		}
 		else
 		{
-			logprintf("[%s] Joined workerThreadId\n",__FUNCTION__);
+			logprintf("[%s] Joined workerThreadId",__FUNCTION__);
 		}
 	}
 
 
-	//logprintf("[%s]->Destro CtxlistSz[%d] HashTableSz[%d] WorkerQSz[%d]\n",__FUNCTION__,mContextList.size(),mKeyHashTable.size(),mZWorkerDataQue.size());
+	//logprintf("[%s]->Destro CtxlistSz[%d] HashTableSz[%d] WorkerQSz[%d]",__FUNCTION__,mContextList.size(),mKeyHashTable.size(),mZWorkerDataQue.size());
 	// check and release memory incase its not released
 	mCacheReUseFlag = false;
 	// delete all user context if any pending 
@@ -146,7 +146,7 @@ bool ZeroDRMAccessAdapter::zeroDrmInitialize(uint32_t &contextId , ZeroDrmStatus
 		ZeroDRMContextData *var 		= new(std::nothrow) ZeroDRMContextData();
 		if(var == NULL)
 		{
-			logprintf("[%s]:Failed to allocate Memory \n",__FUNCTION__);
+			logprintf("[%s]:Failed to allocate Memory ",__FUNCTION__);
 			retVal = false;
 			contextId = 0;
 		}
@@ -160,7 +160,7 @@ bool ZeroDRMAccessAdapter::zeroDrmInitialize(uint32_t &contextId , ZeroDrmStatus
 		}
 	}
 	pthread_mutex_unlock( &mMutexVar );
-	logprintf("[%s]:Created CtxId[%d] \n",__FUNCTION__,contextId);
+	logprintf("[%s]:Created CtxId[%d] ",__FUNCTION__,contextId);
 	return retVal;
 }
 
@@ -173,7 +173,7 @@ void ZeroDRMAccessAdapter::zeroDrmFinalize(const uint32_t contextId)
 	ZeroDrmTimeCheck t(__FUNCTION__);
 	pthread_mutex_lock(&mMutexVar);
 	{
-		logprintf("[%s]->Finalize for ContextId[%d]\n",__FUNCTION__,contextId);
+		logprintf("[%s]->Finalize for ContextId[%d]",__FUNCTION__,contextId);
 		ContextListIter iter = mContextList.find(contextId);
 		if(iter != mContextList.end())
 		{
@@ -181,7 +181,7 @@ void ZeroDRMAccessAdapter::zeroDrmFinalize(const uint32_t contextId)
 			// Now free all the hash keytable content associated with this stream. default is 1, for keyrotation multiple can exists 
 			// If caching is enabled , need to hold it for its expiry time 
 			uint32_t hashValue;
-			//logprintf("[%s] Number of hashValues for this Stream before clean[%d]\n",__FUNCTION__,ctxvar->mCtxHashList.size());
+			//logprintf("[%s] Number of hashValues for this Stream before clean[%d]",__FUNCTION__,ctxvar->mCtxHashList.size());
 			while (!ctxvar->mCtxHashList.empty())
 			{
 				// get all the hashvalues for the stream
@@ -197,14 +197,14 @@ void ZeroDRMAccessAdapter::zeroDrmFinalize(const uint32_t contextId)
 					{
 						zeroDrmDeleteMetadata ( metadata );
 						mKeyHashTable.erase(keyiter);
-						zdebuglogprintf("[%s] Cache Not Enabled , delete the keyshash[%d] \n",__FUNCTION__,hashValue ) ;	
+						zdebuglogprintf("[%s] Cache Not Enabled , delete the keyshash[%d] ",__FUNCTION__,hashValue ) ;	
 					}
 					else
 					{
 						// dont delete , just update last accessed time 
 						long long currTime = ZeroDrmTimeCheck::drmGetCurrentTimeMS();
 						metadata->lastUpdateTime	=	currTime;
-						zdebuglogprintf("[%s] Cache Enabled , not to delete the keys , updating the currTime for hash[%d] \n",__FUNCTION__,hashValue ) ;	
+						zdebuglogprintf("[%s] Cache Enabled , not to delete the keys , updating the currTime for hash[%d] ",__FUNCTION__,hashValue ) ;	
 					}					
 				}			
 				ctxvar->mCtxHashList.pop_back();
@@ -214,7 +214,7 @@ void ZeroDRMAccessAdapter::zeroDrmFinalize(const uint32_t contextId)
 			mContextList.erase(iter);
 		}
 		else
-			logprintf("[%s]->Failed to find ContextId[%d]\n",__FUNCTION__,contextId);
+			logprintf("[%s]->Failed to find ContextId[%d]",__FUNCTION__,contextId);
 	}
 	pthread_mutex_unlock( &mMutexVar );
 }
@@ -230,7 +230,7 @@ bool ZeroDRMAccessAdapter::zeroDrmSetContentMetadata(const uint32_t contextId , 
 	
 	if (contentdata == NULL || metadataSz == 0)
 	{
-		logprintf("[%s] Invalid Inputs \n",__FUNCTION__);
+		logprintf("[%s] Invalid Inputs ",__FUNCTION__);
 		return false;
 	}
 
@@ -261,7 +261,7 @@ bool ZeroDRMAccessAdapter::zeroDrmSetContentMetadata(const uint32_t contextId , 
 					(metadata->mZeroDrmState == eZERO_DRM_STATE_KEY_FAILED))
 				{
 					// time expired of keyvalue / or was in failure state, remove it and get fresh state
-					zdebuglogprintf("[%s]-> Lifetime over/in error state[%d] for KeyTable hash [%u]\n",__FUNCTION__,metadata->mZeroDrmState,hashValue);
+					zdebuglogprintf("[%s]-> Lifetime over/in error state[%d] for KeyTable hash [%u]",__FUNCTION__,metadata->mZeroDrmState,hashValue);
 					zeroDrmDeleteMetadata ( metadata );
 					mKeyHashTable.erase(keyiter);
 					bReUseMetadata  = false;	
@@ -271,13 +271,13 @@ bool ZeroDRMAccessAdapter::zeroDrmSetContentMetadata(const uint32_t contextId , 
 					// Already same contentMetadata based Hash is added in KeyTable , may be from last channel tune
 					bReUseMetadata  = true;
 					metadata->lastUpdateTime	=	currTime;					
-					zdebuglogprintf("[%s]-> ReUse ContentMetadata KeyTable hash [%u]\n",__FUNCTION__,hashValue);		
+					zdebuglogprintf("[%s]-> ReUse ContentMetadata KeyTable hash [%u]",__FUNCTION__,hashValue);		
 				}					
 			}	
 			
 			if(!bReUseMetadata)
 			{
-				zdebuglogprintf("[%s] New HashKey[%u] inserted in table Sz[%d][%s] \n",__FUNCTION__,hashValue,metadataSz,contentdata);
+				zdebuglogprintf("[%s] New HashKey[%u] inserted in table Sz[%d][%s] ",__FUNCTION__,hashValue,metadataSz,contentdata);
 				ZeroDrmMetadata *metadata 	=	new(std::nothrow)  ZeroDrmMetadata;
 				memset (metadata, 0 ,sizeof(ZeroDrmMetadata));
 				// store ContentMetadata
@@ -295,11 +295,11 @@ bool ZeroDRMAccessAdapter::zeroDrmSetContentMetadata(const uint32_t contextId , 
 			// add hash to Ctx Vector	
 			ctxvar->mCtxHashList.push_back (hashValue);
 			}
-			logprintf("[%s] Number of hashValues for this Stream[%d]\n",__FUNCTION__,ctxvar->mCtxHashList.size());
+			logprintf("[%s] Number of hashValues for this Stream[%d]",__FUNCTION__,ctxvar->mCtxHashList.size());
 		}
 		else
 		{
-			logprintf("[%s]->Failed to find ContextId[%d] to storeMetadata\n",__FUNCTION__,contextId);
+			logprintf("[%s]->Failed to find ContextId[%d] to storeMetadata",__FUNCTION__,contextId);
 			retVal = false;
 		}
 	}
@@ -316,7 +316,7 @@ bool ZeroDRMAccessAdapter::zeroDrmSetReceiptMetadata(const uint32_t contextId , 
 	
 	if (receiptdata == NULL || metadataSz == 0)
 	{
-		logprintf("[%s] Invalid Inputs \n",__FUNCTION__);
+		logprintf("[%s] Invalid Inputs ",__FUNCTION__);
 		return false;
 	}
 
@@ -343,7 +343,7 @@ bool ZeroDRMAccessAdapter::zeroDrmSetReceiptMetadata(const uint32_t contextId , 
 					(metadata->mZeroDrmState == eZERO_DRM_STATE_KEY_FAILED))
 				{
 					// time expired of keyvalue, remove it 
-					zdebuglogprintf("[%s]-> Lifetime over for KeyTable hash [%u]\n",__FUNCTION__,hashValue); 
+					zdebuglogprintf("[%s]-> Lifetime over for KeyTable hash [%u]",__FUNCTION__,hashValue); 
 					zeroDrmDeleteMetadata ( metadata );
 					mKeyHashTable.erase(keyiter);
 					bReUseMetadata  = false;	
@@ -353,13 +353,13 @@ bool ZeroDRMAccessAdapter::zeroDrmSetReceiptMetadata(const uint32_t contextId , 
 					// Already same ReceiptData based Hash is added in KeyTable , may be from last channel tune
 					bReUseMetadata  = true;
 					metadata->lastUpdateTime	=	currTime;					
-					zdebuglogprintf("[%s]-> ReUse Receipt based KeyTable hash [%u]\n",__FUNCTION__,hashValue);		
+					zdebuglogprintf("[%s]-> ReUse Receipt based KeyTable hash [%u]",__FUNCTION__,hashValue);		
 				}					
 			}	
 			
 			if(!bReUseMetadata)
 			{
-				zdebuglogprintf("[%s] New HashKey[%u] inserted in table[%d][%s] \n",__FUNCTION__,hashValue,metadataSz,receiptdata);
+				zdebuglogprintf("[%s] New HashKey[%u] inserted in table[%d][%s] ",__FUNCTION__,hashValue,metadataSz,receiptdata);
 				ZeroDrmMetadata *metadata 	=	new(std::nothrow)  ZeroDrmMetadata;
 				memset (metadata, 0 ,sizeof(ZeroDrmMetadata));
 				// store ReceiptData
@@ -377,11 +377,11 @@ bool ZeroDRMAccessAdapter::zeroDrmSetReceiptMetadata(const uint32_t contextId , 
 			// add hash to Ctx Vector	
 			ctxvar->mCtxHashList.push_back (hashValue);
 			}
-			logprintf("[%s] Number of hashValues for this Stream[%d]\n",__FUNCTION__,ctxvar->mCtxHashList.size());
+			logprintf("[%s] Number of hashValues for this Stream[%d]",__FUNCTION__,ctxvar->mCtxHashList.size());
 		}
 		else
 		{
-			logprintf("[%s]->Failed to find ContextId[%d] to storeMetadata\n",__FUNCTION__,contextId);
+			logprintf("[%s]->Failed to find ContextId[%d] to storeMetadata",__FUNCTION__,contextId);
 			retVal = false;
 		}
 	}
@@ -398,7 +398,7 @@ bool ZeroDRMAccessAdapter::zeroDrmGetPlaybackKeySync(const uint32_t contextId , 
 	
 	if (sTagLine == NULL )
 	{
-		logprintf("[%s] Invalid Inputs \n",__FUNCTION__);
+		logprintf("[%s] Invalid Inputs ",__FUNCTION__);
 		return false;
 	}
 	pthread_mutex_lock(&mMutexVar);
@@ -415,7 +415,7 @@ bool ZeroDRMAccessAdapter::zeroDrmGetPlaybackKeySync(const uint32_t contextId , 
 				memset(&keyTag , 0 , sizeof(ZeroDrmInfo));
 				if(zeroDrmParseKeyTag(keyTag ,sTagLine)== false) 
 				{	
-					logprintf("[%s]->Failed to parse KeyTag, return failure \n",__FUNCTION__);
+					logprintf("[%s]->Failed to parse KeyTag, return failure ",__FUNCTION__);
 				}
 				else
 				{
@@ -429,12 +429,12 @@ bool ZeroDRMAccessAdapter::zeroDrmGetPlaybackKeySync(const uint32_t contextId , 
 						ZeroDrmReturn   getKeyRetVal = zeroDrmGetKey(contextId,hashValue,keyTag,retState);
 						if(getKeyRetVal == eZERO_DRM_STATUS_SUCCESS)
 						{
-							logprintf("[%s]->Success !!! Got key Ctx[%d]hash[%u]State[%d] \n",__FUNCTION__,contextId,hashValue,retState);
+							logprintf("[%s]->Success !!! Got key Ctx[%d]hash[%u]State[%d] ",__FUNCTION__,contextId,hashValue,retState);
 							retVal = true;
 						}
 						else
 						{
-							logprintf("[%s]->Failed to get key Ctx[%d]hash[%u]State[%d]Err[%d] \n",__FUNCTION__,contextId,hashValue,retState,getKeyRetVal);
+							logprintf("[%s]->Failed to get key Ctx[%d]hash[%u]State[%d]Err[%d] ",__FUNCTION__,contextId,hashValue,retState,getKeyRetVal);
 						}
 					}
 					//else
@@ -446,12 +446,12 @@ bool ZeroDRMAccessAdapter::zeroDrmGetPlaybackKeySync(const uint32_t contextId , 
 			}
 			else
 			{
-				logprintf("[%s]->No Metadata/Receipt available for getting key in Ctx[%d]\n",__FUNCTION__,contextId);
+				logprintf("[%s]->No Metadata/Receipt available for getting key in Ctx[%d]",__FUNCTION__,contextId);
 			}
 		}
 		else
 		{
-			logprintf("[%s]->Failed to find ContextId[%d] \n",__FUNCTION__,contextId);
+			logprintf("[%s]->Failed to find ContextId[%d] ",__FUNCTION__,contextId);
 		}
 	}
 	pthread_mutex_unlock( &mMutexVar );
@@ -468,7 +468,7 @@ bool ZeroDRMAccessAdapter::zeroDrmGetPlaybackKeyAsync(const uint32_t contextId ,
 	
 	if (sTagLine == NULL )
 	{
-		logprintf("[%s] Invalid Inputs \n",__FUNCTION__);
+		logprintf("[%s] Invalid Inputs ",__FUNCTION__);
 		return false;
 	}
 	
@@ -486,7 +486,7 @@ bool ZeroDRMAccessAdapter::zeroDrmGetPlaybackKeyAsync(const uint32_t contextId ,
 				memset(&keyTag , 0 , sizeof(ZeroDrmInfo));
 				if(!zeroDrmParseKeyTag(keyTag ,sTagLine))
 				{
-					logprintf("[%s]->Failed to parse KeyTag , return failure\n",__FUNCTION__);
+					logprintf("[%s]->Failed to parse KeyTag , return failure",__FUNCTION__);
 					retVal = false;
 				} 
 				else
@@ -512,7 +512,7 @@ bool ZeroDRMAccessAdapter::zeroDrmGetPlaybackKeyAsync(const uint32_t contextId ,
 						pthread_mutex_lock(&mMutexJPCondVar);
                         			pthread_cond_signal(&mJobPostingCondVar);
                         			pthread_mutex_unlock(&mMutexJPCondVar );
-						zdebuglogprintf("[%s]-> Posting Queue element to worker thread [%d]Ctx[%d]\n",__FUNCTION__,hashValue,contextId);
+						zdebuglogprintf("[%s]-> Posting Queue element to worker thread [%d]Ctx[%d]",__FUNCTION__,hashValue,contextId);
 					}
 					//else
 					//{
@@ -523,13 +523,13 @@ bool ZeroDRMAccessAdapter::zeroDrmGetPlaybackKeyAsync(const uint32_t contextId ,
 			}
 			else
 			{
-				logprintf("[%s]->No Metadata/Receipt available for getting key in Ctx[%d]\n",__FUNCTION__,contextId);
+				logprintf("[%s]->No Metadata/Receipt available for getting key in Ctx[%d]",__FUNCTION__,contextId);
 				retVal = false;
 			}
 		}
 		else
 		{
-			logprintf("[%s]->Failed to find ContextId[%d] \n",__FUNCTION__,contextId);
+			logprintf("[%s]->Failed to find ContextId[%d] ",__FUNCTION__,contextId);
 			retVal = false;
 		}
 	}
@@ -550,10 +550,10 @@ ZeroDrmReturn ZeroDRMAccessAdapter::zeroDrmDecrypt(const uint32_t contextId,void
 			if(metadata != NULL) {
 #ifdef PLAYBACK_ASYNC_SUPPORT 
 				pthread_mutex_lock(&mMutexJSCondVar);
-				//logprintf("zeroDrmDecrypt Ctx[%d] DrmState[%d]\n",contextId,metadata->mZeroDrmState);
+				//logprintf("zeroDrmDecrypt Ctx[%d] DrmState[%d]",contextId,metadata->mZeroDrmState);
 				if ((metadata->mZeroDrmState == eZERO_DRM_STATE_ACQUIRING_RECEIPT) || (metadata->mZeroDrmState == eZERO_DRM_STATE_ACQUIRING_KEY)) 
 					{
-						logprintf("[%s]->waiting for key acquisition to complete Ctx[%d],wait time:%d->State[%d]\n",__FUNCTION__,contextId,timeInMs ,metadata->mZeroDrmState);
+						logprintf("[%s]->waiting for key acquisition to complete Ctx[%d],wait time:%d->State[%d]",__FUNCTION__,contextId,timeInMs ,metadata->mZeroDrmState);
 						struct timespec ts;
 						struct timeval tv;
 						gettimeofday(&tv, NULL);
@@ -563,7 +563,7 @@ ZeroDrmReturn ZeroDRMAccessAdapter::zeroDrmDecrypt(const uint32_t contextId,void
 						ts.tv_nsec %= (1000 * 1000 * 1000);
 						if(ETIMEDOUT == pthread_cond_timedwait(&mJobStatusCondVar, &mMutexJSCondVar, &ts)) // block until drm ready
 						{
-							logprintf("[%s]-> Ctx[%d] wait for key acquisition timed out\n", __FUNCTION__, contextId);
+							logprintf("[%s]-> Ctx[%d] wait for key acquisition timed out", __FUNCTION__, contextId);
 							retVal = eZERO_DRM_STATUS_KEY_TIMEOUT;
 						}
 					}
@@ -592,7 +592,7 @@ ZeroDrmReturn ZeroDRMAccessAdapter::zeroDrmDecrypt(const uint32_t contextId,void
 						else
 						{
 							// copy decoded data back to same stringa
-							zdebuglogprintf( "[%s] -> SecCipher_SingleInputId success of len[%d]\n",__FUNCTION__,encryptedDataLen);
+							zdebuglogprintf( "[%s] -> SecCipher_SingleInputId success of len[%d]",__FUNCTION__,encryptedDataLen);
 							memcpy(encryptedDataPtr, out_buffer, encryptedDataLen);
 						}
 						free (out_buffer);
@@ -630,7 +630,7 @@ void ZeroDRMAccessAdapter::zeroDrmSetActiveMetadata(const uint32_t contextId , Z
 // Worker thread for getting receipt and Key 
 void ZeroDRMAccessAdapter::zeroDRMWorkerThreadTask()
 {
-	logprintf("[%s]->Starting zeroDRMWorkerThreadTask \n",__FUNCTION__);	
+	logprintf("[%s]->Starting zeroDRMWorkerThreadTask ",__FUNCTION__);	
 	mWorkerThreadStarted	=	true;
 	ZeroDrmWorkerData *qptr;
 	do	{
@@ -640,7 +640,7 @@ void ZeroDRMAccessAdapter::zeroDRMWorkerThreadTask()
 		pthread_cond_wait(&mJobPostingCondVar, &mMutexJPCondVar);
 		if((!mWorkerThreadEndFlag) && (!mZWorkerDataQue.empty()))
 		{
-			//logprintf("[%s]->Got a worker in Workerthread \n",__FUNCTION__);
+			//logprintf("[%s]->Got a worker in Workerthread ",__FUNCTION__);
 			 // get worker data
                         qptr = (ZeroDrmWorkerData *)mZWorkerDataQue.front();
                         mZWorkerDataQue.pop();
@@ -654,11 +654,11 @@ void ZeroDRMAccessAdapter::zeroDRMWorkerThreadTask()
 			ZeroDrmReturn	getKeyRetVal = zeroDrmGetKey(qptr->ctxId , qptr->hashValue,qptr->keyTag,retState);
 			if( getKeyRetVal == eZERO_DRM_STATUS_SUCCESS)
 			{
-				logprintf("[%s]->Success !!! Got key Ctx[%d]hash[%u] \n",__FUNCTION__,qptr->ctxId,qptr->hashValue);
+				logprintf("[%s]->Success !!! Got key Ctx[%d]hash[%u] ",__FUNCTION__,qptr->ctxId,qptr->hashValue);
 			}
 			else
 			{
-				logprintf("[%s]->Failed to get key Ctx[%d]hash[%u]Err[%d] \n",__FUNCTION__,qptr->ctxId,qptr->hashValue,getKeyRetVal);
+				logprintf("[%s]->Failed to get key Ctx[%d]hash[%u]Err[%d] ",__FUNCTION__,qptr->ctxId,qptr->hashValue,getKeyRetVal);
 			}	
 			if(zeroDrmIsContextIdValid(qptr->ctxId))
 			{
@@ -671,7 +671,7 @@ void ZeroDRMAccessAdapter::zeroDRMWorkerThreadTask()
 				if(ctxvar->mStatusCallbackFn)
 					ctxvar->mStatusCallbackFn(retState,getKeyRetVal, ctxvar->mCallbackData);
 				else
-					logprintf("[%s]->No callback function registered for ZDrm Status[%d] update\n",__FUNCTION__,getKeyRetVal);
+					logprintf("[%s]->No callback function registered for ZDrm Status[%d] update",__FUNCTION__,getKeyRetVal);
             		}
 			// delete the queue element
 			delete qptr;	
@@ -679,7 +679,7 @@ void ZeroDRMAccessAdapter::zeroDRMWorkerThreadTask()
 		}// end of if 
 	}while(!mWorkerThreadEndFlag); // check if anyone fired you . 
 	
-	logprintf("!!!! Exiting ZeroDRM Worker Thread !!!!\n");
+	logprintf("!!!! Exiting ZeroDRM Worker Thread !!!!");
 }
 #endif
 
@@ -698,7 +698,7 @@ ZeroDrmReturn ZeroDRMAccessAdapter::zeroDrmGetKey(const uint32_t contextId ,cons
 	requestMetadata[0][1] = "One";
 	requestMetadata[1][0] = "X-MoneyTrace";
 
-	zdebuglogprintf("[%s]-> Getting key for hash[%d]\n",__FUNCTION__,hashValue);	
+	zdebuglogprintf("[%s]-> Getting key for hash[%d]",__FUNCTION__,hashValue);	
 	// this cannot happen , but a safe check to see nothing happened to HashTable
 	KeyHashTableIter keyiter = mKeyHashTable.find(hashValue);
 	if(keyiter	!=	mKeyHashTable.end())
@@ -707,7 +707,7 @@ ZeroDrmReturn ZeroDRMAccessAdapter::zeroDrmGetKey(const uint32_t contextId ,cons
 		// Key already available , no need to fetch again 
 		if(metadata->mZeroDrmState == eZERO_DRM_STATE_KEY_ACQUIRED)
 		{
-			logprintf("[%s]->Keyready from Cache !!!hash[%d]\n",__FUNCTION__,hashValue);
+			logprintf("[%s]->Keyready from Cache !!!hash[%d]",__FUNCTION__,hashValue);
 			// As key already there , delete memory for keyTag created 
 			zeroDrmDeleteKeyTag(&keyTag);
 			long long currTime = ZeroDrmTimeCheck::drmGetCurrentTimeMS();
@@ -716,7 +716,7 @@ ZeroDrmReturn ZeroDRMAccessAdapter::zeroDrmGetKey(const uint32_t contextId ,cons
 		}
 		else if((metadata->mZeroDrmState != eZERO_DRM_STATE_ACQUIRING_RECEIPT) && (metadata->mZeroDrmState != eZERO_DRM_STATE_ACQUIRING_KEY))
 		{
-			logprintf("[%s]->Metadata in Wrong state[%d] for key\n",__FUNCTION__,metadata->mZeroDrmState);
+			logprintf("[%s]->Metadata in Wrong state[%d] for key",__FUNCTION__,metadata->mZeroDrmState);
 			retVal = eZERO_DRM_STATUS_GENERIC_ERROR;
 			retState        =	eZERO_DRM_STATE_INVALID;	
 		}
@@ -753,7 +753,7 @@ ZeroDrmReturn ZeroDRMAccessAdapter::zeroDrmGetKey(const uint32_t contextId ,cons
 					metadata->recieptdataSize = strlen((const char *)metadata->receiptdataPtr);
 					metadata->mZeroDrmState 	=	eZERO_DRM_STATE_ACQUIRING_KEY	;
 					metadata->receiptAvailable	=	true;
-					logprintf( "[%s]->Successful in getting receipt of len [%d]\n",__FUNCTION__,metadata->recieptdataSize);
+					logprintf( "[%s]->Successful in getting receipt of len [%d]",__FUNCTION__,metadata->recieptdataSize);
 					// Not to delete moneytrace , same is used for key also 
 				}
 			}
@@ -765,7 +765,7 @@ ZeroDrmReturn ZeroDRMAccessAdapter::zeroDrmGetKey(const uint32_t contextId ,cons
 				if(moneytracebuf == NULL)
 					moneytracebuf = zeroDrmGetTraceId();
 				requestMetadata[1][1] = moneytracebuf;
-				zdebuglogprintf("KeyReqTrace[%s] Metadata[%d][%s]\n",moneytracebuf,strlen((const char *)metadata->receiptdataPtr),((const char *)metadata->receiptdataPtr));
+				zdebuglogprintf("KeyReqTrace[%s] Metadata[%d][%s]",moneytracebuf,strlen((const char *)metadata->receiptdataPtr),((const char *)metadata->receiptdataPtr));
 				
 				memset(&metadata->secureContext, 0, sizeof(metadata->secureContext));
 				sec_client_result = acquirePlaybackKey(ZERO_DRM_HOST_URL, ZERO_DRM_REQMETADATA_SZ, requestMetadata, 
@@ -784,25 +784,25 @@ ZeroDrmReturn ZeroDRMAccessAdapter::zeroDrmGetKey(const uint32_t contextId ,cons
 					// Get the decryption context
 					metadata->mZeroDrmState	=	eZERO_DRM_STATE_KEY_ACQUIRED;
 					metadata->keyAvailable	=	true;
-					zdebuglogprintf( "zero DRM Key Acquired \n");
+					zdebuglogprintf( "zero DRM Key Acquired ");
 
 					// Test functions not needed - this is to validate the keyhandle //////////////////////
 					/*
-					logprintf("\n********* Sec Processor Info *********\n"); 
+					logprintf("********* Sec Processor Info *********"); 
 					SecProcessor_PrintInfo(metadata->secureContext.securityProcessorContext);
 					Sec_KeyHandle *keyHandle;
 					Sec_Result sec_result = SecKey_GetInstance(metadata->secureContext.securityProcessorContext, metadata->secureContext.playbackKeyOid, &keyHandle);
 					if (sec_result == SEC_RESULT_SUCCESS)
 					{
 						// Print out Key Info.
-						logprintf("\n********* Key Info *********\n");
-						logprintf("SecKey_IsAES result is %s \n",
+						logprintf("********* Key Info *********");
+						logprintf("SecKey_IsAES result is %s ",
 							SecKey_IsAES(SecKey_GetKeyType(keyHandle)) ? "TRUE" : "FALSE");
-						logprintf("SecKey_GetKeyLen  result is %d \n", SecKey_GetKeyLen(keyHandle));
+						logprintf("SecKey_GetKeyLen  result is %d ", SecKey_GetKeyLen(keyHandle));
 					}
 					else
 					{
-						logprintf("SecKey_GetInstance failed, result is %d \n", sec_result); 
+						logprintf("SecKey_GetInstance failed, result is %d ", sec_result); 
 					}
 					*/
 					////////////////////////////////////////////////
@@ -817,7 +817,7 @@ ZeroDrmReturn ZeroDRMAccessAdapter::zeroDrmGetKey(const uint32_t contextId ,cons
 	}
 	else
 	{
-		logprintf("[%s]->No Metadata/Receipt available for getting key[%u] \n",__FUNCTION__,hashValue);
+		logprintf("[%s]->No Metadata/Receipt available for getting key[%u] ",__FUNCTION__,hashValue);
 		retVal = eZERO_DRM_STATUS_GENERIC_ERROR;
 		retState = eZERO_DRM_STATE_INVALID;
 	}
@@ -854,11 +854,11 @@ bool ZeroDRMAccessAdapter::zeroDrmParseKeyTag(ZeroDrmInfo	&keyTagInfo , const ch
 		
 		if (!token.empty()) 
 		{
-			//logprintf("posn[%d] prev[%d] inpLen[%d] tokenlen[%d] token[%s]\n",posn,prev,inpStr.length(),token.length(),token.c_str());
+			//logprintf("posn[%d] prev[%d] inpLen[%d] tokenlen[%d] token[%s]",posn,prev,inpStr.length(),token.length(),token.c_str());
 			size_t subposn = token.find(keyValDelim,0);
 			std::string key = token.substr(0,subposn);
 			std::string value = token.substr(subposn+1);
-			//logprintf("subposn[%d] key[%s] valuelen[%d] value[%s]\n",subposn,key.c_str(),value.length(),value.c_str());
+			//logprintf("subposn[%d] key[%s] valuelen[%d] value[%s]",subposn,key.c_str(),value.length(),value.c_str());
 			if(!key.compare("METHOD"))
 			{
 				if(!value.compare("AES-128"))
@@ -876,7 +876,7 @@ bool ZeroDRMAccessAdapter::zeroDrmParseKeyTag(ZeroDrmInfo	&keyTagInfo , const ch
 				if(value.length() > 34) // len + 0x
                 		{
                    			// expectation is iv value is of length 32
-					logprintf("[%s][%d] Invalid IV Value in KeyTag [%d][%s] \n",__FUNCTION__,__LINE__,value.length(),value.c_str());	 	
+					logprintf("[%s][%d] Invalid IV Value in KeyTag [%d][%s] ",__FUNCTION__,__LINE__,value.length(),value.c_str());	 	
 					retValue = false;
 				}
 				else
@@ -925,7 +925,7 @@ ZeroDrmReturn ZeroDRMAccessAdapter::zeroDrmGetMetadata(const uint32_t contextId,
 		if(ctxvar->mCtxHashList.size())
 		{
 			// if Application calls with hashkey != 0 ->No License rotation , pop only last key
-			logprintf( "[%s]->License rotation not enabled , using default key\n",__FUNCTION__);
+			logprintf( "[%s]->License rotation not enabled , using default key",__FUNCTION__);
 			uint32_t hashValue = ctxvar->mCtxHashList.front();
 
 			KeyHashTableIter keyiter = mKeyHashTable.find(hashValue);
@@ -938,7 +938,7 @@ ZeroDrmReturn ZeroDRMAccessAdapter::zeroDrmGetMetadata(const uint32_t contextId,
 			{
 				*metadata = NULL;
 				ret = eZERO_DRM_STATUS_NO_METADATA;
-				logprintf("[%s]->zeroDrmDecrypt No Matching key found\n",__FUNCTION__);
+				logprintf("[%s]->zeroDrmDecrypt No Matching key found",__FUNCTION__);
             }
 		}
 	}
@@ -971,7 +971,7 @@ void ZeroDRMAccessAdapter::zeroDrmDeleteKeyTag(ZeroDrmInfo *keyTagInfo)
 // Deletes Metadata memory if allocated 
 void ZeroDRMAccessAdapter::zeroDrmDeleteMetadata(ZeroDrmMetadata *metadata)
 {
-	zdebuglogprintf("[%s]-> deleting [%p]\n",__FUNCTION__,metadata);
+	zdebuglogprintf("[%s]-> deleting [%p]",__FUNCTION__,metadata);
 	if(metadata != NULL)
 	{
 		if(metadata->secureContext.securityProcessorContext != NULL)
@@ -1031,7 +1031,7 @@ char * ZeroDRMAccessAdapter::zeroDrmGetTraceId()
 	uuid_unparse_lower(uuid, uuid_str);
 	uuid_clear(uuid);
 	snprintf(moneytracebuf,128,"trace-id=%s;parent-id=1;span-id=2",uuid_str);
-	zdebuglogprintf("[%s]->MoneyTrace :: [%s]\n",__FUNCTION__,moneytracebuf);
+	zdebuglogprintf("[%s]->MoneyTrace :: [%s]",__FUNCTION__,moneytracebuf);
 	return moneytracebuf;
 }
 
@@ -1057,7 +1057,7 @@ char * ZeroDRMAccessAdapter::zeroDrmGetTraceId()
    
 void ZeroDRMCallbackFunction(ZeroDrmState drmState , int errRet,void *callbackData)
 {
-	logprintf("!!! Received callback from ZeroDRMAccessAdapter state[%d] error[%d]\n",drmState,errRet);
+	logprintf("!!! Received callback from ZeroDRMAccessAdapter state[%d] error[%d]",drmState,errRet);
 }
 
 int main(int argc, char** argv)
@@ -1076,7 +1076,7 @@ int main(int argc, char** argv)
 	///// Decrypt call here 
 	inst->zeroDrmSetContentMetadata(myCtx,(const unsigned char *)CONTENTMETADATA , strlen(CONTENTMETADATA));
 	inst->zeroDrmFinalize(myCtx);
-	logprintf("------------------->>> End of Ctx[%d] \n",myCtx);
+	logprintf("------------------->>> End of Ctx[%d] ",myCtx);
 	sleep(10);
 #endif 
 	// for recording case // with direct receipt data
@@ -1088,7 +1088,7 @@ int main(int argc, char** argv)
 	inst->zeroDrmGetPlaybackKeySync(myCtx , EXTTAGLINE );
 	sleep(10);
 	inst->zeroDrmFinalize(myCtx);
-	logprintf("------------------->>> End of Ctx[%d] \n",myCtx);
+	logprintf("------------------->>> End of Ctx[%d] ",myCtx);
 #endif
 	
     //////
@@ -1104,7 +1104,7 @@ int main(int argc, char** argv)
 	size_t size;
   	char * memblock;
 
-	logprintf("\n !!! Opening file [%s] for decoding \n",argv[1]);
+	logprintf(" !!! Opening file [%s] for decoding ",argv[1]);
   	std::ifstream file (argv[1], std::ios::in|std::ios::binary|std::ios::ate);
   	if (file.is_open())
   	{
@@ -1117,7 +1117,7 @@ int main(int argc, char** argv)
 		ZeroDrmReturn retval = inst->zeroDrmDecrypt( myCtx , (void *)memblock , size,3000 );
 		if(retval != eZERO_DRM_STATUS_SUCCESS)
 		{
-			logprintf("Failed in zeroDrmDecrypt , error [ %d]  \n",retval);
+			logprintf("Failed in zeroDrmDecrypt , error [ %d]  ",retval);
 		}
 		else
 		{
@@ -1135,7 +1135,7 @@ int main(int argc, char** argv)
 	inst->zeroDrmFinalize(myCtx);
 #endif
 	inst->deleteInstance();
-	logprintf("\nEnd of test program \n");
+	logprintf("End of test program ");
 }
 
 #endif 

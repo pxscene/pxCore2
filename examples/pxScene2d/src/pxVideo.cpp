@@ -125,8 +125,11 @@ void pxVideo::initPlayback()
 		mAamp = new PlayerInstanceAAMP(NULL
 	#ifndef ENABLE_SPARK_VIDEO_PUNCHTHROUGH //TODO: Remove this check, once the official builds contain the second argument to PlayerInstanceAAMP
 				, cbExportFrames
+        #else
+                                , nullptr
 	#endif
-				);
+                                , PLAYERMODE_MEDIAPLAYER
+                              );
 		assert (nullptr != mAamp);
                 if (mProxy.length() > 0)
                 {
@@ -648,6 +651,12 @@ rtError pxVideo::requestStatus()
   return RT_OK;
 }
 
+rtError pxVideo::setVideoRectangle(int x, int y, int w, int h)
+{
+  mAamp->SetVideoRectangle(x, y, w, h);
+  return RT_OK;
+}
+
 rtError pxVideo::setAdditionalAuth(rtObjectRef /*params*/)
 {
   //TODO
@@ -730,6 +739,24 @@ private:
 };
 
 
+class PlaybackStartedListener : public AAMPEventListener
+{
+public:
+
+	PlaybackStartedListener(rtEmitRef& rtEmit) : mEmit(rtEmit) {}
+	~PlaybackStartedListener() = default;
+
+	void Event(const AAMPEvent& event) override
+	{
+		assert(AAMP_EVENT_TUNED == event.type);
+		rtObjectRef e = new rtMapObject;
+		mEmit.send("onPlaybackStarted", e);
+	}
+
+private:
+
+	rtEmitRef mEmit;
+};
 
 class PlaybackProgressListener : public AAMPEventListener
 {
@@ -779,6 +806,7 @@ void pxVideo::registerAampEventsListeners()
 		addAampEventListener(AAMPEventType::AAMP_EVENT_PROGRESS,       std::make_unique<PlaybackProgressListener>(this->mEmit));
 		addAampEventListener(AAMPEventType::AAMP_EVENT_EOS,            std::make_unique<PlaybackEndOfStreamListener>(this->mEmit));
 		addAampEventListener(AAMPEventType::AAMP_EVENT_STATE_CHANGED,  std::make_unique<PlayerStateChangeListener>(this->mEmit));
+		addAampEventListener(AAMPEventType::AAMP_EVENT_TUNED,  std::make_unique<PlaybackStartedListener>(this->mEmit));
 	}
 }
 
@@ -838,6 +866,7 @@ rtDefineMethod(pxVideo, setSpeed);
 rtDefineMethod(pxVideo, setPositionRelative);
 rtDefineMethod(pxVideo, requestStatus);
 rtDefineMethod(pxVideo, setAdditionalAuth);
+rtDefineMethod(pxVideo, setVideoRectangle);
 rtDefineMethod(pxVideo, registerEventListener);
 rtDefineMethod(pxVideo, unregisterEventListener);
 
