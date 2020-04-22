@@ -191,17 +191,14 @@ img {
 }
 
 #videoURLs {
-    margin-left: 25%;
-    width: 30%;
     position: fixed;
     font-family: Arial, Helvetica, sans-serif;
     margin-top: 2%;
 }
 
-#playOrPauseButton {
-    margin-left: 16%;
+#videoToggleButton {
+    height: 30px;
 }
-
 
 #rewindButton {
     height: 30px;
@@ -300,6 +297,75 @@ img {
     text-align: center;
 }
 
+.ccModal {
+    display: none; 
+    position: absolute;
+    background-color: rgba(0,0,0,0.5);
+    border: 1.2px solid lightgrey;
+    box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
+    -webkit-animation-name: flydown;
+    -webkit-animation-duration: 0.10s;
+    animation-name: flydown;
+    animation-duration: 0.10s;
+    width: 11%;
+    top: 40%;
+    left: 0;
+    right: 0;
+    margin: 0 auto;
+    font: 20px arial, sans-serif;
+}
+
+#ccContent {
+    text-align: center;
+    color: white;
+}
+
+#buffContent {
+    text-align: center;
+    color: white;
+    font: 20px  Arial, Helvetica, sans-serif;
+}
+
+.errorModal {
+    display: none;
+    position: absolute;
+    background-color: rgba(0,0,0,0.5);
+    border: 1.2px solid lightgrey;
+    box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
+    -webkit-animation-name: flydown;
+    -webkit-animation-duration: 0.10s;
+    animation-name: flydown;
+    animation-duration: 0.10s;
+    padding: 5px;
+    width: 50%;
+    top: 30%;
+    left: 0;
+    right: 0;
+    margin: 0 auto;
+    font: 20px arial, sans-serif;
+}
+
+.subtitleModal {
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    position: absolute;
+    bottom: 10%;
+    width: 100%;
+    line-height: 17px;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 30px;
+}
+
+#subtitleContent {
+    text-align: center;
+    -webkit-text-stroke: 0.3px black;
+}
+
+#subtitleText {
+    background-color: black;
+    color: white;
+}
+
 @-webkit-keyframes flydown {
     from {top:-211px; opacity:0.1} 
     to {top:0; opacity:1}
@@ -370,10 +436,6 @@ option {
     font-size: 15px;
 }
 
-#logState {
-    margin-left: 57%;
-}
-
 #autoLogButton {
     position: absolute;
     width: 25px;
@@ -382,6 +444,19 @@ option {
 }
 
 #logCheck{
+    padding: 5px;
+    width: 18px;
+    height: 18px;
+}
+
+#cacheOnlyButton {
+    position: absolute;
+    width: 25px;
+    height: 25px;
+    margin-left: 1px;
+}
+
+#cacheOnlyCheck{
     padding: 5px;
     width: 18px;
     height: 18px;

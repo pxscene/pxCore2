@@ -22,6 +22,30 @@ body {
     color: white;
 }
 
+#playOrPauseButton {
+    margin-left: 15.2%;
+}
+
+#cacheOnly {
+    margin-left: 17%;
+}
+
+#videoURLs {
+    margin-left: 26%;
+    width: 30%;
+}
+
+#ccTracks {
+    position: fixed;
+    margin-left: 5%;
+    width: 9%;
+    margin-top: 2%;
+}
+
+#logState {
+    margin-left: 3%;
+}
+
 #seekBar {
     height: 25px;
 }
@@ -43,4 +67,17 @@ body {
     font-size: 24px;
     font-weight: bold;
     color: #000;
+}
+
+input[type=text] {
+  width: 9%;
+  padding-top: 1px;
+  margin-left: 40%;
+  box-sizing: border-box;
+  border: 2px solid #00448A;
+  border-radius: 4px;
+}
+
+input[type=text]:focus {
+  background-color: orange;
 }

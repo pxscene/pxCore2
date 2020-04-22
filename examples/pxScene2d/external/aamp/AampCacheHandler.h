@@ -28,10 +28,32 @@
 /**
  * @brief PlayListCachedData structure to store playlist data
  */
-typedef struct {
-	char *mEffectiveUrl;
+typedef struct playlistcacheddata{
+	std::string mEffectiveUrl;
 	GrowableBuffer* mCachedBuffer;
 	MediaType mFileType;
+	bool mDuplicateEntry;
+
+	playlistcacheddata() : mEffectiveUrl(""), mCachedBuffer(NULL), mFileType(eMEDIATYPE_DEFAULT),mDuplicateEntry(false)
+	{
+	}
+
+	playlistcacheddata(const playlistcacheddata& p) : mEffectiveUrl(p.mEffectiveUrl), mCachedBuffer(p.mCachedBuffer), mFileType(p.mFileType),mDuplicateEntry(p.mDuplicateEntry)
+	{
+		mCachedBuffer->ptr = p.mCachedBuffer->ptr;
+		mCachedBuffer->len = p.mCachedBuffer->len;
+		mCachedBuffer->avail = p.mCachedBuffer->avail;
+	}
+
+	playlistcacheddata& operator=(const playlistcacheddata &p)
+	{
+		mEffectiveUrl = p.mEffectiveUrl;
+		mCachedBuffer = p.mCachedBuffer;
+		mFileType = p.mFileType;
+		mDuplicateEntry = p.mDuplicateEntry;
+		return *this;
+	}
+
 }PlayListCachedData;
 
 
@@ -46,7 +68,7 @@ private:
 	bool mCacheActive;
 	bool mAsyncCacheCleanUpThread;
 	bool mAsyncThreadStartedFlag;
-	static AampCacheHandler *mInstance;
+	int mMaxPlaylistCacheSize;
 	pthread_mutex_t mMutex;
 	pthread_mutex_t mCondVarMutex;
 	pthread_cond_t mCondVar ;
@@ -80,6 +102,8 @@ private:
 	 */
 	bool AllocatePlaylistCacheSlot(MediaType fileType,size_t newLen);
 
+public:
+
 	/**
 	 *	 @brief Default Constructor
 	 *
@@ -91,13 +115,6 @@ private:
 	* @brief Destructor Function
 	*/
 	~AampCacheHandler();
-
-public:
-
-	/**
-	 * @brief Create Singleton Instance of AampCacheHandler
-	 */
-	static AampCacheHandler * GetInstance();
 
 	/**
 	 *	 @brief Start playlist caching
@@ -123,7 +140,7 @@ public:
      *
 	 *   @return void
 	 */
-	void InsertToPlaylistCache(const std::string url, const GrowableBuffer* buffer, const char* effectiveUrl,bool trackLiveStatus,MediaType fileType=eMEDIATYPE_DEFAULT);
+	void InsertToPlaylistCache(const std::string url, const GrowableBuffer* buffer, std::string effectiveUrl,bool trackLiveStatus,MediaType fileType=eMEDIATYPE_DEFAULT);
 
 	/**
 	 *   @brief Retrieve playlist from cache
@@ -133,7 +150,27 @@ public:
 	 *   @param[out] effectiveUrl - Final URL
 	 *   @return true: found, false: not found
 	 */
-	bool RetrieveFromPlaylistCache(const std::string url, GrowableBuffer* buffer, char effectiveUrl[]);
+	bool RetrieveFromPlaylistCache(const std::string url, GrowableBuffer* buffer, std::string& effectiveUrl);
+
+	/**
+	*   @brief SetMaxPlaylistCacheSize - Set Max Cache Size
+	*
+	*   @param[in] cacheSz- CacheSize
+	*   @return None
+	*/
+	void SetMaxPlaylistCacheSize(int);
+	/**
+	*   @brief GetMaxPlaylistCacheSize - Get present CacheSize
+	*
+	*   @return int - maxCacheSize
+	*/
+	int  GetMaxPlaylistCacheSize() { return mMaxPlaylistCacheSize; }
+	/**
+	*   @brief IsUrlCached - Check if URL is already cached
+	*
+	*   @return bool - true if file found, else false
+	*/
+	bool IsUrlCached(std::string);
 
 	// Copy constructor and Copy assignment disabled 
 	AampCacheHandler(const AampCacheHandler&) = delete;

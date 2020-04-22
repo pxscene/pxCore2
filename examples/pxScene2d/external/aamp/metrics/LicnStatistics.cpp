@@ -37,21 +37,26 @@ cJSON * CLicenseStatistics::ToJson() const
 {
 	cJSON *monitor = NULL;
 
-	if(mTotalRotations !=0 ||
-	   mTotalEncryptedToClear != 0 ||
-	   mTotalClearToEncrypted != 0 	)
+	if(mTotalEncryptedToClear > 0 ||
+	   mTotalClearToEncrypted > 0 	)
 	{
 		monitor = cJSON_CreateObject();
 		if(monitor)
 		{
-			cJSON * jsonObj =  cJSON_CreateNumber(mTotalRotations);
-			cJSON_AddItemToObject(monitor, TAG_TOTAL_ROTATIONS, jsonObj);
+			cJSON * jsonObj = NULL;// cJSON_CreateNumber(mTotalRotations);
+			//  Commenting TAG_TOTAL_ROTATIONS License rotation is not reliable as it represent metadata change which may happen even if there is no chnage in key
+			//cJSON_AddItemToObject(monitor, TAG_TOTAL_ROTATIONS, jsonObj);
+			if(mTotalEncryptedToClear > 0)
+			{
+				jsonObj =  cJSON_CreateNumber(mTotalEncryptedToClear);
+				cJSON_AddItemToObject(monitor, TAG_TOTAL_ENCRYPTED_TO_CLEAR, jsonObj);
+			}
 
-			jsonObj =  cJSON_CreateNumber(mTotalEncryptedToClear);
-			cJSON_AddItemToObject(monitor, TAG_TOTAL_ENCRYPTED_TO_CLEAR, jsonObj);
-
-			jsonObj =  cJSON_CreateNumber(mTotalClearToEncrypted);
-			cJSON_AddItemToObject(monitor, TAG_TOTAL_CLEAR_TO_ENCRYPTED, jsonObj);
+			if(mTotalClearToEncrypted > 0 )
+			{
+				jsonObj =  cJSON_CreateNumber(mTotalClearToEncrypted);
+				cJSON_AddItemToObject(monitor, TAG_TOTAL_CLEAR_TO_ENCRYPTED, jsonObj);
+			}
 
 		}
 	}

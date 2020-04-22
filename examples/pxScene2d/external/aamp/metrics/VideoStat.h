@@ -45,6 +45,8 @@ private:
 	int mAbrNetworkDropCount;
 	int mAbrErrorDropCount;
 	bool mbTsb;
+	int mDisplayWidth; // TV Display Width
+	int mDisplayHeight; // TV Display Height
 	
 	MapLicenceInfo mMapLicenseInfo;
 	MapStreamInfo mMapStreamInfo;
@@ -59,7 +61,7 @@ public:
 	 *   @return None
 	 */
 	CVideoStat() : mTmeToTopProfile(0), mTimeAtTopProfile(0),mTotalVideoDuration(0), mAbrNetworkDropCount(COUNT_NONE), mAbrErrorDropCount (COUNT_NONE),
-					mMapStreamInfo(),mMapLang(),mMapLicenseInfo(),mbTsb(false)
+					mMapStreamInfo(),mMapLang(),mMapLicenseInfo(),mbTsb(false),mDisplayWidth(0),mDisplayHeight(0)
 	{
 
 	}
@@ -188,6 +190,23 @@ public:
 	 */
 	void SetFailedFragmentUrl(VideoStatTrackType eType, long bitrate, std::string url);
 	
+	/**
+	 *   @brief Sets profile frame size
+	 *   @param[in]  Profile or track type
+	 *   @param[in]  int width
+	 *   @param[in]  int height
+	 *   @return None
+	 */
+	void SetProfileResolution(VideoStatTrackType eType, long bitrate, int width, int height);
+
+	/**
+	 *   @brief Sets Display frame size,
+	 *   @param[in]  int width
+	 *    @param[in]  int height
+	 *   @return None
+	 */
+	void SetDisplayResolution(int width, int height);
+
 	/**
 	 *   @brief sets Lang associated with Audio Tracks
 	 *
