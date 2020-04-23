@@ -50,7 +50,7 @@ var {promisify} = require('util')
 var Buffer = require('buffer').Buffer
 var cachedSource = {}
 
-var sandboxKeys = ["vm", "process", "setTimeout", "console", "clearTimeout", "setInterval", "clearInterval", "setImmediate", "clearImmediate", "sparkview", "sparkscene", "thunder", "sparkgles2", "beginDrawing", "endDrawing", "sparkwebgl", "sparkkeys", "sparkQueryParams", "require", "localStorage", "sparkHttp"]
+var sandboxKeys = ["vm", "process", "setTimeout", "console", "clearTimeout", "setInterval", "clearInterval", "setImmediate", "clearImmediate", "requestAnimationFrame", "sparkview", "sparkscene", "thunder", "sparkgles2", "beginDrawing", "endDrawing", "sparkwebgl", "sparkkeys", "sparkQueryParams", "require", "localStorage", "sparkHttp"]
 var __dirname = process.cwd()
 
 // Spark node-like module loader
@@ -177,6 +177,28 @@ var xxsetTimeout = function(f,t){
         }
       }.bind(this)
       }.bind(this)(), t)
+  this._timeouts.push(timeout)
+  return timeout
+}
+
+var xxrequestAnimationFrame = function(f){
+  var rest = Array.from(arguments).slice(2)
+  var timeout = _timers.setTimeout(function() {
+      return function() {
+        try {
+          this.global.beginDrawing();
+          f.apply(null,rest);
+          this.global.endDrawing();
+        } catch(e) {
+          console.log(e);
+          console.log("exception during draw in requestAnimationFrame !!");
+        }
+        var index = this._timeouts.indexOf(timeout)
+        if (index > -1) {
+          this._timeouts.splice(index,1)
+        }
+      }.bind(this)
+      }.bind(this)(), 32)
   this._timeouts.push(timeout)
   return timeout
 }
@@ -380,6 +402,7 @@ function LightningApp(params) {
   tmpGlobal.clearInterval = xxclearInterval.bind(this)
   tmpGlobal.setImmediate = xxsetImmediate.bind(this)
   tmpGlobal.clearImmediate = xxclearImmediate.bind(this)
+  tmpGlobal.requestAnimationFrame = xxrequestAnimationFrame.bind(this)
   tmpGlobal.sparkQueryParams = urlmain.parse(this.url, true).query;
   tmpGlobal.sparkHash = urlmain.parse(this.url, true).hash;
   tmpGlobal.thisIsTmpGlobal = true;

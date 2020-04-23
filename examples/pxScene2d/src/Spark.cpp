@@ -111,6 +111,8 @@ extern int pxObjectCount;
 extern pxFontAtlas gFontAtlas;
 #endif
 
+double gCollectionTime = 30.0;
+
 #ifdef HAS_LINUX_BREAKPAD
 static bool dumpCallback(const google_breakpad::MinidumpDescriptor& descriptor,
 void* context, bool succeeded) {
@@ -447,6 +449,7 @@ protected:
 
   virtual void onAnimationTimer()
   {
+    static double lastCollectionTime = pxSeconds();
     ENTERSCENELOCK()
     if (mView && !mClosed)
       mView->onUpdate(pxSeconds());
@@ -457,6 +460,12 @@ protected:
 #ifdef RUNINMAIN
     script.pump();
 #endif
+    double currentTime = pxSeconds();
+    if ((gCollectionTime > 0) && (currentTime - lastCollectionTime > gCollectionTime))
+    {
+      script.collectGarbage();
+      lastCollectionTime = currentTime;
+    }
   }
 
   int mWidth;
@@ -735,6 +744,8 @@ if (s && (strcmp(s,"1") == 0))
 
   int32_t windowWidth = rtGetEnvAsValue("PXSCENE_WINDOW_WIDTH","1280").toInt32();
   int32_t windowHeight = rtGetEnvAsValue("PXSCENE_WINDOW_HEIGHT","720").toInt32();
+
+  gCollectionTime = rtGetEnvAsValue("SPARK_COLLECTION_TIME","30").toDouble();
 
   rtValue screenWidth, screenHeight;
   if (RT_OK == rtSettings::instance()->value("screenWidth", screenWidth))

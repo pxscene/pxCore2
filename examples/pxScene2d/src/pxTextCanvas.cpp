@@ -524,6 +524,7 @@ rtError pxTextCanvas::paint(float x, float y, uint32_t color, bool translateOnly
         mDirty = false;
     }
 
+    glEnable( GL_SCISSOR_TEST );
     context.pushState();
     pxMatrix4f m;
     if (translateOnly)
