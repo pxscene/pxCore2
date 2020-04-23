@@ -697,6 +697,7 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   sparkGlCapabilities.set("animatedImages", 1);
   sparkGlCapabilities.set("optimus", 2);
   sparkGlCapabilities.set("bootstrap", 2);
+  sparkGlCapabilities.set("api", 1);
   mCapabilityVersions.set("sparkgl", sparkGlCapabilities);
 
   //////////////////////////////////////////////////////
