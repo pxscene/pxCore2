@@ -122,14 +122,23 @@ void pxVideo::initPlayback()
 			//Spark will render frames
 			cbExportFrames = std::bind(&pxVideo::updateYUVFrame, this, _1, _2, _3, _4);
 		}
+        #ifdef SPARK_SUPPORTS_AAMP_MEDIAPLAYER_MODE
 		mAamp = new PlayerInstanceAAMP(NULL
 	#ifndef ENABLE_SPARK_VIDEO_PUNCHTHROUGH //TODO: Remove this check, once the official builds contain the second argument to PlayerInstanceAAMP
 				, cbExportFrames
         #else
                                 , nullptr
 	#endif
+        
                                 , PLAYERMODE_MEDIAPLAYER
                               );
+        #else
+                mAamp = new PlayerInstanceAAMP(NULL
+        #ifndef ENABLE_SPARK_VIDEO_PUNCHTHROUGH //TODO: Remove this check, once the official builds contain the second argument to PlayerInstanceAAMP
+                                , cbExportFrames
+        #endif
+                              );
+        #endif //SPARK_SUPPORTS_AAMP_MEDIAPLAYER_MODE
 		assert (nullptr != mAamp);
                 if (mProxy.length() > 0)
                 {
