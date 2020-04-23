@@ -19,11 +19,13 @@ limitations under the License.
 #include "optimus_client.h"
 
 #include "rtRemote.h"
+#include <atomic>
 
 rtObjectRef gSceneContainer;
 rtObjectRef gTestObj;
 rtMutex rtRemoteOptimusMutex;
 int pendingRemoteItems = 0;
+std::atomic<bool> itemsAvailable(false);
 
 namespace OptimusClient
 {
@@ -33,15 +35,21 @@ namespace OptimusClient
     rtLogDebug("inside rtRemoteCallback");
     rtRemoteOptimusMutex.lock();
     pendingRemoteItems++;
+    itemsAvailable = true;
     rtRemoteOptimusMutex.unlock();
   }
 
   rtError pumpRemoteObjectQueue()
   {
+    if (!itemsAvailable)
+    {
+      return RT_OK;
+    }
     int numberOfItems = 0;
     rtRemoteOptimusMutex.lock();
     numberOfItems = pendingRemoteItems;
     pendingRemoteItems = 0;
+    itemsAvailable = false;
     rtRemoteOptimusMutex.unlock();
 
 
