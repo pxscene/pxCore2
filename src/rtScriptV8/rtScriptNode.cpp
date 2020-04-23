@@ -1226,12 +1226,12 @@ rtError rtScriptNode::pump()
       }
     }
 #ifdef RUNINMAIN
+    disposeGarbageCollectedObjs();
     gIsPumpingJavaScript = false;
   }
 #endif
 //#endif // RUNINMAIN
-  disposeGarbageCollectedObjs();
-  return RT_OK;
+   return RT_OK;
 }
 
 rtError rtScriptNode::collectGarbage()
