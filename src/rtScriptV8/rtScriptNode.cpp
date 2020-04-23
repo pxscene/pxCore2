@@ -1494,13 +1494,9 @@ void disposeGarbageCollectedObjs()
     size_t noelems = gcdObjs.size();
     for (size_t i=0; i<noelems; i++)
     {
-      size_t noelems = gcdObjs.size();
-      for (size_t i=0; i<noelems; i++)
-      {
-        gcdObjs[i].send("dispose");
-      }
-      gcdObjs.erase(gcdObjs.begin(), gcdObjs.begin()+noelems);
+      gcdObjs[i].send("dispose");
     }
+    gcdObjs.erase(gcdObjs.begin(), gcdObjs.begin()+noelems);
     gIsDisposingGCObjs = false;
   }
 }
