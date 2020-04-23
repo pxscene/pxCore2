@@ -708,9 +708,7 @@ rtError pxScene2d::dispose()
     mMouseEntered = NULL;
     rtObjectRef e = new rtMapObject;
     // pass false to make onClose asynchronous
-    printf("MADANA SENDING ONCLOSE \n"); fflush(stdout);
     mEmit.send("onClose", e);
-    printf("MADANA DONE ONCLOSE \n"); fflush(stdout);
     for (unsigned int i=0; i<mInnerpxObjects.size(); i++)
     {
       pxObject* temp = (pxObject *) (mInnerpxObjects[i].getPtr());
@@ -726,9 +724,7 @@ rtError pxScene2d::dispose()
     // send scene terminate after dispose to make sure, no cleanup can happen further on app side
     // after clearing the sandbox
     // pass false to make onSceneTerminate asynchronous
-    printf("MADANA SENDING ONSCENE TERM \n"); fflush(stdout);
     mEmit.send("onSceneTerminate", e);
-    printf("MADANA DONE ONSCENE TERM \n"); fflush(stdout);
     mEmit->clearListeners();
 
     mRoot     = NULL;
