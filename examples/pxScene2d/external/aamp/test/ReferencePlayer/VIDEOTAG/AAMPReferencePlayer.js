@@ -115,12 +115,16 @@ window.onload = function() {
             XREReceiver.onEvent("onClosedCaptions", { enable: true });
             ccStatus = true;
             document.getElementById("ccIcon").src = "../icons/closedCaptioning.png";
+            document.getElementById('ccContent').innerHTML = "CC Enabled";      
         } else {
             // CC OFF
             XREReceiver.onEvent("onClosedCaptions", { enable: false });
             ccStatus = false;
             document.getElementById("ccIcon").src = "../icons/closedCaptioningDisabled.png";
+            document.getElementById('ccContent').innerHTML = "CC Disabled";
         }
+        document.getElementById('ccModal').style.display = "block";
+        setTimeout(function(){  document.getElementById('ccModal').style.display = "none"; }, 2000);
     };
 
     function goToHome() {

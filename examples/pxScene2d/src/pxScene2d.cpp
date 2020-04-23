@@ -1695,7 +1695,7 @@ bool pxScene2d::onMouseDown(int32_t x, int32_t y, uint32_t flags)
     //    pt.x = x; pt.y = y;
     rtRef<pxObject> hit;
 
-    if (mRoot->hitTestInternal(m, pt, hit, hitPt))
+    if (mRoot && mRoot->hitTestInternal(m, pt, hit, hitPt))
     {
       mMouseDown = hit;
       // scene coordinates
@@ -1741,7 +1741,7 @@ bool pxScene2d::onMouseUp(int32_t x, int32_t y, uint32_t flags)
     mMouseDown = NULL;
 
     // TODO optimization... we really only need to check mMouseDown
-    if (mRoot->hitTestInternal(m, pt, hit, hitPt))
+    if (mRoot && mRoot->hitTestInternal(m, pt, hit, hitPt))
     {
       // Only send onMouseUp if this object got an onMouseDown -- WHY???
 //      if (tMouseDown == hit)
@@ -2115,7 +2115,7 @@ bool pxScene2d::onMouseMove(int32_t x, int32_t y)
   }
   else // Only send mouse leave/enter events if we're not dragging
   {
-    if (mRoot->hitTestInternal(m, pt, hit, hitPt))
+    if (mRoot && mRoot->hitTestInternal(m, pt, hit, hitPt))
     {
       // This probably won't stay ... we can probably send onMouseMove to the child scene level
       // rather than the object... we can send objects enter/leave events
@@ -2158,11 +2158,15 @@ bool pxScene2d::onMouseMove(int32_t x, int32_t y)
 
 void pxScene2d::updateMouseEntered()
 {
+  if (mDisposed)
+  {
+    return;
+  }
   #if 1
     pxMatrix4f m;
     pxPoint2f pt(static_cast<float>(mPointerX),static_cast<float>(mPointerY)), hitPt;
     rtRef<pxObject> hit;
-    if (mRoot->hitTestInternal(m, pt, hit, hitPt))
+    if (mRoot && mRoot->hitTestInternal(m, pt, hit, hitPt))
     {
       setMouseEntered(hit);
     }
@@ -2177,7 +2181,7 @@ bool pxScene2d::onDragMove(int32_t x, int32_t y, int32_t type)
   rtRef<pxObject> hit;
   pxPoint2f pt(static_cast<float>(x),static_cast<float>(y)), hitPt;
 
-  if (mRoot->hitTestInternal(m, pt, hit, hitPt))
+  if (mRoot && mRoot->hitTestInternal(m, pt, hit, hitPt))
   {
     mDragType = (pxConstantsDragType::constants) type;
 

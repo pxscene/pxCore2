@@ -9,6 +9,8 @@
 #include <string.h>
 #include <vector>
 #include <sys/utsname.h>
+#include <unistd.h>
+#include <sys/syscall.h>
 #include "priv_aamp.h"
 
 #include <sys/time.h>
@@ -101,7 +103,7 @@ void LogPerformanceExt(const char* strFunc, uint64_t msStart, uint64_t msEnd, SE
                stats[idx].nTimeTotal += stats[idx].nTimeInterval;
                double avgTime = (double)stats[idx].nTimeTotal/(double)stats[idx].nCallsTotal;
                if(avgTime >= DECRYPT_AVG_TIME_THRESHOLD) {
-                  logprintf("%s >>>>>>>> Thread ID %X (%d) Avg Time %0.2llf ms, Avg Bytes %llu  calls (%llu) Interval avg time %0.2llf, Interval avg bytes %llu\n",
+                  logprintf("%s >>>>>>>> Thread ID %X (%d) Avg Time %0.2llf ms, Avg Bytes %llu  calls (%llu) Interval avg time %0.2llf, Interval avg bytes %llu",
                      strFunc, stats[idx].threadID, idx, avgTime, stats[idx].nBytesTotal/stats[idx].nCallsTotal,
                      stats[idx].nCallsTotal, (double)stats[idx].nTimeInterval/(double)INTERVAL,
                      stats[idx].nBytesInterval/INTERVAL);
@@ -133,38 +135,37 @@ AAMPOCDMSession::AAMPOCDMSession(string& keySystem) :
 		m_keyLength(0),
 		m_keyId(NULL)
 {
-	logprintf("AAMPOCDMSession :: enter \n");
+	logprintf("AAMPOCDMSession :: enter ");
 	pthread_mutex_init(&decryptMutex, NULL);
 
 	initAampDRMSystem();
 
 	// Get output protection pointer
 	m_pOutputProtection = AampOutputProtection::GetAampOutputProcectionInstance();
-	logprintf("AAMPOCDMSession :: exit \n");
+	logprintf("AAMPOCDMSession :: exit ");
 }
 
 void AAMPOCDMSession::initAampDRMSystem()
 {
-	logprintf("initAampDRMSystem :: enter \n");
+	logprintf("initAampDRMSystem :: enter ");
 	pthread_mutex_lock(&decryptMutex);
 	if (m_pOpenCDMSystem == nullptr) {
+#ifdef USE_THUNDER_OCDM_API_0_2
+		m_pOpenCDMSystem = opencdm_create_system(m_keySystem.c_str());
+#else
 		m_pOpenCDMSystem = opencdm_create_system();
+#endif
 	}
 	pthread_mutex_unlock(&decryptMutex);
-	logprintf("initAampDRMSystem :: exit \n");
+	logprintf("initAampDRMSystem :: exit ");
 }
 
 AAMPOCDMSession::~AAMPOCDMSession()
 {
-	logprintf("[HHH]OCDMSession destructor called! keySystem %s\n", m_keySystem.c_str());
+	logprintf("[HHH]OCDMSession destructor called! keySystem %s", m_keySystem.c_str());
 	clearDecryptContext();
 
 	pthread_mutex_destroy(&decryptMutex);
-
-	if (m_pOpenCDMSession) {
-		opencdm_destruct_session(m_pOpenCDMSession);
-		m_pOpenCDMSession = NULL;
-	}
 
 	if (m_pOpenCDMSystem) {
 		opencdm_destruct_system(m_pOpenCDMSystem);
@@ -185,7 +186,7 @@ AAMPOCDMSession::~AAMPOCDMSession()
 void AAMPOCDMSession::generateAampDRMSession(const uint8_t *f_pbInitData,
 		uint32_t f_cbInitData)
 {
-	logprintf("generateAampDRMSession :: enter \n");
+	logprintf("generateAampDRMSession :: enter ");
 
 	pthread_mutex_lock(&decryptMutex);
 
@@ -198,13 +199,23 @@ void AAMPOCDMSession::generateAampDRMSession(const uint8_t *f_pbInitData,
 
 	m_OCDMSessionCallbacks.key_update_callback = [](OpenCDMSession* session, void* userData, const uint8_t key[], const uint8_t keySize) {
 		AAMPOCDMSession* userSession = reinterpret_cast<AAMPOCDMSession*>(userData);
-		userSession->keyUpdatedOCDM(key, keySize);
+		userSession->keyUpdateOCDM(key, keySize);
 	};
 
-	m_OCDMSessionCallbacks.message_callback = [](OpenCDMSession* session, void* userData, const char message[]) {
+	m_OCDMSessionCallbacks.error_message_callback = [](OpenCDMSession* session, void* userData, const char message[]) {
 	};
 
+	m_OCDMSessionCallbacks.keys_updated_callback = [](const OpenCDMSession* session, void* userData) {
+		AAMPOCDMSession* userSession = reinterpret_cast<AAMPOCDMSession*>(userData);
+		userSession->keysUpdatedOCDM();
+	};
+
+#ifdef USE_THUNDER_OCDM_API_0_2
+	opencdm_construct_session(m_pOpenCDMSystem, LicenseType::Temporary, "video/mp4",
+#else
 	opencdm_construct_session(m_pOpenCDMSystem, m_keySystem.c_str(), LicenseType::Temporary, "video/mp4",
+#endif
+
 				  const_cast<unsigned char*>(f_pbInitData), f_cbInitData,
 				  nullptr, 0, //No Custom Data
 				  &m_OCDMSessionCallbacks,
@@ -212,7 +223,6 @@ void AAMPOCDMSession::generateAampDRMSession(const uint8_t *f_pbInitData,
 				  &m_pOpenCDMSession);
 	if (!m_pOpenCDMSession) {
 		logprintf("Could not create session");
-		return;
 	}
 
 	pthread_mutex_unlock(&decryptMutex);
@@ -221,18 +231,22 @@ void AAMPOCDMSession::generateAampDRMSession(const uint8_t *f_pbInitData,
 void AAMPOCDMSession::processOCDMChallenge(const char destUrl[], const uint8_t challenge[], const uint16_t challengeSize) {
 
 	m_challenge.assign(reinterpret_cast<const char *>(challenge), challengeSize);
-	logprintf("processOCDMChallenge challenge = %s\n", m_challenge.c_str());
+	logprintf("processOCDMChallenge challenge = %s", m_challenge.c_str());
 
 	m_destUrl.assign(destUrl);
-	logprintf("processOCDMChallenge destUrl = %s\n", m_destUrl.c_str());
+	logprintf("processOCDMChallenge destUrl = %s", m_destUrl.c_str());
 
 	m_challengeReady.signal();
 }
 
-void AAMPOCDMSession::keyUpdatedOCDM(const uint8_t key[], const uint8_t keySize) {
+void AAMPOCDMSession::keyUpdateOCDM(const uint8_t key[], const uint8_t keySize) {
 	if (m_pOpenCDMSession) {
-		m_keyStatus = opencdm_session_status(m_pOpenCDMSession, nullptr, 0);
+		m_keyStatus = opencdm_session_status(m_pOpenCDMSession, key, keySize);
 	}
+  
+}
+
+void AAMPOCDMSession::keysUpdatedOCDM() {
 	m_keyStatusReady.signal();
 }
 
@@ -251,7 +265,7 @@ DrmData * AAMPOCDMSession::aampGenerateKeyRequest(string& destinationURL)
 
 			result = new DrmData(reinterpret_cast<unsigned char*>(const_cast<char*>(m_challenge.c_str())), m_challenge.length());
 			destinationURL.assign((m_destUrl.c_str()));
-			logprintf("destination url is %s\n", destinationURL.c_str());
+			logprintf("destination url is %s", destinationURL.c_str());
 			m_eKeyState = KEY_PENDING;
 		}
 	}
@@ -268,13 +282,79 @@ int AAMPOCDMSession::aampDRMProcessKey(DrmData* key)
 		if (m_keyStatusReady.wait(2000) == true) {
 			logprintf("Key Status updated");
 		}
-
+#ifdef USE_THUNDER_OCDM_API_0_2
+		if (m_keyStatus == Usable) {
+#else
 		if (m_keyStatus == KeyStatus::Usable) {
-			logprintf("processKey: Key Usable!\n");
+#endif
+			logprintf("processKey: Key Usable!");
 			m_eKeyState = KEY_READY;
 			retValue = 0;
-		} else {
-			logprintf("processKey: Update() returned keystatus: %d\n", (int) m_keyStatus);
+		}
+#ifdef USE_THUNDER_OCDM_API_0_2
+		else if(m_keyStatus == HWError)
+#else
+		else if(m_keyStatus == KeyStatus::HWError)
+#endif
+		{
+			// BCOM-3537 - SAGE Hang .. Need to restart the wpecdmi process and then self kill player to recover
+			AAMPLOG_WARN("processKey: Update() returned HWError.Restarting process...");
+			int systemResult = -1;
+			// In Release another process handles opencdm which needs to be restarts .In Sprint this process is not available.
+			// So check if process exists before killing it .
+			systemResult = system("pgrep WPEcdmi");
+			if(systemResult == 0)
+			{
+				systemResult = system("pkill -9 WPEcdmi");
+				if(systemResult != 0)
+				{
+					AAMPLOG_WARN("Unable to shutdown WPEcdmi process.%d", systemResult);
+				}
+			}
+			else
+			{
+				// check for WPEFramework process
+				systemResult = system("pgrep WPEFramework");
+				if(systemResult == 0)
+				{
+					systemResult = system("pkill -9 WPEFramework");
+					if(systemResult != 0)
+					{
+						AAMPLOG_WARN("Unable to shutdown WPEFramework process.%d", systemResult);
+					}
+				}
+			}
+
+			// wait for 5sec for all the logs to be flushed
+			sleep(5);
+			// Now kill self
+			pid_t pid = getpid();
+			syscall(__NR_tgkill, pid, pid, SIGKILL);
+		}
+		else {
+#ifdef USE_THUNDER_OCDM_API_0_2
+			if(m_keyStatus == OutputRestricted)
+#else
+			if(m_keyStatus == KeyStatus::OutputRestricted)
+#endif
+			{
+				AAMPLOG_WARN("processKey: Update() Output restricted keystatus: %d", (int) m_keyStatus);
+				retValue = HDCP_OUTPUT_PROTECTION_FAILURE;
+			}
+#ifdef USE_THUNDER_OCDM_API_0_2
+			else if(m_keyStatus == OutputRestrictedHDCP22)
+#else
+			else if(m_keyStatus == KeyStatus::OutputRestrictedHDCP22)
+#endif
+			{
+				AAMPLOG_WARN("processKey: Update() Output Compliance error keystatus: %d", (int) m_keyStatus);
+				retValue = HDCP_COMPLIANCE_CHECK_FAILURE;
+			}
+			else
+			{
+				AAMPLOG_WARN("processKey: Update() returned keystatus: %d", (int) m_keyStatus);
+				retValue = (int) m_keyStatus;
+			}
 			m_eKeyState = KEY_ERROR;
 		}
 	} else {
@@ -291,19 +371,52 @@ int AAMPOCDMSession::decrypt(GstBuffer* keyIDBuffer, GstBuffer* ivBuffer, GstBuf
 		uint64_t end_decrypt_time;
 
 		// Verify output protection parameters
-		if(m_pOutputProtection->IsSourceUHD()) {
-			// Source material is UHD
-			if(!m_pOutputProtection->isHDCPConnection2_2()) {
-				// UHD and not HDCP 2.2
-				logprintf("%s : UHD source but not HDCP 2.2. FAILING decrypt\n", __FUNCTION__);
-				return HDCP_AUTHENTICATION_FAILURE;
-			}
-		}
+        	// -----------------------------------
+        	// Widevine output protection is currently supported without any external configuration.
+        	// But the Playready output protection will be enabled based on 'enablePROutputProtection' flag which can be configured through RFC/aamp.cfg..
+        	if((m_keySystem == PLAYREADY_KEY_SYSTEM_STRING && gpGlobalConfig->enablePROutputProtection) && m_pOutputProtection->IsSourceUHD()) {
+                	// Source material is UHD
+                	if(!m_pOutputProtection->isHDCPConnection2_2()) {
+                        	// UHD and not HDCP 2.2
+                        	AAMPLOG_WARN("%s : UHD source but not HDCP 2.2. FAILING decrypt", __FUNCTION__);
+                        	return HDCP_COMPLIANCE_CHECK_FAILURE;
+                	}
+        	}
 
 		pthread_mutex_lock(&decryptMutex);
 		start_decrypt_time = GetCurrentTimeStampInMSec();
 		retValue = opencdm_gstreamer_session_decrypt(m_pOpenCDMSession, buffer, subSamplesBuffer, subSampleCount, ivBuffer, keyIDBuffer, 0);
 		end_decrypt_time = GetCurrentTimeStampInMSec();
+		if(retValue != 0)
+		{
+			GstMapInfo keyIDMap;
+			if (gst_buffer_map(keyIDBuffer, &keyIDMap, (GstMapFlags) GST_MAP_READ) == true) 
+			{
+        			uint8_t *mappedKeyID = reinterpret_cast<uint8_t* >(keyIDMap.data);
+        			uint32_t mappedKeyIDSize = static_cast<uint32_t >(keyIDMap.size);
+#ifdef USE_THUNDER_OCDM_API_0_2
+				KeyStatus keyStatus = opencdm_session_status(m_pOpenCDMSession, mappedKeyID,mappedKeyIDSize );
+#else
+				media::OpenCdm::KeyStatus keyStatus = opencdm_session_status(m_pOpenCDMSession, mappedKeyID,mappedKeyIDSize );
+#endif
+				AAMPLOG_INFO("AAMPOCDMSession:%s : decrypt returned : %d key status is : %d", __FUNCTION__, retValue,keyStatus);
+#ifdef USE_THUNDER_OCDM_API_0_2
+				if(keyStatus == OutputRestricted){
+#else
+				if(keyStatus == media::OpenCdm::KeyStatus::OutputRestricted){
+#endif
+					retValue =  HDCP_OUTPUT_PROTECTION_FAILURE;
+				}
+#ifdef USE_THUNDER_OCDM_API_0_2
+				else if(keyStatus == OutputRestrictedHDCP22){
+#else
+				else if(keyStatus == media::OpenCdm::KeyStatus::OutputRestrictedHDCP22){
+#endif
+					retValue =  HDCP_COMPLIANCE_CHECK_FAILURE;
+				}
+				gst_buffer_unmap(keyIDBuffer, &keyIDMap);
+			}
+		}
 		
 		GstMapInfo mapInfo;
         if (gst_buffer_map(buffer, &mapInfo, GST_MAP_READ)) {
@@ -325,12 +438,14 @@ KeyState AAMPOCDMSession::getState()
 
 void AAMPOCDMSession:: clearDecryptContext()
 {
-	logprintf("[HHH] clearDecryptContext.\n");
+	logprintf("[HHH] clearDecryptContext.");
 
 	pthread_mutex_lock(&decryptMutex);
 
 	if (m_pOpenCDMSession) {
 		opencdm_session_close(m_pOpenCDMSession);
+		opencdm_destruct_session(m_pOpenCDMSession);
+		m_pOpenCDMSession = NULL;
 	}
 
 	pthread_mutex_unlock(&decryptMutex);

@@ -83,6 +83,7 @@ AAMPJSEvent::AAMPJSEvent(const char *type, bool bubble, bool cancelable)
 
 }
 
+static JSClassRef AAMPJSEvent_class_ref();
 
 /**
  * @brief AAMPJSEvent Destructor
@@ -577,12 +578,21 @@ static const JSClassDefinition AAMPJSEvent_class_def =
  */
 JSObjectRef createNewAAMPJSEvent(JSGlobalContextRef ctx, const char *type, bool bubbles, bool cancelable)
 {
-        JSClassRef classDef = JSClassCreate(&AAMPJSEvent_object_def);
-        JSObjectRef eventObj = JSObjectMake(ctx, classDef, NULL);
-	JSClassRelease(classDef);
+        JSObjectRef eventObj = JSObjectMake(ctx, AAMPJSEvent_class_ref(), NULL);
 
 	AAMPJSEvent *eventPriv = (AAMPJSEvent *) JSObjectGetPrivate(eventObj);
 	eventPriv->initEvent(type, bubbles, cancelable);
 
 	return eventObj;
+}
+
+static JSClassRef AAMPJSEvent_class_ref()
+{
+        static JSClassRef classDef = NULL;
+        if (!classDef)
+        {
+                classDef = JSClassCreate(&AAMPJSEvent_object_def);
+        }
+
+        return classDef;
 }

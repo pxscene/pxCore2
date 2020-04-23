@@ -27,6 +27,7 @@
 
 #include <pthread.h>
 
+#ifdef IARM_MGR
 // IARM
 #include "manager.hpp"
 #include "host.hpp"
@@ -39,6 +40,14 @@
 #include "dsMgr.h"
 #include "dsDisplay.h"
 #include <iarmUtil.h>
+
+#else
+#include <stdint.h>
+typedef int dsHdcpProtocolVersion_t;
+#define dsHDCP_VERSION_MAX      30
+#define dsHDCP_VERSION_2X       22
+#define dsHDCP_VERSION_1X       14
+#endif // IARM_MGR
 
 #include <stdio.h>
 #include <gst/gst.h>
@@ -56,7 +65,6 @@
 #undef __out
 using namespace std;
 
-#define VIDEO_DECODER_NAME "brcmvideodecoder"
 #define UHD_WITDH   3840
 #define UHD_HEIGHT  2160
 
@@ -138,8 +146,6 @@ private:
 
     void SetResolution(int width, int height);
 
-    GstElement* FindElement(GstElement *element, const char* targetName);
-
 public:
 
     AampOutputProtection();
@@ -163,11 +169,13 @@ public:
                                               const DRM_VOID *data);
 #endif
 
+#ifdef IARM_MGR
     // IARM Callbacks
 
     static void HDMIEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
 
     static void ResolutionHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
+#endif //IARM_MGR
 
     // State functions
 
@@ -178,6 +186,13 @@ public:
     bool isHDCPConnection2_2() { return m_hdcpCurrentProtocol == dsHDCP_VERSION_2X; }
 
     bool IsSourceUHD();
+
+    /**
+     * @brief gets display resolution
+     * @param[out] int width : Display Width
+     * @param[out] int height : Display height
+     */
+    void GetDisplayResolution(int &width, int &height);
 
     /**
      * @brief Set GstElement

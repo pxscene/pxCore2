@@ -59,7 +59,7 @@ const DRM_WCHAR g_rgwchCDMDrmPath[] =
 		WCHAR_CAST('y'), WCHAR_CAST('r'), WCHAR_CAST('e'), WCHAR_CAST('a'),
 		WCHAR_CAST('d'), WCHAR_CAST('y'), WCHAR_CAST('\0') };
 
-const DRM_CONST_STRING g_dstrCDMDrmStoreName = CREATE_DRM_STRING(
+const DRM_CONST_STRING g_dstChainTitle = CREATE_DRM_STRING(
 		g_rgwchCDMDrmStoreName);
 const DRM_CONST_STRING g_dstrCDMDrmPath = CREATE_DRM_STRING(g_rgwchCDMDrmPath);
 const DRM_CONST_STRING *g_rgpdstrRights[1] =
@@ -82,7 +82,7 @@ DRM_API DRM_RESULT DRM_CALL DRM_UTL_ReadNetworkBytesToNativeGUID(
 		const DRM_BYTE *pbData, const DRM_DWORD cbData, DRM_DWORD ibGuidOffset,
 		DRM_GUID *pDrmGuid)
 {
-	DRM_RESULT dr = DRM_SUCCESS;
+	DRM_RESULT drm_res = DRM_SUCCESS;
 	DRM_DWORD dwResult = 0;
 
 	ChkArg(pbData != NULL);
@@ -104,16 +104,16 @@ DRM_API DRM_RESULT DRM_CALL DRM_UTL_ReadNetworkBytesToNativeGUID(
 	// Copy last 8 bytes.
 	DRM_BYT_CopyBytes(pDrmGuid->Data4, 0, pbData, ibGuidOffset, 8);
 
-	ErrorExit: return dr;
+	ErrorExit: return drm_res;
 }
 
 /**
  * @brief PlayReadyDRMSession Constructor
  */
 PlayReadyDRMSession::PlayReadyDRMSession() :
-		AampDrmSession(PLAYREADY_KEY_SYSTEM_STRING), m_poAppContext(NULL), m_pbOpaqueBuffer(NULL),
-		m_cbOpaqueBuffer(0), m_pbRevocationBuffer(NULL), m_eKeyState(KEY_INIT), m_fCommit(FALSE),
-		m_pbChallenge(NULL), m_cbChallenge(0), m_pchSilentURL(NULL), m_pbPRO(NULL), m_cbPRO(0)
+		AampDrmSession(PLAYREADY_KEY_SYSTEM_STRING), m_ptrAppContext(NULL), m_sbOpaBuf(NULL),
+		m_cbOpaBuf(0), m_sbRevocateBuf(NULL), m_eKeyState(KEY_INIT), m_fCommit(FALSE),
+		m_pbChallenge(NULL), m_cbChallenge(0), m_ptrDestURL(NULL), m_pbPRO(NULL), m_cbPRO(0)
 {
 	pthread_mutex_init(&decryptMutex,NULL);
 	initAampDRMSession();
@@ -130,19 +130,19 @@ PlayReadyDRMSession::PlayReadyDRMSession() :
 void PlayReadyDRMSession::initAampDRMSession()
 {
 
-	DRM_RESULT dr = DRM_SUCCESS;
-	DRM_ID oSessionID;
-	DRM_DWORD cchEncodedSessionID = SIZEOF(m_rgchSessionID);
+	DRM_RESULT drm_res = DRM_SUCCESS;
+	DRM_ID aampSessionId;
+	DRM_DWORD cchEncSesID = SIZEOF(m_rgchSesID);
 
 	char *envParseInitData = NULL;
 
 	ChkMem(
-			m_pbOpaqueBuffer = (DRM_BYTE *) Oem_MemAlloc(
+			m_sbOpaBuf = (DRM_BYTE *) Oem_MemAlloc(
 					MINIMUM_APPCONTEXT_OPAQUE_BUFFER_SIZE));
-	m_cbOpaqueBuffer = MINIMUM_APPCONTEXT_OPAQUE_BUFFER_SIZE;
+	m_cbOpaBuf = MINIMUM_APPCONTEXT_OPAQUE_BUFFER_SIZE;
 
 	ChkMem(
-			m_poAppContext = (DRM_APP_CONTEXT *) Oem_MemAlloc(
+			m_ptrAppContext = (DRM_APP_CONTEXT *) Oem_MemAlloc(
 					SIZEOF(DRM_APP_CONTEXT)));
 
 	g_dstrDrmPath = g_dstrCDMDrmPath;
@@ -154,44 +154,44 @@ void PlayReadyDRMSession::initAampDRMSession()
 
 	static pthread_mutex_t sessionMutex = PTHREAD_MUTEX_INITIALIZER;
 	pthread_mutex_lock(&sessionMutex);
-	dr = Drm_Initialize(m_poAppContext,
-	NULL, m_pbOpaqueBuffer, m_cbOpaqueBuffer, &g_dstrCDMDrmStoreName);
+	drm_res = Drm_Initialize(m_ptrAppContext,
+	NULL, m_sbOpaBuf, m_cbOpaBuf, &g_dstChainTitle);
 	pthread_mutex_unlock(&sessionMutex);
 
 #ifdef TRACE_LOG
-	logprintf("Printing initialization result : %08x \n", dr);
+	logprintf("Printing initialization result : %08x ", drm_res);
 #endif
 
-	ChkDR(dr);
+	ChkDR(drm_res);
 
 	if (DRM_REVOCATION_IsRevocationSupported())
 	{
 		ChkMem(
-				m_pbRevocationBuffer = (DRM_BYTE *) Oem_MemAlloc(
+				m_sbRevocateBuf = (DRM_BYTE *) Oem_MemAlloc(
 						REVOCATION_BUFFER_SIZE));
 
 		ChkDR(
-				Drm_Revocation_SetBuffer(m_poAppContext, m_pbRevocationBuffer,
+				Drm_Revocation_SetBuffer(m_ptrAppContext, m_sbRevocateBuf,
 						REVOCATION_BUFFER_SIZE));
 	}
 
 	// Generate a random media session ID.
 	ChkDR(
-			Oem_Random_GetBytes(NULL, (DRM_BYTE *) &oSessionID,
-					SIZEOF(oSessionID)));
+			Oem_Random_GetBytes(NULL, (DRM_BYTE *) &aampSessionId,
+					SIZEOF(aampSessionId)));
 
-	ZEROMEM(m_rgchSessionID, SIZEOF(m_rgchSessionID));
+	ZEROMEM(m_rgchSesID, SIZEOF(m_rgchSesID));
 	// Store the generated media session ID in base64 encoded form.
 	ChkDR(
-			DRM_B64_EncodeA((DRM_BYTE *) &oSessionID, SIZEOF(oSessionID),
-					m_rgchSessionID, &cchEncodedSessionID, 0));
+			DRM_B64_EncodeA((DRM_BYTE *) &aampSessionId, SIZEOF(aampSessionId),
+					m_rgchSesID, &cchEncSesID, 0));
 
-	logprintf("initAampDRMSession :: Playready initialized with session id : %s\n",m_rgchSessionID);
+	logprintf("initAampDRMSession :: Playready initialized with session id : %s",m_rgchSesID);
 	// The current state MUST be KEY_INIT otherwise error out.
 	ChkBOOL(m_eKeyState == KEY_INIT, DRM_E_INVALIDARG);
 	return;
 	ErrorExit:
-	logprintf("Playready initialization failed code : %08x \n", dr);
+	logprintf("Playready initialization failed code : %08x ", drm_res);
 	m_eKeyState = KEY_ERROR;
 }
 
@@ -204,7 +204,7 @@ void PlayReadyDRMSession::initAampDRMSession()
 void PlayReadyDRMSession::generateAampDRMSession(const uint8_t *f_pbInitData,
 		uint32_t f_cbInitData)
 {
-	DRM_RESULT dr = DRM_SUCCESS;
+	DRM_RESULT drm_res = DRM_SUCCESS;
 
 	if (f_pbInitData != NULL)
 	{
@@ -220,34 +220,34 @@ void PlayReadyDRMSession::generateAampDRMSession(const uint8_t *f_pbInitData,
 	{
 		if (gpGlobalConfig->logging.debug)
 		{
-			logprintf("PRO found in initdata!\n");
+			logprintf("PRO found in initdata!");
 		}
 		// If PRO is supplied (via init data) then it is used
 		// to create the content header inside of the app context.
-		dr = Drm_Content_SetProperty(m_poAppContext, DRM_CSP_AUTODETECT_HEADER,
+		drm_res = Drm_Content_SetProperty(m_ptrAppContext, DRM_CSP_AUTODETECT_HEADER,
 				m_pbPRO, m_cbPRO);
 	} else
 	{
 		if (gpGlobalConfig->logging.debug)
 		{
-			logprintf("PRO not found in initdata!\n");
+			logprintf("PRO not found in initdata!");
 		}
-		dr = Drm_Content_SetProperty(m_poAppContext, DRM_CSP_AUTODETECT_HEADER,
+		drm_res = Drm_Content_SetProperty(m_ptrAppContext, DRM_CSP_AUTODETECT_HEADER,
 				f_pbInitData, f_cbInitData);
 	}
 
 #ifdef TRACE_LOG
-	logprintf("initAampDRMSession :: Printing SetProperty result : %08x \n", dr);
+	logprintf("initAampDRMSession :: Printing SetProperty result : %08x ", drm_res);
 #endif
 
-	ChkDR(dr);
+	ChkDR(drm_res);
 
 	// The current state MUST be KEY_INIT otherwise error out.
 	ChkBOOL(m_eKeyState == KEY_INIT, DRM_E_INVALIDARG);
 	return;
 
 	ErrorExit:
-	logprintf("Playready init data binding failed : Error code : %08x \n",dr);
+	logprintf("Playready init data binding failed : Error code : %08x ",drm_res);
 	m_eKeyState = KEY_ERROR;
 }
 
@@ -259,17 +259,17 @@ PlayReadyDRMSession::~PlayReadyDRMSession()
 {
 	pthread_mutex_destroy(&decryptMutex);
 	SAFE_OEM_FREE(m_pbChallenge);
-	SAFE_OEM_FREE(m_pchSilentURL);
+	SAFE_OEM_FREE(m_ptrDestURL);
 	if(m_pbPRO != NULL)
 	{
 		SAFE_OEM_FREE(m_pbPRO);
 	}
 	m_pbPRO = NULL;
 	if (DRM_REVOCATION_IsRevocationSupported())
-		SAFE_OEM_FREE(m_pbRevocationBuffer);
+		SAFE_OEM_FREE(m_sbRevocateBuf);
 
-	SAFE_OEM_FREE(m_pbOpaqueBuffer);
-	SAFE_OEM_FREE(m_poAppContext);
+	SAFE_OEM_FREE(m_sbOpaBuf);
+	SAFE_OEM_FREE(m_ptrAppContext);
 	m_eKeyState = KEY_CLOSED;
 
 	if(m_pOutputProtection)
@@ -299,7 +299,7 @@ static DRM_ID PSSH_BOX_GUID =
 int PlayReadyDRMSession::_GetPROFromInitData(const DRM_BYTE *f_pbInitData,
 		DRM_DWORD f_cbInitData, DRM_DWORD *f_pibPRO, DRM_DWORD *f_pcbPRO)
 {
-	DRM_RESULT dr = DRM_SUCCESS;
+	DRM_RESULT drm_res = DRM_SUCCESS;
 	DRM_DWORD ibCur = 0;
 	DRM_DWORD cbSize = 0;
 	DRM_DWORD dwType = 0;
@@ -440,7 +440,7 @@ int PlayReadyDRMSession::_GetPROFromInitData(const DRM_BYTE *f_pbInitData,
 	*f_pibPRO = ibCur;
 	*f_pcbPRO = cbSystemSize;
 
-	ErrorExit: return dr;
+	ErrorExit: return drm_res;
 }
 
 /**
@@ -452,7 +452,7 @@ int PlayReadyDRMSession::_GetPROFromInitData(const DRM_BYTE *f_pbInitData,
 int PlayReadyDRMSession::_ParseInitData(const uint8_t *f_pbInitData,
 		uint32_t f_cbInitData)
 {
-	DRM_RESULT dr = DRM_SUCCESS;
+	DRM_RESULT drm_res = DRM_SUCCESS;
 	DRM_DWORD ibPRO = 0;
 	DRM_BYTE *pbPRO = NULL;
 	DRM_DWORD cbPRO = 0;
@@ -476,7 +476,7 @@ int PlayReadyDRMSession::_ParseInitData(const uint8_t *f_pbInitData,
 	m_pbPRO = pbPRO;
 
 	ErrorExit:
-	return dr;
+	return drm_res;
 }
 
 /**
@@ -489,32 +489,32 @@ DrmData * PlayReadyDRMSession::aampGenerateKeyRequest(string& destinationURL)
 {
 
 	DrmData * result = NULL;
-	DRM_RESULT dr = DRM_SUCCESS;
-	DRM_DWORD cchSilentURL = 0;
+	DRM_RESULT drm_res = DRM_SUCCESS;
+	DRM_DWORD cchDestURL = 0;
 	DRM_ANSI_STRING dastrCustomData = EMPTY_DRM_STRING;
 
 
 	// Try to figure out the size of the license acquisition
 	// challenge to be returned.
 	//cout << "aampGenerateKeyRequest :: going for playeady generate request" << endl;
-	dr = Drm_LicenseAcq_GenerateChallenge(m_poAppContext, g_rgpdstrRights,
+	drm_res = Drm_LicenseAcq_GenerateChallenge(m_ptrAppContext, g_rgpdstrRights,
 			sizeof(g_rgpdstrRights) / sizeof(DRM_CONST_STRING *),
 			NULL,
 			NULL,
 			0,
-			NULL, &cchSilentURL,
+			NULL, &cchDestURL,
 			NULL,
 			NULL,
 			NULL, &m_cbChallenge);
 
-	if (dr == DRM_E_BUFFERTOOSMALL)
+	if (drm_res == DRM_E_BUFFERTOOSMALL)
 	{
-		if (cchSilentURL > 0)
+		if (cchDestURL > 0)
 		{
 			ChkMem(
-					m_pchSilentURL = (DRM_CHAR *) Oem_MemAlloc(
-							cchSilentURL + 1));
-			ZEROMEM(m_pchSilentURL, cchSilentURL + 1);
+					m_ptrDestURL = (DRM_CHAR *) Oem_MemAlloc(
+							cchDestURL + 1));
+			ZEROMEM(m_ptrDestURL, cchDestURL + 1);
 		}
 
 		// Allocate buffer that is sufficient to store the license acquisition
@@ -522,37 +522,37 @@ DrmData * PlayReadyDRMSession::aampGenerateKeyRequest(string& destinationURL)
 		if (m_cbChallenge > 0)
 			ChkMem(m_pbChallenge = (DRM_BYTE *) Oem_MemAlloc(m_cbChallenge));
 
-		dr = DRM_SUCCESS;
+		drm_res = DRM_SUCCESS;
 	} else
 	{
-		ChkDR(dr);
+		ChkDR(drm_res);
 #ifdef TRACE_LOG
 		cout << "aampGenerateKeyRequest :: Playready challenge generated" << endl;
 #endif
 	}
 	// Supply a buffer to receive the license acquisition challenge.
 	ChkDR(
-			Drm_LicenseAcq_GenerateChallenge(m_poAppContext, g_rgpdstrRights,
+			Drm_LicenseAcq_GenerateChallenge(m_ptrAppContext, g_rgpdstrRights,
 					sizeof(g_rgpdstrRights) / sizeof(DRM_CONST_STRING *),
 					NULL,
 					NULL,
 					0,
-					m_pchSilentURL, &cchSilentURL,
+					m_ptrDestURL, &cchDestURL,
 					NULL,
 					NULL, m_pbChallenge, &m_cbChallenge));
 #ifdef TRACE_LOG
-	logprintf("aampGenerateKeyRequest :: Playready destination URL : %s \n\n", m_pchSilentURL);
+	logprintf("aampGenerateKeyRequest :: Playready destination URL : %s ", m_ptrDestURL);
 #endif
 	m_eKeyState = KEY_PENDING;
 
 	result = new DrmData(m_pbChallenge, m_cbChallenge);
-	destinationURL = static_cast<string>(m_pchSilentURL);
+	destinationURL = static_cast<string>(m_ptrDestURL);
 	return result;
 
 	ErrorExit:
-		if (DRM_FAILED(dr))
+		if (DRM_FAILED(drm_res))
 		{
-			logprintf("aampGenerateKeyRequest :: Playread DRM key request generation failed error code : %08x \n", dr);
+			logprintf("aampGenerateKeyRequest :: Playread DRM key request generation failed error code : %08x ", drm_res);
 			m_eKeyState = KEY_ERROR;
 		}
 	return NULL;
@@ -568,8 +568,8 @@ int PlayReadyDRMSession::aampDRMProcessKey(DrmData* key)
 #ifdef TRACE_LOG
 	cout << "aampDRMProcessKey :: Playready Update" << endl;
 #endif
-	DRM_RESULT dr = DRM_SUCCESS;
-	DRM_LICENSE_RESPONSE oLicenseResponse =
+	DRM_RESULT drm_res = DRM_SUCCESS;
+	DRM_LICENSE_RESPONSE oLicenseResp =
 	{ eUnknownProtocol, 0 };
 
 	//cout << "aampDRMProcessKey :: Playready key state check if pending" << endl;
@@ -581,33 +581,33 @@ int PlayReadyDRMSession::aampDRMProcessKey(DrmData* key)
 	ChkArg(key->getData() && key->getDataLength() > 0);
 
 	//cout << "PlayreadyProcessResponse" << endl;
-	dr = Drm_LicenseAcq_ProcessResponse(m_poAppContext,
+	drm_res = Drm_LicenseAcq_ProcessResponse(m_ptrAppContext,
 					DRM_PROCESS_LIC_RESPONSE_SIGNATURE_NOT_REQUIRED,
 					NULL,
 					NULL, const_cast<DRM_BYTE *>(key->getData()),
-					key->getDataLength(), &oLicenseResponse);
+					key->getDataLength(), &oLicenseResp);
 #ifdef TRACE_LOG
-	printf("aampDRMProcessKey :: Drm_LicenseAcq_ProcessResponse result : %08x \n", dr);
+	printf("aampDRMProcessKey :: Drm_LicenseAcq_ProcessResponse result : %08x ", drm_res);
 #endif
-	ChkDR(dr);
+	ChkDR(drm_res);
 
 
-	dr = Drm_Reader_Bind(m_poAppContext, g_rgpdstrRights,
+	drm_res = Drm_Reader_Bind(m_ptrAppContext, g_rgpdstrRights,
 					NO_OF(g_rgpdstrRights), m_pOutputProtection->PR_OP_Callback,
 					m_pOutputProtection->getPlayReadyLevels(), &m_oDecryptContext);
 #ifdef TRACE_LOG
-	logprintf("aampDRMProcessKey :: Printing bind result : %08x \n", dr);
+	logprintf("aampDRMProcessKey :: Printing bind result : %08x ", drm_res);
 #endif
-    ChkDR(dr);
+    ChkDR(drm_res);
 	m_eKeyState = KEY_READY;
 
-	logprintf("aampDRMProcessKey :: Key processed, now ready for content decryption\n");
+	logprintf("aampDRMProcessKey :: Key processed, now ready for content decryption");
 
 	return 1;
 
-	ErrorExit: if (DRM_FAILED(dr))
+	ErrorExit: if (DRM_FAILED(drm_res))
 	{
-		logprintf("aampDRMProcessKey :: Playready failed processing license response : error code : %08x \n", dr);
+		logprintf("aampDRMProcessKey :: Playready failed processing license response : error code : %08x ", drm_res);
 		m_eKeyState = KEY_ERROR;
 	}
 	return 0;
@@ -630,7 +630,7 @@ int PlayReadyDRMSession::decrypt(const uint8_t *f_pbIV, uint32_t f_cbIV,
 	int status = 1;
 	DRM_AES_COUNTER_MODE_CONTEXT oAESContext =
 	{ 0 };
-	DRM_RESULT dr = DRM_SUCCESS;
+	DRM_RESULT drm_res = DRM_SUCCESS;
     DRM_RESULT err = DRM_SUCCESS;
 #ifdef TRACE_LOG
 	cout << "PR decrypt :: Playready Decrypt invoked" << endl;
@@ -643,8 +643,8 @@ int PlayReadyDRMSession::decrypt(const uint8_t *f_pbIV, uint32_t f_cbIV,
         // Source material is UHD
         if(!m_pOutputProtection->isHDCPConnection2_2()) {
             // UHD and not HDCP 2.2
-            logprintf("%s : UHD source but not HDCP 2.2. FAILING decrypt\n", __FUNCTION__);
-            return HDCP_AUTHENTICATION_FAILURE;
+            logprintf("%s : UHD source but not HDCP 2.2. FAILING decrypt", __FUNCTION__);
+            return HDCP_COMPLIANCE_CHECK_FAILURE;
         }
     }
 
@@ -680,7 +680,7 @@ int PlayReadyDRMSession::decrypt(const uint8_t *f_pbIV, uint32_t f_cbIV,
         // Assign the opaque pointer from the decryptor.
         DRM_RESULT errHandle = OEM_HAL_OpaqueBufferGetDataHandle(hOpaqueBufferOut, ppOpaqueData);
         if (DRM_FAILED(errHandle)) {
-            logprintf("AampDRMSession::decrypt --> OEM_HAL_OpaqueBufferGetDataHandle FAILED errHandle = %X, opaqueData = %p\n",
+            logprintf("AampDRMSession::decrypt --> OEM_HAL_OpaqueBufferGetDataHandle FAILED errHandle = %X, opaqueData = %p",
                     errHandle, *ppOpaqueData);
         }
 
@@ -700,7 +700,7 @@ int PlayReadyDRMSession::decrypt(const uint8_t *f_pbIV, uint32_t f_cbIV,
 	// Call commit during the decryption of the first sample.
 	if (!m_fCommit)
 	{
-		ChkDR(Drm_Reader_Commit(m_poAppContext, m_pOutputProtection->PR_OP_Callback, m_pOutputProtection->getPlayReadyLevels() ));
+		ChkDR(Drm_Reader_Commit(m_ptrAppContext, m_pOutputProtection->PR_OP_Callback, m_pOutputProtection->getPlayReadyLevels() ));
 		m_fCommit = TRUE;
 	}
 	pthread_mutex_unlock(&decryptMutex);
@@ -714,7 +714,7 @@ int PlayReadyDRMSession::decrypt(const uint8_t *f_pbIV, uint32_t f_cbIV,
 
 	ErrorExit:
 		pthread_mutex_unlock(&decryptMutex);
-		logprintf("PR decrypt :: Play ready session : Decrypt Error\n");
+		logprintf("PR decrypt :: Play ready session : Decrypt Error");
 		return status;
 
 }
@@ -736,11 +736,11 @@ KeyState PlayReadyDRMSession::getState()
 void PlayReadyDRMSession:: clearDecryptContext()
 {
 	Drm_Reader_Close(&m_oDecryptContext);
-	Drm_Reinitialize(m_poAppContext);
+	Drm_Reinitialize(m_ptrAppContext);
 	SAFE_OEM_FREE(m_pbChallenge);
-	SAFE_OEM_FREE(m_pchSilentURL);
+	SAFE_OEM_FREE(m_ptrDestURL);
 	m_pbChallenge = NULL;
-	m_pchSilentURL = NULL;
+	m_ptrDestURL = NULL;
 	m_fCommit = false;
 	m_cbChallenge = 0;
 	if(m_pbPRO != NULL)

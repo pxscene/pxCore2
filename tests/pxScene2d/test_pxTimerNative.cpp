@@ -42,20 +42,19 @@ class pxTimerNativeTest : public testing::Test
         double opTime = 0.0;
         
         opTime = pxSeconds();
-        EXPECT_TRUE(opTime > 0);
+        EXPECT_GT(opTime, 0.0);
  
         opTime = pxMilliseconds();
-        EXPECT_TRUE(opTime > 0);
+        EXPECT_GT(opTime, 0.0);
         
         opTime = pxMicroseconds();
-        EXPECT_TRUE(opTime > 0);
+        EXPECT_GT(opTime, 0.0);
  
         startTime = pxSeconds();
         pxSleepMS(TEST_TIME * 1000);
         endTime = pxSeconds();
-        EXPECT_TRUE(fabs(TEST_TIME - (endTime - startTime)) <= 0.1);
+        EXPECT_LE(fabs(TEST_TIME - (endTime - startTime)), 0.5);
     }
-
 };
 
 TEST_F(pxTimerNativeTest, pxTimerNativeTestS)
