@@ -101,6 +101,14 @@ public:
   int getRampedDownProfileIndex(int currentProfileIndex);
 
   /**
+   * @brief Ramp up the profile one step to get the profile index of a upper bitrate.
+   *
+   * @param currentProfileIndex The current profile index
+   * @return the profile index of a upper bitrate (one step)
+   */
+  int getRampedUpProfileIndex(int currentProfileIndex);
+
+  /**
    * @brief Check if the bitrate of currentProfileIndex reaches to the lowest.
    *
    * @param currentProfileIndex The current profile index

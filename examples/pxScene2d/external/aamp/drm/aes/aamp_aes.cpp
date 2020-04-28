@@ -34,7 +34,7 @@
 
 #define AES_128_KEY_LEN_BYTES 16
 
-static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+static pthread_mutex_t instanceLock = PTHREAD_MUTEX_INITIALIZER;
 
 /**
  * @brief key acquistion thread
@@ -70,7 +70,7 @@ void AesDec::NotifyDRMError(AAMPTuneFailure drmFailure)
 		}
 	}
 	SignalDrmError();
-	logprintf("AesDec::NotifyDRMError: drmState:%d\n", mDrmState );
+	logprintf("AesDec::NotifyDRMError: drmState:%d", mDrmState );
 }
 
 
@@ -91,7 +91,7 @@ void AesDec::SignalDrmError()
  */
 void AesDec::SignalKeyAcquired()
 {
-	logprintf("aamp:AesDRMListener %s drmState:%d moving to KeyAcquired\n", __FUNCTION__, mDrmState);
+	logprintf("aamp:AesDRMListener %s drmState:%d moving to KeyAcquired", __FUNCTION__, mDrmState);
 	pthread_mutex_lock(&mMutex);
 	mDrmState = eDRM_KEY_ACQUIRED;
 	pthread_cond_broadcast(&mCond);
@@ -105,33 +105,33 @@ void AesDec::SignalKeyAcquired()
  */
 void AesDec::AcquireKey()
 {
-	char tempEffectiveUrl[MAX_URI_LENGTH];
+	std::string tempEffectiveUrl;
 	long http_error;
 	bool keyAcquisitionStatus = false;
 	AAMPTuneFailure failureReason = AAMP_TUNE_UNTRACKED_DRM_ERROR;
 
 	if (aamp_pthread_setname(pthread_self(), "aampAesKey"))
 	{
-		logprintf("%s:%d: pthread_setname_np failed\n", __FUNCTION__, __LINE__);
+		logprintf("%s:%d: pthread_setname_np failed", __FUNCTION__, __LINE__);
 	}
-	logprintf("%s:%d: Key acquisition start uri = %s\n", __FUNCTION__, __LINE__, mDrmInfo.uri);
+	logprintf("%s:%d: Key acquisition start uri = %s", __FUNCTION__, __LINE__, mDrmInfo.uri);
 	bool fetched = mpAamp->GetFile(mDrmInfo.uri, &mAesKeyBuf, tempEffectiveUrl, &http_error, NULL, mCurlInstance, true, eMEDIATYPE_LICENCE);
 	if (fetched)
 	{
 		if (AES_128_KEY_LEN_BYTES == mAesKeyBuf.len)
 		{
-			logprintf("%s:%d: Key fetch success len = %d\n", __FUNCTION__, __LINE__, (int)mAesKeyBuf.len);
+			logprintf("%s:%d: Key fetch success len = %d", __FUNCTION__, __LINE__, (int)mAesKeyBuf.len);
 			keyAcquisitionStatus = true;
 		}
 		else
 		{
-			logprintf("%s:%d: Error Key fetch - size %d\n", __FUNCTION__, __LINE__, (int)mAesKeyBuf.len);
+			logprintf("%s:%d: Error Key fetch - size %d", __FUNCTION__, __LINE__, (int)mAesKeyBuf.len);
 			failureReason = AAMP_TUNE_INVALID_DRM_KEY;
 		}
 	}
 	else
 	{
-		logprintf("%s:%d: Key fetch failed\n", __FUNCTION__, __LINE__);
+		logprintf("%s:%d: Key fetch failed", __FUNCTION__, __LINE__);
 		if (http_error == CURLE_OPERATION_TIMEDOUT)
 		{
 			failureReason = AAMP_TUNE_LICENCE_TIMEOUT;
@@ -204,7 +204,7 @@ DrmReturn AesDec::SetDecryptInfo( PrivateInstanceAAMP *aamp, const struct DrmInf
 	pthread_mutex_lock(&mMutex);
 	if (mDrmState == eDRM_ACQUIRING_KEY)
 	{
-		logprintf("AesDec::%s:%d acquiring key in progress\n",__FUNCTION__, __LINE__);
+		logprintf("AesDec::%s:%d acquiring key in progress",__FUNCTION__, __LINE__);
 		WaitForKeyAcquireCompleteUnlocked(20*1000, err);
 	}
 	mpAamp = aamp;
@@ -214,7 +214,7 @@ DrmReturn AesDec::SetDecryptInfo( PrivateInstanceAAMP *aamp, const struct DrmInf
 	{
 		if ((eDRM_KEY_ACQUIRED == mDrmState) && (0 == strcmp(mDrmUrl, drmInfo->uri)))
 		{
-			logprintf("AesDec::%s:%d same url:%s - not acquiring key\n",__FUNCTION__, __LINE__, mDrmUrl);
+			logprintf("AesDec::%s:%d same url:%s - not acquiring key",__FUNCTION__, __LINE__, mDrmUrl);
 			pthread_mutex_unlock(&mMutex);
 			return eDRM_SUCCESS;
 		}
@@ -225,8 +225,8 @@ DrmReturn AesDec::SetDecryptInfo( PrivateInstanceAAMP *aamp, const struct DrmInf
 	mPrevDrmState = eDRM_INITIALIZED;
 	if (-1 == mCurlInstance)
 	{
-		mCurlInstance = AAMP_TRACK_COUNT;
-		aamp->CurlInit(mCurlInstance, 1);
+		mCurlInstance = eCURLINSTANCE_AES;
+		aamp->CurlInit((AampCurlInstance)mCurlInstance,1,aamp->GetLicenseReqProxy());
 	}
 
 	if (licenseAcquisitionThreadStarted)
@@ -234,7 +234,7 @@ DrmReturn AesDec::SetDecryptInfo( PrivateInstanceAAMP *aamp, const struct DrmInf
 		int ret = pthread_join(licenseAcquisitionThreadId, NULL);
 		if (ret != 0)
 		{
-			logprintf("AesDec::%s:%d pthread_join failed for license acquisition thread: %d\n", __FUNCTION__, __LINE__, licenseAcquisitionThreadId);
+			logprintf("AesDec::%s:%d pthread_join failed for license acquisition thread: %d", __FUNCTION__, __LINE__, licenseAcquisitionThreadId);
 		}
 		licenseAcquisitionThreadStarted = false;
 	}
@@ -242,7 +242,7 @@ DrmReturn AesDec::SetDecryptInfo( PrivateInstanceAAMP *aamp, const struct DrmInf
 	int ret = pthread_create(&licenseAcquisitionThreadId, NULL, acquire_key, this);
 	if(ret != 0)
 	{
-		logprintf("AesDec::%s:%d pthread_create failed for acquire_key with errno = %d, %s\n", __FUNCTION__, __LINE__, errno, strerror(errno));
+		logprintf("AesDec::%s:%d pthread_create failed for acquire_key with errno = %d, %s", __FUNCTION__, __LINE__, errno, strerror(errno));
 		mDrmState = eDRM_KEY_FAILED;
 		licenseAcquisitionThreadStarted = false;
 	}
@@ -252,7 +252,7 @@ DrmReturn AesDec::SetDecryptInfo( PrivateInstanceAAMP *aamp, const struct DrmInf
 		licenseAcquisitionThreadStarted = true;
 	}
 	pthread_mutex_unlock(&mMutex);
-	AAMPLOG_INFO("AesDec::%s:%d drmState:%d \n",__FUNCTION__, __LINE__, mDrmState);
+	AAMPLOG_INFO("AesDec::%s:%d drmState:%d ",__FUNCTION__, __LINE__, mDrmState);
 	return err;
 }
 
@@ -265,7 +265,7 @@ void AesDec::WaitForKeyAcquireCompleteUnlocked(int timeInMs, DrmReturn &err )
 {
 	struct timespec ts;
 	struct timeval tv;
-	AAMPLOG_INFO( "aamp:waiting for key acquisition to complete,wait time:%d\n",timeInMs );
+	AAMPLOG_INFO( "aamp:waiting for key acquisition to complete,wait time:%d",timeInMs );
 	gettimeofday(&tv, NULL);
 	ts.tv_sec = time(NULL) + timeInMs / 1000;
 	ts.tv_nsec = (long)(tv.tv_usec * 1000 + 1000 * 1000 * (timeInMs % 1000));
@@ -274,7 +274,7 @@ void AesDec::WaitForKeyAcquireCompleteUnlocked(int timeInMs, DrmReturn &err )
 
 	if(0 != pthread_cond_timedwait(&mCond, &mMutex, &ts)) // block until drm ready
 	{
-		logprintf("AesDec::%s:%d wait for key acquisition timed out\n", __FUNCTION__, __LINE__);
+		logprintf("AesDec::%s:%d wait for key acquisition timed out", __FUNCTION__, __LINE__);
 		err = eDRM_KEY_ACQUSITION_TIMEOUT;
 	}
 }
@@ -298,7 +298,7 @@ DrmReturn AesDec::Decrypt( ProfilerBucketType bucketType, void *encryptedDataPtr
 	}
 	if (mDrmState == eDRM_KEY_ACQUIRED)
 	{
-		AAMPLOG_INFO("AesDec::%s:%d Starting decrypt\n", __FUNCTION__, __LINE__);
+		AAMPLOG_INFO("AesDec::%s:%d Starting decrypt", __FUNCTION__, __LINE__);
 		unsigned char *decryptedDataBuf = (unsigned char *)malloc(encryptedDataLen);
 		int decryptedDataLen = 0;
 		if (decryptedDataBuf)
@@ -308,29 +308,29 @@ DrmReturn AesDec::Decrypt( ProfilerBucketType bucketType, void *encryptedDataPtr
 			mpAamp->LogDrmDecryptBegin(bucketType);
 			if(!EVP_DecryptInit_ex(&mOpensslCtx, EVP_aes_128_cbc(), NULL, (unsigned char*)mAesKeyBuf.ptr, mDrmInfo.iv))
 			{
-				logprintf( "AesDec::%s:%d: EVP_DecryptInit_ex failed mDrmState = %d\n",  __FUNCTION__, __LINE__, (int)mDrmState);
+				logprintf( "AesDec::%s:%d: EVP_DecryptInit_ex failed mDrmState = %d",  __FUNCTION__, __LINE__, (int)mDrmState);
 			}
 			else
 			{
 				if (!EVP_DecryptUpdate(&mOpensslCtx, decryptedDataBuf, &decLen, (const unsigned char*) encryptedDataPtr,
 				        encryptedDataLen))
 				{
-					logprintf("AesDec::%s:%d: EVP_DecryptUpdate failed mDrmState = %d\n", __FUNCTION__, __LINE__, (int) mDrmState);
+					logprintf("AesDec::%s:%d: EVP_DecryptUpdate failed mDrmState = %d", __FUNCTION__, __LINE__, (int) mDrmState);
 				}
 				else
 				{
 					decryptedDataLen = decLen;
 					decLen = 0;
-					AAMPLOG_INFO("AesDec::%s:%d: EVP_DecryptUpdate success decryptedDataLen = %d encryptedDataLen %d\n", __FUNCTION__, __LINE__, (int) decryptedDataLen, (int)encryptedDataLen);
+					AAMPLOG_INFO("AesDec::%s:%d: EVP_DecryptUpdate success decryptedDataLen = %d encryptedDataLen %d", __FUNCTION__, __LINE__, (int) decryptedDataLen, (int)encryptedDataLen);
 					if (!EVP_DecryptFinal_ex(&mOpensslCtx, decryptedDataBuf + decryptedDataLen, &decLen))
 					{
-						logprintf("AesDec::%s:%d: EVP_DecryptFinal_ex failed mDrmState = %d\n", __FUNCTION__, __LINE__,
+						logprintf("AesDec::%s:%d: EVP_DecryptFinal_ex failed mDrmState = %d", __FUNCTION__, __LINE__,
 						        (int) mDrmState);
 					}
 					else
 					{
 						decryptedDataLen += decLen;
-						AAMPLOG_INFO("AesDec::%s:%d decrypt success\n", __FUNCTION__, __LINE__);
+						AAMPLOG_INFO("AesDec::%s:%d decrypt success", __FUNCTION__, __LINE__);
 						err = eDRM_SUCCESS;
 					}
 				}
@@ -343,7 +343,7 @@ DrmReturn AesDec::Decrypt( ProfilerBucketType bucketType, void *encryptedDataPtr
 	}
 	else
 	{
-		logprintf( "AesDec::%s:%d:key acquisition failure! mDrmState = %d\n",  __FUNCTION__, __LINE__, (int)mDrmState);
+		logprintf( "AesDec::%s:%d:key acquisition failure! mDrmState = %d",  __FUNCTION__, __LINE__, (int)mDrmState);
 	}
 	pthread_mutex_unlock(&mMutex);
 	return err;
@@ -368,7 +368,7 @@ void AesDec::Release()
 		int ret = pthread_join(licenseAcquisitionThreadId, NULL);
 		if (ret != 0)
 		{
-			logprintf("AesDec::%s:%d pthread_join failed for license acquisition thread: %d\n", __FUNCTION__, __LINE__, licenseAcquisitionThreadId);
+			logprintf("AesDec::%s:%d pthread_join failed for license acquisition thread: %d", __FUNCTION__, __LINE__, licenseAcquisitionThreadId);
 		}
 		licenseAcquisitionThreadStarted = false;
 	}
@@ -378,7 +378,7 @@ void AesDec::Release()
 		if (mpAamp)
 		{
 			mpAamp->SyncBegin();
-			mpAamp->CurlTerm(mCurlInstance, 1);
+			mpAamp->CurlTerm((AampCurlInstance)mCurlInstance);
 			mpAamp->SyncEnd();
 		}
 		mCurlInstance = -1;
@@ -428,12 +428,12 @@ std::shared_ptr<AesDec> AesDec::mInstance = nullptr;
  */
 std::shared_ptr<AesDec> AesDec::GetInstance()
 {
-	pthread_mutex_lock(&mutex);
+	pthread_mutex_lock(&instanceLock);
 	if (nullptr == mInstance)
 	{
 		mInstance = std::make_shared<AesDec>();
 	}
-	pthread_mutex_unlock(&mutex);
+	pthread_mutex_unlock(&instanceLock);
 	return mInstance;
 }
 

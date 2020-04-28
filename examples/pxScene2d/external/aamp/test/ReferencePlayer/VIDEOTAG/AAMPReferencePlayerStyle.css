@@ -23,6 +23,10 @@ body {
     color: white;
 }
 
+#playOrPauseButton {
+    margin-left: 17.2%;
+}
+
 #seekBar {
     padding:10px;
     height: 6px;
@@ -34,4 +38,13 @@ body {
 
 #fastForwardButton {
     opacity: 0.4;
+}
+
+#videoURLs {
+    margin-left: 26%;
+    width: 30%;
+}
+
+#logState {
+    margin-left: 59%;
 }

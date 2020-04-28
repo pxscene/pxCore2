@@ -121,10 +121,6 @@ class AAMPMediaPlayer {
         console.log("Invoked getSupportedKeySystems");
     }
 
-    setProtectionSchemeInterface(IProtectionSchemeInterface) {
-        console.log("Invoked setProtectionSchemeInterface");
-    }
-
     setVideoMute(enabled) {
         console.log("Invoked setVideoMute");
     }
@@ -133,16 +129,8 @@ class AAMPMediaPlayer {
         console.log("Invoked setSubscribedTags");
     }
 
-    getContentBreaks() {
-        console.log("Invoked getContentBreaks");
-    }
-
-    updateAlternateContent( CB_ID, arrContent) {
-        console.log("Invoked updateAlternateContent");
-    }
-
     addEventListener(name, handler) {
-        console.log("Invoked addEventListener");
+        console.log("Invoked addEventListener - " + name);
     }
 
     removeEventListener(name, handler) {
@@ -153,7 +141,7 @@ class AAMPMediaPlayer {
         console.log("Invoked setDRMConfig");
     }
 
-    addCustomHTTPHeader(headerName, headerValue) {
+    addCustomHTTPHeader(headerName, headerValue, isLicenseRequest = false) {
         console.log("Invoked addCustomHTTPHeader");
     }
 
@@ -168,18 +156,33 @@ class AAMPMediaPlayer {
     setVideoZoom(videoZoom) {
         console.log("Invoked setVideoZoom");
     }
+
+    getAvailableAudioTracks() {
+       console.log("Invoked getAvailableAudioTracks");
+    }
+
+    getAvailableTextTracks() {
+       console.log("Invoked getAvailableTextTracks");
+    }
+
+    getVideoRectangle() {
+       console.log("Invoked getVideoRectangle");
+    }
 };
 */
 // AAMP Player impl
 // AAMPMediaPlayer is defined and available in STB
-var playerStatesEnum = { "idle":0, "initializing":1, "playing":8, "paused":6, "seeking":7 };
+var playerStatesEnum = { "idle":0, "initializing":1, "initialized":2, "playing":8, "paused":6, "seeking":7 };
 Object.freeze(playerStatesEnum);
+
+var anomalySeverityEnum = { "error":0, "warning":1, "trace":2 };
+Object.freeze(anomalySeverityEnum);
 
 class AAMPPlayer {
 
-    constructor() {
+    constructor(appName) {
         //If you run into an error AAMPMediaPlayer is undefined with Chrome/Firefox/Safari please uncomment the above dummy impl
-        this.player = new AAMPMediaPlayer();
+        this.player = new AAMPMediaPlayer(appName);
         this.url = "";
     }
 
@@ -196,17 +199,17 @@ class AAMPPlayer {
     /**
      * URI of the Media being played by the Video Engine
      */
-    load(url) {
-		console.log("Url received: " + url);
+    load(url, foreground) {
+        console.log("Url received: " + url);
         this.url = url;
-        this.player.load(url);
+        this.player.load(url, foreground);
     }
 
     /**
      * IConfig Object with key value pair of launch configuration
      */
     initConfig(configObj) {
-        console.log("Inside initConfig: " + JSON.stringify(configObj));
+        console.log("Invoked initConfig with config: " + JSON.stringify(configObj));
         this.player.initConfig(configObj);
     }
 
@@ -217,6 +220,13 @@ class AAMPPlayer {
         this.player.play();
     }
 
+    /**
+     * Soft stop the player instance
+     */
+    detach() {
+        this.player.detach();
+    }
+    
     /**
      * Pauses playback
      */
@@ -348,6 +358,13 @@ class AAMPPlayer {
     }
 
     /**
+     * Sets the Audio Language
+     */
+    setAudioLanguage(language) {
+        this.player.setAudioLanguage(language);
+    }
+
+    /**
      * Gets the current playback rate
      */
     getPlaybackRate() {
@@ -369,13 +386,6 @@ class AAMPPlayer {
         return this.player.getSupportedKeySystems();
     }
 
-     /**
-     * Enables Player to specify the handle to the the IProtectionSchemeHandler
-     */
-    setProtectionSchemeInterface(IProtectionSchemeInterface) {
-        this.player.setProtectionSchemeInterface(IProtectionSchemeInterface);
-    }
-
     /**
      * Black out the video for parental controls
      */
@@ -391,26 +401,12 @@ class AAMPPlayer {
          this.player.setSubscribedTags(tagNames);
     }
 
-    /**
-     * Can be used by Player to get all the content break. Normally Video engine will raise an event for each content Break
-     * providing a ContentBreak Id that the Player can then provide array of content to be replaced on inserted.
-     */
-    getContentBreaks() {
-        return this.player.getContentBreaks();
-    }
-
-    /**
-     * Player calls this function inside event handling for upcoming content Break and provides an array of content to replace or insert.
-     */
-    updateAlternateContent(CB_ID, arrContent) {
-    }
-
     addEventListener(eventName, eventHandler) {
         return this.player.addEventListener(eventName, eventHandler, null);
     }
 
     removeEventListener(eventName, eventHandler) {
-        return this.player.addEventListener(eventName, eventHandler, null);
+        return this.player.removeEventListener(eventName, eventHandler, null);
     }
 
     /**
@@ -422,9 +418,10 @@ class AAMPPlayer {
 
     /**
      * Add custom headers to HTTP requests
+     * isLicenseRequest indicates if headers are for license requests
      */
-    addCustomHTTPHeader(headerName, headerValue) {
-        this.player.addCustomHTTPHeader(headerName, headerValue);
+    addCustomHTTPHeader(headerName, headerValue, isLicenseRequest = false) {
+        this.player.addCustomHTTPHeader(headerName, headerValue, isLicenseRequest);
     }
 
     /**
@@ -454,4 +451,33 @@ class AAMPPlayer {
     get version() {
         return this.player.version;
     }
+
+    /**
+     * Set Alternate Content
+     */
+    setAlternateContent(reservationObject, callback) {
+	this.player.setAlternateContent(reservationObject, callback);
+    }
+
+    /**
+     * Get available audio track info
+     */
+    getAvailableAudioTracks() {
+       return this.player.getAvailableAudioTracks();
+    }
+
+    /**
+     * Get available text track info
+     */
+    getAvailableTextTracks() {
+       return this.player.getAvailableTextTracks();
+    }
+
+    /**
+     * Get current video rectangle co-ordinates
+     */
+    getVideoRectangle() {
+       return this.player.getVideoRectangle();
+    }
+
 };

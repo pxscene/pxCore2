@@ -62,6 +62,8 @@ class CProfileInfo
 private:
 	CHTTPStatistics * mpManifestStat;
 	CFragmentStatistics * mpFragmentStat;
+	int mWidth; // Frame width
+	int mHeight; // Frame height
 public:
 
 	/**
@@ -71,7 +73,7 @@ public:
          *
 	 *   @return None
 	 */
-	CProfileInfo() : mpManifestStat(NULL),mpFragmentStat(NULL)
+	CProfileInfo() : mpManifestStat(NULL),mpFragmentStat(NULL),mWidth(0),mHeight(0)
 	{
 
 	}
@@ -173,6 +175,20 @@ public:
 			mpFragmentStat = new CFragmentStatistics();
 		}
 		return mpFragmentStat;
+	}
+
+	/**
+	 *   @brief Sets the profile frame size
+	 *
+	 *   @param[in]  width of profile
+	 *   @param[in]  Height of profile
+         *
+	 *   @return None
+	 */
+	void SetSize(int width, int height)
+	{
+		mWidth = width;
+		mHeight = height;
 	}
 
 	/**

@@ -22,9 +22,31 @@
  * @brief Fragment collector MPEG DASH declarations
  */
 
+#ifndef FRAGMENTCOLLECTOR_MPD_H_
+#define FRAGMENTCOLLECTOR_MPD_H_
+
 #include "StreamAbstractionAAMP.h"
 #include <string>
 #include <stdint.h>
+#include "libdash/IMPD.h"
+#include "libdash/INode.h"
+#include "libdash/IDASHManager.h"
+#include "libdash/xml/Node.h"
+#include "libdash/helpers/Time.h"
+#include "libdash/xml/DOMParser.h"
+#include <libxml/xmlreader.h>
+using namespace dash;
+using namespace std;
+using namespace dash::mpd;
+using namespace dash::xml;
+using namespace dash::helpers;
+#define MAX_MANIFEST_DOWNLOAD_RETRY_MPD 2
+
+/*Common MPD util functions*/
+uint64_t aamp_GetPeriodNewContentDuration(IPeriod * period, uint64_t &curEndNumber);
+uint64_t aamp_GetPeriodDuration(dash::mpd::IMPD *mpd, int periodIndex, uint64_t mpdDownloadTime = 0);
+Node* aamp_ProcessNode(xmlTextReaderPtr *reader, std::string url, bool isAd = false);
+uint64_t aamp_GetDurationFromRepresentation(dash::mpd::IMPD *mpd);
 
 /**
  * @class StreamAbstractionAAMP_MPD
@@ -48,8 +70,12 @@ public:
 	int GetBWIndex(long bitrate) override;
 	std::vector<long> GetVideoBitrates(void) override;
 	std::vector<long> GetAudioBitrates(void) override;
+	long GetMaxBitrate(void) override;
 	void StopInjection(void) override;
 	void StartInjection(void) override;
+	double GetBufferedDuration();
+	void SeekPosUpdate(double secondsRelativeToTuneTime) { };
+	void NotifyFirstVideoPTS(unsigned long long pts) { };
 	virtual void SetCDAIObject(CDAIObject *cdaiObj) override;
 
 protected:
@@ -58,27 +84,7 @@ private:
 	class PrivateStreamAbstractionMPD* mPriv;
 };
 
-/**
- * @class CDAIObjectMPD
- * @brief Client Side DAI object implementation for DASH
- */
-class CDAIObjectMPD: public CDAIObject
-{
-	class PrivateCDAIObjectMPD* mPrivObj;
-public:
-	CDAIObjectMPD(PrivateInstanceAAMP* aamp);
-	virtual ~CDAIObjectMPD();
-	CDAIObjectMPD(const CDAIObjectMPD&) = delete;
-	CDAIObjectMPD& operator= (const CDAIObjectMPD&) = delete;
-
-	PrivateCDAIObjectMPD* GetPrivateCDAIObjectMPD()
-	{
-		return mPrivObj;
-	}
-
-	virtual void SetAlternateContents(const std::string &periodId, const std::string &adId, const std::string &url, uint64_t startMS=0) override;
-};
-
+#endif //FRAGMENTCOLLECTOR_MPD_H_
 /**
  * @}
  */

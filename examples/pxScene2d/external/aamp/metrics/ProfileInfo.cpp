@@ -21,6 +21,8 @@
 
 #define TAG_MANIFEST_STAT	"ms"	// Manifest Stats
 #define TAG_FRAGMENT_STAT	"fs"	// Fragment Stats
+#define TAG_PROFILE_WDITH	"w"	// profile Width
+#define TAG_PROFILE_HEIGHT	"h"	// profile Height
 
 /**
  *   @brief  Converts class object data to Json object
@@ -50,6 +52,22 @@ cJSON * CProfileInfo::ToJson() const
 			if(jsonObj)
 			{
 				cJSON_AddItemToObject(monitor, TAG_FRAGMENT_STAT, jsonObj);
+			}
+		}
+
+		// Add width and height only if any stats are collected
+		if(jsonObj != NULL)
+		{
+			if(mWidth > 0)
+			{
+					jsonObj =  cJSON_CreateNumber(mWidth);
+					cJSON_AddItemToObject(monitor, TAG_PROFILE_WDITH, jsonObj);
+			}
+
+			if(mHeight > 0)
+			{
+					jsonObj =  cJSON_CreateNumber(mHeight);
+					cJSON_AddItemToObject(monitor, TAG_PROFILE_HEIGHT, jsonObj);
 			}
 		}
 

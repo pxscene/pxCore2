@@ -28,11 +28,75 @@
 #include "jseventlistener.h"
 #include <vector>
 
-#define AAMP_UNIFIED_VIDEO_ENGINE_VERSION "0.7"
+#define AAMP_UNIFIED_VIDEO_ENGINE_VERSION "1.0"
 
 extern "C"
 {
 	JS_EXPORT JSGlobalContextRef JSContextGetGlobalContext(JSContextRef);
+}
+
+static pthread_t tuneThreadId = NULL;
+static bool bTuneInProgress = false;
+
+/**
+ * @class AsyncTune
+ * @brief AsyncTune implementation for Ref-Player
+ */
+class AsyncTune
+{
+public:
+	/**
+	 * @brief AsyncTune Constructor
+         * @param[in] aamp instance of AAMP_JS
+         * @param[in] string-url - playback url
+	 */
+	AsyncTune(class PlayerInstanceAAMP* aamp, std::string url)
+			: _aamp(aamp)
+			, _url(url)
+	{
+		/* NOP */
+	}
+
+	/**
+	 * @brief AsyncTune Destructor
+	 */
+	virtual ~AsyncTune()
+	{
+		/* NOP */
+	}
+
+	/**
+	 * @brief AsyncTune Copy Constructor
+	 */
+	AsyncTune(const AsyncTune&) = delete;
+
+	/**
+	 * @brief AsyncTune Assignment operator overloading
+	 */
+	AsyncTune& operator=(const AsyncTune&) = delete;
+
+public:
+	class PlayerInstanceAAMP* _aamp;
+	std::string _url;
+};
+
+/**
+ * @brief Async Tune function.
+ * @param arg passed as parameter during the async tune
+ */
+static void* do_AsyncTune(void* arg)
+{
+	class AsyncTune* pAsyncTune = (class AsyncTune*)arg;
+	const char* szUrl = pAsyncTune->_url.c_str();
+
+	INFO("[AAMP_JS] %s() ASYNC_TUNE START url='%s'", __FUNCTION__, szUrl);
+
+	pAsyncTune->_aamp->Tune(szUrl);
+
+	INFO("[AAMP_JS] %s() ASYNC_TUNE FINISH url='%s'", __FUNCTION__, szUrl);
+	delete pAsyncTune;
+
+	return NULL;
 }
 
 /**
@@ -41,7 +105,93 @@ extern "C"
  */
 struct AAMPMediaPlayer_JS : public PrivAAMPStruct_JS
 {
+	/**
+	 * @brief Constructor of AAMPMediaPlayer_JS structure
+	 */
+	AAMPMediaPlayer_JS() : _promiseCallbacks()
+	{
+	}
+	AAMPMediaPlayer_JS(const AAMPMediaPlayer_JS&) = delete;
+	AAMPMediaPlayer_JS& operator=(const AAMPMediaPlayer_JS&) = delete;
+
 	static std::vector<AAMPMediaPlayer_JS *> _jsMediaPlayerInstances;
+	std::map<std::string, JSObjectRef> _promiseCallbacks;
+
+
+	/**
+	 * @brief Get promise callback for an ad id
+	 * @param[in] id ad id
+	 */
+	JSObjectRef getCallbackForAdId(std::string id) override
+	{
+		TRACELOG("Enter AAMPMediaPlayer_JS::%s()", __FUNCTION__);
+		std::map<std::string, JSObjectRef>::const_iterator it = _promiseCallbacks.find(id);
+		if (it != _promiseCallbacks.end())
+		{
+			TRACELOG("Exit AAMPMediaPlayer_JS::%s(), found cbObject", __FUNCTION__);
+			return it->second;
+		}
+		else
+		{
+			TRACELOG("Exit AAMPMediaPlayer_JS::%s(), didn't find cbObject", __FUNCTION__);
+			return NULL;
+		}
+	}
+
+
+	/**
+	 * @brief Get promise callback for an ad id
+	 * @param[in] id ad id
+	 */
+	void removeCallbackForAdId(std::string id) override
+	{
+		TRACELOG("Enter AAMPMediaPlayer_JS::%s()", __FUNCTION__);
+		std::map<std::string, JSObjectRef>::const_iterator it = _promiseCallbacks.find(id);
+		if (it != _promiseCallbacks.end())
+		{
+			JSValueUnprotect(_ctx, it->second);
+			_promiseCallbacks.erase(it);
+		}
+		TRACELOG("Exit AAMPMediaPlayer_JS::%s()", __FUNCTION__);
+	}
+
+
+	/**
+	 * @brief Save promise callback for an ad id
+	 * @param[in] id ad id
+	 * @param[in] cbObject promise callback object
+	 */
+	void saveCallbackForAdId(std::string id, JSObjectRef cbObject)
+	{
+		TRACELOG("Enter AAMPMediaPlayer_JS::%s()", __FUNCTION__);
+		JSObjectRef savedObject = getCallbackForAdId(id);
+		if (savedObject != NULL)
+		{
+			JSValueUnprotect(_ctx, savedObject); //remove already saved callback
+		}
+
+		JSValueProtect(_ctx, cbObject);
+		_promiseCallbacks[id] = cbObject;
+		TRACELOG("Exit AAMPMediaPlayer_JS::%s()", __FUNCTION__);
+	}
+
+
+	/**
+	 * @brief Clear all saved promise callbacks
+	 */
+	void clearCallbackForAllAdIds()
+	{
+		TRACELOG("Enter AAMPMediaPlayer_JS::%s()", __FUNCTION__);
+		if (!_promiseCallbacks.empty())
+		{
+			for (auto it = _promiseCallbacks.begin(); it != _promiseCallbacks.end(); )
+			{
+				JSValueUnprotect(_ctx, it->second);
+				it = _promiseCallbacks.erase(it);
+			}
+		}
+		TRACELOG("Exit AAMPMediaPlayer_JS::%s()", __FUNCTION__);
+	}
 };
 
 /**
@@ -61,11 +211,30 @@ enum ConfigParamType
 	ePARAM_AUDIOLANGUAGE,
 	ePARAM_TSBLENGTH,
 	ePARAM_DRMCONFIG,
+	ePARAM_STEREOONLY,
+	ePARAM_BULKTIMEDMETADATA,
 	ePARAM_LIVEOFFSET,
 	ePARAM_NETWORKPROXY,
 	ePARAM_LICENSEREQPROXY,
 	ePARAM_DOWNLOADSTALLTIMEOUT,
 	ePARAM_DOWNLOADSTARTTIMEOUT,
+	ePARAM_SUBTITLELANGUAGE,
+	ePARAM_MANIFESTTIMEOUT,
+	ePARAM_PLAYLISTTIMEOUT,
+	ePARAM_PARALLELPLAYLISTDL,
+	ePARAM_ASYNCTUNE,
+	ePARAM_USE_WESTEROS_SINK,
+	ePARAM_AVGBWFORABR,
+	ePARAM_PRECACHEPLAYLISTTIME,
+	ePARAM_PROGRESSREPORTINTERVAL,
+	ePARAM_PARALLELPLAYLISTREFRESH,
+	ePARAM_USE_NEWABR,
+	ePARAM_RAMPDOWN_LIMIT,
+	ePARAM_SEGMENTINJECTLIMIT,
+	ePARAM_DRMDECRYPTLIMIT,
+	ePARAM_USE_RETUNE_UNPARIED_DISCONTINUITY,
+	ePARAM_USE_NEW_ADBREAKER,
+	ePARAM_INIT_FRAGMENT_RETRY_COUNT,
 	ePARAM_MAX_COUNT
 };
 
@@ -90,17 +259,36 @@ static ConfigParamMap initialConfigParamNames[] =
 	{ ePARAM_PLAYBACKBUFFER, "playbackBuffer" },
 	{ ePARAM_PLAYBACKOFFSET, "offset" },
 	{ ePARAM_NETWORKTIMEOUT, "networkTimeout" },
+	{ ePARAM_MANIFESTTIMEOUT, "manifestTimeout" },
+	{ ePARAM_PLAYLISTTIMEOUT, "playlistTimeout" },
 	{ ePARAM_DOWNLOADBUFFER, "downloadBuffer" },
 	{ ePARAM_MINBITRATE, "minBitrate" },
 	{ ePARAM_MAXBITRATE, "maxBitrate" },
 	{ ePARAM_AUDIOLANGUAGE, "preferredAudioLanguage" },
 	{ ePARAM_TSBLENGTH, "timeShiftBufferLength" },
 	{ ePARAM_DRMCONFIG, "drmConfig" },
+	{ ePARAM_STEREOONLY, "stereoOnly" },
+	{ ePARAM_BULKTIMEDMETADATA, "bulkTimedMetadata" },
 	{ ePARAM_LIVEOFFSET, "liveOffset" },
 	{ ePARAM_NETWORKPROXY, "networkProxy" },
 	{ ePARAM_LICENSEREQPROXY, "licenseProxy" },
 	{ ePARAM_DOWNLOADSTALLTIMEOUT, "downloadStallTimeout" },
 	{ ePARAM_DOWNLOADSTARTTIMEOUT, "downloadStartTimeout" },
+	{ ePARAM_SUBTITLELANGUAGE, "preferredSubtitleLanguage" },
+	{ ePARAM_PARALLELPLAYLISTDL, "parallelPlaylistDownload" },
+	{ ePARAM_ASYNCTUNE, "asyncTune" },
+	{ ePARAM_USE_WESTEROS_SINK, "useWesterosSink" },
+	{ ePARAM_AVGBWFORABR, "useAverageBandwidth" },
+	{ ePARAM_PRECACHEPLAYLISTTIME, "preCachePlaylistTime" },
+	{ ePARAM_PROGRESSREPORTINTERVAL, "progressReportingInterval" },
+	{ ePARAM_PARALLELPLAYLISTREFRESH, "parallelPlaylistRefresh" },
+	{ ePARAM_USE_NEWABR, "useNewABR" },
+	{ ePARAM_RAMPDOWN_LIMIT, "fragmentRetryLimit" },
+	{ ePARAM_SEGMENTINJECTLIMIT, "segmentInjectFailThreshold" },
+	{ ePARAM_DRMDECRYPTLIMIT, "drmDecryptFailThreshold" },
+	{ ePARAM_USE_NEW_ADBREAKER, "useNewAdBreaker" },
+	{ ePARAM_USE_RETUNE_UNPARIED_DISCONTINUITY, "useRetuneForUnpairedDiscontinuity" },
+	{ ePARAM_INIT_FRAGMENT_RETRY_COUNT, "initFragmentRetryCount" },
 	{ ePARAM_MAX_COUNT, "" }
 };
 
@@ -198,6 +386,33 @@ bool ParseJSPropAsObject(JSContextRef ctx, JSObjectRef jsObject, const char *pro
 	return ret;
 }
 
+/**
+ * @brief Helper function to parse a JS property value as boolean
+ * @param[in] ctx JS execution context
+ * @param[in] jsObject JS object whose property has to be parsed
+ * @param[in] prop property name
+ * @param[out] value to store parsed value
+ * return true if value was parsed sucessfully, false otherwise
+ */
+bool ParseJSPropAsBoolean(JSContextRef ctx, JSObjectRef jsObject, const char *prop, bool &value)
+{
+       bool ret = false;
+       JSStringRef propName = JSStringCreateWithUTF8CString(prop);
+       JSValueRef propValue = JSObjectGetProperty(ctx, jsObject, propName, NULL);
+       if (JSValueIsBoolean(ctx, propValue))
+       {
+               value = JSValueToBoolean(ctx, propValue);
+               INFO("[AAMP_JS]: Parsed value for property %s - %d", prop, value);
+               ret = true;
+       }
+       else
+       {
+               TRACELOG("%s(): Invalid value for property - %s passed", __FUNCTION__, prop);
+       }
+
+       JSStringRelease(propName);
+       return ret;
+}
 
 /**
  * @brief API to release internal resources of an AAMPMediaPlayerJS object
@@ -207,15 +422,17 @@ void AAMPMediaPlayer_JS_release(AAMPMediaPlayer_JS *privObj)
 {
 	if (privObj != NULL)
 	{
-		ERROR("[%s] Deleting AAMPMediaPlayer_JS instance:%p \n", __FUNCTION__, privObj);
+		ERROR("[%s] Deleting AAMPMediaPlayer_JS instance:%p ", __FUNCTION__, privObj);
 		if (privObj->_aamp != NULL)
 		{
-			privObj->_aamp->Stop();
+			//when finalizing JS object, don't generate state change events
+			privObj->_aamp->Stop(false);
+			privObj->clearCallbackForAllAdIds();
 			if (privObj->_listeners.size() > 0)
 			{
 				AAMP_JSEventListener::RemoveAllEventListener(privObj);
 			}
-			ERROR("[%s] Deleting PlayerInstanceAAMP instance:%p\n", __FUNCTION__, privObj->_aamp);
+			ERROR("[%s] Deleting PlayerInstanceAAMP instance:%p", __FUNCTION__, privObj->_aamp);
 			delete privObj->_aamp;
 			privObj->_aamp = NULL;
 		}
@@ -240,6 +457,7 @@ void parseDRMConfiguration (JSContextRef ctx, AAMPMediaPlayer_JS* privObj, JSVal
 	{
 		char *prLicenseServerURL = NULL;
 		char *wvLicenseServerURL = NULL;
+		char *ckLicenseServerURL = NULL;
 		char *keySystem = NULL;
 		bool ret = false;
 		ret = ParseJSPropAsString(ctx, drmConfigObj, "com.microsoft.playready", prLicenseServerURL);
@@ -258,6 +476,15 @@ void parseDRMConfiguration (JSContextRef ctx, AAMPMediaPlayer_JS* privObj, JSVal
 			privObj->_aamp->SetLicenseServerURL(wvLicenseServerURL, eDRM_WideVine);
 
 			delete[] wvLicenseServerURL;
+		}
+
+		ret = ParseJSPropAsString(ctx, drmConfigObj, "org.w3.clearkey", ckLicenseServerURL);
+		if (ret)
+		{
+			ERROR("%s(): ClearKey License Server URL config param received - %s", __FUNCTION__, ckLicenseServerURL);
+			privObj->_aamp->SetLicenseServerURL(ckLicenseServerURL, eDRM_ClearKey);
+
+			delete[] ckLicenseServerURL;
 		}
 
 		ret = ParseJSPropAsString(ctx, drmConfigObj, "preferredKeysystem", keySystem);
@@ -307,18 +534,62 @@ JSValueRef AAMPMediaPlayerJS_load (JSContextRef ctx, JSObjectRef function, JSObj
 		*exception = aamp_GetException(ctx, AAMPJS_MISSING_OBJECT, "Can only call load() on instances of AAMPPlayer");
 		return JSValueMakeUndefined(ctx);
 	}
+	bool autoPlay = true;
+	char* url = NULL;
 
-	if (argumentCount == 1)
+	switch(argumentCount)
 	{
-		char* url = aamp_JSValueToCString(ctx, arguments[0], exception);
-		privObj->_aamp->Tune(url);
-		delete [] url;
+		case 2:
+			autoPlay = JSValueToBoolean(ctx, arguments[1]);
+		case 1:
+		{
+			url = aamp_JSValueToCString(ctx, arguments[0], exception);
+
+			if(privObj->_aamp->GetAsyncTuneConfig())	
+			{
+				if (bTuneInProgress)
+				{
+					void* status;
+					INFO("[AAMP_JS] %s() ASYNC_TUNE JOIN", __FUNCTION__);
+					pthread_join(tuneThreadId, &status);
+					bTuneInProgress = false;
+					tuneThreadId = NULL;
+				}
+
+				char* url = aamp_JSValueToCString(ctx, arguments[0], exception);
+				INFO("[AAMP_JS] %s() ASYNC_TUNE CREATE url='%s'", __FUNCTION__, url);
+
+				std::string urlString(url);
+				class AsyncTune* asyncTune = new AsyncTune(privObj->_aamp, urlString);
+				int err = pthread_create(&tuneThreadId, NULL, do_AsyncTune, asyncTune);
+				bTuneInProgress = (err == 0);
+				delete [] url;
+			}
+			else
+			{
+				if(bTuneInProgress && tuneThreadId != NULL)
+				{
+					// if previous tune was Async and next tune app changed the configuration
+					// safe to check and join the thread 
+					void* status;
+	                                INFO("[AAMP_JS] %s() ASYNC_TUNE JOIN", __FUNCTION__);
+	                                pthread_join(tuneThreadId, &status);
+	                                bTuneInProgress = false;
+	                                tuneThreadId = NULL;
+				}
+				char* url = aamp_JSValueToCString(ctx, arguments[0], exception);
+				privObj->_aamp->Tune(url,autoPlay);
+				delete [] url;
+			}
+		
+			break;
+		}
+
+		default:
+			ERROR("%s(): InvalidArgument - argumentCount=%d, expected: 1", __FUNCTION__, argumentCount);
+			*exception = aamp_GetException(ctx, AAMPJS_INVALID_ARGUMENT, "Failed to execute load() >= 1 argument required");
 	}
-	else
-	{
-		ERROR("%s(): InvalidArgument - argumentCount=%d, expected: 1", __FUNCTION__, argumentCount);
-		*exception = aamp_GetException(ctx, AAMPJS_INVALID_ARGUMENT, "Failed to execute load() - 1 argument required");
-	}
+
 	TRACELOG("Exit %s()", __FUNCTION__);
 	return JSValueMakeUndefined(ctx);
 }
@@ -349,6 +620,7 @@ JSValueRef AAMPMediaPlayerJS_initConfig (JSContextRef ctx, JSObjectRef function,
 	{
 		JSValueRef _exception = NULL;
 		bool ret = false;
+		bool valueAsBoolean = false;
 		double valueAsNumber = 0;
 		char *valueAsString = NULL;
 		JSValueRef valueAsObject = NULL;
@@ -373,6 +645,8 @@ JSValueRef AAMPMediaPlayerJS_initConfig (JSContextRef ctx, JSObjectRef function,
 			case ePARAM_PLAYBACKBUFFER:
 			case ePARAM_PLAYBACKOFFSET:
 			case ePARAM_NETWORKTIMEOUT:
+			case ePARAM_MANIFESTTIMEOUT:
+			case ePARAM_PLAYLISTTIMEOUT:
 			case ePARAM_DOWNLOADBUFFER:
 			case ePARAM_MINBITRATE:
 			case ePARAM_MAXBITRATE:
@@ -380,15 +654,36 @@ JSValueRef AAMPMediaPlayerJS_initConfig (JSContextRef ctx, JSObjectRef function,
 			case ePARAM_LIVEOFFSET:
 			case ePARAM_DOWNLOADSTALLTIMEOUT:
 			case ePARAM_DOWNLOADSTARTTIMEOUT:
+			case ePARAM_PRECACHEPLAYLISTTIME:
+			case ePARAM_PROGRESSREPORTINTERVAL:
+			case ePARAM_RAMPDOWN_LIMIT:
+			case ePARAM_SEGMENTINJECTLIMIT:
+			case ePARAM_DRMDECRYPTLIMIT:
+			case ePARAM_INIT_FRAGMENT_RETRY_COUNT:
 				ret = ParseJSPropAsNumber(ctx, initConfigObj, initialConfigParamNames[iter].paramName, valueAsNumber);
 				break;
 			case ePARAM_AUDIOLANGUAGE:
 			case ePARAM_NETWORKPROXY:
 			case ePARAM_LICENSEREQPROXY:
+			case ePARAM_SUBTITLELANGUAGE:
 				ret = ParseJSPropAsString(ctx, initConfigObj, initialConfigParamNames[iter].paramName, valueAsString);
 				break;
 			case ePARAM_DRMCONFIG:
 				ret = ParseJSPropAsObject(ctx, initConfigObj, initialConfigParamNames[iter].paramName, valueAsObject);
+				break;
+			case ePARAM_STEREOONLY:
+			case ePARAM_BULKTIMEDMETADATA:
+				ret = ParseJSPropAsBoolean(ctx, initConfigObj, initialConfigParamNames[iter].paramName, valueAsBoolean);
+                                break;
+			case ePARAM_ASYNCTUNE:
+			case ePARAM_PARALLELPLAYLISTDL:
+			case ePARAM_PARALLELPLAYLISTREFRESH:
+			case ePARAM_USE_WESTEROS_SINK:
+			case ePARAM_USE_NEWABR:
+			case ePARAM_USE_NEW_ADBREAKER:
+			case ePARAM_AVGBWFORABR:
+			case ePARAM_USE_RETUNE_UNPARIED_DISCONTINUITY:
+				ret = ParseJSPropAsBoolean(ctx, initConfigObj, initialConfigParamNames[iter].paramName, valueAsBoolean);
 				break;
 			default: //ePARAM_MAX_COUNT
 				ret = false;
@@ -409,17 +704,35 @@ JSValueRef AAMPMediaPlayerJS_initConfig (JSContextRef ctx, JSObjectRef function,
 					privObj->_aamp->Seek(valueAsNumber);
 					break;
 				case ePARAM_NETWORKTIMEOUT:
-					privObj->_aamp->SetNetworkTimeout((long) valueAsNumber);
+					privObj->_aamp->SetNetworkTimeout(valueAsNumber);
+					break;
+				case ePARAM_MANIFESTTIMEOUT:
+					privObj->_aamp->SetManifestTimeout(valueAsNumber);
+					break;
+				case ePARAM_PLAYLISTTIMEOUT:
+					privObj->_aamp->SetPlaylistTimeout(valueAsNumber);
+					break;
+				case ePARAM_PROGRESSREPORTINTERVAL:
+					privObj->_aamp->SetReportInterval((valueAsNumber*1000));
+					break;
+				case ePARAM_INIT_FRAGMENT_RETRY_COUNT:
+					privObj->_aamp->SetInitFragTimeoutRetryCount(valueAsNumber);
 					break;
 				case ePARAM_DOWNLOADBUFFER:
 					privObj->_aamp->SetDownloadBufferSize((int) valueAsNumber);
 					break;
 				case ePARAM_AUDIOLANGUAGE:
-					privObj->_aamp->SetLanguage(valueAsString);
+					privObj->_aamp->SetPreferredLanguages(valueAsString);
 					delete[] valueAsString;
 					break;
 				case ePARAM_DRMCONFIG:
 					parseDRMConfiguration(ctx, privObj, valueAsObject);
+					break;
+				case ePARAM_STEREOONLY:
+					privObj->_aamp->SetStereoOnlyPlayback(valueAsBoolean);
+					break;
+				case ePARAM_BULKTIMEDMETADATA:
+					privObj->_aamp->SetBulkTimedMetaReport(valueAsBoolean);
 					break;
 				case ePARAM_LIVEOFFSET:
 					privObj->_aamp->SetLiveOffset((int) valueAsNumber);
@@ -438,10 +751,54 @@ JSValueRef AAMPMediaPlayerJS_initConfig (JSContextRef ctx, JSObjectRef function,
 				case ePARAM_DOWNLOADSTARTTIMEOUT:
 					privObj->_aamp->SetDownloadStartTimeout((long) valueAsNumber);
 					break;
+				case ePARAM_SUBTITLELANGUAGE:
+					privObj->_aamp->SetPreferredSubtitleLanguage(valueAsString);
+					delete[] valueAsString;
+					break;
+				case ePARAM_PARALLELPLAYLISTDL:
+					privObj->_aamp->SetParallelPlaylistDL(valueAsBoolean);
+					break;
+				case ePARAM_PARALLELPLAYLISTREFRESH:
+					privObj->_aamp->SetParallelPlaylistRefresh(valueAsBoolean);
+					break;
+				case ePARAM_ASYNCTUNE:
+					privObj->_aamp->SetAsyncTuneConfig(valueAsBoolean);
+					break;
+				case ePARAM_USE_WESTEROS_SINK:
+					privObj->_aamp->SetWesterosSinkConfig(valueAsBoolean);
+					break;
+				case ePARAM_USE_NEWABR:
+					privObj->_aamp->SetNewABRConfig(valueAsBoolean);
+					break;
+				case ePARAM_USE_NEW_ADBREAKER:
+					privObj->_aamp->SetNewAdBreakerConfig(valueAsBoolean);
+					break;
+				case ePARAM_USE_RETUNE_UNPARIED_DISCONTINUITY:
+					privObj->_aamp->SetRetuneForUnpairedDiscontinuity(valueAsBoolean);
+					break;
+				case ePARAM_AVGBWFORABR:
+					privObj->_aamp->SetAvgBWForABR(valueAsBoolean);
+					break;
+				case ePARAM_PRECACHEPLAYLISTTIME:
+					privObj->_aamp->SetPreCacheTimeWindow((int) valueAsNumber);
+					break;					
 				case ePARAM_INITIALBUFFER:
 				case ePARAM_PLAYBACKBUFFER:
 				case ePARAM_MINBITRATE:
+					privObj->_aamp->SetMinimumBitrate((long) valueAsNumber);
+					break;
 				case ePARAM_MAXBITRATE:
+					privObj->_aamp->SetMaximumBitrate((long) valueAsNumber);
+					break;
+				case ePARAM_RAMPDOWN_LIMIT:
+					privObj->_aamp->SetRampDownLimit((int) valueAsNumber);
+					break;
+				case ePARAM_SEGMENTINJECTLIMIT:
+					privObj->_aamp->SetSegmentInjectFailCount((int) valueAsNumber);
+					break;
+				case ePARAM_DRMDECRYPTLIMIT:
+					privObj->_aamp->SetSegmentDecryptFailCount((int) valueAsNumber);
+					break;
 				case ePARAM_TSBLENGTH:
 					//TODO: Support these config params
 					break;
@@ -486,6 +843,32 @@ JSValueRef AAMPMediaPlayerJS_play (JSContextRef ctx, JSObjectRef function, JSObj
 	return JSValueMakeUndefined(ctx);
 }
 
+/**
+ * @brief API invoked from JS when executing AAMPMediaPlayer.detach()
+ * @param[in] ctx JS execution context
+ * @param[in] function JSObject that is the function being called
+ * @param[in] thisObject JSObject that is the 'this' variable in the function's scope
+ * @param[in] argumentCount number of args
+ * @param[in] arguments[] JSValue array of args
+ * @param[out] exception pointer to a JSValueRef in which to return an exception, if any
+ * @retval JSValue that is the function's return value
+ */
+JSValueRef AAMPMediaPlayerJS_detach (JSContextRef ctx, JSObjectRef function, JSObjectRef thisObject, size_t argumentCount, const JSValueRef arguments[], JSValueRef* exception)
+{
+	TRACELOG("Enter %s()", __FUNCTION__);
+	AAMPMediaPlayer_JS* privObj = (AAMPMediaPlayer_JS*)JSObjectGetPrivate(thisObject);
+	if (!privObj)
+	{
+		ERROR("%s(): Error - JSObjectGetPrivate returned NULL!", __FUNCTION__);
+		*exception = aamp_GetException(ctx, AAMPJS_MISSING_OBJECT, "Can only call play() on instances of AAMPPlayer");
+		return JSValueMakeUndefined(ctx);
+	}
+
+	privObj->_aamp->detach();
+
+	TRACELOG("Exit %s()", __FUNCTION__);
+	return JSValueMakeUndefined(ctx);
+}
 
 /**
  * @brief API invoked from JS when executing AAMPMediaPlayer.pause()
@@ -807,8 +1190,8 @@ JSValueRef AAMPMediaPlayerJS_setVideoBitrate (JSContextRef ctx, JSObjectRef func
 		}
 		else
 		{
-			ERROR("%s(): InvalidArgument - argument should be >= 0!", __FUNCTION__, argumentCount);
-			*exception = aamp_GetException(ctx, AAMPJS_INVALID_ARGUMENT, "Argument should be >= 0!");
+			ERROR("%s(): InvalidArgument - bitrate should be >= 0!", __FUNCTION__);
+			*exception = aamp_GetException(ctx, AAMPJS_INVALID_ARGUMENT, "Bitrate should be >= 0!");
 		}
 	}
 	TRACELOG("Exit %s()", __FUNCTION__);
@@ -876,8 +1259,8 @@ JSValueRef AAMPMediaPlayerJS_setAudioBitrate (JSContextRef ctx, JSObjectRef func
 		}
 		else
 		{
-			ERROR("%s(): InvalidArgument - argument should be >= 0!", __FUNCTION__, argumentCount);
-			*exception = aamp_GetException(ctx, AAMPJS_INVALID_ARGUMENT, "Argument should be >= 0!");
+			ERROR("%s(): InvalidArgument - bitrate should be >= 0!", __FUNCTION__);
+			*exception = aamp_GetException(ctx, AAMPJS_INVALID_ARGUMENT, "Bitrate should be >= 0!");
 		}
 	}
 	TRACELOG("Exit %s()", __FUNCTION__);
@@ -1062,8 +1445,8 @@ JSValueRef AAMPMediaPlayerJS_setVolume (JSContextRef ctx, JSObjectRef function, 
 		}
 		else
 		{
-			ERROR("%s(): InvalidArgument - argument should not be a negative number", __FUNCTION__, argumentCount);
-			*exception = aamp_GetException(ctx, AAMPJS_INVALID_ARGUMENT, "Argument should not be a negative number");
+			ERROR("%s(): InvalidArgument - volume should not be a negative number", __FUNCTION__);
+			*exception = aamp_GetException(ctx, AAMPJS_INVALID_ARGUMENT, "Volume should not be a negative number");
 		}
 	}
 	else
@@ -1075,6 +1458,41 @@ JSValueRef AAMPMediaPlayerJS_setVolume (JSContextRef ctx, JSObjectRef function, 
 	return JSValueMakeUndefined(ctx);
 }
 
+/**
+ * @brief API invoked from JS when executing AAMPMediaPlayer.setAudioLanguage()
+ * @param[in] ctx JS execution context
+ * @param[in] function JSObject that is the function being called
+ * @param[in] thisObject JSObject that is the 'this' variable in the function's scope
+ * @param[in] argumentCount number of args
+ * @param[in] arguments[] JSValue array of args
+ * @param[out] exception pointer to a JSValueRef in which to return an exception, if any
+ * @retval JSValue that is the function's return value
+ */
+JSValueRef AAMPMediaPlayerJS_setAudioLanguage (JSContextRef ctx, JSObjectRef function, JSObjectRef thisObject, size_t argumentCount, const JSValueRef arguments[], JSValueRef* exception)
+{
+	TRACELOG("Enter %s()", __FUNCTION__);
+	AAMPMediaPlayer_JS* privObj = (AAMPMediaPlayer_JS*)JSObjectGetPrivate(thisObject);
+	if (!privObj)
+	{
+		ERROR("%s(): Error - JSObjectGetPrivate returned NULL!", __FUNCTION__);
+		*exception = aamp_GetException(ctx, AAMPJS_MISSING_OBJECT, "Can only call setAudioLanguage() on instances of AAMPPlayer");
+		return JSValueMakeUndefined(ctx);
+	}
+
+	if (argumentCount == 1)
+	{
+		const char *lang = aamp_JSValueToCString(ctx, arguments[0], exception);
+		privObj->_aamp->SetLanguage(lang);
+		delete[] lang;
+	}
+	else
+	{
+		ERROR("%s(): InvalidArgument - argumentCount=%d, expected: 1", __FUNCTION__, argumentCount);
+		*exception = aamp_GetException(ctx, AAMPJS_INVALID_ARGUMENT, "Failed to execute setAudioLanguage() - 1 argument required");
+	}
+	TRACELOG("Exit %s()", __FUNCTION__);
+	return JSValueMakeUndefined(ctx);
+}
 
 /**
  * @brief API invoked from JS when executing AAMPMediaPlayer.getPlaybackRate()
@@ -1169,41 +1587,6 @@ JSValueRef AAMPMediaPlayerJS_getSupportedKeySystems (JSContextRef ctx, JSObjectR
 
 
 /**
- * @brief API invoked from JS when executing AAMPMediaPlayer.setProtectionSchemeInterface()
- * @param[in] ctx JS execution context
- * @param[in] function JSObject that is the function being called
- * @param[in] thisObject JSObject that is the 'this' variable in the function's scope
- * @param[in] argumentCount number of args
- * @param[in] arguments[] JSValue array of args
- * @param[out] exception pointer to a JSValueRef in which to return an exception, if any
- * @retval JSValue that is the function's return value
- */
-JSValueRef AAMPMediaPlayerJS_setProtectionSchemeInterface (JSContextRef ctx, JSObjectRef function, JSObjectRef thisObject, size_t argumentCount, const JSValueRef arguments[], JSValueRef* exception)
-{
-	TRACELOG("Enter %s()", __FUNCTION__);
-	AAMPMediaPlayer_JS* privObj = (AAMPMediaPlayer_JS*)JSObjectGetPrivate(thisObject);
-	if (!privObj)
-	{
-		ERROR("%s(): Error - JSObjectGetPrivate returned NULL!", __FUNCTION__);
-		*exception = aamp_GetException(ctx, AAMPJS_MISSING_OBJECT, "Can only call setProtectionSchemeInterface() on instances of AAMPPlayer");
-		return JSValueMakeUndefined(ctx);
-	}
-
-	if (argumentCount != 1)
-	{
-		ERROR("%s(): InvalidArgument - argumentCount=%d, expected: 1", __FUNCTION__, argumentCount);
-		*exception = aamp_GetException(ctx, AAMPJS_INVALID_ARGUMENT, "Failed to execute setProtectionSchemeInterface() - 1 argument required");
-	}
-	else
-	{
-		ERROR("%s(): Invoked setProtectionSchemeInterface", __FUNCTION__);
-	}
-	TRACELOG("Exit %s()", __FUNCTION__);
-	return JSValueMakeUndefined(ctx);
-}
-
-
-/**
  * @brief API invoked from JS when executing AAMPMediaPlayer.setVideoMute()
  * @param[in] ctx JS execution context
  * @param[in] function JSObject that is the function being called
@@ -1276,41 +1659,6 @@ JSValueRef AAMPMediaPlayerJS_setSubscribedTags (JSContextRef ctx, JSObjectRef fu
 		std::vector<std::string> subscribedTags = aamp_StringArrayToCStringArray(ctx, arguments[0]);
 		privObj->_aamp->SetSubscribedTags(subscribedTags);
 		ERROR("%s(): Invoked setSubscribedTags", __FUNCTION__);
-	}
-	TRACELOG("Exit %s()", __FUNCTION__);
-	return JSValueMakeUndefined(ctx);
-}
-
-
-/**
- * @brief API invoked from JS when executing AAMPMediaPlayer.updateAlternateContent()
- * @param[in] ctx JS execution context
- * @param[in] function JSObject that is the function being called
- * @param[in] thisObject JSObject that is the 'this' variable in the function's scope
- * @param[in] argumentCount number of args
- * @param[in] arguments[] JSValue array of args
- * @param[out] exception pointer to a JSValueRef in which to return an exception, if any
- * @retval JSValue that is the function's return value
- */
-JSValueRef AAMPMediaPlayerJS_updateAlternateContent (JSContextRef ctx, JSObjectRef function, JSObjectRef thisObject, size_t argumentCount, const JSValueRef arguments[], JSValueRef* exception)
-{
-	TRACELOG("Enter %s()", __FUNCTION__);
-	AAMPMediaPlayer_JS* privObj = (AAMPMediaPlayer_JS*)JSObjectGetPrivate(thisObject);
-	if (!privObj)
-	{
-		ERROR("%s(): Error - JSObjectGetPrivate returned NULL!", __FUNCTION__);
-		*exception = aamp_GetException(ctx, AAMPJS_MISSING_OBJECT, "Can only call updateAlternateContent() on instances of AAMPPlayer");
-		return JSValueMakeUndefined(ctx);
-	}
-
-	if (argumentCount != 1)
-	{
-		ERROR("%s(): InvalidArgument - argumentCount=%d, expected: 1", __FUNCTION__, argumentCount);
-		*exception = aamp_GetException(ctx, AAMPJS_INVALID_ARGUMENT, "Failed to execute updateAlternateContent() - 1 argument required");
-	}
-	else
-	{
-		ERROR("%s(): Invoked updateAlternateContent", __FUNCTION__);
 	}
 	TRACELOG("Exit %s()", __FUNCTION__);
 	return JSValueMakeUndefined(ctx);
@@ -1490,11 +1838,13 @@ JSValueRef AAMPMediaPlayerJS_addCustomHTTPHeader (JSContextRef ctx, JSObjectRef 
 		return JSValueMakeUndefined(ctx);
 	}
 
-	if (argumentCount == 2)
+	//optional parameter 3 for identifying if the header is for a license request
+	if (argumentCount == 2 || argumentCount == 3)
 	{
 		char *name = aamp_JSValueToCString(ctx, arguments[0], exception);
 		std::string headerName(name);
 		std::vector<std::string> headerVal;
+		bool isLicenseHeader = false;
 
 		delete[] name;
 
@@ -1513,12 +1863,16 @@ JSValueRef AAMPMediaPlayerJS_addCustomHTTPHeader (JSContextRef ctx, JSObjectRef 
 		// Don't support empty values now
 		if (headerVal.size() == 0)
 		{
-			ERROR("%s() InvalidArgument: Custom header's value is empty", __FUNCTION__, argumentCount);
+			ERROR("%s() InvalidArgument: Custom header's value is empty", __FUNCTION__);
 			*exception = aamp_GetException(ctx, AAMPJS_INVALID_ARGUMENT, "Failed to execute addCustomHTTPHeader() - 2nd argument should be a string or array of strings");
 			return JSValueMakeUndefined(ctx);
 		}
 
-		privObj->_aamp->AddCustomHTTPHeader(headerName, headerVal);
+		if (argumentCount == 3)
+		{
+			isLicenseHeader = JSValueToBoolean(ctx, arguments[2]);
+		}
+		privObj->_aamp->AddCustomHTTPHeader(headerName, headerVal, isLicenseHeader);
 	}
 	else
 	{
@@ -1674,12 +2028,289 @@ JSValueRef AAMPMediaPlayerJS_release (JSContextRef ctx, JSObjectRef function, JS
 
 
 /**
+ * @brief API invoked from JS when executing AAMPMediaPlayer.setAlternateContent()
+ * @param[in] ctx JS execution context
+ * @param[in] function JSObject that is the function being called
+ * @param[in] thisObject JSObject that is the 'this' variable in the function's scope
+ * @param[in] argumentCount number of args
+ * @param[in] arguments[] JSValue array of args
+ * @param[out] exception pointer to a JSValueRef in which to return an exception, if any
+ * @retval JSValue that is the function's return value
+ */
+static JSValueRef AAMPMediaPlayerJS_setAlternateContent(JSContextRef ctx, JSObjectRef function, JSObjectRef thisObject, size_t argumentCount, const JSValueRef arguments[], JSValueRef *exception)
+{
+	TRACELOG("Enter %s()", __FUNCTION__);
+	AAMPMediaPlayer_JS* privObj = (AAMPMediaPlayer_JS*)JSObjectGetPrivate(thisObject);
+	if(!privObj)
+	{
+		ERROR("%s(): Error - JSObjectGetPrivate returned NULL!", __FUNCTION__);
+		*exception = aamp_GetException(ctx, AAMPJS_MISSING_OBJECT, "Can only call setAlternateContent() on instances of AAMPPlayer");
+		return JSValueMakeUndefined(ctx);
+	}
+
+	if (argumentCount == 2)
+	{
+		/*
+		 * Parmater format
+		 * "reservationObject": object {
+		 *   "reservationId": "773701056",
+		 *    "reservationBehavior": number
+		 *    "placementRequest": {
+		 *      "id": string,
+		 *      "pts": number,
+		 *      "url": "",
+		 *    },
+		 * },
+		 * "promiseCallback": function
+		 */
+		char *reservationId = NULL;
+		int reservationBehavior = -1;
+		char *adId = NULL;
+		long adPTS = -1;
+		char *adURL = NULL;
+		if (JSValueIsObject(ctx, arguments[0]))
+		{
+			//Parse the ad object
+			JSObjectRef reservationObject = JSValueToObject(ctx, arguments[0], NULL);
+			if (reservationObject == NULL)
+			{
+				ERROR("%s() Unable to convert argument to JSObject", __FUNCTION__);
+				return JSValueMakeUndefined(ctx);
+			}
+			JSStringRef propName = JSStringCreateWithUTF8CString("reservationId");
+			JSValueRef propValue = JSObjectGetProperty(ctx, reservationObject, propName, NULL);
+			if (JSValueIsString(ctx, propValue))
+			{
+				reservationId = aamp_JSValueToCString(ctx, propValue, NULL);
+			}
+			JSStringRelease(propName);
+
+			propName = JSStringCreateWithUTF8CString("reservationBehavior");
+			propValue = JSObjectGetProperty(ctx, reservationObject, propName, NULL);
+			if (JSValueIsNumber(ctx, propValue))
+			{
+				reservationBehavior = JSValueToNumber(ctx, propValue, NULL);
+			}
+			JSStringRelease(propName);
+
+			propName = JSStringCreateWithUTF8CString("placementRequest");
+			propValue = JSObjectGetProperty(ctx, reservationObject, propName, NULL);
+			if (JSValueIsObject(ctx, propValue))
+			{
+				JSObjectRef adObject = JSValueToObject(ctx, propValue, NULL);
+
+				JSStringRef adPropName = JSStringCreateWithUTF8CString("id");
+				JSValueRef adPropValue = JSObjectGetProperty(ctx, adObject, adPropName, NULL);
+				if (JSValueIsString(ctx, adPropValue))
+				{
+					adId = aamp_JSValueToCString(ctx, adPropValue, NULL);
+				}
+				JSStringRelease(adPropName);
+
+				adPropName = JSStringCreateWithUTF8CString("pts");
+				adPropValue = JSObjectGetProperty(ctx, adObject, adPropName, NULL);
+				if (JSValueIsNumber(ctx, adPropValue))
+				{
+					adPTS = (long) JSValueToNumber(ctx, adPropValue, NULL);
+				}
+				JSStringRelease(adPropName);
+
+				adPropName = JSStringCreateWithUTF8CString("url");
+				adPropValue = JSObjectGetProperty(ctx, adObject, adPropName, NULL);
+				if (JSValueIsString(ctx, adPropValue))
+				{
+					adURL = aamp_JSValueToCString(ctx, adPropValue, NULL);
+				}
+				JSStringRelease(adPropName);
+			}
+			JSStringRelease(propName);
+		}
+
+		JSObjectRef callbackObj = JSValueToObject(ctx, arguments[1], NULL);
+
+		if (callbackObj != NULL && JSObjectIsFunction(ctx, callbackObj))
+		{
+			std::string adIdStr(adId);
+			std::string adBreakId(reservationId);
+			std::string url(adURL);
+
+			privObj->saveCallbackForAdId(adIdStr, callbackObj); //save callback for sending status later, if ad can be played or not
+
+			ERROR("%s() Calling privObj->_aamp->SetAlternateContents with promiseCallback:%p", __FUNCTION__, callbackObj);
+			privObj->_aamp->SetAlternateContents(adBreakId, adIdStr, url);
+		}
+		else
+		{
+			ERROR("%s() Unable to parse the promiseCallback argument", __FUNCTION__);
+		}
+		if (reservationId)
+		{
+			delete[] reservationId;
+		}
+		if (adURL)
+		{
+			delete[] adURL;
+		}
+		if (adId)
+		{
+			delete[] adId;
+		}
+	}
+	else
+	{
+		ERROR("%s(): InvalidArgument - argumentCount=%d, expected: 2", __FUNCTION__, argumentCount);
+		*exception = aamp_GetException(ctx, AAMPJS_INVALID_ARGUMENT, "Failed to execute setAlternateContent() - 2 argument required");
+	}
+	TRACELOG("Exit %s()", __FUNCTION__);
+	return JSValueMakeUndefined(ctx);
+}
+
+
+/**
+ * @brief API invoked from JS when executing AAMPMediaPlayer.notifyReservationCompletion()
+ * @param[in] ctx JS execution context
+ * @param[in] function JSObject that is the function being called
+ * @param[in] thisObject JSObject that is the 'this' variable in the function's scope
+ * @param[in] argumentCount number of args
+ * @param[in] arguments[] JSValue array of args
+ * @param[out] exception pointer to a JSValueRef in which to return an exception, if any
+ * @retval JSValue that is the function's return value
+ */
+static JSValueRef AAMPMediaPlayerJS_notifyReservationCompletion(JSContextRef ctx, JSObjectRef function, JSObjectRef thisObject, size_t argumentCount, const JSValueRef arguments[], JSValueRef *exception)
+{
+	TRACELOG("Enter %s()", __FUNCTION__);
+	AAMPMediaPlayer_JS* privObj = (AAMPMediaPlayer_JS*)JSObjectGetPrivate(thisObject);
+	if(!privObj)
+	{
+		ERROR("%s(): Error - JSObjectGetPrivate returned NULL!", __FUNCTION__);
+		*exception = aamp_GetException(ctx, AAMPJS_MISSING_OBJECT, "Can only call notifyReservationCompletion() on instances of AAMPPlayer");
+		return JSValueMakeUndefined(ctx);
+	}
+
+	if (argumentCount == 2)
+	{
+		const char * reservationId = aamp_JSValueToCString(ctx, arguments[0], exception);
+		long time = (long) JSValueToNumber(ctx, arguments[1], exception);
+		//Need an API in AAMP to notify that placements for this reservation are over and AAMP might have to trim
+		//the ads to the period duration or not depending on time param
+		ERROR("%s(): Called reservation close for periodId:%s and time:%ld", __FUNCTION__, reservationId, time);
+		delete[] reservationId;
+	}
+	else
+	{
+		ERROR("%s(): InvalidArgument - argumentCount=%d, expected: 2", __FUNCTION__, argumentCount);
+		*exception = aamp_GetException(ctx, AAMPJS_INVALID_ARGUMENT, "Failed to execute notifyReservationCompletion() - 2 argument required");
+	}
+	TRACELOG("Exit %s()", __FUNCTION__);
+	return JSValueMakeUndefined(ctx);
+}
+
+
+/**
+ * @brief API invoked from JS when executing AAMPMediaPlayer.getAvailableAudioTracks()
+ * @param[in] ctx JS execution context
+ * @param[in] function JSObject that is the function being called
+ * @param[in] thisObject JSObject that is the 'this' variable in the function's scope
+ * @param[in] argumentCount number of args
+ * @param[in] arguments[] JSValue array of args
+ * @param[out] exception pointer to a JSValueRef in which to return an exception, if any
+ * @retval JSValue that is the function's return value
+ */
+static JSValueRef AAMPMediaPlayerJS_getAvailableAudioTracks(JSContextRef ctx, JSObjectRef function, JSObjectRef thisObject, size_t argumentCount, const JSValueRef arguments[], JSValueRef *exception)
+{
+	TRACELOG("Enter %s()", __FUNCTION__);
+	AAMPMediaPlayer_JS* privObj = (AAMPMediaPlayer_JS*)JSObjectGetPrivate(thisObject);
+	if(!privObj)
+	{
+		ERROR("%s(): Error - JSObjectGetPrivate returned NULL!", __FUNCTION__);
+		*exception = aamp_GetException(ctx, AAMPJS_MISSING_OBJECT, "Can only call getAvailableAudioTracks() on instances of AAMPPlayer");
+		return JSValueMakeUndefined(ctx);
+	}
+
+	std::string tracks = privObj->_aamp->GetAvailableAudioTracks();
+	if (!tracks.empty())
+	{
+		TRACELOG("Exit %s()", __FUNCTION__);
+		return aamp_CStringToJSValue(ctx, tracks.c_str());
+	}
+	else
+	{
+		TRACELOG("Exit %s()", __FUNCTION__);
+		return JSValueMakeUndefined(ctx);
+	}
+}
+
+
+/**
+ * @brief API invoked from JS when executing AAMPMediaPlayer.getAvailableTextTracks()
+ * @param[in] ctx JS execution context
+ * @param[in] function JSObject that is the function being called
+ * @param[in] thisObject JSObject that is the 'this' variable in the function's scope
+ * @param[in] argumentCount number of args
+ * @param[in] arguments[] JSValue array of args
+ * @param[out] exception pointer to a JSValueRef in which to return an exception, if any
+ * @retval JSValue that is the function's return value
+ */
+static JSValueRef AAMPMediaPlayerJS_getAvailableTextTracks(JSContextRef ctx, JSObjectRef function, JSObjectRef thisObject, size_t argumentCount, const JSValueRef arguments[], JSValueRef *exception)
+{
+	TRACELOG("Enter %s()", __FUNCTION__);
+	AAMPMediaPlayer_JS* privObj = (AAMPMediaPlayer_JS*)JSObjectGetPrivate(thisObject);
+	if(!privObj)
+	{
+		ERROR("%s(): Error - JSObjectGetPrivate returned NULL!", __FUNCTION__);
+		*exception = aamp_GetException(ctx, AAMPJS_MISSING_OBJECT, "Can only call getAvailableTextTracks() on instances of AAMPPlayer");
+		return JSValueMakeUndefined(ctx);
+	}
+
+	std::string tracks = privObj->_aamp->GetAvailableTextTracks();
+	if (!tracks.empty())
+	{
+		TRACELOG("Exit %s()", __FUNCTION__);
+		return aamp_CStringToJSValue(ctx, tracks.c_str());
+	}
+	else
+	{
+		TRACELOG("Exit %s()", __FUNCTION__);
+		return JSValueMakeUndefined(ctx);
+	}
+}
+
+
+/**
+ * @brief API invoked from JS when executing AAMPMediaPlayer.getVideoRectangle()
+ * @param[in] ctx JS execution context
+ * @param[in] function JSObject that is the function being called
+ * @param[in] thisObject JSObject that is the 'this' variable in the function's scope
+ * @param[in] argumentCount number of args
+ * @param[in] arguments[] JSValue array of args
+ * @param[out] exception pointer to a JSValueRef in which to return an exception, if any
+ * @retval JSValue that is the function's return value
+ */
+static JSValueRef AAMPMediaPlayerJS_getVideoRectangle(JSContextRef ctx, JSObjectRef function, JSObjectRef thisObject, size_t argumentCount, const JSValueRef arguments[], JSValueRef *exception)
+{
+	TRACELOG("Enter %s()", __FUNCTION__);
+	AAMPMediaPlayer_JS* privObj = (AAMPMediaPlayer_JS*)JSObjectGetPrivate(thisObject);
+	if(!privObj)
+	{
+		ERROR("%s(): Error - JSObjectGetPrivate returned NULL!", __FUNCTION__);
+		*exception = aamp_GetException(ctx, AAMPJS_MISSING_OBJECT, "Can only call getVideoRectangle() on instances of AAMPPlayer");
+		return JSValueMakeUndefined(ctx);
+	}
+	TRACELOG("Exit %s()", __FUNCTION__);
+	return aamp_CStringToJSValue(ctx, privObj->_aamp->GetVideoRectangle().c_str());
+}
+
+
+
+
+/**
  * @brief Array containing the AAMPMediaPlayer's statically declared functions
  */
 static const JSStaticFunction AAMPMediaPlayer_JS_static_functions[] = {
 	{ "load", AAMPMediaPlayerJS_load, kJSPropertyAttributeDontDelete | kJSPropertyAttributeReadOnly},
 	{ "initConfig", AAMPMediaPlayerJS_initConfig, kJSPropertyAttributeDontDelete | kJSPropertyAttributeReadOnly},
 	{ "play", AAMPMediaPlayerJS_play, kJSPropertyAttributeDontDelete | kJSPropertyAttributeReadOnly},
+	{ "detach", AAMPMediaPlayerJS_detach, kJSPropertyAttributeDontDelete | kJSPropertyAttributeReadOnly},
 	{ "pause", AAMPMediaPlayerJS_pause, kJSPropertyAttributeDontDelete | kJSPropertyAttributeReadOnly},
 	{ "stop", AAMPMediaPlayerJS_stop, kJSPropertyAttributeDontDelete | kJSPropertyAttributeReadOnly},
 	{ "seek", AAMPMediaPlayerJS_seek, kJSPropertyAttributeDontDelete | kJSPropertyAttributeReadOnly},
@@ -1698,13 +2329,12 @@ static const JSStaticFunction AAMPMediaPlayer_JS_static_functions[] = {
 	{ "setTextTrack", AAMPMediaPlayerJS_setTextTrack, kJSPropertyAttributeDontDelete | kJSPropertyAttributeReadOnly},
 	{ "getVolume", AAMPMediaPlayerJS_getVolume, kJSPropertyAttributeDontDelete | kJSPropertyAttributeReadOnly},
 	{ "setVolume", AAMPMediaPlayerJS_setVolume, kJSPropertyAttributeDontDelete | kJSPropertyAttributeReadOnly},
+	{ "setAudioLanguage", AAMPMediaPlayerJS_setAudioLanguage, kJSPropertyAttributeDontDelete | kJSPropertyAttributeReadOnly},
 	{ "getPlaybackRate", AAMPMediaPlayerJS_getPlaybackRate, kJSPropertyAttributeDontDelete | kJSPropertyAttributeReadOnly},
 	{ "setPlaybackRate", AAMPMediaPlayerJS_setPlaybackRate, kJSPropertyAttributeDontDelete | kJSPropertyAttributeReadOnly},
 	{ "getSupportedKeySystems", AAMPMediaPlayerJS_getSupportedKeySystems, kJSPropertyAttributeDontDelete | kJSPropertyAttributeReadOnly},
-	{ "setProtectionSchemeInterface", AAMPMediaPlayerJS_setProtectionSchemeInterface, kJSPropertyAttributeDontDelete | kJSPropertyAttributeReadOnly},
 	{ "setVideoMute", AAMPMediaPlayerJS_setVideoMute, kJSPropertyAttributeDontDelete | kJSPropertyAttributeReadOnly},
 	{ "setSubscribedTags", AAMPMediaPlayerJS_setSubscribedTags, kJSPropertyAttributeDontDelete | kJSPropertyAttributeReadOnly},
-	{ "updateAlternateContent", AAMPMediaPlayerJS_updateAlternateContent, kJSPropertyAttributeDontDelete | kJSPropertyAttributeReadOnly},
 	{ "addEventListener", AAMPMediaPlayerJS_addEventListener, kJSPropertyAttributeDontDelete | kJSPropertyAttributeReadOnly},
 	{ "removeEventListener", AAMPMediaPlayerJS_removeEventListener, kJSPropertyAttributeDontDelete | kJSPropertyAttributeReadOnly},
 	{ "setDRMConfig", AAMPMediaPlayerJS_setDRMConfig, kJSPropertyAttributeDontDelete | kJSPropertyAttributeReadOnly},
@@ -1714,6 +2344,11 @@ static const JSStaticFunction AAMPMediaPlayer_JS_static_functions[] = {
 	{ "setVideoRect", AAMPMediaPlayerJS_setVideoRect, kJSPropertyAttributeDontDelete | kJSPropertyAttributeReadOnly },
 	{ "setVideoZoom", AAMPMediaPlayerJS_setVideoZoom, kJSPropertyAttributeDontDelete | kJSPropertyAttributeReadOnly },
 	{ "release", AAMPMediaPlayerJS_release, kJSPropertyAttributeDontDelete | kJSPropertyAttributeReadOnly },
+	{ "setAlternateContent", AAMPMediaPlayerJS_setAlternateContent, kJSPropertyAttributeDontDelete | kJSPropertyAttributeReadOnly },
+	{ "notifyReservationCompletion", AAMPMediaPlayerJS_notifyReservationCompletion, kJSPropertyAttributeDontDelete | kJSPropertyAttributeReadOnly },
+	{ "getAvailableAudioTracks", AAMPMediaPlayerJS_getAvailableAudioTracks, kJSPropertyAttributeDontDelete | kJSPropertyAttributeReadOnly},
+	{ "getAvailableTextTracks", AAMPMediaPlayerJS_getAvailableTextTracks, kJSPropertyAttributeDontDelete | kJSPropertyAttributeReadOnly},
+	{ "getVideoRectangle", AAMPMediaPlayerJS_getVideoRectangle, kJSPropertyAttributeDontDelete | kJSPropertyAttributeReadOnly},
 	{ NULL, NULL, 0 }
 };
 
@@ -1780,7 +2415,7 @@ void AAMPMediaPlayer_JS_finalize(JSObjectRef object)
 	}
 	else
 	{
-		ERROR("%s:%d [WARN]Invoked finalize of a AAMPMediaPlayer_JS object(%p) which was already/being released!!\n", __FUNCTION__, __LINE__, privObj);
+		ERROR("%s:%d [WARN]Invoked finalize of a AAMPMediaPlayer_JS object(%p) which was already/being released!!", __FUNCTION__, __LINE__, privObj);
 	}
 	JSObjectSetPrivate(object, NULL);
 	ERROR("Exit %s()", __FUNCTION__);
@@ -1839,10 +2474,26 @@ JSObjectRef AAMPMediaPlayer_JS_class_constructor(JSContextRef ctx, JSObjectRef c
 {
 	TRACELOG("Enter %s()", __FUNCTION__);
 
+	std::string appName;
+	if (argumentCount > 0)
+	{
+		if (JSValueIsString(ctx, arguments[0]))
+		{
+			char *value =  aamp_JSValueToCString(ctx, arguments[0], exception);
+			appName.assign(value);
+			ERROR("%s:%d AAMPMediaPlayer created with app name: %s", __FUNCTION__, __LINE__, appName.c_str());
+			delete[] value;
+		}
+	}
+
 	AAMPMediaPlayer_JS* privObj = new AAMPMediaPlayer_JS();
 
 	privObj->_ctx = JSContextGetGlobalContext(ctx);
-	privObj->_aamp = new PlayerInstanceAAMP();
+	privObj->_aamp = new PlayerInstanceAAMP(NULL, NULL, PLAYERMODE_MEDIAPLAYER);
+	if (!appName.empty())
+	{
+		privObj->_aamp->SetAppName(appName);
+	}
 	privObj->_listeners.clear();
 
 	JSObjectRef newObj = JSObjectMake(ctx, AAMPMediaPlayer_object_ref(), privObj);
@@ -1850,6 +2501,11 @@ JSObjectRef AAMPMediaPlayer_JS_class_constructor(JSContextRef ctx, JSObjectRef c
 	pthread_mutex_lock(&jsMediaPlayerCacheMutex);
 	AAMPMediaPlayer_JS::_jsMediaPlayerInstances.push_back(privObj);
 	pthread_mutex_unlock(&jsMediaPlayerCacheMutex);
+
+	// Add a dummy event listener without any function callback.
+	// Upto JS application to register a common callback function for AAMP to notify ad resolve status
+	// or individually as part of setAlternateContent call. NULL checks added in eventlistener to avoid undesired behaviour
+	AAMP_JSEventListener::AddEventListener(privObj, AAMP_EVENT_AD_RESOLVED, NULL);
 
 	// Required for viper-player
 	JSStringRef fName = JSStringCreateWithUTF8CString("toString");
@@ -1896,7 +2552,7 @@ static JSClassDefinition AAMPMediaPlayer_JS_class_def {
 void ClearAAMPPlayerInstances(void)
 {
 	pthread_mutex_lock(&jsMediaPlayerCacheMutex);
-	ERROR("Number of active jsmediaplayer instances: %d\n", AAMPMediaPlayer_JS::_jsMediaPlayerInstances.size());
+	ERROR("Number of active jsmediaplayer instances: %d", AAMPMediaPlayer_JS::_jsMediaPlayerInstances.size());
 	while(AAMPMediaPlayer_JS::_jsMediaPlayerInstances.size() > 0)
 	{
 		AAMPMediaPlayer_JS *obj = AAMPMediaPlayer_JS::_jsMediaPlayerInstances.back();

@@ -14,7 +14,7 @@ window.onload = function() {
         for (var i = 0; i < data.length; i++) {
             if (x >= data[i].x && x < data[i].x + data[i].w &&
                 y >= data[i].y && y < data[i].y + ROWHEIGHT) {
-                alert(data[i].url);
+                alert(mediaType[data[i].type] + "\n" + data[i].url);
                 break;
             }
         }
@@ -26,69 +26,82 @@ window.onload = function() {
     var timestamp_min;
     var timestamp_max;
     var bitrate_max;
+    var allbitrates;
+    var currentBitrate;
 
     function time2x(t) {
         return BITRATE_MARGIN + 16 + (t - timestamp_min) * 0.1;
     }
 
     function bitrate2y(bitrate) {
-        return (bitrate_max - bitrate) * BITRATE_SCALE + ROWHEIGHT;
+        for( var i=0; i<allbitrates.length; i++ )
+        {
+            if( allbitrates[i] == bitrate ) return i*ROWHEIGHT*2 + 64;
+        }
+        return 0;
+    }
+                         
+    function AddBitrate( newBitrate )
+    {
+        currentBitrate = newBitrate;
+        for( var i=0; i<allbitrates.length; i++ )
+        {
+            if( allbitrates[i]==currentBitrate ) return;
+        }
+        allbitrates.push( currentBitrate );
     }
 
-    function GetDownloadType(line) {
-        // receiver.log compatible check for AAMP-managed ABR (no FOG); lines start with timestamp
-        if (line.indexOf("aampabr#T:MANIFEST") >= 0) {
-            return "MV";
-        }
-        if (line.indexOf("aampabr#T:VIDEO") >= 0) {
-            return "V";
-        }
-
-        if (line.indexOf("abrs_manifest#t:MANIFEST-VIDEO") >= 0) {
-            return "MV";
-        }
-        if (line.indexOf("abrs_manifest#t:DASH-MANIFEST") >= 0) {
-            return "MV";
-        }
-        if (line.indexOf("abrs_manifest#t:MAIN-MANIFEST") >= 0) {
-            return "MV";
-        }
-        if (line.indexOf("abrs_manifest#t:MANIFEST-AUDIO") >= 0) {
-            return "MA";
-        }
-        if (line.indexOf("abrs_manifest#t:MANIFEST-I-FRAME") >= 0) {
-            return "MI";
-        }
-        if (line.indexOf("abrs_fragment#t:VIDEO") >= 0) {
-            return "V";
-        }
-        if (line.indexOf("abrs_fragment#t:AUDIO") >= 0) {
-            return "A";
-        }
-        if (line.indexOf("abrs_fragment#t:I-FRAME") >= 0) {
-            return "I";
-        }
-        return undefined;
-    }
+    var eMEDIATYPE_VIDEO = 0;
+    var eMEDIATYPE_AUDIO = 1;
+    var eMEDIATYPE_SUBTITLE = 2;
+    var eMEDIATYPE_MANIFEST = 3;
+    var eMEDIATYPE_LICENSE = 4;
+    var eMEDIATYPE_IFRAME = 5;
+    var eMEDIATYPE_INIT_VIDEO = 6;
+    var eMEDIATYPE_INIT_AUDIO = 7;
+    var eMEDIATYPE_INIT_SUBTITLE = 8;
+    var eMEDIATYPE_PLAYLIST_VIDEO = 9;
+    var eMEDIATYPE_PLAYLIST_AUDIO = 10;
+    var eMEDIATYPE_PLAYLIST_SUBTITLE = 11;
+    var eMEDIATYPE_PLAYLIST_IFRAME = 12;
+    var eMEDIATYPE_INIT_IFRAME = 13;
+    
+    var mediaType = [ // enum MediaType
+        "VIDEO",
+        "AUDIO",
+        "SUBTITLE",
+        "MANIFEST",
+        "LICENCE",
+        "IFRAME",
+        "INIT_VIDEO",
+        "INIT_AUDIO",
+        "INIT_SUBTITLE",
+        "PLAYLIST_VIDEO",
+        "PLAYLIST_AUDIO",
+        "PLAYLIST_SUBTITLE",
+        "PLAYLIST_IFRAME",
+        "INIT_IFRAME"];
+    
+    var topMargin = 24;
 
     function myLoadHandler(e) {
-        var showbitrate = document.getElementById("showbandwidth").checked;
         var iframe_seqstart = null;
         var av_seqstart = null;
         var bandwidth_samples = [];
-        var allbitrates = [];
 
         // initialize state
         timestamp_min = null;
         timestamp_max = null;
         bitrate_max = null;
+        allbitrates = [0];
+        var marker = [];
 
         if (!sessionClicked) {
             // parse data
             var raw = e.target.result;
 
-            // test code to cut out single sessions from a bigger log
-            var sessions = raw.split("[processTSBRequest][INFO]new recording:");
+            // cut out single sessions from a bigger log
+            var sessions = raw.split("[AAMP-PLAYER]aamp_tune:");
             sessions.shift(); // to remove first null match
 
             var currentSession = document.getElementById("session");
@@ -110,90 +123,69 @@ window.onload = function() {
 
 
         data = [];
-
+        currentBitrate = 0;
+                         
         for (var i = 0; i < samples.length; i++) {
             var line = samples[i];
-            var type = GetDownloadType(line);
-
-            if (type != undefined) {
-                var obj = {};
-                obj.error = undefined;
-                obj.type = type;
-
-                fields = line.split(",");
-                for (var j = 0; j < fields.length; j++) {
-                    var part = fields[j].split(":");
-                    var attr = part[0];
-                    var value = parseInt(part[1], 10);
-                    if (attr == 's') {
-                        obj.utcstart = value;
-                        if (timestamp_min == null || value < timestamp_min) timestamp_min = value;
-
-                    } else if (attr == 'd') {
-                        obj.durationms = value;
-                        value += obj.utcstart;
-                        if (timestamp_max == null || value > timestamp_max) timestamp_max = value;
-                    } else if (attr == 'r') {
-                        obj.bitrate = value;
-                        if (bitrate_max == null || value > bitrate_max) bitrate_max = value;
-                        for (var ib = 0; ib < allbitrates.length; ib++) {
-                            if (allbitrates[ib] == value) break;
-                        }
-                        if (ib == allbitrates.length) {
-                            allbitrates.push(value);
-                        }
-                    } else if (attr == 'estr') {
-                        obj.estr = value; ///8;
-                    } else if (attr == "sz") {
-                        obj.bytes = value;
-                    } else if (attr == 'n') {
-                        obj.seqno = value;
-                        if (value >= 0) { // ignore negative seqno - used for DASH 'init' data
-                            if (type == 'I') {
-                                if (iframe_seqstart == null || value < iframe_seqstart) iframe_seqstart = value;
-                            } else {
-                                if (av_seqstart == null || value < av_seqstart) av_seqstart = value;
-                            }
-                        }
-                    } else if (attr == 'hcode' && value != 200) {
-                        if (obj.error == undefined) obj.error = "";
-                        obj.error += "(" + value + ")";
-                    } else if (attr == "cerr" && value != 0) {
-                        if (obj.error == undefined) obj.error = "";
-                        obj.error += "(" + value + ")";
-                    } else if (attr == "url") {
-                        obj.url = fields[j];
+            var aampLogOffset = line.indexOf( "[AAMP-PLAYER]" );
+            var offs;
+            if( aampLogOffset >=0 )
+            { // aamp-related logging
+                var payload = line.substr(aampLogOffset+13); // skip "[AAMP-PLAYER]" prefix
+                var param;
+                if( payload.startsWith("HttpRequestEnd:") )
+                {
+                    var json = payload.substr(15);
+                    var httpRequestEnd = JSON.parse(json);
+                    var obj = {};
+                    var type = httpRequestEnd.type;
+                    obj.error = mapError(httpRequestEnd.responseCode);
+                    obj.durationms = 1000*httpRequestEnd.curlTime;
+                    obj.type = type;
+                    obj.bytes = httpRequestEnd.times.dlSz;
+                    obj.url = httpRequestEnd.url;
+                    var doneUtc = ParseReceiverLogTimestamp(line);
+                    obj.utcstart = doneUtc-obj.durationms;
+                    if (timestamp_min == null || obj.utcstart < timestamp_min) timestamp_min = obj.utcstart;
+                    if (timestamp_max == null || doneUtc > timestamp_max) timestamp_max = doneUtc;
+                    if( type==eMEDIATYPE_PLAYLIST_VIDEO || type==eMEDIATYPE_VIDEO )
+                    {
+                         obj.bitrate = currentBitrate;
+//                         console.log( currentBitrate + "=" + obj.url );
                     }
+                    else
+                    {
+                         obj.bitrate = 0;
+                    }
+                    data.push(obj);
                 }
-                data.push(obj);
+                else if( line.indexOf("GST_MESSAGE_EOS")>=0 )
+                {
+                    marker.push( [ParseReceiverLogTimestamp(line), "GST_EOS"] );
+                }
+                else if( line.indexOf("IP_AAMP_TUNETIME")>=0 )
+                {
+                    marker.push( [ParseReceiverLogTimestamp(line), "Tuned"] );
+                }
+                else if( param = sscanf(payload,'ABRMonitor-Reset::{"Reason":"%%","Bandwidth":%%,"Profile":%%}') )
+                {
+                         var reason = param[0];
+                         AddBitrate(param[1]);
+                         marker.push( [ParseReceiverLogTimestamp(line), reason+":"+Math.round(currentBitrate/1000)+"kbps"] );
+                }
+                else if( param = sscanf(payload,"AAMPLogABRInfo : switching to '%%' profile '%% -> %%' currentBandwidth[%%]->desiredBandwidth[%%]") )
+                {
+                        var reason = param[0];
+                        AddBitrate(param[4]);
+                        marker.push( [ParseReceiverLogTimestamp(line), reason+":"+Math.round(currentBitrate/1000)+"kbps"] );
+                }
             }
-        }
-
-        if (showbitrate) {
-            for (var i = 0; i < data.length; i++) {
-                //if( data[i].type != 'V' ) continue; // only consider consider bitrate while processing video fragments
-                var bw_sample = {};
-
-                bw_sample["t"] = data[i].utcstart + data[i].durationms / 2;
-                t = data[i].estr; // units?
-                if (t > bitrate_max) bitrate_max = t;
-                bw_sample["estr"] = t;
-
-                t = data[i].bytes * 8000 / data[i].durationms; // bits per second
-                if (t > bitrate_max) bitrate_max = t;
-                bw_sample["calcr"] = t;
-
-                bandwidth_samples.push(bw_sample);
-            }
-            bandwidth_samples.sort(function(a, b) {
-                return a.t - b.t;
-            });
-        }
-
+        } // next line
+        allbitrates.sort( function(a,b){return b-a;} );
+                         
         var canvas = document.getElementById("myCanvas");
         canvas.width = Math.min(10000, time2x(timestamp_max) + 16); // cap max width to avoid canvas limitation
-        canvas.height = bitrate_max * BITRATE_SCALE + TIMELINE_MARGIN + ROWHEIGHT;
-        //alert( canvas.width + "x" + canvas.height );
+        canvas.height = allbitrates.length*ROWHEIGHT*2 + 480;
 
         var ctx = canvas.getContext("2d");
         ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -201,8 +193,8 @@ window.onload = function() {
 
         // timeline backdrop
         ctx.textAlign = "center";
-        var y0 = bitrate2y(0);
-        var y1 = bitrate2y(bitrate_max);
+        var y0 = bitrate2y(0)+ROWHEIGHT;
+        var y1 = bitrate2y(bitrate_max)-ROWHEIGHT;
         var shade = true;
         for (var t0 = timestamp_min; t0 < timestamp_max; t0 += 1000) {
             var x0 = time2x(t0);
@@ -214,10 +206,10 @@ window.onload = function() {
             shade = !shade;
 
             ctx.strokeStyle = '#dddddd';
-            ctx.strokeRect(x0, y0, 1, 44);
+            ctx.strokeRect(x0, topMargin, 1, y1-topMargin);
 
             ctx.fillStyle = '#000000';
-            ctx.fillText((t0 - timestamp_min) / 1000 + "s", x0, y0 + 64);
+            ctx.fillText((t0 - timestamp_min) / 1000 + "s", x0, topMargin );
         }
 
         // draw y-axis labels
@@ -229,43 +221,25 @@ window.onload = function() {
             ctx.strokeRect(BITRATE_MARGIN + 2, y, canvas.width, 1);
 
             ctx.fillStyle = '#000000';
-            ctx.fillText(bitrate + "bps", BITRATE_MARGIN, y + ROWHEIGHT / 2 - 3);
+            var label = (bitrate==0)?"audio/other":bitrate;
+            ctx.fillText(label, BITRATE_MARGIN, y + ROWHEIGHT / 2 - 3);
+        }
+        
+        ctx.textAlign = "center";
+        for( var i=0; i<marker.length; i++ )
+        {
+            var x = time2x(marker[i][0]);
+            var label = marker[i][1];
+            var y = (i%8)*24 + topMargin+y0+64;
+
+            ctx.fillStyle = '#cc0000';
+            ctx.fillRect(x, topMargin, 1, y-topMargin );
+                         
+            ctx.fillStyle = '#000000';
+            ctx.fillText(label, x, y+16 );
         }
 
         ctx.textAlign = "left";
-        if (showbitrate) { // render line graphs for bitrate fluctuations
-            // aamp/fog-estimated available bitrate
-            ctx.strokeStyle = '#ff00ff'; // magenta
-            ctx.beginPath();
-            for (var i = 0; i < bandwidth_samples.length; i++) {
-                var t0 = bandwidth_samples[i].t;
-                var x0 = time2x(t0);
-                var bitrate = bandwidth_samples[i].estr;
-                var y0 = bitrate2y(bitrate);
-                if (i == 0) {
-                    ctx.moveTo(x0, y0);
-                } else {
-                    ctx.lineTo(x0, y0);
-                }
-            }
-            ctx.stroke();
-
-            // computed per-download bitrate
-            ctx.strokeStyle = '#ff7700'; // orange
-            ctx.beginPath();
-            for (var i = 0; i < bandwidth_samples.length; i++) {
-                var t0 = bandwidth_samples[i].t;
-                var x0 = time2x(t0);
-                var bitrate = bandwidth_samples[i].calcr;
-                var y0 = bitrate2y(bitrate);
-                if (i == 0) {
-                    ctx.moveTo(x0, y0);
-                } else {
-                    ctx.lineTo(x0, y0);
-                }
-            }
-            ctx.stroke();
-        }
 
         // compute default positions of bars
         for (var i = 0; i < data.length; i++) {
@@ -280,12 +254,12 @@ window.onload = function() {
         // adjust bar placement to avoid overlap w/ parallel downloads
         for (;;) {
             var bump = false;
+            var pad = 0; // +16 used to include labels poking out past bars as consideration for overlap
             for (var i = 0; i < data.length; i++) {
                 for (var j = i + 1; j < data.length; j++) {
                     if (
-                        // +16 used to include labels poking out past bars as consideration for overlap
-                        data[i].x + data[i].w + 16 > data[j].x &&
-                        data[j].x + data[j].w + 16 > data[i].x &&
+                        data[i].x + data[i].w + pad > data[j].x &&
+                        data[j].x + data[j].w + pad > data[i].x &&
                         data[i].y + ROWHEIGHT > data[j].y &&
                         data[j].y + ROWHEIGHT > data[i].y) {
                         data[j].y += ROWHEIGHT;
@@ -300,48 +274,57 @@ window.onload = function() {
 
         for (var i = 0; i < data.length; i++) {
             // map colors based on download type and success/failure
-            if (data[i].error != undefined) {
+            if (data[i].error != "HTTP200(OK)" ) {
                 ctx.fillStyle = '#ff0000';
-            } else if (data[i].type == 'MV') { // video manifest
-                ctx.fillStyle = '#00cc00'; // dark green
-            } else if (data[i].type == 'V') { // video fragment
-                ctx.fillStyle = '#ccffcc'; // light green
-            } else if (data[i].type == 'MA') { // audio manifest
-                ctx.fillStyle = '#0000cc'; // dark blue
-            } else if (data[i].type == 'A') { // audio fragment
-                ctx.fillStyle = '#ccccff'; // light blue
-            } else if (data[i].type == 'MI') { // iframe manifest
-                ctx.fillStyle = '#cccc00'; // dark yellow
-            } else if (data[i].type == 'I') { // iframe fragment
-                ctx.fillStyle = '#ffffcc'; // light yellow
-            } else {
-                ctx.fillStyle = '#000000';
-                ctx.strokeStyle = '#000000';
             }
-
-            ctx.fillRect(data[i].x, data[i].y - ROWHEIGHT / 2, data[i].w, ROWHEIGHT - 1);
-
-            var seqno = data[i].seqno;
-            if (seqno != null) //data[i].type == 'V' )
+            else
             {
-                if (seqno < 0) {
-                    seqno = "*";
-                } else {
-                    if (data[i].type == 'I') {
-                        seqno -= iframe_seqstart;
-                    } else {
-                        // If wants to do normalization to the seqno 
-                        if(document.getElementById("applyNorm").checked) {
-                            seqno -= av_seqstart;
-                        }
-                    }
+                switch( data[i].type )
+                {
+                case eMEDIATYPE_INIT_VIDEO:
+                case eMEDIATYPE_VIDEO:
+                    ctx.fillStyle = '#ccffcc'; // light green
+                    break;
+                         
+                case eMEDIATYPE_AUDIO:
+                case eMEDIATYPE_INIT_AUDIO:
+                    ctx.fillStyle = '#ccccff'; // light blue
+                    break;
+
+                case eMEDIATYPE_MANIFEST:
+                case eMEDIATYPE_PLAYLIST_VIDEO:
+                    ctx.fillStyle = '#00cc00'; // dark green
+                    break;
+                         
+                case eMEDIATYPE_PLAYLIST_AUDIO:
+                    ctx.fillStyle = '#0000cc'; // dark blue
+                    break;
+
+                case eMEDIATYPE_PLAYLIST_SUBTITLE:
+                case eMEDIATYPE_PLAYLIST_IFRAME:
+                    ctx.fillStyle = '#cccc00'; // dark yellow
+                    break;
+
+                case eMEDIATYPE_INIT_IFRAME:
+                case eMEDIATYPE_IFRAME:
+                    ctx.fillStyle = '#ffffcc'; // light yellow
+                    break;
+                         
+                case eMEDIATYPE_LICENSE:
+                case eMEDIATYPE_INIT_SUBTITLE:
+                case eMEDIATYPE_SUBTITLE:
+                default:
+                    ctx.fillStyle = '#aaaaaa';
+                    ctx.strokeStyle = '#000000';
+                    break;
                 }
-                if (data[i].error != null) {
-                    seqno += data[i].error;
-                }
-                ctx.fillStyle = '#000000';
-                ctx.fillText(seqno, data[i].x + 2, data[i].y + ROWHEIGHT / 2 - 6);
             }
+                         
+            ctx.fillRect(data[i].x, data[i].y - ROWHEIGHT / 2, data[i].w, ROWHEIGHT - 1);
+      
+
+            ctx.strokeStyle = '#999999';
+            ctx.strokeRect(data[i].x, data[i].y - ROWHEIGHT / 2, data[i].w, ROWHEIGHT - 1);
         }
     }
 
@@ -382,7 +365,4 @@ window.onload = function() {
 
     document.getElementById('files').addEventListener('change', handleFileSelect, false);
     document.getElementById('session').addEventListener('change', newSession, false);
-    document.getElementById('applyNorm').addEventListener('change', newCheckBoxChange, false);
-    document.getElementById('showbandwidth').addEventListener('change', newCheckBoxChange, false);
-
 }
