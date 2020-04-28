@@ -95,6 +95,10 @@ if(WIN32)
   include_directories(AFTER ${OPENSSLLIB}/bin)
 endif(WIN32)
 
+##
+## GIF
+##
+
 if (BUILD_WITH_GIF)
 message("Building with GIF support")
 set(GIF ${EXTDIR}/giflib-5.1.9/)
@@ -112,6 +116,18 @@ endif(WIN32)
 add_definitions(-DSUPPORT_GIF)
 endif (BUILD_WITH_GIF)
 
+##
+## WEBP
+##
+
+if (BUILD_WITH_WEBP)
+
+set(WEBP_DIR ${EXTDIR}/webP/build/)
+set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${WEBP_DIR})
+set(PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} libwebp.a)
+add_definitions(-DENABLE_WEBP)
+
+endif (BUILD_WITH_WEBP)
 
 ##
 ## APPLE BUILDS

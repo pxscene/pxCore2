@@ -1320,6 +1320,7 @@
 					"examples/pxScene2d/external/dukluv/lib/duktape/src-separate",
 					examples/pxScene2d/external/rapidjson,
 					examples/pxScene2d/external,
+					examples/pxScene2d/external/webP/src,
 				);
 				LIBRARY_SEARCH_PATHS = "";
 				OTHER_CPLUSPLUSFLAGS = (
@@ -1365,6 +1366,7 @@
 					"examples/pxScene2d/external/dukluv/lib/duktape/src-separate",
 					examples/pxScene2d/external/rapidjson,
 					examples/pxScene2d/external,
+					examples/pxScene2d/external/webP/src,
 				);
 				LIBRARY_SEARCH_PATHS = "";
 				OTHER_CPLUSPLUSFLAGS = (

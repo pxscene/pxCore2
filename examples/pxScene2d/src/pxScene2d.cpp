@@ -1147,6 +1147,7 @@ rtError pxScene2d::thunderToken(rtValue &v)
   return RT_OK;
 #else
   rtLogWarn("thunder support is not available");
+  UNUSED_PARAM(v);
   return RT_FAIL;
 #endif //ENABLE_SPARK_THUNDER
 }
