@@ -48,6 +48,8 @@ static JSValueRef rtObjectWrapper_wrapMap(JSContextRef context, rtObjectRef obj)
 static JSValueRef rtObjectWrapper_wrapObject(JSContextRef context, rtObjectRef obj);
 static JSValueRef rtFunctionWrapper_wrapFunction(JSContextRef context, rtFunctionRef func);
 
+std::hash<std::string> hashFn;
+
 static bool isJSObjectWrapper(const rtObjectRef& obj)
 {
   rtValue value;
@@ -100,7 +102,8 @@ private:
     }
     RtJSC::dispatchOnMainLoop(
       [callback = std::move(m_callback), newArgs = std::move(newArgs)] () mutable {
-        rtError rc = callback->Send(newArgs.size(), newArgs.data(), nullptr);
+        rtValue result;
+        rtError rc = callback->Send(newArgs.size(), newArgs.data(), &result);
         if (rc != RT_OK)
         {
           rtLogWarn("rtPromiseCallbackWrapper dispatch failed rc=%d", rc);
@@ -1067,14 +1070,24 @@ rtError JSObjectWrapper::Set(uint32_t i, const rtValue* value)
 JSFunctionWrapper::JSFunctionWrapper(JSContextRef context, JSObjectRef thisObj, JSObjectRef funcObj)
   : rtJSCWrapperBase(context, funcObj)
   , m_thisObj(context, thisObj)
+  , mHash(-1)
 {
   RtJSC::assertIsMainThread();
+
+  JSStringRef str = JSValueToStringCopy(context, funcObj, nullptr);
+  mHash = hashFn(jsToRtString(str).cString());
+  JSStringRelease(str);
 }
 
 JSFunctionWrapper::JSFunctionWrapper(JSContextRef context, JSObjectRef funcObj)
   : rtJSCWrapperBase(context, funcObj)
+  , mHash(-1)
 {
   RtJSC::assertIsMainThread();
+
+  JSStringRef str = JSValueToStringCopy(context, funcObj, nullptr);
+  mHash = hashFn(jsToRtString(str).cString());
+  JSStringRelease(str);
 }
 
 JSFunctionWrapper::~JSFunctionWrapper()
@@ -1100,21 +1113,32 @@ rtError JSFunctionWrapper::Send(int numArgs, const rtValue* args, rtValue* resul
       jsArgs[i] = rtToJs(context(), rtVal);
     }
   }
-  JSValueRef exception = nullptr;
-  JSValueRef jsResult = JSObjectCallAsFunction(context(), wrapped(), m_thisObj.wrapped(), numArgs, jsArgs, &exception);
-  if (exception) {
-    printException(context(), exception);
-    return RT_FAIL;
-  }
-  rtError ret = RT_OK;
   if (result) {
+    JSValueRef exception = nullptr;
+    JSValueRef jsResult = JSObjectCallAsFunction(context(), wrapped(), m_thisObj.wrapped(), numArgs, jsArgs,
+                                                 &exception);
+    if (exception) {
+      printException(context(), exception);
+      return RT_FAIL;
+    }
+    rtError ret = RT_OK;
     ret = jsToRt(context(), jsResult, *result, &exception);
     if (exception) {
       printException(context(), exception);
       return RT_FAIL;
     }
+    return ret;
+  } else {
+    RtJSC::dispatchOnMainLoop(
+        [context = context(), object = wrapped(), thisObject = m_thisObj.wrapped(), numArgs, jsArgs] () mutable {
+          JSValueRef exception = nullptr;
+          JSObjectCallAsFunction(context, object, thisObject, numArgs, jsArgs, &exception);
+          if (exception) {
+            printException(context, exception);
+          }
+        });
+    return RT_OK;
   }
-  return ret;
 }
 
 }  // RtJSC

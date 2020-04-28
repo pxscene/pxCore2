@@ -50,10 +50,11 @@ public:
 
 class JSFunctionWrapper: public RefCounted<rtIFunction>, public rtJSCWrapperBase
 {
-  size_t hash() override { return -1; }
+  size_t hash() override { return mHash; }
   void setHash(size_t hash) override { UNUSED_PARAM(hash); }
   rtError Send(int numArgs, const rtValue* args, rtValue* result) override;
   rtJSCWeak m_thisObj;
+  size_t mHash;
 public:
   JSFunctionWrapper(JSContextRef context, JSObjectRef thisObj, JSObjectRef funcObj);
   JSFunctionWrapper(JSContextRef context, JSObjectRef funcObj);

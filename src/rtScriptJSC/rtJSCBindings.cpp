@@ -204,7 +204,7 @@ static JSValueRef requireCallback(JSContextRef ctx, JSObjectRef, JSObjectRef thi
       return moduleObj;
     }
 
-    rtLogInfo("Loading %s", path.cString());
+    rtLogDebug("Loading %s", path.cString());
     std::string codeStr = readFile(path.cString());
     if (codeStr.empty()) {
       JSStringRelease(reqArgStr);
@@ -710,6 +710,69 @@ static JSValueRef runInThisContext(JSContextRef ctx, JSObjectRef, JSObjectRef, s
   return result;
 }
 
+static JSValueRef getEnv(JSContextRef ctx, JSObjectRef, JSObjectRef, size_t argumentCount, const JSValueRef arguments[], JSValueRef *exception)
+{
+  if (argumentCount < 1)
+    return JSValueMakeUndefined(ctx);
+
+  JSValueRef result = nullptr;
+  do {
+    JSStringRef nameStr = JSValueToStringCopy(ctx, arguments[0], exception);
+    if (exception && *exception)
+      break;
+    rtString name = jsToRtString(nameStr);
+    JSStringRelease(nameStr);
+
+    char *val = getenv(name.cString());
+    if (!val)
+      return JSValueMakeUndefined(ctx);
+
+    JSStringRef valueStr = JSStringCreateWithUTF8CString(val);
+    result = JSValueMakeString(ctx, valueStr);
+    JSStringRelease(valueStr);
+  } while (0);
+
+  if (exception && *exception) {
+    printException(ctx, *exception);
+    return JSValueMakeUndefined(ctx);
+  }
+
+  return result;
+}
+
+static JSValueRef setEnv(JSContextRef ctx, JSObjectRef, JSObjectRef, size_t argumentCount, const JSValueRef arguments[], JSValueRef *exception)
+{
+  if (argumentCount < 2)
+    return JSValueMakeUndefined(ctx);
+
+  JSValueRef result = nullptr;
+  do {
+    JSStringRef nameStr = JSValueToStringCopy(ctx, arguments[0], exception);
+    if (exception && *exception)
+      break;
+    rtString name = jsToRtString(nameStr);
+    JSStringRelease(nameStr);
+
+    JSStringRef valueStr = JSValueToStringCopy(ctx, arguments[1], exception);
+    if (exception && *exception)
+      break;
+    rtString value = jsToRtString(valueStr);
+    JSStringRelease(valueStr);
+
+    if (setenv(name.cString(), value.cString(), 1)) {
+      JSStringRef exceptionStr = JSStringCreateWithUTF8CString("Set env failed");
+      *exception = JSValueMakeString(ctx, exceptionStr);
+      JSStringRelease(exceptionStr);
+    }
+  } while (0);
+
+  if (exception && *exception) {
+    printException(ctx, *exception);
+  }
+
+  return JSValueMakeUndefined(ctx);
+}
+
 void injectBindings(JSContextRef jsContext)
 {
   auto injectFun =
@@ -735,6 +798,8 @@ void injectBindings(JSContextRef jsContext)
   injectFun(jsContext, "_readFileSync", readFileSync);
   injectFun(jsContext, "_existsSync", existsSync);
   injectFun(jsContext, "_runInThisContext", runInThisContext);
+  injectFun(jsContext, "_getEnv", getEnv);
+  injectFun(jsContext, "_setEnv", setEnv);
 
   markJSContext(jsContext, nullptr, nullptr);
 }

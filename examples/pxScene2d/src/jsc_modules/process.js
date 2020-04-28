@@ -17,22 +17,22 @@ limitations under the License.
 */
 
 module.exports = {
-    _tickCallback: function() {},
-    exit: function() { _exit(); },
-    binding: function() { throw new Error("process.binding is not supported"); },
-    hrtime: function() { return _hrtime(); },
-    memoryUsage: function() { return 0; },
-    platform: _platform(),
-    cwd: function() {
-        // TODO
-        return ""
+  _tickCallback: function() {},
+  exit: function() { _exit(); },
+  binding: function() { throw new Error("process.binding is not supported"); },
+  hrtime: function() { return _hrtime(); },
+  memoryUsage: function() { return 0; },
+  platform: _platform(),
+  cwd: function() {
+    // TODO
+    return ""
+  },
+  env: new Proxy({}, {
+    set: function(obj, prop, value) {
+      _setEnv(prop, value)
     },
-    env: new Proxy({}, {
-        set: function(obj, prop, value) {
-            throw new Error("Not supported");
-        },
-        get: function(obj, prop) {
-            return null;
-        }
-    }),
+    get: function(obj, prop) {
+      return _getEnv(prop)
+    }
+  }),
 };

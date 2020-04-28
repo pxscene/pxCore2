@@ -25,6 +25,7 @@
 #ifndef _TSPROCESSOR_H
 #define _TSPROCESSOR_H
 
+#include "mediaprocessor.h"
 #include <stdio.h>
 #include <pthread.h>
 
@@ -49,24 +50,6 @@ struct RecordingComponent
 	/** Descriptor tags, each byte value will represent one descriptor tag up to max MAX_DESCRIPTOR (4)*/
 	unsigned int descriptorTags;
 };
-
-/**
-* @enum _PlayMode
-* @brief Defines the parameters required for Recording Playback
-*/
-typedef enum _PlayMode
-{
-	/** Playing a recording in normal mode */
-	PlayMode_normal,
-	/** Playing with I-Frame, P-Frame and B-Frame */
-	PlayMode_retimestamp_IPB,
-	/** Playing with I-Frame and P-Frame */
-	PlayMode_retimestamp_IandP,
-	/** Playing a recording with I-Frame only */
-	PlayMode_retimestamp_Ionly,
-	/** Playing a recording with rewind mode */
-	PlayMode_reverse_GOP,
-} PlayMode;
 
 
 // Maximum number of bytes needed to examine in a start code
@@ -119,7 +102,7 @@ typedef enum
 * @class TSProcessor
 * @brief MPEG TS Processor. Supports software Demuxer/ PTS re-stamping for trickmode.
 */
-class TSProcessor
+class TSProcessor : public MediaProcessor
 {
    public:
       TSProcessor(class PrivateInstanceAAMP *aamp, StreamOperation streamOperation, int track = 0, TSProcessor* peerTSProcessor = NULL);

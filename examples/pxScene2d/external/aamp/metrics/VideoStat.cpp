@@ -33,6 +33,9 @@
 #define TAG_TIME_PLAYBACK_DURATION			"d" 	// time for which playback was done, this is measured at the time of fragment download , hence play-back duration may be slightly less due to g-streamer and aamp buffers
 #define TAG_ABR_NET_DROP				"dn"   	// Step down profile count happened due to Bad network bandwidth
 #define TAG_ABR_ERR_DROP				"de"   	// Step down profile count happened due to Bad download errors/failures
+#define TAG_DISPLAY_WIDTH				"w"   	// Display Width
+#define TAG_DISPLAY_HEIGHT				"h"   	// Display Height
+
 #define TAG_TSB_AVAILIBLITY				"t"		// indicates if TSB used for playback,
 // TAGs for Playback types
 #define TAG_MAIN					"m"		// Main manifest
@@ -70,10 +73,6 @@ char * CVideoStat::ToJsonString() const
 
 		cJSON * jsonObj = NULL;
 
-		jsonObj = cJSON_CreateString(VIDEO_END_DATA_VERSION);
-		cJSON_AddItemToObject(monitor, TAG_VERSION, jsonObj);
-
-
 		if(mTmeToTopProfile > 0 )
 		{
 			jsonObj =  cJSON_CreateNumber(mTmeToTopProfile);
@@ -104,12 +103,16 @@ char * CVideoStat::ToJsonString() const
 			cJSON_AddItemToObject(monitor, TAG_ABR_ERR_DROP, jsonObj);
 		}
 
-		if(mbTsb)
+		if(mDisplayWidth != 0)
 		{
-			jsonObj =  cJSON_CreateNumber(1);
-			cJSON_AddItemToObject(monitor, TAG_TSB_AVAILIBLITY, jsonObj);
+			jsonObj =  cJSON_CreateNumber(mDisplayWidth);
+			cJSON_AddItemToObject(monitor, TAG_DISPLAY_WIDTH, jsonObj);
 		}
-
+		if(mDisplayHeight != 0)
+		{
+			jsonObj =  cJSON_CreateNumber(mDisplayHeight);
+			cJSON_AddItemToObject(monitor, TAG_DISPLAY_HEIGHT, jsonObj);
+		}
 		bool isDataAdded = false;
 
 		cJSON *langList = cJSON_CreateObject();
@@ -184,8 +187,22 @@ char * CVideoStat::ToJsonString() const
 				cJSON_Delete(profiles);
 			}
 		}
-		
-		strRet = cJSON_PrintUnformatted(monitor);
+
+		// monitor->child will be NULL if none of above data is added to monitor
+		if(monitor->child)
+		{
+			jsonObj = cJSON_CreateString(VIDEO_END_DATA_VERSION);
+			cJSON_AddItemToObject(monitor, TAG_VERSION, jsonObj);
+
+			if(mbTsb)
+			{
+				jsonObj =  cJSON_CreateNumber(1);
+				cJSON_AddItemToObject(monitor, TAG_TSB_AVAILIBLITY, jsonObj);
+			}
+
+			strRet = cJSON_PrintUnformatted(monitor);
+		}
+
 		cJSON_Delete(monitor);
 	}
 
@@ -405,4 +422,33 @@ void CVideoStat::Increment_Data(VideoStatDataType dataType,VideoStatTrackType eT
 
 				break;
 	}
+}
+
+/**
+ *   @brief Sets profile frame size
+ *   @param[in]  Profile or track type
+ *   @param[in]  int width
+ *   @param[in]  int height
+ *   @return None
+ */
+void CVideoStat::SetProfileResolution(VideoStatTrackType eType, long bitrate, int width, int height)
+{
+	if(eType != STAT_MAIN) // fragment stats are not applicable for main hls or dash manifest
+	{
+		CProfileInfo * pinfo = &(mMapStreamInfo[eType][bitrate]);
+		pinfo->SetSize(width,height);
+	}
+}
+
+/**
+ *   @brief Sets Display frame size
+ *
+ *   @param[in]  int width
+ *    @param[in]  int height
+ *   @return None
+ */
+void CVideoStat::SetDisplayResolution(int width, int height)
+{
+	mDisplayWidth = width;
+	mDisplayHeight = height;
 }
