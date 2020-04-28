@@ -31,7 +31,7 @@ TEST(pxScene2dTests, rtNodeTests)
 {
     // Create rtNode
     extern rtScript script;
-
+    if (script.engine().compare("node/v8") == 0) {
     //v8::Isolate *isolate = script.getIsolate();
 
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -210,4 +210,8 @@ TEST(pxScene2dTests, rtNodeTests)
     EXPECT_TRUE((t2 < (t1 / 4)) == true);
 
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    }
+    else {
+      EXPECT_TRUE(true);
+    }
 }

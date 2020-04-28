@@ -114,6 +114,7 @@ class pxSceneContainerLeakTest : public testing::Test
       sceneContainer->AddRef();
       sceneContainer->remove();
       script.collectGarbage();
+      process();
       EXPECT_TRUE (sceneptr->isObjectTracked(sceneContainer) == false);
       sceneContainer->Release();
     }

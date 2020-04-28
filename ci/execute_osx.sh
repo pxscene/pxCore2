@@ -57,6 +57,13 @@ printExecLogs()
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 # Start testRunner ...
+sparkPlatform=$1
+if [ "$sparkPlatform" = "jsc" ]; then
+export SPARK_USE_JSC=1
+  echo "Running under JSC Platform"
+else
+  echo "Running under Node Platform"
+fi
 rm -rf /var/tmp/spark.log
 cd $TRAVIS_BUILD_DIR/examples/pxScene2d/src/spark.app/Contents/MacOS
 ./spark.sh -enableVideo=false $TESTRUNNERURL?tests=$TESTS &
@@ -155,6 +162,7 @@ fi
 echo "Sleeping to make terminate complete ...";
 sleep 90s
 pkill -9 -f spark.sh	
+pkill -9 -f Spark
 
 cp /var/tmp/spark.log $EXECLOGS
 if [ "$dumped_core" -eq 1 ]

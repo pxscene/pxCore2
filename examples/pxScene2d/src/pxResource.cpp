@@ -398,7 +398,7 @@ void rtImageResource::textureReady()
 int32_t rtImageResource::w() const
 {
   //rtLogDebug("tImageResource::w()\n");
-  if(mTexture.getPtr())
+  if(!downloadInProgress() && mTexture.getPtr())
     return mTexture->width();
   else
     return 0;
@@ -406,7 +406,7 @@ int32_t rtImageResource::w() const
 rtError rtImageResource::w(int32_t& v) const
 {
   //rtLogDebug("tImageResource::w(int32_t)\n");
-  if(mTexture.getPtr())
+  if(!downloadInProgress() && mTexture.getPtr())
     v = mTexture->width();
   else
     v = 0;
