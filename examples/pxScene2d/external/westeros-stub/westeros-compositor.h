@@ -44,6 +44,10 @@ typedef enum _WstClient_status
    WstClient_stoppedAbnormal,
    WstClient_connected,
    WstClient_disconnected
+#ifdef WESTEROS_FIRST_FRAME_SUPPORTED
+   , WstClient_firstFrame
+#endif //WESTEROS_FIRST_FRAME_SUPPORTED
+
 } WstClient_status;
 
 typedef enum _WstHints

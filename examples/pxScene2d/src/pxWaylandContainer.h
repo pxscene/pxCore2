@@ -56,6 +56,7 @@ public:
   virtual void isRemoteReady(bool ready);
   virtual void remoteDisconnected(void * data);
   virtual void sendPromise();
+  virtual void firstFrameRendered( int pid );
 
   rtError displayName(rtString& s) const;
   rtError setDisplayName(const char* s);

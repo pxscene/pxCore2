@@ -535,6 +535,11 @@ void pxWayland::handleClientStatus( int status, int pid, int detail )
          case WstClient_disconnected:
             mEvents->clientDisconnected( pid );
             break;
+#ifdef WESTEROS_FIRST_FRAME_SUPPORTED
+         case WstClient_firstFrame:
+             mEvents->firstFrameRendered( pid );
+             break;
+#endif //WESTEROS_FIRST_FRAME_SUPPORTED
          default:
             rtLogError("unexpected wayland client status type");
             break;
