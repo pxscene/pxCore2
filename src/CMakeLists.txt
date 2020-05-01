@@ -46,8 +46,12 @@ add_definitions(-DSUPPORT_GIF)
 
 endif (BUILD_WITH_GIF)
 
+##
+## WEBP
+##
+
 if (BUILD_WITH_WEBP)
-    include_directories(AFTER ${EXTDIR}/webP/src)
+#    include_directories(AFTER ${EXTDIR}/webP/src)
     add_definitions(-DENABLE_WEBP)
 endif (BUILD_WITH_WEBP)
 
