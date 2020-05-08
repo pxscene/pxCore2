@@ -315,7 +315,7 @@ rtError pxVideo::availableAudioLanguages(rtObjectRef& languages) const
 	rtRef<rtArrayObject> array = new rtArrayObject;
 	for (int i = 0; i < mPlaybackMetadata.languageCount; i++)
 	{
-		array->pushBack(mPlaybackMetadata.languages[i]);
+		array->pushBack(mPlaybackMetadata.languages.at(i).c_str());
 	}
 
 	languages = array;
@@ -685,10 +685,10 @@ public:
 	{
 		assert(AAMP_EVENT_MEDIA_METADATA == event.type);
 
-		mMetadata.languageCount = event.data.metadata.languageCount;
+		mMetadata.languageCount = event.languages.size();
 		for (int i = 0; i < mMetadata.languageCount; i++)
 		{
-			strncpy(mMetadata.languages[i], event.data.metadata.languages[i], MAX_LANGUAGE_TAG_LENGTH);
+			mMetadata.languages.push_back(event.languages.at(i));
 		}
 
 		mMetadata.supportedSpeedCount = event.data.metadata.supportedSpeedCount;
