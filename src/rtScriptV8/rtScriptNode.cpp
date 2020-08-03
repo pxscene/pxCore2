@@ -460,7 +460,8 @@ void rtNodeContext::createEnvironment()
     #ifdef WIN32
     node::InspectorStart(mEnv, currentPath.cString(), platform);
     #else
-    node::InspectorStart(mEnv, currentPath.cString(), "", 0);
+    //node::InspectorStart(mEnv, currentPath.cString(), "", 0);
+    node::InspectorStart(mEnv, currentPath.cString(), platform);
     #endif
 #endif //USE_NODE_PLATFORM
 #endif
