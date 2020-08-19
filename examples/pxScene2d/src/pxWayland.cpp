@@ -131,6 +131,7 @@ pxWayland::~pxWayland()
      WstCompositorSetClientStatusCallback(mWCtx, NULL, NULL);
      terminateClient();
      WstCompositorDestroy(mWCtx);
+     mWCtx = NULL;
      //Adding mClientTerminated flag check because SIGKILL has to be sent to
      //the Process only when it got SIGTERM from terminateClient().
      if (mClientTerminated && (mClientPID > 0) && (0 == kill(mClientPID, 0)))
@@ -143,11 +144,10 @@ pxWayland::~pxWayland()
        mClientTerminated = false;
      }
      mClientPID= -1;
-     mWCtx = NULL;
   }
   if (gUIThreadQueue)
   {
-    gUIThreadQueue->removeAllTasksForObject(this);
+    gUIThreadQueue->removeAllTasksForObject(this, onRemoveTask);
   }
 }
 
