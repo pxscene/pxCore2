@@ -1701,7 +1701,7 @@ bool pxScene2d::onMouseDown(int32_t x, int32_t y, uint32_t flags)
 
       rtObjectRef e = new rtMapObject;
       e.set("name", "onMouseDown");
-      e.set("target", (rtObject*)hit.getPtr());
+      e.set("target", hit.getPtr());
       e.set("x", hitPt.x);
       e.set("y", hitPt.y);
       e.set("flags", flags);
@@ -1710,10 +1710,15 @@ bool pxScene2d::onMouseDown(int32_t x, int32_t y, uint32_t flags)
       #else
       bubbleEvent(e,hit,"onPreMouseDown","onMouseDown");
       #endif
+
+      setMouseEntered(hit);
     }
+    else
+      setMouseEntered(NULL);
   }
   return false;
 }
+
 
 bool pxScene2d::onMouseUp(int32_t x, int32_t y, uint32_t flags)
 {
@@ -1724,7 +1729,70 @@ bool pxScene2d::onMouseUp(int32_t x, int32_t y, uint32_t flags)
     e.set("name", "onMouseUp");
     e.set("x", x);
     e.set("y", y);
-    e.set("flags", static_cast<uint32_t>(flags));
+    e.set("flags", (uint32_t)flags);
+    mEmit.send("onMouseUp", e);
+  }
+#endif
+  {
+    //Looking for an object
+    pxMatrix4f m;
+    pxPoint2f pt(static_cast<float>(x),static_cast<float>(y)), hitPt;
+    rtRef<pxObject> hit;
+    //rtRef<pxObject> tMouseDown = mMouseDown;
+
+    if (mMouseDown)
+    {
+      // Since onClick is a proper subset of onMouseUp fire first so
+      // that appropriate action can be taken in this case.
+      
+      // TODO optimization... we really only need to check mMouseDown
+      if (mRoot && mRoot->hitTestInternal(m, pt, hit, hitPt))
+      {
+        // Send onClick if this object got an onMouseDown
+        if (mMouseDown == hit)
+        {
+          rtObjectRef e = new rtMapObject;
+          e.set("name", "onClick");
+          e.set("target",hit.getPtr());
+          e.set("x", hitPt.x); // In object local coordinates
+          e.set("y", hitPt.y);
+          e.set("flags", flags);
+          bubbleEvent(e,hit,"onPreClick","onClick");
+        }
+        setMouseEntered(hit);        
+      }
+
+      pxVector4f from(static_cast<float>(x),static_cast<float>(y),0,1);
+      pxVector4f to;
+      pxObject::transformPointFromSceneToObject(mMouseDown, from, to);
+
+      rtObjectRef e = new rtMapObject;
+      e.set("name", "onMouseUp");
+      e.set("target",mMouseDown.getPtr());
+      e.set("x", to.x()); // In object local coordinates
+      e.set("y", to.y());
+      e.set("flags", flags);     
+      bubbleEvent(e,mMouseDown,"onPreMouseUp","onMouseUp");      
+
+      mMouseDown = NULL;
+    }
+    else
+      setMouseEntered(NULL);
+  }
+  return false;
+}
+
+#if 0
+bool pxScene2d::onMouseUp(int32_t x, int32_t y, uint32_t flags)
+{
+#if 1
+  {
+    // Send to root scene in global window coordinates
+    rtObjectRef e = new rtMapObject;
+    e.set("name", "onMouseUp");
+    e.set("x", x);
+    e.set("y", y);
+    e.set("flags", (uint32_t)flags);
     mEmit.send("onMouseUp", e);
   }
 #endif
@@ -1763,8 +1831,10 @@ bool pxScene2d::onMouseUp(int32_t x, int32_t y, uint32_t flags)
   }
   return false;
 }
+#endif
 
 // TODO rtRef doesn't like non-const !=
+// JRJR what are the x and y for?
 void pxScene2d::setMouseEntered(rtRef<pxObject> o, int32_t x /* = 0*/, int32_t y /* = 0*/)
 {
   if (mMouseEntered != o)
@@ -1787,11 +1857,8 @@ void pxScene2d::setMouseEntered(rtRef<pxObject> o, int32_t x /* = 0*/, int32_t y
     {
       rtObjectRef e = new rtMapObject;
       e.set("name", "onMouseEnter");
-      e.set("target", o.getPtr());
-      e.set("x", x);
-      e.set("y", y);
-
-      bubbleEvent(e,o, "onPreMouseEnter", "onMouseEnter");
+      e.set("target", mMouseEntered.getPtr());
+      bubbleEvent(e,mMouseEntered, "onPreMouseEnter", "onMouseEnter");
     }
   }
 }
@@ -1851,12 +1918,19 @@ bool pxScene2d::onMouseEnter()
 bool pxScene2d::onMouseLeave()
 {
   // top level scene event
+  #if 0
   rtObjectRef e = new rtMapObject;
   e.set("name", "onMouseLeave");
   mEmit.send("onMouseLeave", e);
+  #endif
 
-  mMouseDown = NULL;
+  // Don't change here if dragging
+  if (!mMouseDown.getPtr())
+  {
+    mMouseDown = NULL;
+  }
   setMouseEntered(NULL);
+
   return false;
 }
 
@@ -2036,9 +2110,11 @@ bool pxScene2d::onMouseMove(int32_t x, int32_t y)
 #if 1
   {
     // Send to root scene in global window coordinates
+    // Used to send to child scenes for event propogation
+    // Always non translated events
     rtObjectRef e = new rtMapObject;
     e.set("name", "onMouseMove");
-    e.set("x", x);
+    e.set("x", x);  // Sent in global scene
     e.set("y", y);
     mEmit.send("onMouseMove", e);
   }
@@ -2058,6 +2134,7 @@ bool pxScene2d::onMouseMove(int32_t x, int32_t y)
       pxObject::transformPointFromSceneToObject(mMouseDown, from, to);
 
 //      to.dump();
+      #if 0
       {
         pxVector4f validate;
         pxObject::transformPointFromObjectToScene(mMouseDown, to, validate);
@@ -2079,6 +2156,7 @@ bool pxScene2d::onMouseMove(int32_t x, int32_t y)
                  to.x(),to.y(),validate.x(),validate.y());
         }
       }
+      #endif
 
 #if 0
     rtObjectRef e = new rtMapObject;
@@ -2365,7 +2443,6 @@ rtError pxScene2d::showDirtyRect(bool& v) const
   v=mShowDirtyRectangle;
   return RT_OK;
 }
-
 rtError pxScene2d::setShowDirtyRect(bool v)
 {
   mShowDirtyRectangle = v;
@@ -2390,14 +2467,14 @@ rtError pxScene2d::dirtyRectanglesEnabled(bool& v) const {
 }
 
 rtError pxScene2d::dirtyRectangle(rtObjectRef& v) const {
-    v = new rtMapObject();
-if (gDirtyRectsEnabled) {
+  v = new rtMapObject();
+  if (gDirtyRectsEnabled) {
     v.set("x1", mDirtyRect.left());
     v.set("y1", mDirtyRect.top());
     v.set("x2", mDirtyRect.right());
     v.set("y2", mDirtyRect.bottom());
-}
-    return RT_OK;
+  }
+  return RT_OK;
 }
 
 rtError pxScene2d::enableDirtyRect(bool& v) const
