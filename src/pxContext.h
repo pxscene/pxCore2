@@ -27,7 +27,7 @@
 #include "pxCore.h"
 #include "pxOffscreen.h"
 #include "pxMatrix4T.h"
-#include "pxConstants.h"
+//#include "pxConstants.h"
 #include "pxTexture.h"
 #include "pxContextFramebuffer.h"
 #include "pxContextUtils.h"
@@ -53,6 +53,17 @@ class shaderProgram; //fwd
   #define PXSCENE_DEFAULT_TEXTURE_MEMORY_LIMIT_IN_BYTES (15 * 1024 * 1024)   // DFB .. Should be 40 ?
   #define PXSCENE_DEFAULT_TEXTURE_MEMORY_LIMIT_THRESHOLD_PADDING_IN_BYTES (5 * 1024 * 1024)
 #endif
+
+typedef enum pxContextMaskOperation {
+  NORMAL = 0,
+  INVERT,
+} pxContextMask;
+
+typedef enum pxContextStretch {
+    NONE = 0,
+    STRETCH,
+    REPEAT,
+  } pxContextStretch;
 
 class pxContext {
  public:
@@ -116,15 +127,15 @@ class pxContext {
 
   // convenience method
   void drawImageMasked(float x, float y, float w, float h,
-                        pxConstantsMaskOperation::constants maskOp,
+                        pxContextMaskOperation maskOp,
                         pxTextureRef t, pxTextureRef mask);
   
   void drawImage(float x, float y, float w, float h, pxTextureRef t,
                  pxTextureRef mask, bool useTextureDimsAlways = true, float* color = NULL,
-                 pxConstantsStretch::constants xStretch = pxConstantsStretch::STRETCH,
-                 pxConstantsStretch::constants yStretch = pxConstantsStretch::STRETCH,
+                 pxContextStretch xStretch = pxContextStretch::STRETCH,
+                 pxContextStretch yStretch = pxContextStretch::STRETCH,
                  bool downscaleSmooth = false,
-                 pxConstantsMaskOperation::constants maskOp= pxConstantsMaskOperation::NORMAL);
+                 pxContextMaskOperation maskOp = NORMAL);
 
   void drawEffect(float x, float y, float w, float h, pxTextureRef t, shaderProgram *shader, void *options = nullptr);
 

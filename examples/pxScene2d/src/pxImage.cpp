@@ -226,7 +226,7 @@ bool pxImage::needsUpdate()
 
 float pxImage::getOnscreenWidth()
 {
-  if(mw == -1 || mStretchX == pxConstantsStretch::NONE)
+  if(mw == -1 || mStretchX == pxContextStretch::NONE)
   {
     return mResource.get<float>("w");
   }
@@ -236,7 +236,7 @@ float pxImage::getOnscreenWidth()
 }
 float pxImage::getOnscreenHeight() 
 { 
-  if(mh == -1 || mStretchY == pxConstantsStretch::NONE)
+  if(mh == -1 || mStretchY == pxContextStretch::NONE)
   {
     return mResource.get<float>("h");
   }
@@ -324,7 +324,7 @@ void pxImage::dispose(bool pumpJavascript)
 void pxImage::checkStretchX()
 {
   rtImageResource* imageResource = getImageResource();
-  if (mStretchX == pxConstantsStretch::REPEAT && imageResource != NULL && imageResource->isInitialized())
+  if (mStretchX == pxContextStretch::REPEAT && imageResource != NULL && imageResource->isInitialized())
   {
     pxTextureRef texture = imageResource->getTexture();
     if (texture.getPtr() != NULL && (!isPowerOfTwo(texture->width()) || !isPowerOfTwo(texture->height())))
@@ -337,7 +337,7 @@ void pxImage::checkStretchX()
 void pxImage::checkStretchY()
 {
   rtImageResource* imageResource = getImageResource();
-  if (mStretchY == pxConstantsStretch::REPEAT && imageResource != NULL && imageResource->isInitialized())
+  if (mStretchY == pxContextStretch::REPEAT && imageResource != NULL && imageResource->isInitialized())
   {
     pxTextureRef texture = imageResource->getTexture();
     if (texture.getPtr() != NULL && (!isPowerOfTwo(texture->width()) || !isPowerOfTwo(texture->height())))
@@ -349,14 +349,14 @@ void pxImage::checkStretchY()
 
 rtError pxImage::setStretchX(int32_t v)
 {
-  mStretchX = (pxConstantsStretch::constants)v;
+  mStretchX = (pxContextStretch)v;
   checkStretchX();
   return RT_OK;
 }
 
 rtError pxImage::setStretchY(int32_t v)
 {
-  mStretchY = (pxConstantsStretch::constants)v;
+  mStretchY = (pxContextStretch)v;
   checkStretchY();
   return RT_OK;
 }
@@ -392,7 +392,7 @@ rtError pxImage::setResolveWithoutParent(bool v)
 
 rtError pxImage::setMaskOp(int32_t v)
 {
-  mMaskOp = (pxConstantsMaskOperation::constants)v;
+  mMaskOp = (pxContextMaskOperation)v;
   return RT_OK;
 }
 

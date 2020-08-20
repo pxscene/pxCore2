@@ -30,7 +30,7 @@ static pxTextureRef nullMaskRef;
 
 pxImageA::pxImageA(pxScene2d *scene) : pxObject(scene), 
                                        mImageWidth(0), mImageHeight(0),
-                                       mStretchX(pxConstantsStretch::NONE), mStretchY(pxConstantsStretch::NONE),
+                                       mStretchX(pxContextStretch::NONE), mStretchY(pxContextStretch::NONE),
                                        mResource(), mImageLoaded(false), mListenerAdded(false), mResolveWithoutParent(false), mReceivedReadyBeforeInit(false)
 {
   mCurFrame = 0;
@@ -213,14 +213,14 @@ void pxImageA::checkStretchY()
 
 rtError pxImageA::setStretchX(int32_t v)
 {
-  mStretchX = (pxConstantsStretch::constants)v;
+  mStretchX = (pxContextStretch)v;
   //checkStretchX();
   return RT_OK;
 }
 
 rtError pxImageA::setStretchY(int32_t v)
 {
-  mStretchY = (pxConstantsStretch::constants)v;
+  mStretchY = (pxContextStretch)v;
   //checkStretchY();
   return RT_OK;
 }
@@ -382,7 +382,7 @@ uint64_t pxImageA::textureMemoryUsage(std::vector<rtObject*> &objectsCounted)
 
 float pxImageA::getOnscreenWidth()
 {
-  if(mw == -1 || mStretchX == pxConstantsStretch::NONE)
+  if(mw == -1 || mStretchX == pxContextStretch::NONE)
   {
     return static_cast<float>(mImageWidth);
   }
@@ -392,7 +392,7 @@ float pxImageA::getOnscreenWidth()
 }
 float pxImageA::getOnscreenHeight()
 {
-  if(mh == -1 || mStretchY == pxConstantsStretch::NONE)
+  if(mh == -1 || mStretchY == pxContextStretch::NONE)
   {
     return static_cast<float>(mImageHeight);
   }

@@ -42,8 +42,8 @@ public:
   rtProperty(downscaleSmooth, downscaleSmooth, setDownscaleSmooth, bool);
   rtMethodNoArgAndReturn("texture", texture, uint32_t);
   
-  pxImage(pxScene2d* scene) : pxObject(scene),mStretchX(pxConstantsStretch::NONE),mStretchY(pxConstantsStretch::NONE), 
-          mMaskOp(pxConstantsMaskOperation::NORMAL), imageLoaded(false), mListenerAdded(false), mDownscaleSmooth(false), mFlip(false), mResolveWithoutParent(false), mReceivedReadyBeforeInit(false)
+  pxImage(pxScene2d* scene) : pxObject(scene),mStretchX(pxContextStretch::NONE),mStretchY(pxContextStretch::NONE), 
+          mMaskOp(pxContextMaskOperation::NORMAL), imageLoaded(false), mListenerAdded(false), mDownscaleSmooth(false), mFlip(false), mResolveWithoutParent(false), mReceivedReadyBeforeInit(false)
   { 
     mw = -1;
     mh = -1;
@@ -120,10 +120,10 @@ protected:
   void loadImage(rtString Url);
   inline rtImageResource* getImageResource() const { return (rtImageResource*)mResource.getPtr(); }
 
-  pxConstantsStretch::constants mStretchX;
-  pxConstantsStretch::constants mStretchY;
+  pxContextStretch mStretchX;
+  pxContextStretch mStretchY;
   
-  pxConstantsMaskOperation::constants  mMaskOp;
+  pxContextMaskOperation mMaskOp;
   
   rtObjectRef mResource;
   

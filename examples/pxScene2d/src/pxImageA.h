@@ -89,8 +89,8 @@ protected:
   pxTextureRef mTexture;
 
   double mFrameTime;
-  pxConstantsStretch::constants mStretchX;
-  pxConstantsStretch::constants mStretchY;
+  pxContextStretch mStretchX;
+  pxContextStretch mStretchY;
 
   rtObjectRef mResource;
   bool mImageLoaded;

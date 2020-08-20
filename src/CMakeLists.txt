@@ -44,6 +44,7 @@ add_definitions(-DSUPPORT_GIF)
 
 endif (BUILD_WITH_GIF)
 
+add_definitions(-DPXSCENE_FONT_ATLAS)
 
 if (APPLE)
     message("Building pxcore for mac")
@@ -61,7 +62,7 @@ if (APPLE)
             -DU_STATIC_IMPLEMENTATION=1 -DU_HAVE_STD_STRING=0 -DUCONFIG_NO_BREAK_ITERATION=0 -DUCONFIG_NO_LEGACY_CONVERSION=1
             -DUCONFIG_NO_CONVERSION=1 -DHTTP_PARSER_STRICT=0 -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
             -DRT_PLATFORM_LINUX -DENABLE_NODE_V_6_9)
-    set(PXCORE_FILES mac/pxBufferNative.mm mac/pxOffscreenNative.mm mac/pxWindowNative.mm
+    set(PXCORE_FILES mac/pxBufferNative.mm mac/pxOffscreenNative.mm mac/pxContextUtils.mm mac/pxWindowNative.mm
             mac/pxEventLoopNative.mm mac/pxTimerNative.mm mac/pxTimerNative.mm
             mac/pxClipboardNative.mm mac/window.mm
             unix/rtMutexNative.cpp unix/rtThreadPoolNative.cpp
@@ -214,7 +215,7 @@ include_directories(AFTER ${V8_INCLUDE_DIRS})
 include_directories(AFTER ${NODE_INCLUDE_DIRS})
 include_directories(AFTER ${CMAKE_CURRENT_SOURCE_DIR})
 
-set(PXCORE_FILES ${PXCORE_FILES} pxOffscreen.cpp pxWindowUtil.cpp pxColorNames.cpp
+set(PXCORE_FILES ${PXCORE_FILES} pxOffscreen.cpp pxContextGL.cpp pxShaderUtils.cpp pxWindowUtil.cpp pxColorNames.cpp
 
         rtFile.cpp rtLibrary.cpp rtPathUtils.cpp rtTest.cpp rtThreadPool.cpp
         rtThreadQueue.cpp rtThreadTask.cpp rtUrlUtils.cpp
