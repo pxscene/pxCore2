@@ -102,7 +102,18 @@ then
   cd ..
 
 fi
-#---------
+
+#--------- WebP
+#
+if [ ! -d ./wepP/build ]; then
+
+  banner "WebP"
+
+  cd webP
+  ./build.sh
+  cd ..
+
+fi
 
 #--------- JPG
 
@@ -119,10 +130,9 @@ then
   cd ..
 
 fi
-#---------
 
 #-------- GRAPHITE2
-
+#
 if [[ $# -eq 1 ]] && [[ $1 == "SPARK_ENABLE_VIDEO" ]]
 then
 
@@ -132,21 +142,16 @@ then
 
     ./graphite2/build.sh
   fi
-
 fi
 
-#--------
-
 #-------- PCRE
-
+#
 if [ ! -e $EXT_INSTALL_PATH/lib/libpcre.la ]
 then
   banner "PCRE"
 
   ./pcre/build.sh
 fi
-
-#--------
 
 #-------- ICU
 
@@ -157,8 +162,6 @@ then
   ./icu/build.sh
 fi
 
-#--------
-
 #-------- LIBFFI
 
 if [ ! -e $EXT_INSTALL_PATH/lib/libffi.la ]
@@ -167,8 +170,6 @@ then
 
   ./libffi/build.sh
 fi
-
-#--------
 
 #-------- GETTEXT
 
@@ -179,8 +180,6 @@ then
   ./gettext/build.sh
 fi
 
-#--------
-
 #-------- GLIB
 
 if [ ! -e $EXT_INSTALL_PATH/lib/libglib-2.0.la ]
@@ -189,8 +188,6 @@ then
 
   ./glib/build.sh
 fi
-
-#--------
 
 #--------- GIF
 
@@ -270,7 +267,6 @@ then
   cd ..
 
 fi
-#---------
 
 if [[ $# -eq 1 ]] && [[ $1 == "SPARK_ENABLE_VIDEO" ]]; then
 
@@ -283,8 +279,6 @@ if [[ $# -eq 1 ]] && [[ $1 == "SPARK_ENABLE_VIDEO" ]]; then
     ./fontconfig/build.sh
   fi
 
-#--------
-
 #-------- HARFBUZZ
 
 if [ ! -e $EXT_INSTALL_PATH/lib/libharfbuzz.la ]
@@ -293,7 +287,7 @@ then
 
   ./harfbuzz/build.sh
 fi
-#---------
+
 fi # SPARK_ENABLE_VIDEO
 
 #-------- openssl
@@ -304,8 +298,6 @@ then
 
   cp -r ${OPENSSL_DIR}/* $EXT_INSTALL_PATH
 fi
-
-#--------
 
 #--------- CURL
 
@@ -327,7 +319,6 @@ if [ ! -e $EXT_INSTALL_PATH/lib/libcurl.la ]; then
   cd ..
 
 fi
-#---------
 
 #--------- ZLIB
 
@@ -348,7 +339,6 @@ then
   cd ..
 
 fi
-#---------
 
 #--------- LIBJPEG TURBO (Non -macOS)
 
@@ -382,7 +372,6 @@ then
   cd ..
 
 fi
-#---------
 
 #--------- LIBNODE
 
@@ -484,7 +473,6 @@ if [ "$(uname)" != "Darwin" ]; then
 
   cd ..
 fi
-#---------
 
 #-------- NANOSVG
 
@@ -497,7 +485,6 @@ banner "NANOSVG"
   git update-index --assume-unchanged ./nanosvg/src/nanosvgrast.h    # ... help GIT out
 fi
 
-#---------
 
 #-------- DUKTAPE
 
@@ -532,9 +519,8 @@ if [ ! -d "spark-webgl/build" ]; then
   cd ..
 
 fi
-#--------
 
-#--------  SQLITE
+#-------- SQL LITE
 
 if [ ! -e sqlite/.libs/libsqlite3.a ]
 then
@@ -577,8 +563,6 @@ then
       ./cJSON/build.sh
     fi
 
-  #--------
-
   #-------- ORC
 
   if [ ! -e $EXT_INSTALL_PATH/lib/liborc-0.4.la ]
@@ -589,8 +573,6 @@ then
     ./orc/build.sh
   fi
 
-  #--------
-
   #-------- OSSP-UUID
 
   if [ ! -e $EXT_INSTALL_PATH/lib/libuuid.la ]
@@ -599,8 +581,6 @@ then
 
     ./ossp-uuid/build.sh
   fi
-
-  #--------
 
   #--------libxml2
 
@@ -611,8 +591,6 @@ then
     ./libxml2/build.sh
   fi
 
-  #--------
-
   #-------- LIBDASH
 
   if [ ! -e $EXT_INSTALL_PATH/lib/libdash.$LIBEXTN ]
@@ -622,8 +600,6 @@ then
     ./libdash/libdash/build.sh
   fi
 
-  #--------
-
   #-------- xz-5.2.2
 
   if [ ! -e $EXT_INSTALL_PATH/lib/liblzma.la ]
@@ -632,8 +608,6 @@ then
 
     ./xz/build.sh
   fi
-
-  #--------
 
   #-------- GSTREAMER-1.16
 
@@ -645,8 +619,6 @@ then
     ./gstreamer/build.sh
   fi
 
-  #--------
-
   #-------- GST-PLUGIN-BASE
 
   if [ ! -e $EXT_INSTALL_PATH/lib/libgstapp-1.0.la ]
@@ -655,8 +627,6 @@ then
 
     ./gst-plugins-base/build.sh
   fi
-
-  #--------
 
   #-------- GST-PLUGIN-BAD
 
@@ -667,8 +637,6 @@ then
     ./gst-plugins-bad/build.sh
   fi
 
-  #--------
-
   #-------- GST-PLUGIN-UGLY
 
   if [ ! -e $EXT_INSTALL_PATH/lib/gstreamer-1.0/libgstx264.la ]
@@ -677,8 +645,6 @@ then
 
     ./gst-plugins-ugly/build.sh
   fi
-
-  #--------
 
   #-------- GST-PLUGIN-GOOD
 
@@ -689,8 +655,6 @@ then
     ./gst-plugins-good/build.sh
   fi
 
-  #--------
-
   #-------- GST-LIBAV
 
   if [ ! -e $EXT_INSTALL_PATH/lib/gstreamer-1.0/libgstlibav.la ]
@@ -700,8 +664,6 @@ then
     ./gst-libav/build.sh
   fi
 
-  #--------
-
   #-------- AAMPABR
 
   if [ ! -e $EXT_INSTALL_PATH/lib/libabr.$LIBEXTN ]
@@ -710,8 +672,6 @@ then
 
     ./aampabr/build.sh
   fi
-
-  #--------
 
   #-------- AAMP
 
