@@ -30,7 +30,6 @@ index 21b9c486b..afdce4567 100644
 index 21b9c486b..afdce4567 100644
 --- giflib-5.1.9/dgif_lib.c
 +++ giflib-5.1.9/dgif_lib.c
-
 @@ -941,7 +941,7 @@ DGifDecompressLine(GifFileType *GifFile, GifPixelType *Line, int LineLen)
                  while (StackPtr != 0 && i < LineLen)
                      Line[i++] = Stack[--StackPtr];
@@ -40,4 +39,4 @@ index 21b9c486b..afdce4567 100644
                  Prefix[Private->RunningCode - 2] = LastCode;
  
                  if (CrntCode == Private->RunningCode - 2) {
- 
+

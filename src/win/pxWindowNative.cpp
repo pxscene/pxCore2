@@ -467,7 +467,7 @@ LRESULT __stdcall pxWindowNative::windowProc(HWND hWnd, UINT msg, WPARAM wParam,
                 PAINTSTRUCT ps;
                 HDC dc = BeginPaint(w->mWindow, &ps);
                 w->onDraw(dc);
-								SwapBuffers(dc);
+				SwapBuffers(dc); // JRJR TODO should this be moved elsewhere into gl layer
                 EndPaint(w->mWindow, &ps);
 				return 0;
             }

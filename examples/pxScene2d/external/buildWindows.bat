@@ -23,7 +23,8 @@ cd ..
 
 REM --------- GIF
 cd giflib-5.1.9
-patch -p1 < ../giflib-5.1.9-windows.diff
+REM patch -p1 < ../giflib-5.1.9-windows.diff
+git apply --ignore-space-change --ignore-whitespace --whitespace=nowarn ../giflib-5.1.9-windows.diff
 
 cl /c /EHsc dgif_lib.c egif_lib.c getarg.c gif2rgb.c gif_err.c gif_font.c gif_hash.c gifalloc.c gifbg.c gifbuild.c gifclrmp.c gifcolor.c gifecho.c giffilter.c giffix.c gifhisto.c gifinto.c gifsponge.c giftext.c giftool.c gifwedge.c openbsd-reallocarray.c qprintf.c quantize.c
 
@@ -50,18 +51,7 @@ cd openssl-1.0.2o
 cd ..
 
 @rem freetype latest version needs to be updated here. Because the lib is named based on version, so to avoid a build failure and to build the external when there is a difference in version.
-cat vc.build\config.props | grep "freetype-2.8.1"
-if !errorlevel! == 0 (
-  if exist vc.build\builds\freetype281MT_D.lib ( 
-    echo "freetpye cache available"
-    ) ELSE (
-    set buildExternal=1
-	echo "Exact cache is not present, Externals will be built"
-	)
-  ) ELSE (
-  set buildExternal=1
-  echo "Exact library version is not present, Externals will be built"
-)
+set buildExternal=1
 
 
 if [%APPVEYOR_REPO_COMMIT%] == [] (
@@ -100,7 +90,8 @@ cd ..\..\..\..\
 REM --------- NANOSVG
 
 cd nanosvg
-patch -p1 < patches/add_ScaleXY.diff
+REM patch -p1 < patches/add_ScaleXY.diff
+git apply --ignore-space-change --ignore-whitespace --whitespace=nowarn patches/add_ScaleXY.diff
 cd ..
 
 REM --------- LIBNODE
@@ -118,7 +109,8 @@ cd ..
 REM --------- DUKLUV
 
 cd dukluv
-patch -p1 < patches/dukluv.git.patch
+REM patch -p1 < patches/dukluv.git.patch
+git apply --ignore-space-change --ignore-whitespace --whitespace=nowarn patches/dukluv.git.patch
 mkdir build
 cd build
 cmake ..

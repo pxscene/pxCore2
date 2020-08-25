@@ -52,8 +52,13 @@ uv_handle_type uv_guess_handle(uv_file file) {
     case FILE_TYPE_DISK:
       return UV_FILE;
 
-    default:
-      return UV_UNKNOWN_HANDLE;
+    default: {
+      if (file == 1 || file == 2) {  // JRJR Hack to prevent the node stdio from dying when using /subsystem:windows
+        return UV_FILE;
+      }
+      else
+        return UV_UNKNOWN_HANDLE;
+    }
   }
 }
 

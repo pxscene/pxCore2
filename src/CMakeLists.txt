@@ -193,7 +193,7 @@ elseif(WIN32)
     add_definitions(${COMM_DEPS_DEFINITIONS})
     include_directories(AFTER ${COMM_DEPS_INCLUDE_DIRS})
     include_directories(AFTER "${EXTDIR}/pthread-2.9")
-    set(PXCORE_FILES win/pxBufferNative.cpp win/pxOffscreenNative.cpp win/pxWindowNative.cpp
+    set(PXCORE_FILES win/pxBufferNative.cpp win/pxOffscreenNative.cpp win/pxContextUtils.cpp win/pxWindowNative.cpp
             win/pxEventLoopNative.cpp win/pxTimerNative.cpp win/pxClipboardNative.cpp pxViewWindow.cpp
             win/rtMutexNative.cpp win/rtThreadPoolNative.cpp)
     set_source_files_properties(utf8.c PROPERTIES LANGUAGE CXX)
