@@ -113,6 +113,14 @@ rtError pxLoadImage(const char *imageData, size_t imageDataSize,  pxOffscreen &o
          }
          break;
 
+#ifdef ENABLE_WEBP
+    case PX_IMAGE_WEBP:
+         {
+           retVal = pxLoadWEBPImage(imageData, imageDataSize, o);
+         }
+         break;
+#endif // ENABLE_WEBP
+
     case PX_IMAGE_SVG:
     default:
          {
@@ -2374,4 +2382,48 @@ rtError pxLoadGIFImage(const char *filename, pxOffscreen &o)
     return e;
 #endif
 }
+
+
+#ifdef ENABLE_WEBP
+
+#include "webp/decode.h"
+
+rtError pxLoadWEBPImage(const char *imageData, size_t imageDataSize,
+                       pxOffscreen &obj)
+{
+  int w, h;
+  
+  int ret1 = WebPGetInfo( (const uint8_t*) imageData, imageDataSize, &w, &h);
+
+  ret1 = ret1;
+  
+  obj.init(w, h);
+  
+  uint8_t* decoded = WebPDecodeRGBA( (const uint8_t*) imageData, imageDataSize, &w, &h);
+  
+  memcpy(obj.base(), decoded, (w * h * 4));
+
+  WebPFree(decoded);
+  
+  return RT_OK;
+}
+
+rtError pxLoadWEBPImage(const char *filename, pxOffscreen &o)
+{
+  rtData d;
+  rtError e = rtLoadFile(filename, d);
+  if (e == RT_OK)
+  {
+    // TODO get rid of the cast
+    e = pxLoadWEBPImage((const char *)d.data(), d.length(), o);
+  }
+  else
+  {
+    rtLogError("Failed to load image file, %s.", filename);
+  }
+  
+  return e;
+}
+#endif //ENABLE_WEBP
+
 
