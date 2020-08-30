@@ -151,6 +151,7 @@ uint32_t keycodeFromNative(uint32_t nativeKeycode)
     commonKeycode = PX_KEY_NATIVE_CLEAR; //TODO
     break;
     
+#if 0  // Don't support key codes for modifier keys
   case PX_KEY_NATIVE_SHIFT:
     commonKeycode = PX_KEY_SHIFT;
     break;
@@ -160,6 +161,7 @@ uint32_t keycodeFromNative(uint32_t nativeKeycode)
   case PX_KEY_NATIVE_ALT:
     commonKeycode = PX_KEY_ALT;
     break;
+#endif
   case PX_KEY_NATIVE_PAUSE:
     commonKeycode = PX_KEY_PAUSE;
     break;
