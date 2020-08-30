@@ -58,7 +58,7 @@
 #endif //PX_PLATFORM_WAYLAND_EGL
 #endif
 
-#include "pxContextUtils.h"
+#include "pxSharedContext.h"
 #include "pxTimer.h"
 
 #define PX_TEXTURE_MIN_FILTER GL_LINEAR

@@ -28,5 +28,7 @@ limitations under the License.
 #include "win/pxBufferNative.h"
 #include "win/pxOffscreenNative.h"
 #include "win/pxWindowNative.h"
+
+#include "win/pxSharedContextNative.h"
 #endif
 

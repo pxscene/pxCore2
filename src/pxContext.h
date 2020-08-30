@@ -30,7 +30,7 @@
 //#include "pxConstants.h"
 #include "pxTexture.h"
 #include "pxContextFramebuffer.h"
-#include "pxContextUtils.h"
+#include "pxSharedContext.h"
 #include "pxEffects.h"
 
 #ifdef ENABLE_DFB
@@ -87,7 +87,7 @@ class pxContext {
   void init();
   void term();
 
-  // debugging outlines 
+  // debugging outlines
   bool showOutlines() { return mShowOutlines; }
   void setShowOutlines(bool v) { mShowOutlines = v; }
 
@@ -129,7 +129,7 @@ class pxContext {
   void drawImageMasked(float x, float y, float w, float h,
                         pxContextMaskOperation maskOp,
                         pxTextureRef t, pxTextureRef mask);
-  
+
   void drawImage(float x, float y, float w, float h, pxTextureRef t,
                  pxTextureRef mask, bool useTextureDimsAlways = true, float* color = NULL,
                  pxContextStretch xStretch = pxContextStretch::STRETCH,
@@ -155,7 +155,7 @@ class pxContext {
   void drawImage9(float w, float h, float x1, float y1,
                   float x2, float y2, pxTextureRef texture);
 
-  void drawImage9Border(float w, float h, 
+  void drawImage9Border(float w, float h,
                   float bx1, float by1, float bx2, float by2,
                   float ix1, float iy1, float ix2, float iy2,
                   bool drawCenter, float* color,
@@ -165,7 +165,7 @@ class pxContext {
                      float dst_x, float dst_y,
                      float w, float h,
                      pxOffscreen  &offscreen);
-  
+
 // Only use for debug/diag purposes not for normal rendering
   void drawDiagRect(float x, float y, float w, float h, float* color);
   void drawDiagLine(float x1, float y1, float x2, float y2, float* color);
@@ -176,7 +176,7 @@ class pxContext {
   int64_t currentTextureMemoryUsageInBytes();
   int64_t textureMemoryOverflow(pxTextureRef texture);
   int64_t ejectTextureMemory(int64_t bytesRequested, bool forceEject=false);
-  
+
   pxError setEjectTextureAge(uint32_t age);
   void updateRenderTick();
 

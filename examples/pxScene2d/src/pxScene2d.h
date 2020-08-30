@@ -81,10 +81,10 @@ class pxConstantsDragType;
 
 #ifdef RUNINMAIN
 #define ENTERSCENELOCK()
-#define EXITSCENELOCK() 
+#define EXITSCENELOCK()
 #else
 #define ENTERSCENELOCK() rtWrapperSceneUpdateEnter();
-#define EXITSCENELOCK() rtWrapperSceneUpdateExit(); 
+#define EXITSCENELOCK() rtWrapperSceneUpdateExit();
 class pxScriptView;
 class AsyncScriptInfo {
   public:
@@ -104,7 +104,7 @@ extern rtThreadQueue* gUIThreadQueue;
 // TODO Finish
 //#include "pxTransform.h"
 #include "pxConstants.h"
-#include "pxContextUtils.h"
+#include "pxSharedContext.h"
 
 // Constants
 static pxConstants CONSTANTS;
@@ -117,7 +117,7 @@ rtError createObject2(const char* t, rtObjectRef& o);
 
 typedef void (*pxAnimationEnded)(void* ctx);
 
-struct pxAnimationTarget 
+struct pxAnimationTarget
 {
   char* prop;
   float to;
@@ -138,7 +138,7 @@ struct animation
   double duration;
 
   pxConstantsAnimation::animationOptions  options;
-  
+
   pxInterp interpFunc;
 
   int32_t count;
@@ -149,10 +149,10 @@ struct animation
   rtObjectRef animateObj;
 };
 
-struct pxPoint2f 
+struct pxPoint2f
 {
   pxPoint2f():x(0),y(0) {}
-  pxPoint2f(float _x, float _y) { x = _x; y = _y; } 
+  pxPoint2f(float _x, float _y) { x = _x; y = _y; }
   float x, y;
 };
 
@@ -241,7 +241,7 @@ public:
   virtual void* getInterface(const char* /*name*/)
   {
     return NULL;
-  }  
+  }
 
 #if 0
   rtError url(rtString& v) const { v = mUri; return RT_OK; }
@@ -249,21 +249,21 @@ public:
 #endif
 
   rtError w(float& v) const { v = mw; return RT_OK; }
-  rtError setW(float v) 
-  { 
-    mw = v; 
+  rtError setW(float v)
+  {
+    mw = v;
     if (mView)
-      mView->onSize(static_cast<int32_t>(mw),static_cast<int32_t>(mh)); 
-    return RT_OK; 
+      mView->onSize(static_cast<int32_t>(mw),static_cast<int32_t>(mh));
+    return RT_OK;
   }
-  
+
   rtError h(float& v) const { v = mh; return RT_OK; }
-  rtError setH(float v) 
-  { 
-    mh = v; 
+  rtError setH(float v)
+  {
+    mh = v;
     if (mView)
-      mView->onSize(static_cast<int32_t>(mw),static_cast<int32_t>(mh)); 
-    return RT_OK; 
+      mView->onSize(static_cast<int32_t>(mw),static_cast<int32_t>(mh));
+    return RT_OK;
   }
 
   rtError onMouseDown(rtObjectRef o)
@@ -473,13 +473,13 @@ public:
     pxObject::update(t,updateChildren);
   }
 
-  virtual void draw() 
+  virtual void draw()
   {
     if (mView)
       mView->onDraw();
   }
 
-  
+
 
 protected:
   pxViewRef mView;
@@ -505,7 +505,7 @@ public:
   rtMethod1ArgAndReturn("screenshot", screenshot, rtString, rtValue);
 
 //  rtMethod1ArgAndNoReturn("makeReady", makeReady, bool);  // DEPRECATED ?
-  
+
   pxSceneContainer(pxScene2d* scene):pxViewContainer(scene){  pxSceneContainerCount++;}
   virtual ~pxSceneContainer() {rtLogDebug("###############~pxSceneContainer\n");pxSceneContainerCount--;}
 
@@ -524,7 +524,7 @@ public:
 
   rtError api(rtValue& v) const;
   rtError ready(rtObjectRef& o) const;
-  
+
   rtError serviceContext(rtObjectRef& o) const { o = mServiceContext; return RT_OK;}
   rtError setServiceContext(rtObjectRef o);
 
@@ -540,16 +540,16 @@ public:
 
 //  rtError makeReady(bool ready);  // DEPRECATED ?
 
-  // in the case of pxSceneContainer, the makeReady should be the  
-  // catalyst for ready to fire, so override sendPromise  
-  // to prevent firing from update() 
+  // in the case of pxSceneContainer, the makeReady should be the
+  // catalyst for ready to fire, so override sendPromise
+  // to prevent firing from update()
   virtual void sendPromise() { /*rtLogDebug("pxSceneContainer ignoring sendPromise\n");*/ }
 
   virtual void* getInterface(const char* name);
   virtual void releaseData(bool sceneSuspended);
   virtual void reloadData(bool sceneSuspended);
   virtual uint64_t textureMemoryUsage(std::vector<rtObject*> &objectsCounted);
-  
+
 private:
   rtRef<pxScriptView> mScriptView;
   rtString mUrl;
@@ -602,13 +602,13 @@ public:
 
   void runScript(); // Run the script
 
-  virtual unsigned long AddRef() 
+  virtual unsigned long AddRef()
   {
     //rtLogInfo(__FUNCTION__);
     return rtAtomicInc(&mRefCount);
   }
-  
-  virtual unsigned long Release() 
+
+  virtual unsigned long Release()
   {
     //rtLogInfo(__FUNCTION__);
     long l = rtAtomicDec(&mRefCount);
@@ -631,7 +631,7 @@ public:
   {
     if (!mReady)
       return RT_FAIL;
-    
+
     o = mReady;
     return RT_OK;
   }
@@ -659,7 +659,7 @@ public:
   rtError textureMemoryUsage(rtValue& v);
 
   rtError screenshot(rtString type, rtValue& returnValue);
-  
+
 protected:
 
 
@@ -691,7 +691,7 @@ protected:
   virtual bool onMouseDown(int32_t x, int32_t y, uint32_t flags);
   virtual bool onMouseUp(int32_t x, int32_t y, uint32_t flags);
   virtual bool onMouseMove(int32_t x, int32_t y);
-  
+
   virtual bool onDragMove( int32_t x, int32_t y, int32_t type);
   virtual bool onDragEnter(int32_t x, int32_t y, int32_t type);
   virtual bool onDragLeave(int32_t x, int32_t y, int32_t type);
@@ -787,7 +787,7 @@ public:
   rtReadOnlyProperty(dirtyRectanglesEnabled, dirtyRectanglesEnabled, bool);
   rtProperty(enableDirtyRect, enableDirtyRect, setEnableDirtyRect, bool);
   rtProperty(customAnimator, customAnimator, setCustomAnimator, rtFunctionRef);
-  rtMethod1ArgAndReturn("loadArchive",loadArchive,rtString,rtObjectRef); 
+  rtMethod1ArgAndReturn("loadArchive",loadArchive,rtString,rtObjectRef);
   rtMethod1ArgAndReturn("create", create, rtObjectRef, rtObjectRef);
   rtMethodNoArgAndReturn("clock", clock, double);
   rtMethodNoArgAndNoReturn("logDebugMetrics", logDebugMetrics);
@@ -812,10 +812,10 @@ public:
   // focus is now a bool property on pxObject
   //rtMethod1ArgAndNoReturn("setFocus", setFocus, rtObjectRef);
   rtMethodNoArgAndReturn("getFocus", getFocus, rtObjectRef);
-  
-  
+
+
 //  rtMethodNoArgAndNoReturn("stopPropagation",stopPropagation);
-  
+
   rtMethod1ArgAndReturn("screenshot", screenshot, rtString, rtValue);
 
   rtMethod1ArgAndReturn("clipboardGet", clipboardGet, rtString, rtString);
@@ -824,8 +824,8 @@ public:
   rtMethod1ArgAndReturn("getService", getService, rtString, rtObjectRef);
 
   rtMethodNoArgAndReturn("getAvailableApplications", getAvailableApplications, rtString);
-    
-    
+
+
   rtProperty(ctx, ctx, setCtx, rtValue);
   rtProperty(api, api, setAPI, rtValue);
 //  rtReadOnlyProperty(emit, emit, rtFunctionRef);
@@ -1157,9 +1157,9 @@ public:
 
 private:
   static void updateObjects(double t);
-  bool bubbleEvent(rtObjectRef e, rtRef<pxObject> t, 
+  bool bubbleEvent(rtObjectRef e, rtRef<pxObject> t,
                    const char* preEvent, const char* event) ;
-  
+
   bool bubbleEventOnBlur(rtObjectRef e, rtRef<pxObject> t, rtRef<pxObject> o);
 
   void draw();
@@ -1250,7 +1250,7 @@ class pxScene2dRef: public rtRef<pxScene2d>, public rtObjectBase
 
   // operator= is not inherited
   pxScene2dRef& operator=(pxScene2d* s) { asn(s); return *this; }
-  
+
  private:
   virtual rtError Get(const char* name, rtValue* value) const override;
   virtual rtError Get(uint32_t i, rtValue* value) const override;
