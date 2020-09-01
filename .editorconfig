@@ -22,7 +22,7 @@ charset = utf-8
 indent_size = 2
 
 [*.py]
-indent_size = 4
+indent_size = 2
 
 [Makefile]
 indent_style = tab
@@ -38,4 +38,4 @@ indent_brace_style = Stroustrup
 indent_style = tab
 
 [*.{c++,cc,cxx}]
-indent_brace_style = Allman
+indent_brace_style = Stroustrup
