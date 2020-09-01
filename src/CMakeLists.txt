@@ -192,7 +192,8 @@ elseif(WIN32)
     add_definitions(-DWIN32 -D_LIB -DNDEBUG -DPX_PLATFORM_WIN -DRT_PLATFORM_WINDOWS)
     add_definitions(${COMM_DEPS_DEFINITIONS})
     include_directories(AFTER ${COMM_DEPS_INCLUDE_DIRS})
-    include_directories(AFTER "${EXTDIR}/pthread-2.9")
+    set(WINSPARKLEINC ${EXTDIR}/WinSparkle/include)
+    include_directories(AFTER "${EXTDIR}/pthread-2.9" ${WINSPARKLEINC} ${EXTDIR}/breakpad-chrome_55/src/)
     set(PXCORE_FILES win/pxBufferNative.cpp win/pxOffscreenNative.cpp win/pxSharedContextNative.cpp win/pxWindowNative.cpp
             win/pxEventLoopNative.cpp win/pxTimerNative.cpp win/pxClipboardNative.cpp pxViewWindow.cpp
             win/rtMutexNative.cpp win/rtThreadPoolNative.cpp)
@@ -223,7 +224,7 @@ set(PXCORE_FILES ${PXCORE_FILES} pxOffscreen.cpp pxContextGL.cpp pxShaderUtils.c
         rtFileDownloader.cpp unzip.c ioapi.c
         rtScript.cpp rtSettings.cpp rtCORS.cpp
         rtHttpRequest.cpp rtHttpResponse.cpp
-        rtJsonUtils.cpp
+        rtJsonUtils.cpp rtPhoneHome.cpp rtSoftwareUpdate.cpp
         )
 
 if (SUPPORT_STORAGE)

@@ -24,8 +24,6 @@ set(WESTEROSSTUBINC ${EXTDIR}/westeros-stub)
 
 set(BREAKPADINC ${EXTDIR}/breakpad/src)
 
-set(WINSPARKLEINC ${EXTDIR}/WinSparkle/include)
-
 set(UWS ${EXTDIR}/uWebSockets)
 set(PX_LIBRARY_SUPPORT 1)
 set(PXWAYLAND_LIBRARY_SUPPORT 0)
@@ -91,7 +89,7 @@ add_definitions(-DANIMATION_ROTATE_XYZ )
 if(WIN32)
   set(OPENSSLLIB ${EXTDIR}/openssl-1.0.2o/)
   set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${OPENSSLLIB}/lib)
-  
+
   include_directories(AFTER ${OPENSSLLIB}/bin)
 endif(WIN32)
 
@@ -323,7 +321,7 @@ elseif (WIN32)
             -DHTTP_PARSER_STRICT=0 -DUSE_RENDER_STATS -D_HAS_EXCEPTIONS=0)
     add_definitions(${COMM_DEPS_DEFINITIONS})
     include_directories(AFTER ${COMM_DEPS_INCLUDE_DIRS} ${NODE_INCLUDE_DIRS} ${V8_INCLUDE_DIRS} ${DUKE_INCLUDE_DIRS})
-    include_directories(AFTER "${EXTDIR}/pthread-2.9" ${WINSPARKLEINC} ${EXTDIR}/breakpad-chrome_55/src/)
+    include_directories(AFTER "${EXTDIR}/pthread-2.9")
 
     set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${COMM_DEPS_LIBRARY_DIRS} ${NODE_LIBRARY_DIRS}
         ${V8_LIBRARY_DIRS} ${DUKE_LIBRARY_DIRS})
@@ -555,7 +553,7 @@ link_directories(${PXSCENE_LINK_DIRECTORIES})
 if (BUILD_PXSCENE_APP)
     message("Enabling build support for pxscene app")
     # WIN32 to switch to /subsystem:windows
-    add_executable(pxscene_app WIN32 ${PXSCENE_APP_FILES} ${PXSCENE_ADDITIONAL_RESOURCES})
+    add_executable(pxscene_app ${PXSCENE_APP_FILES} ${PXSCENE_ADDITIONAL_RESOURCES})
     set_target_properties(pxscene_app PROPERTIES OUTPUT_NAME ${EXE})
     target_link_libraries(pxscene_app ${PXSCENE_APP_LIBRARIES} ${PXSCENE_LINK_LIBRARIES})
     add_definitions(${PXSCENE_DEFINITIONS})

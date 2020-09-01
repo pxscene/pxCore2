@@ -38,7 +38,7 @@ rtSettingsRef rtSettings::instance()
   return instance;
 }
 
-rtError rtSettings::value(const rtString& key, rtValue& value) const
+rtError rtSettings::value(const char* key, rtValue& value) const
 {
   std::map<rtString, rtValue>::const_iterator it = mValues.find(key);
   if (it != mValues.end())
@@ -49,7 +49,7 @@ rtError rtSettings::value(const rtString& key, rtValue& value) const
   return RT_ERROR;
 }
 
-rtError rtSettings::setValue(const rtString& key, const rtValue& value)
+rtError rtSettings::setValue(const char* key, const rtValue& value)
 {
   mValues[key] = value;
   return RT_OK;
@@ -63,7 +63,7 @@ rtError rtSettings::keys(std::vector<rtString>& keys) const
   return RT_OK;
 }
 
-rtError rtSettings::remove(const rtString& key)
+rtError rtSettings::remove(const char* key)
 {
   std::map<rtString, rtValue>::iterator it = mValues.find(key);
   if (it != mValues.end())
@@ -80,7 +80,7 @@ rtError rtSettings::clear()
   return RT_OK;
 }
 
-rtError rtSettings::loadFromFile(const rtString& filePath)
+rtError rtSettings::loadFromFile(const char* filePath)
 {
   rtString settingsPath = filePath;
 
@@ -158,7 +158,7 @@ rtError rtSettings::loadFromArgs(int argc, char* argv[])
   return RT_OK;
 }
 
-rtError rtSettings::save(const rtString& filePath) const
+rtError rtSettings::save(const char* filePath) const
 {
   rtMapObject* o = new rtMapObject;
   for (std::map<rtString, rtValue>::const_iterator it = mValues.begin(); it != mValues.end(); ++it)
@@ -168,7 +168,7 @@ rtError rtSettings::save(const rtString& filePath) const
 
   rtValue v = o;
 
-  return rtValue2jsonFile(v, filePath.cString());
+  return rtValue2jsonFile(v, filePath);
 }
 
 rtDefineObject(rtSettings, rtObject);

@@ -57,6 +57,7 @@ public:
     void size(int& width, int& height);
     // void frameSize(...);
 
+    HWND getHWND() { return mWindow; } // Just because...
 
 protected:
     virtual void onCreate() = 0;
@@ -94,10 +95,10 @@ protected:
     static LRESULT __stdcall windowProc(HWND hWnd, UINT msg,
             WPARAM wParam, LPARAM lParam);
 
-public: // Add accessors
-    HWND mWindow;
-    UINT_PTR mTimerId;
-    long mAnimationFPS;
+private: // Add accessors
+  HWND mWindow;
+  UINT_PTR mTimerId;
+  long mAnimationFPS;
 	bool mTrackMouse;
 };
 

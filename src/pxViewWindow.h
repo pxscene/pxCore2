@@ -21,12 +21,12 @@
 #ifndef PX_VIEWWINDOW_H
 #define PX_VIEWWINDOW_H
 
-#include "pxWindow.h"
 #include "pxIView.h"
+#include "pxWindow.h"
 
-class pxViewWindow: public pxWindow, public pxIViewContainer
-{
-public:
+class pxViewWindow : public pxWindow, public pxIViewContainer {
+ public:
+  pxViewWindow(): mWidth(-1), mHeight(-1) {}
 
   // pxViewRef is a smart ptr
   // that manages the refcount on a pxIView instance
@@ -34,12 +34,10 @@ public:
   // Specifying NULL will release the view
   pxError setView(pxIView* v);
 
-protected:
-
+ protected:
   virtual void onClose();
 
-  virtual void RT_STDCALL invalidateRect(pxRect* r)
-  {
+  virtual void RT_STDCALL invalidateRect(pxRect* r) {
     pxWindow::invalidateRect(r);
   }
 
@@ -53,10 +51,11 @@ protected:
   virtual void onMouseLeave();
   virtual void onMouseMove(int32_t x, int32_t y);
 
-  virtual void onDragMove( int32_t x, int32_t y, int32_t type);
+  virtual void onDragMove(int32_t x, int32_t y, int32_t type);
   virtual void onDragEnter(int32_t x, int32_t y, int32_t type);
   virtual void onDragLeave(int32_t x, int32_t y, int32_t type);
-  virtual void onDragDrop( int32_t x, int32_t y, int32_t type, const char *dropped);
+  virtual void onDragDrop(int32_t x, int32_t y, int32_t type,
+                          const char* dropped);
 
   virtual void onScrollWheel(float dx, float dy);
 
@@ -69,11 +68,9 @@ protected:
 
   virtual void onDraw(pxSurfaceNative s);
 
-private:
+ protected:
   pxViewRef mView;
-//  pxOffscreen mViewOffscreen;
   uint32_t mWidth, mHeight;
 };
 
-#endif // PX_VIEWWINDOW_H
-
+#endif  // PX_VIEWWINDOW_H

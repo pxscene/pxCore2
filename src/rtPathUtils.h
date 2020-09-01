@@ -21,12 +21,12 @@
 #ifndef _RT_PATH_UTILS
 #define _RT_PATH_UTILS
 
-#include <string>
-#include <vector>
-
 #include "rtCore.h"
 #include "rtString.h"
 #include "rtValue.h"
+
+#include <string>
+#include <vector>
 
 rtError rtEnsureTrailingPathSeparator(rtString& d);
 rtError rtGetCurrentDirectory(rtString& d);
@@ -35,6 +35,21 @@ rtError rtGetHomeDirectory(rtString& d);
 rtError rtGetEnv(const char* e, rtString& v);
 rtString rtGetEnvAsString(const char* name, const char* defaultValue = "");
 rtValue rtGetEnvAsValue(const char* name, const char* defaultValue = "");
+
+template<typename T>
+T rtEnv(const char* name) {
+  char* v = getenv(name);  // JRJR TODO secure_getenv??
+  return rtVAlue(v).convert<T>();
+}
+
+template<typename T>
+T rtEnv(const char* name, T defaultValue) {
+  char* v = getenv(name);  // JRJR TODO secure_getenv??
+  return v != NULL?rtValue(v).convert<T>():defaultValue;
+}
+
+template<typename T>
+T rtEnv(const char* name, T default);
 
 bool rtFileExists(const char* f);
 bool rtFileRemove(const char* f);

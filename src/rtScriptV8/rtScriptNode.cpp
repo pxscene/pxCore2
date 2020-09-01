@@ -1001,7 +1001,7 @@ rtError rtNodeContext::runFile(const char *file, rtValue* retVal /*= NULL*/, con
   // Read the script file
   js_file   = file;
   js_script = readFile(file);
-  
+
   if( js_script.empty() ) // load error
   {
     rtLogError(" %s  ... [%s] load error / not found.",__PRETTY_FUNCTION__, file);
@@ -1061,6 +1061,26 @@ unsigned long rtScriptNode::Release()
 
 rtError rtScriptNode::init()
 {
+  if (g_argc == 0) {
+
+    g_argv = NULL;
+
+    char* args = "spark --experimental-vm-modules";
+
+    char* argsBuffer = strdup(args);  // JRJR leak leak
+    char* start = argsBuffer;
+
+    int l = strlen(argsBuffer);
+    for (char* p = argsBuffer; p < argsBuffer+l+1; p++) {
+      if (*p == ' ' || *p == '\0') {
+        g_argv = (char**)realloc(g_argv, sizeof(char*) * (g_argc+1));
+        g_argv[g_argc++] = start;
+        *p = '\0';
+        start = p+1;
+      }
+    }
+  }
+
   rtLogDebug(__FUNCTION__);
   char const* s = getenv("RT_TEST_GC");
   if (s && strlen(s) > 0)
@@ -1094,13 +1114,13 @@ rtError rtScriptNode::init()
   static const char *argv2[] = {&args2[0], &args2[7], &args2[33], &args2[45], &args2[48], NULL};
 #endif // ENABLE_NODE_V_6_9
 #endif //ENABLE_V8_HEAP_PARAMS
+
 #ifndef ENABLE_DEBUG_MODE
   int          argc   = sizeof(argv2)/sizeof(char*) - 1;
 
   static args_t aa(argc, (char**)argv2);
 
   s_gArgs = &aa;
-
 
   char **argv = aa.argv;
 #endif
@@ -1148,10 +1168,10 @@ rtError rtScriptNode::pump()
 //#else
 #ifdef RUNINMAIN
   // found a problem where if promise triggered by one event loop gets resolved by other event loop.
-  // It is causing the dependencies between data running between two event loops failed, if one one 
+  // It is causing the dependencies between data running between two event loops failed, if one one
   // loop didn't complete before other. So, promise not registered by first event loop, before the second
   // event looop sends back the ready event
-  if (gIsPumpingJavaScript == false) 
+  if (gIsPumpingJavaScript == false)
   {
     gIsPumpingJavaScript = true;
 #endif
