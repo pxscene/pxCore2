@@ -183,7 +183,10 @@
 
     On Linux
     ~~~~
-    cd pxCore/examples/pxScene2d/src
+    cd pxCore\temp\
+    cpack -G TGZ or DEB
+    cd  _CPack_Packages/Linux/DEB/spark-setup/home/Spark/
+    chmod +x spark.sh
     ./spark.sh {path_to_javascript_file_name}.js
     ~~~~
 

@@ -192,6 +192,8 @@ elseif (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
 
     set(PXSCENE_APP_LIBRARIES ${PXSCENE_APP_LIBRARIES} pxCore rtCore_s)
 
+    set(PXSCENE_LINKER_OPTIONS " /DEBUG ")
+    set(PXSCENE_INSTALLER 1)
     if (HOSTNAME STREQUAL "raspberrypi")
         message("building pxscene for raspberrypi")
         set(PX_PLATFORM PX_PLATFORM_GENERIC_EGL)
@@ -361,7 +363,7 @@ endif(DEFINED ENV{PX_BUILD_VERSION})
 
 if ("${PXSCENE_VERSION}" STREQUAL "")
     add_definitions(-DPX_SCENE_VERSION=dev)
-    set(PXSCENE_VERSION dev)
+    set(PXSCENE_VERSION 1.0.dev)
 else ()
     message("pxscene version is: ${PXSCENE_VERSION}")
     add_definitions(-DPX_SCENE_VERSION=${PXSCENE_VERSION})
@@ -614,6 +616,65 @@ if (BUILD_PXSCENE_APP)
         set(CPACK_NSIS_MUI_ICON "${CMAKE_CURRENT_SOURCE_DIR}/win/Spark_installer.ico")
         set(CPACK_NSIS_MUI_UNIICON "${CMAKE_CURRENT_SOURCE_DIR}/win/Spark_installer.ico")
         include(CPack)
+
+        else ()
+	      if (NOT APPLE)
+ 	        message("enabling installer support")
+
+	        SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+	        SET(RPATH ${PXSCENE_LINK_LIBRARIES})
+          install(TARGETS pxscene_app RUNTIME DESTINATION "/home/Spark/" LIBRARY DESTINATION "/home/Spark/" DESTINATION "/home/Spark/" COMPONENT pxscene)
+          install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/browser DESTINATION "/home/Spark/" COMPONENT pxscene)
+          install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/node_modules DESTINATION "/home/Spark/" COMPONENT pxscene)
+          install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/v8_modules DESTINATION "/home/Spark/" COMPONENT pxscene)
+          if (SUPPORT_DUKTAPE)
+            install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/rcvrcore/" DESTINATION /home/Spark/rcvrcore COMPONENT pxscene)
+            install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/duk_modules/" DESTINATION /home/Spark/duk_modules COMPONENT pxscene)
+            file(GLOB PXSCENE_INSTALL_FILES_JS "${CMAKE_CURRENT_SOURCE_DIR}/*.js")
+            file(GLOB PXSCENE_INSTALL_FILES_JS2 "${CMAKE_CURRENT_SOURCE_DIR}/duktape/*.js")
+          else ()
+            install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/rcvrcore DESTINATION  "/home/Spark/" COMPONENT pxscene)
+            file(GLOB PXSCENE_INSTALL_FILES_JS "${CMAKE_CURRENT_SOURCE_DIR}/*.js")
+        endif (SUPPORT_DUKTAPE)
+
+        file(GLOB_RECURSE PXSCENE_INSTALL_FILES "${CMAKE_CURRENT_SOURCE_DIR}/linux/spark.sh"
+	          "${CMAKE_CURRENT_SOURCE_DIR}/FreeSans.ttf"
+            "${CMAKE_CURRENT_SOURCE_DIR}/*.json" "${CMAKE_CURRENT_SOURCE_DIR}/*.conf"
+	          "${CMAKE_CURRENT_SOURCE_DIR}/linux/spark.sh"
+            "${CMAKE_CURRENT_SOURCE_DIR}/../external/png/.libs/libpng16.so.*"
+            "${CMAKE_CURRENT_SOURCE_DIR}/../external/curl/lib/.libs/libcurl.so.*0"
+            "${CMAKE_CURRENT_SOURCE_DIR}/../external/libnode-v10.15.3/out/Release/obj.target/libnode.so.*"
+            "${CMAKE_CURRENT_SOURCE_DIR}/../external/ft/objs/.libs/libfreetype.so.*0"
+            "${CMAKE_CURRENT_SOURCE_DIR}/../external/jpg/.libs/libjpeg.so.9"
+            "${CMAKE_CURRENT_SOURCE_DIR}/../external/jpg/.libs/libjpeg.so.*0"
+	          "${CMAKE_CURRENT_SOURCE_DIR}/../external/openssl-1.0.2o/lib/libssl.so.*"
+            "${CMAKE_CURRENT_SOURCE_DIR}/../external/openssl-1.0.2o/lib/libcrypto.so.*0"
+            "${CMAKE_CURRENT_SOURCE_DIR}/Release/"
+            "${CMAKE_CURRENT_SOURCE_DIR}/../external/sqlite/.libs/libsqlite3.so.*0"
+            "${CMAKE_CURRENT_SOURCE_DIR}/../external/sqlite/.libs/libsqlite3.so.0.8.6"
+            "${CMAKE_CURRENT_SOURCE_DIR}/../external/extlibs/lib/libturbojpeg.so.*0"
+            "${CMAKE_CURRENT_SOURCE_DIR}/../external/giflib-5.1.9/.libs/libgif.so.*")
+        if (SUPPORT_DUKTAPE)
+            message("installing additional duktape files")
+            install(FILES ${PXSCENE_INSTALL_FILES_JS2} DESTINATION "/home/Spark/" COMPONENT pxscene)
+        endif (SUPPORT_DUKTAPE)
+
+        install(FILES ${PXSCENE_INSTALL_FILES_JS} ${PXSCENE_INSTALL_FILES} DESTINATION "/home/Spark/" COMPONENT pxscene)
+        #set(CPACK_GENERATOR "DEB") let user decide between DEB TGZ
+        set(CPACK_PACKAGE_NAME ${EXE})
+        set(CPACK_DEBIAN_PACKAGE_MAINTAINER ${EXE})
+        # autogenerate dependency information
+        #set (CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
+        set(CPACK_PACKAGE_VERSION "${PXSCENE_VERSION}")
+        set(CPACK_PACKAGE_FILE_NAME "spark-setup")
+        set(CPACK_PACKAGE_INSTALL_DIRECTORY "/home/Spark/")
+        set(CPACK_RESOURCE_FILE_LICENSE "${PXCOREDIR}/LICENSE.txt")
+        set(CPACK_PACKAGE_VENDOR "pxscene.org")
+        set(CPACK_NSIS_MUI_ICON "${CMAKE_CURRENT_SOURCE_DIR}/linux/Spark_installer.ico")
+        set(CPACK_NSIS_MUI_UNIICON "${CMAKE_CURRENT_SOURCE_DIR}/linux/Spark_installer.ico")
+        include(CPack)
+        endif (NOT APPLE)
+
       endif (WIN32)
     endif (PXSCENE_INSTALLER GREATER 0)
 endif (BUILD_PXSCENE_APP)
