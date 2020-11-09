@@ -379,11 +379,21 @@ void rtHttpCacheData::setExpirationDate()
   if (mHeaderMap.end() != mHeaderMap.find("Cache-Control"))
   {
     string cacheControl = mHeaderMap["Cache-Control"].cString();
-    size_t pos = cacheControl.find("max-age");
+    size_t pos = cacheControl.find("s-maxage");
+    uint32_t ageValueIndex = -1;
+    if (string::npos != pos)
+    {
+      ageValueIndex = 9;
+    }
+    else
+    {
+      pos = cacheControl.find("max-age");
+      ageValueIndex = 8;
+    }
     if (string::npos != pos)
     {
       foundMaxAge = true;
-      string maxAge = cacheControl.substr(pos+8);
+      string maxAge = cacheControl.substr(pos+ageValueIndex);
       long int maxAgeInt = 0;
       stringstream stream(maxAge);
       stream >> maxAgeInt;
