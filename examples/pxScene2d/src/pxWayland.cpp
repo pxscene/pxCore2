@@ -125,12 +125,14 @@ pxWayland::~pxWayland()
 
   if ( mWCtx )
   {
+     WstCompositor *ctx = mWCtx;
+     mWCtx = NULL;
      rtLogInfo("removing wayland callbacks before destroying");
-     WstCompositorSetInvalidateCallback(mWCtx, NULL, NULL);
-     WstCompositorSetHidePointerCallback(mWCtx, NULL, NULL);
-     WstCompositorSetClientStatusCallback(mWCtx, NULL, NULL);
+     WstCompositorSetInvalidateCallback(ctx, NULL, NULL);
+     WstCompositorSetHidePointerCallback(ctx, NULL, NULL);
+     WstCompositorSetClientStatusCallback(ctx, NULL, NULL);
      terminateClient();
-     WstCompositorDestroy(mWCtx);
+     WstCompositorDestroy(ctx);
      //Adding mClientTerminated flag check because SIGKILL has to be sent to
      //the Process only when it got SIGTERM from terminateClient().
      if (mClientTerminated && (mClientPID > 0) && (0 == kill(mClientPID, 0)))
@@ -593,7 +595,7 @@ void pxWayland::launchAndMonitorClient()
 
    mClientMonitorStarted= true;
 
-   if ( !WstCompositorLaunchClient( mWCtx, mCmd.cString() ) )
+   if ( mWCtx && !WstCompositorLaunchClient( mWCtx, mCmd.cString() ) )
    {
       rtLogError( "pxWayland::launchAndMonitorClient: WstCompositorLaunchClient failed for (%s)", mCmd.cString() );
       const char *detail= WstCompositorGetLastErrorDetail( mWCtx );
