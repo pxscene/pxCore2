@@ -3399,6 +3399,8 @@ void pxScriptView::runScript()
         width = 1920;
         height = 1080;
       }
+      onSize(width, height);
+
       mSharedContext->makeCurrent(true);
       cached = context.createFramebuffer(width,height,false,false,true);
       mSharedContext->makeCurrent(false);
