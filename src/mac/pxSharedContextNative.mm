@@ -1,4 +1,4 @@
-#include "pxContextUtils.h"
+#include "pxSharedContext.h"
 
 #include <OpenGL/gl.h>
 #include <OpenGL/glu.h>
@@ -7,43 +7,44 @@
 #include "rtLog.h"
 #include "rtMutex.h"
 
+#if 0
 bool glContextIsCurrent = false;
 rtMutex eglContextMutex;
 int nextInternalContextId = 1;
 
-extern NSOpenGLContext *openGLContext;
+#endif
 
-NSOpenGLPixelFormatAttribute attribs[] =
-        {
-            /*NSOpenGLPFADoubleBuffer,*/
-            NSOpenGLPFAAllowOfflineRenderers, // lets OpenGL know this context is offline renderer aware
-            NSOpenGLPFAMultisample, 1,
-            NSOpenGLPFASampleBuffers, 1,
-            NSOpenGLPFASamples, 4,
-            NSOpenGLPFAColorSize, 32,
-            NSOpenGLPFAOpenGLProfile,NSOpenGLProfileVersionLegacy/*, NSOpenGLProfileVersion3_2Core*/, // Core Profile is the future
-            0
-        };
+extern NSOpenGLContext *openGLContext; // TODO try to get rid of thsi...
 
-NSOpenGLPixelFormatAttribute attribsWithDepth[] =
-        {
-            /*NSOpenGLPFADoubleBuffer,*/
-            NSOpenGLPFADepthSize,32,
-            NSOpenGLPFAAllowOfflineRenderers, // lets OpenGL know this context is offline renderer aware
-            NSOpenGLPFAMultisample, 1,
-            NSOpenGLPFASampleBuffers, 1,
-            NSOpenGLPFASamples, 4,
-            NSOpenGLPFADepthSize, 32,
-            NSOpenGLPFAOpenGLProfile,NSOpenGLProfileVersionLegacy/*, NSOpenGLProfileVersion3_2Core*/, // Core Profile is the future
-            0
-        };
+NSOpenGLPixelFormatAttribute attribs[] = {
+    /*NSOpenGLPFADoubleBuffer,*/
+    NSOpenGLPFAAllowOfflineRenderers, // lets OpenGL know this context is offline renderer aware
+    NSOpenGLPFAMultisample, 1,
+    NSOpenGLPFASampleBuffers, 1,
+    NSOpenGLPFASamples, 4,
+    NSOpenGLPFAColorSize, 32,
+    NSOpenGLPFAOpenGLProfile,NSOpenGLProfileVersionLegacy/*, NSOpenGLProfileVersion3_2Core*/, // Core Profile is the future
+    0
+};
+
+NSOpenGLPixelFormatAttribute attribsWithDepth[] = {
+    /*NSOpenGLPFADoubleBuffer,*/
+    NSOpenGLPFADepthSize,32,
+    NSOpenGLPFAAllowOfflineRenderers, // lets OpenGL know this context is offline renderer aware
+    NSOpenGLPFAMultisample, 1,
+    NSOpenGLPFASampleBuffers, 1,
+    NSOpenGLPFASamples, 4,
+    NSOpenGLPFADepthSize, 32,
+    NSOpenGLPFAOpenGLProfile,NSOpenGLProfileVersionLegacy/*, NSOpenGLProfileVersion3_2Core*/, // Core Profile is the future
+    0
+};
 
 NSOpenGLPixelFormat *internalPixelFormat = [[NSOpenGLPixelFormat alloc] initWithAttributes:attribs];
 NSOpenGLPixelFormat *internalPixelWithDepthFormat = [[NSOpenGLPixelFormat alloc] initWithAttributes:attribsWithDepth];
 
-std::map<int, NSOpenGLContext *> internalContexts;
+//std::map<int, NSOpenGLContext *> internalContexts;
 
-
+#if 0
 pxError createGLContext(int id, bool depthBuffer)
 {
     NSOpenGLContext *context = nil;
@@ -121,4 +122,33 @@ pxError makeInternalGLContextCurrent(bool current, int id)
         glContextIsCurrent = false;
     }
     return PX_OK;
+}
+#endif
+
+pxSharedContextNative::pxSharedContextNative(bool depthBuffer):context(NULL) {
+  if (depthBuffer)
+      context = (void*)[[NSOpenGLContext alloc] initWithFormat:internalPixelFormat shareContext:openGLContext];
+  else
+      context = (void*)[[NSOpenGLContext alloc] initWithFormat:internalPixelWithDepthFormat shareContext:openGLContext];
+}
+
+pxSharedContextNative::~pxSharedContextNative() {
+  if (context) {
+    NSOpenGLContext* c = (NSOpenGLContext*)context;
+    [c release];
+    context = NULL;
+  }
+}
+
+void pxSharedContext::makeCurrent(bool f) {
+  if (f) {
+    NSOpenGLContext* c = (NSOpenGLContext*)context;
+    [c makeCurrentContext];
+    glClearColor(0, 0, 0, 0);
+    glClear(GL_COLOR_BUFFER_BIT);
+  }
+  else {
+    glFlush();
+    [openGLContext makeCurrentContext];
+  }
 }

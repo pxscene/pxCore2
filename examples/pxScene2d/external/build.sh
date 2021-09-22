@@ -181,16 +181,7 @@ fi
 
 #--------
 
-#-------- GLIB
 
-if [ ! -e $EXT_INSTALL_PATH/lib/libglib-2.0.la ]
-then
-  banner "GLIB"
-
-  ./glib/build.sh
-fi
-
-#--------
 
 #--------- GIF
 
@@ -461,7 +452,7 @@ then
     cp Makefile.build Makefile
   fi
 
-  CPPFLAGS="${IDE_SEARCH_PATH} -I${OPENSSL_DIR} -I${OPENSSL_DIR}/include" LDFLAGS="-L${OPENSSL_DIR}/lib -Wl,-rpath,${OPENSSL_DIR}/lib " make
+  CPPFLAGS="${IDE_SEARCH_PATH} -I../libnode-v${NODE_VER}/deps/uv/include/ -I${OPENSSL_DIR} -I${OPENSSL_DIR}/include" LDFLAGS="-L${OPENSSL_DIR}/lib -Wl,-rpath,${OPENSSL_DIR}/lib " make
 
   git ls-files -z . | xargs -0 git update-index --assume-unchanged # ... help GIT out
 
@@ -520,7 +511,8 @@ fi
 
 #-------- SPARK-WEBGL
 
-if [ ! -d "spark-webgl/build" ]; then
+#TODO I don't think this is used anymore... 
+if false && [ ! -d "spark-webgl/build" ]; then
 
   export NODE_PATH=$NODE_PATH:`pwd`/../src/node_modules
   export PATH=`pwd`/node/deps/npm/bin/node-gyp-bin/:`pwd`/node/out/Release:$PATH
@@ -567,6 +559,17 @@ fi
 
 if [[ $# -eq 1 ]] && [[ $1 == "SPARK_ENABLE_VIDEO" ]]
 then
+
+  #-------- GLIB
+
+  if [ ! -e $EXT_INSTALL_PATH/lib/libglib-2.0.la ]
+  then
+    banner "GLIB"
+
+    ./glib/build.sh
+  fi
+
+  #--------
 
   #-------- cJSON
 

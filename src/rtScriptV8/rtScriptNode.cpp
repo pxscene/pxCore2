@@ -1065,7 +1065,7 @@ rtError rtScriptNode::init()
 
     g_argv = NULL;
 
-    char* args = "spark --experimental-vm-modules";
+    char* args = (char*)"spark --experimental-vm-modules";
 
     char* argsBuffer = strdup(args);  // JRJR leak leak
     char* start = argsBuffer;
