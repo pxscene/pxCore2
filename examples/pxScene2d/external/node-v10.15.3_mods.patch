@@ -1651,10 +1651,26 @@ index a6cc01f12..ceee5e7ef 100755
    TCPWrap* wrap;
    ASSIGN_OR_RETURN_UNWRAP(&wrap,
 diff --git a/examples/pxScene2d/external/libnode-v10.15.3/deps/uv/src/win/handle.c b/examples/pxScene2d/external/libnode-v10.15.3/deps/uv/src/win/handle.c
-index 9d76c3f..8e9a6df 100755
+index 9d76c3f54..c31c2f4f6 100755
 --- a/examples/pxScene2d/external/libnode-v10.15.3/deps/uv/src/win/handle.c
 +++ b/examples/pxScene2d/external/libnode-v10.15.3/deps/uv/src/win/handle.c
-@@ -148,6 +148,26 @@ void uv_close(uv_handle_t* handle, uv_close_cb cb) {
+@@ -52,8 +52,13 @@ uv_handle_type uv_guess_handle(uv_file file) {
+     case FILE_TYPE_DISK:
+       return UV_FILE;
+ 
+-    default:
+-      return UV_UNKNOWN_HANDLE;
++    default: {
++      if (file == 0 || file == 1 || file == 2) {  // JRJR Hack to prevent the node stdio from dying when using /subsystem:windows
++        return UV_FILE;
++      }
++      else
++        return UV_UNKNOWN_HANDLE;
++    }
+   }
+ }
+ 
+@@ -148,6 +153,26 @@ void uv_close(uv_handle_t* handle, uv_close_cb cb) {
    }
  }
  

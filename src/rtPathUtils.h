@@ -39,17 +39,17 @@ rtValue rtGetEnvAsValue(const char* name, const char* defaultValue = "");
 template<typename T>
 T rtEnv(const char* name) {
   char* v = getenv(name);  // JRJR TODO secure_getenv??
-  return rtVAlue(v).convert<T>();
+  return rtValue(v).convert<T>();
 }
 
 template<typename T>
 T rtEnv(const char* name, T defaultValue) {
-  char* v = getenv(name);  // JRJR TODO secure_getenv??
+  char* v = getenv(name);  // JRJR TODO secure_getenv??  and can I move these impls out of header
   return v != NULL?rtValue(v).convert<T>():defaultValue;
 }
 
 template<typename T>
-T rtEnv(const char* name, T default);
+T rtEnv(const char* name, T defaultValue);
 
 bool rtFileExists(const char* f);
 bool rtFileRemove(const char* f);

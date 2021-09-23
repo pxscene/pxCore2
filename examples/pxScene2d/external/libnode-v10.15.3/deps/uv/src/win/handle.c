@@ -52,13 +52,8 @@ uv_handle_type uv_guess_handle(uv_file file) {
     case FILE_TYPE_DISK:
       return UV_FILE;
 
-    default: {
-      if (file == 0 || file == 1 || file == 2) {  // JRJR Hack to prevent the node stdio from dying when using /subsystem:windows
-        return UV_FILE;
-      }
-      else
-        return UV_UNKNOWN_HANDLE;
-    }
+    default:
+      return UV_UNKNOWN_HANDLE;
   }
 }
 
@@ -153,26 +148,6 @@ void uv_close(uv_handle_t* handle, uv_close_cb cb) {
   }
 }
 
-/* MODIFIED CODE BEGIN */
-void uv_close_immediate(uv_handle_t* handle, uv_close_cb cb) {
-  uv_loop_t* loop = handle->loop;
-
-  if (handle->flags & UV_HANDLE_CLOSING) {
-    assert(0);
-    return;
-  }
-
-  handle->close_cb = cb;
-  switch (handle->type) {
-    case UV_TCP:
-      uv_tcp_close_immediate(loop, (uv_tcp_t*)handle);
-      return;
-
-    default:
-      assert(1);
-  }
-}
-/* MODIFIED CODE END */
 
 int uv_is_closing(const uv_handle_t* handle) {
   return !!(handle->flags & (UV_HANDLE_CLOSING | UV_HANDLE_CLOSED));

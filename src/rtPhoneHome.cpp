@@ -20,10 +20,10 @@
 
 
 #include "rtPhoneHome.h"
-#include "rtlog.h"
-#include "rtPathUtils.h"
 
-#include "windows.h"
+#include "rtLog.h"
+#include "rtPathUtils.h"
+#include "pxTimer.h"
 
 #include <stdlib.h>
 #include <signal.h>
@@ -32,9 +32,13 @@
 #ifdef HAS_LINUX_BREAKPAD
 #include "client/linux/handler/exception_handler.h"
 #elif HAS_WINDOWS_BREAKPAD
+#include "client/linux/handler/exception_handler.h"
+#if 1
 #include <client/windows/handler/exception_handler.h>
 #include <wchar.h>
 #include <windows.h>
+#endif
+
 #endif
 
 #ifdef HAS_LINUX_BREAKPAD
@@ -57,18 +61,14 @@ static void handleSegv(int) {
   FILE *fp = fopen("/tmp/pxscenecrash", "w");
   fclose(fp);
   rtLogInfo("Signal SEGV received. sleeping to collect data");
-#ifndef WIN32
-  sleep(1800);
-#endif  // WIN32
+  pxSleepMS(30000);  // TODO review length and necessity
 }
 
 static void handleAbrt(int) {
   FILE *fp = fopen("/tmp/pxscenecrash", "w");
   fclose(fp);
   rtLogInfo("Signal ABRT received. sleeping to collect data");
-#ifndef WIN32
-  sleep(1800);
-#endif  // WIN32
+  pxSleepMS(30000);  // TODO review length and necessity
 }
 
 void rtPhoneHome::init() {

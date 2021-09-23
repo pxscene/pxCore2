@@ -16,36 +16,27 @@ limitations under the License.
 
 */
 
-#ifndef PX_SHAREDCONTEXT_H
-#define PX_SHAREDCONTEXT_H
+#ifndef PX_SHAREDCONTEXTNATIVE_H
+#define PX_SHAREDCONTEXTNATIVE_H
+
+#include <OpenGL/gl.h>
+#include <OpenGL/glu.h>
+//#import <Cocoa/Cocoa.h>
 
 #include "rtAtomic.h"
 #include "rtRef.h"
 
 #include "pxCore.h"
 
-class pxSharedContext: public pxSharedContextNative {
+class pxSharedContextNative {
 public:
-  pxSharedContext(bool depthBuffer): pxSharedContextNative(depthBuffer) {}
-  virtual ~pxSharedContext() {}
+  pxSharedContextNative(bool depthBuffer);
+  virtual ~pxSharedContextNative();
 
-  virtual unsigned long AddRef() {
-    return rtAtomicInc(&mRef);
-  }
-
-  virtual unsigned long Release() {
-    unsigned long l = rtAtomicDec(&mRef);
-    if (l == 0)
-      delete this;
-    return l;
-  }
-
-  void makeCurrent(bool f);
+  //void makeCurrent(bool f);
 
 protected:
-  rtAtomic mRef;
+  void *context;  // NSOpenGLContext*
 };
 
-typedef rtRef<pxSharedContext> pxSharedContextRef;
-
-#endif //PX_CONTEXT_UTILS_H
+#endif //PX_SHARED_CONTEXT_NATIVE_H
