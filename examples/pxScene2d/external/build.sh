@@ -57,8 +57,6 @@ if [ ! -e ${OPENSSL_DIR}/lib/libcrypto.dylib ] ||
    [ "$(uname)" != "Darwin" ]
 then
 
-  banner "OPENSSL"
-
   cd ${OPENSSL_DIR}
 
   if [ "$(uname)" != "Darwin" ]
@@ -70,7 +68,7 @@ then
 
   make clean
   make "-j${make_parallel}"
-  #make install -i
+  make install -i
 
   rm -rf libcrypto.a
   rm -rf libssl.a
@@ -97,7 +95,7 @@ then
   ./configure --prefix=$EXT_INSTALL_PATH
 
   make all "-j${make_parallel}"
-  #make install
+  make install
 
   git ls-files -z . | xargs -0 git update-index --assume-unchanged # ... help GIT out
 
@@ -117,7 +115,7 @@ then
   cd jpg
   ./configure --prefix=$EXT_INSTALL_PATH
   make all "-j${make_parallel}"
-  #make install
+  make install
   cd ..
 
 fi
@@ -291,7 +289,7 @@ fi # SPARK_ENABLE_VIDEO
 
 #-------- openssl
 
-if [ false && ! -e $EXT_INSTALL_PATH/lib/libcrypto.$LIBEXTN ]
+if [ ! -e $EXT_INSTALL_PATH/lib/libcrypto.$LIBEXTN ]
 then
   banner "openssl"
 
@@ -315,9 +313,8 @@ if [ ! -e curl/lib/libcurl.la ]; then
     sed -i '' '/#define HAVE_CLOCK_GETTIME_MONOTONIC 1/d' lib/curl_config.h
   fi
 
-  #.configure --without-nghttp2
   make all "-j${make_parallel}"
-  #make install
+  make install
   cd ..
 
 fi
@@ -334,7 +331,7 @@ then
   cd zlib
   ./configure --prefix=$EXT_INSTALL_PATH
   make all "-j${make_parallel}"
-  #make install
+  make install
 
   git update-index --assume-unchanged Makefile              # help GIT out
   git update-index --assume-unchanged zconf.h               # help GIT out
@@ -389,8 +386,8 @@ then
   if [ -e "node-v${NODE_VER}_mods.patch" ]
   then
     git apply --ignore-space-change --whitespace=nowarn "node-v${NODE_VER}_mods.patch"
-    git apply --ignore-space-change --whitespace=nowarn "openssl_1.0.2_compatibility.patch"
-    git apply --ignore-space-change --whitespace=nowarn "node-v${NODE_VER}_fixclang.patch"
+    git apply --ignore-space-change --whitespace=nowarn "openssl_1.0.2_compatibility.patch"  
+    git apply --ignore-space-change --whitespace=nowarn "node-v${NODE_VER}_fixclang.patch" 
   fi
 
   cd "libnode-v${NODE_VER}"
