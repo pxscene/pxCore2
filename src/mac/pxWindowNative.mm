@@ -417,16 +417,20 @@ void MyDisplayReconfigurationCallBack(CGDirectDisplayID display,
 {
   //GLGL
 #ifdef GLGL
+
   [[self openGLContext] makeCurrentContext];
 
   // We draw on a secondary thread through the display link
   // Add a mutex around to avoid the threads from accessing the context simultaneously
   CGLLockContext([[self openGLContext] CGLContextObj]);
 
+// TODO not sure what drawView is doing ... doesn't seem to actually draw anything...
+#if 1
   glViewport(0,0,[self bounds].size.width,[self bounds].size.height);
 
   glClearColor(0.675f,0.675f,0.675f,1.0f);
   glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+#endif
 #endif
 
 
@@ -1179,6 +1183,7 @@ void pxWindow::invalidateRect(pxRect* pxr)
     [view setNeedsDisplay:YES];
   }
 
+#if 0
   // needed to "forcibly allow" a drawRect call to occur whilst resizing a window
   if ([view inLiveResize])
   {
@@ -1186,6 +1191,7 @@ void pxWindow::invalidateRect(pxRect* pxr)
       [view displayIfNeeded];
     }];
   }
+#endif
 }
 
 bool pxWindow::visibility()
