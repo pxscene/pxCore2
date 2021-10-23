@@ -161,7 +161,7 @@ elseif (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
         set(PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} glut)
         set(PXCORE_FILES glut/pxBufferNative.cpp glut/pxOffscreenNative.cpp glut/pxWindowNative.cpp
                 glut/pxEventLoopNative.cpp glut/pxTimerNative.cpp glut/pxClipboardNative.cpp pxViewWindow.cpp
-                unix/rtMutexNative.cpp unix/rtThreadPoolNative.cpp
+                unix/rtMutexNative.cpp unix/rtThreadPoolNative.cpp glut/pxSharedContextNative.cpp 
                 rtFileCache.cpp rtHttpCache.cpp)
         set(PLATFORM_LINKER_FLAGS)
         if (DEFINED ENV{CODE_COVERAGE})

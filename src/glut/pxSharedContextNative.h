@@ -16,34 +16,25 @@ limitations under the License.
 
 */
 
-// pxConfigNative.h
+#ifndef PX_SHAREDCONTEXTNATIVE_H
+#define PX_SHAREDCONTEXTNATIVE_H
 
-#ifndef PX_CONFIGNATIVE_H
-#define PX_CONFIGNATIVE_H
+#include <GL/glew.h>
+#include <GL/freeglut.h>
+#include <GL/gl.h>
 
-#define PXCALL
+#include "rtAtomic.h"
+#include "rtRef.h"
 
-#define PX_LITTLEENDIAN_PIXELS
-#define PX_LITTLEENDIAN_RGBA_PIXELS
+#include "pxCore.h"
 
-#ifdef __APPLE__
-#define PX_USE_GLUT_ON_CLOSE
-#else
-#define PX_USE_SELECT_FOR_SLEEP
-#define PX_USE_CGT
-#define PX_USE_GLEW
-#endif
+class pxSharedContextNative {
+public:
+  pxSharedContextNative(bool depthBuffer);
+  virtual ~pxSharedContextNative();
 
+private:
+  void* context;
+};
 
-#ifndef PX_NATIVE
-
-#include "pxBufferNative.h"
-#include "pxOffscreenNative.h"
-#include "pxWindowNative.h"
-#include "pxClipboardNative.h"
-#include "pxSharedContextNative.h"
-
-#endif // PX_NATIVE
-
-#endif // PX_CONFIGNATIVE_H
-
+#endif //PX_SHARED_CONTEXT_NATIVE_H
