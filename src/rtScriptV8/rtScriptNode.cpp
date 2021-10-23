@@ -376,7 +376,7 @@ rtNodeContext::rtNodeContext(Isolate *isolate, rtNodeContextRef clone_me) :
 
 void rtNodeContext::createEnvironment()
 {
-  rtLogDebug(__FUNCTION__);
+  rtLogDebug("%s",__FUNCTION__);
   Locker                locker(mIsolate);
   Isolate::Scope isolate_scope(mIsolate);
   HandleScope     handle_scope(mIsolate);
@@ -560,7 +560,7 @@ void rtNodeContext::createEnvironment()
 
 void rtNodeContext::clonedEnvironment(rtNodeContextRef clone_me)
 {
-  rtLogDebug(__FUNCTION__);
+  rtLogDebug("%s",__FUNCTION__);
   Locker                locker(mIsolate);
   Isolate::Scope isolate_scope(mIsolate);
   HandleScope     handle_scope(mIsolate);
@@ -662,7 +662,7 @@ void rtNodeContext::clonedEnvironment(rtNodeContextRef clone_me)
 
 rtNodeContext::~rtNodeContext()
 {
-  rtLogDebug(__FUNCTION__);
+  rtLogDebug("%s",__FUNCTION__);
   //Make sure node is not destroyed abnormally
   if (true == node_is_initialized)
   {
@@ -893,7 +893,7 @@ rtError rtNodeContext::runScript(const char* script, rtValue* retVal /*= NULL*/,
 //rtError rtNodeContext::runScript(const std::string &script, rtValue* retVal /*= NULL*/, const char* /* args = NULL*/)
 rtError rtNodeContext::runScript(const char* script, rtValue* retVal /*= NULL*/, const char *args /*= NULL*/)
 {
-  rtLogDebug(__FUNCTION__);
+  rtLogDebug("%s",__FUNCTION__);
   if(!script || strlen(script) == 0)
   {
     rtLogError(" %s  ... no script given.",__PRETTY_FUNCTION__);
@@ -1023,7 +1023,7 @@ rtScriptNode::rtScriptNode():mRefCount(0)
 #endif
 #endif
 {
-  rtLogDebug(__FUNCTION__);
+  rtLogDebug("%s",__FUNCTION__);
   mTestGc = false;
   mIsolate = NULL;
   mPlatform = NULL;
@@ -1039,7 +1039,7 @@ rtScriptNode::rtScriptNode(bool initialize):mRefCount(0)
 #endif
 #endif
 {
-  rtLogDebug(__FUNCTION__);
+  rtLogDebug("%s",__FUNCTION__);
   mTestGc = false;
   mIsolate = NULL;
   mPlatform = NULL;
@@ -1081,7 +1081,7 @@ rtError rtScriptNode::init()
     }
   }
 
-  rtLogDebug(__FUNCTION__);
+  rtLogDebug("%s",__FUNCTION__);
   char const* s = getenv("RT_TEST_GC");
   if (s && strlen(s) > 0)
     mTestGc = true;
@@ -1285,7 +1285,7 @@ void rtScriptNode::init2(int argc, char** argv)
   argv = uv_setup_args(argc, argv);
 #endif
 
-  rtLogInfo(__FUNCTION__);
+  rtLogInfo("%s",__FUNCTION__);
 
 #if 0
 #warning Using DEBUG AGENT...
@@ -1348,7 +1348,7 @@ void rtScriptNode::init2(int argc, char** argv)
 
 rtError rtScriptNode::term()
 {
-  rtLogInfo(__FUNCTION__);
+  rtLogInfo("%s",__FUNCTION__);
   nodeTerminated = true;
 #if 0
 #ifdef USE_CONTEXTIFY_CLONES
