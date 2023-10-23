@@ -4,15 +4,16 @@
 # Spark
 Spark is a cross-platform application engine. It is a native C++ scene graph API exposed to a Javascript engine. It allows applications to be written in JavaScript to use native rendering functionality. The authored javascript has access to the Spark API for visual elements that are used for composition.
 
-supports rich animation and alpha masking primitives
-exposes a DOM-like programming model
-supports promises for asynchronous behaviors
-uses W3C event bubbling semantics
-allows for runtime logic to be in downloaded javascript, running on devices
-Spark is built on top of a project called "pxCore". pxCore is a small lightweight library that provides a portable framebuffer and windowing abstraction for C++. Spark is a 2d scene graph API that defines a small set of atomic UI elements and exposes them with JavaScript wrappers. The result is a lightweight, portable application engine that can be used to build rich application experiences.
+* supports rich animation and alpha masking primitives
+* exposes a DOM-like programming model
+* supports promises for asynchronous behaviors
+* uses W3C event bubbling semantics
+* allows for runtime logic to be in downloaded javascript, running on devices
+* Spark is built on top of a project called "pxCore". pxCore is a small lightweight library that provides a portable framebuffer and windowing abstraction for C++. Spark is a 2D scene graph API that defines a small set of atomic UI elements and exposes them with JavaScript wrappers. The result is a lightweight, portable application engine that can be used to build rich application experiences.
+
 # pxCore
 
-pxCore is a small open source library that provides a portable framebuffer and windowing abstraction for C++. This library is intended to hide the complexity of writing rasterization code on multiple platforms and allows you to easily write the following sorts of things in a portable way:
+pxCore is a small open-source library that provides a portable framebuffer and windowing abstraction for C++. This library is intended to hide the complexity of writing rasterization code on multiple platforms and allows you to easily write the following sorts of things in a portable way:
 
 * 2d and 3d rasterizers
 * Transition Libraries
