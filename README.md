@@ -1,6 +1,15 @@
 [![codecov](https://codecov.io/gh/pxscene/pxCore/branch/master/graph/badge.svg)](https://codecov.io/gh/pxscene/pxCore)
 [![coverity](https://scan.coverity.com/projects/13125/badge.svg)](https://scan.coverity.com/projects/pxcore)
 
+# Spark
+Spark is a cross-platform application engine. It is a native C++ scene graph API exposed to a Javascript engine. It allows applications to be written in JavaScript to use native rendering functionality. The authored javascript has access to the Spark API for visual elements that are used for composition.
+
+supports rich animation and alpha masking primitives
+exposes a DOM-like programming model
+supports promises for asynchronous behaviors
+uses W3C event bubbling semantics
+allows for runtime logic to be in downloaded javascript, running on devices
+Spark is built on top of a project called "pxCore". pxCore is a small lightweight library that provides a portable framebuffer and windowing abstraction for C++. Spark is a 2d scene graph API that defines a small set of atomic UI elements and exposes them with JavaScript wrappers. The result is a lightweight, portable application engine that can be used to build rich application experiences.
 # pxCore
 
 pxCore is a small open source library that provides a portable framebuffer and windowing abstraction for C++. This library is intended to hide the complexity of writing rasterization code on multiple platforms and allows you to easily write the following sorts of things in a portable way:
