@@ -658,6 +658,10 @@ function Application(props) {
     _externalApp.on("onClientConnected", function () { _this.log("onClientConnected"); }); // is never called
     _externalApp.on("onClientDisconnected", function () { _this.log("onClientDisconnected"); }); // is never called
     _externalApp.on("onClientStopped", function () { _this.log( "onClientStopped"); }); // is never called
+    _externalApp.on("onFirstFrameRendered", function () {
+      _this.log( "onFirstFrameRendered");
+      _this.applicationFirstFrameRendered();
+    }); // is never called
     _externalApp.ready.then(function() {
       _this.log("successfully created Spark app: " + _this.id);
       _readyBaseResolve();
@@ -695,6 +699,10 @@ function Application(props) {
     _externalApp.on("onClientStarted", function () { _this.log("onClientStarted"); });
     _externalApp.on("onClientConnected", function () { _this.log("onClientConnected"); });
     _externalApp.on("onClientDisconnected", function () { _this.log("onClientDisconnected"); }); // called on client crash
+    _externalApp.on("onFirstFrameRendered", function () {
+      _this.log( "onFirstFrameRendered");
+      _this.applicationFirstFrameRendered();
+    });
     _externalApp.on("onClientStopped", function () { // called on client crash
       _this.log("onClientStopped");
       setTimeout(function () {
@@ -739,6 +747,10 @@ function Application(props) {
     _externalApp.on("onClientConnected", function () { _this.log("onClientConnected"); });
     _externalApp.on("onClientDisconnected", function () { _this.log("onClientDisconnected"); });
     _externalApp.on("onClientStopped", function () { _this.log("onClientStopped"); });
+    _externalApp.on("onFirstFrameRendered", function () {
+       _this.log( "onFirstFrameRendered");
+       _this.applicationFirstFrameRendered();
+    });
     _externalApp.remoteReady.then(function(obj) {
       if(obj) {
         _this.log("about to create browser window");
@@ -803,6 +815,10 @@ function Application(props) {
     _externalApp.on("onClientStarted", function () { _this.log("onClientStarted"); });
     _externalApp.on("onClientConnected", function () { _this.log("onClientConnected"); });
     _externalApp.on("onClientDisconnected", function () { _this.log("onClientDisconnected"); }); // called on client crash
+    _externalApp.on("onFirstFrameRendered", function () {
+       _this.log( "onFirstFrameRendered");
+       _this.applicationFirstFrameRendered();
+    });
     _externalApp.on("onClientStopped", function () { // called on client crash
       _this.log("onClientStopped");
       setTimeout(function () {
@@ -904,6 +920,10 @@ Application.prototype.applicationResumed = function(){
 Application.prototype.applicationDestroyed = function(){
   this.log("applicationDestroyed");
   appManager.onDestroy(this);
+};
+Application.prototype.applicationFirstFrameRendered = function(){
+  this.log("applicationFirstFrameRendered");
+  appManager.onFirstFrameRendered(this);
 };
 
 function Optimus() {
@@ -1011,6 +1031,10 @@ function Optimus() {
   this.onReady = function(app){
     notifyListeners("ready",app);
   };
+  this.onFirstFrameRendered = function(app){
+    notifyListeners("firstFrameRendered",app);
+  };
+
   this.setScene = function(s){
     scene = s;
     // remove reference to scene by passing null

@@ -50,6 +50,7 @@ public:
   virtual void isReady( bool /*ready*/ ) {}
   virtual void isRemoteReady( bool /*ready*/ ) {}
   virtual void remoteDisconnected(void * /*data*/ ) {}
+  virtual void firstFrameRendered( int /*pid*/ ) {}
 };
 
 class pxWayland: public pxIView {

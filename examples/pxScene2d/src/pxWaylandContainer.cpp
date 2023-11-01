@@ -56,6 +56,7 @@ pxWaylandContainer::pxWaylandContainer(pxScene2d* scene)
   addListener("onClientStopped", get<rtFunctionRef>("onClientStopped"));
   addListener("onClientConnected", get<rtFunctionRef>("onClientConnected"));
   addListener("onClientDisconnected", get<rtFunctionRef>("onClientDisconnected"));
+  addListener("onFirstFrameRendered", get<rtFunctionRef>("onFirstFrameRendered"));
   mRemoteReady = new rtPromise();
 }
 
@@ -117,6 +118,17 @@ void pxWaylandContainer::clientDisconnected( int pid )
    e.set("target", this);
    e.set("pid", pid );
    mEmit.send("onClientDisconnected", e);
+}
+
+void pxWaylandContainer::firstFrameRendered( int pid )
+{
+    mClientPID= pid;
+
+    rtObjectRef e = new rtMapObject;
+    e.set("name", "onFirstFrameRendered");
+    e.set("target", this);
+    e.set("pid", pid );
+    mEmit.send("onFirstFrameRendered", e);
 }
 
 void pxWaylandContainer::clientStoppedNormal( int pid, int exitCode )
