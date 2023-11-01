@@ -46,6 +46,12 @@ var ApplicationState = Object.freeze({
   DESTROYED:"DESTROYED"
 });
 
+var ApplicationRestartType = Object.freeze({
+  NEVER:"NEVER",
+  AFTER_CRASH:"AFTER_CRASH",
+  ALWAYS:"ALWAYS"
+});
+
 /**
  * @param props
  * @example
@@ -78,6 +84,7 @@ function Application(props) {
   this.createTime = 0;
   this.uri = "";
   this.type = ApplicationType.UNDEFINED;
+  this.autoRestart = ApplicationRestartType.NEVER;
   this.expectedMemoryUsage = -1;
   this.actualMemoryUsage = -1;
   var _readyBaseResolve = function(){};
@@ -623,6 +630,9 @@ function Application(props) {
   if ("displayName" in props) {
     displayName = props.displayName;
   }
+  if ("autoRestart" in props) {
+    this.autoRestart = props.autoRestart;
+  }
 
   this.log("cmd:",cmd,"uri:",uri,"w:",w,"h:",h,"hasApi:",hasApi);
 
@@ -695,11 +705,19 @@ function Application(props) {
     _externalApp.on("onClientStarted", function () { _this.log("onClientStarted"); });
     _externalApp.on("onClientConnected", function () { _this.log("onClientConnected"); });
     _externalApp.on("onClientDisconnected", function () { _this.log("onClientDisconnected"); }); // called on client crash
-    _externalApp.on("onClientStopped", function () { // called on client crash
+    _externalApp.on("onClientStopped", function restartSparkApp(e) { // called on client crash
       _this.log("onClientStopped");
-      setTimeout(function () {
-        _this.destroy();
-      });
+      if((e.crash && _this.autoRestart === ApplicationRestartType.AFTER_CRASH) || _this.autoRestart === ApplicationRestartType.ALWAYS) {
+        _this.log("sparkInstance app crashed, restarting:" + uri);
+        _externalApp = scene.create( {t:"external", parent:appParent, cmd:"spark " + uri, w:w, h:h, hasApi:true} );
+        _externalApp.on("onClientStopped", function (e) { restartSparkApp(e); });
+        _this.setProperties(props);
+        }
+        else {
+          setTimeout(function () {
+            _this.destroy();
+          });
+        }
     });
     _externalApp.ready.then(function() {
     }, function rejection() {
@@ -737,7 +755,29 @@ function Application(props) {
     _externalApp.on("onReady", function () { _this.log("onReady"); });
     _externalApp.on("onClientStarted", function () { _this.log("onClientStarted"); });
     _externalApp.on("onClientConnected", function () { _this.log("onClientConnected"); });
-    _externalApp.on("onClientDisconnected", function () { _this.log("onClientDisconnected"); });
+    _externalApp.on("onClientDisconnected", function restartWebApp() {
+      _this.log("onClientDisconnected");
+      if(_this.autoRestart === ApplicationRestartType.ALWAYS) {
+        _this.log("WebApp crashed, restarting: " + uri);
+        _externalApp = scene.create( {t:"external", parent:appParent, server:"wl-rdkbrowser2-server", w:w, h:h, hasApi:true} );
+        _externalApp.on("onClientDisconnected", function () { restartWebApp(); });
+        _externalApp.remoteReady.then(function(obj) {
+          if(obj) {
+            _browser = _externalApp.api.createWindow(_externalApp.displayName, false);
+            if (_browser) {
+	      _this.log("Starting browser url " + uri);
+              _browser.url = uri;
+            }
+          }
+        });
+        _this.setProperties(props);
+      }
+      else {
+        setTimeout(function () {
+          _this.destroy();
+        });
+      }
+    });
     _externalApp.on("onClientStopped", function () { _this.log("onClientStopped"); });
     _externalApp.remoteReady.then(function(obj) {
       if(obj) {
@@ -803,11 +843,19 @@ function Application(props) {
     _externalApp.on("onClientStarted", function () { _this.log("onClientStarted"); });
     _externalApp.on("onClientConnected", function () { _this.log("onClientConnected"); });
     _externalApp.on("onClientDisconnected", function () { _this.log("onClientDisconnected"); }); // called on client crash
-    _externalApp.on("onClientStopped", function () { // called on client crash
+    _externalApp.on("onClientStopped", function restartNativeApp(e) { // called on client crash
       _this.log("onClientStopped");
-      setTimeout(function () {
-        _this.destroy();
-      });
+      if((e.crash && _this.autoRestart === ApplicationRestartType.AFTER_CRASH) || _this.autoRestart === ApplicationRestartType.ALWAYS) {
+        _this.log("Native app crashed restarting " + cmd);
+        _externalApp = scene.create( {t:"external", parent:appParent, cmd:cmd, w:w, h:h, hasApi:hasApi, displayName:displayName} );
+        _externalApp.on("onClientStopped", function (e) { restartNativeApp(e); });
+        _this.setProperties(props);
+      }
+      else {
+        setTimeout(function () {
+          _this.destroy();
+        });
+      }
     });
 
     _externalApp.ready.then(function() {
