@@ -154,6 +154,12 @@ rtError pxLoadSVGImage(const char* buf, size_t buflen, pxOffscreen& o, int w = 0
 rtError pxLoadSVGImage(const char* filename,           pxOffscreen& o, int w = 0, int h = 0, float sx = 1.0f, float sy = 1.0f);
 rtError pxStoreSVGImage(const char* filename, pxBuffer& b); // NOT SUPPORTED
 
+#ifdef ENABLE_WEBP
+
+rtError pxLoadWEBPImage(const char *imageData, size_t imageDataSize,
+                       pxOffscreen &o);
+rtError pxLoadWEBPImage(const char* filename, pxOffscreen& o);
+#endif //ENABLE_WEBP
 
 #endif //PX_UTIL_H
 

@@ -27,6 +27,7 @@
 		4CDC37732357E254003B3FD0 /* libnode.64.dylib in Copy Dynamic Library Files */ = {isa = PBXBuildFile; fileRef = 4CDC37712357E23B003B3FD0 /* libnode.64.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		4CDC377523589E94003B3FD0 /* libutil.7.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 4CDC377423589E94003B3FD0 /* libutil.7.dylib */; };
 		4CDC377623589EF3003B3FD0 /* libutil.7.dylib in Copy Dynamic Library Files */ = {isa = PBXBuildFile; fileRef = 4CDC377423589E94003B3FD0 /* libutil.7.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		4CE2EA4F245720080009007F /* libwebp.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 4CE2EA4E245720070009007F /* libwebp.a */; };
 		4CF3A06A228F3E800068DD31 /* pxShaderResource.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4CF3A05E228F3E7F0068DD31 /* pxShaderResource.cpp */; };
 		4CF546072020F5B600529907 /* pxImage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C0C6D521E5218BB00BD8932 /* pxImage.cpp */; };
 		4CF546092020F5B600529907 /* pxImage9.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C0C6D541E5218BB00BD8932 /* pxImage9.cpp */; };
@@ -254,6 +255,7 @@
 		4CDC376C2357DFDE003B3FD0 /* libssl.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libssl.dylib; path = lib/libssl.dylib; sourceTree = "<group>"; };
 		4CDC37712357E23B003B3FD0 /* libnode.64.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libnode.64.dylib; path = lib/libnode.64.dylib; sourceTree = "<group>"; };
 		4CDC377423589E94003B3FD0 /* libutil.7.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libutil.7.dylib; path = lib/libutil.7.dylib; sourceTree = "<group>"; };
+		4CE2EA4E245720070009007F /* libwebp.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libwebp.a; path = lib/libwebp.a; sourceTree = "<group>"; };
 		4CF3A05E228F3E7F0068DD31 /* pxShaderResource.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = pxShaderResource.cpp; path = src/pxShaderResource.cpp; sourceTree = "<group>"; };
 		4CF3A069228F3E800068DD31 /* pxShaderResource.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pxShaderResource.h; path = src/pxShaderResource.h; sourceTree = "<group>"; };
 		4CF546362020F5B600529907 /* Spark.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Spark.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -268,6 +270,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4CE2EA4F245720080009007F /* libwebp.a in Frameworks */,
 				4CDC377523589E94003B3FD0 /* libutil.7.dylib in Frameworks */,
 				4C4746D7215046FC00E06357 /* libpxCore Static Library.a in Frameworks */,
 				4CF5461F2020F5B600529907 /* libz.1.2.11.dylib in Frameworks */,
@@ -401,6 +404,7 @@
 		4C38CDC11E538D51003E4A35 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				4CE2EA4E245720070009007F /* libwebp.a */,
 				4C5D05EA201FC5B500D2B292 /* libz.1.2.11.dylib */,
 				4C5D05E8201FC58B00D2B292 /* libz.a */,
 				4C38CDBF1E538D19003E4A35 /* Cocoa.framework */,
