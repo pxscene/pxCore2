@@ -27,6 +27,7 @@
 #include "rtObject.h"
 #include "rtObjectMacros.h"
 #include "pxInterpolators.h"
+#include "pxContext.h"
 
 
 
@@ -123,14 +124,16 @@ public:
 class pxConstantsMaskOperation : public rtObject
 {
 public:
+#if 0
   enum constants {
     NORMAL = 0,
     INVERT,
   };
+#endif
   rtDeclareObject(pxConstantsMaskOperation, rtObject);
 
-  rtConstantProperty(NORMAL, NORMAL, uint32_t);
-  rtConstantProperty(INVERT, INVERT, uint32_t);
+  rtConstantProperty(NORMAL, pxContextMaskOperation::NORMAL, uint32_t);
+  rtConstantProperty(INVERT, pxContextMaskOperation::INVERT, uint32_t);
 };
 
 class pxConstantsDragType : public rtObject
@@ -152,11 +155,13 @@ public:
 class pxConstantsStretch : public rtObject
 {
 public:
+#if 0
   enum constants {
     NONE = 0,
     STRETCH,
     REPEAT,
   };
+#endif
   rtDeclareObject(pxConstantsStretch, rtObject);
 
   rtConstantProperty(NONE,    NONE,    uint32_t);

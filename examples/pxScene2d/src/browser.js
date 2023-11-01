@@ -278,7 +278,7 @@ px.import({ scene:   'px:scene.1.js',
 
     if (keepHistory)
     {
-      currUrl = u;
+      currUrl = originalUrl
     }
 
     if (true)
@@ -308,7 +308,7 @@ px.import({ scene:   'px:scene.1.js',
                   backUrls.push(currUrl)
                   foreUrls = []
                 }
-                currUrl = u
+                currUrl = originalUrl
               }
             }
 

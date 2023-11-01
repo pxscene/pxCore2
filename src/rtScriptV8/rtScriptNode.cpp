@@ -376,7 +376,7 @@ rtNodeContext::rtNodeContext(Isolate *isolate, rtNodeContextRef clone_me) :
 
 void rtNodeContext::createEnvironment()
 {
-  rtLogDebug(__FUNCTION__);
+  rtLogDebug("%s",__FUNCTION__);
   Locker                locker(mIsolate);
   Isolate::Scope isolate_scope(mIsolate);
   HandleScope     handle_scope(mIsolate);
@@ -460,7 +460,8 @@ void rtNodeContext::createEnvironment()
     #ifdef WIN32
     node::InspectorStart(mEnv, currentPath.cString(), platform);
     #else
-    node::InspectorStart(mEnv, currentPath.cString(), "", 0);
+    //node::InspectorStart(mEnv, currentPath.cString(), "", 0);
+    node::InspectorStart(mEnv, currentPath.cString(), platform);
     #endif
 #endif //USE_NODE_PLATFORM
 #endif
@@ -559,7 +560,7 @@ void rtNodeContext::createEnvironment()
 
 void rtNodeContext::clonedEnvironment(rtNodeContextRef clone_me)
 {
-  rtLogDebug(__FUNCTION__);
+  rtLogDebug("%s",__FUNCTION__);
   Locker                locker(mIsolate);
   Isolate::Scope isolate_scope(mIsolate);
   HandleScope     handle_scope(mIsolate);
@@ -661,7 +662,7 @@ void rtNodeContext::clonedEnvironment(rtNodeContextRef clone_me)
 
 rtNodeContext::~rtNodeContext()
 {
-  rtLogDebug(__FUNCTION__);
+  rtLogDebug("%s",__FUNCTION__);
   //Make sure node is not destroyed abnormally
   if (true == node_is_initialized)
   {
@@ -892,7 +893,7 @@ rtError rtNodeContext::runScript(const char* script, rtValue* retVal /*= NULL*/,
 //rtError rtNodeContext::runScript(const std::string &script, rtValue* retVal /*= NULL*/, const char* /* args = NULL*/)
 rtError rtNodeContext::runScript(const char* script, rtValue* retVal /*= NULL*/, const char *args /*= NULL*/)
 {
-  rtLogDebug(__FUNCTION__);
+  rtLogDebug("%s",__FUNCTION__);
   if(!script || strlen(script) == 0)
   {
     rtLogError(" %s  ... no script given.",__PRETTY_FUNCTION__);
@@ -1000,7 +1001,7 @@ rtError rtNodeContext::runFile(const char *file, rtValue* retVal /*= NULL*/, con
   // Read the script file
   js_file   = file;
   js_script = readFile(file);
-  
+
   if( js_script.empty() ) // load error
   {
     rtLogError(" %s  ... [%s] load error / not found.",__PRETTY_FUNCTION__, file);
@@ -1022,7 +1023,7 @@ rtScriptNode::rtScriptNode():mRefCount(0)
 #endif
 #endif
 {
-  rtLogDebug(__FUNCTION__);
+  rtLogDebug("%s",__FUNCTION__);
   mTestGc = false;
   mIsolate = NULL;
   mPlatform = NULL;
@@ -1038,7 +1039,7 @@ rtScriptNode::rtScriptNode(bool initialize):mRefCount(0)
 #endif
 #endif
 {
-  rtLogDebug(__FUNCTION__);
+  rtLogDebug("%s",__FUNCTION__);
   mTestGc = false;
   mIsolate = NULL;
   mPlatform = NULL;
@@ -1060,7 +1061,27 @@ unsigned long rtScriptNode::Release()
 
 rtError rtScriptNode::init()
 {
-  rtLogDebug(__FUNCTION__);
+  if (g_argc == 0) {
+
+    g_argv = NULL;
+
+    char* args = (char*)"spark --experimental-vm-modules";
+
+    char* argsBuffer = strdup(args);  // JRJR leak leak
+    char* start = argsBuffer;
+
+    int l = strlen(argsBuffer);
+    for (char* p = argsBuffer; p < argsBuffer+l+1; p++) {
+      if (*p == ' ' || *p == '\0') {
+        g_argv = (char**)realloc(g_argv, sizeof(char*) * (g_argc+1));
+        g_argv[g_argc++] = start;
+        *p = '\0';
+        start = p+1;
+      }
+    }
+  }
+
+  rtLogDebug("%s",__FUNCTION__);
   char const* s = getenv("RT_TEST_GC");
   if (s && strlen(s) > 0)
     mTestGc = true;
@@ -1093,13 +1114,13 @@ rtError rtScriptNode::init()
   static const char *argv2[] = {&args2[0], &args2[7], &args2[33], &args2[45], &args2[48], NULL};
 #endif // ENABLE_NODE_V_6_9
 #endif //ENABLE_V8_HEAP_PARAMS
+
 #ifndef ENABLE_DEBUG_MODE
   int          argc   = sizeof(argv2)/sizeof(char*) - 1;
 
   static args_t aa(argc, (char**)argv2);
 
   s_gArgs = &aa;
-
 
   char **argv = aa.argv;
 #endif
@@ -1147,10 +1168,10 @@ rtError rtScriptNode::pump()
 //#else
 #ifdef RUNINMAIN
   // found a problem where if promise triggered by one event loop gets resolved by other event loop.
-  // It is causing the dependencies between data running between two event loops failed, if one one 
+  // It is causing the dependencies between data running between two event loops failed, if one one
   // loop didn't complete before other. So, promise not registered by first event loop, before the second
   // event looop sends back the ready event
-  if (gIsPumpingJavaScript == false) 
+  if (gIsPumpingJavaScript == false)
   {
     gIsPumpingJavaScript = true;
 #endif
@@ -1264,7 +1285,7 @@ void rtScriptNode::init2(int argc, char** argv)
   argv = uv_setup_args(argc, argv);
 #endif
 
-  rtLogInfo(__FUNCTION__);
+  rtLogInfo("%s",__FUNCTION__);
 
 #if 0
 #warning Using DEBUG AGENT...
@@ -1327,7 +1348,7 @@ void rtScriptNode::init2(int argc, char** argv)
 
 rtError rtScriptNode::term()
 {
-  rtLogInfo(__FUNCTION__);
+  rtLogInfo("%s",__FUNCTION__);
   nodeTerminated = true;
 #if 0
 #ifdef USE_CONTEXTIFY_CLONES

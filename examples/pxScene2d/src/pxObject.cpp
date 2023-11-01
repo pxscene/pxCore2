@@ -1292,7 +1292,7 @@ void pxObject::drawInternal(bool maskPass /* = false */)
   else
   if (mPainting)
   {
-    pxConstantsMaskOperation::constants maskOp = pxConstantsMaskOperation::NORMAL; // default
+    pxContextMaskOperation maskOp = pxContextMaskOperation::NORMAL; // default
 
     // MASKING ? ---------------------------------------------------------------------------------------------------
     bool maskFound = false;
@@ -1309,7 +1309,7 @@ void pxObject::drawInternal(bool maskPass /* = false */)
           int32_t val;
           img->maskOp(val); // get mask operation
 
-          maskOp = (pxConstantsMaskOperation::constants) val;
+          maskOp = (pxContextMaskOperation) val;
         }
 
         break;

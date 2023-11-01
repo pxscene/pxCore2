@@ -344,14 +344,14 @@ rtDukContext::rtDukContext(rtDukContextRef clone_me) :
 
 void rtDukContext::createEnvironment()
 {
-  rtLogInfo(__FUNCTION__);
+  rtLogInfo("%s",__FUNCTION__);
 }
 
 #ifdef USE_CONTEXTIFY_CLONES
 
 void rtDukContext::clonedEnvironment(rtDukContextRef clone_me)
 {
-  rtLogInfo(__FUNCTION__);
+  rtLogInfo("%s",__FUNCTION__);
   duk_idx_t thr_idx = duk_push_thread(clone_me->dukCtx);
 
   duk_dup(clone_me->dukCtx, -1);
@@ -379,7 +379,7 @@ void rtDukContext::clonedEnvironment(rtDukContextRef clone_me)
 
 rtDukContext::~rtDukContext()
 {
-  rtLogInfo(__FUNCTION__);
+  rtLogInfo("%s",__FUNCTION__);
   //Make sure node is not destroyed abnormally
   Release();
   // NOTE: 'mIsolate' is owned by rtNode.  Don't destroy here !
@@ -983,7 +983,7 @@ static duk_int_t myload_code(duk_context *ctx, const char *code)
 rtError rtDukContext::runScript(const char* szscript, rtValue* retVal /*= NULL*/, const char *args /*= NULL*/)
 {
   std::string script = szscript;
-  rtLogInfo(__FUNCTION__);
+  rtLogInfo("%s",__FUNCTION__);
   if(script.empty())
   {
     rtLogError(" %s  ... no script given.",__PRETTY_FUNCTION__);
@@ -1045,7 +1045,7 @@ rtScriptDuk::rtScriptDuk(bool initialize): dukCtx(NULL), duk_is_initialized(fals
 #endif
   mRefCount(0)
 {
-  rtLogInfo(__FUNCTION__);
+  rtLogInfo("%s",__FUNCTION__);
   if (true == initialize)
   {
     init();
@@ -1054,7 +1054,7 @@ rtScriptDuk::rtScriptDuk(bool initialize): dukCtx(NULL), duk_is_initialized(fals
 
 rtError rtScriptDuk::init()
 {
-  rtLogInfo(__FUNCTION__);
+  rtLogInfo("%s",__FUNCTION__);
   char const* s = getenv("RT_TEST_GC");
   if (s && strlen(s) > 0)
     mTestGc = true;
@@ -1215,7 +1215,7 @@ void rtScriptDuk::init2(int argc, char** argv)
   argv = uv_setup_args(argc, argv);
 #endif
 
-  rtLogInfo(__FUNCTION__);
+  rtLogInfo("%s",__FUNCTION__);
 
 #if 0
 #warning Using DEBUG AGENT...
@@ -1252,7 +1252,7 @@ void rtScriptDuk::init2(int argc, char** argv)
 
 rtError rtScriptDuk::term()
 {
-  rtLogInfo(__FUNCTION__);
+  rtLogInfo("%s",__FUNCTION__);
   //nodeTerminated = true;
 
   //uv_loop_close(dukLoop);

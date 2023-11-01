@@ -31,7 +31,7 @@
 // upon being destroyed
 class pxIViewContainer
 {
-public:    
+public:
   // In view coordinates on pixel boundaries
   // NULL means invalidate everything
   virtual void RT_STDCALL invalidateRect(pxRect* r) = 0;
@@ -56,14 +56,14 @@ public:
   virtual bool RT_STDCALL onMouseDown(int32_t x, int32_t y, uint32_t flags) = 0;
   virtual bool RT_STDCALL onMouseUp(  int32_t x, int32_t y, uint32_t flags) = 0;
   virtual bool RT_STDCALL onMouseMove(int32_t x, int32_t y)                 = 0;
-  
-  virtual bool RT_STDCALL onScrollWheel(float dx, float dy) { UNUSED_PARAM(dx); UNUSED_PARAM(dy); return false; };
+
+  virtual bool RT_STDCALL onScrollWheel(float dx, float dy) = 0; // { UNUSED_PARAM(dx); UNUSED_PARAM(dy); return false; };
 
   virtual bool RT_STDCALL onDragDrop( int32_t x, int32_t y, int32_t type,
-                                                      const char *dropped) {  UNUSED_PARAM(x);  UNUSED_PARAM(y);  UNUSED_PARAM(type); UNUSED_PARAM(dropped); return false; };
-  virtual bool RT_STDCALL onDragMove( int32_t x, int32_t y, int32_t type)  {  UNUSED_PARAM(x);  UNUSED_PARAM(y);  UNUSED_PARAM(type); return false; };
-  virtual bool RT_STDCALL onDragEnter(int32_t x, int32_t y, int32_t type)  {  UNUSED_PARAM(x);  UNUSED_PARAM(y);  UNUSED_PARAM(type); return false; };
-  virtual bool RT_STDCALL onDragLeave(int32_t x, int32_t y, int32_t type)  {  UNUSED_PARAM(x);  UNUSED_PARAM(y);  UNUSED_PARAM(type); return false; };
+                                                      const char *dropped) = 0; //{  UNUSED_PARAM(x);  UNUSED_PARAM(y);  UNUSED_PARAM(type); UNUSED_PARAM(dropped); return false; };
+  virtual bool RT_STDCALL onDragMove( int32_t x, int32_t y, int32_t type) = 0;  //{  UNUSED_PARAM(x);  UNUSED_PARAM(y);  UNUSED_PARAM(type); return false; };
+  virtual bool RT_STDCALL onDragEnter(int32_t x, int32_t y, int32_t type) = 0;//  {  UNUSED_PARAM(x);  UNUSED_PARAM(y);  UNUSED_PARAM(type); return false; };
+  virtual bool RT_STDCALL onDragLeave(int32_t x, int32_t y, int32_t type) = 0; // {  UNUSED_PARAM(x);  UNUSED_PARAM(y);  UNUSED_PARAM(type); return false; };
 
   virtual bool RT_STDCALL onMouseEnter() = 0;
   virtual bool RT_STDCALL onMouseLeave() = 0;
@@ -79,7 +79,9 @@ public:
   virtual void RT_STDCALL onDraw(/*pxBuffer& b, pxRect* r*/) = 0;
 
   virtual void RT_STDCALL setViewContainer(pxIViewContainer* l) = 0;
-  virtual void RT_STDCALL onCloseRequest() {};
+
+  // JRJR TODO Get rid of this...
+  virtual void RT_STDCALL onCloseRequest() = 0; // {};
 #if 0
   virtual rtError RT_STDCALL setURI(const char* s) = 0;
 #endif

@@ -44,6 +44,7 @@ add_definitions(-DSUPPORT_GIF)
 
 endif (BUILD_WITH_GIF)
 
+add_definitions(-DPXSCENE_FONT_ATLAS)
 
 if (APPLE)
     message("Building pxcore for mac")
@@ -61,7 +62,7 @@ if (APPLE)
             -DU_STATIC_IMPLEMENTATION=1 -DU_HAVE_STD_STRING=0 -DUCONFIG_NO_BREAK_ITERATION=0 -DUCONFIG_NO_LEGACY_CONVERSION=1
             -DUCONFIG_NO_CONVERSION=1 -DHTTP_PARSER_STRICT=0 -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
             -DRT_PLATFORM_LINUX -DENABLE_NODE_V_6_9)
-    set(PXCORE_FILES mac/pxBufferNative.mm mac/pxOffscreenNative.mm mac/pxWindowNative.mm
+    set(PXCORE_FILES mac/pxBufferNative.mm mac/pxOffscreenNative.mm mac/pxSharedContextNative.mm mac/pxWindowNative.mm
             mac/pxEventLoopNative.mm mac/pxTimerNative.mm mac/pxTimerNative.mm
             mac/pxClipboardNative.mm mac/window.mm
             unix/rtMutexNative.cpp unix/rtThreadPoolNative.cpp
@@ -160,7 +161,7 @@ elseif (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
         set(PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} glut)
         set(PXCORE_FILES glut/pxBufferNative.cpp glut/pxOffscreenNative.cpp glut/pxWindowNative.cpp
                 glut/pxEventLoopNative.cpp glut/pxTimerNative.cpp glut/pxClipboardNative.cpp pxViewWindow.cpp
-                unix/rtMutexNative.cpp unix/rtThreadPoolNative.cpp
+                unix/rtMutexNative.cpp unix/rtThreadPoolNative.cpp glut/pxSharedContextNative.cpp 
                 rtFileCache.cpp rtHttpCache.cpp)
         set(PLATFORM_LINKER_FLAGS)
         if (DEFINED ENV{CODE_COVERAGE})
@@ -180,7 +181,7 @@ elseif(WIN32)
     add_definitions(-DENABLE_RT_NODE -DRUNINMAIN)
     add_definitions(-DPX_PLATFORM_WIN -DRT_PLATFORM_WINDOWS -DWIN32 -DWIN32_LEAN_AND_MEAN -DGLEW_STATIC -D_TIMESPEC_DEFINED -D_CONSOLE
             -DCURL_STATICLIB -DRUNINMAIN -DENABLE_RT_NODE -DDISABLE_WAYLAND -DNODE_WANT_INTERNALS=1
-            -DENABLE_NODE_V_6_9 -DENABLE_V8_HEAP_PARAMS=1 -DV8_DEPRECATION_WARNINGS=1 -DNODE_SHARED_MODE 
+            -DENABLE_NODE_V_6_9 -DENABLE_V8_HEAP_PARAMS=1 -DV8_DEPRECATION_WARNINGS=1 -DNODE_SHARED_MODE
             -DENABLE_MAX_TEXTURE_SIZE
             -DHAVE_OPENSSL -D_CRT_SECURE_NO_DEPRECATE -D_CRT_NONSTDC_NO_DEPRECATE -D_HAS_EXCEPTIONS=0 -DBUILDING_V8_SHARED=1
             -DBUILDING_UV_SHARED=1 -DNODE_ARCH="ia32" -DNODE_USE_V8_PLATFORM=1 -DNODE_HAVE_I18N_SUPPORT=1 -DNODE_HAVE_SMALL_ICU=1
@@ -191,8 +192,9 @@ elseif(WIN32)
     add_definitions(-DWIN32 -D_LIB -DNDEBUG -DPX_PLATFORM_WIN -DRT_PLATFORM_WINDOWS)
     add_definitions(${COMM_DEPS_DEFINITIONS})
     include_directories(AFTER ${COMM_DEPS_INCLUDE_DIRS})
-    include_directories(AFTER "${EXTDIR}/pthread-2.9")
-    set(PXCORE_FILES win/pxBufferNative.cpp win/pxOffscreenNative.cpp win/pxWindowNative.cpp
+    set(WINSPARKLEINC ${EXTDIR}/WinSparkle/include)
+    include_directories(AFTER "${EXTDIR}/pthread-2.9" ${WINSPARKLEINC} ${EXTDIR}/breakpad-chrome_55/src/)
+    set(PXCORE_FILES win/pxBufferNative.cpp win/pxOffscreenNative.cpp win/pxSharedContextNative.cpp win/pxWindowNative.cpp
             win/pxEventLoopNative.cpp win/pxTimerNative.cpp win/pxClipboardNative.cpp pxViewWindow.cpp
             win/rtMutexNative.cpp win/rtThreadPoolNative.cpp)
     set_source_files_properties(utf8.c PROPERTIES LANGUAGE CXX)
@@ -214,7 +216,7 @@ include_directories(AFTER ${V8_INCLUDE_DIRS})
 include_directories(AFTER ${NODE_INCLUDE_DIRS})
 include_directories(AFTER ${CMAKE_CURRENT_SOURCE_DIR})
 
-set(PXCORE_FILES ${PXCORE_FILES} pxOffscreen.cpp pxWindowUtil.cpp pxColorNames.cpp
+set(PXCORE_FILES ${PXCORE_FILES} pxOffscreen.cpp pxContextGL.cpp pxShaderUtils.cpp pxWindowUtil.cpp pxColorNames.cpp pxViewWindow.cpp
 
         rtFile.cpp rtLibrary.cpp rtPathUtils.cpp rtTest.cpp rtThreadPool.cpp
         rtThreadQueue.cpp rtThreadTask.cpp rtUrlUtils.cpp
@@ -222,7 +224,7 @@ set(PXCORE_FILES ${PXCORE_FILES} pxOffscreen.cpp pxWindowUtil.cpp pxColorNames.c
         rtFileDownloader.cpp unzip.c ioapi.c
         rtScript.cpp rtSettings.cpp rtCORS.cpp
         rtHttpRequest.cpp rtHttpResponse.cpp
-        rtJsonUtils.cpp
+        rtJsonUtils.cpp rtPhoneHome.cpp rtSoftwareUpdate.cpp
         )
 
 if (SUPPORT_STORAGE)
@@ -240,7 +242,7 @@ endif()
 if (SUPPORT_NODE)
     message("Adding Node scripting support")
     add_definitions(-DRTSCRIPT_SUPPORT_NODE)
-    set(PXCORE_FILES ${PXCORE_FILES} rtScriptV8/rtScriptNode.cpp rtScriptV8/jsCallback.cpp rtScriptV8/rtFunctionWrapper.cpp 
+    set(PXCORE_FILES ${PXCORE_FILES} rtScriptV8/rtScriptNode.cpp rtScriptV8/jsCallback.cpp rtScriptV8/rtFunctionWrapper.cpp
         rtScriptV8/rtObjectWrapper.cpp rtScriptV8/rtWrapperUtils.cpp)
     if (USE_NODE_10)
       set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++1y")
@@ -253,7 +255,7 @@ if (SUPPORT_V8)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-error=deprecated-declarations")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-error=deprecated-declarations")
     include_directories(AFTER ${EXTDIR}/uWebSockets/src)
-    set(PXCORE_FILES ${PXCORE_FILES} rtScriptV8/rtScriptV8.cpp rtScriptV8/jsCallback.cpp rtScriptV8/rtFunctionWrapper.cpp 
+    set(PXCORE_FILES ${PXCORE_FILES} rtScriptV8/rtScriptV8.cpp rtScriptV8/jsCallback.cpp rtScriptV8/rtFunctionWrapper.cpp
         rtScriptV8/rtObjectWrapper.cpp rtScriptV8/rtWrapperUtils.cpp rtScriptV8/rtWebSocket.cpp ${V8_SOURCES})
 endif()
 

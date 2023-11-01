@@ -1,6 +1,6 @@
 /*
 
-pxCore Copyright 2005-2018 John Robinson
+pxCore Copyright 2005-2021 John Robinson
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -57,6 +57,7 @@ public:
     void size(int& width, int& height);
     // void frameSize(...);
 
+    HWND getHWND() { return mWindow; } // Just because...
 
 protected:
     virtual void onCreate() = 0;
@@ -91,13 +92,13 @@ protected:
     // be called; otherwise they will be invoked as usual
     virtual void onEvent(pxEventNative event, bool& consumed) {}
 
-    static LRESULT __stdcall windowProc(HWND hWnd, UINT msg, 
+    static LRESULT __stdcall windowProc(HWND hWnd, UINT msg,
             WPARAM wParam, LPARAM lParam);
 
-public: // Add accessors
-    HWND mWindow;
-    UINT_PTR mTimerId;
-    long mAnimationFPS;
+private: // Add accessors
+  HWND mWindow;
+  UINT_PTR mTimerId;
+  long mAnimationFPS;
 	bool mTrackMouse;
 };
 

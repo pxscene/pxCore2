@@ -58,7 +58,7 @@
 #endif //PX_PLATFORM_WAYLAND_EGL
 #endif
 
-#include "pxContextUtils.h"
+#include "pxSharedContext.h"
 #include "pxTimer.h"
 
 #define PX_TEXTURE_MIN_FILTER GL_LINEAR
@@ -1686,9 +1686,9 @@ public:
     }
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,
-		    (stretchX==pxConstantsStretch::REPEAT)?GL_REPEAT:GL_CLAMP_TO_EDGE);
+		    (stretchX==pxContextStretch::REPEAT)?GL_REPEAT:GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,
-		    (stretchY==pxConstantsStretch::REPEAT)?GL_REPEAT:GL_CLAMP_TO_EDGE);
+		    (stretchY==pxContextStretch::REPEAT)?GL_REPEAT:GL_CLAMP_TO_EDGE);
 
     glVertexAttribPointer(mPosLoc, 2, GL_FLOAT, GL_FALSE, 0, pos);
     glVertexAttribPointer(mUVLoc, 2, GL_FLOAT, GL_FALSE, 0, uv);
@@ -1767,9 +1767,9 @@ public:
     }
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,
-                    (stretchX==pxConstantsStretch::REPEAT)?GL_REPEAT:GL_CLAMP_TO_EDGE);
+                    (stretchX==pxContextStretch::REPEAT)?GL_REPEAT:GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,
-                    (stretchY==pxConstantsStretch::REPEAT)?GL_REPEAT:GL_CLAMP_TO_EDGE);
+                    (stretchY==pxContextStretch::REPEAT)?GL_REPEAT:GL_CLAMP_TO_EDGE);
 
     glVertexAttribPointer(mPosLoc, 2, GL_FLOAT, GL_FALSE, 0, pos);
     glVertexAttribPointer(mUVLoc, 2, GL_FLOAT, GL_FALSE, 0, uv);
@@ -1830,7 +1830,7 @@ public:
             const void* uv,
             pxTextureRef texture,
             pxTextureRef mask,
-            pxConstantsMaskOperation::constants maskOp = pxConstantsMaskOperation::NORMAL)
+            pxContextMaskOperation maskOp = pxContextMaskOperation::NORMAL)
   {
     use(); // change program... if needed
 
@@ -1838,7 +1838,7 @@ public:
     glUniformMatrix4fv(mMatrixLoc, 1, GL_FALSE, matrix);
     glUniform1i(mFlipYLoc, gFlipRendering);
     glUniform1f(mAlphaLoc, alpha);
-    glUniform1f(mInvertedLoc, static_cast<GLfloat>((maskOp == pxConstantsMaskOperation::NORMAL) ? 0.0 : 1.0));
+    glUniform1f(mInvertedLoc, static_cast<GLfloat>((maskOp == pxContextMaskOperation::NORMAL) ? 0.0 : 1.0));
 
 
     if (texture->bindGLTexture(mTextureLoc) != PX_OK)
@@ -2129,9 +2129,9 @@ static void drawRectOutline(GLfloat x, GLfloat y, GLfloat w, GLfloat h, GLfloat 
 
 static void drawImageTexture(float x, float y, float w, float h, pxTextureRef texture,
                              pxTextureRef mask, bool useTextureDimsAlways, float* color, // default: "color = BLACK"
-                             pxConstantsStretch::constants xStretch,
-                             pxConstantsStretch::constants yStretch,
-                             pxConstantsMaskOperation::constants maskOp = pxConstantsMaskOperation::constants::NORMAL)
+                             pxContextStretch xStretch,
+                             pxContextStretch yStretch,
+                             pxContextMaskOperation maskOp = pxContextMaskOperation::NORMAL)
 {
   // args are tested at call site...
 
@@ -2161,26 +2161,26 @@ static void drawImageTexture(float x, float y, float w, float h, pxTextureRef te
 
   float tw;
   switch(xStretch) {
-  case pxConstantsStretch::NONE:
+  case pxContextStretch::NONE:
     tw = w/iw;
     break;
-  case pxConstantsStretch::STRETCH:
+  case pxContextStretch::STRETCH:
     tw = 1.0;
     break;
-  case pxConstantsStretch::REPEAT:
+  case pxContextStretch::REPEAT:
     tw = w/iw;
     break;
   }
 
   float th;
   switch(yStretch) {
-  case pxConstantsStretch::NONE:
+  case pxContextStretch::NONE:
     th = h/ih;
     break;
-  case pxConstantsStretch::STRETCH:
+  case pxContextStretch::STRETCH:
     th = 1.0;
     break;
-  case pxConstantsStretch::REPEAT:
+  case pxContextStretch::REPEAT:
 #if 1 // PX_TEXTURE_ANCHOR_BOTTOM
     th = h/ih;
 #else
@@ -2333,7 +2333,7 @@ static void drawImage92(GLfloat x, GLfloat y, GLfloat w, GLfloat h, GLfloat x1, 
     { ou2,ov2 }
   };
 
-  gTextureShader->draw(gResW,gResH,gMatrix.data(),gAlpha,22,verts,uv,texture,pxConstantsStretch::NONE,pxConstantsStretch::NONE);
+  gTextureShader->draw(gResW,gResH,gMatrix.data(),gAlpha,22,verts,uv,texture,pxContextStretch::NONE,pxContextStretch::NONE);
 }
 
 static void drawImage9Border2(GLfloat x, GLfloat y, GLfloat w, GLfloat h,
@@ -2460,7 +2460,7 @@ static void drawImage9Border2(GLfloat x, GLfloat y, GLfloat w, GLfloat h,
   float colorPM[4];
   premultiply(colorPM,color);
 
-  gTextureBorderShader->draw(gResW,gResH,gMatrix.data(),gAlpha,drawCenter? 28 : 24,verts,uv,texture,pxConstantsStretch::NONE,pxConstantsStretch::NONE, colorPM);
+  gTextureBorderShader->draw(gResW,gResH,gMatrix.data(),gAlpha,drawCenter? 28 : 24,verts,uv,texture,pxContextStretch::NONE,pxContextStretch::NONE, colorPM);
 }
 
 bool gContextInit = false;
@@ -2981,13 +2981,13 @@ void pxContext::drawImage9Border(float w, float h,
 
 // convenience method
 void pxContext::drawImageMasked(float x, float y, float w, float h,
-                                pxConstantsMaskOperation::constants maskOp,
+                                pxContextMaskOperation maskOp,
                                 pxTextureRef t, pxTextureRef mask)
 {
   this->drawImage(x, y, w, h, t , mask,
                     /* useTextureDimsAlways = */ true, /*color = */ NULL,      // DEFAULT
-                    /*             stretchX = */ pxConstantsStretch::STRETCH,  // DEFAULT
-                    /*             stretchY = */ pxConstantsStretch::STRETCH,  // DEFAULT
+                    /*             stretchX = */ pxContextStretch::STRETCH,  // DEFAULT
+                    /*             stretchY = */ pxContextStretch::STRETCH,  // DEFAULT
                     /*      downscaleSmooth = */ false,                        // DEFAULT
                                                  maskOp                        // PARAMETER
                     );
@@ -2997,10 +2997,10 @@ void pxContext::drawImage(float x, float y, float w, float h,
                           pxTextureRef t, pxTextureRef mask,
                           bool useTextureDimsAlways               /* = true */,
                           float* color,                           /* = NULL */
-                          pxConstantsStretch::constants stretchX, /* = pxConstantsStretch::STRETCH, */
-                          pxConstantsStretch::constants stretchY, /* = pxConstantsStretch::STRETCH, */
+                          pxContextStretch stretchX, /* = pxContextStretch::STRETCH, */
+                          pxContextStretch stretchY, /* = pxContextStretch::STRETCH, */
                           bool downscaleSmooth                    /* = false */,
-                          pxConstantsMaskOperation::constants maskOp     /* = pxConstantsMaskOperation::NORMAL */ )
+                          pxContextMaskOperation maskOp     /* = pxContextMaskOperation::NORMAL */ )
 {
 #ifdef DEBUG_SKIP_IMAGE
 #warning "DEBUG_SKIP_IMAGE enabled ... Skipping "
@@ -3027,14 +3027,14 @@ void pxContext::drawImage(float x, float y, float w, float h,
     mask->setLastRenderTick(gRenderTick);
   }
 
-  if (stretchX < pxConstantsStretch::NONE || stretchX > pxConstantsStretch::REPEAT)
+  if (stretchX < pxContextStretch::NONE || stretchX > pxContextStretch::REPEAT)
   {
-    stretchX = pxConstantsStretch::NONE;
+    stretchX = pxContextStretch::NONE;
   }
 
-  if (stretchY < pxConstantsStretch::NONE || stretchY > pxConstantsStretch::REPEAT)
+  if (stretchY < pxContextStretch::NONE || stretchY > pxContextStretch::REPEAT)
   {
-    stretchY = pxConstantsStretch::NONE;
+    stretchY = pxContextStretch::NONE;
   }
 
   float black[4] = {0,0,0,1};

@@ -17,7 +17,7 @@
  */
 
 #include "pxWebGL.h"
-#include "pxContextUtils.h"
+#include "pxSharedContext.h"
 #include "pxContext.h"
 
 #include <algorithm>
@@ -104,12 +104,12 @@ void pxWebgl::onInit()
 {
   mReady.send("resolve",this);
   pxObject::onInit();
-  
+
   rtLogDebug("[%s]", __FUNCTION__);
-  
+
   pixelStorei_UNPACK_FLIP_Y_WEBGL = 0;
   pixelStorei_UNPACK_PREMULTIPLY_ALPHA_WEBGL = 0;
-  pixelStorei_UNPACK_FLIP_BLUE_RED = 0;  
+  pixelStorei_UNPACK_FLIP_BLUE_RED = 0;
 
   glGetIntegerv(GL_FRAMEBUFFER_BINDING, &mInitialFrameBuffer);
   CheckGLError();
@@ -232,7 +232,7 @@ rtError pxWebgl::pixelStorei(uint32_t pname, bool param)
 
   if (pname == 0x9240 /* UNPACK_FLIP_Y_WEBGL */) {
     pixelStorei_UNPACK_FLIP_Y_WEBGL = param;
-  } else if (pname == 0x9241 /* UNPACK_PREMULTIPLY_ALPHA_WEBGL */) {  
+  } else if (pname == 0x9241 /* UNPACK_PREMULTIPLY_ALPHA_WEBGL */) {
     pixelStorei_UNPACK_PREMULTIPLY_ALPHA_WEBGL = param;
   } else if (pname == 0x9245 /* UNPACK_FLIP_BLUE_RED */) {
     pixelStorei_UNPACK_FLIP_BLUE_RED = param;
@@ -277,7 +277,7 @@ rtError pxWebgl::clearColor(float_t red, float_t green, float_t blue, float_t al
 rtError pxWebgl::Clear(uint32_t mask)
 {
   rtLogDebug("[%s] mask: %u", __FUNCTION__, mask);
-  
+
   glClear(mask);
   CheckGLError();
 
@@ -299,7 +299,7 @@ rtError pxWebgl::texImage2D(uint32_t target, uint32_t level, uint32_t internalfo
   rtLogDebug("[%s] target: %d level: %d internalformat: %d width: %d height %d format %d", __FUNCTION__, target, level, internalformat, width, height, format);
 
   rtArrayObject* pixelArray = (rtArrayObject*) data.toObject().getPtr();
-  
+
   void *pixels = NULL;
 
   if(pixelArray) {
@@ -719,7 +719,7 @@ rtError pxWebgl::DisableVertexAttribArray(uint32_t index)
 rtError pxWebgl::CreateFramebuffer(uint32_t& buffer)
 {
   rtLogDebug("[%s]", __FUNCTION__);
-  
+
   glGenFramebuffers(1, &buffer);
   CheckGLError();
 
@@ -732,17 +732,17 @@ rtError pxWebgl::CreateFramebuffer(uint32_t& buffer)
   }
 
   rtLogDebug("[%s] returning buffer: %u",__FUNCTION__, buffer);
-  
+
   return RT_OK;
 }
 
 rtError pxWebgl::FramebufferTexture2D(uint32_t target, uint32_t attachment, uint32_t textarget, uint32_t texture, uint32_t level)
 {
   rtLogDebug("[%s] target: %u, attachment: %u, textarget: %u, texture: %u, level: %u", __FUNCTION__, target, attachment, textarget, texture, level);
-  
+
   glFramebufferTexture2D(target, attachment, textarget, texture, level);
   CheckGLError();
-  
+
   return RT_OK;
 }
 

@@ -146,26 +146,17 @@ uint32_t gFboBindCalls;
 
 #endif //USE_RENDER_STATS
 
-// TODO move to rt*
-// Taken from
-// http://stackoverflow.com/questions/342409/how-do-i-base64-encode-decode-in-c
-
 #include <stdint.h>
 #include <stdlib.h>
 
 #ifdef ENABLE_RT_NODE
 extern void rtWrapperSceneUpdateEnter();
 extern void rtWrapperSceneUpdateExit();
-#ifdef RUNINMAIN
-rtScript script;
-#else
-class AsyncScriptInfo;
-extern vector<AsyncScriptInfo*> scriptsInfo;
-extern uv_mutex_t moreScriptsMutex;
-extern uv_async_t asyncNewScript;
-extern uv_async_t gcTrigger;
-#endif // RUNINMAIN
+
+extern rtScript script;
+
 #endif //ENABLE_RT_NODE
+
 #ifdef ENABLE_VALGRIND
 #include <valgrind/callgrind.h>
 void startProfiling()
@@ -568,7 +559,7 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
   // capabilities.network.http2         = 2
   //
   // capabilities.metrics.textureMemory = 1
-  // 
+  //
   // capabilities.animations.durations = 2
   //
   // capabilities.events.drag_n_drop    = 2   // additional Drag'n'Drop events
@@ -586,22 +577,22 @@ pxScene2d::pxScene2d(bool top, pxScriptView* scriptView)
 
   graphicsCapabilities.set("svg", 2);
   graphicsCapabilities.set("colors", 1);
-      
+
 #ifdef SUPPORT_GIF
     graphicsCapabilities.set("gif", 2);
 #endif //SUPPORT_GIF
   graphicsCapabilities.set("imageAResource", 2);
-      
+
   graphicsCapabilities.set("screenshots", 2);
   graphicsCapabilities.set("shaders", 1);
   graphicsCapabilities.set("text", 3);
-  
-  
+
+
   rtObjectRef fontCapabilities = new rtMapObject;
   fontCapabilities.set("fallback", 1);
 
   mCapabilityVersions.set("font", fontCapabilities);
-  
+
 #ifdef SPARK_CURSOR_SUPPORT
   graphicsCapabilities.set("cursor", 1);
 
@@ -742,6 +733,7 @@ rtError pxScene2d::dispose()
     return RT_OK;
 }
 
+// JRJR TODO... Try to get rid of this...  but watch for leaks mentioned by Madan
 void pxScene2d::onCloseRequest()
 {
   rtLogInfo(__FUNCTION__);
@@ -1012,7 +1004,7 @@ rtError pxScene2d::createShaderResource(rtObjectRef p, rtObjectRef& o)
 {
   rtString fragmentUrl = p.get<rtString>("fragment");
   rtString vertexUrl   = p.get<rtString>("vertex");
-  
+
   if(fragmentUrl.isEmpty() && vertexUrl.isEmpty())
   {
      rtLogError("Failed to create [shaderResource] ... no Fragment/Vertex shader found.");
@@ -1573,6 +1565,7 @@ void pxScene2d::onDraw()
 
   if (mTop)
   {
+    context.updateRenderTick();
     #ifdef ENABLE_RT_NODE
     rtWrapperSceneUpdateEnter();
     #endif //ENABLE_RT_NODE
@@ -1701,7 +1694,7 @@ bool pxScene2d::onMouseDown(int32_t x, int32_t y, uint32_t flags)
 
       rtObjectRef e = new rtMapObject;
       e.set("name", "onMouseDown");
-      e.set("target", (rtObject*)hit.getPtr());
+      e.set("target", hit.getPtr());
       e.set("x", hitPt.x);
       e.set("y", hitPt.y);
       e.set("flags", flags);
@@ -1710,10 +1703,15 @@ bool pxScene2d::onMouseDown(int32_t x, int32_t y, uint32_t flags)
       #else
       bubbleEvent(e,hit,"onPreMouseDown","onMouseDown");
       #endif
+
+      setMouseEntered(hit);
     }
+    else
+      setMouseEntered(NULL);
   }
   return false;
 }
+
 
 bool pxScene2d::onMouseUp(int32_t x, int32_t y, uint32_t flags)
 {
@@ -1724,7 +1722,70 @@ bool pxScene2d::onMouseUp(int32_t x, int32_t y, uint32_t flags)
     e.set("name", "onMouseUp");
     e.set("x", x);
     e.set("y", y);
-    e.set("flags", static_cast<uint32_t>(flags));
+    e.set("flags", (uint32_t)flags);
+    mEmit.send("onMouseUp", e);
+  }
+#endif
+  {
+    //Looking for an object
+    pxMatrix4f m;
+    pxPoint2f pt(static_cast<float>(x),static_cast<float>(y)), hitPt;
+    rtRef<pxObject> hit;
+    //rtRef<pxObject> tMouseDown = mMouseDown;
+
+    if (mMouseDown)
+    {
+      // Since onClick is a proper subset of onMouseUp fire first so
+      // that appropriate action can be taken in this case.
+
+      // TODO optimization... we really only need to check mMouseDown
+      if (mRoot && mRoot->hitTestInternal(m, pt, hit, hitPt))
+      {
+        // Send onClick if this object got an onMouseDown
+        if (mMouseDown == hit)
+        {
+          rtObjectRef e = new rtMapObject;
+          e.set("name", "onClick");
+          e.set("target",hit.getPtr());
+          e.set("x", hitPt.x); // In object local coordinates
+          e.set("y", hitPt.y);
+          e.set("flags", flags);
+          bubbleEvent(e,hit,"onPreClick","onClick");
+        }
+        setMouseEntered(hit);
+      }
+
+      pxVector4f from(static_cast<float>(x),static_cast<float>(y),0,1);
+      pxVector4f to;
+      pxObject::transformPointFromSceneToObject(mMouseDown, from, to);
+
+      rtObjectRef e = new rtMapObject;
+      e.set("name", "onMouseUp");
+      e.set("target",mMouseDown.getPtr());
+      e.set("x", to.x()); // In object local coordinates
+      e.set("y", to.y());
+      e.set("flags", flags);
+      bubbleEvent(e,mMouseDown,"onPreMouseUp","onMouseUp");
+
+      mMouseDown = NULL;
+    }
+    else
+      setMouseEntered(NULL);
+  }
+  return false;
+}
+
+#if 0
+bool pxScene2d::onMouseUp(int32_t x, int32_t y, uint32_t flags)
+{
+#if 1
+  {
+    // Send to root scene in global window coordinates
+    rtObjectRef e = new rtMapObject;
+    e.set("name", "onMouseUp");
+    e.set("x", x);
+    e.set("y", y);
+    e.set("flags", (uint32_t)flags);
     mEmit.send("onMouseUp", e);
   }
 #endif
@@ -1763,8 +1824,10 @@ bool pxScene2d::onMouseUp(int32_t x, int32_t y, uint32_t flags)
   }
   return false;
 }
+#endif
 
 // TODO rtRef doesn't like non-const !=
+// JRJR what are the x and y for?
 void pxScene2d::setMouseEntered(rtRef<pxObject> o, int32_t x /* = 0*/, int32_t y /* = 0*/)
 {
   if (mMouseEntered != o)
@@ -1787,11 +1850,8 @@ void pxScene2d::setMouseEntered(rtRef<pxObject> o, int32_t x /* = 0*/, int32_t y
     {
       rtObjectRef e = new rtMapObject;
       e.set("name", "onMouseEnter");
-      e.set("target", o.getPtr());
-      e.set("x", x);
-      e.set("y", y);
-
-      bubbleEvent(e,o, "onPreMouseEnter", "onMouseEnter");
+      e.set("target", mMouseEntered.getPtr());
+      bubbleEvent(e,mMouseEntered, "onPreMouseEnter", "onMouseEnter");
     }
   }
 }
@@ -1851,12 +1911,19 @@ bool pxScene2d::onMouseEnter()
 bool pxScene2d::onMouseLeave()
 {
   // top level scene event
+  #if 0
   rtObjectRef e = new rtMapObject;
   e.set("name", "onMouseLeave");
   mEmit.send("onMouseLeave", e);
+  #endif
 
-  mMouseDown = NULL;
+  // Don't change here if dragging
+  if (!mMouseDown.getPtr())
+  {
+    mMouseDown = NULL;
+  }
   setMouseEntered(NULL);
+
   return false;
 }
 
@@ -2036,9 +2103,11 @@ bool pxScene2d::onMouseMove(int32_t x, int32_t y)
 #if 1
   {
     // Send to root scene in global window coordinates
+    // Used to send to child scenes for event propogation
+    // Always non translated events
     rtObjectRef e = new rtMapObject;
     e.set("name", "onMouseMove");
-    e.set("x", x);
+    e.set("x", x);  // Sent in global scene
     e.set("y", y);
     mEmit.send("onMouseMove", e);
   }
@@ -2058,6 +2127,7 @@ bool pxScene2d::onMouseMove(int32_t x, int32_t y)
       pxObject::transformPointFromSceneToObject(mMouseDown, from, to);
 
 //      to.dump();
+      #if 0
       {
         pxVector4f validate;
         pxObject::transformPointFromObjectToScene(mMouseDown, to, validate);
@@ -2079,6 +2149,7 @@ bool pxScene2d::onMouseMove(int32_t x, int32_t y)
                  to.x(),to.y(),validate.x(),validate.y());
         }
       }
+      #endif
 
 #if 0
     rtObjectRef e = new rtMapObject;
@@ -2365,7 +2436,6 @@ rtError pxScene2d::showDirtyRect(bool& v) const
   v=mShowDirtyRectangle;
   return RT_OK;
 }
-
 rtError pxScene2d::setShowDirtyRect(bool v)
 {
   mShowDirtyRectangle = v;
@@ -2390,14 +2460,14 @@ rtError pxScene2d::dirtyRectanglesEnabled(bool& v) const {
 }
 
 rtError pxScene2d::dirtyRectangle(rtObjectRef& v) const {
-    v = new rtMapObject();
-if (gDirtyRectsEnabled) {
+  v = new rtMapObject();
+  if (gDirtyRectsEnabled) {
     v.set("x1", mDirtyRect.left());
     v.set("y1", mDirtyRect.top());
     v.set("x2", mDirtyRect.right());
     v.set("y2", mDirtyRect.bottom());
-}
-    return RT_OK;
+  }
+  return RT_OK;
 }
 
 rtError pxScene2d::enableDirtyRect(bool& v) const
@@ -3387,7 +3457,7 @@ void pxScriptView::runScript()
       {
         mSparkHttp = new rtFunctionCallback(sparkHttp, NULL);
       }
-      //mCtx->add("view", this);     
+      //mCtx->add("view", this);
 
       // JRJR TODO initially with zero mWidth/mHeight until onSize event
       // defer to onSize once events have been ironed out
@@ -3405,7 +3475,7 @@ void pxScriptView::runScript()
 
       beginDrawing();
       glClearColor(0, 0, 0, 0);
-      glClear(GL_COLOR_BUFFER_BIT);      
+      glClear(GL_COLOR_BUFFER_BIT);
       // compile initGL.js
       if (mSparkGlInitApp.isEmpty())
       {
@@ -3425,11 +3495,11 @@ void pxScriptView::runScript()
       bool b = true;
 
       // JRJR Adding an AddRef to this... causes bad things to happen when reloading gl scenes
-      // investigate... 
+      // investigate...
       // JRJR WARNING! must use sendReturns since wrappers will invoke asyncronously otherwise.
       f.sendReturns<bool>(mUrl,mBeginDrawing.getPtr(),mEndDrawing.getPtr(), shadow.getPtr(), mBootstrap, mSparkHttp.getPtr(), b);
       endDrawing();
-      
+
     }
     else
     {
@@ -3440,10 +3510,10 @@ void pxScriptView::runScript()
         s.append("init.js");
         rtData initData;
         rtError e = rtLoadFile(s.cString(), initData);
-        
+
         if (e != RT_OK)
           rtLogError("Failed to load file: %s", s.cString());
-        
+
         mSparkInitApp = rtString((char*)initData.data(), (uint32_t)initData.length());
       }
       mCtx->runScript(mSparkInitApp.cString());
@@ -3513,7 +3583,7 @@ pxScriptView::~pxScriptView()
     mSharedContext->makeCurrent(false);
   }
   mDrawing = false;
-  
+
   if (NULL != mBeginDrawing.getPtr())
     mBeginDrawing->clearContext();
   if (NULL != mEndDrawing.getPtr())
@@ -3530,7 +3600,7 @@ pxScriptView::~pxScriptView()
 
   shadow->emit()->clearListeners();
 
-  // JRJR TODO Not Releasing GL Context 
+  // JRJR TODO Not Releasing GL Context
 
   if(mScene)
     mEmit.send("onSceneRemoved", mScene);
@@ -3698,7 +3768,7 @@ bool pxScriptView::onBlur()
 }
 
 bool pxScriptView::onKeyDown(uint32_t keycode, uint32_t flags)
-{  
+{
   {
     rtObjectRef e = new rtMapObject;
     e.set("keyCode", keycode);
@@ -3753,7 +3823,7 @@ void pxScriptView::onDraw(/*pxBuffer& b, pxRect* r*/)
     if (mView)
       mView->onDraw();
   }
-  
+
 }
 
 rtError pxScriptView::suspend(const rtValue& v, bool& b)
@@ -3898,7 +3968,7 @@ rtError pxScriptView::beginDrawing2(int /*numArgs*/, const rtValue* /*args*/, rt
   if (ctx)
   {
     pxScriptView* v = (pxScriptView*)ctx;
-    v->beginDrawing();   
+    v->beginDrawing();
   }
   return RT_OK;
 }
@@ -3913,7 +3983,7 @@ rtError pxScriptView::endDrawing2(int /*numArgs*/, const rtValue* /*args*/, rtVa
   return RT_OK;
 }
 
-// JRJR could be made much simpler... 
+// JRJR could be made much simpler...
 rtError pxScriptView::getSetting(int numArgs, const rtValue* args, rtValue* result, void* /*ctx*/)
 {
   if (numArgs >= 1)

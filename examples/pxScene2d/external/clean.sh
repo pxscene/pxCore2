@@ -58,9 +58,9 @@ make clean -j3
 cd ..
 
 #--------- spark-webgl
-cd spark-webgl
-node-gyp clean
-cd ..
+#cd spark-webgl
+#node-gyp clean
+#cd ..
 
 
 #--------- GIF

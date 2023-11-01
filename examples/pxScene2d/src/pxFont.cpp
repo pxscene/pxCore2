@@ -98,9 +98,9 @@ uint32_t npot(uint32_t i)
   return power;
 }
 
-#ifdef PXSCENE_FONT_ATLAS
+//#ifdef PXSCENE_FONT_ATLAS
 pxFontAtlas gFontAtlas;
-#endif
+//#endif
 
 pxFont::pxFont(rtString fontUrl, uint32_t id, rtString proxyUrl, rtString fontStyle):pxResource(),mFace(NULL),mPixelSize(0), mFontData(0), mFontDataSize(0),
              mFontMutex(), mFontDataMutex(), mFontDownloadedData(NULL), mFontDownloadedDataSize(0),

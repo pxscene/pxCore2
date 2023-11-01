@@ -26,10 +26,12 @@ limitations under the License.
 #define PX_LITTLEENDIAN_PIXELS
 #define PX_LITTLEENDIAN_RGBA_PIXELS
 
+
 #include "pxBufferNative.h"
 #include "pxOffscreenNative.h"
 #include "pxWindowNative.h"
 #include "pxClipboardNative.h"
+#include "pxSharedContextNative.h"
 
 #endif
 

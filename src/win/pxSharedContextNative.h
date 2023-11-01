@@ -1,6 +1,6 @@
 /*
 
-pxCore Copyright 2005-2018 John Robinson
+pxCore Copyright 2005-2021 John Robinson
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -16,25 +16,24 @@ limitations under the License.
 
 */
 
-#include "pxContextUtils.h"
+// pxSharedContextNative.h
+#ifndef PX_SHAREDCONTEXTNATIVE_H
+#define PX_SHAREDCONTEXTNATIVE_H
 
-int nextInternalContextId = 0;
+#include "windows.h"
 
-pxError createInternalContext(int &id, bool /*depthBuffer*/)
-{
-  id = nextInternalContextId++;
-  //TODO
-  return PX_OK;
-}
+class pxSharedContextNative {
+public:
 
-pxError deleteInternalGLContext(int id)
-{
-  //TODO
-  return PX_OK;
-}
+  pxSharedContextNative();
+  virtual ~pxSharedContextNative();
 
-pxError makeInternalGLContextCurrent(bool, int)
-{
-  //TODO
-  return PX_OK;
-}
+  void makeCurrent(bool f);
+
+protected:
+  HDC mHDC;
+  HGLRC mGLContext;
+  HGLRC mOriginalGLContext;
+};
+
+#endif

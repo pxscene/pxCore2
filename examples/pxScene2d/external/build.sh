@@ -181,16 +181,7 @@ fi
 
 #--------
 
-#-------- GLIB
 
-if [ ! -e $EXT_INSTALL_PATH/lib/libglib-2.0.la ]
-then
-  banner "GLIB"
-
-  ./glib/build.sh
-fi
-
-#--------
 
 #--------- GIF
 
@@ -309,13 +300,13 @@ fi
 
 #--------- CURL
 
-if [ ! -e $EXT_INSTALL_PATH/lib/libcurl.la ]; then
+if [ ! -e curl/lib/libcurl.la ]; then
 
   banner "CURL"
 
   cd curl
 
-  CPPFLAGS="-I${OPENSSL_DIR} -I${OPENSSL_DIR}/include" LDFLAGS="-L${OPENSSL_DIR}/lib -Wl,-rpath,${OPENSSL_DIR}/lib " LIBS="-ldl -lpthread" PKG_CONFIG_PATH=$EXT_INSTALL_PATH/lib/pkgconfig:$PKG_CONFIG_PATH ./configure --with-ssl="${OPENSSL_DIR}" --prefix=$EXT_INSTALL_PATH
+  CPPFLAGS="-I${OPENSSL_DIR} -I${OPENSSL_DIR}/include" LDFLAGS="-L${OPENSSL_DIR}/lib -Wl,-rpath,${OPENSSL_DIR}/lib " LIBS="-ldl -lpthread" PKG_CONFIG_PATH=$EXT_INSTALL_PATH/lib/pkgconfig:$PKG_CONFIG_PATH ./configure --without-nghttp2 --with-ssl="${OPENSSL_DIR}" --prefix=$EXT_INSTALL_PATH
 
   if [ "$(uname)" = "Darwin" ]; then
     #Removing api definition for Yosemite compatibility.
@@ -395,7 +386,8 @@ then
   if [ -e "node-v${NODE_VER}_mods.patch" ]
   then
     git apply --ignore-space-change --whitespace=nowarn "node-v${NODE_VER}_mods.patch"
-    git apply --ignore-space-change --whitespace=nowarn "openssl_1.0.2_compatibility.patch"
+    git apply --ignore-space-change --whitespace=nowarn "openssl_1.0.2_compatibility.patch"  
+    git apply --ignore-space-change --whitespace=nowarn "node-v${NODE_VER}_fixclang.patch" 
   fi
 
   cd "libnode-v${NODE_VER}"
@@ -461,7 +453,7 @@ then
     cp Makefile.build Makefile
   fi
 
-  CPPFLAGS="${IDE_SEARCH_PATH} -I${OPENSSL_DIR} -I${OPENSSL_DIR}/include" LDFLAGS="-L${OPENSSL_DIR}/lib -Wl,-rpath,${OPENSSL_DIR}/lib " make
+  CPPFLAGS="${IDE_SEARCH_PATH} -I../libnode-v${NODE_VER}/deps/uv/include/ -I${OPENSSL_DIR} -I${OPENSSL_DIR}/include" LDFLAGS="-L${OPENSSL_DIR}/lib -Wl,-rpath,${OPENSSL_DIR}/lib " make
 
   git ls-files -z . | xargs -0 git update-index --assume-unchanged # ... help GIT out
 
@@ -520,7 +512,8 @@ fi
 
 #-------- SPARK-WEBGL
 
-if [ ! -d "spark-webgl/build" ]; then
+#TODO I don't think this is used anymore... 
+if false && [ ! -d "spark-webgl/build" ]; then
 
   export NODE_PATH=$NODE_PATH:`pwd`/../src/node_modules
   export PATH=`pwd`/node/deps/npm/bin/node-gyp-bin/:`pwd`/node/out/Release:$PATH
@@ -567,6 +560,17 @@ fi
 
 if [[ $# -eq 1 ]] && [[ $1 == "SPARK_ENABLE_VIDEO" ]]
 then
+
+  #-------- GLIB
+
+  if [ ! -e $EXT_INSTALL_PATH/lib/libglib-2.0.la ]
+  then
+    banner "GLIB"
+
+    ./glib/build.sh
+  fi
+
+  #--------
 
   #-------- cJSON
 

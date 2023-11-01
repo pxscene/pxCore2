@@ -41,6 +41,7 @@ limitations under the License.
 #include "pxOffscreenNative.h"
 #include "pxWindowNative.h"
 #include "pxClipboardNative.h"
+#include "pxSharedContextNative.h"
 
 #endif // PX_NATIVE
 

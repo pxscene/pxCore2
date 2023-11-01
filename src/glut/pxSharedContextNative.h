@@ -16,19 +16,25 @@ limitations under the License.
 
 */
 
-// pxConfigNative.h
+#ifndef PX_SHAREDCONTEXTNATIVE_H
+#define PX_SHAREDCONTEXTNATIVE_H
 
-#ifndef PX_CONFIGNATIVE_H
-#define PX_CONFIGNATIVE_H
+#include <GL/glew.h>
+#include <GL/freeglut.h>
+#include <GL/gl.h>
 
-#define PXCALL __stdcall
-#define PX_LITTLEENDIAN_PIXELS
-#define PX_LITTLEENDIAN_RGBA_PIXELS
+#include "rtAtomic.h"
+#include "rtRef.h"
 
-#include "win/pxBufferNative.h"
-#include "win/pxOffscreenNative.h"
-#include "win/pxWindowNative.h"
+#include "pxCore.h"
 
-#include "win/pxSharedContextNative.h"
-#endif
+class pxSharedContextNative {
+public:
+  pxSharedContextNative(bool depthBuffer);
+  virtual ~pxSharedContextNative();
 
+private:
+  void* context;
+};
+
+#endif //PX_SHARED_CONTEXT_NATIVE_H

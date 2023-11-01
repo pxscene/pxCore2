@@ -1,7 +1,7 @@
 #!/bin/bash
 
-#minJS=cp        #don't minify
-minJS=./jsMin.sh  #minify
+minJS=cp        #don't minify
+#minJS=./jsMin.sh  #minify
 
 externalDir=../external
 EXT_INSTALL_PATH=$externalDir/extlibs

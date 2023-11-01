@@ -24,8 +24,6 @@ set(WESTEROSSTUBINC ${EXTDIR}/westeros-stub)
 
 set(BREAKPADINC ${EXTDIR}/breakpad/src)
 
-set(WINSPARKLEINC ${EXTDIR}/WinSparkle/include)
-
 set(UWS ${EXTDIR}/uWebSockets)
 set(PX_LIBRARY_SUPPORT 1)
 set(PXWAYLAND_LIBRARY_SUPPORT 0)
@@ -91,7 +89,7 @@ add_definitions(-DANIMATION_ROTATE_XYZ )
 if(WIN32)
   set(OPENSSLLIB ${EXTDIR}/openssl-1.0.2o/)
   set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${OPENSSLLIB}/lib)
-  
+
   include_directories(AFTER ${OPENSSLLIB}/bin)
 endif(WIN32)
 
@@ -126,7 +124,7 @@ if (APPLE)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -fpermissive -g -Wall -Wno-attributes -Wall -Wextra")
     set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${PXCORE_LIB_LOCATION})
     set(PXSCENE_DEFINITIONS ${PXSCENE_DEFINITIONS} -DENABLE_NODE_V_6_9 -D_DARWIN_USE_64_BIT_INODE=1 -DNODE_ARCH="x64" -DNODE_WANT_INTERNALS=1 -DV8_DEPRECATION_WARNINGS= -DNODE_SHARED_MODE -DNODE_USE_V8_PLATFORM=1 -DNODE_HAVE_I18N_SUPPORT=1 -DNODE_HAVE_SMALL_ICU=1 -DHAVE_OPENSSL=1 -DHAVE_DTRACE=1 -D__POSIX__ -DNODE_PLATFORM=darwin -DDUCONFIG_NO_TRANSLITERATION=1 -DUCONFIG_NO_SERVICE=1 -DUCONFIG_NO_REGULAR_EXPRESSIONS=1 -DU_ENABLE_DYLOAD=0 -DU_STATIC_IMPLEMENTATION=1 -DU_HAVE_STD_STRING=0 -DUCONFIG_NO_BREAK_ITERATION=0 -DUCONFIG_NO_LEGACY_CONVERSION=1 -DUCONFIG_NO_CONVERSION=1 -DHTTP_PARSER_STRICT=0 -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64)
-    set(PLATFORM_SOURCES mac/pxContextUtils.mm)
+    #set(PLATFORM_SOURCES mac/pxSharedContextNative.mm)
     set(PXSCENE_LINKER_OPTIONS "-framework OpenGL -framework Cocoa -framework Foundation")
     if (ENABLE_THREAD_SANITIZER)
       set(PXSCENE_LINKER_OPTIONS "${PXSCENE_LINKER_OPTIONS} -fsanitize=thread")
@@ -197,7 +195,7 @@ elseif (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
         set(PX_PLATFORM PX_PLATFORM_GENERIC_EGL)
         set(PXCORE_LIB_LOCATION ${PXCOREDIR}/build/egl)
         set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${PXCORE_LIB_LOCATION})
-        set(PLATFORM_SOURCES egl/pxContextUtils.cpp)
+        #set(PLATFORM_SOURCES egl/pxContextUtils.cpp)
         set(PXSCENE_DEFINITIONS ${PXSCENE_DEFINITIONS} -DPXSCENE_DISABLE_PXCONTEXT_EXT)
         include_directories(AFTER /opt/vc/include /opt/vc/include/interface/vcos/pthreads
                 /opt/vc/include/interface/vmcs_host/linux /opt/vc/include)
@@ -222,7 +220,7 @@ elseif (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
 
         set(PXCORE_LIB_LOCATION ${PXCOREDIR}/build/egl)
         set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${PXCORE_LIB_LOCATION} ${PXCOREDIR}/remote ${CMAKE_CURRENT_SOURCE_DIR})
-        set(PLATFORM_SOURCES egl/pxContextUtils.cpp)
+        #set(PLATFORM_SOURCES egl/pxContextUtils.cpp)
 
         if (BUILD_PXSCENE_WITH_NEXUS_SUPPORT)
             set(PXSCENE_APP_LIBRARIES ${PXSCENE_APP_LIBRARIES} nxpl)
@@ -272,7 +270,7 @@ elseif (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
         set(PX_PLATFORM PX_PLATFORM_GLUT)
         set(PXCORE_LIB_LOCATION ${PXCOREDIR}/build/glut)
         set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${PXCORE_LIB_LOCATION})
-        set(PLATFORM_SOURCES glut/pxContextUtils.cpp)
+        #set(PLATFORM_SOURCES glut/pxContextUtils.cpp)
         set(PXSCENE_DEFINITIONS ${PXSCENE_DEFINITIONS} -DHAS_LINUX_BREAKPAD)
         include_directories(AFTER ${GLUTINC})
         set(PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} glut breakpad_client )
@@ -302,11 +300,12 @@ elseif (WIN32)
     set(CMAKE_BUILD_TYPE Release)
     set(CMAKE_CONFIGURATION_TYPES ${CMAKE_BUILD_TYPE} CACHE STRING "" FORCE)
     add_definitions(-DWIN32 -D_LIB -DPX_PLATFORM_WIN -DRT_PLATFORM_WINDOWS)
-    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT ")
+    # /Zi /DEBUG to enable debugging
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT  /Zi /DEBUG ")
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /EHs-c-")
     set(PXCORE_LIB_LOCATION ${PXCORE_LIB_LOCATION} ${PXCOREDIR}/build/win/Release)
     set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${PXCORE_LIB_LOCATION})
-    set(PLATFORM_SOURCES win/pxContextUtils.cpp)
+    #set(PLATFORM_SOURCES win/pxContextUtils.cpp)
     set(PLATFORM_SOURCES ${PLATFORM_SOURCES} ${PXCOREDIR}/src/utf8.c)
     set_source_files_properties(utf8.c PROPERTIES LANGUAGE CXX)
     set(PXSCENE_DEFINITIONS ${PXSCENE_DEFINITIONS} -DHAS_WINDOWS_BREAKPAD)
@@ -322,7 +321,7 @@ elseif (WIN32)
             -DHTTP_PARSER_STRICT=0 -DUSE_RENDER_STATS -D_HAS_EXCEPTIONS=0)
     add_definitions(${COMM_DEPS_DEFINITIONS})
     include_directories(AFTER ${COMM_DEPS_INCLUDE_DIRS} ${NODE_INCLUDE_DIRS} ${V8_INCLUDE_DIRS} ${DUKE_INCLUDE_DIRS})
-    include_directories(AFTER "${EXTDIR}/pthread-2.9" ${WINSPARKLEINC} ${EXTDIR}/breakpad-chrome_55/src/)
+    include_directories(AFTER "${EXTDIR}/pthread-2.9")
 
     set(PXSCENE_LINK_DIRECTORIES ${PXSCENE_LINK_DIRECTORIES} ${COMM_DEPS_LIBRARY_DIRS} ${NODE_LIBRARY_DIRS}
         ${V8_LIBRARY_DIRS} ${DUKE_LIBRARY_DIRS})
@@ -387,18 +386,18 @@ set(PXSCENE_COMMON_FILES pxResource.cpp pxConstants.cpp pxRectangle.cpp pxFont.c
     pxTextBox.cpp pxTextCanvas.cpp pxImage.cpp pxImage9.cpp pxImageA.cpp pxImage9Border.cpp pxArchive.cpp pxAnimate.cpp)
 
 set(PXSCENE_COMMON_FILES ${PXSCENE_COMMON_FILES} pxObject.cpp)
-set(PXSCENE_COMMON_FILES ${PXSCENE_COMMON_FILES} pxShaderUtils.cpp)
+#set(PXSCENE_COMMON_FILES ${PXSCENE_COMMON_FILES} pxShaderUtils.cpp)
 set(PXSCENE_COMMON_FILES ${PXSCENE_COMMON_FILES} pxShaderResource.cpp)
 set(PXSCENE_COMMON_FILES ${PXSCENE_COMMON_FILES} pxScene2d.cpp)
 
-set(PXWAYLAND_LIB_FILES pxContextGL.cpp egl/pxContextUtils.cpp)
+#set(PXWAYLAND_LIB_FILES pxContextGL.cpp egl/pxContextUtils.cpp)
 
 if (BUILD_WITH_GL)
     message("Building with GL support")
-    set(PXSCENE_COMMON_FILES ${PXSCENE_COMMON_FILES} pxContextGL.cpp)
+    #set(PXSCENE_COMMON_FILES ${PXSCENE_COMMON_FILES} pxContextGL.cpp)
 else ()
     message("Building with DirectFB support")
-    set(PXSCENE_COMMON_FILES ${PXSCENE_COMMON_FILES} pxContextDFB.cpp)
+    #set(PXSCENE_COMMON_FILES ${PXSCENE_COMMON_FILES} pxContextDFB.cpp)
 endif (BUILD_WITH_GL)
 
 if (BUILD_WITH_WAYLAND)
@@ -543,7 +542,8 @@ if (BUILD_WITH_PXOBJECT_TRACKING)
     set(PXSCENE_DEFINITIONS ${PXSCENE_DEFINITIONS} -DENABLE_PXOBJECT_TRACKING)
 endif (BUILD_WITH_PXOBJECT_TRACKING)
 
-set(CMAKE_EXE_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS} ${PXSCENE_LINKER_OPTIONS})
+# JRJR A space between ${CMAKE_EXE_LINKER_FLAGS} and ${PXSCENE_LINKER_OPTIONS} injects a spurious semicolon into the vc build files
+set(CMAKE_EXE_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS}${PXSCENE_LINKER_OPTIONS})
 link_directories(${PXSCENE_LINK_DIRECTORIES})
 
 ##
@@ -552,6 +552,7 @@ link_directories(${PXSCENE_LINK_DIRECTORIES})
 
 if (BUILD_PXSCENE_APP)
     message("Enabling build support for pxscene app")
+    # WIN32 to switch to /subsystem:windows
     add_executable(pxscene_app ${PXSCENE_APP_FILES} ${PXSCENE_ADDITIONAL_RESOURCES})
     set_target_properties(pxscene_app PROPERTIES OUTPUT_NAME ${EXE})
     target_link_libraries(pxscene_app ${PXSCENE_APP_LIBRARIES} ${PXSCENE_LINK_LIBRARIES})
