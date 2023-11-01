@@ -34,6 +34,7 @@
 #include "rtScriptDuk/rtScriptDuk.h"
 #endif
 
+#include "rtSettings.h"
 
 #ifdef __APPLE__
 static pthread_mutex_t sSceneLock = PTHREAD_RECURSIVE_MUTEX_INITIALIZER; //PTHREAD_MUTEX_INITIALIZER;
@@ -54,9 +55,10 @@ static pthread_mutex_t sObjectMapMutex = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
 #endif //!RUNINMAIN
 #endif
 
-#ifndef ENABLE_DEBUG_MODE
 args_t *s_gArgs;
-#endif
+rtString g_debuggerAddress;
+bool g_debuggerEnabled = false;
+int g_debuggerPort = 0;
 
 static int sLockCount;
 
@@ -175,6 +177,7 @@ rtError rtScript::init()
 {
   if (false == mInitialized)
   {
+    populateDebuggerInfo();
     #if defined(RTSCRIPT_SUPPORT_NODE) && defined(RTSCRIPT_SUPPORT_DUKTAPE) 
       static int useDuktape = -1;
     
@@ -239,4 +242,48 @@ rtError rtScript::createContext(const char *lang, rtScriptContextRef& ctx)
 void* rtScript::getParameter(rtString param) 
 {
   return mScript->getParameter(param);
+}
+
+void rtScript::populateDebuggerInfo()
+{
+#ifdef ENABLE_DEBUG_MODE
+   char const *debugenabled = getenv("SPARK_ENABLE_DEBUGGING");
+   if (debugenabled)
+   {
+     if (1 == atoi(debugenabled))
+       g_debuggerEnabled = true;
+   }
+
+ rtLogInfo("Spark debugger enabled  - [%d]",g_debuggerEnabled);
+ if (true == g_debuggerEnabled)
+ {
+   rtValue debuggerAddress;
+   if (RT_OK == rtSettings::instance()->value("sparkDebuggerAddress", debuggerAddress))
+   {
+     g_debuggerAddress = debuggerAddress.toString();
+   }
+
+   rtValue debuggerPort;
+   if (RT_OK == rtSettings::instance()->value("sparkDebuggerPort", debuggerPort))
+   {
+     g_debuggerPort = debuggerPort.toInt64();
+   }
+
+   char const *debugaddress = getenv("SPARK_DEBUGGER_ADDRESS");
+   if (debugaddress)
+   {
+     g_debuggerAddress = debugaddress;
+   }
+
+   rtLogInfo("Spark debugger address[%s]", g_debuggerAddress.cString());
+
+   char const *debugport = getenv("SPARK_DEBUGGER_PORT");
+   if (debugport)
+   {
+     g_debuggerPort = atoi(debugport);
+   }
+
+   rtLogInfo("Spark debugger port[%d]", g_debuggerPort);
+ }
+#endif
 }

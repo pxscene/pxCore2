@@ -109,6 +109,9 @@ bool gIsPumpingJavaScript = false;
 #define USE_NODE_PLATFORM
 #endif
 
+extern rtString g_debuggerAddress;
+extern int g_debuggerPort;
+extern bool g_debuggerEnabled;
 namespace node
 {
 class Environment;
@@ -119,6 +122,8 @@ class rtNodeContext;
 
 typedef rtRef<rtNodeContext> rtNodeContextRef;
 
+#define NODE_DEBUGGER_ADDRESS "127.0.0.1"
+#define NODE_DEBUGGER_PORT 9229
 class rtNodeContext: rtIScriptContext  // V8
 {
 public:
@@ -256,11 +261,7 @@ private:
 #ifndef RUNINMAIN
   bool mNeedsToEnd;
 #endif
-#ifdef ENABLE_DEBUG_MODE
-  void init2();
-#else
   void init2(int argc, char** argv);
-#endif
 
   int mRefCount;
 };
@@ -289,13 +290,7 @@ extern uv_loop_t *nodeLoop;
 using namespace v8;
 using namespace node;
 
-#ifdef ENABLE_DEBUG_MODE
-int g_argc = 0;
-char** g_argv;
-#endif
-#ifndef ENABLE_DEBUG_MODE
 extern args_t *s_gArgs;
-#endif
 namespace node
 {
 #if NODE_VERSION_AT_LEAST(8,9,4)
@@ -416,13 +411,8 @@ void rtNodeContext::createEnvironment()
                            uv_default_loop(),
 #endif
                            local_context,
-#ifdef ENABLE_DEBUG_MODE
-                           g_argc,
-                           g_argv,
-#else
                            s_gArgs->argc,
                            s_gArgs->argv,
-#endif
                            exec_argc,
                            exec_argv);
 
@@ -455,13 +445,17 @@ void rtNodeContext::createEnvironment()
 #else
 #if HAVE_INSPECTOR
 #ifdef USE_NODE_PLATFORM
-    rtString currentPath;
-    rtGetCurrentDirectory(currentPath);
-    #ifdef WIN32
-    node::InspectorStart(mEnv, currentPath.cString(), platform);
-    #else
-    node::InspectorStart(mEnv, currentPath.cString(), "", 0);
-    #endif
+    if (g_debuggerEnabled) {
+      if (0 == g_debuggerPort) {
+        g_debuggerPort = NODE_DEBUGGER_PORT;
+      }
+      if (0 == g_debuggerAddress.length()) {
+        g_debuggerAddress = NODE_DEBUGGER_ADDRESS;
+      }
+      rtString currentPath;
+      rtGetCurrentDirectory(currentPath);
+      node::InspectorStart(mEnv, currentPath.cString(), g_debuggerAddress, g_debuggerPort);
+    }
 #endif //USE_NODE_PLATFORM
 #endif
 #endif
@@ -525,13 +519,8 @@ void rtNodeContext::createEnvironment()
   mEnv = CreateEnvironment(mIsolate,
                            uv_default_loop(),
                            local_context,
-#ifdef ENABLE_DEBUG_MODE
-                           g_argc,
-                           g_argv,
-#else
                            s_gArgs->argc,
                            s_gArgs->argv,
-#endif
                            exec_argc,
                            exec_argv);
 
@@ -1070,9 +1059,72 @@ rtError rtScriptNode::init()
   if (mTestGc)
     rtLogWarn("*** PERFORMANCE WARNING *** : gc being invoked in render thread");
 
+  int argc = 0;
 // TODO Please make this better... less hard coded...
 
                               //0123456 789ABCDEF012 345 67890ABCDEF
+#ifdef ENABLE_DEBUG_MODE
+  static const char* debug_node69Config = "rtNode\0--inspect\0--experimental-vm-modules\0-e\0console.log(\"rtNode Initalized\");\0\0";
+  static const char* debug_node69Configv[] = {&debug_node69Config[0], &debug_node69Config[7], &debug_node69Config[17], &debug_node69Config[43], &debug_node69Config[46], NULL};
+
+  static const char* debug_nodeHeapConfig = "rtNode\0--inspect\0--experimental-vm-modules\0--expose-gc\0--max_old_space_size=64\0-e\0console.log(\"rtNode Initalized\");\0\0";
+  static const char* debug_nodeHeapConfigv[] = {&debug_nodeHeapConfig[0], &debug_nodeHeapConfig[7], &debug_nodeHeapConfig[17], &debug_nodeHeapConfig[43], &debug_nodeHeapConfig[55], &debug_nodeHeapConfig[79], &debug_nodeHeapConfig[82], NULL};
+
+  static const char* debug_exposeGcConfig = "rtNode\0--inspect\0--experimental-vm-modules\0--expose-gc\0-e\0console.log(\"rtNode Initalized\");\0\0";
+  static const char* debug_exposeGcConfigv[] = {&debug_exposeGcConfig[0], &debug_exposeGcConfig[7], &debug_exposeGcConfig[17], &debug_exposeGcConfig[43], &debug_exposeGcConfig[55], &debug_exposeGcConfig[58], NULL};
+  
+  static const char* node69Config = "rtNode\0--experimental-vm-modules\0-e\0console.log(\"rtNode Initalized\");\0\0";
+  static const char* node69Configv[] = {&node69Config[0], &node69Config[7], &node69Config[33], &node69Config[36], NULL};
+
+  static const char* nodeHeapConfig = "rtNode\0--experimental-vm-modules\0--expose-gc\0--max_old_space_size=64\0-e\0console.log(\"rtNode Initalized\");\0\0";
+  static const char* nodeHeapConfigv[] = {&nodeHeapConfig[0], &nodeHeapConfig[7], &nodeHeapConfig[33], &nodeHeapConfig[45], &nodeHeapConfig[69], &nodeHeapConfig[72], NULL};
+
+  static const char* exposeGcConfig = "rtNode\0--experimental-vm-modules\0--expose-gc\0-e\0console.log(\"rtNode Initalized\");\0\0";
+  static const char* exposeGcConfigv[] = {&exposeGcConfig[0], &exposeGcConfig[7], &exposeGcConfig[33], &exposeGcConfig[45], &exposeGcConfig[48], NULL};
+
+
+  static char** argv2 = NULL;
+  if (g_debuggerEnabled == true) {
+  #if ENABLE_V8_HEAP_PARAMS
+  #ifdef ENABLE_NODE_V_6_9
+    argc = sizeof(debug_node69Configv)/sizeof(char*) - 1;
+    argv2 = (char**)debug_node69Configv;
+  #else
+    rtLogWarn("v8 old heap space configured to 64mb\n");
+    argc = sizeof(debug_nodeHeapConfigv)/sizeof(char*) - 1;
+    argv2 = (char**)debug_nodeHeapConfigv; 
+  #endif // ENABLE_NODE_V_6_9
+  #else
+  #ifdef ENABLE_NODE_V_6_9
+    argc = sizeof(debug_node69Configv)/sizeof(char*) - 1;
+    argv2 = (char**)debug_node69Configv;
+  #else
+    argc = sizeof(debug_exposeGcConfigv)/sizeof(char*) - 1;
+    argv2 = (char**)debug_exposeGcConfigv;
+  #endif // ENABLE_NODE_V_6_9
+  #endif //ENABLE_V8_HEAP_PARAMS
+  }
+  else
+  {
+  #if ENABLE_V8_HEAP_PARAMS
+  #ifdef ENABLE_NODE_V_6_9
+    argc = sizeof(node69Configv)/sizeof(char*) - 1;
+    argv2 = (char**)node69Configv;
+  #else
+    argc = sizeof(nodeHeapConfigv)/sizeof(char*) - 1;
+    argv2 = (char **) nodeHeapConfigv;
+  #endif // ENABLE_NODE_V_6_9
+  #else
+  #ifdef ENABLE_NODE_V_6_9
+    argc = sizeof(node69Configv)/sizeof(char*) - 1;
+    argv2 = (char**)node69Configv;
+  #else
+    argc = sizeof(exposeGcConfigv)/sizeof(char*) - 1;
+    argv2 = (char**)exposeGcConfigv;
+  #endif // ENABLE_NODE_V_6_9
+  #endif //ENABLE_V8_HEAP_PARAMS
+  }
+#else
 #if ENABLE_V8_HEAP_PARAMS
 #ifdef ENABLE_NODE_V_6_9
   static const char *args2   = "rtNode\0--experimental-vm-modules\0-e\0console.log(\"rtNode Initalized\");\0\0";
@@ -1084,25 +1136,21 @@ rtError rtScriptNode::init()
 #endif // ENABLE_NODE_V_6_9
 #else
 #ifdef ENABLE_NODE_V_6_9
-#ifndef ENABLE_DEBUG_MODE
    static const char *args2   = "rtNode\0--experimental-vm-modules\0-e\0console.log(\"rtNode Initalized\");\0\0";
    static const char *argv2[] = {&args2[0], &args2[7], &args2[33], &args2[36], NULL};
-#endif //!ENABLE_DEBUG_MODE
 #else
   static const char *args2   = "rtNode\0--experimental-vm-modules\0--expose-gc\0-e\0console.log(\"rtNode Initalized\");\0\0";
   static const char *argv2[] = {&args2[0], &args2[7], &args2[33], &args2[45], &args2[48], NULL};
 #endif // ENABLE_NODE_V_6_9
 #endif //ENABLE_V8_HEAP_PARAMS
-#ifndef ENABLE_DEBUG_MODE
-  int          argc   = sizeof(argv2)/sizeof(char*) - 1;
-
+  argc   = sizeof(argv2)/sizeof(char*) - 1;
+#endif //ENABLE_DEBUG_MODE
   static args_t aa(argc, (char**)argv2);
 
   s_gArgs = &aa;
 
 
   char **argv = aa.argv;
-#endif
 
 #ifdef RUNINMAIN
 #ifdef WIN32
@@ -1116,20 +1164,12 @@ rtError rtScriptNode::init()
 
 #ifdef ENABLE_NODE_V_6_9
   rtLogWarn("rtNode::rtNode() calling init \n");
-#ifdef ENABLE_DEBUG_MODE
-  init2();
-#else
   init2(argc, argv);
-#endif
 #else
   mIsolate     = Isolate::New();
   node_isolate = mIsolate; // Must come first !!
 
-#ifdef ENABLE_DEBUG_MODE
-  init2();
-#else
   init2(argc, argv);
-#endif
 #endif // ENABLE_NODE_V_6_9
   return RT_OK;
 }
@@ -1251,18 +1291,10 @@ bool rtNode::isInitialized()
 #endif
 
 #if 1
-#ifdef ENABLE_DEBUG_MODE
-void rtScriptNode::init2()
-#else
 void rtScriptNode::init2(int argc, char** argv)
-#endif
 {
   // Hack around with the argv pointer. Used for process.title = "blah".
-#ifdef ENABLE_DEBUG_MODE
-  g_argv = uv_setup_args(g_argc, g_argv);
-#else
   argv = uv_setup_args(argc, argv);
-#endif
 
   rtLogInfo(__FUNCTION__);
 
@@ -1274,20 +1306,12 @@ void rtScriptNode::init2(int argc, char** argv)
   if(node_is_initialized == false)
   {
     rtLogWarn("About to Init\n");
-#ifdef ENABLE_DEBUG_MODE
-    Init(&g_argc, const_cast<const char**>(g_argv), &exec_argc, &exec_argv);
-#else
     Init(&argc, const_cast<const char**>(argv), &exec_argc, &exec_argv);
-#endif
 
 #ifdef ENABLE_NODE_V_6_9
    rtLogWarn("using node version %s\n", NODE_VERSION);
    v8::V8::InitializeICU();
-#ifdef ENABLE_DEBUG_MODE
-   V8::InitializeExternalStartupData(g_argv[0]);
-#else
    V8::InitializeExternalStartupData(argv[0]);
-#endif
 
 #ifdef USE_NODE_PLATFORM
    Platform* platform = node::CreatePlatform(0, NULL);

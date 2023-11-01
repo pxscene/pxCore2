@@ -684,6 +684,9 @@ function Application(props) {
     this.applicationCreated();
   }
   else if (cmd === "sparkInstance"){
+    if (process.env.SPARK_DEBUGGER_PORT) {
+      process.env.SPARK_DEBUGGER_PORT++;
+    }
     this.type = ApplicationType.SPARK_INSTANCE;
     process.env.PXCORE_ESSOS_WAYLAND=1;
     process.env.WESTEROS_FAST_RENDER=0;
