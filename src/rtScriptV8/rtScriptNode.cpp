@@ -104,6 +104,7 @@ using namespace rtScriptV8NodeUtils;
 #ifdef RUNINMAIN
 bool gIsPumpingJavaScript = false;
 #endif
+bool gIsDisposingGCObjs = false;
 
 #if NODE_VERSION_AT_LEAST(8,12,0)
 #define USE_NODE_PLATFORM
@@ -119,6 +120,8 @@ class rtNodeContext;
 
 typedef rtRef<rtNodeContext> rtNodeContextRef;
 
+std::vector<rtObjectRef> gcdObjs;
+void disposeGarbageCollectedObjs();
 class rtNodeContext: rtIScriptContext  // V8
 {
 public:
@@ -1182,6 +1185,7 @@ rtError rtScriptNode::pump()
       }
     }
 #ifdef RUNINMAIN
+    disposeGarbageCollectedObjs();
     gIsPumpingJavaScript = false;
   }
 #endif
@@ -1201,6 +1205,7 @@ rtError rtScriptNode::collectGarbage()
   Local<Context> local_context = Context::New(mIsolate);
   Context::Scope contextScope(local_context);
   mIsolate->LowMemoryNotification();
+  disposeGarbageCollectedObjs();
 //#endif // RUNINMAIN
   return RT_OK;
 }
@@ -1456,4 +1461,18 @@ rtError createScriptNode(rtScriptRef& script)
   return RT_OK;
 }
 
+void disposeGarbageCollectedObjs()
+{
+  if (gIsDisposingGCObjs == false) 
+  {
+    gIsDisposingGCObjs = true;
+    size_t noelems = gcdObjs.size();
+    for (size_t i=0; i<noelems; i++)
+    {
+      gcdObjs[i].send("dispose");
+    }
+    gcdObjs.erase(gcdObjs.begin(), gcdObjs.begin()+noelems);
+    gIsDisposingGCObjs = false;
+  }
+}
 #endif // RTSCRIPT_SUPPORT_NODE
