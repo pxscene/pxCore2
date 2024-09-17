@@ -1429,6 +1429,20 @@ bool pxObject::hitTestInternal(pxMatrix4f m, pxPoint2f& pt, rtRef<pxObject>& hit
                    pxPoint2f& hitPt)
 {
 
+  float oldW = mw;
+  float oldH = mh;
+  if (mParent && mParent->clip()) {
+    if (mx >= 0) {
+      mw = mParent->w() - mx;
+    }
+    else
+      mw = mw + mx;
+    if (my >= 0) {
+      mh = mParent->h() - my;
+    }
+    else
+      mh = mh + my;
+  }
   // setup matrix
   pxMatrix4f m2;
 #if 0
@@ -1462,7 +1476,9 @@ bool pxObject::hitTestInternal(pxMatrix4f m, pxPoint2f& pt, rtRef<pxObject>& hit
     pxPoint2f newPt;
     newPt.x = v.x();
     newPt.y = v.y();
-    if (mInteractive && hitTest(newPt))
+    mw = oldW;
+    mh = oldH;
+    if (mInteractive && mDraw && ma && hitTest(newPt))
     {
       hit = this;
       hitPt = newPt;
