@@ -64,11 +64,11 @@ if [ -e ./version ] && [ -w . ]; then
   VERSION=`cat ./version`
   if [[ "$VERSION" != "edge"* ]]; then
     UPDATE_URL=http://www.sparkui.org/dist/osx/spark/software_update.plist
-    ./EngineRunner run -productid org.pxscene.pxscene -version $VERSION -url ${UPDATE_URL} &
+    ./sparkUpdater.sh -productid org.pxscene.pxscene -version $VERSION -url ${UPDATE_URL}
   else
     if [[ $updateEdge == "true" ]] || [[ $updateEdge == 1 ]] ; then
       UPDATE_URL=http://96.116.56.119/edge/osx/artifacts/software_update.plist
-      ./EngineRunner run -productid org.pxscene.pxscene -version $VERSION -url ${UPDATE_URL} &
+      ./sparkUpdater.sh -productid org.pxscene.pxscene -version $VERSION -url ${UPDATE_URL}
     fi
   fi
 else
