@@ -25,6 +25,7 @@ limitations under the License.
 #include "../pxWindowUtil.h"
 
 #include "../pxKeycodes.h"
+#include "pxTimerNative.h"
 
 #ifndef WINCE
 #include <tchar.h>
@@ -159,6 +160,7 @@ void pxWindow::setVisibility(bool visible)
     ShowWindow(mWindow, visible?SW_SHOW:SW_HIDE);
 }
 
+static int sFPS = 0;
 pxError pxWindow::setAnimationFPS(uint32_t fps)
 {
 #if 0
@@ -171,6 +173,8 @@ pxError pxWindow::setAnimationFPS(uint32_t fps)
     if (fps > 0)
     {
         mTimerId = SetTimer(mWindow, 1, 1000/fps, NULL);
+        
+        sFPS = fps;
     }
     return PX_OK;
 #else
@@ -281,7 +285,8 @@ LRESULT __stdcall pxWindowNative::windowProc(HWND hWnd, UINT msg, WPARAM wParam,
 		}
 
 		// re resolve the window ptr since we have destroyed it
-
+        
+        double startT = 0;
         w = (pxWindowNative*)getWindowPtr(hWnd);
 		if (w)
 		{
@@ -410,8 +415,10 @@ LRESULT __stdcall pxWindowNative::windowProc(HWND hWnd, UINT msg, WPARAM wParam,
 #endif
 
         case WM_TIMER:
-			// Should filter this to a single id
+            // Should filter this to a single id
+            startT = pxSeconds();
             w->onAnimationTimer();
+            w->mTimerId = SetTimer(w->mWindow, 1, (1000 / sFPS) - (pxSeconds() - startT), NULL);
             break;
 
         case WM_KEYDOWN:

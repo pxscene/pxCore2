@@ -18,11 +18,7 @@ limitations under the License.
 
 // pxTimerNative.cpp
 
-#include <windows.h>
-#include <stdint.h>
-
-static bool gFreqInitialized = false;
-static LARGE_INTEGER gFreq;
+#include "pxTimerNative.h"
 
 double pxSeconds()
 {
